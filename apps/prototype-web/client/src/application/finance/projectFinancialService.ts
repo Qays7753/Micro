@@ -27,6 +27,9 @@ import {
   summarizeCashContinuity,
 } from "@micro-domain/cash-continuity/index.js";
 import { summarizeLocalCraftOrders } from "@/application/financial-pulse/financialPulseService";
+/* F-008 (W2-D): المعين الكنوني الخفيف لكلفة توصيل المشروع — لا سحب تحلل
+ * الطلب الكامل إلى حزبة الدخول (الدخول يحتاج الكلفة فقط). */
+import { projectDeliveryCostMinor as orderDeliveryCostMinor } from "@micro-domain/craft-order/index.js";
 /* F-009 (W2-B): نموذج تعادل واحد — قراءة التغطية تستهلك calculateBreakEven
  * الكنونية بمدخلات g5Service الموحدة نفسها، بلا اشتقاق خاص بعد اليوم. */
 import { calculateBreakEven } from "@micro-domain/g5/index.js";
@@ -129,6 +132,14 @@ export type RecordedPeriodResult = {
   assetDisposalResultMinor: number;
   /* إيراد عربون محتفظ به مصنَّف صراحةً — يُعترف مرة واحدة بتاريخ التصنيف. */
   retainedDepositRevenueMinor: number;
+  /* F-019 (W2-D): الخسارة غير النقدية (loss_non_cash) بند مستقل محايد
+   * المعادلة — كانت ملفوفة داخل المصروف التشغيلي باسم لا يليق بها؛ البند نفسه
+   * يُخصم من النتيجة فالقيمة لا تتغير، والتمييز هو التصحيح. */
+  nonCashLossMinor: number;
+  /* F-008 (W2-D — الحد الأدنى الآمن بقرار D-03 معلق): كلفة التوصيل التي
+   * دفعها المشروع للطلبات النهائية خارج اللقطة — معلنة حقلًا وسببًا بلا طرح:
+   * قرار الطرح ينتظر توحيد التسجيل اليدوي للمصروف لتفادي الخصم المزدوج. */
+  projectDeliveryCostMinor: number;
   resultMinor: number | null;
   finalOrderCount: number;
   excludedOrderCount: number;
@@ -150,6 +161,9 @@ export type RecordedCostComposition = {
   timeMinor: number;
   packagingMinor: number;
   deliveryMinor: number;
+  /* F-019 (W2-D): الخسارة غير النقدية مفصولة عن المصروف التشغيلي — اتساقًا
+   * عبر الأسطح مع القارئ الكنوني. */
+  nonCashLossMinor: number;
   wasteMinor: number;
   operatingExpenseMinor: number;
 };
@@ -320,6 +334,11 @@ function activeInventoryMovements(movements: readonly InventoryMovement[]) {
   );
   return movements.filter(movement => movement.type !== "reversal" && !reversedIds.has(movement.id));
 }
+/* W2-D (D-034): جامع القيمة المطلقة لدلتا الحركة — ثلاث لامدا متطابقة
+ * كانت تكرر البايتات نفسها في حزبة الدخول بلا معنى جديد. */
+function sumAbsValueDelta(movements: readonly InventoryMovement[]): number {
+  return movements.reduce((sum, movement) => sum + Math.abs(movement.valueDeltaMinor), 0);
+}
 function derivePeriodCogs(
   finals: readonly {
     order: { id: string; recognizedCostMinor: number; costSnapshot: { materialCostMinor: number } };
@@ -350,7 +369,7 @@ function derivePeriodCogs(
         : item.order.recognizedCostMinor;
     if (observedCogsMinor === 0) cogsMissingOrderCount += 1;
   }
-  const recordedCogsMinor = qualified.reduce((sum, movement) => sum + Math.abs(movement.valueDeltaMinor), 0);
+  const recordedCogsMinor = sumAbsValueDelta(qualified);
   const cogsOrderCount = finals.length - cogsMissingOrderCount;
   const cogsStatus: CogsStatus =
     finals.length === 0
@@ -360,12 +379,10 @@ function derivePeriodCogs(
         : cogsOrderCount > 0
           ? "partial"
           : "not_available";
-  const unallocatedInventoryCostMinor = active
-    .filter(movement => movement.type === "consumption" && !movement.orderId)
-    .reduce((sum, movement) => sum + Math.abs(movement.valueDeltaMinor), 0);
-  const generalInventoryWasteMinor = active
-    .filter(movement => movement.type === "waste")
-    .reduce((sum, movement) => sum + Math.abs(movement.valueDeltaMinor), 0);
+  const unallocatedInventoryCostMinor = sumAbsValueDelta(
+    active.filter(movement => movement.type === "consumption" && !movement.orderId),
+  );
+  const generalInventoryWasteMinor = sumAbsValueDelta(active.filter(movement => movement.type === "waste"));
   const cogsReasons: string[] = [];
   if (finals.length > 0 && cogsStatus === "not_available") cogsReasons.push("نسخة تكلفة بديلة");
   if (cogsStatus === "partial") cogsReasons.push("تكلفة بيع جزئية");
@@ -648,6 +665,8 @@ export class ProjectFinancialService {
           assetWriteOffLossMinor: 0,
           assetDisposalResultMinor: 0,
           retainedDepositRevenueMinor: 0,
+          nonCashLossMinor: 0,
+          projectDeliveryCostMinor: 0,
           resultMinor: null,
           finalOrderCount: 0,
           excludedOrderCount: 0,
@@ -690,28 +709,32 @@ export class ProjectFinancialService {
     const cogs = derivePeriodCogs(finals, movementsResult.value);
     const periodEvents = eventsResult.value.filter(event => inPeriod(event.occurredOn));
     const operatingEvents = periodEvents.filter(event => isRecordedOperatingExpense(event));
+    /* F-019 (W2-D): الخسارة غير النقدية بند مستقل — تُخصم باسمها لا داخل
+     * المصروف التشغيلي، وتخرج من المصنفات القديمة كي لا تُوسم «مصروفًا
+     * غير مصنف» وهي ليست مصروفًا نقديًا أصلًا. المعادلة محايدة: البند نفسه
+     * يُخصم فالنتيجة لا تتغير. */
+    const cashOperatingEvents = operatingEvents.filter(event => event.type !== "loss_non_cash");
     const sharedUnallocatedEvents = periodEvents.filter(sharedExpenseIsUnallocated);
     const sharedUnallocatedSources = sharedUnallocatedEvents.filter(
       event => event.correctionType !== "reverse",
     );
     const reviewableOperatingEvents = [
-      ...operatingEvents.filter(event => event.operatingExpenseDeltaMinor > 0),
+      ...cashOperatingEvents.filter(event => event.operatingExpenseDeltaMinor > 0),
       ...sharedUnallocatedSources,
     ];
-    const projectEvents = operatingEvents.filter(event => event.expenseContext?.relationship === "project");
-    const sharedEvents = operatingEvents.filter(event => event.expenseContext?.relationship === "shared");
-    const legacyEvents = operatingEvents.filter(event => !event.expenseContext);
-    const recordedOperatingExpenseMinor = operatingEvents.reduce(
-      (total, event) => total + event.operatingExpenseDeltaMinor,
-      0,
+    /* F-019 (W2-D — D-034): جامع دلتا المصروف الواحد للمجموعات الأربع — أربع
+     * لامدا متطابقة كانت تكرر بايتات حزبة الدخول بلا معنى جديد. */
+    const sumOperatingDelta = (events: readonly FinancialEvent[]) =>
+      events.reduce((total, event) => total + event.operatingExpenseDeltaMinor, 0);
+    const recordedOperatingExpenseMinor = sumOperatingDelta(cashOperatingEvents);
+    /* F-019 (W2-D): الخسارة = دلتا المصروف الكاملة − دلتا النقدي منها — نفس
+     * مجموع أحداث loss_non_cash تمامًا (الجامع الموحد نفسه، لا مسار ثانٍ). */
+    const nonCashLossMinor = sumOperatingDelta(operatingEvents) - recordedOperatingExpenseMinor;
+    const projectOperatingExpenseMinor = sumOperatingDelta(
+      cashOperatingEvents.filter(event => event.expenseContext?.relationship === "project"),
     );
-    const projectOperatingExpenseMinor = projectEvents.reduce(
-      (total, event) => total + event.operatingExpenseDeltaMinor,
-      0,
-    );
-    const sharedProjectExpenseMinor = sharedEvents.reduce(
-      (total, event) => total + event.operatingExpenseDeltaMinor,
-      0,
+    const sharedProjectExpenseMinor = sumOperatingDelta(
+      cashOperatingEvents.filter(event => event.expenseContext?.relationship === "shared"),
     );
     const sharedUnallocatedExpenseMinor = sharedUnallocatedEvents.reduce(
       (total, event) =>
@@ -720,9 +743,8 @@ export class ProjectFinancialService {
           (event.expenseContext?.sharedProjectShare?.totalAmountMinor ?? event.amountMinor),
       0,
     );
-    const legacyUnclassifiedExpenseMinor = legacyEvents.reduce(
-      (total, event) => total + event.operatingExpenseDeltaMinor,
-      0,
+    const legacyUnclassifiedExpenseMinor = sumOperatingDelta(
+      cashOperatingEvents.filter(event => !event.expenseContext),
     );
     const sharedEstimatedExpenseCount = reviewableOperatingEvents.filter(
       event =>
@@ -750,18 +772,27 @@ export class ProjectFinancialService {
           event.type === "asset_disposal_cash" ||
           event.type === "deposit_retained_revenue"),
     );
-    const assetDepreciationMinor = activePeriodGroup4Events
-      .filter(event => event.type === "asset_depreciation")
-      .reduce((sum, event) => sum + event.amountMinor, 0);
-    const assetWriteOffLossMinor = activePeriodGroup4Events
-      .filter(event => event.type === "asset_writeoff")
-      .reduce((sum, event) => sum + event.amountMinor, 0);
+    /* W2-D (D-034): سلسلتا «صنف المجموعة ٤ ثم مجموع المبلغ» صارتا معينًا واحدًا. */
+    const group4AmountMinor = (type: "asset_depreciation" | "asset_writeoff") =>
+      activePeriodGroup4Events
+        .filter(event => event.type === type)
+        .reduce((sum, event) => sum + event.amountMinor, 0);
+    const assetDepreciationMinor = group4AmountMinor("asset_depreciation");
+    const assetWriteOffLossMinor = group4AmountMinor("asset_writeoff");
     const assetDisposalResultMinor = activePeriodGroup4Events
       .filter(event => event.type === "asset_disposal_cash")
       .reduce((sum, event) => sum + (event.amountMinor - (event.assetContext?.bookValueMinor ?? 0)), 0);
     const retainedDepositRevenueMinor = activePeriodGroup4Events
       .filter(event => event.type === "deposit_retained_revenue")
       .reduce((sum, event) => sum + (event.revenueDeltaMinor ?? event.amountMinor), 0);
+    /* F-008 (W2-D — الحد الأدنى الآمن): كلفة التوصيل التي دفعها المشروع
+     * للطلبات النهائية، كما تُشتقها وحدة تحلل الطلب الكنونية من شروط التوصيل
+     * المسجلة — معلنة بلا طرح (قرار D-03 معلق لتفادي الخصم المزدوج مع
+     * التسجيل اليدوي للمصروف). */
+    const projectDeliveryCostMinor = finals.reduce(
+      (total, { order }) => total + (orderDeliveryCostMinor(order) ?? 0),
+      0,
+    );
     const reasons: string[] = [];
     if (excludedOrderCount > 0) reasons.push("طلبات مستبعدة");
     if (directSaleCostUnknownCount > 0) reasons.push("بيع مباشر بتكلفة غير معروفة");
@@ -769,6 +800,11 @@ export class ProjectFinancialService {
     if (sharedMissingBasisCount > 0) reasons.push("حصة بلا مصدر");
     if (sharedUnallocatedExpenseCount > 0) reasons.push("حصة غير موزعة");
     if (legacyUnclassifiedExpenseCount > 0) reasons.push("مصروفات غير مصنفة");
+    /* F-019 (W2-D): الخسارة غير النقدية معلنة باسمها — بند مستقل في المعادلة. */
+    if (nonCashLossMinor > 0) reasons.push("خسارة غير نقدية");
+    /* F-008 (W2-D): إعلان الحد الأدنى الآمن — الكلفة مرئية والنتيجة لم تُخفض
+     * بعد قرار المالك في توحيد مسار التسجيل. */
+    if (projectDeliveryCostMinor > 0) reasons.push("كلفة توصيل معلنة");
     /* المجموعة ٤: بنود مستقلة معلنة — لا تُخلط بالمصروفات التشغيلية. */
     if (assetDepreciationMinor > 0) reasons.push("إهلاك مسجّل");
     if (assetWriteOffLossMinor > 0) reasons.push("شطب أصل");
@@ -809,10 +845,13 @@ export class ProjectFinancialService {
         assetWriteOffLossMinor,
         assetDisposalResultMinor,
         retainedDepositRevenueMinor,
-        /* F-005 + المجموعة ٤: النتيجة تتضمن إيراد البيع المباشر وتكلفته المعروفة،
-         * وتخصم الإهلاك المسجّل وخسارة الشطب وتضيف نتيجة التخلص وإيراد عربون
-         * محتفظ مصنَّف — كلها بنود صريحة بلا اختراع كاش. وأي بيع بتكلفة مجهولة
-         * يمنع عرض رقم نهائي — «غير متاح» لا ربحًا متوهّمًا. */
+        nonCashLossMinor,
+        projectDeliveryCostMinor,
+        /* F-005 + المجموعة ٤ + F-019: النتيجة تتضمن إيراد البيع المباشر وتكلفته
+         * المعروفة، وتخصم الإهلاك المسجّل وخسارة الشطب والخسارة غير النقدية
+         * باسمها، وتضيف نتيجة التخلص وإيراد عربون محتفظ مصنَّف — كلها بنود
+         * صريحة بلا اختراع كاش. وأي بيع بتكلفة مجهولة يمنع عرض رقم نهائي —
+         * «غير متاح» لا ربحًا متوهّمًا. */
         resultMinor:
           directSaleCostUnknownCount > 0
             ? null
@@ -821,6 +860,7 @@ export class ProjectFinancialService {
               cogs.effectiveDirectCostMinor -
               directSaleCostKnownMinor -
               recordedOperatingExpenseMinor -
+              nonCashLossMinor -
               assetDepreciationMinor -
               assetWriteOffLossMinor +
               assetDisposalResultMinor +
@@ -904,12 +944,11 @@ export class ProjectFinancialService {
       deliveryMinor += order.costSnapshot.deliveryMinor;
       wasteMinor += order.costSnapshot.wasteMinor;
     }
-    const periodEvents = eventsResult.value.filter(event => inPeriod(event.occurredOn));
-    const operating = periodEvents.filter(isRecordedOperatingExpense);
-    const operatingExpenseMinor = operating.reduce(
-      (total, event) => total + event.operatingExpenseDeltaMinor,
-      0,
-    );
+    /* F-019 (W2-D): التركيب المعياري يعيد استخدام حقلي القارئ الكنوني نفسه
+     * (recordedOperatingExpenseMinor بلا الخسارة وnonCashLossMinor) — لا
+     * اشتقاق ثانٍ ولا إعادة حساب في طبقة المؤشرات. */
+    const operatingExpenseMinor = periodResult.value.recordedOperatingExpenseMinor;
+    const nonCashLossMinor = periodResult.value.nonCashLossMinor;
     const movementCount = movementsResult.value.filter(movement => inPeriod(movement.occurredOn)).length;
     /* F-009 (W2-B): نموذج التعادل الكنوني الواحد — نفس مدخلات g5Service ونفس
      * calculateBreakEven، فلا يمكن لسطحين أن يعرضا رقمين مختلفين لسؤال واحد.
@@ -984,6 +1023,7 @@ export class ProjectFinancialService {
           deliveryMinor,
           wasteMinor,
           operatingExpenseMinor,
+          nonCashLossMinor,
         },
         inventoryMovementCount: movementCount,
         coverage,

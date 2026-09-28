@@ -38,6 +38,9 @@ const baseResult: RecordedPeriodResult = {
   assetWriteOffLossMinor: 0,
   assetDisposalResultMinor: 500,
   retainedDepositRevenueMinor: 3000,
+  /* F-019/F-008 (W2-D): بنود الإعلان الجديدة — صفران في هذا الفكسجر. */
+  nonCashLossMinor: 0,
+  projectDeliveryCostMinor: 0,
   resultMinor: 9000,
   finalOrderCount: 1,
   excludedOrderCount: 0,

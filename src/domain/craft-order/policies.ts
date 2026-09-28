@@ -409,7 +409,7 @@ function billableDeliveryFeeMinor(order: CraftOrder): MoneyMinor | null {
 /* كلفة النقل التي تحملها المشروع — تدخل في النتيجة مرة واحدة، فقط عندما
  * لم تكن محتواة أصلًا داخل تكلفة المنتج. الزبون يدفع للناقل مباشرة
  * = معلومة سياقية فقط: لا كاش مشروع ولا إيرادًا ولا مصروفًا ولا تكلفة. */
-function projectDeliveryCostMinor(order: CraftOrder): MoneyMinor | null {
+export function projectDeliveryCostMinor(order: CraftOrder): MoneyMinor | null {
   const terms = order.deliveryTerms ?? null;
   if (!terms) return 0;
   if (terms.responsibility === "customer_pays_courier") return 0;

@@ -20,6 +20,7 @@ export {
   createCraftOrder,
   noteDeliveryConsumption,
   orderResultBreakdown,
+  projectDeliveryCostMinor,
   orderValueMinor,
   recordDeliveryTerms,
   registerDebt,

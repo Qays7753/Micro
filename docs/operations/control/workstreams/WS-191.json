@@ -1,0 +1,49 @@
+{
+  "id": "WS-191",
+  "title": "REM-002 — W2-D الإعلانات الكنسية والعقود (F-008/F-019/F-061/F-014/F-018/F-015)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "REM-002"
+  ],
+  "branch": "fix/w2d-declarations-contracts-20260929",
+  "base_sha": "a03abae1c5c128fa2decd23432e5600002549edf",
+  "areas": [
+    "finance",
+    "contracts",
+    "reports",
+    "tests"
+  ],
+  "contracts": [
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/14-period-result-allocation-policy-prototype-contract.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 2, slice D)",
+  "pr": null,
+  "started_at": "2026-09-29T01:25:00+03:00",
+  "updated_at": "2026-09-29T01:25:00+03:00",
+  "next_action": "تنفيذ W2-D: إعلان كلفة التوصيل (بلا طرح)، فصل الخسارة غير النقدية محايد المعادلة، عقود 05/14، توثيق F-015 المحفوظة.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-191",
+      "reason": "فتح Claim لشريحة W2-D من origin/main a03abae بعد تحقق W2-C على main."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-191",
+      "reason": "تنفيذ إعلانات القارئ والعقود الموثقة."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: قارئ الفترة (إعلان كلفة التوصيل + فصل الخسارة) + تركيب المؤشرات + عقود 05 §3.2.1 و14 §3.1 + التحلل.",
+    "حد الاستعادة: a03abae — قراءات مشتقة وتوثيق."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-002.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W2D-SLICE-REPORT-2026-09-29.md"
+  ]
+}

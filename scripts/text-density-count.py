@@ -855,7 +855,12 @@ CAPS: dict[str, int] = {
     # (إيراد معترف به / تكلفة مباشرة / مصاريف تشغيلية) + وسم «تكلفة بيع مباشر
     # معروفة»: البند الذي كان غير مرئي في معادلة النتيجة وهو موضوع F-016
     # نفسه. لا نثرًا جديدًا وراءها؛ بقية التسميات معروضات قائمة يعاد استخدامها.
-    "Statement": 228,
+    # Statement 228 -> 229 (2026-09-29, REM-002 W2-D/F-019, owner-approved master
+    # remediation charter): وسم «خسارة غير نقدية (خارج المصروف التشغيلي)» —
+    # البند المستقل الذي كان يختفي داخل سطر المصروف التشغيلي بوسم «دفع +
+    # استحقاق» لا ينطبق عليه؛ ظهوره بندًا مستقلًا في التحلل والمقارنة هو
+    # موضوع F-019 نفسه. لا نثرًا جديدًا وراءه.
+    "Statement": 229,
     # CostCalculator (2026-09-02, Group 3 Scope A, owner-approved execution prompt):
     # new mandated deep screen — full calculator (materials/time/quantity/optional
     # extras), live result with honest unknown lines, save + edit binding, saved
