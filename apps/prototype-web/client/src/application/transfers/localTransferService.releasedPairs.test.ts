@@ -816,10 +816,14 @@ describe("historical 8/17 pair (commit 570eba1) — faithful fixture", () => {
     expect(prepared.ok).toBe(false);
   });
 
-  it("accepts the same event id under two different types (collection and its reversal signature)", () => {
-    /* نطاق التفرُّد (المفتاح، النوع) داخل الطلب — نفس المفتاح بنوعين مسموح
-     * كما يسمح مسار الكتابة (مفتاح العملية الواحد للقبضة وتراجعها)؛ التفرد
-     * الأعمى على الهوية وحدها كان سيرفض ملفات صادقة. */
+  it("rejects the same event id under two different types (F-051: id collision across types)", () => {
+    /* نطاق التفرُّد (المفتاح، النوع) داخل الطلب — نفس المفتاح بنوعين كان مسموحًا
+     * في الاستيراد (تصحيح مؤرخ 2026-09-29 F-051/W4-F). الحجة الأصلية كانت
+     * «مفتاح العملية الواحد للقبضة وتراجعها» لكن كل عائلات الكتابة الحية
+     * تخصص نطاقات مفاتيح نوعية مميزة (التراجع يُسكّ مفتاحه الخاص
+     * `${orderId}:reverse-collection:${key}`) فلا ينتج التطبيق مطلقًا حدثين
+     * بهوية واحدة — والهوية المكررة عبر الأنواع هي تحديدًا فجوة التلاعب
+     * التي يعتمدها القارئات بالهوية. تُرفض الآن كما تُرفض في أحداث المالية. */
     const tampered = JSON.parse(JSON.stringify(file817)) as typeof file817;
     const events = tampered.data.orders[0]!.order.events as {
       id: string;
@@ -830,8 +834,26 @@ describe("historical 8/17 pair (commit 570eba1) — faithful fixture", () => {
     const first = events[0]!;
     events.push({ ...first, type: "price_approved" });
     const prepared = transfers().prepareImport(JSON.stringify(tampered));
-    if (!prepared.ok) throw new Error(prepared.message);
-    expect(prepared.value.file.data.orders[0]?.order.events.length).toBe(4);
+    expect(prepared.ok).toBe(false);
+  });
+
+  it("rejects duplicated ids even when the keys differ (F-051: identity is the anchor, not the key pair)", () => {
+    /* هوية حدث الحالة تُبنى `${orderId}:status:${key}` — حدثٌ عادي بمفتاح يبدأ
+     * «status:» كان سينتج الهوية نفسها بطبيعته (نطاقا مفاتيح مختلفان، هوية
+     * واحدة). العهدة هنا تزرع الشكل العام للفجوة: هوية مكررة عبر مفتاحين
+     * مختلفين تمامًا — الرفض يعتمد الهوية وحدها لا زوج (المفتاح، النوع)،
+     * فلا يمر أي تنكّر بالمفاتيح على التكرار. */
+    const tampered = JSON.parse(JSON.stringify(file817)) as typeof file817;
+    const events = tampered.data.orders[0]!.order.events as {
+      id: string;
+      type: string;
+      idempotencyKey: string;
+      createdAt: string;
+    }[];
+    const first = events[0]!;
+    events.push({ ...first, type: "price_approved", idempotencyKey: `disguised:${first.idempotencyKey}` });
+    const prepared = transfers().prepareImport(JSON.stringify(tampered));
+    expect(prepared.ok).toBe(false);
   });
 });
 

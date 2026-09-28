@@ -967,9 +967,13 @@ export function reverseOrderCollection(order: CraftOrder, input: ReverseCollecti
   assertNotLockedDeliveredReview(order);
   if (order.status === "cancelled")
     throw new Error("لا يُتراجع عن قبض في طلب ملغى؛ العربون له مسار تسويته الخاص.");
-  const source = order.events.find(event => event.id === input.collectionEventId);
-  if (!source || source.type !== "collection_recorded")
-    throw new Error("اختر قبضة مسجلة على هذا الطلب قبل التراجع.");
+  /* F-051 (W4-F): البحث بالهوية والنوع معًا — حدثٌ آخر بنفس الهوية (نوع مختلف)
+   * لا يحجب القبضة المقصودة عن القارئ؛ الاستيراد يرفض الهوية المكررة أصلًا
+   * وهذا تعميق دفاعي لمسار النطاق المباشر. */
+  const source = order.events.find(
+    event => event.id === input.collectionEventId && event.type === "collection_recorded",
+  );
+  if (!source) throw new Error("اختر قبضة مسجلة على هذا الطلب قبل التراجع.");
   assertPositiveInteger(input.amountMinor, "مبلغ التراجع");
   const sourceAmount = source.amountMinor ?? 0;
   const reversedSoFar = order.events
@@ -1011,8 +1015,12 @@ export function noteDeliveryConsumption(order: CraftOrder, input: DeliveryConsum
   assertIdempotencyKey(input.idempotencyKey);
   if (eventExists(order, input.idempotencyKey, "delivery_consumed")) return order;
   if (!input.note.trim()) throw new Error("أكمل بيان مواد التسليم قبل التوثيق.");
-  const source = order.events.find(event => event.id === input.reversesEventId);
-  if (!source || source.type !== "status_changed" || source.toStatus !== "delivered") {
+  /* F-051 (W4-F): البحث بالهوية والنوع معًا — انظر تعليق reverseOrderCollection. */
+  const source = order.events.find(
+    event =>
+      event.id === input.reversesEventId && event.type === "status_changed" && event.toStatus === "delivered",
+  );
+  if (!source) {
     throw new Error("اختر حدث التسليم الموثق قبل تسجيل استهلاك مواد التسليم.");
   }
   return appendEvent(order, {

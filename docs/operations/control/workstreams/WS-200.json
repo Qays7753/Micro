@@ -1,7 +1,7 @@
 {
   "id": "WS-200",
   "title": "REM-004 — W4-E اكتمال قوالب مسارات التشخيص واختبار التزامن (F-047)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "REM-004"
   ],
@@ -18,8 +18,8 @@
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice E)",
   "pr": 270,
   "started_at": "2026-09-29T20:20:00+03:00",
-  "updated_at": "2026-09-29T20:45:00+03:00",
-  "next_action": "PR #270 للمراجعة والدمج؛ بعده التحقق على main ثم W4-F (F-051/F-053/F-058).",
+  "updated_at": "2026-09-29T21:30:00+03:00",
+  "next_action": "لا إجراء إضافي؛ شريحة W4-E متحققة على main 12729a6 (تطابق الشجرة مع رأس PR).",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -32,6 +32,18 @@
       "changed_at": "2026-09-29",
       "actor": "pr:270",
       "reason": "اكتمل تنفيذ W4-E وافتُتح PR #270 ببوابات خضراء محليًا؛ فشلت بوابة الحزمة على CI (Node 22: RAW_OVER ~650,020 — فارق بيئة +112 خام/+64 gzip عن Node 24 المحلي) فاستُبدل التمثيل المسطح بمجموعات «قسم:مسارات» في رأس أحدث (649,687 خام محليًا — أقل من خط أساس main بـ115 بايت) وأعيد تشغيل كل البوابات خضراء."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-270",
+      "reason": "دُمج PR #270 (Squash) عند 12729a6 بعد جولة إصلاح بوابة الحزمة (التمثيل المجمّع) وCI أخضر على الرأس النهائي."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-tree",
+      "reason": "تطابق الشجرة (رأس origin/main = 12729a6 = الدمج)؛ التحقق المباشر على main: ترميز المجموعات حاضر في routeTemplate.ts واختبار التزامن routeTemplateSync حاضر (14/14 تشخيص)؛ CI + Cloudflare على الدمج أخضر؛ أرقام الحزمة على CI: 649,799 خام/650,000 و154,683 gzip/155,000."
     }
   ],
   "migration_baseline": false,
@@ -43,5 +55,7 @@
   "evidence": [
     "docs/operations/control/items/REM-004.json",
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4E-SLICE-REPORT-2026-09-29.md"
-  ]
+  ],
+  "merge_sha": "12729a68e02e1a8be6151e8a66c5a19c9b17e23a",
+  "verified_on_main_sha": "12729a68e02e1a8be6151e8a66c5a19c9b17e23a"
 }

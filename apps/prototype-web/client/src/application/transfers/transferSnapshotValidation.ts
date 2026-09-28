@@ -195,9 +195,14 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     const order = stored.order;
     /* المجموعة ٢ (التحصين الكامل — LOW-002): تفرُّد الأحداث داخل الطلب على
      * زوج (المفتاح، النوع) — نفس عقد مسار الكتابة (appendEvent يُكرم بالمفتاح
-     * والنوع معًا). نفس المفتاح بنوعين مختلفين مسموح (قبضة وتراجعها بمفتاح
-     * العملية الواحد)، والمفتاح نفسه بالنوع نفسه مرتين = تلاعب يُرفض. */
+     * والنوع معًا). المفتاح نفسه بالنوع نفسه مرتين = تلاعب يُرفض.
+     * (تصحيح مؤرخ 2026-09-29 — F-051/W4-F): التفرُّد على الزوج وحده لم يكن
+     * يرفض هويةً مكررة عبر نوعين — وكل عائلات الكتابة الحية تخصص نطاقات
+     * مفاتيح نوعية مميزة فلا ينتج التطبيق حدثين بهوية واحدة أصلًا؛ لذا
+     * يُرفض الآن أي حدثين بهوية واحدة داخل الطلب نفسه (نفس نمط أحداث
+     * المالية أعلاه) — القارئات بالهوية تعتمد المطابقة الفريدة. */
     const orderEventKeyTypes = new Set<string>();
+    const orderEventIds = new Set<string>();
     const orderEventUniquenessValid =
       Array.isArray(order.events) &&
       order.events.every(event => {
@@ -205,6 +210,10 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
         const key = `${event.type}:${event.idempotencyKey}`;
         if (orderEventKeyTypes.has(key)) return false;
         orderEventKeyTypes.add(key);
+        if (isString(event.id)) {
+          if (orderEventIds.has(event.id)) return false;
+          orderEventIds.add(event.id);
+        }
         return true;
       });
     if (!orderEventUniquenessValid) return false;

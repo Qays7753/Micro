@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-200 | IN_REVIEW | \`fix/w4e-route-templates-sync-20260929\` | 270 | REM-004 | PR #270 للمراجعة والدمج؛ بعده التحقق على main ثم W4-F (F-051/F-053/F-058). |
+| WS-201 | IN_REVIEW | \`fix/w4f-persistence-guards-oracles-20260929\` | 271 | REM-004 | PR #271 للمراجعة والدمج؛ بعده التحقق على main ثم إغلاق الموجة 4. |
