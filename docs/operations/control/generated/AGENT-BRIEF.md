@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-189 | IN_REVIEW | \`fix/w2b-unified-breakeven-20260929\` | 254 | REM-002 | تنفيذ W2-B: insights يستهلك calculateBreakEven الكنونية بمدخلات موحدة؛ الافتراضات الهيكلية دائمًا؛ تسمية الهامش المباشر؛ عقود 17 و12 محدثة. |
+| WS-190 | IN_REVIEW | \`fix/w2c-decomposition-comparison-20260929\` | 255 | REM-002 | تنفيذ W2-C: سطر «مكوناتها» من التحلل الفعلي (statementResultDecomposition في طبقة التقرير)؛ دلتا المقارنة = الحالية − الأساس. |

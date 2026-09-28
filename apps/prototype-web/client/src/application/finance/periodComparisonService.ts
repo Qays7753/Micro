@@ -2,8 +2,13 @@
  * FIN-003 (WS-173 — Wave 1): مقارنة فترتين فوق القارئ الكنوني نفسه — قراءة
  * فقط بلا Writer ولا كتابة عند الفتح إطلاقًا. تستدعي `readRecordedPeriodResult`
  * مرتين (مسار حساب واحد: لا يُعاد اشتقاق أي رقم فترة هنا) وتعرض كل بند كانوني
- * جانبًا إلى جانب مع فرق الإشارة (B − A) وبيان تغيّر آمن النسب (null عند
- * أساس فارغ أو مجهول — لا قسمة على صفر).
+ * جانبًا إلى جانب مع فرق الإشارة (الحالية − الأساس) وبيان تغيّر آمن النسب
+ * (null عند أساس فارغ أو مجهول — لا قسمة على صفر).
+ *
+ * F-017 (W2-C — إشارة صادقة): الوسيطان مسميان بدلالتهما — `current` ثم
+ * `baseline` — والدلتا = الحالية − الأساس، فالتحسن يظهر بإشارة موجبة تحت
+ * ترتيب الاستدعاء الإنتاجي (Statement يمرر الحالية أولًا). أساس نقاط الأساس
+ * هو الفترة الأساس لا الحالية.
  *
  * قواعد العرض الصادقة (عقد 05 §3.2.1 + عقد 31):
  * • الحالة أسوأ الحالتين: invalid > incomplete > recorded_only؛ وطرف بنطاق
@@ -51,13 +56,14 @@ export type PeriodComparisonLine = {
   /** مصدر البند/عائلته — بأسلوب الكشف الحي («كل سطر يصل بمصدره»). */
   source: string;
   kind: PeriodComparisonLineKind;
-  /** قيمة الطرف A (null فقط حين تكون المعرفة نفسها غير متاحة: نطاق غير صالح أو نتيجة غير متاحة). */
+  /** قيمة الفترة الحالية (طرف a؛ null فقط حين تكون المعرفة نفسها غير متاحة: نطاق غير صالح أو نتيجة غير متاحة). */
   a: number | null;
-  /** قيمة الطرف B بنفس الدلالة. */
+  /** قيمة فترة الأساس (طرف b) بنفس الدلالة. */
   b: number | null;
-  /** الفرق بالإشارة (B − A)؛ null عند غياب أي طرف. */
+  /* F-017 (W2-C): الدلتا = الحالية − الأساس (a − b)؛ null عند غياب أي طرف —
+   * التحسن موجب والتراجع سالب، بلا كلمة اتجاه مفبركة. */
   delta: number | null;
-  /** التغيّر بنقاط الأساس (١٠٠ = 1%)؛ null عند أساس null/صفر أو طرف غائب — لا قسمة على صفر. */
+  /** التغيّر بنقاط الأساس على أساس فترة الأساس (١٠٠ = 1%)؛ null عند أساس null/صفر أو طرف غائب — لا قسمة على صفر. */
   changeBps: number | null;
 };
 
@@ -355,12 +361,17 @@ function sideOf(period: RecordedPeriodResult): PeriodComparisonSide {
   };
 }
 
-function lineOf(spec: LineSpec, a: RecordedPeriodResult, b: RecordedPeriodResult): PeriodComparisonLine {
-  const valueA = spec.read(a);
-  const valueB = spec.read(b);
-  const delta = valueA !== null && valueB !== null ? valueB - valueA : null;
+function lineOf(
+  spec: LineSpec,
+  current: RecordedPeriodResult,
+  baseline: RecordedPeriodResult,
+): PeriodComparisonLine {
+  const valueA = spec.read(current);
+  const valueB = spec.read(baseline);
+  /* F-017 (W2-C): الحالية − الأساس — التحسن موجب. */
+  const delta = valueA !== null && valueB !== null ? valueA - valueB : null;
   const changeBps =
-    delta !== null && valueA !== null && valueA !== 0 ? roundHalfUp(delta * 10_000, valueA) : null;
+    delta !== null && valueB !== null && valueB !== 0 ? roundHalfUp(delta * 10_000, valueB) : null;
   return {
     id: spec.id,
     label: spec.label,
@@ -386,12 +397,12 @@ export class PeriodComparisonService {
   }
 
   async readPeriodComparison(
-    periodA: { from: string; to: string },
-    periodB: { from: string; to: string },
+    current: { from: string; to: string },
+    baseline: { from: string; to: string },
   ): Promise<FinanceResult<PeriodComparisonReading>> {
     const [readingA, readingB] = await Promise.all([
-      this.finance.readRecordedPeriodResult(periodA.from, periodA.to),
-      this.finance.readRecordedPeriodResult(periodB.from, periodB.to),
+      this.finance.readRecordedPeriodResult(current.from, current.to),
+      this.finance.readRecordedPeriodResult(baseline.from, baseline.to),
     ]);
     if (!readingA.ok || !readingB.ok)
       return { ok: false, code: "storage_error", message: "تعذر قراءة نتيجتي الفترتين المحليتين." };

@@ -2,6 +2,7 @@
  * وحدود الفترة، ووصل المصادر، وأثر التصحيحات مرة واحدة لا مرتين. */
 import { describe, expect, it } from "vitest";
 import { StatementService } from "./statementService";
+import { statementResultDecomposition } from "./statementMarkdownService";
 import { OwnerEntitlementService } from "./ownerEntitlementService";
 import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
@@ -213,6 +214,101 @@ describe("StatementService — كشف الفترة (المجموعة ٢ §9.2)",
       expect(reading.value.result.directSaleRevenueMinor).toBe(2500);
       expect(reading.value.result.directSaleCostKnownMinor).toBe(900);
     }
+  });
+
+  /* F-016 (W2-C — REM-002): تحلل النتيجة الفعلي في القراءة — بنود المعادلة غير
+   * الصفرية بإشاراتها تجمع إلى النتيجة، وتكلفة البيع المباشر المعروفة — البند
+   * الذي كان غير مرئي — حاضرة بوسمها. الأوراكل حساب يدوي مستقل:
+   * (٥٠٠٠ + ٣٠٠٠) − ١٠٠٠ − ١٠٠٠ − ٥٠٠ = ٥٥٠٠. */
+  it("يولّد تحلل النتيجة الفعلي وتجمع بنوده غير الصفرية إلى النتيجة المسجلة", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const statement = new StatementService(store, finance);
+    const cost = calculateCostSnapshot("st-decomp-cost", {
+      currency: "JOD",
+      materialItems: [],
+      time: { minutes: 60, hourlyRateMinor: 1000, confidence: "known" },
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      createdAt: "2026-09-01T09:00:00.000Z",
+      freshnessDays: null,
+    });
+    let order = createCraftOrder({
+      id: "st-decomp-order",
+      customerName: "عميلة",
+      itemName: "صندوق",
+      specifications: "اختبار التحلل",
+      quantity: 1,
+      agreedPriceMinor: 5000,
+      costSnapshot: cost,
+      createdAt: "2026-09-01T09:00:00.000Z",
+    });
+    for (const [to, stamp] of [
+      ["provisional_agreement", "2026-09-01T10:00:00.000Z"],
+      ["confirmed", "2026-09-01T11:00:00.000Z"],
+      ["in_progress", "2026-09-02T09:00:00.000Z"],
+      ["ready", "2026-09-03T09:00:00.000Z"],
+      ["delivered", "2026-09-04T09:00:00.000Z"],
+    ] as const)
+      order = transitionOrder(order, { to, idempotencyKey: `st-decomp-${to}`, createdAt: stamp });
+    await store.saveOrder({
+      id: order.id,
+      order,
+      deliveryDate: "2026-09-04",
+      agreementSource: "test",
+      createdAt: "2026-09-01T09:00:00.000Z",
+      updatedAt: "2026-09-04T09:00:00.000Z",
+    });
+    await store.saveDirectSale(
+      createDirectSale({
+        id: "st-decomp-sale",
+        itemName: "تراي",
+        quantity: 1,
+        revenueMinor: 3000,
+        collectedMinor: 3000,
+        catalogItemId: null,
+        customerName: null,
+        costMinor: 1000,
+        occurredOn: "2026-09-02",
+        recordedAt: now(),
+        note: "بيع نقدي معلوم التكلفة",
+        idempotencyKey: "st-decomp-sale-key",
+      }),
+    );
+    await saveEvent(store, {
+      id: "st-decomp-expense",
+      type: "operating_expense_cash",
+      amountMinor: 500,
+      occurredOn: "2026-09-03",
+      recordedAt: now(),
+      idempotencyKey: "st-decomp-expense-key",
+      note: "مصروف تشغيلي",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+    });
+    const reading = await statement.read("2026-09-01", "2026-09-07");
+    expect(reading.ok).toBe(true);
+    if (!reading.ok) return;
+    /* الحساب اليدوي المستقل: ٨٠٠٠ − ١٠٠٠ − ١٠٠٠ − ٥٠٠ = ٥٥٠٠. */
+    expect(reading.value.result.resultMinor).toBe(5500);
+    /* F-016 (W2-C): التحلل الفعلي يُشتق من قراءة النتيجة نفسها — عبر مسار
+     * التصدير نفسه الذي يولّد سطر المعادلة. */
+    const terms = statementResultDecomposition(reading.value.result);
+    expect(terms.reduce((total, term) => total + term.signedMinor, 0)).toBe(5500);
+    const ids = terms.map(term => term.id);
+    expect(ids).toContain("recognizedRevenueTotal");
+    expect(ids).toContain("effectiveDirectCost");
+    expect(ids).toContain("directSaleCostKnown");
+    expect(ids).toContain("recordedOperatingExpense");
+    /* البنود الصفرية غائبة لا معروضة صفرًا. */
+    expect(ids).not.toContain("assetDepreciation");
+    expect(ids).not.toContain("assetWriteOffLoss");
+    const directSaleCost = terms.find(term => term.id === "directSaleCostKnown");
+    expect(directSaleCost).toMatchObject({ label: "تكلفة بيع مباشر معروفة", signedMinor: -1000 });
   });
 
   it("نطاق غير صالح يُرفض برسالة صريحة لا بأصفار", async () => {

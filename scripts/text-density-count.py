@@ -849,7 +849,13 @@ CAPS: dict[str, int] = {
     # Statement 216 -> 224 (2026-09-23, FIN-001 Wave 6, owner roadmap §4.7):
     # بند التزام القروض المستلمة في deepFinance وعائلتا تدفق الكاش
     # (قبض قرض مستلم / سداد أصل قرض مستلم) — ثمانية بنود معلنة.
-    "Statement": 224,
+    # Statement 224 -> 228 (2026-09-29, REM-002 W2-C/F-016, owner-approved master
+    # remediation charter): سطر «مكوناتها» يُولَّد الآن من تحلل النتيجة الفعلي
+    # في القراءة — ثلاث تسميات صارت وسومًا مستقلة بعد أن كانت مقاطع داخل قالب
+    # (إيراد معترف به / تكلفة مباشرة / مصاريف تشغيلية) + وسم «تكلفة بيع مباشر
+    # معروفة»: البند الذي كان غير مرئي في معادلة النتيجة وهو موضوع F-016
+    # نفسه. لا نثرًا جديدًا وراءها؛ بقية التسميات معروضات قائمة يعاد استخدامها.
+    "Statement": 228,
     # CostCalculator (2026-09-02, Group 3 Scope A, owner-approved execution prompt):
     # new mandated deep screen — full calculator (materials/time/quantity/optional
     # extras), live result with honest unknown lines, save + edit binding, saved

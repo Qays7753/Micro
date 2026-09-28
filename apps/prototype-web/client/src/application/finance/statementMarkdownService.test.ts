@@ -2,7 +2,7 @@
  * قراءة كاملة، والمجهول «غير متاح» لا صفر، والحقائق والأمانات حاضرة،
  * والنسخة اللحظية معلنة. */
 import { describe, expect, it } from "vitest";
-import { StatementMarkdownService } from "./statementMarkdownService";
+import { StatementMarkdownService, statementResultDecomposition } from "./statementMarkdownService";
 import type { StatementReading } from "./statementService";
 import type { RecordedPeriodResult, ProjectFinancialPosition } from "./projectFinancialService";
 
@@ -207,5 +207,46 @@ describe("statement markdown service (المجموعة ٥ — عقد ٣٢)", () 
     const broken = service.render(null as unknown as StatementReading);
     expect(broken.ok).toBe(false);
     if (!broken.ok) expect(broken.code).toBe("validation_error");
+  });
+
+  /* F-016 (W2-C — REM-002): سطر «مكوناتها» يُولَّد من التحلل الفعلي — كل بند
+   * غير صفري بإشارته يظهر فتجمع إلى النتيجة، ولا يبقى مكوّن غير مرئي.
+   * الأوراكل حساب يدوي مستقل: ١٥٠٠٠ − ٥٠٠٠ − ٢٠٠٠ − ٢٥٠٠ + ٥٠٠ + ٣٠٠٠ = ٩٠٠٠. */
+  it("renders the equation line from the actual decomposition and it sums to the recorded result", () => {
+    const service = new StatementMarkdownService();
+    const rendered = service.render(reading());
+    if (!rendered.ok) throw new Error(rendered.message);
+    const markdown = rendered.value.markdown;
+    /* البنود الصفرية (تكلفة البيع المباشر/الشطب هنا) لا تظهر؛ غير الصفرية كلها تظهر. */
+    expect(markdown).toContain("إيراد معترف به 150.00 د.أ");
+    expect(markdown).toContain("تكلفة مباشرة -50.00 د.أ");
+    expect(markdown).toContain("مصاريف تشغيلية -20.00 د.أ");
+    expect(markdown).toContain("إهلاك الأصول في الفترة -25.00 د.أ");
+    expect(markdown).toContain("نتيجة التخلص من أصول 5.00 د.أ");
+    expect(markdown).toContain("عربون محتفظ به مصنّف إيرادًا 30.00 د.أ");
+    /* جمع مستقل: التحلل الفعلي من قراءة النتيجة يجمع إلى النتيجة المسجلة ٩٠٠٠. */
+    const terms = statementResultDecomposition(baseResult);
+    expect(terms.reduce((total, term) => total + term.signedMinor, 0)).toBe(9000);
+    expect(terms.every(term => term.signedMinor !== 0)).toBe(true);
+  });
+
+  it("surfaces the previously invisible known direct-sale cost in the equation line (F-016)", () => {
+    const service = new StatementMarkdownService();
+    const rendered = service.render(
+      reading({
+        result: {
+          ...baseResult,
+          directSaleRevenueMinor: 3000,
+          directSaleCostKnownMinor: 1000,
+          resultMinor: 9000 + 3000 - 1000,
+        },
+        recognizedRevenueTotalMinor: 15000 + 3000,
+      }),
+    );
+    if (!rendered.ok) throw new Error(rendered.message);
+    /* البند الذي كان غير مرئي قطعيًا قبل F-016 صار في سطر المعادلة، والتحلل
+     * يُشتق من قراءة النتيجة نفسها لا من قائمة مُعدّة يدويًا. */
+    expect(rendered.value.markdown).toContain("تكلفة بيع مباشر معروفة -10.00 د.أ");
+    expect(rendered.value.markdown).toContain("110.00 د.أ");
   });
 });

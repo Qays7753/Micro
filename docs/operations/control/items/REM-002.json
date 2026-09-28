@@ -81,7 +81,7 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "W2-B (التعادل الموحد) عبر WS-189 ثم W2-C (الشرح/الإشارة) وW2-D (الإعلانات والعقود) ثم إغلاق الموجة.",
+  "next_action": "W2-C (الشرح/الإشارة) عبر WS-190 ثم W2-D (الإعلانات والعقود) ثم إغلاق الموجة.",
   "classification": "FIX_BEFORE_PILOT",
   "owner": "Product owner / Z AI execution with Manus coordination",
   "tests_required": [

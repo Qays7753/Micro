@@ -1,0 +1,56 @@
+{
+  "id": "WS-190",
+  "title": "REM-002 — W2-C شرح التصدير من التحلل الفعلي وإشارة المقارنة الصادقة (F-016/F-017)",
+  "status": "IN_REVIEW",
+  "items": [
+    "REM-002"
+  ],
+  "branch": "fix/w2c-decomposition-comparison-20260929",
+  "base_sha": "d84fe3eadb099cb50a4ab2522098c7a6478d5698",
+  "areas": [
+    "reports",
+    "finance",
+    "statement",
+    "tests"
+  ],
+  "contracts": [
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/31-statement-report-contract.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 2, slice C)",
+  "pr": 255,
+  "started_at": "2026-09-29T00:55:00+03:00",
+  "updated_at": "2026-09-29T01:05:00+03:00",
+  "next_action": "تنفيذ W2-C: سطر «مكوناتها» من التحلل الفعلي (statementResultDecomposition في طبقة التقرير)؛ دلتا المقارنة = الحالية − الأساس.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-190",
+      "reason": "فتح Claim لشريحة W2-C من origin/main d84fe3e بعد تحقق W2-B على main."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-190",
+      "reason": "تنفيذ W2-C: تحلل النتيجة في طبقة التقرير + إشارة المقارنة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:255",
+      "reason": "اكتمل تنفيذ W2-C وافتُتح PR #255 بعد البوابات الخضراء (جذري 510/510، تطبيق 1967/1967، حزمة 649,585/650,000 PASS بصفر نمو دخول)."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: statementMarkdownService (التحلل + سطر المعادلة) + periodComparisonService (التسمية والإشارة) + الاختبارات.",
+    "حد الاستعادة: d84fe3e — قراءة وعرض مشتق فقط.",
+    "UI_DEPENDENCY_BLOCKED: سطر معادلة الصفحة (Statement.tsx:591-593) يبقى بثلاثته حتى موجة UI — البنية جاهزة عبر statementResultDecomposition."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-002.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W2C-SLICE-REPORT-2026-09-29.md"
+  ]
+}
