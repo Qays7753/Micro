@@ -1,0 +1,41 @@
+{
+  "id": "WS-194",
+  "title": "REM-003 — W3-C قاموس 08 للدلالات المُشحّنة (F-032 الجزء التوثيقي) + إغلاق WS-193",
+  "status": "CLAIMED",
+  "items": [
+    "REM-003"
+  ],
+  "branch": "fix/w3c-glossary-shipped-semantics-20260929",
+  "base_sha": "98a351798e2a7023f13afea669122ed9c3e7790d",
+  "areas": [
+    "glossary",
+    "docs",
+    "contracts"
+  ],
+  "contracts": [
+    "docs/08-glossary.md",
+    "docs/contracts/02-order-lifecycle-contract.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 3, slice C)",
+  "pr": null,
+  "started_at": "2026-09-29T11:20:00+03:00",
+  "updated_at": "2026-09-29T11:20:00+03:00",
+  "next_action": "تنفيذ W3-C: إدخالات قاموس 08 للدلالات المُشحّنة فعلًا (قيمة الطلب بأساس D-15-A القابل للتحصيل، الكاش المسجل، عربون محتفظ مصنّف، البيع المباشر، التسوية بمعانيها الثلاثة، التغطية بمعنييها، المظروف، MIC) — توثيق المُشحّن فقط بلا اختراع دلالات جديدة؛ مع إغلاق WS-193 VERIFIED على دمج W3-B (98a3517) وحارس عقد يثبّت الإدخالات الحرجة.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-194",
+      "reason": "فتح Claim لشريحة W3-C من origin/main 98a3517 بعد دمج W3-B والتحقق منه."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: توثيق فقط — إدخالات قاموس تُ codify دلالات مُشحّنة في العقود والكود؛ بلا أي كود تشغيلي.",
+    "حد الاستعادة: 98a3517 — توثيق بأثر راجع واحد."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-003.json"
+  ]
+}

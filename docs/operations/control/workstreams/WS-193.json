@@ -1,7 +1,7 @@
 {
   "id": "WS-193",
   "title": "REM-003 — W3-B إعلانات الصدق الخدمية (F-020 تسميات «مسجلة» + حقول غير المحصّل المشتقة، F-024 اقتراح الإهلاك غير النقدي، F-028 عناوين MIC-9 «حالة الرقم»)",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "items": [
     "REM-003"
   ],
@@ -20,16 +20,34 @@
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 3, slice B)",
-  "pr": null,
+  "pr": 261,
   "started_at": "2026-09-29T10:30:00+03:00",
-  "updated_at": "2026-09-29T10:30:00+03:00",
-  "next_action": "تنفيذ W3-B: (1) F-020 — تسميات «مبيعات مسجلة اليوم/الشهر» في خدمة الرئيسية مع حقلين مشتقين على القارئ الكنوني للفترة (orderReceivableMinor من receivableMinor بأساس D-15-A، وdirectSaleUncollectedMinor من revenueMinor−collectedMinor) بلا أي تغيير معادلة؛ (2) F-024 — سلاسل الخدمة والمجال الثلاث لاقتراح الإهلاك غير النقدي؛ (3) F-028 — عناوين MIC-9 «صدق حالة الرقم» في الخدمة. قلب الدبابيس الموثقة يرافق الشريحة.",
+  "updated_at": "2026-09-29T11:20:00+03:00",
+  "next_action": "لا إجراء إضافي؛ شريحة W3-B متحققة على main 98a3517. البوابة التالية: W3-C (قاموس 08 + إغلاق الموجة) عبر WS-194.",
   "status_history": [
     {
       "status": "CLAIMED",
       "changed_at": "2026-09-29",
       "actor": "claim:ws-193",
       "reason": "فتح Claim لشريحة W3-B من origin/main 9e14070 بعد إغلاق WS-192 (VERIFIED على 47825ed) وإصلاح قنبلة زمن U-10 التي أحمرّت CI على SHA إغلاق WS-192."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:261",
+      "reason": "اكتمل تنفيذ W3-B على fix/w3b-service-honesty-20260929 وافتُتح PR #261؛ الرأس الأول فشل بفحص prettier وأُصلح داخل الشريحة (5eae348) قبل الدمج."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-261",
+      "reason": "دُمج PR #261 (Squash) عند 98a351798e2a7023f13afea669122ed9c3e7790d (الأساس 9e14070) بعد Merge Manifest وCI أخضر على الرأس الثاني."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-ci",
+      "reason": "CI checks = success وCloudflare Pages = success على SHA الدمج نفسه على main؛ الشجرة مطابقة (16b468a)؛ الحزمة على CI 649,914/650,000 خام (+121 مدفوع داخل الشريحة)."
     }
   ],
   "migration_baseline": false,
@@ -39,6 +57,10 @@
     "حد الاستعادة: 9e14070 — أثر راجع واحد لكل تبديل سلسلة؛ الحقول المشتقة إضافية بلا قرّاء إنتاجيين بعد."
   ],
   "evidence": [
-    "docs/operations/control/items/REM-003.json"
-  ]
+    "docs/operations/control/items/REM-003.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W3B-SLICE-REPORT-2026-09-29.md",
+    "https://github.com/Qays7753/Micro/pull/261"
+  ],
+  "merge_sha": "98a351798e2a7023f13afea669122ed9c3e7790d",
+  "verified_on_main_sha": "98a351798e2a7023f13afea669122ed9c3e7790d"
 }
