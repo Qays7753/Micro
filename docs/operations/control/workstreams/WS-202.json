@@ -6,7 +6,7 @@
     "REM-005"
   ],
   "branch": "fix/w5a-financial-guardrails-20260929",
-  "base_sha": "ab8f798ddc7bd0c0ceec72d99b5fa918eedea5be",
+  "base_sha": "ab8f798ddc7bd1c0ceec72d99b5fa918eedea5be",
   "areas": [
     "guards",
     "tests",
