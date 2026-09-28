@@ -78,7 +78,7 @@ describe("ToolsIntegrity page (فحص سلامة مالي)", () => {
     expect(screen.getByText("بنية الكاش والمحافظ")).toBeTruthy();
     expect(screen.getByText("سلامة الأحداث والتوزيع")).toBeTruthy();
     expect(screen.getByText("رصيد الأمانات")).toBeTruthy();
-    expect(screen.getByText("صدق درجة المعرفة")).toBeTruthy();
+    expect(screen.getByText("صدق حالة الرقم")).toBeTruthy();
 
     /* صفر كتابات: اللقطة قبل وبعد متطابقة تمامًا. */
     const snapshotAfter = await store.readSnapshot();

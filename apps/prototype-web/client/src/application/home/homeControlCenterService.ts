@@ -529,14 +529,19 @@ export class HomeControlCenterService {
      * المالية)، والناقص يوصف بصدق بلا أصفار. */
     /* المبيعات بالتعريف الرسمي نفسه الذي يعرضه كشف الفترة
      * (recognizedRevenueTotalMinor في statementService): إيراد الطلبات
-     * المحتسب عند التسليم + البيع المباشر — لا معادلة جديدة هنا. */
+     * المحتسب عند التسليم + البيع المباشر — لا معادلة جديدة هنا.
+     * F-020 (W3-B): التسمية تقول «مسجلة» لأن الرقم إيراد مسجل (أساس
+     * التسليم) لا كاشًا مقبوضًا؛ حقول الفرق غير المحصّل المشتقة تعيش في
+     * القارئ الكنوني للفترة وعرض سطرها ينتظر س4/D-05. */
     const totalSales = (period: { recognizedRevenueMinor: number; directSaleRevenueMinor: number }) =>
       period.recognizedRevenueMinor + period.directSaleRevenueMinor;
     const periodNumbers: HomePeriodNumbersSection = {
       today: {
         sales: {
           id: "sales",
-          label: "مبيعات اليوم",
+          /* F-020 (W3-B): «مسجلة» تميز المسجل (أساس التسليم) عن المقبوض —
+           * الوسم يصل الصفحة كما هو بلا أي ملف عرض. */
+          label: "مبيعات مسجلة اليوم",
           state: "known",
           valueMinor: totalSales(todayPeriod.value),
           honestNote: null,
@@ -554,7 +559,8 @@ export class HomeControlCenterService {
       month: {
         sales: {
           id: "sales",
-          label: "مبيعات الشهر",
+          /* F-020 (W3-B): «مسجلة» — نفس تمييز المسجل عن المقبوض. */
+          label: "مبيعات مسجلة الشهر",
           state: "known",
           valueMinor: totalSales(monthPeriod.value),
           honestNote: null,
@@ -583,7 +589,7 @@ export class HomeControlCenterService {
       const higher = monthRevenue > previousMonthRevenue;
       insights.push({
         id: "sales-change",
-        what: `مبيعات هذا الشهر ${higher ? "أعلى" : "أقل"} من الشهر الماضي بـ ${formatMoneyMinor(
+        what: `مبيعات هذا الشهر المسجلة ${higher ? "أعلى" : "أقل"} من الشهر الماضي بـ ${formatMoneyMinor(
           Math.abs(monthRevenue - previousMonthRevenue),
         )} د.أ`,
         why: null,

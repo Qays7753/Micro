@@ -1444,3 +1444,16 @@ describe("MIC-18 — settlement-basis invariant (Group 1: F-004/F-005)", () => {
     expect(mic18?.status).toBe("PASS");
   });
 });
+
+/* F-028 (W3-B — REM-003): حارس مفردات عناوين الفحوص — «درجة المعرفة» مصطلح
+ * محظور (قاموس 08:103 يلزم «حالة الرقم»)؛ لا يعود إلى أي عنوان خدمي بصمت. */
+describe("F-028 (W3-B): MIC titles vocabulary guard", () => {
+  it("MIC-9 carries the mandated title and no integrity title uses the banned term", async () => {
+    const { INTEGRITY_TITLES } = await import("@/application/finance/integrityCheckService");
+    expect(INTEGRITY_TITLES["MIC-9"]).toBe("صدق حالة الرقم");
+    for (const title of Object.values(INTEGRITY_TITLES)) {
+      expect(title).not.toContain("درجة المعرفة");
+      expect(title).not.toContain("صدق المعرفة");
+    }
+  });
+});

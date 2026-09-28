@@ -1,0 +1,44 @@
+{
+  "id": "WS-193",
+  "title": "REM-003 — W3-B إعلانات الصدق الخدمية (F-020 تسميات «مسجلة» + حقول غير المحصّل المشتقة، F-024 اقتراح الإهلاك غير النقدي، F-028 عناوين MIC-9 «حالة الرقم»)",
+  "status": "CLAIMED",
+  "items": [
+    "REM-003"
+  ],
+  "branch": "fix/w3b-service-honesty-20260929",
+  "base_sha": "9e140705027df042d93ed09f48f3095b4e28dab4",
+  "areas": [
+    "finance",
+    "home",
+    "assets",
+    "integrity",
+    "reports"
+  ],
+  "contracts": [
+    "docs/08-glossary.md",
+    "docs/contracts/43-asset-depreciation-prototype-contract.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 3, slice B)",
+  "pr": null,
+  "started_at": "2026-09-29T10:30:00+03:00",
+  "updated_at": "2026-09-29T10:30:00+03:00",
+  "next_action": "تنفيذ W3-B: (1) F-020 — تسميات «مبيعات مسجلة اليوم/الشهر» في خدمة الرئيسية مع حقلين مشتقين على القارئ الكنوني للفترة (orderReceivableMinor من receivableMinor بأساس D-15-A، وdirectSaleUncollectedMinor من revenueMinor−collectedMinor) بلا أي تغيير معادلة؛ (2) F-024 — سلاسل الخدمة والمجال الثلاث لاقتراح الإهلاك غير النقدي؛ (3) F-028 — عناوين MIC-9 «صدق حالة الرقم» في الخدمة. قلب الدبابيس الموثقة يرافق الشريحة.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-193",
+      "reason": "فتح Claim لشريحة W3-B من origin/main 9e14070 بعد إغلاق WS-192 (VERIFIED على 47825ed) وإصلاح قنبلة زمن U-10 التي أحمرّت CI على SHA إغلاق WS-192."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: سلاسل الخدمة/المجال + حقول قراءة مشتقة + قلب الدبابيس الميكانيكية المتأثرة (homeControlCenterModel ×4، HomeRedesign.w43.dom ×2، G4Assets.dom regex، ToolsIntegrity.ui) — بلا أي ملف عرض JSX/TSX أو CSS وبلا حالات مخطط جديدة.",
+    "تفسير موثق لقلب دبابيس DOM: الحرفية المتوقعة تتبع سلسلة تملكها الخدمة/المجال؛ الميثاق يُبقي الاختبارات داخل النطاق، والقبول الثامن في REM-003 يقصد عمل UI لا التبعية الميكانيكية لسلسلة خدمية تغيّرت — بلا تغيير منطق أو بنية DOM test.",
+    "حد الاستعادة: 9e14070 — أثر راجع واحد لكل تبديل سلسلة؛ الحقول المشتقة إضافية بلا قرّاء إنتاجيين بعد."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-003.json"
+  ]
+}
