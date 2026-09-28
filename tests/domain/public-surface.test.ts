@@ -247,7 +247,7 @@ describe("قفل سطح الدومين العام (٢) — المجموعة ٦ (
     expect(typeof g5.calculateBreakEven).toBe("function");
     expect(typeof g5.calculateShortCash).toBe("function");
     expect(typeof g5.calculateBreakEvenUnits).toBe("function");
-    expect(typeof g5.calculateContributionMargin).toBe("function");
+    expect(typeof g5.calculateDirectMargin).toBe("function");
     expect(typeof g5.createShortCashDeclaration).toBe("function");
     expect(typeof g5.createShortCashReversal).toBe("function");
   });
@@ -296,6 +296,8 @@ describe("قفل سطح الدومين العام (٢) — المجموعة ٦ (
 
 const REMOVED_SURFACE_SYMBOLS = [
   "deriveKnowledgeGaps",
+  /* F-011 (W2-B): الاسم الصادق calculateDirectMargin — المساهمة تتطلب ربط المتغيرة. */
+  "calculateContributionMargin",
 
   "CashAllocationSourceKind",
 

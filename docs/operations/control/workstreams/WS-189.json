@@ -1,0 +1,56 @@
+{
+  "id": "WS-189",
+  "title": "REM-002 — W2-B نموذج التعادل الموحد الصادق (F-009/F-010/F-011)",
+  "status": "IN_REVIEW",
+  "items": [
+    "REM-002"
+  ],
+  "branch": "fix/w2b-unified-breakeven-20260929",
+  "base_sha": "56888be83120375d48634c6d9f9992c15ff0ffc5",
+  "areas": [
+    "g5",
+    "finance",
+    "break-even",
+    "contracts",
+    "tests"
+  ],
+  "contracts": [
+    "docs/contracts/12-financial-insights-g5-prototype-contract.md",
+    "docs/contracts/17-contribution-break-even-short-cash-g5-contract.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 2, slice B)",
+  "pr": 254,
+  "started_at": "2026-09-29T00:20:00+03:00",
+  "updated_at": "2026-09-29T00:35:00+03:00",
+  "next_action": "تنفيذ W2-B: insights يستهلك calculateBreakEven الكنونية بمدخلات موحدة؛ الافتراضات الهيكلية دائمًا؛ تسمية الهامش المباشر؛ عقود 17 و12 محدثة.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-189",
+      "reason": "فتح Claim لشريحة W2-B من origin/main 56888be بعد تحقق W2-A على main — نموذج تعادل واحد بمدخلات موحدة وافتراضات دائمة وتسمية صادقة."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-189",
+      "reason": "تنفيذ التوحيد: calculateBreakEven كنونية، مدخلات orderInputs/expenseInputs مصدرة ومشتركة، حذف الاشتقاق الخاص، الحقول الصادقة، والعقود."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:254",
+      "reason": "اكتمل تنفيذ W2-B وافتُتح PR #254 بعد البوابات الخضراء (جذري 510/510، تطبيق 1964/1964، حزمة 649,585/650,000 PASS بصافي سالب)."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: src/domain/g5 (النوع والحقول والدالة والتسمية والافتراضات) + g5Service (تصدير المدخلات) + projectFinancialService (الاستهلاك الكنوني وحذف الخاص) + عقود 17/12 + اختبارات التكافؤ.",
+    "حد الاستعادة: 56888be — قراءة مشتقة فقط، لا مخزن ولا هجرة."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-002.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W2B-SLICE-REPORT-2026-09-29.md"
+  ]
+}

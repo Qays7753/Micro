@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-188 | IN_REVIEW | \`fix/w2a-direct-sale-collection-20260928\` | 253 | REM-002 | تنفيذ W2-A: collectedMinor مطلوب مجاليًا في الإنشاء والتعديل؛ حل الحد مرة واحدة في DirectSaleService.record موثقًا لعقد البيع النقدي السريع؛ قلب دبابيس الافتراض؛ فيكسجر ذهاب-وعودة لسجل ما قبل X-06. |
+| WS-189 | IN_REVIEW | \`fix/w2b-unified-breakeven-20260929\` | 254 | REM-002 | تنفيذ W2-B: insights يستهلك calculateBreakEven الكنونية بمدخلات موحدة؛ الافتراضات الهيكلية دائمًا؛ تسمية الهامش المباشر؛ عقود 17 و12 محدثة. |
