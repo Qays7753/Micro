@@ -1,7 +1,7 @@
 {
   "id": "WS-199",
   "title": "REM-004 — W4-D تغطية ESLint لملفات اختبار الجذر (F-044)",
-  "status": "CLAIMED",
+  "status": "IN_REVIEW",
   "items": [
     "REM-004"
   ],
@@ -15,16 +15,22 @@
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice D)",
-  "pr": null,
+  "pr": 269,
   "started_at": "2026-09-29T17:00:00+03:00",
-  "updated_at": "2026-09-29T17:00:00+03:00",
-  "next_action": "تنفيذ W4-D: كتلة files جديدة في eslint.config.js لمسار apps/prototype-web/client/src/*.test.{ts,tsx} (94+ ملفًا كانت تُتجاهل بالكامل) بمحلل TypeScript وحظر any الصريح، وعينتان في check-layer-boundaries.test.mjs تثبتان وقوع الحكم ونظافة الـglob، مع بقاء خط الأساس 37/37 بلا أخطاء.",
+  "updated_at": "2026-09-29T17:15:00+03:00",
+  "next_action": "PR #269 للمراجعة والدمج؛ بعده التحقق على main ثم W4-E (F-047).",
   "status_history": [
     {
       "status": "CLAIMED",
       "changed_at": "2026-09-29",
       "actor": "claim:ws-199",
       "reason": "فتح Claim لشريحة W4-D من origin/main 46f51d0 بعد إغلاق WS-198 VERIFIED."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:269",
+      "reason": "اكتمل تنفيذ W4-D وافتُتح PR #269 ببوابات خضراء على الرأس eaa6a05."
     }
   ],
   "migration_baseline": false,

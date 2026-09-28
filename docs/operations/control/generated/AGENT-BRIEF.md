@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-199 | CLAIMED | \`fix/w4d-eslint-root-tests-20260929\` | — | REM-004 | تنفيذ W4-D: كتلة files جديدة في eslint.config.js لمسار apps/prototype-web/client/src/*.test.{ts,tsx} (94+ ملفًا كانت تُتجاهل بالكامل) بمحلل TypeScript وحظر any الصريح، وعينتان في check-layer-boundaries.test.mjs تثبتان وقوع الحكم ونظافة الـglob، مع بقاء خط الأساس 37/37 بلا أخطاء. |
+| WS-199 | IN_REVIEW | \`fix/w4d-eslint-root-tests-20260929\` | 269 | REM-004 | PR #269 للمراجعة والدمج؛ بعده التحقق على main ثم W4-E (F-047). |
