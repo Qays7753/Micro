@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · CLAIMED: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 40
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 41
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,6 +32,4 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
-|---|---|---|---|---|---|
-| WS-194 | CLAIMED | \`fix/w3c-glossary-shipped-semantics-20260929\` | — | REM-003 | تنفيذ W3-C: إدخالات قاموس 08 للدلالات المُشحّنة فعلًا (قيمة الطلب بأساس D-15-A القابل للتحصيل، الكاش المسجل، عربون محتفظ مصنّف، البيع المباشر، التسوية بمعانيها الثلاثة، التغطية بمعنييها، المظروف، MIC) — توثيق المُشحّن فقط بلا اختراع دلالات جديدة؛ مع إغلاق WS-193 VERIFIED على دمج W3-B (98a3517) وحارس عقد يثبّت الإدخالات الحرجة. |
+لا يوجد Workstream نشط أو يحتاج مراجعة.

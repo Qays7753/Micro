@@ -1,7 +1,7 @@
 {
   "id": "WS-194",
   "title": "REM-003 — W3-C قاموس 08 للدلالات المُشحّنة (F-032 الجزء التوثيقي) + إغلاق WS-193",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "items": [
     "REM-003"
   ],
@@ -18,16 +18,34 @@
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 3, slice C)",
-  "pr": null,
+  "pr": 262,
   "started_at": "2026-09-29T11:20:00+03:00",
-  "updated_at": "2026-09-29T11:20:00+03:00",
-  "next_action": "تنفيذ W3-C: إدخالات قاموس 08 للدلالات المُشحّنة فعلًا (قيمة الطلب بأساس D-15-A القابل للتحصيل، الكاش المسجل، عربون محتفظ مصنّف، البيع المباشر، التسوية بمعانيها الثلاثة، التغطية بمعنييها، المظروف، MIC) — توثيق المُشحّن فقط بلا اختراع دلالات جديدة؛ مع إغلاق WS-193 VERIFIED على دمج W3-B (98a3517) وحارس عقد يثبّت الإدخالات الحرجة.",
+  "updated_at": "2026-09-29T12:10:00+03:00",
+  "next_action": "لا إجراء إضافي؛ شريحة W3-C متحققة على main d917140 وWave 3 مكتملة. البوابة التالية: الموجة 4 من الميثاق (التوثيق/السلطة/الثبات/التاريخ/الحراس — F-033..F-042 وF-044 وF-046 وF-047 وF-051..F-060) بClaim مستقل من أحدث origin/main.",
   "status_history": [
     {
       "status": "CLAIMED",
       "changed_at": "2026-09-29",
       "actor": "claim:ws-194",
       "reason": "فتح Claim لشريحة W3-C من origin/main 98a3517 بعد دمج W3-B والتحقق منه."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:262",
+      "reason": "اكتمل تنفيذ W3-C على fix/w3c-glossary-shipped-semantics-20260929 وافتُتح PR #262 ببوابات خضراء على الرأس."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-262",
+      "reason": "دُمج PR #262 (Squash) عند d9171405b365a6a8b257986486e78bd40f7ac290 (الأساس 98a3517) بعد Merge Manifest وCI أخضر."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-ci",
+      "reason": "CI checks = success وCloudflare Pages = success على SHA الدمج نفسه على main؛ الشجرة مطابقة (caa8a07)؛ فحص القاموس 4/4 ضمن CI."
     }
   ],
   "migration_baseline": false,
@@ -36,6 +54,10 @@
     "حد الاستعادة: 98a3517 — توثيق بأثر راجع واحد."
   ],
   "evidence": [
-    "docs/operations/control/items/REM-003.json"
-  ]
+    "docs/operations/control/items/REM-003.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W3C-SLICE-REPORT-2026-09-29.md",
+    "https://github.com/Qays7753/Micro/pull/262"
+  ],
+  "merge_sha": "d9171405b365a6a8b257986486e78bd40f7ac290",
+  "verified_on_main_sha": "d9171405b365a6a8b257986486e78bd40f7ac290"
 }
