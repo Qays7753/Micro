@@ -1,7 +1,7 @@
 {
   "id": "WS-202",
   "title": "REM-005 — W5-A حراس اتجاه المال وتوثيق مسؤولية الملفات الكبيرة (فصل F-043/F-045/F-048 + ST)",
-  "status": "CLAIMED",
+  "status": "IN_REVIEW",
   "items": [
     "REM-005"
   ],
@@ -16,16 +16,22 @@
     "docs/contracts/40-technical-ownership-map-contract.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 5, slice A)",
-  "pr": null,
+  "pr": 273,
   "started_at": "2026-09-30T00:10:00+03:00",
-  "updated_at": "2026-09-30T00:10:00+03:00",
-  "next_action": "تنفيذ W5-A من origin/main ab8f798: حارس moneyLayerGuard (صفر حساب مالي في الواجهة + تعريف وحيد للقراءات الكنسية) + قسم مسؤولية الملفات المالية الكبيرة في عقد 40 (جزء F-048 التوثيقي بلا تقسيم) + فصل F-043 (بنيوي خلف بوابة المالك) وF-045 (CSS خارج البرنامج).",
+  "updated_at": "2026-09-30T00:50:00+03:00",
+  "next_action": "PR #273 للمراجعة والدمج؛ بعده التحقق على main ثم إغلاق الموجة 5 والبرنامج.",
   "status_history": [
     {
       "status": "CLAIMED",
       "changed_at": "2026-09-29",
       "actor": "claim:ws-202",
       "reason": "فتح Claim لشريحة W5-A من origin/main ab8f798 بعد إغلاق Wave 4 VERIFIED."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:273",
+      "reason": "اكتمل تنفيذ W5-A وافتُتح PR #273 ببوابات خضراء على الرأس f9fb72b (الحارس 3/3، جذر 514/514، نموذج 1996/1996، صفر حزمة)."
     }
   ],
   "migration_baseline": false,
