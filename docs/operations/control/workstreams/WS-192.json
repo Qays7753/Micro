@@ -1,7 +1,7 @@
 {
   "id": "WS-192",
   "title": "REM-003 — W3-A المفردات المحسومة في المستهلكين غير المرئيين (F-021 تصدير/جسر + F-031 أسر النسخ)",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "items": [
     "REM-003"
   ],
@@ -17,16 +17,34 @@
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 3, slice A)",
-  "pr": null,
+  "pr": 258,
   "started_at": "2026-09-29T11:45:00+03:00",
-  "updated_at": "2026-09-29T11:45:00+03:00",
-  "next_action": "تنفيذ W3-A: تبديل «إيراد معترف به» إلى «المحتسب عند التسليم» في تصدير الكشف وجسر الربح، و«الكتالوج» إلى «منتجاتي وخدماتي» في أسر النسخ المؤثرة، مع قلب الدبابيس الموثقة.",
+  "updated_at": "2026-09-29T09:30:00+03:00",
+  "next_action": "لا إجراء إضافي؛ شريحة W3-A متحققة على main 47825ed. البوابة التالية: W3-B (إعلانات الصدق الخدمية: F-020 وسم «مسجلة» + حقول غير المحصّل المشتقة، F-024 اقتراح الإهلاك غير النقدي، F-028 عناوين MIC-9) بClaim مستقل من أحدث origin/main.",
   "status_history": [
     {
       "status": "CLAIMED",
       "changed_at": "2026-09-29",
       "actor": "claim:ws-192",
       "reason": "فتح Claim لشريحة W3-A من origin/main d2b81c7 بعد إغلاق Wave 2 المتحقق."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:258",
+      "reason": "اكتمل تنفيذ W3-A على fix/w3a-decided-vocabulary-20260929 وافتُتح PR #258؛ الرأس الأول فشل بمخطط Tracker (حقول REM-3 ناقصة) وأُصلح داخل الشريحة بالالتزام الثاني 1221ba6 قبل الدمج."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "merge:pr-258",
+      "reason": "دُمج PR #258 (Squash) عند 47825ed9bb81b3e91209f25ca8c0f37bf614af52 (الأساس d2b81c7) بعد Merge Manifest وCI أخضر على الرأس الثاني."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-29",
+      "actor": "verify:main-ci",
+      "reason": "CI checks = success وCloudflare Pages = success على SHA الدمج نفسه على main؛ الشجرة مطابقة للفرع المختبر؛ تبديلات سلاسل صرفة بلا مخطط/تصدير/معادلات."
     }
   ],
   "migration_baseline": false,
@@ -35,6 +53,10 @@
     "حد الاستعادة: d2b81c7 — تبديلات سلاسل صرفة."
   ],
   "evidence": [
-    "docs/operations/control/items/REM-003.json"
-  ]
+    "docs/operations/control/items/REM-003.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W3A-SLICE-REPORT-2026-09-29.md",
+    "https://github.com/Qays7753/Micro/pull/258"
+  ],
+  "merge_sha": "47825ed9bb81b3e91209f25ca8c0f37bf614af52",
+  "verified_on_main_sha": "47825ed9bb81b3e91209f25ca8c0f37bf614af52"
 }

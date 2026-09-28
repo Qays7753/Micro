@@ -68,7 +68,7 @@
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
   "owner": "Product owner / Z AI execution with Manus coordination",
   "migration_baseline": false,
-  "next_action": "شريحة W3-A (مفردات محسومة) عبر WS-192 ثم W3-B (إعلانات الصدق الخدمية F-020/F-024/F-028) ثم W3-C (قاموس 08 للدلالات المشحّنة) ثم إغلاق الموجة 3.",
+  "next_action": "W3-A أُغلقت VERIFIED على main 47825ed (WS-192). البوابة التالية: W3-B (إعلانات الصدق الخدمية — F-020 تسميات «مسجلة» مع حقول مشتقة، F-024 اقتراح الإهلاك غير النقدي، F-028 عناوين MIC-9 «حالة الرقم») بClaim مستقل، ثم W3-C (قاموس 08 للدلالات المشحّنة + تقرير إغلاق الموجة + REM-003 VERIFIED).",
   "tests_required": [
     "قلب موثق لدبوس المصطلح الممنوع مع حارس سلبي not.toContain",
     "اختبارات التحلل والجسر وذهاب-وعودة exe014 خضراء بعد التبديلات",
