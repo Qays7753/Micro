@@ -19,10 +19,10 @@ prompt) عبر `vite-plugin-pwa`. لا تنفذ Cloud Sync أو Auth أو SaaS �
 
 ```text
 React UI
-  → Application services (40 خدمة موصولة عبر 32 مجلدًا؛ 44 ملف `*Service.ts` — العد الحي الموثق عند `9a8c949`، 2026-09-12/مسح المجموعة ٧ المعاد تحققه في المجموعة ٨: `new *Service(` في `PrototypeServicesContext.tsx` + `git ls-files 'apps/prototype-web/client/src/application/**/*Service.ts'`)
-  → Micro Domain Core في ../../src/domain (13 وحدة نطاقية + معينات shared — `ls src/domain`)
+  → Application services (42 خدمة موصولة عبر PrototypeServicesContext؛ 53 ملف `*Service.ts` — العد الحي الموثق عند `15060f0`، 2026-09-29/برنامج الإصلاح الرئيسي بعد إغلاق Wave 3: `new *Service(` في `PrototypeServicesContext.tsx` + `git ls-files 'apps/prototype-web/client/src/application/**/*Service.ts'`)
+  → Micro Domain Core في ../../src/domain (18 وحدة نطاقية + معينات shared — `ls src/domain`)
   → LocalStore port (PrototypeLocalStore)
-  → IndexedDB adapter (IndexedDbLocalStore — 32 مخزن كائنات، مخطط 35 — العد: `createObjectStore` في المهايئ)
+  → IndexedDB adapter (IndexedDbLocalStore — 37 مخزن كائنات، مخطط 38/تصدير 30 — العد: `createObjectStore` في `indexedDbMigrations.ts` والقيم في `storage/local/types.ts`)
 ```
 
 ملاحظة تسمية موثقة (توثيقًا لا تغييرًا): أربعة ملفات `*Service.ts` لا تُبنى في جذر التركيب دون أن تكسر أيٌّ منها حدود الطبقات — `capacityDecisionService` و`shareMessageService` وحدتا دوال نقية؛ و`statementMarkdownService` يُنشأ داخل `Statement.tsx` (بلا حالة فيبقى متسقًا)؛ و`localDiagnosticsService` مفرد على مستوى الوحدة (مقصود: يُستورد من `ErrorBoundary` بلا سياق React). هذه استثناءات تسمية معلنة لا عيوبًا هيكلية (مكتشف المسح STR-013).
@@ -55,8 +55,8 @@ React UI
 التخصيص، والتقديرات المستقلة (`CostEstimate`)، والأصول والقروض وسجلات النقص، ومسودات النماذج وبيانات القفل المحلي (الأخيرتان خارج لقطة التصدير). ربط المسودة بالطلب وحفظهما يتم عبر
 transaction واحدة في IndexedDB، حتى لا ينجح أحد السجلين منفردًا.
 
-يستخدم Adapter إصدار مخطط IndexedDB صريحًا `schemaVersion = 35` وصيغة تصدير `version = 27`
-(`micro-prototype-local-export`؛ الزوج الحالي منذ المجموعة ٥ من برنامج النقل — PR #153؛ تاريخيًا 30/22 رُقّيا مع مخزن ملف المالك في aa78757 — المجموعة ١). المبيعات
+يستخدم Adapter إصدار مخطط IndexedDB صريحًا `schemaVersion = 38` وصيغة تصدير `version = 30`
+(`micro-prototype-local-export`؛ الزوج الحي في `storage/local/types.ts` منذ WS-178/Wave 6 من خارطة الطريق المالي — تاريخيًا 35/27 عند المجموعة ٥ ثم 36/28 بقرار D-037 ثم 37/29 بعقد ٤٢ ثم 38/30 بـWS-178). المبيعات
 المباشرة تحمل حقل زبون مستقلًا اختياريًا (`customerName`) بلا مخزن/فهرس جديد، فتتقاطع ملفات
 النسخ السابقة المقبولة والجديدة سليمًا في الاتجاهين.
 لا تغير أي مسار نسخة تكلفة أو حدثًا تاريخيًا بصمت.

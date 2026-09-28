@@ -1,0 +1,88 @@
+{
+  "id": "REM-004",
+  "title": "Wave 4 — التوثيق والسلطة والثبات والتاريخ والحراس (بلا UI)",
+  "type": "DEFECT",
+  "status": "CLAIMED",
+  "priority": "P1",
+  "stage": "master-remediation-wave-4",
+  "summary": "تنفيذ نطاق الموجة 4 من الميثاق (F-033..F-042 وF-044 وF-046 وF-047 وF-051..F-060 حيث يمس التوثيق/السلطة/الثبات/التاريخ/الحراس): أرقام الإصدار والمعمارية قابلة للتحقق ومؤرخة بـSHA، تصحيح ازدواج current-state وتأكيداته التاريخية الميتة، فهرس وثائق معماري موثوق بلا مصدر منافس، توسيع الـplaybook عبر الطبقات غير المرئية، تثبيت سلم القرش بمنزلتين وتوقيت عمّان، تصليد حراس الأسرار/التركيز/الكيانات/العقود، واختبارات عقد مستقلة بلا نسخ معادلات الإنتاج — مع تأجيل موثق: F-040 خلف D-12، F-055 خلف D-13، F-060 خلف QR-5، F-046 محفوظة (CSS خارج البرنامج)، وأجزاء العرض = DEFERRED_UI.",
+  "acceptance": [
+    "كل رقم إصدار/معمارية في وثائق الحوكمة يطابق الكود الحي عند SHA معلن بأمر قياس موثق",
+    "current-state: ترويسة آخر تحديث صادقة + ازدواج §62 مُزال دون كسر مراجع §63..§81",
+    "فهرس الوثائق يستوعب وثائق المعمارية الست عشرة (7 md + 9 ADRs) بلا مصدر منافس",
+    "وثيقة المحاكاة تصحح حال FT-01/FT-05/FT-09 المنفذة فعليًا بإضافة مؤرخة بلا إعادة كتابة التاريخ",
+    "playbook التوسعة يغطي الطبقات غير المرئية (دومين/تطبيق/تخزين/تصدير/تقارير/اختبارات/حراس/توثيق)",
+    "سلم المال: «قرش» 1/100 بمنزلتين ك انحراف معلن عن ISO بقرار D-15 (الميثاق) بلا ترحيل قيم — في كل وثيقة حاكمة",
+    "حراس: استثناء fixtures محصور بمسارات صريحة، تركيز الاختبارات يشمل skipIf/runIf/fixme، وحارس منادٍ ثابت لـsaveOrder الخام",
+    "calculationVersion لا تُشحن إلا بعد قرار D-13 (العتبة والدلالة) — التوثيق أولًا",
+    "لا تعديل أي ملف React أو CSS؛ لا حالات مخطط جديدة؛ لا ترحيل أو إعادة تفسير تاريخ",
+    "تأجيل موثق: F-040 (D-12)، F-055 (D-13)، F-060 (QR-5)، F-046 (CSS خارج البرنامج)، F-059 (D-11 + UI)، F-036 (خلف D-10 إن لزم)"
+  ],
+  "areas": [
+    "docs",
+    "guards",
+    "persistence",
+    "history",
+    "contracts",
+    "tests"
+  ],
+  "contracts": [
+    "docs/08-glossary.md",
+    "docs/architecture/SOURCE_OF_TRUTH.md",
+    "docs/architecture/EXTENSION_PLAYBOOK.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "evidence": [
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/WAVE3-WAVE-REPORT-2026-09-29.md"
+  ],
+  "dependencies": [
+    "REM-003"
+  ],
+  "related_items": [],
+  "owner_decision": "المفردات والأرقام من الكود الحي (38/30 وقرش بمنزلتين — الميثاق نفسه قرر D-15). المؤجل بقرار: F-040 خلف D-12، F-055 خلف D-13 (عتبة calculationVersion)، F-060 خلف QR-5، F-059 خلف D-11.",
+  "updated_at": "2026-09-29",
+  "finding_classification": "DEEPENS_EXISTING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "audit-findings:F-033..F-042,F-044,F-046,F-047,F-051..F-060 (root causes: stale doc counts and assertions drifting from code; unindexed architecture docs; playbook covering UI only; guard gaps)",
+  "source": {
+    "report": "CONCEPT-POLICY-TERMINOLOGY-INTEGRITY-AUDIT-AR.md (branch docs/concept-policy-terminology-integrity-audit-2026-09-27)",
+    "discovered_at_sha": "2ebb435334dd69da0273d592ec8bffac5e70c1cf",
+    "evidence": [
+      "docs/operations/current-state.md",
+      "apps/prototype-web/ARCHITECTURE.md",
+      "docs/00-document-index.md"
+    ]
+  },
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-09-29",
+      "actor": "program:master-remediation",
+      "reason": "تسجيل الموجة 4 بعد إغلاق Wave 3 المتحقق على main 15060f0 — البوابة التالية المسموحة حصرًا بالميثاق."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-195",
+      "reason": "فتح Claim WS-195 لشريحة W4-A (حقيقة وثائق الحوكمة) من origin/main 15060f0 بعد تحليل الإخصائيين 11-a/11-b/11-c."
+    }
+  ],
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "owner": "Product owner / Z AI execution with Manus coordination",
+  "migration_baseline": false,
+  "next_action": "شريحة W4-A (حقيقة وثائق الحوكمة: F-035/F-038/F-039/F-034/F-041 + تعليق F-040 + F-042) عبر WS-195، ثم W4-P1 (حراس F-056/F-057 + سطري عقدين F-052/F-054)، ثم W4-B (أرقام F-033 + دبابيس F-036)، ثم W4-C (سجل التغيير F-037)، ثم W4-D (تغطية eslint لـF-044)، ثم W4-E (مسارات F-047 أخيرًا بدفع حزمة)، ثم تصليد F-051/F-053/F-058، ثم إغلاق الموجة. المؤجل بقرار: F-055 خلف D-13 وF-060 خلف QR-5.",
+  "tests_required": [
+    "كل شريحة: بوابات validate/guards المباشرة + الاختبارات المركزة لما تلمسه",
+    "F-056/F-057: اختبارات الحراس الذاتية (أصناف مؤقتة) تتوسع مع النمط",
+    "F-058: أوراكلات يدوية مستقلة لعقدي 02/05 (لا نسخ معادلات الإنتاج)"
+  ],
+  "layers": [
+    "docs",
+    "guards",
+    "persistence",
+    "history",
+    "tests"
+  ]
+}

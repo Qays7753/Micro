@@ -1,0 +1,39 @@
+{
+  "id": "WS-195",
+  "title": "REM-004 — W4-A حقيقة وثائق الحوكمة (F-035/F-038/F-039/F-034/F-041 + تعليق F-040 + F-042)",
+  "status": "CLAIMED",
+  "items": [
+    "REM-004"
+  ],
+  "branch": "fix/w4a-governance-docs-truth-20260929",
+  "base_sha": "15060f034aa304470d91f40678a741aebf9e6b2a",
+  "areas": [
+    "docs"
+  ],
+  "contracts": [
+    "docs/architecture/SOURCE_OF_TRUTH.md",
+    "docs/architecture/EXTENSION_PLAYBOOK.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
+  ],
+  "agent": "Z AI — master remediation program 2026-09-29 (Wave 4, slice A)",
+  "pr": null,
+  "started_at": "2026-09-29T13:00:00+03:00",
+  "updated_at": "2026-09-29T13:00:00+03:00",
+  "next_action": "تنفيذ W4-A: تصحيح أرقام ARCHITECTURE.md (53 خدمة/18 وحدة/37 مخزنًا/38-30 عند 15060f0)، فهرسة وثائق المعمارية الست عشرة، تصحيح حال FT-01/05/09 بإضافة مؤرخة، ترويسة current-state + إزالة ازدواج §62 بلا كسر مراجع، مسار IMPORT_BOUNDARIES الكامل + قسم playbook للطبقات غير المرئية، تعليق D-12 على design-tokens، وتثبيت «قرش» في الوثيقتين الحاكمتين.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-195",
+      "reason": "فتح Claim لشريحة W4-A من origin/main 15060f0 — توثيق صرف بلا كود تشغيل ولا حزمة ولا دبابيس."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: توثيق فقط — صفر كود تشغيل، صفر حزمة، صفر دبابيس (تحقق الإخصائي 11-a: لا اختبار يثبّت هذه المواضع).",
+    "حد الاستعادة: 15060f0 — توثيق بأثر راجع واحد."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-004.json"
+  ]
+}

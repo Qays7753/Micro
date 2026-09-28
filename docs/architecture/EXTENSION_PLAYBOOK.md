@@ -58,6 +58,19 @@ Read `UI_AUX_ARCHITECTURE.md` and `SOURCE_OF_TRUTH.md` first. This playbook is o
 2. V2's present visual scope is Light only: preserve existing Dark behavior and test it for regressions when shared Light foundations change. No Dark deletion, redesign or V2 token migration is authorized in this phase.
 3. A later V2 Dark redesign needs an explicit owner decision and separate wave with surface/state/overlay parity checks; do not infer permission from the existing activation.
 
+## H. Extend the non-visual layers (W4-A/F-041 — أُضيف ببرنامج الإصلاح الرئيسي)
+
+الأقسام A–G تغطي توسعة الأسطح المرئية؛ هذا القسم يغطي الطبقات التي تحمل المعنى المالي — **لا يُنشأ مصدر حقيقة منافس في أي منها**:
+
+1. **المجال (Domain — `src/domain/`)**: المعنى المالي يُعرَّف هنا وحده (معادلة، سياسة، مفردة مجالية). القاعدة: كيان حاكم واحد لكل حساب مشترك (سابقة: `directSaleOutstandingMinor` S4-09، `calculateBreakEven` W2-B)؛ أي وحدة جديدة تُبنى مع اختباراتها المجالية المستقلة الأوراكل (أرقام محسوبة يدويًا لا منسوخة من الكود) وتوثَّق في عقود `docs/contracts/` قبل أو مع أول مستهلك.
+2. **التطبيق (Application — `client/src/application/`)**: الخدمات تُوزّع حالات الاستعمال ولا تملك سياسة؛ كل نص خدمي يصل المستخدم يلتزم قاموس 08؛ أرقام مشتقة جديدة تُشتق من القارئ الكنوني المالك (سابقة W3-B: حقلا الفرق غير المحصّل على `readRecordedPeriodResult`) لا من معادلة موازية.
+3. **التخزين (Storage — `client/src/storage/local/`)**: المحوّلات لا تملك حكمًا؛ كيان جديد = تحديث `docs/quality/persistent-entity-touchpoints.json` + زوج مخطط/تصدير بقرار صريح (اليوم 38/30 — `storage/local/types.ts`)؛ الكتابات الحساسة عبر `commit*` المحروسة لا `save*` الخام؛ كل ترحيل يقرأ القديم كما كُتب (سابقة <25: ختم `legacy.wasteContext` لا إعادة تفسير).
+4. **التصدير/الاستيراد (Transfer)**: كل تغيير شكل يمر بأزواج الإصدارات المقبولة (`transferEnvelope.ts`) واختبارات الذهاب-والعودة؛ الرفض قبل الكتابة الذرية؛ العدادات الصارمة والمظروف موثقان في عائلة عقود النقل.
+5. **التقارير والقراءات (Reports/Projections)**: تنسّق ولا تقرر؛ الشرح يُولَّد من التحلل الفعلي (سابقة W2-C «مكوناتها»)؛ المصطلحات من قاموس 08 حصرًا.
+6. **الاختبارات (Tests)**: أوراكل مستقل لكل قاعدة مالية (لا نسخ معادلة الإنتاج)؛ حارس سلبي للمصطلحات المحظورة (سابقة W3-A)؛ doc-freeze للوثائق الحاكمة (سابقة `Wave3Glossary.contract.test.ts`)؛ لا طوابع زمنية مطلقة مقابل وقت حقيقي (درس U-10).
+7. **الحراس (Guards — `scripts/`)**: أسرار/تركيز/كيانات/دورات/حدود طبقات/كثافة نص/توكنز — أي توسعة حراسة تتضمن اختبارها الذاتي؛ تُفحص أكواد الخروج مباشرة لا عبر أنبوب.
+8. **التوثيق (Docs)**: رقم يُكتب في وثيقة = أمر قياسه معه وSHA يوثقه (سابقة W4-A لـARCHITECTURE.md)؛ تحديث `current-state.md` و`todo.md` للوقائع المدموجة المتحققة فقط؛ فهرس 00 هو باب الدخول — لا تُنشأ فهارس منافسة.
+
 ## Verification gates (every extension)
 
 `pnpm check` must pass end-to-end: typecheck · lint (0 errors) · format · text-density (§10 caps) · design-token guards (hex + rgb/hsl) · secrets/test-focus/entity-touchpoints/runtime-cycles · root suite · client suite (includes the legacy-class census guard) · build + bundle budget. Physical-device, screen-reader, and OS text-scaling claims must be executed, not inferred — mark NOT_RUN honestly when unavailable.
