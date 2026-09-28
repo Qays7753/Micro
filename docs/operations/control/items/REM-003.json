@@ -25,7 +25,7 @@
   ],
   "contracts": [
     "docs/08-glossary.md",
-    "docs/contracts/43-asset-lifecycle-contract.md",
+    "docs/contracts/43-asset-depreciation-prototype-contract.md",
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "evidence": [
@@ -37,8 +37,6 @@
   ],
   "related_items": [],
   "owner_decision": "المفردات المستخدمة محسومة سلفًا: قاموس 08:93 («المحتسب عند التسليم») و08:103 («حالة الرقم») وقرار N-06 («منتجاتي وخدماتي») وعقد 43 (الإهلاك اقتراح غير نقدي) — لا مفردة جديدة تُخترع. البنود المحتاجة مفردات جديدة مؤجلة بقرار موثق (D-08/D-09 وس4/DF-05 وصوت العلامة لرأس الجسر).",
-  "merge_sha": null,
-  "verified_on_main_sha": null,
   "updated_at": "2026-09-29",
   "finding_classification": "DEEPENS_EXISTING",
   "finding_state": "CONFIRMED",
@@ -67,6 +65,19 @@
     }
   ],
   "classification": "FIX_BEFORE_PILOT",
-  "gate_classification": null,
-  "owner": "Product owner / Z AI execution with Manus coordination"
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "owner": "Product owner / Z AI execution with Manus coordination",
+  "migration_baseline": false,
+  "next_action": "شريحة W3-A (مفردات محسومة) عبر WS-192 ثم W3-B (إعلانات الصدق الخدمية F-020/F-024/F-028) ثم W3-C (قاموس 08 للدلالات المشحّنة) ثم إغلاق الموجة 3.",
+  "tests_required": [
+    "قلب موثق لدبوس المصطلح الممنوع مع حارس سلبي not.toContain",
+    "اختبارات التحلل والجسر وذهاب-وعودة exe014 خضراء بعد التبديلات",
+    "لا اختبارات UI جديدة — بنود العرض مؤجلة"
+  ],
+  "layers": [
+    "application",
+    "storage",
+    "docs",
+    "tests"
+  ]
 }
