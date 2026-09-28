@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-189 | IN_PROGRESS | \`fix/w2b-unified-breakeven-20260929\` | — | REM-002 | تنفيذ W2-B: insights يستهلك calculateBreakEven الكنونية بمدخلات موحدة؛ الافتراضات الهيكلية دائمًا؛ تسمية الهامش المباشر؛ عقود 17 و12 محدثة. |
+| WS-189 | IN_REVIEW | \`fix/w2b-unified-breakeven-20260929\` | 254 | REM-002 | تنفيذ W2-B: insights يستهلك calculateBreakEven الكنونية بمدخلات موحدة؛ الافتراضات الهيكلية دائمًا؛ تسمية الهامش المباشر؛ عقود 17 و12 محدثة. |

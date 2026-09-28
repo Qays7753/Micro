@@ -1,7 +1,7 @@
 {
   "id": "WS-189",
   "title": "REM-002 — W2-B نموذج التعادل الموحد الصادق (F-009/F-010/F-011)",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "REM-002"
   ],
@@ -20,9 +20,9 @@
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
   ],
   "agent": "Z AI — master remediation program 2026-09-29 (Wave 2, slice B)",
-  "pr": null,
+  "pr": 254,
   "started_at": "2026-09-29T00:20:00+03:00",
-  "updated_at": "2026-09-29T00:20:00+03:00",
+  "updated_at": "2026-09-29T00:35:00+03:00",
   "next_action": "تنفيذ W2-B: insights يستهلك calculateBreakEven الكنونية بمدخلات موحدة؛ الافتراضات الهيكلية دائمًا؛ تسمية الهامش المباشر؛ عقود 17 و12 محدثة.",
   "status_history": [
     {
@@ -36,6 +36,12 @@
       "changed_at": "2026-09-29",
       "actor": "claim:ws-189",
       "reason": "تنفيذ التوحيد: calculateBreakEven كنونية، مدخلات orderInputs/expenseInputs مصدرة ومشتركة، حذف الاشتقاق الخاص، الحقول الصادقة، والعقود."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:254",
+      "reason": "اكتمل تنفيذ W2-B وافتُتح PR #254 بعد البوابات الخضراء (جذري 510/510، تطبيق 1964/1964، حزمة 649,585/650,000 PASS بصافي سالب)."
     }
   ],
   "migration_baseline": false,
