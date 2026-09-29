@@ -181,7 +181,7 @@ export class ScheduleRecurrenceService {
       return {
         ok: false,
         code: "validation_error",
-        message: "لا يمكن تكرار موعد غير نشط أو طلب مسلّم أو مسوّى أو ملغى؛ لم يتغير أي سجل.",
+        message: "لا يمكن تكرار موعد غير نشط أو طلب مغلق؛ لم يتغير أي سجل.",
       };
     const id = `recurrence-${source.id}-${input.frequency}-${input.occurrenceCount}`;
     const existing = recurrencesResult.value.find(recurrence => recurrence.id === id);

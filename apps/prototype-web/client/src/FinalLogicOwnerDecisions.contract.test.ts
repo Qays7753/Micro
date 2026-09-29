@@ -8,8 +8,10 @@
  * الإزالة الصامتة لأي منها = فشل بالاسم.
  *
  * الجزء الثاني (سلوك): يثبت أن رفض الانتقال من الحالة المسوّاة يسمّيها
- * باسمها الكنوني «تمت التسوية» (D-08)، وأن رسالة خدمة التكرار على طلب
- * منتهٍ تسمي الحالات بأسمائها (مسلّم/مسوّى/ملغى) لا بكلمة «مغلق».
+ * باسمها الكنوني «تمت التسوية» (D-08)، وأن خدمة التكرار ترفض الطلب
+ * المنتهي بلا أي تغيير سجل (تصحيح المرحلة أ بتاريخ 2026-09-29: نص رسالة
+ * الرفض نسخة عرض تصل المستخدم من صفحة Schedule.tsx — أُعيدت إلى نصها
+ * على main؛ نطاق D-08 غير المرئي لا يشمل نصوص العرض).
  *
  * الجزء الثالث (حدود): يثبت أن كل ما سبق حدث بلا أي تغيير مخطط/تصدير —
  * الزوج 38/30 كما هو (D-09/D-03 حرفيًا: لا ترحيل لأجل صياغة). */
@@ -127,7 +129,7 @@ describe("REM-006 — قرار المالك D-08: «تمت التسوية» ال
     ).toThrow("تمت التسوية");
   });
 
-  it("the recurrence rejection for a closed lifecycle names the states, never «مغلق»", async () => {
+  it("recurrence on a finished lifecycle order is rejected without changing any record (behavior only)", async () => {
     const store = new MemoryLocalStore();
     const cost = calculateCostSnapshot("d08b-cost", {
       currency: "JOD",
@@ -154,7 +156,7 @@ describe("REM-006 — قرار المالك D-08: «تمت التسوية» ال
     await store.saveOrder({
       id: "d08b-order",
       /* بذر اختبار مباشر للحالة المنتهية — المسار الكامل مغطى في اختبار
-       * الانتقال أعلاه؛ هنا مقصوده استدعاء رسالة الخدمة نفسها. */
+       * الانتقال أعلاه؛ هنا مقصوده استدعاء الخدمة نفسها. */
       order: { ...order, status: "cancelled", nextAction: "راجع إغلاق الطلب" },
       deliveryDate: "2026-08-23",
       agreementSource: null,
@@ -172,11 +174,14 @@ describe("REM-006 — قرار المالك D-08: «تمت التسوية» ال
       occurrenceCount: 2,
     });
     expect(result).toMatchObject({ ok: false, code: "validation_error" });
-    if (!result.ok) {
-      expect(result.message).toContain("مسوّى");
-      expect(result.message).toContain("مسلّم");
-      expect(result.message).toContain("ملغى");
-      expect(result.message).not.toContain("مغلق");
+    /* تصحيح المرحلة أ (2026-09-29): نص الرسالة نسخة عرض يعرضها
+     * Schedule.tsx — عاد إلى نصه على main، فلا يُحرس محتواه هنا؛
+     * المحروس غير المرئي هو الرفض نفسه وعدم تغيير أي سجل. */
+    const recurrences = await store.listRecurrences();
+    if (recurrences.ok) {
+      expect(
+        recurrences.value.every(recurrence => recurrence.id !== `recurrence-${source.value?.id}-weekly-2`),
+      ).toBe(true);
     }
   });
 });
