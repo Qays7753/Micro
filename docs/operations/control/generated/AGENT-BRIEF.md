@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 43
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 43
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,4 +32,6 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-لا يوجد Workstream نشط أو يحتاج مراجعة.
+| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
+|---|---|---|---|---|---|
+| WS-203 | IN_PROGRESS | \`fix/final-logic-owner-decisions-20260929\` | — | REM-006 | التنفيذ على الفرع؛ PR واحد يبقى مفتوحًا لمراجعة المالك — لا دمج ذاتيًا ولا إغلاق قبل قرار المالك. |

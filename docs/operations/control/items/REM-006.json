@@ -1,0 +1,83 @@
+{
+  "id": "REM-006",
+  "title": "المعالجة المنطقية النهائية — قرارات المالك D-03/D-08/D-09/D-11 وتحقيق التعادل (بلا UI وبلا دمج)",
+  "type": "DEFECT",
+  "status": "IN_PROGRESS",
+  "priority": "P1",
+  "stage": "final-logic-remediation",
+  "areas": [
+    "docs",
+    "finance",
+    "g5",
+    "tests"
+  ],
+  "layers": [
+    "docs",
+    "application",
+    "domain",
+    "tests"
+  ],
+  "owner": "Product owner / Z AI execution",
+  "next_action": "المهمة على الفرع fix/final-logic-owner-decisions-20260929 بانتظار مراجعة المالك وقرار الدمج؛ لا دمج ذاتيًا.",
+  "updated_at": "2026-09-29",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-09-29",
+      "actor": "program:final-logic",
+      "reason": "تسجيل مهمة المعالجة المنطقية النهائية بعد اعتماد المالك قرارات D-03 وD-08 وD-09 وD-11 وتحقيق نقطة التعادل على قاعدة main الحية 13b74b0."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-203",
+      "reason": "فتح Claim WS-203 للفرع fix/final-logic-owner-decisions-20260929 من origin/main 13b74b0."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-203",
+      "reason": "تنفيذ المعالجة عبر WS-203: تصحيح مؤرخ لعقد 05 §3.2.1 (D-03)، تسمية settled الكنونية (D-08)، الخريطة الدلالية لneeds_review (D-09)، وتوثيق تحقيق D-11 — مع تحقيق قراءة-فقط لنموذج التعادل وQR-1..QR-6 وF-062 في التقرير."
+    }
+  ],
+  "tests_required": [
+    "focused contract/doc guard tests",
+    "prototype suite (focused files)",
+    "typecheck",
+    "validate"
+  ],
+  "dependencies": [
+    "REM-002",
+    "REM-003",
+    "REM-004",
+    "REM-005"
+  ],
+  "source": {
+    "report": "CONCEPT-POLICY-TERMINO-INTEGRITY-AUDIT (D-03/F-008، D-08/F-026، D-09/F-023، D-11/F-059، F-062، QR-1..QR-6)",
+    "discovered_at_sha": "13b74b01bc1b1e76436f6a0c5e322c8f0dc0d7a9",
+    "evidence": [
+      "docs/operations/control/evidence/micro-master-remediation-2026-09-27/WAVE5-FINAL-PROGRAM-REPORT-2026-09-29.md"
+    ]
+  },
+  "migration_baseline": false,
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "summary": "تنفيذ قرارات المالك المعتمدة 2026-09-29 في حدود غير مرئية فقط: D-03 (تصحيح مؤرخ في عقد 05 §3.2.1 يحسم بقاء projectDeliveryCostMinor حقلًا تفسيريًا لا يُطرح ثانية مع تحديث التعليقات الموازية)، D-08 (تثبيت «تمت التسوية» الاسم الكنوني للحالة settled وإزالة «مغلق» المنافسة من رسالة خدمة التكرار والتعليق الدلالي في المجال)، D-09 (الخريطة الدلالية الكنونية لحالة needs_review بمعانيها الأربعة في عقد 05 §8 والقاموس بلا تغيير مخطط أو تصدير)، وD-11 (تحقق موثق: عمّان الكنونية سارية في العزو غير المرئي) — مع تحقيق قراءة-فصل لنموذج التعادل الواحد وخيارات F-062 وأسئلة QR-1..QR-6 في تقرير عربي واحد داخل الفرع وPR واحد لا يُدمج ذاتيًا.",
+  "acceptance": [
+    "عقد 05 §3.2.1 يحمل تصحيحًا مؤرخًا لقرار D-03: الحقل تفسيري، لا طرح ثانية، null = غير مسجلة بعد، والدفع المباشر للناقل سياق فقط",
+    "«تمت التسوية» الاسم الكنوني الوحيد للحالة settled في الأسطح غير المرئية، ورسالة خدمة التكرار تسمي الحالات بأسمائها لا ب«مغلق»",
+    "الخريطة الدلالية لneeds_review (موقوف للمراجعة/بانتظار قرارك/يوجد فرق يحتاج تسوية/البيانات غير مكتملة) موثقة في عقد 05 §8 وقاموس 08 بلا أي تغيير مخطط أو تصدير أو ترحيل",
+    "D-11 محفوظة بدليل: localDateInAmman الكنونية واختبار الحد 2026-07-31T22:30:00.000Z ضمن آب ساريان بلا تغيير",
+    "تقرير عربي واحد في evidence/micro-master-remediation-2026-09-29 يغطي التحقيق كله بفصول VERIFIED/INFERRED/UNVERIFIED/DEFERRED/RECOMMENDATION",
+    "حارس عقد واحد يثبت التصحيحات الثلاثة ويمنع الإزالة الصامتة، وكل الفحوص المركزة خضراء بلا تغيير مخطط/تصدير (38/30 كما هي)"
+  ],
+  "contracts": [
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/02-order-lifecycle-contract.md",
+    "docs/contracts/17-contribution-break-even-short-cash-g5-contract.md"
+  ],
+  "related_items": [],
+  "finding_classification": "DEEPENS_EXISTING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "audit-decisions:D-03(F-008),D-08(F-026),D-09(F-023),D-11(F-059) — قرارات مالك معتمدة 2026-09-29 بعد إغلاق البرنامج الرئيسي؛ النصوص العقدية كانت تحمل وسم «معلق» والأسطح غير المرئية تحوي مواضع منافسة/غائبة"
+}

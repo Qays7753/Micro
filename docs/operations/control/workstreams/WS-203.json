@@ -1,0 +1,51 @@
+{
+  "id": "WS-203",
+  "title": "REM-006 — المعالجة المنطقية النهائية وقرارات المالك D-03/D-08/D-09/D-11 وتحقيق التعادل (PR واحد بلا دمج)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "REM-006"
+  ],
+  "branch": "fix/final-logic-owner-decisions-20260929",
+  "base_sha": "13b74b01bc1b1e76436f6a0c5e322c8f0dc0d7a9",
+  "areas": [
+    "docs",
+    "finance",
+    "g5",
+    "tests"
+  ],
+  "contracts": [
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/02-order-lifecycle-contract.md",
+    "docs/contracts/17-contribution-break-even-short-cash-g5-contract.md"
+  ],
+  "agent": "Z AI — final logic remediation & break-even investigation 2026-09-29",
+  "pr": null,
+  "started_at": "2026-09-30T03:00:00+03:00",
+  "updated_at": "2026-09-30T03:00:00+03:00",
+  "next_action": "التنفيذ على الفرع؛ PR واحد يبقى مفتوحًا لمراجعة المالك — لا دمج ذاتيًا ولا إغلاق قبل قرار المالك.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-203",
+      "reason": "فتح Claim من origin/main 13b74b0 بعد التحقق الحي: شجرة نظيفة، صفر claims نشطة، والـPRs المفتوحة الأربعة المحمية (#244/#245/#239/#240) غير متداخلة."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-203",
+      "reason": "تنفيذ المعالجة غير المرئية + التحقيق القراءة-فقط والتقرير العربي داخل الفرع."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: تصحيحات توثيقية مؤرخة + رسالة خدمة واحدة + تعليقان دلاليان + حارس عقد + تقرير — صفر تغيير مالي تشغيلي، صفر UI، صفر بنية.",
+    "حد الاستعادة: 13b74b0 (رأس main الحالي).",
+    "القرارات المؤجلة المحفوظة كما هي: D-12 (مصدر Standard)، D-13/F-055 (calculationVersion)، QR-5/F-060 (فائدة القروض)، F-062 خيارات فقط بلا تنفيذ، وأجزاء العرض = DEFERRED_UI.",
+    "المخطط/التصدير 38/30 لا يُمس؛ لا ترحيل؛ لا إعادة كتابة تاريخية."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-006.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-29/FINAL-LOGIC-INVESTIGATION-AND-OWNER-DECISIONS-2026-09-29.md"
+  ]
+}
