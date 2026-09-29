@@ -2,7 +2,7 @@
   "id": "REM-006",
   "title": "المعالجة المنطقية النهائية — قرارات المالك D-03/D-08/D-09/D-11 وتحقيق التعادل (بلا UI وبلا دمج)",
   "type": "DEFECT",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P1",
   "stage": "final-logic-remediation",
   "areas": [
@@ -18,7 +18,7 @@
     "tests"
   ],
   "owner": "Product owner / Z AI execution",
-  "next_action": "المهمة على الفرع fix/final-logic-owner-decisions-20260929 بانتظار مراجعة المالك وقرار الدمج؛ لا دمج ذاتيًا.",
+  "next_action": "بانتظار مراجعة المالك وقرار الدمج على PR #275؛ لا دمج ذاتيًا ولا إغلاق قبل قرار صريح.",
   "updated_at": "2026-09-29",
   "status_history": [
     {
@@ -38,6 +38,12 @@
       "changed_at": "2026-09-29",
       "actor": "claim:ws-203",
       "reason": "تنفيذ المعالجة عبر WS-203: تصحيح مؤرخ لعقد 05 §3.2.1 (D-03)، تسمية settled الكنونية (D-08)، الخريطة الدلالية لneeds_review (D-09)، وتوثيق تحقيق D-11 — مع تحقيق قراءة-فقط لنموذج التعادل وQR-1..QR-6 وF-062 في التقرير."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:275",
+      "reason": "اكتمل التنفيذ وافتُتح PR #275 للمراجعة — لا دمج ذاتيًا؛ الحارس 8/8 وكل الفحوص المركزة خضراء على رأس الفرع."
     }
   ],
   "tests_required": [

@@ -1,7 +1,7 @@
 {
   "id": "WS-203",
   "title": "REM-006 — المعالجة المنطقية النهائية وقرارات المالك D-03/D-08/D-09/D-11 وتحقيق التعادل (PR واحد بلا دمج)",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "REM-006"
   ],
@@ -19,10 +19,10 @@
     "docs/contracts/17-contribution-break-even-short-cash-g5-contract.md"
   ],
   "agent": "Z AI — final logic remediation & break-even investigation 2026-09-29",
-  "pr": null,
+  "pr": 275,
   "started_at": "2026-09-30T03:00:00+03:00",
-  "updated_at": "2026-09-30T03:00:00+03:00",
-  "next_action": "التنفيذ على الفرع؛ PR واحد يبقى مفتوحًا لمراجعة المالك — لا دمج ذاتيًا ولا إغلاق قبل قرار المالك.",
+  "updated_at": "2026-09-30T04:30:00+03:00",
+  "next_action": "PR #275 مفتوح للمراجعة؛ لا دمج ذاتيًا. بعد قرار المالك: الدمج ثم VERIFIED على شجرة main عند التحقق الحي.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -35,6 +35,12 @@
       "changed_at": "2026-09-29",
       "actor": "claim:ws-203",
       "reason": "تنفيذ المعالجة غير المرئية + التحقيق القراءة-فقط والتقرير العربي داخل الفرع."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:275",
+      "reason": "اكتمل التنفيذ والتقرير على الفرع وافتُتح PR #275 (الحارس 8/8، validate EXIT 0، المخطط/التصدير 38/30)."
     }
   ],
   "migration_baseline": false,
