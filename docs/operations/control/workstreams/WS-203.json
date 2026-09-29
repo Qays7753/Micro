@@ -24,7 +24,7 @@
   "agent": "Z AI — final logic remediation & break-even investigation 2026-09-29",
   "pr": 275,
   "started_at": "2026-09-29T12:25:52+03:00",
-  "updated_at": "2026-09-29T16:10:00+03:00",
+  "updated_at": "2026-09-29T16:35:00+03:00",
   "next_action": "PR #275 مفتوح للمراجعة؛ لا دمج ذاتيًا. بعد قرار المالك: الدمج ثم VERIFIED على شجرة main عند التحقق الحي.",
   "status_history": [
     {
@@ -53,12 +53,14 @@
     "حد الاستعادة: 13b74b0 (رأس main الحالي).",
     "القرارات المؤجلة المحفوظة كما هي: D-12 (مصدر Standard)، D-13/F-055 (calculationVersion)، QR-5/F-060 (فائدة القروض)، خيارات TARGET_OPERATING_RESULT بلا تنفيذ، وأجزاء العرض = DEFERRED_UI.",
     "المخطط/التصدير 38/30 لا يُمس؛ لا ترحيل؛ لا إعادة كتابة تاريخية.",
-    "المرحلة ب (استمرار المهمة نفسها بأمر المالك 2026-09-29، بعد بوابة خروج المرحلة أ): تنفيذ النموذج الكنوني للتعادل التشغيلي والنتيجة التشغيلية المستهدفة (REM-007) على الفرع والـPR نفسه بلقطات مستقلة وحد دحرج/اختبار مستقل — حل تعارض التداخل: workstream واحد للمهمة الواحدة بدل claim ثانٍ نشط متداخل. PR واحد يحمل النطاقين بمستوى معلن (لا تغيير مالي خفي): مرحلة أ توثيقية/تصحيحية، ومرحلة ب حسابية كنونية موثقة ببطاقة إصلاح."
+    "المرحلة ب (استمرار المهمة نفسها بأمر المالك 2026-09-29، بعد بوابة خروج المرحلة أ): تنفيذ النموذج الكنوني للتعادل التشغيلي والنتيجة التشغيلية المستهدفة (REM-007) على الفرع والـPR نفسه بلقطات مستقلة وحد دحرج/اختبار مستقل — حل تعارض التداخل: workstream واحد للمهمة الواحدة بدل claim ثانٍ نشط متداخل. PR واحد يحمل النطاقين بمستوى معلن (لا تغيير مالي خفي): مرحلة أ توثيقية/تصحيحية، ومرحلة ب حسابية كنونية موثقة ببطاقة إصلاح.",
+    "اكتمال المرحلة ب (2026-09-29): REM-007 منفذ ومختبر (762 اختبارًا أخضر بعد التغيير؛ 19 جديدًا مستقل الأوراكل) وبوابات المخطط/التصدير 38/30 محروسة — انتقل REM-007 إلى IN_REVIEW على PR #275 نفسه."
   ],
   "evidence": [
     "docs/operations/control/items/REM-006.json",
     "docs/operations/control/items/REM-007.json",
     "docs/operations/control/evidence/micro-master-remediation-2026-09-29/FINAL-LOGIC-INVESTIGATION-AND-OWNER-DECISIONS-2026-09-29.md",
-    "docs/operations/control/evidence/micro-master-remediation-2026-09-29/B-CANONICAL-OPERATING-BREAKEVEN-REPAIR-CARD.md"
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-29/B-CANONICAL-OPERATING-BREAKEVEN-REPAIR-CARD.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-29/B-CANONICAL-OPERATING-BREAKEVEN-SLICE-REPORT-2026-09-29.md"
   ]
 }

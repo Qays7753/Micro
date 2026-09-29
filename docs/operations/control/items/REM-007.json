@@ -2,7 +2,7 @@
   "id": "REM-007",
   "title": "النموذج الكنوني للتعادل التشغيلي والنتيجة التشغيلية المستهدفة TARGET_OPERATING_RESULT (بلا UI وبلا مخطط)",
   "type": "DEFECT",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P1",
   "stage": "canonical-operating-breakeven",
   "areas": [
@@ -19,7 +19,7 @@
     "tests"
   ],
   "owner": "Product owner / Z AI execution",
-  "next_action": "تنفيذ بطاقة الإصلاح على fix/final-logic-owner-decisions-20260929 (لقطات مرحلة ب مستقلة داخل PR #275) بلا دمج ذاتي.",
+  "next_action": "بانتظار مراجعة المالك وقرار الدمج على PR #275 (المرحلتان أ وب معلنتان في وصف الـPR)؛ لا دمج ذاتيًا.",
   "updated_at": "2026-09-29",
   "status_history": [
     {
@@ -39,6 +39,12 @@
       "changed_at": "2026-09-29",
       "actor": "claim:ws-203",
       "reason": "بدء تنفيذ بطاقة الإصلاح على الفرع نفسه (لقطات مرحلة ب مستقلة داخل PR #275): المجال ← الخدمة ← الاختبارات ← العقود."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:275",
+      "reason": "اكتمل تنفيذ المرحلة ب (المجال ← الخدمة ← 19 اختبارًا جديدًا ← عقد 17 §6.1 ← قاموس ← D-041) وكل البوابات المركزة خضراء على الفرع."
     }
   ],
   "tests_required": [

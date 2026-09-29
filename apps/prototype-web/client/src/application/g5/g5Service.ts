@@ -321,7 +321,14 @@ export class G5Service {
     };
   }
 
-  async readDecision(from: string, to: string): Promise<G5Result<G5Decision>> {
+  /* REM-007 (المرحلة ب — 2026-09-29): قراءة قرار G5 مع معامل هدف اختياري
+   * يمرر إلى القارئ الكنوني نفسه (calculateBreakEven) — لا مسار ثانٍ ولا
+   * UI؛ الهدف صفر يطابق التعادل العادي، والغائب يترك القراءة كما كانت. */
+  async readDecision(
+    from: string,
+    to: string,
+    targetOperatingResultMinor?: number | null,
+  ): Promise<G5Result<G5Decision>> {
     const [position, orders, events, purchases, declarations, catalogItems, units, conversions] =
       await Promise.all([
         this.projectFinance.readPosition(),
@@ -352,7 +359,13 @@ export class G5Service {
       from,
       to,
     );
-    const period = calculateBreakEven(from, to, contributionOrders, expenseInputs(events.value, from, to));
+    const period = calculateBreakEven(
+      from,
+      to,
+      contributionOrders,
+      expenseInputs(events.value, from, to),
+      targetOperatingResultMinor,
+    );
     const shortCash = calculateShortCash({
       from,
       to,
