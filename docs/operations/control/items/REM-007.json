@@ -19,8 +19,8 @@
     "tests"
   ],
   "owner": "Product owner / Z AI execution",
-  "next_action": "بانتظار مراجعة المالك وقرار الدمج على PR #275 — الرأس c52adaa بCI أخضر كامل (checks + Cloudflare Pages) وكل البوابات المحلية خضراء؛ لا دمج ذاتيًا.",
-  "updated_at": "2026-09-29",
+  "next_action": "بانتظار مراجعة المالك وقرار الدمج على PR #275 بعد تصحيح التكافؤ المؤرخ 2026-09-30 (قراءة التغطية تستهلك التركيب الكنوني نفسه: composeOperatingBreakEven فوق الأساس calculateBreakEven عبر المسار الخامل ذاته؛ تكافؤ كامل الحقول مقيسًا فوق/عند/تحت التعادل وفجوة التصنيف وحركات المخزون؛ تكامل D-03 عبر المسار الفعلي) — كل البوابات المركزة خضراء على الفرع؛ لا دمج ذاتيًا.",
+  "updated_at": "2026-09-30",
   "status_history": [
     {
       "status": "READY",
@@ -51,7 +51,8 @@
     "اختبارات مجالية مستقلة الأوراكل لكل ثوابت النموذج (تعادل صفر، إشارات، ceil واحد، قيمة مبيعات من النسبة المجمعّة، مزيج مرجّح، وحدات غير متوافقة، ثبات المتغيرة/المختلطة/المشتركة، الهدف وتكافؤه مع التعادل)",
     "اختبار طبقة تطبيق: عزل الكاش/القبض/الدين/العربون/رأس المال/السحب/أصل القرض عن التعادل التشغيلي + تمرير الهدف عبر الخدمة + تكافؤ G5/التغطية للحقول الجديدة",
     "typecheck وeslint وprettier للملفات المتغيرة",
-    "validate وgenerate_tracker وsecrets وtest-focus وgit diff --check"
+    "validate وgenerate_tracker وsecrets وtest-focus وgit diff --check",
+    "تكافؤ كامل الحقول بين القارئين (فوق/عند/تحت/فجوة تصنيف/حركات مخزون تخفض الحالة وحدها) + تكامل D-03 عبر المسار الفعلي + لا سطح هدف في المؤشرات المالية (operatingBreakEvenModel وd03DeliveryOperatingPath — تصحيح 2026-09-30)"
   ],
   "dependencies": [
     "REM-006"
@@ -61,21 +62,23 @@
     "discovered_at_sha": "7ed6c36120dbdb5cbd05f3e390284b4aeda936c8",
     "evidence": [
       "docs/operations/control/evidence/micro-master-remediation-2026-09-29/B-CANONICAL-OPERATING-BREAKEVEN-REPAIR-CARD.md",
-      "docs/operations/control/evidence/micro-master-remediation-2026-09-29/FINAL-LOGIC-INVESTIGATION-AND-OWNER-DECISIONS-2026-09-29.md"
+      "docs/operations/control/evidence/micro-master-remediation-2026-09-29/FINAL-LOGIC-INVESTIGATION-AND-OWNER-DECISIONS-2026-09-29.md",
+      "docs/operations/control/evidence/micro-master-remediation-2026-09-29/B-CANONICAL-OPERATING-BREAKEVEN-SLICE-REPORT-2026-09-29.md"
     ]
   },
   "migration_baseline": false,
   "classification": "FIX_BEFORE_PILOT",
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
-  "summary": "تنفيذ قرار المالك المعتمد 2026-09-29: النموذج الكنوني للتعادل التشغيلي عبر توسيع القارئ الكنوني الواحد calculateBreakEven فقط (لا معادلة موازية): نتيجة التشغيل الفعلية (هامش المساهمة − الثابتة المؤهلة)، حالة تحت/عند/فوق التعادل، المتبقي للتعادل والفائض فوقه، قيمة مبيعات التعادل من النسبة المجمعّة الدقيقة بلا تقريب مزدوج، نسبة هامش المساهمة للعرض بعشرة آلاف معلنة التقريب، وقراءة النتيجة التشغيلية المستهدفة TARGET_OPERATING_RESULT (وحدات ومبيعات) بمعامل اختياري — الهدف صفر يطابق التعادل العادي بالبناء. الوحدات غير الموحدة تبقى null بسبب صريح مع بقاء قيمة المبيعات المجمعّة، وكل فجوات التصنيف تمنع الادعاء بالاكتمال كما هي. صفر UI، صفر مخطط/تصدير (38/30 محروس)، صفر تخزين مشتق، صفر إعادة كتابة تاريخية.",
+  "summary": "تنفيذ قرار المالك المعتمد 2026-09-29: النموذج الكنوني للتعادل التشغيلي بقراءة واحدة مركّبة — الأساس calculateBreakEven (src/domain/g5/policies.ts) كما هو بلا معامل هدف، وفوقه طبقة التشغيل الكاملة (نتيجة التشغيل/الحالة تحت-عند-فوق/المتبقي/الفائض/قيمة مبيعات التعادل من النسبة المجمعّة الدقيقة/نسبة العرض) تُركّبها الوحدة الكنسية الخاملة composeOperatingBreakEven (src/domain/g5/operatingBreakEven.ts) التي يستهلكها القارئان الحيّان معًا (G5Service.readDecision وProjectFinancialService.readFinancialInsights عبر المسار الخامل المعتمد ذاته — تصحيح التكافؤ 2026-09-30)، وقراءة الهدف TARGET_OPERATING_RESULT داخل الوحدة نفسها (الهدف صفر يطابق التعادل العادي بالبناء). CoverageIndicator عقد عرض/مهايئ فوق القراءة الكنسية (حقول التشغيل ملتقطة Pick من النوع الكنوني بلا هدف؛ حركات المخزون تخفض الحالة وحدها والأرقام الكنسية باقية) — لا معادلة منافسة تحت أي اسم. الوحدات غير الموحدة تبقى null بسبب صريح مع بقاء قيمة المبيعات، وكل فجوات التصنيف تمنع الادعاء بالاكتمال. صفر UI، صفر مخطط/تصدير (38/30 محروس)، صفر تخزين مشتق، صفر إعادة كتابة تاريخية.",
   "acceptance": [
-    "calculateBreakEven موسّعة فقط (المسار الكنوني الواحد): كل المستهلكين الأحياء (G5/التغطية) يتدفقون إليها بلا أي معادلة منافسة",
+    "مسار كنوني واحد مقيس: القارئان الحيّان (G5 والتغطية) يستهلكان التركيب نفسه composeOperatingBreakEven فوق الأساس calculateBreakEven — تكافؤ كامل الحقول مقيسًا فوق/عند/تحت التعادل وفجوة التصنيف وحركات المخزون (تصحيح التكافؤ 2026-09-30)",
     "نتيجة التشغيل صفر عند التعادل (10000/6000/4000) وسالبة تحته وموجبة فوقه مع حالة معلنة ومتبقٍ/فائض",
     "قيمة مبيعات التعادل = ceil(ثابتة × إيراد ÷ هامش) من المجمعات بلا تقريب مزدوج، متاحة عند اكتمال المجمعات حتى عند فشل توحيد الوحدات",
     "وحدات الهدف ومبيعاته = ceil((ثابتة + هدف) ÷ أساس الهامش)؛ الهدف صفر يطابق التعادل؛ العتبة الصحيحة لا تقل عن النتيجة المطلوبة بسبب التقريب",
     "المتغيرة غير المرتبطة والمختلطة والمجهولة والمشتركة بلا أساس تمنع الاكتمال بأسباب ظاهرة (لا إسقاط ولا صفر)",
     "الكاش والقبض والذمم والعربون ورأس المال والسحوبات وأصل القرض والتصريحات النقدية لا تغيّر التعادل التشغيلي تلقائيًا (اختبار طبقة تطبيق حي)",
-    "لا تغيير مخطط/تصدير/إصدار محلي ولا تخزين نتيجة مشتقة ولا أي UI (الزوج 38/30 محروس)"
+    "لا تغيير مخطط/تصدير/إصدار محلي ولا تخزين نتيجة مشتقة ولا أي UI (الزوج 38/30 محروس)",
+    "دليل تكامل D-03 عبر المسار الكانوني الفعلي (شروط نقل ← لقطة تكلفة ← تسليم ← القارئان): كلفة اللقطة مرة واحدة، التحلل التفسيري لا يُخصم ثانيا، دفع الناقل المباشر سياق فقط، null تعلن نقصًا لا صفرًا بصمت، وأجرة المشروع تدخل قيمة الطلب مرة واحدة (تصحيح التكافؤ 2026-09-30)"
   ],
   "contracts": [
     "docs/contracts/17-contribution-break-even-short-cash-g5-contract.md",
@@ -84,7 +87,8 @@
   ],
   "related_items": [],
   "evidence": [
-    "docs/operations/control/evidence/micro-master-remediation-2026-09-29/B-CANONICAL-OPERATING-BREAKEVEN-REPAIR-CARD.md"
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-29/B-CANONICAL-OPERATING-BREAKEVEN-REPAIR-CARD.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-29/B-CANONICAL-OPERATING-BREAKEVEN-SLICE-REPORT-2026-09-29.md"
   ],
   "finding_classification": "NEW_FINDING",
   "finding_state": "CONFIRMED",

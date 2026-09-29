@@ -9,9 +9,11 @@
  * 1000 → هامش 4000؛ الثابتة 1000 → نتيجة تشغيل 3000 (فوق)؛ مبيعات التعادل
  * = ceil(1000 × 5000 ÷ 4000) = 1250. */
 import { describe, expect, it } from "vitest";
-import { ProjectFinancialService } from "./projectFinancialService";
+import { ProjectFinancialService, type CoverageIndicator } from "./projectFinancialService";
 import { G5Service } from "@/application/g5/g5Service";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import type { OperatingBreakEvenResult } from "@micro-domain/g5/index.js";
+import { createInventoryMovement, createMaterial } from "@micro-domain/inventory-material/index.js";
 import {
   calculateCostSnapshot,
   collectDeposit,
@@ -278,5 +280,276 @@ describe("REM-007 — التعادل التشغيلي عبر طبقة التطب
       targetSalesValueMinor: null,
     });
     expect(invalid.value.period.targetOperatingResult?.reasons.join(" ")).toContain("غير صالحة");
+  });
+});
+
+/* REM-007 (تصحيح تكافؤ المستهلكين — 2026-09-30): القراءة الكاملة تصل قراري
+ * G5 والتغطية من التركيب الكنوني نفسه. كل حالة بأوراكل رقمي مستقل محسوب
+ * يدويًا، ثم مطابقة كاملة للحقول المشتركة بين المستهلكين الحيّين.
+ *
+ * الأوراكل المشترك: الطلب النهائي إيراد 5000 وتكلفة معترف بها 1000 (وقت
+ * 60×1000) على كميتين (2000 ملي) → هامش 4000. الثابتة F متغيرة لكل حالة. */
+async function storeWithFixedExpense(fixedMinor: number) {
+  const store = await baseStore();
+  const finance = new ProjectFinancialService(store, now);
+  await finance.record({
+    type: "operating_expense_cash",
+    amountMinor: fixedMinor,
+    occurredOn: "2026-08-06",
+    note: "ثابتة الفترة",
+    counterparty: null,
+    relatedEventId: null,
+    expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+    idempotencyKey: `parity-${fixedMinor}`,
+  });
+  return store;
+}
+
+async function bothReadings(store: MemoryLocalStore) {
+  const finance = new ProjectFinancialService(store, now);
+  const g5 = new G5Service(store, finance, now);
+  const insights = await finance.readFinancialInsights("2026-08-01", "2026-08-31");
+  const decision = await g5.readDecision("2026-08-01", "2026-08-31");
+  if (!insights.ok || !decision.ok) throw new Error("readers failed");
+  return { coverage: insights.value.coverage, period: decision.value.period, insights, decision };
+}
+
+/* تكافؤ الحقول الكامل بين القارئين الحيّين — كل الحقول المشتركة واحدًا واحدًا. */
+function expectFullFieldParity(coverage: CoverageIndicator, period: OperatingBreakEvenResult) {
+  expect(coverage.fixedExpenseMinor).toBe(period.fixedExpenseMinor);
+  expect(coverage.directMarginMinor).toBe(period.directMarginMinor);
+  expect(coverage.breakEvenUnits).toBe(period.breakEvenUnits);
+  expect(coverage.operatingResultMinor).toBe(period.operatingResultMinor);
+  expect(coverage.breakEvenState).toBe(period.breakEvenState);
+  expect(coverage.breakEvenSalesValueMinor).toBe(period.breakEvenSalesValueMinor);
+  expect(coverage.contributionMarginRatioPermyriad).toBe(period.contributionMarginRatioPermyriad);
+  expect(coverage.remainingToBreakEvenMinor).toBe(period.remainingToBreakEvenMinor);
+  expect(coverage.amountAboveBreakEvenMinor).toBe(period.amountAboveBreakEvenMinor);
+  expect(coverage.classificationGap).toBe(period.classificationGap);
+}
+
+describe("REM-007 — تصحيح تكافؤ المستهلكين: القراءة الكاملة تصل للتغطية والقرار معًا (2026-09-30)", () => {
+  it("above break-even: full-field parity with independent oracle (F=1000 → result 3000)", async () => {
+    const { coverage, period } = await bothReadings(await storeWithFixedExpense(1000));
+    /* أوراكل: هامش 4000، ثابتة 1000 → نتيجة 3000 فوق؛ المتبقي 0، الفائض
+     * 3000، وحدات ceil(1000×2000÷4000000)=1، مبيعات ceil(1000×5000÷4000)=1250،
+     * النسبة 4000/5000=80% = 8000 من عشرة آلاف. */
+    expect(period).toMatchObject({
+      status: "available",
+      operatingResultMinor: 3000,
+      breakEvenState: "above",
+      remainingToBreakEvenMinor: 0,
+      amountAboveBreakEvenMinor: 3000,
+      breakEvenUnits: 1,
+      breakEvenSalesValueMinor: 1250,
+      contributionMarginRatioPermyriad: 8000,
+      classificationGap: false,
+    });
+    expect(coverage.status).toBe("recorded_only");
+    expect(coverage.operatingResultMinor).toBe(3000);
+    expect(coverage.breakEvenState).toBe("above");
+    expect(coverage.breakEvenSalesValueMinor).toBe(1250);
+    expect(coverage.contributionMarginRatioPermyriad).toBe(8000);
+    expect(coverage.remainingToBreakEvenMinor).toBe(0);
+    expect(coverage.amountAboveBreakEvenMinor).toBe(3000);
+    expectFullFieldParity(coverage, period);
+  });
+
+  it("at break-even: full-field parity with exact zero result (F=4000 → result 0)", async () => {
+    const { coverage, period } = await bothReadings(await storeWithFixedExpense(4000));
+    /* أوراكل: هامش 4000، ثابتة 4000 → نتيجة 0 عند التعادل بالضبط؛ المتبقي
+     * 0، الفائض null (لا ينطبق)، وحدات ceil(4000×2000÷4000000)=2، مبيعات
+     * ceil(4000×5000÷4000)=5000، النسبة 8000. */
+    expect(period).toMatchObject({
+      status: "available",
+      operatingResultMinor: 0,
+      breakEvenState: "at",
+      remainingToBreakEvenMinor: 0,
+      amountAboveBreakEvenMinor: null,
+      breakEvenUnits: 2,
+      breakEvenSalesValueMinor: 5000,
+      contributionMarginRatioPermyriad: 8000,
+    });
+    expect(coverage.status).toBe("recorded_only");
+    expect(coverage.operatingResultMinor).toBe(0);
+    expect(coverage.breakEvenState).toBe("at");
+    expect(coverage.amountAboveBreakEvenMinor).toBeNull();
+    expectFullFieldParity(coverage, period);
+  });
+
+  it("below break-even: full-field parity with negative result (F=6000 → result −2000)", async () => {
+    const { coverage, period } = await bothReadings(await storeWithFixedExpense(6000));
+    /* أوراكل: هامش 4000، ثابتة 6000 → نتيجة −2000 تحت التعادل؛ المتبقي
+     * 2000، الفائض null، وحدات ceil(6000×2000÷4000000)=3 (عند 3: صفر)،
+     * مبيعات ceil(6000×5000÷4000)=7500، النسبة 8000. */
+    expect(period).toMatchObject({
+      status: "available",
+      operatingResultMinor: -2000,
+      breakEvenState: "below",
+      remainingToBreakEvenMinor: 2000,
+      amountAboveBreakEvenMinor: null,
+      breakEvenUnits: 3,
+      breakEvenSalesValueMinor: 7500,
+      contributionMarginRatioPermyriad: 8000,
+    });
+    expect(coverage.status).toBe("recorded_only");
+    expect(coverage.operatingResultMinor).toBe(-2000);
+    expect(coverage.breakEvenState).toBe("below");
+    expect(coverage.remainingToBreakEvenMinor).toBe(2000);
+    expectFullFieldParity(coverage, period);
+  });
+
+  it("classification gap: both readers null the aggregates honestly and stay in parity (incomplete)", async () => {
+    const store = await storeWithFixedExpense(1000);
+    const finance = new ProjectFinancialService(store, now);
+    await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 5000,
+      occurredOn: "2026-08-06",
+      note: "فاتورة بيت غير موزعة",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: {
+        relationship: "shared",
+        behavior: "fixed",
+        purpose: "unallocated",
+        knowledge: "needs_review",
+        sharedProjectShare: {
+          basis: "needs_review",
+          note: null,
+          allocation: "unallocated",
+          totalAmountMinor: 5000,
+          percentageBps: null,
+          calculatedShareMinor: null,
+        },
+      },
+      idempotencyKey: "parity-gap",
+      sharedExpense: { mode: "defer", sharedTotalAmountMinor: 5000 },
+    });
+    const { coverage, period } = await bothReadings(store);
+    /* فجوة التصنيف تُسقط المجمعات كلها في القارئين — لا رقم جزئي مضلل،
+     * والتغطية تعلن الحالة نفسها (incomplete) بلا إعادة تفسير. */
+    expect(period.status).toBe("incomplete");
+    expect(period.classificationGap).toBe(true);
+    expect(period.operatingResultMinor).toBeNull();
+    expect(period.breakEvenState).toBeNull();
+    expect(period.breakEvenSalesValueMinor).toBeNull();
+    expect(period.contributionMarginRatioPermyriad).toBeNull();
+    expect(period.remainingToBreakEvenMinor).toBeNull();
+    expect(period.amountAboveBreakEvenMinor).toBeNull();
+    expect(coverage.status).toBe("incomplete");
+    expect(coverage.operatingResultMinor).toBeNull();
+    expect(coverage.breakEvenState).toBeNull();
+    expect(coverage.breakEvenSalesValueMinor).toBeNull();
+    expect(coverage.contributionMarginRatioPermyriad).toBeNull();
+    expect(coverage.remainingToBreakEvenMinor).toBeNull();
+    expect(coverage.amountAboveBreakEvenMinor).toBeNull();
+    expectFullFieldParity(coverage, period);
+  });
+
+  it("inventory movements downgrade only the coverage status while canonical numerics and reasons stay exact", async () => {
+    const store = await storeWithFixedExpense(1000);
+    const material = createMaterial({
+      id: "gap-material",
+      name: "خشب",
+      unit: "piece",
+      createdAt: "2026-08-01T09:00:00.000Z",
+      createdOperationKey: "gap-material-create",
+    });
+    await store.commitInventory(material, [
+      createInventoryMovement({
+        id: "gap-opening",
+        materialId: material.id,
+        type: "opening",
+        occurredOn: "2026-08-01",
+        recordedAt: now(),
+        quantityDeltaMilli: 10000,
+        valueDeltaMinor: 10000,
+        note: "افتتاح مادة",
+        operationKey: "gap-opening",
+      }),
+      createInventoryMovement({
+        id: "gap-consumption",
+        materialId: material.id,
+        type: "consumption",
+        occurredOn: "2026-08-05",
+        recordedAt: now(),
+        quantityDeltaMilli: -1000,
+        valueDeltaMinor: -1200,
+        note: "استهلاك فعلي",
+        operationKey: "gap-consumption",
+        orderId: "operating-order",
+      }),
+    ]);
+    const { coverage, period } = await bothReadings(store);
+    /* الحركات تخفض حالة التغطية فقط وتضيف سببها الموجود — الأرقام الكنسية
+     * تبقى كما هي بلا إعادة حساب أو محو، وقراءة G5 نفسها لا تتأثر أصلًا. */
+    expect(period.status).toBe("available");
+    expect(period.operatingResultMinor).toBe(3000);
+    expect(coverage.status).toBe("incomplete");
+    expect(coverage.reasons).toContain("حركات مخزون فعلية");
+    expect(coverage.operatingResultMinor).toBe(3000);
+    expect(coverage.breakEvenState).toBe("above");
+    expect(coverage.breakEvenSalesValueMinor).toBe(1250);
+    expect(coverage.contributionMarginRatioPermyriad).toBe(8000);
+    expect(coverage.remainingToBreakEvenMinor).toBe(0);
+    expect(coverage.amountAboveBreakEvenMinor).toBe(3000);
+    expectFullFieldParity(coverage, period);
+  });
+
+  it("financing and liquidity records leave the coverage operating reading unchanged too", async () => {
+    const store = await storeWithFixedExpense(1000);
+    const finance = new ProjectFinancialService(store, now);
+    const before = await finance.readFinancialInsights("2026-08-01", "2026-08-31");
+    if (!before.ok) throw new Error("before failed");
+    await finance.record({
+      type: "owner_investment_cash",
+      amountMinor: 50000,
+      occurredOn: "2026-08-07",
+      note: "رأس مال إضافي",
+      counterparty: "المالك",
+      relatedEventId: null,
+      idempotencyKey: "cov-iso-capital",
+    });
+    await finance.record({
+      type: "loan_received_cash",
+      amountMinor: 20000,
+      occurredOn: "2026-08-08",
+      note: "أصل قرض مستلم",
+      counterparty: "الممول",
+      relatedEventId: null,
+      idempotencyKey: "cov-iso-loan",
+    });
+    const after = await finance.readFinancialInsights("2026-08-01", "2026-08-31");
+    if (!after.ok) throw new Error("after failed");
+    expect(after.value.coverage.operatingResultMinor).toBe(before.value.coverage.operatingResultMinor);
+    expect(after.value.coverage.breakEvenSalesValueMinor).toBe(
+      before.value.coverage.breakEvenSalesValueMinor,
+    );
+    expect(after.value.coverage.breakEvenState).toBe(before.value.coverage.breakEvenState);
+    /* رأس المال وأصل القرض كاش حقيقي — لا إيرادًا ولا تكلفة تشغيلية. */
+    expect(after.value.coverage.operatingResultMinor).toBe(3000);
+  });
+
+  it("no target surface in FinancialInsights: no third argument, no declared field, no carried reading", async () => {
+    const store = await storeWithFixedExpense(1000);
+    const finance = new ProjectFinancialService(store, now);
+    const g5 = new G5Service(store, finance, now);
+    /* G5 مع هدف صريح: قراءة الهدف موجودة (وحدات 2). */
+    const targeted = await g5.readDecision("2026-08-01", "2026-08-31", 3000);
+    if (!targeted.ok) throw new Error("targeted failed");
+    expect(targeted.value.period.targetOperatingResult).toMatchObject({
+      targetOperatingResultMinor: 3000,
+      targetUnits: 2,
+      targetSalesValueMinor: 5000,
+    });
+    const insights = await finance.readFinancialInsights("2026-08-01", "2026-08-31");
+    if (!insights.ok) throw new Error("insights failed");
+    /* التغطية لا تحمل قراءة هدف أصلًا — الهدف قراءة G5 اختيارية فقط. */
+    expect(insights.value.coverage).not.toHaveProperty("targetOperatingResult");
+    /* حارسا التجميع السلبيان (لا حقل هدف في عقد التغطية ولا وسيط هدف في
+     * قراءة المؤشرات) يعيشان في ملف الخدمة نفسه حيث يفرضهما tsc — ملفات
+     * الاختبار مستبعدة من فحص الأنواع بموجب tsconfig التطبيق، فلا يعاد
+     * إعلانهما هنا (انظر projectFinancialService.ts عند CoverageIndicator). */
   });
 });
