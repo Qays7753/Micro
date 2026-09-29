@@ -19,7 +19,7 @@
     "tests"
   ],
   "owner": "Product owner / Z AI execution",
-  "next_action": "بانتظار مراجعة المالك وقرار الدمج على PR #275 (المرحلتان أ وب معلنتان في وصف الـPR)؛ لا دمج ذاتيًا.",
+  "next_action": "بانتظار مراجعة المالك وقرار الدمج على PR #275 — الرأس c52adaa بCI أخضر كامل (checks + Cloudflare Pages) وكل البوابات المحلية خضراء؛ لا دمج ذاتيًا.",
   "updated_at": "2026-09-29",
   "status_history": [
     {
