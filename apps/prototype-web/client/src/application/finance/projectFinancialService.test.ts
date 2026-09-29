@@ -2422,9 +2422,10 @@ describe("ProjectFinancialService direct-sale cash truth (journey 1, §5-13)", (
     expect(reading.value.status).toBe("incomplete");
   });
 
-  /* F-008 (W2-D — REM-002): الحد الأدنى الآمن — كلفة توصيل المشروع معلنة حقلًا
-   * وسببًا بلا طرح؛ قرار الطرح (D-03) معلق لتفادي الخصم المزدوج مع التسجيل
-   * اليدوي. الأوراكل حساب يدوي مستقل: ٥٥٠٠ − ١٧٠٠ = ٣٨٠٠ (الأجرة داخل الإيراد
+  /* F-008 (W2-D — REM-002، ثم قرار المالك D-03 بتاريخ 2026-09-29): كلفة توصيل
+   * المشروع معلنة حقلًا وسببًا بلا طرح ثانية أبدًا — الحقل تحلل تفسيري والخصم
+   * الموثق الوحيد مسار التسجيل اليدوي للمصروف، منعًا للخصم المزدوج.
+   * الأوراكل حساب يدوي مستقل: ٥٥٠٠ − ١٧٠٠ = ٣٨٠٠ (الأجرة داخل الإيراد
    * والكلفة معلنة لا مخصومة). */
   it("declares the project delivery cost without subtracting it from the recorded result", async () => {
     const store = new MemoryLocalStore();
