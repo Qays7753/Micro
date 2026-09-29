@@ -77,6 +77,10 @@
     "docs/contracts/17-contribution-break-even-short-cash-g5-contract.md"
   ],
   "related_items": [],
+  "evidence": [
+    "docs/operations/current-state.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-29/FINAL-LOGIC-INVESTIGATION-AND-OWNER-DECISIONS-2026-09-29.md"
+  ],
   "finding_classification": "DEEPENS_EXISTING",
   "finding_state": "CONFIRMED",
   "root_cause": "audit-decisions:D-03(F-008),D-08(F-026),D-09(F-023),D-11(F-059) — قرارات مالك معتمدة 2026-09-29 بعد إغلاق البرنامج الرئيسي؛ النصوص العقدية كانت تحمل وسم «معلق» والأسطح غير المرئية تحوي مواضع منافسة/غائبة"
