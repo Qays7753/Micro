@@ -12,7 +12,6 @@ import type {
   ShortCashDeclaration,
   ShortCashInput,
   ShortCashResult,
-  TargetOperatingResultReading,
 } from "./types.js";
 import {
   addSafe,
@@ -108,7 +107,6 @@ function invalidContribution(from: string, to: string, reason: string): DirectMa
     marginBasis: "direct_costs_only",
     linkedVariableExpenseMinor: 0,
     unlinkedVariableExpenseCount: 0,
-    classificationGap: false,
     totalQuantityMilli: null,
     quantityUnitKey: null,
     quantityUnitLabel: null,
@@ -591,19 +589,12 @@ export function calculateDirectMargin(
   return contributionOutcome(from, to, state);
 }
 
-/* REM-007 (المرحلة ب — 2026-09-29، قرار المالك: النموذج الكنوني للتعادل
- * التشغيلي): الأسطر البنيوية لطبقة التعادل التشغيلي — تُنبعث مع كل قراءة
- * تعادل (امتداد عقد ١٧ §٦ لمبدأ F-010: لا رقم بلا سياق أساسه). */
-const OPERATING_BREAK_EVEN_ASSUMPTIONS: readonly string[] = [
-  "وحدات التعادل أول عتبة وحدات صحيحة عند نتيجة صفر أو فوقها؛ النسبة النظرية المستمرة قد تقع بين وحدتين.",
-  "قيمة مبيعات التعادل أول قيمة صحيحة بالوحدة الصغرى عند التعادل أو فوقه، من النسبة المجمعّة الدقيقة (هامش ÷ إيراد) بلا تقريب مزدوج.",
-  "النتيجة التشغيلية المستهدفة تشترك في الأساس المسجل نفسه: الهدف يضاف إلى الثابتة في البسط، والهدف صفر يطابق التعادل العادي.",
-];
-
 /* REM-007 (المرحلة ب): وحدات التعادل من مجمعات الفترة — ceil صحيح آمن مرة
  * واحدة؛ «البسط الشبيه بالثابتة» هو الثابتة وحدها للتعادل العادي، أو
- * الثابتة + النتيجة المستهدفة لقراءة الهدف — معادلة واحدة لا نسخ. */
-function breakEvenUnitsFromAggregates(
+ * الثابتة + النتيجة المستهدفة لقراءة الهدف في وحدة التعادل التشغيلي —
+ * معادلة واحدة يستهلكها القارئ والمساعد العام وقراءة الهدف معًا لا
+ * نسخ بينها. */
+export function breakEvenUnitsFromAggregates(
   fixedLikeMinor: number,
   quantityMilli: number | null,
   marginMinor: number,
@@ -620,172 +611,13 @@ function breakEvenUnitsFromAggregates(
   return ceilRatio(numerator, denominator);
 }
 
-/* REM-007 (المرحلة ب): قيمة مبيعات التعادل من النسبة المجمعّة الدقيقة —
- * ceil(بسط شبيه بالثابتة × إيراد ÷ هامش) بلا تقريب مزدوج؛ أول قيمة صحيحة
- * بالوحدة الصغرى عند التعادل أو فوقه (عقد ١٧ §٦). */
-function breakEvenSalesValueFromAggregates(
-  fixedLikeMinor: number,
-  revenueMinor: number,
-  marginMinor: number,
-): number | null {
-  if (revenueMinor <= 0 || marginMinor <= 0) return null;
-  if (fixedLikeMinor > Number.MAX_SAFE_INTEGER / revenueMinor) return null;
-  return ceilRatio(fixedLikeMinor * revenueMinor, marginMinor);
-}
-
-/* REM-007 (المرحلة ب): اكتمال مجمعات القراءة التشغيلية — فشل توحيد الوحدات
- * وحده لا يُسقط القيم المجمعّة (نتيجة التشغيل/قيمة المبيعات/الحالة)؛ ما
- * يُسقطها فجوة التصنيف أو الطلب المستبعد أو القراءة غير الصالحة. */
-function aggregateInputsComplete(contribution: DirectMarginResult): boolean {
-  return (
-    contribution.status !== "invalid" &&
-    !contribution.classificationGap &&
-    contribution.excludedOrderCount === 0 &&
-    contribution.finalOrderCount > 0 &&
-    contribution.contributionMarginMinor > 0
-  );
-}
-
-/* REM-007 (المرحلة ب): قراءة النتيجة التشغيلية المستهدفة (TARGET_OPERATING_RESULT) —
- * فوق الأساس الكنوني نفسه بلا معادلة موازية؛ كل null بسبب مسمى. */
-function targetOperatingResultReading(
-  contribution: DirectMarginResult,
-  unitsAvailable: boolean,
-  aggregatesComplete: boolean,
-  targetOperatingResultMinor: number,
-): TargetOperatingResultReading {
-  const fixedPlusTarget = addSafe(contribution.fixedExpenseMinor, targetOperatingResultMinor);
-  const targetUnits =
-    unitsAvailable && fixedPlusTarget !== null
-      ? breakEvenUnitsFromAggregates(
-          fixedPlusTarget,
-          contribution.totalQuantityMilli,
-          contribution.contributionMarginMinor,
-        )
-      : null;
-  const targetSalesValueMinor =
-    aggregatesComplete && fixedPlusTarget !== null
-      ? breakEvenSalesValueFromAggregates(
-          fixedPlusTarget,
-          contribution.totalRevenueMinor,
-          contribution.contributionMarginMinor,
-        )
-      : null;
-  const reasons: string[] = [];
-  if (targetUnits === null)
-    reasons.push(
-      "وحدات الهدف غير متاحة: لا وحدة موحدة صحيحة ولا وحدة مركبة معلنة بمزيج مستقر لهذه الفترة، أو أن الحساب يتجاوز الدقة الآمنة.",
-    );
-  if (targetSalesValueMinor === null)
-    reasons.push("قيمة مبيعات الهدف غير متاحة: مجمعات الفترة المؤهلة غير كاملة أو تتجاوز الدقة الآمنة.");
-  return {
-    targetOperatingResultMinor,
-    targetUnits,
-    targetSalesValueMinor,
-    reasons,
-    nextAction:
-      targetUnits === null || targetSalesValueMinor === null
-        ? "سجّل الكمية أو الوحدة أو التصنيف الناقص قبل الاعتماد على قراءة الهدف."
-        : "راجع السعر والتكلفة إذا تغير المزيج أو الافتراض المعلن.",
-  };
-}
-
-/* REM-007 (المرحلة ب): رفض الهدف غير الصالح — يُعاد كقراءة invalid كاملة أو
- * null عندما لا هدف أو الهدف صالح؛ لا سياسة خسارة مستهدفة تُخترع. */
-function invalidTargetRefusal(
-  contribution: DirectMarginResult,
-  targetOperatingResultMinor: number | null | undefined,
-): BreakEvenResult | null {
-  if (
-    targetOperatingResultMinor === undefined ||
-    targetOperatingResultMinor === null ||
-    (Number.isSafeInteger(targetOperatingResultMinor) && targetOperatingResultMinor >= 0)
-  )
-    return null;
-  return {
-    ...contribution,
-    status: "invalid",
-    breakEvenUnits: null,
-    operatingResultMinor: null,
-    breakEvenState: null,
-    remainingToBreakEvenMinor: null,
-    amountAboveBreakEvenMinor: null,
-    breakEvenSalesValueMinor: null,
-    contributionMarginRatioPermyriad: null,
-    targetOperatingResult: null,
-    assumptions: [...contribution.assumptions, ...OPERATING_BREAK_EVEN_ASSUMPTIONS],
-    reasons: [
-      ...contribution.reasons,
-      "النتيجة التشغيلية المستهدفة المطلوبة غير صالحة: يلزم رقم صحيح غير سالب بالوحدة الصغرى.",
-    ],
-    nextAction: "أدخل نتيجة تشغيلية مستهدفة غير سالبة بالوحدة الصغرى قبل طلب قراءة الهدف.",
-  };
-}
-
-/* REM-007 (المرحلة ب): نتيجة التشغيل وحالة الموقف والمتبقي والفائض — من
- * المجمعات فقط؛ كل null عندما لا تكتمل (لا رقم جزئي مضلل). */
-function operatingResultLayer(
-  contribution: DirectMarginResult,
-  aggregatesComplete: boolean,
-): Pick<
-  BreakEvenResult,
-  "operatingResultMinor" | "breakEvenState" | "remainingToBreakEvenMinor" | "amountAboveBreakEvenMinor"
-> {
-  const operatingResultMinor = aggregatesComplete
-    ? addSafe(contribution.contributionMarginMinor, -contribution.fixedExpenseMinor)
-    : null;
-  const breakEvenState: BreakEvenState | null =
-    operatingResultMinor === null
-      ? null
-      : operatingResultMinor < 0
-        ? "below"
-        : operatingResultMinor === 0
-          ? "at"
-          : "above";
-  return {
-    operatingResultMinor,
-    breakEvenState,
-    remainingToBreakEvenMinor:
-      operatingResultMinor === null ? null : operatingResultMinor < 0 ? -operatingResultMinor : 0,
-    amountAboveBreakEvenMinor:
-      operatingResultMinor !== null && operatingResultMinor > 0 ? operatingResultMinor : null,
-  };
-}
-
-/* REM-007 (المرحلة ب): قيمة مبيعات التعادل من النسبة المجمعّة الدقيقة ونسبة
- * العرض — الاشتقاق الكنوني يقسم المجمعات مباشرة (لا تقريب مزدوج). */
-function aggregateValuesLayer(
-  contribution: DirectMarginResult,
-  aggregatesComplete: boolean,
-): Pick<BreakEvenResult, "breakEvenSalesValueMinor" | "contributionMarginRatioPermyriad"> {
-  return {
-    breakEvenSalesValueMinor: aggregatesComplete
-      ? breakEvenSalesValueFromAggregates(
-          contribution.fixedExpenseMinor,
-          contribution.totalRevenueMinor,
-          contribution.contributionMarginMinor,
-        )
-      : null,
-    contributionMarginRatioPermyriad:
-      aggregatesComplete &&
-      contribution.contributionMarginMinor <= Number.MAX_SAFE_INTEGER / 10000 &&
-      contribution.totalRevenueMinor > 0
-        ? roundHalfUp(contribution.contributionMarginMinor * 10000, contribution.totalRevenueMinor)
-        : null,
-  };
-}
-
 export function calculateBreakEven(
   from: string,
   to: string,
   orders: readonly G5OrderInput[],
   expenses: readonly G5ExpenseInput[],
-  targetOperatingResultMinor?: number | null,
 ): BreakEvenResult {
   const contribution = calculateDirectMargin(from, to, orders, expenses);
-  /* REM-007 (المرحلة ب): هدف غير صالح يُرفض بالاسم قبل أي حساب. */
-  const refused = invalidTargetRefusal(contribution, targetOperatingResultMinor);
-  if (refused !== null) return refused;
   const unitsAvailable = contribution.status === "available" || contribution.status === "needs_review";
   const breakEvenUnits = unitsAvailable
     ? breakEvenUnitsFromAggregates(
@@ -794,33 +626,16 @@ export function calculateBreakEven(
         contribution.contributionMarginMinor,
       )
     : null;
-  /* طبقة التعادل التشغيلي: الوحدات والقيم المجمعّة مستويان مستقلان (عقد ١٧ §٦.١). */
-  const aggregatesComplete = aggregateInputsComplete(contribution);
-  const operating = {
-    ...operatingResultLayer(contribution, aggregatesComplete),
-    ...aggregateValuesLayer(contribution, aggregatesComplete),
-    targetOperatingResult:
-      targetOperatingResultMinor === undefined || targetOperatingResultMinor === null
-        ? null
-        : targetOperatingResultReading(
-            contribution,
-            unitsAvailable,
-            aggregatesComplete,
-            targetOperatingResultMinor,
-          ),
-    assumptions: [...contribution.assumptions, ...OPERATING_BREAK_EVEN_ASSUMPTIONS],
-  };
   if (unitsAvailable && breakEvenUnits === null) {
     return {
       ...contribution,
-      ...operating,
       status: "invalid",
       breakEvenUnits: null,
       reasons: [...contribution.reasons, "تعذر حساب وحدات التعادل ضمن الدقة الآمنة."],
       nextAction: "راجع حجم الفترة والكمية والهامش قبل الاعتماد على رقم التعادل.",
     };
   }
-  return { ...contribution, ...operating, breakEvenUnits };
+  return { ...contribution, breakEvenUnits };
 }
 
 /** Break-even units from period aggregates, carrying the same safe-integer honesty as the full reader; null refuses. */

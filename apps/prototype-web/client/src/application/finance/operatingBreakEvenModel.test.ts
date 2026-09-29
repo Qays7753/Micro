@@ -267,10 +267,16 @@ describe("REM-007 — التعادل التشغيلي عبر طبقة التطب
       targetUnits: plain.value.period.breakEvenUnits,
       targetSalesValueMinor: plain.value.period.breakEvenSalesValueMinor,
     });
-    /* هدف سالب يُرفض بالاسم عبر الخدمة أيضًا. */
+    /* هدف سالب: الرفض داخل قراءة الهدف نفسها بأسباب مسماة — أساس الفترة
+     * الصحيح لا يُبطل (لا سياسة خسارة مستهدفة تُخترع). */
     const invalid = await g5.readDecision("2026-08-01", "2026-08-31", -1);
     if (!invalid.ok) throw new Error("invalid reading should still return");
-    expect(invalid.value.period.status).toBe("invalid");
-    expect(invalid.value.period.targetOperatingResult).toBeNull();
+    expect(invalid.value.period.status).toBe("available");
+    expect(invalid.value.period.targetOperatingResult).toMatchObject({
+      targetOperatingResultMinor: -1,
+      targetUnits: null,
+      targetSalesValueMinor: null,
+    });
+    expect(invalid.value.period.targetOperatingResult?.reasons.join(" ")).toContain("غير صالحة");
   });
 });
