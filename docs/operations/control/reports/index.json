@@ -3,12 +3,6 @@
   "rule": "الفهرس يشير إلى التقارير ولا يعيد كتابة نتائجها. التقرير التاريخي لا يثبت حالة main اللاحقة.",
   "reports": [
     {
-      "id": "AUDIT-2026-09-16",
-      "path": "https://github.com/Qays7753/Micro/blob/report/deep-system-audit-20260916/reports/agent-report/2026-09-16_13-00-deep-system-audit/report.md",
-      "scope": "deep audit",
-      "status": "OPEN_PR_161_HISTORICAL"
-    },
-    {
       "id": "FINANCIAL-TRUST-2026-09-16",
       "path": "reports/agent-report/2026-09-16_00-25-financial-trust/report.md",
       "scope": "financial trust baseline",
