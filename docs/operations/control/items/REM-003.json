@@ -45,7 +45,7 @@
   "finding_state": "CONFIRMED",
   "root_cause": "audit-findings:F-020..F-032 (root causes: non-visual consumers using glossary-forbidden or owner-superseded terms; service-level labels not distinguishing recorded vs collected; non-cash proposal named as due obligation; glossary gaps for shipped domain semantics)",
   "source": {
-    "report": "CONCEPT-POLICY-TERMINOLOGY-INTEGRITY-AUDIT-AR.md (branch docs/concept-policy-terminology-integrity-audit-2026-09-27)",
+    "report": "docs/operations/control/evidence/micro-master-remediation-2026-09-27/WAVE3-WAVE-REPORT-2026-09-29.md (derived from the historical concept-policy audit; PR #245 branch deleted after closure)",
     "discovered_at_sha": "2ebb435334dd69da0273d592ec8bffac5e70c1cf",
     "evidence": [
       "apps/prototype-web/client/src/application/finance/statementMarkdownService.ts",

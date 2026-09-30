@@ -70,7 +70,7 @@
     "REM-004"
   ],
   "source": {
-    "report": "CONCEPT-POLICY-TERMINOLOGY-INTEGRITY-AUDIT-AR.md (branch docs/concept-policy-terminology-integrity-audit-2026-09-27)",
+    "report": "docs/operations/control/evidence/micro-master-remediation-2026-09-27/WAVE5-FINAL-PROGRAM-REPORT-2026-09-29.md (derived from the historical concept-policy audit; PR #245 branch deleted after closure)",
     "discovered_at_sha": "2ebb435334dd69da0273d592ec8bffac5e70c1cf",
     "evidence": [
       "docs/operations/current-state.md",
