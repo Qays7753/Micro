@@ -2,7 +2,7 @@
   "id": "REM-006",
   "title": "المعالجة المنطقية النهائية — قرارات المالك D-03/D-08/D-09/D-11 وتحقيق التعادل (بلا UI وبلا دمج)",
   "type": "DEFECT",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "final-logic-remediation",
   "areas": [
@@ -18,8 +18,8 @@
     "tests"
   ],
   "owner": "Product owner / Z AI execution",
-  "next_action": "بانتظار مراجعة المالك وقرار الدمج على PR #275؛ لا دمج ذاتيًا ولا إغلاق قبل قرار صريح.",
-  "updated_at": "2026-09-29",
+  "next_action": "لا فعل إضافي: PR #275 مدمج ومتحقق على main عند 0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8.",
+  "updated_at": "2026-09-30",
   "status_history": [
     {
       "status": "READY",
@@ -44,6 +44,18 @@
       "changed_at": "2026-09-29",
       "actor": "pr:275",
       "reason": "اكتمل التنفيذ وافتُتح PR #275 للمراجعة — لا دمج ذاتيًا؛ الحارس 8/8 وكل الفحوص المركزة خضراء على رأس الفرع."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-30",
+      "actor": "merge:pr-275",
+      "reason": "دُمج PR #275 بطريقة Squash عند 0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8 فوق main عند 13b74b01bc1b1e76436f6a0c5e322c8f0dc0d7a9؛ لم يتغير النطاق المالي أو UI."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-30",
+      "actor": "verify:main",
+      "reason": "التحقق على commit الدمج نفسه: ملفات PR موجودة على main، CI checks ناجح وCloudflare Pages ناجح؛ لم يتغير Schema/Export أو UI."
     }
   ],
   "tests_required": [
@@ -68,6 +80,8 @@
   "migration_baseline": false,
   "classification": "FIX_BEFORE_PILOT",
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "merge_sha": "0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8",
+  "verified_on_main_sha": "0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8",
   "summary": "تنفيذ قرارات المالك المعتمدة 2026-09-29 في حدود غير مرئية فقط: D-03 (تصحيح مؤرخ في عقد 05 §3.2.1 يحسم بقاء projectDeliveryCostMinor حقلًا تفسيريًا لا يُطرح ثانية مع تحديث التعليقات الموازية)، D-08 (تثبيت «تمت التسوية» الاسم الكنوني للحالة settled والتعليق الدلالي في المجال — تصحيح المرحلة أ: نص رسالة خدمة التكرار نسخة عرض تصل من Schedule.tsx أُعيدت لنصها على main)، D-09 (الخريطة الدلالية الكنونية لحالة needs_review بمعانيها الأربعة في عقد 05 §8 والقاموس بلا تغيير مخطط أو تصدير)، وD-11 (تحقق موثق: عمّان الكنونية سارية في العزو غير المرئي) — مع تحقيق قراءة-فصل لنموذج التعادل الواحد وخيارات TARGET_OPERATING_RESULT (النتيجة التشغيلية المستهدفة — F-062 هو رقم الجرد الأخير في السجل لا معرّف بند مستقل) وأسئلة QR-1..QR-6 في تقرير عربي واحد داخل الفرع وPR واحد لا يُدمج ذاتيًا.",
   "acceptance": [
     "عقد 05 §3.2.1 يحمل تصحيحًا مؤرخًا لقرار D-03: الحقل تفسيري، لا طرح ثانية، null = غير مسجلة بعد، والدفع المباشر للناقل سياق فقط",

@@ -1,7 +1,7 @@
 {
   "id": "WS-203",
   "title": "REM-006/REM-007 — المعالجة المنطقية النهائية وقرارات المالك D-03/D-08/D-09/D-11 + النموذج الكنوني للتعادل التشغيلي والنتيجة التشغيلية المستهدفة (فرع واحد وPR واحد بلا دمج)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "REM-006",
     "REM-007"
@@ -23,9 +23,11 @@
   ],
   "agent": "Z AI — final logic remediation & break-even investigation 2026-09-29",
   "pr": 275,
+  "merge_sha": "0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8",
+  "verified_on_main_sha": "0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8",
   "started_at": "2026-09-29T12:25:52+03:00",
-  "updated_at": "2026-09-30T20:40:00+03:00",
-  "next_action": "PR #275 مفتوح للمراجعة؛ لا دمج ذاتيًا. بعد قرار المالك: الدمج ثم VERIFIED على شجرة main عند التحقق الحي.",
+  "updated_at": "2026-09-30T15:52:45+03:00",
+  "next_action": "لا فعل إضافي: PR #275 مدمج ومتحقق على main عند 0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -44,6 +46,18 @@
       "changed_at": "2026-09-29",
       "actor": "pr:275",
       "reason": "اكتمل التنفيذ والتقرير على الفرع وافتُتح PR #275 (الحارس 8/8، validate EXIT 0، المخطط/التصدير 38/30)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-30",
+      "actor": "merge:pr-275",
+      "reason": "دُمج PR #275 بطريقة Squash عند 0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8 فوق main عند 13b74b01bc1b1e76436f6a0c5e322c8f0dc0d7a9."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-30",
+      "actor": "verify:main",
+      "reason": "التحقق على شجرة main عند commit الدمج نفسه: CI checks وCloudflare Pages ناجحان، وملفات الشريحة موجودة، ولا توجد Claims نشطة."
     }
   ],
   "migration_baseline": false,
