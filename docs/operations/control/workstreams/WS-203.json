@@ -1,0 +1,68 @@
+{
+  "id": "WS-203",
+  "title": "REM-006/REM-007 — المعالجة المنطقية النهائية وقرارات المالك D-03/D-08/D-09/D-11 + النموذج الكنوني للتعادل التشغيلي والنتيجة التشغيلية المستهدفة (فرع واحد وPR واحد بلا دمج)",
+  "status": "IN_REVIEW",
+  "items": [
+    "REM-006",
+    "REM-007"
+  ],
+  "branch": "fix/final-logic-owner-decisions-20260929",
+  "base_sha": "13b74b01bc1b1e76436f6a0c5e322c8f0dc0d7a9",
+  "areas": [
+    "docs",
+    "finance",
+    "g5",
+    "break-even",
+    "tests"
+  ],
+  "contracts": [
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/02-order-lifecycle-contract.md",
+    "docs/contracts/17-contribution-break-even-short-cash-g5-contract.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-29/B-CANONICAL-OPERATING-BREAKEVEN-REPAIR-CARD.md"
+  ],
+  "agent": "Z AI — final logic remediation & break-even investigation 2026-09-29",
+  "pr": 275,
+  "started_at": "2026-09-29T12:25:52+03:00",
+  "updated_at": "2026-09-30T20:40:00+03:00",
+  "next_action": "PR #275 مفتوح للمراجعة؛ لا دمج ذاتيًا. بعد قرار المالك: الدمج ثم VERIFIED على شجرة main عند التحقق الحي.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-203",
+      "reason": "فتح Claim من origin/main 13b74b0 بعد التحقق الحي: شجرة نظيفة، صفر claims نشطة، والـPRs المفتوحة الأربعة المحمية (#244/#245/#239/#240) غير متداخلة."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-29",
+      "actor": "claim:ws-203",
+      "reason": "تنفيذ المعالجة غير المرئية + التحقيق القراءة-فقط والتقرير العربي داخل الفرع."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-29",
+      "actor": "pr:275",
+      "reason": "اكتمل التنفيذ والتقرير على الفرع وافتُتح PR #275 (الحارس 8/8، validate EXIT 0، المخطط/التصدير 38/30)."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: تصحيحات توثيقية مؤرخة + تعليقان دلاليان + حارس عقد + تقرير — صفر تغيير مالي تشغيلي، صفر UI، صفر بنية.",
+    "تصحيح المرحلة أ (2026-09-29، بأمر المالك): (١) نص رسالة خدمة التكرار أُعيد إلى نصه على main — نسخة عرض تصل من Schedule.tsx خارج نطاق D-08 غير المرئي (الحارس يثبت الرفض السلوكي بلا حراسة نص العرض)؛ (٢) owner_decision في REM-002 يحمل القرار المحسوم فقط والصياغة التاريخية محفوظة كسجل مؤرخ في تقرير W2-D وD-040؛ (٣) معرّف النتيجة التشغيلية المستهدفة = TARGET_OPERATING_RESULT لا رقم F (F-062 رقم جرد السجل الأخير لا بند مستقل)؛ (٤) الطوابع الزمنية صُححت من أدلة المستودع: بدء = لقطة claim be61105 عند 2026-09-29T09:25:52Z، وIN_REVIEW = b153ace عند 2026-09-29T09:39:41Z (وقت عمّان +03:00).",
+    "حد الاستعادة: 13b74b0 (رأس main الحالي).",
+    "القرارات المؤجلة المحفوظة كما هي: D-12 (مصدر Standard)، D-13/F-055 (calculationVersion)، QR-5/F-060 (فائدة القروض)، خيارات TARGET_OPERATING_RESULT بلا تنفيذ، وأجزاء العرض = DEFERRED_UI.",
+    "المخطط/التصدير 38/30 لا يُمس؛ لا ترحيل؛ لا إعادة كتابة تاريخية.",
+    "المرحلة ب (استمرار المهمة نفسها بأمر المالك 2026-09-29، بعد بوابة خروج المرحلة أ): تنفيذ النموذج الكنوني للتعادل التشغيلي والنتيجة التشغيلية المستهدفة (REM-007) على الفرع والـPR نفسه بلقطات مستقلة وحد دحرج/اختبار مستقل — حل تعارض التداخل: workstream واحد للمهمة الواحدة بدل claim ثانٍ نشط متداخل. PR واحد يحمل النطاقين بمستوى معلن (لا تغيير مالي خفي): مرحلة أ توثيقية/تصحيحية، ومرحلة ب حسابية كنونية موثقة ببطاقة إصلاح.",
+    "اكتمال المرحلة ب (2026-09-29): REM-007 منفذ ومختبر (762 اختبارًا أخضر بعد التغيير؛ 19 جديدًا مستقل الأوراكل) وبوابات المخطط/التصدير 38/30 محروسة — انتقل REM-007 إلى IN_REVIEW على PR #275 نفسه.",
+    "دليل CI النهائي على الرأس c52adaa: checks=success وCloudflare Pages=success (بوابة الحزمة داخل CI خضراء: 649,815/650,000 خام · 154,752/155,000 gzip) — رأس المرحلة ب الأول ab57e65 كان قد فشل بRAW_OVER فدُفع الثمن داخل الشريحة بلقطة c52adaa كما توثق W2-B/W2-D، بلا رفع أي سقف.",
+    "تصحيح مؤرخ 2026-09-30 (فوق رأس المرحلة ب beb6a63، داخل الـPR نفسه): توحيد تكافؤ المستهلكين — قراءة التغطية (readFinancialInsights) تستهلك التركيب الكنوني نفسه composeOperatingBreakEven عبر المسار الخامل ذاته، وCoverageIndicator صار عقد عرض/مهايئ (Pick من النوع الكنوني بلا هدف، وحارسا تجميع سلبيان ضد أي سطح هدف مستقبلي)؛ +7 اختبارات تكافؤ كامل الحقول وملف تكامل D-03 عبر المسار الفعلي (4 اختبارات بالدلالات الخمس)؛ تصحيح البطاقة والتقرير الشريحي لوصف الأساس+التركيب كما هو في الكود؛ الحزمة 649,862/650,000 خام (+47 بايت) و154,768/155,000 gzip — بوابة D-034 PASS. لا UI ولا مخطط/تصدير/ترحيل ولا دمج."
+  ],
+  "evidence": [
+    "docs/operations/control/items/REM-006.json",
+    "docs/operations/control/items/REM-007.json",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-29/FINAL-LOGIC-INVESTIGATION-AND-OWNER-DECISIONS-2026-09-29.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-29/B-CANONICAL-OPERATING-BREAKEVEN-REPAIR-CARD.md",
+    "docs/operations/control/evidence/micro-master-remediation-2026-09-29/B-CANONICAL-OPERATING-BREAKEVEN-SLICE-REPORT-2026-09-29.md"
+  ]
+}

@@ -100,6 +100,12 @@ export type DirectMarginResult = {
   marginBasis: "direct_costs_only" | "with_linked_variable";
   linkedVariableExpenseMinor: number;
   unlinkedVariableExpenseCount: number;
+  /* REM-007 (المرحلة ب — 2026-09-29): فجوة تصنيف المصاريف المؤثرة (متغيرة
+   * غير مرتبطة/مختلطة/مجهولة/مشتركة بلا أساس) — واقعة مجمعّة معلنة تُتيح
+   * للقارئات التمييز بين نقص توحيد الوحدات (يُسقط الوحدات وحده) ونقص
+   * المجمعات (يسقط كل الأرقام) — عقد ١٧ §٦.١؛ اختيارية: غيابها (القراءات
+   * المرفوضة المبكرة) يعني لا فجوة معلنة. */
+  classificationGap?: boolean;
   totalQuantityMilli: number | null;
   quantityUnitKey: string | null;
   quantityUnitLabel: string | null;
@@ -114,8 +120,52 @@ export type DirectMarginResult = {
   nextAction: string;
 };
 
+/* REM-007 (المرحلة ب — قرار المالك 2026-09-29، TARGET_OPERATING_RESULT):
+ * حالة موقع الفترة من التعادل التشغيلي — دالة إشارة نتيجة التشغيل المسجلة
+ * (الهامش − الثابتة المؤهلة): سالبة تحت التعادل، صفر عنده، موجبة فوقه. */
+export type BreakEvenState = "below" | "at" | "above";
+
+/* REM-007 (المرحلة ب): قراءة النتيجة التشغيلية المستهدفة — نفس أساس التعادل
+ * نفسه مع إضافة الهدف إلى بسط الثابتة؛ الهدف صفر يطابق التعادل العادي
+ * بالبناء. الوحدات null عند غياب وحدة موحدة/مزيج معلن، والمبيعات null عند
+ * نقص المجمعات — كل null بسبب صريح داخل reasons. */
+export type TargetOperatingResultReading = {
+  targetOperatingResultMinor: number;
+  targetUnits: number | null;
+  targetSalesValueMinor: number | null;
+  reasons: readonly string[];
+  nextAction: string;
+};
+
 export type BreakEvenResult = DirectMarginResult & {
   breakEvenUnits: number | null;
+};
+
+/* REM-007 (المرحلة ب — قرار المالك 2026-09-29): القراءة الكاملة للتعادل
+ * التشغيلي = أساس التعادل (المجال النقي في الحزمة الرئيسية) + طبقة
+ * التشغيل (نتيجة التشغيل/الحالة/المتبقي/الفائض/المبيعات/النسبة/الهدف)
+ * تُركّب من وحدة التعادل التشغيلي فوق الأساس نفسه — قراءة واحدة بلا
+ * معادلة موازية، وتُستهلك عبر الخدمات (نمط التحميل الخامل المعتمد في
+ * البرنامج احترامًا لسقف D-034 — بطاقة الإصلاح §٩). */
+export type OperatingBreakEvenResult = BreakEvenResult & {
+  /* نتيجة التشغيل الفعلية = الهامش − التكاليف الثابتة المؤهلة؛ null عندما
+   * لا تكتمل المجمعات (فجوة تصنيف أو طلب مستبعد أو قراءة غير صالحة) —
+   * لا رقم جزئي مضلل. */
+  operatingResultMinor: number | null;
+  breakEvenState: BreakEvenState | null;
+  /* موجب عندما تكون الفترة تحت التعادل؛ صفر عند التعادل وفوقه. */
+  remainingToBreakEvenMinor: number | null;
+  /* موجب فقط عندما تكون الفترة فوق التعادل — null خلاف ذلك (حيث لا ينطبق). */
+  amountAboveBreakEvenMinor: number | null;
+  /* أول قيمة صحيحة بالوحدة الصغرى عند التعادل أو فوقه، من النسبة المجمعّة
+   * الدقيقة (ثابتة × إيراد ÷ هامش) بلا تقريب مزدوج — متاحة عند اكتمال
+   * المجمعات حتى لو فشل توحيد الوحدات (عقد ١٧ §٦.١). */
+  breakEvenSalesValueMinor: number | null;
+  /* نسبة هامش المساهمة للعرض: أجزاء من عشرة آلاف، تقريب نصف-أعلى معلن —
+   * الاشتقاق الكنوني للمبيعات يقسم المجمعات مباشرة لا هذه النسبة. */
+  contributionMarginRatioPermyriad: number | null;
+  /* قراءة الهدف — null ما لم يُمرر هدف صريح. */
+  targetOperatingResult: TargetOperatingResultReading | null;
 };
 
 export type ShortCashBalanceItem = {

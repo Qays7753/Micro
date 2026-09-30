@@ -31,9 +31,11 @@ import { summarizeLocalCraftOrders } from "@/application/financial-pulse/financi
  * الطلب الكامل إلى حزبة الدخول (الدخول يحتاج الكلفة فقط). */
 import { projectDeliveryCostMinor as orderDeliveryCostMinor } from "@micro-domain/craft-order/index.js";
 import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
-/* F-009 (W2-B): نموذج تعادل واحد — قراءة التغطية تستهلك calculateBreakEven
- * الكنونية بمدخلات g5Service الموحدة نفسها، بلا اشتقاق خاص بعد اليوم. */
-import { calculateBreakEven } from "@micro-domain/g5/index.js";
+/* F-009 (W2-B): نموذج تعادل واحد — قراءة التغطية تستهلك الأساس الكنوني
+ * calculateBreakEven بمدخلات g5Service الموحدة نفسها، بلا اشتقاق خاص بعد اليوم.
+ * REM-007 (تصحيح تكافؤ المستهلكين — 2026-09-30): والقراءة الكاملة تركّبها
+ * الوحدة الكنسية نفسها التي يستهلكها G5 — انظر readFinancialInsights. */
+import { calculateBreakEven, type OperatingBreakEvenResult } from "@micro-domain/g5/index.js";
 import { expenseInputs, orderInputs } from "@/application/g5/g5Service";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
@@ -137,9 +139,10 @@ export type RecordedPeriodResult = {
    * المعادلة — كانت ملفوفة داخل المصروف التشغيلي باسم لا يليق بها؛ البند نفسه
    * يُخصم من النتيجة فالقيمة لا تتغير، والتمييز هو التصحيح. */
   nonCashLossMinor: number;
-  /* F-008 (W2-D — الحد الأدنى الآمن بقرار D-03 معلق): كلفة التوصيل التي
-   * دفعها المشروع للطلبات النهائية خارج اللقطة — معلنة حقلًا وسببًا بلا طرح:
-   * قرار الطرح ينتظر توحيد التسجيل اليدوي للمصروف لتفادي الخصم المزدوج. */
+  /* F-008 (W2-D — ثم قرار المالك D-03 بتاريخ 2026-09-29): كلفة التوصيل التي
+   * دفعها المشروع للطلبات النهائية خارج اللقطة — معلنة حقلًا وسببًا بلا طرح
+   * ثانية أبدًا: الحقل تحلل تفسيري، والخصم الموثق الوحيد مسار التسجيل اليدوي
+   * للمصروف، منعًا للخصم المزدوج. */
   projectDeliveryCostMinor: number;
   /* F-020 (W3-B): الحقول المشتقة للفرق غير المحصّل — قراءة لحظية بلا أي
    * تغيير معادلة ولا كتابة. المصدر الكنوني نفسه الذي يحفظه المجال:
@@ -176,16 +179,39 @@ export type RecordedCostComposition = {
   wasteMinor: number;
   operatingExpenseMinor: number;
 };
-export type CoverageIndicator = {
+/* REM-007 (تصحيح تكافؤ المستهلكين — 2026-09-30): CoverageIndicator عقد
+ * عرض/مهايئ فوق القراءة الكنسية المركّبة نفسها التي يستهلكها G5 — ليس معادلة
+ * ثانية: حقول التشغيل ملتقطة (Pick) من النوع الكنوني نفسه كما هي، بلا هدف
+ * (لا سطح إدخال هدف في المؤشرات المالية — الهدف قراءة G5 اختيارية فقط). */
+export type CoverageIndicator = Pick<
+  OperatingBreakEvenResult,
+  | "fixedExpenseMinor"
+  | "directMarginMinor"
+  | "breakEvenUnits"
+  | "operatingResultMinor"
+  | "breakEvenState"
+  | "breakEvenSalesValueMinor"
+  | "contributionMarginRatioPermyriad"
+  | "remainingToBreakEvenMinor"
+  | "amountAboveBreakEvenMinor"
+  | "classificationGap"
+> & {
   status: FinancialInsightStatus;
-  fixedExpenseMinor: number;
   /* F-009 (W2-B): الكمية الموحدة للنموذج الكنوني — null عند عدم قابلية التوحيد
    * (وحدات مختلطة بلا تحويل) بدل جمع وحدات غير متوافقة رقمًا واحدًا. */
   finalDeliveredQuantity: number | null;
-  directMarginMinor: number;
-  breakEvenUnits: number | null;
   reasons: readonly string[];
 };
+
+/* REM-007 (تصحيح تكافؤ المستهلكين — 2026-09-30): حارسا التجميع السلبيان —
+ * قراءة المؤشرات المالية بلا سطح هدف أصلًا. أي إضافة مستقبلية لحقل هدف في
+ * عقد التغطية أو لوسيط هدف في قراءة المؤشرات تُفشل التجميع فورًا (توجيه
+ * ts-expect-error غير المستخدم خطأ تجميعي). */
+// @ts-expect-error — عقد التغطية لا يعلن قراءة هدف أصلًا (Pick بلا هدف)
+type _CoverageDeclaresNoTarget = CoverageIndicator["targetOperatingResult"];
+type _InsightsParams = Parameters<typeof ProjectFinancialService.prototype.readFinancialInsights>;
+// @ts-expect-error — قراءة المؤشرات لا تقبل وسيطًا ثالثًا (لا وسيط هدف)
+type _InsightsThirdParam = _InsightsParams[2];
 export type RecordedLiquidity = {
   status: "recorded_only" | "incomplete";
   recordedCashMinor: number;
@@ -805,10 +831,10 @@ export class ProjectFinancialService {
     const retainedDepositRevenueMinor = activePeriodGroup4Events
       .filter(event => event.type === "deposit_retained_revenue")
       .reduce((sum, event) => sum + (event.revenueDeltaMinor ?? event.amountMinor), 0);
-    /* F-008 (W2-D — الحد الأدنى الآمن): كلفة التوصيل التي دفعها المشروع
+    /* F-008 (W2-D — ثم قرار المالك D-03 بتاريخ 2026-09-29): كلفة التوصيل التي دفعها المشروع
      * للطلبات النهائية، كما تُشتقها وحدة تحلل الطلب الكنونية من شروط التوصيل
-     * المسجلة — معلنة بلا طرح (قرار D-03 معلق لتفادي الخصم المزدوج مع
-     * التسجيل اليدوي للمصروف). */
+     * المسجلة — معلنة حقلًا تفسيريًا بلا طرح ثانية أبدًا (الحقل تحلل تفسيري؛
+     * الخصم الموثق الوحيد للمصروف المسجل يدويًا)، منعًا للخصم المزدوج. */
     const projectDeliveryCostMinor = finals.reduce(
       (total, { order }) => total + (orderDeliveryCostMinor(order) ?? 0),
       0,
@@ -822,8 +848,8 @@ export class ProjectFinancialService {
     if (legacyUnclassifiedExpenseCount > 0) reasons.push("مصروفات غير مصنفة");
     /* F-019 (W2-D): الخسارة غير النقدية معلنة باسمها — بند مستقل في المعادلة. */
     if (nonCashLossMinor > 0) reasons.push("خسارة غير نقدية");
-    /* F-008 (W2-D): إعلان الحد الأدنى الآمن — الكلفة مرئية والنتيجة لم تُخفض
-     * بعد قرار المالك في توحيد مسار التسجيل. */
+    /* F-008 (W2-D — ثم قرار المالك D-03 بتاريخ 2026-09-29): إعلان الحقل التفسيري — الكلفة
+     * مرئية والنتيجة لا تُخفض؛ الخصم الموثق الوحيد مسار التسجيل اليدوي للمصروف. */
     if (projectDeliveryCostMinor > 0) reasons.push("كلفة توصيل معلنة");
     /* المجموعة ٤: بنود مستقلة معلنة — لا تُخلط بالمصروفات التشغيلية. */
     if (assetDepreciationMinor > 0) reasons.push("إهلاك مسجّل");
@@ -972,41 +998,52 @@ export class ProjectFinancialService {
     const operatingExpenseMinor = periodResult.value.recordedOperatingExpenseMinor;
     const nonCashLossMinor = periodResult.value.nonCashLossMinor;
     const movementCount = movementsResult.value.filter(movement => inPeriod(movement.occurredOn)).length;
-    /* F-009 (W2-B): نموذج التعادل الكنوني الواحد — نفس مدخلات g5Service ونفس
-     * calculateBreakEven، فلا يمكن لسطحين أن يعرضا رقمين مختلفين لسؤال واحد.
-     * التغطية تعكس حالته وأسبابه وافتراضاته، وتراكيب حركات المخزون يخفض الحالة
-     * فقط (لا يرفعها أبدًا): أساس الهامش معلن على التكلفة المعترف بها لا على
-     * COGS المؤهلة (عقد ١٤ §٤)، والحركات تعلن الفرق لا تخفيه. */
-    const breakEven = calculateBreakEven(
-      from,
-      to,
-      orderInputs(
-        ordersResult.value,
-        catalogResult.value,
-        unitsResult.value,
-        conversionsResult.value,
+    /* F-009 (W2-B) + REM-007 (تصحيح تكافؤ المستهلكين — 2026-09-30): نموذج
+     * التعادل الكنوني الواحد — نفس مدخلات g5Service ونفس الأساس
+     * calculateBreakEven، ثم القراءة الكاملة تركّبها الوحدة الكنسية نفسها
+     * التي يستهلكها G5 (composeOperatingBreakEven عبر المسار الخامل المعتمد
+     * كما في g5Service.readDecision — سقف D-034 محفوظ)، فلا يمكن لسطحين أن
+     * يعرضا رقمين مختلفين لسؤال واحد. التغطية مهايئ عرض فوق القراءة نفسها:
+     * الحقول الكنسية تمر كما هي (spread) ويكيَّف ثلاثة فقط — الحالة (بقاعدة
+     * الحالة القائمة دون تغيير) والكمية المعروضة والأسباب؛ وتراكيب حركات
+     * المخزون تخفض الحالة فقط (لا ترفعها أبدًا) والأرقام الكنسية تبقى كما
+     * هي بلا إعادة حساب أو محو: أساس الهامش معلن على التكلفة المعترف بها لا
+     * على COGS المؤهلة (عقد ١٤ §٤)، والحركات تعلن الفرق لا تخفيه. */
+    const operating = await import("@micro-domain/g5/operatingBreakEven.js");
+    const coverageReading = operating.composeOperatingBreakEven(
+      calculateBreakEven(
         from,
         to,
+        orderInputs(
+          ordersResult.value,
+          catalogResult.value,
+          unitsResult.value,
+          conversionsResult.value,
+          from,
+          to,
+        ),
+        expenseInputs(eventsResult.value, from, to),
       ),
-      expenseInputs(eventsResult.value, from, to),
     );
     const coverageStatus: FinancialInsightStatus =
-      breakEven.status === "available"
+      coverageReading.status === "available"
         ? "recorded_only"
-        : breakEven.status === "invalid"
+        : coverageReading.status === "invalid"
           ? "not_available"
           : "incomplete";
-    const coverageReasons: string[] = [...breakEven.reasons];
+    const coverageReasons: string[] = [...coverageReading.reasons];
     if (movementCount > 0) {
       coverageReasons.push("حركات مخزون فعلية");
     }
+    /* REM-007 (تصحيح تكافؤ المستهلكين — 2026-09-30): قراءة الهدف لا تمر إلى
+     * التغطية أصلًا — لا سطح إدخال هدف في المؤشرات المالية؛ الهدف قراءة G5
+     * اختيارية فقط (لا وسيط هدف في هذه الدالة). */
+    const { targetOperatingResult: _coverageTarget, ...coverageFields } = coverageReading;
     const coverage: CoverageIndicator = {
+      ...coverageFields,
       status: movementCount > 0 && coverageStatus === "recorded_only" ? "incomplete" : coverageStatus,
-      fixedExpenseMinor: breakEven.fixedExpenseMinor,
       finalDeliveredQuantity:
-        breakEven.totalQuantityMilli === null ? null : breakEven.totalQuantityMilli / 1000,
-      directMarginMinor: breakEven.directMarginMinor,
-      breakEvenUnits: breakEven.breakEvenUnits,
+        coverageReading.totalQuantityMilli === null ? null : coverageReading.totalQuantityMilli / 1000,
       reasons: coverageReasons,
     };
     /* S2-05: الأمانات ضمن الكاش المسجل لكنها محتجزة لغير المالك — التغطية

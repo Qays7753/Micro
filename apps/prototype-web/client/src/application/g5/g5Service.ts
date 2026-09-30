@@ -10,6 +10,7 @@ import {
   createShortCashDeclaration,
   createShortCashReversal,
   type BreakEvenResult,
+  type OperatingBreakEvenResult,
   type G5ExpenseInput,
   type G5OrderInput,
   type ShortCashDeclaration,
@@ -32,7 +33,9 @@ import {
 } from "@/application/finance/shortCashHorizon";
 
 export type G5Decision = {
-  period: BreakEvenResult;
+  /* REM-007 (المرحلة ب): القراءة الكاملة للتعادل التشغيلي — الأساس +
+   * طبقة التشغيل المركّبة من الوحدة الكنسية نفسها. */
+  period: OperatingBreakEvenResult;
   shortCash: ShortCashResult;
   declarations: readonly ShortCashDeclaration[];
 };
@@ -321,7 +324,17 @@ export class G5Service {
     };
   }
 
-  async readDecision(from: string, to: string): Promise<G5Result<G5Decision>> {
+  /* REM-007 (المرحلة ب — 2026-09-29): قراءة قرار G5 الكاملة — طبقة التشغيل
+   * (نتيجة التشغيل/الحالة/المتبقي/الفائض/مبيعات التعادل/النسبة) وقراءة
+   * الهدف تركب فوق الأساس الكنوني نفسه من وحدة التعادل التشغيلي عبر
+   * مسار خامل (نمط الخدمات المحمّلة المعتمد في البرنامج — سقف D-034 محفوظ):
+   * قراءة واحدة بلا معادلة ثانية ولا UI؛ الهدف صفر يطابق التعادل العادي،
+   * والغائب يترك قراءة الهدف null. */
+  async readDecision(
+    from: string,
+    to: string,
+    targetOperatingResultMinor?: number | null,
+  ): Promise<G5Result<G5Decision>> {
     const [position, orders, events, purchases, declarations, catalogItems, units, conversions] =
       await Promise.all([
         this.projectFinance.readPosition(),
@@ -352,7 +365,11 @@ export class G5Service {
       from,
       to,
     );
-    const period = calculateBreakEven(from, to, contributionOrders, expenseInputs(events.value, from, to));
+    const operating = await import("@micro-domain/g5/operatingBreakEven.js");
+    const period = operating.composeOperatingBreakEven(
+      calculateBreakEven(from, to, contributionOrders, expenseInputs(events.value, from, to)),
+      targetOperatingResultMinor,
+    );
     const shortCash = calculateShortCash({
       from,
       to,

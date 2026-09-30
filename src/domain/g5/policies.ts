@@ -1,5 +1,6 @@
 import type {
   BreakEvenResult,
+  BreakEvenState,
   CreateShortCashDeclarationInput,
   CreateShortCashReversalInput,
   DirectMarginResult,
@@ -513,6 +514,7 @@ function contributionOutcome(from: string, to: string, state: ContributionWindow
     marginBasis,
     linkedVariableExpenseMinor: state.linkedVariableExpenseMinor,
     unlinkedVariableExpenseCount: state.unlinkedVariableExpenseCount,
+    classificationGap: state.classificationGap,
     totalQuantityMilli: state.totalQuantityMilli,
     quantityUnitKey: state.quantityUnitKey,
     quantityUnitLabel: state.quantityUnitLabel,
@@ -587,6 +589,28 @@ export function calculateDirectMargin(
   return contributionOutcome(from, to, state);
 }
 
+/* REM-007 (المرحلة ب): وحدات التعادل من مجمعات الفترة — ceil صحيح آمن مرة
+ * واحدة؛ «البسط الشبيه بالثابتة» هو الثابتة وحدها للتعادل العادي، أو
+ * الثابتة + النتيجة المستهدفة لقراءة الهدف في وحدة التعادل التشغيلي —
+ * معادلة واحدة يستهلكها القارئ والمساعد العام وقراءة الهدف معًا لا
+ * نسخ بينها. */
+export function breakEvenUnitsFromAggregates(
+  fixedLikeMinor: number,
+  quantityMilli: number | null,
+  marginMinor: number,
+): number | null {
+  const denominator =
+    marginMinor > 0 && marginMinor <= Number.MAX_SAFE_INTEGER / 1000 ? marginMinor * 1000 : null;
+  const numerator =
+    denominator !== null &&
+    quantityMilli !== null &&
+    fixedLikeMinor <= Number.MAX_SAFE_INTEGER / Math.max(quantityMilli, 1)
+      ? fixedLikeMinor * quantityMilli
+      : null;
+  if (numerator === null || denominator === null) return null;
+  return ceilRatio(numerator, denominator);
+}
+
 export function calculateBreakEven(
   from: string,
   to: string,
@@ -594,27 +618,15 @@ export function calculateBreakEven(
   expenses: readonly G5ExpenseInput[],
 ): BreakEvenResult {
   const contribution = calculateDirectMargin(from, to, orders, expenses);
-  const denominator =
-    contribution.contributionMarginMinor > 0 &&
-    contribution.contributionMarginMinor <= Number.MAX_SAFE_INTEGER / 1000
-      ? contribution.contributionMarginMinor * 1000
-      : null;
-  const numerator =
-    denominator !== null &&
-    contribution.totalQuantityMilli !== null &&
-    contribution.fixedExpenseMinor <= Number.MAX_SAFE_INTEGER / Math.max(contribution.totalQuantityMilli, 1)
-      ? contribution.fixedExpenseMinor * contribution.totalQuantityMilli
-      : null;
-  const breakEvenUnits =
-    (contribution.status === "available" || contribution.status === "needs_review") &&
-    numerator !== null &&
-    denominator !== null
-      ? ceilRatio(numerator, denominator)
-      : null;
-  if (
-    (contribution.status === "available" || contribution.status === "needs_review") &&
-    breakEvenUnits === null
-  ) {
+  const unitsAvailable = contribution.status === "available" || contribution.status === "needs_review";
+  const breakEvenUnits = unitsAvailable
+    ? breakEvenUnitsFromAggregates(
+        contribution.fixedExpenseMinor,
+        contribution.totalQuantityMilli,
+        contribution.contributionMarginMinor,
+      )
+    : null;
+  if (unitsAvailable && breakEvenUnits === null) {
     return {
       ...contribution,
       status: "invalid",
@@ -641,16 +653,9 @@ export function calculateBreakEvenUnits(
     return null;
   const quantityMilli = quantityMilliExact(deliveredQuantityUnits);
   if (quantityMilli === null) return null;
-  const denominator =
-    directMarginMinor > 0 && directMarginMinor <= Number.MAX_SAFE_INTEGER / 1000
-      ? directMarginMinor * 1000
-      : null;
-  const numerator =
-    denominator !== null && fixedExpenseMinor <= Number.MAX_SAFE_INTEGER / Math.max(quantityMilli, 1)
-      ? fixedExpenseMinor * quantityMilli
-      : null;
-  if (numerator === null || denominator === null) return null;
-  return ceilRatio(numerator, denominator);
+  /* REM-007 (المرحلة ب): المساعد العام يستهلك معادلة الوحدات الواحدة نفسها
+   * التي يستهلكها القارئ الكامل — لا نسخة منافسة. */
+  return breakEvenUnitsFromAggregates(fixedExpenseMinor, quantityMilli, directMarginMinor);
 }
 
 function validateBalanceItem(item: ShortCashInput["receivables"][number]): string | null {
