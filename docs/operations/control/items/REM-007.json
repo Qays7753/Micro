@@ -2,7 +2,7 @@
   "id": "REM-007",
   "title": "النموذج الكنوني للتعادل التشغيلي والنتيجة التشغيلية المستهدفة TARGET_OPERATING_RESULT (بلا UI وبلا مخطط)",
   "type": "DEFECT",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "canonical-operating-breakeven",
   "areas": [
@@ -19,7 +19,7 @@
     "tests"
   ],
   "owner": "Product owner / Z AI execution",
-  "next_action": "بانتظار مراجعة المالك وقرار الدمج على PR #275 بعد تصحيح التكافؤ المؤرخ 2026-09-30 (قراءة التغطية تستهلك التركيب الكنوني نفسه: composeOperatingBreakEven فوق الأساس calculateBreakEven عبر المسار الخامل ذاته؛ تكافؤ كامل الحقول مقيسًا فوق/عند/تحت التعادل وفجوة التصنيف وحركات المخزون؛ تكامل D-03 عبر المسار الفعلي) — كل البوابات المركزة خضراء على الفرع؛ لا دمج ذاتيًا.",
+  "next_action": "لا فعل إضافي: PR #275 مدمج ومتحقق على main عند 0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8.",
   "updated_at": "2026-09-30",
   "status_history": [
     {
@@ -45,6 +45,18 @@
       "changed_at": "2026-09-29",
       "actor": "pr:275",
       "reason": "اكتمل تنفيذ المرحلة ب (المجال ← الخدمة ← 19 اختبارًا جديدًا ← عقد 17 §6.1 ← قاموس ← D-041) وكل البوابات المركزة خضراء على الفرع."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-30",
+      "actor": "merge:pr-275",
+      "reason": "دُمج PR #275 بطريقة Squash عند 0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8 فوق main عند 13b74b01bc1b1e76436f6a0c5e322c8f0dc0d7a9؛ لم يتغير النطاق المالي أو UI."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-30",
+      "actor": "verify:main",
+      "reason": "التحقق على commit الدمج نفسه: تكافؤ القارئين واختبارات D-03 موجودة على main، CI checks ناجح وCloudflare Pages ناجح؛ لا تغيير Schema/Export أو UI."
     }
   ],
   "tests_required": [
@@ -69,6 +81,8 @@
   "migration_baseline": false,
   "classification": "FIX_BEFORE_PILOT",
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "merge_sha": "0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8",
+  "verified_on_main_sha": "0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8",
   "summary": "تنفيذ قرار المالك المعتمد 2026-09-29: النموذج الكنوني للتعادل التشغيلي بقراءة واحدة مركّبة — الأساس calculateBreakEven (src/domain/g5/policies.ts) كما هو بلا معامل هدف، وفوقه طبقة التشغيل الكاملة (نتيجة التشغيل/الحالة تحت-عند-فوق/المتبقي/الفائض/قيمة مبيعات التعادل من النسبة المجمعّة الدقيقة/نسبة العرض) تُركّبها الوحدة الكنسية الخاملة composeOperatingBreakEven (src/domain/g5/operatingBreakEven.ts) التي يستهلكها القارئان الحيّان معًا (G5Service.readDecision وProjectFinancialService.readFinancialInsights عبر المسار الخامل المعتمد ذاته — تصحيح التكافؤ 2026-09-30)، وقراءة الهدف TARGET_OPERATING_RESULT داخل الوحدة نفسها (الهدف صفر يطابق التعادل العادي بالبناء). CoverageIndicator عقد عرض/مهايئ فوق القراءة الكنسية (حقول التشغيل ملتقطة Pick من النوع الكنوني بلا هدف؛ حركات المخزون تخفض الحالة وحدها والأرقام الكنسية باقية) — لا معادلة منافسة تحت أي اسم. الوحدات غير الموحدة تبقى null بسبب صريح مع بقاء قيمة المبيعات، وكل فجوات التصنيف تمنع الادعاء بالاكتمال. صفر UI، صفر مخطط/تصدير (38/30 محروس)، صفر تخزين مشتق، صفر إعادة كتابة تاريخية.",
   "acceptance": [
     "مسار كنوني واحد مقيس: القارئان الحيّان (G5 والتغطية) يستهلكان التركيب نفسه composeOperatingBreakEven فوق الأساس calculateBreakEven — تكافؤ كامل الحقول مقيسًا فوق/عند/تحت التعادل وفجوة التصنيف وحركات المخزون (تصحيح التكافؤ 2026-09-30)",

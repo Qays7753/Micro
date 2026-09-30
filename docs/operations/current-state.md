@@ -1670,3 +1670,23 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 `POST_MERGE_VERIFICATION: PASS`
 `NO_UNAUTHORIZED_CLEANUP`
 `NO_TOKEN_EXPOSURE`
+
+## §85. المعالجة المنطقية النهائية — REM-006/REM-007 وPR #275 مدمجة ومتحققة على main — 2026-09-30
+
+دُمج PR #275 بطريقة Squash عند `0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8` فوق
+`main` السابق `13b74b01bc1b1e76436f6a0c5e322c8f0dc0d7a9`. شملت الشريحة توحيد
+قراءة التعادل التشغيلي بين G5 و`FinancialInsights` عبر التركيب الكنسي نفسه،
+وتكامل D-03 عبر مسار شروط التوصيل ولقطة التكلفة والتسليم والقراءة، بلا معادلة
+منافسة أو تعديل UI أو Schema/Export أو ترحيل أو إعادة كتابة تاريخية.
+
+جرى التحقق من commit الدمج نفسه: ملفات الشريحة موجودة على `main`، وCI checks
+ناجح، وCloudflare Pages ناجح. انتقل `REM-006` و`REM-007` و`WS-203` إلى
+`VERIFIED`، وأصبح عدد Claims النشطة صفرًا. القرارات المؤجلة D-13/F-055 وQR-5/F-060
+وأجزاء UI تبقى مؤجلة كما هي ولا يفتحها هذا الدمج.
+
+`PR_275_MERGED_SQUASH (0c05ec696fb795bb48c5b2f0c11b93e9a7b8c1e8)`
+`REM_006_REM_007_WS_203_VERIFIED_ON_MAIN`
+`POST_MERGE_VERIFICATION: PASS`
+`SCHEMA_EXPORT_38_30_UNCHANGED`
+`NO_UI_CHANGES`
+`NO_HISTORICAL_REWRITE`
