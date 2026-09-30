@@ -1700,3 +1700,8 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 جُردت الفروع حيًا على `main` عند `6f6e1afe9092bc0ae5f048a331fd760a169a111d`. تحقق Snapshot `docs/operations/control/evidence/branch-cleanup-snapshot-2026-09-30.json` من 45 فرعًا مرشحًا: لكل فرع PR مدموج وCommit الدمج قابل للوصول من `main`. استُبعدت `main` وفروع `keep/*` وخمسة فروع PRs مغلقة غير مدموجة وفرع Zed بلا PR. لا يبدأ الحذف إلا من قائمة Snapshot نفسها.
 `WAVE_C_BRANCH_SNAPSHOT_VERIFIED_45`
 `BRANCH_DELETION_PENDING_SNAPSHOT_MERGE`
+## §88. تنظيف الفروع — Wave C مكتملة — 2026-09-30
+بعد دمج Snapshot وإعادة المطابقة الفورية، حُذفت الفروع الـ45 المرشحة فقط؛ ثبت لكل واحد منها قبل الحذف PR مدموج وCommit دمج قابل للوصول من `main`. أصبح المستودع يحتوي 10 فروع: `main`، وثلاثة `keep/*`، وخمسة فروع PRs مغلقة غير مدموجة (#239 و#245 و#141 و#157 و#161)، وفرع UI handoff بلا PR. لا توجد PRs مفتوحة، ولم تُحذف أي من الفروع المستثناة.
+`WAVE_C_BRANCH_DELETION_COMPLETED_45`
+`REMOTE_BRANCH_COUNT_10`
+`MAIN_AND_KEEP_BRANCHES_PRESERVED`
