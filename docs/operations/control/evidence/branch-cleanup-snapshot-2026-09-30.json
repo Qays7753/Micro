@@ -434,5 +434,10 @@
   ],
   "manual_exception_verified": "agent/group1-traceability-finalize / PR #143 was verified separately because it was outside the fetched merged-PR page; merge commit b529eb459e7c83ce763d935fa9b1a7a6362071ea is reachable from main.",
   "failures": [],
-  "deletion_status": "PENDING_SNAPSHOT_MERGE"
+  "deletion_status": "COMPLETED",
+  "deleted_count": 45,
+  "deleted_at_utc": "2026-09-30T19:53:17.902077Z",
+  "post_deletion_main_sha": "d1b28e66a6fb55e7190e3c0c2142bc6b7db52a8d",
+  "post_deletion_remote_branch_count": 10,
+  "post_deletion_verification": "45 candidate branch refs absent; main, three keep branches, five closed-unmerged PR branches, and one no-PR UI handoff branch remain."
 }
