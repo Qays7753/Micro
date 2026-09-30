@@ -1696,3 +1696,7 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 `NO_BRIDGE_FILES_MERGED`
 `NO_CODE_OR_FINANCIAL_CHANGES`
 `NO_MASS_BRANCH_CLEANUP`
+## §87. بوابة تنظيف الفروع — Snapshot قبل الحذف — 2026-09-30
+جُردت الفروع حيًا على `main` عند `6f6e1afe9092bc0ae5f048a331fd760a169a111d`. تحقق Snapshot `docs/operations/control/evidence/branch-cleanup-snapshot-2026-09-30.json` من 45 فرعًا مرشحًا: لكل فرع PR مدموج وCommit الدمج قابل للوصول من `main`. استُبعدت `main` وفروع `keep/*` وخمسة فروع PRs مغلقة غير مدموجة وفرع Zed بلا PR. لا يبدأ الحذف إلا من قائمة Snapshot نفسها.
+`WAVE_C_BRANCH_SNAPSHOT_VERIFIED_45`
+`BRANCH_DELETION_PENDING_SNAPSHOT_MERGE`
