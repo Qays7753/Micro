@@ -4,7 +4,7 @@
 
 > **SUPERSEDED — 2026-10-02:** قرر المالك عكس هذه المواصفة (القرار ٢١ في `docs/product/owner-decisions-v1.md`): المسودة المهجورة **تُحذف بسهولة وبلا سبب** عبر `draftService.delete` (منفذ في `apps/prototype-web/client/src/application/drafts/draftService.ts`؛ الاختبار: «deletes an unlinked draft easily without a reason»)، ويُرفض الحذف فقط بعد تحول المسودة إلى اتفاق أو طلب (القرار ١٩). لا وجود لحقول `dismissedAt`/`dismissalReason`. تُحفظ هذه المواصفة سجلَ اقتراح تاريخيًا فقط ولا تُقرأ مرجعًا حاليًا.
 
-مواصفة مقترحة تنتظر قرار المالك (نص تاريخي قبل الحسم). لا كود مرتبط بها حتى الحسم. البطاقة المرجعية: U-08 في `docs/quality/MICRO-REMEDIATION-PLAN.md` و`MICRO-REVIEW-FINDINGS.md`.
+مواصفة مقترحة تنتظر قرار المالك (نص تاريخي قبل الحسم). لا كود مرتبط بها حتى الحسم. البطاقة المرجعية: U-08 في `docs/operations/archive/quality-history/MICRO-REMEDIATION-PLAN.md` و`MICRO-REVIEW-FINDINGS.md` (أُرشفا 2026-10-02).
 
 ## المشكلة
 
