@@ -1652,3 +1652,15 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 `PR_286_MERGED_SQUASH_6a00a6b9`
 `NO_MAIN_MERGE_PERFORMED_FOR_WS_207`
 `NO_FINANCIAL_OR_SCHEMA_SEMANTICS_CHANGE`
+
+
+## §96. موجة C/الاختبارات — WS-208 — 2026-10-02 (قيد على فرع PR فقط)
+
+دُمج PR #287 (WS-207، الموجة C التوثيقية) بطريقة Squash عند `c296ec85336fa2e25789a7d5b53376eec6314c77` بعد نجاح CI وCloudflare Pages، وتم التحقق على رأس `main` (المدقق صالح والViews حالية والملفات في مواقعها). ثم فُتح WS-208 على الفرع `test/surface-cleanup-20261002` لتنفيذ دموجي الاختبارات غير المحتكرين للمالك من التدقيق: (١) دمج الزوج المتطابق لاختبارات owner-entitlement — نُقلت كتلة A-07 للتقريب (٣ اختبارات) **حرفيًا** من `src/domain/owner-entitlement/policies.test.ts` إلى `tests/owner-entitlement.test.ts` ثم حُذفت نسخة src؛ السبع اختبارات الأخرى في وصف الملكية بنسخة src مغطاة بالتسعة الجامعة (تحقق مسار-بمسار، والمساران الإيجابيان الفريدان مغطيان باختباري A-07 الأول والثالث على نفس مسارات الكود). (٢) توحيد ثلاثية كاش (`cash-continuity` + `cash-allocation` + `cash-continuity-source-ref`) في `tests/domain/cash-continuity.test.ts` بكل الأوصاف الـ٤ والعناوين الـ١٥ وhelper الدخل حرفيًا. الفحوص المحلية: الملفان المتأثران 27/27، الحزمة الجذرية كاملة 537/537، typecheck نظيف، lint بلا أخطاء (35 تحذيرًا من سقف 37)، prettier نظيف. **لا تغيير في كود الإنتاج تحت src/domain** (الحذف الوحيد ملف اختبار مكرر) ولا في أي معنى مالي أو توقع.
+
+**الحالة:** التغيير موجود على فرع `test/surface-cleanup-20261002` فقط؛ لم يُدمج في `main`.
+
+`WS_208_WAVE_C_TESTS_ON_PR_ONLY`
+`PR_287_MERGED_SQUASH_c296ec8`
+`NO_PRODUCTION_CODE_CHANGE`
+`EQUIVALENT_COVERAGE_VERIFIED_PATH_BY_PATH`

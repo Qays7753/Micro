@@ -1,0 +1,44 @@
+{
+  "id": "WS-208",
+  "title": "موجة C/الاختبارات — دمج الزوج المتطابق owner-entitlement وتوحيد ثلاثية كاش (تدقيق 2026-10-01)",
+  "status": "IN_REVIEW",
+  "items": [
+    "DOC-003"
+  ],
+  "branch": "test/surface-cleanup-20261002",
+  "base_sha": "c296ec85336fa2e25789a7d5b53376eec6314c77",
+  "areas": [
+    "tests"
+  ],
+  "contracts": [],
+  "agent": "Zed coordination — documentation surface cleanup execution 2026-10-02",
+  "pr": null,
+  "started_at": "2026-10-02T14:00:00+03:00",
+  "updated_at": "2026-10-02T14:00:00+03:00",
+  "next_action": "مراجعة PR ودمجه بعد نجاح CI الكامل، ثم التحقق على main والإغلاق النهائي.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "claim:ws-208",
+      "reason": "فتح Claim من origin/main c296ec8 بعد دمج WS-207؛ لا تداخل areas/contracts مع أي Claim نشط."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-208:review",
+      "reason": "الدمجان منفذان وكل الفحوص المحلية ناجحة (27/27 متأثر + 537/537 جذرية + typecheck + lint 35/37 + prettier) — قيد مراجعة PR."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: tests/owner-entitlement.test.ts (+كتلة A-07 حرفيًا من نسخة src المحذوفة)؛ tests/domain/cash-continuity.test.ts (موحد من ثلاثية كاش مع baseInput)؛ حذف src/domain/owner-entitlement/policies.test.ts وtests/domain/cash-{allocation,continuity-source-ref}.test.ts.",
+    "تغطية مكافئة موثقة مسارًا-بمسار: المسارات الإيجابية الفريدة في النسخة المحذوفة (hourly مع مفاتيح → known؛ sale مع مفاتيح → known) مغطاة باختباري A-07 الأول والثالث على نفس مسارات الكود.",
+    "خارج النطاق: أي كود إنتاج تحت src/domain، وأي تغيير سلوكي أو توقّع.",
+    "حد الاستعادة: c296ec8 قبل فتح الفرع."
+  ],
+  "evidence": [
+    "docs/operations/control/items/DOC-003.json",
+    "docs/operations/current-state-log.md"
+  ]
+}

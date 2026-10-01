@@ -1,0 +1,80 @@
+{
+  "id": "DOC-003",
+  "title": "دموج ملفات الاختبارات المكررة — موجة C/الاختبارات (تدقيق 2026-10-01)",
+  "type": "GOVERNANCE",
+  "status": "IN_REVIEW",
+  "priority": "P3",
+  "stage": "documentation-hygiene",
+  "summary": "تنفيذ صفري MERGE الخاصين بالاختبارات من تدقيق الحد الأدنى: دمج الزوج المتطابق owner-entitlement (نسخة src داخل نسخة tests الجامعة مع حفظ كتلة A-07 حرفيًا) وتوحيد ثلاثية كاش في ملف واحد بكل العناوين وال assertions.",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "audit:MICRO-MINIMUM-KNOWLEDGE-SURFACE-AUDIT-2026-10-01 (MERGE rows: owner-entitlement pair, cash trio)",
+  "source": {
+    "report": "docs/operations/current-state-log.md",
+    "discovered_at_sha": "2680fd86cd1e170f529717c29fa844b625406b1c",
+    "evidence": []
+  },
+  "acceptance": [
+    "كتلة A-07 (٣ اختبارات تقريب) منقولة حرفيًا إلى tests/owner-entitlement.test.ts.",
+    "كل مسارات سلوك الاختبارات المحذوفة مغطاة في الملفات الدامجة (تحقق مسار-بمسار: السبع المحذوفة من وصف الملكية مغطاة بالتسعة الجامعة + كتلة A-07؛ الكاش ١٥/١٥).",
+    "الملفان الدامجان يجتازان vitest وtypecheck وlint (٣٥/٣٧ تحذير) وprettier.",
+    "لا تغيير في كود الإنتاج تحت src/domain (الحذف الوحيد ملف اختبار مكرر).",
+    "الحزمة الجذرية كاملة: 537 اختبارًا ناجحًا."
+  ],
+  "areas": [
+    "tests"
+  ],
+  "contracts": [],
+  "evidence": [
+    "docs/operations/current-state-log.md"
+  ],
+  "dependencies": [
+    "DOC-001"
+  ],
+  "related_items": [
+    "DOC-001",
+    "DOC-002"
+  ],
+  "owner_decision": "",
+  "updated_at": "2026-10-02",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-10-02",
+      "actor": "audit:minimum-knowledge-surface-2026-10-01",
+      "reason": "تدقيق قراءة فقط صنّف الزوج المتطابق والثلاثية المشتتة."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "ws-208:claim",
+      "reason": "فتح Claim (WS-208) على الفرع test/surface-cleanup-20261002 من main المتحقق c296ec8."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-02",
+      "actor": "ws-208:implement",
+      "reason": "دمج A-07 حرفيًا + توحيد الثلاثية مع helper baseInput؛ الفحوص المحلية ناجحة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-208:review",
+      "reason": "التنفيذ مكتمل وكل الفحوص المحلية ناجحة — قيد مراجعة PR."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "مراجعة PR ودمجه بعد نجاح CI الكامل ثم التحقق على main.",
+  "classification": "GOVERNANCE",
+  "owner": "Product owner / Zed coordination",
+  "tests_required": [
+    "Affected vitest files (owner-entitlement + cash-continuity)",
+    "Root typecheck + lint + format:check",
+    "Full root vitest suite",
+    "Operations Control validation + generated-view check"
+  ],
+  "layers": [
+    "tests"
+  ],
+  "gate_classification": "NOT_APPLICABLE"
+}
