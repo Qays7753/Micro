@@ -13,7 +13,7 @@
   ],
   "contracts": [],
   "agent": "Zed coordination — documentation surface cleanup execution 2026-10-02",
-  "pr": null,
+  "pr": 287,
   "started_at": "2026-10-02T13:00:00+03:00",
   "updated_at": "2026-10-02T13:00:00+03:00",
   "next_action": "مراجعة PR ودمجه بعد نجاح الفحوص، ثم التحقق على main؛ تليها WS-208 (دموج الاختبارات) والإغلاق.",
