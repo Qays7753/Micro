@@ -48,6 +48,7 @@
 - [ ] لا يحتوي الالتزام ملف `apps/prototype-web/client/public/__manus__/version.json`.
 - [ ] حدّثت `docs/operations/current-state.md` (الحقول الحية فقط) وألحقت سجل الشريحة في `docs/operations/current-state-log.md` وحدّثت `todo.md` بما يطابق ما اندمج فعلًا.
 - [ ] لا تبدأ هذه PR قدرة أو مجموعة خارج النطاق المعلن.
+- [ ] إن غيّرت هذه PR عقدًا أو مسارًا تستشهد به مهارة أو الفهرس، حدّثت المهارة/الفهرس المتأثرة في نفس الـPR (قاعدة السماجة — يحرسها `scripts/check-skill-references.mjs` و`scripts/check-doc-index-coverage.mjs`).
 - [ ] بطاقة الفهم تثبت أن الشريحة تحل قرارًا حقيقيًا، ولا تحوّل Micro إلى ERP/POS/CRM أو واجهة عامة.
 
 **نتائج الأوامر المركزة:** <!-- أمر: نتيجة لكل أمر ذي صلة → -->
