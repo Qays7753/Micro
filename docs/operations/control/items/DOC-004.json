@@ -77,6 +77,5 @@
   "layers": [
     "documentation"
   ],
-  "gate_classification": "NOT_APPLICABLE",
-  "pr": null
+  "gate_classification": "NOT_APPLICABLE"
 }
