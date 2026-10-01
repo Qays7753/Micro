@@ -1,7 +1,7 @@
 {
   "id": "WS-206",
   "title": "موجتا A+B من تنظيف السطح التوثيقي — تصحيحات صدق وأرشفة أدلة مغلقة (تدقيق 2026-10-01)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "DOC-001"
   ],
@@ -17,8 +17,8 @@
   "agent": "Zed coordination — documentation surface cleanup execution 2026-10-02",
   "pr": 286,
   "started_at": "2026-10-02T12:00:00+03:00",
-  "updated_at": "2026-10-02T12:30:00+03:00",
-  "next_action": "مراجعة PR ودمجه بعد نجاح الفحوص، ثم التحقق على main وإغلاق DOC-001/WS-206؛ تليها WS-207 (موجة C التوثيقية) وWS-208 (دموج الاختبارات).",
+  "updated_at": "2026-10-02T13:10:00+03:00",
+  "next_action": "لا إجراء إضافي؛ WS-206 وDOC-001 متحققان على main عند 6a00a6b9. تُتابع بقية الموجات عبر WS-207/WS-208 ثم الإغلاق.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -31,6 +31,18 @@
       "changed_at": "2026-10-02",
       "actor": "ws-206:review",
       "reason": "اكتمل تنفيذ الموجتين A وB والفحوص المحلية ناجحة — قيد مراجعة PR #286."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "merge:pr-286",
+      "reason": "دُمج PR #286 بطريقة Squash عند 6a00a6b98403159b82e2093a8383f351198e1c06 بعد نجاح CI (Actions checks + Cloudflare Pages) على رأس الـPR 8eed321."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "verify:main-tree",
+      "reason": "تطابق رأس origin/main مع merge_sha؛ المدقق صالح (74 items/48 workstreams) والViews حالية؛ الملفات المؤرشفة الـ23 في مواقعها الجديدة وتصحيحات الموجة A حاضرة على main؛ صفر إحالات حية متروكة."
     }
   ],
   "migration_baseline": false,
@@ -44,5 +56,7 @@
   "evidence": [
     "docs/operations/control/items/DOC-001.json",
     "docs/operations/current-state-log.md"
-  ]
+  ],
+  "merge_sha": "6a00a6b98403159b82e2093a8383f351198e1c06",
+  "verified_on_main_sha": "6a00a6b98403159b82e2093a8383f351198e1c06"
 }

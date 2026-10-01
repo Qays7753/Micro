@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 46
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 47
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-206 | IN_REVIEW | \`docs/surface-cleanup-20261002\` | 286 | DOC-001 | مراجعة PR ودمجه بعد نجاح الفحوص، ثم التحقق على main وإغلاق DOC-001/WS-206؛ تليها WS-207 (موجة C التوثيقية) وWS-208 (دموج الاختبارات). |
+| WS-207 | IN_REVIEW | \`docs/surface-cleanup-20261002-c\` | 287 | DOC-002 | مراجعة PR ودمجه بعد نجاح الفحوص، ثم التحقق على main؛ تليها WS-208 (دموج الاختبارات) والإغلاق. |

@@ -1,0 +1,44 @@
+{
+  "id": "WS-207",
+  "title": "موجة C التوثيقية — دموج ميكانيكية غير محتكرة للمالك (تدقيق 2026-10-01)",
+  "status": "IN_REVIEW",
+  "items": [
+    "DOC-002"
+  ],
+  "branch": "docs/surface-cleanup-20261002-c",
+  "base_sha": "6a00a6b98403159b82e2093a8383f351198e1c06",
+  "areas": [
+    "docs",
+    "documentation-governance"
+  ],
+  "contracts": [],
+  "agent": "Zed coordination — documentation surface cleanup execution 2026-10-02",
+  "pr": 287,
+  "started_at": "2026-10-02T13:00:00+03:00",
+  "updated_at": "2026-10-02T13:00:00+03:00",
+  "next_action": "مراجعة PR ودمجه بعد نجاح الفحوص، ثم التحقق على main؛ تليها WS-208 (دموج الاختبارات) والإغلاق.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "claim:ws-207",
+      "reason": "فتح Claim من origin/main 6a00a6b9 بعد دمج WS-206؛ صفر Workstreams نشطة أخرى وصفر PRs مفتوحة متداخلة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-207:review",
+      "reason": "دمجا الموجة C التوثيقية منفذان والفحوص المحلية ناجحة — قيد مراجعة PR."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: دمج سجلات O1 الثلاثة (o1-browser-qa وo1-acceptance-browser-qa وo1-successor-edit-browser-qa) في docs/operations/archive/o1-browser-qa-consolidated-2026-08-26.md (حرفيًا)؛ دمج docs/inventory/README.md في docs/inventory/00-summary.md مع تصحيح الادعاء المتقادم؛ تحديث صف الفهرس 39 (10 -> 9 ملفات).",
+    "خارج النطاق: دمج docs/inventory/02-by-tier.md (محتكر للمالك — OD من التدقيق)، وكل صفوف MERGE الأخرى، وأي تغيير سلوكي أو مالي.",
+    "حد الاستعادة: 6a00a6b9 قبل فتح الفرع."
+  ],
+  "evidence": [
+    "docs/operations/control/items/DOC-002.json",
+    "docs/operations/current-state-log.md"
+  ]
+}

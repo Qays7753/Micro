@@ -2,7 +2,7 @@
   "id": "DOC-001",
   "title": "تصحيحات صدق السطح التوثيقي وأرشفة الأدلة المغلقة — موجتا A+B من تدقيق الحد الأدنى 2026-10-01",
   "type": "GOVERNANCE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P2",
   "stage": "documentation-hygiene",
   "summary": "تنفيذ الصفوف الاثني عشر المصنفة FIX_NOW من تدقيق MICRO-MINIMUM-KNOWLEDGE-SURFACE-AUDIT-2026-10-01 (تصحيحات حالة/بانرات مؤرخة بلا تغيير معنوي) و23 صف أرشيف غير محتكر للمالك (نقل أدلة QA المغلقة وسجلات الجلسات التاريخية إلى الأرشيف مع إصلاح كل إحالة حية).",
@@ -59,10 +59,22 @@
       "changed_at": "2026-10-02",
       "actor": "ws-206:review",
       "reason": "الموجتان A وB منفذتان والفحوص المحلية ناجحة — قيد مراجعة PR."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "merge:pr-286",
+      "reason": "دُمج PR #286 بطريقة Squash عند 6a00a6b98403159b82e2093a8383f351198e1c06 بعد نجاح CI وCloudflare Pages."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "verify:main-tree",
+      "reason": "تحقق على SHA الدمج نفسه: المدقق صالح والViews حالية؛ الملفات المؤرشفة في مواقعها؛ التصحيحات حاضرة؛ صفر إحالات حية متروكة."
     }
   ],
   "migration_baseline": false,
-  "next_action": "مراجعة PR ودمجه ثم التحقق على main؛ تليها موجة C (الدموج الميكانيكية) وتقرير التنفيذ النهائي.",
+  "next_action": "لا إجراء إضافي؛ DOC-001 منفذ ومتحقق على main عند 6a00a6b9.",
   "classification": "GOVERNANCE",
   "owner": "Product owner / Zed coordination",
   "tests_required": [
@@ -74,5 +86,7 @@
   "layers": [
     "documentation"
   ],
-  "gate_classification": "NOT_APPLICABLE"
+  "gate_classification": "NOT_APPLICABLE",
+  "merge_sha": "6a00a6b98403159b82e2093a8383f351198e1c06",
+  "verified_on_main_sha": "6a00a6b98403159b82e2093a8383f351198e1c06"
 }

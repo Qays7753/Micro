@@ -1,0 +1,80 @@
+{
+  "id": "DOC-002",
+  "title": "دموج ميكانيكية توثيقية غير محتكرة للمالك — موجة C/الوثائق (تدقيق 2026-10-01)",
+  "type": "GOVERNANCE",
+  "status": "IN_REVIEW",
+  "priority": "P3",
+  "stage": "documentation-hygiene",
+  "summary": "تنفيذ صفوف MERGE غير المحتكرة للمالك من تدقيق الحد الأدنى: دمج سجلات O1 الثلاثة المتزامنة (نفس المسار/التاريخ، صفر إحالات) في سجل أرشيفي واحد حرفي، ودمج README جرد القدرات في 00-summary مع تصحيح ادعائه المتقادم وتحديث صف الفهرس 39.",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "audit:MICRO-MINIMUM-KNOWLEDGE-SURFACE-AUDIT-2026-10-01 (MERGE rows: o1 trio 3->1, inventory README -> 00-summary)",
+  "source": {
+    "report": "docs/operations/current-state-log.md",
+    "discovered_at_sha": "2680fd86cd1e170f529717c29fa844b625406b1c",
+    "evidence": []
+  },
+  "acceptance": [
+    "سجل O1 الدامج يحفظ نصوص الأصول الثلاثة حرفيًا تحت فواصل مع ترويسة منشأ مؤرخة.",
+    "00-summary يتضمن جدول ملفات الحزمة الصحيح (9 ملفات) وتحفظ المنهجية مع تصحيح الادعاء المتقادم.",
+    "صف الفهرس 39 يحدّث العدد والمنشأ في نفس التغيير.",
+    "02-by-tier لم يُلمس (محتكر للمالك)؛ صفر إحالات مفقودة بعد الحذف (متحقق بفحص المسار والاسم).",
+    "الحراس + validate + generator check ناجحة."
+  ],
+  "areas": [
+    "docs",
+    "documentation-governance"
+  ],
+  "contracts": [],
+  "evidence": [
+    "docs/operations/current-state-log.md"
+  ],
+  "dependencies": [
+    "DOC-001"
+  ],
+  "related_items": [
+    "DOC-001"
+  ],
+  "owner_decision": "",
+  "updated_at": "2026-10-02",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-10-02",
+      "actor": "audit:minimum-knowledge-surface-2026-10-01",
+      "reason": "تدقيق قراءة فقط صنّف الدموج الأربعة غير المحتكرة للمالك بمراجع صفرية محققة."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "ws-207:claim",
+      "reason": "فتح Claim (WS-207) على الفرع docs/surface-cleanup-20261002-c من main المتحقق 6a00a6b9."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-02",
+      "actor": "ws-207:implement",
+      "reason": "دمج سجلات O1 في سجل أرشيفي حرفي + دمج README الجرد في 00-summary + تحديث صف الفهرس 39."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-207:review",
+      "reason": "التنفيذ مكتمل والفحوص المحلية ناجحة — قيد مراجعة PR."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "مراجعة PR ودمجه ثم التحقق على main؛ تليها WS-208 (دموج الاختبارات) ثم الإغلاق.",
+  "classification": "GOVERNANCE",
+  "owner": "Product owner / Zed coordination",
+  "tests_required": [
+    "Operations Control validation + generated-view check",
+    "documentation/index guards",
+    "exact-path and basename reference scans for removed originals",
+    "git diff --check"
+  ],
+  "layers": [
+    "documentation"
+  ],
+  "gate_classification": "NOT_APPLICABLE"
+}
