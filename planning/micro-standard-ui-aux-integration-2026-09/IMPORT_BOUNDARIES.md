@@ -29,6 +29,6 @@ Alias edges: @/* → client/src/*; @micro-domain/* → src/domain/*. Zero relati
 3. **Patterns may depend on primitives + application/domain interfaces; primitives never depend on patterns or pages.**
 4. **AUX shell exposes callbacks/interfaces; it does not own feature business policy.** Feature forms live in feature components; the shell dispatches.
 5. **Domain/application/storage are never edited for presentation reasons.** (This run edits no file under `src/domain`, `application/`, or `storage/` at all.)
-6. **New files have one responsibility and a documented owner** (see COMPONENT_CATALOG.md).
+6. **New files have one responsibility and a documented owner** (COMPONENT_CATALOG.md — حُذف مع بقية الحزمة 2026-10-01/WS-204؛ الأصل في تاريخ git).
 7. **No blind mass moves; no broad single-patch rewrites of index.css.** Feature CSS extraction happens only where a wave's tests cover the affected surfaces.
 8. **eslint boundary globs keep covering everything added** — new code lives under existing covered globs (`components/**`, `app/**`, `pages/**`, `presentation/**`).

@@ -459,7 +459,7 @@ ERP كامل، POS عام، CRM، WhatsApp automation، AI يتخذ قرارًا
 - [`../product/guidance-interaction-policy-v1.md`](../product/guidance-interaction-policy-v1.md)
 - [`../scenarios/scenario-test-set-v1.md`](../scenarios/scenario-test-set-v1.md)
 - [`../quality/scenario-coverage-matrix-v1.md`](../quality/scenario-coverage-matrix-v1.md)
-- [`../06-reference-library.md`](../06-reference-library.md)
+- [`../research/global-build-reference-library-v1.md`](../research/global-build-reference-library-v1.md) (تشمل الملحق أ: تصنيف التراخيص وبوابة الإدخال)
 - [`../implementation/03-pre-build-alignment-v1.md`](../implementation/03-pre-build-alignment-v1.md)
 - [`../implementation/prototype-build-charter-v1.md`](../implementation/prototype-build-charter-v1.md)
 - [`../../ai-skills/micro-web-native-ux/SKILL.md`](../../ai-skills/micro-web-native-ux/SKILL.md)

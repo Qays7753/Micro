@@ -21,7 +21,7 @@
 | `docs/03-hypothesis-register.md` | الفرضيات ومعايير الاختبار |
 | `docs/04-product-truth-map.md` | قوة الأدلة وما بقي مجهولًا |
 | `docs/05-documentation-governance.md` | قواعد إدارة الوثائق |
-| `docs/06-reference-library.md` | مراجع GitHub والأنماط والتراخيص |
+| `docs/research/global-build-reference-library-v1.md` | مراجع GitHub والأنماط والتراخيص (تشمل ملحق تصنيف التراخيص وبوابة الإدخال) |
 | `docs/product/` | Problem Statement وتعريف النظام ونموذج الاستخدام والنموذج المالي وسياسة التوجيه |
 | `docs/scenarios/` | الشخصيات والحالات والأسئلة ونتائج الاختبار |
 | `docs/quality/scenario-coverage-matrix-v1.md` | ربط المشكلات بالسيناريوهات والقدرات |

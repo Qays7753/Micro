@@ -19,7 +19,7 @@
 | 3 | `docs/03-hypothesis-register.md` | CURRENT | فرضية أو ميزة أو اختبار |
 | 4 | `docs/04-product-truth-map.md` | CURRENT | وزن الدليل وما هو مجهول |
 | 5 | `docs/07-field-evidence-map.md` | CURRENT | الدليل الميداني وحدود ما تثبته خبرة المؤسس |
-| 5A | `docs/06-reference-library.md` | SUPPORTING — فهرس مختصر يوجّه إلى `docs/research/global-build-reference-library-v1.md` | بحث المراجع التاريخية والتراخيص |
+| 5A | ~~`docs/06-reference-library.md`~~ — **دُمج في `docs/research/global-build-reference-library-v1.md` (الملحق أ) وحُذف 2026-10-01 (WS-204)** | تصنيف التراخيص وبوابة الإدخال الثمانية في الملحق أ؛ الأصل في تاريخ git |
 | 6 | `ai-skills/README.ar.md` | CURRENT | تشغيل مهارات الذكاء الاصطناعي |
 | 7 | `docs/05-documentation-governance.md` | CURRENT | إدارة الوثائق وتعارضاتها |
 | 8 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
@@ -69,6 +69,7 @@
 | 20D | `docs/product/home-navigation-proof-v1.md` | CURRENT / SUPPORTING | إثبات نموذج تنقل شاشة الرئيس |
 | 20E | `docs/product/deferred-capabilities-execution-plan-v1.md` | CURRENT / ROADMAP | تخطيط تنفيذ القدرات المؤجلة |
 | 20F | `docs/product/draft-dismissal-mini-spec-v1.md` | CURRENT / SUPPORTING | مواصفة إهمال المسودات |
+| 20G | `docs/product/brand-activation-observations-v1.md` | CURRENT / SCOPED RECORD | ملاحظات تشغيل حزمة العلامة المحفوظة (المساران ذويا التحميل الدائم، سلوك القفل التلقائي، قيد لا-lockup/wordmark، منشأ الحزمة، سجلات مرايا Documents المحققة) — مقطّرة من حزم التخطيط المحذوفة 2026-10-01 (WS-204) |
 | 20 | `docs/scenarios/scenario-test-set-v1.md` | CURRENT | 12 شخصية و120 حالة و120 سؤالًا، بما فيها السياحة والمشروع المختلط |
 | 21 | `docs/scenarios/scenario-test-results-v1.md` | CURRENT | نتائج التغطية والفجوات |
 | 22 | `docs/quality/scenario-coverage-matrix-v1.md` | CURRENT | ربط المشكلات بالسيناريوهات والقدرات |
@@ -205,10 +206,10 @@
 | المخزن | المحتوى | الفهرس/الوصول |
 |---|---|---|
 | `reports/agent-report/` | تشغيلات Agent المؤرخة (تقارير تنفيذ، لقطات تاريخية) | `reports/agent-report/README.md` (تغطية 33/33) و`docs/operations/control/reports/index.json` |
-| `planning/` | حزم تخطيط منفذة ومدمجة (أصول العلامة، AUX، وحزمة ux-001 الحية المرتبطة ببند نشط) | إحالات من `docs/architecture/MIGRATION_STATUS.md` و`current-state.md` وأدلة Control |
+| `planning/` | **الناجي بعد تنظيف 2026-10-01 (WS-204):** حزمة ux-001 الحية المرتبطة ببند UX-001 النشط، و4 ملفات AUX حية الاستشهاد (MIGRATION_MATRIX.csv وTHEME_PARITY_MATRIX.csv وFINAL_LIMITATIONS وIMPORT_BOUNDARIES)؛ حزمتا العلامة وبقية AUX حُذفتا بعد التقطير (انظر 20G) | إحالات من `docs/architecture/MIGRATION_STATUS.md` و`current-state.md` وأدلة Control |
 | `docs/quality/` | بوابات الجودة الحالية + أدلة QA لكل شريحة (منها المنجز: `MICRO-REMEDIATION-PLAN.md` نُفِّذ؛ بنود `remediation-open-decisions-v1.md` ١–٥ حُسمت بالقرارات ١٩–٢٣) | الصفوف السلطوية أعلاه؛ ما ليس منها فدليل تنفيذ |
 | `docs/operations/control/evidence/` | أدلة بنود Control وWorkstreams | إحالات من `items/` و`workstreams/` JSON |
-| `docs/operations/archive/` | أرشيف مؤرخ | صف الأرشيف أدناه |
+| `docs/operations/archive/` | أرشيف مؤرخ (todo-pre-control-v2؛ **quality-history/** — ~39 ملف أدلة جودة تاريخية نُقلت 2026-10-01/WS-204 من `docs/quality/`) | README داخل الأرشيف |
 
 ## ملفات ARCHIVE/LEGACY
 
