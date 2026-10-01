@@ -2,7 +2,7 @@
   "id": "TEST-001",
   "title": "تثبيت اختبار الإهلاك المعتمد على الساعة الحية في G4Assets.dom",
   "type": "QUALITY",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "test-stability",
   "summary": "اختبار واجهة أصل ثابت يثبت مبلغ الإهلاك المتوقع بناءً على تاريخ تشغيل حقيقي، فيتغير بعد دوران الشهر بدل أن يثبت الزمن داخل الاختبار.",
@@ -35,6 +35,8 @@
   "dependencies": [],
   "related_items": [],
   "owner_decision": "",
+  "merge_sha": "1e244548bc85a3d2aed24208e5bb5f168d083aea",
+  "verified_on_main_sha": "1e244548bc85a3d2aed24208e5bb5f168d083aea",
   "updated_at": "2026-10-01",
   "status_history": [
     {
@@ -48,10 +50,34 @@
       "changed_at": "2026-10-01",
       "actor": "claim:ws-205",
       "reason": "فتح Claim مستقل من origin/main bcb9640e لإصلاح حتمية الاختبار فقط؛ لا تغيير في كود الإنتاج أو السياسة المالية."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-01",
+      "actor": "implementation:test-001",
+      "reason": "ثُبّتت الساعة داخل اختبار G4Assets، وأُعيد الاختبار نفسه 9/9 بنجاح."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-01",
+      "actor": "pr:283",
+      "reason": "أُنشئ PR #283 بحدود الاختبار وسجل Tracker والتقرير فقط، مع نجاح الفحوص المركزة محليًا."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-01",
+      "actor": "merge:pr-283",
+      "reason": "دُمج PR #283 عند 1e244548bc85a3d2aed24208e5bb5f168d083aea بعد نجاح CI وCloudflare Pages."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-01",
+      "actor": "verify:main-tree",
+      "reason": "ثبت رأس main نفسه عند 1e244548bc85a3d2aed24208e5bb5f168d083aea، واختبار G4Assets 9/9 يمر دون تغيير إنتاجي."
     }
   ],
   "migration_baseline": false,
-  "next_action": "تثبيت الساعة داخل الاختبار، تشغيل الاختبار المركز وفحوص الحواجز، ثم فتح PR مستقل والتحقق على main.",
+  "next_action": "لا إجراء إضافي؛ إصلاح TEST-001 مدموج ومتحقق على main. يُعاد فتحه فقط بدليل فشل زمني جديد.",
   "classification": "HARDENING",
   "owner": "Product owner / Manus coordination",
   "tests_required": [
