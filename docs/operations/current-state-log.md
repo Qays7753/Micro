@@ -1608,3 +1608,13 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 
 `WS-204_SCREENSHOT_RETIREMENT_CORRECTION_ON_PR_ONLY`
 `NO_MAIN_MERGE_PERFORMED`
+
+
+## §91. إصلاح حتمية اختبار G4Assets — WS-205 — 2026-10-01
+
+فشل اختبار `G4Assets.dom.test.tsx` بعد دوران الشهر لأنه كان يقرأ الساعة الحية مع توقع إهلاك ثابت. ثُبّتت الساعة داخل الاختبار فقط، ثم دُمج PR #283 عند `1e244548bc85a3d2aed24208e5bb5f168d083aea` بعد نجاح CI وCloudflare Pages. أُغلق Tracker في PR #284 عند `601a85fa10b13b665870810f08b45cc6cb021e51` بعد التحقق على `main`؛ اختبار G4Assets يمر 9/9. لا تغيير في كود الإنتاج أو سياسة الإهلاك أو المخطط/التصدير.
+
+`WS_205_VERIFIED_ON_MAIN_1e244548`
+`TEST_001_VERIFIED`
+`NO_PRODUCTION_CODE_CHANGE`
+`NO_FINANCIAL_POLICY_CHANGE`
