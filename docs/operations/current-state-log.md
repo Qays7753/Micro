@@ -1675,3 +1675,8 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 `OWNER_DECISIONS_REQUIRED`
 `NO_APPS_CHANGED`
 `NO_FINANCIAL_OR_SCHEMA_SEMANTICS_CHANGED`
+
+
+## §98. الجولة الثانية لتنظيف السطح التوثيقي — WS-209/DOC-004: الدفعة المحذوفة وتقاعد المساند — 2026-10-02
+
+نفّذ WS-209 (الفرع `docs/surface-cleanup-r2-20261002` من `main` @ `43058d61`) الجولة الثانية المعتمدة من قرارات مالك تنظيف السطح التوثيقي وفق تدقيق `MICRO-MINIMUM-KNOWLEDGE-SURFACE-AUDIT-2026-10-01`: **(١) دفعة DELETE (42 ملفًا):** 39 ملفًا من `docs/operations/archive/quality-history/` صفرية الإحالات الحية عند رأس التنفيذ (سلسلة G20–G23 وREMEDIATION-EXECUTION/STYLE وسلسلة g-notes وg-plans وتقارير قبول وتحقق تاريخية) + جردا bridge (`evidence/bridge-inventory-2026-09-20.{json,md}`) المتكرران مقابل snapshot الحذف والإغلاق + نسخة مطالبة ZAI (`ZAI-MASTER-EXECUTION-PROMPT.md` — نسخة إرسال والميثاق المُستشهد هو الحاكم). **(٢) تقاعد 93 ملف aux في `reports/agent-report/`:** ملفات packages/evidence/test-results الجانبية في 15 تشغيلًا؛ المستثنى الوحيد `00-understanding-card.md` (run-main — مرجع WS-172 الحي). كل تشغيل من الـ33 أبقى ملفه الرئيسي وتغطية README المخزن 33/33 سليمة. **الإصلاحات المرافقة:** سجل حذف مؤرخ في README أرشيف quality-history (39 محذوفًا/19 باقية لأدوار provenance)؛ رابط g5-test-plan داخل g5-qa-evidence المؤرشف تحول إلى مؤشر git-history مؤرخ؛ ملاحظة تقاعد مؤرخة في README المخزن. فحوص المسار الدقيق والاسم المعاد تشغيلها عند رأس التنفيذ: صفر تعارض مع مجموعة المراجع الآلية، وصفر إحالات حية متروكة. لا تغيير في أي سلوك منتج أو مال أو مخطط/تصدير أو UI أو كود تطبيق؛ حد الاستعادة `git revert` لدمجة الـPR والتاريخ عند `43058d61` يحفظ كل المحذوف.

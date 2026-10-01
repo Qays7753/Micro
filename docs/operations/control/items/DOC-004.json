@@ -1,0 +1,75 @@
+{
+  "id": "DOC-004",
+  "title": "حذف 42 ملفًا محذومَ المرجعية وتقاعد 93 ملف تقارير مساند — دفعة الجولة الثانية",
+  "type": "GOVERNANCE",
+  "status": "IN_PROGRESS",
+  "priority": "P2",
+  "stage": "documentation-hygiene",
+  "summary": "تنفيذ صفوف DELETE الاثني عشر والأربعين من تدقيق الحد الأدنى (39 ملف أرشيف quality-history صفرية الإحالات + جردَي bridge + نسخة مطالبة ZAI) وتقاعد 93 ملف aux في reports/agent-report (المستثنى الوحيد 00-understanding-card: run-main مرجع WS-172)، وفق مصفوفة قرار المالك للجولة الثانية 2026-10-02.",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "audit:MICRO-MINIMUM-KNOWLEDGE-SURFACE-AUDIT-2026-10-01 (42x DELETE rows + 94x reports/DEFER rows, 1 excluded as run-main)",
+  "source": {
+    "report": "docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/ROUND-2-FINAL-EXECUTION-REPORT.md",
+    "discovered_at_sha": "2680fd86cd1e170f529717c29fa844b625406b1c",
+    "evidence": []
+  },
+  "acceptance": [
+    "كل ملف محذوف مساره مطابق حرفيًا لصف التدقيق ولا حذف بالتشابه أو بالاسم المجرد.",
+    "صفر مراجع آلة (items/workstreams JSON أو reports/index.json) لأي ملف محذوف (متحقق قبل التنفيذ).",
+    "صفر إحالات حية متروكة: كل إحالة من ملف باقٍ إلى ملف محذوف إما تُصلح مؤرخة أو تبقى مرجع حقبة موثق في سجل الأرشيف.",
+    "كل تشغيل من تشغيلات reports/agent-report الـ33 يبقى ملفه الرئيسي (report.md أو implementation-report-ar.md) وREADME المخزن سليمًا.",
+    "الحراس + validate.py + generate_tracker --check ناجحة وgit diff --check نظيف."
+  ],
+  "areas": [
+    "docs",
+    "reports",
+    "documentation-governance"
+  ],
+  "contracts": [],
+  "evidence": [
+    "docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/ROUND-2-FINAL-EXECUTION-REPORT.md"
+  ],
+  "dependencies": [],
+  "related_items": [
+    "DOC-001",
+    "DOC-002",
+    "DOC-003"
+  ],
+  "owner_decision": "اعتمدها المالك في مصفوفة الجولة الثانية (2026-10-02): DELETE-42 وaux-94 مع استثناء run-main الواحد.",
+  "updated_at": "2026-10-02",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-10-02",
+      "actor": "audit:minimum-knowledge-surface-2026-10-01",
+      "reason": "صفوف DELETE وaux جاهزة بقرار مالك معتمد للجولة الثانية."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "ws-209:claim",
+      "reason": "Claim تنفيذي ضمن WS-209."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-02",
+      "actor": "ws-209:implement",
+      "reason": "تنفيذ الحذف والتقاعد."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "تنفيذ الحذف والتقاعد مع الإصلاحات ثم IN_REVIEW عند فتح PR.",
+  "classification": "GOVERNANCE",
+  "owner": "Product owner / Z AI coordination",
+  "tests_required": [
+    "Operations Control validation + generated-view check",
+    "documentation/index/skill/image/entity guards",
+    "exact-path and basename reference scans (zero live leftovers)",
+    "git diff --check"
+  ],
+  "layers": [
+    "documentation"
+  ],
+  "gate_classification": "NOT_APPLICABLE"
+}

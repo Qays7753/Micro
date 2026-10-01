@@ -1,6 +1,6 @@
 {
   "schema": "micro-operations-control-excel-provenance-v1",
-  "source_digest": "355a967e8a0047f4715e3da6872fddfeb1b89230cdf1127d025fbd57dd150ca5",
+  "source_digest": "1268603ecf7dca76322781bf9e0f2dfb07e8ec053bf10d2a6e3d59266f3188a9",
   "source_files": [
     "docs/operations/control/items/AUDIT-001.json",
     "docs/operations/control/items/BE-001.json",
@@ -15,6 +15,7 @@
     "docs/operations/control/items/DOC-001.json",
     "docs/operations/control/items/DOC-002.json",
     "docs/operations/control/items/DOC-003.json",
+    "docs/operations/control/items/DOC-004.json",
     "docs/operations/control/items/FIN-001.json",
     "docs/operations/control/items/FIN-002.json",
     "docs/operations/control/items/FIN-003.json",
@@ -105,6 +106,7 @@
     "docs/operations/control/workstreams/WS-206.json",
     "docs/operations/control/workstreams/WS-207.json",
     "docs/operations/control/workstreams/WS-208.json",
+    "docs/operations/control/workstreams/WS-209.json",
     "docs/operations/control/workstreams/review/WS-001.json",
     "docs/operations/control/workstreams/review/WS-141.json",
     "docs/operations/control/workstreams/review/WS-161.json",

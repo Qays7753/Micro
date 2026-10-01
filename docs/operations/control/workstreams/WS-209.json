@@ -1,0 +1,41 @@
+{
+  "id": "WS-209",
+  "title": "تنفيذ الدفعة المحذوفة وتقاعد ملفات التقارير المساندة — الجولة الثانية من تدقيق الحد الأدنى",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-004"
+  ],
+  "branch": "docs/surface-cleanup-r2-20261002",
+  "base_sha": "43058d61ec1eb1550809d89aeceec76e8b30283b",
+  "areas": [
+    "docs/operations/archive/quality-history",
+    "docs/operations/control/evidence",
+    "reports/agent-report",
+    "documentation-governance"
+  ],
+  "contracts": [],
+  "agent": "Z AI coordination agent (Round-2 cleanup execution)",
+  "pr": null,
+  "started_at": "2026-10-02",
+  "updated_at": "2026-10-02",
+  "next_action": "حذف 42 ملفًا مصنفًا DELETE وتقاعد 93 ملف aux وفق مصفوفة قرار المالك للجولة الثانية، مع إصلاح كل الإحالات وحدود استعادة واضحة.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "ws-209:claim",
+      "reason": "فتح Claim على الفرع docs/surface-cleanup-r2-20261002 من main المتحقق 43058d61ec1eb1550809d89aeceec76e8b30283b بعد التحقق من صفر Workstreams نشطة وصفر PRs مفتوحة وصفر تعارض نطاقات."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-02",
+      "actor": "ws-209:implement",
+      "reason": "تنفيذ الحذف والتقاعد مع فحوص مرجعية صفرية معاد تشغيلها عند رأس التنفيذ الحي."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "قرار المالك الموثق في محفظة الجولة الثانية (OD matrix): DELETE-42 + aux-94 (واحد مستثنى run-main). حد الاستعادة: git revert لدمجة الـPR؛ تاريخ git عند 43058d61 يحفظ كل محتوى محذوف."
+  ],
+  "evidence": []
+}
