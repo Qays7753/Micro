@@ -1640,3 +1640,15 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 `NO_MAIN_MERGE_PERFORMED`
 `NO_FINANCIAL_OR_SCHEMA_SEMANTICS_CHANGE`
 `OWNER_GATED_ROWS_NOT_PERFORMED`
+
+
+## §95. موجة C التوثيقية — WS-207 — 2026-10-02 (قيد على فرع PR فقط)
+
+دُمج PR #286 (WS-206، موجتا A+B) بطريقة Squash عند `6a00a6b98403159b82e2093a8383f351198e1c06` بعد نجاح CI (Actions) وCloudflare Pages، وتم التحقق على رأس `main`: المدقق صالح، والViews حالية، والملفات المؤرشفة في مواقعها، وتصحيحات الموجة A حاضرة. ثم فُتح WS-207 على الفرع `docs/surface-cleanup-20261002-c` لتنفيذ دموجي الموجة C التوثيقية غير المحتكرين للمالك: (١) دمج سجلات O1 الثلاثة المتزامنة (نفس المسار `/finance/owner-entitlement`، نفس التاريخ 2026-08-26، صفر إحالات داخلية) في سجل أرشيفي واحد حرفي `docs/operations/archive/o1-browser-qa-consolidated-2026-08-26.md` مع ترويسة منشأ مؤرخة وحذف الأصول الثلاثة؛ (٢) دمج `docs/inventory/README.md` في `docs/inventory/00-summary.md` مع تصحيح ادعائه المتقادم عن الملفات غير المحفوظة (01/02/07/08/09 موجودة؛ 04 لم يوجد قط) وتحديث صف الفهرس 39 من 10 إلى 9 ملفات. لم يُلمس `02-by-tier.md` (محتكر للمالك). لا تغيير في سلوك المنتج أو المنطق المالي أو التخزين أو الاستيراد/التصدير أو UI أو schema/export.
+
+**الحالة:** التغيير موجود على فرع `docs/surface-cleanup-20261002-c` فقط؛ لم يُدمج في `main`.
+
+`WS_207_WAVE_C_DOCS_ON_PR_ONLY`
+`PR_286_MERGED_SQUASH_6a00a6b9`
+`NO_MAIN_MERGE_PERFORMED_FOR_WS_207`
+`NO_FINANCIAL_OR_SCHEMA_SEMANTICS_CHANGE`
