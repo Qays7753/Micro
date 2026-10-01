@@ -10,7 +10,7 @@
   "finding_state": "CONFIRMED",
   "root_cause": "audit:MICRO-MINIMUM-KNOWLEDGE-SURFACE-AUDIT-2026-10-01 (MERGE rows: o1 trio 3->1, inventory README -> 00-summary)",
   "source": {
-    "report": "docs/operations/current-state-log.md",
+    "report": "docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/FINAL-EXECUTION-REPORT.md",
     "discovered_at_sha": "2680fd86cd1e170f529717c29fa844b625406b1c",
     "evidence": []
   },
@@ -27,7 +27,8 @@
   ],
   "contracts": [],
   "evidence": [
-    "docs/operations/current-state-log.md"
+    "docs/operations/current-state-log.md",
+    "docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/FINAL-EXECUTION-REPORT.md"
   ],
   "dependencies": [
     "DOC-001"

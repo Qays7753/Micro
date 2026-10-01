@@ -1664,3 +1664,14 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 `PR_287_MERGED_SQUASH_c296ec8`
 `NO_PRODUCTION_CODE_CHANGE`
 `EQUIVALENT_COVERAGE_VERIFIED_PATH_BY_PATH`
+
+
+## §97. إغلاق تنفيذ تنظيف السطح التوثيقي — WS-206/207/208 — 2026-10-02
+
+دُمج PR #288 (WS-208، دموج الاختبارات) بطريقة Squash عند `885968412bce150da9d73e22eecdb346d0cd6e2c` بعد نجاح CI الكامل (Actions + Cloudflare Pages) على رأس الـPR `15747db57911c1d58f266f3820ee112b9c3e436a`، وتم التحقق على رأس `main` المدموج: الحزمة الجذرية 537/537 وtypecheck نظيف والمدقق صالح والViews حالية. بذلك اكتملت الموجات المرخصة الثلاث: PR #286 (WS-206: 12 تصحيح صدق + 23 أرشفة) وPR #287 (WS-207: دمجا الموجة C التوثيقية) وPR #288 (WS-208: دمجا الاختبارات بتغطية مكافئة موثقة) — سجل كامل بالأدلة والأوامر وحدود الاستعادة في `docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/FINAL-EXECUTION-REPORT.md`. البنود المحتكرة للمالك (42 حذفًا مؤجلًا، 94 ملف aux، حزمة reconciliation، تقطير اللوق، todo.md، مرايا .docx، وقرارات OD-01..OD-12) لم تُمس وتبقى بقرار المالك.
+
+`WS_208_VERIFIED_ON_MAIN_88596841`
+`EXECUTION_COMPLETE_CERTAIN_WAVES_MERGED`
+`OWNER_DECISIONS_REQUIRED`
+`NO_APPS_CHANGED`
+`NO_FINANCIAL_OR_SCHEMA_SEMANTICS_CHANGED`
