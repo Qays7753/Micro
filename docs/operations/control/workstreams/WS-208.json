@@ -1,7 +1,7 @@
 {
   "id": "WS-208",
   "title": "موجة C/الاختبارات — دمج الزوج المتطابق owner-entitlement وتوحيد ثلاثية كاش (تدقيق 2026-10-01)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "DOC-003"
   ],
@@ -14,8 +14,8 @@
   "agent": "Zed coordination — documentation surface cleanup execution 2026-10-02",
   "pr": 288,
   "started_at": "2026-10-02T14:00:00+03:00",
-  "updated_at": "2026-10-02T14:00:00+03:00",
-  "next_action": "مراجعة PR ودمجه بعد نجاح CI الكامل، ثم التحقق على main والإغلاق النهائي.",
+  "updated_at": "2026-10-02",
+  "next_action": "لا إجراء إضافي؛ منفذ ومتحقق على main. التقرير النهائي: docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/FINAL-EXECUTION-REPORT.md",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -28,6 +28,18 @@
       "changed_at": "2026-10-02",
       "actor": "ws-208:review",
       "reason": "الدمجان منفذان وكل الفحوص المحلية ناجحة (27/27 متأثر + 537/537 جذرية + typecheck + lint 35/37 + prettier) — قيد مراجعة PR."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "merge:pr-288",
+      "reason": "دُمج PR #288 بطريقة Squash عند 885968412bce150da9d73e22eecdb346d0cd6e2c بعد نجاح CI (Actions checks + Cloudflare Pages) على رأس الـPR."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "verify:main-tree",
+      "reason": "تطابق رأس origin/main مع merge_sha؛ المدقق صالح والViews حالية؛ الحزمة الجذرية 537/537 وtypecheck نظيفان على main المدموج؛ الملفات المتغيرة في مواقعها."
     }
   ],
   "migration_baseline": false,
@@ -40,5 +52,7 @@
   "evidence": [
     "docs/operations/control/items/DOC-003.json",
     "docs/operations/current-state-log.md"
-  ]
+  ],
+  "merge_sha": "885968412bce150da9d73e22eecdb346d0cd6e2c",
+  "verified_on_main_sha": "885968412bce150da9d73e22eecdb346d0cd6e2c"
 }

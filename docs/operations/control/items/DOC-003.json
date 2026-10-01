@@ -2,7 +2,7 @@
   "id": "DOC-003",
   "title": "دموج ملفات الاختبارات المكررة — موجة C/الاختبارات (تدقيق 2026-10-01)",
   "type": "GOVERNANCE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P3",
   "stage": "documentation-hygiene",
   "summary": "تنفيذ صفري MERGE الخاصين بالاختبارات من تدقيق الحد الأدنى: دمج الزوج المتطابق owner-entitlement (نسخة src داخل نسخة tests الجامعة مع حفظ كتلة A-07 حرفيًا) وتوحيد ثلاثية كاش في ملف واحد بكل العناوين وال assertions.",
@@ -10,7 +10,7 @@
   "finding_state": "CONFIRMED",
   "root_cause": "audit:MICRO-MINIMUM-KNOWLEDGE-SURFACE-AUDIT-2026-10-01 (MERGE rows: owner-entitlement pair, cash trio)",
   "source": {
-    "report": "docs/operations/current-state-log.md",
+    "report": "docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/FINAL-EXECUTION-REPORT.md",
     "discovered_at_sha": "2680fd86cd1e170f529717c29fa844b625406b1c",
     "evidence": []
   },
@@ -26,7 +26,8 @@
   ],
   "contracts": [],
   "evidence": [
-    "docs/operations/current-state-log.md"
+    "docs/operations/current-state-log.md",
+    "docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/FINAL-EXECUTION-REPORT.md"
   ],
   "dependencies": [
     "DOC-001"
@@ -61,10 +62,22 @@
       "changed_at": "2026-10-02",
       "actor": "ws-208:review",
       "reason": "التنفيذ مكتمل وكل الفحوص المحلية ناجحة — قيد مراجعة PR."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "merge:pr-288",
+      "reason": "دُمج PR #288 بطريقة Squash عند 885968412bce150da9d73e22eecdb346d0cd6e2c بعد نجاح CI (Actions checks + Cloudflare Pages) على رأس الـPR."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "verify:main-tree",
+      "reason": "تطابق رأس origin/main مع merge_sha؛ المدقق صالح والViews حالية؛ الحزمة الجذرية 537/537 وtypecheck نظيفان على main المدموج؛ الملفات المتغيرة في مواقعها."
     }
   ],
   "migration_baseline": false,
-  "next_action": "مراجعة PR ودمجه بعد نجاح CI الكامل ثم التحقق على main.",
+  "next_action": "لا إجراء إضافي؛ منفذ ومتحقق على main. التقرير النهائي: docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/FINAL-EXECUTION-REPORT.md",
   "classification": "GOVERNANCE",
   "owner": "Product owner / Zed coordination",
   "tests_required": [
@@ -76,5 +89,7 @@
   "layers": [
     "tests"
   ],
-  "gate_classification": "NOT_APPLICABLE"
+  "gate_classification": "NOT_APPLICABLE",
+  "merge_sha": "885968412bce150da9d73e22eecdb346d0cd6e2c",
+  "verified_on_main_sha": "885968412bce150da9d73e22eecdb346d0cd6e2c"
 }
