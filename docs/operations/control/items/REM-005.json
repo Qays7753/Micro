@@ -73,7 +73,7 @@
     "report": "docs/operations/control/evidence/micro-master-remediation-2026-09-27/WAVE5-FINAL-PROGRAM-REPORT-2026-09-29.md (derived from the historical concept-policy audit; PR #245 branch deleted after closure)",
     "discovered_at_sha": "2ebb435334dd69da0273d592ec8bffac5e70c1cf",
     "evidence": [
-      "docs/operations/current-state.md",
+      "docs/operations/current-state-log.md",
       "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md"
     ]
   },
@@ -95,7 +95,7 @@
   "finding_state": "CONFIRMED",
   "root_cause": "audit-findings:F-043,F-045,F-048 + ST-07..ST-13/ST-17..ST-19 (guard gap: no static prevention of money recomputation in UI or competing equation copies; large financial files lack a documented responsibility map without owner-gated splitting)",
   "evidence": [
-    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
     "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W5A-SLICE-REPORT-2026-09-29.md"
   ],
   "merge_sha": "8be7d5d7aa0129e32cebe54ae73618c47d86ab67",

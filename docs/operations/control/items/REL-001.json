@@ -19,7 +19,7 @@
   "contracts": [],
   "evidence": [
     "reports/agent-report/2026-09-23_fin-roadmap-wave-9-rel-001/report.md",
-    "docs/operations/current-state.md"
+    "docs/operations/current-state-log.md"
   ],
   "dependencies": [
     "CLEAN-001"

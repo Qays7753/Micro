@@ -18,7 +18,7 @@
   "evidence": [
     "reports/agent-report/2026-09-23_fin-roadmap-wave-7-fin-008/report.md",
     "docs/contracts/43-asset-depreciation-prototype-contract.md",
-    "docs/operations/current-state.md"
+    "docs/operations/current-state-log.md"
   ],
   "dependencies": [],
   "owner_decision": "تحديد نافذة اختبار الإهلاك أو آلية ساعة اختبار معتمدة قبل فتح Claim.",

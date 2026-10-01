@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { localSchemaVersion, localExportVersion } from "@/storage/local/types";
 
 const currentState = readFileSync(
-  fileURLToPath(new URL("../../../../docs/operations/current-state.md", import.meta.url)),
+  fileURLToPath(new URL("../../../../docs/operations/current-state-log.md", import.meta.url)),
   "utf8",
 );
 const todo = readFileSync(fileURLToPath(new URL("../../../../todo.md", import.meta.url)), "utf8");

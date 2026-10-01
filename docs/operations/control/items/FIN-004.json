@@ -1,94 +1,94 @@
 {
- "id": "FIN-004",
- "title": "حد السحب الآمن للمالك",
- "type": "FEATURE",
- "status": "VERIFIED",
- "priority": "P1",
- "stage": "stage-3",
- "summary": "تقدير محافظ يوضح ما يمكن سحبه دون الادعاء بضمان السيولة المستقبلية.",
- "acceptance": [
-  "الافتراضات ظاهرة",
-  "لا توصية عند نقص البيانات الحرجة"
- ],
- "areas": [
-  "owner-money",
-  "cash-forecast"
- ],
- "contracts": [],
- "evidence": [
-  "reports/agent-report/2026-09-23_fin-roadmap-wave-4-fin-004/report.md",
-  "docs/operations/current-state.md"
- ],
- "dependencies": [
-  "FIN-003",
-  "FIN-005"
- ],
- "owner_decision": "",
- "merge_sha": "92bc58a3b64666219b50bd97cb60c8fb442cc87a",
- "verified_on_main_sha": "92bc58a3b64666219b50bd97cb60c8fb442cc87a",
- "updated_at": "2026-09-23",
- "finding_classification": "NOT_APPLICABLE",
- "finding_state": "NOT_APPLICABLE",
- "root_cause": "control-record:FIN-004",
- "source": {
-  "report": "docs/operations/control/README.md",
-  "discovered_at_sha": "87ebcf2ffa74752bf385eff3a10962454b45d33e",
-  "evidence": []
- },
- "status_history": [
-  {
-   "status": "READY",
-   "changed_at": "2026-09-19",
-   "actor": "migration:operations-control-v2",
-   "reason": "إضافة سجل الحالة عند ترحيل النظام إلى v2."
+  "id": "FIN-004",
+  "title": "حد السحب الآمن للمالك",
+  "type": "FEATURE",
+  "status": "VERIFIED",
+  "priority": "P1",
+  "stage": "stage-3",
+  "summary": "تقدير محافظ يوضح ما يمكن سحبه دون الادعاء بضمان السيولة المستقبلية.",
+  "acceptance": [
+    "الافتراضات ظاهرة",
+    "لا توصية عند نقص البيانات الحرجة"
+  ],
+  "areas": [
+    "owner-money",
+    "cash-forecast"
+  ],
+  "contracts": [],
+  "evidence": [
+    "reports/agent-report/2026-09-23_fin-roadmap-wave-4-fin-004/report.md",
+    "docs/operations/current-state-log.md"
+  ],
+  "dependencies": [
+    "FIN-003",
+    "FIN-005"
+  ],
+  "owner_decision": "",
+  "merge_sha": "92bc58a3b64666219b50bd97cb60c8fb442cc87a",
+  "verified_on_main_sha": "92bc58a3b64666219b50bd97cb60c8fb442cc87a",
+  "updated_at": "2026-09-23",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "NOT_APPLICABLE",
+  "root_cause": "control-record:FIN-004",
+  "source": {
+    "report": "docs/operations/control/README.md",
+    "discovered_at_sha": "87ebcf2ffa74752bf385eff3a10962454b45d33e",
+    "evidence": []
   },
-  {
-   "status": "CLAIMED",
-   "changed_at": "2026-09-23",
-   "actor": "claim:ws-176",
-   "reason": "Owner-approved financial roadmap Wave 4 claimed via WS-176 from verified main dacade9."
-  },
-  {
-   "status": "IN_PROGRESS",
-   "changed_at": "2026-09-23",
-   "actor": "ws-176:implement",
-   "reason": "Pure domain policy + in-render composition over the FIN-005 horizon reading + advisory surface with session-scoped explicit reserve implemented on feat/fin-004-safe-withdrawal-20260923."
-  },
-  {
-   "status": "IN_REVIEW",
-   "changed_at": "2026-09-23",
-   "actor": "ws-176:review",
-   "reason": "16 اختبارًا مركزًا (11 مجال + 5 DOM) وpnpm check مكافئ خضر: typecheck وlint 0/37 وformat وtext-density (330/330) وdesign-guards وguards وroot 465/465 وprototype 261 ملفًا 1857/1857 وbuild+budget 649292/650000 (الحزمة الأساسية مطابقة بايتًا بايت)."
-  },
-  {
-   "status": "MERGED_UNVERIFIED",
-   "changed_at": "2026-09-23",
-   "actor": "ws-176:merge",
-   "reason": "PR #218 مدمج Squash عند 92bc58a3b64666219b50bd97cb60c8fb442cc87a (الأساس dacade9)؛ CI وCloudflare ناجحان على رأس الـPR بعد إصلاح typecheck (8bcaa7a)."
-  },
-  {
-   "status": "VERIFIED",
-   "changed_at": "2026-09-23",
-   "actor": "ws-176:post-merge-verification",
-   "reason": "تحقق على SHA الدمج نفسه 92bc58a: CI checks success + Cloudflare Pages success على commit الدمج؛ اختبارات الموجة (19/19: 11 مجال + 8 DOM) خضر محليًا على main."
-  }
- ],
- "migration_baseline": true,
- "next_action": "لا فعل إضافي: منفذ ومتحقق على main (92bc58a).",
- "related_items": [],
- "classification": "FIX_BEFORE_PILOT",
- "owner": "Product owner / Manus coordination",
- "tests_required": [
-  "Domain/Service tests",
-  "DOM/Integration tests where UI is involved",
-  "Export/import or migration evidence where persistence changes",
-  "Merge and verification evidence on main"
- ],
- "layers": [
-  "Layer 3",
-  "domain",
-  "application",
-  "presentation"
- ],
- "gate_classification": "NOT_APPLICABLE"
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-09-19",
+      "actor": "migration:operations-control-v2",
+      "reason": "إضافة سجل الحالة عند ترحيل النظام إلى v2."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-09-23",
+      "actor": "claim:ws-176",
+      "reason": "Owner-approved financial roadmap Wave 4 claimed via WS-176 from verified main dacade9."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-09-23",
+      "actor": "ws-176:implement",
+      "reason": "Pure domain policy + in-render composition over the FIN-005 horizon reading + advisory surface with session-scoped explicit reserve implemented on feat/fin-004-safe-withdrawal-20260923."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-09-23",
+      "actor": "ws-176:review",
+      "reason": "16 اختبارًا مركزًا (11 مجال + 5 DOM) وpnpm check مكافئ خضر: typecheck وlint 0/37 وformat وtext-density (330/330) وdesign-guards وguards وroot 465/465 وprototype 261 ملفًا 1857/1857 وbuild+budget 649292/650000 (الحزمة الأساسية مطابقة بايتًا بايت)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-176:merge",
+      "reason": "PR #218 مدمج Squash عند 92bc58a3b64666219b50bd97cb60c8fb442cc87a (الأساس dacade9)؛ CI وCloudflare ناجحان على رأس الـPR بعد إصلاح typecheck (8bcaa7a)."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-09-23",
+      "actor": "ws-176:post-merge-verification",
+      "reason": "تحقق على SHA الدمج نفسه 92bc58a: CI checks success + Cloudflare Pages success على commit الدمج؛ اختبارات الموجة (19/19: 11 مجال + 8 DOM) خضر محليًا على main."
+    }
+  ],
+  "migration_baseline": true,
+  "next_action": "لا فعل إضافي: منفذ ومتحقق على main (92bc58a).",
+  "related_items": [],
+  "classification": "FIX_BEFORE_PILOT",
+  "owner": "Product owner / Manus coordination",
+  "tests_required": [
+    "Domain/Service tests",
+    "DOM/Integration tests where UI is involved",
+    "Export/import or migration evidence where persistence changes",
+    "Merge and verification evidence on main"
+  ],
+  "layers": [
+    "Layer 3",
+    "domain",
+    "application",
+    "presentation"
+  ],
+  "gate_classification": "NOT_APPLICABLE"
 }

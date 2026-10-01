@@ -20,7 +20,7 @@ function normalize(text: string): string {
 }
 
 const agents = readRepoFile("../../../../AGENTS.md");
-const currentState = readRepoFile("../../../../docs/operations/current-state.md");
+const currentState = readRepoFile("../../../../docs/operations/current-state-log.md");
 const todo = readRepoFile("../../../../todo.md");
 const prTemplate = readRepoFile("../../../../.github/pull_request_template.md");
 const sliceTemplate = readRepoFile("../../../../docs/operations/slice-handoff-template.md");

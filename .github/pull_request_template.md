@@ -46,7 +46,7 @@
 - [ ] فحص الأسرار والملفات المولدة نظيف (`node scripts/check-secrets.mjs`)، ولا `.only`/`.skip` (`node scripts/check-test-focus.mjs`)، وبيان الكيانات محدث إن لمس التخزين (`node scripts/check-entity-touchpoints.mjs`).
 - [ ] أُجري QA حي وLight/Dark عند تغيير واجهة، وحُذفت بيانات الاختبار المحلية.
 - [ ] لا يحتوي الالتزام ملف `apps/prototype-web/client/public/__manus__/version.json`.
-- [ ] حدّثت `docs/operations/current-state.md` و`todo.md` بما يطابق ما اندمج فعلًا.
+- [ ] حدّثت `docs/operations/current-state.md` (الحقول الحية فقط) وألحقت سجل الشريحة في `docs/operations/current-state-log.md` وحدّثت `todo.md` بما يطابق ما اندمج فعلًا.
 - [ ] لا تبدأ هذه PR قدرة أو مجموعة خارج النطاق المعلن.
 - [ ] بطاقة الفهم تثبت أن الشريحة تحل قرارًا حقيقيًا، ولا تحوّل Micro إلى ERP/POS/CRM أو واجهة عامة.
 
