@@ -15,9 +15,9 @@
     "docs/contracts/15-catalog-reference-prototype-contract.md"
   ],
   "agent": "Zed coordination — documentation surface cleanup execution 2026-10-02",
-  "pr": null,
+  "pr": 286,
   "started_at": "2026-10-02T12:00:00+03:00",
-  "updated_at": "2026-10-02T12:00:00+03:00",
+  "updated_at": "2026-10-02T12:30:00+03:00",
   "next_action": "مراجعة PR ودمجه بعد نجاح الفحوص، ثم التحقق على main وإغلاق DOC-001/WS-206؛ تليها WS-207 (موجة C التوثيقية) وWS-208 (دموج الاختبارات).",
   "status_history": [
     {
@@ -30,7 +30,7 @@
       "status": "IN_REVIEW",
       "changed_at": "2026-10-02",
       "actor": "ws-206:review",
-      "reason": "الموجتان A وB منفذتان بالكامل والفحوص المحلية ناجحة (الحراس الخمسة + validate + generator check + git diff --check + فحوص الإحالات قبل النقل وبعده)."
+      "reason": "اكتمل تنفيذ الموجتين A وB والفحوص المحلية ناجحة — قيد مراجعة PR #286."
     }
   ],
   "migration_baseline": false,
