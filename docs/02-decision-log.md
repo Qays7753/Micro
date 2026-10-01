@@ -79,7 +79,7 @@
 | D15-A — شريحة الإصلاح الرئيسي FIN-009 | `docs/operations/current-state-log.md` §77 + `docs/operations/control/evidence/micro-master-remediation-2026-09-27/D15A-SLICE-REPORT-2026-09-28.md` | إصلاح الرحلة المالية للمالك |
 | السلسلة د١–د٦ (OPS-003) | مطوية داخل D-037 في هذا السجل | قرارات تذكير المصروف المتكرر |
 | CON-001 — صوت العلامة (voice/mark) | `docs/operations/current-state-log.md` §80 | DEFERRED_UI |
-| محاسبة حالة القرار ١٨ — F-014/F-015 | `docs/operations/decision-18-accounting.md` | سجل محاسبي مؤرخ لا قرارًا جديدًا |
+| محاسبة حالة القرار ١٨ — F-014/F-015 | `docs/operations/archive/decision-18-accounting.md` | سجل محاسبي مؤرخ لا قرارًا جديدًا (أُرشف 2026-10-02) |
 | بطاقة قرار المالك (لقرارات MVP اللاحقة) | `ai-skills/saas-product-guardian/references/decision_template.md` (مهارة متقاعدة محفوظة) | قالب استشاري عند فتح بوابة MVP |
 
 **قاعدة الإحالة:** أي قرار في تلك السجلات يُستشهد بمعرّفه الأصلي ومكانه (مثل `EX-D07` أو `F-033/W4-B`) — لا يُعاد ترقيمه ولا يُنسخ نصه هنا. القرار المسحوب أو المعدل يبقى في سجله مع الطابع المؤرخ.

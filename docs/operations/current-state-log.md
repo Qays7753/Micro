@@ -1628,3 +1628,15 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 `PR_282_MERGED_SQUASH`
 `NO_PRODUCT_OR_FINANCIAL_BEHAVIOR_CHANGE`
 `NO_SCHEMA_EXPORT_CHANGE`
+
+
+## §94. موجتا A+B من تنظيف السطح التوثيقي — WS-206 — 2026-10-02 (قيد على فرع PR فقط)
+
+نفّذ WS-206 موجتي A وB من تدقيق الحد الأدنى للسطح التوثيقي (`MICRO-MINIMUM-KNOWLEDGE-SURFACE-AUDIT-2026-10-01` — سلطة النطاق). **الموجة A (12 تصحيح صدق مؤرخًا):** حالة UX-001 في أربع وثائق معمارية (SOURCE_OF_TRUTH وCHANGE_PROTOCOL وCOMPONENT_CONTRACTS وMIGRATION_STATUS — من «remains DEFERRED» إلى IN_PROGRESS ببواباتها المتبقية)؛ بانر ADR-007 المُجاوز بـADR-009؛ بانر إلغاء مواصفة إغلاق المسودة (القرار ٢١ + `draftService.delete`) مع قلب صف الفهرس 20F؛ تصحيح حالة عقد 15 (مقبول ومدموج عبر PR #115)؛ وسم LEGACY/RETAINED لعقد 12 في خريطة الفهرس؛ تصحيح مؤشر v3→v4 في مكتبة المراجع العالمية؛ تحديث صفوف السياق في `control/context.md` ورأس `control/README.md`؛ وتصحيح مؤشر سجل PR #280 وصياغة UX-001 في `reports/agent-report/README.md`. **الموجة B (23 أرشيفًا):** نقل 18 ملف أدلة QA مغلقة من `docs/quality/` إلى `docs/operations/archive/quality-history/` (سلسلة ترميم 2026-08-29 وأدلة stage-2-ops وpre-pilot-safety وg5-qa-evidence وأدلة القبول الأربعة) و5 سجلات (ثلاثة تسليمات وكيل مؤرخة + محاسبة القرار ١٨ + تقرير التنفيذ العربي) إلى `docs/operations/archive/`، مع إصلاح كل إحالة حية (08-glossary §4.4.1، TRACKER المرحلة 8، سجل القرارات صف ١٨، صفوف الفهرس 34/35/36/210)، وإصلاح الروابط النسبية الثلاثة في g5-qa-evidence عند النقل (رابط g5-test-plan أصبح يُحل تلقائيًا)، وتصحيح ادعاء README الأرشيف حول الروابط النسبية بادعاء صادق مؤرخ. صفوف ARCHIVE المحتكرة للمالك (problem-statement-v3 و09-expansion-room والنقل الفيزيائي لمواصفة المسودة) أُجّلت بقرار مالك ولم تُنفذ.
+
+**الحالة:** التغيير موجود على فرع `docs/surface-cleanup-20261002` فقط؛ لم يُدمج في `main`. لا تغيير في سلوك المنتج أو المنطق المالي أو التخزين أو الاستيراد/التصدير أو UI أو schema/export.
+
+`WS_206_WAVES_A_B_ON_PR_ONLY`
+`NO_MAIN_MERGE_PERFORMED`
+`NO_FINANCIAL_OR_SCHEMA_SEMANTICS_CHANGE`
+`OWNER_GATED_ROWS_NOT_PERFORMED`

@@ -1,0 +1,48 @@
+{
+  "id": "WS-206",
+  "title": "موجتا A+B من تنظيف السطح التوثيقي — تصحيحات صدق وأرشفة أدلة مغلقة (تدقيق 2026-10-01)",
+  "status": "IN_REVIEW",
+  "items": [
+    "DOC-001"
+  ],
+  "branch": "docs/surface-cleanup-20261002",
+  "base_sha": "2680fd86cd1e170f529717c29fa844b625406b1c",
+  "areas": [
+    "docs",
+    "documentation-governance"
+  ],
+  "contracts": [
+    "docs/contracts/15-catalog-reference-prototype-contract.md"
+  ],
+  "agent": "Zed coordination — documentation surface cleanup execution 2026-10-02",
+  "pr": 286,
+  "started_at": "2026-10-02T12:00:00+03:00",
+  "updated_at": "2026-10-02T12:30:00+03:00",
+  "next_action": "مراجعة PR ودمجه بعد نجاح الفحوص، ثم التحقق على main وإغلاق DOC-001/WS-206؛ تليها WS-207 (موجة C التوثيقية) وWS-208 (دموج الاختبارات).",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "claim:ws-206",
+      "reason": "فتح Claim من origin/main 2680fd8 بعد التحقق من صفر Workstreams نشطة وصفر PRs مفتوحة وصفر تداخل areas/contracts؛ النطاق توثيقي فقط وفق موجتي A+B من تدقيق الحد الأدنى للسطح التوثيقي 2026-10-01."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-206:review",
+      "reason": "اكتمل تنفيذ الموجتين A وB والفحوص المحلية ناجحة — قيد مراجعة PR #286."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: 12 صف FIX_NOW (تصحيحات حالة/بانرات مؤرخة فقط) + 23 نقل أرشيف بـgit mv + إصلاح كل إحالة حية + تحديث صفوف الفهرس 12/20F/34/35/36/210.",
+    "خارج النطاق: كل DELETE المؤجل (42 ملفًا)، وتقاعد 94 ملف aux، وحزمة reconciliation-2026-09-26، وتقطير current-state-log، وتنحيف todo.md، ومرايا .docx، وكل الصفوف المحتكرة للمالك (problem-statement-v3، 09-expansion-room، 02-by-tier، اختيار سلطة خارطة الطريق، GOV-001).",
+    "حد الاستعادة: 2680fd8 قبل فتح الفرع (استعادة أي أثر بـgit revert لالتزام الدمج).",
+    "مرجع السلطة: MICRO-MINIMUM-KNOWLEDGE-SURFACE-AUDIT-2026-10-01 (التقرير + المنيفست 778 صفًا) — التقرير خارج المستودع في مساحة عمل Zed؛ صفوف المنيفست المنفذة هنا موثقة في تقرير التنفيذ النهائي.",
+    "لا تغيير في المعنى المالي أو المخطط/التصدير أو سلوك UI أو كود الإنتاج."
+  ],
+  "evidence": [
+    "docs/operations/control/items/DOC-001.json",
+    "docs/operations/current-state-log.md"
+  ]
+}

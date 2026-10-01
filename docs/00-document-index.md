@@ -68,7 +68,7 @@
 | 20C | `docs/product-source-of-truth.md` | CURRENT / SCOPED — التنقل النهائي ومسارات الشاشات ومسؤولياتها (تحديد نطاق مؤرخ 2026-10-01 داخل الملف) | مرجع التنقل وتدفق الشاشات؛ سلطة المال للعقود والحالة الحية لـ`current-state.md` |
 | 20D | `docs/product/home-navigation-proof-v1.md` | CURRENT / SUPPORTING | إثبات نموذج تنقل شاشة الرئيس |
 | 20E | `docs/product/deferred-capabilities-execution-plan-v1.md` | CURRENT / ROADMAP | تخطيط تنفيذ القدرات المؤجلة |
-| 20F | `docs/product/draft-dismissal-mini-spec-v1.md` | CURRENT / SUPPORTING | مواصفة إهمال المسودات |
+| 20F | `docs/product/draft-dismissal-mini-spec-v1.md` | SUPERSEDED / HISTORICAL — أُلغيت بقرار المالك ٢١ (تحديث مؤرخ 2026-10-02) | مواصفة اقتراح تاريخية لإغلاق المسودة مع سبب؛ المنفذ فعليًا: الحذف بلا سبب عبر `draftService.delete` |
 | 20G | `docs/product/brand-activation-observations-v1.md` | CURRENT / SCOPED RECORD | ملاحظات تشغيل حزمة العلامة المحفوظة (المساران ذويا التحميل الدائم، سلوك القفل التلقائي، قيد لا-lockup/wordmark، منشأ الحزمة، سجلات مرايا Documents المحققة) — مقطّرة من حزم التخطيط المحذوفة 2026-10-01 (WS-204) |
 | 20 | `docs/scenarios/scenario-test-set-v1.md` | CURRENT | 12 شخصية و120 حالة و120 سؤالًا، بما فيها السياحة والمشروع المختلط |
 | 21 | `docs/scenarios/scenario-test-results-v1.md` | CURRENT | نتائج التغطية والفجوات |
@@ -100,9 +100,9 @@
 | 31 | `docs/quality/cloud-code-first-read-findings-v1.md` | CURRENT / QUALITY REVIEW | نتائج قراءة Cloud Code الفعلية والتحقق من ملاحظاتها |
 | 32 | `docs/quality/unified-audit-resolution-v1.md` | CURRENT / QUALITY GATE | القرار الموحد لما ثبت وما أُصلح وما يؤجل قبل Prototype |
 | 33 | `docs/operations/remaining-work-v1.md` | SUPERSEDED — بانر داخل الملف؛ التتبع الحي في `docs/operations/control/items/` | لا يُقرأ كمرجع قرار؛ سُجل هنا لإغلاق فجوة الفهرسة |
-| 34 | `docs/operations/decision-18-accounting.md` | HISTORICAL / SCOPED RECORD | محاسبة حالة القرار ١٨ وحدود F-014/F-015 المؤجلة |
-| 35 | `docs/operations/agent-handoff-2026-08-29.md` · `agent-handoff-2026-08-30.md` · `agent-handoff-2026-08-30-peeling.md` | HISTORICAL / SESSION RECORDS | سجلات تسليم وكيل مؤرخة؛ لا سلطة حالية |
-| 36 | `docs/implementation-report-ar.md` | HISTORICAL / EXECUTION REPORT | تقرير التنفيذ العربي لحقبة إعادة التدفق (2026-08-31) |
+| 34 | `docs/operations/archive/decision-18-accounting.md` | HISTORICAL / SCOPED RECORD | محاسبة حالة القرار ١٨ وحدود F-014/F-015 المؤجلة (أُرشف 2026-10-02) |
+| 35 | `docs/operations/archive/agent-handoff-2026-08-29.md` · `agent-handoff-2026-08-30.md` · `agent-handoff-2026-08-30-peeling-and-design-system.md` | HISTORICAL / SESSION RECORDS | سجلات تسليم وكيل مؤرخة؛ لا سلطة حالية (أُرشفت 2026-10-02) |
+| 36 | `docs/operations/archive/implementation-report-ar.md` | HISTORICAL / EXECUTION REPORT | تقرير التنفيذ العربي لحقبة إعادة التدفق (2026-08-31؛ أُرشف 2026-10-02) |
 | 37 | `docs/implementation-traceability.md` | CURRENT — صفوف المجموعات لقطات تاريخية صادقة (تصحيح مؤرخ 2026-10-01 للزوج الحي 38/30 في الترويسة) | تتبع ما نُفذ بحقبة المجموعات ١–٤ |
 | 38 | `docs/reference/independent-flow-redesign.md` | HISTORICAL / DESIGN EXERCISE | مرجع تصميم إعادة التدفق المالي والتشغيلي؛ يُقرأ عند تفسير قرارات التدفق فقط |
 | 39 | `docs/inventory/` (10 ملفات) | CONTEXT PACK — جرد قدرات ما قبل إعادة التوزيع (F-001..F-083) | قياس مرجعي لا وثيقة تصميم؛ معرّفات F تستهلكها owner-decisions وsettled-findings |
@@ -126,7 +126,7 @@
 | 09 | `docs/contracts/09-supplier-purchase-prototype-contract.md` | شراء المورد |
 | 10 | `docs/contracts/10-cash-continuity-prototype-contract.md` | استمرارية الكاش |
 | 11 | `docs/contracts/11-inventory-material-consumption-prototype-contract.md` | المخزون والمواد والاستهلاك |
-| 12 | `docs/contracts/12-financial-insights-g5-prototype-contract.md` | رؤى المالية G5 |
+| 12 | `docs/contracts/12-financial-insights-g5-prototype-contract.md` | رؤى المالية G5 — **LEGACY/RETAINED** (بانر داخل الملف؛ مُجاوز للتنفيذ بعقد 17 — تصحيح مؤرخ 2026-10-02) |
 | 13 | `docs/contracts/13-actual-material-per-order-prototype-contract.md` | المادة الفعلية للطلب |
 | 14 | `docs/contracts/14-period-result-allocation-policy-prototype-contract.md` | توزيع نتيجة الفترة |
 | 15 | `docs/contracts/15-catalog-reference-prototype-contract.md` | الكتالوج المرجعي |
@@ -207,7 +207,7 @@
 |---|---|---|
 | `reports/agent-report/` | تشغيلات Agent المؤرخة (تقارير تنفيذ، لقطات تاريخية) | `reports/agent-report/README.md` (تغطية 33/33) و`docs/operations/control/reports/index.json` |
 | `planning/` | **الناجي بعد تنظيف 2026-10-01 (WS-204):** حزمة ux-001 الحية المرتبطة ببند UX-001 النشط، و4 ملفات AUX حية الاستشهاد (MIGRATION_MATRIX.csv وTHEME_PARITY_MATRIX.csv وFINAL_LIMITATIONS وIMPORT_BOUNDARIES)؛ حزمتا العلامة وبقية AUX حُذفتا بعد التقطير (انظر 20G) | إحالات من `docs/architecture/MIGRATION_STATUS.md` و`current-state.md` وأدلة Control |
-| `docs/quality/` | بوابات الجودة الحالية + أدلة QA لكل شريحة (منها المنجز: `MICRO-REMEDIATION-PLAN.md` نُفِّذ؛ بنود `remediation-open-decisions-v1.md` ١–٥ حُسمت بالقرارات ١٩–٢٣) | الصفوف السلطوية أعلاه؛ ما ليس منها فدليل تنفيذ |
+| `docs/quality/` | بوابات الجودة الحالية والأدلة المرتبطة بحيوية فقط؛ أدلة QA التاريخية لكل شريحة — ومنها سلسلة ترميم 2026-08-29 (`MICRO-REMEDIATION-PLAN.md` المنفذ وبنود `remediation-open-decisions-v1.md` ١–٥ المحسومة بالقرارات ١٩–٢٣) — أُرشفت في `docs/operations/archive/quality-history/` (2026-10-02) | الصفوف السلطوية أعلاه؛ ما ليس منها فدليل تنفيذ |
 | `docs/operations/control/evidence/` | أدلة بنود Control وWorkstreams | إحالات من `items/` و`workstreams/` JSON |
 | `docs/operations/archive/` | أرشيف مؤرخ (todo-pre-control-v2؛ **quality-history/** — ~39 ملف أدلة جودة تاريخية نُقلت 2026-10-01/WS-204 من `docs/quality/`) | README داخل الأرشيف |
 

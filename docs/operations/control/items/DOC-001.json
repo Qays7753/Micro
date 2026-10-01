@@ -1,0 +1,78 @@
+{
+  "id": "DOC-001",
+  "title": "تصحيحات صدق السطح التوثيقي وأرشفة الأدلة المغلقة — موجتا A+B من تدقيق الحد الأدنى 2026-10-01",
+  "type": "GOVERNANCE",
+  "status": "IN_REVIEW",
+  "priority": "P2",
+  "stage": "documentation-hygiene",
+  "summary": "تنفيذ الصفوف الاثني عشر المصنفة FIX_NOW من تدقيق MICRO-MINIMUM-KNOWLEDGE-SURFACE-AUDIT-2026-10-01 (تصحيحات حالة/بانرات مؤرخة بلا تغيير معنوي) و23 صف أرشيف غير محتكر للمالك (نقل أدلة QA المغلقة وسجلات الجلسات التاريخية إلى الأرشيف مع إصلاح كل إحالة حية).",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "audit:MICRO-MINIMUM-KNOWLEDGE-SURFACE-AUDIT-2026-10-01 (manifest rows: 12x FIX_NOW + 23x ARCHIVE non-owner-gated)",
+  "source": {
+    "report": "docs/operations/current-state-log.md",
+    "discovered_at_sha": "2680fd86cd1e170f529717c29fa844b625406b1c",
+    "evidence": []
+  },
+  "acceptance": [
+    "كل تصحيح صدق مؤرخ بتاريخه ولا يغير معنى ماليًا أو تعاقديًا أو سلوكًا (تصحيح حالة/بانر فقط).",
+    "كل ملف مؤرشف نُقل بـgit mv دون تعديل محتواه (عدا إصلاحات الروابط النسبية الثلاثة في g5-qa-evidence).",
+    "كل إحالة حية إلى ملف مؤرشف أُصلحت في نفس الـPR (08-glossary، TRACKER، 02-decision-log، صفوف الفهرس 34/35/36/210).",
+    "فحوص المسارات الدقيقة وأسماء الملفات بعد النقل: صفر إحالات حية متروكة لعناصر منتقلة.",
+    "الحراس الخمسة + validate.py + generate_tracker --check ناجحة، وgit diff --check نظيف."
+  ],
+  "areas": [
+    "docs",
+    "documentation-governance"
+  ],
+  "contracts": [
+    "docs/contracts/15-catalog-reference-prototype-contract.md"
+  ],
+  "evidence": [
+    "docs/operations/current-state-log.md"
+  ],
+  "dependencies": [],
+  "related_items": [],
+  "owner_decision": "",
+  "updated_at": "2026-10-02",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-10-02",
+      "actor": "audit:minimum-knowledge-surface-2026-10-01",
+      "reason": "تدقيق قراءة فقط صنّف 12 صف FIX_NOW و23 صف أرشيف غير محتكر للمالك بمراجع صفرية محققة."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "ws-206:claim",
+      "reason": "فتح Claim تنفيذي (WS-206) على الفرع docs/surface-cleanup-20261002 من main المتحقق 2680fd8 بعد التحقق من صفر Workstreams نشطة وصفر PRs مفتوحة."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-02",
+      "actor": "ws-206:implement",
+      "reason": "تنفيذ الموجتين A وB: 12 تصحيح صدت + 23 نقل أرشيف + إصلاحات الإحالات وصفوف الفهرس."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-206:review",
+      "reason": "الموجتان A وB منفذتان والفحوص المحلية ناجحة — قيد مراجعة PR."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "مراجعة PR ودمجه ثم التحقق على main؛ تليها موجة C (الدموج الميكانيكية) وتقرير التنفيذ النهائي.",
+  "classification": "GOVERNANCE",
+  "owner": "Product owner / Zed coordination",
+  "tests_required": [
+    "Operations Control validation + generated-view check",
+    "documentation/index/skill/image/entity guards",
+    "exact-path and basename reference scans for every moved or corrected file",
+    "git diff --check"
+  ],
+  "layers": [
+    "documentation"
+  ],
+  "gate_classification": "NOT_APPLICABLE"
+}

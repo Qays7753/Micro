@@ -1,6 +1,6 @@
 # Micro Operations Control v2
 
-**الحالة:** `PROPOSED / REVIEW REQUIRED`
+**الحالة:** `CURRENT / OPERATIONAL — إلزامي وفق AGENTS.md §14 ومحمي بالمدقق الآلي (validate.py/generate_tracker.py)` *(تحديث مؤرخ 2026-10-02 — كان «PROPOSED / REVIEW REQUIRED»)*
 **المكان:** امتداد لنظام `docs/operations` القائم، وليس نظامًا موازيًا.
 
 ## الغرض

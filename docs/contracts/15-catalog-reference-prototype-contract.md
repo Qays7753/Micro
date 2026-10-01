@@ -1,6 +1,6 @@
 # عقد مرجع الكتالوج ونواة G4-A
 
-**الحالة:** `MERGED TO bridge/financial-decision-core-g3-g5 VIA PR #105 / PENDING FINAL ACCEPTANCE`
+**الحالة:** `MERGED TO bridge/financial-decision-core-g3-g5 VIA PR #105 / ACCEPTED & MERGED ON MAIN VIA PR #115 (G4-A)` *(تصحيح مؤرخ 2026-10-02 — كان «PENDING FINAL ACCEPTANCE»؛ القبول والدمج مثبتان في `docs/operations/current-state.md` §3)*
 **المالك:** Manus Agent 1
 **تاريخ التحديث:** 26 أغسطس 2026
 
