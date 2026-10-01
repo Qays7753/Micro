@@ -47,6 +47,6 @@
 ## مراجع
 
 - [`../contracts/17-contribution-break-even-short-cash-g5-contract.md`](../../../contracts/17-contribution-break-even-short-cash-g5-contract.md)
-- [`g5-test-plan-v1.md`](g5-test-plan-v1.md)
+- ~~[`g5-test-plan-v1.md`](g5-test-plan-v1.md)~~ *(حُذف خطة الاختبار في 2026-10-02 بقرار مالك — الجولة الثانية لتدقيق الحد الأدنى؛ الأصل متاح في تاريخ git عند `43058d61` من هذا الملف المؤرشف.)*
 - [`g5-browser-notes-v1.md`](g5-browser-notes-v1.md) (نُقل إلى الأرشيف 2026-10-01 — WS-204)
 - [`../operations/agent-handoff-protocol-v1.md`](../../agent-handoff-protocol-v1.md)
