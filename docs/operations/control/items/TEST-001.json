@@ -1,0 +1,68 @@
+{
+  "id": "TEST-001",
+  "title": "تثبيت اختبار الإهلاك المعتمد على الساعة الحية في G4Assets.dom",
+  "type": "QUALITY",
+  "status": "CLAIMED",
+  "priority": "P1",
+  "stage": "test-stability",
+  "summary": "اختبار واجهة أصل ثابت يثبت مبلغ الإهلاك المتوقع بناءً على تاريخ تشغيل حقيقي، فيتغير بعد دوران الشهر بدل أن يثبت الزمن داخل الاختبار.",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "test-design: G4Assets.dom.test.tsx uses a live system clock while asserting a fixed depreciation amount",
+  "source": {
+    "report": "docs/operations/control/evidence/date-dependent-test-fix-2026-10-01/TEST-001-REPORT.md",
+    "discovered_at_sha": "bcb9640e0f6ffa30ed48fc153cce578924d9d2bf",
+    "evidence": [
+      "apps/prototype-web/client/src/G4Assets.dom.test.tsx"
+    ]
+  },
+  "acceptance": [
+    "اختبار G4Assets يثبت الساعة أو يعتمد على مصدر وقت محقون بدل الساعة الحية.",
+    "القيمة المتوقعة −7500 تبقى صحيحة عند تشغيل الاختبار في أي يوم لاحق.",
+    "لا يتغير كود الإنتاج أو سياسة الإهلاك أو المخطط/التصدير.",
+    "يفشل الاختبار إذا أزيل تثبيت الوقت أو عاد الاعتماد على ساعة النظام الحية."
+  ],
+  "areas": [
+    "tests",
+    "prototype-verification"
+  ],
+  "contracts": [
+    "docs/contracts/43-asset-depreciation-prototype-contract.md"
+  ],
+  "evidence": [
+    "docs/operations/control/evidence/date-dependent-test-fix-2026-10-01/TEST-001-REPORT.md"
+  ],
+  "dependencies": [],
+  "related_items": [],
+  "owner_decision": "",
+  "updated_at": "2026-10-01",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-10-01",
+      "actor": "review:date-dependent-test",
+      "reason": "ثبت الفشل على baseline bcb9640e بعد دوران الشهر، من دون دليل على تغيير في كود المنتج."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-01",
+      "actor": "claim:ws-205",
+      "reason": "فتح Claim مستقل من origin/main bcb9640e لإصلاح حتمية الاختبار فقط؛ لا تغيير في كود الإنتاج أو السياسة المالية."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "تثبيت الساعة داخل الاختبار، تشغيل الاختبار المركز وفحوص الحواجز، ثم فتح PR مستقل والتحقق على main.",
+  "classification": "HARDENING",
+  "owner": "Product owner / Manus coordination",
+  "tests_required": [
+    "Focused G4Assets.dom test",
+    "Prototype test command or the directly affected test file",
+    "test-focus and git diff --check",
+    "Operations Control validation and generated-view check"
+  ],
+  "layers": [
+    "tests",
+    "verification"
+  ],
+  "gate_classification": "NOT_APPLICABLE"
+}

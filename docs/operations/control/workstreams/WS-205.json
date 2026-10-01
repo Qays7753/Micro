@@ -1,0 +1,41 @@
+{
+  "id": "WS-205",
+  "title": "تثبيت اختبار G4Assets المعتمد على التاريخ — لا تغيير إنتاجي",
+  "status": "CLAIMED",
+  "items": [
+    "TEST-001"
+  ],
+  "branch": "fix/stabilize-date-dependent-test-20261001",
+  "base_sha": "bcb9640e0f6ffa30ed48fc153cce578924d9d2bf",
+  "areas": [
+    "tests",
+    "prototype-verification"
+  ],
+  "contracts": [
+    "docs/contracts/43-asset-depreciation-prototype-contract.md"
+  ],
+  "agent": "Manus coordination — focused test-stability correction 2026-10-01",
+  "pr": null,
+  "started_at": "2026-10-01T15:27:00+03:00",
+  "updated_at": "2026-10-01T15:27:00+03:00",
+  "next_action": "تثبيت الساعة داخل الاختبار، ثم تشغيل الفحوص المركزة وفتح PR مستقل؛ لا تغيير في كود الإنتاج.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-01",
+      "actor": "claim:ws-205",
+      "reason": "فتح Claim من origin/main bcb9640e بعد التحقق من عدم وجود Workstream نشط أو PR مفتوح متداخل في نطاق tests؛ السبب فشل زمني حتمي مثبت على baseline."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "النطاق: apps/prototype-web/client/src/G4Assets.dom.test.tsx واختباراته/سجل هذا البند فقط.",
+    "خارج النطاق: كل كود الإنتاج، سياسات الإهلاك، UI/DOM السلوكي، التخزين، المخطط/التصدير، وإعادة الهيكلة.",
+    "حد الاستعادة: bcb9640e قبل إصلاح الاختبار.",
+    "سبب الفشل: تشغيل الاختبار بعد 2026-10-01 جعل عدد الأشهر 4 بدل 3، مع بقاء التوقع الصلب −7500؛ الحل هو تثبيت الزمن لا تغيير التوقع أو المعادلة."
+  ],
+  "evidence": [
+    "docs/operations/control/items/TEST-001.json",
+    "docs/operations/control/evidence/date-dependent-test-fix-2026-10-01/TEST-001-REPORT.md"
+  ]
+}

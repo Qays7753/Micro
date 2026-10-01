@@ -59,6 +59,7 @@ function Harness({ page }: { page: React.ReactNode }) {
 
 beforeEach(() => {
   store = new MemoryLocalStore();
+  vi.useFakeTimers({ now: new Date(NOW), toFake: ["Date"] });
   assets = new AssetService(store, () => NOW);
   wouterMocks.location = "/assets";
   wouterMocks.navigate.mockClear();
@@ -67,7 +68,10 @@ beforeEach(() => {
     () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
   );
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 describe("G4 assets surfaces (المجموعة ٤ — عقد ٢٩)", () => {
   it("records a long-use asset through the practical question journey with a preview before save", async () => {
