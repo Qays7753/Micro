@@ -1714,3 +1714,14 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 `KEEP_HISTORY_BRANCHES_RETIRED_BY_OWNER`
 `REMOTE_BRANCH_COUNT_2_EXPECTED`
 `NO_MAIN_CODE_OR_BEHAVIOR_CHANGE`
+
+
+## §91. إصلاح حتمية اختبار G4Assets — WS-205 — 2026-10-01
+
+فشل اختبار `G4Assets.dom.test.tsx` بعد دوران الشهر لأنه يقرأ الساعة الحية مع توقع إهلاك ثابت. فتح `WS-205` من `origin/main` عند `bcb9640e` لإصلاح الاختبار فقط عبر تثبيت الزمن؛ لا يتغير كود الإنتاج أو سياسة الإهلاك أو المخطط/التصدير.
+
+الفرع: `fix/stabilize-date-dependent-test-20261001` — الحالة `CLAIMED` — لا PR بعد. الخطوة التالية: تعديل الاختبار، تشغيل الفحص المركز، ثم فتح PR مستقل.
+
+`WS_205_CLAIMED_DATE_DEPENDENT_TEST_FIX`
+`NO_PRODUCTION_CODE_CHANGE`
+`NO_FINANCIAL_POLICY_CHANGE`
