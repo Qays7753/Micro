@@ -12,7 +12,7 @@
   ],
   "contracts": [],
   "agent": "Zed coordination — documentation surface cleanup execution 2026-10-02",
-  "pr": null,
+  "pr": 288,
   "started_at": "2026-10-02T14:00:00+03:00",
   "updated_at": "2026-10-02T14:00:00+03:00",
   "next_action": "مراجعة PR ودمجه بعد نجاح CI الكامل، ثم التحقق على main والإغلاق النهائي.",
