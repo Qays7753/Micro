@@ -2,7 +2,7 @@
   "id": "DOC-004",
   "title": "حذف 42 ملفًا محذومَ المرجعية وتقاعد 93 ملف تقارير مساند — دفعة الجولة الثانية",
   "type": "GOVERNANCE",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P2",
   "stage": "documentation-hygiene",
   "summary": "تنفيذ صفوف DELETE الاثني عشر والأربعين من تدقيق الحد الأدنى (39 ملف أرشيف quality-history صفرية الإحالات + جردَي bridge + نسخة مطالبة ZAI) وتقاعد 93 ملف aux في reports/agent-report (المستثنى الوحيد 00-understanding-card: run-main مرجع WS-172)، وفق مصفوفة قرار المالك للجولة الثانية 2026-10-02.",
@@ -56,10 +56,16 @@
       "changed_at": "2026-10-02",
       "actor": "ws-209:implement",
       "reason": "تنفيذ الحذف والتقاعد."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-209:review",
+      "reason": "فُتح PR #291 على الفرع docs/surface-cleanup-r2-20261002 برأس d84e91c6 بعد نجاح كل الفحوص المحلية (الحراس السبعة + validate + views)."
     }
   ],
   "migration_baseline": false,
-  "next_action": "تنفيذ الحذف والتقاعد مع الإصلاحات ثم IN_REVIEW عند فتح PR.",
+  "next_action": "دمج PR #291 بعد نجاح CI ثم التحقق على main.",
   "classification": "GOVERNANCE",
   "owner": "Product owner / Z AI coordination",
   "tests_required": [
@@ -71,5 +77,6 @@
   "layers": [
     "documentation"
   ],
-  "gate_classification": "NOT_APPLICABLE"
+  "gate_classification": "NOT_APPLICABLE",
+  "pr": null
 }

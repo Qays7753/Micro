@@ -1,7 +1,7 @@
 {
   "id": "WS-209",
   "title": "تنفيذ الدفعة المحذوفة وتقاعد ملفات التقارير المساندة — الجولة الثانية من تدقيق الحد الأدنى",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "DOC-004"
   ],
@@ -15,10 +15,10 @@
   ],
   "contracts": [],
   "agent": "Z AI coordination agent (Round-2 cleanup execution)",
-  "pr": null,
+  "pr": 291,
   "started_at": "2026-10-02",
   "updated_at": "2026-10-02",
-  "next_action": "حذف 42 ملفًا مصنفًا DELETE وتقاعد 93 ملف aux وفق مصفوفة قرار المالك للجولة الثانية، مع إصلاح كل الإحالات وحدود استعادة واضحة.",
+  "next_action": "دمج PR #291 بعد نجاح CI ثم التحقق على main.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -31,6 +31,12 @@
       "changed_at": "2026-10-02",
       "actor": "ws-209:implement",
       "reason": "تنفيذ الحذف والتقاعد مع فحوص مرجعية صفرية معاد تشغيلها عند رأس التنفيذ الحي."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-209:review",
+      "reason": "فُتح PR #291 على الفرع docs/surface-cleanup-r2-20261002 برأس d84e91c6 بعد نجاح كل الفحوص المحلية (الحراس السبعة + validate + views)."
     }
   ],
   "migration_baseline": false,
