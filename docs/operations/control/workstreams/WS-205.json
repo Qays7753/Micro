@@ -1,7 +1,7 @@
 {
   "id": "WS-205",
   "title": "تثبيت اختبار G4Assets المعتمد على التاريخ — لا تغيير إنتاجي",
-  "status": "CLAIMED",
+  "status": "VERIFIED",
   "items": [
     "TEST-001"
   ],
@@ -15,16 +15,34 @@
     "docs/contracts/43-asset-depreciation-prototype-contract.md"
   ],
   "agent": "Manus coordination — focused test-stability correction 2026-10-01",
-  "pr": null,
+  "pr": 283,
   "started_at": "2026-10-01T15:27:00+03:00",
-  "updated_at": "2026-10-01T15:27:00+03:00",
-  "next_action": "تثبيت الساعة داخل الاختبار، ثم تشغيل الفحوص المركزة وفتح PR مستقل؛ لا تغيير في كود الإنتاج.",
+  "updated_at": "2026-10-01T15:53:00+03:00",
+  "next_action": "لا إجراء إضافي؛ WS-205 وTEST-001 متحققان على main. يُعاد الفتح فقط بدليل فشل زمني جديد.",
   "status_history": [
     {
       "status": "CLAIMED",
       "changed_at": "2026-10-01",
       "actor": "claim:ws-205",
       "reason": "فتح Claim من origin/main bcb9640e بعد التحقق من عدم وجود Workstream نشط أو PR مفتوح متداخل في نطاق tests؛ السبب فشل زمني حتمي مثبت على baseline."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-01",
+      "actor": "pr:283",
+      "reason": "اكتمل إصلاح الاختبار وافتُتح PR #283؛ الفحوص المركزة المحلية نجحت."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-01",
+      "actor": "merge:pr-283",
+      "reason": "دُمج PR #283 بطريقة Squash عند 1e244548bc85a3d2aed24208e5bb5f168d083aea بعد نجاح CI وCloudflare Pages."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-01",
+      "actor": "verify:main-tree",
+      "reason": "تطابق رأس origin/main مع merge_sha، ومر اختبار G4Assets 9/9؛ لا تغيير في كود الإنتاج أو السياسة المالية."
     }
   ],
   "migration_baseline": false,
@@ -37,5 +55,7 @@
   "evidence": [
     "docs/operations/control/items/TEST-001.json",
     "docs/operations/control/evidence/date-dependent-test-fix-2026-10-01/TEST-001-REPORT.md"
-  ]
+  ],
+  "merge_sha": "1e244548bc85a3d2aed24208e5bb5f168d083aea",
+  "verified_on_main_sha": "1e244548bc85a3d2aed24208e5bb5f168d083aea"
 }
