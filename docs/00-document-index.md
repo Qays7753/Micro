@@ -84,7 +84,10 @@
 | 24A | `ai-skills/micro-web-native-ux/` | CURRENT | تجربة Web App بملء الشاشة وسلوك Android-like وRTL وPWA UX |
 | 24B | `ai-skills/micro-design-system/` | CURRENT | تطبيق الهوية والتوكنات وLight/Dark على التصميم والكود |
 | 24C | `ai-skills/micro-local-first-prototype/` | CURRENT | LocalStore والمسودات وSnapshots وlocal export/import |
-| 24D | `ai-skills/micro-prototype-qa/` | CURRENT | اختبار التدفقات والواجهة والحقيقة المالية واللقطات |
+| 24D | `ai-skills/micro-prototype-qa/` | CURRENT | اختبار التدفقات والواجهة والحقيقة المالية واللقطات — **وتضم قائمة «ضد الطابع المولد»** (`references/anti-vibe-checklist.md`، دُمجت فيها مهارة micro-anti-vibe-interface-audit غير المسجلة حرفيًا بتاريخ 2026-10-01) |
+| 24E | `ai-skills/microbusiness-finance-operations/` | CURRENT / SUPPORTING | حارس المعنى الاقتصادي والتشغيلي — صيغة تشغيلية مكثفة لا تعلو على العقود |
+| 24F | `ai-skills/saas-delivery-verifier/` | RETIRED (محفوظة) — 2026-10-01 | مهارة مرحلة MVP التجاري اللاحق؛ مراجعها (مصفوفة التحقق، runbook الإصدار، سياسة الكود الخارجي) تُستشار عند فتح بوابة MVP |
+| 24G | `ai-skills/saas-product-guardian/` | RETIRED (محفوظة) — 2026-10-01 | بطاقة قرار المالك وسلّم الأدلة — تُستشار من سجل القرارات عند قرارات MVP الكبرى |
 | 25 | `docs/implementation/03-pre-build-alignment-v1.md` | CURRENT / GATE | تعريف المراحل وبوابة المحاكاة قبل البناء |
 | 26A | `docs/implementation/mobile-prototype-spec-v1.md` | CURRENT / CANONICAL / PROTOTYPE | مواصفة الشاشات والمسارات والحالات والحدود للـPrototype المحلي |
 | 26B | `docs/implementation/prototype-build-charter-v1.md` | CURRENT / CANONICAL / BUILD CHARTER | قرار Web-first وAndroid-like وPWA-ready وCloudflare وخطة البناء المرحلية وحوكمة الوكلاء |
@@ -172,7 +175,7 @@
 
 ## ملفات داعمة غير سلطوية
 
-`docs/research/architecture-and-stack-decision.md`، `docs/research/architecture-decision-reassessment.md`، `docs/research/architecture-decision-matrix.md`، `docs/research/order-tracking-case-study.md`، `docs/research/github-global-research.md`، `docs/research/github-global-research-round2.md`، `docs/research/vibe-coding-interface-audit-v1.md` (أصل منهجية مراجعة «ضد الطابع المولد»)، والمهارات القديمة أو العامة داخل `ai-skills/` هي ملفات داعمة عند الحاجة. أما `micro-web-native-ux` و`micro-design-system` و`micro-local-first-prototype` و`micro-prototype-qa` فهي CURRENT/OPERATIONAL ضمن نطاق التنفيذ، ولا تتغلب على الوثائق أو العقود. الوثائق canonical الجديدة داخل `docs/product/` و`docs/scenarios/` و`docs/quality/` هي CURRENT ويجب عدم معاملتها كدراسات داعمة.
+`docs/research/architecture-and-stack-decision.md`، `docs/research/architecture-decision-reassessment.md`، `docs/research/architecture-decision-matrix.md`، `docs/research/order-tracking-case-study.md`، `docs/research/github-global-research.md`، `docs/research/github-global-research-round2.md`، `docs/research/vibe-coding-interface-audit-v1.md` (أصل منهجية مراجعة «ضد الطابع المولد»)، والمهارات المتقاعدة `ai-skills/saas-delivery-verifier/` و`ai-skills/saas-product-guardian/` (محفوظة لمهام MVP اللاحق — تحديث مؤرخ 2026-10-01) داعمة عند فتح بوابة MVP فقط. أما `micro-web-native-ux` و`micro-design-system` و`micro-local-first-prototype` و`micro-prototype-qa` فهي CURRENT/OPERATIONAL ضمن نطاق التنفيذ، ولا تتغلب على الوثائق أو العقود. الوثائق canonical الجديدة داخل `docs/product/` و`docs/scenarios/` و`docs/quality/` هي CURRENT ويجب عدم معاملتها كدراسات داعمة.
 
 هذه الملفات مفيدة عند الحاجة، لكن خلاصتها لا تتجاوز المرجع الأساسي. إذا تعارضت، سجّل التعارض ولا تختر الصياغة الأطول تلقائيًا.
 

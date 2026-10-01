@@ -5,28 +5,25 @@ description: تطبيق ومراجعة نظام هوية Micro والتوكنا�
 
 # Micro Design System
 
+> **التسجيل (WS-204 — 2026-10-01):** المالك: مالك المنتج · آخر مراجعة: 2026-10-01 · الحالة: CURRENT/OPERATIONAL · مسجلة في `ai-skills/README.ar.md` و`docs/00-document-index.md`.
+> **السلطة:** هذه المهارة تشغيلية فقط ولا تعلو فوق عقود Micro ووثائقها canonical؛ عند أي تعارض يُوقف التنفيذ ويُسجَّل التعارض بدل حسمه داخل المهارة.
+> **التفعيل:** إنشاء أو تعديل الألوان أو الخطوط أو المسافات أو المكونات أو الثيمات أو الحالات أو ملفات التصميم والكود المرتبطة بها — بمنهجية تطبيق التوكنات.
+> **عدم التفعيل:** استخراج قيم توكن حالية أو تعريف هوية جديدة؛ سلطة الهوية والتكامل محفوظة لمجموعة `docs/architecture/` (SOURCE_OF_TRUTH + ADRs + MIGRATION_STATUS) والتعريف المجمد `apps/prototype-web/client/src/styles/vf-tokens.css`.
+
 ## الغرض
 
-حافظ على مصدر واحد للحقيقة لهوية Micro، ثم حوّل التوكنات الرسمية إلى متغيرات قابلة للاستخدام في Web App. افصل Primitive Tokens عن Semantic Tokens، ولا تسمح بأن تتحول مكتبة أو قالب خارجي إلى هوية المنتج.
+طبّق منهجية توحيد الهوية وتحويل التوكنات إلى متغيرات قابلة للاستخدام في Web App. **سلطة قيم الهوية والتكامل الحالية:** مجموعة `docs/architecture/` والتعريف المجمد `apps/prototype-web/client/src/styles/vf-tokens.css` (تحديث مؤرخ WS-204 2026-10-01؛ هذه المهارة منهج تطبيق لا مصدر قيم). افصل Primitive Tokens عن Semantic Tokens، ولا تسمح بأن تتحول مكتبة أو قالب خارجي إلى هوية المنتج.
 
-## المراجع الملزمة
+## المراجع الملزمة — حزمة واحدة
 
-اقرأ قبل أي تعديل:
-
-- [`../../docs/product/mobile-ui-ux-reference-v1.md`](../../docs/product/mobile-ui-ux-reference-v1.md)
-- [`../../docs/implementation/prototype-build-charter-v1.md`](../../docs/implementation/prototype-build-charter-v1.md)
-- [`../../docs/implementation/mobile-prototype-spec-v1.md`](../../docs/implementation/mobile-prototype-spec-v1.md)
-- [`../../docs/05-documentation-governance.md`](../../docs/05-documentation-governance.md)
-
-إذا احتاج التنفيذ إلى ملف tokens مستقل، اجعل المرجع الدلالي هو وثيقة UI/UX الحالية، وسجّل المسار الجديد في الفهرس بدل إنشاء مرجع منافس.
-
+حمّل حزمة القراءة `ARCH` (وثائق `docs/architecture/` السبعة + ADRs التسعة) وفق `AGENTS.md` §2 — لا قوائم قراءة مكررة هنا. إذا احتاج التنفيذ إلى ملف tokens مستقل، اجعل المرجع الدلالي هو مجموعة المعمارية، وسجّل المسار الجديد في الفهرس بدل إنشاء مرجع منافس.
 ## قواعد التوكنات
 
 1. استخدم أسماء دلالية مثل `background`, `surface`, `foreground`, `muted`, `primary`, `border`, `success`, `warning`, و`error` داخل المكونات.
 2. لا تضع Hex خامًا في JSX/TSX/CSS component عندما توجد قيمة Semantic معتمدة.
 3. لا تعكس Light Mode إلى Dark Mode حسابيًا. عرّف قيمة كل Semantic Token في الوضعين مع الحفاظ على المعنى والتباين.
-4. احترم قيم Micro الرسمية الموجودة في UI/UX Reference. لا تغيّر التيراكوتا أو التركواز أو المحايدات أو درجات الحالة دون قرار Canonical جديد.
-5. افصل لون الهوية عن اللون الدلالي. التيراكوتا لا يعني ربحًا، والأخضر لا يعني كاشًا، والأحمر لا يعني دائمًا خسارة.
+4. احترم قيم Micro الرسمية المجمدة في `apps/prototype-web/client/src/styles/vf-tokens.css` وسلّم `docs/architecture/SOURCE_OF_TRUTH.md`. لا تغيّر أي قيمة توكن أو محايدات أو درجات الحالة دون قرار Canonical جديد (تصحيح مؤرخ WS-204 2026-10-01: كان السطر يسمّي «التيراكوتا/التركواز» وهويات ما قبل تكامل Micro Standard v2).
+5. افصل لون الهوية عن اللون الدلالي. لون الهوية لا يعني ربحًا، والأخضر لا يعني كاشًا، والأحمر لا يعني دائمًا خسارة.
 6. اختبر النص العادي والصغير، النص فوق الأزرار، الحواف، التركيز، disabled، وطبقات Bottom Sheet في الوضعين.
 7. لا تجعل التباين اللوني وحده يحمل الحالة؛ أضف نصًا أو علامة مفهومة، خصوصًا للحالات المالية `estimated`, `missing`, `needs_review`.
 8. اربط الخط العربي والوزن والـline-height بالمرجع الرسمي، واختبر النص الطويل والأرقام العربية/الغربية حسب عقد المحتوى.

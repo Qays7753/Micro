@@ -5,23 +5,20 @@ description: اختبار ومراجعة Prototype Web App لـMicro بصريً�
 
 # Micro Prototype QA
 
+> **التسجيل (WS-204 — 2026-10-01):** المالك: مالك المنتج · آخر مراجعة: 2026-10-01 · الحالة: CURRENT/OPERATIONAL · مسجلة في `ai-skills/README.ar.md` و`docs/00-document-index.md`.
+> **السلطة:** هذه المهارة تشغيلية فقط ولا تعلو فوق عقود Micro ووثائقها canonical؛ عند أي تعارض يُوقف التنفيذ ويُسجَّل التعارض بدل حسمه داخل المهارة.
+> **التفعيل:** قبول Slice أو PR، أو اختبار التدفقات وLight/Dark وRTL والأحجام وحالات الواجهة وLocalStore وقواعد العربون والدين والنتيجة.
+> **عدم التفعيل:** تغيير العقود أو حسم قرارات المنتج؛ سلطتها أدلة القبول لا التشريع.
+
+> **قائمة «ضد الطابع المولد» (مدمجة 2026-10-01 — WS-204):** عند أي مراجعة بصرية (شاشة/URL/لقطة/PR) أو قبل بناء أو تعديل Home وReview والنماذج والبطاقات: طبّق [`references/anti-vibe-checklist.md`](references/anti-vibe-checklist.md) — اللمحة، خريطة المعنى، الطابع المولد، الثقة المالية، الإدخال/RTL، الـaffordance، وقواعد منع الأنماط العامة. (الأصل: مهارة micro-anti-vibe-interface-audit غير المسجلة؛ محتواها محفوظ حرفيًا في القائمة.)
+
 ## الغرض
 
 تحقق من أن Prototype يعمل كتجربة Web App Android-like حقيقية، وأن الواجهة لا تخفي أو تشوّه الحقيقة المالية. افصل دليل الاختبار التقني عن إثبات التبني أو استعداد المستخدم للدفع.
 
-## اقرأ قبل الاختبار
+## اقرأ قبل الاختبار — حزمة واحدة
 
-اقرأ:
-
-- [`../../docs/implementation/prototype-build-charter-v1.md`](../../docs/implementation/prototype-build-charter-v1.md)
-- [`../../docs/implementation/mobile-prototype-spec-v1.md`](../../docs/implementation/mobile-prototype-spec-v1.md)
-- [`../../docs/product/mobile-ui-ux-reference-v1.md`](../../docs/product/mobile-ui-ux-reference-v1.md)
-- [`../../docs/contracts/05-financial-p0-policies.md`](../../docs/contracts/05-financial-p0-policies.md)
-- [`../../docs/quality/scenario-coverage-matrix-v1.md`](../../docs/quality/scenario-coverage-matrix-v1.md)
-- [`../../AGENTS.md`](../../AGENTS.md)
-
-عند اختبار تغيير مالي، فعّل أيضًا `microbusiness-finance-operations` و`micro-scenario-validation`.
-
+حمّل حزمة القراءة `QUALITY` وفق `AGENTS.md` §2 (النواة + الحزمة) — لا قوائم قراءة مكررة هنا. عند اختبار تغيير مالي، فعّل أيضًا `microbusiness-finance-operations` و`micro-scenario-validation`.
 ## بوابات الاختبار
 
 اختبر كل Slice على مراحل متسلسلة:
