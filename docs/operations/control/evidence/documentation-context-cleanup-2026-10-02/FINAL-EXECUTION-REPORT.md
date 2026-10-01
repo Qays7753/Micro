@@ -15,7 +15,7 @@
 | After PR #286 merge | `6a00a6b98403159b82e2093a8383f351198e1c06` | GitHub merge API + `git rev-parse origin/main` |
 | After PR #287 merge | `c296ec85336fa2e25789a7d5b53376eec6314c77` | same |
 | Final `main` after PR #288 merge | `885968412bce150da9d73e22eecdb346d0cd6e2c` | same (verified: `origin/main` == local main; validate green; root suite re-run) |
-| Final `main` after closure PR #289 merge | recorded in WS-208/DOC-003 `merge_sha` at verification | — |
+| Final `main` after closure PR #289 merge | `1e9060210f571b69dc7b04e365d2c5c86059bdbd` | GitHub merge API + `git rev-parse origin/main` |
 
 Preflight state at start: 0 open PRs; branches `main` + `docs/ux-ui-zed-handoff-20260921` (owner-retained, untouched); worktree clean; `validate.py` EXIT 0 (73 items, 47 workstreams, 0 active claims); `generate_tracker.py --check` current; `ACTIVE-WORK.md` empty.
 
@@ -105,7 +105,7 @@ Per the audit's Section 11 (OD-01…OD-12) and the execution brief's forbidden l
 | A+B / #286 | `2680fd86cd1e170f529717c29fa844b625406b1c` (pre-branch) | `git revert 6a00a6b9` on `main` (single squash commit; branch retained) |
 | C-docs / #287 | `6a00a6b98403159b82e2093a8383f351198e1c06` | `git revert c296ec85` |
 | C-tests / #288 | `c296ec85336fa2e25789a7d5b53376eec6314c77` | `git revert 88596841` |
-| Closure / #289 | `885968412bce150da9d73e22eecdb346d0cd6e2c` | `git revert <merge-sha>` |
+| Closure / #289 | `885968412bce150da9d73e22eecdb346d0cd6e2c` | `git revert 1e9060210f571b69dc7b04e365d2c5c86059bdbd` |
 
 All source branches are retained (not deleted) per the brief. Git history additionally preserves every pre-move/pre-merge file state.
 
