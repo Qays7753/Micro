@@ -2,6 +2,8 @@
 
 Authority: this document. Source of truth for values: `apps/prototype-web/client/src/index.css` (`:root`, `.dark`, `@layer base`) and the shared shell components (`AppHeader.tsx`, `MicroAppShell.tsx`, `InfoCard.tsx`).
 
+> **تحديد نطاق مؤرخ 2026-10-01 (برنامج عزل سياق التوثيق — WS-204):** هذا الملف **سجل مرجعي تاريخي لقرارات التصميم** (حقبة إعادة التوزيع 2026-08). سلطة الهوية والتوكنات وتكامل الواجهة الحالية هي مجموعة `docs/architecture/` (`SOURCE_OF_TRUTH.md` + `ADRs/` + `MIGRATION_STATUS.md`) والتعريف المجمد في `apps/prototype-web/client/src/styles/vf-tokens.css`. يُقرأ هذا الملف لفهم **منطق** القرارات التصميمية التاريخية فقط، ولا يُستخدم مصدرًا لقيم توكن أو هوية حالية. (§9 تحديدًا ما زال مستشهدًا به وصفيًا في وثائق حارس التصميم `scripts/design-token-guards.py` كأصل لقواعد الحارس.)
+
 Rules for the implementing agent:
 
 1. Every color in §1.1 is frozen. No hue, shade, opacity, or substitution changes. A missing state color is derived from an existing token with `color-mix()`, never invented.
