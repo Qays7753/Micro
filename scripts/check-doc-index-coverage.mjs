@@ -48,7 +48,6 @@ export const REQUIRED_CANONICAL = [
   "docs/03-hypothesis-register.md",
   "docs/04-product-truth-map.md",
   "docs/05-documentation-governance.md",
-  "docs/06-reference-library.md",
   "docs/07-field-evidence-map.md",
   "docs/08-glossary.md",
   "docs/README.md",
@@ -119,10 +118,6 @@ export function checkCoverage({ repoRoot = ROOT } = {}) {
     }
   }
   for (const file of REQUIRED_CANONICAL) {
-    if (file === "docs/06-reference-library.md" && !fs.existsSync(path.join(repoRoot, file))) {
-      // أُزيل بقرار موثق (WS-204 W4): يُحذف من القائمة في نفس اللقطة.
-      continue;
-    }
     if (!indexText.includes(file)) {
       findings.push({ kind: "missing-canonical", path: file, message: `required canonical file not mentioned in ${INDEX_PATH}` });
     }

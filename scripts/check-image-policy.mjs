@@ -3,13 +3,13 @@
  * WS-204 (برنامج عزل سياق التوثيق 2026-10-01): حارس سياسة الصور.
  *
  * الغاية: تنفيذ قرار المالك «لا لقطات تاريخية أو أدلة بصرية للتقارير/التخطيط داخل
- * المستودع» آليًا — فلا تعود صورة جديدة إلى سطح التوثيق بصمت. القرار الأصلي نفّذه
- * WS-204/الموجة 4 (حُذفت 337 لقطة تاريخية)، وهذا الحارس يجمّد خط الأساس الناتج.
+ * المستودع» آليًا — فلا تعود صورة جديدة إلى سطح التوثيق بصمت. أصول التشغيل وحدها
+ * تحت `apps/` مسموحة؛ صور التقارير والتخطيط لا تدخل خط الأساس.
  *
  * القاعدة:
  * - امتدادات مفحوصة: png/jpg/jpeg/gif/webp/svg (لا يشمل .ico وغيره عمدًا).
- * - خط الأساس أدناه هو الصور المسموح وجودها (أصول تشغيلية تحت apps/ + حزمة أدلة
- *   UX-001 الحية المرتبطة ببند نشط). أي صورة خارج خط الأساس = فشل.
+ * - خط الأساس أدناه هو الأصول التشغيلية تحت `apps/` فقط. أي صورة خارج هذا المسار
+ *   = فشل، بما في ذلك أي Screenshot تخطيطية أو تقريرية.
  * - تعديل خط الأساس قرار مالك موثق (قرار المالك يظهر في الـdiff المزدوج)، لا إضافة
  *   صامتة؛ لتحديثه: أضف المسار مع سبب مؤرخ في هذا الملف داخل نفس PR القرار.
  *
@@ -24,15 +24,15 @@ import { fileURLToPath } from "node:url";
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"];
+export const EXPECTED_IMAGE_COUNT = 36;
 
 /**
- * خط الأساس المعتمد 2026-10-01 (WS-204/الموجة 5):
+ * خط الأساس المعتمد 2026-10-01 بعد تصحيح المالك:
  * - apps/prototype-web/client/public/brand/** — أصول تشغيلية (favicon/PWA/motion/splash) تستهلكها الواجهة والبناء.
- * - planning/ux-001-v2-evolution-2026-09-24/** — حزمة أدلة UX-001 الحية (بند IN_PROGRESS)؛ يعاد تصنيفها عند إغلاق البند.
+ * - لا توجد حزمة Screenshots تخطيطية أو تقريرية مسموحة داخل المستودع.
  */
 export const BASELINE_RULES = [
   { prefix: "apps/", reason: "operational application/build assets" },
-  { prefix: "planning/ux-001-v2-evolution-2026-09-24/", reason: "live evidence pack tied to active item UX-001" },
 ];
 
 export function listImages(repoRoot) {
@@ -53,6 +53,12 @@ export function listImages(repoRoot) {
 export function checkImagePolicy({ repoRoot = ROOT } = {}) {
   const images = listImages(repoRoot);
   const findings = [];
+  if (images.length !== EXPECTED_IMAGE_COUNT) {
+    findings.push({
+      kind: "image-count-drift",
+      message: `expected exactly ${EXPECTED_IMAGE_COUNT} operational images, found ${images.length}`,
+    });
+  }
   for (const img of images) {
     const allowed = BASELINE_RULES.some((rule) => img.startsWith(rule.prefix));
     if (!allowed) {

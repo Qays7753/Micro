@@ -27,7 +27,7 @@ describe("check-image-policy", () => {
     }
   });
 
-  it("fails for a screenshot outside the baseline and allows baseline assets", () => {
+  it("fails for screenshots outside the baseline and allows only operational assets", () => {
     const dir = makeRepo([
       "apps/prototype-web/client/public/brand/mark.svg",
       "planning/ux-001-v2-evolution-2026-09-24/visual-review/shot.png",
@@ -38,8 +38,18 @@ describe("check-image-policy", () => {
       const findings = checkImagePolicy({ repoRoot: dir });
       expect(findings.some((f) => f.path === "reports/agent-report/2026-99-99_run/screen.png")).toBe(true);
       expect(findings.some((f) => f.path === "docs/quality/screenshots/x.png")).toBe(true);
-      expect(findings.some((f) => f.path.startsWith("apps/"))).toBe(false);
-      expect(findings.some((f) => f.path.startsWith("planning/ux-001"))).toBe(false);
+      expect(findings.some((f) => f.path?.startsWith("apps/"))).toBe(false);
+      expect(findings.some((f) => f.path?.startsWith("planning/ux-001"))).toBe(true);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("fails when the frozen operational-image count drifts", () => {
+    const dir = makeRepo(["apps/prototype-web/client/public/brand/mark.svg"]);
+    try {
+      const findings = checkImagePolicy({ repoRoot: dir });
+      expect(findings.some((f) => f.kind === "image-count-drift")).toBe(true);
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }
@@ -47,7 +57,7 @@ describe("check-image-policy", () => {
 
   it("live repo: all images within the approved baseline (WS-204 regression pin)", () => {
     const imgs = listImages(ROOT);
-    expect(imgs.length).toBe(67);
+    expect(imgs.length).toBe(36);
     expect(checkImagePolicy({ repoRoot: ROOT })).toEqual([]);
   });
 });

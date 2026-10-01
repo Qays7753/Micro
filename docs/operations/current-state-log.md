@@ -1596,3 +1596,15 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 `KEEP_HISTORY_BRANCHES_RETIRED_BY_OWNER`
 `REMOTE_BRANCH_COUNT_2_EXPECTED`
 `NO_MAIN_CODE_OR_BEHAVIOR_CHANGE`
+
+
+## §91. تصحيح WS-204 — تقاعد Screenshots UX المتبقية — 2026-10-01
+
+**تصحيح مؤرخ:** بعد مراجعة المالك لـPR #282، حُذفت 31 صورة Screenshot من `planning/ux-001-v2-evolution-2026-09-24/visual-review/` و`visual-review-w183/`. بقي ملفا README الوصفيان فقط لحفظ provenance النصي. أصول التشغيل الـ36 تحت `apps/` بقيت دون تغيير.
+
+**الحارس:** `scripts/check-image-policy.mjs` يقبل أصول `apps/` التشغيلية فقط؛ خط الأساس الجديد 36 صورة. اختبارات الحارس تثبت رفض الصور التخطيطية والتقريرية.
+
+**الحالة:** التغيير موجود على فرع PR #282 فقط؛ لم يُدمج في `main`. لا تغيير في سلوك المنتج أو المنطق المالي أو التخزين أو الاستيراد/التصدير أو UI.
+
+`WS-204_SCREENSHOT_RETIREMENT_CORRECTION_ON_PR_ONLY`
+`NO_MAIN_MERGE_PERFORMED`
