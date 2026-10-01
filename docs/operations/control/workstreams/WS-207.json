@@ -1,7 +1,7 @@
 {
   "id": "WS-207",
   "title": "موجة C التوثيقية — دموج ميكانيكية غير محتكرة للمالك (تدقيق 2026-10-01)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "DOC-002"
   ],
@@ -15,8 +15,8 @@
   "agent": "Zed coordination — documentation surface cleanup execution 2026-10-02",
   "pr": 287,
   "started_at": "2026-10-02T13:00:00+03:00",
-  "updated_at": "2026-10-02T13:00:00+03:00",
-  "next_action": "مراجعة PR ودمجه بعد نجاح الفحوص، ثم التحقق على main؛ تليها WS-208 (دموج الاختبارات) والإغلاق.",
+  "updated_at": "2026-10-02",
+  "next_action": "لا إجراء إضافي؛ منفذ ومتحقق على main.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -29,6 +29,18 @@
       "changed_at": "2026-10-02",
       "actor": "ws-207:review",
       "reason": "دمجا الموجة C التوثيقية منفذان والفحوص المحلية ناجحة — قيد مراجعة PR."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "merge:pr-287",
+      "reason": "دُمج PR #287 بطريقة Squash عند c296ec85336fa2e25789a7d5b53376eec6314c77 بعد نجاح CI (Actions checks + Cloudflare Pages) على رأس الـPR."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "verify:main-tree",
+      "reason": "تطابق رأس origin/main مع merge_sha؛ المدقق صالح والViews حالية؛ الملفات المتغيرة في مواقعها على main."
     }
   ],
   "migration_baseline": false,
@@ -40,5 +52,7 @@
   "evidence": [
     "docs/operations/control/items/DOC-002.json",
     "docs/operations/current-state-log.md"
-  ]
+  ],
+  "merge_sha": "c296ec85336fa2e25789a7d5b53376eec6314c77",
+  "verified_on_main_sha": "c296ec85336fa2e25789a7d5b53376eec6314c77"
 }

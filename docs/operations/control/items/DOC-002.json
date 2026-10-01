@@ -2,7 +2,7 @@
   "id": "DOC-002",
   "title": "دموج ميكانيكية توثيقية غير محتكرة للمالك — موجة C/الوثائق (تدقيق 2026-10-01)",
   "type": "GOVERNANCE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P3",
   "stage": "documentation-hygiene",
   "summary": "تنفيذ صفوف MERGE غير المحتكرة للمالك من تدقيق الحد الأدنى: دمج سجلات O1 الثلاثة المتزامنة (نفس المسار/التاريخ، صفر إحالات) في سجل أرشيفي واحد حرفي، ودمج README جرد القدرات في 00-summary مع تصحيح ادعائه المتقادم وتحديث صف الفهرس 39.",
@@ -61,10 +61,22 @@
       "changed_at": "2026-10-02",
       "actor": "ws-207:review",
       "reason": "التنفيذ مكتمل والفحوص المحلية ناجحة — قيد مراجعة PR."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "merge:pr-287",
+      "reason": "دُمج PR #287 بطريقة Squash عند c296ec85336fa2e25789a7d5b53376eec6314c77 بعد نجاح CI (Actions checks + Cloudflare Pages) على رأس الـPR."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "verify:main-tree",
+      "reason": "تطابق رأس origin/main مع merge_sha؛ المدقق صالح والViews حالية؛ الملفات المتغيرة في مواقعها على main."
     }
   ],
   "migration_baseline": false,
-  "next_action": "مراجعة PR ودمجه ثم التحقق على main؛ تليها WS-208 (دموج الاختبارات) ثم الإغلاق.",
+  "next_action": "لا إجراء إضافي؛ منفذ ومتحقق على main.",
   "classification": "GOVERNANCE",
   "owner": "Product owner / Zed coordination",
   "tests_required": [
@@ -76,5 +88,7 @@
   "layers": [
     "documentation"
   ],
-  "gate_classification": "NOT_APPLICABLE"
+  "gate_classification": "NOT_APPLICABLE",
+  "merge_sha": "c296ec85336fa2e25789a7d5b53376eec6314c77",
+  "verified_on_main_sha": "c296ec85336fa2e25789a7d5b53376eec6314c77"
 }
