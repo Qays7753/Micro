@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22",
+  "generated_at": "2026-10-01",
   "rule": "الفهرس يشير إلى التقارير ولا يعيد كتابة نتائجها. التقرير التاريخي لا يثبت حالة main اللاحقة.",
   "reports": [
     {
@@ -121,6 +121,90 @@
       "path": "reports/agent-report/2026-09-22_ux-ui-z1-z2/03-final-integration-postmerge-report.md",
       "scope": "UX/UI Reports 1-2 final integration and post-merge verification report (WS-172) — merge f5685b2138 verified on main; closure 19b1073",
       "status": "MERGED_VERIFIED_MAIN_F5685B2"
+    },
+    {
+      "id": "PRODUCT-JOURNEY-13",
+      "path": "reports/agent-report/2026-09-16_05-10-product-journey/implementation-report-ar.md",
+      "scope": "approved product journey package: 13 issues (OPS/ORD/SET/NAV/CON/MOB/TOOL/DOC)",
+      "status": "MERGED"
+    },
+    {
+      "id": "PRODUCT-JOURNEY-FOLLOWUP",
+      "path": "reports/agent-report/2026-09-16_09-42-product-journey-follow-up/implementation-report-ar.md",
+      "scope": "journey-package defect remediation, verification, PR and merge",
+      "status": "MERGED"
+    },
+    {
+      "id": "OPS-003-SYSTEM",
+      "path": "reports/agent-report/2026-09-21_ops-003-recurring-expense-system/report.md",
+      "scope": "recurring-expense reminder system implementation (OPS-003)",
+      "status": "MERGED"
+    },
+    {
+      "id": "FIN-ROADMAP-PHASE-0",
+      "path": "reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/report.md",
+      "scope": "financial roadmap phase 0 baseline and execution map",
+      "status": "MERGED"
+    },
+    {
+      "id": "FIN-ROADMAP-WAVE-1",
+      "path": "reports/agent-report/2026-09-22_fin-roadmap-wave-1-fin-003-007/report.md",
+      "scope": "financial roadmap wave 1 (FIN-003, FIN-007)",
+      "status": "MERGED"
+    },
+    {
+      "id": "FIN-ROADMAP-WAVE-2",
+      "path": "reports/agent-report/2026-09-22_fin-roadmap-wave-2-fin-002/report.md",
+      "scope": "optional expense budgets and goals (FIN-002, contract 42)",
+      "status": "MERGED"
+    },
+    {
+      "id": "FIN-ROADMAP-WAVE-3",
+      "path": "reports/agent-report/2026-09-23_fin-roadmap-wave-3-fin-005/report.md",
+      "scope": "financial roadmap wave 3 (FIN-005)",
+      "status": "MERGED"
+    },
+    {
+      "id": "FIN-ROADMAP-WAVE-4",
+      "path": "reports/agent-report/2026-09-23_fin-roadmap-wave-4-fin-004/report.md",
+      "scope": "financial roadmap wave 4 (FIN-004)",
+      "status": "MERGED"
+    },
+    {
+      "id": "FIN-ROADMAP-WAVE-5",
+      "path": "reports/agent-report/2026-09-23_fin-roadmap-wave-5-fin-006/report.md",
+      "scope": "financial roadmap wave 5 (FIN-006)",
+      "status": "MERGED"
+    },
+    {
+      "id": "FIN-ROADMAP-WAVE-6",
+      "path": "reports/agent-report/2026-09-23_fin-roadmap-wave-6-fin-001/report.md",
+      "scope": "financial roadmap wave 6 (FIN-001)",
+      "status": "MERGED"
+    },
+    {
+      "id": "FIN-ROADMAP-WAVE-7",
+      "path": "reports/agent-report/2026-09-23_fin-roadmap-wave-7-fin-008/report.md",
+      "scope": "financial roadmap wave 7 (FIN-008)",
+      "status": "MERGED"
+    },
+    {
+      "id": "FIN-ROADMAP-WAVE-8",
+      "path": "reports/agent-report/2026-09-23_fin-roadmap-wave-8-clean-001/report.md",
+      "scope": "surface honesty audit and guards (CLEAN-001)",
+      "status": "MERGED"
+    },
+    {
+      "id": "FIN-ROADMAP-WAVE-9",
+      "path": "reports/agent-report/2026-09-23_fin-roadmap-wave-9-rel-001/report.md",
+      "scope": "import resilience gapfill (REL-001)",
+      "status": "MERGED"
+    },
+    {
+      "id": "FIN-ROADMAP-FINAL-RECONCILIATION",
+      "path": "reports/agent-report/2026-09-23_fin-roadmap-final-reconciliation/report.md",
+      "scope": "final readiness reconciliation (wave 10)",
+      "status": "MERGED"
     }
   ]
 }

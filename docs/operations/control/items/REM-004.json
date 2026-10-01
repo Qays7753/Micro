@@ -49,7 +49,7 @@
     "report": "docs/operations/control/evidence/micro-master-remediation-2026-09-27/WAVE4-WAVE-REPORT-2026-09-29.md (derived from the historical concept-policy audit; PR #245 branch deleted after closure)",
     "discovered_at_sha": "2ebb435334dd69da0273d592ec8bffac5e70c1cf",
     "evidence": [
-      "docs/operations/current-state.md",
+      "docs/operations/current-state-log.md",
       "apps/prototype-web/ARCHITECTURE.md",
       "docs/00-document-index.md"
     ]

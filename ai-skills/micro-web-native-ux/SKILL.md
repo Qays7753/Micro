@@ -5,22 +5,18 @@ description: تصميم وتنفيذ ومراجعة تجربة Web App بملء 
 
 # Micro Web Native UX
 
+> **التسجيل (WS-204 — 2026-10-01):** المالك: مالك المنتج · آخر مراجعة: 2026-10-01 · الحالة: CURRENT/OPERATIONAL · مسجلة في `ai-skills/README.ar.md` و`docs/00-document-index.md`.
+> **السلطة:** هذه المهارة تشغيلية فقط ولا تعلو فوق عقود Micro ووثائقها canonical؛ عند أي تعارض يُوقف التنفيذ ويُسجَّل التعارض بدل حسمه داخل المهارة.
+> **التفعيل:** بناء أو مراجعة App Shell والتنقل والشاشات وBottom Sheets والنماذج والرجوع ولوحة المفاتيح وRTL وSafe Areas وPWA UX وحالات الواجهة.
+> **عدم التفعيل:** تغيير قيم الهوية والتوكنات (لمهارة micro-design-system ومجموعة docs/architecture/) أو حسم معنى مالي؛ سلطتها سلوك تجربة الويب.
+
 ## الغرض
 
 طبّق تجربة Web App تبدو كتطبيق Android حديث من حيث السلوك واللمس والطبقات، مع إبقاء Micro تطبيق ويب فعليًا. لا تغيّر الهوية البصرية المثبتة أو النطاق المالي أو عقود Domain.
 
-## اقرأ قبل التنفيذ
+## اقرأ قبل التنفيذ — حزمة واحدة
 
-اقرأ هذه الملفات من جذر المستودع قبل تغيير تجربة المستخدم:
-
-- [`../../docs/product/mobile-ui-ux-reference-v1.md`](../../docs/product/mobile-ui-ux-reference-v1.md)
-- [`../../docs/implementation/mobile-prototype-spec-v1.md`](../../docs/implementation/mobile-prototype-spec-v1.md)
-- [`../../docs/implementation/prototype-build-charter-v1.md`](../../docs/implementation/prototype-build-charter-v1.md)
-- [`../../docs/contracts/05-financial-p0-policies.md`](../../docs/contracts/05-financial-p0-policies.md)
-- [`../../docs/product/guidance-interaction-policy-v1.md`](../../docs/product/guidance-interaction-policy-v1.md)
-
-عند تعارض رأي بصري مع عقد مالي أو نطاق Prototype، أوقف التغيير وسجّل التعارض؛ لا تحلّه بتعديل الواجهة بصمت.
-
+حمّل حزمة القراءة `UI` وفق `AGENTS.md` §2 (النواة + الحزمة) — لا قوائم قراءة مكررة هنا.
 ## قواعد التجربة
 
 1. ابنِ Web App بملء الشاشة مع App Shell واضح، لا صفحة Website ولا Dashboard مكتظًا.

@@ -48,5 +48,5 @@
 
 - [`../contracts/17-contribution-break-even-short-cash-g5-contract.md`](../contracts/17-contribution-break-even-short-cash-g5-contract.md)
 - [`g5-test-plan-v1.md`](g5-test-plan-v1.md)
-- [`g5-browser-notes-v1.md`](../../qa/g5-browser-notes-v1.md)
+- [`g5-browser-notes-v1.md`](../operations/archive/quality-history/g5-browser-notes-v1.md) (نُقل إلى الأرشيف 2026-10-01 — WS-204)
 - [`../operations/agent-handoff-protocol-v1.md`](../operations/agent-handoff-protocol-v1.md)

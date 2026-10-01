@@ -1,42 +1,46 @@
-# دليل حزمة مهارات SaaS للمشاريع المنزلية
+# دليل حزمة مهارات Micro
+
+> **تحديث مؤرخ 2026-10-01 (WS-204):** أصبح تسجيل كل مهارة إلزاميًا (صف هنا + صف في `docs/00-document-index.md` + تفعيل/عدم تفعيل + بيان سلطة + مالك وتاريخ مراجعة داخل SKILL.md)، وتُدرَس منحرفات المراجع آليًا بـ`scripts/check-skill-references.mjs` ضمن `pnpm guards`. دُمجت مهارة `micro-anti-vibe-interface-audit` (غير المسجلة) حرفيًا داخل `micro-prototype-qa/references/anti-vibe-checklist.md`، وتقاعدت ثنائية `saas` في مكانها لمهام مرحلة MVP التجاري اللاحق.
 
 ## الغرض
 
 هذه الحزمة تجعل أي مساعد ذكاء اصطناعي يعمل داخل إطار موحد للمشروع بدل إعادة شرح الهوية والمشكلة والقواعد في كل جلسة. الحزمة لا تستبدل الحكم البشري ولا تثبت نجاح السوق، لكنها تمنع الانحياز والتوسع والأخطاء المتكررة.
 
-## الملفات
+**قاعدة السلطة الموحدة (WS-204):** كل مهارة هنا تشغيلية فقط ولا تعلو فوق عقود Micro ووثائقها canonical؛ عند أي تعارض يُوقف التنفيذ ويُسجَّل التعارض وفق قاعدة التوقف في `AGENTS.md` §3.
 
-| المهارة | استخدمها عندما | وظيفتها |
-|---|---|---|
-| `saas-product-guardian` | قرار منتج، بحث، ميزة، MVP، بديل أو فرضية | يحرس Problem Statement، الدليل، النطاق، ومعايير القبول والفشل |
-| `microbusiness-finance-operations` | تكلفة، سعر، ربح، كاش، طلب، مخزون، خدمة أو اختبار مالي | يحرس المعنى الاقتصادي والتشغيلي والفروق بين الطعام والحرفة والخدمة |
-| `micro-scenario-validation` | تغيير المفهوم أو Problem Statement أو النموذج المالي أو تجربة المستخدم أو ميزة | يختبر القرار على الشخصيات والحالات والأسئلة canonical قبل البناء |
-| `saas-delivery-verifier` | كود، قاعدة بيانات، مزامنة، أمن، نشر، ترحيل أو اختبار | يحرس المعمارية، العزل، local-first، الاستعادة، الجودة والتسليم |
-| `micro-web-native-ux` | Web App بملء الشاشة، Android-like UX، RTL، PWA UX، شاشات أو تنقل | يحرس سلوك الويب والطبقات والرجوع ولوحة المفاتيح والحالات |
-| `micro-design-system` | ألوان، خطوط، مسافات، مكونات، Light/Dark، Figma-to-code أو tokens | يحرس الهوية المثبتة والتوكنات والتباين وعدم وجود قيم خام |
-| `micro-local-first-prototype` | LocalStore، IndexedDB، مسودات، Snapshots، أحداث، Export/Import أو offline | يحرس حدود التخزين المحلي والإصدارات والاستعادة وعدم التكرار |
-| `micro-prototype-qa` | قبول Slice أو PR، اختبار UI والتدفقات والمالية واللقطات | يحرس RTL، 360/390/430، Light/Dark، حالات الواجهة والحقيقة المالية |
+## المهارات (8 مسجلة)
+
+| المهارة | استخدمها عندما | لا تُستخدم عندما | الوظيفة والسلطة | المالك | آخر مراجعة | الحالة |
+|---|---|---|---|---|---|---|
+| `micro-scenario-validation` | تغيير تعريف النظام أو Problem Statement أو النموذج المالي أو التجربة أو ميزة | تنفيذ كود أو قبول شريحة | يختبر المفهوم على السيناريوهات canonical قبل البناء | مالك المنتج | 2026-10-01 | CURRENT |
+| `microbusiness-finance-operations` | تكلفة، سعر، ربح، كاش، طلب، مخزون، دين، خدمة أو اختبار مالي | مصدر سلطة فوق العقود | يحرس المعنى الاقتصادي والتشغيلي — صيغة تشغيلية مكثفة | مالك المنتج | 2026-10-01 | CURRENT/SUPPORTING |
+| `micro-web-native-ux` | App Shell، تنقل، Bottom Sheets، نماذج، RTL، PWA UX، حالات واجهة | قيم الهوية والتوكنات أو حسم معنى مالي | يحرس سلوك تجربة الويب والطبقات والرجوع | مالك المنتج | 2026-10-01 | CURRENT |
+| `micro-design-system` | ألوان، خطوط، مسافات، مكونات، ثيمات، Figma-to-code — بمنهجية التوكنات | استخراج قيم توكن حالية (سلطة المعمارية + vf-tokens.css) | يحرس منهجية تطبيق الهوية والتوكنات والتباين | مالك المنتج | 2026-10-01 | CURRENT |
+| `micro-local-first-prototype` | LocalStore، IndexedDB، مسودات، Snapshots، أحداث، Export/Import، offline | مزامنة/سحابة/Auth (خارج المرحلة) | يحرس حدود التخزين المحلي والإصدارات والاستعادة | مالك المنتج | 2026-10-01 | CURRENT |
+| `micro-prototype-qa` | قبول Slice أو PR، اختبار UI والتدفقات والمالية واللقطات، وكل مراجعة بصرية (مع قائمة anti-vibe المدمجة) | تغيير العقود أو حسم قرارات المنتج | يحرس RTL والأحجام والوضعين والحقيقة المالية وأدلة القبول | مالك المنتج | 2026-10-01 | CURRENT |
+| `saas-delivery-verifier` | (مرحلة MVP اللاحق فقط) بوابة إصدار، معمارية مزود، أمن سحابي | أي مهمة في Prototype المرحلة 2 | محفوظة متقاعدة: مصفوفة تحقق + runbook إصدار + سياسة كود خارجي | مالك المنتج | 2026-10-01 | RETIRED (محفوظة) |
+| `saas-product-guardian` | (مرحلة MVP اللاحق فقط) بطاقات قرار منتج كبرى | أي مهمة في Prototype المرحلة 2 | محفوظة متقاعدة: بطاقة قرار + سلّم أدلة + سياق منتج محمول | مالك المنتج | 2026-10-01 | RETIRED (محفوظة) |
 
 ## ترتيب الاستخدام
 
-ابدأ دائمًا بـ`saas-product-guardian`. أضف `microbusiness-finance-operations` عندما يمس الطلب المال أو التكلفة أو التشغيل. أضف `micro-scenario-validation` عند تغيير المفهوم أو Problem Statement أو النموذج المالي أو تجربة المستخدم أو أي ميزة. أضف `saas-delivery-verifier` عند الانتقال إلى كود أو بنية أو إصدار. عند بناء واجهة Web App فعّل `micro-web-native-ux` و`micro-design-system`. عند بناء التخزين المحلي فعّل `micro-local-first-prototype`. عند قبول Slice أو PR فعّل `micro-prototype-qa`. يمكن تفعيل المهارات المتخصصة مع مهارات المنتج والمال والتنفيذ عند الحاجة.
+صنّف المهمة أولًا وحمّل حزمتها من `AGENTS.md` §2 (الجدول الوحيد)، ثم فعّل المهارة المطابقة من الجدول أعلاه: مهارة المالية مع المهام المالية، والسيناريوهات عند تغيير المفهوم، وWeb UX وDesign System عند الواجهة، وLocal-first عند التخزين، وPrototype QA عند القبول. لا تفعّل مهارات `saas` المتقاعدة في مهام Prototype المرحلة 2.
 
 ## مراجع Micro الثابتة
 
-قبل أي قرار منتج أو تجربة، اقرأ `../docs/product/problem-statement-v4.md` و`../docs/product/system-definition-v1.md` و`../docs/product/user-operating-model-v1.md` و`../docs/product/activity-profiles-and-hybrid-projects-v1.md` و`../docs/implementation/03-pre-build-alignment-v1.md`. قبل أي قرار مالي، اقرأ `../docs/product/financial-operating-model-v1.md`. قبل Profile أو مشروع مختلط، اقرأ `../docs/implementation/multi-activity-expansion-roadmap-v1.md` و`../docs/research/multi-activity-profile-research-v1.md`. عند استخدام مصدر عالمي أو اختيار نمط أو مكتبة، اقرأ `../docs/research/global-build-reference-library-v1.md` ثم `../docs/research/micro-build-logic-v1.md`. عند تنفيذ Prototype اقرأ `../docs/implementation/prototype-build-charter-v1.md` و`../docs/product/mobile-ui-ux-reference-v1.md` و`../docs/implementation/mobile-prototype-spec-v1.md`، ثم فعّل المهارة المناسبة للواجهة أو التخزين أو الجودة. عند تغيير المفهوم أو تجربة المستخدم، فعّل `micro-scenario-validation` واختبر التغيير على `../docs/scenarios/scenario-test-set-v1.md` و`../docs/quality/scenario-coverage-matrix-v1.md`. هذه الوثائق هي مصدر الحقيقة داخل GitHub؛ المهارات تفرض طريقة استخدامها ولا تستبدلها.
+**كل قوائم القراءة في مكان واحد: حزم `AGENTS.md` §2 التسع** (النواة + حزمة نوع المهمة). هذه الوثائق مصدر الحقيقة داخل GitHub؛ المهارات تفرض طريقة استخدامها ولا تستبدلها.
 
 ## رسالة بدء محمولة
 
 عند استخدام مساعد لا يقرأ مجلد المهارات تلقائيًا، أرسل له:
 
-> استخدم حزمة مهارات Micro المرفقة. ابدأ بـsaas-product-guardian، واقرأ Pre-build Alignment وBuild Charter قبل الكود، واقرأ مكتبة `docs/research/global-build-reference-library-v1.md` ومنطق `docs/research/micro-build-logic-v1.md` عند أي بحث أو اختيار نمط أو مكتبة، ثم فعّل مهارة Web UX وDesign System عند الواجهة، ومهارة Local-first عند التخزين، ومهارة Prototype QA عند قبول Slice. لا تعتبر أي نظام قديم أو مشروع GitHub مصدر حقيقة. اربط كل قرار بـProblem Statement والسيناريوهات canonical، افصل الدليل عن الفرضية، اختر أقل Vertical Slice، واذكر التوصية والمخاطر ومعيار القبول والفشل. لا تعرض ربحًا عند نقص التكلفة، ولا تبنِ Billing في تطبيق المستخدم في MVP التجاري اللاحق، ولا تنقل كودًا بلا ترخيص واضح.
+> استخدم حزمة مهارات Micro المرفقة. ابدأ بنواة القراءة (AGENTS.md §2: الحالة الحية والميثاق وفهرس السلطة وPre-build Alignment) ثم حمّل حزمة مهمتك من الجدول نفسه، وفعّل مهارة Web UX وDesign System عند الواجهة، ومهارة Local-first عند التخزين، ومهارة Prototype QA عند قبول Slice. لا تعتبر أي نظامًا قديمًا أو مشروع GitHub مصدر حقيقة. اربط كل قرار بـProblem Statement والسيناريوهات canonical، افصل الدليل عن الفرضية، اختر أقل Vertical Slice، واذكر التوصية والمخاطر ومعيار القبول والفشل. لا تعرض ربحًا عند نقص التكلفة، ولا تنقل كودًا بلا ترخيص واضح. لا تفعّل مهارات saas المتقاعدة في مهام Prototype.
 
 ثم أرفق مجلدات المهارات كما هي، لا ملف SKILL.md وحده إذا أردت أن يقرأ المراجع الداخلية.
 
 ## طريقة العمل على مهمة جديدة
 
 1. اطلب من المساعد تصنيف المهمة قبل الحل.
-2. اطلب منه قراءة مرجع المنتج ذي الصلة.
+2. اطلب منه تحميل حزمة القراءة المطابقة من `AGENTS.md` §2.
 3. اجعله يكتب بطاقة قرار أو فرضية.
 4. اجعله يحدد أقل نطاق وفئات التأثير.
 5. قبل الكود، اطلب بوابة التنفيذ والتحقق.

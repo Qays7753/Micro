@@ -6,30 +6,41 @@
 
 اللغة التشغيلية الافتراضية هي العربية. يجب أن يذكر Agent في بداية المهمة ما قرأه، وما الذي سيغيره، وما الذي لن يغيره، وما معيار القبول، وما الذي يبقى مجهولًا.
 
-## 2. ترتيب القراءة الإلزامي
+## 2. ترتيب القراءة الإلزامي — جدول التوجيه الوحيد (حزم السياق)
 
-ابدأ بخمس قراءات نواة قصيرة، ثم أضف مسار القراءة المشروط بحسب الملفات أو الطبقة التي ستلمسها:
+> **هذا هو جدول التوجيه الوحيد في المستودع.** أي قائمة قراءة أو جدول توجيه آخر (فهرس الوثائق، حوكمة الوثائق، README مجلد docs، CONTRIBUTING) يُختصر إلى إحالة إلى هنا ولا يكرر ولا ينافس. لا تُنشئ قائمة قراءة موازية جديدة، ولا «مصدر حقيقة» ثانيًا بلا قرار مالك يسحب ما يستبدله.
+
+ابدأ بنواة القراءة دائمًا، ثم حمّل **حزمة واحدة** بحسب نوع مهمتك من الجدول أدناه. الحزمة سقف لا هدف؛ إذا احتجت خارجها فاذكر السبب صراحة في بطاقة الفهم.
+
+**نواة القراءة (CORE — تُحمَّل دائمًا):**
 
 1. `docs/operations/current-state.md` لمعرفة commit المعتمد، ما اندمج، وما المسموح فعله الآن.
 2. `README.md` لفهم Micro في سطرين، لا لاستخراج حالة التنفيذ التفصيلية.
 3. `docs/operations/micro-thinking-charter-v1.md` لإثبات فهم هدف Micro وطريقة القرار قبل التفكير في كود أو شاشة.
-4. `docs/00-document-index.md` لمعرفة سلطة الوثائق ومسار القراءة.
+4. `docs/00-document-index.md` **كتالوج سلطة** للبحث والاستشهاد (أي ملف سلطوي له صف فيه) — ليس قائمة قراءة.
 5. `docs/implementation/03-pre-build-alignment-v1.md` لتثبيت حدود المنتج الكامل وPrototype المرحلة 2 وMVP التجاري اللاحق.
 
-6. إن كانت مهمتك تلمس واجهة أو تجربة أو تصميمًا بأي شكل: **ملفات `docs/architecture/` السبعة + `ADRs/` (9) + `MIGRATION_STATUS.md` (أحد السبعة) قراءة إلزامية قبل أي تعديل** — هذه هي سلطة تكامل Micro Standard v2 (الاستراتيجية الثابتة، سلّم السلطة، عقود المكوّنات الأولية، بروتوكول التغيير، وحالة الترحيل لكل سطح). أي تعديل UI بلا قراءتها مخالف لعقد المستودع.
+**حزم السياق التسع (حمّل حزمة مهمتك فقط):**
 
-| إذا ستلمس | اقرأ قبل التعديل |
-|---|---|
-| تعريف المنتج أو المعمارية أو قرار مرحلة | `docs/01-product-and-technical-blueprint.md`، و`docs/research/global-build-reference-library-v1.md`، ثم `docs/research/micro-build-logic-v1.md` |
-| Domain أو تكلفة أو سعر أو ربح أو كاش أو مخزون أو دين أو مصروف | `docs/contracts/05-financial-p0-policies.md`، و`docs/contracts/` ذات الصلة، و`docs/implementation/02-domain-contract-coverage.md`، و`docs/product/financial-operating-model-v1.md`، و`docs/scenarios/scenario-test-set-v1.md`، و`docs/quality/scenario-coverage-matrix-v1.md`، إضافة إلى مهارات المالية والسيناريوهات |
-| Prototype أو صفحة أو مكوّن أو RTL أو حالات واجهة | `docs/product/mobile-ui-ux-reference-v1.md`، و`docs/implementation/mobile-prototype-spec-v1.md`، و`docs/implementation/prototype-build-charter-v1.md`، و`ai-skills/micro-web-native-ux/`، و`ai-skills/micro-prototype-qa/`، و`ai-skills/micro-anti-vibe-interface-audit/` |
-| أي زر أو لون أو رمز تصميم أو حالة عرض أو shell أو طبقة UI/AUX عمومًا (بعد تكامل Micro Standard v2) | `docs/architecture/UI_AUX_ARCHITECTURE.md`، و`docs/architecture/SOURCE_OF_TRUTH.md`، و`docs/architecture/EXTENSION_PLAYBOOK.md`، و`docs/architecture/CHANGE_PROTOCOL.md`، و`docs/architecture/COMPONENT_CONTRACTS.md`، و`docs/architecture/ADRs/`، و`docs/architecture/MIGRATION_STATUS.md` — بهذا الترتيب؛ لا تُنشئ مصدر رموز ثانيًا ولا تُعيد تعريف عقد معرّف |
-| IndexedDB أو LocalStore أو المسودات أو Export/Import | `docs/contracts/04-limited-sync-contract.md`، و`docs/implementation/02-domain-contract-coverage.md`، و`ai-skills/micro-local-first-prototype/`، مع إبقاء `localSchemaVersion` و`localExportVersion` تحت حارس صريح |
-| قبول Slice أو PR أو تسليم أو مراجعة Agent سابق | `docs/operations/agent-handoff-protocol-v1.md`، و`docs/operations/slice-handoff-template.md`، و`.github/pull_request_template.md`، و`docs/quality/cloud-code-first-read-findings-v1.md`، و`docs/quality/unified-audit-resolution-v1.md` |
-| Profiles أو Activity أو مشروع مختلط أو سياق نشاط | `docs/product/activity-profiles-and-hybrid-projects-v1.md`، ومراجع المنتج والسيناريوهات أعلاه؛ لا تُنشئ عقدًا أو ترحيلًا من الوثيقة وحدها |
-| `الخدمات` أو Micro Market أو Micro Delivery أو Supplier/Courier/Admin | `docs/expansion/README.md` ثم `docs/expansion/DECISIONS.md` و`docs/expansion/TRACKER.md` و`E00-EXECUTION-PROTOCOL.md` و`FOUR-PARTY-IMPLEMENTATION-GATE-MAP.md` و`FOUR-PARTY-PORTAL-AND-ACCESS-RECOVERY-GATE.md` و`SEVEN-AGENT-EXPANSION-OPERATING-CHECKLIST.md`؛ اقرأ العقود 18–24 ومصفوفة الدور والسيناريو المتصل بالمهمة، ثم العقود المالية والسيناريوهات؛ لا تستخدم `historical-source/` كمرجع تنفيذ |
+| نوع المهمة | الحزمة | ملف الدخول | المجموعة الملزمة المحدودة | السقف |
+|---|---|---|---|---|
+| مالية / منطق مجال (تكلفة، سعر، ربح، كاش، مخزون، دين، مصروف) | CORE+FIN | `docs/contracts/05-financial-p0-policies.md` | 05 + عقد المنطقة المعنية فقط (1–3 عقود) + `docs/implementation/02-domain-contract-coverage.md` + `docs/product/financial-operating-model-v1.md` + مهارة `ai-skills/microbusiness-finance-operations/` + `docs/decisions/01-first-vertical-slice.md` | ≤ 12 ملفًا / 180 KB |
+| تخزين / Local-first / مسودات / استيراد-تصدير | CORE+STORAGE | `docs/contracts/04-limited-sync-contract.md` | 04 + عقد تخزين المنطقة + `02-coverage` + `docs/quality/security-boundaries.md` + مهارة `ai-skills/micro-local-first-prototype/`، مع إبقاء `localSchemaVersion`/`localExportVersion` تحت حارس صريح | ≤ 12 / 180 KB |
+| نطاق منتج / قرار قدرة / تعريف | CORE+PRODUCT | `docs/product/problem-statement-v5.md` (نطاق الطلب والتنقل) أو `docs/product/problem-statement-v4.md` (النواة العامة والـProfiles) | + `system-definition-v1` + `user-operating-model-v1` + `owner-decisions-v1` + `decisions/01` + مهارة `ai-skills/micro-scenario-validation/` | ≤ 12 / 180 KB |
+| معمارية / تحقيق إعادة هيكلة | CORE+ARCH | `docs/architecture/SOURCE_OF_TRUTH.md` | + `UI_AUX_ARCHITECTURE` + `CHANGE_PROTOCOL` + `MIGRATION_STATUS` + ADRs ذات الصلة فقط + عقد 40 — **وبوابة §11 إلزامية قبل أي عمل هيكلي** | ≤ 12 / 180 KB |
+| واجهة / تجربة / تصميم (بأي شكل) | CORE+UI | `docs/architecture/SOURCE_OF_TRUTH.md` | **ملفات `docs/architecture/` السبعة + `ADRs/` (9) قراءة إلزامية قبل أي تعديل UI** — سلطة تكامل Micro Standard v2؛ + المقاطع الملموسة فقط من `mobile-ui-ux-reference-v1` و`mobile-prototype-spec-v1` + مهارات `micro-web-native-ux/` و`micro-design-system/` و`micro-prototype-qa/` + `05` إن عُرض مال | ≤ 20 / 300 KB (استثناء متعمد: أعلى الأسطح خطرًا) |
+| جودة / اختبار / قبول Slice أو PR | CORE+QUALITY | `.github/pull_request_template.md` | + `docs/operations/agent-handoff-protocol-v1.md` + `slice-handoff-template.md` + `docs/quality/scenario-coverage-matrix-v1.md` + مهارة `ai-skills/micro-prototype-qa/` + `05` إن كان ماليًا | ≤ 12 / 180 KB |
+| Operations Control / PR / تسليم | CORE+OPS | `docs/operations/control/generated/AGENT-BRIEF.md` | + `docs/operations/control/README.md` و`context.md` و`roadmap.md` + قالب PR + بروتوكول التسليم؛ وشغّل `python3 scripts/operations-control/validate.py` قبل أي تعديل وافحص PRs المفتوحة | ≤ 12 / 180 KB |
+| صيانة مهارة Agent | CORE+SKILLS | `ai-skills/README.ar.md` | + `docs/05-documentation-governance.md` + المهارة المستهدفة ومراجعها فقط | ≤ 12 / 180 KB |
+| بحث / قرار مالك | CORE+RESEARCH | `docs/research/global-build-reference-library-v1.md` | + `docs/research/micro-build-logic-v1.md` + `docs/04-product-truth-map.md` + بحث موجَّه في `docs/02-decision-log.md` (وسجلاته الموازية المسجلة فيه) | ≤ 12 / 230 KB |
 
-هذه طبقات قراءة لا بدائل مختصرة للعقود. عند لمس أكثر من طبقة، تُجمع المسارات المشروطة كلها، وتظل العقود والسياسات المالية ومصفوفات التغطية والوثائق canonical إلزامية. لا تقرأ تقارير البحث التاريخية أو ملفات النظام القديم بوصفها سلطة حالية؛ استخدمها فقط إذا ذكرت سبب الحاجة إليها.
+**امتداد مشروط (مهام التوسعة E-00):** إن كانت المهمة تخص `الخدمات` أو Micro Market أو Micro Delivery أو Supplier/Courier/Admin: أضف إلى حزمتك `docs/expansion/README.md` ثم `DECISIONS.md` و`TRACKER.md` و`E00-EXECUTION-PROTOCOL.md` و`FOUR-PARTY-IMPLEMENTATION-GATE-MAP.md` و`FOUR-PARTY-PORTAL-AND-ACCESS-RECOVERY-GATE.md` و`SEVEN-AGENT-EXPANSION-OPERATING-CHECKLIST.md`، والعقود 18–24 من سلسلة الشبكة E-00 (انظر تمييز الأرقام المتشابهة في فهرس الوثائق 12C-1) ومصفوفة الدور والسيناريو المتصلين بالمهمة، ثم العقود المالية والسيناريوهات. لا تستخدم `docs/expansion/historical-source/` كمرجع تنفيذ.
+
+**مهارات مرحلة MVP التجاري اللاحق (متقاعدة الآن — 2026-10-01):** `ai-skills/saas-delivery-verifier/` و`ai-skills/saas-product-guardian/` محفوظتان بمحتواهما ولا تُفعَّلان في مهام Prototype المرحلة 2. عند فتح بوابة MVP تُستشار مراجعهما: مصفوفة التحقق `ai-skills/saas-delivery-verifier/references/verification_matrix.md` ودفتر الإصدار `references/release_runbook.md` (حزمتا QUALITY/OPS)، ومقارنة المزودين `references/architecture_and_stack.md` (حزمة RESEARCH)، وبطاقة القرار `ai-skills/saas-product-guardian/references/decision_template.md` (مرتبطة من `docs/02-decision-log.md`) وسلّم الأدلة `references/hypothesis_and_research.md` (مرتبط بـ`docs/04-product-truth-map.md`).
+
+**ممنوع من القراءة الافتراضية (مخازن أدلة غير سلطوية):** `reports/` و`planning/` و`docs/operations/control/evidence/` و`docs/operations/archive/` و`qa/` — لا تُقرأ إلا بمسار صريح من بند Control أو Workstream أو إحالة من مستند سلطوي، ولا تعلو أبدًا على العقود أو الحالة الحية أو القرارات. الملفات التاريخية تحمل لافتات SUPERSEDED/HISTORICAL/EVIDENCE وتُصان ولا تُعاد كتابتها لتبدو حالية.
+
+هذه طبقات قراءة لا بدائل مختصرة للعقود. عند لمس أكثر من طبقة، تُجمع المسارات المشروطة كلها، وتظل العقود والسياسات المالية ومصفوفات التغطية والوثائق canonical إلزامية داخل سقف الحزمة. لا تقرأ تقارير البحث التاريخية أو ملفات النظام القديم بوصفها سلطة حالية؛ استخدمها فقط إذا ذكرت سبب الحاجة إليها.
 
 ## 3. سلطة الوثائق
 
@@ -45,6 +56,8 @@
 8. `docs/quality/unified-audit-resolution-v1.md` كحارس جودة تنفيذي قبل Prototype، ثم `docs/product/mobile-ui-ux-reference-v1.md` كمرجع تجربة و`docs/implementation/mobile-prototype-spec-v1.md` كمواصفة نطاق وسلوك؛ ولا يجوز للأخيرة أو للمهارات أو للملفات الداعمة والتاريخية أن تتغلب على العقود أو هوية المنتج.
 
 إذا ظهر تعارض حقيقي، لا تخمّن. سجله، حدّد الملفات المتأثرة، وأوقف التنفيذ عند النقطة التي قد تغيّر معنى المال أو المرحلة أو هوية المنتج. ولا يبدأ Agent من فهم تقني فقط: يثبت في بطاقة الفهم أنه يعرف موقف المستخدم وسؤال القرار وحد المعرفة ولماذا لا تدخل القدرة المجاورة في الشريحة نفسها.
+
+> **قاعدة التوقف الموحدة (السلّم الوحيد — 2026-10-01، WS-204):** عند أول تعارض حقيقي بين (١) الكود والاختبارات على `main`، (٢) العقد الحاكم للسلوك، (٣) الحالة الحية `docs/operations/current-state.md`، (٤) سجل التنسيق في Operations Control — توقف عند حدود §10 القاعدة 11، وسجّل البند `REVIEW_REQUIRED` مع الاستشهادَين؛ وقرار المالك مطلوب إن مسّ التعارض معنى المال أو المرحلة أو هوية المنتج. أي «سلّم تعارض» في أي وثيقة أخرى (فهرس، حوكمة، خريطة سلطة Control) يُقرأ إحالةً إلى هذه القاعدة لا سلّمًا منافسًا.
 
 ## 4. ما هو Micro؟
 
@@ -97,7 +110,7 @@ Micro ليس تطبيق طلبات فقط، وليس تطبيقًا تعليمي
 
 ## 8. الحالة الحالية وما يليها
 
-لا تضع حالة التنفيذ التفصيلية في هذا الملف؛ فهي تتغير أسرع من قواعد العمل. المرجع الحي الوحيد هو `docs/operations/current-state.md` ويجب أن يطابق `main`. افتحه قبل أي كود، ثم افتح العقد المتصل بالشريحة فقط. إذا كان في الحالة «توقف»، فالتوقف قاعدة تنفيذ لا اقتراح.
+لا تضع حالة التنفيذ التفصيلية في هذا الملف؛ فهي تتغير أسرع من قواعد العمل. المرجع الحي الوحيد هو `docs/operations/current-state.md` (ملف حالة حية صغير محروس السقف) ويجب أن يطابق `main`؛ سجل الشرائح والموجات التاريخي في `docs/operations/current-state-log.md` — append-only ولا يُحمَّل مع القراءة الحية. افتح الحالة الحية قبل أي كود، ثم افتح العقد المتصل بالشريحة فقط. إذا كان في الحالة «توقف»، فالتوقف قاعدة تنفيذ لا اقتراح.
 
 ## 9. بروتوكول الإغلاق
 
@@ -139,6 +152,8 @@ Micro ليس تطبيق طلبات فقط، وليس تطبيقًا تعليمي
 2. **مجموعة واحدة في الوقت نفسه، وبوابة مالك بين المجموعات:** كل مجموعة (٨: توثيق وسلطة العقود وحدود ميكانيكية؛ ٩: مصادر الحقيقة ووقت الأعمال؛ ١٠: مطابقة محوّلات التخزين وخدمة النقل؛ ١١: بنية الواجهة وتغطية الصفحات والإغلاق المعماري النهائي) تنتهي بتقرير مراجعة مالك قبل بدء التالية — لا يبدأ أي شيء تلقائيًا.
 3. **الحدود الرقمية وقرارات الرفض تبقى كما هي في §10** (38/30، سقف lint، سقفا الحزمة، ورفض `features/` الآن — قرار المالك D8 على تقرير المسح؛ تصحيح مؤرخ 2026-09-29 F-033/W4-B: كان الزوج 35/27 حين كُتبت القاعدة).
 4. إن ظهر تعارض بين الخطة وحقيقة الكود الحية: توقف عند حدود §10 القاعدة 11 (قرار المالك مطلوب) ولا يُفترض الصمت.
+
+> ملاحظة ترقيم مؤرخة 2026-10-01 (WS-204): القسمان 12 و13 حُذفا تاريخيًا قبل هذه النسخة؛ يستكمل الترقيم عند §14 ولا يُعاد ترقيم الأقسام حفظًا للمراجع القائمة.
 
 
 ## 14. Operations Control v2 — التنسيق الإلزامي

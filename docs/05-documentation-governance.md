@@ -33,50 +33,20 @@
 | `LEGACY` | خاص بنظام Accounting السابق | لا يعرّف المنتج الجديد؛ يُفتح فقط للترحيل أو المقارنة |
 | `RESTRICTED` | ملف نظام أو ملف لا يخص المنتج | لا يُنقل ولا يُعدل |
 
-## 3. المرجع الحالي المختصر
+## 3. مسار القراءة — إحالة وحيدة
 
-| الأولوية | الملف | التصنيف | الوظيفة |
-|---:|---|---|---|
-| 0 | `AGENTS.md` | CURRENT / ENTRY POINT | نقطة الدخول الأولى وترتيب القراءة والقواعد غير القابلة للكسر |
-| 1 | `docs/01-product-and-technical-blueprint.md` | CURRENT | Problem Statement، Product Goal، الفئات، MVP التجاري اللاحق، الطلبات، المال، SaaS، التقنية |
-| 2 | `docs/03-hypothesis-register.md` | CURRENT | سجل الفرضيات ومعايير تحويل المجهول إلى قرار |
-| 3 | `docs/04-product-truth-map.md` | CURRENT | ما هو مثبت ومرجح ومجهول ومصدر الدليل |
-| 4 | `docs/07-field-evidence-map.md` | CURRENT | الدليل الميداني وحدود ما تثبته خبرة المؤسس |
-| 5 | `docs/06-reference-library.md` | SUPPORTING | فهرس مشاريع GitHub والأنماط والتراخيص |
-| 6 | `docs/research/global-build-reference-library-v1.md` | CURRENT / RESEARCH AUTHORITY | المعرفة العالمية المحفوظة، المفاهيم، المنطق، التراخيص، وقرارات build/study/defer/reject |
-| 7 | `docs/research/micro-build-logic-v1.md` | CURRENT / BUILD LOGIC | تحويل المصادر إلى منطق Domain وUX وPrototype ومراحل مستقبلية |
-| 8 | `ai-skills/README.ar.md` | CURRENT | طريقة تشغيل المهارات مع أي ذكاء اصطناعي |
-| 9 | `docs/research/architecture-and-stack-decision.md` | SUPPORTING | مقارنة أولية للـStack؛ لا يتجاوز قرار الملف الأساسي |
-| 10 | `docs/research/architecture-decision-reassessment.md` | SUPPORTING / HISTORY | سجل قرار النواة المستقلة ومبرراته التاريخية |
-| 11 | `docs/research/github-global-research-round2.md` | SUPPORTING / HISTORY | تقرير البحث العالمي الثاني؛ يُقرأ لتتبع التاريخ لا كمرجع تجميعي أحدث |
-| 12 | `docs/research/github-global-research.md` | SUPPORTING / HISTORY | تقرير البحث العالمي الأول؛ يُقرأ لتتبع التاريخ لا كمرجع تجميعي أحدث |
-| 13 | `docs/decisions/01-first-vertical-slice.md` | CURRENT | قرار الشريحة التنفيذية الأولى |
-| 14 | `docs/decisions/02-repository-policy.md` | CURRENT | سياسة الملكية والترخيص المؤقتة |
-| 15 | `docs/decisions/03-scenario-validation-and-system-scope.md` | CURRENT | قرار السيناريوهات وحدود النظام |
-| 16 | `docs/contracts/` | CURRENT | عقود المجال التنفيذية |
-| 17 | `docs/08-glossary.md` | CURRENT | قاموس المصطلحات |
-| 18 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
-| 19 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
-| 20 | `docs/implementation/03-pre-build-alignment-v1.md` | CURRENT / GATE | تعريف Prototype وMVP وبوابة المحاكاة قبل البناء |
-| 21 | `docs/quality/pre-build-experiment-simulation-v1.md` | CURRENT / EVIDENCE | نتائج المحاكاة الحتمية وحدودها |
-| 22 | `docs/quality/simulated-first-read-cloud-code-v1.md` | CURRENT / QUALITY REVIEW | محاكاة قراءة Agent جديد قبل القراءة الفعلية لـCloud Code |
-| 23A | `docs/product/mobile-ui-ux-reference-v1.md` | CURRENT / CANONICAL / PHONE-FIRST | عقد تجربة الهاتف، المرئيات، المكونات، الحالات، والصدق المالي |
-| 23B | `docs/implementation/mobile-prototype-spec-v1.md` | CURRENT / CANONICAL / PROTOTYPE | مواصفة الشاشات، الرحلات، الحالات، الربط، والحدود |
-| 23C | `docs/implementation/prototype-build-charter-v1.md` | CURRENT / CANONICAL / BUILD CHARTER | قرار Web-first وAndroid-like وPWA-ready وCloudflare وخطة الشرائح وملكية المسارات |
-| 23D | `ai-skills/micro-web-native-ux/` و`ai-skills/micro-design-system/` و`ai-skills/micro-local-first-prototype/` و`ai-skills/micro-prototype-qa/` | CURRENT / OPERATIONAL SKILLS | إرشادات تشغيلية متخصصة لا تستبدل الوثائق أو العقود |
-| 23 | `docs/quality/cloud-code-first-read-findings-v1.md` | CURRENT / QUALITY REVIEW | نتائج القراءة الفعلية من Cloud Code والتحقق من ملاحظاتها |
+**جدول التوجيه الوحيد هو `AGENTS.md` §2 (النواة + حزم السياق التسع).** لا يوجد في هذا الملف جدول مرجعية ولا جدول قراءة حسب المهمة (تحديث مؤرخ 2026-10-01 — WS-204): تصنيف سلطة كل ملف في `docs/00-document-index.md` (كتالوج السلطة)، ومسار القراءة بحسب نوع المهمة في `AGENTS.md` §2، وحل التعارض بقاعدة التوقف الموحدة في `AGENTS.md` §3.
 
-## 4. ترتيب القراءة حسب المهمة
+## 4. قواعد مخازن الأدلة ودورة تقاعدها (تحديث مؤرخ 2026-10-01 — WS-204)
 
-| المهمة | اقرأ أولًا | ثم اقرأ عند الحاجة |
-|---|---|---|
-| قرار منتج أو ميزة | الملف الأساسي + حارس المنتج | سجل الفرضيات وTruth Map |
-| تكلفة أو ربح أو طلب | الملف الأساسي + حارس المجال | قواعد المجال والاختبارات |
-| كود أو قاعدة بيانات أو نشر | الملف الأساسي + قرار الشريحة + العقود + حارس التنفيذ | قرار Stack، الأمان، ومصفوفة التحقق |
-| Domain Core | قرار الشريحة + العقود + خارطة التنفيذ + بوابة Pre-build | `src/domain/` و`tests/domain/` |
-| Prototype Web-first Android-like | بوابة Pre-build + المحاكاة + خارطة التنفيذ + العقود + `docs/product/mobile-ui-ux-reference-v1.md` + `docs/implementation/mobile-prototype-spec-v1.md` + `docs/implementation/prototype-build-charter-v1.md` | النموذج التشغيلي وسياسة التوجيه ومصفوفة السيناريوهات والمهارات الأربع المتخصصة |
-| بحث خارجي أو GitHub | Truth Map + `global-build-reference-library-v1.md` + `micro-build-logic-v1.md` | `docs/06-reference-library.md` وتقارير البحث التاريخية وسجل التراخيص |
-| مراجعة نظام Accounting القديم | الملف الأساسي فقط لتحديد المطلوب | ملفات LEGACY المحددة فقط |
+مخازن الأدلة (`reports/` و`planning/` و`docs/operations/control/evidence/` و`docs/operations/archive/` وما تبقى في `docs/quality/` من أدلة شرائح) غير سلطوية وخارج القراءة الافتراضية بقائمة المنع في `AGENTS.md` §2. قواعدها:
+
+1. **الإلحاق المحدود:** كل تشغيل Agent جديد يكتب إلى `reports/agent-report/<تاريخ>_<تشغيل>/` (أو مقابل التخطيط) مع سطر في `README.md` الفهرس وتحديث `docs/operations/control/reports/index.json` **داخل نفس الـPR** — لا تشغيل بلا فهرسة.
+2. **لا لقطات داخل المستودع:** قرار المالك 2026-10-01 — لا تدخل لقطات شاشة أو أدلة بصرية للتقارير/التخطيط إلى المستودع إطلاقًا؛ تُرفع الأصلية إلى مرآة Documents وتُوثق بفرعها/التزامها في تقرير التشغيل. يحرس ذلك `scripts/check-image-policy.mjs` (خط أساس: أصول `apps/` التشغيلية وحزمة أدلة البند النشط UX-001 فقط؛ تعديله قرار مالك موثق).
+3. **تولد الحزمة التخطيطية بشرط إغلاق:** أي مجلد تخطيط جديد يذكر في `README` خاصته وجهة إغلاقه عند الدمج (أهداف التقطير + خطة المرآة) — كي لا تتكرر تراكمات أصول العلامة/AUX.
+4. **قاعدة التقاعد:** يصبح أي ملف دليل/تخطيط مؤهلًا للإزالة من الشجرة النشطة متى: (أ) كانت تشغيلته VERIFIED في Operations Control (أو موجة الشريحة مغلقة في سجل الحالة)، و(ب) صفر مراجع آلة (إعادة استخراج مجموعة المسارات وقت التنظيف)، و(ج) معرفته الفريدة مقطّرة إلى وجهة كنونية مسماة، و(د) قرار مالك للدفعة. الافتراض بعد التقطير: تاريخ git حد الاسترجاع، والمرآة الخارجية للأصول التي سيقرؤها المالك كاملةً.
+5. **اللافتات الإلزامية:** كل ملف يحل محله آخر يحمل لافتة مؤرخة SUPERSEDED/HISTORICAL/EVIDENCE ومؤشرًا لبديله، وصف كتالوجه يقلب إلى SUPERSEDED. الصمت عيب.
+6. **لا تُعاد كتابة دليل مجمد ليبدو حاليًا**، ولا يعلو دليل تاريخي على العقود أو الحالة الحية أو القرارات المعتمدة أبدًا.
 
 ## 5. قواعد التحديث
 

@@ -5,23 +5,18 @@ description: تصميم وتنفيذ ومراجعة التخزين المحلي 
 
 # Micro Local-first Prototype
 
+> **التسجيل (WS-204 — 2026-10-01):** المالك: مالك المنتج · آخر مراجعة: 2026-10-01 · الحالة: CURRENT/OPERATIONAL · مسجلة في `ai-skills/README.ar.md` و`docs/00-document-index.md`.
+> **السلطة:** هذه المهارة تشغيلية فقط ولا تعلو فوق عقود Micro ووثائقها canonical؛ عند أي تعارض يُوقف التنفيذ ويُسجَّل التعارض بدل حسمه داخل المهارة.
+> **التفعيل:** ربط التطبيق بالبيانات أو بناء الاستعادة أو المسودات أو Snapshots أو الأحداث أو schema أو local export/import أو اختبار العمل دون اتصال.
+> **عدم التفعيل:** إضافة مزامنة أو سحابة أو Auth أو تعدد مستخدمين — خارج Prototype المرحلة 2 ببوابة المالك (AGENTS §10.4).
+
 ## الغرض
 
 وفّر استمرارية محلية آمنة لـPrototype المرحلة 2 دون إنشاء SaaS مركزي أو Ledger عام. اجعل الواجهة تتعامل مع Port/Repository واضح، واجعل التخزين Adapter قابلًا للاستبدال لاحقًا.
 
-## اقرأ قبل التنفيذ
+## اقرأ قبل التنفيذ — حزمة واحدة
 
-اقرأ:
-
-- [`../../docs/implementation/prototype-build-charter-v1.md`](../../docs/implementation/prototype-build-charter-v1.md)
-- [`../../docs/implementation/mobile-prototype-spec-v1.md`](../../docs/implementation/mobile-prototype-spec-v1.md)
-- [`../../docs/contracts/05-financial-p0-policies.md`](../../docs/contracts/05-financial-p0-policies.md)
-- [`../../docs/contracts/04-limited-sync-contract.md`](../../docs/contracts/04-limited-sync-contract.md)
-- [`../../docs/implementation/02-domain-contract-coverage.md`](../../docs/implementation/02-domain-contract-coverage.md)
-- [`../../AGENTS.md`](../../AGENTS.md)
-
-لا تعتبر أي مخطط في Accounting أو أي تطبيق خارجي عقدًا لـMicro. استعمل Domain Core والعقود الحالية مصدرًا للحقيقة.
-
+حمّل حزمة القراءة `STORAGE` وفق `AGENTS.md` §2 (النواة + الحزمة) — لا قوائم قراءة مكررة هنا.
 ## حدود البيانات
 
 احفظ فقط ما يلزم للمسار المحلي: ملف النشاط، المسودات، الطلب، نسخ التكلفة، الأحداث، حالة النتيجة، تفضيلات الواجهة الضرورية، وبيانات التصدير. لا تضف `workspace_id` أو Auth أو صلاحيات أو مزامنة مركزية في Prototype إلا بقرار جديد.

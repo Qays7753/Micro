@@ -98,7 +98,7 @@
   ],
   "related_items": [],
   "evidence": [
-    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
     "docs/operations/control/evidence/micro-master-remediation-2026-09-29/FINAL-LOGIC-INVESTIGATION-AND-OWNER-DECISIONS-2026-09-29.md"
   ],
   "finding_classification": "DEEPENS_EXISTING",

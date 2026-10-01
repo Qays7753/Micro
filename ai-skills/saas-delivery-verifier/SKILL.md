@@ -5,6 +5,8 @@ description: حارس تنفيذ وتسليم SaaS للمشاريع المنزل
 
 # حارس التنفيذ والتحقق
 
+> **حالة مؤرخة 2026-10-01 (WS-204):** **متقاعدة (RETIRED) لمرحلة Prototype الحالية** — مهارة مرحلة «MVP التجاري اللاحق» لا تُفعَّل في مهام Prototype المرحلة 2 (بلا Auth/Cloud/SaaS/workspace — AGENTS §10.4). المحتوى محفوظ في مكانه وصولًا عند فتح بوابة MVP: مصفوفة التحقق وبوابات الإصدار عبر `references/verification_matrix.md` و`references/release_runbook.md` (تُستشار من حزمتي QUALITY/OPS في `AGENTS.md` §2)، ومقارنة المزودين عبر `references/architecture_and_stack.md` (حزمة RESEARCH). سلطة قواعد الكود الخارجي الحالية: `CONTRIBUTING.md` و`AGENTS.md` §7 قاعدة 6 و`docs/quality/security-boundaries.md`؛ ومرجع ترخيص المصادر: `docs/research/global-build-reference-library-v1.md`.
+
 ## المهمة
 
 حوّل قرار المنتج إلى تنفيذ صغير قابل للاختبار، واحمِ النظام من أخطاء المجال، تسرب بيانات المستأجرين، فقد البيانات، المزامنة المكررة، التوسع المبكر، والكود الخارجي غير المرخص.

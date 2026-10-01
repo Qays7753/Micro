@@ -13,6 +13,7 @@
 | 3 | [`agent-handoff-protocol-v1.md`](agent-handoff-protocol-v1.md) | قواعد الاستلام والتنفيذ والتسليم وحدود سلطة كل ملف. |
 | 4 | [`slice-handoff-template.md`](slice-handoff-template.md) | القالب الذي يستخدمه الوكيل عند فتح أو إغلاق Slice. |
 | 5 | [`control/generated/AGENT-BRIEF.md`](control/generated/AGENT-BRIEF.md) | ملخص مولّد للعمل المفتوح والبوابات والـclaims؛ لا يغيّر سلطة الملفات السابقة. |
+| 6 | [`current-state-log.md`](current-state-log.md) | سجل الشرائح والموجات التاريخي append-only؛ ليس مرجعًا لل حالة الحية ولا يُحمَّل افتراضيًا (أُنشئ بفصل WS-204 في 2026-10-01). |
 
 ## قاعدة المصدر الواحد
 
