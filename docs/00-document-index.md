@@ -68,7 +68,7 @@
 | 20C | `docs/product-source-of-truth.md` | CURRENT / SCOPED — التنقل النهائي ومسارات الشاشات ومسؤولياتها (تحديد نطاق مؤرخ 2026-10-01 داخل الملف) | مرجع التنقل وتدفق الشاشات؛ سلطة المال للعقود والحالة الحية لـ`current-state.md` |
 | 20D | `docs/product/home-navigation-proof-v1.md` | CURRENT / SUPPORTING | إثبات نموذج تنقل شاشة الرئيس |
 | 20E | `docs/product/deferred-capabilities-execution-plan-v1.md` | CURRENT / ROADMAP | تخطيط تنفيذ القدرات المؤجلة |
-| 20F | `docs/product/draft-dismissal-mini-spec-v1.md` | CURRENT / SUPPORTING | مواصفة إهمال المسودات |
+| 20F | `docs/product/draft-dismissal-mini-spec-v1.md` | SUPERSEDED / HISTORICAL — أُلغيت بقرار المالك ٢١ (تحديث مؤرخ 2026-10-02) | مواصفة اقتراح تاريخية لإغلاق المسودة مع سبب؛ المنفذ فعليًا: الحذف بلا سبب عبر `draftService.delete` |
 | 20G | `docs/product/brand-activation-observations-v1.md` | CURRENT / SCOPED RECORD | ملاحظات تشغيل حزمة العلامة المحفوظة (المساران ذويا التحميل الدائم، سلوك القفل التلقائي، قيد لا-lockup/wordmark، منشأ الحزمة، سجلات مرايا Documents المحققة) — مقطّرة من حزم التخطيط المحذوفة 2026-10-01 (WS-204) |
 | 20 | `docs/scenarios/scenario-test-set-v1.md` | CURRENT | 12 شخصية و120 حالة و120 سؤالًا، بما فيها السياحة والمشروع المختلط |
 | 21 | `docs/scenarios/scenario-test-results-v1.md` | CURRENT | نتائج التغطية والفجوات |
@@ -126,7 +126,7 @@
 | 09 | `docs/contracts/09-supplier-purchase-prototype-contract.md` | شراء المورد |
 | 10 | `docs/contracts/10-cash-continuity-prototype-contract.md` | استمرارية الكاش |
 | 11 | `docs/contracts/11-inventory-material-consumption-prototype-contract.md` | المخزون والمواد والاستهلاك |
-| 12 | `docs/contracts/12-financial-insights-g5-prototype-contract.md` | رؤى المالية G5 |
+| 12 | `docs/contracts/12-financial-insights-g5-prototype-contract.md` | رؤى المالية G5 — **LEGACY/RETAINED** (بانر داخل الملف؛ مُجاوز للتنفيذ بعقد 17 — تصحيح مؤرخ 2026-10-02) |
 | 13 | `docs/contracts/13-actual-material-per-order-prototype-contract.md` | المادة الفعلية للطلب |
 | 14 | `docs/contracts/14-period-result-allocation-policy-prototype-contract.md` | توزيع نتيجة الفترة |
 | 15 | `docs/contracts/15-catalog-reference-prototype-contract.md` | الكتالوج المرجعي |
