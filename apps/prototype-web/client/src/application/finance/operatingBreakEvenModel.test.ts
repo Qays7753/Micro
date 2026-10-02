@@ -125,7 +125,10 @@ describe("REM-007 — التعادل التشغيلي عبر طبقة التطب
   it("financing and liquidity records do not alter the operating break-even reading", async () => {
     const store = await storeWithFixedCost();
     const finance = new ProjectFinancialService(store, now);
-    const before = await new FinancialAnalysisService(store, finance, now).readDecision("2026-08-01", "2026-08-31");
+    const before = await new FinancialAnalysisService(store, finance, now).readDecision(
+      "2026-08-01",
+      "2026-08-31",
+    );
     if (!before.ok) throw new Error("before reading failed");
     /* عناصر التمويل والسيولة — لا أحد منها مصروف تشغيلي مصنف: رأس مال
      * المالك، سحب نقدي، قبض أصل قرض، أمانة محتجزة، وتصريح قبض متوقع. */
@@ -180,7 +183,10 @@ describe("REM-007 — التعادل التشغيلي عبر طبقة التطب
       reversalOfId: null,
       createdAt: now(),
     });
-    const after = await new FinancialAnalysisService(store, finance, now).readDecision("2026-08-01", "2026-08-31");
+    const after = await new FinancialAnalysisService(store, finance, now).readDecision(
+      "2026-08-01",
+      "2026-08-31",
+    );
     if (!after.ok) throw new Error("after reading failed");
     expect(after.value.period.operatingResultMinor).toBe(before.value.period.operatingResultMinor);
     expect(after.value.period.breakEvenState).toBe(before.value.period.breakEvenState);
@@ -236,7 +242,10 @@ describe("REM-007 — التعادل التشغيلي عبر طبقة التطب
         },
         idempotencyKey: `iso-order-${store === paid ? "paid" : "debt"}`,
       });
-      const decision = await new FinancialAnalysisService(store, finance, now).readDecision("2026-08-01", "2026-08-31");
+      const decision = await new FinancialAnalysisService(store, finance, now).readDecision(
+        "2026-08-01",
+        "2026-08-31",
+      );
       if (!decision.ok) throw new Error("reading failed");
       readings.push(decision.value.period);
     }

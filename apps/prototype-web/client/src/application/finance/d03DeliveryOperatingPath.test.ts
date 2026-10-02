@@ -205,7 +205,10 @@ describe("D-03 عبر المسار الكانوني الفعلي — لقطة ت
           : undefined,
       );
       const finance = await saveAndFix(store, order, `${key}-fixed`);
-      const decision = await new FinancialAnalysisService(store, finance, now).readDecision("2026-08-01", "2026-08-31");
+      const decision = await new FinancialAnalysisService(store, finance, now).readDecision(
+        "2026-08-01",
+        "2026-08-31",
+      );
       if (!decision.ok) throw new Error("reading failed");
       readings.push(decision.value.period);
       const position = await finance.readPosition();
@@ -353,7 +356,10 @@ describe("D-03 عبر المسار الكانوني الفعلي — لقطة ت
     expect(order.settlementStatus).toBe("paid");
     expect(order.recognizedRevenueMinor).toBe(6200);
     const finance = await saveAndFix(store, order, "d03-fee-project-fixed");
-    const decision = await new FinancialAnalysisService(store, finance, now).readDecision("2026-08-01", "2026-08-31");
+    const decision = await new FinancialAnalysisService(store, finance, now).readDecision(
+      "2026-08-01",
+      "2026-08-31",
+    );
     const insights = await finance.readFinancialInsights("2026-08-01", "2026-08-31");
     if (!decision.ok || !insights.ok) throw new Error("readers failed");
     expect(decision.value.period).toMatchObject({
