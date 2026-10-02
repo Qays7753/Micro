@@ -1,0 +1,79 @@
+{
+  "id": "DOC-005",
+  "title": "بنود سلطة وتوافق الجولة الثانية — OD-01/OD-06/OD-08a/OD-07 + أرشيفات محتكرة + دمج 02-by-tier",
+  "type": "GOVERNANCE",
+  "status": "IN_PROGRESS",
+  "priority": "P2",
+  "stage": "documentation-hygiene",
+  "summary": "تنفيذ بنود مصفوفة الجولة الثانية: تعيين capability-evolution-roadmap سلطة خارطة المنتج الوحيدة مع بانر تجاوز مؤرخ للخطة المؤجلة (OD-01)؛ تحويل todo.md إلى كعب توافق صغير مع حفظ أسطر الاختبارات السبعة حرفيًا وإعادة توجيه واجبات القوالب (OD-06)؛ تقليم قائمة القراءة الموازية في README التوسعة إلى إحالة وحيدة لجدول AGENTS §2 (OD-08a)؛ حذف مرايا .docx الثلاث المثبت علاقتها (OD-07)؛ أرشفة problem-statement-v3 و09-expansion-room؛ دمج 02-by-tier في 01-inventory-master مع حفظ ملخصه الإحصائي.",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "audit:MICRO-MINIMUM-KNOWLEDGE-SURFACE-AUDIT-2026-10-01 (OD-01/OD-06/OD-07/OD-08a + 2 owner-gated ARCHIVE rows + 1 owner-gated MERGE row; owner disposition matrix 2026-10-02)",
+  "source": {
+    "report": "docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/ROUND-2-FINAL-EXECUTION-REPORT.md",
+    "discovered_at_sha": "2680fd86cd1e170f529717c29fa844b625406b1c",
+    "evidence": []
+  },
+  "acceptance": [
+    "خارطة تطور القدرات هي سلطة خارطة المنتج الوحيدة الحالية، والخطة المؤجلة تحمل بانر تجاوز مؤرخًا مع بقاء محتواها التاريخي.",
+    "todo.md كعب صغير يوجه إلى Operations Control؛ الأسطر السبعة المثبتة باختبارات group2-6 موجودة حرفيًا؛ كل اختبارات التوثيق المعنية ناجحة.",
+    "§4 في README التوسعة إحالة وحيدة لجدول AGENTS §2 مع روابط تنفيذ الحزمة وبوابات القبول دون حذف أي وثيقة بوابات.",
+    "مرايا .docx الثلاث محذوفة مع تحديث صف الفهرس 40 وبقاء المصادر .md ومطبوعات المكتشفات.",
+    "v3 و09-expansion-room مؤرشفان (لا محذوفان) مع إصلاح الفهرس والحارس وكل الإحالات الحية في نفس التغيير.",
+    "02-by-tier مدموج في 01-inventory-master مع حفظ كل صف فريد وملخصه الإحصائي وتحديث الفهرس و00-summary ذريًا.",
+    "الحراس السبعة + validate + views + git diff --check ناجحة."
+  ],
+  "areas": [
+    "docs",
+    "todo.md",
+    "documentation-governance"
+  ],
+  "contracts": [],
+  "evidence": [
+    "docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/ROUND-2-FINAL-EXECUTION-REPORT.md"
+  ],
+  "dependencies": [],
+  "related_items": [
+    "DOC-001",
+    "DOC-002",
+    "DOC-003",
+    "DOC-004"
+  ],
+  "owner_decision": "اعتمد المالك كل بنود هذه المرحلة في مصفوفة الجولة الثانية (2026-10-02).",
+  "updated_at": "2026-10-02",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-10-02",
+      "actor": "audit:minimum-knowledge-surface-2026-10-01",
+      "reason": "بنود OD وأرشيفات/دمج محتكرة للمالك جاهزة بقرار الجولة الثانية."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "ws-210:claim",
+      "reason": "Claim تنفيذي ضمن WS-210."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-02",
+      "actor": "ws-210:implement",
+      "reason": "تنفيذ بنود المرحلة الثانية."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "تنفيذ البنود ثم IN_REVIEW عند فتح PR.",
+  "classification": "GOVERNANCE",
+  "owner": "Product owner / Z AI coordination",
+  "tests_required": [
+    "Operations Control validation + generated-view check",
+    "documentation/index/skill/image/entity guards",
+    "affected documentation tests (group2/3/4/5/6 ClosureDocs) via prototype:test",
+    "exact-path and basename reference scans",
+    "git diff --check"
+  ],
+  "layers": [
+    "documentation"
+  ],
+  "gate_classification": "NOT_APPLICABLE"
+}

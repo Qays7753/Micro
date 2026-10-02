@@ -52,7 +52,7 @@ export const REQUIRED_CANONICAL = [
   "docs/08-glossary.md",
   "docs/README.md",
   "docs/product-source-of-truth.md",
-  "docs/product/problem-statement-v3.md",
+  "docs/operations/archive/problem-statement-v3.md",
   "docs/product/problem-statement-v4.md",
   "docs/product/problem-statement-v5.md",
   "docs/product/system-definition-v1.md",

@@ -13,7 +13,7 @@
 
 
 **الحالة:** `CURRENT / CANONICAL`
-**تحل محل:** `problem-statement-v3.md` بوصفها مرجع المشكلة الحالي؛ تحتفظ v3 بسياقها التاريخي فقط.
+**تحل محل:** `problem-statement-v3.md` بوصفها مرجع المشكلة الحالي؛ تحتفظ v3 بسياقها التاريخي فقط *(أُرشفت في `docs/operations/archive/problem-statement-v3.md` بتحديث مؤرخ 2026-10-02 — قرار مالك الجولة الثانية لتدقيق الحد الأدنى).*
 **قرار مرتبط:** [نواة مالية عامة وProfiles قطاعية ومشاريع مختلطة](../decisions/25-multi-activity-core-profiles-v1.md)
 
 ## Major Discussion Points

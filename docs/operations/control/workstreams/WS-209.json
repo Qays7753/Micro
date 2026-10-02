@@ -1,7 +1,7 @@
 {
   "id": "WS-209",
   "title": "تنفيذ الدفعة المحذوفة وتقاعد ملفات التقارير المساندة — الجولة الثانية من تدقيق الحد الأدنى",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "DOC-004"
   ],
@@ -18,7 +18,7 @@
   "pr": 291,
   "started_at": "2026-10-02",
   "updated_at": "2026-10-02",
-  "next_action": "دمج PR #291 بعد نجاح CI ثم التحقق على main.",
+  "next_action": "لا إجراء إضافي؛ منفذ ومتحقق على main عند 20041318.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -37,11 +37,27 @@
       "changed_at": "2026-10-02",
       "actor": "ws-209:review",
       "reason": "فُتح PR #291 على الفرع docs/surface-cleanup-r2-20261002 برأس d84e91c6 بعد نجاح كل الفحوص المحلية (الحراس السبعة + validate + views)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "merge:pr-291",
+      "reason": "دُمج PR #291 بطريقة Squash عند 200413187002bbada752586f1d12f41308420bfc بعد نجاح CI (Actions + Cloudflare Pages) على رأس الـPR النهائي (بعد دمج إصلاح audit البنيوي PR #292 في الفرع)."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "verify:main-tree",
+      "reason": "تطابق رأس origin/main مع merge_sha 200413187002bbada752586f1d12f41308420bfc؛ المدقق صالح (77 بندًا/51 Workstream) والViews حالية؛ الملفات المحذوفة غائبة والأساسيات الباقية حاضرة على main؛ صفر إحالات حية متروكة."
     }
   ],
   "migration_baseline": false,
   "notes": [
     "قرار المالك الموثق في محفظة الجولة الثانية (OD matrix): DELETE-42 + aux-94 (واحد مستثنى run-main). حد الاستعادة: git revert لدمجة الـPR؛ تاريخ git عند 43058d61 يحفظ كل محتوى محذوف."
   ],
-  "evidence": []
+  "evidence": [
+    "docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/ROUND-2-FINAL-EXECUTION-REPORT.md"
+  ],
+  "merge_sha": "200413187002bbada752586f1d12f41308420bfc",
+  "verified_on_main_sha": "200413187002bbada752586f1d12f41308420bfc"
 }

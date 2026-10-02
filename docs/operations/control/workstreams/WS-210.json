@@ -1,0 +1,45 @@
+{
+  "id": "WS-210",
+  "title": "تنظيف السلطة والتوافق — الجولة الثانية: سلطة الخارطة، كعب todo، موجّه التوسعة، مرايا docx، أرشيفات محتكرة، دمج 02-by-tier",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-005"
+  ],
+  "branch": "docs/surface-cleanup-r2-20261002-p2",
+  "base_sha": "200413187002bbada752586f1d12f41308420bfc",
+  "areas": [
+    "docs/product",
+    "docs/inventory",
+    "docs/expansion",
+    "todo.md",
+    "documentation-governance",
+    "docs/00-document-index.md"
+  ],
+  "contracts": [],
+  "agent": "Z AI coordination agent (Round-2 cleanup execution)",
+  "pr": null,
+  "started_at": "2026-10-02",
+  "updated_at": "2026-10-02",
+  "next_action": "تنفيذ OD-01 وOD-06 وOD-08a وOD-07 وأرشفة v3/09-expansion-room ودمج 02-by-tier وفق مصفوفة قرار المالك.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "ws-210:claim",
+      "reason": "فتح Claim على الفرع docs/surface-cleanup-r2-20261002-p2 من main المتحقق 200413187002bbada752586f1d12f41308420bfc (بعد دمج وتحقق Phase 1)؛ صفر تعارض نطاقات ونشاط موازٍ."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-02",
+      "actor": "ws-210:implement",
+      "reason": "تنفيذ بنود المرحلة الثانية المعتمدة."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "قرار المالك (مصفوفة الجولة الثانية): OD-01 سلطة خارطة واحدة؛ OD-06 كعب todo.md مع حفظ الأسطر المثبتة بالاختبارات حرفيًا (اختبارات تحت apps/ لا تُمس)؛ OD-08a تقليم §4 التوسعة؛ OD-07 حذف مرايا docx (علاقة المرآة مثبتة)؛ أرشفة v3 و09-expansion-room؛ دمج 02-by-tier مع حفظ الملخص الإحصائي الفريد."
+  ],
+  "evidence": [
+    "docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/ROUND-2-FINAL-EXECUTION-REPORT.md"
+  ]
+}

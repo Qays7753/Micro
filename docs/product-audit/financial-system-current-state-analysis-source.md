@@ -6,7 +6,7 @@
 | Analyzed baseline | Remote `main` @ **8ede6b2b93c9d55bba69f33548054313e332db41** (2026-08-31, "merge: the financial flow and operating model redesign") |
 | Analysis date | 2026-08-31 |
 | Analysis mode | Discovery, analysis, and documentation only — **no implementation** |
-| Deliverables | `docs/product-audit/financial-system-current-state-analysis-ar.docx` (Arabic, primary review document) and this file (English, traceable source) |
+| Deliverables | `docs/product-audit/financial-system-current-state-analysis-ar.docx` (Arabic, primary review document) and this file (English, traceable source) *(تحديث مؤرخ 2026-10-02 — OD-07: حُذفت نسخة `.docx` بقرار مالك الجولة الثانية بعد إثبات علاقة المرآة؛ الأصل في تاريخ git عند `43058d61`.)* |
 | Companion document | This report mirrors the Arabic Word report. Findings, IDs, evidence, and recommendations are identical in both. |
 
 ```

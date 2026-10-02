@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 49
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 50
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-209 | IN_REVIEW | \`docs/surface-cleanup-r2-20261002\` | 291 | DOC-004 | دمج PR #291 بعد نجاح CI ثم التحقق على main. |
+| WS-210 | IN_PROGRESS | \`docs/surface-cleanup-r2-20261002-p2\` | — | DOC-005 | تنفيذ OD-01 وOD-06 وOD-08a وOD-07 وأرشفة v3/09-expansion-room ودمج 02-by-tier وفق مصفوفة قرار المالك. |
