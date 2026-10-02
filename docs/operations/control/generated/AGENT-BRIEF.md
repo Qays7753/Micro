@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 51
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 52
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-211 | IN_REVIEW | \`docs/architecture-refactoring-plan-20261002\` | 299 | ARCH-001 | قبول المالك مسجل (2026-10-03) مع التصحيحات الإلزامية والملفات الحية الأربعة على نفس الفرع؛ بعد الدمج MERGED_UNVERIFIED ثم VERIFIED بعد التحقق على main، ثم تبدأ موجات البرنامج (3A فأعلى) بWorkstream جديد. |
+| WS-212 | IN_PROGRESS | \`refactoring/remediation-program-20261003\` | 300 | ARCH-002 | تنفيذ الموجة 3A (ذهبيات + اختبارات وصف) ثم PR مستقل؛ كل موجة تالية بحد رجوع مستقل. |
