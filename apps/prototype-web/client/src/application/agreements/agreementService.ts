@@ -10,13 +10,8 @@ import {
   type CraftOrder,
 } from "@micro-domain/craft-order/index.js";
 import type { CostService } from "@/application/cost/costService";
-import type {
-  AgreementSource,
-  OrderDraft,
-  PrototypeLocalStore,
-  ScheduleEntry,
-  StoredCraftOrder,
-} from "@/storage/local/types";
+import type { AgreementSource, OrderDraft, ScheduleEntry, StoredCraftOrder } from "@/storage/local/types";
+import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 
 /* ORD-003: شروط النقل والتوصيل عند الاتفاق — المسؤولية والأعلام والمبالغ؛
  * المفتاح والوقت تشتقهما الخدمة (حدث موثق في خط زمن الطلب). */
@@ -68,7 +63,7 @@ function validation(message: string): Extract<AgreementResult, { ok: false }> {
 
 export class AgreementService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: OrderLifecycleStore,
     private readonly costs: CostService,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
