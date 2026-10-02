@@ -131,7 +131,7 @@
 
 | النوع | العنصر | الموقع | التصنيف |
 |---|---|---|---|
-| Deep import (domain) | settlementInvariant خارج البرميل | application (dynamic import ×3) | STR-205 — Wave J: تصدير عبر البرميل |
+| Deep import (domain) | settlementInvariant خارج البرميل | application/finance (dynamic) | STR-205 — Wave J: تصدير عبر البرميل؛ **محروس الآن بحارس الحدود 4E (R1)** |
 | Deep import (domain) | operatingBreakEven ×2 (D-034) | application/g5 | تنازل موثق D-034 (حزمة) — يبقى |
 | Deep import (domain) | STR-030 alias ×2 + type import ×1 | domain-internal | موثق S2 |
 | Deep import (application) | integrityCheckService.ts:1437 | application↔application | STR-313 — تنازل مفرد موثق |
@@ -146,9 +146,9 @@
 | ESLint waiver | application Math ×3 | finance (تقريب محكوم) | تنازل موثق |
 | ESLint waiver | storage types → UI (type-only) | 16 ملف UI | سياسة موثقة (STR-305 قرار مالك مؤجل) |
 | Application→presentation | 14 حافة قيمة / 12 ملفًا | application → presentation/formatters | STR-203 — OWNER_DECISION_REQUIRED (waiver أو نقل — Wave G) |
-| UI→domain direct | 16 حافة قيمة (منها 6 صفحات) | UI → domain | STR-106 — OWNER_DECISION_REQUIRED (سياسة اتجاه) |
+| UI→domain direct | 13 حافة قيمة عند القياس الحي 4E (8 صفحات) | UI → domain | STR-106 — OWNER_DECISION_REQUIRED (سياسة اتجاه)؛ **مجمّدة بحارس الحدود 4E (R2)** — العدد الحي 13 (كان 16 عند بذرة v1.0 قبل موجات 3A-4D) |
 
-**قاعدة السجل:** أي استثناء جديد يحتاج صفًا هنا + سببًا + تاريخ مراجعة. الرقم الحالي خط أساس — الحارس (Wave 4E) يمنع الزيادة لا يقللها قسرًا.
+**قاعدة السجل:** أي استثناء جديد يحتاج صفًا هنا + سببًا + تاريخ مراجعة. الرقم الحالي خط أساس — **الحارس (Wave 4E/RC-9 — منفذ) يمنع الزيادة الصامتة**: `scripts/check-module-boundaries.mjs` (قائم على الفَلْحة/AST) يجمد الأساس المقبول (3 استيرادات عميقة داخل المجال؛ 13 حافة واجهة→مجال؛ 14 حافة تطبيق→عرض) ويرفض أي حافة جديدة فوقه، و`scripts/check-file-size-ratchet.mjs` يرفض أي تصعيد شريطي حجمي فوق أساس JSON مراجَع (350 ملفًا) — تحديث الأساس عمدًا في نفس PR الحافة المشروعة/النمو المسجل مع صف هنا، لا بعده.
 
 ---
 

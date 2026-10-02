@@ -1,0 +1,198 @@
+/**
+ * Wave 4E (RC-9): اختبارات مراقب الحدود القائم على الفَلْحة — حتمية بلا شبكة
+ * ولا نوم. العينات تُبنى في مجلدات مؤقتة تحاكي بنية المستودع (src/domain +
+ * مصدر النموذج) وتُمسح بعدها.
+ *
+ * تغطي: تصنيف الطبقات، استخراج الاستيرادات (ثابت/ديناميكي/نوعي)، القواعد
+ * الثلاث (عميق داخل المجال، واجهة→مجال، تطبيق→عرض) على أساس مصطنع
+ * (نجاح + اصطياد كل قاعدة على حدة)، وسلوك CLI على المستودع الحي (فحص دخاني).
+ */
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { afterAll, describe, expect, it } from "vitest";
+import {
+  APPLICATION_TO_PRESENTATION_VALUE_BASELINE,
+  DEEP_DOMAIN_IMPORT_BASELINE,
+  UI_TO_DOMAIN_VALUE_BASELINE,
+  checkModuleBoundaries,
+  collectAllImports,
+  layerOf,
+} from "./check-module-boundaries.mjs";
+
+const SCRIPT_PATH = fileURLToPath(import.meta.url).replace(
+  /check-module-boundaries\.test\.mjs$/,
+  "check-module-boundaries.mjs",
+);
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+const tempDirs = [];
+function makeTempDir() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "micro-boundaries-"));
+  tempDirs.push(dir);
+  return dir;
+}
+afterAll(() => {
+  for (const dir of tempDirs) fs.rmSync(dir, { recursive: true, force: true });
+});
+
+function write(root, rel, content) {
+  const full = path.join(root, rel);
+  fs.mkdirSync(path.dirname(full), { recursive: true });
+  fs.writeFileSync(full, content, "utf8");
+}
+
+const DOMAIN_BARREL = area => `export type T = { a: number };\nexport const v = 1;\n`;
+const APP_SERVICE = (specifier, importLine) => `import { v } from "${specifier}";\nexport const s = v;\n`;
+
+describe("layer classification", () => {
+  it("maps paths to the registry's layer vocabulary", () => {
+    expect(layerOf(REPO_ROOT, path.join(REPO_ROOT, "src/domain/asset/policies.ts"))).toBe("domain");
+    expect(layerOf(REPO_ROOT, path.join(REPO_ROOT, "src/domain/asset/index.ts"))).toBe("domain");
+    expect(layerOf(REPO_ROOT, path.join(REPO_ROOT, "apps/prototype-web/client/src/application/x/s.ts"))).toBe(
+      "application",
+    );
+    expect(layerOf(REPO_ROOT, path.join(REPO_ROOT, "apps/prototype-web/client/src/presentation/f.ts"))).toBe(
+      "presentation",
+    );
+    expect(layerOf(REPO_ROOT, path.join(REPO_ROOT, "apps/prototype-web/client/src/pages/P.tsx"))).toBe("ui");
+    expect(layerOf(REPO_ROOT, path.join(REPO_ROOT, "apps/prototype-web/client/src/components/c/C.tsx"))).toBe(
+      "ui",
+    );
+    expect(layerOf(REPO_ROOT, path.join(REPO_ROOT, "apps/prototype-web/client/src/app/Shell.tsx"))).toBe(
+      "app-shell",
+    );
+    expect(layerOf(REPO_ROOT, path.join(REPO_ROOT, "apps/prototype-web/client/src/lib/u.ts"))).toBe("lib");
+  });
+});
+
+describe("import extraction (AST, resolution-based)", () => {
+  it("collects static value, static type, and dynamic imports with resolution", () => {
+    const root = makeTempDir();
+    write(root, "src/domain/widget/index.ts", DOMAIN_BARREL());
+    write(root, "src/domain/widget/deep.ts", "export const d = 2;\n");
+    write(root, "src/domain/shared/index.ts", DOMAIN_BARREL());
+    write(
+      root,
+      "apps/prototype-web/client/src/application/x/service.ts",
+      [
+        'import { v } from "@micro-domain/widget/index.js";',
+        'import type { T } from "@micro-domain/shared/index.js";',
+        "export async function load() {",
+        '  return import("@micro-domain/widget/deep.js");',
+        "}",
+        "export const t = 1;",
+      ].join("\n"),
+    );
+    const imports = collectAllImports(root);
+    const fromService = imports.filter(i => i.file.endsWith("application/x/service.ts"));
+    expect(fromService.length).toBe(3);
+    const valueBarrel = fromService.find(i => i.specifier.endsWith("widget/index.js"));
+    expect(valueBarrel?.kind).toBe("value");
+    expect(valueBarrel?.resolved).toBe("src/domain/widget/index.ts");
+    const typeImport = fromService.find(i => i.specifier.endsWith("shared/index.js"));
+    expect(typeImport?.kind).toBe("type");
+    const dynamicDeep = fromService.find(i => i.specifier.endsWith("widget/deep.js"));
+    expect(dynamicDeep?.kind).toBe("value");
+    expect(dynamicDeep?.dynamic).toBe(true);
+    expect(dynamicDeep?.resolved).toBe("src/domain/widget/deep.ts");
+  });
+});
+
+describe("boundary rules on a synthetic tree (each rule can fail)", () => {
+  it("R1: a NEW deep domain import outside the baseline is caught; the registered one passes", () => {
+    const root = makeTempDir();
+    write(root, "src/domain/widget/index.ts", DOMAIN_BARREL());
+    write(root, "src/domain/widget/deep.ts", "export const d = 2;\n");
+    write(root, "src/domain/other/index.ts", DOMAIN_BARREL());
+    write(root, "src/domain/other/inner.ts", "export const o = 3;\n");
+    /* المسجل: application/finance/integrityCheckService.ts -> deep */
+    write(
+      root,
+      "apps/prototype-web/client/src/application/finance/integrityCheckService.ts",
+      APP_SERVICE("@micro-domain/widget/deep.js"),
+    );
+    let result = checkModuleBoundaries(root);
+    /* الأساس الحقيقي يسجل مسارًا آخر — نبني أساسًا مصطنعًا عبر الحقن: نعيد
+     * الفحص بأساس يحوي هذا الزوج بالضبط (اختبار الدالة لا الأساس المضمّن). */
+    const syntheticBaselineImports = collectAllImports(root);
+    const key =
+      "apps/prototype-web/client/src/application/finance/integrityCheckService.ts -> @micro-domain/widget/deep.js";
+    const saved = [...DEEP_DOMAIN_IMPORT_BASELINE];
+    DEEP_DOMAIN_IMPORT_BASELINE.length = 0;
+    DEEP_DOMAIN_IMPORT_BASELINE.push(key);
+    result = checkModuleBoundaries(root, syntheticBaselineImports);
+    expect(result.violations.filter(v => v.rule === "R1-deep-domain-import")).toEqual([]);
+    /* الآن خرق جديد: ملف آخر يستورد عميقًا غير مسجل. */
+    write(
+      root,
+      "apps/prototype-web/client/src/application/x/newService.ts",
+      APP_SERVICE("@micro-domain/other/inner.js"),
+    );
+    result = checkModuleBoundaries(root);
+    const r1 = result.violations.filter(v => v.rule === "R1-deep-domain-import");
+    expect(r1.length).toBe(1);
+    expect(r1[0]?.key).toContain("newService.ts");
+    DEEP_DOMAIN_IMPORT_BASELINE.length = 0;
+    DEEP_DOMAIN_IMPORT_BASELINE.push(...saved);
+  });
+
+  it("R2: a NEW ui->domain value edge is caught; a type-only edge is not", () => {
+    const root = makeTempDir();
+    write(root, "src/domain/widget/index.ts", DOMAIN_BARREL());
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/NewPage.tsx",
+      'import { v } from "@micro-domain/widget/index.js";\nexport const p = v;\n',
+    );
+    const result = checkModuleBoundaries(root);
+    const r2 = result.violations.filter(v => v.rule === "R2-ui-to-domain-value");
+    expect(r2.length).toBe(1);
+    expect(r2[0]?.key).toContain("NewPage.tsx");
+    /* نوع فقط: مسموح (سياسة STR-106 تقيد حواف القيمة). */
+    const root2 = makeTempDir();
+    write(root2, "src/domain/widget/index.ts", DOMAIN_BARREL());
+    write(
+      root2,
+      "apps/prototype-web/client/src/pages/TypeOnly.tsx",
+      'import type { T } from "@micro-domain/widget/index.js";\nexport const p = 1;\n',
+    );
+    const result2 = checkModuleBoundaries(root2);
+    expect(result2.violations.filter(v => v.rule === "R2-ui-to-domain-value")).toEqual([]);
+  });
+
+  it("R3: a NEW application->presentation value edge is caught", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/presentation/formatters.ts", "export const f = 1;\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/application/x/service.ts",
+      'import { f } from "@/presentation/formatters";\nexport const s = f;\n',
+    );
+    const result = checkModuleBoundaries(root);
+    const r3 = result.violations.filter(v => v.rule === "R3-application-to-presentation-value");
+    expect(r3.length).toBe(1);
+    expect(r3[0]?.key).toContain("application/x/service.ts");
+  });
+
+  it("the embedded baselines are internally unique and non-empty", () => {
+    for (const [name, baseline] of [
+      ["deep", DEEP_DOMAIN_IMPORT_BASELINE],
+      ["ui→domain", UI_TO_DOMAIN_VALUE_BASELINE],
+      ["app→presentation", APPLICATION_TO_PRESENTATION_VALUE_BASELINE],
+    ]) {
+      expect(baseline.length, name).toBeGreaterThan(0);
+      expect(new Set(baseline).size).toBe(baseline.length);
+    }
+  });
+});
+
+describe("CLI on the live repo (smoke)", () => {
+  it("exits 0 with a summary line on the live tree", () => {
+    const run = spawnSync(process.execPath, [SCRIPT_PATH, REPO_ROOT], { encoding: "utf8" });
+    expect(run.status).toBe(0);
+    expect(run.stdout).toContain("module-boundaries: PASS");
+  });
+});
