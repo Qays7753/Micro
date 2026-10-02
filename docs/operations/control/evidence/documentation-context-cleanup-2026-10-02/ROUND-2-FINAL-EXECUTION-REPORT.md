@@ -89,7 +89,7 @@ Protected (restated): no `apps/` changes; no `src/domain` production code; no fi
 | After infra PR #292 (dev-dep audit repair) | `19b09191bf0ff87fd1ff10923fdfa226fee0c2ea` | GitHub merge API + `git rev-parse origin/main` |
 | After Phase 1 PR #291 | `200413187002bbada752586f1d12f41308420bfc` | same + post-merge validation on the merge commit |
 | After Phase 2 PR #293 | `331bb6f989c183c21350f7b1efc4443d93195680` | same |
-| Final `main` after closure PR #294 | (recorded below at merge) | same |
+| Final `main` after closure PR #294 | `0c094fd9bf5936a219407cf034898988bd29effb` | GitHub merge API + `git rev-parse origin/main`; post-merge validation on the merge commit (78 items, 52 workstreams, 0 active claims; views current; report/status lines verified present) |
 
 ## 4. PRs, branches, checks
 
@@ -98,9 +98,9 @@ Protected (restated): no `apps/` changes; no `src/domain` production code; no fi
 | #292 (infra — separate GitHub-safety repair) | https://github.com/Qays7753/Micro/pull/292 | `infra/audit-devdeps-20261002` | `3dc98139eece3b7945b69343757892bf40d3ffbe` | `19b09191bf0ff87fd1ff10923fdfa226fee0c2ea` | Actions success — https://github.com/Qays7753/Micro/actions/runs/36941898941/job/110635096958 ; Cloudflare Pages success — https://github.com/Qays7753/Micro/runs/110635104291 |
 | #291 (Phase 1) | https://github.com/Qays7753/Micro/pull/291 | `docs/surface-cleanup-r2-20261002` | `86b8d8941d5bf3cd6ea9db7b09a03898063f0df2` (3 commits + main-merge for the audit fix) | `200413187002bbada752586f1d12f41308420bfc` | Actions success — https://github.com/Qays7753/Micro/actions/runs/36942776263/job/110637897193 ; Cloudflare Pages success — https://github.com/Qays7753/Micro/runs/110638105735 |
 | #293 (Phase 2) | https://github.com/Qays7753/Micro/pull/293 | `docs/surface-cleanup-r2-20261002-p2` | `505568c3af4ec4574401be854fce312780e59149` | `331bb6f989c183c21350f7b1efc4443d93195680` | Actions success — https://github.com/Qays7753/Micro/actions/runs/36944510153/job/110643742165 ; Cloudflare Pages success — https://github.com/Qays7753/Micro/runs/110643533512 |
-| #294 (closure) | https://github.com/Qays7753/Micro/pull/294 | `docs/surface-cleanup-r2-20261002-closure` | (this commit) | (recorded post-merge) | CI green required before merge |
+| #294 (closure) | https://github.com/Qays7753/Micro/pull/294 | `docs/surface-cleanup-r2-20261002-closure` | `5772cfb807575342d8614af60745aa5e4ba0090f` | `0c094fd9bf5936a219407cf034898988bd29effb` | Actions success + Cloudflare Pages success on head `5772cfb8` (observed live pre-merge via check-runs API) |
 
-All merges are squash; all source branches and PRs retained (not deleted). Post-merge verification for #291/#293 was performed **on the merge commits on `main`**: `git fetch` + SHA equality, `validate.py` EXIT 0, `generate_tracker.py --check` current, file presence/absence spot-checks, and (for #291's merged tree) the full reference re-scan. The same protocol runs for #294 after its merge.
+All merges are squash; all source branches and PRs retained (not deleted). Post-merge verification for #291/#293 was performed **on the merge commits on `main`**: `git fetch` + SHA equality, `validate.py` EXIT 0, `generate_tracker.py --check` current, file presence/absence spot-checks, and (for #291's merged tree) the full reference re-scan. The same protocol ran for #294 after its merge (`0c094fd9`: validate EXIT 0 — 78 items, 52 workstreams, 0 active claims; views current; WS-209/WS-210 VERIFIED rows and the report's status lines verified present on `main`).
 
 ## 5. Infrastructure repair PR #292 (disclosed separately — not part of the cleanup matrix)
 
