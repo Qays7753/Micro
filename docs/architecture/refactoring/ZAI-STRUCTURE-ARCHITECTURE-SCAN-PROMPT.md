@@ -4,7 +4,9 @@
 
 You are the execution agent for **Phase 1 of Micro’s architecture/refactoring program**.
 
-Perform a **read-only, comprehensive Structure / Architecture / Code Organization Scan** of the live `main` repository. The purpose is to understand the current application accurately, compare it with the approved architectural direction, and produce one owner-reviewable findings report before any structural refactoring begins.
+Perform a **read-only, comprehensive Structure / Architecture / Code Organization Scan** of the live `main` repository. The purpose is to understand the current application accurately, compare it with the approved architectural direction, and produce one owner-reviewable **system-wide target architecture and migration/refactoring plan** before any structural refactoring begins.
+
+The scan is a means, not the final goal. The primary deliverable is a practical `CURRENT → TARGET → MIGRATION WAVES` plan based on `REFACTORING-PLAN-A-TO-Z.md`. Do not produce a generic bug-audit or a list of isolated defects. Mention a problem only when it is evidence for a boundary, ownership, dependency, duplication, discoverability, test/documentation, or migration decision, and connect it to the proposed target boundary and safe wave.
 
 This is **not** a refactoring task, not a cleanup task, not a UI task, and not a financial remediation task.
 
