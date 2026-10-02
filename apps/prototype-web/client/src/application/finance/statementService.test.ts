@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import { StatementService } from "./statementService";
 import { statementResultDecomposition } from "./statementMarkdownService";
-import { OwnerEntitlementService } from "./ownerEntitlementService";
+import { OwnerEntitlementService } from "../owner-money/ownerEntitlementService";
 import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";

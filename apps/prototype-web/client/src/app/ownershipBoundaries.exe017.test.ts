@@ -60,16 +60,16 @@ describe("EXE-017 — حدود الملكية التقنية (خريطة الم�
     ).toBe(true);
   });
 
-  it("سياسات استحقاق المالك: كاتبها الوحيد خارج التخزين هو ownerEntitlementService (المالية)", () => {
+  it("سياسات استحقاق المالك: كاتبها الوحيد خارج التخزين هو ownerEntitlementService (مال المالك — Wave 4B)", () => {
     for (const path of srcFiles) {
       if (isStorageAdapter(path) || isTestFile(path)) continue;
       const content = readSrcFile(path);
       const writerCalls = content.match(
         /\.(?:saveOwnerEntitlementPolicy|commitOwnerEntitlementPolicySuccessor)\s*\(/g,
       );
-      if (writerCalls && path !== "application/finance/ownerEntitlementService.ts") {
+      if (writerCalls && path !== "application/owner-money/ownerEntitlementService.ts") {
         throw new Error(
-          `انتهاك ملكية: ${path} يستدعي كاتب سياسة استحقاق المالك — الكاتب القانوني الوحيد هو application/finance/ownerEntitlementService.ts (المالية).`,
+          `انتهاك ملكية: ${path} يستدعي كاتب سياسة استحقاق المالك — الكاتب القانوني الوحيد هو application/owner-money/ownerEntitlementService.ts (مال المالك — نقل مؤرخ Wave 4B).`,
         );
       }
     }

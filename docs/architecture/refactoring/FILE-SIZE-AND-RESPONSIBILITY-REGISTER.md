@@ -41,7 +41,7 @@
 | `apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts` | production | 1184 | 1185 | 55530 | 1 | 5 | 1 | 0 | SPLIT_CANDIDATE | application | SPLIT_CANDIDATE — characterization first (Wave 3A) | — |
 | `apps/prototype-web/client/src/pages/SupplierPurchaseEditor.tsx` | production | 1157 | 1184 | 57934 | 1 | 22 | 6 | 5 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | M |
 | `apps/prototype-web/client/src/pages/OwnerEntitlement.tsx` | production | 1133 | 1157 | 51692 | 1 | 17 | 2 | 1 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | M |
-| `apps/prototype-web/client/src/application/finance/ownerEntitlementService.ts` | production | 1093 | 1109 | 51408 | 14 | 7 | 33 | 24 | SPLIT_CANDIDATE | application | SPLIT_CANDIDATE — 4B pilot cluster member | — |
+| `apps/prototype-web/client/src/application/owner-money/ownerEntitlementService.ts` | production | 1093 | 1109 | 51408 | 14 | 7 | 33 | 24 | SPLIT_CANDIDATE | application | SPLIT_CANDIDATE — 4B pilot cluster member | — |
 | `apps/prototype-web/client/src/pages/Schedule.tsx` | production | 1013 | 1035 | 40876 | 1 | 15+ | 2 | 1 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | M |
 | `apps/prototype-web/client/src/pages/DirectSaleEditor.tsx` | production | 998 | 1022 | 49905 | 1 | 20 | 5 | 4 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | M |
 | `apps/prototype-web/client/src/pages/InventoryMovementEditor.tsx` | production | 965 | 973 | 46383 | 1 | 15 | 4 | 3 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | — |
@@ -278,7 +278,7 @@
 | `apps/prototype-web/client/src/components/primitives/StatusChip.tsx` | production | 59 | 65 | 2610 | 4 | 4 | 1 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/app/quickRecording.tsx` | production | 58 | 64 | 2669 | 3 | 4+ | 8 | 6 | NORMAL | app-root | NORMAL | — |
 | `apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts` | production | 58 | 63 | 4093 | 1 | 0 | 4 | 2 | NORMAL | application | NORMAL | — |
-| `apps/prototype-web/client/src/application/finance/withdrawalWalletGuard.ts` | production | 58 | 62 | 3319 | 3 | 2 | 3 | 1 | NORMAL | application | NORMAL | — |
+| `apps/prototype-web/client/src/application/owner-money/withdrawalWalletGuard.ts` | production | 58 | 62 | 3319 | 3 | 2 | 3 | 1 | NORMAL | application | NORMAL | — |
 | `apps/prototype-web/client/src/pages/Market.tsx` | production | 58 | 60 | 3098 | 1 | 5 | 3 | 2 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/app/CapabilityRouteGate.tsx` | production | 57 | 60 | 2743 | 1 | 5 | 2 | 1 | NORMAL | app-root | NORMAL | — |
 | `apps/prototype-web/client/src/application/scheduling/capacityDecisionService.ts` | production | 57 | 59 | 2526 | 3 | 1 | 2 | 1 | NORMAL | application | NORMAL | — |
@@ -364,7 +364,7 @@
 | `apps/prototype-web/client/src/group2InventorySurfaces.test.tsx` | test | 936 | 964 | 44407 | 0 | 28 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/application/transfers/localTransferService.releasedPairs.test.ts` | test | 869 | 910 | 31969 | 0 | 5 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/application/fulfillment/fulfillmentService.test.ts` | test | 841 | 880 | 43593 | 0 | 9 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | M |
-| `apps/prototype-web/client/src/application/finance/ownerEntitlementService.test.ts` | test | 810 | 829 | 30319 | 0 | 5 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
+| `apps/prototype-web/client/src/application/owner-money/ownerEntitlementService.test.ts` | test | 810 | 829 | 30319 | 0 | 5 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts` | test | 806 | 832 | 30304 | 0 | 8 | 0 | 0 | NORMAL | storage | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/application/finance/statementService.test.ts` | test | 753 | 769 | 33370 | 0 | 11 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | M |
 | `apps/prototype-web/dev-tools/debug-collector.js` | script | 694 | 799 | 24862 | 0 | 0 | 1 | 0 | WATCH | infra | INFRA — change via own slice only | DMN |
@@ -892,7 +892,7 @@
 - **الاختبارات المباشرة (1):** `G6.dom.test.tsx`
 - **الإجراء:** SPLIT_CANDIDATE — growth-control plan before adding scope؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
 
-### `apps/prototype-web/client/src/application/finance/ownerEntitlementService.ts`
+### `apps/prototype-web/client/src/application/owner-money/ownerEntitlementService.ts`
 
 - **الفئة/الطبقة:** production / application — **nbLOC:** 1093 (raw 1109، 51408 bytes)
 - **المسؤولية:** Owner entitlement record lifecycle + settlement coordination
@@ -1066,6 +1066,8 @@
 - المستهلكون للسكربتات/الإعدادات مقيسون بمراجع الاسم (grep) — أقل دقة من رسم AST للكود.
 - المسؤوليات الحرفية منسوخة يدويًا للملفات الحرجة فقط؛ البقيةheuristics طبقية موثقة في المنهجية.
 - السجل لا يعيد صياغة قواعد مالية أو عقودًا؛ المصادر السلطوية تظل العقود و `docs/operations/current-state.md`.
+
+**تحديث مؤرخ 2026-10-03 (Wave 4B):** عنقود مال المالك (`ownerEntitlementService`، `withdrawalWalletGuard` + اختباراتهما) انتقل إلى `application/owner-money/` مع وحدتي توافق في `application/finance/` للواجهة المجمدة.
 
 **تحديث مؤرخ 2026-10-03 (Wave 4A):** مسارات g5 الأساسية صارت `financial-analysis` (Domain/Application)؛ وحدتا توافق (`src/domain/g5/index.ts`، `application/g5/g5Service.ts`) مضافتان للواجهة المجمدة وتُقاسان صفين مستقلين عند إعادة القياس القادمة.
 

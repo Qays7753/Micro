@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { evaluateWithdrawalWalletCoverage } from "./withdrawalWalletGuard";
 import { OwnerEntitlementService } from "./ownerEntitlementService";
-import { ProjectFinancialService } from "./projectFinancialService";
+import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import {

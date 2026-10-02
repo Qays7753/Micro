@@ -83,8 +83,8 @@
 | profitToCashBridgeService.ts | Financial Read Models | جسر الربح→الكاش (G5) | domain/g5 + قارئ | profitToCashBridgeService.test.ts | مصنّفة |
 | shortCashHorizon.ts | Financial Read Models | أفق الكاش القصير (G5) | domain/g5 | shortCashHorizon.test.ts | مصنّفة |
 | application/g5/g5Service.ts | Financial Read Models (عنقود التحليل) | خدمات تحليل التعادل/السيولة | domain/g5 | g5Service.test.ts (+shortCashHorizon) | مصنّفة — مسار 4A rename |
-| ownerEntitlementService.ts | **Owner Money (الطيار)** | دورة سجل استحقاق المالك والتسويات | domain/owner-entitlement + storage | ownerEntitlementService.test.ts + ownerCrossModelDuplicates | مصنّفة — طيار Wave 4B |
-| withdrawalWalletGuard.ts | Owner Money | حارس محفظة السحب (قاعدة حسابية — STR-302 قرار مالك للتوطين) | domain/owner-safe-withdrawal | withdrawalWalletGuard.test.ts مباشر (410 أسطر/13 اختبارًا) | مصنّفة — **DECISION_REQUIRED** لنقل القاعدة؛ البنية تبقى |
+| application/owner-money/ownerEntitlementService.ts (انتقل مع العنقود — Wave 4B منفذة) | **Owner Money (منفذ)** | دورة سجل استحقاق المالك والتسويات | domain/owner-entitlement + storage | ownerEntitlementService.test.ts + ownerCrossModelDuplicates (انتقلا معه) | منفذة |
+| application/owner-money/withdrawalWalletGuard.ts (انتقل مع العنقود) | Owner Money | حارس محفظة السحب (قاعدة حسابية — STR-302 قرار مالك للتوطين) | domain/owner-safe-withdrawal | withdrawalWalletGuard.test.ts مباشر (انتقل معه) | منفذة النقل؛ **DECISION_REQUIRED** تبقى لنقل القاعدة الحسابية إلى المجال (مسار R) |
 | expenseRecordIntent.ts | Financial Records | قصد تسجيل المصروف وتصنيفه | domain/financial-event | expenseRecordIntent.test.ts | مصنّفة |
 | expenseCategorySuggestions.ts | Financial Records | اقتراحات تصنيف المصروف | سجل تاريخي محلي | expenseCategorySuggestions.test.ts | مصنّفة |
 | correctionHistoryService.ts | Financial Records | تاريخ التصحيحات (قراءة) | storage | correctionHistoryService.test.ts | مصنّفة |

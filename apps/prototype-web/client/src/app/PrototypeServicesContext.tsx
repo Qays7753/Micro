@@ -30,7 +30,7 @@ import { OwnerProfileService } from "@/application/owner/ownerProfileService";
 import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { CorrectionHistoryService } from "@/application/finance/correctionHistoryService";
-import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
+import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
 import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
 import { HomeControlCenterService } from "@/application/home/homeControlCenterService";
 import { ScheduleService } from "@/application/scheduling/scheduleService";

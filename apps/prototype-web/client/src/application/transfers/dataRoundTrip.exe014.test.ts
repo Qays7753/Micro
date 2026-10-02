@@ -19,7 +19,7 @@ import { LocalTransferService } from "@/application/transfers/localTransferServi
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
-import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
+import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
 import { LoanService } from "@/application/loans/loanService";
 import { AssetService } from "@/application/assets/assetService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";

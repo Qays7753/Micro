@@ -18,7 +18,7 @@ import {
 } from "@micro-domain/financial-event/index.js";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { formatMoneyWithUnit } from "@/presentation/formatters";
-import { evaluateWithdrawalWalletCoverage } from "@/application/finance/withdrawalWalletGuard";
+import { evaluateWithdrawalWalletCoverage } from "@/application/owner-money/withdrawalWalletGuard";
 import { ammanDateOrNull, isValidLocalDate } from "@micro-domain/shared/index.js";
 import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import {
