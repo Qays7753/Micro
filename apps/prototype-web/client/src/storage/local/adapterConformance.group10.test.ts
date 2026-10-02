@@ -987,7 +987,7 @@ async function g5AndOwner(store: PrototypeLocalStore): Promise<void> {
 async function assetsLoansDeposits(store: PrototypeLocalStore): Promise<void> {
   const { AssetService } = await import("@/application/assets/assetService");
   const { LoanService } = await import("@/application/loans/loanService");
-  const { RetainedDepositService } = await import("@/application/finance/retainedDepositService");
+  const { RetainedDepositService } = await import("@/application/financial-records/retainedDepositService");
   const assets = new AssetService(store, () => TS);
   const loans = new LoanService(store, () => TS);
   const deposits = new RetainedDepositService(store, () => TS);

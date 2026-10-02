@@ -12,7 +12,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { ExpenseBudgetService } from "./expenseBudgetService";
-import { ProjectFinancialService } from "./projectFinancialService";
+import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 
 const NOW = () => "2026-10-03T10:00:00.000Z" as const;

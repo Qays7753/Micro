@@ -234,9 +234,9 @@ export type FinancialInsights = {
 /* المجموعة ١ (معاينة الأثر): نوع خيارات الحصة انتقل إلى وحدة التوسيع النقية
  * `expenseRecordIntent` مصدرًا واحدًا للحفظ والمعاينة — يُعاد تصديره هنا
  * للتوافق مع المستوردين القائمين. */
-export type { SharedExpenseRecordInput } from "@/application/finance/expenseRecordIntent";
-import { expandExpenseRecordIntent } from "@/application/finance/expenseRecordIntent";
-import type { SharedExpenseRecordInput } from "@/application/finance/expenseRecordIntent";
+export type { SharedExpenseRecordInput } from "@/application/financial-records/expenseRecordIntent";
+import { expandExpenseRecordIntent } from "@/application/financial-records/expenseRecordIntent";
+import type { SharedExpenseRecordInput } from "@/application/financial-records/expenseRecordIntent";
 export type FinancialRecordInput = {
   type: FinancialEventType;
   amountMinor?: number;

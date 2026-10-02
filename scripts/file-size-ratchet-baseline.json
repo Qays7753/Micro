@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generated_at": "2026-10-03",
-  "head": "efb61ca6572e25dd787259848007ddd916740cd2",
+  "head": "moved-with-the-financial-records-cluster-slice (Wave 4B follow-up) — baseline regenerated path entries in the same PR",
   "source": "FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md v1.2 (Wave 4E/RC-9) — سجل الجرد هو المصدر؛ هذا الملف أساس الحارس فقط",
   "bands": {
     "apps/prototype-web/client/src/App.tsx": "NORMAL",
@@ -38,7 +38,6 @@
     "apps/prototype-web/client/src/application/drafts/formDraftTestHarness.ts": "NORMAL",
     "apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.ts": "NORMAL",
     "apps/prototype-web/client/src/application/estimates/costEstimateService.ts": "NORMAL",
-    "apps/prototype-web/client/src/application/finance/correctionHistoryService.ts": "WATCH",
     "apps/prototype-web/client/src/application/finance/dueDateAging.ts": "NORMAL",
     "apps/prototype-web/client/src/application/finance/dueDatesService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/finance/expenseBudgetService.ts": "NORMAL",
@@ -60,6 +59,7 @@
     "apps/prototype-web/client/src/application/finance/withdrawalWalletGuard.ts": "NORMAL",
     "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts": "WATCH",
     "apps/prototype-web/client/src/application/financial-pulse/financialPulseService.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/financial-records/correctionHistoryService.ts": "WATCH",
     "apps/prototype-web/client/src/application/follow-up/dailyFollowUpService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/fulfillment/deliveryAttribution.ts": "NORMAL",
     "apps/prototype-web/client/src/application/fulfillment/deliveryContribution.ts": "NORMAL",

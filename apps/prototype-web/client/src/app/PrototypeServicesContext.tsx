@@ -29,7 +29,7 @@ import { ProfileService } from "@/application/profile/profileService";
 import { OwnerProfileService } from "@/application/owner/ownerProfileService";
 import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
-import { CorrectionHistoryService } from "@/application/finance/correctionHistoryService";
+import { CorrectionHistoryService } from "@/application/financial-records/correctionHistoryService";
 import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
 import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
 import { HomeControlCenterService } from "@/application/home/homeControlCenterService";
@@ -80,7 +80,7 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
  * خدمة القروض المستلمة لا تُسجّل هنا أبدًا — تُحمّل من صفحاتها وحدها. */
 import { AssetService } from "@/application/assets/assetService";
 import type { LoanService } from "@/application/loans/loanService";
-import { RetainedDepositService } from "@/application/finance/retainedDepositService";
+import { RetainedDepositService } from "@/application/financial-records/retainedDepositService";
 /* المجموعة ٥ (عقد ٣٠): القارئ الموحّد للنشاط. */
 import { ActivityService } from "@/application/activity/activityService";
 

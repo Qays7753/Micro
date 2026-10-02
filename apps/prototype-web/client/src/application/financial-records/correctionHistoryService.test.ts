@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CorrectionHistoryService } from "./correctionHistoryService";
-import { ProjectFinancialService } from "./projectFinancialService";
+import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { createDirectSale } from "@micro-domain/direct-sale/index.js";

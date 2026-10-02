@@ -25,7 +25,7 @@ import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlem
 import { LoanService } from "@/application/loans/loanService";
 import { AssetService } from "@/application/assets/assetService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
-import { RetainedDepositService } from "@/application/finance/retainedDepositService";
+import { RetainedDepositService } from "@/application/financial-records/retainedDepositService";
 import {
   calculateCostSnapshot,
   cancelOrder,
