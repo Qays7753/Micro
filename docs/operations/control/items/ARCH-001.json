@@ -61,7 +61,7 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "مراجعة المالك للتقرير وقراراته (بوابة E)؛ لا موجة كتابة قبل قبول صريح؛ التفاصيل في §16 من الخطة.",
+  "next_action": "قبول المالك مسجل 2026-10-03 مع بدء برنامج المعالجة؛ بعد دمج PR #299 والتحقق على main يصبح VERIFIED، والتنفيذ ينتقل إلى موجات البرنامج بسجلات جديدة.",
   "classification": "GOVERNANCE",
   "owner": "Product owner / Z AI (Phase-1 report agent)",
   "tests_required": [

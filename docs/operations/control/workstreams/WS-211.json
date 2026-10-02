@@ -9,14 +9,17 @@
   "base_sha": "e7688efda3bbae945a258cca92eabce889c7dab4",
   "areas": [
     "docs/architecture/refactoring",
-    "architecture-governance"
+    "architecture-governance",
+    "docs",
+    "contracts",
+    "guards"
   ],
   "contracts": [],
   "agent": "Z AI (Phase-1 report-only agent; five read-only specialists + synthesizer)",
   "pr": 299,
   "started_at": "2026-10-02",
-  "updated_at": "2026-10-02",
-  "next_action": "مراجعة المالك للـPR والتقرير (بوابة E)؛ لا دمج تلقائي ولا موجة كتابة قبل قرار صريح؛ بعد الدمج يُحدَّث البند إلى MERGED_UNVERIFIED ثم VERIFIED بعد التحقق على main.",
+  "updated_at": "2026-10-03",
+  "next_action": "قبول المالك مسجل (2026-10-03) مع التصحيحات الإلزامية والملفات الحية الأربعة على نفس الفرع؛ بعد الدمج MERGED_UNVERIFIED ثم VERIFIED بعد التحقق على main، ثم تبدأ موجات البرنامج (3A فأعلى) بWorkstream جديد.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -41,9 +44,14 @@
   "notes": [
     "حد الاستعادة: إغلاق أو revert لـPR التقرير فقط؛ لا حاجة لاستعادة زمن تشغيل لأن لا ملف تشغيل تغير.",
     "انحراف بروتوكولي موثق: حد الكتابة لهذه المرحلة يستثني تحديث current-state.md/current-state-log.md؛ يتركان للمالك عند الدمج إن قَبِل.",
-    "Excel workbook (MASTER-TRACKER.xlsx) لم يُعد توليده يدويًا؛ حدث meta بالمولد الرسمي فقط، أسوة بالـPRs #291/#293/#294."
+    "Excel workbook (MASTER-TRACKER.xlsx) لم يُعد توليده يدويًا؛ حدث meta بالمولد الرسمي فقط، أسوة بالـPRs #291/#293/#294.",
+    "2026-10-03: التزام التصحيحات الموثقة بأمر المالك على نفس الفرع (بلا تغيير حالة): صياغة FIX_NOW الصادقة، مطابقة المنشifest مع diff الـPR، تحديث current-state/اللوق (§103) وإغلاق الانحراف البروتوكولي، توضيح تاريخية مسح Group-7، تصحيح مسارات AGENTS/عقد40 (STR-403)، تعليق حارس الدورات (STR-204)، وإنشاء الملفات الحية الأربعة."
   ],
   "evidence": [
-    "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md"
+    "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md",
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+    "docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md",
+    "docs/architecture/refactoring/REFACTORING-EXECUTION-REPORT.md",
+    "docs/architecture/refactoring/FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md"
   ]
 }

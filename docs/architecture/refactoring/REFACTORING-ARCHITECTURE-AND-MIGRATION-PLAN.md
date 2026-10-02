@@ -3,7 +3,7 @@
 **التاريخ:** 2026-10-02
 **رأس `main` الحي المعتمد لهذا التقرير:** `e7688efda3bbae945a258cca92eabce889c7dab4` (متحقق بـ `git fetch origin --prune` + `git rev-parse origin/main`)
 **إصدار التقرير:** v1.0 (أول خطة انتقال موحدة لبرنامج إعادة الهيكلة)
-**الحالة النهائية:** `OWNER_REVIEW_REQUIRED` — لا تنفيذ، لا نقل ملفات، لا تغيير سلوك
+**الحالة النهائية:** `OWNER_REVIEW_REQUIRED` عند النشر (v1.0، 2026-10-02) — **ثم قبِل المالك المكتشفات والاتجاه الكامل بتاريخ 2026-10-03** (تعليمة برنامج التحصين والمعالجة البنيوية المضبوطة؛ موثقة في `AGENT-SEQUENTIAL-WORKLOG.md` Entry 1) — لا تنفيذ، لا نقل ملفات، لا تغيير سلوك داخل هذا التقرير نفسه
 **مرجع البرنامج:** `docs/architecture/refactoring/REFACTORING-PLAN-A-TO-Z.md` (v1.1) + `REFACTORING-CONTROL.md` (v1.0)
 **سلطة هذا الملف:** خطة انتقال مبنية على أدلة حية للتقرير فقط؛ لا يُنشئ سلطة معمارية ثانية ولا سجل ملكية ثانيًا، ولا يفوّض أي تغيير بنيوي قبل قرار مالك صريح لكل موجة.
 
@@ -38,7 +38,7 @@ The live tree at `e7688efd`: module/layout census (wc/ls/git ls-files), import g
 
 ### 2.3 What was NOT inspected or changed
 
-Not inspected as authority: `reports/`, `planning/`, `docs/operations/archive/`, `docs/operations/control/evidence/` (historical stores, per AGENTS.md §2); the external documentation repo containing the prior Group-7 scan (referenced by AGENTS.md §11) — **UNVERIFIED**, outside this clone; no runtime/device/PWA field acceptance verification; no full `pnpm check`/`pnpm test` execution (see §4 limitations). Not changed: everything except the report/control files listed in §20 — no code, no tests, no configs, no guards, no schema, no UI.
+Not inspected as authority: `reports/`, `planning/`, `docs/operations/archive/`, `docs/operations/control/evidence/` (historical stores, per AGENTS.md §2); the external documentation repo containing the prior Group-7 scan (referenced by AGENTS.md §11) — **historical and UNVERIFIED, outside this clone, and explicitly NOT a prerequisite for this fresh current-tree scan** (this scan re-derived every finding from the live tree at `e7688efd`); no runtime/device/PWA field acceptance verification; no full `pnpm check`/`pnpm test` execution (see §4 limitations). Not changed: everything except the report/control files listed in §20 — no code, no tests, no configs, no guards, no schema, no UI.
 
 ### 2.4 Credentials mode
 
@@ -85,7 +85,7 @@ No structural refactoring; no file moves/renames/deletes; no Ports/Facades/Share
 **Limitations that bound this scan:**
 
 1. **Full suite NOT_EXECUTED (STR-118).** `pnpm check` / `pnpm test` / `pnpm lint` were not run: `node_modules` is absent in the scan clone and installing would write into the read-only tree. All boundary/cycle/deep-import statements are static-analysis based (AST import graph over 636 files + `rg`), cross-validated where possible: the repo's own `check-runtime-cycles.mjs` guard (run from a copy outside the repo, exit 0: "319 production files scanned, 0 runtime cycles"), `check-doc-index-coverage.mjs` (exit 0), and `operations-control/validate.py` (exit 0). CI remains the live truth for suite pass/fail; current-state's 514/514 + 1996/1996 are dated historical claims (static `it(` counts this scan: 537 root / 1960 app — consistent in magnitude, `INFERRED`).
-2. **Prior scan UNVERIFIED.** The accepted Group-7 structural scan (at `9a8c949`, report `17b264c`) lives in the external documentation repo — outside this clone. Per REFACTORING-CONTROL §3 it cannot be assumed valid; Wave B must reconcile it explicitly.
+2. **Prior scan historical/unverified.** The accepted Group-7 structural scan (at `9a8c949`, report `17b264c`) lives in the external documentation repo — outside this clone. It is a **historical artifact, not a prerequisite**: this report did not rely on it for any finding, and per REFACTORING-CONTROL §3 no prior scan may be assumed valid. Wave B reconciliation with it remains optional owner-side history work, not a gate for this program.
 3. **Historical material excluded as authority.** `reports/`, `planning/`, archives, and evidence dirs were not used as current truth; every number in this report was re-derived from the live tree.
 4. **Coverage-scope limit.** ESLint/guard semantics were read from source and their self-tests, not fuzzed. No runtime behavior, device, or PWA acceptance was verified. Contract-to-code semantic fidelity for 43 of 49 contracts is comment-based (STR-402) — full per-contract verification is Wave C/E work, not this scan.
 5. **Token boundary.** Write access was used only for the report-only branch/PR; nothing else was pushed; no secret was written anywhere (checked).
@@ -701,13 +701,13 @@ Explicit non-goals: moving/renaming services now; features/ or common/ folders.
 ID: STR-104
 Title: Transfer subsystem hand-duplicates domain shapes as runtime validators — second description of entity semantics; highest data-compatibility trap; zero direct tests
 Evidence class: VERIFIED
-Owner classification: DEFER + candidate FIX_NOW guard test (owner-approved)
+Owner classification: DEFER + candidate FIX_NOW guard test (pending owner approval recorded in worklog — the 2026-10-03 program instruction covers it as Wave 3B)
 Severity: High
 Current evidence: transferFamilyValidators.ts 1,715 (83 `value === "…"` literal comparisons re-listing domain status unions), transferSnapshotValidation.ts 1,185, migrations 347, envelope 75, counters 64; prepareImport rejects files whose enum fields fail these predicates BEFORE replaceSnapshot; pair gate over 21 released legacy pairs; 0 test files reference these modules directly (all coverage via localTransferService.* facade tests); no golden files on disk. Partial mitigation exists: some families DO import domain guards/lists (isValidWasteContext, DEPOSIT_SETTLEMENT_DECISIONS…) — the pattern exists, not retrofitted to statuses. Linked: S1:STR-104 root, S3:STR-311, S4:STR-405, S5:STR-509.
 Affected boundaries: export/import gate ↔ domain record shapes ↔ every export file ever produced.
 Why it matters: data / financial — a future domain change that misses the validators makes the app WRITE values its own prepareImport REJECTS → verified backup unimportable on a new device.
 Root cause or uncertainty: backward-import compatibility requires accepting historical shapes current factories no longer produce; validators extracted verbatim (Group 10 Phase 10-D) before the domain-literal-import pattern existed.
-Minimum safe remediation: (a) FIX_NOW candidate (owner-approved, test-only): a characterization test deriving accepted status sets FROM domain unions and asserting the transfer predicates accept exactly those — no production change; (b) Wave D: materialize export goldens; (c) full fix (domain-exported runtime lists) no earlier than Wave Q/R as its own slice.
+Minimum safe remediation: (a) FIX_NOW candidate (test-only; approved for execution by the owner on 2026-10-03 as the program's Wave 3B — approval recorded in AGENT-SEQUENTIAL-WORKLOG.md): a characterization test deriving accepted status sets FROM domain unions and asserting the transfer predicates accept exactly those — no production change; (b) Wave D: materialize export goldens; (c) full fix (domain-exported runtime lists) no earlier than Wave Q/R as its own slice.
 Dependencies and ordering: (a) alongside Wave D; never inside a structural wave.
 Acceptance criteria (a): test fails if either side drifts; pnpm check green; no production file touched.
 Rollback boundary: additive test only.
@@ -1209,7 +1209,9 @@ Rollback boundary: steps are docs/tests/guards (code-only revert) except J-M cod
 Explicit non-goals: new wave names; platform builds; schema/export changes inside structural waves; mass moves.
 ```
 
-### 13.D FIX_NOW candidates (owner-approved, docs/test-only)
+### 13.D FIX_NOW candidates — approved for execution by the owner only if the worklog records the owner's approval; otherwise pending owner approval
+
+> **تحديث مؤرخ 2026-10-03:** موافقة المالك البرنامجية مسجلة في `AGENT-SEQUENTIAL-WORKLOG.md` (Entry 1) وتغطي هذه الدفعة (docs/tests فقط) كموجات 3A–3C من البرنامج المعتمد؛ أي إصلاح فردي خارجها يبقى «pending owner approval».
 
 ```
 ID: STR-401
@@ -1408,31 +1410,48 @@ Mapped strictly onto the approved A–Z waves (no new wave names). Sequencing no
 
 ## 20. Exact files and lines changed by this report-only phase
 
-On branch `docs/architecture-refactoring-plan-20261002` (from verified live `origin/main` = `e7688efda3bbae945a258cca92eabce889c7dab4`):
+On branch `docs/architecture-refactoring-plan-20261002` (from verified live `origin/main` = `e7688efda3bbae945a258cca92eabce889c7dab4`). **المنشifest محدث 2026-10-03 ليطابق الـdiff الفعلي للـPR** (تصحيح إلزامي: النسخة الأولى ذكرت NEXT-ACTIONS.md وهو ليس ضمن الـdiff، وأغفلت ملفات التزامات المالك):
+
+**مرحلة المسح (التزامات الوكيل — 23e4557، 09248b9):**
 
 1. `docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md` — **new** (this file; the single canonical deliverable).
-2. `docs/architecture/refactoring/REFACTORING-CONTROL.md` — minimal edit: program status line (report complete, awaiting owner review) + report pointer in the files table. No rule changes.
-3. `docs/operations/control/items/ARCH-001.json` — **new** minimal control item (RESEARCH type; this scan+plan deliverable).
-4. `docs/operations/control/workstreams/WS-211.json` — **new** minimal report-only workstream claim (branch, base SHA, areas, IN_REVIEW, PR pointer).
-5. `docs/operations/control/generated/{AGENT-BRIEF.md, ACTIVE-WORK.md, MASTER-TRACKER.md, MASTER-TRACKER.csv, NEXT-ACTIONS.md, MASTER-TRACKER.xlsx.meta.json}` — regenerated exclusively via the official `scripts/operations-control/generate_tracker.py` (+ `--refresh-excel-meta`); no hand edits. The Excel workbook itself is intentionally NOT regenerated (owner-reviewed artifact; consistent with recent merged practice — PRs #291/#293/#294).
+2. `docs/architecture/refactoring/REFACTORING-CONTROL.md` — minimal edit: program status line + report pointer.
+3. `docs/operations/control/items/ARCH-001.json` — **new** minimal control item.
+4. `docs/operations/control/workstreams/WS-211.json` — **new** minimal report-only workstream claim.
+5. `docs/operations/control/generated/{AGENT-BRIEF.md, ACTIVE-WORK.md, MASTER-TRACKER.md, MASTER-TRACKER.csv, MASTER-TRACKER.xlsx.meta.json}` — regenerated exclusively via the official generator (`--refresh-excel-meta`; the Excel workbook itself intentionally not regenerated, consistent with PRs #291/#293/#294). **NEXT-ACTIONS.md ليس ضمن هذا الـPR** (لا يوجد ضمن الـdiff).
 
-**Intentional protocol deviation (recorded, not silently taken):** the repo's closure protocol (AGENTS §9/§10; current-state §7; PR template) normally requires updating `docs/operations/current-state.md` and appending `current-state-log.md` in any PR. This phase's write boundary explicitly excludes those files; they are left untouched for the owner to update at merge time if they accept the PR. `todo.md` is a frozen compatibility stub (OD-06) and correctly untouched.
+**توسيعات المالك على الفرع (8e361e7، a59eeb1):**
+
+6. `docs/architecture/refactoring/REFACTORING-PLAN-A-TO-Z.md` — بوابات التغطية الشاملة وحدود النمو.
+7. `docs/architecture/refactoring/ZAI-STRUCTURE-ARCHITECTURE-SCAN-PROMPT.md` — توسيع موجب المسح.
+8. `docs/architecture/refactoring/README.md` + `REFACTORING-CONTROL.md` — تحديثات مرجعية صغيرة.
+
+**مرحلة التصحيحات الموثقة (التزام 2026-10-03 — تصحيحات إلزامية بأمر المالك قبل الدمج):**
+
+9. هذا الملف (التصحيحات أعلاه) + `docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md` و`OWNERSHIP-AND-TRUTH-REGISTRY.md` و`REFACTORING-EXECUTION-REPORT.md` و`FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md` — **new** (ملفات البرنامج الحية الأربعة).
+10. `docs/operations/current-state.md` + `docs/operations/current-state-log.md` — تحديث الحقل الحي وإلحاق السجل المؤرخ (إغلاق الانحراف البروتوكولي الموثق في النسخة الأولى).
+11. `AGENTS.md` — تصحيح مسار qa/ (STR-403).
+12. `docs/contracts/40-technical-ownership-map-contract.md` — تصحيح المسارات الثلاثة (STR-403).
+13. `scripts/check-runtime-cycles.mjs` — **تعليق فقط** (STR-204): توثيق 3 SCCs نوعية مقيسة؛ صفر تغيير دلالة.
+14. سجلات Operations Control (ARCH-001/WS-211 محدثة + views معاد توليدها بالمولد الرسمي).
+
+**تم إغلاق الانحراف البروتوكولي (النسخة الأولى أجّلت تحديث current-state للمالك):** هذا الالتزام يحدث `current-state.md` ويلحق `current-state-log.md` وفق AGENTS §9/§10 — لم يبق انحراف.
 
 ## 21. Exact files and behavior NOT changed
 
-No file under `apps/`, `src/`, `tests/`, `scripts/`, `ai-skills/`, `reports/`, `planning/`, `.github/` (except none), and no configuration (`package.json`, `tsconfig.json`, `eslint.config.js`, `vitest.config.ts`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, vite configs) was created, edited, moved, renamed, deleted, or reformatted. No React/TSX/CSS/token/DOM/navigation/copy change. No financial meaning, formula, policy, terminology, error message, or accounting claim changed. No storage, IndexedDB schema, migrations, snapshots, export/import, or historical interpretation changed (`localSchemaVersion`/`localExportVersion` remain 38/30). No Ports/Facades/Shared-Kernel/modules extracted; no `features/`, `common/`, `utils/` created. No dependencies, build, CI, security, or deployment settings changed. No branches deleted, no PRs closed/merged, no old reports rewritten. No secrets committed anywhere.
+No file under `apps/`, `src/`, `tests/`, `ai-skills/`, `reports/`, `planning/`, `.github/` was created, edited, moved, renamed, deleted, or reformatted. **الاستثناء الوحيد تحت `scripts/` (مستند في §20 بند 13):** `scripts/check-runtime-cycles.mjs` — تعديل تعليق رأس فقط (توثيق أدق للـSCCs النوعية المقيسة؛ STR-204)؛ منطق الحارس وسلوكه وخروجه لم يُمسا. No configuration (`package.json`, `tsconfig.json`, `eslint.config.js`, `vitest.config.ts`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, vite configs) was created, edited, moved, renamed, deleted, or reformatted. No React/TSX/CSS/token/DOM/navigation/copy change. No financial meaning, formula, policy, terminology, error message, or accounting claim changed. No storage, IndexedDB schema, migrations, snapshots, export/import, or historical interpretation changed (`localSchemaVersion`/`localExportVersion` remain 38/30). No Ports/Facades/Shared-Kernel/modules extracted; no `features/`, `common/`, `utils/` created. No dependencies, build, CI, security, or deployment settings changed. No branches deleted, no PRs closed/merged, no old reports rewritten. No secrets committed anywhere.
 
 ## 22. Rollback/recovery boundary for the report-only PR
 
-The PR changes documentation and control records only — **no runtime files** — so no runtime rollback is needed. Recovery = close the PR without merging, or revert the merge commit; the repository returns to `e7688efd` semantics exactly. The Operations Control record (ARCH-001/WS-211) would then be updated to `SUPERSEDED`/`DEFERRED` by the owner (or left as history); no data, schema, export, or user-visible behavior is affected in any case.
+The PR changes documentation and control records only — **no runtime behavior** (the single `scripts/` touch is a header comment with zero semantic effect, and the guard's own self-test still passes) — so no runtime rollback is needed. Recovery = close the PR without merging, or revert the merge commit; the repository returns to `e7688efd` semantics exactly. The Operations Control record (ARCH-001/WS-211) would then be updated to `SUPERSEDED`/`DEFERRED` by the owner (or left as history); no data, schema, export, or user-visible behavior is affected in any case.
 
 ---
 
-**Final status:** `OWNER_REVIEW_REQUIRED` — `IMPLEMENTATION_AUTHORIZED: NO`
+**Final status:** `OWNER_ACCEPTED — 2026-10-03` (remediation program authorized by the owner's instruction; execution records in `AGENT-SEQUENTIAL-WORKLOG.md` / `REFACTORING-EXECUTION-REPORT.md`) — the report itself changed no runtime file.
 
 ```text
 PLAN_COMPLETE — OWNER_DECISIONS_REQUIRED
-NO_STRUCTURAL_REFACTORING_PERFORMED
+NO_STRUCTURAL_REFACTORING_PERFORMED (by this report; program waves tracked separately)
 NO_PRODUCT_OR_FINANCIAL_SEMANTICS_CHANGED
 NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 ```

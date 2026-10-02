@@ -394,8 +394,8 @@ Dart وFlutter وKotlin وSwift وPython وAPI وSync وAuth وMicroservices ل�
 **[S14]:** Protocol Buffers, Avro, RFC 8259, RFC 8785 — https://protobuf.dev/overview/ ; https://avro.apache.org/docs/1.11.1/specification/ ; https://www.rfc-editor.org/rfc/rfc8259.html ; https://www.rfc-editor.org/rfc/rfc8785.html
 **[S15]:** Local-first, Android architecture, and OpenAPI — https://dl.acm.org/doi/10.1145/3359591.3359737 ; https://developer.android.com/topic/architecture ; https://www.openapis.org/what-is-openapi
 
-**Final status:** `OWNER_REVIEW_REQUIRED`
-**Implementation authorized:** `NO`
-**Repository modified:** `NO`
+**Final status:** `OWNER_ACCEPTED — 2026-10-03` (المالك راجع المكتشفات ووافق على الاتجاه الكامل وتنفيذ البرنامج وفق تعليمته المؤرخة؛ التوثيق في `REFACTORING-CONTROL.md` v1.3 و`AGENT-SEQUENTIAL-WORKLOG.md`)
+**Implementation authorized:** `YES — عبر بطاقات الموجات الموثقة فقط (2026-10-03)؛ لا يزال كل نقل بنيوي مقيدًا بشروط §7/§9 هنا`
+**Repository modified:** `البرنامج التنفيذي بدأ فوق الأساس المقبول؛ كل موجة بحد رجوع مستقل`
 **Unrelated development:** `FROZEN`
-**First allowed wave:** `READ_ONLY STRUCTURE/ARCHITECTURE/CODE ORGANIZATION SCAN AFTER OWNER GATE`
+**First allowed wave:** `الموجات المعتمدة 3A→4E ثم تدقيق الإغلاق (Y/Z)`
