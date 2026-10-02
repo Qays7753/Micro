@@ -51,7 +51,7 @@
 | 13 | `docs/implementation/01-execution-roadmap.md` | CURRENT | خارطة التنفيذ والبوابات |
 | 14 | `docs/implementation/02-domain-contract-coverage.md` | CURRENT | مطابقة العقود مع Domain Core والحدود المؤجلة |
 | 15 | `docs/product/problem-statement-v4.md` | CURRENT / CANONICAL | المشكلة والأضرار والأسئلة، والنواة العامة والـProfiles والمشاريع المختلطة |
-| 15A | `docs/product/problem-statement-v3.md` | SUPERSEDED | سياق تاريخي؛ لا يستخدم كمرجع قرار جديد |
+| 15A | `docs/operations/archive/problem-statement-v3.md` | SUPERSEDED / ARCHIVED (تحديث مؤرخ 2026-10-02 — قرار مالك الجولة الثانية) | سياق تاريخي؛ لا يستخدم كمرجع قرار جديد |
 | 15B | `docs/product/problem-statement-v5.md` | CURRENT / CANONICAL — نطاق الطلب والتنقل والبوابة الأمامية | قرارات الطلب/التنقل/التوزيع؛ نطاق v4 (النواة العامة والـProfiles) يبقى في v4 — النطاقان متكاملان لا متنافسان |
 | 16 | `docs/product/system-definition-v1.md` | CURRENT | تعريف Micro وحدوده وقيمته ونواته |
 | 17 | `docs/product/user-operating-model-v1.md` | CURRENT | الاستخدام اليومي والأسبوعي والشهري |
@@ -67,7 +67,7 @@
 | 20B | `docs/product/design-system-v1.md` | HISTORICAL / SCOPED — سجل قرارات تصميم حقبة إعادة التوزيع (تحديد نطاق مؤرخ 2026-10-01 داخل الملف) | فهم منطق القرارات التصميمية التاريخية؛ سلطة الهوية والتوكنات الحالية في `docs/architecture/` و`vf-tokens.css` |
 | 20C | `docs/product-source-of-truth.md` | CURRENT / SCOPED — التنقل النهائي ومسارات الشاشات ومسؤولياتها (تحديد نطاق مؤرخ 2026-10-01 داخل الملف) | مرجع التنقل وتدفق الشاشات؛ سلطة المال للعقود والحالة الحية لـ`current-state.md` |
 | 20D | `docs/product/home-navigation-proof-v1.md` | CURRENT / SUPPORTING | إثبات نموذج تنقل شاشة الرئيس |
-| 20E | `docs/product/deferred-capabilities-execution-plan-v1.md` | CURRENT / ROADMAP | تخطيط تنفيذ القدرات المؤجلة |
+| 20E | `docs/product/deferred-capabilities-execution-plan-v1.md` | HISTORICAL / SUPERSEDED (تحديث مؤرخ 2026-10-02 — OD-01) | سجل القرار التنفيذي التاريخي لحقبة إعادة التوزيع؛ سلطة خارطة المنتج الحالية الوحيدة هي خارطة تطور القدرات (23B) |
 | 20F | `docs/product/draft-dismissal-mini-spec-v1.md` | SUPERSEDED / HISTORICAL — أُلغيت بقرار المالك ٢١ (تحديث مؤرخ 2026-10-02) | مواصفة اقتراح تاريخية لإغلاق المسودة مع سبب؛ المنفذ فعليًا: الحذف بلا سبب عبر `draftService.delete` |
 | 20G | `docs/product/brand-activation-observations-v1.md` | CURRENT / SCOPED RECORD | ملاحظات تشغيل حزمة العلامة المحفوظة (المساران ذويا التحميل الدائم، سلوك القفل التلقائي، قيد لا-lockup/wordmark، منشأ الحزمة، سجلات مرايا Documents المحققة) — مقطّرة من حزم التخطيط المحذوفة 2026-10-01 (WS-204) |
 | 20 | `docs/scenarios/scenario-test-set-v1.md` | CURRENT | 12 شخصية و120 حالة و120 سؤالًا، بما فيها السياحة والمشروع المختلط |
@@ -77,7 +77,7 @@
 | 22B | `docs/quality/persona-context-simulation-results-v1.md` | CURRENT / EXECUTION EVIDENCE | نتائج تشغيل P01–P10 على Prototype؛ تفصل الدليل الحي عن التشغيل المكتبي وحدود النطاق |
 | 22C | `docs/quality/security-boundaries.md` | CURRENT / PROTOTYPE / SECURITY REFERENCE | المرجع الموحّد لحدود الأمن والخصوصية المنفذة: التخزين المحلي وحده بلا خروج شبكي، ومستبعدات التصدير (local-security وform-drafts)، والقفل وبوابات الأفعال التدميرية، وتشخيص الثمانية حقول بلا رفع، وفحوص الأسرار، وحدود الاستبدال — كل حد بمرجع كوده واختباره (أُنشئ في المجموعة ٨ من برنامج المعالجة الرباعية تسديدًا لمكتشف STR-014) |
 | 23A | `docs/research/accounting-reference-review-v2.md` | SUPPORTING / REFERENCE REVIEW | دليل حي ومصدري لـAccounting ومصفوفة نقل مقيّدة إلى مبادئ تجربة Micro، لا كود أو هوية أو نموذج مالي |
-| 23B | `docs/product/capability-evolution-roadmap-v1.md` | CURRENT / PRODUCT ROADMAP | خارطة مرحلية للصورة المالية العامة وجدول المواعيد والقدرات المؤجلة واعتمادياتها وبوابات قرارها |
+| 23B | `docs/product/capability-evolution-roadmap-v1.md` | CURRENT / PRODUCT ROADMAP — السلطة الوحيدة (OD-01، 2026-10-02) | خارطة مرحلية للصورة المالية العامة وجدول المواعيد والقدرات المؤجلة واعتمادياتها وبوابات قرارها |
 | 23C | `docs/implementation/multi-activity-expansion-roadmap-v1.md` | CURRENT / ROADMAP | بوابات التوسع إلى Profiles والمشاريع المختلطة بعد G15/G16 |
 | 23D | `docs/research/multi-activity-profile-research-v1.md` | SUPPORTING / RESEARCH | دعم FAO/OECD لحدود النمذجة الزراعية والسياحية |
 | 23 | `docs/research/jordan-financial-problems-evidence.md` | SUPPORTING | الأدلة المحلية والخارجية وحدودها |
@@ -105,8 +105,8 @@
 | 36 | `docs/operations/archive/implementation-report-ar.md` | HISTORICAL / EXECUTION REPORT | تقرير التنفيذ العربي لحقبة إعادة التدفق (2026-08-31؛ أُرشف 2026-10-02) |
 | 37 | `docs/implementation-traceability.md` | CURRENT — صفوف المجموعات لقطات تاريخية صادقة (تصحيح مؤرخ 2026-10-01 للزوج الحي 38/30 في الترويسة) | تتبع ما نُفذ بحقبة المجموعات ١–٤ |
 | 38 | `docs/reference/independent-flow-redesign.md` | HISTORICAL / DESIGN EXERCISE | مرجع تصميم إعادة التدفق المالي والتشغيلي؛ يُقرأ عند تفسير قرارات التدفق فقط |
-| 39 | `docs/inventory/` (9 ملفات — دُمج README في 00-summary، تحديث مؤرخ 2026-10-02) | CONTEXT PACK — جرد قدرات ما قبل إعادة التوزيع (F-001..F-083) | قياس مرجعي لا وثيقة تصميم؛ معرّفات F تستهلكها owner-decisions وsettled-findings |
-| 40 | `docs/product-audit/` (3 مصادر `.md` + 3 مرايا `.docx`) | CONTEXT PACK — سلسلة تدقيق 2026-08-31/09-01 (PA-001..PA-0026) | أصل معرّفات المكتشفات؛ مرايا `.docx` نسخ عمل مالك (بقاؤها قرار مالك) |
+| 39 | `docs/inventory/` (8 ملفات — دُمج README في 00-summary وأُرشيف 09 ودُمج 02-by-tier في 01، تحديثات مؤرخة 2026-10-02) | CONTEXT PACK — جرد قدرات ما قبل إعادة التوزيع (F-001..F-083) | قياس مرجعي لا وثيقة تصميم؛ معرّفات F تستهلكها owner-decisions وsettled-findings |
+| 40 | `docs/product-audit/` (3 مصادر `.md`) | CONTEXT PACK — سلسلة تدقيق 2026-08-31/09-01 (PA-001..PA-0026) | أصل معرّفات المكتشفات. *(تحديث مؤرخ 2026-10-02 — OD-07: حُذفت مرايا `.docx` الثلاث بقرار مالك بعد إثبات علاقة المرآة من ترويسات المصادر المحفوظة نفسها وتوافق الإصدار الواحد `ddf44f2`؛ الأصل في تاريخ git.)* |
 | 41 | `docs/decisions/` — ملفات الحقب: `25-multi-activity-core-profiles-v1.md` · `actual-material-cost-per-order-g6-scope.md` · `capability-roadmap-reconciliation-v1.md` · `g94-retain-g7a-boundary.md` · `general-financial-event-correction-c1-decision-v1.md` · `home-control-center-h01a-decision-v1.md` · `optional-capability-knowledge-model-v1.md` · `pos-sector-gate-v1.md` · `remaining-capabilities-review-v1.md` · `review-finance-c2-decision-v1.md` · `v3-finance-cash-first-ui.md` · `v4-schedule-follow-up-first-ui.md` · `v5-safe-labels-back-and-disclosures.md` | CONTEXT PACK — سجلات قرار مؤرخة | الوصول الكنوني من `02-decision-log.md` |
 | 42 | `docs/expansion/EXPANSION-GLOSSARY.md` | CURRENT / SUPPORTING | معجم مصطلحات التوسعة E-00 |
 | 43 | `docs/expansion/HISTORICAL-SOURCES.md` | HISTORICAL / NON-AUTHORITY | فهرس المصادر التاريخية للتوسعة؛ لا سلطة تنفيذ |
@@ -192,7 +192,7 @@
 | `README.md` | هوية المستودع ونقطة تعريف Micro |
 | `CONTRIBUTING.md` | قواعد المساهمة والقراءة قبل أي تغيير |
 | `CHANGELOG.md` | سجل الإصدارات التاريخي (الحالة الحية في `current-state.md` لا هنا) |
-| `todo.md` | منظر توافق قديم مقيد باختبارات حوكم الوثائق؛ يُحدَّث عند إغلاق الشرائح بروتوكول §9/§10 ولا يُقرأ مرجعًا |
+| `todo.md` | كعب توافق مجمد (تحديث مؤرخ 2026-10-02 — OD-06): يوجه إلى Operations Control ويحفظ أسطر برنامج التحصين السبعة المثبتة باختبارات التوثيق حرفيًا؛ لا يُحدَّث عند الإغلاق ولا يُقرأ مرجعًا |
 | `docs/README.md` | مؤشر نطاق قصير (كان فهرسًا منافسًا — تحديث مؤرخ 2026-10-01) |
 | `docs/operations/README.md` | نظام تسليم الوكلاء (الملفات الخمس التشغيلية) |
 | `docs/operations/slice-handoff-template.md` | قالب بطاقة الشريحة (مقيد باختبار حوكم الوثائق) |

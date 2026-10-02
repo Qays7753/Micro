@@ -2,7 +2,7 @@
   "id": "DOC-004",
   "title": "حذف 42 ملفًا محذومَ المرجعية وتقاعد 93 ملف تقارير مساند — دفعة الجولة الثانية",
   "type": "GOVERNANCE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P2",
   "stage": "documentation-hygiene",
   "summary": "تنفيذ صفوف DELETE الاثني عشر والأربعين من تدقيق الحد الأدنى (39 ملف أرشيف quality-history صفرية الإحالات + جردَي bridge + نسخة مطالبة ZAI) وتقاعد 93 ملف aux في reports/agent-report (المستثنى الوحيد 00-understanding-card: run-main مرجع WS-172)، وفق مصفوفة قرار المالك للجولة الثانية 2026-10-02.",
@@ -62,10 +62,22 @@
       "changed_at": "2026-10-02",
       "actor": "ws-209:review",
       "reason": "فُتح PR #291 على الفرع docs/surface-cleanup-r2-20261002 برأس d84e91c6 بعد نجاح كل الفحوص المحلية (الحراس السبعة + validate + views)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "merge:pr-291",
+      "reason": "دُمج PR #291 بطريقة Squash عند 200413187002bbada752586f1d12f41308420bfc بعد نجاح CI (Actions + Cloudflare Pages) على رأس الـPR النهائي (بعد دمج إصلاح audit البنيوي PR #292 في الفرع)."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "verify:main-tree",
+      "reason": "تطابق رأس origin/main مع merge_sha 200413187002bbada752586f1d12f41308420bfc؛ المدقق صالح (77 بندًا/51 Workstream) والViews حالية؛ الملفات المحذوفة غائبة والأساسيات الباقية حاضرة على main؛ صفر إحالات حية متروكة."
     }
   ],
   "migration_baseline": false,
-  "next_action": "دمج PR #291 بعد نجاح CI ثم التحقق على main.",
+  "next_action": "لا إجراء إضافي؛ منفذ ومتحقق على main عند 20041318.",
   "classification": "GOVERNANCE",
   "owner": "Product owner / Z AI coordination",
   "tests_required": [
@@ -77,5 +89,7 @@
   "layers": [
     "documentation"
   ],
-  "gate_classification": "NOT_APPLICABLE"
+  "gate_classification": "NOT_APPLICABLE",
+  "merge_sha": "200413187002bbada752586f1d12f41308420bfc",
+  "verified_on_main_sha": "200413187002bbada752586f1d12f41308420bfc"
 }

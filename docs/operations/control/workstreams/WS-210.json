@@ -1,0 +1,51 @@
+{
+  "id": "WS-210",
+  "title": "تنظيف السلطة والتوافق — الجولة الثانية: سلطة الخارطة، كعب todo، موجّه التوسعة، مرايا docx، أرشيفات محتكرة، دمج 02-by-tier",
+  "status": "IN_REVIEW",
+  "items": [
+    "DOC-005"
+  ],
+  "branch": "docs/surface-cleanup-r2-20261002-p2",
+  "base_sha": "200413187002bbada752586f1d12f41308420bfc",
+  "areas": [
+    "docs/product",
+    "docs/inventory",
+    "docs/expansion",
+    "todo.md",
+    "documentation-governance",
+    "docs/00-document-index.md"
+  ],
+  "contracts": [],
+  "agent": "Z AI coordination agent (Round-2 cleanup execution)",
+  "pr": 293,
+  "started_at": "2026-10-02",
+  "updated_at": "2026-10-02",
+  "next_action": "دمج PR #293 بعد نجاح CI ثم التحقق على main.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "ws-210:claim",
+      "reason": "فتح Claim على الفرع docs/surface-cleanup-r2-20261002-p2 من main المتحقق 200413187002bbada752586f1d12f41308420bfc (بعد دمج وتحقق Phase 1)؛ صفر تعارض نطاقات ونشاط موازٍ."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-02",
+      "actor": "ws-210:implement",
+      "reason": "تنفيذ بنود المرحلة الثانية المعتمدة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-210:review",
+      "reason": "فُتح PR #293 على الفرع docs/surface-cleanup-r2-20261002-p2 برأس 5cc1a67 بعد نجاح كل الفحوص المحلية (الحراس + validate + views + اختبارات التوثيق 37/37 + الجذري 537/537 + typecheck/lint/format)."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "قرار المالك (مصفوفة الجولة الثانية): OD-01 سلطة خارطة واحدة؛ OD-06 كعب todo.md مع حفظ الأسطر المثبتة بالاختبارات حرفيًا (اختبارات تحت apps/ لا تُمس)؛ OD-08a تقليم §4 التوسعة؛ OD-07 حذف مرايا docx (علاقة المرآة مثبتة)؛ أرشفة v3 و09-expansion-room؛ دمج 02-by-tier مع حفظ الملخص الإحصائي الفريد."
+  ],
+  "evidence": [
+    "docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/ROUND-2-FINAL-EXECUTION-REPORT.md"
+  ]
+}

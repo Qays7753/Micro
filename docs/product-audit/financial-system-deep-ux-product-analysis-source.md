@@ -8,7 +8,7 @@
 | Phase-2 analyzed baseline | Remote `main` @ **`f7c14303ff13b96cdedd56725ce83497b843e1a1`** (local == remote verified after merge; working tree clean; no secrets) |
 | Analysis date | 2026-08-31 |
 | Analysis mode | Phase 2 = analysis and recommendations only — **no implementation, no commits, no data changes** |
-| Deliverables | `docs/product-audit/financial-system-deep-ux-product-analysis-ar.docx` (Arabic, primary review document) and this file (English, traceable source) |
+| Deliverables | `docs/product-audit/financial-system-deep-ux-product-analysis-ar.docx` (Arabic, primary review document) and this file (English, traceable source) *(تحديث مؤرخ 2026-10-02 — OD-07: حُذفت نسخة `.docx` بقرار مالك الجولة الثانية بعد إثبات علاقة المرآة؛ الأصل في تاريخ git عند `43058d61`.)* |
 | Companion input | The prior current-state report (`financial-system-current-state-analysis-source.md`, baseline `8ede6b2`) was read completely; every finding was independently re-verified against current `main` before Phase-1 changes. |
 
 ```
