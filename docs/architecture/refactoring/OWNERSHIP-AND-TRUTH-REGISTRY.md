@@ -43,7 +43,7 @@
 
 | مجموعة القدرة | الطرق (عدد) | مالك المفهوم | حراس الكتابة | مستهلكو التطبيق | لمسة التصدير | حالة التصنيف |
 |---|---|---|---|---|---|---|
-| Order lifecycle | 10 (getOrder/saveOrder/listOrders + 7 commit*) | domain/craft-order | craftOrderCommitGuard ضمن الحدود | fulfillment؛ collections؛ agreements؛ scheduling | craftOrder family | مصنّفة — Wave 4C مرشح قدرة |
+| Order lifecycle | 9 (listOrders/getOrder/saveOrder + 6 commit*) | domain/craft-order | craftOrderCommitGuard ضمن الحدود + deliveryReversalCommitGuard | fulfillment؛ collections؛ agreements؛ scheduling | craftOrder family | مصنّفة — **قدرة مستخرجة (Wave 4C/RC-7 منفذة):** منفذ `OrderLifecycleStore` في `storage/local/capabilities/orderLifecycleStore.ts` مشتق من الواجهة التوافقية (Pick — لا انحراف تواقيع)؛ المحوّلان يحققانه (مراسي نوعية + عقد اختبار بالمحوّلين معًا)؛ ثلاث خدمات تستهلك النوع الضيق (agreementService، agreementContextService، financialPulseService)؛ الواجهة التوافقية تبقى المصدر السلطوي ولا تُحذف طريقة منها إلا بإثبات خلوّها من المستهلكين هنا |
 | Owner entitlement & movements | 15 | domain/owner-entitlement | ownerEntitlementCommitGuard؛ ownerMovementGuard | finance/ownerEntitlementService؛ owner | ownerEntitlement family | مصنّفة — عنقود Owner Money |
 | Recurring expense | 10 | domain/recurring-expense | recurringExpenseCommitGuard | finance/recurringExpenseService | recurringExpense family | مصنّفة |
 | Inventory & materials | 9 (+activation 2) | domain/inventory-material | inventoryCommitGuard | inventory/inventoryMaterialService | ضمن snapshot + catalogCore | مصنّفة |
@@ -161,4 +161,4 @@
 | 4 | shortCashDeclarations: يبقى سجلًا مخزنًا بملكية g5 (توصية) أم ينقل | قيد 4A |
 | 5 | عرض أنواع التخزين كـview models للـUI | STR-305 (Wave T-adjacent) |
 
-**حالة السجل:** مفاهيم المجال 18/18 مملوكة؛ منافذ التخزين 131/131 مصنفة؛ خدمات المالية 20+1/20+1 مصنفة في 6 عناقيد؛ التكرارات مسجلة بمبدئها مع فجوة قياس 3B؛ الاستثناءات والدورات كلها مسجلة. لا مفهوم عالي الخطورة بلا صف.
+**حالة السجل:** مفاهيم المجال 18/18 مملوكة؛ منافذ التخزين 131/131 مصنفة (الطيار 4C منفذ: قدرة Order lifecycle مستخرجة بمنفذ مشتق ومستهلكين مهاجرين)؛ خدمات المالية 20+1/20+1 مصنفة في 6 عناقيد (طيار Owner Money منفذ في 4B)؛ فجوة قياس الدريفت مغلقة بغارد Wave 3B (طبقتا تشغيل وأنواع)؛ الاستثناءات والدورات كلها مسجلة. لا مفهوم عالي الخطورة بلا صف.
