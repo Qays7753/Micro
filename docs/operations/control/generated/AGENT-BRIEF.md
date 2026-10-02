@@ -32,6 +32,4 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
-|---|---|---|---|---|---|
-| WS-212 | IN_PROGRESS | \`refactoring/remediation-program-20261003\` | 300 | ARCH-002 | شرائح عناقيد المالية القابلة للنقل منفذة على الفرع من الأساس b02e939: السجلات المالية (4 خدمات) إلى application/financial-records/ والميزانيات (1) إلى application/budgets/ بنمط 4B + 5 وحدات توافق + تحديث أساسي حارسي 4E في نفس الـPR — بانتظار CI والدمج. بعدها: التدقيق النهائي الثاني للبرنامج. |
+لا يوجد Workstream نشط أو يحتاج مراجعة.

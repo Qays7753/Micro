@@ -96,14 +96,15 @@ export const TRANSFER_ACCEPTANCE_SOURCES = {
   recurringSeriesStatus:
     "GUARDED_UNION — recurringExpenseSeriesStatuses (domain/recurring-expense)؛ تفويض مؤجل (D-034) — مطابق حرفيًا ومحروس",
   recurringOccurrenceStatus:
-    "DOMAIN_RUNTIME_LIST — recurringExpenseOccurrenceStatuses (domain/recurring-expense)",
+    "GUARDED_UNION — recurringExpenseOccurrenceStatuses (domain/recurring-expense)؛ تفويض مؤجل (D-034) — مطابق حرفيًا ومحروس",
   recurringMonthEndPolicy:
-    "DOMAIN_RUNTIME_LIST — recurringExpenseMonthEndPolicies (domain/recurring-expense)",
+    "GUARDED_UNION — recurringExpenseMonthEndPolicies (domain/recurring-expense)؛ تفويض مؤجل (D-034) — مطابق حرفيًا ومحروس",
   recurringAmountMode:
     "GUARDED_UNION — recurringExpenseAmountModes (domain/recurring-expense)؛ تفويض مؤجل (D-034) — مطابق حرفيًا ومحروس",
   expenseBudgetStatus: "DOMAIN_RUNTIME_LIST — expenseBudgetStatuses (domain/budget)",
   expenseBudgetKnowledge: "DOMAIN_RUNTIME_LIST — expenseBudgetKnowledgeLevels (domain/budget)",
-  catalogItemKind: "DOMAIN_RUNTIME_LIST — catalogItemKinds (domain/catalog)",
+  catalogItemKind:
+    "GUARDED_UNION — catalogItemKinds (domain/catalog)؛ حرفي في المدققة ومطابق للقائمة — محروس باختبارات الوصف",
   agreementSource: "HISTORICAL_REGISTRY — 5 حالية (AgreementSource) + LEGACY_AGREEMENT_SOURCES (هذا الملف)",
   knowledgeState: "GUARDED_UNION — KnowledgeState (domain/craft-order؛ مراسي الدريفت)",
   resultStatus: "GUARDED_UNION — ResultStatus (domain/craft-order؛ مراسي الدريفت)",
