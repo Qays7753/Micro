@@ -100,7 +100,7 @@
 
 ## 4. مجموعات القيم المكررة يدويًا بين المجال ومحوّلات النقل (بذرة STR-104/509)
 
-**الظاهرة (أُغلقت في Wave 4D):** `transferFamilyValidators.ts` كان يكرر حرفيًا اتحادات قيم المجال كأشرطة قبول، بلا مصدر واحد مسمى. **تنفيذ 4D (بطاقة RC-8):** (1) ما له قائمة تشغيلية مجالية صار يُستهلك من مالكه مباشرة — materialUnits وunitDimensions وقوائم المصروف المتكرر الأربع وقائمتا الميزانية (9 طواقم)؛ (2) القيم التاريخية التوافقية (3 مصادر اتفاق) صارت في سجلها الموثق الوحيد `transferCompatibilityValues.ts` (سبب/إصدارات/اختبارات + إثبات نوعي أنها خارج الاتحاد الحالي)؛ (3) ما هو اتحاد نوعي فقط تبقى قيمه الحرفية تحت حراسة مراسي دريفت Wave 3B (طبقتا تشغيل وأنواع) والذهبيات كـoracle دائم؛ (4) خريطة مصادر القبول لكل عائلة موثقة في السجل نفسه (DOMAIN_RUNTIME_LIST / GUARDED_UNION / HISTORICAL_REGISTRY). طواقم القبول لم تتغير حرفيًا — شهدت بذلك اختبارات الوصف والذهبيات قبل وبعد.
+**الظاهرة (أُغلقت في Wave 4D):** `transferFamilyValidators.ts` كان يكرر حرفيًا اتحادات قيم المجال كأشرطة قبول، بلا مصدر واحد مسمى. **تنفيذ 4D (بطاقة RC-8 — مصحح بتدقيق A5 النهائي):** (1) ما كان برميله داخل أصلًا في رأس الحزمة صار يُستهلك من مالكه مباشرة — materialUnits وقائمتا الميزانية (3 طواقم مفوضة فعلًا) ومصدر الاتفاق يُستهلك من السجل نفسه؛ أما unitDimensions وقوائم المصروف المتكرر الأربع وcatalogItemKinds فتفويضها **مؤجل عمدًا (D-034 — هامش السقف الخام لا يحتمل سحب البرميلين الجديدين)** وطواقمها الحرفية موسومة المصدر (GUARDED_UNION) ومحروسة باختبارات الوصف والسجل؛ (2) القيم التاريخية التوافقية (3 مصادر اتفاق) صارت في سجلها الموثق الوحيد `transferCompatibilityValues.ts` (سبب/إصدارات/اختبارات + إثبات نوعي أنها خارج الاتحاد الحالي)؛ (3) ما هو اتحاد نوعي فقط تبقى قيمه الحرفية تحت حراسة مراسي دريفت Wave 3B (طبقتا تشغيل وأنواع) والذهبيات كـoracle دائم؛ (4) خريطة مصادر القبول لكل عائلة موثقة في السجل نفسه (DOMAIN_RUNTIME_LIST / GUARDED_UNION / HISTORICAL_REGISTRY). طواقم القبول لم تتغير حرفيًا — شهدت بذلك اختبارات الوصف والذهبيات قبل وبعد.
 
 | مجموعة القيم | المصدر السلطوي (المجال) | النسخة المكررة (Transfer) | القرار |
 |---|---|---|---|
@@ -113,8 +113,8 @@
 | AssetKind/Status | asset/types.ts | assetResidual family | GUARDED_UNION موسومة |
 | LoanStatus | loan/types.ts | loan family | GUARDED_UNION موسومة |
 | ReceivedLoanStatus | received-loan/types.ts | receivedLoan family | GUARDED_UNION موسومة |
-| RecurringExpenseSeriesStatus/OccurrenceDecision | recurring-expense/types.ts | recurringExpense family | **4D منفذ: DOMAIN_RUNTIME_LIST** — تستهلك القوائم التشغيلية المجالية |
-| MeasurementUnitKind | catalog/types.ts | catalog family | **4D منفذ: DOMAIN_RUNTIME_LIST** (unitDimensions + catalogItemKinds) |
+| RecurringExpenseSeriesStatus/OccurrenceDecision | recurring-expense/types.ts | recurringExpense family | GUARDED_UNION — طواقم حرفية مطابقة للقوائم المجالية؛ **تفويض مؤجل (D-034)** |
+| MeasurementUnitKind | catalog/types.ts | catalog family | unitDimensions + catalogItemKinds: GUARDED_UNION حرفية مطابقة؛ **تفويض مؤجل (D-034)** |
 | OwnerEntitlementPolicyStatus/RecordStatus | owner-entitlement/types.ts | ownerEntitlement family | مفوض لمدققات المجال (isValidOwnerEntitlement*) |
 | OwnerMovementKind | owner-entitlement (movements) | ownerEntitlement family | مفوض لمدقق المجال isValidOwnerMovement |
 | ShortCashDeclarationStatus | financial-analysis/types.ts | shortCashDeclaration family | GUARDED_UNION موسومة |
@@ -132,7 +132,7 @@
 | النوع | العنصر | الموقع | التصنيف |
 |---|---|---|---|
 | Deep import (domain) | settlementInvariant خارج البرميل | application/finance (dynamic) | STR-205 — Wave J: تصدير عبر البرميل؛ **محروس الآن بحارس الحدود 4E (R1)** |
-| Deep import (domain) | operatingBreakEven ×2 (D-034) | application/g5 | تنازل موثق D-034 (حزمة) — يبقى |
+| Deep import (domain) | operatingBreakEven ×2 (D-034) | application/finance/projectFinancialService + application/financial-analysis/financialAnalysisService (بعد 4A) | تنازل موثق D-034 (حزمة) — يبقى؛ يحرسه حارس الحدود 4E (R1) |
 | Deep import (domain) | STR-030 alias ×2 + type import ×1 | domain-internal | موثق S2 |
 | Deep import (application) | integrityCheckService.ts:1437 | application↔application | STR-313 — تنازل مفرد موثق |
 | Type cycle (SCC) | storage types ↔ supplierScheduleCommitGuard | storage/local | STR-307 — type-only، موثق، لا حادثة تشغيل |
