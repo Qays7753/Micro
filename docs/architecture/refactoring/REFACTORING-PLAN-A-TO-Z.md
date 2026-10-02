@@ -1,7 +1,7 @@
 # Micro — البحث المعماري النهائي وخطة إعادة الهيكلة من A إلى Z
 
 **التاريخ:** 2026-09-30
-**النسخة:** v1.1 — دمج مراجعة Claude AI دون تنفيذ
+**النسخة:** v1.2 — إضافة بوابة التغطية المهنية ومعيار حجم ومسؤولية ونمو الملفات دون تنفيذ
 **المرحلة:** بحث واستشارة وتخطيط فقط
 **الحالة:** لا يوجد تنفيذ، ولا تعديل كود، ولا نقل، ولا حذف، ولا دمج
 **حالة المرجع:** مرجع واحد لخطة إعادة الهيكلة؛ لا يُعد تفويضًا بالتنفيذ
@@ -242,13 +242,13 @@ Primitive نقي، بلا I/O أو React، مستخدم من وحدتين على
 |---|---|---|---|
 | **A** | Freeze & Charter | تثبيت التجميد، Base SHA، Structural-only، واستثناء الطوارئ. | اعتماد المالك للميثاق. |
 | **B** | Scan Reconciliation | مقارنة المسح البنيوي المقبول مع `main` الحالي، دون إعادة ما هو صالح. | تقرير فجوات ومصادر أدلة واضح. |
-| **C** | Read-only Structure Scan | فحص الوحدات، المسؤوليات، الأحجام، imports، cycles، deep imports، tests/docs، التخزين والتصدير. | تقرير مصنف إلى VERIFIED/INFERRED/UNVERIFIED. |
-| **D** | Parity Baseline | تثبيت نتائج الاختبارات، Export Goldens، Snapshots، Round-trips، والـVectors الأساسية. | Baseline محفوظ ونتيجة Pass/Fail صريحة. |
+| **C** | Read-only Structure Scan | فحص الوحدات، المسؤوليات، الأحجام والنمو، الآثار الجانبية والتهيئة، Public APIs، imports، cycles، الإعدادات والأسرار، الاعتماديات والأداة، التزامن والفشل والاستعادة، الأداء، الملفات المولدة، tests/docs، التخزين والتصدير. | تقرير مصنف إلى VERIFIED/INFERRED/UNVERIFIED مع سجل حجم ومسؤولية وتغطية كامل. |
+| **D** | Parity Baseline | تثبيت نتائج الاختبارات، حتمية الاختبار، Export Goldens، Snapshots، Round-trips، Vectors، Error Identity، وإشارات الأداء والبدء عند تأثرها. | Baseline محفوظ ونتيجة Pass/Fail صريحة وحدود توافق ورجوع. |
 | **E** | Findings Acceptance | تصنيف النتائج إلى FIX_NOW/PRESERVE/DEFER/OUT_OF_SCOPE/OWNER_DECISION_REQUIRED. | المالك يقبل المسح والخريطة. هذه بوابة Micro الإلزامية. |
 | **F** | Ownership Registry | مفهوم ← مالكه ← مكان حسابه ← مستهلكوه ← تخزينه وتاريخه. | تغطية كاملة أو تعارضات مسجلة. |
-| **G** | Architecture Target Rules | توثيق dependency direction، Public Surfaces، Shared Kernel rules، Naming aliases. | قبول قواعد الهدف دون فرض مسارات مجلدات نهائية. |
-| **H** | Guard Observe | تشغيل حراس Deep Imports وCycles وLayer Violations وRegistry Coverage في وضع المراقبة. | Baseline Deterministic مع Exceptions واضحة. |
-| **I** | Guard Ratchet | منع زيادة المخالفات، واختبارات إيجابية وسلبية للحراس. | CI يرفض مخالفة جديدة دون تعديل Production. |
+| **G** | Architecture Target Rules | توثيق dependency direction، Public Surfaces، Shared Kernel rules، Naming aliases، Side Effects، Configuration Boundaries، Generated Ownership، Error/Recovery Boundaries. | قبول قواعد الهدف دون فرض مسارات مجلدات نهائية. |
+| **H** | Guard Observe | تشغيل حراس Deep Imports وCycles وLayer Violations وRegistry Coverage وحجم/مسؤولية/نمو الملفات وGenerated Drift في وضع المراقبة. | Baseline Deterministic مع Exceptions واضحة. |
+| **I** | Guard Ratchet | منع زيادة المخالفات، واختبارات إيجابية وسلبية للحراس، ومنع إضافة مسؤولية جديدة إلى ملف خطر دون استثناء. | CI يرفض مخالفة جديدة دون تعديل Production. |
 | **J** | Public Surface Pilot | إنشاء Public Re-export فقط لوحدة لها مستهلك فعلي. | Typecheck واختبارات وGuard ناجحة. |
 | **K** | Import Consolidation | إعادة توجيه Imports إلى Public API، دون تعديل أجسام الدوال. | انخفاض Deep Imports وعدم تغير Bundle أو السلوك. |
 | **L** | File-Move Pilot | نقل ملف واحد فقط بعد Consumer Inventory وHash/Rename Identity. | الملف مطابق، الاختبارات خضراء، ولا Consumers مجهولين. |
@@ -256,7 +256,7 @@ Primitive نقي، بلا I/O أو React، مستخدم من وحدتين على
 | **N** | Port Inventory | جرد Port Candidates، خصوصًا LocalStore وCommit Guards، دون Split. | كل Method مصنف بمالك ومستهلك وسلوك. |
 | **O** | Port Extraction | Capability Ports عند حاجة حقيقية، مع Facade توافقية. | Local وMemory ينجحان في نفس Contract Tests. |
 | **P** | Adapter Boundary | عزل Concrete Storage/Transfer عن بقية التطبيق، دون إعادة كتابة Adapters أو تغيير Schema. | Conformance وRound-trip وEntity Touchpoints ناجحة. |
-| **Q** | Test & Documentation Map | ربط كل Test وDocument بوحدة أو Cross-cutting، دون حذف أو ترقيم جديد. | Coverage لا تنخفض، والوثائق تطابق Registry. |
+| **Q** | Test & Documentation Map | ربط كل Test وDocument وGenerated Artifact وOperational/Recovery Contract بوحدة أو Cross-cutting، دون حذف أو ترقيم جديد. | Coverage لا تنخفض، والوثائق تطابق Registry، والملفات المولدة لها مصدر واضح. |
 | **R** | Semantic Repair Track | إصلاحات مثل Rounding أو Date أو Error Shape أو Quantity بشكل منفصل، إن اعتمدها المالك. | لا تُحسب Structural Completion إلا بعد مسارها المستقل. |
 | **S** | Schema/Export Track | توثيق الصيغة الحالية أو Schema يدويًا عند Trigger، مع Backward Import. | لا تغيير Version أو Bytes أو Historical Meaning. |
 | **T** | UI Boundary Track | يفتح فقط بقرار مالك؛ Read Models/Public APIs دون Visual Redesign. | UI Gate مستقل وRTL/سلوك الواجهة محفوظ. |
@@ -282,6 +282,27 @@ Primitive نقي، بلا I/O أو React، مستخدم من وحدتين على
 
 هذه الإضافات لا تمنح إذنًا لنقل الملفات أو تغيير السلوك. هي تقوي بوابات القياس، والاختبار، والقرار، والإنفاذ.
 
+### 7.2 بوابة التغطية المهنية الإضافية قبل أي نقل
+
+أثبتت المراجعة اللاحقة أن حصر الخطر في ثلاثة أسطح كبيرة لا يكفي. قبل أول Move أو Import Rewrite، يجب أن يثبت المسح الحالي أنه فحص النظام كاملًا، ثم صنّف كل نتيجة إلى `FIX_NOW` أو `PRESERVE` أو `WATCH` أو `DEFER` أو `OUT_OF_SCOPE` أو `OWNER_DECISION_REQUIRED`. لا يعني ذلك أن كل شيء سيُعاد تنظيمه؛ يعني فقط أن عدم التغيير قرار موثق لا شيء منسي.
+
+يجب أن يغطي المسح الإضافي الآثار الجانبية والتهيئة، Public APIs والعقود، الإعدادات والبيئة والأسرار، الاعتماديات والأداة، التزامن والفشل والاستعادة، الأداء والموارد، الملفات المولدة ومصادرها، حتمية الاختبارات، الترحيل والرجوع، المراقبة والتشخيص، ونظافة المستودع والتتبع. لكل سطح يجب أن يوجد دليل ونتيجة وتصنيف، دون كشف أسرار أو فتح مسار تنفيذ جديد.
+
+### 7.3 معيار الملفات الكبيرة والمتوسطة والقريبة من الحد
+
+تستخدم Micro الأرقام كإشارة مراجعة، لا كأمر تقسيم آلي:
+
+| التصنيف الإرشادي | Non-blank LOC للملف الإنتاجي | الإجراء |
+|---|---:|---|
+| `NORMAL` | أقل من 400 | لا إجراء حجمي بحد ذاته |
+| `WATCH` | 400–799 | مراقبة النمو ومنع إضافة مسؤولية غير مرتبطة دون مراجعة |
+| `SPLIT_CANDIDATE` | 800–1,199 | تحليل مسؤوليات وخطة منع تضخم قبل إضافة نطاق جديد |
+| `SPLIT_NOW` | 1,200 فأكثر مع تعدد مسؤوليات، أو أي حجم مع خرق حدود خطير | بطاقة تقسيم ومستهلكون واختبارات قبل النقل |
+
+ملف كبير ذو مسؤولية واحدة متماسكة قد يبقى مع سبب ومالك وحد نمو؛ وملف صغير مختلط الطبقات قد يحتاج تقسيمًا. ملفات الاختبار وFixtures والملفات المولدة والإعدادات لها تصنيف منفصل.
+
+ينشأ `FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md` داخل مساحة إعادة الهيكلة، ويغطي كل ملف في نطاق المسح مع المسار، الحجم، الصادرات، الاستيرادات، المستهلكين، المسؤوليات، الآثار الجانبية، الاختبارات، مصدر الحقيقة، حالة النمو، المالك، الإجراء، وأثر الرجوع. يضاف حارس تدريجي يمنع زيادة جديدة في `SPLIT_NOW` وينبه عند عبور حد، مع استثناء موثق بمالك وسبب وتاريخ مراجعة.
+
 ## 8. ما يبقى خارج إعادة الهيكلة
 
 ### مسار مستقل للمعنى المالي
@@ -304,7 +325,7 @@ Dart وFlutter وKotlin وSwift وPython وAPI وSync وAuth وMicroservices ل�
 
 لا نعلن الانتهاء لأن المجلدات أصبحت أجمل. تنتهي إعادة الهيكلة فقط عندما:
 
-1. يكون المسح الحي مصالحًا ومقبولًا؛
+1. يكون المسح الحي مصالحًا ومقبولًا، ويغطي سجل الحجم والمسؤولية والنمو والأسطح المهنية الإضافية؛
 2. يكون Registry يغطي الوحدات والمفاهيم والمستهلكين؛
 3. تعمل Guards في CI وتمنع الزيادة؛
 4. يكون كل Move أو Import Rewrite مدعومًا بـConsumer Inventory؛
@@ -312,7 +333,7 @@ Dart وFlutter وKotlin وSwift وPython وAPI وSync وAuth وMicroservices ل�
 6. لا يتغير Schema أو Export أو Historical Interpretation؛
 7. لا يتسلل UI أو Future Platform إلى Structural Diff؛
 8. لا يوجد Duplicate Financial Computation غير مفسر؛
-9. تكون كل الاستثناءات والـWaivers مسجلة ولا تزداد؛
+9. تكون كل الاستثناءات والـWaivers مسجلة ولا تزداد، ولا توجد ملفات `SPLIT_NOW` أو مخاطر مهنية غير مصنفة؛
 10. يراجع المالك Completion Audit ويوقع الإغلاق؛
 11. يدخل النظام بعدها في Moratorium يمنع Structural Expansion بلا سبب مقاس وقرار جديد.
 
