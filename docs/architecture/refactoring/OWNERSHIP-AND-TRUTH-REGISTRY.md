@@ -80,8 +80,8 @@
 | dueDatesService.ts / dueDateAging.ts | Financial Read Models | استحقاقات وأعمار الدين | storage + domain | dueDatesService.test.ts | مصنّفة |
 | upcomingService.ts | Financial Read Models | الالتزامات القادمة | عبر القارئ | upcomingService.test.ts مباشر | مصنّفة |
 | statementService.ts / statementMarkdownService.ts | Financial Read Models | بيان الفترة وتمثيله النصي | عبر القارئ | statementService.test.ts وstatementMarkdownService.test.ts مباشرة | مصنّفة |
-| profitToCashBridgeService.ts | Financial Read Models | جسر الربح→الكاش (G5) | domain/g5 + قارئ | profitToCashBridgeService.test.ts | مصنّفة |
-| shortCashHorizon.ts | Financial Read Models | أفق الكاش القصير (G5) | domain/g5 | shortCashHorizon.test.ts | مصنّفة |
+| profitToCashBridgeService.ts | Financial Read Models | جسر الربح→الكاش | domain/financial-analysis + قارئ (بعد 4A) | profitToCashBridgeService.test.ts | مصنّفة |
+| shortCashHorizon.ts | Financial Read Models | أفق الكاش القصير | domain/financial-analysis (بعد 4A) | shortCashHorizon.test.ts | مصنّفة |
 | application/g5/g5Service.ts | Financial Read Models (عنقود التحليل) | خدمات تحليل التعادل/السيولة | domain/g5 | g5Service.test.ts (+shortCashHorizon) | مصنّفة — مسار 4A rename |
 | application/owner-money/ownerEntitlementService.ts (انتقل مع العنقود — Wave 4B منفذة) | **Owner Money (منفذ)** | دورة سجل استحقاق المالك والتسويات | domain/owner-entitlement + storage | ownerEntitlementService.test.ts + ownerCrossModelDuplicates (انتقلا معه) | منفذة |
 | application/owner-money/withdrawalWalletGuard.ts (انتقل مع العنقود) | Owner Money | حارس محفظة السحب (قاعدة حسابية — STR-302 قرار مالك للتوطين) | domain/owner-safe-withdrawal | withdrawalWalletGuard.test.ts مباشر (انتقل معه) | منفذة النقل؛ **DECISION_REQUIRED** تبقى لنقل القاعدة الحسابية إلى المجال (مسار R) |
