@@ -33,6 +33,20 @@ export const LEGACY_AGREEMENT_SOURCES = ["conversation", "call", "in_person"] as
 export type LegacyAgreementSource = (typeof LEGACY_AGREEMENT_SOURCES)[number];
 
 /**
+ * طاقم قبول مصدر الاتفاق الكامل كما تستهلكه المدققة: الاتحاد الحالي (خمس
+ * قيم) ∪ القيم التوافقية التاريخية. المدققة تستهلك هذا الطاقم من هنا —
+ * المصدر واحد مسمى لا نسختين.
+ */
+export const AGREEMENT_SOURCE_ACCEPTANCE = [
+  "instagram",
+  "whatsapp",
+  "referral",
+  "walk_in",
+  "other",
+  ...LEGACY_AGREEMENT_SOURCES,
+] as const;
+
+/**
  * إثبات نوعي أن القيم التاريخية خارج الاتحاد الحالي فعلًا: لو دخلت قيمة
  * منها يومًا في AgreementSource الحالي يكسر هذا الاستبعاد فحص الأنواع، وعندها
  * تُنقل القيمة إلى الاتحاد الحالي ويُحذف صفها هنا مع تحديث اختباراتها — لا
@@ -77,13 +91,16 @@ export const TRANSFER_HISTORICAL_COMPATIBILITY = [
  */
 export const TRANSFER_ACCEPTANCE_SOURCES = {
   materialUnit: "DOMAIN_RUNTIME_LIST — materialUnits (domain/inventory-material)",
-  unitDimension: "DOMAIN_RUNTIME_LIST — unitDimensions (domain/catalog)",
-  recurringSeriesStatus: "DOMAIN_RUNTIME_LIST — recurringExpenseSeriesStatuses (domain/recurring-expense)",
+  unitDimension:
+    "GUARDED_UNION — unitDimensions (domain/catalog)؛ التفويض التشغيلي مؤجل (D-034 هامش الحزمة) — الطاقم مطابق حرفيًا ومحروس",
+  recurringSeriesStatus:
+    "GUARDED_UNION — recurringExpenseSeriesStatuses (domain/recurring-expense)؛ تفويض مؤجل (D-034) — مطابق حرفيًا ومحروس",
   recurringOccurrenceStatus:
     "DOMAIN_RUNTIME_LIST — recurringExpenseOccurrenceStatuses (domain/recurring-expense)",
   recurringMonthEndPolicy:
     "DOMAIN_RUNTIME_LIST — recurringExpenseMonthEndPolicies (domain/recurring-expense)",
-  recurringAmountMode: "DOMAIN_RUNTIME_LIST — recurringExpenseAmountModes (domain/recurring-expense)",
+  recurringAmountMode:
+    "GUARDED_UNION — recurringExpenseAmountModes (domain/recurring-expense)؛ تفويض مؤجل (D-034) — مطابق حرفيًا ومحروس",
   expenseBudgetStatus: "DOMAIN_RUNTIME_LIST — expenseBudgetStatuses (domain/budget)",
   expenseBudgetKnowledge: "DOMAIN_RUNTIME_LIST — expenseBudgetKnowledgeLevels (domain/budget)",
   catalogItemKind: "DOMAIN_RUNTIME_LIST — catalogItemKinds (domain/catalog)",

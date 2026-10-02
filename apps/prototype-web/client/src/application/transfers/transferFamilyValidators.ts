@@ -18,15 +18,8 @@ import {
 /* Wave 4D (RC-8 — مصدر الحقيقة): القوائم التشغيلية المجالية هي مصدر القبول
  * الحي — المدققات تستهلكها من مالكها لا من نسخ يدوية موازية؛ والقيم
  * التوافقية التاريخية تعيش في سجلها الموثق transferCompatibilityValues.ts. */
-import { unitDimensions } from "@micro-domain/catalog/index.js";
-import {
-  recurringExpenseAmountModes,
-  recurringExpenseMonthEndPolicies,
-  recurringExpenseOccurrenceStatuses,
-  recurringExpenseSeriesStatuses,
-} from "@micro-domain/recurring-expense/index.js";
 import { localOwnerProfileId, type OwnerProfile } from "@/storage/local/types";
-import { LEGACY_AGREEMENT_SOURCES } from "./transferCompatibilityValues";
+import { AGREEMENT_SOURCE_ACCEPTANCE } from "./transferCompatibilityValues";
 
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -83,19 +76,11 @@ export const isScheduleTime = (value: unknown): value is string =>
   isString(value) && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 export const isScheduleDuration = (value: unknown): value is number =>
   typeof value === "number" && Number.isInteger(value) && value >= 15 && value <= 720 && value % 15 === 0;
-/* Wave 4D (RC-8): الاتحاد الحالي (AgreementSource في storage/local/types.ts —
- * خمس قيم) ∪ القيم التوافقية التاريخية من سجلها الموثق. الطاقم كما كان
- * حرفيًا (8 + null)؛ التاريخي موسوم بسببه وإصداراته واختباراته هناك. */
-const AGREEMENT_SOURCE_ACCEPTANCE = new Set<string>([
-  "instagram",
-  "whatsapp",
-  "referral",
-  "walk_in",
-  "other",
-  ...LEGACY_AGREEMENT_SOURCES,
-]);
+/* Wave 4D (RC-8): طاقم القبول يُستهلك من السجل الموثق (transferCompatibilityValues):
+ * الاتحاد الحالي (AgreementSource — خمس قيم) ∪ التاريخي (LEGACY_AGREEMENT_SOURCES).
+ * الطاقم كما كان حرفيًا (8 + null)؛ includes بـSameValueZero يطابق سلسلة === للأوتار. */
 export const isAgreementSource = (value: unknown) =>
-  value === null || (typeof value === "string" && AGREEMENT_SOURCE_ACCEPTANCE.has(value));
+  value === null || (AGREEMENT_SOURCE_ACCEPTANCE as readonly unknown[]).includes(value);
 export const isLocalDate = (value: string) =>
   /^\d{4}-\d{2}-\d{2}$/.test(value) &&
   new Date(`${value}T12:00:00.000Z`).toISOString().slice(0, 10) === value;
@@ -308,8 +293,17 @@ export const isCorrectionType = (value: unknown) =>
 export const isOptionalString = (value: unknown) => value === undefined || value === null || isString(value);
 /* Wave 4D (RC-8): مصدر القبول — قائمة unitDimensions التشغيلية المجالية
  * (domain/catalog)؛ طاقم القبول نفسه حرفيًا. */
+/* Wave 4D (RC-8): GUARDED_UNION — قائمة unitDimensions المجالية (domain/catalog).
+ * التفويض التشغيلي مؤجل عمدًا (D-034): سحب برميل catalog إلى رأس الحزمة يكلف
+ * ~17 بايتًا وهامش السقف الخام 129 بايتًا محليًا فقط؛ الطاقم هنا يطابق القائمة
+ * حرفيًا ويحرسه اختبار السجل (قبول الأعضاء ورفض ما خارجها) ومراسي الدريفت. */
 export const isUnitDimension = (value: unknown) =>
-  typeof value === "string" && (unitDimensions as readonly string[]).includes(value);
+  value === "count" ||
+  value === "mass" ||
+  value === "volume" ||
+  value === "time" ||
+  value === "distance" ||
+  value === "area";
 export const isPositiveSafeInteger = (value: unknown) =>
   typeof value === "number" && Number.isSafeInteger(value) && value > 0;
 export const isSafeNonZeroInteger = (value: unknown): value is number =>
@@ -1054,8 +1048,7 @@ export function validCashEntry(value: unknown): boolean {
 }
 /* Wave 4D (RC-8): مصدر القبول — قائمة materialUnits التشغيلية المجالية
  * (domain/inventory-material)؛ طاقم القبول نفسه حرفيًا. */
-export const isMaterialUnit = (value: unknown) =>
-  typeof value === "string" && (materialUnits as readonly string[]).includes(value);
+export const isMaterialUnit = (value: unknown) => (materialUnits as readonly unknown[]).includes(value);
 export const isInventoryMovementType = (value: unknown) =>
   value === "opening" ||
   value === "purchase_receipt" ||
@@ -1516,10 +1509,22 @@ export function validateOwnerProfile(value: unknown): boolean {
 
 /* Wave 4D (RC-8): مصدر القبول — القوائم التشغيلية المجالية الأربع
  * (domain/recurring-expense) لا نسخًا يدوية؛ الطواقم نفسها حرفيًا. */
-const RECURRING_SERIES_STATUSES = new Set<string>(recurringExpenseSeriesStatuses);
-const RECURRING_OCCURRENCE_STATUSES = new Set<string>(recurringExpenseOccurrenceStatuses);
-const RECURRING_MONTH_END_POLICIES = new Set<string>(recurringExpenseMonthEndPolicies);
-const RECURRING_AMOUNT_MODES = new Set<string>(recurringExpenseAmountModes);
+/* Wave 4D (RC-8): GUARDED_UNION — القوائم المجالية الأربع (domain/recurring-expense).
+ * التفويض التشغيلي مؤجل عمدًا (D-034): سحب برميل recurring-expense إلى رأس
+ * الحزمة يكلف ~25 بايتًا وهامش السقف الخام 129 بايتًا محليًا فقط؛ الطواقم
+ * هنا تطابق القوائم حرفيًا وتحرسها اختبارات الوصف (3A) واختبار السجل. */
+const RECURRING_SERIES_STATUSES = new Set(["draft", "active", "paused", "cancelled", "archived"]);
+const RECURRING_OCCURRENCE_STATUSES = new Set([
+  "planned",
+  "snoozed",
+  "skipped",
+  "cancelled",
+  "recording",
+  "recorded",
+  "record_failed",
+]);
+const RECURRING_MONTH_END_POLICIES = new Set(["last_valid_day", "skip", "ask"]);
+const RECURRING_AMOUNT_MODES = new Set(["manual", "suggested", "fixed_suggested"]);
 const RECURRING_ACTION_KINDS = new Set([
   "created",
   "revised",
