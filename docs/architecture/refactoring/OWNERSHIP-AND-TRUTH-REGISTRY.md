@@ -7,7 +7,7 @@
 
 ---
 
-## 1. خريطة ملكية مفاهيم المجال (18 منطقة)
+## 1. خريطة ملكية مفاهيم المجال (18 منطقة + صف توزيعات مكمّل = 19 صفًا)
 
 الأعمدة: المفهوم | المصدر السلطوي (سلوكًا) | مالك التنفيذ | مستهلكون رئيسيون | مالك التخزين | مستهلك التصدير/الاستيراد | اختبارات | توثيق | حالة
 
@@ -66,7 +66,7 @@
 | Snapshot transfer | 2 (readSnapshot/replaceSnapshot) | application/transfers (تنسيق) + storage (حد الكتابة) | EXE-014 نسخة احتياطية متحققة قبل الاستبدال | localTransferService فقط | المظروف نفسه | مصنّفة — حد حرج؛ لا تغيير |
 | Profile/preferences misc | (مغطاة أعلاه) | — | — | — | — | — |
 
-**مجموع الطرق:** 131/131 مصنّفة. لا طريقة «معلقة بلا سبب». حراس الكتابة المشتركون: 9 وحدات حراسة نقية داخل حد الكتابة (STR-306 PRESERVE). التبعيات الجانبية الأربع للمحولات: IndexedDB global، Clock (حقن ~25 خدمة)، localDiagnostics، touchpoints registry.
+**مجموع الطرق:** 131/131 مصنّفة. *ملاحظة (تصحيح Agent 2):* أعداد الطرق لكل مجموعة أدلة تنقّل تقريبية؛ **الواجهة `PrototypeLocalStore` نفسها هي المصدر السلطوي للعدّ**. لا طريقة «معلقة بلا سبب». حراس الكتابة المشتركون: 9 وحدات حراسة نقية داخل حد الكتابة (STR-306 PRESERVE). التبعيات الجانبية الأربع للمحولات: IndexedDB global، Clock (حقن ~25 خدمة)، localDiagnostics، touchpoints registry.
 
 ---
 
@@ -78,20 +78,20 @@
 | periodComparisonService.ts | Financial Read Models | مقارنات الفترات | عبر القارئ الأساسي | periodComparisonService.test.ts | مصنّفة |
 | periodPresets.ts | Financial Read Models | قوالب الفترات | نقية | periodPresets.test.ts | مصنّفة |
 | dueDatesService.ts / dueDateAging.ts | Financial Read Models | استحقاقات وأعمار الدين | storage + domain | dueDatesService.test.ts | مصنّفة |
-| upcomingService.ts | Financial Read Models | الالتزامات القادمة | عبر القارئ | (عبر أسطح UI) | مصنّفة — فجوة تغطية مباشرة مسجلة (STR-412 موسع) |
-| statementService.ts / statementMarkdownService.ts | Financial Read Models | بيان الفترة وتمثيله النصي | عبر القارئ | (عبر أسطح UI) | مصنّفة |
+| upcomingService.ts | Financial Read Models | الالتزامات القادمة | عبر القارئ | upcomingService.test.ts مباشر | مصنّفة |
+| statementService.ts / statementMarkdownService.ts | Financial Read Models | بيان الفترة وتمثيله النصي | عبر القارئ | statementService.test.ts وstatementMarkdownService.test.ts مباشرة | مصنّفة |
 | profitToCashBridgeService.ts | Financial Read Models | جسر الربح→الكاش (G5) | domain/g5 + قارئ | profitToCashBridgeService.test.ts | مصنّفة |
 | shortCashHorizon.ts | Financial Read Models | أفق الكاش القصير (G5) | domain/g5 | shortCashHorizon.test.ts | مصنّفة |
 | application/g5/g5Service.ts | Financial Read Models (عنقود التحليل) | خدمات تحليل التعادل/السيولة | domain/g5 | g5Service.test.ts (+shortCashHorizon) | مصنّفة — مسار 4A rename |
 | ownerEntitlementService.ts | **Owner Money (الطيار)** | دورة سجل استحقاق المالك والتسويات | domain/owner-entitlement + storage | ownerEntitlementService.test.ts + ownerCrossModelDuplicates | مصنّفة — طيار Wave 4B |
-| withdrawalWalletGuard.ts | Owner Money | حارس محفظة السحب (قاعدة حسابية — STR-302 قرار مالك للتوطين) | domain/owner-safe-withdrawal | (عبر أسطح مالية) | مصنّفة — **DECISION_REQUIRED** لنقل القاعدة؛ البنية تبقى |
+| withdrawalWalletGuard.ts | Owner Money | حارس محفظة السحب (قاعدة حسابية — STR-302 قرار مالك للتوطين) | domain/owner-safe-withdrawal | withdrawalWalletGuard.test.ts مباشر (410 أسطر/13 اختبارًا) | مصنّفة — **DECISION_REQUIRED** لنقل القاعدة؛ البنية تبقى |
 | expenseRecordIntent.ts | Financial Records | قصد تسجيل المصروف وتصنيفه | domain/financial-event | expenseRecordIntent.test.ts | مصنّفة |
 | expenseCategorySuggestions.ts | Financial Records | اقتراحات تصنيف المصروف | سجل تاريخي محلي | expenseCategorySuggestions.test.ts | مصنّفة |
 | correctionHistoryService.ts | Financial Records | تاريخ التصحيحات (قراءة) | storage | correctionHistoryService.test.ts | مصنّفة |
 | retainedDepositService.ts | Financial Records | العربونات المحتجزة | domain + storage | retainedDepositService.test.ts | مصنّفة |
 | recurringExpenseService.ts | Recurring Planning | سلاسل المصروف المتكرر وقراراته | domain/recurring-expense | recurringExpenseService.test.ts | مصنّفة |
 | recurringWorkService.ts | Recurring Planning | العمل المتكرر | domain | recurringWorkService.test.ts (+fin006) | مصنّفة |
-| expenseBudgetService.ts | Budgets & Planning | ميزانيات المصروف (عقد 42) | domain/budget | **لا اختبار وحدة مباشر — فجوة STR-406: تُغلق في Wave 3C** | مصنّفة + بطاقة تغطية |
+| expenseBudgetService.ts | Budgets & Planning | ميزانيات المصروف (عقد 42) | domain/budget | **لا اختبار وحدة مباشر — فجوة STR-406: تُغلق في Wave 3C** (تحقق مستقل Agent 2) | مصنّفة + بطاقة تغطية |
 | integrityCheckService.ts | Integrity & Diagnostics | فحوص سلامة السجلات (قراءة فقط) — لا يملك قواعد مالية | كل السجلات عبر المنفذ | integrityCheckService.test.ts + fullCycleReconciliation | مصنّفة |
 
 **قواعد العناقيد:** (1) لا تُنقل معادلة أو تقريب أو تصنيف أو حالة نتيجة أبدًا — نقل ميكانيكي للملفات فقط. (2) التشخيص لا يخترع قواعد مالية. (3) shortCashDeclarations تبقى سجلًا مخزّنًا بملكية domain/g5 المسجلة.

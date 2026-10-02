@@ -603,7 +603,7 @@ Current evidence: CI runs lint+check (all guards, both vitest projects, build+bu
 Affected boundaries: whole-repo governance ↔ migration waves.
 Why it matters: development in a single-maintainer agent-heavy workflow (~298 PRs).
 Root cause or uncertainty: inherent — process decisions cannot be fully automated.
-Minimum safe remediation: preserve; keep using claims per wave + wave cards; optional owner-approved hardening in Waves H/I (refactoring-control vs current-state consistency guard; oversized-file ratchet counter).
+Minimum safe remediation: preserve; keep using claims per wave + wave cards; optional owner-gated hardening in Waves H/I — approval recorded in worklog before execution (refactoring-control vs current-state consistency guard; oversized-file ratchet counter).
 Dependencies and ordering: Waves H/I are the sanctioned home for new enforcement.
 Acceptance criteria: every structural PR: green CI + control item + wave card + rollback boundary.
 Rollback boundary: guards additive; code-only revert.
@@ -928,7 +928,7 @@ Current evidence: craft-order/types.ts:3; storage/local/types.ts:321 (CostEstima
 Affected boundaries: Domain ↔ Storage ↔ Application type ownership.
 Why it matters: data — adding/renaming a knowledge state must be done in three places; a missed copy silently accepts/rejects imported data.
 Root cause or uncertainty: import validation needs a runtime predicate; domain never exported one.
-Minimum safe remediation: at Wave J: add isKnowledgeState beside the domain type, consume in validators, twin the storage type (existing STR-030 twinning pattern) — tiny, isolated, owner-approved.
+Minimum safe remediation: at Wave J: add isKnowledgeState beside the domain type, consume in validators, twin the storage type (existing STR-030 twinning pattern) — tiny, isolated, owner-gated (Wave J is outside the approved 3A-4E batch; approval must be recorded in worklog first).
 Dependencies and ordering: Wave J (domain-surface addition); semantic aspects to Wave R if owner opens it.
 Acceptance criteria: one literal definition + one guard; twinning test; grep finds exactly one authoritative listing.
 Rollback boundary: single small commit revert.
@@ -1219,7 +1219,7 @@ Title: No materialized parity artifacts (goldens/vectors) exist on disk — Wave
 Evidence class: VERIFIED
 Owner classification: FIX_NOW (Wave D prerequisite)
 Severity: High
-Current evidence: exhaustive search: no __fixtures__ dirs, no *.golden/*vector files; only repo fixture consumed by a test is docs/fixtures/g82-guided-opening-import-fixtures.json; historical 8/17 pair fixture is inline in releasedPairs.test.ts (~line 727+, per D-030); round-trips/schema pairs are inline test code.
+Current evidence: exhaustive search: no __fixtures__ dirs, no *.golden/*vector files; only repo fixture consumed by a test is docs/fixtures/g82-guided-opening-import-fixtures.json; historical 8/17 pair fixture is inline in localTransferService.releasedPairs.test.ts (~line 727+, per D-030); round-trips/schema pairs are inline test code.
 Affected boundaries: application/transfers, storage/local, contract 39, any Wave L/M move, Wave D exit.
 Why it matters: data / financial — without checked-in goldens, a move that changes export bytes/ordering can only be caught by re-reading test code.
 Root cause or uncertainty: parity was always executable tests; no structural move was allowed before this program, so nobody materialized artifacts.
@@ -1368,7 +1368,7 @@ Mapped strictly onto the approved A–Z waves (no new wave names). Sequencing no
 
 ## 17. Explicit lists
 
-**PRESERVE (do not touch without an approved wave):** domain purity rules + public-surface lock (STR-101); guarded-commit protocol + its 9 modules (STR-306) and the documented type-only cycle (STR-307); runtime UI→storage boundary + 2 waivers (STR-207); local diagnostics (STR-310); composition-root DI + lazy pattern (STR-312); snapshot freeze/reversal/idempotency/envelope invariants (STR-314); touchpoints registry (STR-315); numeric double-diff governance (STR-404); docs-pinning governance tests (STR-410); moneyLayerGuard census (STR-415); contract numbering (STR-413); dated-claims discipline (STR-414); money representation (STR-504); clock injection pattern (STR-507); revert-insufficient fencing (STR-512); operational-control executable layer (STR-513); mutable-state sites (STR-210); ownership-guard precedent (STR-117); JOD cents/milli/Amman contracts; schema 38/30 and the 21 legacy pairs.
+**PRESERVE (do not touch without an approved wave):** domain purity rules + public-surface lock (STR-101); guarded-commit protocol + its 9 modules (STR-306) and the documented type-only cycle (STR-307); runtime UI→storage boundary + 2 waivers (STR-207); local diagnostics (STR-310); composition-root DI + lazy pattern (STR-312); snapshot freeze/reversal/idempotency/envelope invariants (STR-314); touchpoints registry (STR-315); numeric double-diff governance (STR-404); docs-pinning governance tests (STR-410); moneyLayerGuard census (STR-415); contract numbering (STR-413); dated-claims discipline (STR-414); money representation (STR-504); clock injection pattern (STR-507); revert-insufficient fencing (STR-512); operational-control executable layer (STR-513); mutable-state sites (STR-210); ownership-guard precedent (STR-117); JOD cents/milli/Amman contracts; schema 38/30 and the accepted historical pairs (executable source: `ACCEPTED_PAIRS` in `localTransferService.releasedPairs.test.ts`).
 
 **DEFER (sequenced by §15):** STR-102 (Waves N→O), STR-103 (Wave F→owner), STR-104 (Wave D/Q/R), STR-105 (Wave T), STR-113 (G→H→I), STR-213 (J→K), STR-204 (H; moves K/L), STR-205 (J→K), STR-209 (N), STR-305 (F→O/P), STR-214 (F/G→L), STR-109 (F), STR-115 (N), STR-116 (G), STR-309 (N), STR-211 (J/R), STR-111 (Q), STR-402 (Q), STR-406 (pre-M), STR-407 (pre-move), STR-408 (Q), STR-411 (Q), STR-412 (F), STR-416 (guard slice), STR-502/503/505 (U).
 
@@ -1433,7 +1433,8 @@ On branch `docs/architecture-refactoring-plan-20261002` (from verified live `ori
 11. `AGENTS.md` — تصحيح مسار qa/ (STR-403).
 12. `docs/contracts/40-technical-ownership-map-contract.md` — تصحيح المسارات الثلاثة (STR-403).
 13. `scripts/check-runtime-cycles.mjs` — **تعليق فقط** (STR-204): توثيق 3 SCCs نوعية مقيسة؛ صفر تغيير دلالة.
-14. سجلات Operations Control (ARCH-001/WS-211 محدثة + views معاد توليدها بالمولد الرسمي).
+14. `docs/00-document-index.md` — فهرسة الملفات الحية الأربعة (سطر 187).
+15. سجلات Operations Control (ARCH-001/WS-211 محدثة + views معاد توليدها بالمولد الرسمي).
 
 **تم إغلاق الانحراف البروتوكولي (النسخة الأولى أجّلت تحديث current-state للمالك):** هذا الالتزام يحدث `current-state.md` ويلحق `current-state-log.md` وفق AGENTS §9/§10 — لم يبق انحراف.
 

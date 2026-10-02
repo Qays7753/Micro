@@ -48,4 +48,15 @@
 
 ## 5. الفحوص المنفذة في هذا الالتزام
 
-تُسجى نتائج الفحوص المركزة هنا بعد تشغيلها مباشرة قبل الالتزام (validate.py، doc-index، secrets، test-focus، diff --check).
+النتائج الفعلية عند الالتزام b073bf4 (2026-10-03 — أعيد التحقق مستقلًا بواسطة Agent 2):
+
+| الفحص | النتيجة |
+|---|---|
+| `python3 scripts/operations-control/validate.py` | exit 0 — 79 بندًا / 53 Workstream / claim نشط واحد (WS-211) |
+| `node scripts/check-doc-index-coverage.mjs` | exit 0 — catalog coverage complete |
+| `node scripts/check-secrets.mjs` | exit 0 — 1,266 ملفًا، صفر أنماط |
+| `node scripts/check-test-focus.mjs` | exit 0 — 327 ملف اختبار، صفر .only/.skip |
+| `node scripts/check-runtime-cycles.mjs` | exit 0 — 319 ملف إنتاج، 0 دورات تشغيل |
+| `node scripts/check-skill-references.mjs` / `check-image-policy.mjs` / `check-entity-touchpoints.mjs` / `check-current-state-size.mjs` | exit 0 (الحالة الحية 15,479/20,480 بايت) |
+| `git diff --check` | exit 0 |
+| CI على b073bf4 (pnpm lint + pnpm check الكامل) | البوابة النهائية للدمج |
