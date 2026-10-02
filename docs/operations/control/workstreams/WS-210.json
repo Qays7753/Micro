@@ -1,7 +1,7 @@
 {
   "id": "WS-210",
   "title": "تنظيف السلطة والتوافق — الجولة الثانية: سلطة الخارطة، كعب todo، موجّه التوسعة، مرايا docx، أرشيفات محتكرة، دمج 02-by-tier",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "DOC-005"
   ],
@@ -20,7 +20,7 @@
   "pr": 293,
   "started_at": "2026-10-02",
   "updated_at": "2026-10-02",
-  "next_action": "دمج PR #293 بعد نجاح CI ثم التحقق على main.",
+  "next_action": "لا إجراء إضافي؛ منفذ ومتحقق على main عند 331bb6f9.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -39,6 +39,18 @@
       "changed_at": "2026-10-02",
       "actor": "ws-210:review",
       "reason": "فُتح PR #293 على الفرع docs/surface-cleanup-r2-20261002-p2 برأس 5cc1a67 بعد نجاح كل الفحوص المحلية (الحراس + validate + views + اختبارات التوثيق 37/37 + الجذري 537/537 + typecheck/lint/format)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "merge:pr-293",
+      "reason": "دُمج PR #293 بطريقة Squash عند 331bb6f989c183c21350f7b1efc4443d93195680 بعد نجاح CI (Actions + Cloudflare Pages) على رأس الـPR النهائي 505568c."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-02",
+      "actor": "verify:main-tree",
+      "reason": "تطابق رأس origin/main مع merge_sha 331bb6f989c183c21350f7b1efc4443d93195680؛ المدقق صالح (78 بندًا/52 Workstream) والViews حالية؛ الأرشيفات في مواقعها والمحذوفات غائبة وكعب todo.md بحجمه المتوقع على main."
     }
   ],
   "migration_baseline": false,
@@ -47,5 +59,7 @@
   ],
   "evidence": [
     "docs/operations/control/evidence/documentation-context-cleanup-2026-10-02/ROUND-2-FINAL-EXECUTION-REPORT.md"
-  ]
+  ],
+  "merge_sha": "331bb6f989c183c21350f7b1efc4443d93195680",
+  "verified_on_main_sha": "331bb6f989c183c21350f7b1efc4443d93195680"
 }
