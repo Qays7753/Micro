@@ -184,7 +184,7 @@
 
 السبعة في `docs/architecture/`: `SOURCE_OF_TRUTH.md` (سلّم السلطة والمصادر)، `CHANGE_PROTOCOL.md` (بروتوكول التغيير)، `COMPONENT_CONTRACTS.md` (عقود المكوّنات الأولية)، `EXTENSION_PLAYBOOK.md` (دليل التوسعة عبر كل الطبقات)، `MIGRATION_STATUS.md` (حالة الترحيل لكل سطح)، `SURFACE_TONE_SYNTAX.md` (تركيب نبرة الأسطح)، `UI_AUX_ARCHITECTURE.md` (معمار AUX وحدوده). والتسعة في `docs/architecture/ADRs/`: `ADR-001-fixed-strategy.md` (الاستراتيجية الثابتة)، `ADR-002-runtime-token-mapping.md` (ربط التوكنات وقت التشغيل)، `ADR-003-state-adapter.md` (محوّل الحالة)، `ADR-004-aux-boundaries.md` (حدود AUX)، `ADR-005-feature-pattern-ownership.md` (ملكية أنماط الميزات)، `ADR-006-legacy-retirement.md` (تقاعد الإرث)، `ADR-007-dark-mode-boundary.md` (حدود الوضع الداكن)، `ADR-008-per-action-classification.md` (تصنيف لكل فعل)، `ADR-009-permanent-dark-mode.md` (الوضع الداكن الدائم). أي مهمة تلمس الواجهة أو التجربة أو التصميم تقرأها قبل أي تعديل (عقد المستودع).
 
-مساحة إعادة الهيكلة في `docs/architecture/refactoring/`: `README.md`، `REFACTORING-CONTROL.md`، `REFACTORING-PLAN-A-TO-Z.md`، و`ZAI-STRUCTURE-ARCHITECTURE-SCAN-PROMPT.md`؛ وهي مساحة تحكم وتخطيط منفصلة، لا سلطة UI/AUX ولا تفويضًا بنقل الملفات. خطة الانتقال الوحيدة ستظهر لاحقًا في `REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md` بعد مقارنة المسح البنيوي المقبول بالوضع الحي.
+مساحة إعادة الهيكلة في `docs/architecture/refactoring/`: `README.md`، `REFACTORING-CONTROL.md`، `REFACTORING-PLAN-A-TO-Z.md`، و`ZAI-STRUCTURE-ARCHITECTURE-SCAN-PROMPT.md`؛ وهي مساحة تحكم وتخطيط منفصلة، لا سلطة UI/AUX ولا تفويضًا بنقل الملفات. خطة الانتقال الوحيدة ستظهر لاحقًا في `REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md` بعد تحليل جديد كامل للوضع الحي من الصفر.
 
 ## ملفات الجذر والأدوات الحاكمة
 

@@ -1,10 +1,10 @@
 # Micro — البحث المعماري النهائي وخطة إعادة الهيكلة من A إلى Z
 
-**التاريخ:** 2026-09-30  
-**النسخة:** v1.1 — دمج مراجعة Claude AI دون تنفيذ  
-**المرحلة:** بحث واستشارة وتخطيط فقط  
-**الحالة:** لا يوجد تنفيذ، ولا تعديل كود، ولا نقل، ولا حذف، ولا دمج  
-**حالة المرجع:** مرجع واحد لخطة إعادة الهيكلة؛ لا يُعد تفويضًا بالتنفيذ  
+**التاريخ:** 2026-09-30
+**النسخة:** v1.1 — دمج مراجعة Claude AI دون تنفيذ
+**المرحلة:** بحث واستشارة وتخطيط فقط
+**الحالة:** لا يوجد تنفيذ، ولا تعديل كود، ولا نقل، ولا حذف، ولا دمج
+**حالة المرجع:** مرجع واحد لخطة إعادة الهيكلة؛ لا يُعد تفويضًا بالتنفيذ
 **مصادر المراجعة:** البحث المعماري السابق، تقارير الوكلاء الأربعة، تعليمات Micro، ومراجعة Claude AI بتاريخ 2026-10-01
 
 ## 1. الرأي النهائي الواحد
@@ -357,24 +357,24 @@ Dart وFlutter وKotlin وSwift وPython وAPI وSync وAuth وMicroservices ل�
 
 ## References
 
-**[S1]:** Martin Fowler, "Monolith First" — https://martinfowler.com/bliki/MonolithFirst.html  
-**[S2]:** Simon Brown, "Modular monoliths and package by component" — https://simonbrown.je/modular-monolith/  
-**[S3]:** Microsoft, "Identify microservice boundaries" — https://learn.microsoft.com/en-us/azure/architecture/microservices/model/microservice-boundaries  
-**[S4]:** Stefan Tilkov, "Don’t start with a monolith — when your goal is a microservices architecture" — https://martinfowler.com/articles/dont-start-monolith.html  
-**[S5]:** Auer et al., "From monolithic systems to Microservices: An assessment framework" — https://www.sciencedirect.com/science/article/pii/S0950584921000793  
-**[S6]:** "Evolution of microservices identification in monolith decomposition: A systematic review" — https://ieeexplore.ieee.org/abstract/document/10431792/  
-**[S7]:** David Parnas, "On the Criteria To Be Used in Decomposing Systems into Modules" — https://dl.acm.org/doi/10.1145/361598.361623  
-**[S8]:** Sangal et al., "Using Dependency Models to Manage Complex Software Architecture" — https://dl.acm.org/doi/10.1145/1094811.1094824  
-**[S9]:** MacCormack, Baldwin, Rusnak, "Exploring the Structure of Complex Software Designs" — https://pubsonline.informs.org/doi/abs/10.1287/mnsc.1060.0552  
-**[S10]:** Kim et al., "A Field Study of Refactoring Challenges and Benefits" — https://dl.acm.org/doi/10.1145/2393596.2393655  
-**[S11]:** CMU SEI, "Why Architecture Conformance Matters for Software Systems" — https://www.sei.cmu.edu/library/why-architecture-conformance-matters-for-software-systems/  
-**[S12]:** Opdyke and incremental migration guidance — https://www.laputan.org/pub/papers/opdyke-thesis.pdf ; https://martinfowler.com/bliki/BranchByAbstraction.html ; https://martinfowler.com/bliki/StranglerFigApplication.html  
-**[S13]:** Eric Evans, "Domain-Driven Design Reference" — https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf  
-**[S14]:** Protocol Buffers, Avro, RFC 8259, RFC 8785 — https://protobuf.dev/overview/ ; https://avro.apache.org/docs/1.11.1/specification/ ; https://www.rfc-editor.org/rfc/rfc8259.html ; https://www.rfc-editor.org/rfc/rfc8785.html  
+**[S1]:** Martin Fowler, "Monolith First" — https://martinfowler.com/bliki/MonolithFirst.html
+**[S2]:** Simon Brown, "Modular monoliths and package by component" — https://simonbrown.je/modular-monolith/
+**[S3]:** Microsoft, "Identify microservice boundaries" — https://learn.microsoft.com/en-us/azure/architecture/microservices/model/microservice-boundaries
+**[S4]:** Stefan Tilkov, "Don’t start with a monolith — when your goal is a microservices architecture" — https://martinfowler.com/articles/dont-start-monolith.html
+**[S5]:** Auer et al., "From monolithic systems to Microservices: An assessment framework" — https://www.sciencedirect.com/science/article/pii/S0950584921000793
+**[S6]:** "Evolution of microservices identification in monolith decomposition: A systematic review" — https://ieeexplore.ieee.org/abstract/document/10431792/
+**[S7]:** David Parnas, "On the Criteria To Be Used in Decomposing Systems into Modules" — https://dl.acm.org/doi/10.1145/361598.361623
+**[S8]:** Sangal et al., "Using Dependency Models to Manage Complex Software Architecture" — https://dl.acm.org/doi/10.1145/1094811.1094824
+**[S9]:** MacCormack, Baldwin, Rusnak, "Exploring the Structure of Complex Software Designs" — https://pubsonline.informs.org/doi/abs/10.1287/mnsc.1060.0552
+**[S10]:** Kim et al., "A Field Study of Refactoring Challenges and Benefits" — https://dl.acm.org/doi/10.1145/2393596.2393655
+**[S11]:** CMU SEI, "Why Architecture Conformance Matters for Software Systems" — https://www.sei.cmu.edu/library/why-architecture-conformance-matters-for-software-systems/
+**[S12]:** Opdyke and incremental migration guidance — https://www.laputan.org/pub/papers/opdyke-thesis.pdf ; https://martinfowler.com/bliki/BranchByAbstraction.html ; https://martinfowler.com/bliki/StranglerFigApplication.html
+**[S13]:** Eric Evans, "Domain-Driven Design Reference" — https://www.domainlanguage.com/wp-content/uploads/2016/05/DDD_Reference_2015-03.pdf
+**[S14]:** Protocol Buffers, Avro, RFC 8259, RFC 8785 — https://protobuf.dev/overview/ ; https://avro.apache.org/docs/1.11.1/specification/ ; https://www.rfc-editor.org/rfc/rfc8259.html ; https://www.rfc-editor.org/rfc/rfc8785.html
 **[S15]:** Local-first, Android architecture, and OpenAPI — https://dl.acm.org/doi/10.1145/3359591.3359737 ; https://developer.android.com/topic/architecture ; https://www.openapis.org/what-is-openapi
 
-**Final status:** `OWNER_REVIEW_REQUIRED`  
-**Implementation authorized:** `NO`  
-**Repository modified:** `NO`  
-**Unrelated development:** `FROZEN`  
+**Final status:** `OWNER_REVIEW_REQUIRED`
+**Implementation authorized:** `NO`
+**Repository modified:** `NO`
+**Unrelated development:** `FROZEN`
 **First allowed wave:** `READ_ONLY STRUCTURE/ARCHITECTURE/CODE ORGANIZATION SCAN AFTER OWNER GATE`
