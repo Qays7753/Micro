@@ -7,11 +7,26 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 /* المجموعة ٩ (STR-030): محقق سياق الهدر من مالكه الكنسي (صاحب حركة
  * المخزون) — الواردات القديمة تمر كما هي بالسماح الموجود لا بمسار مواز. */
-import { isValidWasteContext } from "@micro-domain/inventory-material/index.js";
+import { isValidWasteContext, materialUnits } from "@micro-domain/inventory-material/index.js";
 /* FIN-002 (عقد ٤٢): محقق مفتاح فترة الميزانية من مالكه الكنوني — الشكل
  * YYYY-MM بتوقيت عمّان كما يتحقق منه الدومين نفسه لا من نسخة موازية. */
-import { isValidBudgetPeriodKey } from "@micro-domain/budget/index.js";
+import {
+  expenseBudgetKnowledgeLevels,
+  expenseBudgetStatuses,
+  isValidBudgetPeriodKey,
+} from "@micro-domain/budget/index.js";
+/* Wave 4D (RC-8 — مصدر الحقيقة): القوائم التشغيلية المجالية هي مصدر القبول
+ * الحي — المدققات تستهلكها من مالكها لا من نسخ يدوية موازية؛ والقيم
+ * التوافقية التاريخية تعيش في سجلها الموثق transferCompatibilityValues.ts. */
+import { unitDimensions } from "@micro-domain/catalog/index.js";
+import {
+  recurringExpenseAmountModes,
+  recurringExpenseMonthEndPolicies,
+  recurringExpenseOccurrenceStatuses,
+  recurringExpenseSeriesStatuses,
+} from "@micro-domain/recurring-expense/index.js";
 import { localOwnerProfileId, type OwnerProfile } from "@/storage/local/types";
+import { LEGACY_AGREEMENT_SOURCES } from "./transferCompatibilityValues";
 
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -68,16 +83,19 @@ export const isScheduleTime = (value: unknown): value is string =>
   isString(value) && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 export const isScheduleDuration = (value: unknown): value is number =>
   typeof value === "number" && Number.isInteger(value) && value >= 15 && value <= 720 && value % 15 === 0;
+/* Wave 4D (RC-8): الاتحاد الحالي (AgreementSource في storage/local/types.ts —
+ * خمس قيم) ∪ القيم التوافقية التاريخية من سجلها الموثق. الطاقم كما كان
+ * حرفيًا (8 + null)؛ التاريخي موسوم بسببه وإصداراته واختباراته هناك. */
+const AGREEMENT_SOURCE_ACCEPTANCE = new Set<string>([
+  "instagram",
+  "whatsapp",
+  "referral",
+  "walk_in",
+  "other",
+  ...LEGACY_AGREEMENT_SOURCES,
+]);
 export const isAgreementSource = (value: unknown) =>
-  value === null ||
-  value === "instagram" ||
-  value === "whatsapp" ||
-  value === "referral" ||
-  value === "walk_in" ||
-  value === "other" ||
-  value === "conversation" ||
-  value === "call" ||
-  value === "in_person";
+  value === null || (typeof value === "string" && AGREEMENT_SOURCE_ACCEPTANCE.has(value));
 export const isLocalDate = (value: string) =>
   /^\d{4}-\d{2}-\d{2}$/.test(value) &&
   new Date(`${value}T12:00:00.000Z`).toISOString().slice(0, 10) === value;
@@ -288,13 +306,10 @@ export function isDirectSale(value: unknown): value is DirectSale {
 export const isCorrectionType = (value: unknown) =>
   value === undefined || value === null || value === "reverse";
 export const isOptionalString = (value: unknown) => value === undefined || value === null || isString(value);
+/* Wave 4D (RC-8): مصدر القبول — قائمة unitDimensions التشغيلية المجالية
+ * (domain/catalog)؛ طاقم القبول نفسه حرفيًا. */
 export const isUnitDimension = (value: unknown) =>
-  value === "count" ||
-  value === "mass" ||
-  value === "volume" ||
-  value === "time" ||
-  value === "distance" ||
-  value === "area";
+  typeof value === "string" && (unitDimensions as readonly string[]).includes(value);
 export const isPositiveSafeInteger = (value: unknown) =>
   typeof value === "number" && Number.isSafeInteger(value) && value > 0;
 export const isSafeNonZeroInteger = (value: unknown): value is number =>
@@ -1037,8 +1052,10 @@ export function validCashEntry(value: unknown): boolean {
     ? isString(value.reason) && value.reason.trim().length > 0 && isString(value.reversesEntryId)
     : value.reversesEntryId === null;
 }
+/* Wave 4D (RC-8): مصدر القبول — قائمة materialUnits التشغيلية المجالية
+ * (domain/inventory-material)؛ طاقم القبول نفسه حرفيًا. */
 export const isMaterialUnit = (value: unknown) =>
-  value === "piece" || value === "meter" || value === "kilogram" || value === "liter" || value === "other";
+  typeof value === "string" && (materialUnits as readonly string[]).includes(value);
 export const isInventoryMovementType = (value: unknown) =>
   value === "opening" ||
   value === "purchase_receipt" ||
@@ -1497,18 +1514,12 @@ export function validateOwnerProfile(value: unknown): boolean {
 /* OPS-003 (عقد ٤١): مدققات عائلة المصروف المتكرر — هوية فريدة وشكل سليم
  * وترابط صادق؛ الملف المكسور يُرفض قبل أي معاينة كما تُرفض البصمة المعطوبة. */
 
-const RECURRING_SERIES_STATUSES = new Set(["draft", "active", "paused", "cancelled", "archived"]);
-const RECURRING_OCCURRENCE_STATUSES = new Set([
-  "planned",
-  "snoozed",
-  "skipped",
-  "cancelled",
-  "recording",
-  "recorded",
-  "record_failed",
-]);
-const RECURRING_MONTH_END_POLICIES = new Set(["last_valid_day", "skip", "ask"]);
-const RECURRING_AMOUNT_MODES = new Set(["manual", "suggested", "fixed_suggested"]);
+/* Wave 4D (RC-8): مصدر القبول — القوائم التشغيلية المجالية الأربع
+ * (domain/recurring-expense) لا نسخًا يدوية؛ الطواقم نفسها حرفيًا. */
+const RECURRING_SERIES_STATUSES = new Set<string>(recurringExpenseSeriesStatuses);
+const RECURRING_OCCURRENCE_STATUSES = new Set<string>(recurringExpenseOccurrenceStatuses);
+const RECURRING_MONTH_END_POLICIES = new Set<string>(recurringExpenseMonthEndPolicies);
+const RECURRING_AMOUNT_MODES = new Set<string>(recurringExpenseAmountModes);
 const RECURRING_ACTION_KINDS = new Set([
   "created",
   "revised",
@@ -1658,8 +1669,10 @@ export function validRecurringExpenseOccurrence(value: unknown): boolean {
   });
 }
 
-const EXPENSE_BUDGET_STATUSES = new Set(["active", "superseded", "closed"]);
-const EXPENSE_BUDGET_KNOWLEDGE = new Set(["known", "estimated"]);
+/* Wave 4D (RC-8): مصدر القبول — قائمتا الميزانية التشغيليتان المجاليتان
+ * (domain/budget) لا نسختين يدويتين؛ الطاقمان نفساهما حرفيًا. */
+const EXPENSE_BUDGET_STATUSES = new Set<string>(expenseBudgetStatuses);
+const EXPENSE_BUDGET_KNOWLEDGE = new Set<string>(expenseBudgetKnowledgeLevels);
 
 /* FIN-002 (عقد ٤٢): سجل ميزانية سليم الشكل — الخطة ليست حدثًا ماليًا فلا
  * روابط أحداث هنا أصلًا؛ مفتاح الفترة يُتحقق من الدومين الكنوني نفسه
