@@ -1,0 +1,78 @@
+{
+  "id": "ARCH-001",
+  "title": "مسح معماري/بنيوي للقراءة فقط وخطة انتقال CURRENT→TARGET→MIGRATION WAVES — المرحلة الأولى لبرنامج إعادة الهيكلة",
+  "type": "RESEARCH",
+  "status": "IN_REVIEW",
+  "priority": "P1",
+  "stage": "architecture-refactoring-phase1",
+  "summary": "تنفيذ المرحلة الأولى المسموحة من مساحة التحكم المعماري (docs/architecture/refactoring/): مسح قراءة فقط من الصفر للشجرة الحية عند e7688efda3bbae945a258cca92eabce889c7dab4 (مع STATE_DRIFT موثق: +1 commit توثيقي #298 فوق القاعدة 9271a85d)، عبر خمسة اختصاصيين مستقلين للقراءة فقط (حدود الوحدات، الامتثال الاعتمادي، المجال/التخزين/البيانات، الاختبارات/التوثيق/العقود، التطور المستقبلي والمخاطر)، ثم توليف خطة انتقال واحدة مالكية للمراجعة: docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md — سجل مكتشفات مصنف (VERIFIED/INFERRED/...)، خريطة وحدات هدف منطقية، موجات أدنى آمنة مرتبة على موجات الخطة A–Z، جدول قرارات مالك، وتوصية بأصغر موجة تالية. لا تنفيذ ولا نقل ملفات ولا تغيير سلوك.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "NOT_APPLICABLE",
+  "root_cause": "program:architecture-refactoring-phase1 (docs/architecture/refactoring/REFACTORING-CONTROL.md §4)",
+  "source": {
+    "report": "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md",
+    "discovered_at_sha": "e7688efda3bbae945a258cca92eabce889c7dab4",
+    "evidence": []
+  },
+  "acceptance": [
+    "تقرير/خطة واحدة فقط في docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md غير فارغة وتحتوي كل الأقسام المطلوبة (خريطة الوحدات، الملفات المتضخمة، الاعتماديات والدورات وDeep Imports، تركيب الطبقات، مصادر الحقيقة، خريطة الاختبارات/التوثيق، قابلية الاكتشاف، التطور المستقبلي بالمحفزات، سجل المكتشفات بالصيغة الإلزامية، خريطة الهدف، الموجات، قرارات المالك، جدول المصالحة، التوصية النهائية).",
+    "كل مكتشف مصنف VERIFIED/INFERRED/UNVERIFIED/NOT_EXECUTED/DEFERRED/BLOCKER مع تصنيف مالك (FIX_NOW/PRESERVE/DEFER/OUT_OF_SCOPE/OWNER_DECISION_REQUIRED).",
+    "STATE_DRIFT مسجل (9271a85d ← e7688efd، commit توثيقي واحد #298) وكل الأدلة مربوطة بالرأس الحي.",
+    "لا تغيير في أي ملف إنتاج أو اختبار أو إعداد؛ الفرق محصور في ملف الخطة + حالة REFACTORING-CONTROL.md + سجلات Operations Control الدنيا وViews المولدة بالمولد الرسمي.",
+    "validate.py وcheck-doc-index-coverage ناجحان على فرع التقرير؛ git diff --check نظيف؛ لا أسرار.",
+    "PR للتقرير فقط مفتوح إلى main بلا دمج؛ التوقف لمراجعة المالك."
+  ],
+  "areas": [
+    "docs/architecture/refactoring",
+    "architecture-governance"
+  ],
+  "contracts": [],
+  "evidence": [
+    "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md"
+  ],
+  "dependencies": [],
+  "related_items": [],
+  "owner_decision": "قرار المالك مطلوب: قبول التقرير وتصنيفات المكتشفات (بوابة E) ثم اعتماد تسلسل الموجات المقترح ودفعة FIX_NOW التوثيقية؛ لا تبدأ أي موجة كتابة تلقائيًا.",
+  "updated_at": "2026-10-02",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-10-02",
+      "actor": "program:architecture-refactoring-control-space (#298)",
+      "reason": "مساحة التحكم المعماري أُنشئت والخطوة التالية المسموحة وفق current-state §8.2.7 هي تحليل جديد كامل للوضع الحي وخطة CURRENT→TARGET→MIGRATION WAVES للتقرير فقط."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "ws-211:claim",
+      "reason": "فتح Claim تنفيذي ضمن WS-211 بعد التحقق من صفر Workstreams نشطة وصفر PRs مفتوحة وتطابق origin/main مع e7688efd."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-02",
+      "actor": "ws-211:implement",
+      "reason": "تنفيذ المسح للقراءة فقط بخمسة اختصاصيين مستقلين ثم التوليف في خطة واحدة عند الرأس الحي e7688efd."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-211:review",
+      "reason": "اكتمل التقرير وفتح PR للتقرير فقط على فرع docs/architecture-refactoring-plan-20261002 بعد نجاح الفحوص المركزية (validate + doc-index + secrets + git diff --check)."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "مراجعة المالك للتقرير وقراراته (بوابة E)؛ لا موجة كتابة قبل قبول صريح؛ التفاصيل في §16 من الخطة.",
+  "classification": "GOVERNANCE",
+  "owner": "Product owner / Z AI (Phase-1 report agent)",
+  "tests_required": [
+    "python3 scripts/operations-control/validate.py (بعد إعادة توليد Views بالمولد الرسمي)",
+    "node scripts/check-doc-index-coverage.mjs",
+    "node scripts/check-secrets.mjs",
+    "git diff --check وفحص المسارات الممنوعة في diff كامل"
+  ],
+  "layers": [
+    "documentation",
+    "architecture-governance"
+  ],
+  "gate_classification": "NOT_APPLICABLE"
+}

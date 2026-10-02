@@ -1,0 +1,49 @@
+{
+  "id": "WS-211",
+  "title": "مسح معماري للقراءة فقط وخطة انتقال التقرير فقط — المرحلة الأولى لبرنامج إعادة الهيكلة (ARCH-001)",
+  "status": "IN_REVIEW",
+  "items": [
+    "ARCH-001"
+  ],
+  "branch": "docs/architecture-refactoring-plan-20261002",
+  "base_sha": "e7688efda3bbae945a258cca92eabce889c7dab4",
+  "areas": [
+    "docs/architecture/refactoring",
+    "architecture-governance"
+  ],
+  "contracts": [],
+  "agent": "Z AI (Phase-1 report-only agent; five read-only specialists + synthesizer)",
+  "pr": null,
+  "started_at": "2026-10-02",
+  "updated_at": "2026-10-02",
+  "next_action": "مراجعة المالك للـPR والتقرير (بوابة E)؛ لا دمج تلقائي ولا موجة كتابة قبل قرار صريح؛ بعد الدمج يُحدَّث البند إلى MERGED_UNVERIFIED ثم VERIFIED بعد التحقق على main.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "ws-211:claim",
+      "reason": "فتح Claim على الفرع docs/architecture-refactoring-plan-20261002 من main المتحقق e7688efda3bbae945a258cca92eabce889c7dab4 بعد التحقق من صفر Workstreams نشطة وصفر PRs مفتوحة وصفر تعارض نطاقات؛ STATE_DRIFT موثق (+1 commit توثيقي #298 فوق القاعدة المرجعية 9271a85d)."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-02",
+      "actor": "ws-211:implement",
+      "reason": "تنفيذ المسح للقراءة فقط (خمسة اختصاصيين مستقلين) وتوليف خطة الانتقال الواحدة في docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md مع تحديث حالة REFACTORING-CONTROL.md الدنيا."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-211:review",
+      "reason": "اكتمل التقرير ونجحت الفحوص المركزية (validate.py + doc-index + secrets + git diff --check) وسيُفتح PR للتقرير فقط إلى main دون دمج."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "حد الاستعادة: إغلاق أو revert لـPR التقرير فقط؛ لا حاجة لاستعادة زمن تشغيل لأن لا ملف تشغيل تغير.",
+    "انحراف بروتوكولي موثق: حد الكتابة لهذه المرحلة يستثني تحديث current-state.md/current-state-log.md؛ يتركان للمالك عند الدمج إن قَبِل.",
+    "Excel workbook (MASTER-TRACKER.xlsx) لم يُعد توليده يدويًا؛ حدث meta بالمولد الرسمي فقط، أسوة بالـPRs #291/#293/#294."
+  ],
+  "evidence": [
+    "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md"
+  ]
+}

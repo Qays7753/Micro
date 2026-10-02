@@ -1,9 +1,9 @@
 # Micro — Refactoring Control
 
-**الإصدار:** v1.0
+**الإصدار:** v1.0 (بتحديث مرحلة مؤرخ 2026-10-02 فقط)
 **التاريخ:** 2026-10-02
 **الحالة:** `OWNER_REVIEW_REQUIRED`
-**المرحلة:** `PRE-SCAN / REPORT-ONLY`
+**المرحلة:** `SCAN-COMPLETE / REPORT-ONLY PR — AWAITING OWNER REVIEW` (كانت `PRE-SCAN / REPORT-ONLY`)
 **النطاق:** Structure / Architecture / Code Organization فقط
 
 ## 1. الهدف
@@ -20,7 +20,7 @@
 - `docs/architecture/SOURCE_OF_TRUTH.md` عند أي ملامسة مستقبلية لـUI/AUX
 - `docs/architecture/refactoring/REFACTORING-PLAN-A-TO-Z.md`
 - `docs/architecture/refactoring/README.md`
-- الخطة القادمة: `REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md`
+- الخطة القادمة: `REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md` — **أُنشئت الآن** (v1.0، 2026-10-02، عند الرأس الحي `e7688efda3bbae945a258cca92eabce889c7dab4` مع `STATE_DRIFT` موثق: +1 commit توثيقي #298 فوق قاعدة `9271a85d…`) وتنتظر مراجعة المالك عبر PR للتقرير فقط؛ لا تنفيذ بعد.
 
 الخطة المرجعية داخل هذا المجلد هي نسخة تشغيلية من ملف مشروع Micro المحفوظ في مصادر المشروع. لا تُنشأ خطة معمارية ثانية باسم آخر.
 
