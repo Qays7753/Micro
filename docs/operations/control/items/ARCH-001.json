@@ -2,7 +2,7 @@
   "id": "ARCH-001",
   "title": "مسح معماري/بنيوي للقراءة فقط وخطة انتقال CURRENT→TARGET→MIGRATION WAVES — المرحلة الأولى لبرنامج إعادة الهيكلة",
   "type": "RESEARCH",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "architecture-refactoring-phase1",
   "summary": "تنفيذ المرحلة الأولى المسموحة من مساحة التحكم المعماري (docs/architecture/refactoring/): مسح قراءة فقط من الصفر للشجرة الحية عند e7688efda3bbae945a258cca92eabce889c7dab4 (مع STATE_DRIFT موثق: +1 commit توثيقي #298 فوق القاعدة 9271a85d)، عبر خمسة اختصاصيين مستقلين للقراءة فقط (حدود الوحدات، الامتثال الاعتمادي، المجال/التخزين/البيانات، الاختبارات/التوثيق/العقود، التطور المستقبلي والمخاطر)، ثم توليف خطة انتقال واحدة مالكية للمراجعة: docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md — سجل مكتشفات مصنف (VERIFIED/INFERRED/...)، خريطة وحدات هدف منطقية، موجات أدنى آمنة مرتبة على موجات الخطة A–Z، جدول قرارات مالك، وتوصية بأصغر موجة تالية. لا تنفيذ ولا نقل ملفات ولا تغيير سلوك.",
@@ -33,7 +33,7 @@
   "dependencies": [],
   "related_items": [],
   "owner_decision": "قرار المالك مطلوب: قبول التقرير وتصنيفات المكتشفات (بوابة E) ثم اعتماد تسلسل الموجات المقترح ودفعة FIX_NOW التوثيقية؛ لا تبدأ أي موجة كتابة تلقائيًا.",
-  "updated_at": "2026-10-02",
+  "updated_at": "2026-10-03",
   "status_history": [
     {
       "status": "READY",
@@ -58,10 +58,22 @@
       "changed_at": "2026-10-02",
       "actor": "ws-211:review",
       "reason": "اكتمل التقرير وفتح PR للتقرير فقط على فرع docs/architecture-refactoring-plan-20261002 بعد نجاح الفحوص المركزية (validate + doc-index + secrets + git diff --check)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-03",
+      "actor": "arch-001:merged",
+      "reason": "دمج PR #299 (squash عند a0f19d13350bddc480c393eb32313e5b70c91643) بعد CI أخضر على الرأس 768b30c وقبول المالك المسجل؛ التحقق على main يجري الآن ويرقّى إلى VERIFIED في PR اللاحقة."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-03",
+      "actor": "arch-001:verify",
+      "reason": "CI أخضر على main عند a0f19d13350bddc480c393eb32313e5b70c91643 (checks + Cloudflare Pages؛ squash مطابق شجريًا لرأس PR 768b30c الذي كان أخضر أيضًا)."
     }
   ],
   "migration_baseline": false,
-  "next_action": "قبول المالك مسجل 2026-10-03 مع بدء برنامج المعالجة؛ بعد دمج PR #299 والتحقق على main يصبح VERIFIED، والتنفيذ ينتقل إلى موجات البرنامج بسجلات جديدة.",
+  "next_action": "مغلق: التقرير مقبول ومدمج ومتحقق؛ التنفيذ في WS-212.",
   "classification": "GOVERNANCE",
   "owner": "Product owner / Z AI (Phase-1 report agent)",
   "tests_required": [
@@ -74,5 +86,7 @@
     "documentation",
     "architecture-governance"
   ],
-  "gate_classification": "NOT_APPLICABLE"
+  "gate_classification": "NOT_APPLICABLE",
+  "merge_sha": "a0f19d13350bddc480c393eb32313e5b70c91643",
+  "verified_on_main_sha": "a0f19d13350bddc480c393eb32313e5b70c91643"
 }

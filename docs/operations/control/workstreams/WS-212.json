@@ -1,0 +1,50 @@
+{
+  "id": "WS-212",
+  "title": "برنامج المعالجة البنيوية المضبوطة — الموجات 3A→4E والتدقيق النهائي (ARCH-002+)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "ARCH-002"
+  ],
+  "branch": "refactoring/remediation-program-20261003",
+  "base_sha": "a0f19d13350bddc480c393eb32313e5b70c91643",
+  "areas": [
+    "transfers",
+    "export-import",
+    "tests",
+    "finance",
+    "guards",
+    "architecture-governance"
+  ],
+  "contracts": [
+    "docs/contracts/39-export-envelope-integrity-contract.md"
+  ],
+  "agent": "Z AI (remediation program — sequential five-agent pipeline)",
+  "pr": null,
+  "started_at": "2026-10-03",
+  "updated_at": "2026-10-03",
+  "next_action": "تنفيذ الموجة 3A (ذهبيات + اختبارات وصف) ثم PR مستقل؛ كل موجة تالية بحد رجوع مستقل.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-03",
+      "actor": "ws-212:claim",
+      "reason": "فتح claim البرنامج من main المتحقق a0f19d13350bddc480c393eb32313e5b70c91643 بعد دمج PR #299؛ لا تعارض مناطق (WS-211 أُغلق بالدمج)."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-03",
+      "actor": "ws-212:implement",
+      "reason": "بدء الموجة 3A: أساس التكافؤ (ذهبيات التصدير/الاستيراد + اختبارات وصف مباشرة لعنقود النقل)."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "حد الاستعادة للموجة 3A: حذف المضافات فقط (ذهبيات + اختبارات جديدة)؛ لا ملف إنتاج يمس.",
+    "البرنامج كله بفرع واحد طويل وPR لكل موجة؛ بعد كل دمج تزامن الفرع مع main.",
+    "قيود دائمة: لا معنى مالي/مخطط/تصدير-استيراد/واجهة/تاريخ داخل الموجات البنيوية."
+  ],
+  "evidence": [
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+    "docs/architecture/refactoring/REFACTORING-EXECUTION-REPORT.md"
+  ]
+}

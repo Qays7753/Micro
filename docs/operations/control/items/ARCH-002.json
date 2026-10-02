@@ -1,0 +1,82 @@
+{
+  "id": "ARCH-002",
+  "title": "الموجة 3A — أساس التكافؤ: ذهبيات التصدير/الاستيراد + اختبارات وصف مباشرة لعنقود النقل (STR-401/405)",
+  "type": "RESEARCH",
+  "status": "IN_PROGRESS",
+  "priority": "P1",
+  "stage": "architecture-remediation-wave-3a",
+  "summary": "تأسيس أساس التكافؤ المطلوب قبل أي حركة بنيوية: (1) ذهبيات مادية على القرص للزوج الحالي 30/38 (مظروف كامل: بصمة sha256 + عدادات + بيانات ممثلة عبر الخدمات الحقيقية) ولكل زوج تاريخي مقبول (24) + عهدة 8/17 الأمينة، مع MANIFEST بأهاش وأصل التوليد؛ (2) اختبار ذهبي يقارن المخرج الحي بالذهبي ويفشل عند أي انحراف؛ (3) اختبارات وصف مباشرة لعنقود النقل (transferFamilyValidators/transferSnapshotValidation/transferEnvelope/transferCounters/transferSnapshotMigrations) التي كانت بلا اختبارات مباشرة (STR-405). إضافي فقط — لا تغيير إنتاج/أزواج/بايتات/ترتيب رفض.",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "STR-401 (لا أصول تكافؤ مادية) + STR-405 (صفر اختبارات مباشرة للعنقود) من المسح المقبول ARCH-001",
+  "source": {
+    "report": "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md",
+    "discovered_at_sha": "e7688efda3bbae945a258cca92eabce889c7dab4",
+    "evidence": []
+  },
+  "acceptance": [
+    "ذهبيات موجودة في docs/fixtures/export-goldens/ مع MANIFEST يسجل sha256 لكل ملف وأصل التوليد",
+    "اختبار الذهبي يفشل عند أي انحراف في مخرج التصدير الحالي (مقارنة عميقة بالمظروف كاملاً)",
+    "كل زوج تاريخي مقبول (24) له ملف ذهبي يقبله prepareImport ويرحّله إلى 30/38",
+    "اختبارات مباشرة خضراء لعنقود النقل الخمس وحدات",
+    "الجناح الكامل أخضر عند رأس الأساس (CI على PR)",
+    "لا ملف إنتاج تغير؛ الأزواج والبايتات وترتيب الرفض كما هي"
+  ],
+  "classification": "HARDENING",
+  "gate_classification": "NOT_APPLICABLE",
+  "owner": "agent:remediation-program",
+  "tests_required": [
+    "pnpm --filter @micro/prototype-web test -- exportGoldens",
+    "pnpm --filter @micro/prototype-web test -- transferFamilyValidators.characterization transferEnvelope.characterization transferCounters.characterization transferSnapshotValidation.characterization transferSnapshotMigrations.characterization",
+    "pnpm --filter @micro/prototype-web test"
+  ],
+  "layers": [
+    "application",
+    "storage",
+    "tests"
+  ],
+  "next_action": "تنفيذ الذهبيات والاختبارات على فرع البرنامج ثم PR مستقل.",
+  "status_history": [
+    {
+      "status": "BACKLOG",
+      "changed_at": "2026-10-03",
+      "actor": "arch-002:create",
+      "reason": "بند برنامج المعالجة المعتمد من المالك (تعليمة 2026-10-03) — الموجة 3A (STR-401/405 من المسح المقبول)."
+    },
+    {
+      "status": "READY",
+      "changed_at": "2026-10-03",
+      "actor": "arch-002:ready",
+      "reason": "الأساس مقبول (PR #299 مدمج) والبطاقة جاهزة."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-03",
+      "actor": "arch-002:claim",
+      "reason": "حجز البند ضمن WS-212 على فرع refactoring/remediation-program-20261003."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-03",
+      "actor": "arch-002:implement",
+      "reason": "بدء تنفيذ الموجة 3A: ذهبيات التكافؤ + اختبارات وصف عنقود النقل."
+    }
+  ],
+  "migration_baseline": false,
+  "updated_at": "2026-10-03",
+  "areas": [
+    "transfers",
+    "export-import",
+    "tests"
+  ],
+  "contracts": [
+    "docs/contracts/39-export-envelope-integrity-contract.md"
+  ],
+  "evidence": [
+    "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md"
+  ],
+  "dependencies": [],
+  "related_items": [
+    "ARCH-001"
+  ]
+}

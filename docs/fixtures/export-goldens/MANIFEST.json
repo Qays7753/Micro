@@ -1,0 +1,196 @@
+{
+  "generatedAt": "2026-10-03T10:00:00.000Z",
+  "generator": "apps/prototype-web/client/src/application/transfers/exportGoldens.test.ts",
+  "command": "GOLDEN_UPDATE=1 pnpm --filter @micro/prototype-web test -- exportGoldens",
+  "files": [
+    {
+      "file": "current-pair.golden.json",
+      "sha256": "832a1a63ba00aaf5ddeb05de198f506d6651bebba98eaa9cb4975789f3abe902",
+      "kind": "current-pair",
+      "description": "30/38 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة",
+      "byteStable": true
+    },
+    {
+      "file": "current-pair-supplement.golden.json",
+      "sha256": "07985cfdd725222d6eea717019b56877c0bbe3de6ac29ff7f730d558e35c68ca",
+      "kind": "current-pair-supplement",
+      "description": "30/38 غني بالعائلات الجديدة عبر الخدمات — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة)",
+      "byteStable": false
+    },
+    {
+      "file": "legacy-minimal-29-37.golden.json",
+      "sha256": "6acd30878ed299bfafb9dbef1cb0647686bd847285d14944a37b10b18c26e6bf",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 29/37 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-28-36.golden.json",
+      "sha256": "ef4f35b2fd996b1aafd8873211ee78b757b9e920eb292e4d0ae8b0a570a9c5f1",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 28/36 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-27-35.golden.json",
+      "sha256": "e5481095fa261736561958a9da49e0ad46da417cb732203b8d6285f5a74969c9",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 27/35 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-26-34.golden.json",
+      "sha256": "2f70cecb08c82baf2ddca43a03931eef5c70744f559740fa3acb805dcff6f2f1",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 26/34 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-25-33.golden.json",
+      "sha256": "82f992a6384afc0b743291cba0abbf957e30dd9a56d9338837e136ff20840a9d",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 25/33 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-24-32.golden.json",
+      "sha256": "54d42272c9134dca7e10a3777fb7e92e766779aa7d77056ad0e8f9647d7d3b38",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 24/32 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-23-31.golden.json",
+      "sha256": "fc890a5653857762edb206c42eb11be1d834451ed259407440a4d2c2b0f0d246",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 23/31 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-22-30.golden.json",
+      "sha256": "b0505f7ace55aee9ed044f662244a78c8599517bd277a62870de7dfe2c1c76e5",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 22/30 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-21-29.golden.json",
+      "sha256": "6991a718fc2a2063df2c8d4c2f3368eb1e4a88bf3143367bbcf9a2911fe32859",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 21/29 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-20-28.golden.json",
+      "sha256": "713d4cb3465c4b777bb30a0657ab426d7f286af53c7c6ce981c6045e66a40ddf",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 20/28 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-19-27.golden.json",
+      "sha256": "5e3b07efdda42104b657f883b90e3d6b8f4c6c489dde707925269109d3850513",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 19/27 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-18-27.golden.json",
+      "sha256": "b6bc14795abd4b0f7ad0f5560591d18759f01a8de476b52ac4767a90e65cc0a7",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 18/27 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-17-26.golden.json",
+      "sha256": "cc5cc435054544e604dd68a67393ef84f2be7bd5eb6daf0e305ce9c3cc28db1b",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 17/26 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-16-25.golden.json",
+      "sha256": "b1c4ac398bb3d7cc4770f64f9ab60592793fea76fda40af3e036ff491dff1dad",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 16/25 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-15-24.golden.json",
+      "sha256": "07f2308104e4bb83e1ca165feecfd60b7cdd0ce4ef0f721362b661fe3eef8158",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 15/24 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-14-23.golden.json",
+      "sha256": "aeb7ea155d54e975b2b77934b7fb1502c835b2b55f529a06fe792f83d70ae093",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 14/23 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-13-22.golden.json",
+      "sha256": "907d0cea9b8beca9092a6fff743ea7d23c9ed13321fe9865d2b9a1d7d9f7e6e0",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 13/22 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-12-21.golden.json",
+      "sha256": "5ba8619669fd8468d01316881116634e9ef0efffc5d7e2b1de970ca3fd009934",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 12/21 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-11-20.golden.json",
+      "sha256": "0f1c308ba6fb21a4289db11f9515d7ad9db4f675b35c3d29e75587a97068ea1e",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 11/20 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-10-19.golden.json",
+      "sha256": "c0b51b51327a91da7312d48f174443c9071fefc056fb5b9a97ca4b0d08aad74f",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 10/19 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-9-18.golden.json",
+      "sha256": "840323c3d9c0a18de675ba0484c223aa731c441e5479fa3d7eaf9dccbce5b25c",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 9/18 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-8-17.golden.json",
+      "sha256": "e3cdb2ae49a4d792e8345eb1b18a87fccfe47dc5c26838d92553cd10b20970d3",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 8/17 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-7-15.golden.json",
+      "sha256": "77448c3e8f416fb9fc2b37bb8aebc1fe17b4e7a03bc58f75050931c47d3aa234",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 7/15 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "legacy-minimal-6-14.golden.json",
+      "sha256": "3815b69785b1651ca5021085b5673dd436bdf43a9914312233b69c288c09e5f7",
+      "kind": "legacy-minimal",
+      "description": "زوج تاريخي مقبول 6/14 — مظروف أدنى مجمّد",
+      "byteStable": true
+    },
+    {
+      "file": "historical-8-17-faithful.golden.json",
+      "sha256": "eb4e9e7bf312ce5124c0745c29de28453b5f3ed34a529cca8baf107b4fd7d77c",
+      "kind": "historical-faithful",
+      "description": "عهدة 570eba1 الأمينة (8/17) — مشتركة مع اختبارها الأصلي",
+      "byteStable": true
+    }
+  ]
+}

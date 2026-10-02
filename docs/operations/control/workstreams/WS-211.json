@@ -1,7 +1,7 @@
 {
   "id": "WS-211",
   "title": "مسح معماري للقراءة فقط وخطة انتقال التقرير فقط — المرحلة الأولى لبرنامج إعادة الهيكلة (ARCH-001)",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "items": [
     "ARCH-001"
   ],
@@ -19,7 +19,7 @@
   "pr": 299,
   "started_at": "2026-10-02",
   "updated_at": "2026-10-03",
-  "next_action": "قبول المالك مسجل (2026-10-03) مع التصحيحات الإلزامية والملفات الحية الأربعة على نفس الفرع؛ بعد الدمج MERGED_UNVERIFIED ثم VERIFIED بعد التحقق على main، ثم تبدأ موجات البرنامج (3A فأعلى) بWorkstream جديد.",
+  "next_action": "مغلق: التقرير مقبول ومدمج ومتحقق؛ التنفيذ في WS-212.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -38,6 +38,18 @@
       "changed_at": "2026-10-02",
       "actor": "ws-211:review",
       "reason": "اكتمل التقرير ونجحت الفحوص المركزية (validate.py + doc-index + secrets + git diff --check) وسيُفتح PR للتقرير فقط إلى main دون دمج."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-03",
+      "actor": "ws-211:merged",
+      "reason": "دمج PR #299 (squash عند a0f19d13350bddc480c393eb32313e5b70c91643) بعد CI أخضر على الرأس 768b30c وقبول المالك المسجل؛ التحقق على main يجري الآن ويرقّى إلى VERIFIED في PR اللاحقة."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-03",
+      "actor": "ws-211:verify",
+      "reason": "CI أخضر على main عند a0f19d13350bddc480c393eb32313e5b70c91643 (checks + Cloudflare Pages؛ squash مطابق شجريًا لرأس PR 768b30c الذي كان أخضر أيضًا)."
     }
   ],
   "migration_baseline": false,
@@ -53,5 +65,7 @@
     "docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md",
     "docs/architecture/refactoring/REFACTORING-EXECUTION-REPORT.md",
     "docs/architecture/refactoring/FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md"
-  ]
+  ],
+  "merge_sha": "a0f19d13350bddc480c393eb32313e5b70c91643",
+  "verified_on_main_sha": "a0f19d13350bddc480c393eb32313e5b70c91643"
 }

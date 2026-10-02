@@ -1,0 +1,14 @@
+{
+  "format": "micro-prototype-local-export",
+  "version": 14,
+  "schemaVersion": 23,
+  "exportedAt": "2026-10-03T10:00:00.000Z",
+  "data": {
+    "profile": null,
+    "preferences": null,
+    "drafts": [],
+    "orders": [],
+    "schedules": [],
+    "financialEvents": []
+  }
+}
