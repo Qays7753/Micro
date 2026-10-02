@@ -2,12 +2,8 @@
  * G7-A agreement context: local memory for an existing order, not CRM or messaging.
  * It never creates a ScheduleEntry, reminder, financial event, or external side effect.
  */
-import type {
-  AgreementSource,
-  FollowUpEvent,
-  PrototypeLocalStore,
-  StoredCraftOrder,
-} from "@/storage/local/types";
+import type { AgreementSource, FollowUpEvent, StoredCraftOrder } from "@/storage/local/types";
+import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { isValidLocalDate, localDateInAmman } from "./followUpDate";
 
 export type LegacyAgreementSource = "conversation" | "call" | "in_person";
@@ -83,7 +79,7 @@ function validateInput(input: AgreementContextInput, previousDate: string | null
 
 export class AgreementContextService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: OrderLifecycleStore,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 

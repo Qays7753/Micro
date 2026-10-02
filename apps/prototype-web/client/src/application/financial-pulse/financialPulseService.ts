@@ -1,5 +1,6 @@
 /** Local financial pulse: aggregates only named CraftOrder fields and never claims project cash, profit, or a Ledger. */
-import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import type { StoredCraftOrder } from "@/storage/local/types";
+import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 
 export type LocalFinancialPulse = {
@@ -69,7 +70,7 @@ export function summarizeLocalCraftOrders(orders: readonly StoredCraftOrder[]): 
 }
 
 export class FinancialPulseService {
-  constructor(private readonly store: PrototypeLocalStore) {}
+  constructor(private readonly store: OrderLifecycleStore) {}
 
   async read(): Promise<FinancialPulseResult> {
     const result = await this.store.listOrders();
