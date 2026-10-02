@@ -1,5 +1,7 @@
 # FINAL EXECUTION REPORT — Documentation Surface Cleanup (Waves A/B/C) — 2026-10-02
 
+> **Historical round-1 report:** this file records PRs #286–#289 as they existed at round-1 closure. The authoritative current state after round 2 and report correction is `ROUND-2-FINAL-EXECUTION-REPORT.md`.
+
 **Program:** Zed AI — Micro Documentation Surface Cleanup Execution
 **Scope authority:** `MICRO-MINIMUM-KNOWLEDGE-SURFACE-AUDIT-2026-10-01` (read-only audit completed 2026-10-01 in the Zed AI report workspace: 153,063-byte report + 778-row decision manifest + Appendix A; the audit made zero repository writes). This execution implemented only the authorized, non-owner-gated rows of that manifest: the 12 `FIX_NOW` truth corrections, the 23 non-owner-gated `ARCHIVE` moves, and the 4 non-owner-gated `MERGE` groups. `docs/inventory/02-by-tier.md` (MERGE, `OWNER_DECISION_REQUIRED`) was NOT touched.
 **Executor:** Zed AI coordination agent. **Mode:** controlled branches + PRs, squash merges, Operations Control records updated legally at every step.

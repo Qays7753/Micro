@@ -35,8 +35,8 @@
 | Phase | PR | Branch | Workstream/Item | Content |
 |---|---|---|---|---|
 | 1 | #291 | `docs/surface-cleanup-r2-20261002` | WS-209 / DOC-004 | 42 DELETEs + 93 aux retirements + repairs |
-| 2 | #292 | `docs/surface-cleanup-r2-20261002-p2` | WS-210 / DOC-005 | OD-01 + OD-06 + OD-08(a) + OD-07 + v3/09 archives + 02-by-tier merge |
-| 3 | #293 | `docs/surface-cleanup-r2-20261002-closure` | (transitions) | VERIFIED records + this report finalized |
+| 2 | #293 | `docs/surface-cleanup-r2-20261002-p2` | WS-210 / DOC-005 | OD-01 + OD-06 + OD-08(a) + OD-07 + v3/09 archives + 02-by-tier merge |
+| 3 | #294 | `docs/surface-cleanup-r2-20261002-closure` | (transitions) | VERIFIED records + this report finalized |
 
 Protected (restated): no `apps/` changes; no `src/domain` production code; no financial/schema/export/import/storage semantics; no UI/CSS/tokens/DOM; `reconciliation-2026-09-26/` intact; `current-state-log.md` append-only; expansion E-00 gate content preserved; `ai-skills/` untouched; D-12, D-13/F-055, QR-5/F-060, F-043, OD-14 unchanged; GOV-001 remains an owner decision.
 
@@ -90,6 +90,7 @@ Protected (restated): no `apps/` changes; no `src/domain` production code; no fi
 | After Phase 1 PR #291 | `200413187002bbada752586f1d12f41308420bfc` | same + post-merge validation on the merge commit |
 | After Phase 2 PR #293 | `331bb6f989c183c21350f7b1efc4443d93195680` | same |
 | Final `main` after closure PR #294 | `0c094fd9bf5936a219407cf034898988bd29effb` | GitHub merge API + `git rev-parse origin/main`; post-merge validation on the merge commit (78 items, 52 workstreams, 0 active claims; views current; report/status lines verified present) |
+| Final `main` after report-correction PR #295 | `a6b801792dfaf25f08ea7bccbaefcd282a1c1fe0` | GitHub merge API + `git rev-parse origin/main`; report SHA correction only |
 
 ## 4. PRs, branches, checks
 
@@ -99,6 +100,7 @@ Protected (restated): no `apps/` changes; no `src/domain` production code; no fi
 | #291 (Phase 1) | https://github.com/Qays7753/Micro/pull/291 | `docs/surface-cleanup-r2-20261002` | `86b8d8941d5bf3cd6ea9db7b09a03898063f0df2` (3 commits + main-merge for the audit fix) | `200413187002bbada752586f1d12f41308420bfc` | Actions success — https://github.com/Qays7753/Micro/actions/runs/36942776263/job/110637897193 ; Cloudflare Pages success — https://github.com/Qays7753/Micro/runs/110638105735 |
 | #293 (Phase 2) | https://github.com/Qays7753/Micro/pull/293 | `docs/surface-cleanup-r2-20261002-p2` | `505568c3af4ec4574401be854fce312780e59149` | `331bb6f989c183c21350f7b1efc4443d93195680` | Actions success — https://github.com/Qays7753/Micro/actions/runs/36944510153/job/110643742165 ; Cloudflare Pages success — https://github.com/Qays7753/Micro/runs/110643533512 |
 | #294 (closure) | https://github.com/Qays7753/Micro/pull/294 | `docs/surface-cleanup-r2-20261002-closure` | `5772cfb807575342d8614af60745aa5e4ba0090f` | `0c094fd9bf5936a219407cf034898988bd29effb` | Actions success + Cloudflare Pages success on head `5772cfb8` (observed live pre-merge via check-runs API) |
+| #295 (report correction) | https://github.com/Qays7753/Micro/pull/295 | `docs/fix-r2-final-sha-20261002` | `c240cdc10efa4af550330a743c0e0572087d94a3` | `a6b801792dfaf25f08ea7bccbaefcd282a1c1fe0` | Actions success — https://github.com/Qays7753/Micro/actions/runs/36945626145/job/110646981692 ; Cloudflare Pages success |
 
 All merges are squash; all source branches and PRs retained (not deleted). Post-merge verification for #291/#293 was performed **on the merge commits on `main`**: `git fetch` + SHA equality, `validate.py` EXIT 0, `generate_tracker.py --check` current, file presence/absence spot-checks, and (for #291's merged tree) the full reference re-scan. The same protocol ran for #294 after its merge (`0c094fd9`: validate EXIT 0 — 78 items, 52 workstreams, 0 active claims; views current; WS-209/WS-210 VERIFIED rows and the report's status lines verified present on `main`).
 
@@ -140,7 +142,7 @@ Four npm advisories published 2026-09-28/29 (brace-expansion GHSA-6j4f-fj2g-mc7p
 |---|---|---|---|
 | Tracked files (total) | 1,389 | 1,255 | −134 |
 | Outside `apps/` | 779 | 645 | −134 |
-| `reports/agent-report/` | 132 | 39 | −93 |
+| `reports/agent-report/` | 133 | 40 | −93 |
 | `docs/operations/archive/quality-history/` | 59 | 20 | −39 |
 | `docs/product-audit/` | 6 | 3 | −3 (.docx mirrors) |
 | `todo.md` | 46.9 KB / 137 lines | 18.3 KB / 15 lines | −61% (pinned lines verbatim) |
@@ -165,9 +167,10 @@ Reconciliation of the audit's manifest against this round: DELETE 42/42 executed
 | Infra repair (#292) | `43058d61ec1eb1550809d89aeceec76e8b30283b` (merged first, directly on the round-1 final `main`) | `git revert 19b0919` (restores prior lockfile + package.json) |
 | Phase 1 (#291) | `19b09191bf0ff87fd1ff10923fdfa226fee0c2ea` (main after #292) | `git revert 20041318` (single squash commit; branch retained) |
 | Phase 2 (#293) | `200413187002bbada752586f1d12f41308420bfc` | `git revert 331bb6f9` |
-| Closure (#294) | `331bb6f989c183c21350f7b1efc4443d93195680` | `git revert <294-merge-sha>` |
+| Closure (#294) | `331bb6f989c183c21350f7b1efc4443d93195680` | `git revert 0c094fd9` |
+| Final report correction (#295) | `0c094fd9bf5936a219407cf034898988bd29effb` | `git revert a6b80179` (report-only correction) |
 
-Git history additionally preserves every pre-deletion/pre-merge file state (notably at `43058d61`); all source branches are retained.
+Git history additionally preserves every pre-deletion/pre-merge file state (notably at `43058d61`). Source branches were retained through execution and verification; later branch housekeeping may remove branch references while the commits and file history remain recoverable.
 
 ## 12. Workstream and Item IDs
 
