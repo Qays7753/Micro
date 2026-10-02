@@ -1,0 +1,57 @@
+{
+  "id": "WS-211",
+  "title": "مسح معماري للقراءة فقط وخطة انتقال التقرير فقط — المرحلة الأولى لبرنامج إعادة الهيكلة (ARCH-001)",
+  "status": "IN_REVIEW",
+  "items": [
+    "ARCH-001"
+  ],
+  "branch": "docs/architecture-refactoring-plan-20261002",
+  "base_sha": "e7688efda3bbae945a258cca92eabce889c7dab4",
+  "areas": [
+    "docs/architecture/refactoring",
+    "architecture-governance",
+    "docs",
+    "contracts",
+    "guards"
+  ],
+  "contracts": [],
+  "agent": "Z AI (Phase-1 report-only agent; five read-only specialists + synthesizer)",
+  "pr": 299,
+  "started_at": "2026-10-02",
+  "updated_at": "2026-10-03",
+  "next_action": "قبول المالك مسجل (2026-10-03) مع التصحيحات الإلزامية والملفات الحية الأربعة على نفس الفرع؛ بعد الدمج MERGED_UNVERIFIED ثم VERIFIED بعد التحقق على main، ثم تبدأ موجات البرنامج (3A فأعلى) بWorkstream جديد.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-02",
+      "actor": "ws-211:claim",
+      "reason": "فتح Claim على الفرع docs/architecture-refactoring-plan-20261002 من main المتحقق e7688efda3bbae945a258cca92eabce889c7dab4 بعد التحقق من صفر Workstreams نشطة وصفر PRs مفتوحة وصفر تعارض نطاقات؛ STATE_DRIFT موثق (+1 commit توثيقي #298 فوق القاعدة المرجعية 9271a85d)."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-02",
+      "actor": "ws-211:implement",
+      "reason": "تنفيذ المسح للقراءة فقط (خمسة اختصاصيين مستقلين) وتوليف خطة الانتقال الواحدة في docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md مع تحديث حالة REFACTORING-CONTROL.md الدنيا."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-211:review",
+      "reason": "اكتمل التقرير ونجحت الفحوص المركزية (validate.py + doc-index + secrets + git diff --check) وسيُفتح PR للتقرير فقط إلى main دون دمج."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "حد الاستعادة: إغلاق أو revert لـPR التقرير فقط؛ لا حاجة لاستعادة زمن تشغيل لأن لا ملف تشغيل تغير.",
+    "انحراف بروتوكولي موثق: حد الكتابة لهذه المرحلة يستثني تحديث current-state.md/current-state-log.md؛ يتركان للمالك عند الدمج إن قَبِل.",
+    "Excel workbook (MASTER-TRACKER.xlsx) لم يُعد توليده يدويًا؛ حدث meta بالمولد الرسمي فقط، أسوة بالـPRs #291/#293/#294.",
+    "2026-10-03: التزام التصحيحات الموثقة بأمر المالك على نفس الفرع (بلا تغيير حالة): صياغة FIX_NOW الصادقة، مطابقة المنشifest مع diff الـPR، تحديث current-state/اللوق (§103) وإغلاق الانحراف البروتوكولي، توضيح تاريخية مسح Group-7، تصحيح مسارات AGENTS/عقد40 (STR-403)، تعليق حارس الدورات (STR-204)، وإنشاء الملفات الحية الأربعة."
+  ],
+  "evidence": [
+    "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md",
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+    "docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md",
+    "docs/architecture/refactoring/REFACTORING-EXECUTION-REPORT.md",
+    "docs/architecture/refactoring/FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md"
+  ]
+}

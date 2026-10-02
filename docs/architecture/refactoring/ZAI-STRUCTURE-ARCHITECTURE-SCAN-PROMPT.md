@@ -75,7 +75,8 @@ You may create or update only the following documentation artifacts on a dedicat
 
 1. `docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md` — the single complete current-to-target plan and evidence record;
 2. `docs/architecture/refactoring/REFACTORING-CONTROL.md` — only the phase status and report pointer, if needed;
-3. a minimal Operations Control record only if the repository’s existing control protocol requires one for the report-only Workstream.
+3. `docs/architecture/refactoring/FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md` — the complete file-size, responsibility, and growth inventory described below;
+4. a minimal Operations Control record only if the repository’s existing control protocol requires one for the report-only Workstream.
 
 You may push the dedicated branch and open **one report-only PR** for owner review.
 
@@ -146,6 +147,8 @@ The synthesized scan MUST cover all of the following, without drifting into impl
 - public entry points and internal files;
 - oversized files and mixed responsibilities;
 - feature discoverability for a new developer or agent.
+- a complete file inventory, including production code, tests, scripts, generated artifacts, fixtures, snapshots, and configuration files in scope;
+- file size, responsibility count, growth risk, and the reason each file is preserved, watched, split-candidate, split-now, generated/fixture, UI-out-of-scope, or review-required.
 
 ### B. Dependency and layer integrity
 
@@ -158,6 +161,8 @@ The synthesized scan MUST cover all of the following, without drifting into impl
 - cycles and strongly connected components;
 - duplicated boundary abstractions;
 - exceptions that are intentional versus accidental.
+
+Also inspect and classify side effects and import-time initialization, public API/contract exposure, configuration/environment/secret boundaries (without exposing secrets), security/permission boundaries, dependency/toolchain constraints, concurrency/retry/partial-failure/recovery behavior, state/cache/event/Broadcast/invalidation lifecycle, data lifecycle/backup/restore/retention boundaries, performance/resource and bundle implications, generated-artifact ownership, test determinism, migration/rollback compatibility, error identity/diagnostics, reproducible build/release environment parity, and branch/PR/report provenance.
 
 ### C. Responsibility and ownership
 
@@ -206,6 +211,19 @@ Map:
 - generated views.
 
 Identify coverage gaps and discoverability problems, but do not add tests or edit docs beyond the allowed report/control files.
+
+## File-size and responsibility review bands
+
+Use non-blank LOC as a review signal for production files unless the measured baseline justifies a documented adjustment:
+
+- `NORMAL`: below 400 — no size action by itself;
+- `WATCH`: 400–799 — monitor growth and do not add unrelated responsibility without review;
+- `SPLIT_CANDIDATE`: 800–1,199 — analyze responsibilities and define growth control before adding scope;
+- `SPLIT_NOW`: 1,200+ with multiple responsibilities, or any size with a severe ownership/layer violation — require a split card and consumer inventory before implementation.
+
+These bands do not authorize mass splitting. A large cohesive file may be `PRESERVE` with an evidence-based reason, owner, and growth rule; a small mixed-responsibility file may be `SPLIT_NOW`. Tests, fixtures, generated artifacts, snapshots, and configuration files must be classified separately.
+
+The register must include at least: path, category, raw LOC, non-blank LOC, bytes, exports, imports, consumers, responsibilities, change reasons, side effects, initialization, public API role, source-of-truth role, tests, growth status, owner, action, rollback impact, and exception/waiver.
 
 ### F. Target module map
 
