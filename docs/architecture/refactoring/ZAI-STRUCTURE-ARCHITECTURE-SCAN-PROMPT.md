@@ -1,12 +1,14 @@
-# Z AI — Micro Read-Only Structure, Architecture, and Code-Organization Scan
+# Z AI — Micro Current-to-Target Architecture and Migration Plan
 
 ## Mission
 
 You are the execution agent for **Phase 1 of Micro’s architecture/refactoring program**.
 
-Perform a **read-only, comprehensive Structure / Architecture / Code Organization Scan** of the live `main` repository. The purpose is to understand the current application accurately, compare it with the approved architectural direction, and produce one owner-reviewable **system-wide target architecture and migration/refactoring plan** before any structural refactoring begins.
+Perform a **read-only, comprehensive current-state and architecture review** of the live `main` repository. The purpose is to understand the current application accurately, compare it with the approved architectural direction, and produce one owner-reviewable **system-wide target architecture and migration/refactoring plan** before any structural refactoring begins.
 
-The scan is a means, not the final goal. The primary deliverable is a practical `CURRENT → TARGET → MIGRATION WAVES` plan based on `REFACTORING-PLAN-A-TO-Z.md`. Do not produce a generic bug-audit or a list of isolated defects. Mention a problem only when it is evidence for a boundary, ownership, dependency, duplication, discoverability, test/documentation, or migration decision, and connect it to the proposed target boundary and safe wave.
+The review is a means, not the final goal. The primary deliverable is a practical `CURRENT → TARGET → MIGRATION WAVES` plan based on `REFACTORING-PLAN-A-TO-Z.md`. Do not produce a generic bug-audit or a list of isolated defects. Mention a problem only when it is evidence for a boundary, ownership, dependency, duplication, discoverability, test/documentation, or migration decision, and connect it to the proposed target boundary and safe wave.
+
+**Important baseline rule:** Micro already has an accepted post-Group-6 structural scan at `audits/micro/structure-architecture-code-organization-scan-v1.md`, commit `17b264c` (recorded by `AGENTS.md`). Do not repeat that scan blindly. First compare its scope and conclusions with the current live `main`; reuse valid evidence, re-check only changed areas or uncovered questions, and clearly label any conclusion that cannot be revalidated. The new deliverable must be a stronger, current, system-wide migration plan, not a duplicate historical report.
 
 This is **not** a refactoring task, not a cleanup task, not a UI task, and not a financial remediation task.
 
@@ -26,6 +28,7 @@ This is **not** a refactoring task, not a cleanup task, not a UI task, and not a
 - Required entry rules: `AGENTS.md`
 - Required document authority catalog: `docs/00-document-index.md`
 - Required coordination brief: `docs/operations/control/generated/AGENT-BRIEF.md`
+- Accepted structural-scan baseline: `audits/micro/structure-architecture-code-organization-scan-v1.md` at `17b264c` (read and compare; do not treat it as current without live verification)
 
 The files in `docs/architecture/refactoring/` are a control surface for this program. They do not override contracts, financial policies, `AGENTS.md`, or the live state.
 
@@ -71,7 +74,7 @@ This phase has a **REPORT_ONLY_PR** write boundary.
 
 You may create or update only the following documentation artifacts on a dedicated branch from the verified live `origin/main`:
 
-1. `docs/architecture/refactoring/STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN.md` — the single complete findings report;
+1. `docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md` — the single complete current-to-target plan and evidence record;
 2. `docs/architecture/refactoring/REFACTORING-CONTROL.md` — only the phase status and report pointer, if needed;
 3. a minimal Operations Control record only if the repository’s existing control protocol requires one for the report-only Workstream.
 
@@ -100,9 +103,9 @@ Do not use a green check, a good-looking folder tree, or an agent recommendation
 
 Use five genuinely independent read-only specialists, then act as the synthesizer. If the platform cannot start all five, continue with the available roles and mark the missing role `UNVERIFIED`; do not pretend it ran.
 
-### Specialist 1 — Module and responsibility boundaries
+### Specialist 1 — Baseline delta and module/responsibility boundaries
 
-Inspect the current tree, packages, features, modules, oversized files, mixed responsibilities, public entry points, and discoverability. Produce a current module map and candidate target boundaries. Do not propose final folder names without evidence.
+Read the accepted structural-scan baseline first, then inspect the current tree, packages, features, modules, oversized files, mixed responsibilities, public entry points, and discoverability. Produce a baseline-delta map, current module map, and candidate target boundaries. Do not propose final folder names without evidence.
 
 ### Specialist 2 — Dependencies and architectural conformance
 
@@ -260,12 +263,12 @@ Explicit non-goals:
 
 Use one finding per independent root cause. Link duplicates rather than repeating the same problem in multiple IDs.
 
-## Required report structure
+## Required plan/report structure
 
-Write exactly one complete Markdown report at:
+Write exactly one complete Markdown plan/report at:
 
 ```text
-docs/architecture/refactoring/STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN.md
+docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md
 ```
 
 The report MUST contain:
@@ -283,9 +286,10 @@ The report MUST contain:
 11. Test, fixture, contract, and documentation map.
 12. Feature discoverability assessment.
 13. Future-evolution assessment for mobile and other platforms using triggers, without proposing immediate platform implementation.
-14. Complete findings register using the required finding format.
-15. Target module map using the required table.
-16. Minimum safe remediation waves. For every wave state:
+14. Baseline reconciliation: what is reused from the accepted scan, what changed, what was revalidated, and what remains unverified.
+15. Complete findings register using the required finding format. Findings are evidence for the plan, not the final deliverable by themselves.
+16. Target module map using the required table.
+17. Minimum safe migration/refactoring waves. For every wave state:
     - objective;
     - exact scope;
     - dependencies;
@@ -295,13 +299,13 @@ The report MUST contain:
     - rollback boundary;
     - whether owner approval is required;
     - whether tests/CI are required after that wave.
-17. Owner decision table: decision, why it matters, options, recommendation, and what remains safe if deferred.
-18. Explicit list of items preserved, deferred, out of scope, and requiring owner decision.
-19. Reconciliation table showing where specialists agreed or disagreed and how the disagreement was resolved.
-20. Final recommendation: the smallest safe next wave, not a mass move.
-21. Exact list of files and lines changed by this report-only phase.
-22. Exact list of files and behavior not changed.
-23. Rollback/recovery boundary for the report-only PR.
+18. Owner decision table: decision, why it matters, options, recommendation, and what remains safe if deferred.
+19. Explicit list of items preserved, deferred, out of scope, and requiring owner decision.
+20. Reconciliation table showing where specialists agreed or disagreed and how the disagreement was resolved.
+21. Final recommendation: the smallest safe next wave, not a mass move.
+22. Exact list of files and lines changed by this report-only phase.
+23. Exact list of files and behavior not changed.
+24. Rollback/recovery boundary for the report-only PR.
 
 The report must be detailed enough for the owner to decide, but must not create a second permanent encyclopedia. Do not copy whole source files or paste long historical reports into it. Link to exact paths and summarize only the evidence needed for a decision.
 
@@ -359,12 +363,12 @@ If this task is resumed:
 
 ## Final response contract
 
-Return a short summary plus the complete report path and PR URL. Do not paste a huge report instead of saving it. State exactly what was written and what was not written.
+Return a short summary plus the complete plan/report path and PR URL. Do not paste a huge report instead of saving it. State exactly what was written and what was not written. Do not create separate sub-agent reports or duplicate planning files; synthesize all work into the single canonical plan/report.
 
 End with exactly:
 
 ```text
-AUDIT_COMPLETE — OWNER_DECISIONS_REQUIRED
+PLAN_COMPLETE — OWNER_DECISIONS_REQUIRED
 NO_STRUCTURAL_REFACTORING_PERFORMED
 NO_PRODUCT_OR_FINANCIAL_SEMANTICS_CHANGED
 NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED

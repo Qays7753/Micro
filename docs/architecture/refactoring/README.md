@@ -22,7 +22,7 @@
 2. `docs/operations/current-state.md` هو الحالة الحية لـ`main`.
 3. `REFACTORING-PLAN-A-TO-Z.md` هو الخطة المعمارية المرجعية الوحيدة لهذا البرنامج.
 4. `REFACTORING-CONTROL.md` يحدد حالة البرنامج وبواباته التشغيلية.
-5. تقرير المسح القادم `STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN.md` سيكون سجل المكتشفات، وليس تفويضًا بالتنفيذ.
+5. خطة الانتقال القادمة `REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md` ستكون الخطة الموحدة المبنية على الأدلة، وليست تفويضًا بالتنفيذ.
 
 إذا تعارض أي ملف هنا مع عقد أو سياسة مالية أو قرار مالك، تتغلب الوثيقة الحاكمة ويسجل التعارض بدل التخمين.
 
@@ -33,7 +33,7 @@
 | `REFACTORING-PLAN-A-TO-Z.md` | الرأي المعماري والخطة من A إلى Z | مرجع تخطيطي؛ لا تفويض تنفيذ |
 | `REFACTORING-CONTROL.md` | حالة البرنامج، الحدود، البوابات، وقواعد التسليم | حاكم لمسار البرنامج فقط |
 | `ZAI-STRUCTURE-ARCHITECTURE-SCAN-PROMPT.md` | الأمر الجاهز لـZ AI لتنفيذ المسح وإعداد التقرير | Prompt إصدار 1 |
-| `STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN.md` | تقرير Z AI القادم | لا يُنشأ أو يُحدّث إلا في مرحلة المسح |
+| `REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md` | خطة Z AI النهائية من الوضع الحالي إلى الوضع المستهدف وموجات النقل | لا تُنشأ إلا بعد مقارنة المسح السابق بالوضع الحي |
 
 ## القاعدة الأساسية
 
