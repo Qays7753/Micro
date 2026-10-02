@@ -162,7 +162,7 @@ The synthesized scan MUST cover all of the following, without drifting into impl
 - duplicated boundary abstractions;
 - exceptions that are intentional versus accidental.
 
-Also inspect and classify side effects and import-time initialization, public API/contract exposure, configuration/environment/secret boundaries (without exposing secrets), dependency/toolchain constraints, concurrency/retry/partial-failure/recovery behavior, performance/resource and bundle implications, generated-artifact ownership, test determinism, migration/rollback compatibility, error identity/diagnostics, and branch/PR/report provenance.
+Also inspect and classify side effects and import-time initialization, public API/contract exposure, configuration/environment/secret boundaries (without exposing secrets), security/permission boundaries, dependency/toolchain constraints, concurrency/retry/partial-failure/recovery behavior, state/cache/event/Broadcast/invalidation lifecycle, data lifecycle/backup/restore/retention boundaries, performance/resource and bundle implications, generated-artifact ownership, test determinism, migration/rollback compatibility, error identity/diagnostics, reproducible build/release environment parity, and branch/PR/report provenance.
 
 ### C. Responsibility and ownership
 
