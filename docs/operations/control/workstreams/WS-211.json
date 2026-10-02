@@ -13,7 +13,7 @@
   ],
   "contracts": [],
   "agent": "Z AI (Phase-1 report-only agent; five read-only specialists + synthesizer)",
-  "pr": null,
+  "pr": 299,
   "started_at": "2026-10-02",
   "updated_at": "2026-10-02",
   "next_action": "مراجعة المالك للـPR والتقرير (بوابة E)؛ لا دمج تلقائي ولا موجة كتابة قبل قرار صريح؛ بعد الدمج يُحدَّث البند إلى MERGED_UNVERIFIED ثم VERIFIED بعد التحقق على main.",
