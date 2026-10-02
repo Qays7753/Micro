@@ -14,7 +14,7 @@ import type {
   MeasurementUnit,
 } from "@micro-domain/catalog/index.js";
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
-import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
+import type { ShortCashDeclaration } from "@micro-domain/financial-analysis/index.js";
 import type {
   OwnerEntitlementOpeningBalance,
   OwnerEntitlementPolicy,

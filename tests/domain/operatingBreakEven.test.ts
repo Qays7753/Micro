@@ -11,7 +11,7 @@ import {
   calculateDirectMargin,
   calculateTargetOperatingResult,
   composeOperatingBreakEven,
-} from "../../src/domain/g5/index.js";
+} from "../../src/domain/financial-analysis/index.js";
 
 /* القارئ الكامل المدروس: نقطة الدخول الكنسية الواحدة التي تركّب طبقة
  * التشغيل فوق أساس التعادل — كما تستهلكها الخدمة (REM-007). */

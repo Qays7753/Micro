@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calculateSafeWithdrawal } from "../../src/domain/owner-safe-withdrawal/index.js";
-import type { ShortCashResult } from "../../src/domain/g5/index.js";
+import type { ShortCashResult } from "../../src/domain/financial-analysis/index.js";
 
 /* FIN-004 (WS-176 — Wave 4): سياسة السحب الآمن الاستشاري — الفائض =
  * توقع الكاش − الاحتياطي الصريح؛ لا رقم بلا احتياطي/كاش/توقع مكتمل؛

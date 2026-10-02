@@ -10,7 +10,7 @@ import {
   calculateDirectMargin,
   calculateShortCash,
   createShortCashDeclaration,
-} from "../../src/domain/g5/index.js";
+} from "../../src/domain/financial-analysis/index.js";
 import { createFinancialEvent } from "../../src/domain/financial-event/index.js";
 import type { SharedProjectShare } from "../../src/domain/financial-event/index.js";
 import {

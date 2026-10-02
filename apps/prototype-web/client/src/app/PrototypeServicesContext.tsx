@@ -41,7 +41,7 @@ import { InventoryMaterialService } from "@/application/inventory/inventoryMater
 import { CatalogService } from "@/application/catalog/catalogService";
 import { ActualTimeService } from "@/application/time/actualTimeService";
 import { RecurringWorkService } from "@/application/finance/recurringWorkService";
-import { G5Service } from "@/application/g5/g5Service";
+import { FinancialAnalysisService } from "@/application/financial-analysis/financialAnalysisService";
 import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { CostEstimateService } from "@/application/estimates/costEstimateService";
 import { PartyLedgerService } from "@/application/parties/partyLedgerService";
@@ -105,7 +105,7 @@ type PrototypeServices = {
   correctionHistory: CorrectionHistoryService;
   ownerEntitlement: OwnerEntitlementService;
   recurringWork: RecurringWorkService;
-  g5: G5Service;
+  g5: FinancialAnalysisService;
   supplierPurchases: SupplierPurchaseService;
   cashContinuity: CashContinuityService;
   inventory: InventoryMaterialService;
@@ -273,7 +273,7 @@ function createServices(): Omit<
   const ownerEntitlement = new OwnerEntitlementService(store, (from, to) =>
     projectFinance.readRecordedPeriodResult(from, to),
   );
-  const g5 = new G5Service(store, projectFinance);
+  const g5 = new FinancialAnalysisService(store, projectFinance);
   const schedules = new ScheduleService(store);
   const recurrences = new ScheduleRecurrenceService(store);
   const agreementContext = new AgreementContextService(store);

@@ -97,3 +97,21 @@
 - **التسليم التالي:** Agent 4 — Wave 4A (التسمية الأساسية g5 → financial-analysis).
 
 *انتهى قسم Agent 3 كاملًا (3A/3B/3C).*
+
+---
+
+## Entry 6 — Agent 4 (Wave 4A: Canonical Naming — g5 → financial-analysis)
+
+- **التاريخ:** 2026-10-03
+- **Base SHA:** `7e75ded4982052c3191fbb65eabe746cfb4bf073` (بعد دمج PR #301)
+- **جرد المستهلكين (قبل النقل):** 29+ مستهلكًا: الواجهة المجمدة (Finance.tsx، G5DecisionPanel.tsx، G5DeclarationEditor.tsx + 26 اختبار dom بجذر src)؛ جذر التركيب (PrototypeServicesContext)؛ التخزين (types/IndexedDb/Memory/indexedDbSnapshot/adapterConformance — نوع ShortCashDeclaration)؛ المالية (projectFinancialService، shortCashHorizon + 3 اختبارات)؛ مجال owner-safe-withdrawal (نوع)؛ اختبارات الجذر (4 ملفات)؛ العرض (g5Plurals — 7 مستهلكي UI).
+- **المنفذ (ميكانيكي فقط، صفر تغيير سلوك/مظهر):**
+  1. النقل الأساس: `src/domain/g5/{types,policies,operatingBreakEven,index}.ts` → `src/domain/financial-analysis/`؛ `application/g5/g5Service.ts` → `application/financial-analysis/financialAnalysisService.ts`؛ الفئة `G5Service` → `FinancialAnalysisService`.
+  2. وحدتا توافق موثقتان بمذكرة أصل: `src/domain/g5/index.ts` (إعادة تصدير السطح العام نفسه — يحرسها اختبار مساواة السطحين في public-surface.test.ts) و`application/g5/g5Service.ts` — تبقيان محددات الواجهة المجمدة تحل بلا لمس أي ملف UI (القاعدة 6 من الموجة).
+  3. تحديث المستوردين غير-UI إلى المسار الأساس: التخزين (5)، المالية (6)، جذر التركيب، اختبارات الجذر (4)، domain owner-safe-withdrawal، والاستيرادان العميقان الموثقان D-034 (operatingBreakEven).
+  4. إعادة تسمية الاختبارات المرافقة: g5.test.ts → financial-analysis.test.ts؛ اختبارا الخدمة معها.
+  5. عقد 17: تصحيح مساري الحقيقة الحاليين + مذكرة أصل مؤرخة (رقم العقد وكل دلالاته كما هي).
+- **ما لم يُمس عمدًا (قواعد الموجة 4-8):** المعرفات الثابتة وأرقام العقود ومفاتيح التخزين (shortCashDeclarations family) ومسارات التقارير التاريخية وكل أسماء ملفات الواجهة (CSS ‏micro-g5-*؛ المسار /finance/g5/declaration؛ بادئة الحتمية g5-ui:)؛ عرض g5Plurals (مستورد من 7 ملفات UI)؛ shortCashDeclarations يبقى **سجلًا مخزّنًا** بملكية الوحدة (قاعدة 7 — موثق في السجل).
+- **الفحوص:** typecheck=0؛ prototype:check=0؛ lint=0 (35 تحذيرًا — بلا زيادة)؛ جذري 538/538 (+1 اختبار مساواة السطحين)؛ تطبيقي 2159/2159؛ دورات التشغيل 323 ملفًا/0 دورات؛ touchpoints PASS؛ **ميزانية الحزمة PASS: 649,862/650,000 خامًا (بفارق 138 بايت!) و154,768/155,000 مضغوطًا** — القياس إلزامي هنا لأن الاستيرادات تغيرت (D-034)؛ الفارق الضيق مسجل WATCH.
+- **حد الاستعادة:** revert التزام الموجة (يعيد المسارات والاستيرادات؛ لا أثر بيانات — المفاتيح والعائلات المخزنة لم تتغير).
+- **التسليم التالي:** Wave 4B — عنقود Owner Money طيارًا (ownerEntitlementService + withdrawalWalletGuard) بنقل ميكانيكي وبراميل توافق.

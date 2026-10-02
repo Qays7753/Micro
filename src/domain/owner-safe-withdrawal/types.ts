@@ -3,7 +3,7 @@
  * الصريح مُدخل مستدعٍ (session-scoped) لا قيمة مخزنة: التفضيلات يحرم
  * них ميثاقها المحتوى المالي (عقد 41 §8 / عقد 42 §8)، والدوام عبر مخزن
  * جديد يحتاج قرار مالك مفصلًا (ترحيل 38/30 محروسًا) — مؤجل بنص واضح. */
-import type { ShortCashResult } from "../g5/index.js";
+import type { ShortCashResult } from "../financial-analysis/index.js";
 
 /** أفق القراءة — نفس عائلة FIN-005 (7/30/90 يومًا، الافتراضي 30). */
 export type SafeWithdrawalHorizon = {

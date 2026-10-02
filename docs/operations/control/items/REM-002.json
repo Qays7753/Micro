@@ -63,7 +63,7 @@
     "report": "docs/operations/control/evidence/micro-master-remediation-2026-09-27/MICRO-MASTER-REMEDIATION-CHARTER-AR.md",
     "discovered_at_sha": "2ebb435334dd69da0273d592ec8bffac5e70c1cf",
     "evidence": [
-      "src/domain/g5/policies.ts",
+      "src/domain/financial-analysis/policies.ts",
       "src/domain/direct-sale/policies.ts",
       "apps/prototype-web/client/src/application/finance/projectFinancialService.ts"
     ]

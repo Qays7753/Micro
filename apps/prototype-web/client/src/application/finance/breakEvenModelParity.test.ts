@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ProjectFinancialService } from "./projectFinancialService";
-import { G5Service } from "@/application/g5/g5Service";
+import { FinancialAnalysisService } from "@/application/financial-analysis/financialAnalysisService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { calculateCostSnapshot, createCraftOrder, transitionOrder } from "@micro-domain/craft-order/index.js";
 import { createInventoryMovement, createMaterial } from "@micro-domain/inventory-material/index.js";
@@ -61,7 +61,7 @@ async function baseStore() {
 
 async function readers(store: MemoryLocalStore) {
   const finance = new ProjectFinancialService(store, now);
-  const g5 = new G5Service(store, finance, now);
+  const g5 = new FinancialAnalysisService(store, finance, now);
   return { finance, g5 };
 }
 

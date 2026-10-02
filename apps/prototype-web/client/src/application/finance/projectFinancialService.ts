@@ -35,8 +35,8 @@ import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
  * calculateBreakEven بمدخلات g5Service الموحدة نفسها، بلا اشتقاق خاص بعد اليوم.
  * REM-007 (تصحيح تكافؤ المستهلكين — 2026-09-30): والقراءة الكاملة تركّبها
  * الوحدة الكنسية نفسها التي يستهلكها G5 — انظر readFinancialInsights. */
-import { calculateBreakEven, type OperatingBreakEvenResult } from "@micro-domain/g5/index.js";
-import { expenseInputs, orderInputs } from "@/application/g5/g5Service";
+import { calculateBreakEven, type OperatingBreakEvenResult } from "@micro-domain/financial-analysis/index.js";
+import { expenseInputs, orderInputs } from "@/application/financial-analysis/financialAnalysisService";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
@@ -1009,7 +1009,7 @@ export class ProjectFinancialService {
      * المخزون تخفض الحالة فقط (لا ترفعها أبدًا) والأرقام الكنسية تبقى كما
      * هي بلا إعادة حساب أو محو: أساس الهامش معلن على التكلفة المعترف بها لا
      * على COGS المؤهلة (عقد ١٤ §٤)، والحركات تعلن الفرق لا تخفيه. */
-    const operating = await import("@micro-domain/g5/operatingBreakEven.js");
+    const operating = await import("@micro-domain/financial-analysis/operatingBreakEven.js");
     const coverageReading = operating.composeOperatingBreakEven(
       calculateBreakEven(
         from,

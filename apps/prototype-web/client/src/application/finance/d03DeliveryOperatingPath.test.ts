@@ -13,7 +13,7 @@
  * كل الأرقام أوراكل يدوي مستقل محسوب في التعليقات قبل الكتابة. */
 import { describe, expect, it } from "vitest";
 import { ProjectFinancialService } from "./projectFinancialService";
-import { G5Service } from "@/application/g5/g5Service";
+import { FinancialAnalysisService } from "@/application/financial-analysis/financialAnalysisService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import {
   calculateCostSnapshot,
@@ -148,7 +148,7 @@ describe("D-03 عبر المسار الكانوني الفعلي — لقطة ت
       revenueMinor: 5500,
       incompleteReasons: [],
     });
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     const decision = await g5.readDecision("2026-08-01", "2026-08-31");
     const insights = await finance.readFinancialInsights("2026-08-01", "2026-08-31");
     if (!decision.ok || !insights.ok) throw new Error("readers failed");
@@ -205,7 +205,7 @@ describe("D-03 عبر المسار الكانوني الفعلي — لقطة ت
           : undefined,
       );
       const finance = await saveAndFix(store, order, `${key}-fixed`);
-      const decision = await new G5Service(store, finance, now).readDecision("2026-08-01", "2026-08-31");
+      const decision = await new FinancialAnalysisService(store, finance, now).readDecision("2026-08-01", "2026-08-31");
       if (!decision.ok) throw new Error("reading failed");
       readings.push(decision.value.period);
       const position = await finance.readPosition();
@@ -272,7 +272,7 @@ describe("D-03 عبر المسار الكانوني الفعلي — لقطة ت
     const nullFeeFinance = await saveAndFix(nullFeeStore, nullFeeOrder, "d03-null-fixed");
     expect(nullFeeOrder.resultStatus).toBe("incomplete");
     expect(orderResultBreakdown(nullFeeOrder).billableDeliveryFeeMinor).toBeNull();
-    const decision = await new G5Service(nullFeeStore, nullFeeFinance, now).readDecision(
+    const decision = await new FinancialAnalysisService(nullFeeStore, nullFeeFinance, now).readDecision(
       "2026-08-01",
       "2026-08-31",
     );
@@ -307,7 +307,7 @@ describe("D-03 عبر المسار الكانوني الفعلي — لقطة ت
     });
     const zeroFeeFinance = await saveAndFix(zeroFeeStore, zeroFeeOrder, "d03-zero-fixed");
     expect(zeroFeeOrder.resultStatus).toBe("final");
-    const zeroDecision = await new G5Service(zeroFeeStore, zeroFeeFinance, now).readDecision(
+    const zeroDecision = await new FinancialAnalysisService(zeroFeeStore, zeroFeeFinance, now).readDecision(
       "2026-08-01",
       "2026-08-31",
     );
@@ -353,7 +353,7 @@ describe("D-03 عبر المسار الكانوني الفعلي — لقطة ت
     expect(order.settlementStatus).toBe("paid");
     expect(order.recognizedRevenueMinor).toBe(6200);
     const finance = await saveAndFix(store, order, "d03-fee-project-fixed");
-    const decision = await new G5Service(store, finance, now).readDecision("2026-08-01", "2026-08-31");
+    const decision = await new FinancialAnalysisService(store, finance, now).readDecision("2026-08-01", "2026-08-31");
     const insights = await finance.readFinancialInsights("2026-08-01", "2026-08-31");
     if (!decision.ok || !insights.ok) throw new Error("readers failed");
     expect(decision.value.period).toMatchObject({
