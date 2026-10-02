@@ -163,7 +163,7 @@ export const UI_TO_DOMAIN_VALUE_BASELINE = [
 export const APPLICATION_TO_PRESENTATION_VALUE_BASELINE = [
   "apps/prototype-web/client/src/application/agreements/followUpDate.ts -> @/presentation/formatters",
   "apps/prototype-web/client/src/application/collections/collectionService.ts -> @/presentation/formatters",
-  "apps/prototype-web/client/src/application/finance/correctionHistoryService.ts -> @/presentation/formatters",
+  "apps/prototype-web/client/src/application/financial-records/correctionHistoryService.ts -> @/presentation/formatters",
   "apps/prototype-web/client/src/application/finance/integrityCheckService.ts -> @/presentation/formatters",
   "apps/prototype-web/client/src/application/finance/projectFinancialService.ts -> @/presentation/formatters",
   "apps/prototype-web/client/src/application/finance/statementMarkdownService.ts -> @/presentation/formatters",

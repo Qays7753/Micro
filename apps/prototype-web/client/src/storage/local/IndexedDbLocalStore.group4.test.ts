@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
-import { RetainedDepositService } from "@/application/finance/retainedDepositService";
+import { RetainedDepositService } from "@/application/financial-records/retainedDepositService";
 import {
   calculateCostSnapshot,
   cancelOrder,

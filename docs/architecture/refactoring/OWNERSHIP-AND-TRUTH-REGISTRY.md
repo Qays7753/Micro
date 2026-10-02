@@ -85,13 +85,13 @@
 | application/g5/g5Service.ts | Financial Read Models (عنقود التحليل) | خدمات تحليل التعادل/السيولة | domain/g5 | g5Service.test.ts (+shortCashHorizon) | مصنّفة — مسار 4A rename |
 | application/owner-money/ownerEntitlementService.ts (انتقل مع العنقود — Wave 4B منفذة) | **Owner Money (منفذ)** | دورة سجل استحقاق المالك والتسويات | domain/owner-entitlement + storage | ownerEntitlementService.test.ts + ownerCrossModelDuplicates (انتقلا معه) | منفذة |
 | application/owner-money/withdrawalWalletGuard.ts (انتقل مع العنقود) | Owner Money | حارس محفظة السحب (قاعدة حسابية — STR-302 قرار مالك للتوطين) | domain/owner-safe-withdrawal | withdrawalWalletGuard.test.ts مباشر (انتقل معه) | منفذة النقل؛ **DECISION_REQUIRED** تبقى لنقل القاعدة الحسابية إلى المجال (مسار R) |
-| expenseRecordIntent.ts | Financial Records | قصد تسجيل المصروف وتصنيفه | domain/financial-event | expenseRecordIntent.test.ts | مصنّفة |
-| expenseCategorySuggestions.ts | Financial Records | اقتراحات تصنيف المصروف | سجل تاريخي محلي | expenseCategorySuggestions.test.ts | مصنّفة |
-| correctionHistoryService.ts | Financial Records | تاريخ التصحيحات (قراءة) | storage | correctionHistoryService.test.ts | مصنّفة |
-| retainedDepositService.ts | Financial Records | العربونات المحتجزة | domain + storage | retainedDepositService.test.ts | مصنّفة |
+| application/financial-records/expenseRecordIntent.ts | Financial Records | قصد تسجيل المصروف وتصنيفه | domain/financial-event | expenseRecordIntent.test.ts (انتقل مع العنقود) | **منفذة النقل** (شريحة متابعة 4B)؛ وحدة توافق في finance/ للواجهة المجمدة |
+| application/financial-records/expenseCategorySuggestions.ts | Financial Records | اقتراحات تصنيف المصروف | سجل تاريخي محلي | expenseCategorySuggestions.test.ts (انتقل مع العنقود) | **منفذة النقل**؛ وحدة توافق في finance/ |
+| application/financial-records/correctionHistoryService.ts | Financial Records | تاريخ التصحيحات (قراءة) | storage | correctionHistoryService.test.ts (انتقل مع العنقود) | **منفذة النقل**؛ وحدة توافق في finance/؛ حافة عرضها المحروسة أُعيد قياسها لحارس الحدود |
+| application/financial-records/retainedDepositService.ts | Financial Records | العربونات المحتجزة | domain + storage | retainedDepositService.test.ts (انتقل مع العنقود) | **منفذة النقل**؛ وحدة توافق في finance/ |
 | recurringExpenseService.ts | Recurring Planning | سلاسل المصروف المتكرر وقراراته | domain/recurring-expense | recurringExpenseService.test.ts | مصنّفة |
 | recurringWorkService.ts | Recurring Planning | العمل المتكرر | domain | recurringWorkService.test.ts (+fin006) | مصنّفة |
-| expenseBudgetService.ts | Budgets & Planning | ميزانيات المصروف (عقد 42) | domain/budget | **لا اختبار وحدة مباشر — فجوة STR-406: تُغلق في Wave 3C** (تحقق مستقل Agent 2) | مصنّفة + بطاقة تغطية |
+| application/budgets/expenseBudgetService.ts | Budgets & Planning | ميزانيات المصروف (عقد 42) | domain/budget | expenseBudgetService.3c.test.ts (تغطية 3C المباشرة انتقلت معه) | **منفذة النقل** (شريحة متابعة 4B)؛ وحدة توافق في finance/؛ فجوة STR-406 مغلقة فعلًا في 3C |
 | integrityCheckService.ts | Integrity & Diagnostics | فحوص سلامة السجلات (قراءة فقط) — لا يملك قواعد مالية | كل السجلات عبر المنفذ | integrityCheckService.test.ts + fullCycleReconciliation | مصنّفة |
 
 **قواعد العناقيد:** (1) لا تُنقل معادلة أو تقريب أو تصنيف أو حالة نتيجة أبدًا — نقل ميكانيكي للملفات فقط. (2) التشخيص لا يخترع قواعد مالية. (3) shortCashDeclarations تبقى سجلًا مخزّنًا بملكية domain/g5 المسجلة.

@@ -41,7 +41,10 @@ import { reversedEventIds } from "@micro-domain/financial-event/index.js";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { FinancialEvent, OperatingExpenseContext } from "@micro-domain/financial-event/index.js";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
-import { expandExpenseRecordIntent, type SharedExpenseRecordInput } from "./expenseRecordIntent";
+import {
+  expandExpenseRecordIntent,
+  type SharedExpenseRecordInput,
+} from "../financial-records/expenseRecordIntent";
 import type { ProjectFinancialService } from "./projectFinancialService";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 

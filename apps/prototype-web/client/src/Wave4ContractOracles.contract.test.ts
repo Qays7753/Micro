@@ -253,7 +253,7 @@ describe("F-058 — عقد ٥ §3.2.1 (نتيجة الفترة المسجلة): 
     const { ProjectFinancialService } = await import("@/application/finance/projectFinancialService");
     const { DirectSaleService } = await import("@/application/direct-sales/directSaleService");
     const { AssetService } = await import("@/application/assets/assetService");
-    const { RetainedDepositService } = await import("@/application/finance/retainedDepositService");
+    const { RetainedDepositService } = await import("@/application/financial-records/retainedDepositService");
     const { settleDepositRetain } = await import("@micro-domain/craft-order/index.js");
 
     const now = () => "2026-09-20T09:00:00.000Z";
