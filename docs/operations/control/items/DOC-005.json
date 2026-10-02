@@ -2,7 +2,7 @@
   "id": "DOC-005",
   "title": "بنود سلطة وتوافق الجولة الثانية — OD-01/OD-06/OD-08a/OD-07 + أرشيفات محتكرة + دمج 02-by-tier",
   "type": "GOVERNANCE",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P2",
   "stage": "documentation-hygiene",
   "summary": "تنفيذ بنود مصفوفة الجولة الثانية: تعيين capability-evolution-roadmap سلطة خارطة المنتج الوحيدة مع بانر تجاوز مؤرخ للخطة المؤجلة (OD-01)؛ تحويل todo.md إلى كعب توافق صغير مع حفظ أسطر الاختبارات السبعة حرفيًا وإعادة توجيه واجبات القوالب (OD-06)؛ تقليم قائمة القراءة الموازية في README التوسعة إلى إحالة وحيدة لجدول AGENTS §2 (OD-08a)؛ حذف مرايا .docx الثلاث المثبت علاقتها (OD-07)؛ أرشفة problem-statement-v3 و09-expansion-room؛ دمج 02-by-tier في 01-inventory-master مع حفظ ملخصه الإحصائي.",
@@ -59,10 +59,16 @@
       "changed_at": "2026-10-02",
       "actor": "ws-210:implement",
       "reason": "تنفيذ بنود المرحلة الثانية."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-210:review",
+      "reason": "فُتح PR #293 على الفرع docs/surface-cleanup-r2-20261002-p2 برأس 5cc1a67 بعد نجاح كل الفحوص المحلية (الحراس + validate + views + اختبارات التوثيق 37/37 + الجذري 537/537 + typecheck/lint/format)."
     }
   ],
   "migration_baseline": false,
-  "next_action": "تنفيذ البنود ثم IN_REVIEW عند فتح PR.",
+  "next_action": "دمج PR #293 بعد نجاح CI ثم التحقق على main.",
   "classification": "GOVERNANCE",
   "owner": "Product owner / Z AI coordination",
   "tests_required": [

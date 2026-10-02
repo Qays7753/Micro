@@ -4,4 +4,4 @@
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-210 | IN_PROGRESS | \`docs/surface-cleanup-r2-20261002-p2\` | — | DOC-005 | تنفيذ OD-01 وOD-06 وOD-08a وOD-07 وأرشفة v3/09-expansion-room ودمج 02-by-tier وفق مصفوفة قرار المالك. |
+| WS-210 | IN_REVIEW | \`docs/surface-cleanup-r2-20261002-p2\` | 293 | DOC-005 | دمج PR #293 بعد نجاح CI ثم التحقق على main. |

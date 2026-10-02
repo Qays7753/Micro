@@ -1,7 +1,7 @@
 {
   "id": "WS-210",
   "title": "تنظيف السلطة والتوافق — الجولة الثانية: سلطة الخارطة، كعب todo، موجّه التوسعة، مرايا docx، أرشيفات محتكرة، دمج 02-by-tier",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "DOC-005"
   ],
@@ -17,10 +17,10 @@
   ],
   "contracts": [],
   "agent": "Z AI coordination agent (Round-2 cleanup execution)",
-  "pr": null,
+  "pr": 293,
   "started_at": "2026-10-02",
   "updated_at": "2026-10-02",
-  "next_action": "تنفيذ OD-01 وOD-06 وOD-08a وOD-07 وأرشفة v3/09-expansion-room ودمج 02-by-tier وفق مصفوفة قرار المالك.",
+  "next_action": "دمج PR #293 بعد نجاح CI ثم التحقق على main.",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -33,6 +33,12 @@
       "changed_at": "2026-10-02",
       "actor": "ws-210:implement",
       "reason": "تنفيذ بنود المرحلة الثانية المعتمدة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-02",
+      "actor": "ws-210:review",
+      "reason": "فُتح PR #293 على الفرع docs/surface-cleanup-r2-20261002-p2 برأس 5cc1a67 بعد نجاح كل الفحوص المحلية (الحراس + validate + views + اختبارات التوثيق 37/37 + الجذري 537/537 + typecheck/lint/format)."
     }
   ],
   "migration_baseline": false,
