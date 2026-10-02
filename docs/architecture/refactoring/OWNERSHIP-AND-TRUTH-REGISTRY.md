@@ -100,27 +100,28 @@
 
 ## 4. مجموعات القيم المكررة يدويًا بين المجال ومحوّلات النقل (بذرة STR-104/509)
 
-**الظاهرة:** `transferFamilyValidators.ts` (1,715 سطرًا) يكرر حرفيًا اتحادات قيم المجال كأشرطة قبول، بلا مصدر واحد مسمى. الانحراف الصامت سيرفض تصديرًا مشروعًا (أعلى فخ توافق بيانات مجاور للبرنامج).
+**الظاهرة (أُغلقت في Wave 4D):** `transferFamilyValidators.ts` كان يكرر حرفيًا اتحادات قيم المجال كأشرطة قبول، بلا مصدر واحد مسمى. **تنفيذ 4D (بطاقة RC-8):** (1) ما له قائمة تشغيلية مجالية صار يُستهلك من مالكه مباشرة — materialUnits وunitDimensions وقوائم المصروف المتكرر الأربع وقائمتا الميزانية (9 طواقم)؛ (2) القيم التاريخية التوافقية (3 مصادر اتفاق) صارت في سجلها الموثق الوحيد `transferCompatibilityValues.ts` (سبب/إصدارات/اختبارات + إثبات نوعي أنها خارج الاتحاد الحالي)؛ (3) ما هو اتحاد نوعي فقط تبقى قيمه الحرفية تحت حراسة مراسي دريفت Wave 3B (طبقتا تشغيل وأنواع) والذهبيات كـoracle دائم؛ (4) خريطة مصادر القبول لكل عائلة موثقة في السجل نفسه (DOMAIN_RUNTIME_LIST / GUARDED_UNION / HISTORICAL_REGISTRY). طواقم القبول لم تتغير حرفيًا — شهدت بذلك اختبارات الوصف والذهبيات قبل وبعد.
 
 | مجموعة القيم | المصدر السلطوي (المجال) | النسخة المكررة (Transfer) | القرار |
 |---|---|---|---|
-| OrderStatus (craft-order) | `src/domain/craft-order/types.ts` | validator عائلة craftOrder | Wave 3B: دريفت غارد؛ 4D: توحيد المصدر |
-| AgreementStatus | craft-order/types.ts | craftOrder family | كما выше |
-| DeliveryTerms | craft-order (deliveryTermsValidation) | craftOrder family | كما فوق |
-| FinancialEventKind/Status | financial-event/types.ts | financialEvent family | كما فوق |
-| ExpenseCategory | financial-event (تصنيف المصروف) | financialEvent family | كما فوق |
-| AllocationPolicyStatus | financial-event (توزيع) | allocation ضمن families | كما فوق |
-| AssetKind/Status | asset/types.ts | assetResidual family | كما فوق |
-| LoanStatus | loan/types.ts | loan family | كما فوق |
-| ReceivedLoanStatus | received-loan/types.ts | receivedLoan family | كما فوق |
-| RecurringExpenseSeriesStatus/OccurrenceDecision | recurring-expense/types.ts | recurringExpense family | كما فوق |
-| MeasurementUnitKind | catalog/types.ts | catalog family | كما فوق |
-| OwnerEntitlementPolicyStatus/RecordStatus | owner-entitlement/types.ts | ownerEntitlement family | كما فوق |
-| OwnerMovementKind | owner-entitlement (movements) | ownerEntitlement family | كما فوق |
-| ShortCashDeclarationStatus | g5/types.ts | shortCashDeclaration family | كما فوق |
-| DirectSaleStatus | direct-sale/types.ts | directSale family | كما فوق |
-| SupplierPurchaseStatus | supplier-purchase/types.ts | supplierPurchase family | كما فوق |
-| KnowledgeState | domain/shared (نوع) + storage (نوع مواز) + application validator | **ثلاثية موثقة (STR-208)** | 4D: توحيد عبر guard مجالي |
+| OrderStatus (craft-order) | `src/domain/craft-order/types.ts` | validator عائلة craftOrder | 3B منفذ (غارد)؛ 4D منفذ: GUARDED_UNION موسومة المصدر |
+| AgreementStatus | craft-order/types.ts | craftOrder family | كما فوق — انظر صف AgreementSource أدناه |
+| DeliveryTerms | craft-order (deliveryTermsValidation) | craftOrder family | مفوض أصلًا لمدقق المجال (لا تكرار) |
+| FinancialEventKind/Status | financial-event/types.ts | financialEvent family | 3B منفذ؛ 4D: GUARDED_UNION موسومة |
+| ExpenseCategory | financial-event (تصنيف المصروف) | financialEvent family | GUARDED_UNION موسومة |
+| AllocationPolicyStatus | financial-event (توزيع) | allocation ضمن families | مفوض لمدقق المجال isValidAllocationPolicy |
+| AssetKind/Status | asset/types.ts | assetResidual family | GUARDED_UNION موسومة |
+| LoanStatus | loan/types.ts | loan family | GUARDED_UNION موسومة |
+| ReceivedLoanStatus | received-loan/types.ts | receivedLoan family | GUARDED_UNION موسومة |
+| RecurringExpenseSeriesStatus/OccurrenceDecision | recurring-expense/types.ts | recurringExpense family | **4D منفذ: DOMAIN_RUNTIME_LIST** — تستهلك القوائم التشغيلية المجالية |
+| MeasurementUnitKind | catalog/types.ts | catalog family | **4D منفذ: DOMAIN_RUNTIME_LIST** (unitDimensions + catalogItemKinds) |
+| OwnerEntitlementPolicyStatus/RecordStatus | owner-entitlement/types.ts | ownerEntitlement family | مفوض لمدققات المجال (isValidOwnerEntitlement*) |
+| OwnerMovementKind | owner-entitlement (movements) | ownerEntitlement family | مفوض لمدقق المجال isValidOwnerMovement |
+| ShortCashDeclarationStatus | financial-analysis/types.ts | shortCashDeclaration family | GUARDED_UNION موسومة |
+| DirectSaleStatus | direct-sale/types.ts | directSale family | GUARDED_UNION موسومة |
+| SupplierPurchaseStatus | supplier-purchase/types.ts | supplierPurchase family | GUARDED_UNION موسومة |
+| KnowledgeState | craft-order/types.ts (اتحاد وحيد — حُسمت الثلاثية الموثقة سابقًا) | application validator | 3B منفذ؛ 4D: GUARDED_UNION موسومة |
+| **AgreementSource (توافق تاريخي)** | storage/local/types.ts (5 حالية) | 5 حالية + 3 تاريخية | **4D منفذ: HISTORICAL_REGISTRY** — LEGACY_AGREEMENT_SOURCES في سجلها الموثق وحده |
 
 القائمة الكاملة القابلة للتنفيذ (~83 اتحادًا) تُقاس آليًا باختبار الدريفت في Wave 3B — هذا السجل يثبت المبدأ والمسؤولية لا يعيد كتابة القيم. **القيم التاريخية التوافقية تبقى منفصلة وموسومة** (مفتاح: إصدار التصدير/العقد التاريخي) ولا تُدمج مع القيم الحية أبدًا (عقد 39).
 
