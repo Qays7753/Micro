@@ -1,8 +1,8 @@
 # Micro — File Size and Responsibility Register
 
-**الإصدار:** v1.3 (إعادة قياس — Wave 4E — 2026-10-03)
+**الإصدار:** v1.4 (إعادة قياس — شرائح عناقيد المالية — 2026-10-03)
 **النطاق:** كل ملف كود إنتاجي/اختبار/سكربت/مولّد/fixture/إعداد متتبَّع في المستودع عند الرأس أدناه
-**رأس القياس:** `a2eb76d7b9aa0cd9f958595e83edc83b9e6257cc` (branch `refactoring/remediation-program-20261003`) — قياس v1.0 الأول كان عند `a59eeb1546a7323ecfe720e4ce9a77f178474fb6` (فرع تقرير PR #299)
+**رأس القياس:** `601e0abfc929add65313f33463d3e67ca8231885` (branch `refactoring/remediation-program-20261003`) — قياس v1.0 الأول كان عند `a59eeb1546a7323ecfe720e4ce9a77f178474fb6` (فرع تقرير PR #299)
 **الغرض:** سجل تنقّل وتحكم نمو — ليس مصدر سياسة ثانيًا؛ يربط إلى المصادر السلطوية ولا يعيد صياغة قواعدها.
 
 > **منهجية التصنيف:** الفئات (production/test/script/generated/fixture/config) تُستخرج من المسار وأنماط الأسماء؛ الأحجام مقيسة على الشجرة الحية؛ المستهلكون من رسم الاستيراد AST (651 ملفًا) + grep للأسماء للسكربتات/الإعدادات؛ التغطية الاختبارية من استيرادات ملفات الاختبار. الأشرطة إشارة مراجعة لا أمر تقسيم آلي (PLAN-A-TO-Z §7.3). الملفات دون إشارات خاصة تحمل الحقول العامة من المنهجية: المسؤولية = الدور الطبقي للمسار، سبب التغيير = شريط النمو/الإجراء، أثر الرجوع = حسب الطبقة (domain/storage=HIGH، اختبار/مولّد=LOW، الباقي=MEDIUM).
@@ -13,13 +13,13 @@
 
 | الشريط | العدد | المعنى |
 |---|---:|---|
-| NORMAL | 676 | لا إجراء حجمي بحد ذاته |
+| NORMAL | 681 | لا إجراء حجمي بحد ذاته |
 | WATCH | 42 | مراقبة النمو |
 | SPLIT_CANDIDATE | 13 | خطة منع تضخم قبل إضافة نطاق |
 | SPLIT_NOW | 12 | بطاقة ومستهلكون قبل أي نقل |
 | LARGE_TEST | 4 | أصل اختبار كبير — لا يُحكم كإنتاجي |
 
-**الفئات:** config=21، fixture=29، generated=7، production=333، script=20، test=337
+**الفئات:** config=21، fixture=29، generated=7، production=338، script=20، test=337
 
 ## 2. جدول السجل (كل ملف داخل النطاق)
 
@@ -33,7 +33,7 @@
 | `apps/prototype-web/client/src/pages/OrderDetail.tsx` | production | 1833 | 1888 | 99913 | 1 | 28 | 12 | 11 | SPLIT_NOW | ui | UI_OUT_OF_SCOPE (Wave T) — size noted, no action this program | M |
 | `apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts` | production | 1718 | 1733 | 76500 | 76 | 7 | 8 | 3 | SPLIT_NOW | application | SPLIT_NOW — Wave 3A characterization + Wave 3B drift guard BEFORE any move; 4D source-of-truth completion | — |
 | `apps/prototype-web/client/src/pages/Finance.tsx` | production | 1619 | 1639 | 82932 | 3 | 38+ | 17 | 15 | SPLIT_NOW | ui | UI_OUT_OF_SCOPE (Wave T) | M |
-| `apps/prototype-web/client/src/application/finance/projectFinancialService.ts` | production | 1503 | 1518 | 80863 | 19 | 17+ | 115 | 94 | SPLIT_NOW | application | SPLIT_NOW — ownership registry row first (4B); mechanical cluster split only after registry acceptance | M |
+| `apps/prototype-web/client/src/application/finance/projectFinancialService.ts` | production | 1503 | 1518 | 80893 | 19 | 17+ | 115 | 94 | SPLIT_NOW | application | SPLIT_NOW — ownership registry row first (4B); mechanical cluster split only after registry acceptance | M |
 | `apps/prototype-web/client/src/application/finance/integrityCheckService.ts` | production | 1430 | 1460 | 78503 | 8 | 12+ | 13 | 11 | SPLIT_NOW | application | SPLIT_NOW — registry row (Integrity & Diagnostics cluster); no formula moves | M |
 | `apps/prototype-web/client/src/application/inventory/inventoryMaterialService.ts` | production | 1428 | 1432 | 68300 | 24 | 5 | 68 | 56 | SPLIT_NOW | application | SPLIT_NOW — defer (not in approved waves this program); registry row | — |
 | `src/domain/craft-order/policies.ts` | production | 1399 | 1493 | 74026 | 30 | 3 | 3 | 0 | SPLIT_NOW | domain | SPLIT_NOW (size) — PRESERVE behavior; domain split only by future owner-gated wave | — |
@@ -52,7 +52,7 @@
 | `apps/prototype-web/client/src/components/finance/EventsLayer.tsx` | production | 834 | 843 | 40324 | 3 | 13 | 2 | 1 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | — |
 | `apps/prototype-web/client/src/pages/Statement.tsx` | production | 815 | 833 | 38464 | 1 | 17 | 3 | 2 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | M |
 | `apps/prototype-web/client/src/pages/Catalog.tsx` | production | 787 | 813 | 34019 | 1 | 23 | 3 | 2 | WATCH | ui | WATCH — no unrelated responsibility without review | — |
-| `apps/prototype-web/client/src/application/finance/recurringExpenseService.ts` | production | 781 | 818 | 36505 | 7 | 8 | 7 | 4 | WATCH | application | WATCH — no unrelated responsibility without review | M |
+| `apps/prototype-web/client/src/application/finance/recurringExpenseService.ts` | production | 784 | 821 | 36529 | 7 | 8 | 7 | 4 | WATCH | application | WATCH — no unrelated responsibility without review | M |
 | `apps/prototype-web/client/src/application/fulfillment/fulfillmentService.ts` | production | 740 | 762 | 40899 | 4 | 6 | 49 | 43 | WATCH | application | WATCH — no unrelated responsibility without review | M |
 | `apps/prototype-web/client/src/pages/Home.tsx` | production | 732 | 740 | 35559 | 1 | 11 | 7 | 6 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
 | `apps/prototype-web/client/src/pages/Settings.tsx` | production | 707 | 731 | 34524 | 1 | 24 | 5 | 4 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
@@ -83,7 +83,7 @@
 | `apps/prototype-web/client/src/application/assets/assetService.ts` | production | 486 | 511 | 21991 | 11 | 4 | 35 | 32 | WATCH | application | WATCH — no unrelated responsibility without review | — |
 | `apps/prototype-web/client/src/components/finance/FinancePoliciesSection.tsx` | production | 485 | 496 | 23384 | 1 | 9 | 2 | 1 | WATCH | ui | WATCH — no unrelated responsibility without review | — |
 | `apps/prototype-web/client/src/styles/primitives.css` | production | 482 | 494 | 14680 | 0 | 0 | 0 | 0 | WATCH | ui | WATCH — no unrelated responsibility without review | — |
-| `apps/prototype-web/client/src/application/finance/correctionHistoryService.ts` | production | 458 | 481 | 26217 | 7 | 6 | 19 | 16 | WATCH | application | WATCH — no unrelated responsibility without review | — |
+| `apps/prototype-web/client/src/application/financial-records/correctionHistoryService.ts` | production | 458 | 481 | 26217 | 7 | 6 | 3 | 1 | WATCH | application | WATCH — band carried over on the move (ratchet baseline re-pathed in the same PR) | — |
 | `apps/prototype-web/client/src/components/owner/OwnerLedgerFormsSection.tsx` | production | 446 | 451 | 18877 | 2 | 9 | 1 | 0 | WATCH | ui | WATCH — no unrelated responsibility without review | — |
 | `apps/prototype-web/client/src/pages/Orders.tsx` | production | 439 | 448 | 22110 | 1 | 15 | 3 | 2 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
 | `apps/prototype-web/client/src/pages/Setup.tsx` | production | 432 | 439 | 20049 | 1 | 8 | 2 | 1 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
@@ -97,7 +97,7 @@
 | `apps/prototype-web/client/src/components/owner/OwnerPolicyFormsSection.tsx` | production | 389 | 393 | 16414 | 2 | 9 | 1 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/pages/ReceivedLoanDetail.tsx` | production | 370 | 390 | 15632 | 1 | 14+ | 1 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | M |
 | `apps/prototype-web/client/src/pages/ScheduleEditor.tsx` | production | 363 | 370 | 15197 | 1 | 11 | 2 | 1 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | M |
-| `apps/prototype-web/client/src/app/PrototypeServicesContext.tsx` | production | 360 | 367 | 21923 | 5 | 50+ | 158 | 86 | NORMAL | app-root | NORMAL | BM |
+| `apps/prototype-web/client/src/app/PrototypeServicesContext.tsx` | production | 360 | 367 | 21943 | 5 | 50+ | 158 | 86 | NORMAL | app-root | NORMAL | BM |
 | `apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts` | production | 359 | 370 | 16341 | 7 | 4 | 6 | 3 | NORMAL | application | NORMAL | — |
 | `apps/prototype-web/client/src/pages/AssetEditor.tsx` | production | 356 | 364 | 16717 | 1 | 14 | 2 | 1 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/components/finance/QuickSaleForm.tsx` | production | 355 | 363 | 16673 | 1 | 9 | 3 | 2 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
@@ -107,7 +107,7 @@
 | `apps/prototype-web/client/src/pages/RecurringExpenseEditor.tsx` | production | 349 | 359 | 14813 | 1 | 12 | 2 | 1 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | M |
 | `src/domain/asset/policies.ts` | production | 347 | 372 | 17685 | 15 | 3 | 1 | 0 | NORMAL | domain | NORMAL | M |
 | `apps/prototype-web/client/src/application/transfers/transferSnapshotMigrations.ts` | production | 346 | 347 | 16170 | 1 | 2 | 3 | 2 | NORMAL | application | NORMAL | — |
-| `apps/prototype-web/client/src/application/finance/expenseBudgetService.ts` | production | 345 | 370 | 18485 | 7 | 3 | 3 | 2 | NORMAL | application | NORMAL | M |
+| `apps/prototype-web/client/src/application/budgets/expenseBudgetService.ts` | production | 345 | 370 | 18485 | 7 | 3 | 3 | 2 | NORMAL | application | NORMAL — mechanical move, tests moved with it | M |
 | `apps/prototype-web/client/src/application/cash/cashContinuityService.ts` | production | 343 | 353 | 15558 | 9 | 2 | 71 | 61 | NORMAL | application | NORMAL | — |
 | `apps/prototype-web/client/src/pages/Loans.tsx` | production | 341 | 351 | 14440 | 1 | 13+ | 5 | 4 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | M |
 | `apps/prototype-web/client/src/components/finance/G5DecisionPanel.tsx` | production | 340 | 347 | 13560 | 7 | 7+ | 1 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
@@ -154,7 +154,7 @@
 | `apps/prototype-web/client/src/application/parties/partyLedgerService.ts` | production | 221 | 239 | 10881 | 6 | 6 | 9 | 7 | NORMAL | application | NORMAL | M |
 | `apps/prototype-web/client/src/pages/CashCount.tsx` | production | 221 | 232 | 9573 | 1 | 13 | 2 | 1 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | M |
 | `apps/prototype-web/client/src/pages/Tools.tsx` | production | 216 | 227 | 11175 | 1 | 10 | 4 | 3 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | M |
-| `apps/prototype-web/client/src/application/finance/retainedDepositService.ts` | production | 213 | 222 | 9634 | 3 | 3 | 27 | 25 | NORMAL | application | NORMAL | — |
+| `apps/prototype-web/client/src/application/financial-records/retainedDepositService.ts` | production | 213 | 222 | 9634 | 3 | 3 | 8 | 6 | NORMAL | application | NORMAL | — |
 | `apps/prototype-web/client/src/pages/Parties.tsx` | production | 213 | 222 | 10312 | 1 | 10 | 2 | 1 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | M |
 | `apps/prototype-web/client/src/pages/WalletLedger.tsx` | production | 213 | 223 | 10523 | 1 | 10 | 3 | 2 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | M |
 | `apps/prototype-web/client/src/application/home/homeControlCenterModel.ts` | production | 209 | 211 | 9714 | 20 | 0 | 3 | 1 | NORMAL | application | NORMAL | — |
@@ -225,7 +225,7 @@
 | `apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts` | production | 111 | 118 | 5593 | 6 | 3 | 3 | 0 | NORMAL | storage | NORMAL | M |
 | `src/domain/shared/numeric.ts` | production | 111 | 123 | 5021 | 11 | 0 | 1 | 0 | NORMAL | domain | NORMAL | — |
 | `apps/prototype-web/client/src/application/owner/ownerProfileService.ts` | production | 109 | 120 | 4621 | 6 | 1 | 3 | 2 | NORMAL | application | NORMAL | — |
-| `apps/prototype-web/client/src/application/finance/expenseRecordIntent.ts` | production | 108 | 112 | 4948 | 4 | 2 | 4 | 1 | NORMAL | application | NORMAL | M |
+| `apps/prototype-web/client/src/application/financial-records/expenseRecordIntent.ts` | production | 108 | 112 | 4948 | 4 | 2 | 4 | 1 | NORMAL | application | NORMAL | M |
 | `apps/prototype-web/client/src/components/finance/AllocationReviewCard.tsx` | production | 108 | 111 | 5073 | 3 | 3 | 1 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/components/forms/EnglishNumberInput.tsx` | production | 107 | 111 | 3581 | 1 | 3 | 48 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/components/forms/EnglishQuantityInput.tsx` | production | 107 | 109 | 3787 | 3 | 3 | 10 | 3 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
@@ -297,7 +297,7 @@
 | `src/domain/craft-order/deliveryContribution.ts` | production | 51 | 53 | 4060 | 2 | 3 | 1 | 0 | NORMAL | domain | NORMAL | — |
 | `apps/prototype-web/client/src/components/finance/RestatementNote.tsx` | production | 50 | 53 | 2163 | 1 | 3 | 6 | 1 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleStore.ts` | production | 48 | 51 | 3373 | 3 | 1 | 5 | 1 | NORMAL | storage | NORMAL — registry §2 row updated; consumer migration continues per capability (RC-7) | — |
-| `apps/prototype-web/client/src/application/finance/expenseCategorySuggestions.ts` | production | 47 | 51 | 2050 | 3 | 1 | 3 | 1 | NORMAL | application | NORMAL | — |
+| `apps/prototype-web/client/src/application/financial-records/expenseCategorySuggestions.ts` | production | 47 | 51 | 2050 | 3 | 1 | 2 | 1 | NORMAL | application | NORMAL | — |
 | `apps/prototype-web/client/src/components/owner/CrossModelDuplicateNotice.tsx` | production | 47 | 49 | 2485 | 1 | 4 | 3 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `src/domain/owner-safe-withdrawal/types.ts` | production | 47 | 51 | 2945 | 4 | 1 | 2 | 0 | NORMAL | domain | NORMAL | — |
 | `apps/prototype-web/client/src/components/brand/BrandMark.tsx` | production | 46 | 50 | 2000 | 2 | 1 | 3 | 1 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
@@ -338,9 +338,14 @@
 | `apps/prototype-web/client/src/pwa/dirtyRegistry.ts` | production | 13 | 16 | 639 | 2 | 0 | 6 | 3 | NORMAL | pwa | NORMAL | M |
 | `apps/prototype-web/client/src/application/agreements/followUpDate.ts` | production | 11 | 14 | 611 | 3 | 2 | 4 | 1 | NORMAL | application | NORMAL | — |
 | `apps/prototype-web/client/src/application/g5/g5Service.ts` | production | 11 | 11 | 839 | 1 | 0 | 18 | 15 | NORMAL | application | NORMAL — frozen until the UI wave removes importers | — |
+| `apps/prototype-web/client/src/application/finance/expenseBudgetService.ts` | production | 10 | 10 | 688 | 1 | 0 | 1 | 0 | NORMAL | application | NORMAL | — |
+| `apps/prototype-web/client/src/application/finance/expenseRecordIntent.ts` | production | 10 | 10 | 698 | 1 | 0 | 1 | 0 | NORMAL | application | NORMAL | — |
 | `apps/prototype-web/client/src/application/finance/ownerEntitlementService.ts` | production | 10 | 10 | 722 | 1 | 0 | 25 | 17 | NORMAL | application | NORMAL — frozen until the UI wave removes importers | — |
 | `apps/prototype-web/client/src/application/inventory/inventoryMovementRoute.ts` | production | 10 | 12 | 579 | 2 | 0 | 2 | 1 | NORMAL | application | NORMAL | — |
 | `src/domain/financial-event/index.ts` | production | 10 | 10 | 258 | 2 | 0 | 87 | 45 | NORMAL | domain | NORMAL | • |
+| `apps/prototype-web/client/src/application/finance/correctionHistoryService.ts` | production | 9 | 9 | 631 | 1 | 0 | 17 | 15 | NORMAL | application | NORMAL | — |
+| `apps/prototype-web/client/src/application/finance/expenseCategorySuggestions.ts` | production | 9 | 9 | 635 | 1 | 0 | 2 | 0 | NORMAL | application | NORMAL | — |
+| `apps/prototype-web/client/src/application/finance/retainedDepositService.ts` | production | 9 | 9 | 627 | 1 | 0 | 20 | 19 | NORMAL | application | NORMAL | — |
 | `apps/prototype-web/client/src/application/finance/withdrawalWalletGuard.ts` | production | 6 | 6 | 378 | 1 | 0 | 1 | 0 | NORMAL | application | NORMAL — frozen until the UI wave removes importers | — |
 | `apps/prototype-web/client/src/main.tsx` | production | 6 | 7 | 244 | 0 | 4 | 0 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/storage/local/createBrowserLocalStore.ts` | production | 6 | 7 | 313 | 1 | 2 | 4 | 3 | NORMAL | storage | NORMAL | — |
@@ -367,7 +372,7 @@
 | `apps/prototype-web/client/src/application/finance/integrityCheckService.test.ts` | test | 1414 | 1459 | 61300 | 0 | 16+ | 0 | 0 | LARGE_TEST | application | TEST — judged as test asset, not production | M |
 | `scripts/text-density-count.py` | script | 1253 | 1298 | 85132 | 0 | 2 | 1 | 0 | SPLIT_NOW | infra | PRESERVE (size is cohesive single-purpose) | — |
 | `tests/domain/craft-order.test.ts` | test | 1111 | 1209 | 45569 | 0 | 2 | 0 | 0 | NORMAL | test | TEST — judged as test asset, not production | M |
-| `apps/prototype-web/client/src/storage/local/adapterConformance.group10.test.ts` | test | 1062 | 1119 | 39862 | 0 | 13+ | 0 | 0 | NORMAL | storage | TEST — judged as test asset, not production | M |
+| `apps/prototype-web/client/src/storage/local/adapterConformance.group10.test.ts` | test | 1062 | 1119 | 39872 | 0 | 13+ | 0 | 0 | NORMAL | storage | TEST — judged as test asset, not production | M |
 | `docs/operations/control/generated/MASTER-TRACKER.xlsx` | generated | 1016 | 1044 | 39434 | 0 | 0 | 0 | 0 | NORMAL | ops-generated | GENERATED — no hand edits | — |
 | `tests/domain/complex-six.characterization.test.ts` | test | 1005 | 1066 | 40111 | 0 | 7 | 0 | 0 | NORMAL | test | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/group2InventorySurfaces.test.tsx` | test | 936 | 964 | 44407 | 0 | 28 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
@@ -389,7 +394,7 @@
 | `apps/prototype-web/client/src/G3Hardening.dom.test.tsx` | test | 527 | 570 | 29156 | 0 | 30 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | M |
 | `apps/prototype-web/client/src/Settings.lockGate.dom.test.tsx` | test | 514 | 550 | 28764 | 0 | 20 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `tests/domain/recurring-expense.test.ts` | test | 511 | 528 | 25183 | 0 | 2 | 0 | 0 | NORMAL | test | TEST — judged as test asset, not production | — |
-| `apps/prototype-web/client/src/application/finance/correctionHistoryService.test.ts` | test | 507 | 518 | 20913 | 0 | 7+ | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
+| `apps/prototype-web/client/src/application/financial-records/correctionHistoryService.test.ts` | test | 507 | 518 | 20933 | 0 | 7+ | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/FinanceBridge.w173.dom.test.tsx` | test | 496 | 514 | 20603 | 0 | 30 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | M |
 | `apps/prototype-web/client/src/application/finance/recurringExpenseService.test.ts` | test | 496 | 573 | 29209 | 0 | 6 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | M |
 | `tests/domain/craft-order-d15-settlement.test.ts` | test | 492 | 527 | 24255 | 0 | 3 | 0 | 0 | NORMAL | test | TEST — judged as test asset, not production | M |
@@ -402,14 +407,14 @@
 | `apps/prototype-web/client/src/application/scheduling/scheduleService.test.ts` | test | 453 | 468 | 20293 | 0 | 4+ | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/G6.dom.test.tsx` | test | 449 | 485 | 21777 | 0 | 25 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | M |
 | `apps/prototype-web/client/src/application/fulfillment/deliveryReviewService.priorConsumption.test.ts` | test | 443 | 458 | 20799 | 0 | 9 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
-| `apps/prototype-web/client/src/Wave4ContractOracles.contract.test.ts` | test | 439 | 464 | 20438 | 0 | 4+ | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | M |
+| `apps/prototype-web/client/src/Wave4ContractOracles.contract.test.ts` | test | 439 | 464 | 20448 | 0 | 4+ | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | M |
 | `apps/prototype-web/client/src/ReadLayerParity.w44.dom.test.tsx` | test | 436 | 459 | 21357 | 0 | 27 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `tests/owner-entitlement.test.ts` | test | 435 | 447 | 14859 | 0 | 2 | 0 | 0 | NORMAL | test | TEST — judged as test asset, not production | — |
-| `apps/prototype-web/client/src/application/transfers/localTransferService.schema34.test.ts` | test | 428 | 442 | 15831 | 0 | 7+ | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | M |
+| `apps/prototype-web/client/src/application/transfers/localTransferService.schema34.test.ts` | test | 428 | 442 | 15841 | 0 | 7+ | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | M |
 | `docs/fixtures/export-goldens/current-pair-supplement.golden.json` | fixture | 428 | 428 | 14122 | 0 | 0 | 3 | 0 | NORMAL | infra | FIXTURE — version with its consumer | — |
 | `apps/prototype-web/client/src/storage/local/deliveryReversalCommitGuard.test.ts` | test | 427 | 460 | 18717 | 0 | 5 | 0 | 0 | NORMAL | storage | TEST — judged as test asset, not production | M |
 | `apps/prototype-web/client/src/QuickExpenseSource.dom.test.tsx` | test | 425 | 456 | 23303 | 0 | 10 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
-| `apps/prototype-web/client/src/application/finance/fullCycleReconciliation.exe013.test.ts` | test | 424 | 447 | 20688 | 0 | 17 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
+| `apps/prototype-web/client/src/application/finance/fullCycleReconciliation.exe013.test.ts` | test | 424 | 447 | 20698 | 0 | 17 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `tests/domain/operatingBreakEven.test.ts` | test | 422 | 439 | 19338 | 0 | 2 | 0 | 0 | NORMAL | test | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/application/supplierScheduleConcurrency.test.ts` | test | 421 | 436 | 19375 | 0 | 5 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `tests/domain/public-surface.test.ts` | test | 421 | 469 | 21213 | 1 | 31 | 0 | 0 | NORMAL | test | TEST — judged as test asset, not production | — |
@@ -437,7 +442,7 @@
 | `tests/domain/craft-order-delivery-terms.test.ts` | test | 367 | 386 | 14201 | 0 | 3 | 0 | 0 | NORMAL | test | TEST — judged as test asset, not production | M |
 | `scripts/check-entity-touchpoints.test.mjs` | test | 363 | 388 | 16926 | 2 | 8 | 0 | 0 | NORMAL | infra | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts` | test | 358 | 382 | 16675 | 0 | 6 | 0 | 0 | NORMAL | storage | TEST — judged as test asset, not production | — |
-| `scripts/file-size-ratchet-baseline.json` | script | 358 | 358 | 27030 | 0 | 0 | 2 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
+| `scripts/file-size-ratchet-baseline.json` | script | 358 | 358 | 27119 | 0 | 0 | 2 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
 | `apps/prototype-web/client/src/application/activity/activityService.test.ts` | test | 357 | 366 | 14081 | 0 | 6 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/application/transfers/localTransferService.schema32.test.ts` | test | 356 | 361 | 16237 | 0 | 6 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/HomeRedesign.w43.dom.test.tsx` | test | 348 | 366 | 18974 | 0 | 22 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
@@ -481,13 +486,13 @@
 | `apps/prototype-web/client/src/application/agreements/agreementContextService.test.ts` | test | 253 | 260 | 9683 | 0 | 4 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/pages/Setup.ui.test.tsx` | test | 253 | 293 | 14627 | 0 | 8 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/pages/SupplierPurchaseEditor.ui.test.tsx` | test | 253 | 271 | 11666 | 0 | 9 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
-| `apps/prototype-web/client/src/application/finance/expenseBudgetService.3c.test.ts` | test | 252 | 266 | 11676 | 0 | 4 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
+| `apps/prototype-web/client/src/application/budgets/expenseBudgetService.3c.test.ts` | test | 252 | 266 | 11696 | 0 | 4 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/application/transfers/localTransferService.recurringExpense.test.ts` | test | 252 | 267 | 11870 | 0 | 5 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
-| `scripts/check-module-boundaries.mjs` | script | 250 | 264 | 14875 | 6 | 6 | 1 | 0 | NORMAL | infra | NORMAL — baseline updates only in the same PR as the legitimate edge + registry row | — |
+| `scripts/check-module-boundaries.mjs` | script | 250 | 264 | 14885 | 6 | 6 | 1 | 0 | NORMAL | infra | NORMAL — baseline updates only in the same PR as the legitimate edge + registry row | — |
 | `apps/prototype-web/client/src/application/finance/statementMarkdownService.test.ts` | test | 249 | 257 | 10961 | 0 | 4 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `scripts/check-entity-touchpoints.mjs` | script | 249 | 272 | 12437 | 8 | 4 | 2 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
 | `apps/prototype-web/client/src/WorkShare.w43.dom.test.tsx` | test | 248 | 263 | 12116 | 0 | 19 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | M |
-| `apps/prototype-web/client/src/application/finance/retainedDepositService.test.ts` | test | 248 | 261 | 10914 | 0 | 7 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | M |
+| `apps/prototype-web/client/src/application/financial-records/retainedDepositService.test.ts` | test | 248 | 261 | 10914 | 0 | 7 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | M |
 | `apps/prototype-web/client/src/application/finance/upcomingService.test.ts` | test | 246 | 265 | 11628 | 0 | 14 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | M |
 | `apps/prototype-web/client/src/application/finance/projectFinancialService.category.test.ts` | test | 244 | 253 | 10771 | 0 | 3 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/G3Delivery.dom.test.tsx` | test | 241 | 256 | 11847 | 0 | 22 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
@@ -535,7 +540,7 @@
 | `apps/prototype-web/client/src/application/finance/projectFinancialService.evidence.test.ts` | test | 196 | 206 | 9458 | 0 | 5+ | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `docs/fixtures/export-goldens/MANIFEST.json` | fixture | 196 | 196 | 8512 | 0 | 0 | 1 | 0 | NORMAL | infra | FIXTURE — version with its consumer | — |
 | `apps/prototype-web/client/src/application/owner-money/ownerCrossModelDuplicates.test.ts` | test | 195 | 205 | 8368 | 0 | 5 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
-| `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group4.test.ts` | test | 195 | 203 | 8570 | 0 | 8 | 0 | 0 | NORMAL | storage | TEST — judged as test asset, not production | M |
+| `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group4.test.ts` | test | 195 | 203 | 8580 | 0 | 8 | 0 | 0 | NORMAL | storage | TEST — judged as test asset, not production | M |
 | `scripts/operations-control/generate_tracker.py` | script | 195 | 238 | 11446 | 0 | 5 | 2 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
 | `apps/prototype-web/client/src/G4Loans.dom.test.tsx` | test | 191 | 203 | 10490 | 0 | 15 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/storage/local/adapterConformance.expenseBudget.test.ts` | test | 191 | 211 | 9278 | 1 | 7 | 0 | 0 | NORMAL | storage | TEST — judged as test asset, not production | — |
@@ -594,7 +599,7 @@
 | `apps/prototype-web/client/src/G3Cash.dom.test.tsx` | test | 145 | 161 | 7789 | 0 | 8 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/CatalogItemResult.w177.dom.test.tsx` | test | 144 | 150 | 5943 | 0 | 6 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/G004CapabilityDeepLinks.dom.test.tsx` | test | 144 | 155 | 6828 | 0 | 8 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
-| `apps/prototype-web/client/src/application/finance/expenseRecordIntent.test.ts` | test | 144 | 156 | 5967 | 0 | 3 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
+| `apps/prototype-web/client/src/application/financial-records/expenseRecordIntent.test.ts` | test | 144 | 156 | 5967 | 0 | 3 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/application/transfers/domainTransferDriftGuard.test.ts` | test | 144 | 151 | 7239 | 0 | 10 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | M |
 | `apps/prototype-web/scripts/check-bundle-budget.mjs` | script | 144 | 155 | 8047 | 9 | 5 | 4 | 0 | NORMAL | infra | INFRA — change via own slice only | M |
 | `apps/prototype-web/client/src/Set003Capabilities.dom.test.tsx` | test | 143 | 152 | 7689 | 0 | 18 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
@@ -679,8 +684,8 @@
 | `apps/prototype-web/client/src/components/forms/UnsavedChangesGuard.saveFailure.dom.test.tsx` | test | 73 | 80 | 3405 | 0 | 4 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `.github/workflows/ci.yml` | config | 72 | 84 | 3074 | 0 | 0 | 0 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
 | `apps/prototype-web/client/src/U10.dom.test.tsx` | test | 72 | 82 | 3173 | 0 | 5 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
-| `apps/prototype-web/client/src/application/finance/expenseCategorySuggestions.test.ts` | test | 72 | 78 | 3139 | 0 | 3 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/application/finance/shortCashHorizon.test.ts` | test | 72 | 80 | 3745 | 0 | 2 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
+| `apps/prototype-web/client/src/application/financial-records/expenseCategorySuggestions.test.ts` | test | 72 | 78 | 3139 | 0 | 3 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/application/owner/ownerProfileService.test.ts` | test | 72 | 78 | 3977 | 0 | 3 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/components/forms/useFormDirty.dom.test.tsx` | test | 71 | 82 | 4197 | 0 | 4 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `tests/domain/exact-values.characterization.test.ts` | test | 70 | 79 | 3852 | 0 | 2 | 0 | 0 | NORMAL | test | TEST — judged as test asset, not production | — |
@@ -733,7 +738,7 @@
 | `apps/prototype-web/client/src/application/identity/buildIdentity.test.ts` | test | 25 | 30 | 1724 | 0 | 2 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/app/StartupGate.recovery.test.ts` | test | 24 | 28 | 1456 | 0 | 3 | 0 | 0 | NORMAL | app-root | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/tsconfig.json` | config | 24 | 24 | 691 | 0 | 0 | 0 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
-| `docs/operations/control/generated/AGENT-BRIEF.md` | generated | 24 | 37 | 2550 | 0 | 0 | 0 | 0 | NORMAL | ops-generated | GENERATED — no hand edits | — |
+| `docs/operations/control/generated/AGENT-BRIEF.md` | generated | 24 | 37 | 2493 | 0 | 0 | 0 | 0 | NORMAL | ops-generated | GENERATED — no hand edits | — |
 | `apps/prototype-web/vitest.config.ts` | config | 22 | 23 | 891 | 1 | 3 | 3 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
 | `docs/fixtures/g82-guided-opening-import-fixtures.json` | fixture | 22 | 22 | 1750 | 0 | 0 | 1 | 0 | NORMAL | infra | PRESERVE; Wave 3A added 28 export goldens under docs/fixtures/export-goldens/ beside it | — |
 | `apps/prototype-web/client/src/application/agreements/followUpDate.test.ts` | test | 20 | 24 | 1078 | 0 | 2 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
@@ -771,7 +776,7 @@
 | `vitest.config.ts` | config | 8 | 9 | 415 | 1 | 1 | 3 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
 | `.prettierrc.json` | config | 6 | 6 | 100 | 0 | 0 | 1 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
 | `scripts/post-merge.sh` | script | 6 | 8 | 170 | 1 | 0 | 0 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
-| `docs/operations/control/generated/ACTIVE-WORK.md` | generated | 5 | 7 | 907 | 0 | 0 | 0 | 0 | NORMAL | ops-generated | GENERATED — no hand edits | — |
+| `docs/operations/control/generated/ACTIVE-WORK.md` | generated | 5 | 7 | 850 | 0 | 0 | 0 | 0 | NORMAL | ops-generated | GENERATED — no hand edits | — |
 | `pnpm-workspace.yaml` | config | 4 | 5 | 63 | 0 | 0 | 1 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
 | `.gitattributes` | config | 1 | 2 | 49 | 0 | 0 | 1 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
 
@@ -845,7 +850,7 @@
 
 ### `apps/prototype-web/client/src/application/finance/projectFinancialService.ts`
 
-- **الفئة/الطبقة:** production / application — **nbLOC:** 1503 (raw 1518، 80863 bytes)
+- **الفئة/الطبقة:** production / application — **nbLOC:** 1503 (raw 1518، 80893 bytes)
 - **المسؤولية:** Canonical financial read model: period results, allocation reads, family contexts
 - **Exports/Imports:** 19/17 (+1 dynamic)
 - **المستهلكون المباشرون (115):** `apps/prototype-web/client/src/ArabicRtlContent.w44.dom.test.tsx`, `apps/prototype-web/client/src/CashJourneys.dom.test.tsx`, `apps/prototype-web/client/src/CashVocabulary.w43.dom.test.tsx`, `apps/prototype-web/client/src/D005.dom.test.tsx`, `apps/prototype-web/client/src/DeepScreens.w43.dom.test.tsx`, `apps/prototype-web/client/src/EventsLayer.familyGuard.dom.test.tsx`, `apps/prototype-web/client/src/FinanceBridge.w173.dom.test.tsx`, `apps/prototype-web/client/src/FinanceBudgets.w174.dom.test.tsx`, `apps/prototype-web/client/src/FinanceEmptyTruth.dom.test.tsx`, `apps/prototype-web/client/src/FinanceJourneys.dom.test.tsx`
@@ -1063,6 +1068,17 @@
 - **الاختبارات المباشرة (5):** `breakEvenModelParity.test.ts`, `d03DeliveryOperatingPath.test.ts`, `operatingBreakEvenModel.test.ts`, `financialAnalysisService.shortCashHorizon.test.ts`, `financialAnalysisService.test.ts`
 - **الإجراء:** WATCH — no unrelated responsibility without review؛ **أثر الرجوع:** HIGH؛ **الاستثناء/التنازل:** D-034 dynamic-import waiver
 
+### `apps/prototype-web/client/src/application/financial-records/correctionHistoryService.ts`
+
+- **الفئة/الطبقة:** production / application — **nbLOC:** 458 (raw 481، 26217 bytes)
+- **المسؤولية:** Correction history reads over persisted records (moved with the Financial Records cluster — 4B follow-up)
+- **Exports/Imports:** 7/6
+- **المستهلكون المباشرون (3):** `apps/prototype-web/client/src/app/PrototypeServicesContext.tsx`, `apps/prototype-web/client/src/application/finance/correctionHistoryService.ts`, `apps/prototype-web/client/src/application/financial-records/correctionHistoryService.test.ts`
+- **آثار جانبية/تهيئة:** لا تُكتشف بالنمط
+- **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** Read model over storage; canonical reader stays projectFinancialService (contract 40)
+- **الاختبارات المباشرة (1):** `correctionHistoryService.test.ts`
+- **الإجراء:** WATCH — band carried over on the move (ratchet baseline re-pathed in the same PR)؛ **أثر الرجوع:** HIGH؛ **الاستثناء/التنازل:** —
+
 ### `apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleCapability.contract.test.ts`
 
 - **الفئة/الطبقة:** test / storage — **nbLOC:** 370 (raw 394، 16453 bytes)
@@ -1073,6 +1089,17 @@
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** Parity oracle for the pilot capability
 - **الاختبارات المباشرة (0):** لا تغطية مباشرة (انظر بطاقات الفجوة)
 - **الإجراء:** TEST — judged as test asset, not production؛ **أثر الرجوع:** LOW؛ **الاستثناء/التنازل:** —
+
+### `apps/prototype-web/client/src/application/budgets/expenseBudgetService.ts`
+
+- **الفئة/الطبقة:** production / application — **nbLOC:** 345 (raw 370، 18485 bytes)
+- **المسؤولية:** Expense budgets (contract 42) — moved with the Budgets & Planning cluster (4B follow-up)
+- **Exports/Imports:** 7/3
+- **المستهلكون المباشرون (3):** `apps/prototype-web/client/src/application/budgets/expenseBudgetService.3c.test.ts`, `apps/prototype-web/client/src/application/finance/expenseBudgetService.ts`, `apps/prototype-web/client/src/application/transfers/exportGoldens.test.ts`
+- **آثار جانبية/تهيئة:** module-mutable
+- **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** Plan records, not financial events (contract 42); direct coverage added in 3C
+- **الاختبارات المباشرة (2):** `expenseBudgetService.3c.test.ts`, `exportGoldens.test.ts`
+- **الإجراء:** NORMAL — mechanical move, tests moved with it؛ **أثر الرجوع:** HIGH؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/application/transfers/localTransferService.ts`
 
@@ -1098,7 +1125,7 @@
 
 ### `scripts/check-module-boundaries.mjs`
 
-- **الفئة/الطبقة:** script / infra — **nbLOC:** 250 (raw 264، 14875 bytes)
+- **الفئة/الطبقة:** script / infra — **nbLOC:** 250 (raw 264، 14885 bytes)
 - **المسؤولية:** Wave 4E resolution-based boundary observer: deep-domain/UI-to-domain/application-to-presentation ratchets with embedded accepted baselines
 - **Exports/Imports:** 6/6
 - **المستهلكون المباشرون (1):** `scripts/check-module-boundaries.test.mjs`
@@ -1271,7 +1298,7 @@
 - المسؤوليات الحرفية منسوخة يدويًا للملفات الحرجة فقط؛ البقيةheuristics طبقية موثقة في المنهجية.
 - السجل لا يعيد صياغة قواعد مالية أو عقودًا؛ المصادر السلطوية تظل العقود و `docs/operations/current-state.md`.
 
-**توليد:** سكربت القياس محفوظ خارج المستودع (بيئة الوكيل)؛ إعادة القياس إلزامية عند كل موجة تُغيّر بنية الملفات — رأس القياس الحالي `a2eb76d`.
+**توليد:** سكربت القياس محفوظ خارج المستودع (بيئة الوكيل)؛ إعادة القياس إلزامية عند كل موجة تُغيّر بنية الملفات — رأس القياس الحالي `601e0ab`.
 
 ## 7. التحديثات المؤرخة (إعادة القياس v1.1 — Wave 4C)
 
@@ -1284,5 +1311,7 @@
 **تحديث مؤرخ 2026-10-03 (Wave 4D — إعادة قياس v1.2):** أُضيف سجل التوافق التاريخي (transferCompatibilityValues.ts + اختباره) وتوحيد مصادر قبول المدققات: تفويض بلا كلفة لما برميله داخل أصلًا في رأس الحزمة (materialUnits + قائمتا الميزانية) واستهلاك مصدر الاتفاق من السجل نفسه؛ والقيم التاريخية (3 مصادر اتفاق) صارت في سجلها الموثق وحده؛ وتفويض unitDimensions وقوائم المصروف المتكرر الأربع مؤجل عمدًا (D-034 — هامش السقف الخام) وطواقمها الحرفية موسومة المصدر ومحروسة. طواقم القبول كما هي حرفيًا في كل الدفعات (شهدت بها اختبارات الوصف والذهبيات قبل وبعد). الفئات الآن: production=333، test=335 — المجموع 742.
 
 **تحديث مؤرخ 2026-10-03 (Wave 4E — إعادة قياس v1.3):** أُضيف حارسان واختباراتهما (check-module-boundaries — مراقب حدود قائم على الفَلْحة بثلاث قواعد راتشة بأساس مقبول مضمّن؛ check-file-size-ratchet — راتشة الأشرطة الحجمية بأساس JSON من 350 ملفًا) ووُصلا في سلسلة guards في CI. صفر تغيير إنتاج؛ الحزمة بالبايت نفسه. الفئات الآن: production=333، test=337، script=20 (+3: الحارسان + ملف الأساس)، المجموع 747.
+
+**تحديث مؤرخ 2026-10-03 (شرائح عناقيد المالية — إعادة قياس v1.4):** انتقل عنقود «السجلات المالية» إلى `application/financial-records/` (expenseRecordIntent، expenseCategorySuggestions، correctionHistoryService، retainedDepositService + اختباراتهما الأربعة) وعنقود «الميزانيات والتخطيط» إلى `application/budgets/` (expenseBudgetService + اختباره) بنمط 4B الميكانيكي: نقل ملفات + 5 وحدات توافق للواجهة المجمدة + تحديث المستوردين غير-UI؛ أساسا حارسي 4E حُدّثا في نفس الـPR (حافة R3 لـcorrectionHistory أُعيدت للمسار الجديد بنفس العدد 14؛ مدخل WATCH لـcorrectionHistory أُعيد توجيهه). بقية العناقيد مؤجلة بأسبابها الموثقة (إقامة محروسة بعقد 40 للفحص والعمل المتكرر والقارئ الكنوني).
 
 **تحديث مؤرخ 2026-10-03 (Waves 3A/3B/3C):** ذهبيات التصدير (28 ملفًا تحت `docs/fixtures/export-goldens/` — فئة fixture) + مراسي الدريفت + اختبارات وصف العنقود والميزانيات؛ إضافات اختبار/fixture بلا أي لمس إنتاج عدا استخراج العهدة المشتركة `historical817.fixture.ts`.
