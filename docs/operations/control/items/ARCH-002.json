@@ -2,7 +2,7 @@
   "id": "ARCH-002",
   "title": "الموجة 3A — أساس التكافؤ: ذهبيات التصدير/الاستيراد + اختبارات وصف مباشرة لعنقود النقل (STR-401/405)",
   "type": "RESEARCH",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P1",
   "stage": "architecture-remediation-wave-3a",
   "summary": "تأسيس أساس التكافؤ المطلوب قبل أي حركة بنيوية: (1) ذهبيات مادية على القرص للزوج الحالي 30/38 (مظروف كامل: بصمة sha256 + عدادات + بيانات ممثلة عبر الخدمات الحقيقية) ولكل زوج تاريخي مقبول (24) + عهدة 8/17 الأمينة، مع MANIFEST بأهاش وأصل التوليد؛ (2) اختبار ذهبي يقارن المخرج الحي بالذهبي ويفشل عند أي انحراف؛ (3) اختبارات وصف مباشرة لعنقود النقل (transferFamilyValidators/transferSnapshotValidation/transferEnvelope/transferCounters/transferSnapshotMigrations) التي كانت بلا اختبارات مباشرة (STR-405). إضافي فقط — لا تغيير إنتاج/أزواج/بايتات/ترتيب رفض.",
@@ -35,7 +35,7 @@
     "storage",
     "tests"
   ],
-  "next_action": "تنفيذ الذهبيات والاختبارات على فرع البرنامج ثم PR مستقل.",
+  "next_action": "CI PR #300 ثم الدمج ثم الترقية إلى MERGED_UNVERIFIED فVERIFIED بعد التحقق على main.",
   "status_history": [
     {
       "status": "BACKLOG",
@@ -60,6 +60,12 @@
       "changed_at": "2026-10-03",
       "actor": "arch-002:implement",
       "reason": "بدء تنفيذ الموجة 3A: ذهبيات التكافؤ + اختبارات وصف عنقود النقل."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-03",
+      "actor": "arch-002:review",
+      "reason": "التنفيذ مكتمل (27 ذهبيًا + 107 اختبارات مباشرة)؛ PR #300 يحمل الفحوص الخضراء الكاملة (2126/2126)."
     }
   ],
   "migration_baseline": false,
