@@ -2,7 +2,7 @@
   "id": "ARCH-002",
   "title": "الموجة 3A — أساس التكافؤ: ذهبيات التصدير/الاستيراد + اختبارات وصف مباشرة لعنقود النقل (STR-401/405)",
   "type": "RESEARCH",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "architecture-remediation-wave-3a",
   "summary": "تأسيس أساس التكافؤ المطلوب قبل أي حركة بنيوية: (1) ذهبيات مادية على القرص للزوج الحالي 30/38 (مظروف كامل: بصمة sha256 + عدادات + بيانات ممثلة عبر الخدمات الحقيقية) ولكل زوج تاريخي مقبول (24) + عهدة 8/17 الأمينة، مع MANIFEST بأهاش وأصل التوليد؛ (2) اختبار ذهبي يقارن المخرج الحي بالذهبي ويفشل عند أي انحراف؛ (3) اختبارات وصف مباشرة لعنقود النقل (transferFamilyValidators/transferSnapshotValidation/transferEnvelope/transferCounters/transferSnapshotMigrations) التي كانت بلا اختبارات مباشرة (STR-405). إضافي فقط — لا تغيير إنتاج/أزواج/بايتات/ترتيب رفض.",
@@ -35,7 +35,7 @@
     "storage",
     "tests"
   ],
-  "next_action": "CI PR #300 ثم الدمج ثم الترقية إلى MERGED_UNVERIFIED فVERIFIED بعد التحقق على main.",
+  "next_action": "مغلق لنطاقه (3A). الموجات المتبقية 4C/4D/4E تُدار عبر WS-212 ببطاقات RC-7/8/9.",
   "status_history": [
     {
       "status": "BACKLOG",
@@ -66,6 +66,18 @@
       "changed_at": "2026-10-03",
       "actor": "arch-002:review",
       "reason": "التنفيذ مكتمل (27 ذهبيًا + 107 اختبارات مباشرة)؛ PR #300 يحمل الفحوص الخضراء الكاملة (2126/2126)."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-03",
+      "actor": "arch-002:merged",
+      "reason": "دمج PR #300 (الموجة 3A) عند 76ebb6df58aaa011f9f9cb53bb925014643dfc50."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-03",
+      "actor": "arch-002:verify",
+      "reason": "نطاق البند (الموجة 3A: الذهبيات + اختبارات الوصف) مدموج عبر PR #300 عند 76ebb6d وتحقق على main (CI أخضر؛ أعاد المدقق المستقل الفحوص عند c4b3a59). موجات 3B-4B اللاحقة ضمن نفس WS-212؛ 4C-4E متبقية."
     }
   ],
   "migration_baseline": false,
@@ -84,5 +96,7 @@
   "dependencies": [],
   "related_items": [
     "ARCH-001"
-  ]
+  ],
+  "merge_sha": "76ebb6df58aaa011f9f9cb53bb925014643dfc50",
+  "verified_on_main_sha": "c4b3a599c36aaec80c2a1b57d726c5fa6d2d4bf8"
 }
