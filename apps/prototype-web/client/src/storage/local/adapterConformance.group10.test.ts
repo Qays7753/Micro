@@ -27,7 +27,10 @@ import {
   createAllocationPolicy,
   createAllocationPolicySuccessor,
 } from "@micro-domain/recurring-margin/index.js";
-import { createShortCashDeclaration, createShortCashReversal } from "@micro-domain/g5/index.js";
+import {
+  createShortCashDeclaration,
+  createShortCashReversal,
+} from "@micro-domain/financial-analysis/index.js";
 import {
   createSupplierPurchase,
   recordSupplierPurchasePayment,

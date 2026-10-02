@@ -5,7 +5,7 @@ import {
   createOwnerEntitlementPolicySuccessor,
   createOwnerEntitlementRecord,
 } from "@micro-domain/owner-entitlement/index.js";
-import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
+import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
 import { LocalTransferService } from "./localTransferService";

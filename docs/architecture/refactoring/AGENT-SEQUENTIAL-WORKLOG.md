@@ -97,3 +97,35 @@
 - **التسليم التالي:** Agent 4 — Wave 4A (التسمية الأساسية g5 → financial-analysis).
 
 *انتهى قسم Agent 3 كاملًا (3A/3B/3C).*
+
+---
+
+## Entry 6 — Agent 4 (Wave 4A: Canonical Naming — g5 → financial-analysis)
+
+- **التاريخ:** 2026-10-03
+- **Base SHA:** `7e75ded4982052c3191fbb65eabe746cfb4bf073` (بعد دمج PR #301)
+- **جرد المستهلكين (قبل النقل):** 29+ مستهلكًا: الواجهة المجمدة (Finance.tsx، G5DecisionPanel.tsx، G5DeclarationEditor.tsx + 26 اختبار dom بجذر src)؛ جذر التركيب (PrototypeServicesContext)؛ التخزين (types/IndexedDb/Memory/indexedDbSnapshot/adapterConformance — نوع ShortCashDeclaration)؛ المالية (projectFinancialService، shortCashHorizon + 3 اختبارات)؛ مجال owner-safe-withdrawal (نوع)؛ اختبارات الجذر (4 ملفات)؛ العرض (g5Plurals — 7 مستهلكي UI).
+- **المنفذ (ميكانيكي فقط، صفر تغيير سلوك/مظهر):**
+  1. النقل الأساس: `src/domain/g5/{types,policies,operatingBreakEven,index}.ts` → `src/domain/financial-analysis/`؛ `application/g5/g5Service.ts` → `application/financial-analysis/financialAnalysisService.ts`؛ الفئة `G5Service` → `FinancialAnalysisService`.
+  2. وحدتا توافق موثقتان بمذكرة أصل: `src/domain/g5/index.ts` (إعادة تصدير السطح العام نفسه — يحرسها اختبار مساواة السطحين في public-surface.test.ts) و`application/g5/g5Service.ts` — تبقيان محددات الواجهة المجمدة تحل بلا لمس أي ملف UI (القاعدة 6 من الموجة).
+  3. تحديث المستوردين غير-UI إلى المسار الأساس: التخزين (5)، المالية (6)، جذر التركيب، اختبارات الجذر (4)، domain owner-safe-withdrawal، والاستيرادان العميقان الموثقان D-034 (operatingBreakEven).
+  4. إعادة تسمية الاختبارات المرافقة: g5.test.ts → financial-analysis.test.ts؛ اختبارا الخدمة معها.
+  5. عقد 17: تصحيح مساري الحقيقة الحاليين + مذكرة أصل مؤرخة (رقم العقد وكل دلالاته كما هي).
+- **ما لم يُمس عمدًا (قواعد الموجة 4-8):** المعرفات الثابتة وأرقام العقود ومفاتيح التخزين (shortCashDeclarations family) ومسارات التقارير التاريخية وكل أسماء ملفات الواجهة (CSS ‏micro-g5-*؛ المسار /finance/g5/declaration؛ بادئة الحتمية g5-ui:)؛ عرض g5Plurals (مستورد من 7 ملفات UI)؛ shortCashDeclarations يبقى **سجلًا مخزّنًا** بملكية الوحدة (قاعدة 7 — موثق في السجل).
+- **الفحوص:** typecheck=0؛ prototype:check=0؛ lint=0 (35 تحذيرًا — بلا زيادة)؛ جذري 538/538 (+1 اختبار مساواة السطحين)؛ تطبيقي 2159/2159؛ دورات التشغيل 323 ملفًا/0 دورات؛ touchpoints PASS؛ **ميزانية الحزمة PASS: 649,862/650,000 خامًا (بفارق 138 بايت!) و154,768/155,000 مضغوطًا** — القياس إلزامي هنا لأن الاستيرادات تغيرت (D-034)؛ الفارق الضيق مسجل WATCH.
+- **حد الاستعادة:** revert التزام الموجة (يعيد المسارات والاستيرادات؛ لا أثر بيانات — المفاتيح والعائلات المخزنة لم تتغير).
+- **التسليم التالي:** Wave 4B — عنقود Owner Money طيارًا (ownerEntitlementService + withdrawalWalletGuard) بنقل ميكانيكي وبراميل توافق.
+
+---
+
+## Entry 7 — Agent 4 (Wave 4B pilot: Owner Money cluster home)
+
+- **التاريخ:** 2026-10-03
+- **Base SHA:** `62b06b4` (فرع البرنامج بعد Wave 4A؛ بانتظار دمج PR #302 — تنفذ هذه الشريحة فوقه)
+- **المنفذ (الطيار المعتمد — نقل ميكانيكي):** عنقود «مال المالك» إلى بيته الأساس `application/owner-money/`: `ownerEntitlementService.ts` + `withdrawalWalletGuard.ts` + اختباراتهما الثلاثة المباشرة (ownerEntitlementService.test، ownerCrossModelDuplicates.test، withdrawalWalletGuard.test — انتقلت مع المسؤولية). وحدتا توافق موثقتان في `application/finance/` تبقيان محددات الواجهة المجمدة تحل (pages/components + اختبارات dom بلا أي تعديل). حُدّث المستوردون غير-UI إلى المسار الأساس (جذر التركيب، اختبار exe017 الحارس، 3 اختبارات مالية، 3 اختبارات نقل، projectFinancialService). **حارس exe017 حدّث قائمة السماح ومسار رسالته إلى البيت الجديد — الدلالة نفسها (الكاتب القانوني الوحيد) بلا أي تخفيف.** عقد 40 صُحح صف الملكية بمذكرة مؤرخة (الرقم والدلالة كما هما).
+- **قواعد الموجة المحفوظة:** لا معادلة/تقريب/تصنيف/حالة نتيجة نُقلت (نقل ملفات فقط)؛ projectFinancialService يبقى القارئ الأساسي في بيته المالي (عقد 40)؛ التشخيص لم يخترع قواعد؛ الاختبارات السلوكية انتقلت مع المسؤولية.
+- **تعجيلات العناقيد الأخرى (أسباب موثقة):** Integrity & Diagnostics — عقد 40 يحرس إقامة integrityCheckService في `application/finance/` (حارس إقامة + «بيت المالية»)؛ Recurring Planning — عقد 40 + حارس exe017 يثبتان إقامة recurringWorkService في المالية؛ Financial Read Models — عقد 40 يثبت projectFinancialService قارئًا كنونيًا في المالية وARCHITECTURE يصف نواة قراءة واحدة؛ Financial Records + Budgets & Planning — قابلة للنقل لكن كل عنقود شريحة مراجعة مستقلة (تُنفذ في موجات متابعة بنفس النمط الموثق هنا).
+- **الفحوص:** جذري 538/538؛ تطبيقي 2159/2159 (289 ملفًا)؛ typecheck=0؛ prototype:check=0؛ lint=0؛ دورات 325/0؛ ميزانية الحزمة PASS (154,768/155,000 مضغوطًا).
+- **ملاحظة تشغيل:** بناء `dist/` المحلي أثار اختبار سياسة الصور مؤقتًا (72 صورة) — أثر بيئة محلي لا كود؛ حُذف البناء المحلي وعاد الجناح أخضر (CI يبني بعد الاختبارات فلا يتأثر).
+- **حد الاستعادة:** revert الالتزام — لا أثر بيانات.
+- **التسليم التالي:** Wave 4C (استخراج قدرة طيار من منفذ التخزين).

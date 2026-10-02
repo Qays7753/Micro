@@ -1,3 +1,14 @@
-export * from "./policies.js";
-export * from "./types.js";
-export { calculateTargetOperatingResult, composeOperatingBreakEven } from "./operatingBreakEven.js";
+/**
+ * برميل توافق (Wave 4A — 2026-10-03): الاسم الأساس الحالي للمفهوم هو
+ * `financial-analysis` في `src/domain/financial-analysis/` (قرار المالك —
+ * تعليمة برنامج المعالجة 2026-10-03).
+ *
+ * هذا الملف يبقي المحدد التاريخي `@micro-domain/g5/index.js` يحل كما هو
+ * لمستهلكي الواجهة المجمدة (مسار UI مغلق حتى فتح مساره المستقل)، ويُزال
+ * بعد ترحيل استيرادات الواجهة في موجة UI لاحقة بقرار مالك.
+ *
+ * لا يضيف ولا يخفي أي رمز: إعادة تصدير حرفية للسطح العام نفسه — يحرسها
+ * اختبار السطح العام (tests/domain/public-surface.test.ts) بمطابقة
+ * السطحين على مساواة المفاتيح.
+ */
+export * from "../financial-analysis/index.js";

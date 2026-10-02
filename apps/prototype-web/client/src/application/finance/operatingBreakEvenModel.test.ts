@@ -10,9 +10,9 @@
  * = ceil(1000 × 5000 ÷ 4000) = 1250. */
 import { describe, expect, it } from "vitest";
 import { ProjectFinancialService, type CoverageIndicator } from "./projectFinancialService";
-import { G5Service } from "@/application/g5/g5Service";
+import { FinancialAnalysisService } from "@/application/financial-analysis/financialAnalysisService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
-import type { OperatingBreakEvenResult } from "@micro-domain/g5/index.js";
+import type { OperatingBreakEvenResult } from "@micro-domain/financial-analysis/index.js";
 import { createInventoryMovement, createMaterial } from "@micro-domain/inventory-material/index.js";
 import {
   calculateCostSnapshot,
@@ -96,7 +96,7 @@ describe("REM-007 — التعادل التشغيلي عبر طبقة التطب
   it("the canonical operating reading reaches both live consumers with the same aggregates", async () => {
     const store = await storeWithFixedCost();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     const insights = await finance.readFinancialInsights("2026-08-01", "2026-08-31");
     const decision = await g5.readDecision("2026-08-01", "2026-08-31");
     if (!insights.ok || !decision.ok) throw new Error("readers failed");
@@ -125,7 +125,10 @@ describe("REM-007 — التعادل التشغيلي عبر طبقة التطب
   it("financing and liquidity records do not alter the operating break-even reading", async () => {
     const store = await storeWithFixedCost();
     const finance = new ProjectFinancialService(store, now);
-    const before = await new G5Service(store, finance, now).readDecision("2026-08-01", "2026-08-31");
+    const before = await new FinancialAnalysisService(store, finance, now).readDecision(
+      "2026-08-01",
+      "2026-08-31",
+    );
     if (!before.ok) throw new Error("before reading failed");
     /* عناصر التمويل والسيولة — لا أحد منها مصروف تشغيلي مصنف: رأس مال
      * المالك، سحب نقدي، قبض أصل قرض، أمانة محتجزة، وتصريح قبض متوقع. */
@@ -180,7 +183,10 @@ describe("REM-007 — التعادل التشغيلي عبر طبقة التطب
       reversalOfId: null,
       createdAt: now(),
     });
-    const after = await new G5Service(store, finance, now).readDecision("2026-08-01", "2026-08-31");
+    const after = await new FinancialAnalysisService(store, finance, now).readDecision(
+      "2026-08-01",
+      "2026-08-31",
+    );
     if (!after.ok) throw new Error("after reading failed");
     expect(after.value.period.operatingResultMinor).toBe(before.value.period.operatingResultMinor);
     expect(after.value.period.breakEvenState).toBe(before.value.period.breakEvenState);
@@ -236,7 +242,10 @@ describe("REM-007 — التعادل التشغيلي عبر طبقة التطب
         },
         idempotencyKey: `iso-order-${store === paid ? "paid" : "debt"}`,
       });
-      const decision = await new G5Service(store, finance, now).readDecision("2026-08-01", "2026-08-31");
+      const decision = await new FinancialAnalysisService(store, finance, now).readDecision(
+        "2026-08-01",
+        "2026-08-31",
+      );
       if (!decision.ok) throw new Error("reading failed");
       readings.push(decision.value.period);
     }
@@ -248,7 +257,7 @@ describe("REM-007 — التعادل التشغيلي عبر طبقة التطب
   it("the service passes the target operating result through to the same canonical reader", async () => {
     const store = await storeWithFixedCost();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     /* أوراكل يدوي: هامش 4000 على وحدتين (2000/وحدة)؛ الثابتة 1000، الهدف
      * 3000 → وحدات = ceil(4000 × 2000 ÷ 4000000) = 2؛ مبيعات الهدف =
      * ceil(4000 × 5000 ÷ 4000) = 5000. عند وحدتين: 2 × 2000 − 1000 = 3000 ✓. */
@@ -307,7 +316,7 @@ async function storeWithFixedExpense(fixedMinor: number) {
 
 async function bothReadings(store: MemoryLocalStore) {
   const finance = new ProjectFinancialService(store, now);
-  const g5 = new G5Service(store, finance, now);
+  const g5 = new FinancialAnalysisService(store, finance, now);
   const insights = await finance.readFinancialInsights("2026-08-01", "2026-08-31");
   const decision = await g5.readDecision("2026-08-01", "2026-08-31");
   if (!insights.ok || !decision.ok) throw new Error("readers failed");
@@ -534,7 +543,7 @@ describe("REM-007 — تصحيح تكافؤ المستهلكين: القراءة
   it("no target surface in FinancialInsights: no third argument, no declared field, no carried reading", async () => {
     const store = await storeWithFixedExpense(1000);
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     /* G5 مع هدف صريح: قراءة الهدف موجودة (وحدات 2). */
     const targeted = await g5.readDecision("2026-08-01", "2026-08-31", 3000);
     if (!targeted.ok) throw new Error("targeted failed");

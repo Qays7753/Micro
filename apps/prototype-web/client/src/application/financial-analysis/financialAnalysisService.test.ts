@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { G5Service } from "./g5Service";
+import { FinancialAnalysisService } from "./financialAnalysisService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
@@ -64,7 +64,7 @@ describe("G5 Application service", () => {
   it("maps final orders and fixed expenses into a break-even reading and uses a dated collection declaration", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     const stored = deliveredOrder("g5-order");
     stored.order = registerDebt(stored.order, "g5-order-debt", "2026-08-06T09:00:00.000Z");
     await store.saveOrder(stored);
@@ -117,7 +117,7 @@ describe("G5 Application service", () => {
   it("keeps declarations idempotent and reverses without mutating the original or financial records", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     const stored = deliveredOrder("g5-reversal-order");
     stored.order = registerDebt(stored.order, "g5-reversal-debt", "2026-08-06T09:00:00.000Z");
     await store.saveOrder(stored);
@@ -177,7 +177,7 @@ describe("G5 Application service", () => {
   it("rejects active linked collection declarations that exceed one order receivable", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     const stored = deliveredOrder("g5-over-allocation-order", 5000);
     stored.order = registerDebt(stored.order, "g5-over-debt", "2026-08-06T09:00:00.000Z");
     await store.saveOrder(stored);
@@ -215,7 +215,7 @@ describe("G5 Application service", () => {
   it("includes a supplier due date as a recorded short commitment and leaves the purchase outside contribution cost", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     await store.saveSupplierPurchase(
       createSupplierPurchase({
         id: "g5-purchase",
@@ -242,7 +242,7 @@ describe("G5 Application service", () => {
   it("normalizes compatible catalog units through an exact G4-A conversion before G5 aggregation", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     const piece = createMeasurementUnit({
       id: "unit-piece",
       nameAr: "قطعة",
@@ -324,7 +324,7 @@ describe("G5 Application service", () => {
   it("offers only outstanding linkable sources and makes reversal retry idempotent", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     const stored = deliveredOrder("g5-link-options");
     stored.order = registerDebt(stored.order, "g5-link-debt", "2026-08-06T09:00:00.000Z");
     await store.saveOrder(stored);
@@ -381,7 +381,7 @@ describe("G5 payable link options after a settlement reversal (A-01)", () => {
       occurredOn: "2026-08-03",
       idempotencyKey: "a01-g5-reverse",
     });
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     const options = await g5.listLinkOptions();
     expect(options).toMatchObject({
       ok: true,
@@ -416,7 +416,7 @@ describe("G5 expense readings after reversals (C-01)", () => {
   }
   it("drops a fixed expense reversed within the same period, agreeing with the G3 netted reading", async () => {
     const { store, finance } = await storeWithReversedFixedExpense("2026-08-05", "2026-08-06");
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     const decision = await g5.readDecision("2026-08-01", "2026-08-31");
     const period = await finance.readRecordedPeriodResult("2026-08-01", "2026-08-31");
     expect(decision).toMatchObject({ ok: true, value: { period: { fixedExpenseMinor: 0 } } });
@@ -424,7 +424,7 @@ describe("G5 expense readings after reversals (C-01)", () => {
   });
   it("keeps the expense in the window where it was recorded when the reversal lands in a later window", async () => {
     const { store, finance } = await storeWithReversedFixedExpense("2026-08-05", "2026-09-02");
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     const decision = await g5.readDecision("2026-08-01", "2026-08-31");
     const period = await finance.readRecordedPeriodResult("2026-08-01", "2026-08-31");
     expect(decision).toMatchObject({ ok: true, value: { period: { fixedExpenseMinor: 1000 } } });
@@ -463,7 +463,7 @@ describe("G5 expense readings after reversals (C-01)", () => {
       occurredOn: "2026-08-06",
       idempotencyKey: "c01-unallocated-reverse",
     });
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     const decision = await g5.readDecision("2026-08-01", "2026-08-31");
     expect(decision.ok && decision.value.period.fixedExpenseMinor).toBe(0);
     const gapReasons = decision.ok
@@ -477,7 +477,7 @@ describe("G5 short-cash receivables count only registered debt (A-05)", () => {
   it("excludes a never-agreed draft while including a delivered order whose remainder was registered as debt", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     const draftSnapshot = calculateCostSnapshot("a05-draft-cost", {
       currency: "JOD",
       materialItems: [],
@@ -524,7 +524,7 @@ describe("G5 short-cash receivables count only registered debt (A-05)", () => {
   it("agrees with the financial pulse on what a registered debt is", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     const pulseService = new FinancialPulseService(store);
     const draftSnapshot = calculateCostSnapshot("a05-agree-cost", {
       currency: "JOD",

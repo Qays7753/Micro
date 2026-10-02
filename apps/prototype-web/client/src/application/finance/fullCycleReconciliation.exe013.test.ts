@@ -21,7 +21,7 @@ import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchas
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { StatementService } from "@/application/finance/statementService";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
-import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
+import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
 import { LoanService } from "@/application/loans/loanService";
 import { AssetService } from "@/application/assets/assetService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";

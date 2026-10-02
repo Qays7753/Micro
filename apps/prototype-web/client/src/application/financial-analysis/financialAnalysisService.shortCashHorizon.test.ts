@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { G5Service } from "./g5Service";
+import { FinancialAnalysisService } from "./financialAnalysisService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
@@ -16,11 +16,11 @@ async function snapshot(store: MemoryLocalStore) {
   return JSON.stringify(read.value);
 }
 
-describe("G5Service.readShortCashHorizon (FIN-005 — WS-175)", () => {
+describe("FinancialAnalysisService.readShortCashHorizon (FIN-005 — WS-175)", () => {
   it("anchors the window on the injected clock's Amman local today and keeps the formula unchanged", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     await finance.record({
       type: "operating_expense_cash",
       amountMinor: 1000,
@@ -62,7 +62,7 @@ describe("G5Service.readShortCashHorizon (FIN-005 — WS-175)", () => {
   it("includes dated balances exactly on both horizon edges and excludes them one day outside", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     /* ثلاثة التزامات مؤرخة: على بداية الأفق، على نهاية أفق ٣٠، وخارجها بيوم واحد
      * (داخل أفق ٩٠ وحده — الفروق بين الأفقال ظاهرة لا مكتومة). */
     for (const [id, dueOn] of [
@@ -119,7 +119,7 @@ describe("G5Service.readShortCashHorizon (FIN-005 — WS-175)", () => {
   it("keeps undated material balances visibly incomplete instead of inventing a forecast", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     await store.saveSupplierPurchase(
       createSupplierPurchase({
         id: "undated-purchase",
@@ -149,7 +149,7 @@ describe("G5Service.readShortCashHorizon (FIN-005 — WS-175)", () => {
   it("never mutates cash, debt, events, declarations, or storage while reading every horizon", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     await finance.record({
       type: "operating_expense_cash",
       amountMinor: 1000,
@@ -182,7 +182,7 @@ describe("G5Service.readShortCashHorizon (FIN-005 — WS-175)", () => {
   it("shows a negative projected cash honestly without blocking or hiding it", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
-    const g5 = new G5Service(store, finance, now);
+    const g5 = new FinancialAnalysisService(store, finance, now);
     await store.saveSupplierPurchase(
       createSupplierPurchase({
         id: "heavy-commitment",

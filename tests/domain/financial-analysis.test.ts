@@ -6,7 +6,7 @@ import {
   calculateShortCash,
   createShortCashDeclaration,
   createShortCashReversal,
-} from "../../src/domain/g5/index.js";
+} from "../../src/domain/financial-analysis/index.js";
 
 const order = (overrides: Partial<Parameters<typeof calculateDirectMargin>[2][number]> = {}) => ({
   id: "order-1",
