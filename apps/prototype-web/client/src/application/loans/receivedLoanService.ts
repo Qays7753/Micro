@@ -24,6 +24,17 @@ import {
   type FinancialEventType,
 } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { LoanStore } from "@/storage/local/capabilities/loanStore";
+
+/* Wave C (ADR-015 مجموعة 3 — 2026-10-04): النوع الضيق للخدمة — قسم القروض
+ * المستلمة من قدرة القروض (المشتقة من الواجهة التوافقية) زائد قراءة
+ * الأحداث المالية التي تحتاجها الخدمة فعلًا (جرد مستهلك حي: 5 طرق). لا
+ * سلوك يتغير — حقن تركيبي كما هو. */
+type ReceivedLoanServiceStore = Pick<
+  LoanStore,
+  "listReceivedLoans" | "getReceivedLoan" | "commitReceivedLoanRecord" | "commitReceivedLoanCorrection"
+> &
+  Pick<PrototypeLocalStore, "listFinancialEvents">;
 
 export type ReceivedLoanSummaryRow = {
   loan: ReceivedLoanRecord;
@@ -79,7 +90,7 @@ function newId(prefix: string): string {
 
 export class ReceivedLoanService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: ReceivedLoanServiceStore,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 

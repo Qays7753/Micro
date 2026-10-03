@@ -18,6 +18,19 @@ import {
   type RetainedDepositMeaning,
 } from "@micro-domain/craft-order/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import type { LoanStore } from "@/storage/local/capabilities/loanStore";
+import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
+
+/* Wave C (ADR-015 مجموعة 3 — 2026-10-04): النوع الضيق للخدمة — طريقتا تصنيف
+ * العربون من قدرة القروض، زائد قراءتَي الطلب من قدرة دورة حياة الطلب
+ * (المستخرجة في Wave 4C)، زائد قراءة الأحداث المالية لاشتقاق غير المصنّف
+ * (جرد مستهلك حي: 5 طرق). لا سلوك يتغير — حقن تركيبي كما هو. */
+type RetainedDepositServiceStore = Pick<
+  LoanStore,
+  "commitDepositClassification" | "commitDepositClassificationCorrection"
+> &
+  Pick<OrderLifecycleStore, "getOrder" | "listOrders"> &
+  Pick<PrototypeLocalStore, "listFinancialEvents">;
 
 export type RetainedDepositRow = {
   orderId: string;
@@ -58,7 +71,7 @@ function classificationEventId(events: readonly FinancialEvent[], orderId: strin
 
 export class RetainedDepositService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: RetainedDepositServiceStore,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 

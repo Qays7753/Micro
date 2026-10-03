@@ -264,6 +264,8 @@
     "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts": "SPLIT_NOW",
     "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetCapabilityAnchors.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetStore.ts": "NORMAL",
+    "apps/prototype-web/client/src/storage/local/capabilities/loanCapabilityAnchors.ts": "NORMAL",
+    "apps/prototype-web/client/src/storage/local/capabilities/loanStore.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleCapabilityAnchors.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleStore.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/recurringExpenseCapabilityAnchors.ts": "NORMAL",
@@ -373,7 +375,7 @@
     "src/domain/supplier-purchase/types.ts": "NORMAL"
   },
   "generated_at": "2026-10-04",
-  "head": "wave-c-group2-expense-budget-capability (ADR-015 — 2026-10-04): ExpenseBudgetStore port + type anchors added (NORMAL); consumer migrated to the narrow intersection type",
+  "head": "wave-c-group3-loan-capability (ADR-015 — 2026-10-04): LoanStore port (10 methods) + type anchors added (NORMAL); three consumers migrated to narrow Pick sections of the capability",
   "source": "FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md v1.4 (Wave 4E/RC-9) + census completion STR-607 (Wave A, 2026-10-03) — سجل الجرد هو المصدر؛ هذا الملف أساس الحارس فقط",
   "version": 1
 }
