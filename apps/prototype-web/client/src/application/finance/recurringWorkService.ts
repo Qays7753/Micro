@@ -26,7 +26,21 @@ import type { InventoryMovement, WasteContext } from "@micro-domain/inventory-ma
 import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import type { AllocationPolicyStore } from "@/storage/local/capabilities/allocationPolicyStore";
+import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
+
+/* Wave C (ADR-015 مجموعة 4 — 2026-10-04): النوع الضيق للخدمة — قدرة سياسات
+ * التوزيع (قفل exe017 محفوظ: هذه الخدمة المالية الكاتب الوحيد) زائد
+ * القراءات المصرح بها: قراءة الطلبات من قدرة دورة حياة الطلب (4C)
+ * وقراءات الكتالوج والوقت الفعلي والمخزون (جرد مستهلك حي: 9 طرق).
+ * لا سلوك يتغير — حقن تركيبي كما هو. */
+type RecurringWorkServiceStore = AllocationPolicyStore &
+  Pick<OrderLifecycleStore, "listOrders"> &
+  Pick<
+    PrototypeLocalStore,
+    "getCatalogItem" | "listCatalogItems" | "listActualTimeRecords" | "listInventoryMovements"
+  >;
 
 export type RecurringWorkFailure = {
   ok: false;
@@ -176,7 +190,7 @@ const sumSafeIntegers = (values: readonly number[]): number | null => {
 
 export class RecurringWorkService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: RecurringWorkServiceStore,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 

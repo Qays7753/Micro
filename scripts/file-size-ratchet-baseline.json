@@ -262,6 +262,8 @@
     "apps/prototype-web/client/src/pwa/registerSW.virtual.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts": "SPLIT_NOW",
     "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts": "SPLIT_NOW",
+    "apps/prototype-web/client/src/storage/local/capabilities/allocationPolicyCapabilityAnchors.ts": "NORMAL",
+    "apps/prototype-web/client/src/storage/local/capabilities/allocationPolicyStore.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetCapabilityAnchors.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetStore.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/loanCapabilityAnchors.ts": "NORMAL",
@@ -375,7 +377,7 @@
     "src/domain/supplier-purchase/types.ts": "NORMAL"
   },
   "generated_at": "2026-10-04",
-  "head": "wave-c-group3-loan-capability (ADR-015 — 2026-10-04): LoanStore port (10 methods) + type anchors added (NORMAL); three consumers migrated to narrow Pick sections of the capability",
+  "head": "wave-c-group4-allocation-policy-capability (ADR-015 — 2026-10-04): AllocationPolicyStore port (4 methods, exe017 lock preserved) + type anchors added (NORMAL); consumer migrated to the narrow intersection type",
   "source": "FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md v1.4 (Wave 4E/RC-9) + census completion STR-607 (Wave A, 2026-10-03) — سجل الجرد هو المصدر؛ هذا الملف أساس الحارس فقط",
   "version": 1
 }
