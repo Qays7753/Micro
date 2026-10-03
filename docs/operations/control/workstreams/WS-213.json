@@ -1,0 +1,52 @@
+{
+  "id": "WS-213",
+  "title": "مسح فجوات ما بعد الإغلاق A-to-Z للتقرير فقط — برنامج إكمال A-to-Z البنيوي (ARCH-003)",
+  "status": "IN_REVIEW",
+  "items": [
+    "ARCH-003"
+  ],
+  "branch": "docs/post-closure-a2z-gap-scan-20261003",
+  "base_sha": "04895f2643608fce00553040d484db84f80bf5dc",
+  "areas": [
+    "docs/architecture/refactoring",
+    "architecture-governance",
+    "docs"
+  ],
+  "contracts": [],
+  "agent": "Z AI (post-closure A-to-Z gap-scan agent; four read-only specialists in parallel + synthesizer + independent hostile reviewer)",
+  "pr": 309,
+  "started_at": "2026-10-03",
+  "updated_at": "2026-10-03",
+  "next_action": "بوابة المالك: مراجعة قسم §23 وقبول قائمة الموجات الأدنى وقرارات §23.13 (أهمها STR-608 هامش ميزانية CI)؛ لا يُدمج الـPR ولا تبدأ أي موجة قبل قرار المالك المسجل.",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-03",
+      "actor": "ws-213:claim",
+      "reason": "فتح Claim من main المتحقق 04895f2643608fce00553040d484db84f80bf5dc (بعد إغلاق WS-212 VERIFIED) بعد التحقق من صفر PRs مفتوحة وصفر Workstreams نشطة؛ لا انحراف حالة."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-03",
+      "actor": "ws-213:implement",
+      "reason": "تنفيذ المسح القرائي بأربعة اختصاصيين متوازيين (صفر كتابات داخل المستودع من كل منهم — مثبتة) + التوليف + المراجعة المعادية المستقلة الخامسة (HOSTILE_REVIEW_PASS) وتطبيق ملاحظاتها."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-03",
+      "actor": "ws-213:review",
+      "reason": "قسم §23 مكتمل في الملف الأساس (ترقية v1.1) مع سجلات التحكم وViews المولدة رسميًا؛ PR التقرير فقط مفتوح إلى main دون دمج."
+    }
+  ],
+  "migration_baseline": false,
+  "notes": [
+    "حد الاستعادة: إغلاق الـPR دون دمج أو revert التزام الدمج؛ لا حاجة لاستعادة زمن تشغيل لأن صفر ملف تشغيل تغير (وثائق وسجلات تحكم فقط).",
+    "صفر كتابات داخل المستودع أثناء المسح نفسه (اختصاصيون + معادي: فحص شجرة نظيفة بداية ونهاية عند كل منهم)؛ الكتابة الوحيدة على فرع التقرير غير المدمج.",
+    "رمز الوصول لم يُطبع ولم يُلتزم؛ ملف اعتماد chmod-600 خارج المستودع يُحذف في ختام الجلسة.",
+    "تقارير الاختصاصيين الخمسة + المسودة محفوظة خارج المستودع (work/micro/specialists-20261003/) وليست سجلات مستودع دائمة؛ القسم §23 هو الملخص الملكي الوحيد.",
+    "Excel workbook لم يُعد توليده؛ حدث meta بالمولد الرسمي فقط، أسوة بالـPRs #291/#293/#294/#299."
+  ],
+  "evidence": [
+    "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md"
+  ]
+}
