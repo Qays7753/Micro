@@ -7,6 +7,7 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
 import { formatLocalDate, formatMoneyWithUnit, formatQuantityMilli } from "@/application/formatting/formatters";
+import { STORAGE_ERROR } from "@/application/resultCodes";
 
 export type CorrectionHistoryKind =
   | "event_reversal"
@@ -124,7 +125,7 @@ export class CorrectionHistoryService {
    * نطاق: كل التاريخ. الصافي مجموع الآثار الموقعة، وnull إن تعذر أي رقم. */
   async affecting(from?: string, to?: string): Promise<CorrectionDigestResult> {
     const list = await this.list();
-    if (!list.ok) return { ok: false, code: "storage_error", message: list.message };
+    if (!list.ok) return { ok: false, code: STORAGE_ERROR, message: list.message };
     const entries = list.value.filter(entry => {
       if (!entry.occurredOn) return from === undefined && to === undefined;
       if (from !== undefined && entry.occurredOn < from) return false;
@@ -168,7 +169,7 @@ export class CorrectionHistoryService {
       !assetsResult.ok ||
       !ownerMovementsResult.ok
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة سجل التصحيحات المحلي." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل التصحيحات المحلي." };
 
     const events = eventsResult.value;
     const byId = new Map(events.map(event => [event.id, event] as const));

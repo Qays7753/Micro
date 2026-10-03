@@ -6,12 +6,12 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/primitives";
 import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
-import type { ExpenseBudgetService } from "@/application/finance/expenseBudgetService";
+import type { ExpenseBudgetService } from "@/application/budgets";
 import type {
   ExpenseBudgetStatusesReading,
   ExpenseBudgetStatusLine,
   ExpenseBudgetMonthList,
-} from "@/application/finance/expenseBudgetService";
+} from "@/application/budgets";
 import type { BudgetScope, ExpenseBudgetRecord } from "@micro-domain/budget/index.js";
 import { formatMonthLabel } from "@/presentation/formatters";
 import { getPrototypeLocalStore } from "@/app/PrototypeServicesContext";

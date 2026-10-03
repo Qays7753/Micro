@@ -19,6 +19,7 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
+import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type SaleCollectionReversalStatus =
   "full_match" | "sale_cancelled" | "allocation_already_reversed" | "amount_exceeds_collected";
@@ -84,9 +85,9 @@ export class SaleCollectionReversalService {
       this.store.listCashWallets(),
     ]);
     if (!salesResult.ok || !entriesResult.ok || !walletsResult.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة سجلات العكس محليًا." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات العكس محليًا." };
     const sale = salesResult.value.find(candidate => candidate.id === saleId);
-    if (!sale) return { ok: false, code: "not_found", message: "البيع المباشر غير متاح محليًا." };
+    if (!sale) return { ok: false, code: NOT_FOUND, message: "البيع المباشر غير متاح محليًا." };
     const entries = entriesResult.value;
     const reversedEntryIds = new Set(
       entries
@@ -127,9 +128,9 @@ export class SaleCollectionReversalService {
       this.projectFinance.readPosition(),
     ]);
     if (!salesResult.ok || !entriesResult.ok || !walletsResult.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة سجلات العكس محليًا." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات العكس محليًا." };
     const sale = salesResult.value.find(candidate => candidate.id === input.saleId);
-    if (!sale) return { ok: false, code: "not_found", message: "البيع المباشر غير متاح محليًا." };
+    if (!sale) return { ok: false, code: NOT_FOUND, message: "البيع المباشر غير متاح محليًا." };
     if (sale.status === "cancelled")
       return {
         ok: true,
@@ -155,7 +156,7 @@ export class SaleCollectionReversalService {
     )
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "اختر تخصيص تحصيل مرتبطًا بهذا البيع قبل العكس.",
       };
     if (reversedEntryIds.has(matched.id) || matched.cashDeltaMinor <= 0)
@@ -227,15 +228,15 @@ export class SaleCollectionReversalService {
     input: ReverseSaleCollectionInput,
   ): Promise<SaleCollectionReversalResult<SaleCollectionReversalOutcome>> {
     if (!input.reason.trim())
-      return { ok: false, code: "validation_error", message: "أكمل سبب عكس التحصيل قبل الحفظ." };
+      return { ok: false, code: VALIDATION_ERROR, message: "أكمل سبب عكس التحصيل قبل الحفظ." };
     const [salesResult, entriesResult] = await Promise.all([
       this.store.listDirectSales(),
       this.store.listCashContinuityEntries(),
     ]);
     if (!salesResult.ok || !entriesResult.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة سجلات العكس محليًا." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات العكس محليًا." };
     const sale = salesResult.value.find(candidate => candidate.id === input.saleId);
-    if (!sale) return { ok: false, code: "not_found", message: "البيع المباشر غير متاح محليًا." };
+    if (!sale) return { ok: false, code: NOT_FOUND, message: "البيع المباشر غير متاح محليًا." };
 
     const timestamp = this.now();
     const revisionKey = `sale-collect-reverse:${input.operationKey}`;
@@ -249,7 +250,7 @@ export class SaleCollectionReversalService {
       if (!matchingCash)
         return {
           ok: false,
-          code: "storage_error",
+          code: STORAGE_ERROR,
           message: "وجدت عكس تحصيل بلا أثر تخصيص مطابق؛ لم يتغير السجل.",
         };
       return {
@@ -264,13 +265,13 @@ export class SaleCollectionReversalService {
     if (preview.value.status !== "full_match" || !preview.value.allocation)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: preview.value.refusalReason ?? "ما نقدر نعكس هذا التحصيل بأمان.",
       };
 
     const matched = entriesResult.value.find(entry => entry.id === input.allocationEntryId);
     if (!matched)
-      return { ok: false, code: "validation_error", message: "لم نجد أثر التخصيص المطابق للعكس." };
+      return { ok: false, code: VALIDATION_ERROR, message: "لم نجد أثر التخصيص المطابق للعكس." };
     const amountMinor = matched.cashDeltaMinor;
 
     try {
@@ -320,7 +321,7 @@ export class SaleCollectionReversalService {
       if (!committed.ok)
         return {
           ok: false,
-          code: "storage_error",
+          code: STORAGE_ERROR,
           message: committed.message ?? "تعذر حفظ عكس التحصيل ذريًا؛ بقي السجل دون تغيير.",
         };
       return {
@@ -335,7 +336,7 @@ export class SaleCollectionReversalService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "تعذر عكس تحصيل البيع المباشر.",
       };
     }

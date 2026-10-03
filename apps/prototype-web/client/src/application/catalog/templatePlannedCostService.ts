@@ -24,6 +24,7 @@ import {
 import type { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import type { CatalogTemplate, MeasurementUnit } from "@micro-domain/catalog/index.js";
 import { roundHalfUp } from "@micro-domain/shared/index.js";
+import { NOT_FOUND, STORAGE_ERROR } from "@/application/resultCodes";
 
 export type TemplateComponentPriceState = "priced" | "free_component" | "no_linked_price" | "unit_mismatch";
 
@@ -86,7 +87,7 @@ export class TemplatePlannedCostService {
       this.inventory.movements(),
     ]);
     if (!templatesResult.ok || !unitsResult.ok || !overviewResult.ok || !movementsResult.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة القوالب والوحدات والمخزون." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة القوالب والوحدات والمخزون." };
     const suggestions = materialSuggestionsFrom(overviewResult.value, movementsResult.value);
     const unitsById = new Map<string, MeasurementUnit>(unitsResult.value.map(unit => [unit.id, unit]));
     return {
@@ -101,7 +102,7 @@ export class TemplatePlannedCostService {
     const all = await this.readAll();
     if (!all.ok) return all;
     const found = all.value.find(entry => entry.templateId === templateId);
-    if (!found) return { ok: false, code: "not_found", message: "القالب غير موجود محليًا." };
+    if (!found) return { ok: false, code: NOT_FOUND, message: "القالب غير موجود محليًا." };
     return { ok: true, value: found };
   }
 }

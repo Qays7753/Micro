@@ -1,0 +1,18 @@
+/* باب عام حقيقي (Wave B — STR-615/ADR عبر الخطة §7-J، 2026-10-03): هذا
+ * البرميل يصدّر حصرًا الرموز التي تستهلكها الواجهة فعلًا (قياس رسم
+ * الاستيراد الحي) من بيوتها الكنسية — لا برميل عام ولا رمز بلا مستهلك.
+ * الاستيراد الداخلي للتطبيق من ملفات الوحدة مباشر كما هو؛ هذا الباب
+ * لحدود الوحدة أمام الواجهة (عزل التغيير: إعادة التنظيم الداخلية لا
+ * تكسر مستوردات الواجهة). تحديث السطح = تعديل مقصود في نفس الـPR. */
+
+export {
+  InventoryActivationState, InventoryMaterialOverview, InventoryMaterialService, InventoryOverview, InventoryReferences, OrderActualMaterialComparison, PeriodWasteReading, PurchaseReceiptStatus,
+} from "./inventoryMaterialService";
+
+export {
+  InventoryMovementRouteType, resolveInventoryMovementType,
+} from "./inventoryMovementRoute";
+
+export {
+  MaterialSuggestion, readMaterialSuggestions,
+} from "./materialSuggestions";

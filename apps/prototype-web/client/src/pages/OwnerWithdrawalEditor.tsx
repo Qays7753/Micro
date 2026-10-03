@@ -18,7 +18,7 @@ import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentat
 import type {
   CrossModelOwnerDuplicate,
   OwnerEntitlementOverview,
-} from "@/application/finance/ownerEntitlementService";
+} from "@/application/owner-money";
 
 import { Button } from "@/components/primitives";
 /* مفتاح القرار (X-05): وجود سياسة حق مالك فعالة يوجه السحب إلى مسار الدفتر

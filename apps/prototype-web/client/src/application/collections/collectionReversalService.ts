@@ -18,6 +18,7 @@ import { reverseOrderCollection } from "@micro-domain/craft-order/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
+import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type CollectionAllocationMatchStatus =
   | "full_match"
@@ -92,9 +93,9 @@ export class CollectionReversalService {
       this.projectFinance.readPosition(),
     ]);
     if (!orderResult.ok || !entriesResult.ok || !walletsResult.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة سجلات التراجع محليًا." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات التراجع محليًا." };
     const stored = orderResult.value;
-    if (!stored) return { ok: false, code: "not_found", message: "الطلب غير متاح محليًا." };
+    if (!stored) return { ok: false, code: NOT_FOUND, message: "الطلب غير متاح محليًا." };
     const order = stored.order;
     /* F-051 (W4-F): البحث بالهوية والنوع معًا — حدثٌ آخر بنفس الهوية لا يحجب
      * القبضة المقصودة؛ الاستيراد يرفض الهوية المكررة أصلًا وهذا تعميق دفاعي. */
@@ -102,7 +103,7 @@ export class CollectionReversalService {
       event => event.id === input.collectionEventId && event.type === "collection_recorded",
     );
     if (!source)
-      return { ok: false, code: "validation_error", message: "اختر قبضة مسجلة على هذا الطلب قبل التراجع." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر قبضة مسجلة على هذا الطلب قبل التراجع." };
 
     const entries = entriesResult.value;
     const reversedEntryIds = new Set(
@@ -248,7 +249,7 @@ export class CollectionReversalService {
     input: CompoundReverseCollectionInput,
   ): Promise<CollectionReversalResult<CollectionReversalOutcome>> {
     if (!input.reason.trim())
-      return { ok: false, code: "validation_error", message: "أكمل سبب التراجع قبل الحفظ." };
+      return { ok: false, code: VALIDATION_ERROR, message: "أكمل سبب التراجع قبل الحفظ." };
 
     const [orderResult, entriesResult, walletsResult] = await Promise.all([
       this.store.getOrder(input.orderId),
@@ -256,9 +257,9 @@ export class CollectionReversalService {
       this.store.listCashWallets(),
     ]);
     if (!orderResult.ok || !entriesResult.ok || !walletsResult.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة سجلات التراجع محليًا." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات التراجع محليًا." };
     const stored = orderResult.value;
-    if (!stored) return { ok: false, code: "not_found", message: "الطلب غير متاح محليًا." };
+    if (!stored) return { ok: false, code: NOT_FOUND, message: "الطلب غير متاح محليًا." };
 
     const timestamp = this.now();
     const reversalEventKey = `${input.orderId}:reverse-collection:${input.operationKey}`;
@@ -275,7 +276,7 @@ export class CollectionReversalService {
       if (input.alsoReverseAllocation && !matchingCash)
         return {
           ok: false,
-          code: "storage_error",
+          code: STORAGE_ERROR,
           message: "وجدت تراجع قبضة بلا أثر تخصيص مطابق؛ لم يتغير السجل.",
         };
       return {
@@ -298,13 +299,13 @@ export class CollectionReversalService {
       if (preview.value.status !== "full_match")
         return {
           ok: false,
-          code: "validation_error",
+          code: VALIDATION_ERROR,
           message: preview.value.refusalReason ?? "ما نقدر نتراجع عن التخصيص المطابق لهذي القبضة.",
         };
       if (input.amountMinor !== preview.value.collectionAmountMinor)
         return {
           ok: false,
-          code: "validation_error",
+          code: VALIDATION_ERROR,
           message: "التراجع المزدوج بيدعم مبلغ القبضة كاملًا بس — عدّل المبلغ أو تراجع عن القبضة لحالها.",
         };
     }
@@ -324,7 +325,7 @@ export class CollectionReversalService {
       if (input.alsoReverseAllocation && preview.value.allocation) {
         const matched = entriesResult.value.find(entry => entry.id === preview.value.allocation!.entryId);
         if (!matched)
-          return { ok: false, code: "validation_error", message: "لم نجد أثر التخصيص المطابق للتراجع." };
+          return { ok: false, code: VALIDATION_ERROR, message: "لم نجد أثر التخصيص المطابق للتراجع." };
         allocationReversal = createCashContinuityEntry({
           id: id("allocation-reversal"),
           walletId: matched.walletId,
@@ -362,7 +363,7 @@ export class CollectionReversalService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "تعذر التراجع عن القبضة.",
       };
     }

@@ -1,5 +1,6 @@
 /** Application boundary for local setup. It validates profile inputs before any LocalStore write. */
 import { localProfileId, type ActivityProfile, type PrototypeLocalStore } from "@/storage/local/types";
+import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type ProfileSaveResult =
   | { ok: true; profile: ActivityProfile }
@@ -18,12 +19,12 @@ export class ProfileService {
     if (!normalizedName)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "اسم النشاط: اكتب اسم النشاط أو اسمك أولًا، ثم أعد المحاولة.",
       };
     const current = await this.store.getProfile();
     if (!current.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة التأسيس المحلي. حاول مرة أخرى." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة التأسيس المحلي. حاول مرة أخرى." };
     const timestamp = this.now();
     const profile: ActivityProfile = {
       id: localProfileId,
@@ -38,7 +39,7 @@ export class ProfileService {
       ? { ok: true, profile: saved.value }
       : {
           ok: false,
-          code: "storage_error",
+          code: STORAGE_ERROR,
           message: "لم يتم حفظ التأسيس على هذا الجهاز. تحقق من مساحة التخزين ثم أعد المحاولة.",
         };
   }

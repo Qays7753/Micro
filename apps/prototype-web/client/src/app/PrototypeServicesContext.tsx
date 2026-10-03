@@ -28,7 +28,7 @@ import { PreferenceService } from "@/application/preferences/preferenceService";
 import { ProfileService } from "@/application/profile/profileService";
 import { OwnerProfileService } from "@/application/owner/ownerProfileService";
 import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
-import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
+import { ProjectFinancialService } from "@/application/finance";
 import { CorrectionHistoryService } from "@/application/financial-records/correctionHistoryService";
 import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
 import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
@@ -37,10 +37,10 @@ import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { ScheduleRecurrenceService } from "@/application/scheduling/recurrenceService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
-import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
+import { InventoryMaterialService } from "@/application/inventory";
 import { CatalogService } from "@/application/catalog/catalogService";
 import { ActualTimeService } from "@/application/time/actualTimeService";
-import { RecurringWorkService } from "@/application/finance/recurringWorkService";
+import { RecurringWorkService } from "@/application/finance";
 import { FinancialAnalysisService } from "@/application/financial-analysis/financialAnalysisService";
 import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { CostEstimateService } from "@/application/estimates/costEstimateService";
@@ -51,24 +51,24 @@ import { CollectionService } from "@/application/collections/collectionService";
 import { CollectionReversalService } from "@/application/collections/collectionReversalService";
 import { SaleCollectionReversalService } from "@/application/collections/saleCollectionReversalService";
 import { WalletLedgerService } from "@/application/cash/walletLedgerService";
-import { StatementService } from "@/application/finance/statementService";
+import { StatementService } from "@/application/finance";
 /* FIN-003/007 (WS-173 — Wave 1): مقارنة الفترتين وجسر النتيجة إلى الكاش — خدمات
  * قراءة فقط فوق المخزن نفسه (بساعة قابلة للحقن). نماذج القراءة تُعاد تصديرها
  * من جذر التطبيق هذا فتستوردها الأسطح من هنا لا من ملف الخدمة مباشرة:
  * محتوى الطبقتين كله داخل تفاصيل مطوية فلا يدخل إغلاق كثافة النص لأي شاشة. */
-import { PeriodComparisonService } from "@/application/finance/periodComparisonService";
-import { ProfitToCashBridgeService } from "@/application/finance/profitToCashBridgeService";
-export type { PeriodComparisonReading } from "@/application/finance/periodComparisonService";
-export type { ProfitToCashBridgeReading } from "@/application/finance/profitToCashBridgeService";
+import { PeriodComparisonService } from "@/application/finance";
+import { ProfitToCashBridgeService } from "@/application/finance";
+export type { PeriodComparisonReading } from "@/application/finance";
+export type { ProfitToCashBridgeReading } from "@/application/finance";
 /* المجموعة ١ (فحص سلامة مالي): خدمة قراءة فقط فوق القارئ الكنسي والكشف والمحافظ. */
-import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
+import { IntegrityCheckService } from "@/application/finance";
 /* Stage 2 — OPS-001 (tracker): مواعيد الاستحقاق والتقادم الأساسي — قراءة فقط. */
-import { DueDatesService } from "@/application/finance/dueDatesService";
+import { DueDatesService } from "@/application/finance";
 /* Stage 2 — OPS-005/006 (tracker): القارئ الموحد للقادم والمتأخر — قراءة فقط. */
-import { UpcomingService } from "@/application/finance/upcomingService";
+import { UpcomingService } from "@/application/finance";
 /* OPS-003 (عقد ٤١): النوع فقط هنا — الخدمة تُحمّل ديناميكيًا بعد الإقلاع
  * (سابقة EXE-014/D-034) فلا تدخل كومة الإقلاع ولا تضغط ميزانية الحزمة. */
-import type { RecurringExpenseService } from "@/application/finance/recurringExpenseService";
+import type { RecurringExpenseService } from "@/application/finance";
 /* Stage 2 — OPS-004 (tracker): قراءة التكلفة/الكمية المخططتين للقوالب — قراءة فقط. */
 import { TemplatePlannedCostService } from "@/application/catalog/templatePlannedCostService";
 import { createBrowserLocalStore } from "@/storage/local/createBrowserLocalStore";
@@ -79,7 +79,7 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
  * فتُوفَّر عند اكتمال التحميل الخامل مثل transfers/recurringExpenses؛
  * خدمة القروض المستلمة لا تُسجّل هنا أبدًا — تُحمّل من صفحاتها وحدها. */
 import { AssetService } from "@/application/assets/assetService";
-import type { LoanService } from "@/application/loans/loanService";
+import { LoanService } from "@/application/loans/loanService";
 import { RetainedDepositService } from "@/application/financial-records/retainedDepositService";
 /* المجموعة ٥ (عقد ٣٠): القارئ الموحّد للنشاط. */
 import { ActivityService } from "@/application/activity/activityService";

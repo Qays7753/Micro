@@ -18,7 +18,7 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { ReceivedLoanLenderType } from "@micro-domain/received-loan/index.js";
-import type { ReceivedLoanService } from "@/application/loans/receivedLoanService";
+import { ReceivedLoanService } from "@/application/loans/receivedLoanService";
 
 import { Button } from "@/components/primitives";
 type ServiceLoad =

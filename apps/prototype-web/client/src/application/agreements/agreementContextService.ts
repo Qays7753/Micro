@@ -5,6 +5,7 @@
 import type { AgreementSource, FollowUpEvent, StoredCraftOrder } from "@/storage/local/types";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { isValidLocalDate, localDateInAmman } from "./followUpDate";
+import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type LegacyAgreementSource = "conversation" | "call" | "in_person";
 export type AgreementSourceValue = AgreementSource | LegacyAgreementSource;
@@ -48,7 +49,7 @@ const asView = (stored: StoredCraftOrder): AgreementContextView => ({
 });
 const failure = (message: string): Extract<AgreementContextResult<never>, { ok: false }> => ({
   ok: false,
-  code: "validation_error",
+  code: VALIDATION_ERROR,
   message,
 });
 
@@ -87,15 +88,15 @@ export class AgreementContextService {
     const result = await this.store.getOrder(id);
     return result.ok
       ? { ok: true, value: result.value ? asView(result.value) : null }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة سياق الاتفاق المحلي." };
+      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سياق الاتفاق المحلي." };
   }
 
   async save(id: string, input: AgreementContextInput): Promise<AgreementContextResult<StoredCraftOrder>> {
     const current = await this.store.getOrder(id);
     if (!current.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة الطلب المحلي قبل حفظ سياق الاتفاق." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة الطلب المحلي قبل حفظ سياق الاتفاق." };
     if (!current.value)
-      return { ok: false, code: "not_found", message: "الطلب غير متاح محليًا؛ لم يتغير أي سياق." };
+      return { ok: false, code: NOT_FOUND, message: "الطلب غير متاح محليًا؛ لم يتغير أي سياق." };
     const stored = current.value;
     const previousDate = stored.followUpDate ?? null;
     const next: AgreementContextInput = {
@@ -148,14 +149,14 @@ export class AgreementContextService {
     if (saved.code === "storage_stale") return { ok: false, code: "storage_stale", message: saved.message };
     return {
       ok: false,
-      code: "storage_error",
+      code: STORAGE_ERROR,
       message: "تعذر حفظ سياق الاتفاق محليًا — بياناتك كما هي؛ أعد المحاولة.",
     };
   }
 
   async dueFollowUps(): Promise<AgreementContextResult<FollowUpRead>> {
     const result = await this.store.listOrders();
-    if (!result.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة المتابعات المحلية." };
+    if (!result.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المتابعات المحلية." };
     const today = localDateInAmman(this.now());
     const withDate = result.value.filter(
       stored => Boolean(stored.followUpDate) && stored.order.status !== "cancelled",

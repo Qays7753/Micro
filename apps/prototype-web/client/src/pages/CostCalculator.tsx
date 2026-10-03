@@ -20,7 +20,7 @@ import type { CostEstimate } from "@/storage/local/types";
 import {
   readMaterialSuggestions,
   type MaterialSuggestion,
-} from "@/application/inventory/materialSuggestions";
+} from "@/application/inventory";
 
 import { Button } from "@/components/primitives";
 type EditableMaterial = {

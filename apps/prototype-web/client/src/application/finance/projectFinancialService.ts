@@ -40,6 +40,7 @@ import { expenseInputs, orderInputs } from "@/application/financial-analysis/fin
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
+import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type ProjectFinancialPosition = {
   recordedCashMinor: number;
@@ -468,7 +469,7 @@ export class ProjectFinancialService {
       !ownerMovementsResult.ok ||
       !directSalesResult.ok
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة السجلات المالية المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة السجلات المالية المحلية." };
     const orderPulse = summarizeLocalCraftOrders(ordersResult.value);
     const project = summarizeFinancialEvents(eventsResult.value);
     /* §٥-١٣ (المرحلة أ): تحصيل البيع المباشر كاش كأي تحصيل — يدخل الكاش غير الموزع
@@ -606,12 +607,12 @@ export class ProjectFinancialService {
     const result = await this.store.listFinancialEvents();
     return result.ok
       ? { ok: true, value: result.value }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
+      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل الأحداث المالية." };
   }
 
   async listSettleablePayables(): Promise<FinanceResult<readonly SettleablePayable[]>> {
     const events = await this.store.listFinancialEvents();
-    if (!events.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
+    if (!events.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل الأحداث المالية." };
     const reversedIds = reversedEventIds(events.value);
     return {
       ok: true,
@@ -654,7 +655,7 @@ export class ProjectFinancialService {
       !materialsResult.ok ||
       !directSalesResult.ok
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة نتيجة الفترة المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة نتيجة الفترة المحلية." };
     /* القرار ٩/١٠: تاريخ بدء إدارة المخزون — المعلن صراحة أو أقدم دليل للموجود القائم. */
     const inventoryManagedFrom =
       activationResult.value?.activatedOn ??
@@ -952,7 +953,7 @@ export class ProjectFinancialService {
       !unitsResult.ok ||
       !conversionsResult.ok
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة مؤشرات الفترة المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة مؤشرات الفترة المحلية." };
     const inPeriod = (date: string) => date >= from && date <= to;
     /* FT-01 (المجموعة ٦): آخر تسليم ساري — انظر أعلاه. */
     const delivered = ordersResult.value
@@ -1094,18 +1095,18 @@ export class ProjectFinancialService {
   async reverse(input: FinancialReversalInput): Promise<FinanceResult<FinancialEvent>> {
     const existing = await this.store.listFinancialEvents();
     if (!existing.ok)
-      return { ok: false, code: "storage_error", message: "تعذر التحقق من سجل الأحداث المالية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر التحقق من سجل الأحداث المالية." };
     const sourceEventId = input.sourceEventId.trim();
     const idempotencyKey = input.idempotencyKey.trim();
     const reason = input.reason.trim();
     if (!sourceEventId)
-      return { ok: false, code: "validation_error", message: "اختر الحدث الأصلي قبل تصحيحه." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر الحدث الأصلي قبل تصحيحه." };
     if (!reason)
-      return { ok: false, code: "validation_error", message: "اكتب سبب التصحيح قبل تنفيذ التراجع." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اكتب سبب التصحيح قبل تنفيذ التراجع." };
     if (!idempotencyKey)
-      return { ok: false, code: "validation_error", message: "مفتاح التصحيح مطلوب لمنع تكرار الأثر." };
+      return { ok: false, code: VALIDATION_ERROR, message: "مفتاح التصحيح مطلوب لمنع تكرار الأثر." };
     if (!isValidLocalDate(input.occurredOn))
-      return { ok: false, code: "validation_error", message: "تاريخ التصحيح المحلي غير صالح." };
+      return { ok: false, code: VALIDATION_ERROR, message: "تاريخ التصحيح المحلي غير صالح." };
     const repeated = existing.value.find(
       event =>
         event.correctionType === "reverse" &&
@@ -1117,29 +1118,29 @@ export class ProjectFinancialService {
     if (keyCollision)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "مفتاح التصحيح مستخدم في حدث آخر؛ اختر مفتاحًا جديدًا.",
       };
     const source = existing.value.find(event => event.id === sourceEventId);
     if (!source)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "لم يُعثر على الحدث الأصلي؛ لم يتغير السجل.",
       };
     if (source.correctionType === "reverse" || source.correctionOfEventId)
-      return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن حدث تراجع سابق." };
+      return { ok: false, code: VALIDATION_ERROR, message: "لا يمكن التراجع عن حدث تراجع سابق." };
     /* AV-03: حرس العائلة في الخدمة نفسها — لا يُعكس حدث مرتبط بسجل مالك
      * من المحرر العام (كان الحرس في الواجهة فقط). */
     const familyGuard = familyCorrectionGuard(source);
-    if (familyGuard) return { ok: false, code: "validation_error", message: familyGuard };
+    if (familyGuard) return { ok: false, code: VALIDATION_ERROR, message: familyGuard };
     const alreadyReversed = existing.value.find(
       event => event.correctionType === "reverse" && event.correctionOfEventId === source.id,
     );
     if (alreadyReversed)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "تم التراجع عن هذا الحدث سابقًا؛ لا يُنشأ تراجع ثانٍ.",
       };
     /* F-006 (دورة التدقيق النهائي): التراجع/الحذف يخضع لنفس حد الأمانة — التراجع عن
@@ -1150,7 +1151,7 @@ export class ProjectFinancialService {
       if ((source.amanahDeltaMinor ?? 0) > heldMinor)
         return {
           ok: false,
-          code: "validation_error",
+          code: VALIDATION_ERROR,
           message: amanahLimitMessage(heldMinor, source.amanahDeltaMinor ?? 0, "التراجع عن استلام الأمانة"),
         };
     }
@@ -1167,7 +1168,7 @@ export class ProjectFinancialService {
       if (!saved.ok)
         return {
           ok: false,
-          code: "storage_error",
+          code: STORAGE_ERROR,
           message: "تعذر حفظ التراجع ذريًا. بقي الحدث الأصلي دون تغيير.",
         };
       return saved.value.id === reversal.id
@@ -1176,7 +1177,7 @@ export class ProjectFinancialService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات التصحيح غير صالحة.",
       };
     }
@@ -1187,15 +1188,15 @@ export class ProjectFinancialService {
     input: UnallocatedDistributionInput,
   ): Promise<FinanceResult<{ unallocatedAfterMinor: number; walletBalanceAfterMinor: number }>> {
     if (!Number.isInteger(input.deltaMinor) || input.deltaMinor === 0)
-      return { ok: false, code: "validation_error", message: "أدخل مبلغ توزيع صحيحًا غير صفري." };
+      return { ok: false, code: VALIDATION_ERROR, message: "أدخل مبلغ توزيع صحيحًا غير صفري." };
     const [walletsResult, entriesResult] = await Promise.all([
       this.store.listCashWallets(),
       this.store.listCashContinuityEntries(),
     ]);
     if (!walletsResult.ok || !entriesResult.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة المحافظ قبل التخصيص." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المحافظ قبل التخصيص." };
     const wallet = walletsResult.value.find(candidate => candidate.id === input.walletId);
-    if (!wallet) return { ok: false, code: "validation_error", message: "اختر محفظة موجودة قبل التوزيع." };
+    if (!wallet) return { ok: false, code: VALIDATION_ERROR, message: "اختر محفظة موجودة قبل التوزيع." };
     const existingKey = entriesResult.value.find(entry => entry.operationKey === (input.operationKey ?? ""));
     if (input.operationKey && existingKey)
       return {
@@ -1205,19 +1206,19 @@ export class ProjectFinancialService {
       };
     const position = await this.readPosition();
     if (!position.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة الكاش غير الموزع قبل التخصيص." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة الكاش غير الموزع قبل التخصيص." };
     const walletEntries = entriesResult.value.filter(entry => entry.walletId === wallet.id);
     const walletBalanceMinor = summarizeCashContinuity(walletEntries);
     if (input.deltaMinor > 0 && input.deltaMinor > position.value.unallocatedCashMinor)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "المبلغ المطلوب أكبر من الكاش غير الموزع المتاح؛ لا يُخصم من رصيد المحافظ ولا يُخترع فرق.",
       };
     if (input.deltaMinor < 0 && walletBalanceMinor + input.deltaMinor < 0)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "رصيد المحفظة لا يغطي هذا الصرف؛ اختر محفظة أخرى أو صرّف المبلغ من غير الموزع.",
       };
     try {
@@ -1238,7 +1239,7 @@ export class ProjectFinancialService {
       });
       const saved = await this.store.commitCashContinuity(wallet, [entry]);
       if (!saved.ok)
-        return { ok: false, code: "storage_error", message: "تعذر حفظ التوزيع؛ لم يتغير أي رصيد." };
+        return { ok: false, code: STORAGE_ERROR, message: "تعذر حفظ التوزيع؛ لم يتغير أي رصيد." };
       return {
         ok: true,
         value: {
@@ -1249,7 +1250,7 @@ export class ProjectFinancialService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات التخصيص غير صالحة.",
       };
     }
@@ -1258,27 +1259,27 @@ export class ProjectFinancialService {
   /** تعديل بسيط موثق (مبدأ ٥.٦): تراجع + بديل في معاملة ذرّية واحدة — الأثر يتجدد والسجل يبقى. */
   async editEvent(input: FinancialEditInput): Promise<FinanceResult<FinancialEvent>> {
     const existing = await this.store.listFinancialEvents();
-    if (!existing.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
+    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل الأحداث المالية." };
     const source = existing.value.find(event => event.id === input.sourceEventId.trim());
     if (!source)
-      return { ok: false, code: "validation_error", message: "لم يُعثر على الحدث الأصلي؛ لم يتغير السجل." };
+      return { ok: false, code: VALIDATION_ERROR, message: "لم يُعثر على الحدث الأصلي؛ لم يتغير السجل." };
     if (source.correctionType === "reverse" || source.correctionOfEventId)
-      return { ok: false, code: "validation_error", message: "لا يمكن تعديل سجل تراجع سابق." };
+      return { ok: false, code: VALIDATION_ERROR, message: "لا يمكن تعديل سجل تراجع سابق." };
     /* AV-03: حرس العائلة في الخدمة نفسها — التعديل العام لا يمس أحداث
      * الأصل/القرض/العربون؛ سطح المالك يحمل سياقها الكامل. */
     const familyGuard = familyCorrectionGuard(source);
-    if (familyGuard) return { ok: false, code: "validation_error", message: familyGuard };
+    if (familyGuard) return { ok: false, code: VALIDATION_ERROR, message: familyGuard };
     const alreadyReversed = existing.value.find(
       event => event.correctionType === "reverse" && event.correctionOfEventId === source.id,
     );
     if (alreadyReversed)
-      return { ok: false, code: "validation_error", message: "عُدّل هذا الحدث سابقًا؛ عدّل النسخة الحالية." };
+      return { ok: false, code: VALIDATION_ERROR, message: "عُدّل هذا الحدث سابقًا؛ عدّل النسخة الحالية." };
     if (input.amountMinor <= 0 || !Number.isInteger(input.amountMinor))
-      return { ok: false, code: "validation_error", message: "أدخل مبلغًا صحيحًا موجبًا بالأرقام 0–9." };
+      return { ok: false, code: VALIDATION_ERROR, message: "أدخل مبلغًا صحيحًا موجبًا بالأرقام 0–9." };
     if (!input.note.trim())
-      return { ok: false, code: "validation_error", message: "اكتب ما حدث؛ الوصف جزء من السجل المالي." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اكتب ما حدث؛ الوصف جزء من السجل المالي." };
     if (!isValidLocalDate(input.occurredOn))
-      return { ok: false, code: "validation_error", message: "تاريخ الحدث المحلي غير صالح." };
+      return { ok: false, code: VALIDATION_ERROR, message: "تاريخ الحدث المحلي غير صالح." };
     /* تسديد التزام: تعديل المبلغ لا يتجاوز المتبقي بعد استبعاد الأصل من الحساب. */
     if (source.type === "payable_settlement_cash" && source.relatedEventId) {
       const payable = existing.value.find(event => event.id === source.relatedEventId);
@@ -1288,19 +1289,19 @@ export class ProjectFinancialService {
         if (input.amountMinor > remainingWithoutSource)
           return {
             ok: false,
-            code: "validation_error",
+            code: VALIDATION_ERROR,
             message: "المبلغ الجديد يتجاوز المتبقي من الالتزام؛ عدّله أو سجّل تسديدًا إضافيًا.",
           };
       }
     }
     if (existing.value.some(event => event.idempotencyKey === input.idempotencyKey))
-      return { ok: false, code: "validation_error", message: "مفتاح التعديل مستخدم؛ اختر مفتاحًا جديدًا." };
+      return { ok: false, code: VALIDATION_ERROR, message: "مفتاح التعديل مستخدم؛ اختر مفتاحًا جديدًا." };
     /* Conflict H (WF-04): تصحيح التصنيف بعد الحفظ — يُقبل لأحداث المصروف فقط،
      * ويطبّقه البديل بعد تحقق النطاق نفسه (normalizeExpenseContext) في createFinancialEvent. */
     const isExpenseSource =
       source.type === "operating_expense_cash" || source.type === "operating_expense_payable";
     if (input.expenseContext != null && !isExpenseSource)
-      return { ok: false, code: "validation_error", message: "التصنيف يُصحَّح لأحداث المصروف فقط." };
+      return { ok: false, code: VALIDATION_ERROR, message: "التصنيف يُصحَّح لأحداث المصروف فقط." };
     const replacementExpenseContext = input.expenseContext ?? source.expenseContext ?? null;
     try {
       const reversal = createFinancialReversal({
@@ -1339,7 +1340,7 @@ export class ProjectFinancialService {
           /* تسليم يُرفع مبلغُه: المتاح بعد استبعاد الأصل = الرصيد + قيمة الأصل. */
           return {
             ok: false,
-            code: "validation_error",
+            code: VALIDATION_ERROR,
             message: amanahLimitMessage(
               heldBeforeMinor - sourceAmanahDelta,
               input.amountMinor,
@@ -1350,7 +1351,7 @@ export class ProjectFinancialService {
         /* استلام يُنقص مبلغُه: الإنقاص المتاح = الرصيد الحالي؛ والمطلوب = قيمة الإنقاص. */
         return {
           ok: false,
-          code: "validation_error",
+          code: VALIDATION_ERROR,
           message: amanahLimitMessage(
             heldBeforeMinor,
             sourceAmanahDelta - input.amountMinor,
@@ -1359,14 +1360,14 @@ export class ProjectFinancialService {
         };
       }
       const saved = await this.store.commitFinancialEventReplacement(source.id, reversal, replacement);
-      if (!saved.ok) return { ok: false, code: "storage_error", message: saved.message };
+      if (!saved.ok) return { ok: false, code: STORAGE_ERROR, message: saved.message };
       return saved.value.replacement.id === replacement.id
         ? { ok: true, value: saved.value.replacement }
         : { ok: true, value: saved.value.replacement, reused: true };
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات التعديل غير صالحة.",
       };
     }
@@ -1392,9 +1393,9 @@ export class ProjectFinancialService {
     idempotencyKey: string;
   }): Promise<FinanceResult<FinancialEvent>> {
     const existing = await this.store.listFinancialEvents();
-    if (!existing.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الأحداث المالية." };
+    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل الأحداث المالية." };
     const source = existing.value.find(event => event.id === input.sourceEventId.trim());
-    if (!source) return { ok: false, code: "validation_error", message: "لم يُعثر على الحدث الأصلي." };
+    if (!source) return { ok: false, code: VALIDATION_ERROR, message: "لم يُعثر على الحدث الأصلي." };
     return this.record({
       type: source.type,
       amountMinor: source.amountMinor,
@@ -1413,7 +1414,7 @@ export class ProjectFinancialService {
   async record(input: FinancialRecordInput): Promise<FinanceResult<FinancialEvent>> {
     const existing = await this.store.listFinancialEvents();
     if (!existing.ok)
-      return { ok: false, code: "storage_error", message: "تعذر التحقق من سجل الأحداث المالية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر التحقق من سجل الأحداث المالية." };
     const repeated = existing.value.find(
       event => event.type === input.type && event.idempotencyKey === input.idempotencyKey,
     );
@@ -1433,23 +1434,23 @@ export class ProjectFinancialService {
         expenseContext: input.expenseContext ?? null,
         sharedExpense: input.sharedExpense,
       });
-      if (!expanded.ok) return { ok: false, code: "validation_error", message: expanded.message };
+      if (!expanded.ok) return { ok: false, code: VALIDATION_ERROR, message: expanded.message };
       amountMinor = expanded.amountMinor;
       expenseContext = expanded.expenseContext;
     }
     if (amountMinor === undefined)
-      return { ok: false, code: "validation_error", message: "أدخل مبلغًا صالحًا قبل الحفظ." };
+      return { ok: false, code: VALIDATION_ERROR, message: "أدخل مبلغًا صالحًا قبل الحفظ." };
     if (input.type === "payable_settlement_cash") {
       const source = existing.value.find(event => event.id === input.relatedEventId);
       if (!source || source.type !== "operating_expense_payable")
-        return { ok: false, code: "validation_error", message: "اختر التزام مصروف مسجلًا قبل تسجيل تسديده." };
+        return { ok: false, code: VALIDATION_ERROR, message: "اختر التزام مصروف مسجلًا قبل تسجيل تسديده." };
       if (source.correctionType === "reverse" || reversedEventIds(existing.value).has(source.id))
-        return { ok: false, code: "validation_error", message: "اختر التزامًا فعالًا لم يتم التراجع عنه." };
+        return { ok: false, code: VALIDATION_ERROR, message: "اختر التزامًا فعالًا لم يتم التراجع عنه." };
       const paid = activeSettlementsMinor(existing.value, source.id);
       if (amountMinor > source.amountMinor - paid)
         return {
           ok: false,
-          code: "validation_error",
+          code: VALIDATION_ERROR,
           message: "لا يمكن أن يتجاوز التسديد المتبقي المسجل على هذا الالتزام.",
         };
     }
@@ -1461,7 +1462,7 @@ export class ProjectFinancialService {
       if (amountMinor > heldMinor)
         return {
           ok: false,
-          code: "validation_error",
+          code: VALIDATION_ERROR,
           message: amanahLimitMessage(heldMinor, amountMinor, "المبلغ المُسلَّم"),
         };
     }
@@ -1474,14 +1475,14 @@ export class ProjectFinancialService {
         this.store.listCashContinuityEntries(),
       ]);
       if (!walletsResult.ok || !entriesResult.ok)
-        return { ok: false, code: "storage_error", message: "تعذر قراءة المحافظ قبل تسجيل السحب." };
+        return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المحافظ قبل تسجيل السحب." };
       const walletGuard = evaluateWithdrawalWalletCoverage({
         walletId: input.sourceWalletId ?? null,
         wallets: walletsResult.value,
         cashEntries: entriesResult.value,
         amountMinor: amountMinor ?? 0,
       });
-      if (!walletGuard.ok) return { ok: false, code: "validation_error", message: walletGuard.message };
+      if (!walletGuard.ok) return { ok: false, code: VALIDATION_ERROR, message: walletGuard.message };
     }
     try {
       const event = createFinancialEvent({
@@ -1504,13 +1505,13 @@ export class ProjectFinancialService {
         ? { ok: true, value: saved.value }
         : {
             ok: false,
-            code: "storage_error",
+            code: STORAGE_ERROR,
             message: "تعذر حفظ الحدث المالي محليًا — بياناتك كما هي؛ أعد المحاولة.",
           };
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات الحدث المالي غير صالحة.",
       };
     }

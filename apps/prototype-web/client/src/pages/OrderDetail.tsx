@@ -29,8 +29,8 @@ import {
   STALE_RELOAD_ACTION_LABEL,
   STALE_RELOADED_NOTE,
 } from "@/app/resultFeedback";
-import type { AgreementResult } from "@/application/agreements/agreementService";
-import type { FulfillmentResult } from "@/application/fulfillment/fulfillmentService";
+import { AgreementResult } from "@/application/agreements/agreementService";
+import { FulfillmentResult } from "@/application/fulfillment/fulfillmentService";
 import type {
   CollectionReversalPreview,
   CollectionReversalResult,

@@ -34,6 +34,7 @@ import { isCurrentPair, isReleasedLegacyPair, verifyTransferIntegrity } from "./
 import { exportCountsOf, verifyTransferCounts } from "./transferCounters";
 import { migrateTransferSnapshot } from "./transferSnapshotMigrations";
 import { validateSnapshot } from "./transferSnapshotValidation";
+import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type TransferSummary = {
   profile: boolean;
@@ -86,7 +87,7 @@ export type TransferResult<T> =
  * مع نسخة ما قبل الاستبدال القابلة للاسترجاع، مُنشأة بآلية التصدير المتحقق
  * نفسها قبل أي كتابة؛ تعذّرها يمنع التأكيد فلا يُوهم المستخدم بنجاح آمن. */
 export type RestoreResult = TransferSummary & { backup: LocalExportFile };
-const fail = <T>(message: string): TransferResult<T> => ({ ok: false, code: "validation_error", message });
+const fail = <T>(message: string): TransferResult<T> => ({ ok: false, code: VALIDATION_ERROR, message });
 function summary(file: LocalExportFile): TransferSummary {
   const snapshots =
     file.data.drafts.reduce((count, draft) => count + draft.costSnapshots.length, 0) +
@@ -146,7 +147,7 @@ export class LocalTransferService {
     if (!snapshot.ok)
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "تعذر قراءة البيانات المحلية للتصدير. لم يُنشأ ملف.",
       };
     /* المجموعة ٥ (عقد ٣٩ — مظروف النسخة ٢٧): بصمة تكامل وعدادات مضمّنة
@@ -221,7 +222,7 @@ export class LocalTransferService {
     if (!backup.ok)
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message:
           "تعذر إنشاء نسخة احتياطية قابلة للاسترجاع قبل الاستبدال — لم يُمس أي شيء. صدّر بياناتك يدويًا أولًا ثم أعد المحاولة.",
       };
@@ -229,7 +230,7 @@ export class LocalTransferService {
     if (!replacement.ok)
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "تعذر استبدال البيانات المحلية. لم يتم تأكيد نجاح الاستيراد.",
       };
     return { ok: true, value: { ...preview.summary, backup: backup.value.file } };
@@ -244,7 +245,7 @@ export class LocalTransferService {
     if (!roundTrip.ok)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message:
           "أنشئ الملف لكن التحقق منه فشل؛ لا تعتمد عليه نسخة احتياطية. أنشئ نسخة جديدة قبل أي خطوة مدمّرة.",
       };
@@ -304,7 +305,7 @@ export class LocalTransferService {
     if (!replacement.ok)
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "تعذر بدء مشروع جديد؛ بياناتك الحالية كما هي دون تغيير.",
       };
     return { ok: true, value: null };

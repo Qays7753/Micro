@@ -17,7 +17,7 @@ import {
   cashCountSettlementNote,
 } from "@/presentation/cashCountMessages";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
-import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
+import { CashContinuityOverview } from "@/application/cash/cashContinuityService";
 
 import { Button } from "@/components/primitives";
 type State =

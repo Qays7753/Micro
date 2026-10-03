@@ -11,7 +11,7 @@ import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import type { RecurringExpenseSeriesCardReading } from "@/application/finance/recurringExpenseService";
+import type { RecurringExpenseSeriesCardReading } from "@/application/finance";
 import { LocalDateValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";
 

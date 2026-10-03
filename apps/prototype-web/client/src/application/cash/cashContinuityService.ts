@@ -8,6 +8,7 @@ import {
   type CashWalletOpeningStatus,
 } from "@micro-domain/cash-continuity/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type CashContinuityResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -64,7 +65,7 @@ const id = (prefix: string) =>
   globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const storageFailure = <T>(): CashContinuityResult<T> => ({
   ok: false,
-  code: "storage_error",
+  code: STORAGE_ERROR,
   message: "تعذر حفظ استمرارية الكاش محليًا — بياناتك كما هي؛ أعد المحاولة.",
 });
 
@@ -80,7 +81,7 @@ export class CashContinuityService {
       this.store.listCashContinuityEntries(),
     ]);
     if (!wallets.ok || !entries.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة محافظ الكاش المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة محافظ الكاش المحلية." };
     const balances = wallets.value.map(wallet => {
       const walletEntries = entries.value.filter(entry => entry.walletId === wallet.id);
       return {
@@ -107,7 +108,7 @@ export class CashContinuityService {
     const result = await this.store.listCashContinuityEntries();
     return result.ok
       ? { ok: true, value: result.value }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة سجل استمرارية الكاش." };
+      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل استمرارية الكاش." };
   }
 
   /* EXE-008 (حوكمة الكاش — القرار المعتمد): الافتتاح متاح أثناء التأسيس/إنشاء المحفظة
@@ -156,7 +157,7 @@ export class CashContinuityService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات محفظة الكاش غير صالحة.",
       };
     }
@@ -177,11 +178,11 @@ export class CashContinuityService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const wallet = wallets.value.find(candidate => candidate.id === input.walletId);
     if (!wallet)
-      return { ok: false, code: "validation_error", message: "اختر محفظة موجودة قبل إدخال الرصيد." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر محفظة موجودة قبل إدخال الرصيد." };
     if (entries.value.some(entry => entry.walletId === wallet.id && entry.type === "opening_balance"))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "لهذه المحفظة رصيد افتتاحي مسجل؛ التسوية اللاحقة تُسجل ضبط كاش بسبب، لا افتتاحًا ثانيًا.",
       };
     try {
@@ -204,7 +205,7 @@ export class CashContinuityService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات الرصيد الافتتاحي غير صالحة.",
       };
     }
@@ -219,7 +220,7 @@ export class CashContinuityService {
     const repeated = entries.value.find(entry => entry.operationKey === input.operationKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     if (!wallets.value.some(wallet => wallet.id === input.walletId))
-      return { ok: false, code: "validation_error", message: "اختر محفظة كاش موجودة قبل ضبط رصيدها." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر محفظة كاش موجودة قبل ضبط رصيدها." };
     try {
       const entry = createCashContinuityEntry({
         id: id("adjustment"),
@@ -237,7 +238,7 @@ export class CashContinuityService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات ضبط الكاش غير صالحة.",
       };
     }
@@ -255,9 +256,9 @@ export class CashContinuityService {
       !wallets.value.some(wallet => wallet.id === input.fromWalletId) ||
       !wallets.value.some(wallet => wallet.id === input.toWalletId)
     )
-      return { ok: false, code: "validation_error", message: "اختر محافظتين موجودتين للتحويل." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر محافظتين موجودتين للتحويل." };
     if (input.fromWalletId === input.toWalletId)
-      return { ok: false, code: "validation_error", message: "لا يمكن التحويل إلى المحفظة نفسها." };
+      return { ok: false, code: VALIDATION_ERROR, message: "لا يمكن التحويل إلى المحفظة نفسها." };
     try {
       const transferId = id("transfer");
       const out = createCashContinuityEntry({
@@ -287,7 +288,7 @@ export class CashContinuityService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات التحويل غير صالحة.",
       };
     }
@@ -301,11 +302,11 @@ export class CashContinuityService {
     if (repeated.length) return { ok: true, value: repeated, reused: true };
     const target = entries.find(entry => entry.id === input.entryId);
     if (!target)
-      return { ok: false, code: "validation_error", message: "لم نجد أثر الكاش الذي تريد التراجع عنه." };
+      return { ok: false, code: VALIDATION_ERROR, message: "لم نجد أثر الكاش الذي تريد التراجع عنه." };
     if (target.type === "reversal")
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "لا يتراجع هذا الإصدار عن أثر تراجع سابق؛ سجّل ضبط كاش بسبب بدلًا من ذلك.",
       };
     const targets = target.transferId
@@ -314,13 +315,13 @@ export class CashContinuityService {
     if (targets.length === 0 || (target.transferId && targets.length !== 2))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "أثر التحويل غير متوازن ولا يمكن التراجع عنه بأمان.",
       };
     if (targets.some(entry => entries.some(candidate => candidate.reversesEntryId === entry.id)))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "تم التراجع عن هذا الأثر سابقًا. لا يمكن التراجع عنه مرة ثانية.",
       };
     try {
@@ -345,7 +346,7 @@ export class CashContinuityService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات التراجع عن الكاش غير صالحة.",
       };
     }

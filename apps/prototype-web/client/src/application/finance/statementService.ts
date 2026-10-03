@@ -13,6 +13,7 @@ import type {
   ProjectFinancialService,
   RecordedPeriodResult,
 } from "@/application/finance/projectFinancialService";
+import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type StatementLineSource = {
   label: string;
@@ -133,7 +134,7 @@ export class StatementService {
 
   async read(from: string, to: string): Promise<StatementResult> {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to) || from > to)
-      return { ok: false, code: "validation_error", message: "اختر نطاق كشف يبدأ قبل نهايته." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر نطاق كشف يبدأ قبل نهايته." };
     const [
       eventsResult,
       salesResult,
@@ -160,7 +161,7 @@ export class StatementService {
       !periodResult.ok ||
       !positionResult.ok
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة سجلات الكشف المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات الكشف المحلية." };
 
     const inPeriod = (date: string) => date >= from && date <= to;
     const events = eventsResult.value as readonly FinancialEvent[];

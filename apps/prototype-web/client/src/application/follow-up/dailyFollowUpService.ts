@@ -8,6 +8,7 @@ import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import type { OrderDraft, PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import { getAgreementPresentation } from "@/application/agreements/agreementPresentation";
 import { formatArabicPlural } from "@/application/formatting/formatters";
+import { STORAGE_ERROR } from "@/application/resultCodes";
 
 /* مبدأ Micro: صياغة العدد عرضية؛ لا تغيّر الحدث أو الدين أو أي أثر مالي. */
 
@@ -117,7 +118,7 @@ export class DailyFollowUpService {
   async read(): Promise<DailyFollowUpReadResult> {
     const [drafts, orders] = await Promise.all([this.store.listDrafts(), this.store.listOrders()]);
     if (!drafts.ok || !orders.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة المتابعة اليومية المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المتابعة اليومية المحلية." };
     const openDrafts = drafts.value.filter(draft => !draft.linkedOrderId);
     return {
       ok: true,

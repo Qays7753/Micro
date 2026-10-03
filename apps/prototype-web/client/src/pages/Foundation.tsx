@@ -7,10 +7,10 @@ import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
-import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
-import type { OwnerEntitlementOverview } from "@/application/finance/ownerEntitlementService";
+import { CashContinuityOverview } from "@/application/cash/cashContinuityService";
+import type { OwnerEntitlementOverview } from "@/application/owner-money";
 import type { SupplierPurchaseSummary } from "@/application/suppliers/supplierPurchaseService";
-import type { InventoryOverview } from "@/application/inventory/inventoryMaterialService";
+import type { InventoryOverview } from "@/application/inventory";
 import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
 
 import { Button } from "@/components/primitives";

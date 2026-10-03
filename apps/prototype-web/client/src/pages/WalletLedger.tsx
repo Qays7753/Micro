@@ -16,7 +16,7 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { RestatementNote } from "@/components/finance/RestatementNote";
-import type { WalletLedgerOverview } from "@/application/cash/walletLedgerService";
+import { WalletLedgerOverview } from "@/application/cash/walletLedgerService";
 
 import { Button } from "@/components/primitives";
 type State =

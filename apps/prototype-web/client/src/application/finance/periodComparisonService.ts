@@ -30,6 +30,7 @@ import type {
   RecordedPeriodResult,
 } from "@/application/finance/projectFinancialService";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import { STORAGE_ERROR } from "@/application/resultCodes";
 
 export type PeriodComparisonStatus = "recorded_only" | "incomplete" | "invalid";
 
@@ -405,7 +406,7 @@ export class PeriodComparisonService {
       this.finance.readRecordedPeriodResult(baseline.from, baseline.to),
     ]);
     if (!readingA.ok || !readingB.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة نتيجتي الفترتين المحليتين." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة نتيجتي الفترتين المحليتين." };
     const a = readingA.value;
     const b = readingB.value;
     const todayLocal = localDateInAmman(this.now());

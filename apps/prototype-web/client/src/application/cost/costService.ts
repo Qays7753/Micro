@@ -4,6 +4,7 @@
  */
 import { calculateCostSnapshot, type CostSnapshot } from "@micro-domain/craft-order/index.js";
 import type { DraftCostSnapshot, OrderDraft, PrototypeLocalStore } from "@/storage/local/types";
+import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type CostEditorInput = Omit<DraftCostSnapshot, "id" | "revision" | "createdAt" | "currency">;
 export type CostResult =
@@ -36,7 +37,7 @@ function toDomainSnapshot(id: string, input: CostEditorInput, createdAt: string)
 function validationMessage(): Extract<CostResult, { ok: false }> {
   return {
     ok: false,
-    code: "validation_error",
+    code: VALIDATION_ERROR,
     message:
       "راجع الكمية وبنود التكلفة والوقت. لا يمكن اعتبار الوقت المفقود صفرًا، ولا تُقبل المبالغ أو الكميات السالبة.",
   };
@@ -89,7 +90,7 @@ export class CostService {
       ? { ok: true, snapshot, draft: saved.value }
       : {
           ok: false,
-          code: "storage_error",
+          code: STORAGE_ERROR,
           message: "تعذر حفظ نسخة التكلفة. بقيت المدخلات أمامك؛ أعد المحاولة.",
         };
   }

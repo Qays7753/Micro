@@ -17,7 +17,7 @@ import type {
   UpcomingBlockResult,
   UpcomingEntry,
   UpcomingOverview,
-} from "@/application/finance/upcomingService";
+} from "@/application/finance";
 import { financialEventLabel } from "@/presentation/financialEventLabels";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 

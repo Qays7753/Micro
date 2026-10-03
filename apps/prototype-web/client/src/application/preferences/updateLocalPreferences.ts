@@ -9,6 +9,7 @@
  * ويُرسَّخ بأول حفظ يمر من هنا (نفس سلوك إصلاح SET-003-B القائم).
  */
 import { localPreferencesId, type LocalPreferences, type PrototypeLocalStore } from "@/storage/local/types";
+import { STORAGE_ERROR } from "@/application/resultCodes";
 
 /** الحقول القابلة للتحقيق فقط — الهوية وطابع التحديث تملكهما البوابة. */
 export type LocalPreferencesPatch = Partial<Omit<LocalPreferences, "id" | "updatedAt">>;
@@ -37,7 +38,7 @@ export async function updateLocalPreferences(
   now: () => string,
 ): Promise<LocalPreferencesUpdateResult> {
   const current = await store.getPreferences();
-  if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة التفضيلات المحلية." };
+  if (!current.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة التفضيلات المحلية." };
   const merged: LocalPreferences = {
     ...(current.value ?? freshRecord(now())),
     ...patch,
@@ -55,5 +56,5 @@ export async function updateLocalPreferences(
   const saved = await store.savePreferences(merged);
   return saved.ok
     ? { ok: true, value: saved.value }
-    : { ok: false, code: "storage_error", message: "تعذر حفظ التفضيلات المحلية." };
+    : { ok: false, code: STORAGE_ERROR, message: "تعذر حفظ التفضيلات المحلية." };
 }

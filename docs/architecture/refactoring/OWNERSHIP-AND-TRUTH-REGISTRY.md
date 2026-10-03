@@ -133,7 +133,7 @@
 
 | النوع | العنصر | الموقع | التصنيف |
 |---|---|---|---|
-| Deep import (domain) | settlementInvariant خارج البرميل | application/finance (dynamic) | STR-205 — Wave J: تصدير عبر البرميل؛ **محروس الآن بحارس الحدود 4E (R1)** |
+| Deep import (domain) | settlementInvariant خارج البرميل | application/finance (dynamic) | STR-205 — **استثناء تصميمي مقيس (Wave B، 2026-10-03):** جرى تجربة التصدير عبر البرميل مع استيراد ثابت للعميل فرفضته بوابة الميزانية (D-034): المدخل صار 650,292 بايتًا (+1,192) فوق سقف 650,000 — التحميل الكسول عبر المسار العميق هو استراتيجية إبقاء الفحص خارج حزمة الدخول عمدًا؛ يُحمَل عند الفحص فقط (تعليق الكود الموثق)؛ محروس بحارس الحدود 4E (R1) |
 | Deep import (domain) | operatingBreakEven ×2 (D-034) | application/finance/projectFinancialService + application/financial-analysis/financialAnalysisService (بعد 4A) | تنازل موثق D-034 (حزمة) — يبقى؛ يحرسه حارس الحدود 4E (R1) |
 | Deep import (domain) | STR-030 alias ×2 + type import ×1 | domain-internal | موثق S2 |
 | Deep import (application→domain) | integrityCheckService.ts:1437 — استيراد ديناميكي لـsettlementInvariant من عمق craft-order (رمزه غير مصدّر من البرميل) | application → domain depth | **تصحيح تصنيف (STR-606، 2026-10-03):** الحافة نحو عمق **المجال** لا application↔application؛ المكتشف الكنسي المجمّع **STR-205** (الأصل S1:STR-108/S3:STR-313) — الاستثناء المفرد الموثق في قائمة الاستيراد العميق المسموح؛ الحل الجذري: تصديره عبر البرميل (Wave J/STR-615) |

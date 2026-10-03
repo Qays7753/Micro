@@ -22,7 +22,7 @@ import type {
   InventoryActivationState,
   InventoryMaterialOverview,
   InventoryOverview,
-} from "@/application/inventory/inventoryMaterialService";
+} from "@/application/inventory";
 import { LocalDateValue, MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import {
   localDateInAmman,

@@ -9,7 +9,7 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
-import type { CashWalletBalance } from "@/application/cash/cashContinuityService";
+import { CashWalletBalance } from "@/application/cash/cashContinuityService";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import { Button } from "@/components/primitives";
 export default function CashTransferEditor() {

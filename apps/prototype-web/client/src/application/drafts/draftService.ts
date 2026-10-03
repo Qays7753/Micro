@@ -1,5 +1,6 @@
 /** Application boundary for pre-domain drafts. A draft is not a CraftOrder and has no price, cash, or result effect. */
 import type { DraftIntent, OrderDraft, PrototypeLocalStore } from "@/storage/local/types";
+import { CONFLICT, NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type DraftInput = Pick<
   OrderDraft,
@@ -67,15 +68,15 @@ export class DraftService {
     expectedUpdatedAt?: string,
   ): Promise<DraftSaveResult> {
     if (!Number.isInteger(input.quantity) || input.quantity < 1)
-      return { ok: false, code: "validation_error", message: "الكمية يجب أن تكون قطعة واحدة أو أكثر." };
+      return { ok: false, code: VALIDATION_ERROR, message: "الكمية يجب أن تكون قطعة واحدة أو أكثر." };
     if (expectedUpdatedAt !== undefined) {
       const current = await this.store.getDraft(input.id);
       if (!current.ok)
-        return { ok: false, code: "storage_error", message: "تعذر قراءة المسودة قبل الحفظ. أعد المحاولة." };
+        return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المسودة قبل الحفظ. أعد المحاولة." };
       if (current.value && current.value.updatedAt !== expectedUpdatedAt)
         return {
           ok: false,
-          code: "conflict",
+          code: CONFLICT,
           message: "هذه المسودة عُدّلت من نافذة أخرى بعد فتحك لها؛ لم يُحفظ تعديلك.",
         };
     }
@@ -92,7 +93,7 @@ export class DraftService {
       ? { ok: true, draft: saved.value }
       : {
           ok: false,
-          code: "storage_error",
+          code: STORAGE_ERROR,
           message: "تعذر حفظ المسودة على هذا الجهاز. بقيت بيانات النموذج أمامك؛ أعد المحاولة.",
         };
   }
@@ -103,15 +104,15 @@ export class DraftService {
     if (!current.ok)
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "تعذر قراءة المسودة قبل الحذف. لم يُحذف شيء.",
       };
     if (!current.value)
-      return { ok: false, code: "not_found", message: "لم نجد هذه المسودة محليًا؛ لم يُحذف شيء." };
+      return { ok: false, code: NOT_FOUND, message: "لم نجد هذه المسودة محليًا؛ لم يُحذف شيء." };
     if (current.value.linkedOrderId !== null)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "هذه المسودة أصبحت طلبًا محفوظًا؛ تُلغى من الطلب ولا تُحذف من هنا.",
       };
     const deleted = await this.store.deleteDraft(id);
@@ -119,7 +120,7 @@ export class DraftService {
       ? { ok: true, id }
       : {
           ok: false,
-          code: "storage_error",
+          code: STORAGE_ERROR,
           message: "تعذر حذف المسودة على هذا الجهاز. أعد المحاولة.",
         };
   }

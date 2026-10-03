@@ -14,11 +14,11 @@ import { useFormDirty } from "@/components/forms/useFormDirty";
 import type {
   InventoryReferences,
   PurchaseReceiptStatus,
-} from "@/application/inventory/inventoryMaterialService";
+} from "@/application/inventory";
 import {
   resolveInventoryMovementType,
   type InventoryMovementRouteType,
-} from "@/application/inventory/inventoryMovementRoute";
+} from "@/application/inventory";
 import { MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";
 const ammanDate = () => localDateInAmman();

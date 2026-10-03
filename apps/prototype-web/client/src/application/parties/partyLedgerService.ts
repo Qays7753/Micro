@@ -9,6 +9,7 @@ import { activeSettlementsMinor, reversedEventIds } from "@micro-domain/financia
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
+import { STORAGE_ERROR } from "@/application/resultCodes";
 
 export type PartyLedgerResult<T> =
   { ok: true; value: T } | { ok: false; code: "storage_error"; message: string };
@@ -75,7 +76,7 @@ export class PartyLedgerService {
       this.store.listFinancialEvents(),
     ]);
     if (!orders.ok || !sales.ok || !purchases.ok || !events.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة سجلات الأطراف المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات الأطراف المحلية." };
 
     const parties = new Map<string, MutablePartyEntry>();
     const party = (name: string): MutablePartyEntry => {

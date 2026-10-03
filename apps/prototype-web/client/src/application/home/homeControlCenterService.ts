@@ -23,6 +23,7 @@ import {
   type HomeTodayItem,
   type HomeTodaySection,
 } from "./homeControlCenterModel";
+import { STORAGE_ERROR } from "@/application/resultCodes";
 
 export type HomeControlCenterResult =
   { ok: true; value: HomeControlCenterViewModel } | { ok: false; code: "storage_error"; message: string };
@@ -127,7 +128,7 @@ export class HomeControlCenterService {
       !previousMonthPeriod.ok ||
       !profile.value
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة بيانات مشروعك المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة بيانات مشروعك المحلية." };
 
     const orders = followUp.orders;
     const openDrafts = followUp.drafts;

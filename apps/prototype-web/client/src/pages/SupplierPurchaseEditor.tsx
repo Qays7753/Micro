@@ -27,7 +27,7 @@ import {
 } from "@/presentation/formatters";
 import type { SupplierPurchase, SupplierPurchasePayment } from "@micro-domain/supplier-purchase/index.js";
 import type { Material } from "@micro-domain/inventory-material/index.js";
-import type { PurchaseReceiptStatus } from "@/application/inventory/inventoryMaterialService";
+import type { PurchaseReceiptStatus } from "@/application/inventory";
 
 import { Button } from "@/components/primitives";
 const ammanDate = () => localDateInAmman();

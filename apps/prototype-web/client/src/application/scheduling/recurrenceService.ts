@@ -11,6 +11,7 @@ import type {
   StoredCraftOrder,
 } from "@/storage/local/types";
 import { storageFailureCode } from "@/storage/local/types";
+import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type RecurrenceInput = {
   sourceScheduleId: string;
@@ -128,7 +129,7 @@ export class ScheduleRecurrenceService {
       this.store.listOrders(),
     ]);
     if (!recurrences.ok || !schedules.ok || !orders.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة قوالب التكرار المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة قوالب التكرار المحلية." };
     const scheduleById = new Map(schedules.value.map(schedule => [schedule.id, schedule]));
     const orderById = new Map(orders.value.map(order => [order.id, order]));
     return {
@@ -152,7 +153,7 @@ export class ScheduleRecurrenceService {
     )
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "اختر موعدًا قائمًا، وتكرارًا أسبوعيًا أو شهريًا، وعدد مواعيد قادمة من 1 إلى 12.",
       };
     const [sourceResult, schedulesResult, ordersResult, recurrencesResult] = await Promise.all([
@@ -162,25 +163,25 @@ export class ScheduleRecurrenceService {
       this.store.listRecurrences(),
     ]);
     if (!sourceResult.ok || !schedulesResult.ok || !ordersResult.ok || !recurrencesResult.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة بيانات التكرار المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة بيانات التكرار المحلية." };
     if (!sourceResult.value)
-      return { ok: false, code: "not_found", message: "الموعد المصدر غير متاح محليًا؛ لم يُنشأ قالب." };
+      return { ok: false, code: NOT_FOUND, message: "الموعد المصدر غير متاح محليًا؛ لم يُنشأ قالب." };
     const source = sourceResult.value;
     const order = ordersResult.value.find(candidate => candidate.id === source.orderId);
     if (!order)
-      return { ok: false, code: "not_found", message: "الطلب المرتبط بالموعد غير متاح؛ لم يُنشأ قالب." };
+      return { ok: false, code: NOT_FOUND, message: "الطلب المرتبط بالموعد غير متاح؛ لم يُنشأ قالب." };
     /* المجموعة ٩ (STR-029): مفتاح اليوم الحالي من وحدة وقت الأعمال الكنسية. */
     const todayKey = localDateInAmman(this.now());
     if (!validDate(source.scheduledFor) || source.scheduledFor < todayKey)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "لا يمكن إنشاء تكرار من موعد ماضٍ؛ راجع الموعد أولًا.",
       };
     if (!isActiveSchedule(source) || !isActiveOrder(order))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "لا يمكن تكرار موعد غير نشط أو طلب مغلق؛ لم يتغير أي سجل.",
       };
     const id = `recurrence-${source.id}-${input.frequency}-${input.occurrenceCount}`;
@@ -247,19 +248,19 @@ export class ScheduleRecurrenceService {
     if (!reason.trim())
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "اكتب سببًا مختصرًا لإيقاف المواعيد القادمة.",
       };
     const current = await this.store.getRecurrence(id);
-    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة قالب التكرار المحلي." };
-    if (!current.value) return { ok: false, code: "not_found", message: "قالب التكرار غير متاح محليًا." };
+    if (!current.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة قالب التكرار المحلي." };
+    if (!current.value) return { ok: false, code: NOT_FOUND, message: "قالب التكرار غير متاح محليًا." };
     if (current.value.status === "cancelled") return { ok: true, value: current.value };
     const timestamp = this.now();
     const cancellationReason = reason.trim();
     const today = localDateKey(timestamp);
     const schedules = await this.store.listSchedules();
     if (!schedules.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة مواعيد التكرار القادمة محليًا." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة مواعيد التكرار القادمة محليًا." };
     /* المجموعة ٢ (التحصين الكامل — HIGH-001): تُمرَّر المواعيد المتأثرة
      * وحدها — لا الجدول كاملًا — فيتحقق الالتزام من كل واحد على حالته الحية
      * ولا يعيد كتابة مواعيد لم يمسها القرار فوق تغييرات مسار آخر. */

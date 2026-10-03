@@ -13,6 +13,7 @@
  * - الإنهاء: حذف صريح بعد نجاح الحفظ النهائي أو بعد اختيار التجاهل.
  */
 import type { FormDraftEnvelope, FormDraftKind, PrototypeLocalStore } from "@/storage/local/types";
+import { CONFLICT, STORAGE_ERROR } from "@/application/resultCodes";
 
 export type FormDraftValues = Record<string, unknown>;
 
@@ -60,7 +61,7 @@ export class FormDraftService {
 
   async read(formKind: FormDraftKind, scopeId: string | null): Promise<FormDraftReadResult> {
     const result = await this.store.getFormDraft(formDraftId(formKind, scopeId));
-    if (!result.ok) return { ok: false, code: "storage_error", message: result.message };
+    if (!result.ok) return { ok: false, code: STORAGE_ERROR, message: result.message };
     const envelope = result.value;
     if (envelope === null) return { ok: true, value: null };
     /* إصدار شكل مختلف = مسودة من جيل آخر: تُعرض كغير موجودة (تُتجاهل بلا انفجار). */
@@ -84,7 +85,7 @@ export class FormDraftService {
     }
     const id = formDraftId(formKind, scopeId);
     const existing = await this.store.getFormDraft(id);
-    if (!existing.ok) return { ok: false, code: "storage_error", message: existing.message };
+    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: existing.message };
     const current = existing.value;
     if (
       current !== null &&
@@ -94,7 +95,7 @@ export class FormDraftService {
     ) {
       return {
         ok: false,
-        code: "conflict",
+        code: CONFLICT,
         message: "هذه المسودة حُفظت من نافذة أخرى أحدث — احتفظ بقيمك وراجعها قبل الكتابة فوقها.",
       };
     }
@@ -109,13 +110,13 @@ export class FormDraftService {
       updatedAt: timestamp,
     };
     const saved = await this.store.saveFormDraft(envelope);
-    if (!saved.ok) return { ok: false, code: "storage_error", message: saved.message };
+    if (!saved.ok) return { ok: false, code: STORAGE_ERROR, message: saved.message };
     return { ok: true, value: saved.value };
   }
 
   async discard(formKind: FormDraftKind, scopeId: string | null): Promise<FormDraftDeleteResult> {
     const removed = await this.store.deleteFormDraft(formDraftId(formKind, scopeId));
-    if (!removed.ok) return { ok: false, code: "storage_error", message: removed.message };
+    if (!removed.ok) return { ok: false, code: STORAGE_ERROR, message: removed.message };
     return { ok: true, value: null };
   }
 
@@ -123,7 +124,7 @@ export class FormDraftService {
    * الصادقة وإعادة التعيين المعلنة؛ قراءة فقط بلا أي أثر. */
   async list(): Promise<FormDraftListResult> {
     const result = await this.store.listFormDrafts();
-    if (!result.ok) return { ok: false, code: "storage_error", message: result.message };
+    if (!result.ok) return { ok: false, code: STORAGE_ERROR, message: result.message };
     return { ok: true, value: result.value };
   }
 
@@ -131,7 +132,7 @@ export class FormDraftService {
    * يستدعيه «ابدأ من جديد» فقط بعد نجاح تصفير اللقطة، والسياسة معلنة للمالك. */
   async clearAll(): Promise<FormDraftDeleteResult> {
     const cleared = await this.store.clearFormDrafts();
-    if (!cleared.ok) return { ok: false, code: "storage_error", message: cleared.message };
+    if (!cleared.ok) return { ok: false, code: STORAGE_ERROR, message: cleared.message };
     return { ok: true, value: null };
   }
 }

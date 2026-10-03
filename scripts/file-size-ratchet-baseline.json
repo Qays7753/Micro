@@ -357,10 +357,19 @@
     "src/domain/shared/numeric.ts": "NORMAL",
     "src/domain/supplier-purchase/index.ts": "NORMAL",
     "src/domain/supplier-purchase/policies.ts": "NORMAL",
-    "src/domain/supplier-purchase/types.ts": "NORMAL"
+    "src/domain/supplier-purchase/types.ts": "NORMAL",
+    "apps/prototype-web/client/src/presentation/activityLabels.ts": "NORMAL",
+    "apps/prototype-web/client/src/presentation/formatters.ts": "NORMAL",
+    "apps/prototype-web/client/src/presentation/orderAgreementPresentation.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/budgets/index.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/finance/index.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/financial-records/index.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/inventory/index.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/owner-money/index.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/resultCodes.ts": "NORMAL"
   },
   "generated_at": "2026-10-03",
-  "head": "wave-b-slice2-direction-fix (ADR-011 §2 — 2026-10-03): formatters/activityLabels/agreementPresentation moved to application homes (presentation keeps re-export facades); baseline paths updated in the same PR; R3 edges 14->0",
+  "head": "wave-b-slice3-doors (STR-615/ADR-012 — 2026-10-03): five real-consumer application barrels (finance/budgets/financial-records/owner-money/inventory) + application/resultCodes.ts consolidation (441 sites); baseline synced in the same PR",
   "source": "FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md v1.4 (Wave 4E/RC-9) + census completion STR-607 (Wave A, 2026-10-03) — سجل الجرد هو المصدر؛ هذا الملف أساس الحارس فقط",
   "version": 1
 }

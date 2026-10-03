@@ -8,7 +8,7 @@
  * كتابة (قرار F09).
  */
 import { HandCoins, Landmark } from "lucide-react";
-import type { ProjectFinancialPosition } from "@/application/finance/projectFinancialService";
+import type { ProjectFinancialPosition } from "@/application/finance";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { withReturnTo } from "@/app/navigationContract";
 

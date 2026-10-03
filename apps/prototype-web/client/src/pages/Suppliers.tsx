@@ -8,7 +8,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { SupplierPurchaseSummary } from "@/application/suppliers/supplierPurchaseService";
-import type { PayableDueRow, PayablesAgingOverview } from "@/application/finance/dueDatesService";
+import type { PayableDueRow, PayablesAgingOverview } from "@/application/finance";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatArabicPlural } from "@/presentation/formatters";
 

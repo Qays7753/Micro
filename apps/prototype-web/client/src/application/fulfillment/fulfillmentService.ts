@@ -19,6 +19,7 @@ import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/type
 import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
+import { STORAGE_ERROR } from "@/application/resultCodes";
 
 export type FulfillmentResult =
   | { ok: true; stored: StoredCraftOrder; notice?: string; reused?: boolean }
@@ -683,9 +684,9 @@ export class FulfillmentService {
       this.store.listCashContinuityEntries(),
       this.store.listCashWallets(),
     ]);
-    if (!result.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة الطلبات المحلية." };
+    if (!result.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة الطلبات المحلية." };
     if (!entriesResult.ok || !walletsResult.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة تخصيصات الكاش المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة تخصيصات الكاش المحلية." };
     const walletsById = new Map(walletsResult.value.map(wallet => [wallet.id, wallet.name] as const));
     const entries = entriesResult.value.filter(
       entry => entry.type === "allocation" && entry.sourceRefKind === "order",

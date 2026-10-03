@@ -11,7 +11,7 @@ import type {
   OwnerMovement,
   OwnerMovementReason,
 } from "@micro-domain/owner-entitlement/index.js";
-import type { OwnerEntitlementOverview } from "@/application/finance/ownerEntitlementService";
+import type { OwnerEntitlementOverview } from "@/application/owner-money";
 import { ArrowRight, Check, HandCoins, Save, WalletCards } from "lucide-react";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";

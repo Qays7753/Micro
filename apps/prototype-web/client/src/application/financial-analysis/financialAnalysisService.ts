@@ -31,6 +31,7 @@ import {
   type ShortCashHorizon,
   type ShortCashHorizonDays,
 } from "@/application/finance/shortCashHorizon";
+import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type G5Decision = {
   /* REM-007 (المرحلة ب): القراءة الكاملة للتعادل التشغيلي — الأساس +
@@ -291,13 +292,13 @@ export class FinancialAnalysisService {
     const result = await this.store.listShortCashDeclarations();
     return result.ok
       ? { ok: true, value: result.value }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة المتوقعات المحلية." };
+      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المتوقعات المحلية." };
   }
 
   async listLinkOptions(): Promise<G5Result<G5LinkOptions>> {
     const [orders, events] = await Promise.all([this.store.listOrders(), this.store.listFinancialEvents()]);
     if (!orders.ok || !events.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة الأرصدة القابلة للربط." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة الأرصدة القابلة للربط." };
     const reversedIds = reversedEventIds(events.value);
     const payableEvents = events.value
       .filter(
@@ -357,7 +358,7 @@ export class FinancialAnalysisService {
       !units.ok ||
       !conversions.ok
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة المتوقعات المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المتوقعات المحلية." };
     const contributionOrders = orderInputs(
       orders.value,
       catalogItems.value,
@@ -399,7 +400,7 @@ export class FinancialAnalysisService {
   async readShortCashHorizon(horizonDays: ShortCashHorizonDays): Promise<G5Result<ShortCashHorizonReading>> {
     const horizonResolution = resolveShortCashHorizon(horizonDays, localDateInAmman(this.now()));
     if (!horizonResolution.ok)
-      return { ok: false, code: "validation_error", message: horizonResolution.message };
+      return { ok: false, code: VALIDATION_ERROR, message: horizonResolution.message };
     const { from, to } = horizonResolution.value;
     const [position, orders, events, purchases, declarations] = await Promise.all([
       this.projectFinance.readPosition(),
@@ -409,7 +410,7 @@ export class FinancialAnalysisService {
       this.store.listShortCashDeclarations(),
     ]);
     if (!position.ok || !orders.ok || !events.ok || !purchases.ok || !declarations.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة المتوقعات المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المتوقعات المحلية." };
     const shortCash = calculateShortCash({
       from,
       to,
@@ -424,7 +425,7 @@ export class FinancialAnalysisService {
   async createDeclaration(input: G5DeclarationInput): Promise<G5Result<ShortCashDeclaration>> {
     const declarations = await this.store.listShortCashDeclarations();
     if (!declarations.ok)
-      return { ok: false, code: "storage_error", message: "تعذر التحقق من المتوقعات المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر التحقق من المتوقعات المحلية." };
     const repeated = declarations.value.find(
       declaration =>
         declaration.kind === "declaration" && declaration.idempotencyKey === input.idempotencyKey,
@@ -437,11 +438,11 @@ export class FinancialAnalysisService {
       const saved = await this.store.saveShortCashDeclaration(declaration);
       return saved.ok
         ? { ok: true, value: saved.value }
-        : { ok: false, code: "storage_error", message: "تعذر حفظ السجل المتوقع محليًا." };
+        : { ok: false, code: STORAGE_ERROR, message: "تعذر حفظ السجل المتوقع محليًا." };
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "السجل المتوقع غير صالح.",
       };
     }
@@ -454,12 +455,12 @@ export class FinancialAnalysisService {
   ): Promise<G5Result<ShortCashDeclaration>> {
     const declarations = await this.store.listShortCashDeclarations();
     if (!declarations.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة المتوقعات المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المتوقعات المحلية." };
     const original = declarations.value.find(declaration => declaration.id === idToReverse);
     if (!original)
-      return { ok: false, code: "not_found", message: "السجل المتوقع المطلوب تصحيحه غير موجود." };
+      return { ok: false, code: NOT_FOUND, message: "السجل المتوقع المطلوب تصحيحه غير موجود." };
     if (original.kind !== "declaration")
-      return { ok: false, code: "validation_error", message: "لا يمكن التراجع عن سجل تراجع آخر." };
+      return { ok: false, code: VALIDATION_ERROR, message: "لا يمكن التراجع عن سجل تراجع آخر." };
     const repeated = declarations.value.find(
       declaration => declaration.kind === "reversal" && declaration.idempotencyKey === idempotencyKey,
     );
@@ -471,7 +472,7 @@ export class FinancialAnalysisService {
     )
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "تم التراجع عن هذا السجل المتوقع مسبقًا دون تعديل السجل القديم.",
       };
     try {
@@ -487,13 +488,13 @@ export class FinancialAnalysisService {
         ? { ok: true, value: saved.value, reused: saved.value.id !== reversal.id }
         : {
             ok: false,
-            code: "storage_error",
+            code: STORAGE_ERROR,
             message: "تعذر حفظ تصحيح السجل المتوقع ذريًا؛ بقي الأصل محفوظًا.",
           };
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "تصحيح السجل المتوقع غير صالح.",
       };
     }
@@ -505,33 +506,33 @@ export class FinancialAnalysisService {
   ): Promise<G5Result<null>> {
     if (input.relatedOrderId) {
       if (input.direction !== "collection")
-        return { ok: false, code: "validation_error", message: "ربط الطلب مخصص لتحصيلات العملاء فقط." };
+        return { ok: false, code: VALIDATION_ERROR, message: "ربط الطلب مخصص لتحصيلات العملاء فقط." };
       const order = await this.store.getOrder(input.relatedOrderId);
-      if (!order.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة الطلب المرتبط." };
-      if (!order.value) return { ok: false, code: "not_found", message: "الطلب المرتبط غير موجود." };
+      if (!order.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة الطلب المرتبط." };
+      if (!order.value) return { ok: false, code: NOT_FOUND, message: "الطلب المرتبط غير موجود." };
       if (!isRegisteredCustomerDebt(order.value.order))
-        return { ok: false, code: "validation_error", message: "ربط الطلب مخصص لطلب له دين مسجل." };
+        return { ok: false, code: VALIDATION_ERROR, message: "ربط الطلب مخصص لطلب له دين مسجل." };
       const alreadyDeclared = activeLinkedDeclarationTotal(declarations, input);
       if (alreadyDeclared + input.amountMinor > order.value.order.receivableMinor)
         return {
           ok: false,
-          code: "validation_error",
+          code: VALIDATION_ERROR,
           message: "لا يمكن أن يتجاوز مجموع متوقعات القبض الدين المسجل للطلب.",
         };
     }
     if (input.relatedEventId) {
       if (input.direction !== "commitment")
-        return { ok: false, code: "validation_error", message: "ربط الحدث مخصص لالتزامات المصروف فقط." };
+        return { ok: false, code: VALIDATION_ERROR, message: "ربط الحدث مخصص لالتزامات المصروف فقط." };
       const event = await this.store.getFinancialEvent(input.relatedEventId);
-      if (!event.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة الحدث المرتبط." };
+      if (!event.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة الحدث المرتبط." };
       if (!event.value || event.value.type !== "operating_expense_payable")
-        return { ok: false, code: "not_found", message: "الحدث المرتبط ليس التزام مصروف صالحًا." };
+        return { ok: false, code: NOT_FOUND, message: "الحدث المرتبط ليس التزام مصروف صالحًا." };
       const events = await this.store.listFinancialEvents();
-      if (!events.ok) return { ok: false, code: "storage_error", message: "تعذر التحقق من رصيد الالتزام." };
+      if (!events.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر التحقق من رصيد الالتزام." };
       if (event.value.correctionType === "reverse" || reversedEventIds(events.value).has(event.value.id))
         return {
           ok: false,
-          code: "validation_error",
+          code: VALIDATION_ERROR,
           message: "لا يمكن ربط توقع بالتزام مالي تم التراجع عنه.",
         };
       const paid = activeSettlementsMinor(events.value, event.value!.id);
@@ -539,7 +540,7 @@ export class FinancialAnalysisService {
       if (alreadyDeclared + input.amountMinor > event.value.amountMinor - paid)
         return {
           ok: false,
-          code: "validation_error",
+          code: VALIDATION_ERROR,
           message: "لا يمكن أن يتجاوز مجموع متوقعات الدفع الرصيد المسجل.",
         };
     }

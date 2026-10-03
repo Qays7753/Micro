@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-214 | IN_PROGRESS | \`refactoring/a-to-z-structural-completion-20261003\` | — | ARCH-004 | Wave B: شريحة ضغط المحولين (ADR-012) ثم البراميل ذات المستهلك الفعلي وإعادة توجيه بدائل التنسيق (ADR-011/STR-615/616) ثم C→Z بالترتيب. |
+| WS-214 | IN_PROGRESS | \`refactoring/a-to-z-structural-completion-20261003\` | — | ARCH-004 | Wave C: استخراج القدرات بترتيب ADR-015 (المتكرر → الميزانيات → القروض → التوزيع → الكاش القصير → استحقاق المالك) ثم D→Z. |

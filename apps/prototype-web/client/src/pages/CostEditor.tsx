@@ -11,7 +11,7 @@ import { MaterialSheet } from "@/components/cost/MaterialSheet";
 import {
   readMaterialSuggestions,
   type MaterialSuggestion,
-} from "@/application/inventory/materialSuggestions";
+} from "@/application/inventory";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { DraftCostMaterial, OrderDraft } from "@/storage/local/types";
 

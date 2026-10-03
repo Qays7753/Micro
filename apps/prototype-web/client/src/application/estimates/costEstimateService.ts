@@ -9,6 +9,7 @@ import type {
   DraftCostTime,
   PrototypeLocalStore,
 } from "@/storage/local/types";
+import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type CostEstimateResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -72,7 +73,7 @@ export class CostEstimateService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "مدخلات الحساب غير صالحة.",
       };
     }
@@ -82,14 +83,14 @@ export class CostEstimateService {
     const result = await this.store.listCostEstimates();
     return result.ok
       ? { ok: true, value: result.value }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة التقديرات المحفوظة." };
+      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة التقديرات المحفوظة." };
   }
 
   async get(idValue: string): Promise<CostEstimateResult<CostEstimate | null>> {
     const result = await this.store.getCostEstimate(idValue);
     return result.ok
       ? { ok: true, value: result.value }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة التقدير." };
+      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة التقدير." };
   }
 
   /** حفظ التقدير للمراجعة — أثره صفر على الكاش والأرصدة والمخزون والطلبات. */
@@ -119,13 +120,13 @@ export class CostEstimateService {
     const saved = await this.store.saveCostEstimate(estimate);
     return saved.ok
       ? { ok: true, value: saved.value }
-      : { ok: false, code: "storage_error", message: "تعذر حفظ التقدير." };
+      : { ok: false, code: STORAGE_ERROR, message: "تعذر حفظ التقدير." };
   }
 
   async update(existingId: string, input: CostEstimateInput): Promise<CostEstimateResult<CostEstimate>> {
     const current = await this.store.getCostEstimate(existingId);
-    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة التقدير." };
-    if (!current.value) return { ok: false, code: "validation_error", message: "التقدير غير موجود." };
+    if (!current.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة التقدير." };
+    if (!current.value) return { ok: false, code: VALIDATION_ERROR, message: "التقدير غير موجود." };
     const preview = this.preview(input);
     if (!preview.ok) return preview;
     const updated: CostEstimate = {
@@ -148,7 +149,7 @@ export class CostEstimateService {
     const saved = await this.store.saveCostEstimate(updated);
     return saved.ok
       ? { ok: true, value: saved.value }
-      : { ok: false, code: "storage_error", message: "تعذر تحديث التقدير." };
+      : { ok: false, code: STORAGE_ERROR, message: "تعذر تحديث التقدير." };
   }
 
   /** حذف حر: أداة تفكير بلا أثر مالي — يحذف بلا تحفظ ولا يغيّر أي رصيد. */
@@ -156,6 +157,6 @@ export class CostEstimateService {
     const result = await this.store.deleteCostEstimate(existingId);
     return result.ok
       ? { ok: true, value: null }
-      : { ok: false, code: "storage_error", message: "تعذر حذف التقدير." };
+      : { ok: false, code: STORAGE_ERROR, message: "تعذر حذف التقدير." };
   }
 }

@@ -12,6 +12,7 @@ import {
   type PrototypeLocalStore,
   type StorageFailureCode,
 } from "@/storage/local/types";
+import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type OwnerProfileReadResult =
   { ok: true; value: OwnerProfile | null } | { ok: false; code: StorageFailureCode; message: string };
@@ -84,12 +85,12 @@ export class OwnerProfileService {
     if (email.length > 0 && !isValidEmail(email))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "البريد الإلكتروني اختياري؛ إن أدخلته فليكن بصيغة سليمة مثل name@mail.com.",
       };
     const current = await this.store.getOwnerProfile();
     if (!current.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة ملف المالك. حاول مرة أخرى." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة ملف المالك. حاول مرة أخرى." };
     const base: OwnerProfile = current.value ?? {
       id: localOwnerProfileId,
       ownerId: generateOwnerId(),
@@ -113,7 +114,7 @@ export class OwnerProfileService {
       ? { ok: true, value: saved.value }
       : {
           ok: false,
-          code: "storage_error",
+          code: STORAGE_ERROR,
           message: "لم يُحفظ ملف المالك على هذا الجهاز. تحقق من مساحة التخزين ثم أعد المحاولة.",
         };
   }

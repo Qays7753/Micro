@@ -10,8 +10,8 @@ import { type Dispatch, type ReactNode, type SetStateAction, useRef, useState } 
 import { ActualMaterialPanel, type MaterialState } from "@/components/order/ActualMaterialPanel";
 import { ActualTimePanel } from "@/components/presentation/ActualTimePanel";
 import type { ActualTimeService } from "@/application/time/actualTimeService";
-import type { FulfillmentResult, FulfillmentService } from "@/application/fulfillment/fulfillmentService";
-import type { AgreementResult } from "@/application/agreements/agreementService";
+import { FulfillmentResult, FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { AgreementResult } from "@/application/agreements/agreementService";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { CraftOrder } from "@micro-domain/craft-order/index.js";

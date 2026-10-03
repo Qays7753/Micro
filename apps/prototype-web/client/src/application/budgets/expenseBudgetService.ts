@@ -52,6 +52,7 @@ import {
 } from "@micro-domain/budget/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore, StorageFailure } from "@/storage/local/types";
+import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type ExpenseBudgetResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -136,7 +137,7 @@ export class ExpenseBudgetService {
 
   private async readRecords(): Promise<ExpenseBudgetResult<readonly ExpenseBudgetRecord[]>> {
     const list = await this.store.listExpenseBudgets();
-    if (!list.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الميزانيات." };
+    if (!list.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل الميزانيات." };
     return { ok: true, value: list.value };
   }
 
@@ -149,7 +150,7 @@ export class ExpenseBudgetService {
     if (!isValidBudgetPeriodKey(periodKey))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "مفتاح فترة الميزانية غير صالح (متوقع YYYY-MM).",
       };
     const read = await this.readRecords();
@@ -180,7 +181,7 @@ export class ExpenseBudgetService {
     if (!isValidBudgetPeriodKey(range.from) || !isValidBudgetPeriodKey(range.to))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "مفتاحا نطاق قراءة الميزانيات غير صالحين (متوقع YYYY-MM).",
       };
     const [recordsRead, eventsRead] = await Promise.all([
@@ -189,7 +190,7 @@ export class ExpenseBudgetService {
     ]);
     if (!recordsRead.ok) return recordsRead;
     if (!eventsRead.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة أحداث المصروف لاحتساب المنصرف." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة أحداث المصروف لاحتساب المنصرف." };
     const months = new Set(monthKeysBetween(range.from, range.to));
     const events = eventsRead.value;
     const lines: ExpenseBudgetStatusLine[] = recordsRead.value
@@ -269,7 +270,7 @@ export class ExpenseBudgetService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات الميزانية غير صالحة.",
       };
     }
@@ -283,7 +284,7 @@ export class ExpenseBudgetService {
     const read = await this.readRecords();
     if (!read.ok) return read;
     const previous = read.value.find(record => record.id === id);
-    if (!previous) return { ok: false, code: "validation_error", message: "الميزانية المطلوبة غير موجودة." };
+    if (!previous) return { ok: false, code: VALIDATION_ERROR, message: "الميزانية المطلوبة غير موجودة." };
     try {
       if (input.operationKey) {
         /* إعادة إرسال المراجعة نفسها: خلفها المخزن بمفتاحها يعاد مع سابقته
@@ -310,7 +311,7 @@ export class ExpenseBudgetService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات مراجعة الميزانية غير صالحة.",
       };
     }
@@ -321,7 +322,7 @@ export class ExpenseBudgetService {
     const read = await this.readRecords();
     if (!read.ok) return read;
     const record = read.value.find(candidate => candidate.id === id);
-    if (!record) return { ok: false, code: "validation_error", message: "الميزانية المطلوبة غير موجودة." };
+    if (!record) return { ok: false, code: VALIDATION_ERROR, message: "الميزانية المطلوبة غير موجودة." };
     try {
       const closed = closeExpenseBudget(record, { reason, at: this.now() });
       const saved = await this.store.saveExpenseBudget(closed, record);
@@ -330,7 +331,7 @@ export class ExpenseBudgetService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات إغلاق الميزانية غير صالحة.",
       };
     }
@@ -353,7 +354,7 @@ export class ExpenseBudgetService {
     const read = await this.readRecords();
     if (!read.ok) return read;
     const record = read.value.find(candidate => candidate.id === id);
-    if (!record) return { ok: false, code: "validation_error", message: "الميزانية المطلوبة غير موجودة." };
+    if (!record) return { ok: false, code: VALIDATION_ERROR, message: "الميزانية المطلوبة غير موجودة." };
     try {
       const flipped = flip(record);
       const saved = await this.store.saveExpenseBudget(flipped, record);
@@ -362,7 +363,7 @@ export class ExpenseBudgetService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات هدف الميزانية غير صالحة.",
       };
     }

@@ -30,6 +30,7 @@ import {
   type InventoryActivation,
   type PrototypeLocalStore,
 } from "@/storage/local/types";
+import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
 
 export type InventoryResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -245,7 +246,7 @@ const id = (prefix: string) =>
   globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const storageFailure = <T>(): InventoryResult<T> => ({
   ok: false,
-  code: "storage_error",
+  code: STORAGE_ERROR,
   message: "تعذر حفظ حركة المادة محليًا. لم يتم تأكيد نجاح العملية.",
 });
 /* المجموعة ٩ (STR-029): تاريخ الأعمال من وحدة وقت الأعمال الكنسية —
@@ -265,7 +266,7 @@ export class InventoryMaterialService {
       this.store.listSupplierPurchases(),
     ]);
     if (!materials.ok || !movements.ok || !shortages.ok || !purchases.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة المواد المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المواد المحلية." };
     /* المجموعة ٢ (عقد ٢٨): الإيصالات المعكوسة لا تحسب في المتبقي. */
     const reversedMovementIds = new Set(
       movements.value
@@ -335,7 +336,7 @@ export class InventoryMaterialService {
     const result = await this.store.listInventoryMovements();
     return result.ok
       ? { ok: true, value: result.value }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة حركات المواد المحلية." };
+      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة حركات المواد المحلية." };
   }
   /* القرار ٩: قراءة تفعيل المخزون — المعلن صراحة أولًا، ثم أقدم دليل للموجود القائم. */
   async readActivation(): Promise<InventoryResult<InventoryActivationState>> {
@@ -345,7 +346,7 @@ export class InventoryMaterialService {
       this.store.listInventoryMovements(),
     ]);
     if (!activation.ok || !materials.ok || !movements.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة حالة تفعيل المخزون." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة حالة تفعيل المخزون." };
     if (activation.value)
       return {
         ok: true,
@@ -378,7 +379,7 @@ export class InventoryMaterialService {
   /** القرار ٩: تفعيل صريح بتاريخ اليوم — لحظة معلنة تُعرض، والرصيد يومها يكفي. */
   async activate(input: InventoryActivationInput): Promise<InventoryResult<InventoryActivation>> {
     const current = await this.store.getInventoryActivation();
-    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة حالة تفعيل المخزون." };
+    if (!current.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة حالة تفعيل المخزون." };
     if (current.value) return { ok: true, value: current.value, reused: true };
     const activation: InventoryActivation = {
       id: localInventoryActivationId,
@@ -397,9 +398,9 @@ export class InventoryMaterialService {
       this.store.listInventoryMovements(),
     ]);
     if (!orderResult.ok || !movementsResult.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة فرق المادة المنفذة لهذا الطلب." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة فرق المادة المنفذة لهذا الطلب." };
     if (!orderResult.value)
-      return { ok: false, code: "validation_error", message: "لم نجد الطلب المحلي الذي تريد مراجعة مادته." };
+      return { ok: false, code: VALIDATION_ERROR, message: "لم نجد الطلب المحلي الذي تريد مراجعة مادته." };
     const order = orderResult.value.order;
     const reversedMovementIds = new Set(
       movementsResult.value
@@ -486,7 +487,7 @@ export class InventoryMaterialService {
       !movements.ok ||
       !sales.ok
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة مراجع المادة أو الشراء أو الطلب." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة مراجع المادة أو الشراء أو الطلب." };
     /* المجموعة ٢ (عقد ٢٨): مواد المحررات = المتتبَّعة فقط (وعد «لن تظهر في
      * النماذج»)؛ وكل المواد تبقى لربط الشراء؛ والرصيد الحي لتحذير النقص. */
     const trackedMaterials = materials.value.filter(material => materialIsTracked(material));
@@ -610,7 +611,7 @@ export class InventoryMaterialService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات المادة غير صالحة.",
       };
     }
@@ -622,7 +623,7 @@ export class InventoryMaterialService {
     if (!materialsResult.ok) return storageFailure();
     const material = materialsResult.value.find(candidate => candidate.id === input.materialId);
     if (!material)
-      return { ok: false, code: "validation_error", message: "لم نجد المادة التي تريد إيقاف متابعتها." };
+      return { ok: false, code: VALIDATION_ERROR, message: "لم نجد المادة التي تريد إيقاف متابعتها." };
     if (!materialIsTracked(material)) return { ok: true, value: material, reused: true };
     const updated: Material = {
       ...material,
@@ -642,7 +643,7 @@ export class InventoryMaterialService {
     if (!materialsResult.ok) return storageFailure();
     const material = materialsResult.value.find(candidate => candidate.id === input.materialId);
     if (!material)
-      return { ok: false, code: "validation_error", message: "لم نجد المادة التي تريد تفعيل متابعتها." };
+      return { ok: false, code: VALIDATION_ERROR, message: "لم نجد المادة التي تريد تفعيل متابعتها." };
     if (materialIsTracked(material)) return { ok: true, value: material, reused: true };
     const updated: Material = {
       ...material,
@@ -671,11 +672,11 @@ export class InventoryMaterialService {
     if (!materials.ok || !movements.ok) return storageFailure();
     const material = materials.value.find(candidate => candidate.id === input.materialId);
     if (!material)
-      return { ok: false, code: "validation_error", message: "لم نجد المادة التي تريد تأكيد رصيدها." };
+      return { ok: false, code: VALIDATION_ERROR, message: "لم نجد المادة التي تريد تأكيد رصيدها." };
     if (!materialIsTracked(material))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "المادة غير متتبَّعة — فعّل المتابعة أولًا قبل تأكيد الرصيد.",
       };
     const position = summarizeMaterialInventory(material.id, movements.value);
@@ -683,11 +684,11 @@ export class InventoryMaterialService {
     const repeated = movements.value.find(movement => movement.operationKey === input.operationKey);
     if (repeated) return { ok: true, value: { material, movement: repeated }, reused: true };
     if (input.actualQuantityMilli < 0)
-      return { ok: false, code: "validation_error", message: "الكمية الفعلية لا يمكن أن تكون سالبة." };
+      return { ok: false, code: VALIDATION_ERROR, message: "الكمية الفعلية لا يمكن أن تكون سالبة." };
     if (input.costKnown && (!Number.isInteger(input.valueMinor) || (input.valueMinor as number) < 0))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "قيمة الرصيد المعروفة يجب أن تكون رقمًا غير سالب.",
       };
     try {
@@ -746,7 +747,7 @@ export class InventoryMaterialService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات تأكيد الرصيد غير صالحة.",
       };
     }
@@ -762,22 +763,22 @@ export class InventoryMaterialService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const material = materials.value.find(candidate => candidate.id === input.materialId);
     if (!material)
-      return { ok: false, code: "validation_error", message: "اختر مادة موجودة قبل استلام الشراء." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر مادة موجودة قبل استلام الشراء." };
     /* المجموعة ٢ (عقد ٢٨): الاستلام حركة تتبع — المادة غير المتتبَّعة لا تستلم. */
     if (!materialIsTracked(material))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "المادة غير متتبَّعة — فعّل متابعتها أولًا ثم استلم الشراء.",
       };
     const purchase = purchases.value.find(candidate => candidate.id === input.purchaseId);
     if (!purchase)
-      return { ok: false, code: "validation_error", message: "اختر شراء مواد موجودًا لاستلامه." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر شراء مواد موجودًا لاستلامه." };
     /* المجموعة ٢ (عقد ٢٨): الشراء المرتبط بمادة تُستلم عليها — الربط عقد، لا اقتراح. */
     if (purchase.materialId && purchase.materialId !== input.materialId)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "هذا الشراء مرتبط بمادة أخرى — استلمه على مادته أو عدّل ربط الشراء.",
       };
     const reversedMovementIds = new Set(
@@ -795,7 +796,7 @@ export class InventoryMaterialService {
     if (receivedValue + input.valueMinor > purchase.totalMinor)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "قيمة الاستلام تتجاوز إجمالي شراء المواد المرجعي.",
       };
     /* المجموعة ٢ (عقد ٢٨): حد الكمية المتوقعة — الاستلام الجزئي المتعمد مسموح،
@@ -805,7 +806,7 @@ export class InventoryMaterialService {
       if (receivedQuantity + input.quantityMilli > purchase.expectedQuantityMilli)
         return {
           ok: false,
-          code: "validation_error",
+          code: VALIDATION_ERROR,
           message: "الكمية المستلمة تتجاوز الكمية المتوقعة لهذا الشراء.",
         };
     }
@@ -828,7 +829,7 @@ export class InventoryMaterialService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات استلام الشراء غير صالحة.",
       };
     }
@@ -850,29 +851,29 @@ export class InventoryMaterialService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const material = materials.value.find(candidate => candidate.id === input.materialId);
     if (!material)
-      return { ok: false, code: "validation_error", message: "اختر مادة موجودة قبل تسجيل الاستهلاك." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر مادة موجودة قبل تسجيل الاستهلاك." };
     /* المجموعة ٢ (عقد ٢٨): الاستهلاك حركة تتبع — المادة غير المتتبَّعة لا تُستهلك. */
     if (!materialIsTracked(material))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "المادة غير متتبَّعة — فعّل متابعتها أولًا قبل تسجيل الاستهلاك.",
       };
     if (input.orderId && !order.value)
-      return { ok: false, code: "validation_error", message: "اختر طلبًا محليًا موجودًا لاستهلاك المادة." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر طلبًا محليًا موجودًا لاستهلاك المادة." };
     /* المجموعة ٣ (عقد D6): البيع المرتبط إن ذُكر يجب أن يكون مسجلًا ونشطًا —
      * الملغى لا يُستهلك باسمه (المُنتقي يرى النشط فقط؛ الحارس هنا يطابق). */
     if (
       input.saleId &&
       !sales.value.some(sale => sale.id === input.saleId && (sale.status ?? "active") === "active")
     )
-      return { ok: false, code: "validation_error", message: "اختر بيعًا مباشرًا نشطًا لاستهلاك المادة." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر بيعًا مباشرًا نشطًا لاستهلاك المادة." };
     /* المجموعة ٢ (عقد ٢٨): استهلاك بلا طلب يحتاج بيانًا واضحًا (عمل المشروع).
      * المجموعة ٣ (عقد D6): البيع المباشر مرجع صريح يغني عن البيان. */
     if (!input.orderId && !input.saleId && !input.reason?.trim())
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "استهلاك بلا طلب أو بيع يحتاج بيانًا واضحًا — مثال: تجربة لون لطلب قادم.",
       };
     try {
@@ -899,7 +900,7 @@ export class InventoryMaterialService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات استهلاك المادة غير صالحة.",
       };
     }
@@ -917,18 +918,18 @@ export class InventoryMaterialService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const material = materials.value.find(candidate => candidate.id === input.materialId);
     if (!material)
-      return { ok: false, code: "validation_error", message: "اختر مادة موجودة قبل تسجيل النقص." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر مادة موجودة قبل تسجيل النقص." };
     if (!materialIsTracked(material))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "المادة غير متتبَّعة — النقص حالة تتبع؛ فعّل المتابعة أولًا.",
       };
     const position = assertInventoryRemainsNonNegative(input.materialId, movements.value);
     if (input.requestedQuantityMilli <= position.quantityMilli)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "الكمية متوفرة فعلًا — سجّل استهلاكًا عاديًا، لا نقصًا.",
       };
     try {
@@ -949,7 +950,7 @@ export class InventoryMaterialService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات سجل النقص غير صالحة.",
       };
     }
@@ -975,24 +976,24 @@ export class InventoryMaterialService {
     }
     const material = materials.value.find(candidate => candidate.id === input.materialId);
     if (!material)
-      return { ok: false, code: "validation_error", message: "اختر مادة موجودة قبل تسجيل الاستهلاك." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر مادة موجودة قبل تسجيل الاستهلاك." };
     if (!materialIsTracked(material))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "المادة غير متتبَّعة — فعّل متابعتها أولًا قبل تسجيل الاستهلاك.",
       };
     const position = assertInventoryRemainsNonNegative(input.materialId, movements.value);
     if (input.quantityMilli <= position.quantityMilli)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "الكمية متوفرة — استخدم الاستهلاك العادي، لا مسار النقص.",
       };
     if (position.quantityMilli <= 0)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "لا متاح من هذه المادة الآن — سجّل النقص وحده.",
       };
     try {
@@ -1029,7 +1030,7 @@ export class InventoryMaterialService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات استهلاك المادة مع النقص غير صالحة.",
       };
     }
@@ -1041,7 +1042,7 @@ export class InventoryMaterialService {
     if (!shortagesResult.ok) return storageFailure();
     const shortage = shortagesResult.value.find(candidate => candidate.id === input.shortageId);
     if (!shortage)
-      return { ok: false, code: "validation_error", message: "لم نجد سجل النقص الذي تريد حلّه." };
+      return { ok: false, code: VALIDATION_ERROR, message: "لم نجد سجل النقص الذي تريد حلّه." };
     if (shortage.status === "resolved") return { ok: true, value: shortage, reused: true };
     try {
       const resolved = applyInventoryShortageResolution(shortage, {
@@ -1053,7 +1054,7 @@ export class InventoryMaterialService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات حل النقص غير صالحة.",
       };
     }
@@ -1062,7 +1063,7 @@ export class InventoryMaterialService {
     const result = await this.store.listInventoryShortages();
     return result.ok
       ? { ok: true, value: result.value }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة سجلات النقص المحلية." };
+      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات النقص المحلية." };
   }
   async waste(input: WasteMaterialInput): Promise<InventoryResult<InventoryMovement>> {
     return this.outbound({ ...input, type: "waste" });
@@ -1081,12 +1082,12 @@ export class InventoryMaterialService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const material = materials.value.find(candidate => candidate.id === input.materialId);
     if (!material)
-      return { ok: false, code: "validation_error", message: "اختر مادة موجودة قبل إخراج الفاقد." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر مادة موجودة قبل إخراج الفاقد." };
     /* SA-5 (F2): الإخراج حركة هدر — المادة غير المتتبَّعة لا تُخرج رصيدًا. */
     if (!materialIsTracked(material))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "المادة غير متتبَّعة — فعّل متابعتها أولًا قبل إخراج الفاقد.",
       };
     try {
@@ -1116,7 +1117,7 @@ export class InventoryMaterialService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات إخراج الفاقد غير صالحة.",
       };
     }
@@ -1130,11 +1131,11 @@ export class InventoryMaterialService {
     const repeated = movements.value.find(movement => movement.operationKey === input.operationKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     const material = materials.value.find(candidate => candidate.id === input.materialId);
-    if (!material) return { ok: false, code: "validation_error", message: "اختر مادة موجودة قبل ضبطها." };
+    if (!material) return { ok: false, code: VALIDATION_ERROR, message: "اختر مادة موجودة قبل ضبطها." };
     if (!materialIsTracked(material))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "المادة غير متتبَّعة — فعّل متابعتها أولًا قبل الضبط.",
       };
     try {
@@ -1180,7 +1181,7 @@ export class InventoryMaterialService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات ضبط المادة غير صالحة.",
       };
     }
@@ -1193,11 +1194,11 @@ export class InventoryMaterialService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const target = movements.find(movement => movement.id === input.movementId);
     if (!target)
-      return { ok: false, code: "validation_error", message: "لم نجد حركة المادة التي تريد التراجع عنها." };
+      return { ok: false, code: VALIDATION_ERROR, message: "لم نجد حركة المادة التي تريد التراجع عنها." };
     if (target.type === "reversal" || movements.some(movement => movement.reversesMovementId === target.id))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "تم التراجع عن هذه الحركة سابقًا ولا يمكن التراجع عنها مرة ثانية.",
       };
     try {
@@ -1248,7 +1249,7 @@ export class InventoryMaterialService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات التراجع عن المادة غير صالحة.",
       };
     }
@@ -1265,12 +1266,12 @@ export class InventoryMaterialService {
     if (repeated) return { ok: true, value: repeated, reused: true };
     const material = materials.value.find(candidate => candidate.id === input.materialId);
     if (!material)
-      return { ok: false, code: "validation_error", message: "اختر مادة موجودة قبل تسجيل الهدر." };
+      return { ok: false, code: VALIDATION_ERROR, message: "اختر مادة موجودة قبل تسجيل الهدر." };
     /* المجموعة ٢ (عقد ٢٨): الهدر حركة تتبع — المادة غير المتتبَّعة لا تهدر رصيدًا. */
     if (!materialIsTracked(material))
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: "المادة غير متتبَّعة — فعّل متابعتها أولًا قبل تسجيل الهدر.",
       };
     const context = input.wasteContext ?? { kind: "general_project" as const };
@@ -1278,7 +1279,7 @@ export class InventoryMaterialService {
       const order = await this.store.getOrder(context.orderId);
       if (!order.ok) return storageFailure();
       if (!order.value)
-        return { ok: false, code: "validation_error", message: "الطلب المرتبط بالهدر غير موجود محليًا." };
+        return { ok: false, code: VALIDATION_ERROR, message: "الطلب المرتبط بالهدر غير موجود محليًا." };
     }
     if (context.kind === "catalog_item") {
       const item = await this.store.getCatalogItem(context.catalogItemId);
@@ -1286,7 +1287,7 @@ export class InventoryMaterialService {
       if (!item.value)
         return {
           ok: false,
-          code: "validation_error",
+          code: VALIDATION_ERROR,
           message: "مرجع العمل المرتبط بالهدر غير موجود محليًا.",
         };
     }
@@ -1299,7 +1300,7 @@ export class InventoryMaterialService {
       if (!item.value || !template.value || template.value.catalogItemId !== context.catalogItemId)
         return {
           ok: false,
-          code: "validation_error",
+          code: VALIDATION_ERROR,
           message: "قالب الهدر غير موجود أو لا يتبع مرجع العمل المحدد.",
         };
     }
@@ -1348,7 +1349,7 @@ export class InventoryMaterialService {
     } catch (error) {
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: error instanceof Error ? error.message : "بيانات هدر المادة غير صالحة.",
       };
     }
@@ -1407,7 +1408,7 @@ export class InventoryMaterialService {
   async readPeriodWaste(from: string, to: string): Promise<InventoryResult<PeriodWasteReading>> {
     const movementsResult = await this.store.listInventoryMovements();
     if (!movementsResult.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة حركات المخزون المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة حركات المخزون المحلية." };
     const reversedMovementIds = new Set(
       movementsResult.value
         .filter(movement => movement.type === "reversal" && movement.reversesMovementId)
