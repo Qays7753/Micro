@@ -1,6 +1,11 @@
 /** Application boundary for local setup. It validates profile inputs before any LocalStore write. */
 import { localProfileId, type ActivityProfile, type PrototypeLocalStore } from "@/storage/local/types";
-import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import {
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  storageFailure,
+  validationFailure,
+} from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type ProfileSaveResult =
@@ -18,14 +23,9 @@ export class ProfileService {
   async save(activityName: string): Promise<ProfileSaveResult> {
     const normalizedName = activityName.trim();
     if (!normalizedName)
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: "اسم النشاط: اكتب اسم النشاط أو اسمك أولًا، ثم أعد المحاولة.",
-      };
+      return validationFailure("اسم النشاط: اكتب اسم النشاط أو اسمك أولًا، ثم أعد المحاولة.");
     const current = await this.store.getProfile();
-    if (!current.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة التأسيس المحلي. حاول مرة أخرى." };
+    if (!current.ok) return storageFailure("تعذر قراءة التأسيس المحلي. حاول مرة أخرى.");
     const timestamp = this.now();
     const profile: ActivityProfile = {
       id: localProfileId,
@@ -38,10 +38,6 @@ export class ProfileService {
     const saved = await this.store.saveProfile(profile);
     return saved.ok
       ? { ok: true, profile: saved.value }
-      : {
-          ok: false,
-          code: STORAGE_ERROR,
-          message: "لم يتم حفظ التأسيس على هذا الجهاز. تحقق من مساحة التخزين ثم أعد المحاولة.",
-        };
+      : storageFailure("لم يتم حفظ التأسيس على هذا الجهاز. تحقق من مساحة التخزين ثم أعد المحاولة.");
   }
 }

@@ -6,7 +6,7 @@
 import { summarizeCashContinuity } from "@micro-domain/cash-continuity/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
-import { NOT_FOUND, STORAGE_ERROR } from "@/application/resultCodes";
+import { NOT_FOUND, STORAGE_ERROR, notFoundFailure, storageFailure } from "@/application/resultCodes";
 
 export type WalletLedgerRowKind =
   | "opening"
@@ -85,10 +85,9 @@ export class WalletLedgerService {
       this.store.listCashWallets(),
       this.store.listCashContinuityEntries(),
     ]);
-    if (!wallets.ok || !entries.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل المحفظة المحلي." };
+    if (!wallets.ok || !entries.ok) return storageFailure("تعذر قراءة سجل المحفظة المحلي.");
     const wallet = wallets.value.find(candidate => candidate.id === walletId);
-    if (!wallet) return { ok: false, code: NOT_FOUND, message: "لم تُعثر على هذه المحفظة." };
+    if (!wallet) return notFoundFailure("لم تُعثر على هذه المحفظة.");
     const walletEntries = entries.value
       .filter(entry => entry.walletId === walletId)
       .slice()

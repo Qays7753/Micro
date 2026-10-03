@@ -11,7 +11,11 @@ import {
 } from "@micro-domain/financial-event/index.js";
 import { summarizeLocalCraftOrders } from "@/application/financial-pulse/financialPulseService";
 import type { OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
-import { FINANCIAL_EVENTS_READ_FAILED_MESSAGE, STORAGE_ERROR } from "@/application/resultCodes";
+import {
+  FINANCIAL_EVENTS_READ_FAILED_MESSAGE,
+  STORAGE_ERROR,
+  storageFailure,
+} from "@/application/resultCodes";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type {
   FinanceResult,
@@ -49,7 +53,7 @@ export async function readPosition(
     !ownerMovementsResult.ok ||
     !directSalesResult.ok
   )
-    return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة السجلات المالية المحلية." };
+    return storageFailure("تعذر قراءة السجلات المالية المحلية.");
   const orderPulse = summarizeLocalCraftOrders(ordersResult.value);
   const project = summarizeFinancialEvents(eventsResult.value);
   /* §٥-١٣ (المرحلة أ): تحصيل البيع المباشر كاش كأي تحصيل — يدخل الكاش غير الموزع
@@ -187,16 +191,14 @@ export async function listEvents(
   store: PrototypeLocalStore,
 ): Promise<FinanceResult<readonly FinancialEvent[]>> {
   const result = await store.listFinancialEvents();
-  return result.ok
-    ? { ok: true, value: result.value }
-    : { ok: false, code: STORAGE_ERROR, message: FINANCIAL_EVENTS_READ_FAILED_MESSAGE };
+  return result.ok ? { ok: true, value: result.value } : storageFailure(FINANCIAL_EVENTS_READ_FAILED_MESSAGE);
 }
 
 export async function listSettleablePayables(
   store: PrototypeLocalStore,
 ): Promise<FinanceResult<readonly SettleablePayable[]>> {
   const events = await store.listFinancialEvents();
-  if (!events.ok) return { ok: false, code: STORAGE_ERROR, message: FINANCIAL_EVENTS_READ_FAILED_MESSAGE };
+  if (!events.ok) return storageFailure(FINANCIAL_EVENTS_READ_FAILED_MESSAGE);
   const reversedIds = reversedEventIds(events.value);
   return {
     ok: true,

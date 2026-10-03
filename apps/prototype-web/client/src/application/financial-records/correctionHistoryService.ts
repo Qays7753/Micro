@@ -13,7 +13,7 @@ import {
   formatMoneyWithUnit,
   formatQuantityMilli,
 } from "@/application/formatting/formatters";
-import { STORAGE_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 
 /* Wave C (ADR-015 مجموعة 6 — 2026-10-04): النوع الضيق للقارئ — قراءة حركات
  * المالك وحدها من قدرة الاستحقاق (عرضية مصرح بها) زائد قراءات الأصول
@@ -147,7 +147,7 @@ export class CorrectionHistoryService {
    * نطاق: كل التاريخ. الصافي مجموع الآثار الموقعة، وnull إن تعذر أي رقم. */
   async affecting(from?: string, to?: string): Promise<CorrectionDigestResult> {
     const list = await this.list();
-    if (!list.ok) return { ok: false, code: STORAGE_ERROR, message: list.message };
+    if (!list.ok) return storageFailure(list.message);
     const entries = list.value.filter(entry => {
       if (!entry.occurredOn) return from === undefined && to === undefined;
       if (from !== undefined && entry.occurredOn < from) return false;
@@ -191,7 +191,7 @@ export class CorrectionHistoryService {
       !assetsResult.ok ||
       !ownerMovementsResult.ok
     )
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل التصحيحات المحلي." };
+      return storageFailure("تعذر قراءة سجل التصحيحات المحلي.");
 
     const events = eventsResult.value;
     const byId = new Map(events.map(event => [event.id, event] as const));

@@ -14,7 +14,13 @@ import {
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { storageFailureCode } from "@/storage/local/types";
 import type { SupplierPurchaseCommit } from "@/storage/local/supplierScheduleCommitGuard";
-import { STORAGE_ERROR, VALIDATION_ERROR, errorMessageOf } from "@/application/resultCodes";
+import {
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  errorMessageOf,
+  storageFailure,
+  validationFailure,
+} from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type SupplierPurchaseInput = {
@@ -105,19 +111,16 @@ export class SupplierPurchaseService {
       this.store.listCashWallets(),
       this.store.listCashContinuityEntries(),
     ]);
-    if (!walletsResult.ok || !entriesResult.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المحافظ قبل تسجيل الدفعة." };
+    if (!walletsResult.ok || !entriesResult.ok) return storageFailure("تعذر قراءة المحافظ قبل تسجيل الدفعة.");
     const wallet = walletsResult.value.find(candidate => candidate.id === walletId);
-    if (!wallet) return { ok: false, code: VALIDATION_ERROR, message: "اختر محفظة موجودة قبل حفظ الدفعة." };
+    if (!wallet) return validationFailure("اختر محفظة موجودة قبل حفظ الدفعة.");
     const walletBalanceMinor = summarizeCashContinuity(
       entriesResult.value.filter(entry => entry.walletId === wallet.id),
     );
     if (walletBalanceMinor < amountMinor)
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: "رصيد المحفظة لا يغطي هذه الدفعة — اختر محفظة أخرى أو اصرفها من الكاش غير الموزع صراحةً.",
-      };
+      return validationFailure(
+        "رصيد المحفظة لا يغطي هذه الدفعة — اختر محفظة أخرى أو اصرفها من الكاش غير الموزع صراحةً.",
+      );
     return { ok: true, value: { walletBalanceMinor } };
   }
 
@@ -152,13 +155,12 @@ export class SupplierPurchaseService {
     const purchases = await this.store.listSupplierPurchases();
     return purchases.ok
       ? { ok: true, value: purchases.value }
-      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة مشتريات الموردين المحلية." };
+      : storageFailure("تعذر قراءة مشتريات الموردين المحلية.");
   }
 
   async readSummary(): Promise<SupplierPurchaseResult<SupplierPurchaseSummary>> {
     const purchases = await this.store.listSupplierPurchases();
-    if (!purchases.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة مشتريات الموردين المحلية." };
+    if (!purchases.ok) return storageFailure("تعذر قراءة مشتريات الموردين المحلية.");
     const supplierPayablesMinor = purchases.value.reduce((sum, purchase) => sum + purchase.payableMinor, 0);
     const recordedCashPaidMinor = purchases.value.reduce((sum, purchase) => sum + purchase.paidMinor, 0);
     const openPurchaseCount = purchases.value.filter(purchase => purchase.payableMinor > 0).length;
@@ -230,11 +232,7 @@ export class SupplierPurchaseService {
         };
       return { ok: true, value: saved.value.purchase, reused: saved.value.reused, attributionNote: null };
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "بيانات الشراء غير صالحة."),
-      };
+      return validationFailure(errorMessageOf(error, "بيانات الشراء غير صالحة."));
     }
   }
 
@@ -242,9 +240,8 @@ export class SupplierPurchaseService {
     input: SupplierPurchasePaymentInput,
   ): Promise<SupplierPurchaseResult<SupplierPurchase>> {
     const existing = await this.store.getSupplierPurchase(input.purchaseId);
-    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة شراء المورد." };
-    if (!existing.value)
-      return { ok: false, code: VALIDATION_ERROR, message: "اختر شراء مواد مسجلًا قبل تسجيل الدفعة." };
+    if (!existing.ok) return storageFailure("تعذر قراءة شراء المورد.");
+    if (!existing.value) return validationFailure("اختر شراء مواد مسجلًا قبل تسجيل الدفعة.");
     const walletId = input.walletId?.trim() || null;
     try {
       /* FIN-003: تحقق الرصيد قبل أي كتابة — رفض صريح بلا حفظ جزئي. */
@@ -288,11 +285,7 @@ export class SupplierPurchaseService {
         };
       return { ok: true, value: saved.value.purchase, reused: saved.value.reused, attributionNote: null };
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "بيانات الدفعة غير صالحة."),
-      };
+      return validationFailure(errorMessageOf(error, "بيانات الدفعة غير صالحة."));
     }
   }
 
@@ -305,12 +298,9 @@ export class SupplierPurchaseService {
       this.store.getSupplierPurchase(input.purchaseId),
       this.store.listInventoryMovements(),
     ]);
-    if (!existing.ok || !movements.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة شراء المورد." };
-    if (!existing.value)
-      return { ok: false, code: VALIDATION_ERROR, message: "اختر شراء مواد مسجلًا قبل تعديله." };
-    if (!input.reason.trim())
-      return { ok: false, code: VALIDATION_ERROR, message: "اكتب سبب التعديل قبل الحفظ." };
+    if (!existing.ok || !movements.ok) return storageFailure("تعذر قراءة شراء المورد.");
+    if (!existing.value) return validationFailure("اختر شراء مواد مسجلًا قبل تعديله.");
+    if (!input.reason.trim()) return validationFailure("اكتب سبب التعديل قبل الحفظ.");
     const reversedMovementIds = new Set(
       movements.value
         .filter(movement => movement.type === "reversal" && movement.reversesMovementId)
@@ -346,11 +336,9 @@ export class SupplierPurchaseService {
         0,
       );
       if (input.expectedQuantityMilli < receivedQuantityMilli)
-        return {
-          ok: false,
-          code: VALIDATION_ERROR,
-          message: "الكمية المتوقعة الجديدة أقل من الكمية المستلمة الموثقة — راجع إيصالات الاستلام أولًا.",
-        };
+        return validationFailure(
+          "الكمية المتوقعة الجديدة أقل من الكمية المستلمة الموثقة — راجع إيصالات الاستلام أولًا.",
+        );
     }
     try {
       const updated = updateSupplierPurchase(existing.value, {
@@ -382,11 +370,7 @@ export class SupplierPurchaseService {
             message: saved.message ?? "تعذر حفظ تعديل الشراء محليًا — بقي الأصل دون تغيير؛ أعد المحاولة.",
           };
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "بيانات تعديل الشراء غير صالحة."),
-      };
+      return validationFailure(errorMessageOf(error, "بيانات تعديل الشراء غير صالحة."));
     }
   }
 
@@ -396,11 +380,9 @@ export class SupplierPurchaseService {
     input: SupplierPaymentReversalInput,
   ): Promise<SupplierPurchaseResult<SupplierPurchase>> {
     const existing = await this.store.getSupplierPurchase(input.purchaseId);
-    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة شراء المورد." };
-    if (!existing.value)
-      return { ok: false, code: VALIDATION_ERROR, message: "اختر شراء مواد مسجلًا قبل التراجع عن دفعته." };
-    if (!input.reason.trim())
-      return { ok: false, code: VALIDATION_ERROR, message: "اكتب سبب التراجع قبل الحفظ." };
+    if (!existing.ok) return storageFailure("تعذر قراءة شراء المورد.");
+    if (!existing.value) return validationFailure("اختر شراء مواد مسجلًا قبل التراجع عن دفعته.");
+    if (!input.reason.trim()) return validationFailure("اكتب سبب التراجع قبل الحفظ.");
     try {
       const updated = reverseSupplierPurchasePayment(existing.value, {
         id: id(),
@@ -426,11 +408,7 @@ export class SupplierPurchaseService {
             message: saved.message ?? "تعذر حفظ التراجع محليًا. بقي الدفع دون تغيير.",
           };
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "بيانات التراجع غير صالحة."),
-      };
+      return validationFailure(errorMessageOf(error, "بيانات التراجع غير صالحة."));
     }
   }
 }

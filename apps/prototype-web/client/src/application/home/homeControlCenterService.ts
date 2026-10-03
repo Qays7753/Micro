@@ -23,7 +23,7 @@ import {
   type HomeTodayItem,
   type HomeTodaySection,
 } from "./homeControlCenterModel";
-import { STORAGE_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type HomeControlCenterResult =
@@ -129,7 +129,7 @@ export class HomeControlCenterService {
       !previousMonthPeriod.ok ||
       !profile.value
     )
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة بيانات مشروعك المحلية." };
+      return storageFailure("تعذر قراءة بيانات مشروعك المحلية.");
 
     const orders = followUp.orders;
     const openDrafts = followUp.drafts;

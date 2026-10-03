@@ -35,3 +35,17 @@ export const ORDERS_READ_FAILED_MESSAGE = "تعذر قراءة الطلبات ا
 export function errorMessageOf(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
+
+/* Wave F (STR-608 — تكثيف هامش GZIP الجولة الثانية، 2026-10-04): بواني الفشل
+ * الموحدة — الكائن الحرفي `{ ok: false, code: X, message: Y }` كان يُبنى في
+ * ٢٦٨ موقعًا عبر بيوت التطبيق فيطبعه المُصغِّر في حزمة الدخول كل مرة؛ الباني
+ * الواحد يبني الحقول الثلاثة نفسها بالنوع الحرفي نفسه (نمط ADR-012). */
+export function validationFailure(message: string) {
+  return { ok: false, code: VALIDATION_ERROR, message } as const;
+}
+export function storageFailure(message: string) {
+  return { ok: false, code: STORAGE_ERROR, message } as const;
+}
+export function notFoundFailure(message: string) {
+  return { ok: false, code: NOT_FOUND, message } as const;
+}

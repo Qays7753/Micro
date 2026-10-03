@@ -12,7 +12,12 @@ import {
   type PrototypeLocalStore,
   type StorageFailureCode,
 } from "@/storage/local/types";
-import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import {
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  storageFailure,
+  validationFailure,
+} from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type OwnerProfileReadResult =
@@ -84,14 +89,9 @@ export class OwnerProfileService {
     const displayName = normalizeDisplayName(input.displayName);
     const email = (input.email ?? "").trim();
     if (email.length > 0 && !isValidEmail(email))
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: "البريد الإلكتروني اختياري؛ إن أدخلته فليكن بصيغة سليمة مثل name@mail.com.",
-      };
+      return validationFailure("البريد الإلكتروني اختياري؛ إن أدخلته فليكن بصيغة سليمة مثل name@mail.com.");
     const current = await this.store.getOwnerProfile();
-    if (!current.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة ملف المالك. حاول مرة أخرى." };
+    if (!current.ok) return storageFailure("تعذر قراءة ملف المالك. حاول مرة أخرى.");
     const base: OwnerProfile = current.value ?? {
       id: localOwnerProfileId,
       ownerId: generateOwnerId(),
@@ -113,10 +113,6 @@ export class OwnerProfileService {
     const saved = await this.store.saveOwnerProfile(next);
     return saved.ok
       ? { ok: true, value: saved.value }
-      : {
-          ok: false,
-          code: STORAGE_ERROR,
-          message: "لم يُحفظ ملف المالك على هذا الجهاز. تحقق من مساحة التخزين ثم أعد المحاولة.",
-        };
+      : storageFailure("لم يُحفظ ملف المالك على هذا الجهاز. تحقق من مساحة التخزين ثم أعد المحاولة.");
   }
 }

@@ -15,7 +15,7 @@ import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/i
 import { projectDeliveryCostMinor as orderDeliveryCostMinor } from "@micro-domain/craft-order/index.js";
 import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
-import { STORAGE_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { CogsStatus, FinanceResult, RecordedPeriodResult } from "./projectFinancialTypes";
 
@@ -146,7 +146,7 @@ export async function readRecordedPeriodResult(
     !materialsResult.ok ||
     !directSalesResult.ok
   )
-    return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة نتيجة الفترة المحلية." };
+    return storageFailure("تعذر قراءة نتيجة الفترة المحلية.");
   /* القرار ٩/١٠: تاريخ بدء إدارة المخزون — المعلن صراحة أو أقدم دليل للموجود القائم. */
   const inventoryManagedFrom =
     activationResult.value?.activatedOn ??

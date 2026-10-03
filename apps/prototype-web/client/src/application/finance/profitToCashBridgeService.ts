@@ -29,7 +29,7 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
-import { STORAGE_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type ProfitToCashBridgeStatus = "recorded_only" | "incomplete" | "invalid";
@@ -125,7 +125,7 @@ export class ProfitToCashBridgeService {
       !continuityResult.ok ||
       !movementsResult.ok
     )
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات الجسر المحلية." };
+      return storageFailure("تعذر قراءة سجلات الجسر المحلية.");
     const from = period.from;
     const to = period.to;
     const periodReading = periodResult.value;

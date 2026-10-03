@@ -12,7 +12,7 @@ import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { calculateBreakEven } from "@micro-domain/financial-analysis/index.js";
 import { expenseInputs, orderInputs } from "@/application/financial-analysis/financialAnalysisService";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
-import { STORAGE_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type {
   CoverageIndicator,
@@ -69,7 +69,7 @@ export async function readFinancialInsights(
     !unitsResult.ok ||
     !conversionsResult.ok
   )
-    return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة مؤشرات الفترة المحلية." };
+    return storageFailure("تعذر قراءة مؤشرات الفترة المحلية.");
   const inPeriod = (date: string) => date >= from && date <= to;
   /* FT-01 (المجموعة ٦): آخر تسليم ساري — انظر أعلاه. */
   const delivered = ordersResult.value

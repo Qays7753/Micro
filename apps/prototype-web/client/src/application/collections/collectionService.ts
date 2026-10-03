@@ -15,7 +15,14 @@ import type { DirectSaleService } from "@/application/direct-sales/directSaleSer
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { formatMoneyWithUnit } from "@/application/formatting/formatters";
 import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
-import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import {
+  NOT_FOUND,
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  notFoundFailure,
+  storageFailure,
+  validationFailure,
+} from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type ReceivableSourceKind = "order" | "direct_sale";
@@ -76,8 +83,7 @@ export class CollectionService {
       this.store.listOrders(),
       this.store.listDirectSales(),
     ]);
-    if (!ordersResult.ok || !salesResult.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات الذمم المحلية." };
+    if (!ordersResult.ok || !salesResult.ok) return storageFailure("تعذر قراءة سجلات الذمم المحلية.");
 
     const sources: ReceivableSource[] = [];
     for (const stored of ordersResult.value as readonly StoredCraftOrder[]) {
@@ -137,11 +143,7 @@ export class CollectionService {
     if (!list.ok) return list;
     const source = list.value.find(item => item.kind === kind && item.id === sourceId);
     if (!source)
-      return {
-        ok: false,
-        code: NOT_FOUND,
-        message: "لا توجد ذمة قابلة للتحصيل بهذا السجل — ربما حُصّلت كاملة أو أُلغيت.",
-      };
+      return notFoundFailure("لا توجد ذمة قابلة للتحصيل بهذا السجل — ربما حُصّلت كاملة أو أُلغيت.");
     return { ok: true, value: source };
   }
 
@@ -150,7 +152,7 @@ export class CollectionService {
     const source = await this.findSource(input.sourceKind, input.sourceId);
     if (!source.ok) return source;
     if (!Number.isInteger(input.amountMinor) || input.amountMinor <= 0)
-      return { ok: false, code: VALIDATION_ERROR, message: "أدخل مبلغ التحصيل رقمًا صحيحًا موجبًا." };
+      return validationFailure("أدخل مبلغ التحصيل رقمًا صحيحًا موجبًا.");
     if (input.amountMinor > source.value.outstandingMinor)
       return {
         ok: false,
@@ -166,13 +168,13 @@ export class CollectionService {
         input.amountMinor,
         input.idempotencyKey,
       );
-      if (!result.ok) return { ok: false, code: VALIDATION_ERROR, message: result.message };
+      if (!result.ok) return validationFailure(result.message);
       remainingAfterMinor = result.stored.order.receivableMinor;
     } else {
       const saleResult = await this.directSales.get(input.sourceId);
-      if (!saleResult.ok) return { ok: false, code: STORAGE_ERROR, message: saleResult.message };
+      if (!saleResult.ok) return storageFailure(saleResult.message);
       const sale = saleResult.value;
-      if (!sale) return { ok: false, code: NOT_FOUND, message: "بيع مباشر غير موجود." };
+      if (!sale) return notFoundFailure("بيع مباشر غير موجود.");
       const collectedMinor = sale.collectedMinor + input.amountMinor;
       /* التحصيل لا يمس بيانات البيع الأخرى: الزبون والكتالوج كما هما،
        * والتحديث يرفع المقبوض فقط ويعلن حالته الصادقة. */
@@ -192,7 +194,7 @@ export class CollectionService {
         /* FC-09 (العقد ٤): التحصيل يُوثَّق تحصيلًا في سجل المراجعات لا تصحيحًا. */
         revisionReason: "تحصيل دفعة من ورقة التحصيل",
       });
-      if (!update.ok) return { ok: false, code: VALIDATION_ERROR, message: update.message };
+      if (!update.ok) return validationFailure(update.message);
       reused = update.reused ?? false;
       remainingAfterMinor = Math.max(update.value.revenueMinor - update.value.collectedMinor, 0);
     }

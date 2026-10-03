@@ -11,7 +11,14 @@ import type {
 import { storageFailureCode } from "@/storage/local/types";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
-import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import {
+  NOT_FOUND,
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  notFoundFailure,
+  storageFailure,
+  validationFailure,
+} from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type ScheduledOrder = {
@@ -184,8 +191,7 @@ export class ScheduleService {
       this.store.listSchedules(),
       this.store.listOrders(),
     ]);
-    if (!schedulesResult.ok || !ordersResult.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة جدول المواعيد المحلي." };
+    if (!schedulesResult.ok || !ordersResult.ok) return storageFailure("تعذر قراءة جدول المواعيد المحلي.");
     const schedules = [...schedulesResult.value];
     const scheduledOrderIds = new Set(schedules.map(schedule => schedule.orderId));
     const missing = ordersResult.value.filter(order => !scheduledOrderIds.has(order.id)).map(initialSchedule);
@@ -193,8 +199,7 @@ export class ScheduleService {
       /* المجموعة ٢ (التحصين الكامل — HIGH-001): التسديد الأول كتابة أولى فقط —
        * وجوده من مسار آخر إعادة استخدام لا كتابة فوقه. */
       const saved = await this.store.commitScheduleCreate(schedule);
-      if (!saved.ok)
-        return { ok: false, code: STORAGE_ERROR, message: "تعذر تجهيز موعد محفوظ للطلب السابق." };
+      if (!saved.ok) return storageFailure("تعذر تجهيز موعد محفوظ للطلب السابق.");
       schedules.push(saved.value.schedule);
     }
     return { ok: true, value: { schedules, orders: ordersResult.value } };
@@ -282,12 +287,12 @@ export class ScheduleService {
     const result = await this.store.getPreferences();
     return result.ok
       ? { ok: true, value: result.value?.dailyScheduleCapacityMinutes ?? null }
-      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سعة اليوم المحلية." };
+      : storageFailure("تعذر قراءة سعة اليوم المحلية.");
   }
 
   async setDailyCapacity(minutes: number | null): Promise<ScheduleResult<number | null>> {
     if (minutes !== null && !validDuration(minutes))
-      return { ok: false, code: VALIDATION_ERROR, message: "سعة اليوم تكون مضاعف 15 دقيقة بين 15 و720." };
+      return validationFailure("سعة اليوم تكون مضاعف 15 دقيقة بين 15 و720.");
     /* EXE-002 (AUD-NEW-02): التحديث عبر بوابة merge الموحدة — سعة اليوم لا
      * تُسقط disabledCapabilities ولا أي حقل قائم (كانت الكتابة الكاملة اليدوية
      * تعيد تفعيل القدرات الموقوفة بصمت). */
@@ -298,11 +303,7 @@ export class ScheduleService {
     );
     return saved.ok
       ? { ok: true, value: saved.value.dailyScheduleCapacityMinutes }
-      : {
-          ok: false,
-          code: STORAGE_ERROR,
-          message: "تعذر حفظ سعة اليوم محليًا. لم يتم تأكيد نجاح العملية.",
-        };
+      : storageFailure("تعذر حفظ سعة اليوم محليًا. لم يتم تأكيد نجاح العملية.");
   }
 
   async overview(): Promise<ScheduleResult<ScheduleOverview>> {
@@ -355,8 +356,7 @@ export class ScheduleService {
   }
 
   async monthOverview(month: string): Promise<ScheduleResult<MonthOverview>> {
-    if (!validMonth(month))
-      return { ok: false, code: VALIDATION_ERROR, message: "أدخل شهرًا بصيغة YYYY-MM صحيحة." };
+    if (!validMonth(month)) return validationFailure("أدخل شهرًا بصيغة YYYY-MM صحيحة.");
     const [records, capacity] = await Promise.all([this.reconciled(), this.dailyCapacity()]);
     if (!records.ok) return records;
     if (!capacity.ok) return capacity;
@@ -407,55 +407,37 @@ export class ScheduleService {
     const records = await this.reconciled();
     if (!records.ok) return records;
     const schedule = records.value.schedules.find(candidate => candidate.orderId === orderId);
-    return schedule
-      ? { ok: true, value: schedule }
-      : { ok: false, code: NOT_FOUND, message: "لا يوجد موعد محلي لهذا الطلب." };
+    return schedule ? { ok: true, value: schedule } : notFoundFailure("لا يوجد موعد محلي لهذا الطلب.");
   }
 
   async get(id: string): Promise<ScheduleResult<ScheduleEntry>> {
     const records = await this.reconciled();
     if (!records.ok) return records;
     const found = records.value.schedules.find(schedule => schedule.id === id);
-    return found
-      ? { ok: true, value: found }
-      : { ok: false, code: NOT_FOUND, message: "الموعد غير متاح محليًا." };
+    return found ? { ok: true, value: found } : notFoundFailure("الموعد غير متاح محليًا.");
   }
 
   async updateTiming(id: string, input: ScheduleTimingInput): Promise<ScheduleResult<ScheduleEntry>> {
-    if (!validDate(input.scheduledFor))
-      return { ok: false, code: VALIDATION_ERROR, message: "أدخل تاريخًا صحيحًا للموعد." };
+    if (!validDate(input.scheduledFor)) return validationFailure("أدخل تاريخًا صحيحًا للموعد.");
     if (input.scheduledFor < localDateKey(this.now()))
-      return { ok: false, code: VALIDATION_ERROR, message: "لا يمكن ضبط موعد نشط في يوم مضى." };
+      return validationFailure("لا يمكن ضبط موعد نشط في يوم مضى.");
     if ((input.scheduledTime === null) !== (input.durationMinutes === null))
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: "أدخل الوقت والمدة معًا، أو اتركهما غير محددين.",
-      };
+      return validationFailure("أدخل الوقت والمدة معًا، أو اتركهما غير محددين.");
     if (
       input.scheduledTime !== null &&
       (!validTime(input.scheduledTime) || !validDuration(input.durationMinutes!))
     )
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: "الوقت أو المدة غير صالحين. اختر مدة من مضاعفات 15 دقيقة.",
-      };
+      return validationFailure("الوقت أو المدة غير صالحين. اختر مدة من مضاعفات 15 دقيقة.");
     const current = await this.get(id);
     if (!current.ok) return current;
-    if (!activeScheduleStatus(current.value.status))
-      return { ok: false, code: VALIDATION_ERROR, message: "لا يمكن تعديل موعد غير نشط." };
+    if (!activeScheduleStatus(current.value.status)) return validationFailure("لا يمكن تعديل موعد غير نشط.");
     const changedDate = current.value.scheduledFor !== input.scheduledFor;
     const changedTiming =
       current.value.scheduledTime !== input.scheduledTime ||
       current.value.durationMinutes !== input.durationMinutes;
     if (!changedDate && !changedTiming) return { ok: true, value: current.value };
     if (changedDate && !input.reason.trim())
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: "اذكر سبب التأجيل باختصار عند تغيير يوم الموعد.",
-      };
+      return validationFailure("اذكر سبب التأجيل باختصار عند تغيير يوم الموعد.");
     const type = changedDate ? ("postponed" as const) : ("timing_changed" as const);
     const idempotencyKey = `${id}:${type}:${input.scheduledFor}:${input.scheduledTime ?? "unknown"}:${input.durationMinutes ?? "unknown"}`;
     if (current.value.events.some(event => event.idempotencyKey === idempotencyKey))

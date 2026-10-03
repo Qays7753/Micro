@@ -30,7 +30,7 @@ import type {
   RecordedPeriodResult,
 } from "@/application/finance/projectFinancialService";
 import type { PrototypeLocalStore } from "@/storage/local/types";
-import { STORAGE_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 /* STR-620/608 (Wave F — تكثيف الهامش): الحرفية نفسها كانت تتكرر في هذا الملف
@@ -410,8 +410,7 @@ export class PeriodComparisonService {
       this.finance.readRecordedPeriodResult(current.from, current.to),
       this.finance.readRecordedPeriodResult(baseline.from, baseline.to),
     ]);
-    if (!readingA.ok || !readingB.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة نتيجتي الفترتين المحليتين." };
+    if (!readingA.ok || !readingB.ok) return storageFailure("تعذر قراءة نتيجتي الفترتين المحليتين.");
     const a = readingA.value;
     const b = readingB.value;
     const todayLocal = localDateInAmman(this.now());

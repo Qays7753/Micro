@@ -13,6 +13,9 @@ import {
   STORAGE_ERROR,
   VALIDATION_ERROR,
   errorMessageOf,
+  notFoundFailure,
+  storageFailure,
+  validationFailure,
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
@@ -53,7 +56,7 @@ export class ActualTimeService {
 
   async readOperatingMode(): Promise<ActualTimeResult<OperatingModeValue>> {
     const current = await this.store.getPreferences();
-    if (!current.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة طريقة العمل المحلية." };
+    if (!current.ok) return storageFailure("تعذر قراءة طريقة العمل المحلية.");
     return {
       ok: true,
       value: {
@@ -80,7 +83,7 @@ export class ActualTimeService {
             actualTimeTrackingEnabled: saved.value.actualTimeTrackingEnabled,
           },
         }
-      : { ok: false, code: STORAGE_ERROR, message: "تعذر حفظ طريقة العمل محليًا." };
+      : storageFailure("تعذر حفظ طريقة العمل محليًا.");
   }
 
   async readOrderActualTimeRecords(orderId: string): Promise<ActualTimeResult<readonly ActualTimeRecord[]>> {
@@ -88,9 +91,8 @@ export class ActualTimeService {
       this.store.getOrder(orderId),
       this.store.listActualTimeRecords(),
     ]);
-    if (!order.ok || !records.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل الوقت محليًا." };
-    if (!order.value) return { ok: false, code: NOT_FOUND, message: ORDER_UNAVAILABLE_MESSAGE };
+    if (!order.ok || !records.ok) return storageFailure("تعذر قراءة سجل الوقت محليًا.");
+    if (!order.value) return notFoundFailure(ORDER_UNAVAILABLE_MESSAGE);
     return {
       ok: true,
       value: records.value
@@ -104,9 +106,8 @@ export class ActualTimeService {
       this.store.getOrder(input.orderId),
       this.store.listActualTimeRecords(),
     ]);
-    if (!order.ok || !records.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة الطلب أو سجل الوقت محليًا." };
-    if (!order.value) return { ok: false, code: NOT_FOUND, message: "الطلب غير متاح محليًا لتسجيل الوقت." };
+    if (!order.ok || !records.ok) return storageFailure("تعذر قراءة الطلب أو سجل الوقت محليًا.");
+    if (!order.value) return notFoundFailure("الطلب غير متاح محليًا لتسجيل الوقت.");
     const retried = records.value.find(record => record.operationKey === input.operationKey);
     if (retried) return { ok: true, value: retried, reused: true };
     try {
@@ -120,23 +121,17 @@ export class ActualTimeService {
         operationKey: input.operationKey,
       });
       const saved = await this.store.saveActualTimeRecord(record);
-      return saved.ok
-        ? { ok: true, value: saved.value }
-        : { ok: false, code: STORAGE_ERROR, message: "تعذر حفظ وقت التنفيذ محليًا." };
+      return saved.ok ? { ok: true, value: saved.value } : storageFailure("تعذر حفظ وقت التنفيذ محليًا.");
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "بيانات الوقت غير صالحة."),
-      };
+      return validationFailure(errorMessageOf(error, "بيانات الوقت غير صالحة."));
     }
   }
 
   async reverse(input: ReverseActualTimeInput): Promise<ActualTimeResult<ActualTimeRecord>> {
     const records = await this.store.listActualTimeRecords();
-    if (!records.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل الوقت محليًا." };
+    if (!records.ok) return storageFailure("تعذر قراءة سجل الوقت محليًا.");
     const target = records.value.find(record => record.id === input.targetId);
-    if (!target) return { ok: false, code: NOT_FOUND, message: "سجل الوقت غير متاح محليًا." };
+    if (!target) return notFoundFailure("سجل الوقت غير متاح محليًا.");
     const retried = records.value.find(record => record.operationKey === input.operationKey);
     if (retried) return { ok: true, value: retried, reused: true };
     try {
@@ -154,13 +149,9 @@ export class ActualTimeService {
       const saved = await this.store.saveActualTimeRecord(record);
       return saved.ok
         ? { ok: true, value: saved.value }
-        : { ok: false, code: STORAGE_ERROR, message: "تعذر حفظ التراجع عن الوقت محليًا." };
+        : storageFailure("تعذر حفظ التراجع عن الوقت محليًا.");
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "تعذر التراجع عن سجل الوقت."),
-      };
+      return validationFailure(errorMessageOf(error, "تعذر التراجع عن سجل الوقت."));
     }
   }
 
@@ -169,9 +160,8 @@ export class ActualTimeService {
       this.store.getOrder(orderId),
       this.store.listActualTimeRecords(),
     ]);
-    if (!order.ok || !records.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة مقارنة الوقت محليًا." };
-    if (!order.value) return { ok: false, code: NOT_FOUND, message: ORDER_UNAVAILABLE_MESSAGE };
+    if (!order.ok || !records.ok) return storageFailure("تعذر قراءة مقارنة الوقت محليًا.");
+    if (!order.value) return notFoundFailure(ORDER_UNAVAILABLE_MESSAGE);
     const snapshotTime = order.value.order.costSnapshot.input.time;
     /* Stage 2 — OPS-008 (عقد ١٦ §٤): معرفة مقارنة الوقت من مصدر الوقت نفسه لا من
      * حالة اللقطة الكلية — لقطة بمواد تقديرية ووقت معروف تجعل مقارنة الوقت

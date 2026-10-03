@@ -25,6 +25,7 @@ import {
   ORDER_UNAVAILABLE_MESSAGE,
   STORAGE_ERROR,
   errorMessageOf,
+  storageFailure,
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
@@ -685,9 +686,8 @@ export class FulfillmentService {
       this.store.listCashContinuityEntries(),
       this.store.listCashWallets(),
     ]);
-    if (!result.ok) return { ok: false, code: STORAGE_ERROR, message: ORDERS_READ_FAILED_MESSAGE };
-    if (!entriesResult.ok || !walletsResult.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة تخصيصات الكاش المحلية." };
+    if (!result.ok) return storageFailure(ORDERS_READ_FAILED_MESSAGE);
+    if (!entriesResult.ok || !walletsResult.ok) return storageFailure("تعذر قراءة تخصيصات الكاش المحلية.");
     const walletsById = new Map(walletsResult.value.map(wallet => [wallet.id, wallet.name] as const));
     const entries = entriesResult.value.filter(
       entry => entry.type === "allocation" && entry.sourceRefKind === "order",

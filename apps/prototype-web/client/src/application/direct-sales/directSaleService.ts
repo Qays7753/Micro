@@ -17,6 +17,9 @@ import {
   STORAGE_ERROR,
   VALIDATION_ERROR,
   errorMessageOf,
+  notFoundFailure,
+  storageFailure,
+  validationFailure,
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
@@ -72,20 +75,18 @@ export class DirectSaleService {
     const result = await this.store.listDirectSales();
     return result.ok
       ? { ok: true, value: result.value }
-      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المبيعات المباشرة المحلية." };
+      : storageFailure("تعذر قراءة المبيعات المباشرة المحلية.");
   }
 
   async get(id: string): Promise<DirectSaleResult<DirectSale | null>> {
     const result = await this.store.listDirectSales();
-    if (!result.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المبيعات المباشرة المحلية." };
+    if (!result.ok) return storageFailure("تعذر قراءة المبيعات المباشرة المحلية.");
     return { ok: true, value: result.value.find(sale => sale.id === id) ?? null };
   }
 
   async record(input: DirectSaleRecordInput): Promise<DirectSaleResult<DirectSale>> {
     const existing = await this.store.listDirectSales();
-    if (!existing.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل المبيعات قبل الحفظ." };
+    if (!existing.ok) return storageFailure("تعذر قراءة سجل المبيعات قبل الحفظ.");
     const reused = existing.value.find(sale => sale.idempotencyKey === input.idempotencyKey);
     if (reused) return { ok: true, value: reused, reused: true };
 
@@ -119,28 +120,20 @@ export class DirectSaleService {
           reason: "خفّضتُ السعر — السعر صار ما قُبض فعلًا",
         });
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "بيانات البيع المباشر غير صالحة."),
-      };
+      return validationFailure(errorMessageOf(error, "بيانات البيع المباشر غير صالحة."));
     }
 
     const saved = await this.store.saveDirectSale(sale);
     return saved.ok
       ? { ok: true, value: saved.value }
-      : {
-          ok: false,
-          code: STORAGE_ERROR,
-          message: "تعذر حفظ البيع المباشر محليًا. بقيت بيانات النموذج أمامك؛ أعد المحاولة.",
-        };
+      : storageFailure("تعذر حفظ البيع المباشر محليًا. بقيت بيانات النموذج أمامك؛ أعد المحاولة.");
   }
 
   async update(id: string, input: DirectSaleUpdateInput): Promise<DirectSaleResult<DirectSale>> {
     const existing = await this.store.listDirectSales();
-    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل البيع قبل التصحيح." };
+    if (!existing.ok) return storageFailure("تعذر قراءة سجل البيع قبل التصحيح.");
     const source = existing.value.find(sale => sale.id === id);
-    if (!source) return { ok: false, code: NOT_FOUND, message: "بيع مباشر غير موجود؛ لم يتغير شيء." };
+    if (!source) return notFoundFailure("بيع مباشر غير موجود؛ لم يتغير شيء.");
     /* و٦: لا طمس صامت لتعديل أحدث — المراجعات تتقدم مع كل تصحيح أو إلغاء. */
     if (
       input.expectedRevisionCount !== undefined &&
@@ -156,7 +149,7 @@ export class DirectSaleService {
           sale.revisions?.some(revision => revision.idempotencyKey === input.idempotencyKey),
       )
     )
-      return { ok: false, code: VALIDATION_ERROR, message: "مفتاح التصحيح مستخدم مسبقًا؛ لم يتغير شيء." };
+      return validationFailure("مفتاح التصحيح مستخدم مسبقًا؛ لم يتغير شيء.");
     let corrected: DirectSale;
     try {
       corrected = updateDirectSale(source, input, {
@@ -166,16 +159,12 @@ export class DirectSaleService {
         reason: input.revisionReason?.trim() || "تصحيح بيانات البيع المباشر",
       });
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "بيانات تصحيح البيع المباشر غير صالحة."),
-      };
+      return validationFailure(errorMessageOf(error, "بيانات تصحيح البيع المباشر غير صالحة."));
     }
     const saved = await this.store.saveDirectSale(corrected);
     return saved.ok
       ? { ok: true, value: saved.value }
-      : { ok: false, code: STORAGE_ERROR, message: "تعذر حفظ تصحيح البيع المباشر محليًا؛ لم يتغير الأصل." };
+      : storageFailure("تعذر حفظ تصحيح البيع المباشر محليًا؛ لم يتغير الأصل.");
   }
 
   async cancel(
@@ -185,9 +174,9 @@ export class DirectSaleService {
     expectedRevisionCount?: number,
   ): Promise<DirectSaleResult<DirectSale>> {
     const existing = await this.store.listDirectSales();
-    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل البيع قبل الإلغاء." };
+    if (!existing.ok) return storageFailure("تعذر قراءة سجل البيع قبل الإلغاء.");
     const source = existing.value.find(sale => sale.id === id);
-    if (!source) return { ok: false, code: NOT_FOUND, message: "بيع مباشر غير موجود؛ لم يتغير شيء." };
+    if (!source) return notFoundFailure("بيع مباشر غير موجود؛ لم يتغير شيء.");
     /* و٦: الإلغاء من نافذة متأخرة لا يطمس تعديلًا أحدث وصل قبله. */
     if (expectedRevisionCount !== undefined && expectedRevisionCount !== (source.revisions?.length ?? 0))
       return { ok: false, code: CONFLICT, message: CONFLICT_MESSAGE };
@@ -200,7 +189,7 @@ export class DirectSaleService {
           sale.revisions?.some(revision => revision.idempotencyKey === idempotencyKey),
       )
     )
-      return { ok: false, code: VALIDATION_ERROR, message: "مفتاح التصحيح مستخدم مسبقًا؛ لم يتغير شيء." };
+      return validationFailure("مفتاح التصحيح مستخدم مسبقًا؛ لم يتغير شيء.");
     let cancelled: DirectSale;
     try {
       cancelled = cancelDirectSale(source, {
@@ -210,19 +199,10 @@ export class DirectSaleService {
         reason,
       });
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "بيانات إلغاء البيع المباشر غير صالحة."),
-      };
+      return validationFailure(errorMessageOf(error, "بيانات إلغاء البيع المباشر غير صالحة."));
     }
     const saved = await this.store.saveDirectSale(cancelled);
-    if (!saved.ok)
-      return {
-        ok: false,
-        code: STORAGE_ERROR,
-        message: "تعذر حفظ إلغاء البيع المباشر محليًا؛ بقي الأصل دون تغيير.",
-      };
+    if (!saved.ok) return storageFailure("تعذر حفظ إلغاء البيع المباشر محليًا؛ بقي الأصل دون تغيير.");
     /* المجموعة ٦ (تدقيق A1 — FT-02): الإلغاء ينقض القبض — تخصيصات المحفظة
      * المرتبطة بهذا البيع (sourceRefKind=sale) تُعكس مرآةً في معاملة كاش واحدة
      * ذات مفتاح حتمي (معرّف العكس مشتق من معرّف التخصيص نفسه) فبقاء محفظة

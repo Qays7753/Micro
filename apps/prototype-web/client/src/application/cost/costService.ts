@@ -4,7 +4,7 @@
  */
 import { calculateCostSnapshot, type CostSnapshot } from "@micro-domain/craft-order/index.js";
 import type { DraftCostSnapshot, OrderDraft, PrototypeLocalStore } from "@/storage/local/types";
-import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, VALIDATION_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type CostEditorInput = Omit<DraftCostSnapshot, "id" | "revision" | "createdAt" | "currency">;
@@ -89,10 +89,6 @@ export class CostService {
     });
     return saved.ok
       ? { ok: true, snapshot, draft: saved.value }
-      : {
-          ok: false,
-          code: STORAGE_ERROR,
-          message: "تعذر حفظ نسخة التكلفة. بقيت المدخلات أمامك؛ أعد المحاولة.",
-        };
+      : storageFailure("تعذر حفظ نسخة التكلفة. بقيت المدخلات أمامك؛ أعد المحاولة.");
   }
 }

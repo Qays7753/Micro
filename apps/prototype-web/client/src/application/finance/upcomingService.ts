@@ -22,7 +22,7 @@ import type { CollectionService } from "@/application/collections/collectionServ
 import type { ScheduleService } from "@/application/scheduling/scheduleService";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { DueDateState } from "@/application/finance/dueDateAging";
-import { STORAGE_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 
 export type UpcomingKind = "supplier_payable" | "receivable" | "order" | "expense_payable";
 
@@ -107,7 +107,7 @@ export class UpcomingService {
             sourceHref: `/suppliers/purchase/${row.purchaseId}`,
           })),
         }
-      : { ok: false, code: STORAGE_ERROR, message: payablesAging.message };
+      : storageFailure(payablesAging.message);
 
     const receivables: UpcomingBlockResult = receivableSources.ok
       ? {
@@ -125,7 +125,7 @@ export class UpcomingService {
             sourceHref: source.sourceHref,
           })),
         }
-      : { ok: false, code: STORAGE_ERROR, message: receivableSources.message };
+      : storageFailure(receivableSources.message);
 
     const orders: UpcomingBlockResult = scheduleOverview.ok
       ? {
@@ -147,7 +147,7 @@ export class UpcomingService {
             sourceHref: `/orders/${order.id}`,
           })),
         }
-      : { ok: false, code: STORAGE_ERROR, message: scheduleOverview.message };
+      : storageFailure(scheduleOverview.message);
 
     const obligations: UpcomingBlockResult = settleablePayables.ok
       ? {
@@ -165,7 +165,7 @@ export class UpcomingService {
             sourceHref: `/finance?event=${event.id}`,
           })),
         }
-      : { ok: false, code: STORAGE_ERROR, message: settleablePayables.message };
+      : storageFailure(settleablePayables.message);
 
     return {
       payables,

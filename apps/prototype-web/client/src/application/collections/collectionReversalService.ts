@@ -24,6 +24,9 @@ import {
   STORAGE_ERROR,
   VALIDATION_ERROR,
   errorMessageOf,
+  notFoundFailure,
+  storageFailure,
+  validationFailure,
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
@@ -100,17 +103,16 @@ export class CollectionReversalService {
       this.projectFinance.readPosition(),
     ]);
     if (!orderResult.ok || !entriesResult.ok || !walletsResult.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات التراجع محليًا." };
+      return storageFailure("تعذر قراءة سجلات التراجع محليًا.");
     const stored = orderResult.value;
-    if (!stored) return { ok: false, code: NOT_FOUND, message: ORDER_UNAVAILABLE_MESSAGE };
+    if (!stored) return notFoundFailure(ORDER_UNAVAILABLE_MESSAGE);
     const order = stored.order;
     /* F-051 (W4-F): البحث بالهوية والنوع معًا — حدثٌ آخر بنفس الهوية لا يحجب
      * القبضة المقصودة؛ الاستيراد يرفض الهوية المكررة أصلًا وهذا تعميق دفاعي. */
     const source = order.events.find(
       event => event.id === input.collectionEventId && event.type === "collection_recorded",
     );
-    if (!source)
-      return { ok: false, code: VALIDATION_ERROR, message: "اختر قبضة مسجلة على هذا الطلب قبل التراجع." };
+    if (!source) return validationFailure("اختر قبضة مسجلة على هذا الطلب قبل التراجع.");
 
     const entries = entriesResult.value;
     const reversedEntryIds = new Set(
@@ -255,8 +257,7 @@ export class CollectionReversalService {
   async reverse(
     input: CompoundReverseCollectionInput,
   ): Promise<CollectionReversalResult<CollectionReversalOutcome>> {
-    if (!input.reason.trim())
-      return { ok: false, code: VALIDATION_ERROR, message: "أكمل سبب التراجع قبل الحفظ." };
+    if (!input.reason.trim()) return validationFailure("أكمل سبب التراجع قبل الحفظ.");
 
     const [orderResult, entriesResult, walletsResult] = await Promise.all([
       this.store.getOrder(input.orderId),
@@ -264,9 +265,9 @@ export class CollectionReversalService {
       this.store.listCashWallets(),
     ]);
     if (!orderResult.ok || !entriesResult.ok || !walletsResult.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات التراجع محليًا." };
+      return storageFailure("تعذر قراءة سجلات التراجع محليًا.");
     const stored = orderResult.value;
-    if (!stored) return { ok: false, code: NOT_FOUND, message: ORDER_UNAVAILABLE_MESSAGE };
+    if (!stored) return notFoundFailure(ORDER_UNAVAILABLE_MESSAGE);
 
     const timestamp = this.now();
     const reversalEventKey = `${input.orderId}:reverse-collection:${input.operationKey}`;
@@ -281,11 +282,7 @@ export class CollectionReversalService {
         entry => entry.operationKey === `${input.operationKey}:unattribute`,
       );
       if (input.alsoReverseAllocation && !matchingCash)
-        return {
-          ok: false,
-          code: STORAGE_ERROR,
-          message: "وجدت تراجع قبضة بلا أثر تخصيص مطابق؛ لم يتغير السجل.",
-        };
+        return storageFailure("وجدت تراجع قبضة بلا أثر تخصيص مطابق؛ لم يتغير السجل.");
       return {
         ok: true,
         value: {
@@ -304,17 +301,13 @@ export class CollectionReversalService {
     if (!preview.ok) return preview;
     if (input.alsoReverseAllocation) {
       if (preview.value.status !== "full_match")
-        return {
-          ok: false,
-          code: VALIDATION_ERROR,
-          message: preview.value.refusalReason ?? "ما نقدر نتراجع عن التخصيص المطابق لهذي القبضة.",
-        };
+        return validationFailure(
+          preview.value.refusalReason ?? "ما نقدر نتراجع عن التخصيص المطابق لهذي القبضة.",
+        );
       if (input.amountMinor !== preview.value.collectionAmountMinor)
-        return {
-          ok: false,
-          code: VALIDATION_ERROR,
-          message: "التراجع المزدوج بيدعم مبلغ القبضة كاملًا بس — عدّل المبلغ أو تراجع عن القبضة لحالها.",
-        };
+        return validationFailure(
+          "التراجع المزدوج بيدعم مبلغ القبضة كاملًا بس — عدّل المبلغ أو تراجع عن القبضة لحالها.",
+        );
     }
     try {
       /* نصف الطلب: دالة النطاق القائمة — لا مسار ثانٍ للتراجع عن القبضة. */
@@ -331,8 +324,7 @@ export class CollectionReversalService {
       let allocationReversal: CashContinuityEntry | null = null;
       if (input.alsoReverseAllocation && preview.value.allocation) {
         const matched = entriesResult.value.find(entry => entry.id === preview.value.allocation!.entryId);
-        if (!matched)
-          return { ok: false, code: VALIDATION_ERROR, message: "لم نجد أثر التخصيص المطابق للتراجع." };
+        if (!matched) return validationFailure("لم نجد أثر التخصيص المطابق للتراجع.");
         allocationReversal = createCashContinuityEntry({
           id: id("allocation-reversal"),
           walletId: matched.walletId,
@@ -368,11 +360,7 @@ export class CollectionReversalService {
         reused: committed.value.reused,
       };
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "تعذر التراجع عن القبضة."),
-      };
+      return validationFailure(errorMessageOf(error, "تعذر التراجع عن القبضة."));
     }
   }
 }

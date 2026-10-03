@@ -48,7 +48,13 @@ import {
 import type { ProjectFinancialService } from "../finance/projectFinancialService";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { RecurringExpenseStore } from "@/storage/local/capabilities/recurringExpenseStore";
-import { STORAGE_ERROR, VALIDATION_ERROR, errorMessageOf } from "@/application/resultCodes";
+import {
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  errorMessageOf,
+  storageFailure,
+  validationFailure,
+} from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 /* STR-608 (Wave F — تكثيف الهامش): الحرفية نفسها كانت تتكرر 3 مرات؛ ثابت واحد بلا تغيير رسالة. */
@@ -140,7 +146,7 @@ export class RecurringExpenseService {
       this.store.listFinancialEvents(),
     ]);
     if (!seriesList.ok || !revisions.ok || !occurrences.ok || !events.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل المصروف المتكرر." };
+      return storageFailure("تعذر قراءة سجل المصروف المتكرر.");
     return {
       ok: true,
       value: {
@@ -262,7 +268,7 @@ export class RecurringExpenseService {
     const read = await this.readAll();
     if (!read.ok) return read;
     const series = read.value.seriesList.find(candidate => candidate.id === seriesId);
-    if (!series) return { ok: false, code: VALIDATION_ERROR, message: "سلسلة المصروف المتكرر غير موجودة." };
+    if (!series) return validationFailure("سلسلة المصروف المتكرر غير موجودة.");
     const ensured = await this.ensureOccurrences(series, read.value.revisions, read.value.occurrences);
     if (!ensured.ok) return ensured;
     const refreshed = await this.readAll();
@@ -338,11 +344,7 @@ export class RecurringExpenseService {
         };
       return { ok: true, value: { series: committed.value.series, revision: committed.value.revision } };
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "بيانات التذكير غير صالحة."),
-      };
+      return validationFailure(errorMessageOf(error, "بيانات التذكير غير صالحة."));
     }
   }
 
@@ -351,9 +353,8 @@ export class RecurringExpenseService {
     transform: (series: RecurringExpenseSeries) => RecurringExpenseSeries,
   ): Promise<RecurringExpenseServiceResult<RecurringExpenseSeries>> {
     const existing = await this.store.getRecurringExpenseSeries(seriesId);
-    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: existing.message };
-    if (!existing.value)
-      return { ok: false, code: VALIDATION_ERROR, message: "سلسلة المصروف المتكرر غير موجودة." };
+    if (!existing.ok) return storageFailure(existing.message);
+    if (!existing.value) return validationFailure("سلسلة المصروف المتكرر غير موجودة.");
     try {
       const next = transform(existing.value);
       const committed = await this.store.commitRecurringExpenseSeriesChange(existing.value, next, null, []);
@@ -365,11 +366,7 @@ export class RecurringExpenseService {
         };
       return { ok: true, value: committed.value.series };
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "انتقال غير قانوني."),
-      };
+      return validationFailure(errorMessageOf(error, "انتقال غير قانوني."));
     }
   }
 
@@ -403,7 +400,7 @@ export class RecurringExpenseService {
     const read = await this.readAll();
     if (!read.ok) return read;
     const series = read.value.seriesList.find(candidate => candidate.id === seriesId);
-    if (!series) return { ok: false, code: VALIDATION_ERROR, message: "سلسلة المصروف المتكرر غير موجودة." };
+    if (!series) return validationFailure("سلسلة المصروف المتكرر غير موجودة.");
     try {
       const cancelled = cancelRecurringExpenseSeries(series, reason, this.now());
       const at = this.now();
@@ -433,11 +430,7 @@ export class RecurringExpenseService {
         };
       return { ok: true, value: committed.value.series };
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "إلغاء غير قانوني."),
-      };
+      return validationFailure(errorMessageOf(error, "إلغاء غير قانوني."));
     }
   }
 
@@ -452,13 +445,12 @@ export class RecurringExpenseService {
     const read = await this.readAll();
     if (!read.ok) return read;
     const series = read.value.seriesList.find(candidate => candidate.id === seriesId);
-    if (!series) return { ok: false, code: VALIDATION_ERROR, message: "سلسلة المصروف المتكرر غير موجودة." };
+    if (!series) return validationFailure("سلسلة المصروف المتكرر غير موجودة.");
     const seriesRevisions = read.value.revisions
       .filter(revision => revision.seriesId === seriesId)
       .sort((left, right) => left.revision - right.revision);
     const current = seriesRevisions.at(-1);
-    if (!current)
-      return { ok: false, code: VALIDATION_ERROR, message: "السلسلة بلا قاعدة — لا تعديل مستقبلي." };
+    if (!current) return validationFailure("السلسلة بلا قاعدة — لا تعديل مستقبلي.");
     try {
       const { series: nextSeries, successor } = succeedRecurringExpenseRuleRevision(
         series,
@@ -512,11 +504,7 @@ export class RecurringExpenseService {
         };
       return { ok: true, value: { series: committed.value.series, successor: committed.value.revision! } };
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "تعديل غير قانوني."),
-      };
+      return validationFailure(errorMessageOf(error, "تعديل غير قانوني."));
     }
   }
 
@@ -527,9 +515,8 @@ export class RecurringExpenseService {
     transform: (occurrence: RecurringExpenseOccurrence) => RecurringExpenseOccurrence,
   ): Promise<RecurringExpenseServiceResult<RecurringExpenseOccurrence>> {
     const existing = await this.store.getRecurringExpenseOccurrence(occurrenceId);
-    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: existing.message };
-    if (!existing.value)
-      return { ok: false, code: VALIDATION_ERROR, message: RECURRING_PERIOD_NOT_FOUND_MESSAGE };
+    if (!existing.ok) return storageFailure(existing.message);
+    if (!existing.value) return validationFailure(RECURRING_PERIOD_NOT_FOUND_MESSAGE);
     try {
       const next = transform(existing.value);
       const committed = await this.store.commitRecurringExpenseOccurrenceDecision(existing.value, next);
@@ -541,11 +528,7 @@ export class RecurringExpenseService {
         };
       return { ok: true, value: committed.value.occurrence };
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "قرار غير قانوني."),
-      };
+      return validationFailure(errorMessageOf(error, "قرار غير قانوني."));
     }
   }
 
@@ -573,8 +556,7 @@ export class RecurringExpenseService {
     const detail = await this.readDetail(seriesId);
     if (!detail.ok) return detail;
     const pending = detail.value.pendingDueDecisions.find(candidate => candidate.periodKey === periodKey);
-    if (!pending)
-      return { ok: false, code: VALIDATION_ERROR, message: "لا سؤال استحقاق معلقًا لهذه الفترة." };
+    if (!pending) return validationFailure("لا سؤال استحقاق معلقًا لهذه الفترة.");
     const effective = detail.value.revisions
       .filter(revision => revision.effectiveFromPeriod <= periodKey)
       .reduce<RecurringExpenseRuleRevision | undefined>(
@@ -582,7 +564,7 @@ export class RecurringExpenseService {
           candidate === undefined || revision.revision > candidate.revision ? revision : candidate,
         undefined,
       );
-    if (!effective) return { ok: false, code: VALIDATION_ERROR, message: "لا مراجعة نافذة لهذه الفترة." };
+    if (!effective) return validationFailure("لا مراجعة نافذة لهذه الفترة.");
     if (decision === "last_valid_day") {
       const dueOn = `${periodKey}-${String(pending.lastValidDay).padStart(2, "0")}`;
       const occurrence = createRecurringExpenseOccurrence({
@@ -628,15 +610,14 @@ export class RecurringExpenseService {
     occurrenceId: string,
   ): Promise<RecurringExpenseServiceResult<{ recorded: boolean; event: FinancialEvent | null }>> {
     const existing = await this.store.getRecurringExpenseOccurrence(occurrenceId);
-    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: existing.message };
-    if (!existing.value)
-      return { ok: false, code: VALIDATION_ERROR, message: RECURRING_PERIOD_NOT_FOUND_MESSAGE };
+    if (!existing.ok) return storageFailure(existing.message);
+    if (!existing.value) return validationFailure(RECURRING_PERIOD_NOT_FOUND_MESSAGE);
     if (existing.value.status === "recorded" && existing.value.recordedFinancialEventId) {
       const event = await this.store.getFinancialEvent(existing.value.recordedFinancialEventId);
       if (event.ok && event.value) return { ok: true, value: { recorded: true, event: event.value } };
     }
     const events = await this.store.listFinancialEvents();
-    if (!events.ok) return { ok: false, code: STORAGE_ERROR, message: events.message };
+    if (!events.ok) return storageFailure(events.message);
     const replay = events.value.find(
       event => event.idempotencyKey === existing.value!.recordingIdempotencyKey,
     );
@@ -667,10 +648,9 @@ export class RecurringExpenseService {
     review: RecurringExpenseReview,
   ): Promise<RecurringExpenseServiceResult<RecurringConfirmOutcome>> {
     const existing = await this.store.getRecurringExpenseOccurrence(occurrenceId);
-    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: existing.message };
+    if (!existing.ok) return storageFailure(existing.message);
     const occurrence = existing.value;
-    if (!occurrence)
-      return { ok: false, code: VALIDATION_ERROR, message: RECURRING_PERIOD_NOT_FOUND_MESSAGE };
+    if (!occurrence) return validationFailure(RECURRING_PERIOD_NOT_FOUND_MESSAGE);
 
     /* مقَرَّرة سلفًا: «المصروف مسجل مسبقًا لهذه الفترة» — بلا أي كتابة. */
     if (occurrence.status === "recorded" && occurrence.recordedFinancialEventId) {
@@ -691,7 +671,7 @@ export class RecurringExpenseService {
         expenseContext: review.expenseContext,
         sharedExpense: review.sharedExpense,
       });
-      if (!expanded.ok) return { ok: false, code: VALIDATION_ERROR, message: expanded.message };
+      if (!expanded.ok) return validationFailure(expanded.message);
       event = createFinancialEvent({
         id: newId(),
         type: review.type,
@@ -705,11 +685,7 @@ export class RecurringExpenseService {
         expenseContext: expanded.expenseContext,
       });
     } catch (error) {
-      return {
-        ok: false,
-        code: VALIDATION_ERROR,
-        message: errorMessageOf(error, "بيانات التأكيد غير صالحة."),
-      };
+      return validationFailure(errorMessageOf(error, "بيانات التأكيد غير صالحة."));
     }
 
     /* علامة المحاولة (planned|snoozed|record_failed → recording)؛ الفترة

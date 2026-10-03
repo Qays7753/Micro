@@ -9,7 +9,7 @@
  * ويُرسَّخ بأول حفظ يمر من هنا (نفس سلوك إصلاح SET-003-B القائم).
  */
 import { localPreferencesId, type LocalPreferences, type PrototypeLocalStore } from "@/storage/local/types";
-import { STORAGE_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 /** الحقول القابلة للتحقيق فقط — الهوية وطابع التحديث تملكهما البوابة. */
@@ -39,7 +39,7 @@ export async function updateLocalPreferences(
   now: Clock,
 ): Promise<LocalPreferencesUpdateResult> {
   const current = await store.getPreferences();
-  if (!current.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة التفضيلات المحلية." };
+  if (!current.ok) return storageFailure("تعذر قراءة التفضيلات المحلية.");
   const merged: LocalPreferences = {
     ...(current.value ?? freshRecord(now())),
     ...patch,
@@ -55,7 +55,5 @@ export async function updateLocalPreferences(
   /* Stage 2 — OPS-002: غياب الحد = لا سياسة = لا تنبيه (افتراض صادق يُرسّى بأول حفظ). */
   merged.lowStockThresholdsMilli = merged.lowStockThresholdsMilli ?? null;
   const saved = await store.savePreferences(merged);
-  return saved.ok
-    ? { ok: true, value: saved.value }
-    : { ok: false, code: STORAGE_ERROR, message: "تعذر حفظ التفضيلات المحلية." };
+  return saved.ok ? { ok: true, value: saved.value } : storageFailure("تعذر حفظ التفضيلات المحلية.");
 }
