@@ -8,6 +8,9 @@ import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
+import type { OwnerEntitlementStore } from "@/storage/local/capabilities/ownerEntitlementStore";
+import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
+
 import type {
   ProjectFinancialPosition,
   ProjectFinancialService,
@@ -126,9 +129,17 @@ export type StatementResult =
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { formatLocalDate, formatMoneyWithUnit } from "@/application/formatting/formatters";
 
+/* Wave C (ADR-015 مجموعة 6 — 2026-10-04): النوع الضيق للقارئ — قراءة حركات
+ * المالك وحدها من قدرة الاستحقاق زائد قراءات المبيعات والأحداث والمشتريات
+ * وقراءة الطلبات من قدرة 4C (جرد مستهلك حي: 5 طرق — قراءة صرفة).
+ * لا سلوك يتغير — حقن تركيبي كما هو. */
+type StatementServiceStore = Pick<OwnerEntitlementStore, "listOwnerMovements"> &
+  Pick<OrderLifecycleStore, "listOrders"> &
+  Pick<PrototypeLocalStore, "listDirectSales" | "listFinancialEvents" | "listSupplierPurchases">;
+
 export class StatementService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: StatementServiceStore,
     private readonly projectFinance: ProjectFinancialService,
   ) {}
 

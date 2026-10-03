@@ -272,6 +272,8 @@
     "apps/prototype-web/client/src/storage/local/capabilities/shortCashDeclarationStore.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleCapabilityAnchors.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleStore.ts": "NORMAL",
+    "apps/prototype-web/client/src/storage/local/capabilities/ownerEntitlementCapabilityAnchors.ts": "NORMAL",
+    "apps/prototype-web/client/src/storage/local/capabilities/ownerEntitlementStore.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/recurringExpenseCapabilityAnchors.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/recurringExpenseStore.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/cashContinuityCommitGuard.ts": "NORMAL",
@@ -379,7 +381,7 @@
     "src/domain/supplier-purchase/types.ts": "NORMAL"
   },
   "generated_at": "2026-10-04",
-  "head": "wave-c-group5-short-cash-capability (ADR-015 — 2026-10-04): ShortCashDeclarationStore port (4 methods, stored-record 4A note preserved) + type anchors added (NORMAL); consumer migrated to the narrow intersection type",
+  "head": "wave-c-group6-owner-entitlement-capability (ADR-015 — 2026-10-04): OwnerEntitlementStore port (14 methods, exe017 review executed, Owner Money lock preserved) + type anchors added (NORMAL); writer on Omit of the capability + two incidental readers on Pick sections; two documented full-interface readers",
   "source": "FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md v1.4 (Wave 4E/RC-9) + census completion STR-607 (Wave A, 2026-10-03) — سجل الجرد هو المصدر؛ هذا الملف أساس الحارس فقط",
   "version": 1
 }

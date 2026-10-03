@@ -27,8 +27,23 @@ import { reversedEventIds, type FinancialEvent } from "@micro-domain/financial-e
 import { evaluateWithdrawalWalletCoverage } from "@/application/finance/withdrawalWalletGuard";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { OwnerEntitlementStore } from "@/storage/local/capabilities/ownerEntitlementStore";
+import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+
+/* Wave C (ADR-015 مجموعة 6 — 2026-10-04): النوع الضيق للكاتب — قدرة
+ * استحقاق المالك كاملة تقريبًا (12 من 14 طريقة؛ القارئتان الفرديةتان
+ * بلا مستهلك هنا) زائد القراءات المصرح بها (الوقت الفعلي والكاش
+ * والمحافظ والأحداث والطلبات — جرد مستهلك حي: 17 طريقة). قفل ملكية
+ * Owner Money محفوظ: هذه الخدمة الكاتب الوحيد. لا سلوك يتغير — حقن
+ * تركيبي كما هو. */
+type OwnerEntitlementServiceStore = Omit<OwnerEntitlementStore, "getOwnerEntitlementRecord" | "getOwnerMovement"> &
+  Pick<OrderLifecycleStore, "listOrders"> &
+  Pick<
+    PrototypeLocalStore,
+    "listActualTimeRecords" | "listCashContinuityEntries" | "listCashWallets" | "listFinancialEvents"
+  >;
 
 export type OwnerEntitlementResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -250,7 +265,7 @@ function crossModelOwnerDuplicates(
 
 export class OwnerEntitlementService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: OwnerEntitlementServiceStore,
     private readonly periodResultReader?: PeriodResultReader,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}

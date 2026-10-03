@@ -6,8 +6,26 @@ import { ammanDateOrNull } from "@micro-domain/shared/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
+import type { OwnerEntitlementStore } from "@/storage/local/capabilities/ownerEntitlementStore";
+import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { formatLocalDate, formatMoneyWithUnit, formatQuantityMilli } from "@/application/formatting/formatters";
 import { STORAGE_ERROR } from "@/application/resultCodes";
+
+/* Wave C (ADR-015 مجموعة 6 — 2026-10-04): النوع الضيق للقارئ — قراءة حركات
+ * المالك وحدها من قدرة الاستحقاق (عرضية مصرح بها) زائد قراءات الأصول
+ * والكاش والمبيعات والأحداث والمخزون والمشتريات وقراءة الطلبات من قدرة
+ * 4C (جرد مستهلك حي: 8 طرق — قراءة صرفة). لا سلوك يتغير. */
+type CorrectionHistoryServiceStore = Pick<OwnerEntitlementStore, "listOwnerMovements"> &
+  Pick<OrderLifecycleStore, "listOrders"> &
+  Pick<
+    PrototypeLocalStore,
+    "listAssets" |
+      "listCashContinuityEntries" |
+      "listDirectSales" |
+      "listFinancialEvents" |
+      "listInventoryMovements" |
+      "listSupplierPurchases"
+  >;
 
 export type CorrectionHistoryKind =
   | "event_reversal"
@@ -119,7 +137,7 @@ function g4ReplacementKey(reversalKey: string): string | null {
 }
 
 export class CorrectionHistoryService {
-  constructor(private readonly store: PrototypeLocalStore) {}
+  constructor(private readonly store: CorrectionHistoryServiceStore) {}
 
   /** المجموعة ٦ (البند ٣): التصحيحات المؤثرة داخل نطاق (occurredOn) — بلا
    * نطاق: كل التاريخ. الصافي مجموع الآثار الموقعة، وnull إن تعذر أي رقم. */
