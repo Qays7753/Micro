@@ -5,6 +5,7 @@
 import { applySchemaUpgrade, staleConnections, StorageOpenError, upgradeErrors } from "./indexedDbMigrations";
 import { databaseName } from "./indexedDbStores";
 import { localSchemaVersion, type StorageFailure, type StorageFailureCode } from "./types";
+import { STORAGE_BLOCKED, STORAGE_ERROR, STORAGE_STALE, STORAGE_UNAVAILABLE } from "./resultCodes";
 
 /* S5-07 (المجموعة ٦ — البند ٦): اتصال واحد مُخزَّن على مستوى الوحدة. الفتح لكل
  * عملية كان يدفع مصافحة open كاملة لكل قراءة/كتابة (قياس ٥٣ فتحًا لتحميل
@@ -29,7 +30,7 @@ export function failure(error: unknown, database?: IDBDatabase): StorageFailure 
   if (database && staleConnections.has(database)) {
     return {
       ok: false,
-      code: "storage_stale",
+      code: STORAGE_STALE,
       message: "هذه النسخة قديمة. أعد تحميل Micro قبل إدخال بيانات جديدة.",
     };
   }
@@ -39,13 +40,13 @@ export function failure(error: unknown, database?: IDBDatabase): StorageFailure 
   if (error instanceof Error && error.name === "VersionError") {
     return {
       ok: false,
-      code: "storage_stale",
+      code: STORAGE_STALE,
       message: "هذه النسخة قديمة. أعد تحميل Micro قبل إدخال بيانات جديدة.",
     };
   }
   return {
     ok: false,
-    code: typeof indexedDB === "undefined" ? "storage_unavailable" : "storage_error",
+    code: typeof indexedDB === "undefined" ? STORAGE_UNAVAILABLE : STORAGE_ERROR,
     message: error instanceof Error ? error.message : "تعذر الوصول إلى التخزين المحلي.",
   };
 }
@@ -79,7 +80,7 @@ export function openDatabase(): Promise<IDBDatabase> {
       settled = true;
       reject(
         new StorageOpenError(
-          "storage_blocked",
+          STORAGE_BLOCKED,
           "Micro مفتوح في نافذة أخرى. أغلق النوافذ الأخرى ثم أعد المحاولة.",
         ),
       );

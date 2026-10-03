@@ -270,6 +270,7 @@
     "apps/prototype-web/client/src/storage/local/persistentStorage.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/receivedLoanCommitGuard.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/recurringExpenseCommitGuard.ts": "NORMAL",
+    "apps/prototype-web/client/src/storage/local/resultCodes.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/supplierAttributionCommitGuard.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/types.ts": "SPLIT_CANDIDATE",
@@ -359,7 +360,7 @@
     "src/domain/supplier-purchase/types.ts": "NORMAL"
   },
   "generated_at": "2026-10-03",
-  "head": "census-completed-357 (STR-607, Wave A — 2026-10-03): added the 7 measured-but-untracked entries (5 moved cluster targets from the financial-records/budgets slices + the 2 Wave-4E guard scripts) in the same PR as the documentation batch; no threshold or existing band changed — 357/357 production+script census tracked",
+  "head": "wave-b-slice1-result-codes (ADR-012 — 2026-10-03): added resultCodes.ts (NORMAL) in the same PR as its introduction; adapters/lifecycle/migrations result-code literals consolidated to the singletons (124 sites) — 771 raw bytes recovered",
   "source": "FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md v1.4 (Wave 4E/RC-9) + census completion STR-607 (Wave A, 2026-10-03) — سجل الجرد هو المصدر؛ هذا الملف أساس الحارس فقط",
   "version": 1
 }
