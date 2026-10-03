@@ -25,7 +25,7 @@ import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js"
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { ShortCashDeclarationStore } from "@/storage/local/capabilities/shortCashDeclarationStore";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
-import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
+import type { ProjectFinancialReader } from "@/application/finance/projectFinancialTypes";
 /* FIN-005 (WS-175 — Wave 3): عائلة أفق الكاش القصير — نموذج نقي يُستخدم
  * من هنا فقط (الخدمة تستمد «اليوم» من ساعتها القابلة للحقن ثم تحل النطاق). */
 import {
@@ -308,7 +308,11 @@ function payables(events: readonly FinancialEvent[], purchases: readonly Supplie
 export class FinancialAnalysisService {
   constructor(
     private readonly store: FinancialAnalysisServiceStore,
-    private readonly projectFinance: ProjectFinancialService,
+    /* STR-620 (Wave E — 2026-10-04): الحقن بالنوع البنيوي للقارئ
+     * (readPosition وحدها — قياس حي) بدل نوع الصنف الكامل: يفك دورة
+     * الأنواع مع projectFinancialService ويبقى كل مستدعي يمرر الصنف
+     * الكامل متوافقًا بنيويًا بلا أي تعديل. */
+    private readonly projectFinance: ProjectFinancialReader,
     private readonly now: Clock = systemClock,
   ) {}
 

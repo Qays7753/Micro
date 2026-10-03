@@ -41,58 +41,22 @@ import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAt
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import type {
+  FinanceResult,
+  ProjectFinancialEvidence,
+  ProjectFinancialPosition,
+} from "./projectFinancialTypes";
+/* STR-620 (Wave E — 2026-10-04): أنواع القراءة المشتركة (المركز وأدلته
+ * وFinanceResult) انتقلت حرفيًا إلى ./projectFinancialTypes — وحدة ورقية
+ * تفك دورة الأنواع مع financialAnalysisService — وتُعاد تصديرها هنا كما
+ * هي؛ واجهة هذا الملف العامة لا تتغير لأي مستورد قائم. */
+export type {
+  FinanceResult,
+  FinancialMetricEvidence,
+  ProjectFinancialEvidence,
+  ProjectFinancialPosition,
+} from "./projectFinancialTypes";
 
-export type ProjectFinancialPosition = {
-  recordedCashMinor: number;
-  customerReceivablesMinor: number;
-  supplierPayablesMinor: number;
-  ownerCapitalRecordedMinor: number;
-  operatingExpensesRecordedMinor: number;
-  orderCollectionsMinor: number;
-  projectEventCount: number;
-  supplierPurchaseCount: number;
-  supplierMaterialPayablesMinor: number;
-  /* Wave 4.4 — P-4.4-1: تقسيم «شو عليّ؟» بمصدرَيه يعيش في قراءة المركز —
-   * المصاريف المستحقة = مشروع الذمم العامة (project.payableMinor)، وهي
-   * بالضبط القيمة التي كان العرض يطرحها (supplierPayablesMinor −
-   * supplierMaterialPayablesMinor)؛ لا معادلة جديدة ولا مصدر ثانٍ. */
-  operatingPayablesMinor: number;
-  walletCashMinor: number;
-  unallocatedCashMinor: number;
-  cashWalletCount: number;
-  /* المبدأ ١٣: أمانات بحوزتك — كاش حقيقي في الدرج وليس إيرادًا ولا مالك لك. */
-  amanahHeldMinor: number;
-  /* ما انتقل من غير الموزع إلى المحافظ بتخصيص صريح (PA-002). */
-  allocatedToWalletsMinor: number;
-  /* المجموعة ٤ (عقد ٢٩): طبقات مستقلة في المركز — الدفتري للأصول النشطة،
-   * والقروض القائمة (ذمم لصالح المشروع)، وعربونات محتفظة بانتظار القرار. */
-  assetBookValueMinor: number;
-  loansOutstandingMinor: number;
-  /* FIN-001 (WS-178 — Wave 6): القروض المستلمة القائمة — التزام اقتراض مستقل
-   * عن الذمم التشغيلية وعن القروض الصادرة؛ من مجموع أحداث المجال (loanPayable)
-   * لا من رصيد مخزن. */
-  borrowedLoansOutstandingMinor: number;
-  pendingRetainedDepositsMinor: number;
-  /* FIN-001 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): حالة الدليل لكل مقياس —
-   * «غير مسجل» لا يُعرض رقمًا مؤكدًا؛ القيم العددية أعلاه تبقى كما هي
-   * (حسابًا) والعرض يتبع الحالة. صفر موثق ≠ غياب تسجيل. */
-  evidence: ProjectFinancialEvidence;
-};
-/* FIN-001: القيمة العددية تبقى عددًا (لا nullable واسع يكسر الحسابات) —
- * الحالة تُقرأ منفصلة عن القيمة كما في الرئيسية تمامًا. */
-export type FinancialMetricEvidence = "recorded" | "not_recorded";
-export type ProjectFinancialEvidence = {
-  cash: FinancialMetricEvidence;
-  customerReceivables: FinancialMetricEvidence;
-  supplierPayables: FinancialMetricEvidence;
-  ownerCapital: FinancialMetricEvidence;
-  walletCash: FinancialMetricEvidence;
-  unallocatedCash: FinancialMetricEvidence;
-  operatingExpenses: FinancialMetricEvidence;
-  /* FIN-001 (WS-178 — Wave 6): دليل طبقة الاقتراض — أي حدث قرض مستلم يجعل
-   * القيمة صفرًا موثقًا لا «غير مسجل» (نفس منطق إخوته). */
-  borrowedLoans: FinancialMetricEvidence;
-};
 export type CogsStatus = "recorded" | "partial" | "not_available";
 export type RecordedPeriodResult = {
   from: string;
@@ -294,10 +258,6 @@ export type FinancialEditInput = {
   idempotencyKey: string;
 };
 export type SettleablePayable = { event: FinancialEvent; remainingMinor: number };
-export type FinanceResult<T> =
-  | { ok: true; value: T; reused?: boolean }
-  | { ok: false; code: "validation_error" | "storage_error"; message: string };
-
 function id(): string {
   return (
     globalThis.crypto?.randomUUID?.() ?? `financial-${Date.now()}-${Math.random().toString(36).slice(2)}`

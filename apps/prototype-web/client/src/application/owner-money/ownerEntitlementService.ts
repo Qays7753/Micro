@@ -24,7 +24,7 @@ import {
   type OwnerEntitlementPolicyTerms,
 } from "@micro-domain/owner-entitlement/index.js";
 import { reversedEventIds, type FinancialEvent } from "@micro-domain/financial-event/index.js";
-import { evaluateWithdrawalWalletCoverage } from "@/application/finance/withdrawalWalletGuard";
+import { evaluateWithdrawalWalletCoverage } from "@/application/owner-money/withdrawalWalletGuard";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { OwnerEntitlementStore } from "@/storage/local/capabilities/ownerEntitlementStore";

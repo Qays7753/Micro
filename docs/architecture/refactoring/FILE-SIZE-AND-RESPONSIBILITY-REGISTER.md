@@ -1,6 +1,6 @@
 # Micro — File Size and Responsibility Register
 
-**الإصدار:** v1.4 (إعادة قياس — شرائح عناقيد المالية — 2026-10-03)
+**الإصدار:** v1.4 (إعادة قياس — شرائح عناقيد المالية — 2026-10-03)؛ تصحيح Wave E/ADR-016 (2026-10-04): حُذفت وحدة توافق finance/withdrawalWalletGuard.ts (مستوردها الوحيد غير-UI هاجر للبيت الأساس) — أول حذف موثق لوحدة توافق؛ الشيم 9→8؛ إعادة القياس الشاملة عند رأس الموجة التالي
 **النطاق:** كل ملف كود إنتاجي/اختبار/سكربت/مولّد/fixture/إعداد متتبَّع في المستودع عند الرأس أدناه
 **رأس القياس:** `4a4e317ff10e87ecc07e3f16c890e9c52ef4010b` (branch `refactoring/remediation-program-20261003`) — قياس v1.0 الأول كان عند `a59eeb1546a7323ecfe720e4ce9a77f178474fb6` (فرع تقرير PR #299)
 **الغرض:** سجل تنقّل وتحكم نمو — ليس مصدر سياسة ثانيًا؛ يربط إلى المصادر السلطوية ولا يعيد صياغة قواعدها.
@@ -346,7 +346,7 @@
 | `apps/prototype-web/client/src/application/finance/correctionHistoryService.ts` | production | 9 | 9 | 631 | 1 | 0 | 17 | 15 | NORMAL | application | NORMAL | — |
 | `apps/prototype-web/client/src/application/finance/expenseCategorySuggestions.ts` | production | 9 | 9 | 635 | 1 | 0 | 2 | 0 | NORMAL | application | NORMAL | — |
 | `apps/prototype-web/client/src/application/finance/retainedDepositService.ts` | production | 9 | 9 | 627 | 1 | 0 | 20 | 19 | NORMAL | application | NORMAL | — |
-| `apps/prototype-web/client/src/application/finance/withdrawalWalletGuard.ts` | production | 6 | 6 | 378 | 1 | 0 | 1 | 0 | NORMAL | application | NORMAL — frozen until the UI wave removes importers | — |
+| `apps/prototype-web/client/src/application/finance/withdrawalWalletGuard.ts` | production | 6 | 6 | 378 | 1 | 0 | 1 | 0 | NORMAL | application | **أُزيلت (Wave E/ADR-016 — 2026-10-04):** فرضية الإزالة «مسار UI» كانت خاطئة لهذه الوحدة — مستوردها الوحيد غير-UI (ownerEntitlementService) فهاجر للبيت الأساس وحُذفت الوحدة؛ الشيم 9→8 | — |
 | `apps/prototype-web/client/src/main.tsx` | production | 6 | 7 | 244 | 0 | 4 | 0 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/storage/local/createBrowserLocalStore.ts` | production | 6 | 7 | 313 | 1 | 2 | 4 | 3 | NORMAL | storage | NORMAL | — |
 | `apps/prototype-web/client/src/lib/utils.ts` | production | 5 | 6 | 169 | 1 | 2 | 3 | 0 | NORMAL | lib | NORMAL | — |
