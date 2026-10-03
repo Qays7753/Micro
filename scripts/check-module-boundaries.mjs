@@ -160,22 +160,12 @@ export const UI_TO_DOMAIN_VALUE_BASELINE = [
 ];
 
 /** R3: حواف القيمة المسجلة من التطبيق إلى العرض (STR-203). */
-export const APPLICATION_TO_PRESENTATION_VALUE_BASELINE = [
-  "apps/prototype-web/client/src/application/agreements/followUpDate.ts -> @/presentation/formatters",
-  "apps/prototype-web/client/src/application/collections/collectionService.ts -> @/presentation/formatters",
-  "apps/prototype-web/client/src/application/financial-records/correctionHistoryService.ts -> @/presentation/formatters",
-  "apps/prototype-web/client/src/application/finance/integrityCheckService.ts -> @/presentation/formatters",
-  "apps/prototype-web/client/src/application/finance/projectFinancialService.ts -> @/presentation/formatters",
-  "apps/prototype-web/client/src/application/finance/statementMarkdownService.ts -> @/presentation/formatters",
-  "apps/prototype-web/client/src/application/finance/statementService.ts -> @/presentation/formatters",
-  "apps/prototype-web/client/src/application/follow-up/dailyFollowUpService.ts -> @/presentation/formatters",
-  "apps/prototype-web/client/src/application/follow-up/dailyFollowUpService.ts -> @/presentation/orderAgreementPresentation",
-  "apps/prototype-web/client/src/application/fulfillment/deliveryReviewService.ts -> @/presentation/formatters",
-  "apps/prototype-web/client/src/application/home/homeControlCenterService.ts -> @/presentation/activityLabels",
-  "apps/prototype-web/client/src/application/home/homeControlCenterService.ts -> @/presentation/formatters",
-  "apps/prototype-web/client/src/application/owner-money/withdrawalWalletGuard.ts -> @/presentation/formatters",
-  "apps/prototype-web/client/src/application/share/shareMessageService.ts -> @/presentation/formatters",
-];
+/** R3: حواف القيمة من التطبيق إلى العرض — **صفر بعد Wave B (ADR-011 §2،
+ * 2026-10-03):** استُخرجت مفردات التنسيق/التسميات/عرض الاتفاق النقية إلى
+ * بيوت تطبيقية (@/application/formatting/formatters، activity/activityLabels،
+ * agreements/agreementPresentation) وواجهة العرض صارت تعيد التصدير (الاتجاه
+ * الصحيح). أي حافة جديدة تطبيق→عرض يرفضها الحارس من جديد. */
+export const APPLICATION_TO_PRESENTATION_VALUE_BASELINE = [];
 
 /** الفحص الكامل: يعيد الخروق الجديدة والإحصاءات. */
 export function checkModuleBoundaries(repoRoot, imports) {

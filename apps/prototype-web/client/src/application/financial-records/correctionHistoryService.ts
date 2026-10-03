@@ -6,7 +6,7 @@ import { ammanDateOrNull } from "@micro-domain/shared/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
-import { formatLocalDate, formatMoneyWithUnit, formatQuantityMilli } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyWithUnit, formatQuantityMilli } from "@/application/formatting/formatters";
 
 export type CorrectionHistoryKind =
   | "event_reversal"

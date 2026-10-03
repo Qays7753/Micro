@@ -30,7 +30,7 @@ import type { CashContinuityService } from "@/application/cash/cashContinuitySer
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
-import { formatMoneyWithUnit } from "@/presentation/formatters";
+import { formatMoneyWithUnit } from "@/application/formatting/formatters";
 
 /* TOOL-001 (قرار المالك ٢٠٢٦-٠٩-١٦): «غير متاح» حالة صادقة مستقلة — تعذّر
  * القراءة ليس خللًا في الأرقام ولا نجاحًا؛ لا يُحتسب نجاحًا في الخلاصة أبدًا. */

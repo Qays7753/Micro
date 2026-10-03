@@ -15,7 +15,7 @@
 import type { StatementReading } from "./statementService";
 import type { RecordedPeriodResult } from "./projectFinancialService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
-import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyWithUnit } from "@/application/formatting/formatters";
 
 export type StatementMarkdownResult =
   | { ok: true; value: { markdown: string; filename: string } }

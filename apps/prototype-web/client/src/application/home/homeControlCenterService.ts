@@ -7,8 +7,8 @@ import type { InventoryMaterialService } from "@/application/inventory/inventory
 import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import type { ActivityService } from "@/application/activity/activityService";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
-import { formatMoneyMinor } from "@/presentation/formatters";
-import { activityEffectLabel, activityFamilyLabel } from "@/presentation/activityLabels";
+import { formatMoneyMinor } from "@/application/formatting/formatters";
+import { activityEffectLabel, activityFamilyLabel } from "@/application/activity/activityLabels";
 
 /* مبدأ Micro: جمع النص يشرح عدد المواعيد فقط؛ لا يغيّر قرار السعة أو حالة الموعد. */
 import {

@@ -177,15 +177,22 @@ describe("boundary rules on a synthetic tree (each rule can fail)", () => {
     expect(r3[0]?.key).toContain("application/x/service.ts");
   });
 
-  it("the embedded baselines are internally unique and non-empty", () => {
+  it("the embedded baselines are internally unique; R1/R2 non-empty, R3 may reach zero when its edges are eliminated", () => {
+    /* تحديث مؤرخ 2026-10-03 (Wave B — ADR-011 §2): أساس R3 وصل إلى صفر
+     * مشروعًا بعد استخراج مفردات العرض النقية إلى بيوت تطبيقية — هذا هو
+     * عمل الراتشة لا إضعافه: القاعدة تبقى مفروضة على أي حافة جديدة
+     * (يثبته اختبار الشجرة الاصطناعية أعلاه)، والفراغ مسموح حصرًا لأساس
+     * حواف قائمة أُزيلت كلها. R1/R2 يبقيان غير فارغين حتى تغلق مساريهما. */
     for (const [name, baseline] of [
       ["deep", DEEP_DOMAIN_IMPORT_BASELINE],
       ["ui→domain", UI_TO_DOMAIN_VALUE_BASELINE],
-      ["app→presentation", APPLICATION_TO_PRESENTATION_VALUE_BASELINE],
     ]) {
       expect(baseline.length, name).toBeGreaterThan(0);
       expect(new Set(baseline).size).toBe(baseline.length);
     }
+    expect(new Set(APPLICATION_TO_PRESENTATION_VALUE_BASELINE).size).toBe(
+      APPLICATION_TO_PRESENTATION_VALUE_BASELINE.length,
+    );
   });
 });
 

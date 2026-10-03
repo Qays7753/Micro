@@ -123,7 +123,7 @@ export type StatementResult =
   | { ok: false; code: "storage_error" | "validation_error"; message: string };
 
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
-import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyWithUnit } from "@/application/formatting/formatters";
 
 export class StatementService {
   constructor(

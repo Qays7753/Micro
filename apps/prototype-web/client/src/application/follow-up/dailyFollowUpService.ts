@@ -6,8 +6,8 @@
 import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import type { OrderDraft, PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
-import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
-import { formatArabicPlural } from "@/presentation/formatters";
+import { getAgreementPresentation } from "@/application/agreements/agreementPresentation";
+import { formatArabicPlural } from "@/application/formatting/formatters";
 
 /* مبدأ Micro: صياغة العدد عرضية؛ لا تغيّر الحدث أو الدين أو أي أثر مالي. */
 

@@ -13,7 +13,7 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import type { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
-import { formatMoneyWithUnit } from "@/presentation/formatters";
+import { formatMoneyWithUnit } from "@/application/formatting/formatters";
 import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
 
 export type ReceivableSourceKind = "order" | "direct_sale";

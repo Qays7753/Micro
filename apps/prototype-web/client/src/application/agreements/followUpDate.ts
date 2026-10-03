@@ -1,4 +1,4 @@
-import { formatLocalDate, isValidLocalDate } from "@/presentation/formatters";
+import { formatLocalDate, isValidLocalDate } from "@/application/formatting/formatters";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type FollowUpDateStatus = "none" | "invalid" | "overdue" | "today" | "upcoming";

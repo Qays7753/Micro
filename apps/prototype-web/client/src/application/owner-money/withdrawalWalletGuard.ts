@@ -3,7 +3,7 @@ import {
   type CashContinuityEntry,
   type CashWallet,
 } from "@micro-domain/cash-continuity/index.js";
-import { formatMoneyWithUnit } from "@/presentation/formatters";
+import { formatMoneyWithUnit } from "@/application/formatting/formatters";
 
 /* G-006 (تدقيق الإدارة المالية المتدرجة 2026-09-19): مسار دفتر المالك كان
  * يتحقق وجود المحفظة فقط (لا تغطيتها) فكان السحب يجعل رصيدها سالبًا بصمت،

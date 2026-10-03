@@ -35,7 +35,7 @@ import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { ScheduleService } from "@/application/scheduling/scheduleService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
-import { formatMoneyMinor, formatQuantityMilli } from "@/presentation/formatters";
+import { formatMoneyMinor, formatQuantityMilli } from "@/application/formatting/formatters";
 import { storageFailureCode, type PrototypeLocalStore, type StoredCraftOrder } from "@/storage/local/types";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 
