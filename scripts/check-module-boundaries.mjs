@@ -135,9 +135,12 @@ export function collectAllImports(repoRoot, files) {
  * مطابقًا لسجل الاستثناءات في سجل الملكية §5. التحديث عمدًا في نفس الـPR
  * المصورة الحافة/الاستيراد الجديد، مع صف السجل. */
 
-/** R1: الاستيرادات العميقة المسجلة داخل المجال من خارجه (كلها ديناميكية موثقة). */
+/** R1: الاستيرادات العميقة المسجلة داخل المجال من خارجه (كلها ديناميكية موثقة).
+ * Wave F (ADR-013، 2026-10-04): فحص MIC-18 انتقل حرفيًا من integrityCheckService.ts
+ * إلى بيته الشقيق integrityCheckSettlementBasis.ts — الحافة الموثقة نفسها
+ * (STR-205/STR-313) انتقلت معه؛ تحديث الأساس في نفس الـPR وفق بروتوكول الحارس. */
 export const DEEP_DOMAIN_IMPORT_BASELINE = [
-  "apps/prototype-web/client/src/application/finance/integrityCheckService.ts -> @micro-domain/craft-order/settlementInvariant.js",
+  "apps/prototype-web/client/src/application/finance/integrityCheckSettlementBasis.ts -> @micro-domain/craft-order/settlementInvariant.js",
   "apps/prototype-web/client/src/application/finance/projectFinancialService.ts -> @micro-domain/financial-analysis/operatingBreakEven.js",
   "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts -> @micro-domain/financial-analysis/operatingBreakEven.js",
 ];
