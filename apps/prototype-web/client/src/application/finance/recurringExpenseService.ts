@@ -47,7 +47,14 @@ import {
 } from "../financial-records/expenseRecordIntent";
 import type { ProjectFinancialService } from "./projectFinancialService";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { RecurringExpenseStore } from "@/storage/local/capabilities/recurringExpenseStore";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+
+/* Wave C (ADR-015 مجموعة 1 — 2026-10-03): النوع الضيق للاستحقاق — قدرة المصروف
+ * المتكرر (المشتقة من الواجهة التوافقية) زائد قراءتي الحدث المالي اللتين
+ * تحتاجهما الخدمة فعلًا (جرد مستهلك حي). لا سلوك يتغير — حقن تركيبي كما هو. */
+type RecurringExpenseServiceStore = RecurringExpenseStore &
+  Pick<PrototypeLocalStore, "getFinancialEvent" | "listFinancialEvents">;
 
 export type RecurringExpenseServiceResult<T> =
   | { ok: true; value: T }
@@ -101,7 +108,7 @@ const HORIZON_PERIODS_AHEAD = 1;
 
 export class RecurringExpenseService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: RecurringExpenseServiceStore,
     private readonly now: () => string = () => new Date().toISOString(),
     private readonly projectFinance?: Pick<ProjectFinancialService, "distributeUnallocated">,
   ) {}
