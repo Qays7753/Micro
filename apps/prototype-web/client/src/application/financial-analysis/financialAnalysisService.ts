@@ -23,6 +23,8 @@ import { localDateInAmman, quantityMilliExact } from "@micro-domain/shared/index
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import type { ShortCashDeclarationStore } from "@/storage/local/capabilities/shortCashDeclarationStore";
+import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 /* FIN-005 (WS-175 — Wave 3): عائلة أفق الكاش القصير — نموذج نقي يُستخدم
  * من هنا فقط (الخدمة تستمد «اليوم» من ساعتها القابلة للحقن ثم تحل النطاق). */
@@ -32,6 +34,27 @@ import {
   type ShortCashHorizonDays,
 } from "@/application/finance/shortCashHorizon";
 import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+
+/* Wave C (ADR-015 مجموعة 5 — 2026-10-04): النوع الضيق للخدمة — قسم تصريحات
+ * الكاش القصير من قدرة السجل المخزّن (قيد 4A محفوظ: سجل مخزّن لا read
+ * model)، زائد قراءتَي الطلب من قدرة دورة حياة الطلب (4C)، زائد القراءات
+ * المصرح بها للأحداث والكتالوج والتحويلات المباشرة والوحدات والمشتريات
+ * (جرد مستهلك حي: 11 طريقة — getShortCashDeclaration بلا مستهلك إنتاج).
+ * لا سلوك يتغير — حقن تركيبي كما هو. */
+type FinancialAnalysisServiceStore = Pick<
+  ShortCashDeclarationStore,
+  "listShortCashDeclarations" | "saveShortCashDeclaration" | "commitShortCashDeclarationReversal"
+> &
+  Pick<OrderLifecycleStore, "getOrder" | "listOrders"> &
+  Pick<
+    PrototypeLocalStore,
+    "getFinancialEvent" |
+      "listCatalogItems" |
+      "listDirectConversions" |
+      "listFinancialEvents" |
+      "listMeasurementUnits" |
+      "listSupplierPurchases"
+  >;
 
 export type G5Decision = {
   /* REM-007 (المرحلة ب): القراءة الكاملة للتعادل التشغيلي — الأساس +
@@ -283,7 +306,7 @@ function payables(events: readonly FinancialEvent[], purchases: readonly Supplie
 /** الاسم الأساس الحالي (Wave 4A) — التاريخي G5Service يُصدَّر مرادفًا أدناه. */
 export class FinancialAnalysisService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: FinancialAnalysisServiceStore,
     private readonly projectFinance: ProjectFinancialService,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
