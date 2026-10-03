@@ -9,7 +9,7 @@ import type {
   DraftCostTime,
   PrototypeLocalStore,
 } from "@/storage/local/types";
-import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, VALIDATION_ERROR, errorMessageOf } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type CostEstimateResult<T> =
@@ -75,7 +75,7 @@ export class CostEstimateService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "مدخلات الحساب غير صالحة.",
+        message: errorMessageOf(error, "مدخلات الحساب غير صالحة."),
       };
     }
   }

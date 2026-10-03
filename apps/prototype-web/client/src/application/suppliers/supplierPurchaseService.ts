@@ -14,7 +14,7 @@ import {
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { storageFailureCode } from "@/storage/local/types";
 import type { SupplierPurchaseCommit } from "@/storage/local/supplierScheduleCommitGuard";
-import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, VALIDATION_ERROR, errorMessageOf } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type SupplierPurchaseInput = {
@@ -233,7 +233,7 @@ export class SupplierPurchaseService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات الشراء غير صالحة.",
+        message: errorMessageOf(error, "بيانات الشراء غير صالحة."),
       };
     }
   }
@@ -291,7 +291,7 @@ export class SupplierPurchaseService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات الدفعة غير صالحة.",
+        message: errorMessageOf(error, "بيانات الدفعة غير صالحة."),
       };
     }
   }
@@ -385,7 +385,7 @@ export class SupplierPurchaseService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات تعديل الشراء غير صالحة.",
+        message: errorMessageOf(error, "بيانات تعديل الشراء غير صالحة."),
       };
     }
   }
@@ -429,7 +429,7 @@ export class SupplierPurchaseService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات التراجع غير صالحة.",
+        message: errorMessageOf(error, "بيانات التراجع غير صالحة."),
       };
     }
   }

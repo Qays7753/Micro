@@ -39,6 +39,11 @@ import { formatMoneyMinor, formatQuantityMilli } from "@/application/formatting/
 import { storageFailureCode, type PrototypeLocalStore, type StoredCraftOrder } from "@/storage/local/types";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 import { systemClock, type Clock } from "@/application/time/clock";
+import {
+  ORDER_READ_FAILED_MESSAGE,
+  ORDER_UNAVAILABLE_MESSAGE,
+  errorMessageOf,
+} from "@/application/resultCodes";
 
 export type DeliveryConsumptionAction = "consume" | "consume_with_shortage" | "record_shortage" | "skip";
 
@@ -196,7 +201,7 @@ export class DeliveryReviewService {
     if (!ordersResult.ok || !materialsResult.ok || !movementsResult.ok || !templatesResult.ok)
       return failure("storage_error", "تعذر قراءة بيانات التسليم المحلية.");
     const stored = ordersResult.value;
-    if (!stored) return failure("invalid_state", "الطلب غير متاح محليًا.");
+    if (!stored) return failure("invalid_state", ORDER_UNAVAILABLE_MESSAGE);
     const order = stored.order;
     const warnings: string[] = [];
     if (order.status !== "ready") {
@@ -374,9 +379,9 @@ export class DeliveryReviewService {
   /* التنفيذ الذرّي: طلب + حركات + نقص + تخصيص كاش في معاملة واحدة. */
   async commitDelivery(orderId: string, input: CommitDeliveryInput): Promise<DeliveryCommitResult> {
     const current = await this.store.getOrder(orderId);
-    if (!current.ok) return failure("storage_error", "تعذر قراءة الطلب المحلي.");
+    if (!current.ok) return failure("storage_error", ORDER_READ_FAILED_MESSAGE);
     const stored = current.value;
-    if (!stored) return failure("invalid_state", "الطلب غير متاح محليًا.");
+    if (!stored) return failure("invalid_state", ORDER_UNAVAILABLE_MESSAGE);
     if (
       ["delivered", "settled"].includes(stored.order.status) &&
       stored.order.events.some(event => event.type === "status_changed" && event.toStatus === "delivered")
@@ -423,7 +428,7 @@ export class DeliveryReviewService {
           createdAt: timestamp,
         });
       } catch (error) {
-        return failure("invalid_state", error instanceof Error ? error.message : "تعذر تعديل السعر.");
+        return failure("invalid_state", errorMessageOf(error, "تعذر تعديل السعر."));
       }
     }
 
@@ -431,7 +436,7 @@ export class DeliveryReviewService {
     try {
       order = transitionOrder(order, { to: "delivered", idempotencyKey: deliverKey, createdAt: timestamp });
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل التسليم.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر تسجيل التسليم."));
     }
     const deliveryEvent = [...order.events]
       .reverse()
@@ -514,10 +519,7 @@ export class DeliveryReviewService {
             `${material.name} (${formatQuantityMilli(consumeQuantity)} ${UNIT_LABELS[material.unit] ?? ""})`.trim(),
           );
         } catch (error) {
-          return failure(
-            "validation_error",
-            error instanceof Error ? error.message : "بيانات استهلاك التسليم غير صالحة.",
-          );
+          return failure("validation_error", errorMessageOf(error, "بيانات استهلاك التسليم غير صالحة."));
         }
       }
       const shortageQuantity =
@@ -542,10 +544,7 @@ export class DeliveryReviewService {
           });
           newShortages.push(shortage);
         } catch (error) {
-          return failure(
-            "validation_error",
-            error instanceof Error ? error.message : "بيانات نقص التسليم غير صالحة.",
-          );
+          return failure("validation_error", errorMessageOf(error, "بيانات نقص التسليم غير صالحة."));
         }
       }
     }
@@ -560,10 +559,7 @@ export class DeliveryReviewService {
           createdAt: timestamp,
         });
       } catch (error) {
-        return failure(
-          "invalid_state",
-          error instanceof Error ? error.message : "تعذر توثيق استهلاك التسليم.",
-        );
+        return failure("invalid_state", errorMessageOf(error, "تعذر توثيق استهلاك التسليم."));
       }
     }
 
@@ -578,10 +574,7 @@ export class DeliveryReviewService {
       try {
         order = collectRemaining(order, collectNow.amountMinor, collectKey, timestamp);
       } catch (error) {
-        return failure(
-          "invalid_state",
-          error instanceof Error ? error.message : "تعذر تسجيل القبض عند التسليم.",
-        );
+        return failure("invalid_state", errorMessageOf(error, "تعذر تسجيل القبض عند التسليم."));
       }
       if (collectNow.walletId) {
         wallet = wallets.find(candidate => candidate.id === collectNow.walletId) ?? null;
@@ -644,9 +637,9 @@ export class DeliveryReviewService {
     input: { reason: string; operationKey?: string },
   ): Promise<ReverseDeliveryResult> {
     const current = await this.store.getOrder(orderId);
-    if (!current.ok) return failure("storage_error", "تعذر قراءة الطلب المحلي.");
+    if (!current.ok) return failure("storage_error", ORDER_READ_FAILED_MESSAGE);
     const stored = current.value;
-    if (!stored) return failure("invalid_state", "الطلب غير متاح محليًا.");
+    if (!stored) return failure("invalid_state", ORDER_UNAVAILABLE_MESSAGE);
     if (!input.reason.trim())
       return failure("invalid_state", "أكمل سبب التراجع الموثق عن التسليم قبل الحفظ.");
     const timestamp = this.now();
@@ -667,10 +660,7 @@ export class DeliveryReviewService {
         createdAt: timestamp,
       });
     } catch (error) {
-      return failure(
-        "invalid_state",
-        error instanceof Error ? error.message : "تعذر التراجع الموثق عن التسليم.",
-      );
+      return failure("invalid_state", errorMessageOf(error, "تعذر التراجع الموثق عن التسليم."));
     }
     /* حركات مرآة لكل استهلاك تسليم غير معكوس — عقد ٢٨: المرآة تحمل معرفة
      * التكلفة الأصلية، وعملية التراجع لا تُكرر. */
@@ -711,7 +701,7 @@ export class DeliveryReviewService {
       } catch (error) {
         return failure(
           "invalid_state",
-          error instanceof Error ? error.message : "تعذر تسجيل مرايا تراجع حركات استهلاك التسليم.",
+          errorMessageOf(error, "تعذر تسجيل مرايا تراجع حركات استهلاك التسليم."),
         );
       }
     }

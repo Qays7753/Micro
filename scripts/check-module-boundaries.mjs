@@ -138,10 +138,13 @@ export function collectAllImports(repoRoot, files) {
 /** R1: الاستيرادات العميقة المسجلة داخل المجال من خارجه (كلها ديناميكية موثقة).
  * Wave F (ADR-013، 2026-10-04): فحص MIC-18 انتقل حرفيًا من integrityCheckService.ts
  * إلى بيته الشقيق integrityCheckSettlementBasis.ts — الحافة الموثقة نفسها
- * (STR-205/STR-313) انتقلت معه؛ تحديث الأساس في نفس الـPR وفق بروتوكول الحارس. */
+ * (STR-205/STR-313) انتقلت معه؛ تحديث الأساس في نفس الـPR وفق بروتوكول الحارس.
+ * Wave F شريحة ٢ (ADR-013 عنقود ٣، 2026-10-04): قراءة المؤشرات انتقلت حرفيًا من
+ * projectFinancialService.ts إلى بيته الشقيق projectFinancialInsights.ts — حافة
+ * operatingBreakEven الموثقة D-034 نفسها (خارج حزمة الدخول عمدًا) انتقلت معها. */
 export const DEEP_DOMAIN_IMPORT_BASELINE = [
   "apps/prototype-web/client/src/application/finance/integrityCheckSettlementBasis.ts -> @micro-domain/craft-order/settlementInvariant.js",
-  "apps/prototype-web/client/src/application/finance/projectFinancialService.ts -> @micro-domain/financial-analysis/operatingBreakEven.js",
+  "apps/prototype-web/client/src/application/finance/projectFinancialInsights.ts -> @micro-domain/financial-analysis/operatingBreakEven.js",
   "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts -> @micro-domain/financial-analysis/operatingBreakEven.js",
 ];
 

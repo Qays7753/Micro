@@ -27,6 +27,12 @@ import {
 } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { systemClock, type Clock } from "@/application/time/clock";
+import { FINANCIAL_EVENTS_READ_FAILED_MESSAGE, errorMessageOf } from "@/application/resultCodes";
+
+/* STR-620/608 (Wave F — تكثيف الهامش): الحرفية نفسها كانت تتكرر في هذا الملف
+ * عدّة مرات؛ ثابت واحد بلا أي تغيير رسالة. */
+const ASSET_READ_FAILED_MESSAGE = "تعذر قراءة سجل الأصل المحلي.";
+const ASSET_UNAVAILABLE_MESSAGE = "الأصل غير متاح محليًا.";
 
 export type AssetSummaryRow = {
   asset: AssetRecord;
@@ -168,9 +174,9 @@ export class AssetService {
       this.store.getAsset(assetId),
       this.store.listFinancialEvents(),
     ]);
-    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
+    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", ASSET_READ_FAILED_MESSAGE);
     const asset = assetResult.value;
-    if (!asset) return failure("invalid_state", "الأصل غير متاح محليًا.");
+    if (!asset) return failure("invalid_state", ASSET_UNAVAILABLE_MESSAGE);
     const reversed = reversedEventIds(eventsResult.value);
     const events = eventsResult.value
       .filter(event => event.assetContext?.assetId === assetId)
@@ -226,7 +232,7 @@ export class AssetService {
       if (!commit.ok) return failure("storage_error", commit.message);
       return { ok: true, value: { asset: commit.value.record, event: commit.value.event } };
     } catch (error) {
-      return failure("validation_error", error instanceof Error ? error.message : "بيانات الأصل غير صالحة.");
+      return failure("validation_error", errorMessageOf(error, "بيانات الأصل غير صالحة."));
     }
   }
 
@@ -242,10 +248,7 @@ export class AssetService {
       if (!commit.ok) return failure("storage_error", commit.message);
       return { ok: true, value: { asset: commit.value.record } };
     } catch (error) {
-      return failure(
-        "validation_error",
-        error instanceof Error ? error.message : "تعديل عقد الإهلاك غير صالح.",
-      );
+      return failure("validation_error", errorMessageOf(error, "تعديل عقد الإهلاك غير صالح."));
     }
   }
 
@@ -257,9 +260,9 @@ export class AssetService {
       this.store.getAsset(assetId),
       this.store.listFinancialEvents(),
     ]);
-    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
+    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", ASSET_READ_FAILED_MESSAGE);
     const asset = assetResult.value;
-    if (!asset) return failure("invalid_state", "الأصل غير متاح محليًا.");
+    if (!asset) return failure("invalid_state", ASSET_UNAVAILABLE_MESSAGE);
     /* عقد الأصول (فصل الإهلاك عن التخلص): الأصل المؤرشف — تخلص أو شطب — قيمته
      * الدفترية مثبتة عند الأرشفة؛ تصحيح اقتنائه بعدها يُحيي قيمة ملغاة. التصحيح
      * الموثق مسموح ما دام الأصل نشطًا. */
@@ -317,7 +320,7 @@ export class AssetService {
         },
       };
     } catch (error) {
-      return failure("validation_error", error instanceof Error ? error.message : "تصحيح الاقتناء غير صالح.");
+      return failure("validation_error", errorMessageOf(error, "تصحيح الاقتناء غير صالح."));
     }
   }
 
@@ -329,9 +332,9 @@ export class AssetService {
       this.store.getAsset(assetId),
       this.store.listFinancialEvents(),
     ]);
-    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
+    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", ASSET_READ_FAILED_MESSAGE);
     const asset = assetResult.value;
-    if (!asset) return failure("invalid_state", "الأصل غير متاح محليًا.");
+    if (!asset) return failure("invalid_state", ASSET_UNAVAILABLE_MESSAGE);
     const proposal = planAssetDepreciation(asset, eventsResult.value, input.asOf);
     if (proposal.proposedMinor <= 0)
       return failure(
@@ -358,7 +361,7 @@ export class AssetService {
       if (!stored) return failure("invalid_state", "لم يُخزَّن حدث الإهلاك؛ راجع سلامة الأصول.");
       return { ok: true, value: { event: stored } };
     } catch (error) {
-      return failure("validation_error", error instanceof Error ? error.message : "تسجيل الإهلاك غير صالح.");
+      return failure("validation_error", errorMessageOf(error, "تسجيل الإهلاك غير صالح."));
     }
   }
 
@@ -367,7 +370,7 @@ export class AssetService {
     reason: string,
   ): Promise<AssetResult<{ reversal: FinancialEvent }>> {
     const eventsResult = await this.store.listFinancialEvents();
-    if (!eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأحداث المالية.");
+    if (!eventsResult.ok) return failure("storage_error", FINANCIAL_EVENTS_READ_FAILED_MESSAGE);
     const source = eventsResult.value.find(event => event.id === eventId);
     if (!source || source.type !== "asset_depreciation")
       return failure("invalid_state", "حدث الإهلاك غير موجود.");
@@ -404,7 +407,7 @@ export class AssetService {
       if (!commit.ok) return failure("storage_error", commit.message);
       return { ok: true, value: { reversal: commit.value } };
     } catch (error) {
-      return failure("validation_error", error instanceof Error ? error.message : "تراجع الإهلاك غير صالح.");
+      return failure("validation_error", errorMessageOf(error, "تراجع الإهلاك غير صالح."));
     }
   }
 
@@ -416,9 +419,9 @@ export class AssetService {
       this.store.getAsset(assetId),
       this.store.listFinancialEvents(),
     ]);
-    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
+    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", ASSET_READ_FAILED_MESSAGE);
     const asset = assetResult.value;
-    if (!asset) return failure("invalid_state", "الأصل غير متاح محليًا.");
+    if (!asset) return failure("invalid_state", ASSET_UNAVAILABLE_MESSAGE);
     try {
       const prepared = prepareAssetDisposal(asset, eventsResult.value, input);
       const now = this.now();
@@ -449,7 +452,7 @@ export class AssetService {
       if (!stored) return failure("invalid_state", "لم يُخزَّن حدث التخلص؛ راجع سلامة الأصول.");
       return { ok: true, value: { asset: commit.value.record, event: stored } };
     } catch (error) {
-      return failure("validation_error", error instanceof Error ? error.message : "التخلص غير صالح.");
+      return failure("validation_error", errorMessageOf(error, "التخلص غير صالح."));
     }
   }
 
@@ -461,9 +464,9 @@ export class AssetService {
       this.store.getAsset(assetId),
       this.store.listFinancialEvents(),
     ]);
-    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
+    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", ASSET_READ_FAILED_MESSAGE);
     const asset = assetResult.value;
-    if (!asset) return failure("invalid_state", "الأصل غير متاح محليًا.");
+    if (!asset) return failure("invalid_state", ASSET_UNAVAILABLE_MESSAGE);
     try {
       const prepared = prepareAssetWriteOff(asset, eventsResult.value, input);
       const now = this.now();
@@ -493,20 +496,20 @@ export class AssetService {
       if (!stored) return failure("invalid_state", "لم يُخزَّن حدث الشطب؛ راجع سلامة الأصول.");
       return { ok: true, value: { asset: commit.value.record, event: stored } };
     } catch (error) {
-      return failure("validation_error", error instanceof Error ? error.message : "الشطب غير صالح.");
+      return failure("validation_error", errorMessageOf(error, "الشطب غير صالح."));
     }
   }
 
   async recordedDepreciation(assetId: string): Promise<AssetResult<number>> {
     const eventsResult = await this.store.listFinancialEvents();
-    if (!eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأحداث المالية.");
+    if (!eventsResult.ok) return failure("storage_error", FINANCIAL_EVENTS_READ_FAILED_MESSAGE);
     return { ok: true, value: recordedDepreciationMinor(assetId, eventsResult.value) };
   }
 
   private async loadAsset(assetId: string): Promise<AssetResult<AssetRecord>> {
     const result = await this.store.getAsset(assetId);
-    if (!result.ok) return failure("storage_error", "تعذر قراءة سجل الأصل المحلي.");
-    if (!result.value) return failure("invalid_state", "الأصل غير متاح محليًا.");
+    if (!result.ok) return failure("storage_error", ASSET_READ_FAILED_MESSAGE);
+    if (!result.value) return failure("invalid_state", ASSET_UNAVAILABLE_MESSAGE);
     return { ok: true, value: result.value };
   }
 }

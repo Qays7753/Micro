@@ -58,7 +58,11 @@
     "apps/prototype-web/client/src/application/finance/periodComparisonService.ts": "WATCH",
     "apps/prototype-web/client/src/application/finance/periodPresets.ts": "NORMAL",
     "apps/prototype-web/client/src/application/finance/profitToCashBridgeService.ts": "NORMAL",
-    "apps/prototype-web/client/src/application/finance/projectFinancialService.ts": "SPLIT_NOW",
+    "apps/prototype-web/client/src/application/finance/projectFinancialEventWrites.ts": "WATCH",
+    "apps/prototype-web/client/src/application/finance/projectFinancialInsights.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/finance/projectFinancialPeriodReads.ts": "WATCH",
+    "apps/prototype-web/client/src/application/finance/projectFinancialReads.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/finance/projectFinancialService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/finance/projectFinancialTypes.ts": "NORMAL",
     "apps/prototype-web/client/src/application/finance/recurringExpenseService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/finance/recurringWorkService.ts": "WATCH",
@@ -391,7 +395,7 @@
     "src/domain/supplier-purchase/types.ts": "NORMAL"
   },
   "generated_at": "2026-10-04",
-  "head": "wave-f-slice-1 (ADR-013 cluster-1 internal split — 2026-10-04): integrityCheckService (1,430 nbLOC SPLIT_NOW) split into orchestrator (180 NORMAL) + 8 siblings in the same finance home — integrityCheckModel (NORMAL), integrityCheckCoreFinance (WATCH 430 — group-1 family: MIC-1/2/4/7/9), integrityCheckInventory (NORMAL), integrityCheckAssetsLoans (WATCH 400 — contract-29 family: MIC-10..13), integrityCheckContinuity (NORMAL), integrityCheckSupplierWallet (NORMAL), integrityCheckSettlementBasis (NORMAL — documented STR-205 deep import moved with it, guard baseline updated same PR), integrityCheckOffenderSummaries (NORMAL). WATCH = family growth monitoring per ADR-013 review trigger (any new MIC check); register rows added in the same PR",
+  "head": "wave-f-slice-2 (ADR-013 cluster-3 internal split — 2026-10-04): projectFinancialService (1,503 nbLOC SPLIT_NOW) split into canonical-reader orchestrator (NORMAL) + siblings in the same finance home — projectFinancialTypes (leaf type home completed: all surface types), projectFinancialReads (position + listers), projectFinancialPeriodReads (period family + COGS derivation), projectFinancialInsights (insights; documented D-034 operatingBreakEven deep import moved with it — guard baseline updated same PR), projectFinancialEventWrites (guarded event write paths + PA-002 distribution merged in original family order). WATCH = family growth monitoring per ADR-013 review trigger. Companion STR-608 margin densification (same PR): resultCodes message vocabulary (3 shared read-failure messages) + errorMessageOf helper collapsing the 105-site error pattern + same-file message consts — bundle 637,828/154,991 vs 641,360/154,817 at HEAD (gzip margin 9 bytes — next bundle-affecting wave must measure before push per ADR-012)",
   "source": "FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md v1.4 (Wave 4E/RC-9) + census completion STR-607 (Wave A, 2026-10-03) — سجل الجرد هو المصدر؛ هذا الملف أساس الحارس فقط",
   "version": 1
 }

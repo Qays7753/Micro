@@ -7,7 +7,13 @@ import {
 } from "@micro-domain/actual-time/index.js";
 import { type OperatingWorkMode, type PrototypeLocalStore } from "@/storage/local/types";
 import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
-import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import {
+  NOT_FOUND,
+  ORDER_UNAVAILABLE_MESSAGE,
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  errorMessageOf,
+} from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 type ServiceFailure = {
@@ -84,7 +90,7 @@ export class ActualTimeService {
     ]);
     if (!order.ok || !records.ok)
       return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل الوقت محليًا." };
-    if (!order.value) return { ok: false, code: NOT_FOUND, message: "الطلب غير متاح محليًا." };
+    if (!order.value) return { ok: false, code: NOT_FOUND, message: ORDER_UNAVAILABLE_MESSAGE };
     return {
       ok: true,
       value: records.value
@@ -121,7 +127,7 @@ export class ActualTimeService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات الوقت غير صالحة.",
+        message: errorMessageOf(error, "بيانات الوقت غير صالحة."),
       };
     }
   }
@@ -153,7 +159,7 @@ export class ActualTimeService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "تعذر التراجع عن سجل الوقت.",
+        message: errorMessageOf(error, "تعذر التراجع عن سجل الوقت."),
       };
     }
   }
@@ -165,7 +171,7 @@ export class ActualTimeService {
     ]);
     if (!order.ok || !records.ok)
       return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة مقارنة الوقت محليًا." };
-    if (!order.value) return { ok: false, code: NOT_FOUND, message: "الطلب غير متاح محليًا." };
+    if (!order.value) return { ok: false, code: NOT_FOUND, message: ORDER_UNAVAILABLE_MESSAGE };
     const snapshotTime = order.value.order.costSnapshot.input.time;
     /* Stage 2 — OPS-008 (عقد ١٦ §٤): معرفة مقارنة الوقت من مصدر الوقت نفسه لا من
      * حالة اللقطة الكلية — لقطة بمواد تقديرية ووقت معروف تجعل مقارنة الوقت

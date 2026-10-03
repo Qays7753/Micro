@@ -48,8 +48,11 @@ import {
 import type { ProjectFinancialService } from "../finance/projectFinancialService";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { RecurringExpenseStore } from "@/storage/local/capabilities/recurringExpenseStore";
-import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, VALIDATION_ERROR, errorMessageOf } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
+
+/* STR-608 (Wave F — تكثيف الهامش): الحرفية نفسها كانت تتكرر 3 مرات؛ ثابت واحد بلا تغيير رسالة. */
+const RECURRING_PERIOD_NOT_FOUND_MESSAGE = "فترة المصروف المتكرر غير موجودة.";
 
 /* Wave C (ADR-015 مجموعة 1 — 2026-10-03): النوع الضيق للاستحقاق — قدرة المصروف
  * المتكرر (المشتقة من الواجهة التوافقية) زائد قراءتي الحدث المالي اللتين
@@ -338,7 +341,7 @@ export class RecurringExpenseService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات التذكير غير صالحة.",
+        message: errorMessageOf(error, "بيانات التذكير غير صالحة."),
       };
     }
   }
@@ -365,7 +368,7 @@ export class RecurringExpenseService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "انتقال غير قانوني.",
+        message: errorMessageOf(error, "انتقال غير قانوني."),
       };
     }
   }
@@ -433,7 +436,7 @@ export class RecurringExpenseService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "إلغاء غير قانوني.",
+        message: errorMessageOf(error, "إلغاء غير قانوني."),
       };
     }
   }
@@ -512,7 +515,7 @@ export class RecurringExpenseService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "تعديل غير قانوني.",
+        message: errorMessageOf(error, "تعديل غير قانوني."),
       };
     }
   }
@@ -526,7 +529,7 @@ export class RecurringExpenseService {
     const existing = await this.store.getRecurringExpenseOccurrence(occurrenceId);
     if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: existing.message };
     if (!existing.value)
-      return { ok: false, code: VALIDATION_ERROR, message: "فترة المصروف المتكرر غير موجودة." };
+      return { ok: false, code: VALIDATION_ERROR, message: RECURRING_PERIOD_NOT_FOUND_MESSAGE };
     try {
       const next = transform(existing.value);
       const committed = await this.store.commitRecurringExpenseOccurrenceDecision(existing.value, next);
@@ -541,7 +544,7 @@ export class RecurringExpenseService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "قرار غير قانوني.",
+        message: errorMessageOf(error, "قرار غير قانوني."),
       };
     }
   }
@@ -627,7 +630,7 @@ export class RecurringExpenseService {
     const existing = await this.store.getRecurringExpenseOccurrence(occurrenceId);
     if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: existing.message };
     if (!existing.value)
-      return { ok: false, code: VALIDATION_ERROR, message: "فترة المصروف المتكرر غير موجودة." };
+      return { ok: false, code: VALIDATION_ERROR, message: RECURRING_PERIOD_NOT_FOUND_MESSAGE };
     if (existing.value.status === "recorded" && existing.value.recordedFinancialEventId) {
       const event = await this.store.getFinancialEvent(existing.value.recordedFinancialEventId);
       if (event.ok && event.value) return { ok: true, value: { recorded: true, event: event.value } };
@@ -667,7 +670,7 @@ export class RecurringExpenseService {
     if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: existing.message };
     const occurrence = existing.value;
     if (!occurrence)
-      return { ok: false, code: VALIDATION_ERROR, message: "فترة المصروف المتكرر غير موجودة." };
+      return { ok: false, code: VALIDATION_ERROR, message: RECURRING_PERIOD_NOT_FOUND_MESSAGE };
 
     /* مقَرَّرة سلفًا: «المصروف مسجل مسبقًا لهذه الفترة» — بلا أي كتابة. */
     if (occurrence.status === "recorded" && occurrence.recordedFinancialEventId) {
@@ -705,7 +708,7 @@ export class RecurringExpenseService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات التأكيد غير صالحة.",
+        message: errorMessageOf(error, "بيانات التأكيد غير صالحة."),
       };
     }
 

@@ -12,7 +12,14 @@ import {
 import type { CostService } from "@/application/cost/costService";
 import type { AgreementSource, OrderDraft, ScheduleEntry, StoredCraftOrder } from "@/storage/local/types";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
-import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import {
+  ORDERS_READ_FAILED_MESSAGE,
+  ORDER_READ_FAILED_MESSAGE,
+  ORDER_UNAVAILABLE_MESSAGE,
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  errorMessageOf,
+} from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 /* ORD-003: شروط النقل والتوصيل عند الاتفاق — المسؤولية والأعلام والمبالغ؛
@@ -76,7 +83,7 @@ export class AgreementService {
     const result = await this.store.listOrders();
     return result.ok
       ? { ok: true, orders: result.value }
-      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة الطلبات المحلية." };
+      : { ok: false, code: STORAGE_ERROR, message: ORDERS_READ_FAILED_MESSAGE };
   }
 
   async get(
@@ -85,7 +92,7 @@ export class AgreementService {
     const result = await this.store.getOrder(id);
     return result.ok
       ? { ok: true, stored: result.value }
-      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة الطلب المحلي." };
+      : { ok: false, code: STORAGE_ERROR, message: ORDER_READ_FAILED_MESSAGE };
   }
 
   async createFromDraft(draft: OrderDraft, input: AgreementInput): Promise<AgreementResult> {
@@ -217,14 +224,14 @@ export class AgreementService {
             message: "تعذر حفظ الاتفاق محليًا — بياناتك كما هي؛ أعد المحاولة.",
           };
     } catch (error) {
-      return validation(error instanceof Error ? error.message : "تعذر بناء الاتفاق.");
+      return validation(errorMessageOf(error, "تعذر بناء الاتفاق."));
     }
   }
 
   async startExecution(id: string): Promise<AgreementResult> {
     const existing = await this.store.getOrder(id);
-    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة الطلب المحلي." };
-    if (!existing.value) return { ok: false, code: "inconsistent_state", message: "الطلب غير متاح محليًا." };
+    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: ORDER_READ_FAILED_MESSAGE };
+    if (!existing.value) return { ok: false, code: "inconsistent_state", message: ORDER_UNAVAILABLE_MESSAGE };
     if (existing.value.order.status === "in_progress") return { ok: true, stored: existing.value };
     if (existing.value.order.status !== "provisional_agreement")
       return { ok: false, code: "inconsistent_state", message: "لا يمكن بدء التنفيذ من هذه الحالة." };
@@ -259,7 +266,7 @@ export class AgreementService {
         message: "تعذر حفظ حالة التنفيذ — بياناتك كما هي؛ أعد المحاولة.",
       };
     } catch (error) {
-      return validation(error instanceof Error ? error.message : "تعذر بدء التنفيذ.");
+      return validation(errorMessageOf(error, "تعذر بدء التنفيذ."));
     }
   }
 }

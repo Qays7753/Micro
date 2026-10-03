@@ -19,7 +19,7 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
-import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR, errorMessageOf } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type SaleCollectionReversalStatus =
@@ -337,7 +337,7 @@ export class SaleCollectionReversalService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "تعذر عكس تحصيل البيع المباشر.",
+        message: errorMessageOf(error, "تعذر عكس تحصيل البيع المباشر."),
       };
     }
   }

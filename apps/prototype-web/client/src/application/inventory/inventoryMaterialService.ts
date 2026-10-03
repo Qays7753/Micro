@@ -30,7 +30,7 @@ import {
   type InventoryActivation,
   type PrototypeLocalStore,
 } from "@/storage/local/types";
-import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, VALIDATION_ERROR, errorMessageOf } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type InventoryResult<T> =
@@ -613,7 +613,7 @@ export class InventoryMaterialService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات المادة غير صالحة.",
+        message: errorMessageOf(error, "بيانات المادة غير صالحة."),
       };
     }
   }
@@ -749,7 +749,7 @@ export class InventoryMaterialService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات تأكيد الرصيد غير صالحة.",
+        message: errorMessageOf(error, "بيانات تأكيد الرصيد غير صالحة."),
       };
     }
   }
@@ -830,7 +830,7 @@ export class InventoryMaterialService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات استلام الشراء غير صالحة.",
+        message: errorMessageOf(error, "بيانات استلام الشراء غير صالحة."),
       };
     }
   }
@@ -901,7 +901,7 @@ export class InventoryMaterialService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات استهلاك المادة غير صالحة.",
+        message: errorMessageOf(error, "بيانات استهلاك المادة غير صالحة."),
       };
     }
   }
@@ -950,7 +950,7 @@ export class InventoryMaterialService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات سجل النقص غير صالحة.",
+        message: errorMessageOf(error, "بيانات سجل النقص غير صالحة."),
       };
     }
   }
@@ -1030,7 +1030,7 @@ export class InventoryMaterialService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات استهلاك المادة مع النقص غير صالحة.",
+        message: errorMessageOf(error, "بيانات استهلاك المادة مع النقص غير صالحة."),
       };
     }
   }
@@ -1053,7 +1053,7 @@ export class InventoryMaterialService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات حل النقص غير صالحة.",
+        message: errorMessageOf(error, "بيانات حل النقص غير صالحة."),
       };
     }
   }
@@ -1116,7 +1116,7 @@ export class InventoryMaterialService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات إخراج الفاقد غير صالحة.",
+        message: errorMessageOf(error, "بيانات إخراج الفاقد غير صالحة."),
       };
     }
   }
@@ -1180,7 +1180,7 @@ export class InventoryMaterialService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات ضبط المادة غير صالحة.",
+        message: errorMessageOf(error, "بيانات ضبط المادة غير صالحة."),
       };
     }
   }
@@ -1248,7 +1248,7 @@ export class InventoryMaterialService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات التراجع عن المادة غير صالحة.",
+        message: errorMessageOf(error, "بيانات التراجع عن المادة غير صالحة."),
       };
     }
   }
@@ -1347,7 +1347,7 @@ export class InventoryMaterialService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات هدر المادة غير صالحة.",
+        message: errorMessageOf(error, "بيانات هدر المادة غير صالحة."),
       };
     }
   }

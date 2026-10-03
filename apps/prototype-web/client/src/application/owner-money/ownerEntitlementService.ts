@@ -30,7 +30,7 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { OwnerEntitlementStore } from "@/storage/local/capabilities/ownerEntitlementStore";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
-import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, VALIDATION_ERROR, errorMessageOf } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 /* Wave C (ADR-015 مجموعة 6 — 2026-10-04): النوع الضيق للكاتب — قدرة
@@ -536,7 +536,7 @@ export class OwnerEntitlementService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات السياسة غير صالحة.",
+        message: errorMessageOf(error, "بيانات السياسة غير صالحة."),
       };
     }
   }
@@ -629,7 +629,7 @@ export class OwnerEntitlementService {
         ? { ok: true, value: saved.value.successor }
         : failure("تعذر حفظ النسخة الجديدة ذريًا؛ بقيت السياسات دون تغيير.");
     } catch (error) {
-      const raw = error instanceof Error ? error.message : "";
+      const raw = errorMessageOf(error, "");
       const message = raw.includes("fixed_period")
         ? "النسخة الجديدة من نوع مبلغ ثابت للفترة تحتاج تاريخ نهاية معلنًا."
         : raw.includes("unitLabel")
@@ -720,7 +720,7 @@ export class OwnerEntitlementService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "تعذر حساب الحق.",
+        message: errorMessageOf(error, "تعذر حساب الحق."),
       };
     }
   }
@@ -788,7 +788,7 @@ export class OwnerEntitlementService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات الحق غير صالحة.",
+        message: errorMessageOf(error, "بيانات الحق غير صالحة."),
       };
     }
   }
@@ -838,7 +838,7 @@ export class OwnerEntitlementService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات التراجع عن الحق غير صالحة.",
+        message: errorMessageOf(error, "بيانات التراجع عن الحق غير صالحة."),
       };
     }
   }
@@ -871,7 +871,7 @@ export class OwnerEntitlementService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات الرصيد الافتتاحي غير صالحة.",
+        message: errorMessageOf(error, "بيانات الرصيد الافتتاحي غير صالحة."),
       };
     }
   }
@@ -921,7 +921,7 @@ export class OwnerEntitlementService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات التراجع عن الرصيد الافتتاحي غير صالحة.",
+        message: errorMessageOf(error, "بيانات التراجع عن الرصيد الافتتاحي غير صالحة."),
       };
     }
   }
@@ -1068,7 +1068,7 @@ export class OwnerEntitlementService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات حركة المالك غير صالحة.",
+        message: errorMessageOf(error, "بيانات حركة المالك غير صالحة."),
       };
     }
   }
@@ -1121,7 +1121,7 @@ export class OwnerEntitlementService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات التراجع عن الحركة غير صالحة.",
+        message: errorMessageOf(error, "بيانات التراجع عن الحركة غير صالحة."),
       };
     }
   }

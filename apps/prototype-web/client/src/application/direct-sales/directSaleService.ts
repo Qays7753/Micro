@@ -11,7 +11,13 @@ import {
 import { createCashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
-import { CONFLICT, NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import {
+  CONFLICT,
+  NOT_FOUND,
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  errorMessageOf,
+} from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type DirectSaleRecordInput = {
@@ -116,7 +122,7 @@ export class DirectSaleService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات البيع المباشر غير صالحة.",
+        message: errorMessageOf(error, "بيانات البيع المباشر غير صالحة."),
       };
     }
 
@@ -163,7 +169,7 @@ export class DirectSaleService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات تصحيح البيع المباشر غير صالحة.",
+        message: errorMessageOf(error, "بيانات تصحيح البيع المباشر غير صالحة."),
       };
     }
     const saved = await this.store.saveDirectSale(corrected);
@@ -207,7 +213,7 @@ export class DirectSaleService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات إلغاء البيع المباشر غير صالحة.",
+        message: errorMessageOf(error, "بيانات إلغاء البيع المباشر غير صالحة."),
       };
     }
     const saved = await this.store.saveDirectSale(cancelled);

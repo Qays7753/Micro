@@ -10,9 +10,9 @@
  * الـPR (حارس الحدود R1). */
 import {
   INTEGRITY_TITLES,
-  unavailable,
   type IntegrityCheckContext,
   type IntegrityCheckResult,
+  unavailable,
 } from "./integrityCheckModel";
 
 export async function checkSettlementBasisInvariant(

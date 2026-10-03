@@ -30,6 +30,7 @@ import type { AllocationPolicyStore } from "@/storage/local/capabilities/allocat
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { systemClock, type Clock } from "@/application/time/clock";
+import { errorMessageOf } from "@/application/resultCodes";
 
 /* Wave C (ADR-015 مجموعة 4 — 2026-10-04): النوع الضيق للخدمة — قدرة سياسات
  * التوزيع (قفل exe017 محفوظ: هذه الخدمة المالية الكاتب الوحيد) زائد
@@ -231,10 +232,7 @@ export class RecurringWorkService {
         ? { ok: true, value: saved.value }
         : failure("تعذر حفظ سياسة التوزيع؛ لم يتغير أي أثر مالي.");
     } catch (error) {
-      return failure(
-        error instanceof Error ? error.message : "بيانات سياسة التوزيع غير صالحة.",
-        "validation_error",
-      );
+      return failure(errorMessageOf(error, "بيانات سياسة التوزيع غير صالحة."), "validation_error");
     }
   }
 
@@ -298,7 +296,7 @@ export class RecurringWorkService {
         : failure("تعذر حفظ النسخة الجديدة من سياسة التوزيع ذريًا؛ بقيت النسخة السابقة كما هي.");
     } catch (error) {
       return failure(
-        error instanceof Error ? error.message : "بيانات النسخة الجديدة من سياسة التوزيع غير صالحة.",
+        errorMessageOf(error, "بيانات النسخة الجديدة من سياسة التوزيع غير صالحة."),
         "validation_error",
       );
     }

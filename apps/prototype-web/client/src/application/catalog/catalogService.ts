@@ -16,6 +16,7 @@ import {
 } from "@micro-domain/catalog/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { systemClock, type Clock } from "@/application/time/clock";
+import { errorMessageOf } from "@/application/resultCodes";
 
 export type CatalogFailure = {
   ok: false;
@@ -150,7 +151,7 @@ export class CatalogService {
         ? { ok: true, item: saved.value }
         : failure("تعذر حفظ مرجع العمل محليًا.", "storage_error");
     } catch (error) {
-      return failure(error instanceof Error ? error.message : "مرجع العمل غير صالح.");
+      return failure(errorMessageOf(error, "مرجع العمل غير صالح."));
     }
   }
 
@@ -170,7 +171,7 @@ export class CatalogService {
         ? { ok: true, item: saved.value }
         : failure("تعذر حفظ اقتراحات المرجع محليًا.", "storage_error");
     } catch (error) {
-      return failure(error instanceof Error ? error.message : "اقتراحات المرجع غير صالحة.");
+      return failure(errorMessageOf(error, "اقتراحات المرجع غير صالحة."));
     }
   }
 
@@ -223,7 +224,7 @@ export class CatalogService {
         ? { ok: true, unit: saved.value }
         : failure("تعذر حفظ وحدة القياس محليًا.", "storage_error");
     } catch (error) {
-      return failure(error instanceof Error ? error.message : "وحدة القياس غير صالحة.");
+      return failure(errorMessageOf(error, "وحدة القياس غير صالحة."));
     }
   }
 
@@ -291,7 +292,7 @@ export class CatalogService {
         ? { ok: true, conversion: saved.value }
         : failure("تعذر حفظ التحويل محليًا.", "storage_error");
     } catch (error) {
-      return failure(error instanceof Error ? error.message : "التحويل غير صالح.");
+      return failure(errorMessageOf(error, "التحويل غير صالح."));
     }
   }
 
@@ -385,7 +386,7 @@ export class CatalogService {
       });
       return { ok: true, template };
     } catch (error) {
-      return failure(error instanceof Error ? error.message : "قالب العمل غير صالح.");
+      return failure(errorMessageOf(error, "قالب العمل غير صالح."));
     }
   }
 

@@ -16,6 +16,7 @@ import {
 } from "@/storage/local/types";
 import { snapshotSystemIsEmpty } from "@/storage/local/influentialSnapshotFamilies";
 import { systemClock, type Clock } from "@/application/time/clock";
+import { errorMessageOf } from "@/application/resultCodes";
 
 export const guidedOpeningImportFormat = "micro-guided-opening-import" as const;
 export const guidedOpeningImportVersion = 1 as const;
@@ -319,10 +320,7 @@ export class GuidedOpeningImportService {
       };
       return { ok: true, value: { file, summary: this.summary(file), snapshot } };
     } catch (error) {
-      return fail(
-        "validation_error",
-        error instanceof Error ? error.message : "بيانات الاستيراد الافتتاحي غير صالحة.",
-      );
+      return fail("validation_error", errorMessageOf(error, "بيانات الاستيراد الافتتاحي غير صالحة."));
     }
   }
 

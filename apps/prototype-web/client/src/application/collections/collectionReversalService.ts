@@ -18,7 +18,13 @@ import { reverseOrderCollection } from "@micro-domain/craft-order/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
-import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import {
+  NOT_FOUND,
+  ORDER_UNAVAILABLE_MESSAGE,
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  errorMessageOf,
+} from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type CollectionAllocationMatchStatus =
@@ -96,7 +102,7 @@ export class CollectionReversalService {
     if (!orderResult.ok || !entriesResult.ok || !walletsResult.ok)
       return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات التراجع محليًا." };
     const stored = orderResult.value;
-    if (!stored) return { ok: false, code: NOT_FOUND, message: "الطلب غير متاح محليًا." };
+    if (!stored) return { ok: false, code: NOT_FOUND, message: ORDER_UNAVAILABLE_MESSAGE };
     const order = stored.order;
     /* F-051 (W4-F): البحث بالهوية والنوع معًا — حدثٌ آخر بنفس الهوية لا يحجب
      * القبضة المقصودة؛ الاستيراد يرفض الهوية المكررة أصلًا وهذا تعميق دفاعي. */
@@ -260,7 +266,7 @@ export class CollectionReversalService {
     if (!orderResult.ok || !entriesResult.ok || !walletsResult.ok)
       return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجلات التراجع محليًا." };
     const stored = orderResult.value;
-    if (!stored) return { ok: false, code: NOT_FOUND, message: "الطلب غير متاح محليًا." };
+    if (!stored) return { ok: false, code: NOT_FOUND, message: ORDER_UNAVAILABLE_MESSAGE };
 
     const timestamp = this.now();
     const reversalEventKey = `${input.orderId}:reverse-collection:${input.operationKey}`;
@@ -365,7 +371,7 @@ export class CollectionReversalService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "تعذر التراجع عن القبضة.",
+        message: errorMessageOf(error, "تعذر التراجع عن القبضة."),
       };
     }
   }

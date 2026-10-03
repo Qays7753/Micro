@@ -8,7 +8,7 @@ import {
   type CashWalletOpeningStatus,
 } from "@micro-domain/cash-continuity/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
-import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, VALIDATION_ERROR, errorMessageOf } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type CashContinuityResult<T> =
@@ -159,7 +159,7 @@ export class CashContinuityService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات محفظة الكاش غير صالحة.",
+        message: errorMessageOf(error, "بيانات محفظة الكاش غير صالحة."),
       };
     }
   }
@@ -206,7 +206,7 @@ export class CashContinuityService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات الرصيد الافتتاحي غير صالحة.",
+        message: errorMessageOf(error, "بيانات الرصيد الافتتاحي غير صالحة."),
       };
     }
   }
@@ -239,7 +239,7 @@ export class CashContinuityService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات ضبط الكاش غير صالحة.",
+        message: errorMessageOf(error, "بيانات ضبط الكاش غير صالحة."),
       };
     }
   }
@@ -289,7 +289,7 @@ export class CashContinuityService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات التحويل غير صالحة.",
+        message: errorMessageOf(error, "بيانات التحويل غير صالحة."),
       };
     }
   }
@@ -347,7 +347,7 @@ export class CashContinuityService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات التراجع عن الكاش غير صالحة.",
+        message: errorMessageOf(error, "بيانات التراجع عن الكاش غير صالحة."),
       };
     }
   }

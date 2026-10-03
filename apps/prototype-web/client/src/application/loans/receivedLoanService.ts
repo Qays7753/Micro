@@ -26,6 +26,12 @@ import {
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { LoanStore } from "@/storage/local/capabilities/loanStore";
 import { systemClock, type Clock } from "@/application/time/clock";
+import { errorMessageOf } from "@/application/resultCodes";
+
+/* STR-620/608 (Wave F — تكثيف الهامش): الحرفية نفسها كانت تتكرر في هذا الملف
+ * عدّة مرات؛ ثابت واحد بلا أي تغيير رسالة. */
+const RECEIVED_LOAN_READ_FAILED_MESSAGE = "تعذر قراءة سجل القرض المستلم المحلي.";
+const RECEIVED_LOAN_UNAVAILABLE_MESSAGE = "القرض المستلم غير متاح محليًا.";
 
 /* Wave C (ADR-015 مجموعة 3 — 2026-10-04): النوع الضيق للخدمة — قسم القروض
  * المستلمة من قدرة القروض (المشتقة من الواجهة التوافقية) زائد قراءة
@@ -124,9 +130,9 @@ export class ReceivedLoanService {
       this.store.listFinancialEvents(),
     ]);
     if (!loanResult.ok || !eventsResult.ok)
-      return failure("storage_error", "تعذر قراءة سجل القرض المستلم المحلي.");
+      return failure("storage_error", RECEIVED_LOAN_READ_FAILED_MESSAGE);
     const loan = loanResult.value;
-    if (!loan) return failure("invalid_state", "القرض المستلم غير متاح محليًا.");
+    if (!loan) return failure("invalid_state", RECEIVED_LOAN_UNAVAILABLE_MESSAGE);
     const events = eventsResult.value
       .filter(event => event.loanContext?.loanId === loanId)
       .sort(
@@ -170,10 +176,7 @@ export class ReceivedLoanService {
       if (!commit.ok) return failure("storage_error", commit.message);
       return { ok: true, value: { loan: commit.value.record, event: commit.value.event } };
     } catch (error) {
-      return failure(
-        "validation_error",
-        error instanceof Error ? error.message : "بيانات القرض المستلم غير صالحة.",
-      );
+      return failure("validation_error", errorMessageOf(error, "بيانات القرض المستلم غير صالحة."));
     }
   }
 
@@ -182,9 +185,9 @@ export class ReceivedLoanService {
     input: ReceivedLoanRepaymentInput,
   ): Promise<ReceivedLoanResult<{ loan: ReceivedLoanRecord; event: FinancialEvent }>> {
     const loanResult = await this.store.getReceivedLoan(loanId);
-    if (!loanResult.ok) return failure("storage_error", "تعذر قراءة سجل القرض المستلم المحلي.");
+    if (!loanResult.ok) return failure("storage_error", RECEIVED_LOAN_READ_FAILED_MESSAGE);
     const loan = loanResult.value;
-    if (!loan) return failure("invalid_state", "القرض المستلم غير متاح محليًا.");
+    if (!loan) return failure("invalid_state", RECEIVED_LOAN_UNAVAILABLE_MESSAGE);
     try {
       const now = this.now();
       const repaymentId = newId("rrep");
@@ -209,7 +212,7 @@ export class ReceivedLoanService {
       if (!commit.ok) return failure("storage_error", commit.message);
       return { ok: true, value: { loan: commit.value.record, event: commit.value.event } };
     } catch (error) {
-      return failure("validation_error", error instanceof Error ? error.message : "بيانات الدفعة غير صالحة.");
+      return failure("validation_error", errorMessageOf(error, "بيانات الدفعة غير صالحة."));
     }
   }
 
@@ -223,9 +226,9 @@ export class ReceivedLoanService {
       this.store.listFinancialEvents(),
     ]);
     if (!loanResult.ok || !eventsResult.ok)
-      return failure("storage_error", "تعذر قراءة سجل القرض المستلم المحلي.");
+      return failure("storage_error", RECEIVED_LOAN_READ_FAILED_MESSAGE);
     const loan = loanResult.value;
-    if (!loan) return failure("invalid_state", "القرض المستلم غير متاح محليًا.");
+    if (!loan) return failure("invalid_state", RECEIVED_LOAN_UNAVAILABLE_MESSAGE);
     const repayment = loan.repayments.find(entry => entry.id === repaymentId);
     if (!repayment) return failure("invalid_state", "الدفعة غير موجودة في هذا القرض.");
     const source = eventsResult.value.find(event => event.id === repayment.eventId);
@@ -246,7 +249,7 @@ export class ReceivedLoanService {
       if (!commit.ok) return failure("storage_error", commit.message);
       return { ok: true, value: { loan: commit.value.record, reversal: commit.value.event } };
     } catch (error) {
-      return failure("validation_error", error instanceof Error ? error.message : "تراجع الدفعة غير صالح.");
+      return failure("validation_error", errorMessageOf(error, "تراجع الدفعة غير صالح."));
     }
   }
 
@@ -261,9 +264,9 @@ export class ReceivedLoanService {
       this.store.listFinancialEvents(),
     ]);
     if (!loanResult.ok || !eventsResult.ok)
-      return failure("storage_error", "تعذر قراءة سجل القرض المستلم المحلي.");
+      return failure("storage_error", RECEIVED_LOAN_READ_FAILED_MESSAGE);
     const loan = loanResult.value;
-    if (!loan) return failure("invalid_state", "القرض المستلم غير متاح محليًا.");
+    if (!loan) return failure("invalid_state", RECEIVED_LOAN_UNAVAILABLE_MESSAGE);
     const source = eventsResult.value.find(event => event.id === loan.principalEventId);
     if (!source) return failure("invalid_state", "حدث أصل القرض المستلم غير موجود.");
     if (source.correctionType === "reverse")
@@ -313,10 +316,7 @@ export class ReceivedLoanService {
         },
       };
     } catch (error) {
-      return failure(
-        "validation_error",
-        error instanceof Error ? error.message : "تصحيح القرض المستلم غير صالح.",
-      );
+      return failure("validation_error", errorMessageOf(error, "تصحيح القرض المستلم غير صالح."));
     }
   }
 }

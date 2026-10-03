@@ -6,11 +6,11 @@ import { activeRetainedDepositSumsByOrder, reversedEventIds } from "@micro-domai
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import { formatMoneyWithUnit } from "@/application/formatting/formatters";
 import {
-  fail,
   INTEGRITY_TITLES,
-  unavailable,
+  fail,
   type IntegrityCheckContext,
   type IntegrityCheckResult,
+  unavailable,
 } from "./integrityCheckModel";
 
 /* ─── MIC-10 (المجموعة ٤): الأصول — الاقتناء مقابل الكاش/الذمم، والإهلاك

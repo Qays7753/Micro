@@ -33,6 +33,10 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 import { STORAGE_ERROR } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
+/* STR-620/608 (Wave F — تكثيف الهامش): الحرفية نفسها كانت تتكرر في هذا الملف
+ * عدّة مرات؛ ثابت واحد بلا أي تغيير رسالة. */
+const CANONICAL_READER_COUNTER_LABEL = "القارئ الكنوني — عدّاد";
+
 export type PeriodComparisonStatus = "recorded_only" | "incomplete" | "invalid";
 
 export type PeriodComparisonSide = {
@@ -250,7 +254,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "finalOrderCount",
     label: "طلبات نهائية مسجلة",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.finalOrderCount,
     countsTowardData: true,
@@ -266,7 +270,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "directSaleCount",
     label: "مبيعات مباشرة فعّالة",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.directSaleCount,
     countsTowardData: true,
@@ -290,7 +294,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "sharedEstimatedExpenseCount",
     label: "حصص مشتركة تقديرية",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.sharedEstimatedExpenseCount,
     countsTowardData: true,
@@ -298,7 +302,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "sharedMissingBasisCount",
     label: "حصص بلا مصدر موثق",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.sharedMissingBasisCount,
     countsTowardData: true,
@@ -306,7 +310,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "sharedUnallocatedExpenseCount",
     label: "مصادر مشتركة غير محملة",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.sharedUnallocatedExpenseCount,
     countsTowardData: true,
@@ -314,7 +318,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "legacyUnclassifiedExpenseCount",
     label: "مصروفات غير مصنفة",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.legacyUnclassifiedExpenseCount,
     countsTowardData: true,
@@ -322,7 +326,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "expenseNeedsReviewCount",
     label: "مصاريف تحتاج مراجعة",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.expenseNeedsReviewCount,
     countsTowardData: true,

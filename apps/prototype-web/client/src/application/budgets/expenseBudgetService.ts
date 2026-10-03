@@ -53,7 +53,7 @@ import {
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore, StorageFailure } from "@/storage/local/types";
 import type { ExpenseBudgetStore } from "@/storage/local/capabilities/expenseBudgetStore";
-import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { STORAGE_ERROR, VALIDATION_ERROR, errorMessageOf } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 /* Wave C (ADR-015 مجموعة 2 — 2026-10-04): النوع الضيق للخدمة — قدرة الميزانيات
@@ -279,7 +279,7 @@ export class ExpenseBudgetService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات الميزانية غير صالحة.",
+        message: errorMessageOf(error, "بيانات الميزانية غير صالحة."),
       };
     }
   }
@@ -320,7 +320,7 @@ export class ExpenseBudgetService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات مراجعة الميزانية غير صالحة.",
+        message: errorMessageOf(error, "بيانات مراجعة الميزانية غير صالحة."),
       };
     }
   }
@@ -340,7 +340,7 @@ export class ExpenseBudgetService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات إغلاق الميزانية غير صالحة.",
+        message: errorMessageOf(error, "بيانات إغلاق الميزانية غير صالحة."),
       };
     }
   }
@@ -372,7 +372,7 @@ export class ExpenseBudgetService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "بيانات هدف الميزانية غير صالحة.",
+        message: errorMessageOf(error, "بيانات هدف الميزانية غير صالحة."),
       };
     }
   }

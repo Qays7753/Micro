@@ -19,7 +19,13 @@ import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/type
 import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
-import { STORAGE_ERROR } from "@/application/resultCodes";
+import {
+  ORDERS_READ_FAILED_MESSAGE,
+  ORDER_READ_FAILED_MESSAGE,
+  ORDER_UNAVAILABLE_MESSAGE,
+  STORAGE_ERROR,
+  errorMessageOf,
+} from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type FulfillmentResult =
@@ -62,8 +68,8 @@ export class FulfillmentService {
 
   private async load(id: string): Promise<FulfillmentResult> {
     const result = await this.store.getOrder(id);
-    if (!result.ok) return failure("storage_error", "تعذر قراءة الطلب المحلي.");
-    if (!result.value) return failure("invalid_state", "الطلب غير متاح محليًا.");
+    if (!result.ok) return failure("storage_error", ORDER_READ_FAILED_MESSAGE);
+    if (!result.value) return failure("invalid_state", ORDER_UNAVAILABLE_MESSAGE);
     return success(result.value);
   }
 
@@ -109,7 +115,7 @@ export class FulfillmentService {
         readyKey,
       ]);
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل الجاهزية.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر تسجيل الجاهزية."));
     }
   }
 
@@ -143,10 +149,7 @@ export class FulfillmentService {
         operationKey,
       ]);
     } catch (error) {
-      return failure(
-        "invalid_state",
-        error instanceof Error ? error.message : "تعذر تسجيل شروط النقل والتوصيل.",
-      );
+      return failure("invalid_state", errorMessageOf(error, "تعذر تسجيل شروط النقل والتوصيل."));
     }
   }
 
@@ -188,10 +191,7 @@ export class FulfillmentService {
         [reconfirmKey, resumeKey],
       );
     } catch (error) {
-      return failure(
-        "invalid_state",
-        error instanceof Error ? error.message : "تعذر استئناف التنفيذ بعد المراجعة.",
-      );
+      return failure("invalid_state", errorMessageOf(error, "تعذر استئناف التنفيذ بعد المراجعة."));
     }
   }
 
@@ -235,7 +235,7 @@ export class FulfillmentService {
       }
       return saved;
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل التسليم.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر تسجيل التسليم."));
     }
   }
 
@@ -257,7 +257,7 @@ export class FulfillmentService {
         collectKey,
       ]);
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل التحصيل.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر تسجيل التحصيل."));
     }
   }
 
@@ -280,7 +280,7 @@ export class FulfillmentService {
         debtKey,
       ]);
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل تحصيل الدين.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر تسجيل تحصيل الدين."));
     }
   }
 
@@ -308,7 +308,7 @@ export class FulfillmentService {
           operationKey,
         ]);
       } catch (error) {
-        return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل التحصيل.");
+        return failure("invalid_state", errorMessageOf(error, "تعذر تسجيل التحصيل."));
       }
     }
     return failure(
@@ -334,7 +334,7 @@ export class FulfillmentService {
         input.operationKey,
       ]);
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل العربون.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر تسجيل العربون."));
     }
   }
 
@@ -364,7 +364,7 @@ export class FulfillmentService {
         reverseKey,
       ]);
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر التراجع عن القبض.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر التراجع عن القبض."));
     }
   }
 
@@ -390,7 +390,7 @@ export class FulfillmentService {
         priceKey,
       ]);
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تعديل السعر.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر تعديل السعر."));
     }
   }
 
@@ -412,7 +412,7 @@ export class FulfillmentService {
         debtKey,
       ]);
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسجيل الدين.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر تسجيل الدين."));
     }
   }
 
@@ -431,7 +431,7 @@ export class FulfillmentService {
         `${id}:cancel`,
       ]);
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر إلغاء الطلب.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر إلغاء الطلب."));
     }
   }
 
@@ -452,7 +452,7 @@ export class FulfillmentService {
         nameKey,
       ]);
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسمية الجهة.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر تسمية الجهة."));
     }
   }
 
@@ -512,7 +512,7 @@ export class FulfillmentService {
         refundEventKey,
       ]);
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر رد العربون.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر رد العربون."));
     }
   }
 
@@ -577,7 +577,7 @@ export class FulfillmentService {
         reversalEventKey,
       ]);
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر عكس العربون.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر عكس العربون."));
     }
   }
 
@@ -669,7 +669,7 @@ export class FulfillmentService {
         retainKey,
       ]);
     } catch (error) {
-      return failure("invalid_state", error instanceof Error ? error.message : "تعذر تسوية العربون.");
+      return failure("invalid_state", errorMessageOf(error, "تعذر تسوية العربون."));
     }
   }
 
@@ -685,7 +685,7 @@ export class FulfillmentService {
       this.store.listCashContinuityEntries(),
       this.store.listCashWallets(),
     ]);
-    if (!result.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة الطلبات المحلية." };
+    if (!result.ok) return { ok: false, code: STORAGE_ERROR, message: ORDERS_READ_FAILED_MESSAGE };
     if (!entriesResult.ok || !walletsResult.ok)
       return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة تخصيصات الكاش المحلية." };
     const walletsById = new Map(walletsResult.value.map(wallet => [wallet.id, wallet.name] as const));

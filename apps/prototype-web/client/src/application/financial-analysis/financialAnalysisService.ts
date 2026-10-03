@@ -33,7 +33,7 @@ import {
   type ShortCashHorizon,
   type ShortCashHorizonDays,
 } from "@/application/finance/shortCashHorizon";
-import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR, errorMessageOf } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
 /* Wave C (ADR-015 مجموعة 5 — 2026-10-04): النوع الضيق للخدمة — قسم تصريحات
@@ -471,7 +471,7 @@ export class FinancialAnalysisService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "السجل المتوقع غير صالح.",
+        message: errorMessageOf(error, "السجل المتوقع غير صالح."),
       };
     }
   }
@@ -521,7 +521,7 @@ export class FinancialAnalysisService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: error instanceof Error ? error.message : "تصحيح السجل المتوقع غير صالح.",
+        message: errorMessageOf(error, "تصحيح السجل المتوقع غير صالح."),
       };
     }
   }
