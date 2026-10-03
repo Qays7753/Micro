@@ -262,6 +262,8 @@
     "apps/prototype-web/client/src/pwa/registerSW.virtual.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts": "SPLIT_NOW",
     "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts": "SPLIT_NOW",
+    "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetCapabilityAnchors.ts": "NORMAL",
+    "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetStore.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleCapabilityAnchors.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleStore.ts": "NORMAL",
     "apps/prototype-web/client/src/storage/local/capabilities/recurringExpenseCapabilityAnchors.ts": "NORMAL",
@@ -370,8 +372,8 @@
     "src/domain/supplier-purchase/policies.ts": "NORMAL",
     "src/domain/supplier-purchase/types.ts": "NORMAL"
   },
-  "generated_at": "2026-10-03",
-  "head": "wave-c-group1-recurring-expense-capability (ADR-015 — 2026-10-03): RecurringExpenseStore port + type anchors added (NORMAL); consumer migrated to the narrow intersection type",
+  "generated_at": "2026-10-04",
+  "head": "wave-c-group2-expense-budget-capability (ADR-015 — 2026-10-04): ExpenseBudgetStore port + type anchors added (NORMAL); consumer migrated to the narrow intersection type",
   "source": "FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md v1.4 (Wave 4E/RC-9) + census completion STR-607 (Wave A, 2026-10-03) — سجل الجرد هو المصدر؛ هذا الملف أساس الحارس فقط",
   "version": 1
 }

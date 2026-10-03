@@ -61,7 +61,7 @@
 | Actual time records | 3 | domain/actual-time | — | time؛ finance | ضمن snapshot | مصنّفة |
 | Short cash declarations | 4 | domain/g5 (سجل مخزّن) | shortCashDeclarationReversal guard | application/g5؛ finance | shortCashDeclaration family | مصنّفة — سجل مخزّن لا read model (قيد 4A) |
 | Allocation policies | 4 | domain/financial-event (توزيع) | allocationPolicySuccessor guard | finance | ضمن snapshot | مصنّفة — قفل exe017: كتابة التوزيع للمالية وحدها |
-| Expense budgets | 3 | domain/budget | — | finance/expenseBudgetService | expenseBudget family | مصنّفة |
+| Expense budgets | 3 | domain/budget | expenseBudgetCommitGuard | budgets/expenseBudgetService (وحدة التوافق finance/ إعادة تصدير لا مستهلكًا) | expenseBudget family | مصنّفة — **قدرة مستخرجة (Wave C/ADR-015 مجموعة 2 — 2026-10-04):** منفذ `ExpenseBudgetStore` في `storage/local/capabilities/expenseBudgetStore.ts` مشتق من الواجهة التوافقية (Pick)؛ المحوّلان يحققانه (مراسي نوعية + عقد اختبار بالمحوّلين معًا)؛ المستهلك الوحيد (budgets/expenseBudgetService) على النوع الضيق (القدرة + قراءة الأحداث المالية المصرحة listFinancialEvents) |
 | Recurring expense revisions/occurrences | (ضمن 10 أعلاه) | domain/recurring-expense | ضمن الحراس | finance/recurring | recurringExpense family | مصنّفة (مفصكة مع المجموعة الأم) |
 | Snapshot transfer | 2 (readSnapshot/replaceSnapshot) | application/transfers (تنسيق) + storage (حد الكتابة) | EXE-014 نسخة احتياطية متحققة قبل الاستبدال | localTransferService فقط | المظروف نفسه | مصنّفة — حد حرج؛ لا تغيير |
 | Profile/preferences misc | (مغطاة أعلاه) | — | — | — | — | — |

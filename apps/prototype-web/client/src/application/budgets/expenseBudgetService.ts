@@ -52,7 +52,15 @@ import {
 } from "@micro-domain/budget/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore, StorageFailure } from "@/storage/local/types";
+import type { ExpenseBudgetStore } from "@/storage/local/capabilities/expenseBudgetStore";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+
+/* Wave C (ADR-015 مجموعة 2 — 2026-10-04): النوع الضيق للخدمة — قدرة الميزانيات
+ * (المشتقة من الواجهة التوافقية) زائد قراءة الأحداث المالية الوحيدة التي
+ * تحتاجها الخدمة فعلًا لاحتساب المنصرف (جرد مستهلك حي: 4 طرق — الثلاث القدرة
+ * وlistFinancialEvents). لا سلوك يتغير — حقن تركيبي كما هو. */
+type ExpenseBudgetServiceStore = ExpenseBudgetStore &
+  Pick<PrototypeLocalStore, "listFinancialEvents">;
 
 export type ExpenseBudgetResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -129,7 +137,7 @@ const isRecordedOperatingExpense = (event: FinancialEvent): boolean => event.ope
 
 export class ExpenseBudgetService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: ExpenseBudgetServiceStore,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
 
