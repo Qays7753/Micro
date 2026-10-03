@@ -20,6 +20,7 @@ import {
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { LoanStore } from "@/storage/local/capabilities/loanStore";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 /* Wave C (ADR-015 مجموعة 3 — 2026-10-04): النوع الضيق للخدمة — طريقتا تصنيف
  * العربون من قدرة القروض، زائد قراءتَي الطلب من قدرة دورة حياة الطلب
@@ -72,7 +73,7 @@ function classificationEventId(events: readonly FinancialEvent[], orderId: strin
 export class RetainedDepositService {
   constructor(
     private readonly store: RetainedDepositServiceStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async listPending(): Promise<RetainedDepositResult<readonly RetainedDepositRow[]>> {

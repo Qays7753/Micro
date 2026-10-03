@@ -10,6 +10,7 @@
  */
 import { localPreferencesId, type LocalPreferences, type PrototypeLocalStore } from "@/storage/local/types";
 import { STORAGE_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 /** الحقول القابلة للتحقيق فقط — الهوية وطابع التحديث تملكهما البوابة. */
 export type LocalPreferencesPatch = Partial<Omit<LocalPreferences, "id" | "updatedAt">>;
@@ -35,7 +36,7 @@ const freshRecord = (timestamp: string): LocalPreferences => ({
 export async function updateLocalPreferences(
   store: PrototypeLocalStore,
   patch: LocalPreferencesPatch,
-  now: () => string,
+  now: Clock,
 ): Promise<LocalPreferencesUpdateResult> {
   const current = await store.getPreferences();
   if (!current.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة التفضيلات المحلية." };

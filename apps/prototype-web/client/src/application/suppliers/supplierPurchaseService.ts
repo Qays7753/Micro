@@ -15,6 +15,7 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 import { storageFailureCode } from "@/storage/local/types";
 import type { SupplierPurchaseCommit } from "@/storage/local/supplierScheduleCommitGuard";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type SupplierPurchaseInput = {
   supplierName: string;
@@ -90,7 +91,7 @@ const initialPaidPositive = (input: SupplierPurchaseInput): boolean =>
 export class SupplierPurchaseService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   /* FIN-003 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): فحص تغطية المحفظة قبل أي كتابة —

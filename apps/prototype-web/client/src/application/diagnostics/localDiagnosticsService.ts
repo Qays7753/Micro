@@ -20,6 +20,7 @@
  */
 import { localSchemaVersion } from "@/storage/local/types";
 import { appIdentity } from "@/application/identity/buildIdentity";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type DiagnosticErrorCode =
   "render_crash" | "pwa_register_failed" | "pwa_update_failed" | "unknown_error";
@@ -102,7 +103,7 @@ function isDiagnosticEntry(value: unknown): value is LocalDiagnosticEntry {
 export class LocalDiagnosticsService {
   constructor(
     private readonly storage: DiagnosticStorage,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
     private readonly identity: string = appIdentity,
   ) {}
 

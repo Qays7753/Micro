@@ -9,6 +9,7 @@ import {
 } from "@micro-domain/cash-continuity/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type CashContinuityResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -72,7 +73,7 @@ const storageFailure = <T>(): CashContinuityResult<T> => ({
 export class CashContinuityService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async overview(): Promise<CashContinuityResult<CashContinuityOverview>> {

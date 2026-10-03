@@ -12,6 +12,7 @@ import { createCashContinuityEntry } from "@micro-domain/cash-continuity/index.j
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { CONFLICT, NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type DirectSaleRecordInput = {
   itemName: string;
@@ -58,7 +59,7 @@ const CONFLICT_MESSAGE = "هذا البيع عُدّل من نافذة أخرى 
 export class DirectSaleService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async list(): Promise<DirectSaleResult<readonly DirectSale[]>> {

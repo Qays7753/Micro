@@ -100,6 +100,7 @@
     "apps/prototype-web/client/src/application/share/shareMessageService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/suppliers/supplierPurchaseService.ts": "WATCH",
     "apps/prototype-web/client/src/application/time/actualTimeService.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/time/clock.ts": "NORMAL",
     "apps/prototype-web/client/src/application/transfers/domainTransferDriftAnchors.ts": "NORMAL",
     "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/transfers/historical817.fixture.ts": "NORMAL",
@@ -381,7 +382,7 @@
     "src/domain/supplier-purchase/types.ts": "NORMAL"
   },
   "generated_at": "2026-10-04",
-  "head": "wave-c-group6-owner-entitlement-capability (ADR-015 — 2026-10-04): OwnerEntitlementStore port (14 methods, exe017 review executed, Owner Money lock preserved) + type anchors added (NORMAL); writer on Omit of the capability + two incidental readers on Pick sections; two documented full-interface readers",
+  "head": "wave-d-adapter-boundary (STR-618 — 2026-10-04): Clock port extracted (application/time/clock.ts — Clock type + single systemClock default; 42 injection sites migrated mechanically); dead getActualTimeRecord removed (interface 131→130, both adapters same-PR); seven idle methods classified with per-method decisions in registry §2",
   "source": "FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md v1.4 (Wave 4E/RC-9) + census completion STR-607 (Wave A, 2026-10-03) — سجل الجرد هو المصدر؛ هذا الملف أساس الحارس فقط",
   "version": 1
 }

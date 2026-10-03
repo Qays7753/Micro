@@ -20,6 +20,7 @@ import {
 } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { LoanStore } from "@/storage/local/capabilities/loanStore";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 /* Wave C (ADR-015 مجموعة 3 — 2026-10-04): النوع الضيق للخدمة — قسم القروض
  * الصادرة من قدرة القروض (المشتقة من الواجهة التوافقية) زائد قراءة الأحداث
@@ -83,7 +84,7 @@ function newId(prefix: string): string {
 export class LoanService {
   constructor(
     private readonly store: LoanServiceStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async overview(): Promise<LoanResult<LoanOverviewRead>> {

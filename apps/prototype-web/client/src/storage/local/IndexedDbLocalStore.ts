@@ -2111,9 +2111,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         right.recordedOn.localeCompare(left.recordedOn) || right.createdAt.localeCompare(left.createdAt),
     );
   }
-  getActualTimeRecord(id: string) {
-    return readOne<ActualTimeRecord>(actualTimeStore, id);
-  }
   saveActualTimeRecord(record: ActualTimeRecord) {
     return writeOne(actualTimeStore, record);
   }

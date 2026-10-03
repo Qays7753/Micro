@@ -31,6 +31,7 @@ import type { OwnerEntitlementStore } from "@/storage/local/capabilities/ownerEn
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 /* Wave C (ADR-015 مجموعة 6 — 2026-10-04): النوع الضيق للكاتب — قدرة
  * استحقاق المالك كاملة تقريبًا (12 من 14 طريقة؛ القارئتان الفرديةتان
@@ -267,7 +268,7 @@ export class OwnerEntitlementService {
   constructor(
     private readonly store: OwnerEntitlementServiceStore,
     private readonly periodResultReader?: PeriodResultReader,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async readOverview(): Promise<OwnerEntitlementResult<OwnerEntitlementOverview>> {

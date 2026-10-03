@@ -20,6 +20,7 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type SaleCollectionReversalStatus =
   "full_match" | "sale_cancelled" | "allocation_already_reversed" | "amount_exceeds_collected";
@@ -71,7 +72,7 @@ export class SaleCollectionReversalService {
   constructor(
     private readonly store: PrototypeLocalStore,
     private readonly projectFinance: ProjectFinancialService,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   /** التحصيلات القابلة للعكس: تخصيصات محفظة مرتبطة بالبيع وغير متراجَعة —

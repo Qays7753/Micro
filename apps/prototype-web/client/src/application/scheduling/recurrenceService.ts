@@ -12,6 +12,7 @@ import type {
 } from "@/storage/local/types";
 import { storageFailureCode } from "@/storage/local/types";
 import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type RecurrenceInput = {
   sourceScheduleId: string;
@@ -119,7 +120,7 @@ function buildAppearance(
 export class ScheduleRecurrenceService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async list(): Promise<RecurrenceResult<readonly RecurrenceView[]>> {

@@ -1096,10 +1096,6 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         .map(clone),
     };
   }
-  async getActualTimeRecord(id: string): Promise<StorageResult<ActualTimeRecord | null>> {
-    const record = this.actualTimeRecords.get(id);
-    return { ok: true, value: record ? clone(record) : null };
-  }
   async saveActualTimeRecord(record: ActualTimeRecord): Promise<StorageResult<ActualTimeRecord>> {
     this.actualTimeRecords.set(record.id, clone(record));
     return { ok: true, value: clone(record) };

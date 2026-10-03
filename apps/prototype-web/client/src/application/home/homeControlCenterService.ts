@@ -24,6 +24,7 @@ import {
   type HomeTodaySection,
 } from "./homeControlCenterModel";
 import { STORAGE_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type HomeControlCenterResult =
   { ok: true; value: HomeControlCenterViewModel } | { ok: false; code: "storage_error"; message: string };
@@ -73,7 +74,7 @@ export class HomeControlCenterService {
     private readonly inventory: InventoryMaterialService,
     private readonly agreementContext: AgreementContextService,
     private readonly activity: ActivityService,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async read(): Promise<HomeControlCenterResult> {

@@ -20,6 +20,7 @@ import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-doma
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { STORAGE_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type FulfillmentResult =
   | { ok: true; stored: StoredCraftOrder; notice?: string; reused?: boolean }
@@ -55,7 +56,7 @@ const failure = (
 export class FulfillmentService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
     private readonly schedules: ScheduleService = new ScheduleService(store, now),
   ) {}
 

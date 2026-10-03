@@ -26,6 +26,7 @@ import {
   type FinancialEventType,
 } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type AssetSummaryRow = {
   asset: AssetRecord;
@@ -117,7 +118,7 @@ function newId(prefix: string): string {
 export class AssetService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async overview(): Promise<AssetResult<AssetOverviewRead>> {

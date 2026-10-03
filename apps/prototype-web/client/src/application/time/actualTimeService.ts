@@ -8,6 +8,7 @@ import {
 import { type OperatingWorkMode, type PrototypeLocalStore } from "@/storage/local/types";
 import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
 import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 type ServiceFailure = {
   ok: false;
@@ -41,7 +42,7 @@ const mode = (value: unknown): OperatingWorkMode | null =>
 export class ActualTimeService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async readOperatingMode(): Promise<ActualTimeResult<OperatingModeValue>> {

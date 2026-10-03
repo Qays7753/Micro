@@ -13,6 +13,7 @@ import {
   type StorageFailureCode,
 } from "@/storage/local/types";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type OwnerProfileReadResult =
   { ok: true; value: OwnerProfile | null } | { ok: false; code: StorageFailureCode; message: string };
@@ -49,7 +50,7 @@ function generateOwnerId(): string {
 export class OwnerProfileService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async read(): Promise<OwnerProfileReadResult> {

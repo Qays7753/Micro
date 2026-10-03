@@ -31,6 +31,7 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { formatMoneyWithUnit } from "@/application/formatting/formatters";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 /* TOOL-001 (قرار المالك ٢٠٢٦-٠٩-١٦): «غير متاح» حالة صادقة مستقلة — تعذّر
  * القراءة ليس خللًا في الأرقام ولا نجاحًا؛ لا يُحتسب نجاحًا في الخلاصة أبدًا. */
@@ -124,7 +125,7 @@ export class IntegrityCheckService {
     private readonly projectFinance: ProjectFinancialService,
     private readonly statementService: StatementService,
     private readonly cashContinuity: CashContinuityService,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   /** TOOL-001: عدد الفحوص المسجلة يُشتق من السجل نفسه — إضافة فحص أو إزالته

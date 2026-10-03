@@ -15,6 +15,7 @@ import {
   type UnitDimension,
 } from "@micro-domain/catalog/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type CatalogFailure = {
   ok: false;
@@ -105,7 +106,7 @@ function resolveYieldReadiness(
 export class CatalogService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async list(options: { includeInactive?: boolean } = {}): Promise<CatalogListResult> {

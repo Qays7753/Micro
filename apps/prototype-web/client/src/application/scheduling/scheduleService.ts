@@ -12,6 +12,7 @@ import { storageFailureCode } from "@/storage/local/types";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
 import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type ScheduledOrder = {
   schedule: ScheduleEntry;
@@ -173,7 +174,7 @@ function buildScheduleDay(
 export class ScheduleService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   private async all(): Promise<

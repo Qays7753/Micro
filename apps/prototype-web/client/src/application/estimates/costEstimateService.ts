@@ -10,6 +10,7 @@ import type {
   PrototypeLocalStore,
 } from "@/storage/local/types";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type CostEstimateResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -33,7 +34,7 @@ const id = (prefix: string) =>
 export class CostEstimateService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   /** حساب حي بلا تخزين — نفس سياسة calculateCostSnapshot في حماية المالك. */

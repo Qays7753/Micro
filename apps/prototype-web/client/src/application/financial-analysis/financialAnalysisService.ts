@@ -34,6 +34,7 @@ import {
   type ShortCashHorizonDays,
 } from "@/application/finance/shortCashHorizon";
 import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 /* Wave C (ADR-015 مجموعة 5 — 2026-10-04): النوع الضيق للخدمة — قسم تصريحات
  * الكاش القصير من قدرة السجل المخزّن (قيد 4A محفوظ: سجل مخزّن لا read
@@ -308,7 +309,7 @@ export class FinancialAnalysisService {
   constructor(
     private readonly store: FinancialAnalysisServiceStore,
     private readonly projectFinance: ProjectFinancialService,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async listDeclarations(): Promise<G5Result<readonly ShortCashDeclaration[]>> {

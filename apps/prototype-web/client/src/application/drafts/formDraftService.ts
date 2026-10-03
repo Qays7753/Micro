@@ -14,6 +14,7 @@
  */
 import type { FormDraftEnvelope, FormDraftKind, PrototypeLocalStore } from "@/storage/local/types";
 import { CONFLICT, STORAGE_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type FormDraftValues = Record<string, unknown>;
 
@@ -56,7 +57,7 @@ export function formDraftValuesCharLength(values: unknown): number {
 export class FormDraftService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async read(formKind: FormDraftKind, scopeId: string | null): Promise<FormDraftReadResult> {

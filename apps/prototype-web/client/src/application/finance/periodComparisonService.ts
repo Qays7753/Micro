@@ -31,6 +31,7 @@ import type {
 } from "@/application/finance/projectFinancialService";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { STORAGE_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type PeriodComparisonStatus = "recorded_only" | "incomplete" | "invalid";
 
@@ -390,7 +391,7 @@ export class PeriodComparisonService {
 
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {
     /* مسار حساب واحد: القارئ الكنوني نفسه الذي تستهلكه الكشوف والمؤشرات —
      * لا تُشتق هنا أي معادلة فترة، ولا يُلمس المخزن إلا قراءةً. */

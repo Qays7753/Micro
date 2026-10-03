@@ -1,6 +1,7 @@
 /** Application boundary for pre-domain drafts. A draft is not a CraftOrder and has no price, cash, or result effect. */
 import type { DraftIntent, OrderDraft, PrototypeLocalStore } from "@/storage/local/types";
 import { CONFLICT, NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type DraftInput = Pick<
   OrderDraft,
@@ -33,7 +34,7 @@ const createId = () =>
 export class DraftService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
   list() {
     return this.store.listDrafts();

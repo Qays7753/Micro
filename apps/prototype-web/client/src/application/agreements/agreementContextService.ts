@@ -6,6 +6,7 @@ import type { AgreementSource, FollowUpEvent, StoredCraftOrder } from "@/storage
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { isValidLocalDate, localDateInAmman } from "./followUpDate";
 import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type LegacyAgreementSource = "conversation" | "call" | "in_person";
 export type AgreementSourceValue = AgreementSource | LegacyAgreementSource;
@@ -81,7 +82,7 @@ function validateInput(input: AgreementContextInput, previousDate: string | null
 export class AgreementContextService {
   constructor(
     private readonly store: OrderLifecycleStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async get(id: string): Promise<AgreementContextResult<AgreementContextView | null>> {

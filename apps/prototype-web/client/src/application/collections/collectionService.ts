@@ -16,6 +16,7 @@ import type { ProjectFinancialService } from "@/application/finance/projectFinan
 import { formatMoneyWithUnit } from "@/application/formatting/formatters";
 import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
 import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type ReceivableSourceKind = "order" | "direct_sale";
 
@@ -66,7 +67,7 @@ export class CollectionService {
     private readonly fulfillment: FulfillmentService,
     private readonly directSales: DirectSaleService,
     private readonly projectFinance: ProjectFinancialService,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   /** الذمم القابلة للتحصيل: ديون الطلبات المسجلة + متبقي طلبات مسلّمة + ديون البيع الآجل. */

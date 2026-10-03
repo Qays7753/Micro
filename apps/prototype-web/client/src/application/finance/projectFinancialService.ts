@@ -238,6 +238,7 @@ export type FinancialInsights = {
 export type { SharedExpenseRecordInput } from "@/application/financial-records/expenseRecordIntent";
 import { expandExpenseRecordIntent } from "@/application/financial-records/expenseRecordIntent";
 import type { SharedExpenseRecordInput } from "@/application/financial-records/expenseRecordIntent";
+import { systemClock, type Clock } from "@/application/time/clock";
 export type FinancialRecordInput = {
   type: FinancialEventType;
   amountMinor?: number;
@@ -439,7 +440,7 @@ function derivePeriodCogs(
 export class ProjectFinancialService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async readPosition(): Promise<FinanceResult<ProjectFinancialPosition>> {

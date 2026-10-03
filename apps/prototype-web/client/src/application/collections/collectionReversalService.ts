@@ -19,6 +19,7 @@ import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/type
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { NOT_FOUND, STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type CollectionAllocationMatchStatus =
   | "full_match"
@@ -78,7 +79,7 @@ export class CollectionReversalService {
   constructor(
     private readonly store: PrototypeLocalStore,
     private readonly projectFinance: ProjectFinancialService,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   /** المعاينة الصادقة قبل التأكيد: مطابقة التخصيص + أرقام قبل/بعد لكل بُعد مالي. */

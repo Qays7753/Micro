@@ -7,6 +7,7 @@ import {
 import type { LocalPreferences, PrototypeLocalStore } from "@/storage/local/types";
 import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type ThemePreference = LocalPreferences["theme"];
 export type PreferenceResult =
@@ -30,7 +31,7 @@ export type LowStockThresholdSaveResult =
 export class PreferenceService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
   /** P-01 layer 0 read, exposed here so pages never import the storage layer directly. */
   async readBrowserPersistence(): Promise<BrowserPersistenceReading> {

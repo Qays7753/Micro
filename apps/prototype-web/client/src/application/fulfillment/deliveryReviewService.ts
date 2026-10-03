@@ -38,6 +38,7 @@ import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { formatMoneyMinor, formatQuantityMilli } from "@/application/formatting/formatters";
 import { storageFailureCode, type PrototypeLocalStore, type StoredCraftOrder } from "@/storage/local/types";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type DeliveryConsumptionAction = "consume" | "consume_with_shortage" | "record_shortage" | "skip";
 
@@ -173,7 +174,7 @@ function snapshotMaterialPlannedMilli(order: CraftOrder, materialId: string): nu
 export class DeliveryReviewService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
     private readonly finance: ProjectFinancialService | null = null,
     private readonly schedules: ScheduleService | null = null,
   ) {}

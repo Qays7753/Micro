@@ -29,6 +29,7 @@ import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/type
 import type { AllocationPolicyStore } from "@/storage/local/capabilities/allocationPolicyStore";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 /* Wave C (ADR-015 مجموعة 4 — 2026-10-04): النوع الضيق للخدمة — قدرة سياسات
  * التوزيع (قفل exe017 محفوظ: هذه الخدمة المالية الكاتب الوحيد) زائد
@@ -191,7 +192,7 @@ const sumSafeIntegers = (values: readonly number[]): number | null => {
 export class RecurringWorkService {
   constructor(
     private readonly store: RecurringWorkServiceStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async createPolicy(input: RecurringWorkPolicyInput): Promise<RecurringWorkResult<AllocationPolicy>> {

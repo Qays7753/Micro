@@ -15,6 +15,7 @@
 import type { LocalSecurityRecord, PrototypeLocalStore } from "@/storage/local/types";
 import { localSecurityId } from "@/storage/local/types";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type LockStatusResult =
   | { ok: true; value: { enabled: boolean; autoLockMinutes: number | null; lastActiveAt: string | null } }
@@ -110,7 +111,7 @@ function delayForAttempts(failedAttempts: number): number {
 export class LocalLockService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async status(): Promise<LockStatusResult> {

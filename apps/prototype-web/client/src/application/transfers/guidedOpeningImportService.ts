@@ -15,6 +15,7 @@ import {
   type PrototypeLocalStore,
 } from "@/storage/local/types";
 import { snapshotSystemIsEmpty } from "@/storage/local/influentialSnapshotFamilies";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export const guidedOpeningImportFormat = "micro-guided-opening-import" as const;
 export const guidedOpeningImportVersion = 1 as const;
@@ -195,7 +196,7 @@ const emptySnapshot = (snapshot: LocalStoreSnapshot): boolean => snapshotSystemI
 export class GuidedOpeningImportService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async prepare(text: string): Promise<GuidedOpeningImportResult<GuidedOpeningImportPreview>> {

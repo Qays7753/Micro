@@ -1,6 +1,7 @@
 /** Application boundary for local setup. It validates profile inputs before any LocalStore write. */
 import { localProfileId, type ActivityProfile, type PrototypeLocalStore } from "@/storage/local/types";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type ProfileSaveResult =
   | { ok: true; profile: ActivityProfile }
@@ -9,7 +10,7 @@ export type ProfileSaveResult =
 export class ProfileService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
   async load() {
     return this.store.getProfile();

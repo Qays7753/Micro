@@ -54,6 +54,7 @@ import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore, StorageFailure } from "@/storage/local/types";
 import type { ExpenseBudgetStore } from "@/storage/local/capabilities/expenseBudgetStore";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 /* Wave C (ADR-015 مجموعة 2 — 2026-10-04): النوع الضيق للخدمة — قدرة الميزانيات
  * (المشتقة من الواجهة التوافقية) زائد قراءة الأحداث المالية الوحيدة التي
@@ -138,7 +139,7 @@ const isRecordedOperatingExpense = (event: FinancialEvent): boolean => event.ope
 export class ExpenseBudgetService {
   constructor(
     private readonly store: ExpenseBudgetServiceStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   /* ─── القراءة ─── */

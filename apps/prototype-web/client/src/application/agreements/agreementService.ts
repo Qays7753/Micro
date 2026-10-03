@@ -13,6 +13,7 @@ import type { CostService } from "@/application/cost/costService";
 import type { AgreementSource, OrderDraft, ScheduleEntry, StoredCraftOrder } from "@/storage/local/types";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { STORAGE_ERROR, VALIDATION_ERROR } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 /* ORD-003: شروط النقل والتوصيل عند الاتفاق — المسؤولية والأعلام والمبالغ؛
  * المفتاح والوقت تشتقهما الخدمة (حدث موثق في خط زمن الطلب). */
@@ -66,7 +67,7 @@ export class AgreementService {
   constructor(
     private readonly store: OrderLifecycleStore,
     private readonly costs: CostService,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async list(): Promise<
