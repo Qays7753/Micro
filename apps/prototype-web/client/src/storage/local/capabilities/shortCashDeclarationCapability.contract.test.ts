@@ -105,12 +105,12 @@ async function runCapabilityScenario(store: ShortCashDeclarationStore) {
   const replay = await store.commitShortCashDeclarationReversal("short-cap-1", reversal);
   expect(replay.ok && replay.value).toEqual(reversal);
   const afterReversal = await store.listShortCashDeclarations();
-  expect(
-    afterReversal.ok && afterReversal.value.find(entry => entry.id === "short-cap-1")?.kind,
-  ).toBe("declaration");
-  expect(
-    afterReversal.ok && afterReversal.value.find(entry => entry.id === "short-cap-1-rev")?.kind,
-  ).toBe("reversal");
+  expect(afterReversal.ok && afterReversal.value.find(entry => entry.id === "short-cap-1")?.kind).toBe(
+    "declaration",
+  );
+  expect(afterReversal.ok && afterReversal.value.find(entry => entry.id === "short-cap-1-rev")?.kind).toBe(
+    "reversal",
+  );
 
   /* ٤) الرفض الصادر: مفتاح مختلف على سجل متراجع سابقًا — هوية الخطأ
    *    المحفوظة (storage_error) وبلا كتابة. */

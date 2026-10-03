@@ -25,18 +25,11 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  closeExpenseBudget,
-  createExpenseBudget,
-  reviseExpenseBudget,
-} from "@micro-domain/budget/index.js";
+import { closeExpenseBudget, createExpenseBudget, reviseExpenseBudget } from "@micro-domain/budget/index.js";
 import type { ExpenseBudgetRecord } from "@micro-domain/budget/index.js";
 import { IndexedDbLocalStore } from "../IndexedDbLocalStore";
 import { MemoryLocalStore } from "../MemoryLocalStore";
-import {
-  expenseBudgetStoreMethods,
-  type ExpenseBudgetStore,
-} from "./expenseBudgetStore";
+import { expenseBudgetStoreMethods, type ExpenseBudgetStore } from "./expenseBudgetStore";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, "../../../../../../../");
@@ -143,8 +136,7 @@ async function runCapabilityScenario(store: ExpenseBudgetStore) {
   const afterStaleTransition = await store.listExpenseBudgets();
   expect(
     afterStaleTransition.ok &&
-      afterStaleTransition.value.find(budget => budget.id === "budget-cap-fuel-10")?.amountMinor ===
-        8_000,
+      afterStaleTransition.value.find(budget => budget.id === "budget-cap-fuel-10")?.amountMinor === 8_000,
   ).toBe(true);
 
   /* ٥) زوج المراجعة الذرّي: الخلف والسابقة معًا أو لا شيء (القاعدة نافذة). */
@@ -212,9 +204,7 @@ async function runCapabilityScenario(store: ExpenseBudgetStore) {
   expect(orphanPair.ok).toBe(false);
   if (!orphanPair.ok) expect(orphanPair.code).toBe("storage_stale");
   const afterOrphan = await store.listExpenseBudgets();
-  expect(
-    afterOrphan.ok && afterOrphan.value.some(budget => budget.id === "budget-cap-unsaved"),
-  ).toBe(false);
+  expect(afterOrphan.ok && afterOrphan.value.some(budget => budget.id === "budget-cap-unsaved")).toBe(false);
 }
 
 describe("Wave C — قدرة الميزانيات (ADR-015 مجموعة 2): العضوية", () => {

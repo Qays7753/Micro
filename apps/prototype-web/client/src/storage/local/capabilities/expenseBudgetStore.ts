@@ -42,5 +42,4 @@ export type ExpenseBudgetStoreMethod = (typeof expenseBudgetStoreMethods)[number
  * قدرة «الميزانيات»: ما يحتاجه مستهلك هذه القدرة — لا أكثر ولا أقل.
  * مشتقة من الواجهة التوافقية نفسها (Pick) فلا تنحرف عنها بنيويًا أبدًا.
  */
-export interface ExpenseBudgetStore
-  extends Pick<PrototypeLocalStore, ExpenseBudgetStoreMethod> {}
+export interface ExpenseBudgetStore extends Pick<PrototypeLocalStore, ExpenseBudgetStoreMethod> {}

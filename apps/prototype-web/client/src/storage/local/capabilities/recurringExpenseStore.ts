@@ -46,5 +46,4 @@ export type RecurringExpenseStoreMethod = (typeof recurringExpenseStoreMethods)[
  * قدرة «المصروف المتكرر»: ما يحتاجه مستهلك هذه القدرة — لا أكثر ولا أقل.
  * مشتقة من الواجهة التوافقية نفسها (Pick) فلا تنحرف عنها بنيويًا أبدًا.
  */
-export interface RecurringExpenseStore
-  extends Pick<PrototypeLocalStore, RecurringExpenseStoreMethod> {}
+export interface RecurringExpenseStore extends Pick<PrototypeLocalStore, RecurringExpenseStoreMethod> {}

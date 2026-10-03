@@ -6,5 +6,7 @@
  * تكسر مستوردات الواجهة). تحديث السطح = تعديل مقصود في نفس الـPR. */
 
 export {
-  CrossModelOwnerDuplicate, OwnerEntitlementOverview, OwnerMoneyOverview,
+  CrossModelOwnerDuplicate,
+  OwnerEntitlementOverview,
+  OwnerMoneyOverview,
 } from "./ownerEntitlementService";

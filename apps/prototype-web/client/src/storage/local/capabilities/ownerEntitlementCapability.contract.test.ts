@@ -38,10 +38,7 @@ import {
 import { createCashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { IndexedDbLocalStore } from "../IndexedDbLocalStore";
 import { MemoryLocalStore } from "../MemoryLocalStore";
-import {
-  ownerEntitlementStoreMethods,
-  type OwnerEntitlementStore,
-} from "./ownerEntitlementStore";
+import { ownerEntitlementStoreMethods, type OwnerEntitlementStore } from "./ownerEntitlementStore";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, "../../../../../../../");

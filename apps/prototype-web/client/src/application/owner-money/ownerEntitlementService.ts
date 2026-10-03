@@ -39,7 +39,10 @@ import { systemClock, type Clock } from "@/application/time/clock";
  * والمحافظ والأحداث والطلبات — جرد مستهلك حي: 17 طريقة). قفل ملكية
  * Owner Money محفوظ: هذه الخدمة الكاتب الوحيد. لا سلوك يتغير — حقن
  * تركيبي كما هو. */
-type OwnerEntitlementServiceStore = Omit<OwnerEntitlementStore, "getOwnerEntitlementRecord" | "getOwnerMovement"> &
+type OwnerEntitlementServiceStore = Omit<
+  OwnerEntitlementStore,
+  "getOwnerEntitlementRecord" | "getOwnerMovement"
+> &
   Pick<OrderLifecycleStore, "listOrders"> &
   Pick<
     PrototypeLocalStore,
@@ -962,8 +965,7 @@ export class OwnerEntitlementService {
         cashEntries: cashEntries.value,
         amountMinor: input.amountMinor,
       });
-      if (!withdrawalGuard.ok)
-        return { ok: false, code: VALIDATION_ERROR, message: withdrawalGuard.message };
+      if (!withdrawalGuard.ok) return { ok: false, code: VALIDATION_ERROR, message: withdrawalGuard.message };
     }
     const activeEntitlementRecords = activeOriginals(entitlements.value);
     if (input.reason === "entitlement_settlement") {

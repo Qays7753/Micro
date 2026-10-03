@@ -5,52 +5,58 @@
  * لحدود الوحدة أمام الواجهة (عزل التغيير: إعادة التنظيم الداخلية لا
  * تكسر مستوردات الواجهة). تحديث السطح = تعديل مقصود في نفس الـPR. */
 
-export {
-  DueDatesService, PayableDueRow, PayablesAgingOverview,
-} from "./dueDatesService";
+export { DueDatesService, PayableDueRow, PayablesAgingOverview } from "./dueDatesService";
 
 export {
-  IntegrityCheckReport, IntegrityCheckResult, IntegrityCheckService, IntegrityCheckStatus, IntegrityOffenderSummary,
+  IntegrityCheckReport,
+  IntegrityCheckResult,
+  IntegrityCheckService,
+  IntegrityCheckStatus,
+  IntegrityOffenderSummary,
 } from "./integrityCheckService";
 
-export {
-  PeriodComparisonReading,
-  PeriodComparisonService,
-} from "./periodComparisonService";
+export { PeriodComparisonReading, PeriodComparisonService } from "./periodComparisonService";
+
+export { isPeriodActive, previousEqualPeriod, resolvePeriodPreset } from "./periodPresets";
+
+export { ProfitToCashBridgeReading, ProfitToCashBridgeService } from "./profitToCashBridgeService";
 
 export {
-  isPeriodActive, previousEqualPeriod, resolvePeriodPreset,
-} from "./periodPresets";
-
-export {
-  ProfitToCashBridgeReading,
-  ProfitToCashBridgeService,
-} from "./profitToCashBridgeService";
-
-export {
-  FinancialInsights, FinancialMetricEvidence, ProjectFinancialPosition, ProjectFinancialService, RecordedPeriodResult, SettleablePayable,
+  FinancialInsights,
+  FinancialMetricEvidence,
+  ProjectFinancialPosition,
+  ProjectFinancialService,
+  RecordedPeriodResult,
+  SettleablePayable,
 } from "./projectFinancialService";
 
 export {
-  RecurringExpenseDetailReading, RecurringExpenseSeriesCardReading, RecurringExpenseService,
+  RecurringExpenseDetailReading,
+  RecurringExpenseSeriesCardReading,
+  RecurringExpenseService,
 } from "./recurringExpenseService";
 
 export {
-  RecurringWorkPolicyInput, RecurringWorkReading, RecurringWorkReadings, RecurringWorkService,
+  RecurringWorkPolicyInput,
+  RecurringWorkReading,
+  RecurringWorkReadings,
+  RecurringWorkService,
 } from "./recurringWorkService";
 
 export {
-  DEFAULT_SHORT_CASH_HORIZON_DAYS, SHORT_CASH_HORIZON_DAYS, SHORT_CASH_HORIZON_LABELS_AR, ShortCashHorizonDays,
+  DEFAULT_SHORT_CASH_HORIZON_DAYS,
+  SHORT_CASH_HORIZON_DAYS,
+  SHORT_CASH_HORIZON_LABELS_AR,
+  ShortCashHorizonDays,
 } from "./shortCashHorizon";
 
-export {
-  StatementMarkdownService,
-} from "./statementMarkdownService";
+export { StatementMarkdownService } from "./statementMarkdownService";
 
 export {
-  StatementExpenseCategoryGroup, StatementLine, StatementReading, StatementService,
+  StatementExpenseCategoryGroup,
+  StatementLine,
+  StatementReading,
+  StatementService,
 } from "./statementService";
 
-export {
-  UpcomingBlockResult, UpcomingEntry, UpcomingOverview, UpcomingService,
-} from "./upcomingService";
+export { UpcomingBlockResult, UpcomingEntry, UpcomingOverview, UpcomingService } from "./upcomingService";

@@ -44,5 +44,4 @@ export type AllocationPolicyStoreMethod = (typeof allocationPolicyStoreMethods)[
  * قدرة «سياسات التوزيع»: ما يحتاجه مستهلك هذه القدرة — لا أكثر ولا أقل.
  * مشتقة من الواجهة التوافقية نفسها (Pick) فلا تنحرف عنها بنيويًا أبدًا.
  */
-export interface AllocationPolicyStore
-  extends Pick<PrototypeLocalStore, AllocationPolicyStoreMethod> {}
+export interface AllocationPolicyStore extends Pick<PrototypeLocalStore, AllocationPolicyStoreMethod> {}

@@ -271,8 +271,7 @@ export class SaleCollectionReversalService {
       };
 
     const matched = entriesResult.value.find(entry => entry.id === input.allocationEntryId);
-    if (!matched)
-      return { ok: false, code: VALIDATION_ERROR, message: "لم نجد أثر التخصيص المطابق للعكس." };
+    if (!matched) return { ok: false, code: VALIDATION_ERROR, message: "لم نجد أثر التخصيص المطابق للعكس." };
     const amountMinor = matched.cashDeltaMinor;
 
     try {

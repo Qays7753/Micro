@@ -371,12 +371,20 @@ export default [
    * 4) homeControlCenterService.ts: فرق أيام بين تاريخين للعرض.
    * 5) englishNumeric.ts: حد Number.MAX_SAFE_INTEGER للتحقق من المدخلات،
    *    واسترجاع العدد الصحيح المقصود في percentToBpsExact/echoQuantityMilli
-   *    حيث فحص التمثيل نفسه هو الذي يرفض الدقة غير المدعومة. */
+   *    حيث فحص التمثيل نفسه هو الذي يرفض الدقة غير المدعومة.
+   * 6) [Wave F — تصحيح انجراف كامن، 2026-10-04] formatting/formatters.ts:
+   *    quantityMilliToFixed3 ليست تقريبًا أصلًا — تجزئة عرض لعدد ملي صحيح
+   *    آمن (قسمة صحيحة/صحيحة وبقية صحيحة وفق سياسة المجموعة ١١
+   *    EXACT_VALUES_NO_SILENT_ROUNDING الموثقة في الكود نفسه)؛ Math.floor
+   *    هنا يفكك العدد ولا يقربه — انتقلت مع الشريحة الثانية من Wave B
+   *    إلى بيت التطبيق فصار الحظر يشملها بلا استثناء موثق؛ الاستثناء يوثق الحالة
+   *    لا يضعف القاعدة (كل تقريب مالي يبقى عبر مساعدات الدومين حصرًا). */
   {
     files: [
       "apps/prototype-web/client/src/application/diagnostics/localDiagnosticsService.ts",
       "apps/prototype-web/client/src/application/home/homeControlCenterService.ts",
       "apps/prototype-web/client/src/application/input/englishNumeric.ts",
+      "apps/prototype-web/client/src/application/formatting/formatters.ts",
     ],
     languageOptions: {
       parser: tseslint.parser,

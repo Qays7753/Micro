@@ -6,17 +6,15 @@
  * تكسر مستوردات الواجهة). تحديث السطح = تعديل مقصود في نفس الـPR. */
 
 export {
-  CorrectionDigest, CorrectionHistoryEntry, CorrectionHistoryGroup, CorrectionHistoryKind, CorrectionHistoryService,
+  CorrectionDigest,
+  CorrectionHistoryEntry,
+  CorrectionHistoryGroup,
+  CorrectionHistoryKind,
+  CorrectionHistoryService,
 } from "./correctionHistoryService";
 
-export {
-  deriveExpenseCategorySuggestions, normalizeCategoryLabelInput,
-} from "./expenseCategorySuggestions";
+export { deriveExpenseCategorySuggestions, normalizeCategoryLabelInput } from "./expenseCategorySuggestions";
 
-export {
-  SharedExpenseRecordInput, expandExpenseRecordIntent,
-} from "./expenseRecordIntent";
+export { SharedExpenseRecordInput, expandExpenseRecordIntent } from "./expenseRecordIntent";
 
-export {
-  RetainedDepositRow,
-} from "./retainedDepositService";
+export { RetainedDepositRow } from "./retainedDepositService";

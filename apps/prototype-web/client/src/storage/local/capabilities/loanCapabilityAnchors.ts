@@ -19,19 +19,10 @@ import type { LoanStore } from "./loanStore";
 type AssertSatisfiesCapability<TCapability, TImpl extends TCapability> = true;
 
 /** المحوّل الأول يحقق قدرة القروض. */
-export type IndexedDbLocalStoreSatisfiesLoan = AssertSatisfiesCapability<
-  LoanStore,
-  IndexedDbLocalStore
->;
+export type IndexedDbLocalStoreSatisfiesLoan = AssertSatisfiesCapability<LoanStore, IndexedDbLocalStore>;
 
 /** المحوّل الثاني يحقق القدرة نفسها — لا انفصام بين بيئة الاختبار والحية. */
-export type MemoryLocalStoreSatisfiesLoan = AssertSatisfiesCapability<
-  LoanStore,
-  MemoryLocalStore
->;
+export type MemoryLocalStoreSatisfiesLoan = AssertSatisfiesCapability<LoanStore, MemoryLocalStore>;
 
 /** الواجهة التوافقية نفسها تحقق القدرة (القدرة عرضها المشتق). */
-export type PrototypeLocalStoreSatisfiesLoan = AssertSatisfiesCapability<
-  LoanStore,
-  PrototypeLocalStore
->;
+export type PrototypeLocalStoreSatisfiesLoan = AssertSatisfiesCapability<LoanStore, PrototypeLocalStore>;

@@ -6,5 +6,8 @@
  * تكسر مستوردات الواجهة). تحديث السطح = تعديل مقصود في نفس الـPR. */
 
 export {
-  ExpenseBudgetMonthList, ExpenseBudgetService, ExpenseBudgetStatusLine, ExpenseBudgetStatusesReading,
+  ExpenseBudgetMonthList,
+  ExpenseBudgetService,
+  ExpenseBudgetStatusLine,
+  ExpenseBudgetStatusesReading,
 } from "./expenseBudgetService";

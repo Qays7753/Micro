@@ -60,8 +60,7 @@ import { systemClock, type Clock } from "@/application/time/clock";
  * (المشتقة من الواجهة التوافقية) زائد قراءة الأحداث المالية الوحيدة التي
  * تحتاجها الخدمة فعلًا لاحتساب المنصرف (جرد مستهلك حي: 4 طرق — الثلاث القدرة
  * وlistFinancialEvents). لا سلوك يتغير — حقن تركيبي كما هو. */
-type ExpenseBudgetServiceStore = ExpenseBudgetStore &
-  Pick<PrototypeLocalStore, "listFinancialEvents">;
+type ExpenseBudgetServiceStore = ExpenseBudgetStore & Pick<PrototypeLocalStore, "listFinancialEvents">;
 
 export type ExpenseBudgetResult<T> =
   | { ok: true; value: T; reused?: boolean }

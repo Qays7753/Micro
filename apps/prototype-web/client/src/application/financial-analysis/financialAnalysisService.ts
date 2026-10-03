@@ -49,12 +49,12 @@ type FinancialAnalysisServiceStore = Pick<
   Pick<OrderLifecycleStore, "getOrder" | "listOrders"> &
   Pick<
     PrototypeLocalStore,
-    "getFinancialEvent" |
-      "listCatalogItems" |
-      "listDirectConversions" |
-      "listFinancialEvents" |
-      "listMeasurementUnits" |
-      "listSupplierPurchases"
+    | "getFinancialEvent"
+    | "listCatalogItems"
+    | "listDirectConversions"
+    | "listFinancialEvents"
+    | "listMeasurementUnits"
+    | "listSupplierPurchases"
   >;
 
 export type G5Decision = {
@@ -482,11 +482,9 @@ export class FinancialAnalysisService {
     idempotencyKey: string,
   ): Promise<G5Result<ShortCashDeclaration>> {
     const declarations = await this.store.listShortCashDeclarations();
-    if (!declarations.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المتوقعات المحلية." };
+    if (!declarations.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة المتوقعات المحلية." };
     const original = declarations.value.find(declaration => declaration.id === idToReverse);
-    if (!original)
-      return { ok: false, code: NOT_FOUND, message: "السجل المتوقع المطلوب تصحيحه غير موجود." };
+    if (!original) return { ok: false, code: NOT_FOUND, message: "السجل المتوقع المطلوب تصحيحه غير موجود." };
     if (original.kind !== "declaration")
       return { ok: false, code: VALIDATION_ERROR, message: "لا يمكن التراجع عن سجل تراجع آخر." };
     const repeated = declarations.value.find(

@@ -67,5 +67,4 @@ export type OwnerEntitlementStoreMethod = (typeof ownerEntitlementStoreMethods)[
  * أبدًا؛ ومستهلك يكتفي بجزء منها يأخذ Pick منه — الاعتماد المصرح به بدقة
  * عند الحاقن.
  */
-export interface OwnerEntitlementStore
-  extends Pick<PrototypeLocalStore, OwnerEntitlementStoreMethod> {}
+export interface OwnerEntitlementStore extends Pick<PrototypeLocalStore, OwnerEntitlementStoreMethod> {}

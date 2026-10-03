@@ -6,13 +6,16 @@
  * تكسر مستوردات الواجهة). تحديث السطح = تعديل مقصود في نفس الـPR. */
 
 export {
-  InventoryActivationState, InventoryMaterialOverview, InventoryMaterialService, InventoryOverview, InventoryReferences, OrderActualMaterialComparison, PeriodWasteReading, PurchaseReceiptStatus,
+  InventoryActivationState,
+  InventoryMaterialOverview,
+  InventoryMaterialService,
+  InventoryOverview,
+  InventoryReferences,
+  OrderActualMaterialComparison,
+  PeriodWasteReading,
+  PurchaseReceiptStatus,
 } from "./inventoryMaterialService";
 
-export {
-  InventoryMovementRouteType, resolveInventoryMovementType,
-} from "./inventoryMovementRoute";
+export { InventoryMovementRouteType, resolveInventoryMovementType } from "./inventoryMovementRoute";
 
-export {
-  MaterialSuggestion, readMaterialSuggestions,
-} from "./materialSuggestions";
+export { MaterialSuggestion, readMaterialSuggestions } from "./materialSuggestions";

@@ -36,10 +36,7 @@ import type { RecurringExpenseOccurrence } from "@micro-domain/recurring-expense
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import { IndexedDbLocalStore } from "../IndexedDbLocalStore";
 import { MemoryLocalStore } from "../MemoryLocalStore";
-import {
-  recurringExpenseStoreMethods,
-  type RecurringExpenseStore,
-} from "./recurringExpenseStore";
+import { recurringExpenseStoreMethods, type RecurringExpenseStore } from "./recurringExpenseStore";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, "../../../../../../../");
@@ -163,9 +160,7 @@ async function runCapabilityScenario(store: RecurringExpenseStore) {
   expect(materialized.value).toEqual({ created: 2, skipped: 0 });
   const rematerialized = await store.commitRecurringExpenseOccurrences([september, august]);
   expect(rematerialized.ok && rematerialized.value).toEqual({ created: 0, skipped: 2 });
-  const diverged = await store.commitRecurringExpenseOccurrences([
-    { ...september, dueOn: "2026-09-06" },
-  ]);
+  const diverged = await store.commitRecurringExpenseOccurrences([{ ...september, dueOn: "2026-09-06" }]);
   expect(diverged.ok).toBe(false);
   if (!diverged.ok) expect(diverged.code).toBe("storage_stale");
   const occurrenceList = await store.listRecurringExpenseOccurrences();

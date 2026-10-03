@@ -27,11 +27,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  addLoanRepayment,
-  createLoanRecord,
-  reverseLoanRepayment,
-} from "@micro-domain/loan/index.js";
+import { addLoanRepayment, createLoanRecord, reverseLoanRepayment } from "@micro-domain/loan/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
 import {
   addReceivedLoanRepayment,
@@ -39,10 +35,7 @@ import {
   reverseReceivedLoanRepayment,
 } from "@micro-domain/received-loan/index.js";
 import type { ReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
-import {
-  createFinancialEvent,
-  createFinancialReversal,
-} from "@micro-domain/financial-event/index.js";
+import { createFinancialEvent, createFinancialReversal } from "@micro-domain/financial-event/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import {
   calculateCostSnapshot,
@@ -205,7 +198,15 @@ function retainedDepositStored(id: string): StoredCraftOrder {
   order = collectDeposit(order, 2000, `${id}:dep`, AT);
   order = cancelOrder(order, "إلغاء", `${id}:cancel`, AT);
   order = settleDepositRetain(order, 2000, "احتفاظ", `${id}:retain`, AT);
-  return { id, order, catalogItemId: null, deliveryDate: "2026-09-12", agreementSource: null, createdAt: AT, updatedAt: AT };
+  return {
+    id,
+    order,
+    catalogItemId: null,
+    deliveryDate: "2026-09-12",
+    agreementSource: null,
+    createdAt: AT,
+    updatedAt: AT,
+  };
 }
 
 /* ─── السيناريو: عدسة مستهلك القدرة الضيقة حصرًا ─── */

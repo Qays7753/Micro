@@ -387,8 +387,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     }>
   > {
     const existing = this.orders.get(order.id);
-    if (!existing)
-      return { ok: false, code: STORAGE_ERROR, message: "لم نجد الطلب المحلي لتسجيل التسليم." };
+    if (!existing) return { ok: false, code: STORAGE_ERROR, message: "لم نجد الطلب المحلي لتسجيل التسليم." };
     /* المجموعة ٣: إعادة التسليم بعد عكسٍ تسليمٌ جديد — المقارنة على مفتاح آخر
      * حدث تسليم في الطلب الوارد لا على أي حدث تاريخي، وإلا لَعُدَّت إعادة
      * التنفيذ إعادة تشغيل وأُهملت كتابتها. */

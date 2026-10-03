@@ -13,11 +13,7 @@ import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import type {
-  UpcomingBlockResult,
-  UpcomingEntry,
-  UpcomingOverview,
-} from "@/application/finance";
+import type { UpcomingBlockResult, UpcomingEntry, UpcomingOverview } from "@/application/finance";
 import { financialEventLabel } from "@/presentation/financialEventLabels";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 

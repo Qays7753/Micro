@@ -91,8 +91,7 @@ export class AgreementService {
   async createFromDraft(draft: OrderDraft, input: AgreementInput): Promise<AgreementResult> {
     if (draft.linkedOrderId) {
       const current = await this.store.getOrder(draft.linkedOrderId);
-      if (!current.ok)
-        return { ok: false, code: STORAGE_ERROR, message: "تعذر التحقق من الاتفاق المحفوظ." };
+      if (!current.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر التحقق من الاتفاق المحفوظ." };
       if (!current.value)
         return {
           ok: false,

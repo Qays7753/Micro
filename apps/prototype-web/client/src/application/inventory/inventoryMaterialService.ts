@@ -773,8 +773,7 @@ export class InventoryMaterialService {
         message: "المادة غير متتبَّعة — فعّل متابعتها أولًا ثم استلم الشراء.",
       };
     const purchase = purchases.value.find(candidate => candidate.id === input.purchaseId);
-    if (!purchase)
-      return { ok: false, code: VALIDATION_ERROR, message: "اختر شراء مواد موجودًا لاستلامه." };
+    if (!purchase) return { ok: false, code: VALIDATION_ERROR, message: "اختر شراء مواد موجودًا لاستلامه." };
     /* المجموعة ٢ (عقد ٢٨): الشراء المرتبط بمادة تُستلم عليها — الربط عقد، لا اقتراح. */
     if (purchase.materialId && purchase.materialId !== input.materialId)
       return {
@@ -918,8 +917,7 @@ export class InventoryMaterialService {
     const repeated = shortages.value.find(shortage => shortage.operationKey === input.operationKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     const material = materials.value.find(candidate => candidate.id === input.materialId);
-    if (!material)
-      return { ok: false, code: VALIDATION_ERROR, message: "اختر مادة موجودة قبل تسجيل النقص." };
+    if (!material) return { ok: false, code: VALIDATION_ERROR, message: "اختر مادة موجودة قبل تسجيل النقص." };
     if (!materialIsTracked(material))
       return {
         ok: false,
@@ -1042,8 +1040,7 @@ export class InventoryMaterialService {
     const shortagesResult = await this.store.listInventoryShortages();
     if (!shortagesResult.ok) return storageFailure();
     const shortage = shortagesResult.value.find(candidate => candidate.id === input.shortageId);
-    if (!shortage)
-      return { ok: false, code: VALIDATION_ERROR, message: "لم نجد سجل النقص الذي تريد حلّه." };
+    if (!shortage) return { ok: false, code: VALIDATION_ERROR, message: "لم نجد سجل النقص الذي تريد حلّه." };
     if (shortage.status === "resolved") return { ok: true, value: shortage, reused: true };
     try {
       const resolved = applyInventoryShortageResolution(shortage, {
@@ -1266,8 +1263,7 @@ export class InventoryMaterialService {
     const repeated = movements.value.find(movement => movement.operationKey === input.operationKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     const material = materials.value.find(candidate => candidate.id === input.materialId);
-    if (!material)
-      return { ok: false, code: VALIDATION_ERROR, message: "اختر مادة موجودة قبل تسجيل الهدر." };
+    if (!material) return { ok: false, code: VALIDATION_ERROR, message: "اختر مادة موجودة قبل تسجيل الهدر." };
     /* المجموعة ٢ (عقد ٢٨): الهدر حركة تتبع — المادة غير المتتبَّعة لا تهدر رصيدًا. */
     if (!materialIsTracked(material))
       return {

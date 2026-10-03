@@ -132,8 +132,7 @@ export class DirectSaleService {
 
   async update(id: string, input: DirectSaleUpdateInput): Promise<DirectSaleResult<DirectSale>> {
     const existing = await this.store.listDirectSales();
-    if (!existing.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل البيع قبل التصحيح." };
+    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل البيع قبل التصحيح." };
     const source = existing.value.find(sale => sale.id === id);
     if (!source) return { ok: false, code: NOT_FOUND, message: "بيع مباشر غير موجود؛ لم يتغير شيء." };
     /* و٦: لا طمس صامت لتعديل أحدث — المراجعات تتقدم مع كل تصحيح أو إلغاء. */
@@ -180,8 +179,7 @@ export class DirectSaleService {
     expectedRevisionCount?: number,
   ): Promise<DirectSaleResult<DirectSale>> {
     const existing = await this.store.listDirectSales();
-    if (!existing.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل البيع قبل الإلغاء." };
+    if (!existing.ok) return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل البيع قبل الإلغاء." };
     const source = existing.value.find(sale => sale.id === id);
     if (!source) return { ok: false, code: NOT_FOUND, message: "بيع مباشر غير موجود؛ لم يتغير شيء." };
     /* و٦: الإلغاء من نافذة متأخرة لا يطمس تعديلًا أحدث وصل قبله. */

@@ -1062,8 +1062,7 @@ export class ProjectFinancialService {
     const reason = input.reason.trim();
     if (!sourceEventId)
       return { ok: false, code: VALIDATION_ERROR, message: "اختر الحدث الأصلي قبل تصحيحه." };
-    if (!reason)
-      return { ok: false, code: VALIDATION_ERROR, message: "اكتب سبب التصحيح قبل تنفيذ التراجع." };
+    if (!reason) return { ok: false, code: VALIDATION_ERROR, message: "اكتب سبب التصحيح قبل تنفيذ التراجع." };
     if (!idempotencyKey)
       return { ok: false, code: VALIDATION_ERROR, message: "مفتاح التصحيح مطلوب لمنع تكرار الأثر." };
     if (!isValidLocalDate(input.occurredOn))

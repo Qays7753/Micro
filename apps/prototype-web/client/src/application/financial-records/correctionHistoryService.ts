@@ -8,7 +8,11 @@ import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
 import type { OwnerEntitlementStore } from "@/storage/local/capabilities/ownerEntitlementStore";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
-import { formatLocalDate, formatMoneyWithUnit, formatQuantityMilli } from "@/application/formatting/formatters";
+import {
+  formatLocalDate,
+  formatMoneyWithUnit,
+  formatQuantityMilli,
+} from "@/application/formatting/formatters";
 import { STORAGE_ERROR } from "@/application/resultCodes";
 
 /* Wave C (ADR-015 مجموعة 6 — 2026-10-04): النوع الضيق للقارئ — قراءة حركات
@@ -19,12 +23,12 @@ type CorrectionHistoryServiceStore = Pick<OwnerEntitlementStore, "listOwnerMovem
   Pick<OrderLifecycleStore, "listOrders"> &
   Pick<
     PrototypeLocalStore,
-    "listAssets" |
-      "listCashContinuityEntries" |
-      "listDirectSales" |
-      "listFinancialEvents" |
-      "listInventoryMovements" |
-      "listSupplierPurchases"
+    | "listAssets"
+    | "listCashContinuityEntries"
+    | "listDirectSales"
+    | "listFinancialEvents"
+    | "listInventoryMovements"
+    | "listSupplierPurchases"
   >;
 
 export type CorrectionHistoryKind =

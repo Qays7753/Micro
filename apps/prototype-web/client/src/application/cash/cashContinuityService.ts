@@ -178,8 +178,7 @@ export class CashContinuityService {
     const repeated = entries.value.find(entry => entry.operationKey === input.operationKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     const wallet = wallets.value.find(candidate => candidate.id === input.walletId);
-    if (!wallet)
-      return { ok: false, code: VALIDATION_ERROR, message: "اختر محفظة موجودة قبل إدخال الرصيد." };
+    if (!wallet) return { ok: false, code: VALIDATION_ERROR, message: "اختر محفظة موجودة قبل إدخال الرصيد." };
     if (entries.value.some(entry => entry.walletId === wallet.id && entry.type === "opening_balance"))
       return {
         ok: false,

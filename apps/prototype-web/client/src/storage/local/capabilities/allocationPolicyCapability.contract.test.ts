@@ -32,10 +32,7 @@ import {
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import { IndexedDbLocalStore } from "../IndexedDbLocalStore";
 import { MemoryLocalStore } from "../MemoryLocalStore";
-import {
-  allocationPolicyStoreMethods,
-  type AllocationPolicyStore,
-} from "./allocationPolicyStore";
+import { allocationPolicyStoreMethods, type AllocationPolicyStore } from "./allocationPolicyStore";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, "../../../../../../../");

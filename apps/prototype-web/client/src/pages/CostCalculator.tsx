@@ -17,10 +17,7 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { CostEstimateInput } from "@/application/estimates/costEstimateService";
 import type { CostEstimate } from "@/storage/local/types";
-import {
-  readMaterialSuggestions,
-  type MaterialSuggestion,
-} from "@/application/inventory";
+import { readMaterialSuggestions, type MaterialSuggestion } from "@/application/inventory";
 
 import { Button } from "@/components/primitives";
 type EditableMaterial = {

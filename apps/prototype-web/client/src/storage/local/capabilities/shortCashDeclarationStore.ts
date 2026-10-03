@@ -47,5 +47,7 @@ export type ShortCashDeclarationStoreMethod = (typeof shortCashDeclarationStoreM
  * أبدًا؛ ومستهلك يكتفي بجزء منها يأخذ Pick منه — الاعتماد المصرح به
  * بدقة عند الحاقن.
  */
-export interface ShortCashDeclarationStore
-  extends Pick<PrototypeLocalStore, ShortCashDeclarationStoreMethod> {}
+export interface ShortCashDeclarationStore extends Pick<
+  PrototypeLocalStore,
+  ShortCashDeclarationStoreMethod
+> {}
