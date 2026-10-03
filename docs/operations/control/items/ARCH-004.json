@@ -1,0 +1,82 @@
+{
+  "id": "ARCH-004",
+  "title": "برنامج إكمال A-to-Z البنيوي — تنفيذ جذري معتمد (Post-Closure A-to-Z Structural Completion)",
+  "type": "RESEARCH",
+  "status": "IN_PROGRESS",
+  "priority": "P1",
+  "stage": "atoz-structural-completion-implementation",
+  "summary": "تنفيذ برنامج إكمال A-to-Z البنيوي كاملًا بقرار المالك المجمع المسجل في ZAI-A-TO-Z-EXECUTION-CONTRACT.md (التزام 8ba44555f0ac6a542588f7e0765da3b8512e6832): الموجات A0→A→G→B→C→D→E→F→G2→H→I→Y→Z على الفرع الطويل refactoring/a-to-z-structural-completion-20261003 من الأساس 04895f2. النطاق: معيار الإصلاح الجذري (root-cause) لكل المكتشفات القابلة — STR-601..607 (دفعة توثيقية)، STR-608..614 (قرارات منفذة)، STR-615..620+STR-623 (بنيوي متسلسل)، مجموعات القدرات الست، حراس، خريطة اختبارات، تقييم عناقيد عقد 40 — بلا أي تغيير مالي/مخطط/تصدير/UI/أمني غير معتمد، وبوابات حماية بقرار مالك موحد واحد عند الحدود المحمية فقط.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "NOT_APPLICABLE",
+  "root_cause": "owner:consolidated-authorization (عقد التنفيذ المؤرخ 2026-10-03؛ قبول PR #309 §23 أساسًا للأدلة + تفويض البرنامج الكامل A0→Z بمعيار الإصلاح الجذري)",
+  "owner": "Micro owner (Qays7753)",
+  "tests_required": [
+    "فحوص مركزة لكل موجة توثيقية (validate/doc-index/secrets/diff-check)",
+    "الجناحان كاملان + typecheck/lint/format + guards + ميزانية الحزمة لكل موجة كودية B-F",
+    "تدقيق Y معاد مستقل عند الإغلاق"
+  ],
+  "layers": [
+    "domain",
+    "application",
+    "storage",
+    "scripts",
+    "docs"
+  ],
+  "source": {
+    "report": "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md",
+    "discovered_at_sha": "04895f2643608fce00553040d484db84f80bf5dc",
+    "evidence": [
+      "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+      "docs/architecture/refactoring/skills/micro-a-to-z-structural-refactoring/SKILL.md",
+      "docs/operations/current-state-log.md"
+    ]
+  },
+  "acceptance": [
+    "كل مكتشف قابل ينال إغلاقًا جذريًا موثقًا (ROOT_CAUSE/LONG_TERM_REMEDIATION/EXIT_EVIDENCE) أو استثناءً طويل الأجل مقبولًا من المالك بمالك وسبب وحد نمو ومحفز مراجعة وشرط خروج",
+    "الحالة النهائية لكل بند من CLOSED_WITH_EVIDENCE / PRESERVED_WITH_OWNER_ACCEPTED_LONG_TERM_EXCEPTION / SEPARATE_TRACK_OPENED_WITH_EXACT_TRIGGER / OUT_OF_SCOPE_BY_PROJECT_RULE / BLOCKED_WITH_ONE_CONSOLIDATED_DECISION_PACKAGE",
+    "المهارة التشغيلية مسجلة ومفهرسة ومشار إليها من كل موجة (A0 — منفذة)",
+    "تدقيق Y معاد مستقل AUDIT_PASS عند رأس الدمج النهائي",
+    "صفر تغيير غير معتمد للمعنى المالي/المخطط/التصدير-الاستيراد/UI/الأمن في كل الموجات",
+    "سجل الجرد والملكية والفهارس وviews التحكم متطابقة مع الشجرة الحية عند الإغلاق"
+  ],
+  "areas": [
+    "docs/architecture/refactoring",
+    "architecture-governance",
+    "apps/prototype-web/client/src/application",
+    "apps/prototype-web/client/src/storage",
+    "scripts",
+    "docs/contracts",
+    "docs/operations/control"
+  ],
+  "contracts": [
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/contracts/40-technical-ownership-map-contract.md",
+    "docs/contracts/41-recurring-expense-reminders-contract.md",
+    "docs/contracts/42-optional-expense-budgets-goals-contract.md"
+  ],
+  "evidence": [
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+    "docs/architecture/refactoring/skills/micro-a-to-z-structural-refactoring/SKILL.md",
+    "docs/operations/current-state-log.md"
+  ],
+  "dependencies": [],
+  "related_items": [
+    "ARCH-002"
+  ],
+  "owner_decision": "ممنوح مجمعًا في عقد التنفيذ (8ba4455): لا موافقات روتينية لكل ملف/طريقة/قدرة/موجة؛ حزمة قرار واحد موحدة فقط عند حدود محمية (مالي/مخطط/تصدير/تاريخ/أمن/UI/عقد أعلى/منصة جديدة/دمج-حذف)",
+  "merge_sha": "",
+  "verified_on_main_sha": "",
+  "updated_at": "2026-10-03",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-03",
+      "actor": "ws-214:claim",
+      "reason": "فتح Claim تنفيذي للبرنامج المعتمد من main المتحقق 04895f2643608fce00553040d484db84f80bf5dc بعد التحقق المباشر من PR #309 (مفتوح، رأس 6fa0d22، CI أخضر) والعلامة الختامية للمسح في §23 وعقد التنفيذ 8ba4455؛ A0 (المهارة) منفذة أولًا على الفرع؛ لا تعارض claims نشطة على هذا الفرع (WS-213 على فرع التقرير غير المدموج — يُغلق SUPERSEDED بعد دمج PR #309 بسجل مؤرخ)."
+    }
+  ],
+  "migration_baseline": true,
+  "next_action": "Wave A: تنفيذ STR-601..607 (الدفعة التوثيقية) + سجلات البرنامج + تحديث الحالة الحية وviews بالمولد؛ ثم Wave G (قرارات STR-608..614 بADRs) فالبنية B→Z بالترتيب المعتمد.",
+  "classification": "GOVERNANCE",
+  "gate_classification": "NOT_APPLICABLE"
+}

@@ -1,0 +1,50 @@
+{
+  "id": "WS-214",
+  "title": "برنامج إكمال A-to-Z البنيوي — تنفيذ الموجات A0→Z بمعيار الإصلاح الجذري (ARCH-004)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "ARCH-004"
+  ],
+  "branch": "refactoring/a-to-z-structural-completion-20261003",
+  "base_sha": "04895f2643608fce00553040d484db84f80bf5dc",
+  "areas": [
+    "architecture-governance",
+    "docs/architecture/refactoring",
+    "apps/prototype-web/client/src/application",
+    "apps/prototype-web/client/src/storage",
+    "scripts",
+    "docs/operations/control"
+  ],
+  "contracts": [
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/contracts/40-technical-ownership-map-contract.md",
+    "docs/contracts/41-recurring-expense-reminders-contract.md",
+    "docs/contracts/42-optional-expense-budgets-goals-contract.md"
+  ],
+  "agent": "Z AI (A-to-Z structural completion execution agent; one sequential writer per wave; independent hostile auditor at Wave Y)",
+  "pr": null,
+  "started_at": "2026-10-03",
+  "updated_at": "2026-10-03",
+  "next_action": "إتمام Wave A: الالتزام بدفعة STR-601..607 + تحديث الحالة الحية وviews بالمولد الرسمي؛ ثم Wave G (ADRs قرارات STR-608..614) ثم B→Z بالترتيب المعتمد A0→A→G→B→C→D→E→F→G2→H→I→Y→Z.",
+  "notes": [
+    "التفويض: القبول المجمع المسجل في ZAI-A-TO-Z-EXECUTION-CONTRACT.md (التزام 8ba44555f0ac6a542588f7e0765da3b8512e6832 على فرع docs/zai-a-to-z-execution-contract-20261003) — لا موافقات روتينية؛ حزمة قرار واحد موحدة فقط عند الحدود المحمية.",
+    "PR #309 (التقرير فقط) يبقى مفتوحًا غير مدموج بأمر المالك الصريح — لا يُدمج كجزء من هذا التنفيذ. بعد دمجه لاحقًا بقرار المالك: تُغلق WS-213/ARCH-003 كـSUPERSEDED بسجل مؤرخ (المسح مكتمل ومقبول أساسًا للأدلة؛ هذا البرنامج يخلفه تنفيذًا) لتفادي تداخل claims نشطة على مساحة إعادة الهيكلة.",
+    "Wave A0 منفذة أولًا (المهارة التشغيلية v1.0 — Entry 13 في سجل الوكلاء).",
+    "كاتب واحد في أي لحظة؛ المدققون قراءة فقط بين الكتابات."
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-03",
+      "actor": "ws-214:claim",
+      "reason": "فتح Claim تنفيذي للبرنامج المعتمد من main المتحقق 04895f2643608fce00553040d484db84f80bf5dc؛ صفر PRs مفتوحة غير PR #309 التقريري (غير المتعارض — فرع توثيقي مستقل)؛ صفر claims نشطة على هذا الفرع."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-03",
+      "actor": "ws-214:wave-a0",
+      "reason": "Wave A0 منفذة: مهارة التشغيل skills/micro-a-to-z-structural-refactoring/SKILL.md (v1.0) مسجلة ومفهرسة (Entry 13)؛ يليها Wave A (STR-601..607 + سجلات البرنامج)."
+    }
+  ],
+  "migration_baseline": true
+}

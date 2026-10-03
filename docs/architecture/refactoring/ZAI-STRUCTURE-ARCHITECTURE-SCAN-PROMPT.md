@@ -1,5 +1,7 @@
 # Z AI — Micro Current-to-Target Architecture and Migration Plan
 
+> **سجل تاريخي — مؤرخ 2026-10-03 (تصحيح حالة — STR-601):** هذا الـPrompt **نُفّذ وأُغلق** — أنتج مسح القراءة فقط وخطة الانتقال v1.0 المقبولة عبر PR #299 (2026-10-02→03). لا يُقرأ كأمر مرحلة أولى حي ولا يُعاد تنفيذه. أوامر البرنامج الحية هي: عقد تنفيذ إكمال A-to-Z `ZAI-A-TO-Z-EXECUTION-CONTRACT.md` (التزام `8ba44555f0ac6a542588f7e0765da3b8512e6832`) ومهارة التشغيل المسجلة `skills/micro-a-to-z-structural-refactoring/SKILL.md` (v1.0). يُحفظ هذا الملف حرفيًا كسجل تاريخي دون تعديل نصه الأصلي أدناه.
+
 ## Mission
 
 You are the execution agent for **Phase 1 of Micro’s architecture/refactoring program**.

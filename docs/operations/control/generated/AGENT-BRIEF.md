@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 53
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 53
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,4 +32,6 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-لا يوجد Workstream نشط أو يحتاج مراجعة.
+| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
+|---|---|---|---|---|---|
+| WS-214 | IN_PROGRESS | \`refactoring/a-to-z-structural-completion-20261003\` | — | ARCH-004 | إتمام Wave A: الالتزام بدفعة STR-601..607 + تحديث الحالة الحية وviews بالمولد الرسمي؛ ثم Wave G (ADRs قرارات STR-608..614) ثم B→Z بالترتيب المعتمد A0→A→G→B→C→D→E→F→G2→H→I→Y→Z. |

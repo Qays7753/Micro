@@ -66,7 +66,7 @@
 | Snapshot transfer | 2 (readSnapshot/replaceSnapshot) | application/transfers (تنسيق) + storage (حد الكتابة) | EXE-014 نسخة احتياطية متحققة قبل الاستبدال | localTransferService فقط | المظروف نفسه | مصنّفة — حد حرج؛ لا تغيير |
 | Profile/preferences misc | (مغطاة أعلاه) | — | — | — | — | — |
 
-**مجموع الطرق:** 131/131 مصنّفة. *ملاحظة (تصحيح Agent 2):* أعداد الطرق لكل مجموعة أدلة تنقّل تقريبية؛ **الواجهة `PrototypeLocalStore` نفسها هي المصدر السلطوي للعدّ**. لا طريقة «معلقة بلا سبب». حراس الكتابة المشتركون: 9 وحدات حراسة نقية داخل حد الكتابة (STR-306 PRESERVE). التبعيات الجانبية الأربع للمحولات: IndexedDB global، Clock (حقن ~25 خدمة)، localDiagnostics، touchpoints registry.
+**مجموع الطرق:** 131/131 مصنّفة. *ملاحظة (تصحيح Agent 2):* أعداد الطرق لكل مجموعة أدلة تنقّل تقريبية؛ **الواجهة `PrototypeLocalStore` نفسها هي المصدر السلطوي للعدّ**. لا طريقة «معلقة بلا سبب». *دقة حراس الكتابة (تصحيح STR-606، 2026-10-03):* أسماء عمود «حراس الكتابة» أعلاه هي **مفاهيم حراسة** — الوحدات النقية المستقلة ملفات هي **9 بالضبط** في `storage/local/` (orderCommit، loanCommit، receivedLoanCommit، recurringExpenseCommit، expenseBudgetCommit، cashContinuityCommit، deliveryReversalCommit، supplierAttributionCommit، supplierScheduleCommit)؛ وما عداها (مراجعات القوالب، خلافة التوزيع، CAS والذرية، تصحيح الأحداث…) منطق مفروض داخل المحوّلين/أجسام الطرق لا ملفات مستقلة (STR-306 PRESERVE). التبعيات الجانبية الأربع للمحولات: IndexedDB global، Clock (حقن في **42 ملف تطبيق** — قياس حي 2026-10-03: `rg -l "now: \(\) =>|now\(\)" application --glob '*.ts' | grep -v test`)، localDiagnostics، touchpoints registry.
 
 ---
 
@@ -100,7 +100,7 @@
 
 ## 4. مجموعات القيم المكررة يدويًا بين المجال ومحوّلات النقل (بذرة STR-104/509)
 
-**الظاهرة (أُغلقت في Wave 4D):** `transferFamilyValidators.ts` كان يكرر حرفيًا اتحادات قيم المجال كأشرطة قبول، بلا مصدر واحد مسمى. **تنفيذ 4D (بطاقة RC-8 — مصحح بتدقيق A5 النهائي):** (1) ما كان برميله داخل أصلًا في رأس الحزمة صار يُستهلك من مالكه مباشرة — materialUnits وقائمتا الميزانية (3 طواقم مفوضة فعلًا) ومصدر الاتفاق يُستهلك من السجل نفسه؛ أما unitDimensions وقوائم المصروف المتكرر الأربع وcatalogItemKinds فتفويضها **مؤجل عمدًا (D-034 — هامش السقف الخام لا يحتمل سحب البرميلين الجديدين)** وطواقمها الحرفية موسومة المصدر (GUARDED_UNION) ومحروسة باختبارات الوصف والسجل؛ (2) القيم التاريخية التوافقية (3 مصادر اتفاق) صارت في سجلها الموثق الوحيد `transferCompatibilityValues.ts` (سبب/إصدارات/اختبارات + إثبات نوعي أنها خارج الاتحاد الحالي)؛ (3) ما هو اتحاد نوعي فقط تبقى قيمه الحرفية تحت حراسة مراسي دريفت Wave 3B (طبقتا تشغيل وأنواع) والذهبيات كـoracle دائم؛ (4) خريطة مصادر القبول لكل عائلة موثقة في السجل نفسه (DOMAIN_RUNTIME_LIST / GUARDED_UNION / HISTORICAL_REGISTRY). طواقم القبول لم تتغير حرفيًا — شهدت بذلك اختبارات الوصف والذهبيات قبل وبعد.
+**الظاهرة (أُغلقت في Wave 4D):** `transferFamilyValidators.ts` كان يكرر حرفيًا اتحادات قيم المجال كأشرطة قبول، بلا مصدر واحد مسمى. **تنفيذ 4D (بطاقة RC-8 — مصحح بتدقيق A5 النهائي):** (1) ما كان برميله داخل أصلًا في رأس الحزمة صار يُستهلك من مالكه مباشرة — materialUnits وقائمتا الميزانية (3 طواقم مفوضة فعلًا) ومصدر الاتفاق يُستهلك من السجل نفسه؛ أما unitDimensions وقوائم المصروف المتكرر الأربع وcatalogItemKinds فتفويضها **مؤجل عمدًا (D-034 — هامش السقف الخام لا يحتمل سحب البرميلين الجديدين)** وطواقمها الحرفية موسومة المصدر (GUARDED_UNION) ومحروسة باختبارات الوصف والسجل؛ (2) القيم التاريخية التوافقية (3 مصادر اتفاق) صارت في سجلها الموثق **الوحيد لنطاقها** `transferCompatibilityValues.ts` (سبب/إصدارات/اختبارات + إثبات نوعي أنها خارج الاتحاد الحالي) — *دقة (تصحيح STR-623/STR-606، 2026-10-03): «الوحيد» هنا يعني حصرًا قيم التوافق التاريخي لعائلات النقل؛ اكتشف المسح المعادي لما بعد الإغلاق موقعين يكرران معرفة قيم قبول خارج هذا السجل وكل حراسة (STR-623) — مسجلان في الجدول أدناه؛* (3) ما هو اتحاد نوعي فقط تبقى قيمه الحرفية تحت حراسة مراسي دريفت Wave 3B (طبقتا تشغيل وأنواع) والذهبيات كـoracle دائم؛ (4) خريطة مصادر القبول لكل عائلة موثقة في السجل نفسه (DOMAIN_RUNTIME_LIST / GUARDED_UNION / HISTORICAL_REGISTRY). طواقم القبول لم تتغير حرفيًا — شهدت بذلك اختبارات الوصف والذهبيات قبل وبعد.
 
 | مجموعة القيم | المصدر السلطوي (المجال) | النسخة المكررة (Transfer) | القرار |
 |---|---|---|---|
@@ -122,6 +122,8 @@
 | SupplierPurchaseStatus | supplier-purchase/types.ts | supplierPurchase family | GUARDED_UNION موسومة |
 | KnowledgeState | craft-order/types.ts (اتحاد وحيد — حُسمت الثلاثية الموثقة سابقًا) | application validator | 3B منفذ؛ 4D: GUARDED_UNION موسومة |
 | **AgreementSource (توافق تاريخي)** | storage/local/types.ts (5 حالية) | 5 حالية + 3 تاريخية | **4D منفذ: HISTORICAL_REGISTRY** — LEGACY_AGREEMENT_SOURCES في سجلها الموثق وحده |
+| **STR-623 (مكتشف المعادي لما بعد الإغلاق): LegacyAgreementSource محلي في التطبيق** | المفروض: سجل التوافق `transferCompatibilityValues.ts` (HISTORICAL_REGISTRY) + `storage/local/types.ts` | `application/agreements/agreementContextService.ts:9-39` — اتحاد محلي + طاقم 5+3 قيم يكرر معرفة مصدر الاتفاق | **غير محروس ولا مسجل قبل الآن** — تسجيله هنا (STR-606/623): مراسي دريفت قيد التنفيذ (Wave H/STR-623)، ثم التوحيد للمصدر السلطوي متى سمح هامش الميزانية (STR-608) |
+| **STR-623: walletKinds + materialUnits محليان في مستورد الفتح الموجه** | `src/domain/catalog/types.ts` (materialUnits — DOMAIN_RUNTIME_LIST) + أنواع المحفظة الكنونية | `application/transfers/guidedOpeningImportService.ts:76-77` — طاقمان محليان يُستخدمان للقبول عند :128/:150 | **غير محروس ولا مسجل قبل الآن** — نفس مسار STR-623 أعلاه (تسجيل ← مراسي ← توحيد) |
 
 القائمة الكاملة القابلة للتنفيذ (~83 اتحادًا) تُقاس آليًا باختبار الدريفت في Wave 3B — هذا السجل يثبت المبدأ والمسؤولية لا يعيد كتابة القيم. **القيم التاريخية التوافقية تبقى منفصلة وموسومة** (مفتاح: إصدار التصدير/العقد التاريخي) ولا تُدمج مع القيم الحية أبدًا (عقد 39).
 
@@ -134,21 +136,23 @@
 | Deep import (domain) | settlementInvariant خارج البرميل | application/finance (dynamic) | STR-205 — Wave J: تصدير عبر البرميل؛ **محروس الآن بحارس الحدود 4E (R1)** |
 | Deep import (domain) | operatingBreakEven ×2 (D-034) | application/finance/projectFinancialService + application/financial-analysis/financialAnalysisService (بعد 4A) | تنازل موثق D-034 (حزمة) — يبقى؛ يحرسه حارس الحدود 4E (R1) |
 | Deep import (domain) | STR-030 alias ×2 + type import ×1 | domain-internal | موثق S2 |
-| Deep import (application) | integrityCheckService.ts:1437 | application↔application | STR-313 — تنازل مفرد موثق |
+| Deep import (application→domain) | integrityCheckService.ts:1437 — استيراد ديناميكي لـsettlementInvariant من عمق craft-order (رمزه غير مصدّر من البرميل) | application → domain depth | **تصحيح تصنيف (STR-606، 2026-10-03):** الحافة نحو عمق **المجال** لا application↔application؛ المكتشف الكنسي المجمّع **STR-205** (الأصل S1:STR-108/S3:STR-313) — الاستثناء المفرد الموثق في قائمة الاستيراد العميق المسموح؛ الحل الجذري: تصديره عبر البرميل (Wave J/STR-615) |
 | Type cycle (SCC) | storage types ↔ supplierScheduleCommitGuard | storage/local | STR-307 — type-only، موثق، لا حادثة تشغيل |
-| Type cycle (SCC) | g5Service ↔ projectFinancialService | application | غير موثق سابقًا — يسجل هنا (STR-204b)؛ Wave 4A/4D يفكه بالنقل الميكانيكي أو يوثق |
+| Type cycle (SCC) | financialAnalysisService ↔ projectFinancialService (التسمية الأساس بعد 4A — الاسم التاريخي كان g5Service) | application | **تصحيح تسمية (STR-606/STR-620، 2026-10-03):** الدورة النوعية حية بعد 4A/4D (أُعيد تسمية الطرف فقط)؛ STR-204b الأصلية → STR-620: فك ميكانيكي في Wave E أو قبول موثق بشرط إزالة |
 | Type cycle (SCC) | FinancePeriodResultSection ↔ pages/Finance | component↔page (type-only) | STR-204c — جذر مكوّن داخل صفحة؛ Wave T للفك البصري |
 | ESLint waiver | StartupGate storage import | apps/…/app/StartupGate.tsx | تنازل موثق في eslint.config.js |
 | ESLint waiver | PrototypeServicesContext storage import | composition root | تنازل موثق |
 | ESLint waiver | page/component test localStorage | ملفات اختبار | تنازل موثق |
 | ESLint waiver | domain-test vitest | tests/domain | تنازل موثق |
 | ESLint waiver | shared Math | domain/shared | تنازل موثق (مقارنات آمنة) |
-| ESLint waiver | application Math ×3 | finance (تقريب محكوم) | تنازل موثق |
-| ESLint waiver | storage types → UI (type-only) | 16 ملف UI | سياسة موثقة (STR-305 قرار مالك مؤجل) |
+| ESLint waiver | application Math ×3 | **diagnostics/home/input** (تصحيح موقع — STR-606: `localDiagnosticsService.ts` + `homeControlCenterService.ts` + `englishNumeric.ts` — كلها غير مالية: معرّف خطأ، فرق أيام، حدود تمثيل؛ الملفات الثلاثة معدة في eslint.config.js حرفيًا) | تنازل موثق |
+| ESLint waiver | storage types → UI (type-only) | 17 ملف UI (تصحيح عدّ — STR-606، 2026-10-03: قياس حي pages+components بلا اختبارات، بكل الامتدادات = 17؛ كان الجدول يقول 16) | سياسة موثقة (STR-305 قرار مالك مؤجل) |
 | Application→presentation | 14 حافة قيمة / 12 ملفًا | application → presentation/formatters | STR-203 — OWNER_DECISION_REQUIRED (waiver أو نقل — Wave G) |
 | UI→domain direct | 13 حافة قيمة عند القياس الحي 4E (8 صفحات) | UI → domain | STR-106 — OWNER_DECISION_REQUIRED (سياسة اتجاه)؛ **مجمّدة بحارس الحدود 4E (R2)** — العدد الحي 13 (كان 16 عند بذرة v1.0 قبل موجات 3A-4D) |
 
 **قاعدة السجل:** أي استثناء جديد يحتاج صفًا هنا + سببًا + تاريخ مراجعة. الرقم الحالي خط أساس — **الحارس (Wave 4E/RC-9 — منفذ) يمنع الزيادة الصامتة**: `scripts/check-module-boundaries.mjs` (قائم على الفَلْحة/AST) يجمد الأساس المقبول (3 استيرادات عميقة داخل المجال؛ 13 حافة واجهة→مجال؛ 14 حافة تطبيق→عرض) ويرفض أي حافة جديدة فوقه، و`scripts/check-file-size-ratchet.mjs` يرفض أي تصعيد شريطي حجمي فوق أساس JSON مراجَع (350 ملفًا) — تحديث الأساس عمدًا في نفس PR الحافة المشروعة/النمو المسجل مع صف هنا، لا بعده.
+
+> **توضيح تسمية «تحصين الحدود» (STR-622 — تصحيح ضمن دفعة STR-601/606، 2026-10-03):** Wave 4E سلّمت **تجميدًا + راتشة** (لا نمو صامت فوق الأساس المقبول)، لا حلًا لسياستي الاتجاه المفتوحتين (STR-106/STR-203) — الحواف القائمة تبقى قائمة بقرار مالك (Wave G/STR-609) ولا يجوز أن يقرأ أحد إغلاق 4E على أن الحدود «حُلّت».
 
 ---
 

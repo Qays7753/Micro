@@ -1,8 +1,4 @@
 {
-  "version": 1,
-  "generated_at": "2026-10-03",
-  "head": "moved-with-the-financial-records-cluster-slice (Wave 4B follow-up) — baseline regenerated path entries in the same PR",
-  "source": "FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md v1.4 (Wave 4E/RC-9) — سجل الجرد هو المصدر؛ هذا الملف أساس الحارس فقط",
   "bands": {
     "apps/prototype-web/client/src/App.tsx": "NORMAL",
     "apps/prototype-web/client/src/app/CapabilityRouteGate.tsx": "NORMAL",
@@ -22,6 +18,7 @@
     "apps/prototype-web/client/src/application/agreements/agreementService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/agreements/followUpDate.ts": "NORMAL",
     "apps/prototype-web/client/src/application/assets/assetService.ts": "WATCH",
+    "apps/prototype-web/client/src/application/budgets/expenseBudgetService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/cash/cashContinuityService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/cash/walletLedgerService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/catalog/catalogService.ts": "WATCH",
@@ -38,6 +35,7 @@
     "apps/prototype-web/client/src/application/drafts/formDraftTestHarness.ts": "NORMAL",
     "apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.ts": "NORMAL",
     "apps/prototype-web/client/src/application/estimates/costEstimateService.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/finance/correctionHistoryService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/finance/dueDateAging.ts": "NORMAL",
     "apps/prototype-web/client/src/application/finance/dueDatesService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/finance/expenseBudgetService.ts": "NORMAL",
@@ -60,6 +58,9 @@
     "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts": "WATCH",
     "apps/prototype-web/client/src/application/financial-pulse/financialPulseService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/financial-records/correctionHistoryService.ts": "WATCH",
+    "apps/prototype-web/client/src/application/financial-records/expenseCategorySuggestions.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/financial-records/expenseRecordIntent.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/financial-records/retainedDepositService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/follow-up/dailyFollowUpService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/fulfillment/deliveryAttribution.ts": "NORMAL",
     "apps/prototype-web/client/src/application/fulfillment/deliveryContribution.ts": "NORMAL",
@@ -281,7 +282,9 @@
     "scripts/check-current-state-size.mjs": "NORMAL",
     "scripts/check-doc-index-coverage.mjs": "NORMAL",
     "scripts/check-entity-touchpoints.mjs": "NORMAL",
+    "scripts/check-file-size-ratchet.mjs": "NORMAL",
     "scripts/check-image-policy.mjs": "NORMAL",
+    "scripts/check-module-boundaries.mjs": "NORMAL",
     "scripts/check-runtime-cycles.mjs": "NORMAL",
     "scripts/check-secrets.mjs": "NORMAL",
     "scripts/check-skill-references.mjs": "NORMAL",
@@ -354,5 +357,9 @@
     "src/domain/supplier-purchase/index.ts": "NORMAL",
     "src/domain/supplier-purchase/policies.ts": "NORMAL",
     "src/domain/supplier-purchase/types.ts": "NORMAL"
-  }
+  },
+  "generated_at": "2026-10-03",
+  "head": "census-completed-357 (STR-607, Wave A — 2026-10-03): added the 7 measured-but-untracked entries (5 moved cluster targets from the financial-records/budgets slices + the 2 Wave-4E guard scripts) in the same PR as the documentation batch; no threshold or existing band changed — 357/357 production+script census tracked",
+  "source": "FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md v1.4 (Wave 4E/RC-9) + census completion STR-607 (Wave A, 2026-10-03) — سجل الجرد هو المصدر؛ هذا الملف أساس الحارس فقط",
+  "version": 1
 }
