@@ -89,4 +89,6 @@ C = ceil_to_100(G + P + m) = ceil_to_100(155,291.4255) = 155,300
 
 **Consequences:** Wave F slice 3 lands under the derived ceiling; STR-623 canonicalization remains budgeted within it; `transferFamilyValidators` stays whole under drift governance and its ratchet pin. STR-608's ledger gains the derived-adoption record; D-034's raw ceiling and ADR-012's policy are otherwise untouched. Rollback: revert the adoption commit (ceiling returns to 155,000 and slice 3 returns to staged-blocked state); the slice-3 commit reverts independently as a normal wave commit.
 
+**Z true-up executed (2026-10-04, Wave Z):** `GZIP_BYTE_LIMIT = ceil_to_100(final measured gzip + 200) = ceil_to_100(155,088 + 200) = 155,300` — identical to the adopted value (the finite-pool allowance P = 3.4255 fell inside the same 100-byte window), so the constant is unchanged while its basis is now the final measurement alone; the deferred STR-623 unification remains gated on the resulting 212-byte margin. Closure record: `docs/architecture/refactoring/A-TO-Z-CLOSURE-RECORD.md`.
+
 **Evidence class:** VERIFIED for G, all rates, export/LOC counts, consumer topology, and artifact byte-identities (re-measured live 2026-10-04); ESTIMATED for E_STR-623 (no landed micro-slice observation); the F2 split-alone figure is MEASURED at preserved-log precision (±5 B, state never committed).
