@@ -90,7 +90,7 @@
     "apps/prototype-web/client/src/application/identity/buildIdentity.ts": "NORMAL",
     "apps/prototype-web/client/src/application/input/englishNumeric.ts": "NORMAL",
     "apps/prototype-web/client/src/application/inventory/index.ts": "NORMAL",
-    "apps/prototype-web/client/src/application/inventory/inventoryMaterialService.ts": "SPLIT_NOW",
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialService.ts": "NORMAL",
     "apps/prototype-web/client/src/application/inventory/inventoryMovementRoute.ts": "NORMAL",
     "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts": "NORMAL",
     "apps/prototype-web/client/src/application/loans/loanService.ts": "NORMAL",
@@ -392,10 +392,17 @@
     "src/domain/shared/numeric.ts": "NORMAL",
     "src/domain/supplier-purchase/index.ts": "NORMAL",
     "src/domain/supplier-purchase/policies.ts": "NORMAL",
-    "src/domain/supplier-purchase/types.ts": "NORMAL"
+    "src/domain/supplier-purchase/types.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialModel.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialReads.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialActivation.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialLifecycle.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialWrites.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialWaste.ts": "NORMAL",
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialShortages.ts": "NORMAL"
   },
   "generated_at": "2026-10-04",
-  "head": "wave-f-slice-2 (ADR-013 cluster-3 internal split — 2026-10-04): projectFinancialService (1,503 nbLOC SPLIT_NOW) split into canonical-reader orchestrator (NORMAL) + siblings in the same finance home — projectFinancialTypes (leaf type home completed: all surface types), projectFinancialReads (position + listers), projectFinancialPeriodReads (period family + COGS derivation), projectFinancialInsights (insights; documented D-034 operatingBreakEven deep import moved with it — guard baseline updated same PR), projectFinancialEventWrites (guarded event write paths + PA-002 distribution merged in original family order). WATCH = family growth monitoring per ADR-013 review trigger. Companion STR-608 margin densification (same PR): resultCodes message vocabulary (3 shared read-failure messages) + errorMessageOf helper collapsing the 105-site error pattern + same-file message consts — bundle 637,828/154,991 vs 641,360/154,817 at HEAD (gzip margin 9 bytes — next bundle-affecting wave must measure before push per ADR-012)",
+  "head": "wave-f-slice-3 (ADR-014 internal split — 2026-10-04): inventoryMaterialService (1,428 nbLOC SPLIT_NOW, STR-612) split into orchestrator (185 NORMAL — injection, clock, delegation; public surface re-exported verbatim) + 7 siblings in the same application/inventory/ home — model 235 N (23 surface types + id/storageFailure/ammanLocalDate helpers), reads 323 N (overview/movements/order-comparison/references/purchase-status/period-waste), activation 77 N (Decision 9), lifecycle 238 N (open/untrack/retrack/confirm-opening), writes 270 N (receive/consume/adjust/reverse), waste 157 N (waste+outbound/extract-remainder — Contract 1 loss coupling + Decision 20), shortages 162 N (D-027 track). All below WATCH per ADR-014 growth bound. Verbatim moves only — no formula/rounding/error-identity changes. Previous head: wave-f-slice-2 (ADR-013 cluster-3 internal split — 2026-10-04): projectFinancialService (1,503 nbLOC SPLIT_NOW) split in…",
   "source": "FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md v1.4 (Wave 4E/RC-9) + census completion STR-607 (Wave A, 2026-10-03) — سجل الجرد هو المصدر؛ هذا الملف أساس الحارس فقط",
   "version": 1
 }
