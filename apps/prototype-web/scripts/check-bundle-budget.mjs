@@ -28,9 +28,13 @@ import process from "node:process";
 import zlib from "node:zlib";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-/* السقفان المعتمدان (D-034) — بايتات صريحة، لا تُرفع ولا تُمرر عبر CLI. */
+/* السقفان — بايتات صريحة، لا تُرفع ولا تُمرر عبر CLI.
+ * الخام: D-034 (650,000) كما هو بلا تغيير.
+ * gzip: 155,300 — الاعتماد الوحيد الموثق بتاريخ 2026-10-04 عبر ADR-017
+ * (رفعة مالكة واحدة مشتقة من دليل أعلى معدل مقاس على المجمع المتبقي المحدود؛
+ * لا رفع لاحق في هذا البرنامج — أي شريحة لا تتسع تذهب لمسار المراجعة لا للثابت). */
 export const RAW_BYTE_LIMIT = 650_000;
-export const GZIP_BYTE_LIMIT = 155_000;
+export const GZIP_BYTE_LIMIT = 155_300;
 export const GZIP_LEVEL = 9;
 
 export const APP_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");

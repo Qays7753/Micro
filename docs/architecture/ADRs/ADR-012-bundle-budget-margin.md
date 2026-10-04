@@ -1,7 +1,7 @@
 # ADR-012: Bundle-budget margin — profile first, reduce before any raise
 
-**Status:** Accepted (Wave G — STR-608 — 2026-10-03)
-**Owner:** Micro owner; the ceiling values themselves remain the D-034-approved 650,000 raw / 155,000 gzip decimal bytes.
+**Status:** Accepted (Wave G — STR-608 — 2026-10-03); **amended in part 2026-10-04 (ADR-017):** the gzip ceiling value is now `155,300` — the single owner-approved documented raise this program allows, derived from measured highest-rate evidence over the finite remaining pool. This ADR's policy (profile first, reduce first, raise only as documented last resort with double-diff and owner record) remains fully in force, and ADR-017's raise is the record of exactly such a decision. The raw ceiling (650,000) is unchanged.
+**Owner:** Micro owner; the ceiling values themselves were the D-034-approved 650,000 raw / 155,000 gzip decimal bytes until the ADR-017 documented derivation (155,300 gzip — one-time, no later raise in this program).
 **Context:** The last documented measurement was reproduced byte-exact at Wave G profiling (local Node-24): **649,871 raw / 154,754 gzip** — margins of 129 / 246 bytes. CI (Node-22) measures +112–117 raw over local (documented 4D RAW_OVER incident and its calculated retreat), leaving an effective CI margin of ~12–17 bytes. This margin gates all import-graph work (Wave B barrels, the deferred 4D delegation ≈ 42+ bytes for two barrels, STR-616).
 
 **Decision:**

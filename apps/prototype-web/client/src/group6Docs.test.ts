@@ -90,17 +90,17 @@ describe("governance consistency — Group 6 prevention implemented on the remed
     expect(section36).toContain("٣٥/٢٧ بلا تغيير");
     expect(section36).toContain("37/37");
     expect(section36).toContain("650_000");
-    expect(section36).toContain("155_000");
+    expect(section36).toContain("155_300");
     expect(section36).toContain("بوابة الدمج النهائية");
     expect(section36).toContain("لا إعادة هيكلة");
     expect(section36).toContain("AGENTS.md");
   });
 
-  it("schema/export versions stay 38/30 (owner-approved FIN-001 WS-178) and the limits stay pinned between code and docs (no silent raise)", () => {
+  it("schema/export versions stay 38/30 (owner-approved FIN-001 WS-178) and the limits stay pinned between code and docs (no silent raise; gzip 155,300 per ADR-017 dated 2026-10-04)", () => {
     expect(localSchemaVersion).toBe(38);
     expect(localExportVersion).toBe(30);
     expect(RAW_BYTE_LIMIT).toBe(650_000);
-    expect(GZIP_BYTE_LIMIT).toBe(155_000);
+    expect(GZIP_BYTE_LIMIT).toBe(155_300);
     const lintScript = rootPackageJson.scripts?.lint ?? "";
     expect(lintScript).toContain("--max-warnings 37");
     expect(lintScript).toContain("src");
