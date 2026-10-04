@@ -4,14 +4,26 @@
  * (resolution-based) — يفحص حدود الوحدات عبر تحليل AST وحل الاستيرادات إلى
  * ملفات حقيقية، لا بمطابقة نصية.
  *
- * القواعد الثلاث (ratchet — CI يرفض الجديد فقط؛ الأساس المقبول مضمّن):
+ * القواعد الخمس (ratchet — CI يرفض الجديد فقط؛ الأساس المقبول مضمّن):
  *  R1) استيراد عميق داخل المجال من خارج طبقة المجال
  *      (`@micro-domain/<area>/<غير-index>`): مقصور على الأزواج المسجلة
  *      (الاستثناءات الموثقة في سجل الملكية §5 — D-034 وSTR-205).
+ *      **إصلاح Wave H (STR-617 بند 8، 2026-10-04):** نمط المنطقة صار
+ *      `[a-z0-9-]+` — كان `[a-z-]+` فلا يطابق مناطق بأرقام (g5 كامن — مكتشف
+ *      المعادي)؛ القياس الحي بعد الإصلاح: الأساس نفسه 3 حواف، صفر حواف g5.
  *  R2) حافة قيمة مباشرة من واجهة المستخدم إلى المجال (STR-106 — قرار مالك
  *      معلق): مجمدة على الأساس المسجل؛ أي حافة جديدة ترفض حتى قرار المالك.
+ *      **إغلاق Wave H (STR-617 بند 4):** طبقة العرض presentation/* صارت داخل
+ *      UI_LAYERS — الثقوب الثلاثة الموثقة (formatters انتقل للمطبق في Wave B؛
+ *      الباقي حافتان) داخل الأساس المؤرخ.
  *  R3) حافة قيمة من التطبيق إلى العرض (STR-203 — قرار مالك معلق): مجمدة
  *      على الأساس المسجل كذلك.
+ *  R4) استيراد عميق عابر للمناطق داخل المجال نفسه (STR-617 بند 2 — كان بلا
+ *      قاعدة): مجمد على الأزواج الثلاث الموثقة في سجل الملكية §5؛ الجديد يرفض.
+ *  R5) حافة قيمة من واجهة المستخدم إلى تخزين زمن التشغيل حلًّا resolution-based
+ *      (STR-617 بند 3 — مكمل ESLint النصي): العدّ بحل الاستيرادات لا بمطابقة
+ *      النص، فلا إفلات بمسار نسبي؛ الاستثناءان الموثقان (StartupGate،
+ *      PrototypeServicesContext — بشروط إزالة مسار UI) داخل الأساس.
  *
  * تحديث الأساس عمدًا مشروط: أي حافة جديدة مشروعة تُضاف إلى الأساس في نفس
  * الـPR مع صف/تحديث في سجل الملكية §5 (سجل الاستثناءات) — الحارس يجعل
@@ -45,7 +57,9 @@ export function layerOf(repoRoot, file) {
   return "infra";
 }
 
-const UI_LAYERS = new Set(["ui", "app-shell", "contexts", "lib"]);
+/* Wave H (STR-617 بند 4، 2026-10-04): presentation ضمّت — حواف عرض→مجال
+ * صارت تحت تجميد R2 بدل أن تمر خارج الحراسة. */
+const UI_LAYERS = new Set(["ui", "app-shell", "contexts", "lib", "presentation"]);
 
 /** هل الاستيراد يحمل قيمة في زمن التشغيل؟ (AST — نفس منطق حارس الدورات) */
 function importCarriesRuntimeValue(node) {
@@ -109,10 +123,12 @@ export function collectAllImports(repoRoot, files) {
       } else if (
         ts.isExportDeclaration(statement) &&
         statement.moduleSpecifier &&
-        ts.isStringLiteral(statement.moduleSpecifier) &&
-        !statement.isTypeOnly
+        ts.isStringLiteral(statement.moduleSpecifier)
       ) {
-        push(statement.moduleSpecifier.text, true, false);
+        /* Wave H: تصدير-من النوعي (`export type {X} from ...`) صار حافة نوع
+         * مرئية للقواعد (كان محذوفًا) — يغذي R4 بمصداقية ولا يمس R2/R3
+         * (قيمتان فقط) ولا R1 (قياس حي: صفر حواف من النوع خارج المجال). */
+        push(statement.moduleSpecifier.text, !statement.isTypeOnly, false);
       }
     }
     const visitDynamic = node => {
@@ -148,7 +164,9 @@ export const DEEP_DOMAIN_IMPORT_BASELINE = [
   "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts -> @micro-domain/financial-analysis/operatingBreakEven.js",
 ];
 
-/** R2: حواف القيمة المباشرة المسجلة من الواجهة إلى المجال (STR-106). */
+/** R2: حواف القيمة المباشرة المسجلة من الواجهة إلى المجال (STR-106).
+ * Wave H (STR-617 بند 4، 2026-10-04): حافتا العرض المسجلتان بعد ضم presentation
+ * إلى UI_LAYERS — formatters.ts انتقلت إلى التطبيق في Wave B فلم تبقَ. */
 export const UI_TO_DOMAIN_VALUE_BASELINE = [
   "apps/prototype-web/client/src/components/finance/AllocationReviewCard.tsx -> @micro-domain/financial-event/index.js",
   "apps/prototype-web/client/src/components/finance/ExpenseBudgetsSectionBody.tsx -> @micro-domain/shared/index.js",
@@ -163,6 +181,8 @@ export const UI_TO_DOMAIN_VALUE_BASELINE = [
   "apps/prototype-web/client/src/pages/OrderDetail.tsx -> @micro-domain/craft-order/index.js",
   "apps/prototype-web/client/src/pages/OrderDetail.tsx -> @micro-domain/shared/index.js",
   "apps/prototype-web/client/src/pages/OwnerEntitlement.tsx -> @micro-domain/owner-entitlement/index.js",
+  "apps/prototype-web/client/src/presentation/catalogPresentation.ts -> @micro-domain/recurring-margin/index.js",
+  "apps/prototype-web/client/src/presentation/ownerEntitlementPresentation.ts -> @micro-domain/owner-entitlement/index.js",
 ];
 
 /** R3: حواف القيمة المسجلة من التطبيق إلى العرض (STR-203). */
@@ -173,6 +193,24 @@ export const UI_TO_DOMAIN_VALUE_BASELINE = [
  * الصحيح). أي حافة جديدة تطبيق→عرض يرفضها الحارس من جديد. */
 export const APPLICATION_TO_PRESENTATION_VALUE_BASELINE = [];
 
+/** R4 (Wave H — STR-617 بند 2، 2026-10-04): الأزواج العميقة المسجلة العابرة
+ * للمناطق داخل المجال نفسه — الأزواج الثلاثة الموثقة في سجل الملكية §5
+ * (STR-030 مستعار التسمية + مستورد النوع؛ إعادة تصدير سياق الهدر من مالكه
+ * الكنوني). أي زوج جديد يرفض حتى صف سجل موثق. */
+export const DOMAIN_CROSS_AREA_DEEP_BASELINE = [
+  "src/domain/recurring-expense/policies.ts -> ../financial-event/types.js",
+  "src/domain/recurring-margin/policies.ts -> ../inventory-material/policies.js",
+  "src/domain/recurring-margin/types.ts -> ../inventory-material/types.js",
+];
+
+/** R5 (Wave H — STR-617 بند 3، 2026-10-04): حافتا القيمة الموثقتان من
+ * واجهة المستخدم إلى تخزين زمن التشغيل (مكمل ESLint النصي بحلّ الاستيرادات) —
+ * الاستثناءان المقيدان بشروط إزالة مسار UI في سجل الملكية. */
+export const UI_TO_STORAGE_VALUE_BASELINE = [
+  "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> @/storage/local/createBrowserLocalStore",
+  "apps/prototype-web/client/src/app/StartupGate.tsx -> @/storage/local/persistentStorage",
+];
+
 /** الفحص الكامل: يعيد الخروق الجديدة والإحصاءات. */
 export function checkModuleBoundaries(repoRoot, imports) {
   const all = imports ?? collectAllImports(repoRoot);
@@ -180,16 +218,22 @@ export function checkModuleBoundaries(repoRoot, imports) {
   const deepDomain = new Set(DEEP_DOMAIN_IMPORT_BASELINE);
   const uiToDomain = new Set(UI_TO_DOMAIN_VALUE_BASELINE);
   const appToPresentation = new Set(APPLICATION_TO_PRESENTATION_VALUE_BASELINE);
+  const domainCrossArea = new Set(DOMAIN_CROSS_AREA_DEEP_BASELINE);
+  const uiToStorage = new Set(UI_TO_STORAGE_VALUE_BASELINE);
   const stats = {
     files: new Set(all.map(i => i.file)).size,
     deepDomain: 0,
     uiToDomain: 0,
     appToPresentation: 0,
+    domainCrossArea: 0,
+    uiToStorage: 0,
   };
+  const domainArea = f => (f.match(/src\/domain\/([^/]+)\//) || [])[1] ?? null;
 
   for (const imp of all) {
-    /* R1: عميق داخل المجال من خارج طبقة المجال (قيمة أو نوع — كلاهما مقيد). */
-    const deepMatch = imp.specifier.match(/^@micro-domain\/([a-z-]+)\/(.+)$/);
+    /* R1: عميق داخل المجال من خارج طبقة المجال (قيمة أو نوع — كلاهما مقيد).
+     * نمط المنطقة [a-z0-9-]+ (إصلاح Wave H — كان g5 كامنًا خارج المطابقة). */
+    const deepMatch = imp.specifier.match(/^@micro-domain\/([a-z0-9-]+)\/(.+)$/);
     if (deepMatch && deepMatch[2] !== "index.js" && imp.layer !== "domain") {
       stats.deepDomain += 1;
       const key = `${imp.file} -> ${imp.specifier}`;
@@ -230,6 +274,36 @@ export function checkModuleBoundaries(repoRoot, imports) {
         });
       }
     }
+    /* R4 (Wave H — STR-617 بند 2): عميق عابر للمناطق داخل المجال نفسه. */
+    if (imp.layer === "domain" && imp.resolved?.startsWith("src/domain/")) {
+      const fromArea = domainArea(imp.file);
+      const toArea = domainArea(imp.resolved);
+      const isBarrel = /\/index\.[tj]s$/.test(imp.resolved);
+      if (fromArea && toArea && fromArea !== toArea && !isBarrel) {
+        stats.domainCrossArea += 1;
+        const key = `${imp.file} -> ${imp.specifier}`;
+        if (!domainCrossArea.has(key)) {
+          violations.push({
+            rule: "R4-domain-cross-area-deep",
+            key,
+            hint: "استيراد عميق جديد عابر لمناطق المجال (كان بلا قاعدة — STR-617): استورد من برميل المنطقة الأخرى، أو سجّل الاستثناء في سجل الملكية §5 وحدّث الأساس في نفس الـPR",
+          });
+        }
+      }
+    }
+    /* R5 (Wave H — STR-617 بند 3): قيمة من واجهة المستخدم إلى تخزين زمن
+     * التشغيل — resolution-based فلا إفلات بمسار نسبي. */
+    if (UI_LAYERS.has(imp.layer) && imp.kind === "value" && imp.resolved?.startsWith("apps/prototype-web/client/src/storage/")) {
+      stats.uiToStorage += 1;
+      const key = `${imp.file} -> ${imp.specifier}`;
+      if (!uiToStorage.has(key)) {
+        violations.push({
+          rule: "R5-ui-to-storage-value",
+          key,
+          hint: "حافة قيمة جديدة من الواجهة إلى التخزين (resolution-based — مكمل ESLint): الوصول للبيانات عبر خدمات التطبيق والمنافذ؛ الاستثناءان الموثقان (StartupGate/PrototypeServicesContext) بشروط إزالة مسار UI",
+        });
+      }
+    }
   }
   return { ok: violations.length === 0, violations, stats };
 }
@@ -251,7 +325,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9)`,
+    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض، ${stats.domainCrossArea} حافة عميقة عابرة لمناطق المجال، ${stats.uiToStorage} حافة واجهة→تخزين (resolution-based)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617)`,
   );
 }
 
