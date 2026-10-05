@@ -47,21 +47,14 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Audit dependencies (bounded retry for registry outages)
-        run: |
-          for attempt in 1 2 3; do
-            if pnpm audit --audit-level high; then
-              echo "audit passed on attempt ${attempt}"
-              exit 0
-            fi
-            code=$?
-            echo "audit attempt ${attempt} failed (exit ${code})"
-            if [ "$attempt" -eq 3 ]; then
-              echo "::error::pnpm audit failed 3 times — treat as a real finding unless https://status.npmjs.org reports an outage"
-              exit $code
-            fi
-            echo "waiting 60s before retry (known registry endpoint outages: PRs #150/#151/#152)"
-            sleep 60
-          done
+        # الخطوة ٢ (برنامج تصحيح ما بعد المسح لPR #316 — 2026-10-06): أُصلح
+        # انتقال خرج الفشل وانتقل المنطق إلى scripts/ci-audit-step.sh ليكون
+        # قابلًا للاختبار الانحداري (scripts/ci-audit-step.test.mjs). العلة
+        # الأصلية: كان `code=$?` يُلتقط بعد جملة if كاذبة فيرصد 0 دائمًا،
+        # فتنجح الخطوة رغم فشل pnpm audit ثلاث مرات (الشاهد: تشغيل 37328419419
+        # أخضر مع مكتشف high واحد). الفاحص الداخلي (ci-audit-check.mjs) يطبّق
+        # سجل الاستثناءات الأمنية الموثق — PROPOSED يحجب حتى قرار المالك.
+        run: bash scripts/ci-audit-step.sh
 
       # F-05c (post-scan program W1 — 2026-10-05): the standalone "Lint source
       # and tests" step was removed — `pnpm check` (next step) already runs
