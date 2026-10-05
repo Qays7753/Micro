@@ -265,3 +265,86 @@ describe("CLI on the live repo (smoke)", () => {
     expect(run.stdout).toContain("module-boundaries: PASS");
   });
 });
+
+describe("R6 (Step 6 — STR-615 system-wide ratchet: UI -> application interiors)", () => {
+  const PAGE = specifier =>
+    `import { Thing } from "${specifier}";\nexport const P = Thing;\n`;
+  const SERVICE = "export class Thing {}\n";
+
+  function writeBaseline(root, allowed) {
+    write(
+      root,
+      "scripts/ui-application-import-baseline.json",
+      JSON.stringify({ version: 1, allowed }, null, 1),
+    );
+  }
+
+  it("a baseline-registered deep import passes; a NEW deep import is caught; a door import is free", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
+    write(root, "apps/prototype-web/client/src/application/house/index.ts", 'export { Thing } from "./service.js";\n');
+    write(root, "apps/prototype-web/client/src/pages/A.tsx", PAGE("@/application/house/service"));
+    write(root, "apps/prototype-web/client/src/pages/B.tsx", PAGE("@/application/house"));
+    writeBaseline(root, ["apps/prototype-web/client/src/pages/A.tsx -> apps/prototype-web/client/src/application/house/service.ts"]);
+    let result = checkModuleBoundaries(root);
+    expect(result.violations.filter(v => v.rule.startsWith("R6"))).toEqual([]);
+    expect(result.stats.uiToApplicationDeep).toBe(1);
+
+    /* استيراد عميق جديد غير مسجل — يُرفض. */
+    write(root, "apps/prototype-web/client/src/pages/C.tsx", PAGE("@/application/house/service"));
+    result = checkModuleBoundaries(root);
+    const r6 = result.violations.filter(v => v.rule === "R6-ui-to-application-deep");
+    expect(r6.length).toBe(1);
+    expect(r6[0].key).toContain("pages/C.tsx");
+  });
+
+  it("a migrated site that reverts is caught (its key left the baseline)", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
+    write(root, "apps/prototype-web/client/src/pages/A.tsx", PAGE("@/application/house/service"));
+    /* لا أساس: أي استيراد عميق خرق. */
+    let result = checkModuleBoundaries(root);
+    expect(result.violations.filter(v => v.rule === "R6-ui-to-application-deep")).toHaveLength(1);
+    /* هجرة الموقع إلى الباب: يمر، لكن بلا تنظيف الأساس لا يحدث شيء هنا
+     * (الأساس فارغ أصلًا) — نختبر الاتجاه المعاكس أسفل. */
+    write(root, "apps/prototype-web/client/src/pages/A.tsx", PAGE("@/application/house"));
+    result = checkModuleBoundaries(root);
+    expect(result.violations.filter(v => v.rule.startsWith("R6"))).toEqual([]);
+  });
+
+  it("a stale baseline entry (site no longer live) fails — same-PR hygiene", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
+    /* الموقع A لا يزال عميقًا ومسجلًا (حي)؛ GONE مسجل لكن ملفه غير موجود. */
+    write(root, "apps/prototype-web/client/src/pages/A.tsx", PAGE("@/application/house/service"));
+    writeBaseline(root, [
+      "apps/prototype-web/client/src/pages/A.tsx -> apps/prototype-web/client/src/application/house/service.ts",
+      "apps/prototype-web/client/src/pages/GONE.tsx -> apps/prototype-web/client/src/application/house/service.ts",
+    ]);
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.filter(v => v.rule === "R6-ui-to-application-deep")).toEqual([]);
+    const stale = result.violations.filter(v => v.rule === "R6-baseline-stale");
+    expect(stale.length).toBe(1);
+    expect(stale[0].key).toContain("pages/GONE.tsx");
+  });
+
+  it("pwa layer is covered (runtime UI-adjacent consumer), storage is not an application interior", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
+    write(root, "apps/prototype-web/client/src/pwa/register.ts", PAGE("@/application/house/service"));
+    const result = checkModuleBoundaries(root);
+    expect(result.stats.uiToApplicationDeep).toBe(1);
+    expect(result.violations.filter(v => v.rule === "R6-ui-to-application-deep")).toHaveLength(1);
+  });
+
+  it("live repo: the R6 baseline file is unique-keyed and fully live (no stale rows)", () => {
+    const raw = JSON.parse(
+      fs.readFileSync(path.join(REPO_ROOT, "scripts", "ui-application-import-baseline.json"), "utf8"),
+    );
+    expect(raw.version).toBe(1);
+    expect(new Set(raw.allowed).size).toBe(raw.allowed.length);
+    expect(raw.allowed.length).toBeGreaterThan(100);
+    const live = checkModuleBoundaries(REPO_ROOT);
+    expect(live.violations.filter(v => v.rule === "R6-baseline-stale")).toEqual([]);
+  });
+});
