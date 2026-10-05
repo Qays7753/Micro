@@ -21,7 +21,7 @@
     "docs/contracts/40-technical-ownership-map-contract.md"
   ],
   "agent": "Z AI (post-scan structural completion execution agent; one sequential writer per wave; independent hostile auditor at W10)",
-  "pr": null,
+  "pr": 316,
   "started_at": "2026-10-05",
   "updated_at": "2026-10-05",
   "next_action": "W1: تنفيذ نظافة F-05a/b/c + ترميز PA/PC/PG/RS في الوثائق الكانونية + مصالحة بقايا F-01 (AGENTS.md §10 رقم gzip 155,300، حالة سجل الإغلاق بعد التوقيع، فحص جدول README) ثم فحوص مركزة وCI",
