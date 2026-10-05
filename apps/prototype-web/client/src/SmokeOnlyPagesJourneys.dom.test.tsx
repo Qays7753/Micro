@@ -18,6 +18,7 @@ import { ProjectFinancialService } from "@/application/finance/projectFinancialS
 import { FinancialAnalysisService } from "@/application/financial-analysis/financialAnalysisService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { AgreementService } from "@/application/agreements/agreementService";
+import { CostService } from "@/application/cost/costService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import CashWalletEditor from "@/pages/CashWalletEditor";
@@ -56,12 +57,16 @@ let currentStore: MemoryLocalStore;
 const bumpVersion = vi.fn();
 
 function services() {
+  const cashContinuity = new CashContinuityService(store, () => NOW);
+  const projectFinance = new ProjectFinancialService(store, () => NOW);
   return {
-    cashContinuity: new CashContinuityService(store, () => NOW),
-    projectFinance: new ProjectFinancialService(store, () => NOW),
-    g5: new FinancialAnalysisService(store, () => NOW),
+    cashContinuity,
+    projectFinance,
+    /* STR-620 (Wave E): التحليل يُحقن بالقارئ البنيوي — لا بساعة. */
+    g5: new FinancialAnalysisService(store, projectFinance),
     inventory: new InventoryMaterialService(store, () => NOW),
-    agreements: new AgreementService(store, () => NOW),
+    /* AgreementService يُحقن بخدمة التكلفة (نمط السياق الحقيقي). */
+    agreements: new AgreementService(store, new CostService(store, () => NOW), () => NOW),
     notifyDataChanged: bumpVersion,
     dataVersion: 0,
   };
@@ -102,7 +107,7 @@ describe("W7 journeys — pages that were render-smoke only", () => {
     expect(bumpVersion).toHaveBeenCalled();
     const cash = new CashContinuityService(store, () => NOW);
     const overview = await cash.overview();
-    expect(overview.ok).toBe(true);
+    if (!overview.ok) throw new Error(overview.message);
     const wallet = overview.value.wallets.find(candidate => candidate.name === "درج الرحلة");
     expect(wallet).toBeDefined();
   });
@@ -117,7 +122,7 @@ describe("W7 journeys — pages that were render-smoke only", () => {
       note: "بداية",
       operationKey: "w7-open",
     });
-    expect(opened.ok).toBe(true);
+    if (!opened.ok) throw new Error(opened.message);
     const adjusted = await cash.adjust({
       walletId: opened.value.wallet.id,
       deltaMinor: -1250,
@@ -126,7 +131,7 @@ describe("W7 journeys — pages that were render-smoke only", () => {
       reason: "مصروف نثري",
       operationKey: "w7-adjust",
     });
-    expect(adjusted.ok).toBe(true);
+    if (!adjusted.ok) throw new Error(adjusted.message);
     wouterMocks.params = { id: adjusted.value.id };
     render(<Harness page={<CashReversalEditor />} />);
     const reason = await screen.findByRole("textbox");
@@ -135,6 +140,7 @@ describe("W7 journeys — pages that were render-smoke only", () => {
     await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalled());
     expect(bumpVersion).toHaveBeenCalled();
     const entries = await cash.entries();
+    if (!entries.ok) throw new Error(entries.message);
     const reversal = entries.value.find(entry => entry.reversesEntryId === adjusted.value.id);
     expect(reversal).toBeDefined();
   });
@@ -151,9 +157,10 @@ describe("W7 journeys — pages that were render-smoke only", () => {
     fireEvent.click(screen.getByRole("button", { name: /حفظ المتوقع/ }));
     await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalled());
     expect(bumpVersion).toHaveBeenCalled();
-    const g5 = new FinancialAnalysisService(store, () => NOW);
+    const projectFinance = new ProjectFinancialService(store, () => NOW);
+    const g5 = new FinancialAnalysisService(store, projectFinance);
     const declarations = await g5.listDeclarations();
-    expect(declarations.ok).toBe(true);
+    if (!declarations.ok) throw new Error(declarations.message);
     const found = declarations.value.find(
       declaration => declaration.kind === "declaration" && declaration.source === "وعدت العميلة بالتحصيل",
     );
@@ -178,7 +185,7 @@ describe("W7 journeys — pages that were render-smoke only", () => {
       note: "افتتاح مادة الرحلة",
       operationKey: "w7-material",
     });
-    expect(opened.ok).toBe(true);
+    if (!opened.ok) throw new Error(opened.message);
     const movement = opened.value.opening;
     expect(movement).not.toBeNull();
     wouterMocks.params = { id: movement!.id };
@@ -189,6 +196,7 @@ describe("W7 journeys — pages that were render-smoke only", () => {
     await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalled());
     expect(bumpVersion).toHaveBeenCalled();
     const movements = await inventory.movements();
+    if (!movements.ok) throw new Error(movements.message);
     const reversal = movements.value.find(
       candidate => candidate.type === "reversal" && candidate.reversesMovementId === movement!.id,
     );
@@ -206,7 +214,7 @@ describe("W7 journeys — pages that were render-smoke only", () => {
       dueOn: null,
       note: null,
     });
-    expect(created.ok).toBe(true);
+    if (!created.ok) throw new Error(created.message);
     window.history.replaceState(null, "", `/loans/received/${created.value.loan.id}`);
     try {
       render(<ReceivedLoanDetail />);
