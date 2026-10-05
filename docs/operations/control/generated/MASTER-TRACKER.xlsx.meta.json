@@ -1,9 +1,10 @@
 {
   "schema": "micro-operations-control-excel-provenance-v1",
-  "source_digest": "6b3a47a956eec1de3dc93fff262146e842dbdaab393a4c9a083beb5ae321a0a9",
+  "source_digest": "9c22215b7080544489fa86cc0b01cc9fbeebac453a57a3f51488cb3196d56cda",
   "source_files": [
     "docs/operations/control/items/ARCH-001.json",
     "docs/operations/control/items/ARCH-002.json",
+    "docs/operations/control/items/ARCH-003.json",
     "docs/operations/control/items/ARCH-004.json",
     "docs/operations/control/items/AUDIT-001.json",
     "docs/operations/control/items/BE-001.json",
@@ -114,6 +115,7 @@
     "docs/operations/control/workstreams/WS-210.json",
     "docs/operations/control/workstreams/WS-211.json",
     "docs/operations/control/workstreams/WS-212.json",
+    "docs/operations/control/workstreams/WS-213.json",
     "docs/operations/control/workstreams/WS-214.json",
     "docs/operations/control/workstreams/review/WS-001.json",
     "docs/operations/control/workstreams/review/WS-141.json",
@@ -144,7 +146,7 @@
   "workbook_path": "docs/operations/control/generated/MASTER-TRACKER.xlsx",
   "workbook_sha256": "b02476e416820cd17b1c7eb3898628848905ea53275bf819337845a722fed555",
   "generated_by": "reviewed Excel view update + scripts/operations-control/generate_tracker.py --refresh-excel-meta",
-  "generated_at": "2026-10-03",
+  "generated_at": "2026-10-05",
   "read_only_view": true,
   "json_is_source_of_truth": true
 }

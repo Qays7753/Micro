@@ -93,3 +93,19 @@
 ```text
 REMEDIATION_PROGRAM_COMPLETE — Waves 3A-4E + movable finance clusters merged CI-green (PRs #300-#307); final hostile audit AUDIT_PASS at 4a4e317; audit corrections D1-D7 applied in the closure PR. Owner-gated items remain BY DECISION, not by pending work: 3 contract-40-residence clusters, 9 compat-shim removals (UI track), isLocalDate R-track, bundle-margin WATCH.
 ```
+
+
+## 7. مصالحة الحالة بعد دمج PR #311 — 2026-10-05
+
+هذا القيد هو أحدث حالة تشغيلية؛ الأقسام السابقة تحفظ قياسات ومراحلها التاريخية ولا تُعاد كتابتها.
+
+- `main` الحالي: `c26eb838b90b359da182885f21c4318f78ec1006`.
+- PR #311 مدموج من `43215f3325105a1a51acefaab1ce6824333cf345`؛ CI على رأس الدمج (`37278185325`) ناجح.
+- برنامج إكمال A-to-Z البنيوي **مكتمل ومتحقق على main**: A0→A→G→B→C→D→E→F→G2→H→I→Y→Z. سجل الإغلاق `A-TO-Z-CLOSURE-RECORD.md` يوضح ما نُفذ وما بقي خارج المسار البنيوي بقرار أو محفز مستقل.
+- PR #309 وPR #310 أُغلقا دون دمج؛ حُفظت §23 وعقد التنفيذ في تسوية وثائقية لاحقة، ولم تُدمج Views قديمة منهما.
+- `ARCH-004/WS-214` ينتقلان إلى `VERIFIED` بعد تحديث Operations Control والتحقق من main؛ `ARCH-003/WS-213` ينتقلان إلى `SUPERSEDED` كسجل التقرير التاريخي.
+- لا توجد موجة بنيوية معلقة مخفية: البنود R/S/T/U/V/W/X، وبقايا القدرات أو الشيم أو العناقيد التي لا تملك محفزًا أو قرارًا مستقلًا ليست فشلًا في الإغلاق، بل مسارات محمية منفصلة كما يوضح `INDEPENDENT-TRACKS-RECORD.md`.
+- لا تغيير في المال أو البيانات أو schema/export/import أو UI في المصالحة؛ `38/30` ثابتان. لا حذف لفروع أو PRs أو تقارير تاريخية.
+- الفحوص التوثيقية المطلوبة لهذه التسوية: `validate.py`، مولد Tracker بوضع `--check`، فهرس الوثائق، الأسرار، حجم الحالة، و`git diff --check`. لا تُعاد بطارية الكود كاملة لمجرد تحديث سجلات بعد أن تحقق CI رأس PR #311.
+
+**الحالة النهائية لهذا التقرير:** `A_TO_Z_STRUCTURAL_COMPLETION — VERIFIED_ON_MAIN; MORATORIUM_ACTIVE`.
