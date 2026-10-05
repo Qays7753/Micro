@@ -2,14 +2,13 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_PROGRESS: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 53
+BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 54 · SUPERSEDED: 1
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
 | DEVICE-001 | BLOCKED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-7 | QA على أجهزة فعلية وWebKit وPWA | Product owner / Manus coordination | device, accessibility, pwa | UX-001, REL-001 |
 | LEGAL-001 | BLOCKED | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-8 | مراجعة أردنية مالية وقانونية | Product owner / Manus coordination | legal, product-scope | FIN-007 |
 | PILOT-001 | BLOCKED | RELEASE_GATE | RELEASE_GATE | P1 | stage-10 | قرار بدء Pilot | Product owner / Manus coordination | release, pilot | CTRL-001, CTRL-002, G-001, G-002, G-003, G-004, G-005, G-006, OPS-001, OPS-002, OPS-003, OPS-004, OPS-005, OPS-006, OPS-007, OPS-008, OPS-009, FIN-001, FIN-002, FIN-003, FIN-004, FIN-005, FIN-006, FIN-007, FIN-008, CLEAN-001, UX-001, REL-001, DEVICE-001, LEGAL-001, UAT-001, AUDIT-001, HARD-009, HARD-010, HARD-011 |
-| ARCH-004 | IN_PROGRESS | GOVERNANCE | NOT_APPLICABLE | P1 | atoz-structural-completion-implementation | برنامج إكمال A-to-Z البنيوي — تنفيذ جذري معتمد (Post-Closure A-to-Z Structural Completion) | Micro owner (Qays7753) | domain, application, storage, scripts, docs | — |
 | UX-001 | IN_PROGRESS | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P1 | stage-5 | إعادة تصميم UI وUX جذرية | Product owner / Manus coordination | ui/ux, presentation | CLEAN-001 |
 | AUDIT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | تدقيق مستقل نهائي قبل الـPilot | Product owner / Manus coordination | uat, audit, cross-layer | UAT-001 |
 | UAT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | قبول داخلي ببيانات Demo كاملة | Product owner / Manus coordination | uat, audit, cross-layer | DEVICE-001, LEGAL-001 |
@@ -36,6 +35,7 @@ BLOCKED: 3 · IN_PROGRESS: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20
 | V-012 | DEFERRED | PILOT_VALIDATION | PILOT_EVIDENCE_REQUIRED | P2 | pilot-validation | V-12 — تسجيل الإهلاك بعد شهر استخدام | Product owner / Manus coordination | pilot-validation | — |
 | ARCH-001 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | architecture-refactoring-phase1 | مسح معماري/بنيوي للقراءة فقط وخطة انتقال CURRENT→TARGET→MIGRATION WAVES — المرحلة الأولى لبرنامج إعادة الهيكلة | Product owner / Z AI (Phase-1 report agent) | documentation, architecture-governance | — |
 | ARCH-002 | VERIFIED | HARDENING | NOT_APPLICABLE | P1 | architecture-remediation-wave-3a | الموجة 3A — أساس التكافؤ: ذهبيات التصدير/الاستيراد + اختبارات وصف مباشرة لعنقود النقل (STR-401/405) | agent:remediation-program | application, storage, tests | — |
+| ARCH-004 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | atoz-structural-completion-implementation | برنامج إكمال A-to-Z البنيوي — تنفيذ جذري معتمد (Post-Closure A-to-Z Structural Completion) | Micro owner (Qays7753) | domain, application, storage, scripts, docs | — |
 | CTRL-001 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | stage-0 | اعتماد Operations Control v2 | Product owner / Manus coordination | governance, documentation | — |
 | CTRL-002 | VERIFIED | GOVERNANCE | EVIDENCE_RECONCILIATION_REQUIRED | P1 | stage-0 | مصالحة القدرات والتقارير ومصادر الحقيقة | Product owner / Manus coordination | governance, documentation | — |
 | FIN-001 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | تسجيل اقتراض داخل المشروع | Product owner / Manus coordination | Layer 3, domain, application, presentation | CTRL-001 |
@@ -87,3 +87,4 @@ BLOCKED: 3 · IN_PROGRESS: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20
 | DOC-002 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P3 | documentation-hygiene | دموج ميكانيكية توثيقية غير محتكرة للمالك — موجة C/الوثائق (تدقيق 2026-10-01) | Product owner / Zed coordination | documentation | DOC-001 |
 | DOC-003 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P3 | documentation-hygiene | دموج ملفات الاختبارات المكررة — موجة C/الاختبارات (تدقيق 2026-10-01) | Product owner / Zed coordination | tests | DOC-001 |
 | G-006 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P3 | audit-2026-09-19 | توحيد حرس السحب بين مساري مال المالك | Product owner / Manus coordination | cross-layer | — |
+| ARCH-003 | SUPERSEDED | GOVERNANCE | NOT_APPLICABLE | P1 | post-closure-atoz-gap-scan | مسح فجوات ما بعد الإغلاق A-to-Z — التقرير فقط (Post-Closure A-to-Z Gap Reconciliation) | Product owner / Z AI (post-closure A-to-Z gap-scan agent) | documentation, architecture-governance | — |

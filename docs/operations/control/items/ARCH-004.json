@@ -2,10 +2,10 @@
   "id": "ARCH-004",
   "title": "برنامج إكمال A-to-Z البنيوي — تنفيذ جذري معتمد (Post-Closure A-to-Z Structural Completion)",
   "type": "RESEARCH",
-  "status": "IN_PROGRESS",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "atoz-structural-completion-implementation",
-  "summary": "تنفيذ برنامج إكمال A-to-Z البنيوي كاملًا بقرار المالك المجمع المسجل في ZAI-A-TO-Z-EXECUTION-CONTRACT.md (التزام 8ba44555f0ac6a542588f7e0765da3b8512e6832): الموجات A0→A→G→B→C→D→E→F→G2→H→I→Y→Z على الفرع الطويل refactoring/a-to-z-structural-completion-20261003 من الأساس 04895f2. النطاق: معيار الإصلاح الجذري (root-cause) لكل المكتشفات القابلة — STR-601..607 (دفعة توثيقية)، STR-608..614 (قرارات منفذة)، STR-615..620+STR-623 (بنيوي متسلسل)، مجموعات القدرات الست، حراس، خريطة اختبارات، تقييم عناقيد عقد 40 — بلا أي تغيير مالي/مخطط/تصدير/UI/أمني غير معتمد، وبوابات حماية بقرار مالك موحد واحد عند الحدود المحمية فقط.",
+  "summary": "برنامج إكمال A-to-Z البنيوي نُفذ بالموجات A0→Z وفق العقد والمهارة، ثم دُمج عبر PR #311 وتحقق على رأس main. لا تغيير مالي/مخطط/تصدير-استيراد/UI؛ المجمد البنيوي فعال بعد الإغلاق.",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "NOT_APPLICABLE",
   "root_cause": "owner:consolidated-authorization (عقد التنفيذ المؤرخ 2026-10-03؛ قبول PR #309 §23 أساسًا للأدلة + تفويض البرنامج الكامل A0→Z بمعيار الإصلاح الجذري)",
@@ -57,26 +57,45 @@
   "evidence": [
     "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
     "docs/architecture/refactoring/skills/micro-a-to-z-structural-refactoring/SKILL.md",
-    "docs/operations/current-state-log.md"
+    "docs/operations/current-state-log.md",
+    "docs/architecture/refactoring/A-TO-Z-CLOSURE-RECORD.md"
   ],
   "dependencies": [],
   "related_items": [
     "ARCH-002"
   ],
-  "owner_decision": "ممنوح مجمعًا في عقد التنفيذ (8ba4455): لا موافقات روتينية لكل ملف/طريقة/قدرة/موجة؛ حزمة قرار واحد موحدة فقط عند حدود محمية (مالي/مخطط/تصدير/تاريخ/أمن/UI/عقد أعلى/منصة جديدة/دمج-حذف)",
-  "merge_sha": "",
-  "verified_on_main_sha": "",
-  "updated_at": "2026-10-03",
+  "owner_decision": "التفويض المجمع نُفذ؛ الإغلاق البنيوي متحقق على main عند PR #311. لا موجة جديدة دون مسح قراءة-فقط وقبول مالك جديد.",
+  "merge_sha": "c26eb838b90b359da182885f21c4318f78ec1006",
+  "verified_on_main_sha": "c26eb838b90b359da182885f21c4318f78ec1006",
+  "updated_at": "2026-10-05",
   "status_history": [
     {
       "status": "IN_PROGRESS",
       "changed_at": "2026-10-03",
       "actor": "ws-214:claim",
       "reason": "فتح Claim تنفيذي للبرنامج المعتمد من main المتحقق 04895f2643608fce00553040d484db84f80bf5dc بعد التحقق المباشر من PR #309 (مفتوح، رأس 6fa0d22، CI أخضر) والعلامة الختامية للمسح في §23 وعقد التنفيذ 8ba4455؛ A0 (المهارة) منفذة أولًا على الفرع؛ لا تعارض claims نشطة على هذا الفرع (WS-213 على فرع التقرير غير المدموج — يُغلق SUPERSEDED بعد دمج PR #309 بسجل مؤرخ)."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-05",
+      "actor": "reconciliation:post-merge-311",
+      "reason": "اكتمل التنفيذ على فرع A-to-Z وأصبح جاهزًا للمراجعة النهائية قبل اعتماد حالة الدمج."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-05",
+      "actor": "reconciliation:post-merge-311",
+      "reason": "PR #311 دُمج إلى main عند c26eb838b90b359da182885f21c4318f78ec1006 من رأس المصدر 43215f3325105a1a51acefaab1ce6824333cf345؛ بدأ تحقق ما بعد الدمج."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-05",
+      "actor": "reconciliation:post-merge-311",
+      "reason": "CI على رأس الدمج ناجح، وسجل الإغلاق والخريطة والحراس والسجلات تطابق الشجرة الحية؛ لا توجد موجة بنيوية معلقة داخل البرنامج."
     }
   ],
   "migration_baseline": true,
-  "next_action": "Wave A: تنفيذ STR-601..607 (الدفعة التوثيقية) + سجلات البرنامج + تحديث الحالة الحية وviews بالمولد؛ ثم Wave G (قرارات STR-608..614 بADRs) فالبنية B→Z بالترتيب المعتمد.",
+  "next_action": "لا إجراء داخل البرنامج — A-to-Z متحقق على main؛ المجمد البنيوي فعال، وأي مسار مستقبلي يحتاج بوابة جديدة.",
   "classification": "GOVERNANCE",
   "gate_classification": "NOT_APPLICABLE"
 }
