@@ -1777,3 +1777,18 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 تم تحديث `current-state.md` وقراءة فهرس المعمارية بحيث لا تخلط بين رأس دمج الكود ورأس `main` النهائي. لا توجد PRs مفتوحة، ولا Claims نشطة في `ACTIVE-WORK.md`، و`ARCH-004/WS-214` متحققان، بينما `ARCH-003/WS-213` متجاوزان كسجل التقرير. لا تغيير في المال أو المخطط/التصدير-الاستيراد أو UI، و`localSchemaVersion=38` و`localExportVersion=30` ثابتان.
 
 **البوابة التالية:** لا موجة بنيوية جديدة. المجمد البنيوي فعال؛ أي مسار مستقبلي يحتاج مسحًا قراءة-فقط شاملًا ومراجعة وقبول مالك جديد وفق AGENTS §11.
+
+
+## §117. اعتماد عقد إكمال ما بعد المسح — 2026-10-05
+
+اعتمد المالك الخطة التنفيذية الكاملة المبنية على تقريري Flash وStructure، وحُفظ عقد التنفيذ الإنجليزي في `docs/architecture/refactoring/ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md`. هذه موافقة على برنامج لاحق مستقل، وليست إعادة فتح صامتة لبرنامج A-to-Z السابق ولا تصريحًا بالكتابة إلى `main`.
+
+**الحالة:** `OWNER_ACCEPTED — EXECUTION_NOT_STARTED`.
+
+**النطاق المقبول:** R0 قراءة فقط، ثم W0–W10 بالتسلسل: الحوكمة وF-01..F-05، PA/PC/PG/RS، Formatting وLocale وMoney Message ownership، Reader/Writer، Public Doors، كل Storage capability المستقلة المثبتة، Contract-40 cluster evaluation، الملفات الكبيرة ذات السبب الجذري أو استثناء cohesion موثق، UI structural boundaries دون visual/UI behavior، Bundle/Lazy/PWA growth guards، test/documentation mapping، ثم hostile final audit.
+
+**الثوابت:** لا تغيير مالي أو دلالي أو تاريخي؛ لا تغيير schema/export/import/migration؛ لا تغيير UI/CSS/DOM/tokens/navigation؛ `localSchemaVersion=38` و`localExportVersion=30`؛ فرع `docs/ux-ui-zed-handoff-20260921` محفوظ؛ لا حذف أو تنظيف ضمن العقد.
+
+**الخطوة التالية الوحيدة:** ZAI يقرأ العقد من الالتزام الحي، ينفذ R0 قراءة فقط، ويسجل `BASELINE_SHA` وحالة الفرع والـPRs والعمل المحلي والانجراف. بعد نجاح R0 ينشئ Claim وWorkstream والفرع `refactoring/post-scan-structural-completion-20261005`. إذا ظهر `STATE_DRIFT` أو تعارض محمي، يتوقف بحزمة قرار موحدة.
+
+**الأدلة:** موافقة المالك في محادثة 2026-10-05؛ العقد الجديد؛ `current-state.md`؛ `REFACTORING-CONTROL.md`. لا كود أو اختبارات إنتاجية أو schema أو export/import تغيرت في هذا القيد.
