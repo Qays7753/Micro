@@ -44,6 +44,8 @@ ARABIC = re.compile(r"[\u0600-\u06FF]")
 MOMENT_LINE = re.compile(
     r"throw new Error|setMessage\(|setError\(|setNotice\(|setSuccess\(|setSaved\(|setReversalError\(|setFeedback\(|message:|word:|message =|aria-invalid|text:|validation\(|setSaveState\("
     r"|failure\(|\bfail\(|\berr\(|invalid_input"
+    r"|(?:validation|storage|notFound)Failure\(|errorMessageOf\("
+    r"|(?:const|let)\s+[A-Z][A-Z0-9_]*MESSAGE\s*=\s*"
     # TOOL-001 (2026-09-16): رسائل «تعذّرت القراءة» لحظة تشغيل كإخواتها في fail()
     r"|\bunavailable\("
 )
