@@ -610,3 +610,24 @@
 - **حد الرجوع:** revert الالتزام (باب + 10 ملفات هجرة استيراد + صف سجل — صفر منطق).
 - **المتبقي في مسار الأبواب (شرائح تالية بقرار كل بطاقة):** البيوت التالية بمستهلك حي (fulfillment 7، time/actualTimeService 5، agreements 9 عبر 4 ملفات، loans 8، …) — لا موجة براميل جماعية (STR-615/PC-3).
 - **التسليم التالي:** W5 — إثبات سلاسل أدلة القدرات الست المستخرجة (STR-613).
+
+---
+
+## Entry 40 — Agent 11 (W5: إثبات سلاسل أدلة القدرات الست المستخرجة — STR-613)
+
+- **التاريخ:** 2026-10-05 · **الفرع:** `refactoring/post-scan-structural-completion-20261005` · **PR:** #316.
+- **الحكم:** R0 أثبت أن المجموعات الست مستخرجة بالكامل (Wave C/ADR-015 مدموجة عبر #311) — هذه الموجة **إثبات على الشجرة الحية** لا تكرار (وفق العقد: «إذا أظهر R0 أن مجموعة مكتملة، أثبتها على الشجرة بدل تكرارها»).
+
+| القدرة | بطاقة الإصلاح | النوع السلطوي | جرد المستهلكين (حي) | تكافؤ المحولين | نقاط النقل | الرجوع |
+|---|---|---|---|---|---|---|
+| recurringExpense (1) | ADR-015 م1 | `RecurringExpenseStore` (Pick من الواجهة التوافقية) | 1 إنتاج (application/recurring/recurringExpenseService — نقل Wave E) | عقد قدرة بالمحوّلين + مراسي نوعية + adapterConformance.recurringExpense | عائلة recurringExpense + touchpoints | revert موجات C/E |
+| expenseBudget (2) | ADR-015 م2 | `ExpenseBudgetStore` | 1 إنتاج (budgets/expenseBudgetService) | كذلك + adapterConformance.expenseBudget | عائلة expenseBudget + touchpoints | revert Wave C |
+| loan/receivedLoan (3) | ADR-015 م3 | `LoanStore` | 3 إنتاج (loanService؛ receivedLoanService؛ retainedDepositService) + قراءتا فاحص السلامة على الواجهة الكاملة بقرار موثق | كذلك + adapterConformance.receivedLoan + group10 | عائلتا loan/receivedLoan + touchpoints | revert Wave C |
+| allocationPolicy (4) | ADR-015 م4 | `AllocationPolicyStore` | 1 إنتاج (finance/recurringWorkService — الكاتب المالي الوحيد بقفل exe017) | كذلك | ضمن snapshot + touchpoints | revert Wave C |
+| shortCashDeclaration (5) | ADR-015 م5 | `ShortCashDeclarationStore` | 1 إنتاج (financialAnalysisService — النوع الضيق) | كذلك | عائلة shortCashDeclaration + touchpoints | revert Wave C |
+| ownerEntitlement (6) | ADR-015 م6 + مراجعة exe017 | `OwnerEntitlementStore` | 3 إنتاج (ownerEntitlementService الكاتب الوحيد + قارئان عرضيان) | كذلك | عائلة ownerEntitlement + touchpoints | revert Wave C |
+
+- **الأدلة المنفذة (قياس هذه الموجة):** عقود القدرات السبعة (الست + طيار orderLifecycle) **42/42 اختبارًا أخضر** عبر المحوّلين (fake-indexeddb + الذاكرة) بعدسة الأنواع الضيقة؛ مصفوفة المطابقة الكاملة **13/13**؛ حارس الكيانات الدائمة **PASS** («التغطية شاملة وكل مسار معلن موجود وكل استثناء بسبب»)؛ حواف الحراس بلا تغيير؛ جرد مستهلكين حي طابق الصفوف الموثقة (1/1/3/1/1/3 + 9 للطيار).
+- **الخلاصة:** STR-613 **CLOSED_WITH_EVIDENCE** — الاستخراج الست مكتمل ومثبت؛ لا مجموعة معلقة ولا طيار معزول (نمط RC-7 مكرر سبع مرات؛ القاعدة الحاكمة موثقة في رؤوس الملفات السبعة).
+- **حد الرجوع:** لا كتابة كودية في هذه الموجة (إثبات + توثيق فقط) — الرجوع = revert هذا الالتزام التوثيقي.
+- **التسليم التالي:** W6 — التحقق من الملفات الكبيرة والمختلطة المسجلة (IndexedDbLocalStore 4,137؛ MemoryLocalStore 2,095؛ وبيان استثناء/تقسيم كل منها).

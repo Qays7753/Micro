@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-215 | IN_PROGRESS | \`refactoring/post-scan-structural-completion-20261005\` | 316 | ARCH-005 | W5: إثبات سلاسل أدلة القدرات الست المستخرجة (STR-613) على الشجرة الحية — بطاقة إصلاح/نوع سلطوي/جرد مستهلكين/تكافؤ المحولين/نقاط النقل/رجوع لكل مجموعة |
+| WS-215 | IN_PROGRESS | \`refactoring/post-scan-structural-completion-20261005\` | 316 | ARCH-005 | W6: التحقق من الملفات الكبيرة/المختلطة في النطاق (IndexedDbLocalStore/MemoryLocalStore أساسًا) مع بيان تقسيم أو استثناء cohesion موثق لكل منها |
