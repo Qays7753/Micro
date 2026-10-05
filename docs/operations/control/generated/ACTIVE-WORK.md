@@ -4,4 +4,4 @@
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-215 | IN_PROGRESS | \`refactoring/post-scan-structural-completion-20261005\` | 316 | ARCH-005 | W10: التدقيق المعادي الختامي المستقل ثم المصفوفة النهائية وMerge Manifest |
+| WS-215 | IN_REVIEW | \`refactoring/post-scan-structural-completion-20261005\` | 316 | ARCH-005 | مراجعة المالك لPR #316 وقرار بوابة الدمج النهائية (Merge Manifest في Entry 45) — لا دمج ذاتي |

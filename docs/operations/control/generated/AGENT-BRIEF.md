@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · CLAIMED: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 54 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 54 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-215 | IN_PROGRESS | \`refactoring/post-scan-structural-completion-20261005\` | 316 | ARCH-005 | W10: التدقيق المعادي الختامي المستقل ثم المصفوفة النهائية وMerge Manifest |
+| WS-215 | IN_REVIEW | \`refactoring/post-scan-structural-completion-20261005\` | 316 | ARCH-005 | مراجعة المالك لPR #316 وقرار بوابة الدمج النهائية (Merge Manifest في Entry 45) — لا دمج ذاتي |

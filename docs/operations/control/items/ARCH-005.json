@@ -2,7 +2,7 @@
   "id": "ARCH-005",
   "title": "برنامج الإكمال البنيوي ما بعد المسح — تنفيذ W0–W10 وفق عقد التنفيذ 2026-10-05 (Post-Scan Structural Completion Program)",
   "type": "RESEARCH",
-  "status": "CLAIMED",
+  "status": "IN_REVIEW",
   "priority": "P1",
   "stage": "post-scan-structural-completion-implementation",
   "summary": "تنفيذ برنامج الإكمال البنيوي المقبول من المالك وفق ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md: R0 تحقق حي (اكتمل عند 214d7ac490057f966252e7c336417aac6b7410e0 بلا انحراف جوهري)، ثم W0–W10 على فرع refactoring/post-scan-structural-completion-20261005. النطاق: إغلاق F-01..F-05 (ما بقي حيًّا)، ترميز PA/PC/PG/RS، حدود نواة التنسيق ورسائل المال (W2)، التحقق من انقسامات W3/W6 وإكمالها، جرد الأبواب العامة (W4)، إثبات سلاسل أدلة القدرات الست (W5)، اختبارات رحلة الصفحات الست Smoke-only داخل النطاق البنيوي المقبول (W7)، قياس أسطح الحزمة lazy/precache وسياسات النمو (W8)، خريطة الاختبارات وQ-a..Q-j (W9)، وتدقيق معادٍ ختامي (W10). محظورات: لا كتابة إلى main، لا دمج، لا حذف فروع/PRs، لا تغيير معنى مالي/مخطط 38/تصدير 30/UI بصري.",
@@ -69,13 +69,25 @@
   "classification": "GOVERNANCE",
   "gate_classification": "NOT_APPLICABLE",
   "updated_at": "2026-10-05",
-  "next_action": "تنفيذ W1 (نظافة F-05 + ترميز PA/PC/PG/RS + مصالحة بقايا F-01) بعد اكتمال W0",
+  "next_action": "قرار المالك: بوابة الدمج النهائية لPR #316 (Merge Manifest — Entry 45)",
   "status_history": [
     {
       "status": "CLAIMED",
       "changed_at": "2026-10-05",
       "actor": "ws-215:claim",
-      "reason": "فتح Claim تنفيذي للبرنامج المقبول من main المتحقد 214d7ac490057f966252e7c336417aac6b7410e0؛ R0 أكمل بلا انحراف جوهري (سلسلة نشر العقد docs-only)؛ صفر PRs مفتوحة وصفر claims نشطة وفرع UI محفوظ"
+      "reason": "فتح Claim تنفيذي للبرنامج المقبول من main المتحقد 214d7ac490057f966252e7c336417aac6b7410e0؛ R0 أكمل بلا انجراف جوهري"
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-05",
+      "actor": "arch-005:wave-w1",
+      "reason": "التنفيذ بدأ (W1) واستمر تلقائيًا W1–W10 وفق العقد §16"
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-05",
+      "actor": "arch-005:wave-w10",
+      "reason": "البرنامج W0–W10 منفذ وتدقيقه المعادي مستقلًا HOSTILE_AUDIT_PASS مع تصحيحات منفذة؛ بانتظار بوابة المالك"
     }
   ],
   "migration_baseline": false
