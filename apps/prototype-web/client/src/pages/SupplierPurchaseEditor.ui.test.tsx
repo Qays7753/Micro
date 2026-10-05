@@ -209,7 +209,7 @@ describe("SupplierPurchaseEditor payment source rules (FIN-003)", () => {
       expect(screen.getByRole("heading", { level: 1, name: /دفعة إلى مورد الأقمشة/ })).toBeTruthy();
     });
     const selector = await screen.findByLabelText(/مصدر صرف دفعة المورد/);
-    expect((selector as HTMLSelectElement).value).toBe("drawer");
+    await waitFor(() => expect((selector as HTMLSelectElement).value).toBe("drawer"));
     expect(screen.getByText("درج-FIN003 — تغطية من رصيدها")).toBeTruthy();
     /* الكاش غير الموزع خيار صريح إلى جانب المحفظة المعيَّنة. */
     expect(screen.getByText("الكاش غير الموزع")).toBeTruthy();
