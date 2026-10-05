@@ -75,7 +75,7 @@
 
 | الخدمة | العنقود | الدور | مصدر الحقيقة الذي تقرأه | اختبارات مباشرة | حالة |
 |---|---|---|---|---|---|
-| projectFinancialService.ts | Financial Read Models | **القارئ المالي الأساسي** (عقد 40) — نتائج الفترة، سياقات العائلات | domain + storage عبر المنفذ | 5 ملفات اختبار (category/evidence/familyContexts/redelivery/رئيسي) | PRESERVE في دوره؛ نقل ميكانيكي فقط بعد قبول السجل |
+| projectFinancialService.ts | Financial Read Models | **القارئ المالي الأساسي** (عقد 40) — نتائج الفترة، سياقات العائلات. **(W3/برنامج ما بعد المسح، 2026-10-05):** انقسام Wave F موثق هنا — المنسّق 146 سطرًا + 6 أشقاء؛ **عقد نموذج القراءة (PC-4):** المدخلات المالكة = أحداث المال والطلبات/المواعيد/التحصيلات المخزنة عبر المنفذ؛ الاشتقاق = إعادة حساب عند كل قراءة (لا كاش — كل read* يستعلم المخزن مباشرة)؛ الإبطال = غير مطلوب بنيويًا (لا حالة مشتقة مخزنة)، وتسوية الكتابة المحروسة (storage_stale + idempotency) تحفظ الاتساق عند الحدود | domain + storage عبر المنفذ | 5 ملفات اختبار (category/evidence/familyContexts/redelivery/رئيسي) + مسارات الكتابة مختبرة عبر أسطح الفئات في أجنحة المستهلكين (توزيع/مالك-المال/تحصيلات/تحويلات) | PRESERVE في دوره — الانقسام منفذ (ADR-013) والواجهة العامة لم تتغير (104 مستوردًا مباشرًا + البرميل) |
 | periodComparisonService.ts | Financial Read Models | مقارنات الفترات | عبر القارئ الأساسي | periodComparisonService.test.ts | مصنّفة |
 | periodPresets.ts | Financial Read Models | قوالب الفترات | نقية | periodPresets.test.ts | مصنّفة |
 | dueDatesService.ts / dueDateAging.ts | Financial Read Models | استحقاقات وأعمار الدين | storage + domain | dueDatesService.test.ts | مصنّفة |
