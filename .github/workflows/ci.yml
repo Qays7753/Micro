@@ -63,9 +63,12 @@ jobs:
             sleep 60
           done
 
-      - name: Lint source and tests
-        run: pnpm lint
-
+      # F-05c (post-scan program W1 — 2026-10-05): the standalone "Lint source
+      # and tests" step was removed — `pnpm check` (next step) already runs
+      # `pnpm lint` (package.json check chain), so lint executed twice per CI
+      # run. The lint gate itself is unchanged and still enforced once, inside
+      # the full verification step; the local aggregate `pnpm check` keeps
+      # linting as before. No guard was weakened.
       - name: Verify domain and prototype
         run: pnpm check
 

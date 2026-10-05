@@ -12,6 +12,13 @@
  *
  * الاستخدام: node scripts/check-skill-references.mjs [root]
  * الخروج: 0 = سليم؛ 1 = أي فشل (التحذيرات لا تغير الخروج).
+ *
+ * F-05a (برنامج ما بعد المسح W1 — 2026-10-05): كان رأس الحارس يوثق C4 بلا
+ * أي تنفيذ في الكود. نُفذ الآن كتحذير حقيقي (لا يغير الخروج): كل مهارة
+ * غير متقاعدة يحتوي SKILL.md فيها على 3+ أسطر تعليمات قراءة («اقرأ ...»)
+ * تستشهد بمسارات وثائق المستودع تُعد قائمة قراءة موازية مشتبهة — الحزم
+ * الموجهة في AGENTS.md §2 هي جدول التوجيه الوحيد. المهارات المتقاعدة
+ * (RETIRED/متقاعدة) محتوى تاريخي محفوظ فلا تُفحص بC4.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -28,9 +35,31 @@ export const VERSION_PIN_ALLOWLIST = new Set([
   "problem-statement-v4.md", // v5 نطاق الطلب/التنقل؛ v4 نطاق النواة العامة — النطاق يحكم لا الرقم
 ]);
 
+/** F-05a — C4: حد أسطر تعليمات القراءة المستشهدة بوثائق التي تُعد قائمة موازية. */
+export const READING_LIST_WARN_THRESHOLD = 3;
+
+/** سطر تعليمات قراءة: يحوي صيغة الأمر «اقرأ» ويستشهد مسار وثيقة مستودع. */
+export function isReadingInstructionLine(line) {
+  if (!line.includes("اقرأ")) return false;
+  return /(\.\.\/\.\.\/[\w./-]+\.md|docs\/[\w./-]+\.md|`docs\/[\w./-]+`)/.test(line);
+}
+
+/** مهارة متقاعدة؟ (محتوى محفوظ تاريخيًا — لا يُفحص بC4). */
+export function isRetiredSkill(text) {
+  return /RETIRED|متقاعدة/.test(text.split("\n").slice(0, 12).join("\n"));
+}
+
 const ROOT_PREFIXES = [
-  "docs/", "ai-skills/", "apps/", "src/", "scripts/", "tests/", "reports/",
-  "planning/", "qa/", ".github/",
+  "docs/",
+  "ai-skills/",
+  "apps/",
+  "src/",
+  "scripts/",
+  "tests/",
+  "reports/",
+  "planning/",
+  "qa/",
+  ".github/",
 ];
 
 export function extractPaths(text) {
@@ -42,7 +71,12 @@ export function extractPaths(text) {
   for (const raw of out) {
     const v = raw.trim();
     if (!v || v.startsWith("http://") || v.startsWith("https://")) continue;
-    if (!/\.(md|json|ts|tsx|css|mjs|py|csv|txt)\b/.test(v) && !v.startsWith("references/") && !v.startsWith("../")) continue;
+    if (
+      !/\.(md|json|ts|tsx|css|mjs|py|csv|txt)\b/.test(v) &&
+      !v.startsWith("references/") &&
+      !v.startsWith("../")
+    )
+      continue;
     if (/[ <>:"|?*]/.test(v)) continue;
     candidates.push(v.replace(/^\.\//, ""));
   }
@@ -59,14 +93,16 @@ export function resolveExists(repoRoot, fromFile, ref) {
 
 export function listSkills(repoRoot) {
   const abs = path.join(repoRoot, SKILLS_DIR);
-  return fs.readdirSync(abs, { withFileTypes: true })
-    .filter((e) => e.isDirectory())
-    .map((e) => e.name)
-    .filter((name) => fs.existsSync(path.join(abs, name, "SKILL.md")));
+  return fs
+    .readdirSync(abs, { withFileTypes: true })
+    .filter(e => e.isDirectory())
+    .map(e => e.name)
+    .filter(name => fs.existsSync(path.join(abs, name, "SKILL.md")));
 }
 
 export function checkSkills({ repoRoot = ROOT } = {}) {
   const findings = [];
+  const warnings = [];
   const readmeText = fs.existsSync(path.join(repoRoot, README))
     ? fs.readFileSync(path.join(repoRoot, README), "utf8")
     : "";
@@ -91,7 +127,11 @@ export function checkSkills({ repoRoot = ROOT } = {}) {
       // C1: path existence
       for (const ref of extractPaths(text)) {
         if (!resolveExists(repoRoot, rel, ref)) {
-          findings.push({ kind: "C1-missing-path", file: rel, message: `referenced path does not exist: ${ref}` });
+          findings.push({
+            kind: "C1-missing-path",
+            file: rel,
+            message: `referenced path does not exist: ${ref}`,
+          });
         }
       }
       // C2: version-pin drift (resolve the referenced directory the same way C1 does)
@@ -107,11 +147,15 @@ export function checkSkills({ repoRoot = ROOT } = {}) {
           ].filter((d, i, a) => fs.existsSync(d) && a.indexOf(d) === i);
           let newer = null;
           for (const dirAbs of candidates) {
-            const found = fs.readdirSync(dirAbs)
-              .map((f) => f.match(new RegExp(`^${stem.replace(/[.*+?^${}()|[\]]/g, "\\$&")}-v(\\d+)\\.md$`)))
-              .filter((m) => m && Number(m[1]) > Number(ver))
+            const found = fs
+              .readdirSync(dirAbs)
+              .map(f => f.match(new RegExp(`^${stem.replace(/[.*+?^${}()|[\]]/g, "\\$&")}-v(\\d+)\\.md$`)))
+              .filter(m => m && Number(m[1]) > Number(ver))
               .sort((a, b) => Number(b[1]) - Number(a[1]))[0];
-            if (found) { newer = found; break; }
+            if (found) {
+              newer = found;
+              break;
+            }
           }
           if (newer && !VERSION_PIN_ALLOWLIST.has(base)) {
             findings.push({
@@ -125,25 +169,51 @@ export function checkSkills({ repoRoot = ROOT } = {}) {
     }
     // C3: registration
     if (!readmeText.includes(skill)) {
-      findings.push({ kind: "C3-unregistered", file: `${SKILLS_DIR}/${skill}`, message: `no row in ${README}` });
+      findings.push({
+        kind: "C3-unregistered",
+        file: `${SKILLS_DIR}/${skill}`,
+        message: `no row in ${README}`,
+      });
     }
     if (!indexText.includes(skill)) {
       findings.push({ kind: "C3-unindexed", file: `${SKILLS_DIR}/${skill}`, message: `no row in ${INDEX}` });
     }
+    // C4 (F-05a): duplicate reading list — warning only
+    const skillText = fs.readFileSync(path.join(repoRoot, SKILLS_DIR, skill, "SKILL.md"), "utf8");
+    if (!isRetiredSkill(skillText)) {
+      const readingLines = skillText.split("\n").filter(isReadingInstructionLine);
+      if (readingLines.length >= READING_LIST_WARN_THRESHOLD) {
+        warnings.push({
+          kind: "C4-parallel-reading-list",
+          file: `${SKILLS_DIR}/${skill}/SKILL.md`,
+          message: `${readingLines.length} reading-instruction lines citing repo docs — possible parallel reading list; AGENTS.md §2 bundles are the single routing table (collapse into a bundle line)`,
+        });
+      }
+    }
   }
-  return findings;
+  return { findings, warnings };
+}
+
+/** توافق خلفي (F-05a): نتائج الفشل فقط — تحتفظ بها الاختبارات القائمة. */
+export function checkSkillsFindings({ repoRoot = ROOT } = {}) {
+  return checkSkills({ repoRoot }).findings;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))) {
   const root = process.argv[2] ? path.resolve(process.argv[2]) : ROOT;
-  const findings = checkSkills({ repoRoot: root });
+  const { findings, warnings } = checkSkills({ repoRoot: root });
   for (const f of findings) {
     console.error(`check-skill-references: FAIL ${f.kind} ${f.file}: ${f.message}`);
+  }
+  for (const w of warnings) {
+    console.error(`check-skill-references: WARN ${w.kind} ${w.file}: ${w.message}`);
   }
   if (findings.length > 0) {
     console.error(`check-skill-references: ${findings.length} finding(s)`);
     process.exit(1);
   }
-  console.log(`check-skill-references: ${listSkills(root).length} skills registered, all references resolve`);
+  console.log(
+    `check-skill-references: ${listSkills(root).length} skills registered, all references resolve${warnings.length > 0 ? ` (${warnings.length} warning(s))` : ""}`,
+  );
   process.exit(0);
 }
