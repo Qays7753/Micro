@@ -1,0 +1,82 @@
+{
+  "id": "ARCH-005",
+  "title": "برنامج الإكمال البنيوي ما بعد المسح — تنفيذ W0–W10 وفق عقد التنفيذ 2026-10-05 (Post-Scan Structural Completion Program)",
+  "type": "RESEARCH",
+  "status": "CLAIMED",
+  "priority": "P1",
+  "stage": "post-scan-structural-completion-implementation",
+  "summary": "تنفيذ برنامج الإكمال البنيوي المقبول من المالك وفق ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md: R0 تحقق حي (اكتمل عند 214d7ac490057f966252e7c336417aac6b7410e0 بلا انحراف جوهري)، ثم W0–W10 على فرع refactoring/post-scan-structural-completion-20261005. النطاق: إغلاق F-01..F-05 (ما بقي حيًّا)، ترميز PA/PC/PG/RS، حدود نواة التنسيق ورسائل المال (W2)، التحقق من انقسامات W3/W6 وإكمالها، جرد الأبواب العامة (W4)، إثبات سلاسل أدلة القدرات الست (W5)، اختبارات رحلة الصفحات الست Smoke-only داخل النطاق البنيوي المقبول (W7)، قياس أسطح الحزمة lazy/precache وسياسات النمو (W8)، خريطة الاختبارات وQ-a..Q-j (W9)، وتدقيق معادٍ ختامي (W10). محظورات: لا كتابة إلى main، لا دمج، لا حذف فروع/PRs، لا تغيير معنى مالي/مخطط 38/تصدير 30/UI بصري.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "NOT_APPLICABLE",
+  "root_cause": "owner:consolidated-authorization (عقد التنفيذ المقبول ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md المدموج عبر PR #314 عند الالتزام 1aa4a3c؛ قبول المالك الجمعي المسجل لتقريري Flash Pass A وStructure Scan 2026-10-04)",
+  "owner": "Micro owner (Qays7753)",
+  "tests_required": [
+    "python3 scripts/operations-control/validate.py لكل موجة",
+    "python3 scripts/operations-control/generate_tracker.py --check بعد كل تحديث JSON",
+    "pnpm check للموجات الكودية (أو بوابة أضيق موثقة حسب بطاقة الموجة)",
+    "فحوص مركزة: typecheck/test/guard لكل موجة حسب بطاقتها",
+    "git diff --check و node scripts/check-secrets.mjs و node scripts/check-test-focus.mjs لكل التزام",
+    "node scripts/check-entity-touchpoints.mjs عند لمس التخزين",
+    "حراس الفهرس/المهارة/الحدود/الحجم/الحزمة/المرات عند التأثر"
+  ],
+  "layers": [
+    "domain",
+    "application",
+    "storage",
+    "scripts",
+    "docs",
+    "tests"
+  ],
+  "areas": [
+    "architecture-governance",
+    "docs/architecture/refactoring",
+    "apps/prototype-web/client/src/application",
+    "apps/prototype-web/client/src/storage",
+    "apps/prototype-web/client/src/presentation",
+    "scripts",
+    "docs/operations/control"
+  ],
+  "contracts": [
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/contracts/40-technical-ownership-map-contract.md"
+  ],
+  "source": {
+    "report": "docs/architecture/refactoring/ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md",
+    "discovered_at_sha": "214d7ac490057f966252e7c336417aac6b7410e0",
+    "evidence": [
+      "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+      "docs/operations/current-state-log.md"
+    ]
+  },
+  "acceptance": [
+    "كل بند قابل للتطبيق من مصفوفة العقد (F/PA/PC/PG/RS/STR-608..623/Q-a..Q-j) ينتهي بواحدة من الحالات الخمس النهائية في §9 من العقد مع دليل",
+    "لا تغيير مالي/مخطط/تصدير-استيراد/تاريخي/UI بصري غير مقبول — تثبته الفحوص والذهبيات والتكافؤ",
+    "Merge Manifest نهائي واحد لبوابة المالك — لا دمج ذاتي",
+    "تدقيق W10 معادٍ مستقل يمر بقياس مستقل",
+    "CI أخضر على رأس الفرع لكل موجة كودية"
+  ],
+  "dependencies": [
+    "ARCH-004"
+  ],
+  "related_items": [
+    "ARCH-001",
+    "ARCH-004"
+  ],
+  "evidence": [
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+    "docs/operations/current-state-log.md"
+  ],
+  "classification": "GOVERNANCE",
+  "gate_classification": "NOT_APPLICABLE",
+  "updated_at": "2026-10-05",
+  "next_action": "تنفيذ W1 (نظافة F-05 + ترميز PA/PC/PG/RS + مصالحة بقايا F-01) بعد اكتمال W0",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-05",
+      "actor": "ws-215:claim",
+      "reason": "فتح Claim تنفيذي للبرنامج المقبول من main المتحقد 214d7ac490057f966252e7c336417aac6b7410e0؛ R0 أكمل بلا انحراف جوهري (سلسلة نشر العقد docs-only)؛ صفر PRs مفتوحة وصفر claims نشطة وفرع UI محفوظ"
+    }
+  ],
+  "migration_baseline": false
+}
