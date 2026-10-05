@@ -25,9 +25,9 @@ import { type RefObject } from "react";
 import { LockSettingsCard } from "@/components/security/LockSettingsCard";
 import { formatLocalDate } from "@/presentation/formatters";
 import { withReturnTo } from "@/app/navigationContract";
-import type { GuidedOpeningImportPreview } from "@/application/transfers/guidedOpeningImportService";
-import type { BrowserPersistenceReading } from "@/application/preferences/preferenceService";
-import type { TransferPreview, TransferSummary } from "@/application/transfers/localTransferService";
+import type { GuidedOpeningImportPreview } from "@/application/transfers";
+import type { BrowserPersistenceReading } from "@/application/preferences";
+import type { TransferPreview, TransferSummary } from "@/application/transfers";
 import type { LocalExportFile } from "@/storage/local/types";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 

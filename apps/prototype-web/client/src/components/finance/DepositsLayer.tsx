@@ -2,7 +2,7 @@
 import { ArrowLeft } from "lucide-react";
 import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatMoneyMinor } from "@/presentation/formatters";
-import { DepositOverview } from "@/application/fulfillment/fulfillmentService";
+import type { DepositOverview } from "@/application/fulfillment";
 
 /* §10: حالة العربون علامة قصيرة — الحد في النطاق لا في الجملة. */
 const depositStateLabel = (row: DepositOverview["deposits"][number]) =>

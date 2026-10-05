@@ -6,7 +6,7 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { Hammer, Save } from "lucide-react";
 import type { OperatingWorkMode } from "@/storage/local/types";
-import type { OperatingModeValue } from "@/application/time/actualTimeService";
+import type { OperatingModeValue } from "@/application/time";
 
 import { Button, FeedbackNote, type FeedbackKind } from "@/components/primitives";
 export type OperatingModeState =

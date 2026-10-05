@@ -3,12 +3,20 @@
  * الاستيراد الحي) من بيوتها الكنسية — لا برميل عام ولا رمز بلا مستهلك.
  * الاستيراد الداخلي للتطبيق من ملفات الوحدة مباشر كما هو؛ هذا الباب
  * لحدود الوحدة أمام الواجهة (عزل التغيير: إعادة التنظيم الداخلية لا
- * تكسر مستوردات الواجهة). تحديث السطح = تعديل مقصود في نفس الـPR. */
+ * تكسر مستوردات الواجهة). تحديث السطح = تعديل مقصود في نفس الـPR.
+ *
+ * الخطوة ٦ (STR-615 الشاملة — تصحيح PR #316، 2026-10-06): فُصلت إعادة
+ * تصدير الأنواع عن القيم (`export type`) — علة كامنة أزاحتها هجرة الاستيراد
+ * الديناميكي إلى الباب: الباب الذي يصير مدخل شظية يجب أن تكون جدول
+ * تصديره حاضرًا في زمن التشغيل كاملًا، والاسم النوعي ليس رابطته موجودة
+ * (ظهر ذلك في PayableDueRow). الفصل لا يغيّر السطح ولا الاستخدام — كل
+ * المستوردين الحاليين (ساكنين أو ديناميكيين) يزالون يعملون كما هم.
+ */
 
-export {
+export { InventoryMaterialService } from "./inventoryMaterialService";
+export type {
   InventoryActivationState,
   InventoryMaterialOverview,
-  InventoryMaterialService,
   InventoryOverview,
   InventoryReferences,
   OrderActualMaterialComparison,
@@ -16,6 +24,8 @@ export {
   PurchaseReceiptStatus,
 } from "./inventoryMaterialService";
 
-export { InventoryMovementRouteType, resolveInventoryMovementType } from "./inventoryMovementRoute";
+export { resolveInventoryMovementType } from "./inventoryMovementRoute";
+export type { InventoryMovementRouteType } from "./inventoryMovementRoute";
 
-export { MaterialSuggestion, readMaterialSuggestions } from "./materialSuggestions";
+export { readMaterialSuggestions } from "./materialSuggestions";
+export type { MaterialSuggestion } from "./materialSuggestions";

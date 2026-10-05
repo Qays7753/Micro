@@ -20,7 +20,7 @@ import {
 import { templateComponentCountLabel } from "@/presentation/plurals";
 import { formatMoneyMinor, formatQuantityMilli } from "@/presentation/formatters";
 import type { CatalogItem, CatalogTemplate, MeasurementUnit } from "@micro-domain/catalog/index.js";
-import type { TemplatePlannedCost } from "@/application/catalog/templatePlannedCostService";
+import type { TemplatePlannedCost } from "@/application/catalog";
 
 import { Button } from "@/components/primitives";
 export type CatalogTemplatesSectionProps = {

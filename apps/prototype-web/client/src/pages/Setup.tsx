@@ -12,7 +12,7 @@ import {
   browserLegacyFormDraftStorage,
   LEGACY_SETUP_DRAFT_KEY,
   migrateLegacyFormDraft,
-} from "@/application/drafts/legacyFormDraftMigration";
+} from "@/application/drafts";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { localDateInAmman } from "@/presentation/formatters";
 

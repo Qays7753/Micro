@@ -13,7 +13,7 @@ import type {
   ReversibleSaleCollection,
   SaleCollectionReversalPreview,
   SaleCollectionReversalService,
-} from "@/application/collections/saleCollectionReversalService";
+} from "@/application/collections";
 import { formatLocalDate, formatMoneyMinor } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";

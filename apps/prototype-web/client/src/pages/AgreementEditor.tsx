@@ -8,7 +8,7 @@ import {
   applyProtectionPriceAsStart,
   protectionPriceIsReadyForAgreement,
   startAgreementPrice,
-} from "@/application/agreements/agreementPrice";
+} from "@/application/agreements";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";

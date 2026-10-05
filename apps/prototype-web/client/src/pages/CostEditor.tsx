@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { knowledgeGapsOf, type KnowledgeGapId } from "@micro-domain/craft-order/index.js";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import type { CostEditorInput } from "@/application/cost/costService";
+import type { CostEditorInput } from "@/application/cost";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { MaterialSheet } from "@/components/cost/MaterialSheet";

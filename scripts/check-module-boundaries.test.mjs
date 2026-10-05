@@ -343,7 +343,19 @@ describe("R6 (Step 6 — STR-615 system-wide ratchet: UI -> application interior
     );
     expect(raw.version).toBe(1);
     expect(new Set(raw.allowed).size).toBe(raw.allowed.length);
-    expect(raw.allowed.length).toBeGreaterThan(100);
+    /* الحالة النهائية بعد هجرة الخطوة ٦: ٤٣ مفتاحًا محتجزًا موثقًا —
+     * ٣٦ لجذر التركيب (بروتوكول عزل كومة الإقلاع) + ٧ لأسطح التوافق
+     * المجمدة (شيمات Wave B/W2 بمسار إزالة UI). أي نقصان لاحق = تقدم
+     * (يُثبت بتحديث هذا الدبوس في نفس الـPR)؛ أي زيادة = خرق راتشة. */
+    const contextKeys = raw.allowed.filter(k => k.includes("PrototypeServicesContext"));
+    const otherKeys = raw.allowed.filter(k => !k.includes("PrototypeServicesContext"));
+    expect(contextKeys.length).toBe(36);
+    expect(otherKeys.length).toBe(7);
+    expect(otherKeys.some(k => k.includes("finance/expenseBudgetService.ts"))).toBe(true);
+    expect(otherKeys.filter(k => k.includes("g5/g5Service.ts")).length).toBe(3);
+    expect(otherKeys.some(k => k.includes("activity/activityLabels.ts"))).toBe(true);
+    expect(otherKeys.some(k => k.includes("formatting/formatters.ts"))).toBe(true);
+    expect(otherKeys.some(k => k.includes("agreements/agreementPresentation.ts"))).toBe(true);
     const live = checkModuleBoundaries(REPO_ROOT);
     expect(live.violations.filter(v => v.rule === "R6-baseline-stale")).toEqual([]);
   });

@@ -13,10 +13,10 @@ import { withReturnTo } from "@/app/navigationContract";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 import { IntegerValue, LocalDateValue, MoneyValue, TimeValue } from "@/components/presentation/DisplayValue";
 import { Button, EmptyState, StatusChip } from "@/components/primitives";
-import type { DailyFollowUp } from "@/application/follow-up/dailyFollowUpService";
+import type { DailyFollowUp } from "@/application/follow-up";
 import type { OrderDraft, StoredCraftOrder } from "@/storage/local/types";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
-import type { ScheduleOverview } from "@/application/scheduling/scheduleService";
+import type { ScheduleOverview } from "@/application/scheduling";
 import { formatLocalDateTime, formatMoneyWithUnit } from "@/presentation/formatters";
 
 type OrdersState =

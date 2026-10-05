@@ -20,12 +20,12 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { getPrototypeLocalStore, usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
-import { LoanOverviewRead, LoanSummaryRow } from "@/application/loans/loanService";
+import type { LoanOverviewRead, LoanSummaryRow } from "@/application/loans";
 import type {
   ReceivedLoanOverviewRead,
   ReceivedLoanSummaryRow,
   ReceivedLoanService,
-} from "@/application/loans/receivedLoanService";
+} from "@/application/loans";
 import RepaymentSheet from "@/components/loans/RepaymentSheet";
 
 import { Button, EmptyState } from "@/components/primitives";
@@ -50,7 +50,7 @@ export default function Loans() {
   useEffect(() => {
     let active = true;
     setReceivedLoad({ phase: "loading" });
-    import("@/application/loans/receivedLoanService")
+    import("@/application/loans")
       .then(module => {
         if (active)
           setReceivedLoad({

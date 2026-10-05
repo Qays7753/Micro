@@ -17,7 +17,7 @@ import { formatLocalDate } from "@/presentation/formatters";
 import ReceivedLoanRepaymentSheet from "@/components/loans/ReceivedLoanRepaymentSheet";
 import type { ReceivedLoanRecord, ReceivedLoanReading } from "@micro-domain/received-loan/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
-import { ReceivedLoanService } from "@/application/loans/receivedLoanService";
+import { ReceivedLoanService } from "@/application/loans";
 
 import { Button } from "@/components/primitives";
 type Reading = { loan: ReceivedLoanRecord; reading: ReceivedLoanReading; events: readonly FinancialEvent[] };
@@ -54,7 +54,7 @@ export default function ReceivedLoanDetail() {
   useEffect(() => {
     let active = true;
     setServiceLoad({ phase: "loading" });
-    import("@/application/loans/receivedLoanService")
+    import("@/application/loans")
       .then(module => {
         if (active)
           setServiceLoad({

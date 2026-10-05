@@ -9,7 +9,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import { CashContinuityOverview } from "@/application/cash";
 import type { OwnerEntitlementOverview } from "@/application/owner-money";
-import type { SupplierPurchaseSummary } from "@/application/suppliers/supplierPurchaseService";
+import type { SupplierPurchaseSummary } from "@/application/suppliers";
 import type { InventoryOverview } from "@/application/inventory";
 import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
 

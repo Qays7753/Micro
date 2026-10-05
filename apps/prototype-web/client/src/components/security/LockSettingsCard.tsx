@@ -6,8 +6,8 @@
 import { useEffect, useState } from "react";
 import { Lock } from "lucide-react";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { LOCK_AUTO_LOCK_OPTIONS } from "@/application/security/localLockService";
-import { normalizeAsciiDigits } from "@/application/input/englishNumeric";
+import { LOCK_AUTO_LOCK_OPTIONS } from "@/application/security";
+import { normalizeAsciiDigits } from "@/application/input";
 
 import { Button } from "@/components/primitives";
 type Phase = "loading" | "off" | "enabling" | "on" | "disabling";

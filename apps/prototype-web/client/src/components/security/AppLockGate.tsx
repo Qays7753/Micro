@@ -14,8 +14,8 @@ import { type ReactNode, useCallback, useEffect, useRef, useState } from "react"
 import { Lock, LockOpen } from "lucide-react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { LocalLockService } from "@/application/security/localLockService";
-import { normalizeAsciiDigits } from "@/application/input/englishNumeric";
+import type { LocalLockService } from "@/application/security";
+import { normalizeAsciiDigits } from "@/application/input";
 import { isPublicLocalRecoveryRoute } from "@/app/StartupGate";
 
 import { Button } from "@/components/primitives";

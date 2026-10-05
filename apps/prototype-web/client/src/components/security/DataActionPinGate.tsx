@@ -8,7 +8,7 @@
 import { useState } from "react";
 import { Lock, LockOpen } from "lucide-react";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { normalizeAsciiDigits } from "@/application/input/englishNumeric";
+import { normalizeAsciiDigits } from "@/application/input";
 
 import { Button } from "@/components/primitives";
 export function DataActionPinGate({

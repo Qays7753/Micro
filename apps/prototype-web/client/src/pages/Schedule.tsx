@@ -18,14 +18,9 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import { Button, EmptyState, StatusChip } from "@/components/primitives";
 import { withReturnTo } from "@/app/navigationContract";
-import type {
-  MonthOverview,
-  ScheduleDay,
-  ScheduleOverview,
-  ScheduledOrder,
-} from "@/application/scheduling/scheduleService";
-import type { RecurrenceView } from "@/application/scheduling/recurrenceService";
-import { buildCapacityDecisionViewModel } from "@/application/scheduling/capacityDecisionViewModel";
+import type { MonthOverview, ScheduleDay, ScheduleOverview, ScheduledOrder } from "@/application/scheduling";
+import type { RecurrenceView } from "@/application/scheduling";
+import { buildCapacityDecisionViewModel } from "@/application/scheduling";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { IntegerValue, LocalDateValue, MonthValue, TimeValue } from "@/components/presentation/DisplayValue";
 import {
@@ -450,7 +445,7 @@ function RecurrencePanel({
   views,
   onChanged,
 }: {
-  service: import("@/application/scheduling/recurrenceService").ScheduleRecurrenceService;
+  service: import("@/application/scheduling").ScheduleRecurrenceService;
   sources: readonly ScheduledOrder[];
   views: readonly RecurrenceView[];
   onChanged: () => void;

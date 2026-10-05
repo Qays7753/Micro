@@ -6,11 +6,11 @@
  * تحصيل) غير قابل للإيقاف.
  */
 import { useEffect, useState } from "react";
-import type { PreferenceService } from "@/application/preferences/preferenceService";
-import { AgreementService } from "@/application/agreements/agreementService";
+import type { PreferenceService } from "@/application/preferences";
+import type { AgreementService } from "@/application/agreements";
 import type { InventoryMaterialService } from "@/application/inventory";
-import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
-import type { CatalogService } from "@/application/catalog/catalogService";
+import type { SupplierPurchaseService } from "@/application/suppliers";
+import type { CatalogService } from "@/application/catalog";
 
 type CapabilityMeta = {
   id: CapabilityId;
