@@ -1,7 +1,7 @@
 {
   "id": "WS-215",
   "title": "برنامج الإكمال البنيوي ما بعد المسح — تنفيذ W0–W10 (ARCH-005)",
-  "status": "CLAIMED",
+  "status": "IN_PROGRESS",
   "items": [
     "ARCH-005"
   ],
@@ -24,7 +24,7 @@
   "pr": 316,
   "started_at": "2026-10-05",
   "updated_at": "2026-10-05",
-  "next_action": "W1: تنفيذ نظافة F-05a/b/c + ترميز PA/PC/PG/RS في الوثائق الكانونية + مصالحة بقايا F-01 (AGENTS.md §10 رقم gzip 155,300، حالة سجل الإغلاق بعد التوقيع، فحص جدول README) ثم فحوص مركزة وCI",
+  "next_action": "W2: حد ملكية نواة التنسيق (application/formatting) + جرد مواقع رسائل المال الـ15 مع فصل message-only/ملاحظة مخزنة/قاعدة دلالية + characterization",
   "notes": [
     "التفويض: العقد الكانوني المقبول ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md (مدموج عبر PR #314 عند 1aa4a3c) — لا موافقات روتينية بين الموجات؛ التوقف فقط عند شروط §13 المحمية وبوابة الدمج النهائية §15.",
     "R0 أكمل (2026-10-05): BASELINE_SHA 214d7ac490057f966252e7c336417aac6b7410e0؛ انحراف العقد docs-only (نشر العقد نفسه)؛ صفر PRs مفتوحة (API موثق)؛ صفر claims نشطة؛ فرع docs/ux-ui-zed-handoff-20260921 محفوظ عند f28b0fa6؛ 38/30 مثبتة؛ السقفان 650,000/155,300؛ R1=3/R2=15/R3=0؛ البيئة NORMAL.",
@@ -38,6 +38,12 @@
       "changed_at": "2026-10-05",
       "actor": "ws-215:claim",
       "reason": "فتح Claim قبل أي كتابة بنيوية وفق AGENTS.md §14 وعقد التنفيذ §6/§W0؛ الفرع منشأ من origin/main المتحقق 214d7ac490057f966252e7c336417aac6b7410e0"
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-05",
+      "actor": "ws-215:wave-w1",
+      "reason": "W1 مكتملة بثلاث شرائح (F-05a/b/c حراس، بواقي F-01 توثيق، ترميز PA/PC/PG/RS في الخطة v1.4/السجل v1.2/CONTROL v1.7/المهارة v1.1) — الانتقال التلقائي إلى W2 وفق العقد §1"
     }
   ],
   "migration_baseline": false

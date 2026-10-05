@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-215 | CLAIMED | \`refactoring/post-scan-structural-completion-20261005\` | — | ARCH-005 | W1: تنفيذ نظافة F-05a/b/c + ترميز PA/PC/PG/RS في الوثائق الكانونية + مصالحة بقايا F-01 (AGENTS.md §10 رقم gzip 155,300، حالة سجل الإغلاق بعد التوقيع، فحص جدول README) ثم فحوص مركزة وCI |
+| WS-215 | IN_PROGRESS | \`refactoring/post-scan-structural-completion-20261005\` | 316 | ARCH-005 | W2: حد ملكية نواة التنسيق (application/formatting) + جرد مواقع رسائل المال الـ15 مع فصل message-only/ملاحظة مخزنة/قاعدة دلالية + characterization |
