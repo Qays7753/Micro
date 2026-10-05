@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "ff932df16e359c0a58659e3097d1b11503fa5c1e",
+  "head": "207fee29ad997797242152d9de1dad10b8345a53",
   "pages": {
     "total": 60,
     "map": {
@@ -883,6 +883,7 @@
       "tests/domain/financial-event.test.ts",
       "tests/domain/inventory-material.test.ts",
       "tests/domain/loan.test.ts",
+      "tests/domain/moneyMessageCharacterization.test.ts",
       "tests/domain/operatingBreakEven.test.ts",
       "tests/domain/owner-safe-withdrawal.test.ts",
       "tests/domain/public-surface.test.ts",
