@@ -4,4 +4,4 @@
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-215 | IN_PROGRESS | \`refactoring/post-scan-structural-completion-20261005\` | 316 | ARCH-005 | W6: التحقق من الملفات الكبيرة/المختلطة في النطاق (IndexedDbLocalStore/MemoryLocalStore أساسًا) مع بيان تقسيم أو استثناء cohesion موثق لكل منها |
+| WS-215 | IN_PROGRESS | \`refactoring/post-scan-structural-completion-20261005\` | 316 | ARCH-005 | W7: حدود UI البنيوية المحدودة — اختبارات رحلة للصفحات الست Smoke-only + أسطح استعلام تطبيقية حيث تبرر الأدلة (لا CSS/DOM/tokens/نسخ) |
