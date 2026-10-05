@@ -1844,12 +1844,13 @@ REPORT_ONLY_PR_OPEN — DO_NOT_MERGE
 
 | الحقل | النتيجة المتحققة |
 |---|---|
-| `origin/main` | `c26eb838b90b359da182885f21c4318f78ec1006` |
-| PR #311 | **MERGED** إلى `main`؛ رأس المصدر `43215f3325105a1a51acefaab1ce6824333cf345`؛ رأس الدمج `c26eb838b90b359da182885f21c4318f78ec1006` |
-| CI | تشغيل `37278185325` على رأس الدمج: **success** |
+| `origin/main` | `5eacbe38011c9a753b4daeb9801541fb2538ca30` — رأس main النهائي بعد PR #312 |
+| PR #311 | **MERGED** إلى `main`؛ رأس المصدر `43215f3325105a1a51acefaab1ce6824333cf345`؛ رأس دمج الكود `c26eb838b90b359da182885f21c4318f78ec1006` |
+| PR #312 | **MERGED** إلى `main`؛ مصالحة السجلات والـViews من JSON المصدر؛ رأس الدمج `5eacbe38011c9a753b4daeb9801541fb2538ca30` |
+| CI | تشغيل `37281587396` على رأس main النهائي: **success** |
 | PR #309 | **CLOSED — NOT MERGED**؛ مخرجات gap-scan محفوظة في هذا الملف وفي ARCH-003/WS-213 كسجل تاريخي مصالح عليه |
 | PR #310 | **CLOSED — NOT MERGED**؛ عقد التنفيذ محفوظ في `ZAI-A-TO-Z-EXECUTION-CONTRACT.md` داخل تسوية وثائقية لاحقة |
-| ARCH-004 / WS-214 | إكمال A-to-Z مدموج؛ ينتقلان إلى `VERIFIED` بعد تحقق main وتحديث Views المولدة |
+| ARCH-004 / WS-214 | إكمال A-to-Z مدموج ومتحقق على رأس main النهائي |
 | ARCH-003 / WS-213 | `SUPERSEDED` كسجل تقرير مستقل؛ لا Claim نشطة لهما |
 | التغيير المحمي | لا تغيير مالي أو دلالي أو مخطط أو تصدير/استيراد أو UI؛ `localSchemaVersion=38` و`localExportVersion=30` ثابتان |
 
