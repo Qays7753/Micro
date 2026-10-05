@@ -1,56 +1,57 @@
 {
-  "id": "WS-215",
-  "title": "برنامج الإكمال البنيوي ما بعد المسح — تنفيذ W0–W10 (ARCH-005)",
-  "status": "IN_REVIEW",
-  "items": [
-    "ARCH-005"
-  ],
-  "branch": "refactoring/post-scan-structural-completion-20261005",
-  "base_sha": "214d7ac490057f966252e7c336417aac6b7410e0",
-  "areas": [
-    "architecture-governance",
-    "docs/architecture/refactoring",
-    "apps/prototype-web/client/src/application",
-    "apps/prototype-web/client/src/storage",
-    "apps/prototype-web/client/src/presentation",
-    "scripts",
-    "docs/operations/control"
-  ],
-  "contracts": [
-    "docs/contracts/39-export-envelope-integrity-contract.md",
-    "docs/contracts/40-technical-ownership-map-contract.md"
-  ],
-  "agent": "Z AI (post-scan structural completion execution agent; one sequential writer per wave; independent hostile auditor at W10)",
-  "pr": 316,
-  "started_at": "2026-10-05",
-  "updated_at": "2026-10-05",
-  "next_action": "مراجعة المالك لPR #316 وقرار بوابة الدمج النهائية (Merge Manifest في Entry 45) — لا دمج ذاتي",
-  "notes": [
-    "التفويض: العقد الكانوني المقبول ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md (مدموج عبر PR #314 عند 1aa4a3c) — لا موافقات روتينية بين الموجات؛ التوقف فقط عند شروط §13 المحمية وبوابة الدمج النهائية §15.",
-    "R0 أكمل (2026-10-05): BASELINE_SHA 214d7ac490057f966252e7c336417aac6b7410e0؛ انحراف العقد docs-only (نشر العقد نفسه)؛ صفر PRs مفتوحة (API موثق)؛ صفر claims نشطة؛ فرع docs/ux-ui-zed-handoff-20260921 محفوظ عند f28b0fa6؛ 38/30 مثبتة؛ السقفان 650,000/155,300؛ R1=3/R2=15/R3=0؛ البيئة NORMAL.",
-    "جرد R0 للمكتشفات مقابل الحي: F-02/F-03/F-04 مغلقة على main (ما بعد دمج A-to-Z)؛ F-01 مغلقة جوهريًا ببواقي موثقة (AGENTS.md §10 «155,000» متقادم مقابل 155,300/ADR-017؛ سطر حالة سجل الإغلاق قبل-التوقيع؛ جدول README؛ صياغة current-state §2)؛ F-05a/b/c مفتوحة؛ F-06 جزئي (5 أبواب Wave B)؛ STR-613: المجموعات الست مستخرجة — W5 إثبات أدلة؛ STR-614 منفذ (Wave E/ADR-016، شيمات 9→8)؛ STR-620 مغلق؛ STR-623 مسجل + مراسي + تأجيل موثق ببوابة الميزانية (هامش 212 بايت).",
-    "كاتب واحد في أي لحظة؛ المراجعون قراءة فقط؛ كل موجة بطاقة + فحوص مركزة + CI + حد رجوع.",
-    "لا كتابة إلى main ولا دمج ولا حذف فروع/PRs ولا تنظيف؛ Merge Manifest واحد عند البوابة النهائية."
-  ],
-  "status_history": [
-    {
-      "status": "CLAIMED",
-      "changed_at": "2026-10-05",
-      "actor": "ws-215:claim",
-      "reason": "فتح Claim قبل أي كتابة بنيوية وفق AGENTS.md §14 وعقد التنفيذ §6/§W0؛ الفرع منشأ من origin/main المتحقق 214d7ac490057f966252e7c336417aac6b7410e0"
-    },
-    {
-      "status": "IN_PROGRESS",
-      "changed_at": "2026-10-05",
-      "actor": "ws-215:wave-w1",
-      "reason": "W1 مكتملة بثلاث شرائح (F-05a/b/c حراس، بواقي F-01 توثيق، ترميز PA/PC/PG/RS في الخطة v1.4/السجل v1.2/CONTROL v1.7/المهارة v1.1) — الانتقال التلقائي إلى W2 وفق العقد §1"
-    },
-    {
-      "status": "IN_REVIEW",
-      "changed_at": "2026-10-05",
-      "actor": "ws-215:wave-w10",
-      "reason": "W0–W10 منفذة كاملة؛ التدقيق المعادي الختامي HOSTILE_AUDIT_PASS (وكيل مستقل) بستة تصحيحات توثيقية منفذة؛ المصفوفة النهائية كل بند بحالة نهائية؛ Merge Manifest جاهز لبوابة المالك"
-    }
-  ],
-  "migration_baseline": false
+ "id": "WS-215",
+ "title": "برنامج الإكمال البنيوي ما بعد المسح — تنفيذ W0–W10 (ARCH-005)",
+ "status": "IN_REVIEW",
+ "items": [
+  "ARCH-005"
+ ],
+ "branch": "refactoring/post-scan-structural-completion-20261005",
+ "base_sha": "214d7ac490057f966252e7c336417aac6b7410e0",
+ "areas": [
+  "architecture-governance",
+  "docs/architecture/refactoring",
+  "apps/prototype-web/client/src/application",
+  "apps/prototype-web/client/src/storage",
+  "apps/prototype-web/client/src/presentation",
+  "scripts",
+  "docs/operations/control"
+ ],
+ "contracts": [
+  "docs/contracts/39-export-envelope-integrity-contract.md",
+  "docs/contracts/40-technical-ownership-map-contract.md"
+ ],
+ "agent": "Z AI (post-scan structural completion execution agent; one sequential writer per wave; independent hostile auditor at W10)",
+ "pr": 316,
+ "started_at": "2026-10-05",
+ "updated_at": "2026-10-06",
+ "next_action": "برنامج التصحيح (Steps 1–7 منفذة في Entry 46؛ الباقي: تدقيق معادٍ ثانٍ + تحقق نهائي + Merge Manifest محدث) ثم بوابة المالك: قرار braces الأمني (PROPOSED) وقرار الدمج — لا دمج ذاتي",
+ "notes": [
+  "التفويض: العقد الكانوني المقبول ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md (مدموج عبر PR #314 عند 1aa4a3c) — لا موافقات روتينية بين الموجات؛ التوقف فقط عند شروط §13 المحمية وبوابة الدمج النهائية §15.",
+  "R0 أكمل (2026-10-05): BASELINE_SHA 214d7ac490057f966252e7c336417aac6b7410e0؛ انحراف العقد docs-only (نشر العقد نفسه)؛ صفر PRs مفتوحة (API موثق)؛ صفر claims نشطة؛ فرع docs/ux-ui-zed-handoff-20260921 محفوظ عند f28b0fa6؛ 38/30 مثبتة؛ السقفان 650,000/155,300؛ R1=3/R2=15/R3=0؛ البيئة NORMAL.",
+  "جرد R0 للمكتشفات مقابل الحي: F-02/F-03/F-04 مغلقة على main (ما بعد دمج A-to-Z)؛ F-01 مغلقة جوهريًا ببواقي موثقة (AGENTS.md §10 «155,000» متقادم مقابل 155,300/ADR-017؛ سطر حالة سجل الإغلاق قبل-التوقيع؛ جدول README؛ صياغة current-state §2)؛ F-05a/b/c مفتوحة؛ F-06 جزئي (5 أبواب Wave B)؛ STR-613: المجموعات الست مستخرجة — W5 إثبات أدلة؛ STR-614 منفذ (Wave E/ADR-016، شيمات 9→8)؛ STR-620 مغلق؛ STR-623 مسجل + مراسي + تأجيل موثق ببوابة الميزانية (هامش 212 بايت).",
+  "كاتب واحد في أي لحظة؛ المراجعون قراءة فقط؛ كل موجة بطاقة + فحوص مركزة + CI + حد رجوع.",
+  "لا كتابة إلى main ولا دمج ولا حذف فروع/PRs ولا تنظيف؛ Merge Manifest واحد عند البوابة النهائية.",
+  "برنامج التصحيح 2026-10-06 (تعليمة المالك على PR #316): Steps 1–7 منفذة — إصلاح خرج audit باختبارات انحدار؛ سجل استثناء أمني رسمي لbraces (PROPOSED يحجب حتى القرار)؛ مرشح push + عمى الصور عن dist أصلحا جذريًا؛ STR-615 شاملة (23 بابًا + 78 هجرة + R6 طرفية 43 + ADR-018)؛ الميزانية: إقلاع gzip −11 (هامش 215/155,300)، كسول −3,215 gzip، كل البوابات PASS؛ التزامات مستقلة قابلة للعكس."
+ ],
+ "status_history": [
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-10-05",
+   "actor": "ws-215:claim",
+   "reason": "فتح Claim قبل أي كتابة بنيوية وفق AGENTS.md §14 وعقد التنفيذ §6/§W0؛ الفرع منشأ من origin/main المتحقق 214d7ac490057f966252e7c336417aac6b7410e0"
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-10-05",
+   "actor": "ws-215:wave-w1",
+   "reason": "W1 مكتملة بثلاث شرائح (F-05a/b/c حراس، بواقي F-01 توثيق، ترميز PA/PC/PG/RS في الخطة v1.4/السجل v1.2/CONTROL v1.7/المهارة v1.1) — الانتقال التلقائي إلى W2 وفق العقد §1"
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-10-05",
+   "actor": "ws-215:wave-w10",
+   "reason": "W0–W10 منفذة كاملة؛ التدقيق المعادي الختامي HOSTILE_AUDIT_PASS (وكيل مستقل) بستة تصحيحات توثيقية منفذة؛ المصفوفة النهائية كل بند بحالة نهائية؛ Merge Manifest جاهز لبوابة المالك"
+  }
+ ],
+ "migration_baseline": false
 }
