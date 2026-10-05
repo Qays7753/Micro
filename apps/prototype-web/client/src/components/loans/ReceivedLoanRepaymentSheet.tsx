@@ -13,7 +13,7 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { localDateInAmman, formatMoneyMinor } from "@/presentation/formatters";
 import type { ReceivedLoanSummaryRow } from "@/application/loans";
-import ReceivedLoanService from "@/application/loans";
+import { ReceivedLoanService } from "@/application/loans";
 
 import { Button } from "@/components/primitives";
 export default function ReceivedLoanRepaymentSheet({

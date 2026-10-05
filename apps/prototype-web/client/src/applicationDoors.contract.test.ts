@@ -79,7 +79,7 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
   parties: [],
   preferences: [],
   scheduling: ["buildCapacityDecisionViewModel"],
-  security: ["LOCK_AUTO_LOCK_OPTIONS"],
+  security: ["LOCK_AUTO_LOCK_OPTIONS", "LocalLockService"],
   share: ["collectionShareDraft", "customerShareDraft", "standingCollectionEvent"],
   suppliers: [],
   time: [],

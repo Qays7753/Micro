@@ -1,4 +1,4 @@
-/* باب عام حقيقي (STR-615 الشاملة — الخطوة ٦ من برنامج تصحيح PR #316،
+/* باب عام حقيقي (STR-615 الشاملة — الخطوة ٦ من برنامج تصحيح PR 316،
  * 2026-10-06): هذا البرميل يصدّر حصرًا ما تستهلكه مستهلكات الميزة من
  * الواجهة (صفحات/مكونات/عرض/PWA — قياس رسم الاستيراد الحي أدناه)، لا رمزًا
  * بلا مستهلك ولا برميلًا عامًا (PC-3: توسيع السطح تعديل مقصود بنفس الـPR).
@@ -10,7 +10,13 @@
  * الديناميكي للباب (مدخل الشظية يحتاج جدول تصدير حاضرًا في زمن التشغيل).
  */
 
-export type { MonthOverview, ScheduleDay, ScheduleOverview, ScheduleService } from "./scheduleService";
+export type {
+  MonthOverview,
+  ScheduleDay,
+  ScheduleOverview,
+  ScheduledOrder,
+  ScheduleService,
+} from "./scheduleService";
 
 export type { RecurrenceView, ScheduleRecurrenceService } from "./recurrenceService";
 

@@ -65,7 +65,21 @@
  "evidence": [
   "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
   "docs/operations/current-state-log.md",
-  "تصحيح PR #316 (Steps 1–7، 2026-10-06، Entry 46 في docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md): إصلاح خرج audit في .github/workflows/ci.yml عبر scripts/ci-audit-step.sh وscripts/ci-audit-check.mjs واختباراتهما؛ سجل الاستثناء الأمني لbraces في docs/quality/security-exceptions.md وdocs/quality/security-exception-register.json؛ سياسة سير العمل في scripts/ci-workflow-policy.test.mjs؛ إصلاح نطاق الصور في scripts/check-image-policy.mjs؛ أبواب STR-615 في apps/prototype-web/client/src/application/*/index.ts مع scripts/ui-application-import-baseline.json وscripts/check-module-boundaries.mjs وADR-018 في docs/architecture/ADRs/ADR-018-public-doors-terminal-architecture.md وعقد الأسطح في apps/prototype-web/client/src/applicationDoors.contract.test.ts؛ قياسات الحزمة في apps/prototype-web/scripts/check-bundle-budget.mjs وcheck-bundle-surfaces.mjs."
+  "docs/architecture/ADRs/ADR-018-public-doors-terminal-architecture.md",
+  ".github/workflows/ci.yml",
+  "scripts/ci-audit-step.sh",
+  "scripts/ci-audit-check.mjs",
+  "scripts/ci-audit-check.test.mjs",
+  "scripts/ci-audit-step.test.mjs",
+  "scripts/ci-workflow-policy.test.mjs",
+  "scripts/check-image-policy.mjs",
+  "scripts/check-module-boundaries.mjs",
+  "scripts/ui-application-import-baseline.json",
+  "docs/quality/security-exceptions.md",
+  "docs/quality/security-exception-register.json",
+  "apps/prototype-web/client/src/applicationDoors.contract.test.ts",
+  "apps/prototype-web/scripts/check-bundle-budget.mjs",
+  "apps/prototype-web/scripts/check-bundle-surfaces.mjs"
  ],
  "classification": "GOVERNANCE",
  "gate_classification": "NOT_APPLICABLE",
