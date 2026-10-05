@@ -1,0 +1,8 @@
+{
+  "_comment": "W8 (post-scan program, 2026-10-05): baseline for the previously-unmeasured bundle surfaces (lazy chunks + PWA precache) — STR-608/F-11. Protocol: update deliberately in the SAME PR as a measured change (documented growth reason, or lock a reduction). Entry-surface ceilings (650,000/155,300 per D-034/ADR-017) are NOT governed here. Counts are recorded/reported, not guarded.",
+  "lazyJsCount": 103,
+  "lazyRawTotal": 1425371,
+  "lazyGzipTotal": 438483,
+  "precacheEntryCount": 187,
+  "precacheBytesTotal": 2743937
+}
