@@ -16,7 +16,9 @@ import { afterAll, describe, expect, it } from "vitest";
 import {
   APPLICATION_TO_PRESENTATION_VALUE_BASELINE,
   DEEP_DOMAIN_IMPORT_BASELINE,
+  DOMAIN_CROSS_AREA_DEEP_BASELINE,
   UI_TO_DOMAIN_VALUE_BASELINE,
+  UI_TO_STORAGE_VALUE_BASELINE,
   checkModuleBoundaries,
   collectAllImports,
   layerOf,
@@ -177,15 +179,82 @@ describe("boundary rules on a synthetic tree (each rule can fail)", () => {
     expect(r3[0]?.key).toContain("application/x/service.ts");
   });
 
-  it("the embedded baselines are internally unique and non-empty", () => {
+  it("R4 (Wave H): a NEW domain cross-area deep edge is caught; barrel and same-area edges are not", () => {
+    const root = makeTempDir();
+    write(root, "src/domain/widget/index.ts", DOMAIN_BARREL());
+    write(root, "src/domain/widget/deep.ts", "export const d = 2;\n");
+    write(root, "src/domain/other/index.ts", DOMAIN_BARREL());
+    /* برميل منطقة أخرى: مسموح (البرميل هو السطح العام). */
+    write(
+      root,
+      "src/domain/widget/consumer.ts",
+      APP_SERVICE("@micro-domain/other/index.js"),
+    );
+    let result = checkModuleBoundaries(root);
+    expect(result.violations.filter(v => v.rule === "R4-domain-cross-area-deep")).toEqual([]);
+    /* نسبي عميق عابر للمناطق: يُصطاد. */
+    write(root, "src/domain/other/consumer.ts", 'import { d } from "../widget/deep.js";\nexport const o = d;\n');
+    result = checkModuleBoundaries(root);
+    const r4 = result.violations.filter(v => v.rule === "R4-domain-cross-area-deep");
+    expect(r4.length).toBe(1);
+    expect(r4[0]?.key).toContain("other/consumer.ts");
+  });
+
+  it("R5 (Wave H): a NEW ui->storage VALUE edge is caught even via a relative path; the two registered waivers pass", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/storage/local/store.ts", "export const s = 1;\n");
+    /* إفلات نسبي (الفتحة التي أغلقتها R5 resolution-based): مسار نسبي لا specifier. */
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/EscapePage.tsx",
+      'import { s } from "../storage/local/store.js";\nexport const p = s;\n',
+    );
+    const result = checkModuleBoundaries(root);
+    const r5 = result.violations.filter(v => v.rule === "R5-ui-to-storage-value");
+    expect(r5.length).toBe(1);
+    expect(r5[0]?.key).toContain("EscapePage.tsx");
+    /* الاستثناءان المسجلان (مسارات مطلقة @/): يمران. */
+    const root2 = makeTempDir();
+    write(root2, "apps/prototype-web/client/src/storage/local/persistentStorage.ts", "export const p = 1;\n");
+    write(
+      root2,
+      "apps/prototype-web/client/src/app/StartupGate.tsx",
+      'import { p } from "@/storage/local/persistentStorage";\nexport const g = p;\n',
+    );
+    const result2 = checkModuleBoundaries(root2);
+    expect(result2.violations.filter(v => v.rule === "R5-ui-to-storage-value")).toEqual([]);
+    expect(result2.stats.uiToStorage).toBe(1);
+  });
+
+  it("R1 (Wave H regex fix): a digit-area deep import (g5) is now caught — was invisible with [a-z-]+", () => {
+    const root = makeTempDir();
+    write(root, "src/domain/g5/index.ts", DOMAIN_BARREL());
+    write(root, "src/domain/g5/inner.ts", "export const g = 5;\n");
+    write(root, "apps/prototype-web/client/src/application/x/service.ts", APP_SERVICE("@micro-domain/g5/inner.js"));
+    const result = checkModuleBoundaries(root);
+    const r1 = result.violations.filter(v => v.rule === "R1-deep-domain-import");
+    expect(r1.length).toBe(1);
+    expect(r1[0]?.key).toContain("@micro-domain/g5/inner.js");
+  });
+
+  it("the embedded baselines are internally unique; R1/R2/R4/R5 non-empty, R3 may reach zero when its edges are eliminated", () => {
+    /* تحديث مؤرخ 2026-10-03 (Wave B — ADR-011 §2): أساس R3 وصل إلى صفر
+     * مشروعًا بعد استخراج مفردات العرض النقية إلى بيوت تطبيقية — هذا هو
+     * عمل الراتشة لا إضعافه: القاعدة تبقى مفروضة على أي حافة جديدة
+     * (يثبته اختبار الشجرة الاصطناعية أعلاه)، والفراغ مسموح حصرًا لأساس
+     * حواف قائمة أُزيلت كلها. R1/R2 يبقيان غير فارغين حتى تغلق مساريهما. */
     for (const [name, baseline] of [
       ["deep", DEEP_DOMAIN_IMPORT_BASELINE],
       ["ui→domain", UI_TO_DOMAIN_VALUE_BASELINE],
-      ["app→presentation", APPLICATION_TO_PRESENTATION_VALUE_BASELINE],
+      ["domain-cross-area", DOMAIN_CROSS_AREA_DEEP_BASELINE],
+      ["ui→storage", UI_TO_STORAGE_VALUE_BASELINE],
     ]) {
       expect(baseline.length, name).toBeGreaterThan(0);
       expect(new Set(baseline).size).toBe(baseline.length);
     }
+    expect(new Set(APPLICATION_TO_PRESENTATION_VALUE_BASELINE).size).toBe(
+      APPLICATION_TO_PRESENTATION_VALUE_BASELINE.length,
+    );
   });
 });
 

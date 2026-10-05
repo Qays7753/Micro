@@ -12,8 +12,8 @@ import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { formatMoneyMinor } from "@/presentation/formatters";
-import type { CashContinuityOverview } from "@/application/cash/cashContinuityService";
-import type { ProjectFinancialPosition } from "@/application/finance/projectFinancialService";
+import { CashContinuityOverview } from "@/application/cash/cashContinuityService";
+import type { ProjectFinancialPosition } from "@/application/finance";
 
 import { Button } from "@/components/primitives";
 type State =

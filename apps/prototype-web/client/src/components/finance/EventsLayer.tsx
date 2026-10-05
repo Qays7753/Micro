@@ -10,7 +10,7 @@ import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayVal
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { CorrectionPreview } from "@/components/finance/CorrectionPreview";
-import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
+import type { ProjectFinancialService } from "@/application/finance";
 import type {
   FinancialEvent,
   FinancialEventType,

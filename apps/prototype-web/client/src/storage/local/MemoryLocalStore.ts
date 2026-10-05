@@ -75,6 +75,7 @@ import type {
   StorageResult,
   StoredCraftOrder,
 } from "./types";
+import { STORAGE_ERROR, STORAGE_STALE } from "./resultCodes";
 
 const clone = <T>(value: T): T => structuredClone(value);
 
@@ -239,7 +240,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<{ order: StoredCraftOrder; reused: boolean }>> {
     const live = this.orders.get(next.id);
     const guard = validateOrderCommit(live, base, next, idempotencyKeys);
-    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
     if (guard.reused) return { ok: true, value: { order: clone(live ?? next), reused: true } };
     this.orders.set(next.id, clone(next));
     return { ok: true, value: { order: clone(next), reused: false } };
@@ -259,7 +260,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     /* Conflict E (FC-06): الطلب وأثر المحفظة معًا — إعادة نفس المفتاح تعيد النتيجة نفسها.
      * EXE-010: eventType يوسّع البروتوكول نفسه لعكس العربون النشط. */
     const existing = this.orders.get(order.id);
-    if (!existing) return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لرد العربون." };
+    if (!existing) return { ok: false, code: STORAGE_ERROR, message: "لم نجد الطلب المحلي لرد العربون." };
     const alreadyRefunded = existing.order.events.some(
       event => event.type === eventType && event.idempotencyKey === refundEventKey,
     );
@@ -285,7 +286,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     }
     for (const reversal of allocationReversals) {
       if (existingIds.has(reversal.id))
-        return { ok: false, code: "storage_error", message: "أثر فك تخصيص مكرر — لم يتغير السجل." };
+        return { ok: false, code: STORAGE_ERROR, message: "أثر فك تخصيص مكرر — لم يتغير السجل." };
       if (reversal.reversesEntryId) {
         const original = originalById.get(reversal.reversesEntryId);
         const reversedSoFar = reversedPerEntry.get(reversal.reversesEntryId) ?? 0;
@@ -294,7 +295,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         if (reversedSoFar + additional > cap)
           return {
             ok: false,
-            code: "storage_error",
+            code: STORAGE_ERROR,
             message: "فك التخصيص يتجاوز مبلغ التخصيص الأصلي؛ لم يتغير السجل.",
           };
         reversedPerEntry.set(reversal.reversesEntryId, reversedSoFar + additional);
@@ -316,7 +317,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     StorageResult<{ order: StoredCraftOrder; cashEntry: CashContinuityEntry | null; reused: boolean }>
   > {
     const existing = this.orders.get(order.id);
-    if (!existing) return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لتراجع القبضة." };
+    if (!existing) return { ok: false, code: STORAGE_ERROR, message: "لم نجد الطلب المحلي لتراجع القبضة." };
     const alreadyReversed = existing.order.events.some(
       event => event.type === "collection_reversed" && event.idempotencyKey === reversalEventKey,
     );
@@ -329,7 +330,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       if (!matchingCash)
         return {
           ok: false,
-          code: "storage_error",
+          code: STORAGE_ERROR,
           message: "وجدت تراجع قبضة بلا أثر تخصيص مطابق؛ لم يتغير السجل.",
         };
       return {
@@ -345,7 +346,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     )
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "تم التراجع عن تخصيص هذه القبضة سابقًا؛ لم يتغير السجل.",
       };
     this.orders.set(order.id, clone(order));
@@ -386,8 +387,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     }>
   > {
     const existing = this.orders.get(order.id);
-    if (!existing)
-      return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لتسجيل التسليم." };
+    if (!existing) return { ok: false, code: STORAGE_ERROR, message: "لم نجد الطلب المحلي لتسجيل التسليم." };
     /* المجموعة ٣: إعادة التسليم بعد عكسٍ تسليمٌ جديد — المقارنة على مفتاح آخر
      * حدث تسليم في الطلب الوارد لا على أي حدث تاريخي، وإلا لَعُدَّت إعادة
      * التنفيذ إعادة تشغيل وأُهملت كتابتها. */
@@ -409,7 +409,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     if (!alreadyDelivered && !orderRecordIdentical(existing, base))
       return {
         ok: false,
-        code: "storage_stale",
+        code: STORAGE_STALE,
         message: "سجل الطلب تغيّر من مسار آخر بعد فتحك له — لم يُسجَّل شيء؛ أعد المحاولة.",
       };
     if (!alreadyDelivered) this.orders.set(order.id, clone(order));
@@ -465,9 +465,9 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     }>
   > {
     const existing = this.orders.get(order.id);
-    if (!existing) return { ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لعكس تسليمه." };
+    if (!existing) return { ok: false, code: STORAGE_ERROR, message: "لم نجد الطلب المحلي لعكس تسليمه." };
     const guard = validateDeliveryReversalCommit(existing, order);
-    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
     const storedMovements = Array.from(this.inventoryMovements.values());
     if (guard.reused) {
       /* إعادة الاستخدام لا تكتب شيئًا قط — السجل المخزّن هو النتيجة،
@@ -484,7 +484,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       reversalMovements,
       storedMovements,
     );
-    if (!movementGuard.ok) return { ok: false, code: "storage_stale", message: movementGuard.message };
+    if (!movementGuard.ok) return { ok: false, code: STORAGE_STALE, message: movementGuard.message };
     this.orders.set(order.id, clone(order));
     const movementKeys = new Set(storedMovements.map(m => m.operationKey));
     reversalMovements
@@ -518,7 +518,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>> {
     const existing = this.directSales.get(sale.id);
     if (!existing)
-      return { ok: false, code: "storage_error", message: "لم نجد البيع المباشر المحلي لعكس التحصيل." };
+      return { ok: false, code: STORAGE_ERROR, message: "لم نجد البيع المباشر المحلي لعكس التحصيل." };
     const alreadyReversed = (existing.revisions ?? []).some(
       revision => revision.idempotencyKey === revisionKey,
     );
@@ -531,14 +531,14 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       if (!matching)
         return {
           ok: false,
-          code: "storage_error",
+          code: STORAGE_ERROR,
           message: "وجدت عكس تحصيل بلا أثر كاش مطابق؛ لم يتغير السجل.",
         };
       return { ok: true, value: { sale: clone(existing), cashEntry: clone(matching), reused: true } };
     }
     if (allocationReversal) {
       if (this.cashContinuityEntries.has(allocationReversal.id))
-        return { ok: false, code: "storage_error", message: "أثر عكس تخصيص مكرر — لم يتغير السجل." };
+        return { ok: false, code: STORAGE_ERROR, message: "أثر عكس تخصيص مكرر — لم يتغير السجل." };
       const original = allocationReversal.reversesEntryId
         ? this.cashContinuityEntries.get(allocationReversal.reversesEntryId)
         : undefined;
@@ -551,7 +551,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       if (original && reversedSoFar + additional > original.cashDeltaMinor)
         return {
           ok: false,
-          code: "storage_error",
+          code: STORAGE_ERROR,
           message: "عكس التخصيص يتجاوز مبلغ التخصيص الأصلي؛ لم يتغير السجل.",
         };
     }
@@ -600,7 +600,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<{ schedule: ScheduleEntry; reused: boolean }>> {
     const stored = this.schedules.get(schedule.id);
     const guard = validateScheduleUpdate(stored, schedule);
-    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
     if (guard.reused) return { ok: true, value: { schedule: clone(stored!), reused: true } };
     this.schedules.set(schedule.id, clone(schedule));
     return { ok: true, value: { schedule: clone(schedule), reused: false } };
@@ -633,20 +633,20 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     const storedRecurrence = this.recurrences.get(recurrence.id);
     if (storedRecurrence === undefined) {
       if (recurrence.status !== "active")
-        return { ok: false, code: "storage_stale", message: RECURRENCE_STALE_MESSAGE };
+        return { ok: false, code: STORAGE_STALE, message: RECURRENCE_STALE_MESSAGE };
     } else {
       if (storedRecurrence.idempotencyKey !== recurrence.idempotencyKey)
-        return { ok: false, code: "storage_stale", message: RECURRENCE_STALE_MESSAGE };
+        return { ok: false, code: STORAGE_STALE, message: RECURRENCE_STALE_MESSAGE };
       if (
         storedRecurrence.status !== recurrence.status &&
         (storedRecurrence.status !== "active" || recurrence.status !== "cancelled")
       )
-        return { ok: false, code: "storage_stale", message: RECURRENCE_STALE_MESSAGE };
+        return { ok: false, code: STORAGE_STALE, message: RECURRENCE_STALE_MESSAGE };
     }
     /* التحقق من كل المواعيد قبل أي كتابة — فشل واحد يوقف الكل ولا يُكتب شيء. */
     const outcomes = schedules.map(schedule => this.checkRecurrenceSchedule(schedule));
     for (const outcome of outcomes) {
-      if (!outcome.ok) return { ok: false, code: "storage_stale", message: outcome.message };
+      if (!outcome.ok) return { ok: false, code: STORAGE_STALE, message: outcome.message };
     }
     /* إعادة التشغيل بالحالة نفسها تُبقي المخزّن (المفاتيح تتطابق)؛ الإنتقال
      * نشط→موقوف يكتب النسخة الواردة؛ والإنشاء أول يكتبها كما هي. */
@@ -658,7 +658,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     const written: ScheduleEntry[] = [];
     for (const [index, schedule] of schedules.entries()) {
       const outcome = outcomes[index]!;
-      if (!outcome.ok) return { ok: false, code: "storage_stale", message: outcome.message };
+      if (!outcome.ok) return { ok: false, code: STORAGE_STALE, message: outcome.message };
       if (outcome.stored) {
         written.push(clone(outcome.stored));
         continue;
@@ -709,7 +709,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<FinancialEvent>> {
     const source = this.financialEvents.get(sourceEventId);
     if (!source)
-      return { ok: false, code: "storage_error", message: "لم يعد الحدث المصدر موجودًا؛ لم يُحفظ التراجع." };
+      return { ok: false, code: STORAGE_ERROR, message: "لم يعد الحدث المصدر موجودًا؛ لم يُحفظ التراجع." };
     const existing = Array.from(this.financialEvents.values()).find(
       event => event.correctionOfEventId === sourceEventId && event.correctionType === "reverse",
     );
@@ -718,11 +718,11 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         ? { ok: true, value: clone(existing) }
         : {
             ok: false,
-            code: "storage_error",
+            code: STORAGE_ERROR,
             message: "تعذر حفظ التراجع لأن هذا الحدث تم التراجع عنه سابقًا بمفتاح مختلف.",
           };
     if (this.financialEvents.has(reversal.id))
-      return { ok: false, code: "storage_error", message: "تعذر حفظ التراجع بسبب تعارض هوية محلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر حفظ التراجع بسبب تعارض هوية محلية." };
     this.financialEvents.set(reversal.id, clone(reversal));
     return { ok: true, value: clone(reversal) };
   }
@@ -734,9 +734,9 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }>> {
     const source = this.financialEvents.get(sourceEventId);
     if (!source)
-      return { ok: false, code: "storage_error", message: "لم يعد الحدث الأصلي موجودًا؛ لم يتغير السجل." };
+      return { ok: false, code: STORAGE_ERROR, message: "لم يعد الحدث الأصلي موجودًا؛ لم يتغير السجل." };
     if (source.correctionType === "reverse" || source.correctionOfEventId)
-      return { ok: false, code: "storage_error", message: "لا يمكن التراجع عن حدث تراجع سابق." };
+      return { ok: false, code: STORAGE_ERROR, message: "لا يمكن التراجع عن حدث تراجع سابق." };
     const existing = Array.from(this.financialEvents.values()).find(
       event => event.correctionOfEventId === sourceEventId && event.correctionType === "reverse",
     );
@@ -745,11 +745,11 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         ? { ok: true, value: { reversal: clone(existing), replacement: clone(replacement) } }
         : {
             ok: false,
-            code: "storage_error",
+            code: STORAGE_ERROR,
             message: "تعذر حفظ التعديل لأن هذا الحدث عُدّل سابقًا بمفتاح مختلف.",
           };
     if (this.financialEvents.has(reversal.id) || this.financialEvents.has(replacement.id))
-      return { ok: false, code: "storage_error", message: "تعذر حفظ التعديل بسبب تعارض هوية محلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر حفظ التعديل بسبب تعارض هوية محلية." };
     this.financialEvents.set(reversal.id, clone(reversal));
     this.financialEvents.set(replacement.id, clone(replacement));
     return { ok: true, value: { reversal: clone(reversal), replacement: clone(replacement) } };
@@ -784,7 +784,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     }
     const stored = this.supplierPurchases.get(commit.purchase.id);
     const guard = validateSupplierPurchaseCommit(stored, commit);
-    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
     if (guard.reused)
       return { ok: true, value: { purchase: clone(stored ?? commit.purchase), reused: true } };
     this.supplierPurchases.set(commit.purchase.id, clone(commit.purchase));
@@ -824,7 +824,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     if (!reused) {
       const stored = this.supplierPurchases.get(commit.purchase.id);
       const guard = validateSupplierPurchaseCommit(stored, commit);
-      if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+      if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
       reused = guard.reused;
       /* المرجع هو الوارد في المسار الجديد (يحمل الدفعة الجديدة للتخصيص)،
        * والمخزّن في مسار إعادة الاستخدام (الحقيقة التي يُشفي منها). */
@@ -880,7 +880,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       newEntries,
     );
     if (secondOpening) {
-      return { ok: false, code: "storage_stale", message: SECOND_WALLET_OPENING_MESSAGE };
+      return { ok: false, code: STORAGE_STALE, message: SECOND_WALLET_OPENING_MESSAGE };
     }
     newEntries.forEach(entry => this.cashContinuityEntries.set(entry.id, clone(entry)));
     if (wallet && (newEntries.length > 0 || entries.length === 0)) {
@@ -1074,11 +1074,11 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     if (!current || !current.active)
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "لم يعد القالب السابق فعالًا؛ لم تُحفظ النسخة الجديدة.",
       };
     if (this.catalogTemplates.has(next.id))
-      return { ok: false, code: "storage_error", message: "تعارض هوية نسخة القالب؛ لم تتغير البيانات." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعارض هوية نسخة القالب؛ لم تتغير البيانات." };
     this.catalogTemplates.set(previous.id, clone(previous));
     this.catalogTemplates.set(next.id, clone(next));
     return { ok: true, value: { previous: clone(previous), next: clone(next) } };
@@ -1094,10 +1094,6 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         .sort((a, b) => b.recordedOn.localeCompare(a.recordedOn) || b.createdAt.localeCompare(a.createdAt))
         .map(clone),
     };
-  }
-  async getActualTimeRecord(id: string): Promise<StorageResult<ActualTimeRecord | null>> {
-    const record = this.actualTimeRecords.get(id);
-    return { ok: true, value: record ? clone(record) : null };
   }
   async saveActualTimeRecord(record: ActualTimeRecord): Promise<StorageResult<ActualTimeRecord>> {
     this.actualTimeRecords.set(record.id, clone(record));
@@ -1147,13 +1143,13 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     if (!current || current.status !== "active")
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "لم تعد سياسة التوزيع الأصلية فعالة؛ لم يتغير أي شيء.",
       };
     if (this.allocationPolicies.has(successor.id))
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "تعارض هوية نسخة سياسة التوزيع؛ لم تتغير البيانات.",
       };
     this.allocationPolicies.set(previous.id, clone(previous));
@@ -1173,7 +1169,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     );
     if (repeated) return { ok: true, value: clone(repeated) };
     if (this.shortCashDeclarations.has(declaration.id))
-      return { ok: false, code: "storage_error", message: "تعارض هوية السجل المتوقع؛ لم تتغير البيانات." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعارض هوية السجل المتوقع؛ لم تتغير البيانات." };
     this.shortCashDeclarations.set(declaration.id, clone(declaration));
     return { ok: true, value: clone(declaration) };
   }
@@ -1183,7 +1179,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<ShortCashDeclaration>> {
     const source = this.shortCashDeclarations.get(sourceId);
     if (!source || source.kind !== "declaration")
-      return { ok: false, code: "storage_error", message: "لم يعد السجل الأصلي موجودًا؛ لم يُحفظ التراجع." };
+      return { ok: false, code: STORAGE_ERROR, message: "لم يعد السجل الأصلي موجودًا؛ لم يُحفظ التراجع." };
     const existing = Array.from(this.shortCashDeclarations.values()).find(
       candidate => candidate.kind === "reversal" && candidate.reversalOfId === sourceId,
     );
@@ -1192,7 +1188,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         ? { ok: true, value: clone(existing) }
         : {
             ok: false,
-            code: "storage_error",
+            code: STORAGE_ERROR,
             message: "تم التراجع عن هذا السجل المتوقع سابقًا بمفتاح مختلف؛ لم يتغير السجل.",
           };
     const repeated = Array.from(this.shortCashDeclarations.values()).find(
@@ -1202,7 +1198,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     if (this.shortCashDeclarations.has(reversal.id))
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "تعارض هوية التراجع عن السجل المتوقع؛ لم يتغير السجل.",
       };
     this.shortCashDeclarations.set(reversal.id, clone(reversal));
@@ -1241,13 +1237,13 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     if (!current || current.status !== "active")
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "لم تعد السياسة الأصلية فعالة؛ لم تُحفظ النسخة الجديدة.",
       };
     if (this.ownerEntitlementPolicies.has(successor.id))
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "تعارض هوية النسخة الجديدة من السياسة؛ لم يتغير أي شيء.",
       };
     this.ownerEntitlementPolicies.set(previous.id, clone(previous));
@@ -1280,7 +1276,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     if (!source)
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "لم يعد سجل الحق المصدر موجودًا؛ لم يُحفظ التراجع.",
       };
     const existing = Array.from(this.ownerEntitlementRecords.values()).find(
@@ -1291,11 +1287,11 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         ? { ok: true, value: clone(existing) }
         : {
             ok: false,
-            code: "storage_error",
+            code: STORAGE_ERROR,
             message: "التراجع عن الحق موجود بمفتاح مختلف؛ لم تتغير البيانات.",
           };
     if (this.ownerEntitlementRecords.has(reversal.id))
-      return { ok: false, code: "storage_error", message: "تعارض هوية التراجع عن الحق؛ لم تتغير البيانات." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعارض هوية التراجع عن الحق؛ لم تتغير البيانات." };
     this.ownerEntitlementRecords.set(reversal.id, clone(reversal));
     return { ok: true, value: clone(reversal) };
   }
@@ -1323,7 +1319,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     if (!source)
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "لم يعد الرصيد الافتتاحي المصدر موجودًا؛ لم يُحفظ التراجع.",
       };
     const existing = Array.from(this.ownerEntitlementOpeningBalances.values()).find(
@@ -1334,13 +1330,13 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         ? { ok: true, value: clone(existing) }
         : {
             ok: false,
-            code: "storage_error",
+            code: STORAGE_ERROR,
             message: "التراجع عن الرصيد الافتتاحي موجود بمفتاح مختلف؛ لم تتغير البيانات.",
           };
     if (this.ownerEntitlementOpeningBalances.has(reversal.id))
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "تعارض هوية التراجع عن الرصيد الافتتاحي؛ لم تتغير البيانات.",
       };
     this.ownerEntitlementOpeningBalances.set(reversal.id, clone(reversal));
@@ -1372,13 +1368,13 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       if (!existingCash)
         return {
           ok: false,
-          code: "storage_error",
+          code: STORAGE_ERROR,
           message: "وجدت حركة مالك بلا أثر كاش مطابق؛ لم يتغير السجل.",
         };
       return { ok: true, value: { movement: clone(existing), cashEntry: clone(existingCash) } };
     }
     if (this.ownerMovements.has(movement.id) || this.cashContinuityEntries.has(cashEntry.id))
-      return { ok: false, code: "storage_error", message: "تعارض هوية محلية؛ لم تُحفظ حركة المالك." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعارض هوية محلية؛ لم تُحفظ حركة المالك." };
     this.ownerMovements.set(movement.id, clone(movement));
     this.cashContinuityEntries.set(cashEntry.id, clone(cashEntry));
     return { ok: true, value: { movement: clone(movement), cashEntry: clone(cashEntry) } };
@@ -1570,7 +1566,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     if (existing && existing.operationKey !== record.operationKey) {
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message: "سجل أصل مختلف يحمل هذا المعرف؛ لم يتغير شيء.",
       };
     }
@@ -1680,7 +1676,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     }
     const stored = this.loans.get(record.id);
     const relation = validateLoanCommitRelation(stored, record, event);
-    if (!relation.ok) return { ok: false, code: "storage_stale", message: relation.message };
+    if (!relation.ok) return { ok: false, code: STORAGE_STALE, message: relation.message };
     this.loans.set(record.id, clone(record));
     this.financialEvents.set(event.id, clone(event));
     return { ok: true, value: { record: clone(record), event: clone(event), reused: false } };
@@ -1771,7 +1767,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     }
     const stored = this.receivedLoans.get(record.id);
     const relation = validateReceivedLoanCommitRelation(stored, record, event);
-    if (!relation.ok) return { ok: false, code: "storage_stale", message: relation.message };
+    if (!relation.ok) return { ok: false, code: STORAGE_STALE, message: relation.message };
     this.receivedLoans.set(record.id, clone(record));
     this.financialEvents.set(event.id, clone(event));
     return { ok: true, value: { record: clone(record), event: clone(event), reused: false } };
@@ -1913,7 +1909,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     const storedSeries = this.recurringExpenseSeriesList.get(series.id);
     const storedRevision = this.recurringExpenseRevisions.get(revision.id);
     const guard = validateRecurringExpenseDraftCommit(storedSeries, storedRevision, series, revision);
-    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
     if (guard.reused)
       return {
         ok: true,
@@ -1950,7 +1946,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       revision,
       occurrenceUpdates,
     );
-    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
     this.recurringExpenseSeriesList.set(seriesNext.id, clone(seriesNext));
     if (revision !== null) this.recurringExpenseRevisions.set(revision.id, clone(revision));
     for (const update of occurrenceUpdates)
@@ -1974,7 +1970,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     for (const occurrence of occurrences) {
       const stored = this.recurringExpenseOccurrences.get(occurrence.id);
       const guard = validateRecurringExpenseMaterialization(stored, occurrence);
-      if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+      if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
       if (guard.reused) {
         skipped += 1;
       } else {
@@ -1991,7 +1987,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>> {
     const stored = this.recurringExpenseOccurrences.get(next.id);
     const guard = validateRecurringExpenseOccurrenceDecision(stored, base, next);
-    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
     if (guard.reused) return { ok: true, value: { occurrence: clone(stored ?? next), reused: true } };
     this.recurringExpenseOccurrences.set(next.id, clone(next));
     return { ok: true, value: { occurrence: clone(next), reused: false } };
@@ -2013,7 +2009,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     const replay = keyReplay ?? existingEvent;
     if (replay) {
       const collision = validateRecurringExpenseKeyEventCollision(replay, event.type, event.amountMinor);
-      if (!collision.ok) return { ok: false, code: "storage_stale", message: collision.message };
+      if (!collision.ok) return { ok: false, code: STORAGE_STALE, message: collision.message };
     }
     const storedOccurrence = this.recurringExpenseOccurrences.get(next.id);
     const guard = validateRecurringExpenseOccurrenceRecordCommit(
@@ -2023,7 +2019,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       replay,
       event.id,
     );
-    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
     if (guard.reused)
       return {
         ok: true,
@@ -2054,7 +2050,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<{ record: ExpenseBudgetRecord; reused: boolean }>> {
     const stored = this.expenseBudgets.get(record.id);
     const guard = validateExpenseBudgetSave(stored, record, expected);
-    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
     if (guard.reused) return { ok: true, value: { record: clone(stored ?? record), reused: true } };
     this.expenseBudgets.set(record.id, clone(record));
     return { ok: true, value: { record: clone(record), reused: false } };
@@ -2075,7 +2071,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       successor,
       supersededPrevious,
     );
-    if (!guard.ok) return { ok: false, code: "storage_stale", message: guard.message };
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
     if (guard.reused)
       return {
         ok: true,

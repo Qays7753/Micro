@@ -13,14 +13,10 @@ import type { PeriodComparisonReading } from "@/app/PrototypeServicesContext";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { RestatementNote } from "@/components/finance/RestatementNote";
-import { StatementMarkdownService } from "@/application/finance/statementMarkdownService";
+import { StatementMarkdownService } from "@/application/finance";
 /* FIN-007 (WS-173 — Wave 1): قوالب الفترات النقية — القوالب والسابق المكافئ
  * ووسم الفترة الجارية من طبقة التطبيق، لا حساب تواريخ داخل الصفحة. */
-import {
-  isPeriodActive,
-  previousEqualPeriod,
-  resolvePeriodPreset,
-} from "@/application/finance/periodPresets";
+import { isPeriodActive, previousEqualPeriod, resolvePeriodPreset } from "@/application/finance";
 import { categoryCountLabel } from "@/presentation/g5Plurals";
 import { canShareText, downloadTextFile, shareTextManually } from "@/lib/textDelivery";
 import {
@@ -29,11 +25,7 @@ import {
   localDateInAmman,
   formatMoneyWithUnit,
 } from "@/presentation/formatters";
-import type {
-  StatementLine,
-  StatementReading,
-  StatementExpenseCategoryGroup,
-} from "@/application/finance/statementService";
+import type { StatementLine, StatementReading, StatementExpenseCategoryGroup } from "@/application/finance";
 
 import { Button } from "@/components/primitives";
 type State =

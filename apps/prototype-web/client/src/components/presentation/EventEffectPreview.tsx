@@ -8,8 +8,8 @@
 import { useMemo } from "react";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { FinancialEventType, OperatingExpenseContext } from "@micro-domain/financial-event/index.js";
-import { expandExpenseRecordIntent } from "@/application/finance/expenseRecordIntent";
-import type { SharedExpenseRecordInput } from "@/application/finance/expenseRecordIntent";
+import { expandExpenseRecordIntent } from "@/application/financial-records";
+import type { SharedExpenseRecordInput } from "@/application/financial-records";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 
 export type EventEffectIntent = {

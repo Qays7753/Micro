@@ -86,6 +86,7 @@ import {
 } from "./supplierAttributionCommitGuard";
 
 import { RECURRENCE_STALE_MESSAGE } from "./indexedDbStores";
+import { STORAGE_ERROR, STORAGE_STALE } from "./resultCodes";
 import {
   actualTimeStore,
   allocationPolicyStore,
@@ -256,7 +257,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           const live = storedRequest.result as StoredCraftOrder | undefined;
           const guard = validateOrderCommit(live, base, next, idempotencyKeys);
           if (!guard.ok) {
-            pending = { ok: false, code: "storage_stale", message: guard.message };
+            pending = { ok: false, code: STORAGE_STALE, message: guard.message };
             try {
               transaction.abort();
             } catch {
@@ -335,7 +336,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!existing) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "لم نجد الطلب المحلي لرد العربون.",
             };
             try {
@@ -415,7 +416,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (conflict) {
               pending = {
                 ok: false,
-                code: "storage_error",
+                code: STORAGE_ERROR,
                 message: "فك التخصيص يتجاوز مبلغ التخصيص الأصلي؛ لم يتغير السجل.",
               };
               try {
@@ -482,7 +483,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!existing) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "لم نجد الطلب المحلي لتراجع القبضة.",
             };
             try {
@@ -521,7 +522,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (!matching) {
                 pending = {
                   ok: false,
-                  code: "storage_error",
+                  code: STORAGE_ERROR,
                   message: "وجدت تراجع قبضة بلا أثر تخصيص مطابق؛ لم يتغير السجل.",
                 };
               } else {
@@ -555,7 +556,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (conflict) {
                 pending = {
                   ok: false,
-                  code: "storage_error",
+                  code: STORAGE_ERROR,
                   message: "تم التراجع عن تخصيص هذه القبضة سابقًا؛ لم يتغير السجل.",
                 };
                 try {
@@ -651,7 +652,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!existing) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "لم نجد الطلب المحلي لتسجيل التسليم.",
             };
             try {
@@ -684,7 +685,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!alreadyDelivered && !orderRecordIdentical(existing, base)) {
             pending = {
               ok: false,
-              code: "storage_stale",
+              code: STORAGE_STALE,
               message: "سجل الطلب تغيّر من مسار آخر بعد فتحك له — لم يُسجَّل شيء؛ أعد المحاولة.",
             };
             try {
@@ -829,12 +830,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         orderRequest.onsuccess = () => {
           const existing = orderRequest.result as StoredCraftOrder | undefined;
           if (!existing) {
-            abortWith({ ok: false, code: "storage_error", message: "لم نجد الطلب المحلي لعكس تسليمه." });
+            abortWith({ ok: false, code: STORAGE_ERROR, message: "لم نجد الطلب المحلي لعكس تسليمه." });
             return;
           }
           const guard = validateDeliveryReversalCommit(existing, order);
           if (!guard.ok) {
-            abortWith({ ok: false, code: "storage_stale", message: guard.message });
+            abortWith({ ok: false, code: STORAGE_STALE, message: guard.message });
             return;
           }
           const movementRequest = movementStore.getAll();
@@ -862,7 +863,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               storedMovements,
             );
             if (!movementGuard.ok) {
-              abortWith({ ok: false, code: "storage_stale", message: movementGuard.message });
+              abortWith({ ok: false, code: STORAGE_STALE, message: movementGuard.message });
               return;
             }
             orders.put(order);
@@ -939,7 +940,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!existing) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "لم نجد البيع المباشر المحلي لعكس التحصيل.",
             };
             try {
@@ -978,7 +979,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (!matching) {
                 pending = {
                   ok: false,
-                  code: "storage_error",
+                  code: STORAGE_ERROR,
                   message: "وجدت عكس تحصيل بلا أثر كاش مطابق؛ لم يتغير السجل.",
                 };
               } else {
@@ -1007,7 +1008,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (allCash.some(entry => entry.id === allocationReversal.id)) {
                 pending = {
                   ok: false,
-                  code: "storage_error",
+                  code: STORAGE_ERROR,
                   message: "أثر عكس تخصيص مكرر — لم يتغير السجل.",
                 };
                 try {
@@ -1028,7 +1029,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (original && reversedSoFar + additional > original.cashDeltaMinor) {
                 pending = {
                   ok: false,
-                  code: "storage_error",
+                  code: STORAGE_ERROR,
                   message: "عكس التخصيص يتجاوز مبلغ التخصيص الأصلي؛ لم يتغير السجل.",
                 };
                 try {
@@ -1094,7 +1095,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           const stored = storedRequest.result as ScheduleEntry | undefined;
           const guard = validateScheduleCreate(stored);
           if (!guard.ok) {
-            pending = { ok: false, code: "storage_stale", message: guard.message };
+            pending = { ok: false, code: STORAGE_STALE, message: guard.message };
             try {
               transaction.abort();
             } catch {
@@ -1152,7 +1153,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           const stored = storedRequest.result as ScheduleEntry | undefined;
           const guard = validateScheduleUpdate(stored, schedule);
           if (!guard.ok) {
-            pending = { ok: false, code: "storage_stale", message: guard.message };
+            pending = { ok: false, code: STORAGE_STALE, message: guard.message };
             try {
               transaction.abort();
             } catch {
@@ -1249,7 +1250,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             }
             const guard = validateScheduleUpdate(stored, schedule);
             if (!guard.ok) {
-              abortWith({ ok: false, code: "storage_stale", message: guard.message });
+              abortWith({ ok: false, code: STORAGE_STALE, message: guard.message });
               return;
             }
             if (guard.reused) {
@@ -1275,7 +1276,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             /* إنشاء أول: القالب يجب أن يكون جديدًا بنشاط — إعادة تشغيل بمفتاح
              * مختلف أو قالب قائم تعني مسارًا آخر سبقنا. */
             if (recurrence.status !== "active") {
-              abortWith({ ok: false, code: "storage_stale", message: RECURRENCE_STALE_MESSAGE });
+              abortWith({ ok: false, code: STORAGE_STALE, message: RECURRENCE_STALE_MESSAGE });
               return;
             }
             recurrences.put(recurrence);
@@ -1286,7 +1287,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           /* القالب قائم: إعادة استخدام صادقة عند تطابق المفتاح (إنشاء مُعاد
            * أو إيقاف مُعاد)، ورفض تعارضي عند اختلافه. */
           if (storedRecurrence.idempotencyKey !== recurrence.idempotencyKey) {
-            abortWith({ ok: false, code: "storage_stale", message: RECURRENCE_STALE_MESSAGE });
+            abortWith({ ok: false, code: STORAGE_STALE, message: RECURRENCE_STALE_MESSAGE });
             return;
           }
           if (storedRecurrence.status === recurrence.status) {
@@ -1295,7 +1296,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           if (storedRecurrence.status !== "active" || recurrence.status !== "cancelled") {
-            abortWith({ ok: false, code: "storage_stale", message: RECURRENCE_STALE_MESSAGE });
+            abortWith({ ok: false, code: STORAGE_STALE, message: RECURRENCE_STALE_MESSAGE });
             return;
           }
           recurrences.put(recurrence);
@@ -1369,13 +1370,13 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!source) {
             abortWith({
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "لم يعد الحدث المصدر موجودًا؛ لم يُحفظ التراجع.",
             });
             return;
           }
           if (source.correctionType === "reverse" || source.correctionOfEventId) {
-            abortWith({ ok: false, code: "storage_error", message: "لا يمكن التراجع عن حدث تراجع سابق." });
+            abortWith({ ok: false, code: STORAGE_ERROR, message: "لا يمكن التراجع عن حدث تراجع سابق." });
             return;
           }
           const existing = events.find(
@@ -1387,7 +1388,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 ? { ok: true, value: existing }
                 : {
                     ok: false,
-                    code: "storage_error",
+                    code: STORAGE_ERROR,
                     message: "تعذر حفظ التراجع لأن هذا الحدث تم التراجع عنه سابقًا بمفتاح مختلف.",
                   },
             );
@@ -1396,7 +1397,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (events.some(event => event.id === reversal.id)) {
             abortWith({
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "تعذر حفظ التراجع بسبب تعارض هوية محلية.",
             });
             return;
@@ -1414,7 +1415,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           ) {
             abortWith({
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "بيانات التراجع لا تطابق الحدث الأصلي؛ لم يتغير السجل.",
             });
             return;
@@ -1470,13 +1471,13 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!source) {
             abortWith({
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "لم يعد الحدث الأصلي موجودًا؛ لم يتغير السجل.",
             });
             return;
           }
           if (source.correctionType === "reverse" || source.correctionOfEventId) {
-            abortWith({ ok: false, code: "storage_error", message: "لا يمكن التراجع عن حدث تراجع سابق." });
+            abortWith({ ok: false, code: STORAGE_ERROR, message: "لا يمكن التراجع عن حدث تراجع سابق." });
             return;
           }
           const existing = events.find(
@@ -1488,7 +1489,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 ? { ok: true, value: { reversal: existing, replacement } }
                 : {
                     ok: false,
-                    code: "storage_error",
+                    code: STORAGE_ERROR,
                     message: "تعذر حفظ التعديل لأن هذا الحدث عُدّل سابقًا بمفتاح مختلف.",
                   },
             );
@@ -1497,7 +1498,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (events.some(event => event.id === reversal.id || event.id === replacement.id)) {
             abortWith({
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "تعذر حفظ التعديل بسبب تعارض هوية محلية.",
             });
             return;
@@ -1514,7 +1515,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           ) {
             abortWith({
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "بيانات التراجع لا تطابق الحدث الأصلي؛ لم يتغير السجل.",
             });
             return;
@@ -1569,7 +1570,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const settleGuard = (stored: SupplierPurchase | undefined) => {
           const guard = validateSupplierPurchaseCommit(stored, commit);
           if (!guard.ok) {
-            pending = { ok: false, code: "storage_stale", message: guard.message };
+            pending = { ok: false, code: STORAGE_STALE, message: guard.message };
             try {
               transaction.abort();
             } catch {
@@ -1690,7 +1691,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           } else {
             const guard = validateSupplierPurchaseCommit(stored, commit);
             if (!guard.ok) {
-              abortWith({ ok: false, code: "storage_stale", message: guard.message });
+              abortWith({ ok: false, code: STORAGE_STALE, message: guard.message });
               return;
             }
             reused = guard.reused;
@@ -1816,7 +1817,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             newEntries,
           );
           if (secondOpening) {
-            rejection = { ok: false, code: "storage_stale", message: SECOND_WALLET_OPENING_MESSAGE };
+            rejection = { ok: false, code: STORAGE_STALE, message: SECOND_WALLET_OPENING_MESSAGE };
             transaction.abort();
             return;
           }
@@ -2067,7 +2068,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!current || !current.active) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "لم يعد القالب السابق فعالًا؛ لم تُحفظ النسخة الجديدة.",
             };
             try {
@@ -2080,7 +2081,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (templates.some(template => template.id === next.id)) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "تعارض هوية نسخة القالب؛ لم تتغير البيانات.",
             };
             try {
@@ -2109,9 +2110,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       (left, right) =>
         right.recordedOn.localeCompare(left.recordedOn) || right.createdAt.localeCompare(left.createdAt),
     );
-  }
-  getActualTimeRecord(id: string) {
-    return readOne<ActualTimeRecord>(actualTimeStore, id);
   }
   saveActualTimeRecord(record: ActualTimeRecord) {
     return writeOne(actualTimeStore, record);
@@ -2200,7 +2198,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!current || current.status !== "active") {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "لم تعد سياسة التوزيع الأصلية فعالة؛ لم يتغير أي شيء.",
             };
             try {
@@ -2213,7 +2211,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (policies.some(policy => policy.id === successor.id)) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "تعارض هوية نسخة سياسة التوزيع؛ لم تتغير البيانات.",
             };
             try {
@@ -2272,7 +2270,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!source) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "لم يعد السجل الأصلي موجودًا؛ لم يُحفظ التراجع.",
             };
             try {
@@ -2291,7 +2289,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 ? { ok: true, value: existing }
                 : {
                     ok: false,
-                    code: "storage_error",
+                    code: STORAGE_ERROR,
                     message: "تم التراجع عن هذا السجل المتوقع سابقًا بمفتاح مختلف؛ لم يتغير السجل.",
                   };
             try {
@@ -2317,7 +2315,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (declarations.some(candidate => candidate.id === reversal.id)) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "تعارض هوية التراجع عن السجل المتوقع؛ لم يتغير السجل.",
             };
             try {
@@ -2395,7 +2393,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!current || current.status !== "active") {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "لم تعد السياسة الأصلية فعالة؛ لم تُحفظ النسخة الجديدة.",
             };
             try {
@@ -2408,7 +2406,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (policies.some(policy => policy.id === successor.id)) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "تعارض هوية النسخة الجديدة من السياسة؛ لم يتغير أي شيء.",
             };
             try {
@@ -2472,7 +2470,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!source) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "لم يعد سجل الحق المصدر موجودًا؛ لم يُحفظ التراجع.",
             };
             try {
@@ -2489,7 +2487,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 ? { ok: true, value: existing }
                 : {
                     ok: false,
-                    code: "storage_error",
+                    code: STORAGE_ERROR,
                     message: "التراجع عن الحق موجود بمفتاح مختلف؛ لم تتغير البيانات.",
                   };
             try {
@@ -2502,7 +2500,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (records.some(record => record.id === reversal.id)) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "تعارض هوية التراجع عن الحق؛ لم تتغير البيانات.",
             };
             try {
@@ -2562,7 +2560,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (!source) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "لم يعد الرصيد الافتتاحي المصدر موجودًا؛ لم يُحفظ التراجع.",
             };
             try {
@@ -2579,7 +2577,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 ? { ok: true, value: existing }
                 : {
                     ok: false,
-                    code: "storage_error",
+                    code: STORAGE_ERROR,
                     message: "التراجع عن الرصيد الافتتاحي موجود بمفتاح مختلف؛ لم تتغير البيانات.",
                   };
             try {
@@ -2592,7 +2590,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (balances.some(balance => balance.id === reversal.id)) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "تعارض هوية التراجع عن الرصيد الافتتاحي؛ لم تتغير البيانات.",
             };
             try {
@@ -2668,7 +2666,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (!matching) {
                 pending = {
                   ok: false,
-                  code: "storage_error",
+                  code: STORAGE_ERROR,
                   message: "وجدت حركة مالك بلا أثر كاش مطابق؛ لم يتغير السجل.",
                 };
                 try {
@@ -2826,7 +2824,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           if (existing && existing.operationKey !== record.operationKey) {
             pending = {
               ok: false,
-              code: "storage_error",
+              code: STORAGE_ERROR,
               message: "سجل أصل مختلف يحمل هذا المعرف؛ لم يتغير شيء.",
             };
             try {
@@ -3051,7 +3049,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               const storedLoan = loanRequest.result as LoanRecord | undefined;
               const relation = validateLoanCommitRelation(storedLoan, record, event);
               if (!relation.ok) {
-                pending = { ok: false, code: "storage_stale", message: relation.message };
+                pending = { ok: false, code: STORAGE_STALE, message: relation.message };
                 try {
                   transaction.abort();
                 } catch {
@@ -3288,7 +3286,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               const storedLoan = loanRequest.result as ReceivedLoanRecord | undefined;
               const relation = validateReceivedLoanCommitRelation(storedLoan, record, event);
               if (!relation.ok) {
-                pending = { ok: false, code: "storage_stale", message: relation.message };
+                pending = { ok: false, code: STORAGE_STALE, message: relation.message };
                 try {
                   transaction.abort();
                 } catch {
@@ -3642,7 +3640,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             const storedRevision = revisionRequest.result as RecurringExpenseRuleRevision | undefined;
             const guard = validateRecurringExpenseDraftCommit(storedSeries, storedRevision, series, revision);
             if (!guard.ok) {
-              pending = { ok: false, code: "storage_stale", message: guard.message };
+              pending = { ok: false, code: STORAGE_STALE, message: guard.message };
               try {
                 transaction.abort();
               } catch {
@@ -3743,7 +3741,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 occurrenceUpdates,
               );
               if (!guard.ok) {
-                abortWith({ ok: false, code: "storage_stale", message: guard.message });
+                abortWith({ ok: false, code: STORAGE_STALE, message: guard.message });
                 return;
               }
               serieses.put(seriesNext);
@@ -3805,7 +3803,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           for (const occurrence of occurrences) {
             const guard = validateRecurringExpenseMaterialization(storedById.get(occurrence.id), occurrence);
             if (!guard.ok) {
-              abortWith({ ok: false, code: "storage_stale", message: guard.message });
+              abortWith({ ok: false, code: STORAGE_STALE, message: guard.message });
               return;
             }
             if (guard.reused) {
@@ -3853,7 +3851,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           const stored = occurrenceRequest.result as RecurringExpenseOccurrence | undefined;
           const guard = validateRecurringExpenseOccurrenceDecision(stored, base, next);
           if (!guard.ok) {
-            pending = { ok: false, code: "storage_stale", message: guard.message };
+            pending = { ok: false, code: STORAGE_STALE, message: guard.message };
             try {
               transaction.abort();
             } catch {
@@ -3938,7 +3936,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 event.amountMinor,
               );
               if (!collision.ok) {
-                abortWith({ ok: false, code: "storage_stale", message: collision.message });
+                abortWith({ ok: false, code: STORAGE_STALE, message: collision.message });
                 return;
               }
             }
@@ -3954,7 +3952,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 event.id,
               );
               if (!guard.ok) {
-                abortWith({ ok: false, code: "storage_stale", message: guard.message });
+                abortWith({ ok: false, code: STORAGE_STALE, message: guard.message });
                 return;
               }
               if (guard.reused) {
@@ -4023,7 +4021,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           const stored = storedRequest.result as ExpenseBudgetRecord | undefined;
           const guard = validateExpenseBudgetSave(stored, record, expected);
           if (!guard.ok) {
-            pending = { ok: false, code: "storage_stale", message: guard.message };
+            pending = { ok: false, code: STORAGE_STALE, message: guard.message };
             try {
               transaction.abort();
             } catch {
@@ -4101,7 +4099,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               supersededPrevious,
             );
             if (!guard.ok) {
-              abortWith({ ok: false, code: "storage_stale", message: guard.message });
+              abortWith({ ok: false, code: STORAGE_STALE, message: guard.message });
               return;
             }
             if (guard.reused) {

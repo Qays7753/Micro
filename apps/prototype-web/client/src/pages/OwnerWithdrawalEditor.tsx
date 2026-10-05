@@ -15,10 +15,7 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { CrossModelDuplicateNotice } from "@/components/owner/CrossModelDuplicateNotice";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
-import type {
-  CrossModelOwnerDuplicate,
-  OwnerEntitlementOverview,
-} from "@/application/finance/ownerEntitlementService";
+import type { CrossModelOwnerDuplicate, OwnerEntitlementOverview } from "@/application/owner-money";
 
 import { Button } from "@/components/primitives";
 /* مفتاح القرار (X-05): وجود سياسة حق مالك فعالة يوجه السحب إلى مسار الدفتر

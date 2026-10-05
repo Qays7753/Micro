@@ -21,15 +21,15 @@ import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeSer
  * (الخدمة نفسها تُوفَّر عبر السياق؛ جسم الجسر كله داخل تفاصيل مطوية). */
 import type { ProfitToCashBridgeReading } from "@/app/PrototypeServicesContext";
 import type { LocalFinancialPulse } from "@/application/financial-pulse/financialPulseService";
-import type { DepositOverview } from "@/application/fulfillment/fulfillmentService";
+import { DepositOverview } from "@/application/fulfillment/fulfillmentService";
 import type {
   FinancialInsights,
   FinancialMetricEvidence,
   ProjectFinancialPosition,
   ProjectFinancialService,
   RecordedPeriodResult,
-} from "@/application/finance/projectFinancialService";
-import type { OwnerEntitlementOverview } from "@/application/finance/ownerEntitlementService";
+} from "@/application/finance";
+import type { OwnerEntitlementOverview } from "@/application/owner-money";
 import type { G5Decision, ShortCashHorizonReading } from "@/application/g5/g5Service";
 /* FIN-005 (WS-175 — Wave 3): عائلة أفق الكاش القصير — الأنواع والثوابت فقط
  * (النموذج النقي لا يحمّل كومة الصفحة: بلا مخزن ولا React). */
@@ -38,7 +38,7 @@ import {
   SHORT_CASH_HORIZON_DAYS,
   SHORT_CASH_HORIZON_LABELS_AR,
   type ShortCashHorizonDays,
-} from "@/application/finance/shortCashHorizon";
+} from "@/application/finance";
 import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial-event/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
 /* FIN-004 (WS-176 — Wave 4): قراءة السحب الآمن الاستشارية — دالة مجال نقية
@@ -73,13 +73,13 @@ import { FinancePoliciesSection } from "@/components/finance/FinancePoliciesSect
 import { FinanceObligationsCard } from "@/components/finance/FinanceObligationsCard";
 /* FIN-002 (WS-174 — Wave 2): جسم الميزانيات الاختيارية — مكوّن مستقل (كثافة + سابقة RecurringConfirmPanel). */
 import { FinanceBudgetsSection } from "@/components/finance/ExpenseBudgetsSectionBody";
-import type { CorrectionDigest } from "@/application/finance/correctionHistoryService";
-import type { PeriodWasteReading } from "@/application/inventory/inventoryMaterialService";
+import type { CorrectionDigest } from "@/application/financial-records";
+import type { PeriodWasteReading } from "@/application/inventory";
 import { DepositsLayer } from "@/components/finance/DepositsLayer";
 /* المجموعة ٤ (عقد ٢٩): قراءات الأصول والقروض والعربون المحتفظ به. */
 import type { AssetOverviewRead } from "@/application/assets/assetService";
-import type { LoanOverviewRead } from "@/application/loans/loanService";
-import type { RetainedDepositRow } from "@/application/finance/retainedDepositService";
+import { LoanOverviewRead } from "@/application/loans/loanService";
+import type { RetainedDepositRow } from "@/application/financial-records";
 import * as G5Display from "@/components/finance/G5DecisionPanel";
 import {
   formatBreakEvenDisplay,

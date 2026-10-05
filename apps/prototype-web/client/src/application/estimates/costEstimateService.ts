@@ -9,6 +9,14 @@ import type {
   DraftCostTime,
   PrototypeLocalStore,
 } from "@/storage/local/types";
+import {
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  errorMessageOf,
+  storageFailure,
+  validationFailure,
+} from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type CostEstimateResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -32,7 +40,7 @@ const id = (prefix: string) =>
 export class CostEstimateService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   /** حساب حي بلا تخزين — نفس سياسة calculateCostSnapshot في حماية المالك. */
@@ -70,26 +78,18 @@ export class CostEstimateService {
         },
       };
     } catch (error) {
-      return {
-        ok: false,
-        code: "validation_error",
-        message: error instanceof Error ? error.message : "مدخلات الحساب غير صالحة.",
-      };
+      return validationFailure(errorMessageOf(error, "مدخلات الحساب غير صالحة."));
     }
   }
 
   async list(): Promise<CostEstimateResult<readonly CostEstimate[]>> {
     const result = await this.store.listCostEstimates();
-    return result.ok
-      ? { ok: true, value: result.value }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة التقديرات المحفوظة." };
+    return result.ok ? { ok: true, value: result.value } : storageFailure("تعذر قراءة التقديرات المحفوظة.");
   }
 
   async get(idValue: string): Promise<CostEstimateResult<CostEstimate | null>> {
     const result = await this.store.getCostEstimate(idValue);
-    return result.ok
-      ? { ok: true, value: result.value }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة التقدير." };
+    return result.ok ? { ok: true, value: result.value } : storageFailure("تعذر قراءة التقدير.");
   }
 
   /** حفظ التقدير للمراجعة — أثره صفر على الكاش والأرصدة والمخزون والطلبات. */
@@ -117,15 +117,13 @@ export class CostEstimateService {
       updatedAt: timestamp,
     };
     const saved = await this.store.saveCostEstimate(estimate);
-    return saved.ok
-      ? { ok: true, value: saved.value }
-      : { ok: false, code: "storage_error", message: "تعذر حفظ التقدير." };
+    return saved.ok ? { ok: true, value: saved.value } : storageFailure("تعذر حفظ التقدير.");
   }
 
   async update(existingId: string, input: CostEstimateInput): Promise<CostEstimateResult<CostEstimate>> {
     const current = await this.store.getCostEstimate(existingId);
-    if (!current.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة التقدير." };
-    if (!current.value) return { ok: false, code: "validation_error", message: "التقدير غير موجود." };
+    if (!current.ok) return storageFailure("تعذر قراءة التقدير.");
+    if (!current.value) return validationFailure("التقدير غير موجود.");
     const preview = this.preview(input);
     if (!preview.ok) return preview;
     const updated: CostEstimate = {
@@ -146,16 +144,12 @@ export class CostEstimateService {
       updatedAt: this.now(),
     };
     const saved = await this.store.saveCostEstimate(updated);
-    return saved.ok
-      ? { ok: true, value: saved.value }
-      : { ok: false, code: "storage_error", message: "تعذر تحديث التقدير." };
+    return saved.ok ? { ok: true, value: saved.value } : storageFailure("تعذر تحديث التقدير.");
   }
 
   /** حذف حر: أداة تفكير بلا أثر مالي — يحذف بلا تحفظ ولا يغيّر أي رصيد. */
   async remove(existingId: string): Promise<CostEstimateResult<null>> {
     const result = await this.store.deleteCostEstimate(existingId);
-    return result.ok
-      ? { ok: true, value: null }
-      : { ok: false, code: "storage_error", message: "تعذر حذف التقدير." };
+    return result.ok ? { ok: true, value: null } : storageFailure("تعذر حذف التقدير.");
   }
 }

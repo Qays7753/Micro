@@ -7,8 +7,8 @@
  */
 import { useEffect, useState } from "react";
 import type { PreferenceService } from "@/application/preferences/preferenceService";
-import type { AgreementService } from "@/application/agreements/agreementService";
-import type { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
+import { AgreementService } from "@/application/agreements/agreementService";
+import type { InventoryMaterialService } from "@/application/inventory";
 import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import type { CatalogService } from "@/application/catalog/catalogService";
 

@@ -26,7 +26,23 @@ import type { InventoryMovement, WasteContext } from "@micro-domain/inventory-ma
 import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import type { AllocationPolicyStore } from "@/storage/local/capabilities/allocationPolicyStore";
+import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
+import { systemClock, type Clock } from "@/application/time/clock";
+import { errorMessageOf } from "@/application/resultCodes";
+
+/* Wave C (ADR-015 مجموعة 4 — 2026-10-04): النوع الضيق للخدمة — قدرة سياسات
+ * التوزيع (قفل exe017 محفوظ: هذه الخدمة المالية الكاتب الوحيد) زائد
+ * القراءات المصرح بها: قراءة الطلبات من قدرة دورة حياة الطلب (4C)
+ * وقراءات الكتالوج والوقت الفعلي والمخزون (جرد مستهلك حي: 9 طرق).
+ * لا سلوك يتغير — حقن تركيبي كما هو. */
+type RecurringWorkServiceStore = AllocationPolicyStore &
+  Pick<OrderLifecycleStore, "listOrders"> &
+  Pick<
+    PrototypeLocalStore,
+    "getCatalogItem" | "listCatalogItems" | "listActualTimeRecords" | "listInventoryMovements"
+  >;
 
 export type RecurringWorkFailure = {
   ok: false;
@@ -176,8 +192,8 @@ const sumSafeIntegers = (values: readonly number[]): number | null => {
 
 export class RecurringWorkService {
   constructor(
-    private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly store: RecurringWorkServiceStore,
+    private readonly now: Clock = systemClock,
   ) {}
 
   async createPolicy(input: RecurringWorkPolicyInput): Promise<RecurringWorkResult<AllocationPolicy>> {
@@ -216,10 +232,7 @@ export class RecurringWorkService {
         ? { ok: true, value: saved.value }
         : failure("تعذر حفظ سياسة التوزيع؛ لم يتغير أي أثر مالي.");
     } catch (error) {
-      return failure(
-        error instanceof Error ? error.message : "بيانات سياسة التوزيع غير صالحة.",
-        "validation_error",
-      );
+      return failure(errorMessageOf(error, "بيانات سياسة التوزيع غير صالحة."), "validation_error");
     }
   }
 
@@ -283,7 +296,7 @@ export class RecurringWorkService {
         : failure("تعذر حفظ النسخة الجديدة من سياسة التوزيع ذريًا؛ بقيت النسخة السابقة كما هي.");
     } catch (error) {
       return failure(
-        error instanceof Error ? error.message : "بيانات النسخة الجديدة من سياسة التوزيع غير صالحة.",
+        errorMessageOf(error, "بيانات النسخة الجديدة من سياسة التوزيع غير صالحة."),
         "validation_error",
       );
     }

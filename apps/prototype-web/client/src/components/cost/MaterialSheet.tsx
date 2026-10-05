@@ -15,7 +15,7 @@ import type { DraftCostMaterial } from "@/storage/local/types";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 /* المجموعة ٨ (STR-005): نوع «مقترح المادة» صار يملكه حد التطبيق (المخزون)
  * — الورقة تستورده من مالكه، والاتجاه القانوني: الواجهة ← التطبيق. */
-import type { MaterialSuggestion } from "@/application/inventory/materialSuggestions";
+import type { MaterialSuggestion } from "@/application/inventory";
 import { echoQuantityMilli } from "@/application/input/englishNumeric";
 
 import { Button } from "@/components/primitives";

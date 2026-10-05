@@ -14,6 +14,8 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { CollectionService } from "@/application/collections/collectionService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { classifyDueDate, dueAgingBucket, type DueAgingBucket, type DueDateState } from "./dueDateAging";
+import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type PayableDueRow = {
   purchaseId: string;
@@ -56,14 +58,13 @@ export class DueDatesService {
   constructor(
     private readonly store: PrototypeLocalStore,
     private readonly collections: CollectionService,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   /** تقادم الذمم الدائنة المفتوحة: متأخر / حالي / مجهول التاريخ، بمبالغها. */
   async readPayablesAging(): Promise<DueDatesResult<PayablesAgingOverview>> {
     const purchases = await this.store.listSupplierPurchases();
-    if (!purchases.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة مشتريات الموردين المحلية." };
+    if (!purchases.ok) return storageFailure("تعذر قراءة مشتريات الموردين المحلية.");
     const today = localDateInAmman(this.now());
     const rows: PayableDueRow[] = [];
     for (const purchase of purchases.value) {
@@ -84,7 +85,7 @@ export class DueDatesService {
   /** ذمم التحصيل بحالتها الصادقة الوحيدة: «بلا تاريخ استحقاق» — والمبالغ تُقرأ. */
   async readReceivablesDueState(): Promise<DueDatesResult<readonly ReceivableDueRow[]>> {
     const sources = await this.collections.listReceivableSources();
-    if (!sources.ok) return { ok: false, code: "storage_error", message: sources.message };
+    if (!sources.ok) return storageFailure(sources.message);
     const rows = sources.value.map(source => ({
       sourceKind: source.kind,
       sourceId: source.id,

@@ -7,8 +7,8 @@ import type { InventoryMaterialService } from "@/application/inventory/inventory
 import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import type { ActivityService } from "@/application/activity/activityService";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
-import { formatMoneyMinor } from "@/presentation/formatters";
-import { activityEffectLabel, activityFamilyLabel } from "@/presentation/activityLabels";
+import { formatMoneyMinor } from "@/application/formatting/formatters";
+import { activityEffectLabel, activityFamilyLabel } from "@/application/activity/activityLabels";
 
 /* مبدأ Micro: جمع النص يشرح عدد المواعيد فقط؛ لا يغيّر قرار السعة أو حالة الموعد. */
 import {
@@ -23,6 +23,8 @@ import {
   type HomeTodayItem,
   type HomeTodaySection,
 } from "./homeControlCenterModel";
+import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type HomeControlCenterResult =
   { ok: true; value: HomeControlCenterViewModel } | { ok: false; code: "storage_error"; message: string };
@@ -72,7 +74,7 @@ export class HomeControlCenterService {
     private readonly inventory: InventoryMaterialService,
     private readonly agreementContext: AgreementContextService,
     private readonly activity: ActivityService,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async read(): Promise<HomeControlCenterResult> {
@@ -127,7 +129,7 @@ export class HomeControlCenterService {
       !previousMonthPeriod.ok ||
       !profile.value
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة بيانات مشروعك المحلية." };
+      return storageFailure("تعذر قراءة بيانات مشروعك المحلية.");
 
     const orders = followUp.orders;
     const openDrafts = followUp.drafts;

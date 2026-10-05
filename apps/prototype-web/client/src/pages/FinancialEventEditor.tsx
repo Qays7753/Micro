@@ -29,14 +29,14 @@ import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import {
   deriveExpenseCategorySuggestions,
   normalizeCategoryLabelInput,
-} from "@/application/finance/expenseCategorySuggestions";
+} from "@/application/financial-records";
 import {
   browserLegacyFormDraftStorage,
   legacyFinanceDraftKey,
   migrateLegacyFormDraft,
 } from "@/application/drafts/legacyFormDraftMigration";
-import type { SettleablePayable } from "@/application/finance/projectFinancialService";
-import type { CrossModelOwnerDuplicate } from "@/application/finance/ownerEntitlementService";
+import type { SettleablePayable } from "@/application/finance";
+import type { CrossModelOwnerDuplicate } from "@/application/owner-money";
 import { percentToBpsExact } from "@/application/input/englishNumeric";
 import type {
   FinancialEventType,

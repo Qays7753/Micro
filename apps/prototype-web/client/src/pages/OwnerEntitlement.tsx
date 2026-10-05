@@ -26,7 +26,7 @@ import type {
   CrossModelOwnerDuplicate,
   OwnerEntitlementOverview,
   OwnerMoneyOverview,
-} from "@/application/finance/ownerEntitlementService";
+} from "@/application/owner-money";
 import {
   ownerEntitlementPolicyFamilyForKind,
   type OwnerEntitlementPolicy,

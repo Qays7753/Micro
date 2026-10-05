@@ -645,7 +645,6 @@ export interface PrototypeLocalStore {
     movement: OwnerMovement,
     cashEntry: CashContinuityEntry,
   ): Promise<StorageResult<{ movement: OwnerMovement; cashEntry: CashContinuityEntry }>>;
-  getActualTimeRecord(id: string): Promise<StorageResult<ActualTimeRecord | null>>;
   saveActualTimeRecord(record: ActualTimeRecord): Promise<StorageResult<ActualTimeRecord>>;
   listAllocationPolicies(catalogItemId?: string): Promise<StorageResult<readonly AllocationPolicy[]>>;
   getAllocationPolicy(id: string): Promise<StorageResult<AllocationPolicy | null>>;

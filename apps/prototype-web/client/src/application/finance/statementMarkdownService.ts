@@ -15,7 +15,8 @@
 import type { StatementReading } from "./statementService";
 import type { RecordedPeriodResult } from "./projectFinancialService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
-import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyWithUnit } from "@/application/formatting/formatters";
+import { VALIDATION_ERROR, validationFailure } from "@/application/resultCodes";
 
 export type StatementMarkdownResult =
   | { ok: true; value: { markdown: string; filename: string } }
@@ -93,7 +94,7 @@ export class StatementMarkdownService {
   /** التوليد من قراءة كاملة جاهزة — لا قراءة إضافية ولا حساب. */
   render(reading: StatementReading): StatementMarkdownResult {
     if (!reading || !reading.blocks) {
-      return { ok: false, code: "validation_error", message: "قراءة الكشف غير متوفرة للتقرير." };
+      return validationFailure("قراءة الكشف غير متوفرة للتقرير.");
     }
     const generatedOn = localDateInAmman();
     const blocks = reading.blocks;

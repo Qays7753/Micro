@@ -18,7 +18,7 @@ describe("documentation consistency — Group 4 bundle budget implemented on the
     const section34 = currentState.split("## §34.")[1] ?? "";
     expect(section34).toContain("check-bundle-budget.mjs");
     expect(section34).toContain("650_000");
-    expect(section34).toContain("155_000");
+    expect(section34).toContain("155_300");
     expect(section34).toContain("build.manifest");
     expect(section34).toContain("closeBundle");
   });

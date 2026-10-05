@@ -25,7 +25,7 @@ import type {
   IntegrityCheckResult,
   IntegrityOffenderSummary,
   IntegrityCheckStatus,
-} from "@/application/finance/integrityCheckService";
+} from "@/application/finance";
 
 import { Button } from "@/components/primitives";
 type State =

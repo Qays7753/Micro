@@ -59,7 +59,7 @@ import type {
   RecurringWorkPolicyInput,
   RecurringWorkReading,
   RecurringWorkReadings,
-} from "@/application/finance/recurringWorkService";
+} from "@/application/finance";
 
 import { FeedbackMessage, FeedbackNote } from "@/components/primitives";
 

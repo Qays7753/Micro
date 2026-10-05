@@ -12,7 +12,7 @@ import { useLocation, useParams } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import type { RecurringExpenseDetailReading } from "@/application/finance/recurringExpenseService";
+import type { RecurringExpenseDetailReading } from "@/application/finance";
 import type {
   RecurringExpenseOccurrenceReading,
   RecurringExpenseRuleRevision,

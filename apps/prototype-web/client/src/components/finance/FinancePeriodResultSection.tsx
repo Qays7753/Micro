@@ -8,7 +8,7 @@ import { formatLocalDate, formatMoneyMinor, formatMonthLabel } from "@/presentat
 import { MoneyValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { RestatementNote } from "@/components/finance/RestatementNote";
 import { withReturnTo } from "@/app/navigationContract";
-import type { FinancialInsights, RecordedPeriodResult } from "@/application/finance/projectFinancialService";
+import type { FinancialInsights, RecordedPeriodResult } from "@/application/finance";
 import type { FinanceState } from "@/pages/Finance";
 
 type ReadyFinanceState = Extract<FinanceState, { phase: "ready" }>;

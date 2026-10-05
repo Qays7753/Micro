@@ -52,6 +52,21 @@ import {
 } from "@micro-domain/budget/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore, StorageFailure } from "@/storage/local/types";
+import type { ExpenseBudgetStore } from "@/storage/local/capabilities/expenseBudgetStore";
+import {
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  errorMessageOf,
+  storageFailure,
+  validationFailure,
+} from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
+
+/* Wave C (ADR-015 مجموعة 2 — 2026-10-04): النوع الضيق للخدمة — قدرة الميزانيات
+ * (المشتقة من الواجهة التوافقية) زائد قراءة الأحداث المالية الوحيدة التي
+ * تحتاجها الخدمة فعلًا لاحتساب المنصرف (جرد مستهلك حي: 4 طرق — الثلاث القدرة
+ * وlistFinancialEvents). لا سلوك يتغير — حقن تركيبي كما هو. */
+type ExpenseBudgetServiceStore = ExpenseBudgetStore & Pick<PrototypeLocalStore, "listFinancialEvents">;
 
 export type ExpenseBudgetResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -128,15 +143,15 @@ const isRecordedOperatingExpense = (event: FinancialEvent): boolean => event.ope
 
 export class ExpenseBudgetService {
   constructor(
-    private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly store: ExpenseBudgetServiceStore,
+    private readonly now: Clock = systemClock,
   ) {}
 
   /* ─── القراءة ─── */
 
   private async readRecords(): Promise<ExpenseBudgetResult<readonly ExpenseBudgetRecord[]>> {
     const list = await this.store.listExpenseBudgets();
-    if (!list.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة سجل الميزانيات." };
+    if (!list.ok) return storageFailure("تعذر قراءة سجل الميزانيات.");
     return { ok: true, value: list.value };
   }
 
@@ -147,11 +162,7 @@ export class ExpenseBudgetService {
   /** سجلات الشهر كما خُزِّنت — active/superseded/closed مفروزة (عقد ٤٢ §٢). */
   async listBudgets(periodKey: string): Promise<ExpenseBudgetResult<ExpenseBudgetMonthList>> {
     if (!isValidBudgetPeriodKey(periodKey))
-      return {
-        ok: false,
-        code: "validation_error",
-        message: "مفتاح فترة الميزانية غير صالح (متوقع YYYY-MM).",
-      };
+      return validationFailure("مفتاح فترة الميزانية غير صالح (متوقع YYYY-MM).");
     const read = await this.readRecords();
     if (!read.ok) return read;
     const records = read.value.filter(record => record.periodKey === periodKey);
@@ -178,18 +189,13 @@ export class ExpenseBudgetService {
     to: string;
   }): Promise<ExpenseBudgetResult<ExpenseBudgetStatusesReading>> {
     if (!isValidBudgetPeriodKey(range.from) || !isValidBudgetPeriodKey(range.to))
-      return {
-        ok: false,
-        code: "validation_error",
-        message: "مفتاحا نطاق قراءة الميزانيات غير صالحين (متوقع YYYY-MM).",
-      };
+      return validationFailure("مفتاحا نطاق قراءة الميزانيات غير صالحين (متوقع YYYY-MM).");
     const [recordsRead, eventsRead] = await Promise.all([
       this.readRecords(),
       this.store.listFinancialEvents(),
     ]);
     if (!recordsRead.ok) return recordsRead;
-    if (!eventsRead.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة أحداث المصروف لاحتساب المنصرف." };
+    if (!eventsRead.ok) return storageFailure("تعذر قراءة أحداث المصروف لاحتساب المنصرف.");
     const months = new Set(monthKeysBetween(range.from, range.to));
     const events = eventsRead.value;
     const lines: ExpenseBudgetStatusLine[] = recordsRead.value
@@ -267,11 +273,7 @@ export class ExpenseBudgetService {
       if (!saved.ok) return ExpenseBudgetService.storageFailure(saved);
       return { ok: true, value: saved.value.record, reused: saved.value.reused };
     } catch (error) {
-      return {
-        ok: false,
-        code: "validation_error",
-        message: error instanceof Error ? error.message : "بيانات الميزانية غير صالحة.",
-      };
+      return validationFailure(errorMessageOf(error, "بيانات الميزانية غير صالحة."));
     }
   }
 
@@ -283,7 +285,7 @@ export class ExpenseBudgetService {
     const read = await this.readRecords();
     if (!read.ok) return read;
     const previous = read.value.find(record => record.id === id);
-    if (!previous) return { ok: false, code: "validation_error", message: "الميزانية المطلوبة غير موجودة." };
+    if (!previous) return validationFailure("الميزانية المطلوبة غير موجودة.");
     try {
       if (input.operationKey) {
         /* إعادة إرسال المراجعة نفسها: خلفها المخزن بمفتاحها يعاد مع سابقته
@@ -308,11 +310,7 @@ export class ExpenseBudgetService {
         reused: saved.value.reused,
       };
     } catch (error) {
-      return {
-        ok: false,
-        code: "validation_error",
-        message: error instanceof Error ? error.message : "بيانات مراجعة الميزانية غير صالحة.",
-      };
+      return validationFailure(errorMessageOf(error, "بيانات مراجعة الميزانية غير صالحة."));
     }
   }
 
@@ -321,18 +319,14 @@ export class ExpenseBudgetService {
     const read = await this.readRecords();
     if (!read.ok) return read;
     const record = read.value.find(candidate => candidate.id === id);
-    if (!record) return { ok: false, code: "validation_error", message: "الميزانية المطلوبة غير موجودة." };
+    if (!record) return validationFailure("الميزانية المطلوبة غير موجودة.");
     try {
       const closed = closeExpenseBudget(record, { reason, at: this.now() });
       const saved = await this.store.saveExpenseBudget(closed, record);
       if (!saved.ok) return ExpenseBudgetService.storageFailure(saved);
       return { ok: true, value: saved.value.record, reused: saved.value.reused };
     } catch (error) {
-      return {
-        ok: false,
-        code: "validation_error",
-        message: error instanceof Error ? error.message : "بيانات إغلاق الميزانية غير صالحة.",
-      };
+      return validationFailure(errorMessageOf(error, "بيانات إغلاق الميزانية غير صالحة."));
     }
   }
 
@@ -353,18 +347,14 @@ export class ExpenseBudgetService {
     const read = await this.readRecords();
     if (!read.ok) return read;
     const record = read.value.find(candidate => candidate.id === id);
-    if (!record) return { ok: false, code: "validation_error", message: "الميزانية المطلوبة غير موجودة." };
+    if (!record) return validationFailure("الميزانية المطلوبة غير موجودة.");
     try {
       const flipped = flip(record);
       const saved = await this.store.saveExpenseBudget(flipped, record);
       if (!saved.ok) return ExpenseBudgetService.storageFailure(saved);
       return { ok: true, value: saved.value.record, reused: saved.value.reused };
     } catch (error) {
-      return {
-        ok: false,
-        code: "validation_error",
-        message: error instanceof Error ? error.message : "بيانات هدف الميزانية غير صالحة.",
-      };
+      return validationFailure(errorMessageOf(error, "بيانات هدف الميزانية غير صالحة."));
     }
   }
 }

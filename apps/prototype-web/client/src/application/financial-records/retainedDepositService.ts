@@ -18,6 +18,27 @@ import {
   type RetainedDepositMeaning,
 } from "@micro-domain/craft-order/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import type { LoanStore } from "@/storage/local/capabilities/loanStore";
+import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
+import { systemClock, type Clock } from "@/application/time/clock";
+import {
+  FINANCIAL_EVENTS_READ_FAILED_MESSAGE,
+  ORDERS_READ_FAILED_MESSAGE,
+  ORDER_READ_FAILED_MESSAGE,
+  ORDER_UNAVAILABLE_MESSAGE,
+  errorMessageOf,
+} from "@/application/resultCodes";
+
+/* Wave C (ADR-015 مجموعة 3 — 2026-10-04): النوع الضيق للخدمة — طريقتا تصنيف
+ * العربون من قدرة القروض، زائد قراءتَي الطلب من قدرة دورة حياة الطلب
+ * (المستخرجة في Wave 4C)، زائد قراءة الأحداث المالية لاشتقاق غير المصنّف
+ * (جرد مستهلك حي: 5 طرق). لا سلوك يتغير — حقن تركيبي كما هو. */
+type RetainedDepositServiceStore = Pick<
+  LoanStore,
+  "commitDepositClassification" | "commitDepositClassificationCorrection"
+> &
+  Pick<OrderLifecycleStore, "getOrder" | "listOrders"> &
+  Pick<PrototypeLocalStore, "listFinancialEvents">;
 
 export type RetainedDepositRow = {
   orderId: string;
@@ -58,13 +79,13 @@ function classificationEventId(events: readonly FinancialEvent[], orderId: strin
 
 export class RetainedDepositService {
   constructor(
-    private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly store: RetainedDepositServiceStore,
+    private readonly now: Clock = systemClock,
   ) {}
 
   async listPending(): Promise<RetainedDepositResult<readonly RetainedDepositRow[]>> {
     const ordersResult = await this.store.listOrders();
-    if (!ordersResult.ok) return failure("storage_error", "تعذر قراءة الطلبات المحلية.");
+    if (!ordersResult.ok) return failure("storage_error", ORDERS_READ_FAILED_MESSAGE);
     return {
       ok: true,
       value: ordersResult.value
@@ -90,11 +111,11 @@ export class RetainedDepositService {
     amountMinor?: number,
   ): Promise<RetainedDepositResult<{ order: StoredCraftOrder; event: FinancialEvent }>> {
     const ordersResult = await this.store.getOrder(orderId);
-    if (!ordersResult.ok) return failure("storage_error", "تعذر قراءة الطلب المحلي.");
+    if (!ordersResult.ok) return failure("storage_error", ORDER_READ_FAILED_MESSAGE);
     const stored = ordersResult.value;
-    if (!stored) return failure("invalid_state", "الطلب غير متاح محليًا.");
+    if (!stored) return failure("invalid_state", ORDER_UNAVAILABLE_MESSAGE);
     const eventsResult = await this.store.listFinancialEvents();
-    if (!eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأحداث المالية.");
+    if (!eventsResult.ok) return failure("storage_error", FINANCIAL_EVENTS_READ_FAILED_MESSAGE);
     /* Conflict E: المبلغ الافتراضي = كامل المحتفظ به غير المصنَّف، مشتقًا من
      * الأحداث المالية النشطة — الأحداث هي الحقيقة، والعدّادات مرآتها.
      * F-049 (Group 1): الاشتقاق من مصدر الدومين الواحد — نفس مساعد فحص
@@ -141,7 +162,7 @@ export class RetainedDepositService {
       if (!commit.ok) return failure("storage_error", commit.message);
       return { ok: true, value: { order: commit.value.order, event: commit.value.event } };
     } catch (error) {
-      return failure("validation_error", error instanceof Error ? error.message : "تصنيف العربون غير صالح.");
+      return failure("validation_error", errorMessageOf(error, "تصنيف العربون غير صالح."));
     }
   }
 
@@ -156,11 +177,11 @@ export class RetainedDepositService {
     RetainedDepositResult<{ order: StoredCraftOrder; reversal: FinancialEvent; replacement: FinancialEvent }>
   > {
     const ordersResult = await this.store.getOrder(orderId);
-    if (!ordersResult.ok) return failure("storage_error", "تعذر قراءة الطلب المحلي.");
+    if (!ordersResult.ok) return failure("storage_error", ORDER_READ_FAILED_MESSAGE);
     const stored = ordersResult.value;
-    if (!stored) return failure("invalid_state", "الطلب غير متاح محليًا.");
+    if (!stored) return failure("invalid_state", ORDER_UNAVAILABLE_MESSAGE);
     const eventsResult = await this.store.listFinancialEvents();
-    if (!eventsResult.ok) return failure("storage_error", "تعذر قراءة سجل الأحداث المالية.");
+    if (!eventsResult.ok) return failure("storage_error", FINANCIAL_EVENTS_READ_FAILED_MESSAGE);
     const sourceId = classificationEventId(eventsResult.value, orderId);
     if (!sourceId) return failure("invalid_state", "لا تصنيف قائم يُصحَّح — سجِّل تصنيفًا أولًا.");
     const source = eventsResult.value.find(event => event.id === sourceId)!;
@@ -216,7 +237,7 @@ export class RetainedDepositService {
         },
       };
     } catch (error) {
-      return failure("validation_error", error instanceof Error ? error.message : "تصحيح التصنيف غير صالح.");
+      return failure("validation_error", errorMessageOf(error, "تصحيح التصنيف غير صالح."));
     }
   }
 }

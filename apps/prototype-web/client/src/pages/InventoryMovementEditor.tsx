@@ -11,14 +11,8 @@ import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
-import type {
-  InventoryReferences,
-  PurchaseReceiptStatus,
-} from "@/application/inventory/inventoryMaterialService";
-import {
-  resolveInventoryMovementType,
-  type InventoryMovementRouteType,
-} from "@/application/inventory/inventoryMovementRoute";
+import type { InventoryReferences, PurchaseReceiptStatus } from "@/application/inventory";
+import { resolveInventoryMovementType, type InventoryMovementRouteType } from "@/application/inventory";
 import { MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";
 const ammanDate = () => localDateInAmman();

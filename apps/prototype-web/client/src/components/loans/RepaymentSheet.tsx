@@ -12,7 +12,7 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { localDateInAmman, formatMoneyMinor } from "@/presentation/formatters";
-import type { LoanSummaryRow, LoanService } from "@/application/loans/loanService";
+import { LoanSummaryRow, LoanService } from "@/application/loans/loanService";
 
 import { Button } from "@/components/primitives";
 export default function RepaymentSheet({

@@ -1,6 +1,6 @@
 /* §10: «المادة المنفذة مقابل المخطط» وحدة مستقلة داخل طبقة «تفاصيل إضافية» — قيم مسجلة بلا سرد. */
 import { PackageCheck } from "lucide-react";
-import type { OrderActualMaterialComparison } from "@/application/inventory/inventoryMaterialService";
+import type { OrderActualMaterialComparison } from "@/application/inventory";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { InfoCard } from "@/components/presentation/InfoCard";
 

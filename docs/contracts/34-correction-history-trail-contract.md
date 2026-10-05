@@ -16,7 +16,7 @@
 
 ## ٣. العقد التقني
 
-- **الخدمة:** `application/finance/correctionHistoryService.ts` — تعتمد عائلات عقد ٢٩ وأصحاب التصحيح، وتشتق الصفوف من الأحداث المسجّلة نفسها (لا من سجل موازٍ).
+- **الخدمة:** `application/financial-records/correctionHistoryService.ts` — تعتمد عائلات عقد ٢٩ وأصحاب التصحيح، وتشتق الصفوف من الأحداث المسجّلة نفسها (لا من سجل موازٍ). *(تصحيح مسار مؤرخ 2026-10-03 — STR-603: البيت الأساس انتقل إلى `financial-records/` في Wave 4B-متابعة عبر #307؛ المحدد التاريخي `application/finance/correctionHistoryService.ts` بقي وحدة توافق للواجهة المجمدة واختبارات dom حتى ترحيلها في مسار UI مستقل — لا تغيير في المعنى التعاقدي.)*
 - **الأسطح:** `/tools/corrections?event=` (سجل التصحيحات)؛ وطبقة `components/finance/CorrectionsLayer.tsx` داخل مالي؛ و`components/order/OrderEventLog.tsx` يعرض أحداث الطلب وعقد D2 بلغة السجل نفسها.
 - **التسميات:** عبر خريطة التسميات الموحّدة (`presentation/activityLabels.ts`) للأحداث التي كانت تسقط إلى تسمية عامة.
 

@@ -34,6 +34,8 @@ import { isCurrentPair, isReleasedLegacyPair, verifyTransferIntegrity } from "./
 import { exportCountsOf, verifyTransferCounts } from "./transferCounters";
 import { migrateTransferSnapshot } from "./transferSnapshotMigrations";
 import { validateSnapshot } from "./transferSnapshotValidation";
+import { STORAGE_ERROR, VALIDATION_ERROR, storageFailure } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type TransferSummary = {
   profile: boolean;
@@ -86,7 +88,7 @@ export type TransferResult<T> =
  * مع نسخة ما قبل الاستبدال القابلة للاسترجاع، مُنشأة بآلية التصدير المتحقق
  * نفسها قبل أي كتابة؛ تعذّرها يمنع التأكيد فلا يُوهم المستخدم بنجاح آمن. */
 export type RestoreResult = TransferSummary & { backup: LocalExportFile };
-const fail = <T>(message: string): TransferResult<T> => ({ ok: false, code: "validation_error", message });
+const fail = <T>(message: string): TransferResult<T> => ({ ok: false, code: VALIDATION_ERROR, message });
 function summary(file: LocalExportFile): TransferSummary {
   const snapshots =
     file.data.drafts.reduce((count, draft) => count + draft.costSnapshots.length, 0) +
@@ -138,17 +140,12 @@ const appVersion = appIdentity;
 export class LocalTransferService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async createExport(): Promise<TransferResult<LocalExportFile>> {
     const snapshot = await this.store.readSnapshot();
-    if (!snapshot.ok)
-      return {
-        ok: false,
-        code: "storage_error",
-        message: "تعذر قراءة البيانات المحلية للتصدير. لم يُنشأ ملف.",
-      };
+    if (!snapshot.ok) return storageFailure("تعذر قراءة البيانات المحلية للتصدير. لم يُنشأ ملف.");
     /* المجموعة ٥ (عقد ٣٩ — مظروف النسخة ٢٧): بصمة تكامل وعدادات مضمّنة
      * وإصدار تطبيق — كلها اختيارية للقارئ فتبقى الملفات القديمة مقبولة. */
     return {
@@ -221,17 +218,12 @@ export class LocalTransferService {
     if (!backup.ok)
       return {
         ok: false,
-        code: "storage_error",
+        code: STORAGE_ERROR,
         message:
           "تعذر إنشاء نسخة احتياطية قابلة للاسترجاع قبل الاستبدال — لم يُمس أي شيء. صدّر بياناتك يدويًا أولًا ثم أعد المحاولة.",
       };
     const replacement = await this.store.replaceSnapshot(preview.file.data);
-    if (!replacement.ok)
-      return {
-        ok: false,
-        code: "storage_error",
-        message: "تعذر استبدال البيانات المحلية. لم يتم تأكيد نجاح الاستيراد.",
-      };
+    if (!replacement.ok) return storageFailure("تعذر استبدال البيانات المحلية. لم يتم تأكيد نجاح الاستيراد.");
     return { ok: true, value: { ...preview.summary, backup: backup.value.file } };
   }
 
@@ -244,7 +236,7 @@ export class LocalTransferService {
     if (!roundTrip.ok)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message:
           "أنشئ الملف لكن التحقق منه فشل؛ لا تعتمد عليه نسخة احتياطية. أنشئ نسخة جديدة قبل أي خطوة مدمّرة.",
       };
@@ -301,12 +293,7 @@ export class LocalTransferService {
   /** «ابدأ من جديد»: استبدال ذرّي بلقطة فارغة — لا يمس أي بيانات قبل نجاح المعاملة. */
   async resetAll(): Promise<TransferResult<null>> {
     const replacement = await this.store.replaceSnapshot(LocalTransferService.emptySnapshot());
-    if (!replacement.ok)
-      return {
-        ok: false,
-        code: "storage_error",
-        message: "تعذر بدء مشروع جديد؛ بياناتك الحالية كما هي دون تغيير.",
-      };
+    if (!replacement.ok) return storageFailure("تعذر بدء مشروع جديد؛ بياناتك الحالية كما هي دون تغيير.");
     return { ok: true, value: null };
   }
 }

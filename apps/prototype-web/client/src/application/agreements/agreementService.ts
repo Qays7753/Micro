@@ -12,6 +12,16 @@ import {
 import type { CostService } from "@/application/cost/costService";
 import type { AgreementSource, OrderDraft, ScheduleEntry, StoredCraftOrder } from "@/storage/local/types";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
+import {
+  ORDERS_READ_FAILED_MESSAGE,
+  ORDER_READ_FAILED_MESSAGE,
+  ORDER_UNAVAILABLE_MESSAGE,
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  errorMessageOf,
+  storageFailure,
+} from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 /* ORD-003: شروط النقل والتوصيل عند الاتفاق — المسؤولية والأعلام والمبالغ؛
  * المفتاح والوقت تشتقهما الخدمة (حدث موثق في خط زمن الطلب). */
@@ -58,39 +68,34 @@ const dateIsValid = (value: string) => {
 };
 
 function validation(message: string): Extract<AgreementResult, { ok: false }> {
-  return { ok: false, code: "validation_error", message };
+  return { ok: false, code: VALIDATION_ERROR, message };
 }
 
 export class AgreementService {
   constructor(
     private readonly store: OrderLifecycleStore,
     private readonly costs: CostService,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async list(): Promise<
     { ok: true; orders: readonly StoredCraftOrder[] } | Extract<AgreementResult, { ok: false }>
   > {
     const result = await this.store.listOrders();
-    return result.ok
-      ? { ok: true, orders: result.value }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة الطلبات المحلية." };
+    return result.ok ? { ok: true, orders: result.value } : storageFailure(ORDERS_READ_FAILED_MESSAGE);
   }
 
   async get(
     id: string,
   ): Promise<{ ok: true; stored: StoredCraftOrder | null } | Extract<AgreementResult, { ok: false }>> {
     const result = await this.store.getOrder(id);
-    return result.ok
-      ? { ok: true, stored: result.value }
-      : { ok: false, code: "storage_error", message: "تعذر قراءة الطلب المحلي." };
+    return result.ok ? { ok: true, stored: result.value } : storageFailure(ORDER_READ_FAILED_MESSAGE);
   }
 
   async createFromDraft(draft: OrderDraft, input: AgreementInput): Promise<AgreementResult> {
     if (draft.linkedOrderId) {
       const current = await this.store.getOrder(draft.linkedOrderId);
-      if (!current.ok)
-        return { ok: false, code: "storage_error", message: "تعذر التحقق من الاتفاق المحفوظ." };
+      if (!current.ok) return storageFailure("تعذر التحقق من الاتفاق المحفوظ.");
       if (!current.value)
         return {
           ok: false,
@@ -210,20 +215,16 @@ export class AgreementService {
       const commit = await this.store.commitOrderFromDraft(stored, linkedDraft, schedule);
       return commit.ok
         ? { ok: true, stored: commit.value.order }
-        : {
-            ok: false,
-            code: "storage_error",
-            message: "تعذر حفظ الاتفاق محليًا — بياناتك كما هي؛ أعد المحاولة.",
-          };
+        : storageFailure("تعذر حفظ الاتفاق محليًا — بياناتك كما هي؛ أعد المحاولة.");
     } catch (error) {
-      return validation(error instanceof Error ? error.message : "تعذر بناء الاتفاق.");
+      return validation(errorMessageOf(error, "تعذر بناء الاتفاق."));
     }
   }
 
   async startExecution(id: string): Promise<AgreementResult> {
     const existing = await this.store.getOrder(id);
-    if (!existing.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة الطلب المحلي." };
-    if (!existing.value) return { ok: false, code: "inconsistent_state", message: "الطلب غير متاح محليًا." };
+    if (!existing.ok) return storageFailure(ORDER_READ_FAILED_MESSAGE);
+    if (!existing.value) return { ok: false, code: "inconsistent_state", message: ORDER_UNAVAILABLE_MESSAGE };
     if (existing.value.order.status === "in_progress") return { ok: true, stored: existing.value };
     if (existing.value.order.status !== "provisional_agreement")
       return { ok: false, code: "inconsistent_state", message: "لا يمكن بدء التنفيذ من هذه الحالة." };
@@ -252,13 +253,9 @@ export class AgreementService {
           ? { ok: true, stored: saved.value.order, reused: true }
           : { ok: true, stored: saved.value.order };
       if (saved.code === "storage_stale") return { ok: false, code: "storage_stale", message: saved.message };
-      return {
-        ok: false,
-        code: "storage_error",
-        message: "تعذر حفظ حالة التنفيذ — بياناتك كما هي؛ أعد المحاولة.",
-      };
+      return storageFailure("تعذر حفظ حالة التنفيذ — بياناتك كما هي؛ أعد المحاولة.");
     } catch (error) {
-      return validation(error instanceof Error ? error.message : "تعذر بدء التنفيذ.");
+      return validation(errorMessageOf(error, "تعذر بدء التنفيذ."));
     }
   }
 }

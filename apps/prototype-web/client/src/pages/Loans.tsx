@@ -20,7 +20,7 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { getPrototypeLocalStore, usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
-import type { LoanOverviewRead, LoanSummaryRow } from "@/application/loans/loanService";
+import { LoanOverviewRead, LoanSummaryRow } from "@/application/loans/loanService";
 import type {
   ReceivedLoanOverviewRead,
   ReceivedLoanSummaryRow,

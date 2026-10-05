@@ -23,7 +23,7 @@ import { useLocation } from "wouter";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { formatMoneyMinor } from "@/presentation/formatters";
-import { deriveExpenseCategorySuggestions } from "@/application/finance/expenseCategorySuggestions";
+import { deriveExpenseCategorySuggestions } from "@/application/financial-records";
 import { QuickExpenseForm } from "@/components/finance/QuickExpenseForm";
 import { QuickSaleForm } from "@/components/finance/QuickSaleForm";
 import type {

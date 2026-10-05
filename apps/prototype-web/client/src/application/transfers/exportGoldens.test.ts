@@ -37,7 +37,7 @@ import { LoanService } from "@/application/loans/loanService";
 import { ReceivedLoanService } from "@/application/loans/receivedLoanService";
 import { AssetService } from "@/application/assets/assetService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
-import { RecurringExpenseService } from "@/application/finance/recurringExpenseService";
+import { RecurringExpenseService } from "@/application/recurring/recurringExpenseService";
 import { ExpenseBudgetService } from "@/application/budgets/expenseBudgetService";
 
 const GOLDEN_DIR = path.resolve(

@@ -14,6 +14,13 @@
  */
 import type { LocalSecurityRecord, PrototypeLocalStore } from "@/storage/local/types";
 import { localSecurityId } from "@/storage/local/types";
+import {
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  storageFailure,
+  validationFailure,
+} from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type LockStatusResult =
   | { ok: true; value: { enabled: boolean; autoLockMinutes: number | null; lastActiveAt: string | null } }
@@ -109,12 +116,12 @@ function delayForAttempts(failedAttempts: number): number {
 export class LocalLockService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
 
   async status(): Promise<LockStatusResult> {
     const result = await this.store.getLocalSecurity();
-    if (!result.ok) return { ok: false, code: "storage_error", message: result.message };
+    if (!result.ok) return storageFailure(result.message);
     const record = result.value;
     return {
       ok: true,
@@ -131,11 +138,11 @@ export class LocalLockService {
     if (normalized === null)
       return {
         ok: false,
-        code: "validation_error",
+        code: VALIDATION_ERROR,
         message: `الرمز ${MIN_PIN_LENGTH}–${MAX_PIN_LENGTH} أرقام إنجليزية — ولا يُخزَّن الرمز نفسه أبدًا.`,
       };
     if (!ALLOWED_AUTO_LOCK_MINUTES.includes(autoLockMinutes as never))
-      return { ok: false, code: "validation_error", message: "اختر مدة الخمول من الخيارات المعروضة." };
+      return validationFailure("اختر مدة الخمول من الخيارات المعروضة.");
     const salt = randomSalt();
     const pinHash = await pbkdf2Hex(salt, normalized);
     const timestamp = this.now();
@@ -152,13 +159,13 @@ export class LocalLockService {
       updatedAt: timestamp,
     };
     const saved = await this.store.saveLocalSecurity(record);
-    if (!saved.ok) return { ok: false, code: "storage_error", message: saved.message };
+    if (!saved.ok) return storageFailure(saved.message);
     return { ok: true, value: saved.value };
   }
 
   async unlock(pin: string): Promise<LockVerifyResult> {
     const result = await this.store.getLocalSecurity();
-    if (!result.ok) return { ok: false, code: "storage_error", message: result.message };
+    if (!result.ok) return storageFailure(result.message);
     const record = result.value;
     if (record === null) return { ok: true, value: { unlocked: true, failedAttempts: 0 } };
     const normalized = normalizePin(pin);
@@ -211,7 +218,7 @@ export class LocalLockService {
     { ok: true; value: boolean } | { ok: false; code: "storage_error"; message: string }
   > {
     const result = await this.store.getLocalSecurity();
-    if (!result.ok) return { ok: false, code: "storage_error", message: result.message };
+    if (!result.ok) return storageFailure(result.message);
     const record = result.value;
     if (record === null || record.autoLockMinutes === null) return { ok: true, value: false };
     if (record.lastActiveAt === null) return { ok: true, value: true };
@@ -228,7 +235,7 @@ export class LocalLockService {
 
   async disable(pin: string): Promise<LockDisableResult> {
     const result = await this.store.getLocalSecurity();
-    if (!result.ok) return { ok: false, code: "storage_error", message: result.message };
+    if (!result.ok) return storageFailure(result.message);
     const record = result.value;
     if (record === null) return { ok: true, value: null };
     const normalized = normalizePin(pin);
@@ -237,7 +244,7 @@ export class LocalLockService {
       if (matches) {
         /* التعطيل يحذف السجل نهائيًا — لا بصمة ولا ملح يبقيان على الجهاز. */
         const removed = await this.store.deleteLocalSecurity();
-        if (!removed.ok) return { ok: false, code: "storage_error", message: removed.message };
+        if (!removed.ok) return storageFailure(removed.message);
         return { ok: true, value: null };
       }
     }

@@ -11,7 +11,7 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { MaterialUnit } from "@micro-domain/inventory-material/index.js";
-import type { InventoryMaterialOverview } from "@/application/inventory/inventoryMaterialService";
+import type { InventoryMaterialOverview } from "@/application/inventory";
 import { localDateInAmman, formatQuantityMilliFixed3 } from "@/presentation/formatters";
 import { MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";

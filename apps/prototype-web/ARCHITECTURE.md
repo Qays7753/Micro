@@ -19,8 +19,8 @@ prompt) عبر `vite-plugin-pwa`. لا تنفذ Cloud Sync أو Auth أو SaaS �
 
 ```text
 React UI
-  → Application services (42 خدمة موصولة عبر PrototypeServicesContext؛ 53 ملف `*Service.ts` — العد الحي الموثق عند `15060f0`، 2026-09-29/برنامج الإصلاح الرئيسي بعد إغلاق Wave 3: `new *Service(` في `PrototypeServicesContext.tsx` + `git ls-files 'apps/prototype-web/client/src/application/**/*Service.ts'`)
-  → Micro Domain Core في ../../src/domain (18 وحدة نطاقية + معينات shared — `ls src/domain`)
+  → Application services (43 خدمة موصولة عبر PrototypeServicesContext؛ 58 ملف `*Service.ts` — العد الحي المعاد عند `04895f2`، 2026-10-03/بعد إغلاق برنامج المعالجة #299–#308، بالطريقة الموثقة نفسها: `new *Service(` في `PrototypeServicesContext.tsx` + `git ls-files 'apps/prototype-web/client/src/application/**/*Service.ts'`؛ كان 42/53 عند `15060f0` قبل نقل العناقيد)
+  → Micro Domain Core في ../../src/domain (19 مسارًا نطاقيًا = 18 منطقة + برميل التوافق `g5` — `ls src/domain`)
   → LocalStore port (PrototypeLocalStore)
   → IndexedDB adapter (IndexedDbLocalStore — 37 مخزن كائنات، مخطط 38/تصدير 30 — العد: `createObjectStore` في `indexedDbMigrations.ts` والقيم في `storage/local/types.ts`)
 ```

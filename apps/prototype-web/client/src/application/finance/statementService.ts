@@ -8,11 +8,20 @@ import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
+import type { OwnerEntitlementStore } from "@/storage/local/capabilities/ownerEntitlementStore";
+import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
+
 import type {
   ProjectFinancialPosition,
   ProjectFinancialService,
   RecordedPeriodResult,
 } from "@/application/finance/projectFinancialService";
+import {
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  storageFailure,
+  validationFailure,
+} from "@/application/resultCodes";
 
 export type StatementLineSource = {
   label: string;
@@ -123,17 +132,25 @@ export type StatementResult =
   | { ok: false; code: "storage_error" | "validation_error"; message: string };
 
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
-import { formatLocalDate, formatMoneyWithUnit } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyWithUnit } from "@/application/formatting/formatters";
+
+/* Wave C (ADR-015 مجموعة 6 — 2026-10-04): النوع الضيق للقارئ — قراءة حركات
+ * المالك وحدها من قدرة الاستحقاق زائد قراءات المبيعات والأحداث والمشتريات
+ * وقراءة الطلبات من قدرة 4C (جرد مستهلك حي: 5 طرق — قراءة صرفة).
+ * لا سلوك يتغير — حقن تركيبي كما هو. */
+type StatementServiceStore = Pick<OwnerEntitlementStore, "listOwnerMovements"> &
+  Pick<OrderLifecycleStore, "listOrders"> &
+  Pick<PrototypeLocalStore, "listDirectSales" | "listFinancialEvents" | "listSupplierPurchases">;
 
 export class StatementService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: StatementServiceStore,
     private readonly projectFinance: ProjectFinancialService,
   ) {}
 
   async read(from: string, to: string): Promise<StatementResult> {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to) || from > to)
-      return { ok: false, code: "validation_error", message: "اختر نطاق كشف يبدأ قبل نهايته." };
+      return validationFailure("اختر نطاق كشف يبدأ قبل نهايته.");
     const [
       eventsResult,
       salesResult,
@@ -160,7 +177,7 @@ export class StatementService {
       !periodResult.ok ||
       !positionResult.ok
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة سجلات الكشف المحلية." };
+      return storageFailure("تعذر قراءة سجلات الكشف المحلية.");
 
     const inPeriod = (date: string) => date >= from && date <= to;
     const events = eventsResult.value as readonly FinancialEvent[];

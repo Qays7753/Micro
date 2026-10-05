@@ -6,7 +6,7 @@
  */
 import { AlertTriangle } from "lucide-react";
 import { formatLocalDate, formatMoneyMinor } from "@/presentation/formatters";
-import type { CrossModelOwnerDuplicate } from "@/application/finance/ownerEntitlementService";
+import type { CrossModelOwnerDuplicate } from "@/application/owner-money";
 
 import { Button } from "@/components/primitives";
 

@@ -72,7 +72,7 @@
 
 **المسارات المحوطة خارج الكانون (توثق لا أن تُعد منافسة):** هضم غياب المالك
 (`homeControlCenterService` — إجمالي آخر يوم تسجيل لا نتيجة فترة)، مدخلات G5
-(`g5Service.expenseInputs` — عقد ١٤ §٦)، و`allocation.resultMinor` في recurring-margin
+(`financialAnalysisService.expenseInputs` — عقد ١٤ §٦؛ *(تصحيح تسمية مؤرخ 2026-10-03 — STR-603: التسمية الأساس بعد Wave 4A هي `application/financial-analysis/financialAnalysisService.ts`؛ `g5Service` هو الاسم التاريخي للبرميل نفسه — لا تغيير في المعنى التعاقدي)*)، و`allocation.resultMinor` في recurring-margin
 (مفهوم مختلف يشترك في الاسم فقط).
 
 **الحارس:** `periodResultCanonical.test.ts` — تطابق الكائن الكامل بين القارئ والكشف

@@ -28,7 +28,7 @@ import type {
   RecurringWorkPolicyInput,
   RecurringWorkReading,
   RecurringWorkReadings,
-} from "@/application/finance/recurringWorkService";
+} from "@/application/finance";
 
 import { Button, FeedbackMessage, FeedbackNote } from "@/components/primitives";
 

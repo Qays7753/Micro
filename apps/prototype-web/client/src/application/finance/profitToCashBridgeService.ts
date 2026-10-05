@@ -29,6 +29,8 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { OwnerMovement } from "@micro-domain/owner-entitlement/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
+import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type ProfitToCashBridgeStatus = "recorded_only" | "incomplete" | "invalid";
 
@@ -87,7 +89,7 @@ export class ProfitToCashBridgeService {
 
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {
     /* القارئ الكنوني نفسه مصدر رقم النتيجة — لا مسار حساب ثانٍ هنا أبدًا. */
     this.finance = new ProjectFinancialService(store, now);
@@ -123,7 +125,7 @@ export class ProfitToCashBridgeService {
       !continuityResult.ok ||
       !movementsResult.ok
     )
-      return { ok: false, code: "storage_error", message: "تعذر قراءة سجلات الجسر المحلية." };
+      return storageFailure("تعذر قراءة سجلات الجسر المحلية.");
     const from = period.from;
     const to = period.to;
     const periodReading = periodResult.value;

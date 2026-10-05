@@ -2,6 +2,7 @@
 import type { StoredCraftOrder } from "@/storage/local/types";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
+import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 
 export type LocalFinancialPulse = {
   source: "local_craft_orders";
@@ -74,7 +75,7 @@ export class FinancialPulseService {
 
   async read(): Promise<FinancialPulseResult> {
     const result = await this.store.listOrders();
-    if (!result.ok) return { ok: false, code: "storage_error", message: "تعذر قراءة صورة الطلبات المحلية." };
+    if (!result.ok) return storageFailure("تعذر قراءة صورة الطلبات المحلية.");
     return { ok: true, pulse: summarizeLocalCraftOrders(result.value), orders: result.value };
   }
 }

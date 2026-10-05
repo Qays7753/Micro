@@ -13,7 +13,7 @@ import {
 } from "@micro-domain/recurring-expense/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { RecurringExpenseService, type RecurringExpenseReview } from "./recurringExpenseService";
-import { ProjectFinancialService } from "./projectFinancialService";
+import { ProjectFinancialService } from "../finance/projectFinancialService";
 
 const SEPTEMBER = "2026-09-21T08:00:00.000Z"; /* عمّان +03: اليوم 2026-09-21 */
 const DECEMBER = "2026-12-15T08:00:00.000Z"; /* عمّان +03: اليوم 2026-12-15 */

@@ -30,6 +30,12 @@ import type {
   RecordedPeriodResult,
 } from "@/application/finance/projectFinancialService";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
+
+/* STR-620/608 (Wave F — تكثيف الهامش): الحرفية نفسها كانت تتكرر في هذا الملف
+ * عدّة مرات؛ ثابت واحد بلا أي تغيير رسالة. */
+const CANONICAL_READER_COUNTER_LABEL = "القارئ الكنوني — عدّاد";
 
 export type PeriodComparisonStatus = "recorded_only" | "incomplete" | "invalid";
 
@@ -248,7 +254,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "finalOrderCount",
     label: "طلبات نهائية مسجلة",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.finalOrderCount,
     countsTowardData: true,
@@ -264,7 +270,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "directSaleCount",
     label: "مبيعات مباشرة فعّالة",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.directSaleCount,
     countsTowardData: true,
@@ -288,7 +294,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "sharedEstimatedExpenseCount",
     label: "حصص مشتركة تقديرية",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.sharedEstimatedExpenseCount,
     countsTowardData: true,
@@ -296,7 +302,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "sharedMissingBasisCount",
     label: "حصص بلا مصدر موثق",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.sharedMissingBasisCount,
     countsTowardData: true,
@@ -304,7 +310,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "sharedUnallocatedExpenseCount",
     label: "مصادر مشتركة غير محملة",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.sharedUnallocatedExpenseCount,
     countsTowardData: true,
@@ -312,7 +318,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "legacyUnclassifiedExpenseCount",
     label: "مصروفات غير مصنفة",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.legacyUnclassifiedExpenseCount,
     countsTowardData: true,
@@ -320,7 +326,7 @@ const LINE_SPECS: readonly LineSpec[] = [
   {
     id: "expenseNeedsReviewCount",
     label: "مصاريف تحتاج مراجعة",
-    source: "القارئ الكنوني — عدّاد",
+    source: CANONICAL_READER_COUNTER_LABEL,
     kind: "count",
     read: period => period.expenseNeedsReviewCount,
     countsTowardData: true,
@@ -389,7 +395,7 @@ export class PeriodComparisonService {
 
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {
     /* مسار حساب واحد: القارئ الكنوني نفسه الذي تستهلكه الكشوف والمؤشرات —
      * لا تُشتق هنا أي معادلة فترة، ولا يُلمس المخزن إلا قراءةً. */
@@ -404,8 +410,7 @@ export class PeriodComparisonService {
       this.finance.readRecordedPeriodResult(current.from, current.to),
       this.finance.readRecordedPeriodResult(baseline.from, baseline.to),
     ]);
-    if (!readingA.ok || !readingB.ok)
-      return { ok: false, code: "storage_error", message: "تعذر قراءة نتيجتي الفترتين المحليتين." };
+    if (!readingA.ok || !readingB.ok) return storageFailure("تعذر قراءة نتيجتي الفترتين المحليتين.");
     const a = readingA.value;
     const b = readingB.value;
     const todayLocal = localDateInAmman(this.now());

@@ -8,7 +8,7 @@ import type {
   CorrectionHistoryGroup,
   CorrectionHistoryKind,
   CorrectionHistoryService,
-} from "@/application/finance/correctionHistoryService";
+} from "@/application/financial-records";
 import { businessDateFromTimestamp, formatLocalDate, formatMoneyMinor } from "@/presentation/formatters";
 import { RestatementNote } from "@/components/finance/RestatementNote";
 

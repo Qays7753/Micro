@@ -44,6 +44,7 @@ import {
   supplierPurchaseStore,
   receivedLoanStore,
 } from "./indexedDbStores";
+import { STORAGE_UPGRADE_FAILED } from "./resultCodes";
 
 export class StorageOpenError extends Error {
   constructor(
@@ -77,7 +78,7 @@ function guardUpgradeCursor(
     upgradeErrors.set(
       request,
       new StorageOpenError(
-        "storage_upgrade_failed",
+        STORAGE_UPGRADE_FAILED,
         `تعذر ترقية التخزين المحلي أثناء ترحيل ${label}: ${cause}. أغلق النسخ الأخرى ثم أعد المحاولة.`,
       ),
     );

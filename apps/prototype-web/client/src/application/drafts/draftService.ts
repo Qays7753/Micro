@@ -1,5 +1,15 @@
 /** Application boundary for pre-domain drafts. A draft is not a CraftOrder and has no price, cash, or result effect. */
 import type { DraftIntent, OrderDraft, PrototypeLocalStore } from "@/storage/local/types";
+import {
+  CONFLICT,
+  NOT_FOUND,
+  STORAGE_ERROR,
+  VALIDATION_ERROR,
+  notFoundFailure,
+  storageFailure,
+  validationFailure,
+} from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
 export type DraftInput = Pick<
   OrderDraft,
@@ -32,7 +42,7 @@ const createId = () =>
 export class DraftService {
   constructor(
     private readonly store: PrototypeLocalStore,
-    private readonly now: () => string = () => new Date().toISOString(),
+    private readonly now: Clock = systemClock,
   ) {}
   list() {
     return this.store.listDrafts();
@@ -67,15 +77,14 @@ export class DraftService {
     expectedUpdatedAt?: string,
   ): Promise<DraftSaveResult> {
     if (!Number.isInteger(input.quantity) || input.quantity < 1)
-      return { ok: false, code: "validation_error", message: "الكمية يجب أن تكون قطعة واحدة أو أكثر." };
+      return validationFailure("الكمية يجب أن تكون قطعة واحدة أو أكثر.");
     if (expectedUpdatedAt !== undefined) {
       const current = await this.store.getDraft(input.id);
-      if (!current.ok)
-        return { ok: false, code: "storage_error", message: "تعذر قراءة المسودة قبل الحفظ. أعد المحاولة." };
+      if (!current.ok) return storageFailure("تعذر قراءة المسودة قبل الحفظ. أعد المحاولة.");
       if (current.value && current.value.updatedAt !== expectedUpdatedAt)
         return {
           ok: false,
-          code: "conflict",
+          code: CONFLICT,
           message: "هذه المسودة عُدّلت من نافذة أخرى بعد فتحك لها؛ لم يُحفظ تعديلك.",
         };
     }
@@ -90,37 +99,17 @@ export class DraftService {
     const saved = await this.store.saveDraft(draft);
     return saved.ok
       ? { ok: true, draft: saved.value }
-      : {
-          ok: false,
-          code: "storage_error",
-          message: "تعذر حفظ المسودة على هذا الجهاز. بقيت بيانات النموذج أمامك؛ أعد المحاولة.",
-        };
+      : storageFailure("تعذر حفظ المسودة على هذا الجهاز. بقيت بيانات النموذج أمامك؛ أعد المحاولة.");
   }
 
   /** القرار ٢١ (بناء لا توصيل): تُحذف بسهولة وبلا سبب — لكن غير المرتبطة فقط. */
   async delete(id: string): Promise<DraftDeleteResult> {
     const current = await this.store.getDraft(id);
-    if (!current.ok)
-      return {
-        ok: false,
-        code: "storage_error",
-        message: "تعذر قراءة المسودة قبل الحذف. لم يُحذف شيء.",
-      };
-    if (!current.value)
-      return { ok: false, code: "not_found", message: "لم نجد هذه المسودة محليًا؛ لم يُحذف شيء." };
+    if (!current.ok) return storageFailure("تعذر قراءة المسودة قبل الحذف. لم يُحذف شيء.");
+    if (!current.value) return notFoundFailure("لم نجد هذه المسودة محليًا؛ لم يُحذف شيء.");
     if (current.value.linkedOrderId !== null)
-      return {
-        ok: false,
-        code: "validation_error",
-        message: "هذه المسودة أصبحت طلبًا محفوظًا؛ تُلغى من الطلب ولا تُحذف من هنا.",
-      };
+      return validationFailure("هذه المسودة أصبحت طلبًا محفوظًا؛ تُلغى من الطلب ولا تُحذف من هنا.");
     const deleted = await this.store.deleteDraft(id);
-    return deleted.ok
-      ? { ok: true, id }
-      : {
-          ok: false,
-          code: "storage_error",
-          message: "تعذر حذف المسودة على هذا الجهاز. أعد المحاولة.",
-        };
+    return deleted.ok ? { ok: true, id } : storageFailure("تعذر حذف المسودة على هذا الجهاز. أعد المحاولة.");
   }
 }
