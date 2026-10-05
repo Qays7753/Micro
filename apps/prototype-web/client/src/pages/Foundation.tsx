@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
-import { CashContinuityOverview } from "@/application/cash/cashContinuityService";
+import { CashContinuityOverview } from "@/application/cash";
 import type { OwnerEntitlementOverview } from "@/application/owner-money";
 import type { SupplierPurchaseSummary } from "@/application/suppliers/supplierPurchaseService";
 import type { InventoryOverview } from "@/application/inventory";
