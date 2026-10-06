@@ -8,28 +8,32 @@
       "version": "3.9.6",
       "file": "index.mjs",
       "classification": "dev-only (format:check / format); patterns are fixed repository paths",
-      "upstream_latest_checked": "3.9.9 (2026-10-06) — still carries the code; 4.0.0-alpha.13 also carries it"
+      "carrier_chain": "fast-glob 3.3.3 chain (fast-glob -> micromatch -> braces) bundled into prettier's dependency-free single-file dist at build time — NOT a runtime dependency of the published package",
+      "upstream_latest_checked": "3.9.9 (re-verified live 2026-10-07 by tarball scan) — still carries the code; 4.0.0-alpha.13 also carries it"
     },
     {
       "package": "rollup",
       "version": "4.62.4",
       "file": "dist/es/shared/watch.js",
       "classification": "dev-only (vite build chain); watch surface",
-      "upstream_latest_checked": "4.64.0 (2026-10-06) — still carries the code; 5.0.0-0 beta REMOVED it (future stable path)"
+      "carrier_chain": "chokidar v3 watcher chain (anymatch -> micromatch -> braces) bundled into rollup's dist at build time from rollup's devDependency chokidar ^3.6.0 — NOT a runtime dependency of the published package",
+      "upstream_latest_checked": "4.64.0 (re-verified live 2026-10-07 by tarball scan) — still carries the code; 5.0.0-0 beta REMOVED it (moved to chokidar ^5.0.0 — future stable path)"
     },
     {
       "package": "rollup",
       "version": "4.62.4",
       "file": "dist/shared/index.js",
       "classification": "dev-only (vite build chain); main dist",
-      "upstream_latest_checked": "4.64.0 (2026-10-06) — still carries the code; 5.0.0-0 beta REMOVED it (future stable path)"
+      "carrier_chain": "chokidar v3 watcher chain (anymatch -> micromatch -> braces) bundled into rollup's dist at build time from rollup's devDependency chokidar ^3.6.0 — NOT a runtime dependency of the published package",
+      "upstream_latest_checked": "4.64.0 (re-verified live 2026-10-07 by tarball scan) — still carries the code; 5.0.0-0 beta REMOVED it (moved to chokidar ^5.0.0 — future stable path)"
     },
     {
       "package": "vite",
       "version": "7.3.6",
       "file": "dist/node/chunks/config.js",
       "classification": "dev-only (dev server / build); config-sourced patterns",
-      "upstream_latest_checked": "8.3.3 (2026-10-06) — still carries the code (still depends on chokidar ^3.6.0)"
+      "carrier_chain": "chokidar v3 watcher chain (anymatch -> micromatch -> braces) bundled into vite's dist at build time from the vite source repo's devDependency chokidar ^3.6.0 — NOT a runtime dependency of the published package, so no override can reach it",
+      "upstream_latest_checked": "8.3.3 + in-range 7.3.7 (re-verified live 2026-10-07 by tarball scan) — both still carry the code (build-time-bundled chokidar-3 chain); vite 8.3.0-beta.1 also carries it"
     }
   ],
   "removed_entries": [
@@ -41,6 +45,7 @@
       "verified_by": "clean reinstall reproduces the 4-copy inventory; full gate green; hostile-review experiment independently reproduced the removal route"
     }
   ],
-  "documented_limitation": "The four remaining copies have no safe removal route today: the latest stable releases of all three tools still inline the braces@3.0.3 code; direct-dependency upgrades cannot alter bundled bytes; none of the tools officially supports custom rebuilds; and hand-editing generated third-party bundles is forbidden. See docs/quality/vendored-braces-inventory.md for the full route analysis, the adopted tsx-removal route, and the revisit triggers.",
-  "generated_at": "2026-10-06"
+  "documented_limitation": "The four remaining copies have no safe removal route today (routes A-E re-exhausted with live tarball evidence on 2026-10-07): the latest stable releases of all three tools on every stable line still inline the braces@3.0.3 code (vite 7.3.7 and 8.3.3; rollup 4.64.0; prettier 3.9.9); the code is build-time-inlined into published dist files so dependency upgrades and pnpm overrides cannot alter the bundled bytes; none of the tools officially supports custom rebuilds; and hand-editing generated third-party bundles is forbidden. See docs/quality/vendored-braces-inventory.md for the full route analysis, the adopted tsx-removal route, and the revisit triggers.",
+  "generated_at": "2026-10-06",
+  "reverified_at": "2026-10-07"
 }
