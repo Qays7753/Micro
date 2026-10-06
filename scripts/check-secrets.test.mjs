@@ -16,16 +16,17 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import { ROOT, isSecretFileName, scanContent, scanTree } from "./check-secrets.mjs";
 
-const SCRIPT_PATH = fileURLToPath(import.meta.url).replace(
-  /check-secrets\.test\.mjs$/,
-  "check-secrets.mjs",
-);
+const SCRIPT_PATH = fileURLToPath(import.meta.url).replace(/check-secrets\.test\.mjs$/, "check-secrets.mjs");
 
 const FAKE_GITHUB_CLASSIC = `ghp_${"A".repeat(40)}`;
 const FAKE_GITHUB_FINE = `github_pat_${"B".repeat(50)}`;
 const FAKE_AWS_KEY = `AKIA${"C".repeat(16)}`;
 const FAKE_SLACK = `xoxb-${"D".repeat(24)}`;
 const FAKE_OPENAI = `sk-${"E".repeat(40)}`;
+/* F-14 (W8 — 2026-10-05): عينات البادئات المضافة. */
+const FAKE_GITHUB_SECONDARY = `gho_${"F".repeat(40)}`;
+const FAKE_GOOGLE_KEY = `AIza${"G".repeat(35)}`;
+const FAKE_NPM_TOKEN = `npm_${"H".repeat(36)}`;
 /* يُبنى وقت التشغيل كي لا يحمل مصدر الاختبار نفسه نمطًا كاملًا يصطاده
  * الفحص الحقيقي على المستودع الحي (الاستثناء الأنيق: لا استثناء). */
 const FAKE_PRIVATE_KEY = ["-----BEGIN", "RSA", "PRIVATE", "KEY-----"].join(" ");
@@ -56,14 +57,20 @@ describe("check-secrets — pattern detection", () => {
       `line three ${FAKE_AWS_KEY}`,
       `line four ${FAKE_OPENAI}`,
       `line five ${FAKE_PRIVATE_KEY}`,
+      `line six ${FAKE_GITHUB_SECONDARY}`,
+      `line seven ${FAKE_GOOGLE_KEY}`,
+      `line eight ${FAKE_NPM_TOKEN}`,
     ].join("\n");
     const findings = scanContent(content);
-    const names = findings.map((f) => f.patternName);
+    const names = findings.map(f => f.patternName);
     expect(names).toContain("github-classic-token");
     expect(names).toContain("github-fine-grained-token");
     expect(names).toContain("aws-access-key-id");
     expect(names).toContain("openai-style-key");
     expect(names).toContain("private-key-block");
+    expect(names).toContain("github-secondary-tokens");
+    expect(names).toContain("google-api-key");
+    expect(names).toContain("npm-granular-token");
     const rendered = JSON.stringify(findings);
     expect(rendered).not.toContain(FAKE_GITHUB_CLASSIC);
     expect(rendered).not.toContain("ghp_");
@@ -124,7 +131,7 @@ describe("check-secrets — tree scan on fixtures", () => {
     ]);
     fs.writeFileSync(path.join(root, "image.png"), buffer);
     const findings = scanTree(root);
-    expect(findings.map((f) => f.patternName)).toContain("private-key-block");
+    expect(findings.map(f => f.patternName)).toContain("private-key-block");
   });
 });
 

@@ -18,7 +18,7 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { ReceivedLoanLenderType } from "@micro-domain/received-loan/index.js";
-import { ReceivedLoanService } from "@/application/loans/receivedLoanService";
+import { ReceivedLoanService } from "@/application/loans";
 
 import { Button } from "@/components/primitives";
 type ServiceLoad =
@@ -78,7 +78,7 @@ export default function ReceivedLoanEditor() {
   useEffect(() => {
     let active = true;
     setServiceLoad({ phase: "loading" });
-    import("@/application/loans/receivedLoanService")
+    import("@/application/loans")
       .then(module => {
         if (active)
           setServiceLoad({

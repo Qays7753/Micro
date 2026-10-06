@@ -22,10 +22,7 @@ import {
   formatQuantityMilli,
   formatQuantityMilliFixed3,
 } from "@/presentation/formatters";
-import type {
-  DeliveryConsumptionAction,
-  DeliveryReview,
-} from "@/application/fulfillment/deliveryReviewService";
+import type { DeliveryConsumptionAction, DeliveryReview } from "@/application/fulfillment";
 
 import { Button } from "@/components/primitives";
 type PageState =

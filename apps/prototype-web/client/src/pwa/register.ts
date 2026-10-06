@@ -1,7 +1,7 @@
 import { hasDirtyForms } from "./dirtyRegistry";
 import { registerSW } from "virtual:pwa-register";
-import { localDiagnostics } from "@/application/diagnostics/localDiagnosticsService";
-import { routeTemplateFor } from "@/application/diagnostics/routeTemplate";
+import { localDiagnostics } from "@/application/diagnostics";
+import { routeTemplateFor } from "@/application/diagnostics";
 
 export type PwaRuntimeState = {
   serviceWorkerSupported: boolean;

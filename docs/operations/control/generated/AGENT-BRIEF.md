@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 55 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 55 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,4 +32,6 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-لا يوجد Workstream نشط أو يحتاج مراجعة.
+| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
+|---|---|---|---|---|---|
+| WS-215 | IN_REVIEW | \`refactoring/post-scan-structural-completion-20261005\` | 316 | ARCH-005 | PR #317 وPR #318 وPR #319 مدموجة ومتحققة على main؛ بقي دمج PR #316 بعد حل تعارضات السجلات وإعادة تشغيل الفحوص ثم التحقق على main — لا تغيير مالي أو schema/export. |

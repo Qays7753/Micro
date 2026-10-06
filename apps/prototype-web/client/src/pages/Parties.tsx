@@ -10,7 +10,7 @@ import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
-import type { PartyLedgerOverview } from "@/application/parties/partyLedgerService";
+import type { PartyLedgerOverview } from "@/application/parties";
 
 import { Button } from "@/components/primitives";
 type State = { phase: "loading" } | { phase: "error" } | { phase: "ready"; overview: PartyLedgerOverview };

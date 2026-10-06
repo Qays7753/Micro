@@ -20,8 +20,8 @@ import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeSer
 /* FIN-003 (WS-173 — Wave 1): نموذج جسر النتيجة إلى الكاش — من جذر التطبيق
  * (الخدمة نفسها تُوفَّر عبر السياق؛ جسم الجسر كله داخل تفاصيل مطوية). */
 import type { ProfitToCashBridgeReading } from "@/app/PrototypeServicesContext";
-import type { LocalFinancialPulse } from "@/application/financial-pulse/financialPulseService";
-import { DepositOverview } from "@/application/fulfillment/fulfillmentService";
+import type { LocalFinancialPulse } from "@/application/financial-pulse";
+import type { DepositOverview } from "@/application/fulfillment";
 import type {
   FinancialInsights,
   FinancialMetricEvidence,
@@ -77,8 +77,8 @@ import type { CorrectionDigest } from "@/application/financial-records";
 import type { PeriodWasteReading } from "@/application/inventory";
 import { DepositsLayer } from "@/components/finance/DepositsLayer";
 /* المجموعة ٤ (عقد ٢٩): قراءات الأصول والقروض والعربون المحتفظ به. */
-import type { AssetOverviewRead } from "@/application/assets/assetService";
-import { LoanOverviewRead } from "@/application/loans/loanService";
+import type { AssetOverviewRead } from "@/application/assets";
+import type { LoanOverviewRead } from "@/application/loans";
 import type { RetainedDepositRow } from "@/application/financial-records";
 import * as G5Display from "@/components/finance/G5DecisionPanel";
 import {

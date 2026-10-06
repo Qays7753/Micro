@@ -1,0 +1,8 @@
+{
+  "_comment": "W8 (post-scan program, 2026-10-05): baseline for the previously-unmeasured bundle surfaces (lazy chunks + PWA precache) — STR-608/F-11. Protocol: update deliberately in the SAME PR as a measured change (documented growth reason, or lock a reduction). Entry-surface ceilings (650,000/155,300 per D-034/ADR-017) are NOT governed here. Counts are recorded/reported, not guarded. ANCHORING NOTE (W10, 2026-10-05): gzip and precache totals are anchored to the CI environment (Node-22) per the documented CI-over-local build drift in ADR-012 (~+112 bytes; observed here as lazyGzip +70 / precache +112 over the local Node-24 measurement); local Node-24 runs therefore read slightly UNDER the baseline and pass. raw lazy total is identical across both environments at this commit.",
+  "lazyJsCount": 103,
+  "lazyRawTotal": 1425371,
+  "lazyGzipTotal": 438553,
+  "precacheEntryCount": 187,
+  "precacheBytesTotal": 2744049
+}

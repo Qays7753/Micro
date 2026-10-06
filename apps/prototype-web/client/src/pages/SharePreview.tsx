@@ -9,7 +9,7 @@ import { useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { canShareText, copyTextManually, shareTextManually } from "@/lib/textDelivery";
-import type { ShareDraft } from "@/application/share/shareMessageService";
+import type { ShareDraft } from "@/application/share";
 
 import { Button } from "@/components/primitives";
 export type SharePreviewLocationState = { draft: ShareDraft } | null | undefined;

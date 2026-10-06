@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { formatLocalDate, localDateInAmman } from "@/presentation/formatters";
 import { LocalDateField } from "@/components/forms/LocalDateField";
-import type { ActualTimeService, OperatingModeValue } from "@/application/time/actualTimeService";
+import type { ActualTimeService, OperatingModeValue } from "@/application/time";
 import type { ActualTimeComparison } from "@micro-domain/actual-time/index.js";
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
 

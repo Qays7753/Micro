@@ -23,19 +23,16 @@ import { DataActionPinGate } from "@/components/security/DataActionPinGate";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
-import type { OperatingModeValue } from "@/application/time/actualTimeService";
-import type { TransferPreview, TransferSummary } from "@/application/transfers/localTransferService";
-import type { GuidedOpeningImportPreview } from "@/application/transfers/guidedOpeningImportService";
+import type { OperatingModeValue } from "@/application/time";
+import type { TransferPreview, TransferSummary } from "@/application/transfers";
+import type { GuidedOpeningImportPreview } from "@/application/transfers";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { useTheme } from "@/contexts/ThemeContext";
-import type { BrowserPersistenceReading } from "@/application/preferences/preferenceService";
+import type { BrowserPersistenceReading } from "@/application/preferences";
 import type { OperatingWorkMode, LocalExportFile } from "@/storage/local/types";
-import { localDiagnostics } from "@/application/diagnostics/localDiagnosticsService";
-import {
-  browserLegacyFormDraftStorage,
-  clearLegacyFormDraftStorage,
-} from "@/application/drafts/legacyFormDraftMigration";
+import { localDiagnostics } from "@/application/diagnostics";
+import { browserLegacyFormDraftStorage, clearLegacyFormDraftStorage } from "@/application/drafts";
 
 import { SettingsDataProtectionSection } from "@/components/settings/SettingsDataProtectionSection";
 import {

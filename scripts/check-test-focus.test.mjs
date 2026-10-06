@@ -31,7 +31,7 @@ const focusCall = (name, method, label) =>
   [name, ".", method, "(", JSON.stringify(label), ", () => {});"].join("");
 
 /* حرفية `${method}(` مركّبة وقت التشغيل للاستخدام في التوكّدات. */
-const dotCall = (method) => [".", method, "("].join("");
+const dotCall = method => [".", method, "("].join("");
 
 const tempDirs = [];
 function makeTempDir() {
@@ -103,7 +103,7 @@ describe("check-test-focus — detection", () => {
     expect(isTestFileName("README.test-notes.md")).toBe(false);
   });
 
-  it("finds focus hits through scanTestTree and skips the fixtures dir", () => {
+  it("finds focus hits through scanTestTree and skips the documented scripts/fixtures path only", () => {
     const root = makeTempDir();
     writeTestFile(
       root,
@@ -117,6 +117,24 @@ describe("check-test-focus — detection", () => {
     expect(findings[0]?.file).toContain("tests/c.test.ts");
     expect(findings[0]?.method).toBe("only");
     expect(findings[0]?.line).toBe(2);
+  });
+
+  it("F-05b: fixtures dirs outside the documented path are scanned now (regression)", () => {
+    const root = makeTempDir();
+    writeTestFile(
+      root,
+      "tests/fixtures/buried.test.ts",
+      ['it("x", () => {});', focusCall("it", "only", "buried"), ""].join("\n"),
+    );
+    writeTestFile(
+      root,
+      "apps/prototype-web/client/src/fixtures/ui.test.ts",
+      [focusCall("it", "skip", "ui"), ""].join("\n"),
+    );
+    const findings = scanTestTree(root);
+    expect(findings).toHaveLength(2);
+    expect(findings.some(f => f.file.includes("tests/fixtures/buried.test.ts"))).toBe(true);
+    expect(findings.some(f => f.file.includes("ui.test.ts"))).toBe(true);
   });
 
   it("F-057: catches conditional focus names (skipIf/runIf/fixme/todo) in test files", () => {
@@ -140,11 +158,7 @@ describe("check-test-focus — detection", () => {
 describe("check-test-focus — CLI behavior", () => {
   it("exits 1 with file:method:line when a focus call exists", () => {
     const root = makeTempDir();
-    writeTestFile(
-      root,
-      "src/d.test.ts",
-      ['it("a", () => {});', focusCall("it", "only", "b"), ""].join("\n"),
-    );
+    writeTestFile(root, "src/d.test.ts", ['it("a", () => {});', focusCall("it", "only", "b"), ""].join("\n"));
     const result = runCli(root);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("FOCUS_FOUND");

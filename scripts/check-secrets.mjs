@@ -31,6 +31,12 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 export const SECRET_PATTERNS = [
   { name: "github-classic-token", regex: /\bghp_[A-Za-z0-9]{36,}\b/ },
   { name: "github-fine-grained-token", regex: /\bgithub_pat_[A-Za-z0-9_]{40,}\b/ },
+  /* F-14 (برنامج ما بعد المسح W8، 2026-10-05): بادئات مضافة — رموز GitHub
+   * من غير فئة ghp (OAuth/التطبيقات/المستخدم/التحديث)، ومفاتيح Google API،
+   * ورموز npm المحببة — نفس عتبات الأطوال الموثقة علنًا. */
+  { name: "github-secondary-tokens", regex: /\bgh[ousr]_[A-Za-z0-9]{36,}\b/ },
+  { name: "google-api-key", regex: /\bAIza[0-9A-Za-z_-]{35}\b/ },
+  { name: "npm-granular-token", regex: /\bnpm_[A-Za-z0-9]{36}\b/ },
   { name: "aws-access-key-id", regex: /\bAKIA[0-9A-Z]{16}\b/ },
   { name: "slack-token", regex: /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/ },
   { name: "openai-style-key", regex: /\bsk-[A-Za-z0-9]{32,}\b/ },
@@ -51,7 +57,11 @@ export const EXCLUDED_DIR_NAMES = ["node_modules", ".git", "dist", "coverage"];
 export const EXCLUDED_DIR_PATHS = ["scripts/fixtures/secrets"];
 
 /** حصر ملفات المستودع (بلا رمزيات ولا مجلدات مستثناة) — حتمي بترتيب ثابت. */
-export function listFiles(root, excludedDirNames = EXCLUDED_DIR_NAMES, excludedDirPaths = EXCLUDED_DIR_PATHS) {
+export function listFiles(
+  root,
+  excludedDirNames = EXCLUDED_DIR_NAMES,
+  excludedDirPaths = EXCLUDED_DIR_PATHS,
+) {
   const files = [];
   const stack = [path.resolve(root)];
   while (stack.length > 0) {
@@ -96,7 +106,7 @@ export function scanContent(content, patterns = SECRET_PATTERNS) {
 
 /** فحص اسم ملف — هل هو اسم ملف سر بديهي؟ */
 export function isSecretFileName(fileName) {
-  return SECRET_FILE_NAMES.some((regex) => regex.test(path.basename(fileName)));
+  return SECRET_FILE_NAMES.some(regex => regex.test(path.basename(fileName)));
 }
 
 /** فحص شجرة كاملة — يعيد الإصابات بلا أي نص مطابق. */
@@ -136,7 +146,7 @@ function main() {
   if (findings.length > 0) {
     process.stderr.write(
       `check-secrets: FAIL SECRET_FOUND — ${findings.length} hit(s) — (file:pattern:line, values never printed)\n` +
-        findings.map((f) => `  ${f.file} : ${f.patternName} : line ${f.line}`).join("\n") +
+        findings.map(f => `  ${f.file} : ${f.patternName} : line ${f.line}`).join("\n") +
         "\n",
     );
     return 1;

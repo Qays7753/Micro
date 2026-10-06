@@ -30,11 +30,7 @@ import {
   formatQuantityMilli,
   localDateInAmman,
 } from "@/presentation/formatters";
-import type {
-  ActivityEffectClass,
-  ActivityFamily,
-  ActivityRecord,
-} from "@/application/activity/activityService";
+import type { ActivityEffectClass, ActivityFamily, ActivityRecord } from "@/application/activity";
 
 import { Button, EmptyState, StatusChip } from "@/components/primitives";
 type State =

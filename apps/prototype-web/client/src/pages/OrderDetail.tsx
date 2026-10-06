@@ -29,18 +29,15 @@ import {
   STALE_RELOAD_ACTION_LABEL,
   STALE_RELOADED_NOTE,
 } from "@/app/resultFeedback";
-import { AgreementResult } from "@/application/agreements/agreementService";
-import { FulfillmentResult } from "@/application/fulfillment/fulfillmentService";
-import type {
-  CollectionReversalPreview,
-  CollectionReversalResult,
-} from "@/application/collections/collectionReversalService";
+import type { AgreementResult } from "@/application/agreements";
+import type { FulfillmentResult } from "@/application/fulfillment";
+import type { CollectionReversalPreview, CollectionReversalResult } from "@/application/collections";
 import { CorrectionPreview } from "@/components/finance/CorrectionPreview";
 import { ActualTimePanel } from "@/components/presentation/ActualTimePanel";
 import { AgreementContextPanel } from "@/components/order/AgreementContextPanel";
 import { ActualMaterialPanel, type MaterialState } from "@/components/order/ActualMaterialPanel";
 import { OrderEventLog } from "@/components/order/OrderEventLog";
-import { customerShareDraft } from "@/application/share/shareMessageService";
+import { customerShareDraft } from "@/application/share";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { StoredCraftOrder, CostEstimate } from "@/storage/local/types";

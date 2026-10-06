@@ -12,7 +12,8 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { localDateInAmman, formatMoneyMinor } from "@/presentation/formatters";
-import { ReceivedLoanSummaryRow, ReceivedLoanService } from "@/application/loans/receivedLoanService";
+import type { ReceivedLoanSummaryRow } from "@/application/loans";
+import { ReceivedLoanService } from "@/application/loans";
 
 import { Button } from "@/components/primitives";
 export default function ReceivedLoanRepaymentSheet({

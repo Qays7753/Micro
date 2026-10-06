@@ -1,8 +1,8 @@
 /** Micro design reminder: recovery states are calm, Arabic, and explicit about the next action. */
 import { AlertTriangle, RotateCcw } from "lucide-react";
 import { Component, createRef, type ReactNode } from "react";
-import { localDiagnostics } from "@/application/diagnostics/localDiagnosticsService";
-import { routeTemplateFor } from "@/application/diagnostics/routeTemplate";
+import { localDiagnostics } from "@/application/diagnostics";
+import { routeTemplateFor } from "@/application/diagnostics";
 
 import { Button } from "@/components/primitives";
 interface Props {

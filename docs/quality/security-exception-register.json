@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "purpose": "Micro security-exception register — the single authoritative machine-readable record of dependency-audit findings that cannot be remediated technically and therefore require an explicit, versioned owner decision. Consulted by scripts/ci-audit-check.mjs on every CI audit run; the prose mirror and decision policy live in docs/quality/security-exceptions.md. An exception is never silent: OWNER_ACCEPTED entries are printed as notices on every run, PROPOSED entries block CI until the owner decides, and stale entries (upstream fixed) are flagged for removal.",
+  "invariants": [
+    "Never delete or weaken this register to make CI pass; adding or flipping an entry is an owner decision recorded in the same PR (double-diff: this file + docs/quality/security-exceptions.md).",
+    "status vocabulary: PROPOSED (awaiting owner decision, blocks CI), OWNER_ACCEPTED (owner accepted, notice-only), REJECTED (owner refused, finding stands), REMEDIATED_BY_ELIMINATION (terminal-historical: the finding was eliminated from the resolvable graph by replacement — retained as evidence; any status outside the decision triple blocks when matched).",
+    "Every entry must carry the ten required fields: advisory, dependency chain, classification, exploitability, affected/unaffected surfaces, monitoring, owner, review/reopening trigger, removal condition, rollback boundary."
+  ],
+  "exceptions": [
+    {
+      "advisory_id": "GHSA-vfj7-8cjw-p6xm",
+      "cve": "CVE-2026-93687",
+      "package": "braces",
+      "vulnerable_versions": "<=3.0.3",
+      "patched_versions_upstream": "<0.0.0 (no patched release exists — npm registry verified live 2026-10-06: latest braces is 3.0.3, last modified 2024-09-18)",
+      "severity": "high (CVSS 7.5, CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H, CWE-674)",
+      "title": "braces vulnerable to stack-exhaustion denial of service through deeply nested patterns",
+      "dependency_chain": [
+        "stylelint@16.26.1 — root package.json devDependencies (\"stylelint\": \"16\"), resolved 16.26.1 in pnpm-lock.yaml",
+        "fast-glob@3.3.3 -> micromatch@4.0.8 -> braces@3.0.3",
+        "globby@11.1.0 -> fast-glob@3.3.3 -> micromatch@4.0.8 -> braces@3.0.3",
+        "stylelint-declaration-strict-value@1.12.1 (peer stylelint@16.26.1) -> same micromatch/braces path"
+      ],
+      "classification": "development-only",
+      "classification_evidence": "pnpm why braces (2026-10-06): stylelint appears exclusively under devDependencies; braces is a Node.js glob-expansion library used by lint tooling; the production PWA bundle is built by Vite from application-reachable modules only and never contains devDependencies (verifiable by scanning apps/prototype-web/dist after any build)",
+      "exploitability_assessment": "Not exploitable in this repository's actual usage. The vulnerable code path (recursive AST walkers without depth guards) is reached only when brace-expansion input contains deeply nested patterns; in this repository all glob inputs are fixed repository strings authored in package.json (design-guards) and .stylelintrc.json — no user input, no network input, and no untrusted content reaches the development lint pipeline. Exploitation would require an attacker to author a malicious commit that adds the hostile pattern itself, at which point the commit is the attack, not the library. Production surfaces are unaffected (see below).",
+      "affected_surfaces": [
+        "Development toolchain only: the stylelint pass inside pnpm design-guards (local + the CI 'Verify domain and prototype' step)",
+        "Developer machines and CI runners executing lint with repository-authored glob patterns"
+      ],
+      "unaffected_surfaces": [
+        "Production PWA bundle (Vite build output served from Cloudflare Pages)",
+        "Domain logic, financial calculations, storage (IndexedDB/Memory), schema 38 / export 30, migrations, history",
+        "Import/export bytes, backup/restore, security boundaries of the running application",
+        "End users of the deployed application"
+      ],
+      "remediation_attempts_verified": [
+        "No patched upstream release exists (registry live check 2026-10-06: latest = 3.0.3, advisory patched_versions = <0.0.0).",
+        "No upgrade path removes the chain: micromatch 4.0.8 and fast-glob 3.3.3 are the current majors used by stylelint 16.26.1, and every micromatch line depends on braces.",
+        "Removing stylelint would delete the CSS lint gate behind design-token/theme-contrast guards — weakening a protected guard chain (forbidden).",
+        "A pnpm override to a third-party patched fork would introduce an unvetted dependency in place of a documented dev-only advisory — rejected as unsafe."
+      ],
+      "monitoring_method": "Active and automatic: every CI audit run evaluates this register through scripts/ci-audit-check.mjs, which (a) prints an explicit notice for this exception on every run it matches (never silent), and (b) emits a stale-entry warning the moment the advisory stops matching the live audit report (i.e., a patched upstream release reached the lockfile), flagging the entry for removal in the same PR that updates the lockfile.",
+      "owner": "Micro owner — DECISION PENDING (proposed by the implementation agent on 2026-10-06 in PR #316, Step 3 of the correction program; acceptance = flipping status to OWNER_ACCEPTED with accepted_at set, as a visible one-line change to this file in an owner-approved commit; rejection = flipping to REJECTED, after which the finding blocks CI as any other finding)",
+      "status": "REMEDIATED_BY_ELIMINATION",
+      "review_date": "2027-01-06 (90-day periodic review)",
+      "reopening_trigger": "Immediately upon any of: a braces release newer than 3.0.3; a stylelint major upgrade that changes the micromatch/braces chain; any new advisory touching the same chain; any change that moves glob expansion onto untrusted input.",
+      "removal_condition": "braces publishes a patched release and the repository lockfile updates past the vulnerable range — the checker's stale-entry warning will fire; remove this entry in the same PR that updates the lockfile.",
+      "rollback_boundary": "This entry is data, not code: reverting the status flip (or deleting the entry) restores full blocking behavior immediately, with no code rollback required. The Step 2 exit-code fix (scripts/ci-audit-step.sh + ci.yml) is an independently revertable commit.",
+      "recorded_at": "2026-10-06",
+      "evidence": {
+        "live_audit_command": "pnpm audit --audit-level high",
+        "live_audit_exit_code": 1,
+        "live_audit_output_summary": "1 high — braces <=3.0.3 via .>stylelint>micromatch>braces (GHSA-vfj7-8cjw-p6xm)",
+        "advisory_url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm"
+      },
+      "remediation": {
+        "remediated_at": "2026-10-06",
+        "method": "Elimination by replacement (NOT risk acceptance): micromatch was replaced repository-wide through the pnpm override with a local braces-free workspace shim (tools/micromatch-shim — a faithful port of micromatch@4.0.8 delegating matching to the same picomatch@2.3.2, with a bounded iterative brace engine), removing braces from the pnpm-resolvable dependency graph entirely. This is a different route than this entry's original removal_condition (an upstream patch); the original evidence fields below are preserved verbatim as history.",
+        "pr": "PR #317 (branch security/eliminate-braces-20261006)",
+        "merged_into_main": "ea7dcffbe518d63d5c5a53544798c780b52f5663 (merge commit; pre-merge head cf454bb623219b6f065d3f23019f670d87f6ec41)",
+        "post_merge_verification": "2026-10-06 on main at ea7dcff: pnpm audit clean at ALL severities with zero suppression; pnpm why -r braces empty; frozen-lockfile clean install reproducible; production bundle byte-identical to the pre-change base (163 files, sha256-equal rebuild comparison); schema 38 / export 30 unchanged; full gate EXIT 0 (589 root + 2208 app tests, 13 guards, bundle budget PASS); CI green on the merge commit (run 37478414989) and Cloudflare Pages success.",
+        "fail_closed_reopen_behavior": "This status is terminal-historical: with braces absent from the graph no live advisory can match it, and if braces ever re-enters the resolvable graph the checker treats a non-PROPOSED/OWNER_ACCEPTED/REJECTED status as BLOCKING — the gate re-closes automatically. The entry is retained (not deleted) as historical evidence per the register invariants.",
+        "note_on_owner_decision": "The original pending owner decision (accept vs reject the dev-only risk) is moot: the finding no longer exists in the resolvable graph. Residual vendored braces@3.0.3 code inside dev-toolchain bundles (vite/rollup/tsx/prettier) is disclosed in the shim README and tracked as a separate post-merge toolchain PR, outside this register (it is invisible to pnpm audit by construction and was pre-existing at the base)."
+      }
+    }
+  ]
+}

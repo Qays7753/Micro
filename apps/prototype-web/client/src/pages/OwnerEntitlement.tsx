@@ -7,7 +7,7 @@ import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
-import { percentToBpsExact } from "@/application/input/englishNumeric";
+import { percentToBpsExact } from "@/application/input";
 import { OwnerPolicyFormsSection } from "@/components/owner/OwnerPolicyFormsSection";
 import { OwnerLedgerFormsSection } from "@/components/owner/OwnerLedgerFormsSection";
 import { CrossModelDuplicateNotice } from "@/components/owner/CrossModelDuplicateNotice";

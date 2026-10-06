@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "ca8927a793562db209c5295c1a4df7f5a5d9d5a6",
+  "head": "79c9859177e10326533d2f34a61ec817775f8dee",
   "pages": {
     "total": 60,
     "map": {
@@ -55,11 +55,9 @@
         ]
       },
       "pages/CashReversalEditor.tsx": {
-        "kind": "route-reference",
+        "kind": "direct",
         "evidence": [
-          "R2.renderSmoke.test.tsx",
-          "app/routeClassifier.test.ts",
-          "app/routeKnowledgeSync.test.ts"
+          "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
       "pages/CashTransferEditor.tsx": {
@@ -69,13 +67,9 @@
         ]
       },
       "pages/CashWalletEditor.tsx": {
-        "kind": "route-reference",
+        "kind": "direct",
         "evidence": [
-          "R2.renderSmoke.test.tsx",
-          "app/routeClassifier.test.ts",
-          "app/routeKnowledgeSync.test.ts",
-          "application/home/homeControlCenterService.test.ts",
-          "pages/Foundation.ui.test.tsx"
+          "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
       "pages/CashWallets.tsx": {
@@ -209,11 +203,9 @@
         ]
       },
       "pages/G5DeclarationEditor.tsx": {
-        "kind": "route-reference",
+        "kind": "direct",
         "evidence": [
-          "R2.renderSmoke.test.tsx",
-          "app/routeClassifier.test.ts",
-          "app/routeKnowledgeSync.test.ts"
+          "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
       "pages/Home.tsx": {
@@ -246,17 +238,9 @@
         ]
       },
       "pages/InventoryReversalEditor.tsx": {
-        "kind": "route-reference",
+        "kind": "direct",
         "evidence": [
-          "G004CapabilityDeepLinks.dom.test.tsx",
-          "InventoryAdjustExe012.dom.test.tsx",
-          "Ops001MovementSelection.dom.test.tsx",
-          "PurchasingBridgeExe011.dom.test.tsx",
-          "R2.renderSmoke.test.tsx",
-          "app/navigationContract.test.ts",
-          "app/routeClassifier.test.ts",
-          "app/routeKnowledgeSync.test.ts",
-          "group2InventorySurfaces.test.tsx"
+          "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
       "pages/LoanDetail.tsx": {
@@ -356,12 +340,9 @@
         ]
       },
       "pages/ReceivedLoanDetail.tsx": {
-        "kind": "route-reference",
+        "kind": "direct",
         "evidence": [
-          "ReceivedLoanEditor.w178.dom.test.tsx",
-          "app/routeKnowledgeSync.test.ts",
-          "application/diagnostics/routeTemplateSync.test.ts",
-          "application/transfers/exportGoldens.test.ts"
+          "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
       "pages/ReceivedLoanEditor.tsx": {
@@ -410,12 +391,9 @@
         ]
       },
       "pages/SharePreview.tsx": {
-        "kind": "route-reference",
+        "kind": "direct",
         "evidence": [
-          "OrderShare.exe015.dom.test.tsx",
-          "R2.renderSmoke.test.tsx",
-          "WorkShare.w43.dom.test.tsx",
-          "app/routeKnowledgeSync.test.ts"
+          "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
       "pages/Statement.tsx": {
@@ -887,6 +865,7 @@
       "tests/domain/financial-event.test.ts",
       "tests/domain/inventory-material.test.ts",
       "tests/domain/loan.test.ts",
+      "tests/domain/moneyMessageCharacterization.test.ts",
       "tests/domain/operatingBreakEven.test.ts",
       "tests/domain/owner-safe-withdrawal.test.ts",
       "tests/domain/public-surface.test.ts",

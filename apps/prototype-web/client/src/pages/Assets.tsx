@@ -12,7 +12,7 @@ import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
-import type { AssetOverviewRead, AssetSummaryRow } from "@/application/assets/assetService";
+import type { AssetOverviewRead, AssetSummaryRow } from "@/application/assets";
 
 import { Button, EmptyState } from "@/components/primitives";
 type State =

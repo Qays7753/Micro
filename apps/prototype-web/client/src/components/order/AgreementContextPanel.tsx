@@ -1,13 +1,10 @@
 /* §10: «ذاكرة الاتفاق» وحدة مستقلة داخل طبقة «تفاصيل إضافية» — التسمية على الوجه، والشرح خلفها. */
 import { useEffect, useState } from "react";
 import { CircleAlert, MessageCircle, Save } from "lucide-react";
-import type {
-  AgreementContextService,
-  AgreementSourceValue,
-} from "@/application/agreements/agreementContextService";
+import type { AgreementContextService, AgreementSourceValue } from "@/application/agreements";
 import type { AgreementSource, StoredCraftOrder } from "@/storage/local/types";
 import { LocalDateValue } from "@/components/presentation/DisplayValue";
-import { classifyFollowUpDate, localDateInAmman } from "@/application/agreements/followUpDate";
+import { classifyFollowUpDate, localDateInAmman } from "@/application/agreements";
 
 import { Button } from "@/components/primitives";
 const agreementSourceLabel: Record<string, string> = {

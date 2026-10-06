@@ -10,7 +10,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormDraftKind } from "@/storage/local/types";
-import type { FormDraftService, FormDraftValues } from "@/application/drafts/formDraftService";
+import type { FormDraftService, FormDraftValues } from "@/application/drafts";
 
 export type FormDraftState<Values extends FormDraftValues> =
   | { phase: "clean"; values: Values }

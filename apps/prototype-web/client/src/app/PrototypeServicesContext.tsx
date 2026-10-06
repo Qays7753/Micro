@@ -36,7 +36,7 @@ import { HomeControlCenterService } from "@/application/home/homeControlCenterSe
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { ScheduleRecurrenceService } from "@/application/scheduling/recurrenceService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
-import { CashContinuityService } from "@/application/cash/cashContinuityService";
+import { CashContinuityService } from "@/application/cash";
 import { InventoryMaterialService } from "@/application/inventory";
 import { CatalogService } from "@/application/catalog/catalogService";
 import { ActualTimeService } from "@/application/time/actualTimeService";
@@ -50,7 +50,7 @@ import { CollectionService } from "@/application/collections/collectionService";
 /* المجموعة ٦ (البند ١ — S2-04أ): التراجع المزدوج عن القبضة وتخصيصها المطابق. */
 import { CollectionReversalService } from "@/application/collections/collectionReversalService";
 import { SaleCollectionReversalService } from "@/application/collections/saleCollectionReversalService";
-import { WalletLedgerService } from "@/application/cash/walletLedgerService";
+import { WalletLedgerService } from "@/application/cash";
 import { StatementService } from "@/application/finance";
 /* FIN-003/007 (WS-173 — Wave 1): مقارنة الفترتين وجسر النتيجة إلى الكاش — خدمات
  * قراءة فقط فوق المخزن نفسه (بساعة قابلة للحقن). نماذج القراءة تُعاد تصديرها

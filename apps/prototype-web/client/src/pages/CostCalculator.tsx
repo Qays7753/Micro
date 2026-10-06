@@ -15,7 +15,7 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import type { CostEstimateInput } from "@/application/estimates/costEstimateService";
+import type { CostEstimateInput } from "@/application/estimates";
 import type { CostEstimate } from "@/storage/local/types";
 import { readMaterialSuggestions, type MaterialSuggestion } from "@/application/inventory";
 

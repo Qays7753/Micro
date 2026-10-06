@@ -24,6 +24,16 @@
  *      (STR-617 بند 3 — مكمل ESLint النصي): العدّ بحل الاستيرادات لا بمطابقة
  *      النص، فلا إفلات بمسار نسبي؛ الاستثناءان الموثقان (StartupGate،
  *      PrototypeServicesContext — بشروط إزالة مسار UI) داخل الأساس.
+ *  R6) استيراد عميق من طبقات الواجهة إلى دواخل بيوت التطبيق
+ *      (`application/<house>/<non-index>`) — راتشة STR-615 الشاملة (برنامج
+ *      تصحيح PR #316، الخطوة ٦، 2026-10-06): خط الأساس ملف مسجل
+ *      `scripts/ui-application-import-baseline.json` (وُلد من الجرد الحي
+ *      ١٢٠ مفتاحًا) ينكمش رتيبًا مع هجرة الأبواب حتى الحالة النهائية =
+ *      الاستيرادات المحتجزة الموثقة (شيمات التوافق المجمدة). أي استيراد
+ *      عميق جديد يُرفض؛ وأي موقع هاجر ثم عاد يُرفض (مفتاحه غادر الأساس)؛
+ *      وصف أساس لم يعد حيًّا يُرفض أيضًا (نظافة الأساس في نفس PR الهجرة).
+ *      طبقات الفحص: ui/app-shell/contexts/lib/presentation + pwa (سطح
+ *      تشغيلي ملاصق للواجهة — register.ts يستهلك خدمات التطبيق).
  *
  * تحديث الأساس عمدًا مشروط: أي حافة جديدة مشروعة تُضاف إلى الأساس في نفس
  * الـPR مع صف/تحديث في سجل الملكية §5 (سجل الاستثناءات) — الحارس يجعل
@@ -60,6 +70,34 @@ export function layerOf(repoRoot, file) {
 /* Wave H (STR-617 بند 4، 2026-10-04): presentation ضمّت — حواف عرض→مجال
  * صارت تحت تجميد R2 بدل أن تمر خارج الحراسة. */
 const UI_LAYERS = new Set(["ui", "app-shell", "contexts", "lib", "presentation"]);
+
+/* ─── R6 (الخطوة ٦ — STR-615 الشاملة، 2026-10-06) ───────────────────────
+ * طبقات الواجهة لحدود بيوت التطبيق: نفس مجموعة UI_LAYERS + pwa (سطح
+ * تشغيلي ملاصق للواجهة يستهلك خدمات التطبيق — pwa/register.ts). */
+const R6_LAYERS = new Set([...UI_LAYERS, "pwa"]);
+
+const APPLICATION_INTERIOR_PREFIX = "apps/prototype-web/client/src/application/";
+
+/** أساس R6: ملف JSON مسجل بجذر المستودع — غيابه = قائمة فارغة (لا يفلت
+ *  استيراد عميق جديد بوجوده أو غيابه). */
+export function loadUiApplicationImportBaseline(repoRoot) {
+  const baselinePath = path.join(repoRoot, "scripts", "ui-application-import-baseline.json");
+  try {
+    const parsed = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
+    return Array.isArray(parsed?.allowed) ? new Set(parsed.allowed) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+/** هل الاستيراد داخل دواخل بيت تطبيقي (لا بابًا ولا ملف جذر تطبيقي)؟ */
+export function applicationInteriorOf(resolved) {
+  if (!resolved?.startsWith(APPLICATION_INTERIOR_PREFIX)) return null;
+  const parts = resolved.slice(APPLICATION_INTERIOR_PREFIX.length).split("/");
+  if (parts.length < 2) return null; /* ملف جذر تطبيقي — ليس دواخل بيت */
+  if (parts[parts.length - 1] === "index.ts") return null; /* باب البيت */
+  return parts[0];
+}
 
 /** هل الاستيراد يحمل قيمة في زمن التشغيل؟ (AST — نفس منطق حارس الدورات) */
 function importCarriesRuntimeValue(node) {
@@ -220,6 +258,8 @@ export function checkModuleBoundaries(repoRoot, imports) {
   const appToPresentation = new Set(APPLICATION_TO_PRESENTATION_VALUE_BASELINE);
   const domainCrossArea = new Set(DOMAIN_CROSS_AREA_DEEP_BASELINE);
   const uiToStorage = new Set(UI_TO_STORAGE_VALUE_BASELINE);
+  const r6Allowed = loadUiApplicationImportBaseline(repoRoot);
+  const r6Seen = new Set();
   const stats = {
     files: new Set(all.map(i => i.file)).size,
     deepDomain: 0,
@@ -227,6 +267,7 @@ export function checkModuleBoundaries(repoRoot, imports) {
     appToPresentation: 0,
     domainCrossArea: 0,
     uiToStorage: 0,
+    uiToApplicationDeep: 0,
   };
   const domainArea = f => (f.match(/src\/domain\/([^/]+)\//) || [])[1] ?? null;
 
@@ -304,6 +345,33 @@ export function checkModuleBoundaries(repoRoot, imports) {
         });
       }
     }
+    /* R6 (الخطوة ٦ — STR-615 الشاملة): استيراد عميق من طبقات الواجهة إلى
+     * دواخل بيوت التطبيق (قيمة أو نوع — الحد مساري لا قيمي). الباب هو
+     * `application/<house>/index.ts` حصرًا. */
+    if (R6_LAYERS.has(imp.layer) && applicationInteriorOf(imp.resolved) !== null) {
+      stats.uiToApplicationDeep += 1;
+      const key = `${imp.file} -> ${imp.resolved}`;
+      if (r6Allowed.has(key)) {
+        r6Seen.add(key);
+      } else {
+        violations.push({
+          rule: "R6-ui-to-application-deep",
+          key,
+          hint: "استيراد عميق جديد من الواجهة إلى دواخل بيت تطبيقي (STR-615): استورد من باب البيت `@/application/<house>` أو سجّل استثناءً موثقًا وحدّث خط الأساس في نفس الـPR",
+        });
+      }
+    }
+  }
+  /* R6 — نظافة الأساس: صف غادر الشجرة الحية (هجرة/حذف) يُزال من الملف
+   * في نفس الـPR؛ بقاؤه يُبقي الراتشة متساهلة بلا ضرورة. */
+  for (const key of r6Allowed) {
+    if (!r6Seen.has(key)) {
+      violations.push({
+        rule: "R6-baseline-stale",
+        key,
+        hint: "صف أساس R6 لم يعد حيًّا في الشجرة (هاجر الموقع أو حُذف الملف) — أزل الصف من scripts/ui-application-import-baseline.json في نفس الـPR",
+      });
+    }
   }
   return { ok: violations.length === 0, violations, stats };
 }
@@ -325,7 +393,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض، ${stats.domainCrossArea} حافة عميقة عابرة لمناطق المجال، ${stats.uiToStorage} حافة واجهة→تخزين (resolution-based)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617)`,
+    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض، ${stats.domainCrossArea} حافة عميقة عابرة لمناطق المجال، ${stats.uiToStorage} حافة واجهة→تخزين (resolution-based)، ${stats.uiToApplicationDeep} استيرادًا عميقًا واجهة→دواخل بيوت التطبيق (راتشة R6/STR-615)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617 + الخطوة ٦/STR-615)`,
   );
 }
 

@@ -1,14 +1,14 @@
 /** RTL-safe presentation control: keeps editable ASCII numeric text stable and delegates parsing to Application. */
 import { type ComponentProps, useEffect, useRef, useState } from "react";
+import type { EnglishNumericKind } from "@/application/input";
 import {
   allowsEnglishNumericText,
   blurEnglishNumericText,
   focusEnglishNumericText,
   formatEnglishNumericValue,
   parseEnglishNumericText,
-  type EnglishNumericKind,
   normalizeAsciiDigits,
-} from "@/application/input/englishNumeric";
+} from "@/application/input";
 import { cn } from "@/lib/utils";
 
 type EnglishNumberInputProps = Omit<

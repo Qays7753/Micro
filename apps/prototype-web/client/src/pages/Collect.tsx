@@ -15,15 +15,12 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
-import type { CollectionOutcome, ReceivableSource } from "@/application/collections/collectionService";
-import { CashContinuityOverview } from "@/application/cash/cashContinuityService";
+import type { CollectionOutcome, ReceivableSource } from "@/application/collections";
+import { CashContinuityOverview } from "@/application/cash";
 /* Wave 4.3 — P-4.3-4 (F06): مشاركة إشعار القبض بعد النجاح الحقيقي فقط —
  * المسودة من الحدث المحفوظ القائم نفسه عبر عقد المشاركة الموحد (عقد ٣٣). */
-import {
-  collectionShareDraft,
-  standingCollectionEvent,
-  type ShareDraft,
-} from "@/application/share/shareMessageService";
+import type { ShareDraft } from "@/application/share";
+import { collectionShareDraft, standingCollectionEvent } from "@/application/share";
 import { formatLocalDate, localDateInAmman } from "@/presentation/formatters";
 import { formatMoneyWithUnit } from "@/presentation/formatters";
 

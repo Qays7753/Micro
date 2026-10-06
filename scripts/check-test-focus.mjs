@@ -8,10 +8,17 @@
  *
  * النطاق: مجلدات الاختبار المعتمدة (src، tests، scripts، ومصدر النموذج
  * الأولي وتجاربه). ملفات الاختبار = الاسم يحوي `.test.` أو `.spec.`.
- * استثناء ضيق وموثق وحيد: مجلد `scripts/fixtures` — عينات الفحص نفسه
- * (ملف فيه `.only(` مقصود لتجربة الاصطياد)؛ المالك: مالك المنتج؛ شرط
- * الإزالة: يُحذف مع حذف `check-test-focus.test.mjs`. لا استثناء لملفات
- * اختبار حقيقية.
+ * استثناء ضيق وموثق وحيد: المسار الموثق `scripts/fixtures` حصرًا — عينات
+ * الفحص نفسه (ملف فيه `.only(` مقصود لتجربة الاصطياد)؛ المالك: مالك
+ * المنتج؛ شرط الإزالة: يُحذف مع حذف `check-test-focus.test.mjs`. لا
+ * استثناء لملفات اختبار حقيقية.
+ *
+ * F-05b (برنامج ما بعد المسح W1 — 2026-10-05): كان الاستثناء يشمل أي
+ * مجلد اسمه `fixtures` في أي مسار — بينما رأس هذا الحارس يوثق المسار
+ * `scripts/fixtures` وحده (مرآةً لتضييق F-056/REM-004 في check-secrets:
+ * كانت مجلدات fixtures أخرى تُخرج من فحص الأسرار فأُنقرت للمسار الموثق
+ * وحده). ضُيّق هنا بالمثل: المجلدات الأخرى المسماة fixtures تُفحص الآن
+ * كأي مصدر — لا يبقى تعطيل اختبار مدفون في مسار مجهول.
  *
  * الاستخدام: node scripts/check-test-focus.mjs [repoRoot].
  * الخروج: 0 = نظيف؛ 1 = أي إصابة (الملف والسطر — النص آمن للطباعة).
@@ -31,7 +38,16 @@ export const TEST_ROOTS = [
   "apps/prototype-web/scripts",
 ];
 
-export const EXCLUDED_DIR_NAMES = ["node_modules", "dist", "coverage", "fixtures"];
+export const EXCLUDED_DIR_NAMES = ["node_modules", "dist", "coverage"];
+
+/** F-05b: استثناء المسار الموثق وحده `scripts/fixtures` (نسبيًا لجذر المستودع). */
+export const EXCLUDED_EXACT_DIRS = ["scripts/fixtures"];
+
+/** F-05b: هل الدليل داخل أحد المسارات المستثناة الموثقة؟ */
+export function isExcludedExactDir(repoRoot, absoluteDir) {
+  const rel = path.relative(path.resolve(repoRoot), absoluteDir).split(path.sep).join("/");
+  return EXCLUDED_EXACT_DIRS.some(dir => rel === dir || rel.startsWith(`${dir}/`));
+}
 
 /** F-057 (W4-P1 — REM-004): نمط التركيز/التعطيل يشمل أسماء vitest كاملة —
  * .only/.skip/.skipIf/.runIf/.fixme/.todo — إغفال الأسماء الشرطية كان ثغرة
@@ -63,7 +79,9 @@ export function listTestFiles(repoRoot = ROOT, testRoots = TEST_ROOTS) {
       for (const entry of entries) {
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) {
-          if (!EXCLUDED_DIR_NAMES.includes(entry.name)) stack.push(full);
+          if (EXCLUDED_DIR_NAMES.includes(entry.name)) continue;
+          if (isExcludedExactDir(repoRoot, full)) continue;
+          stack.push(full);
           continue;
         }
         if (entry.isFile() && isTestFileName(entry.name)) files.push(full);
@@ -113,7 +131,7 @@ function main() {
   if (findings.length > 0) {
     process.stderr.write(
       `check-test-focus: FAIL FOCUS_FOUND — ${findings.length} occurrence(s) of .only/.skip — (file:method:line)\n` +
-        findings.map((f) => `  ${f.file} : .${f.method}( : line ${f.line}`).join("\n") +
+        findings.map(f => `  ${f.file} : .${f.method}( : line ${f.line}`).join("\n") +
         "\n",
     );
     return 1;

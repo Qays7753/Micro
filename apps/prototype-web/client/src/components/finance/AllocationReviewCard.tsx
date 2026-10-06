@@ -6,7 +6,7 @@
  * — المعاينة والحفظ مصدر واحد، والتقريب نصف الأعلى نفسه.
  */
 import { calculateSharedProjectShareMinor } from "@micro-domain/financial-event/index.js";
-import { percentToBpsExact } from "@/application/input/englishNumeric";
+import { percentToBpsExact } from "@/application/input";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 
 export type AllocationReviewMode = "fixed" | "percentage" | "estimate" | "defer";

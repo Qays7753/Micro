@@ -36,7 +36,7 @@ import type {
   HomeInsight,
   HomePeriodNumber,
   HomeTodayItem,
-} from "@/application/home/homeControlCenterModel";
+} from "@/application/home";
 
 /* Z1.4 (§3.1 — حالات القراءة): الإقلاع الأول له بوابة تحميل كاملة وسطح خطأ
  * كامل؛ أما فشل التحديث الخلفي مع جهوزية قائمة فيُعلن خطأً مضمّنًا فوق
