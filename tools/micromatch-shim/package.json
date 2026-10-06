@@ -1,0 +1,12 @@
+{
+  "name": "micromatch-braces-free",
+  "version": "4.0.8-bracesfree.0",
+  "description": "micromatch@4.0.8 API surface with the braces dependency (GHSA-vfj7-8cjw-p6xm) replaced by a bounded, iterative expansion engine; local replacement package wired via the repository pnpm override.",
+  "private": true,
+  "license": "MIT",
+  "main": "index.js",
+  "files": ["index.js", "lib/", "README.md"],
+  "dependencies": {
+    "picomatch": "2.3.2"
+  }
+}
