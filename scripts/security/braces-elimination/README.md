@@ -22,6 +22,15 @@ repository-config/CLI-sourced patterns, not untrusted input. Their removal
 requires toolchain upgrades and is tracked as a separate owner decision; this
 security PR neither introduces nor removes them.
 
+**Post-merge update (2026-10-06, separate toolchain PR):** those vendored
+copies now have a continuously-enforced inventory —
+`docs/quality/vendored-braces-inventory.md` plus the
+`scripts/check-vendored-braces.mjs` guard in the `pnpm guards` chain (fails on
+any drift in either direction). Live registry re-verification: the latest
+stable releases of all four tools still carry the code (vite 8.3.3, rollup
+4.64.0, tsx 4.23.15, prettier 3.9.9); rollup's 5.x beta removed it — the
+documented revisit trigger once that line is stable.
+
 The remediation replaces `micromatch` (via a pnpm override) with a local,
 braces-free shim that provides the exact API surface the installed consumers
 use, on the same `picomatch` engine version the original `micromatch@4.0.8`

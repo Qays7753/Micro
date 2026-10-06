@@ -1,0 +1,51 @@
+{
+  "purpose": "Baseline inventory of vendored (bundled/inlined) braces@3.0.3 code inside third-party dev-toolchain packages. The graph-level elimination (PR #317) removed braces from the pnpm-resolvable graph; these inlined copies are invisible to pnpm overrides and pnpm audit by construction and are documented as an upstream limitation. Guarded by scripts/check-vendored-braces.mjs on every guards run; the full route analysis and upstream evidence live in docs/quality/vendored-braces-inventory.md.",
+  "signature": "exceeds max characters",
+  "signature_source": "braces@3.0.3 lib/parse.js:39 — the input-length guard template; verified to appear in the installed graph only inside the bundles below (and in the first-party bounded engine tools/micromatch-shim, which is workspace-symlinked and excluded from the scan by design)",
+  "known_vendored_copies": [
+    {
+      "package": "prettier",
+      "version": "3.9.6",
+      "file": "index.mjs",
+      "classification": "dev-only (format:check / format); patterns are fixed repository paths",
+      "upstream_latest_checked": "3.9.9 (2026-10-06) — still carries the code; 4.0.0-alpha.13 also carries it"
+    },
+    {
+      "package": "rollup",
+      "version": "4.62.4",
+      "file": "dist/es/shared/watch.js",
+      "classification": "dev-only (vite build chain); watch surface",
+      "upstream_latest_checked": "4.64.0 (2026-10-06) — still carries the code; 5.0.0-0 beta REMOVED it (future stable path)"
+    },
+    {
+      "package": "rollup",
+      "version": "4.62.4",
+      "file": "dist/shared/index.js",
+      "classification": "dev-only (vite build chain); main dist",
+      "upstream_latest_checked": "4.64.0 (2026-10-06) — still carries the code; 5.0.0-0 beta REMOVED it (future stable path)"
+    },
+    {
+      "package": "tsx",
+      "version": "4.23.12",
+      "file": "dist/cli.cjs",
+      "classification": "unused optional peer of vite (auto-installed; never invoked by any script/CI/config in this repository)",
+      "upstream_latest_checked": "4.23.15 (2026-10-06) — still carries the code"
+    },
+    {
+      "package": "tsx",
+      "version": "4.23.12",
+      "file": "dist/cli.mjs",
+      "classification": "unused optional peer of vite (auto-installed; never invoked by any script/CI/config in this repository)",
+      "upstream_latest_checked": "4.23.15 (2026-10-06) — still carries the code"
+    },
+    {
+      "package": "vite",
+      "version": "7.3.6",
+      "file": "dist/node/chunks/config.js",
+      "classification": "dev-only (dev server / build); config-sourced patterns",
+      "upstream_latest_checked": "8.3.3 (2026-10-06) — still carries the code (still depends on chokidar ^3.6.0)"
+    }
+  ],
+  "documented_limitation": "No safe remediation route exists today: the latest stable releases of all four tools still inline the braces@3.0.3 code; direct-dependency upgrades cannot alter bundled bytes; none of the tools officially supports custom rebuilds; and hand-editing generated third-party bundles is forbidden. See docs/quality/vendored-braces-inventory.md for the full route analysis, the rejected auto-install-peers=false experiment, and the revisit triggers.",
+  "generated_at": "2026-10-06"
+}

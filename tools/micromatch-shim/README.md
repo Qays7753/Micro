@@ -35,6 +35,16 @@ releases), which is a separate owner decision tracked outside this
 security PR — this shim neither introduces nor can remove those vendored
 copies.
 
+**Post-merge update (2026-10-06, separate toolchain PR):** the vendored
+copies now have their own continuously-enforced inventory — see
+`docs/quality/vendored-braces-inventory.md` (exact files, upstream route
+analysis with live registry evidence, revisit triggers) and the guard
+`scripts/check-vendored-braces.mjs` (runs in the `pnpm guards` chain;
+fails on any drift in either direction). The latest stable releases of
+all four tools were re-verified live to still carry the code (vite
+8.3.3, rollup 4.64.0, tsx 4.23.15, prettier 3.9.9); rollup's 5.x beta
+line removed it — a documented revisit trigger once stable.
+
 ## What it is (and is not)
 
 - **Not a fork of micromatch**: `index.js` is a port of
