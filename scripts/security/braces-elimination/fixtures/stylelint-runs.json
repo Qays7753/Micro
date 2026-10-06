@@ -1,0 +1,1307 @@
+[
+ {
+  "label": "micro-actual-glob",
+  "args": [
+   "apps/prototype-web/client/src/**/*.css"
+  ],
+  "exitCode": 0,
+  "report": null,
+  "raw": ""
+ },
+ {
+  "label": "micro-actual-glob-json",
+  "args": [
+   "apps/prototype-web/client/src/**/*.css",
+   "--formatter",
+   "json"
+  ],
+  "exitCode": 0,
+  "report": [
+   {
+    "source": "<ROOT>/apps/prototype-web/client/src/index.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/apps/prototype-web/client/src/styles/brand-launch-splash.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/apps/prototype-web/client/src/styles/primitives.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/apps/prototype-web/client/src/styles/theme-dark.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/apps/prototype-web/client/src/styles/vf-tokens.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   }
+  ],
+  "raw": "[{\"source\":\"<ROOT>/apps/prototype-web/client/src/index.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/brand-launch-splash.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/primitives.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/theme-dark.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]},{\"source\":\"<ROOT>/apps/prototype-web/client/src/styles/vf-tokens.css\",\"deprecations\":[],\"invalidOptionWarnings\":[],\"parseErrors\":[],\"errored\":false,\"warnings\":[]}]"
+ },
+ {
+  "label": "corpus-all",
+  "args": [
+   "scripts/security/braces-elimination/corpus/**/*.css"
+  ],
+  "exitCode": 2,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/a.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/b.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/n.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/dir with space/x.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/dist/generated.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": [],
+    "ignored": true
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/nested/other.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/nested/skip-me.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/overrides/rule-a.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-ü/دليل.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-auto.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"auto\" for property \"z-index\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"auto\" for property \"z-index\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-font.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 14,
+      "endLine": 2,
+      "endColumn": 18,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"2rem\" for property \"font-size\" (declaration-property-value-allowed-list)"
+     }
+    ]
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-z.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/nested/deep/e.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   }
+  ]
+ },
+ {
+  "label": "brace-alternation",
+  "args": [
+   "scripts/security/braces-elimination/corpus/{a,b,n}.css"
+  ],
+  "exitCode": 0,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/a.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/b.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/n.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   }
+  ]
+ },
+ {
+  "label": "brace-nested-alt",
+  "args": [
+   "scripts/security/braces-elimination/corpus/{a,{b,n}}.css"
+  ],
+  "exitCode": 0,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/a.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/b.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/n.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   }
+  ]
+ },
+ {
+  "label": "brace-sequence-extgroup",
+  "args": [
+   "scripts/security/braces-elimination/corpus/nested/deep/e.css",
+   "scripts/security/braces-elimination/corpus/**/*.{css,CSS}"
+  ],
+  "exitCode": 2,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/nested/deep/e.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/a.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/b.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/n.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/dir with space/x.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/dist/generated.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": [],
+    "ignored": true
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/extgroup/file.CSS",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/nested/other.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/nested/skip-me.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/overrides/rule-a.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-ü/دليل.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-auto.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"auto\" for property \"z-index\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"auto\" for property \"z-index\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-font.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 14,
+      "endLine": 2,
+      "endColumn": 18,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"2rem\" for property \"font-size\" (declaration-property-value-allowed-list)"
+     }
+    ]
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-z.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "label": "brace-deep-nesting-50",
+  "args": [
+   "{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,{a,b}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}.css"
+  ],
+  "exitCode": 1,
+  "report": null
+ },
+ {
+  "label": "dot-star-glob",
+  "args": [
+   "scripts/security/braces-elimination/corpus/*/*.css"
+  ],
+  "exitCode": 2,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/dir with space/x.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/dist/generated.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": [],
+    "ignored": true
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/nested/other.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/nested/skip-me.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/overrides/rule-a.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-ü/دليل.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-auto.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"auto\" for property \"z-index\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"auto\" for property \"z-index\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-font.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 14,
+      "endLine": 2,
+      "endColumn": 18,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"2rem\" for property \"font-size\" (declaration-property-value-allowed-list)"
+     }
+    ]
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-z.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "label": "bracket-glob",
+  "args": [
+   "scripts/security/braces-elimination/corpus/[ab].css"
+  ],
+  "exitCode": 0,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/a.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/b.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   }
+  ]
+ },
+ {
+  "label": "unicode-path-glob",
+  "args": [
+   "scripts/security/braces-elimination/corpus/unicode-*/**/*.css"
+  ],
+  "exitCode": 0,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-ü/دليل.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   }
+  ]
+ },
+ {
+  "label": "space-path-escape",
+  "args": [
+   "scripts/security/braces-elimination/corpus/dir\\ with\\ space/*.css"
+  ],
+  "exitCode": 1,
+  "report": null
+ },
+ {
+  "label": "space-path-direct",
+  "args": [
+   "scripts/security/braces-elimination/corpus/dir with space/*.css"
+  ],
+  "exitCode": 0,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/dir with space/x.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   }
+  ]
+ },
+ {
+  "label": "dotfile-explicit",
+  "args": [
+   "scripts/security/braces-elimination/corpus/.dotfile.css"
+  ],
+  "exitCode": 0,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/.dotfile.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   }
+  ]
+ },
+ {
+  "label": "dotdir-glob",
+  "args": [
+   "scripts/security/braces-elimination/corpus/.hiddirentry/**/*.css"
+  ],
+  "exitCode": 0,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/.hiddirentry/inside.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   }
+  ]
+ },
+ {
+  "label": "ignore-pattern-flag",
+  "args": [
+   "scripts/security/braces-elimination/corpus/**/*.css",
+   "--ignore-pattern",
+   "scripts/security/braces-elimination/corpus/nested/**"
+  ],
+  "exitCode": 2,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/a.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/b.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/n.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/dir with space/x.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/dist/generated.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": [],
+    "ignored": true
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/overrides/rule-a.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-ü/دليل.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-auto.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"auto\" for property \"z-index\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"auto\" for property \"z-index\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-font.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 14,
+      "endLine": 2,
+      "endColumn": 18,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"2rem\" for property \"font-size\" (declaration-property-value-allowed-list)"
+     }
+    ]
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-z.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "label": "negated-pattern",
+  "args": [
+   "scripts/security/braces-elimination/corpus/**/*.css",
+   "!scripts/security/braces-elimination/corpus/nested/**"
+  ],
+  "exitCode": 2,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/a.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/b.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/n.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/dir with space/x.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/dist/generated.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": [],
+    "ignored": true
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/overrides/rule-a.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/unicode-ü/دليل.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-auto.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"auto\" for property \"z-index\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"auto\" for property \"z-index\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-font.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 14,
+      "endLine": 2,
+      "endColumn": 18,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"2rem\" for property \"font-size\" (declaration-property-value-allowed-list)"
+     }
+    ]
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-z.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "label": "ignorefiles-dist",
+  "args": [
+   "scripts/security/braces-elimination/corpus/dist/generated.css"
+  ],
+  "exitCode": 0,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/dist/generated.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": [],
+    "ignored": true
+   }
+  ]
+ },
+ {
+  "label": "overrides-config",
+  "args": [
+   "scripts/security/braces-elimination/corpus/overrides/*.css",
+   "--config",
+   "scripts/security/braces-elimination/corpus/overrides-config.json"
+  ],
+  "exitCode": 2,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/overrides/rule-a.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 1,
+      "column": 1,
+      "endLine": 1,
+      "endColumn": 2,
+      "rule": "ignoreFiles",
+      "severity": "error",
+      "text": "Unknown rule ignoreFiles."
+     },
+     {
+      "line": 3,
+      "column": 14,
+      "endLine": 3,
+      "endColumn": 18,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"1rem\" for property \"font-size\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 4,
+      "column": 16,
+      "endLine": 4,
+      "endColumn": 17,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"2\" for property \"line-height\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "label": "violating-dir",
+  "args": [
+   "scripts/security/braces-elimination/corpus/violating/*.css"
+  ],
+  "exitCode": 2,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-auto.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"auto\" for property \"z-index\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"auto\" for property \"z-index\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-font.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 14,
+      "endLine": 2,
+      "endColumn": 18,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"2rem\" for property \"font-size\" (declaration-property-value-allowed-list)"
+     }
+    ]
+   },
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/violating/bad-z.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 2,
+      "column": 12,
+      "endLine": 2,
+      "endColumn": 16,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "label": "explicit-existing-file",
+  "args": [
+   "scripts/security/braces-elimination/corpus/b.css"
+  ],
+  "exitCode": 0,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/b.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   }
+  ]
+ },
+ {
+  "label": "missing-file",
+  "args": [
+   "scripts/security/braces-elimination/corpus/does-not-exist.css"
+  ],
+  "exitCode": 1,
+  "report": null
+ },
+ {
+  "label": "empty-match-allow-empty",
+  "args": [
+   "scripts/security/braces-elimination/corpus/**/*.nomatch",
+   "--allow-empty-input"
+  ],
+  "exitCode": 0,
+  "report": []
+ },
+ {
+  "label": "empty-match-default",
+  "args": [
+   "scripts/security/braces-elimination/corpus/**/*.nomatch"
+  ],
+  "exitCode": 1,
+  "report": null
+ },
+ {
+  "label": "malformed-pattern",
+  "args": [
+   "scripts/security/braces-elimination/corpus/[.css"
+  ],
+  "exitCode": 1,
+  "report": null
+ },
+ {
+  "label": "stdin-violation",
+  "args": [
+   "--stdin-filename",
+   "scripts/security/braces-elimination/corpus/stdin.css"
+  ],
+  "exitCode": 2,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/stdin.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": true,
+    "warnings": [
+     {
+      "line": 1,
+      "column": 19,
+      "endLine": 1,
+      "endColumn": 23,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 1,
+      "column": 36,
+      "endLine": 1,
+      "endColumn": 39,
+      "rule": "declaration-property-value-allowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9px\" for property \"font-size\" (declaration-property-value-allowed-list)"
+     },
+     {
+      "line": 1,
+      "column": 19,
+      "endLine": 1,
+      "endColumn": 23,
+      "rule": "declaration-property-value-disallowed-list",
+      "severity": "error",
+      "text": "Unexpected value \"9999\" for property \"z-index\" (declaration-property-value-disallowed-list)"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "label": "stdin-clean",
+  "args": [
+   "--stdin-filename",
+   "scripts/security/braces-elimination/corpus/stdin.css"
+  ],
+  "exitCode": 0,
+  "report": [
+   {
+    "source": "<ROOT>/scripts/security/braces-elimination/corpus/stdin.css",
+    "deprecations": [],
+    "invalidOptionWarnings": [],
+    "parseErrors": [],
+    "errored": false,
+    "warnings": []
+   }
+  ]
+ },
+ {
+  "label": "print-config",
+  "args": [
+   "--print-config",
+   "scripts/security/braces-elimination/corpus/a.css"
+  ],
+  "exitCode": 0,
+  "report": {
+   "rules": {
+    "declaration-property-value-allowed-list": [
+     {
+      "z-index": [
+       "0",
+       "1",
+       "20",
+       "30",
+       "40",
+       "50",
+       "60",
+       "70"
+      ],
+      "font-size": [
+       "0.6875rem",
+       "0.75rem",
+       "0.8125rem",
+       "0.875rem",
+       "0.9375rem",
+       "1rem",
+       "1.0625rem",
+       "1.125rem",
+       "1.25rem",
+       "1.5rem",
+       "1.625rem",
+       "1.75rem",
+       "1.9375rem",
+       "/^var\\(--/",
+       "inherit"
+      ]
+     }
+    ],
+    "declaration-property-value-disallowed-list": [
+     {
+      "z-index": [
+       "auto",
+       "/^9\\d+/"
+      ]
+     }
+    ]
+   },
+   "ignoreFiles": [
+    "<ROOT>/**/node_modules/**",
+    "<ROOT>/**/dist/**",
+    "<ROOT>/**/build/**"
+   ]
+  },
+  "raw": "{\n  \"rules\": {\n    \"declaration-property-value-allowed-list\": [\n      {\n        \"z-index\": [\n          \"0\",\n          \"1\",\n          \"20\",\n          \"30\",\n          \"40\",\n          \"50\",\n          \"60\",\n          \"70\"\n        ],\n        \"font-size\": [\n          \"0.6875rem\",\n          \"0.75rem\",\n          \"0.8125rem\",\n          \"0.875rem\",\n          \"0.9375rem\",\n          \"1rem\",\n          \"1.0625rem\",\n          \"1.125rem\",\n          \"1.25rem\",\n          \"1.5rem\",\n          \"1.625rem\",\n          \"1.75rem\",\n          \"1.9375rem\",\n          \"/^var\\\\(--/\",\n          \"inherit\"\n        ]\n      }\n    ],\n    \"declaration-property-value-disallowed-list\": [\n      {\n        \"z-index\": [\n          \"auto\",\n          \"/^9\\\\d+/\"\n        ]\n      }\n    ]\n  },\n  \"ignoreFiles\": [\n    \"<ROOT>/**/node_modules/**\",\n    \"<ROOT>/**/dist/**\",\n    \"<ROOT>/**/build/**\"\n  ]\n}"
+ },
+ {
+  "label": "print-config-glob-reject",
+  "args": [
+   "--print-config",
+   "scripts/security/braces-elimination/corpus/*.css"
+  ],
+  "exitCode": 1,
+  "report": null,
+  "raw": "Error: The --print-config option does not support globs.\n    at printConfig (file://<ROOT>/<PKG>/lib/printConfig.mjs:32:25)\n    at main (file://<ROOT>/<PKG>/lib/cli.mjs:598:9)\n    at file://<ROOT>/<PKG>/bin/stylelint.mjs:7:1\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)"
+ }
+]
