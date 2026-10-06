@@ -52,16 +52,21 @@ jobs:
             if pnpm audit --audit-level high; then
               echo "audit passed on attempt ${attempt}"
               exit 0
+            else
+              code=$?
+              echo "audit attempt ${attempt} failed (exit ${code})"
             fi
-            code=$?
-            echo "audit attempt ${attempt} failed (exit ${code})"
             if [ "$attempt" -eq 3 ]; then
               echo "::error::pnpm audit failed 3 times — treat as a real finding unless https://status.npmjs.org reports an outage"
-              exit $code
+              exit "$code"
             fi
             echo "waiting 60s before retry (known registry endpoint outages: PRs #150/#151/#152)"
             sleep 60
           done
+          # Defensive fall-through: this step must never complete with exit 0
+          # without a passing audit (the loop exits on every path above; this
+          # guards against future edits that let it run to the end).
+          exit 1
 
       - name: Lint source and tests
         run: pnpm lint
