@@ -2,7 +2,7 @@
  "id": "ARCH-005",
  "title": "برنامج الإكمال البنيوي ما بعد المسح — تنفيذ W0–W10 وفق عقد التنفيذ 2026-10-05 (Post-Scan Structural Completion Program)",
  "type": "RESEARCH",
- "status": "IN_REVIEW",
+ "status": "VERIFIED",
  "priority": "P1",
  "stage": "post-scan-structural-completion-implementation",
  "summary": "تنفيذ برنامج الإكمال البنيوي المقبول من المالك وفق ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md: R0 تحقق حي (اكتمل عند 214d7ac490057f966252e7c336417aac6b7410e0 بلا انحراف جوهري)، ثم W0–W10 على فرع refactoring/post-scan-structural-completion-20261005. النطاق: إغلاق F-01..F-05 (ما بقي حيًّا)، ترميز PA/PC/PG/RS، حدود نواة التنسيق ورسائل المال (W2)، التحقق من انقسامات W3/W6 وإكمالها، جرد الأبواب العامة (W4)، إثبات سلاسل أدلة القدرات الست (W5)، اختبارات رحلة الصفحات الست Smoke-only داخل النطاق البنيوي المقبول (W7)، قياس أسطح الحزمة lazy/precache وسياسات النمو (W8)، خريطة الاختبارات وQ-a..Q-j (W9)، وتدقيق معادٍ ختامي (W10). محظورات: لا كتابة إلى main، لا دمج، لا حذف فروع/PRs، لا تغيير معنى مالي/مخطط 38/تصدير 30/UI بصري.",
@@ -84,7 +84,7 @@
  "classification": "GOVERNANCE",
  "gate_classification": "NOT_APPLICABLE",
  "updated_at": "2026-10-06",
- "next_action": "PR #317 وPR #318 وPR #319 مدموجة ومتحققة على main؛ بقي دمج PR #316 بعد حل تعارضات السجلات وإعادة تشغيل الفحوص ثم التحقق على main — لا تغيير مالي أو schema/export.",
+ "next_action": "لا إجراء داخل البرنامج — W0–W10 متحقق على main؛ أي مسار بنيوي جديد يحتاج مسحًا قراءة-فقط وقبول مالك جديد.",
  "status_history": [
   {
    "status": "CLAIMED",
@@ -103,7 +103,21 @@
    "changed_at": "2026-10-05",
    "actor": "arch-005:wave-w10",
    "reason": "البرنامج W0–W10 منفذ وتدقيقه المعادي مستقلًا HOSTILE_AUDIT_PASS مع تصحيحات منفذة؛ بانتظار بوابة المالك"
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-10-06",
+   "actor": "reconciliation:post-merge-316",
+   "reason": "PR #316 دُمج إلى main عند 988e6f0d7ae2c83e62d1d4c50192dec59c00630f من رأس المصدر 931ce5b؛ بدأ تحقق ما بعد الدمج."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-10-06",
+   "actor": "reconciliation:post-merge-316",
+   "reason": "CI على رأس main ناجح (run 37526123652)، وبوابات السجلات والحراس والفحوص الكاملة متطابقة؛ لا تغيير مالي أو schema/export/import أو UI بصري."
   }
  ],
- "migration_baseline": false
+ "migration_baseline": false,
+ "merge_sha": "988e6f0d7ae2c83e62d1d4c50192dec59c00630f",
+ "verified_on_main_sha": "988e6f0d7ae2c83e62d1d4c50192dec59c00630f"
 }
