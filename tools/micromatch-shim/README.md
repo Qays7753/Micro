@@ -87,6 +87,33 @@ review.
 Both bounds and the measured original-stack behavior are enforced by the
 parity harness (`braces-elimination enforcement` tests).
 
+## Known divergences (second hostile review, 2026-10-06 — disclosed, not fixed)
+
+A fresh independent adversarial review of the final head probed the bounded
+engine with a 75-case battery beyond the pinned corpus and found these
+divergences from `braces@3.0.3`. All are unreachable from this repository's
+globs (dev-controlled config/CLI input only) and all fail toward
+*passthrough / no expansion* rather than a wrong match; they are documented
+here rather than silently widened, because widening `parseRange` lenience
+would re-open exactly the `Number()`-parsing surface the original advisory
+attacked:
+
+1. **Exotic numeric endpoints are not expanded** (real `fill-range` accepts
+   any `Number()`-parseable endpoint; the shim accepts only `/^-?\d+$/`):
+   `{+1..3}` → real `["1","2","3"]`, shim passes through `["{+1..3}"]`;
+   `{0x10..0x12}`, `{1e2..1e3}` → same passthrough direction;
+   `{ 01..3 }` (space-padded) → real `["1","2","3"]`, shim `["01","02","03"]`.
+2. **Literal `]` escaping in intermediate strings**: `{a,b}]` → real
+   `["a\\]","b\\]"]`, shim `["a]","b]"]` (keepEscaping difference).
+   End-to-end matching through picomatch is identical for the tested cases
+   (picomatch treats a bare `]` outside a bracket expression as a literal).
+3. **`braceExpand(x, { nobrace: true })`** bypasses the `nobrace`/`hasBraces`
+   fast-path that `micromatch.braces` has; no consumer in the graph calls it.
+
+Extending the engine to cover any of these is a deliberate future act:
+new fixture cases must be captured from the then-original stack first (the
+capture harness refuses to run unless the original stack is installed).
+
 ## Reproduction / verification
 
 ```bash
