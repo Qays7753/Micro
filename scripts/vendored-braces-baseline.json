@@ -8,7 +8,7 @@
       "version": "3.9.6",
       "file": "index.mjs",
       "classification": "dev-only (format:check / format); patterns are fixed repository paths",
-      "carrier_chain": "fast-glob 3.3.3 chain (fast-glob -> micromatch -> braces) bundled into prettier's dependency-free single-file dist at build time — NOT a runtime dependency of the published package",
+      "carrier_chain": "fast-glob chain (version 3.3.3 per prettier's source manifest; not recoverable from the published artifact itself) (fast-glob -> micromatch -> braces) bundled into prettier's dependency-free single-file dist at build time — NOT a runtime dependency of the published package",
       "upstream_latest_checked": "3.9.9 (re-verified live 2026-10-07 by tarball scan) — still carries the code; 4.0.0-alpha.13 also carries it"
     },
     {
