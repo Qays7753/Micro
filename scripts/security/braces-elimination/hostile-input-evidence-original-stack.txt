@@ -13,7 +13,7 @@ C(nested-range,depth=1000): NO THROW count=2 ms=25
 
 <--- Last few GCs --->
 
-[1815:0x7da4000]    23527 ms: Scavenge (interleaved) 1970.6 (1989.2) -> 1961.7 (2024.4) MB, pooled: 0 MB, 38.76 / 0.00 ms  (average mu = 0.304, current mu = 0.272) allocation failure; 
+[1815:0x7da4000]    23527 ms: Scavenge (interleaved) 1970.6 (1989.2) -> 1961.7 (2024.4) MB, pooled: 0 MB, 38.76 / 0.00 ms  (average mu = 0.304, current mu = 0.272) allocation failure;
 [1815:0x7da4000]    25560 ms: Mark-Compact (reduce) 1961.8 (2024.4) -> 1961.7 (1965.2) MB, pooled: 0 MB, 1690.31 / 0.00 ms  (+ 0.0 ms in 1 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 1696 ms) (average mu = 0.263, cur
 FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
 ----- Native stack trace -----
