@@ -40,7 +40,8 @@
       "brace-expansion@>=2.0.0 <5.0.0": "2.1.7",
       "brace-expansion@>=5.0.0": "5.0.12",
       "fast-uri@<4.0.0": "3.1.8",
-      "micromatch": "workspace:micromatch-braces-free@*"
+      "micromatch": "workspace:micromatch-braces-free@*",
+      "source-map-js@<1.2.2": "1.2.2"
     }
   }
 }
