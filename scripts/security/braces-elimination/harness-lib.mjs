@@ -294,6 +294,15 @@ export function normalizeOutput(text) {
     .replace(/<input css [A-Za-z0-9_-]+>/g, "<input css RAND>")
     /* node prints its PID in deprecation warnings — content-free. */
     .replace(/\(node:\d+\)/g, "(node:PID)")
+    /* Node-INTERNAL stack frames differ between Node versions (line
+     * numbers, frame names like onImport.tracePromise.__proto__, extra
+     * frames, and the paren-less `at async node:internal/...` shape) —
+     * the application-level error and frames are the behavioral surface;
+     * internal frames are content-free. */
+    .replace(
+      /^\s*at\s+(?:async\s+)?(?:[\w.$]+\s+)?(?:\(node:internal\/[^)\n]*\)|node:internal\/[^\n]*)\s*$/gm,
+      "",
+    )
     .replace(/node_modules\/\.pnpm\/[^/"\s\\]+\/node_modules\/[^/"\s\\]+/g, "<PKG>")
     .replace(/node_modules\/\.pnpm\/[^/"\s\\]+/g, "<PKG>");
 }

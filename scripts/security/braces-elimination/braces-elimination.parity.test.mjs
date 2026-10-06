@@ -217,7 +217,15 @@ test(
       assert.equal(run.exitCode, expected.exitCode, `exit code changed for ${run.label}`);
       assertMatches(`stylelint report ${run.label}`, run.report ?? null, canon(expected.report) ?? null);
       if (expected.raw !== undefined) {
-        assert.equal(run.raw, expected.raw, `raw output changed for ${run.label}`);
+        /* Re-apply the (idempotent) normalizer to both sides: fixtures
+         * were frozen with the normalizer of capture time, and later
+         * legitimate additions (e.g. Node-internal stack-frame stripping
+         * for cross-Node-version stability) must apply to both equally. */
+        assert.equal(
+          normalizeOutput(run.raw).trim(),
+          normalizeOutput(expected.raw).trim(),
+          `raw output changed for ${run.label}`,
+        );
       }
     }
     // The exact production invocation must stay clean and complete —
