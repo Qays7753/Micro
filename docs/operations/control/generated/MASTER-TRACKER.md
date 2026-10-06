@@ -2,7 +2,7 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 54 · SUPERSEDED: 1
+BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 55 · SUPERSEDED: 1
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
@@ -36,6 +36,7 @@ BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20
 | ARCH-001 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | architecture-refactoring-phase1 | مسح معماري/بنيوي للقراءة فقط وخطة انتقال CURRENT→TARGET→MIGRATION WAVES — المرحلة الأولى لبرنامج إعادة الهيكلة | Product owner / Z AI (Phase-1 report agent) | documentation, architecture-governance | — |
 | ARCH-002 | VERIFIED | HARDENING | NOT_APPLICABLE | P1 | architecture-remediation-wave-3a | الموجة 3A — أساس التكافؤ: ذهبيات التصدير/الاستيراد + اختبارات وصف مباشرة لعنقود النقل (STR-401/405) | agent:remediation-program | application, storage, tests | — |
 | ARCH-004 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | atoz-structural-completion-implementation | برنامج إكمال A-to-Z البنيوي — تنفيذ جذري معتمد (Post-Closure A-to-Z Structural Completion) | Micro owner (Qays7753) | domain, application, storage, scripts, docs | — |
+| ARCH-006 | VERIFIED | HARDENING | MAIN_VERIFIED | P1 | security-closure-verification | الإغلاق الجذري الأمني لنسخ braces@3.0.3 المتجسدة — برمجا PR #317 (إزالة المخطط) وPR #318 (إغلاق المتجسد) — 2026-10-06 | Product owner / security agent | governance, verification, toolchain | — |
 | CTRL-001 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | stage-0 | اعتماد Operations Control v2 | Product owner / Manus coordination | governance, documentation | — |
 | CTRL-002 | VERIFIED | GOVERNANCE | EVIDENCE_RECONCILIATION_REQUIRED | P1 | stage-0 | مصالحة القدرات والتقارير ومصادر الحقيقة | Product owner / Manus coordination | governance, documentation | — |
 | FIN-001 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | تسجيل اقتراض داخل المشروع | Product owner / Manus coordination | Layer 3, domain, application, presentation | CTRL-001 |

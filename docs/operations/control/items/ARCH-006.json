@@ -1,0 +1,75 @@
+{
+  "id": "ARCH-006",
+  "title": "الإغلاق الجذري الأمني لنسخ braces@3.0.3 المتجسدة — برمجا PR #317 (إزالة المخطط) وPR #318 (إغلاق المتجسد) — 2026-10-06",
+  "type": "QUALITY",
+  "status": "VERIFIED",
+  "priority": "P1",
+  "stage": "security-closure-verification",
+  "summary": "إغلاق GHSA-vfj7-8cjw-p6xm (CVE-2026-93687، CWE-674) على مستويين: (1) PR #317 (دمج ea7dcffbe518d63d5c5a53544798c780b52f5663) أزال braces من المخطط القابل للحل لـpnpm عبر تجاوز micromatch إلى الشيم المحلي المحدود tools/micromatch-shim (منفذ حرفي فوق picomatch@2.3.2 نفسها مع محرك braces-free محدود بلا عودية) — pnpm audit نظيف بكل الشدات بلا أي كتم، وpnpm why -r braces فارغ. (2) PR #318 (دمج ab916154811520ddd54ea976c183608b813abc15) أزال نسختي tsx غير المستخدمتين من المخطط (auto-install-peers=false + إعلان @testing-library/dom صراحة)، وأثبت بالأدلة الحية استنفاد كل مسارات المعالجة الآمنة للنسخ الأربع الباقية داخل حزم أدوات التطوير (vite/rollup عبر سلسلة chokidar v3 المضمّنة وقت البناء؛ prettier عبر سلسلة fast-glob المضمّنة) — قيد منبع موثق مع محفزات إعادة زيارة (rollup 5.x مستقر أزال الكود في بيتا)، وحارس مراقبة scripts/check-vendored-braces.mjs ضمن سلسلة guards يفشل عند أي انجراف في الاتجاهين ويطبع الجرد كل تشغيل. التحقق: بطارية كاملة على الرأس النهائي (600/600 جذرية + 2208/2208 تطبيقية + 14 حارسًا + ميزانية الحزمة) وCI ناجح على كل الرؤوس، وتثبيت نظيف من مخزن عذراء يعيد إنتاج الجرد، وحزمة الإنتاج مطابقة بالبايت (163/163) لأساس الدمج، والمخطط 38/التصدير 30 بلا تغيير، وتدقيقان معاديان مستقلان (PASS_WITH_FINDINGS بلا مكتشفات جوهرية وكل المكتشفات عولجت).",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "root_cause": "upstream:vendored-braces-inlining",
+  "source": {
+    "report": "https://github.com/Qays7753/Micro/pull/318",
+    "discovered_at_sha": "214d7ac490057f966252e7c336417aac6b7410e0",
+    "evidence": [
+      "docs/quality/vendored-braces-inventory.md",
+      "scripts/vendored-braces-baseline.json",
+      "scripts/check-vendored-braces.mjs",
+      "scripts/check-vendored-braces.test.mjs",
+      "docs/operations/current-state-log.md"
+    ]
+  },
+  "acceptance": [
+    "braces غائب عن المخطط القابل للحل (pnpm why -r braces فارغ) وpnpm audit نظيف بكل الشدات بلا استثناءات",
+    "نسختا tsx أزيلتا من المخطط والحارس يمنع عودتهما بصمت (انجراف نسختين جديدتين)",
+    "النسخ الأربع الباقيات موثقة بمساراتها وأحجامها وسلاسل حملها مع استنفاد موثق بالأدلة الحية لكل مسارات المعالجة الآمنة ومحفزات إعادة زيارة",
+    "الحارس ضمن سلسلة guards يعمل محليًا وفي CI ويطبع الجرد كل تشغيل",
+    "لا تغيير إنتاجي: حزمة الإنتاج مطابقة (163/163) والمخطط 38/التصدير 30 والتزام واحد فقط خارج التوثيق يمس التطبيق (سطر devDependencies واحد)"
+  ],
+  "areas": [
+    "security",
+    "toolchain",
+    "dependencies"
+  ],
+  "contracts": [],
+  "evidence": [
+    "docs/quality/vendored-braces-inventory.md",
+    "scripts/vendored-braces-baseline.json",
+    "scripts/check-vendored-braces.mjs",
+    "scripts/check-vendored-braces.test.mjs",
+    "scripts/security/braces-elimination/README.md",
+    "tools/micromatch-shim/README.md",
+    "THIRD_PARTY_NOTICES.md",
+    "docs/operations/current-state-log.md"
+  ],
+  "dependencies": [],
+  "related_items": [],
+  "owner_decision": "قبول قيد المنبع الموثق للنسخ الأربع الباقيات (تطويرية فقط، مدخلات موثوقة المصدر، مراقبة مستمرة) — قرار موثق في PR #318 ومرجعه؛ لا يتطلب فعلًا الآن لأن المراقبة والحفزات في الخدمة",
+  "merge_sha": "ab916154811520ddd54ea976c183608b813abc15",
+  "verified_on_main_sha": "ab916154811520ddd54ea976c183608b813abc15",
+  "updated_at": "2026-10-06",
+  "status_history": [
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-06",
+      "actor": "verification:post-318-merge",
+      "reason": "PR #318 مدموج في ab916154811520ddd54ea976c183608b813abc15 (رئيسي main الحالي) بعد CI ناجح على الرأس النهائي caaa9e215d5e793360855dd90a52d4d975e36c28 (تشغيل 37514107607) وبطارية محلية كاملة وتدقيقين معاديين مستقلين؛ شجرة الدمج مطابقة تمامًا لشجرة رأس PR (فرق فارغ)."
+    }
+  ],
+  "migration_baseline": true,
+  "next_action": "لا إجراء؛ إعادة الفتح فقط عند: صدور rollup 5.x مستقر (محفز موثق — أعد الترقية وحدّث الجرد في نفس PR)، أو فشل الحارس عند أي انجراف، أو تحول مدخلات glob إلى مصدر غير موثوق (يرتقي إلى بند مالك جديد).",
+  "classification": "HARDENING",
+  "owner": "Product owner / security agent",
+  "tests_required": [
+    "scripts/check-vendored-braces.test.mjs (11 اختبارًا)",
+    "سلسلة pnpm guards (14 حارسًا) في CI",
+    "تثبيت نظيف من مخزن عذراء يعيد إنتاج الجرد الرباعي"
+  ],
+  "layers": [
+    "governance",
+    "verification",
+    "toolchain"
+  ],
+  "gate_classification": "MAIN_VERIFIED"
+}
