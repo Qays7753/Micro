@@ -1,0 +1,30 @@
+A(nested-comma,depth=10): NO THROW count=2 ms=0
+A(nested-comma,depth=50): NO THROW count=2 ms=1
+A(nested-comma,depth=100): NO THROW count=2 ms=1
+A(nested-comma,depth=500): NO THROW count=2 ms=15
+A(nested-comma,depth=1000): NO THROW count=2 ms=26
+A(nested-comma,depth=2000): NO THROW count=2 ms=115
+A(nested-comma,depth=5000): THROWS SyntaxError "Input length (20001), exceeds max characters (10000)" ms=0
+B(plain-nesting,depth=1000): NO THROW count=1 ms=3
+B(plain-nesting,depth=10000): THROWS SyntaxError "Input length (20000), exceeds max characters (10000)" ms=0
+C(nested-range,depth=100): NO THROW count=2 ms=2
+C(nested-range,depth=500): NO THROW count=2 ms=13
+C(nested-range,depth=1000): NO THROW count=2 ms=25
+
+<--- Last few GCs --->
+
+[1815:0x7da4000]    23527 ms: Scavenge (interleaved) 1970.6 (1989.2) -> 1961.7 (2024.4) MB, pooled: 0 MB, 38.76 / 0.00 ms  (average mu = 0.304, current mu = 0.272) allocation failure;
+[1815:0x7da4000]    25560 ms: Mark-Compact (reduce) 1961.8 (2024.4) -> 1961.7 (1965.2) MB, pooled: 0 MB, 1690.31 / 0.00 ms  (+ 0.0 ms in 1 steps since start of marking, biggest step 0.0 ms, walltime since start of marking 1696 ms) (average mu = 0.263, cur
+FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 0x931db0  [node]
+ 2: 0x75968e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [node]
+ 3: 0xc70d60  [node]
+ 4: 0xc70e4f  [node]
+ 5: 0xf14725  [node]
+ 6: 0xf14752  [node]
+ 7: 0xf14a4a  [node]
+ 8: 0xf2574a  [node]
+ 9: 0xf29af0  [node]
+10: 0x19c77d1  [node]

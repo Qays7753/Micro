@@ -1,0 +1,4 @@
+.rule-b {
+  z-index: 1;
+  font-size: var(--type-scale-2);
+}

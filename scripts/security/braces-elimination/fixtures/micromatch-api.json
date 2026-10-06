@@ -1,0 +1,800 @@
+{
+ "listForm": [
+  {
+   "case": {
+    "list": [
+     "a",
+     "b",
+     "c"
+    ],
+    "patterns": [
+     "*"
+    ]
+   },
+   "result": {
+    "ok": [
+     "a",
+     "b",
+     "c"
+    ]
+   }
+  },
+  {
+   "case": {
+    "list": [
+     "a",
+     "b",
+     "c"
+    ],
+    "patterns": [
+     "*",
+     "!b"
+    ]
+   },
+   "result": {
+    "ok": [
+     "a",
+     "c"
+    ]
+   }
+  },
+  {
+   "case": {
+    "list": [
+     "a",
+     "b"
+    ],
+    "patterns": [
+     "!a",
+     "*"
+    ]
+   },
+   "result": {
+    "ok": [
+     "a",
+     "b"
+    ]
+   }
+  },
+  {
+   "case": {
+    "list": [
+     "a",
+     "b"
+    ],
+    "patterns": [
+     "!a",
+     "!b"
+    ]
+   },
+   "result": {
+    "ok": []
+   }
+  },
+  {
+   "case": {
+    "list": [
+     "a/b.css",
+     "c.css"
+    ],
+    "patterns": [
+     "**/*.css",
+     "!a/**"
+    ]
+   },
+   "result": {
+    "ok": [
+     "c.css"
+    ]
+   }
+  },
+  {
+   "case": {
+    "list": [
+     "a/b.css",
+     "c.css"
+    ],
+    "patterns": [
+     "!a/**",
+     "**/*.css"
+    ]
+   },
+   "result": {
+    "ok": [
+     "a/b.css",
+     "c.css"
+    ]
+   }
+  },
+  {
+   "case": {
+    "list": [
+     "x.css",
+     "y.ts"
+    ],
+    "patterns": [
+     "*.css",
+     "*.ts"
+    ]
+   },
+   "result": {
+    "ok": [
+     "x.css",
+     "y.ts"
+    ]
+   }
+  },
+  {
+   "case": {
+    "list": [
+     ".hidden.css",
+     "visible.css"
+    ],
+    "patterns": [
+     "*.css"
+    ]
+   },
+   "result": {
+    "ok": [
+     "visible.css"
+    ]
+   }
+  },
+  {
+   "case": {
+    "list": [
+     ".hidden.css",
+     "visible.css"
+    ],
+    "patterns": [
+     "*.css"
+    ],
+    "options": {
+     "dot": true
+    }
+   },
+   "result": {
+    "ok": [
+     ".hidden.css",
+     "visible.css"
+    ]
+   }
+  },
+  {
+   "case": {
+    "list": [
+     "/abs/path/a.css",
+     "rel.css"
+    ],
+    "patterns": [
+     "*.css"
+    ],
+    "options": {
+     "basename": true
+    }
+   },
+   "result": {
+    "ok": [
+     "/abs/path/a.css",
+     "rel.css"
+    ]
+   }
+  },
+  {
+   "case": {
+    "list": [
+     "a.css"
+    ],
+    "patterns": "a.css"
+   },
+   "result": {
+    "ok": [
+     "a.css"
+    ]
+   }
+  },
+  {
+   "case": {
+    "list": "a.css",
+    "patterns": [
+     "*.css"
+    ]
+   },
+   "result": {
+    "ok": [
+     "a.css"
+    ]
+   }
+  },
+  {
+   "case": {
+    "list": [],
+    "patterns": [
+     "*"
+    ]
+   },
+   "result": {
+    "ok": []
+   }
+  },
+  {
+   "case": {
+    "list": [
+     "a.css"
+    ],
+    "patterns": []
+   },
+   "result": {
+    "ok": []
+   }
+  }
+ ],
+ "listFormSpecial": {
+  "failglob": {
+   "throw": "Error: No matches found for \"zzz\""
+  },
+  "nonull": {
+   "ok": [
+    "zzz"
+   ]
+  },
+  "nullglob": {
+   "ok": [
+    "zzz"
+   ]
+  },
+  "unescapeNonull": {
+   "ok": [
+    "zz"
+   ]
+  }
+ },
+ "isMatch": [
+  {
+   "case": {
+    "str": "/a/b/styles.css",
+    "patterns": [
+     "*.css"
+    ],
+    "options": {
+     "dot": true
+    }
+   },
+   "result": {
+    "ok": false
+   }
+  },
+  {
+   "case": {
+    "str": "/a/b/styles.css",
+    "patterns": [
+     "*.css"
+    ],
+    "options": {
+     "dot": true,
+     "basename": true
+    }
+   },
+   "result": {
+    "ok": true
+   }
+  },
+  {
+   "case": {
+    "str": ".hidden.css",
+    "patterns": [
+     "*.css"
+    ],
+    "options": {
+     "dot": true
+    }
+   },
+   "result": {
+    "ok": true
+   }
+  },
+  {
+   "case": {
+    "str": ".hidden.css",
+    "patterns": [
+     "*.css"
+    ],
+    "options": {}
+   },
+   "result": {
+    "ok": false
+   }
+  },
+  {
+   "case": {
+    "str": "dist/generated.css",
+    "patterns": [
+     "**/dist/**"
+    ],
+    "options": {
+     "dot": true
+    }
+   },
+   "result": {
+    "ok": true
+   }
+  },
+  {
+   "case": {
+    "str": "src/app/main.css",
+    "patterns": [
+     "src/**",
+     "!src/app/**"
+    ],
+    "options": {
+     "dot": true
+    }
+   },
+   "result": {
+    "ok": true
+   }
+  },
+  {
+   "case": {
+    "str": "src/app/main.css",
+    "patterns": [
+     "!src/app/**",
+     "src/**"
+    ],
+    "options": {
+     "dot": true
+    }
+   },
+   "result": {
+    "ok": true
+   }
+  },
+  {
+   "case": {
+    "str": "a/b/c.css",
+    "patterns": [
+     "**/*.{css,ts}"
+    ],
+    "options": {
+     "dot": true
+    }
+   },
+   "result": {
+    "ok": true
+   }
+  },
+  {
+   "case": {
+    "str": "a/b/c.css",
+    "patterns": "{a,b}/*.css",
+    "options": {}
+   },
+   "result": {
+    "ok": false
+   }
+  },
+  {
+   "case": {
+    "str": "fa.css",
+    "patterns": [
+     "?a.css"
+    ],
+    "options": {}
+   },
+   "result": {
+    "ok": true
+   }
+  },
+  {
+   "case": {
+    "str": "fa.css",
+    "patterns": [
+     "[fg]a.css"
+    ],
+    "options": {}
+   },
+   "result": {
+    "ok": true
+   }
+  },
+  {
+   "case": {
+    "str": "ن.css",
+    "patterns": [
+     "*.css"
+    ],
+    "options": {
+     "dot": true
+    }
+   },
+   "result": {
+    "ok": true
+   }
+  }
+ ],
+ "misc": [
+  {
+   "api": "matcher",
+   "args": [
+    "*.css"
+   ],
+   "then": [
+    "a.css",
+    "a.ts",
+    ".a.css"
+   ],
+   "results": [
+    {
+     "ok": true
+    },
+    {
+     "ok": false
+    },
+    {
+     "ok": false
+    }
+   ]
+  },
+  {
+   "api": "all",
+   "args": [
+    "foo.css",
+    [
+     "*.css",
+     "f*"
+    ]
+   ],
+   "result": {
+    "ok": true
+   }
+  },
+  {
+   "api": "all",
+   "args": [
+    "foo.css",
+    [
+     "*.css",
+     "!foo.css"
+    ]
+   ],
+   "result": {
+    "ok": false
+   }
+  },
+  {
+   "api": "every",
+   "args": [
+    [
+     "a.css",
+     "b.css"
+    ],
+    [
+     "*.css"
+    ]
+   ],
+   "result": {
+    "ok": true
+   }
+  },
+  {
+   "api": "every",
+   "args": [
+    [
+     "a.css",
+     "b.ts"
+    ],
+    [
+     "*.css"
+    ]
+   ],
+   "result": {
+    "ok": false
+   }
+  },
+  {
+   "api": "some",
+   "args": [
+    [
+     "a.css",
+     "b.ts"
+    ],
+    [
+     "*.css"
+    ]
+   ],
+   "result": {
+    "ok": true
+   }
+  },
+  {
+   "api": "not",
+   "args": [
+    [
+     "a.a",
+     "b.b",
+     "c.c"
+    ],
+    "*.a"
+   ],
+   "result": {
+    "ok": [
+     "b.b",
+     "c.c"
+    ]
+   }
+  },
+  {
+   "api": "contains",
+   "args": [
+    "aa/bb/cc",
+    "*b"
+   ],
+   "result": {
+    "ok": true
+   }
+  },
+  {
+   "api": "contains",
+   "args": [
+    "aa/bb/cc",
+    "*d"
+   ],
+   "result": {
+    "ok": false
+   }
+  },
+  {
+   "api": "capture",
+   "args": [
+    "test/*.js",
+    "test/foo.js"
+   ],
+   "result": {
+    "ok": [
+     "foo"
+    ]
+   }
+  },
+  {
+   "api": "capture",
+   "args": [
+    "test/*.js",
+    "foo/bar.css"
+   ],
+   "result": {
+    "throw": "SyntaxError: \"undefined\" is not valid JSON"
+   }
+  }
+ ],
+ "makeRe": [
+  {
+   "case": {
+    "pattern": "*.css",
+    "options": {
+     "dot": true
+    }
+   },
+   "source": {
+    "ok": "/^(?:(?!(?:^|\\/)\\.{1,2}(?:\\/|$))(?=.)[^/]*?\\.css\\/?)$/"
+   },
+   "behavior": {
+    "a.css": {
+     "ok": true
+    },
+    "a/b.css": {
+     "ok": false
+    },
+    "a.ts": {
+     "ok": false
+    },
+    ".x.css": {
+     "ok": true
+    }
+   }
+  },
+  {
+   "case": {
+    "pattern": "**/*.css",
+    "options": {
+     "dot": true
+    }
+   },
+   "source": {
+    "ok": "/^(?:(?:(?!(?:^|\\/)\\.{1,2}(?:\\/|$))(?:(?:(?!(?:^|\\/)\\.{1,2}(?:\\/|$)).)*?)\\/)?(?!\\.{1,2}(?:\\/|$))(?=.)[^/]*?\\.css\\/?)$/"
+   },
+   "behavior": {
+    "a.css": {
+     "ok": true
+    },
+    "a/b/c.css": {
+     "ok": true
+    },
+    "a/b.css": {
+     "ok": true
+    }
+   }
+  },
+  {
+   "case": {
+    "pattern": "a/**/b",
+    "options": {
+     "dot": true
+    }
+   },
+   "source": {
+    "ok": "/^(?:a(?:\\/(?!\\.{1,2}(?:\\/|$))(?:(?:(?!(?:^|\\/)\\.{1,2}(?:\\/|$)).)*?)\\/|\\/|$)b)$/"
+   },
+   "behavior": {
+    "a/b": {
+     "ok": true
+    },
+    "a/x/b": {
+     "ok": true
+    },
+    "a/x/y/b": {
+     "ok": true
+    },
+    "x/b": {
+     "ok": false
+    }
+   }
+  },
+  {
+   "case": {
+    "pattern": "x?.css",
+    "options": {
+     "dot": true
+    }
+   },
+   "source": {
+    "ok": "/^(?:^(?:x[^/]\\.css)$)$/"
+   },
+   "behavior": {
+    "xa.css": {
+     "ok": true
+    },
+    "x.css": {
+     "ok": false
+    },
+    "xab.css": {
+     "ok": false
+    }
+   }
+  },
+  {
+   "case": {
+    "pattern": "[a-c].css",
+    "options": {
+     "dot": true
+    }
+   },
+   "source": {
+    "ok": "/^(?:[a-c]\\.css)$/"
+   },
+   "behavior": {
+    "a.css": {
+     "ok": true
+    },
+    "d.css": {
+     "ok": false
+    }
+   }
+  },
+  {
+   "case": {
+    "pattern": "{a,b}/*.css",
+    "options": {
+     "dot": true
+    }
+   },
+   "source": {
+    "ok": "/^(?:(a|b)\\/(?!\\.{1,2}(?:\\/|$))(?=.)[^/]*?\\.css)$/"
+   },
+   "behavior": {
+    "a/x.css": {
+     "ok": true
+    },
+    "b/x.css": {
+     "ok": true
+    },
+    "c/x.css": {
+     "ok": false
+    }
+   }
+  },
+  {
+   "case": {
+    "pattern": "src/**/*.{css,CSS}",
+    "options": {
+     "dot": true
+    }
+   },
+   "source": {
+    "ok": "/^(?:src(?:\\/(?!\\.{1,2}(?:\\/|$))(?:(?:(?!(?:^|\\/)\\.{1,2}(?:\\/|$)).)*?)\\/|\\/|$)(?!\\.{1,2}(?:\\/|$))(?=.)[^/]*?\\.(css|CSS))$/"
+   },
+   "behavior": {
+    "src/a.css": {
+     "ok": true
+    },
+    "src/a.CSS": {
+     "ok": true
+    },
+    "src/a.ts": {
+     "ok": false
+    }
+   }
+  }
+ ],
+ "scan": [
+  {
+   "pattern": "a/b/*.css",
+   "parts": {
+    "ok": [
+     "a",
+     "b",
+     "*.css"
+    ]
+   }
+  },
+  {
+   "pattern": "**/*.css",
+   "parts": {
+    "ok": [
+     "**",
+     "*.css"
+    ]
+   }
+  },
+  {
+   "pattern": "/abs/x/*.css",
+   "parts": {
+    "ok": [
+     "/abs",
+     "x",
+     "*.css"
+    ]
+   }
+  },
+  {
+   "pattern": "a",
+   "parts": {
+    "ok": []
+   }
+  },
+  {
+   "pattern": "",
+   "parts": {
+    "ok": []
+   }
+  },
+  {
+   "pattern": "a/{b,c}/*.css",
+   "parts": {
+    "ok": [
+     "a",
+     "{b,c}",
+     "*.css"
+    ]
+   }
+  },
+  {
+   "pattern": "apps/**/*.css",
+   "parts": {
+    "ok": [
+     "apps",
+     "**",
+     "*.css"
+    ]
+   }
+  },
+  {
+   "pattern": "./rel/*.css",
+   "parts": {
+    "ok": [
+     "rel",
+     "*.css"
+    ]
+   }
+  }
+ ]
+}

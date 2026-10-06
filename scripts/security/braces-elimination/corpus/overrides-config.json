@@ -1,0 +1,19 @@
+{
+  "rules": {
+    "declaration-property-value-allowed-list": {
+      "z-index": ["0", "1", "20", "30", "40", "50", "60", "70"],
+      "font-size": ["/^var\\(--/", "inherit"]
+    },
+    "ignoreFiles": ["**/node_modules/**", "**/dist/**"]
+  },
+  "overrides": [
+    {
+      "files": ["**/overrides/*.css"],
+      "rules": {
+        "declaration-property-value-disallowed-list": {
+          "line-height": ["2"]
+        }
+      }
+    }
+  ]
+}

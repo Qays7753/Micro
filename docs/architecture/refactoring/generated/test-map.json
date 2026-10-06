@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "ff932df16e359c0a58659e3097d1b11503fa5c1e",
+  "head": "ca8927a793562db209c5295c1a4df7f5a5d9d5a6",
   "pages": {
     "total": 60,
     "map": {
@@ -791,7 +791,11 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/Settings.lockGate.dom.test.tsx",
-          "apps/prototype-web/client/src/application/security/localLockService.test.ts"
+          "apps/prototype-web/client/src/application/security/localLockService.test.ts",
+          "scripts/security/braces-elimination/braces-elimination.parity.test.mjs",
+          "scripts/security/braces-elimination/capture-baseline.mjs",
+          "scripts/security/braces-elimination/harness-lib.mjs",
+          "scripts/security/ci-audit-gate.test.mjs"
         ]
       },
       "38-pwa-dirty-safe-update-contract.md": {
