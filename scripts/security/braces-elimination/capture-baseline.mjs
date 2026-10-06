@@ -41,13 +41,35 @@ import {
 const require = createRequire(path.join(REPO_ROOT, "package.json"));
 
 /* Anchor requires at the stylelint package — the exact dependency edge the
- * shim will occupy — so we capture what the real consumers load. */
-const stylelintEntry = require.resolve("stylelint");
-const stylelintRequire = createRequire(stylelintEntry);
-const micromatchEntry = stylelintRequire.resolve("micromatch");
-const mmRequire = createRequire(micromatchEntry);
-const micromatch = mmRequire("micromatch");
-const braces = mmRequire("braces");
+ * shim will occupy — so we capture what the real consumers load. The whole
+ * anchor block is guarded (hostile-review correction 2026-10-06): on the
+ * shim graph neither `micromatch` (the workspace link realpaths to
+ * tools/micromatch-shim, whose name is micromatch-braces-free) nor `braces`
+ * resolves from the anchor location, and previously that surfaced as an
+ * uncaught MODULE_NOT_FOUND stack trace instead of the intended clean
+ * REFUSING message. Behavior was fail-closed and write-free either way;
+ * every write still happens only after the guards below. */
+let stylelintEntry;
+let stylelintRequire;
+let micromatchEntry;
+let mmRequire;
+let micromatch;
+let braces;
+try {
+  stylelintEntry = require.resolve("stylelint");
+  stylelintRequire = createRequire(stylelintEntry);
+  micromatchEntry = stylelintRequire.resolve("micromatch");
+  mmRequire = createRequire(micromatchEntry);
+  micromatch = mmRequire("micromatch");
+  braces = mmRequire("braces");
+} catch (err) {
+  console.error(
+    "REFUSING: the stylelint→micromatch(+braces) edge this script anchors to " +
+      `does not resolve to the original stack (got ${err.code || err.message}). ` +
+      "Fixtures may only be captured from the original (braces) dependency graph.",
+  );
+  process.exit(2);
+}
 
 /* ---------- original-stack guard (fail-closed) ---------- */
 

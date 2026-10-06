@@ -9,15 +9,31 @@ from the development toolchain.
 
 ## Why this exists
 
-The only route to `braces` in this repository is
-`stylelint@16.26.1 → {fast-glob@3.3.3, globby@11.1.0} → micromatch@4.0.8 →
-braces@3.0.3` (verified by `pnpm why`; dev-only). No patched `braces`
-release exists (registry live check 2026-10-06: latest 3.0.3, advisory
-patched_versions `<0.0.0`), the current Stylelint line — including
-17.16.0 — still resolves the same chain, and `pnpm patch` manifest edits
-do not change the resolved graph (tested on pnpm 9 and pnpm 10).
-Replacing `micromatch` itself is the only edge where the vulnerable
-package can be removed without weakening the Stylelint gate.
+The only route to `braces` **in the pnpm-resolvable dependency graph** of
+this repository is `stylelint@16.26.1 → {fast-glob@3.3.3, globby@11.1.0} →
+micromatch@4.0.8 → braces@3.0.3` (verified by `pnpm why`; dev-only). No
+patched `braces` release exists (registry live check 2026-10-06: latest
+3.0.3, advisory patched_versions `<0.0.0`), the current Stylelint line —
+including 17.16.0 — still resolves the same chain, and `pnpm patch`
+manifest edits do not change the resolved graph (tested on pnpm 9 and
+pnpm 10). Replacing `micromatch` itself is the only edge where the
+vulnerable package can be removed without weakening the Stylelint gate.
+
+**Scope boundary (hostile-review disclosure, 2026-10-06)**: this
+removal covers the *resolvable graph* — what `pnpm why`, `pnpm audit`,
+and the lockfile can see. Separately, the `braces@3.0.3` *implementation
+code* is also vendored (bundled/inlined) inside four dev-toolchain
+packages on disk — `vite@7.3.6` (its bundled `chokidar@3.6.0`),
+`rollup@4.62.4`, `tsx@4.23.12`, and `prettier@3.9.6` — where it is
+invisible to pnpm overrides and to `pnpm audit`. Those copies are
+pre-existing at the base commit (identical package integrity hashes
+before and after this change), are dev-only, and are fed
+repository-config/CLI-sourced patterns rather than untrusted input.
+Removing them requires toolchain version upgrades (e.g. a
+chokidar-4-based watcher line / future vite/rollup/tsx/prettier
+releases), which is a separate owner decision tracked outside this
+security PR — this shim neither introduces nor can remove those vendored
+copies.
 
 ## What it is (and is not)
 

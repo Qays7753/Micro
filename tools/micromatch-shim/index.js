@@ -25,15 +25,24 @@
  * default export = the micromatch function with attached API methods.
  */
 const util = require("util");
+const path = require("path");
 const picomatch = require("picomatch");
 const { expandBraces } = require("./lib/braces-free");
 
 /* Inlined from picomatch/lib/utils (the three helpers micromatch itself
  * imports from picomatch's internals) — reimplemented here so the shim
- * does not depend on an undocumented internal path. */
+ * does not depend on an undocumented internal path. isWindows mirrors
+ * picomatch@2.3.2 exactly (hostile-review correction 2026-10-06: the
+ * earlier /win/i regex matched "darwin" and ignored the explicit
+ * options.windows override). */
 const utils = {
   isObject: (v) => typeof v === "object" && v !== null && !Array.isArray(v),
-  isWindows: (o) => o && typeof o === "object" && /win/i.test(process.platform || ""),
+  isWindows: (o) => {
+    if (o && typeof o.windows === "boolean") {
+      return o.windows;
+    }
+    return process.platform === "win32" || path.sep === "\\";
+  },
   toPosixSlashes: (str) => str.replace(/\\/g, "/"),
 };
 

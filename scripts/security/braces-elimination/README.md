@@ -2,13 +2,25 @@
 
 GHSA-vfj7-8cjw-p6xm (CVE-2026-93687, CWE-674): `braces@<=3.0.3` is vulnerable to
 stack-exhaustion / unbounded-expansion denial of service. In this repository the
-package is reached only through the development Stylelint graph:
+package is reached only through the development Stylelint graph (the
+**pnpm-resolvable dependency graph** — what `pnpm why`, `pnpm audit`, and the
+lockfile can see):
 
 ```
 stylelint@16.26.1 → micromatch@4.0.8 → braces@3.0.3
 stylelint@16.26.1 → fast-glob@3.3.3 → micromatch@4.0.8 → braces@3.0.3
 stylelint@16.26.1 → globby@11.1.0 → fast-glob@3.3.3 → micromatch@4.0.8 → braces@3.0.3
 ```
+
+**Scope boundary (hostile-review disclosure, 2026-10-06)**: the `braces@3.0.3`
+implementation code is additionally *vendored* (bundled/inlined) inside four
+dev-toolchain packages on disk — `vite@7.3.6` (bundled `chokidar@3.6.0`),
+`rollup@4.62.4`, `tsx@4.23.12`, `prettier@3.9.6` — invisible to pnpm overrides
+and to `pnpm audit`. Those copies pre-date this change (identical package
+integrity hashes at the base commit), are dev-only, and receive
+repository-config/CLI-sourced patterns, not untrusted input. Their removal
+requires toolchain upgrades and is tracked as a separate owner decision; this
+security PR neither introduces nor removes them.
 
 The remediation replaces `micromatch` (via a pnpm override) with a local,
 braces-free shim that provides the exact API surface the installed consumers
