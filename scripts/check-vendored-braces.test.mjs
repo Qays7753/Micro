@@ -143,7 +143,9 @@ describe("check-vendored-braces — live tree (reproducibility pin)", () => {
   it("the committed baseline is well-formed", () => {
     const loaded = loadBaseline(BASELINE_PATH);
     expect(loaded.ok).toBe(true);
-    expect(loaded.baseline.known_vendored_copies.length).toBeGreaterThanOrEqual(4);
+    expect(loaded.baseline.known_vendored_copies.length).toBeGreaterThanOrEqual(3);
+    /* the removed tsx entries are recorded as removal evidence, not as live copies */
+    expect(loaded.baseline.removed_entries.some(e => e.package === "tsx")).toBe(true);
   });
 
   it("the live installed tree matches the committed baseline exactly", () => {
@@ -156,14 +158,15 @@ describe("check-vendored-braces — live tree (reproducibility pin)", () => {
       console.error("new:", verdict.newCopies.map(c => c.key), "missing:", verdict.missingEntries.map(c => c.key));
     }
     expect(verdict.exitCode).toBe(0);
-    /* the documented six copies, pinned by name */
+    /* the documented four copies (tsx removed from the graph in this PR), pinned by name */
     const keys = scan.hits.map(h => h.key).sort();
     expect(keys).toContain("prettier@3.9.6:index.mjs");
     expect(keys).toContain("rollup@4.62.4:dist/es/shared/watch.js");
     expect(keys).toContain("rollup@4.62.4:dist/shared/index.js");
-    expect(keys).toContain("tsx@4.23.12:dist/cli.cjs");
-    expect(keys).toContain("tsx@4.23.12:dist/cli.mjs");
     expect(keys).toContain("vite@7.3.6:dist/node/chunks/config.js");
+    expect(keys).toHaveLength(4);
+    /* the removed tsx copies must stay gone: their return would be new-copy drift */
+    expect(keys.some(k => k.startsWith("tsx@"))).toBe(false);
   });
 
   it("the signature is the braces@3.0.3 length-guard template", () => {

@@ -41,9 +41,13 @@ copies now have their own continuously-enforced inventory — see
 analysis with live registry evidence, revisit triggers) and the guard
 `scripts/check-vendored-braces.mjs` (runs in the `pnpm guards` chain;
 fails on any drift in either direction). The latest stable releases of
-all four tools were re-verified live to still carry the code (vite
-8.3.3, rollup 4.64.0, tsx 4.23.15, prettier 3.9.9); rollup's 5.x beta
-line removed it — a documented revisit trigger once stable.
+vite/rollup/prettier were re-verified live to still carry the code
+(vite 8.3.3 — still chokidar ^3.6.0; rollup 4.64.0; prettier 3.9.9);
+rollup's 5.x beta line removed it — a documented revisit trigger once
+stable. The tsx copies were REMOVED in that same PR (unused optional
+peer dropped from the graph via .npmrc auto-install-peers=false with
+@testing-library/dom declared explicitly), shrinking the vendored
+inventory to four copies.
 
 ## What it is (and is not)
 
