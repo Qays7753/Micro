@@ -120,12 +120,15 @@ describe("ci-audit-check — register semantics (pure evaluation)", () => {
 });
 
 describe("ci-audit-check — CLI (offline via --report-file/--register)", () => {
-  it("exits 1 and prints the pending decision for the live PROPOSED register entry", () => {
+  it("exits 1 and blocks fail-closed if the remediated braces advisory ever re-matches the live register (reopen behavior)", () => {
     const report = writeTemp("report.json", BRACES_REPORT);
     const result = runChecker(["--report-file", report, "--register", DEFAULT_REGISTER_PATH]);
     expect(result.status).toBe(1);
     expect(result.stdout).toContain("BLOCKED GHSA-vfj7-8cjw-p6xm (high) braces");
-    expect(result.stdout).toContain("PROPOSED security exception awaiting the owner decision");
+    // بعد الدمج (PR #317) صار صف braces ‏REMEDIATED_BY_ELIMINATION: لو عاد
+    // المكتشف حيًا يومًا فالفاحص يعامله كحالة غير معروفة فيحجب — الإغلاق
+    // المغلق فشلًا لسلوك إعادة الفتح الموثق في السجل نفسه.
+    expect(result.stdout).toContain("unknown exception status 'REMEDIATED_BY_ELIMINATION' — treated as blocking");
     expect(result.stdout).toContain("1 blocking finding(s)");
   });
 
@@ -154,13 +157,20 @@ describe("ci-audit-check — CLI (offline via --report-file/--register)", () => 
     expect(result.stderr).toContain("TOOL FAILURE");
   });
 
-  it("the live register carries the braces PROPOSED record with all ten required fields", () => {
+  it("the live register carries the braces REMEDIATED_BY_ELIMINATION record with all ten required fields and the remediation evidence", () => {
     const loaded = loadRegister(DEFAULT_REGISTER_PATH);
     expect(loaded.ok).toBe(true);
     const entry = loaded.register.exceptions.find(e => e.advisory_id === "GHSA-vfj7-8cjw-p6xm");
     expect(entry).toBeTruthy();
-    expect(entry.status).toBe("PROPOSED");
+    // بعد دمج PR #317 ‏(ea7dcff): أُزيل braces من المخطط بالاستبدال — لا
+    // قبول مخاطرة؛ قرار المالك الأصلي أصبح بلا موضوع والدليل التاريخي محفوظ.
+    expect(entry.status).toBe("REMEDIATED_BY_ELIMINATION");
     expect(entry.package).toBe("braces");
+    expect(entry.remediation).toMatchObject({
+      remediated_at: "2026-10-06",
+      pr: "PR #317 (branch security/eliminate-braces-20261006)",
+    });
+    expect(entry.remediation.merged_into_main).toContain("ea7dcff");
     for (const key of [
       "dependency_chain",
       "classification",
