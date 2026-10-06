@@ -84,7 +84,7 @@
  "classification": "GOVERNANCE",
  "gate_classification": "NOT_APPLICABLE",
  "updated_at": "2026-10-06",
- "next_action": "برنامج التصحيح Steps 1–7 منفذ (Entry 46)؛ المتبقي: تدقيق معادٍ ثانٍ + تحقق نهائي + Merge Manifest محدث ثم بوابة المالك (قرار braces PROPOSED + الدمج) — لا دمج ذاتي",
+ "next_action": "PR #317 وPR #318 وPR #319 مدموجة ومتحققة على main؛ بقي دمج PR #316 بعد حل تعارضات السجلات وإعادة تشغيل الفحوص ثم التحقق على main — لا تغيير مالي أو schema/export.",
  "status_history": [
   {
    "status": "CLAIMED",

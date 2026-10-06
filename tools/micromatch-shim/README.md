@@ -35,6 +35,23 @@ releases), which is a separate owner decision tracked outside this
 security PR — this shim neither introduces nor can remove those vendored
 copies.
 
+**Post-merge update (2026-10-06, separate toolchain PR; registry evidence
+re-verified live 2026-10-07):** the vendored
+copies now have their own continuously-enforced inventory — see
+`docs/quality/vendored-braces-inventory.md` (exact files, upstream route
+analysis with live registry evidence, revisit triggers) and the guard
+`scripts/check-vendored-braces.mjs` (runs in the `pnpm guards` chain;
+fails on any drift in either direction). The latest stable releases of
+vite/rollup/prettier were re-verified live to still carry the code
+(vite 8.3.3 — its dist still embeds the chokidar-3-derived watcher
+chain, built from the vite source repo's devDependency chokidar ^3.6.0;
+rollup 4.64.0; prettier 3.9.9);
+rollup's 5.x beta line removed it (moved to chokidar ^5.0.0) — a
+documented revisit trigger once stable. The tsx copies were REMOVED in
+that same PR (unused optional peer dropped from the graph via .npmrc
+auto-install-peers=false with @testing-library/dom declared explicitly),
+shrinking the vendored inventory to four copies.
+
 ## What it is (and is not)
 
 - **Not a fork of micromatch**: `index.js` is a port of
