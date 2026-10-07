@@ -18,7 +18,13 @@
  * السطح الحي) — لا تقريب مالي هنا، وإزاحة الأيام قسمة صحيحة على مضاعفات
  * 86400000 بالضبط.
  */
-import { isValidLocalDate } from "@micro-domain/shared/index.js";
+import {
+  daysInMonthOf,
+  isValidLocalDate,
+  localDateDayNumber,
+  localDatePlusDays,
+  localDateWeekdayIndex,
+} from "@micro-domain/shared/index.js";
 
 export type PeriodPresetId =
   "this_week" | "last_week" | "this_month" | "last_month" | "this_quarter" | "last_quarter" | "custom";
@@ -54,31 +60,29 @@ export const PERIOD_PRESET_LABELS_AR: Readonly<Record<PeriodPresetId, string>> =
   custom: "نطاق مخصص",
 };
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
+/* R2 (M-02/HOSTILE-01، 2026-10-08): حساب الفترات من نواة المجال الخالصة —
+ * كانت Date.UTC رقمية تعيد السنوات < 0100 إلى 1950+ فتفسد النطاقات
+ * بعد سياسة السنوات الصريحة (M-01). fail-soft كما كان: المدخل غير الصالح
+ * يعيد القيمة/صفرًا كما فعلت parseParts null سابقًا. */
 function parseParts(localDate: string): { year: number; month: number; day: number } | null {
   if (!isValidLocalDate(localDate)) return null;
   const [year, month, day] = localDate.split("-").map(Number);
   return { year: year!, month: month!, day: day! };
 }
 
-/** إزاحة أيام على التاريخ المحلي — نفس أسلوب `shiftDate` في السطح الحي (منتصف ليل UTC). */
+/** إزاحة أيام على التاريخ المحلي — من نواة الحساب الخالص (كانت Date.UTC رقمية). */
 function shiftLocalDays(localDate: string, days: number): string {
-  const parts = parseParts(localDate);
-  if (!parts) return localDate;
-  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days)).toISOString().slice(0, 10);
+  return localDatePlusDays(localDate, days) ?? localDate;
 }
 
-/** فهرس يوم الأسبوع بدايةً من الأحد (0 = الأحد) — نفس `getUTCDay()` في السطح الحي. */
+/** فهرس يوم الأسبوع بدايةً من الأحد (0 = الأحد) — من نواة الحساب الخالص. */
 function sundayWeekdayIndex(localDate: string): number {
-  const parts = parseParts(localDate);
-  if (!parts) return 0;
-  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day)).getUTCDay();
+  return localDateWeekdayIndex(localDate) ?? 0;
 }
 
-/** عدد أيام الشهر (28/29/30/31) — نفس أسلوب حسبة «هذا الشهر» في كشف الفترة. */
+/** عدد أيام الشهر (28/29/30/31) — من نواة الحساب الخالص. */
 function lastDayOfMonth(year: number, month: number): number {
-  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return daysInMonthOf(year, month);
 }
 
 function monthRange(year: number, month: number): PeriodRange {
@@ -158,14 +162,11 @@ export function resolvePeriodPreset(
 
 /** عدد الأيام بين تاريخين محليين (to − from) — قسمة مضاعفات UTC-millis الدقيقة بلا تقريب. */
 function daysBetween(from: string, to: string): number {
-  const fromParts = parseParts(from);
-  const toParts = parseParts(to);
-  if (!fromParts || !toParts) return 0;
-  return (
-    (Date.UTC(toParts.year, toParts.month - 1, toParts.day) -
-      Date.UTC(fromParts.year, fromParts.month - 1, fromParts.day)) /
-    DAY_MS
-  );
+  /* أرقام الأيام الكنسية (محور 1970-01-01) — نفس محور Date.UTC التاريخي. */
+  const fromDay = localDateDayNumber(from);
+  const toDay = localDateDayNumber(to);
+  if (fromDay === null || toDay === null) return 0;
+  return toDay - fromDay;
 }
 
 /**

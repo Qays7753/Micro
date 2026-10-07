@@ -156,14 +156,21 @@ export function formatBreakEvenDisplay(
 
 /* S4-08 + المجموعة ۹ (STR-031): معيّن المجال المرجعي — تحقق صلاحية Date-only
  * وتاريخ الأعمال الكنوني بتوقيت عمّان يأتيان من النطاق لا من طبقة العرض؛
- * إعادة التصدير لتوافق مستورديها الحاليين فقط. */
+ * إعادة التصدير لتوافق مستورديها الحاليين فقط.
+ * R2 (M-02، 2026-10-08): حساب التاريخ المحلي الخالص (إزاحة أيام/فهرس
+ * يوم/آخر يوم شهر/طول شهر) من النواة نفسها — نفس نمط إعادة التصدير
+ * الموثق لمستهلكي الواجهة القائمين؛ توسيع سطح مقصود بنفس الموجة (PC-3). */
 import {
   ammanDateOrNull,
   isValidLocalDate as isValidLocalDateDomain,
   localDateInAmman,
+  localDateMonthEnd,
+  localDatePlusDays,
+  localDateWeekdayIndex,
+  daysInMonthOf,
 } from "@micro-domain/shared/index.js";
 export const isValidLocalDate = isValidLocalDateDomain;
-export { localDateInAmman };
+export { localDateInAmman, localDateMonthEnd, localDatePlusDays, localDateWeekdayIndex, daysInMonthOf };
 
 export function formatLocalDate(value: string | null | undefined) {
   if (!value || !isValidLocalDate(value)) return null;

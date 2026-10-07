@@ -23,7 +23,7 @@ import {
 } from "@micro-domain/recurring-margin/index.js";
 import type { AllocationEvidence } from "@micro-domain/recurring-margin/index.js";
 import type { InventoryMovement, WasteContext } from "@micro-domain/inventory-material/index.js";
-import { quantityMilliExact } from "@micro-domain/shared/index.js";
+import { isValidLocalDate, localDatePlusDays, quantityMilliExact, sumSafeIntegers } from "@micro-domain/shared/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { AllocationPolicyStore } from "@/storage/local/capabilities/allocationPolicyStore";
@@ -145,20 +145,10 @@ const failure = <T>(
   message: string,
   code: RecurringWorkFailure["code"] = "storage_error",
 ): RecurringWorkResult<T> => ({ ok: false, code, message });
-const localDate = (value: string) =>
-  /^\d{4}-\d{2}-\d{2}$/.test(value) &&
-  !Number.isNaN(new Date(`${value}T12:00:00.000Z`).getTime()) &&
-  new Date(`${value}T12:00:00.000Z`).toISOString().slice(0, 10) === value;
-const dayBefore = (value: string) => {
-  const date = new Date(`${value}T12:00:00.000Z`);
-  date.setUTCDate(date.getUTCDate() - 1);
-  return date.toISOString().slice(0, 10);
-};
-const dayAfter = (value: string) => {
-  const date = new Date(`${value}T12:00:00.000Z`);
-  date.setUTCDate(date.getUTCDate() + 1);
-  return date.toISOString().slice(0, 10);
-};
+/* R2 (M-02/X1، 2026-10-08): الصلاحية وإزاحة اليوم من نواة المجال الكنسية. */
+const localDate = (value: string) => isValidLocalDate(value);
+const dayBefore = (value: string): string | null => localDatePlusDays(value, -1);
+const dayAfter = (value: string): string | null => localDatePlusDays(value, 1);
 const rangesOverlap = (leftFrom: string, leftTo: string | null, rightFrom: string, rightTo: string | null) =>
   leftFrom <= (rightTo ?? "9999-12-31") && rightFrom <= (leftTo ?? "9999-12-31");
 const activeMovements = (movements: readonly InventoryMovement[]) => {
@@ -181,14 +171,9 @@ const wasteValue = (context: WasteContext | null) =>
  * قراءة الهامش كمية إنتاجها المسندة؛ المرجع الكنسي هو نفس العقد الذي
  * قبل الكمية عند إنشاء الطلب فيقرؤها كما خُزنت. */
 const toQuantityMilli = quantityMilliExact;
-const sumSafeIntegers = (values: readonly number[]): number | null => {
-  let total = 0;
-  for (const value of values) {
-    if (!Number.isSafeInteger(value) || value < 0 || total > Number.MAX_SAFE_INTEGER - value) return null;
-    total += value;
-  }
-  return total;
-};
+/* R2 (M-02/X2، 2026-10-08): المجموع المحروس من نواة المجال (طيّ addSafe)
+ * — كان مجموعًا محليًا يعيد اختراع القاعدة باتجاه واحد. المدخلات كميات
+ * إنتاج مثبتة موجبة (quantityMilliExact) فالتكافل تام عند الموضع الوحيد. */
 
 export class RecurringWorkService {
   constructor(
@@ -250,7 +235,7 @@ export class RecurringWorkService {
       return failure("لا يمكن إنشاء نسخة جديدة لسياسة غير فعالة.", "validation_error");
     if (!localDate(input.startsOn) || input.startsOn <= previous.startsOn)
       return failure("تاريخ نفاذ النسخة الجديدة يجب أن يكون بعد النسخة السابقة.", "validation_error");
-    if (previous.endsOn !== null && input.startsOn !== dayAfter(previous.endsOn))
+    if (previous.endsOn !== null && dayAfter(previous.endsOn) !== input.startsOn)
       return failure("تاريخ النسخة الجديدة يجب أن يتبع نهاية النسخة السابقة مباشرة.", "validation_error");
     if (
       policies.value.some(

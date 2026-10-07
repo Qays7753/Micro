@@ -29,7 +29,7 @@ import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAt
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { OwnerEntitlementStore } from "@/storage/local/capabilities/ownerEntitlementStore";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
-import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
+import { isValidLocalDate, localDatePlusDays, localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import {
   STORAGE_ERROR,
   VALIDATION_ERROR,
@@ -182,20 +182,12 @@ const failure = <T>(message = "تعذر قراءة السجل المحلي."): O
   code: STORAGE_ERROR,
   message,
 });
-const localDate = (value: string) =>
-  /^\d{4}-\d{2}-\d{2}$/.test(value) &&
-  !Number.isNaN(new Date(`${value}T12:00:00.000Z`).getTime()) &&
-  new Date(`${value}T12:00:00.000Z`).toISOString().slice(0, 10) === value;
-const dayBefore = (value: string) => {
-  const date = new Date(`${value}T12:00:00.000Z`);
-  date.setUTCDate(date.getUTCDate() - 1);
-  return date.toISOString().slice(0, 10);
-};
-const dayAfter = (value: string) => {
-  const date = new Date(`${value}T12:00:00.000Z`);
-  date.setUTCDate(date.getUTCDate() + 1);
-  return date.toISOString().slice(0, 10);
-};
+/* R2 (M-02/X1، 2026-10-08): الصلاحية وإزاحة اليوم من نواة المجال — كانت
+ * مرساة ظهر مكررة. الحقل endsOn يقبل null فيستقبل حد التمثيل naturally؛
+ * مقارنات الاستمرارية تتعامل مع null فشلًا مغلقًا صادقًا. */
+const localDate = (value: string) => isValidLocalDate(value);
+const dayBefore = (value: string): string | null => localDatePlusDays(value, -1);
+const dayAfter = (value: string): string | null => localDatePlusDays(value, 1);
 const rangesOverlap = (leftFrom: string, leftTo: string | null, rightFrom: string, rightTo: string | null) =>
   leftFrom <= (rightTo ?? "9999-12-31") && rightFrom <= (leftTo ?? "9999-12-31");
 const periodExclusive = (kind: OwnerEntitlementPolicy["kind"]) =>
@@ -554,7 +546,10 @@ export class OwnerEntitlementService {
       );
     if (!localDate(input.startsOn) || input.startsOn <= previous.startsOn)
       return validationFailure("تاريخ بدء النسخة الجديدة يجب أن يكون محليًا وبعد بداية السياسة الأصلية.");
-    if (previous.endsOn !== null && input.startsOn > dayAfter(previous.endsOn))
+    /* R2 (M-02): حد التمثيل (endsOn = 9999-12-31) يعني استحالة الفجوة
+     * زمنيًا — الفحص يسقط بدل الرفض؛ الحد يحسب مرة واحدة. */
+    const continuityBoundary = previous.endsOn !== null ? dayAfter(previous.endsOn) : null;
+    if (continuityBoundary !== null && input.startsOn > continuityBoundary)
       return {
         ok: false,
         code: VALIDATION_ERROR,

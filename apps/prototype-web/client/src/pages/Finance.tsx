@@ -88,6 +88,7 @@ import {
   formatMoneyMinor,
   formatQuantityMilli,
   localDateInAmman,
+  localDateMonthEnd,
 } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
@@ -167,10 +168,11 @@ const evidenceValue = (state: FinancialMetricEvidence, minor: number) =>
   state === "recorded" ? <MoneyValue minor={minor} /> : unknownValue();
 const validMonth = (month: string) =>
   /^\d{4}-\d{2}$/.test(month) && Number(month.slice(5)) >= 1 && Number(month.slice(5)) <= 12;
+/* R2 (M-02/X1، 2026-10-08): حدود الشهر من نواة التاريخ الكنسية — كانت
+ * Date.UTC رقمية (تعيد السنوات < 0100 إلى 1900+). */
 function monthBounds(month: string) {
-  const [year, numericMonth] = month.split("-").map(Number);
-  const lastDay = new Date(Date.UTC(year!, numericMonth!, 0)).getUTCDate();
-  return { from: `${month}-01`, to: `${month}-${String(lastDay).padStart(2, "0")}` };
+  const monthEnd = localDateMonthEnd(month);
+  return { from: `${month}-01`, to: monthEnd ?? `${month}-31` };
 }
 /* §10: مساعدات العرض الخاصة بقراءة G5 انتقلت إلى وحدة الطبقة — الاستيراد بلا نص مكرر. */
 const { displayCashAmount, formatted, shortStatusLabel } = G5Display;

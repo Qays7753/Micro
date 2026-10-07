@@ -131,7 +131,7 @@ export type StatementResult =
   | { ok: true; value: StatementReading }
   | { ok: false; code: "storage_error" | "validation_error"; message: string };
 
-import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
+import { isValidLocalDate, localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { formatLocalDate, formatMoneyWithUnit } from "@/application/formatting/formatters";
 
 /* Wave C (ADR-015 مجموعة 6 — 2026-10-04): النوع الضيق للقارئ — قراءة حركات
@@ -149,7 +149,9 @@ export class StatementService {
   ) {}
 
   async read(from: string, to: string): Promise<StatementResult> {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to) || from > to)
+    /* R2 (M-04/D8، 2026-10-08): نطاق الكشف تاريخان محليان حقيقيان — كان
+     * regex فقط فيقبل 2026-13-01 ويعرض نطاقًا فارغًا مضللًا. */
+    if (!isValidLocalDate(from) || !isValidLocalDate(to) || from > to)
       return validationFailure("اختر نطاق كشف يبدأ قبل نهايته.");
     const [
       eventsResult,

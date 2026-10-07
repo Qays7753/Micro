@@ -21,6 +21,7 @@ import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/type
 import type { LoanStore } from "@/storage/local/capabilities/loanStore";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { systemClock, type Clock } from "@/application/time/clock";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 import {
   FINANCIAL_EVENTS_READ_FAILED_MESSAGE,
   ORDERS_READ_FAILED_MESSAGE,
@@ -139,7 +140,7 @@ export class RetainedDepositService {
         id: newId("event"),
         type: eventType,
         amountMinor: amount,
-        occurredOn: now.slice(0, 10),
+        occurredOn: /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(now),
         recordedAt: now,
         idempotencyKey: `${orderId}:deposit-classify:${now}`,
         note: `تصنيف عربون محتفظ به (${meaning === "owner" ? "مال مالك" : "إيراد مشروع"}): ${reason.trim()}`,
@@ -194,7 +195,7 @@ export class RetainedDepositService {
       const reversal = createFinancialReversal({
         id: newId("event"),
         sourceEvent: source,
-        occurredOn: now.slice(0, 10),
+        occurredOn: /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(now),
         recordedAt: now,
         idempotencyKey: `${orderId}:deposit-reclassify-reversal:${now}`,
         reason: correction.reason,
@@ -205,7 +206,7 @@ export class RetainedDepositService {
         id: newId("event"),
         type: eventType,
         amountMinor: toAmountMinor,
-        occurredOn: now.slice(0, 10),
+        occurredOn: /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(now),
         recordedAt: now,
         idempotencyKey: `${orderId}:deposit-reclassify-replacement:${now}`,
         note: `تصحيح تصنيف عربون محتفظ به (${correction.toMeaning === "owner" ? "مال مالك" : "إيراد مشروع"}): ${correction.reason.trim()}`,

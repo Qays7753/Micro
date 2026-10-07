@@ -16,7 +16,7 @@
  * القراءة فوق هذا الأفق لا تكتب شيئًا (عقد 17 §7: توقع معلن لا قبض/دفع)،
  * والصيغة نفسها لا تتغير هنا — هذه الوحدة تحلّ النطاق فقط.
  */
-import { isValidLocalDate } from "@micro-domain/shared/index.js";
+import { isValidLocalDate, localDatePlusDays } from "@micro-domain/shared/index.js";
 
 /** أيام الأفق المعتمدة — عائلة مغلقة لا تقبل قيمًا مؤقتة. */
 export type ShortCashHorizonDays = 7 | 30 | 90;
@@ -54,11 +54,10 @@ function parseParts(localDate: string): { year: number; month: number; day: numb
   return { year: year!, month: month!, day: day! };
 }
 
-/** إزاحة أيام على التاريخ المحلي — نفس أسلوب `shiftLocalDays` في periodPresets. */
+/** إزاحة أيام على التاريخ المحلي — من نواة الحساب الخالص (R2 M-02:
+ * كانت Date.UTC رقمية تعيد السنوات < 0100 إلى 1950+؛ fail-soft كما كان). */
 function shiftLocalDays(localDate: string, days: number): string {
-  const parts = parseParts(localDate);
-  if (!parts) return localDate;
-  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days)).toISOString().slice(0, 10);
+  return localDatePlusDays(localDate, days) ?? localDate;
 }
 
 /**

@@ -25,6 +25,7 @@ import {
 } from "./homeControlCenterModel";
 import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
+import { ammanDateOrNull } from "@micro-domain/shared/index.js";
 
 export type HomeControlCenterResult =
   { ok: true; value: HomeControlCenterViewModel } | { ok: false; code: "storage_error"; message: string };
@@ -467,14 +468,19 @@ export class HomeControlCenterService {
         )
       : null;
     const lastExport = preferences.value?.lastVerifiedExportAt ?? null;
-    const daysSinceLastExport = lastExport
-      ? Math.max(
-          0,
-          Math.round(
-            (Date.parse(`${today}T12:00:00.000Z`) - Date.parse(lastExport.slice(0, 10))) / 86_400_000,
-          ),
-        )
-      : null;
+    /* R2 (M-05/X3، 2026-10-08): تاريخ العرض من اللحظة المخزنة عبر عقد وقت
+     * الأعمال — كان قصّ UTC يوهم بيوم إضافي مضى للتصديرات المسائية. */
+    const lastExportDate = lastExport !== null ? ammanDateOrNull(lastExport) : null;
+    const daysSinceLastExport =
+      lastExportDate !== null
+        ? Math.max(
+            0,
+            Math.round(
+              (Date.parse(`${today}T12:00:00.000Z`) - Date.parse(`${lastExportDate}T12:00:00.000Z`)) /
+                86_400_000,
+            ),
+          )
+        : null;
     const hasAnyData =
       recentChanges.length > 0 || positionValue.cashWalletCount > 0 || positionValue.projectEventCount > 0;
     const awaySection =

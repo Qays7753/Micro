@@ -22,6 +22,7 @@ import {
   storageFailure,
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
+import { isValidLocalDate } from "@micro-domain/shared/index.js";
 
 /* ORD-003: شروط النقل والتوصيل عند الاتفاق — المسؤولية والأعلام والمبالغ؛
  * المفتاح والوقت تشتقهما الخدمة (حدث موثق في خط زمن الطلب). */
@@ -61,11 +62,9 @@ const allowedAgreementSources = new Set([
   "in_person",
 ]);
 const agreementSourceIsValid = (value: string | null) => value === null || allowedAgreementSources.has(value);
-const dateIsValid = (value: string) => {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const parsed = new Date(`${value}T12:00:00.000Z`);
-  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
-};
+/* R2 (M-02/X1، 2026-10-08): صلاحية موعد التسليم من نواة المجال الكنسية —
+ * كانت مرساة ظهر مكررة (تقبل السنوات 0000–0099 وتكرر الملكية). */
+const dateIsValid = (value: string) => isValidLocalDate(value);
 
 function validation(message: string): Extract<AgreementResult, { ok: false }> {
   return { ok: false, code: VALIDATION_ERROR, message };

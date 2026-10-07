@@ -21,7 +21,12 @@ import {
   successorPolicyFormRequirements,
   supportedOwnerEntitlementPolicyKinds,
 } from "@/presentation/ownerEntitlementPresentation";
-import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import {
+  formatLocalDate,
+  formatMoneyMinor,
+  localDateInAmman,
+  localDateMonthEnd,
+} from "@/presentation/formatters";
 import type {
   CrossModelOwnerDuplicate,
   OwnerEntitlementOverview,
@@ -73,10 +78,9 @@ export default function OwnerEntitlement() {
   const [successorNote, setSuccessorNote] = useState("");
   const [selectedEntitlementId, setSelectedEntitlementId] = useState("");
   const [periodFrom, setPeriodFrom] = useState(monthStart);
-  const [periodTo, setPeriodTo] = useState(
-    () =>
-      `${localDateInAmman().slice(0, 7)}-${new Date(Date.UTC(Number(localDateInAmman().slice(0, 4)), Number(localDateInAmman().slice(5, 7)), 0)).getUTCDate()}`,
-  );
+  /* R2 (M-02/X1، 2026-10-08): آخر يوم شهر من نواة التاريخ الكنسية — كان
+   * Date.UTC رقمية (تعيد السنوات < 0100 إلى 1900+) بثلاث نداءات ساعة. */
+  const [periodTo, setPeriodTo] = useState(() => localDateMonthEnd(localDateInAmman().slice(0, 7)) ?? localDateInAmman());
   const [entitlementDate, setEntitlementDate] = useState(localDateInAmman);
   const [entitlementNote, setEntitlementNote] = useState("");
   const [calculation, setCalculation] = useState<{

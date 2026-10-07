@@ -23,6 +23,8 @@ import {
   formatLocalDate,
   formatLocalDateLong,
   localDateInAmman,
+  localDatePlusDays,
+  localDateWeekdayIndex,
   formatMoneyWithUnit,
 } from "@/presentation/formatters";
 import type { StatementLine, StatementReading, StatementExpenseCategoryGroup } from "@/application/finance";
@@ -99,15 +101,12 @@ function ExpenseCategoryGroupRow({
   );
 }
 
-const DAY = 24 * 60 * 60 * 1000;
-const shiftDate = (localDate: string, days: number): string => {
-  const [year, month, day] = localDate.split("-").map(Number);
-  return new Date(Date.UTC(year!, month! - 1, day! + days)).toISOString().slice(0, 10);
-};
+/* R2 (M-02/X1، 2026-10-08): حساب حدود الأسبوع من نواة التاريخ الكنسية —
+ * كانت Date.UTC رقمية؛ اليوم من ساعة الأعمال الجارية فلا يبلغ حد التمثيل. */
+const shiftDate = (localDate: string, days: number): string => localDatePlusDays(localDate, days) ?? localDate;
 /* الأسبوع في النموذج: الأحد → السبت (أسبوع عمل المالك الصغير في الأردن). */
 function weekBounds(today: string): { from: string; to: string } {
-  const [year, month, day] = today.split("-").map(Number);
-  const weekday = new Date(Date.UTC(year!, month! - 1, day!)).getUTCDay();
+  const weekday = localDateWeekdayIndex(today) ?? 0;
   const from = shiftDate(today, -weekday);
   return { from, to: shiftDate(from, 6) };
 }

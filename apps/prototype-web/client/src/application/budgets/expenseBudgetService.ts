@@ -61,6 +61,7 @@ import {
   validationFailure,
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
+import { daysInMonthOf } from "@micro-domain/shared/index.js";
 
 /* Wave C (ADR-015 مجموعة 2 — 2026-10-04): النوع الضيق للخدمة — قدرة الميزانيات
  * (المشتقة من الواجهة التوافقية) زائد قراءة الأحداث المالية الوحيدة التي
@@ -119,7 +120,8 @@ const MAX_MONTHS_SPAN = 240;
 /** حدود شهر YYYY-MM كتواريخ محلية (نمط monthBounds عند السطح — نفس الحساب). */
 function monthBounds(periodKey: string): { from: string; to: string } {
   const [year, month] = periodKey.split("-").map(Number);
-  const lastDay = new Date(Date.UTC(year!, month!, 0)).getUTCDate();
+  /* R2 (M-02/X1): طول الشهر من النواة الخالصة. */
+  const lastDay = daysInMonthOf(year!, month!);
   return { from: `${periodKey}-01`, to: `${periodKey}-${String(lastDay).padStart(2, "0")}` };
 }
 

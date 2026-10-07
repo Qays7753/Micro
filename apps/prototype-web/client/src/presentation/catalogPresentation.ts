@@ -10,6 +10,7 @@ import { parseEnglishNumericText, parseEnglishQuantityText } from "@/application
 import { formatMoneyWithUnit, formatQuantityMilliFixed3, localDateInAmman } from "@/presentation/formatters";
 import type { CatalogTemplate, UnitDimension } from "@micro-domain/catalog/index.js";
 import type { RecurringWorkReading } from "@/application/finance";
+import { daysInMonthOf } from "@micro-domain/shared/index.js";
 
 const dimensions: readonly { value: UnitDimension; label: string }[] = [
   { value: "count", label: "عدد" },
@@ -119,7 +120,9 @@ export const nextDay = (value: string) => {
   date.setUTCDate(date.getUTCDate() + 1);
   return date.toISOString().slice(0, 10);
 };
-export const monthEndDate = (year: number, month: number) => new Date(Date.UTC(year, month, 0)).getUTCDate();
+/* R2 (M-02/X1، 2026-10-08): طول الشهر من نواة المجال الخالصة — كانت
+ * Date.UTC رقمية تعيد السنوات < 0100 إلى 1900+. */
+export const monthEndDate = (year: number, month: number) => daysInMonthOf(year, month);
 export const parseCatalogJodMinor = (value: string) => {
   const minor = parseEnglishNumericText(value.trim(), "money");
   return minor !== null && minor > 0 ? minor : null;

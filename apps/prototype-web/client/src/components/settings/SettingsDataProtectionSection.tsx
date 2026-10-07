@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { type RefObject } from "react";
 import { LockSettingsCard } from "@/components/security/LockSettingsCard";
-import { formatLocalDate } from "@/presentation/formatters";
+import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
 import { withReturnTo } from "@/app/navigationContract";
 import type { GuidedOpeningImportPreview } from "@/application/transfers";
 import type { BrowserPersistenceReading } from "@/application/preferences";
@@ -166,7 +166,10 @@ export function SettingsDataProtectionSection({
           title={lastExport ? "تصدير محلي مُتحقق" : "تصدير محلي"}
           text={
             lastExport
-              ? `آخر نسخة مُتحقق منها: ${formatLocalDate(lastExport.slice(0, 10)) ?? lastExport.slice(0, 10)} — يُعاد التحقق من الملف دورة كاملة قبل إعلان جهوزيته.`
+              ? `آخر نسخة مُتحقق منها: ${
+                  /* R2 (M-05/X3): تاريخ العرض من اللحظة المخزنة عبر عقد وقت الأعمال. */
+                  formatLocalDate(businessDateFromTimestamp(lastExport)) ?? lastExport.slice(0, 10)
+                } — يُعاد التحقق من الملف دورة كاملة قبل إعلان جهوزيته.`
               : "ينشئ ملف نسخة مُتحققًا منه لبياناتك الحالية على هذا الجهاز، دون أسرار أو مفاتيح."
           }
           actionLabel="تصدير"
@@ -508,7 +511,8 @@ export function SettingsDataProtectionSection({
             </span>
             <h2>النسخة الاحتياطية جاهزة ومُتحقق منها</h2>
             <p>
-              حُمّل الملف إلى جهازك (micro-local-{lastExport?.slice(0, 10) ?? ""}.json). لتأكيد المسح اكتب
+              حُمّل الملف إلى جهازك (micro-local-
+              {businessDateFromTimestamp(lastExport) ?? ""}.json). لتأكيد المسح اكتب
               «ابدأ من جديد» في الحقل أدناه.
             </p>
             <label className="micro-field">
