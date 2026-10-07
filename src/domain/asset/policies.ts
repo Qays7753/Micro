@@ -19,11 +19,8 @@ import type {
   ReviseAssetContractInput,
 } from "./types.js";
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
 function assertLocalDate(value: string, field: string) {
-  if (!DATE_PATTERN.test(value) || !isValidLocalDate(value))
-    throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
+  if (!isValidLocalDate(value)) throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
 }
 
 function assertName(value: string) {

@@ -1,31 +1,34 @@
 #!/usr/bin/env node
 /**
- * Guard: date-arithmetic ownership (R2 — M-09, WS-216/ARCH-007, 2026-10-08).
+ * Guard: date-arithmetic ownership (R2 — M-09, WS-216/ARCH-007, 2026-10-08;
+ * tightened after the final five-role review — FH-4/FA-02/FA-03/FT-3).
  *
  * Every date defect R2 repaired came from date logic living outside the
  * canonical kernel: numeric Date.UTC calls remapping years < 100 to 1900+,
  * noon-anchor toISOString RangeErrors, calendar-blind regexes accepting
  * rollover dates, and business dates derived by slicing UTC timestamps.
- * The kernel (src/domain/shared/numeric.ts) now owns validity and arithmetic
- * as pure integer computation, and business dates derive only through the
- * businessTime contract. This guard keeps that true:
+ * The kernel (src/domain/shared/numeric.ts) owns validity and arithmetic as
+ * pure integer computation; businessTime owns Amman derivation. This guard
+ * keeps that true:
  *
- *  R1 — `Date.UTC(` is FORBIDDEN in all production code under src/ and
- *       apps/prototype-web/client/src/ (zero exceptions after the R2
- *       conversion; pure-integer kernel arithmetic replaces it everywhere).
- *  R2 — `new Date(` inside src/domain/ is allowed ONLY in
+ *  R1 — `Date.UTC(` (including bracket access like Date["UTC"](...)) is
+ *       FORBIDDEN in all production code under src/ and
+ *       apps/prototype-web/client/src/ — zero exceptions (pure-integer
+ *       kernel arithmetic replaces it everywhere).
+ *  R2 — `new Date(` inside src/domain/ is allowed ONLY in the exact file
  *       src/domain/shared/businessTime.ts (the owned instant-parsing/
- *       Amman-derivation contract; the domain is otherwise Date-free).
- *  R3 — `Date.parse(` inside src/domain/ is allowed ONLY in
- *       src/domain/shared/numeric.ts (isValidTimestamp — the owned
- *       timestamp-validity predicate; all policies delegate to it).
- *  R4 — `.slice(0, 10)` in apps/prototype-web/client/src/application/ is
- *       allowed ONLY as the fallback branch of a guarded Amman derivation
- *       (a `??` earlier on the same line) — never as the primary derivation
- *       of a business date from a timestamp (the R2-D4 clock-slicing bug).
+ *       Amman-derivation contract) — file-level, not directory-level.
+ *  R3 — `Date.parse(` inside src/domain/ is allowed ONLY in the exact file
+ *       src/domain/shared/numeric.ts (isValidTimestamp).
+ *  R4 — raw business-date slicing (`.slice(0,10)` / `.substring(0,10)` /
+ *       `.split("T")[0]`, any spacing) is forbidden across ALL layers of
+ *       apps/prototype-web/client/src/ EXCEPT as the fallback branch of a
+ *       guarded derivation (a `??` earlier on the same line) — the R2-D4
+ *       clock-slicing bug class can never return in any layer.
  *
- * Test files, fixtures, and dist output are out of scope (tests legitimately
- * build clocks and legacy-comparison algorithms; dist is generated).
+ * Comments are stripped with string-literal awareness (a `//` inside quotes
+ * never blanks a line). Test files, fixtures, and dist output are out of
+ * scope (tests legitimately build clocks and legacy-comparison algorithms).
  *
  * FAILS on the first violation with file:line and the rule text; exit 0 only
  * when the whole production tree is clean.
@@ -59,12 +62,58 @@ export function collectProductionFiles(directory) {
   return results;
 }
 
-/** Strip comments so documented mentions never trip the guard. */
+/**
+ * Strip comments with string-literal awareness: a `//` inside a quoted string
+ * never starts a comment (FH-4 remediation — a literal like "a//b" used to
+ * blank the rest of the line and could hide violations).
+ */
 export function stripComments(text) {
-  return text
-    .replace(/\/\*[\s\S]*?\*\//g, match => match.replace(/[^\n]/g, " "))
-    .replace(/(^|[^:])\/\/[^\n]*/g, (match, lead) => lead + " ".repeat(match.length - lead.length));
+  let result = "";
+  let quote = null; /* current quote char when inside a string */
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const next = text[index + 1];
+    if (quote !== null) {
+      result += char;
+      if (char === "\\") {
+        result += next ?? "";
+        index += 1;
+        continue;
+      }
+      if (char === quote) quote = null;
+      continue;
+    }
+    if (char === '"' || char === "'" || char === "`") {
+      quote = char;
+      result += char;
+      continue;
+    }
+    if (char === "/" && next === "/") {
+      /* line comment: blank to end of line (keep the newline) */
+      while (index < text.length && text[index] !== "\n") index += 1;
+      result += "\n";
+      continue;
+    }
+    if (char === "/" && next === "*") {
+      /* block comment: blank, preserve newlines for line numbering */
+      index += 2;
+      while (index < text.length && !(text[index] === "*" && text[index + 1] === "/")) {
+        if (text[index] === "\n") result += "\n";
+        index += 1;
+      }
+      index += 1;
+      continue;
+    }
+    result += char;
+  }
+  return result;
 }
+
+/** Raw business-date slicing shapes (any spacing) — R4's detection set. */
+export const RAW_DATE_SLICE_PATTERN = /\.(slice|substring)\(\s*0\s*,\s*10\s*\)|\.split\(\s*["']T["']\s*\)\s*\[\s*0\s*\]/;
+
+/** Numeric Date.UTC in direct or bracket-access form — R1's detection set. */
+export const DATE_UTC_PATTERN = /Date\s*\.\s*UTC\s*\(|Date\s*\[\s*["']UTC["']\s*\]/;
 
 /**
  * Evaluate the four ownership rules over the production tree.
@@ -72,12 +121,9 @@ export function stripComments(text) {
  */
 export function findViolations(root = ROOT) {
   const violations = [];
-  const domains = ["src/domain"];
-  const appsClient = ["apps/prototype-web/client/src"];
-  const scanned = [path.join(root, "src"), ...appsClient.map(p => path.join(root, p))].flatMap(dir =>
-    collectProductionFiles(dir),
+  const scanned = collectProductionFiles(path.join(root, "src")).concat(
+    collectProductionFiles(path.join(root, "apps", "prototype-web", "client", "src")),
   );
-  const domainFiles = domains.map(p => path.join(root, p)).flatMap(dir => collectProductionFiles(dir));
 
   for (const file of scanned) {
     const relative = path.relative(root, file).split(path.sep).join("/");
@@ -85,40 +131,31 @@ export function findViolations(root = ROOT) {
     const lines = code.split("\n");
     lines.forEach((line, index) => {
       const at = { file: relative, line: index + 1, excerpt: line.trim().slice(0, 120) };
-      /* R1: numeric Date.UTC anywhere in production. */
-      if (line.includes("Date.UTC(")) {
+      /* R1: numeric Date.UTC anywhere in production (direct or bracket access). */
+      if (DATE_UTC_PATTERN.test(line)) {
         violations.push({ rule: "R1 (Date.UTC outside the pure-integer kernel)", ...at });
       }
-      /* R2/R3: Date object + Date.parse inside the domain are kernel/businessTime-only. */
-      if (relative.startsWith("src/domain/") && !relative.startsWith("src/domain/shared/")) {
+      /* R2/R3: the Date object and Date.parse are kernel-file-only inside the domain. */
+      if (relative.startsWith("src/domain/") && relative !== "src/domain/shared/businessTime.ts") {
         if (line.includes("new Date(")) {
-          violations.push({ rule: "R2 (new Date in domain outside shared/businessTime)", ...at });
-        }
-        if (line.includes("Date.parse(")) {
-          violations.push({ rule: "R3 (Date.parse in domain outside shared/numeric)", ...at });
+          violations.push({ rule: "R2 (new Date in domain outside shared/businessTime.ts)", ...at });
         }
       }
-    });
-  }
-
-  /* R4: raw .slice(0, 10) in the application layer is only legal as the
-   * fallback of a guarded Amman derivation (?? earlier on the same line). */
-  for (const file of scanned) {
-    const relative = path.relative(root, file).split(path.sep).join("/");
-    if (!relative.startsWith("apps/prototype-web/client/src/application/")) continue;
-    const code = stripComments(fs.readFileSync(file, "utf8"));
-    const lines = code.split("\n");
-    lines.forEach((line, index) => {
-      if (!line.includes(".slice(0, 10)")) return;
-      const sliceAt = line.indexOf(".slice(0, 10)");
-      const before = line.slice(0, sliceAt);
-      if (before.includes("??")) return; /* guarded fallback — documented pattern */
-      violations.push({
-        rule: "R4 (raw .slice(0, 10) business-date derivation in application — use localDateInAmman/businessDateFromTimestamp)",
-        file: relative,
-        line: index + 1,
-        excerpt: line.trim().slice(0, 120),
-      });
+      if (relative.startsWith("src/domain/") && relative !== "src/domain/shared/numeric.ts") {
+        if (line.includes("Date.parse(")) {
+          violations.push({ rule: "R3 (Date.parse in domain outside shared/numeric.ts)", ...at });
+        }
+      }
+      /* R4: raw date slicing in ANY app layer — only legal as a guarded fallback. */
+      if (relative.startsWith("apps/prototype-web/client/src/") && RAW_DATE_SLICE_PATTERN.test(line)) {
+        const match = RAW_DATE_SLICE_PATTERN.exec(line);
+        const before = match !== null ? line.slice(0, match.index) : "";
+        if (before.includes("??")) return; /* guarded fallback — documented pattern */
+        violations.push({
+          rule: "R4 (raw business-date slicing — use localDateInAmman/businessDateFromTimestamp)",
+          ...at,
+        });
+      }
     });
   }
 
@@ -128,7 +165,9 @@ export function findViolations(root = ROOT) {
 function main() {
   const violations = findViolations();
   if (violations.length === 0) {
-    console.log("check-date-arithmetic-ownership: PASS — date validity/arithmetic and business-date derivation are kernel-owned (R1–R4 clean).");
+    console.log(
+      "check-date-arithmetic-ownership: PASS — no Date.UTC in production; the Date object/Date.parse are kernel-file-only in the domain; no unguarded business-date slicing in any app layer (R1–R4 clean).",
+    );
     return 0;
   }
   console.error(`check-date-arithmetic-ownership: FAIL — ${violations.length} violation(s):`);

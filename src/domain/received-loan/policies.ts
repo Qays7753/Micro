@@ -19,8 +19,7 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const LENDER_TYPES: ReadonlySet<ReceivedLoanLenderType> = new Set(["owner", "person", "institution"]);
 
 function assertLocalDate(value: string, field: string) {
-  if (!DATE_PATTERN.test(value) || !isValidLocalDate(value))
-    throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
+  if (!isValidLocalDate(value)) throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
 }
 
 function assertLender(value: string) {

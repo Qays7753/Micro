@@ -115,6 +115,10 @@ export function localDateMonthEnd(monthKey: string): string | null {
  * يتحققون من المفتاح قبل النداء — لا تعيد النواة التحقق). */
 export { daysInMonthOf };
 
+/** صلاحية **طابع زمني** (لحظة قابلة للتحليل بمنصة JS) — للحقول اللحظية
+ * فقط (createdAt/recordedAt)؛ لا تُستخدم أبدًا لحقول التواريخ التقويمية:
+ * قبولها للدوران والسنوات غير الموحدة عمد (توافق اللحظات التاريخي)،
+ * والتقويم الصارم ملك `isValidLocalDate` وحدها. */
 export function isValidTimestamp(value: string): boolean {
   return typeof value === "string" && value.trim().length > 0 && !Number.isNaN(Date.parse(value));
 }

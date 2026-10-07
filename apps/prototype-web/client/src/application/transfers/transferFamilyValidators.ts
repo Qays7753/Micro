@@ -17,7 +17,7 @@ import {
 } from "@micro-domain/budget/index.js";
 /* R2 (M-02): نواة التاريخ المحلي الكنسية — نفس البرميل الذي تستهلكه
  * الوحدات المجالية الأخرى أعلاه (لا حافة استيراد جديدة). */
-import { isValidLocalDate } from "@micro-domain/shared/index.js";
+import { isValidLocalDate, isValidTimestamp } from "@micro-domain/shared/index.js";
 /* Wave 4D (RC-8 — مصدر الحقيقة): القوائم التشغيلية المجالية هي مصدر القبول
  * الحي — المدققات تستهلكها من مالكها لا من نسخ يدوية موازية؛ والقيم
  * التوافقية التاريخية تعيش في سجلها الموثق transferCompatibilityValues.ts. */
@@ -27,8 +27,10 @@ import { AGREEMENT_SOURCE_ACCEPTANCE } from "./transferCompatibilityValues";
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 export const isString = (value: unknown): value is string => typeof value === "string";
-export const isDate = (value: unknown): value is string =>
-  isString(value) && !Number.isNaN(Date.parse(value));
+/* R2 (M-02، 2026-10-08 — تصويب المراجعة النهائية FA-05): القاعدة من
+ * نواة المجال (isValidTimestamp) — كانت نسخة موازية بلا مالك؛ السلوك
+ * متكافل قطعًا (غير فارغ + Date.parse ليس NaN). */
+export const isDate = (value: unknown): value is string => isString(value) && isValidTimestamp(value);
 export const isMoney = (value: unknown): value is number =>
   /* عقد الإغلاق العميق (AV-05 — حدود المبالغ): المبلغ المستورد عدد صحيح آمن
    * موجب — قيمة فوق ٢^٥٣−١ تفقد دقتها في الجمع فتُرفض قبل أي معاينة. */

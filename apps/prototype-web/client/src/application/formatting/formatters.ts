@@ -172,14 +172,24 @@ export function formatBreakEvenDisplay(
 import {
   ammanDateOrNull,
   isValidLocalDate as isValidLocalDateDomain,
+  isValidTimestamp,
   localDateInAmman,
   localDateMonthEnd,
   localDatePlusDays,
+  localDatePlusMonthsClamped,
   localDateWeekdayIndex,
   daysInMonthOf,
 } from "@micro-domain/shared/index.js";
 export const isValidLocalDate = isValidLocalDateDomain;
-export { localDateInAmman, localDateMonthEnd, localDatePlusDays, localDateWeekdayIndex, daysInMonthOf };
+export {
+  localDateInAmman,
+  localDateMonthEnd,
+  localDatePlusDays,
+  localDatePlusMonthsClamped,
+  localDateWeekdayIndex,
+  daysInMonthOf,
+  isValidTimestamp,
+};
 
 export function formatLocalDate(value: string | null | undefined) {
   if (!value || !isValidLocalDate(value)) return null;

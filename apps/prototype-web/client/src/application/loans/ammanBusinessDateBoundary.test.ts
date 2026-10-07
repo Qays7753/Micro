@@ -123,6 +123,54 @@ describe("R2 regression — Amman business date at the evening boundary (M-05, 2
     expect(corrected.value.reversal.occurredOn).toBe("2026-10-08");
   });
 
+  it("received-loan correction before 21:00Z keeps the same Amman day (FH-6b)", async () => {
+    const store = new MemoryLocalStore();
+    const service = new ReceivedLoanService(store, clockAt(BEFORE_BOUNDARY));
+    const created = await service.create({
+      lenderName: "ليلى",
+      lenderType: "person",
+      principalMinor: 7000,
+      receivedOn: "2026-10-01",
+      dueOn: null,
+      note: null,
+      walletId: null,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const corrected = await service.correctLoan(created.value.loan.id, {
+      principalMinor: 7500,
+      reason: "تصحيح قبل الحد",
+    });
+    expect(corrected.ok).toBe(true);
+    if (!corrected.ok) return;
+    expect(corrected.value.reversal.occurredOn).toBe("2026-10-07");
+  });
+
+  it("asset acquisition correction before 21:00Z keeps the same Amman day (FH-6b)", async () => {
+    const store = new MemoryLocalStore();
+    const service = new AssetService(store, clockAt(BEFORE_BOUNDARY));
+    const created = await service.create({
+      name: "معدنة الحدود",
+      categoryLabel: "أدوات",
+      acquisitionAmountMinor: 24000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-10-01",
+      lifeMonths: 24,
+      depreciationStartOn: "2026-10-01",
+      note: null,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const corrected = await service.correctAcquisition(created.value.asset.id, {
+      acquisitionAmountMinor: 25000,
+      acquisitionKind: "cash",
+      reason: "تصحيح قبل الحد",
+    });
+    expect(corrected.ok).toBe(true);
+    if (!corrected.ok) return;
+    expect(corrected.value.reversal.occurredOn).toBe("2026-10-07");
+  });
+
   it("retained-deposit classification after 21:00Z carries the NEXT Amman day", async () => {
     const store = new MemoryLocalStore();
     const service = new RetainedDepositService(store, clockAt(EVENING));

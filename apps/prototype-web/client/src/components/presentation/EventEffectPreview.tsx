@@ -10,7 +10,7 @@ import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { FinancialEventType, OperatingExpenseContext } from "@micro-domain/financial-event/index.js";
 import { expandExpenseRecordIntent } from "@/application/financial-records";
 import type { SharedExpenseRecordInput } from "@/application/financial-records";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatMoneyMinor, isValidLocalDate, localDateInAmman } from "@/presentation/formatters";
 
 export type EventEffectIntent = {
   type: FinancialEventType;
@@ -101,7 +101,9 @@ export function describeEventEffect(
       expenseContext = expanded.expenseContext;
     }
     if (amountMinor === undefined || !Number.isInteger(amountMinor) || amountMinor <= 0) return null;
-    const occurredOn = /^\d{4}-\d{2}-\d{2}$/.test(intent.occurredOn ?? "")
+    /* R2 (M-04/D8، 2026-10-08): صلاحية النواة — كان regex فقط فيقبل حتى
+     * 2026-13-01 فيصل تاريخًا فاسدًا إلى معاينة تُكتم فشلها. */
+    const occurredOn = isValidLocalDate(intent.occurredOn ?? "")
       ? (intent.occurredOn as string)
       : localDateInAmman();
     const draft = createFinancialEvent({

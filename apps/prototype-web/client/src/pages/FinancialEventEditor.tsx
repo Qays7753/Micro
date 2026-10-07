@@ -25,7 +25,7 @@ import {
   expenseSourceHint,
   expenseSourceRuleViolation,
 } from "@/components/finance/expenseFormModel";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatMoneyMinor, isValidLocalDate, localDateInAmman } from "@/presentation/formatters";
 import {
   deriveExpenseCategorySuggestions,
   normalizeCategoryLabelInput,
@@ -159,7 +159,8 @@ type EditorDraft = {
 /* Conflict I (AV-09): إكراه دفاعي لمسودة محلية تالفة — القيم غير الصالحة تُستبدل
  * بقيم آمنة بدل أن تكسر النموذج أو تصل إلى الحفظ؛ التاريخ المشوّه يرجع لليوم،
  * والمعدّات لا تقبل إلا أعدادًا صحيحة موجبة، والقيم المعدودة تُرشّح على قوائمها. */
-const LOCAL_DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+/* R2 (M-04/D8، 2026-10-08): إكراه المسودة الدفاعي عبر النواة الكنسية —
+ * كان النمط أعمى تقويميًا فيقبل 2023-02-29 إلى مسودة النموذج. */
 const RELATIONSHIP_VALUES = ["project", "shared"] as const;
 const BEHAVIOR_VALUES = ["fixed", "variable", "mixed", "unknown"] as const;
 const PURPOSE_VALUES = ["project_general", "period", "order", "product", "campaign", "unallocated"] as const;
@@ -181,8 +182,7 @@ function coerceEditorDraft(value: unknown): EditorDraft | null {
   const draft = value as Record<string, unknown>;
   const amountMinor = safeDraftAmount(draft.amountMinor);
   const note = safeDraftString(draft.note);
-  const date =
-    typeof draft.date === "string" && LOCAL_DATE_PATTERN.test(draft.date) ? draft.date : ammanDate();
+  const date = typeof draft.date === "string" && isValidLocalDate(draft.date) ? draft.date : ammanDate();
   /* لا شيء ذو معنى قابل للترجيع؟ لا نعرض عرض استرجاع فارغًا. */
   if (amountMinor === 0 && note.trim() === "" && date === ammanDate()) return null;
   return {

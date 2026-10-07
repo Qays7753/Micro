@@ -12,6 +12,7 @@ import {
   formatMoneyWithUnit,
   formatQuantityMilliFixed3,
   localDateInAmman,
+  localDatePlusDays,
 } from "@/presentation/formatters";
 import type { CatalogTemplate, UnitDimension } from "@micro-domain/catalog/index.js";
 import type { RecurringWorkReading } from "@/application/finance";
@@ -119,11 +120,10 @@ export const currentMonth = () => {
     to: `${today.slice(0, 7)}-${String(lastDay).padStart(2, "0")}`,
   };
 };
-export const nextDay = (value: string) => {
-  const date = new Date(`${value}T12:00:00.000Z`);
-  date.setUTCDate(date.getUTCDate() + 1);
-  return date.toISOString().slice(0, 10);
-};
+/* R2 (M-02/X1، 2026-10-08 — تصويب المراجعة النهائية FH-2): إزاحة اليوم من
+ * نواة الحساب الخالص — كانت مرساة ظهر كاملة (تفويض ناقص في الشريحة
+ * الأولى؛ مدخل المستهلك مُتحقق مسبقًا فحد التمثيل بعيد الاحتمال). */
+export const nextDay = (value: string) => localDatePlusDays(value, 1) ?? value;
 /* R2 (M-02/X1، 2026-10-08): طول الشهر من نواة المجال الخالصة — كانت
  * Date.UTC رقمية تعيد السنوات < 0100 إلى 1900+. */
 export const monthEndDate = (year: number, month: number) => daysInMonthOf(year, month);

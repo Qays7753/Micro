@@ -23,7 +23,6 @@ import type {
   CreateOwnerMovementReversalInput,
 } from "./types.js";
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const policyKinds = [
   "monthly",
   "weekly",
