@@ -806,3 +806,10 @@
 - مصفوفة الـfindings الكاملة في التقرير: 12/17 مكتشفًا هيكليًا CLOSED؛ الباقي مجدول حيث خطته؛ كل مبادئ Flash وحوكمتها (PA/PC/PG/RS/C/L/V/Q) مصنفة؛ لا `DEFER` عام يخفي عيبًا حاليًا.
 - كتابات هذا الـPR: التقرير الجديد + تصحيح ADR-18 المؤرخ + تحديث WS-216.json/ARCH-007.json (base_sha→fc2ae6e، evidence+=التقرير) + current-state/REFACTORING-CONTROL §14/§137/هذا الدخول + صف فهرس الوثائق + Views مولدة من JSON. لا كود، لا حراس، لا أساسات، لا دمج.
 - الحالة النهائية: `R0_COMPLETE — CURRENT_BASELINE_VERIFIED / NO_REPOSITORY_WRITES_PERFORMED_DURING_ANALYSIS / REPORT_PR_OPENED — OWNER_REVIEW_REQUIRED`.
+
+## Entry 49 — Post-merge reconciliation for R0 report — 2026-10-07
+- **البرنامج:** `WS-216/ARCH-007` successor R0–R10.
+- **الحدث:** راجع المالك تقرير R0 ومصفوفة findings، ثم دُمج PR #325 في `main` عند `a258287cdc606c58a91ed8ad9791b5837b341a54` بعد نجاح فحوص PR.
+- **الأثر:** توثيقي/تشغيلي فقط؛ لا كود إنتاجي، ولا نقل أو حذف أو تغيير في المال أو Schema/Export/Import أو UI.
+- **الحالة:** R0 مقبول ومتحقق على `main`. بقي `WS-216` في `IN_PROGRESS` لأن R1–R10 لم تبدأ.
+- **الخطوة التالية:** تجهيز Repair Cards ونطاق R1 وحدود الرجوع ومعايير القبول قبل فتح موجة تنفيذ كودي؛ لا يبدأ R1 تلقائيًا من هذا القيد وحده.

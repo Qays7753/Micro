@@ -1,9 +1,9 @@
 # Micro — Refactoring Control
 
-**الإصدار:** v1.9 (فتح successor البنيوي R0–R10 بعد اعتماد المالك — 2026-10-07؛ v1.8 تحقق برنامج ما بعد المسح W0–W10 على main بعد PR #316 — 2026-10-06؛ v1.7 بدء تنفيذ العقد — 2026-10-05؛ v1.6 تثبيت رأس main النهائي بعد PR #312 — 2026-10-05؛ v1.5 وما قبلها سجل تاريخي)
+**الإصدار:** v1.10 (R0 successor متحقق على main بعد PR #325 — 2026-10-07؛ v1.9 فتح successor البنيوي R0–R10؛ v1.8 تحقق برنامج ما بعد المسح W0–W10 على main بعد PR #316 — 2026-10-06؛ v1.7 بدء تنفيذ العقد — 2026-10-05؛ v1.6 تثبيت رأس main النهائي بعد PR #312 — 2026-10-05؛ v1.5 وما قبلها سجل تاريخي)
 **التاريخ:** 2026-10-07
-**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0 IN_PROGRESS`
-**المرحلة:** `A-TO-Z VERIFIED ON MAIN; POST-SCAN W0–W10 VERIFIED ON MAIN; SUCCESSOR R0–R10 OPENED; R0 READ-ONLY ACTIVE` (البرامج السابقة مغلقة ومتحققة؛ successor الحالي بدأ ببوابة قراءة فقط)
+**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0 VERIFIED; R1 READY`
+**المرحلة:** `A-TO-Z VERIFIED ON MAIN; POST-SCAN W0–W10 VERIFIED ON MAIN; SUCCESSOR R0 VERIFIED ON MAIN; R1 READY FOR CONTROLLED IMPLEMENTATION` (البرامج السابقة مغلقة ومتحققة؛ لا يبدأ R1 قبل تثبيت بطاقات نطاقه وحدود رجوعه)
 **النطاق:** Structure / Architecture / Code Organization فقط
 
 ## 1. الهدف
@@ -185,4 +185,4 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 - **الخطة:** `STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
 - **البداية المسموحة:** R0 قراءة فقط ومصالحة الخط الأساسي؛ لا نقل أو تقسيم أو حذف أو تعديل كودي في R0.
 - **قاعدة الاستمرار:** بعد تقرير R0 فقط، تنفذ R1–R10 على فرع مستقل، وبطاقات Repair، وPR مستقل أو شريحة قابلة للمراجعة، وفحوص مركزة وCI وحد رجوع لكل موجة.
-- **الخطوة الحية:** R0 مكتمل قراءة-فقط عند `fc2ae6e` — `CURRENT_BASELINE_VERIFIED`؛ تقرير المصالحة `R0-LIVE-BASELINE-AND-FINDING-RECONCILIATION-2026-10-07.md` (مع تصحيح مؤرخ لأرقام ADR-018 الكسولة ومكتشفات R0-N1..N20 موجهة لموجاتها) مفتوح لمراجعة المالك عبر فرع `docs/r0-live-baseline-report-20261007`. لا تُعدّل `main` مباشرة ولا يُمس فرع UI المحفوظ.
+- **الخطوة الحية:** R0 مكتمل ومقبول وPR #325 مدموج في `main` عند `a258287c` — `CURRENT_BASELINE_VERIFIED`؛ التقرير ومكتشفات R0-N1..N20 مثبتة على `main`. الخطوة التالية تجهيز بطاقات R1 للحقيقة/الحوكمة/التوثيق قبل أي تنفيذ كودي. لا تُعدّل `main` مباشرة ولا يُمس فرع UI المحفوظ.
