@@ -1,7 +1,7 @@
 # حالة Micro التشغيلية الحية
 
 **الحالة:** `CURRENT / UPDATE WITH EVERY MERGED SLICE`
-**آخر تحديث:** 7 أكتوبر 2026 (آخر رأس حي لـ`origin/main` عند `773e775bcbbed86bd06d9fc1864e22a08db3c8a1` بعد دمج PR #323؛ ARCH-005 وWS-215 ما زالا VERIFIED؛ عقد وخطة ومصالحة مؤشرات `WS-216/ARCH-007` مثبتة، والخطوة الحالية R0 قراءة فقط؛ المخطط/التصدير 38/30 كما هما)
+**آخر تحديث:** 7 أكتوبر 2026 (اكتمل R0 قراءة-فقط لـ`WS-216/ARCH-007` من الرأس الحي `fc2ae6e7dbb6f03eef3b0e103ee6176eeddeb052` — CURRENT_BASELINE_VERIFIED؛ تقرير المصالحة عبر فرع `docs/r0-live-baseline-report-20261007` بانتظار مراجعة المالك؛ المخطط/التصدير 38/30 كما هما)
 **التاريخ:** كل سجل الشرائح والموجات المؤرخ (§9–§134 وفقرات المتابعة قبل 2026-10-01) في [`current-state-log.md`](current-state-log.md) — append-only ولا يُحمَّل مع هذا الملف.
 
 **قاعدة العمل:** العربية، RTL، phone-first، والأرقام المالية ASCII/LTR.
@@ -14,7 +14,7 @@
 
 | الحقل | الحقيقة الحالية |
 |---|---|
-| `main` | يتحقق دائمًا بـ`git fetch origin --prune` (الرأس الحي عند آخر تحديث: `773e775bcbbed86bd06d9fc1864e22a08db3c8a1` — 2026-10-07، PR #323 مدموج). يضم البرامج السابقة المندمجة والمتحققة، بما فيها WS-212 وWS-214 وWS-215، والعقد والخطة وClaim ‏`WS-216/ARCH-007` مع مصالحة المؤشر؛ لا يضم كودًا من successor الجديد بعد. |
+| `main` | يتحقق دائمًا بـ`git fetch origin --prune` (الرأس الحي عند آخر تحديث: `fc2ae6e7dbb6f03eef3b0e103ee6176eeddeb052` — 2026-10-07، بعد دمج PR #324). يضم البرامج السابقة المندمجة والمتحققة، بما فيها WS-212 وWS-214 وWS-215، وعقد وخطة وClaim ‏`WS-216/ARCH-007`؛ لا يضم كودًا من successor الجديد بعد. |
 | طريق التنفيذ | React → Application Service → Domain → `PrototypeLocalStore` → IndexedDB. لا وصول مباشر من UI إلى IndexedDB. |
 | قاعدة التسليم | فرع مستقل من `origin/main` → فحوص محلية → PR إلى `main` → CI وCloudflare ناجحان → قبول مستقل ثم دمج. لا push مباشر إلى `main`. |
 | نمط المنتج | Web-first، local-first، بلا Auth أو Sync أو Cloud أو حسابات مستخدمين أو بيانات حقيقة خارج الجهاز. |
@@ -90,9 +90,9 @@
 
 ## 9. successor البنيوي الحالي — R0–R10 (2026-10-07)
 
-البرنامج الحالي مستقل عن البرامج المغلقة السابقة: `WS-216` / `ARCH-007`. كان أساس العقد الأولي `25594773a83ec5eb1e9dde5feaf1c808c0ff686f`، ثم أصبح رأس التنفيذ الحالي بعد مصالحة PR #323 هو `773e775bcbbed86bd06d9fc1864e22a08db3c8a1`. مرجعه التنفيذي `docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md` وخطته `docs/architecture/refactoring/STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
+البرنامج الحالي مستقل عن البرامج المغلقة السابقة: `WS-216` / `ARCH-007`. كان أساس العقد الأولي `25594773a83ec5eb1e9dde5feaf1c808c0ff686f`، ثم رأس التنفيذ المتحقق في R0 هو `fc2ae6e7dbb6f03eef3b0e103ee6176eeddeb052`. مرجعه التنفيذي `docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md` وخطته `docs/architecture/refactoring/STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
 
-- **الحالة:** العقد وClaim مثبتان على `main` عبر PR #322؛ R0 هو الخطوة الحالية.
-- **R0:** قراءة فقط؛ يتحقق من SHA والفروع وPRs وWorkstreams والحالة الحية والحدود الرقمية ومصفوفة كل finding. لا تعديل كودي ولا نقل ولا حذف ولا تنظيف.
+- **الحالة:** R0 مكتمل قراءة-فقط من الرأس الحي `fc2ae6e` (سليل مباشر للرأس المثبت 773e775b والفرق وثائقي فقط): CURRENT_BASELINE_VERIFIED بلا كتابة كودية؛ التقرير الموحد `R0-LIVE-BASELINE-AND-FINDING-RECONCILIATION-2026-10-07.md` يحمل مصفوفة كل finding ومكتشفات جديدة مصنفة (R0-N1..N20) ومفتوح لمراجعة المالك.
+- **R0:** نُفذ بخمس مراجعات تخصصية قراءة-فقط + مُصالِح واحد؛ تحقّق SHA والفروع والـPRs والـWorkstreams والحدود الرقمية والحراس الأربعة عشر والميزانية والحالة الحية؛ لا تعديل كودي ولا نقل ولا حذف ولا تنظيف.
 - **بعد R0:** لا تبدأ R1–R10 إلا بتقرير `CURRENT_BASELINE_VERIFIED` وبطاقات Repair قابلة للتتبع؛ كل موجة لها PR وفحوص وحد رجوع.
 - **المحظور:** لا إعادة فتح WS-212 أو WS-214 أو WS-215، لا تعديل مباشر لـ`main`، ولا لمس فرع UI المحفوظ.
