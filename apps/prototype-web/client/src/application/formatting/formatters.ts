@@ -112,6 +112,15 @@ export function formatInteger(value: number | null | undefined) {
   return integerFormatter.format(value);
 }
 
+/* R2 (M-07/D15، 2026-10-08): المعيّن الكنوني للنسبة من نقاط الأساس —
+ * كان قالبًا يدويًا \`\${(bps ?? 0) / 100}%\` في موضعين بلا مالك. الناتج
+ * متكافل بايت-بايت مع القالب التاريخي على كل المدخلات (الغياب = 0%
+ * كما كان الاندماج ?? 0)؛ لا حساب عمل هنا — عرض صرف فقط. */
+export function formatPercentFromBps(bps: number | null | undefined): string {
+  if (bps === null || bps === undefined || !Number.isFinite(bps)) return "0%";
+  return `${bps / 100}%`;
+}
+
 export function formatQuantityMilli(value: number | null | undefined) {
   if (value === null || value === undefined || !Number.isSafeInteger(value)) return "—";
   return trimTrailingZeros(quantityMilliToFixed3(value));

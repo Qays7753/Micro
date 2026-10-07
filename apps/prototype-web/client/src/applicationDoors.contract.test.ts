@@ -70,6 +70,10 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
     "echoQuantityMilli",
     "focusEnglishNumericText",
     "formatEnglishNumericValue",
+    /* R2 (M-07/D14، 2026-10-08): منسّق صدى الكمية — توسيع سطح مقصود بنفس
+     * الموجة (PC-3): انتقل من تعريف محلي في EnglishQuantityInput إلى نواة
+     * الإدخال بمالك واحد؛ لا رمز بلا مستهلك. */
+    "formatEnglishQuantityEcho",
     "normalizeAsciiDigits",
     "parseEnglishNumericText",
     "parseEnglishQuantityText",

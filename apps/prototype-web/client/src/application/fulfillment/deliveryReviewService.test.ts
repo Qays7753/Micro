@@ -298,6 +298,50 @@ describe("DeliveryReviewService — commitDelivery", () => {
     });
   });
 
+  it("R2 (M-08/D11): the persisted delivery-collection note uses the canonical formatter and round-trips unchanged", async () => {
+    /* العقد المحفوظ: نص الملاحظة التطبيقية يُبنى بالمنسّق الكنوني
+     * (formatMoneyMinor: منزلتان + فواصل) — اصطلاح مختلف عن نص المجال
+     * المجمد (minor/100 د.أ — W2) وموثق في سجل الملكية §8-6. الملاحظة
+     * نص معتم يخزن ويُقرأ كما هو: قيمة قديمة تُقرأ حرفيًا (توافق القراءة
+     * القديمة)، والكتابة الجديدة تحمل الصيغة الكنونية نفسها. */
+    const { store, orderId, trackedId } = await readyOrderWithLinkedMaterials();
+    /* القبض داخل محفظة موزعة هو المسار الذي يكتب ملاحظة النقد المحفوظة. */
+    const seeded = await store.readSnapshot();
+    expect(seeded.ok).toBe(true);
+    if (seeded.ok) {
+      await store.replaceSnapshot({
+        ...seeded.value,
+        cashWallets: [
+          ...seeded.value.cashWallets,
+          {
+            id: "wallet-note-golden",
+            name: "محفظة الذهبية",
+            kind: "cash_drawer",
+            createdAt: "2026-08-22T03:00:00.000Z",
+          },
+        ],
+      });
+    }
+    const service = new DeliveryReviewService(store, () => "2026-08-22T03:00:00.000Z");
+    const committed = await service.commitDelivery(orderId, {
+      rows: [{ materialId: trackedId, quantityMilli: 4_000, action: "consume" }],
+      collectNow: { amountMinor: 5_000, walletId: "wallet-note-golden" },
+      operationKey: "deliver-op-note-golden",
+    });
+    expect(committed.ok).toBe(true);
+    if (!committed.ok) return;
+    const entries = await store.listCashContinuityEntries();
+    expect(entries.ok).toBe(true);
+    if (!entries.ok) return;
+    const note = entries.value.find(entry => entry.operationKey.includes("deliver-cash"))?.note;
+    expect(note).toContain("قبض عند تسليم الطلب");
+    /* الصيغة الكنونية: منزلتان دائمًا (لا قسمة خام «60» بل «60.00»). */
+    expect(note).toMatch(/\d[\d,]*\.\d{2} د\.أ$/);
+    /* دورة القراءة: نفس النص يُقرأ حرفيًا من المخزن — لا إعادة تفسير. */
+    const reread = await store.listCashContinuityEntries();
+    expect(reread.ok && reread.value.find(entry => entry.operationKey.includes("deliver-cash"))?.note).toBe(note);
+  });
+
   it("applies an explicit final-price correction at delivery with a required reason", async () => {
     const { store, orderId, trackedId } = await readyOrderWithLinkedMaterials();
     const service = new DeliveryReviewService(store, () => "2026-08-22T03:00:00.000Z");

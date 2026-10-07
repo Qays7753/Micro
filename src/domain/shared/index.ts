@@ -1,5 +1,5 @@
 export { JOD, type Currency, type MoneyMinor } from "./currency.js";
-export { ammanDateOrNull, localDateInAmman } from "./businessTime.js";
+export { INVALID_INSTANT_MESSAGE, ammanDateOrNull, localDateInAmman } from "./businessTime.js";
 export {
   addSafe,
   assertId,

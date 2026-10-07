@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { ammanDateOrNull, localDateInAmman } from "../../src/domain/shared/index.js";
+import {
+  INVALID_INSTANT_MESSAGE,
+  ammanDateOrNull,
+  localDateInAmman,
+} from "../../src/domain/shared/index.js";
 
 /* المجموعة ٩ (STR-029/STR-031): عقد وحدة وقت الأعمال الكنسية — نفس
  * متجهات توصيف المجموعة ٩ تُثبت أن النقل من طبقة العرض لم يغير أي سلوك،
@@ -47,6 +51,14 @@ describe("Business Time canonical module (Group 9, STR-029/031)", () => {
       expect(() => localDateInAmman(invalid), invalid).toThrowError("Invalid instant");
       expect(ammanDateOrNull(invalid), invalid).toBeNull();
     }
+  });
+
+  it("R2 (M-08/D12، 2026-10-08): the semantic identity is an exported constant anchored to its frozen literal", () => {
+    /* الهوية الدلالية منظمة ومصدَّرة — المرتكز الحرفي يبقى هنا عمدًا كي لا
+     * يغير خطأ مطبعي في الثابت الهوية بصمت؛ والمستهلكون الجدد يستوردون
+     * الثابت لا النص الحر. */
+    expect(INVALID_INSTANT_MESSAGE).toBe("Invalid instant");
+    expect(() => localDateInAmman("garbage")).toThrowError(INVALID_INSTANT_MESSAGE);
   });
 
   it("derives month keys as the first seven characters of the business date (no separate algorithm)", () => {

@@ -10,6 +10,7 @@ import {
   formatMonthLabel,
   formatTime,
   businessDateFromTimestamp,
+  formatPercentFromBps,
 } from "./formatters";
 /* واجهة التوافق المجمدة تعيد تصدير السطح نفسه — إثبات المساواة بالمراجع
  * جزء من التوصيف (البيت الكنوني واحد لا نسختان). */
@@ -133,5 +134,31 @@ describe("R2 characterization — presentation facade re-exports the canonical h
     expect(presentationFacade.formatQuantityMilli).toBe(formatQuantityMilli);
     expect(presentationFacade.formatLocalDate).toBe(formatLocalDate);
     expect(presentationFacade.formatArabicPlural).toBe(formatArabicPlural);
+  });
+});
+
+
+describe("R2 (M-07/D15، 2026-10-08) — formatPercentFromBps canonical percent formatter", () => {
+  it("is byte-identical to the historical manual template at every boundary", () => {
+    /* القالب التاريخي: `${(bps ?? 0) / 100}%` — المعيّن الكنوني يحل محله
+     * في الموضعين (OwnerEntitlement + OwnerPolicyFormsSection) بلا أي تغيير
+     * نص مرئي. */
+    const manualTemplate = (bps: number | null) => `${(bps ?? 0) / 100}%`;
+    for (const bps of [0, 1, 250, 9999, 10000]) expect(formatPercentFromBps(bps)).toBe(manualTemplate(bps));
+  });
+
+  it("formats the boundary values exactly (0 / 1 / 9999 / 10000) and absent input as 0%", () => {
+    expect(formatPercentFromBps(0)).toBe("0%");
+    expect(formatPercentFromBps(1)).toBe("0.01%");
+    expect(formatPercentFromBps(9999)).toBe("99.99%");
+    expect(formatPercentFromBps(10000)).toBe("100%");
+    expect(formatPercentFromBps(250)).toBe("2.5%");
+    expect(formatPercentFromBps(null)).toBe("0%");
+    expect(formatPercentFromBps(undefined)).toBe("0%");
+    expect(formatPercentFromBps(Number.NaN)).toBe("0%");
+  });
+
+  it("is re-exported by the frozen presentation facade (one kernel, no second copy)", () => {
+    expect(presentationFacade.formatPercentFromBps).toBe(formatPercentFromBps);
   });
 });

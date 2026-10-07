@@ -16,6 +16,7 @@ export {
   echoQuantityMilli,
   focusEnglishNumericText,
   formatEnglishNumericValue,
+  formatEnglishQuantityEcho,
   normalizeAsciiDigits,
   parseEnglishNumericText,
   parseEnglishQuantityText,

@@ -34,10 +34,16 @@ const ammanDateFormatter = new Intl.DateTimeFormat("en", {
   day: "2-digit",
 });
 
+/* R2 (M-08/D12، 2026-10-08): هوية الخطأ الدلالية منظمة ومصدَّرة — كانت
+ * نصًا حرًا داخل الرمي فقط. المرتكزات الحرفية في الاختبارات المجمدة تبقى
+ * عمدًا (كما أوصت المراجعة الخمسية) كي لا يغير خطأ مطبعي في الثابت الهوية
+ * بصمت؛ هذا الثابت هو المرجع لكل مستهلك مستقبلي. */
+export const INVALID_INSTANT_MESSAGE = "Invalid instant";
+
 /** تاريخ الأعمال بتوقيت عمّان بصيغة `YYYY-MM-DD` — يرمي `Invalid instant` للمدخل غير الصالح. */
 export function localDateInAmman(instant: Date | string = new Date()): string {
   const parsed = instant instanceof Date ? instant : new Date(instant);
-  if (Number.isNaN(parsed.valueOf())) throw new Error("Invalid instant");
+  if (Number.isNaN(parsed.valueOf())) throw new Error(INVALID_INSTANT_MESSAGE);
   const parts = ammanDateFormatter.formatToParts(parsed);
   const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(item => item.type === type)?.value ?? "";
   return `${part("year")}-${part("month")}-${part("day")}`;

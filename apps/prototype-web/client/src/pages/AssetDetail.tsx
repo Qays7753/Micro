@@ -58,7 +58,10 @@ export default function AssetDetail() {
   const [newLife, setNewLife] = useState("");
   const [newStart, setNewStart] = useState("");
   /* عقد ٤٣ (WS-179 — Wave 7): مراجعة المتبقية ضمن تعديل العقد الموثق. */
-  const [newResidual, setNewResidual] = useState("");
+  /* R2 (M-07/D9، 2026-10-08): حالة المال رقم minor قابلة للغياب — كانت
+   * نصًا يُعاد تحليله بـNumber() غير المحروس؛ القيمة من نواة الإدخال
+   * المالية (onNumericChange يبث minor) فلا تحليل نصوص إطلاقًا. */
+  const [newResidual, setNewResidual] = useState<number | null>(null);
   const [validNewResidual, setValidNewResidual] = useState(true);
   /* المجموعة ٤ (تصحيح مراجعة 4-c): تاريخ الإهلاك اختيار المالك — العقد وعد بتاريخ
    * يختاره هو لا بتاريخ فتح الصفحة؛ الافتراضي اليوم. */
@@ -298,7 +301,7 @@ export default function AssetDetail() {
               setRevisionOpen(current => !current);
               setNewLife(asset.lifeMonths === null ? "" : String(asset.lifeMonths));
               setNewStart(asset.depreciationStartOn ?? "");
-              setNewResidual(residualOf(asset) > 0 ? String(residualOf(asset)) : "");
+              setNewResidual(residualOf(asset) > 0 ? residualOf(asset) : null);
             }}
           >
             عدّل العمر النافع أو بداية الاستخدام
@@ -325,9 +328,9 @@ export default function AssetDetail() {
               <label className="micro-field">
                 <span>القيمة المتبقية (د.أ — فارغ = صفر)</span>
                 <EnglishNumberInput
-                  value={Number(newResidual) || 0}
+                  value={newResidual ?? 0}
                   kind="money"
-                  onNumericChange={value => setNewResidual(String(value))}
+                  onNumericChange={setNewResidual}
                   onTextValidityChange={setValidNewResidual}
                   aria-label="القيمة المتبقية للمراجعة"
                 />
@@ -351,7 +354,7 @@ export default function AssetDetail() {
                       assets.reviseContract(asset.id, {
                         lifeMonths: newLife.trim() === "" ? null : Number(newLife),
                         depreciationStartOn: newStart || null,
-                        residualValueMinor: newResidual.trim() === "" ? null : Number(newResidual),
+                        residualValueMinor: newResidual,
                         reason: contractReason,
                       }),
                     )

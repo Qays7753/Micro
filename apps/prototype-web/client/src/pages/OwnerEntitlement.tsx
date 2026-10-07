@@ -24,6 +24,7 @@ import {
 import {
   formatLocalDate,
   formatMoneyMinor,
+  formatPercentFromBps,
   localDateInAmman,
   localDateMonthEnd,
 } from "@/presentation/formatters";
@@ -797,8 +798,9 @@ export default function OwnerEntitlement() {
                       </small>
                     </div>
                     <b>
+                      {/* R2 (M-07/D15): المعيّن الكنوني — متكافل بايت-بايت مع القالب اليدوي السابق. */}
                       {policy.amountMinor === null
-                        ? `${(policy.percentageBps ?? 0) / 100}%`
+                        ? formatPercentFromBps(policy.percentageBps)
                         : `${formatMoneyMinor(policy.amountMinor)} د.أ`}
                     </b>
                   </article>

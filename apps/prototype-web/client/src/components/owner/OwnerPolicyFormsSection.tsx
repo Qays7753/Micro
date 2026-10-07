@@ -15,7 +15,7 @@ import type { OwnerEntitlementOverview } from "@/application/owner-money";
 import { ArrowRight, Check, HandCoins, Save } from "lucide-react";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
-import { formatLocalDate, formatMoneyMinor } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyMinor, formatPercentFromBps } from "@/presentation/formatters";
 import {
   amountPolicyKinds,
   movementReasonLabels,
@@ -273,8 +273,9 @@ export function OwnerPolicyFormsSection({
               <strong>ملخص النسخة السابقة</strong>
               <p>
                 {policyLabels[successorPolicy.kind]} ·{" "}
+                {/* R2 (M-07/D15): المعيّن الكنوني — متكافل بايت-بايت مع القالب اليدوي السابق. */}
                 {successorPolicy.amountMinor === null
-                  ? `${(successorPolicy.percentageBps ?? 0) / 100}%`
+                  ? formatPercentFromBps(successorPolicy.percentageBps)
                   : `${formatMoneyMinor(successorPolicy.amountMinor)} د.أ`}{" "}
                 · {policyFamilyLabels[successorPolicy.family]}
               </p>

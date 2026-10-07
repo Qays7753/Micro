@@ -64,6 +64,16 @@ export function parseEnglishQuantityText(value: string): number | null {
   return Number.isSafeInteger(result) ? result : null;
 }
 
+/* R2 (M-07/D14، 2026-10-08): عقد صدى إدخال الكمية — منزلق من مكوّن
+ * EnglishQuantityInput (كان نسخة محلية بلا ملكية). العقد صريح ومختلف عن
+ * عرض القراءة (formatQuantityMilli يقصّ كل الأصفار اللاحقة): الإدخال يردد
+ * بالتمثيل الثابت 3 منازل مع قصّ الكسر الصفري الكامل فقط — «1.500» تبقى
+ * و«1.000» تصير «1»، فيرى المستخدم رقمه بصيغة الإدخال نفسها. */
+export function formatEnglishQuantityEcho(milli: number | null): string {
+  if (milli === null) return "";
+  return (milli / 1000).toFixed(3).replace(/\.0+$/, "");
+}
+
 export function formatEnglishNumericValue(value: number | null, kind: EnglishNumericKind) {
   if (value === null) return "";
   if (kind === "money" || kind === "percentage") return (value / 100).toFixed(2);
