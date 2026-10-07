@@ -1,9 +1,9 @@
 # Micro — Refactoring Control
 
-**الإصدار:** v1.8 (تحقق برنامج ما بعد المسح W0–W10 على main بعد PR #316 — 2026-10-06؛ v1.7 بدء تنفيذ العقد — 2026-10-05؛ v1.6 تثبيت رأس main النهائي بعد PR #312 — 2026-10-05؛ v1.5 وما قبلها سجل تاريخي)
-**التاريخ:** 2026-10-06
-**الحالة:** `OWNER_ACCEPTED — POST-SCAN PROGRAM VERIFIED ON MAIN`
-**المرحلة:** `A-TO-Z VERIFIED ON MAIN; POST-SCAN COMPLETION PROGRAM W0–W10 VERIFIED ON MAIN; STRUCTURAL FREEZE ACTIVE` (برنامج A-to-Z وبرنامج ما بعد المسح مغلقان ومتحققان؛ لا موجة جديدة دون مسح وقبول مالك)
+**الإصدار:** v1.9 (فتح successor البنيوي R0–R10 بعد اعتماد المالك — 2026-10-07؛ v1.8 تحقق برنامج ما بعد المسح W0–W10 على main بعد PR #316 — 2026-10-06؛ v1.7 بدء تنفيذ العقد — 2026-10-05؛ v1.6 تثبيت رأس main النهائي بعد PR #312 — 2026-10-05؛ v1.5 وما قبلها سجل تاريخي)
+**التاريخ:** 2026-10-07
+**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0 IN_PROGRESS`
+**المرحلة:** `A-TO-Z VERIFIED ON MAIN; POST-SCAN W0–W10 VERIFIED ON MAIN; SUCCESSOR R0–R10 OPENED; R0 READ-ONLY ACTIVE` (البرامج السابقة مغلقة ومتحققة؛ successor الحالي بدأ ببوابة قراءة فقط)
 **النطاق:** Structure / Architecture / Code Organization فقط
 
 ## 1. الهدف
@@ -173,3 +173,16 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 ## 13. إغلاق برنامج ما بعد المسح — 2026-10-06
 
 اكتملت W0–W10، وحُلّت تعارضات PR #316 في `931ce5b`، ثم دُمج PR #316 على `main` عند `988e6f0d7ae2c83e62d1d4c50192dec59c00630f`. نجح CI في run `37526123652`، وانتقلت `ARCH-005/WS-215` إلى `VERIFIED`. لا تغيير مالي أو Schema/Export/Import أو UI بصري؛ المجمد البنيوي فعال، وأي مسار جديد يتطلب مسحًا قراءة-فقط وقبول مالك جديد.
+
+## 14. Successor structural remediation — 2026-10-07
+
+اعتمد المالك الخطة الجذرية المحدثة المبنية على تقريري Structure وFlash ومصفوفة التتبع الكاملة. هذا successor مستقل عن برامج `WS-212` و`WS-214` و`WS-215`، ولا يعيد فتحها أو يغيّر أدلتها التاريخية.
+
+- **Workstream:** `WS-216`.
+- **Item:** `ARCH-007`.
+- **Base:** `origin/main` عند `25594773a83ec5eb1e9dde5feaf1c808c0ff686f`.
+- **العقد:** `ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md`.
+- **الخطة:** `STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
+- **البداية المسموحة:** R0 قراءة فقط ومصالحة الخط الأساسي؛ لا نقل أو تقسيم أو حذف أو تعديل كودي في R0.
+- **قاعدة الاستمرار:** بعد تقرير R0 فقط، تنفذ R1–R10 على فرع مستقل، وبطاقات Repair، وPR مستقل أو شريحة قابلة للمراجعة، وفحوص مركزة وCI وحد رجوع لكل موجة.
+- **الخطوة الحية:** تثبيت العقد وWorkstream عبر PR توثيقي، ثم تنفيذ R0 من الرأس الحي. لا تُعدّل `main` مباشرة ولا يُمس فرع UI المحفوظ.
