@@ -33,7 +33,8 @@
     "discovered_at_sha": "25594773a83ec5eb1e9dde5feaf1c808c0ff686f",
     "evidence": [
       "docs/architecture/refactoring/STRUCTURAL-REMEDIATION-PLAN-20261007.md",
-      "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md"
+      "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md",
+      "docs/architecture/refactoring/R0-LIVE-BASELINE-AND-FINDING-RECONCILIATION-2026-10-07.md"
     ]
   },
   "acceptance": [
@@ -82,5 +83,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "العقد وClaim ومصالحة المؤشر مثبتة على main عند 773e775b؛ نفّذ R0 قراءة فقط وأصدر تقرير المصالحة من الرأس الحالي قبل أي كتابة كودية."
+  "next_action": "R0 مكتمل قراءة-فقط عند fc2ae6e (CURRENT_BASELINE_VERIFIED)؛ تقرير المصالحة الكامل مع مصفوفة كل finding ومكتشفات R0-N1..N20 مفتوح لمراجعة المالك عبر فرع docs/r0-live-baseline-report-20261007؛ لا تبدأ R1 إلا بعد قبول التقرير وبطاقات الموجة."
 }

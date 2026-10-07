@@ -180,9 +180,9 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 
 - **Workstream:** `WS-216`.
 - **Item:** `ARCH-007`.
-- **Initial base:** `origin/main` عند `25594773a83ec5eb1e9dde5feaf1c808c0ff686f`; **current execution head:** `773e775bcbbed86bd06d9fc1864e22a08db3c8a1` بعد مصالحة PR #323.
+- **Initial base:** `origin/main` عند `25594773a83ec5eb1e9dde5feaf1c808c0ff686f`; **current execution head:** `fc2ae6e7dbb6f03eef3b0e103ee6176eeddeb052` (R0-verified baseline، 2026-10-07).
 - **العقد:** `ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md`.
 - **الخطة:** `STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
 - **البداية المسموحة:** R0 قراءة فقط ومصالحة الخط الأساسي؛ لا نقل أو تقسيم أو حذف أو تعديل كودي في R0.
 - **قاعدة الاستمرار:** بعد تقرير R0 فقط، تنفذ R1–R10 على فرع مستقل، وبطاقات Repair، وPR مستقل أو شريحة قابلة للمراجعة، وفحوص مركزة وCI وحد رجوع لكل موجة.
-- **الخطوة الحية:** العقد وWorkstream ومصالحة المؤشر مثبتة عبر PR #323؛ نفّذ R0 قراءة فقط من الرأس `773e775b`، ثم سجّل تقرير المصالحة قبل أي تعديل. لا تُعدّل `main` مباشرة ولا يُمس فرع UI المحفوظ.
+- **الخطوة الحية:** R0 مكتمل قراءة-فقط عند `fc2ae6e` — `CURRENT_BASELINE_VERIFIED`؛ تقرير المصالحة `R0-LIVE-BASELINE-AND-FINDING-RECONCILIATION-2026-10-07.md` (مع تصحيح مؤرخ لأرقام ADR-018 الكسولة ومكتشفات R0-N1..N20 موجهة لموجاتها) مفتوح لمراجعة المالك عبر فرع `docs/r0-live-baseline-report-20261007`. لا تُعدّل `main` مباشرة ولا يُمس فرع UI المحفوظ.
