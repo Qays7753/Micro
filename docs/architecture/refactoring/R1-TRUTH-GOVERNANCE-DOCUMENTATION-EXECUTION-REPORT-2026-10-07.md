@@ -143,7 +143,7 @@ All `docs/operations/control/generated/*` changes in this PR were produced **onl
 | `ec87f27` | Operations Control pin (TG-04) | `WS-216.json`, `ARCH-007.json`, regenerated views (ACTIVE-WORK, AGENT-BRIEF, MASTER-TRACKER.csv, xlsx meta) |
 | `<FINAL>` | Report + live state (all cards) | this report, `00-document-index.md` (successor paragraph), `current-state.md` (live fields), `current-state-log.md` (§140), `AGENT-SEQUENTIAL-WORKLOG.md` (Entry 51), `ARCH-007.json` (evidence += this report) + regenerated views |
 
-**Total: 21 files (documentation + control JSON/views + 2 comment-only script lines).** Rollback boundary: each slice reverts independently as a single doc revert; the two comment lines revert with no behavioral consequence (guard re-verified before/after).
+**Total: 27 files = 21 documentation/control-JSON + 4 regenerated views + 2 comment-only guard-header script lines** (gate-audit correction C1: the earlier "21 files" undercounted the generated views and scripts; git diff --stat at head = 27 files). Rollback boundary: each slice reverts independently as a single doc revert; the two comment lines revert with no behavioral consequence (guard re-verified before/after).
 
 ## 8. Verification battery (commands and exit codes, on the final head)
 
