@@ -339,7 +339,9 @@ describe("DeliveryReviewService — commitDelivery", () => {
     expect(note).toMatch(/\d[\d,]*\.\d{2} د\.أ$/);
     /* دورة القراءة: نفس النص يُقرأ حرفيًا من المخزن — لا إعادة تفسير. */
     const reread = await store.listCashContinuityEntries();
-    expect(reread.ok && reread.value.find(entry => entry.operationKey.includes("deliver-cash"))?.note).toBe(note);
+    expect(reread.ok && reread.value.find(entry => entry.operationKey.includes("deliver-cash"))?.note).toBe(
+      note,
+    );
   });
 
   it("applies an explicit final-price correction at delivery with a required reason", async () => {

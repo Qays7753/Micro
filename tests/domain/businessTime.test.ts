@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  INVALID_INSTANT_MESSAGE,
-  ammanDateOrNull,
-  localDateInAmman,
-} from "../../src/domain/shared/index.js";
+import { INVALID_INSTANT_MESSAGE, ammanDateOrNull, localDateInAmman } from "../../src/domain/shared/index.js";
 
 /* المجموعة ٩ (STR-029/STR-031): عقد وحدة وقت الأعمال الكنسية — نفس
  * متجهات توصيف المجموعة ٩ تُثبت أن النقل من طبقة العرض لم يغير أي سلوك،

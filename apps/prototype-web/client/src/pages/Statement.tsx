@@ -103,7 +103,8 @@ function ExpenseCategoryGroupRow({
 
 /* R2 (M-02/X1، 2026-10-08): حساب حدود الأسبوع من نواة التاريخ الكنسية —
  * كانت Date.UTC رقمية؛ اليوم من ساعة الأعمال الجارية فلا يبلغ حد التمثيل. */
-const shiftDate = (localDate: string, days: number): string => localDatePlusDays(localDate, days) ?? localDate;
+const shiftDate = (localDate: string, days: number): string =>
+  localDatePlusDays(localDate, days) ?? localDate;
 /* الأسبوع في النموذج: الأحد → السبت (أسبوع عمل المالك الصغير في الأردن). */
 function weekBounds(today: string): { from: string; to: string } {
   const weekday = localDateWeekdayIndex(today) ?? 0;

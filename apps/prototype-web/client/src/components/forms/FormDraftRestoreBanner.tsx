@@ -52,9 +52,14 @@ export function FormDraftRestoreBanner({
         <span className="micro-overline">عندك مسودة</span>
         <h2>مدخلاتك من آخر مرة محفوظة محليًا</h2>
         <p>
-          حُفظت <bdi dir="ltr">{/* R2 (M-05/X3): تاريخ العرض من اللحظة المخزنة عبر عقد وقت الأعمال — كان قصّ UTC. */
-                  formatLocalDate(businessDateFromTimestamp(savedAt)) ?? savedAt.slice(0, 10)}</bdi> (
-          {ageLabel}) — لم تُسجّل أي حركة مالية بعد؛ استرجعها لتكمل من حيث توقفت، أو تجاهلها وابدأ من جديد.
+          حُفظت{" "}
+          <bdi dir="ltr">
+            {
+              /* R2 (M-05/X3): تاريخ العرض من اللحظة المخزنة عبر عقد وقت الأعمال — كان قصّ UTC. */
+              formatLocalDate(businessDateFromTimestamp(savedAt)) ?? savedAt.slice(0, 10)
+            }
+          </bdi>{" "}
+          ({ageLabel}) — لم تُسجّل أي حركة مالية بعد؛ استرجعها لتكمل من حيث توقفت، أو تجاهلها وابدأ من جديد.
         </p>
         <div className="micro-form-actions">
           <Button action="save" onClick={onRestore}>

@@ -222,7 +222,10 @@ export class LoanService {
       const reversal = createFinancialReversal({
         id: reversalEventId,
         sourceEvent: source,
-        occurredOn: /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(now),
+        occurredOn:
+          /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(
+            now,
+          ),
         recordedAt: now,
         idempotencyKey: `${loanId}:repayment-reversal:${repaymentId}`,
         reason,
@@ -261,7 +264,10 @@ export class LoanService {
       const reversal = createFinancialReversal({
         id: newId("event"),
         sourceEvent: source,
-        occurredOn: /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(now),
+        occurredOn:
+          /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(
+            now,
+          ),
         recordedAt: now,
         idempotencyKey: `${loanId}:principal-reversal:${now}`,
         reason: input.reason,

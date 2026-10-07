@@ -20,7 +20,11 @@ import {
   validationFailure,
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
-import { isValidLocalDate, localDatePlusDays, localDatePlusMonthsClamped } from "@micro-domain/shared/index.js";
+import {
+  isValidLocalDate,
+  localDatePlusDays,
+  localDatePlusMonthsClamped,
+} from "@micro-domain/shared/index.js";
 
 export type RecurrenceInput = {
   sourceScheduleId: string;
@@ -181,9 +185,7 @@ export class ScheduleRecurrenceService {
           recurrence: existing,
           created: [],
           skipped: Array.from({ length: existing.occurrenceCount }, (_, index) => ({
-            date:
-              nextDate(source.scheduledFor, existing.frequency, index + 1) ??
-              source.scheduledFor,
+            date: nextDate(source.scheduledFor, existing.frequency, index + 1) ?? source.scheduledFor,
             reason: "existing_schedule" as const,
           })),
         },

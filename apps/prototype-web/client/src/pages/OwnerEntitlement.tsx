@@ -81,7 +81,9 @@ export default function OwnerEntitlement() {
   const [periodFrom, setPeriodFrom] = useState(monthStart);
   /* R2 (M-02/X1، 2026-10-08): آخر يوم شهر من نواة التاريخ الكنسية — كان
    * Date.UTC رقمية (تعيد السنوات < 0100 إلى 1900+) بثلاث نداءات ساعة. */
-  const [periodTo, setPeriodTo] = useState(() => localDateMonthEnd(localDateInAmman().slice(0, 7)) ?? localDateInAmman());
+  const [periodTo, setPeriodTo] = useState(
+    () => localDateMonthEnd(localDateInAmman().slice(0, 7)) ?? localDateInAmman(),
+  );
   const [entitlementDate, setEntitlementDate] = useState(localDateInAmman);
   const [entitlementNote, setEntitlementNote] = useState("");
   const [calculation, setCalculation] = useState<{

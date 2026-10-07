@@ -137,7 +137,6 @@ describe("R2 characterization — presentation facade re-exports the canonical h
   });
 });
 
-
 describe("R2 (M-07/D15، 2026-10-08) — formatPercentFromBps canonical percent formatter", () => {
   it("is byte-identical to the historical manual template at every boundary", () => {
     /* القالب التاريخي: `${(bps ?? 0) / 100}%` — المعيّن الكنوني يحل محله

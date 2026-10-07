@@ -45,7 +45,8 @@ type PeriodRange = "this_week" | "last_week" | "this_month" | "all" | "custom";
 /* R2 (M-02/X1، 2026-10-08): حساب حدود الأسبوع من نواة التاريخ الكنسية —
  * كانت Date.UTC رقمية (تعيد السنوات < 0100 إلى 1900+). اليوم من ساعة
  * الأعمال الجارية فلا يبلغ حد التمثيل؛ fail-soft بالمدخل نفسه كما كان. */
-const shiftDate = (localDate: string, days: number): string => localDatePlusDays(localDate, days) ?? localDate;
+const shiftDate = (localDate: string, days: number): string =>
+  localDatePlusDays(localDate, days) ?? localDate;
 function weekBounds(today: string): { from: string; to: string } {
   const weekday = localDateWeekdayIndex(today) ?? 0;
   const from = shiftDate(today, -weekday);

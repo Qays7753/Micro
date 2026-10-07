@@ -23,7 +23,12 @@ import {
 } from "@micro-domain/recurring-margin/index.js";
 import type { AllocationEvidence } from "@micro-domain/recurring-margin/index.js";
 import type { InventoryMovement, WasteContext } from "@micro-domain/inventory-material/index.js";
-import { isValidLocalDate, localDatePlusDays, quantityMilliExact, sumSafeIntegers } from "@micro-domain/shared/index.js";
+import {
+  isValidLocalDate,
+  localDatePlusDays,
+  quantityMilliExact,
+  sumSafeIntegers,
+} from "@micro-domain/shared/index.js";
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 import type { AllocationPolicyStore } from "@/storage/local/capabilities/allocationPolicyStore";

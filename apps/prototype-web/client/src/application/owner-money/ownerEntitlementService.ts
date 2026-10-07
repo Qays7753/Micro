@@ -29,7 +29,11 @@ import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAt
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { OwnerEntitlementStore } from "@/storage/local/capabilities/ownerEntitlementStore";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
-import { isValidLocalDate, localDatePlusDays, localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
+import {
+  isValidLocalDate,
+  localDatePlusDays,
+  localDateInAmman as ammanDate,
+} from "@micro-domain/shared/index.js";
 import {
   STORAGE_ERROR,
   VALIDATION_ERROR,

@@ -88,7 +88,9 @@ describe("R2 characterization — domain local-date validity kernel (Class A)", 
   it("the direct-sale validator delegates to the kernel (M-02 flip, 2026-10-08)", () => {
     expect(() => createDirectSale(directSaleInput("2024-02-29"))).not.toThrow();
     expect(() => createDirectSale(directSaleInput("2023-02-29"))).toThrow();
-    expect(() => createDirectSale(directSaleInput("0050-01-01"))).not.toThrow(); /* كان يرمي — سياسة ISO (M-01) */
+    expect(() =>
+      createDirectSale(directSaleInput("0050-01-01")),
+    ).not.toThrow(); /* كان يرمي — سياسة ISO (M-01) */
     expect(() => createDirectSale(directSaleInput("2026-13-01"))).toThrow();
   });
 });

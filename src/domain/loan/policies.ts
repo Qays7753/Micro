@@ -1,4 +1,10 @@
-import { assertId, assertPositiveMinor, fieldLabelAr, isValidLocalDate, isValidTimestamp } from "../shared/index.js";
+import {
+  assertId,
+  assertPositiveMinor,
+  fieldLabelAr,
+  isValidLocalDate,
+  isValidTimestamp,
+} from "../shared/index.js";
 import { reversedEventIds, type FinancialEvent } from "../financial-event/index.js";
 import type {
   AddLoanRepaymentInput,

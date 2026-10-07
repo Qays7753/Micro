@@ -31,8 +31,6 @@ function envelope(data: unknown): string {
   });
 }
 
-
-
 describe("R2 regression — prepareImport structured rejection (M-03, 2026-10-08)", () => {
   it("accepts an honest current-pair empty snapshot (control)", () => {
     const service = new LocalTransferService(store);
@@ -52,7 +50,7 @@ describe("R2 regression — prepareImport structured rejection (M-03, 2026-10-08
           revenueMinor: 1000,
           collectedMinor: 1000,
           costMinor: null,
-          occurredOn: "2026-13-01", /* خارج النحو — كان يرمي RangeError */
+          occurredOn: "2026-13-01" /* خارج النحو — كان يرمي RangeError */,
           recordedAt: "2026-10-07T10:00:00.000Z",
           idempotencyKey: "sale-x-key",
           note: "x",
@@ -111,7 +109,7 @@ describe("R2 regression — prepareImport structured rejection (M-03, 2026-10-08
           id: "cash-x",
           walletId: "wallet-1",
           type: "opening_balance",
-          occurredOn: "2023-02-29", /* دوران — كان يمر عبر مرساة Date.parse */
+          occurredOn: "2023-02-29" /* دوران — كان يمر عبر مرساة Date.parse */,
           recordedAt: "2026-10-07T10:00:00.000Z",
           cashDeltaMinor: 500,
           note: "x",

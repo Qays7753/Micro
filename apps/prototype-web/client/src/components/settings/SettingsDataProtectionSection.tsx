@@ -512,8 +512,8 @@ export function SettingsDataProtectionSection({
             <h2>النسخة الاحتياطية جاهزة ومُتحقق منها</h2>
             <p>
               حُمّل الملف إلى جهازك (micro-local-
-              {businessDateFromTimestamp(lastExport) ?? ""}.json). لتأكيد المسح اكتب
-              «ابدأ من جديد» في الحقل أدناه.
+              {businessDateFromTimestamp(lastExport) ?? ""}.json). لتأكيد المسح اكتب «ابدأ من جديد» في الحقل
+              أدناه.
             </p>
             <label className="micro-field">
               <span>اكتب «ابدأ من جديد» للتأكيد</span>

@@ -51,8 +51,7 @@ export function localDateDayNumber(value: string): number | null {
   const shiftedYear = parts.month <= 2 ? parts.year - 1 : parts.year;
   const era = Math.floor(shiftedYear / 400);
   const yearOfEra = shiftedYear - era * 400;
-  const dayOfYear =
-    Math.floor((153 * (parts.month + (parts.month > 2 ? -3 : 9)) + 2) / 5) + parts.day - 1;
+  const dayOfYear = Math.floor((153 * (parts.month + (parts.month > 2 ? -3 : 9)) + 2) / 5) + parts.day - 1;
   const dayOfEra = yearOfEra * 365 + Math.floor(yearOfEra / 4) - Math.floor(yearOfEra / 100) + dayOfYear;
   return era * 146097 + dayOfEra - 719468;
 }

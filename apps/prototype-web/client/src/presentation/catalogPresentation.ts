@@ -7,10 +7,14 @@
  */
 import { perOutputUnitAmountMinor } from "@micro-domain/recurring-margin/index.js";
 import { parseEnglishNumericText, parseEnglishQuantityText } from "@/application/input";
-import { formatMoneyWithUnit, formatQuantityMilliFixed3, localDateInAmman } from "@/presentation/formatters";
+import {
+  daysInMonthOf,
+  formatMoneyWithUnit,
+  formatQuantityMilliFixed3,
+  localDateInAmman,
+} from "@/presentation/formatters";
 import type { CatalogTemplate, UnitDimension } from "@micro-domain/catalog/index.js";
 import type { RecurringWorkReading } from "@/application/finance";
-import { daysInMonthOf } from "@micro-domain/shared/index.js";
 
 const dimensions: readonly { value: UnitDimension; label: string }[] = [
   { value: "count", label: "عدد" },

@@ -140,7 +140,10 @@ export class RetainedDepositService {
         id: newId("event"),
         type: eventType,
         amountMinor: amount,
-        occurredOn: /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(now),
+        occurredOn:
+          /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(
+            now,
+          ),
         recordedAt: now,
         idempotencyKey: `${orderId}:deposit-classify:${now}`,
         note: `تصنيف عربون محتفظ به (${meaning === "owner" ? "مال مالك" : "إيراد مشروع"}): ${reason.trim()}`,
@@ -195,7 +198,10 @@ export class RetainedDepositService {
       const reversal = createFinancialReversal({
         id: newId("event"),
         sourceEvent: source,
-        occurredOn: /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(now),
+        occurredOn:
+          /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(
+            now,
+          ),
         recordedAt: now,
         idempotencyKey: `${orderId}:deposit-reclassify-reversal:${now}`,
         reason: correction.reason,
@@ -206,7 +212,10 @@ export class RetainedDepositService {
         id: newId("event"),
         type: eventType,
         amountMinor: toAmountMinor,
-        occurredOn: /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(now),
+        occurredOn:
+          /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(
+            now,
+          ),
         recordedAt: now,
         idempotencyKey: `${orderId}:deposit-reclassify-replacement:${now}`,
         note: `تصحيح تصنيف عربون محتفظ به (${correction.toMeaning === "owner" ? "مال مالك" : "إيراد مشروع"}): ${correction.reason.trim()}`,

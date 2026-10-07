@@ -151,7 +151,8 @@ describe("R2 kernel — weekday, day-number, month-end primitives", () => {
     expect(localDateDayNumber("1970-01-01")).toBe(0);
     for (const date of LEGACY_EQUIVALENCE_DATES)
       expect(localDateDayNumber(date)).toBe(
-        Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1, Number(date.slice(8, 10))) / 86_400_000,
+        Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1, Number(date.slice(8, 10))) /
+          86_400_000,
       );
     expect(localDateDayNumber("bad")).toBeNull();
   });

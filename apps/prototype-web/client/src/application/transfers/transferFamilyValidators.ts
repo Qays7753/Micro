@@ -145,7 +145,8 @@ export const isScheduleEvent = (value: unknown) =>
     value.type === "cancelled") &&
   /* R2 (M-04/D5، 2026-10-08): عائلة الموعد تواريخ محلية فعلًا — كانت نصًا
    * فقط فيقبل الاستيراد أي قيمة (XFER-NEW-3). */
-  (value.previousScheduledFor === null || (isString(value.previousScheduledFor) && isLocalDate(value.previousScheduledFor))) &&
+  (value.previousScheduledFor === null ||
+    (isString(value.previousScheduledFor) && isLocalDate(value.previousScheduledFor))) &&
   isString(value.scheduledFor) &&
   isLocalDate(value.scheduledFor) &&
   (value.previousScheduledTime === null || isScheduleTime(value.previousScheduledTime)) &&
