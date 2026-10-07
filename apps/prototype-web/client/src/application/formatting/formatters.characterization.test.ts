@@ -104,7 +104,14 @@ describe("R2 characterization — date/time display goldens", () => {
 
 describe("R2 characterization — Arabic plural rules", () => {
   it("follows the grammatical classes (0, 1, 2, 3-10, 11-99, 100+)", () => {
-    const forms = { zero: "لا طلبات", one: "طلب واحد", two: "طلبان", few: "طلبات", many: "طلبًا", other: "طلب" };
+    const forms = {
+      zero: "لا طلبات",
+      one: "طلب واحد",
+      two: "طلبان",
+      few: "طلبات",
+      many: "طلبًا",
+      other: "طلب",
+    };
     expect(formatArabicPlural(0, forms)).toBe("لا طلبات");
     expect(formatArabicPlural(1, forms)).toBe("طلب واحد");
     expect(formatArabicPlural(2, forms)).toBe("طلبان");

@@ -36,7 +36,9 @@
       "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md",
       "docs/architecture/refactoring/R0-LIVE-BASELINE-AND-FINDING-RECONCILIATION-2026-10-07.md",
       "docs/operations/control/evidence/structural-remediation-r1-20261007/R1-REPAIR-CARDS.md",
-      "docs/architecture/refactoring/R1-TRUTH-GOVERNANCE-DOCUMENTATION-EXECUTION-REPORT-2026-10-07.md"
+      "docs/architecture/refactoring/R1-TRUTH-GOVERNANCE-DOCUMENTATION-EXECUTION-REPORT-2026-10-07.md",
+      "docs/operations/control/evidence/structural-remediation-r2-20261007/R2-REPAIR-CARDS.md",
+      "docs/architecture/refactoring/R2-MONEY-FORMATTING-INPUT-DATE-MESSAGE-EXECUTION-REPORT-2026-10-07.md"
     ]
   },
   "acceptance": [
@@ -85,5 +87,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R1 مكتملة ومدموجة عبر PR #328 عند b225ac2ccd53076d2df165efb7de6c1e49e28888 (الرأس المصدر 7987c32b420d؛ تحقق ما بعد الدمج: CI run 37632246212 + Cloudflare Pages أخضران على رأس الدمج)؛ الخطوة التالية: بطاقات R2 (المال/التنسيق/الإدخال/التواريخ/الرسائل) بتوصيف محمي أولًا وSEMANTIC_CHANGE_MANIFEST كحد توقف."
+  "next_action": "R2 مكتملة توصيفيًا (جرد + 31 اختبار توصيف + سجل ملكية + حزمة قرارات R2-D1..D15) وPR الموجة مفتوح على الفرع refactoring/r2-money-formatting-20261007 من 12ee94d2ffaf؛ مراجعة المالك للجرد والقرارات هي البوابة قبل أي توحيد دلالي أو R3."
 }

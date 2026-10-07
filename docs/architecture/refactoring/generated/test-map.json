@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "79c9859177e10326533d2f34a61ec817775f8dee",
+  "head": "61a84d8f42a30f117d9e2c7a3d6d2b6f4b7f1b09",
   "pages": {
     "total": 60,
     "map": {
@@ -596,6 +596,7 @@
         "curated": [
           "apps/prototype-web/client/src/application/supplierScheduleConcurrency.test.ts",
           "apps/prototype-web/client/src/application/supplierScheduleStaleResults.test.ts",
+          "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.derivationCoupling.test.ts",
           "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.test.ts",
           "tests/domain/recurring-margin.test.ts"
         ]
@@ -609,6 +610,7 @@
         "curated": [
           "apps/prototype-web/client/src/application/supplierScheduleConcurrency.test.ts",
           "apps/prototype-web/client/src/application/supplierScheduleStaleResults.test.ts",
+          "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.derivationCoupling.test.ts",
           "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.test.ts"
         ]
       },
@@ -865,6 +867,7 @@
       "tests/domain/financial-event.test.ts",
       "tests/domain/inventory-material.test.ts",
       "tests/domain/loan.test.ts",
+      "tests/domain/localDateValidityBoundaries.characterization.test.ts",
       "tests/domain/moneyMessageCharacterization.test.ts",
       "tests/domain/operatingBreakEven.test.ts",
       "tests/domain/owner-safe-withdrawal.test.ts",

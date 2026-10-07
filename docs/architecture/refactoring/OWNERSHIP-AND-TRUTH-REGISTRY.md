@@ -287,3 +287,24 @@
 ### 8-4 ملكية اللغة والاتجاه والتنسيق (PA-4 — تعيين المالك، بلا عمل R2)
 
 **المالك الواحد المعين:** طبقة التطبيق/العرض — `application/formatting/` (نواة تنسيق العرض؛ Wave B) تملك **عرض** الأرقام والتواريخ، و`application/input/englishNumeric.ts` يملك **إدخال** الأرقام الإنجليزية، و`presentation/` يملك **RTL** واتجاه العرض وتقديم الرسائل. **الاستقلال المحموم:** المعنى المالي (قيم، تقريب، تصنيف، هوية أخطاء — المجال) لا يُشتق من إعدادات العرض أو Locale APIs إطلاقًا؛ جرد Q-c في R0 تحقق سلبًا من خلو المجال منها (Math-ban + Clock port أدلة حية)، والجرد الكامل للاستخدام غير المباشر مجدول R2/R9 (PC-1). **حد R1:** هذا تعيين ملكية توثيقي فقط — لا توحيد تنسيق ولا إعادة كتابة رسائل ولا أي عمل دلالي (ذلك R2 بتوصيفه المحمي أولاً).
+
+### 8-5 ملكية صلاحية التاريخ المحلي وأصنافها الثمانية (R2/MF-01+07 — إضافة 2026-10-07، توصيف بلا توحيد)
+
+**المالك الكنوني لقاعدة صلاحية التاريخ المحلي:** `src/domain/shared/numeric.ts` (`isValidLocalDate` — صنف A). **جرد R2 (بطاقات `structural-remediation-r2-20261007`) صنّف ثمانية أصناف خوارزمية حية ووجّه كل صنف إلى قرار مالك معلق (R2-D1..D8) — لا توحيد إلا بقرار:**
+
+| الصنف | الخوارزمية | المواضع | القرار المعلق |
+|---|---|---|---|
+| A (النواة) | regex + دوران `Date.UTC` | `numeric.ts:3` + 3 نسخ حرفية (financial-event:26؛ owner-entitlement:63؛ direct-sale:26) + إعادة تصدير تطبيقية | المالك المرجعي |
+| B (النقل) | مرساة ظهر-UTC بلا حارس NaN — **يرمي RangeError** خارج النحو ويقبل السنوات 0000–0099 | `transferFamilyValidators.ts:84` | R2-D1/D2 |
+| C (النقل الآمن) | regex + NaN ثم دوران — يقبل السنوات 0000–0099 | recurring-margin:22؛ recurrenceService:61؛ recurringWorkService:148؛ ownerEntitlementService:185؛ agreementService:64 | R2-D1 (مستهلكون) |
+| D (ضعيف) | regex+NaN — يقبل تواريخ الدوران (2023-02-29) | cash-continuity:23؛ supplier-purchase:15؛ inventory-material:21؛ scheduleService:77؛ guidedOpeningImportService:70؛ مدققو استيراد 895-1187 (بلا regex) | R2-D3 |
+| E (regex فقط) | يقبل حتى 2026-13-01 | statementService:152؛ inventory-material:93؛ EventEffectPreview:104؛ FinancialEventEditor:162؛ G5DecisionPanel:22 | R2-D8 |
+| F (نص فقط) | `isString` | `scheduledFor` (transferSnapshotValidation:346؛ transferFamilyValidators:141) | R2-D5 |
+| G (Date.parse) | يقبل الطوابع الزمنية | transferFamilyValidators:27؛ craft-order:97 (على `priceDate`)؛ catalog:31 | R2-D6 |
+| H (غير-فارغ) | لا فحص تاريخ | actual-time:17,29 (`recordedOn`) | R2-D7 |
+
+**مثبتات التوصيف:** `tests/domain/localDateValidityBoundaries.characterization.test.ts` + `application/transfers/localDateVariantDivergence.characterization.test.ts` — تكسر بوعي عند أي قرار توحيد.
+
+### 8-6 اصطلاحات نص المال وعناقيد الحساب (R2/MF-04+07 — إضافة 2026-10-07)
+
+**ثلاثة اصطلاحات حية لإنتاج نص مال، كلها موصوفة ومثبتة ولا تُوحَّد إلا بقرار:** (1) المجال `minor/100 د.أ` الخام (13 موضعًا؛ منها نصان محفوظان مجمدان بتوصيف W2 — policies.ts:1414/1491)؛ (2) التطبيق المُنسِّق `formatMoneyMinor` (فواصل + منزلتان؛ نص محفوظ واحد: deliveryReviewService:591 — R2-D11)؛ (3) معدلات recurring-margin `toFixed(2)/(3)` (مثبتة و٩). **قاعدة الرسائل الجديدة (R2):** كل رسالة مال جديدة message-only تُبنى بهوية Error/Event منظمة لا بقاعدة مالية داخل نص (R2-D12 للتحويل الرجعي). **عناقيد الحساب:** `derivePeriodCogs`/Withdrawal Coverage/Application sums ملكية تطبيقية موثقة (بلا تقريب في derivePeriodCogs؛ نواة المجال تحت سياسة التغطية) — قرار التوطين المجالي (STR-302، مسار R) يبقى مفتوحًا. **مرآة حارس المورد** (`supplierScheduleCommitGuard`): دفاع fail-closed موثق داخل المعاملة + اختبار اقتران سالب بالاسم (`supplierScheduleCommitGuard.derivationCoupling.test.ts`).
