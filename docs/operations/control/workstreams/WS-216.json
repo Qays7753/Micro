@@ -1,0 +1,51 @@
+{
+  "id": "WS-216",
+  "title": "الإصلاح البنيوي الجذري بعد مصالحة تقريري Flash وStructure — R0–R10",
+  "status": "IN_PROGRESS",
+  "items": [
+    "ARCH-007"
+  ],
+  "branch": "refactoring/structural-remediation-r0-r10-20261007",
+  "base_sha": "25594773a83ec5eb1e9dde5feaf1c808c0ff686f",
+  "areas": [
+    "architecture-governance",
+    "docs/architecture/refactoring",
+    "docs/operations/control",
+    "src/domain",
+    "apps/prototype-web/client/src/application",
+    "apps/prototype-web/client/src/storage",
+    "apps/prototype-web/client/src/presentation",
+    "apps/prototype-web/client/src/pages",
+    "apps/prototype-web/client/src/components",
+    "scripts",
+    "tests"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/contracts/40-technical-ownership-map-contract.md",
+    "docs/architecture/refactoring/STRUCTURAL-REMEDIATION-PLAN-20261007.md",
+    "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md"
+  ],
+  "agent": "Manus orchestration + Z AI sequential executor; R0 read-only first; one writer at a time",
+  "pr": null,
+  "started_at": "2026-10-07",
+  "updated_at": "2026-10-07",
+  "next_action": "تثبيت العقد والـWorkstream على main عبر PR توثيقي، ثم إصدار تقرير R0 قراءة فقط من الرأس الحي؛ لا كتابة كودية في R0.",
+  "notes": [
+    "اعتماد المالك في 2026-10-07 للخطة المحدثة ومصفوفة التتبع الكاملة المبنية على تقريري Structure وFlash.",
+    "هذا successor مستقل؛ لا يعيد فتح WS-212 أو WS-214 أو WS-215 ولا يعدل عقودها التاريخية.",
+    "R0 إلزامي وقراءة فقط: لا edit/move/rename/delete/commit/push/PR/merge/cleanup داخل مسح R0 نفسه.",
+    "بعد R0، التنفيذ المتسلسل R1–R10 فقط ضمن عقد 2026-10-07، مع PRs وحدود رجوع وفحوص بعد كل موجة.",
+    "فرع UI docs/ux-ui-zed-handoff-20260921 محفوظ ولا يُلمس."
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-07",
+      "actor": "owner:approval-and-manus-orchestration",
+      "reason": "اعتمد المالك الخطة ومصفوفة التتبع، وبدأ تثبيت عقد التنفيذ ثم R0 القراءة فقط من origin/main المتحقق عند 25594773a83ec5eb1e9dde5feaf1c808c0ff686f."
+    }
+  ],
+  "migration_baseline": true
+}

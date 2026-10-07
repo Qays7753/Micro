@@ -1,0 +1,87 @@
+{
+  "id": "ARCH-007",
+  "title": "الإصلاح البنيوي الجذري بعد تقريري Flash وStructure — مصفوفة التتبع وتنفيذ R0–R10",
+  "type": "GOVERNANCE",
+  "status": "IN_PROGRESS",
+  "priority": "P0",
+  "stage": "structural-remediation-r0-r10-20261007",
+  "summary": "تنفيذ الخطة الجذرية المعتمدة لإغلاق العيوب البنيوية الحالية، وتثبيت مصدر حقيقة واحد، ومعالجة التخزين والنقل والملفات الكبيرة والحراس والاختبارات، مع بوابة R0 قراءة فقط قبل أي كتابة كودية.",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "classification": "GOVERNANCE",
+  "gate_classification": "EVIDENCE_RECONCILIATION_REQUIRED",
+  "root_cause": "وجود successor structural program معتمد من المالك يحتاج عقدًا تشغيليًا ومصفوفة تتبع وخط بداية حي قبل التنفيذ، حتى لا تختلط البرامج المغلقة بالأعمال الجديدة أو تتحول البنود إلى تأجيل عام.",
+  "owner": "Micro owner (Qays7753)",
+  "tests_required": [
+    "python3 scripts/operations-control/validate.py",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "node scripts/check-doc-index-coverage.mjs",
+    "R0 read-only baseline commands with recorded exit codes"
+  ],
+  "layers": [
+    "governance",
+    "architecture",
+    "operations-control",
+    "domain",
+    "application",
+    "storage",
+    "presentation",
+    "tests"
+  ],
+  "source": {
+    "report": "Owner-approved reconciliation of STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-04 and FLASH-PASS-A-PRINCIPLES-REVIEW-2026-10-04",
+    "discovered_at_sha": "25594773a83ec5eb1e9dde5feaf1c808c0ff686f",
+    "evidence": [
+      "docs/architecture/refactoring/STRUCTURAL-REMEDIATION-PLAN-20261007.md",
+      "docs/architecture/refactoring/STRUCTURAL-REMEDIATION-PLAN-20261007.md",
+      "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md"
+    ]
+  },
+  "acceptance": [
+    "Contract and plan are present on main through a documentation-only PR.",
+    "R0 verifies the full live origin/main SHA, worktree, branches, PRs, active claims, and environment without repository writes.",
+    "R0 records localSchemaVersion=38 and localExportVersion=30, bundle ceilings, file-size and boundary baselines, and UI branch preservation.",
+    "Every report finding and principle is classified against the live tree as closed, open, reopened, duplicate, false positive, protected decision, or out of scope with evidence.",
+    "No implementation wave starts until R0 ends with CURRENT_BASELINE_VERIFIED or a consolidated blocker package.",
+    "Operations Control JSON is the source and generated views are regenerated; no generated view is hand-edited.",
+    "The final R0 report states exactly what was and was not written."
+  ],
+  "areas": [
+    "architecture-governance",
+    "docs/architecture/refactoring",
+    "docs/operations/control",
+    "src/domain",
+    "apps/prototype-web/client/src/application",
+    "apps/prototype-web/client/src/storage",
+    "apps/prototype-web/client/src/presentation",
+    "apps/prototype-web/client/src/pages",
+    "apps/prototype-web/client/src/components",
+    "scripts",
+    "tests"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/contracts/40-technical-ownership-map-contract.md",
+    "docs/architecture/refactoring/STRUCTURAL-REMEDIATION-PLAN-20261007.md",
+    "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md"
+  ],
+  "evidence": [],
+  "dependencies": [],
+  "related_items": [
+    "ARCH-005",
+    "ARCH-006"
+  ],
+  "owner_decision": "اعتماد الخطة المحدثة ومصفوفة التتبع وبدء تثبيت العقد ثم R0 في 2026-10-07.",
+  "updated_at": "2026-10-07",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-07",
+      "actor": "owner:approval-and-manus-orchestration",
+      "reason": "اعتمد المالك الخطة ومصفوفة التتبع، وبدأت بوابة العقد ثم R0 القراءة فقط من الرأس الحي."
+    }
+  ],
+  "migration_baseline": true,
+  "next_action": "إضافة العقد والخطة وClaim إلى فرع توثيقي مستقل وفتح PR؛ بعد توفر العقد على main تنفيذ R0 قراءة فقط وإصدار تقرير المصالحة."
+}
