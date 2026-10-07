@@ -33,7 +33,6 @@
     "discovered_at_sha": "25594773a83ec5eb1e9dde5feaf1c808c0ff686f",
     "evidence": [
       "docs/architecture/refactoring/STRUCTURAL-REMEDIATION-PLAN-20261007.md",
-      "docs/architecture/refactoring/STRUCTURAL-REMEDIATION-PLAN-20261007.md",
       "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md"
     ]
   },
@@ -83,5 +82,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "إضافة العقد والخطة وClaim إلى فرع توثيقي مستقل وفتح PR؛ بعد توفر العقد على main تنفيذ R0 قراءة فقط وإصدار تقرير المصالحة."
+  "next_action": "العقد وClaim مثبتان على main عند c9909c2؛ نفّذ R0 قراءة فقط وأصدر تقرير المصالحة من الرأس الحالي قبل أي كتابة كودية."
 }
