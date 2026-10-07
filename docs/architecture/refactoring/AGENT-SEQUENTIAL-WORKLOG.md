@@ -848,3 +848,18 @@
 - **السجل والتقارير:** OWNERSHIP-AND-TRUTH-REGISTRY §8-5 (أصناف التاريخ الثمانية بقراراتها) + §8-6 (نصوص المال والعناقيد والمرآة)؛ تقرير R2 الكامل؛ صف الفهرس؛ WS-216/ARCH-007 JSON (فرع/أساس/إجراء/أدلة +2)؛ Views بالسلسلة الرسمية؛ §142 وEntry-53 هذا.
 - **الحدود:** صفر كود إنتاج؛ الأبعاد المحمية NONE؛ كل توحيد دلالي متوقف على قرارات R2-D1..D15 (بما فيها إصلاح RangeError — تغيير شكل فشل مرئي). لا دمج؛ PR الموجة لمراجعة المالك.
 - **الحالة النهائية:** `R2_COMPLETE — PR_READY_FOR_OWNER_REVIEW / R2_MERGE_NOT_AUTHORIZED / CHARACTERIZATION_PINNED_31_TESTS / NO_PRODUCTION_CODE_CHANGED / OWNER_DECISIONS_REQUIRED_R2_D1_TO_D15`.
+
+
+---
+
+## Entry 47 — 2026-10-08 — Z AI: R2 root-fix implementation (WS-216/ARCH-007, second execution pass)
+
+**Base:** `12ee94d2` (unchanged) · **Branch:** `refactoring/r2-money-formatting-20261007` (single-branch strategy kept) · **Authorization:** owner root-fix mandate with the protected semantic-change protocol.
+
+- Preflight verified the live checkpoint exactly (base, branch head `fc58086`, PR #330 open/mergeable/only open PR, 18 files +771/-14, UI branch untouched, CI green on the head) — zero drift.
+- Second five-role read-only review before implementation: verdict PLAN_NEEDS_AMENDMENTS; all amendments folded into manifests M-01..M-09 written BEFORE any production change; new findings (DATE-08, DATE-09/HOSTILE-01, XFER-E2, XFER-NEW-3, DATE-11, HOSTILE-05/06) ledgered and fixed in-wave.
+- Seven implementation slices on the same branch: (1) docs gate — root-fix ledger + manifests; (2) kernel rewrite + domain delegation; (3) transfer/import boundary + structured prepareImport + priceDate writers; (4) clock ownership + app/page arithmetic conversions + stored-instant display guards; (5) money/messages/identities/formatters; (6) date-arithmetic ownership guard (15th); (7) records.
+- Gates: full `pnpm check` PASS (root 478/478, app 2266/2266, lint 0/35, entry 629,137/154,663 under 650,000/155,300, lazy+precache improved not locked); Operations Control validated from JSON; views regenerated.
+- Boundaries kept: schema/export 38/30 untouched; no UI visual change; no history deleted; UI branch untouched; no main writes; merge NOT authorized — PR #330 parked at the owner gate with the final report + manifests.
+
+**Stage summary:** R2 root-fix COMPLETE at the owner-review gate; R3 NOT started; statuses: R2_ROOT_FIX_COMPLETE — PR_READY_FOR_OWNER_REVIEW / R2_MERGE_NOT_AUTHORIZED / R3_NOT_STARTED.
