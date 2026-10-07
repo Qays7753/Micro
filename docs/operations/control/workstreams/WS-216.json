@@ -6,7 +6,7 @@
     "ARCH-007"
   ],
   "branch": "refactoring/structural-remediation-r0-r10-20261007",
-  "base_sha": "c9909c228a0e5de8a5884527ba78078709cef2af",
+  "base_sha": "773e775bcbbed86bd06d9fc1864e22a08db3c8a1",
   "areas": [
     "architecture-governance",
     "docs/architecture/refactoring",
@@ -31,7 +31,7 @@
   "pr": null,
   "started_at": "2026-10-07",
   "updated_at": "2026-10-07",
-  "next_action": "العقد مثبت على main عند c9909c2؛ نفّذ R0 قراءة فقط من هذا الرأس وأصدر تقرير المصالحة قبل أي كتابة كودية.",
+  "next_action": "العقد وpointer reconciliation مثبتان على main عند 773e775b؛ نفّذ R0 قراءة فقط من هذا الرأس وأصدر تقرير المصالحة قبل أي كتابة كودية.",
   "notes": [
     "اعتماد المالك في 2026-10-07 للخطة المحدثة ومصفوفة التتبع الكاملة المبنية على تقريري Structure وFlash.",
     "هذا successor مستقل؛ لا يعيد فتح WS-212 أو WS-214 أو WS-215 ولا يعدل عقودها التاريخية.",

@@ -180,9 +180,9 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 
 - **Workstream:** `WS-216`.
 - **Item:** `ARCH-007`.
-- **Initial base:** `origin/main` عند `25594773a83ec5eb1e9dde5feaf1c808c0ff686f`; **current execution head:** `c9909c228a0e5de8a5884527ba78078709cef2af` بعد دمج PR #322.
+- **Initial base:** `origin/main` عند `25594773a83ec5eb1e9dde5feaf1c808c0ff686f`; **current execution head:** `773e775bcbbed86bd06d9fc1864e22a08db3c8a1` بعد مصالحة PR #323.
 - **العقد:** `ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md`.
 - **الخطة:** `STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
 - **البداية المسموحة:** R0 قراءة فقط ومصالحة الخط الأساسي؛ لا نقل أو تقسيم أو حذف أو تعديل كودي في R0.
 - **قاعدة الاستمرار:** بعد تقرير R0 فقط، تنفذ R1–R10 على فرع مستقل، وبطاقات Repair، وPR مستقل أو شريحة قابلة للمراجعة، وفحوص مركزة وCI وحد رجوع لكل موجة.
-- **الخطوة الحية:** العقد وWorkstream مثبتان عبر PR #322؛ نفّذ R0 قراءة فقط من الرأس `c9909c2`، ثم سجّل تقرير المصالحة قبل أي تعديل. لا تُعدّل `main` مباشرة ولا يُمس فرع UI المحفوظ.
+- **الخطوة الحية:** العقد وWorkstream ومصالحة المؤشر مثبتة عبر PR #323؛ نفّذ R0 قراءة فقط من الرأس `773e775b`، ثم سجّل تقرير المصالحة قبل أي تعديل. لا تُعدّل `main` مباشرة ولا يُمس فرع UI المحفوظ.
