@@ -28,17 +28,18 @@
     "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md"
   ],
   "agent": "Manus orchestration + Z AI sequential executor; R0 read-only first; one writer at a time",
-  "pr": 325,
+  "pr": null,
   "started_at": "2026-10-07",
   "updated_at": "2026-10-07",
-  "next_action": "اكتمل R0 قراءة فقط عند الرأس fc2ae6e (CURRENT_BASELINE_VERIFIED)؛ تقرير المصالحة R0-LIVE-BASELINE-AND-FINDING-RECONCILIATION-2026-10-07.md مفتوح للمراجعة عبر PR #325 (فرع docs/r0-live-baseline-report-20261007) — بوابة مالك قبل أي موجة R1.",
+  "next_action": "اكتمل R0 وقُبل تقريره ودمج عبر PR #325 عند a258287c؛ جهّز بطاقات R1 ونفّذ موجة الحقيقة/الحوكمة/التوثيق فقط بعد تثبيت نطاقها وحدود رجوعها.",
   "notes": [
     "اعتماد المالك في 2026-10-07 للخطة المحدثة ومصفوفة التتبع الكاملة المبنية على تقريري Structure وFlash.",
     "هذا successor مستقل؛ لا يعيد فتح WS-212 أو WS-214 أو WS-215 ولا يعدل عقودها التاريخية.",
     "R0 إلزامي وقراءة فقط: لا edit/move/rename/delete/commit/push/PR/merge/cleanup داخل مسح R0 نفسه.",
     "بعد R0، التنفيذ المتسلسل R1–R10 فقط ضمن عقد 2026-10-07، مع PRs وحدود رجوع وفحوص بعد كل موجة.",
     "فرع UI docs/ux-ui-zed-handoff-20260921 محفوظ ولا يُلمس.",
-    "R0 نُفذ 2026-10-07 من الرأس الحي fc2ae6e7dbb6f03eef3b0e103ee6176eeddeb052 (سليل مباشر للرأس المثبت 773e775b والفرق وثائقي فقط): خمس مراجعات تخصصية قراءة-فقط + مُصالِح واحد؛ 20 مكتشفًا جديدًا مصنفًا وموجّهًا لموجاته (R0-N1..N20)؛ لا كتابة كودية."
+    "R0 نُفذ 2026-10-07 من الرأس الحي fc2ae6e7dbb6f03eef3b0e103ee6176eeddeb052 (سليل مباشر للرأس المثبت 773e775b والفرق وثائقي فقط): خمس مراجعات تخصصية قراءة-فقط + مُصالِح واحد؛ 20 مكتشفًا جديدًا مصنفًا وموجّهًا لموجاته (R0-N1..N20)؛ لا كتابة كودية.",
+    "تقرير R0 راجعه المالك ودُمج في main عبر PR #325 عند a258287cdc606c58a91ed8ad9791b5837b341a54؛ بقي WS-216 IN_PROGRESS لأن R1–R10 لم تُنفذ."
   ],
   "status_history": [
     {
