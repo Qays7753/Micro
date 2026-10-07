@@ -83,5 +83,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R0 مكتمل قراءة-فقط عند fc2ae6e (CURRENT_BASELINE_VERIFIED)؛ تقرير المصالحة الكامل مع مصفوفة كل finding ومكتشفات R0-N1..N20 مفتوح لمراجعة المالك عبر فرع docs/r0-live-baseline-report-20261007؛ لا تبدأ R1 إلا بعد قبول التقرير وبطاقات الموجة."
+  "next_action": "R0 مكتمل قراءة-فقط عند fc2ae6e (CURRENT_BASELINE_VERIFIED)؛ تقرير المصالحة الكامل مع مصفوفة كل finding ومكتشفات R0-N1..N20 مفتوح لمراجعة المالك عبر PR #325 (فرع docs/r0-live-baseline-report-20261007)؛ لا تبدأ R1 إلا بعد قبول التقرير وبطاقات الموجة."
 }

@@ -28,10 +28,10 @@
     "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md"
   ],
   "agent": "Manus orchestration + Z AI sequential executor; R0 read-only first; one writer at a time",
-  "pr": null,
+  "pr": 325,
   "started_at": "2026-10-07",
   "updated_at": "2026-10-07",
-  "next_action": "اكتمل R0 قراءة فقط عند الرأس fc2ae6e (CURRENT_BASELINE_VERIFIED)؛ تقرير المصالحة R0-LIVE-BASELINE-AND-FINDING-RECONCILIATION-2026-10-07.md مفتوح للمراجعة عبر فرع docs/r0-live-baseline-report-20261007 — بوابة مالك قبل أي موجة R1.",
+  "next_action": "اكتمل R0 قراءة فقط عند الرأس fc2ae6e (CURRENT_BASELINE_VERIFIED)؛ تقرير المصالحة R0-LIVE-BASELINE-AND-FINDING-RECONCILIATION-2026-10-07.md مفتوح للمراجعة عبر PR #325 (فرع docs/r0-live-baseline-report-20261007) — بوابة مالك قبل أي موجة R1.",
   "notes": [
     "اعتماد المالك في 2026-10-07 للخطة المحدثة ومصفوفة التتبع الكاملة المبنية على تقريري Structure وFlash.",
     "هذا successor مستقل؛ لا يعيد فتح WS-212 أو WS-214 أو WS-215 ولا يعدل عقودها التاريخية.",
