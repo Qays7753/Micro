@@ -15,6 +15,9 @@ import {
   expenseBudgetStatuses,
   isValidBudgetPeriodKey,
 } from "@micro-domain/budget/index.js";
+/* R2 (M-02): نواة التاريخ المحلي الكنسية — نفس البرميل الذي تستهلكه
+ * الوحدات المجالية الأخرى أعلاه (لا حافة استيراد جديدة). */
+import { isValidLocalDate } from "@micro-domain/shared/index.js";
 /* Wave 4D (RC-8 — مصدر الحقيقة): القوائم التشغيلية المجالية هي مصدر القبول
  * الحي — المدققات تستهلكها من مالكها لا من نسخ يدوية موازية؛ والقيم
  * التوافقية التاريخية تعيش في سجلها الموثق transferCompatibilityValues.ts. */
@@ -81,9 +84,12 @@ export const isScheduleDuration = (value: unknown): value is number =>
  * الطاقم كما كان حرفيًا (8 + null)؛ includes بـSameValueZero يطابق سلسلة === للأوتار. */
 export const isAgreementSource = (value: unknown) =>
   value === null || (AGREEMENT_SOURCE_ACCEPTANCE as readonly unknown[]).includes(value);
-export const isLocalDate = (value: string) =>
-  /^\d{4}-\d{2}-\d{2}$/.test(value) &&
-  new Date(`${value}T12:00:00.000Z`).toISOString().slice(0, 10) === value;
+/* R2 (M-03/D2، 2026-10-08): صلاحية التاريخ المحلي من نواة المجال الكنسية —
+ * كانت مرساة ظهر + toISOString بلا حارس NaN فترمي RangeError للمكونات خارج
+ * النحو (شهر 13/00، يوم 32/00) عبر مسار استيراد غير محموم فتظهر رسالة
+ * «تعذر قراءة الملف» المضللة. النواة لا ترمي أبدًا؛ القبول/الرفض كما هو
+ * (السنوات 0000–0099 مقبولة كما كانت؛ الدوران مرفوض كما كان). */
+export const isLocalDate = (value: string) => isValidLocalDate(value);
 export const rangesOverlap = (
   leftFrom: string,
   leftTo: string | null,
@@ -137,8 +143,11 @@ export const isScheduleEvent = (value: unknown) =>
     value.type === "timing_changed" ||
     value.type === "completed" ||
     value.type === "cancelled") &&
-  (value.previousScheduledFor === null || isString(value.previousScheduledFor)) &&
+  /* R2 (M-04/D5، 2026-10-08): عائلة الموعد تواريخ محلية فعلًا — كانت نصًا
+   * فقط فيقبل الاستيراد أي قيمة (XFER-NEW-3). */
+  (value.previousScheduledFor === null || (isString(value.previousScheduledFor) && isLocalDate(value.previousScheduledFor))) &&
   isString(value.scheduledFor) &&
+  isLocalDate(value.scheduledFor) &&
   (value.previousScheduledTime === null || isScheduleTime(value.previousScheduledTime)) &&
   (value.scheduledTime === null || isScheduleTime(value.scheduledTime)) &&
   (value.previousDurationMinutes === null || isScheduleDuration(value.previousDurationMinutes)) &&
@@ -892,9 +901,9 @@ export function validSupplierPurchase(value: unknown): boolean {
     !isString(value.note) ||
     !value.note.trim() ||
     !isString(value.purchasedOn) ||
-    !isDate(`${value.purchasedOn}T12:00:00.000Z`) ||
+    !isLocalDate(value.purchasedOn) ||
     !(value.dueOn === null || isString(value.dueOn)) ||
-    (isString(value.dueOn) && !isDate(`${value.dueOn}T12:00:00.000Z`)) ||
+    (isString(value.dueOn) && !isLocalDate(value.dueOn)) ||
     !isMoney(value.totalMinor) ||
     value.totalMinor === 0 ||
     !isMoney(value.paidMinor) ||
@@ -925,7 +934,7 @@ export function validSupplierPurchase(value: unknown): boolean {
       !isMoney(payment.amountMinor) ||
       payment.amountMinor === 0 ||
       !isString(payment.occurredOn) ||
-      !isDate(`${payment.occurredOn}T12:00:00.000Z`) ||
+      !isLocalDate(payment.occurredOn) ||
       !isDate(payment.recordedAt) ||
       !isString(payment.idempotencyKey) ||
       !isString(payment.note) ||
@@ -960,7 +969,7 @@ export function validSupplierPurchase(value: unknown): boolean {
       !isString(reversal.reason) ||
       !reversal.reason.trim() ||
       !isString(reversal.occurredOn) ||
-      !isDate(`${reversal.occurredOn}T12:00:00.000Z`) ||
+      !isLocalDate(reversal.occurredOn) ||
       !isDate(reversal.recordedAt) ||
       !isString(reversal.idempotencyKey) ||
       reversalKeys.has(reversal.idempotencyKey) ||
@@ -1021,7 +1030,7 @@ export function validCashEntry(value: unknown): boolean {
     !isString(value.walletId) ||
     !isCashEntryType(value.type) ||
     !isString(value.occurredOn) ||
-    !isDate(`${value.occurredOn}T12:00:00.000Z`) ||
+    !isLocalDate(value.occurredOn) ||
     !isDate(value.recordedAt) ||
     !isSignedMoney(value.cashDeltaMinor) ||
     value.cashDeltaMinor === 0 ||
@@ -1072,7 +1081,7 @@ export function validMaterial(value: unknown): boolean {
       (isRecord(value.tracking) &&
         (value.tracking.status === "tracked" || value.tracking.status === "untracked") &&
         (value.tracking.decidedOn === null ||
-          (isString(value.tracking.decidedOn) && isDate(`${value.tracking.decidedOn}T12:00:00.000Z`))) &&
+          (isString(value.tracking.decidedOn) && isLocalDate(value.tracking.decidedOn))) &&
         (value.tracking.reason === null || isString(value.tracking.reason)))) &&
     (value.opening === undefined ||
       value.opening === null ||
@@ -1086,7 +1095,7 @@ export function validMaterial(value: unknown): boolean {
           ? isMoney(value.opening.valueMinor)
           : value.opening.valueMinor === null || value.opening.valueMinor === undefined) &&
         (value.opening.confirmedOn === null ||
-          (isString(value.opening.confirmedOn) && isDate(`${value.opening.confirmedOn}T12:00:00.000Z`))) &&
+          (isString(value.opening.confirmedOn) && isLocalDate(value.opening.confirmedOn))) &&
         (value.opening.sourceNote === null || isString(value.opening.sourceNote))))
   );
 }
@@ -1097,7 +1106,7 @@ export function validInventoryMovement(value: unknown): boolean {
     !isString(value.materialId) ||
     !isInventoryMovementType(value.type) ||
     !isString(value.occurredOn) ||
-    !isDate(`${value.occurredOn}T12:00:00.000Z`) ||
+    !isLocalDate(value.occurredOn) ||
     !isDate(value.recordedAt) ||
     !isSignedMoney(value.quantityDeltaMilli) ||
     !isSignedMoney(value.valueDeltaMinor) ||
@@ -1176,7 +1185,7 @@ export function validInventoryShortage(value: unknown): boolean {
     isSignedMoney(shortage) &&
     (shortage as number) > 0 &&
     (shortage as number) === (requested as number) - (available as number) &&
-    isDate(`${value.occurredOn}T12:00:00.000Z`) &&
+    isLocalDate(value.occurredOn) &&
     value.note.trim().length > 0 &&
     value.operationKey.trim().length > 0 &&
     (value.orderId === null || isString(value.orderId)) &&
@@ -1184,7 +1193,7 @@ export function validInventoryShortage(value: unknown): boolean {
     (value.status === "open"
       ? value.resolvedOn === null && value.resolutionNote === null
       : isString(value.resolvedOn) &&
-        isDate(`${value.resolvedOn}T12:00:00.000Z`) &&
+        isLocalDate(value.resolvedOn) &&
         isString(value.resolutionNote) &&
         value.resolutionNote.trim().length > 0)
   );

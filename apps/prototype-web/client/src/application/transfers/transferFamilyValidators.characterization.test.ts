@@ -170,11 +170,12 @@ describe("primitive guards", () => {
     expect(isLocalDate("2026-10-03T00:00:00Z")).toBe(false);
   });
 
-  it("isLocalDate THROWS on well-formed but semantically invalid dates (2026-13-01) — observed behavior, recorded for Wave 4D", () => {
-    /* ملاحظة وصف: التاريخ الصياغي-but-غير-صحيح يجتاز الـregex ثم يرمي
-     * RangeError من toISOString — سلوك قائم يوثق هنا لا يغير في 3A
-     * (استدعاؤه في المسارات الحية مسبوق بفحوص تعيين أشد). */
-    expect(() => isLocalDate("2026-13-01")).toThrow();
+  it("isLocalDate rejects well-formed but semantically invalid dates (2026-13-01) — R2 M-03 flip, 2026-10-08", () => {
+    /* قلب موثق (M-03/D2): كان يرمي RangeError من toISOString بلا حارس NaN
+     * (سلوك موصوف في 3A) — الآن المدقق يفوّض لنواة المجال فيرجع false
+     * بلا رمي أبدًا، وprepareImport محروس برمي مهيكل عند أي حد غير متوقع. */
+    expect(() => isLocalDate("2026-13-01")).not.toThrow();
+    expect(isLocalDate("2026-13-01")).toBe(false);
   });
 });
 

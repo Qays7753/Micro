@@ -17,6 +17,7 @@ import {
   validationFailure,
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
+import { isValidTimestamp, localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type CostEstimateResult<T> =
   | { ok: true; value: T; reused?: boolean }
@@ -51,13 +52,18 @@ export class CostEstimateService {
     knowledgeState: string;
   }> {
     const createdAt = this.now();
+    /* R2 (M-06): تحقق مسبق بالعربية قبل اشتقاق عمّان — كي لا يتسرب
+     * «Invalid instant» الإنجليزي إلى رسالة المستخدم عند طابق معطوب. */
+    if (!isValidTimestamp(createdAt)) return validationFailure("وقت الحساب غير صالح — أعد المحاولة.");
     try {
       const snapshot = calculateCostSnapshot(id("estimate-preview"), {
         currency: "JOD",
         materialItems: input.materialItems.map(item => ({
           ...item,
           source: "user_input" as const,
-          priceDate: createdAt,
+          /* R2 (M-06/D6، 2026-10-08): تاريخ سعر تقويمي (تاريخ أعمال عمّان
+           * للطابق) بدل الطابع الكامل — يطابق عقد الحداثة نفسه. */
+          priceDate: localDateInAmman(createdAt),
         })),
         time: input.time,
         packagingMinor: input.packagingMinor,

@@ -3,6 +3,10 @@
  * calculator. React never calculates planned cost, knowledge, or price floor.
  */
 import { calculateCostSnapshot, type CostSnapshot } from "@micro-domain/craft-order/index.js";
+/* R2 (M-06/D6، 2026-10-08): تاريخ السعر اشتقاق تقويمي من لحظة الإنشاء —
+ * كان يُحقن الطابع الزمني الكامل في حقل تاريخ محلي (يمر بفحص Date.parse
+ * القديم) فيُخزن طابعًا في لقطات الطلبات ويفسد مقارنة الحداثة المسائية. */
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 import type { DraftCostSnapshot, OrderDraft, PrototypeLocalStore } from "@/storage/local/types";
 import { STORAGE_ERROR, VALIDATION_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
@@ -23,7 +27,11 @@ const newId = (prefix: string) =>
 function toDomainSnapshot(id: string, input: CostEditorInput, createdAt: string): CostSnapshot {
   return calculateCostSnapshot(id, {
     currency: "JOD",
-    materialItems: input.materialItems.map(item => ({ ...item, source: "user_input", priceDate: createdAt })),
+    materialItems: input.materialItems.map(item => ({
+      ...item,
+      source: "user_input",
+      priceDate: localDateInAmman(createdAt),
+    })),
     time: input.time,
     packagingMinor: input.packagingMinor,
     deliveryMinor: input.deliveryMinor,

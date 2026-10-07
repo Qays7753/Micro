@@ -3,23 +3,22 @@ import { isLocalDate } from "./transferFamilyValidators";
 import { isValidLocalDate } from "@micro-domain/shared/index.js";
 
 /*
- * R2 (WS-216/ARCH-007): توصيف تباعد متغير النقل (الصنف B — transferFamilyValidators.isLocalDate)
- * عن نواة المجال (الصنف A — domain/shared/numeric.isValidLocalDate) كما هو اليوم.
+ * R2 (WS-216/ARCH-007): كان هذا الملف يوثّق تباعد متغير النقل (الصنف B —
+ * transferFamilyValidators.isLocalDate) عن نواة المجال (الصنف A —
+ * domain/shared/numeric.isValidLocalDate) عند حدّين: السنوات 0000–0099
+ * (النواة ترفضها صدفةً؛ B تقبلها) والمكونات خارج النحو (B ترمي RangeError
+ * عبر مسار استيراد غير محموم).
  *
- * الجرد (بطاقات R2 §5) اكتشف مثبتًا بالتشغيل أن الصنفين يختلفان عند حدّين:
- *  1) السنوات 0000–0099: النواة ترفضها (Date.UTC يعيد 0–99 إلى 1900+) بينما
- *     مرساة الظهر ISO للصنف B تقرؤها كما هي فيقبلها.
- *  2) المكونات خارج النحو (شهر 13/00، يوم 32/00): النواة ترجع false بينما
- *     الصنف B يرمي RangeError (toISOString على تاريخ غير صالح بلا حارس NaN)
- *     عبر مسار استيراد غير محموم — رسالة «تعذر قراءة الملف» المضللة (R2-D2).
- *
- * هذا توصيف لا مواصفة: يثبّت العيب نفسه كي لا يُصلَح صمتًا. التوحيد قرار
- * مالك محمي (R2-D1/D2 في بطاقات R2 — SEMANTIC_CHANGE_MANIFEST).
+ * تحديث مؤرخ 2026-10-08 (الإصلاح الجذري — M-01/M-03): التباعد زال — مدقق
+ * النقل يفوّض الآن إلى النواة الكنسية (حساب خالص، سياسة ISO صريحة 0000–9999،
+ * لا رمي أبدًا). الملف يثبّت الآن **اتحاد** المتغيرين عند كل الحدود الحرجة
+ * (انحدار التوحيد) بدل تباعدهما: أي انفصال مستقبلي بينهما يكسر هذه
+ * الاختبارات بوعي.
  */
 
-describe("R2 characterization — transfer isLocalDate (Class B) boundaries", () => {
-  it("agrees with the domain kernel on ordinary valid and rollover dates", () => {
-    for (const value of ["2026-01-05", "2024-02-29", "2000-02-29", "0100-01-01"]) {
+describe("R2 regression — transfer isLocalDate delegates to the domain kernel (unified 2026-10-08)", () => {
+  it("agrees with the domain kernel on valid, rollover, and out-of-grammar dates", () => {
+    for (const value of ["2026-01-05", "2024-02-29", "2000-02-29", "0100-01-01", "0000-01-01"]) {
       expect(isLocalDate(value)).toBe(true);
       expect(isValidLocalDate(value)).toBe(true);
     }
@@ -29,25 +28,24 @@ describe("R2 characterization — transfer isLocalDate (Class B) boundaries", ()
     }
   });
 
-  it("ACCEPTS years 0000–0099 while the domain kernel REJECTS them (R2-D1 divergence)", () => {
-    /* مثبت تشغيلًا في الجرد (Node v24): new Date("0050-01-01T12:00:00.000Z")
-     * .toISOString().slice(0,10) === "0050-01-01" فيمر الفحص، بينما
-     * Date.UTC(50, 0, 1).getUTCFullYear() === 1950 فتُرفض في النواة. */
+  it("ACCEPTS years 0000–0099 under the explicit ISO policy (M-01 flip)", () => {
+    /* القلب الموثق: النواة كانت ترفضها صدفةً (Date.UTC يعيد 0–99 إلى 1900+)
+     * بينما يقبلها صنف النقل — الآن السياسة واحدة صريحة: نطاق ISO كامل. */
     expect(isLocalDate("0050-01-01")).toBe(true);
     expect(isLocalDate("0000-01-01")).toBe(true);
     expect(isLocalDate("0099-12-31")).toBe(true);
-    expect(isValidLocalDate("0050-01-01")).toBe(false);
-    expect(isValidLocalDate("0000-01-01")).toBe(false);
-    expect(isValidLocalDate("0099-12-31")).toBe(false);
+    expect(isValidLocalDate("0050-01-01")).toBe(true);
+    expect(isValidLocalDate("0000-01-01")).toBe(true);
+    expect(isValidLocalDate("0099-12-31")).toBe(true);
   });
 
-  it("THROWS RangeError for out-of-grammar components while the kernel returns false (R2-D2 hazard)", () => {
-    /* الخوارزمية: regex يمرّ ← new Date("2026-13-01T12:00:00.000Z") تاريخ
-     * غير صالح ← .toISOString() يرمي RangeError (لا حارس NaN قبلها). النواة
-     * ترجع false بلا رمي. مسار prepareImport لا يحرس هذا الرمي (يحرس JSON.parse
-     * فقط) فتظهر رسالة «تعذر قراءة الملف» المضللة في الواجهة. */
+  it("returns false for out-of-grammar components WITHOUT throwing (M-03/D2 fix — was RangeError)", () => {
+    /* العقد الجديد: لا رمي أبدًا — كانت toISOString بلا حارس NaN ترمي
+     * RangeError عبر مسار استيراد غير محموم فتظهر «تعذر قراءة الملف»
+     * المضللة؛ الآن رفض صريح صامت وprepareImport محروس برمي مهيكل. */
     for (const value of ["2026-13-01", "2026-00-10", "2026-01-32", "2026-01-00"]) {
-      expect(() => isLocalDate(value)).toThrow(RangeError);
+      expect(() => isLocalDate(value)).not.toThrow();
+      expect(isLocalDate(value)).toBe(false);
       expect(isValidLocalDate(value)).toBe(false);
     }
   });
