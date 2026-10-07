@@ -8,7 +8,7 @@ import {
   type CreateAllocationPolicyInput,
   type AllocationPolicyTerms,
 } from "./types.js";
-import { roundHalfUp } from "../shared/index.js";
+import { isValidLocalDate, localDatePlusDays, roundHalfUp } from "../shared/index.js";
 
 /* المجموعة ٩ (STR-030): محقق سياق الهدر الكنسي يعاد تصديره من صاحب
  * الحركة (inventory-material) — سلوكه مطابق حرفيًا للنسخة المحلية
@@ -19,13 +19,10 @@ const required = (value: string, message: string) => {
   if (!value.trim()) throw new Error(message);
   return value.trim();
 };
+/* R2 (M-02/X1، 2026-10-08): صلاحية التاريخ المحلي من النواة الكنسية — كانت
+ * مرساة ظهر + دوران (تقبل السنوات 0000–0099 وتكرر الملكية)؛ الرسالة كما هي. */
 const localDate = (value: string, label: string) => {
-  if (
-    !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
-    Number.isNaN(new Date(`${value}T12:00:00.000Z`).getTime()) ||
-    new Date(`${value}T12:00:00.000Z`).toISOString().slice(0, 10) !== value
-  )
-    throw new Error(`${label} غير صالح.`);
+  if (!isValidLocalDate(value)) throw new Error(`${label} غير صالح.`);
   return value;
 };
 const positiveMinor = (value: number | null, label: string) => {
@@ -48,11 +45,10 @@ const validKind = (value: AllocationPolicyKind) => {
   return value;
 };
 const dateBefore = (left: string, right: string) => left <= right;
-const dayAfter = (value: string) => {
-  const date = new Date(`${value}T12:00:00.000Z`);
-  date.setUTCDate(date.getUTCDate() + 1);
-  return date.toISOString().slice(0, 10);
-};
+/* R2 (M-02/X1، 2026-10-08): إزاحة اليوم من نواة الحساب الخالص — كانت مرساة
+ * ظهر مكررة. المدخل مُتحقق مسبقًا؛ حد التمثيل (9999-12-31) يعود null
+ * فيُقرأ عدم تطابق استمرارية (فشل مغلق صادق بدل سلسلة موسعة مهملة). */
+const dayAfter = (value: string): string | null => localDatePlusDays(value, 1);
 
 export function createAllocationPolicy(input: CreateAllocationPolicyInput): AllocationPolicy {
   const kind = validKind(input.kind);
@@ -139,7 +135,7 @@ export function createAllocationPolicySuccessor(
     throw new Error("بيانات النسخة الجديدة لسياسة التوزيع غير متصلة بالنسخة السابقة.");
   if (
     terms.startsOn <= previous.startsOn ||
-    (previous.endsOn !== null && terms.startsOn !== dayAfter(previous.endsOn))
+    (previous.endsOn !== null && dayAfter(previous.endsOn) !== terms.startsOn)
   )
     throw new Error("تاريخ بدء النسخة الجديدة لسياسة التوزيع يجب أن يتبع نهاية النسخة السابقة مباشرة.");
   return createAllocationPolicy(terms);

@@ -30,6 +30,9 @@ import {
   assertNonNegativeInteger,
   ceilRatio,
   fieldLabelAr,
+  isValidLocalDate,
+  isValidTimestamp,
+  localDatePlusDays,
   quantityMilliExact,
   roundHalfUp,
 } from "../shared/index.js";
@@ -94,8 +97,17 @@ function assertValidQuantity(value: number): void {
   }
 }
 
-function assertValidDate(value: string, field: string): void {
-  if (!value.trim() || Number.isNaN(Date.parse(value))) {
+/* R2 (M-04/D6، 2026-10-08): فصل عقدَي التاريخ — priceDate حقل تاريخ محلي
+ * حقيقي (كان Date.parse فيقبل الطوابع الزمنية في حقل تقويمي)؛ createdAt
+ * طابع زمني (فحص متكافل مع السلوك القديم حرفيًا). */
+function assertValidLocalDate(value: string, field: string): void {
+  if (!isValidLocalDate(value)) {
+    throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا صحيحًا.`);
+  }
+}
+
+function assertValidTimestamp(value: string, field: string): void {
+  if (!isValidTimestamp(value)) {
     throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا صحيحًا.`);
   }
 }
@@ -103,9 +115,11 @@ function assertValidDate(value: string, field: string): void {
 /* المجموعة ٩ (STR-029): تاريخ الصلاحية سؤال يوم تقويمي عند المالك (عمّان)
  * — متغيّر الفارغ الكنسي من وحدة وقت الأعمال، لا نسخة محلية. */
 const ammanLocalDate = ammanDateOrNull;
+/* R2 (M-02/X1، 2026-10-08): إزاحة أيام من نواة الحساب الخالص — كانت
+ * Date.UTC رقمية (تعيد السنوات < 0100 إلى 1900+). حد التمثيل يعود
+ * بالمدخل نفسه (fail-open مطابق لمسار ammanLocalDate الفارغ أعلاه). */
 function localDateMinusDays(localDate: string, days: number): string {
-  const [year, month, day] = localDate.split("-").map(Number);
-  return new Date(Date.UTC(year!, month! - 1, day! - days)).toISOString().slice(0, 10);
+  return localDatePlusDays(localDate, -days) ?? localDate;
 }
 
 function assertFreshnessDays(value: number | null | undefined): void {
@@ -212,7 +226,7 @@ function materialItemCostMinor(item: MaterialCostItem): number {
     throw new Error(`أدخل كمية المادة ${item.name} رقمًا أكبر من صفر.`);
   }
   assertNonNegativeInteger(item.unitPriceMinor, `سعر وحدة ${item.name}`);
-  assertValidDate(item.priceDate, `تاريخ سعر ${item.name}`);
+  assertValidLocalDate(item.priceDate, `تاريخ سعر ${item.name}`);
   const quantityMilli = quantityMilliExact(item.quantity);
   if (quantityMilli === null) throw new Error(`أدخل كمية المادة ${item.name} بدقة أجزاء من ألف.`);
   const itemCostMinor = roundHalfUp(quantityMilli * item.unitPriceMinor, 1000);
@@ -244,7 +258,7 @@ export function calculateCostSnapshot(id: string, input: CostSnapshotInput): Cos
   if (!id.trim()) throw new Error("أكمل معرّف نسخة التكلفة قبل الحساب.");
   if (input.currency !== JOD) throw new Error("العملة المدعومة في هذا الإصدار هي الدينار الأردني فقط.");
   assertValidQuantity(input.quantity);
-  assertValidDate(input.createdAt, "createdAt");
+  assertValidTimestamp(input.createdAt, "createdAt");
   assertFreshnessDays(input.freshnessDays);
   assertNonNegativeInteger(input.packagingMinor, "packagingMinor");
   assertNonNegativeInteger(input.deliveryMinor, "deliveryMinor");

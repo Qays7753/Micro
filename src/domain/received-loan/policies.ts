@@ -1,4 +1,4 @@
-import { assertId, assertPositiveMinor, fieldLabelAr, isValidLocalDate } from "../shared/index.js";
+import { assertId, assertPositiveMinor, fieldLabelAr, isValidLocalDate, isValidTimestamp } from "../shared/index.js";
 import { reversedEventIds, type FinancialEvent } from "../financial-event/index.js";
 import type {
   AddReceivedLoanRepaymentInput,
@@ -49,7 +49,8 @@ export function createReceivedLoanRecord(input: CreateReceivedLoanRecordInput): 
   assertDueOn(input.dueOn, input.receivedOn);
   if (input.note && input.note.trim().length > 500) throw new Error("ملاحظة القرض تتجاوز 500 حرف؛ اختصرها.");
   if (!input.operationKey.trim()) throw new Error("مفتاح عملية القرض المستلم مطلوب.");
-  if (Number.isNaN(Date.parse(input.createdAt)))
+  /* R2 (M-02/X1): فحص الطابع من النواة — سلوك متكافل، مالك واحد. */
+  if (!isValidTimestamp(input.createdAt))
     throw new Error("أدخل وقت إنشاء القرض المستلم وقتًا صحيحًا.");
   return Object.freeze({
     id: input.id,

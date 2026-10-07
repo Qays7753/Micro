@@ -10,6 +10,13 @@ export {
   fieldLabelAr,
   isValidLocalDate,
   isValidTimestamp,
+  localDateDayNumber,
+  localDateMonthEnd,
+  localDatePlusDays,
+  localDatePlusMonthsClamped,
+  localDateWeekdayIndex,
+  daysInMonthOf,
   quantityMilliExact,
   roundHalfUp,
+  sumSafeIntegers,
 } from "./numeric.js";

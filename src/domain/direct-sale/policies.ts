@@ -1,4 +1,4 @@
-import { JOD, fieldLabelAr } from "../shared/index.js";
+import { JOD, fieldLabelAr, isValidLocalDate, isValidTimestamp } from "../shared/index.js";
 import type {
   CreateDirectSaleInput,
   DirectSale,
@@ -7,12 +7,9 @@ import type {
   UpdateDirectSaleInput,
 } from "./types.js";
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
 function assertText(value: string, field: string) {
   if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 }
-
 function assertPositiveInteger(value: number, field: string) {
   if (!Number.isSafeInteger(value) || value <= 0)
     throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا موجبًا.`);
@@ -23,12 +20,11 @@ function assertNonNegativeInteger(value: number, field: string) {
     throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا غير سالب.`);
 }
 
+/* R2 (M-02/X1، 2026-10-08): صلاحية التاريخ المحلي من النواة الكنسية — كانت
+ * نسخة حرفية لخوارزمية Date.UTC (ترفض السنوات 0000–0099 صدفةً وتكرر
+ * الملكية)؛ الرسالة كما هي تمامًا. */
 function assertLocalDate(value: string) {
-  if (!DATE_PATTERN.test(value)) throw new Error("أدخل تاريخ البيع تاريخًا محليًا صحيحًا.");
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(Date.UTC(year!, month! - 1, day!));
-  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month! - 1 || date.getUTCDate() !== day)
-    throw new Error("أدخل تاريخ البيع تاريخًا محليًا صحيحًا.");
+  if (!isValidLocalDate(value)) throw new Error("أدخل تاريخ البيع تاريخًا محليًا صحيحًا.");
 }
 
 /* X-06: القبض لا يتجاوز السعر المتفق عليه — والفرق يحمل قرارًا صريحًا لا افتراضًا.
@@ -64,7 +60,8 @@ export function createDirectSale(input: CreateDirectSaleInput): DirectSale {
   assertPositiveInteger(input.revenueMinor, "amountMinor");
   if (input.costMinor !== null) assertNonNegativeInteger(input.costMinor, "costMinor");
   assertLocalDate(input.occurredOn);
-  if (Number.isNaN(Date.parse(input.recordedAt))) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
+  /* R2 (M-02/X1): فحص الطابع من النواة — سلوك متكافل، مالك واحد. */
+  if (!isValidTimestamp(input.recordedAt)) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
   const collection = resolveCollection(input.revenueMinor, input.collectedMinor, input.collectionStatus);
 
   return Object.freeze({
@@ -95,7 +92,7 @@ function assertRevision(revision: DirectSaleRevision) {
   assertText(revision.idempotencyKey, "idempotencyKey");
   if (revision.kind !== "edit" && revision.kind !== "cancel" && revision.kind !== "price_cut")
     throw new Error("نوع تصحيح البيع المباشر غير صالح.");
-  if (Number.isNaN(Date.parse(revision.createdAt))) throw new Error("أدخل وقت التصحيح وقتًا صحيحًا.");
+  if (!isValidTimestamp(revision.createdAt)) throw new Error("أدخل وقت التصحيح وقتًا صحيحًا.");
   if (revision.kind === "cancel") assertText(revision.reason ?? "", "cancellationReason");
 }
 

@@ -1,4 +1,12 @@
-import { fieldLabelAr, quantityMilliExact, roundHalfUp } from "../shared/index.js";
+import {
+  fieldLabelAr,
+  isValidLocalDate,
+  isValidTimestamp,
+  localDateDayNumber,
+  localDateMonthEnd,
+  quantityMilliExact,
+  roundHalfUp,
+} from "../shared/index.js";
 import type {
   OwnerEntitlementKnowledge,
   OwnerEntitlementOpeningBalance,
@@ -60,15 +68,13 @@ const familyByKind: Record<OwnerEntitlementPolicyKind, OwnerEntitlementPolicyFam
 function nonBlank(value: string, field: string) {
   if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 }
+/* R2 (M-02/X1، 2026-10-08): صلاحية التاريخ المحلي من النواة الكنسية — كانت
+ * نسخة حرفية لخوارزمية Date.UTC؛ الرسالة كما هي تمامًا. */
 function date(value: string, field: string) {
-  if (!DATE_PATTERN.test(value)) throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
-  const [year, month, day] = value.split("-").map(Number);
-  const parsed = new Date(Date.UTC(year!, month! - 1, day));
-  if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() !== month! - 1 || parsed.getUTCDate() !== day)
-    throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
+  if (!isValidLocalDate(value)) throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
 }
 function iso(value: string, field: string) {
-  if (Number.isNaN(Date.parse(value))) throw new Error(`أدخل ${fieldLabelAr(field)} وقتًا صحيحًا.`);
+  if (!isValidTimestamp(value)) throw new Error(`أدخل ${fieldLabelAr(field)} وقتًا صحيحًا.`);
 }
 function positiveMinor(value: number | null, field: string) {
   if (value === null || !Number.isInteger(value) || value <= 0)
@@ -101,17 +107,20 @@ function sourceKeys(value: readonly string[] | undefined | null, field: string) 
     throw new Error(`${fieldLabelAr(field)} يجب أن يحوي قيمًا فريدة غير فارغة.`);
   return keys.map(key => key.trim());
 }
-function localDayNumber(value: string) {
-  return Date.UTC(Number(value.slice(0, 4)), Number(value.slice(5, 7)) - 1, Number(value.slice(8, 10)));
+/* R2 (M-02/HOSTILE-01، 2026-10-08): الرقم اليومي وآخر يوم شهر من نواة الحساب
+ * الخالص — كانتا Date.UTC رقمية تعيدان السنوات < 0100 إلى 1900+ فتفسدان
+ * أي مدى مبكر بعد سياسة السنوات الصريحة (M-01). */
+function localDayNumber(value: string): number | null {
+  return localDateDayNumber(value);
 }
-function inclusiveDays(from: string, to: string) {
-  // Both bounds are UTC-midnight instants, so the difference is an exact whole number of days.
-  return (localDayNumber(to) - localDayNumber(from)) / 86_400_000 + 1;
+function inclusiveDays(from: string, to: string): number | null {
+  const fromDay = localDayNumber(from);
+  const toDay = localDayNumber(to);
+  if (fromDay === null || toDay === null) return null;
+  return toDay - fromDay + 1;
 }
-function lastDayOfMonth(value: string) {
-  const year = Number(value.slice(0, 4));
-  const month = Number(value.slice(5, 7));
-  return `${value.slice(0, 7)}-${String(new Date(Date.UTC(year, month, 0)).getUTCDate()).padStart(2, "0")}`;
+function lastDayOfMonth(value: string): string | null {
+  return localDateMonthEnd(value.slice(0, 7));
 }
 function isFullCalendarMonth(from: string, to: string) {
   return from.endsWith("-01") && to === lastDayOfMonth(from);

@@ -1,4 +1,4 @@
-import { roundHalfUp } from "../shared/index.js";
+import { isValidLocalDate, roundHalfUp } from "../shared/index.js";
 import {
   materialUnits,
   type CreateInventoryMovementInput,
@@ -18,9 +18,10 @@ const nonEmpty = (value: string, label: string) => {
   if (!value.trim()) throw new Error(`${label} مطلوب.`);
   return value.trim();
 };
+/* R2 (M-04/D3، 2026-10-08): صلاحية التاريخ المحلي من النواة الكنسية — كانت
+ * regex+NaN فقط فتقبل تواريخ الدوران؛ الرسالة كما هي. */
 const validDate = (value: string, label: string) => {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(Date.parse(`${value}T12:00:00.000Z`)))
-    throw new Error(`${label} غير صالح.`);
+  if (!isValidLocalDate(value)) throw new Error(`${label} غير صالح.`);
   return value;
 };
 const integer = (value: number, label: string) => {
@@ -90,8 +91,10 @@ export function lowStockAlertState(input: {
 const isString = (value: unknown): value is string => typeof value === "string";
 const isNonNegativeInteger = (value: unknown): boolean =>
   typeof value === "number" && Number.isInteger(value) && value >= 0;
+/* R2 (M-04/D8، 2026-10-08): تاريخ التتبع (decidedOn) حقل تاريخ محلي حقيقي —
+ * كان regex فقط فيقبل حتى 2026-13-01؛ الآن من النواة الكنسية. */
 const validDateOrNull = (value: unknown): boolean =>
-  value === null || (isString(value) && /^\d{4}-\d{2}-\d{2}$/.test(value));
+  value === null || (isString(value) && isValidLocalDate(value));
 const validTrackingState = (value: unknown): value is MaterialTrackingState => {
   if (!value || typeof value !== "object") return false;
   const tracking = value as Record<string, unknown>;

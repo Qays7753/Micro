@@ -5,6 +5,7 @@ import {
   fieldLabelAr,
   floorRatio,
   isValidLocalDate,
+  isValidTimestamp,
 } from "../shared/index.js";
 import { reversedEventIds, type FinancialEvent } from "../financial-event/index.js";
 import type {
@@ -103,7 +104,8 @@ function assertCreateAssetInput(input: CreateAssetRecordInput) {
   assertResidualValue(input.residualValueMinor ?? null, input.acquisitionAmountMinor);
   assertAssetNote(input.note ?? null);
   if (!input.operationKey.trim()) throw new Error("مفتاح عملية الأصل مطلوب.");
-  if (Number.isNaN(Date.parse(input.createdAt))) throw new Error("أدخل وقت إنشاء الأصل وقتًا صحيحًا.");
+  /* R2 (M-02/X1): فحص الطابع من النواة — سلوك متكافل، مالك واحد. */
+  if (!isValidTimestamp(input.createdAt)) throw new Error("أدخل وقت إنشاء الأصل وقتًا صحيحًا.");
 }
 
 export function createAssetRecord(input: CreateAssetRecordInput): AssetRecord {
@@ -200,7 +202,9 @@ export function firstChargeMonth(asset: AssetRecord): string | null {
   /* قسمة شهور لا مال: trunc يكفي ولا يمر بمساعدات المال (D-02). */
   const chargeYear = Math.trunc(total / 12);
   const chargeMonth = (total % 12) + 1;
-  return `${chargeYear}-${String(chargeMonth).padStart(2, "0")}`;
+  /* R2 (DATE-11، 2026-10-08): حشو السنة إلى 4 منازل — كانت السنوات 0100–0999
+   * (مقبولة بنواة التاريخ) تنتج مفتاح "500-02" مشوهًا يفشل أنماط YYYY-MM. */
+  return `${String(chargeYear).padStart(4, "0")}-${String(chargeMonth).padStart(2, "0")}`;
 }
 
 /** تراكمي الجدول حتى تاريخه: الأشهر الكاملة × الشهري، وعند اكتمال العمر يجمع

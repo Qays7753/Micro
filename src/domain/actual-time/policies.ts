@@ -1,3 +1,4 @@
+import { isValidLocalDate, isValidTimestamp } from "../shared/index.js";
 import type {
   ActualTimeComparison,
   ActualTimeKnowledge,
@@ -9,13 +10,22 @@ import type {
 const required = (value: string, message: string) => {
   if (!value.trim()) throw new Error(message);
 };
+/* R2 (M-04/D7، 2026-10-08): العقد الفعلي للحقول — recordedOn تاريخ محلي
+ * (كان نصًا غير فارغ فقط بينما الاستيراد يشدد بـisLocalDate)؛ createdAt
+ * طابع زمني. محاذاة صرامة الإنشاء بصرامة الاستيراد — رسائل عربية صادقة. */
+const validLocalDate = (value: string, message: string) => {
+  if (!isValidLocalDate(value)) throw new Error(message);
+};
+const validTimestamp = (value: string, message: string) => {
+  if (!isValidTimestamp(value)) throw new Error(message);
+};
 const validMinutes = (minutes: number) => Number.isInteger(minutes) && minutes > 0;
 
 export function createActualTimeRecord(input: CreateActualTimeRecordInput): ActualTimeRecord {
   required(input.id, "معرف سجل الوقت مطلوب.");
   required(input.orderId, "اختر طلبًا قبل تسجيل الوقت.");
-  required(input.recordedOn, "تاريخ تسجيل الوقت مطلوب.");
-  required(input.createdAt, "وقت إنشاء السجل مطلوب.");
+  validLocalDate(input.recordedOn, "أدخل تاريخ تسجيل الوقت تاريخًا محليًا صحيحًا.");
+  validTimestamp(input.createdAt, "أدخل وقت إنشاء السجل وقتًا صحيحًا.");
   required(input.operationKey, "مفتاح العملية مطلوب.");
   if (!validMinutes(input.minutesDelta)) throw new Error("سجل الوقت يحتاج دقائق موجبة صحيحة.");
   return { ...input, note: input.note?.trim() || null, reversalOfId: null, reversalReason: null };
@@ -26,8 +36,8 @@ export function reverseActualTimeRecord(
   existing: readonly ActualTimeRecord[] = [],
 ): ActualTimeRecord {
   required(input.id, "معرف تراجع الوقت مطلوب.");
-  required(input.recordedOn, "تاريخ التراجع مطلوب.");
-  required(input.createdAt, "وقت إنشاء التراجع مطلوب.");
+  validLocalDate(input.recordedOn, "أدخل تاريخ التراجع تاريخًا محليًا صحيحًا.");
+  validTimestamp(input.createdAt, "أدخل وقت إنشاء التراجع وقتًا صحيحًا.");
   required(input.operationKey, "مفتاح عملية التراجع مطلوب.");
   required(input.reason, "التراجع عن سجل الوقت يحتاج سببًا واضحًا.");
   if (input.target.reversalOfId !== null || input.target.minutesDelta <= 0)

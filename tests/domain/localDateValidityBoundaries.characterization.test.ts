@@ -5,18 +5,15 @@ import { createCashContinuityEntry } from "../../src/domain/cash-continuity/inde
 import { createSupplierPurchase } from "../../src/domain/supplier-purchase/index.js";
 
 /*
- * R2 (WS-216/ARCH-007 — المال/التنسيق/الإدخال/التاريخ/الرسائل): توصيف حدود
- * صلاحية التاريخ المحلي كما هي اليوم — لا مواصفة.
+ * R2 (WS-216/ARCH-007 — المال/التنسيق/الإدخال/التاريخ/الرسائل):
+ * توصيف حدود صلاحية التاريخ المحلي.
  *
- * هذا التوصيف يثبّت السلوك الحي لكل أصناف فحص التاريخ داخل المجال (جرد R2-MF-01 §5):
- * الصنف A (النواة `isValidLocalDate` + نسخها الحرفية عبر منشئات المجال) والصنف D
- * (regex+NaN الضعيف في cash-continuity/supplier-purchase) عند الحدود الحرجة:
- * السنوات 0000–0099 (النواة ترفضها: Date.UTC يعيد 0–99 إلى 1900+)، وتواريخ
- * الدوران (2023-02-29، 2026-04-31) التي يقبلها الصنف D وترفضها النواة.
- *
- * أي تغيير مستقبلي في هذه الحدود هو تغيير سلوك رفض/قبول محمي يتطلب قرار
- * مالك صريحًا عبر SEMANTIC_CHANGE_MANIFEST (قرارات R2-D1..D8 في بطاقات R2)
- * ويكسر هذه الاختبارات بوعي — لا صمتًا.
+ * تحديث مؤرخ 2026-10-08 (الإصلاح الجذري — M-01/M-04): هذا الملف كان يثبّت
+ * السلوك القديم بعيوبه (رفض النواة للسنوات 0000–0099 صدفةً؛ قبول الصنف D
+ * للدوران). بعد تنفيذ الجذر أصبح يثبّت العقد الكنوني الجديد: نطاق ISO
+ * 0000–9999 (تقويم غريغوري استباقي؛ السنة 0 كبيسة) ورفض الدوران في كل
+ * الأصناف. كل قلب موثق بموقعه تحت المانيفست R2-SEMANTIC-CHANGE-MANIFESTS
+ * (M-01: سياسة السنوات؛ M-04: تشديد الأصناف الضعيفة).
  */
 
 const directSaleInput = (occurredOn: string) => ({
@@ -69,12 +66,12 @@ describe("R2 characterization — domain local-date validity kernel (Class A)", 
     expect(isValidLocalDate("2026-04-31")).toBe(false);
   });
 
-  it("rejects years 0000–0099 (Date.UTC remaps them to 1900+) — the R2-D1 divergence", () => {
-    /* مثبت تشغيلًا في الجرد: Date.UTC(50, 0, 1).getUTCFullYear() === 1950 —
-     * فالنواة ترفض كل السنوات ذات الخانتين الصفريتين الأوليين. */
-    expect(isValidLocalDate("0050-01-01")).toBe(false);
-    expect(isValidLocalDate("0000-01-01")).toBe(false);
-    expect(isValidLocalDate("0099-12-31")).toBe(false);
+  it("accepts years 0000–0099 under the explicit ISO policy (M-01 flip, 2026-10-08)", () => {
+    /* قلب موثق (M-01): كانت النواة ترفضها صدفةً (Date.UTC يعيد 0–99 إلى 1900+) —
+     * الآن سياسة صريحة: نطاق ISO 0000–9999، تقويم غريغوري استباقي (السنة 0 كبيسة). */
+    expect(isValidLocalDate("0050-01-01")).toBe(true);
+    expect(isValidLocalDate("0000-01-01")).toBe(true);
+    expect(isValidLocalDate("0099-12-31")).toBe(true);
     /* بينما الصنف B (مدقق النقل) يقبلها — يُثبَّت التباعد في ملف توصيف التطبيق. */
   });
 
@@ -88,30 +85,30 @@ describe("R2 characterization — domain local-date validity kernel (Class A)", 
     expect(isValidLocalDate("")).toBe(false);
   });
 
-  it("the verbatim Class-A copy in direct-sale createDirectSale matches the kernel", () => {
+  it("the direct-sale validator delegates to the kernel (M-02 flip, 2026-10-08)", () => {
     expect(() => createDirectSale(directSaleInput("2024-02-29"))).not.toThrow();
     expect(() => createDirectSale(directSaleInput("2023-02-29"))).toThrow();
-    expect(() => createDirectSale(directSaleInput("0050-01-01"))).toThrow();
+    expect(() => createDirectSale(directSaleInput("0050-01-01"))).not.toThrow(); /* كان يرمي — سياسة ISO (M-01) */
     expect(() => createDirectSale(directSaleInput("2026-13-01"))).toThrow();
   });
 });
 
-describe("R2 characterization — weak Class D date checks accept rollover (the R2-D3 divergence)", () => {
-  it("cash-continuity createCashContinuityEntry ACCEPTS 2023-02-29 (regex+NaN only)", () => {
+describe("R2 regression — every domain date class rejects rollover (M-04 flip, 2026-10-08)", () => {
+  it("cash-continuity createCashContinuityEntry REJECTS rollover (was accepted, Class D)", () => {
     /* هذا عيب مثبت لا مواصفة: Date.parse("2023-02-29T12:00:00.000Z") يدور
      * إلى 2023-03-01 دون NaN فيمر الفحص. توحيده على صرامة النواة = قرار
      * مالك (R2-D3) لأنه يغيّر سلوك القبول. */
-    expect(() => createCashContinuityEntry(cashEntryInput("2023-02-29"))).not.toThrow();
-    expect(() => createCashContinuityEntry(cashEntryInput("2026-04-31"))).not.toThrow();
+    expect(() => createCashContinuityEntry(cashEntryInput("2023-02-29"))).toThrow();
+    expect(() => createCashContinuityEntry(cashEntryInput("2026-04-31"))).toThrow();
     /* خارج النحو يُرفض (regex): */
     expect(() => createCashContinuityEntry(cashEntryInput("2026-13-01"))).toThrow();
     expect(() => createCashContinuityEntry(cashEntryInput("0050-01-01"))).not.toThrow();
     /* السنوات 0000–0099 تمر في الصنف D أيضًا (المرساة ISO تقرؤها كما هي). */
   });
 
-  it("supplier-purchase createSupplierPurchase ACCEPTS rollover dates (Class D)", () => {
-    expect(() => createSupplierPurchase(supplierPurchaseInput("2023-02-29"))).not.toThrow();
-    expect(() => createSupplierPurchase(supplierPurchaseInput("2026-04-31"))).not.toThrow();
+  it("supplier-purchase createSupplierPurchase REJECTS rollover dates (was accepted, Class D)", () => {
+    expect(() => createSupplierPurchase(supplierPurchaseInput("2023-02-29"))).toThrow();
+    expect(() => createSupplierPurchase(supplierPurchaseInput("2026-04-31"))).toThrow();
     expect(() => createSupplierPurchase(supplierPurchaseInput("2026-13-01"))).toThrow();
   });
 });
