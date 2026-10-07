@@ -34,7 +34,8 @@
     "evidence": [
       "docs/architecture/refactoring/STRUCTURAL-REMEDIATION-PLAN-20261007.md",
       "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md",
-      "docs/architecture/refactoring/R0-LIVE-BASELINE-AND-FINDING-RECONCILIATION-2026-10-07.md"
+      "docs/architecture/refactoring/R0-LIVE-BASELINE-AND-FINDING-RECONCILIATION-2026-10-07.md",
+      "docs/operations/control/evidence/structural-remediation-r1-20261007/R1-REPAIR-CARDS.md"
     ]
   },
   "acceptance": [
@@ -83,5 +84,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R0 مكتمل ومقبول وPR #325 مدموج عند a258287cdc606c58a91ed8ad9791b5837b341a54؛ الخطوة التالية تجهيز بطاقات R1 ونطاقها وحدود رجوعها قبل أي تنفيذ كودي."
+  "next_action": "R0 مقبول ومدموج (PR #325 عند a258287cdc606c58a91ed8ad9791b5837b341a54 + مصالحات #326/#327 حتى 8bc51963b98c517f5cad03a5ee9d49c941ae17de)؛ بطاقات R1 (R1-TG-01..04) جُهزت ورُوجعت تخصصيًا؛ R1 ينفذ الآن توثيقيًا على refactoring/r1-truth-governance-20261007 ثم PR واحد لمراجعة المالك؛ لا R2 قبل القبول."
 }
