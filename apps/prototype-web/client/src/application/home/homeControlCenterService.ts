@@ -25,7 +25,7 @@ import {
 } from "./homeControlCenterModel";
 import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
-import { ammanDateOrNull } from "@micro-domain/shared/index.js";
+import { ammanDateOrNull, localDatePlusDays } from "@micro-domain/shared/index.js";
 
 export type HomeControlCenterResult =
   { ok: true; value: HomeControlCenterViewModel } | { ok: false; code: "storage_error"; message: string };
@@ -47,11 +47,12 @@ function hasIncompleteResult(stored: StoredCraftOrder) {
   return !["cancelled"].includes(stored.order.status) && stored.order.resultStatus !== "final";
 }
 /* Wave 4.3 — P-4.3-2: حسابات تواريخ فترة صرفة على صيغة YYYY-MM-DD المحلية —
- * لا تلمس وقت الأعمال ولا منطق المال؛ حدود قراءة فقط. */
+ * لا تلمس وقت الأعمال ولا منطق المال؛ حدود قراءة فقط.
+ * R2 (M-09/HOSTILE-06، 2026-10-08): الإزاحة من نواة الحساب الخالص — كانت
+ * مرساة منتصف الليل + toISOString.slice (قصّ UTC). اليوم من ساعة الأعمال
+ * الجارية فلا يبلغ حد التمثيل؛ fail-soft بالمدخل نفسه. */
 function dayBefore(isoDate: string): string {
-  const date = new Date(`${isoDate}T00:00:00Z`);
-  date.setUTCDate(date.getUTCDate() - 1);
-  return date.toISOString().slice(0, 10);
+  return localDatePlusDays(isoDate, -1) ?? isoDate;
 }
 function monthStartBefore(isoDate: string): string {
   const [year, month] = isoDate.split("-").map(part => Number(part));
