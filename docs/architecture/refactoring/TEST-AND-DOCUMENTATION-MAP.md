@@ -11,10 +11,12 @@
 
 | الموضع | النطاق | العدد الحالي | الدور |
 |---|---|---|---|
-| `tests/domain/*.test.ts` | منطق المجال الخالص | 33 | **الموضع الكنوني** لاختبارات المجال (جناح الجذر) |
-| `apps/prototype-web/client/src/**` (مجاور للوحدة) | وحدات التطبيق والواجهة والحراس العقدية | 343 | الموضع الكنوني لاختبارات التطبيق (جناح التطبيق) |
+| `tests/domain/*.test.ts` | منطق المجال الخالص | 34 | **الموضع الكنوني** لاختبارات المجال (جناح الجذر) |
+| `apps/prototype-web/client/src/**` (مجاور للوحدة) | وحدات التطبيق والواجهة والحراس العقدية | 298 | الموضع الكنوني لاختبارات التطبيق (جناح التطبيق — وملفان إضافيان في `apps/prototype-web/scripts` يكملان الجناح إلى 300) |
 | `tests/*.test.ts` (جذر tests/) | استثناء تاريخي موثق | 1 | `owner-entitlement.test.ts` فقط — بقي من تقسيم سابق للجناحين |
 | `src/domain/**` (داخل مصدر المجال) | استثناء تاريخي موثق | 1 | `direct-sale/policies.test.ts` فقط — مجاور قديم |
+
+*(تصحيح مؤرخ 2026-10-07 — R1/TG-01 [R1-D1/M5]، من ← إلى: كان الجدول 33/343؛ الحي بالمولد `generated/test-map.json` عند رأس R1: **34** ملف مجال + **298** مجاورًا داخل client/src (المصدر: `domainTestLocations` في الـJSON المولد + عدّ ملفات الاختبار في الجناحين؛ `generate-test-map.mjs --check` = بلا انجراف).)*
 
 **القاعدة:** اختبارات المجال الجديدة تُكتب في `tests/domain/`؛ واختبارات التطبيق مجاورة لوحدتها تحت `client/src`. لا يُضاف استثناء موضع جديد بلا صف سجل مؤرخ هنا. الاستثناءان الحاليان مسجّلان ولا يُقلَدان: عند أي لمسة تالية لملفيهما يُقيَّم نقلهما إلى موضعهما الكنوني بنمط النقل الميكانيكي المعتاد (شرط المستهلكين + أسس الحراس نفس-الـPR).
 
@@ -24,10 +26,11 @@
 
 | صنف الدليل | العدد | المعنى |
 |---|---|---|
-| `direct` — اختبار يستورد الصفحة مباشرة | **49** | تغطية سلوكية مباشرة للصفحة |
+| `direct` — اختبار يستورد الصفحة مباشرة | **55** | تغطية سلوكية مباشرة للصفحة |
 | `named-reference` — اختبار رقابي يذكر الصفحة بالاسم | **5** | سيطرة معمارية/رحلة تذكر الصفحة (انظر الجدول أدناه) |
-| `route-reference` — اختبار يستشهد مسارها المسجل | **6** | سيطرة مسارات + رحلات تصل المسار (انظر الجدول أدناه) |
 | بلا دليل | **0** | — |
+
+*(تصحيح مؤرخ 2026-10-07 — R1/TG-01 [R1-D1]، من ← إلى: كان الملخص 49 مباشرًا + 5 اسميًا + 6 مساريًا؛ الصفحات الست المسارية سابقاً صارت **direct** بعد إضافة رحلات `SmokeOnlyPagesJourneys.dom.test.tsx` (W7) التي تستوردها مباشرة — المصدر: `generated/test-map.json` عند رأس R1، `generate-test-map.mjs --check` بلا انجراف. الجدول التفصيلي أدناه يعرض الحالة الحية؛ صفوف الصفحات الست المذكورة انتقلت إلى صنف direct بدليل الرحلات المذكورة.)*
 
 **الصفحات غير المباشرة وأدلتها وسببها الموثق** (التغطية السلوكية الكاملة لكل صفحة عملُ مسار الواجهة Wave T ببوابة مالك — هذا البرنامج البنيوي يثبت الأدلة الرقابية المتاحة اليوم لا يدّعي تغطية سلوكية غير موجودة):
 
@@ -38,12 +41,12 @@
 | `pages/CashOpeningLaterEditor.tsx` | named | `StateRecovery.w44.dom.test.tsx` | رحلة استرجاع الحالة تصل الصفحة |
 | `pages/CashWallets.tsx` | named | `StateRecovery.w44`، `localTransferService.capabilitiesRoundTrip`، `guidedOpeningImportService.g82`، `IndexedDbLocalStore.open-count` | رحلات وبيّنات قدرة تذكر السطح |
 | `pages/NotFound.tsx` | named | `Nav003.exe016.dom.test.tsx` | رقابة ملاحة exe016 |
-| `pages/CashReversalEditor.tsx` | route | `routeClassifier`، `routeKnowledgeSync`، `R2.renderSmoke` | تصنيف مسار + دخان عرض؛ `/cash/entry/:id/reverse` |
-| `pages/CashWalletEditor.tsx` | route | `routeClassifier`، `routeKnowledgeSync`، `R2.renderSmoke`، `Foundation.ui` | `/cash/wallet/new` |
-| `pages/G5DeclarationEditor.tsx` | route | `routeClassifier`، `routeKnowledgeSync`، `R2.renderSmoke` | `/finance/g5/declaration` |
-| `pages/InventoryReversalEditor.tsx` | route | `G004CapabilityDeepLinks`، `InventoryAdjustExe012`، `Ops001MovementSelection`، `routeClassifier` | `/inventory/movement/:id/reverse` |
-| `pages/ReceivedLoanDetail.tsx` | route | `ReceivedLoanEditor.w178`، `routeKnowledgeSync`، `routeTemplateSync` | `/loans/received/:id` |
-| `pages/SharePreview.tsx` | route | `OrderShare.exe015`، `WorkShare.w43`، `R2.renderSmoke` | `/share/preview` |
+| `pages/CashReversalEditor.tsx` | direct *(كانت route — انظر التصحيح المؤرخ أعلاه)* | `SmokeOnlyPagesJourneys.dom.test.tsx` (+ رقابة المسارات `routeClassifier`/`routeKnowledgeSync`) | رحلة سلوكية مباشرة (W7) + `/cash/entry/:id/reverse` |
+| `pages/CashWalletEditor.tsx` | direct *(كانت route)* | `SmokeOnlyPagesJourneys.dom.test.tsx` (+ `Foundation.ui`) | رحلة سلوكية مباشرة (W7) + `/cash/wallet/new` |
+| `pages/G5DeclarationEditor.tsx` | direct *(كانت route)* | `SmokeOnlyPagesJourneys.dom.test.tsx` (+ رقابة المسارات) | رحلة سلوكية مباشرة (W7) + `/finance/g5/declaration` |
+| `pages/InventoryReversalEditor.tsx` | direct *(كانت route)* | `SmokeOnlyPagesJourneys.dom.test.tsx` (+ `G004CapabilityDeepLinks`، `InventoryAdjustExe012`) | رحلة سلوكية مباشرة (W7) + `/inventory/movement/:id/reverse` |
+| `pages/ReceivedLoanDetail.tsx` | direct *(كانت route)* | `SmokeOnlyPagesJourneys.dom.test.tsx` (+ `ReceivedLoanEditor.w178`) | رحلة سلوكية مباشرة (W7) + `/loans/received/:id` |
+| `pages/SharePreview.tsx` | direct *(كانت route)* | `SmokeOnlyPagesJourneys.dom.test.tsx` (+ `OrderShare.exe015`، `WorkShare.w43`) | رحلة سلوكية مباشرة (W7) + `/share/preview` |
 
 ## 3. ربط العقود→الرقابة (49 عقدًا)
 

@@ -169,7 +169,7 @@ Characterize before changing. Establish one owner for rounding, parsing, display
 
 ### R3 — Storage capability extraction
 
-Reconcile the complete live capability registry, not only the prior pilot. For every capability, inspect the 131-method port, IndexedDB, Memory, conformance tests, write guards, migrations, transfer touchpoints, and rollback. Execute every extraction-ready independent group. A pilot is not completion.
+Reconcile the complete live capability registry, not only the prior pilot. For every capability, inspect the 131-method port *(dated correction 2026-10-07 — R1/TG-01: the live port is **130** methods after STR-618 removed `getActualTimeRecord` on 2026-10-04, before this contract was written; R3 cards must inventory the live interface, not this line's number)*, IndexedDB, Memory, conformance tests, write guards, migrations, transfer touchpoints, and rollback. Execute every extraction-ready independent group. A pilot is not completion.
 
 ### R4 — Transfer, Schema, Export/Import, and history
 

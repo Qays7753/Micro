@@ -718,7 +718,7 @@ NO_CODE_OR_GITHUB_WRITES_PERFORMED_BY_THIS_PLAN
 | STR-203 | R2/R5 | قرار Formatting Kernel ثم تطبيقه ميكانيكيًا |
 | STR-204b | R5/R6 | فحص type-only cycle وعدم تحويله إلى runtime cycle |
 | STR-204c | R7 | استخراج Page-owned View Model عند ثبوت seam |
-| STR-301 | R3 | معالجة 131-method Storage Port عبر Capabilities، لا حذفًا عشوائيًا |
+| STR-301 | R3 | معالجة 131-method Storage Port عبر Capabilities، لا حذفًا عشوائيًا *(تصحيح مؤرخ 2026-10-07 — R1/TG-01: المنفذ الحي **130** طريقة بعد إزالة STR-618 لـ`getActualTimeRecord` (2026-10-04، قبل كتابة هذه الخطة)؛ القياس: عدّ أعضاء `PrototypeLocalStore` في `storage/local/types.ts` — انظر تقرير R1) * |
 | STR-302 | R2/R5 | فحص ملكية القواعد المالية دون نقلها بصمت إلى Domain |
 | STR-305 | R7 | نقل UI من Persistence record types إلى View Models عند ثبوت الحاجة |
 | STR-307 | R3/R8 | إبقاء type-only Storage cycle أو إزالته فقط بعد إثبات عدم الحاجة |
@@ -731,7 +731,7 @@ NO_CODE_OR_GITHUB_WRITES_PERFORMED_BY_THIS_PLAN
 
 هذه ليست عناوين عامة؛ يجب أن تظهر بالاسم في R0 وRepair Cards وR10:
 
-- `PrototypeLocalStore` ذو 131 طريقة.
+- `PrototypeLocalStore` ذو 131 طريقة. *(تصحيح مؤرخ 2026-10-07 — R1/TG-01: الحي **130** طريقة (STR-618)؛ يجب على بطاقة R3 أن تجرد المنفذ الحي لا رقم هذه السطر.)*
 - `IndexedDbLocalStore` و`MemoryLocalStore` وتكافؤهما.
 - تسعة Commit Guards.
 - Migrations و`storage_stale` وBackup قبل `replaceSnapshot`.

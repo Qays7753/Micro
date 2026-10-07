@@ -818,3 +818,14 @@
 - **الحدث:** دُمج PR #326 الخاص بالمصالحة الإدارية بعد قبول تقرير R0، وأصبح رأس `main` هو `b1359e598d78ac0f0e61b514cd874bb22f19bf5b`.
 - **الأثر:** تثبيت مؤشرات الحالة فقط؛ لا كود إنتاجي أو اختبار أو تبعية أو تغيير مالي أو Schema/Export/Import أو UI.
 - **الحالة التالية:** `WS-216` ما زال `IN_PROGRESS`؛ R0 مقبول على `main`، وR1 هي الخطوة التالية بعد تجهيز Repair Cards ونطاقها وحدود رجوعها.
+
+## Entry 51 — Z AI sequential executor (successor WS-216/ARCH-007 — R1 truth/governance/documentation/guard hygiene) — 2026-10-07
+
+**الوضع:** موجة توثيقية محضة على `refactoring/r1-truth-governance-20261007` من `8bc51963b98c517f5cad03a5ee9d49c941ae17de`؛ بطاقات R1-TG-01..04 + مراجعة خماسية قراءة-فقط وتعديلات المُصالِح قبل التنفيذ.
+
+- **TG-01 المصالحة:** R0-N3/N4/N6/N7/N9/N10/N11/N13/N14/N16 كلها بتصحيحات مؤرخة (131→130 في السجل والجرد والخطة والعقد؛ BroadcastChannel/155,300/الأبواب في §4 الجرد؛ 13 إحالة فجوة معلقة بملاحظة شاملة؛ README v1.5/1,484/Entry-51؛ خريطة الاختبارات **55 direct + 5 named** و34/298 مواضع — مكتشف R1-D1؛ 13→14 حارسًا في موضعين؛ المالك الأمني بحالته النهائية). القياسات الحية المسجلة بالأمر: جذري **644/57** (R0-N11)، تطبيقي 2,222/300، بوابة التدقيق **28** (R0-N14)، متتبع 1,484.
+- **TG-02 التسمية:** السجل §3 يسمي financialAnalysisService كنونيًا (4A) والشيمة موثقة الجرد (3 إنتاج type-only + 15 اختبارًا = 18)؛ محفز الشيمتين الميتتين اشتعل وسُجل (R0-N5) والإزالة R7؛ F-04 تحقق: صفر مستهلكين على مسار توافق.
+- **TG-03 الحراس:** §4.3.1 = 14 حارسًا + قاعدة fixtures الموحدة على الواقع (لا وجود git لمسارات العينات) + صف module-boundaries إلى R1..R6؛ **R1-D2**: رأسا الحارس واختباره عدّا قواعد قديمتين («خمس»/«ثلاث») فصُححا تعليقيًا (PASS + 15/15 بعدها)؛ ci.yml لم يُمس (lint مرة واحدة داخل pnpm check).
+- **TG-04 الحوكمة:** سلّم الست درجات (PG-4) + §15 CONTROL (ميتاداتا القطع — PG-5؛ خريطة RS بلا تحرير مبادئ) + §8 السجل (PA-1/2/3/4: القنوات، مسار الكتابة، مصائر التقاعد، مالك Locale)؛ Operations Control مثبت من JSON ثم Views (التحذير زال).
+- **ملاحظة مؤرخة (R0-N10):** رقم gzip في Entry 47 (435,338) بلا وسم بيئة — هو قياس CI Node-22 بينما 435,268 محلي (انجراف ADR-012 الموثق)؛ Entry 47 نفسه append-only فلا يُحرر.
+- **الحالة النهائية:** `R1_COMPLETE — PR_READY_FOR_OWNER_REVIEW / NO_R2_R10_IMPLEMENTATION_STARTED / NO_UNAPPROVED_FINANCIAL_OR_SEMANTIC_CHANGE / NO_UNAPPROVED_SCHEMA_OR_EXPORT_IMPORT_CHANGE / NO_UNAPPROVED_HISTORICAL_DATA_CHANGE / NO_UI_OR_VISUAL_CHANGE / OPERATIONS_CONTROL_RECONCILED / NO_REPOSITORY_WRITES_AFTER_PR_OPENED / NO_CLEANUP_PERFORMED`.
