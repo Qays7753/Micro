@@ -5,7 +5,13 @@ import {
   type ActualTimeComparison,
   type ActualTimeRecord,
 } from "@micro-domain/actual-time/index.js";
-import { type OperatingWorkMode, type PrototypeLocalStore } from "@/storage/local/types";
+import type { OperatingWorkMode, PrototypeLocalStore } from "@/storage/local/types";
+import type { ActualTimeStore } from "@/storage/local/capabilities/actualTimeStore";
+
+/** R3 (R3-SC-10): عدسة الخدمة — قدرة الوقت الفعلي حصرًا مع قراءة
+ * التفضيلات والطلب المستخدمتين بالضبط. */
+export type ActualTimeServiceStore = ActualTimeStore &
+  Pick<PrototypeLocalStore, "getPreferences" | "savePreferences" | "getOrder">;
 import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
 import {
   NOT_FOUND,
@@ -50,7 +56,7 @@ const mode = (value: unknown): OperatingWorkMode | null =>
 
 export class ActualTimeService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: ActualTimeServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
 
