@@ -34,7 +34,7 @@ const freshRecord = (timestamp: string): LocalPreferences => ({
 });
 
 export async function updateLocalPreferences(
-  store: PrototypeLocalStore,
+  store: Pick<PrototypeLocalStore, "getPreferences" | "savePreferences">,
   patch: LocalPreferencesPatch,
   now: Clock,
 ): Promise<LocalPreferencesUpdateResult> {

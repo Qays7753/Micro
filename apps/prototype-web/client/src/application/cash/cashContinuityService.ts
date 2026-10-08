@@ -8,6 +8,12 @@ import {
   type CashWalletOpeningStatus,
 } from "@micro-domain/cash-continuity/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قناة السيولة النقدية الثلاثة بالضبط (عائلة KEEP R3-SC-19). */
+export type CashContinuityServiceStore = Pick<
+  PrototypeLocalStore,
+  "listCashWallets" | "listCashContinuityEntries" | "commitCashContinuity"
+>;
 import {
   STORAGE_ERROR,
   VALIDATION_ERROR,
@@ -77,7 +83,7 @@ const storageFailure = <T>(): CashContinuityResult<T> => ({
 
 export class CashContinuityService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: CashContinuityServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
 

@@ -12,6 +12,12 @@ import {
   type CashContinuityEntry,
 } from "@micro-domain/cash-continuity/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { SupplierPurchaseStore } from "@/storage/local/capabilities/supplierPurchaseStore";
+
+/** R3 (R3-SC-03): عدسة الخدمة — قدرة مشتريات المورّد حصرًا مع القنوات
+ * المستخدمة بالضبط (السيولة النقدية للقراءة، وحركات المخزون للربط). */
+export type SupplierPurchaseServiceStore = SupplierPurchaseStore &
+  Pick<PrototypeLocalStore, "listCashWallets" | "listCashContinuityEntries" | "listInventoryMovements">;
 import { storageFailureCode } from "@/storage/local/types";
 import type { SupplierPurchaseCommit } from "@/storage/local/supplierScheduleCommitGuard";
 import {
@@ -97,7 +103,7 @@ const initialPaidPositive = (input: SupplierPurchaseInput): boolean =>
 
 export class SupplierPurchaseService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: SupplierPurchaseServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
 

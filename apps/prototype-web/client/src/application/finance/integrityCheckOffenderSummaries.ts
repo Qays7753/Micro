@@ -5,13 +5,25 @@
  * مسؤولية داخلي). */
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات الملخصات السبع بالضبط. */
+export type IntegrityCheckOffenderSummariesStore = Pick<
+  PrototypeLocalStore,
+  | "listOrders"
+  | "listFinancialEvents"
+  | "listSupplierPurchases"
+  | "listCashWallets"
+  | "listMaterials"
+  | "listAssets"
+  | "listLoans"
+>;
 import type { IntegrityCheckResult, IntegrityOffenderSummary } from "./integrityCheckModel";
 
 /* حل المعرّفات الخام إلى ملخصات مقروءة — قراءات إضافية تحدث فقط حين
  * توجد متأثرون فعلًا؛ الفشل في الإثراء لا يفشل الفحص (المعرّف الخام يبقى). */
 export async function attachOffenderSummaries(
   checks: IntegrityCheckResult[],
-  store: PrototypeLocalStore,
+  store: IntegrityCheckOffenderSummariesStore,
 ): Promise<void> {
   const wanted = new Set<string>();
   for (const check of checks) for (const id of check.offenderSampleIds ?? []) wanted.add(id);

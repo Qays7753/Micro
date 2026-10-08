@@ -1,5 +1,8 @@
 /** Application boundary for local setup. It validates profile inputs before any LocalStore write. */
 import { localProfileId, type ActivityProfile, type PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — زوج الملف فقط. */
+export type ProfileServiceStore = Pick<PrototypeLocalStore, "getProfile" | "saveProfile">;
 import {
   STORAGE_ERROR,
   VALIDATION_ERROR,
@@ -14,7 +17,7 @@ export type ProfileSaveResult =
 
 export class ProfileService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: ProfileServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
   async load() {

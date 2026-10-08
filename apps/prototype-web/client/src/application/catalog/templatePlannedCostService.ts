@@ -17,6 +17,13 @@
  * وإلا يُعلن «وحدتان مختلفتان» ولا يُخمّن تحويل ولا يُقرّب.
  */
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { CatalogStore } from "@/storage/local/capabilities/catalogStore";
+
+/** R3 (R3-SC-09): عدسة الخدمة — قراءة القوالب ووحداتها حصرًا. */
+export type TemplatePlannedCostServiceStore = Pick<
+  CatalogStore,
+  "listMeasurementUnits" | "listCatalogTemplates"
+>;
 import {
   materialSuggestionsFrom,
   type MaterialSuggestion,
@@ -74,7 +81,7 @@ export type TemplatePlannedCostResult<T> =
 
 export class TemplatePlannedCostService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: TemplatePlannedCostServiceStore,
     private readonly inventory: Pick<InventoryMaterialService, "overview" | "movements">,
   ) {}
 

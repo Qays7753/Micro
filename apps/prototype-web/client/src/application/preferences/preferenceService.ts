@@ -5,6 +5,9 @@ import {
   type PersistentStorageState,
 } from "@/storage/local/persistentStorage";
 import type { LocalPreferences, PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — زوج التفضيلات فقط. */
+export type PreferenceServiceStore = Pick<PrototypeLocalStore, "getPreferences" | "savePreferences">;
 import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
 import {
   STORAGE_ERROR,
@@ -35,7 +38,7 @@ export type LowStockThresholdSaveResult =
 
 export class PreferenceService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: PreferenceServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
   /** P-01 layer 0 read, exposed here so pages never import the storage layer directly. */

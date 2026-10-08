@@ -22,6 +22,29 @@
  * أو أنواع السطح فلا يتغير مستورد واحد. */
 import { systemClock, type Clock } from "@/application/time/clock";
 import type { InventoryActivation, PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — منسّق عائلة المخزون — اتحاد احتياجات الأخوة الست حصرًا. */
+export type InventoryMaterialServiceStore = Pick<
+  PrototypeLocalStore,
+  | "listMaterials"
+  | "listInventoryMovements"
+  | "getInventoryActivation"
+  | "saveInventoryActivation"
+  | "getPreferences"
+  | "listOrders"
+  | "getOrder"
+  | "listDirectSales"
+  | "listSupplierPurchases"
+  | "listCatalogItems"
+  | "getCatalogItem"
+  | "listCatalogTemplates"
+  | "getCatalogTemplate"
+  | "listInventoryShortages"
+  | "listFinancialEvents"
+  | "commitInventory"
+  | "commitInventoryWithEvents"
+  | "commitInventoryWithShortage"
+>;
 import type {
   InventoryMovement,
   InventoryShortage,
@@ -103,7 +126,7 @@ export type {
 
 export class InventoryMaterialService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: InventoryMaterialServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
 

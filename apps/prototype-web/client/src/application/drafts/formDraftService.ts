@@ -13,6 +13,12 @@
  * - الإنهاء: حذف صريح بعد نجاح الحفظ النهائي أو بعد اختيار التجاهل.
  */
 import type { FormDraftEnvelope, FormDraftKind, PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — مسودات النماذج الخمس بالضبط (عائلة KEEP R3-SC-17). */
+export type FormDraftServiceStore = Pick<
+  PrototypeLocalStore,
+  "getFormDraft" | "saveFormDraft" | "deleteFormDraft" | "listFormDrafts" | "clearFormDrafts"
+>;
 import { CONFLICT, STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
@@ -56,7 +62,7 @@ export function formDraftValuesCharLength(values: unknown): number {
 
 export class FormDraftService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: FormDraftServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
 

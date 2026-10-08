@@ -6,6 +6,9 @@
 import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import type { OrderDraft, PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءة المسودات والطلبات فقط. */
+export type DailyFollowUpServiceStore = Pick<PrototypeLocalStore, "listDrafts" | "listOrders">;
 import { getAgreementPresentation } from "@/application/agreements/agreementPresentation";
 import { formatArabicPlural } from "@/application/formatting/formatters";
 import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
@@ -113,7 +116,7 @@ export function deriveDailyFollowUp(
 }
 
 export class DailyFollowUpService {
-  constructor(private readonly store: PrototypeLocalStore) {}
+  constructor(private readonly store: DailyFollowUpServiceStore) {}
 
   async read(): Promise<DailyFollowUpReadResult> {
     const [drafts, orders] = await Promise.all([this.store.listDrafts(), this.store.listOrders()]);

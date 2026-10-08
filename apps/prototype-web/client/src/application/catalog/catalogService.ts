@@ -15,6 +15,11 @@ import {
   type UnitDimension,
 } from "@micro-domain/catalog/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { CatalogStore } from "@/storage/local/capabilities/catalogStore";
+
+/** R3 (R3-SC-09): عدسة الخدمة — الكتالوج بأبعاده الثلاثة مع قراءة المواد
+ * (لربط المكونات بالمادة). */
+export type CatalogServiceStore = CatalogStore & Pick<PrototypeLocalStore, "listMaterials">;
 import { systemClock, type Clock } from "@/application/time/clock";
 import { errorMessageOf } from "@/application/resultCodes";
 
@@ -106,7 +111,7 @@ function resolveYieldReadiness(
 
 export class CatalogService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: CatalogServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
 

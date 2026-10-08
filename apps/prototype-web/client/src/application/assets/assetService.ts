@@ -26,6 +26,13 @@ import {
   type FinancialEventType,
 } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { AssetStore } from "@/storage/local/capabilities/assetStore";
+import type { FinancialEventStore } from "@/storage/local/capabilities/financialEventStore";
+
+/** R3 (R3-SC-05): عدسة الخدمة — قدرة الأصول حصرًا مع قراءتَي الأحداث
+ * المالية المستخدمتين بالضبط (عكس الحدث المرتبط عند تصحيح الاقتناء). */
+export type AssetServiceStore = AssetStore &
+  Pick<FinancialEventStore, "listFinancialEvents" | "commitFinancialEventCorrection">;
 import { systemClock, type Clock } from "@/application/time/clock";
 import { FINANCIAL_EVENTS_READ_FAILED_MESSAGE, errorMessageOf } from "@/application/resultCodes";
 
@@ -123,7 +130,7 @@ function newId(prefix: string): string {
 
 export class AssetService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: AssetServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
 

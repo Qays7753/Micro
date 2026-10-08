@@ -1,5 +1,11 @@
 /** Application boundary for pre-domain drafts. A draft is not a CraftOrder and has no price, cash, or result effect. */
 import type { DraftIntent, OrderDraft, PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — مسودات الطلب الأربع بالضبط (عائلة KEEP R3-SC-17). */
+export type DraftServiceStore = Pick<
+  PrototypeLocalStore,
+  "listDrafts" | "getDraft" | "saveDraft" | "deleteDraft"
+>;
 import {
   CONFLICT,
   NOT_FOUND,
@@ -41,7 +47,7 @@ const createId = () =>
 
 export class DraftService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: DraftServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
   list() {

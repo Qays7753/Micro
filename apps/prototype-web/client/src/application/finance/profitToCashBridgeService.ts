@@ -24,6 +24,11 @@ import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { FinanceResult } from "@/application/finance/projectFinancialService";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import type { ProjectFinancialServiceStore } from "./projectFinancialService";
+
+/** R3 (R3-SC-01/11): عدسة الخدمة — قراءات الجسر + القارئ الكنوني المركّب. */
+export type ProfitToCashBridgeServiceStore = ProjectFinancialServiceStore &
+  Pick<PrototypeLocalStore, "listCashContinuityEntries" | "listOwnerMovements">;
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
@@ -88,7 +93,7 @@ export class ProfitToCashBridgeService {
   private readonly finance: ProjectFinancialService;
 
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: ProfitToCashBridgeServiceStore,
     private readonly now: Clock = systemClock,
   ) {
     /* القارئ الكنوني نفسه مصدر رقم النتيجة — لا مسار حساب ثانٍ هنا أبدًا. */

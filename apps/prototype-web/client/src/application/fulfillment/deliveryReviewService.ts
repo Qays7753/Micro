@@ -37,6 +37,18 @@ import type { ScheduleService } from "@/application/scheduling/scheduleService";
 import { localDateInAmman, persistedMoneyTextMinor } from "@micro-domain/shared/index.js";
 import { formatQuantityMilli } from "@/application/formatting/formatters";
 import { storageFailureCode, type PrototypeLocalStore, type StoredCraftOrder } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءة الطلب والمواد والحركات والقوالب مع التزامَي التسليم وعكسه المحرسين. */
+export type DeliveryReviewServiceStore = Pick<
+  PrototypeLocalStore,
+  | "getOrder"
+  | "listCashWallets"
+  | "listMaterials"
+  | "listInventoryMovements"
+  | "listCatalogTemplates"
+  | "commitOrderDelivery"
+  | "commitOrderDeliveryReversal"
+>;
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 import { systemClock, type Clock } from "@/application/time/clock";
 import {
@@ -178,7 +190,7 @@ function snapshotMaterialPlannedMilli(order: CraftOrder, materialId: string): nu
 
 export class DeliveryReviewService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: DeliveryReviewServiceStore,
     private readonly now: Clock = systemClock,
     private readonly finance: ProjectFinancialService | null = null,
     private readonly schedules: ScheduleService | null = null,

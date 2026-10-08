@@ -8,6 +8,9 @@ import { calculateCostSnapshot, type CostSnapshot } from "@micro-domain/craft-or
  * القديم) فيُخزن طابعًا في لقطات الطلبات ويفسد مقارنة الحداثة المسائية. */
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import type { DraftCostSnapshot, OrderDraft, PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — حفظ مسودة التكلفة فقط. */
+export type CostServiceStore = Pick<PrototypeLocalStore, "saveDraft">;
 import { STORAGE_ERROR, VALIDATION_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
@@ -54,7 +57,7 @@ function validationMessage(): Extract<CostResult, { ok: false }> {
 
 export class CostService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: CostServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
   preview(input: CostEditorInput): CostResult {

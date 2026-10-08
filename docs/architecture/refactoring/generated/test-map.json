@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "959a94dfebd32caa19f05a4bb7addce51f2fdace",
+  "head": "f56dca3d7393416d742a6723c53bffcd4bc597ec",
   "pages": {
     "total": 60,
     "map": {
@@ -482,7 +482,8 @@
         "curated": [
           "apps/prototype-web/client/src/application/cost/costService.priceDate.test.ts",
           "apps/prototype-web/client/src/application/cost/costService.test.ts",
-          "apps/prototype-web/client/src/application/estimates/costEstimateService.test.ts"
+          "apps/prototype-web/client/src/application/estimates/costEstimateService.test.ts",
+          "apps/prototype-web/client/src/storage/local/capabilities/costEstimateCapability.contract.test.ts"
         ]
       },
       "04-limited-sync-contract.md": {
@@ -540,6 +541,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/inventory/inventoryMaterialService.test.ts",
+          "apps/prototype-web/client/src/storage/local/capabilities/inventoryMaterialCapability.contract.test.ts",
           "tests/domain/inventory-material.test.ts",
           "tests/domain/waste-context.characterization.test.ts"
         ]
@@ -579,6 +581,7 @@
           "apps/prototype-web/client/src/Set003Capabilities.dom.test.tsx",
           "apps/prototype-web/client/src/Set003SettingsSection.dom.test.tsx",
           "apps/prototype-web/client/src/application/time/actualTimeService.test.ts",
+          "apps/prototype-web/client/src/storage/local/capabilities/actualTimeCapability.contract.test.ts",
           "tests/domain/actual-time.test.ts"
         ]
       },
@@ -699,6 +702,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/inventory/inventoryMaterialService.test.ts",
+          "apps/prototype-web/client/src/storage/local/capabilities/inventoryMaterialCapability.contract.test.ts",
           "tests/domain/inventory-material.test.ts"
         ]
       },
@@ -714,6 +718,7 @@
           "apps/prototype-web/client/src/application/transfers/localTransferService.receivedLoan.test.ts",
           "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.receivedLoan.test.ts",
           "apps/prototype-web/client/src/storage/local/adapterConformance.receivedLoan.test.ts",
+          "apps/prototype-web/client/src/storage/local/capabilities/assetCapability.contract.test.ts",
           "apps/prototype-web/client/src/storage/local/capabilities/loanCapability.contract.test.ts",
           "tests/domain/asset.test.ts",
           "tests/domain/assetResidual.test.ts",
@@ -839,6 +844,7 @@
           "apps/prototype-web/client/src/G4Assets.dom.test.tsx",
           "apps/prototype-web/client/src/application/assets/assetService.test.ts",
           "apps/prototype-web/client/src/application/transfers/localTransferService.assetResidual.test.ts",
+          "apps/prototype-web/client/src/storage/local/capabilities/assetCapability.contract.test.ts",
           "tests/domain/asset.test.ts",
           "tests/domain/assetResidual.test.ts"
         ]

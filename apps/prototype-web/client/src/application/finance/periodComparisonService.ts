@@ -30,6 +30,10 @@ import type {
   RecordedPeriodResult,
 } from "@/application/finance/projectFinancialService";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { ProjectFinancialServiceStore } from "./projectFinancialService";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — منسّق مقارنة الفترات — يفوّض للقارئ الكنوني نفسه. */
+export type PeriodComparisonServiceStore = ProjectFinancialServiceStore;
 import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
@@ -394,7 +398,7 @@ export class PeriodComparisonService {
   private readonly finance: ProjectFinancialService;
 
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: PeriodComparisonServiceStore,
     private readonly now: Clock = systemClock,
   ) {
     /* مسار حساب واحد: القارئ الكنوني نفسه الذي تستهلكه الكشوف والمؤشرات —

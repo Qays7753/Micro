@@ -11,6 +11,9 @@
  *   ظاهرًا: غياب التاريخ ليس غياب الدين.
  */
 import type { PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءة مشتريات المورّد للاستحقاقات فقط. */
+export type DueDatesServiceStore = Pick<PrototypeLocalStore, "listSupplierPurchases">;
 import type { CollectionService } from "@/application/collections/collectionService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { classifyDueDate, dueAgingBucket, type DueAgingBucket, type DueDateState } from "./dueDateAging";
@@ -56,7 +59,7 @@ export type DueDatesResult<T> =
 
 export class DueDatesService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: DueDatesServiceStore,
     private readonly collections: CollectionService,
     private readonly now: Clock = systemClock,
   ) {}

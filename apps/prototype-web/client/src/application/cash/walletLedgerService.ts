@@ -6,6 +6,12 @@
 import { summarizeCashContinuity } from "@micro-domain/cash-continuity/index.js";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءة دفتر المحفظة فقط. */
+export type WalletLedgerServiceStore = Pick<
+  PrototypeLocalStore,
+  "listCashWallets" | "listCashContinuityEntries"
+>;
 import { NOT_FOUND, STORAGE_ERROR, notFoundFailure, storageFailure } from "@/application/resultCodes";
 
 export type WalletLedgerRowKind =
@@ -78,7 +84,7 @@ const sourceLabelFor = (entry: CashContinuityEntry): { href: string | null; labe
 };
 
 export class WalletLedgerService {
-  constructor(private readonly store: PrototypeLocalStore) {}
+  constructor(private readonly store: WalletLedgerServiceStore) {}
 
   async read(walletId: string): Promise<WalletLedgerResult<WalletLedgerOverview>> {
     const [wallets, entries] = await Promise.all([

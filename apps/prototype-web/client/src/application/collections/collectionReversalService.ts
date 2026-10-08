@@ -16,6 +16,12 @@
 import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { reverseOrderCollection } from "@micro-domain/craft-order/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءة الطلب وعكس تحصيله المحرس مع قراءة المحافظ والقيود. */
+export type CollectionReversalServiceStore = Pick<
+  PrototypeLocalStore,
+  "getOrder" | "commitOrderCollectionReversal" | "listCashWallets" | "listCashContinuityEntries"
+>;
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import {
@@ -86,7 +92,7 @@ const id = (prefix: string) =>
 
 export class CollectionReversalService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: CollectionReversalServiceStore,
     private readonly projectFinance: ProjectFinancialService,
     private readonly now: Clock = systemClock,
   ) {}

@@ -17,6 +17,18 @@ import {
   storageFailure,
 } from "@/application/resultCodes";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات المركز الكنوني السبع بالضبط. */
+export type ProjectFinancialReadsStore = Pick<
+  PrototypeLocalStore,
+  | "listOrders"
+  | "listDirectSales"
+  | "listFinancialEvents"
+  | "listSupplierPurchases"
+  | "listCashWallets"
+  | "listCashContinuityEntries"
+  | "listOwnerMovements"
+>;
 import type {
   FinanceResult,
   ProjectFinancialEvidence,
@@ -25,7 +37,7 @@ import type {
 } from "./projectFinancialTypes";
 
 export async function readPosition(
-  store: PrototypeLocalStore,
+  store: ProjectFinancialReadsStore,
 ): Promise<FinanceResult<ProjectFinancialPosition>> {
   const [
     ordersResult,
@@ -188,14 +200,14 @@ export async function readPosition(
 }
 
 export async function listEvents(
-  store: PrototypeLocalStore,
+  store: ProjectFinancialReadsStore,
 ): Promise<FinanceResult<readonly FinancialEvent[]>> {
   const result = await store.listFinancialEvents();
   return result.ok ? { ok: true, value: result.value } : storageFailure(FINANCIAL_EVENTS_READ_FAILED_MESSAGE);
 }
 
 export async function listSettleablePayables(
-  store: PrototypeLocalStore,
+  store: ProjectFinancialReadsStore,
 ): Promise<FinanceResult<readonly SettleablePayable[]>> {
   const events = await store.listFinancialEvents();
   if (!events.ok) return storageFailure(FINANCIAL_EVENTS_READ_FAILED_MESSAGE);

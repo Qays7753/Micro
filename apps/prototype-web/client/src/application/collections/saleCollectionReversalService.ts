@@ -17,6 +17,15 @@ import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-doma
 import { updateDirectSale } from "@micro-domain/direct-sale/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { DirectSaleStore } from "@/storage/local/capabilities/directSaleStore";
+
+/** R3 (R3-SC-04): عدسة الخدمة — قراءة البيع وعكس تحصيله المحرس مع قراءة
+ * المحافظ والقيود النقدية للمطابقة الكاملة (COL-001). */
+export type SaleCollectionReversalServiceStore = Pick<
+  DirectSaleStore,
+  "listDirectSales" | "commitDirectSaleCollectionReversal"
+> &
+  Pick<PrototypeLocalStore, "listCashWallets" | "listCashContinuityEntries">;
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import {
@@ -78,7 +87,7 @@ export type SaleCollectionReversalResult<T> =
 
 export class SaleCollectionReversalService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: SaleCollectionReversalServiceStore,
     private readonly projectFinance: ProjectFinancialService,
     private readonly now: Clock = systemClock,
   ) {}

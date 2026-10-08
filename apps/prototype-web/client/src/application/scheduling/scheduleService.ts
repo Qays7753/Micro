@@ -8,6 +8,15 @@ import type {
   ScheduleStatus,
   StoredCraftOrder,
 } from "@/storage/local/types";
+import type { ScheduleStore } from "@/storage/local/capabilities/scheduleStore";
+
+/** R3 (R3-SC-08): عدسة الخدمة — الجداول حصرًا مع التفضيلات (بوابة الدمج
+ * الموحدة EXE-002 تكتب) وقراءة الطلبات. */
+export type ScheduleServiceStore = Pick<
+  ScheduleStore,
+  "listSchedules" | "getSchedule" | "commitScheduleCreate" | "commitScheduleUpdate"
+> &
+  Pick<PrototypeLocalStore, "getPreferences" | "savePreferences" | "listOrders">;
 import { storageFailureCode } from "@/storage/local/types";
 import {
   daysInMonthOf,
@@ -187,7 +196,7 @@ function buildScheduleDay(
 
 export class ScheduleService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: ScheduleServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
 

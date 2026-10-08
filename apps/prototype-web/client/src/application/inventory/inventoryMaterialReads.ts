@@ -13,6 +13,24 @@ import {
 } from "@micro-domain/inventory-material/index.js";
 import { storageFailure, validationFailure } from "@/application/resultCodes";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { InventoryMaterialStore } from "@/storage/local/capabilities/inventoryMaterialStore";
+
+/** R3 (R3-SC-07): عدسة الوحدة — قراءة عابرة للعائلات (طلبات/مبيعات/
+ * مشتريات/كتالوج/تفضيلات) بـPick موضعي يسرد المستخدم بالضبط. */
+export type InventoryMaterialReadsStore = Pick<
+  InventoryMaterialStore,
+  "listMaterials" | "listInventoryMovements" | "listInventoryShortages"
+> &
+  Pick<
+    PrototypeLocalStore,
+    | "getPreferences"
+    | "listOrders"
+    | "getOrder"
+    | "listDirectSales"
+    | "listSupplierPurchases"
+    | "listCatalogItems"
+    | "listCatalogTemplates"
+  >;
 import {
   reversedMovementIdsOf,
   writeStorageFailure,
@@ -25,7 +43,9 @@ import {
   type PurchaseReceiptStatus,
 } from "./inventoryMaterialModel";
 
-export async function overview(store: PrototypeLocalStore): Promise<InventoryResult<InventoryOverview>> {
+export async function overview(
+  store: InventoryMaterialReadsStore,
+): Promise<InventoryResult<InventoryOverview>> {
   const [materials, movements, shortages, purchases] = await Promise.all([
     store.listMaterials(),
     store.listInventoryMovements(),
@@ -92,14 +112,14 @@ export async function overview(store: PrototypeLocalStore): Promise<InventoryRes
 }
 
 export async function listMovements(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialReadsStore,
 ): Promise<InventoryResult<readonly InventoryMovement[]>> {
   const result = await store.listInventoryMovements();
   return result.ok ? { ok: true, value: result.value } : storageFailure("تعذر قراءة حركات المواد المحلية.");
 }
 
 export async function readOrderActualMaterialComparison(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialReadsStore,
   orderId: string,
 ): Promise<InventoryResult<OrderActualMaterialComparison>> {
   const [orderResult, movementsResult] = await Promise.all([
@@ -172,7 +192,7 @@ export async function readOrderActualMaterialComparison(
 }
 
 export async function readReferences(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialReadsStore,
 ): Promise<InventoryResult<InventoryReferences>> {
   const [materials, purchases, orders, catalogItems, catalogTemplates, movements, sales] = await Promise.all([
     store.listMaterials(),
@@ -239,7 +259,7 @@ export async function readReferences(
 }
 
 export async function readPurchaseReceiptStatus(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialReadsStore,
   purchaseId: string,
 ): Promise<InventoryResult<PurchaseReceiptStatus | null>> {
   const [purchases, movements] = await Promise.all([
@@ -286,7 +306,7 @@ export async function readPurchaseReceiptStatus(
 }
 
 export async function readPeriodWaste(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialReadsStore,
   from: string,
   to: string,
 ): Promise<InventoryResult<PeriodWasteReading>> {

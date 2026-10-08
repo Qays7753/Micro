@@ -13,6 +13,12 @@
  * - التعطيل يتطلب الرمز الصحيح؛ والتخزين بلا حالة سوى السجل الواحد.
  */
 import type { LocalSecurityRecord, PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — ثالوث القفل المحلي فقط (عائلة KEEP R3-SC-18). */
+export type LocalLockServiceStore = Pick<
+  PrototypeLocalStore,
+  "getLocalSecurity" | "saveLocalSecurity" | "deleteLocalSecurity"
+>;
 import { localSecurityId } from "@/storage/local/types";
 import {
   STORAGE_ERROR,
@@ -115,7 +121,7 @@ function delayForAttempts(failedAttempts: number): number {
 
 export class LocalLockService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: LocalLockServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
 

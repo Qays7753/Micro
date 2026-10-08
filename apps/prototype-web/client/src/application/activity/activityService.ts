@@ -20,6 +20,18 @@ import type { InventoryMovement, Material } from "@micro-domain/inventory-materi
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { PrototypeLocalStore, StorageResult, StoredCraftOrder } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءة عابرة للعائلات (سجل النشاط) — سبع قراءات بالضبط. */
+export type ActivityServiceStore = Pick<
+  PrototypeLocalStore,
+  | "listOrders"
+  | "listDirectSales"
+  | "listFinancialEvents"
+  | "listSupplierPurchases"
+  | "listCashContinuityEntries"
+  | "listMaterials"
+  | "listInventoryMovements"
+>;
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type ActivityEffectClass =
@@ -192,7 +204,7 @@ function familyForMovement(type: InventoryMovement["type"]): ActivityFamily {
 }
 
 export class ActivityService {
-  constructor(private readonly store: PrototypeLocalStore) {}
+  constructor(private readonly store: ActivityServiceStore) {}
 
   async read(input: ActivityReadInput = {}): Promise<StorageResult<readonly ActivityRecord[]>> {
     const limit = input.limit ?? 8;
