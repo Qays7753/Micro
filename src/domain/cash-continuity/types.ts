@@ -1,5 +1,11 @@
 /** Cash continuity tracks declared wallet balances and safe corrections; it never classifies revenue, expense, or owner capital. */
-export type CashWalletKind = "cash_drawer" | "bank_account" | "digital_wallet" | "other";
+/* R4-B2 (STR-623/STR-608 — قرار موثق 2026-10-08): قائمة أنواع المحفظة وقت
+ * التشغيل من مالكها الكنوني — نفس نمط SOURCE_REF_KINDS في هذا الملف وقوائم
+ * materialUnits/catalogItemKinds/expenseBudget* في المجال. فُتحت بوابة STR-608
+ * (هامش الميزانية يسمح + قرار موثق): المستهلك الحدودي (guidedOpeningImport)
+ * يستوردها بدل طاقم محلي محروس، فيصبح الانحراف مستحيلًا بالبناء. */
+export const cashWalletKinds = ["cash_drawer", "bank_account", "digital_wallet", "other"] as const;
+export type CashWalletKind = (typeof cashWalletKinds)[number];
 /* «تخصيص» = توزيع صريح من الكاش غير الموزع إلى محفظة (موجب) أو تغطية صرف منها (سالب).
  * إجمالي الكاش المسجل لا يتغير؛ تنتقل القيمة بين «غير الموزع» ورصيد المحفظة فقط. */
 export type CashContinuityEntryType =

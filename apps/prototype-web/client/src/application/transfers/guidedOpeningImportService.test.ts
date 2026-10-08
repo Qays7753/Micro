@@ -78,6 +78,26 @@ describe("GuidedOpeningImportService", () => {
     ["{not-json", "validation_error"],
     [JSON.stringify({ ...valid, version: 99 }), "validation_error"],
     [JSON.stringify({ ...valid, profile: { ...valid.profile, source: "" } }), "validation_error"],
+    /* R4-B4: مسارات الرمي داخل parseFile (محفظة/مادة معطوبة) — كانت تفلت من
+     * القناة المهيكلة إلى قاطع الواجهة العام؛ الآن رفض مهيكل بنص السبب. */
+    [
+      JSON.stringify({ ...valid, cashWallets: [{ ...valid.cashWallets[0], kind: "gold_bar" }] }),
+      "validation_error",
+    ],
+    [
+      JSON.stringify({
+        ...valid,
+        materials: [{ ...valid.materials[0], openingQuantityMilli: 0, openingValueMinor: 8750 }],
+      }),
+      "validation_error",
+    ],
+    [
+      JSON.stringify({
+        ...valid,
+        cashWallets: [valid.cashWallets[0], { ...valid.cashWallets[0], name: "مكرر" }],
+      }),
+      "validation_error",
+    ],
   ])("rejects %s before writing", async text => {
     const store = new MemoryLocalStore();
     const service = new GuidedOpeningImportService(store);
@@ -87,6 +107,28 @@ describe("GuidedOpeningImportService", () => {
       ok: true,
       value: { profile: null, cashWallets: [], materials: [] },
     });
+  });
+
+  it("R4-B4: parse-time throws return the structured rejection with the thrown reason, not an escape", async () => {
+    const store = new MemoryLocalStore();
+    const service = new GuidedOpeningImportService(store);
+    const badWallet = JSON.stringify({
+      ...valid,
+      cashWallets: [{ ...valid.cashWallets[0], kind: "gold_bar" }],
+    });
+    const result = await service.prepare(badWallet);
+    expect(result).toMatchObject({ ok: false, code: "validation_error" });
+    if (result.ok) throw new Error("expected rejection");
+    expect(result.message).toContain("محفظة الكاش الافتتاحية غير صالحة");
+    expect(result.message).toContain("بقيت بيانات هذا الجهاز دون تغيير");
+    const badMaterial = JSON.stringify({
+      ...valid,
+      materials: [{ ...valid.materials[0], openingQuantityMilli: 0, openingValueMinor: 8750 }],
+    });
+    const materialResult = await service.prepare(badMaterial);
+    expect(materialResult).toMatchObject({ ok: false, code: "validation_error" });
+    if (materialResult.ok) throw new Error("expected rejection");
+    expect(materialResult.message).toContain("كمية وقيمة موجبتين معًا");
   });
 
   it("rejects a non-empty store and does not overwrite it", async () => {

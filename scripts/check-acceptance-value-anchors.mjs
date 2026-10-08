@@ -1,23 +1,22 @@
 #!/usr/bin/env node
 /**
- * Wave H (STR-623 — 2026-10-04): مراسي دريفت قيم القبول المكررة.
+ * Wave H (STR-623 — 2026-10-04) ثم R4-B2 (2026-10-08): مراسي قيم القبول.
  *
- * المكتشف المعادي: موقعان يعرفان طواقم قبول محلية تكرر معرفة مصادرها
- * السلطوية خارج سجل 4D وكل حراسة — تغيير القائمة المرجعية لا يفشل أي فحص
- * فينزلق الانحراف صامتًا (نمط الفشل الأول الذي وُجدت 4D لإغلاقه):
- *   (1) application/agreements/agreementContextService.ts — طاقم مصادر
- *       الاتفاق (8 قيم: 5 حالية + 3 تاريخية) + اتحاد LegacyAgreementSource؛
- *       السلطوي: AGREEMENT_SOURCE_ACCEPTANCE في transferCompatibilityValues
- *       (المفروز من LEGACY_AGREEMENT_SOURCES نفسه).
- *   (2) application/transfers/guidedOpeningImportService.ts — طاقما
- *       walletKinds وmaterialUnits؛ السلطوي: اتحاد CashWalletKind في
- *       domain/cash-continuity/types.ts وقائمة materialUnits في
- *       domain/inventory-material/types.ts.
+ * التاريخ: كان المكتشف موقعين يعرفان طواقم قبول محلية تكرر معرفة مصادرها
+ * السلطوية — فأقيمت هذه المراسي على «تساوي حرفي بين النسختين» (أي انحراف
+ * يفشل الفحص) إلى حين بوابة STR-608.
  *
- * المرسى: يستخرج القيم الحرفية من الموقعين المحليين ومن مصادرهما السلطوية
- * ويفشل عند أي انحراف (قيمة ناقصة/زائدة/مختلفة). التوحيد الكامل (استهلاك
- * السلطوي مباشرة بدل النسخة المحلية) مؤجل لبوابته STR-608/الأثر الإنتاجي —
- * حتى ذلك الحين هذا المرسى يجعل الانحراف مستحيل الصمت.
+ * R4-B2 (توحيد قيم القبول الحالية — قرار STR-608 الموثق): المواقع الثلاثة
+ * صارت تستهلك مصادرها الكنونية مباشرة وقت التشغيل:
+ *   (1) application/agreements/agreementContextService.ts — يستورد
+ *       AGREEMENT_SOURCE_ACCEPTANCE وLegacyAgreementSource من
+ *       transferCompatibilityValues (السجل الكنوني) ويبني الطاقم منه؛
+ *   (2) application/transfers/guidedOpeningImportService.ts — يبني walletKinds
+ *       من cashWalletKinds الكنونية (domain/cash-continuity) وmaterialUnits
+ *       من قائمة المجال (domain/inventory-material).
+ * بعد التوحيد صار الانحراف مستحيلًا بالبناء (النوع + الاستيراد) — المراسي
+ * هنا تثبت **الاستهلاك نفسه**: أن كل موقع ما زال يستورد ويبني من مصدره
+ * الكنوني، ولم يعد يحمل نسخة حرفية محلية، وأن مصادر المجال قائمة بأعضائها.
  *
  * الاستخدام: node scripts/check-acceptance-value-anchors.mjs [repoRoot].
  * الخروج: 0 = المراسي ثابتة؛ 1 = أي انحراف.
@@ -81,47 +80,82 @@ export function checkAcceptanceValueAnchors(repoRoot, readFile) {
   const violations = [];
   const report = {};
 
-  /* (1) طاقم مصادر الاتفاق: المحلي ≡ السلطوي (الحالي ∪ التاريخي). */
+  /* (١) مصادر الاتفاق: الاستهلاك الكنوني المباشر من سجل التوافق. */
   const ctx = read(SITES.agreementContext);
   const compat = read(SITES.compatibilityValues);
   const legacyCanonical = extractStringLiterals(compat, "LEGACY_AGREEMENT_SOURCES = [");
   const acceptanceCanonical = extractStringLiterals(compat, "AGREEMENT_SOURCE_ACCEPTANCE = [");
-  const localSources = extractStringLiterals(ctx, "const sources = new Set<AgreementSourceValue>([");
-  const localLegacy = extractUnionValues(ctx, "export type LegacyAgreementSource =");
-  report.agreementSources = { canonical: acceptanceCanonical, local: localSources };
-  if (!acceptanceCanonical || !localSources || !setsEqual(acceptanceCanonical, localSources)) {
+  const ctxImportsRegistry =
+    /import\s*\{[^}]*AGREEMENT_SOURCE_ACCEPTANCE[^}]*\}\s*from\s*"@\/application\/transfers\/transferCompatibilityValues"/.test(
+      ctx,
+    );
+  const ctxBuildsFromRegistry = ctx.includes("new Set<AgreementSourceValue>(AGREEMENT_SOURCE_ACCEPTANCE)");
+  const ctxNoLocalLiteral = !ctx.includes("new Set<AgreementSourceValue>([");
+  report.agreementSources = { canonical: acceptanceCanonical, consumed: ctxBuildsFromRegistry };
+  if (!ctxImportsRegistry || !ctxBuildsFromRegistry || !ctxNoLocalLiteral) {
     violations.push({
       anchor: "agreement-source-acceptance",
-      hint: `طاقم مصادر الاتفاق المحلي انحرف عن AGREEMENT_SOURCE_ACCEPTANCE — المحلي: ${JSON.stringify(localSources)}؛ السلطوي: ${JSON.stringify(acceptanceCanonical)}`,
+      hint: `agreementContextService لم يعد يستهلك AGREEMENT_SOURCE_ACCEPTANCE من سجل التوافق مباشرة (استيراد: ${ctxImportsRegistry}؛ بناء: ${ctxBuildsFromRegistry}؛ خلوّ من النسخة الحرفية: ${ctxNoLocalLiteral})`,
     });
   }
-  if (!legacyCanonical || !localLegacy || !setsEqual(legacyCanonical, localLegacy)) {
+  const ctxImportsLegacyType =
+    /import\s*\{[^}]*type\s+LegacyAgreementSource[^}]*\}\s*from\s*"@\/application\/transfers\/transferCompatibilityValues"/.test(
+      ctx,
+    );
+  const ctxNoLocalLegacyUnion = !/export type LegacyAgreementSource\s*=\s*"/.test(ctx);
+  report.legacyAgreementSource = { canonical: legacyCanonical, consumed: ctxImportsLegacyType };
+  if (!ctxImportsLegacyType || !ctxNoLocalLegacyUnion || !legacyCanonical) {
     violations.push({
       anchor: "legacy-agreement-source-union",
-      hint: `اتحاد LegacyAgreementSource المحلي انحرف عن LEGACY_AGREEMENT_SOURCES — المحلي: ${JSON.stringify(localLegacy)}؛ السلطوي: ${JSON.stringify(legacyCanonical)}`,
+      hint: `اتحاد LegacyAgreementSource لم يعد يُستهلك من السجل الكنوني (استيراد النوع: ${ctxImportsLegacyType}؛ لا اتحاد محلي: ${ctxNoLocalLegacyUnion})`,
     });
   }
 
-  /* (2) طاقما مستورد الفتح الموجه: المحلي ≡ المجال. */
+  /* (٢) مستورد الفتح الموجه: الاستهلاك الكنوني المباشر من المجال. */
   const guided = read(SITES.guidedOpeningImport);
   const cashTypes = read(SITES.cashContinuityTypes);
   const invTypes = read(SITES.inventoryMaterialTypes);
-  const localWalletKinds = extractStringLiterals(guided, "const walletKinds = new Set<CashWalletKind>([");
-  const localMaterialUnits = extractStringLiterals(guided, "const materialUnits = new Set<MaterialUnit>([");
-  const canonicalWalletKinds = extractUnionValues(cashTypes, "export type CashWalletKind");
+  const canonicalWalletKinds = extractStringLiterals(cashTypes, "export const cashWalletKinds = [");
   const canonicalMaterialUnits = extractStringLiterals(invTypes, "export const materialUnits = [");
-  report.walletKinds = { canonical: canonicalWalletKinds, local: localWalletKinds };
-  report.materialUnits = { canonical: canonicalMaterialUnits, local: localMaterialUnits };
-  if (!canonicalWalletKinds || !localWalletKinds || !setsEqual(canonicalWalletKinds, localWalletKinds)) {
+  report.walletKinds = { canonical: canonicalWalletKinds, consumed: true };
+  report.materialUnits = { canonical: canonicalMaterialUnits, consumed: true };
+  const guidedImportsWalletKinds =
+    /import\s*\{[^}]*cashWalletKinds[^}]*\}\s*from\s*"@micro-domain\/cash-continuity\/index\.js"/.test(
+      guided,
+    );
+  const guidedBuildsWalletKinds = guided.includes("new Set<CashWalletKind>(cashWalletKinds)");
+  const guidedNoLocalWalletLiteral = !guided.includes("new Set<CashWalletKind>([");
+  if (!guidedImportsWalletKinds || !guidedBuildsWalletKinds || !guidedNoLocalWalletLiteral) {
     violations.push({
       anchor: "guided-wallet-kinds",
-      hint: `طاقم walletKinds المحلي انحرف عن اتحاد CashWalletKind الكنوني — المحلي: ${JSON.stringify(localWalletKinds)}؛ السلطوي: ${JSON.stringify(canonicalWalletKinds)}`,
+      hint: `guidedOpeningImportService لم يعد يستهلك cashWalletKinds الكنونية (استيراد: ${guidedImportsWalletKinds}؛ بناء: ${guidedBuildsWalletKinds}؛ خلوّ من النسخة الحرفية: ${guidedNoLocalWalletLiteral})`,
     });
   }
-  if (!canonicalMaterialUnits || !localMaterialUnits || !setsEqual(canonicalMaterialUnits, localMaterialUnits)) {
+  const guidedImportsMaterialUnits =
+    /import\s*\{[^}]*materialUnits\s+as\s+domainMaterialUnits[^}]*\}\s*from\s*"@micro-domain\/inventory-material\/index\.js"/.test(
+      guided,
+    );
+  const guidedBuildsMaterialUnits = guided.includes("new Set<MaterialUnit>(domainMaterialUnits)");
+  const guidedNoLocalMaterialLiteral = !guided.includes("new Set<MaterialUnit>([");
+  if (!guidedImportsMaterialUnits || !guidedBuildsMaterialUnits || !guidedNoLocalMaterialLiteral) {
     violations.push({
       anchor: "guided-material-units",
-      hint: `طاقم materialUnits المحلي انحرف عن قائمة المجال الكنونية — المحلي: ${JSON.stringify(localMaterialUnits)}؛ السلطوي: ${JSON.stringify(canonicalMaterialUnits)}`,
+      hint: `guidedOpeningImportService لم يعد يستهلك قائمة materialUnits الكنونية (استيراد مُعاد التسمية: ${guidedImportsMaterialUnits}؛ بناء: ${guidedBuildsMaterialUnits}؛ خلوّ من النسخة الحرفية: ${guidedNoLocalMaterialLiteral})`,
+    });
+  }
+
+  /* (٣) تثبيت المصادر الكنونية نفسها — القوائم الحية بأعضائها الموثقة. */
+  const expectedWalletKinds = ["cash_drawer", "bank_account", "digital_wallet", "other"];
+  if (!canonicalWalletKinds || !setsEqual(canonicalWalletKinds, expectedWalletKinds)) {
+    violations.push({
+      anchor: "domain-cash-wallet-kinds",
+      hint: `قائمة cashWalletKinds الكنونية في domain/cash-continuity تغيرت عن الأعضاء الأربعة الموثقة — الحالي: ${JSON.stringify(canonicalWalletKinds)}`,
+    });
+  }
+  if (!canonicalMaterialUnits || canonicalMaterialUnits.length === 0) {
+    violations.push({
+      anchor: "domain-material-units",
+      hint: `قائمة materialUnits الكنونية في domain/inventory-material غير مقروءة — ${JSON.stringify(canonicalMaterialUnits)}`,
     });
   }
 
@@ -131,7 +165,9 @@ export function checkAcceptanceValueAnchors(repoRoot, readFile) {
 function main() {
   const repoRoot = process.argv[2] ? path.resolve(process.argv[2]) : ROOT;
   if (!fs.existsSync(path.join(repoRoot, "package.json"))) {
-    console.error("acceptance-value-anchors: USAGE: node scripts/check-acceptance-value-anchors.mjs [repoRoot]");
+    console.error(
+      "acceptance-value-anchors: USAGE: node scripts/check-acceptance-value-anchors.mjs [repoRoot]",
+    );
     process.exit(2);
   }
   const { ok, violations } = checkAcceptanceValueAnchors(repoRoot);
@@ -144,7 +180,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    "acceptance-value-anchors: PASS — المراسي الأربعة ثابتة (مصادر الاتفاق 5+3، الاتحاد التاريخي، walletKinds، materialUnits) — صفر انحراف صامت (Wave H/STR-623)",
+    "acceptance-value-anchors: PASS — المواقع الثلاثة تستهلك مصادرها الكنونية مباشرة (مصادر الاتفاق من سجل التوافق؛ walletKinds وmaterialUnits من المجال) والقوائم الكنونية بأعضائها الموثقة — صفر نسخة حرفية محلية (Wave H/STR-623 ثم توحيد R4-B2)",
   );
 }
 
