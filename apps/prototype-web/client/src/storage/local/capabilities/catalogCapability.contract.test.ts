@@ -158,6 +158,77 @@ async function runCapabilityScenario(store: CatalogStore) {
   const afterRevision = await store.listCatalogTemplates();
   expect(afterRevision.ok && afterRevision.value).toHaveLength(2);
 }
+
+/* R4-A5 (إغلاق HAF-1 — أجنحة الرفض عند مستوى العدسة): مراجعة القالب هي
+ * المسار المحروس الوحيد في القدرة، ورفضها مشتق من سلوك المحوّلين الحي
+ * (المجموعة ١٠ — توحيد ترتيب فحص مفتاح الحتمية قبل النشاط):
+ *  (١) إعادة التشغيل بمفتاح الحتمية نفسه = إعادة استخدام صادقة حتى بعد
+ *      أن خملت السابقة بالالتزام الأول — لا تكرار ولا رفض كاذب؛
+ *  (٢) السابقة لم تعد نافذة (مسار متزامن سبقنا) = رفض صادر بلا كتابة؛
+ *  (٣) معرّف الخلف محتلّ بسجل آخر = تعارض هوية صادر بلا تغيير. */
+async function runRejectionWing(store: CatalogStore) {
+  const template = templateFixture("tpl-rej-1", "item-rej-1", 1, true, "op-tpl-rej-1");
+  await store.saveCatalogItem(catalogItemFixture("item-rej-1", "op-item-rej-1"));
+  await store.saveCatalogTemplate(template);
+
+  /* (١) التزام صادق أول: السابقة بصيغتها المستبدلة (خاملة) → الخلف النشط —
+   *    نمط الاستدعاء الموثق: المستدعي يحسب الصيغة المستبدلة والمحوّل يخزنها
+   *    حرفيًا داخل المعاملة. */
+  const successor = templateFixture("tpl-rej-2", "item-rej-1", 2, true, "op-tpl-rej-2");
+  const first = await store.commitCatalogTemplateRevision({ ...template, active: false }, successor);
+  expect(first.ok).toBe(true);
+
+  /* (١-مكرر) إعادة التشغيل بمفتاح الخلف نفسه = إعادة استخدام لا تكرار. */
+  const replay = await store.commitCatalogTemplateRevision(
+    { ...template, active: false },
+    templateFixture("tpl-rej-2b", "item-rej-1", 2, true, "op-tpl-rej-2"),
+  );
+  expect(replay.ok).toBe(true);
+  if (!replay.ok) throw new Error(replay.message);
+  expect(replay.value.next.id).toBe("tpl-rej-2");
+  const templatesAfterReplay = await store.listCatalogTemplates();
+  expect(templatesAfterReplay.ok && templatesAfterReplay.value).toHaveLength(2);
+
+  /* (٢) السابقة خاملة ومفتاح جديد = رفض صادر، لا شيء يُكتب. */
+  const stale = await store.commitCatalogTemplateRevision(
+    { ...template, active: false },
+    templateFixture("tpl-rej-3", "item-rej-1", 3, true, "op-tpl-rej-3"),
+  );
+  expect(stale.ok).toBe(false);
+  const afterStale = await store.listCatalogTemplates();
+  expect(afterStale.ok && afterStale.value).toHaveLength(2);
+
+  /* (٣) معرّف الخلف محتلّ = تعارض هوية صادر بلا تغيير. */
+  const squatter = templateFixture("tpl-rej-4", "item-rej-1", 1, true, "op-tpl-rej-4");
+  await store.saveCatalogTemplate(squatter);
+  const activeOriginal = templateFixture("tpl-rej-5", "item-rej-1", 1, true, "op-tpl-rej-5");
+  await store.saveCatalogTemplate(activeOriginal);
+  const identityConflict = await store.commitCatalogTemplateRevision(
+    activeOriginal,
+    templateFixture("tpl-rej-4", "item-rej-1", 2, true, "op-tpl-rej-6"),
+  );
+  expect(identityConflict.ok).toBe(false);
+  const squatterAfter = await store.getCatalogTemplate("tpl-rej-4");
+  expect(squatterAfter.ok && squatterAfter.value?.createdOperationKey).toBe("op-tpl-rej-4");
+}
+describe("R4-A5/HAF-1 — قدرة الكتالوج: أجنحة الرفض عند مستوى العدسة", () => {
+  afterEach(async () => {
+    await clearDatabase();
+  });
+
+  it("الذاكرة: إعادة الاستخدام ورفض الخمولة ورفض تعارض الهوية", async () => {
+    await runRejectionWing(new MemoryLocalStore());
+  });
+
+  it("IndexedDB (fake-indexeddb): نفس الرفض الثلاثي", async () => {
+    await clearDatabase();
+    try {
+      await runRejectionWing(new IndexedDbLocalStore());
+    } finally {
+      await clearDatabase();
+    }
+  });
+});
 describe("R3 — قدرة الكتالوج (بطاقة R3-SC-09): العضوية", () => {
   it("قائمة الطرق هي نطاق المجموعة بالضبط: 13 أسماء فريدة", () => {
     expect(catalogStoreMethods).toHaveLength(13);

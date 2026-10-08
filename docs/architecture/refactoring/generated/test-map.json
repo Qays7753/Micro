@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "f56dca3d7393416d742a6723c53bffcd4bc597ec",
+  "head": "84c8546edbd960ac8419e38cd90cbcd82b36fe7a",
   "pages": {
     "total": 60,
     "map": {
@@ -720,6 +720,8 @@
           "apps/prototype-web/client/src/storage/local/adapterConformance.receivedLoan.test.ts",
           "apps/prototype-web/client/src/storage/local/capabilities/assetCapability.contract.test.ts",
           "apps/prototype-web/client/src/storage/local/capabilities/loanCapability.contract.test.ts",
+          "apps/prototype-web/client/src/storage/local/loanCommitGuard.test.ts",
+          "apps/prototype-web/client/src/storage/local/receivedLoanCommitGuard.test.ts",
           "tests/domain/asset.test.ts",
           "tests/domain/assetResidual.test.ts",
           "tests/domain/loan.test.ts",
@@ -835,7 +837,8 @@
           "apps/prototype-web/client/src/application/transfers/localTransferService.expenseBudget.test.ts",
           "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.expenseBudget.test.ts",
           "apps/prototype-web/client/src/storage/local/adapterConformance.expenseBudget.test.ts",
-          "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetCapability.contract.test.ts"
+          "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetCapability.contract.test.ts",
+          "apps/prototype-web/client/src/storage/local/expenseBudgetCommitGuard.test.ts"
         ]
       },
       "43-asset-depreciation-prototype-contract.md": {

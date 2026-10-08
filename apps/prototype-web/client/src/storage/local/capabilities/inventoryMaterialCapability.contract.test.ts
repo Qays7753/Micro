@@ -116,6 +116,82 @@ async function runCapabilityScenario(store: InventoryMaterialStore) {
   expect(shortages.ok && shortages.value).toHaveLength(1);
   expect(shortages.ok && shortages.value[0]?.shortageQuantityMilli).toBe(3_000);
 }
+
+/* R4-A5 (إغلاق HAF-1 — جناح العمق عند مستوى العدسة): commitInventory و
+ * commitInventoryWithShortage قناتا كتابة ذرّيتان حتميتان **بالتصميم** —
+ * الرفض والدلالة عند كتاب المخزون المحروسين في طبقة التطبيق
+ * (inventoryMaterialWrites: حتمية operationKey، ومادة موجودة، وعدم سلبية
+ * الرصيد). المسار الحامل للعمق الحتمي عند العدسة هو commitInventoryWithEvents:
+ * إعادة التشغيل بمفاتيح الحتمية نفسها = إعادة استخدام صادقة بلا تكرار —
+ * تُثبت هنا على المحوّلين معًا، مع خلوّ الالتزام الجزئي (مادة null) من أي
+ * اختراع. */
+async function runDeterminismWing(store: InventoryMaterialStore) {
+  const material = materialFixture("mat-det-1", "op-mat-det-1");
+  const movement = movementFixture("mv-det-1", "mat-det-1", "op-mv-det-1");
+  const event = Object.freeze({
+    id: "event-det-1",
+    type: "operating_expense_cash",
+    currency: "JOD",
+    amountMinor: 3_000,
+    occurredOn: "2026-10-07",
+    recordedAt: TS,
+    idempotencyKey: "op-event-det-1",
+    note: "شراء مخزون نقدي",
+    counterparty: null,
+    relatedEventId: null,
+    expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+    correctionType: null,
+    correctionOfEventId: null,
+    correctionReason: null,
+    cashDeltaMinor: -3_000,
+    payableDeltaMinor: 0,
+    ownerCapitalDeltaMinor: 0,
+    operatingExpenseDeltaMinor: 3_000,
+  });
+
+  /* الالتزام الأول: جديد بالكامل — لا إعادة استخدام. */
+  const first = await store.commitInventoryWithEvents(material, [movement], [event]);
+  expect(first.ok).toBe(true);
+  if (!first.ok) throw new Error(first.message);
+  expect(first.value.reused).toBe(false);
+  const movementsAfterFirst = await store.listInventoryMovements();
+  expect(movementsAfterFirst.ok && movementsAfterFirst.value).toHaveLength(1);
+
+  /* إعادة التشغيل بمفاتيح الحتمية نفسها = إعادة استخدام صادقة بلا تكرار. */
+  const replay = await store.commitInventoryWithEvents(material, [movement], [event]);
+  expect(replay.ok).toBe(true);
+  if (!replay.ok) throw new Error(replay.message);
+  expect(replay.value.reused).toBe(true);
+  const movementsAfterReplay = await store.listInventoryMovements();
+  expect(movementsAfterReplay.ok && movementsAfterReplay.value).toHaveLength(1);
+
+  /* الالتزام الجزئي الموثق: مادة null تكتب الحركات فقط — لا اختراع مادة. */
+  const movementOnly = movementFixture("mv-det-2", "mat-det-1", "op-mv-det-2");
+  const partial = await store.commitInventory(null, [movementOnly]);
+  expect(partial.ok).toBe(true);
+  if (!partial.ok) throw new Error(partial.message);
+  expect(partial.value.material).toBeNull();
+  const materialsAfterPartial = await store.listMaterials();
+  expect(materialsAfterPartial.ok && materialsAfterPartial.value.map(m => m.id)).toEqual(["mat-det-1"]);
+}
+describe("R4-A5/HAF-1 — قدرة المادة والمخزون: عمق العدسة", () => {
+  afterEach(async () => {
+    await clearDatabase();
+  });
+
+  it("الذاكرة: حتمية مفاتيح commitInventoryWithEvents والالتزام الجزئي الموثق", async () => {
+    await runDeterminismWing(new MemoryLocalStore());
+  });
+
+  it("IndexedDB (fake-indexeddb): الحتمية نفسها", async () => {
+    await clearDatabase();
+    try {
+      await runDeterminismWing(new IndexedDbLocalStore());
+    } finally {
+      await clearDatabase();
+    }
+  });
+});
 describe("R3 — قدرة المادة والمخزون (بطاقة R3-SC-07): العضوية", () => {
   it("قائمة الطرق هي نطاق المجموعة بالضبط: 8 أسماء فريدة", () => {
     expect(inventoryMaterialStoreMethods).toHaveLength(8);

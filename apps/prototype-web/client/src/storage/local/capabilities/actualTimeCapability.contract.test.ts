@@ -56,6 +56,41 @@ async function runCapabilityScenario(store: ActualTimeStore) {
   const afterSecond = await store.listActualTimeRecords();
   expect(afterSecond.ok && afterSecond.value).toHaveLength(2);
 }
+
+/* R4-A5 (إغلاق HAF-1 — جناح العمق عند مستوى العدسة): القدرة سطح حفظ حتمي
+ * بلا رفض كتابة **بالتصميم الموثق** (بطاقة R3-SC-10: بلا حارس مستقل — الرفض
+ * والدلالة عند كتاب الوقت في طبقة التطبيق). ما يُثبت هنا هو العقد الحي
+ * الفعلي: الاستبدال الحتمي بالمعرّف — إعادة الحفظ بالمعرّف نفسه تستبدل
+ * المحتوى ولا تكرر السجل، فلا يظهر سجلان لمعرّف واحد أبدًا. */
+async function runDeterminismWing(store: ActualTimeStore) {
+  const first = timeRecordFixture("time-det-1", "op-time-det-1");
+  await store.saveActualTimeRecord(first);
+  const replacement = Object.freeze({ ...first, minutesDelta: 90, note: "تصحيح المدة" });
+  const resaved = await store.saveActualTimeRecord(replacement);
+  expect(resaved.ok).toBe(true);
+  const listed = await store.listActualTimeRecords();
+  expect(listed.ok && listed.value).toHaveLength(1);
+  expect(listed.ok && listed.value[0]?.minutesDelta).toBe(90);
+  expect(listed.ok && listed.value[0]?.note).toBe("تصحيح المدة");
+}
+describe("R4-A5/HAF-1 — قدرة الوقت الفعلي: عمق العدسة", () => {
+  afterEach(async () => {
+    await clearDatabase();
+  });
+
+  it("الذاكرة: الاستبدال الحتمي بالمعرّف — لا تكرار ولا حارس مخترع", async () => {
+    await runDeterminismWing(new MemoryLocalStore());
+  });
+
+  it("IndexedDB (fake-indexeddb): الاستبدال الحتمي نفسه", async () => {
+    await clearDatabase();
+    try {
+      await runDeterminismWing(new IndexedDbLocalStore());
+    } finally {
+      await clearDatabase();
+    }
+  });
+});
 describe("R3 — قدرة الوقت الفعلي (بطاقة R3-SC-10): العضوية", () => {
   it("قائمة الطرق هي نطاق المجموعة بالضبط: 2 أسماء فريدة", () => {
     expect(actualTimeStoreMethods).toHaveLength(2);

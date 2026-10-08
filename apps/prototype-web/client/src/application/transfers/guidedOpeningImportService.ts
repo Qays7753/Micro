@@ -1,4 +1,5 @@
 import {
+  cashWalletKinds,
   createCashContinuityEntry,
   createCashWallet,
   type CashWalletKind,
@@ -6,6 +7,7 @@ import {
 import {
   createInventoryMovement,
   createMaterial,
+  materialUnits as domainMaterialUnits,
   type MaterialUnit,
 } from "@micro-domain/inventory-material/index.js";
 import {
@@ -76,8 +78,14 @@ const isText = (value: unknown, min = 1, max = 240): value is string =>
   typeof value === "string" && value.trim().length >= min && value.trim().length <= max;
 const isInteger = (value: unknown, minimum = 0): value is number =>
   typeof value === "number" && Number.isSafeInteger(value) && value >= minimum;
-const walletKinds = new Set<CashWalletKind>(["cash_drawer", "bank_account", "digital_wallet", "other"]);
-const materialUnits = new Set<MaterialUnit>(["piece", "meter", "kilogram", "liter", "other"]);
+/* R4-B2 (STR-623 — توحيد قيم القبول الحالية، 2026-10-08): الطاقمان يُبنيان
+ * من مصدرهما الكنوني وقت التشغيل لا من نسخة حرفية محلية — البرميلان
+ * مستوردان أصلًا في هذه الشظية (createCashWallet/createMaterial) فصفر أثر
+ * حزمة صافٍ، والانحراف صار مستحيلًا بالبناء (النوع + الاستهلاك المباشر).
+ * كان الطاقمان المحليان محروسين بمراسي check-acceptance-value-anchors —
+ * المراسي تحولت لإثبات الاستهلاك هذا نفسه. */
+const walletKinds = new Set<CashWalletKind>(cashWalletKinds);
+const materialUnits = new Set<MaterialUnit>(domainMaterialUnits);
 
 function isSource(value: unknown): boolean {
   return (
@@ -204,7 +212,22 @@ export class GuidedOpeningImportService {
   async prepare(text: string): Promise<GuidedOpeningImportResult<GuidedOpeningImportPreview>> {
     const current = await this.store.readSnapshot();
     if (!current.ok) return fail("storage_error", "تعذر قراءة الحالة المحلية للتحقق قبل الاستيراد.");
-    const parsed = parseFile(text, this.now());
+    /* R4-B4 (2026-10-08): دوال الفحص داخل parseFile ترمي Error صريحًا
+     * للبنود المعطوبة (محفظة/مادة غير صالحة) — كان الرمي يصل قاطع الواجهة
+     * العام فتظهر الرسالة العامة بدل الرفض المهيكل الصادق بنص السبب.
+     * نفس عقال R2 (M-03/D2) في المسار الكامل المجاور: قناة مهيكلة
+     * validation_error بنص الرمي، بلا أي تغيير في قرار القبول/الرفض —
+     * الرمي قبل أي كتابة والبيانات لا تُمس في الحالتين. */
+    let parsed: GuidedOpeningImportResult<GuidedOpeningImportFile>;
+    try {
+      parsed = parseFile(text, this.now());
+    } catch (error) {
+      const detail = error instanceof Error && error.message ? ` (${error.message})` : "";
+      return fail(
+        "validation_error",
+        `بيانات الاستيراد الافتتاحي غير صالحة${detail}. بقيت بيانات هذا الجهاز دون تغيير.`,
+      );
+    }
     if (!parsed.ok) return parsed;
     const file = parsed.value;
     const expectedKey = (kind: string, id: string) => `guided-opening:${file.importId}:${kind}:${id}`;

@@ -2,10 +2,21 @@
  * G7-A agreement context: local memory for an existing order, not CRM or messaging.
  * It never creates a ScheduleEntry, reminder, financial event, or external side effect.
  */
-import type { AgreementSource, FollowUpEvent, StoredCraftOrder } from "@/storage/local/types";
+import type { FollowUpEvent, StoredCraftOrder } from "@/storage/local/types";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { isValidLocalDate } from "./followUpDate";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
+/* R4-B2 (STR-623 — توحيد قيم القبول الحالية، 2026-10-08): الاتحاد والطاقم
+ * يُستهلكان من سجل التوافق الكنوني (transferCompatibilityValues — البيت
+ * الموثق الوحيد لقيم التوافق فوق اتحاد التخزين الحالي) بلا اتحاد محلي
+ * موازٍ. الاستيراد داخلي تطبيقي مباشر (نمط Wave B/ADR-011 الموثق على باب
+ * transfers)؛ كان الطاقم المحلي محروسًا بمراسي check-acceptance-value-
+ * anchors — المراسي تحولت لإثبات الاستهلاك هذا نفسه. */
+import {
+  AGREEMENT_SOURCE_ACCEPTANCE,
+  type AgreementSourceValue,
+  type LegacyAgreementSource,
+} from "@/application/transfers/transferCompatibilityValues";
 import {
   NOT_FOUND,
   STORAGE_ERROR,
@@ -15,8 +26,7 @@ import {
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
-export type LegacyAgreementSource = "conversation" | "call" | "in_person";
-export type AgreementSourceValue = AgreementSource | LegacyAgreementSource;
+export type { AgreementSourceValue, LegacyAgreementSource };
 export type AgreementContextInput = {
   agreementSource: AgreementSourceValue | null;
   followUpSummary: string | null;
@@ -36,16 +46,9 @@ export type AgreementContextResult<T> =
       message: string;
     };
 
-const sources = new Set<AgreementSourceValue>([
-  "instagram",
-  "whatsapp",
-  "referral",
-  "walk_in",
-  "other",
-  "conversation",
-  "call",
-  "in_person",
-]);
+/* R4-B2: الطاقم يُبنى من السجل الكنوني وقت التشغيل — الاتحاد الحالي (خمس)
+ * ∪ التاريخية (ثلاث) كما يستهلكها حد النقل نفسه؛ صفر انحراف ممكن. */
+const sources = new Set<AgreementSourceValue>(AGREEMENT_SOURCE_ACCEPTANCE);
 const normalized = (value: string | null) => value?.trim() || null;
 const asView = (stored: StoredCraftOrder): AgreementContextView => ({
   id: stored.id,
