@@ -468,7 +468,10 @@ export class CorrectionHistoryService {
           id: `asset-contract:${asset.id}:${revision.revision}`,
           kind: "asset_contract_revision",
           recordedAt: revision.changedAt,
-          occurredOn: revision.changedAt.slice(0, 10),
+          /* R2 (M-05/X3، 2026-10-08): اشتقاق عرض من لحظة مخزنة عبر عقد وقت
+           * الأعمال — كان قصّ UTC يزيح اليوم للمراجعات المسائية؛ fallback
+           * القصّ بعد الحارس كما في نظيرتها أعلاه. */
+          occurredOn: ammanDateOrNull(revision.changedAt) ?? revision.changedAt.slice(0, 10),
           amountEffectMinor: null,
           reason: revision.reason,
           originalLabel: `عقد الأصل «${asset.name}» قبل المراجعة — العمر ${revision.lifeMonths ?? "?"} شهرًا`,

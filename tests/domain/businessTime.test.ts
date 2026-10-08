@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ammanDateOrNull, localDateInAmman } from "../../src/domain/shared/index.js";
+import { INVALID_INSTANT_MESSAGE, ammanDateOrNull, localDateInAmman } from "../../src/domain/shared/index.js";
 
 /* المجموعة ٩ (STR-029/STR-031): عقد وحدة وقت الأعمال الكنسية — نفس
  * متجهات توصيف المجموعة ٩ تُثبت أن النقل من طبقة العرض لم يغير أي سلوك،
@@ -49,15 +49,26 @@ describe("Business Time canonical module (Group 9, STR-029/031)", () => {
     }
   });
 
+  it("R2 (M-08/D12، 2026-10-08): the semantic identity is an exported constant anchored to its frozen literal", () => {
+    /* الهوية الدلالية منظمة ومصدَّرة — المرتكز الحرفي يبقى هنا عمدًا كي لا
+     * يغير خطأ مطبعي في الثابت الهوية بصمت؛ والمستهلكون الجدد يستوردون
+     * الثابت لا النص الحر. */
+    expect(INVALID_INSTANT_MESSAGE).toBe("Invalid instant");
+    expect(() => localDateInAmman("garbage")).toThrowError(INVALID_INSTANT_MESSAGE);
+  });
+
   it("derives month keys as the first seven characters of the business date (no separate algorithm)", () => {
     expect(localDateInAmman("2026-08-31T21:00:00.000Z").slice(0, 7)).toBe("2026-09");
     expect(localDateInAmman("2025-12-31T21:59:59.999Z").slice(0, 7)).toBe("2026-01");
     expect(ammanDateOrNull("2026-07-14T21:00:00.000Z")!.slice(0, 7)).toBe("2026-07");
   });
 
-  it("defaults the throw variant to now and yields a well-formed business date", () => {
-    const today = localDateInAmman();
-    expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  it("R2 (M-11/D13, 2026-10-08): the throw variant requires an explicit instant — no ambient default remains", () => {
+    /* قلب مؤرخ: كان الافتراض «الآن» داخل المجال — أزيل بقرار المالك.
+     * القفل مزدوج: compile (tsc يرفض النداء بلا وسيط) + runtime
+     * (الوسيط الغائب = undefined = طابع غير صالح = رمي الهوية المعتمدة). */
+    // @ts-expect-error — الاستدعاء بلا وسيط ممنوع الآن بنوع الدالة نفسها
+    expect(() => localDateInAmman()).toThrow(INVALID_INSTANT_MESSAGE);
     expect(ammanDateOrNull(new Date())).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });

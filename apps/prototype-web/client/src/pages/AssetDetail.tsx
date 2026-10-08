@@ -13,7 +13,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyMinor } from "@/presentation/formatters";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 /* عقد ٤٣ (WS-179 — Wave 7): قراءة المتبقية الفعالة (الغياب = ٠). */
 import { residualOf } from "@micro-domain/asset/index.js";
@@ -21,6 +21,7 @@ import type { AssetDepreciationProposal, AssetEventSummary } from "@micro-domain
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 type Reading = {
   asset: AssetRecord;
   summary: AssetEventSummary;
@@ -58,11 +59,14 @@ export default function AssetDetail() {
   const [newLife, setNewLife] = useState("");
   const [newStart, setNewStart] = useState("");
   /* عقد ٤٣ (WS-179 — Wave 7): مراجعة المتبقية ضمن تعديل العقد الموثق. */
-  const [newResidual, setNewResidual] = useState("");
+  /* R2 (M-07/D9، 2026-10-08): حالة المال رقم minor قابلة للغياب — كانت
+   * نصًا يُعاد تحليله بـNumber() غير المحروس؛ القيمة من نواة الإدخال
+   * المالية (onNumericChange يبث minor) فلا تحليل نصوص إطلاقًا. */
+  const [newResidual, setNewResidual] = useState<number | null>(null);
   const [validNewResidual, setValidNewResidual] = useState(true);
   /* المجموعة ٤ (تصحيح مراجعة 4-c): تاريخ الإهلاك اختيار المالك — العقد وعد بتاريخ
    * يختاره هو لا بتاريخ فتح الصفحة؛ الافتراضي اليوم. */
-  const [depreciationAsOf, setDepreciationAsOf] = useState(localDateInAmman());
+  const [depreciationAsOf, setDepreciationAsOf] = useState(todayInAmman());
   const [acquisitionOpen, setAcquisitionOpen] = useState(false);
   const [correctedAmount, setCorrectedAmount] = useState(0);
   const [validCorrectedAmount, setValidCorrectedAmount] = useState(true);
@@ -298,7 +302,7 @@ export default function AssetDetail() {
               setRevisionOpen(current => !current);
               setNewLife(asset.lifeMonths === null ? "" : String(asset.lifeMonths));
               setNewStart(asset.depreciationStartOn ?? "");
-              setNewResidual(residualOf(asset) > 0 ? String(residualOf(asset)) : "");
+              setNewResidual(residualOf(asset) > 0 ? residualOf(asset) : null);
             }}
           >
             عدّل العمر النافع أو بداية الاستخدام
@@ -325,9 +329,9 @@ export default function AssetDetail() {
               <label className="micro-field">
                 <span>القيمة المتبقية (د.أ — فارغ = صفر)</span>
                 <EnglishNumberInput
-                  value={Number(newResidual) || 0}
+                  value={newResidual ?? 0}
                   kind="money"
-                  onNumericChange={value => setNewResidual(String(value))}
+                  onNumericChange={setNewResidual}
                   onTextValidityChange={setValidNewResidual}
                   aria-label="القيمة المتبقية للمراجعة"
                 />
@@ -351,7 +355,7 @@ export default function AssetDetail() {
                       assets.reviseContract(asset.id, {
                         lifeMonths: newLife.trim() === "" ? null : Number(newLife),
                         depreciationStartOn: newStart || null,
-                        residualValueMinor: newResidual.trim() === "" ? null : Number(newResidual),
+                        residualValueMinor: newResidual,
                         reason: contractReason,
                       }),
                     )
@@ -408,7 +412,7 @@ export default function AssetDetail() {
                   onClick={() =>
                     void run(() =>
                       assets.dispose(asset.id, {
-                        on: localDateInAmman(),
+                        on: todayInAmman(),
                         proceedsMinor,
                         reason: disposalReason,
                       }),
@@ -424,9 +428,7 @@ export default function AssetDetail() {
                     busy || !disposalReason.trim() || proceedsMinor > 0 || summary.bookValueMinor <= 0
                   }
                   onClick={() =>
-                    void run(() =>
-                      assets.writeOff(asset.id, { on: localDateInAmman(), reason: disposalReason }),
-                    )
+                    void run(() => assets.writeOff(asset.id, { on: todayInAmman(), reason: disposalReason }))
                   }
                 >
                   <Trash2 aria-hidden="true" /> اشطب الأصل

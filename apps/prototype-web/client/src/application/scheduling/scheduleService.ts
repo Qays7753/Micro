@@ -9,7 +9,12 @@ import type {
   StoredCraftOrder,
 } from "@/storage/local/types";
 import { storageFailureCode } from "@/storage/local/types";
-import { localDateInAmman } from "@micro-domain/shared/index.js";
+import {
+  daysInMonthOf,
+  isValidLocalDate,
+  localDateInAmman,
+  localDatePlusDays,
+} from "@micro-domain/shared/index.js";
 import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
 import {
   NOT_FOUND,
@@ -74,8 +79,9 @@ export type ScheduleResult<T> =
 const activeScheduleStatus = (status: ScheduleStatus) => status === "scheduled" || status === "postponed";
 const orderCanAppear = (stored: StoredCraftOrder) =>
   !["delivered", "settled", "cancelled"].includes(stored.order.status);
-const validDate = (value: string) =>
-  /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T12:00:00.000Z`).valueOf());
+/* R2 (M-04/D3، 2026-10-08): صلاحية يوم الموعد من نواة المجال — كانت
+ * regex+NaN فتقبل تواريخ الدوران (2026-02-30 تُشتق مواعيد منزاحة). */
+const validDate = (value: string) => isValidLocalDate(value);
 const validMonth = (value: string) => {
   const match = /^(\d{4})-(\d{2})$/.exec(value);
   if (!match) return false;
@@ -92,14 +98,15 @@ const timeMinutes = (time: string) => {
   const [hours, minutes] = time.split(":").map(Number);
   return hours * 60 + minutes;
 };
-const plusDays = (date: string, days: number) => {
-  const start = new Date(`${date}T12:00:00.000Z`);
-  start.setUTCDate(start.getUTCDate() + days);
-  return start.toISOString().slice(0, 10);
-};
+/* R2 (M-02/X1، 2026-10-08): إزاحة الأيام من نواة الحساب الخالص — كانت
+ * مرساة ظهر مكررة. مدخلات المشهد الحي (اليوم الجاري) لا تبلغ حد التمثيل
+ * أبدًا؛ fallback المدخل نفسه يحفظ حلقات العرض حية (fail-soft موثق). */
+const plusDays = (date: string, days: number) => localDatePlusDays(date, days) ?? date;
+/* R2 (M-02/X1، 2026-10-08): طول الشهر من نواة الحساب الخالص — كانت
+ * Date.UTC(y, m, 0) تعيد السنوات < 0100 إلى 1900+. المفتاح مُتحقق قبلها. */
 const daysInMonth = (month: string) => {
   const [year, monthNumber] = month.split("-").map(Number);
-  return new Date(Date.UTC(year!, monthNumber!, 0)).getUTCDate();
+  return daysInMonthOf(year!, monthNumber!);
 };
 const activeForOrder = (schedule: ScheduleEntry, order: StoredCraftOrder) =>
   activeScheduleStatus(schedule.status) && orderCanAppear(order);

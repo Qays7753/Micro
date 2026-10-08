@@ -78,6 +78,7 @@ import type { PeriodWasteReading } from "@/application/inventory";
 import { DepositsLayer } from "@/components/finance/DepositsLayer";
 /* المجموعة ٤ (عقد ٢٩): قراءات الأصول والقروض والعربون المحتفظ به. */
 import type { AssetOverviewRead } from "@/application/assets";
+import { todayInAmman } from "@/application/time";
 import type { LoanOverviewRead } from "@/application/loans";
 import type { RetainedDepositRow } from "@/application/financial-records";
 import * as G5Display from "@/components/finance/G5DecisionPanel";
@@ -87,7 +88,7 @@ import {
   formatMonthLabel,
   formatMoneyMinor,
   formatQuantityMilli,
-  localDateInAmman,
+  localDateMonthEnd,
 } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
@@ -158,7 +159,7 @@ type ExpenseBudgetStatusLineT = import("@/application/finance/expenseBudgetServi
 type ExpenseBudgetMonthListT = import("@/application/finance/expenseBudgetService").ExpenseBudgetMonthList;
 /* تسمية النطاق — مفردات عقد ٤٢ §٤: «مصروف عام» أو «فئة: نص صريح». */
 /* مفاتيح الأشهر داخل نطاق معروض صالح — سقف دفاعي لا حلقة بلا نهاية. */
-const currentMonth = () => localDateInAmman().slice(0, 7);
+const currentMonth = () => todayInAmman().slice(0, 7);
 /* FIN-001 (قرار المالك ٢٠٢٦-٠٩-١٦): تسمية واحدة لحالة «غير مسجل» في كل مالي —
  * القيمة العددية باقية كما هي، والعرض يتبع حالة الدليل لا العدد. */
 const NOT_RECORDED_LABEL = "غير مسجل";
@@ -167,10 +168,11 @@ const evidenceValue = (state: FinancialMetricEvidence, minor: number) =>
   state === "recorded" ? <MoneyValue minor={minor} /> : unknownValue();
 const validMonth = (month: string) =>
   /^\d{4}-\d{2}$/.test(month) && Number(month.slice(5)) >= 1 && Number(month.slice(5)) <= 12;
+/* R2 (M-02/X1، 2026-10-08): حدود الشهر من نواة التاريخ الكنسية — كانت
+ * Date.UTC رقمية (تعيد السنوات < 0100 إلى 1900+). */
 function monthBounds(month: string) {
-  const [year, numericMonth] = month.split("-").map(Number);
-  const lastDay = new Date(Date.UTC(year!, numericMonth!, 0)).getUTCDate();
-  return { from: `${month}-01`, to: `${month}-${String(lastDay).padStart(2, "0")}` };
+  const monthEnd = localDateMonthEnd(month);
+  return { from: `${month}-01`, to: monthEnd ?? `${month}-31` };
 }
 /* §10: مساعدات العرض الخاصة بقراءة G5 انتقلت إلى وحدة الطبقة — الاستيراد بلا نص مكرر. */
 const { displayCashAmount, formatted, shortStatusLabel } = G5Display;

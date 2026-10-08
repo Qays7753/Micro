@@ -11,8 +11,11 @@
  * 2) التوقيت: عمّان UTC+3 طول العام في ICU وقت التشغيل (التوقيت الصيفي
  *    الدائم منذ 2022) — حدّ اليوم المحلي 21:00:00Z ثابتًا؛ الدقة تتبع
  *    بيانات المنطقة الزمنية للمنصة، والخوارزمية لا تفترض إزاحة ثابتة.
- * 3) المدخل: `Date` أو نص تاريخ/وقت؛ المتغيّر الرمي يقبل الوضع الافتراضي
- *    «الآن».
+ * 3) المدخل: `Date` أو نص تاريخ/وقت — **صريح إلزامي** لا افتراض
+ *    إطلاقًا (R2 — M-11/D13، 2026-10-08: قلب المالك للاستثناء الموثق
+ *    سابقًا؛ قراءة «اليوم» الجارية تعبر حدّها المسماى الوحيد في طبقة
+ *    التطبيق `todayInAmman` المبني على `systemClock` — لا زمن محيط في
+ *    المجال بتاتًا، ويحرسه الحارس الخامس عشر R6).
  * 4) مفتاح الشهر/الفترة: مشتق دائمًا من أول سبعة أحرف من تاريخ الأعمال
  *    (`YYYY-MM`) — لا توجد خوارزمية شهر مستقلة ولا يجوز اختراعها.
  * 5) المدخل غير الصالح لهذا التاريخ — هوية الخطأ التي يفرّع عليها
@@ -34,10 +37,16 @@ const ammanDateFormatter = new Intl.DateTimeFormat("en", {
   day: "2-digit",
 });
 
-/** تاريخ الأعمال بتوقيت عمّان بصيغة `YYYY-MM-DD` — يرمي `Invalid instant` للمدخل غير الصالح. */
-export function localDateInAmman(instant: Date | string = new Date()): string {
+/* R2 (M-08/D12، 2026-10-08): هوية الخطأ الدلالية منظمة ومصدَّرة — كانت
+ * نصًا حرًا داخل الرمي فقط. المرتكزات الحرفية في الاختبارات المجمدة تبقى
+ * عمدًا (كما أوصت المراجعة الخمسية) كي لا يغير خطأ مطبعي في الثابت الهوية
+ * بصمت؛ هذا الثابت هو المرجع لكل مستهلك مستقبلي. */
+export const INVALID_INSTANT_MESSAGE = "Invalid instant";
+
+/** تاريخ الأعمال بتوقيت عمّان بصيغة `YYYY-MM-DD` — يرمي `Invalid instant` للمدخل غير الصالح؛ اللحظة صريحة إلزامية (M-11). */
+export function localDateInAmman(instant: Date | string): string {
   const parsed = instant instanceof Date ? instant : new Date(instant);
-  if (Number.isNaN(parsed.valueOf())) throw new Error("Invalid instant");
+  if (Number.isNaN(parsed.valueOf())) throw new Error(INVALID_INSTANT_MESSAGE);
   const parts = ammanDateFormatter.formatToParts(parsed);
   const part = (type: Intl.DateTimeFormatPartTypes) => parts.find(item => item.type === type)?.value ?? "";
   return `${part("year")}-${part("month")}-${part("day")}`;

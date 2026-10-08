@@ -121,3 +121,99 @@ describe("W5-A — المعادلة الواحدة: تعريف إنتاجي وح
     expect(definitionFiles(app, /function isRegisteredCustomerDebt/, CLIENT_SRC)).toEqual([]);
   });
 });
+describe("R2 (M-10/D11) — تعداد ملكية نص المال المحفوظ: منسّق كنوني واحد لا ثاني له", () => {
+  /* قاعدة التعداد (M-10): كل ملف إنتاجي يضمّن خرج `persistedMoneyTextMinor`
+   * معروف بالاسم — كاتب محفوظ جديد بلا تمرير عبر المنسّق الكنوني يفشل هنا
+   * بالاسم، فلا تنشأ صيغة محفوظة ثانية بصمت (علة D11 الأصلية). */
+  function filesUsing(dir: string, pattern: RegExp, root: string): string[] {
+    const hits: string[] = [];
+    for (const file of listUiProductionFiles(dir)) {
+      const source = readFileSync(file, "utf8");
+      if (pattern.test(source)) hits.push(relative(root, file).split(sep).join("/"));
+    }
+    return hits.sort();
+  }
+
+  it("persistedMoneyTextMinor is defined exactly once and consumed only by the four known persisted-money writers", () => {
+    const domain = fileURLToPath(new URL("../../../../src/domain", import.meta.url));
+    expect(filesUsing(domain, /export function persistedMoneyTextMinor/, domain)).toEqual([
+      "shared/currency.ts",
+    ]);
+    expect(filesUsing(domain, /persistedMoneyTextMinor\(/, domain)).toEqual([
+      "craft-order/policies.ts",
+      "shared/currency.ts",
+    ]);
+    const app = join(CLIENT_SRC, "application");
+    expect(filesUsing(app, /persistedMoneyTextMinor\(/, CLIENT_SRC)).toEqual([
+      "application/cash/cashCountMessages.ts",
+      "application/fulfillment/deliveryReviewService.ts",
+    ]);
+  });
+
+  it("the domain raw minor/100 embeds are frozen at the transient-message set — persisted notes left the raw convention", () => {
+    /* بعد M-10: كل التضمينات الخام المتبقية في المجال رسائل رمي لحظية
+     * (لا نص محفوظ) — الكاتبان المحفوظان (التصنيف/التصحيح) غادرا المجموعة.
+     * الأعداد مطابقة (لا أسطر): سطر الرسالة الواحد قد يضمّن مبلغين.
+     * أي نمو أو عودة تضمين خام يعني صيغة محفوظة ثانية — يفشل بالاسم. */
+    const domain = fileURLToPath(new URL("../../../../src/domain", import.meta.url));
+    const observed: Record<string, number> = {};
+    for (const file of listUiProductionFiles(domain)) {
+      const source = readFileSync(file, "utf8");
+      const count = (source.match(/\/\s*100\s*\}\s*د\.أ/g) ?? []).length;
+      if (count > 0) observed[relative(domain, file).split(sep).join("/")] = count;
+    }
+    /* الأعداد مطابقة (لا أسطر): سطر الرسالة الواحد قد يضمّن مبلغين
+     * (المتبقي والمُدخل مثلًا). */
+    expect(observed).toEqual({
+      "craft-order/deliveryContribution.ts": 4,
+      "craft-order/policies.ts": 3,
+      "loan/policies.ts": 2,
+      "received-loan/policies.ts": 2,
+    });
+  });
+
+  it("no application-layer note/reason field embeds a raw money template — the raw convention is domain-thrown-only", () => {
+    /* تعداد S5 (عدائي، 2026-10-08): القسم الخام كان يمسح المجال فقط — أي كاتب
+     * محفوظ جديد في التطبيق بقسمة خام أو toFixed كان يمر. الآن يُمسح التطبيق:
+     * صفر تضمين مال خام في حقول note/reason التطبيقية (الصيغة الخام مجالية
+     * الرمي فقط). */
+    const app = join(CLIENT_SRC, "application");
+    const offenders: string[] = [];
+    for (const file of listUiProductionFiles(app)) {
+      const source = readFileSync(file, "utf8");
+      for (const line of source.split("\n")) {
+        if (/\b(note|reason)\s*:\s*.*(\/\s*100\s*}|\.toFixed\()/.test(line)) {
+          offenders.push(`${relative(CLIENT_SRC, file).split(sep).join("/")}: ${line.trim().slice(0, 80)}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it("the domain toFixed money-text embeds are frozen at the documented W2 reading-note set", () => {
+    /* ملاحظات قراءة recurring-margin المجمدة بتوصيف W2 (قيد عدم توحيف مع
+     * المنسّقات الكنونية): ثلاثة تضمينات بقالب ‎/100).toFixed‎ في ملف واحد —
+     * مالان (295/299) ونسبة (301) — كلها نص قراءة لحظي لا يُحفظ. أي تضمين
+     * toFixed مجالي جديد خارج هذه المجموعة يفشل بالاسم (صيغة مال ثالثة
+     * غير معهدة). */
+    const domain = fileURLToPath(new URL("../../../../src/domain", import.meta.url));
+    const observed: Record<string, number> = {};
+    for (const file of listUiProductionFiles(domain)) {
+      const source = readFileSync(file, "utf8");
+      const count = (source.match(/\/\s*100\s*\)\s*\.toFixed/g) ?? []).length;
+      if (count > 0) observed[relative(domain, file).split(sep).join("/")] = count;
+    }
+    expect(observed).toEqual({ "recurring-margin/policies.ts": 3 });
+  });
+
+  it("no application persisted note/reason field is built with the display formatter", () => {
+    /* منسّق العرض (Intl المجمِّع) عقد واجهات لحظي — لا يُكتب به سجل دائم. */
+    const app = join(CLIENT_SRC, "application");
+    for (const file of listUiProductionFiles(app)) {
+      const source = readFileSync(file, "utf8");
+      for (const line of source.split("\n")) {
+        expect(line).not.toMatch(/\b(note|reason)\s*:\s*.*formatMoney(Minor|WithUnit)\(/);
+      }
+    }
+  });
+});

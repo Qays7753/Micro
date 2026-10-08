@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { REUSED_RECORD_PROTECTION_NOTE, REUSED_RECORD_RECEIPT_TITLE } from "@/app/resultFeedback";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatMoneyMinor } from "@/presentation/formatters";
 import { attributeToWallet, cashNow } from "./quickFormHelpers";
 import type {
   QuickActionFormHandle,
@@ -12,6 +12,7 @@ import type {
 } from "./quickActionFormTypes";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 /*
  * W3 — نموذج البيع السريع (نمط مالية، لا قشرة): يملك حقوله وتحققه وتسجيله.
  * القشرة توزّع فقط. الملكية المالية (المعنى) تبقى في domain/application —
@@ -46,7 +47,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
   const [saleCustomer, setSaleCustomer] = useState("");
   /* Wave 4.3 — P-4.3-2 (GAP-4.3-06): تاريخ البيع قابل للتحرير — بيع الأمس من
    * الورقة نفسها بلا محرر عميق؛ اليوم هو الافتراضي والمستقبل مرفوض بصدق. */
-  const [saleDate, setSaleDate] = useState(() => localDateInAmman());
+  const [saleDate, setSaleDate] = useState(() => todayInAmman());
   /* ٥.٢: نسبة الحركة لمحفظة عند الإدخال حينما يختار المالك ذلك — بلا تخصيص صامت. */
   const [saleWalletId, setSaleWalletId] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
@@ -74,7 +75,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
       saleCollectedMinor > 0 ||
       saleCustomer.trim() ||
       saleWalletId ||
-      saleDate !== localDateInAmman(),
+      saleDate !== todayInAmman(),
     );
   }
 
@@ -86,7 +87,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
       setFormError("اختر تاريخ البيع — اليوم أو تاريخًا ماضيًا.");
       return;
     }
-    if (saleDate > localDateInAmman()) {
+    if (saleDate > todayInAmman()) {
       setFieldError(true);
       setFormError("لا يُسجَّل بيع بتاريخ مستقبلي — اختر اليوم أو ماضيًا.");
       return;
@@ -244,7 +245,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
         <input
           type="date"
           value={saleDate}
-          max={localDateInAmman()}
+          max={todayInAmman()}
           onChange={event => setSaleDate(event.target.value)}
           aria-label="تاريخ البيع"
           aria-invalid={fieldError}

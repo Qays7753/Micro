@@ -9,9 +9,8 @@ import type {
   OperatingExpenseContext,
   SharedProjectShare,
 } from "./types.js";
-import { JOD, fieldLabelAr, roundHalfUp } from "../shared/index.js";
+import { JOD, fieldLabelAr, isValidLocalDate, isValidTimestamp, roundHalfUp } from "../shared/index.js";
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 function assertNonBlank(value: string, field: string) {
   if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 }
@@ -23,12 +22,10 @@ function assertPositiveMinor(value: number, field = "amountMinor") {
   if (!Number.isSafeInteger(value) || value <= 0)
     throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا موجبًا.`);
 }
+/* R2 (M-02/X1، 2026-10-08): صلاحية التاريخ المحلي من النواة الكنسية — كانت
+ * نسخة حرفية لخوارزمية Date.UTC؛ الرسالة كما هي تمامًا. */
 function assertDate(value: string, field: string) {
-  if (!DATE_PATTERN.test(value)) throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(Date.UTC(year!, month! - 1, day!));
-  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month! - 1 || date.getUTCDate() !== day)
-    throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
+  if (!isValidLocalDate(value)) throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
 }
 
 /** Round a positive percentage share to JOD minor units using half-up integer arithmetic. */
@@ -359,7 +356,7 @@ export function createFinancialEvent(input: CreateFinancialEventInput): Financia
   assertNonBlank(input.idempotencyKey, "idempotencyKey");
   assertNonBlank(input.note, "note");
   assertDate(input.occurredOn, "occurredOn");
-  if (Number.isNaN(Date.parse(input.recordedAt))) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
+  if (!isValidTimestamp(input.recordedAt)) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
   const relatedEventId = input.relatedEventId?.trim() || null;
   if (input.type === "payable_settlement_cash" && !relatedEventId)
     throw new Error("تسديد الالتزام يتطلب التزامًا مرتبطًا.");
@@ -428,7 +425,7 @@ export function createFinancialReversal(input: CreateFinancialReversalInput): Fi
   assertNonBlank(input.idempotencyKey, "idempotencyKey");
   assertNonBlank(input.reason, "reason");
   assertDate(input.occurredOn, "occurredOn");
-  if (Number.isNaN(Date.parse(input.recordedAt))) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
+  if (!isValidTimestamp(input.recordedAt)) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
   if (input.sourceEvent.correctionType === "reverse" || input.sourceEvent.correctionOfEventId)
     throw new Error("لا يمكن التراجع عن سجل تراجع سابق.");
   return Object.freeze({

@@ -16,11 +16,12 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatMoneyMinor } from "@/presentation/formatters";
 import type { ReceivedLoanLenderType } from "@micro-domain/received-loan/index.js";
 import { ReceivedLoanService } from "@/application/loans";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 type ServiceLoad =
   { phase: "loading" } | { phase: "error" } | { phase: "ready"; service: ReceivedLoanService };
 
@@ -41,7 +42,7 @@ export default function ReceivedLoanEditor() {
   const [lenderType, setLenderType] = useState<ReceivedLoanLenderType | "">("");
   const [principalMinor, setPrincipalMinor] = useState(0);
   const [validPrincipal, setValidPrincipal] = useState(true);
-  const [receivedOn, setReceivedOn] = useState(() => localDateInAmman());
+  const [receivedOn, setReceivedOn] = useState(() => todayInAmman());
   const [dueOn, setDueOn] = useState("");
   const [wallets, setWallets] = useState<readonly { id: string; name: string }[]>([]);
   const [walletId, setWalletId] = useState("");

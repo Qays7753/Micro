@@ -1,4 +1,4 @@
-import { fieldLabelAr } from "../shared/index.js";
+import { fieldLabelAr, isValidLocalDate, isValidTimestamp } from "../shared/index.js";
 import type {
   CreateSupplierPurchaseInput,
   RecordSupplierPurchasePaymentInput,
@@ -11,9 +11,9 @@ import type {
   UpdateSupplierPurchaseInput,
 } from "./types.js";
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const validDate = (value: string) =>
-  DATE_PATTERN.test(value) && !Number.isNaN(new Date(`${value}T12:00:00.000Z`).valueOf());
+/* R2 (M-04/D3، 2026-10-08): صلاحية التاريخ المحلي من النواة الكنسية — كانت
+ * regex+NaN فقط فتقبل تواريخ الدوران (2023-02-29). */
+const validDate = (value: string) => isValidLocalDate(value);
 const assertText = (value: string, field: string) => {
   if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 };
@@ -59,7 +59,8 @@ const assertPurchaseFields = (input: {
   assertNonNegative(input.initialPaidMinor, "initialPaidMinor");
   if (!validDate(input.purchasedOn)) throw new Error("أدخل تاريخ الشراء تاريخًا محليًا صحيحًا.");
   if (input.dueOn && !validDate(input.dueOn)) throw new Error("أدخل تاريخ الاستحقاق تاريخًا محليًا صحيحًا.");
-  if (Number.isNaN(Date.parse(input.recordedAt))) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
+  /* R2 (M-02/X1): فحص الطابع من النواة — سلوك متكافل، مالك واحد. */
+  if (!isValidTimestamp(input.recordedAt)) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
   if (input.initialPaidMinor > input.totalMinor)
     throw new Error("المدفوع مبدئيًا لا يمكن أن يتجاوز إجمالي الشراء.");
 };
@@ -140,7 +141,8 @@ export function recordSupplierPurchasePayment(
   assertText(input.note, "note");
   assertPositive(input.amountMinor, "amountMinor");
   if (!validDate(input.occurredOn)) throw new Error("أدخل تاريخ الحركة تاريخًا محليًا صحيحًا.");
-  if (Number.isNaN(Date.parse(input.recordedAt))) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
+  /* R2 (M-02/X1): فحص الطابع من النواة — سلوك متكافل، مالك واحد. */
+  if (!isValidTimestamp(input.recordedAt)) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
   if (purchase.payments.some(payment => payment.idempotencyKey === input.idempotencyKey)) return purchase;
   /* S2-01: الحارس والمتبقي محسوبان من المدفوع الفعلي (الدفعات − التراجعات الموثقة)
    * لا من حقول مخزنة قد تعكس حالة ما قبل تراجع — لا يُبعث أثر دفعة مُتراجَع عنها. */
@@ -262,7 +264,8 @@ export function reverseSupplierPurchasePayment(
   assertText(input.idempotencyKey, "idempotencyKey");
   assertText(input.reason, "reason");
   if (!validDate(input.occurredOn)) throw new Error("أدخل تاريخ الحركة تاريخًا محليًا صحيحًا.");
-  if (Number.isNaN(Date.parse(input.recordedAt))) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
+  /* R2 (M-02/X1): فحص الطابع من النواة — سلوك متكافل، مالك واحد. */
+  if (!isValidTimestamp(input.recordedAt)) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
   const reversals = purchase.paymentReversals ?? [];
   if (reversals.some(reversal => reversal.idempotencyKey === input.idempotencyKey)) return purchase;
   const payment = purchase.payments.find(candidate => candidate.id === input.paymentId);

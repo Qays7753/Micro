@@ -11,3 +11,8 @@
  */
 
 export type { ActualTimeService, OperatingModeValue } from "./actualTimeService";
+/* R2 (M-11/D13، 2026-10-08): أول قيمة في باب الوقت — حد «اليوم» المسماى
+ * الوحيد (todayInAmman فوق systemClock). توسيع سطح مقصود بنفس الـPR
+ * (PC-3): كل قراءة «اليوم» في الواجهة تعبر هذا الباب، لا برميل العرض
+ * ولا المجال مباشرة. */
+export { todayInAmman } from "./clock";

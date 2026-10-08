@@ -186,13 +186,27 @@ export class LocalTransferService {
       return fail("إصدار الملف غير مدعوم في هذا الإصدار من التطبيق؛ بقيت بيانات هذا الجهاز دون تغيير.");
     if (!isDate(candidate.exportedAt) || !isRecord(candidate.data))
       return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
-    const integrityError = verifyTransferIntegrity(candidate, isCurrent);
-    if (integrityError !== null) return fail(integrityError);
-    const migrated = migrateTransferSnapshot(candidate.data, isCurrent);
-    if (!validateSnapshot(migrated))
-      return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
-    const countsError = verifyTransferCounts(candidate, migrated, isCurrent);
-    if (countsError !== null) return fail(countsError);
+    /* R2 (M-03/D2، 2026-10-08): خط التحقق كله (بصمة/ترحيل/تحقق/عدادات)
+     * محروس برمي مهيكل — أي رمي غير متوقع (مدقق على ملف مصنوع، فائض حسابي
+     * في حصة المشروع المشتركة) يعود رفضًا صادقًا بقالب validation_error
+     * بدل رسالة «تعذر قراءة الملف» المضللة من الالتقاط العام في الواجهة.
+     * الرسالة الأصلية تُضمَّن للتشخيص لا للفرع التشغيلي (لا مستهلك يتفرع
+     * على النص — مثبت بالجرد العدائي R2-MF-01 §7). */
+    let migrated: unknown;
+    try {
+      const integrityError = verifyTransferIntegrity(candidate, isCurrent);
+      if (integrityError !== null) return fail(integrityError);
+      migrated = migrateTransferSnapshot(candidate.data, isCurrent);
+      if (!validateSnapshot(migrated))
+        return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");
+      const countsError = verifyTransferCounts(candidate, migrated, isCurrent);
+      if (countsError !== null) return fail(countsError);
+    } catch (error) {
+      const detail = error instanceof Error ? ` (${error.message})` : "";
+      return fail(
+        `الملف لا يطابق بنية Micro المطلوبة فتعذر التحقق منه${detail}. بقيت بيانات هذا الجهاز دون تغيير.`,
+      );
+    }
     const file: LocalExportFile = {
       format: localExportFormat,
       version: localExportVersion,

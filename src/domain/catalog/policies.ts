@@ -15,6 +15,7 @@ import {
   type QuantityConversionResult,
   type UpdateCatalogItemDefaultsInput,
 } from "./types.js";
+import { isValidTimestamp } from "../shared/index.js";
 
 const required = (value: string, label: string) => {
   const normalized = value.trim();
@@ -28,9 +29,11 @@ const positiveSafeInteger = (value: number, label: string) => {
   return value;
 };
 
+/* R2 (M-02/X1، 2026-10-08): فحص الطابع الزمني من النواة الكنسية — نفس
+ * السلوك تمامًا (غير فارغ + Date.parse ليس NaN) بمالك واحد. */
 const validTimestamp = (value: string, label: string) => {
   const normalized = required(value, label);
-  if (Number.isNaN(Date.parse(normalized))) throw new Error(`${label} غير صالح.`);
+  if (!isValidTimestamp(normalized)) throw new Error(`${label} غير صالح.`);
   return normalized;
 };
 

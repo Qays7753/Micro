@@ -1,4 +1,4 @@
-import { fieldLabelAr } from "../shared/index.js";
+import { fieldLabelAr, isValidLocalDate, isValidTimestamp } from "../shared/index.js";
 import { SOURCE_REF_KINDS } from "./types.js";
 import type {
   CashContinuityEntry,
@@ -8,7 +8,6 @@ import type {
   CreateCashWalletInput,
 } from "./types.js";
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const ENTRY_TYPES = [
   "opening_balance",
   "cash_adjustment",
@@ -20,12 +19,13 @@ const ENTRY_TYPES = [
 const assertNonBlank = (value: string, field: string) => {
   if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 };
+/* R2 (M-04/D3، 2026-10-08): صلاحية التاريخ المحلي من النواة الكنسية — كانت
+ * regex+NaN فقط فتقبل تواريخ الدوران (2023-02-29)؛ الرسالة كما هي. */
 const assertDate = (value: string, field: string) => {
-  if (!DATE_PATTERN.test(value) || Number.isNaN(new Date(`${value}T12:00:00.000Z`).valueOf()))
-    throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
+  if (!isValidLocalDate(value)) throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
 };
 const assertIso = (value: string, field: string) => {
-  if (Number.isNaN(Date.parse(value))) throw new Error(`أدخل ${fieldLabelAr(field)} وقتًا صحيحًا.`);
+  if (!isValidTimestamp(value)) throw new Error(`أدخل ${fieldLabelAr(field)} وقتًا صحيحًا.`);
 };
 
 export function createCashWallet(input: CreateCashWalletInput): CashWallet {

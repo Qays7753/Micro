@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { persistedMoneyTextMinor } from "../../src/domain/shared/index.js";
 import { addLoanRepayment, createLoanRecord } from "../../src/domain/loan/index.js";
 import { addReceivedLoanRepayment, createReceivedLoanRecord } from "../../src/domain/received-loan/index.js";
 import {
@@ -24,6 +25,15 @@ import {
  * `note` (تصنيف العربون وتصحيحه) **نص مخزّن تاريخي** — تجميده هنا يعني أن أي
  * تغيير مستقبلي عليه قرار مالك صريح (قرار المالك رقم 2 في عقد التنفيذ)، لا
  * إعادة صياغة صامتة تُنشئ اصطلاحًا ثالثًا للسجلات القائمة.
+ *
+ * **قلب مؤرخ (R2 — M-10/D11، 2026-10-08):** المالك ألغى استثناء التجميد
+ * لموقعي الملاحظة المحفوظة ووافق على المنسّق الكنوني للمحفوظ
+ * `persistedMoneyTextMinor` (منزلتان دائمًا، بلا تجميع) — الذهبيات أدناه
+ * قُلبت واعيًا إلى الصيغة الكنونية للكتابات الجديدة؛ النصوص التاريخية
+ * المخزونة تُقرأ كما خُزّنت (لا إعادة كتابة) — عقد القراءة القديمة يثبته
+ * اختبار القراءة القديمة في application/cash/cashCountMessages.test.ts
+ * ودورة التسليم في deliveryReviewService.test.ts. رسائل الرمي اللحظية
+ * (غير المحفوظة) تبقى على اصطلاحها الأصلي مثبتة أدناه دون تغيير.
  *
  * جرد المواقع (15 تضمينًا في 14 سطرًا عبر 5 ملفات — راجع سجل الملكية §7):
  * - مخزّن (2): policies.ts note التصنيف والتصحيح — يُثبَّت هنا حرفيًا.
@@ -89,7 +99,7 @@ function cancelledRetained(): CraftOrder {
   );
 }
 
-describe("W2 money-message characterization — persisted deposit-classification notes (frozen historical text)", () => {
+describe("R2 (M-10/D11, 2026-10-08) persisted deposit-classification notes — canonical persistedMoneyTextMinor for new writes", () => {
   it("pins the exact owner-classification note text including the embedded money amount", () => {
     const classified = classifyRetainedDeposit(
       cancelledRetained(),
@@ -99,14 +109,14 @@ describe("W2 money-message characterization — persisted deposit-classification
       "2026-08-24T10:00:00Z",
     );
     const event = classified.events.find(event => event.type === "deposit_classified")!;
-    expect(event.note).toBe("مال مالك (50 د.أ) — العربون يعود لي");
+    expect(event.note).toBe(`مال مالك (${persistedMoneyTextMinor(5000)}) — العربون يعود لي`);
     /* حماية الطبقة المالية: القيمة الرقمية المحفوظة صحيحة جديدة بغض النظر عن النص. */
     expect(event.amountMinor).toBe(5000);
     expect(classified.depositClassifiedOwnerMinor).toBe(5000);
     expect(classified.depositClassifiedRevenueMinor).toBe(0);
   });
 
-  it("pins the exact partial revenue-classification note (fractional minor renders without forced decimals)", () => {
+  it("pins the exact partial revenue-classification note (canonical persisted formatter forces two decimals)", () => {
     const classified = classifyRetainedDeposit(
       cancelledRetained(),
       "revenue",
@@ -116,7 +126,7 @@ describe("W2 money-message characterization — persisted deposit-classification
       2000,
     );
     const event = classified.events.find(event => event.type === "deposit_classified")!;
-    expect(event.note).toBe("إيراد مشروع (20 د.أ) — جزء كإيراد");
+    expect(event.note).toBe(`إيراد مشروع (${persistedMoneyTextMinor(2000)}) — جزء كإيراد`);
     expect(event.amountMinor).toBe(2000);
     expect(classified.depositClassifiedRevenueMinor).toBe(2000);
   });
@@ -141,7 +151,7 @@ describe("W2 money-message characterization — persisted deposit-classification
     });
     const events = corrected.events.filter(event => event.type === "deposit_classified");
     expect(events).toHaveLength(2);
-    expect(events[1]!.note).toBe("تصحيح إلى مال مالك (30 د.أ) — تصحيح بعد مراجعة");
+    expect(events[1]!.note).toBe(`تصحيح إلى مال مالك (${persistedMoneyTextMinor(3000)}) — تصحيح بعد مراجعة`);
     expect(events[1]!.amountMinor).toBe(3000);
     expect(corrected.depositClassifiedOwnerMinor).toBe(3000);
     expect(corrected.depositClassifiedRevenueMinor).toBe(0);
@@ -264,5 +274,62 @@ describe("W2 money-layer protection — messages are derived views; numbers stay
     expect(classified.events).toHaveLength(retained.events.length + 1);
     expect(classified.retainedMeaning).toBe("owner");
     expect(retained.retainedMeaning ?? null).toBeNull();
+  });
+});
+describe("R2 (M-10/D11) persistedMoneyTextMinor — the one canonical persisted money text", () => {
+  it("renders the exact canonical vectors: two decimals always, no grouping, unit embedded", () => {
+    expect(persistedMoneyTextMinor(0)).toBe("0.00 د.أ");
+    expect(persistedMoneyTextMinor(1)).toBe("0.01 د.أ");
+    expect(persistedMoneyTextMinor(10)).toBe("0.10 د.أ");
+    expect(persistedMoneyTextMinor(99)).toBe("0.99 د.أ");
+    expect(persistedMoneyTextMinor(100)).toBe("1.00 د.أ");
+    expect(persistedMoneyTextMinor(1050)).toBe("10.50 د.أ");
+    /* القيم الكبيرة: بلا فواصل تجميع إطلاقًا — عقد المحفوظ غير عقد العرض. */
+    expect(persistedMoneyTextMinor(123456789)).toBe("1234567.89 د.أ");
+    expect(persistedMoneyTextMinor(1250000)).toBe("12500.00 د.أ");
+    expect(persistedMoneyTextMinor(123450)).not.toContain(",");
+    /* السالب (فرق العدّ الناقص) بإشارة صريحة. */
+    expect(persistedMoneyTextMinor(-3000)).toBe("-30.00 د.أ");
+    expect(persistedMoneyTextMinor(-1)).toBe("-0.01 د.أ");
+  });
+
+  it("is pure integer serialization — locale/ICU-independent and deterministic", () => {
+    /* الاستقلال عن المنطقة: نفس المدخل يعطي نفس الخرج مهما كانت بيئة التشغيل
+     * (حساب صحيح + padStart فقط — لا Intl ولا Date داخل الدالة بتاتًا). */
+    for (let run = 0; run < 3; run += 1) {
+      expect(persistedMoneyTextMinor(2050)).toBe("20.50 د.أ");
+      expect(persistedMoneyTextMinor(99999999999)).toBe("999999999.99 د.أ");
+    }
+  });
+
+  it("fails closed on non-safe-integer input — no placeholder text can ever persist", () => {
+    expect(() => persistedMoneyTextMinor(0.5)).toThrow();
+    expect(() => persistedMoneyTextMinor(Number.NaN)).toThrow();
+    expect(() => persistedMoneyTextMinor(Number.POSITIVE_INFINITY)).toThrow();
+    expect(() => persistedMoneyTextMinor(Number.MAX_SAFE_INTEGER + 1)).toThrow();
+    /* الغائب ليس «قيمة مال» تُنسّق بل غياب قيمة — يُرفض مثل غير الصحيح
+     * (الكاتبون لا يمررونه أصلًا؛ القفل صريح لا ضمني). */
+    expect(() => persistedMoneyTextMinor(null as unknown as number)).toThrow();
+    expect(() => persistedMoneyTextMinor(undefined as unknown as number)).toThrow();
+  });
+
+  it("single-derivation rule: the persisted notes embed persistedMoneyTextMinor output, never a second format", () => {
+    /* قاعدة الاشتقاق الواحد (M-10): ملاحظتا المجال تحملان خرج المنسّق الكنوني
+     * بالنص الحرفي — لا قالب قسمة خام ولا منسّق عرض. */
+    const classified = classifyRetainedDeposit(
+      cancelledRetained(),
+      "owner",
+      "عربون يعود لي",
+      "money-message:canonical",
+      "2026-08-24T10:00:00Z",
+    );
+    const event = classified.events.find(item => item.type === "deposit_classified")!;
+    expect(event.note).toContain(persistedMoneyTextMinor(event.amountMinor!));
+    /* لا الصيغة الخام القديمة (بلا منزلتين) ولا أي تجميع. */
+    expect(event.note).toContain("(50.00 د.أ)");
+    expect(event.note).not.toContain("(50 د.أ)");
+    expect(event.note).not.toContain(",");
+    /* القيمة الرقمية الدائمة لم تتغير — النص اشتقاق فوقها فقط. */
+    expect(event.amountMinor).toBe(5000);
   });
 });

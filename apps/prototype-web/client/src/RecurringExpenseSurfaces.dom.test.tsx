@@ -384,6 +384,43 @@ describe("OPS-003 — لوحة التأكيد (DOM)", () => {
   });
 });
 
+describe("R2 (M-11/D13) — توصيل حد «اليوم» الكنوني بعمّان في أسطح المصروف المتكرر", () => {
+  /* كان المشتقان المحليان بتوقيت الجهاز (todayDate/todayLocal/datePlusDays)
+   * يتخطيان عقد منطقة الأعمال كليًا — ساعة مزيفة عند 22:00Z تكشف الفرق:
+   * عمّان = اليوم التالي، والجهاز (UTC في CI) = اليوم نفسه. */
+  beforeEach(() => {
+    vi.useFakeTimers({ now: new Date("2026-09-21T22:00:00.000Z"), toFake: ["Date"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("افتراضي تاريخ التقويم الأول في المحرر = تاريخ عمّان للحظة الجارية (لا تاريخ الجهاز)", async () => {
+    wouterMocks.params = {};
+    wouterMocks.location = "/finance/recurring/new";
+    render(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <RecurringExpenseEditor />
+      </UnsavedChangesProvider>,
+    );
+    const anchor = await screen.findByLabelText(/تاريخ التقويم الأول/);
+    expect((anchor as HTMLInputElement).value).toBe("2026-09-22");
+  });
+
+  it("افتراضي التأجيل المخصص في التفصيل = اليوم بعمّان + 7 أيام بحساب النواة الصحيح", async () => {
+    const seriesId = await seedActiveSeries();
+    wouterMocks.params = { id: seriesId };
+    render(<RecurringExpenseDetail />);
+    const user = userEvent.setup();
+    /* فترتان معلقتان (سبتمبر/أكتوبر) لكل منهما زر تأجيل — الأولى بالترتيب سبتمبر. */
+    const snoozeButtons = await screen.findAllByRole("button", { name: "أجّل انتباهه" });
+    await user.click(snoozeButtons[0]!);
+    const custom = await screen.findByLabelText(/أو تاريخًا لاحقًا تختاره/);
+    /* 2026-09-22 (عمّان) + 7 = 2026-09-29 — بالحساب الصحيح الخالص، لا بمحددات الجهاز. */
+    expect((custom as HTMLInputElement).value).toBe("2026-09-29");
+  });
+});
+
 describe("OPS-003 — محرر التذكير (DOM)", () => {
   it("العنوان الفارغ مرفوض برسالة صادقة بلا أي كتابة", async () => {
     wouterMocks.params = {};

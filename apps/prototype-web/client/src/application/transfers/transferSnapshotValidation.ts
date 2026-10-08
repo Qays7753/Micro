@@ -34,6 +34,7 @@ import {
   isFollowUpDate,
   isFollowUpEvent,
   isFollowUpSummary,
+  isLocalDate,
   isMoney,
   isOrderStatus,
   isPositiveQuantity,
@@ -165,7 +166,10 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     data.inventoryActivation !== undefined &&
     (!isRecord(data.inventoryActivation) ||
       data.inventoryActivation.id !== localInventoryActivationId ||
-      !isDate(data.inventoryActivation.activatedOn) ||
+      /* R2 (M-04/D8، 2026-10-08): تاريخ التفعيل حقل تاريخ محلي (الكاتب
+       * يستخدم ammanLocalDate) — كان isDate يقبل الطوابع. */
+      !isString(data.inventoryActivation.activatedOn) ||
+      !isLocalDate(data.inventoryActivation.activatedOn) ||
       !isDate(data.inventoryActivation.recordedAt) ||
       !isString(data.inventoryActivation.operationKey))
   )
@@ -177,7 +181,9 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       isString(stored.id) &&
       isDate(stored.createdAt) &&
       isDate(stored.updatedAt) &&
+      /* R2 (M-04/D5، 2026-10-08): موعد التسليم حقل تاريخ محلي (XFER-NEW-3). */
       isString(stored.deliveryDate) &&
+      isLocalDate(stored.deliveryDate) &&
       (stored.catalogItemId === null || isString(stored.catalogItemId)) &&
       isAgreementSource(stored.agreementSource) &&
       isFollowUpSummary(stored.followUpSummary) &&
@@ -344,6 +350,8 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       !isString(schedule.orderId) ||
       schedule.kind !== "delivery" ||
       !isString(schedule.scheduledFor) ||
+      /* R2 (M-04/D5، 2026-10-08): يوم الموعد تاريخ محلي صارم — كان نصًا فقط. */
+      !isLocalDate(schedule.scheduledFor) ||
       !(schedule.scheduledTime === null || isScheduleTime(schedule.scheduledTime)) ||
       !(schedule.durationMinutes === null || isScheduleDuration(schedule.durationMinutes)) ||
       (schedule.scheduledTime === null) !== (schedule.durationMinutes === null) ||

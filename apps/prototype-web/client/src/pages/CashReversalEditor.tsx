@@ -11,10 +11,9 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
-import { localDateInAmman } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
-const ammanDate = () => localDateInAmman();
+import { todayInAmman } from "@/application/time";
 export default function CashReversalEditor() {
   const { id } = useParams<{ id: string }>();
   const [location, navigate] = useLocation();
@@ -23,7 +22,7 @@ export default function CashReversalEditor() {
   const { dataVersion, cashContinuity, agreements, notifyDataChanged } = usePrototypeServices();
   const [entry, setEntry] = useState<CashContinuityEntry | null>(null);
   const [sourceWarning, setSourceWarning] = useState<{ orderId: string; text: string } | null>(null);
-  const [date, setDate] = useState(() => ammanDate());
+  const [date, setDate] = useState(() => todayInAmman());
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);

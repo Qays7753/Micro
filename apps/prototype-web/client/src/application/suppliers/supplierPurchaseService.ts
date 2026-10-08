@@ -22,6 +22,7 @@ import {
   validationFailure,
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
+import { formatMoneyWithUnit } from "@/application/formatting/formatters";
 
 export type SupplierPurchaseInput = {
   supplierName: string;
@@ -317,7 +318,10 @@ export class SupplierPurchaseService {
       return {
         ok: false,
         code: VALIDATION_ERROR,
-        message: `الإجمالي الجديد أقل من قيمة مستلمة موثقة (${receivedValueMinor / 100} د.أ) — راجع إيصالات الاستلام أولًا.`,
+        /* R2 (M-07/D10، 2026-10-08): المعيّن الكنوني للمال بوحدته — كانت
+         * قسمة خام بلا منزلتين ولا فواصل («10.5»)؛ تغيير نص رسالة مقصود
+         * (message-only؛ لا مستهلك تشغيلي يتفرع على النص — جرد R2-MF-01 §7). */
+        message: `الإجمالي الجديد أقل من قيمة مستلمة موثقة (${formatMoneyWithUnit(receivedValueMinor)}) — راجع إيصالات الاستلام أولًا.`,
       };
     /* SA-5 (F3): الربط لا يُبدَّل ولا يُفرَّغ وإيصالات قائمة عليه — وحدات
      * الإيصالات القديمة تبقى على المادة القديمة فيلوّث الحساب لو سُمح. */

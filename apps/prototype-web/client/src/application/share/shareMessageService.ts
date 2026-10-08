@@ -20,6 +20,7 @@ import { localDateInAmman } from "@micro-domain/shared/index.js";
 import type { OrderEvent } from "@micro-domain/craft-order/index.js";
 import { formatLocalDate, formatMoneyWithUnit } from "@/application/formatting/formatters";
 import type { StoredCraftOrder } from "@/storage/local/types";
+import { todayInAmman } from "@/application/time/clock";
 
 export type ShareDraftKind = "order" | "collection" | "delivery" | "reminder";
 
@@ -133,7 +134,7 @@ export function collectionShareDraft(stored: StoredCraftOrder, event: OrderEvent
 /** إشعار التسليم — بتاريخ التسليم الفعلي من حدث التسليم المحفوظ، لا «اليوم». */
 export function deliveryShareDraft(stored: StoredCraftOrder, deliveredOn?: string | null): ShareDraft {
   const order = stored.order;
-  const deliveredDate = deliveredOn ?? localDateInAmman();
+  const deliveredDate = deliveredOn ?? todayInAmman();
   return {
     kind: "delivery",
     title: `إشعار تسليم — ${order.itemName || "طلب"}`,

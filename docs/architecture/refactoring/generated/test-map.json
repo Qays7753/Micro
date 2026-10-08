@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "79c9859177e10326533d2f34a61ec817775f8dee",
+  "head": "959a94dfebd32caa19f05a4bb7addce51f2fdace",
   "pages": {
     "total": 60,
     "map": {
@@ -480,6 +480,7 @@
       "03-cost-snapshot-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/application/cost/costService.priceDate.test.ts",
           "apps/prototype-web/client/src/application/cost/costService.test.ts",
           "apps/prototype-web/client/src/application/estimates/costEstimateService.test.ts"
         ]
@@ -596,6 +597,7 @@
         "curated": [
           "apps/prototype-web/client/src/application/supplierScheduleConcurrency.test.ts",
           "apps/prototype-web/client/src/application/supplierScheduleStaleResults.test.ts",
+          "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.derivationCoupling.test.ts",
           "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.test.ts",
           "tests/domain/recurring-margin.test.ts"
         ]
@@ -609,6 +611,7 @@
         "curated": [
           "apps/prototype-web/client/src/application/supplierScheduleConcurrency.test.ts",
           "apps/prototype-web/client/src/application/supplierScheduleStaleResults.test.ts",
+          "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.derivationCoupling.test.ts",
           "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.test.ts"
         ]
       },
@@ -704,6 +707,7 @@
         "curated": [
           "apps/prototype-web/client/src/G4Loans.dom.test.tsx",
           "apps/prototype-web/client/src/application/assets/assetService.test.ts",
+          "apps/prototype-web/client/src/application/loans/ammanBusinessDateBoundary.test.ts",
           "apps/prototype-web/client/src/application/loans/loanService.test.ts",
           "apps/prototype-web/client/src/application/loans/receivedLoanService.test.ts",
           "apps/prototype-web/client/src/application/transfers/localTransferService.assetResidual.test.ts",
@@ -865,6 +869,8 @@
       "tests/domain/financial-event.test.ts",
       "tests/domain/inventory-material.test.ts",
       "tests/domain/loan.test.ts",
+      "tests/domain/localDateArithmetic.test.ts",
+      "tests/domain/localDateValidityBoundaries.characterization.test.ts",
       "tests/domain/moneyMessageCharacterization.test.ts",
       "tests/domain/operatingBreakEven.test.ts",
       "tests/domain/owner-safe-withdrawal.test.ts",

@@ -1,20 +1,11 @@
-/* F-001: نصوص تسوية عدّ الصندوق تُبنى هنا كلها عبر المنسّق المشترك (مقياس المال 1/100) —
- * لا قسمة خام ولا أرقام وحدات صغرى في أي رسالة مالية. الاختبار يحرس المقياس. */
+/* F-001: نصوص عدّ الصندوق اللحظية (رسائل العرض) تُبنى هنا عبر المنسّق المشترك
+ * (مقياس المال 1/100) — لا قسمة خام ولا أرقام وحدات صغرى في أي رسالة مالية.
+ * R2 (M-10/D11، 2026-10-08): بانيا نص السجل المحفوظ (الملاحظة/السبب) انتقلا
+ * إلى طبقة التطبيق (@/application/cash) عبر المنسّق الكنوني للمحفوظ؛ ما بقي
+ * هنا عقد عرض لحظي فقط (توست النجاح بفواصل التجميع كما في كل واجهات المال). */
 import { formatMoneyMinor } from "./formatters";
 
-/** نص الملاحظة التي تُحفظ مع تسوية العدّ — المعدود بمقياس المال لا الكميات. */
-export function cashCountSettlementNote(countedMinor: number): string {
-  return `تسوية عدّ الصندوق — المعدود ${formatMoneyMinor(countedMinor)} د.أ`;
-}
-
-/** سبب التسوية — الفرق بمقياس المال، بإشارته، لا وحدات صغرى خام. */
-export function cashCountDifferenceReason(differenceMinor: number): string {
-  return differenceMinor > 0
-    ? `فرق زيادة عند العدّ (+${formatMoneyMinor(Math.abs(differenceMinor))} د.أ)`
-    : `فرق نقص عند العدّ (-${formatMoneyMinor(Math.abs(differenceMinor))} د.أ)`;
-}
-
-/** رسالة النجاح بعد التسجيل — الرصيد الجديد بمقياس المال. */
+/** رسالة النجاح بعد التسجيل — الرصيد الجديد بمقياس المال، عرض لحظي فقط. */
 export function cashCountSettledMessage(countedMinor: number): string {
   return `انسجّلت التسوية ✓ — الصندوق صار ${formatMoneyMinor(countedMinor)} د.أ. ولا رقم قديم تغيّر؛ الفرق أثر من اليوم فقط.`;
 }

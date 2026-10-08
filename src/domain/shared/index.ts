@@ -1,5 +1,5 @@
-export { JOD, type Currency, type MoneyMinor } from "./currency.js";
-export { ammanDateOrNull, localDateInAmman } from "./businessTime.js";
+export { JOD, type Currency, type MoneyMinor, persistedMoneyTextMinor } from "./currency.js";
+export { INVALID_INSTANT_MESSAGE, ammanDateOrNull, localDateInAmman } from "./businessTime.js";
 export {
   addSafe,
   assertId,
@@ -10,6 +10,13 @@ export {
   fieldLabelAr,
   isValidLocalDate,
   isValidTimestamp,
+  localDateDayNumber,
+  localDateMonthEnd,
+  localDatePlusDays,
+  localDatePlusMonthsClamped,
+  localDateWeekdayIndex,
+  daysInMonthOf,
   quantityMilliExact,
   roundHalfUp,
+  sumSafeIntegers,
 } from "./numeric.js";

@@ -17,6 +17,7 @@ import {
 import { snapshotSystemIsEmpty } from "@/storage/local/influentialSnapshotFamilies";
 import { systemClock, type Clock } from "@/application/time/clock";
 import { errorMessageOf } from "@/application/resultCodes";
+import { isValidLocalDate } from "@micro-domain/shared/index.js";
 
 export const guidedOpeningImportFormat = "micro-guided-opening-import" as const;
 export const guidedOpeningImportVersion = 1 as const;
@@ -67,10 +68,10 @@ const fail = <T>(code: GuidedOpeningImportErrorCode, message: string): GuidedOpe
 });
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
-const isDate = (value: unknown): value is string =>
-  typeof value === "string" &&
-  /^\d{4}-\d{2}-\d{2}$/.test(value) &&
-  !Number.isNaN(Date.parse(`${value}T12:00:00.000Z`));
+/* R2 (M-04/D3، 2026-10-08): صلاحية التاريخ المحلي من نواة المجال الكنسية —
+ * كانت regex+Date.parse بمرساة فتقبل تواريخ الدوران (2026-02-30) فيفتح
+ * المسار الموجه بيانات سيرفضها الاستيراد الكامل لاحقًا (XFER-D1). */
+const isDate = (value: unknown): value is string => typeof value === "string" && isValidLocalDate(value);
 const isText = (value: unknown, min = 1, max = 240): value is string =>
   typeof value === "string" && value.trim().length >= min && value.trim().length <= max;
 const isInteger = (value: unknown, minimum = 0): value is number =>

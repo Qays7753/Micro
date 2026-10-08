@@ -1,4 +1,10 @@
-import { assertId, assertPositiveMinor, fieldLabelAr, isValidLocalDate } from "../shared/index.js";
+import {
+  assertId,
+  assertPositiveMinor,
+  fieldLabelAr,
+  isValidLocalDate,
+  isValidTimestamp,
+} from "../shared/index.js";
 import { reversedEventIds, type FinancialEvent } from "../financial-event/index.js";
 import type {
   AddLoanRepaymentInput,
@@ -8,11 +14,8 @@ import type {
   LoanRepaymentRecord,
 } from "./types.js";
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
 function assertLocalDate(value: string, field: string) {
-  if (!DATE_PATTERN.test(value) || !isValidLocalDate(value))
-    throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
+  if (!isValidLocalDate(value)) throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
 }
 
 function assertBorrower(value: string) {
@@ -33,7 +36,8 @@ export function createLoanRecord(input: CreateLoanRecordInput): LoanRecord {
   if (input.purposeNote && input.purposeNote.trim().length > 500)
     throw new Error("ملاحظة القرض تتجاوز 500 حرف؛ اختصرها.");
   if (!input.operationKey.trim()) throw new Error("مفتاح عملية القرض مطلوب.");
-  if (Number.isNaN(Date.parse(input.createdAt))) throw new Error("أدخل وقت إنشاء القرض وقتًا صحيحًا.");
+  /* R2 (M-02/X1): فحص الطابع من النواة — سلوك متكافل، مالك واحد. */
+  if (!isValidTimestamp(input.createdAt)) throw new Error("أدخل وقت إنشاء القرض وقتًا صحيحًا.");
   return Object.freeze({
     id: input.id,
     borrowerName: input.borrowerName.trim(),

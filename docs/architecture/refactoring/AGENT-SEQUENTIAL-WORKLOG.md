@@ -838,3 +838,41 @@
 - **التحقق بعد الدمج على رأس الدمج بالضبط:** `origin/main` = `b225ac2ccd53076d2df165efb7de6c1e49e28888` (رأس الدمج هو رأس main)؛ PR #328 حالة MERGED ورأسه سلف لرأس الدمج؛ CI run `37632246212` [push] أخضر (13:54:17→13:58:12Z) + Cloudflare Pages `112829450172` أخضر؛ تساوي شجرة رأس الدمج مع شجرة رأس PR (`3fe6530`...)؛ الفحوص المحلية الخمسة خضراء؛ المخطط/التصدير 38/30 والسقفان 650,000/155,300 وفرع UI لم يُمس؛ diff إنتاجي فارغ.
 - **هذه المصالحة:** JSON-first (WS-216/ARCH-007) + Views بالسلسلة الرسمية + سجلات append-only (§141 وEntry-52 هذا) + CONTROL §14. توثيقية فقط؛ لا تنظيف ولا حذف فروع/PRs؛ لا كتابات غير مصرح بها.
 - **الحالة النهائية:** `R1_VERIFIED_ON_MAIN — b225ac2ccd53076d2df165efb7de6c1e49e28888`؛ الخطوة التالية R2 (المال/التنسيق/الإدخال/التواريخ/الرسائل) بفرع جديد من main المتحقق وتوصيف محمي أولًا.
+
+## Entry 53 — Z AI sequential executor (WS-216/ARCH-007 — R2 money/formatting/input/date/message, characterization-first) — 2026-10-07
+
+- **البداية:** فرع `refactoring/r2-money-formatting-20261007` من `origin/main` المتحقق `12ee94d` (R1 مدموجة وموثقة: PR #328 @ `b225ac2c` + مصالحة PR #329). قراءة أقسام R2 الحية من الخطة والعقد وAGENTS.
+- **الجرد:** ثلاثة مسوح قراءة-فقط متوازية (A مال/تقريب/تحليل/تنسيق؛ B تواريخ/مناطق/ambient؛ C رسائل/مرآة/عناقيد) بأوامر مسجلة؛ المنسّق تحقق مستقلًا من الادعاءات الحاملة بتشغيل Node (سنوات 0000–0099؛ RangeError صنف B؛ قبول الدوران صنف D) قبل اعتمادها.
+- **البطاقات:** R2-MF-01..07 أُنشئت قبل التنفيذ في `structural-remediation-r2-20261007/R2-REPAIR-CARDS.md` (جرد كامل + خطة توصيف + حزمة قرارات R2-D1..D15 + مرآة + تحقق ambient + سجل ملكية). مراجعتها خماسيًا قراءة-فقط أعطت PASS_WITH_AMENDMENTS مع 11 تصويبًا (A1: كمية البيع المباشر صحيحة؛ A2: 4 مواضع تقريب تطبيقية؛ A3: addSafe بلا مستهلكين تطبيقيين؛ A4: صياغة Math.*؛ A5: 9 تشقوق ساعة منفصلة؛ A6: شكل مواضع 895-1187؛ A7: R2-D8 مضاف ومستهلكو صنف C في D1؛ A8: R2-D14/D15؛ A9: أوامر تشغيل مصوبة — لا حزمة @micro/domain؛ A10: تسجيل Operations Control؛ A11: قرار التوطين يبقى مفتوحًا) — طُبقت كلها.
+- **التوصيف (4 ملفات، 31 اختبارًا أخضر):** `tests/domain/localDateValidityBoundaries.characterization.test.ts` (9: النواة + النسخ الحرفية + قبول الدوران في صنف D + هويات وقت الأعمال وحد يوم عمّان)؛ `application/transfers/localDateVariantDivergence.characterization.test.ts` (3: تباعد D1 سنوات + D2 RangeError)؛ `storage/local/supplierScheduleCommitGuard.derivationCoupling.test.ts` (6: الاقتران السالب المطلوب حرفيًا من الخطة — اشتقاق ملوّث يُرفض مع علاقة هيكلية سليمة)؛ `application/formatting/formatters.characterization.test.ts` (13: أول اختبار مباشر للبيت الكنوني + مساواة الواجهة بالمراجع). خطأ توقع واحد في الجمع العربي (103 = قلة بالخانتين الأخيرتين) صُحح في الاختبار نفسه قبل الاعتماد.
+- **السجل والتقارير:** OWNERSHIP-AND-TRUTH-REGISTRY §8-5 (أصناف التاريخ الثمانية بقراراتها) + §8-6 (نصوص المال والعناقيد والمرآة)؛ تقرير R2 الكامل؛ صف الفهرس؛ WS-216/ARCH-007 JSON (فرع/أساس/إجراء/أدلة +2)؛ Views بالسلسلة الرسمية؛ §142 وEntry-53 هذا.
+- **الحدود:** صفر كود إنتاج؛ الأبعاد المحمية NONE؛ كل توحيد دلالي متوقف على قرارات R2-D1..D15 (بما فيها إصلاح RangeError — تغيير شكل فشل مرئي). لا دمج؛ PR الموجة لمراجعة المالك.
+- **الحالة النهائية:** `R2_COMPLETE — PR_READY_FOR_OWNER_REVIEW / R2_MERGE_NOT_AUTHORIZED / CHARACTERIZATION_PINNED_31_TESTS / NO_PRODUCTION_CODE_CHANGED / OWNER_DECISIONS_REQUIRED_R2_D1_TO_D15`.
+
+
+---
+
+## Entry 47 — 2026-10-08 — Z AI: R2 root-fix implementation (WS-216/ARCH-007, second execution pass)
+
+**Base:** `12ee94d2` (unchanged) · **Branch:** `refactoring/r2-money-formatting-20261007` (single-branch strategy kept) · **Authorization:** owner root-fix mandate with the protected semantic-change protocol.
+
+- Preflight verified the live checkpoint exactly (base, branch head `fc58086`, PR #330 open/mergeable/only open PR, 18 files +771/-14, UI branch untouched, CI green on the head) — zero drift.
+- Second five-role read-only review before implementation: verdict PLAN_NEEDS_AMENDMENTS; all amendments folded into manifests M-01..M-09 written BEFORE any production change; new findings (DATE-08, DATE-09/HOSTILE-01, XFER-E2, XFER-NEW-3, DATE-11, HOSTILE-05/06) ledgered and fixed in-wave.
+- Seven implementation slices on the same branch: (1) docs gate — root-fix ledger + manifests; (2) kernel rewrite + domain delegation; (3) transfer/import boundary + structured prepareImport + priceDate writers; (4) clock ownership + app/page arithmetic conversions + stored-instant display guards; (5) money/messages/identities/formatters; (6) date-arithmetic ownership guard (15th); (7) records.
+- Gates: full `pnpm check` PASS (root 478/478, app 2266/2266, lint 0/35, entry 629,137/154,663 under 650,000/155,300, lazy+precache improved not locked); Operations Control validated from JSON; views regenerated.
+- Boundaries kept: schema/export 38/30 untouched; no UI visual change; no history deleted; UI branch untouched; no main writes; merge NOT authorized — PR #330 parked at the owner gate with the final report + manifests.
+
+**Stage summary:** R2 root-fix COMPLETE at the owner-review gate; R3 NOT started; statuses: R2_ROOT_FIX_COMPLETE — PR_READY_FOR_OWNER_REVIEW / R2_MERGE_NOT_AUTHORIZED / R3_NOT_STARTED.
+
+## Entry 54 — 2026-10-08 — Z AI: R2 D11/D13 root-fix continuation (WS-216/ARCH-007, owner overturned both preserves)
+
+- Live baseline verified zero drift (PR #330 open/mergeable/only, head a476ed7, main 12ee94d, worktree clean, CI green on head) before any work.
+- Owner mandate «D11/D13 Root-Fix Resume» overturned the two PRESERVE_WITH_RATIONALE decisions; manifests M-10/M-11 + dated ledger flip written BEFORE production changes (commit d1afc5b).
+- Sequential read-only specialist reviews: S1 persisted-data (found cash-count persisted writers in presentation — relocated to application/cash door), S2 clock/boundaries (corrected census to 37 files; found device-timezone derivations in recurring-expense pages), S3 tests/guards (smallest complete matrix incl. moneyLayerGuard census); all APPROVE_WITH_AMENDMENTS, amendments applied.
+- Implementation commits: 94cfba7 (D11 — persistedMoneyTextMinor canonical persisted formatter + five writers + legacy-read/round-trip/census tests), 9c8ae0a (D13 — explicit required instant + todayInAmman boundary via the time door + 37-file migration + RecurringExpense device-tz fix + guard R5/R6 with positive/negative fixtures), 3bd9aae (module-boundaries correction: kernel day-shift via the presentation compat shim — zero new edges), d176504 (followUpDate test import after the agreements door re-export drop).
+- S4 financial/historical safety review: SAFE (no silent amount/rounding/classification/schema/export/history change; every behavior change manifested). S5 hostile final review: verdict recorded in the R2 report addendum.
+- Full `pnpm check` PASS on the final head: 15 guards, root 681/681, app 2282/2282 (incl. the two S5 census tests), lint 0/35, entry 629,344/154,644 under ceilings, lazy/precache improved (not locked, ADR-012 discipline); Operations Control regenerated from JSON (validate exit 0).
+- Records: R2 report dated addendum (live status section), ownership registry §8-5/§8-6 + clock/cash/doors rows, WS-216/ARCH-007 JSONs, current-state live fields within the 20,480-byte ceiling (20,458), state log §145.
+- Boundaries kept: schema/export 38/30; no UI visual change; no test deletions (+18 net); no R3; no main writes; merge NOT authorized — PR #330 parked at the owner gate with the final merge manifest.
+
+**Stage summary:** R2_D11_D13_ROOT_FIX_COMPLETE — PR_READY_FOR_OWNER_REVIEW; merge review of PR #330 is the owner's next action; R3 only after verified R2 closure on main.

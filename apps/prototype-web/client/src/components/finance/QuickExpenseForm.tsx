@@ -8,7 +8,7 @@ import {
   REUSED_RECORD_RECEIPT_TITLE,
   recurringOccurrenceWarningNote,
 } from "@/app/resultFeedback";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatMoneyMinor } from "@/presentation/formatters";
 import { cashNow } from "./quickFormHelpers";
 import {
   EXPENSE_NOTE_REQUIRED_MESSAGE,
@@ -26,6 +26,7 @@ import type {
 } from "./quickActionFormTypes";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 /*
  * W3 — نموذج المصروف السريع (نمط مالية، لا قشرة): مبلغ إلزامي واحد وبند
  * مطلوب ورقاقات وسم اختيارية بنقرة (المجموعة ١) — المسار السريع لا يفتح
@@ -59,7 +60,7 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
     const [expenseCategory, setExpenseCategory] = useState("");
     /* EXE-007: التاريخ قابل للتحرير كالمحرر الموجه — الوضع المختصر لا يفرض
      * «اليوم فقط»؛ الافتراضي اليوم والقيمة من حقل صريح. */
-    const [expenseOccurredOn, setExpenseOccurredOn] = useState(() => localDateInAmman());
+    const [expenseOccurredOn, setExpenseOccurredOn] = useState(() => todayInAmman());
     const [expenseWalletId, setExpenseWalletId] = useState(EXPENSE_SOURCE_UNSET);
     const expenseSourceChosenRef = useRef(false);
     const [formError, setFormError] = useState<string | null>(null);

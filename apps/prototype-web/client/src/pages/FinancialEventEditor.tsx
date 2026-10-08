@@ -25,7 +25,7 @@ import {
   expenseSourceHint,
   expenseSourceRuleViolation,
 } from "@/components/finance/expenseFormModel";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatMoneyMinor, isValidLocalDate } from "@/presentation/formatters";
 import {
   deriveExpenseCategorySuggestions,
   normalizeCategoryLabelInput,
@@ -45,6 +45,7 @@ import type {
 } from "@micro-domain/financial-event/index.js";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 type SharedMode = "fixed" | "percentage" | "estimate" | "defer";
 /* المجموعة ٤ (عقد ٢٩): أحداث الأصول والقروض وتصنيف العربون تُنشأ من أسطحها
  * المخصصة لأنها تتطلب ربط سجل مصدر (أصل/قرض/طلب) — المحرر العام يبقى
@@ -115,7 +116,6 @@ const definition: Record<
   },
 };
 const types = new Set<GuidedFinancialEventType>(Object.keys(definition) as GuidedFinancialEventType[]);
-const ammanDate = () => localDateInAmman();
 const basisFromMode = (mode: SharedMode): SharedProjectShareBasis =>
   mode === "percentage"
     ? "agreed_percentage"
@@ -159,7 +159,8 @@ type EditorDraft = {
 /* Conflict I (AV-09): إكراه دفاعي لمسودة محلية تالفة — القيم غير الصالحة تُستبدل
  * بقيم آمنة بدل أن تكسر النموذج أو تصل إلى الحفظ؛ التاريخ المشوّه يرجع لليوم،
  * والمعدّات لا تقبل إلا أعدادًا صحيحة موجبة، والقيم المعدودة تُرشّح على قوائمها. */
-const LOCAL_DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+/* R2 (M-04/D8، 2026-10-08): إكراه المسودة الدفاعي عبر النواة الكنسية —
+ * كان النمط أعمى تقويميًا فيقبل 2023-02-29 إلى مسودة النموذج. */
 const RELATIONSHIP_VALUES = ["project", "shared"] as const;
 const BEHAVIOR_VALUES = ["fixed", "variable", "mixed", "unknown"] as const;
 const PURPOSE_VALUES = ["project_general", "period", "order", "product", "campaign", "unallocated"] as const;
@@ -181,10 +182,9 @@ function coerceEditorDraft(value: unknown): EditorDraft | null {
   const draft = value as Record<string, unknown>;
   const amountMinor = safeDraftAmount(draft.amountMinor);
   const note = safeDraftString(draft.note);
-  const date =
-    typeof draft.date === "string" && LOCAL_DATE_PATTERN.test(draft.date) ? draft.date : ammanDate();
+  const date = typeof draft.date === "string" && isValidLocalDate(draft.date) ? draft.date : todayInAmman();
   /* لا شيء ذو معنى قابل للترجيع؟ لا نعرض عرض استرجاع فارغًا. */
-  if (amountMinor === 0 && note.trim() === "" && date === ammanDate()) return null;
+  if (amountMinor === 0 && note.trim() === "" && date === todayInAmman()) return null;
   return {
     amountMinor,
     sharedTotalAmountMinor: safeDraftAmount(draft.sharedTotalAmountMinor),
@@ -226,7 +226,7 @@ export default function FinancialEventEditor() {
   const [validSharedTotal, setValidSharedTotal] = useState(true);
   const [sharedPercentage, setSharedPercentage] = useState(0);
   const [validSharedPercentage, setValidSharedPercentage] = useState(true);
-  const [date, setDate] = useState(() => ammanDate());
+  const [date, setDate] = useState(() => todayInAmman());
   /* OPS-003 (عقد ٤١ §٨): مصروف يدوي في فترة تذكير غير معالجة — تحذير ظاهر
    * لا حظر صامت؛ التسجيل من هنا يبقى مشروعًا بقرار المستخدم الصريح. */
   const [recurringWarning, setRecurringWarning] = useState<string | null>(null);

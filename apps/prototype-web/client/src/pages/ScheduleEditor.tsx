@@ -9,6 +9,7 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { IntegerValue, LocalDateValue, TimeValue } from "@/components/presentation/DisplayValue";
 import type { ScheduleEntry } from "@/storage/local/types";
+import { localDatePlusDays } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
 type EditorState = "loading" | "ready" | "error";
@@ -152,15 +153,18 @@ export default function ScheduleEditor() {
    * لا يخترع سببًا؛ يسجّل ما فُعل بالضبط، ومن أراد تاريخًا أو سببًا آخر يستخدم النموذج. */
   async function postponeOneDay() {
     if (!schedule) return;
+    /* R2 (DATE-08، 2026-10-08): إزاحة اليوم من نواة التاريخ الكنسية — كانت
+     * مرساة ظهر بلا حارس ترمي RangeError على موعد فاسد (يصل عبر ملف مصنوع
+     * قبل تشديد الاستيراد) فيعلّق الفعل؛ حد التمثيل يعود null فيُعرض خطأ
+     * صادق بدل الانهيار. */
+    const nextDay = localDatePlusDays(schedule.scheduledFor, 1);
+    if (nextDay === null) {
+      setFeedback({ tone: "error", text: "تاريخ الموعد خارج النطاق القابل للتأجيل؛ راجعه في النموذج." });
+      return;
+    }
     setFeedback(null);
     setPostponing(true);
-    const nextDay = new Date(`${schedule.scheduledFor}T12:00:00.000Z`);
-    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
-    const result = await schedules.postpone(
-      schedule.id,
-      nextDay.toISOString().slice(0, 10),
-      "تأجيل سريع يومًا واحدًا",
-    );
+    const result = await schedules.postpone(schedule.id, nextDay, "تأجيل سريع يومًا واحدًا");
     setPostponing(false);
     if (!result.ok) {
       if (result.code === "storage_stale") setStaleConflict(true);

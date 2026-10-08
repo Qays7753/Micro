@@ -21,4 +21,4 @@ export {
   startAgreementPrice,
 } from "./agreementPrice";
 
-export { classifyFollowUpDate, localDateInAmman } from "./followUpDate";
+export { classifyFollowUpDate } from "./followUpDate";

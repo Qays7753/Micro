@@ -36,7 +36,10 @@
       "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md",
       "docs/architecture/refactoring/R0-LIVE-BASELINE-AND-FINDING-RECONCILIATION-2026-10-07.md",
       "docs/operations/control/evidence/structural-remediation-r1-20261007/R1-REPAIR-CARDS.md",
-      "docs/architecture/refactoring/R1-TRUTH-GOVERNANCE-DOCUMENTATION-EXECUTION-REPORT-2026-10-07.md"
+      "docs/architecture/refactoring/R1-TRUTH-GOVERNANCE-DOCUMENTATION-EXECUTION-REPORT-2026-10-07.md",
+      "docs/operations/control/evidence/structural-remediation-r2-20261007/R2-REPAIR-CARDS.md",
+      "docs/architecture/refactoring/R2-MONEY-FORMATTING-INPUT-DATE-MESSAGE-EXECUTION-REPORT-2026-10-07.md",
+      "docs/operations/control/evidence/structural-remediation-r2-20261007/R2-SEMANTIC-CHANGE-MANIFESTS.md"
     ]
   },
   "acceptance": [
@@ -68,14 +71,31 @@
     "docs/architecture/refactoring/STRUCTURAL-REMEDIATION-PLAN-20261007.md",
     "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md"
   ],
-  "evidence": [],
+  "evidence": [
+    "docs/operations/control/evidence/structural-remediation-r2-20261007/R2-SEMANTIC-CHANGE-MANIFESTS.md",
+    "docs/operations/control/evidence/structural-remediation-r2-20261007/R2-REPAIR-CARDS.md",
+    "docs/architecture/refactoring/R2-MONEY-FORMATTING-INPUT-DATE-MESSAGE-EXECUTION-REPORT-2026-10-07.md",
+    "docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md",
+    "src/domain/shared/currency.ts",
+    "src/domain/shared/businessTime.ts",
+    "apps/prototype-web/client/src/application/time/clock.ts",
+    "apps/prototype-web/client/src/application/cash/cashCountMessages.ts",
+    "apps/prototype-web/client/src/application/fulfillment/deliveryReviewService.ts",
+    "scripts/check-date-arithmetic-ownership.mjs",
+    "scripts/check-date-arithmetic-ownership.test.mjs",
+    "apps/prototype-web/client/src/moneyLayerGuard.contract.test.ts",
+    "apps/prototype-web/client/src/application/time/clock.test.ts",
+    "apps/prototype-web/client/src/application/cash/cashCountMessages.test.ts",
+    "tests/domain/moneyMessageCharacterization.test.ts",
+    "apps/prototype-web/client/src/applicationDoors.contract.test.ts"
+  ],
   "dependencies": [],
   "related_items": [
     "ARCH-005",
     "ARCH-006"
   ],
   "owner_decision": "اعتماد الخطة المحدثة ومصفوفة التتبع وبدء تثبيت العقد ثم R0 في 2026-10-07.",
-  "updated_at": "2026-10-07",
+  "updated_at": "2026-10-08",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -85,5 +105,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R1 مكتملة ومدموجة عبر PR #328 عند b225ac2ccd53076d2df165efb7de6c1e49e28888 (الرأس المصدر 7987c32b420d؛ تحقق ما بعد الدمج: CI run 37632246212 + Cloudflare Pages أخضران على رأس الدمج)؛ الخطوة التالية: بطاقات R2 (المال/التنسيق/الإدخال/التواريخ/الرسائل) بتوصيف محمي أولًا وSEMANTIC_CHANGE_MANIFEST كحد توقف."
+  "next_action": "R2 D11/D13 root-fix continuation complete at the PR #330 owner-review gate (owner explicitly overturned both PRESERVE_WITH_RATIONALE decisions; manifests M-10/M-11 written before production changes; five specialist reviews: S1-S3 APPROVE_WITH_AMENDMENTS applied, S4 financial/historical SAFE, S5 hostile final; full pnpm check PASS on the final head — 681/681 root, 2282/2282 app, 15 guards, bundle under ceilings). Owner actions: (1) review the final merge manifest + M-10/M-11 + the D11/D13 report addendum, (2) merge authorization, (3) post-merge verification on main, then R3 start."
 }

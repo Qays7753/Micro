@@ -20,6 +20,11 @@ import {
   validationFailure,
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
+import {
+  isValidLocalDate,
+  localDatePlusDays,
+  localDatePlusMonthsClamped,
+} from "@micro-domain/shared/index.js";
 
 export type RecurrenceInput = {
   sourceScheduleId: string;
@@ -58,32 +63,21 @@ const isActiveOrder = (order: StoredCraftOrder) =>
 /* المجموعة ٩ (STR-029): مفتاح اليوم من وحدة وقت الأعمال الكنسية —
  * كانت نسخة محلية بلا حارس مدخل؛ متغيّر الرمي لمدخلات موثوقة الإنشاء. */
 const localDateKey = localDateInAmman;
-const validDate = (value: string) => {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const parsed = new Date(`${value}T12:00:00.000Z`);
-  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
-};
+/* R2 (M-02/X1، 2026-10-08): الصلاحية من نواة المجال الكنسية — كانت مرساة
+ * ظهر مكررة (HOSTILE-01: addMonthsClamped العددية كانت تعيد السنوات < 0100
+ * إلى 1950+ فتخزّن تواريخ مولّدة خاطئة). */
+const validDate = (value: string) => isValidLocalDate(value);
 const validFrequency = (value: string): value is ScheduleRecurrenceFrequency =>
   value === "weekly" || value === "monthly";
 const validCount = (value: number) => Number.isInteger(value) && value >= 1 && value <= 12;
 
-function addDays(date: string, days: number) {
-  const result = new Date(`${date}T12:00:00.000Z`);
-  result.setUTCDate(result.getUTCDate() + days);
-  return result.toISOString().slice(0, 10);
-}
-
-function addMonthsClamped(date: string, months: number) {
-  const original = new Date(`${date}T12:00:00.000Z`);
-  const year = original.getUTCFullYear();
-  const month = original.getUTCMonth() + months;
-  const day = original.getUTCDate();
-  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-  return new Date(Date.UTC(year, month, Math.min(day, lastDay))).toISOString().slice(0, 10);
-}
-
-function nextDate(source: string, frequency: ScheduleRecurrenceFrequency, index: number) {
-  return frequency === "weekly" ? addDays(source, index * 7) : addMonthsClamped(source, index);
+/* R2 (M-02/X1، 2026-10-08): إزاحة الأيام والشهور من نواة الحساب الخالص.
+ * المدخل مُتحقق مسبقًا (validDate قبل التوليد)؛ حد التمثيل خارج 0000–9999
+ * يعود null فيرفض التوليد الصادق بدل تخزين سلسلة موسعة مهملة. */
+function nextDate(source: string, frequency: ScheduleRecurrenceFrequency, index: number): string | null {
+  return frequency === "weekly"
+    ? localDatePlusDays(source, index * 7)
+    : localDatePlusMonthsClamped(source, index);
 }
 
 function buildAppearance(
@@ -93,6 +87,8 @@ function buildAppearance(
   timestamp: string,
 ): ScheduleEntry {
   const scheduledFor = nextDate(source.scheduledFor, recurrence.frequency, index);
+  if (scheduledFor === null)
+    throw new Error("تاريخ الموعد المولّد خارج النطاق القابل للتمثيل؛ راجع تاريخ المصدر.");
   return {
     id: `${recurrence.id}:${index}`,
     orderId: recurrence.orderId,
@@ -189,7 +185,7 @@ export class ScheduleRecurrenceService {
           recurrence: existing,
           created: [],
           skipped: Array.from({ length: existing.occurrenceCount }, (_, index) => ({
-            date: nextDate(source.scheduledFor, existing.frequency, index + 1),
+            date: nextDate(source.scheduledFor, existing.frequency, index + 1) ?? source.scheduledFor,
             reason: "existing_schedule" as const,
           })),
         },
@@ -218,6 +214,8 @@ export class ScheduleRecurrenceService {
     const skipped: RecurrenceSkip[] = [];
     for (let index = 1; index <= input.occurrenceCount; index += 1) {
       const date = nextDate(source.scheduledFor, input.frequency, index);
+      if (date === null)
+        return validationFailure("تاريخ موعد مولّد خارج النطاق القابل للتمثيل؛ قلّل عدد التكرارات.");
       if (existingDates.has(date)) {
         skipped.push({ date, reason: "existing_schedule" });
         continue;

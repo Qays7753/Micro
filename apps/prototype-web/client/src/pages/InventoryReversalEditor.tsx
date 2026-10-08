@@ -10,9 +10,8 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { LocalDateValue, QuantityValue } from "@/components/presentation/DisplayValue";
-import { localDateInAmman } from "@/presentation/formatters";
 import { Button } from "@/components/primitives";
-const ammanDate = () => localDateInAmman();
+import { todayInAmman } from "@/application/time";
 export default function InventoryReversalEditor() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
@@ -20,7 +19,7 @@ export default function InventoryReversalEditor() {
   const returnPath = useReturnPath();
   const { dataVersion, inventory, notifyDataChanged } = usePrototypeServices();
   const [movement, setMovement] = useState<InventoryMovement | null>(null);
-  const [date, setDate] = useState(ammanDate);
+  const [date, setDate] = useState(todayInAmman);
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);

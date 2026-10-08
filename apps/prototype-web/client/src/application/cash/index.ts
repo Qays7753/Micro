@@ -21,3 +21,8 @@ export type { CashContinuityOverview, CashWalletBalance } from "./cashContinuity
 
 export { WalletLedgerService } from "./walletLedgerService";
 export type { WalletLedgerOverview } from "./walletLedgerService";
+
+/* R2 (M-10/D11، 2026-10-08): بانيا نص سجل تسوية العدّ المحفوظ انتقلا من طبقة
+ * العرض إلى هنا (عقد السجل الدائم ملك تطبيقي) — توسيع سطح مقصود بنفس الـPR
+ * وفق PC-3؛ مستهلكه الوحيد صفحة عدّ الصندوق. */
+export { cashCountDifferenceReason, cashCountSettlementNote } from "./cashCountMessages";

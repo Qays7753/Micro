@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { classifyFollowUpDate, formatLocalDate, localDateInAmman } from "./followUpDate";
+import { classifyFollowUpDate, formatLocalDate } from "./followUpDate";
+/* R2 (M-11/D13، 2026-10-08): إعادة تصدير localDateInAmman من باب الاتفاقات
+ * أُسقطت بعد هجرة مستهلكها الأخير — الاختبار يستورد الدالة المجالية من
+ * برميلها مباشرة. */
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 describe("follow-up local dates", () => {
   const today = "2026-08-24";

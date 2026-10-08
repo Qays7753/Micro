@@ -25,6 +25,7 @@ import {
 } from "./homeControlCenterModel";
 import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
+import { ammanDateOrNull, localDateDayNumber, localDatePlusDays } from "@micro-domain/shared/index.js";
 
 export type HomeControlCenterResult =
   { ok: true; value: HomeControlCenterViewModel } | { ok: false; code: "storage_error"; message: string };
@@ -46,11 +47,12 @@ function hasIncompleteResult(stored: StoredCraftOrder) {
   return !["cancelled"].includes(stored.order.status) && stored.order.resultStatus !== "final";
 }
 /* Wave 4.3 — P-4.3-2: حسابات تواريخ فترة صرفة على صيغة YYYY-MM-DD المحلية —
- * لا تلمس وقت الأعمال ولا منطق المال؛ حدود قراءة فقط. */
+ * لا تلمس وقت الأعمال ولا منطق المال؛ حدود قراءة فقط.
+ * R2 (M-09/HOSTILE-06، 2026-10-08): الإزاحة من نواة الحساب الخالص — كانت
+ * مرساة منتصف الليل + toISOString.slice (قصّ UTC). اليوم من ساعة الأعمال
+ * الجارية فلا يبلغ حد التمثيل؛ fail-soft بالمدخل نفسه. */
 function dayBefore(isoDate: string): string {
-  const date = new Date(`${isoDate}T00:00:00Z`);
-  date.setUTCDate(date.getUTCDate() - 1);
-  return date.toISOString().slice(0, 10);
+  return localDatePlusDays(isoDate, -1) ?? isoDate;
 }
 function monthStartBefore(isoDate: string): string {
   const [year, month] = isoDate.split("-").map(part => Number(part));
@@ -457,24 +459,22 @@ export class HomeControlCenterService {
       ...schedules.value.map(schedule => localDate(schedule.updatedAt)),
     ].sort((left, right) => right.localeCompare(left));
     const lastActivityDate = recordedActivityDates[0] ?? null;
-    const daysSinceLastActivity = lastActivityDate
-      ? Math.max(
-          0,
-          Math.round(
-            (Date.parse(`${today}T12:00:00.000Z`) - Date.parse(`${lastActivityDate}T12:00:00.000Z`)) /
-              86_400_000,
-          ),
-        )
-      : null;
+    /* R2 (M-02، 2026-10-08 — تصويب المراجعة النهائية FH-2): فرق الأيام
+     * بأرقام الأيام الكنسية (محور 1970-01-01) — كانت Date.parse لمراسي
+     * الظهر؛ متكافلة تمامًا للسنوات >= 0100. */
+    const todayNumber = localDateDayNumber(today);
+    const lastActivityNumber = lastActivityDate !== null ? localDateDayNumber(lastActivityDate) : null;
+    const daysSinceLastActivity =
+      todayNumber !== null && lastActivityNumber !== null
+        ? Math.max(0, todayNumber - lastActivityNumber)
+        : null;
     const lastExport = preferences.value?.lastVerifiedExportAt ?? null;
-    const daysSinceLastExport = lastExport
-      ? Math.max(
-          0,
-          Math.round(
-            (Date.parse(`${today}T12:00:00.000Z`) - Date.parse(lastExport.slice(0, 10))) / 86_400_000,
-          ),
-        )
-      : null;
+    /* R2 (M-05/X3، 2026-10-08): تاريخ العرض من اللحظة المخزنة عبر عقد وقت
+     * الأعمال — كان قصّ UTC يوهم بيوم إضافي مضى للتصديرات المسائية. */
+    const lastExportDate = lastExport !== null ? ammanDateOrNull(lastExport) : null;
+    const lastExportNumber = lastExportDate !== null ? localDateDayNumber(lastExportDate) : null;
+    const daysSinceLastExport =
+      todayNumber !== null && lastExportNumber !== null ? Math.max(0, todayNumber - lastExportNumber) : null;
     const hasAnyData =
       recentChanges.length > 0 || positionValue.cashWalletCount > 0 || positionValue.projectEventCount > 0;
     const awaySection =

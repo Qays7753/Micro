@@ -27,6 +27,7 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { LoanStore } from "@/storage/local/capabilities/loanStore";
 import { systemClock, type Clock } from "@/application/time/clock";
 import { errorMessageOf } from "@/application/resultCodes";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 /* STR-620/608 (Wave F — تكثيف الهامش): الحرفية نفسها كانت تتكرر في هذا الملف
  * عدّة مرات؛ ثابت واحد بلا أي تغيير رسالة. */
@@ -239,7 +240,10 @@ export class ReceivedLoanService {
       const reversal = createFinancialReversal({
         id: reversalEventId,
         sourceEvent: source,
-        occurredOn: now.slice(0, 10),
+        occurredOn:
+          /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(
+            now,
+          ),
         recordedAt: now,
         idempotencyKey: `${loanId}:repayment-reversal:${repaymentId}`,
         reason,
@@ -282,7 +286,10 @@ export class ReceivedLoanService {
       const reversal = createFinancialReversal({
         id: newId("event"),
         sourceEvent: source,
-        occurredOn: now.slice(0, 10),
+        occurredOn:
+          /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(
+            now,
+          ),
         recordedAt: now,
         idempotencyKey: `${loanId}:principal-reversal:${now}`,
         reason: input.reason,

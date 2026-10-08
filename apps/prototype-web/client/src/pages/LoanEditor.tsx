@@ -19,6 +19,7 @@ import { useFormDirty } from "@/components/forms/useFormDirty";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 
 export default function LoanEditor() {
   const [, navigate] = useLocation();
@@ -27,7 +28,7 @@ export default function LoanEditor() {
   const [borrowerName, setBorrowerName] = useState("");
   const [principalMinor, setPrincipalMinor] = useState(0);
   const [validPrincipal, setValidPrincipal] = useState(true);
-  const [loanDate, setLoanDate] = useState(() => localDateInAmman());
+  const [loanDate, setLoanDate] = useState(() => todayInAmman());
   const [sourceWalletId, setSourceWalletId] = useState("");
   const [wallets, setWallets] = useState<readonly { id: string; name: string }[]>([]);
   const [purposeNote, setPurposeNote] = useState("");
@@ -65,7 +66,7 @@ export default function LoanEditor() {
   const draft = useFormDraft(formDrafts, "loan", "new", {
     borrowerName: "",
     principalMinor: 0,
-    loanDate: localDateInAmman(),
+    loanDate: todayInAmman(),
     sourceWalletId: "",
     purposeNote: "",
   });
@@ -80,7 +81,7 @@ export default function LoanEditor() {
       const saved = draft.state.values;
       setBorrowerName(String(saved.borrowerName ?? ""));
       setPrincipalMinor(Number(saved.principalMinor ?? 0));
-      setLoanDate(String(saved.loanDate ?? localDateInAmman()));
+      setLoanDate(String(saved.loanDate ?? todayInAmman()));
       setSourceWalletId(String(saved.sourceWalletId ?? ""));
       setPurposeNote(String(saved.purposeNote ?? ""));
     }

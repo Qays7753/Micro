@@ -11,11 +11,12 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } f
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import { localDateInAmman, formatMoneyMinor } from "@/presentation/formatters";
+import { formatMoneyMinor } from "@/presentation/formatters";
 import type { ReceivedLoanSummaryRow } from "@/application/loans";
 import { ReceivedLoanService } from "@/application/loans";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 export default function ReceivedLoanRepaymentSheet({
   service,
   row,
@@ -29,7 +30,7 @@ export default function ReceivedLoanRepaymentSheet({
 }) {
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
-  const [date, setDate] = useState(() => localDateInAmman());
+  const [date, setDate] = useState(() => todayInAmman());
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);

@@ -739,7 +739,7 @@ describe("Finance period waste row (المجموعة ٢ — عقد ٢٨)", () =>
     wouterState.search = "view=period";
     wouterState.path = "/finance";
     /* نفس تثبيت ساعة النظام (PR #157): عرض الفترة في Finance يشتق الشهر الحالي
-     * من localDateInAmman() — نثبّته على أيلول 2026 ليطابق بذور الهدر. */
+     * من todayInAmman() (منفذ الساعة الكنوني — M-11/D13) — نثبّته على أيلول 2026 ليطابق بذور الهدر. */
     vi.useFakeTimers({ now: new Date(NOW), toFake: ["Date"] });
     vi.clearAllMocks();
   });

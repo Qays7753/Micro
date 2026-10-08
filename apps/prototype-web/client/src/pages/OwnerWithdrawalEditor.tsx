@@ -14,10 +14,11 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { CrossModelDuplicateNotice } from "@/components/owner/CrossModelDuplicateNotice";
-import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyMinor } from "@/presentation/formatters";
 import type { CrossModelOwnerDuplicate, OwnerEntitlementOverview } from "@/application/owner-money";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 /* مفتاح القرار (X-05): وجود سياسة حق مالك فعالة يوجه السحب إلى مسار الدفتر
  * (تسوية حق بمحفظة محددة)، وغيابها يوجهه إلى الحدث المالي العام.
  * G6-U2-1 (المجموعة ٦): وجود حق قابل للتسوية شرط تسوية الحق — بلا حق مسجل
@@ -40,7 +41,7 @@ export default function OwnerWithdrawalEditor() {
   const [validAmount, setValidAmount] = useState(true);
   const [walletId, setWalletId] = useState("");
   const [entitlementId, setEntitlementId] = useState("");
-  const [occurredOn, setOccurredOn] = useState(() => localDateInAmman());
+  const [occurredOn, setOccurredOn] = useState(() => todayInAmman());
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);

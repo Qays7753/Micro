@@ -27,9 +27,11 @@ import {
   formatArabicPlural,
   formatLocalDate,
   formatMonthLabel,
-  localDateInAmman,
+  localDatePlusMonthsClamped,
+  localDateWeekdayIndex,
 } from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
+import { todayInAmman } from "@/application/time";
 
 type ScheduleState =
   | { phase: "loading" }
@@ -58,15 +60,15 @@ const frequencyLabel = (frequency: "weekly" | "monthly") => (frequency === "week
 /* المجموعة ٩ (STR-029): مفتاحا اليوم والشهر الحاليان من وحدة وقت الأعمال
  * الكنسية عبر إعادة تصدير العرض (توافق مستوردي الصفحة) — لا نسخة محلية
  * بعد اليوم؛ مفتاح الشهر أول سبعة أحرف من تاريخ الأعمال كما في العقد. */
-const currentLocalMonth = () => localDateInAmman().slice(0, 7);
-const currentLocalDate = () => localDateInAmman();
-const shiftMonth = (month: string, offset: number) => {
-  const date = new Date(`${month}-15T12:00:00.000Z`);
-  date.setUTCMonth(date.getUTCMonth() + offset);
-  return date.toISOString().slice(0, 7);
-};
+const currentLocalMonth = () => todayInAmman().slice(0, 7);
+const currentLocalDate = () => todayInAmman();
+/* R2 (M-02/X1، 2026-10-08 — تصويب المراجعة النهائية FH-2): إزاحة الشهر
+ * وفهرس أول يوم من نواة الحساب الخالص — كانتا مرساة ظهر رابعة (اليوم 15
+ * موجود في كل شهر فلا تثبيت أبدًا؛ المفتاح من ساعة الأعمال الجارية). */
+const shiftMonth = (month: string, offset: number) =>
+  (localDatePlusMonthsClamped(`${month}-15`, offset) ?? `${month}-15`).slice(0, 7);
 const monthDayNumber = (date: string) => formatLocalDate(date)?.slice(0, 2) ?? "--";
-const monthFirstDayOffset = (month: string) => new Date(`${month}-01T12:00:00.000Z`).getUTCDay();
+const monthFirstDayOffset = (month: string) => localDateWeekdayIndex(`${month}-01`) ?? 0;
 
 export default function Schedule() {
   const [, navigate] = useLocation();

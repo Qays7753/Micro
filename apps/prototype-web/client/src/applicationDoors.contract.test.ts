@@ -43,7 +43,6 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
     "agreementPriceIsReady",
     "applyProtectionPriceAsStart",
     "classifyFollowUpDate",
-    "localDateInAmman",
     "protectionPriceIsReadyForAgreement",
     "startAgreementPrice",
   ],
@@ -70,6 +69,10 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
     "echoQuantityMilli",
     "focusEnglishNumericText",
     "formatEnglishNumericValue",
+    /* R2 (M-07/D14، 2026-10-08): منسّق صدى الكمية — توسيع سطح مقصود بنفس
+     * الموجة (PC-3): انتقل من تعريف محلي في EnglishQuantityInput إلى نواة
+     * الإدخال بمالك واحد؛ لا رمز بلا مستهلك. */
+    "formatEnglishQuantityEcho",
     "normalizeAsciiDigits",
     "parseEnglishNumericText",
     "parseEnglishQuantityText",
@@ -82,11 +85,20 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
   security: ["LOCK_AUTO_LOCK_OPTIONS", "LocalLockService"],
   share: ["collectionShareDraft", "customerShareDraft", "standingCollectionEvent"],
   suppliers: [],
-  time: [],
+  /* R2 (M-11/D13، 2026-10-08): أول قيمة في باب الوقت — حد «اليوم»
+   * المسماى الوحيد (توسيع مقصود PC-3). */
+  time: ["todayInAmman"],
   transfers: [],
   /* أبواب Wave B/W4 بعد فصل الأنواع (الخطوة ٦): */
   budgets: ["ExpenseBudgetService"],
-  cash: ["CashContinuityService", "WalletLedgerService"],
+  /* R2 (M-10/D11، 2026-10-08): بانيا نص سجل تسوية العدّ انتقلا من العرض —
+   * توسيع سطح مقصود بنفس الـPR (PC-3). */
+  cash: [
+    "CashContinuityService",
+    "WalletLedgerService",
+    "cashCountDifferenceReason",
+    "cashCountSettlementNote",
+  ],
   finance: [
     "DueDatesService",
     "IntegrityCheckService",

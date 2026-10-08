@@ -28,11 +28,13 @@ import {
   formatLocalDate,
   formatLocalDateLong,
   formatQuantityMilli,
-  localDateInAmman,
+  localDatePlusDays,
+  localDateWeekdayIndex,
 } from "@/presentation/formatters";
 import type { ActivityEffectClass, ActivityFamily, ActivityRecord } from "@/application/activity";
 
 import { Button, EmptyState, StatusChip } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -40,14 +42,13 @@ type State =
 
 type PeriodRange = "this_week" | "last_week" | "this_month" | "all" | "custom";
 
-const DAY = 24 * 60 * 60 * 1000;
-const shiftDate = (localDate: string, days: number): string => {
-  const [year, month, day] = localDate.split("-").map(Number);
-  return new Date(Date.UTC(year!, month! - 1, day! + days)).toISOString().slice(0, 10);
-};
+/* R2 (M-02/X1، 2026-10-08): حساب حدود الأسبوع من نواة التاريخ الكنسية —
+ * كانت Date.UTC رقمية (تعيد السنوات < 0100 إلى 1900+). اليوم من ساعة
+ * الأعمال الجارية فلا يبلغ حد التمثيل؛ fail-soft بالمدخل نفسه كما كان. */
+const shiftDate = (localDate: string, days: number): string =>
+  localDatePlusDays(localDate, days) ?? localDate;
 function weekBounds(today: string): { from: string; to: string } {
-  const [year, month, day] = today.split("-").map(Number);
-  const weekday = new Date(Date.UTC(year!, month! - 1, day!)).getUTCDay();
+  const weekday = localDateWeekdayIndex(today) ?? 0;
   const from = shiftDate(today, -weekday);
   return { from, to: shiftDate(from, 6) };
 }
@@ -133,7 +134,7 @@ export default function FinanceActivity() {
   const search = useSearch();
   const returnPath = useReturnPath();
   const { activity, dataVersion } = usePrototypeServices();
-  const today = localDateInAmman();
+  const today = todayInAmman();
   const thisWeek = weekBounds(today);
   const lastWeek = weekBounds(shiftDate(today, -7));
   const thisMonth = monthBounds(today);

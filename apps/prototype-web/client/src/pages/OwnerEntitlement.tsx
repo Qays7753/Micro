@@ -21,7 +21,12 @@ import {
   successorPolicyFormRequirements,
   supportedOwnerEntitlementPolicyKinds,
 } from "@/presentation/ownerEntitlementPresentation";
-import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import {
+  formatLocalDate,
+  formatMoneyMinor,
+  formatPercentFromBps,
+  localDateMonthEnd,
+} from "@/presentation/formatters";
 import type {
   CrossModelOwnerDuplicate,
   OwnerEntitlementOverview,
@@ -34,8 +39,9 @@ import {
 } from "@micro-domain/owner-entitlement/index.js";
 
 import { Button, EmptyState } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 type Notice = { tone: "success" | "error"; text: string } | null;
-const monthStart = () => `${localDateInAmman().slice(0, 7)}-01`;
+const monthStart = () => `${todayInAmman().slice(0, 7)}-01`;
 const idempotency = (prefix: string) => `${prefix}:${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 
 export default function OwnerEntitlement() {
@@ -61,7 +67,7 @@ export default function OwnerEntitlement() {
   const [policyNote, setPolicyNote] = useState("");
   const [selectedPolicyId, setSelectedPolicyId] = useState("");
   const [successorPolicyId, setSuccessorPolicyId] = useState("");
-  const [successorStartsOn, setSuccessorStartsOn] = useState(localDateInAmman);
+  const [successorStartsOn, setSuccessorStartsOn] = useState(todayInAmman);
   const [successorKind, setSuccessorKind] = useState<OwnerEntitlementPolicy["kind"]>("monthly");
   const [successorAmount, setSuccessorAmount] = useState(0);
   const [successorAmountValid, setSuccessorAmountValid] = useState(true);
@@ -73,11 +79,12 @@ export default function OwnerEntitlement() {
   const [successorNote, setSuccessorNote] = useState("");
   const [selectedEntitlementId, setSelectedEntitlementId] = useState("");
   const [periodFrom, setPeriodFrom] = useState(monthStart);
+  /* R2 (M-02/X1، 2026-10-08): آخر يوم شهر من نواة التاريخ الكنسية — كان
+   * Date.UTC رقمية (تعيد السنوات < 0100 إلى 1900+) بثلاث نداءات ساعة. */
   const [periodTo, setPeriodTo] = useState(
-    () =>
-      `${localDateInAmman().slice(0, 7)}-${new Date(Date.UTC(Number(localDateInAmman().slice(0, 4)), Number(localDateInAmman().slice(5, 7)), 0)).getUTCDate()}`,
+    () => localDateMonthEnd(todayInAmman().slice(0, 7)) ?? todayInAmman(),
   );
-  const [entitlementDate, setEntitlementDate] = useState(localDateInAmman);
+  const [entitlementDate, setEntitlementDate] = useState(todayInAmman);
   const [entitlementNote, setEntitlementNote] = useState("");
   const [calculation, setCalculation] = useState<{
     amountMinor: number | null;
@@ -86,7 +93,7 @@ export default function OwnerEntitlement() {
   } | null>(null);
   const [openingAmount, setOpeningAmount] = useState<number | null>(null);
   const [openingAmountValid, setOpeningAmountValid] = useState(true);
-  const [openingDate, setOpeningDate] = useState(localDateInAmman);
+  const [openingDate, setOpeningDate] = useState(todayInAmman);
   const [openingReason, setOpeningReason] = useState("");
   const [openingNote, setOpeningNote] = useState("");
   const [movementKind, setMovementKind] = useState<"draw" | "return">("draw");
@@ -94,7 +101,7 @@ export default function OwnerEntitlement() {
   const [movementAmount, setMovementAmount] = useState(0);
   const [movementAmountValid, setMovementAmountValid] = useState(true);
   const [movementWalletId, setMovementWalletId] = useState("");
-  const [movementDate, setMovementDate] = useState(localDateInAmman);
+  const [movementDate, setMovementDate] = useState(todayInAmman);
   const [movementNote, setMovementNote] = useState("");
   const [relatedEntitlementId, setRelatedEntitlementId] = useState("");
   const [relatedOpeningBalanceId, setRelatedOpeningBalanceId] = useState("");
@@ -531,7 +538,7 @@ export default function OwnerEntitlement() {
     setSaving(true);
     const result = await ownerEntitlement.reverseMovement({
       movementId: reversalTarget.id,
-      occurredOn: localDateInAmman(),
+      occurredOn: todayInAmman(),
       reason: reversalReason,
       idempotencyKey: idempotency(`owner-reversal:${reversalTarget.id}`),
     });
@@ -559,7 +566,7 @@ export default function OwnerEntitlement() {
     setSaving(true);
     const result = await ownerEntitlement.reverseEntitlement({
       recordId: reversalTarget.id,
-      occurredOn: localDateInAmman(),
+      occurredOn: todayInAmman(),
       reason: reversalReason,
       idempotencyKey: idempotency(`entitlement-reversal:${reversalTarget.id}`),
     });
@@ -587,7 +594,7 @@ export default function OwnerEntitlement() {
     setSaving(true);
     const result = await ownerEntitlement.reverseOpeningBalance({
       balanceId: reversalTarget.id,
-      occurredOn: localDateInAmman(),
+      occurredOn: todayInAmman(),
       reason: reversalReason,
       idempotencyKey: idempotency(`opening-reversal:${reversalTarget.id}`),
     });
@@ -793,8 +800,9 @@ export default function OwnerEntitlement() {
                       </small>
                     </div>
                     <b>
+                      {/* R2 (M-07/D15): المعيّن الكنوني — متكافل بايت-بايت مع القالب اليدوي السابق. */}
                       {policy.amountMinor === null
-                        ? `${(policy.percentageBps ?? 0) / 100}%`
+                        ? formatPercentFromBps(policy.percentageBps)
                         : `${formatMoneyMinor(policy.amountMinor)} د.أ`}
                     </b>
                   </article>

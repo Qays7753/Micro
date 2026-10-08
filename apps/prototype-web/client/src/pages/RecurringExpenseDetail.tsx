@@ -20,6 +20,11 @@ import type {
 import { RecurringConfirmPanel } from "@/components/finance/RecurringConfirmPanel";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { Button, StatusChip } from "@/components/primitives";
+/* localDatePlusDays عبر واجهة العرض المتوافقة (نمط مستهلكي الواجهة
+ * القائم — إعادة تصدير النواة الموثقة) لا استيراد مجال مباشر من صفحة
+ * (قاعدة STR-106). */
+import { localDatePlusDays } from "@/presentation/formatters";
+import { todayInAmman } from "@/application/time";
 
 type PageState =
   | { phase: "loading" }
@@ -40,14 +45,13 @@ const SERIES_STATUS_LABELS: Record<string, string> = {
   archived: "مؤرشف — مخفي تشغيليًا وقابل للاستعادة",
 };
 
-function todayLocal(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-}
+/* R2 (M-11/D13، 2026-10-08): «اليوم» من الحد الكنوني بعمّان (كان مشتقًا
+ * محليًا بتوقيت الجهاز يتخطى عقد منطقة الأعمال)، وهدف التأجيل بحساب
+ * النواة الصحيح الخالص localDatePlusDays (كان حسابًا محليًا بمحددات
+ * الجهاز) — حدّ null التعويذي لا يقع لتاريخ صالح ضمن ± بضعة أيام. */
 function datePlusDays(days: number): string {
-  const date = new Date();
-  date.setDate(date.getDate() + days);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const today = todayInAmman();
+  return localDatePlusDays(today, days) ?? today;
 }
 
 function occurrenceStatusLabel(reading: RecurringExpenseOccurrenceReading): string {
@@ -138,7 +142,7 @@ export default function RecurringExpenseDetail() {
   const { detail } = state;
   const { series, revisions } = detail;
   const latest = revisions.at(-1) ?? null;
-  const today = todayLocal();
+  const today = todayInAmman();
 
   return (
     <section className="micro-page micro-finance-more-page">

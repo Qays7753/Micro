@@ -296,6 +296,9 @@ describe("قفل سطح الدومين العام (٢) — المجموعة ٦ (
     expect(typeof shared.ceilRatio).toBe("function");
     expect(typeof shared.fieldLabelAr).toBe("function");
     expect(typeof shared.isValidLocalDate).toBe("function");
+    /* R2 (M-10/D11، 2026-10-08): المنسّق الكنوني لنص المال المحفوظ — حضور
+     * مقصود في برميل shared (توسيع سطح واعٍ بنفس الموجة). */
+    expect(typeof shared.persistedMoneyTextMinor).toBe("function");
     expect(typeof shared.isValidTimestamp).toBe("function");
     expect(typeof shared.quantityMilliExact).toBe("function");
     expect(typeof shared.roundHalfUp).toBe("function");

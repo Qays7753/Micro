@@ -1,11 +1,16 @@
 /** RTL-safe quantity input: accepts ASCII decimals and emits integer thousandths, never a persisted float. */
 import { type ComponentProps, useEffect, useRef, useState } from "react";
-import { normalizeAsciiDigits, parseEnglishQuantityText } from "@/application/input";
+import {
+  formatEnglishQuantityEcho,
+  normalizeAsciiDigits,
+  parseEnglishQuantityText,
+} from "@/application/input";
 import { cn } from "@/lib/utils";
 
 const quantityPartial = /^\d*(?:\.\d{0,3})?$/;
-const formatMilli = (value: number | null) =>
-  value === null ? "" : (value / 1000).toFixed(3).replace(/\.0+$/, "");
+/* R2 (M-07/D14، 2026-10-08): منسّق صدى الإدخال من نواة الإدخال الكنسية —
+ * كان تعريفًا محليًا يكرر قاعدة التمثيل؛ العقد نفسه بالبايت. */
+const formatMilli = formatEnglishQuantityEcho;
 export function focusQuantityText(
   valueMilli: number | null,
   text: string,

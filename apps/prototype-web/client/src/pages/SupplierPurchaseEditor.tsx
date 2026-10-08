@@ -30,7 +30,7 @@ import type { Material } from "@micro-domain/inventory-material/index.js";
 import type { PurchaseReceiptStatus } from "@/application/inventory";
 
 import { Button } from "@/components/primitives";
-const ammanDate = () => localDateInAmman();
+import { todayInAmman } from "@/application/time";
 
 type EditorMode = "new" | "payment" | "edit";
 
@@ -58,7 +58,7 @@ export default function SupplierPurchaseEditor() {
   const [loadedToken, setLoadedToken] = useState(0);
   const [supplierName, setSupplierName] = useState("");
   const [note, setNote] = useState("");
-  const [purchasedOn, setPurchasedOn] = useState(() => ammanDate());
+  const [purchasedOn, setPurchasedOn] = useState(() => todayInAmman());
   const [dueOn, setDueOn] = useState("");
   const [totalMinor, setTotalMinor] = useState(0);
   const [initialPaidMinor, setInitialPaidMinor] = useState(0);
@@ -190,7 +190,7 @@ export default function SupplierPurchaseEditor() {
   const purchaseDraft = useFormDraft(formDrafts, "supplier_purchase", isNew ? "new" : null, {
     supplierName: "",
     note: "",
-    purchasedOn: ammanDate(),
+    purchasedOn: todayInAmman(),
     dueOn: "",
     totalMinor: 0,
     initialPaidMinor: 0,
@@ -229,7 +229,7 @@ export default function SupplierPurchaseEditor() {
       const saved = purchaseDraft.state.values;
       setSupplierName(String(saved.supplierName ?? ""));
       setNote(String(saved.note ?? ""));
-      setPurchasedOn(String(saved.purchasedOn ?? ammanDate()));
+      setPurchasedOn(String(saved.purchasedOn ?? todayInAmman()));
       setDueOn(String(saved.dueOn ?? ""));
       setTotalMinor(Number(saved.totalMinor ?? 0));
       setInitialPaidMinor(Number(saved.initialPaidMinor ?? 0));
@@ -457,7 +457,7 @@ export default function SupplierPurchaseEditor() {
       purchaseId: purchase.id,
       paymentId: reversalTarget.id,
       reason: reversalReason,
-      occurredOn: ammanDate(),
+      occurredOn: todayInAmman(),
       idempotencyKey: reversalKeyRef.current,
     });
     setSaving(false);

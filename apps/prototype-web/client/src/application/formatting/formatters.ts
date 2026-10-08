@@ -112,6 +112,15 @@ export function formatInteger(value: number | null | undefined) {
   return integerFormatter.format(value);
 }
 
+/* R2 (M-07/D15، 2026-10-08): المعيّن الكنوني للنسبة من نقاط الأساس —
+ * كان قالبًا يدويًا \`\${(bps ?? 0) / 100}%\` في موضعين بلا مالك. الناتج
+ * متكافل بايت-بايت مع القالب التاريخي على كل المدخلات (الغياب = 0%
+ * كما كان الاندماج ?? 0)؛ لا حساب عمل هنا — عرض صرف فقط. */
+export function formatPercentFromBps(bps: number | null | undefined): string {
+  if (bps === null || bps === undefined || !Number.isFinite(bps)) return "0%";
+  return `${bps / 100}%`;
+}
+
 export function formatQuantityMilli(value: number | null | undefined) {
   if (value === null || value === undefined || !Number.isSafeInteger(value)) return "—";
   return trimTrailingZeros(quantityMilliToFixed3(value));
@@ -156,14 +165,31 @@ export function formatBreakEvenDisplay(
 
 /* S4-08 + المجموعة ۹ (STR-031): معيّن المجال المرجعي — تحقق صلاحية Date-only
  * وتاريخ الأعمال الكنوني بتوقيت عمّان يأتيان من النطاق لا من طبقة العرض؛
- * إعادة التصدير لتوافق مستورديها الحاليين فقط. */
+ * إعادة التصدير لتوافق مستورديها الحاليين فقط.
+ * R2 (M-02، 2026-10-08): حساب التاريخ المحلي الخالص (إزاحة أيام/فهرس
+ * يوم/آخر يوم شهر/طول شهر) من النواة نفسها — نفس نمط إعادة التصدير
+ * الموثق لمستهلكي الواجهة القائمين؛ توسيع سطح مقصود بنفس الموجة (PC-3). */
 import {
   ammanDateOrNull,
   isValidLocalDate as isValidLocalDateDomain,
+  isValidTimestamp,
   localDateInAmman,
+  localDateMonthEnd,
+  localDatePlusDays,
+  localDatePlusMonthsClamped,
+  localDateWeekdayIndex,
+  daysInMonthOf,
 } from "@micro-domain/shared/index.js";
 export const isValidLocalDate = isValidLocalDateDomain;
-export { localDateInAmman };
+export {
+  localDateInAmman,
+  localDateMonthEnd,
+  localDatePlusDays,
+  localDatePlusMonthsClamped,
+  localDateWeekdayIndex,
+  daysInMonthOf,
+  isValidTimestamp,
+};
 
 export function formatLocalDate(value: string | null | undefined) {
   if (!value || !isValidLocalDate(value)) return null;

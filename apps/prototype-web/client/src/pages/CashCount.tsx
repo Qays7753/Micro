@@ -11,15 +11,18 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
+/* R2 (M-10/D11): بانيا نص السجل المحفوظ من باب التطبيق (لا من العرض)؛
+ * رسالة التوست اللحظية تبقى عرضًا. */
 import {
   cashCountDifferenceReason,
-  cashCountSettledMessage,
   cashCountSettlementNote,
-} from "@/presentation/cashCountMessages";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
-import { CashContinuityOverview } from "@/application/cash";
+  type CashContinuityOverview,
+} from "@/application/cash";
+import { cashCountSettledMessage } from "@/presentation/cashCountMessages";
+import { formatMoneyMinor } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -107,7 +110,7 @@ export default function CashCount() {
     const result = await cashContinuity.adjust({
       walletId: wallet.id,
       deltaMinor: differenceMinor,
-      occurredOn: localDateInAmman(),
+      occurredOn: todayInAmman(),
       /* F-001: النصوص عبر البنّاء المُختبر — مقياس المال 1/100 في كل رسالة. */
       note: cashCountSettlementNote(countedMinor),
       reason: cashCountDifferenceReason(differenceMinor),

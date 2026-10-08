@@ -10,9 +10,9 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { CashWalletBalance } from "@/application/cash";
-import { localDateInAmman } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 type PageState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -29,7 +29,7 @@ export default function CashOpeningLaterEditor() {
   const [amountMinor, setAmountMinor] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
-  const [date, setDate] = useState(() => localDateInAmman());
+  const [date, setDate] = useState(() => todayInAmman());
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
