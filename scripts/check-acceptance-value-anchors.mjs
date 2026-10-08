@@ -6,14 +6,20 @@
  * السلطوية — فأقيمت هذه المراسي على «تساوي حرفي بين النسختين» (أي انحراف
  * يفشل الفحص) إلى حين بوابة STR-608.
  *
- * R4-B2 (توحيد قيم القبول الحالية — قرار STR-608 الموثق): المواقع الثلاثة
- * صارت تستهلك مصادرها الكنونية مباشرة وقت التشغيل:
+ * R4-B2 (توحيد قيم القبول الحالية — قرار STR-608 الموثق) ثم R4-S8/F1:
+ * مواقع استهلاك قيم القبول الحالية تستهلك مصادرها الكنونية مباشرة وقت التشغيل:
  *   (1) application/agreements/agreementContextService.ts — يستورد
  *       AGREEMENT_SOURCE_ACCEPTANCE وLegacyAgreementSource من
  *       transferCompatibilityValues (السجل الكنوني) ويبني الطاقم منه؛
  *   (2) application/transfers/guidedOpeningImportService.ts — يبني walletKinds
  *       من cashWalletKinds الكنونية (domain/cash-continuity) وmaterialUnits
- *       من قائمة المجال (domain/inventory-material).
+ *       من قائمة المجال (domain/inventory-material)؛
+ *   (3) application/agreements/agreementService.ts — يستورد
+ *       AGREEMENT_SOURCE_ACCEPTANCE من السجل الكنوني نفسه (وحدة HF-1).
+ * R4-REC-5 (2026-10-08، شريحة تحصين بإذن المالك): أُضيف الموقع الثالث إلى
+ * المراسي مع سلبيتين تثبتان الاصطياد عند رجوعه إلى نسخة حرفية — إغلاق فجوة
+ * تغطية الحارس الموثقة في مصالحة الأدلة (كان الاستهلاك الكنوني قائمًا
+ * ومطابقًا، والفجوة في تعميق الحارس فقط).
  * بعد التوحيد صار الانحراف مستحيلًا بالبناء (النوع + الاستيراد) — المراسي
  * هنا تثبت **الاستهلاك نفسه**: أن كل موقع ما زال يستورد ويبني من مصدره
  * الكنوني، ولم يعد يحمل نسخة حرفية محلية، وأن مصادر المجال قائمة بأعضائها.
@@ -29,6 +35,7 @@ import { ROOT } from "./check-runtime-cycles.mjs";
 
 const SITES = {
   agreementContext: "apps/prototype-web/client/src/application/agreements/agreementContextService.ts",
+  agreementService: "apps/prototype-web/client/src/application/agreements/agreementService.ts",
   compatibilityValues: "apps/prototype-web/client/src/application/transfers/transferCompatibilityValues.ts",
   guidedOpeningImport: "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
   cashContinuityTypes: "src/domain/cash-continuity/types.ts",
@@ -111,6 +118,28 @@ export function checkAcceptanceValueAnchors(repoRoot, readFile) {
     });
   }
 
+  /* (١-ب) R4-REC-5: الموقع الثالث لمصادر الاتفاق — خدمة الاتفاق نفسها (وحدة
+   * HF-1، وُحدت في استجابة S8). الاستهلاك الكنوني قائم؛ المرساة هنا تثبته
+   * وتصاد أي رجوع. شبكة «لا نسخة حرفية» مقصودة على مستوى الملف كله (نمط
+   * HF-8 المغلق): الصيغة التاريخية للوحدة قبل الإصلاح كانت `new Set([`
+   * غير المطابقة (مسجلة في c5363c82^) فتُحظر مع الصيغة المطابقة
+   * `new Set<string>([` معًا — الرجوع الكامل يصيده بُعد البناء من المصدر،
+   * والإضافة الحرفية الموازية (بأي الصيغتين) تصيدها شبكة الخلوّ. */
+  const svc = read(SITES.agreementService);
+  const svcImportsRegistry =
+    /import\s*\{[^}]*AGREEMENT_SOURCE_ACCEPTANCE[^}]*\}\s*from\s*"@\/application\/transfers\/transferCompatibilityValues"/.test(
+      svc,
+    );
+  const svcBuildsFromRegistry = svc.includes("new Set<string>(AGREEMENT_SOURCE_ACCEPTANCE)");
+  const svcNoLocalLiteral = !svc.includes("new Set<string>([") && !svc.includes("new Set([");
+  report.agreementServiceSources = { canonical: acceptanceCanonical, consumed: svcBuildsFromRegistry };
+  if (!svcImportsRegistry || !svcBuildsFromRegistry || !svcNoLocalLiteral) {
+    violations.push({
+      anchor: "agreement-service-acceptance",
+      hint: `agreementService لم يعد يستهلك AGREEMENT_SOURCE_ACCEPTANCE من سجل التوافق مباشرة (استيراد: ${svcImportsRegistry}؛ بناء: ${svcBuildsFromRegistry}؛ خلوّ من النسخة الحرفية: ${svcNoLocalLiteral})`,
+    });
+  }
+
   /* (٢) مستورد الفتح الموجه: الاستهلاك الكنوني المباشر من المجال. */
   const guided = read(SITES.guidedOpeningImport);
   const cashTypes = read(SITES.cashContinuityTypes);
@@ -183,7 +212,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    "acceptance-value-anchors: PASS — المواقع الثلاثة تستهلك مصادرها الكنونية مباشرة (مصادر الاتفاق من سجل التوافق؛ walletKinds وmaterialUnits من المجال) والقوائم الكنونية بأعضائها الموثقة — صفر نسخة حرفية محلية (Wave H/STR-623 ثم توحيد R4-B2)",
+    "acceptance-value-anchors: PASS — مواقع الاستهلاك الأربعة المحروسة (agreementContextService وagreementService لمصادر الاتفاق من سجل التوافق؛ walletKinds وmaterialUnits في guided من المجال) تستهلك مصادرها الكنونية مباشرة والقوائم الكنونية بأعضائها الموثقة — رجوع أي موقع إلى نسخة حرفية (بصيغتيها) يُصاد حتميًا بالسلبيات المثبتة (Wave H/STR-623 ثم توحيد R4-B2 ثم إغلاق R4-REC-5)",
   );
 }
 

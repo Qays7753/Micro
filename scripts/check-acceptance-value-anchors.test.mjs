@@ -5,6 +5,10 @@
  * تغطي النجاح عند الاستهلاك الكامل، والاصطياد عند رجوع أي موقع إلى نسخة
  * حرفية محلية، وعند تغيّر القائمة الكنونية نفسها — وفحص دخاني على
  * المستودع الحي.
+ * R4-REC-5 (2026-10-08، شريحة التحصين): أُضيف الموقع الثالث —
+ * agreementService.ts — بورقة إيجابية وسلبيتين: الرجوع إلى النسخة
+ * الحرفية بصيغتها التاريخية غير المطابقة `new Set([` (المسجلة في
+ * c5363c82^) وإسقاط الاستيراد الكنوني مع إبقاء حرفية مطابقة.
  */
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -38,6 +42,10 @@ import {
 export type { LegacyAgreementSource };
 const sources = new Set<AgreementSourceValue>(AGREEMENT_SOURCE_ACCEPTANCE);
 `;
+const SVC_OK = `
+import { AGREEMENT_SOURCE_ACCEPTANCE } from "@/application/transfers/transferCompatibilityValues";
+const allowedAgreementSources = new Set<string>(AGREEMENT_SOURCE_ACCEPTANCE);
+`;
 const GUIDED_OK = `
 import { cashWalletKinds } from "@micro-domain/cash-continuity/index.js";
 import { materialUnits as domainMaterialUnits } from "@micro-domain/inventory-material/index.js";
@@ -50,6 +58,7 @@ const INV_TYPES = `export const materialUnits = ["piece", "meter", "kilogram", "
 function files(overrides = {}) {
   return {
     "apps/prototype-web/client/src/application/agreements/agreementContextService.ts": CTX_OK,
+    "apps/prototype-web/client/src/application/agreements/agreementService.ts": SVC_OK,
     "apps/prototype-web/client/src/application/transfers/transferCompatibilityValues.ts": COMPAT,
     "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts": GUIDED_OK,
     "src/domain/cash-continuity/types.ts": CASH_TYPES,
@@ -62,8 +71,8 @@ const readFrom = map => rel => {
   return map[rel];
 };
 
-describe("check-acceptance-value-anchors (Wave H — STR-623، ثم توحيد R4-B2)", () => {
-  it("passes when all three sites consume their canonical sources directly", () => {
+describe("check-acceptance-value-anchors (Wave H — STR-623، توحيد R4-B2، ثم إغلاق R4-REC-5)", () => {
+  it("passes when all guarded consumption sites are canonical (agreementContext, agreementService, guided walletKinds + materialUnits)", () => {
     const result = checkAcceptanceValueAnchors(REPO_ROOT, readFrom(files()));
     expect(result.violations).toEqual([]);
     expect(result.ok).toBe(true);
@@ -97,6 +106,38 @@ describe("check-acceptance-value-anchors (Wave H — STR-623، ثم توحيد R
       ),
     );
     expect(result.violations.some(v => v.anchor === "legacy-agreement-source-union")).toBe(true);
+  });
+
+  it("R4-REC-5: catches agreementService reverting to a local literal acceptance set (untyped historical HF-1 form)", () => {
+    const tampered = SVC_OK.replace(
+      "const allowedAgreementSources = new Set<string>(AGREEMENT_SOURCE_ACCEPTANCE);",
+      'const allowedAgreementSources = new Set(["instagram", "whatsapp", "referral", "walk_in", "other", "conversation", "call", "in_person"]);',
+    );
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(
+        files({
+          "apps/prototype-web/client/src/application/agreements/agreementService.ts": tampered,
+        }),
+      ),
+    );
+    expect(result.ok).toBe(false);
+    expect(result.violations.some(v => v.anchor === "agreement-service-acceptance")).toBe(true);
+  });
+
+  it("R4-REC-5: catches agreementService losing the registry import while keeping a literal set", () => {
+    const tampered = `
+const allowedAgreementSources = new Set<string>(["instagram", "whatsapp", "referral", "walk_in", "other", "conversation", "call", "in_person"]);
+`;
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(
+        files({
+          "apps/prototype-web/client/src/application/agreements/agreementService.ts": tampered,
+        }),
+      ),
+    );
+    expect(result.violations.some(v => v.anchor === "agreement-service-acceptance")).toBe(true);
   });
 
   it("catches guidedOpeningImport reverting walletKinds to a local literal set", () => {
@@ -157,7 +198,7 @@ describe("check-acceptance-value-anchors (Wave H — STR-623، ثم توحيد R
     expect(result.violations.some(v => v.anchor === "domain-material-units")).toBe(true);
   });
 
-  it("live repo smoke: all three sites consume their canonical sources (exit 0)", () => {
+  it("live repo smoke: all guarded sites consume their canonical sources (exit 0)", () => {
     const run = spawnSync(process.execPath, [SCRIPT_PATH, REPO_ROOT], { encoding: "utf8" });
     expect(run.status).toBe(0);
     expect(run.stdout).toContain("acceptance-value-anchors: PASS");
