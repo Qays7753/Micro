@@ -21,3 +21,9 @@ Post-Wave-C evaluation (not before): assets/actual-time after a conformance-lens
 **Consequences:** STR-613 becomes an execution checklist with a decided order; "pilot" language is retired. No code changes in this ADR.
 
 **Evidence class:** VERIFIED (§23 Q5 table; registry §2 rows; the 4C precedent artifacts).
+
+---
+
+**تصويب مؤرخ 2026-10-08 (R3/R3-N1 — بعد تنفيذ موجة R3 كاملة):**
+1. مجموعة 6 أعلاه تقول «Owner entitlement (15 طريقة)» — العدد الحي للقدرة **14** (`ownerEntitlementStore.ts` — جرد آلي). لا أثر قرارًا؛ تصويب عدّ فقط.
+2. أنجزت R3 ما أجّله هذا الـADR: عدسة المطابقة للأصول والوقت الفعلي ثم الجداول، **واستُخرجت أيضًا** (بأمر المالك «Full R3 Storage Execution») مجموعات كانت مصنفة هنا «تبقى خلف الـfacade by design»: الأحداث المالية، ومشتريات المورّد، والبيع المباشر، والتقديرات، والمخزون، والكتالوج — قررتها بطاقات R3 (`EXTRACT_NOW` بأدلة مستهلكين حية)، وبقيت السيولة النقدية والمسودات والهوية/التفضيلات/الأمان خلف الـfacade ببطاقات استثناء موثقة (R3-SC-17/18/19) وحدود نمو ومحفزات مراجعة. التفصيل: `docs/operations/control/evidence/structural-remediation-r3-20261008/R3-REPAIR-CARDS.md` وتقرير R3.

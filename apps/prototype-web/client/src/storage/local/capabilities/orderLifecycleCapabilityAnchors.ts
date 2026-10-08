@@ -31,7 +31,7 @@ export type MemoryLocalStoreSatisfiesOrderLifecycle = AssertSatisfiesCapability<
 
 /** الواجهة التوافقية نفسها تحقق القدرة: كل حامل للواجهة الكاملة يُمرَّر
  *  بأمان إلى أي مستهلك للقدرة الضيقة (علاقة الfacade المعتمدة في RC-7). */
-export type PrototypeLocalStoreFacadeSatisfiesOrderLifecycle = AssertSatisfiesCapability<
+export type PrototypeLocalStoreSatisfiesOrderLifecycle = AssertSatisfiesCapability<
   OrderLifecycleStore,
   PrototypeLocalStore
 >;

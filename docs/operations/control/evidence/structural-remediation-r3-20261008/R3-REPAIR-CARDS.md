@@ -194,3 +194,16 @@
 - **R3-N7 (S2-NF-13):** تسمية مرسِ orderLifecycle (PrototypeLocalStoreFacadeSatisfies...) تخالف الست الأخرى — توحيد تجميلي ضمن شريحة Order Lifecycle.
 
 **خريمة التنفيذ (متسلسل، شريحة واحدة لكل commit):** S0 هذه البطاقات → S1 Financial Events → S2 Supplier Purchases → S3 Direct Sales → S4 Assets → S5 Cost Estimates → S6 Inventory/Materials → S7 Schedules → S8 Catalog → S9 Actual Time → S10 Order-Lifecycle consumer migration (+R3-N7) → S11 القرّاء العابرون (Pick موضعي، حسب البيوت) → S12 السجلات (ADR-015 تصويب R3-N1، registry، WS-216/ARCH-007، تقرير R3، current-state، اللوق §147، worklog Entry 56) → S13 تدقيق عدائي نهائي → البوابة النهائية.
+
+---
+
+## حالة التنفيذ (مؤرخة 2026-10-08 — بعد اكتمال الشرائح)
+
+- **R3-SC-00:** الجرد نُفذ وطُوبق حيًا (130 طريقة؛ 48→2 حاقنًا كاملًا).
+- **R3-SC-01:** ✅ أُنجزت — هجرة كل مستهلكي دورة حياة الطلب (28 ملفًا في S10/S11 تشملهم؛ fulfillmentService/deliveryReviewService/collectionReversalService/collectionService وغيرهم).
+- **R3-SC-02..SC-10 (التسع الجديدة):** ✅ أُنجزت كلها — منفذ + مراسي + عقد مزدوج + هجرة الكتّاب (تفاصيل السلاسل في تقرير R3 §3).
+- **R3-SC-11..SC-15 (الKEEP الخمس):** تحققت كما هي — لا عمل تنفيذي مطلوبًا؛ عدساتها قائمة.
+- **R3-SC-16 (Snapshot/R4_BOUNDARY):** محفوظة — صفر قدرة تعرض الزوج؛ مستهلكاه فقط.
+- **R3-SC-17/18/19 (KEEP الموثقة):** بقيت بحدود نموها ومحفزاتها؛ مستهلكوها هاجروا إلى Pick دقيقة ضمن S10/S11 (لا Mono منفذ كامل).
+- **R3-N1:** ✅ تصويب ADR-015 المؤرخ أعلاه. **R3-N2:** ✅ جناح IndexedDB أخضر. **R3-N3:** عقد directSale سد فجوة العكس؛ وحدة الحرّاس الأربعة تبقى التزامًا موثقًا. **R3-N4:** ✅ أزيل. **R3-N5:** بند مالك (لم يُمس). **R3-N6:** ✅ صفر أسطر (تحقق ratchet). **R3-N7:** ✅ وحدت التسمية.
+- **المجموع:** 16 قدرة / 107 من 130 طريقة (82%)؛ 2 حاقن منفذ كامل فقط (Transfer المحمية).
