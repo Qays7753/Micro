@@ -11,6 +11,12 @@ import {
 import { createCashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { DirectSaleStore } from "@/storage/local/capabilities/directSaleStore";
+
+/** R3 (R3-SC-04): عدسة الخدمة — قدرة البيع المباشر حصرًا مع قناة السيولة
+ * النقدية المستخدمة بالضبط (عائلة KEEP R3-SC-19). */
+export type DirectSaleServiceStore = DirectSaleStore &
+  Pick<PrototypeLocalStore, "listCashContinuityEntries" | "commitCashContinuity">;
 import {
   CONFLICT,
   NOT_FOUND,
@@ -67,7 +73,7 @@ const CONFLICT_MESSAGE = "هذا البيع عُدّل من نافذة أخرى 
 
 export class DirectSaleService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: DirectSaleServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
 
