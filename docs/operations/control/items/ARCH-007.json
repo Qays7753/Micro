@@ -87,7 +87,12 @@
     "apps/prototype-web/client/src/application/time/clock.test.ts",
     "apps/prototype-web/client/src/application/cash/cashCountMessages.test.ts",
     "tests/domain/moneyMessageCharacterization.test.ts",
-    "apps/prototype-web/client/src/applicationDoors.contract.test.ts"
+    "apps/prototype-web/client/src/applicationDoors.contract.test.ts",
+    "docs/architecture/refactoring/R3-STORAGE-CAPABILITY-EXECUTION-REPORT-2026-10-08.md",
+    "docs/operations/control/evidence/structural-remediation-r3-20261008/R3-REPAIR-CARDS.md",
+    "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-REPAIR-CARDS.md",
+    "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-TRANSFER-SCHEMA-EXPORT-EXECUTION-REPORT-2026-10-08.md",
+    "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-MANIFEST.md"
   ],
   "dependencies": [],
   "related_items": [
@@ -105,5 +110,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R4 complete on branch refactoring/r4-transfer-schema-export-20261008 from main 1c54c55: R3 closeout gate passed (A1-A6 all terminal); STR-623 unified at canonical owners under the documented STR-608 gate (domain cashWalletKinds list + direct consumption at guided opening and agreement context + consumption-proof anchors); guided parse wrapped in the R2-style structured rejection; documented PRESERVE decisions for the large transfer files after seam review; schema 38 / export 30 verified correct (goldens, MANIFEST, 25 released pairs) and preserved. App 323/2388, root 682/682, guards 15/15, budget 629,438/154,677 under ceilings. Next: hostile final audit, then one PR with the Merge Manifest at the owner gate — merge by separate authorization; R5 requires a new owner continuation instruction."
+  "next_action": "R4 complete on branch refactoring/r4-transfer-schema-export-20261008 from main 1c54c55 (R3 closeout gate A1-A6 all terminal; STR-623 unified at canonical owners under the documented STR-608 gate; guided parse wrapped in the R2-style structured rejection; documented PRESERVE decisions; schema 38 / export 30 verified and preserved). Hostile final audit done: HOSTILE_AUDIT_PASS with findings HF-1..HF-9 recorded and dispositioned in the R4 cards. Then the dated full evidence reconciliation 2026-10-08 (five independent read-only reviewers + full gate reproduction on the exact final implementation head 003acfb + green CI on that head): zero implementation defects; every documentation drift corrected with dated notes (root 683/683; app 323/2388 vs base 319/2337 = +4 files/+51 tests; bundle 629,300/154,663 local, 629,412/154,744 in CI with the documented +112 GITHUB_SHA identity injection; manifest identity now the final head and full-PR counters; audit row honestly re-scoped). One documented owner-decision residual: R4-REC-5 (agreementService anchor coverage — canonical consumption in place and value-identical; recommended hardening slice). PR #334 open at the owner gate with the corrected Merge Manifest — merge by separate authorization; post-merge verification and administrative reconciliation are separate operations; R5 requires a new owner continuation instruction."
 }
