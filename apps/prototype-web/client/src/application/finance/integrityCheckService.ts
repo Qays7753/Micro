@@ -27,11 +27,19 @@ import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — اتحاد قراءات فحوص السلامة (يمرر للموديل ويقرأ مباشرة). */
 export type IntegrityCheckServiceStore = Pick<
-    PrototypeLocalStore,
-    "listOrders" | "listFinancialEvents" | "listSupplierPurchases" | "listCashWallets" |
-    "listCashContinuityEntries" | "listMaterials" | "listInventoryMovements" | "listInventoryShortages" |
-    "listAssets" | "listLoans" | "listReceivedLoans"
-  >;
+  PrototypeLocalStore,
+  | "listOrders"
+  | "listFinancialEvents"
+  | "listSupplierPurchases"
+  | "listCashWallets"
+  | "listCashContinuityEntries"
+  | "listMaterials"
+  | "listInventoryMovements"
+  | "listInventoryShortages"
+  | "listAssets"
+  | "listLoans"
+  | "listReceivedLoans"
+>;
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { systemClock, type Clock } from "@/application/time/clock";
 import {

@@ -23,10 +23,15 @@ import type { PrototypeLocalStore, StorageResult, StoredCraftOrder } from "@/sto
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءة عابرة للعائلات (سجل النشاط) — سبع قراءات بالضبط. */
 export type ActivityServiceStore = Pick<
-    PrototypeLocalStore,
-    "listOrders" | "listDirectSales" | "listFinancialEvents" | "listSupplierPurchases" |
-    "listCashContinuityEntries" | "listMaterials" | "listInventoryMovements"
-  >;
+  PrototypeLocalStore,
+  | "listOrders"
+  | "listDirectSales"
+  | "listFinancialEvents"
+  | "listSupplierPurchases"
+  | "listCashContinuityEntries"
+  | "listMaterials"
+  | "listInventoryMovements"
+>;
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type ActivityEffectClass =

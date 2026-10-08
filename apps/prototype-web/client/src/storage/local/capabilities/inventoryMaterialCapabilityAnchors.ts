@@ -18,10 +18,19 @@ import type { InventoryMaterialStore } from "./inventoryMaterialStore";
 type AssertSatisfiesCapability<TCapability, TImpl extends TCapability> = true;
 
 /** المحوّل الأول يحقق قدرة المادة والمخزون. */
-export type IndexedDbLocalStoreSatisfiesInventoryMaterial = AssertSatisfiesCapability<InventoryMaterialStore, IndexedDbLocalStore>;
+export type IndexedDbLocalStoreSatisfiesInventoryMaterial = AssertSatisfiesCapability<
+  InventoryMaterialStore,
+  IndexedDbLocalStore
+>;
 
 /** المحوّل الثاني يحقق القدرة نفسها — لا انفصام بين بيئة الاختبار والحية. */
-export type MemoryLocalStoreSatisfiesInventoryMaterial = AssertSatisfiesCapability<InventoryMaterialStore, MemoryLocalStore>;
+export type MemoryLocalStoreSatisfiesInventoryMaterial = AssertSatisfiesCapability<
+  InventoryMaterialStore,
+  MemoryLocalStore
+>;
 
 /** الواجهة التوافقية نفسها تحقق القدرة (القدرة عرضها المشتق). */
-export type PrototypeLocalStoreSatisfiesInventoryMaterial = AssertSatisfiesCapability<InventoryMaterialStore, PrototypeLocalStore>;
+export type PrototypeLocalStoreSatisfiesInventoryMaterial = AssertSatisfiesCapability<
+  InventoryMaterialStore,
+  PrototypeLocalStore
+>;

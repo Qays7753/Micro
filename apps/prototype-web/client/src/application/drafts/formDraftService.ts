@@ -16,10 +16,9 @@ import type { FormDraftEnvelope, FormDraftKind, PrototypeLocalStore } from "@/st
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — مسودات النماذج الخمس بالضبط (عائلة KEEP R3-SC-17). */
 export type FormDraftServiceStore = Pick<
-    PrototypeLocalStore,
-    "getFormDraft" | "saveFormDraft" | "deleteFormDraft" | "listFormDrafts" |
-    "clearFormDrafts"
-  >;
+  PrototypeLocalStore,
+  "getFormDraft" | "saveFormDraft" | "deleteFormDraft" | "listFormDrafts" | "clearFormDrafts"
+>;
 import { CONFLICT, STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 

@@ -18,10 +18,19 @@ import type { DirectSaleStore } from "./directSaleStore";
 type AssertSatisfiesCapability<TCapability, TImpl extends TCapability> = true;
 
 /** المحوّل الأول يحقق قدرة البيع المباشر. */
-export type IndexedDbLocalStoreSatisfiesDirectSale = AssertSatisfiesCapability<DirectSaleStore, IndexedDbLocalStore>;
+export type IndexedDbLocalStoreSatisfiesDirectSale = AssertSatisfiesCapability<
+  DirectSaleStore,
+  IndexedDbLocalStore
+>;
 
 /** المحوّل الثاني يحقق القدرة نفسها — لا انفصام بين بيئة الاختبار والحية. */
-export type MemoryLocalStoreSatisfiesDirectSale = AssertSatisfiesCapability<DirectSaleStore, MemoryLocalStore>;
+export type MemoryLocalStoreSatisfiesDirectSale = AssertSatisfiesCapability<
+  DirectSaleStore,
+  MemoryLocalStore
+>;
 
 /** الواجهة التوافقية نفسها تحقق القدرة (القدرة عرضها المشتق). */
-export type PrototypeLocalStoreSatisfiesDirectSale = AssertSatisfiesCapability<DirectSaleStore, PrototypeLocalStore>;
+export type PrototypeLocalStoreSatisfiesDirectSale = AssertSatisfiesCapability<
+  DirectSaleStore,
+  PrototypeLocalStore
+>;

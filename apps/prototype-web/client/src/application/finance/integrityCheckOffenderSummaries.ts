@@ -8,10 +8,15 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات الملخصات السبع بالضبط. */
 export type IntegrityCheckOffenderSummariesStore = Pick<
-    PrototypeLocalStore,
-    "listOrders" | "listFinancialEvents" | "listSupplierPurchases" | "listCashWallets" |
-    "listMaterials" | "listAssets" | "listLoans"
-  >;
+  PrototypeLocalStore,
+  | "listOrders"
+  | "listFinancialEvents"
+  | "listSupplierPurchases"
+  | "listCashWallets"
+  | "listMaterials"
+  | "listAssets"
+  | "listLoans"
+>;
 import type { IntegrityCheckResult, IntegrityOffenderSummary } from "./integrityCheckModel";
 
 /* حل المعرّفات الخام إلى ملخصات مقروءة — قراءات إضافية تحدث فقط حين

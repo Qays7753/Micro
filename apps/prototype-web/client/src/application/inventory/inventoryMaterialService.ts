@@ -25,11 +25,26 @@ import type { InventoryActivation, PrototypeLocalStore } from "@/storage/local/t
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — منسّق عائلة المخزون — اتحاد احتياجات الأخوة الست حصرًا. */
 export type InventoryMaterialServiceStore = Pick<
-    PrototypeLocalStore,
-    "listMaterials" | "listInventoryMovements" | "getInventoryActivation" | "saveInventoryActivation" |
-    "getPreferences" | "listOrders" | "getOrder" | "listDirectSales" | "listSupplierPurchases" |
-    "listCatalogItems" | "getCatalogItem" | "listCatalogTemplates" | "getCatalogTemplate" | "listInventoryShortages" | "listFinancialEvents" | "commitInventory" | "commitInventoryWithEvents" | "commitInventoryWithShortage"
-  >;
+  PrototypeLocalStore,
+  | "listMaterials"
+  | "listInventoryMovements"
+  | "getInventoryActivation"
+  | "saveInventoryActivation"
+  | "getPreferences"
+  | "listOrders"
+  | "getOrder"
+  | "listDirectSales"
+  | "listSupplierPurchases"
+  | "listCatalogItems"
+  | "getCatalogItem"
+  | "listCatalogTemplates"
+  | "getCatalogTemplate"
+  | "listInventoryShortages"
+  | "listFinancialEvents"
+  | "commitInventory"
+  | "commitInventoryWithEvents"
+  | "commitInventoryWithShortage"
+>;
 import type {
   InventoryMovement,
   InventoryShortage,

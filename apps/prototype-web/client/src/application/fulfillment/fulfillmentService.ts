@@ -22,9 +22,14 @@ import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/type
  * محرس + تسوية عربون) مع قراءة السيولة، مركّبة مع عدسة الجداول لأن الخدمة
  * تنشئ ScheduleService بمخزنها نفسه (توفير مركّب، لا اعتماد أوسع). */
 export type FulfillmentServiceStore = Pick<
-    PrototypeLocalStore,
-    "listOrders" | "getOrder" | "commitOrderUpdate" | "commitDepositRefundSettlement" | "listCashWallets" | "listCashContinuityEntries"
-  > &
+  PrototypeLocalStore,
+  | "listOrders"
+  | "getOrder"
+  | "commitOrderUpdate"
+  | "commitDepositRefundSettlement"
+  | "listCashWallets"
+  | "listCashContinuityEntries"
+> &
   ScheduleServiceStore;
 import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";

@@ -10,7 +10,10 @@ import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات دفتر الأطراف الأربع بالضبط. */
-export type PartyLedgerServiceStore = Pick<PrototypeLocalStore, "listOrders" | "listDirectSales" | "listFinancialEvents" | "listSupplierPurchases">;
+export type PartyLedgerServiceStore = Pick<
+  PrototypeLocalStore,
+  "listOrders" | "listDirectSales" | "listFinancialEvents" | "listSupplierPurchases"
+>;
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 

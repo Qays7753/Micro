@@ -43,7 +43,9 @@ import {
   type PurchaseReceiptStatus,
 } from "./inventoryMaterialModel";
 
-export async function overview(store: InventoryMaterialReadsStore): Promise<InventoryResult<InventoryOverview>> {
+export async function overview(
+  store: InventoryMaterialReadsStore,
+): Promise<InventoryResult<InventoryOverview>> {
   const [materials, movements, shortages, purchases] = await Promise.all([
     store.listMaterials(),
     store.listInventoryMovements(),

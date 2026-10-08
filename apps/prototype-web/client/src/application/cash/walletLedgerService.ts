@@ -8,7 +8,10 @@ import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continu
 import type { PrototypeLocalStore } from "@/storage/local/types";
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءة دفتر المحفظة فقط. */
-export type WalletLedgerServiceStore = Pick<PrototypeLocalStore, "listCashWallets" | "listCashContinuityEntries">;
+export type WalletLedgerServiceStore = Pick<
+  PrototypeLocalStore,
+  "listCashWallets" | "listCashContinuityEntries"
+>;
 import { NOT_FOUND, STORAGE_ERROR, notFoundFailure, storageFailure } from "@/application/resultCodes";
 
 export type WalletLedgerRowKind =

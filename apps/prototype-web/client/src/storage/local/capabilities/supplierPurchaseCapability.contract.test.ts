@@ -10,7 +10,10 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import { createSupplierPurchase, recordSupplierPurchasePayment } from "@micro-domain/supplier-purchase/index.js";
+import {
+  createSupplierPurchase,
+  recordSupplierPurchasePayment,
+} from "@micro-domain/supplier-purchase/index.js";
 import type { SupplierPurchaseCommit } from "../supplierScheduleCommitGuard";
 import { IndexedDbLocalStore } from "../IndexedDbLocalStore";
 import { MemoryLocalStore } from "../MemoryLocalStore";

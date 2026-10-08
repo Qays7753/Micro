@@ -18,10 +18,19 @@ import type { ActualTimeStore } from "./actualTimeStore";
 type AssertSatisfiesCapability<TCapability, TImpl extends TCapability> = true;
 
 /** المحوّل الأول يحقق قدرة الوقت الفعلي. */
-export type IndexedDbLocalStoreSatisfiesActualTime = AssertSatisfiesCapability<ActualTimeStore, IndexedDbLocalStore>;
+export type IndexedDbLocalStoreSatisfiesActualTime = AssertSatisfiesCapability<
+  ActualTimeStore,
+  IndexedDbLocalStore
+>;
 
 /** المحوّل الثاني يحقق القدرة نفسها — لا انفصام بين بيئة الاختبار والحية. */
-export type MemoryLocalStoreSatisfiesActualTime = AssertSatisfiesCapability<ActualTimeStore, MemoryLocalStore>;
+export type MemoryLocalStoreSatisfiesActualTime = AssertSatisfiesCapability<
+  ActualTimeStore,
+  MemoryLocalStore
+>;
 
 /** الواجهة التوافقية نفسها تحقق القدرة (القدرة عرضها المشتق). */
-export type PrototypeLocalStoreSatisfiesActualTime = AssertSatisfiesCapability<ActualTimeStore, PrototypeLocalStore>;
+export type PrototypeLocalStoreSatisfiesActualTime = AssertSatisfiesCapability<
+  ActualTimeStore,
+  PrototypeLocalStore
+>;

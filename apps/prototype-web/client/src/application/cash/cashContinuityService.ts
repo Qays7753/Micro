@@ -10,7 +10,10 @@ import {
 import type { PrototypeLocalStore } from "@/storage/local/types";
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قناة السيولة النقدية الثلاثة بالضبط (عائلة KEEP R3-SC-19). */
-export type CashContinuityServiceStore = Pick<PrototypeLocalStore, "listCashWallets" | "listCashContinuityEntries" | "commitCashContinuity">;
+export type CashContinuityServiceStore = Pick<
+  PrototypeLocalStore,
+  "listCashWallets" | "listCashContinuityEntries" | "commitCashContinuity"
+>;
 import {
   STORAGE_ERROR,
   VALIDATION_ERROR,

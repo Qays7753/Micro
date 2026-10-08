@@ -18,10 +18,16 @@ import type { CatalogStore } from "./catalogStore";
 type AssertSatisfiesCapability<TCapability, TImpl extends TCapability> = true;
 
 /** المحوّل الأول يحقق قدرة الكتالوج. */
-export type IndexedDbLocalStoreSatisfiesCatalog = AssertSatisfiesCapability<CatalogStore, IndexedDbLocalStore>;
+export type IndexedDbLocalStoreSatisfiesCatalog = AssertSatisfiesCapability<
+  CatalogStore,
+  IndexedDbLocalStore
+>;
 
 /** المحوّل الثاني يحقق القدرة نفسها — لا انفصام بين بيئة الاختبار والحية. */
 export type MemoryLocalStoreSatisfiesCatalog = AssertSatisfiesCapability<CatalogStore, MemoryLocalStore>;
 
 /** الواجهة التوافقية نفسها تحقق القدرة (القدرة عرضها المشتق). */
-export type PrototypeLocalStoreSatisfiesCatalog = AssertSatisfiesCapability<CatalogStore, PrototypeLocalStore>;
+export type PrototypeLocalStoreSatisfiesCatalog = AssertSatisfiesCapability<
+  CatalogStore,
+  PrototypeLocalStore
+>;

@@ -18,10 +18,16 @@ import type { ScheduleStore } from "./scheduleStore";
 type AssertSatisfiesCapability<TCapability, TImpl extends TCapability> = true;
 
 /** المحوّل الأول يحقق قدرة الجداول والتكرارات. */
-export type IndexedDbLocalStoreSatisfiesSchedule = AssertSatisfiesCapability<ScheduleStore, IndexedDbLocalStore>;
+export type IndexedDbLocalStoreSatisfiesSchedule = AssertSatisfiesCapability<
+  ScheduleStore,
+  IndexedDbLocalStore
+>;
 
 /** المحوّل الثاني يحقق القدرة نفسها — لا انفصام بين بيئة الاختبار والحية. */
 export type MemoryLocalStoreSatisfiesSchedule = AssertSatisfiesCapability<ScheduleStore, MemoryLocalStore>;
 
 /** الواجهة التوافقية نفسها تحقق القدرة (القدرة عرضها المشتق). */
-export type PrototypeLocalStoreSatisfiesSchedule = AssertSatisfiesCapability<ScheduleStore, PrototypeLocalStore>;
+export type PrototypeLocalStoreSatisfiesSchedule = AssertSatisfiesCapability<
+  ScheduleStore,
+  PrototypeLocalStore
+>;

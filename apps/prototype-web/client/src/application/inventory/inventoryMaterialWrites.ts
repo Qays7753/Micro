@@ -25,10 +25,7 @@ export type InventoryMaterialWritesStore = Pick<
   InventoryMaterialStore,
   "listMaterials" | "listInventoryMovements" | "commitInventory" | "commitInventoryWithEvents"
 > &
-  Pick<
-    PrototypeLocalStore,
-    "getOrder" | "listDirectSales" | "listFinancialEvents" | "listSupplierPurchases"
-  >;
+  Pick<PrototypeLocalStore, "getOrder" | "listDirectSales" | "listFinancialEvents" | "listSupplierPurchases">;
 import {
   id,
   materialById,

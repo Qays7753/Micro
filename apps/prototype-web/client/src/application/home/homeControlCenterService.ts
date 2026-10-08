@@ -10,10 +10,9 @@ import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/type
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات لوحة الرئيسية الخمس بالضبط. */
 export type HomeControlCenterServiceStore = Pick<
-    PrototypeLocalStore,
-    "getProfile" | "getPreferences" | "listDirectSales" | "listSchedules" |
-    "listFinancialEvents"
-  >;
+  PrototypeLocalStore,
+  "getProfile" | "getPreferences" | "listDirectSales" | "listSchedules" | "listFinancialEvents"
+>;
 import { formatMoneyMinor } from "@/application/formatting/formatters";
 import { activityEffectLabel, activityFamilyLabel } from "@/application/activity/activityLabels";
 

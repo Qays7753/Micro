@@ -9,7 +9,10 @@
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءة الطلبات والمبيعات والمحافظ بالضبط. */
-export type CollectionServiceStore = Pick<PrototypeLocalStore, "listOrders" | "listDirectSales" | "listCashWallets">;
+export type CollectionServiceStore = Pick<
+  PrototypeLocalStore,
+  "listOrders" | "listDirectSales" | "listCashWallets"
+>;
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";

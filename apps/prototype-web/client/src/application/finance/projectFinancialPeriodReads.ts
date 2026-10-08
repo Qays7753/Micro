@@ -20,10 +20,14 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات الفترة الست بالضبط. */
 export type ProjectFinancialPeriodReadsStore = Pick<
-    PrototypeLocalStore,
-    "listOrders" | "listDirectSales" | "listFinancialEvents" | "listMaterials" |
-    "listInventoryMovements" | "getInventoryActivation"
-  >;
+  PrototypeLocalStore,
+  | "listOrders"
+  | "listDirectSales"
+  | "listFinancialEvents"
+  | "listMaterials"
+  | "listInventoryMovements"
+  | "getInventoryActivation"
+>;
 import type { CogsStatus, FinanceResult, RecordedPeriodResult } from "./projectFinancialTypes";
 
 function sharedExpenseHasMissingBasis(event: FinancialEvent) {

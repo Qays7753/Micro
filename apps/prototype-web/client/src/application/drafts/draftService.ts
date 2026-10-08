@@ -2,7 +2,10 @@
 import type { DraftIntent, OrderDraft, PrototypeLocalStore } from "@/storage/local/types";
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — مسودات الطلب الأربع بالضبط (عائلة KEEP R3-SC-17). */
-export type DraftServiceStore = Pick<PrototypeLocalStore, "listDrafts" | "getDraft" | "saveDraft" | "deleteDraft">;
+export type DraftServiceStore = Pick<
+  PrototypeLocalStore,
+  "listDrafts" | "getDraft" | "saveDraft" | "deleteDraft"
+>;
 import {
   CONFLICT,
   NOT_FOUND,

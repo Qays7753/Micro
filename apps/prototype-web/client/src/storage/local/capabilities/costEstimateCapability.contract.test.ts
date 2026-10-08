@@ -35,9 +35,7 @@ function estimateFixture(id: string): CostEstimate {
     id,
     title: "كيكة مناسبة",
     currency: "JOD",
-    materialItems: [
-      { name: "دقيق", quantity: 2, unit: "كيلو", unitPriceMinor: 1_200, confidence: "known" },
-    ],
+    materialItems: [{ name: "دقيق", quantity: 2, unit: "كيلو", unitPriceMinor: 1_200, confidence: "known" }],
     time: { minutes: 90, hourlyRateMinor: 3_000, confidence: "known" },
     packagingMinor: 500,
     deliveryMinor: 0,

@@ -118,9 +118,7 @@ async function runCapabilityScenario(store: FinancialEventStore) {
   const rejectedSecond = await store.commitFinancialEventCorrection("fin-cap-expense-1", secondCorrection);
   expect(rejectedSecond.ok).toBe(false);
   const afterDouble = await store.listFinancialEvents();
-  expect(
-    afterDouble.ok && afterDouble.value.some(event => event.id === "fin-cap-reversal-dup"),
-  ).toBe(false);
+  expect(afterDouble.ok && afterDouble.value.some(event => event.id === "fin-cap-reversal-dup")).toBe(false);
 
   /* ٤) المصدر المفقود: رفض صادر بلا كتابة — لا شبح يُخزَّن. */
   const ghost = createFinancialReversal({
@@ -134,9 +132,7 @@ async function runCapabilityScenario(store: FinancialEventStore) {
   const rejectedGhost = await store.commitFinancialEventCorrection("fin-cap-never-saved", ghost);
   expect(rejectedGhost.ok).toBe(false);
   const afterGhost = await store.listFinancialEvents();
-  expect(
-    afterGhost.ok && afterGhost.value.some(event => event.id === "fin-cap-reversal-ghost"),
-  ).toBe(false);
+  expect(afterGhost.ok && afterGhost.value.some(event => event.id === "fin-cap-reversal-ghost")).toBe(false);
 
   /* ٥) التعديل الذرّي: التراجع والبديل معًا في معاملة واحدة — لا أثر
    *    معلّق بينهما أبدًا؛ وإعادته حتمية؛ والمصدر المفقود رفض بلا كتابة. */

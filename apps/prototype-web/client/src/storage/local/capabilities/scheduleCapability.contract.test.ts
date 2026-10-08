@@ -86,7 +86,12 @@ function postponedSchedule(base: ScheduleEntry, to: string, key: string): Schedu
   };
 }
 
-function recurrenceFixture(id: string, sourceScheduleId: string, orderId: string, key: string): ScheduleRecurrence {
+function recurrenceFixture(
+  id: string,
+  sourceScheduleId: string,
+  orderId: string,
+  key: string,
+): ScheduleRecurrence {
   return {
     id,
     sourceScheduleId,

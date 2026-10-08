@@ -20,10 +20,15 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات المركز الكنوني السبع بالضبط. */
 export type ProjectFinancialReadsStore = Pick<
-    PrototypeLocalStore,
-    "listOrders" | "listDirectSales" | "listFinancialEvents" | "listSupplierPurchases" |
-    "listCashWallets" | "listCashContinuityEntries" | "listOwnerMovements"
-  >;
+  PrototypeLocalStore,
+  | "listOrders"
+  | "listDirectSales"
+  | "listFinancialEvents"
+  | "listSupplierPurchases"
+  | "listCashWallets"
+  | "listCashContinuityEntries"
+  | "listOwnerMovements"
+>;
 import type {
   FinanceResult,
   ProjectFinancialEvidence,

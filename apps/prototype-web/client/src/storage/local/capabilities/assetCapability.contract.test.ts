@@ -104,11 +104,7 @@ async function runCapabilityScenario(store: AssetStore) {
     acquisitionAmountMinor: 400_000,
     acquisitionEventId: "fin-asset-cap-1-new",
   };
-  const corrected = await store.commitAssetAcquisitionCorrection(
-    correctedRecord,
-    reversal,
-    replacement,
-  );
+  const corrected = await store.commitAssetAcquisitionCorrection(correctedRecord, reversal, replacement);
   expect(corrected.ok).toBe(true);
   if (!corrected.ok) throw new Error(corrected.message);
   expect(corrected.value.reused).toBe(false);

@@ -22,10 +22,7 @@
  */
 import type { PrototypeLocalStore } from "../types";
 
-export const actualTimeStoreMethods = [
-  "listActualTimeRecords",
-  "saveActualTimeRecord",
-] as const;
+export const actualTimeStoreMethods = ["listActualTimeRecords", "saveActualTimeRecord"] as const;
 
 export type ActualTimeStoreMethod = (typeof actualTimeStoreMethods)[number];
 

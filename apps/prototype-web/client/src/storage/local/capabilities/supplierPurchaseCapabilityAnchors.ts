@@ -18,10 +18,19 @@ import type { SupplierPurchaseStore } from "./supplierPurchaseStore";
 type AssertSatisfiesCapability<TCapability, TImpl extends TCapability> = true;
 
 /** المحوّل الأول يحقق قدرة مشتريات المورّد. */
-export type IndexedDbLocalStoreSatisfiesSupplierPurchase = AssertSatisfiesCapability<SupplierPurchaseStore, IndexedDbLocalStore>;
+export type IndexedDbLocalStoreSatisfiesSupplierPurchase = AssertSatisfiesCapability<
+  SupplierPurchaseStore,
+  IndexedDbLocalStore
+>;
 
 /** المحوّل الثاني يحقق القدرة نفسها — لا انفصام بين بيئة الاختبار والحية. */
-export type MemoryLocalStoreSatisfiesSupplierPurchase = AssertSatisfiesCapability<SupplierPurchaseStore, MemoryLocalStore>;
+export type MemoryLocalStoreSatisfiesSupplierPurchase = AssertSatisfiesCapability<
+  SupplierPurchaseStore,
+  MemoryLocalStore
+>;
 
 /** الواجهة التوافقية نفسها تحقق القدرة (القدرة عرضها المشتق). */
-export type PrototypeLocalStoreSatisfiesSupplierPurchase = AssertSatisfiesCapability<SupplierPurchaseStore, PrototypeLocalStore>;
+export type PrototypeLocalStoreSatisfiesSupplierPurchase = AssertSatisfiesCapability<
+  SupplierPurchaseStore,
+  PrototypeLocalStore
+>;

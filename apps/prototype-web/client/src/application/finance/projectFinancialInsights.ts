@@ -17,10 +17,14 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات المؤشرات الست بالضبط. */
 export type ProjectFinancialInsightsStore = Pick<
-    PrototypeLocalStore,
-    "listOrders" | "listFinancialEvents" | "listInventoryMovements" | "listCatalogItems" |
-    "listMeasurementUnits" | "listDirectConversions"
-  >;
+  PrototypeLocalStore,
+  | "listOrders"
+  | "listFinancialEvents"
+  | "listInventoryMovements"
+  | "listCatalogItems"
+  | "listMeasurementUnits"
+  | "listDirectConversions"
+>;
 import type {
   CoverageIndicator,
   FinanceResult,

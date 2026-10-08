@@ -19,8 +19,7 @@ import type { CatalogStore } from "@/storage/local/capabilities/catalogStore";
 
 /** R3 (R3-SC-09): عدسة الخدمة — الكتالوج بأبعاده الثلاثة مع قراءة المواد
  * (لربط المكونات بالمادة). */
-export type CatalogServiceStore = CatalogStore &
-  Pick<PrototypeLocalStore, "listMaterials">;
+export type CatalogServiceStore = CatalogStore & Pick<PrototypeLocalStore, "listMaterials">;
 import { systemClock, type Clock } from "@/application/time/clock";
 import { errorMessageOf } from "@/application/resultCodes";
 

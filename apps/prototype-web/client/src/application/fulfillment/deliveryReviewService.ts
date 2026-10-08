@@ -40,10 +40,15 @@ import { storageFailureCode, type PrototypeLocalStore, type StoredCraftOrder } f
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءة الطلب والمواد والحركات والقوالب مع التزامَي التسليم وعكسه المحرسين. */
 export type DeliveryReviewServiceStore = Pick<
-    PrototypeLocalStore,
-    "getOrder" | "listCashWallets" | "listMaterials" | "listInventoryMovements" |
-    "listCatalogTemplates" | "commitOrderDelivery" | "commitOrderDeliveryReversal"
-  >;
+  PrototypeLocalStore,
+  | "getOrder"
+  | "listCashWallets"
+  | "listMaterials"
+  | "listInventoryMovements"
+  | "listCatalogTemplates"
+  | "commitOrderDelivery"
+  | "commitOrderDeliveryReversal"
+>;
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 import { systemClock, type Clock } from "@/application/time/clock";
 import {

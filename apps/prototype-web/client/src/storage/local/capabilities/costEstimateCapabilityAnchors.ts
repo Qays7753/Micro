@@ -18,10 +18,19 @@ import type { CostEstimateStore } from "./costEstimateStore";
 type AssertSatisfiesCapability<TCapability, TImpl extends TCapability> = true;
 
 /** المحوّل الأول يحقق قدرة تقديرات الطلب. */
-export type IndexedDbLocalStoreSatisfiesCostEstimate = AssertSatisfiesCapability<CostEstimateStore, IndexedDbLocalStore>;
+export type IndexedDbLocalStoreSatisfiesCostEstimate = AssertSatisfiesCapability<
+  CostEstimateStore,
+  IndexedDbLocalStore
+>;
 
 /** المحوّل الثاني يحقق القدرة نفسها — لا انفصام بين بيئة الاختبار والحية. */
-export type MemoryLocalStoreSatisfiesCostEstimate = AssertSatisfiesCapability<CostEstimateStore, MemoryLocalStore>;
+export type MemoryLocalStoreSatisfiesCostEstimate = AssertSatisfiesCapability<
+  CostEstimateStore,
+  MemoryLocalStore
+>;
 
 /** الواجهة التوافقية نفسها تحقق القدرة (القدرة عرضها المشتق). */
-export type PrototypeLocalStoreSatisfiesCostEstimate = AssertSatisfiesCapability<CostEstimateStore, PrototypeLocalStore>;
+export type PrototypeLocalStoreSatisfiesCostEstimate = AssertSatisfiesCapability<
+  CostEstimateStore,
+  PrototypeLocalStore
+>;
