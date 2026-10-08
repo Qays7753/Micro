@@ -20,7 +20,10 @@ import type {
 import { RecurringConfirmPanel } from "@/components/finance/RecurringConfirmPanel";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import { Button, StatusChip } from "@/components/primitives";
-import { localDatePlusDays } from "@micro-domain/shared/index.js";
+/* localDatePlusDays عبر واجهة العرض المتوافقة (نمط مستهلكي الواجهة
+ * القائم — إعادة تصدير النواة الموثقة) لا استيراد مجال مباشر من صفحة
+ * (قاعدة STR-106). */
+import { localDatePlusDays } from "@/presentation/formatters";
 import { todayInAmman } from "@/application/time";
 
 type PageState =
