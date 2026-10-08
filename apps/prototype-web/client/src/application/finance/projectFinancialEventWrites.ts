@@ -14,11 +14,7 @@ import {
   type FinancialEvent,
 } from "@micro-domain/financial-event/index.js";
 import { createCashContinuityEntry, summarizeCashContinuity } from "@micro-domain/cash-continuity/index.js";
-import {
-  ammanDateOrNull,
-  isValidLocalDate,
-  localDateInAmman as ammanDate,
-} from "@micro-domain/shared/index.js";
+import { isValidLocalDate, localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import { formatMoneyWithUnit } from "@/application/formatting/formatters";
 import { evaluateWithdrawalWalletCoverage } from "@/application/owner-money/withdrawalWalletGuard";
 import { expandExpenseRecordIntent } from "@/application/financial-records/expenseRecordIntent";
@@ -30,7 +26,14 @@ import {
   storageFailure,
   validationFailure,
 } from "@/application/resultCodes";
+import type { FinancialEventStore } from "@/storage/local/capabilities/financialEventStore";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (R3-SC-02): عدسة الكاتب — قدرة الأحداث المالية حصرًا، مع قناة
+ * السيولة النقدية المشتركة (عائلة KEEP R3-SC-19) بـPick موضعي يسرد
+ * ما يستخدمه هذا الملف بالضبط — لا المنفذ الكامل بعد الآن. */
+export type ProjectFinancialEventWritesStore = FinancialEventStore &
+  Pick<PrototypeLocalStore, "listCashWallets" | "listCashContinuityEntries" | "commitCashContinuity">;
 import type { Clock } from "@/application/time/clock";
 import type {
   FinanceResult,
@@ -79,7 +82,7 @@ function familyCorrectionGuard(event: FinancialEvent): string | null {
 }
 
 export async function reverseFinancialEvent(
-  store: PrototypeLocalStore,
+  store: ProjectFinancialEventWritesStore,
   now: Clock,
   input: FinancialReversalInput,
 ): Promise<FinanceResult<FinancialEvent>> {
@@ -144,7 +147,7 @@ export async function reverseFinancialEvent(
 
 /** توزيع صريح من الكاش غير الموزع (PA-002): لا تخصيص صامت ولا كاش بلا طريق حل. */
 export async function distributeUnallocatedCash(
-  store: PrototypeLocalStore,
+  store: ProjectFinancialEventWritesStore,
   reader: ProjectFinancialReader,
   now: Clock,
   input: UnallocatedDistributionInput,
@@ -207,7 +210,7 @@ export async function distributeUnallocatedCash(
 
 /** تعديل بسيط موثق (مبدأ ٥.٦): تراجع + بديل في معاملة ذرّية واحدة — الأثر يتجدد والسجل يبقى. */
 export async function editFinancialEvent(
-  store: PrototypeLocalStore,
+  store: ProjectFinancialEventWritesStore,
   now: Clock,
   input: FinancialEditInput,
 ): Promise<FinanceResult<FinancialEvent>> {
@@ -312,7 +315,7 @@ export async function editFinancialEvent(
 
 /** حذف بسيط (مبدأ ٥.٦): التراجع الموثق هو الآلية — الأثر يتلاشى والسجل يبقى. */
 export async function deleteFinancialEvent(
-  store: PrototypeLocalStore,
+  store: ProjectFinancialEventWritesStore,
   now: Clock,
   input: {
     sourceEventId: string;
@@ -330,7 +333,7 @@ export async function deleteFinancialEvent(
 
 /** تراجع عن الحذف (Undo): يعاد تسجيل القيم الأصلية كحدث جديد — لا يُلمس الماضي. */
 export async function restoreFinancialEvent(
-  store: PrototypeLocalStore,
+  store: ProjectFinancialEventWritesStore,
   now: Clock,
   input: {
     sourceEventId: string;
@@ -357,7 +360,7 @@ export async function restoreFinancialEvent(
 }
 
 export async function recordFinancialEvent(
-  store: PrototypeLocalStore,
+  store: ProjectFinancialEventWritesStore,
   now: Clock,
   input: FinancialRecordInput,
 ): Promise<FinanceResult<FinancialEvent>> {
