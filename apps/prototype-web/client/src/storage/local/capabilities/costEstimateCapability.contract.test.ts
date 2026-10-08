@@ -72,6 +72,41 @@ async function runCapabilityScenario(store: CostEstimateStore) {
   const removedAgain = await store.deleteCostEstimate("estimate-cap-1");
   expect(removedAgain.ok).toBe(true);
 }
+
+/* R4-A5 (إغلاق HAF-1 — جناح العمق عند مستوى العدسة): القدرة سطح حفظ/حذف
+ * حتمي حر **بالتصميم الموثق** (بطاقة R3-SC-06: أداة تفكير بلا حارس كتابة —
+ * الرفض عند خدمة التقدير). ما يُثبت هنا هو العقد الحي: الاستبدال الحتمي
+ * بالمعرّف — إعادة الحفظ بالمعرّف نفسه تستبدل المحتوى ولا تكرر السجل. */
+async function runDeterminismWing(store: CostEstimateStore) {
+  const first = estimateFixture("estimate-det-1");
+  await store.saveCostEstimate(first);
+  const replacement = Object.freeze({ ...first, title: "كيكة معدّلة", priceFloorMinor: 11_100 });
+  const resaved = await store.saveCostEstimate(replacement);
+  expect(resaved.ok).toBe(true);
+  const listed = await store.listCostEstimates();
+  expect(listed.ok && listed.value).toHaveLength(1);
+  expect(listed.ok && listed.value[0]?.title).toBe("كيكة معدّلة");
+  const reread = await store.getCostEstimate("estimate-det-1");
+  expect(reread.ok && reread.value?.priceFloorMinor).toBe(11_100);
+}
+describe("R4-A5/HAF-1 — قدرة تقديرات الطلب: عمق العدسة", () => {
+  afterEach(async () => {
+    await clearDatabase();
+  });
+
+  it("الذاكرة: الاستبدال الحتمي بالمعرّف — لا تكرار", async () => {
+    await runDeterminismWing(new MemoryLocalStore());
+  });
+
+  it("IndexedDB (fake-indexeddb): الاستبدال الحتمي نفسه", async () => {
+    await clearDatabase();
+    try {
+      await runDeterminismWing(new IndexedDbLocalStore());
+    } finally {
+      await clearDatabase();
+    }
+  });
+});
 describe("R3 — قدرة تقديرات الطلب (بطاقة R3-SC-06): العضوية", () => {
   it("قائمة الطرق هي نطاق المجموعة بالضبط: 4 أسماء فريدة", () => {
     expect(costEstimateStoreMethods).toHaveLength(4);
