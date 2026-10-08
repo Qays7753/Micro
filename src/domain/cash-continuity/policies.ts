@@ -1,5 +1,5 @@
 import { fieldLabelAr, isValidLocalDate, isValidTimestamp } from "../shared/index.js";
-import { SOURCE_REF_KINDS } from "./types.js";
+import { SOURCE_REF_KINDS, cashContinuityEntryTypes, cashWalletKinds } from "./types.js";
 import type {
   CashContinuityEntry,
   CashContinuityEntryType,
@@ -7,15 +7,6 @@ import type {
   CreateCashEntryInput,
   CreateCashWalletInput,
 } from "./types.js";
-
-const ENTRY_TYPES = [
-  "opening_balance",
-  "cash_adjustment",
-  "transfer_out",
-  "transfer_in",
-  "reversal",
-  "allocation",
-] as const;
 const assertNonBlank = (value: string, field: string) => {
   if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 };
@@ -33,8 +24,9 @@ export function createCashWallet(input: CreateCashWalletInput): CashWallet {
   assertNonBlank(input.name, "name");
   assertNonBlank(input.createdOperationKey, "createdOperationKey");
   assertIso(input.createdAt, "createdAt");
-  if (!(["cash_drawer", "bank_account", "digital_wallet", "other"] as const).includes(input.kind))
-    throw new Error("نوع المحفظة غير صالح.");
+  /* R4-S8/F2 (تدقيق عدائي، 2026-10-08): الفحص يستهلك القائمة الكنونية
+   * نفسها التي اشتق منها النوع — لا حرفية موازية داخل حزمة المالك. */
+  if (!cashWalletKinds.includes(input.kind)) throw new Error("نوع المحفظة غير صالح.");
   return Object.freeze({
     id: input.id,
     name: input.name.trim(),
@@ -87,7 +79,7 @@ export function createCashContinuityEntry(input: CreateCashEntryInput): CashCont
   const reason = input.reason?.trim() || null;
   const transferId = input.transferId?.trim() || null;
   const reversesEntryId = input.reversesEntryId?.trim() || null;
-  if (!ENTRY_TYPES.includes(input.type)) throw new Error("نوع الحركة غير صالح.");
+  if (!cashContinuityEntryTypes.includes(input.type)) throw new Error("نوع الحركة غير صالح.");
   if (input.type === "allocation" && transferId) throw new Error("حركة التخصيص ليست تحويلًا بين محفظتين.");
   if (input.type === "allocation" && reversesEntryId) throw new Error("حركة التخصيص ليست تراجعًا.");
   if (input.type === "opening_balance" && input.cashDeltaMinor < 0)

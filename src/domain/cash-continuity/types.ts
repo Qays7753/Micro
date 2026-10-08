@@ -8,8 +8,19 @@ export const cashWalletKinds = ["cash_drawer", "bank_account", "digital_wallet",
 export type CashWalletKind = (typeof cashWalletKinds)[number];
 /* «تخصيص» = توزيع صريح من الكاش غير الموزع إلى محفظة (موجب) أو تغطية صرف منها (سالب).
  * إجمالي الكاش المسجل لا يتغير؛ تنتقل القيمة بين «غير الموزع» ورصيد المحفظة فقط. */
-export type CashContinuityEntryType =
-  "opening_balance" | "cash_adjustment" | "transfer_out" | "transfer_in" | "reversal" | "allocation";
+/* R4-S8/F2b (تدقيق عدائي، 2026-10-08): قائمة أنواع الحركة وقت التشغيل من
+ * مالكها الكنوني — كان policies.ts يحمل حرفية موازية للاتحاد النوعي داخل
+ * الحزمة نفسها؛ الاشتقاق يغلق باب الانحراف بالبناء (نفس نمط cashWalletKinds
+ * وSOURCE_REF_KINDS أعلاه). */
+export const cashContinuityEntryTypes = [
+  "opening_balance",
+  "cash_adjustment",
+  "transfer_out",
+  "transfer_in",
+  "reversal",
+  "allocation",
+] as const;
+export type CashContinuityEntryType = (typeof cashContinuityEntryTypes)[number];
 export type CashWalletOpeningStatus = "known" | "unknown";
 /* المجموعة ٢ (§9.1): مصدر التخصيص — ربط صريح بين حركة التخصيص في سجل المحفظة
  * والسجل المصدر الذي أنشأ الكاش (بيع/مصروف/تحصيل/طلب)، فيصل صاحب السجل للمصدر

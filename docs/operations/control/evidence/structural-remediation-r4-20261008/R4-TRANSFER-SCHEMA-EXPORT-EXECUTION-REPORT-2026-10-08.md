@@ -81,7 +81,7 @@
 - `pnpm --filter @micro/prototype-web test -- --run transfer export migration schema`: **32 ملفًا / 305 اختبارات PASS** (حد R4 كاملًا).
 - `pnpm test` (الجذري): **682/682 PASS** (كان 681؛ +1 اختبار مراسٍ).
 - `pnpm typecheck` + app tsc: صفر أخطاء. `pnpm lint`: 0 أخطاء/35 تحذيرًا (السقف 37). `prettier --check`: نظيف.
-- `pnpm guards` (السلسلة الكاملة 15): كلها PASS — secrets (1537/0)، test-focus (383/0)، entity-touchpoints، runtime-cycles (419/0)، doc-index، current-state-size، skill-references، image-policy، module-boundaries (388؛ الراتشات كما هي)، type-cycles (1=الأساس)، registry-coverage، **acceptance-value-anchors (الوضع الجديد: استهلاك كنوني)**، file-size-ratchet (482؛ صفر تصعيد)، vendored-braces، date-arithmetic-ownership (R1–R6).
+- `pnpm guards` (السلسلة الكاملة 15): كلها PASS — secrets (1538/0 — تصويب R4-S8/F5)، test-focus (383/0)، entity-touchpoints، runtime-cycles (419/0)، doc-index، current-state-size، skill-references، image-policy، module-boundaries (388؛ الراتشات كما هي)، type-cycles (1=الأساس)، registry-coverage، **acceptance-value-anchors (الوضع الجديد: استهلاك كنوني)**، file-size-ratchet (482؛ صفر تصعيد)، vendored-braces، date-arithmetic-ownership (R1–R6).
 - `pnpm text-density` + `pnpm design-guards`: PASS (92 زوج تباين).
 - `python3 scripts/operations-control/validate.py`: خروج 0. `generate_tracker.py --check`: بلا انحراف بعد التحديث.
 - **الميزانية:** الدخول **629,438 خام / 154,677 gzip** تحت 650,000/155,300 (دلتا الدخول عن R3: +94/+33 بايت — قائمة المجال الجديدة والاستهلاك)؛ الأسطح: lazy 102/1,414,665/434,699 وprecache 187/2,741,464 — **تحسن غير مقفل** عن الأساس.

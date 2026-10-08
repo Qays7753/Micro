@@ -152,10 +152,13 @@ export function checkAcceptanceValueAnchors(repoRoot, readFile) {
       hint: `قائمة cashWalletKinds الكنونية في domain/cash-continuity تغيرت عن الأعضاء الأربعة الموثقة — الحالي: ${JSON.stringify(canonicalWalletKinds)}`,
     });
   }
-  if (!canonicalMaterialUnits || canonicalMaterialUnits.length === 0) {
+  /* R4-S8/F3 (تدقيق عدائي، 2026-10-08): أعيد تثبيت أعضاء القائمة بالضبط —
+   * كان الفحص «غير فارغة» فقط فكان تغيير عضو مجالي يمر صامتًا. */
+  const expectedMaterialUnits = ["piece", "meter", "kilogram", "liter", "other"];
+  if (!canonicalMaterialUnits || !setsEqual(canonicalMaterialUnits, expectedMaterialUnits)) {
     violations.push({
       anchor: "domain-material-units",
-      hint: `قائمة materialUnits الكنونية في domain/inventory-material غير مقروءة — ${JSON.stringify(canonicalMaterialUnits)}`,
+      hint: `قائمة materialUnits الكنونية في domain/inventory-material تغيرت عن الأعضاء الخمسة الموثقة — الحالي: ${JSON.stringify(canonicalMaterialUnits)}`,
     });
   }
 

@@ -144,6 +144,19 @@ describe("check-acceptance-value-anchors (Wave H — STR-623، ثم توحيد R
     expect(result.violations.some(v => v.anchor === "domain-cash-wallet-kinds")).toBe(true);
   });
 
+  it("R4-S8/F3: catches a domain-side materialUnits member change (the canonical source moved)", () => {
+    const tampered = INV_TYPES.replace('"liter", ', "");
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(
+        files({
+          "src/domain/inventory-material/types.ts": tampered,
+        }),
+      ),
+    );
+    expect(result.violations.some(v => v.anchor === "domain-material-units")).toBe(true);
+  });
+
   it("live repo smoke: all three sites consume their canonical sources (exit 0)", () => {
     const run = spawnSync(process.execPath, [SCRIPT_PATH, REPO_ROOT], { encoding: "utf8" });
     expect(run.status).toBe(0);
