@@ -3,12 +3,8 @@
  * Saving an estimate never creates a financial event, an inventory movement, or an order.
  */
 import { calculateCostSnapshot } from "@micro-domain/craft-order/index.js";
-import type {
-  CostEstimate,
-  DraftCostMaterial,
-  DraftCostTime,
-  PrototypeLocalStore,
-} from "@/storage/local/types";
+import type { CostEstimate, DraftCostMaterial, DraftCostTime } from "@/storage/local/types";
+import type { CostEstimateStore } from "@/storage/local/capabilities/costEstimateStore";
 import {
   STORAGE_ERROR,
   VALIDATION_ERROR,
@@ -40,7 +36,7 @@ const id = (prefix: string) =>
 
 export class CostEstimateService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: CostEstimateStore,
     private readonly now: Clock = systemClock,
   ) {}
 
