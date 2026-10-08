@@ -28,7 +28,7 @@
 | الميزانية | الدخول **629,300 خام / 154,663 gzip** تحت 650,000/155,300؛ الأسطح كلها تحت أساسها | بناء محلي + PR-CI (check-bundle-budget ضمن build) |
 | Operations Control | validate.py خروج 0؛ generate_tracker --check نظيف | محلية + PR-CI |
 | التدقيق العدائي المستقل | **HOSTILE_AUDIT_PASS** (مراجع بلا سياق تنفيذ؛ كل الأرقام أعيد إنتاجها) | بطاقات R4 — قسم التدقيق |
-| CI على رأس الـPR | **يتحقق بعد فتح الـPR** — سيرفع المالك/الوكيل روابط التشغيل الدقيقة عند توفرها (حدث `pull_request` بلا مرشح يشغل السلسلة كاملة على أي PR) | GitHub Actions |
+| CI على رأس الـPR | **SUCCESS** على الرأس `aa4dac8` بالضبط: checks (السلسلة الكاملة: tests+guards+build+الميزانية) — https://github.com/Qays7753/Micro/actions/runs/37832827759/job/113502252647 ؛ Cloudflare Pages — https://github.com/Qays7753/Micro/runs/113502186392 | GitHub Actions (موثقان أعلاه) |
 
 ## 3. بنود إغلاق R3 المشمولة
 
