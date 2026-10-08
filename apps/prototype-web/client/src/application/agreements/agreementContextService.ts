@@ -2,7 +2,7 @@
  * G7-A agreement context: local memory for an existing order, not CRM or messaging.
  * It never creates a ScheduleEntry, reminder, financial event, or external side effect.
  */
-import type { AgreementSource, FollowUpEvent, StoredCraftOrder } from "@/storage/local/types";
+import type { FollowUpEvent, StoredCraftOrder } from "@/storage/local/types";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import { isValidLocalDate } from "./followUpDate";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
@@ -14,6 +14,7 @@ import { localDateInAmman } from "@micro-domain/shared/index.js";
  * anchors — المراسي تحولت لإثبات الاستهلاك هذا نفسه. */
 import {
   AGREEMENT_SOURCE_ACCEPTANCE,
+  type AgreementSourceValue,
   type LegacyAgreementSource,
 } from "@/application/transfers/transferCompatibilityValues";
 import {
@@ -25,8 +26,7 @@ import {
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
-export type { LegacyAgreementSource };
-export type AgreementSourceValue = AgreementSource | LegacyAgreementSource;
+export type { AgreementSourceValue, LegacyAgreementSource };
 export type AgreementContextInput = {
   agreementSource: AgreementSourceValue | null;
   followUpSummary: string | null;

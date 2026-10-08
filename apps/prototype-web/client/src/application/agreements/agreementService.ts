@@ -23,10 +23,7 @@ import {
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 import { isValidLocalDate } from "@micro-domain/shared/index.js";
-import {
-  AGREEMENT_SOURCE_ACCEPTANCE,
-  type AgreementSourceValue,
-} from "@/application/transfers/transferCompatibilityValues";
+import { AGREEMENT_SOURCE_ACCEPTANCE } from "@/application/transfers/transferCompatibilityValues";
 
 /* ORD-003: شروط النقل والتوصيل عند الاتفاق — المسؤولية والأعلام والمبالغ؛
  * المفتاح والوقت تشتقهما الخدمة (حدث موثق في خط زمن الطلب). */
@@ -58,7 +55,7 @@ export type AgreementResult =
 /* R4-S8/F1 (تدقيق عدائي، 2026-10-08): الطاقم الثالث المتبقي لمصادر الاتفاق
  * (8 قيم) — كان حرفية محلية غير محروسة خارج سجل STR-623؛ يُستهلك الآن من
  * السجل الكنوني نفسه الذي وحد الموقعين الآخرين (R4-B2). */
-const allowedAgreementSources = new Set<AgreementSourceValue>(AGREEMENT_SOURCE_ACCEPTANCE);
+const allowedAgreementSources = new Set<string>(AGREEMENT_SOURCE_ACCEPTANCE);
 const agreementSourceIsValid = (value: string | null) => value === null || allowedAgreementSources.has(value);
 /* R2 (M-02/X1، 2026-10-08): صلاحية موعد التسليم من نواة المجال الكنسية —
  * كانت مرساة ظهر مكررة (تقبل السنوات 0000–0099 وتكرر الملكية). */

@@ -32,6 +32,10 @@ export const LEGACY_AGREEMENT_SOURCES = ["conversation", "call", "in_person"] as
 
 export type LegacyAgreementSource = (typeof LEGACY_AGREEMENT_SOURCES)[number];
 
+/** R4-S8/HF-1: اتحاد قيمة مصدر الاتفاق المقبولة (الحالي ∪ التاريخي) —
+ * بيته الكنوني هنا مع طاقمه؛ المواقع الثلاثة تستهلكه من هذا السجل. */
+export type AgreementSourceValue = AgreementSource | LegacyAgreementSource;
+
 /**
  * طاقم قبول مصدر الاتفاق الكامل كما تستهلكه المدققة: الاتحاد الحالي (خمس
  * قيم) ∪ القيم التوافقية التاريخية. المدققة تستهلك هذا الطاقم من هنا —
