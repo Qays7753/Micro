@@ -100,7 +100,7 @@
     "ARCH-006"
   ],
   "owner_decision": "اعتماد الخطة المحدثة ومصفوفة التتبع وبدء تثبيت العقد ثم R0 في 2026-10-07.",
-  "updated_at": "2026-10-08",
+  "updated_at": "2026-10-09",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -110,5 +110,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R4 complete on branch refactoring/r4-transfer-schema-export-20261008 from main 1c54c55 (R3 closeout gate A1-A6 all terminal; STR-623 unified at canonical owners under the documented STR-608 gate; guided parse wrapped in the R2-style structured rejection; documented PRESERVE decisions; schema 38 / export 30 verified and preserved). Hostile final audit: HOSTILE_AUDIT_PASS (HF-1..HF-9). Dated full evidence reconciliation 2026-10-08: five independent read-only reviewers, full gate reproduction on the exact final implementation head 003acfb, green CI on that head — zero implementation defects. Then R4-REC-5 closed by owner instruction (commit c1fbc7ee: third-site agreementService consumption anchor in check-acceptance-value-anchors with both literal forms banned + two negatives; zero production code; root suite 685/685; bundle byte-identical 629,300/154,663; five-reviewer pre-implementation panel COMPLETE/SAFE/APPROVE_WITH_CHANGES-applied/READY/HOSTILE_REVIEW_PASS with all five mandatory amendments applied; documented residuals: type-only union at :44, UI dropdown literals, D-034, R6, HF-8 limit). PR #334 open at the owner gate after the two closure slices (16 commits / 37 files) — merge by separate authorization; post-merge verification and administrative reconciliation are separate operations; R5 requires a new owner continuation instruction."
+  "next_action": "R4 merged and verified on main: PR #334 (16 commits / 37 files) via merge commit 58d281edac7382f19580335a955ccde029125328 (parents 1c54c552 + 91ca8ee5); main CI run 37856130116 success on the exact merge commit; the R4 source branch is preserved on origin. R5 (Application boundaries, Reader/Writer separation, Public Doors, deep-import governance) is now the active wave by the owner instruction 'R5 Application Boundaries, Reader/Writer, and Public Doors' on branch refactoring/r5-application-boundaries-20261009 from 58d281e — the first slice is this post-merge administrative reconciliation (state-log §152, worklog Entry 61); a full boundary inventory and repair cards precede any movement. One R5 PR opens at the owner gate at wave completion; R6–R10 have not started; no direct main writes and no merge from this session."
 }
