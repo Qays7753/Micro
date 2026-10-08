@@ -10,6 +10,14 @@ import type {
   ScheduleRecurrenceFrequency,
   StoredCraftOrder,
 } from "@/storage/local/types";
+import type { ScheduleStore } from "@/storage/local/capabilities/scheduleStore";
+
+/** R3 (R3-SC-08): عدسة الخدمة — التكرارات مع جدولاتها وقراءة الطلبات. */
+export type RecurrenceServiceStore = Pick<
+  ScheduleStore,
+  "listSchedules" | "getSchedule" | "listRecurrences" | "getRecurrence" | "commitRecurrence"
+> &
+  Pick<PrototypeLocalStore, "listOrders">;
 import { storageFailureCode } from "@/storage/local/types";
 import {
   NOT_FOUND,
@@ -122,7 +130,7 @@ function buildAppearance(
 
 export class ScheduleRecurrenceService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: RecurrenceServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
 
