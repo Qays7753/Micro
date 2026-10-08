@@ -14,6 +14,13 @@ import { expenseInputs, orderInputs } from "@/application/financial-analysis/fin
 import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAttribution";
 import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات المؤشرات الست بالضبط. */
+export type ProjectFinancialInsightsStore = Pick<
+    PrototypeLocalStore,
+    "listOrders" | "listFinancialEvents" | "listInventoryMovements" | "listCatalogItems" |
+    "listMeasurementUnits" | "listDirectConversions"
+  >;
 import type {
   CoverageIndicator,
   FinanceResult,
@@ -35,7 +42,7 @@ export type PeriodReadSurface = {
 };
 
 export async function readFinancialInsights(
-  store: PrototypeLocalStore,
+  store: ProjectFinancialInsightsStore,
   reader: PeriodReadSurface,
   from: string,
   to: string,

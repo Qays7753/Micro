@@ -8,6 +8,9 @@ import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import { activeSettlementsMinor, reversedEventIds } from "@micro-domain/financial-event/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات دفتر الأطراف الأربع بالضبط. */
+export type PartyLedgerServiceStore = Pick<PrototypeLocalStore, "listOrders" | "listDirectSales" | "listFinancialEvents" | "listSupplierPurchases">;
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 
@@ -66,7 +69,7 @@ function distinctSourceCount(entry: Pick<PartyEntry, "movements">): number {
 }
 
 export class PartyLedgerService {
-  constructor(private readonly store: PrototypeLocalStore) {}
+  constructor(private readonly store: PartyLedgerServiceStore) {}
 
   async read(): Promise<PartyLedgerResult<PartyLedgerOverview>> {
     const [orders, sales, purchases, events] = await Promise.all([

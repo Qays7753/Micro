@@ -7,6 +7,13 @@ import type { InventoryMaterialService } from "@/application/inventory/inventory
 import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import type { ActivityService } from "@/application/activity/activityService";
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات لوحة الرئيسية الخمس بالضبط. */
+export type HomeControlCenterServiceStore = Pick<
+    PrototypeLocalStore,
+    "getProfile" | "getPreferences" | "listDirectSales" | "listSchedules" |
+    "listFinancialEvents"
+  >;
 import { formatMoneyMinor } from "@/application/formatting/formatters";
 import { activityEffectLabel, activityFamilyLabel } from "@/application/activity/activityLabels";
 
@@ -69,7 +76,7 @@ function honestResultNote(period: { resultMinor: number | null; cogsStatus: stri
 }
 export class HomeControlCenterService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: HomeControlCenterServiceStore,
     private readonly dailyFollowUp: DailyFollowUpService,
     private readonly projectFinance: ProjectFinancialService,
     private readonly supplierPurchases: SupplierPurchaseService,

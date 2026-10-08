@@ -11,7 +11,7 @@ import {
 import type { InventoryMaterialStore } from "@/storage/local/capabilities/inventoryMaterialStore";
 
 /** R3 (R3-SC-07): عدسة الوحدة — قراءة التفعيل وحفظه حصرًا. */
-export type InventoryMaterialServiceStore = Pick<
+export type InventoryMaterialActivationStore = Pick<
   InventoryMaterialStore,
   "listMaterials" | "listInventoryMovements" | "getInventoryActivation" | "saveInventoryActivation"
 >;
@@ -30,7 +30,7 @@ import {
 
 /* القرار ٩: قراءة تفعيل المخزون — المعلن صراحة أولًا، ثم أقدم دليل للموجود القائم. */
 export async function readActivation(
-  store: InventoryMaterialServiceStore,
+  store: InventoryMaterialActivationStore,
 ): Promise<InventoryResult<InventoryActivationState>> {
   const [activation, materials, movements] = await Promise.all([
     store.getInventoryActivation(),
@@ -70,7 +70,7 @@ export async function readActivation(
 
 /** القرار ٩: تفعيل صريح بتاريخ اليوم — لحظة معلنة تُعرض، والرصيد يومها يكفي. */
 export async function activateInventory(
-  store: InventoryMaterialServiceStore,
+  store: InventoryMaterialActivationStore,
   now: Clock,
   input: InventoryActivationInput,
 ): Promise<InventoryResult<InventoryActivation>> {

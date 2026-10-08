@@ -31,6 +31,17 @@
  */
 import { systemClock, type Clock } from "@/application/time/clock";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { ProjectFinancialEventWritesStore } from "./projectFinancialEventWrites";
+import type { ProjectFinancialReadsStore } from "./projectFinancialReads";
+import type { ProjectFinancialPeriodReadsStore } from "./projectFinancialPeriodReads";
+import type { ProjectFinancialInsightsStore } from "./projectFinancialInsights";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — منسّق القارئ الكنوني — اتحاد عدسات
+ * أخويه (القراءات الثلاث + الكتابة) حصرًا؛ لا شيء خارج احتياجهم. */
+export type ProjectFinancialServiceStore = ProjectFinancialReadsStore &
+  ProjectFinancialPeriodReadsStore &
+  ProjectFinancialInsightsStore &
+  ProjectFinancialEventWritesStore;
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import { listEvents, listSettleablePayables, readPosition } from "./projectFinancialReads";
 import { readRecordedPeriodResult } from "./projectFinancialPeriodReads";
@@ -93,7 +104,7 @@ type _InsightsThirdParam = _InsightsParams[2];
 
 export class ProjectFinancialService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: ProjectFinancialServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
 

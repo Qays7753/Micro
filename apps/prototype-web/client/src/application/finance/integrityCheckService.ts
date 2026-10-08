@@ -24,6 +24,14 @@ import type { ProjectFinancialService } from "@/application/finance/projectFinan
 import type { StatementService } from "@/application/finance/statementService";
 import type { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — اتحاد قراءات فحوص السلامة (يمرر للموديل ويقرأ مباشرة). */
+export type IntegrityCheckServiceStore = Pick<
+    PrototypeLocalStore,
+    "listOrders" | "listFinancialEvents" | "listSupplierPurchases" | "listCashWallets" |
+    "listCashContinuityEntries" | "listMaterials" | "listInventoryMovements" | "listInventoryShortages" |
+    "listAssets" | "listLoans" | "listReceivedLoans"
+  >;
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { systemClock, type Clock } from "@/application/time/clock";
 import {
@@ -71,7 +79,7 @@ export { INTEGRITY_TITLES, integrityStatusWord } from "./integrityCheckModel";
 
 export class IntegrityCheckService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: IntegrityCheckServiceStore,
     private readonly projectFinance: ProjectFinancialService,
     private readonly statementService: StatementService,
     private readonly cashContinuity: CashContinuityService,

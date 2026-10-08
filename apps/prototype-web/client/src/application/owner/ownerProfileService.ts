@@ -12,6 +12,9 @@ import {
   type PrototypeLocalStore,
   type StorageFailureCode,
 } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — زوج ملف المالك فقط. */
+export type OwnerProfileServiceStore = Pick<PrototypeLocalStore, "getOwnerProfile" | "saveOwnerProfile">;
 import {
   STORAGE_ERROR,
   VALIDATION_ERROR,
@@ -54,7 +57,7 @@ function generateOwnerId(): string {
 
 export class OwnerProfileService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: OwnerProfileServiceStore,
     private readonly now: Clock = systemClock,
   ) {}
 

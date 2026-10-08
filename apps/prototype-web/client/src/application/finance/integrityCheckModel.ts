@@ -13,6 +13,14 @@ import type { StatementService } from "@/application/finance/statementService";
 import type { CashContinuityService } from "@/application/cash/cashContinuityService";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — اتحاد قراءات فحوص السلامة كلها. */
+export type IntegrityCheckModelStore = Pick<
+    PrototypeLocalStore,
+    "listOrders" | "listFinancialEvents" | "listSupplierPurchases" | "listCashWallets" |
+    "listCashContinuityEntries" | "listMaterials" | "listInventoryMovements" | "listInventoryShortages" |
+    "listAssets" | "listLoans" | "listReceivedLoans"
+  >;
+
 /* TOOL-001 (قرار المالك ٢٠٢٦-٠٩-١٦): «غير متاح» حالة صادقة مستقلة — تعذّر
  * القراءة ليس خللًا في الأرقام ولا نجاحًا؛ لا يُحتسب نجاحًا في الخلاصة أبدًا. */
 export type IntegrityCheckStatus = "PASS" | "WARN" | "UNAVAILABLE" | "FAIL";
@@ -84,7 +92,7 @@ export type IntegrityCheckReport = {
 /* سياق الفحص المشترك (Wave F): التبعيات نفسها التي كانت حقن الخدمة — العائلات
  * تقرأ عبره فقط (مسارات list/read حصرًا) والخدمة تبقى صاحبة الحقن والترتيب. */
 export type IntegrityCheckContext = {
-  readonly store: PrototypeLocalStore;
+  readonly store: IntegrityCheckModelStore;
   readonly projectFinance: ProjectFinancialService;
   readonly statementService: StatementService;
   readonly cashContinuity: CashContinuityService;

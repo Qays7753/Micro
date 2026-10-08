@@ -15,7 +15,17 @@ import {
   transitionOrder,
 } from "@micro-domain/craft-order/index.js";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
+import type { ScheduleServiceStore } from "@/application/scheduling/scheduleService";
 import type { StoredCraftOrder, PrototypeLocalStore } from "@/storage/local/types";
+
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — دورة حياة الطلب للتنفيذ (تحديث
+ * محرس + تسوية عربون) مع قراءة السيولة، مركّبة مع عدسة الجداول لأن الخدمة
+ * تنشئ ScheduleService بمخزنها نفسه (توفير مركّب، لا اعتماد أوسع). */
+export type FulfillmentServiceStore = Pick<
+    PrototypeLocalStore,
+    "listOrders" | "getOrder" | "commitOrderUpdate" | "commitDepositRefundSettlement" | "listCashWallets" | "listCashContinuityEntries"
+  > &
+  ScheduleServiceStore;
 import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
@@ -62,7 +72,7 @@ const failure = (
 
 export class FulfillmentService {
   constructor(
-    private readonly store: PrototypeLocalStore,
+    private readonly store: FulfillmentServiceStore,
     private readonly now: Clock = systemClock,
     private readonly schedules: ScheduleService = new ScheduleService(store, now),
   ) {}
