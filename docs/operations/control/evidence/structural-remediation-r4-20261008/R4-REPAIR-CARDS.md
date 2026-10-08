@@ -1,0 +1,127 @@
+# R4 — Transfer/Schema/Export/Import — Repair Cards (2026-10-08)
+
+**البرنامج:** `WS-216` / `ARCH-007` — successor البنيوي R0–R10، الموجة R4.
+**الأساس:** `origin/main` = `1c54c552670e239aa606a58f6859f0ffd8662456` (بعد R3: PR #332 @ `8eeb473` + مصالحتها PR #333 @ `1c54c55`).
+**الفرع:** `refactoring/r4-transfer-schema-export-20261008`.
+**العقد الحاكم:** `ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md` + `STRUCTURAL-REMEDIATION-PLAN-20261007.md` R4 + أمر المالك «Micro — ZAI R3 Closeout and R4 Transfer Root-Fix Execution» (هذه الجلسة).
+**نطاق Phase A (إغلاق R3):** البنود المتبقية من بطاقات R3 المطلوبة قبل فتح حد R4 فقط — لا إعادة تنفيذ لـ R3.
+
+---
+
+## الجزء الأول — إغلاق R3 (Phase A)
+
+## R4-A1 — تصويب لغة مقاييس R3 وتعداد الـ23 طريقة
+
+- **المصدر:** بطاقة أمر المالك A1 + تقرير R3 §2/§7.
+- **الخلل:** عبارة تقرير R3 §7 «23 طريقة إضافية من المجموعات الكبيرة (قراءات المزيج)» تعداد غامض لمجموعة واحدة بلا تفسير — والأمر يطلب تعدادها وتصنيفها. كما يجب تثبيت الصياغة المضادة للالتباس: «54» قد تُقرأ «قدرة» والصحيح أن 54 = عدد **طرق** القدرات السبع القائمة (و54 أيضًا عدد اختبارات العقود التسع الجديدة في §5 — رقم آخر لدلالة أخرى).
+- **التصحيح المرجعي (من الكود الحي عند `1c54c55`):**
+  - المنفذ `PrototypeLocalStore` = **130 طريقة** بالضبط.
+  - القدرات القائمة قبل R3 = **7** تغطي **54 طريقة** (orderLifecycle 9، ownerEntitlement 14، loan 10، recurringExpense 10، expenseBudget 3، allocationPolicy 4، shortCashDeclaration 4).
+  - القدرات الجديدة في R3 = **9** تغطي **53 طريقة** (financialEvent 5، supplierPurchase 5، directSale 3، asset 4، costEstimate 4، inventoryMaterial 8، schedule 9، catalog 13، actualTime 2).
+  - المجموع بعد R3 = **16 قدرة / 107 طريقة** (82%)؛ حاقنو المنفذ الكامل = **2** (خدمتا Transfer المحميتان).
+  - **الـ23 طريقة غير المسندة لقدرة مستقلة** (تُستهلك عبر Pick موضعي أو تبقى خلف الـfacade ببطاقات KEEP):
+    1. **Cash Continuity/Wallets (3):** `listCashWallets`, `listCashContinuityEntries`, `commitCashContinuity` — KEEP موثقة (R3-SC-19: قناة السيولة المشتركة بين تسع قدرات).
+    2. **Drafts + Form Drafts (9):** `listDrafts`, `getDraft`, `saveDraft`, `deleteDraft`, `getFormDraft`, `saveFormDraft`, `deleteFormDraft`, `listFormDrafts`, `clearFormDrafts` — KEEP موثقة (R3-SC-17: سطح دعم اختبارات STR-618).
+    3. **Identity/Profile/Prefs/Security (9):** `getProfile`, `saveProfile`, `getOwnerProfile`, `saveOwnerProfile`, `getPreferences`, `savePreferences`, `getLocalSecurity`, `saveLocalSecurity`, `deleteLocalSecurity` — KEEP موثقة (R3-SC-18: مجموعات قراءة بنية التطبيق).
+    4. **Backup/Snapshot/Transfer (2):** `readSnapshot`, `replaceSnapshot` — R4_BOUNDARY (R3-SC-16) — **تُعالج في هذه الموجة**.
+- **الإجراء:** تصويب مؤرخ في تقرير R3 (§7: استبدال العبارة الغامضة بالتعداد المرجعي أعلاه) مع إبقاء التاريخ append-only. لا تغيير كود.
+- **التصنيف:** `FIX_NOW` (توثيقي) · **حد الرجوع:** revert المستند.
+
+## R4-A2 — تصنيف MemoryLocalStore.ts في سجل الملفات
+
+- **المصدر:** بطاقة أمر المالك A2 + السجل الحي.
+- **التحقق الحي عند `1c54c55`:** الصف في `FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md` يصنف الملف **production / storage / PRESERVE** ببطاقة استثناء طويل الأجل كاملة (W6/عقد ما بعد المسح 2026-10-05): المالك storage، السبب (مرآة ذاكرية بمسؤولية واحدة تثبت قابلية استبدال المحول)، جرد المستهلكين (180)، حد النمو (راتشة 2,091/2,099)، الحارس (الراتشة + مصفوفة المطابقة)، الاختبارات (178 ملفًا مباشرًا)، أثر الرجوع HIGH. **لا يوجد أي تصنيف «visual-UI out-of-scope» حي** — التحقق شمل السجل وعقد 40 وتقرير R0 (كلها production/storage).
+- **التصرف النهائي:** `PRESERVE_BY_DESIGN` مع **تسليم صريح لموجة R6 المعتمدة** (قائمة الفحص الإلزامية R6 تتضمن الملف): أي شطر حقيقي للمحول الذاكري يقرره R6 بقرار مالك؛ بطاقة W6 تبقى الحارس حتى ذلك الحين.
+- **الإجراء:** إضافة سطر مؤرخ في صف السجل يوثق مراجعة R4 هذه والتسليم الصريح لـR6 (عناصر البطاقة التسعة موجودة ومكتملة). لا تغيير كود، لا شطر في Phase A.
+- **التصنيف:** `PRESERVE_BY_DESIGN` (توثيق تعزيزي) · **حد الرجوع:** revert المستند.
+
+## R4-A3 — اختبارات مباشرة للحرّاس الأربعة بلا اختبار وحدة (R3-N3 المتبقي)
+
+- **المصدر:** بطاقات R3 (R3-N3) + أمر المالك A3 + HAF العدائي.
+- **الحرّاس:** `expenseBudgetCommitGuard` (حفظ حتمي/زوج مراجعة ذرّي)، `loanCommitGuard` (علاقة إنشاء/دفعة/تراجع)، `receivedLoanCommitGuard` (المثل للاقتراض)، `supplierAttributionCommitGuard` (اشتقاق التخصيص داخل المعاملة).
+- **الإجراء:** أربعة ملفات اختبار وحدة مباشرة (نمط recurringExpenseCommitGuard.test.ts) تثبت **السلوك لا الأسماء**: الالتزام الناجح، رفض التعارض/الناقص/المتزامن، إعادة الاستخدام الحرفي، لا كتابة جزئية (الحرّاس نقيون — الرفض قرار بلا أثر)، ومطابقة المعنى عبر مساري المحوّلين حيث يصل الحارس إليهما (الحرّاس مشتركان بين IndexedDB وMemory بالتصميم — النقاء يجعل الاختبار المباشر دليلًا للاثنين معًا؛ تؤكده أجنحة adapterConformance القائمة).
+- **التصنيف:** `FIX_NOW` (فجوة دليل) · **حد الرجوع:** revert ملفات الاختبار الأربعة.
+
+## R4-A4 — فرع R1 المتقاعد في محفزات CI (R3-N5)
+
+- **المصدر:** بطاقة R3-N5 + أمر المالك A4 (القرار المفوض الآن).
+- **التحقق الحي:** `.github/workflows/ci.yml` يحتفظ بسطر `refactoring/post-scan-structural-completion-20261005` في محفزات push مع تعليق ينص أن السطر «يُزال مع تقاعد الفرع بقرار المالك». **الفرع غير موجود على origin** (`git ls-remote` = 0) — المحفز لا يمكن أن يشتعل أبدًا. موجتا R2/R3 اتبعتا نمط PR-first ولم تضيفا فروعهما.
+- **الإجراء:** أضيق تغيير ممكن: حذف السطر وتعليقه من ci.yml + تحديث `scripts/ci-workflow-policy.test.mjs` (يثبت سياسة «main + v\* حصرًا» الجديدة) في نفس الشريحة. لا حذف تغطية فروع نشطة (لا توجد)، لا توسيع.
+- **التصنيف:** `FIX_NOW` (سطر ميت موثق الحذف) · **حد الرجوع:** revert الشريحة.
+
+## R4-A5 — HAF-1: أجنحة رفض عند مستوى القدرة (inventoryMaterial/actualTime/costEstimate/catalog)
+
+- **المصدر:** HAF-1 من التدقيق العدائي R3 + أمر المالك A5.
+- **الإجراء:** تعميق سالب في عقود القدرات الأربع المتبقية داخل ملفات عقد القدرة القائمة (`<cap>Capability.contract.test.ts`) — تُشتق دلالات الرفض من عقد المجال/التخزين الحي (رفض التعارض، رفض الحالة الناقصة، عدم الكتابة الجزئية)، لا تُخترع. ملاحظة الموجة السابقة: `actualTime` حفظه حتمي بلا حارس كتابة (موثق) — جناحه السالب يثبت سلوكه الحي الفعلي (استبدال حتمي بالمعرف) لا رفضًا مخترعًا.
+- **التصنيف:** `FIX_NOW` (تقوية دليل) · **حد الرجوع:** revert الإضافات.
+
+## R4-A6 — بوابة إغلاق Phase A
+
+كل بنود الجزء الأول تنتهي إحدى: `CLOSED_WITH_EVIDENCE` / `PRESERVED_WITH_RATIONALE` / `BLOCKED_WITH_ONE_CONSOLIDATED_DECISION_PACKAGE`. لا DEFERRED عامة. البوابة تُثبت في تقرير R4 قبل بدء تنفيذ Phase B–D.
+
+---
+
+## الجزء الثاني — R4: حدود Transfer/Schema/Export/Import (Phase B–D)
+
+## R4-B1 — مصفوفة قيم القبول (الجرد الحي)
+
+كل عائلة قبول في مدققات النقل مصنفة من الكود الحي عند `1c54c55` (المصفوفة الكاملة بالتقرير §الملحق):
+
+- **DOMAIN_RUNTIME_LIST (استهلاك مباشر حي):** materialUnits (inventory-material)، expenseBudgetStatuses/KnowledgeLevels + isValidBudgetPeriodKey (budget)، isValidWasteContext + calculateSharedProjectShareMinor + isValidOwnerEntitlement\*/isValidAllocationPolicy (محققات مجال)، DEPOSIT_SETTLEMENT_DECISIONS/RETAINED_DEPOSIT_MEANINGS/isValidOrderDeliveryTerms (craft-order عبر transferSnapshotValidation).
+- **HISTORICAL_REGISTRY (سجل واحد):** LEGACY_AGREEMENT_SOURCES + AGREEMENT_SOURCE_ACCEPTANCE في `transferCompatibilityValues.ts` (العائلة التاريخية الوحيدة ذات القيم فوق الاتحاد) + 25 زوج إصدار مدعوًا في `transferEnvelope.ts` (قبول إصداري موثق لكل زوج).
+- **GUARDED_UNION (حرفية محروسة بمراسي دريفت):** بقيّة العائلات (knowledge/result/order/settlement/schedule/financial types/unitDimension/cash kinds+entry types/inventory movement/recurring sets/yield/shortCash/expenseContext) — مراسي `domainTransferDriftAnchors.ts` (Record<Union,true> مفروضة الإكمال نوعيًا) + اختبار الحارس زمني التشغيل والأنواع.
+- **مواقع STR-623 (تكرار محروس خارج 4D):** (1) `agreementContextService.ts:39-48` طاقم 8 قيم + اتحاد LegacyAgreementSource محلي؛ (2) `guidedOpeningImportService.ts:79-80` طاقما walletKinds/materialUnits — كلاهما محروس بـ`check-acceptance-value-anchors.mjs` (تساوي حرفي مع السلطوي).
+
+## R4-B2 — توحيد القيم الحالية (إزالة التكرار النشط)
+
+- **القرار (استنادًا لأمر المالك B2 + شرط بوابة STR-608 «يُفتح عندما يسمح هامش الميزانية بقرار موثق» — الهامش الحي 20,656 خام / 656 gzip مقابل 129 خام عند D-034):**
+  1. **guided materialUnits → قائمة المجال الحية** (القائمة موجودة أصلًا والبرميل مستورد في الشظية نفسها — صفر أثر حزمة).
+  2. **guided walletKinds → قائمة `cashWalletKinds` وقت-تشغيل جديدة في domain/cash-continuity** (نفس نمط SOURCE_REF_KINDS في الملف نفسه؛ البرميل مستورد في شظية guided أصلًا) — القرار الموثق الذي تنتظره بوابة STR-608.
+  3. **agreementContextService → استهلاك AGREEMENT_SOURCE_ACCEPTANCE وLegacyAgreementSource من transferCompatibilityValues** (استيراد داخلي تطبيقي مباشر — نمط Wave B/ADR-011 الموثق على باب transfers؛ لا تصدير مجال جديد؛ أثر حزمة ≈ 0).
+  4. **تحديث مراسي check-acceptance-value-anchors** من «تساوي حرفي بين نسختين» إلى «إثبات استهلاك السلطوي مباشرة» للمواقع الموحدة (الانحراف يصبح مستحيلًا بالبناء — النوع والاستيراد) مع إبقاء الفحص والسلبيات.
+- **ما لا يتوحد الآن (موثق):** حرفيات GUARDED_UNION في `transferFamilyValidators.ts` نفسه (isCashWalletKind/isUnitDimension/...) — تفويضها التشغيلي مؤجل بقرار D-034 (سحب براميل catalog/cash-continuity إلى رأس شظية النقل الرئيسية يستهلك هامش gzip البالغ 656 بايت) وتبقى محروسة بالمراسي ثنائية الطبقة. هذا ليس «مصدرين نشطين» — المالك الدلالي واحد (اتحاد المجال) والاستهلاك الحرفي محروس.
+- **التصنيف:** `FIX_NOW` · **حد الرجوع:** revert الشريحة (سلوك القبول/الرفض لا يتغير — القيم متطابقة حرفيًا قبل وبعد).
+
+## R4-B3 — عزل التوافق التاريخي
+
+- **الحالة الحية:** سجل واحد (`transferCompatibilityValues.ts`) موسوم HISTORICAL، مسبب، مربوط بالإصدارات والذهبيات، يمنعه اختبار `transferCompatibilityRegistry.test.ts` من الاتساع الصامت (كل قيمة بلا صف = فشل). أزواج الإصدارات في `transferEnvelope.ts` قبول إصداري موثق لكل زوج (25 زوجًا + الحالي).
+- **الإجراء:** تحقق + توثيق فقط — البنية القائمة هي بالفعل «Registry واحد واضح». لا حذف قيم تاريخية (غياب المستخدمين لا يصرح بإعادة تفسير ملفات قديمة يدّعي النظام قبولها).
+- **التصنيف:** `PRESERVE_BY_DESIGN` · **الدليل:** الاختبار المرافق + الذهبيات + عقد 39.
+
+## R4-B4 — سلوك التاريخ والمدخلات غير الموثوقة عند حد النقل
+
+- **المتحقق الحي (R2 سابقًا):** `isLocalDate` = `isValidLocalDate` النواة (لا ترمي أبدًا؛ 0000–0099 مقبولة كما كانت؛ الدوران مرفوض)؛ `isDate` = `isValidTimestamp` النواة؛ لا `Date.parse` في حقول التاريخ المحلي؛ guided `isDate` أصلحت في R2 (M-04/D3)؛ prepareImport محمي برمي مهيكل (M-03/D2)؛ مدققات الوحدة (isScheduleTime وغيرها) لا تقبل قيمًا خارج نحوها.
+- **المكتشف R4 (فجوة حقيقية):** `guidedOpeningImportService.prepare` يستدعي `parseFile` **خارج أي try/catch** بينما ترمي دوال `.map()` الداخلية `Error` صريحة للبنود المعطوبة (محفظة/مادة غير صالحة) — الرمي يصل قاطع الواجهة العام فيظهر رسالة «تعذر قراءة ملف البداية» العامة بدل الرفض المهيكل الصادق بنص السبب. لا خطر بيانات (الرمي قبل أي كتابة والواجهة تلتقط)، لكنه يناقض عقد R2 (النتيجة المهيكلة للمدخلات غير الموثوقة) والمسار الكامل المجاور (prepareImport) المحمي أصلًا.
+- **الإجراء:** لف `parseFile` في prepare بعقال مهيكل بنمط R2-M-03/D2 نفسه: `{ok:false, code:"validation_error", message: نص الرمي}` — نفس القالب والقناة، بلا تغيير قبول/رفض.
+- **التصنيف:** `FIX_NOW` · **حد الرجوع:** revert الشريحة.
+
+## R4-C1 — transferFamilyValidators.ts (مراجعة التقسيم)
+
+- **الحالة:** 1,745 سطرًا؛ بطاقة PRESERVE كاملة (ADR-017 §3، 2026-10-04): مسؤولية واحدة (تدقيق أشكال حمولات الاستيراد)، المستهلكون الثمانية كلهم داخل بيت transfers، الجذر المسمى للخطر = تكرار اتحادات المجال (STR-104/509) والتقسيم يبدّده في ملفات أكثر بلا إزالة، والعلاج المسمى 4D (استهلاك حرّي المجال) قرار مالك لاحق، النمو مثبت بالراتشة (1,718/76,500).
+- **مراجعة R4:** لا شقّ مسؤولية جديد ثبت — العائلات شرائح بيانات متوازية لعملية تحقق واحدة تُستهلك معًا عبر واجهة واحدة وتُختبر معًا (الاستدلال القائم لم يتغير، وB2 أعلاه يقلل التكرار الفعلي بلا تقسيم). محفزات إعادة الفتح كما هي في ADR-017 §3.
+- **التصنيف:** `PRESERVE_BY_DESIGN` (بطاقة قائمة) · **الإجراء:** تحقق + إحالة، بلا تقسيم في هذه الموجة.
+
+## R4-C2 — transferSnapshotValidation.ts (مراجعة التقسيم)
+
+- **الحالة:** 1,193 سطرًا؛ SPLIT_CANDIDATE بالسجل («characterization first — Wave 3A»؛ التوصيف قائم الآن بأربعة ملفات characterization).
+- **مراجعة R4 (تفصيلية في التقرير):** الملف دالة واحدة `validateSnapshot` (سطور 76–1193) تجري، لكل عائلة، فحص الشكل (بتفويض مدققات transferFamilyValidators) **ثم قواعد العلاقات المضمّنة** (المراجع/الأيتام/الاتساق بين العائلات) بترتيب مضمون. الفصل الصوري «قواعد علاقات منفصلة» يكسر الضمان الموثق «نفس الفحوص، نفس الترتيب، نفس قرارات القبول» ويضاعف سطح المرور بين وحدات لن يغير ملكية حقيقية (المستهلك واحد، والاختبار واحد) — الشقّ يكون مبررًا عند التداخل المستقبلي فقط (محفز موثق).
+- **الإجراء المحدود الآن:** لا شطر هيكلي؛ توثيق القرار بالتقرير والسجل مع تصعيد تصنيف السجل إلى PRESERVE موثق (نفس أساس C1) ومحفز إعادة الفتح (عائلة جديدة/قاعدة علاقات مستقلة الملكية).
+- **التصنيف:** `PRESERVE_BY_DESIGN` (مع تصويب تصنيف السجل) · **حد الرجوع:** revert المستند.
+
+## R4-C3 — المظروف/الترحيل/العدادات/الخدمات (سلامة السلسلة)
+
+- **التحقق:** السلسلة `prepareImport` (parse → format → pair gate → date/record → [integrity → migration → validation → counts] داخل عقال مهيكل) ثم `confirmImport` (نسخة متحققة قبل الاستبدال → replaceSnapshot ذرّي) — وحدة واحدة مفهومة بلا حلقة مفقودة؛ الفشل لا يستبدل جزئيًا أبدًا (مثبت بـdataRoundTrip.exe014 وprepareImport.rejection). إصلاح B4 أعلاه يردم الثغرة الوحيدة المكتشفة (guided parseFile).
+- **التصنيف:** `PRESERVE_BY_DESIGN` (مع إصلاح B4) · **الدليل:** أجنحة exe014/rejection/releasedPairs/goldens.
+
+## R4-D1 — بوابة Schema 38 / Export 30
+
+- **الإجراء:** التحقق من الكود (types.ts:55/:71) والذهبيات وMANIFEST وأزواج الإصدارات واختبارات الترحيل — إن صحّ الزوج: `PRESERVE_BY_DESIGN` بأدلة + اختبارات انجراف حيث ينفع. أي خلل حقيقي = حزمة قرار محمية ووقف.
+- **التصنيف:** (يحدد التحقق — المتوقع PRESERVE) · **حد الرجوع:** لا ينطبق (لا تغيير).
+
+---
+
+## خريطة التنفيذ (متسلسل، شريحة واحدة لكل commit)
+
+S0 هذه البطاقات → S1 حرّاس A3 (4 ملفات) → S2 أجنحة رفض A5 (4 عقود) → S3 فرع CI المتقاعد A4 → S4 توحيد B2 (المواقع الثلاثة + مراسي القبول + إصلاح guided B4) → S5 توثيق A1/A2 (تصويب تقرير R3 + سجل الملفات + سجل الملكية) → S6 تحقق D1 وتوثيق C1/C2/C3 → S7 السجلات (تقرير R4، حالة البطاقات، WS-216/ARCH-007، current-state، اللوق، worklog) → S8 تدقيق عدائي نهائي → S9 PR + Merge Manifest + وقف لمراجعة المالك.
+
+**قواعد ملزمة لكل شريحة:** لا تغيير سلوك قبول/رفض إلا ما نصّت عليه B4 (تحسين قناة الرفض لا قراره)؛ لا مساس Schema/Export؛ لا حذف تاريخ؛ الحد الأدنى للأوامر المركزة بعد كل شريحة، والبوابة الكاملة بعد الالتزام الأخير.
