@@ -3,14 +3,20 @@
  * (static) من سياسة أحداث/فروع سير عمل CI — سلوك الأحداث المقصود يصبح
  * قابلًا للفحص بدل افتراضه.
  *
- * السلوك المقصود المثبت هنا (من بطاقة الخطوة ٤):
+ * السلوك المقصود المثبت هنا (من بطاقة الخطوة ٤ + تصويب R4-A4 المؤرخ):
  *  1) pull_request بلا مرشح فروع → CI على كل PR (بوابة الدمج الإلزامية)؛
  *  2) الدفع إلى main يشغّل CI (تحقق ما بعد الدمج على main)؛
- *  3) الدفع إلى فرع التنفيذ المخصص يشغّل CI مباشرةً (بروتوكول رأس الموجة
- *     ADR-017 §5.2) — بلا توسيع لفروع أخرى (لا refactoring/**)؛
- *  4) الوسوم v* تشغّل الفحوص نفسها (سياسة المجموعة ٦ AR-01/AR-03/AR-10)؛
- *  5) تنفيذ يدوي (workflow_dispatch) متاح ولا يشغّل نفسه؛
- *  6) لا سير عمل موازٍ مكرر (ملف workflows واحد فقط يملك الفحوص).
+ *  3) الوسوم v* تشغّل الفحوص نفسها (سياسة المجموعة ٦ AR-01/AR-03/AR-10)؛
+ *  4) تنفيذ يدوي (workflow_dispatch) متاح ولا يشغّل نفسه؛
+ *  5) لا سير عمل موازٍ مكرر (ملف workflows واحد فقط يملك الفحوص).
+ *
+ * R4-A4 [تصويب مؤرخ 2026-10-08 — إغلاق R3-N5]: حُذف سطر فرع التنفيذ
+ * المخصص المتقاعد refactoring/post-scan-structural-completion-20261005
+ * بموجب قرار المالك المفوض في أمر R4 — الفرع غير موجود على origin فكان
+ * المحفز لا يمكن أن يشتعل أبدًا؛ موجتا R2/R3 اتبعتا نمط PR-first ولم
+ * تضيفا فروعهما. أي فرع تنفيذ مستقبلي يحتاج شهادة CI على رؤوسه قبل فتح
+ * PR يضيف سطره المسمى حصرًا بقرار مالك موثق في نفس الـPR (لا توسيع
+ * لـrefactoring/** ولا أنماط نجمة).
  * التحليل نصي مقصود (بدل تبعية YAML parser جديدة): الملف صغير ومحروس
  * بهذا الاختبار نفسه — أي إعادة تشكيل للصيغة تكسر الاختبار فتُراجَع عمدًا.
  */
@@ -22,7 +28,6 @@ import { describe, expect, it } from "vitest";
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CI_PATH = path.join(REPO_ROOT, ".github", "workflows", "ci.yml");
 const WORKFLOWS_DIR = path.join(REPO_ROOT, ".github", "workflows");
-const IMPLEMENTATION_BRANCH = "refactoring/post-scan-structural-completion-20261005";
 
 function readCi() {
   return fs.readFileSync(CI_PATH, "utf8");
@@ -34,14 +39,15 @@ describe("ci-workflow-policy (Step 4 — intended event/branch behavior)", () =>
     expect(ci).toMatch(/^  pull_request:\s*$/m);
   });
 
-  it("push triggers exactly main + the dedicated implementation branch + v* tags (no widening)", () => {
+  it("push triggers exactly main + v* tags — retired dedicated branch removed with its owner decision (R4-A4)", () => {
     const ci = readCi();
     const pushBlock = ci.split("on:")[1].split("permissions:")[0];
     expect(pushBlock).toContain("- main");
-    expect(pushBlock).toContain(`- ${IMPLEMENTATION_BRANCH}`);
     /* لا توسيع لأنماط الفروع: أي نجم أو نمط مثل refactoring/** ممنوع. */
     expect(pushBlock).not.toMatch(/-\s+.*\*/);
     expect(pushBlock).toContain('tags: ["v*"]');
+    /* الفرع المخصص المتقاعد لا يعود (قرار المالك R4-A4 — إغلاق R3-N5). */
+    expect(pushBlock).not.toContain("post-scan-structural-completion-20261005");
   });
 
   it("manual execution is supported via workflow_dispatch", () => {
