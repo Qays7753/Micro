@@ -87,7 +87,18 @@
 | Drafts+Form Drafts | 9 | KEEP (استثناء موثق) | R3-SC-17 |
 | Backup/Snapshot/Transfer | 2 | R4_BOUNDARY (محمي) | R3-SC-16 |
 
-**23 طريقة إضافية من المجموعات الكبيرة** (قراءات المزيج) تستهلك الآن عبر Pick موضعي — المنفذ الكامل لم يبق له إلا مستهلكا Transfer.
+**23 طريقة غير المسندة لقدرة مستقلة** *(تصويب مؤرخ 2026-10-08 — R4-A1: كانت العبارة «23 طريقة إضافية من المجموعات الكبيرة (قراءات المزيج)» تعدادًا غامضًا؛ الاستبدال بالتعداد المرجعي المطلوب)* — لا مجموعة واحدة غامضة بل أربع مجموعات موثقة ببطاقاتها:
+
+| المجموعة | الطرق | البطاقة | التصرف |
+|---|---|---|---|
+| Cash Continuity/Wallets | `listCashWallets`، `listCashContinuityEntries`، `commitCashContinuity` (3) | R3-SC-19 | KEEP — قناة السيولة المشتركة بين تسع قدرات |
+| Drafts + Form Drafts | `listDrafts`، `getDraft`، `saveDraft`، `deleteDraft`، `getFormDraft`، `saveFormDraft`، `deleteFormDraft`، `listFormDrafts`، `clearFormDrafts` (9) | R3-SC-17 | KEEP — سطح دعم اختبارات STR-618 |
+| Identity/Profile/Prefs/Security | `getProfile`، `saveProfile`، `getOwnerProfile`، `saveOwnerProfile`، `getPreferences`، `savePreferences`، `getLocalSecurity`، `saveLocalSecurity`، `deleteLocalSecurity` (9) | R3-SC-18 | KEEP — مجموعات قراءة بنية التطبيق خلف الـfacade by design |
+| Backup/Snapshot/Transfer | `readSnapshot`، `replaceSnapshot` (2) | R3-SC-16 | R4_BOUNDARY — زوج اللقطة المحمي (يُعالج في R4) |
+
+تُستهلك هذه الطرق عبر Pick موضعي أو تبقى خلف الـfacade بحدود نمو موثقة — لا قدرة اصطناعية لبلوغ 100%.
+
+**الصياغة المرجعية المضادة للالتباس** *(تصويب مؤرخ 2026-10-08 — R4-A1)*: 7 قدرات قائمة = **54 طريقة**؛ 9 قدرات جديدة = **53 طريقة**؛ 16 قدرة = **107 من 130**. رقم «54» في §5 («9 ملفات / 54 اختبارًا») عدد **اختبارات** العقود التسع الجديدة لا عدد قدرات ولا طرق — دلالتان مختلفتان لرقمين متجاورين.
 
 ## 8. المكتشفات المرافقة ومصيرها
 
