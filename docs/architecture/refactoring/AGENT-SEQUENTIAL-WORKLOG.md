@@ -863,3 +863,16 @@
 - Boundaries kept: schema/export 38/30 untouched; no UI visual change; no history deleted; UI branch untouched; no main writes; merge NOT authorized — PR #330 parked at the owner gate with the final report + manifests.
 
 **Stage summary:** R2 root-fix COMPLETE at the owner-review gate; R3 NOT started; statuses: R2_ROOT_FIX_COMPLETE — PR_READY_FOR_OWNER_REVIEW / R2_MERGE_NOT_AUTHORIZED / R3_NOT_STARTED.
+
+## Entry 54 — 2026-10-08 — Z AI: R2 D11/D13 root-fix continuation (WS-216/ARCH-007, owner overturned both preserves)
+
+- Live baseline verified zero drift (PR #330 open/mergeable/only, head a476ed7, main 12ee94d, worktree clean, CI green on head) before any work.
+- Owner mandate «D11/D13 Root-Fix Resume» overturned the two PRESERVE_WITH_RATIONALE decisions; manifests M-10/M-11 + dated ledger flip written BEFORE production changes (commit d1afc5b).
+- Sequential read-only specialist reviews: S1 persisted-data (found cash-count persisted writers in presentation — relocated to application/cash door), S2 clock/boundaries (corrected census to 37 files; found device-timezone derivations in recurring-expense pages), S3 tests/guards (smallest complete matrix incl. moneyLayerGuard census); all APPROVE_WITH_AMENDMENTS, amendments applied.
+- Implementation commits: 94cfba7 (D11 — persistedMoneyTextMinor canonical persisted formatter + five writers + legacy-read/round-trip/census tests), 9c8ae0a (D13 — explicit required instant + todayInAmman boundary via the time door + 37-file migration + RecurringExpense device-tz fix + guard R5/R6 with positive/negative fixtures), 3bd9aae (module-boundaries correction: kernel day-shift via the presentation compat shim — zero new edges), d176504 (followUpDate test import after the agreements door re-export drop).
+- S4 financial/historical safety review: SAFE (no silent amount/rounding/classification/schema/export/history change; every behavior change manifested). S5 hostile final review: verdict recorded in the R2 report addendum.
+- Full `pnpm check` PASS on the final head: 15 guards, root 681/681, app 2280/2280, lint 0/35, entry 629,344/154,644 under ceilings, lazy/precache improved (not locked, ADR-012 discipline); Operations Control regenerated from JSON (validate exit 0).
+- Records: R2 report dated addendum (live status section), ownership registry §8-5/§8-6 + clock/cash/doors rows, WS-216/ARCH-007 JSONs, current-state live fields within the 20,480-byte ceiling (20,458), state log §145.
+- Boundaries kept: schema/export 38/30; no UI visual change; no test deletions (+18 net); no R3; no main writes; merge NOT authorized — PR #330 parked at the owner gate with the final merge manifest.
+
+**Stage summary:** R2_D11_D13_ROOT_FIX_COMPLETE — PR_READY_FOR_OWNER_REVIEW; merge review of PR #330 is the owner's next action; R3 only after verified R2 closure on main.

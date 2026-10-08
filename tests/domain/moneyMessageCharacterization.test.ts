@@ -307,6 +307,10 @@ describe("R2 (M-10/D11) persistedMoneyTextMinor — the one canonical persisted 
     expect(() => persistedMoneyTextMinor(Number.NaN)).toThrow();
     expect(() => persistedMoneyTextMinor(Number.POSITIVE_INFINITY)).toThrow();
     expect(() => persistedMoneyTextMinor(Number.MAX_SAFE_INTEGER + 1)).toThrow();
+    /* الغائب ليس «قيمة مال» تُنسّق بل غياب قيمة — يُرفض مثل غير الصحيح
+     * (الكاتبون لا يمررونه أصلًا؛ القفل صريح لا ضمني). */
+    expect(() => persistedMoneyTextMinor(null as unknown as number)).toThrow();
+    expect(() => persistedMoneyTextMinor(undefined as unknown as number)).toThrow();
   });
 
   it("single-derivation rule: the persisted notes embed persistedMoneyTextMinor output, never a second format", () => {
