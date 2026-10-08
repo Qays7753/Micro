@@ -11,13 +11,15 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
+/* R2 (M-10/D11): بانيا نص السجل المحفوظ من باب التطبيق (لا من العرض)؛
+ * رسالة التوست اللحظية تبقى عرضًا. */
 import {
   cashCountDifferenceReason,
-  cashCountSettledMessage,
   cashCountSettlementNote,
-} from "@/presentation/cashCountMessages";
+  type CashContinuityOverview,
+} from "@/application/cash";
+import { cashCountSettledMessage } from "@/presentation/cashCountMessages";
 import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
-import { CashContinuityOverview } from "@/application/cash";
 
 import { Button } from "@/components/primitives";
 type State =

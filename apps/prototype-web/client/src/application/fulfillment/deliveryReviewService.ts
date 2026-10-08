@@ -34,8 +34,8 @@ import { createCashContinuityEntry } from "@micro-domain/cash-continuity/index.j
 import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import type { ScheduleService } from "@/application/scheduling/scheduleService";
-import { localDateInAmman } from "@micro-domain/shared/index.js";
-import { formatMoneyMinor, formatQuantityMilli } from "@/application/formatting/formatters";
+import { localDateInAmman, persistedMoneyTextMinor } from "@micro-domain/shared/index.js";
+import { formatQuantityMilli } from "@/application/formatting/formatters";
 import { storageFailureCode, type PrototypeLocalStore, type StoredCraftOrder } from "@/storage/local/types";
 import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
 import { systemClock, type Clock } from "@/application/time/clock";
@@ -588,7 +588,9 @@ export class DeliveryReviewService {
           occurredOn: localDateInAmman(timestamp),
           recordedAt: timestamp,
           cashDeltaMinor: collectNow.amountMinor,
-          note: `قبض عند تسليم الطلب: ${order.itemName} — ${formatMoneyMinor(order.agreedPriceMinor)} د.أ`,
+          /* R2 (M-10/D11، 2026-10-08): نص المال المحفوظ بالمنسّق الكنوني للمحفوظ
+           * (منزلتان دائمًا، بلا تجميع) — لا بمنسّق العرض. */
+          note: `قبض عند تسليم الطلب: ${order.itemName} — ${persistedMoneyTextMinor(order.agreedPriceMinor)}`,
           operationKey: `${orderId}:deliver-cash:${deliveryEvent.id}`,
           sourceRefId: orderId,
           sourceRefKind: "order",

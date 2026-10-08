@@ -33,6 +33,7 @@ import {
   isValidLocalDate,
   isValidTimestamp,
   localDatePlusDays,
+  persistedMoneyTextMinor,
   quantityMilliExact,
   roundHalfUp,
 } from "../shared/index.js";
@@ -1425,7 +1426,7 @@ export function classifyRetainedDeposit(
     idempotencyKey,
     createdAt,
     amountMinor: amount,
-    note: `${meaning === "owner" ? "مال مالك" : "إيراد مشروع"} (${amount / 100} د.أ) — ${reason.trim()}`,
+    note: `${meaning === "owner" ? "مال مالك" : "إيراد مشروع"} (${persistedMoneyTextMinor(amount)}) — ${reason.trim()}`,
   });
 }
 
@@ -1502,6 +1503,6 @@ export function reclassifyRetainedDeposit(
     idempotencyKey: correction.idempotencyKey,
     createdAt: correction.createdAt,
     amountMinor: correction.toAmountMinor,
-    note: `تصحيح إلى ${correction.toMeaning === "owner" ? "مال مالك" : "إيراد مشروع"} (${correction.toAmountMinor / 100} د.أ) — ${correction.reason.trim()}`,
+    note: `تصحيح إلى ${correction.toMeaning === "owner" ? "مال مالك" : "إيراد مشروع"} (${persistedMoneyTextMinor(correction.toAmountMinor)}) — ${correction.reason.trim()}`,
   });
 }

@@ -90,7 +90,9 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
   transfers: [],
   /* أبواب Wave B/W4 بعد فصل الأنواع (الخطوة ٦): */
   budgets: ["ExpenseBudgetService"],
-  cash: ["CashContinuityService", "WalletLedgerService"],
+  /* R2 (M-10/D11، 2026-10-08): بانيا نص سجل تسوية العدّ انتقلا من العرض —
+   * توسيع سطح مقصود بنفس الـPR (PC-3). */
+  cash: ["CashContinuityService", "WalletLedgerService", "cashCountDifferenceReason", "cashCountSettlementNote"],
   finance: [
     "DueDatesService",
     "IntegrityCheckService",

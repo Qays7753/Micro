@@ -4,6 +4,7 @@ import { CostService, type CostEditorInput } from "@/application/cost/costServic
 import { DraftService } from "@/application/drafts/draftService";
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { DeliveryReviewService } from "@/application/fulfillment/deliveryReviewService";
+import { persistedMoneyTextMinor } from "@micro-domain/shared/index.js";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 
@@ -298,12 +299,13 @@ describe("DeliveryReviewService — commitDelivery", () => {
     });
   });
 
-  it("R2 (M-08/D11): the persisted delivery-collection note uses the canonical formatter and round-trips unchanged", async () => {
-    /* العقد المحفوظ: نص الملاحظة التطبيقية يُبنى بالمنسّق الكنوني
-     * (formatMoneyMinor: منزلتان + فواصل) — اصطلاح مختلف عن نص المجال
-     * المجمد (minor/100 د.أ — W2) وموثق في سجل الملكية §8-6. الملاحظة
-     * نص معتم يخزن ويُقرأ كما هو: قيمة قديمة تُقرأ حرفيًا (توافق القراءة
-     * القديمة)، والكتابة الجديدة تحمل الصيغة الكنونية نفسها. */
+  it("R2 (M-10/D11, 2026-10-08): the persisted delivery-collection note uses the canonical persisted formatter and round-trips unchanged", async () => {
+    /* العقد المحفوظ بعد قلب المالك للاستثناء: نص الملاحظة التطبيقية يُبنى
+     * بالمنسّق الكنوني **للمحفوظ** `persistedMoneyTextMinor` (منزلتان دائمًا،
+     * **بلا فواصل تجميع**، بالوحدة داخل الدالة) — لا بمنسّق العرض Intl.
+     * الملاحظة نص معتم يخزن ويُقرأ كما هو: القيم القديمة (بما فيها
+     * «1,234.50 د.أ» التجميعية التاريخية) تُقرأ حرفيًا، والكتابة الجديدة
+     * تحمل الصيغة الكنونية. (كان الاختبار M-08 بمنسّق العرض — قلب مؤرخ.) */
     const { store, orderId, trackedId } = await readyOrderWithLinkedMaterials();
     /* القبض داخل محفظة موزعة هو المسار الذي يكتب ملاحظة النقد المحفوظة. */
     const seeded = await store.readSnapshot();
@@ -335,8 +337,10 @@ describe("DeliveryReviewService — commitDelivery", () => {
     if (!entries.ok) return;
     const note = entries.value.find(entry => entry.operationKey.includes("deliver-cash"))?.note;
     expect(note).toContain("قبض عند تسليم الطلب");
-    /* الصيغة الكنونية: منزلتان دائمًا (لا قسمة خام «60» بل «60.00»). */
-    expect(note).toMatch(/\d[\d,]*\.\d{2} د\.أ$/);
+    /* الصيغة الكنونية للمحفوظ: تساوي قالبًا مع خرج المنسّق الكنوني نفسه
+     * (منزلتان دائمًا) وبلا أي فاصلة تجميع — قالب واحد لا اشتقاق ثانٍ. */
+    expect(note).toBe(`قبض عند تسليم الطلب: فستان مطرز — ${persistedMoneyTextMinor(6_000)}`);
+    expect(note).not.toContain(",");
     /* دورة القراءة: نفس النص يُقرأ حرفيًا من المخزن — لا إعادة تفسير. */
     const reread = await store.listCashContinuityEntries();
     expect(reread.ok && reread.value.find(entry => entry.operationKey.includes("deliver-cash"))?.note).toBe(

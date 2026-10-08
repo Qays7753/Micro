@@ -1,4 +1,4 @@
-export { JOD, type Currency, type MoneyMinor } from "./currency.js";
+export { JOD, type Currency, type MoneyMinor, persistedMoneyTextMinor } from "./currency.js";
 export { INVALID_INSTANT_MESSAGE, ammanDateOrNull, localDateInAmman } from "./businessTime.js";
 export {
   addSafe,
