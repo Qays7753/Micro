@@ -16,6 +16,14 @@ import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { errorMessageOf, validationFailure } from "@/application/resultCodes";
 import type { Clock } from "@/application/time/clock";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { InventoryMaterialStore } from "@/storage/local/capabilities/inventoryMaterialStore";
+
+/** R3 (R3-SC-07): عدسة الوحدة — الهدر بمصادره (طلب/مرجع/قالب). */
+export type InventoryMaterialWasteStore = Pick<
+  InventoryMaterialStore,
+  "listMaterials" | "listInventoryMovements" | "commitInventory" | "commitInventoryWithEvents"
+> &
+  Pick<PrototypeLocalStore, "getOrder" | "getCatalogItem" | "getCatalogTemplate">;
 import {
   id,
   materialById,
@@ -27,7 +35,7 @@ import {
 } from "./inventoryMaterialModel";
 
 export async function wasteMaterial(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialWasteStore,
   now: Clock,
   input: WasteMaterialInput,
 ): Promise<InventoryResult<InventoryMovement>> {
@@ -38,7 +46,7 @@ export async function wasteMaterial(
  * كاملة وقيمته كاملة — لا حذفًا ولا شطبًا. المخزون يبلغ صفرًا صادقًا والقيمة تظهر
  * حيث تنتمي: الهدر. والفعل عام — يخدم إخراج مادة تلفت كلها لا الفتات وحده. */
 export async function extractRemainder(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialWasteStore,
   now: Clock,
   input: ExtractRemainderInput,
 ): Promise<InventoryResult<InventoryMovement>> {
@@ -81,7 +89,7 @@ export async function extractRemainder(
 }
 
 async function outbound(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialWasteStore,
   now: Clock,
   input: WasteMaterialInput & { type: "waste" },
 ): Promise<InventoryResult<InventoryMovement>> {

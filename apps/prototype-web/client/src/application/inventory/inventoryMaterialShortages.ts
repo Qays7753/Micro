@@ -17,6 +17,13 @@ import {
 import { errorMessageOf, storageFailure, validationFailure } from "@/application/resultCodes";
 import type { Clock } from "@/application/time/clock";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { InventoryMaterialStore } from "@/storage/local/capabilities/inventoryMaterialStore";
+
+/** R3 (R3-SC-07): عدسة الوحدة — النقص وكلوحه وقراءته وكتابته الذرّية. */
+export type InventoryMaterialShortagesStore = Pick<
+  InventoryMaterialStore,
+  "listMaterials" | "listInventoryMovements" | "listInventoryShortages" | "commitInventoryWithShortage"
+>;
 import {
   id,
   materialById,
@@ -32,7 +39,7 @@ import {
 /* المجموعة ٢ (عقد ٢٨ / D-027): تسجيل نقص صريح — بديل الرصيد السالب الموثّق.
  * طلب الكمية أكبر من المتاح يُوثَّق نقصًا، والمتاح يبقى كما هو حتى يقرر المالك. */
 export async function recordShortage(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialShortagesStore,
   now: Clock,
   input: RecordShortageInput,
 ): Promise<InventoryResult<InventoryShortage>> {
@@ -74,7 +81,7 @@ export async function recordShortage(
 /* المجموعة ٢ (عقد ٢٨ / D-027): استهلاك المتاح + توثيق النقص معًا — معاملة ذرّية
  * واحدة (حركة + سجل نقص) فلا حالة بينية أبدًا. */
 export async function consumeWithShortage(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialShortagesStore,
   now: Clock,
   input: ConsumeMaterialInput,
 ): Promise<InventoryResult<{ movement: InventoryMovement | null; shortage: InventoryShortage }>> {
@@ -136,7 +143,7 @@ export async function consumeWithShortage(
 /* المجموعة ٢ (عقد ٢٨ / D-027): حل النقص صريح وموثّق — لا يُغلق تلقائيًا عند
  * وصول استلام؛ المالك يقرر الحل بعد التحقق. */
 export async function resolveShortage(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialShortagesStore,
   now: Clock,
   input: ResolveShortageInput,
 ): Promise<InventoryResult<InventoryShortage>> {
@@ -158,7 +165,7 @@ export async function resolveShortage(
 }
 
 export async function listShortages(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialShortagesStore,
 ): Promise<InventoryResult<readonly InventoryShortage[]>> {
   const result = await store.listInventoryShortages();
   return result.ok ? { ok: true, value: result.value } : storageFailure("تعذر قراءة سجلات النقص المحلية.");

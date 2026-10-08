@@ -18,6 +18,17 @@ import { createFinancialReversal } from "@micro-domain/financial-event/index.js"
 import { errorMessageOf, validationFailure } from "@/application/resultCodes";
 import type { Clock } from "@/application/time/clock";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { InventoryMaterialStore } from "@/storage/local/capabilities/inventoryMaterialStore";
+
+/** R3 (R3-SC-07): عدسة الوحدة — الكتابة بمصادرها العابرة للعائلات. */
+export type InventoryMaterialWritesStore = Pick<
+  InventoryMaterialStore,
+  "listMaterials" | "listInventoryMovements" | "commitInventory" | "commitInventoryWithEvents"
+> &
+  Pick<
+    PrototypeLocalStore,
+    "getOrder" | "listDirectSales" | "listFinancialEvents" | "listSupplierPurchases"
+  >;
 import {
   id,
   materialById,
@@ -32,7 +43,7 @@ import {
 } from "./inventoryMaterialModel";
 
 export async function receivePurchase(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialWritesStore,
   now: Clock,
   input: ReceivePurchaseInput,
 ): Promise<InventoryResult<InventoryMovement>> {
@@ -93,7 +104,7 @@ export async function receivePurchase(
 }
 
 export async function consumeMaterial(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialWritesStore,
   now: Clock,
   input: ConsumeMaterialInput,
 ): Promise<InventoryResult<InventoryMovement>> {
@@ -151,7 +162,7 @@ export async function consumeMaterial(
 }
 
 export async function adjustMaterial(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialWritesStore,
   now: Clock,
   input: AdjustMaterialInput,
 ): Promise<InventoryResult<InventoryMovement>> {
@@ -209,7 +220,7 @@ export async function adjustMaterial(
 }
 
 export async function reverseMovement(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialWritesStore,
   now: Clock,
   input: ReverseInventoryInput,
 ): Promise<InventoryResult<InventoryMovement>> {

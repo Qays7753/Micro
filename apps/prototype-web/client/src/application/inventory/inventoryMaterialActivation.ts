@@ -8,6 +8,13 @@ import {
   type InventoryActivation,
   type PrototypeLocalStore,
 } from "@/storage/local/types";
+import type { InventoryMaterialStore } from "@/storage/local/capabilities/inventoryMaterialStore";
+
+/** R3 (R3-SC-07): عدسة الوحدة — قراءة التفعيل وحفظه حصرًا. */
+export type InventoryMaterialServiceStore = Pick<
+  InventoryMaterialStore,
+  "listMaterials" | "listInventoryMovements" | "getInventoryActivation" | "saveInventoryActivation"
+>;
 import { storageFailure } from "@/application/resultCodes";
 
 /* تكثيف STR-608: الرسالة تتكرر في المسارين — تعريف واحد لا اثنان. */
@@ -23,7 +30,7 @@ import {
 
 /* القرار ٩: قراءة تفعيل المخزون — المعلن صراحة أولًا، ثم أقدم دليل للموجود القائم. */
 export async function readActivation(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialServiceStore,
 ): Promise<InventoryResult<InventoryActivationState>> {
   const [activation, materials, movements] = await Promise.all([
     store.getInventoryActivation(),
@@ -63,7 +70,7 @@ export async function readActivation(
 
 /** القرار ٩: تفعيل صريح بتاريخ اليوم — لحظة معلنة تُعرض، والرصيد يومها يكفي. */
 export async function activateInventory(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialServiceStore,
   now: Clock,
   input: InventoryActivationInput,
 ): Promise<InventoryResult<InventoryActivation>> {

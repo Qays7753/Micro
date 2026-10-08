@@ -19,6 +19,13 @@ import {
 import { errorMessageOf, validationFailure } from "@/application/resultCodes";
 import type { Clock } from "@/application/time/clock";
 import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { InventoryMaterialStore } from "@/storage/local/capabilities/inventoryMaterialStore";
+
+/** R3 (R3-SC-07): عدسة الوحدة — المادة وحركاتها في التزام ذرّي. */
+export type InventoryMaterialLifecycleStore = Pick<
+  InventoryMaterialStore,
+  "listMaterials" | "listInventoryMovements" | "commitInventory"
+>;
 import {
   ammanLocalDate,
   id,
@@ -33,7 +40,7 @@ import {
 } from "./inventoryMaterialModel";
 
 export async function openMaterial(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialLifecycleStore,
   now: Clock,
   input: OpenMaterialInput,
 ): Promise<InventoryResult<{ material: Material; opening: InventoryMovement | null }>> {
@@ -116,7 +123,7 @@ export async function openMaterial(
 /* المجموعة ٢ (عقد ٢٨): إيقاف المتابعة بعواقب معلنة — الحركات كلها تبقى، والرصيد
  * يجمَّد في السجل، وإعادة التفعيل تعيده «غير محدد بعد» حتى يؤكده المالك. */
 export async function untrackMaterial(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialLifecycleStore,
   now: Clock,
   input: UntrackMaterialInput,
 ): Promise<InventoryResult<Material>> {
@@ -140,7 +147,7 @@ export async function untrackMaterial(
 /* المجموعة ٢ (عقد ٢٨): إعادة التفعيل — الرصيد المحفوظ يعود «غير محدد بعد» حتى
  * يؤكده المالك من جديد؛ لا ثقة صامتة برقم قديم. */
 export async function retrackMaterial(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialLifecycleStore,
   now: Clock,
   input: RetrackMaterialInput,
 ): Promise<InventoryResult<Material>> {
@@ -168,7 +175,7 @@ export async function retrackMaterial(
 /* المجموعة ٢ (عقد ٢٨): تأكيد رصيد — الفرق عن الحركات المحفوظة يُسجَّل بحركة
  * موثقة (بداية إن كانت أول حركة، أو ضبطًا)، والمادة تحمل معرفة مؤكدة. */
 export async function confirmMaterialOpening(
-  store: PrototypeLocalStore,
+  store: InventoryMaterialLifecycleStore,
   now: Clock,
   input: ConfirmOpeningInput,
 ): Promise<InventoryResult<{ material: Material; movement: InventoryMovement | null }>> {
