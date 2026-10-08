@@ -6,7 +6,7 @@ import { useLocation, useSearch, useParams } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
-import { localDateInAmman, formatMoneyMinor, formatQuantityMilli } from "@/presentation/formatters";
+import { formatMoneyMinor, formatQuantityMilli } from "@/presentation/formatters";
 import { EnglishQuantityInput } from "@/components/forms/EnglishQuantityInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
@@ -15,7 +15,7 @@ import type { InventoryReferences, PurchaseReceiptStatus } from "@/application/i
 import { resolveInventoryMovementType, type InventoryMovementRouteType } from "@/application/inventory";
 import { MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";
-const ammanDate = () => localDateInAmman();
+import { todayInAmman } from "@/application/time";
 const ID_SHAPE = /^[A-Za-z0-9_-]{1,64}$/;
 type MovementType = InventoryMovementRouteType;
 const unitWord = (unit: string) =>
@@ -84,7 +84,7 @@ export default function InventoryMovementEditor() {
   const [direction, setDirection] = useState<"increase" | "decrease">("decrease");
   const [quantityValid, setQuantityValid] = useState(true);
   const [valueValid, setValueValid] = useState(true);
-  const [date, setDate] = useState(ammanDate);
+  const [date, setDate] = useState(todayInAmman);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);

@@ -63,9 +63,12 @@ describe("Business Time canonical module (Group 9, STR-029/031)", () => {
     expect(ammanDateOrNull("2026-07-14T21:00:00.000Z")!.slice(0, 7)).toBe("2026-07");
   });
 
-  it("defaults the throw variant to now and yields a well-formed business date", () => {
-    const today = localDateInAmman();
-    expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  it("R2 (M-11/D13, 2026-10-08): the throw variant requires an explicit instant — no ambient default remains", () => {
+    /* قلب مؤرخ: كان الافتراض «الآن» داخل المجال — أزيل بقرار المالك.
+     * القفل مزدوج: compile (tsc يرفض النداء بلا وسيط) + runtime
+     * (الوسيط الغائب = undefined = طابع غير صالح = رمي الهوية المعتمدة). */
+    // @ts-expect-error — الاستدعاء بلا وسيط ممنوع الآن بنوع الدالة نفسها
+    expect(() => localDateInAmman()).toThrow(INVALID_INSTANT_MESSAGE);
     expect(ammanDateOrNull(new Date())).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });

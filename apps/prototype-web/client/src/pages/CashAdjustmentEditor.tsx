@@ -10,10 +10,9 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { CashWalletBalance } from "@/application/cash";
-import { localDateInAmman } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
-const ammanDate = () => localDateInAmman();
+import { todayInAmman } from "@/application/time";
 export default function CashAdjustmentEditor() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
@@ -24,7 +23,7 @@ export default function CashAdjustmentEditor() {
   const [direction, setDirection] = useState<"increase" | "decrease">("decrease");
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
-  const [date, setDate] = useState(ammanDate);
+  const [date, setDate] = useState(todayInAmman);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);

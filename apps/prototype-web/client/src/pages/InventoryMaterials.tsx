@@ -24,15 +24,11 @@ import type {
   InventoryOverview,
 } from "@/application/inventory";
 import { LocalDateValue, MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
-import {
-  localDateInAmman,
-  formatArabicPlural,
-  formatMoneyMinor,
-  formatQuantityMilli,
-} from "@/presentation/formatters";
+import { formatArabicPlural, formatMoneyMinor, formatQuantityMilli } from "@/presentation/formatters";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import { savedMovementCountLabel } from "@/presentation/plurals";
+import { todayInAmman } from "@/application/time";
 const label = (type: InventoryMovement["type"]) =>
   ({
     opening: "رصيد مادة بداية",
@@ -149,7 +145,7 @@ export default function InventoryMaterials() {
     setExtracting(true);
     const result = await inventory.extractRemainder({
       materialId: extraction.materialId,
-      occurredOn: localDateInAmman(),
+      occurredOn: todayInAmman(),
       reason,
       operationKey: extractionKeyRef.current,
     });
@@ -215,7 +211,7 @@ export default function InventoryMaterials() {
     const result = await inventory.resolveShortage({
       shortageId: shortage.id,
       resolutionNote: resolutionNote.trim(),
-      resolvedOn: localDateInAmman(),
+      resolvedOn: todayInAmman(),
     });
     setTrackingBusy(false);
     if (!result.ok) {

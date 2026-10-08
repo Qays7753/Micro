@@ -10,7 +10,8 @@ import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { FinancialEventType, OperatingExpenseContext } from "@micro-domain/financial-event/index.js";
 import { expandExpenseRecordIntent } from "@/application/financial-records";
 import type { SharedExpenseRecordInput } from "@/application/financial-records";
-import { formatMoneyMinor, isValidLocalDate, localDateInAmman } from "@/presentation/formatters";
+import { formatMoneyMinor, isValidLocalDate } from "@/presentation/formatters";
+import { todayInAmman } from "@/application/time";
 
 export type EventEffectIntent = {
   type: FinancialEventType;
@@ -105,7 +106,7 @@ export function describeEventEffect(
      * 2026-13-01 فيصل تاريخًا فاسدًا إلى معاينة تُكتم فشلها. */
     const occurredOn = isValidLocalDate(intent.occurredOn ?? "")
       ? (intent.occurredOn as string)
-      : localDateInAmman();
+      : todayInAmman();
     const draft = createFinancialEvent({
       id: `${PREVIEW_NOTE_PREFIX}-${intent.type}`,
       type: intent.type,

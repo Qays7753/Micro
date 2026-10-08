@@ -2,13 +2,14 @@ import { Clock3, RotateCcw, Save, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 /* مبدأ Micro: وقت التنفيذ يشرح الفرق ولا يغير النتيجة المالية، ويظهر تاريخه بوضوح. */
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
-import { formatLocalDate, localDateInAmman } from "@/presentation/formatters";
+import { formatLocalDate } from "@/presentation/formatters";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import type { ActualTimeService, OperatingModeValue } from "@/application/time";
 import type { ActualTimeComparison } from "@micro-domain/actual-time/index.js";
 import type { ActualTimeRecord } from "@micro-domain/actual-time/index.js";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 type Props = {
   orderId: string;
   actualTime: ActualTimeService;
@@ -27,7 +28,6 @@ type LoadState =
 
 type Message = { tone: "error" | "success"; text: string };
 
-const ammanDate = () => localDateInAmman();
 const newOperationKey = (prefix: string) =>
   `${prefix}-${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`}`;
 const minutesLabel = (minutes: number) => `${minutes > 0 ? "+" : ""}${minutes} دقيقة`;
@@ -52,11 +52,11 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
   const [showRecordForm, setShowRecordForm] = useState(false);
   const [minutes, setMinutes] = useState(0);
   const [minutesValid, setMinutesValid] = useState(true);
-  const [recordedOn, setRecordedOn] = useState(ammanDate);
+  const [recordedOn, setRecordedOn] = useState(todayInAmman);
   const [note, setNote] = useState("");
   const [reverseTarget, setReverseTarget] = useState<ActualTimeRecord | null>(null);
   const [reverseReason, setReverseReason] = useState("");
-  const [reverseRecordedOn, setReverseRecordedOn] = useState(ammanDate);
+  const [reverseRecordedOn, setReverseRecordedOn] = useState(todayInAmman);
   const [message, setMessage] = useState<Message | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const recordOperationKey = useRef(newOperationKey("actual-time-record"));
@@ -123,7 +123,7 @@ export function ActualTimePanel({ orderId, actualTime, dataVersion, notifyDataCh
     setMessage(null);
     setReverseTarget(record);
     setReverseReason("");
-    setReverseRecordedOn(ammanDate());
+    setReverseRecordedOn(todayInAmman());
   }
 
   async function saveRecord() {

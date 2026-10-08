@@ -22,7 +22,6 @@ import { canShareText, downloadTextFile, shareTextManually } from "@/lib/textDel
 import {
   formatLocalDate,
   formatLocalDateLong,
-  localDateInAmman,
   localDatePlusDays,
   localDateWeekdayIndex,
   formatMoneyWithUnit,
@@ -30,6 +29,7 @@ import {
 import type { StatementLine, StatementReading, StatementExpenseCategoryGroup } from "@/application/finance";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 type State =
   { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; reading: StatementReading };
 
@@ -166,7 +166,7 @@ export default function Statement() {
   const { statement, periodComparison, dataVersion } = usePrototypeServices();
   const markdownRenderer = new StatementMarkdownService();
   const [reportNotice, setReportNotice] = useState<string | null>(null);
-  const today = localDateInAmman();
+  const today = todayInAmman();
   const thisWeek = weekBounds(today);
   const [range, setRange] = useState<QuickRange>("this_week");
   const [from, setFrom] = useState(thisWeek.from);

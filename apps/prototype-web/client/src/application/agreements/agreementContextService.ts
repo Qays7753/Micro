@@ -4,7 +4,8 @@
  */
 import type { AgreementSource, FollowUpEvent, StoredCraftOrder } from "@/storage/local/types";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
-import { isValidLocalDate, localDateInAmman } from "./followUpDate";
+import { isValidLocalDate } from "./followUpDate";
+import { localDateInAmman } from "@micro-domain/shared/index.js";
 import {
   NOT_FOUND,
   STORAGE_ERROR,

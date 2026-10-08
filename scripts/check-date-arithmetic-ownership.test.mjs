@@ -94,6 +94,49 @@ describe("check-date-arithmetic-ownership (R2 — M-09, tightened)", () => {
     }
   });
 
+  it("R5: zero-argument and ambient-new-Date localDateInAmman calls fail in ANY production layer; explicit instants and todayInAmman() pass", () => {
+    const dir = makeTree(tree => {
+      write(tree, "apps/prototype-web/client/src/pages/demo.tsx", "const a = localDateInAmman();\n");
+      write(tree, "apps/prototype-web/client/src/application/demo/service.ts", "const b = localDateInAmman( new Date() );\n");
+      write(tree, "src/domain/demo/policies.ts", "const c = localDateInAmman();\n");
+      /* السوالب القانونية: لحظة صريحة (ساعة/طابع) والحد المسماى للتطبيق. */
+      write(tree, "apps/prototype-web/client/src/pages/ok.tsx", "const d = localDateInAmman(now);\n");
+      write(tree, "apps/prototype-web/client/src/application/time/clock.ts", "const e = todayInAmman();\n");
+    });
+    try {
+      const violations = findViolations(dir);
+      expect(rulesOf(violations).filter(rule => rule === "R5").length).toBe(3);
+      expect(violations.every(v => !v.file.endsWith("ok.tsx"))).toBe(true);
+      expect(violations.every(v => !v.file.endsWith("clock.ts"))).toBe(true);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("R6: ambient zero-arg new Date() fails in the domain — even inside businessTime.ts (the default's former home); explicit parsing passes", () => {
+    const dir = makeTree(tree => {
+      write(
+        tree,
+        "src/domain/shared/businessTime.ts",
+        "export const parse = (x) => new Date(x);\nexport const ambient = () => new Date();\n",
+      );
+      write(tree, "src/domain/other/policies.ts", "export const g = () => new Date();\n");
+      /* السوالب: تحليل مدخل صريح في ملف النواة نفسه (السطر الأول أعلاه —
+       * يمر R6)، وساعة النظام خارج المجال (ليست ضمن نطاق R6 أصلًا). */
+      write(tree, "src/domain/shared/numeric.ts", "export const h = (x) => !Number.isNaN(Date.parse(x));\n");
+      write(tree, "apps/prototype-web/client/src/application/time/clock.ts", "export const systemClock = () => new Date().toISOString();\n");
+    });
+    try {
+      const violations = findViolations(dir);
+      expect(rulesOf(violations).filter(rule => rule === "R6").length).toBe(2);
+      expect(violations.some(v => v.file === "src/domain/shared/businessTime.ts")).toBe(true);
+      expect(violations.every(v => v.file !== "src/domain/shared/numeric.ts")).toBe(true);
+      expect(violations.every(v => v.file !== "apps/prototype-web/client/src/application/time/clock.ts")).toBe(true);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("kernel-owned patterns pass and tests/dist are out of scope", () => {
     const dir = makeTree(tree => {
       write(tree, "src/domain/shared/numeric.ts", "export const ok = 1;\n");

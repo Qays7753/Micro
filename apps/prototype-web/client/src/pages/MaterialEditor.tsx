@@ -12,10 +12,10 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { MaterialUnit } from "@micro-domain/inventory-material/index.js";
 import type { InventoryMaterialOverview } from "@/application/inventory";
-import { localDateInAmman, formatQuantityMilliFixed3 } from "@/presentation/formatters";
+import { formatQuantityMilliFixed3 } from "@/presentation/formatters";
 import { MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";
-const ammanDate = () => localDateInAmman();
+import { todayInAmman } from "@/application/time";
 const unitLabel = (unit: MaterialUnit): string =>
   unit === "piece"
     ? "قطعة"
@@ -47,7 +47,7 @@ export default function MaterialEditor() {
   const [costKnown, setCostKnown] = useState(true);
   const [valueMinor, setValueMinor] = useState(0);
   const [actualQuantityMilli, setActualQuantityMilli] = useState(0);
-  const [date, setDate] = useState(ammanDate);
+  const [date, setDate] = useState(todayInAmman);
   const [sourceNote, setSourceNote] = useState("");
   const [note, setNote] = useState("رصيد مادة معلن");
   const [quantityValid, setQuantityValid] = useState(true);

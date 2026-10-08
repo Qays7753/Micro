@@ -10,8 +10,9 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { CashWalletBalance } from "@/application/cash";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatMoneyMinor } from "@/presentation/formatters";
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 export default function CashTransferEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
@@ -25,7 +26,7 @@ export default function CashTransferEditor() {
   const [toWalletId, setToWalletId] = useState("");
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
-  const [date, setDate] = useState(() => localDateInAmman());
+  const [date, setDate] = useState(() => todayInAmman());
   const [note, setNote] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);

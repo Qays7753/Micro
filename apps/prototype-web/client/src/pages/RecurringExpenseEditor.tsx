@@ -20,6 +20,9 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { Button } from "@/components/primitives";
+/* R2 (M-11/D13، 2026-10-08): افتراضي تاريخ الإرساء من حد «اليوم» الكنوني
+ * بعمّان — كان مشتقًا محليًا بتوقيت الجهاز يتخطى عقد منطقة الأعمال. */
+import { todayInAmman } from "@/application/time";
 
 const MONTH_END_OPTIONS: readonly { value: RecurringExpenseMonthEndPolicy; label: string }[] = [
   { value: "last_valid_day", label: "آخر يوم صالح من الشهر" },
@@ -32,11 +35,6 @@ const AMOUNT_MODE_OPTIONS: readonly { value: RecurringExpenseAmountMode; label: 
   { value: "fixed_suggested", label: "مقترح متكرر أراجعه كل مرة" },
 ];
 
-const todayDate = () => {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-};
-
 export default function RecurringExpenseEditor() {
   const params = useParams<{ id?: string }>();
   const [, navigate] = useLocation();
@@ -45,7 +43,7 @@ export default function RecurringExpenseEditor() {
   const editMode = params.id !== undefined && params.id !== "new";
 
   const [title, setTitle] = useState("");
-  const [anchorDate, setAnchorDate] = useState(todayDate());
+  const [anchorDate, setAnchorDate] = useState(todayInAmman());
   const [dueDay, setDueDay] = useState("5");
   const [monthEndPolicy, setMonthEndPolicy] = useState<RecurringExpenseMonthEndPolicy>("last_valid_day");
   const [interval, setIntervalMonths] = useState("1");

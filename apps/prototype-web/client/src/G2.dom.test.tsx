@@ -200,7 +200,7 @@ async function seedExpenseEvent(store: MemoryLocalStore) {
 beforeEach(() => {
   store = new MemoryLocalStore();
   /* PR #157 (السبب الجذري): صفحات الكشف والنشاط تشتق «هذا الأسبوع» من ساعة النظام
-   * الحقيقية عبر localDateInAmman() — نثبّت التاريخ هنا ليطابق بذور الاختبار
+   * الحقيقية عبر todayInAmman() (منفذ الساعة الكنوني — M-11/D13) — نثبّت التاريخ هنا ليطابق بذور الاختبار
    * (2026-09-02) فلا يتكسر الاختبار عند تغيّر الأسبوع الفعلي. */
   vi.useFakeTimers({ now: new Date(NOW), toFake: ["Date"] });
   const projectFinance = new ProjectFinancialService(store, () => NOW);

@@ -19,7 +19,9 @@ import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 
 describe("R2 (M-10/D11) — persisted cash-count record text uses the canonical persisted formatter", () => {
   it("renders the counted-amount note on the money scale through the canonical persisted formatter (F-001 regression)", () => {
-    expect(cashCountSettlementNote(25_000)).toBe(`تسوية عدّ الصندوق — المعدود ${persistedMoneyTextMinor(25_000)}`);
+    expect(cashCountSettlementNote(25_000)).toBe(
+      `تسوية عدّ الصندوق — المعدود ${persistedMoneyTextMinor(25_000)}`,
+    );
     expect(cashCountSettlementNote(25_000)).toContain("250.00");
     expect(cashCountSettlementNote(25_000)).not.toContain("25 د.أ");
   });

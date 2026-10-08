@@ -27,11 +27,11 @@ import {
   formatArabicPlural,
   formatLocalDate,
   formatMonthLabel,
-  localDateInAmman,
   localDatePlusMonthsClamped,
   localDateWeekdayIndex,
 } from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
+import { todayInAmman } from "@/application/time";
 
 type ScheduleState =
   | { phase: "loading" }
@@ -60,8 +60,8 @@ const frequencyLabel = (frequency: "weekly" | "monthly") => (frequency === "week
 /* المجموعة ٩ (STR-029): مفتاحا اليوم والشهر الحاليان من وحدة وقت الأعمال
  * الكنسية عبر إعادة تصدير العرض (توافق مستوردي الصفحة) — لا نسخة محلية
  * بعد اليوم؛ مفتاح الشهر أول سبعة أحرف من تاريخ الأعمال كما في العقد. */
-const currentLocalMonth = () => localDateInAmman().slice(0, 7);
-const currentLocalDate = () => localDateInAmman();
+const currentLocalMonth = () => todayInAmman().slice(0, 7);
+const currentLocalDate = () => todayInAmman();
 /* R2 (M-02/X1، 2026-10-08 — تصويب المراجعة النهائية FH-2): إزاحة الشهر
  * وفهرس أول يوم من نواة الحساب الخالص — كانتا مرساة ظهر رابعة (اليوم 15
  * موجود في كل شهر فلا تثبيت أبدًا؛ المفتاح من ساعة الأعمال الجارية). */

@@ -1,9 +1,8 @@
 import { formatLocalDate, isValidLocalDate } from "@/application/formatting/formatters";
-import { localDateInAmman } from "@micro-domain/shared/index.js";
 
 export type FollowUpDateStatus = "none" | "invalid" | "overdue" | "today" | "upcoming";
 
-export { formatLocalDate, isValidLocalDate, localDateInAmman };
+export { formatLocalDate, isValidLocalDate };
 
 export function classifyFollowUpDate(followUpDate: string | null, today: string): FollowUpDateStatus {
   if (!followUpDate) return "none";

@@ -16,11 +16,12 @@ import type {
   FinancialEventType,
   OperatingExpenseContext,
 } from "@micro-domain/financial-event/index.js";
-import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatLocalDate, formatMoneyMinor } from "@/presentation/formatters";
 import { financialEventLabel } from "@/presentation/financialEventLabels";
 import { eventCountLabel } from "@/presentation/g5Plurals";
 
 import { Button, QuietCompletion } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 /* Wave 4.3 — P-4.3-3 (D9): الخريطة انتقلت إلى presentation/financialEventLabels —
  * بيتها الوحيد؛ نفس القيم حرفيًا. */
 export const eventLabel = financialEventLabel;
@@ -189,7 +190,7 @@ function FinancialEventRow({
     setSaving(true);
     const result = await projectFinance.reverse({
       sourceEventId: event.id,
-      occurredOn: localDateInAmman(),
+      occurredOn: todayInAmman(),
       reason: trimmed,
       idempotencyKey: `reverse:${event.id}`,
     });

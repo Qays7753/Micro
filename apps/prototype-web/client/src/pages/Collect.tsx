@@ -21,10 +21,11 @@ import { CashContinuityOverview } from "@/application/cash";
  * المسودة من الحدث المحفوظ القائم نفسه عبر عقد المشاركة الموحد (عقد ٣٣). */
 import type { ShareDraft } from "@/application/share";
 import { collectionShareDraft, standingCollectionEvent } from "@/application/share";
-import { formatLocalDate, localDateInAmman } from "@/presentation/formatters";
+import { formatLocalDate } from "@/presentation/formatters";
 import { formatMoneyWithUnit } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 type PageState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -497,8 +498,8 @@ export default function Collect() {
           </Button>
           <p className="micro-home-truth-line">
             <Landmark aria-hidden="true" /> القبض يُسجّل اليوم{" "}
-            <bdi dir="ltr">{formatLocalDate(localDateInAmman())}</bdi> — كتابة محلية واحدة، والضغط مرتين لا
-            يضاعف أثرًا.
+            <bdi dir="ltr">{formatLocalDate(todayInAmman())}</bdi> — كتابة محلية واحدة، والضغط مرتين لا يضاعف
+            أثرًا.
           </p>
         </section>
       ) : null}

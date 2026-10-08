@@ -19,9 +19,10 @@ import {
   type CashContinuityOverview,
 } from "@/application/cash";
 import { cashCountSettledMessage } from "@/presentation/cashCountMessages";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatMoneyMinor } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -109,7 +110,7 @@ export default function CashCount() {
     const result = await cashContinuity.adjust({
       walletId: wallet.id,
       deltaMinor: differenceMinor,
-      occurredOn: localDateInAmman(),
+      occurredOn: todayInAmman(),
       /* F-001: النصوص عبر البنّاء المُختبر — مقياس المال 1/100 في كل رسالة. */
       note: cashCountSettlementNote(countedMinor),
       reason: cashCountDifferenceReason(differenceMinor),

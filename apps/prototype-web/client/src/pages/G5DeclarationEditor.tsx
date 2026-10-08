@@ -9,14 +9,11 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { G5LinkOptions } from "@/application/g5/g5Service";
-import { formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
+import { formatMoneyMinor } from "@/presentation/formatters";
 
 import { Button, ChoiceButton, ChoiceRow } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 /* مبدأ Micro: يبدأ المتوقع بالواقعة الأساسية، وتبقى المعرفة والربط والملاحظة خلف تفاصيل مقصودة. */
-
-function todayInAmman() {
-  return localDateInAmman();
-}
 
 export default function G5DeclarationEditor() {
   const [, navigate] = useLocation();

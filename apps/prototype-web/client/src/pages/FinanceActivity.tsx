@@ -28,13 +28,13 @@ import {
   formatLocalDate,
   formatLocalDateLong,
   formatQuantityMilli,
-  localDateInAmman,
   localDatePlusDays,
   localDateWeekdayIndex,
 } from "@/presentation/formatters";
 import type { ActivityEffectClass, ActivityFamily, ActivityRecord } from "@/application/activity";
 
 import { Button, EmptyState, StatusChip } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 type State =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -134,7 +134,7 @@ export default function FinanceActivity() {
   const search = useSearch();
   const returnPath = useReturnPath();
   const { activity, dataVersion } = usePrototypeServices();
-  const today = localDateInAmman();
+  const today = todayInAmman();
   const thisWeek = weekBounds(today);
   const lastWeek = weekBounds(shiftDate(today, -7));
   const thisMonth = monthBounds(today);

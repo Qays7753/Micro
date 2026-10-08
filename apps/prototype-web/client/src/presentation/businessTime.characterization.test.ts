@@ -61,10 +61,12 @@ describe("localDateInAmman fixed-instant characterization (STR-029/STR-031)", ()
     expect(localDateInAmman("2025-12-31T21:59:59.999Z").slice(0, 7)).toBe("2026-01");
   });
 
-  it("returns a valid business date for the default now input", () => {
-    const today = localDateInAmman();
-    expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(isValidLocalDate(today)).toBe(true);
+  it("R2 (M-11/D13, 2026-10-08): the default now input is gone — the instant is explicit and required", () => {
+    /* قلب مؤرخ: الافتراض المحيط أزيل من المجال؛ قراءة «اليوم» تعبر حدّ
+     * التطبيق المسماى (todayInAmman فوق systemClock) — يغطيه اختبار
+     * application/time/clock.test.ts. هنا نقفل أن النداء بلا وسيط يرمي
+     * بهوية الخطأ المعتمدة (undefined = طابع غير صالح). */
+    expect(() => localDateInAmman()).toThrowError("Invalid instant");
   });
 
   it("throws the explicit invalid-instant error for unparseable inputs (throw variant contract)", () => {

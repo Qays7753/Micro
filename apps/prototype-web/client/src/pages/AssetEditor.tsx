@@ -19,6 +19,7 @@ import { useFormDraft } from "@/components/forms/useFormDraft";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 
 import { Button, ChoiceButton, ChoiceRow } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 export default function AssetEditor() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
@@ -28,7 +29,7 @@ export default function AssetEditor() {
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
   const [acquisitionKind, setAcquisitionKind] = useState<"cash" | "payable">("cash");
-  const [purchaseDate, setPurchaseDate] = useState(() => localDateInAmman());
+  const [purchaseDate, setPurchaseDate] = useState(() => todayInAmman());
   const [longUse, setLongUse] = useState<"yes" | "no" | "unknown">("unknown");
   const [lifeMonths, setLifeMonths] = useState("");
   const [startOn, setStartOn] = useState("");
@@ -65,7 +66,7 @@ export default function AssetEditor() {
     categoryLabel: "",
     amountMinor: 0,
     acquisitionKind: "cash" as "cash" | "payable",
-    purchaseDate: localDateInAmman(),
+    purchaseDate: todayInAmman(),
     longUse: "unknown" as "yes" | "no" | "unknown",
     lifeMonths: "",
     startOn: "",
@@ -111,7 +112,7 @@ export default function AssetEditor() {
       setCategoryLabel(String(saved.categoryLabel ?? ""));
       setAmountMinor(Number(saved.amountMinor ?? 0));
       setAcquisitionKind(saved.acquisitionKind === "payable" ? "payable" : "cash");
-      setPurchaseDate(String(saved.purchaseDate ?? localDateInAmman()));
+      setPurchaseDate(String(saved.purchaseDate ?? todayInAmman()));
       setLongUse(saved.longUse === "yes" || saved.longUse === "no" ? saved.longUse : "unknown");
       setLifeMonths(String(saved.lifeMonths ?? ""));
       setStartOn(String(saved.startOn ?? ""));

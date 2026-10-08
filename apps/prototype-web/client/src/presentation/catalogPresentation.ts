@@ -11,11 +11,11 @@ import {
   daysInMonthOf,
   formatMoneyWithUnit,
   formatQuantityMilliFixed3,
-  localDateInAmman,
   localDatePlusDays,
 } from "@/presentation/formatters";
 import type { CatalogTemplate, UnitDimension } from "@micro-domain/catalog/index.js";
 import type { RecurringWorkReading } from "@/application/finance";
+import { todayInAmman } from "@/application/time";
 
 const dimensions: readonly { value: UnitDimension; label: string }[] = [
   { value: "count", label: "عدد" },
@@ -111,7 +111,7 @@ export const catalogOperationUuid = (): string =>
 export const operationKey = (prefix: string) => `${prefix}:${catalogOperationUuid()}`;
 export const currentMonth = () => {
   /* S5-14: شهر عمان لا شهر الجهاز — نفس مصدر الحقيقة الذي تستعمله مالي والكشف. */
-  const today = localDateInAmman();
+  const today = todayInAmman();
   const year = Number(today.slice(0, 4));
   const month = Number(today.slice(5, 7));
   const lastDay = monthEndDate(year, month);

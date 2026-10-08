@@ -22,6 +22,7 @@ import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 
 import { Button, FeedbackNote } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 
 type DifferenceChoice = "price_cut" | "remaining_debt" | "needs_review";
 
@@ -91,7 +92,7 @@ export default function DirectSaleEditor() {
   const [references, setReferences] = useState<readonly CatalogItem[]>([]);
   /* P-002: المرجع المختار الآن — لعرض الاقتراحات المعلّمة لا لتقرير السعر. */
   const [suggestedReference, setSuggestedReference] = useState<CatalogItem | null>(null);
-  const [occurredOn, setOccurredOn] = useState(() => localDateInAmman());
+  const [occurredOn, setOccurredOn] = useState(() => todayInAmman());
   const [note, setNote] = useState("بيع مباشر");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -265,7 +266,7 @@ export default function DirectSaleEditor() {
     costMinor: 0,
     customerName: "",
     catalogItemId: "",
-    occurredOn: localDateInAmman(),
+    occurredOn: todayInAmman(),
     note: "",
   });
   const restoredFromOffer = useRef(false);
@@ -313,7 +314,7 @@ export default function DirectSaleEditor() {
       setCostMinor(Number(saved.costMinor ?? 0));
       setCustomerName(String(saved.customerName ?? ""));
       setCatalogItemId(String(saved.catalogItemId ?? ""));
-      setOccurredOn(String(saved.occurredOn ?? localDateInAmman()));
+      setOccurredOn(String(saved.occurredOn ?? todayInAmman()));
       setNote(String(saved.note ?? ""));
     }
     if (saleDraft.state.phase === "restore-offer") restoredFromOffer.current = true;

@@ -14,9 +14,9 @@ import {
   migrateLegacyFormDraft,
 } from "@/application/drafts";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
-import { localDateInAmman } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 type Step = 1 | 2 | 3;
 type OpeningChoice = "known" | "unknown" | "zero";
 
@@ -159,7 +159,7 @@ export default function Setup() {
         name: walletName.trim(),
         kind: "cash_drawer",
         openingMinor: openingChoice === "known" ? openingMinor : 0,
-        occurredOn: localDateInAmman(),
+        occurredOn: todayInAmman(),
         note:
           openingChoice === "known"
             ? "رصيد بداية معلن من الإعداد الأول"

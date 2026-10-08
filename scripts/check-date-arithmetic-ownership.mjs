@@ -25,6 +25,23 @@
  *       apps/prototype-web/client/src/ EXCEPT as the fallback branch of a
  *       guarded derivation (a `??` earlier on the same line) — the R2-D4
  *       clock-slicing bug class can never return in any layer.
+ *  R5 (date-ownership R5 — M-11/D13, 2026-10-08): a zero-argument
+ *       `localDateInAmman()` call, or one whose argument is a directly
+ *       constructed ambient `new Date()`, is FORBIDDEN in all production
+ *       code — the instant must be explicit (an injected clock value, a
+ *       stored timestamp, or the named application boundary todayInAmman).
+ *       Known limitation, by design: bare function REFERENCES
+ *       (`useState(localDateInAmman)`) are not zero-arg calls and are not
+ *       matched here — after D13 the parameter is required, so TypeScript
+ *       rejects that shape at compile time (tsc is the enforcement layer
+ *       for references; this guard is the enforcement layer for calls).
+ *  R6 (date-ownership R6 — M-11/D13, 2026-10-08): a zero-argument ambient
+ *       `new Date()` is FORBIDDEN inside src/domain/** — including
+ *       businessTime.ts itself, the former home of the default. Parsing an
+ *       explicit input (`new Date(instant)`) stays legal in businessTime.ts
+ *       (R2 above); ambient construction of "now" anywhere in the domain
+ *       fails. The ONLY active ambient clock in the app is systemClock
+ *       (application/time/clock.ts — the documented infra boundary).
  *
  * Comments are stripped with string-literal awareness (a `//` inside quotes
  * never blanks a line). Test files, fixtures, and dist output are out of
@@ -115,6 +132,13 @@ export const RAW_DATE_SLICE_PATTERN = /\.(slice|substring)\(\s*0\s*,\s*10\s*\)|\
 /** Numeric Date.UTC in direct or bracket-access form — R1's detection set. */
 export const DATE_UTC_PATTERN = /Date\s*\.\s*UTC\s*\(|Date\s*\[\s*["']UTC["']\s*\]/;
 
+/** Zero-argument or ambient-new-Date localDateInAmman calls — R5's detection set. */
+export const AMBIENT_LOCAL_DATE_PATTERN =
+  /localDateInAmman\s*\(\s*\)|localDateInAmman\s*\(\s*new\s+Date\s*\(\s*\)\s*\)/;
+
+/** Zero-argument ambient Date construction — R6's detection set (domain only). */
+export const AMBIENT_NEW_DATE_PATTERN = /new\s+Date\s*\(\s*\)/;
+
 /**
  * Evaluate the four ownership rules over the production tree.
  * Returns an array of violation objects { rule, file, line, excerpt }.
@@ -156,6 +180,19 @@ export function findViolations(root = ROOT) {
           ...at,
         });
       }
+      /* R5 (date-ownership): zero-arg or ambient-new-Date localDateInAmman
+       * calls are forbidden in ALL production layers. */
+      if (AMBIENT_LOCAL_DATE_PATTERN.test(line)) {
+        violations.push({
+          rule: "R5 (localDateInAmman without an explicit instant — use todayInAmman() or pass a clock/timestamp)",
+          ...at,
+        });
+      }
+      /* R6 (date-ownership): ambient zero-arg new Date() is forbidden in the
+       * domain — even inside businessTime.ts (the default's former home). */
+      if (relative.startsWith("src/domain/") && AMBIENT_NEW_DATE_PATTERN.test(line)) {
+        violations.push({ rule: "R6 (ambient new Date() in the domain — the only active clock is systemClock)", ...at });
+      }
     });
   }
 
@@ -166,7 +203,7 @@ function main() {
   const violations = findViolations();
   if (violations.length === 0) {
     console.log(
-      "check-date-arithmetic-ownership: PASS — no Date.UTC in production; the Date object/Date.parse are kernel-file-only in the domain; no unguarded business-date slicing in any app layer (R1–R4 clean).",
+      "check-date-arithmetic-ownership: PASS — no Date.UTC in production; the Date object/Date.parse are kernel-file-only in the domain; no unguarded business-date slicing in any app layer; no localDateInAmman without an explicit instant; no ambient new Date() in the domain (R1–R6 clean).",
     );
     return 0;
   }

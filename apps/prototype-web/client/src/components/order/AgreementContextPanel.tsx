@@ -4,9 +4,10 @@ import { CircleAlert, MessageCircle, Save } from "lucide-react";
 import type { AgreementContextService, AgreementSourceValue } from "@/application/agreements";
 import type { AgreementSource, StoredCraftOrder } from "@/storage/local/types";
 import { LocalDateValue } from "@/components/presentation/DisplayValue";
-import { classifyFollowUpDate, localDateInAmman } from "@/application/agreements";
+import { classifyFollowUpDate } from "@/application/agreements";
 
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 const agreementSourceLabel: Record<string, string> = {
   instagram: "Instagram",
   whatsapp: "WhatsApp",
@@ -25,8 +26,7 @@ const followUpStateLabel: Record<ReturnType<typeof classifyFollowUpDate>, string
   today: "متابعة مستحقة اليوم",
   upcoming: "متابعة قادمة",
 };
-const followUpState = (date: string | null) =>
-  followUpStateLabel[classifyFollowUpDate(date, localDateInAmman(new Date()))];
+const followUpState = (date: string | null) => followUpStateLabel[classifyFollowUpDate(date, todayInAmman())];
 
 type SaveState = { kind: "ok" | "error"; text: string } | null;
 

@@ -14,9 +14,9 @@
  */
 import type { StatementReading } from "./statementService";
 import type { RecordedPeriodResult } from "./projectFinancialService";
-import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { formatLocalDate, formatMoneyWithUnit } from "@/application/formatting/formatters";
 import { VALIDATION_ERROR, validationFailure } from "@/application/resultCodes";
+import { todayInAmman } from "@/application/time/clock";
 
 export type StatementMarkdownResult =
   | { ok: true; value: { markdown: string; filename: string } }
@@ -96,7 +96,7 @@ export class StatementMarkdownService {
     if (!reading || !reading.blocks) {
       return validationFailure("قراءة الكشف غير متوفرة للتقرير.");
     }
-    const generatedOn = localDateInAmman();
+    const generatedOn = todayInAmman();
     const blocks = reading.blocks;
     const rows: string[] = [];
 

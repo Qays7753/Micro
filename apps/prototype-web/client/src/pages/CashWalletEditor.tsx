@@ -10,8 +10,8 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { CashWalletKind } from "@micro-domain/cash-continuity/index.js";
-import { localDateInAmman } from "@/presentation/formatters";
 import { Button } from "@/components/primitives";
+import { todayInAmman } from "@/application/time";
 export default function CashWalletEditor() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
@@ -21,7 +21,7 @@ export default function CashWalletEditor() {
   const [kind, setKind] = useState<CashWalletKind>("cash_drawer");
   const [openingMinor, setOpeningMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
-  const [date, setDate] = useState(() => localDateInAmman());
+  const [date, setDate] = useState(() => todayInAmman());
   const [note, setNote] = useState("رصيد بداية معلن");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
