@@ -92,7 +92,13 @@
     "docs/operations/control/evidence/structural-remediation-r3-20261008/R3-REPAIR-CARDS.md",
     "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-REPAIR-CARDS.md",
     "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-TRANSFER-SCHEMA-EXPORT-EXECUTION-REPORT-2026-10-08.md",
-    "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-MANIFEST.md"
+    "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-MANIFEST.md",
+    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-REPAIR-CARDS.md",
+    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-BOUNDARY-LEDGER.md",
+    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-APPLICATION-BOUNDARIES-EXECUTION-REPORT-2026-10-09.md",
+    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-MANIFEST.md",
+    "scripts/check-application-door-surfaces.mjs",
+    "scripts/check-application-readwrite.mjs"
   ],
   "dependencies": [],
   "related_items": [
@@ -110,5 +116,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R4 merged and verified on main: PR #334 (16 commits / 37 files) via merge commit 58d281edac7382f19580335a955ccde029125328 (parents 1c54c552 + 91ca8ee5); main CI run 37856130116 success on the exact merge commit; the R4 source branch is preserved on origin. R5 (Application boundaries, Reader/Writer separation, Public Doors, deep-import governance) is now the active wave by the owner instruction 'R5 Application Boundaries, Reader/Writer, and Public Doors' on branch refactoring/r5-application-boundaries-20261009 from 58d281e — the first slice is this post-merge administrative reconciliation (state-log §152, worklog Entry 61); a full boundary inventory and repair cards precede any movement. One R5 PR opens at the owner gate at wave completion; R6–R10 have not started; no direct main writes and no merge from this session."
+  "next_action": "R5 complete on branch refactoring/r5-application-boundaries-20261009 from 58d281ed (owner instruction 'R5 Application Boundaries, Reader/Writer, and Public Doors'): post-merge administrative reconciliation; full boundary inventory + repair cards + five-reviewer panel before any movement (all 7 mandatory hostile amendments applied); S1 module-boundary scanner blind-spot closed (type-position imports counted; .js/.jsx scanned) + the two budget-shim consumer sites mechanically migrated to the budgets door (R6 baseline 43->42); S2 16th guard check-application-door-surfaces pins every door's value+type surface (R0-N20/PC-3 closed; missing 15th metadata row restored); S3 17th guard check-application-readwrite proves readers never write (18 registered + 10 PC-4-tagged); S4 PC-4 quadruple contracts in 12 files; root 710/710, app 323/2388, 17/17 guards, bundle 629,300/154,683 — all gates green on implementation head 5bd5da4a. One R5 PR at the owner gate — merge by separate authorization; post-merge verification and administrative reconciliation are separate operations; R6 requires a new owner continuation instruction."
 }
