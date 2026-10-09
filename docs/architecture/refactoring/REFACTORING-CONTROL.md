@@ -1,9 +1,9 @@
 # Micro — Refactoring Control
 
-**الإصدار:** v1.12 (R5 مدموجة ومتحققة على main؛ بوابة R6 القراءة-فقط بانتظار مراجعة/قبول المالك — 2026-10-09؛ v1.11 وما قبلها سجل تاريخي)
+**الإصدار:** v1.13 (مسح R6 مكتمل ومقبول على main عبر PR #337؛ R6-W1 مصالحة السجلات قيد المراجعة — 2026-10-09؛ v1.12 وما قبلها سجل تاريخي)
 **التاريخ:** 2026-10-09
-**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0–R5 VERIFIED ON MAIN; R6 READ_ONLY_GATE_PENDING_OWNER_REVIEW`
-**المرحلة:** `A-TO-Z VERIFIED ON MAIN; POST-SCAN W0–W10 VERIFIED ON MAIN; SUCCESSOR R0–R5 VERIFIED ON MAIN; R6 NOT STARTED — READ-ONLY STRUCTURE/ARCHITECTURE/CODE-ORGANIZATION SCAN REQUIRED BEFORE ANY STRUCTURAL WRITE`
+**الحالة:** `OWNER_ACCEPTED — R6 SCAN ACCEPTED ON MAIN (fd92d7e8); R6-W1 RECORDS RECONCILIATION IN REVIEW`
+**المرحلة:** `SUCCESSOR R0–R5 VERIFIED ON MAIN; R6 SCAN ACCEPTED; R6-W1 (DOC-ONLY) IN REVIEW — W2 (TEST-ONLY) / W3 (TOOLING) NEXT; NO STRUCTURAL WRITE BEFORE R6 WAVES CLOSE`
 **النطاق:** Structure / Architecture / Code Organization فقط
 
 ## 1. الهدف
@@ -185,7 +185,7 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 - **الخطة:** `STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
 - **البداية المسموحة:** R0 قراءة فقط ومصالحة الخط الأساسي؛ لا نقل أو تقسيم أو حذف أو تعديل كودي في R0.
 - **قاعدة الاستمرار:** بعد تقرير R0 فقط، تنفذ R1–R10 على فرع مستقل، وبطاقات Repair، وPR مستقل أو شريحة قابلة للمراجعة، وفحوص مركزة وCI وحد رجوع لكل موجة.
-- **الخطوة الحية:** R4 مدموجة ومتحققة على main (PR #334 بmerge commit `58d281ed` — CI أخضر على رأس الدمج run `37856130116`؛ فرع R4 محفوظ). **R5 مدموجة ومتحققة على main**: نُفذت على `refactoring/r5-application-boundaries-20261009` ثم دُمجت عبر PR #335 بmerge commit `092c933bdcdf1666f8f8cf83bb7d5f030b8d4e6d`، وCI post-merge run `37892032808` ناجح على الرأس نفسه؛ البوابات على رأس التنفيذ `5bd5da4a`: الجذري 62/710 والتطبيق 323/2388 والحراس 17/17 والميزانية 629,300/154,683؛ صفر تغيير مالي/دلالي/تاريخي/UI أو schema/export 38/30؛ الأدلة في `evidence/structural-remediation-r5-20261009/`. **R6 لم تبدأ:** الخطوة الوحيدة التالية هي مسح قراءة-فقط شامل وتقرير findings واحد مصنف وخريطة هدف وموجات دنيا وحدود رجوع، ثم مراجعة وقبول المالك؛ لا structural refactoring أو bulk move أو code-organization change قبل ذلك؛ لا تُعدّل `main` مباشرة ولا يُمس فرع UI المحفوظ.
+- **الخطوة الحية:** R4 مدموجة ومتحققة على main (PR #334 بmerge commit `58d281ed` — CI أخضر على رأس الدمج run `37856130116`؛ فرع R4 محفوظ). **R5 مدموجة ومتحققة على main**: نُفذت على `refactoring/r5-application-boundaries-20261009` ثم دُمجت عبر PR #335 بmerge commit `092c933bdcdf1666f8f8cf83bb7d5f030b8d4e6d`، وCI post-merge run `37892032808` ناجح على الرأس نفسه؛ البوابات على رأس التنفيذ `5bd5da4a`: الجذري 62/710 والتطبيق 323/2388 والحراس 17/17 والميزانية 629,300/154,683؛ صفر تغيير مالي/دلالي/تاريخي/UI أو schema/export 38/30؛ الأدلة في `evidence/structural-remediation-r5-20261009/`. **R6 (المسح مكتمل ومقبول):** نُفذ المسح القراءة-فقط عند `43a0f12` (26 ملفًا؛ 27 مكتشفًا R6-SCAN-F-001..027) وقبله المالك؛ التقرير الكنوني وحزمة القرار على `main` عبر PR #337 عند `fd92d7e8812726dcca8d27d3ad64c8f24dc96abd` (CI run `37976142458` ناجح؛ فشل خط الأساس المعروف `37894104251` = F-001 لـW2). **R6-W1 (مصالحة السجلات — توثيق/Operations Control فقط) منفذة على `refactoring/r6-w1-records-reconciliation-20261009` من `fd92d7e8` وقدمت للمراجعة:** F-002..F-026 التوثيقية + مصفوفة المكتشفات الدائمة في جرد الملفات §8 + حزم R7 الصريحة R6-F17-P01..P11 + ملحق §23.8؛ صفر تغيير كود/اختبار/سكربت/CSS. التالي بعد الدمج: R6-W2 (F-001 اختباريًا + F-024 بعد جرد المواقع الدقيق) ثم R6-W3 (فصل text-density-count.py بتوصيف أولًا)؛ لا R7 قبل إغلاق مكتشفات R6 أو قرار محمي لكل بند؛ لا تُعدّل `main` مباشرة ولا يُمس فرع UI المحفوظ.
 
 ## 15. سلّم الأولوية ودورة حياة قطع الحوكمة (R1/TG-04 — 2026-10-07)
 

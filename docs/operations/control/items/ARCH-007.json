@@ -72,36 +72,14 @@
     "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md"
   ],
   "evidence": [
-    "docs/operations/control/evidence/structural-remediation-r2-20261007/R2-SEMANTIC-CHANGE-MANIFESTS.md",
-    "docs/operations/control/evidence/structural-remediation-r2-20261007/R2-REPAIR-CARDS.md",
-    "docs/architecture/refactoring/R2-MONEY-FORMATTING-INPUT-DATE-MESSAGE-EXECUTION-REPORT-2026-10-07.md",
-    "docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md",
-    "src/domain/shared/currency.ts",
-    "src/domain/shared/businessTime.ts",
-    "apps/prototype-web/client/src/application/time/clock.ts",
-    "apps/prototype-web/client/src/application/cash/cashCountMessages.ts",
-    "apps/prototype-web/client/src/application/fulfillment/deliveryReviewService.ts",
-    "scripts/check-date-arithmetic-ownership.mjs",
-    "scripts/check-date-arithmetic-ownership.test.mjs",
-    "apps/prototype-web/client/src/moneyLayerGuard.contract.test.ts",
-    "apps/prototype-web/client/src/application/time/clock.test.ts",
-    "apps/prototype-web/client/src/application/cash/cashCountMessages.test.ts",
-    "tests/domain/moneyMessageCharacterization.test.ts",
-    "apps/prototype-web/client/src/applicationDoors.contract.test.ts",
-    "docs/architecture/refactoring/R3-STORAGE-CAPABILITY-EXECUTION-REPORT-2026-10-08.md",
-    "docs/operations/control/evidence/structural-remediation-r3-20261008/R3-REPAIR-CARDS.md",
-    "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-REPAIR-CARDS.md",
-    "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-TRANSFER-SCHEMA-EXPORT-EXECUTION-REPORT-2026-10-08.md",
-    "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-MANIFEST.md",
+    "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-PREFLIGHT-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-09.md",
+    "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-OWNER-REVIEW-AND-DECISION-PACKAGE-2026-10-09.md",
+    "docs/architecture/refactoring/STRUCTURAL-REMEDIATION-PLAN-20261007.md",
+    "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md",
+    "docs/architecture/refactoring/R0-LIVE-BASELINE-AND-FINDING-RECONCILIATION-2026-10-07.md",
     "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-REPAIR-CARDS.md",
-    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-BOUNDARY-LEDGER.md",
-    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-APPLICATION-BOUNDARIES-EXECUTION-REPORT-2026-10-09.md",
-    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-MANIFEST.md",
-    "scripts/check-application-door-surfaces.mjs",
-    "scripts/check-application-readwrite.mjs",
-    "https://github.com/Qays7753/Micro/pull/335",
-    "https://github.com/Qays7753/Micro/actions/runs/37892032808",
-    "https://github.com/Qays7753/Micro/commit/092c933bdcdf1666f8f8cf83bb7d5f030b8d4e6d"
+    "https://github.com/Qays7753/Micro/pull/337",
+    "https://github.com/Qays7753/Micro/pull/335"
   ],
   "dependencies": [],
   "related_items": [
@@ -119,5 +97,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R5 is merged and verified on main at merge commit 092c933bdcdf1666f8f8cf83bb7d5f030b8d4e6d (PR #335; post-merge CI run 37892032808 succeeded on that SHA). R6 is not started. Its mandatory entry gate is a read-only comprehensive Structure/Architecture/Code Organization Scan covering module and feature boundaries, file responsibilities and oversized files, dependency/layer violations and cycles, duplication and sources of truth, discoverability, storage/application/domain/UI composition, test/documentation mapping, and a target module map. Produce one detailed findings report classifying every item as FIX_NOW, PRESERVE, DEFER, or OUT_OF_SCOPE, with minimum safe remediation waves, dependencies, risks, acceptance criteria, rollback boundaries, and owner review/acceptance. No structural refactoring, bulk move, rename, or code-organization change may start before the owner accepts the findings."
+  "next_action": "R6 read-only scan complete and owner-accepted: canonical report + owner decision package on main via PR #337 at fd92d7e8812726dcca8d27d3ad64c8f24dc96abd (docs/operations/control/evidence/structural-remediation-r6-20261009/). R6-W1 (records reconciliation — documentation/Operations Control only) executed on branch refactoring/r6-w1-records-reconciliation-20261009 from fd92d7e8: F-002/F-003/F-004/F-005/F-006/F-007/F-008/F-011/F-012/F-017/F-026 + durable R6-SCAN-F-001..027 matrix in the file register §8; zero code/test/script/CSS change. Next: W1 PR review + merge by separate authorization, then R6-W2 (F-001 test-only fix + F-024 after precise site inventory) and R6-W3 (text-density-count.py split). R7 does not start before R6 findings close or carry protected decisions."
 }

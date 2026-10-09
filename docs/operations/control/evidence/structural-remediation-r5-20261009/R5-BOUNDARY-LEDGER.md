@@ -66,7 +66,7 @@
 | الحافة (file:line) | السبب/المالك | السطح المقيس | محفز المراجعة |
 |---|---|---|---|
 | finance/integrityCheckSettlementBasis.ts:23 → @micro-domain/craft-order/settlementInvariant.js | D-034 عزل حزمة: تصدير البرميل مُجرَّب ورُفض ببوابة الميزانية **المفروضة** (`RAW_BYTE_LIMIT=650,000` في check-bundle-budget.mjs — المحاولة 650,292/+1,192)؛ STR-205/STR-313 | موقع واحد؛ رمز واحد `settlementInvariantResult` | R6 أو قرار مالك بالمسار الدلالي |
-| finance/projectFinancialInsights.ts:140 → …/operatingBreakEven.js | D-034 نفسه — انتقلت حرفيًا مع القراءة (Wave F) | موقع واحد؛ رمز واحد | R6 |
+| finance/projectFinancialInsights.ts:140 → …/operatingBreakEven.js | D-034 نفسه — انتقلت حرفيًا مع القراءة (Wave F) | موقع واحد؛ رمز واحد | R6 | *(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-007]: السطر الحي **:145** عند `fd92d7e8` — انحراف 5 أسطر من نمو الحميد داخل-الشريط الموثق [F-006]؛ القيد الأصلي أعلاه محفوظ كما كُتب)* |
 | financial-analysis/financialAnalysisService.ts:403 → …/operatingBreakEven.js | D-034 نفسه | موقع واحد؛ رمز واحد | R6 |
 
 **قرار R5:** الثلاثة `PRESERVE_BY_DESIGN` (تحقق عدائي مستقل: خيار البرميل مرفوض بقياس مفروض، وخيار نقل الملكية بقرار مالك STR-302). لا استيراد عميق آخر داخل المجال من خارجه في الشجرة.
