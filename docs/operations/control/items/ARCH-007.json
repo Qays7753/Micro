@@ -72,12 +72,10 @@
     "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md"
   ],
   "evidence": [
+    "https://github.com/Qays7753/Micro/pull/338",
     "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-PREFLIGHT-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-09.md",
     "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-OWNER-REVIEW-AND-DECISION-PACKAGE-2026-10-09.md",
-    "docs/architecture/refactoring/STRUCTURAL-REMEDIATION-PLAN-20261007.md",
-    "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md",
-    "docs/architecture/refactoring/R0-LIVE-BASELINE-AND-FINDING-RECONCILIATION-2026-10-07.md",
-    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-REPAIR-CARDS.md",
+    "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-W1-RECORDS-RECONCILIATION-EXECUTION-REPORT-2026-10-09.md",
     "https://github.com/Qays7753/Micro/pull/337",
     "https://github.com/Qays7753/Micro/pull/335"
   ],
@@ -97,5 +95,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R6 read-only scan complete and owner-accepted: canonical report + owner decision package on main via PR #337 at fd92d7e8812726dcca8d27d3ad64c8f24dc96abd (docs/operations/control/evidence/structural-remediation-r6-20261009/). R6-W1 (records reconciliation — documentation/Operations Control only) executed on branch refactoring/r6-w1-records-reconciliation-20261009 from fd92d7e8: F-002/F-003/F-004/F-005/F-006/F-007/F-008/F-011/F-012/F-017/F-026 + durable R6-SCAN-F-001..027 matrix in the file register §8; zero code/test/script/CSS change. Next: W1 PR review + merge by separate authorization, then R6-W2 (F-001 test-only fix + F-024 after precise site inventory) and R6-W3 (text-density-count.py split). R7 does not start before R6 findings close or carry protected decisions."
+  "next_action": "R6 read-only scan complete and owner-accepted (canonical report + decision package on main via PR #337 at fd92d7e8). **R6-W1 IN_REVIEW — PR #338 open** (head e3a850f8 from base fd92d7e8; 15 documentation/control files only, +444/-112): F-002..F-026 doc reconciliation + durable R6-SCAN-F-001..027 matrix (register §8) + explicit R7 packages R6-F17-P01..P11; zero code/test/script/CSS change. Next: owner review + merge of PR #338 by separate authorization (no merge from this session), then post-merge verification and administrative reconciliation, then R6-W2 (F-001 test-only + F-024 after precise site inventory) and R6-W3 (text-density-count.py split). R7 does not start before R6 findings close or carry protected decisions."
 }
