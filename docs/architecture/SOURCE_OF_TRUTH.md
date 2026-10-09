@@ -34,7 +34,7 @@
 | Overlay z-ladder & scrim | `--vf-scrim` + z-ladder in UI_AUX_ARCHITECTURE §6 | drawers/dialogs | per-surface z values |
 | Route classification (chrome visibility) | `app/routeClassifier.ts` | MicroRouter/MicroAppShell | per-route ad-hoc logic |
 | Return navigation contract | `app/navigationContract.ts` (`withFrom`), `useReturnNavigation` | every deep link | manual hrefs without from |
-| Text density caps (§10.1) | `scripts/text-density-count.py` (+ caps table) | enforced per surface | — |
+| Text density caps (§10.1) | `scripts/text-density-count.py` (engine) + `scripts/text_density_policy.py` (caps/PAGES ledger — R6-W3 seam, 2026-10-09; output byte-pinned by `scripts/text-density-count.characterization.test.mjs`) | enforced per surface | — |
 | Route inventory sync | `application/diagnostics/routeTemplate.ts` ROUTE_TEMPLATES ↔ `app/MicroRouter.tsx` | diagnostics | — |
 | Financial meaning / posting / reversal | `src/domain` + `client/src/application` (services) | screens via `usePrototypeServices` | UI layers (never) |
 | Persistence / export / sync | `client/src/storage` | application services | UI layers (never) |

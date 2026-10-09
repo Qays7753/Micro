@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "84c8546edbd960ac8419e38cd90cbcd82b36fe7a",
+  "head": "fb11c6c71be7124c3bf4ac62704d5186eede43d6",
   "pages": {
     "total": 60,
     "map": {
