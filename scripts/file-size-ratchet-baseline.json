@@ -57,7 +57,7 @@
   "apps/prototype-web/client/src/application/finance/ownerEntitlementService.ts": "NORMAL",
   "apps/prototype-web/client/src/application/finance/periodComparisonService.ts": "WATCH",
   "apps/prototype-web/client/src/application/finance/periodPresets.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/profitToCashBridgeService.ts": "NORMAL",
+  "apps/prototype-web/client/src/application/finance/profitToCashBridgeService.ts": "WATCH",
   "apps/prototype-web/client/src/application/finance/projectFinancialEventWrites.ts": "WATCH",
   "apps/prototype-web/client/src/application/finance/projectFinancialInsights.ts": "NORMAL",
   "apps/prototype-web/client/src/application/finance/projectFinancialPeriodReads.ts": "WATCH",

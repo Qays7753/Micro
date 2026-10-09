@@ -96,7 +96,7 @@
 | `apps/prototype-web/client/src/application/finance/periodComparisonService.ts` | production | 422 | 436 | 18113 | 6 | 6 | 3 | 2 | WATCH | application | WATCH — no unrelated responsibility without review | — |
 | `apps/prototype-web/client/src/application/suppliers/supplierPurchaseService.ts` | production | 421 | 434 | 21352 | 7 | 5 | 45 | 40 | WATCH | application | WATCH — no unrelated responsibility without review | — |
 | `src/domain/recurring-margin/policies.ts` | production | 399 | 414 | 17727 | 7 | 2 | 1 | 0 | NORMAL | domain | NORMAL | — |
-| `apps/prototype-web/client/src/application/finance/profitToCashBridgeService.ts` | production | 392 | 407 | 22492 | 4 | 9 | 17 | 16 | NORMAL | application | NORMAL | M |
+| `apps/prototype-web/client/src/application/finance/profitToCashBridgeService.ts` | production | 392 | 407 | 22492 | 4 | 9 | 17 | 16 | NORMAL | application | NORMAL | M *(تصعيد شريط مؤرخ 2026-10-09 — R5/S4: +5 أسطر nbLOC لعقد قراءة PC-4 الرباعي الموثق في الترويسة؛ 398→402 — تحديث أساس الراتشة نفس-الـPR بقرار البطاقة المسبق؛ لا تغيير سلوك)* |
 | `apps/prototype-web/client/src/components/owner/OwnerPolicyFormsSection.tsx` | production | 389 | 393 | 16414 | 2 | 9 | 1 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/pages/ReceivedLoanDetail.tsx` | production | 370 | 390 | 15632 | 1 | 14+ | 1 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | M |
 | `apps/prototype-web/client/src/pages/ScheduleEditor.tsx` | production | 363 | 370 | 15197 | 1 | 11 | 2 | 1 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | M |

@@ -34,7 +34,7 @@ import { ROOT } from "./check-runtime-cycles.mjs";
 
 const CLIENT_APPLICATION = path.join("apps", "prototype-web", "client", "src", "application");
 const TEST_PAT = /\.(test|spec|dom\.test|ui\.test|contract\.test|characterization\.test)\.[cm]?[jt]sx?$/;
-const PC4_MARKER = "PC-4 read-model:";
+const PC4_MARKER = "PC-4 read-model";
 const WRITE_CALL = /^(save|commit|delete|replace|clear)[A-Z]/;
 
 /** طاقم القراءة المسجل (R5/S3 — تعداد حصري من الشجرة عند التأسيس). */

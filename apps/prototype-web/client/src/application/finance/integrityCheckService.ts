@@ -18,6 +18,11 @@
  * وintegrityCheckOffenderSummaries (إثراء العرض). الإقامة في application/finance/
  * لم تتغير (عقد ٤٠ §2) ولا أي دلالة — تقسيم بنيوي صرف؛ الواجهة العامة
  * تُعاد من بيتها الجديد كما هي.
+ * PC-4 read-model (R5/S4، 2026-10-09): المدخلات = عدسات list/read فقط عبر
+ * الملفات التسعة الشقيقة وفحوصها القائمة؛ الاشتقاق إعادة اشتقاق اتساق فوق
+ * القارئات الكنونية بلا ذاكرة ولا كتابة — «يقرأ أرقامك ولا يغيّر شيئًا»
+ * محروسًا باختبار لقطة قبل/بعد؛ الإبطال بنيويًا غير لازم؛ القديم = storage_error
+ * مطوية. القارئ لا يكتب (حارس R5/S3).
  */
 import { localDateInAmman as ammanDate } from "@micro-domain/shared/index.js";
 import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
