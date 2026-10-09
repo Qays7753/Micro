@@ -124,9 +124,43 @@ Risk: documentation-only; the residual risk is record inaccuracy, addressed by t
 4. R6-W3: text-density-count.py ledger extraction (characterization first).
 5. R7/R8/Wave O/track T routes as recorded in register §8 — each behind its owner gate.
 
+## 12. First owner review — correction record (same PR #338, append-only)
+
+**Owner review received:** 2026-10-09T19:41:26Z (issue comment on PR #338 by Qays7753): "changes required before merge" — the wave scope itself was accepted ("docs/Operations-Control only, focused checks and CI are green, no production/test/script/CSS/schema/export/financial/UI files changed"); two record-correctness blockers were raised and are corrected in this same PR, with no history rewritten.
+
+**Correction A — prior evidence restored (append-only at the canonical JSON source):**
+
+| Record | Before correction | After correction | Proof |
+|---|---|---|---|
+| `ARCH-007.json` top-level `evidence` | 6 entries (the prior 30-entry list had been replaced — 29 R2–R5 entries dropped) | **36 entries = the prior 30 in their exact original order + 6 R6/W1 entries appended after them** | programmatic diff vs `origin/main`: removed prior entries = 0; `now[:30] == prior` |
+| `WS-216.json` `evidence` | 8 entries (prior R5 post-merge CI URL `…/actions/runs/37892032808` dropped) | **10 entries = the prior 3 in original order (CI URL restored) + 7 R6/W1 entries appended** | same programmatic proof; restored URL present |
+| `source.evidence` (ARCH-007) | 8 entries, untouched by W1 | unchanged | byte-identical |
+
+The restored prior evidence includes every R2/R3/R4/R5 manifest, repair card, execution report, source file, guard file, PR link, CI link, and merge link that the first submission had dropped. A dated correction note was appended to `WS-216.json` `notes` (append-only; 22 → 23). Generated views were regenerated from the corrected JSON via the official generator only.
+
+**Correction B — final W1 head and final PR statistics pinned:**
+
+The first submission's live `next_action` (WS-216/ARCH-007 + the three generated views) pointed at the **first** W1 commit with its intermediate statistics. This is corrected by the closing pin commit on top of the correction content commit:
+
+- **Commit lineage (all historical values retained):**
+  1. `e3a850f8d429aa23df03a66cf1ec929a968aed51` — first W1 implementation commit (15 files, +444/−112 at that point) — **historical evidence, retained here per owner instruction**;
+  2. `9842f77553a10a3c328d32c9a4bebb3d56ab15c3` — first closing-records commit (pinned `pr=338`; PR reached 15 files, +446/−115; CI run `37980287858` success on this exact SHA) — pre-correction head, historical;
+  3. correction content commit (this §12 + restored evidence + records) — **final W1 content head**, referenced by the live pointers;
+  4. closing pin commit on top — live PR #338 head; **its exact full SHA and the final PR statistics are pinned in the PR #338 body** (a git commit cannot embed its own SHA, so the live tree pointer names the final content head and the PR body — updatable without a further commit — carries the exact live head; the one-commit lag is administrative-only and stated explicitly in the pointer text itself).
+- Live pointers in `WS-216.json`, `ARCH-007.json`, and the regenerated views now name the **final content head** and the **final PR statistics** (verified against the GitHub API after push), never the first commit.
+- No `MERGED` / `VERIFIED_ON_MAIN` claim is made anywhere while PR #338 is open; the base SHA remains the verified main base `fd92d7e8…`.
+
+**Verification after amendment (commands, all on the corrected tree):** `python3 scripts/operations-control/generate_tracker.py` (+ `--refresh-excel-meta`) exit 0; `generate_tracker.py --check` exit 0; `python3 scripts/operations-control/validate.py` exit 0; `git diff --check` clean; programmatic evidence-preservation proof (zero removed prior entries, prefix order exact); changed-path proof (documentation/Operations Control only — no `src/`, `apps/`, `tests/`, `scripts/`, CSS, tokens, package, lockfile, schema, export, financial, historical, rejection, security, or UI paths).
+
+## 13. Post-correction status
+
+PR #338 remains **open** (amended, not merged). Focused checks and PR CI must be green on the exact final pushed head before this wave is declared ready. The owner merges by separate authorization.
+
 ---
 
-R6_W1_EXECUTED_ON_BRANCH — AWAITING_PR
+R6_W1_CORRECTED_ON_BRANCH — PR_338_OPEN_IN_REVIEW
+PRIOR_EVIDENCE_RESTORED_APPEND_ONLY
+FINAL_HEAD_PINNED_VIA_CLOSING_PIN_COMMIT
 NO_CODE_TEST_SCRIPT_CHANGE
 NO_MERGE_PERFORMED
 NO_CLEANUP_PERFORMED

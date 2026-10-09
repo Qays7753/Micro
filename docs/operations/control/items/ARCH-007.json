@@ -72,12 +72,42 @@
     "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md"
   ],
   "evidence": [
-    "https://github.com/Qays7753/Micro/pull/338",
+    "docs/operations/control/evidence/structural-remediation-r2-20261007/R2-SEMANTIC-CHANGE-MANIFESTS.md",
+    "docs/operations/control/evidence/structural-remediation-r2-20261007/R2-REPAIR-CARDS.md",
+    "docs/architecture/refactoring/R2-MONEY-FORMATTING-INPUT-DATE-MESSAGE-EXECUTION-REPORT-2026-10-07.md",
+    "docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md",
+    "src/domain/shared/currency.ts",
+    "src/domain/shared/businessTime.ts",
+    "apps/prototype-web/client/src/application/time/clock.ts",
+    "apps/prototype-web/client/src/application/cash/cashCountMessages.ts",
+    "apps/prototype-web/client/src/application/fulfillment/deliveryReviewService.ts",
+    "scripts/check-date-arithmetic-ownership.mjs",
+    "scripts/check-date-arithmetic-ownership.test.mjs",
+    "apps/prototype-web/client/src/moneyLayerGuard.contract.test.ts",
+    "apps/prototype-web/client/src/application/time/clock.test.ts",
+    "apps/prototype-web/client/src/application/cash/cashCountMessages.test.ts",
+    "tests/domain/moneyMessageCharacterization.test.ts",
+    "apps/prototype-web/client/src/applicationDoors.contract.test.ts",
+    "docs/architecture/refactoring/R3-STORAGE-CAPABILITY-EXECUTION-REPORT-2026-10-08.md",
+    "docs/operations/control/evidence/structural-remediation-r3-20261008/R3-REPAIR-CARDS.md",
+    "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-REPAIR-CARDS.md",
+    "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-TRANSFER-SCHEMA-EXPORT-EXECUTION-REPORT-2026-10-08.md",
+    "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-MANIFEST.md",
+    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-REPAIR-CARDS.md",
+    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-BOUNDARY-LEDGER.md",
+    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-APPLICATION-BOUNDARIES-EXECUTION-REPORT-2026-10-09.md",
+    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-MANIFEST.md",
+    "scripts/check-application-door-surfaces.mjs",
+    "scripts/check-application-readwrite.mjs",
+    "https://github.com/Qays7753/Micro/pull/335",
+    "https://github.com/Qays7753/Micro/actions/runs/37892032808",
+    "https://github.com/Qays7753/Micro/commit/092c933bdcdf1666f8f8cf83bb7d5f030b8d4e6d",
+    "https://github.com/Qays7753/Micro/pull/337",
     "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-PREFLIGHT-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-09.md",
     "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-OWNER-REVIEW-AND-DECISION-PACKAGE-2026-10-09.md",
     "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-W1-RECORDS-RECONCILIATION-EXECUTION-REPORT-2026-10-09.md",
-    "https://github.com/Qays7753/Micro/pull/337",
-    "https://github.com/Qays7753/Micro/pull/335"
+    "https://github.com/Qays7753/Micro/pull/338",
+    "https://github.com/Qays7753/Micro/actions/runs/37980287858"
   ],
   "dependencies": [],
   "related_items": [
@@ -95,5 +125,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R6 read-only scan complete and owner-accepted (canonical report + decision package on main via PR #337 at fd92d7e8). **R6-W1 IN_REVIEW — PR #338 open** (head e3a850f8 from base fd92d7e8; 15 documentation/control files only, +444/-112): F-002..F-026 doc reconciliation + durable R6-SCAN-F-001..027 matrix (register §8) + explicit R7 packages R6-F17-P01..P11; zero code/test/script/CSS change. Next: owner review + merge of PR #338 by separate authorization (no merge from this session), then post-merge verification and administrative reconciliation, then R6-W2 (F-001 test-only + F-024 after precise site inventory) and R6-W3 (text-density-count.py split). R7 does not start before R6 findings close or carry protected decisions."
+  "next_action": "R6 read-only scan complete and owner-accepted (canonical report + decision package on main via PR #337 at fd92d7e8). **R6-W1 IN_REVIEW — PR #338 open** (base fd92d7e8; documentation/control files only; final content head and final merge statistics are pinned by the closing pin commit on top and in the PR #338 body): F-002..F-026 doc reconciliation + durable R6-SCAN-F-001..027 matrix (register §8) + explicit R7 packages R6-F17-P01..P11; zero code/test/script/CSS change; prior evidence restored append-only after the first owner review (no R2–R5 evidence removed). Next: owner review + merge of PR #338 by separate authorization (no merge from this session), then post-merge verification and administrative reconciliation, then R6-W2 (F-001 test-only + F-024 after precise site inventory) and R6-W3 (text-density-count.py split). R7 does not start before R6 findings close or carry protected decisions."
 }
