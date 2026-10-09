@@ -17,18 +17,25 @@ import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { appendQueryParams, withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
-/* FIN-003 (WS-173 — Wave 1): نموذج جسر النتيجة إلى الكاش — من جذر التطبيق
- * (الخدمة نفسها تُوفَّر عبر السياق؛ جسم الجسر كله داخل تفاصيل مطوية). */
-import type { ProfitToCashBridgeReading } from "@/app/PrototypeServicesContext";
 import type { LocalFinancialPulse } from "@/application/financial-pulse";
-import type { DepositOverview } from "@/application/fulfillment";
 import type {
-  FinancialInsights,
+  BridgeState,
+  CashHorizonState,
   FinancialMetricEvidence,
-  ProjectFinancialPosition,
+  FinanceBlockId,
+  FinanceState,
   ProjectFinancialService,
   RecordedPeriodResult,
 } from "@/application/finance";
+/* R7/R6-F17-P02 (2026-10-10): قراء تجميع نموذج عرض المالية من بيتهما التطبيقي —
+ * استيراد عميق موثق بأساس (الشظية الكسولة وحدها تستهلكه؛ الباب يبقى أنواعًا
+ * فقط كي لا تدخل قيم كومة الإقلاع عبر استيراد جذر التركيب للباب). */
+import {
+  monthBounds,
+  readFinanceOverview,
+  readProfitToCashBridge,
+  readShortCashHorizonBlock,
+} from "@/application/finance/financeState";
 import type { OwnerEntitlementOverview } from "@/application/owner-money";
 import type { G5Decision, ShortCashHorizonReading } from "@/application/g5/g5Service";
 /* FIN-005 (WS-175 — Wave 3): عائلة أفق الكاش القصير — الأنواع والثوابت فقط
@@ -39,8 +46,6 @@ import {
   SHORT_CASH_HORIZON_LABELS_AR,
   type ShortCashHorizonDays,
 } from "@/application/finance";
-import type { FinancialEvent, FinancialEventType } from "@micro-domain/financial-event/index.js";
-import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
 /* FIN-004 (WS-176 — Wave 4): قراءة السحب الآمن الاستشارية — دالة مجال نقية
  * تُركّب فوق نتيجة أفق FIN-005 نفسه؛ الاحتياطي مُدخل جلسة (لا مخزن — ميثاق
  * التفضيلات يحرم المحتوى المالي، والدوام قرار مالك مؤجل بنص الوثيقة). */
@@ -73,14 +78,8 @@ import { FinancePoliciesSection } from "@/components/finance/FinancePoliciesSect
 import { FinanceObligationsCard } from "@/components/finance/FinanceObligationsCard";
 /* FIN-002 (WS-174 — Wave 2): جسم الميزانيات الاختيارية — مكوّن مستقل (كثافة + سابقة RecurringConfirmPanel). */
 import { FinanceBudgetsSection } from "@/components/finance/ExpenseBudgetsSectionBody";
-import type { CorrectionDigest } from "@/application/financial-records";
-import type { PeriodWasteReading } from "@/application/inventory";
 import { DepositsLayer } from "@/components/finance/DepositsLayer";
-/* المجموعة ٤ (عقد ٢٩): قراءات الأصول والقروض والعربون المحتفظ به. */
-import type { AssetOverviewRead } from "@/application/assets";
 import { todayInAmman } from "@/application/time";
-import type { LoanOverviewRead } from "@/application/loans";
-import type { RetainedDepositRow } from "@/application/financial-records";
 import * as G5Display from "@/components/finance/G5DecisionPanel";
 import {
   formatBreakEvenDisplay,
@@ -88,7 +87,6 @@ import {
   formatMonthLabel,
   formatMoneyMinor,
   formatQuantityMilli,
-  localDateMonthEnd,
 } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
@@ -96,54 +94,10 @@ import { Button } from "@/components/primitives";
  * الفشل — المجموعة الأساسية (المركز + النبضة) وحدها تحجب الصفحة عند فشلها،
  * وكل كتلة متقدمة مستقلة: قيمتها null تعني تعذر قراءتها (لا صفرًا كاذبًا)،
  * وfailedBlocks يحدد المعطوبة لبطاقة خطأ موجزة + إعادة محاولة لكل كتلة،
- * والأسطح السليمة تبقى من مصادرها الحية. */
-export type FinanceBlockId =
-  "events" | "period" | "owner" | "g5" | "deposits" | "assets" | "loans" | "correctionsAllTime" | "bridge";
-export type FinanceState =
-  | { phase: "loading" }
-  | { phase: "error"; message: string }
-  | {
-      phase: "ready";
-      position: ProjectFinancialPosition;
-      events: readonly FinancialEvent[] | null;
-      period: RecordedPeriodResult | null;
-      /* و٧ (F-077): طبقة المؤشرات داخل قراءة الفترة. */
-      insights: FinancialInsights | null;
-      decision: G5Decision | null;
-      /* و٧ (F-079): سجل المتوقعات المسجلة كاملًا داخل التغطية والتعادل. */
-      declarations: readonly ShortCashDeclaration[] | null;
-      owner: OwnerEntitlementOverview | null;
-      pulse: LocalFinancialPulse;
-      excludedOrders: readonly StoredCraftOrder[];
-      deposits: DepositOverview | null;
-      /* المجموعة ٦ (البند ٣ — S2-09): خلاصة أثر التصحيحات — كل التاريخ للوضع،
-       * وبنطاق الفترة لقراءة الفترة. */
-      correctionsAllTime: CorrectionDigest | null;
-      correctionsInPeriod: CorrectionDigest | null;
-      /* المجموعة ٢ (عقد ٢٨): هدر المخزون داخل الفترة — قراءة مشتقة غير نقدية. */
-      periodWaste: PeriodWasteReading | null;
-      /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة.
-       * Wave 4.4 — P-4.4-1: التجميع من خدمة القراءة (rows + totals) لا من
-       * reduce داخل العرض — مصدر واحد للمعادلة (تماثل D7). */
-      assetsOverview: AssetOverviewRead | null;
-      loansOverview: LoanOverviewRead | null;
-      pendingRetainedDeposits: readonly RetainedDepositRow[] | null;
-      /* FIN-001: دليل نبضة المراجعة — طلبات مسجلة / نتائج نهائية قائمة. */
-      ordersRecorded: boolean;
-      finalOrdersRecorded: boolean;
-      /* G-005: الكتل التي تعذرت قراءتها — بطاقة خطأ + إعادة محاولة لكل واحدة. */
-      failedBlocks: Partial<Record<FinanceBlockId, true>>;
-    };
-/* FIN-003 (WS-173 — Wave 1): حالة جسر النتيجة إلى الكاش — كتلة قراءة مستقلة
- * مثل إخواتها (فشلها = بطاقة إعادة محاولة لا صفر كاذب)، فوق نطاق الأشهر نفسه. */
-type BridgeState =
-  { phase: "loading" } | { phase: "error" } | { phase: "ready"; reading: ProfitToCashBridgeReading };
-/* FIN-005 (WS-175 — Wave 3): حالة قراءة أفق الكاش القصير — كتلة مستقلة
- * عن نطاق أشهر الصفحة (الأفق مثبّت على اليوم المحلي للساعة القابلة للحقن)،
- * وإعادة القراءة عند تبديل الأفق أو تغيّر البيانات فقط؛ فشلها بطاقة
- * إعادة محاولة معزولة كإخواتها (نمط G-005). */
-type CashHorizonState =
-  { phase: "loading" } | { phase: "error" } | { phase: "ready"; reading: ShortCashHorizonReading };
+ * والأسطح السليمة تبقى من مصادرها الحية. — أنواع نموذج العرض وقراء التجميع
+ * انتقلت إلى بيتها التطبيقي المالك (R7/R6-F17-P02، 2026-10-10):
+ * application/finance/financeState.ts؛ الأنواع عبر باب المالية، والدوال من
+ * الوحدة مباشرة داخل الشظية الكسولة، والصفحة تُبقي ربط React وحده. */
 /* FIN-002 (WS-174 — Wave 2): حالة تحميل خدمة الميزانيات — null يعني «جارٍ
  * التجهيز» (نمط transfers/recurringExpenses في جذر التركيب نفسه، لكن هنا
  * محليًا داخل الصفحة: الخدمة لا تُسجّل في السياق أبدًا). */
@@ -167,27 +121,10 @@ const evidenceValue = (state: FinancialMetricEvidence, minor: number) =>
   state === "recorded" ? <MoneyValue minor={minor} /> : unknownValue();
 const validMonth = (month: string) =>
   /^\d{4}-\d{2}$/.test(month) && Number(month.slice(5)) >= 1 && Number(month.slice(5)) <= 12;
-/* R2 (M-02/X1، 2026-10-08): حدود الشهر من نواة التاريخ الكنسية — كانت
- * Date.UTC رقمية (تعيد السنوات < 0100 إلى 1900+). */
-function monthBounds(month: string) {
-  const monthEnd = localDateMonthEnd(month);
-  return { from: `${month}-01`, to: monthEnd ?? `${month}-31` };
-}
 /* §10: مساعدات العرض الخاصة بقراءة G5 انتقلت إلى وحدة الطبقة — الاستيراد بلا نص مكرر. */
 const { displayCashAmount, formatted, shortStatusLabel } = G5Display;
 const cogsStatusLabel = (status: RecordedPeriodResult["cogsStatus"]) =>
   status === "recorded" ? "من الاستهلاك" : status === "partial" ? "جزئي" : "من نسخة التكلفة";
-/* G-005: قارئ كتلة آمن — ok:false والرفض (rejected Promise) كلاهما فشل الكتلة
- * لا فشل الصفحة ولا رفضًا غير معالج؛ المجموعة الأساسية وحدها تحجب الصفحة. */
-type BlockRead<T> = { ok: true; value: T } | { ok: false };
-async function safeBlock<T>(read: Promise<BlockRead<T>>): Promise<{ value: T | null; failed: boolean }> {
-  try {
-    const result = await read;
-    return result.ok ? { value: result.value, failed: false } : { value: null, failed: true };
-  } catch {
-    return { value: null, failed: true };
-  }
-}
 
 export default function Finance() {
   const [, navigate] = useLocation();
@@ -268,104 +205,28 @@ export default function Finance() {
     setAppliedRange({ from: fromMonth, to: toMonth });
     const from = monthBounds(fromMonth);
     const to = monthBounds(toMonth);
-    /* G-005: المجموعة الأساسية أولًا (المركز + النبضة) — فشلها وحده يوجّه
-     * الصفحة كاملة للخطأ الصادق مع إعادة المحاولة كما كان؛ بقية الكتل تُقرأ
-     * بعدها كلٌّ على حدة: ok:false أو رفض وعد = فشل تلك الكتلة وحدها، والأسطح
-     * السليمة تبقى حية، ولا رفض غير معالج إطلاقًا (كل قراءة داخل safeBlock). */
-    const pulseSafe = (async () => {
-      try {
-        const result = await financialPulse.read();
-        return result.ok ? { value: result, failed: false } : { value: null, failed: true };
-      } catch {
-        return { value: null, failed: true };
-      }
-    })();
-    Promise.all([safeBlock(projectFinance.readPosition()), pulseSafe]).then(([positionRead, pulseRead]) => {
+    /* G-005: المجموعة الأساسية أولًا ثم الكتل المستقلة — التجميع نفسه
+     * (نفس القراءات وترتيبها وعزل الفشل) عند صاحبه التطبيقي الآن:
+     * readFinanceOverview في application/finance/financeState.ts (R7/P02)؛
+     * الصفحة تربط النتيجة بحالتها عند حد الـsetState فقط. */
+    readFinanceOverview(
+      {
+        projectFinance,
+        financialPulse,
+        g5,
+        ownerEntitlement,
+        fulfillment,
+        correctionHistory,
+        inventory,
+        assets,
+        loans,
+        retainedDeposits,
+      },
+      from.from,
+      to.to,
+    ).then(next => {
       if (!active) return;
-      if (positionRead.failed || pulseRead.failed || pulseRead.value === null) {
-        setState({ phase: "error", message: "لم يتم تغيير بياناتك. أعد فتح التطبيق للمحاولة." });
-        return;
-      }
-      const pulseResult = pulseRead.value;
-      Promise.all([
-        safeBlock(projectFinance.listEvents()),
-        safeBlock(projectFinance.readRecordedPeriodResult(from.from, to.to)),
-        /* و٧: المؤشرات تُقرأ مع الفترة نفسها — طبقة واحدة داخل القراءة. */
-        safeBlock(projectFinance.readFinancialInsights(from.from, to.to)),
-        safeBlock(g5.readDecision(from.from, to.to)),
-        safeBlock(g5.listDeclarations()),
-        safeBlock(ownerEntitlement.readOverview()),
-        safeBlock(fulfillment.listDepositOverview()),
-        safeBlock(correctionHistory.affecting()),
-        safeBlock(correctionHistory.affecting(from.from, to.to)),
-        /* المجموعة ٢ (عقد ٢٨): هدر الفترة — قراءة مشتقة بأساس occurredOn نفسه. */
-        safeBlock(inventory.readPeriodWaste(from.from, to.to)),
-        /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة؛
-         * القروض عبر الخدمة المحمّلة خاملًا (FIN-001 WS-178) — null لحظة
-         * التجهيز = كتلة معطوبة صادقة تُعاد قراءتها فور جاهزيتها (G-005). */
-        safeBlock(assets.overview()),
-        loans
-          ? safeBlock(loans.overview())
-          : Promise.resolve({ value: null as LoanOverviewRead | null, failed: true }),
-        safeBlock(retainedDeposits.listPending()),
-      ]).then(
-        ([
-          eventsRead,
-          resultRead,
-          insightsRead,
-          decisionRead,
-          declarationsRead,
-          ownerRead,
-          depositsRead,
-          correctionsAll,
-          correctionsPeriod,
-          periodWaste,
-          assetsRead,
-          loansRead,
-          pendingRetainedRead,
-        ]) => {
-          if (!active) return;
-          const completed = pulseResult.orders.filter(stored =>
-            ["delivered", "settled"].includes(stored.order.status),
-          );
-          const failedBlocks: Partial<Record<FinanceBlockId, true>> = {};
-          if (eventsRead.failed) failedBlocks.events = true;
-          if (resultRead.failed || insightsRead.failed || correctionsPeriod.failed || periodWaste.failed)
-            failedBlocks.period = true;
-          if (correctionsAll.failed) failedBlocks.correctionsAllTime = true;
-          if (ownerRead.failed) failedBlocks.owner = true;
-          if (decisionRead.failed || declarationsRead.failed) failedBlocks.g5 = true;
-          if (depositsRead.failed) failedBlocks.deposits = true;
-          if (assetsRead.failed) failedBlocks.assets = true;
-          if (loansRead.failed || pendingRetainedRead.failed) failedBlocks.loans = true;
-          setState({
-            phase: "ready",
-            position: positionRead.value!,
-            events: eventsRead.value,
-            period: resultRead.value,
-            insights: insightsRead.value,
-            decision: decisionRead.value,
-            declarations: declarationsRead.value,
-            owner: ownerRead.value,
-            pulse: pulseResult.pulse,
-            excludedOrders: completed.filter(stored => stored.order.resultStatus !== "final"),
-            deposits: depositsRead.value,
-            /* القيم null تعني تعذر قراءة الكتلة لا صفرًا (عقد FIN-001 نفسه). */
-            correctionsAllTime: correctionsAll.value,
-            correctionsInPeriod: correctionsPeriod.value,
-            periodWaste: periodWaste.value,
-            assetsOverview: assetsRead.value,
-            loansOverview: loansRead.value,
-            pendingRetainedDeposits: pendingRetainedRead.value,
-            /* FIN-001: دليل نبضة المراجعة — من الطلبات الفعلية لا من مجموع فارغ. */
-            ordersRecorded: pulseResult.orders.length > 0,
-            finalOrdersRecorded: pulseResult.orders.some(stored =>
-              ["delivered", "settled"].includes(stored.order.status),
-            ),
-            failedBlocks,
-          });
-        },
-      );
+      setState(next);
     });
     return () => {
       active = false;
@@ -400,11 +261,9 @@ export default function Finance() {
     }
     const from = monthBounds(fromMonth);
     const to = monthBounds(toMonth);
-    safeBlock(profitToCashBridge.readProfitToCashBridge({ from: from.from, to: to.to })).then(read => {
+    readProfitToCashBridge({ profitToCashBridge }, from.from, to.to).then(next => {
       if (!active) return;
-      setBridgeState(
-        read.failed || read.value === null ? { phase: "error" } : { phase: "ready", reading: read.value },
-      );
+      setBridgeState(next);
     });
     return () => {
       active = false;
@@ -417,11 +276,9 @@ export default function Finance() {
    * ولا تغيير كاش أو دين أو أحداث أو مخزن. */
   useEffect(() => {
     let active = true;
-    safeBlock(g5.readShortCashHorizon(horizonDays)).then(read => {
+    readShortCashHorizonBlock({ g5 }, horizonDays).then(next => {
       if (!active) return;
-      setCashHorizonState(
-        read.failed || read.value === null ? { phase: "error" } : { phase: "ready", reading: read.value },
-      );
+      setCashHorizonState(next);
     });
     return () => {
       active = false;

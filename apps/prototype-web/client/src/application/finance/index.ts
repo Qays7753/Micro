@@ -32,6 +32,11 @@ export { isPeriodActive, previousEqualPeriod, resolvePeriodPreset } from "./peri
 export { ProfitToCashBridgeService } from "./profitToCashBridgeService";
 export type { ProfitToCashBridgeReading } from "./profitToCashBridgeService";
 
+/* R7 / R6-F17-P02 (2026-10-10): أنواع نموذج عرض المالية من بيتهما التطبيقي —
+ * أنواع فقط عبر الباب (جذر التركيب يستورد الباب استاتيكيًا فلا تدخل قيم
+ * كومة الإقلاع؛ الدوال تُستهلك من financeState.ts مباشرة داخل الشظية الكسولة). */
+export type { BridgeState, CashHorizonState, FinanceBlockId, FinanceState } from "./financeState";
+
 export { ProjectFinancialService } from "./projectFinancialService";
 export type {
   FinancialInsights,

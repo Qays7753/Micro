@@ -39,10 +39,14 @@
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/transfers/localTransferService.ts",
   "apps/prototype-web/client/src/components/finance/G5DecisionPanel.tsx -> apps/prototype-web/client/src/application/g5/g5Service.ts",
+  "apps/prototype-web/client/src/pages/Finance.tsx -> apps/prototype-web/client/src/application/finance/financeState.ts",
   "apps/prototype-web/client/src/pages/Finance.tsx -> apps/prototype-web/client/src/application/g5/g5Service.ts",
   "apps/prototype-web/client/src/pages/G5DeclarationEditor.tsx -> apps/prototype-web/client/src/application/g5/g5Service.ts",
   "apps/prototype-web/client/src/presentation/activityLabels.ts -> apps/prototype-web/client/src/application/activity/activityLabels.ts",
   "apps/prototype-web/client/src/presentation/formatters.ts -> apps/prototype-web/client/src/application/formatting/formatters.ts",
   "apps/prototype-web/client/src/presentation/orderAgreementPresentation.ts -> apps/prototype-web/client/src/application/agreements/agreementPresentation.ts"
- ]
+ ],
+ "notes": {
+  "r7-p02-finance-state-module": "2026-10-10 (R7/R6-F17-P02): Finance lazy route chunk consumes the FinanceState view-model readers (readFinanceOverview/readProfitToCashBridge/readShortCashHorizonBlock/monthBounds) from the application-owned module directly; the finance door stays type-only because the composition root imports it statically into the entry chunk. Removing this key requires migrating the page back to a door that carries the readers as values."
+ }
 }

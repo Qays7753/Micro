@@ -350,16 +350,20 @@ describe("R6 (Step 6 — STR-615 system-wide ratchet: UI -> application interior
      * التركيب + ٦ لأسطح التوافق المجمدة (٣ شيمة g5 + ٣ واجهات عرض)؛ هاجر
      * مفتاح شيمة الميزانيات إلى باب budgets في نفس الشريحة (كان ٤٣). أي
      * نقصان لاحق = تقدم (يُثبت بتحديث هذا الدبوس في نفس الـPR)؛ أي زيادة
-     * = خرق راتشة. */
+     * = خرق راتشة.
+     * R7/R6-F17-P02 (2026-10-10): +١ مفتاح موثق — مسار المالية الكسول يستهلك
+     * قراء نموذج عرض المالية من financeState.ts مباشرة (الباب يبقى أنواعًا فقط
+     * كي لا تدخل قيم كومة الإقلاع)؛ المجموع ٤٣ (٣٦ + ٧). */
     const contextKeys = raw.allowed.filter(k => k.includes("PrototypeServicesContext"));
     const otherKeys = raw.allowed.filter(k => !k.includes("PrototypeServicesContext"));
     expect(contextKeys.length).toBe(36);
-    expect(otherKeys.length).toBe(6);
+    expect(otherKeys.length).toBe(7);
     expect(otherKeys.some(k => k.includes("finance/expenseBudgetService.ts"))).toBe(false);
     expect(otherKeys.filter(k => k.includes("g5/g5Service.ts")).length).toBe(3);
     expect(otherKeys.some(k => k.includes("activity/activityLabels.ts"))).toBe(true);
     expect(otherKeys.some(k => k.includes("formatting/formatters.ts"))).toBe(true);
     expect(otherKeys.some(k => k.includes("agreements/agreementPresentation.ts"))).toBe(true);
+    expect(otherKeys.some(k => k.includes("pages/Finance.tsx -> "))).toBe(true);
     const live = checkModuleBoundaries(REPO_ROOT);
     expect(live.violations.filter(v => v.rule === "R6-baseline-stale")).toEqual([]);
   });
