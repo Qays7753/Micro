@@ -109,7 +109,14 @@
     "https://github.com/Qays7753/Micro/pull/338",
     "https://github.com/Qays7753/Micro/actions/runs/37980287858",
     "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-W2-TEST-DETERMINISM-AND-ANCHOR-HARDENING-EXECUTION-REPORT-2026-10-09.md",
-    "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-W3-TEXT-DENSITY-TOOLING-SPLIT-EXECUTION-REPORT-2026-10-09.md"
+    "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-W3-TEXT-DENSITY-TOOLING-SPLIT-EXECUTION-REPORT-2026-10-09.md",
+    "https://github.com/Qays7753/Micro/actions/runs/37988614589",
+    "https://github.com/Qays7753/Micro/pull/339",
+    "https://github.com/Qays7753/Micro/actions/runs/37990926329",
+    "https://github.com/Qays7753/Micro/pull/340",
+    "https://github.com/Qays7753/Micro/actions/runs/37992795108",
+    "https://github.com/Qays7753/Micro/actions/runs/37993359915",
+    "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-COMPLETE-PR-READINESS-REPORT-2026-10-09.md"
   ],
   "dependencies": [],
   "related_items": [
@@ -117,7 +124,7 @@
     "ARCH-006"
   ],
   "owner_decision": "اعتماد الخطة المحدثة ومصفوفة التتبع وبدء تثبيت العقد ثم R0 في 2026-10-07.",
-  "updated_at": "2026-10-09",
+  "updated_at": "2026-10-10",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -127,5 +134,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R6 waves executed on the stacked lineage (W1 corrected on PR #338; W2 on PR #339 — both open at the owner gate). **R6-W3 EXECUTED ON BRANCH — PR pending** (stacked on the W2 head fb11c6c7; tooling/tests/docs only): F-009 text-density-count.py split — characterization FIRST (golden 4,117 bytes sha256 812a24bb… captured and green pre-split), then the CAPS/PAGES/EXPLICIT_SERVICES ledger extracted verbatim (dated provenance preserved) to scripts/text_density_policy.py (data only) with the engine (458 nbLOC, leaves SPLIT_NOW → WATCH) importing and validating it (exit 2 on malformed entries); output proven BYTE-IDENTICAL pre/post; 7-test characterization/boundary/negative suite; register §2/§3/§7 + ratchet baseline (engine tightened, policy registered SPLIT_CANDIDATE) + test-map + SOURCE_OF_TRUTH updated same-PR; bundle proven identical (lazy 101/1,409,712/432,901; precache 187/2,741,296). Root 730/730; app 323/2388; guards 17/17. Next: owner review + merge in order PR #338 → PR #339 → the W3 PR by separate authorization (no merge from this session), then post-merge verification and administrative reconciliation. R7 does not start before R6 findings close or carry protected decisions."
+  "next_action": "R6 waves executed on the stacked lineage (W1 corrected on PR #338; W2 on PR #339 — both open at the owner gate). **R6-W3 IN_REVIEW — PR #340 OPEN** (live head `90f9253e79ca13410addd914dba463557fafbcf5`; final CI run `37993359915` succeeded; readiness report is in evidence; mandatory merge order #338 → #339 → #340) (stacked on the W2 head fb11c6c7; tooling/tests/docs only): F-009 text-density-count.py split — characterization FIRST (golden 4,117 bytes sha256 812a24bb… captured and green pre-split), then the CAPS/PAGES/EXPLICIT_SERVICES ledger extracted verbatim (dated provenance preserved) to scripts/text_density_policy.py (data only) with the engine (458 nbLOC, leaves SPLIT_NOW → WATCH) importing and validating it (exit 2 on malformed entries); output proven BYTE-IDENTICAL pre/post; 7-test characterization/boundary/negative suite; register §2/§3/§7 + ratchet baseline (engine tightened, policy registered SPLIT_CANDIDATE) + test-map + SOURCE_OF_TRUTH updated same-PR; bundle proven identical (lazy 101/1,409,712/432,901; precache 187/2,741,296). Root 730/730; app 323/2388; guards 17/17. Next: owner review + merge in order PR #338 → PR #339 → the W3 PR by separate authorization (no merge from this session), then post-merge verification and administrative reconciliation. R7 does not start before R6 findings close or carry protected decisions."
 }

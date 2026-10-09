@@ -1006,3 +1006,11 @@
 - **Boundaries:** zero production application change; no cap value changed; schema 38/export 30; no merge; no cleanup; append-only history; token via askpass from `.secrets` only.
 
 **Terminal state:** R6_W3_EXECUTED_ON_BRANCH — PR_NEXT · TOOLING_TESTS_DOCS_ONLY · BYTE_IDENTICAL_OUTPUT_PROVEN · NO_PRODUCTION_CHANGE · NO_MERGE_PERFORMED · NO_CLEANUP_PERFORMED · NO_SECRETS_EXPOSED.
+
+
+## Entry 68 — 2026-10-10 — Manus: final R6 owner-gate records reconciliation
+
+- **Live state:** PR #338 @ `b3048f2aeda4d55e77801effb9d93a051263375c`, PR #339 @ `fb11c6c71be7124c3bf4ac62704d5186eede43d6`, and PR #340 @ `90f9253e79ca13410addd914dba463557fafbcf5` are open, mergeable, clean, and CI-green; branches are strictly stacked on `main` @ `fd92d7e8812726dcca8d27d3ad64c8f24dc96abd`.
+- **Reconciliation:** canonical evidence lists in WS-216/ARCH-007 were extended append-only with the missing PR #339/#340, final W1/W2/W3 CI, and final readiness-report references; no earlier evidence was removed. `ARCH-007.next_action` now truthfully says `R6-W3 IN_REVIEW — PR #340 OPEN`; live current-state and CONTROL pointers now state all three R6 slices are executed at the owner merge gate.
+- **Boundaries:** documentation/control only; no merge, no cleanup, no branch deletion, no production/financial/historical/schema/export/UI change.
+- **Next:** owner merge order #338 → #339 → #340, post-merge verification and reconciliation after each; R7 prompt only after R6 is verified on main.
