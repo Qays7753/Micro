@@ -96,24 +96,37 @@ describe("Wave 4.4 — P-4.4-4: Retry التعافي في شاشة خطأ الق
   it("التحميل نص حالة معلن — لا أصفار قبل اكتمال القراءة", async () => {
     let calls = 0;
     const realService = new AssetService(store, () => NOW);
-    const slowAssets = {
+    /* R6-W2/F-001 (2026-10-09): بوابة يحكمها الاختبار — القراءة معلقة حتى
+     * الإفراج الصريح، على سابقة Home.dom.test.tsx:157 (releaseRead gate)
+     * المعلقة «لا سباق ولا نوم». كانت القراءة تُحرر بمؤقت حقيقي ٣٠ms فكان
+     * فحص خلوّ شاشة التحميل من حالة الفراغ بعده مباشرة سباقًا تحت حِمل CI
+     * (الفشل الموثق: run 37894104251 عند 43a0f12، السطر 116:57). الحل الجذري
+     * اختباري فقط: التحكم بالقراءة، إثبات دور الحالة قبل تحريرها، ثم تحريرها
+     * وإثبات الحالة النهائية عند حدود الاكتمال الحقيقية — بلا إضعاف لأي
+     * assertion وبلا لمس Assets.tsx أو أي كود إنتاج. */
+    let releaseRead: () => void = () => {};
+    const gate = new Promise<void>(resolve => {
+      releaseRead = resolve;
+    });
+    const gatedAssets = {
       overview: () => {
         calls += 1;
-        return new Promise(resolveRead => {
-          setTimeout(() => resolveRead(realService.overview()), 30);
-        });
+        return gate.then(() => realService.overview());
       },
     };
     mockedUsePrototypeServices.mockReturnValue({
-      assets: slowAssets,
+      assets: gatedAssets,
       dataVersion: 0,
       notifyDataChanged: () => undefined,
     } as unknown as ReturnType<typeof usePrototypeServices>);
 
     render(<Assets />);
-    /* أثناء التحميل: حالة معلنة role=status — لا بطاقات ولا أصفار. */
+    /* أثناء التحميل (القراءة معلقة بالبوابة): حالة معلنة role=status — لا بطاقات ولا أصفار،
+     * والدور الفارغ مستحيل البزوغ قبل الإفراج — الحتمية بنيوية لا زمنية. */
     await waitFor(() => expect(screen.getByRole("status")).toBeTruthy());
     expect(document.querySelector(".micro-prim-empty")).toBeNull();
+    /* تحرير القراءة: الاكتمال الحقيقي للوعد المحكوم ثم الحالة النهائية. */
+    releaseRead();
     await waitFor(() => {
       expect(screen.getByText("لا أصول مسجلة بعد.")).toBeTruthy();
     });

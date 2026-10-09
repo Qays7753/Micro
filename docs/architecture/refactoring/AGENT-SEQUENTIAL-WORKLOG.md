@@ -986,3 +986,13 @@
 - **Boundaries:** no merge; no branch/PR/evidence deletion; preserved UI branch untouched; schema 38/export 30 and all protected surfaces unchanged; token via askpass from `.secrets` only.
 
 **Terminal state:** R6_W1_CORRECTED_ON_BRANCH — PR_338_OPEN_IN_REVIEW · PRIOR_EVIDENCE_RESTORED_APPEND_ONLY · NO_CODE_TEST_SCRIPT_CHANGE · NO_MERGE_PERFORMED · NO_CLEANUP_PERFORMED · NO_SECRETS_EXPOSED.
+
+## Entry 66 — 2026-10-09 — Z AI: R6-W2 test determinism + acceptance-anchor hardening (WS-216/ARCH-007, stacked on the W1 head)
+
+- **Base:** W1 final head `b3048f2a` (PR #338 open at the owner gate) — stacked lineage main `fd92d7e8` ← W1 ← W2; branch `refactoring/r6-w2-tests-20261009`. Test/guard-only wave per the owner decision package.
+- **F-001:** StateRecovery.w44.dom.test.tsx loading test converted from a real `setTimeout(30)` read to the repository's deterministic `releaseRead` gate precedent (Home.dom.test.tsx:157): gate-held read → status role proven + `.micro-prim-empty` null proven (structurally race-free) → release → final state awaited. Assertion kept verbatim; Assets.tsx untouched. 14 consecutive green focused runs; app suite 323/2388 green.
+- **F-024:** precise six-site inventory delivered first (report §2: canonical sources with line anchors — inventory-material types.ts:34, catalog types.ts:1/:116, storage local types.ts:273, financial-analysis types.ts:2-4, financial-event types.ts:30-33; validators — TFV :78/:363/:440/:1064/:1207/:1355; expected sets; existing coverage; why uncovered), then `check-acceptance-value-anchors.mjs` extended with the six-family double pin (domain union == validator literals == documented set) + `extractValidatorLiterals` helper + 13 new tests (both-direction negatives per family). Live smoke PASS; root suite 723/723.
+- **Gates:** typecheck root+app clean; lint 0/35; format clean; text-density within caps; design-guards 92; guards 17/17 exit 0 (secrets 1551/0, test-focus 385/0, ratchet green); test-map no drift; `git diff --check` clean. Register §7 dated same-PR growth note (guard 221→363 nbLOC, NORMAL).
+- **Boundaries:** zero production change (one app test file + two guard/test scripts + records only); schema 38/export 30; no acceptance broadened; 4D root owner-gated; no merge; no cleanup; append-only history; token via askpass from `.secrets` only.
+
+**Terminal state:** R6_W2_EXECUTED_ON_BRANCH — PR_NEXT · TEST_AND_GUARD_ONLY · NO_PRODUCTION_CHANGE · NO_SCHEMA_EXPORT_FINANCIAL_HISTORY_REJECTION_SECURITY_UI_CHANGE · NO_MERGE_PERFORMED · NO_CLEANUP_PERFORMED · NO_SECRETS_EXPOSED.
