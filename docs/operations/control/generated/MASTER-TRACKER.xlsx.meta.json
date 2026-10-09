@@ -1,6 +1,6 @@
 {
   "schema": "micro-operations-control-excel-provenance-v1",
-  "source_digest": "d0e07370016087017dbbb4711a60c70b549b9554547c4c308b15f5468f54be26",
+  "source_digest": "f581c77f323a62b9332b009a160c45d10430e2a01b20c76cc51a24ddf4305a39",
   "source_files": [
     "docs/operations/control/items/ARCH-001.json",
     "docs/operations/control/items/ARCH-002.json",
