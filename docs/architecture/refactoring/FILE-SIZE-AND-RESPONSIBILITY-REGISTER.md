@@ -1475,6 +1475,8 @@
 *(تصحيح مؤرخ إضافي [R6-SCAN-F-007]: سطر التقدم السابق لتقرير R5 في سجل حدود R5 كان يشير projectFinancialInsights.ts:140 — الحي :145؛ صُحّح بملاحظة مؤرخة في ذلك السجل نفسه، لا هنا.)*
 
 
+**تحديث مؤرخ 2026-10-09 (R6-W2 [R6-SCAN-F-024]: نمو حارس مراسي قيم القبول — قياس نفس-الـPR بروتوكول STR-607):** امتد `scripts/check-acceptance-value-anchors.mjs` من 221 إلى **363 nbLOC (+142)** بإضافة عائلات GUARDED_UNION الست (inventoryMovementType وcatalogItemKind وscheduleStatus وyieldReadiness وshortCashDeclaration وexpenseContext) بتثبيت مزدوج (اتحاد المجال == مدققة النقل == الطاقم الموثق) وسلبيات اتجاهين — الشريط **NORMAL** (عتبة WATCH ‏400) والراتشة خضراء؛ واختباره `check-acceptance-value-anchors.test.mjs` من 206 إلى **360 nbLOC** (غير متتبع بالأساس — أصل اختباري). الملف دون صف §2 (إضافة Wave H بعد قياس v1.4 — تحكمه الراتشة والبروتوكول) ويُدرج صفًا عند إعادة القياس الشاملة القادمة. لا عتبة رُفعت ولا شريط تغير.
+
 ## 8. مصفوفة مكتشفات مسح R6 (R6-SCAN-F-001..027) — السجل الدائم للتصرفات
 
 > **مصدر السلطة:** تقرير مسح R6 القراءة-فقط المقبول `docs/operations/control/evidence/structural-remediation-r6-20261009/R6-PREFLIGHT-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-09.md` (SHA-256 ‎`e06a27a44baa2d28e53485fc36a8d7aa83605c8c32ab8cc07ab1d3290ae9c777`) وحزمة قرار المالك `R6-OWNER-REVIEW-AND-DECISION-PACKAGE-2026-10-09.md` (SHA-256 ‎`13387db9a7b494699b9f805addd647931424a544592604008fcb4df2b57059e2`) على main عبر PR #337 عند `fd92d7e8812726dcca8d27d3ad64c8f24dc96abd`. هذا القسم سجل تصرفات دائم داخل السجل الكنوني للملفات — **ليس مصدر حقيقة ثانيًا**: الأدلة الكاملة في التقرير؛ ولا تُحرر صفوفه التاريخية بل تُحدَّث بأعمدة مؤرخة.

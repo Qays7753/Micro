@@ -40,6 +40,13 @@ const SITES = {
   guidedOpeningImport: "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
   cashContinuityTypes: "src/domain/cash-continuity/types.ts",
   inventoryMaterialTypes: "src/domain/inventory-material/types.ts",
+  /* R6-W2/F-024 (2026-10-09): عائلات GUARDED_UNION الست خارج طاقم مراسي
+   * الدريفت (Wave 3B) — كانت محمولة بالتشخيص/الذهبيات فقط. */
+  catalogTypes: "src/domain/catalog/types.ts",
+  storageLocalTypes: "apps/prototype-web/client/src/storage/local/types.ts",
+  financialAnalysisTypes: "src/domain/financial-analysis/types.ts",
+  financialEventTypes: "src/domain/financial-event/types.ts",
+  transferFamilyValidators: "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts",
 };
 
 /** استخراج قيم نصية حرفية من كتلة `[...]` بعد المرساة — مع فك الانتشار
@@ -72,6 +79,27 @@ export function extractUnionValues(source, anchor) {
   const semi = rest.indexOf(";", eq);
   const body = rest.slice(eq + 1, semi === -1 ? undefined : semi);
   return [...body.matchAll(/"([^"]+)"/g)].map(m => m[1]);
+}
+
+/** R6-W2/F-024: استخراج طاقم القبول الحرفي لمدققة نقل — نافذة المدققة تمتد
+ * من مرساتها حتى التصدير التالي، وتُجمع القيم الحرفية إما من مقارنات
+ * `value === "x"` (مدققات القيمة المفردة) أو من مقارنات `value.<field> === "x"`
+ * (مدققات الشكل متعدد الحقول). الحقول undefined = القيمة المفردة. */
+export function extractValidatorLiterals(source, anchor, fields = undefined) {
+  const idx = source.indexOf(anchor);
+  if (idx === -1) return null;
+  const rest = source.slice(idx);
+  const nextExport = rest.indexOf("\nexport ");
+  const window = nextExport === -1 ? rest : rest.slice(0, nextExport);
+  if (fields === undefined) {
+    return [...window.matchAll(/value\s*===\s*"([^"]+)"/g)].map(m => m[1]);
+  }
+  const byField = {};
+  for (const field of fields) {
+    const re = new RegExp(`value\\.${field}\\s*===\\s*"([^"]+)"`, "g");
+    byField[field] = [...window.matchAll(re)].map(m => m[1]);
+  }
+  return byField;
 }
 
 function setsEqual(a, b) {
@@ -191,6 +219,136 @@ export function checkAcceptanceValueAnchors(repoRoot, readFile) {
     });
   }
 
+  /* (٤) R6-W2/F-024 (2026-10-09): عائلات GUARDED_UNION الست التي كانت خارج
+   * طاقم مراسي الدريفت (Wave 3B — domainTransferDriftAnchors) ومحمولة
+   * بالتشخيص/الذهبيات فقط. كل عائلة تُثبت الآن من الجهتين: اتحاد المجال
+   * الكنوني (نص المصدر) == طاقم القبول الحرفي في مدققة النقل == الطاقم
+   * الموثق هنا — أي انحراف في أي جهة يُصاد. الجذر (تصدير قوائم تشغيلية
+   * مجالية للمستهلكين — مسار 4D/STR-302) يبقى قرار مالك محجوزًا؛ هذا تحصين
+   * اختباري فقط لا يغير إنتاجًا ولا يوسع قبولًا. */
+  const tfv = read(SITES.transferFamilyValidators);
+  const invMaterial = read(SITES.inventoryMaterialTypes);
+  const catalogTypes = read(SITES.catalogTypes);
+  const storageTypes = read(SITES.storageLocalTypes);
+  const finAnalysis = read(SITES.financialAnalysisTypes);
+  const finEvent = read(SITES.financialEventTypes);
+
+  const F024_FAMILIES = [
+    {
+      anchor: "inventory-movement-type",
+      what: "InventoryMovementType",
+      domain: extractUnionValues(invMaterial, "type InventoryMovementType ="),
+      validator: extractValidatorLiterals(tfv, "isInventoryMovementType = "),
+      expected: ["opening", "purchase_receipt", "consumption", "waste", "adjustment", "reversal"],
+    },
+    {
+      anchor: "catalog-item-kind",
+      what: "CatalogItemKind",
+      domain: extractStringLiterals(catalogTypes, "export const catalogItemKinds = [", false),
+      validator: extractValidatorLiterals(tfv, "validCatalogItem", ["kind"]).kind,
+      expected: ["product", "service"],
+    },
+    {
+      anchor: "schedule-status",
+      what: "ScheduleStatus",
+      domain: extractUnionValues(storageTypes, "export type ScheduleStatus ="),
+      validator: extractValidatorLiterals(tfv, "isScheduleStatus = "),
+      expected: ["scheduled", "postponed", "completed", "cancelled"],
+    },
+    {
+      anchor: "yield-readiness",
+      what: "CatalogTemplateYieldReadiness",
+      domain: extractUnionValues(catalogTypes, "type CatalogTemplateYieldReadiness ="),
+      validator: extractValidatorLiterals(tfv, "isYieldReadiness = "),
+      expected: ["not_configured", "ready", "needs_conversion"],
+    },
+    {
+      anchor: "short-cash-declaration",
+      what: "ShortCashDeclaration kind/direction/knowledge",
+      domain: [
+        ...(extractUnionValues(finAnalysis, "type ShortCashDeclarationKind =") ?? []),
+        ...(extractUnionValues(finAnalysis, "type G5Direction =") ?? []),
+        ...(extractUnionValues(finAnalysis, "export type G5Knowledge =") ?? []),
+      ],
+      validator: (() => {
+        const byField = extractValidatorLiterals(tfv, "validShortCashDeclaration", [
+          "kind",
+          "direction",
+          "knowledge",
+        ]);
+        return byField ? [...byField.kind, ...byField.direction, ...byField.knowledge] : null;
+      })(),
+      expected: [
+        "declaration",
+        "reversal",
+        "collection",
+        "commitment",
+        "known",
+        "estimated",
+        "needs_review",
+      ],
+    },
+    {
+      anchor: "expense-context",
+      what: "ExpenseContext relationship/behavior/purpose/knowledge",
+      domain: [
+        ...(extractUnionValues(finEvent, "type ExpenseRelationship =") ?? []),
+        ...(extractUnionValues(finEvent, "type ExpenseBehavior =") ?? []),
+        ...(extractUnionValues(finEvent, "type ExpensePurpose =") ?? []),
+        ...(extractUnionValues(finEvent, "type ExpenseKnowledge =") ?? []),
+      ],
+      validator: (() => {
+        const byField = extractValidatorLiterals(tfv, "isExpenseContext = ", [
+          "relationship",
+          "behavior",
+          "purpose",
+          "knowledge",
+        ]);
+        return byField
+          ? [
+              ...byField.relationship,
+              ...byField.behavior,
+              ...byField.purpose,
+              ...byField.knowledge,
+            ]
+          : null;
+      })(),
+      expected: [
+        "project",
+        "shared",
+        "fixed",
+        "variable",
+        "mixed",
+        "unknown",
+        "project_general",
+        "period",
+        "order",
+        "product",
+        "campaign",
+        "unallocated",
+        "known",
+        "estimated",
+        "needs_review",
+      ],
+    },
+  ];
+
+  for (const family of F024_FAMILIES) {
+    report[family.anchor] = { domain: family.domain, validator: family.validator };
+    const domainOk = family.domain !== null && setsEqual(family.domain, family.expected);
+    const validatorOk = family.validator !== null && setsEqual(family.validator, family.expected);
+    if (!domainOk || !validatorOk) {
+      violations.push({
+        anchor: family.anchor,
+        hint: `${family.what}: انحراف في طاقم القبول — اتحاد المجال: ${JSON.stringify(
+          family.domain,
+        )}؛ مدققة النقل: ${JSON.stringify(family.validator)}؛ الموثق: ${JSON.stringify(
+          family.expected,
+        )} (المصدران يجب أن يطابقا الطاقم الموثق — R6-W2/F-024)`,
+      });
+    }
+  }
+
   return { ok: violations.length === 0, violations, report };
 }
 
@@ -212,7 +370,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    "acceptance-value-anchors: PASS — مواقع الاستهلاك الأربعة المحروسة (agreementContextService وagreementService لمصادر الاتفاق من سجل التوافق؛ walletKinds وmaterialUnits في guided من المجال) تستهلك مصادرها الكنونية مباشرة والقوائم الكنونية بأعضائها الموثقة — رجوع أي موقع إلى نسخة حرفية (بصيغتيها) يُصاد حتميًا بالسلبيات المثبتة (Wave H/STR-623 ثم توحيد R4-B2 ثم إغلاق R4-REC-5)",
+    "acceptance-value-anchors: PASS — مواقع الاستهلاك الأربعة المحروسة (agreementContextService وagreementService لمصادر الاتفاق من سجل التوافق؛ walletKinds وmaterialUnits في guided من المجال) تستهلك مصادرها الكنونية مباشرة والقوائم الكنونية بأعضائها الموثقة — رجوع أي موقع إلى نسخة حرفية (بصيغتيها) يُصاد حتميًا بالسلبيات المثبتة (Wave H/STR-623 ثم توحيد R4-B2 ثم إغلاق R4-REC-5)؛ وعائلات F-024 الست (inventoryMovementType وcatalogItemKind وscheduleStatus وyieldReadiness وshortCashDeclaration وexpenseContext) مثبتة من الجهتين: اتحاد المجال == مدققة النقل == الطاقم الموثق (R6-W2/F-024)",
   );
 }
 

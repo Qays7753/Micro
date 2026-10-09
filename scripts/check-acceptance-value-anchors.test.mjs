@@ -53,7 +53,43 @@ const walletKinds = new Set<CashWalletKind>(cashWalletKinds);
 const materialUnits = new Set<MaterialUnit>(domainMaterialUnits);
 `;
 const CASH_TYPES = `export const cashWalletKinds = ["cash_drawer", "bank_account", "digital_wallet", "other"] as const;\nexport type CashWalletKind = (typeof cashWalletKinds)[number];\n`;
-const INV_TYPES = `export const materialUnits = ["piece", "meter", "kilogram", "liter", "other"] as const;\n`;
+const INV_TYPES = `export const materialUnits = ["piece", "meter", "kilogram", "liter", "other"] as const;\ntype InventoryMovementType =\n  "opening" | "purchase_receipt" | "consumption" | "waste" | "adjustment" | "reversal";\n`;
+/* R6-W2/F-024: عينات مواقع العائلات الست الجديدة. */
+const CATALOG_TYPES = `export const catalogItemKinds = ["product", "service"] as const;\nexport type CatalogItemKind = (typeof catalogItemKinds)[number];\ntype CatalogTemplateYieldReadiness = "not_configured" | "ready" | "needs_conversion";\n`;
+const STORAGE_TYPES = `export type ScheduleStatus = "scheduled" | "postponed" | "completed" | "cancelled";\n`;
+const FIN_ANALYSIS_TYPES = `export type G5Knowledge = "known" | "estimated" | "needs_review";\ntype G5Direction = "collection" | "commitment";\ntype ShortCashDeclarationKind = "declaration" | "reversal";\n`;
+const FIN_EVENT_TYPES = `type ExpenseRelationship = "project" | "shared";\ntype ExpenseBehavior = "fixed" | "variable" | "mixed" | "unknown";\ntype ExpensePurpose = "project_general" | "period" | "order" | "product" | "campaign" | "unallocated";\ntype ExpenseKnowledge = "known" | "estimated" | "needs_review";\n`;
+const TFV = `export const isScheduleStatus = (value: unknown) =>
+  value === "scheduled" || value === "postponed" || value === "completed" || value === "cancelled";
+export const isYieldReadiness = (value: unknown) =>
+  value === "not_configured" || value === "ready" || value === "needs_conversion";
+export const isInventoryMovementType = (value: unknown) =>
+  value === "opening" ||
+  value === "purchase_receipt" ||
+  value === "consumption" ||
+  value === "waste" ||
+  value === "adjustment" ||
+  value === "reversal";
+export function validCatalogItem(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    (value.kind === "product" || value.kind === "service")
+  );
+}
+export function validShortCashDeclaration(value: unknown): boolean {
+  return (
+    (value.kind === "declaration" || value.kind === "reversal") &&
+    (value.direction === "collection" || value.direction === "commitment") &&
+    (value.knowledge === "known" || value.knowledge === "estimated" || value.knowledge === "needs_review")
+  );
+}
+export const isExpenseContext = (value: unknown) =>
+  isRecord(value) &&
+  (value.relationship === "project" || value.relationship === "shared") &&
+  (value.behavior === "fixed" || value.behavior === "variable" || value.behavior === "mixed" || value.behavior === "unknown") &&
+  (value.purpose === "project_general" || value.purpose === "period" || value.purpose === "order" || value.purpose === "product" || value.purpose === "campaign" || value.purpose === "unallocated") &&
+  (value.knowledge === "known" || value.knowledge === "estimated" || value.knowledge === "needs_review");
+`;
 
 function files(overrides = {}) {
   return {
@@ -63,6 +99,11 @@ function files(overrides = {}) {
     "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts": GUIDED_OK,
     "src/domain/cash-continuity/types.ts": CASH_TYPES,
     "src/domain/inventory-material/types.ts": INV_TYPES,
+    "src/domain/catalog/types.ts": CATALOG_TYPES,
+    "apps/prototype-web/client/src/storage/local/types.ts": STORAGE_TYPES,
+    "src/domain/financial-analysis/types.ts": FIN_ANALYSIS_TYPES,
+    "src/domain/financial-event/types.ts": FIN_EVENT_TYPES,
+    "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts": TFV,
     ...overrides,
   };
 }
@@ -196,6 +237,146 @@ const allowedAgreementSources = new Set<string>(["instagram", "whatsapp", "refer
       ),
     );
     expect(result.violations.some(v => v.anchor === "domain-material-units")).toBe(true);
+  });
+
+  /* ── R6-W2/F-024: عائلات GUARDED_UNION الست — إيجابية ثم سلبيات في
+   * الاتجاهين (انحراف اتحاد المجال، وانحراف مدققة النقل) لكل عائلة. ── */
+
+  it("R6-W2/F-024: passes when all six GUARDED_UNION families match domain == validator == documented", () => {
+    const result = checkAcceptanceValueAnchors(REPO_ROOT, readFrom(files()));
+    expect(result.violations).toEqual([]);
+    expect(result.ok).toBe(true);
+    expect(result.report["inventory-movement-type"].domain).toEqual([
+      "opening",
+      "purchase_receipt",
+      "consumption",
+      "waste",
+      "adjustment",
+      "reversal",
+    ]);
+  });
+
+  it("R6-W2/F-024: catches a domain-side InventoryMovementType drift (validator unchanged)", () => {
+    const tampered = INV_TYPES.replace('"adjustment" | ', "");
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(files({ "src/domain/inventory-material/types.ts": tampered })),
+    );
+    expect(result.violations.some(v => v.anchor === "inventory-movement-type")).toBe(true);
+  });
+
+  it("R6-W2/F-024: catches a validator-side isInventoryMovementType drift (domain unchanged)", () => {
+    const tampered = TFV.replace('value === "reversal";', 'value === "transfer";');
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(files({ "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts": tampered })),
+    );
+    expect(result.violations.some(v => v.anchor === "inventory-movement-type")).toBe(true);
+  });
+
+  it("R6-W2/F-024: catches a domain-side catalogItemKinds member change", () => {
+    const tampered = CATALOG_TYPES.replace('"service"', '"subscription"');
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(files({ "src/domain/catalog/types.ts": tampered })),
+    );
+    expect(result.violations.some(v => v.anchor === "catalog-item-kind")).toBe(true);
+  });
+
+  it("R6-W2/F-024: catches a validator-side validCatalogItem accepting a non-domain kind", () => {
+    const tampered = TFV.replace(
+      '(value.kind === "product" || value.kind === "service")',
+      '(value.kind === "product" || value.kind === "service" || value.kind === "subscription")',
+    );
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(files({ "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts": tampered })),
+    );
+    expect(result.violations.some(v => v.anchor === "catalog-item-kind")).toBe(true);
+  });
+
+  it("R6-W2/F-024: catches a domain-side ScheduleStatus union drift", () => {
+    const tampered = STORAGE_TYPES.replace(' | "cancelled"', "");
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(files({ "apps/prototype-web/client/src/storage/local/types.ts": tampered })),
+    );
+    expect(result.violations.some(v => v.anchor === "schedule-status")).toBe(true);
+  });
+
+  it("R6-W2/F-024: catches a validator-side isScheduleStatus drift", () => {
+    const tampered = TFV.replace(
+      'value === "scheduled" || value === "postponed" || value === "completed" || value === "cancelled";',
+      'value === "scheduled" || value === "postponed" || value === "completed" || value === "cancelled" || value === "archived";',
+    );
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(files({ "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts": tampered })),
+    );
+    expect(result.violations.some(v => v.anchor === "schedule-status")).toBe(true);
+  });
+
+  it("R6-W2/F-024: catches a domain-side yield-readiness union drift", () => {
+    const tampered = CATALOG_TYPES.replace(' | "needs_conversion"', "");
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(files({ "src/domain/catalog/types.ts": tampered })),
+    );
+    expect(result.violations.some(v => v.anchor === "yield-readiness")).toBe(true);
+  });
+
+  it("R6-W2/F-024: catches a validator-side isYieldReadiness drift", () => {
+    const tampered = TFV.replace(
+      'value === "not_configured" || value === "ready" || value === "needs_conversion";',
+      'value === "not_configured" || value === "ready";',
+    );
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(files({ "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts": tampered })),
+    );
+    expect(result.violations.some(v => v.anchor === "yield-readiness")).toBe(true);
+  });
+
+  it("R6-W2/F-024: catches a domain-side short-cash declaration union drift (G5Direction)", () => {
+    const tampered = FIN_ANALYSIS_TYPES.replace('"collection" | "commitment"', '"collection" | "commitment" | "reversal_in"');
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(files({ "src/domain/financial-analysis/types.ts": tampered })),
+    );
+    expect(result.violations.some(v => v.anchor === "short-cash-declaration")).toBe(true);
+  });
+
+  it("R6-W2/F-024: catches a validator-side validShortCashDeclaration knowledge drift", () => {
+    const tampered = TFV.replace(
+      '(value.knowledge === "known" || value.knowledge === "estimated" || value.knowledge === "needs_review")\n  );\n}\nexport const isExpenseContext',
+      '(value.knowledge === "known" || value.knowledge === "estimated")\n  );\n}\nexport const isExpenseContext',
+    );
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(files({ "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts": tampered })),
+    );
+    expect(result.violations.some(v => v.anchor === "short-cash-declaration")).toBe(true);
+  });
+
+  it("R6-W2/F-024: catches a domain-side expense-context union drift (ExpensePurpose)", () => {
+    const tampered = FIN_EVENT_TYPES.replace(' | "unallocated"', "");
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(files({ "src/domain/financial-event/types.ts": tampered })),
+    );
+    expect(result.violations.some(v => v.anchor === "expense-context")).toBe(true);
+  });
+
+  it("R6-W2/F-024: catches a validator-side isExpenseContext behavior drift", () => {
+    const tampered = TFV.replace(
+      '(value.behavior === "fixed" || value.behavior === "variable" || value.behavior === "mixed" || value.behavior === "unknown")',
+      '(value.behavior === "fixed" || value.behavior === "variable" || value.behavior === "mixed")',
+    );
+    const result = checkAcceptanceValueAnchors(
+      REPO_ROOT,
+      readFrom(files({ "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts": tampered })),
+    );
+    expect(result.violations.some(v => v.anchor === "expense-context")).toBe(true);
   });
 
   it("live repo smoke: all guarded sites consume their canonical sources (exit 0)", () => {

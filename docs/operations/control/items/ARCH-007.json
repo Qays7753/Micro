@@ -107,7 +107,8 @@
     "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-OWNER-REVIEW-AND-DECISION-PACKAGE-2026-10-09.md",
     "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-W1-RECORDS-RECONCILIATION-EXECUTION-REPORT-2026-10-09.md",
     "https://github.com/Qays7753/Micro/pull/338",
-    "https://github.com/Qays7753/Micro/actions/runs/37980287858"
+    "https://github.com/Qays7753/Micro/actions/runs/37980287858",
+    "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-W2-TEST-DETERMINISM-AND-ANCHOR-HARDENING-EXECUTION-REPORT-2026-10-09.md"
   ],
   "dependencies": [],
   "related_items": [
@@ -125,5 +126,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R6 read-only scan complete and owner-accepted (canonical report + decision package on main via PR #337 at fd92d7e8). **R6-W1 IN_REVIEW — PR #338 open** (final content head 583391975bfd6a8cb005d52f66a3865e8501463f from base fd92d7e8, plus the final closing pin commit on top = live PR head; exact live-head SHA and final merge statistics pinned in the PR #338 body; 15 documentation/control files only, +501/-86): F-002..F-026 doc reconciliation + durable R6-SCAN-F-001..027 matrix (register §8) + explicit R7 packages R6-F17-P01..P11; zero code/test/script/CSS change; prior evidence restored append-only after the first owner review (no R2–R5 evidence removed). Next: owner review + merge of PR #338 by separate authorization (no merge from this session), then post-merge verification and administrative reconciliation, then R6-W2 (F-001 test-only + F-024 after precise site inventory) and R6-W3 (text-density-count.py split). R7 does not start before R6 findings close or carry protected decisions."
+  "next_action": "R6 read-only scan complete and owner-accepted; R6-W1 corrected on PR #338 (open at the owner gate; prior evidence restored append-only; final content head 58339197 + closing pin b3048f2a = live head; CI green on the exact head). **R6-W2 EXECUTED ON BRANCH — PR pending** (stacked on the W1 head b3048f2a; test/guard-only): F-001 StateRecovery.w44.dom.test.tsx determinism root fix via the releaseRead gate (Home.dom.test.tsx:157 precedent; assertion kept verbatim; 14 consecutive green focused runs; app suite 323/2388 green) + F-024 precise six-site inventory delivered before implementation (inventoryMovementType, catalogItemKind, scheduleStatus, yieldReadiness, shortCashDeclaration, expenseContext) and acceptance-value-anchor guard extended with a double pin (domain union == validator literals == documented set; 13 new tests incl. both-direction negatives; root suite 723/723). Zero production change; schema 38 / export 30 untouched; the 4D root fix stays owner-gated. Next: owner review + merge of PR #338 then the W2 PR by separate authorization (no merge from this session), then R6-W3 (text-density-count.py split, characterization first). R7 does not start before R6 findings close or carry protected decisions."
 }
