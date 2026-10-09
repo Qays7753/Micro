@@ -101,7 +101,13 @@
     "scripts/check-application-readwrite.mjs",
     "https://github.com/Qays7753/Micro/pull/335",
     "https://github.com/Qays7753/Micro/actions/runs/37892032808",
-    "https://github.com/Qays7753/Micro/commit/092c933bdcdf1666f8f8cf83bb7d5f030b8d4e6d"
+    "https://github.com/Qays7753/Micro/commit/092c933bdcdf1666f8f8cf83bb7d5f030b8d4e6d",
+    "https://github.com/Qays7753/Micro/pull/337",
+    "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-PREFLIGHT-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-09.md",
+    "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-OWNER-REVIEW-AND-DECISION-PACKAGE-2026-10-09.md",
+    "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-W1-RECORDS-RECONCILIATION-EXECUTION-REPORT-2026-10-09.md",
+    "https://github.com/Qays7753/Micro/pull/338",
+    "https://github.com/Qays7753/Micro/actions/runs/37980287858"
   ],
   "dependencies": [],
   "related_items": [
@@ -119,5 +125,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R5 is merged and verified on main at merge commit 092c933bdcdf1666f8f8cf83bb7d5f030b8d4e6d (PR #335; post-merge CI run 37892032808 succeeded on that SHA). R6 is not started. Its mandatory entry gate is a read-only comprehensive Structure/Architecture/Code Organization Scan covering module and feature boundaries, file responsibilities and oversized files, dependency/layer violations and cycles, duplication and sources of truth, discoverability, storage/application/domain/UI composition, test/documentation mapping, and a target module map. Produce one detailed findings report classifying every item as FIX_NOW, PRESERVE, DEFER, or OUT_OF_SCOPE, with minimum safe remediation waves, dependencies, risks, acceptance criteria, rollback boundaries, and owner review/acceptance. No structural refactoring, bulk move, rename, or code-organization change may start before the owner accepts the findings."
+  "next_action": "R6 read-only scan complete and owner-accepted (canonical report + decision package on main via PR #337 at fd92d7e8). **R6-W1 IN_REVIEW — PR #338 open** (final content head 583391975bfd6a8cb005d52f66a3865e8501463f from base fd92d7e8, plus the final closing pin commit on top = live PR head; exact live-head SHA and final merge statistics pinned in the PR #338 body; 15 documentation/control files only, +501/-86): F-002..F-026 doc reconciliation + durable R6-SCAN-F-001..027 matrix (register §8) + explicit R7 packages R6-F17-P01..P11; zero code/test/script/CSS change; prior evidence restored append-only after the first owner review (no R2–R5 evidence removed). Next: owner review + merge of PR #338 by separate authorization (no merge from this session), then post-merge verification and administrative reconciliation, then R6-W2 (F-001 test-only + F-024 after precise site inventory) and R6-W3 (text-density-count.py split). R7 does not start before R6 findings close or carry protected decisions."
 }

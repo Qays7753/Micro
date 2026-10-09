@@ -2,26 +2,29 @@
 
 **الإصدار:** v1.5 (W6/عقد ما بعد المسح — استثناءات طويلة الأجل مقبولة كاملة الأركان للمحولين وسياسات الصنعة، 2026-10-05؛ v1.4 (إعادة قياس — شرائح عناقيد المالية — 2026-10-03)؛ تصحيح Wave E/ADR-016 (2026-10-04): حُذفت وحدة توافق finance/withdrawalWalletGuard.ts (مستوردها الوحيد غير-UI هاجر للبيت الأساس) — أول حذف موثق لوحدة توافق؛ الشيم 9→8؛ تصحيح Wave F/ADR-013 (2026-10-04): قُسّم integrityCheckService.ts داخليًا (1,430 SPLIT_NOW → مُنسِّق 180 NORMAL + 8 ملفات أشقاء في البيت المالي نفسه: integrityCheckModel 149 NORMAL، integrityCheckCoreFinance 430 WATCH [عائلة المجموعة ١: MIC-1/2/4/7/9]، integrityCheckInventory 128 NORMAL [MIC-8]، integrityCheckAssetsLoans 400 WATCH [عائلة عقد ٢٩: MIC-10..13]، integrityCheckContinuity 111 NORMAL [MIC-14..16]، integrityCheckSupplierWallet 65 NORMAL [MIC-17]، integrityCheckSettlementBasis 24 NORMAL [MIC-18 — الاستيراد العميق الموثق STR-205 انتقل معه]، integrityCheckOffenderSummaries 112 NORMAL) — نقل حرفي بلا تغيير دلالة؛ WATCH = مراقبة نمو العائلة وفق زناد مراجعة ADR-013 (أي فحص MIC جديد)؛ أساس الراتشة حُدّث بالتعدادات الحية في نفس الـPR؛ إعادة القياس الشاملة عند رأس الموجة التالي؛ تصحيح Wave F شريحة 2/ADR-013 عنقود ٣ (2026-10-04): قُسّم projectFinancialService.ts داخليًا (1,503 SPLIT_NOW → مُنسِّق 132 NORMAL + 5 أشقاء: projectFinancialTypes 288 NORMAL [أُكمل البيت الورقي بأنواع السطح كلها]، projectFinancialReads 213 NORMAL [المركز والقوائم]، projectFinancialPeriodReads 407 WATCH [عائلة نتيجة الفترة واشتقاق COGS]، projectFinancialInsights 207 NORMAL [المؤشرات — الاستيراد العميق الموثق D-034 انتقل معها]، projectFinancialEventWrites 513 WATCH [مسار الكتابة المحروس + توزيع PA-002 بترتيبه الأصلي]) — نقل حرفي بلا تغيير صيغة/تقريب/تصنيف؛ ورفيق الشريحة (STR-608): تكثيف هامش GZIP — مفردات رسائل resultCodes + معين errorMessageOf لـ105 مواقع النمط الملتقط + ثوابت الملف الواحد — الحزمة 630,886/154,787 (كانت 641,360/154,817 — هامش GZIP 213 بايتًا بعد جولتَي التكثيف؛ أي موجة تمس الحزمة تقيس قبل الدفع وفق ADR-012)؛ تصحيح Wave F شريحة ٣/ADR-014 + بوابة سياسة الحزمة ADR-017 (2026-10-04): قُسّم inventoryMaterialService.ts داخليًا (1,428 SPLIT_NOW → مُنسّق 181 NORMAL + 7 أشقاء في البيت نفسه: model 258 N، reads 305 N، activation 78 N، lifecycle 238 N، writes 269 N، waste 159 N، shortages 161 N — كلها دون WATCH وفق شرط ADR-014) وروافد التكثيف R1/R2 أوصلت الحزمة إلى 630,510/155,088؛ وبقرار المالك الموثق (ADR-017) اشتُق سقف gzip البرنامجي 155,300 من أعلى معدل مقاس (0.2108 بايت/سطر) على المجمع الإنتاجي المتبقي المحدود وصُنّف transferFamilyValidators.ts **PRESERVE** (إبقاء موثق — بطاقة الملف أدناه) فأغلقت شريحة ٣ تحت السقف المشتق بهامش 212 بايتًا؛ لا رفع لاحق في البرنامج
 **النطاق:** كل ملف كود إنتاجي/اختبار/سكربت/مولّد/fixture/إعداد متتبَّع في المستودع عند الرأس أدناه
-**رأس القياس:** `4a4e317ff10e87ecc07e3f16c890e9c52ef4010b` (branch `refactoring/remediation-program-20261003`) — قياس v1.0 الأول كان عند `a59eeb1546a7323ecfe720e4ce9a77f178474fb6` (فرع تقرير PR #299)
+**رأس القياس:** `4a4e317ff10e87ecc07e3f16c890e9c52ef4010b` (branch `refactoring/remediation-program-20261003`) — قياس v1.0 الأول كان عند `a59eeb1546a7323ecfe720e4ce9a77f178474fb6` (فرع تقرير PR #299) *(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-002]: رأس المصالحة الحالية `fd92d7e8812726dcca8d27d3ad64c8f24dc96abd` بعد دمج PR #337 — إعادة إصدار §1 وإضافة صفوف الأشقاء الأربعة وملاحظات النمو المؤرخة تمت عنده؛ قيم الصفوف الفردية تبقى تاريخية عند رؤوسها الموثقة إلا ما حمل ملاحظة مؤرخة، وإعادة القياس الشامل الكاملة تبقى التزامًا عند كل رأس موجة يغيّر بنية الملفات وفق §6)*
 **الغرض:** سجل تنقّل وتحكم نمو — ليس مصدر سياسة ثانيًا؛ يربط إلى المصادر السلطوية ولا يعيد صياغة قواعدها.
 
 > **منهجية التصنيف:** الفئات (production/test/script/generated/fixture/config) تُستخرج من المسار وأنماط الأسماء؛ الأحجام مقيسة على الشجرة الحية؛ المستهلكون من رسم الاستيراد AST (651 ملفًا) + grep للأسماء للسكربتات/الإعدادات؛ التغطية الاختبارية من استيرادات ملفات الاختبار. الأشرطة إشارة مراجعة لا أمر تقسيم آلي (PLAN-A-TO-Z §7.3). الملفات دون إشارات خاصة تحمل الحقول العامة من المنهجية: المسؤولية = الدور الطبقي للمسار، سبب التغيير = شريط النمو/الإجراء، أثر الرجوع = حسب الطبقة (domain/storage=HIGH، اختبار/مولّد=LOW، الباقي=MEDIUM).
 
 > **تصحيح مؤرخ 2026-10-07 — R1/TG-01 [R0-N6]:** كل إشارة إلى «بطاقات الفجوة» في صفوف هذا الجرد (13 إشارة حية بمقياس `grep -c "بطاقات الفجوة"`؛ قياس R0 قدّرها 15) هي **وعد معلق أُنشئ قبل خريطة G2** ولم يُستكمل: لا يوجد مستند بطاقات فجوة في المستودع. الدليل الفعلي الحالي لتغطية كل صفحة/سطح هو **خريطة الاختبارات والتوثيق المولدة** (`TEST-AND-DOCUMENTATION-MAP.md` + `generated/test-map.json` بفحص انجراف زمن CI المحلي) — تصنيف الدليل (direct/named-reference) وأدلته هما المرجع؛ واستكمال بطاقات فجوة صريحة للملفات ذات الاختبارات الصفرية مجدول في موجة R9. تُقرأ الإشارات التاريخية في الصفوف على هذا الأساس ولا تُحرر فرديًا.
 
-> **استثناءات موثقة (خارج جدول الصفوف):** ملفات `docs/**` التوثيقية غير السلطوية المسار تُحكم بفهرس الوثائق (`scripts/check-doc-index-coverage.mjs`) لا بهذا السجل (منع مصدر حقيقة ثانٍ)؛ الأصول الثنائية تحت `apps/prototype-web/client/public/**` (خطوط/صور/PWA) تُحكم بسياسة الصور والهوية البصرية (`scripts/check-image-policy.mjs`) — كلاهما مذكور هنا بالعد لا بالصفوف. عدد ملفات git المتتبعة الكلي عند رأس القياس = 1,323 (التاريخ: 1,262 عند قياس v1.0 ← 1,308 عند 4C ← 1,313 ← 1,318 ← 1,323)؛ منها 752 ملفًا داخل نطاق هذا السجل (كان 697 — دلتا الموجات موثقة في §7).
+> **استثناءات موثقة (خارج جدول الصفوف):** ملفات `docs/**` التوثيقية غير السلطوية المسار تُحكم بفهرس الوثائق (`scripts/check-doc-index-coverage.mjs`) لا بهذا السجل (منع مصدر حقيقة ثانٍ)؛ الأصول الثنائية تحت `apps/prototype-web/client/public/**` (خطوط/صور/PWA) تُحكم بسياسة الصور والهوية البصرية (`scripts/check-image-policy.mjs`) — كلاهما مذكور هنا بالعد لا بالصفوف. عدد ملفات git المتتبعة الكلي عند رأس القياس = 1,323 (التاريخ: 1,262 عند قياس v1.0 ← 1,308 عند 4C ← 1,313 ← 1,318 ← 1,323)؛ منها 752 ملفًا داخل نطاق هذا السجل (كان 697 — دلتا الموجات موثقة في §7). *(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-002]: عند رأس المصالحة `fd92d7e8` المتتبع = 1,551 (1,549 عند `43a0f12` + ملفَي أدلة R6 عبر PR #337) وصفوف §2 = **757** — 753 صفًا + 4 صفوف أشقاء Wave-F أضيفت بمصالحة R6-W1 (F-003)؛ الإضافات دون العتبة منذ رأس القياس (عائلات قدرات R3 وحراس R5 واختباراتها) تحكمها الراتشة (أساس حارٍ حتى R5/S4) وبروتوكول STR-607 نفس-الـPR وتُدرج صفًا عند إعادة القياس الشاملة القادمة — لا صمتًا بل بعدًا مؤرخًا؛ السلطة المرجعية لهذه المصالحة: تقرير مسح R6 المقبول `docs/operations/control/evidence/structural-remediation-r6-20261009/R6-PREFLIGHT-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-09.md` §8)*
 
 ## 1. ملخص الأشرطة
 
 | الشريط | العدد | المعنى |
 |---|---:|---|
 | NORMAL | 681 | لا إجراء حجمي بحد ذاته |
-| WATCH | 42 | مراقبة النمو |
+| WATCH | 47 | مراقبة النمو |
 | SPLIT_CANDIDATE | 13 | خطة منع تضخم قبل إضافة نطاق |
-| SPLIT_NOW | 12 | بطاقة ومستهلكون قبل أي نقل |
+| SPLIT_NOW | 9 | بطاقة ومستهلكون قبل أي نقل |
+| PRESERVE | 3 | استثناء طويل الأجل مقبول كامل الأركان (بطاقة الملف) |
 | LARGE_TEST | 4 | أصل اختبار كبير — لا يُحكم كإنتاجي |
 
-**الفئات:** config=21، fixture=29، generated=7، production=338، script=20، test=337
+**الفئات:** config=21، fixture=29، generated=7، production=343، script=20، test=337
+
+*(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-002]، من ← إلى: كان «NORMAL 681 / WATCH 42 / SPLIT_CANDIDATE 13 / SPLIT_NOW 12 / LARGE_TEST 4 (المجموع 752)؛ production=338» ← أصبح الجدول أعلاه (المجموع 757 صفًا؛ production=343). الأسباب الثلاثة الموثقة: (1) صف بيت recurring المنقول (D2) رفع §2 إلى 753 دون §1 (production 338←339)؛ (2) تصعيد profitToCashBridgeService المُؤرَّخ R5/S4 (398←402 nbLOC) صُحّح عموده إلى WATCH مطابقةً لأساس الراتشة الحاكم (NORMAL 682←681، WATCH 42←43)؛ (3) أُضيفت صفوف الأشقاء الأربعة WATCH لـWave F (F-003: EventWrites 443، CoreFinance 430، PeriodReads 422، AssetsLoans 400 — WATCH 43←47، production 339←343). «SPLIT_NOW 12» كانت اصطلاح عدّ (9 + 3 PRESERVE-band) والآن تُعرض صراحةً. التطابق الحي: WATCH 47 صفًا = 47 مفتاح WATCH في `scripts/file-size-ratchet-baseline.json` = الشجرة (تحقق R6-W1 بمقارنة تعداد مباشرة)؛ الملفات بحجم SPLIT_NOW فعلًا = 9 (صفوف Wave-F الثلاثة التاريخية صارت NORMAL حيةً). المصدر: تقرير مسح R6 §8 [F-002] + قياس R6-W1 الحي عند `fd92d7e8`.)*
 
 ## 2. جدول السجل (كل ملف داخل النطاق)
 
@@ -32,38 +35,38 @@
 | `apps/prototype-web/client/src/index.css` | production | 6778 | 6837 | 179128 | 0 | 0 | 1 | 0 | SPLIT_NOW | ui | UI_OUT_OF_SCOPE (design-token guards govern) | — |
 | `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts` | production | 4135 | 4139 | 170456 | 2 | 30 | 21 | 19 | PRESERVE | storage | **استثناء طويل الأجل مقبول (W6/عقد ما بعد المسح، 2026-10-05):** مسؤولية واحدة (تنفيذ المحول)؛ العائلة مقسمة سلفًا (Stores/Migrations/Lifecycle/Snapshot/Primitives + 10 حراس كتابة + 7 قدرات)؛ الحجم دالة اتساع المنفذ (131 طريقة *(تصحيح مؤرخ 2026-10-07 — R1/TG-01: الحي **130** بعد STR-618)* ) لا اختلاط مسؤوليات؛ النمو مجمد بالراتشة؛ التكافؤ مثبت (13/13 + 42/42)؛ المحفزات: مجموعة قدرة جديدة/ترحيل/عبور شريط؛ الشرط الخروجي: قرار مالك ب modularization المحولات | M |
 | `apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts` | production | 2091 | 2099 | 99357 | 1 | 25 | 180 | 178 | PRESERVE | storage | **استثناء طويل الأجل مقبول (W6/عقد ما بعد المسح، 2026-10-05):** المرآة الذاكرية بنفس أساس الاستثناء أعلاه — مسؤولية واحدة (إثبات قابلية استبدال المحول)؛ سيميائية مطابقة حرفيًا يثبتها 178 ملف اختبار مباشرًا ومصفوفة المطابقة؛ النمو مجمد بالراتشة؛ المحفزات والشرط الخروجي كما في المحول الرئيسي. *(مراجعة R4-A2 مؤرخة 2026-10-08: التصنيف الحي production/storage لا UI — تسليم صريح لموجة R6 المعتمدة: أي شطر حقيقي للمحول الذاكري يقرره R6 بقرار مالك؛ عناصر البطاقة التسعة كاملة في §810 — مالك/سبب/جرد/حد نمو/حارس/محفز/شرط خروج/اختبارات/حد رجوع)* | M |
-| `apps/prototype-web/client/src/pages/OrderDetail.tsx` | production | 1833 | 1888 | 99913 | 1 | 28 | 12 | 11 | SPLIT_NOW | ui | UI_OUT_OF_SCOPE (Wave T) — size noted, no action this program | M |
-| `apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts` | production | 1718 | 1733 | 76500 | 76 | 7 | 8 | 3 | SPLIT_NOW | application | **PRESERVE — إبقاء موثق (تصرّف ADR-017، 2026-10-04):** مسؤولية واحدة متماسكة (تدقيق أشكال حمولات الاستيراد — unknown→boolean بعقود حرفية)، المستهلكون الثمانية كلهم داخل بيت transfers، والحراس (مراسي الدريفت + التوصيف + سجل التوافق + الذهبيات) مسلَّمة وموثقة؛ جذر الخطر تكرار معرفة المجال (STR-104/509) والتقسيم لا يعالجه — العلاج المسمى هو استكمال 4D (استهلاك حرّي المجال) بقرار مالك لاحق؛ لا تقسيم هيكلي في هذا البرنامج، النمو مثبّت بالراتشة (1,718/76,500)، ومحفزات المراجعة وشروط إعادة فتح البطاقة في ADR-017 §3 | M |
-| `apps/prototype-web/client/src/pages/Finance.tsx` | production | 1619 | 1639 | 82932 | 3 | 38+ | 17 | 15 | SPLIT_NOW | ui | UI_OUT_OF_SCOPE (Wave T) | M |
+| `apps/prototype-web/client/src/pages/OrderDetail.tsx` | production | 1833 | 1888 | 99913 | 1 | 28 | 12 | 11 | SPLIT_NOW | ui | **حزمة R7 صريحة R6-F17-P01 [R6-SCAN-F-017]:** مسار بنيوي موجه لحزمة R7 «UI structural boundaries» ببطاقة كاملة (owner/seam/نطاق/زناد/اعتماديات/قبول/رحلات/شرط خروج/رجوع/استبعاد بصري صريح) في §3 — لا عمل UI في R6؛ البصري track T حصرًا | M |
+| `apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts` | production | 1718 | 1733 | 76500 | 76 | 7 | 8 | 3 | SPLIT_NOW | application | **PRESERVE — إبقاء موثق (تصرّف ADR-017، 2026-10-04):** مسؤولية واحدة متماسكة (تدقيق أشكال حمولات الاستيراد — unknown→boolean بعقود حرفية)، المستهلكون الثمانية كلهم داخل بيت transfers، والحراس (مراسي الدريفت + التوصيف + سجل التوافق + الذهبيات) مسلَّمة وموثقة؛ جذر الخطر تكرار معرفة المجال (STR-104/509) والتقسيم لا يعالجه — العلاج المسمى هو استكمال 4D (استهلاك حرّي المجال) بقرار مالك لاحق؛ لا تقسيم هيكلي في هذا البرنامج، ومحفزات المراجعة وشروط إعادة فتح البطاقة في ADR-017 §3 *(ملاحظة نمو مؤرخة 2026-10-09 — R6-W1 [R6-SCAN-F-005]: الحي **1,730 nbLOC / 77,703 بايت** عند `fd92d7e8` — تجاوز تثبيت ADR-017 (1,718/76,500) بـ +12/+1,203 من التزامات R2 المؤرخة b890f9a2/388dac65/a476ed7a [تفويض نواة التاريخ المحلي] دون ملاحظة مؤرخة وقتها؛ النمو حميد والقرار قائم [F-013]؛ الراتشة تحرس حدود الأشرطة فقط لا التثبيت الدقيق — جملة «النمو مثبّت بالراتشة (1,718/76,500)» أعلاه صُحّحت بهذه الملاحظة، والإنفاذ ضد النمو غير المبرر داخل الشريط = حزمة R8 الموثقة في §7)* *(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-007]: الاختبارات المباشرة الحية **4** لا 3 — أُضيف localDateVariantDivergence.characterization)* | M |
+| `apps/prototype-web/client/src/pages/Finance.tsx` | production | 1619 | 1639 | 82932 | 3 | 38+ | 17 | 15 | SPLIT_NOW | ui | **حزمة R7 صريحة R6-F17-P02 [R6-SCAN-F-017]:** مسار بنيوي موجه لحزمة R7 «UI structural boundaries» ببطاقة كاملة (owner/seam/نطاق/زناد/اعتماديات/قبول/رحلات/شرط خروج/رجوع/استبعاد بصري صريح) في §3 — لا عمل UI في R6؛ البصري track T حصرًا | M |
 | `apps/prototype-web/client/src/application/finance/projectFinancialService.ts` | production | 1503 | 1518 | 80893 | 19 | 17+ | 115 | 94 | SPLIT_NOW | application | **قُسّم داخليًا (Wave F/ADR-013 عنقود ٣ — 2026-10-04):** القارئ الكنوني صار المُنسِّق (132 nbLOC NORMAL — عقد ٤٠ §8 هويةً وواجهة) وعائلات القراءة والكتابة انتقلت حرفيًا إلى 5 أشقاء في البيت نفسه (القيم في هذا الصف تاريخية عند رأس القياس؛ الأشرطة الحية في أساس الراتشة المحدّث نفس-الـPR)؛ لا صيغة ولا تقريب ولا تصنيف تحرّك | M |
 | `apps/prototype-web/client/src/application/finance/integrityCheckService.ts` | production | 1430 | 1460 | 78503 | 8 | 12+ | 13 | 11 | SPLIT_NOW | application | **قُسّم داخليًا (Wave F/ADR-013 — 2026-10-04):** صار المُنسِّق وحده (180 nbLOC NORMAL — الحقن والترتيب والتقرير) وعائلات فحوص MIC انتقلت حرفيًا إلى 8 ملفات أشقاء في البيت نفسه (القيم في هذا الصف تاريخية عند رأس القياس؛ الأشرطة الحية في أساس الراتشة المحدّث نفس-الـPR)؛ لا تغيير دلالة ولا إقامة | M |
 | `apps/prototype-web/client/src/application/inventory/inventoryMaterialService.ts` | production | 1428 | 1432 | 68300 | 24 | 5 | 68 | 56 | SPLIT_NOW | application | **قُسّم داخليًا (Wave F شريحة ٣/ADR-014 — 2026-10-04، تحت سقف ADR-017 المشتق):** الخدمة صارت منسّقًا رفيعًا (181 nbLOC NORMAL — تفويض رفيع بتوقيع الباني نفسه والصادرات الـ24 كلها معاد تصديرها حرفيًا من النموذج) + 7 أشقاء في البيت نفسه: model (258 NORMAL — أنواع السطح والمصنع)، reads (305 NORMAL — القراءات والاقتراحات)، activation (78 NORMAL)، lifecycle (240 NORMAL — التنشيط والدورة والقصور)، writes (269 NORMAL — الكتابات المحروسة)، waste (159 NORMAL — الهدر) (تصحيح عددي D1 من تدقيق Y — القيم الحية بعد تنقيحات R1/R2)، shortages (161 NORMAL)؛ رسم نجمي (الأشقاء → model فقط؛ الخدمة → الجميع؛ صفر دورات؛ صفر مستورد خارجي للأشقاء)؛ القيم في هذا الصف تاريخية عند رأس القياس، والأشرطة الحية في أساس الراتشة المحدّث نفس-الـPR (400 شريطًا) | M |
-| `src/domain/craft-order/policies.ts` | production | 1399 | 1493 | 74026 | 30 | 3 | 3 | 0 | PRESERVE | domain | **استثناء طويل الأجل مقبول (W6/عقد ما بعد المسح، 2026-10-05):** وحدة سياسات مجال الصنعة — دلالة مجمّدة بعقود (02/10/12) وتوصيف حرفي (W2 لنصوص رسائلها) وحارس settlementInvariant؛ التقسيم خلط دلالي عالي الخطورة في أكثر ملف مالي حساسية بلا مكسب بنيوي (الفواصل الدلالية موثقة بالتعليقات)؛ النمو مجمد بالراتشة (1,399)؛ المحفز: عبور الشريط أو موجة مالك مستقبلية بمدى exact؛ الشرط الخروجي: قرار مالك | — |
-| `apps/prototype-web/client/src/pages/FinancialEventEditor.tsx` | production | 1268 | 1285 | 62162 | 1 | 23 | 5 | 4 | SPLIT_NOW | ui | UI_OUT_OF_SCOPE (Wave T) | M |
+| `src/domain/craft-order/policies.ts` | production | 1399 | 1493 | 74026 | 30 | 3 | 3 | 0 | PRESERVE | domain | **استثناء طويل الأجل مقبول (W6/عقد ما بعد المسح، 2026-10-05):** وحدة سياسات مجال الصنعة — دلالة مجمّدة بعقود (02/10/12) وتوصيف حرفي (W2 لنصوص رسائلها) وحارس settlementInvariant؛ التقسيم خلط دلالي عالي الخطورة في أكثر ملف مالي حساسية بلا مكسب بنيوي (الفواصل الدلالية موثقة بالتعليقات)؛ المحفز: عبور الشريط أو موجة مالك مستقبلية بمدى exact؛ الشرط الخروجي: قرار مالك *(ملاحظة نمو مؤرخة 2026-10-09 — R6-W1 [R6-SCAN-F-004/F-006]: الحي **1,413** عند `fd92d7e8` — +14 من التزامات R2 الجذرية 94cfba77 [D11: نص المال الكنوني المُبقَى] و7fcf37d2 [نواة التاريخ المحلي] دون ملاحظة مؤرخة وقتها؛ نمو حميد والقرار قائم؛ جملة «النمو مجمد بالراتشة (1,399)» أعلاه صُحّحت بهذه الملاحظة؛ البطاقة مكتملة الأركان التسعة ومصالحة مع هذا الصف في §3)* | — |
+| `apps/prototype-web/client/src/pages/FinancialEventEditor.tsx` | production | 1268 | 1285 | 62162 | 1 | 23 | 5 | 4 | SPLIT_NOW | ui | **حزمة R7 صريحة R6-F17-P03 [R6-SCAN-F-017]:** مسار بنيوي موجه لحزمة R7 «UI structural boundaries» ببطاقة كاملة (owner/seam/نطاق/زناد/اعتماديات/قبول/رحلات/شرط خروج/رجوع/استبعاد بصري صريح) في §3 — لا عمل UI في R6؛ البصري track T حصرًا | M |
 | `apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts` | production | 1184 | 1185 | 55530 | 1 | 5 | 2 | 1 | SPLIT_CANDIDATE | application | **PRESERVE — إبقاء موثق (مراجعة R4-C2، 2026-10-08):** كان تصنيفه SPLIT_CANDIDATE بتوصيف مسبق «characterization first (Wave 3A)» — والتوصيف قائم الآن (أربعة ملفات characterization). مراجعة R4: الملف دالة واحدة `validateSnapshot` تجري لكل عائلة فحص الشكل (بتفويض مدققات العائلات) **وقواعد العلاقات المضمّنة** (المراجع/الأيتام/التفرّد/الطي) على مجموعة ~15 طقم معرّفات/مفاتيح مشترك عبر العائلات (orderIds تستهلكها actualTime، catalogIds تستهلكها orders/drafts، طيّ المخزون لكل مادة...) — فصل «قواعد العلاقات» يخيط الأطقم المشتركة بين وحدات لم يغير ملكية حقيقية (مستهلك واحد، سطح اختبار واحد) وهو شق آلي بالأقسام لا شق مسؤولية. محفزات إعادة الفتح: عائلة جديدة بملكية علاقات مستقلة، أو إتمام 4D الذي ينقل فحص الشكل للمجال ويعيد تقييم البنية؛ النمو محروس بالراتشة (1,184/55,530) | — |
-| `apps/prototype-web/client/src/pages/SupplierPurchaseEditor.tsx` | production | 1157 | 1184 | 57934 | 1 | 22 | 6 | 5 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | M |
-| `apps/prototype-web/client/src/pages/OwnerEntitlement.tsx` | production | 1133 | 1157 | 51692 | 1 | 17 | 2 | 1 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | M |
+| `apps/prototype-web/client/src/pages/SupplierPurchaseEditor.tsx` | production | 1157 | 1184 | 57934 | 1 | 22 | 6 | 5 | SPLIT_CANDIDATE | ui | **حزمة R7 صريحة R6-F17-P04 [R6-SCAN-F-017]:** مسار بنيوي موجه لحزمة R7 «UI structural boundaries» ببطاقة كاملة (owner/seam/نطاق/زناد/اعتماديات/قبول/رحلات/شرط خروج/رجوع/استبعاد بصري صريح) في §3 — لا عمل UI في R6؛ البصري track T حصرًا | M |
+| `apps/prototype-web/client/src/pages/OwnerEntitlement.tsx` | production | 1133 | 1157 | 51692 | 1 | 17 | 2 | 1 | SPLIT_CANDIDATE | ui | **حزمة R7 صريحة R6-F17-P05 [R6-SCAN-F-017]:** مسار بنيوي موجه لحزمة R7 «UI structural boundaries» ببطاقة كاملة (owner/seam/نطاق/زناد/اعتماديات/قبول/رحلات/شرط خروج/رجوع/استبعاد بصري صريح) في §3 — لا عمل UI في R6؛ البصري track T حصرًا | M |
 | `apps/prototype-web/client/src/application/owner-money/ownerEntitlementService.ts` | production | 1093 | 1109 | 51408 | 14 | 7 | 10 | 8 | SPLIT_CANDIDATE | application | SPLIT_CANDIDATE — cluster home settled in 4B; future slices per registry | — |
-| `apps/prototype-web/client/src/pages/Schedule.tsx` | production | 1013 | 1035 | 40876 | 1 | 15+ | 2 | 1 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | M |
-| `apps/prototype-web/client/src/pages/DirectSaleEditor.tsx` | production | 998 | 1022 | 49905 | 1 | 20 | 5 | 4 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | M |
-| `apps/prototype-web/client/src/pages/InventoryMovementEditor.tsx` | production | 965 | 973 | 46383 | 1 | 15 | 4 | 3 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | — |
-| `src/domain/financial-analysis/policies.ts` | production | 937 | 976 | 43735 | 7 | 2 | 2 | 0 | SPLIT_CANDIDATE | domain | SPLIT_CANDIDATE — content unchanged by the 4A rename; growth-control plan before adding scope | — |
-| `src/domain/owner-entitlement/policies.ts` | production | 906 | 934 | 38310 | 16 | 2 | 1 | 0 | SPLIT_CANDIDATE | domain | SPLIT_CANDIDATE — PRESERVE (domain purity; registry row) | — |
-| `apps/prototype-web/client/src/storage/local/types.ts` | production | 877 | 885 | 51790 | 40 | 17 | 160 | 69 | SPLIT_CANDIDATE | storage | SPLIT_CANDIDATE — PRESERVE structure this program (port inventory Wave N); no split before Wave O gate | — |
-| `apps/prototype-web/client/src/pages/InventoryMaterials.tsx` | production | 863 | 880 | 39799 | 1 | 15 | 6 | 5 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | M |
-| `apps/prototype-web/client/src/components/finance/EventsLayer.tsx` | production | 834 | 843 | 40324 | 3 | 13 | 2 | 1 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | — |
-| `apps/prototype-web/client/src/pages/Statement.tsx` | production | 815 | 833 | 38464 | 1 | 17 | 3 | 2 | SPLIT_CANDIDATE | ui | SPLIT_CANDIDATE — growth-control plan before adding scope | M |
+| `apps/prototype-web/client/src/pages/Schedule.tsx` | production | 1013 | 1035 | 40876 | 1 | 15+ | 2 | 1 | SPLIT_CANDIDATE | ui | **حزمة R7 صريحة R6-F17-P06 [R6-SCAN-F-017]:** مسار بنيوي موجه لحزمة R7 «UI structural boundaries» ببطاقة كاملة (owner/seam/نطاق/زناد/اعتماديات/قبول/رحلات/شرط خروج/رجوع/استبعاد بصري صريح) في §3 — لا عمل UI في R6؛ البصري track T حصرًا | M |
+| `apps/prototype-web/client/src/pages/DirectSaleEditor.tsx` | production | 998 | 1022 | 49905 | 1 | 20 | 5 | 4 | SPLIT_CANDIDATE | ui | **حزمة R7 صريحة R6-F17-P07 [R6-SCAN-F-017]:** مسار بنيوي موجه لحزمة R7 «UI structural boundaries» ببطاقة كاملة (owner/seam/نطاق/زناد/اعتماديات/قبول/رحلات/شرط خروج/رجوع/استبعاد بصري صريح) في §3 — لا عمل UI في R6؛ البصري track T حصرًا | M |
+| `apps/prototype-web/client/src/pages/InventoryMovementEditor.tsx` | production | 965 | 973 | 46383 | 1 | 15 | 4 | 3 | SPLIT_CANDIDATE | ui | **حزمة R7 صريحة R6-F17-P08 [R6-SCAN-F-017]:** مسار بنيوي موجه لحزمة R7 «UI structural boundaries» ببطاقة كاملة (owner/seam/نطاق/زناد/اعتماديات/قبول/رحلات/شرط خروج/رجوع/استبعاد بصري صريح) في §3 — لا عمل UI في R6؛ البصري track T حصرًا | — |
+| `src/domain/financial-analysis/policies.ts` | production | 937 | 976 | 43735 | 7 | 2 | 2 | 0 | SPLIT_CANDIDATE | domain | **PRESERVE — إبقاء موثق كامل الأركان (توحيد R6-W1، 2026-10-09 [R6-SCAN-F-012]):** أربعة عناقيد دلالية (سجلات التصريح/الهامش المباشر/التعادل/بيان السيولة القصيرة) لمستهلكَين اثنين دون استقلالية change-locality — البطاقة الكاملة بعناصرها التسعة في §3؛ لا تغيير دلالة مجال | — |
+| `src/domain/owner-entitlement/policies.ts` | production | 906 | 934 | 38310 | 16 | 2 | 1 | 0 | SPLIT_CANDIDATE | domain | **PRESERVE — إبقاء موثق كامل الأركان (توحيد R6-W1، 2026-10-09 [R6-SCAN-F-012]):** ثلاثة عناقيد متماسكة لمجموع واحد (مصانع وعكسات/خمسة محركات حساب/مدققات تشغيلية يفوض إليها transfers) — البطاقة الكاملة بعناصرها التسعة في §3 *(نمو ضمن الشريط +8 موثق — R6-SCAN-F-006؛ انظر §7)* | — |
+| `apps/prototype-web/client/src/storage/local/types.ts` | production | 877 | 885 | 51790 | 40 | 17 | 160 | 69 | SPLIT_CANDIDATE | storage | **PRESERVE — إبقاء موثق كامل الأركان (مصالحة R6-W1، 2026-10-09 [R6-SCAN-F-011]):** جرد منفذ Wave N سُلّم بتنفيذ R3 (130 طريقة/22 مجموعة قدرة) — البطاقة الكاملة بعناصرها التسعة في §3؛ أي شطر مستقبلي Schema-adjacent ومحمي بقرار Wave O | — |
+| `apps/prototype-web/client/src/pages/InventoryMaterials.tsx` | production | 863 | 880 | 39799 | 1 | 15 | 6 | 5 | SPLIT_CANDIDATE | ui | **حزمة R7 صريحة R6-F17-P09 [R6-SCAN-F-017]:** مسار بنيوي موجه لحزمة R7 «UI structural boundaries» ببطاقة كاملة (owner/seam/نطاق/زناد/اعتماديات/قبول/رحلات/شرط خروج/رجوع/استبعاد بصري صريح) في §3 — لا عمل UI في R6؛ البصري track T حصرًا | M |
+| `apps/prototype-web/client/src/components/finance/EventsLayer.tsx` | production | 834 | 843 | 40324 | 3 | 13 | 2 | 1 | SPLIT_CANDIDATE | ui | **حزمة R7 صريحة R6-F17-P10 [R6-SCAN-F-017]:** مسار بنيوي موجه لحزمة R7 «UI structural boundaries» ببطاقة كاملة (owner/seam/نطاق/زناد/اعتماديات/قبول/رحلات/شرط خروج/رجوع/استبعاد بصري صريح) في §3 — لا عمل UI في R6؛ البصري track T حصرًا | — |
+| `apps/prototype-web/client/src/pages/Statement.tsx` | production | 815 | 833 | 38464 | 1 | 17 | 3 | 2 | SPLIT_CANDIDATE | ui | **حزمة R7 صريحة R6-F17-P11 [R6-SCAN-F-017]:** مسار بنيوي موجه لحزمة R7 «UI structural boundaries» ببطاقة كاملة (owner/seam/نطاق/زناد/اعتماديات/قبول/رحلات/شرط خروج/رجوع/استبعاد بصري صريح) في §3 — لا عمل UI في R6؛ البصري track T حصرًا | M |
 | `apps/prototype-web/client/src/pages/Catalog.tsx` | production | 787 | 813 | 34019 | 1 | 23 | 3 | 2 | WATCH | ui | WATCH — no unrelated responsibility without review | — |
 | `apps/prototype-web/client/src/application/finance/recurringExpenseService.ts` | production | 12 | 12 | ~600 | 0 | 1 | 1 | 0 | NORMAL | application | **وحدة توافق (Wave E/ADR-013، 2026-10-04):** الملف الأصلي (784 nbLOC WATCH عند رأس القياس) انتقل إلى بيته `application/recurring/` بنمط 4B/#307؛ هذا كعب إعادة تصدير 12 سطرًا لمستهلكي الواجهة المجمدة — إزالته بشروط مسار UI الموثقة (تصحيح D2 من تدقيق Y — القيم الحية)؛ البيت الأساس أدناه | — |
 | `apps/prototype-web/client/src/application/recurring/recurringExpenseService.ts` | production | 770 | 785 | ~37000 | 7 | 8 | 7 | 4 | WATCH | application | WATCH — بيت السلاسل المتكررة بعد نقل Wave E (تصحيح D2 من تدقيق Y — إضافة الصف المفقود للبيت المنقول؛ مبني على قياس v1.4 عند النقل + القياس الحي 770)؛ راتشة وشروط المراجعة كما في عنقود §3 | M |
-| `apps/prototype-web/client/src/application/fulfillment/fulfillmentService.ts` | production | 740 | 762 | 40899 | 4 | 6 | 49 | 43 | WATCH | application | WATCH — no unrelated responsibility without review | M |
+| `apps/prototype-web/client/src/application/fulfillment/fulfillmentService.ts` | production | 740 | 762 | 40899 | 4 | 6 | 49 | 43 | WATCH | application | WATCH — no unrelated responsibility without review *(نمو ضمن الشريط +16 موثق بمصالحة R6-W1 — R6-SCAN-F-006؛ انظر §7)* | M |
 | `apps/prototype-web/client/src/pages/Home.tsx` | production | 732 | 740 | 35559 | 1 | 11 | 7 | 6 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
 | `apps/prototype-web/client/src/pages/Settings.tsx` | production | 707 | 731 | 34524 | 1 | 24 | 5 | 4 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
 | `apps/prototype-web/client/src/application/fulfillment/deliveryReviewService.ts` | production | 706 | 732 | 35925 | 7 | 10 | 15 | 13 | WATCH | application | WATCH — no unrelated responsibility without review | M |
-| `apps/prototype-web/client/src/application/finance/statementService.ts` | production | 669 | 692 | 33996 | 10 | 8 | 21 | 17 | WATCH | application | WATCH — no unrelated responsibility without review | M |
+| `apps/prototype-web/client/src/application/finance/statementService.ts` | production | 669 | 692 | 33996 | 10 | 8 | 21 | 17 | WATCH | application | WATCH — no unrelated responsibility without review *(نمو ضمن الشريط +21 موثق بمصالحة R6-W1 — R6-SCAN-F-006؛ انظر §7)* | M |
 | `apps/prototype-web/client/src/pages/AgreementEditor.tsx` | production | 652 | 657 | 30733 | 1 | 13 | 1 | 0 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
 | `apps/prototype-web/client/src/pages/CostEditor.tsx` | production | 640 | 657 | 28446 | 1 | 13 | 3 | 2 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
-| `apps/prototype-web/client/src/application/home/homeControlCenterService.ts` | production | 610 | 623 | 30481 | 2 | 12 | 10 | 9 | WATCH | application | WATCH — no unrelated responsibility without review | — |
+| `apps/prototype-web/client/src/application/home/homeControlCenterService.ts` | production | 610 | 623 | 30481 | 2 | 12 | 10 | 9 | WATCH | application | WATCH — no unrelated responsibility without review *(نمو ضمن الشريط +7 موثق بمصالحة R6-W1 — R6-SCAN-F-006؛ انظر §7)* | — |
 | `apps/prototype-web/client/src/pages/CostCalculator.tsx` | production | 604 | 629 | 25891 | 1 | 15 | 3 | 2 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
 | `src/domain/recurring-expense/policies.ts` | production | 603 | 647 | 28865 | 35 | 4 | 1 | 0 | WATCH | domain | WATCH — no unrelated responsibility without review | — |
 | `apps/prototype-web/client/src/components/catalog/CatalogTemplatesSection.tsx` | production | 602 | 609 | 30092 | 2 | 10 | 1 | 0 | WATCH | ui | WATCH — no unrelated responsibility without review | — |
@@ -74,7 +77,7 @@
 | `apps/prototype-web/client/src/storage/local/indexedDbMigrations.ts` | production | 560 | 564 | 26537 | 4 | 2 | 1 | 0 | WATCH | storage | WATCH — no unrelated responsibility without review | MO |
 | `apps/prototype-web/client/src/application/finance/recurringWorkService.ts` | production | 557 | 564 | 26486 | 11 | 7 | 12 | 7 | WATCH | application | WATCH — no unrelated responsibility without review | M |
 | `apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts` | production | 553 | 572 | 25414 | 10 | 11+ | 8 | 5 | WATCH | application | WATCH — no unrelated responsibility without review | M |
-| `apps/prototype-web/client/src/application/activity/activityService.ts` | production | 531 | 557 | 23756 | 6 | 8 | 25 | 21 | WATCH | application | WATCH — no unrelated responsibility without review | — |
+| `apps/prototype-web/client/src/application/activity/activityService.ts` | production | 531 | 557 | 23756 | 6 | 8 | 25 | 21 | WATCH | application | WATCH — no unrelated responsibility without review *(نمو ضمن الشريط +11 موثق بمصالحة R6-W1 — R6-SCAN-F-006؛ انظر §7)* | — |
 | `apps/prototype-web/client/src/pages/DraftEditor.tsx` | production | 525 | 538 | 23906 | 1 | 12 | 3 | 2 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
 | `apps/prototype-web/client/src/pages/AssetDetail.tsx` | production | 524 | 546 | 25276 | 1 | 15 | 2 | 1 | WATCH | ui | WATCH — no unrelated responsibility without review | — |
 | `src/domain/financial-event/policies.ts` | production | 524 | 541 | 28975 | 8 | 2 | 1 | 0 | WATCH | domain | WATCH — no unrelated responsibility without review | — |
@@ -83,20 +86,24 @@
 | `apps/prototype-web/client/src/application/scheduling/scheduleService.ts` | production | 496 | 513 | 22008 | 7 | 4 | 36 | 28 | WATCH | application | WATCH — no unrelated responsibility without review | M |
 | `apps/prototype-web/client/src/pages/Collect.tsx` | production | 493 | 510 | 23578 | 1 | 16 | 3 | 2 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
 | `apps/prototype-web/client/src/pages/MaterialEditor.tsx` | production | 491 | 499 | 22979 | 1 | 15 | 2 | 1 | WATCH | ui | WATCH — no unrelated responsibility without review | — |
-| `apps/prototype-web/client/src/application/assets/assetService.ts` | production | 486 | 511 | 21991 | 11 | 4 | 35 | 32 | WATCH | application | WATCH — no unrelated responsibility without review | — |
+| `apps/prototype-web/client/src/application/assets/assetService.ts` | production | 486 | 511 | 21991 | 11 | 4 | 35 | 32 | WATCH | application | WATCH — no unrelated responsibility without review *(نمو ضمن الشريط +15 موثق بمصالحة R6-W1 — R6-SCAN-F-006؛ انظر §7)* | — |
 | `apps/prototype-web/client/src/components/finance/FinancePoliciesSection.tsx` | production | 485 | 496 | 23384 | 1 | 9 | 2 | 1 | WATCH | ui | WATCH — no unrelated responsibility without review | — |
 | `apps/prototype-web/client/src/styles/primitives.css` | production | 482 | 494 | 14680 | 0 | 0 | 0 | 0 | WATCH | ui | WATCH — no unrelated responsibility without review | — |
-| `apps/prototype-web/client/src/application/financial-records/correctionHistoryService.ts` | production | 458 | 481 | 26217 | 7 | 6 | 3 | 1 | WATCH | application | WATCH — band carried over on the move (ratchet baseline re-pathed in the same PR) | — |
+| `apps/prototype-web/client/src/application/financial-records/correctionHistoryService.ts` | production | 458 | 481 | 26217 | 7 | 6 | 3 | 1 | WATCH | application | WATCH — band carried over on the move (ratchet baseline re-pathed in the same PR) *(نمو ضمن الشريط +29 موثق بمصالحة R6-W1 — R6-SCAN-F-006؛ انظر §7)* | — |
 | `apps/prototype-web/client/src/components/owner/OwnerLedgerFormsSection.tsx` | production | 446 | 451 | 18877 | 2 | 9 | 1 | 0 | WATCH | ui | WATCH — no unrelated responsibility without review | — |
+| `apps/prototype-web/client/src/application/finance/projectFinancialEventWrites.ts` | production | 443 | 451 | 26518 | 8 | 11 | 1 | 0 | WATCH | application | WATCH — مسار الكتابة المحروس لعائلة نتيجة الفترة + توزيع PA-002 (Wave F/ADR-013 عنقود ٣؛ انكمش 513←443)؛ محفز المراجعة: مسار كتابة محروس جديد أو عبور شريط؛ عائلة نجمية (الأشقاء→model فقط)؛ الاختبارات عبر واجهة المُنسّق *(صف R6-W1 [R6-SCAN-F-003] بقيمة حية عند `fd92d7e8`)* | — |
 | `apps/prototype-web/client/src/pages/Orders.tsx` | production | 439 | 448 | 22110 | 1 | 15 | 3 | 2 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
 | `apps/prototype-web/client/src/pages/Setup.tsx` | production | 432 | 439 | 20049 | 1 | 8 | 2 | 1 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
 | `apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts` | production | 430 | 432 | 21907 | 2 | 18 | 1 | 0 | WATCH | storage | WATCH — no unrelated responsibility without review | — |
+| `apps/prototype-web/client/src/application/finance/integrityCheckCoreFinance.ts` | production | 430 | 438 | 23726 | 5 | 5 | 1 | 0 | WATCH | application | WATCH — عائلة فحوص MIC المجموعة ١ (MIC-1/2/4/7/9، Wave F/ADR-013)؛ محفز ADR-013: أي فحص MIC جديد؛ عائلة نجمية؛ الاختبارات عبر واجهة المُنسّق *(صف R6-W1 [R6-SCAN-F-003] بقيمة حية عند `fd92d7e8`)* | — |
 | `apps/prototype-web/client/src/components/presentation/ActualTimePanel.tsx` | production | 426 | 440 | 17477 | 1 | 9 | 3 | 1 | WATCH | ui | WATCH — no unrelated responsibility without review | M |
-| `apps/prototype-web/client/src/application/catalog/catalogService.ts` | production | 425 | 445 | 21096 | 15 | 2 | 16 | 14 | WATCH | application | WATCH — no unrelated responsibility without review | — |
-| `apps/prototype-web/client/src/application/finance/periodComparisonService.ts` | production | 422 | 436 | 18113 | 6 | 6 | 3 | 2 | WATCH | application | WATCH — no unrelated responsibility without review | — |
+| `apps/prototype-web/client/src/application/catalog/catalogService.ts` | production | 425 | 445 | 21096 | 15 | 2 | 16 | 14 | WATCH | application | WATCH — no unrelated responsibility without review *(نمو ضمن الشريط +6 موثق بمصالحة R6-W1 — R6-SCAN-F-006؛ انظر §7)* | — |
+| `apps/prototype-web/client/src/application/finance/periodComparisonService.ts` | production | 422 | 436 | 18113 | 6 | 6 | 3 | 2 | WATCH | application | WATCH — no unrelated responsibility without review *(نمو ضمن الشريط +11 موثق بمصالحة R6-W1 — R6-SCAN-F-006؛ انظر §7)* | — |
+| `apps/prototype-web/client/src/application/finance/projectFinancialPeriodReads.ts` | production | 422 | 426 | 22116 | 2 | 9 | 1 | 0 | WATCH | application | WATCH — عائلة نتيجة الفترة واشتقاق COGS (Wave F/ADR-013 عنقود ٣؛ يسمّي ملكية derivePeriodCogs وفق STR-302/W2-D/D-034)؛ محفز المراجعة: قاعدة اشتقاق جديدة أو عبور شريط؛ عائلة نجمية؛ الاختبارات عبر واجهة المُنسّق *(صف R6-W1 [R6-SCAN-F-003] بقيمة حية عند `fd92d7e8`)* | — |
 | `apps/prototype-web/client/src/application/suppliers/supplierPurchaseService.ts` | production | 421 | 434 | 21352 | 7 | 5 | 45 | 40 | WATCH | application | WATCH — no unrelated responsibility without review | — |
+| `apps/prototype-web/client/src/application/finance/integrityCheckAssetsLoans.ts` | production | 400 | 404 | 22183 | 4 | 4 | 1 | 0 | WATCH | application | WATCH — عائلة عقد ٢٩: MIC-10..13 (Wave F/ADR-013)؛ محفز ADR-013: أي فحص MIC جديد؛ عائلة نجمية؛ الاختبارات عبر واجهة المُنسّق *(صف R6-W1 [R6-SCAN-F-003] بقيمة حية عند `fd92d7e8`)* | — |
 | `src/domain/recurring-margin/policies.ts` | production | 399 | 414 | 17727 | 7 | 2 | 1 | 0 | NORMAL | domain | NORMAL | — |
-| `apps/prototype-web/client/src/application/finance/profitToCashBridgeService.ts` | production | 392 | 407 | 22492 | 4 | 9 | 17 | 16 | NORMAL | application | NORMAL | M *(تصعيد شريط مؤرخ 2026-10-09 — R5/S4: +5 أسطر nbLOC لعقد قراءة PC-4 الرباعي الموثق في الترويسة؛ 398→402 — تحديث أساس الراتشة نفس-الـPR بقرار البطاقة المسبق؛ لا تغيير سلوك)* |
+| `apps/prototype-web/client/src/application/finance/profitToCashBridgeService.ts` | production | 392 | 407 | 22492 | 4 | 9 | 17 | 16 | WATCH | application | WATCH — مستقر عند 402 [R6-SCAN-F-016] | M *(تصعيد شريط مؤرخ 2026-10-09 — R5/S4: +5 أسطر nbLOC لعقد قراءة PC-4 الرباعي الموثق في الترويسة؛ 398→402 — تحديث أساس الراتشة نفس-الـPR بقرار البطاقة المسبق؛ لا تغيير سلوك)* *(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-002]: عمود الشريط صُحّح NORMAL←WATCH مطابقةً لأساس الراتشة الحاكم والقيمة الحية 402؛ البطاقة كاملة في §3)* |
 | `apps/prototype-web/client/src/components/owner/OwnerPolicyFormsSection.tsx` | production | 389 | 393 | 16414 | 2 | 9 | 1 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/pages/ReceivedLoanDetail.tsx` | production | 370 | 390 | 15632 | 1 | 14+ | 1 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | M |
 | `apps/prototype-web/client/src/pages/ScheduleEditor.tsx` | production | 363 | 370 | 15197 | 1 | 11 | 2 | 1 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | M |
@@ -383,7 +390,7 @@
 | `apps/prototype-web/client/src/application/owner-money/ownerEntitlementService.test.ts` | test | 810 | 829 | 30319 | 0 | 5 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts` | test | 806 | 832 | 30304 | 0 | 8 | 0 | 0 | NORMAL | storage | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/application/finance/statementService.test.ts` | test | 753 | 769 | 33383 | 0 | 11 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | M |
-| `apps/prototype-web/dev-tools/debug-collector.js` | script | 694 | 799 | 24862 | 0 | 0 | 1 | 0 | WATCH | infra | INFRA — change via own slice only | DMN |
+| `apps/prototype-web/dev-tools/debug-collector.js` | script | 694 | 799 | 24862 | 0 | 0 | 1 | 0 | WATCH | infra | **PRESERVE — تصرف أداة تطوير موثق (مصالحة R6-W1، 2026-10-09 [R6-SCAN-F-008]):** المالك: prototype-web؛ dev-only مثبت (بوابة vite `Q-002` للتطوير فقط + early-return إنتاجي)؛ السبب: أداة تشخيص محلية فوق رأس الرموز لا تدخل رزمة الإنتاج؛ محفز المراجعة: أي محاولة استخدام إنتاجي أو استبدال أداة التشخيص؛ الشرط الخروجي: الإزالة عند الاستبدال بقرار مالك؛ الاختبارات: 0 مباشرة (تسجيل صادق — التحقق التشغيلي يدوي في dev)؛ حد الرجوع: LOW (أداة فقط) | DMN |
 | `tests/domain/financial-event.test.ts` | test | 691 | 703 | 24531 | 0 | 2 | 0 | 0 | NORMAL | test | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/G3.dom.test.tsx` | test | 690 | 725 | 37952 | 0 | 32 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/application/home/homeControlCenterService.test.ts` | test | 651 | 673 | 31842 | 0 | 12 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
@@ -794,7 +801,7 @@
 - **آثار جانبية/تهيئة:** لا تُكتشف بالنمط
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (0):** لا تغطية مباشرة (انظر بطاقات الفجوة)
-- **الإجراء:** UI_OUT_OF_SCOPE (design-token guards govern)؛ **أثر الرجوع:** LOW؛ **الاستثناء/التنازل:** —
+- **الإجراء:** UI_OUT_OF_SCOPE (design-token guards govern) *(تأكيد مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-018]: خارج R6 إلى track T البصري — يحرسه design-token guards وtheme-contrast وstylelint؛ الملف واحد من نطاق مسح R6 الـ26 ومصنف OUT_OF_SCOPE صراحةً في مصفوفة §8)*؛ **أثر الرجوع:** LOW؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts`
 
@@ -804,8 +811,8 @@
 - **المستهلكون المباشرون (21):** `apps/prototype-web/client/src/application/finance/fullCycleReconciliation.exe013.test.ts`, `apps/prototype-web/client/src/storage/local/CatalogCoreStorage.test.ts`, `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.delivery.test.ts`, `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.expenseBudget.test.ts`, `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts`, `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group4.test.ts`, `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.open-count.test.ts`, `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.receivedLoan.test.ts`, `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.recurringExpense.test.ts`, `apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts`
 - **آثار جانبية/تهيئة:** module-mutable
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** Adapter implementation of the port (IndexedDB specifics isolated here)
-- **الاختبارات المباشرة (19):** `fullCycleReconciliation.exe013.test.ts`, `CatalogCoreStorage.test.ts`, `IndexedDbLocalStore.delivery.test.ts`, `IndexedDbLocalStore.expenseBudget.test.ts`, `IndexedDbLocalStore.group2.test.ts`, `IndexedDbLocalStore.group4.test.ts`, `IndexedDbLocalStore.open-count.test.ts`, `IndexedDbLocalStore.receivedLoan.test.ts`
-- **الإجراء:** PRESERVE — **استثناء طويل الأجل مقبول (W6/عقد ما بعد المسح، 2026-10-05، قرار المالك 5):** المالك: مالك Micro؛ السبب: مسؤولية واحدة (تنفيذ منفذ PrototypeLocalStore لجهة IndexedDB) — الحجم دالة اتساع المنفذ (130 طريقة مصنفة 130/130 — *(تصحيح مؤرخ 2026-10-07 — R1/TG-01: كان «131 طريقة مصنفة 130/130» تناقضًا داخليًا؛ العدد الحي 130 بُناء على الواجهة [STR-618])* ) لا اختلاط مسؤوليات، والعائلة مقسمة سلفًا (indexedDbStores/Migrations/Lifecycle/Snapshot/Primitives + 10 حراس كتابة مستقلة + 7 منافذ قدرات)؛ حد النمو: مثبت بالراتشة (4,135 nbLOC / 4,139 raw — لا عبور)؛ الحراس: check-file-size-ratchet + مصفوفة مطابقة المحولين 13/13 + عقود القدرات 42/42 + حارس الكيانات؛ محفز المراجعة: أي مجموعة قدرة جديدة أو ترحيل أو عبور شريط أو فتح موجة O؛ الشرط الخروجي: قرار مالك مستقبلي بمنصّة المحولات (implementation modules لكل قدرة) أو تقلص المنفذ نفسه؛ حد الرجوع: لا تغيير في هذا الاستثناء (توثيقي) — إلغاؤه بقرار مالك؛ **أثر الرجوع:** HIGH؛ **الاستثناء/التنازل:** موثق كاملًا أعلاه
+- **الاختبارات المباشرة (19):** `fullCycleReconciliation.exe013.test.ts`, `CatalogCoreStorage.test.ts`, `IndexedDbLocalStore.delivery.test.ts`, `IndexedDbLocalStore.expenseBudget.test.ts`, `IndexedDbLocalStore.group2.test.ts`, `IndexedDbLocalStore.group4.test.ts`, `IndexedDbLocalStore.open-count.test.ts`, `IndexedDbLocalStore.receivedLoan.test.ts` *(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-007]: العدد الحي **35** ملف اختبار مباشر عند `fd92d7e8` بعد أجنحة R3/R4/R5 — التعداد بالقياس الحي لا يُعدَّل نص التاريخ أعلاه)*
+- **الإجراء:** PRESERVE — **استثناء طويل الأجل مقبول (W6/عقد ما بعد المسح، 2026-10-05، قرار المالك 5؛ أرقام مصححة بمصالحة R6-W1 2026-10-09 [R6-SCAN-F-007/F-010]):** المالك: مالك Micro؛ السبب: مسؤولية واحدة (تنفيذ منفذ PrototypeLocalStore لجهة IndexedDB) — الحجم دالة اتساع المنفذ (130 طريقة مصنفة 130/130 — *(تصحيح مؤرخ 2026-10-07 — R1/TG-01: كان «131 طريقة مصنفة 130/130» تناقضًا داخليًا؛ العدد الحي 130 بُناء على الواجهة [STR-618])* ) لا اختلاط مسؤوليات، والعائلة مقسمة سلفًا *(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-007]: كان «7 منافذ قدرات» — الحي **16 مجموعة منافذ قدرات** بعد ADR-015 وR3: actualTime، allocationPolicy، asset، catalog، costEstimate، directSale، expenseBudget، financialEvent، inventoryMaterial، loan، orderLifecycle، ownerEntitlement، recurringExpense، schedule، shortCashDeclaration، supplierPurchase)* و*(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-007]: كان «10 حراس كتابة مستقلة» — الحي **9 ملفات حراس كتابة** كما في سجل الملكية §2)؛ حد النمو: مثبت بالراتشة (4,135 nbLOC / 4,139 raw — لا عبور)؛ الحراس: check-file-size-ratchet + أجنحة التكافؤ *(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-007]: كانت «مصفوفة مطابقة المحولين 13/13 + عقود القدرات 42/42» أرقامًا متقادمة — الحي: **6 ملفات conformance + 16 ملف عقود قدرات** عبر الزوجين [R3/R4])* + حارس الكيانات؛ محفز المراجعة: أي مجموعة قدرة جديدة أو ترحيل أو عبور شريط أو فتح موجة O؛ الشرط الخروجي: قرار مالك مستقبلي بمنصّة المحولات (Wave O — يحكم المحولين معًا كزوج تكافؤ واحد [R6-SCAN-F-010]) أو تقلص المنفذ نفسه؛ حد الرجوع: لا تغيير في هذا الاستثناء (توثيقي) — إلغاؤه بقرار مالك؛ **أثر الرجوع:** HIGH؛ **الاستثناء/التنازل:** موثق كاملًا أعلاه
 
 ### `apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts`
 
@@ -815,9 +822,10 @@
 - **المستهلكون المباشرون (180):** `apps/prototype-web/client/src/Accessibility.w44.dom.test.tsx`, `apps/prototype-web/client/src/ActualTimePanel.dom.test.tsx`, `apps/prototype-web/client/src/ArabicRtlContent.w44.dom.test.tsx`, `apps/prototype-web/client/src/CashJourneys.dom.test.tsx`, `apps/prototype-web/client/src/CashVocabulary.w43.dom.test.tsx`, `apps/prototype-web/client/src/CatalogPlannedCost.dom.test.tsx`, `apps/prototype-web/client/src/D005.dom.test.tsx`, `apps/prototype-web/client/src/DeepScreens.w43.dom.test.tsx`, `apps/prototype-web/client/src/EventsLayer.familyGuard.dom.test.tsx`, `apps/prototype-web/client/src/FinalLogicOwnerDecisions.contract.test.ts`
 - **آثار جانبية/تهيئة:** module-mutable
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** Second adapter proving port substitutability
-- **الاختبارات المباشرة (178):** `Accessibility.w44.dom.test.tsx`, `ActualTimePanel.dom.test.tsx`, `ArabicRtlContent.w44.dom.test.tsx`, `CashJourneys.dom.test.tsx`, `CashVocabulary.w43.dom.test.tsx`, `CatalogPlannedCost.dom.test.tsx`, `D005.dom.test.tsx`, `DeepScreens.w43.dom.test.tsx`
-- **الإجراء:** PRESERVE — **استثناء طويل الأجل مقبول (W6/عقد ما بعد المسح، 2026-10-05، قرار المالك 5):** نفس أساس المحول الرئيسي حرفيًا: مسؤولية واحدة (المرآة الذاكرية المثبتة لقابلية استبدال المحول)؛ السيميائية المطابقة حرفيًا يحرسها 178 ملف اختبار مباشرًا + مصفوفة المطابقة؛ حد النمو: مثبت بالراتشة (2,091 nbLOC / 2,099 raw)؛ المحفزات والشرط الخروجي كما في بطاقة المحول الرئيسي (قرار مالك واحد يحكم الثنين معًا — هما زوج التكافؤ)؛ **أثر الرجوع:** HIGH؛ **الاستثناء/التنازل:** موثق كاملًا أعلاه
+- **الاختبارات المباشرة (178):** `Accessibility.w44.dom.test.tsx`, `ActualTimePanel.dom.test.tsx`, `ArabicRtlContent.w44.dom.test.tsx`, `CashJourneys.dom.test.tsx`, `CashVocabulary.w43.dom.test.tsx`, `CatalogPlannedCost.dom.test.tsx`, `D005.dom.test.tsx`, `DeepScreens.w43.dom.test.tsx` *(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-007]: العدد الحي **198** ملف اختبار مباشر عند `fd92d7e8` بعد أجنحة R3–R5 — قائمة الأسماء أعلاه تاريخية عند رأس القياس)*
+- **الإجراء:** PRESERVE — **استثناء طويل الأجل مقبول (W6/عقد ما بعد المسح، 2026-10-05، قرار المالك 5):** نفس أساس المحول الرئيسي حرفيًا: مسؤولية واحدة (المرآة الذاكرية المثبتة لقابلية استبدال المحول)؛ السيميائية المطابقة حرفيًا يحرسها 178 ملف اختبار مباشرًا *(الحي 198 — تصحيح R6-W1/F-007)* + أجنحة التكافؤ الحية (6 conformance + 16 عقود قدرات عبر الزوجين — تصحيح R6-W1/F-007 لـ«مصفوفة المطابقة»)؛ حد النمو: مثبت بالراتشة (2,091 nbLOC / 2,099 raw)؛ المحفزات والشرط الخروجي كما في بطاقة المحول الرئيسي (قرار مالك واحد يحكم الثنين معًا — هما زوج التكافؤ)؛ **أثر الرجوع:** HIGH؛ **الاستثناء/التنازل:** موثق كاملًا أعلاه
 - **مراجعة R4-A2 (مؤرخة 2026-10-08):** تحقق حي عند `1c54c55` — التصنيف production/storage/PRESERVE (لا «visual-UI out-of-scope» في أي سجل حي: هذا السجل وعقد 40 وتقرير R0 كلها production/storage). **التصرف النهائي:** `PRESERVE_BY_DESIGN` مع تسليم صريح لموجة R6 المعتمدة (قائمة فحص R6 الإلزامية تتضمن الملف): أي شطر حقيقي للمحول الذاكري يقرره R6 بقرار مالك بعد إعادة الفحص؛ بطاقة W6 تبقى الحارس حتى ذلك الحين. عناصر البطاقة التسعة كاملة: المالك (storage)، السبب (أعلاه)، جرد المستهلكين (180)، حد النمو (راتشة 2,091/2,099)، الحارس (الراتشة + مصفوفة المطابقة)، محفز المراجعة (مجموعة قدرة جديدة/ترحيل/عبور شريط — كما في المحول الرئيسي)، الشرط الخروجي (قرار مالك ب modularization المحولات)، الاختبارات (178 مباشرًا)، حد الرجوع (HIGH).
+- **قرار R6 (مصالحة R6-W1، 2026-10-09 [R6-SCAN-F-010 — إغلاق تسليم R4-A2]):** مسح R6 القراءة-فقط راجع الملف وأجاب حزمة القرار: **PRESERVE** — (أ) إبقاء المحولين كزوج تكافؤ (المقبول: تشغيل اختباري فقط، صفر أثر رزمة، لا أشقاء ذاكرة، حراس الكتابة التسعة مشتركون)؛ (ب) modularization لكل قدرة = **Wave O بقرار مالك يحكم المحولين معًا** كزوج واحد بأجنحة conformance كوَحْيَر؛ (ج) استخراج بدائيات مشتركة = مرفوض (سطح ثالث بلا مالك). الشرط الخروجي: قرار Wave O. محفزات المراجعة: مجموعة قدرة جديدة/ترحيل/عبور شريط. الدليل: تقرير مسح R6 §10/F-010 (`docs/operations/control/evidence/structural-remediation-r6-20261009/R6-PREFLIGHT-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-09.md`).
 
 ### `apps/prototype-web/client/src/pages/OrderDetail.tsx`
 
@@ -828,7 +836,18 @@
 - **آثار جانبية/تهيئة:** module-mutable
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (11):** `ArabicRtlContent.w44.dom.test.tsx`, `G3.dom.test.tsx`, `G3Delivery.dom.test.tsx`, `G3Hardening.dom.test.tsx`, `G4RetainedDeposit.dom.test.tsx`, `G6.dom.test.tsx`, `OrdJourneys.dom.test.tsx`, `OrderDetail.ui.test.tsx`
-- **الإجراء:** UI_OUT_OF_SCOPE (Wave T) — size noted, no action this program؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **حزمة R7 صريحة R6-F17-P01 `OrderDetail.tsx` [R6-SCAN-F-017 — تحويل المسار إلى DEFER package موثق بمصالحة R6-W1، 2026-10-09؛ كان إجراءً عامًا بلا أركان]:**
+  - **المالك:** Micro owner (بوابة R7)؛ منفذ R7: منفذ موجة UI structural boundaries.
+  - **المسؤولية/seam المتأثر:** منسّق صفحة تفصيل الطلب — 51 useState على مستوى الملف؛ 13 موقع مرآة مجمدة يحرسها W5-A moneyLayerGuard؛ ضمن عائلة المحررات 97–99% دالة واحدة.
+  - **نطاق R7:** جرد استخراج view-model لكل قسم (الاتفاق/التسليم/التحصيل/التصحيحات) مع الإبقاء على المرايا الـ13 المجمدة كما يحرسها W5-A — أي تحريك مرآة يستلزم تحديث أساس الحارس نفس-الـPR.
+  - **الزناد:** تفويض/بدء موجة R7 بقرار المالك (لا شيء يبدأ تلقائيًا).
+  - **الاعتماديات:** خطة successor §R7؛ أمر R6-W1 يثبت هذه الحزم دون تنفيذ.
+  - **معايير القبول:** استخراج view-model/query-surface بلا نقل أي حقيقة مالية للواجهة؛ صفر تغيير سلوك مالي/دلالي/تاريخي؛ الأجنحة خضراء على الرأس المدفوع.
+  - **توقع الرحلات/الاختبارات:** الرحلات القائمة (OrdJourneys/G3*/G6/G4RetainedDeposit/OrderShare/ArabicRtlContent) تبقى خضراء كما هي؛ تُستكمل رحلات الأقسام المستخرجة عند اكتمال الاستخراج.
+  - **الشرط الخروجي:** الصفحة تُدار عبر سطح استعلام مستخرج بعقد موثق وjourney tests تغطي المسار.
+  - **حد الرجوع:** revert شريحة الصفحة فقط (إعادة الصفحة إلى وحدتها السابقة بلا فقدان سلوك).
+  - **استبعاد صريح:** **لا عمل بصري/UI في هذه الحزمة** — CSS/DOM/tokens/تنقل/نصوص كلها على track T خلف بوابة مالك مستقلة؛ R7 بنيوي حصرًا.
+  - **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts`
 
@@ -839,7 +858,7 @@
 - **آثار جانبية/تهيئة:** لا تُكتشف بالنمط
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** DUPLICATE (risk): current-value acceptance sets duplicated from Domain unions — drift trap
 - **الاختبارات المباشرة (3):** `domainTransferDriftGuard.test.ts`, `transferCompatibilityRegistry.test.ts`, `transferFamilyValidators.characterization.test.ts`
-- **الإجراء:** **PRESERVE — إبقاء موثق (تصرّف ADR-017 §3، 2026-10-04، معماريًا أولًا ومستقلًا عن الميزانية):** (١) **التماسك:** مسؤولية واحدة — تدقيق أشكال حمولات النقل المستوردة (رأس الملف: عائلات التدقيق المنقولة حرفيًا من localTransferService؛ عقود حرفية بلا تغيير سلوك)؛ العائلات شرائح متوازية-data لعملية تحقق واحدة (prepareImport → validate → replaceSnapshot) تتغير معًا وتُستهلك معًا عبر واجهة واحدة وتُختبر معًا — ليست مسؤوليات مستقلة (قابل بالمقارنة: F1/F2/F3 كانت خدمات مختوطة المسؤوليات موثقة في خطة المسح §6؛ هذا الملف مسؤوليته الواحدة موثقة هناك). (٢) **الملكية والاحتواء:** المستهلكون المباشرون الثمانية كلهم داخل application/transfers/؛ علاقة انحراف المجال يملكها domainTransferDriftGuard + سجل التوافق + الذهبيات (متطلبات «قبل أي نقل» مسلَّمة). (٣) **جذر الخطر:** الدور DUPLICATE — تكرار اتحادات المجال (STR-104/509)؛ التقسيم يبدّد المعرفة المكررة في ملفات أكثر ولا يزيل التكرار؛ العلاج المسمى استكمال 4D (استهلاك حرّي المجال) بقرار مالك لاحق خارج نطاق هذا البرنامج. (٤) **حد النمو:** مثبّت بالراتشة عند 1,718 nbLOC / 76,500 بايت — أي نمو يصعّد الراتشة ويعيد فتح القرار. (٥) **محفزات المراجعة:** عائلة كيان جديدة في صيغة اللقطة؛ اتحاد يدوي جديد (فشل مرساة الدريفت)؛ تصعيد الراتشة؛ قرار رفع حرّي المجال (STR-104/211/509). (٦) **شرط إعادة فتح التقسيم:** بعد أن يصدّر المجال حرّي وقت-التشغيل لاتحادات الحالات ويستهلكها الملف، إن ظل فوق شريطه تُعاد بطاقة التقسيم الداخلي بقرار مالك جديد مسعّرة بمقدّر الفئة B (أرضية S-INTERLEAVED ‏0.5409 بايت/nbLOC) — لا تقسيم تلقائي بحسب الحجم أبدًا. **لا يُحتسب شريحة إنتاجية مخططة في المجمع المحدود لميزانية الحزمة (ADR-017 §4).**؛ **أثر الرجوع:** HIGH — rejection behavior is data-compat؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **PRESERVE — إبقاء موثق (تصرّف ADR-017 §3، 2026-10-04، معماريًا أولًا ومستقلًا عن الميزانية):** (١) **التماسك:** مسؤولية واحدة — تدقيق أشكال حمولات النقل المستوردة (رأس الملف: عائلات التدقيق المنقولة حرفيًا من localTransferService؛ عقود حرفية بلا تغيير سلوك)؛ العائلات شرائح متوازية-data لعملية تحقق واحدة (prepareImport → validate → replaceSnapshot) تتغير معًا وتُستهلك معًا عبر واجهة واحدة وتُختبر معًا — ليست مسؤوليات مستقلة (قابل بالمقارنة: F1/F2/F3 كانت خدمات مختوطة المسؤوليات موثقة في خطة المسح §6؛ هذا الملف مسؤوليته الواحدة موثقة هناك). (٢) **الملكية والاحتواء:** المستهلكون المباشرون الثمانية كلهم داخل application/transfers/؛ علاقة انحراف المجال يملكها domainTransferDriftGuard + سجل التوافق + الذهبيات (متطلبات «قبل أي نقل» مسلَّمة). (٣) **جذر الخطر:** الدور DUPLICATE — تكرار اتحادات المجال (STR-104/509)؛ التقسيم يبدّد المعرفة المكررة في ملفات أكثر ولا يزيل التكرار؛ العلاج المسمى استكمال 4D (استهلاك حرّي المجال) بقرار مالك لاحق خارج نطاق هذا البرنامج. (٤) **حد النمو:** *(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-005]: كانت «مثبّت بالراتشة عند 1,718 nbLOC / 76,500 بايت — أي نمو يصعّد الراتشة ويعيد فتح القرار» — الراتشة بأساس الأشرطة تحرس حدود الأشرطة فقط لا التثبيت الدقيق؛ الحي عند `fd92d7e8`: **1,730 nbLOC / 77,703 بايت** (+12/+1,203 من التزامات R2 المؤرخة b890f9a2/388dac65/a476ed7a — تفويض نواة التاريخ المحلي، اتجاه قصدي)؛ النمو حميد وقرار الإبقاء قائم [F-013]؛ الإنفاذ ضد النمو غير المبرر داخل الشريط ينتقل إلى حزمة R8 المعلنة في الخطة §R8 [«تحويل الراتشة من منع التصعيد بين الأشرطة فقط إلى منع نمو غير مبرر داخل الشريط، مع عدم تعديل baseline في نفس PR لإخفاء النمو»] — المالك: مالك الحراس؛ الزناد: بدء R8؛ الشرط الخروجي: الراتشة ترفض نموًا داخل-شريط غير مبرر؛ الرجوع: revert حارس واحد؛ حتى R8 يُحرس التثبيت الدقيق بالملاحظات المؤرخة هنا)* (٥) **محفزات المراجعة:** عائلة كيان جديدة في صيغة اللقطة؛ اتحاد يدوي جديد (فشل مرساة الدريفت)؛ تصعيد الراتشة؛ قرار رفع حرّي المجال (STR-104/211/509). (٦) **شرط إعادة فتح التقسيم:** بعد أن يصدّر المجال حرّي وقت-التشغيل لاتحادات الحالات ويستهلكها الملف، إن ظل فوق شريطه تُعاد بطاقة التقسيم الداخلي بقرار مالك جديد مسعّرة بمقدّر الفئة B (أرضية S-INTERLEAVED ‏0.5409 بايت/nbLOC) — لا تقسيم تلقائي بحسب الحجم أبدًا. **لا يُحتسب شريحة إنتاجية مخططة في المجمع المحدود لميزانية الحزمة (ADR-017 §4).**؛ **أثر الرجوع:** HIGH — rejection behavior is data-compat؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/pages/Finance.tsx`
 
@@ -850,7 +869,18 @@
 - **آثار جانبية/تهيئة:** module-mutable
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (15):** `D005.dom.test.tsx`, `EventsLayer.familyGuard.dom.test.tsx`, `FinanceBridge.w173.dom.test.tsx`, `FinanceBudgets.w174.dom.test.tsx`, `FinanceEmptyTruth.dom.test.tsx`, `FinanceJourneys.dom.test.tsx`, `FinanceObligations.w43.dom.test.tsx`, `FinanceSafeWithdrawal.w176.dom.test.tsx`
-- **الإجراء:** UI_OUT_OF_SCOPE (Wave T)؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **حزمة R7 صريحة R6-F17-P02 `Finance.tsx` [R6-SCAN-F-017 — تحويل المسار إلى DEFER package موثق بمصالحة R6-W1، 2026-10-09؛ كان إجراءً عامًا بلا أركان]:**
+  - **المالك:** Micro owner (بوابة R7)؛ منفذ R7: منفذ موجة UI structural boundaries.
+  - **المسؤولية/seam المتأثر:** منسّق صفحة المالية — 17 نداء خدمة عبر 9 أبواب؛ **استخراج FinanceState (STR-204c) هو الحل الموثق للدورة القيمية/النوعية المختلطة الوحيدة في الشجرة (FinancePeriodResultSection.tsx:12 type ↔ Finance.tsx:68 value — R6-SCAN-F-019)**؛ القارئ الوحيد للصفحة لـreadRecordedPeriodResult عند :292.
+  - **نطاق R7:** فصل حالة Finance/سطح الاستعلام عن العرض؛ حل الدورة المختلطة بالاستخراج؛ تغطية مواقع FIN-002 الخمسة الموثقة للبناء الكسول.
+  - **الزناد:** تفويض/بدء موجة R7 بقرار المالك (لا شيء يبدأ تلقائيًا).
+  - **الاعتماديات:** خطة successor §R7؛ أمر R6-W1 يثبت هذه الحزم دون تنفيذ.
+  - **معايير القبول:** استخراج view-model/query-surface بلا نقل أي حقيقة مالية للواجهة؛ صفر تغيير سلوك مالي/دلالي/تاريخي؛ الأجنحة خضراء على الرأس المدفوع.
+  - **توقع الرحلات/الاختبارات:** رحلات Finance* + اختبار التجسس periodResultCanonical يبقى أخضر؛ الدورة المختلطة تختفي ويُتحقق بمسح دورات محدث.
+  - **الشرط الخروجي:** الصفحة تُدار عبر سطح استعلام مستخرج بعقد موثق وjourney tests تغطي المسار.
+  - **حد الرجوع:** revert شريحة الصفحة فقط (إعادة الصفحة إلى وحدتها السابقة بلا فقدان سلوك).
+  - **استبعاد صريح:** **لا عمل بصري/UI في هذه الحزمة** — CSS/DOM/tokens/تنقل/نصوص كلها على track T خلف بوابة مالك مستقلة؛ R7 بنيوي حصرًا.
+  - **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/application/finance/projectFinancialService.ts`
 
@@ -893,8 +923,8 @@
 - **المستهلكون المباشرون (3):** `src/domain/craft-order/deliveryContribution.ts`, `src/domain/craft-order/index.ts`, `src/domain/craft-order/settlementInvariant.ts`
 - **آثار جانبية/تهيئة:** لا تُكتشف بالنمط
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** AUTHORITATIVE domain policy (frozen semantics)
-- **الاختبارات المباشرة (0):** لا تغطية مباشرة (انظر بطاقات الفجوة)
-- **الإجراء:** SPLIT_NOW (size) — PRESERVE behavior; domain split only by future owner-gated wave؛ **أثر الرجوع:** HIGH — settlement invariant؛ **الاستثناء/التنازل:** —
+- **الاختبارات المباشرة (0):** لا يستورد الملفَ ملفُ اختبار مباشرة *(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-004 = إتمام R0-N8]: كانت «لا تغطية مباشرة (انظر بطاقات الفجوة)» — عبارة مضللة ومؤشرها معلق: لا مستند بطاقات فجوة في المستودع [R0-N6] والدليل الفعلي للتغطية هو خريطة الاختبارات والتوثيق المولدة `TEST-AND-DOCUMENTATION-MAP.md` + `generated/test-map.json`؛ التغطية الفعلية غير مباشرة وحقيقية: ~171 اختبارًا يصل الملف عبر برميل craft-order في 7 أجنحة مجال، وsettlementInvariant (MIC-18) يحرس ثابت التسوية، وmoneyLayerGuard يعدّ مواقع الملف صراحة (:113/:116/:143/:168-169)، وتوصيف W2 يثبت نصوص رسائله حرفيًا؛ الفجوة الصادقة المسجلة: لا اختبار مباشر للوحدة نفسها — تُقيَّم في موجة اختبارات مالك مستقبلية، لا في R6)*
+- **الإجراء:** **PRESERVE — استثناء طويل الأجل مقبول كامل الأركان (W6/عقد ما بعد المسح، 2026-10-05؛ إكمال الأركان ومصالحة الأقسام بموجة R6-W1، 2026-10-09 [R6-SCAN-F-004]):** (١) المالك: domain/craft-order. (٢) السبب: مسؤولية واحدة — سياسات مجال الصنعة (اتفاق/تسليم/تسوية/تصحيحات) بدلالة مجمّدة بعقود 02/10/12؛ التقسيم خلط دلالي عالي الخطورة في أكثر ملف مالي حساسية بلا مكسب بنيوي، والفواصل الدلالية موثقة بالتعليقات. (٣) جرد المستهلكين: 3 داخل المجال (deliveryContribution، البرميل، settlementInvariant) + التطبيق عبر البرميل + استيراد ديناميكي عميق واحد موثق (integrityCheckSettlementBasis — STR-205). (٤) حد النمو: راتشة الشريط PRESERVE — الحي **1,413 nbLOC** عند `fd92d7e8` (+14 موثقة بمصالحة R6-W1، أعلاه في §2). (٥) الحراس: check-file-size-ratchet + settlementInvariant + تعداد moneyLayerGuard + توصيف W2. (٦) محفز المراجعة: عبور شريط، فحص تسوية جديد، أو موجة مالك مستقبلية بمدى exact. (٧) الشرط الخروجي: قرار مالك. (٨) الاختبارات: كما وُثّق أعلاه (غير مباشرة حقيقية؛ لا مباشرة — فجوة مسجلة). (٩) حد الرجوع: HIGH — settlement invariant. **أثر الرجوع:** HIGH — settlement invariant؛ **الاستثناء/التنازل:** موثق كاملًا أعلاه — §2 و§3 صارا متطابقين بمصالحة R6-W1
 
 ### `apps/prototype-web/client/src/pages/FinancialEventEditor.tsx`
 
@@ -905,7 +935,18 @@
 - **آثار جانبية/تهيئة:** module-mutable
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (4):** `DeepScreens.w43.dom.test.tsx`, `FinancialEventEditor.guided.test.tsx`, `FinancialEventEditor.ui.test.tsx`, `OwnerJourneysExe009.dom.test.tsx`
-- **الإجراء:** UI_OUT_OF_SCOPE (Wave T)؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **حزمة R7 صريحة R6-F17-P03 `FinancialEventEditor.tsx` [R6-SCAN-F-017 — تحويل المسار إلى DEFER package موثق بمصالحة R6-W1، 2026-10-09؛ كان إجراءً عامًا بلا أركان]:**
+  - **المالك:** Micro owner (بوابة R7)؛ منفذ R7: منفذ موجة UI structural boundaries.
+  - **المسؤولية/seam المتأثر:** محرر الحدث المالي — 31 useState على مستوى الملف؛ ضمن عائلة المحررات 97–99% دالة واحدة.
+  - **نطاق R7:** جرد استخراج نموذج عرض المحرر (حالات النموذج/التحقق/القنوات) خلف سطح استعلام مع الإبقاء على عقد الإدخال الموجه (عقد 27).
+  - **الزناد:** تفويض/بدء موجة R7 بقرار المالك (لا شيء يبدأ تلقائيًا).
+  - **الاعتماديات:** خطة successor §R7؛ أمر R6-W1 يثبت هذه الحزم دون تنفيذ.
+  - **معايير القبول:** استخراج view-model/query-surface بلا نقل أي حقيقة مالية للواجهة؛ صفر تغيير سلوك مالي/دلالي/تاريخي؛ الأجنحة خضراء على الرأس المدفوع.
+  - **توقع الرحلات/الاختبارات:** رحلات DeepScreens/OwnerJourneysExe009 + اختبارات guided/ui للمحرر تبقى خضراء.
+  - **الشرط الخروجي:** الصفحة تُدار عبر سطح استعلام مستخرج بعقد موثق وjourney tests تغطي المسار.
+  - **حد الرجوع:** revert شريحة الصفحة فقط (إعادة الصفحة إلى وحدتها السابقة بلا فقدان سلوك).
+  - **استبعاد صريح:** **لا عمل بصري/UI في هذه الحزمة** — CSS/DOM/tokens/تنقل/نصوص كلها على track T خلف بوابة مالك مستقلة؛ R7 بنيوي حصرًا.
+  - **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
 
 ### `scripts/text-density-count.py`
 
@@ -916,13 +957,13 @@
 - **آثار جانبية/تهيئة:** لا تُكتشف بالنمط
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** Tooling guard; consumed by pnpm check
 - **الاختبارات المباشرة (0):** لا تغطية مباشرة (انظر بطاقات الفجوة)
-- **الإجراء:** PRESERVE (size is cohesive single-purpose)؛ **أثر الرجوع:** LOW؛ **الاستثناء/التنازل:** —
+- **الإجراء:** *(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-009 — يعمّق R0-N6]: كانت «PRESERVE (size is cohesive single-purpose)» تأكيدًا مجردًا لا يسنده القياس: تركيب الملف 57% تعليقات + دفتر راتشة CAPS (كتلة 744 سطرًا/48 مدخلًا) مقابل محرك قياس ~350–400 سطر؛ seam حقيقي = **المحرك مقابل بيانات السياسة**؛ 0 اختبارات مباشرة؛ مؤشر «بطاقات الفجوة» معلق [R0-N6]؛ خارج رسم بناء vite (محايد للحزمة))* **FIX_NOW → حزمة R6-W3 المعتمدة (قرار المالك بمراجعة R6):** فصل دفتر CAPS إلى وحدة بيانات مستقلة بعد اختبار توصيف يثبت المخرجات أولًا؛ تحديث صفوف السجل والراتشة وخريطة الاختبارات في نفس الـPR؛ القبول: مخرجات `pnpm text-density` متطابقة بايت-ببايت قبل/بعد + اختبارات جديدة خضراء؛ المالك: مالك الحراس/الأدوات؛ الزناد: هذه المصالحة (بدء W3 بأمر المالك)؛ الشرط الخروجي: الملف يغادر شريط SPLIT_NOW بملاحظة مؤرخة؛ الرجوع: revert الشريحة (استعادة الملف الواحد). **لا تنفّذ في W1 — توثيق فقط.**؛ **أثر الرجوع:** LOW؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts`
 
 - **الفئة/الطبقة:** production / application — **nbLOC:** 1184 (raw 1185، 55530 bytes)
 - **المسؤولية:** Snapshot relation validation: orchestrate family validators + cross-family relation rules (same checks, same order, same acceptance decisions)
-- **الإجراء:** **PRESERVE — إبقاء موثق (مراجعة R4-C2، 2026-10-08، فوق التصنيف السابق SPLIT_CANDIDATE/«characterization first»):** التوصيف المطلوب قائم (transferFamilyValidators.characterization + transferEnvelope.characterization + transferCounters.migrations.characterization + localDateVariantDivergence). المراجعة الحية: قواعد العلاقات (تفرّد المفاتيح/الهويات، المراجع عبر العائلات، طيّ المخزون غير السالب، أزواج التخصيص والمراجعة) تُبنى على أطقم معرّفات مشتركة تتراكم عبر العائلات بالترتيب نفسه — الشق الهيكلي يمرّر 15+ طقمًا بين وحدات بلا مكسب ملكية. محفز إعادة الفتح: عائلة جديدة بملكية علاقات مستقلة أو إتمام 4D؛ **أثر الرجوع:** HIGH (سلوك رفض البيانات)؛ **الاستثناء/التنازل:** موثق أعلاه
+- **الإجراء:** **PRESERVE — إبقاء موثق (مراجعة R4-C2، 2026-10-08، فوق التصنيف السابق SPLIT_CANDIDATE/«characterization first»):** التوصيف المطلوب قائم (transferFamilyValidators.characterization + transferEnvelope.characterization + transferCounters.migrations.characterization + localDateVariantDivergence). المراجعة الحية: قواعد العلاقات (تفرّد المفاتيح/الهويات، المراجع عبر العائلات، طيّ المخزون غير السالب، أزواج التخصيص والمراجعة) تُبنى على أطقم معرّفات مشتركة تتراكم عبر العائلات بالترتيب نفسه — الشق الهيكلي يمرّر 15+ طقمًا بين وحدات بلا مكسب ملكية. محفز إعادة الفتح: عائلة جديدة بملكية علاقات مستقلة أو إتمام 4D *(نمو ضمن الشريط +8 موثق بمصالحة R6-W1 2026-10-09 [R6-SCAN-F-006]: الحي 1,192 عند `fd92d7e8` من التزام R2 b890f9a2؛ نمو حميد — انظر §7؛ ونقاط الضعف المسجلة [R6-SCAN-F-013]: ≥4 كتل عكس/تفرّد شبه متطابقة = هدف تنظيف داخلي تحت قاعدة الملف المتماسك، ودبابيس النمو لينة حتى حزمة R8)*؛ **أثر الرجوع:** HIGH (سلوك رفض البيانات)؛ **الاستثناء/التنازل:** موثق أعلاه
 - **Exports/Imports:** 1/5
 - **المستهلكون المباشرون (2):** `apps/prototype-web/client/src/application/transfers/localTransferService.ts`, `apps/prototype-web/client/src/application/transfers/transferFamilyValidators.characterization.test.ts`
 - **آثار جانبية/تهيئة:** لا تُكتشف بالنمط
@@ -938,7 +979,18 @@
 - **آثار جانبية/تهيئة:** module-mutable
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (5):** `G004CapabilityGuard.dom.test.tsx`, `G3Hardening.dom.test.tsx`, `PurchasingBridgeExe011.dom.test.tsx`, `group2InventorySurfaces.test.tsx`, `SupplierPurchaseEditor.ui.test.tsx`
-- **الإجراء:** SPLIT_CANDIDATE — growth-control plan before adding scope؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **حزمة R7 صريحة R6-F17-P04 `SupplierPurchaseEditor.tsx` [R6-SCAN-F-017 — تحويل المسار إلى DEFER package موثق بمصالحة R6-W1، 2026-10-09؛ كان «SPLIT_CANDIDATE — growth-control plan before adding scope» بلا أركان]:**
+  - **المالك:** Micro owner (بوابة R7)؛ منفذ R7: منفذ موجة UI structural boundaries.
+  - **المسؤولية/seam المتأثر:** محرر شراء المورّد — ضمن عائلة المحررات 97–99% دالة واحدة.
+  - **نطاق R7:** جرد استخراج نموذج عرض المحرر (بنود الشراء/الدفعات/التحقق) خلف سطح استعلام مع الحفاظ على علاقة عقد 07.
+  - **الزناد:** تفويض/بدء موجة R7 بقرار المالك (لا شيء يبدأ تلقائيًا).
+  - **الاعتماديات:** خطة successor §R7؛ أمر R6-W1 يثبت هذه الحزم دون تنفيذ.
+  - **معايير القبول:** استخراج view-model/query-surface بلا نقل أي حقيقة مالية للواجهة؛ صفر تغيير سلوك مالي/دلالي/تاريخي؛ الأجنحة خضراء على الرأس المدفوع.
+  - **توقع الرحلات/الاختبارات:** رحلات PurchasingBridgeExe011/G3Hardening/G004CapabilityGuard + اختبار ui للمحرر تبقى خضراء.
+  - **الشرط الخروجي:** الصفحة/المكوّن يُدار عبر سطح استعلام مستخرج بعقد موثق وjourney tests تغطي المسار.
+  - **حد الرجوع:** revert شريحة الصفحة/المكوّن فقط (إعادة الوحدة إلى حالتها السابقة بلا فقدان سلوك).
+  - **استبعاد صريح:** **لا عمل بصري/UI في هذه الحزمة** — CSS/DOM/tokens/تنقل/نصوص كلها على track T خلف بوابة مالك مستقلة؛ R7 بنيوي حصرًا.
+  - **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/pages/OwnerEntitlement.tsx`
 
@@ -949,7 +1001,18 @@
 - **آثار جانبية/تهيئة:** module-mutable
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (1):** `G6.dom.test.tsx`
-- **الإجراء:** SPLIT_CANDIDATE — growth-control plan before adding scope؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **حزمة R7 صريحة R6-F17-P05 `OwnerEntitlement.tsx` [R6-SCAN-F-017 — تحويل المسار إلى DEFER package موثق بمصالحة R6-W1، 2026-10-09؛ كان «SPLIT_CANDIDATE — growth-control plan before adding scope» بلا أركان]:**
+  - **المالك:** Micro owner (بوابة R7)؛ منفذ R7: منفذ موجة UI structural boundaries.
+  - **المسؤولية/seam المتأثر:** صفحة استحقاق المالك — **52 useState على مستوى الملف: الأعلى في الشجرة**.
+  - **نطاق R7:** جرد استخراج نموذج عرض الاستحقاق (السياسات/الحركات/السحب الآمن) خلف سطح استعلام؛ أعلى مرشح للفصل داخل حزمة R7.
+  - **الزناد:** تفويض/بدء موجة R7 بقرار المالك (لا شيء يبدأ تلقائيًا).
+  - **الاعتماديات:** خطة successor §R7؛ أمر R6-W1 يثبت هذه الحزم دون تنفيذ.
+  - **معايير القبول:** استخراج view-model/query-surface بلا نقل أي حقيقة مالية للواجهة؛ صفر تغيير سلوك مالي/دلالي/تاريخي؛ الأجنحة خضراء على الرأس المدفوع.
+  - **توقع الرحلات/الاختبارات:** رحلة G6 تبقى خضراء وتُستكمل رحلات الأقسام المستخرجة.
+  - **الشرط الخروجي:** الصفحة/المكوّن يُدار عبر سطح استعلام مستخرج بعقد موثق وjourney tests تغطي المسار.
+  - **حد الرجوع:** revert شريحة الصفحة/المكوّن فقط (إعادة الوحدة إلى حالتها السابقة بلا فقدان سلوك).
+  - **استبعاد صريح:** **لا عمل بصري/UI في هذه الحزمة** — CSS/DOM/tokens/تنقل/نصوص كلها على track T خلف بوابة مالك مستقلة؛ R7 بنيوي حصرًا.
+  - **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/application/owner-money/ownerEntitlementService.ts`
 
@@ -960,7 +1023,7 @@
 - **آثار جانبية/تهيئة:** لا تُكتشف بالنمط
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** Owner-money cluster member (registry §3); withdrawalWalletGuard rule-localization stays OWNER_DECISION (STR-302)
 - **الاختبارات المباشرة (8):** `fullCycleReconciliation.exe013.test.ts`, `statementService.test.ts`, `ownerCrossModelDuplicates.test.ts`, `ownerEntitlementService.test.ts`, `withdrawalWalletGuard.test.ts`, `dataRoundTrip.exe014.test.ts`, `exportGoldens.test.ts`, `ownerEntitlementTransfer.test.ts`
-- **الإجراء:** SPLIT_CANDIDATE — cluster home settled in 4B; future slices per registry؛ **أثر الرجوع:** HIGH؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **PRESERVE الآن + حزمة مستقبلية owner-gated موثقة (مصالحة R6-W1، 2026-10-09 [R6-SCAN-F-014]):** *(كان «SPLIT_CANDIDATE — cluster home settled in 4B; future slices per registry» — عبارات بلا أركان)* (١) المالك: application/owner-money. (٢) السبب: عقد PC-4 write-path موثق في الترويسة (:1–6) — 8 طرق كتابة (`reverseMovement` :978–:1018) والقراءات مقدمات كتابة موثقة لا نموذج قراءة منافس؛ قفل الكاتب الوحيد عبر منفذ القدرة. (٣) seam قراءة/كتابة حقيقي موجود لكنه محمي: تسوية عنقود 4B قرار مالك، واقتران محقق (`recordEntitlement:711`→`this.calculate`؛ `readOwnerMoneyOverview:376`→`this.readOverview` — محركات خاصة مشتركة). (٤) حد النمو: راتشة الشريط SPLIT_CANDIDATE (1,093 مسجل؛ الحي **1,003** عند `fd92d7e8` — −90 موثقة من STR-608/R2/PC-4؛ هامش 196 nbLOC تحت السقف). (٥) الحراس: الراتشة + حارس readwrite (الملف مستثنى عمدًا ككاتب) + عقود القدرة. (٦) محفز المراجعة: طريقة كتابة تاسعة أو قراءة تتحول نموذجًا مستقلًا. (٧) **الحزمة المستقبلية:** استخراج القراءات خلف الباب بعقد PC-4 في موجة owner-gated بعد R7 — المالك: Micro owner؛ الزناد: اكتمال R7 + تعليمات المالك؛ الشرط الخروجي: قراءات مستخرجة خلف الباب بعقد قراءة موثق. (٨) الاختبارات: 8 مباشرة. (٩) حد الرجوع: HIGH. *(تصحيح مؤرخ — R6-W1: سطر البطاقة «reverseMovement :978–:1018» وفق القياس الحي؛ كان مرجع سطر سابق منزاحًا)*؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/pages/Schedule.tsx`
 
@@ -971,7 +1034,18 @@
 - **آثار جانبية/تهيئة:** module-mutable
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (1):** `G004CapabilityGuard.dom.test.tsx`
-- **الإجراء:** SPLIT_CANDIDATE — growth-control plan before adding scope؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **حزمة R7 صريحة R6-F17-P06 `Schedule.tsx` [R6-SCAN-F-017 — تحويل المسار إلى DEFER package موثق بمصالحة R6-W1، 2026-10-09؛ كان «SPLIT_CANDIDATE — growth-control plan before adding scope» بلا أركان]:**
+  - **المالك:** Micro owner (بوابة R7)؛ منفذ R7: منفذ موجة UI structural boundaries.
+  - **المسؤولية/seam المتأثر:** صفحة الجدول — 32% من الملف للمكوّن الرئيسي (68% أقسام مساندة).
+  - **نطاق R7:** فصل أقسام الجدول وحالته عن العرض وفق جرد الاستخراج.
+  - **الزناد:** تفويض/بدء موجة R7 بقرار المالك (لا شيء يبدأ تلقائيًا).
+  - **الاعتماديات:** خطة successor §R7؛ أمر R6-W1 يثبت هذه الحزم دون تنفيذ.
+  - **معايير القبول:** استخراج view-model/query-surface بلا نقل أي حقيقة مالية للواجهة؛ صفر تغيير سلوك مالي/دلالي/تاريخي؛ الأجنحة خضراء على الرأس المدفوع.
+  - **توقع الرحلات/الاختبارات:** اختبار G004CapabilityGuard + رحلات الجدول المضافة عند الاستخراج.
+  - **الشرط الخروجي:** الصفحة/المكوّن يُدار عبر سطح استعلام مستخرج بعقد موثق وjourney tests تغطي المسار.
+  - **حد الرجوع:** revert شريحة الصفحة/المكوّن فقط (إعادة الوحدة إلى حالتها السابقة بلا فقدان سلوك).
+  - **استبعاد صريح:** **لا عمل بصري/UI في هذه الحزمة** — CSS/DOM/tokens/تنقل/نصوص كلها على track T خلف بوابة مالك مستقلة؛ R7 بنيوي حصرًا.
+  - **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/pages/DirectSaleEditor.tsx`
 
@@ -982,7 +1056,18 @@
 - **آثار جانبية/تهيئة:** module-mutable
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (4):** `G3.dom.test.tsx`, `ReversalSurfacesExe010.dom.test.tsx`, `U005.dom.test.tsx`, `DirectSaleEditor.ui.test.tsx`
-- **الإجراء:** SPLIT_CANDIDATE — growth-control plan before adding scope؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **حزمة R7 صريحة R6-F17-P07 `DirectSaleEditor.tsx` [R6-SCAN-F-017 — تحويل المسار إلى DEFER package موثق بمصالحة R6-W1، 2026-10-09؛ كان «SPLIT_CANDIDATE — growth-control plan before adding scope» بلا أركان]:**
+  - **المالك:** Micro owner (بوابة R7)؛ منفذ R7: منفذ موجة UI structural boundaries.
+  - **المسؤولية/seam المتأثر:** محرر البيع المباشر — ضمن عائلة المحررات 97–99% دالة واحدة.
+  - **نطاق R7:** جرد استخراج نموذج عرض المحرر خلف سطح استعلام مع الحفاظ على مسار عكس التحصيل (EXE-010).
+  - **الزناد:** تفويض/بدء موجة R7 بقرار المالك (لا شيء يبدأ تلقائيًا).
+  - **الاعتماديات:** خطة successor §R7؛ أمر R6-W1 يثبت هذه الحزم دون تنفيذ.
+  - **معايير القبول:** استخراج view-model/query-surface بلا نقل أي حقيقة مالية للواجهة؛ صفر تغيير سلوك مالي/دلالي/تاريخي؛ الأجنحة خضراء على الرأس المدفوع.
+  - **توقع الرحلات/الاختبارات:** رحلات G3/ReversalSurfacesExe010/U005 + اختبار ui تبقى خضراء.
+  - **الشرط الخروجي:** الصفحة/المكوّن يُدار عبر سطح استعلام مستخرج بعقد موثق وjourney tests تغطي المسار.
+  - **حد الرجوع:** revert شريحة الصفحة/المكوّن فقط (إعادة الوحدة إلى حالتها السابقة بلا فقدان سلوك).
+  - **استبعاد صريح:** **لا عمل بصري/UI في هذه الحزمة** — CSS/DOM/tokens/تنقل/نصوص كلها على track T خلف بوابة مالك مستقلة؛ R7 بنيوي حصرًا.
+  - **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/pages/InventoryMovementEditor.tsx`
 
@@ -993,7 +1078,18 @@
 - **آثار جانبية/تهيئة:** لا تُكتشف بالنمط
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (3):** `InventoryAdjustExe012.dom.test.tsx`, `Ops001MovementSelection.dom.test.tsx`, `group2InventorySurfaces.test.tsx`
-- **الإجراء:** SPLIT_CANDIDATE — growth-control plan before adding scope؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **حزمة R7 صريحة R6-F17-P08 `InventoryMovementEditor.tsx` [R6-SCAN-F-017 — تحويل المسار إلى DEFER package موثق بمصالحة R6-W1، 2026-10-09؛ كان «SPLIT_CANDIDATE — growth-control plan before adding scope» بلا أركان]:**
+  - **المالك:** Micro owner (بوابة R7)؛ منفذ R7: منفذ موجة UI structural boundaries.
+  - **المسؤولية/seam المتأثر:** محرر حركة المخزون — ضمن عائلة المحررات 97–99% دالة واحدة.
+  - **نطاق R7:** جرد استخراج نموذج عرض المحرر خلف سطح استعلام.
+  - **الزناد:** تفويض/بدء موجة R7 بقرار المالك (لا شيء يبدأ تلقائيًا).
+  - **الاعتماديات:** خطة successor §R7؛ أمر R6-W1 يثبت هذه الحزم دون تنفيذ.
+  - **معايير القبول:** استخراج view-model/query-surface بلا نقل أي حقيقة مالية للواجهة؛ صفر تغيير سلوك مالي/دلالي/تاريخي؛ الأجنحة خضراء على الرأس المدفوع.
+  - **توقع الرحلات/الاختبارات:** رحلات InventoryAdjustExe012/Ops001MovementSelection + group2InventorySurfaces تبقى خضراء.
+  - **الشرط الخروجي:** الصفحة/المكوّن يُدار عبر سطح استعلام مستخرج بعقد موثق وjourney tests تغطي المسار.
+  - **حد الرجوع:** revert شريحة الصفحة/المكوّن فقط (إعادة الوحدة إلى حالتها السابقة بلا فقدان سلوك).
+  - **استبعاد صريح:** **لا عمل بصري/UI في هذه الحزمة** — CSS/DOM/tokens/تنقل/نصوص كلها على track T خلف بوابة مالك مستقلة؛ R7 بنيوي حصرًا.
+  - **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
 
 ### `src/domain/financial-analysis/policies.ts`
 
@@ -1004,7 +1100,7 @@
 - **آثار جانبية/تهيئة:** لا تُكتشف بالنمط
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (0):** لا تغطية مباشرة (انظر بطاقات الفجوة)
-- **الإجراء:** SPLIT_CANDIDATE — content unchanged by the 4A rename; growth-control plan before adding scope؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **PRESERVE — إبقاء موثق كامل الأركان (توحيد R6-W1، 2026-10-09 [R6-SCAN-F-012]؛ كان «SPLIT_CANDIDATE — content unchanged by the 4A rename; growth-control plan before adding scope»):** (١) المالك: domain/financial-analysis. (٢) السبب: أربعة عناقيد دلالية (سجلات التصريح، الهامش المباشر، التعادل، بيان السيولة القصيرة) لمستهلكَين اثنين (البرميل + operatingBreakEven) باستيرادات نقية — توجد فواصل اسمية لكن لا استقلالية change-locality: التقسيم يجمّد دلالة مجال مكتملة عبر ملفات أكثر بخلط أعلى بلا مكسب ملكية (مبدأ الخطة: لا شطر سياسات مجال متماسكة). (٣) الجرد: أعلاه. (٤) حد النمو: راتشة الشريط (937 مسجل؛ الحي 937). (٥) الحراس: الراتشة + نقاء المجال (ESLint) + أجنحة المجال. (٦) محفز المراجعة: مستهلك ثالث خارج المجال أو عنقود يستقل ملكيةً. (٧) الشرط الخروجي: قرار مالك بموجة دلالية (STR-302). (٨) الاختبارات: غير مباشرة عبر أجنحة المجال (خريطة الاختبارات المولدة). (٩) حد الرجوع: MEDIUM؛ **الاستثناء/التنازل:** —
 
 ### `src/domain/owner-entitlement/policies.ts`
 
@@ -1015,7 +1111,7 @@
 - **آثار جانبية/تهيئة:** لا تُكتشف بالنمط
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (0):** لا تغطية مباشرة (انظر بطاقات الفجوة)
-- **الإجراء:** SPLIT_CANDIDATE — PRESERVE (domain purity; registry row)؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **PRESERVE — إبقاء موثق كامل الأركان (توحيد R6-W1، 2026-10-09 [R6-SCAN-F-012]؛ كان «SPLIT_CANDIDATE — PRESERVE (domain purity; registry row)»):** (١) المالك: domain/owner-entitlement. (٢) السبب: ثلاثة عناقيد متماسكة لمجموع واحد (مصانع السجلات وعكساتها / خمسة محركات الحساب / المدققات التشغيلية التي يفوض إليها transfers أصلًا) — الكل يخدم مجموع استحقاق المالك وحده بملكية واحدة وتغيّر معًا. (٣) الجرد: مستهلك واحد (البرميل) + التطبيق عبره. (٤) حد النمو: راتشة الشريط (906 مسجل؛ الحي **914** عند `fd92d7e8` — +8 موثقة [R6-SCAN-F-006] من التزامات R2 a476ed7a/7fcf37d2). (٥) الحراس: الراتشة + نقاء المجال + أجنحة المجال. (٦) محفز المراجعة: عنقود يستقل ملكية أو مستهلك خارجي جديد. (٧) الشرط الخروجي: قرار مالك. (٨) الاختبارات: غير مباشرة عبر أجنحة المجال. (٩) حد الرجوع: MEDIUM؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/storage/local/types.ts`
 
@@ -1026,7 +1122,7 @@
 - **آثار جانبية/تهيئة:** لا تُكتشف بالنمط
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** AUTHORITATIVE: PrototypeLocalStore port, persistence record types, localSchemaVersion/localExportVersion
 - **الاختبارات المباشرة (69):** `FinalLogicOwnerDecisions.contract.test.ts`, `FinanceBridge.w173.dom.test.tsx`, `FinanceBudgets.w174.dom.test.tsx`, `FinanceUpcoming.dom.test.tsx`, `G3Hardening.dom.test.tsx`, `G4RetainedDeposit.dom.test.tsx`, `InventoryLowStock.dom.test.tsx`, `Ops001MovementSelection.dom.test.tsx`
-- **الإجراء:** SPLIT_CANDIDATE — PRESERVE structure this program (port inventory Wave N); no split before Wave O gate؛ **أثر الرجوع:** HIGH — version constants and record shapes are data-compat surface؛ **الاستثناء/التنازل:** STR-307 documented type-only cycle member
+- **الإجراء:** **PRESERVE — إبقاء موثق كامل الأركان (ترقية الإجراء بمصالحة R6-W1، 2026-10-09 [R6-SCAN-F-011]؛ كان «SPLIT_CANDIDATE — PRESERVE structure this program (port inventory Wave N)»):** (١) المالك: storage. (٢) السبب: مسؤولية واحدة — منفذ PrototypeLocalStore وأنواع السجلات الدائمة وثوابت الإصدار؛ التركيب الموصوف حيًا: عائلات اللقطات :344–394، مظروف التصدير :395–406 (ملاصق لعقد 39)، رموز النتائج :407–419، المنفذ :429–884 (52% من الملف). (٣) جرد Wave N سُلّم بتنفيذ R3: **130 طريقة في 22 مجموعة قدرة** موثقة في سجل الملكية §2. (٤) حد النمو: راتشة الشريط SPLIT_CANDIDATE (الحي 876 nbLOC عند `fd92d7e8`). (٥) الحراس: الراتشة + اختبارات حوكمة الإصدار (4+) + 28 ذهبية + MANIFEST + اختبار الأزواج المقبولة. (٦) محفز المراجعة: مجموعة قدرة جديدة أو ترحيل أو عبور شريط. (٧) الشرط الخروجي: قرار **Wave O** بقرار مالك. (٨) الاختبارات: 69 مباشرة + حوكمة الإصدار. (٩) حد الرجوع: HIGH. **الملف Schema-adjacent بالتعريف:** يثبّت `localSchemaVersion=38` و`localExportVersion=30` عند :55/:71 — **أي شطر مستقبلي قرار محمي يتطلب بوابة Wave O وأدلة تكافؤ/عقد كاملة، ولا يُمس في هذا البرنامج.**؛ **أثر الرجوع:** HIGH — version constants and record shapes are data-compat surface؛ **الاستثناء/التنازل:** STR-307 documented type-only cycle member
 
 ### `apps/prototype-web/client/src/pages/InventoryMaterials.tsx`
 
@@ -1037,7 +1133,18 @@
 - **آثار جانبية/تهيئة:** module-mutable
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (5):** `G004CapabilityGuard.dom.test.tsx`, `InventoryAdjustExe012.dom.test.tsx`, `InventoryLowStock.dom.test.tsx`, `PurchasingBridgeExe011.dom.test.tsx`, `group2InventorySurfaces.test.tsx`
-- **الإجراء:** SPLIT_CANDIDATE — growth-control plan before adding scope؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **حزمة R7 صريحة R6-F17-P09 `InventoryMaterials.tsx` [R6-SCAN-F-017 — تحويل المسار إلى DEFER package موثق بمصالحة R6-W1، 2026-10-09؛ كان «SPLIT_CANDIDATE — growth-control plan before adding scope» بلا أركان]:**
+  - **المالك:** Micro owner (بوابة R7)؛ منفذ R7: منفذ موجة UI structural boundaries.
+  - **المسؤولية/seam المتأثر:** صفحة مواد المخزون — منسّق قراءات المخزون والاقتراحات.
+  - **نطاق R7:** جرد استخراج نموذج عرض الصفحة خلف سطح استعلام.
+  - **الزناد:** تفويض/بدء موجة R7 بقرار المالك (لا شيء يبدأ تلقائيًا).
+  - **الاعتماديات:** خطة successor §R7؛ أمر R6-W1 يثبت هذه الحزم دون تنفيذ.
+  - **معايير القبول:** استخراج view-model/query-surface بلا نقل أي حقيقة مالية للواجهة؛ صفر تغيير سلوك مالي/دلالي/تاريخي؛ الأجنحة خضراء على الرأس المدفوع.
+  - **توقع الرحلات/الاختبارات:** رحلات G004CapabilityGuard/InventoryAdjustExe012/InventoryLowStock/PurchasingBridgeExe011 + group2InventorySurfaces تبقى خضراء.
+  - **الشرط الخروجي:** الصفحة/المكوّن يُدار عبر سطح استعلام مستخرج بعقد موثق وjourney tests تغطي المسار.
+  - **حد الرجوع:** revert شريحة الصفحة/المكوّن فقط (إعادة الوحدة إلى حالتها السابقة بلا فقدان سلوك).
+  - **استبعاد صريح:** **لا عمل بصري/UI في هذه الحزمة** — CSS/DOM/tokens/تنقل/نصوص كلها على track T خلف بوابة مالك مستقلة؛ R7 بنيوي حصرًا.
+  - **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/components/finance/EventsLayer.tsx`
 
@@ -1048,7 +1155,18 @@
 - **آثار جانبية/تهيئة:** لا تُكتشف بالنمط
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (1):** `group1Surfaces.test.tsx`
-- **الإجراء:** SPLIT_CANDIDATE — growth-control plan before adding scope؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **حزمة R7 صريحة R6-F17-P10 `components/finance/EventsLayer.tsx` [R6-SCAN-F-017 — تحويل المسار إلى DEFER package موثق بمصالحة R6-W1، 2026-10-09؛ كان «SPLIT_CANDIDATE — growth-control plan before adding scope» بلا أركان]:**
+  - **المالك:** Micro owner (بوابة R7)؛ منفذ R7: منفذ موجة UI structural boundaries.
+  - **المسؤولية/seam المتأثر:** طبقة أحداث المالية — **10.6% فقط للمكوّن الرئيسي** (الباقي أقسام عرض متوازية).
+  - **نطاق R7:** فصل أقسام العرض عن منطق التجميع وفق جرد الاستخراج.
+  - **الزناد:** تفويض/بدء موجة R7 بقرار المالك (لا شيء يبدأ تلقائيًا).
+  - **الاعتماديات:** خطة successor §R7؛ أمر R6-W1 يثبت هذه الحزم دون تنفيذ.
+  - **معايير القبول:** استخراج view-model/query-surface بلا نقل أي حقيقة مالية للواجهة؛ صفر تغيير سلوك مالي/دلالي/تاريخي؛ الأجنحة خضراء على الرأس المدفوع.
+  - **توقع الرحلات/الاختبارات:** اختبار group1Surfaces + رحلات Finance* التي تمر بالطبقة تبقى خضراء.
+  - **الشرط الخروجي:** الصفحة/المكوّن يُدار عبر سطح استعلام مستخرج بعقد موثق وjourney tests تغطي المسار.
+  - **حد الرجوع:** revert شريحة الصفحة/المكوّن فقط (إعادة الوحدة إلى حالتها السابقة بلا فقدان سلوك).
+  - **استبعاد صريح:** **لا عمل بصري/UI في هذه الحزمة** — CSS/DOM/tokens/تنقل/نصوص كلها على track T خلف بوابة مالك مستقلة؛ R7 بنيوي حصرًا.
+  - **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/pages/Statement.tsx`
 
@@ -1059,7 +1177,18 @@
 - **آثار جانبية/تهيئة:** module-mutable
 - **دور API العام:** وحدة داخلية؛ **دور مصدر الحقيقة:** —
 - **الاختبارات المباشرة (2):** `G2.dom.test.tsx`, `StatementPeriod.w173.dom.test.tsx`
-- **الإجراء:** SPLIT_CANDIDATE — growth-control plan before adding scope؛ **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
+- **الإجراء:** **حزمة R7 صريحة R6-F17-P11 `Statement.tsx` [R6-SCAN-F-017 — تحويل المسار إلى DEFER package موثق بمصالحة R6-W1، 2026-10-09؛ كان «SPLIT_CANDIDATE — growth-control plan before adding scope» بلا أركان]:**
+  - **المالك:** Micro owner (بوابة R7)؛ منفذ R7: منفذ موجة UI structural boundaries.
+  - **المسؤولية/seam المتأثر:** صفحة البيان — منسّق عرض بيان الفترة؛ **تحمل أيضًا ملاحظة track-T منفصلة [R6-SCAN-F-022]: الاستنساخ المباشر الوحيد لخدمة عديمة الحالة خارج جذر التركيب عند :167 (StatementMarkdownService — لا يكسر قاعدة طبقة؛ تسويته ضمن جرد التركيب لموجة UI)**.
+  - **نطاق R7:** جرد استخراج نموذج عرض البيان خلف سطح استعلام + تسوية موضع خدمة الماركداون مع جرد التركيب.
+  - **الزناد:** تفويض/بدء موجة R7 بقرار المالك (لا شيء يبدأ تلقائيًا).
+  - **الاعتماديات:** خطة successor §R7؛ أمر R6-W1 يثبت هذه الحزم دون تنفيذ.
+  - **معايير القبول:** استخراج view-model/query-surface بلا نقل أي حقيقة مالية للواجهة؛ صفر تغيير سلوك مالي/دلالي/تاريخي؛ الأجنحة خضراء على الرأس المدفوع.
+  - **توقع الرحلات/الاختبارات:** رحلتا G2/StatementPeriod.w173 تبقيان خضراوين.
+  - **الشرط الخروجي:** الصفحة/المكوّن يُدار عبر سطح استعلام مستخرج بعقد موثق وjourney tests تغطي المسار.
+  - **حد الرجوع:** revert شريحة الصفحة/المكوّن فقط (إعادة الوحدة إلى حالتها السابقة بلا فقدان سلوك).
+  - **استبعاد صريح:** **لا عمل بصري/UI في هذه الحزمة** — CSS/DOM/tokens/تنقل/نصوص كلها على track T خلف بوابة مالك مستقلة؛ R7 بنيوي حصرًا.
+  - **أثر الرجوع:** MEDIUM؛ **الاستثناء/التنازل:** —
 
 ### `apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts`
 
@@ -1275,7 +1404,7 @@
 | السطح | النتيجة/الدليل | التصنيف |
 |---|---|---|
 | الآثار الجانبية والتهيئة عند الاستيراد | 167 ملفًا بإشارات جانبية بالنمط عند إعادة القياس؛ 7 مواضع حالة وحدة قابلة للتغيير مسجلة في مسح S2 (أبرزها localDiagnostics singleton تستهلكه ErrorBoundary/Settings/pwa)؛ StartupGate وPrototypeServicesContext (DI كسول ×4) نقطتا التهيئة الرئيسيتان | VERIFIED — مذكرة أعلاه؛ أي إضافة تستلزم تحديثًا |
-| الـPublic APIs والعقود والمستهلكون الخارجيون | *(تصحيح مؤرخ 2026-10-07 — R1/TG-01 [R0-N4]، اتجاه من ← إلى: كان «18 برميل domain عام… التطبيق ليس له براميل… DEFER إلى J/K» — قياس v1.4 عابر للموجات):* **19 برميل domain عام** (أضيف برميل توافق g5 بعد إعادة تسمية 4A) + قفل سطح عام باختبار؛ و**التطبيق له 29 بابًا عامًا (public doors)** بقرار ADR-018 (2026-10-05، STR-615): مستهلكو الواجهة يستوردون عبر الأبواب، والاستيراد العميق من داخل التطبيق مجمّد بأساس R6 (43 مفتاحًا محتجزًا = 36 جذر تركيب + 7 شيمات مجمدة؛ 47 موقعًا حيًا) يحرسه `check-module-boundaries` بعقد اختبار يثبت قيمة سطح كل باب (`applicationDoors.contract.test.ts`) — STR-213/STR-615 منفذان | VERIFIED — البنية الحية أعلاه؛ مراجعة الأبواب عند أي مستهلك جديد (PC-3) |
+| الـPublic APIs والعقود والمستهلكون الخارجيون | *(تصحيح مؤرخ 2026-10-07 — R1/TG-01 [R0-N4]، اتجاه من ← إلى: كان «18 برميل domain عام… التطبيق ليس له براميل… DEFER إلى J/K» — قياس v1.4 عابر للموجات):* **19 برميل domain عام** (أضيف برميل توافق g5 بعد إعادة تسمية 4A) + قفل سطح عام باختبار؛ و**التطبيق له 29 بابًا عامًا (public doors)** بقرار ADR-018 (2026-10-05، STR-615): مستهلكو الواجهة يستوردون عبر الأبواب، والاستيراد العميق من داخل التطبيق مجمّد بأساس R6 *(تصحيح مؤرخ 2026-10-09 — R6-W1 [R6-SCAN-F-007]: كان «43 مفتاحًا محتجزًا = 36 جذر تركيب + 7 شيمات مجمدة» — الحي بعد هجرة R5/S1 **42 مفتاحًا = 36 جذر تركيب + 6 شيمات** [Finance.tsx وExpenseBudgetsSectionBody هاجرا إلى باب budgets]؛ المواقع الحية 47 كما هي [الموقع النوعي لـG5DecisionPanel:54 صار يُعدّ تحت مفتاحه القائم])* يحرسه `check-module-boundaries` بعقد اختبار يثبت قيمة سطح كل باب (`applicationDoors.contract.test.ts`) — STR-213/STR-615 منفذان | VERIFIED — البنية الحية أعلاه؛ مراجعة الأبواب عند أي مستهلك جديد (PC-3) |
 | الإعدادات وقيم البيئة وحدود الأسرار | لا متغيرات بيئة زمن تشغيل (local-first بلا خلفية)؛ `scripts/check-secrets.mjs` يمسح المستودع (1,311 ملفًا) ويُشغل في CI ضمن guards | PRESERVE — الحارس قائم |
 | الأمان والثقة والصلاحيات | بلا Auth (نطاق المرحلة)؛ AppLockGate/DataActionPinGate بوابات قفل محلية؛ التشخيص محدود بثمانية حقول ولا يُرفع أبدًا (STR-310)؛ security-boundaries.md يوثق الحدود | PRESERVE — لا تغيير سياسة صلاحيات |
 | الاعتماديات والأداة والقيود | pnpm 9.15.9 + lockfile مجمّد + `--ignore-scripts` في CI + audit بحد إعادة محاولة؛ لا اعتماديات غير مستخدمة مكتشفة في المسح | PRESERVE |
@@ -1321,3 +1450,65 @@
 **تحديث مؤرخ 2026-10-03 (شرائح عناقيد المالية — إعادة قياس v1.4):** انتقل عنقود «السجلات المالية» إلى `application/financial-records/` (expenseRecordIntent، expenseCategorySuggestions، correctionHistoryService، retainedDepositService + اختباراتهما الأربعة) وعنقود «الميزانيات والتخطيط» إلى `application/budgets/` (expenseBudgetService + اختباره) بنمط 4B الميكانيكي: نقل ملفات + 5 وحدات توافق للواجهة المجمدة + تحديث المستوردين غير-UI؛ أساسا حارسي 4E حُدّثا في نفس الـPR (حافة R3 لـcorrectionHistory أُعيدت للمسار الجديد بنفس العدد 14؛ مدخل WATCH لـcorrectionHistory أُعيد توجيهه). بقية العناقيد مؤجلة بأسبابها الموثقة (إقامة محروسة بعقد 40 للفحص والعمل المتكرر والقارئ الكنوني).
 
 **تحديث مؤرخ 2026-10-03 (Waves 3A/3B/3C):** ذهبيات التصدير (28 ملفًا تحت `docs/fixtures/export-goldens/` — فئة fixture) + مراسي الدريفت + اختبارات وصف العنقود والميزانيات؛ إضافات اختبار/fixture بلا أي لمس إنتاج عدا استخراج العهدة المشتركة `historical817.fixture.ts`.
+
+**تحديث مؤرخ 2026-10-09 (مصالحة R6-W1 — سجلات/توثيق فقط؛ WS-216/ARCH-007؛ الأصل: مسح R6 القراءة-فقط المقبول وتقريره الكنوني `docs/operations/control/evidence/structural-remediation-r6-20261009/R6-PREFLIGHT-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-09.md` وحزمة قرار المالك `R6-OWNER-REVIEW-AND-DECISION-PACKAGE-2026-10-09.md`):** نُفذت التصحيحات التوثيقية المعتمدة عند رأس المصالحة `fd92d7e8` بلا أي تغيير كود/اختبار/سكربت: (1) [F-002] إعادة إصدار §1 (681/47/13/9/3/4 = 757) وتصحيح عمود profitToCashBridge إلى WATCH ومرجع رأس القياس — التفاصيل في مواضعها؛ (2) [F-003] صفوف الأشقاء الأربعة؛ (3) [F-004] إكمال بطاقة craft-order ومصالحة §2/§3 وإصلاح المؤشر المعلق؛ (4) [F-005] ملاحظة نمو TFV وتصحيح لغة التثبيت؛ (5) [F-006] جدول dispositions النمو داخل-الشريط أدناه؛ (6) [F-007] الأرقام المتقادمة (قدرات 7→16، حراس كتابة 10→9، تكافؤ 6+16، اختبارات مباشرة TFV 4 / IndexedDb 35 / Memory 198، أساس §4 ‏42)؛ (7) [F-008] تصرف debug-collector الكامل؛ (8) [F-011] بطاقة types.ts الكاملة؛ (9) [F-012] توحيد بطاقتي سياسات المجال؛ (10) [F-017] حزم R7 الصريحة للملفات الـ11؛ (11) [F-026] ملحق §23.8 في خطة الانتقال؛ (12) مصفوفة المكتشفات §8 أدناه. **حزمة إنفاذ R8 (المسجلة بموجب F-005/F-006 — تُنفذ في R8 لا الآن):** تحويل `check-file-size-ratchet` من منع التصعيد بين الأشرطة فقط إلى منع نمو غير مبرر داخل الشريط مع منع تعديل baseline في نفس PR لإخفاء النمو — المالك: مالك الحراس؛ الزناد: بدء موجة R8؛ الشرط الخروجي: الراتشة ترفض النمو داخل-الشريط غير المبرر؛ الرجوع: revert حارس واحد.
+
+**جدول dispositions النمو داخل-الشريط المؤرخ (F-006 — مقيس حيًا عند `fd92d7e8` مقابل رأس القياس 4a4e317؛ كل الأسباب من git history موثقة بالتزاماتها):**
+
+| الملف | المسجل ← الحي (nbLOC) | السبب (التزامات) | التصرف |
+|---|---|---|---|
+| `application/transfers/transferFamilyValidators.ts` | 1,718 ← 1,730 | R2: b890f9a2 + 388dac65 + a476ed7a (تفويض نواة التاريخ المحلي) | حميد — القرار قائم [F-013]؛ الإنفاذ R8 |
+| `src/domain/craft-order/policies.ts` | 1,399 ← 1,413 | R2: 94cfba77 (D11 نص المال الكنوني) + 7fcf37d2 (نواة التاريخ) | حميد — القرار قائم [F-004]؛ الإنفاذ R8 |
+| `application/transfers/transferSnapshotValidation.ts` | 1,184 ← 1,192 | R2: b890f9a2 | حميد — القرار قائم [F-013]؛ الإنفاذ R8 |
+| `src/domain/owner-entitlement/policies.ts` | 906 ← 914 | R2: a476ed7a + 7fcf37d2 | حميد — القرار قائم [F-012]؛ الإنفاذ R8 |
+| `application/financial-records/correctionHistoryService.ts` | 458 ← 487 (+29) | R5/S4: 28be1f01 (ترويسات PC-4 تعليقية) + R2: 9a5c50a0 + Wave F: c8ba74e7 + d13f892c (تنسيق) | حميد — تعليقات وبناة فشل موحدة |
+| `application/finance/statementService.ts` | 669 ← 690 (+21) | 28be1f01 + 9a5c50a0 + c8ba74e7 + 731f549d | حميد — قارئ PC-4 |
+| `application/fulfillment/fulfillmentService.ts` | 740 ← 756 (+16) | f56dca3d + 5758ca11 (هجرة R3) + c8ba74e7 | حميد — هجرة قدرات |
+| `application/assets/assetService.ts` | 486 ← 501 (+15) | ce27fc22 (قدرة R3-S4) + 388dac65 + 9a5c50a0 | حميد — هجرة قدرة |
+| `application/activity/activityService.ts` | 531 ← 542 (+11) | f56dca3d + 5758ca11 | حميد — هجرة R3 |
+| `application/finance/periodComparisonService.ts` | 422 ← 433 (+11) | 28be1f01 + 5758ca11 + c8ba74e7 | حميد — قارئ PC-4 |
+| `application/home/homeControlCenterService.ts` | 610 ← 617 (+7) | f56dca3d + 5758ca11 + a476ed7a | حميد |
+| `application/catalog/catalogService.ts` | 425 ← 431 (+6) | f56dca3d + 19c45bf2 (قدرة R3-S8) | حميد — هجرة قدرة |
+| `src/domain/shared/numeric.ts` | 111 ← 224 (+113) | R2: 7fcf37d2 (إعادة كتابة نواة التاريخ المحلي عدد-صحيح خالص — النواة نفسها نبتت هنا) + a476ed7a + 388dac65 | حميد — النواة الكنونية الآن (مالك الوقت/العدد)؛ ترقّب WATCH عند 400 |
+| `scripts/check-module-boundaries.mjs` | 250 ← 398 (+148) | e085addc (إغلاق نقطة عمى الماسح R5/S1: ImportTypeNode + js/jsx) + 2659a8ad (راتشة R6) + 36a096df (STR-617) + 4a0165ad | **ملف حارس على بعد سطرين من عتبة WATCH (400)** — المالك: مالك الحراس؛ يُرقّب يدويًا حتى حزمة R8؛ أي إضافة قاعدة جديدة تقيس وتوثّق نفس-الـPR |
+
+*(تصحيح مؤرخ إضافي [R6-SCAN-F-007]: سطر التقدم السابق لتقرير R5 في سجل حدود R5 كان يشير projectFinancialInsights.ts:140 — الحي :145؛ صُحّح بملاحظة مؤرخة في ذلك السجل نفسه، لا هنا.)*
+
+
+## 8. مصفوفة مكتشفات مسح R6 (R6-SCAN-F-001..027) — السجل الدائم للتصرفات
+
+> **مصدر السلطة:** تقرير مسح R6 القراءة-فقط المقبول `docs/operations/control/evidence/structural-remediation-r6-20261009/R6-PREFLIGHT-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-09.md` (SHA-256 ‎`e06a27a44baa2d28e53485fc36a8d7aa83605c8c32ab8cc07ab1d3290ae9c777`) وحزمة قرار المالك `R6-OWNER-REVIEW-AND-DECISION-PACKAGE-2026-10-09.md` (SHA-256 ‎`13387db9a7b494699b9f805addd647931424a544592604008fcb4df2b57059e2`) على main عبر PR #337 عند `fd92d7e8812726dcca8d27d3ad64c8f24dc96abd`. هذا القسم سجل تصرفات دائم داخل السجل الكنوني للملفات — **ليس مصدر حقيقة ثانيًا**: الأدلة الكاملة في التقرير؛ ولا تُحرر صفوفه التاريخية بل تُحدَّث بأعمدة مؤرخة.
+>
+> **نطاق المسح (26 ملفًا — تصحيح جمع الملخص [قرار مراجعة المالك §تناقضات-1]):** 10 PRESERVE ببطاقات كاملة + 3 محلية بتقسيم Wave F (منسّقات الآن 152/200/203) + 11 مسار UI بنيوي إلى R7 + أداة واحدة (text-density-count.py) + **`index.css` صراحةً [F-018 OUT_OF_SCOPE / track T]** = 26. المسح نُفذ عند `43a0f12`؛ القياس الحي للمصالحة عند `fd92d7e8` (فرق الوثائق فقط).
+
+| المكتشف | العنوان | الصنف | العلاقة | الموجة/المسار | التصرف الدائم |
+|---|---|---|---|---|---|
+| F-001 | اختبار StateRecovery.w44.dom.test.tsx:116 — assertion حالة-وسطية متسابقة (عيب حتمية اختبار لا تطبيق) | FIX_NOW (ملف اختبار فقط) | NEW | **R6-W2** | إصلاح بجذر المشكلة: deferred-promise/releaseRead gate بنمط Home.dom.test.tsx:157 المسبق — بلا إضعاف assertion ولا لمس Assets.tsx؛ خارج W1 (لا يُلمس الملف هنا)؛ خط الأساس المسجل: CI run 37894104251 فشل عند `43a0f12` ونجح عند `fd92d7e8` (run 37976142458) — سلوك متسابق موثق لا عيب تطبيق |
+| F-002 | ملخص §1 متقادم مقابل §2 والشجرة | FIX_NOW (توثيق) | DEEPENS R0-N4/N9 | R6-W1 | **منفذ في هذه المصالحة** — §1 أعيد إصداره (681/47/13/9/3/4=757) + تصحيح عمود profitToCash + مرجع الرأس |
+| F-003 | صفوف أشقاء Wave-F الأربعة غائبة | FIX_NOW (توثيق) | DEEPENS R0-N4 | R6-W1 | **منفذ** — الصفوف الأربعة بقيم حية |
+| F-004 | بطاقة craft-order ناقصة/متعارضة (R0-N8) | FIX_NOW (توثيق) | REOPENED (إتمام R0-N8) | R6-W1 | **منفذ** — البطاقة مكتملة الأركان التسعة ومصالحة والمؤشر مصلح |
+| F-005 | تجاوز تثبيت TFV المؤرخ بلا ملاحظة | FIX_NOW (توثيق) + DEFER الإنفاذ→R8 | DEEPENS R0-N17/F-10 | R6-W1 + R8 | **منفذ توثيقيًا** — الملاحظة المؤرخة + تصحيح لغة التثبيت + حزمة R8 مسجلة |
+| F-006 | مجتمع النمو الصامت داخل-الشريط (≥12 ملفًا + numeric + الحارس) | FIX_NOW (توثيق) + DEFER الإنفاذ→R8 | DEEPENS R0-N17 | R6-W1 + R8 | **منفذ توثيقيًا** — جدول dispositions الكامل في §7 + حزمة R8 مسجلة |
+| F-007 | أرقام بطاقات متقادمة | FIX_NOW (توثيق) | DEEPENS R0-N4 | R6-W1 | **منفذ** — القدرات 16، حراس الكتابة 9، التكافؤ 6+16، الاختبارات المباشرة 4/35/198، أساس §4 ‏42، انحراف سطر D-034 في سجل R5 مصححًا هناك |
+| F-008 | debug-collector بلا تغطية سجل | FIX_NOW (توثيق) | NEW | R6-W1 | **منفذ** — التصرف الكامل في §2 |
+| F-009 | text-density-count.py — تأكيد إبقاء مجرد يكذبه القياس (seam محرك/بيانات حقيقي) | FIX_NOW (أدوات فقط) | DEEPENS R0-N6 | **R6-W3 (معتمدة — ليست اختيارية بقرار المراجعة)** | البطاقة مصححة بحزمة W3 الكاملة (توصيف أولًا ثم فصل الدفتر ثم تحديث السجلات نفس-الـPR؛ مخرجات بايت-متطابقة) — **لا تنفذ في W1** |
+| F-010 | المحولان — PRESERVE كزوج تكافؤ | PRESERVE | CONFIRMS W6/R4-A2 | — | بطاقتا W6 قائمتان + قرار R6 يغلق تسليم R4-A2 (§3)؛ الخروج = Wave O بقرار مالك واحد للزوج |
+| F-011 | types.ts — ترقية الإجراء إلى بطاقة كاملة | PRESERVE (توثيق) | DEEPENS | R6-W1 | **منفذ** — Schema-adjacent موثق؛ 38/30 مثبتان عند :55/:71؛ الشطر القادم محمي بـWave O |
+| F-012 | توحيد بطاقتي سياسات المجال | PRESERVE (توثيق) | CONFIRMS | R6-W1 | **منفذ** — البطاقتان بتسعة أركان؛ صفر تغيير دلالة |
+| F-013 | TFV + TSV — إعادة تحقق الإبقاء مع نقاط ضعف مسجلة | PRESERVE | CONFIRMS ADR-017/R4-C2 | — | عناصر ADR-017 كلها أعيد التحقق حيًا؛ نقاط الضعف (≥4 كتل شبه متطابقة في TSV؛ دبابيس نمو لينة) مسجلة في البطاقتين؛ محفزات إعادة الفتح قائمة |
+| F-014 | ownerEntitlementService — seam محمي | PRESERVE الآن + DEFER owner-gated | CONFIRMS + يحدّد S2 | — | البطاقة كاملة (§3)؛ الحزمة المستقبلية: استخراج القراءات بعد R7 بقرار مالك — الزناد والخروج والرجوع موثقة |
+| F-015 | عائلات ما بعد التقسيم (PFS/integrity/inventory) | PRESERVE | CONFIRMS Wave F/ADR-013/014 | — | نجومية العائلات متحققة حيًا؛ الأشقاء الأربعة صاروا صفوفًا (F-003) |
+| F-016 | profitToCashBridge مستقر عند WATCH 402 | PRESERVE | CONFIRMS R5/S4 | — | العمود مصحح؛ ترويسة PC-4 دقيقة |
+| F-017 | مسارات UI البنيوية — حزم R7 صريحة | FIX_NOW (توثيق) + DEFER العمل→R7 | DEEPENS F-09/STR-305/204c | R6-W1 (توثيق) → R7 (عمل) | **منفذ** — الحزم الـ11 (P01..P11) ببطاقات كاملة في §3؛ لا عمل UI في R6 |
+| F-018 | index.css — خارج R6 | OUT_OF_SCOPE (track T) | CONFIRMS | track T | موثق في البطاقة والمصفوفة؛ ضمن جمع الـ26 صراحةً |
+| F-019 | الدورة المختلطة الوحيدة FinancePeriodResultSection↔Finance | DEFER | CONFIRMS R0-N2 حيًا | **R7** (فك) + **R8** (صنف حارس) | الحل = استخراج FinanceState ضمن P02؛ حارس كشف الدورات المختلطة = R8؛ المالك: مالك الحراس + منفذ R7 |
+| F-020 | عيب مرشح الأسطح الكسولة (check-bundle-surfaces.mjs:60) | DEFER | CONFIRMS R0-N1 حيًا | **R8** | الإصلاح بدلالات manifest (isEntry/isDynamicEntry) كحارس الميزانية؛ **لا يُعدل أساس في W1**؛ المالك: مالك الحراس |
+| F-021 | شبكة الحراس وحدود الأساس متحققة حرفيًا | PRESERVE | CONFIRMS سجل R5 | — | 17/17 عند `43a0f12` بتوثيق CI؛ أعيد التحقق بالمصالحة |
+| F-022 | Statement.tsx:167 — استنساخ خدمة عديمة الحالة خارج جذر التركيب | OUT_OF_SCOPE (ملاحظة track T) | NEW | track T | موثق في بطاقة P11؛ لا كسر قاعدة؛ التسوية ضمن جرد تركيب موجة UI |
+| F-023 | احتكاك السجلات تصميم مقصود ضد النمو الصامت | PRESERVE (+ مدخل R7) | NEW | R7 (مدخل ergonomics) | البقاء قرارًا مثبتًا؛ R7 يضيف scaffold/checklist لا يزيل الراتشات |
+| F-024 | توسيع مراسي قيم القبول (~6 أطقم) | FIX_NOW (اختباري؛ بجدولة مالك) | DEEPENS STR-104/509 | **R6-W2** | مسجل كمرشح معتمد — **لا يبدأ قبل جرد مواقع دقيق** (paths/أسطر/استيراد كنوني/بناء/سلبيات/سبب لكل موقع) يسلمه منفذ W2؛ الجذر 4D يبقى مسارًا دلاليًا owner-gated |
+| F-025 | خريطة الاختبارات/التوثيق مكتملة لكل نطاق الـ26 | PRESERVE | CONFIRMS | — | لا ملف ميت اختباريًا؛ test-map --check بلا انجراف؛ LARGE_TEST مسجلة وتخترق العائلات عبر المُنسّق |
+| F-026 | §23.8 لخطة الانتقال متأخرة ثلاث موجات | FIX_NOW (توثيق) | DEEPENS R0-N9 | R6-W1 | **منفذ** — الملحق المؤرخ في REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md §23.8 |
+| F-027 | سلاسل الاكتشاف مكتملة والمواقع الكسولة الخمسة موثقة | PRESERVE | CONFIRMS | R7 (مدخل) | مواقع FIN-002 الخمسة مرصودة لجرد R7 |
+
+*(أُنشئ هذا القسم بمصالحة R6-W1، 2026-10-09، عند `fd92d7e8` — علاقات NEW/DEEPENS/REOPENED/CONFIRMS كما في تقرير المسح §13؛ لا توجد IDs مكررة ولا مكتشفات محذفة صامتة.)*

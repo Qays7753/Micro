@@ -1,0 +1,166 @@
+# R6-W1 — Records Reconciliation and Structural-Gate Closure — Execution Report
+
+**Program:** WS-216 / ARCH-007 — Structural Remediation R0–R10, R6 records wave 1
+**Mode:** Documentation / Operations Control only. Zero production, test, script, CSS, token, package, lockfile, schema, export, financial, historical, rejection, security, or UI change.
+**Execution date:** 2026-10-09 (branch dated per owner mandate) — **Executor:** Z AI (single primary executor; five read-only review gates before commit)
+**Base:** `fd92d7e8812726dcca8d27d3ad64c8f24dc96abd` (verified live: PR #337 merge; first parent `43a0f12ff1379a5ae9433572b7330405c70fdfc7`, second `ec697a148e39d6560159f32721848e9d9f4eb766`)
+**Branch:** `refactoring/r6-w1-records-reconciliation-20261009`
+**Authority inputs (verified from `origin/main` only, SHA-256 byte-exact):**
+- `R6-PREFLIGHT-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-09.md` — `e06a27a44baa2d28e53485fc36a8d7aa83605c8c32ab8cc07ab1d3290ae9c777` (VERIFIED via `git show origin/main:<path> | sha256sum`)
+- `R6-OWNER-REVIEW-AND-DECISION-PACKAGE-2026-10-09.md` — `13387db9a7b494699b9f805addd647931424a544592604008fcb4df2b57059e2` (VERIFIED, same method)
+
+---
+
+## 1. Baseline and authorization
+
+| Checkpoint | Value | Class |
+|---|---|---|
+| `origin/main` at execution | `fd92d7e8812726dcca8d27d3ad64c8f24dc96abd` | VERIFIED |
+| Parents | `43a0f12f…` / `ec697a14…` exact | VERIFIED |
+| PR #337 | closed/merged, merge_commit `fd92d7e8…`, 2 files (docs-only: the two canonical R6 reports), merged 2026-10-09T18:51:04Z | VERIFIED |
+| PR #335 (R5) / PR #336 | merged at `092c933b…` / `43a0f12f…` (ancestry verified) | VERIFIED |
+| Open PRs | 0 | VERIFIED |
+| Required branch name | absent locally and on origin (no collision) | VERIFIED |
+| Preserved UI branch | `docs/ux-ui-zed-handoff-20260921` @ `f28b0fa6…` untouched | VERIFIED |
+| Worktree | clean at branch creation; pre-edit `validate.py` exit 0 (85 items / 58 workstreams / 1 active claim) | VERIFIED |
+| CI on base `fd92d7e8` | run `37976142458` — **success** (push) | VERIFIED |
+| Known F-001 baseline | run `37894104251` — failure at `43a0f12` ("Verify domain and prototype"; `StateRecovery.w44.dom.test.tsx:116:57`) — recorded, not rerun, not attributed to PR #336 (docs-only diff verified) | VERIFIED |
+
+**Authorization boundary:** BRANCH_AND_PR_ONLY — branch + commits + push + one PR; no merge, no workflow rerun, no deployment, no settings, no branch/PR deletion, no direct main writes. Credentials: secure askpass mechanism from `/home/z/my-project/.secrets/` only; the token pasted in chat was never used, quoted, or stored. NO_SECRETS_EXPOSED.
+
+**Scope reconciliation (Phase 0):** all 26 scan-scope files + 4 Wave-F siblings + the growth population + `debug-collector.js` re-measured live at `fd92d7e8` (awk NF) — **every value matches the scan report §8 exactly** (the head diff `43a0f12..fd92d7e8` is exactly the two evidence files). No STATE_DRIFT.
+
+## 2. Files read and files changed
+
+**Read (mandatory 15 + 2 canonical):** AGENTS.md; docs/operations/current-state.md; generated/AGENT-BRIEF.md; generated/ACTIVE-WORK.md; WS-216.json; ARCH-007.json; REFACTORING-CONTROL.md; refactoring README.md; STRUCTURAL-REMEDIATION-PLAN-20261007.md (incl. R6 gate + R7/R8 sections); ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md; FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md (full); OWNERSHIP-AND-TRUTH-REGISTRY.md; TEST-AND-DOCUMENTATION-MAP.md; contracts/40; REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md §14/§23.8–23.13 (F-026 target); both canonical R6 reports (full).
+
+**Changed (all documentation / Operations Control; complete list):**
+1. `docs/architecture/refactoring/FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md` — F-002/F-003/F-004/F-005/F-006/F-007/F-008/F-011/F-012/F-017 + new §8 matrix (27 IDs)
+2. `docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md` — F-026 §23.8 dated addendum
+3. `docs/operations/control/evidence/structural-remediation-r5-20261009/R5-BOUNDARY-LEDGER.md` — D-034 line-drift dated correction (F-007)
+4. `docs/operations/control/workstreams/WS-216.json` — branch/base_sha/pr/next_action/note/evidence (JSON-first)
+5. `docs/operations/control/items/ARCH-007.json` — next_action/evidence/updated_at
+6. `docs/operations/current-state.md` — live fields only (19,862/20,480 bytes after trims of §8.2 historical bulk preserved verbatim in current-state-log.md)
+7. `docs/operations/current-state-log.md` — §155 appended (append-only)
+8. `docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md` — Entry 64 appended (append-only)
+9. `docs/architecture/refactoring/REFACTORING-CONTROL.md` — v1.13 header + §14 live step
+10. `docs/architecture/refactoring/README.md` — status lines + file-table rows
+11. `docs/operations/control/evidence/structural-remediation-r6-20261009/R6-W1-RECORDS-RECONCILIATION-EXECUTION-REPORT-2026-10-09.md` — this report (new)
+12. `docs/operations/control/generated/*` — regenerated by the official generator only (no hand edits)
+
+**Unchanged by design:** the canonical R6 scan report and owner review package (PR #337 files — byte-untouched in this diff); every file under `src/`, `apps/`, `tests/`, `scripts/`; package manifests, lockfiles, CSS, tokens, runtime config.
+
+## 3. Finding reconciliation matrix
+
+| ID | W1 action taken | Class |
+|---|---|---|
+| F-002 | §1 re-issued: NORMAL 681 / WATCH 47 / SPLIT_CANDIDATE 13 / SPLIT_NOW 9 / PRESERVE 3 / LARGE_TEST 4 = **757 rows**; categories production=343/test=337/script=20/generated=7/fixture=29/config=21; profitToCashBridge band column corrected NORMAL→WATCH (ratchet-authoritative); measurement-head reference dated to `fd92d7e8`; tracked-file count updated (1,551). Reconciliation verified programmatically: §1 == parsed §2 == 757; WATCH 47 == ratchet baseline 47 == tree | VERIFIED |
+| F-003 | 4 Wave-F sibling rows added with live measurements (EventWrites 443/451/26,518; CoreFinance 430/438/23,726; PeriodReads 422/426/22,116; AssetsLoans 400/404/22,183), owners (application), family triggers (ADR-013), star-topology + coordinator-facade test notes | VERIFIED |
+| F-004 | craft-order §3 card completed to nine elements and aligned with §2; misleading "0 direct tests (see gap cards)" corrected (pointer repaired to TEST-AND-DOCUMENTATION-MAP + generated test-map per R1/TG-01; honest record: ~171 indirect its via barrel, settlementInvariant/MIC-18, moneyLayerGuard census sites; no direct test file — recorded as an input to a future owner-gated test wave); dated +14 note (1,399→1,413, causes: R2 commits 94cfba77/7fcf37d2) | VERIFIED |
+| F-005 | TFV dated growth note (1,718/76,500 → **1,730/77,703** at `fd92d7e8`; causes: R2 commits b890f9a2/388dac65/a476ed7a); ADR-017 pin language corrected in-card (ratchet enforces bands, not the exact pin); **R8 enforcement package recorded** (owner: guards owner; trigger: R8 start; exit: ratchet rejects unjustified within-band growth; rollback: single-guard revert). No validator/guard change in W1 | VERIFIED |
+| F-006 | Exact dated disposition table for the full population (register §7): TFV +12, craft-order +14, TSV +8, owner-ent-policies +8, correctionHistory +29, statementService +21, fulfillment +16, asset +15, activity +11, periodComparison +11, homeControlCenter +7, catalog +6, numeric.ts +113 (the canonical date-kernel itself), check-module-boundaries.mjs 250→398 (2 nbLOC from WATCH — explicit owner note). Every entry: before→after, cause commits, benign verdict, disposition. R8 package recorded separately | VERIFIED |
+| F-007 | Dated corrections only where live evidence proved staleness: capabilities 7→16; write guards 10→9; parity "13/13+42/42" → 6 conformance + 16 capability-contract files; direct tests TFV 3→4 / IndexedDb 19→35 / Memory 178→198 (all re-measured live); register §4 deep-import baseline 43→42 (36+6; R5/S1 migration); R5-ledger D-034 line drift :140→:145 (dated note in that ledger; live line verified). No guard or baseline file was modified | VERIFIED |
+| F-008 | Complete debug-collector.js disposition in §2 row: owner prototype-web; dev-only verified (vite Q-002 gate + production early-return); preserve reason; production-usage trigger; exit = removal on tooling replacement; honest 0-direct-tests record; LOW rollback | VERIFIED |
+| F-011 | types.ts §3 card upgraded to complete PRESERVE (nine elements): Wave N inventory delivered by R3 (130 methods/22 groups); schema-adjacent recorded; `localSchemaVersion=38`/`localExportVersion=30` pinned at :55/:71; **any future split = protected Wave O decision with parity/contract evidence** | VERIFIED |
+| F-012 | Both domain-policy cards normalized to the nine required elements (financial-analysis: 4 clusters/2 consumers/no change-locality independence; owner-entitlement: 3 clusters of one aggregate; live 914 with +8 dated note). Zero domain semantics changed | VERIFIED |
+| F-017 | 11 explicit R7 packages R6-F17-P01..P11 recorded (§2 row references + full §3 cards): each states owner, affected seam (incl. hook census: OwnerEntitlement 52 useState, OrderDetail 51, FinancialEventEditor 31 file-wide; EventsLayer 10.6% main-component; Schedule 32%; editors 97–99% single-function), R7 scope, trigger (owner-authorized R7 start), dependencies, acceptance, journey/test expectations, exit condition, per-page rollback boundary, and **explicit visual/UI exclusion (track T)**. No UI work performed | VERIFIED |
+| F-026 | Dated addendum after the migration plan §23.8 table (historical text preserved): finance split is complete live (5 cluster homes + 29 doors + 16 capability groups vs recorded "3/6"/7); R7/R8/track-T/Wave-O routing with source evidence (scan report §6–§9); the accepted R6 report named as current authority | VERIFIED |
+| F-001 | **Not implemented (W2 by mandate).** Durable disposition recorded in §8 matrix: root-fix = deferred-promise/releaseRead gate per Home.dom.test.tsx:157 precedent; do-not list (no assertion weakening, no Assets.tsx touch) recorded; CI baseline evidence both runs recorded (37894104251 failure at 43a0f12; 37976142458 success at fd92d7e8) | VERIFIED (record only) |
+| F-024 | **Not implemented (W2).** Recorded as approved candidate requiring a precise site inventory (paths/line anchors/canonical imports/constructions/negatives/reasons) before start; root 4D retrofit stays owner-gated | VERIFIED (record only) |
+| F-009 | **Not implemented (W3 by mandate; no W1 script change).** Bare "PRESERVE (cohesive)" refuted in-card with the measured composition (57% ledger; 744-line CAPS block; ~350–400-line engine; 0 direct tests); complete W3 package recorded (characterization first → ledger extraction → same-PR register/ratchet/test-map updates → byte-identical output → slice-level rollback); W3 confirmed non-optional per owner review | VERIFIED (record only) |
+| F-010 | PRESERVE for the adapter pair; R4-A2 hand-off closed in the Memory card with the R6 decision (Wave O exit governs both as one parity pair) | VERIFIED |
+| F-013 | PRESERVE re-verified with soft spots recorded in-card (TSV ≥4 near-identical reversal/uniqueness blocks; soft growth pins until R8) | VERIFIED |
+| F-014 | Complete PRESERVE card + owner-gated future package (post-R7 reader extraction; trigger/exit/rollback documented; live 1,003 with −90 dated context; `reverseMovement` :978–:1018 line correction) | VERIFIED |
+| F-015 / F-016 | Family preservation confirmed; the 4 siblings now rowed (F-003); profitToCash stable at WATCH 402 with column corrected | VERIFIED |
+| F-018 | index.css recorded OUT_OF_SCOPE/track T in card + matrix; **26-file scope summary reconciled explicitly: 10 PRESERVE + 3 Wave-F-resolved + 11 UI + 1 tooling + 1 CSS (index.css) = 26** | VERIFIED |
+| F-019 / F-020 | R7 dissolution (FinanceState via P02) + R8 guard class / R8 manifest-semantics filter fix — exact packages, owners, triggers, exits recorded; no baseline altered in W1 | VERIFIED (record only) |
+| F-022 / F-023 | Statement.tsx:167 track-T note (in P11 card); registry friction preserved as deliberate anti-silent-growth design with R7 ergonomics input | VERIFIED |
+| F-025 / F-027 | Preservations confirmed and recorded (test/doc mapping complete; discoverability chains complete; FIN-002 five lazy sites documented for R7) | VERIFIED |
+
+**Stable IDs:** R6-SCAN-F-001..027 recorded durably in register §8 with NEW/DEEPENS/REOPENED/CONFIRMS relations exactly as the scan report §13 — no renumbering, no duplicates, no silent omissions; no second tracker created (the register is the finding/card source; full evidence stays in the canonical report).
+
+## 4. Measurement reconciliation
+
+- §1 == parsed §2 == **757 rows** (programmatic verification in-wave; see §3 F-002).
+- WATCH: §2 rows 47 == `scripts/file-size-ratchet-baseline.json` WATCH keys 47 == live tree (the 4 siblings + profitToCash correction). SPLIT_NOW-sized rows: 9 (+3 PRESERVE-band rows listed explicitly).
+- Growth population: complete 14-file table with before→after + cause commits (§7 of the register).
+- Scope summary: 26 files = 10 PRESERVE + 3 resolved + 11 UI + 1 tooling + **index.css (F-018 OUT_OF_SCOPE/track T)** — the arithmetic defect noted by the owner review is corrected.
+
+## 5. Changed-path and scope proof
+
+Changed paths = the 11 documentation/control files + generated views listed in §2. **Zero changes** under `src/`, `apps/`, `tests/`, `scripts/`, package manifests, lockfiles, CSS, tokens, or runtime configuration (verified via `git diff --name-only fd92d7e8` before commit). The two PR #337 canonical files are byte-identical in this diff (not touched).
+
+## 6. Commands and exit codes
+
+Recorded in-wave (exact commands; full list in the PR body): `python3 scripts/operations-control/validate.py` (pre-edit: exit 0; post-edit: exit 0); `python3 scripts/operations-control/generate_tracker.py` (+ `--refresh-excel-meta` as prescribed; exit 0); `generate_tracker.py --check` (exit 0); `node scripts/check-doc-index-coverage.mjs` (exit 0); `node scripts/check-current-state-size.mjs` (exit 0 — 19,862/20,480); `git diff --check` (clean); `node scripts/generate-test-map.mjs --check` (exit 0 — no drift, no code touched). No broad install/build executed (documentation wave; the automatically triggered PR CI is the required evidence).
+
+## 7. Five-reviewer gate results (read-only, before commit)
+
+1. **Control/records reviewer:** JSON-first respected (WS-216/ARCH-007 updated before views); no hand-edited generated files; append-only history intact (§155/Entry 64); current-state under ceiling; finding IDs stable 001–027 with relations. PASS.
+2. **Architecture/card reviewer:** all W1-scope files carry complete PRESERVE cards or precise later-wave packages; no generic DEFER remains (every route names package/owner/trigger/exit/tests/rollback); R7/R8/Wave-O/track-T routing consistent with the accepted plan. PASS.
+3. **Measurement/source-of-truth reviewer:** §1/§2/tree equality verified programmatically (757; WATCH 47); growth population complete with causes; no number asserted without a live measurement or a scan-report citation; no guard/baseline file edited to match prose. PASS.
+4. **Test/CI/operations reviewer:** F-001 boundary respected (test file untouched; both CI runs recorded honestly — failure at `43a0f12`, success at `fd92d7e8`); PR metadata plan verified; no CI rerun performed. PASS.
+5. **Hostile reviewer:** challenged scope drift, duplicate-tracker risk, hidden code changes, unsupported PRESERVE, and false completion — verified changed-path list is docs-only, the §8 matrix cites the canonical report rather than duplicating it, and every PRESERVE carries its nine elements; notes that R5's below-threshold guard additions remain count-not-rowed pending the next comprehensive re-measurement (recorded honestly in the register's dated note, not silently). PASS_WITH_NOTES (no W1-blocking findings; notes recorded for W2/W3/R7/R8).
+
+**Synthesis:** all five gates green; no out-of-scope amendment applied.
+
+## 8. Schema/Export/financial/history/rejection/security/UI impact
+
+**None.** `localSchemaVersion=38` / `localExportVersion=30` untouched (no file under `apps/` or `src/` changed at all); financial meaning, historical interpretation, rejection behavior, import/legacy compatibility, security policy, bundle ceilings, and visual UI (DOM/CSS/tokens/navigation/copy) all untouched — the diff is documentation, Operations Control JSON, and generated views only.
+
+## 9. Known F-001 CI baseline handling
+
+The automatically triggered PR check is the required CI evidence. If it fails **only** at `StateRecovery.w44.dom.test.tsx:116:57`, it is recorded as `BASELINE_CI_FAILURE_OUTSIDE_W1_SCOPE` (known F-001, owned by R6-W2) and the PR is not mislabeled green. At the W1 base `fd92d7e8` the same suite passed (run `37976142458`), consistent with the racy-timing classification. No other failure is explainable by this docs-only diff; any other failure stops the wave for investigation.
+
+## 10. Risks and rollback
+
+Risk: documentation-only; the residual risk is record inaccuracy, addressed by the measurement reconciliation and the five gates. Rollback: revert the single W1 commit — no code/data effect; the register's dated-correction protocol allows appending further corrections without rewriting this wave's entries.
+
+## 11. Remaining work and exact next safe action
+
+1. Owner reviews this PR (scope table, matrices, gates) and merges by separate authorization.
+2. Post-merge verification + administrative reconciliation (R2–R5 pattern).
+3. R6-W2: F-001 test-only determinism fix (+ F-024 only after the precise site inventory is delivered).
+4. R6-W3: text-density-count.py ledger extraction (characterization first).
+5. R7/R8/Wave O/track T routes as recorded in register §8 — each behind its owner gate.
+
+## 12. First owner review — correction record (same PR #338, append-only)
+
+**Owner review received:** 2026-10-09T19:41:26Z (issue comment on PR #338 by Qays7753): "changes required before merge" — the wave scope itself was accepted ("docs/Operations-Control only, focused checks and CI are green, no production/test/script/CSS/schema/export/financial/UI files changed"); two record-correctness blockers were raised and are corrected in this same PR, with no history rewritten.
+
+**Correction A — prior evidence restored (append-only at the canonical JSON source):**
+
+| Record | Before correction | After correction | Proof |
+|---|---|---|---|
+| `ARCH-007.json` top-level `evidence` | 6 entries (the prior 30-entry list had been replaced — 29 R2–R5 entries dropped) | **36 entries = the prior 30 in their exact original order + 6 R6/W1 entries appended after them** | programmatic diff vs `origin/main`: removed prior entries = 0; `now[:30] == prior` |
+| `WS-216.json` `evidence` | 8 entries (prior R5 post-merge CI URL `…/actions/runs/37892032808` dropped) | **10 entries = the prior 3 in original order (CI URL restored) + 7 R6/W1 entries appended** | same programmatic proof; restored URL present |
+| `source.evidence` (ARCH-007) | 8 entries, untouched by W1 | unchanged | byte-identical |
+
+The restored prior evidence includes every R2/R3/R4/R5 manifest, repair card, execution report, source file, guard file, PR link, CI link, and merge link that the first submission had dropped. A dated correction note was appended to `WS-216.json` `notes` (append-only; 22 → 23). Generated views were regenerated from the corrected JSON via the official generator only.
+
+**Correction B — final W1 head and final PR statistics pinned:**
+
+The first submission's live `next_action` (WS-216/ARCH-007 + the three generated views) pointed at the **first** W1 commit with its intermediate statistics. This is corrected by the closing pin commit on top of the correction content commit:
+
+- **Commit lineage (all historical values retained):**
+  1. `e3a850f8d429aa23df03a66cf1ec929a968aed51` — first W1 implementation commit (15 files, +444/−112 at that point) — **historical evidence, retained here per owner instruction**;
+  2. `9842f77553a10a3c328d32c9a4bebb3d56ab15c3` — first closing-records commit (pinned `pr=338`; PR reached 15 files, +446/−115; CI run `37980287858` success on this exact SHA) — pre-correction head, historical;
+  3. correction content commit (this §12 + restored evidence + records) — **final W1 content head**, referenced by the live pointers;
+  4. closing pin commit on top — live PR #338 head; **its exact full SHA and the final PR statistics are pinned in the PR #338 body** (a git commit cannot embed its own SHA, so the live tree pointer names the final content head and the PR body — updatable without a further commit — carries the exact live head; the one-commit lag is administrative-only and stated explicitly in the pointer text itself).
+- Live pointers in `WS-216.json`, `ARCH-007.json`, and the regenerated views now name the **final content head** and the **final PR statistics** (verified against the GitHub API after push), never the first commit.
+- No `MERGED` / `VERIFIED_ON_MAIN` claim is made anywhere while PR #338 is open; the base SHA remains the verified main base `fd92d7e8…`.
+
+**Verification after amendment (commands, all on the corrected tree):** `python3 scripts/operations-control/generate_tracker.py` (+ `--refresh-excel-meta`) exit 0; `generate_tracker.py --check` exit 0; `python3 scripts/operations-control/validate.py` exit 0; `git diff --check` clean; programmatic evidence-preservation proof (zero removed prior entries, prefix order exact); changed-path proof (documentation/Operations Control only — no `src/`, `apps/`, `tests/`, `scripts/`, CSS, tokens, package, lockfile, schema, export, financial, historical, rejection, security, or UI paths).
+
+## 13. Post-correction status
+
+PR #338 remains **open** (amended, not merged). Focused checks and PR CI must be green on the exact final pushed head before this wave is declared ready. The owner merges by separate authorization.
+
+---
+
+R6_W1_CORRECTED_ON_BRANCH — PR_338_OPEN_IN_REVIEW
+PRIOR_EVIDENCE_RESTORED_APPEND_ONLY
+FINAL_HEAD_PINNED_VIA_CLOSING_PIN_COMMIT
+NO_CODE_TEST_SCRIPT_CHANGE
+NO_MERGE_PERFORMED
+NO_CLEANUP_PERFORMED
