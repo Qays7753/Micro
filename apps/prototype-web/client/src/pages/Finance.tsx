@@ -152,11 +152,10 @@ type BudgetsServiceLoad =
   | { phase: "loading" }
   | { phase: "error" }
   | { phase: "ready"; service: ExpenseBudgetServiceT };
-type ExpenseBudgetServiceT = import("@/application/finance/expenseBudgetService").ExpenseBudgetService;
-type ExpenseBudgetStatusesReadingT =
-  import("@/application/finance/expenseBudgetService").ExpenseBudgetStatusesReading;
-type ExpenseBudgetStatusLineT = import("@/application/finance/expenseBudgetService").ExpenseBudgetStatusLine;
-type ExpenseBudgetMonthListT = import("@/application/finance/expenseBudgetService").ExpenseBudgetMonthList;
+type ExpenseBudgetServiceT = import("@/application/budgets").ExpenseBudgetService;
+type ExpenseBudgetStatusesReadingT = import("@/application/budgets").ExpenseBudgetStatusesReading;
+type ExpenseBudgetStatusLineT = import("@/application/budgets").ExpenseBudgetStatusLine;
+type ExpenseBudgetMonthListT = import("@/application/budgets").ExpenseBudgetMonthList;
 /* تسمية النطاق — مفردات عقد ٤٢ §٤: «مصروف عام» أو «فئة: نص صريح». */
 /* مفاتيح الأشهر داخل نطاق معروض صالح — سقف دفاعي لا حلقة بلا نهاية. */
 const currentMonth = () => todayInAmman().slice(0, 7);

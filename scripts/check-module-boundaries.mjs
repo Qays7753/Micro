@@ -37,6 +37,9 @@
  *      وصف أساس لم يعد حيًّا يُرفض أيضًا (نظافة الأساس في نفس PR الهجرة).
  *      طبقات الفحص: ui/app-shell/contexts/lib/presentation + pwa (سطح
  *      تشغيلي ملاصق للواجهة — register.ts يستهلك خدمات التطبيق).
+ *      **(R5/S1، 2026-10-09):** المحدّد النوعي `import("…").X` (ImportTypeNode)
+ *      صار يُسجّل (كان يهرّب من R6) وامتداد المسح شمل `.js/.jsx` (كان
+ *      `.ts/.tsx` فقط) — كلاهما بسلبيات مثبتة في ملف الاختبار.
  *
  * تحديث الأساس عمدًا مشروط: أي حافة جديدة مشروعة تُضاف إلى الأساس في نفس
  * الـPR مع صف/تحديث في سجل الملكية §5 (سجل الاستثناءات) — الحارس يجعل
@@ -125,7 +128,7 @@ function listProductionFiles(repoRoot) {
         walk(full);
         continue;
       }
-      if (!/\.(ts|tsx)$/.test(entry.name)) continue;
+      if (!/\.(ts|tsx|js|jsx)$/.test(entry.name)) continue;
       if (/\.test\.[a-z]+$/.test(entry.name)) continue;
       if (/\.d\.ts$/.test(entry.name)) continue;
       files.push(full);
@@ -179,6 +182,16 @@ export function collectAllImports(repoRoot, files) {
         ts.isStringLiteral(node.arguments[0] ?? {})
       ) {
         push(node.arguments[0].text, true, true);
+      }
+      /* R5/S1 (2026-10-09): الموضع النوعي `import("…").X` — المحدّد داخل
+       * LiteralTypeNode لا StringLiteral مباشرة؛ يُسجّل نوعًا ديناميكيًا
+       * فتُحسب القواعد المسارية (R1/R4/R6) وحدها ولا تدخل قواعد القيمة. */
+      if (
+        ts.isImportTypeNode(node) &&
+        ts.isLiteralTypeNode(node.argument) &&
+        ts.isStringLiteral(node.argument.literal)
+      ) {
+        push(node.argument.literal.text, false, true);
       }
       ts.forEachChild(node, visitDynamic);
     };

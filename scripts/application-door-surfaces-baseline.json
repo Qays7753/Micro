@@ -1,0 +1,350 @@
+{
+ "version": 1,
+ "description": "R5/S2 ratchet baseline (check-application-door-surfaces.mjs): exact value+type export surfaces of every application door (any-depth index.ts) plus the production application root-file set. Widening, shrinking, an unregistered new door/nested barrel/root barrel/root file, a deleted door, or a wildcard export (export * / export * as ns) all FAIL. Deliberate surface changes update this file in the same PR with a dated note.",
+ "notes": {
+  "unconsumed-type-symbols": "Six doors carry exactly one type symbol without a live door consumer (the service type): parties, activity, financial-pulse, follow-up, cost, estimates — pinned as-is (R5 ledger §1); trimming is a surface change reserved for a later wave."
+ },
+ "doors": {
+  "activity": {
+   "value": [],
+   "type": [
+    "ActivityEffectClass",
+    "ActivityFamily",
+    "ActivityRecord",
+    "ActivityService"
+   ]
+  },
+  "agreements": {
+   "value": [
+    "agreementPriceIsReady",
+    "applyProtectionPriceAsStart",
+    "classifyFollowUpDate",
+    "protectionPriceIsReadyForAgreement",
+    "startAgreementPrice"
+   ],
+   "type": [
+    "AgreementContextService",
+    "AgreementResult",
+    "AgreementService",
+    "AgreementSourceValue"
+   ]
+  },
+  "assets": {
+   "value": [],
+   "type": [
+    "AssetOverviewRead",
+    "AssetService",
+    "AssetSummaryRow"
+   ]
+  },
+  "budgets": {
+   "value": [
+    "ExpenseBudgetService"
+   ],
+   "type": [
+    "ExpenseBudgetMonthList",
+    "ExpenseBudgetStatusLine",
+    "ExpenseBudgetStatusesReading"
+   ]
+  },
+  "cash": {
+   "value": [
+    "CashContinuityService",
+    "WalletLedgerService",
+    "cashCountDifferenceReason",
+    "cashCountSettlementNote"
+   ],
+   "type": [
+    "CashContinuityOverview",
+    "CashWalletBalance",
+    "WalletLedgerOverview"
+   ]
+  },
+  "catalog": {
+   "value": [],
+   "type": [
+    "CatalogService",
+    "TemplatePlannedCost",
+    "TemplatePlannedCostService"
+   ]
+  },
+  "collections": {
+   "value": [],
+   "type": [
+    "CollectionOutcome",
+    "CollectionReversalPreview",
+    "CollectionReversalResult",
+    "CollectionReversalService",
+    "CollectionService",
+    "ReceivableSource",
+    "ReversibleSaleCollection",
+    "SaleCollectionReversalPreview",
+    "SaleCollectionReversalService"
+   ]
+  },
+  "cost": {
+   "value": [],
+   "type": [
+    "CostEditorInput",
+    "CostService"
+   ]
+  },
+  "diagnostics": {
+   "value": [
+    "localDiagnostics",
+    "routeTemplateFor"
+   ],
+   "type": []
+  },
+  "drafts": {
+   "value": [
+    "LEGACY_SETUP_DRAFT_KEY",
+    "browserLegacyFormDraftStorage",
+    "clearLegacyFormDraftStorage",
+    "legacyFinanceDraftKey",
+    "migrateLegacyFormDraft"
+   ],
+   "type": [
+    "FormDraftService",
+    "FormDraftValues"
+   ]
+  },
+  "estimates": {
+   "value": [],
+   "type": [
+    "CostEstimateInput",
+    "CostEstimateService"
+   ]
+  },
+  "finance": {
+   "value": [
+    "DEFAULT_SHORT_CASH_HORIZON_DAYS",
+    "DueDatesService",
+    "IntegrityCheckService",
+    "PeriodComparisonService",
+    "ProfitToCashBridgeService",
+    "ProjectFinancialService",
+    "RecurringExpenseService",
+    "RecurringWorkService",
+    "SHORT_CASH_HORIZON_DAYS",
+    "SHORT_CASH_HORIZON_LABELS_AR",
+    "StatementMarkdownService",
+    "StatementService",
+    "UpcomingService",
+    "isPeriodActive",
+    "previousEqualPeriod",
+    "resolvePeriodPreset"
+   ],
+   "type": [
+    "FinancialInsights",
+    "FinancialMetricEvidence",
+    "IntegrityCheckReport",
+    "IntegrityCheckResult",
+    "IntegrityCheckStatus",
+    "IntegrityOffenderSummary",
+    "PayableDueRow",
+    "PayablesAgingOverview",
+    "PeriodComparisonReading",
+    "ProfitToCashBridgeReading",
+    "ProjectFinancialPosition",
+    "RecordedPeriodResult",
+    "RecurringExpenseDetailReading",
+    "RecurringExpenseSeriesCardReading",
+    "RecurringWorkPolicyInput",
+    "RecurringWorkReading",
+    "RecurringWorkReadings",
+    "SettleablePayable",
+    "ShortCashHorizonDays",
+    "StatementExpenseCategoryGroup",
+    "StatementLine",
+    "StatementReading",
+    "UpcomingBlockResult",
+    "UpcomingEntry",
+    "UpcomingOverview"
+   ]
+  },
+  "financial-pulse": {
+   "value": [],
+   "type": [
+    "FinancialPulseService",
+    "LocalFinancialPulse"
+   ]
+  },
+  "financial-records": {
+   "value": [
+    "CorrectionHistoryService",
+    "RetainedDepositService",
+    "deriveExpenseCategorySuggestions",
+    "expandExpenseRecordIntent",
+    "normalizeCategoryLabelInput"
+   ],
+   "type": [
+    "CorrectionDigest",
+    "CorrectionHistoryEntry",
+    "CorrectionHistoryGroup",
+    "CorrectionHistoryKind",
+    "RetainedDepositRow",
+    "SharedExpenseRecordInput"
+   ]
+  },
+  "follow-up": {
+   "value": [],
+   "type": [
+    "DailyFollowUp",
+    "DailyFollowUpService"
+   ]
+  },
+  "fulfillment": {
+   "value": [],
+   "type": [
+    "DeliveryConsumptionAction",
+    "DeliveryReview",
+    "DeliveryReviewService",
+    "DepositOverview",
+    "FulfillmentResult",
+    "FulfillmentService"
+   ]
+  },
+  "home": {
+   "value": [],
+   "type": [
+    "HomeControlCenterViewModel",
+    "HomeFinancialFact",
+    "HomeInsight",
+    "HomePeriodNumber",
+    "HomeTodayItem"
+   ]
+  },
+  "input": {
+   "value": [
+    "allowsEnglishNumericText",
+    "blurEnglishNumericText",
+    "echoQuantityMilli",
+    "focusEnglishNumericText",
+    "formatEnglishNumericValue",
+    "formatEnglishQuantityEcho",
+    "normalizeAsciiDigits",
+    "parseEnglishNumericText",
+    "parseEnglishQuantityText",
+    "percentToBpsExact"
+   ],
+   "type": [
+    "EnglishNumericKind"
+   ]
+  },
+  "inventory": {
+   "value": [
+    "InventoryMaterialService",
+    "readMaterialSuggestions",
+    "resolveInventoryMovementType"
+   ],
+   "type": [
+    "InventoryActivationState",
+    "InventoryMaterialOverview",
+    "InventoryMovementRouteType",
+    "InventoryOverview",
+    "InventoryReferences",
+    "MaterialSuggestion",
+    "OrderActualMaterialComparison",
+    "PeriodWasteReading",
+    "PurchaseReceiptStatus"
+   ]
+  },
+  "loans": {
+   "value": [
+    "ReceivedLoanService"
+   ],
+   "type": [
+    "LoanOverviewRead",
+    "LoanService",
+    "LoanSummaryRow",
+    "ReceivedLoanOverviewRead",
+    "ReceivedLoanSummaryRow"
+   ]
+  },
+  "owner-money": {
+   "value": [
+    "OwnerEntitlementService"
+   ],
+   "type": [
+    "CrossModelOwnerDuplicate",
+    "OwnerEntitlementOverview",
+    "OwnerMoneyOverview"
+   ]
+  },
+  "parties": {
+   "value": [],
+   "type": [
+    "PartyLedgerOverview",
+    "PartyLedgerService"
+   ]
+  },
+  "preferences": {
+   "value": [],
+   "type": [
+    "BrowserPersistenceReading",
+    "PreferenceService"
+   ]
+  },
+  "scheduling": {
+   "value": [
+    "buildCapacityDecisionViewModel"
+   ],
+   "type": [
+    "MonthOverview",
+    "RecurrenceView",
+    "ScheduleDay",
+    "ScheduleOverview",
+    "ScheduleRecurrenceService",
+    "ScheduleService",
+    "ScheduledOrder"
+   ]
+  },
+  "security": {
+   "value": [
+    "LOCK_AUTO_LOCK_OPTIONS",
+    "LocalLockService"
+   ],
+   "type": []
+  },
+  "share": {
+   "value": [
+    "collectionShareDraft",
+    "customerShareDraft",
+    "standingCollectionEvent"
+   ],
+   "type": [
+    "ShareDraft"
+   ]
+  },
+  "suppliers": {
+   "value": [],
+   "type": [
+    "SupplierPurchaseService",
+    "SupplierPurchaseSummary"
+   ]
+  },
+  "time": {
+   "value": [
+    "todayInAmman"
+   ],
+   "type": [
+    "ActualTimeService",
+    "OperatingModeValue"
+   ]
+  },
+  "transfers": {
+   "value": [],
+   "type": [
+    "GuidedOpeningImportPreview",
+    "GuidedOpeningImportService",
+    "LocalTransferService",
+    "TransferPreview",
+    "TransferSummary"
+   ]
+  }
+ },
+ "rootFiles": [
+  "resultCodes.ts"
+ ]
+}

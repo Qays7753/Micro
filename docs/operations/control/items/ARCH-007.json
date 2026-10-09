@@ -92,7 +92,13 @@
     "docs/operations/control/evidence/structural-remediation-r3-20261008/R3-REPAIR-CARDS.md",
     "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-REPAIR-CARDS.md",
     "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-TRANSFER-SCHEMA-EXPORT-EXECUTION-REPORT-2026-10-08.md",
-    "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-MANIFEST.md"
+    "docs/operations/control/evidence/structural-remediation-r4-20261008/R4-MANIFEST.md",
+    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-REPAIR-CARDS.md",
+    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-BOUNDARY-LEDGER.md",
+    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-APPLICATION-BOUNDARIES-EXECUTION-REPORT-2026-10-09.md",
+    "docs/operations/control/evidence/structural-remediation-r5-20261009/R5-MANIFEST.md",
+    "scripts/check-application-door-surfaces.mjs",
+    "scripts/check-application-readwrite.mjs"
   ],
   "dependencies": [],
   "related_items": [
@@ -100,7 +106,7 @@
     "ARCH-006"
   ],
   "owner_decision": "اعتماد الخطة المحدثة ومصفوفة التتبع وبدء تثبيت العقد ثم R0 في 2026-10-07.",
-  "updated_at": "2026-10-08",
+  "updated_at": "2026-10-09",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -110,5 +116,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R4 complete on branch refactoring/r4-transfer-schema-export-20261008 from main 1c54c55 (R3 closeout gate A1-A6 all terminal; STR-623 unified at canonical owners under the documented STR-608 gate; guided parse wrapped in the R2-style structured rejection; documented PRESERVE decisions; schema 38 / export 30 verified and preserved). Hostile final audit: HOSTILE_AUDIT_PASS (HF-1..HF-9). Dated full evidence reconciliation 2026-10-08: five independent read-only reviewers, full gate reproduction on the exact final implementation head 003acfb, green CI on that head — zero implementation defects. Then R4-REC-5 closed by owner instruction (commit c1fbc7ee: third-site agreementService consumption anchor in check-acceptance-value-anchors with both literal forms banned + two negatives; zero production code; root suite 685/685; bundle byte-identical 629,300/154,663; five-reviewer pre-implementation panel COMPLETE/SAFE/APPROVE_WITH_CHANGES-applied/READY/HOSTILE_REVIEW_PASS with all five mandatory amendments applied; documented residuals: type-only union at :44, UI dropdown literals, D-034, R6, HF-8 limit). PR #334 open at the owner gate after the two closure slices (16 commits / 37 files) — merge by separate authorization; post-merge verification and administrative reconciliation are separate operations; R5 requires a new owner continuation instruction."
+  "next_action": "R5 complete on branch refactoring/r5-application-boundaries-20261009 from 58d281ed (owner instruction 'R5 Application Boundaries, Reader/Writer, and Public Doors'): post-merge administrative reconciliation; full boundary inventory + repair cards + five-reviewer panel before any movement (all 7 mandatory hostile amendments applied); S1 module-boundary scanner blind-spot closed (type-position imports counted; .js/.jsx scanned) + the two budget-shim consumer sites mechanically migrated to the budgets door (R6 baseline 43->42); S2 16th guard check-application-door-surfaces pins every door's value+type surface (R0-N20/PC-3 closed; missing 15th metadata row restored); S3 17th guard check-application-readwrite proves readers never write (18 registered + 10 PC-4-tagged); S4 PC-4 quadruple contracts in 12 files; root 710/710, app 323/2388, 17/17 guards, bundle 629,300/154,683 — all gates green on implementation head 5bd5da4a. One R5 PR at the owner gate — merge by separate authorization; post-merge verification and administrative reconciliation are separate operations; R6 requires a new owner continuation instruction."
 }

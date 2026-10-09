@@ -38,7 +38,6 @@
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/time/actualTimeService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/transfers/localTransferService.ts",
-  "apps/prototype-web/client/src/components/finance/ExpenseBudgetsSectionBody.tsx -> apps/prototype-web/client/src/application/finance/expenseBudgetService.ts",
   "apps/prototype-web/client/src/components/finance/G5DecisionPanel.tsx -> apps/prototype-web/client/src/application/g5/g5Service.ts",
   "apps/prototype-web/client/src/pages/Finance.tsx -> apps/prototype-web/client/src/application/g5/g5Service.ts",
   "apps/prototype-web/client/src/pages/G5DeclarationEditor.tsx -> apps/prototype-web/client/src/application/g5/g5Service.ts",
