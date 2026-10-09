@@ -116,7 +116,13 @@
     "https://github.com/Qays7753/Micro/pull/340",
     "https://github.com/Qays7753/Micro/actions/runs/37992795108",
     "https://github.com/Qays7753/Micro/actions/runs/37993359915",
-    "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-COMPLETE-PR-READINESS-REPORT-2026-10-09.md"
+    "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-COMPLETE-PR-READINESS-REPORT-2026-10-09.md",
+    "https://github.com/Qays7753/Micro/commit/5ff733dd7d12e27136d3d191e117f48bf29fbb8c",
+    "https://github.com/Qays7753/Micro/actions/runs/37997412599",
+    "https://github.com/Qays7753/Micro/commit/6106497b34e0de63ba6f7514725c2811fe3fd0cb",
+    "https://github.com/Qays7753/Micro/actions/runs/37997833257",
+    "https://github.com/Qays7753/Micro/commit/8f7ba482c92b33fd1565df3284b992c6b28a128b",
+    "https://github.com/Qays7753/Micro/actions/runs/37998261599"
   ],
   "dependencies": [],
   "related_items": [
@@ -134,5 +140,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R6 waves executed on the stacked lineage (W1 corrected on PR #338; W2 on PR #339 — both open at the owner gate). **R6-W3 IN_REVIEW — PR #340 OPEN** (live head `90f9253e79ca13410addd914dba463557fafbcf5`; final CI run `37993359915` succeeded; readiness report is in evidence; mandatory merge order #338 → #339 → #340) (stacked on the W2 head fb11c6c7; tooling/tests/docs only): F-009 text-density-count.py split — characterization FIRST (golden 4,117 bytes sha256 812a24bb… captured and green pre-split), then the CAPS/PAGES/EXPLICIT_SERVICES ledger extracted verbatim (dated provenance preserved) to scripts/text_density_policy.py (data only) with the engine (458 nbLOC, leaves SPLIT_NOW → WATCH) importing and validating it (exit 2 on malformed entries); output proven BYTE-IDENTICAL pre/post; 7-test characterization/boundary/negative suite; register §2/§3/§7 + ratchet baseline (engine tightened, policy registered SPLIT_CANDIDATE) + test-map + SOURCE_OF_TRUTH updated same-PR; bundle proven identical (lazy 101/1,409,712/432,901; precache 187/2,741,296). Root 730/730; app 323/2388; guards 17/17. Next: owner review + merge in order PR #338 → PR #339 → the W3 PR by separate authorization (no merge from this session), then post-merge verification and administrative reconciliation. R7 does not start before R6 findings close or carry protected decisions."
+  "next_action": "R6 VERIFIED_ON_MAIN عند merge commit 8f7ba482c92b33fd1565df3284b992c6b28a128b: W1 records reconciliation عبر PR #338، W2 determinism/acceptance anchors عبر PR #339، وW3 text-density tooling split عبر PR #340؛ CI post-merge النهائي 37998261599 ناجح، ولا PR تنفيذية مفتوحة. R7 NOT_STARTED — ابدأ فقط بـR7 preflight/repair cards ومراجعة حزم R6-F17-P01..P11، ثم نفذ structural UI boundaries/import-type migration/shim removal بعد zero-consumer proof؛ لا visual UI أو navigation أو copy."
 }

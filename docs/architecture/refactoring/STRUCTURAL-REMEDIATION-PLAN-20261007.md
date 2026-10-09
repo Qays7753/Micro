@@ -10,7 +10,7 @@
 
 **Spec:** تقريري `FLASH-PASS-A-PRINCIPLES-REVIEW-2026-10-04.md` و`STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-04.md`، ومرجع Micro المعماري، وعقد الملكية التقنية 40، وقرارات المالك المثبتة في هذه الخطة.
 
-**الحالة:** `OWNER_ACCEPTED — R0–R5_VERIFIED_ON_MAIN; R6_READ_ONLY_GATE_PENDING_OWNER_REVIEW`
+**الحالة:** `OWNER_ACCEPTED — R0–R6_VERIFIED_ON_MAIN; R7_PREPARATION_GATE`
 
 **خط البداية الحي الذي تم التحقق منه قبل كتابة الخطة:**
 

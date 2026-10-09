@@ -1,6 +1,6 @@
 # Micro — Structural Remediation R0–R10 Execution Contract
 
-**Status:** `OWNER_ACCEPTED — R0–R5_VERIFIED_ON_MAIN; R6_READ_ONLY_GATE_PENDING_OWNER_REVIEW`
+**Status:** `OWNER_ACCEPTED — R0–R6_VERIFIED_ON_MAIN; R7_PREPARATION_GATE`
 
 **Owner authorization:** On 2026-10-07 the owner accepted the updated Arabic execution plan and its explicit traceability matrix, and authorized this program to start with the contract publication followed by R0. This contract operationalizes that plan. It does not replace `AGENTS.md`, financial/domain contracts, the canonical architecture plan, or live Operations Control.
 
@@ -16,9 +16,9 @@
 
 **Initial verified base:** `25594773a83ec5eb1e9dde5feaf1c808c0ff686f`
 
-**Current verified main (2026-10-09):** `092c933bdcdf1666f8f8cf83bb7d5f030b8d4e6d` — R5 merge commit from PR #335; post-merge CI run `37892032808` succeeded on this exact SHA.
+**Current verified main (2026-10-10):** `8f7ba482c92b33fd1565df3284b992c6b28a128b` — final R6 merge commit from PR #340; post-merge CI run `37998261599` succeeded on this exact SHA.
 
-**Current phase:** R6 has not started. Its mandatory first operation is a read-only Structure/Architecture/Code Organization Scan and one consolidated findings report. No structural refactoring, bulk move, rename, or code-organization change is authorized before owner review and acceptance of that report.
+**Current phase:** R6 W1/W2/W3 is verified on main. R7 has not started. Its next operation is R7 preflight/repair-card reconciliation from the R6-F17-P01..P11 package; no R7 structural write starts before a scoped branch, consumer inventory, tests, and rollback boundary are recorded.
 
 **Workstream:** `WS-216`
 
@@ -339,3 +339,20 @@ Never report completion for R0, a pilot, a green intermediate wave, a recommenda
 ## 11. Immediate continuation instruction — 2026-10-09
 
 R0–R5 are already verified on `main` at `092c933bdcdf1666f8f8cf83bb7d5f030b8d4e6d`; do not repeat them. Start the next continuation by verifying that live SHA, then perform only the mandatory R6 read-only Structure/Architecture/Code Organization Scan and produce the one consolidated findings report. Stop for owner review and acceptance of the classifications, target map, minimum remediation waves, dependencies, risks, acceptance criteria, and rollback boundaries. Do not perform R6 implementation writes before that acceptance. Do not ask for routine approval inside an accepted implementation wave; stop only for the protected conditions above or the applicable merge gate.
+
+
+## 12. Immediate continuation after R6 — 2026-10-10
+
+R6 W1/W2/W3 is `VERIFIED_ON_MAIN` at `8f7ba482c92b33fd1565df3284b992c6b28a128b` (PR #338 merge `5ff733dd7d12e27136d3d191e117f48bf29fbb8c`; PR #339 merge `6106497b34e0de63ba6f7514725c2811fe3fd0cb`; PR #340 merge `8f7ba482c92b33fd1565df3284b992c6b28a128b`; post-merge CI `37998261599` succeeded). No R7 implementation has started.
+
+The next authorized operation is **R7 preflight and Repair Card reconciliation only**: read the R6 scan/decision package and R6-F17-P01..P11 routing records from `main`, verify live `main`, inspect open claims/PRs, create the R7 scope and consumer inventories, and prepare the R7 execution prompt. Do not perform R7 structural writes in the preflight. Preserve the UI branch, all historical evidence, compatibility shims until zero-consumer proof, Schema/Export/Import 38/30, bundle ceilings 650,000/155,300, and all financial/historical/rejection/UI invariants.
+
+Terminal gate:
+
+```text
+R6_VERIFIED_ON_MAIN
+R7_PREFLIGHT_READY
+R7_IMPLEMENTATION_NOT_STARTED
+NO_UNAPPROVED_SEMANTIC_OR_FINANCIAL_CHANGE
+NO_UNAPPROVED_SCHEMA_OR_EXPORT_IMPORT_CHANGE
+```
