@@ -1,0 +1,852 @@
+#!/usr/bin/env python3
+"""§10.1 text-density POLICY DATA — the measured-screen registry and caps.
+
+R6-W3/F-009 (2026-10-09): this module is DATA ONLY — the seam the R6 scan
+verified (engine vs policy data). It holds the screen registry (PAGES), the
+per-surface caps ledger (CAPS) with its full dated provenance, and the
+explicit service mappings (EXPLICIT_SERVICES). All parsing, counting,
+validation, and reporting live in the engine (scripts/text-density-count.py),
+which imports and validates this module at startup. The split is proven
+behavior-identical by the characterization golden
+(docs/fixtures/text-density/w3-characterization.golden.txt).
+
+Provenance: extracted verbatim (comments included) from
+scripts/text-density-count.py at the W2 head fb11c6c7 — the ledger's history
+is the policy's source of truth and is preserved untouched.
+"""
+
+# Screens fed through the app context rather than direct imports.
+EXPLICIT_SERVICES: dict[str, list[str]] = {
+    "Home": ["application/home/homeControlCenterService.ts"],
+}
+
+# §10.1 target caps: Home 15, any single screen 30. Today's honest whole-screen
+# measure (literals + JSX text) sits above the target on the screens below; the
+# ratchet locks each surface at its current real number so the prose cannot
+# return (§10.1: "Without an automated guard the prose returns"). Lowering a
+# ratchet is a gain; raising it requires an owner decision record.
+CAPS: dict[str, int] = {
+    # Home 26 → 29 (2026-08-31, owner execution prompt flow 23 + §5.7): "أثناء غيابك"
+    # return-after-absence card and the backup-reminder truth line — mandated labels.
+    # Home 29 → 31 (2026-09-01, repair cycle U-002): away-digest lines (sales/expenses
+    # since last activity, upcoming follow-ups) — concise digest mandated by the owner.
+    # Home 31 → 30 (2026-09-01, final-audit cycle U-002): the digest line was rewritten
+    # as one honest "last recording day" summary — a ratchet gain (lowering), locked here.
+    # Home 30 → 35 (2026-09-02, Group 1 experience foundation §7.1, owner-approved
+    # execution prompt): mandated labels only — priority block ("الأهم الآن"), today-row
+    # action verbs (أكمل/حصّل/راجع/سلّم instead of generic open), amanah cash qualifier,
+    # unallocated-cash card (+negative qualifier), owner-profile header link, honest
+    # empty state ("يومك مفتوح"), and the local/offline truth line. Overlines removed
+    # with the same scope (قراءة الصباح / أربع حقائق محلية / وحدات عند الحاجة).
+    # Home 35 → 36 (2026-09-02, Group 2 §6.3 Scope B): direct-sale debt appears as a
+    # due-collection row with its own title prefix ("دين بيع:") beside order debts — one
+    # mandated label so credit-sale receivables never disappear from Home.
+    # المجموعة ٥ (عقد ٣٠–٣٩، قرار مالك البرنامج): رفع مُوثَّق لأسطح الرؤية
+    # والاستمرارية — القارئ الموحّد وتقرير الفترة وفحوص MIC-14..16 والمسودات
+    # النصية والقفل والمشاركة اليدوية والتصحيحات المرحَّلة من المجموعة ٤
+    # (سطر الأثر الرقمي + جمع عربي صحيح + أسباب منفصلة). كل زيادة تسمية
+    # مفروضة من عقد المجموعة ٥، لا نثرًا حرًا؛ القيمة = القياس الفعلي يومها.
+    # الإغلاق العميق (عقد المحتوى العربي AR-05): بطاقة «أثناء غيابك» تمر عبر
+    # محرك الجمع العربي (formatArabicPlural) — أشكال واحد/اثنان/قلة/كثرة لكل
+    # مفهوم (أيام الغياب، المبيعات، المصاريف، عمر النسخة) بدل قوالب تكسر
+    # القواعد. كل زيادة أشكال جمع مفروضة من معيار المحتوى، لا نثرًا حرًا.
+    # Home 41 → 53 (2026-09-05, deep closure AR-05).
+    # Home 53 → 59 (2026-09-16, product-journey package NAV-001 + SET-002, owner-approved):
+    # quick-recording action row («سجّل بسرعة»: sale/expense/order/estimate/collection
+    # buttons) replacing the removed central سجّل button, plus the one-time setup
+    # success banner. The quick sale/expense sheet itself stays shell-owned
+    # (app/quickRecording.tsx) as before — no new form copy on this surface.
+    # Home 59 -> 76 (2026-09-18, Wave 4.3 P-4.3-2, owner-approved task section 9):
+    # professional dashboard order — numbers section (اليوم/هذا الشهر split with
+    # honest incomplete-result notes), insights (ملحوظات تهمك: unallocated cash,
+    # uncollected receivables, missing cost data — each with a single logical action),
+    # quick actions (منتجاتي وخدماتي contextual entry + المزيد row). Removed with
+    # the same scope: the standalone catalog section title and the heading profile
+    # link (moved to the permanent logo menu) — the catalog entry is not duplicated.
+    # Home 76 -> 78 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Home": 78,
+    # Finance 113 → 122 (2026-08-31, owner execution prompt §5.2/§5.9/flows 14+20):
+    # unallocated-distribution strip, amanah held line, party-ledger and cash-count
+    # entries — mandated feature labels, not prose creep.
+    # Finance 122 → 145 (2026-09-01, repair cycle): U-001 «السجل» corrections surface
+    # (kind labels + filter groups + summary), D-005 edit/delete/restore actions and
+    # previews, F-005 period-result direct-sale lines + scope note + review reason,
+    # D-002 suppliers reading intent. All mandated labels from approved owner decisions.
+    # Finance 145 → 148 (2026-09-01, final-audit cycle U-001): older-events
+    # reachability — show-all/collapse toggle labels, full-list heading and honest
+    # full-log note, focused-row aria label. Mandated by the approved prompt §7
+    # ("a practical way to reach older events, not only the latest three").
+    # Finance 148 → 169 (2026-09-02, Group 2 §8 Scope D + §9.2 Scope E, owner-approved
+    # financial-truth prompt): Position/Period first-decision toggle labels, statement
+    # entry card + period-reading link, negative-unallocated cover-payment alert
+    # wording ("في دفعة تحت تغطية" + neutral explanation), direct-sale cash qualifier
+    # ("بتاريخ البيع"), corrections-block labels (family/reason/net-effect), and the
+    # unified correction history groups (purchases/orders). Mandated labels only.
+    # Finance 169 → 172 (2026-09-02, Group 5 full audit S2-05/S1-10, owner-approved
+    # audit repairs): honest Amanah exclusion on recorded liquidity (dt label
+    # "أمانات محتجزة" + explanatory notice when held > 0) and the contract-26 return
+    # label ("رجوع") when opened with ?from. Mandated honesty labels, no prose.
+    # Finance 172 → 175 (2026-09-02, Group 6 Item 2, owner-approved final-closure
+    # prompt — S2-07 unification): the single owner card carries the two mandated
+    # separated numbers ("رأس مالك في المشروع" + "حق مسجل متبقٍ"), the dead owner
+    # PositionCard becomes a link with the discoverability helper ("رأس مالك · افتح
+    # الدفتر الموحد"), and the unified ledger service labels (merged-history rows)
+    # join the measured set as feeding-service strings. Netted in the same scope:
+    # "سياسات فعالة" + "سحب/إرجاع فعلي" metrics and the three scattered owner
+    # action buttons collapsed into one "مال المالك" entry. Mandated labels only.
+    # Finance 175 → 181 (2026-09-02, Group 6 Item 3, owner-approved final-closure
+    # prompt — S2-09): the honest restatement line on Position (all-time digest)
+    # and Period (in-range digest) — the RestatementNote component's mandated
+    # sentences (count phrase, net-effect label, the preservation semantics,
+    # "افتح الأصل والتصحيح") join the measured set as component strings. Calm
+    # one-line treatment, no cards, no warning colors. Mandated labels only.
+    # Finance 181 → 182 (2026-09-06, Group 2, عقد ٢٨): one conditional period waste
+    # row (non-cash, outside period result) — SA-4 predicted 182. Decision D-029.
+    # Finance 181 → 182 (2026-09-04, Group 2 §8): the period waste row reads
+    # inventory — the shared inventory service now feeds this screen.
+    # Finance 182 → 183 (2026-09-04, Group 3 D6): one new validation string in the
+    # same shared service (direct-sale-linked consumption reference check).
+    # Finance 183 → 199 (2026-09-04, Group 4 §5/عقد 29, deep finance): two mandated
+    # finance layers (الأصول والقروض with pending-retained visibility), four explicit
+    # period-result lines (إهلاك/شطب/تخلص/عربون مصنَّف), and the canonical reader's new
+    # reason strings in the feeding service — mandated labels only.
+    # Finance 260 → 266 (2026-09-05, Group 6 audit A1 / FT-03): family-owner guard in
+    # the events layer — three deep-link labels, one shared guidance note, and the
+    # reverse note; integrity-communication copy only, no new data prose.
+    # الإغلاق العميق (FC-05 — العقد ٣): بطاقة العربون الكاملة في طبقة
+    # العربونات (الوجهة، المطبَّق/المردود/المحتفظ، وصف أثر الربح لكل حالة)
+    # + تحديث سطر هدر الفترة (العقد ١ — دخول النتيجة بخيار المالك).
+    # Finance 266 → 277 (2026-09-05, deep closure FC-05/عقد ١).
+    # Finance 277 → 257 (2026-09-06, resumption run — Conflict A/WF-04): per-event
+    # correction actions, previews, and the expense-classification form moved behind
+    # one collapsed named disclosure «تصحيح هذه العملية» (§10.2 rule 1 — same owner-
+    # approved pattern as OrderDetail's «تصحيحات موثقة على الطلب»). Nothing deleted;
+    # cap lowered 277→257 as a ratchet gain.
+    # Finance 257 → 258 (2026-09-16, financial-trust package FIN-001, owner-approved):
+    # one new at-rest truth label «غير مسجل» — metrics without recorded evidence
+    # must not render as a confirmed 0.00 anywhere on the finance surface.
+    # Finance 258 → 261 (2026-09-16, product-journey package NAV-002, owner-approved):
+    # «النتيجة المتاحة» joins level one as a decision card linking to the period
+    # view — honest unavailable state, never mixed with cash.
+    # Finance 261 → 263 (2026-09-17, Wave 2 EXE-007/008/009/010, owner-approved
+    # execution prompt): mandated financial-truth labels — expense source hints,
+    # wallet destination/source questions, reversal reasons and linked-entry notes.
+    # Finance 263 → 294 (2026-09-17, Wave 4.2 P-4.2-5, owner decision F02/T3):
+    # the recurring-profit distribution policies surface moved from the catalog
+    # into Finance's «ملخص الفترة» next to «التغطية والتعادل» — its form labels
+    # and policy-row strings moved with it (a surface move, not new density:
+    # Catalog dropped from 122 to 91 by the same transfer). No new writers.
+    # Finance 294 -> 297 (2026-09-18, Wave 4.3 P-4.3-3, owner-approved task
+    # section 10/F09): the unified «شو عليّ؟» obligations surface — helper line,
+    # total, two source rows with their honest descriptions and settle paths.
+    # Removed with the same scope: the plain «عليّ للموردين» position card
+    # (absorbed by the richer surface) — net +3 mandated labels.
+    # Finance 297 -> 299 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    # Finance 299 -> 300 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    # Finance 300 -> 318 (2026-09-22, Wave 2 WS-174 FIN-002, owner-approved
+    # roadmap): the optional-budgets section («ميزانيات اختيارية» — عقد ٤٢)
+    # adds its mandated vocabulary to this surface. At runtime the whole
+    # section body (forms, statuses, action labels) renders INSIDE the
+    # collapsed <details> subtree of the wrapper component; the per-file
+    # lexical stripper cannot see across function boundaries, so the strings
+    # count here — the raise documents that approximation, not new at-rest
+    # surface pressure beyond the single summary row. Owner-vetoable at
+    # review, like the Statement 209->216 precedent.
+    # Finance 318 -> 322 (2026-09-23, Wave 3 WS-175 FIN-005, owner-approved
+    # roadmap §4.4): the mandated short-cash horizon family — three toggle
+    # labels («٧ أيام» / «٣٠ يومًا» / «٩٠ يومًا») plus one group aria-label
+    # («أفق قراءة الكاش») on the existing cash-decision card. Four mandated
+    # strings, no prose; the two resolver validation messages are moment-of-
+    # action `message:` literals (g5Service pattern) and count nowhere.
+    # Owner-vetoable at review, same as the 318 precedent above.
+    # Finance 322 -> 330 (2026-09-23, Wave 4 WS-176 FIN-004, owner-approved
+    # roadmap §4.5): the mandated advisory safe-withdrawal vocabulary on the
+    # same cash-decision card — section title, advisory-only disclaimer (no
+    # withdrawal command / no guarantee wording is itself an acceptance
+    # criterion), reserve label + session-only unit note, enable/disable
+    # toggle labels, headroom and outstanding-loans metric labels. Eight
+    # mandated strings, no prose; reading reasons/next-actions come from the
+    # domain module (not counted by charter). Owner-vetoable at review.
+    # Finance 330 -> 332 (2026-09-23, FIN-001 Wave 6, owner roadmap §4.7):
+    # سطر طبقة الالتزام المستقل في موضع «الآن» (القروض المستلمة) — بندان
+    # معلنان لا أكثر.
+    "Finance": 332,
+    # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
+    # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
+    # panels surface above the fold — one mandated conditional label.
+    # OrderDetail 128 → 157 (2026-09-02, Group 2 §10.3/§10.5 Scope F, owner-approved
+    # financial-correction prompt): post-agreement price-revision panel (price field,
+    # CorrectionPreview dimensions for receivable/cash/revenue, reason, confirm labels)
+    # and documented collection-reversal panel (event picker, amount, preview labels) —
+    # the two approved order-level corrections, no generic confirmations.
+    # OrderDetail 157 → 158 (2026-09-02, Group 3 Scope E §11.3, owner-approved
+    # execution prompt): source-estimate link in additional details ("المصدر: تقدير",
+    # open link) + real labels for the two Group-2 correction events that fell back
+    # to a generic label (price_revised / collection_reversed in OrderEventLog) —
+    # mandated labels, not prose creep.
+    # OrderDetail 158 → 160 (2026-09-02, Group 5 full audit S1-02/S1-06): the
+    # contract-26 return label ("رجوع") honoring ?from, and the pre-execution
+    # consume link carrying its order context — mandated navigation labels.
+    # OrderDetail 160 → 141 (2026-09-02, Group 6 Items 1+4, owner-approved
+    # final-closure prompt): a ratchet GAIN — price-revision, collection-reversal,
+    # and cancel entry moved behind one named disclosure ("تصحيحات موثقة على
+    # الطلب") per §10.2 rule 1 (S3-12); the new compound one-tap reversal labels
+    # (S2-04a) live inside that collapsed layer, and the always-zero "أمانات"
+    # preview row was dropped (G6-F1-6). Nothing deleted; cap lowered 160→141.
+    # OrderDetail 160 → 141 (2026-09-02, Group 6 Items 1+4, owner-approved
+    # disclosure redesign).
+    # OrderDetail 141 → 143 (2026-09-04, Group 3 D4/D5): the ready order routes to
+    # the full delivery review instead of one-click delivery, and the delivered
+    # order gains the documented reversal entry + post-reversal resume action.
+    # OrderDetail 143 → 147 (2026-09-04, Group 4 عقد 29): retained-deposit meaning
+    # classification panel (owner/revenue/pending + documented correction) — the
+    # three-outcome decision mandated by the contract.
+    # الإغلاق العميق (WF-01/FC-04 — العقد ٣): لوحة «سجّل عربونًا إضافيًا» على
+    # الطلب الحي — عنوان وشرح ومبلغ ووجهة ومعاينة وأزرار؛ تسميات مفروضة
+    # من العقد لا نثرًا.
+    # OrderDetail 163 → 171 (2026-09-05, deep closure WF-01/FC-04).
+    # OrderDetail 171 → 174 (2026-09-15, R1 remediation D6/error-separation): the
+    # honest read-error screen ("تعذر قراءة الطلب" + no-record-changed line + retry
+    # label) split from not-found — a mandated truthful state, not prose creep.
+    # OrderDetail 174 → 176 (2026-09-16, product-journey package ORD-001, owner-approved):
+    # success banner after agreement recording — «سُجّل الاتفاق بنجاح» line showing
+    # order number, state, confirmed financial effect, and next action; the two new
+    # at-rest strings are the next-action prefix and the no-financial-effect clause.
+    # OrderDetail 176 → 179 (2026-09-16, product-journey package ORD-002, owner-approved):
+    # delivered-order summary on reopen — original delivery moment + short receipt
+    # (collected/remaining/next action), never the original success message again.
+    # OrderDetail 179 → 180 (2026-09-17, Wave 2 EXE-010, owner-approved): the
+    # active-deposit reversal panel labels (mandatory reason + confirm copy).
+    # OrderDetail 180 -> 181 (2026-09-18, Wave 4.4 P-4.4-3): عزل معرّف الطلب
+    # داخل bdi dir="ltr" في لافتة النجاح فصل البادئة العربية إلى تعبير
+    # مستقل — النص نفسه للمستخدم (كان داخل قالب مُستوفى لا يُعدّ)؛ لا
+    # نثرًا جديدًا أُضيف.
+    # OrderDetail 181 -> 183 (2026-09-21, Stage 2 OPS-007 owner brief — documented
+    # per the FinanceMore 35->37 precedent): contract 13 line 36 mandates
+    # «فرق المادة مع سبب نقص المعرفة» — two mandated reason declarations
+    # (snapshot knowledge not known / unknown consumption cost) qualify the
+    # visible variance inside ActualMaterialPanel so it is never read as a
+    # confident number or a final result; no other prose added.
+    "OrderDetail": 183,
+    # Orders 73 → 76 (2026-09-02, Group 1 §8.1/§8.2, owner-approved execution prompt):
+    # the always-rendered priority block's honest empty line, the direct-sale secondary
+    # CTA, and the first-sale empty action — mandated labels; sale-row profit/revision
+    # strings moved behind the detail screen in the same scope (net prose reduced).
+    # الإغلاق العميق (AR-14): حالة الخطأ gained reassurance + retry.
+    # Orders 76 → 77 (2026-09-05).
+    # الإغلاق العميق (WF-03 — عقد التنقل): وصلا العمل إلى المرجع والمواد —
+    # تسميتان مطابقتان لمفردة التطبيق نفسها (منتجاتي وخدماتي / المواد والمخزون
+    # كما في الرئيسية ومالي) لا نثرًا جديدًا؛ ملكية التنقل المطلوبة في العقد.
+    # Orders 77 → 79 (2026-09-06, deep closure WF-03).
+    # Orders 79 -> 84 (2026-09-18, Wave 4.3 P-4.3-4, owner-approved task
+    # section 11/F06): work-state groups (يحتاج تنفيذًا الآن / ينتظر العميل / ينتظر تحصيلًا / تم تسليمه / ملغاة + keep-for-audit summary) — task section 11 mandated group titles; cancelled orders stay visible collapsed.
+    # Orders 84 -> 86 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Orders": 86,
+    # DirectSaleEditor 42 → 43 (2026-08-31, Phase-1 D-001): the structured
+    # credit-sale customer identity field — one mandated label, no prose.
+    # DirectSaleEditor 43 → 45 (2026-09-01, repair cycle P-002): catalog-reference
+    # suggestion labels (suggested price / no-default note / suggested cost) —
+    # mandated proposal labels, clearly editable.
+    # DirectSaleEditor 45 → 47 (2026-09-01, repair cycle item 25): quantity
+    # semantics made explicit — total-price clarification under the quantity field
+    # + per-unit suggestion note when quantity > 1 (no silent auto-multiply).
+    # DirectSaleEditor 47 → 50 (2026-09-01, final-audit cycle U-005): the
+    # unsaved-changes guard is now wired into this editor (the named U-005 case),
+    # so the shared guard component's dialog labels join this screen's measured
+    # set — the same +4 already counted for every guarded editor. No new prose.
+    # DirectSaleEditor 50 → 66 (2026-09-02, Group 3 Scope D §10.1/§10.4, owner-approved
+    # execution prompt): factual completion screen after create (what was sold, actual
+    # price, cash/receivable effect, product reference, "افتح السجل"/"تم", local-truth
+    # line), explicit collection-wallet destination (drawer default + unallocated as an
+    # explicit option), ?product= prefill notice for inactive references, and a return
+    # label that names the real target — all mandated labels from the Product-to-Sale
+    # flow; no prose padding.
+    # DirectSaleEditor 66 → 63 (2026-09-02, Group 6 Item 4, owner-approved
+    # final-closure prompt — S3-12 §10.2 rule 1): the optional reference block
+    # moves behind a 44px inline disclosure that auto-opens on ?product= prefill
+    # (productNotice stays outside), the item-25 quantity semantics and the two
+    # ⓘ explanations (profit-boundary, unknown-cost meaning) move behind named
+    # disclosures. All primary-task fields stay visible; nothing deleted.
+    # DirectSaleEditor 63 → 66 (2026-09-04, Group 3 D5/§5.6): optional explicit
+    # inventory-linkage offer on the done receipt — no forced consumption.
+    # الإغلاق العميق (AR-11/P0 حارس الإعادة): أشكال جمع شريط استعادة المسودة
+    # عبر محرك الجمع العربي — مفروضة من معيار المحتوى.
+    # DirectSaleEditor 75 → 81 (2026-09-05).
+    # DirectSaleEditor 81 → 85 (2026-09-17, Wave 2 EXE-010, owner-approved): the
+    # sale-collection reversal section — preview numbers, reason, and refusal
+    # explanations that name the alternative path.
+    # DirectSaleEditor 85 -> 87 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "DirectSaleEditor": 87,
+    # DraftEditor 36 → 47 (2026-09-01, repair cycle U-004): estimate-to-draft bridge
+    # (proposal notice, missing-estimate notice, knowledge labels, specs summary) —
+    # mandated bridge labels; the draft form itself is unchanged.
+    # DraftEditor 47 -> 49 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "DraftEditor": 49,
+    # CostEditor 53 → 54 (2026-09-01, repair cycle U-004): source-estimate proposal
+    # notice — one mandated bridge label.
+    # CostEditor 54 → 58 (2026-09-06, Group 2, عقد ٢٨): material suggestion chips
+    # (Scenario G) — group label + unit literals for suggestions. Decision D-029.
+    # CostEditor 58 -> 60 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "CostEditor": 60,
+    # AgreementEditor 55 → 59 (2026-09-02, Group 4 final integration fix G4-6):
+    # customer name field (label + required note + placeholder + its validation
+    # message) — the agreement step is the point where the name becomes required
+    # (debt and collection are attributed by it); planned-design drafts from the
+    # estimate bridge had no field to satisfy it, so the step was a dead end.
+    # الإغلاق العميق (FC-04): وجهة كاش العربون عند الاتفاق — تسمية مفروضة (العقد ٣).
+    # AgreementEditor 59 → 60 (2026-09-05).
+    # ORD-001/ORD-003 (2026-09-16): قسم «النقل والتوصيل ومسؤولية كلفته» القابل
+    # للطي — خيارات المسؤولية الأربعة وأعلام الاحتواء وتحذير الدفع المباشر
+    # للناقل (قرار مالك معتمد: معلومات متقدمة لا تُفتح في الطلب البسيط).
+    # AgreementEditor 60 → 61.
+    # AgreementEditor 61 -> 63 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "AgreementEditor": 63,
+    # Catalog 84 → 92 (2026-09-01, repair cycle P-002): optional suggested default
+    # price/cost fields + per-item defaults editor labels — Option A mandated fields.
+    # Catalog 92 → 94 (2026-09-02, Group 3 Scope C §9.3, owner-approved execution
+    # prompt): the Product-to-Sale row action "سجّل بيع هذا المنتج/هذه الخدمة" on active
+    # items — one mandated label pair, the primary action of the catalog surface.
+    # Catalog 94 → 86 (2026-09-02, Group 6 Item 4, owner-approved final-closure
+    # prompt — S3-12 §10.2 rule 1, Option A): the P-002 optional suggestion
+    # fields, the optional organized-unit select, and the per-row defaults editor
+    # move behind named inline disclosures (44px, prefill preserved on open);
+    # the primary Product-to-Sale row action and the create path stay visible.
+    # Nothing deleted; caps lowered — a ratchet gain.
+    # Catalog 86 → 91 (2026-09-04, Group 3 D5/§5.2): per-component material link
+    # with tracked/untracked honesty + template extras section (labor, packaging,
+    # delivery, waste, safety margin) — planning reference, zero inventory effect.
+    # Catalog 91 -> 93 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Catalog": 93,
+    # InventoryMaterials 49 → 50 (2026-09-02, Group 5 S1-10): contract-26 return
+    # label ("رجوع") when opened with ?from — one mandated navigation label.
+    # InventoryMaterials 50 → 56 (2026-09-06, Group 2 transfer program, عقد ٢٨):
+    # tracked/cost-only section split, knowledge-state chips + qualifiers
+    # («غير محدد بعد»/«صفر مؤكد»/«التكلفة غير معروفة»), shortage disclosure + resolve,
+    # untrack consequences dialog, awaiting-receipt line (contract-11 promise),
+    # «مرتدة موثقًا» marker — decision record D-029.
+    # InventoryMaterials 56 → 57 (2026-09-18, Wave 4.3 independent review P2 fix,
+    # N-03/REV-010 naming family): back button now uses the official name
+    # «المالية» instead of «مالي» — one mandated navigation label swap.
+    # InventoryMaterials 57 -> 59 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    # InventoryMaterials 59 -> 60 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    # InventoryMaterials 60 -> 61 (2026-09-21, Stage 2 OPS-002 owner brief —
+    # documented per the FinanceMore 35->37 precedent): one mandated action
+    # label «احفظ الحد» for the optional per-material low-stock threshold
+    # editor living inside the collapsed <details> body (everything else is
+    # data-driven); the alert chip itself is a data-driven template (uncounted).
+    "InventoryMaterials": 61,
+    # Market first measurement (2026-09-16, product-journey package NAV-001): the
+    # fifth bottom-nav seat — honest قريبًا badge + future supplier-marketplace
+    # description; no suppliers, no purchase action, no records or effects.
+    "Market": 13,
+    # MaterialEditor first measurement (2026-09-06, Group 2, عقد ٢٨): guided journey
+    # (tracking question + opening-state question + cost question + effect preview)
+    # — create + confirm-opening modes. Decision record D-029.
+    # MaterialEditor 39 -> 41 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "MaterialEditor": 41,
+    # InventoryMovementEditor first measurement (2026-09-06, Group 2, عقد ٢٨):
+    # receipt bridge status card + cost-known question + consume-target question +
+    # shortage alternative panel + effect preview. Decision record D-029.
+    # الإغلاق العميق (العقد ١ — FC-07/FC-10): سؤال أثر الهدر وبدائله، وتحذير
+    # النقص داخل التدفق، وكمية الناتج في لوحة النقص — تسميات مفروضة.
+    # InventoryMovementEditor 54 → 60 (2026-09-05).
+    # OPS-001 (2026-09-16): خيارات العنصر الفارغ الصريحة («اختر مادة…» وأخواتها)
+    # في كل قوائم الاختيار + رسالة المرجع غير الصالح — منع الاختيار الصامت
+    # لأول سجل قرار مالك معتمد. InventoryMovementEditor 60 → 61.
+    # InventoryMovementEditor 61 → 63 (2026-09-17, Wave 2 EXE-012, owner-approved):
+    # the owner-action adjustment positioning (mandatory reason, waste separation).
+    # InventoryMovementEditor 63 -> 65 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "InventoryMovementEditor": 65,
+    # SupplierPurchaseEditor first measurement (2026-09-06, Group 2, عقد ٢٨):
+    # material link + expected quantity fields + received-status bridge card.
+    # Decision record D-029.
+    # الإغلاق العميق (AR-11): أشكال جمع شريط استعادة المسودة عبر محرك الجمع العربي.
+    # SupplierPurchaseEditor 71 → 77 (2026-09-05).
+    # SupplierPurchaseEditor 77 → 81 (2026-09-16, financial-trust package FIN-003,
+    # owner-approved): the cash-source selector for supplier payments — label,
+    # helper, neutral placeholder «اختر مصدر الصرف», and the no-wallet
+    # unallocated-fallback warning shown before saving.
+    # SupplierPurchaseEditor 81 -> 83 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "SupplierPurchaseEditor": 83,
+    # CashWallets 62 → 67 (2026-08-31, owner execution prompt §5.2): allocation entry
+    # label + service truth line — the explicit distribution path is now a first-class
+    # wallet-screen concept.
+    # CashWallets 67 → 69 (2026-09-01, repair cycle D-004): unknown-opening badge +
+    # documented-later-opening action label — mandated completion-road labels.
+    # CashWallets 69 → 70 (2026-09-02, Group 2 §9.1 Scope E): the wallet-ledger entry
+    # label ("دفتر المحفظة") on each wallet row — the approved per-wallet reading
+    # surface, one mandated link label.
+    # CashWallets 70 → 72 (2026-09-02, Group 5 S1-10/S3-05): contract-26 return
+    # label ("رجوع") honoring ?from + the payable-line label moved out of the mono
+    # numeric class into its own Arabic label pair. Mandated labels.
+    # CashWallets 72 → 75 (2026-09-04, Group 4 عقد 29): the export/import
+    # service in this screen's closure gained the new collections' migration labels
+    # (لا أصول ولا قروض…) — zero new on-screen labels.
+    # الإغلاق العميق (AR-02): نص أمانات الواجهة بالفصحى (تسمية واحدة أطول).
+    # CashWallets 75 → 76 (2026-09-05).
+    # CashWallets 76 → 78 (2026-09-17, Wave 2 EXE-008/009, owner-approved): opening
+    # governance notes and owner-movement disclosure labels on the wallets surface.
+    # CashWallets 78 -> 80 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    # CashWallets 80 -> 81 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "CashWallets": 81,
+    # OwnerEntitlement 48 → 53 (2026-09-02, Group 6 Item 2, owner-approved
+    # final-closure prompt — S2-07): the screen becomes the unified «مال المالك»
+    # surface — mandated labels: unified overline ("دفتر واحد · المبالغ (د.أ)"),
+    # the two balance metrics, the two primary write actions ("أدخل مالًا للمشروع"
+    # · "اسحب لنفسك"), the merged-history layer with its source labels ("حدث عام"
+    # · "دفتر المالك" + empty state), and the ⓘ boundaries disclosure. The old
+    # visible policies section moved inside the collapsed «حق المالك وسياسته»
+    # layer in the same scope. Mandated unification labels, no prose padding.
+    # OwnerEntitlement 53 → 62 (2026-09-17, Wave 2 EXE-009, owner-approved): the
+    # cross-model duplicate disclosure card, owner-draw metric labels, and the
+    # unified save guard copy — one journey, honest duplication warnings.
+    # OwnerEntitlement 62 -> 64 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "OwnerEntitlement": 64,
+    # OwnerWithdrawalEditor 30 (default) → 41 (2026-09-17, Wave 2 EXE-009, first
+    # explicit cap): the unified withdrawal journey absorbed the legacy cash
+    # withdrawal route — wallet source question, attribution, cross-model duplicate
+    # guard, and the create-wallet next step replacing the dead end.
+    # OwnerWithdrawalEditor 41 -> 43 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "OwnerWithdrawalEditor": 43,
+    # Schedule 98 → 99 (2026-09-02, Group 5 S1-10): contract-26 return label ("رجوع")
+    # when opened with ?from — one mandated navigation label.
+    # Schedule 99 -> 101 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Schedule": 101,
+    # ScheduleEditor 45 -> 47 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "ScheduleEditor": 47,
+    # Profile (2026-09-02, Group 1 Scope G, owner-approved execution prompt): new
+    # mandated screen — two identity sections, states, edit mode, and local-truth line;
+    # locked at 27 with headroom of 3 for future mandated labels only.
+    "Profile": 30,
+    # Settings (2026-09-02, Group 5 S1-13): first explicit cap for the surface at its
+    # current honest count — the contract-26 return label ("رجوع") honoring the
+    # Foundation guided-import ?from; notices now render inline per section (S3-11)
+    # so no new prose was added beyond the return label.
+    # Settings 39 → 51 (2026-09-05, Group 6 audit A1 / SP-01): data-leaving actions
+    # (export/import/reset) now require PIN proof once per session — three gate
+    # title/description pairs plus dialog copy; security-communication strings only.
+    # Settings 51 → 52 (2026-09-16, product-journey package TOOL-001): honest
+    # post-restore note for the new «غير متاح» integrity state.
+    # Settings 52 → 57 (2026-09-16, product-journey package SET-003, owner-approved):
+    # «قدرات مشروعك» section (summary labels; body copy lives inside the collapsed
+    # details) + feeding-service attribution for the capability count loaders
+    # (agreements/inventory/supplierPurchases/catalog imported by the page).
+    # Settings 57 → 61 (2026-09-17, Wave 2 EXE-014, owner-approved): intended-
+    # exceptions disclosure, pre-replace backup promise, and the backup row.
+    # Settings 61 -> 63 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Settings": 63,
+    # Tools (2026-09-02, Group 3 Scope A/B, owner-approved execution prompt): first
+    # measurement day-one — the calculator moved to its own deep route
+    # (/tools/calculator) so this surface keeps the entry card, the saved-estimate
+    # list (row opens the new detail page), and module states; mandated labels only.
+    # Tools 27 → 28 (2026-09-03, Group 1 guided-financial-entry prompt §5.8): the
+    # integrity module-states row label ("فحص سلامة مالي") — one mandated label;
+    # "مفعّل" and "افتح" deduped against the existing measured set. Headroom kept.
+    "Tools": 34,
+    # ToolsIntegrity 32 (2026-09-03, Group 1 §5.8 — first measurement day): the
+    # read-only integrity surface — promise line, verdict card, five check titles,
+    # status words (سليم/تحذير/خلل), offender disclosure, and the feeding service's
+    # static titles; detail lines are `${}` templates (data-driven, uncounted).
+    # Locked at the honest measured number as a ratchet from day one.
+    # ToolsIntegrity 32 → 34 (2026-09-06, Group 2, عقد ٢٨): MIC-8 title
+    # («سلامة المخزون والمواد») + generic deep-link label. Decision D-029.
+    # ToolsIntegrity 34 → 45 (2026-09-04, Group 4 عقد 29): the MIC registry grew by
+    # four read-only checks (MIC-10..13: assets, loans, retained deposits, delivery
+    # consumption) — their titles and verdict strings render on this reader surface.
+    # ToolsIntegrity 52 → 57 (2026-09-16, product-journey package TOOL-001, owner-approved):
+    # dynamic check count via the Arabic plural engine (registry-derived, no
+    # hardcoded number) + the «غير متاح» state in the status vocabulary.
+    # ToolsIntegrity 57 → 61 (2026-09-17, Wave 4.2 P-4.2-4, owner decision F05):
+    # the back button became source-dynamic — it names the return destination
+    # («المزيد من المالية»/«المالية»/«أدواتي»/«الإعدادات»/«رجوع») instead of the
+    # hardcoded «أدواتي», per contract 26 §2.1 (named-destination return).
+    # ToolsIntegrity 61 -> 85 (2026-09-18, Wave 4.3 P-4.3-3, owner-approved task
+    # section 10/D9): readable affected-record rows — operation names via the
+    # shared financial-event label map (presentation/financialEventLabels.ts,
+    # single source, moved out of EventsLayer), kind labels, open-record action,
+    # and the honest fallback guidance. Raw ids remain only as unresolved backup.
+    # ToolsIntegrity 85 -> 86 (2026-09-20, pre-pilot safety G-002, owner-approved
+    # remediation task): the MIC-17 title «تخصيص محافظ دفعات الموردين» joins the
+    # registry mandated by the task spec (integrity check for wallet-attributed
+    # supplier payments). One added registry title, no new prose surfaces.
+    # ToolsIntegrity 86 -> 88 (2026-09-23, FIN-001 Wave 6): عنوان فحص
+    # اتساق القروض المستلمة ووسم النتيجة في تقرير السلامة.
+    # ToolsIntegrity 88 -> 89 (2026-09-28, master remediation charter Group 1,
+    # owner-approved F-004/F-005): the MIC registry grew by one read-only check
+    # (MIC-18 «ثابت أساس التسوية» — settlement-basis invariant: events settle the
+    # recorded collected amount and the recorded remainder matches the collectible-
+    # value basis); its title renders on this reader surface like MIC-8/MIC-10..13
+    # before it, while the derivation and detail vocabulary stay in the domain
+    # module outside the entry bundle (D-034). Net distinct strings: +1 (the new
+    # check id shares the existing MIC-N family; the retained-deposit mirror
+    # removal in the same slice freed its twin).
+    "ToolsIntegrity": 89,
+    # المجموعة ٥ (عقد ٣٠/٣٣): القياس الأول ليوم القياس الأول — تُقفل عند قياسها.
+    # FinanceActivity 55 -> 57 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    # FinanceActivity 57 -> 58 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "FinanceActivity": 58,
+    # FinanceMore (2026-09-17, Wave 4.2 P-4.2-4, owner decision F01): first
+    # measurement day for the «المالية ← المزيد» organizing reader — heading +
+    # promise, integrity card, four organized groups (reports/advanced tools/
+    # owner & policies) with one honest footer; entries are static directory
+    # labels (no data-driven templates). Locked at the honest measured number
+    # (35) as a ratchet from day one.
+    # FinanceMore 35 -> 37 (2026-09-20, Stage 2 OPS-005 owner brief — documented
+    # per the ToolsIntegrity 85->86 precedent): one mandated directory entry
+    # «القادم والاستحقاقات» (title + one honest description) linking the new
+    # unified upcoming/overdue read surface — mandated labels only, no data
+    # templates behind them.
+    # FinanceMore 37 → 39 (2026-09-21, OPS-003 عقد ٤١, owner-approved design
+    # package): +1 directory row «المصاريف المتكررة» (title + honest one-line
+    # description) linking the recurring-expense control surface — mandated
+    # labels only, no data templates behind them.
+    "FinanceMore": 39,
+    # FinanceUpcoming (2026-09-20, Stage 2 OPS-005/006, owner brief — first
+    # measurement day): the unified upcoming/overdue reader «القادم والاستحقاقات»
+    # — heading + promise, the simple-aging card (payables overdue/current/no-date
+    # from the OPS-001 source, receivables + obligations all explicitly no-stored-
+    # date, honest unavailable), four independent read blocks with per-block
+    # failure cards (message: convention — not at rest), row date-kind labels,
+    # honest empty states, and the read-only truth footer; obligation rows reuse
+    # the canonical financialEventLabels map (its shared labels count once here).
+    # Locked at the honest measured number (49) as a ratchet from day one.
+    # FinanceUpcoming 49 -> 51 (2026-09-23, FIN-001 Wave 6): استحقاق القرض
+    # المستلم يظهر للمعرفة فقط بلا تنبيه إلزامي (سياسة §4.7).
+    "FinanceUpcoming": 51,
+    # OPS-003 (2026-09-21, عقد ٤١ — first measurement day): أسطح المصروف
+    # المتكرر — القائمة (٢٦: ترويسة ووعد، حالة كل سلسلة، أقرب موعد، عدّ العولج،
+    # فراغ صادق، الحقيقة للقراءة فقط، والمطوي details مستثنى في السكون)،
+    # والتفصيل (٨١: الحالة الواحدة الصادقة لكل فترة بالتسميات الأربع الملزمة
+    # «تم تسجيل المصروف»/«المصروف مسجل مسبقًا لهذه الفترة»/«لم يُسجل المصروف»/
+    # «نتيجة التسجيل غير معروفة»، أزرار القرار، أسئلة الشهر القصير، إلغاء موثق
+    # بسبب، ولوحة المراجعة والتأكيد بمعاينتها وخياراتها)، والمحرر (٣٣: مسودة
+    # أو مراجعة خلف مستقبلية، نمط المبلغ الثلاثي، سياسة الشهر القصير، وحرس
+    # المدخلات). مقفلة على الرقم المقيس الأول كسقف سقّاط.
+    "FinanceRecurring": 26,
+    "RecurringExpenseDetail": 81,
+    "RecurringExpenseEditor": 33,
+    "SharePreview": 24,
+    # FinancialEventEditor 138 (2026-09-03, Group 1 §5.1–5.6 — first measurement
+    # day): the guided expense journey — wallet question, category field + chips,
+    # allocation review card, derived effect preview, guidance notes, draft banner
+    # and attribution-failure honesty, on top of the historical editor labels.
+    # Details-layer bodies are stripped at rest; validation/loading lines excluded.
+    # FinancialEventEditor 138 → 142 (2026-09-04, Group 4 عقد 29): the canonical
+    # period reader feeding this editor gained four reason strings for the new
+    # independent period lines (إهلاك مسجّل/شطب أصل/تخلص من أصل/عربون محتفظ كإيراد).
+    # الإغلاق العميق (AR-07): عنوان «تسجيل هدر بلا خروج نقد» (توحيد مصطلح الهدر).
+    # FinancialEventEditor 142 → 143 (2026-09-05).
+    # FinancialEventEditor 143 → 145 (2026-09-16, financial-trust package FIN-005,
+    # owner-approved): the expense cash-source rules — the multi-wallet neutral
+    # placeholder «اختر مصدر الصرف» and the no-wallet unallocated-fallback
+    # warning shown before saving.
+    # FinancialEventEditor 145 → 171 → 172 (2026-09-17, Wave 2 EXE-007/009, owner-approved):
+    # the unified expense model (required note, source rules, classification hints)
+    # and the owner wallet destination/source questions with their guards; the +1
+    # after prettier's line joins is the same set counted honestly.
+    # FinancialEventEditor 172 -> 173 (2026-09-18, Wave 4.3 P-4.3-6,
+    # GAP-4.3-08/REV-005, owner-approved state-matrix 9-8): the misleading
+    # «مساراتها قادمة لاحقًا» promise replaced by two honest referrals to the
+    # IMPLEMENTED assets/loans homes — net +1 mandated label (removed one
+    # dead promise, added two real actions).
+    # FinancialEventEditor 173 -> 175 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "FinancialEventEditor": 175,
+    # Statement 89 (2026-09-03, Group 1 §5.2 — first measurement day): the
+    # «مصاريفي حسب تصنيفي» grouping block + the feeding statementService's line
+    # labels and truth lines join the measured set; per-tag rows are data.
+    # Statement 89 → 101 (2026-09-04, Group 4 تصحيح مراجعة 4-c — owner decision):
+    # the cash statement surfaced the 4 new cash-moving families (asset purchase
+    # paid, asset disposal received, loan given, loan repaid) with explicit
+    # not-expense/not-withdrawal/not-revenue qualifiers + asset/loan source labels
+    # + correction family labels — hiding cash movement was the defect being fixed.
+    # الإغلاق العميق (AR-11): سطر أثر التصحيحات بأشكال الجمع العربية (6 بدل 3).
+    # Statement 202 → 205 (2026-09-05).
+    # Statement 205 → 206 (2026-09-17, Wave 2 EXE-010, owner-approved): the
+    # cash-returned correction group label.
+    # Statement 206 -> 208 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    # Statement 208 -> 209 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    # Statement 209 -> 216 (2026-09-22, Wave 1 WS-173 FIN-007, owner-approved
+    # roadmap): quarter quick-range labels («هذا الربع»/«الربع الماضي») + the
+    # «قارن مع الفترة السابقة» comparison entry; the feeding periodPresets
+    # service joins the measured set with its label map («الشهر الماضي») and
+    # its three typed-rejection messages. The comparison panel body sits inside
+    # the collapsed details; the «فترة جارية» header badge and the «مقارنة
+    # الفترتين» summary label live on multi-line conditional/summary nodes the
+    # counter excludes (established behavior) — mandated labels only, no prose.
+    # Statement 216 -> 224 (2026-09-23, FIN-001 Wave 6, owner roadmap §4.7):
+    # بند التزام القروض المستلمة في deepFinance وعائلتا تدفق الكاش
+    # (قبض قرض مستلم / سداد أصل قرض مستلم) — ثمانية بنود معلنة.
+    # Statement 224 -> 228 (2026-09-29, REM-002 W2-C/F-016, owner-approved master
+    # remediation charter): سطر «مكوناتها» يُولَّد الآن من تحلل النتيجة الفعلي
+    # في القراءة — ثلاث تسميات صارت وسومًا مستقلة بعد أن كانت مقاطع داخل قالب
+    # (إيراد معترف به / تكلفة مباشرة / مصاريف تشغيلية) + وسم «تكلفة بيع مباشر
+    # معروفة»: البند الذي كان غير مرئي في معادلة النتيجة وهو موضوع F-016
+    # نفسه. لا نثرًا جديدًا وراءها؛ بقية التسميات معروضات قائمة يعاد استخدامها.
+    # Statement 228 -> 229 (2026-09-29, REM-002 W2-D/F-019, owner-approved master
+    # remediation charter): وسم «خسارة غير نقدية (خارج المصروف التشغيلي)» —
+    # البند المستقل الذي كان يختفي داخل سطر المصروف التشغيلي بوسم «دفع +
+    # استحقاق» لا ينطبق عليه؛ ظهوره بندًا مستقلًا في التحلل والمقارنة هو
+    # موضوع F-019 نفسه. لا نثرًا جديدًا وراءه.
+    "Statement": 229,
+    # CostCalculator (2026-09-02, Group 3 Scope A, owner-approved execution prompt):
+    # new mandated deep screen — full calculator (materials/time/quantity/optional
+    # extras), live result with honest unknown lines, save + edit binding, saved
+    # next-actions (open estimate / start draft), dirty guard, local-truth line.
+    # CostCalculator 56 → 59 (2026-09-04, Group 3 D5/§5.1): inventory suggestion
+    # chips with receipt-confidence + excluded-items honesty (named, unpriced).
+    "CostCalculator": 59,
+    # DeliveryReview (new 2026-09-04, Group 3 D5): the full pre-commitment delivery
+    # surface — measured from day one per the Profile/CostCalculator precedent.
+    # DeliveryReview 48 → 51 (2026-09-16, product-journey package ORD-002, owner-approved):
+    # dedicated first-delivery success receipt — order number, delivery moment,
+    # new state, collected, remaining, cash destination, inventory effect, next
+    # action; unrecorded values show «غير مسجل» never zero.
+    # DeliveryReview 51 -> 53 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "DeliveryReview": 53,
+    # المجموعة ٤ (عقد ٢٩ — 2026-09-04): أسطح الأصول والقروض مقيسة من يومها الأول.
+    # AssetEditor 40: the long-use question journey (name/category/kind/date/life/
+    # start/note + effect preview + unsaved-guard labels) — mandated contract copy.
+    # الإغلاق العميق (AR-11): أشكال جمع شريط استعادة المسودة عبر محرك الجمع العربي.
+    # AssetEditor 49 → 55 (2026-09-05).
+    # AssetEditor 55 -> 57 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    # AssetEditor 57 -> 59 (2026-09-23, FIN-001... عقد ٤٣ / FIN-008 Wave 7, owner
+    # roadmap §4.8): حقل القيمة المتبقية (تسمية + إرشاد أرضي-التقريب) —
+    # مدخل معلن من مدخلات العقد الخمسة.
+    "AssetEditor": 59,
+    # Assets 63 -> 65 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "Assets": 65,
+    # الإغلاق العميق (AR-06): حالة خطأ القروض gained reassurance + retry.
+    # Loans 70 → 71 (2026-09-05).
+    # Loans 71 -> 73 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    # Loans 73 -> 82 (2026-09-23, FIN-001 Wave 6, owner roadmap §4.7):
+    # طبقة الالتزام المستقلة (قروض أخذتها): عنوان القسم والمجموع القائم
+    # ووسوم الحالات والعرض والاستحقاق-للمعلومة والرابطتان — تسعة بنود معلنة.
+    "Loans": 82,
+    # الإغلاق العميق (AR-11): أشكال جمع شريط استعادة المسودة عبر محرك الجمع العربي.
+    # LoanEditor 31 → 37 (2026-09-05).
+    # LoanEditor 37 -> 39 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    "LoanEditor": 39,
+    # AssetDetail 36: book value + depreciation proposal/record + contract revision
+    # + disposal/write-off + event history — every consequential action previews.
+    # AssetDetail 36 → 41 (2026-09-04, Group 4 تصحيح مراجعة 4-c — owner decision):
+    # acquisition-correction card (the unreachable-surface defect), owner-chosen
+    # depreciation asOf date, and inline documented reversal reason replace
+    # window.prompt — each string is a mandated contract/UX element.
+    # AssetDetail 41 -> 43 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    # AssetDetail 43 -> 44 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    # AssetDetail 44 -> 45 (2026-09-23, عقد ٤٣ / FIN-008 Wave 7, owner roadmap
+    # §4.8): عرض المتبقية المعلنة في رأس القراءة — وسم صدق للعقد.
+    "AssetDetail": 45,
+    # LoanDetail 31: reading + repayment history with traceable reversal + documented
+    # correction + financial events layer.
+    # LoanDetail 73 -> 75 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    # LoanDetail 75 -> 76 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "LoanDetail": 76,
+    # FIN-001 (WS-178 — Wave 6, owner roadmap §4.7): سطحا القرض المستلم —
+    # تُقاس من يومها الأول كسابقة عائلة القروض (المجموعة ٤).
+    "ReceivedLoanEditor": 32,
+    "ReceivedLoanDetail": 78,
+    # EstimateDetail (2026-09-02, Group 3 Scope B, owner-approved execution prompt):
+    # new mandated screen — read-only estimate summary (result, materials, time,
+    # extras, note), no-financial-effect qualifier, start-draft bridge, edit link,
+    # two-step delete, honest not-found.
+    # EstimateDetail 36 -> 37 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد.
+    "EstimateDetail": 37,
+    # المجموعة ٦ (تدقيق A1 — AR-04): أسطح الكاش/التحصيل/الدفتر التي كانت خارج
+    # القياس تدخل أول مرة بسقف = عددها الحالي (سابقة «تُقاس من يومها الأول») —
+    # القياس يتوسع بلا تخفيف: أي إضافة فوق العدد الحالي تحتاج قرارًا موثقًا.
+    # الإغلاق العميق (AR-02/AR-15): رسائل فصحى محدَّثة في الخدمة المُغذّية (أمانة البيانات + إعادة المحاولة).
+    # CashDistribution 48 → 49 (2026-09-05).
+    # CashDistribution 49 → 51 (2026-09-17, Wave 2 EXE-008/009, owner-approved):
+    # attribution source labels for owner events and supplier purchases.
+    # CashDistribution 51 -> 53 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    # CashDistribution 53 -> 54 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "CashDistribution": 54,
+    # الإغلاق العميق (FC-09 — العقد ٤): سبب مراجعة التحصيل «تحصيل دفعة من
+    # ورقة التحصيل» في الخدمة المُغذّية — تاريخ تسوية صادق لا «تصحيحًا» عامًا.
+    # Collect 45 → 46 (2026-09-05, deep closure FC-09).
+    # Collect 46 -> 55 (2026-09-18, Wave 4.3 P-4.3-4, owner-approved task
+    # section 11/F06): F06 share-receipt entry after a successful order collection (button label) — the only new at-rest labels; failed collections and direct-sale sources add none.
+    # Collect 55 -> 57 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    # Collect 57 -> 58 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "Collect": 58,
+    # الإغلاق العميق (AR-11): سطر «أثر التصحيحات» يمر عبر محرك الجمع العربي
+    # (6 أشكال بدل 3) — صحة لغوية مفروضة من معيار المحتوى.
+    # WalletLedger 37 → 40 (2026-09-05, deep closure AR-11).
+    # WalletLedger 40 → 42 (2026-09-17, Wave 2 EXE-008/009, owner-approved): deep
+    # links for supplier purchases and owner events in the ledger rows.
+    # WalletLedger 42 -> 44 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
+    # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
+    # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
+    # WalletLedger 44 -> 45 (2026-09-18, Wave 4.4 P-4.4-4): زر «إعادة
+    # المحاولة» في شاشة خطأ القراءة — فعل استرداد معتمد واحد لكل سطح
+    # يقرأ بيانات؛ لا نثرًا جديدًا وراءه.
+    "WalletLedger": 45,
+    # Foundation/Setup: أول سقفين صريحين (كانا على الافتراضي 30) — Wave 4.4
+    # P-4.4-2 (2026-09-18): عقد العرض المعتمد لنظام 12 ساعة يضيف محرفَي
+    # فترة النهار «ص»/«م» إلى كل سطح يعرض وقتًا، وهذان السطحان يعرضان
+    # وقتًا فأصبح الافتراضي غير كافٍ (+2 محرفي تنسيق معتمدين).
+    "Foundation": 32,
+    "Setup": 32,
+
+}
+
+PAGES = [
+    "Home",
+    "Finance",
+    "OrderDetail",
+    "Orders",
+    "DirectSaleEditor",
+    "DraftEditor",
+    "CostEditor",
+    "AgreementEditor",
+    "Catalog",
+    "InventoryMaterials",
+    # المجموعة ٢ (عقد ٢٨): محررات المخزون تدخل القياس أول مرة (يوم القياس الأول).
+    "Market",
+    "MaterialEditor",
+    "InventoryMovementEditor",
+    "SupplierPurchaseEditor",
+    "Suppliers",
+    "Foundation",
+    "Setup",
+    "CashWallets",
+    "OwnerEntitlement",
+    "Schedule",
+    "ScheduleEditor",
+    "OwnerWithdrawalEditor",
+    "G5DeclarationEditor",
+    # المجموعة ١ (Scope G): ملف المالك والمشروع — شاشة جديدة مقيسة من يومها الأول.
+    "Profile",
+    # المجموعة ٣ (Scope A/B): الحاسبة وصفحة التقدير وأدواتي بعد إعادة الهيكلة.
+    "CostCalculator",
+    # المجموعة ٣ (عقد D5): مراجعة التسليم — تقاس من يومها الأول.
+    "DeliveryReview",
+    "EstimateDetail",
+    "Tools",
+    "Settings",
+    "NotFound",
+    # المجموعة ١ (الإدخال المالي الموجّه): فحص السلامة + المحرر الموجّه + الكشف
+    # — تقاس من يومها الأول (سابقة Profile/CostCalculator).
+    "ToolsIntegrity",
+    # Wave 4.2 — P-4.2-4 (F01): سطح «المزيد من المالية» — قارئ منظم.
+    "FinanceMore",
+    # Stage 2 — OPS-005/006 (2026-09-20): سطح «القادم والاستحقاقات» — قارئ
+    # موحد للقادم والمتأخر؛ يُقاس من يومه الأول (سابقة Profile/FinanceMore).
+    "FinanceUpcoming",
+    # OPS-003 (عقد ٤١، 2026-09-21): أسطح المصروف المتكرر — القائمة والتفصيل
+    # والمحرر؛ تقاس من يومها الأول (سابقة Profile/FinanceUpcoming).
+    "FinanceRecurring",
+    "RecurringExpenseDetail",
+    "RecurringExpenseEditor",
+    # المجموعة ٥ (عقد ٣٠/٣٣): قارئ النشاط الكامل ومعاينة المشاركة — تُقاسان من يومهما الأول.
+    "FinanceActivity",
+    "SharePreview",
+    "FinancialEventEditor",
+    "Statement",
+    # المجموعة ٤ (عقد ٢٩): أسطح الأصول والقروض ومحرراتها — تقاس من يومها الأول
+    # (سابقة Profile/CostCalculator/DeliveryReview).
+    "Assets",
+    "AssetEditor",
+    "AssetDetail",
+    "Loans",
+    "LoanEditor",
+    "LoanDetail",
+    # FIN-001 (WS-178 — Wave 6): سطحا القرض المستلم ضمن القياس (سابقة AR-04).
+    "ReceivedLoanEditor",
+    "ReceivedLoanDetail",
+    # المجموعة ٦ (تدقيق A1 — AR-04): كل صفحات المسارات تدخل القياس — كان ١٢
+    # سطحًا (عائلة الكاش/التحصيل/الأطراف/الدفتر) خارج §10.1 بلا قياس، فكانت
+    # رسالة «كل الأسطح ضمن السقوف» أوسع من الحقيقة.
+    "CashAdjustmentEditor",
+    "CashCount",
+    "CashDistribution",
+    "CashOpeningLaterEditor",
+    "CashReversalEditor",
+    "CashTransferEditor",
+    "CashWalletEditor",
+    "Collect",
+    "InventoryReversalEditor",
+    "NewDraft",
+    "Parties",
+    "WalletLedger",
+]

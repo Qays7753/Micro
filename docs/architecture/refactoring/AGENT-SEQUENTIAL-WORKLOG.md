@@ -996,3 +996,21 @@
 - **Boundaries:** zero production change (one app test file + two guard/test scripts + records only); schema 38/export 30; no acceptance broadened; 4D root owner-gated; no merge; no cleanup; append-only history; token via askpass from `.secrets` only.
 
 **Terminal state:** R6_W2_EXECUTED_ON_BRANCH — PR_NEXT · TEST_AND_GUARD_ONLY · NO_PRODUCTION_CHANGE · NO_SCHEMA_EXPORT_FINANCIAL_HISTORY_REJECTION_SECURITY_UI_CHANGE · NO_MERGE_PERFORMED · NO_CLEANUP_PERFORMED · NO_SECRETS_EXPOSED.
+
+## Entry 67 — 2026-10-09 — Z AI: R6-W3 text-density tooling split (WS-216/ARCH-007, stacked on the W2 head)
+
+- **Base:** W2 final head `fb11c6c7` (PR #339 open at the owner gate) — stacked lineage main `fd92d7e8` ← W1 `b3048f2a` ← W2 `fb11c6c7` ← W3; branch `refactoring/r6-w3-text-density-tooling-20261009`. Tooling/tests/docs only per the owner decision package (W3 confirmed non-optional).
+- **Characterization first:** pre-split CLI contract captured (exit 0; 4,117-byte stdout, sha256 812a24bb…; empty stderr; literal formats + PAGES order + closing line; `--list`/`--breakdown` contracts) and pinned as docs/fixtures/text-density/w3-characterization.golden.txt + a 7-test suite; the byte-identity test ran GREEN against the unsplit script before the split.
+- **Split:** ledger (EXPLICIT_SERVICES/CAPS with the full dated comment history preserved verbatim/PAGES) → scripts/text_density_policy.py (data only; 846 nbLOC; SPLIT_CANDIDATE with a documented new ratchet-baseline entry); engine scripts/text-density-count.py (458 nbLOC; leaves SPLIT_NOW → WATCH; baseline entry tightened — a ratchet gain) imports and validates the policy (validate_policy: exit 2 + clear stderr on malformed entries).
+- **Proof:** post-split full-repo output byte-identical (cmp + golden + pnpm text-density); negatives: tampered cap → OVER/exit 1; malformed cap type → exit 2; engine/policy boundary test (no data in the engine, no logic in the policy); bundle identical (lazy 101/1,409,712/432,901; precache 187/2,741,296 — outside the vite graph). Root 730/730 (+7); app 323/2388; guards 17/17 (secrets 1,555/0); typecheck/lint/format clean; build PASS; test-map regenerated (60/49); register §2/§3/§7 + SOURCE_OF_TRUTH §10.1 row updated same-PR.
+- **Boundaries:** zero production application change; no cap value changed; schema 38/export 30; no merge; no cleanup; append-only history; token via askpass from `.secrets` only.
+
+**Terminal state:** R6_W3_EXECUTED_ON_BRANCH — PR_NEXT · TOOLING_TESTS_DOCS_ONLY · BYTE_IDENTICAL_OUTPUT_PROVEN · NO_PRODUCTION_CHANGE · NO_MERGE_PERFORMED · NO_CLEANUP_PERFORMED · NO_SECRETS_EXPOSED.
+
+
+## Entry 68 — 2026-10-10 — Manus: final R6 owner-gate records reconciliation
+
+- **Live state:** PR #338 @ `b3048f2aeda4d55e77801effb9d93a051263375c`, PR #339 @ `fb11c6c71be7124c3bf4ac62704d5186eede43d6`, and PR #340 @ `90f9253e79ca13410addd914dba463557fafbcf5` are open, mergeable, clean, and CI-green; branches are strictly stacked on `main` @ `fd92d7e8812726dcca8d27d3ad64c8f24dc96abd`.
+- **Reconciliation:** canonical evidence lists in WS-216/ARCH-007 were extended append-only with the missing PR #339/#340, final W1/W2/W3 CI, and final readiness-report references; no earlier evidence was removed. `ARCH-007.next_action` now truthfully says `R6-W3 IN_REVIEW — PR #340 OPEN`; live current-state and CONTROL pointers now state all three R6 slices are executed at the owner merge gate.
+- **Boundaries:** documentation/control only; no merge, no cleanup, no branch deletion, no production/financial/historical/schema/export/UI change.
+- **Next:** owner merge order #338 → #339 → #340, post-merge verification and reconciliation after each; R7 prompt only after R6 is verified on main.
