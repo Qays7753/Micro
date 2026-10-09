@@ -1,9 +1,9 @@
 # Micro — Refactoring Control
 
-**الإصدار:** v1.11 (R1 حقيقة/حوكمة/توثيق قيد التنفيذ — 2026-10-07؛ v1.10 R0 successor متحقق على main بعد PR #325 — 2026-10-07؛ v1.9 فتح successor البنيوي R0–R10؛ v1.8 تحقق برنامج ما بعد المسح W0–W10 على main بعد PR #316 — 2026-10-06؛ v1.7 بدء تنفيذ العقد — 2026-10-05؛ v1.6 تثبيت رأس main النهائي بعد PR #312 — 2026-10-05؛ v1.5 وما قبلها سجل تاريخي)
-**التاريخ:** 2026-10-07
-**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0 VERIFIED ON MAIN; R1 TRUTH/GOVERNANCE IN PROGRESS`
-**المرحلة:** `A-TO-Z VERIFIED ON MAIN; POST-SCAN W0–W10 VERIFIED ON MAIN; SUCCESSOR R0 VERIFIED ON MAIN; R1 EXECUTING ON ITS OWN BRANCH PER APPROVED REPAIR CARDS` (البرامج السابقة مغلقة ومتحققة؛ R1 ينفذ ضمن بطاقات R1-TG-01..04 المعتمدة من تقرير R0 المقبول)
+**الإصدار:** v1.12 (R5 مدموجة ومتحققة على main؛ بوابة R6 القراءة-فقط بانتظار مراجعة/قبول المالك — 2026-10-09؛ v1.11 وما قبلها سجل تاريخي)
+**التاريخ:** 2026-10-09
+**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0–R5 VERIFIED ON MAIN; R6 READ_ONLY_GATE_PENDING_OWNER_REVIEW`
+**المرحلة:** `A-TO-Z VERIFIED ON MAIN; POST-SCAN W0–W10 VERIFIED ON MAIN; SUCCESSOR R0–R5 VERIFIED ON MAIN; R6 NOT STARTED — READ-ONLY STRUCTURE/ARCHITECTURE/CODE-ORGANIZATION SCAN REQUIRED BEFORE ANY STRUCTURAL WRITE`
 **النطاق:** Structure / Architecture / Code Organization فقط
 
 ## 1. الهدف
@@ -185,7 +185,7 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 - **الخطة:** `STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
 - **البداية المسموحة:** R0 قراءة فقط ومصالحة الخط الأساسي؛ لا نقل أو تقسيم أو حذف أو تعديل كودي في R0.
 - **قاعدة الاستمرار:** بعد تقرير R0 فقط، تنفذ R1–R10 على فرع مستقل، وبطاقات Repair، وPR مستقل أو شريحة قابلة للمراجعة، وفحوص مركزة وCI وحد رجوع لكل موجة.
-- **الخطوة الحية:** R4 مدموجة ومتحققة على main (PR #334 بmerge commit `58d281ed` — CI أخضر على رأس الدمج run `37856130116`؛ فرع R4 محفوظ). **R5 مكتملة على الفرع** `refactoring/r5-application-boundaries-20261009` من `58d281ed` (أمر المالك «R5 Application Boundaries, Reader/Writer, and Public Doors»، 2026-10-09): المصالحة الإدارية البعدية أول شريحة (§152/Entry 61)؛ جرد حدودي كامل ببطاقات وسجل حدي قبل أي نقل؛ لجنة خماسية قراءة-فقط قبل التنفيذ (تعديلاتها السبعة الإلزامية طُبقت)؛ S1 إغلاق ثغرة ماسح حارس الحدود (ImportTypeNode + امتدادات js/jsx) وهجرة موقعي شيمة الميزانيات إلى باب budgets (R6: 43→42 مفتاحًا)؛ S2 الحارس الـ16 أسطح الأبواب قيمًا وأنواعًا (R0-N20/PC-3 + إغلاق FD-6)؛ S3 الحارس الـ17 «القارئ لا يكتب» (18+10 ملفات)؛ S4 عقود PC-4 في 12 ملفًا. البوابات على رأس التنفيذ `5bd5da4a`: الجذري 62/710 والتطبيق 323/2388 والحراس 17/17 والميزانية 629,300/154,683 — الأدلة في `evidence/structural-remediation-r5-20261009/` (التقرير والبطاقات والسجل الحدي والمانيفست). **PR واحد عند بوابة المالك — الدمج بتفويض منفصل؛ بعده التحقق البعدي والمصالحة الإدارية عمليتان منفصلتان (نمط R2–R4)؛ R6 بتعليمة استمرار جديدة فقط**؛ لا تُعدّل `main` مباشرة ولا يُمس فرع UI المحفوظ ولا يتغير المخطط/التصدير 38/30.
+- **الخطوة الحية:** R4 مدموجة ومتحققة على main (PR #334 بmerge commit `58d281ed` — CI أخضر على رأس الدمج run `37856130116`؛ فرع R4 محفوظ). **R5 مدموجة ومتحققة على main**: نُفذت على `refactoring/r5-application-boundaries-20261009` ثم دُمجت عبر PR #335 بmerge commit `092c933bdcdf1666f8f8cf83bb7d5f030b8d4e6d`، وCI post-merge run `37892032808` ناجح على الرأس نفسه؛ البوابات على رأس التنفيذ `5bd5da4a`: الجذري 62/710 والتطبيق 323/2388 والحراس 17/17 والميزانية 629,300/154,683؛ صفر تغيير مالي/دلالي/تاريخي/UI أو schema/export 38/30؛ الأدلة في `evidence/structural-remediation-r5-20261009/`. **R6 لم تبدأ:** الخطوة الوحيدة التالية هي مسح قراءة-فقط شامل وتقرير findings واحد مصنف وخريطة هدف وموجات دنيا وحدود رجوع، ثم مراجعة وقبول المالك؛ لا structural refactoring أو bulk move أو code-organization change قبل ذلك؛ لا تُعدّل `main` مباشرة ولا يُمس فرع UI المحفوظ.
 
 ## 15. سلّم الأولوية ودورة حياة قطع الحوكمة (R1/TG-04 — 2026-10-07)
 
