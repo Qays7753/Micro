@@ -346,20 +346,51 @@ describe("R6 (Step 6 — STR-615 system-wide ratchet: UI -> application interior
     );
     expect(raw.version).toBe(1);
     expect(new Set(raw.allowed).size).toBe(raw.allowed.length);
-    /* الحالة النهائية بعد هجرة الخطوة ٦: ٤٣ مفتاحًا محتجزًا موثقًا —
-     * ٣٦ لجذر التركيب (بروتوكول عزل كومة الإقلاع) + ٧ لأسطح التوافق
-     * المجمدة (شيمات Wave B/W2 بمسار إزالة UI). أي نقصان لاحق = تقدم
-     * (يُثبت بتحديث هذا الدبوس في نفس الـPR)؛ أي زيادة = خرق راتشة. */
+    /* الحالة بعد R5/S1 (2026-10-09): ٤٢ مفتاحًا محتجزًا موثقًا — ٣٦ لجذر
+     * التركيب + ٦ لأسطح التوافق المجمدة (٣ شيمة g5 + ٣ واجهات عرض)؛ هاجر
+     * مفتاح شيمة الميزانيات إلى باب budgets في نفس الشريحة (كان ٤٣). أي
+     * نقصان لاحق = تقدم (يُثبت بتحديث هذا الدبوس في نفس الـPR)؛ أي زيادة
+     * = خرق راتشة. */
     const contextKeys = raw.allowed.filter(k => k.includes("PrototypeServicesContext"));
     const otherKeys = raw.allowed.filter(k => !k.includes("PrototypeServicesContext"));
     expect(contextKeys.length).toBe(36);
-    expect(otherKeys.length).toBe(7);
-    expect(otherKeys.some(k => k.includes("finance/expenseBudgetService.ts"))).toBe(true);
+    expect(otherKeys.length).toBe(6);
+    expect(otherKeys.some(k => k.includes("finance/expenseBudgetService.ts"))).toBe(false);
     expect(otherKeys.filter(k => k.includes("g5/g5Service.ts")).length).toBe(3);
     expect(otherKeys.some(k => k.includes("activity/activityLabels.ts"))).toBe(true);
     expect(otherKeys.some(k => k.includes("formatting/formatters.ts"))).toBe(true);
     expect(otherKeys.some(k => k.includes("agreements/agreementPresentation.ts"))).toBe(true);
     const live = checkModuleBoundaries(REPO_ROOT);
     expect(live.violations.filter(v => v.rule === "R6-baseline-stale")).toEqual([]);
+  });
+
+  /* ── R5/S1 (2026-10-09): المحدّد النوعي `import("…").X` وملفات `.js` ── */
+
+  it("R5/S1: type-position import(\"…\") into an application interior is counted and rejected when un-baselined", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/P.tsx",
+      `type T = import("@/application/house/service").Thing;\nexport const p: T | null = null;\n`,
+    );
+    const result = checkModuleBoundaries(root);
+    expect(result.stats.uiToApplicationDeep).toBe(1);
+    const hit = result.violations.find(v => v.rule === "R6-ui-to-application-deep");
+    expect(hit?.key).toContain("application/house/service.ts");
+  });
+
+  it("R5/S1: a .js production file deep-importing an application interior is scanned and caught", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/Q.js",
+      `import { s } from "@/application/house/service";\nexport const q = s;\n`,
+    );
+    const result = checkModuleBoundaries(root);
+    expect(result.stats.uiToApplicationDeep).toBe(1);
+    const hit = result.violations.find(v => v.rule === "R6-ui-to-application-deep");
+    expect(hit?.key).toContain("pages/Q.js");
   });
 });

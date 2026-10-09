@@ -75,7 +75,7 @@ export function FinanceBudgetsSection({
   useEffect(() => {
     if (!budgetsOpen || budgetsLoad.phase !== "idle") return;
     setBudgetsLoad({ phase: "loading" });
-    import("@/application/finance/expenseBudgetService")
+    import("@/application/budgets")
       .then(module => {
         setBudgetsLoad({
           phase: "ready",
