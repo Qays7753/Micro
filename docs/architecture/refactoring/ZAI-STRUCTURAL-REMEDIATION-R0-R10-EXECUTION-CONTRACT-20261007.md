@@ -1,6 +1,6 @@
 # Micro — Structural Remediation R0–R10 Execution Contract
 
-**Status:** `OWNER_ACCEPTED — R0_IN_PROGRESS`
+**Status:** `OWNER_ACCEPTED — R0–R5_VERIFIED_ON_MAIN; R6_READ_ONLY_GATE_PENDING_OWNER_REVIEW`
 
 **Owner authorization:** On 2026-10-07 the owner accepted the updated Arabic execution plan and its explicit traceability matrix, and authorized this program to start with the contract publication followed by R0. This contract operationalizes that plan. It does not replace `AGENTS.md`, financial/domain contracts, the canonical architecture plan, or live Operations Control.
 
@@ -15,6 +15,10 @@
 **Implementation branch:** `refactoring/structural-remediation-r0-r10-20261007`
 
 **Initial verified base:** `25594773a83ec5eb1e9dde5feaf1c808c0ff686f`
+
+**Current verified main (2026-10-09):** `092c933bdcdf1666f8f8cf83bb7d5f030b8d4e6d` — R5 merge commit from PR #335; post-merge CI run `37892032808` succeeded on this exact SHA.
+
+**Current phase:** R6 has not started. Its mandatory first operation is a read-only Structure/Architecture/Code Organization Scan and one consolidated findings report. No structural refactoring, bulk move, rename, or code-organization change is authorized before owner review and acceptance of that report.
 
 **Workstream:** `WS-216`
 
@@ -183,6 +187,8 @@ Inventory consumers first. Separate readers and writers where evidence supports 
 
 Review all live `SPLIT_NOW`, `SPLIT_CANDIDATE`, and changed `WATCH` files, including storage adapters, `projectFinancialService`, `integrityCheckService`, `inventoryMaterialService`, `transferFamilyValidators`, `craft-order/policies.ts`, and large pages. Split by responsibility or produce a complete long-term exception card. A ratchet alone does not close an existing risk.
 
+**Mandatory post-Group-6 entry gate:** Before any R6 structural write, perform a comprehensive read-only Structure/Architecture/Code Organization Scan. It must cover module and feature boundaries; file responsibilities and oversized files; dependency/layer violations and cycles; duplication and sources of truth; feature discoverability; storage/application/domain/UI composition; test and documentation mapping; and a target module map. Produce one detailed findings report. Classify every item as `FIX_NOW`, `PRESERVE`, `DEFER`, or `OUT_OF_SCOPE`; for each item include evidence, root cause, minimum safe remediation, dependencies, risks, acceptance criteria, rollback boundary, and owner. The report must propose the minimum safe remediation waves and their order. Review and owner acceptance of that report are mandatory gates; until then, do not split, move, rename, delete, or reorganize code. A current defect may not be hidden in a generic defer; `PRESERVE` requires complete long-term evidence and `DEFER` requires an exact owner-approved trigger/package.
+
 ### R7 — Structural UI boundaries and compatibility shims
 
 Only structural work is allowed: application-owned view models, query surfaces, import/type migration, and shim removal after zero-consumer proof. Add journey tests for the six smoke-only pages when in accepted scope. No visual or navigation redesign.
@@ -330,6 +336,6 @@ Never report completion for R0, a pilot, a green intermediate wave, a recommenda
 
 ---
 
-## 11. Immediate execution instruction
+## 11. Immediate continuation instruction — 2026-10-09
 
-Start by verifying the live base and then perform R0. Do not perform implementation writes in R0. Do not ask for routine approval between accepted waves. Stop only for the protected conditions above or the final merge gate.
+R0–R5 are already verified on `main` at `092c933bdcdf1666f8f8cf83bb7d5f030b8d4e6d`; do not repeat them. Start the next continuation by verifying that live SHA, then perform only the mandatory R6 read-only Structure/Architecture/Code Organization Scan and produce the one consolidated findings report. Stop for owner review and acceptance of the classifications, target map, minimum remediation waves, dependencies, risks, acceptance criteria, and rollback boundaries. Do not perform R6 implementation writes before that acceptance. Do not ask for routine approval inside an accepted implementation wave; stop only for the protected conditions above or the applicable merge gate.

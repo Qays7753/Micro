@@ -1,7 +1,7 @@
 # Micro — Refactoring Control
 
-**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0–R10 (WS-216/ARCH-007) ACTIVE; R0 VERIFIED ON MAIN; R1 TRUTH/GOVERNANCE IN PROGRESS`
-**المرحلة الحالية:** `SUCCESSOR STRUCTURAL REMEDIATION R1 EXECUTING (TRUTH/GOVERNANCE/DOCUMENTATION/GUARD HYGIENE) — ON ITS OWN BRANCH PER REPAIR CARDS; PREVIOUS PROGRAMS CLOSED AND VERIFIED ON MAIN`
+**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0–R10 (WS-216/ARCH-007) ACTIVE; R0–R5 VERIFIED ON MAIN; R6 READ_ONLY_GATE_PENDING_OWNER_REVIEW`
+**المرحلة الحالية:** `SUCCESSOR STRUCTURAL REMEDIATION R6 NOT STARTED — READ-ONLY STRUCTURE/ARCHITECTURE/CODE-ORGANIZATION SCAN REQUIRED; NO STRUCTURAL WRITE BEFORE OWNER ACCEPTANCE`
 **نوع المساحة:** مساحة تخطيط وتحكم لإعادة الهيكلة، وليست مصدرًا معماريًا منافسًا.
 
 > **تحديث مؤرخ 2026-10-05 (عقد التنفيذ التالي):** اعتمد المالك الخطة الكاملة بعد تقريري Flash وStructure. عقد التنفيذ المحفوظ في `ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md` هو عقد تشغيل للبرنامج التالي، وليس سلطة معمارية ثانية. حالته `OWNER_ACCEPTED — EXECUTION_NOT_STARTED`; يبدأ التنفيذ بـR0 قراءة فقط ثم W0–W10 على فرع مستقل بعد التحقق الحي. لا يُكتب إلى `main` ولا تُفتح موجة جديدة خارج هذا العقد.
@@ -45,7 +45,7 @@
 | `ZAI-STRUCTURE-ARCHITECTURE-SCAN-PROMPT.md` | الأمر الجاهز لـZ AI لتنفيذ المسح وإعداد التقرير | Prompt إصدار 1 |
 | `FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md` | جرد الملفات والحجم والمسؤوليات والنمو والاستثناءات | موجود (v1.5 — رأس قياس مثبت في رأسه؛ 1,484 ملفًا متتبعًا عند رأس أساس R1 `8bc5196` بقياس `git ls-files` — ورأس الموجة 1,486 بعد ملفَي R1 الجديدين *(تصحيح مؤرخ 2026-10-07 — R1/TG-01 [R0-N9/gate-C2]: كان «v1.4 — 1,323 متتبعًا/752 في النطاق»))؛ ليس مصدر منطق أو سياسة |
 | `REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md` | خطة Z AI النهائية من الوضع الحالي إلى الوضع المستهدف وموجات النقل | موجودة (v1.1+§23؛ مصالحة ما بعد PR #312) — الموجات المنفذة مثبتة في سجل الإغلاق |
-| `AGENT-SEQUENTIAL-WORKLOG.md` | سجل الوكلاء المتسلسل (بطاقات الموجات) | حي — آخر قيد Entry 51 (R1 لهذا البرنامج) *(تصحيح مؤرخ 2026-10-07 — R1/TG-01 [R0-N9]: كان «Entry 47»)) |
+| `AGENT-SEQUENTIAL-WORKLOG.md` | سجل الوكلاء المتسلسل (بطاقات الموجات) | حي — آخر قيد Entry 63 (مصالحة R5 بعد الدمج؛ 2026-10-09) |
 | `OWNERSHIP-AND-TRUTH-REGISTRY.md` | سجل الملكية ومصادر الحقيقة والاستثناءات الموثقة (أُغفلت صفوفه من الجدول سابقًا — استكمال F-01-f/W1) | موجود (مصالحة ما بعد A-to-Z)؛ يُصالَح حيًّا لا يُنسخ |
 | `TEST-AND-DOCUMENTATION-MAP.md` | خريطة الصفحات إلى الاختبارات والعقود واصطلاح مواضعها (Wave G2/STR-619) | موجودة (60 صفحة بأدلة — 55 direct + 5 named بتصحيح R1 المؤرخ؛ 49 عقدًا موصولًا) |
 | `A-TO-Z-CLOSURE-RECORD.md` | سجل إغلاق A-to-Z: الجدول الاثني عشري، الخفض الإلزامي، المجمد، وشرط الخروج | موجود؛ متحقق مع سجل الدمج النهائي |
@@ -54,8 +54,8 @@
 | `ZAI-A-TO-Z-EXECUTION-CONTRACT.md` | عقد تنفيذ برنامج A-to-Z السابق (تاريخي منجز) | موجود (منجز بالكامل — دمج #311) |
 | `skills/micro-a-to-z-structural-refactoring/SKILL.md` | مهارة التشغيل والإفتيش المشتقة من الخطة | موجودة (v1.0 — Wave A0) |
 | `ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md` | عقد التنفيذ الإنجليزي الكامل للبرنامج التالي من R0 إلى W10، بما في ذلك التوقفات والاختبارات والـPRs | مقبول من المالك؛ W0–W10 متحقق ومغلق على main (PR #316 — 2026-10-06) |
-| `STRUCTURAL-REMEDIATION-PLAN-20261007.md` | الخطة الجذرية المعتمدة ومصفوفة تتبع نتائج Structure وFlash لبرنامج successor | مقبولة من المالك؛ R0 منفذ ومقبول على main؛ R1 قيد التنفيذ، وR2–R10 لم تبدأ *(تصحيح مؤرخ 2026-10-07 — R1/TG-01: كان «R0–R10 لم تُنفذ بعد عند إنشاء العقد»)) |
-| `ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md` | عقد التنفيذ المتسلسل لبرنامج successor، وبوابات R0–R10 وPRs والرجوع | `WS-216/ARCH-007`؛ R0 مكتمل ومقبول (PR #325)؛ R1 هو الموجة الحالية *(تصحيح مؤرخ 2026-10-07 — R1/TG-01: كان «R0 قراءة فقط هو الخطوة الحالية»)) |
+| `STRUCTURAL-REMEDIATION-PLAN-20261007.md` | الخطة الجذرية المعتمدة ومصفوفة تتبع نتائج Structure وFlash لبرنامج successor | مقبولة من المالك؛ R0–R5 مدموجة ومتحققة على main؛ R6 يبدأ بمسح قراءة-فقط وتقرير واحد ومراجعة مالك قبل أي كتابة |
+| `ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md` | عقد التنفيذ المتسلسل لبرنامج successor، وبوابات R0–R10 وPRs والرجوع | `WS-216/ARCH-007`؛ R0–R5 متحققة على main؛ R6 بوابة قراءة-فقط معلقة على مراجعة/قبول المالك |
 
 ## القاعدة الأساسية
 
