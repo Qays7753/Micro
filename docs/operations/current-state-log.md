@@ -2114,3 +2114,11 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - **التصحيح الإداري:** أضيفت أدلة PRs #339/#340، فحوص W1/W2/W3 والرأس النهائي، وتقرير `R6-COMPLETE-PR-READINESS-REPORT-2026-10-09.md` إلى قوائم evidence في WS-216 وARCH-007 دون حذف أو إعادة ترتيب أي دليل سابق. صُحح `ARCH-007.next_action` من «PR pending» إلى `R6-W3 IN_REVIEW — PR #340 OPEN`، وصُححت المؤشرات الحية في `current-state.md` و`REFACTORING-CONTROL.md`.
 - **النطاق:** لا تغيير إنتاجي أو مالي أو تاريخي أو Schema/Export أو UI بصري؛ لا دمج ولا حذف فروع في هذه الشريحة. R7 لم تبدأ.
 - **التالي:** دمج المالك PRs بالترتيب المحدد، مع تحقق main ومصالحة إدارية بعد كل دمج؛ بعد اكتمالها فقط يُكتب Prompt R7.
+
+
+## §160 — 2026-10-10 — R6 post-merge verification and R7 gate
+
+- **R6 closure:** PR #338 merged at `5ff733dd7d12e27136d3d191e117f48bf29fbb8c`, PR #339 at `6106497b34e0de63ba6f7514725c2811fe3fd0cb`, and PR #340 at `8f7ba482c92b33fd1565df3284b992c6b28a128b`; all three used Merge commits and were verified on `main` in order. Post-merge CI runs `37997412599`, `37997833257`, and `37998261599` succeeded.
+- **Findings:** ZAI reports no new product/tree finding beyond R6-SCAN-F-001..027. W1 review discovered two deliverable-record blockers (evidence list replacement and first-commit pointer drift); both were fixed in PR #338 with append-only proof. No R6 finding remains without a disposition; no protected decision was hidden.
+- **Impact:** R6 changed no financial/semantic/historical meaning, Schema/Export/Import 38/30, rejection behavior, security policy, or visual UI. W1 was records-only; W2 test/guard-only; W3 tooling/test/docs-only with byte-identical CLI output and zero bundle impact.
+- **Next:** R7 is not started. Prepare R7 preflight/Repair Cards from the accepted R6-F17-P01..P11 package on a new branch; no structural R7 write until its scoped gate is recorded.
