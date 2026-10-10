@@ -1130,3 +1130,13 @@
 - **Checks:** rehearsal 4/4; storage 295/295; transfers 289/289; exe014+exportGoldens 16/16; prototype typecheck exit 0; ratchet PASS with the authorized drift; full `pnpm check` exit 0 on the W2 tree (recorded in the W2 report §4/§6).
 - **Invariants:** schema 38 / export 30; no export/import byte change; no rejection-behavior change; no real user data; no visual UI; no merge, no cleanup.
 - **Status:** `R9-W2 COMPLETE — GATE C NEXT`.
+
+
+## Entry 82 — 2026-10-10 — R9/W3: five-page direct tests (WS-216/ARCH-007)
+
+- **Five new `pages/*.dom.test.tsx` files, 19/19 green:** CashWalletEditor (create journey with the opening-balance VALUE read back through a second service instance — closing the preflight depth note — plus the ?returnTo exit contract, the validation gate with zero writes, and the kind flow); CashReversalEditor (unknown-id no-impact boundary, reason gate, documented reversal with reversesEntryId, double-reversal honest rejection with the service's exact message); G5DeclarationEditor (collection create with amount conversion, empty-amount gate, note gate with details auto-open asserted, commitment direction switch); InventoryReversalEditor (mirror of the cash reversal coverage; navigation asserted as occurred, destination NOT asserted — the hardcoded /inventory exit is defect R9-GA-F3.3); ReceivedLoanDetail (derived reading, honest unknown-id error with retry, the correction reverse-and-replace journey with history preserved, and the inline repayment-reversal journey restoring the outstanding commitment).
+- **SharePreview stays surface-only** with the recorded rationale (presentation/share surface; no services/store/journey beyond the W7-covered draft lifecycle).
+- **New finding R9-W3-F1 (DEEPENS GA-F3.1/.2, PROTECTED_DECISION_REQUIRED):** the not-found surfaces in both reversal editors are unreachable via the success path (perpetual loading for unknown ids; the branch renders only after a storage failure, mislabeled). Found by direct test execution; recorded, not enshrined — the tests assert the honest no-impact boundary instead.
+- **Conventions honored:** real services over MemoryLocalStore (no service doubles on the durable legs), configurable wouter search (Gate-B correction), UnsavedChangesProvider harness, `.only/.skip` absent, text-density unaffected (test-name exclusion), map regenerated with no drift.
+- **Checks:** focused 19/19; pages suite green; prototype typecheck exit 0; full `pnpm check` exit 0 on the W3 tree (final report records the aggregate); no production/CSS/DOM/copy/navigation change (diff = tests + regenerated map + docs).
+- **Status:** `R9-W3 COMPLETE — GATE D NEXT`.
