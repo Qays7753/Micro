@@ -41,6 +41,15 @@
  *      صار يُسجّل (كان يهرّب من R6) وامتداد المسح شمل `.js/.jsx` (كان
  *      `.ts/.tsx` فقط) — كلاهما بسلبيات مثبتة في ملف الاختبار.
  *
+ *  R7) استيراد من مكوّنات الواجهة إلى صفحاتها (components/** -> pages/**)
+ *      — فئة الانحدار المباشرة لدورة المالية (R8-F-019، 2026-10-10): الحافة
+ *      النوعية السابقة FinancePeriodResultSection.tsx <-> pages/Finance.tsx
+ *      فُكّت في R7-1 بنقل ملكية الحالة إلى application/finance/financeState.ts
+ *      (STR-204c/R6-SCAN-F-019)؛ هذه القاعدة تمنع عودة الصنف كله بأي شكل:
+ *      قيمة أو نوعًا أو ديناميكيًا أو ImportTypeNode أو إعادة تصدير، وحلًّا
+ *      للمسارات (نسبي/مستعار) لا مطابقة نصية. الاتجاه القانوني المعاكس
+ *      (صفحة -> مكوّن) يبقى حرًّا. الاستثناء الوحيد: قائمة مراجعة مالك صريحة
+ *      (فارغة عند التأسيس) — لا أساس انجراري مفتوح.
  * تحديث الأساس عمدًا مشروط: أي حافة جديدة مشروعة تُضاف إلى الأساس في نفس
  * الـPR مع صف/تحديث في سجل الملكية §5 (سجل الاستثناءات) — الحارس يجعل
  * الزيادة مرئية لا مستحيلة، ويمنعها الصامتة فحسب.
@@ -265,6 +274,11 @@ export const UI_TO_STORAGE_VALUE_BASELINE = [
   "apps/prototype-web/client/src/app/StartupGate.tsx -> @/storage/local/persistentStorage",
 ];
 
+/** R7 (R8-F-019، 2026-10-10): استثناءات مكوّن->صفحة الموثقة بقرار مالك —
+ * فارغة عند التأسيس (الشجرة الحية صفر حواف بهذا الاتجاه). أي إضافة مستقبلية
+ * تتطلب صف سجل ملكية ومرجع قرار، ولا تُقبل كأساس انجراري. */
+export const COMPONENT_TO_PAGE_BASELINE = [];
+
 /** الفحص الكامل: يعيد الخروق الجديدة والإحصاءات. */
 export function checkModuleBoundaries(repoRoot, imports) {
   const all = imports ?? collectAllImports(repoRoot);
@@ -276,6 +290,7 @@ export function checkModuleBoundaries(repoRoot, imports) {
   const uiToStorage = new Set(UI_TO_STORAGE_VALUE_BASELINE);
   const r6Allowed = loadUiApplicationImportBaseline(repoRoot);
   const r6Seen = new Set();
+  const componentToPage = new Set(COMPONENT_TO_PAGE_BASELINE);
   const stats = {
     files: new Set(all.map(i => i.file)).size,
     deepDomain: 0,
@@ -284,6 +299,7 @@ export function checkModuleBoundaries(repoRoot, imports) {
     domainCrossArea: 0,
     uiToStorage: 0,
     uiToApplicationDeep: 0,
+    componentToPage: 0,
   };
   const domainArea = f => (f.match(/src\/domain\/([^/]+)\//) || [])[1] ?? null;
 
@@ -377,6 +393,24 @@ export function checkModuleBoundaries(repoRoot, imports) {
         });
       }
     }
+    /* R7 (R8-F-019، 2026-10-10): مكوّن -> صفحة — فئة انحدار دورة المالية.
+     * طبقيًا كلاهما ui؛ التمييز بالمسار الحلولي (resolution-based) فلا إفلات
+     * بمستعار أو نسبي، وكل نوع استيراد يُقبض (الجمع يغطي القيمة والنوع
+     * والديناميكي وImportTypeNode وإعادة التصدير). الاتجاه المعاكس قانوني. */
+    if (
+      imp.file.startsWith("apps/prototype-web/client/src/components/") &&
+      imp.resolved?.startsWith("apps/prototype-web/client/src/pages/")
+    ) {
+      stats.componentToPage += 1;
+      const key = `${imp.file} -> ${imp.resolved}`;
+      if (!componentToPage.has(key)) {
+        violations.push({
+          rule: "R7-component-to-page",
+          key,
+          hint: "حافة مكوّن->صفحة ممنوعة (فئة انحدار دورة المالية R8-F-019): الصفحة تملك التركيب والمكوّن يستهلكها لا العكس؛ انقل الحالة المشتركة إلى بيت تطبيقي (نمط financeState في R7-1) أو سجّل استثناء بقرار مالك",
+        });
+      }
+    }
   }
   /* R6 — نظافة الأساس: صف غادر الشجرة الحية (هجرة/حذف) يُزال من الملف
    * في نفس الـPR؛ بقاؤه يُبقي الراتشة متساهلة بلا ضرورة. */
@@ -409,7 +443,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض، ${stats.domainCrossArea} حافة عميقة عابرة لمناطق المجال، ${stats.uiToStorage} حافة واجهة→تخزين (resolution-based)، ${stats.uiToApplicationDeep} استيرادًا عميقًا واجهة→دواخل بيوت التطبيق (راتشة R6/STR-615)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617 + الخطوة ٦/STR-615)`,
+    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض، ${stats.domainCrossArea} حافة عميقة عابرة لمناطق المجال، ${stats.uiToStorage} حافة واجهة→تخزين (resolution-based)، ${stats.uiToApplicationDeep} استيرادًا عميقًا واجهة→دواخل بيوت التطبيق (راتشة R6/STR-615)، ${stats.componentToPage} حافة مكوّن→صفحة (الصنف الممنوع — R8-F-019)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617 + الخطوة ٦/STR-615 + R8/R8-F-019)`,
   );
 }
 

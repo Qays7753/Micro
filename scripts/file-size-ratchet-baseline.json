@@ -1,408 +1,1968 @@
 {
- "bands": {
-  "apps/prototype-web/client/src/App.tsx": "NORMAL",
-  "apps/prototype-web/client/src/app/CapabilityRouteGate.tsx": "NORMAL",
-  "apps/prototype-web/client/src/app/MicroRouter.tsx": "NORMAL",
-  "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx": "NORMAL",
-  "apps/prototype-web/client/src/app/StartupGate.tsx": "NORMAL",
-  "apps/prototype-web/client/src/app/navigation.ts": "NORMAL",
-  "apps/prototype-web/client/src/app/navigationContract.ts": "NORMAL",
-  "apps/prototype-web/client/src/app/quickRecording.tsx": "NORMAL",
-  "apps/prototype-web/client/src/app/resultFeedback.ts": "NORMAL",
-  "apps/prototype-web/client/src/app/routeClassifier.ts": "NORMAL",
-  "apps/prototype-web/client/src/app/useDisabledCapabilities.ts": "NORMAL",
-  "apps/prototype-web/client/src/app/useReturnNavigation.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/activity/activityLabels.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/activity/activityService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/agreements/agreementContextService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/agreements/agreementPresentation.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/agreements/agreementPrice.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/agreements/agreementService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/agreements/followUpDate.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/assets/assetService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/budgets/expenseBudgetService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/budgets/index.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/cash/cashContinuityService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/cash/walletLedgerService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/catalog/catalogService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/catalog/templatePlannedCostService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/collections/collectionReversalService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/collections/collectionService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/collections/saleCollectionReversalService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/cost/costService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/diagnostics/localDiagnosticsService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/direct-sales/directSaleService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/drafts/draftService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/drafts/formDraftService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/drafts/formDraftTestHarness.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/estimates/costEstimateService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/dueDateAging.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/dueDatesService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/index.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/integrityCheckAssetsLoans.ts": "WATCH",
-  "apps/prototype-web/client/src/application/finance/integrityCheckContinuity.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/integrityCheckCoreFinance.ts": "WATCH",
-  "apps/prototype-web/client/src/application/finance/integrityCheckInventory.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/integrityCheckModel.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/integrityCheckOffenderSummaries.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/integrityCheckService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/integrityCheckSettlementBasis.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/integrityCheckSupplierWallet.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/periodComparisonService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/finance/periodPresets.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/profitToCashBridgeService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/finance/projectFinancialEventWrites.ts": "WATCH",
-  "apps/prototype-web/client/src/application/finance/projectFinancialInsights.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/projectFinancialPeriodReads.ts": "WATCH",
-  "apps/prototype-web/client/src/application/finance/projectFinancialReads.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/projectFinancialService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/projectFinancialTypes.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/recurringWorkService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/finance/shortCashHorizon.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/statementMarkdownService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/finance/statementService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/finance/upcomingService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/financial-pulse/financialPulseService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/financial-records/correctionHistoryService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/financial-records/expenseCategorySuggestions.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/financial-records/expenseRecordIntent.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/financial-records/index.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/financial-records/retainedDepositService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/follow-up/dailyFollowUpService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/formatting/formatters.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/fulfillment/deliveryAttribution.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/fulfillment/deliveryContribution.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/fulfillment/deliveryReviewService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/fulfillment/fulfillmentService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/home/homeControlCenterModel.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/home/homeControlCenterService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/identity/buildIdentity.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/input/englishNumeric.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/inventory/index.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/inventory/inventoryMaterialActivation.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/inventory/inventoryMaterialLifecycle.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/inventory/inventoryMaterialModel.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/inventory/inventoryMaterialReads.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/inventory/inventoryMaterialService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/inventory/inventoryMaterialShortages.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/inventory/inventoryMaterialWaste.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/inventory/inventoryMaterialWrites.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/inventory/inventoryMovementRoute.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/loans/loanService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/loans/receivedLoanService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/owner-money/index.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/owner-money/ownerEntitlementService.ts": "SPLIT_CANDIDATE",
-  "apps/prototype-web/client/src/application/owner-money/withdrawalWalletGuard.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/owner/ownerProfileService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/parties/partyLedgerService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/preferences/preferenceService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/preferences/updateLocalPreferences.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/profile/profileService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/recurring/recurringExpenseService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/resultCodes.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/scheduling/capacityDecisionService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/scheduling/capacityDecisionViewModel.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/scheduling/recurrenceService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/scheduling/scheduleService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/security/localLockService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/share/shareMessageService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/suppliers/supplierPurchaseService.ts": "WATCH",
-  "apps/prototype-web/client/src/application/time/actualTimeService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/time/clock.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/transfers/domainTransferDriftAnchors.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/transfers/historical817.fixture.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/transfers/localTransferService.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/transfers/transferCompatibilityValues.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/transfers/transferCounters.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/transfers/transferEnvelope.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts": "SPLIT_NOW",
-  "apps/prototype-web/client/src/application/transfers/transferSnapshotMigrations.ts": "NORMAL",
-  "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts": "SPLIT_CANDIDATE",
-  "apps/prototype-web/client/src/components/ErrorBoundary.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/brand/BrandLaunchSplash.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/brand/BrandMark.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/catalog/CatalogItemsSection.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/catalog/CatalogReadingsSection.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/catalog/CatalogTemplatesSection.tsx": "WATCH",
-  "apps/prototype-web/client/src/components/catalog/CatalogUnitsSection.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/cost/MaterialSheet.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/direct-sales/SaleCollectionReversalSection.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/AllocationReviewCard.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/CorrectionPreview.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/CorrectionsLayer.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/DepositsLayer.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/EventsLayer.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/ExpenseBudgetsSectionBody.tsx": "WATCH",
-  "apps/prototype-web/client/src/components/finance/FinanceObligationsCard.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/FinancePeriodResultSection.tsx": "WATCH",
-  "apps/prototype-web/client/src/components/finance/FinancePoliciesSection.tsx": "WATCH",
-  "apps/prototype-web/client/src/components/finance/G5DecisionPanel.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/QuickExpenseForm.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/QuickSaleForm.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/RecurringConfirmPanel.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/RestatementNote.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/expenseFormModel.ts": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/quickActionFormTypes.ts": "NORMAL",
-  "apps/prototype-web/client/src/components/finance/quickFormHelpers.ts": "NORMAL",
-  "apps/prototype-web/client/src/components/forms/EnglishNumberInput.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/forms/EnglishQuantityInput.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/forms/FormDraftRestoreBanner.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/forms/LocalDateField.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/forms/UnsavedChangesGuard.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/forms/useFormDirty.ts": "NORMAL",
-  "apps/prototype-web/client/src/components/forms/useFormDraft.ts": "NORMAL",
-  "apps/prototype-web/client/src/components/layout/AppHeader.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/layout/BottomNav.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/layout/QuickActionSheet.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/loans/ReceivedLoanRepaymentSheet.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/loans/RepaymentSheet.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/order/ActualMaterialPanel.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/order/AgreementContextPanel.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/order/OrderEventLog.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/orders/OrderDepositPanels.tsx": "WATCH",
-  "apps/prototype-web/client/src/components/owner/CrossModelDuplicateNotice.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/owner/OwnerLedgerFormsSection.tsx": "WATCH",
-  "apps/prototype-web/client/src/components/owner/OwnerPolicyFormsSection.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/presentation/ActualTimePanel.tsx": "WATCH",
-  "apps/prototype-web/client/src/components/presentation/DecisionPanel.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/presentation/DisplayValue.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/presentation/EventEffectPreview.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/presentation/InfoCard.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/primitives/Button.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/primitives/ChoiceRow.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/primitives/EmptyState.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/primitives/Field.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/primitives/Notice.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/primitives/Row.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/primitives/StatusChip.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/primitives/index.ts": "NORMAL",
-  "apps/prototype-web/client/src/components/primitives/markers.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/security/AppLockGate.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/security/DataActionPinGate.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/security/LockSettingsCard.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/settings/SettingsAppearanceSection.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/settings/SettingsCapabilitiesSection.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx": "WATCH",
-  "apps/prototype-web/client/src/components/settings/SettingsOperatingModeSection.tsx": "NORMAL",
-  "apps/prototype-web/client/src/components/ui/drawer.tsx": "NORMAL",
-  "apps/prototype-web/client/src/contexts/ThemeContext.tsx": "NORMAL",
-  "apps/prototype-web/client/src/index.css": "SPLIT_NOW",
-  "apps/prototype-web/client/src/lib/syncSha256.ts": "NORMAL",
-  "apps/prototype-web/client/src/lib/textDelivery.ts": "NORMAL",
-  "apps/prototype-web/client/src/lib/utils.ts": "NORMAL",
-  "apps/prototype-web/client/src/main.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/AgreementEditor.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/AssetDetail.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/AssetEditor.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/Assets.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/CashAdjustmentEditor.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/CashCount.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/CashDistribution.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/CashOpeningLaterEditor.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/CashReversalEditor.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/CashTransferEditor.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/CashWalletEditor.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/CashWallets.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/Catalog.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/Collect.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/CostCalculator.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/CostEditor.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/DeliveryReview.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx": "SPLIT_CANDIDATE",
-  "apps/prototype-web/client/src/pages/DraftEditor.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/EstimateDetail.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/Finance.tsx": "SPLIT_NOW",
-  "apps/prototype-web/client/src/pages/FinanceActivity.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/FinanceMore.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/FinanceRecurring.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/FinanceUpcoming.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/FinancialEventEditor.tsx": "SPLIT_NOW",
-  "apps/prototype-web/client/src/pages/Foundation.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/G5DeclarationEditor.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/Home.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/InventoryMaterials.tsx": "SPLIT_CANDIDATE",
-  "apps/prototype-web/client/src/pages/InventoryMovementEditor.tsx": "SPLIT_CANDIDATE",
-  "apps/prototype-web/client/src/pages/InventoryReversalEditor.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/LoanDetail.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/LoanEditor.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/Loans.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/Market.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/MaterialEditor.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/NewDraft.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/NotFound.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/OrderDetail.tsx": "SPLIT_NOW",
-  "apps/prototype-web/client/src/pages/Orders.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/OwnerEntitlement.tsx": "SPLIT_CANDIDATE",
-  "apps/prototype-web/client/src/pages/OwnerWithdrawalEditor.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/Parties.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/Profile.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/ReceivedLoanDetail.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/ReceivedLoanEditor.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/RecurringExpenseDetail.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/RecurringExpenseEditor.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/Schedule.tsx": "SPLIT_CANDIDATE",
-  "apps/prototype-web/client/src/pages/ScheduleEditor.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/Settings.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/Setup.tsx": "WATCH",
-  "apps/prototype-web/client/src/pages/SharePreview.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/Statement.tsx": "SPLIT_CANDIDATE",
-  "apps/prototype-web/client/src/pages/SupplierPurchaseEditor.tsx": "SPLIT_CANDIDATE",
-  "apps/prototype-web/client/src/pages/Suppliers.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/Tools.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/ToolsIntegrity.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pages/WalletLedger.tsx": "NORMAL",
-  "apps/prototype-web/client/src/presentation/activityLabels.ts": "NORMAL",
-  "apps/prototype-web/client/src/presentation/cashCountMessages.ts": "NORMAL",
-  "apps/prototype-web/client/src/presentation/catalogPresentation.ts": "NORMAL",
-  "apps/prototype-web/client/src/presentation/financialEventLabels.ts": "NORMAL",
-  "apps/prototype-web/client/src/presentation/formatters.ts": "NORMAL",
-  "apps/prototype-web/client/src/presentation/g5Plurals.ts": "NORMAL",
-  "apps/prototype-web/client/src/presentation/orderAgreementPresentation.ts": "NORMAL",
-  "apps/prototype-web/client/src/presentation/ownerEntitlementPresentation.ts": "NORMAL",
-  "apps/prototype-web/client/src/presentation/plurals.ts": "NORMAL",
-  "apps/prototype-web/client/src/presentation/stateAdapter.ts": "NORMAL",
-  "apps/prototype-web/client/src/pwa/PwaInstallControl.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pwa/PwaRuntimeNotice.tsx": "NORMAL",
-  "apps/prototype-web/client/src/pwa/dirtyRegistry.ts": "NORMAL",
-  "apps/prototype-web/client/src/pwa/install.ts": "NORMAL",
-  "apps/prototype-web/client/src/pwa/register.ts": "NORMAL",
-  "apps/prototype-web/client/src/pwa/registerSW.virtual.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts": "SPLIT_NOW",
-  "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts": "SPLIT_NOW",
-  "apps/prototype-web/client/src/storage/local/capabilities/allocationPolicyCapabilityAnchors.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/capabilities/allocationPolicyStore.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetCapabilityAnchors.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetStore.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/capabilities/loanCapabilityAnchors.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/capabilities/loanStore.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleCapabilityAnchors.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleStore.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/capabilities/ownerEntitlementCapabilityAnchors.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/capabilities/ownerEntitlementStore.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/capabilities/recurringExpenseCapabilityAnchors.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/capabilities/recurringExpenseStore.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/capabilities/shortCashDeclarationCapabilityAnchors.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/capabilities/shortCashDeclarationStore.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/cashContinuityCommitGuard.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/createBrowserLocalStore.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/deliveryReversalCommitGuard.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/expenseBudgetCommitGuard.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/indexedDbMigrations.ts": "WATCH",
-  "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts": "WATCH",
-  "apps/prototype-web/client/src/storage/local/indexedDbStores.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/influentialSnapshotFamilies.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/loanCommitGuard.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/orderCommitGuard.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/persistentStorage.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/receivedLoanCommitGuard.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/recurringExpenseCommitGuard.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/resultCodes.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/supplierAttributionCommitGuard.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.ts": "NORMAL",
-  "apps/prototype-web/client/src/storage/local/types.ts": "SPLIT_CANDIDATE",
-  "apps/prototype-web/client/src/styles/brand-launch-splash.css": "NORMAL",
-  "apps/prototype-web/client/src/styles/primitives.css": "WATCH",
-  "apps/prototype-web/client/src/styles/theme-dark.css": "NORMAL",
-  "apps/prototype-web/client/src/styles/vf-tokens.css": "NORMAL",
-  "apps/prototype-web/dev-tools/debug-collector.js": "WATCH",
-  "apps/prototype-web/scripts/check-bundle-budget.mjs": "NORMAL",
-  "scripts/check-acceptance-value-anchors.mjs": "NORMAL",
-  "scripts/check-current-state-size.mjs": "NORMAL",
-  "scripts/check-doc-index-coverage.mjs": "NORMAL",
-  "scripts/check-entity-touchpoints.mjs": "NORMAL",
-  "scripts/check-file-size-ratchet.mjs": "NORMAL",
-  "scripts/check-image-policy.mjs": "NORMAL",
-  "scripts/check-module-boundaries.mjs": "NORMAL",
-  "scripts/check-registry-coverage.mjs": "NORMAL",
-  "scripts/check-runtime-cycles.mjs": "NORMAL",
-  "scripts/check-secrets.mjs": "NORMAL",
-  "scripts/check-skill-references.mjs": "NORMAL",
-  "scripts/check-test-focus.mjs": "NORMAL",
-  "scripts/check-type-cycles.mjs": "NORMAL",
-  "scripts/design-token-guards.py": "NORMAL",
-  "scripts/generate-test-map.mjs": "NORMAL",
-  "scripts/operations-control/generate_tracker.py": "NORMAL",
-  "scripts/operations-control/test_operations_control.py": "NORMAL",
-  "scripts/operations-control/validate.py": "NORMAL",
-  "scripts/post-merge.sh": "NORMAL",
-  "scripts/text-density-count.py": "WATCH",
-  "scripts/theme-contrast-guard.py": "NORMAL",
-  "src/domain/actual-time/index.ts": "NORMAL",
-  "src/domain/actual-time/policies.ts": "NORMAL",
-  "src/domain/actual-time/types.ts": "NORMAL",
-  "src/domain/asset/index.ts": "NORMAL",
-  "src/domain/asset/policies.ts": "NORMAL",
-  "src/domain/asset/types.ts": "NORMAL",
-  "src/domain/budget/index.ts": "NORMAL",
-  "src/domain/budget/policies.ts": "NORMAL",
-  "src/domain/budget/types.ts": "NORMAL",
-  "src/domain/cash-continuity/index.ts": "NORMAL",
-  "src/domain/cash-continuity/policies.ts": "NORMAL",
-  "src/domain/cash-continuity/types.ts": "NORMAL",
-  "src/domain/catalog/index.ts": "NORMAL",
-  "src/domain/catalog/policies.ts": "NORMAL",
-  "src/domain/catalog/types.ts": "NORMAL",
-  "src/domain/craft-order/deliveryAttribution.ts": "NORMAL",
-  "src/domain/craft-order/deliveryContribution.ts": "NORMAL",
-  "src/domain/craft-order/deliveryTermsValidation.ts": "NORMAL",
-  "src/domain/craft-order/index.ts": "NORMAL",
-  "src/domain/craft-order/policies.ts": "SPLIT_NOW",
-  "src/domain/craft-order/settlementInvariant.ts": "NORMAL",
-  "src/domain/craft-order/types.ts": "NORMAL",
-  "src/domain/direct-sale/index.ts": "NORMAL",
-  "src/domain/direct-sale/policies.ts": "NORMAL",
-  "src/domain/direct-sale/types.ts": "NORMAL",
-  "src/domain/financial-analysis/index.ts": "NORMAL",
-  "src/domain/financial-analysis/operatingBreakEven.ts": "NORMAL",
-  "src/domain/financial-analysis/policies.ts": "SPLIT_CANDIDATE",
-  "src/domain/financial-analysis/types.ts": "NORMAL",
-  "src/domain/financial-event/index.ts": "NORMAL",
-  "src/domain/financial-event/policies.ts": "WATCH",
-  "src/domain/financial-event/types.ts": "NORMAL",
-  "src/domain/inventory-material/index.ts": "NORMAL",
-  "src/domain/inventory-material/policies.ts": "NORMAL",
-  "src/domain/inventory-material/types.ts": "NORMAL",
-  "src/domain/loan/index.ts": "NORMAL",
-  "src/domain/loan/policies.ts": "NORMAL",
-  "src/domain/loan/types.ts": "NORMAL",
-  "src/domain/owner-entitlement/index.ts": "NORMAL",
-  "src/domain/owner-entitlement/policies.ts": "SPLIT_CANDIDATE",
-  "src/domain/owner-entitlement/types.ts": "NORMAL",
-  "src/domain/owner-safe-withdrawal/index.ts": "NORMAL",
-  "src/domain/owner-safe-withdrawal/policies.ts": "NORMAL",
-  "src/domain/owner-safe-withdrawal/types.ts": "NORMAL",
-  "src/domain/received-loan/index.ts": "NORMAL",
-  "src/domain/received-loan/policies.ts": "NORMAL",
-  "src/domain/received-loan/types.ts": "NORMAL",
-  "src/domain/recurring-expense/index.ts": "NORMAL",
-  "src/domain/recurring-expense/policies.ts": "WATCH",
-  "src/domain/recurring-expense/types.ts": "NORMAL",
-  "src/domain/recurring-margin/index.ts": "NORMAL",
-  "src/domain/recurring-margin/policies.ts": "NORMAL",
-  "src/domain/recurring-margin/types.ts": "NORMAL",
-  "src/domain/shared/businessTime.ts": "NORMAL",
-  "src/domain/shared/currency.ts": "NORMAL",
-  "src/domain/shared/index.ts": "NORMAL",
-  "src/domain/shared/numeric.ts": "NORMAL",
-  "src/domain/supplier-purchase/index.ts": "NORMAL",
-  "src/domain/supplier-purchase/policies.ts": "NORMAL",
-  "src/domain/supplier-purchase/types.ts": "NORMAL",
-  "scripts/security/braces-elimination/fixtures/braces-expand.json": "SPLIT_NOW",
-  "scripts/security/braces-elimination/fixtures/micromatch-api.json": "SPLIT_CANDIDATE",
-  "scripts/security/braces-elimination/fixtures/stylelint-runs.json": "SPLIT_NOW",
-  "scripts/text_density_policy.py": "SPLIT_CANDIDATE",
-  "apps/prototype-web/client/src/components/finance/FinancialEventRow.tsx": "WATCH"
- },
- "generated_at": "2026-10-06",
- "head": "security/eliminate-braces-20261006: registered the braces-elimination golden fixtures (generated data captured from the original stack; capture-baseline.mjs refuses to run on any other graph, parity tests compare them) — not split candidates",
- "source": "FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md v1.4 (Wave 4E/RC-9) + census completion STR-607 (Wave A, 2026-10-03) — سجل الجرد هو المصدر؛ هذا الملف أساس الحارس فقط",
- "version": 1
+  "version": 2,
+  "schema": "micro-file-size-ratchet/2",
+  "generated_at": "2026-10-10",
+  "head": "c70d3eedcf029a2b472d19701a20bcfd1c7967d4",
+  "source": "live census of production+script categories via scripts/check-file-size-ratchet.mjs (category/bandOf/nonBlankLines — the register methodology); seeded by the R8-2 documented migration",
+  "provenance": {
+    "replaces": "v1 band-identity baseline (Wave 4E/RC-9, 400 band entries) — replaced because band identity alone cannot detect within-band growth (R6-SCAN-F-005/F-006)",
+    "seed_rule": "seed equals the live tree census at the moment of the R8-2 slice commit (parent commit recorded in head); every value is the exact nbLOC measured on that tree; the R8-2 commit carries this baseline",
+    "historical_growth_evidence": "the legitimate documented within-band growth community recorded by R6-W1 (R6-SCAN-F-006 register section 7 dispositions: fulfillmentService +16, statementService +21, homeControlCenterService +7, activityService +11, assetService +15, correctionHistoryService +29, catalogService +6, periodComparisonService +11, owner-entitlement/policies +8, transferSnapshotValidation, craft-order/policies; and R6-SCAN-F-005 transferFamilyValidators 1718->1730 nbLOC / 76500->77703 bytes from dated R2 commits b890f9a2/388dac65/a476ed7a) is represented by these seeded current values with its dated register evidence — not reopened as defects, and not silently copied: this note is the binding record",
+    "guard_growth_evidence": "scripts/check-file-size-ratchet.mjs itself grew 190->391 nbLOC and apps/prototype-web/scripts/check-bundle-surfaces.mjs 135->457 nbLOC within this R8 PR - both measured and documented same-PR (register section 7 dated notes: the R8-1 note for the surfaces guard, the R8-2 report for the ratchet guard)",
+    "future_reanchors": "any future value increase requires a re-anchor ledger entry (scripts/file-size-ratchet-reanchors.json) with from/to values chained to this baseline and an owner-review reference; the drift audit compares against the merge-base baseline so a same-PR baseline edit cannot conceal growth"
+  },
+  "measurements": {
+    "apps/prototype-web/client/src/App.tsx": {
+      "nbLoc": 23,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/app/CapabilityRouteGate.tsx": {
+      "nbLoc": 57,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/app/MicroRouter.tsx": {
+      "nbLoc": 253,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx": {
+      "nbLoc": 360,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/app/StartupGate.tsx": {
+      "nbLoc": 96,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/app/navigation.ts": {
+      "nbLoc": 53,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/app/navigationContract.ts": {
+      "nbLoc": 202,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/app/quickRecording.tsx": {
+      "nbLoc": 58,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/app/resultFeedback.ts": {
+      "nbLoc": 52,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/app/routeClassifier.ts": {
+      "nbLoc": 80,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/app/useDisabledCapabilities.ts": {
+      "nbLoc": 36,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/app/useReturnNavigation.ts": {
+      "nbLoc": 20,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/activity/activityLabels.ts": {
+      "nbLoc": 49,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/activity/activityService.ts": {
+      "nbLoc": 542,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/activity/index.ts": {
+      "nbLoc": 12,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/agreements/agreementContextService.ts": {
+      "nbLoc": 174,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/agreements/agreementPresentation.ts": {
+      "nbLoc": 106,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/agreements/agreementPrice.ts": {
+      "nbLoc": 19,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/agreements/agreementService.ts": {
+      "nbLoc": 247,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/agreements/followUpDate.ts": {
+      "nbLoc": 10,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/agreements/index.ts": {
+      "nbLoc": 20,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/agreements/orderDetailViewModel.ts": {
+      "nbLoc": 128,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/assets/assetService.ts": {
+      "nbLoc": 501,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/assets/index.ts": {
+      "nbLoc": 12,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/budgets/expenseBudgetService.ts": {
+      "nbLoc": 336,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/budgets/index.ts": {
+      "nbLoc": 20,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/cash/cashContinuityService.ts": {
+      "nbLoc": 319,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/cash/cashCountMessages.ts": {
+      "nbLoc": 18,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/cash/index.ts": {
+      "nbLoc": 25,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/cash/walletLedgerService.ts": {
+      "nbLoc": 162,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/catalog/catalogService.ts": {
+      "nbLoc": 431,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/catalog/index.ts": {
+      "nbLoc": 13,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/catalog/templatePlannedCostService.ts": {
+      "nbLoc": 203,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/collections/collectionReversalService.ts": {
+      "nbLoc": 350,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/collections/collectionService.ts": {
+      "nbLoc": 240,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/collections/index.ts": {
+      "nbLoc": 22,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/collections/saleCollectionReversalService.ts": {
+      "nbLoc": 346,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/cost/costService.ts": {
+      "nbLoc": 99,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/cost/index.ts": {
+      "nbLoc": 12,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/diagnostics/index.ts": {
+      "nbLoc": 13,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/diagnostics/localDiagnosticsService.ts": {
+      "nbLoc": 175,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts": {
+      "nbLoc": 58,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/direct-sales/directSaleEditorModel.ts": {
+      "nbLoc": 184,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/direct-sales/directSaleService.ts": {
+      "nbLoc": 255,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/drafts/draftService.ts": {
+      "nbLoc": 116,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/drafts/formDraftService.ts": {
+      "nbLoc": 129,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/drafts/formDraftTestHarness.ts": {
+      "nbLoc": 16,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/drafts/index.ts": {
+      "nbLoc": 19,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.ts": {
+      "nbLoc": 140,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/estimates/costEstimateService.ts": {
+      "nbLoc": 147,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/estimates/index.ts": {
+      "nbLoc": 12,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/dueDateAging.ts": {
+      "nbLoc": 23,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/dueDatesService.ts": {
+      "nbLoc": 120,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/financeState.ts": {
+      "nbLoc": 270,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/financialEventEditorModel.ts": {
+      "nbLoc": 209,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/index.ts": {
+      "nbLoc": 64,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/integrityCheckAssetsLoans.ts": {
+      "nbLoc": 400,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/finance/integrityCheckContinuity.ts": {
+      "nbLoc": 111,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/integrityCheckCoreFinance.ts": {
+      "nbLoc": 430,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/finance/integrityCheckInventory.ts": {
+      "nbLoc": 128,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/integrityCheckModel.ts": {
+      "nbLoc": 164,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/integrityCheckOffenderSummaries.ts": {
+      "nbLoc": 123,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/integrityCheckService.ts": {
+      "nbLoc": 200,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/integrityCheckSettlementBasis.ts": {
+      "nbLoc": 24,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/integrityCheckSupplierWallet.ts": {
+      "nbLoc": 65,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/periodComparisonService.ts": {
+      "nbLoc": 433,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/finance/periodPresets.ts": {
+      "nbLoc": 168,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/profitToCashBridgeService.ts": {
+      "nbLoc": 402,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/finance/projectFinancialEventWrites.ts": {
+      "nbLoc": 443,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/finance/projectFinancialInsights.ts": {
+      "nbLoc": 221,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/projectFinancialPeriodReads.ts": {
+      "nbLoc": 422,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/finance/projectFinancialReads.ts": {
+      "nbLoc": 230,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/projectFinancialService.ts": {
+      "nbLoc": 152,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/projectFinancialTypes.ts": {
+      "nbLoc": 288,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/recurringWorkService.ts": {
+      "nbLoc": 559,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/finance/shortCashHorizon.ts": {
+      "nbLoc": 76,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/statementMarkdownService.ts": {
+      "nbLoc": 231,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/statementService.ts": {
+      "nbLoc": 690,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/finance/statementViewModel.ts": {
+      "nbLoc": 70,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/finance/upcomingService.ts": {
+      "nbLoc": 191,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts": {
+      "nbLoc": 549,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/financial-pulse/financialPulseService.ts": {
+      "nbLoc": 75,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/financial-pulse/index.ts": {
+      "nbLoc": 12,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/financial-records/correctionHistoryService.ts": {
+      "nbLoc": 487,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/financial-records/expenseCategorySuggestions.ts": {
+      "nbLoc": 47,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/financial-records/expenseRecordIntent.ts": {
+      "nbLoc": 108,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/financial-records/index.ts": {
+      "nbLoc": 30,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/financial-records/retainedDepositService.ts": {
+      "nbLoc": 248,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/follow-up/dailyFollowUpService.ts": {
+      "nbLoc": 119,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/follow-up/index.ts": {
+      "nbLoc": 12,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/formatting/formatters.ts": {
+      "nbLoc": 227,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/fulfillment/deliveryAttribution.ts": {
+      "nbLoc": 22,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/fulfillment/deliveryContribution.ts": {
+      "nbLoc": 123,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/fulfillment/deliveryReviewService.ts": {
+      "nbLoc": 710,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/fulfillment/fulfillmentService.ts": {
+      "nbLoc": 756,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/fulfillment/index.ts": {
+      "nbLoc": 17,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/home/homeControlCenterModel.ts": {
+      "nbLoc": 209,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/home/homeControlCenterService.ts": {
+      "nbLoc": 617,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/home/index.ts": {
+      "nbLoc": 18,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/identity/buildIdentity.ts": {
+      "nbLoc": 32,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/input/englishNumeric.ts": {
+      "nbLoc": 127,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/input/index.ts": {
+      "nbLoc": 24,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/inventory/index.ts": {
+      "nbLoc": 28,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialActivation.ts": {
+      "nbLoc": 84,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialLifecycle.ts": {
+      "nbLoc": 246,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialModel.ts": {
+      "nbLoc": 258,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialReads.ts": {
+      "nbLoc": 324,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialService.ts": {
+      "nbLoc": 203,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialShortages.ts": {
+      "nbLoc": 167,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialWaste.ts": {
+      "nbLoc": 166,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialWrites.ts": {
+      "nbLoc": 276,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/inventory/inventoryMaterialsViewModel.ts": {
+      "nbLoc": 49,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/inventory/inventoryMovementEditorModel.ts": {
+      "nbLoc": 136,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/inventory/inventoryMovementRoute.ts": {
+      "nbLoc": 10,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts": {
+      "nbLoc": 80,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/loans/index.ts": {
+      "nbLoc": 14,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/loans/loanService.ts": {
+      "nbLoc": 289,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/loans/receivedLoanService.ts": {
+      "nbLoc": 311,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/owner-money/index.ts": {
+      "nbLoc": 24,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/owner-money/ownerEntitlementService.ts": {
+      "nbLoc": 1003,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "apps/prototype-web/client/src/application/owner-money/ownerEntitlementViewModel.ts": {
+      "nbLoc": 73,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/owner-money/withdrawalWalletGuard.ts": {
+      "nbLoc": 58,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/owner/ownerProfileService.ts": {
+      "nbLoc": 109,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/parties/index.ts": {
+      "nbLoc": 12,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/parties/partyLedgerService.ts": {
+      "nbLoc": 227,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/preferences/index.ts": {
+      "nbLoc": 12,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/preferences/preferenceService.ts": {
+      "nbLoc": 164,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/preferences/updateLocalPreferences.ts": {
+      "nbLoc": 55,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/profile/profileService.ts": {
+      "nbLoc": 43,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/recurring/recurringExpenseService.ts": {
+      "nbLoc": 770,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/resultCodes.ts": {
+      "nbLoc": 46,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/scheduling/capacityDecisionService.ts": {
+      "nbLoc": 57,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/scheduling/capacityDecisionViewModel.ts": {
+      "nbLoc": 19,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/scheduling/index.ts": {
+      "nbLoc": 20,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/scheduling/recurrenceService.ts": {
+      "nbLoc": 300,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/scheduling/scheduleService.ts": {
+      "nbLoc": 495,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/scheduling/scheduleViewModel.ts": {
+      "nbLoc": 63,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/security/index.ts": {
+      "nbLoc": 12,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/security/localLockService.ts": {
+      "nbLoc": 258,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/share/index.ts": {
+      "nbLoc": 13,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/share/shareMessageService.ts": {
+      "nbLoc": 184,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/suppliers/index.ts": {
+      "nbLoc": 12,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/suppliers/supplierPurchaseEditorModel.ts": {
+      "nbLoc": 106,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/suppliers/supplierPurchaseService.ts": {
+      "nbLoc": 410,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/application/time/actualTimeService.ts": {
+      "nbLoc": 178,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/time/clock.ts": {
+      "nbLoc": 45,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/time/index.ts": {
+      "nbLoc": 17,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/transfers/domainTransferDriftAnchors.ts": {
+      "nbLoc": 97,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts": {
+      "nbLoc": 382,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/transfers/historical817.fixture.ts": {
+      "nbLoc": 290,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/transfers/index.ts": {
+      "nbLoc": 13,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/transfers/localTransferService.ts": {
+      "nbLoc": 306,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/transfers/transferCompatibilityValues.ts": {
+      "nbLoc": 119,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/transfers/transferCounters.ts": {
+      "nbLoc": 62,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/transfers/transferEnvelope.ts": {
+      "nbLoc": 71,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts": {
+      "nbLoc": 1730,
+      "band": "SPLIT_NOW"
+    },
+    "apps/prototype-web/client/src/application/transfers/transferSnapshotMigrations.ts": {
+      "nbLoc": 346,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts": {
+      "nbLoc": 1192,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "apps/prototype-web/client/src/components/ErrorBoundary.tsx": {
+      "nbLoc": 80,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/brand/BrandLaunchSplash.tsx": {
+      "nbLoc": 98,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/brand/BrandMark.tsx": {
+      "nbLoc": 46,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/catalog/CatalogItemsSection.tsx": {
+      "nbLoc": 329,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/catalog/CatalogReadingsSection.tsx": {
+      "nbLoc": 237,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/catalog/CatalogTemplatesSection.tsx": {
+      "nbLoc": 602,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/components/catalog/CatalogUnitsSection.tsx": {
+      "nbLoc": 319,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/cost/MaterialSheet.tsx": {
+      "nbLoc": 175,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/direct-sales/SaleCollectionReversalSection.tsx": {
+      "nbLoc": 199,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/AllocationReviewCard.tsx": {
+      "nbLoc": 108,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/CorrectionPreview.tsx": {
+      "nbLoc": 166,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/CorrectionsLayer.tsx": {
+      "nbLoc": 277,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/DepositsLayer.tsx": {
+      "nbLoc": 86,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/EventsLayer.tsx": {
+      "nbLoc": 100,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/ExpenseBudgetsSectionBody.tsx": {
+      "nbLoc": 595,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/components/finance/FinanceObligationsCard.tsx": {
+      "nbLoc": 102,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/FinancePeriodResultSection.tsx": {
+      "nbLoc": 496,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/components/finance/FinancePoliciesSection.tsx": {
+      "nbLoc": 485,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/components/finance/FinancialEventRow.tsx": {
+      "nbLoc": 742,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/components/finance/G5DecisionPanel.tsx": {
+      "nbLoc": 339,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/QuickExpenseForm.tsx": {
+      "nbLoc": 337,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/QuickSaleForm.tsx": {
+      "nbLoc": 356,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/RecurringConfirmPanel.tsx": {
+      "nbLoc": 316,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/RestatementNote.tsx": {
+      "nbLoc": 50,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/expenseFormModel.ts": {
+      "nbLoc": 77,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/quickActionFormTypes.ts": {
+      "nbLoc": 23,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/finance/quickFormHelpers.ts": {
+      "nbLoc": 37,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/forms/EnglishNumberInput.tsx": {
+      "nbLoc": 107,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/forms/EnglishQuantityInput.tsx": {
+      "nbLoc": 112,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/forms/FormDraftRestoreBanner.tsx": {
+      "nbLoc": 73,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/forms/LocalDateField.tsx": {
+      "nbLoc": 44,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/forms/UnsavedChangesGuard.tsx": {
+      "nbLoc": 289,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/forms/useFormDirty.ts": {
+      "nbLoc": 23,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/forms/useFormDraft.ts": {
+      "nbLoc": 137,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/layout/AppHeader.tsx": {
+      "nbLoc": 307,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/layout/BottomNav.tsx": {
+      "nbLoc": 52,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx": {
+      "nbLoc": 93,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/layout/QuickActionSheet.tsx": {
+      "nbLoc": 335,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/loans/ReceivedLoanRepaymentSheet.tsx": {
+      "nbLoc": 141,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/loans/RepaymentSheet.tsx": {
+      "nbLoc": 142,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/order/ActualMaterialPanel.tsx": {
+      "nbLoc": 89,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/order/AgreementContextPanel.tsx": {
+      "nbLoc": 205,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/order/OrderEventLog.tsx": {
+      "nbLoc": 51,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/orders/OrderDepositPanels.tsx": {
+      "nbLoc": 523,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/components/owner/CrossModelDuplicateNotice.tsx": {
+      "nbLoc": 47,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/owner/OwnerLedgerFormsSection.tsx": {
+      "nbLoc": 446,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/components/owner/OwnerPolicyFormsSection.tsx": {
+      "nbLoc": 390,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/presentation/ActualTimePanel.tsx": {
+      "nbLoc": 426,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/components/presentation/DecisionPanel.tsx": {
+      "nbLoc": 25,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/presentation/DisplayValue.tsx": {
+      "nbLoc": 98,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/presentation/EventEffectPreview.tsx": {
+      "nbLoc": 150,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/presentation/InfoCard.tsx": {
+      "nbLoc": 19,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/primitives/Button.tsx": {
+      "nbLoc": 59,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/primitives/ChoiceRow.tsx": {
+      "nbLoc": 57,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/primitives/EmptyState.tsx": {
+      "nbLoc": 44,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/primitives/Field.tsx": {
+      "nbLoc": 62,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/primitives/Notice.tsx": {
+      "nbLoc": 91,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/primitives/Row.tsx": {
+      "nbLoc": 61,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/primitives/StatusChip.tsx": {
+      "nbLoc": 59,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/primitives/index.ts": {
+      "nbLoc": 24,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/primitives/markers.tsx": {
+      "nbLoc": 36,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/security/AppLockGate.tsx": {
+      "nbLoc": 192,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/security/DataActionPinGate.tsx": {
+      "nbLoc": 97,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/security/LockSettingsCard.tsx": {
+      "nbLoc": 177,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/settings/SettingsAppearanceSection.tsx": {
+      "nbLoc": 39,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/settings/SettingsCapabilitiesSection.tsx": {
+      "nbLoc": 197,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx": {
+      "nbLoc": 583,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/components/settings/SettingsOperatingModeSection.tsx": {
+      "nbLoc": 134,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/components/ui/drawer.tsx": {
+      "nbLoc": 105,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/contexts/ThemeContext.tsx": {
+      "nbLoc": 72,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/index.css": {
+      "nbLoc": 6778,
+      "band": "SPLIT_NOW"
+    },
+    "apps/prototype-web/client/src/lib/syncSha256.ts": {
+      "nbLoc": 112,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/lib/textDelivery.ts": {
+      "nbLoc": 67,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/lib/utils.ts": {
+      "nbLoc": 5,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/main.tsx": {
+      "nbLoc": 6,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/AgreementEditor.tsx": {
+      "nbLoc": 652,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/AssetDetail.tsx": {
+      "nbLoc": 526,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/AssetEditor.tsx": {
+      "nbLoc": 357,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/Assets.tsx": {
+      "nbLoc": 160,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/CashAdjustmentEditor.tsx": {
+      "nbLoc": 159,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/CashCount.tsx": {
+      "nbLoc": 224,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/CashDistribution.tsx": {
+      "nbLoc": 265,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/CashOpeningLaterEditor.tsx": {
+      "nbLoc": 198,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/CashReversalEditor.tsx": {
+      "nbLoc": 177,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/CashTransferEditor.tsx": {
+      "nbLoc": 193,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/CashWalletEditor.tsx": {
+      "nbLoc": 132,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/CashWallets.tsx": {
+      "nbLoc": 306,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/Catalog.tsx": {
+      "nbLoc": 787,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/Collect.tsx": {
+      "nbLoc": 491,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/CostCalculator.tsx": {
+      "nbLoc": 601,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/CostEditor.tsx": {
+      "nbLoc": 637,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/DeliveryReview.tsx": {
+      "nbLoc": 558,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx": {
+      "nbLoc": 999,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "apps/prototype-web/client/src/pages/DraftEditor.tsx": {
+      "nbLoc": 525,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/EstimateDetail.tsx": {
+      "nbLoc": 259,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/Finance.tsx": {
+      "nbLoc": 1480,
+      "band": "SPLIT_NOW"
+    },
+    "apps/prototype-web/client/src/pages/FinanceActivity.tsx": {
+      "nbLoc": 311,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/FinanceMore.tsx": {
+      "nbLoc": 272,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/FinanceRecurring.tsx": {
+      "nbLoc": 192,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/FinanceUpcoming.tsx": {
+      "nbLoc": 257,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/FinancialEventEditor.tsx": {
+      "nbLoc": 1191,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "apps/prototype-web/client/src/pages/Foundation.tsx": {
+      "nbLoc": 328,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/G5DeclarationEditor.tsx": {
+      "nbLoc": 238,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/Home.tsx": {
+      "nbLoc": 732,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/InventoryMaterials.tsx": {
+      "nbLoc": 842,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "apps/prototype-web/client/src/pages/InventoryMovementEditor.tsx": {
+      "nbLoc": 954,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "apps/prototype-web/client/src/pages/InventoryReversalEditor.tsx": {
+      "nbLoc": 128,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/LoanDetail.tsx": {
+      "nbLoc": 316,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/LoanEditor.tsx": {
+      "nbLoc": 236,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/Loans.tsx": {
+      "nbLoc": 341,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/Market.tsx": {
+      "nbLoc": 58,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/MaterialEditor.tsx": {
+      "nbLoc": 491,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/NewDraft.tsx": {
+      "nbLoc": 27,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/NotFound.tsx": {
+      "nbLoc": 17,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/OrderDetail.tsx": {
+      "nbLoc": 1814,
+      "band": "SPLIT_NOW"
+    },
+    "apps/prototype-web/client/src/pages/Orders.tsx": {
+      "nbLoc": 439,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/OwnerEntitlement.tsx": {
+      "nbLoc": 1134,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "apps/prototype-web/client/src/pages/OwnerWithdrawalEditor.tsx": {
+      "nbLoc": 349,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/Parties.tsx": {
+      "nbLoc": 213,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/Profile.tsx": {
+      "nbLoc": 326,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/ReceivedLoanDetail.tsx": {
+      "nbLoc": 370,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/ReceivedLoanEditor.tsx": {
+      "nbLoc": 272,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/RecurringExpenseDetail.tsx": {
+      "nbLoc": 564,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/RecurringExpenseEditor.tsx": {
+      "nbLoc": 348,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/Schedule.tsx": {
+      "nbLoc": 986,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "apps/prototype-web/client/src/pages/ScheduleEditor.tsx": {
+      "nbLoc": 367,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/Settings.tsx": {
+      "nbLoc": 704,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/Setup.tsx": {
+      "nbLoc": 432,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/SharePreview.tsx": {
+      "nbLoc": 100,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/Statement.tsx": {
+      "nbLoc": 796,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/pages/SupplierPurchaseEditor.tsx": {
+      "nbLoc": 1176,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "apps/prototype-web/client/src/pages/Suppliers.tsx": {
+      "nbLoc": 227,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/Tools.tsx": {
+      "nbLoc": 216,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/ToolsIntegrity.tsx": {
+      "nbLoc": 300,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pages/WalletLedger.tsx": {
+      "nbLoc": 213,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/presentation/activityLabels.ts": {
+      "nbLoc": 5,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/presentation/cashCountMessages.ts": {
+      "nbLoc": 10,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/presentation/catalogPresentation.ts": {
+      "nbLoc": 181,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/presentation/financialEventLabels.ts": {
+      "nbLoc": 30,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/presentation/formatters.ts": {
+      "nbLoc": 5,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/presentation/g5Plurals.ts": {
+      "nbLoc": 88,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/presentation/orderAgreementPresentation.ts": {
+      "nbLoc": 5,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/presentation/ownerEntitlementPresentation.ts": {
+      "nbLoc": 73,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/presentation/plurals.ts": {
+      "nbLoc": 45,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/presentation/stateAdapter.ts": {
+      "nbLoc": 149,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pwa/PwaInstallControl.tsx": {
+      "nbLoc": 113,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pwa/PwaRuntimeNotice.tsx": {
+      "nbLoc": 98,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pwa/dirtyRegistry.ts": {
+      "nbLoc": 13,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pwa/install.ts": {
+      "nbLoc": 38,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pwa/register.ts": {
+      "nbLoc": 112,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/pwa/registerSW.virtual.ts": {
+      "nbLoc": 16,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts": {
+      "nbLoc": 4133,
+      "band": "SPLIT_NOW"
+    },
+    "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts": {
+      "nbLoc": 2087,
+      "band": "SPLIT_NOW"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/actualTimeCapabilityAnchors.ts": {
+      "nbLoc": 32,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/actualTimeStore.ts": {
+      "nbLoc": 30,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/allocationPolicyCapabilityAnchors.ts": {
+      "nbLoc": 32,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/allocationPolicyStore.ts": {
+      "nbLoc": 44,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/assetCapabilityAnchors.ts": {
+      "nbLoc": 23,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/assetStore.ts": {
+      "nbLoc": 35,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/catalogCapabilityAnchors.ts": {
+      "nbLoc": 29,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/catalogStore.ts": {
+      "nbLoc": 44,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/costEstimateCapabilityAnchors.ts": {
+      "nbLoc": 32,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/costEstimateStore.ts": {
+      "nbLoc": 35,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/directSaleCapabilityAnchors.ts": {
+      "nbLoc": 32,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/directSaleStore.ts": {
+      "nbLoc": 34,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetCapabilityAnchors.ts": {
+      "nbLoc": 32,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetStore.ts": {
+      "nbLoc": 42,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/financialEventCapabilityAnchors.ts": {
+      "nbLoc": 32,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/financialEventStore.ts": {
+      "nbLoc": 47,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/inventoryMaterialCapabilityAnchors.ts": {
+      "nbLoc": 32,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/inventoryMaterialStore.ts": {
+      "nbLoc": 39,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/loanCapabilityAnchors.ts": {
+      "nbLoc": 24,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/loanStore.ts": {
+      "nbLoc": 60,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleCapabilityAnchors.ts": {
+      "nbLoc": 33,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleStore.ts": {
+      "nbLoc": 48,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/ownerEntitlementCapabilityAnchors.ts": {
+      "nbLoc": 33,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/ownerEntitlementStore.ts": {
+      "nbLoc": 67,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/recurringExpenseCapabilityAnchors.ts": {
+      "nbLoc": 32,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/recurringExpenseStore.ts": {
+      "nbLoc": 46,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/scheduleCapabilityAnchors.ts": {
+      "nbLoc": 29,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/scheduleStore.ts": {
+      "nbLoc": 40,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/shortCashDeclarationCapabilityAnchors.ts": {
+      "nbLoc": 33,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/shortCashDeclarationStore.ts": {
+      "nbLoc": 50,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/supplierPurchaseCapabilityAnchors.ts": {
+      "nbLoc": 32,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/capabilities/supplierPurchaseStore.ts": {
+      "nbLoc": 36,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/cashContinuityCommitGuard.ts": {
+      "nbLoc": 28,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/createBrowserLocalStore.ts": {
+      "nbLoc": 6,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/deliveryReversalCommitGuard.ts": {
+      "nbLoc": 275,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/expenseBudgetCommitGuard.ts": {
+      "nbLoc": 71,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts": {
+      "nbLoc": 112,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/indexedDbMigrations.ts": {
+      "nbLoc": 561,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts": {
+      "nbLoc": 106,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts": {
+      "nbLoc": 430,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/storage/local/indexedDbStores.ts": {
+      "nbLoc": 68,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/influentialSnapshotFamilies.ts": {
+      "nbLoc": 130,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/loanCommitGuard.ts": {
+      "nbLoc": 62,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/orderCommitGuard.ts": {
+      "nbLoc": 94,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/persistentStorage.ts": {
+      "nbLoc": 67,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/receivedLoanCommitGuard.ts": {
+      "nbLoc": 64,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/recurringExpenseCommitGuard.ts": {
+      "nbLoc": 154,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/resultCodes.ts": {
+      "nbLoc": 21,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/supplierAttributionCommitGuard.ts": {
+      "nbLoc": 61,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.ts": {
+      "nbLoc": 336,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/storage/local/types.ts": {
+      "nbLoc": 876,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "apps/prototype-web/client/src/styles/brand-launch-splash.css": {
+      "nbLoc": 169,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/styles/primitives.css": {
+      "nbLoc": 482,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/client/src/styles/theme-dark.css": {
+      "nbLoc": 158,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/styles/vf-tokens.css": {
+      "nbLoc": 177,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/dev-tools/debug-collector.js": {
+      "nbLoc": 694,
+      "band": "WATCH"
+    },
+    "apps/prototype-web/scripts/bundle-surfaces-baseline.json": {
+      "nbLoc": 108,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/scripts/check-bundle-budget.mjs": {
+      "nbLoc": 148,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/scripts/check-bundle-surfaces.mjs": {
+      "nbLoc": 467,
+      "band": "WATCH"
+    },
+    "scripts/application-door-surfaces-baseline.json": {
+      "nbLoc": 354,
+      "band": "NORMAL"
+    },
+    "scripts/check-acceptance-value-anchors.mjs": {
+      "nbLoc": 363,
+      "band": "NORMAL"
+    },
+    "scripts/check-application-door-surfaces.mjs": {
+      "nbLoc": 147,
+      "band": "NORMAL"
+    },
+    "scripts/check-application-readwrite.mjs": {
+      "nbLoc": 143,
+      "band": "NORMAL"
+    },
+    "scripts/check-current-state-size.mjs": {
+      "nbLoc": 80,
+      "band": "NORMAL"
+    },
+    "scripts/check-date-arithmetic-ownership.mjs": {
+      "nbLoc": 208,
+      "band": "NORMAL"
+    },
+    "scripts/check-doc-index-coverage.mjs": {
+      "nbLoc": 148,
+      "band": "NORMAL"
+    },
+    "scripts/check-entity-touchpoints.mjs": {
+      "nbLoc": 249,
+      "band": "NORMAL"
+    },
+    "scripts/check-file-size-ratchet.mjs": {
+      "nbLoc": 391,
+      "band": "NORMAL"
+    },
+    "scripts/check-image-policy.mjs": {
+      "nbLoc": 164,
+      "band": "NORMAL"
+    },
+    "scripts/check-module-boundaries.mjs": {
+      "nbLoc": 431,
+      "band": "WATCH"
+    },
+    "scripts/check-registry-coverage.mjs": {
+      "nbLoc": 82,
+      "band": "NORMAL"
+    },
+    "scripts/check-runtime-cycles.mjs": {
+      "nbLoc": 260,
+      "band": "NORMAL"
+    },
+    "scripts/check-secrets.mjs": {
+      "nbLoc": 152,
+      "band": "NORMAL"
+    },
+    "scripts/check-skill-references.mjs": {
+      "nbLoc": 207,
+      "band": "NORMAL"
+    },
+    "scripts/check-test-focus.mjs": {
+      "nbLoc": 137,
+      "band": "NORMAL"
+    },
+    "scripts/check-type-cycles.mjs": {
+      "nbLoc": 107,
+      "band": "NORMAL"
+    },
+    "scripts/check-vendored-braces.mjs": {
+      "nbLoc": 187,
+      "band": "NORMAL"
+    },
+    "scripts/ci-audit-check.mjs": {
+      "nbLoc": 214,
+      "band": "NORMAL"
+    },
+    "scripts/ci-audit-step.sh": {
+      "nbLoc": 52,
+      "band": "NORMAL"
+    },
+    "scripts/design-token-guards.py": {
+      "nbLoc": 261,
+      "band": "NORMAL"
+    },
+    "scripts/generate-test-map.mjs": {
+      "nbLoc": 291,
+      "band": "NORMAL"
+    },
+    "scripts/generate-ui-application-import-baseline.mjs": {
+      "nbLoc": 36,
+      "band": "NORMAL"
+    },
+    "scripts/operations-control/generate_tracker.py": {
+      "nbLoc": 195,
+      "band": "NORMAL"
+    },
+    "scripts/operations-control/test_operations_control.py": {
+      "nbLoc": 99,
+      "band": "NORMAL"
+    },
+    "scripts/operations-control/validate.py": {
+      "nbLoc": 368,
+      "band": "NORMAL"
+    },
+    "scripts/post-merge.sh": {
+      "nbLoc": 6,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/capture-baseline.mjs": {
+      "nbLoc": 227,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/cjs-api-probe.cjs": {
+      "nbLoc": 86,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/.dotfile.css": {
+      "nbLoc": 4,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/.hiddirentry/inside.css": {
+      "nbLoc": 4,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/a.css": {
+      "nbLoc": 4,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/b.css": {
+      "nbLoc": 4,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/dir with space/x.css": {
+      "nbLoc": 4,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/dist/generated.css": {
+      "nbLoc": 4,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/extgroup/file.CSS": {
+      "nbLoc": 4,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/n.css": {
+      "nbLoc": 4,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/nested/deep/e.css": {
+      "nbLoc": 4,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/nested/other.css": {
+      "nbLoc": 4,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/nested/skip-me.css": {
+      "nbLoc": 4,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/overrides-config.json": {
+      "nbLoc": 19,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/overrides/rule-a.css": {
+      "nbLoc": 5,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/violating/bad-auto.css": {
+      "nbLoc": 3,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/violating/bad-font.css": {
+      "nbLoc": 3,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/corpus/violating/bad-z.css": {
+      "nbLoc": 3,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/fixtures/braces-expand.json": {
+      "nbLoc": 1847,
+      "band": "SPLIT_NOW"
+    },
+    "scripts/security/braces-elimination/fixtures/cjs-api.json": {
+      "nbLoc": 5,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/fixtures/micromatch-api.json": {
+      "nbLoc": 800,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "scripts/security/braces-elimination/fixtures/stylelint-runs.json": {
+      "nbLoc": 1307,
+      "band": "SPLIT_NOW"
+    },
+    "scripts/security/braces-elimination/harness-lib.mjs": {
+      "nbLoc": 365,
+      "band": "NORMAL"
+    },
+    "scripts/security/braces-elimination/hostile-input-evidence-original-stack.txt": {
+      "nbLoc": 27,
+      "band": "NORMAL"
+    },
+    "scripts/text-density-count.py": {
+      "nbLoc": 458,
+      "band": "WATCH"
+    },
+    "scripts/text_density_policy.py": {
+      "nbLoc": 853,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "scripts/theme-contrast-guard.py": {
+      "nbLoc": 188,
+      "band": "NORMAL"
+    },
+    "scripts/ui-application-import-baseline.json": {
+      "nbLoc": 72,
+      "band": "NORMAL"
+    },
+    "scripts/vendored-braces-baseline.json": {
+      "nbLoc": 51,
+      "band": "NORMAL"
+    },
+    "src/domain/actual-time/index.ts": {
+      "nbLoc": 2,
+      "band": "NORMAL"
+    },
+    "src/domain/actual-time/policies.ts": {
+      "nbLoc": 88,
+      "band": "NORMAL"
+    },
+    "src/domain/actual-time/types.ts": {
+      "nbLoc": 29,
+      "band": "NORMAL"
+    },
+    "src/domain/asset/index.ts": {
+      "nbLoc": 2,
+      "band": "NORMAL"
+    },
+    "src/domain/asset/policies.ts": {
+      "nbLoc": 349,
+      "band": "NORMAL"
+    },
+    "src/domain/asset/types.ts": {
+      "nbLoc": 118,
+      "band": "NORMAL"
+    },
+    "src/domain/budget/index.ts": {
+      "nbLoc": 2,
+      "band": "NORMAL"
+    },
+    "src/domain/budget/policies.ts": {
+      "nbLoc": 261,
+      "band": "NORMAL"
+    },
+    "src/domain/budget/types.ts": {
+      "nbLoc": 103,
+      "band": "NORMAL"
+    },
+    "src/domain/cash-continuity/index.ts": {
+      "nbLoc": 2,
+      "band": "NORMAL"
+    },
+    "src/domain/cash-continuity/policies.ts": {
+      "nbLoc": 119,
+      "band": "NORMAL"
+    },
+    "src/domain/cash-continuity/types.ts": {
+      "nbLoc": 100,
+      "band": "NORMAL"
+    },
+    "src/domain/catalog/index.ts": {
+      "nbLoc": 2,
+      "band": "NORMAL"
+    },
+    "src/domain/catalog/policies.ts": {
+      "nbLoc": 209,
+      "band": "NORMAL"
+    },
+    "src/domain/catalog/types.ts": {
+      "nbLoc": 141,
+      "band": "NORMAL"
+    },
+    "src/domain/craft-order/deliveryAttribution.ts": {
+      "nbLoc": 26,
+      "band": "NORMAL"
+    },
+    "src/domain/craft-order/deliveryContribution.ts": {
+      "nbLoc": 51,
+      "band": "NORMAL"
+    },
+    "src/domain/craft-order/deliveryTermsValidation.ts": {
+      "nbLoc": 81,
+      "band": "NORMAL"
+    },
+    "src/domain/craft-order/index.ts": {
+      "nbLoc": 52,
+      "band": "NORMAL"
+    },
+    "src/domain/craft-order/policies.ts": {
+      "nbLoc": 1413,
+      "band": "SPLIT_NOW"
+    },
+    "src/domain/craft-order/settlementInvariant.ts": {
+      "nbLoc": 97,
+      "band": "NORMAL"
+    },
+    "src/domain/craft-order/types.ts": {
+      "nbLoc": 275,
+      "band": "NORMAL"
+    },
+    "src/domain/direct-sale/index.ts": {
+      "nbLoc": 2,
+      "band": "NORMAL"
+    },
+    "src/domain/direct-sale/policies.ts": {
+      "nbLoc": 182,
+      "band": "NORMAL"
+    },
+    "src/domain/direct-sale/types.ts": {
+      "nbLoc": 77,
+      "band": "NORMAL"
+    },
+    "src/domain/financial-analysis/index.ts": {
+      "nbLoc": 3,
+      "band": "NORMAL"
+    },
+    "src/domain/financial-analysis/operatingBreakEven.ts": {
+      "nbLoc": 147,
+      "band": "NORMAL"
+    },
+    "src/domain/financial-analysis/policies.ts": {
+      "nbLoc": 937,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "src/domain/financial-analysis/types.ts": {
+      "nbLoc": 189,
+      "band": "NORMAL"
+    },
+    "src/domain/financial-event/index.ts": {
+      "nbLoc": 10,
+      "band": "NORMAL"
+    },
+    "src/domain/financial-event/policies.ts": {
+      "nbLoc": 521,
+      "band": "WATCH"
+    },
+    "src/domain/financial-event/types.ts": {
+      "nbLoc": 148,
+      "band": "NORMAL"
+    },
+    "src/domain/inventory-material/index.ts": {
+      "nbLoc": 2,
+      "band": "NORMAL"
+    },
+    "src/domain/inventory-material/policies.ts": {
+      "nbLoc": 334,
+      "band": "NORMAL"
+    },
+    "src/domain/inventory-material/types.ts": {
+      "nbLoc": 127,
+      "band": "NORMAL"
+    },
+    "src/domain/loan/index.ts": {
+      "nbLoc": 2,
+      "band": "NORMAL"
+    },
+    "src/domain/loan/policies.ts": {
+      "nbLoc": 148,
+      "band": "NORMAL"
+    },
+    "src/domain/loan/types.ts": {
+      "nbLoc": 61,
+      "band": "NORMAL"
+    },
+    "src/domain/owner-entitlement/index.ts": {
+      "nbLoc": 19,
+      "band": "NORMAL"
+    },
+    "src/domain/owner-entitlement/policies.ts": {
+      "nbLoc": 914,
+      "band": "SPLIT_CANDIDATE"
+    },
+    "src/domain/owner-entitlement/types.ts": {
+      "nbLoc": 150,
+      "band": "NORMAL"
+    },
+    "src/domain/owner-safe-withdrawal/index.ts": {
+      "nbLoc": 2,
+      "band": "NORMAL"
+    },
+    "src/domain/owner-safe-withdrawal/policies.ts": {
+      "nbLoc": 91,
+      "band": "NORMAL"
+    },
+    "src/domain/owner-safe-withdrawal/types.ts": {
+      "nbLoc": 47,
+      "band": "NORMAL"
+    },
+    "src/domain/received-loan/index.ts": {
+      "nbLoc": 2,
+      "band": "NORMAL"
+    },
+    "src/domain/received-loan/policies.ts": {
+      "nbLoc": 191,
+      "band": "NORMAL"
+    },
+    "src/domain/received-loan/types.ts": {
+      "nbLoc": 77,
+      "band": "NORMAL"
+    },
+    "src/domain/recurring-expense/index.ts": {
+      "nbLoc": 2,
+      "band": "NORMAL"
+    },
+    "src/domain/recurring-expense/policies.ts": {
+      "nbLoc": 603,
+      "band": "WATCH"
+    },
+    "src/domain/recurring-expense/types.ts": {
+      "nbLoc": 179,
+      "band": "NORMAL"
+    },
+    "src/domain/recurring-margin/index.ts": {
+      "nbLoc": 2,
+      "band": "NORMAL"
+    },
+    "src/domain/recurring-margin/policies.ts": {
+      "nbLoc": 395,
+      "band": "NORMAL"
+    },
+    "src/domain/recurring-margin/types.ts": {
+      "nbLoc": 93,
+      "band": "NORMAL"
+    },
+    "src/domain/shared/businessTime.ts": {
+      "nbLoc": 61,
+      "band": "NORMAL"
+    },
+    "src/domain/shared/currency.ts": {
+      "nbLoc": 38,
+      "band": "NORMAL"
+    },
+    "src/domain/shared/index.ts": {
+      "nbLoc": 22,
+      "band": "NORMAL"
+    },
+    "src/domain/shared/numeric.ts": {
+      "nbLoc": 224,
+      "band": "NORMAL"
+    },
+    "src/domain/supplier-purchase/index.ts": {
+      "nbLoc": 2,
+      "band": "NORMAL"
+    },
+    "src/domain/supplier-purchase/policies.ts": {
+      "nbLoc": 281,
+      "band": "NORMAL"
+    },
+    "src/domain/supplier-purchase/types.ts": {
+      "nbLoc": 115,
+      "band": "NORMAL"
+    },
+    "tools/micromatch-shim/index.js": {
+      "nbLoc": 225,
+      "band": "NORMAL"
+    },
+    "tools/micromatch-shim/lib/braces-free.js": {
+      "nbLoc": 317,
+      "band": "NORMAL"
+    }
+  }
 }

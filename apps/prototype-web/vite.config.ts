@@ -247,18 +247,23 @@ ${detail}`);
 const pwa = VitePWA({
   registerType: "prompt",
   injectRegister: false,
-  /* W2 (brand): approved symbol-only PWA/favicon assets — previous runtime mark set replaced.
-   * App-shell brand surfaces (mark, favicon, install icons) precache with the shell;
-   * splash motion layers + platform-ready splash references precache too so the launch
-   * moment works offline. No API, financial or storage behavior enters the SW. */
-  includeAssets: [
-    "brand/mark/*.svg",
-    "brand/motion/*.svg",
-    "brand/motion/light/*.svg",
-    "brand/motion/dark/*.svg",
-    "brand/favicon/*",
-    "brand/pwa/*",
-  ],
+  /* W2 (brand) + R8-N1 root fix (2026-10-10): ONE canonical precache-selection
+   * path — Workbox `globPatterns` over the build output (which contains the
+   * verbatim public tree). The previous `includeAssets` selectors (brand mark/
+   * motion/favicon/pwa) and the plugin's default `includeManifestIcons: true`
+   * each re-selected the same public files into `workbox.additionalManifestEntries`,
+   * and Workbox does not dedupe those against globPatterns — 31 duplicate precache
+   * URLs in the generated sw.js (measured: 187 entries / 156 unique before the fix).
+   * Every intended offline asset class is already covered by globPatterns
+   * (svg/png/ico brand assets incl. splash, woff2/css fonts, js/css/html shell),
+   * and manifest.webmanifest keeps its own plugin-managed entry — so the redundant
+   * selectors are removed, not narrowed: each intended URL is selected exactly
+   * once, by exactly one path. App-shell brand surfaces (mark, favicon, install
+   * icons) precache with the shell; splash motion layers + platform-ready splash
+   * references precache too so the launch moment works offline. No API, financial
+   * or storage behavior enters the SW. check-bundle-surfaces now fails closed on
+   * any duplicate precache URL (regression class for this fix). */
+  includeManifestIcons: false,
   manifest: {
     id: "/",
     name: "Micro — شريك مشروعك",
