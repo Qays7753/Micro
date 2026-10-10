@@ -102,7 +102,7 @@ export default function EstimateDetail() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح التقدير</h1>
-        <p>لم يتم تغيير بياناتك.</p>
+        <p role="alert">لم يتم تغيير بياناتك.</p>
         <div className="micro-form-actions">
           <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
             إعادة المحاولة
@@ -200,7 +200,7 @@ export default function EstimateDetail() {
       </section>
 
       {message ? (
-        <p className="micro-field-error" role="status">
+        <p className="micro-field-error" role="alert">
           {message}
         </p>
       ) : null}

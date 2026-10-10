@@ -54,7 +54,15 @@ export default function RecurringExpenseEditor() {
   const [changeReason, setChangeReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [loaded, setLoaded] = useState(!editMode);
+  /* R9-GA-F3.7 (استمرار R9 الجذري — عائلة F3.1/F3.2/W3-F1): في وضع
+   * التعديل كان فشل القراءة (وعدم وجود السلسلة) يضبط الرسالة دون رفع
+   * «loaded» — فتبقى الصفحة في التحميل الأبدي والرسالة لا تُعرض أبدًا.
+   * الفصل الصريح للمراحل يجعل كل حالة صادقة بذاتها — نفس نمط
+   * CashReversalEditor/EstimateDetail؛ النصوص القائمة محفوظة حرفيًا. */
+  const [readState, setReadState] = useState<
+    { phase: "loading" } | { phase: "read-error"; message: string } | { phase: "ready" }
+  >({ phase: editMode ? "loading" : "ready" });
+  const [retryCount, setRetryCount] = useState(0);
   const saveInFlightRef = useRef(false);
 
   useEffect(() => {
@@ -63,12 +71,15 @@ export default function RecurringExpenseEditor() {
     recurringExpenses.readDetail(params.id).then(result => {
       if (!active) return;
       if (!result.ok) {
-        setMessage(result.message);
+        /* R9-GA-F3.7: فشل القراءة وعدم وجود السلسلة معًا يُعرضان برسالتهما
+         * الفعلية على سطح خطأ القراءة — رسالة «غير موجودة» صادقة كما هي،
+         * والتحميل ينتهي دائمًا (كان تحميلًا أبديًا يبتلع الرسالة). */
+        setReadState({ phase: "read-error", message: result.message });
         return;
       }
       const latest = result.value.revisions.at(-1);
       if (!latest) {
-        setMessage("السلسلة بلا قاعدة — لا تعديل مستقبلي.");
+        setReadState({ phase: "read-error", message: "السلسلة بلا قاعدة — لا تعديل مستقبلي." });
         return;
       }
       setTitle(result.value.series.title);
@@ -79,12 +90,12 @@ export default function RecurringExpenseEditor() {
       setSuggestedAmountMinor(latest.suggestedAmountMinor);
       setCategoryLabel(latest.categoryLabel ?? "");
       setEffectiveFromPeriod(latest.effectiveFromPeriod);
-      setLoaded(true);
+      setReadState({ phase: "ready" });
     });
     return () => {
       active = false;
     };
-  }, [editMode, params.id, recurringExpenses]);
+  }, [editMode, params.id, recurringExpenses, retryCount]);
 
   const isDirty = useFormDirty([
     title,
@@ -142,6 +153,9 @@ export default function RecurringExpenseEditor() {
 
   async function save(alsoActivate: boolean): Promise<boolean> {
     if (saveInFlightRef.current) return false;
+    /* R9-GA-F3.7: لا حفظ خارج مرحلة الجاهزية — حارس الحوار (احفظ ثم
+     * اخرج) قد يستدعي الحفظ بعد تغيّر مرحلة القراءة. */
+    if (readState.phase !== "ready") return false;
     if (!recurringExpenses) {
       setMessage("جارٍ تهيئة خدمة التذكيرات — أعد المحاولة بعد لحظة.");
       return false;
@@ -189,13 +203,32 @@ export default function RecurringExpenseEditor() {
     }
   }
 
-  if (!recurringExpenses || (!loaded && editMode)) {
+  if (!recurringExpenses || readState.phase === "loading") {
     return (
       <div className="micro-route-loading" role="status">
         جارٍ قراءة قاعدة التذكير…
       </div>
     );
   }
+  if (readState.phase === "read-error")
+    /* R9-GA-F3.7: فشل القراءة يُعرض برسالته الفعلية لا تحميلًا أبديًا —
+     * نمط ReceivedLoanDetail: زر رجوع + رسالة الخطأ الحقيقية بصفة alert
+     * + إعادة محاولة. لا حفظ ولا تنقل هنا. */
+    return (
+      <section className="micro-page">
+        <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+          رجوع
+        </button>
+        <p className="micro-field-error" role="alert">
+          {readState.message}
+        </p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
+      </section>
+    );
 
   return (
     <section className="micro-page micro-finance-page">

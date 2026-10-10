@@ -154,7 +154,7 @@ export default function ToolsIntegrity() {
               );
             })()
           ) : state.phase === "error" ? (
-            <p className="micro-field-error" role="status">
+            <p className="micro-field-error" role="alert">
               {state.message}
             </p>
           ) : (

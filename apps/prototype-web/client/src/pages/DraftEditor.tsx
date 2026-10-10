@@ -331,7 +331,7 @@ export default function DraftEditor() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح المسودة</h1>
-        <p>لم يتم تغيير بياناتك. أعد المحاولة من قائمة الطلبات.</p>
+        <p role="alert">لم يتم تغيير بياناتك. أعد المحاولة من قائمة الطلبات.</p>
         <Button
           action="secondary"
 

@@ -38,7 +38,11 @@ export default function CashCount() {
   const [countedMinor, setCountedMinor] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
   const [valid, setValid] = useState(true);
-  const [message, setMessage] = useState<string | null>(null);
+  /* R9-GA-F3.6b (استمرار R9 الجذري): نبرة الرسالة تُحمل في الحالة لا
+   * بقراءة بادئة النص — العنصر الواحد كان يخلط النجاح والمعلومة مع الخطأ
+   * بصفة إعلان واحدة (status) فيُخفى الخطأ الفعلي. الفصل الكنوني: خطأ ⇒
+   * micro-field-error + alert، نجاح/معلومة ⇒ micro-save-note + status. */
+  const [message, setMessage] = useState<{ text: string; tone: "error" | "success" | "info" } | null>(null);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState<{ differenceMinor: number; newBalanceMinor: number } | null>(null);
   /* S1-05/S1-11: عدّ مكتوب بلا تسوية يحمى بحارس المدخلات؛ الرجوع للمصدر (?from). */
@@ -71,7 +75,7 @@ export default function CashCount() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة المحافظ</h1>
-        <p>{state.message}</p>
+        <p role="alert">{state.message}</p>
         <div className="micro-form-actions">
           <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
             إعادة المحاولة
@@ -94,15 +98,15 @@ export default function CashCount() {
   /* حارس المدخلات يستدعي نفس المسار: النجاح يرجع true ليكتمل الخروج بعد الحفظ. */
   async function settle(): Promise<boolean> {
     if (!wallet) {
-      setMessage("اختر محفظة قبل العدّ.");
+      setMessage({ text: "اختر محفظة قبل العدّ.", tone: "error" });
       return false;
     }
     if (!valid || !Number.isInteger(countedMinor) || countedMinor < 0) {
-      setMessage("أدخل المعدود رقمًا صحيحًا غير سالب.");
+      setMessage({ text: "أدخل المعدود رقمًا صحيحًا غير سالب.", tone: "error" });
       return false;
     }
     if (differenceMinor === 0) {
-      setMessage("العدّ يطابق الرصيد المسجل — لا تسوية مطلوبة.");
+      setMessage({ text: "العدّ يطابق الرصيد المسجل — لا تسوية مطلوبة.", tone: "info" });
       return false;
     }
     setSaving(true);
@@ -118,12 +122,12 @@ export default function CashCount() {
     });
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setMessage({ text: result.message, tone: "error" });
       return false;
     }
     notifyDataChanged();
     setDone({ differenceMinor, newBalanceMinor: countedMinor });
-    setMessage(cashCountSettledMessage(countedMinor));
+    setMessage({ text: cashCountSettledMessage(countedMinor), tone: "success" });
     return true;
   }
 
@@ -133,7 +137,7 @@ export default function CashCount() {
         <div className="micro-page-heading">
           <span className="micro-overline">عدّة صندوق</span>
           <h1>انسجّلت التسوية</h1>
-          <p>{message}</p>
+          <p>{message ? message.text : null}</p>
         </div>
         <section className="micro-decision-card" aria-label="نتيجة العدّ">
           <span>الرصيد الجديد للمحفظة</span>
@@ -213,10 +217,10 @@ export default function CashCount() {
           ) : null}
           {message ? (
             <p
-              className={message.startsWith("انسجّلت") ? "micro-save-note" : "micro-field-error"}
-              role="status"
+              className={message.tone === "error" ? "micro-field-error" : "micro-save-note"}
+              role={message.tone === "error" ? "alert" : "status"}
             >
-              {message}
+              {message.text}
             </p>
           ) : null}
           <Button

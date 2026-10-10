@@ -324,7 +324,7 @@ export default function CostEditor() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح التكلفة</h1>
-        <p>ارجع للمسودة ثم أعد المحاولة.</p>
+        <p role="alert">ارجع للمسودة ثم أعد المحاولة.</p>
         <Button
           action="secondary"
 

@@ -79,7 +79,7 @@ export default function CashWallets() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة محافظ الكاش</h1>
-        <p>لم يتغير أي سجل.</p>
+        <p role="alert">لم يتغير أي سجل.</p>
         <div className="micro-form-actions">
           <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
             إعادة المحاولة

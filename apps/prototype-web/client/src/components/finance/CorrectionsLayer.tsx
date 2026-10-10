@@ -218,7 +218,7 @@ export function CorrectionsLayer({
           <p role="status">جارٍ قراءة التصحيحات الموثقة…</p>
         ) : null}
         {state.phase === "error" ? (
-          <p className="micro-field-error" role="status">
+          <p className="micro-field-error" role="alert">
             {state.message} لم يتغير أي سجل؛ أعد الفتح للمحاولة.
           </p>
         ) : null}

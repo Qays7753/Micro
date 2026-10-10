@@ -81,7 +81,7 @@ export default function Parties() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة دفتر الناس</h1>
-        <p>لم يتم تغيير بياناتك.</p>
+        <p role="alert">لم يتم تغيير بياناتك.</p>
         <div className="micro-form-actions">
           <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
             إعادة المحاولة

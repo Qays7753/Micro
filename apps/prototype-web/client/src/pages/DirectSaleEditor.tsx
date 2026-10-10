@@ -888,7 +888,7 @@ export default function DirectSaleEditor() {
             </p>
           ) : null}
           {message && !showDifferencePrompt ? (
-            <p className="micro-field-error" role="status">
+            <p className="micro-field-error" role="alert">
               {message}
             </p>
           ) : null}

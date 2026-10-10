@@ -228,7 +228,7 @@ export default function OwnerEntitlement() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة دفتر المالك</h1>
-        <p>{error ?? "لم تتوفر بيانات محلية."}</p>
+        <p role="alert">{error ?? "لم تتوفر بيانات محلية."}</p>
         <Button
           action="secondary"
 
@@ -617,7 +617,10 @@ export default function OwnerEntitlement() {
         <h1>مال المالك</h1>
       </div>
       {notice ? (
-        <p className={notice.tone === "success" ? "micro-save-note" : "micro-field-error"} role="status">
+        <p
+          className={notice.tone === "success" ? "micro-save-note" : "micro-field-error"}
+          role={notice.tone === "success" ? "status" : "alert"}
+        >
           {notice.text}
         </p>
       ) : null}

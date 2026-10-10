@@ -574,7 +574,13 @@ CAPS: dict[str, int] = {
     # المدخلات). مقفلة على الرقم المقيس الأول كسقف سقّاط.
     "FinanceRecurring": 26,
     "RecurringExpenseDetail": 81,
-    "RecurringExpenseEditor": 33,
+    # RecurringExpenseEditor 33 → 34 (2026-10-11, R9 systemic continuation
+    # R9-GA-F3.7): the explicit read state machine adds the honest read-error
+    # surface (the «إعادة المحاولة» retry label on the read-error branch) —
+    # previously a read failure left the editor in infinite loading with the
+    # message never rendered. Same-PR re-measurement; ratchet ledger entry
+    # R9-SYS-A-RECURRINGEXPENSEEDITOR documents the file growth.
+    "RecurringExpenseEditor": 34,
     "SharePreview": 24,
     # FinancialEventEditor 138 (2026-09-03, Group 1 §5.1–5.6 — first measurement
     # day): the guided expense journey — wallet question, category field + chips,

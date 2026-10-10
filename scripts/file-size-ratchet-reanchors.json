@@ -182,6 +182,222 @@
         "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
         "trigger": "R9 continuation execution prompt, Fix Group E (owner-authorized)"
       }
+    },
+    {
+      "id": "R9-SYS-A-AGREEMENTCONTEXTPANEL",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/components/order/AgreementContextPanel.tsx",
+      "from": {
+        "nbLoc": 205,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 208,
+        "band": "NORMAL"
+      },
+      "reason": "R9-GA-F3.6b: the mixed-tone single announcement element is split — the role now derives from the carried saveState.kind flag (ok => status, error => alert) instead of a fixed role=status that hid actual errors from assertive announcement.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-SYS-A-CASHADJUSTMENTEDITOR",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/pages/CashAdjustmentEditor.tsx",
+      "from": {
+        "nbLoc": 159,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 202,
+        "band": "NORMAL"
+      },
+      "reason": "R9-GA-F3.7: explicit four-phase read state machine (loading/ready/not-found/read-error) replaces the old !wallet&&!message guard that produced infinite loading for an unknown wallet id and swallowed read failures into the not-found surface; the read-error surface follows the established ReceivedLoanDetail pattern (back button + role=alert + retry) and save() gains a phase guard.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-SYS-A-CASHCOUNT",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/pages/CashCount.tsx",
+      "from": {
+        "nbLoc": 224,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 228,
+        "band": "NORMAL"
+      },
+      "reason": "R9-GA-F3.6b: the message state carries its tone ({text, tone}) and the render splits the announcement — errors => micro-field-error + role=alert, info/success => micro-save-note + role=status; also role=alert on the page read-error paragraph.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-SYS-A-CASHDISTRIBUTION",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/pages/CashDistribution.tsx",
+      "from": {
+        "nbLoc": 265,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 274,
+        "band": "NORMAL"
+      },
+      "reason": "R9-GA-F3.6b + F3.6c: tone-carrying message state with the split announcement (errors alert, success/info status) replacing the string-prefix class sniffing; role=alert on the page read-error paragraph.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-SYS-A-COSTCALCULATOR",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/pages/CostCalculator.tsx",
+      "from": {
+        "nbLoc": 601,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 609,
+        "band": "WATCH"
+      },
+      "reason": "R9-GA-F3.6a + F3.6b: the live validation-failure preview announces role=alert; the save message carries its tone with the split announcement.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-SYS-A-FINANCIALEVENTEDITOR",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/pages/FinancialEventEditor.tsx",
+      "from": {
+        "nbLoc": 1191,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1194,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R9-GA-F3.6b: tone-carrying message state with the split announcement — the success message was previously rendered with the error class because it did not start with the sniffed prefixes.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-SYS-A-OWNERENTITLEMENT",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/pages/OwnerEntitlement.tsx",
+      "from": {
+        "nbLoc": 1134,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1137,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R9-GA-F3.6b + F3.6c: the notice announcement role derives from the carried tone (success => status, error => alert); role=alert on the page read-error paragraph.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-SYS-A-PROFILE",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/pages/Profile.tsx",
+      "from": {
+        "nbLoc": 326,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 333,
+        "band": "NORMAL"
+      },
+      "reason": "R9-GA-F3.6b + F3.6c: tone-carrying message state with the split announcement; role=alert on the page read-error paragraph.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-SYS-A-RECURRINGEXPENSEEDITOR",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/pages/RecurringExpenseEditor.tsx",
+      "from": {
+        "nbLoc": 348,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 381,
+        "band": "NORMAL"
+      },
+      "reason": "R9-GA-F3.7: explicit read state machine (loading/read-error/ready) replaces the loaded gate that left edit mode in infinite loading whenever readDetail failed (including unknown series ids); the read-error surface renders the actual service message with role=alert + retry, and save() gains a phase guard.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-SYS-A-SCHEDULE",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/pages/Schedule.tsx",
+      "from": {
+        "nbLoc": 986,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 996,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R9-GA-F3.6b: both message states (capacity + template) carry their tones with split announcements — the info message «أُزيلت السعة اليومية.» was previously announced assertively as an error because of prefix sniffing; also role=alert on the page read-error paragraph.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-SYS-A-SCHEDULEEDITOR",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/pages/ScheduleEditor.tsx",
+      "from": {
+        "nbLoc": 367,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 402,
+        "band": "WATCH"
+      },
+      "reason": "R9-GA-F3.7: the collapsed error||not-found branch is split into explicit phases — not_found renders the existing surface, other read failures render their actual message with role=alert + retry (the error message was previously discarded); the band moves to WATCH with this documented reorganization, same-PR.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-SYS-A-TEXT-DENSITY-POLICY",
+      "date": "2026-10-11",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 853,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R9-GA-F3.7: the RecurringExpenseEditor at-rest cap is re-measured 33 -> 34 with the dated provenance comment (the explicit read state machine adds the honest read-error retry label); the golden fixture regenerated byte-identically through the official characterization path.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+      }
     }
   ]
 }

@@ -170,7 +170,12 @@ describe("Wave 4.4 — P-4.4-4: مصفوفة الحالات — فحص مصدر 
   it("كل صفحة تعرض خطأ قراءة تقدم فعل تعافٍ في مكانه (إعادة محاولة/إعادة تحميل/عودة)", () => {
     for (const page of readPages) {
       const source = readFileSync(resolve(CLIENT_SRC, "pages", `${page}.tsx`), "utf8");
-      expect.soft(source, `${page}: خطأ قراءة بلا شاشة خطأ`).toMatch(/phase === "error"/);
+      /* R9-GA-F3.7 (استمرار R9 الجذري): الصفحات ذات آلة القراءة الصريحة
+       * تستخدم مرحلة read-error المفصولة عن not-found — نفس عقد «شاشة
+       * خطأ + فعل تعافٍ» بمرحلة أصدق. */
+      expect
+        .soft(source, `${page}: خطأ قراءة بلا شاشة خطأ`)
+        .toMatch(/phase === "error"|phase === "read-error"/);
       const hasRecovery =
         source.includes("إعادة المحاولة") ||
         source.includes("window.location.reload()") ||

@@ -404,7 +404,7 @@ export default function InventoryMovementEditor() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح حركة المادة</h1>
-        <p>{message}</p>
+        <p role="alert">{message}</p>
         <Button
           action="secondary"
 
@@ -932,7 +932,7 @@ export default function InventoryMovementEditor() {
           </section>
         ) : null}
         {message ? (
-          <p className="micro-field-error" role="status">
+          <p className="micro-field-error" role="alert">
             {message}
           </p>
         ) : null}

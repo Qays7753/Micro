@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "0bb51d1e9e7cd135ef9731f4f8ace2b7c3184ee3",
-        "date": "2026-10-10",
-        "method": "R9 continuation (F3.1-F3.5 + W3-F1 + F7 root fixes) re-anchor from the local production build of the continuation code head 0bb51d1e (pnpm --filter @micro/prototype-web build): the reversal-editor state machines + G5 key derivation add +1,335 lazy raw / +323 lazy gzip-norm, and the storage listener hardening adds +1,905 entry raw / +306 entry gzip (entry 631,254 raw / 155,009 gzip — under the 650,000/155,300 ceilings owned by check-bundle-budget); the PWA precache total carries both effects: 2,672,292 -> 2,675,532 (+3,240). All counts unchanged (lazy 101, initial 2, dynamic roots 70, precache 156 entries with 0 duplicates, SW runtime 2). Authorized by the owner's R9 continuation mandate (Fix Groups A-E) with the ratchet ledger entries R9-GA-F3-ROOT-FIX-* and R9-GA-F7-ROOT-FIX-* in the same PR. Superseded anchor: R9-W2 R9-GA-F1 local build of 6574d560 (precache 2,672,292)."
+        "head": "3cf59707daa4e9448398bb7386b8a71f262085b6",
+        "date": "2026-10-11",
+        "method": "R9 systemic continuation (R9-GA-F3.6-ERROR-ROLE-INVENTORY + R9-GA-F3.7) re-anchor from the local production build of the Group A working tree (pnpm --filter @micro/prototype-web build): the error-surface semantic fixes across 24 pages/components (+3,001 lazy raw total (1207964 -> 1210965), +740 lazy gzip-norm (364297 -> 365037)) — the three explicit read state machines (CashAdjustmentEditor/ScheduleEditor/RecurringExpenseEditor), the tone-carrying message splits, and the role=alert announcements; the PWA precache total carries the same effect: 2675532 -> 2678533. Entry unchanged (631,254 raw / 155,010 gzip — under the 650,000/155,300 ceilings owned by check-bundle-budget). All counts unchanged (lazy 101, initial 2, dynamic roots 70, precache 156 entries, SW runtime 2). Authorized by the owner's systemic continuation mandate (R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11, Group A) with the ratchet ledger entries R9-SYS-A-* in the same PR. HEAD at re-anchor: 3cf59707daa4e9448398bb7386b8a71f262085b6"
       },
       "toolchain": {
         "node": "v24.21.0",
@@ -32,9 +32,9 @@
       "measurements": {
         "initialRawTotal": 224687,
         "initialGzipNormTotal": 70716,
-        "lazyRawTotal": 1207964,
-        "lazyGzipNormTotal": 364297,
-        "precacheBytesTotal": 2675532,
+        "lazyRawTotal": 1210965,
+        "lazyGzipNormTotal": 365037,
+        "precacheBytesTotal": 2678533,
         "swRuntimeRawTotal": 26170
       },
       "counts": {

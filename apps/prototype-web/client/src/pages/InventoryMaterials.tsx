@@ -219,7 +219,7 @@ export default function InventoryMaterials() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة المواد</h1>
-        <p>لم يتغير أي سجل.</p>
+        <p role="alert">لم يتغير أي سجل.</p>
         <div className="micro-form-actions">
           <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
             إعادة المحاولة

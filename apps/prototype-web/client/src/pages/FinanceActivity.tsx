@@ -206,7 +206,7 @@ export default function FinanceActivity() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة النشاط</h1>
-        <p>{state.message}</p>
+        <p role="alert">{state.message}</p>
         <div className="micro-form-actions">
           <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
             إعادة المحاولة

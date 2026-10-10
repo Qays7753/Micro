@@ -177,7 +177,7 @@ export default function OwnerWithdrawalEditor() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة دفتر المالك</h1>
-        <p>{loadError}</p>
+        <p role="alert">{loadError}</p>
         <Button
           action="secondary"
 

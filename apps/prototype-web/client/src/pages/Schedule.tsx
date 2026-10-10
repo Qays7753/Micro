@@ -84,7 +84,14 @@ export default function Schedule() {
   const [reloadToken, setReloadToken] = useState(0);
   const [state, setState] = useState<ScheduleState>({ phase: "loading" });
   const [capacityChoice, setCapacityChoice] = useState("");
-  const [capacityMessage, setCapacityMessage] = useState<string | null>(null);
+  /* R9-GA-F3.6b (استمرار R9 الجذري): نبرة الرسالة في الحالة لا بقراءة
+   * بادئة النص — رسالة المعلومة «أُزيلت السعة اليومية.» كانت تُعلن بصفة
+   * alert بفئة الخطأ لأنها لا تبدأ بـ«تم »/«لم ». الفصل الكنوني: خطأ ⇒
+   * micro-field-error + alert، نجاح/معلومة ⇒ micro-save-note + status. */
+  const [capacityMessage, setCapacityMessage] = useState<{
+    text: string;
+    tone: "error" | "success" | "info";
+  } | null>(null);
   const [savingCapacity, setSavingCapacity] = useState(false);
   /* المجموعة ١ (Scope A/E): وصلة عميقة دفاعية — ?focus=capacity يفتح طبقة «التكرار
    * والسعة» حيث يُقرأ الضغط؛ القيمة المجهولة تُهمل بلا أثر. */
@@ -115,13 +122,15 @@ export default function Schedule() {
     const result = await schedules.setDailyCapacity(capacityChoice ? Number(capacityChoice) : null);
     setSavingCapacity(false);
     if (!result.ok) {
-      setCapacityMessage(result.message);
+      setCapacityMessage({ text: result.message, tone: "error" });
       return;
     }
     notifyDataChanged();
-    setCapacityMessage(
-      result.value === null ? "أُزيلت السعة اليومية." : `تم حفظ سعة يومية معلنة: ${result.value} دقيقة.`,
-    );
+    setCapacityMessage({
+      tone: result.value === null ? "info" : "success",
+      text:
+        result.value === null ? "أُزيلت السعة اليومية." : `تم حفظ سعة يومية معلنة: ${result.value} دقيقة.`,
+    });
   }
 
   function changeMonth(offset: number) {
@@ -139,7 +148,7 @@ export default function Schedule() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر تحميل المواعيد</h1>
-        <p>{state.message} لم يتم تغيير أي موعد.</p>
+        <p role="alert">{state.message} لم يتم تغيير أي موعد.</p>
         <div className="micro-form-actions">
           <Button
             action="save"
@@ -343,16 +352,10 @@ export default function Schedule() {
           </label>
           {capacityMessage ? (
             <p
-              className={
-                capacityMessage.startsWith("تم ") || capacityMessage.startsWith("لم ")
-                  ? "micro-save-note"
-                  : "micro-field-error"
-              }
-              role={
-                capacityMessage.startsWith("تم ") || capacityMessage.startsWith("لم ") ? "status" : "alert"
-              }
+              className={capacityMessage.tone === "error" ? "micro-field-error" : "micro-save-note"}
+              role={capacityMessage.tone === "error" ? "alert" : "status"}
             >
-              {capacityMessage}
+              {capacityMessage.text}
             </p>
           ) : null}
           <Button
@@ -431,7 +434,7 @@ function RecurrencePanel({
   const [sourceId, setSourceId] = useState("");
   const [frequency, setFrequency] = useState<"weekly" | "monthly">("weekly");
   const [count, setCount] = useState("3");
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ text: string; tone: "error" | "success" } | null>(null);
   const [saving, setSaving] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
@@ -447,13 +450,14 @@ function RecurrencePanel({
     });
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setMessage({ text: result.message, tone: "error" });
       return;
     }
     const created = result.value.created.length;
     const skipped = result.value.skipped.length;
-    setMessage(
-      `تم حفظ قالب ${frequencyLabel(result.value.recurrence.frequency)}. أُنشئت ${formatArabicPlural(
+    setMessage({
+      tone: "success",
+      text: `تم حفظ قالب ${frequencyLabel(result.value.recurrence.frequency)}. أُنشئت ${formatArabicPlural(
         created,
         {
           zero: "لا مواعيد قادمة",
@@ -464,7 +468,7 @@ function RecurrencePanel({
           other: "موعدًا قادمًا مستقلًا",
         },
       )}${skipped > 0 ? `، وتجاوزنا ${skipped} لأن التاريخ موجود` : ""}.`,
-    );
+    });
     onChanged();
   }
 
@@ -474,12 +478,15 @@ function RecurrencePanel({
     const result = await service.cancel(id, cancelReason);
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setMessage({ text: result.message, tone: "error" });
       return;
     }
     setCancellingId(null);
     setCancelReason("");
-    setMessage("تم إيقاف المواعيد القادمة لهذا القالب؛ المواعيد السابقة محفوظة.");
+    setMessage({
+      text: "تم إيقاف المواعيد القادمة لهذا القالب؛ المواعيد السابقة محفوظة.",
+      tone: "success",
+    });
     onChanged();
   }
 
@@ -553,8 +560,11 @@ function RecurrencePanel({
         </div>
       )}
       {message ? (
-        <p className={message.startsWith("تم ") ? "micro-save-note" : "micro-field-error"} role="status">
-          {message}
+        <p
+          className={message.tone === "error" ? "micro-field-error" : "micro-save-note"}
+          role={message.tone === "error" ? "alert" : "status"}
+        >
+          {message.text}
         </p>
       ) : null}
       {views.length > 0 ? (
