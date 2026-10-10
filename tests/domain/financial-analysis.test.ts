@@ -86,6 +86,20 @@ describe("G5 pure domain", () => {
     ]);
   });
 
+  it("R9-GA-G5.2: mix grouping keys stay collision-free when free text contains the old delimiter", () => {
+    /* الاسم/الوحدة المُهندستان لتتصادما تحت الوصل القديم «::» — مع مفتاح
+     * JSON يبقيان سطرَي مزيج مستقلين كما هما دلاليًا. */
+    const first = order({ id: "order-a", itemName: "صندوق::أزرق", unitKey: "piece" });
+    const second = order({ id: "order-b", itemName: "صندوق", unitKey: "أزرق::piece" });
+    const result = calculateBreakEven("2026-08-01", "2026-08-31", [first, second], [fixedExpense()]);
+    /* الوحدتان مختلفتان فعلًا فالنافذة «غير مكتملة» كمياً — المهم هنا
+     * سطرا المزيج المفصولان لا سطرًا مدمجًا واحدًا. */
+    const names = result.mix.map(item => item.itemName);
+    expect(names).toContain("صندوق::أزرق");
+    expect(names).toContain("صندوق");
+    expect(result.mix).toHaveLength(2);
+  });
+
   it("uses JOD minor units and excludes deposits, collections, debt, purchases, and owner movements", () => {
     const result = calculateDirectMargin(
       "2026-08-01",

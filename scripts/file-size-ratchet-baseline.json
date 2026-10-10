@@ -333,7 +333,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts": {
-      "nbLoc": 549,
+      "nbLoc": 572,
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/application/financial-pulse/financialPulseService.ts": {
@@ -1825,7 +1825,7 @@
       "band": "NORMAL"
     },
     "src/domain/financial-analysis/policies.ts": {
-      "nbLoc": 937,
+      "nbLoc": 941,
       "band": "SPLIT_CANDIDATE"
     },
     "src/domain/financial-analysis/types.ts": {

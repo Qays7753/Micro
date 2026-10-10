@@ -398,6 +398,42 @@
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
         "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
       }
+    },
+    {
+      "id": "R9-SYS-B-FINANCIALANALYSISSERVICE",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts",
+      "from": {
+        "nbLoc": 549,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 572,
+        "band": "WATCH"
+      },
+      "reason": "R9-GA-G5.1: the legacy-key semantic bridge in createDeclaration — after the exact-key miss, an eight-field semantic comparison (direction, dueOn, amountMinor, source, note, knowledge, relatedOrderId, relatedEventId) reuses a stored declaration whose key format differs (pre-F3.4 records), closing the cross-format retry-duplication hole without any schema/export/import change.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group B (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-SYS-B-POLICIES",
+      "date": "2026-10-11",
+      "path": "src/domain/financial-analysis/policies.ts",
+      "from": {
+        "nbLoc": 937,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 941,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R9-GA-G5.2: the contribution-mix grouping key becomes a collision-free JSON array key instead of free-text '::' concatenation (a crafted itemName containing '::' could merge distinct name/unit pairs in the mix display); grouping semantics unchanged for non-colliding inputs.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group B (owner-authorized)"
+      }
     }
   ]
 }

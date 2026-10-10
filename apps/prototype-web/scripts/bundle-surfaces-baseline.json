@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "3cf59707daa4e9448398bb7386b8a71f262085b6",
+        "head": "da8747cafdfeed41954973c879f9fd6e5eb40d01",
         "date": "2026-10-11",
-        "method": "R9 systemic continuation (R9-GA-F3.6-ERROR-ROLE-INVENTORY + R9-GA-F3.7) re-anchor from the local production build of the Group A working tree (pnpm --filter @micro/prototype-web build): the error-surface semantic fixes across 24 pages/components (+3,001 lazy raw total (1207964 -> 1210965), +740 lazy gzip-norm (364297 -> 365037)) — the three explicit read state machines (CashAdjustmentEditor/ScheduleEditor/RecurringExpenseEditor), the tone-carrying message splits, and the role=alert announcements; the PWA precache total carries the same effect: 2675532 -> 2678533. Entry unchanged (631,254 raw / 155,010 gzip — under the 650,000/155,300 ceilings owned by check-bundle-budget). All counts unchanged (lazy 101, initial 2, dynamic roots 70, precache 156 entries, SW runtime 2). Authorized by the owner's systemic continuation mandate (R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11, Group A) with the ratchet ledger entries R9-SYS-A-* in the same PR. HEAD at re-anchor: 3cf59707daa4e9448398bb7386b8a71f262085b6"
+        "method": "R9 systemic continuation Group B (R9-GA-G5.1 + R9-GA-G5.2) re-anchor from the local production build: the G5 legacy-key semantic bridge in createDeclaration (eight-field semantic comparison after the exact-key miss) and the collision-free contribution-mix key add their measured cost to the entry chunk (the domain policies are statically imported): entry 631,254 -> 631,626 raw / 155,010 -> 155,086 gzip (+372 raw / +76 gzip — under the 650,000/155,300 ceilings owned by check-bundle-budget); the PWA precache total carries the same effect: 2,678,533 -> 2,678,905. Lazy surfaces unchanged (1210965 raw / 365037 gzipNorm). All counts unchanged (lazy 101, initial 2, dynamic roots 70, precache 156, SW runtime 2). Authorized by the owner's systemic continuation mandate, Group B, with the ratchet ledger entries R9-SYS-B-* in the same PR. HEAD at re-anchor: da8747cafdfeed41954973c879f9fd6e5eb40d01"
       },
       "toolchain": {
         "node": "v24.21.0",
@@ -34,7 +34,7 @@
         "initialGzipNormTotal": 70716,
         "lazyRawTotal": 1210965,
         "lazyGzipNormTotal": 365037,
-        "precacheBytesTotal": 2678533,
+        "precacheBytesTotal": 2678905,
         "swRuntimeRawTotal": 26170
       },
       "counts": {
