@@ -2,8 +2,9 @@
 /*
  * R9-W3 (WS-216/ARCH-007): اختبار مباشر لحدود صفحة تراجع أثر الكاش — حالات
  * التحميل والعدم والبوابة والعكس الموثق عبر الخدمة الحقيقية فوق مخزن
- * الذاكرة. لا يُثبَّت عيب العرض المكتشف (ابتلاع فشل التخزين داخل فرع
- * «لم نجد») — مسجل بقرار محمي R9-GA-F3.1 ولا يُنصّ هنا على سلوكه.
+ * الذاكرة. R9 استمرار (R9-GA-F3.1 + R9-W3-F1): آلة حالة القراءة الصريحة
+ * أصبحت منفذة — سطح «لم نجد أثر الكاش» يُختبر الآن عبر مسار النجاح،
+ * وفشل القراءة يُعرض برسالته الفعلية مع إعادة محاولة.
  */
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -39,6 +40,22 @@ const NOW = "2026-10-10T09:00:00.000Z";
 let store: MemoryLocalStore;
 let currentStore: MemoryLocalStore;
 const bumpVersion = vi.fn();
+
+/* R9-GA-F3.1 (اختبار فشل القراءة): مخزن حقيقي فوق MemoryLocalStore يُفشل
+ * قراءة سجل استمرارية الكاش مرة واحدة برسالة الخدمة الفعلية نفسها، ثم
+ * ينجح عند إعادة المحاولة — العلم داخل الاختبار وحده لا في الصفحة. */
+class FailingEntriesReadStore extends MemoryLocalStore {
+  failReads = true;
+  override async listCashContinuityEntries() {
+    if (this.failReads)
+      return {
+        ok: false as const,
+        code: "storage_error" as const,
+        message: "تعذر قراءة سجل استمرارية الكاش.",
+      };
+    return super.listCashContinuityEntries();
+  }
+}
 
 function services() {
   return {
@@ -97,22 +114,53 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("CashReversalEditor — direct page-boundary behavior (R9-W3)", () => {
-  it("an unknown entry id neither navigates nor writes anything (the not-found surface itself is unreachable today — defect R9-W3-F1, not enshrined here)", async () => {
+describe("CashReversalEditor — direct page-boundary behavior (R9-W3 + R9 continuation)", () => {
+  it("an unknown entry id renders the not-found surface, ends loading, and neither navigates nor writes anything (R9-W3-F1 closed)", async () => {
     wouterMocks.params = { id: "missing-entry" };
     render(<Harness />);
     expect(screen.getByRole("status")).toBeTruthy();
-    /* نجازي مهلة قصيرة ثم نثبت الحد الصادق الخالي من الأثر: لا تنقل ولا
-     * كتابة. سطح «لم نجد أثر الكاش» غير قابل للوصول عبر مسار النجاح
-     * (entry=null وmessage=null يبقيان حالة التحميل) — عيب موثق بقرار
-     * محمي، لا يُثبَّت سلوكه هنا. */
-    await new Promise(resolve => setTimeout(resolve, 50));
+    /* R9-GA-F3.1/W3-F1: سطح «لم نجد أثر الكاش» صار قابلًا للوصول عبر مسار
+     * النجاح — التحميل ينتهي والعدم يظهر والحد الصادق بلا أثر ثابت. */
+    expect(await screen.findByRole("heading", { name: "لم نجد أثر الكاش" })).toBeTruthy();
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByText("قد يكون السجل حُذف من هذا الجهاز أو تم التراجع عنه سابقًا.")).toBeTruthy();
     expect(wouterMocks.navigate).not.toHaveBeenCalled();
     expect(bumpVersion).not.toHaveBeenCalled();
     const cash = new CashContinuityService(store, () => NOW);
     const entries = await cash.entries();
     if (!entries.ok) throw new Error(entries.message);
     expect(entries.value).toHaveLength(0);
+  });
+
+  it("a storage/read failure renders the actual error message with an alert role and a retry — never the not-found surface (R9-GA-F3.1 closed)", async () => {
+    const failing = new FailingEntriesReadStore();
+    /* الزرع يمر أولًا بمسار ناجح (failReads=false) حتى تكتمل الكتابات
+     * والقراءات الوسيطة، ثم يُفعل الفشل قبل عرض الصفحة. */
+    failing.failReads = false;
+    store = failing;
+    currentStore = failing;
+    const seededEntryId = await seedAdjustment();
+    failing.failReads = true;
+    mockedUsePrototypeServices.mockReturnValue(
+      services() as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    wouterMocks.params = { id: seededEntryId };
+    render(<Harness />);
+    const error = await screen.findByRole("alert");
+    expect(error.textContent).toBe("تعذر قراءة سجل استمرارية الكاش.");
+    expect(screen.queryByText("لم نجد أثر الكاش")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "لم نجد أثر الكاش" })).toBeNull();
+    expect(wouterMocks.navigate).not.toHaveBeenCalled();
+    expect(bumpVersion).not.toHaveBeenCalled();
+
+    /* إعادة المحاولة تعيد القراءة عبر الخدمة الحقيقية — وعند نجاحها
+     * يُعرض المحرر (الأثر مزروع سلفًا). */
+    failing.failReads = false;
+    fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
+    expect(await screen.findByRole("textbox")).toBeTruthy();
+    const entries = await new CashContinuityService(store, () => NOW).entries();
+    if (!entries.ok) throw new Error(entries.message);
+    expect(entries.value).toHaveLength(2);
   });
 
   it("requires a reason before any reversal is written", async () => {

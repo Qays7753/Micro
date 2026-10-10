@@ -14,28 +14,51 @@ import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayVal
 
 import { Button } from "@/components/primitives";
 import { todayInAmman } from "@/application/time";
+
+/* R9-GA-F3.1 + R9-W3-F1 (استمرار R9 — آلة حالة القراءة الصريحة): كان
+ * حارس العرض القديم (!entry && !message ⇒ تحميل، !entry ⇒ «لم نجد») يجعل
+ * سطح «لم نجد» غير قابل للوصول عبر مسار النجاح (id مجهول ⇒ تحميل أبدي)
+ * ويبتلع فشل القراءة داخل سطح «لم نجد» (رسالة الخطأ لا تُعرض أبدًا). الفصل
+ * الصريح للمراحل يجعل كل حالة صادقة بذاتها: تحميل ← جاهز / غير موجود /
+ * خطأ قراءة فعلي برسالته الأصلية وإعادة محاولة — نفس نمط EstimateDetail
+ * وReceivedLoanDetail؛ لا تغيير في النسخ العربية القائمة ولا في أي سطح
+ * بصري إلا سطح خطأ القراءة الجديد وفق نمط الصفحات العميقة القائمة. */
+type ReversalReadState =
+  | { phase: "loading" }
+  | { phase: "not-found" }
+  | { phase: "read-error"; message: string }
+  | { phase: "ready"; entry: CashContinuityEntry };
+
 export default function CashReversalEditor() {
   const { id } = useParams<{ id: string }>();
   const [location, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
   const { dataVersion, cashContinuity, agreements, notifyDataChanged } = usePrototypeServices();
-  const [entry, setEntry] = useState<CashContinuityEntry | null>(null);
+  const [state, setState] = useState<ReversalReadState>({ phase: "loading" });
+  const [retryCount, setRetryCount] = useState(0);
   const [sourceWarning, setSourceWarning] = useState<{ orderId: string; text: string } | null>(null);
   const [date, setDate] = useState(() => todayInAmman());
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const operationKey = useRef(`cash-reversal-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
+  const entry = state.phase === "ready" ? state.entry : null;
   useEffect(() => {
-    cashContinuity.entries().then(result => {
+    let active = true;
+    void cashContinuity.entries().then(result => {
+      if (!active) return;
       if (!result.ok) {
-        setMessage(result.message);
+        setState({ phase: "read-error", message: result.message });
         return;
       }
-      setEntry(result.value.find(candidate => candidate.id === id) ?? null);
+      const found = result.value.find(candidate => candidate.id === id) ?? null;
+      setState(found ? { phase: "ready", entry: found } : { phase: "not-found" });
     });
-  }, [cashContinuity, id, dataVersion]);
+    return () => {
+      active = false;
+    };
+  }, [cashContinuity, id, dataVersion, retryCount]);
   /* G6-F1-4 (البند ١ — الجزء ب): تحذير غير حاجر عند التراجع عن تخصيص مرتبط
    * بقبضة ما زالت مسجلة — الصدق المزدوج: التصحيح ينفَّذ من سطحه المالك (الطلب)،
    * لا عكس تلقائي من سطح الكاش. وصلة للطلب مع الحفاظ على الرجوع. */
@@ -75,13 +98,16 @@ export default function CashReversalEditor() {
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
 
   async function save(): Promise<boolean> {
-    if (!entry || !reason.trim()) {
+    /* R9-GA-F3.1/W3-F1: لا حفظ ولا رسالة خارج مرحلة الجاهزية — حارس
+     * الحوار (احفظ ثم اخرج) قد يستدعي الحفظ بعد تغيّر المرحلة. */
+    if (state.phase !== "ready") return false;
+    if (!reason.trim()) {
       setMessage("اذكر سبب التراجع قبل الحفظ.");
       return false;
     }
     setSaving(true);
     const result = await cashContinuity.reverse({
-      entryId: entry.id,
+      entryId: state.entry.id,
       occurredOn: date,
       reason,
       operationKey: operationKey.current,
@@ -96,13 +122,13 @@ export default function CashReversalEditor() {
     navigate(returnPath);
     return true;
   }
-  if (!entry && !message)
+  if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
         جارٍ فتح الأثر…
       </div>
     );
-  if (!entry)
+  if (state.phase === "not-found")
     return (
       <section className="micro-page micro-not-found">
         <h1>لم نجد أثر الكاش</h1>
@@ -110,6 +136,25 @@ export default function CashReversalEditor() {
         <Button action="secondary" onClick={() => navigate("/cash")}>
           محافظ الكاش
         </Button>
+      </section>
+    );
+  if (state.phase === "read-error")
+    /* R9-GA-F3.1: فشل القراءة يُعرض برسالته الفعلية لا مموّهًا ك«عدم
+     * وجود» — نمط ReceivedLoanDetail: زر رجوع + رسالة الخطأ الحقيقية
+     * بصفة alert + إعادة محاولة. لا حفظ ولا تنقل ولا إشعار هنا. */
+    return (
+      <section className="micro-page">
+        <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+          محافظ الكاش
+        </button>
+        <p className="micro-field-error" role="alert">
+          {state.message}
+        </p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
       </section>
     );
   return (
@@ -127,10 +172,10 @@ export default function CashReversalEditor() {
         <div>
           <span>الأثر الذي سيتم التراجع عنه</span>
           <strong>
-            <MoneyValue minor={entry.cashDeltaMinor} showPlus />
+            <MoneyValue minor={state.entry.cashDeltaMinor} showPlus />
           </strong>
           <p>
-            <LocalDateValue value={entry.occurredOn} /> · {entry.note}
+            <LocalDateValue value={state.entry.occurredOn} /> · {state.entry.note}
           </p>
         </div>
       </section>

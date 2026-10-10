@@ -74,6 +74,60 @@
         "ownerReview": "Owner-authorized R9 execution contract, section 9 (W2): root-fix of any current recovery defect found within the approved boundary; R9 repair card R9-GA-F1; Gate B storage reviewer design approval (abort-then-rethrow, guarded).",
         "trigger": "R9-GA-F1 discovery during the authorized R9 W2 rollback rehearsals"
       }
+    },
+    {
+      "id": "R9-GA-F3-ROOT-FIX-CASH-REVERSAL",
+      "date": "2026-10-10",
+      "path": "apps/prototype-web/client/src/pages/CashReversalEditor.tsx",
+      "from": {
+        "nbLoc": 177,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 220,
+        "band": "NORMAL"
+      },
+      "reason": "R9-GA-F3.1 + R9-W3-F1 root fix: the explicit four-phase read state machine (loading/ready/not-found/read-error) replaces the defective !entry/!message render guard that made the not-found surface unreachable on the success path and swallowed read failures into it; adds the read-error surface (ReceivedLoanDetail pattern: back button + actual message + retry) and the retry token, with the save() phase guard.",
+      "authorization": {
+        "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
+        "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-GA-F3-ROOT-FIX-INVENTORY-REVERSAL",
+      "date": "2026-10-10",
+      "path": "apps/prototype-web/client/src/pages/InventoryReversalEditor.tsx",
+      "from": {
+        "nbLoc": 128,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 170,
+        "band": "NORMAL"
+      },
+      "reason": "R9-GA-F3.2 + R9-GA-F3.3 + R9-GA-F3.5 + R9-W3-F1 root fix: the same four-phase read state machine as the cash reversal editor (not-found reachable, read failures rendered with their actual message + retry), the successful-save exit switched from the undocumented hardcoded /inventory to the S1-07 return-path contract (navigate(returnPath)), and the form error paragraph role corrected to alert.",
+      "authorization": {
+        "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
+        "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-GA-F3-ROOT-FIX-CASH-WALLET-ROLE",
+      "date": "2026-10-10",
+      "path": "apps/prototype-web/client/src/pages/CashWalletEditor.tsx",
+      "from": {
+        "nbLoc": 132,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 135,
+        "band": "NORMAL"
+      },
+      "reason": "R9-GA-F3.5 root fix: the form message paragraph is an actual error surface (validation gate or save failure) and is now announced with role=alert, matching the repo-wide micro-field-error convention.",
+      "authorization": {
+        "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
+        "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)"
+      }
     }
   ]
 }

@@ -105,7 +105,8 @@ describe("CashWalletEditor — direct page-boundary behavior (R9-W3)", () => {
   it("blocks the save at the validation gate without touching the store or navigating", async () => {
     render(<Harness />);
     fireEvent.click(screen.getByRole("button", { name: /حفظ محفظة ورصيد البداية/ }));
-    expect(await screen.findByRole("status")).toBeTruthy();
+    /* R9-GA-F3.5: رسالة بوابة التحقق خطأ فعلي — صفة alert (كانت status). */
+    expect(await screen.findByRole("alert")).toBeTruthy();
     expect(screen.getByText("أدخل اسم المحفظة ورصيد بداية صالحًا بالأرقام 0–9.")).toBeTruthy();
     const reader = new CashContinuityService(store, () => NOW);
     const overview = await reader.overview();

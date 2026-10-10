@@ -977,7 +977,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/CashReversalEditor.tsx": {
-      "nbLoc": 177,
+      "nbLoc": 220,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/CashTransferEditor.tsx": {
@@ -985,7 +985,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/CashWalletEditor.tsx": {
-      "nbLoc": 132,
+      "nbLoc": 135,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/CashWallets.tsx": {
@@ -1069,7 +1069,7 @@
       "band": "SPLIT_CANDIDATE"
     },
     "apps/prototype-web/client/src/pages/InventoryReversalEditor.tsx": {
-      "nbLoc": 128,
+      "nbLoc": 170,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/LoanDetail.tsx": {
