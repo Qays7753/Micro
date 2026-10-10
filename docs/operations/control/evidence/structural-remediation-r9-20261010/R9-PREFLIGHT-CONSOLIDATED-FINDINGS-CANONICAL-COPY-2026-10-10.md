@@ -18,7 +18,7 @@ report was built from) is preserved verbatim under
 [`preflight-review-package/`](preflight-review-package/) in this directory — five
 read-only reviewer reports (architecture/ownership, storage/data-integrity,
 UI/boundaries, tests/guards/CI, hostile evidence) plus the preflight focused-command
-logs (capabilities, root/app guards, journeys, transfers). SHA-256 of the five
+logs (capabilities, root/app guards, journeys, transfers — preserved as `*.log.txt`; `*.log` is gitignored in this repository). SHA-256 of the five
 reviewer files at preservation time: reviewer-1 `b3155bf6…`, reviewer-2 `b9f26d55…`,
 reviewer-3 `91d601b6…`, reviewer-4 `0d08fbba…`, reviewer-5 `a2d11b77…` (full digests
 recordable via `sha256sum preflight-review-package/reviewer-*.md`).

@@ -1,0 +1,41 @@
+
+ RUN  v4.1.11 /home/z/my-project/work/micro/repo/apps/prototype-web
+
+ ✓ client/src/application/transfers/transferCompatibilityRegistry.test.ts (7 tests) 978ms
+     ✓ registry file typechecks: legacy values stay outside the current union (tsc enforced)  973ms
+ ✓ client/src/application/transfers/domainTransferDriftGuard.test.ts (23 tests) 869ms
+     ✓ anchors file typechecks against the live domain unions (missing/extra domain values fail here)  861ms
+ ✓ client/src/application/transfers/localTransferService.test.ts (30 tests) 104ms
+ ✓ client/src/application/transfers/localTransferService.feeOrderRoundTrip.test.ts (7 tests) 49ms
+ ✓ client/src/application/transfers/dataRoundTrip.exe014.test.ts (10 tests) 39ms
+ ✓ client/src/application/transfers/localTransferService.releasedPairs.test.ts (20 tests) 29ms
+ ✓ client/src/application/transfers/exportGoldens.test.ts (6 tests) 27ms
+ ✓ client/src/application/transfers/localTransferService.schema32.test.ts (3 tests) 25ms
+ ✓ client/src/application/transfers/localTransferService.schema34.test.ts (8 tests) 27ms
+ ✓ client/src/application/transfers/localTransferService.receivedLoan.test.ts (3 tests) 23ms
+ ✓ client/src/application/transfers/ownerEntitlementTransfer.test.ts (5 tests) 22ms
+ ✓ client/src/application/transfers/localTransferService.schema31.test.ts (5 tests) 23ms
+ ✓ client/src/application/transfers/localTransferService.expenseBudget.test.ts (3 tests) 17ms
+ ✓ client/src/application/transfers/catalogCoreTransfer.test.ts (4 tests) 21ms
+ ✓ client/src/application/transfers/localTransferService.directSaleRoundTrip.test.ts (3 tests) 20ms
+ ✓ client/src/application/transfers/localTransferService.schema29.test.ts (3 tests) 18ms
+ ✓ client/src/application/transfers/localTransferService.recurringExpense.test.ts (3 tests) 19ms
+ ✓ client/src/application/transfers/transferFamilyValidators.characterization.test.ts (86 tests) 17ms
+ ✓ client/src/application/transfers/localTransferService.capabilitiesRoundTrip.test.ts (2 tests) 16ms
+ ✓ client/src/application/transfers/localTransferService.assetResidual.test.ts (3 tests) 17ms
+ ✓ client/src/application/transfers/localTransferService.familyOrphan.test.ts (4 tests) 16ms
+ ✓ client/src/application/transfers/localTransferService.envelope27.test.ts (8 tests) 16ms
+ ✓ client/src/application/transfers/localTransferService.schema33.test.ts (1 test) 15ms
+ ✓ client/src/application/transfers/localTransferService.rel001.test.ts (2 tests) 16ms
+ ✓ client/src/application/transfers/guidedOpeningImportService.test.ts (10 tests) 10ms
+ ✓ client/src/application/transfers/localTransferService.prepareImport.rejection.test.ts (5 tests) 12ms
+ ✓ client/src/application/transfers/guidedOpeningImportService.g82.test.ts (7 tests) 10ms
+ ✓ client/src/application/transfers/transferCounters.migrations.characterization.test.ts (7 tests) 6ms
+ ✓ client/src/application/transfers/transferEnvelope.characterization.test.ts (8 tests) 5ms
+ ✓ client/src/application/transfers/localDateVariantDivergence.characterization.test.ts (3 tests) 4ms
+
+ Test Files  30 passed (30)
+      Tests  289 passed (289)
+   Start at  15:52:41
+   Duration  9.96s (transform 1.30s, setup 0ms, import 3.94s, tests 2.47s, environment 2ms)
+
