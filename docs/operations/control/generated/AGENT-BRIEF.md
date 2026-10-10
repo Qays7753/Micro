@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-216 | IN_PROGRESS | \`refactoring/r7-structural-ui-boundaries-20261010\` | — | ARCH-007 | R7 كلها منفذة على الفرع refactoring/r7-structural-ui-boundaries-20261010 (P01..P11 + إغلاق الشيمات التسع بإثبات صفر مستهلكين): كل صفحة/محرر يُدار عبر سطح عرض/استعلام تطبيقي مالك؛ الدورة المختلطة F-019 فُكت من جذرها؛ pnpm check كاملًا أخضر محليًا. الخطوة التالية: PR واحد إلى main بمراجعة المالك ودمجه (لا دمج آلي)؛ تقرير الجاهزية R7-COMPLETE-PR-READINESS-REPORT-2026-10-10.md يحمل المانيفست الكامل. |
+| WS-216 | IN_PROGRESS | \`refactoring/r7-structural-ui-boundaries-20261010\` | 342 | ARCH-007 | R7 مكتملة على الفرع refactoring/r7-structural-ui-boundaries-20261010 عند الرأس 6b652e853258144b145f2389d09cfa2178d45570: الحزم P01..P11 منفذة، الدورة المختلطة F-019 فُكت من جذرها، والشيمات التسع أزيلت بإثبات صفر مستهلكين؛ CI 38031209971 وCloudflare Pages 114152425904 ناجحان. PR #342 IN_REVIEW وجاهزة لمراجعة المالك والدمج بتفويض منفصل. بعد الدمج والتحقق على main فقط تفتح بوابة R8؛ لا تبدأ R8 من هذا الفرع. |

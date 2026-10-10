@@ -1062,3 +1062,12 @@
 **Impact:** none — no production code, no financial/schema (38/30)/history/UI/provider change; no merge; no cleanup.
 
 **Next:** owner review + merge of PR #342 (owner-only); post-merge verification then R8 gate.
+
+
+## Entry 76 — 2026-10-10 — R7 pre-merge documentation reconciliation and R8 gate preparation (WS-216/ARCH-007)
+
+- **التفويض:** تجهيز R7 بالكامل للدمج والانتقال المنضبط إلى R8، من دون دمج أو بدء R8.
+- **التحقق:** PR #342 مفتوحة وقابلة للدمج على `refactoring/r7-structural-ui-boundaries-20261010` عند الرأس `6b652e853258144b145f2389d09cfa2178d45570`; CI `38031209971` وCloudflare Pages `114152425904` ناجحان؛ `main` ثابت عند `e01d560539476c1c7f712891f2355200d2d74aa6`.
+- **المصالحة:** حُدثت مؤشرات الحالة الحية في `docs/architecture/refactoring/README.md` و`REFACTORING-CONTROL.md` و`docs/operations/current-state.md`، مع إبقاء التاريخ append-only وعدم تغيير كود التطبيق.
+- **الحالة:** `R7_COMPLETE — PR_READY — MERGE_PENDING_OWNER`; بعد دمج المالك والتحقق من `main` فقط تصبح `R8_GATE_OPEN`. لم تبدأ R8.
+- **الأثر والحدود:** لا تغيير مالي أو دلالي أو تاريخي أو Schema/Export/Import أو UI بصري؛ لا حذف فروع أو PRs أو أدلة؛ لا دمج من هذه الخطوة.

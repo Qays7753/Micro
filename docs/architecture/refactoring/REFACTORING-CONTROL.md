@@ -1,9 +1,9 @@
 # Micro — Refactoring Control
 
-**الإصدار:** v1.15 (R6-W1/W2/W3 مدموجة ومتحققة على main؛ R7 جاهزة للتحضير — 2026-10-10؛ v1.14 وما قبلها سجل تاريخي)
+**الإصدار:** v1.16 (R6-W1/W2/W3 مدموجة ومتحققة على main؛ R7 منفذة وجاهزة للدمج عبر PR #342 — 2026-10-10؛ v1.15 وما قبلها سجل تاريخي)
 **التاريخ:** 2026-10-10
-**الحالة:** `OWNER_ACCEPTED — R6 VERIFIED_ON_MAIN; R7 PREPARATION GATE`
-**المرحلة:** `SUCCESSOR R0–R6 VERIFIED ON MAIN; R7 NOT STARTED — PREPARE R7 PREFLIGHT/REPAIR CARDS`
+**الحالة:** `OWNER_ACCEPTED — R6 VERIFIED_ON_MAIN; R7 PR_READY — MERGE_PENDING_OWNER`
+**المرحلة:** `SUCCESSOR R0–R6 VERIFIED ON MAIN; R7 COMPLETE_ON_BRANCH; R8 GATE_PENDING_R7_MERGE_AND_POST_MERGE_VERIFICATION`
 **النطاق:** Structure / Architecture / Code Organization فقط
 
 ## 1. الهدف
@@ -185,7 +185,7 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 - **الخطة:** `STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
 - **البداية المسموحة:** R0 قراءة فقط ومصالحة الخط الأساسي؛ لا نقل أو تقسيم أو حذف أو تعديل كودي في R0.
 - **قاعدة الاستمرار:** بعد تقرير R0 فقط، تنفذ R1–R10 على فرع مستقل، وبطاقات Repair، وPR مستقل أو شريحة قابلة للمراجعة، وفحوص مركزة وCI وحد رجوع لكل موجة.
-- **الخطوة الحية:** R4 وR5 مدموجتان ومتحققتان على main؛ R6 W1/W2/W3 مدموجة بالترتيب PR #338 → #339 → #340 عند merge commit `8f7ba482c92b33fd1565df3284b992c6b28a128b`، وCI post-merge النهائي `37998261599` ناجح. لا تغييرات مالية/دلالية/تاريخية أو Schema/Export/Import أو UI بصري. **التالي: R7 preflight/repair cards على فرع مستقل؛ لا تبدأ كتابة R7 قبل بوابة النطاق والاختبارات وحد الرجوع.**
+- **الخطوة الحية:** R4 وR5 مدموجتان ومتحققتان على main؛ R6 W1/W2/W3 ومصالحتها مدموجة ومتحققة عند `e01d560539476c1c7f712891f2355200d2d74aa6` مع CI post-merge `37999470232` ناجح. R7 منفذة على فرعها في PR #342 عند الرأس `6b652e853258144b145f2389d09cfa2178d45570`، وCI `38031209971` وCloudflare Pages `114152425904` ناجحان؛ لا تغييرات مالية/دلالية/تاريخية أو Schema/Export/Import أو UI بصري. **التالي: مراجعة المالك ودمج PR #342؛ بعد التحقق على main فقط تفتح بوابة R8.**
 
 ## 15. سلّم الأولوية ودورة حياة قطع الحوكمة (R1/TG-04 — 2026-10-07)
 

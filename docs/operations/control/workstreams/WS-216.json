@@ -28,10 +28,10 @@
     "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md"
   ],
   "agent": "Manus orchestration + Z AI sequential executor; R0 read-only first; one writer at a time",
-  "pr": null,
+  "pr": 342,
   "started_at": "2026-10-07",
   "updated_at": "2026-10-10",
-  "next_action": "R7 كلها منفذة على الفرع refactoring/r7-structural-ui-boundaries-20261010 (P01..P11 + إغلاق الشيمات التسع بإثبات صفر مستهلكين): كل صفحة/محرر يُدار عبر سطح عرض/استعلام تطبيقي مالك؛ الدورة المختلطة F-019 فُكت من جذرها؛ pnpm check كاملًا أخضر محليًا. الخطوة التالية: PR واحد إلى main بمراجعة المالك ودمجه (لا دمج آلي)؛ تقرير الجاهزية R7-COMPLETE-PR-READINESS-REPORT-2026-10-10.md يحمل المانيفست الكامل.",
+  "next_action": "R7 مكتملة على الفرع refactoring/r7-structural-ui-boundaries-20261010 عند الرأس 6b652e853258144b145f2389d09cfa2178d45570: الحزم P01..P11 منفذة، الدورة المختلطة F-019 فُكت من جذرها، والشيمات التسع أزيلت بإثبات صفر مستهلكين؛ CI 38031209971 وCloudflare Pages 114152425904 ناجحان. PR #342 IN_REVIEW وجاهزة لمراجعة المالك والدمج بتفويض منفصل. بعد الدمج والتحقق على main فقط تفتح بوابة R8؛ لا تبدأ R8 من هذا الفرع.",
   "notes": [
     "اعتماد المالك في 2026-10-07 للخطة المحدثة ومصفوفة التتبع الكاملة المبنية على تقريري Structure وFlash.",
     "هذا successor مستقل؛ لا يعيد فتح WS-212 أو WS-214 أو WS-215 ولا يعدل عقودها التاريخية.",
@@ -60,7 +60,8 @@
     "2026-10-09 (R6-W3 — أدوات/اختبارات/توثيق فقط): فُصل scripts/text-density-count.py (كان 1,253 nbLOC بشريط SPLIT_NOW بتأكيد إبقاء مجرد دحضه القياس) إلى محرك 458 nbLOC (WATCH — ربح راتشة بخفض مدخل الأساس) ووحدة بيانات سياسة scripts/text_density_policy.py (846 nbLOC — SPLIT_CANDIDATE بمدخل أساس جديد موثق؛ الحجم غالبه تاريخ السقوف المؤرخ المحفوظ حرفيًا). الدليل: توصيف قبل الفصل (ذهبي مست captured من الملف قبل أي تعديل) ثم مخرجات بايت-متطابقة (4,117 بايت، خرج 0، stderr فارغ)، وسلبيتان (سقف معدول يفشل الخروج، ومدخل مشوه يُرفض بخرج 2)، والحزمة بلا أي تغيير (المحرك خارج رسم بناء vite). لا تغيير سلوك تطبيق ولا سقوف كثافة ولا Schema/Export.",
     "2026-10-10: R6 W1/W2/W3 دُمجت تباعًا عبر PR #338/#339/#340 بدمج commits 5ff733dd و6106497b و8f7ba482، وتحقق CI على main في runs 37997412599/37997833257/37998261599؛ R6 VERIFIED_ON_MAIN، وR7 هي الخطوة التالية.",
     "2026-10-10 (R7-0 — preflight فقط، لا كتابة إنتاج): تحقق حي: main = e01d5605 (دمج PR #341؛ CI 37999470232 ناجح على الرأس نفسه)، صفر PRs مفتوحة، worktree نظيف. أُنشئ فرع R7 من الرأس المذكور. قُرئت كل المدخلات الإلزامية (AGENTS/current-state/charter/control docs/عقد R0-R10/الخطة §R7/السجلات الثلاثة/أدلة R6). جرد حي لحزم P01..P11 (مستهلكون/أنواع الاستيراد/اختبارات مباشرة — مطابق للسجل) ولعشر وحدات توافق (3 بإسهام إنتاجي نوعي فقط، 3 بمستهلكي اختبارات فقط، 3 بصفر مستهلكين — محفز الإزالة مشتعل، وwithdrawalWalletGuard غير موجودة أصلًا). بطاقات الإصلاح وخطة الشرائح في تقرير R7-0.",
-    "2026-10-10 (R7 تنفيذ كامل): الحزم الإحدى عشرة منفذة على ستة التزامات متسلسلة (R7-0..R7-5) بواجهة كتابة BRANCH_AND_PR_ONLY؛ الأساس الحي عند بدء التنفيذ e01d5605. الأدلة: تقارير R7-0..R7-5 في مجلد أدلة R7. لا تغيير مالي/دلالي/تاريخي أو Schema/Export/Import (38/30) أو UI بصري؛ الأغطية 650,000/155,300 كما هي؛ أساس أسطح الحزم حدّث ثلاث مرات موثقة (كلفة بنيوية للوحدات المستخرجة داخل رسم البناء — ليس رفع سقف)."
+    "2026-10-10 (R7 تنفيذ كامل): الحزم الإحدى عشرة منفذة على ستة التزامات متسلسلة (R7-0..R7-5) بواجهة كتابة BRANCH_AND_PR_ONLY؛ الأساس الحي عند بدء التنفيذ e01d5605. الأدلة: تقارير R7-0..R7-5 في مجلد أدلة R7. لا تغيير مالي/دلالي/تاريخي أو Schema/Export/Import (38/30) أو UI بصري؛ الأغطية 650,000/155,300 كما هي؛ أساس أسطح الحزم حدّث ثلاث مرات موثقة (كلفة بنيوية للوحدات المستخرجة داخل رسم البناء — ليس رفع سقف).",
+    "2026-10-10 (مصالحة R7 قبل الدمج): صُححت مؤشرات الحالة الحية في README وREFACTORING-CONTROL وcurrent-state، وثُبتت PR #342 ورأسها وفحوصها في مصدر Operations Control؛ لا تغيير كودي أو مالي أو تاريخي أو Schema/Export/Import أو UI بصري؛ R8 لم تبدأ والدمج يتطلب تفويض المالك."
   ],
   "merge_sha": "8f7ba482c92b33fd1565df3284b992c6b28a128b",
   "verified_on_main_sha": "8f7ba482c92b33fd1565df3284b992c6b28a128b",
@@ -97,7 +98,11 @@
     "docs/operations/control/evidence/structural-remediation-r7-20261010/R7-4-OWNER-SCHEDULE-STATEMENT-EXECUTION-REPORT-2026-10-10.md",
     "docs/operations/control/evidence/structural-remediation-r7-20261010/R7-5-SHIM-CLOSURE-EXECUTION-REPORT-2026-10-10.md",
     "docs/operations/control/evidence/structural-remediation-r7-20261010/R7-COMPLETE-PR-READINESS-REPORT-2026-10-10.md",
-    "docs/operations/control/evidence/structural-remediation-r7-20261010/R7-CLOUDFLARE-PAGES-REPAIR-2026-10-10.md"
+    "docs/operations/control/evidence/structural-remediation-r7-20261010/R7-CLOUDFLARE-PAGES-REPAIR-2026-10-10.md",
+    "https://github.com/Qays7753/Micro/pull/342",
+    "https://github.com/Qays7753/Micro/commit/6b652e853258144b145f2389d09cfa2178d45570",
+    "https://github.com/Qays7753/Micro/actions/runs/38031209971",
+    "https://github.com/Qays7753/Micro/checks/114152425904"
   ],
   "status_history": [
     {
