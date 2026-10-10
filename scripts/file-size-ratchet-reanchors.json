@@ -20,6 +20,24 @@
         "ownerReview": "R8 PR review (WS-216/ARCH-007) — this entry is part of the R8 PR diff",
         "trigger": "R8 execution prompt section 8, R8-3: the new rule must be measured and documented same-PR"
       }
+    },
+    {
+      "id": "R8-4-CI-ANCHOR",
+      "date": "2026-10-10",
+      "path": "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 76,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 108,
+        "band": "NORMAL"
+      },
+      "reason": "the github-actions environment record anchored from the documented CI bootstrap (run 38046254527) adds the record block and the environment-convergence provenance note; the file is measurement data whose size tracks anchor provenance, and the growth is documented through this ledger entry rather than by excluding the file from scope mid-PR",
+      "authorization": {
+        "ownerReview": "R8 PR review (WS-216/ARCH-007) — part of the R8 PR diff",
+        "trigger": "R8-4 CI bootstrap anchoring per the R8-1 documented protocol"
+      }
     }
   ]
 }

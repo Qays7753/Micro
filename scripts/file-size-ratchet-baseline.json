@@ -1481,7 +1481,7 @@
       "band": "WATCH"
     },
     "apps/prototype-web/scripts/bundle-surfaces-baseline.json": {
-      "nbLoc": 76,
+      "nbLoc": 108,
       "band": "NORMAL"
     },
     "apps/prototype-web/scripts/check-bundle-budget.mjs": {
