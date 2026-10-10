@@ -134,7 +134,9 @@
     "https://github.com/Qays7753/Micro/pull/342",
     "https://github.com/Qays7753/Micro/commit/6b652e853258144b145f2389d09cfa2178d45570",
     "https://github.com/Qays7753/Micro/actions/runs/38031209971",
-    "https://github.com/Qays7753/Micro/checks/114152425904"
+    "https://github.com/Qays7753/Micro/checks/114152425904",
+    "https://github.com/Qays7753/Micro/commit/74908e1334098a51bb516aa3bbdcc898a4bedb1f",
+    "https://github.com/Qays7753/Micro/actions/runs/38037936319"
   ],
   "dependencies": [],
   "related_items": [
@@ -152,5 +154,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R7 COMPLETE — PR #342 IN_REVIEW and PR_READY on refactoring/r7-structural-ui-boundaries-20261010 at head 6b652e853258144b145f2389d09cfa2178d45570; all 11 packages executed, F-019 mixed cycle dissolved at the root, and 9 compatibility shims removed with zero-consumer proof. CI 38031209971 and Cloudflare Pages 114152425904 are successful. Next: owner-authorized merge, post-merge verification on main, and only then open the R8 gate; R8 has not started."
+  "next_action": "R7 VERIFIED_ON_MAIN at merge commit 74908e1334098a51bb516aa3bbdcc898a4bedb1f; PR #342 merged and post-merge CI 38037936319 succeeded on the exact main head. R8 PREFLIGHT GATE OPEN, IMPLEMENTATION NOT STARTED. Next: produce the R8 read-only preflight/repair-card package from the live main tree, contract, plan, R6 scan and owner decision package; classify every R8 item, record consumers/owners/tests/seams, define minimum safe waves, rollback boundaries and acceptance criteria, and obtain the owner gate before structural writes."
 }

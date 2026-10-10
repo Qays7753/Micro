@@ -1071,3 +1071,11 @@
 - **المصالحة:** حُدثت مؤشرات الحالة الحية في `docs/architecture/refactoring/README.md` و`REFACTORING-CONTROL.md` و`docs/operations/current-state.md`، مع إبقاء التاريخ append-only وعدم تغيير كود التطبيق.
 - **الحالة:** `R7_COMPLETE — PR_READY — MERGE_PENDING_OWNER`; بعد دمج المالك والتحقق من `main` فقط تصبح `R8_GATE_OPEN`. لم تبدأ R8.
 - **الأثر والحدود:** لا تغيير مالي أو دلالي أو تاريخي أو Schema/Export/Import أو UI بصري؛ لا حذف فروع أو PRs أو أدلة؛ لا دمج من هذه الخطوة.
+
+
+## Entry 77 — 2026-10-10 — R7 post-merge verification and R8 preflight gate (WS-216/ARCH-007)
+
+- **التفويض:** دمج R7، التحقق من `main` وCI، ثم تجهيز بوابة R8 دون بدء تنفيذها.
+- **الدمج والتحقق:** PR #342 دُمجت بـMerge commit `74908e1334098a51bb516aa3bbdcc898a4bedb1f` من `e01d560539476c1c7f712891f2355200d2d74aa6` و`db78225d877ecddb9067caaafceb2d85256f73bc`. CI post-merge `38037936319` نجح على رأس `main` نفسه.
+- **الحالة:** `R7_VERIFIED_ON_MAIN`; `R8_PREFLIGHT_GATE_OPEN`; لم تبدأ كتابة أو تنفيذ R8. الخطوة التالية هي إعداد preflight/repair-card package من main الحي، ثم مراجعة وقبول المالك قبل أي structural write.
+- **الأثر والحدود:** لا تغيير مالي أو دلالي أو تاريخي أو Schema/Export/Import أو UI بصري؛ لا حذف فروع أو PRs أو أدلة ضمن هذه المصالحة.

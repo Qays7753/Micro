@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-216 | IN_PROGRESS | \`refactoring/r7-structural-ui-boundaries-20261010\` | 342 | ARCH-007 | R7 مكتملة على الفرع refactoring/r7-structural-ui-boundaries-20261010 عند الرأس 6b652e853258144b145f2389d09cfa2178d45570: الحزم P01..P11 منفذة، الدورة المختلطة F-019 فُكت من جذرها، والشيمات التسع أزيلت بإثبات صفر مستهلكين؛ CI 38031209971 وCloudflare Pages 114152425904 ناجحان. PR #342 IN_REVIEW وجاهزة لمراجعة المالك والدمج بتفويض منفصل. بعد الدمج والتحقق على main فقط تفتح بوابة R8؛ لا تبدأ R8 من هذا الفرع. |
+| WS-216 | IN_PROGRESS | \`main\` | — | ARCH-007 | R7 VERIFIED_ON_MAIN عند merge commit 74908e1334098a51bb516aa3bbdcc898a4bedb1f (والدان e01d560539476c1c7f712891f2355200d2d74aa6 وdb78225d877ecddb9067caaafceb2d85256f73bc)؛ CI post-merge 38037936319 ناجح. R8 هي التالية: نفّذ preflight/repair-card gate على main، واقرأ العقد والخطة وسجل R6 ومسح R6 وقرار المالك وسجل R7، ثم ثبت نطاق R8 وبطاقاتها وحدود الرجوع قبل أي structural write. لا تبدأ تنفيذ R8 من هذه المصالحة. |
