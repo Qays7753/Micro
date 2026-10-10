@@ -566,3 +566,53 @@ describe("G5 short-cash receivables count only registered debt (A-05)", () => {
     expect(decision.ok && decision.value.shortCash.undatedReceivablesMinor).toBe(5000);
   });
 });
+
+/* ─── استمرار R9 (R9-GA-F3.4): عقد إعادة استخدام createDeclaration على
+ * محرك IndexedDB الحقيقي (fake-indexeddb) — الهوية من المُستدعي والمطابقة
+ * نصية داخل النوع؛ نفس مدخلات g5-ui الجديدة تُعاد بصدق، واختلاف knowledge
+ * وحده يُنشئ سجلًا ثانيًا. ─── */
+describe("FinancialAnalysisService.createDeclaration idempotency on IndexedDB (R9 continuation)", () => {
+  it("an identical retry reuses the stored declaration and a knowledge-only difference persists a second one", async () => {
+    await import("fake-indexeddb/auto");
+    const { IndexedDbLocalStore } = await import("@/storage/local/IndexedDbLocalStore");
+    const store = new IndexedDbLocalStore();
+    const projectFinance = new ProjectFinancialService(store, now);
+    const service = new FinancialAnalysisService(store, projectFinance);
+    const base = {
+      direction: "collection" as const,
+      amountMinor: 2_500,
+      dueOn: "2026-08-10",
+      source: "مصدر على IndexedDB",
+      note: "ملاحظة على IndexedDB",
+      relatedOrderId: null,
+      relatedEventId: null,
+      idempotencyKey:
+        'g5-ui:["collection","2026-08-10",2500,"مصدر على IndexedDB","ملاحظة على IndexedDB","known",null,null]',
+    };
+    const first = await service.createDeclaration({ ...base, knowledge: "known" });
+    expect(first.ok).toBe(true);
+    const retry = await service.createDeclaration({ ...base, knowledge: "known" });
+    expect(retry.ok).toBe(true);
+    expect(retry.ok && retry.reused).toBe(true);
+    const differing = await service.createDeclaration({
+      ...base,
+      knowledge: "estimated",
+      idempotencyKey:
+        'g5-ui:["collection","2026-08-10",2500,"مصدر على IndexedDB","ملاحظة على IndexedDB","estimated",null,null]',
+    });
+    expect(differing.ok).toBe(true);
+    expect(differing.ok && differing.reused).toBeUndefined();
+    const declarations = await service.listDeclarations();
+    expect(declarations.ok).toBe(true);
+    expect(declarations.ok && declarations.value).toHaveLength(2);
+    expect(declarations.ok && declarations.value.filter(item => item.knowledge === "known")).toHaveLength(1);
+    expect(declarations.ok && declarations.value.filter(item => item.knowledge === "estimated")).toHaveLength(
+      1,
+    );
+    await new Promise<void>(resolve => {
+      const request = indexedDB.deleteDatabase("micro-prototype-local");
+      request.onsuccess = () => resolve();
+      request.onerror = () => resolve();
+    });
+  });
+});

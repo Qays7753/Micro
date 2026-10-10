@@ -128,6 +128,24 @@
         "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
         "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)"
       }
+    },
+    {
+      "id": "R9-GA-F3-ROOT-FIX-G5-KEY",
+      "date": "2026-10-10",
+      "path": "apps/prototype-web/client/src/pages/G5DeclarationEditor.tsx",
+      "from": {
+        "nbLoc": 238,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 256,
+        "band": "NORMAL"
+      },
+      "reason": "R9-GA-F3.4 root fix: the idempotency key derivation serializes all eight persisted semantic inputs (direction, dueOn, amountMinor, source, note, knowledge, relatedOrderId, relatedEventId) through JSON with the frozen g5-ui: prefix — closing both the knowledge omission (a knowledge-differing correction was silently swallowed as reused) and the free-text colon-collision hole; schema/export versions untouched.",
+      "authorization": {
+        "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
+        "trigger": "R9 continuation execution prompt, Fix Group C (owner-authorized)"
+      }
     }
   ]
 }
