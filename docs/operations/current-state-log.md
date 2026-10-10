@@ -2122,3 +2122,21 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - **Findings:** ZAI reports no new product/tree finding beyond R6-SCAN-F-001..027. W1 review discovered two deliverable-record blockers (evidence list replacement and first-commit pointer drift); both were fixed in PR #338 with append-only proof. No R6 finding remains without a disposition; no protected decision was hidden.
 - **Impact:** R6 changed no financial/semantic/historical meaning, Schema/Export/Import 38/30, rejection behavior, security policy, or visual UI. W1 was records-only; W2 test/guard-only; W3 tooling/test/docs-only with byte-identical CLI output and zero bundle impact.
 - **Next:** R7 is not started. Prepare R7 preflight/Repair Cards from the accepted R6-F17-P01..P11 package on a new branch; no structural R7 write until its scoped gate is recorded.
+
+## §159 — R7: حدود UI البنيوية وإغلاق الشيمات (2026-10-10، WS-216/ARCH-007)
+
+**النطاق:** موجة R7 كاملة على الفرع المستقل `refactoring/r7-structural-ui-boundaries-20261010` من `e01d5605` (ما بعد دمج مصالحة R6 عبر PR #341)؛ واجهة كتابة BRANCH_AND_PR_ONLY طوال الموجة.
+
+**ما نُفذ (ستة التزامات متسلسلة، R7-0..R7-5):**
+1. **R7-0 (db0921d5):** preflight وبطاقات إصلاح P01..P11 وجرد مستهلكين حي (مطابق للسجل) وجرد عشر وحدات توافق + خمسة بوابات مراجعة قراءة-فقط بتحفظاتها الخمس عشرة الملزمة (تقرير R7-0) + مطالبة Operations Control.
+2. **R7-1 (adad399a):** P02 — سطح حالة المالية الكامل (الأنواع عبر باب المالية أنواعًا فقط؛ القراء `readFinanceOverview`/الجسر/الأفق من `application/finance/financeState.ts`)؛ **فك الدورة المختلطة الوحيدة في الشجرة (F-019/STR-204c) من جذرها** — FinancePeriodResultSection يستهلك الحالة من الباب؛ P10 — فصل `FinancialEventRow` حرفيًا (EventsLayer 834→101 سطرًا، SPLIT_CANDIDATE→NORMAL)؛ توسيع moneyLayerGuard بوحدات نموذج العرض مثبتة عند صفر حساب مال.
+3. **R7-2 (c86c4f2c):** P01+P03+P07 — نماذج قرار المحررات والطلب (orderDetailViewModel/financialEventEditorModel/directSaleEditorModel): منطق القرار حرفيًا خلف أسطح تطبيقية «أكواد لا نصوص»؛ المرايا المجمدة وEXE-010 وعقد ٢٧ لم تُمس.
+4. **R7-3 (c0fe0df2):** P04+P08+P09 — نماذج الموردين والمخزون (قاعدة FIN-003/بوابات الشراء والدفع؛ روابط الوصلة وبوابة الحركة وسياق الهدر الخمسي؛ القراءة الرباعية للمواد)؛ عقد ٠٧ وEXE-012/Ops001 محفوظة.
+5. **R7-4 (4d60d1bc):** P05+P06+P11 — الخدمة الكنسية PC-4 لم تُمس (اشتقاقات السجلات النشطة فقط فوقها)؛ الجدولة بقراءتها الثلاثية **ورحلتين جديدتين** (ScheduleJourneys.dom)؛ البيان بقراءتيه والماركداون معاملًا صريحًا (F-022 باقية ملاحظة track-T).
+6. **R7-5 (bfa48d44):** **إزالة الشيمات التسع كلها بإثبات صفر مستهلكين** — ترحيل 26 ملفًا إلى المسارات الكنسية (g5Service→financial-analysis؛ ownerEntitlement→owner-money؛ correctionHistory/retainedDeposit→financial-records؛ recurringExpense→recurring؛ الثلاث صفرية المستهلك أصلًا R0-N5)؛ حراسة التطابق تقاعدت مع البرميل؛ الأسس نُظفت نفس-الـPR (راتشة ٩ مدخلات؛ ٤+٤ مفاتيح استيراد موثقة)؛ الحزمة بايت-مطابقة بعد الإزالة.
+
+**التحقق:** `pnpm check` الكامل أخضر (خرج 0) عند رأس الموجة — الجذري 729/729 والتطبيق 333/2,449 (+١٥ ملف اختبار جديدًا للوحدات والرحلات)؛ الحزمة: الدخول 629,300/154,683 تحت السقفين 650,000/155,300؛ أساس أسطح الحزمة حدّث ثلاث مرات موثقة (كلفة بنيوية للوحدات داخل رسم البناء — ليس رفع سقف). CI على رأس PR بانتظار الفتح.
+
+**الأثر:** صفر تغيير مالي/دلالي/تاريخي أو Schema/Export/Import (38/30) أو أمني أو UI بصري (لا CSS/DOM/نسخ/تنقل). فرع UI المحفوظ لم يُمس.
+
+**الفعل التالي:** PR واحد إلى main بمراجعة المالك ودمجه (الدمج للمالك وحده)؛ بعد الدمج: التحقق على main ثم فتح بوابة R8 (ترقية الحراس) وفق الخطة.
