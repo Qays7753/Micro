@@ -5,8 +5,8 @@
   "items": [
     "ARCH-007"
   ],
-  "branch": "main",
-  "base_sha": "74908e1334098a51bb516aa3bbdcc898a4bedb1f",
+  "branch": "refactoring/r8-bundle-file-growth-guards-20261010",
+  "base_sha": "1e2678645d3c41beb448da2a0d8d2b5d817a18fe",
   "areas": [
     "architecture-governance",
     "docs/architecture/refactoring",
@@ -31,7 +31,7 @@
   "pr": null,
   "started_at": "2026-10-07",
   "updated_at": "2026-10-10",
-  "next_action": "R7 VERIFIED_ON_MAIN عند merge commit 74908e1334098a51bb516aa3bbdcc898a4bedb1f (والدان e01d560539476c1c7f712891f2355200d2d74aa6 وdb78225d877ecddb9067caaafceb2d85256f73bc)؛ CI post-merge 38037936319 ناجح. R8 هي التالية: نفّذ preflight/repair-card gate على main، واقرأ العقد والخطة وسجل R6 ومسح R6 وقرار المالك وسجل R7، ثم ثبت نطاق R8 وبطاقاتها وحدود الرجوع قبل أي structural write. لا تبدأ تنفيذ R8 من هذه المصالحة.",
+  "next_action": "R8 claimed on branch refactoring/r8-bundle-file-growth-guards-20261010 from verified main 1e2678645d3c41beb448da2a0d8d2b5d817a18fe (R8-0 complete: preflight, repair cards, baseline capture, five reviewer gates — no production writes). Next: execute R8-1 (manifest-based bundle-surface semantics + per-environment anchoring replacing the +512 bridge), then R8-2 (within-band file-growth ratchet v2), R8-3 (component-to-page boundary rule + guard metadata), R8-4 (CI/final reconciliation + report). BRANCH_AND_PR_ONLY; no merge; entry ceilings 650,000/155,300 untouched.",
   "notes": [
     "اعتماد المالك في 2026-10-07 للخطة المحدثة ومصفوفة التتبع الكاملة المبنية على تقريري Structure وFlash.",
     "هذا successor مستقل؛ لا يعيد فتح WS-212 أو WS-214 أو WS-215 ولا يعدل عقودها التاريخية.",
@@ -62,7 +62,8 @@
     "2026-10-10 (R7-0 — preflight فقط، لا كتابة إنتاج): تحقق حي: main = e01d5605 (دمج PR #341؛ CI 37999470232 ناجح على الرأس نفسه)، صفر PRs مفتوحة، worktree نظيف. أُنشئ فرع R7 من الرأس المذكور. قُرئت كل المدخلات الإلزامية (AGENTS/current-state/charter/control docs/عقد R0-R10/الخطة §R7/السجلات الثلاثة/أدلة R6). جرد حي لحزم P01..P11 (مستهلكون/أنواع الاستيراد/اختبارات مباشرة — مطابق للسجل) ولعشر وحدات توافق (3 بإسهام إنتاجي نوعي فقط، 3 بمستهلكي اختبارات فقط، 3 بصفر مستهلكين — محفز الإزالة مشتعل، وwithdrawalWalletGuard غير موجودة أصلًا). بطاقات الإصلاح وخطة الشرائح في تقرير R7-0.",
     "2026-10-10 (R7 تنفيذ كامل): الحزم الإحدى عشرة منفذة على ستة التزامات متسلسلة (R7-0..R7-5) بواجهة كتابة BRANCH_AND_PR_ONLY؛ الأساس الحي عند بدء التنفيذ e01d5605. الأدلة: تقارير R7-0..R7-5 في مجلد أدلة R7. لا تغيير مالي/دلالي/تاريخي أو Schema/Export/Import (38/30) أو UI بصري؛ الأغطية 650,000/155,300 كما هي؛ أساس أسطح الحزم حدّث ثلاث مرات موثقة (كلفة بنيوية للوحدات المستخرجة داخل رسم البناء — ليس رفع سقف).",
     "2026-10-10 (مصالحة R7 قبل الدمج): صُححت مؤشرات الحالة الحية في README وREFACTORING-CONTROL وcurrent-state، وثُبتت PR #342 ورأسها وفحوصها في مصدر Operations Control؛ لا تغيير كودي أو مالي أو تاريخي أو Schema/Export/Import أو UI بصري؛ R8 لم تبدأ والدمج يتطلب تفويض المالك.",
-    "2026-10-10 (R7 post-merge verification): PR #342 دُمج بـMerge commit 74908e1334098a51bb516aa3bbdcc898a4bedb1f من e01d560539476c1c7f712891f2355200d2d74aa6 وdb78225d877ecddb9067caaafceb2d85256f73bc؛ CI post-merge 38037936319 ناجح على الرأس نفسه؛ R7 VERIFIED_ON_MAIN وR8 بوابة preflight مفتوحة؛ لا تغيير مالي أو دلالي أو تاريخي أو Schema/Export/Import أو UI بصري."
+    "2026-10-10 (R7 post-merge verification): PR #342 دُمج بـMerge commit 74908e1334098a51bb516aa3bbdcc898a4bedb1f من e01d560539476c1c7f712891f2355200d2d74aa6 وdb78225d877ecddb9067caaafceb2d85256f73bc؛ CI post-merge 38037936319 ناجح على الرأس نفسه؛ R7 VERIFIED_ON_MAIN وR8 بوابة preflight مفتوحة؛ لا تغيير مالي أو دلالي أو تاريخي أو Schema/Export/Import أو UI بصري.",
+    "2026-10-10 (R8-0 — preflight فقط، لا كتابة إنتاج): تحقق حي: main = 1e2678645d3c41beb448da2a0d8d2b5d817a18fe (دمج PR #343 — مصالحة ما بعد الدمج وفتح بوابة R8؛ CI post-merge 38038461385 ناجح على الرأس نفسه)، PR #342 مدموجة عند 74908e13، وPR #344 وحيدة ومفتوحة (ملف أمر تنفيذ R8 فقط — م kein تعارض). أُنشئ فرع refactoring/r8-bundle-file-growth-guards-20261010 من 1e267864. أُلحق أمر R8 الكنوني من فرعه (SHA-256 5779a8fe…) وقُرئ كاملًا. هوية الأدوات مثبتة (Node 24.21.0 محلي / 22.23.3 CI مع zlib 1.3.1-e00f703 / Pages غير مكشوف)، وقُرئت بينة إصلاح Cloudflare (+512 الجسر المؤقت وتأرجح +167). القياسات الحية: بناء محلي مطابق بايت-ببايت لقيم R7؛ تحليل بيان البناء يثبت عيب المصنف (14,228 بايت كسولة غير محروسة + 224,687 بايت مصنفة خطأً كسولة)؛ تجربة الهوية تثبت أن +112 لخام الدخول CI-over-local هو سلسلة هوية البناء (لا انحراف أدوات)، وأن تأرجح gzip ينتقل عبر أسماء التجزئة (92/105 ملفات) ويُلَمّ بالتطبيع الحتمي (تقارب تام مثبت)؛ ونشر Pages الإنتاجي الحي (SHA المدخل 1e267864) يقيس بيئة gzip ثالثة مميزة (+207 كسولة) مع تطابق خام تام — هذا يفسر فشل R7 على Pages نهائيًا. بطاقات الإصلاح الست (R8-F-005/006/019/020/021 + R7-CF-REPAIR) وجرد المستهلكين وبوابات المراجعة الخمسة في تقرير R8-0. لا تغيير إنتاج/مخطط/تصدير/UI؛ السقوف 650,000/155,300 كما هي."
   ],
   "merge_sha": "74908e1334098a51bb516aa3bbdcc898a4bedb1f",
   "verified_on_main_sha": "74908e1334098a51bb516aa3bbdcc898a4bedb1f",
@@ -105,7 +106,8 @@
     "https://github.com/Qays7753/Micro/actions/runs/38031209971",
     "https://github.com/Qays7753/Micro/checks/114152425904",
     "https://github.com/Qays7753/Micro/commit/74908e1334098a51bb516aa3bbdcc898a4bedb1f",
-    "https://github.com/Qays7753/Micro/actions/runs/38037936319"
+    "https://github.com/Qays7753/Micro/actions/runs/38037936319",
+    "docs/operations/control/evidence/structural-remediation-r8-20261010/R8-0-PREFLIGHT-AND-REPAIR-CARDS-2026-10-10.md"
   ],
   "status_history": [
     {
