@@ -1140,3 +1140,9 @@
 - **Conventions honored:** real services over MemoryLocalStore (no service doubles on the durable legs), configurable wouter search (Gate-B correction), UnsavedChangesProvider harness, `.only/.skip` absent, text-density unaffected (test-name exclusion), map regenerated with no drift.
 - **Checks:** focused 19/19; pages suite green; prototype typecheck exit 0; full `pnpm check` exit 0 on the W3 tree (final report records the aggregate); no production/CSS/DOM/copy/navigation change (diff = tests + regenerated map + docs).
 - **Status:** `R9-W3 COMPLETE — GATE D NEXT`.
+
+## Entry 83 — 2026-10-10 — R9 final: relocation amendment + complete PR-readiness report (WS-216/ARCH-007)
+
+- **Amendment (append-only, Gate D note):** the five W3 direct-test files moved from `pages/` to the `client/src` root (commit `4977e4d7`) because the pages/** eslint block bans storage-layer imports even in test files by its documented rule; Entry 82's "under pages/" wording was true at write time and is read through this amendment.
+- **Final report:** `R9-COMPLETE-PR-READINESS-REPORT-2026-10-10.md` — all twenty contract sections, the merge manifest, the five protected-decision packages, the exact triggers, the per-wave rollback boundaries, and the post-merge follow-up protocol (back-fill run URLs + machine outputs; move merge_sha/verified_on_main_sha only after the merge exists).
+- **Final state:** `R9_REMEDIATION_COMPLETE — PR_READY · R9_IMPLEMENTATION_NOT_MERGED · NO_DIRECT_MAIN_WRITE` (full status block in the report §20). One PR at the owner gate; merging owner-only; R10 eligible only after merge + post-merge reconciliation.
