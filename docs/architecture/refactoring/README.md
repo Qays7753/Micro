@@ -1,7 +1,7 @@
 # Micro — Refactoring Control
 
-**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0–R10 (WS-216/ARCH-007) ACTIVE; R0–R7 VERIFIED ON MAIN (74908e1334098a51bb516aa3bbdcc898a4bedb1f); R8 GATE OPEN — IMPLEMENTATION NOT STARTED`
-**المرحلة الحالية:** `SUCCESSOR STRUCTURAL REMEDIATION R7 VERIFIED ON MAIN — PR #342 MERGED; R8 PREFLIGHT/REPAIR-CARD GATE; NO VISUAL UI CHANGE`
+**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0–R10 (WS-216/ARCH-007) ACTIVE; R0–R8 VERIFIED ON MAIN (87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e); R9 PREFLIGHT GATE OPEN — IMPLEMENTATION NOT STARTED`
+**المرحلة الحالية:** `SUCCESSOR STRUCTURAL REMEDIATION R8 VERIFIED ON MAIN — PR #345 MERGED; R9 PREFLIGHT/READ-ONLY EVIDENCE GATE; NO VISUAL UI CHANGE`
 **نوع المساحة:** مساحة تخطيط وتحكم لإعادة الهيكلة، وليست مصدرًا معماريًا منافسًا.
 
 > **تحديث مؤرخ 2026-10-05 (عقد التنفيذ التالي):** اعتمد المالك الخطة الكاملة بعد تقريري Flash وStructure. عقد التنفيذ المحفوظ في `ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md` هو عقد تشغيل للبرنامج التالي، وليس سلطة معمارية ثانية. حالته `OWNER_ACCEPTED — EXECUTION_NOT_STARTED`; يبدأ التنفيذ بـR0 قراءة فقط ثم W0–W10 على فرع مستقل بعد التحقق الحي. لا يُكتب إلى `main` ولا تُفتح موجة جديدة خارج هذا العقد.
@@ -54,8 +54,8 @@
 | `ZAI-A-TO-Z-EXECUTION-CONTRACT.md` | عقد تنفيذ برنامج A-to-Z السابق (تاريخي منجز) | موجود (منجز بالكامل — دمج #311) |
 | `skills/micro-a-to-z-structural-refactoring/SKILL.md` | مهارة التشغيل والإفتيش المشتقة من الخطة | موجودة (v1.0 — Wave A0) |
 | `ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md` | عقد التنفيذ الإنجليزي الكامل للبرنامج التالي من R0 إلى W10، بما في ذلك التوقفات والاختبارات والـPRs | مقبول من المالك؛ W0–W10 متحقق ومغلق على main (PR #316 — 2026-10-06) |
-| `STRUCTURAL-REMEDIATION-PLAN-20261007.md` | الخطة الجذرية المعتمدة ومصفوفة تتبع نتائج Structure وFlash لبرنامج successor | مقبولة من المالك؛ R0–R7 متحققة على main عند `74908e1334098a51bb516aa3bbdcc898a4bedb1f`؛ R8 بوابة preflight/repair cards التالية |
-| `ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md` | عقد التنفيذ المتسلسل لبرنامج successor، وبوابات R0–R10 وPRs والرجوع | `WS-216/ARCH-007`؛ R0–R7 متحققة على main عند `74908e1334098a51bb516aa3bbdcc898a4bedb1f`؛ R8 لم تبدأ وتحتاج بوابة نطاقها قبل الكتابة |
+| `STRUCTURAL-REMEDIATION-PLAN-20261007.md` | الخطة الجذرية المعتمدة ومصفوفة تتبع نتائج Structure وFlash لبرنامج successor | مقبولة من المالك؛ R0–R8 متحققة على main عند `87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e`؛ R9 بوابة preflight/الخرائط/التراجع التالية |
+| `ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md` | عقد التنفيذ المتسلسل لبرنامج successor، وبوابات R0–R10 وPRs والرجوع | `WS-216/ARCH-007`؛ R0–R8 متحققة على main عند `87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e`؛ R9 preflight/قراءة-فقط التالية، ولا كتابة قبل قبول الحزمة |
 
 ## القاعدة الأساسية
 

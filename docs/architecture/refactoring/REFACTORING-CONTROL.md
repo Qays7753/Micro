@@ -1,9 +1,9 @@
 # Micro — Refactoring Control
 
-**الإصدار:** v1.17 (R7 مدموجة ومتحققة على main؛ بوابة R8 مفتوحة — 2026-10-10؛ v1.16 وما قبلها سجل تاريخي)
+**الإصدار:** v1.18 (R8 مدموجة ومتحققة على main؛ بوابة R9 مفتوحة — 2026-10-10؛ v1.17 وما قبلها سجل تاريخي)
 **التاريخ:** 2026-10-10
-**الحالة:** `OWNER_ACCEPTED — R7 VERIFIED_ON_MAIN; R8 PREFLIGHT GATE OPEN`
-**المرحلة:** `SUCCESSOR R0–R7 VERIFIED ON MAIN; R8 NOT STARTED — PREPARE R8 PREFLIGHT/REPAIR CARDS`
+**الحالة:** `OWNER_ACCEPTED — R8 VERIFIED_ON_MAIN; R9 PREFLIGHT GATE OPEN`
+**المرحلة:** `SUCCESSOR R0–R8 VERIFIED ON MAIN; R9 NOT STARTED — PREPARE EVIDENCE/MAP/ROLLBACK PACKAGE`
 **النطاق:** Structure / Architecture / Code Organization فقط
 
 ## 1. الهدف
@@ -185,7 +185,7 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 - **الخطة:** `STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
 - **البداية المسموحة:** R0 قراءة فقط ومصالحة الخط الأساسي؛ لا نقل أو تقسيم أو حذف أو تعديل كودي في R0.
 - **قاعدة الاستمرار:** بعد تقرير R0 فقط، تنفذ R1–R10 على فرع مستقل، وبطاقات Repair، وPR مستقل أو شريحة قابلة للمراجعة، وفحوص مركزة وCI وحد رجوع لكل موجة.
-- **الخطوة الحية:** R4–R6 ومصالحتها متحققة على main، ثم دُمجت R7 عبر PR #342 عند merge commit `74908e1334098a51bb516aa3bbdcc898a4bedb1f` بوالديه `e01d560539476c1c7f712891f2355200d2d74aa6` و`db78225d877ecddb9067caaafceb2d85256f73bc`; CI post-merge `38037936319` ناجح. لا تغييرات مالية/دلالية/تاريخية أو Schema/Export/Import أو UI بصري. **التالي: R8 preflight/repair-card gate؛ لا تبدأ كتابة R8 قبل تثبيت نطاقها وبطاقاتها وحدود الرجوع.**
+- **الخطوة الحية:** R8 تحققت على `main` عند Merge commit `87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e` (PR #345؛ CI post-merge `38060781329` ناجح على الرأس نفسه). التالي R9 preflight/قراءة-فقط لحزمة الخرائط والأدلة والتراجع؛ لا كتابة R9 قبل قبول الحزمة. لا تغيير مالي/دلالي/تاريخي أو Schema/Export/Import أو UI بصري.
 
 ## 15. سلّم الأولوية ودورة حياة قطع الحوكمة (R1/TG-04 — 2026-10-07)
 
@@ -210,7 +210,7 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 | `REFACTORING-PLAN-A-TO-Z.md` §4 | مالك المنتج | أي تعديل مبدأ أو آلية PG/RS | حية؛ §4.3.1 صُححت مؤرخًا في R1 (13→14 حارسًا + R5/R6) | تبقى مرجعًا دائمًا للمبادئ |
 | `STRUCTURAL-REMEDIATION-PLAN-20261007.md` | مالك المنتج (خطة successor) | إغلاق كل موجة R0–R10 | حية؛ R1 يعمل بها؛ «131 طريقة» صُححت مؤرخًا إلى 130 | سجل تاريخي عند R10 |
 | `ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md` | مالك المنتج | تغيير نطاق أو حدود ممنوعات | حية؛ «131-method port» صُححت مؤرخًا إلى 130 | سجل تاريخي عند R10 |
-| `REFACTORING-CONTROL.md` (هذا الملف) | برنامج successor | كل موجة مدموجة (تحديث الحقول الحية) | حية v1.11 (R1) | سجل حالة تاريخي عند R10 |
+| `REFACTORING-CONTROL.md` (هذا الملف) | برنامج successor | كل موجة مدموجة (تحديث الحقول الحية) | حية v1.18 (R8 post-merge) | سجل حالة تاريخي عند R10 |
 | `OWNERSHIP-AND-TRUTH-REGISTRY.md` | برنامج successor (PG-1) | كل دمج يغير ملكية/اسمًا/عددًا + مصالحة مؤرخة لكل موجة | حية v1.3 (مصالحة R1 مؤرخة 2026-10-07) | مرجع ملكية دائم للشجرة الحية |
 | `FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md` | برنامج successor | كل نقل/تقسيم/نمو شريطي | حية؛ §4 صُححت مؤرخًا في R1 | يُعاد قياسه عند كل رأس موجة |
 | `TEST-AND-DOCUMENTATION-MAP.md` | برنامج successor (مولدة الجزء الخرائطي) | أي تغيير هيكلي يمس الصفحات/الاختبارات/العقود (نفس-الـPR) | حية؛ §1/§2 صُححتا مؤرخًا في R1 (34/298 و55/5) | مولّدة من `generated/test-map.json` |
