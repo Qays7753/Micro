@@ -16,9 +16,9 @@ import { ProjectFinancialService } from "@/application/finance/projectFinancialS
 import { LoanService } from "@/application/loans/loanService";
 import { AssetService } from "@/application/assets/assetService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
-import { RecurringExpenseService } from "@/application/finance/recurringExpenseService";
+import { RecurringExpenseService } from "@/application/recurring/recurringExpenseService";
 import { FormDraftService } from "@/application/drafts/formDraftService";
-import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
+import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
 import { ProfileService } from "@/application/profile/profileService";
 import FinancialEventEditor from "@/pages/FinancialEventEditor";
 import Loans from "@/pages/Loans";

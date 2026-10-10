@@ -371,13 +371,18 @@ describe("R6 (Step 6 — STR-615 system-wide ratchet: UI -> application interior
      * الموردين والمخزون المستخرجة؛ المجموع ٤٩ (٣٦ + ١٣).
      * R7/R7-4 (P05+P06+P11، 2026-10-10): +٣ مفاتيح موثقة — نموذجا عرض مال
      * المالك والجدولة والبيان المستخرجة؛ المجموع النهائي ٥٢ (٣٦ + ١٦) —
-     * الطرف النهائي لموجة R7 (كل الحزم الإحدى عشرة منفذة). */
+     * الطرف النهائي لموجة R7 (كل الحزم الإحدى عشرة منفذة).
+     * R7/R7-5 (2026-10-10): −٤ مفاتيح — شيمات g5/recurringExpense أُزيلت بترحيل
+     * كل مستهلكيها إلى المسارات الكنسية وإثبات صفر مستهلكين؛ المجموع ٤٨
+     * (٣٦ + ١٣) — نقصان موثق = تقدم (بروتوكول الراتشة نفسه). ثم مفاتيح التبديل
+     * الموثقة الأربعة (تعديل المراجعة 10): PSC→recurring الكنوني + ثلاثة مواقع
+     * g5 النوعية → financial-analysis؛ المجموع ٥٢ (٣٦ + ١٦) — صافي التبديل صفر. */
     const contextKeys = raw.allowed.filter(k => k.includes("PrototypeServicesContext"));
     const otherKeys = raw.allowed.filter(k => !k.includes("PrototypeServicesContext"));
     expect(contextKeys.length).toBe(36);
     expect(otherKeys.length).toBe(16);
     expect(otherKeys.some(k => k.includes("finance/expenseBudgetService.ts"))).toBe(false);
-    expect(otherKeys.filter(k => k.includes("g5/g5Service.ts")).length).toBe(3);
+    expect(otherKeys.filter(k => k.includes("g5/g5Service.ts")).length).toBe(0); /* R7/R7-5: أُزيلت الشيمة بمستهلكيها */
     expect(otherKeys.some(k => k.includes("activity/activityLabels.ts"))).toBe(true);
     expect(otherKeys.some(k => k.includes("formatting/formatters.ts"))).toBe(true);
     expect(otherKeys.some(k => k.includes("agreements/agreementPresentation.ts"))).toBe(true);

@@ -10,7 +10,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
-import { RecurringExpenseService } from "@/application/finance/recurringExpenseService";
+import { RecurringExpenseService } from "@/application/recurring/recurringExpenseService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import {

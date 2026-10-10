@@ -270,7 +270,7 @@ describe("G6 — OrderDetail compound collection reversal (S2-04a)", () => {
 
 import OwnerEntitlement from "@/pages/OwnerEntitlement";
 import OwnerWithdrawalEditor from "@/pages/OwnerWithdrawalEditor";
-import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
+import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 

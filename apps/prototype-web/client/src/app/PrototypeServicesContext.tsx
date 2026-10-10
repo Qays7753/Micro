@@ -213,7 +213,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     void Promise.all([
       import("@/application/transfers/localTransferService"),
       import("@/application/transfers/guidedOpeningImportService"),
-      import("@/application/finance/recurringExpenseService"),
+      import("@/application/recurring/recurringExpenseService"),
     ]).then(([transferModule, guidedModule, recurringModule]) => {
       if (!active) return;
       setTransferServices({

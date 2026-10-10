@@ -11,13 +11,13 @@ import { InventoryMaterialService } from "@/application/inventory/inventoryMater
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
-import { RetainedDepositService } from "@/application/finance/retainedDepositService";
+import { RetainedDepositService } from "@/application/financial-records/retainedDepositService";
 /* FIN-003 (WS-173 — Wave 1): جسر الربح والكاش — خدمة قراءة فقط يطلبها سطح الفترة. */
 import { ProfitToCashBridgeService } from "@/application/finance/profitToCashBridgeService";
-import { G5Service } from "@/application/g5/g5Service";
-import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
+import { G5Service } from "@/application/financial-analysis/financialAnalysisService";
+import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
-import { CorrectionHistoryService } from "@/application/finance/correctionHistoryService";
+import { CorrectionHistoryService } from "@/application/financial-records/correctionHistoryService";
 import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";

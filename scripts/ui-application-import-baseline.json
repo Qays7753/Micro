@@ -16,7 +16,6 @@
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/drafts/draftService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/drafts/formDraftService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/estimates/costEstimateService.ts",
-  "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/finance/recurringExpenseService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/financial-pulse/financialPulseService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/financial-records/correctionHistoryService.ts",
@@ -31,6 +30,7 @@
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/parties/partyLedgerService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/preferences/preferenceService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/profile/profileService.ts",
+  "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/recurring/recurringExpenseService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/scheduling/recurrenceService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/scheduling/scheduleService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/security/localLockService.ts",
@@ -38,12 +38,12 @@
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/time/actualTimeService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/transfers/localTransferService.ts",
-  "apps/prototype-web/client/src/components/finance/G5DecisionPanel.tsx -> apps/prototype-web/client/src/application/g5/g5Service.ts",
+  "apps/prototype-web/client/src/components/finance/G5DecisionPanel.tsx -> apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts",
   "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx -> apps/prototype-web/client/src/application/direct-sales/directSaleEditorModel.ts",
   "apps/prototype-web/client/src/pages/Finance.tsx -> apps/prototype-web/client/src/application/finance/financeState.ts",
-  "apps/prototype-web/client/src/pages/Finance.tsx -> apps/prototype-web/client/src/application/g5/g5Service.ts",
+  "apps/prototype-web/client/src/pages/Finance.tsx -> apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts",
   "apps/prototype-web/client/src/pages/FinancialEventEditor.tsx -> apps/prototype-web/client/src/application/finance/financialEventEditorModel.ts",
-  "apps/prototype-web/client/src/pages/G5DeclarationEditor.tsx -> apps/prototype-web/client/src/application/g5/g5Service.ts",
+  "apps/prototype-web/client/src/pages/G5DeclarationEditor.tsx -> apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts",
   "apps/prototype-web/client/src/pages/InventoryMaterials.tsx -> apps/prototype-web/client/src/application/inventory/inventoryMaterialsViewModel.ts",
   "apps/prototype-web/client/src/pages/InventoryMovementEditor.tsx -> apps/prototype-web/client/src/application/inventory/inventoryMovementEditorModel.ts",
   "apps/prototype-web/client/src/pages/OrderDetail.tsx -> apps/prototype-web/client/src/application/agreements/orderDetailViewModel.ts",
@@ -65,6 +65,8 @@
   "r7-p09-inventory-materials-view-model": "2026-10-10 (R7/R6-F17-P09): the inventory-materials lazy route consumes the extracted four-way page query (overview/movements/shortages/activation) from the inventory house.",
   "r7-p05-owner-entitlement-view-model": "2026-10-10 (R7/R6-F17-P05): the owner-entitlement lazy route consumes the extracted active-record derivations (active entitlements/opening balances/prior draws over the unified read) and the owner-money block reader from the owner-money house; the canonical PC-4 service is untouched.",
   "r7-p06-schedule-view-model": "2026-10-10 (R7/R6-F17-P06): the schedule lazy route consumes the extracted three-way page query (overview/month/recurrences with the original error-message precedence) and the capacity-layer param from the scheduling house.",
-  "r7-p11-statement-view-model": "2026-10-10 (R7/R6-F17-P11): the statement lazy route consumes the extracted statement query, comparison side-B resolution, and week bounds from the finance house; the markdown renderer is injected as an explicit parameter (review amendment 6)."
+  "r7-p11-statement-view-model": "2026-10-10 (R7/R6-F17-P11): the statement lazy route consumes the extracted statement query, comparison side-B resolution, and week bounds from the finance house; the markdown renderer is injected as an explicit parameter (review amendment 6).",
+  "r7-5-shim-removal": "2026-10-10 (R7/R7-5): removed the four frozen-shim keys (3x application/g5/g5Service for G5DecisionPanel/Finance/G5DeclarationEditor + PrototypeServicesContext -> finance/recurringExpenseService) — every consumer migrated to the canonical owners (financial-analysis, recurring) and the shims deleted with zero-consumer proof; see the R7-5 evidence report.",
+  "r7-5-swap-keys": "2026-10-10 (R7/R7-5, amendment 10): the four documented swap keys for the shim-removal migrations — PSC's dynamic recurring-expense load now points at the canonical recurring home, and the three g5 type-only sites (G5DecisionPanel/Finance/G5DeclarationEditor) now point at the canonical financial-analysis module (doorless interior; path-based rule keys type imports too). Net key count unchanged by the swap."
  }
 }

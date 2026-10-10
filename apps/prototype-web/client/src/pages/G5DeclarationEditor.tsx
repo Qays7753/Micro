@@ -8,7 +8,7 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
-import type { G5LinkOptions } from "@/application/g5/g5Service";
+import type { G5LinkOptions } from "@/application/financial-analysis/financialAnalysisService";
 import { formatMoneyMinor } from "@/presentation/formatters";
 
 import { Button, ChoiceButton, ChoiceRow } from "@/components/primitives";

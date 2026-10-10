@@ -277,8 +277,7 @@
 
 | القدرة/الوحدة | المصير | المالك | أثر البيانات/التصدير | محفز التنفيذ | الدليل |
 |---|---|---|---|---|---|
-| 6 شيمات حية (g5Service؛ finance/{ownerEntitlement، expenseBudget، correctionHistory، retainedDeposit، recurringExpense}Service) | **Preserve** (توافق مجمد حتى مسار UI) | مالك المنتج (فتح T) | لا شيء — إعادة تصدير فقط، لا تلمس بيانات | قرار مالك يفتح مسار UI | سجل المسارات T؛ شروط إزالة كل شيمة في رأسها |
-| الشيمتان الميتتان (finance/expenseRecordIntent؛ finance/expenseCategorySuggestions) | **Preserve الآن ← Migrate لإزالة R7** (محفز الإزالة اشتعل: صفر مستهلكين) | المالك (شريحة R7) | لا شيء — صفر مستهلكين؛ أثر التصدير معدوم | اشتعل فعليًا (R0-N5 — مسجل 2026-10-07) | grep الصفر الموثق؛ INDEPENDENT-TRACKS T |
+| ~~6 شيمات حية~~ + ~~الشيمتان الميتتان~~ — **كل التسع أُزيلت (R7/R7-5، 2026-10-10)** | **REMOVED_WITH_ZERO_CONSUMER_PROOF** | المالك (أمر R7) | لا شيء — إعادة تصدير فقط؛ الحزمة بايت-مطابقة بعد الإزالة | اشتعل بأمر R7: ترحيل كل المستهلكين إلى المسارات الكنسية (g5Service→financial-analysis؛ finance/ownerEntitlement→owner-money؛ finance/{correctionHistory،retainedDeposit}→financial-records؛ finance/recurringExpense→recurring؛ expenseBudget/expenseRecordIntent/expenseCategorySuggestions كانت صفر مستهلكين أصلًا [R0-N5]) ثم إثبات صفر مستهلكين بمسح الاستيرادات العشر | تقرير R7-5؛ مسح الصفر الموثق؛ تنظيف الأسس نفس-الـPR (راتشة 9 مدخلات، 4+4 مفاتيح استيراد، حراسة التطابق تقاعدت مع البرميل) |
 | فرع UI المحفوظ `docs/ux-ui-zed-handoff-20260921` | **Preserve** (ملفات فريدة) | المالك | لا يُدمج ولا يُحذف قبل قرار صريح | قرار مالك | current-state بند 6 |
 | `todo.md` | **Tombstone** (كعب توافق مجمد — OD-06) | المالك | لا شيء | — | current-state §7 تحديث 2026-10-02 |
 | Market/Delivery (E-00) | **Preserve (وثائقي فقط، غير منفذة)** | المالك | خارج النطاق؛ أي تنفيذ مستقبلي يصرح بمصير بياناته عند عقده | محفزات E-00 | docs/expansion |

@@ -16,8 +16,8 @@
  *    محفوظة كما هي داخل المحوّلين — لا سلوك يُنقل ولا يُعاد تعريفه هنا.
  *
  * ملاحظة الملكية (قيد 4A — STR-622 محفوظ): التصريح سجل مخزّن يملكه
- * domain/g5 عبر financial-analysis — **ليس read model**؛ القراءة المشتقة
- * تبقى عند القارئ الكنوني. المفهوم مملوك لـdomain/g5 (سجل مخزّن) وحارس
+ * domain/financial-analysis — **ليس read model**؛ القراءة المشتقة تبقى
+ * عند القارئ الكنوني. المفهوم مملوك لـdomain/financial-analysis (سجل مخزّن) وحارس
  * التراجع shortCashDeclarationReversal داخل حد الكتابة (STR-306 PRESERVE).
  *
  * العضوية (4 طرق — مجموعة «Short cash declarations» في سجل الملكية §2):

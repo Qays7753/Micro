@@ -37,7 +37,10 @@ import {
   readShortCashHorizonBlock,
 } from "@/application/finance/financeState";
 import type { OwnerEntitlementOverview } from "@/application/owner-money";
-import type { G5Decision, ShortCashHorizonReading } from "@/application/g5/g5Service";
+import type {
+  G5Decision,
+  ShortCashHorizonReading,
+} from "@/application/financial-analysis/financialAnalysisService";
 /* FIN-005 (WS-175 — Wave 3): عائلة أفق الكاش القصير — الأنواع والثوابت فقط
  * (النموذج النقي لا يحمّل كومة الصفحة: بلا مخزن ولا React). */
 import {

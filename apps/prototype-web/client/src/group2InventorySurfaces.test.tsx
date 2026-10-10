@@ -9,7 +9,7 @@ import { InventoryMaterialService } from "@/application/inventory/inventoryMater
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
-import { RetainedDepositService } from "@/application/finance/retainedDepositService";
+import { RetainedDepositService } from "@/application/financial-records/retainedDepositService";
 /* FIN-003 (WS-173 — Wave 1): جسر الربح والكاش — خدمة قراءة فقط يطلبها سطح الفترة. */
 import { ProfitToCashBridgeService } from "@/application/finance/profitToCashBridgeService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
@@ -25,9 +25,9 @@ import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import SupplierPurchaseEditor from "@/pages/SupplierPurchaseEditor";
 import CostEditor from "@/pages/CostEditor";
 import Finance from "@/pages/Finance";
-import { CorrectionHistoryService } from "@/application/finance/correctionHistoryService";
-import { OwnerEntitlementService } from "@/application/finance/ownerEntitlementService";
-import { G5Service } from "@/application/g5/g5Service";
+import { CorrectionHistoryService } from "@/application/financial-records/correctionHistoryService";
+import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
+import { G5Service } from "@/application/financial-analysis/financialAnalysisService";
 import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import type { OrderDraft } from "@/storage/local/types";

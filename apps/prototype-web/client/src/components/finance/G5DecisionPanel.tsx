@@ -1,9 +1,9 @@
 /* و٩/§10: طبقة «التغطية والتعادل» وحدة مستقلة — تُفتح فتُقرأ، وتُغلب القيمة على الجملة. */
 import { useEffect, useState } from "react";
 import { LocalDateValue, MoneyValue, IntegerValue } from "@/components/presentation/DisplayValue";
-import type { G5Decision } from "@/application/g5/g5Service";
-import type { G5Service } from "@/application/g5/g5Service";
-import type { ShortCashDeclaration } from "@micro-domain/g5/index.js";
+import type { G5Decision } from "@/application/financial-analysis/financialAnalysisService";
+import type { G5Service } from "@/application/financial-analysis/financialAnalysisService";
+import type { ShortCashDeclaration } from "@micro-domain/financial-analysis/index.js";
 import {
   formatBreakEvenDisplay,
   formatLocalDate,
@@ -51,7 +51,7 @@ function G5DecisionPanel({
   onChanged,
 }: {
   decision: G5Decision;
-  g5: import("@/application/g5/g5Service").G5Service;
+  g5: import("@/application/financial-analysis/financialAnalysisService").G5Service;
   onDeclare: () => void;
   onChanged: () => void;
 }) {

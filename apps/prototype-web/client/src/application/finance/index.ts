@@ -46,11 +46,13 @@ export type {
   SettleablePayable,
 } from "./projectFinancialService";
 
-export { RecurringExpenseService } from "./recurringExpenseService";
+/* R7/R7-5 (2026-10-10): الرمز نفسه من بيته الكنوني — الشيمة أُزيلت بعد
+ * ترحيل مستهلكها الإنتاجي الوحيد (جذر التركيب) إلى المسار الكنوني. */
+export { RecurringExpenseService } from "../recurring/recurringExpenseService";
 export type {
   RecurringExpenseDetailReading,
   RecurringExpenseSeriesCardReading,
-} from "./recurringExpenseService";
+} from "../recurring/recurringExpenseService";
 
 export { RecurringWorkService } from "./recurringWorkService";
 export type {
