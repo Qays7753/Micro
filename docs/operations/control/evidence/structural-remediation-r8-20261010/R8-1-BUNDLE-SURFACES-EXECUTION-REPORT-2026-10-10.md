@@ -4,6 +4,8 @@
 **Date:** 2026-10-10 · **Executor:** Z AI · **Findings closed by this slice:** R8-F-020, R7-CF-REPAIR (design replacement; CI record bootstrap completes in R8-4)
 **Commit:** this slice's commit on `refactoring/r8-bundle-file-growth-guards-20261010` (from `1e267864`)
 
+> **Dated correction (2026-10-10, R8-N1 root fix, code head `7341f911`):** this report recorded finding R8-N1 (31 duplicate precache URLs) as *separate-tracked* because fixing it changes `sw.js` content and was then classified as an owner-gated PWA configuration decision outside the guard wave. The owner has since decided **FIX_NOW**, and the root fix is executed and closed with evidence in `R8-N1-PWA-PRECACHE-ROOT-FIX-EXECUTION-REPORT-2026-10-10.md` (same directory): the configuration overlap is eliminated (`includeAssets` removed + `includeManifestIcons: false` — one canonical `globPatterns` selection path), the generated `sw.js` now carries 156 entries / 156 unique / 0 duplicates with the unique set proven identical, and the guard now fails closed on duplicates (`DUPLICATE_PRECACHE_URLS`) instead of measuring over them. The unique-URL measurement semantics documented in this report remain correct and unchanged; only the separate-track disposition is superseded (old → new, nothing rewritten silently).
+
 ---
 
 ## 1. What changed

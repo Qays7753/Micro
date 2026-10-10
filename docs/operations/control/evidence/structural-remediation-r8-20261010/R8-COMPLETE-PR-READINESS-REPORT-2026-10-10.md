@@ -52,7 +52,7 @@ Recorded in the R8-0 report §7 (bundle/measurement, guard/boundary, CI/operatio
 | R8-F-006 (silent within-band community) | FIX_NOW (R8-2) | **CLOSED_WITH_EVIDENCE** — any growth fails without a chain-valid ledger entry; documented history represented, not reopened |
 | R8-F-019 (Finance cycle regression) | FIX_NOW (R8-3) | **CLOSED_WITH_EVIDENCE** — rule R7, all import forms, 0 live edges, named negative test for the exact former pattern |
 | R8-F-021 (guard metadata) | FIX_NOW (R8-3) | **CLOSED_WITH_EVIDENCE** — §4.3.1 canonical and complete (19 documented; build-only execution surfaces explicit; dated corrections) |
-| R8-N1 (new: 31 duplicate precache URLs, +76,466 B overcount) | SEPARATE_TRACK | **SEPARATE_TRACK_OPENED_WITH_EXACT_TRIGGER** — fixing it changes `sw.js` content (a production artifact) = an owner-gated PWA/vite-plugin-pwa configuration decision outside a guard wave; trigger: the next PWA-config decision; the guard now dedups and reports the duplicates every run |
+| R8-N1 (new: 31 duplicate precache URLs, +76,466 B overcount) | ~~SEPARATE_TRACK~~ → **FIX_NOW** *(dated correction 2026-10-10, owner decision on the R8-N1 continuation review)* | **CLOSED_WITH_EVIDENCE** — root fix on code head `7341f911`: `includeAssets` removed + `includeManifestIcons: false` (the second overlapping selector found by differential experiment — a naive includeAssets-only fix leaves exactly the 3 manifest-icon duplicates); one canonical `globPatterns` path; generated `sw.js` 156 entries / 156 unique / **0 duplicates** with the before/after unique set proven identical (lost=[] gained=[]); guard now fails closed (`DUPLICATE_PRECACHE_URLS`, 22 tests); `swRuntimeRawTotal` 28,885 → 26,170 re-anchored in all three environment records; full evidence in `R8-N1-PWA-PRECACHE-ROOT-FIX-EXECUTION-REPORT-2026-10-10.md` |
 
 ## 7. Execution/consumer inventories (where recorded)
 
@@ -98,12 +98,12 @@ No new fixture exemptions exist. The surfaces/ratchet/boundary tests build their
 
 ## 15. New findings
 
-**R8-N1** — 31 duplicate precache URLs in `sw.js` (overlapping `includeAssets`/`globPatterns` globs; the old guard double-counted +76,466 B). Disposition: `SEPARATE_TRACK_OPENED_WITH_EXACT_TRIGGER` (owner-gated PWA config change — changes `sw.js` content; outside a guard wave). The guard now measures unique URLs and reports the duplicates on every run until resolved.
+**R8-N1** — 31 duplicate precache URLs in `sw.js` (overlapping `includeAssets`/`globPatterns` globs; the old guard double-counted +76,466 B). Disposition at this report's original writing: `SEPARATE_TRACK_OPENED_WITH_EXACT_TRIGGER`. **Dated correction (2026-10-10): superseded — the owner classified R8-N1 `FIX_NOW` and the root fix is executed and closed with evidence on the same PR** (code head `7341f911`): the configuration overlap is eliminated at the root, the artifact carries each intended URL exactly once, and the guard fails closed on any returning duplicate. See `R8-N1-PWA-PRECACHE-ROOT-FIX-EXECUTION-REPORT-2026-10-10.md`.
 
 ## 16. Files changed and explicitly not changed
 
-**Changed (21):** the three guard scripts + their three test files; `bundle-surfaces-baseline.json` (v2); `file-size-ratchet-baseline.json` (v2); `file-size-ratchet-reanchors.json` (new); `REFACTORING-PLAN-A-TO-Z.md` (§4.3.1); `FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md` (§7 dated notes ×3); `WS-216.json`, `ARCH-007.json` + regenerated views; `current-state.md`, `current-state-log.md` (§161), `AGENT-SEQUENTIAL-WORKLOG.md` (Entry 76); six evidence reports (R8-0..R8-4 + this).
-**Explicitly not changed:** all `client/src/**` and `src/**` production code; `vite.config.ts`; `.github/workflows/ci.yml`; `package.json` scripts; every other guard; the preserved UI branch; any Cloudflare/provider setting. The emitted bundle graph is byte-equivalent to `main@1e267864` (code-head CI/CF green on the same graph).
+**Changed (21 + the R8-N1 root-fix set):** the three guard scripts + their three test files; `bundle-surfaces-baseline.json` (v2); `file-size-ratchet-baseline.json` (v2); `file-size-ratchet-reanchors.json` (new); `REFACTORING-PLAN-A-TO-Z.md` (§4.3.1); `FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md` (§7 dated notes ×3); `WS-216.json`, `ARCH-007.json` + regenerated views; `current-state.md`, `current-state-log.md` (§161), `AGENT-SEQUENTIAL-WORKLOG.md` (Entry 76); six evidence reports (R8-0..R8-4 + this). *(Dated addition 2026-10-10, R8-N1 root fix: `vite.config.ts` — previously listed under "not changed" — now carries the canonical single-selection-path fix; plus the surfaces guard + its tests + the two ratchet data files + the re-anchored surfaces baseline + the R8-N1 report and dated corrections; see §6 and the R8-N1 report for the full changed/not-changed ledger.)*
+**Explicitly not changed:** all `client/src/**` and `src/**` production code; `.github/workflows/ci.yml`; `package.json` scripts; every other guard; the preserved UI branch; any Cloudflare/provider setting. The emitted bundle graph is byte-equivalent to `main@1e267864` *(dated correction 2026-10-10: the R8-N1 root fix changes only the generated `sw.js` precache manifest — 31 duplicate entries removed; every JS/CSS chunk and every precached asset byte remains equivalent; the guarded JS surfaces and the unique precache set are unchanged)*.
 
 ## 17. All verification commands, exit codes, repetitions, and environments
 
@@ -149,7 +149,7 @@ WS-216/ARCH-007 updated first as JSON, views regenerated (`generate_tracker.py`,
 
 ## 23. Remaining work (exact packages only)
 
-- **R8-N1** (duplicate precache URLs): separate owner-gated track; trigger = the next PWA/vite-plugin-pwa configuration decision; fixing it changes `sw.js` content and the precache surface (the guard's unique-URL measurement is already truthful).
+- **R8-N1** (duplicate precache URLs): ~~separate owner-gated track~~ → **closed by the FIX_NOW root fix on this PR** *(dated correction 2026-10-10)* — see `R8-N1-PWA-PRECACHE-ROOT-FIX-EXECUTION-REPORT-2026-10-10.md`; the follow-up PWA-config-decision trigger is consumed.
 - **Pages provider toolchain opacity**: node/zlib versions are not exposed by Cloudflare; the environment is anchored by direct measurement instead (recorded as not-verifiable in the baseline provenance). No action required unless the provider exposes identity.
 
 ## 24. Owner action required
