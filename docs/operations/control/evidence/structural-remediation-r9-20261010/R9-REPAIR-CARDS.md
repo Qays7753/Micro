@@ -99,7 +99,7 @@ Every card below carries: exact evidence, root cause, impact, minimum safe remed
 ## Findings discovered during Gate A (before W1) — owned in this same wave set
 
 ### R9-GA-F1 — `replaceIndexedDbSnapshot` non-atomic on synchronous queueing failure
-- **Severity:** HIGH (latent data-destruction defect in the recovery path) · **Relationship:** NEW · **Disposition:** FIX_NOW in W2 (within the authorized "root-fix of any current recovery defect" boundary).
+- **Severity:** HIGH (latent data-destruction defect in the recovery path) · **Relationship:** NEW · **Disposition:** FIX_NOW — **CLOSED_WITH_EVIDENCE in W2** (root fix + regression test with negative proof + ratchet ledger entry `R9-GA-F1-ROOT-FIX`; see the W2 report/manifest).
 - **Evidence (executed proof by the independent Gate-A storage reviewer, fake-indexeddb 6.2.5, spec-conformant clone):** in `apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts` the `onerror`/`onabort`/`oncomplete` handlers are attached at lines 423–427 **after** the `clear()`/`put()` queueing loop (349–422). A synchronous `put()` throw (DataCloneError/DataError) exits the Promise executor before the handlers exist; the executor throw rejects the promise, the outer `catch` (429) returns an honest `failure()` — but **no `transaction.abort()` is ever called**, so IndexedDB auto-commits the already-queued `clear()`+earlier-`put()` requests and **destroys the previous state** (experiment: durable state after the failed replace = cleared + partial `[{id:"b"}]`).
 - **Reachability:** the owner import path (`localTransferService.prepareImport` → `validateSnapshot` per-family `isString(id)` checks over JSON-derived data) cannot currently produce an uncloneable record — **latent**, reachable by any other `replaceSnapshot` caller or a validator regression. `readSnapshot` is readonly and unaffected. The same latent pattern exists in principle in the adapter's other write methods (single-record blast radius vs whole-store); audited in W2 and recorded there.
 - **Impact:** recovery-path integrity (contract 39's atomic-replacement promise) — the exact Q-h concern.
@@ -156,7 +156,7 @@ Every card below carries: exact evidence, root cause, impact, minimum safe remed
 | R9-PF-N6 | MEDIUM | NEW | FIX_NOW (metadata row) | W1 |
 | R9-PF-N7 | LOW | NEW | PRESERVE (bounded trigger) | W1 |
 | R9-PF-N8..N10 | info | CONFIRMS | PRESERVE (recorded) | W1 |
-| R9-GA-F1 | HIGH | NEW | FIX_NOW | W2 |
+| R9-GA-F1 | HIGH | NEW | FIX_NOW — CLOSED_WITH_EVIDENCE | W2 |
 | R9-GA-F2 | LOW | NEW | PRESERVE (by design) | W1 |
 | R9-GA-F3.1–.5 | HIGH/MED | NEW | PROTECTED_DECISION_REQUIRED | reported |
 | R9-GA-F3.6 | LOW | NEW | OUT_OF_SCOPE (exact trigger) | reported |
