@@ -1489,7 +1489,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/scripts/check-bundle-surfaces.mjs": {
-      "nbLoc": 457,
+      "nbLoc": 467,
       "band": "WATCH"
     },
     "scripts/application-door-surfaces-baseline.json": {

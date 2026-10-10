@@ -7,7 +7,10 @@
  * مدخلًا؛ شظية مُسمّاة index-* ليست مدخلًا)، غلق الساكن مقابل الديناميكي،
  * الشظايا المشتركة مرة واحدة، الديناميكي المتداخل، صفر/مدخل واحد/غامض،
  * البيّنة الغائبة/التالفة/الناقصة، إفلات المسارات، الملفات المفقودة، عامل
- * الخدمة والمخزن المسبق (تالف/ناقص/مكرر)، دلالات الخام+gzip والتطبيع،
+ * الخدمة والمخزن المسبق (تالف/ناقص)، وفشل DUPLICATE_PRECACHE_URLS الصادق
+ * (R8-N1 — إغلاق الجذر 2026-10-10: العنوان المكرر كان يُقاس فوقه ويُبلّغ
+ * فقط؛ صار عيبًا يوقف البناء — صنف انحدار لإصلاح الجذر)، دلالات الخام+gzip
+ * والتطبيع،
  * البيئة (مجهولة/غير مرسّاة)، سلوك السماحيات، فشل النمو الصامت، التكافؤ
  * والتقليص الموثق، وصلاحية الأساس الحي المُلتزم.
  */
@@ -253,20 +256,44 @@ describe("manifest-based classification (R8-F-020)", () => {
 });
 
 describe("precache and service-worker surfaces", () => {
-  it("missing service worker and malformed precache fail; duplicates are counted once and reported", () => {
+  it("missing service worker and malformed precache fail; duplicate precache URLs fail closed (R8-N1)", () => {
     const noSw = referenceDist(makeTempDir());
     fs.rmSync(path.join(noSw, "sw.js"));
     expect(measureSurfaces(noSw, { identity: null }).error).toContain("MISSING_SERVICE_WORKER");
     const malformed = referenceDist(makeTempDir());
     fs.writeFileSync(path.join(malformed, "sw.js"), "self.addEventListener('install',()=>{});");
     expect(measureSurfaces(malformed, { identity: null }).error).toContain("MALFORMED_PRECACHE");
+    /* R8-N1 (إغلاق الجذر): العنوان المكرر يُرفض صادقًا مع قائمة التكرار — لا
+     * قياس فوق التكرار ولا مرور بصمت — انحدار إعداد PWA يوقف البناء. */
     const dup = referenceDist(makeTempDir());
     const sw = fs.readFileSync(path.join(dup, "sw.js"), "utf8");
     fs.writeFileSync(path.join(dup, "sw.js"), sw.replace("}]);", '},{url:"index.html",revision:null}]);'));
     const measured = measureSurfaces(dup, { identity: null });
+    expect(measured.error).toContain("DUPLICATE_PRECACHE_URLS");
+    expect(measured.error).toContain("index.html");
+    expect(measured.error).toContain("R8-N1");
+    /* عدد التكرارات يُذكر صريحًا: مدخل واحد مكرر. */
+    expect(measured.error).toContain("1 duplicate precache URL(s)");
+  });
+
+  it("multiple duplicated URLs are all listed in the failure, not just the first", () => {
+    const dup = referenceDist(makeTempDir());
+    const sw = fs.readFileSync(path.join(dup, "sw.js"), "utf8");
+    fs.writeFileSync(
+      path.join(dup, "sw.js"),
+      sw.replace("}]);", '},{url:"index.html",revision:null},{url:"assets/app-main-aBcD3f9h.js",revision:null}]);'),
+    );
+    const measured = measureSurfaces(dup, { identity: null });
+    expect(measured.error).toContain("2 duplicate precache URL(s)");
+    expect(measured.error).toContain("index.html");
+    expect(measured.error).toContain("assets/app-main-aBcD3f9h.js");
+  });
+
+  it("a clean precache manifest (every URL exactly once) measures and passes with the unique count", () => {
+    const measured = measureSurfaces(referenceDist(makeTempDir()), { identity: null });
     expect(measured.error).toBeUndefined();
-    expect(measured.normalization.duplicatePrecacheUrls).toEqual(["index.html"]);
-    /* المداخل الخام ٤ (تكرار index.html) والمقاسة الفريدة ٣ — المرصودة كعدّ. */
+    expect(measured.normalization.mode).toBe("hash-names");
+    /* المداخل الثلاثة كلها فريدة والعدّ الفريد ٣. */
     expect(measured.counts.precacheEntryCount).toBe(3);
   });
 
@@ -408,5 +435,15 @@ describe("CLI behavior (deterministic paths only)", () => {
     const unverified = runCli([path.join(os.tmpdir(), "micro-surfaces-missing-xyz")], { CI: "true" });
     expect(unverified.status).toBe(1);
     expect(unverified.stderr).toContain("UNVERIFIED_ENVIRONMENT");
+  });
+
+  it("exits 1 on a real duplicate precache URL at the CLI level too (R8-N1 regression class)", () => {
+    const dup = referenceDist(makeTempDir());
+    const sw = fs.readFileSync(path.join(dup, "sw.js"), "utf8");
+    fs.writeFileSync(path.join(dup, "sw.js"), sw.replace("}]);", '},{url:"index.html",revision:null}]);'));
+    const outcome = runCli([dup]);
+    expect(outcome.status).toBe(1);
+    expect(outcome.stderr).toContain("DUPLICATE_PRECACHE_URLS");
+    expect(outcome.stderr).toContain("index.html");
   });
 });

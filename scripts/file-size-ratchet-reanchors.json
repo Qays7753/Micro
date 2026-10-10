@@ -38,6 +38,24 @@
         "ownerReview": "R8 PR review (WS-216/ARCH-007) — part of the R8 PR diff",
         "trigger": "R8-4 CI bootstrap anchoring per the R8-1 documented protocol"
       }
+    },
+    {
+      "id": "R8-N1-ROOT-FIX",
+      "date": "2026-10-10",
+      "path": "apps/prototype-web/scripts/check-bundle-surfaces.mjs",
+      "from": {
+        "nbLoc": 457,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 467,
+        "band": "WATCH"
+      },
+      "reason": "R8-N1 root-fix closure (owner decision FIX_NOW): duplicate precache URLs in the generated sw.js change from measured-and-reported to a hard fail-closed error (DUPLICATE_PRECACHE_URLS with the full duplicate list in the message) — failure-code table entry, the fail branch itself, and the dated header comment; the report-only console line and the duplicatePrecacheUrls normalization field are removed as dead paths. Guard strengthening only: no tolerance, ceiling, or baseline semantics touched.",
+      "authorization": {
+        "ownerReview": "R8-N1 continuation review (WS-216/ARCH-007) — owner classified R8-N1 as FIX_NOW; this entry is part of the R8 PR #345 diff",
+        "trigger": "R8-N1 root-fix continuation prompt: deterministic tests must fail if the duplicate condition returns; the guard must fail closed on malformed or unsafe output"
+      }
     }
   ]
 }

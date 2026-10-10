@@ -12,6 +12,11 @@
  *  - أسطح محروسة لكل بيئة قياس (local / github-actions / cloudflare-pages):
  *    خام رفقاء الإقلاع، خام+gzip الطبقة الكسولة، خام مخزن PWA المسبق، خام
  *    زمن تشغيل عامل الخدمة (sw.js + workbox) — بإثبات مصدر لكل قاعدة بيئة.
+ *  - R8-N1 (إغلاق جذر 2026-10-10): أي عنوان precache مكرر في sw.js = فشل
+ *    صادق (DUPLICATE_PRECACHE_URLS) — المسار الكنوني الواحد (globPatterns)
+ *    لا يُنتج تكرارًا أبدًا؛ عودة التكرار = انحدار إعداد PWA يُرفض فورًا.
+ *    كانت العناوين المكررة تُقاس مرة واحدة وتُبلَّغ فقط (رصد R8-1)؛ بعد
+ *    إصلاح الجذر في vite.config.ts صار التكرار نفسه عيبًا يمنع البناء.
  *  - gzip يُقاس على محتوى مطبَّع حتميًا (أسماء التجزئة المعروفة + هوية البناء
  *    حين تتاح) فلا يتحول تنقّل أسماء التجزئة بين تشغيلات إلى نمو كود مزعوم؛
  *    والخام يظل البايتات الحقيقية المُصدَرة.
@@ -79,6 +84,8 @@ const FAILURE_CODES = {
   PATH_ESCAPE: "مسار يخرج عن جذر المخرجات — مرفوض.",
   MISSING_SERVICE_WORKER: "sw.js غير موجود في المخرجات.",
   MALFORMED_PRECACHE: "تعذر استخراج مداخل precache من sw.js (صفر مداخل أو صيغة غير مفهومة).",
+  DUPLICATE_PRECACHE_URLS:
+    "عناوين precache مكررة في sw.js — مسار اختيار واحد (globPatterns) لا ينتج تكرارًا؛ أصلح مصدر التكرار في إعداد PWA (R8-N1) ولا تكرر العنوان.",
   MISSING_PRECACHE_FILE: "مدخل precache يشير لملف غير موجود.",
   INVALID_BASELINE: "ملف الأساس غير صالح (مخطط/نسخة/سماحيات).",
   UNVERIFIED_ENVIRONMENT: "تعذر تحديد بيئة القياس بأمان — لا يُطبَّق أي أساس تخميني.",
@@ -327,6 +334,14 @@ export function measureSurfaces(distRoot = DEFAULT_DIST, options = {}) {
     if (!fs.existsSync(file)) return { error: `MISSING_PRECACHE_FILE: ${url} — ${FAILURE_CODES.MISSING_PRECACHE_FILE}` };
     precacheBytesTotal += fs.statSync(file).size;
   }
+  /* R8-N1 (إغلاق الجذر 2026-10-10): التكرار عيب يُرفض صادقًا لا حالة تُقاس
+   * فوقها — المسار الواحد الكنوني لا يُنتج تكرارًا، وعودته انحدار إعداد. */
+  if (duplicates.length > 0)
+    return {
+      error:
+        `DUPLICATE_PRECACHE_URLS: ${duplicates.length} duplicate precache URL(s) in sw.js ` +
+        `[${duplicates.join(", ")}] — ${FAILURE_CODES.DUPLICATE_PRECACHE_URLS}`,
+    };
 
   return {
     environment: options.environment,
@@ -348,7 +363,6 @@ export function measureSurfaces(distRoot = DEFAULT_DIST, options = {}) {
     },
     normalization: {
       mode: identity === null ? "hash-names" : "hash-names+identity",
-      duplicatePrecacheUrls: duplicates,
     },
   };
 }
@@ -454,10 +468,6 @@ function main() {
   }
   const { failures, reports } = compareSurfaces(measured, record, tolerances);
   for (const line of reports) console.log(`${prefix} ${line}`);
-  if (measured.normalization.duplicatePrecacheUrls.length > 0)
-    console.log(
-      `${prefix} duplicate precache URLs counted once: ${measured.normalization.duplicatePrecacheUrls.join(", ")}`,
-    );
   if (failures.length > 0) {
     for (const line of failures) console.error(`${prefix} FAIL ${line}`);
     return 1;
