@@ -16,4 +16,3 @@ fatal: Not a valid object name origin/main
       Tests  45 passed (45)
    Start at  15:53:02
    Duration  4.10s (transform 197ms, setup 0ms, import 479ms, tests 3.37s, environment 0ms)
-

@@ -55,7 +55,8 @@ and their corrections are binding for W2/W3.
 - **R9-PF-N1 (FIX_NOW):** registry — doors row corrected to the live
   **52 keys / 57 sites** with the full chain (120→43 STR-615→42 R5/S1→43 R7-1→46
   R7-2→49 R7-3→52 R7-4/R7-5; composition 36 composition-root + 10 R7 view-model +
-  6 R7-5 swap; the 7 frozen shims removed by R7-5 `bfa48d44`), doorless houses
+  3 R7-5 g5-swap + 3 presentation edges predating R7 — Gate-B corrected; the 7 frozen shims
+  removed by R7-5 `bfa48d44`), doorless houses
   corrected to the live **7** (direct-sales, financial-analysis, formatting, identity,
   owner, profile, recurring), §3م wave-head house re-count paragraph appended
   (146 prod + 141 test across 36 houses; per-house deltas listed), version → v1.4.
@@ -151,6 +152,18 @@ versions.
 | Command | Result |
 |---|---|
 | `python3 scripts/operations-control/generate_tracker.py` | views current (exit 0) |
+
+> **Dated correction 2026-10-10 (Gate B, R9-W1-B):** the exit table above was recorded
+> mid-wave, before the final JSON evidence-array additions; at the first committed W1
+> head (`80a3c64b`) the Excel provenance digest was therefore stale — `validate.py`
+> and `generate_tracker.py --check` exited **1**, and the five preserved `*.log.txt`
+> files carried EOF blank lines (`git diff --check` exit 2). Gate B rejected the head
+> on exactly these grounds. The correction commit re-refreshed the Excel meta from the
+> final source state, trimmed the log EOFs, corrected the 52-key decomposition
+> (36+10+3+3), and re-verified: `validate.py` exit 0, `generate_tracker.py --check`
+> exit 0, `git diff --check` clean, test-map no drift. The corrected W1 head is the
+> commit carrying this note; the record above stands as the mid-wave measurement with
+> this correction as its completion.
 | `python3 scripts/operations-control/generate_tracker.py --refresh-excel-meta` | Excel provenance refreshed (exit 0) |
 | `python3 scripts/operations-control/validate.py` | exit 0 (warnings: WS-170 historical base_sha — expected; gh CLI unavailable — API used instead) |
 | `python3 scripts/operations-control/generate_tracker.py --check` | exit 0 |
