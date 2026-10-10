@@ -1045,3 +1045,20 @@
 **Impact:** none — financial/semantic/schema (38/30)/export-import/history/rejection/security/visual-UI all untouched; DOM behavior pinned by 300+ focused journey/dom tests across the 11 packages.
 
 **Next:** single PR to main for owner review + owner-only merge; post-merge verification then R8 gate.
+
+---
+## Entry 75 — R7-CF-REPAIR: Cloudflare Pages build failure diagnosed and repaired on PR #342 (2026-10-10, WS-216/ARCH-007)
+
+**Executor:** Z AI (single primary executor; continuation after session interruption — all six R7 slices verified complete on the live branch first; nothing redone)
+
+**Observed live state at resumption:** branch head `47490e52` (= origin, worktree clean, 7 commits); PR #342 open/mergeable (99 files, +5,176/−2,090); GitHub CI run `38011723976` success on the exact head; **Cloudflare Pages check-run `114092902153` failure** on the same head. The PR body/report metadata had drifted (6 commits/95 files claimed; CI/CF URLs promised "later").
+
+**Diagnosis (classified `REPOSITORY_BUILD_FAILURE` — full chain in `R7-CLOUDFLARE-PAGES-REPAIR-2026-10-10.md`):** the CI job log proves the bundle-surfaces baseline sat at **zero headroom** on `lazyRawTotal` (1,417,088 = baseline) and `precacheBytesTotal` (2,748,821 = baseline) at the GitHub-CI environment; the baseline covered only two build environments (local Node-24 + CI Node-22 per W10) while the Pages toolchain is a documented third (ADR-012 +112–117 raw; Wave F: Pages failed the budget gate by 9 gzip bytes). The guards run inside the Pages build command, so any positive Pages-vs-CI delta fails the build. Entry budget excluded (543 bytes gzip headroom vs documented +9 Pages drift).
+
+**Repair:** +512-byte documented cross-environment tolerance per guarded total in `bundle-surfaces-baseline.json` (environment-variance headroom, not code-growth permission — code bytes byte-identical pre/post; entry ceilings 650,000/155,300 untouched; guard semantics untouched; R8 owns the proper environment-aware anchoring). Focused guard suites 24/24; local build PASS with identical code measurements.
+
+**Record corrections (A2):** dated correction block in the R7-COMPLETE report (live 7 commits/99 files +5,176/−2,090 at `47490e52`; CF failure + diagnosis pointer); state-log §160; this entry; Operations Control evidence append; PR body rewritten from live facts with the CI success URL, the CF failure + repair record, and the repair-head URLs pinned after the run completes.
+
+**Impact:** none — no production code, no financial/schema (38/30)/history/UI/provider change; no merge; no cleanup.
+
+**Next:** owner review + merge of PR #342 (owner-only); post-merge verification then R8 gate.

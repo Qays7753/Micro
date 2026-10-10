@@ -4,6 +4,11 @@
 **Report date:** 2026-10-10 — **Executor:** Z AI (single primary executor; five read-only review gates at R7-0)
 **Mode of this report:** synthesis across the six executed slices. Every material claim is classified VERIFIED / INFERRED / UNVERIFIED / NOT_EXECUTED / DEFERRED_BY_OWNER / PRESERVE_BY_DESIGN / BLOCKER.
 
+> **DATED CORRECTION — 2026-10-10 (post-push, pre-merge; R7-CF-REPAIR slice).** This report was written at the wave content head `bfa48d44` before the PR was opened. Live GitHub facts at the pushed head `47490e52` (closure-docs commit) and after the Cloudflare repair commit differ from the original numbers and are authoritative:
+> - **Commits on PR #342:** 7 at `47490e52` (the six slice commits + the closure-docs commit `47490e52`), plus the R7-CF-REPAIR commit (final count pinned in the PR body).
+> - **Changed files / additions / deletions:** 99 / +5,176 / −2,090 at `47490e52` (final values pinned in the PR body after the repair commit).
+> - **Cloudflare Pages on `47490e52`: FAILED** (check-run `114092902153`) while GitHub CI run `38011723976` succeeded. Diagnosis and repair: **`R7-CLOUDFLARE-PAGES-REPAIR-2026-10-10.md`** (same directory) — classification `REPOSITORY_BUILD_FAILURE`: the bundle-surfaces ratchet baseline was calibrated for two build environments only (local Node-24 + GitHub CI Node-22) and sat at zero headroom on `lazyRawTotal` and `precacheBytesTotal` at the CI environment; the Pages toolchain (documented drift: ADR-012 +112–117 raw; Wave F +9 gzip) exceeded it. Repair: +512-byte documented cross-environment tolerance on each guarded total (entry ceilings 650,000/155,300 untouched; code bytes unchanged; guard semantics unchanged). The sections below this correction retain their historical values at `bfa48d44` and are superseded for live-identity purposes by the PR body and the repair evidence file.
+
 ---
 
 ## 1. Executive status
