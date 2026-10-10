@@ -5,9 +5,16 @@
 
 ---
 
+> **استمرار مؤرخ 2026-10-10 (R9 continuation — قرأ هذا قبل أي بند أدناه):** بعد هذا
+> التقرير، وبقرار المالك الصريح (تفويض إصلاح الجذور على نفس الفرع/PR #347)، نُفّذت
+> إصلاحات الجذر F3.1–F3.5 + W3-F1 + F7 على ثلاث التزامات كود (`56c47a27` + `c1d294b1` +
+> `0bb51d1e`) + التزام توثيق، وأصبح التقرير الكنوني للاستمرار هو
+> `R9-POST-REVIEW-ROOT-FIX-EXECUTION-REPORT-2026-10-10.md`. البنود التي صارت متقادمة
+> هنا صُحّحت بتشطيب مؤرخ أدناه؛ تاريخ الموجات الثلاث يبقى صحيحًا كما هو لالتزاماته.
+
 ## 1. Executive Summary
 
-R9 was executed as the owner authorized: one branch, three sequential waves, one PR, no merge. **W1** reconciled the documentation/evidence/Operations Control defects of the accepted preflight (N1–N10) and preserved the complete preflight evidence package in-repo for the first time. **W2** turned the rollback claims into direct rehearsal evidence (RB-1/RB-2, no test doubles on the durable legs, with a negative proof) and root-fixed the recovery defect discovered at Gate A (R9-GA-F1: `replaceIndexedDbSnapshot` non-atomic on synchronous queueing failures) inside the authorized boundary, with the ratchet drift ledgered and the bundle-surface delta re-anchored with provenance. **W3** added direct behavioral tests for the five named-reference pages (19 tests, real services, second-instance read-backs) with zero production/UI change, and recorded — without enshrining — the page-boundary defects the tests surfaced (including the new R9-W3-F1). All four five-reviewer gates passed (Gate B after two correction rounds that the hostile reviewer independently verified). The full `pnpm check` exits 0 on the final tree. The PR now stands at the owner gate; **merging is owner-only**.
+R9 was executed as the owner authorized: one branch, three sequential waves, one PR, no merge. **W1** reconciled the documentation/evidence/Operations Control defects of the accepted preflight (N1–N10) and preserved the complete preflight evidence package in-repo for the first time. **W2** turned the rollback claims into direct rehearsal evidence (RB-1/RB-2, no test doubles on the durable legs, with a negative proof) and root-fixed the recovery defect discovered at Gate A (R9-GA-F1: `replaceIndexedDbSnapshot` non-atomic on synchronous queueing failures) inside the authorized boundary, with the ratchet drift ledgered and the bundle-surface delta re-anchored with provenance. **W3** added direct behavioral tests for the five named-reference pages (19 tests, real services, second-instance read-backs) with zero production/UI change, and recorded — without enshrining — the page-boundary defects the tests surfaced (including the new R9-W3-F1). All four five-reviewer gates passed (Gate B after two correction rounds that the hostile reviewer independently verified). The full `pnpm check` exits 0 on the final tree. The PR now stands at the owner gate; **merging is owner-only**. *(Dated continuation note 2026-10-10: the owner then authorized the root-fix continuation on the same PR — the five protected packages and the F7 deferral were executed; see the continuation addendum. The gate is again owner-only at the new head.)*
 
 ## 2. Exact baseline, branch, PR, and final SHA
 
@@ -15,8 +22,8 @@ R9 was executed as the owner authorized: one branch, three sequential waves, one
 |---|---|
 | Verified live baseline at start | `origin/main` = `8b3c9aeb09ca33ed66f0a929c157b668839d0463` (PR #346 reconciliation merge over the R8 merge `87274cf9`; CI run `38061919149` success on the exact SHA — verified live via the GitHub API before any write; no STATE_DRIFT) |
 | Branch | `refactoring/r9-complete-w1-w2-w3-20261010` (created once from the verified main; single writer) |
-| Commits (8) | `8985953a` + `80a3c64b` (W1) · `c54b39a3` + `5bf1a327` (W1 Gate-B corrections) · `6574d560` (W2 root fix + rehearsals) · `3b4875cb` (W2 evidence/records) · `b3fb3bc5` (W3 tests + evidence) · `4977e4d7` (W3 root-location relocation) · plus this final report commit |
-| Final PR head | The commit carrying this report (pinned in the PR body after the push; see §11 for the CI evidence on the exact head) |
+| Commits (8) | `8985953a` + `80a3c64b` (W1) · `c54b39a3` + `5bf1a327` (W1 Gate-B corrections) · `6574d560` (W2 root fix + rehearsals) · `3b4875cb` (W2 evidence/records) · `b3fb3bc5` (W3 tests + evidence) · `4977e4d7` (W3 root-location relocation) · plus this final report commit ·~~ *(continuation adds `56c47a27` + `c1d294b1` + `0bb51d1e` + the docs commit — dated 2026-10-10)*~~ |
+| Final PR head | ~~The commit carrying this report~~ *(superseded by the continuation: the final head is the continuation's docs commit, pinned in the PR body; this report's original head `d0a48545` was verified green by CI run 38080347997 + Cloudflare 114295770397 — the continuation re-verifies its own head per §11's protocol)* |
 | PR | #347 (opened after this report; body carries the full manifest) |
 | Untouched | PR #344 (docs-only, open); the protected UI branch `docs/ux-ui-zed-handoff-20260921`; `main` (zero direct writes; origin/main still `8b3c9aeb` throughout, verified at Gate D) |
 
@@ -61,16 +68,16 @@ JSON sources updated first at every step; views regenerated exclusively through 
 | W2: rehearsal file · storage suite · transfers suite · exe014+goldens · prototype tsc | 4/4 · 295/295 · 289/289 · 16/16 · 0 |
 | W2: ratchet (drift 430→451 authorized) · surfaces (precache re-anchor) | 0 · PASS |
 | W3: five page files · pages suite · map regen + drift pin | 19/19 · green · no-drift / 3/3 |
-| Full `pnpm check` (after W1 corrections, after W2, after W3) | **exit 0 ×3** (final: 747/747 root, 2,488/2,488 app, all 17 root guards, build + bundle guards PASS — entry 629,349/154,703 under 650,000/155,300; precache 156 entries/0 duplicates; all surfaces within baseline) |
+| Full `pnpm check` (after W1 corrections, after W2, after W3) | **exit 0 ×3** (final: 747/747 root, 2,488/2,488 app, all 17 root guards, build + bundle guards PASS — entry 629,349/154,703 under 650,000/155,300; precache 156 entries/0 duplicates; all surfaces within baseline) · *(continuation: exit 0 again at the new tree — 747/747 root, 2,502/2,502 app, entry 631,254/155,009, surfaces re-anchored; see the continuation addendum §8)* |
 | Full check on the exact final PR head | recorded in §11 (CI on the pushed head) |
 
 ## 11. CI and Cloudflare check evidence by exact SHA
 
-The final PR head is the commit carrying this report. Its CI run URL and result are pinned in the PR body immediately after the push (a commit cannot contain the URL of a run triggered by its own push — the R8 precedent). Per the recorded R9-GA-F5 protocol, the **post-merge reconciliation (owner action) back-fills the run URLs and machine outputs into this evidence directory**; the PR body remains provenance. Expected CI state: green (the tree differs from the verified `4977e4d7` by docs-only changes; the local full check exits 0 on the final tree). Cloudflare Pages: the repository's CI workflow contains no Pages deploy job (verified at Gate A); the Pages build is provider-side and its check-run URL is likewise pinned in the PR body when available.
+The final PR head is the commit carrying this report. Its CI run URL and result are pinned in the PR body immediately after the push (a commit cannot contain the URL of a run triggered by its own push — the R8 precedent). Per the recorded R9-GA-F5 protocol, the **post-merge reconciliation (owner action) back-fills the run URLs and machine outputs into this evidence directory**; the PR body remains provenance. ~~Expected CI state: green (the tree differs from the verified `4977e4d7` by docs-only changes; the local full check exits 0 on the final tree).~~ *(dated correction 2026-10-10, continuation: the tree now differs by the authorized root-fix commits, not docs-only; the local full check exits 0 on the continuation tree and the final-head CI/Pages runs are pinned in the PR body per this same protocol)* Cloudflare Pages: the repository's CI workflow contains no Pages deploy job (verified at Gate A); the Pages build is provider-side and its check-run URL is likewise pinned in the PR body when available.
 
 ## 12. Schema/export/financial/historical/security/UI impact statement
 
-**None.** `localSchemaVersion=38` / `localExportVersion=30` untouched (verified at every gate); export/import bytes and the accepted version matrix unchanged (goldens green); rejection behavior unchanged (the R9-GA-F1 fix preserves the exact failure code/message payload — it only adds the abort); no financial formula, rounding, classification, or persisted money text touched; no historical interpretation changed; no security/permission model change; no visual UI/CSS/DOM/copy/navigation change (the whole-branch diff proves it). The only production-code change in the entire PR is the single-file transaction-atomicity fix in the storage layer.
+**None, with one dated continuation amendment.** `localSchemaVersion=38` / `localExportVersion=30` untouched (verified at every gate, including the continuation); export/import bytes and the accepted version matrix unchanged (goldens green); rejection behavior unchanged (the R9-GA-F1 fix preserves the exact failure code/message payload — it only adds the abort); no financial formula, rounding, classification, or persisted money text touched; no historical interpretation changed; no security/permission model change. ~~no visual UI/CSS/DOM/copy/navigation change (the whole-branch diff proves it). The only production-code change in the entire PR is the single-file transaction-atomicity fix in the storage layer.~~ *(dated correction 2026-10-10, continuation: the owner-authorized root fixes add production changes — the four page files (failure/not-found surfaces + one navigation destination + two ARIA roles) and the storage listener hardening (73+1 listeners) — all failure-path truthfulness and transaction-safety corrections explicitly authorized by the continuation mandate; no CSS/layout/visual-system change; see the continuation addendum §7 for the exact impact statement.)*
 
 ## 13. Acceptance criteria and results for every wave
 
@@ -78,20 +85,21 @@ W1: all N1–N6 root-fixed (N7–N10 recorded precisely); N2 names the live fiel
 
 ## 14. Risks, preserved exceptions, and exact triggers
 
-1. **R9-GA-F7** (engine-divergent false-success in put-inside-onsuccess methods): latent, single-record blast radius; trigger = any reachable-uncloneable record change or the introduction of a real-browser test harness; exit = harness + hardening. 2. **R9-PF-N7** (precache intended-set completeness): bounded theoretical risk; trigger = any new public asset class or `globPatterns`/`publicDir` change (same-PR before/after unique-URL set comparison required — format canonicalized in the N4 annex). 3. **R9-GA-F3.1–.5 + R9-W3-F1** (page-boundary defects): PROTECTED_DECISION_REQUIRED packages awaiting owner decisions; none affect financial integrity (they are display/navigation behaviors on failure and not-found paths). 4. **Q-h/Q-i engine limitation**: fake-indexeddb (stated at every claim site). 5. The known-but-accepted CI environment variance for the cloud surfaces records (documented in the re-anchor method strings; verified by the PR-head runs).
+1. ~~**R9-GA-F7** (engine-divergent false-success in put-inside-onsuccess methods): latent, single-record blast radius; trigger = any reachable-uncloneable record change or the introduction of a real-browser test harness; exit = harness + hardening.~~ *(dated correction 2026-10-10: CLOSED_WITH_EVIDENCE in the continuation — commit `0bb51d1e` hardens every affected listener with the original-error payload; out-of-band real-Chromium evidence preserved; the spec-accurate evidence framing is in the repair card's dated correction; the in-repo-harness trigger remains for CI reproducibility only)* 2. **R9-PF-N7** (precache intended-set completeness): bounded theoretical risk; trigger = any new public asset class or `globPatterns`/`publicDir` change (same-PR before/after unique-URL set comparison required — format canonicalized in the N4 annex). 3. ~~**R9-GA-F3.1–.5 + R9-W3-F1** (page-boundary defects): PROTECTED_DECISION_REQUIRED packages awaiting owner decisions; none affect financial integrity (they are display/navigation behaviors on failure and not-found paths).~~ *(dated correction 2026-10-10: decided and CLOSED_WITH_EVIDENCE — the owner's continuation mandate authorized exactly these fixes; implemented in `56c47a27` + `c1d294b1`)* 4. **Q-h/Q-i engine limitation**: fake-indexeddb (stated at every claim site). 5. The known-but-accepted CI environment variance for the cloud surfaces records (documented in the re-anchor method strings; verified by the PR-head runs).
 
 ## 15. Rollback boundaries for the PR and each wave
 
-**Whole PR:** revert the branch (or the merge commit, if merged) — no data migration is involved anywhere; the schema/export/financial surfaces are untouched. **W1:** revert the docs commits — views regenerate from JSON. **W2:** revert `6574d560`+`3b4875cb` — the latent non-atomicity returns (documented), the rehearsal tests stay valid for legs 2–4, and the ratchet/surfaces baselines revert with the ledger entry. **W3:** revert `b3fb3bc5`+`4977e4d7` — five test files + regenerated map; the map regenerates from the tree.
+**Whole PR:** revert the branch (or the merge commit, if merged) — no data migration is involved anywhere; the schema/export/financial surfaces are untouched. **W1:** revert the docs commits — views regenerate from JSON. **W2:** revert `6574d560`+`3b4875cb` — the latent non-atomicity returns (documented), the rehearsal tests stay valid for legs 2–4, and the ratchet/surfaces baselines revert with the ledger entry. **W3:** revert `b3fb3bc5`+`4977e4d7` — five test files + regenerated map; the map regenerates from the tree. **Continuation (per-fix):** revert `56c47a27` (both reversal editors return to the old render guard + the hardcoded exit; tests/golden/ratchet rows revert with it) · revert `c1d294b1` (the G5 key derivation + tests + ledger row) · revert `0bb51d1e` (the listener hardening + RB-3 + two ledger rows; the surfaces re-anchor reverts with the docs commit). Each revert is clean (no data migration; schema/export untouched).
 
 ## 16. Files changed and files explicitly not changed
 
-**Changed:** production code — exactly one file (`storage/local/indexedDbSnapshot.ts`, the R9-GA-F1 fix). Tests — six new files (five page journeys + the rehearsal file). Guard data — ratchet baseline/ledger + surfaces baseline (both with same-PR provenance). Docs/evidence — the refactoring registers/map/plan/contract/README/CONTROL, current-state + log (§166–§169), the sequential worklog (Entries 80–83), Operations Control JSON + generated views, and the R9 evidence directory (canonical preflight copy + review package + repair cards + four wave reports + manifest) plus the R8-N1 annex. **Explicitly not changed:** every page/component/presentation/PWA source file; `index.css`; all contracts; the domain layer; the transfer layer; the adapters (beyond the one fix); CI; package scripts; PR #344; the protected UI branch; `main`.
+**Changed:** production code — ~~exactly one file (`storage/local/indexedDbSnapshot.ts`, the R9-GA-F1 fix)~~ *(continuation adds: `pages/CashReversalEditor.tsx`, `pages/InventoryReversalEditor.tsx`, `pages/CashWalletEditor.tsx`, `pages/G5DeclarationEditor.tsx`, `storage/local/IndexedDbLocalStore.ts`, `storage/local/indexedDbPrimitives.ts`)*. Tests — six new files (five page journeys + the rehearsal file) *(continuation: no new test files — the six existing ones extended, +14 tests)*. Guard data — ratchet baseline/ledger + surfaces baseline (both with same-PR provenance). Docs/evidence — the refactoring registers/map/plan/contract/README/CONTROL, current-state + log (§166–§169), the sequential worklog (Entries 80–83), Operations Control JSON + generated views, and the R9 evidence directory (canonical preflight copy + review package + repair cards + four wave reports + manifest) plus the R8-N1 annex. **Explicitly not changed:** every page/component/presentation/PWA source file; `index.css`; all contracts; the domain layer; the transfer layer; the adapters (beyond the one fix); CI; package scripts; PR #344; the protected UI branch; `main`.
 
 ## 17. Unverified, not executed, blocked, or protected-decision items
 
-- **PROTECTED_DECISION_REQUIRED (owner decisions, exact packages in the repair cards):** R9-GA-F3.1/.2 (swallowed storage failures in the two reversal editors), R9-GA-F3.3 (hardcoded `/inventory` save-exit), R9-GA-F3.4 (G5 idempotency key omitting `knowledge`), R9-GA-F3.5 (error `role` inconsistency), R9-W3-F1 (unreachable not-found surfaces — same family).
-- **DEFER_WITH_EXACT_OWNER_TRIGGER:** R9-GA-F7 (real-browser harness trigger).
+- ~~**PROTECTED_DECISION_REQUIRED (owner decisions, exact packages in the repair cards):** R9-GA-F3.1/.2 (swallowed storage failures in the two reversal editors), R9-GA-F3.3 (hardcoded `/inventory` save-exit), R9-GA-F3.4 (G5 idempotency key omitting `knowledge`), R9-GA-F3.5 (error `role` inconsistency), R9-W3-F1 (unreachable not-found surfaces — same family).~~
+- ~~**DEFER_WITH_EXACT_OWNER_TRIGGER:** R9-GA-F7 (real-browser harness trigger).~~
+- *(dated correction 2026-10-10, continuation: both lists are decided and closed — the owner's continuation mandate authorized all of them; executed with evidence in `56c47a27` + `c1d294b1` + `0bb51d1e`. The remaining standing items are the PRESERVE records and the engine/browser limitations recorded below and in the continuation addendum.)*
 - **PRESERVE (bounded/documented):** R9-PF-N7 (precache completeness), R9-GA-F2 (generic failure message by design), N8–N10 informational records.
 - **NOT_EXECUTED / VERIFIED-with-limitation:** real-browser IndexedDB behaviors (fake-indexeddb engine — Q-h/Q-i limitation); multi-tab versionchange races during replace (out of rehearsal scope; the existing adapter test covers the connection-eviction path); the Cloudflare Pages provider-side run (no deploy job in CI; the check-run URL lands in the PR body).
 - **Post-merge follow-ups (owner actions, recorded not faked):** pin the final-head CI/Pages run URLs and machine outputs into the canonical evidence directory; move `merge_sha`/`verified_on_main_sha` to the R9 merge SHA only after it exists.
@@ -103,25 +111,25 @@ W1: all N1–N6 root-fixed (N7–N10 recorded precisely); N2 names the live fiel
 | Repository | `Qays7753/Micro` |
 | PR | #347 — https://github.com/Qays7753/Micro/pull/347 |
 | Source branch | `refactoring/r9-complete-w1-w2-w3-20261010` |
-| Source full SHA | the final head carrying this report (pinned in the PR body) |
+| Source full SHA | ~~the final head carrying this report~~ the continuation's final head (pinned in the PR body; the continuation addendum records the exact SHAs) |
 | Target branch | `main` |
 | Target full SHA before merge | `8b3c9aeb09ca33ed66f0a929c157b668839d0463` |
 | Merge method recommended | merge commit |
-| CI status | run URL + result pinned in the PR body on the exact head (expected green — docs-only delta from the locally verified `4977e4d7`; local full `pnpm check` exit 0 on the final tree) |
+| CI status | run URL + result pinned in the PR body on the exact head (~~expected green — docs-only delta~~ local full `pnpm check` exit 0 on the continuation tree; the continuation addendum §8 carries the final-head results) |
 | Cloudflare Pages | provider-side check-run URL pinned in the PR body when available (no Pages job in CI — verified) |
 | Required checks | `pnpm check` (operations-control tests+validator, typecheck, lint ≤37, format, text-density, design guards, 17 root guards, root tests, prototype typecheck+tests, production build + budget + surfaces) |
-| Files and commits changed | 9–10 commits (§2); ~45 files: 1 production file, 6 test files, guard data, docs/evidence (§16) |
+| Files and commits changed | 9–10 commits (§2) + 4 continuation commits; ~45 files + the continuation set: 6 more production files, 6 extended test files, guard data, docs/evidence (§16 + the addendum) |
 | Schema/export impact | none (38/30 intact; goldens byte-stable) |
 | Financial/semantic/historical impact | none |
 | Security/permission impact | none |
-| Visual UI impact | none |
+| Visual UI impact | ~~none~~ failure-path corrections only (owner-authorized): reachable not-found surfaces, actual read-error messages with retry, two ARIA role corrections, one save-exit destination — no CSS/layout/visual-system change |
 | Deployment state | not deployed by this PR; no provider action taken |
 | Rollback method | revert the merge commit (no data migration); per-wave boundaries in §15 |
 
 ## 19. Owner review notes
 
-1. The five PROTECTED_DECISION_REQUIRED page-defect packages (§17) are ready for owner decisions — each has an exact fix shape and reason; none is financial-integrity-bearing, so they can be decided independently of this PR.
-2. R9-GA-F7's trigger (a real-browser test harness) is also the natural vehicle for the pre-pilot device gates — a single owner decision could open both.
+1. ~~The five PROTECTED_DECISION_REQUIRED page-defect packages (§17) are ready for owner decisions — each has an exact fix shape and reason; none is financial-integrity-bearing, so they can be decided independently of this PR.~~ *(decided and executed by the continuation mandate — 2026-10-10)*
+2. ~~R9-GA-F7's trigger (a real-browser test harness) is also the natural vehicle for the pre-pilot device gates — a single owner decision could open both.~~ *(the hardening no longer waits on the harness — executed in the continuation; the harness recommendation itself stands for CI reproducibility and the pre-pilot device gates)*
 3. After merge, the recorded post-merge reconciliation back-fills the run URLs and machine outputs (the R9-GA-F5 protocol) and moves the workstream SHA fields — exactly the R2–R4/R7/R8 pattern.
 4. R10 becomes eligible only after this PR is merged and the post-merge reconciliation completes (per the program contract).
 
@@ -136,6 +144,16 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGE
 NO_HISTORICAL_DATA_CHANGE
 NO_REJECTION_BEHAVIOR_CHANGE
 NO_SECURITY_OR_PERMISSION_CHANGE
-NO_VISUAL_UI_CHANGE
 NO_CLEANUP_PERFORMED
 ```
+
+*(Dated continuation amendment 2026-10-10: the `NO_VISUAL_UI_CHANGE` line no longer holds at
+the continuation head — the owner-authorized root fixes change failure-path rendering and one
+navigation destination; the honest replacement line, with everything else unchanged, is:*
+
+```text
+FAILURE_PATH_UI_CORRECTED — OWNER_AUTHORIZED
+```
+
+*The authoritative status for the current head is the continuation addendum's final status
+block (`R9-POST-REVIEW-ROOT-FIX-EXECUTION-REPORT-2026-10-10.md` §14).)*
