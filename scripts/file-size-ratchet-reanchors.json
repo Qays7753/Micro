@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "schema": "micro-file-size-ratchet-reanchors/1",
+  "comment": "R8-2: the single documented authorization path for baseline value increases. Each entry: id, date, path, from{nbLoc,band}, to{nbLoc,band}, reason, authorization{ownerReview, trigger}. The drift audit chain-validates from == merge-base baseline value. Entries authorize growth UP TO to.nbLoc; they are bounded per-path authorizations, never blanket exemptions.",
+  "entries": []
+}
