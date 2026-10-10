@@ -64,8 +64,11 @@ authorization, not the preflight report itself).
 `CashWalletEditor`, `CashReversalEditor`, `G5DeclarationEditor`,
 `InventoryReversalEditor`, `ReceivedLoanDetail` — previously represented by
 named-reference or adjacent evidence (the shared `SmokeOnlyPagesJourneys.dom.test.tsx`
-single-happy-path W7 journeys; no per-page direct test files exist — verified
-`git ls-files 'apps/prototype-web/client/src/pages/*.test.tsx'`).
+single-happy-path W7 journeys; no per-page direct test files exist FOR THESE FIVE
+TARGETS — verified with `git ls-files 'apps/prototype-web/client/src/pages/*.test.tsx'`
+(nine page-adjacent test files exist for OTHER pages — DirectSaleEditor.ui,
+FinancialEventEditor.guided/ui, Foundation.ui, Orders.ui, OwnerJourneysExe009.dom,
+Profile.ui, Setup.ui, SupplierPurchaseEditor.ui — none covers the five targets)).
 `SharePreview` is not silently included: it remains a documented surface-only
 presentation case (draft body display, copy/share outcome, empty state — all already
 exercised by the W7 journey; no stateful page journey exists to add).
