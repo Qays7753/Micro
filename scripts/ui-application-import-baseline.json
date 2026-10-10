@@ -47,6 +47,9 @@
   "apps/prototype-web/client/src/pages/InventoryMaterials.tsx -> apps/prototype-web/client/src/application/inventory/inventoryMaterialsViewModel.ts",
   "apps/prototype-web/client/src/pages/InventoryMovementEditor.tsx -> apps/prototype-web/client/src/application/inventory/inventoryMovementEditorModel.ts",
   "apps/prototype-web/client/src/pages/OrderDetail.tsx -> apps/prototype-web/client/src/application/agreements/orderDetailViewModel.ts",
+  "apps/prototype-web/client/src/pages/OwnerEntitlement.tsx -> apps/prototype-web/client/src/application/owner-money/ownerEntitlementViewModel.ts",
+  "apps/prototype-web/client/src/pages/Schedule.tsx -> apps/prototype-web/client/src/application/scheduling/scheduleViewModel.ts",
+  "apps/prototype-web/client/src/pages/Statement.tsx -> apps/prototype-web/client/src/application/finance/statementViewModel.ts",
   "apps/prototype-web/client/src/pages/SupplierPurchaseEditor.tsx -> apps/prototype-web/client/src/application/suppliers/supplierPurchaseEditorModel.ts",
   "apps/prototype-web/client/src/presentation/activityLabels.ts -> apps/prototype-web/client/src/application/activity/activityLabels.ts",
   "apps/prototype-web/client/src/presentation/formatters.ts -> apps/prototype-web/client/src/application/formatting/formatters.ts",
@@ -59,6 +62,9 @@
   "r7-p01-order-detail-view-model": "2026-10-10 (R7/R6-F17-P01): the order-detail lazy route consumes the extracted order query/section-decision surface (honest main load, source-estimate chain, wallet options, party suggestions, section decision flags) from the agreements house (the canonical order reader).",
   "r7-p04-supplier-purchase-editor-model": "2026-10-10 (R7/R6-F17-P04): the supplier-purchase editor lazy route consumes the extracted editor decision model (FIN-003 payment-source rule, purchase/payment/edit validation gates, loaded-purchase mapping, EXE-011 tracked-material check) from the suppliers house.",
   "r7-p08-inventory-movement-editor-model": "2026-10-10 (R7/R6-F17-P08): the inventory-movement editor lazy route consumes the extracted editor decision model (deep-link parsing, movement-type validation gate, five-kind waste context) from the inventory house.",
-  "r7-p09-inventory-materials-view-model": "2026-10-10 (R7/R6-F17-P09): the inventory-materials lazy route consumes the extracted four-way page query (overview/movements/shortages/activation) from the inventory house."
+  "r7-p09-inventory-materials-view-model": "2026-10-10 (R7/R6-F17-P09): the inventory-materials lazy route consumes the extracted four-way page query (overview/movements/shortages/activation) from the inventory house.",
+  "r7-p05-owner-entitlement-view-model": "2026-10-10 (R7/R6-F17-P05): the owner-entitlement lazy route consumes the extracted active-record derivations (active entitlements/opening balances/prior draws over the unified read) and the owner-money block reader from the owner-money house; the canonical PC-4 service is untouched.",
+  "r7-p06-schedule-view-model": "2026-10-10 (R7/R6-F17-P06): the schedule lazy route consumes the extracted three-way page query (overview/month/recurrences with the original error-message precedence) and the capacity-layer param from the scheduling house.",
+  "r7-p11-statement-view-model": "2026-10-10 (R7/R6-F17-P11): the statement lazy route consumes the extracted statement query, comparison side-B resolution, and week bounds from the finance house; the markdown renderer is injected as an explicit parameter (review amendment 6)."
  }
 }

@@ -101,6 +101,9 @@ const VIEW_MODEL_MODULES: readonly string[] = [
   "application/suppliers/supplierPurchaseEditorModel.ts",
   "application/inventory/inventoryMovementEditorModel.ts",
   "application/inventory/inventoryMaterialsViewModel.ts",
+  "application/owner-money/ownerEntitlementViewModel.ts",
+  "application/scheduling/scheduleViewModel.ts",
+  "application/finance/statementViewModel.ts",
 ];
 
 describe("R7 — وحدات نموذج العرض التطبيقية بلا حساب مال (صفر أسطر حساب)", () => {

@@ -9,6 +9,16 @@ import { useLocation, useSearch } from "wouter";
 import { referrerPath, withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+/* R7/R6-F17-P11 (2026-10-10): قراءة الكشف والمقارنة وحدود الأسبوع عند
+ * صاحبها التطبيقي؛ منسّق الماركداون يُحقن معاملًا صريحًا (تعديل المراجعة 6). */
+import {
+  readPeriodComparisonBlock,
+  readStatementBlock,
+  resolveComparisonSideB,
+  weekBounds,
+  type ComparisonState,
+  type StatementState,
+} from "@/application/finance/statementViewModel";
 import type { PeriodComparisonReading } from "@/app/PrototypeServicesContext";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
@@ -30,18 +40,10 @@ import type { StatementLine, StatementReading, StatementExpenseCategoryGroup } f
 
 import { Button } from "@/components/primitives";
 import { todayInAmman } from "@/application/time";
-type State =
-  { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; reading: StatementReading };
+/* R7/P11: حالة الكشف انتقلت مع قراءتها إلى البيت التطبيقي. */
+type State = StatementState;
 
 type QuickRange = "this_week" | "last_week" | "this_month" | "this_quarter" | "last_quarter" | "custom";
-
-/* FIN-007 (WS-173 — Wave 1): حالة مقارنة الفترتين — قراءة فقط فوق القارئ
- * الكنوني نفسه؛ الوضع الافتراضي مطوي/مغلق فلا كلفة ولا نص في السكون. */
-type ComparisonState =
-  | { phase: "idle" }
-  | { phase: "loading" }
-  | { phase: "error"; message: string }
-  | { phase: "ready"; reading: PeriodComparisonReading };
 
 /* المجموعة ١ (تصنيفي للمصاريف): «مصاريفي حسب تصنيفي» — صفوف الأوسمة بنفس
  * نمط صفوف الكشف (زر تبديل يفتح المصادر)؛ «غير مصنّف» مجموعة صادقة أخيرة. */
@@ -101,16 +103,7 @@ function ExpenseCategoryGroupRow({
   );
 }
 
-/* R2 (M-02/X1، 2026-10-08): حساب حدود الأسبوع من نواة التاريخ الكنسية —
- * كانت Date.UTC رقمية؛ اليوم من ساعة الأعمال الجارية فلا يبلغ حد التمثيل. */
-const shiftDate = (localDate: string, days: number): string =>
-  localDatePlusDays(localDate, days) ?? localDate;
-/* الأسبوع في النموذج: الأحد → السبت (أسبوع عمل المالك الصغير في الأردن). */
-function weekBounds(today: string): { from: string; to: string } {
-  const weekday = localDateWeekdayIndex(today) ?? 0;
-  const from = shiftDate(today, -weekday);
-  return { from, to: shiftDate(from, 6) };
-}
+/* R7/P11: shiftDate/weekBounds انتقلتا إلى البيت التطبيقي (statementViewModel). */
 
 function StatementLineRow({
   line,
@@ -184,11 +177,9 @@ export default function Statement() {
 
   useEffect(() => {
     let active = true;
-    statement.read(from, to).then(result => {
-      if (!active) return;
-      setState(
-        result.ok ? { phase: "ready", reading: result.value } : { phase: "error", message: result.message },
-      );
+    /* R7/P11: قراءة الكشف عند صاحبها التطبيقي — نفس الفصل ونص الرسائل. */
+    readStatementBlock({ statement }, from, to).then(next => {
+      if (active) setState(next);
     });
     return () => {
       active = false;
@@ -206,13 +197,10 @@ export default function Statement() {
     }
     let active = true;
     setComparison({ phase: "loading" });
-    const sideB =
-      compareMode === "previous" ? previousEqualPeriod({ from, to }) : { from: compareFrom, to: compareTo };
-    periodComparison.readPeriodComparison({ from, to }, sideB).then(result => {
+    const sideB = resolveComparisonSideB(compareMode, { from, to }, { from: compareFrom, to: compareTo });
+    readPeriodComparisonBlock({ periodComparison }, { from, to }, sideB).then(next => {
       if (!active) return;
-      setComparison(
-        result.ok ? { phase: "ready", reading: result.value } : { phase: "error", message: result.message },
-      );
+      setComparison(next);
     });
     return () => {
       active = false;

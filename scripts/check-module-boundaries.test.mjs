@@ -188,15 +188,15 @@ describe("boundary rules on a synthetic tree (each rule can fail)", () => {
     write(root, "src/domain/widget/deep.ts", "export const d = 2;\n");
     write(root, "src/domain/other/index.ts", DOMAIN_BARREL());
     /* برميل منطقة أخرى: مسموح (البرميل هو السطح العام). */
-    write(
-      root,
-      "src/domain/widget/consumer.ts",
-      APP_SERVICE("@micro-domain/other/index.js"),
-    );
+    write(root, "src/domain/widget/consumer.ts", APP_SERVICE("@micro-domain/other/index.js"));
     let result = checkModuleBoundaries(root);
     expect(result.violations.filter(v => v.rule === "R4-domain-cross-area-deep")).toEqual([]);
     /* نسبي عميق عابر للمناطق: يُصطاد. */
-    write(root, "src/domain/other/consumer.ts", 'import { d } from "../widget/deep.js";\nexport const o = d;\n');
+    write(
+      root,
+      "src/domain/other/consumer.ts",
+      'import { d } from "../widget/deep.js";\nexport const o = d;\n',
+    );
     result = checkModuleBoundaries(root);
     const r4 = result.violations.filter(v => v.rule === "R4-domain-cross-area-deep");
     expect(r4.length).toBe(1);
@@ -233,7 +233,11 @@ describe("boundary rules on a synthetic tree (each rule can fail)", () => {
     const root = makeTempDir();
     write(root, "src/domain/g5/index.ts", DOMAIN_BARREL());
     write(root, "src/domain/g5/inner.ts", "export const g = 5;\n");
-    write(root, "apps/prototype-web/client/src/application/x/service.ts", APP_SERVICE("@micro-domain/g5/inner.js"));
+    write(
+      root,
+      "apps/prototype-web/client/src/application/x/service.ts",
+      APP_SERVICE("@micro-domain/g5/inner.js"),
+    );
     const result = checkModuleBoundaries(root);
     const r1 = result.violations.filter(v => v.rule === "R1-deep-domain-import");
     expect(r1.length).toBe(1);
@@ -270,8 +274,7 @@ describe("CLI on the live repo (smoke)", () => {
 });
 
 describe("R6 (Step 6 — STR-615 system-wide ratchet: UI -> application interiors)", () => {
-  const PAGE = specifier =>
-    `import { Thing } from "${specifier}";\nexport const P = Thing;\n`;
+  const PAGE = specifier => `import { Thing } from "${specifier}";\nexport const P = Thing;\n`;
   const SERVICE = "export class Thing {}\n";
 
   function writeBaseline(root, allowed) {
@@ -285,10 +288,16 @@ describe("R6 (Step 6 — STR-615 system-wide ratchet: UI -> application interior
   it("a baseline-registered deep import passes; a NEW deep import is caught; a door import is free", () => {
     const root = makeTempDir();
     write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
-    write(root, "apps/prototype-web/client/src/application/house/index.ts", 'export { Thing } from "./service.js";\n');
+    write(
+      root,
+      "apps/prototype-web/client/src/application/house/index.ts",
+      'export { Thing } from "./service.js";\n',
+    );
     write(root, "apps/prototype-web/client/src/pages/A.tsx", PAGE("@/application/house/service"));
     write(root, "apps/prototype-web/client/src/pages/B.tsx", PAGE("@/application/house"));
-    writeBaseline(root, ["apps/prototype-web/client/src/pages/A.tsx -> apps/prototype-web/client/src/application/house/service.ts"]);
+    writeBaseline(root, [
+      "apps/prototype-web/client/src/pages/A.tsx -> apps/prototype-web/client/src/application/house/service.ts",
+    ]);
     let result = checkModuleBoundaries(root);
     expect(result.violations.filter(v => v.rule.startsWith("R6"))).toEqual([]);
     expect(result.stats.uiToApplicationDeep).toBe(1);
@@ -359,11 +368,14 @@ describe("R6 (Step 6 — STR-615 system-wide ratchet: UI -> application interior
      * orderDetailViewModel) تستهلكها مساراتها الكسولة باستيراد عميق مؤرخ؛
      * المجموع ٤٦ (٣٦ + ١٠).
      * R7/R7-3 (P04+P08+P09، 2026-10-10): +٣ مفاتيح موثقة — نماذج عرض
-     * الموردين والمخزون المستخرجة؛ المجموع ٤٩ (٣٦ + ١٣). */
+     * الموردين والمخزون المستخرجة؛ المجموع ٤٩ (٣٦ + ١٣).
+     * R7/R7-4 (P05+P06+P11، 2026-10-10): +٣ مفاتيح موثقة — نموذجا عرض مال
+     * المالك والجدولة والبيان المستخرجة؛ المجموع النهائي ٥٢ (٣٦ + ١٦) —
+     * الطرف النهائي لموجة R7 (كل الحزم الإحدى عشرة منفذة). */
     const contextKeys = raw.allowed.filter(k => k.includes("PrototypeServicesContext"));
     const otherKeys = raw.allowed.filter(k => !k.includes("PrototypeServicesContext"));
     expect(contextKeys.length).toBe(36);
-    expect(otherKeys.length).toBe(13);
+    expect(otherKeys.length).toBe(16);
     expect(otherKeys.some(k => k.includes("finance/expenseBudgetService.ts"))).toBe(false);
     expect(otherKeys.filter(k => k.includes("g5/g5Service.ts")).length).toBe(3);
     expect(otherKeys.some(k => k.includes("activity/activityLabels.ts"))).toBe(true);
@@ -376,7 +388,7 @@ describe("R6 (Step 6 — STR-615 system-wide ratchet: UI -> application interior
 
   /* ── R5/S1 (2026-10-09): المحدّد النوعي `import("…").X` وملفات `.js` ── */
 
-  it("R5/S1: type-position import(\"…\") into an application interior is counted and rejected when un-baselined", () => {
+  it('R5/S1: type-position import("…") into an application interior is counted and rejected when un-baselined', () => {
     const root = makeTempDir();
     write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
     write(

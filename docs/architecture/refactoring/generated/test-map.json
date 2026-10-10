@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "c86c4f2c8dc33b770a57e3fad2d7503987ed2bec",
+  "head": "c0fe0df235e366539d909858a3c215cf1cacab9b",
   "pages": {
     "total": 60,
     "map": {
@@ -366,7 +366,8 @@
       "pages/Schedule.tsx": {
         "kind": "direct",
         "evidence": [
-          "G004CapabilityGuard.dom.test.tsx"
+          "G004CapabilityGuard.dom.test.tsx",
+          "ScheduleJourneys.dom.test.tsx"
         ]
       },
       "pages/ScheduleEditor.tsx": {
@@ -457,6 +458,7 @@
           "apps/prototype-web/client/src/application/finance/periodResultCanonical.test.ts",
           "apps/prototype-web/client/src/application/finance/statementMarkdownService.test.ts",
           "apps/prototype-web/client/src/application/finance/statementService.test.ts",
+          "apps/prototype-web/client/src/application/finance/statementViewModel.test.ts",
           "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.shortCashHorizon.test.ts",
           "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.test.ts",
           "tests/domain/financial-analysis.test.ts"
@@ -511,7 +513,8 @@
         "curated": [
           "apps/prototype-web/client/src/application/scheduling/capacityDecisionService.test.ts",
           "apps/prototype-web/client/src/application/scheduling/capacityDecisionViewModel.test.ts",
-          "apps/prototype-web/client/src/application/scheduling/scheduleService.test.ts"
+          "apps/prototype-web/client/src/application/scheduling/scheduleService.test.ts",
+          "apps/prototype-web/client/src/application/scheduling/scheduleViewModel.test.ts"
         ]
       },
       "08-expense-classification-prototype-contract.md": {
@@ -599,6 +602,7 @@
       "18-derived-monthly-order-schedule-g6-a-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/ScheduleJourneys.dom.test.tsx",
           "apps/prototype-web/client/src/application/supplierScheduleConcurrency.test.ts",
           "apps/prototype-web/client/src/application/supplierScheduleStaleResults.test.ts",
           "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.derivationCoupling.test.ts",
@@ -613,6 +617,7 @@
       "19-bounded-local-schedule-recurrence-g6-b-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/ScheduleJourneys.dom.test.tsx",
           "apps/prototype-web/client/src/application/supplierScheduleConcurrency.test.ts",
           "apps/prototype-web/client/src/application/supplierScheduleStaleResults.test.ts",
           "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.derivationCoupling.test.ts",
