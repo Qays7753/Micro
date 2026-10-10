@@ -10,7 +10,7 @@
 
 **Spec:** تقريري `FLASH-PASS-A-PRINCIPLES-REVIEW-2026-10-04.md` و`STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-04.md`، ومرجع Micro المعماري، وعقد الملكية التقنية 40، وقرارات المالك المثبتة في هذه الخطة.
 
-**الحالة:** `OWNER_ACCEPTED — R0–R8_VERIFIED_ON_MAIN; R9_PREFLIGHT_GATE`
+**الحالة:** `OWNER_ACCEPTED — R0–R8_VERIFIED_ON_MAIN; R9_REMEDIATION_IN_PROGRESS (W1+W2+W3 — preflight مقبول وتنفيذ مُصرّح)` *(تحديث مؤرخ 2026-10-10 — R9/W1: كانت `R9_PREFLIGHT_GATE` — اكتمل preflight (حزمة المراجعة الخمسة محفوظة في `docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/`) وقبل المالك المكتشفات وصرّح بتنفيذ الموجات الثلاث على فرع `refactoring/r9-complete-w1-w2-w3-20261010` من `8b3c9aeb`؛ بلا دمج وبإيقاف عند بوابة المالك للـPR)*
 
 **خط البداية الحي الذي تم التحقق منه قبل كتابة الخطة:**
 

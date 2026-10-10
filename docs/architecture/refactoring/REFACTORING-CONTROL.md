@@ -1,9 +1,9 @@
 # Micro — Refactoring Control
 
-**الإصدار:** v1.18 (R8 مدموجة ومتحققة على main؛ بوابة R9 مفتوحة — 2026-10-10؛ v1.17 وما قبلها سجل تاريخي)
+**الإصدار:** v1.19 (R9 معالجة كاملة قيد التنفيذ W1+W2+W3 بتفويض المالك — 2026-10-10؛ v1.18 R8 مدموجة ومتحققة وبوابة R9؛ v1.17 وما قبلها سجل تاريخي)
 **التاريخ:** 2026-10-10
-**الحالة:** `OWNER_ACCEPTED — R8 VERIFIED_ON_MAIN; R9 PREFLIGHT GATE OPEN`
-**المرحلة:** `SUCCESSOR R0–R8 VERIFIED ON MAIN; R9 NOT STARTED — PREPARE EVIDENCE/MAP/ROLLBACK PACKAGE`
+**الحالة:** `OWNER_ACCEPTED — R8 VERIFIED_ON_MAIN; R9 REMEDIATION W1+W2+W3 IN PROGRESS (preflight accepted; implementation authorized; PR stops at the owner gate)`
+**المرحلة:** `SUCCESSOR R0–R8 VERIFIED ON MAIN; R9 W1+W2+W3 EXECUTING (docs/evidence reconciliation; rollback rehearsals + recovery root-fix; five-page direct tests)`
 **النطاق:** Structure / Architecture / Code Organization فقط
 
 ## 1. الهدف
@@ -185,7 +185,7 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 - **الخطة:** `STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
 - **البداية المسموحة:** R0 قراءة فقط ومصالحة الخط الأساسي؛ لا نقل أو تقسيم أو حذف أو تعديل كودي في R0.
 - **قاعدة الاستمرار:** بعد تقرير R0 فقط، تنفذ R1–R10 على فرع مستقل، وبطاقات Repair، وPR مستقل أو شريحة قابلة للمراجعة، وفحوص مركزة وCI وحد رجوع لكل موجة.
-- **الخطوة الحية:** R8 تحققت على `main` عند Merge commit `87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e` (PR #345؛ CI post-merge `38060781329` ناجح على الرأس نفسه). التالي R9 preflight/قراءة-فقط لحزمة الخرائط والأدلة والتراجع؛ لا كتابة R9 قبل قبول الحزمة. لا تغيير مالي/دلالي/تاريخي أو Schema/Export/Import أو UI بصري.
+- **الخطوة الحية:** R8 تحققت على `main` عند Merge commit `87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e` (PR #345؛ CI post-merge `38060781329` ناجح على الرأس نفسه)، ثم دُمجت مصالحة ما بعد الدمج PR #346 عند `8b3c9aeb` (CI `38061919149` ناجح على الرأس نفسه). اكتمل R9 preflight وقبله المالك، والمعالجة الكاملة W1+W2+W3 تنفذ الآن على الفرع `refactoring/r9-complete-w1-w2-w3-20261010` من `8b3c9aeb` بلا دمج — بوابة PR عند المالك. لا تغيير مالي/دلالي/تاريخي أو Schema/Export/Import أو UI بصري. *(تحديث مؤرخ 2026-10-10 — R9/W1)*
 
 ## 15. سلّم الأولوية ودورة حياة قطع الحوكمة (R1/TG-04 — 2026-10-07)
 

@@ -146,7 +146,16 @@
     "https://github.com/Qays7753/Micro/commit/7341f91195a59100a4b9111b1d81c21f0f184368",
     "https://github.com/Qays7753/Micro/commit/87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e",
     "https://github.com/Qays7753/Micro/actions/runs/38060781329",
-    "https://github.com/Qays7753/Micro/actions/runs/38060781329/job/114238432384"
+    "https://github.com/Qays7753/Micro/actions/runs/38060781329/job/114238432384",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/R9-PREFLIGHT-CONSOLIDATED-FINDINGS-CANONICAL-COPY-2026-10-10.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/R9-REPAIR-CARDS.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-1-architecture-ownership.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-2-storage-data.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-3-ui-boundaries.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-4-tests-guards-ci.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-5-hostile-evidence.md",
+    "https://github.com/Qays7753/Micro/actions/runs/38061919149",
+    "docs/operations/control/evidence/structural-remediation-r8-20261010/R8-N1-CANONICAL-EVIDENCE-ANNEX-2026-10-10.md"
   ],
   "dependencies": [],
   "related_items": [
@@ -164,5 +173,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R8 VERIFIED_ON_MAIN at merge commit 87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e (PR #345; post-merge CI 38060781329 succeeded on the exact main SHA). R8-N1 is FIX_NOW — CLOSED_WITH_EVIDENCE and all R8 findings are closed with evidence. Next: R9 preflight/read-only evidence reconciliation only — verify main, build the feature/module/contract/test/owner map, test and documentation map, storage parity matrix, Transfer/Legacy/Golden matrix, boundary/door matrix, guard claims matrix, and rollback-rehearsal scope. R9 implementation writes require a scoped owner-accepted package; R9 has not started."
+  "next_action": "R9 complete remediation (W1+W2+W3) owner-authorized and executing: W1 documentation/evidence/Operations Control reconciliation (N1..N10 repair cards; canonical preflight copy + review package; R8-N1 annex), W2 rollback rehearsals + recovery root-fix (R9-GA-F1), W3 direct tests for the five named pages. Branch refactoring/r9-complete-w1-w2-w3-20261010 from 8b3c9aeb; one PR, no merge without owner authorization. R8 remains VERIFIED_ON_MAIN at 87274cf9 (post-merge CI 38060781329); post-merge reconciliation of R8 merged at 8b3c9aeb with CI 38061919149 success on the exact SHA."
 }
