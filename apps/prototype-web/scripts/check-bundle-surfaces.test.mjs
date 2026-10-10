@@ -107,10 +107,26 @@ function referenceDist(root) {
   });
 }
 
+/** بيئة فرعية مضبوطة بالكامل: تُنظّف مؤشرات البيئة الموروثة (في CI يرث
+ * الإجراء GITHUB_ACTIONS وGITHUB_SHA فتفسد حتمية اختبارات CLI) قبل تطبيق
+ * التجاوزات الصريحة لكل حالة. */
 function runCli(args, env = {}) {
+  const clean = { ...process.env };
+  for (const key of [
+    "CI",
+    "GITHUB_ACTIONS",
+    "GITHUB_SHA",
+    "CF_PAGES",
+    "CF_PAGES_COMMIT_SHA",
+    "GITLAB_CI",
+    "JENKINS_URL",
+    "TEAMCITY_VERSION",
+    "VITE_APP_VERSION",
+  ])
+    delete clean[key];
   return spawnSync(process.execPath, [SCRIPT_PATH, ...args], {
     encoding: "utf8",
-    env: { ...process.env, ...env },
+    env: { ...clean, ...env },
   });
 }
 
