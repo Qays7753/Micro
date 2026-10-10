@@ -55,13 +55,27 @@ export async function writeOneIdempotent<T>(
       const scanRequest = store.getAll();
       scanRequest.onerror = () => resolve(failure(scanRequest.error, database));
       scanRequest.onsuccess = () => {
-        const existing = (scanRequest.result as T[]).find(isDuplicate);
-        if (existing) {
-          resolve({ ok: true, value: existing });
-          return;
+        /* R9-GA-F7 (استمرار R9): أي رمي متزامن داخل مستمع النجاح (put بعنصر
+         * غير قابل للاستنساخ، أو خطأ في فاحص التكرار) لم يكن يُلتقط — فاعتمد
+         * السلوك على معالجة المحرك لاستثناء المستمع (إحباط مع فقدان حمولة
+         * الخطأ الأصلي، أو ما هو أسوأ على محرك لا يحترمها). الالتقاط هنا
+         * يجعل الفشل حتميًا ببنية الكود: إحباط محرس + فشل صادق بالخطأ الأصلي. */
+        try {
+          const existing = (scanRequest.result as T[]).find(isDuplicate);
+          if (existing) {
+            resolve({ ok: true, value: existing });
+            return;
+          }
+          const putRequest = store.put(value);
+          putRequest.onerror = () => resolve(failure(putRequest.error, database));
+        } catch (error) {
+          resolve(failure(error, database));
+          try {
+            transaction.abort();
+          } catch {
+            /* المعاملة انتهت فعلًا — لا شيء يُحبَط. */
+          }
         }
-        const putRequest = store.put(value);
-        putRequest.onerror = () => resolve(failure(putRequest.error, database));
       };
       transaction.onabort = () => resolve(failure(transaction.error, database));
       transaction.onerror = () => resolve(failure(transaction.error, database));

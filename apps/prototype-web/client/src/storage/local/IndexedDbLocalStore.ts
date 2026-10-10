@@ -130,6 +130,28 @@ import { connection, failure } from "./indexedDbLifecycle";
 import { deleteOne, listAll, readOne, writeOne, writeOneIdempotent } from "./indexedDbPrimitives";
 import { readIndexedDbSnapshot, replaceIndexedDbSnapshot } from "./indexedDbSnapshot";
 
+/* R9-GA-F7 (استمرار R9 — تحصين مسارات الكتابة داخل مستمعات النجاح): كل طلب
+ * كتابة (put/add/delete) يُرتَّب داخل مستمع onsuccess كان يعتمد نجاحه على
+ * معالجة المحرك لاستثناء يرميه المستمع نفسه (DataCloneError مثلًا): المواصفة
+ * (IndexedDB 3.0 §5.9) تُحبِط المعاملة عند رمي المستمع لكن بحمولة AbortError
+ * بديلة تفقد الخطأ الأصلي، وأي محرك لا يحترم الراية القديمة يترك المعاملة
+ * تكتمل فيُنجَح وعدٌ لقيمة لم تُكتب. التحصين الموحّد في كل مستمع كتابة أدناه:
+ * مغلف guardedSuccessListener يلتقط أي رمي متزامن من جسم المستمع قبل وصوله
+ * إلى المحرك ويسلّمه إلى failFromListener المحلي الذي يثبّت النتيجة المعلقة
+ * بالخطأ الأصلي أولًا ثم يُحبِط المعاملة إحباطًا محرسًا (فإما onabort يسلّم
+ * الفشل الأصلي، وإما المعاملة انتهت فعلًا فيُسلَّم الفشل مباشرة) — نفس نمط
+ * معالجات onerror القائمة ونمط R9-GA-F1 في replaceIndexedDbSnapshot؛ لا
+ * تغيير في ترتيب الطلبات ولا في بصمة أي معاملة ولا في أكواد/رسائل الفشل. */
+function guardedSuccessListener(onThrow: (error: unknown) => void, listener: () => void): () => void {
+  return () => {
+    try {
+      listener();
+    } catch (error) {
+      onThrow(error);
+    }
+  };
+}
+
 /* المجموعة ١٠ (المرحلة 10-ب): دورة الحياة والترحيلات والبدائيات فُكّكت إلى
  * وحدات داخلية خلف الواجهة نفسها — أسماء المخازن وسجلاتها ورقم المخطط 35
  * وبصمة كل معاملة كما هي؛ منافس الاختبار تُعاد تصديرها من هنا بلا تغيير. */
@@ -244,6 +266,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const finish = (result: StorageResult<{ order: StoredCraftOrder; reused: boolean }>) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const storedRequest = orders.get(next.id);
         storedRequest.onerror = () => {
           pending = failure(storedRequest.error, database);
@@ -253,7 +283,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        storedRequest.onsuccess = () => {
+        storedRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const live = storedRequest.result as StoredCraftOrder | undefined;
           const guard = validateOrderCommit(live, base, next, idempotencyKeys);
           if (!guard.ok) {
@@ -275,7 +305,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           orders.put(next);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -322,6 +352,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const orderRequest = orders.get(order.id);
         orderRequest.onerror = () => {
           pending = failure(orderRequest.error, database);
@@ -331,7 +369,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        orderRequest.onsuccess = () => {
+        orderRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existing = orderRequest.result as StoredCraftOrder | undefined;
           if (!existing) {
             pending = {
@@ -359,7 +397,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 if (pending) finish(pending);
               }
             };
-            cashRequest.onsuccess = () => {
+            cashRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               const operationKeys = new Set(allocationReversals.map(entry => entry.operationKey));
               const matching = (cashRequest.result as CashContinuityEntry[]).filter(entry =>
                 operationKeys.has(entry.operationKey),
@@ -373,7 +411,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               } catch {
                 if (pending) finish(pending);
               }
-            };
+            });
             return;
           }
           const cashRequest = cashEntries.getAll();
@@ -385,7 +423,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (pending) finish(pending);
             }
           };
-          cashRequest.onsuccess = () => {
+          cashRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
             const all = cashRequest.result as CashContinuityEntry[];
             /* فك جزئي متكرر مسموح ما دام المجموع لا يتجاوز التخصيص الأصلي. */
             const originalById = new Map(all.map(entry => [entry.id, entry] as const));
@@ -428,8 +466,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             }
             orders.put(order);
             for (const reversal of allocationReversals) cashEntries.put(reversal);
-          };
-        };
+          });
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -469,6 +507,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const orderRequest = orders.get(order.id);
         orderRequest.onerror = () => {
           pending = failure(orderRequest.error, database);
@@ -478,7 +524,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        orderRequest.onsuccess = () => {
+        orderRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existing = orderRequest.result as StoredCraftOrder | undefined;
           if (!existing) {
             pending = {
@@ -515,7 +561,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 if (pending) finish(pending);
               }
             };
-            cashRequest.onsuccess = () => {
+            cashRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               const matching = (cashRequest.result as CashContinuityEntry[]).find(
                 entry => entry.operationKey === allocationReversal.operationKey,
               );
@@ -536,7 +582,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               } catch {
                 if (pending) finish(pending);
               }
-            };
+            });
             return;
           }
           if (allocationReversal) {
@@ -549,7 +595,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 if (pending) finish(pending);
               }
             };
-            cashRequest.onsuccess = () => {
+            cashRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               const conflict = (cashRequest.result as CashContinuityEntry[]).some(
                 entry => entry.reversesEntryId === allocationReversal.reversesEntryId,
               );
@@ -568,11 +614,11 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               }
               orders.put(order);
               cashEntries.put(allocationReversal);
-            };
+            });
             return;
           }
           orders.put(order);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -638,6 +684,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           }>,
         ) => resolve(result);
         let deliveryReused = false;
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const orderRequest = orders.get(order.id);
         orderRequest.onerror = () => {
           pending = failure(orderRequest.error, database);
@@ -647,7 +701,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        orderRequest.onsuccess = () => {
+        orderRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existing = orderRequest.result as StoredCraftOrder | undefined;
           if (!existing) {
             pending = {
@@ -704,7 +758,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (pending) finish(pending);
             }
           };
-          movementRequest.onsuccess = () => {
+          movementRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
             const storedMovements = movementRequest.result as InventoryMovement[];
             const storedKeys = new Set(storedMovements.map(movement => movement.operationKey));
             const movementsToWrite = movements.filter(movement => !storedKeys.has(movement.operationKey));
@@ -717,7 +771,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 if (pending) finish(pending);
               }
             };
-            shortageRequest.onsuccess = () => {
+            shortageRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               const storedShortages = shortageRequest.result as InventoryShortage[];
               const shortageKeys = new Set(storedShortages.map(shortage => shortage.operationKey));
               const shortagesToWrite = shortages.filter(shortage => !shortageKeys.has(shortage.operationKey));
@@ -735,7 +789,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                       if (pending) finish(pending);
                     }
                   };
-                  cashRequest.onsuccess = () => {
+                  cashRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
                     const cashKeys = new Set(
                       (cashRequest.result as CashContinuityEntry[]).map(entry => entry.operationKey),
                     );
@@ -743,15 +797,15 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                       cashEntries.put(cashEntry);
                       if (wallet) wallets.put(wallet);
                     }
-                  };
+                  });
                 } else if (wallet) {
                   wallets.put(wallet);
                 }
               };
               writeAll();
-            };
-          };
-        };
+            });
+          });
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -818,6 +872,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
+        const failFromListener = (error: unknown) => abortWith(failure(error, database));
         const orderRequest = orders.get(order.id);
         orderRequest.onerror = () => {
           pending = failure(orderRequest.error, database);
@@ -827,7 +882,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        orderRequest.onsuccess = () => {
+        orderRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existing = orderRequest.result as StoredCraftOrder | undefined;
           if (!existing) {
             abortWith({ ok: false, code: STORAGE_ERROR, message: "لم نجد الطلب المحلي لعكس تسليمه." });
@@ -847,7 +902,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (pending) finish(pending);
             }
           };
-          movementRequest.onsuccess = () => {
+          movementRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
             const storedMovements = movementRequest.result as InventoryMovement[];
             if (guard.reused) {
               /* إعادة الاستخدام لا تكتب شيئًا قط — تُقرأ الحركات المخزّنة قبل
@@ -872,8 +927,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               .filter(movement => !storedKeys.has(movement.operationKey))
               .forEach(movement => movementStore.put(movement));
             committedMovements = committedReversalMovements(reversalMovements, storedMovements);
-          };
-        };
+          });
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -926,6 +981,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const saleRequest = sales.get(sale.id);
         saleRequest.onerror = () => {
           pending = failure(saleRequest.error, database);
@@ -935,7 +998,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        saleRequest.onsuccess = () => {
+        saleRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existing = saleRequest.result as DirectSale | undefined;
           if (!existing) {
             pending = {
@@ -972,7 +1035,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 if (pending) finish(pending);
               }
             };
-            cashRequest.onsuccess = () => {
+            cashRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               const matching = (cashRequest.result as CashContinuityEntry[]).find(
                 entry => entry.operationKey === allocationReversal.operationKey,
               );
@@ -990,7 +1053,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               } catch {
                 if (pending) finish(pending);
               }
-            };
+            });
             return;
           }
           const cashScan = cashEntries.getAll();
@@ -1002,7 +1065,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (pending) finish(pending);
             }
           };
-          cashScan.onsuccess = () => {
+          cashScan.onsuccess = guardedSuccessListener(failFromListener, () => {
             const allCash = cashScan.result as CashContinuityEntry[];
             if (allocationReversal) {
               if (allCash.some(entry => entry.id === allocationReversal.id)) {
@@ -1042,8 +1105,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               cashEntries.put(allocationReversal);
             }
             sales.put(sale);
-          };
-        };
+          });
+        });
         transaction.onerror = () => resolve(pending ?? failure(transaction.error, database));
         transaction.onabort = () => resolve(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () => {
@@ -1082,6 +1145,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const finish = (result: StorageResult<{ schedule: ScheduleEntry; reused: boolean }>) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const storedRequest = schedules.get(schedule.id);
         storedRequest.onerror = () => {
           pending = failure(storedRequest.error, database);
@@ -1091,7 +1162,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        storedRequest.onsuccess = () => {
+        storedRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const stored = storedRequest.result as ScheduleEntry | undefined;
           const guard = validateScheduleCreate(stored);
           if (!guard.ok) {
@@ -1113,7 +1184,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           schedules.put(schedule);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -1140,6 +1211,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const finish = (result: StorageResult<{ schedule: ScheduleEntry; reused: boolean }>) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const storedRequest = schedules.get(schedule.id);
         storedRequest.onerror = () => {
           pending = failure(storedRequest.error, database);
@@ -1149,7 +1228,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        storedRequest.onsuccess = () => {
+        storedRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const stored = storedRequest.result as ScheduleEntry | undefined;
           const guard = validateScheduleUpdate(stored, schedule);
           if (!guard.ok) {
@@ -1171,7 +1250,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           schedules.put(schedule);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -1237,7 +1316,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (pending) finish(pending);
             }
           };
-          storedRequest.onsuccess = () => {
+          storedRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
             const stored = storedRequest.result as ScheduleEntry | undefined;
             if (stored === undefined) {
               scheduleObjects.put(schedule);
@@ -1259,8 +1338,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             }
             scheduleObjects.put(schedule);
             result.schedules = [...result.schedules, schedule];
-          };
+          });
         };
+        const failFromListener = (error: unknown) => abortWith(failure(error, database));
         const storedRecurrenceRequest = recurrences.get(recurrence.id);
         storedRecurrenceRequest.onerror = () => {
           pending = failure(storedRecurrenceRequest.error, database);
@@ -1270,7 +1350,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        storedRecurrenceRequest.onsuccess = () => {
+        storedRecurrenceRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const storedRecurrence = storedRecurrenceRequest.result as ScheduleRecurrence | undefined;
           if (storedRecurrence === undefined) {
             /* إنشاء أول: القالب يجب أن يكون جديدًا بنشاط — إعادة تشغيل بمفتاح
@@ -1302,7 +1382,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           recurrences.put(recurrence);
           result.recurrence = recurrence;
           schedules.forEach(writeSchedule);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -1362,9 +1442,10 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             finish(result);
           }
         };
+        const failFromListener = (error: unknown) => abortWith(failure(error, database));
         const request = store.getAll();
         request.onerror = () => abortWith(failure(request.error, database));
-        request.onsuccess = () => {
+        request.onsuccess = guardedSuccessListener(failFromListener, () => {
           const events = request.result as FinancialEvent[];
           const source = events.find(event => event.id === sourceEventId);
           if (!source) {
@@ -1421,7 +1502,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           store.put(reversal);
-        };
+        });
         transaction.onerror = () => {
           if (!pendingAbortResult) pendingAbortResult = failure(transaction.error, database);
         };
@@ -1463,9 +1544,10 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             finish(result);
           }
         };
+        const failFromListener = (error: unknown) => abortWith(failure(error, database));
         const request = store.getAll();
         request.onerror = () => abortWith(failure(request.error, database));
-        request.onsuccess = () => {
+        request.onsuccess = guardedSuccessListener(failFromListener, () => {
           const events = request.result as FinancialEvent[];
           const source = events.find(event => event.id === sourceEventId);
           if (!source) {
@@ -1522,7 +1604,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           }
           store.put(reversal);
           store.put(replacement);
-        };
+        });
         transaction.onerror = () => {
           if (!pendingAbortResult)
             pendingAbortResult = failure(transaction.error, database) as StorageResult<{
@@ -1589,6 +1671,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           }
           purchases.put(commit.purchase);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const storedRequest = purchases.get(commit.purchase.id);
         storedRequest.onerror = () => {
           pending = failure(storedRequest.error, database);
@@ -1598,7 +1688,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        storedRequest.onsuccess = () => {
+        storedRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const stored = storedRequest.result as SupplierPurchase | undefined;
           if (commit.kind !== "create") {
             settleGuard(stored);
@@ -1615,7 +1705,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (pending) finish(pending);
             }
           };
-          scanRequest.onsuccess = () => {
+          scanRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
             const replay = (scanRequest.result as SupplierPurchase[]).find(
               candidate =>
                 candidate.idempotencyKey === commit.idempotencyKey && candidate.id !== commit.purchase.id,
@@ -1630,8 +1720,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               return;
             }
             settleGuard(stored);
-          };
-        };
+          });
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -1707,7 +1797,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (pending) finish(pending);
             }
           };
-          entriesRequest.onsuccess = () => {
+          entriesRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
             resolved = resolveSupplierPaymentAttribution({
               kind: commit.kind,
               idempotencyKey: commit.idempotencyKey,
@@ -1717,7 +1807,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             });
             if (resolved.action === "write") entriesStore.put(resolved.entry);
             if (!reused) purchases.put(commit.purchase);
-          };
+          });
           /* النتيجة تُحسم عند اكتمال المعاملة — القيد كما حُل داخلها (موجود
            * سلفًا أو مشفي)، والمحفظة لا تُلمس (الرصيد مشتق من القيود). */
           transaction.oncomplete = () => {
@@ -1732,6 +1822,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             });
           };
         };
+        const failFromListener = (error: unknown) => abortWith(failure(error, database));
         const storedRequest = purchases.get(commit.purchase.id);
         storedRequest.onerror = () => {
           pending = failure(storedRequest.error, database);
@@ -1741,7 +1832,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        storedRequest.onsuccess = () => {
+        storedRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const stored = storedRequest.result as SupplierPurchase | undefined;
           if (commit.kind !== "create") {
             settle(stored, undefined);
@@ -1758,14 +1849,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (pending) finish(pending);
             }
           };
-          scanRequest.onsuccess = () => {
+          scanRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
             const replay = (scanRequest.result as SupplierPurchase[]).find(
               candidate =>
                 candidate.idempotencyKey === commit.idempotencyKey && candidate.id !== commit.purchase.id,
             );
             settle(stored, replay);
-          };
-        };
+          });
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -1801,9 +1892,17 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
          * يُتخطى والمحفظة لا تُكتب إلا مع قيد جديد فعلي (أو تحديث محفظة خالص
          * بلا قيود كإنشاء محفظة). إعادة إرسال نفس العملية لا تضاعف الرصيد
          * ولا تجعل غير الموزع سالبًا. */
+        const failFromListener = (error: unknown) => {
+          rejection = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            resolve(rejection);
+          }
+        };
         const scanRequest = entriesStore.getAll();
         scanRequest.onerror = () => resolve(failure(scanRequest.error, database));
-        scanRequest.onsuccess = () => {
+        scanRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existingKeys = new Set(
             (scanRequest.result as CashContinuityEntry[]).map(entry => entry.operationKey),
           );
@@ -1818,14 +1917,18 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           );
           if (secondOpening) {
             rejection = { ok: false, code: STORAGE_STALE, message: SECOND_WALLET_OPENING_MESSAGE };
-            transaction.abort();
+            try {
+              transaction.abort();
+            } catch {
+              resolve(rejection);
+            }
             return;
           }
           newEntries.forEach(entry => entriesStore.put(entry));
           if (wallet && (newEntries.length > 0 || entries.length === 0)) {
             transaction.objectStore(cashWalletStore).put(wallet);
           }
-        };
+        });
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.onabort = () => resolve(rejection ?? failure(transaction.error, database));
         transaction.oncomplete = () => {
@@ -1940,9 +2043,17 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         let reused = false;
         let resultMovements: readonly InventoryMovement[] = movements;
         let resultEvents: readonly FinancialEvent[] = events;
+        const failFromListener = (error: unknown) => {
+          resolve(failure(error, database));
+          try {
+            transaction.abort();
+          } catch {
+            /* المعاملة انتهت فعلًا — لا شيء يُحبَط. */
+          }
+        };
         const movementScan = movementStore.getAll();
         movementScan.onerror = () => resolve(failure(movementScan.error, database));
-        movementScan.onsuccess = () => {
+        movementScan.onsuccess = guardedSuccessListener(failFromListener, () => {
           const storedMovements = movementScan.result as InventoryMovement[];
           const movementByKey = new Map(
             storedMovements.map(movement => [movement.operationKey, movement] as const),
@@ -1951,7 +2062,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           const newMovements = movements.filter(movement => !movementByKey.has(movement.operationKey));
           const eventScan = eventStore.getAll();
           eventScan.onerror = () => resolve(failure(eventScan.error, database));
-          eventScan.onsuccess = () => {
+          eventScan.onsuccess = guardedSuccessListener(failFromListener, () => {
             const storedEvents = eventScan.result as FinancialEvent[];
             const eventByKey = new Map(storedEvents.map(event => [event.idempotencyKey, event] as const));
             resultEvents = events.map(event => eventByKey.get(event.idempotencyKey) ?? event);
@@ -1960,8 +2071,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (material) transaction.objectStore(materialStore).put(material);
             newMovements.forEach(movement => movementStore.put(movement));
             newEvents.forEach(event => eventStore.put(event));
-          };
-        };
+          });
+        });
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.onabort = () => resolve(failure(transaction.error, database));
         transaction.oncomplete = () => {
@@ -2041,6 +2152,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const finish = (result: StorageResult<{ previous: CatalogTemplate; next: CatalogTemplate }>) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const request = store.getAll();
         request.onerror = () => {
           pending = failure(request.error, database);
@@ -2050,7 +2169,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        request.onsuccess = () => {
+        request.onsuccess = guardedSuccessListener(failFromListener, () => {
           const templates = request.result as CatalogTemplate[];
           const current = templates.find(template => template.id === previous.id);
           const repeated = templates.find(
@@ -2093,7 +2212,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           }
           store.put(previous);
           store.put(next);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -2167,6 +2286,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const request = store.getAll();
         request.onerror = () => {
           pending = failure(request.error, database);
@@ -2176,7 +2303,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        request.onsuccess = () => {
+        request.onsuccess = guardedSuccessListener(failFromListener, () => {
           const policies = request.result as AllocationPolicy[];
           const repeated = policies.find(policy => policy.idempotencyKey === successor.idempotencyKey);
           if (repeated) {
@@ -2223,7 +2350,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           }
           store.put(previous);
           store.put(successor);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -2253,6 +2380,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const finish = (result: StorageResult<ShortCashDeclaration>) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const request = store.getAll();
         request.onerror = () => {
           pending = failure(request.error, database);
@@ -2262,7 +2397,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        request.onsuccess = () => {
+        request.onsuccess = guardedSuccessListener(failFromListener, () => {
           const declarations = request.result as ShortCashDeclaration[];
           const source = declarations.find(
             candidate => candidate.id === sourceId && candidate.kind === "declaration",
@@ -2326,7 +2461,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           store.put(reversal);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -2367,6 +2502,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const request = store.getAll();
         request.onerror = () => {
           pending = failure(request.error, database);
@@ -2376,7 +2519,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        request.onsuccess = () => {
+        request.onsuccess = guardedSuccessListener(failFromListener, () => {
           const policies = request.result as OwnerEntitlementPolicy[];
           const repeated = policies.find(policy => policy.idempotencyKey === successor.idempotencyKey);
           if (repeated) {
@@ -2418,7 +2561,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           }
           store.put(previous);
           store.put(successor);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -2455,6 +2598,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const finish = (result: StorageResult<OwnerEntitlementRecord>) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const request = store.getAll();
         request.onerror = () => {
           pending = failure(request.error, database);
@@ -2464,7 +2615,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        request.onsuccess = () => {
+        request.onsuccess = guardedSuccessListener(failFromListener, () => {
           const records = request.result as OwnerEntitlementRecord[];
           const source = records.find(record => record.id === sourceId);
           if (!source) {
@@ -2511,7 +2662,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           store.put(reversal);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -2545,6 +2696,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const finish = (result: StorageResult<OwnerEntitlementOpeningBalance>) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const request = store.getAll();
         request.onerror = () => {
           pending = failure(request.error, database);
@@ -2554,7 +2713,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        request.onsuccess = () => {
+        request.onsuccess = guardedSuccessListener(failFromListener, () => {
           const balances = request.result as OwnerEntitlementOpeningBalance[];
           const source = balances.find(balance => balance.id === sourceId);
           if (!source) {
@@ -2601,7 +2760,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           store.put(reversal);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -2630,6 +2789,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const transaction = database.transaction([ownerMovementStore, cashContinuityEntryStore], "readwrite");
         const movements = transaction.objectStore(ownerMovementStore);
         const cashEntries = transaction.objectStore(cashContinuityEntryStore);
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const existingRequest = movements.getAll();
         let pending: StorageResult<{ movement: OwnerMovement; cashEntry: CashContinuityEntry }> | null = null;
         const finish = (
@@ -2645,7 +2812,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        existingRequest.onsuccess = () => {
+        existingRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existing = (existingRequest.result as OwnerMovement[]).find(
             candidate => candidate.idempotencyKey === movement.idempotencyKey,
           );
@@ -2659,7 +2826,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 if (pending) finish(pending);
               }
             };
-            cashRequest.onsuccess = () => {
+            cashRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               const matching = (cashRequest.result as CashContinuityEntry[]).find(
                 entry => entry.operationKey === cashEntry.operationKey,
               );
@@ -2682,12 +2849,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                   if (pending) finish(pending);
                 }
               }
-            };
+            });
             return;
           }
           movements.put(movement);
           cashEntries.put(cashEntry);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -2760,6 +2927,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const assetRequest = assets.get(record.id);
         assetRequest.onerror = () => {
           pending = failure(assetRequest.error, database);
@@ -2769,13 +2944,13 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        assetRequest.onsuccess = () => {
+        assetRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existing = assetRequest.result as AssetRecord | undefined;
           const eventCheck = event ? events.get(event.id) : null;
           const proceed = () => {
             if (event) {
               const request = eventCheck!;
-              request.onsuccess = () => {
+              request.onsuccess = guardedSuccessListener(failFromListener, () => {
                 if (request.result) {
                   pending = {
                     ok: true,
@@ -2794,7 +2969,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 }
                 assets.put(record);
                 events.put(event);
-              };
+              });
               request.onerror = () => {
                 pending = failure(request.error, database);
                 try {
@@ -2835,7 +3010,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           proceed();
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -2881,6 +3056,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const reversalRequest = events.get(reversal.id);
         reversalRequest.onerror = () => {
           pending = failure(reversalRequest.error, database);
@@ -2890,10 +3073,10 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        reversalRequest.onsuccess = () => {
+        reversalRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           if (reversalRequest.result) {
             const replacementRequest = events.get(replacement.id);
-            replacementRequest.onsuccess = () => {
+            replacementRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               pending = {
                 ok: true,
                 value: {
@@ -2908,7 +3091,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               } catch {
                 if (pending) finish(pending);
               }
-            };
+            });
             replacementRequest.onerror = () => {
               pending = failure(replacementRequest.error, database);
               try {
@@ -2922,7 +3105,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           assets.put(record);
           events.put(reversal);
           events.put(replacement);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -2965,6 +3148,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const eventRequest = events.get(event.id);
         eventRequest.onerror = () => {
           pending = failure(eventRequest.error, database);
@@ -2974,11 +3165,11 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        eventRequest.onsuccess = () => {
+        eventRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existingEvent = eventRequest.result as FinancialEvent | undefined;
           if (existingEvent) {
             const loanRequest = loans.get(record.id);
-            loanRequest.onsuccess = () => {
+            loanRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               const existingLoan = loanRequest.result as LoanRecord | undefined;
               pending = {
                 ok: true,
@@ -2989,7 +3180,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               } catch {
                 if (pending) finish(pending);
               }
-            };
+            });
             loanRequest.onerror = () => {
               pending = failure(loanRequest.error, database);
               try {
@@ -3011,7 +3202,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (pending) finish(pending);
             }
           };
-          keyScanRequest.onsuccess = () => {
+          keyScanRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
             const keyReplay = findLoanEventByKey(
               keyScanRequest.result as FinancialEvent[],
               event.idempotencyKey,
@@ -3019,7 +3210,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             );
             if (keyReplay) {
               const loanRequest = loans.get(record.id);
-              loanRequest.onsuccess = () => {
+              loanRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
                 const existingLoan = loanRequest.result as LoanRecord | undefined;
                 pending = {
                   ok: true,
@@ -3030,7 +3221,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 } catch {
                   if (pending) finish(pending);
                 }
-              };
+              });
               loanRequest.onerror = () => {
                 pending = failure(loanRequest.error, database);
                 try {
@@ -3045,7 +3236,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
              * دفعة متزامنة سبقت هذه الكتابة تكسر علاقة «دفعة واحدة بالضبط»
              * فيُرفض الالتزام ويبقى السجل متسقًا مع أحداثه. */
             const loanRequest = loans.get(record.id);
-            loanRequest.onsuccess = () => {
+            loanRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               const storedLoan = loanRequest.result as LoanRecord | undefined;
               const relation = validateLoanCommitRelation(storedLoan, record, event);
               if (!relation.ok) {
@@ -3059,7 +3250,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               }
               loans.put(record);
               events.put(event);
-            };
+            });
             loanRequest.onerror = () => {
               pending = failure(loanRequest.error, database);
               try {
@@ -3068,8 +3259,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 if (pending) finish(pending);
               }
             };
-          };
-        };
+          });
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -3115,6 +3306,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const reversalRequest = events.get(reversal.id);
         reversalRequest.onerror = () => {
           pending = failure(reversalRequest.error, database);
@@ -3124,10 +3323,10 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        reversalRequest.onsuccess = () => {
+        reversalRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           if (reversalRequest.result) {
             const replacementRequest = events.get(replacement.id);
-            replacementRequest.onsuccess = () => {
+            replacementRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               pending = {
                 ok: true,
                 value: {
@@ -3142,7 +3341,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               } catch {
                 if (pending) finish(pending);
               }
-            };
+            });
             replacementRequest.onerror = () => {
               pending = failure(replacementRequest.error, database);
               try {
@@ -3156,7 +3355,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           loans.put(record);
           events.put(reversal);
           events.put(replacement);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -3202,6 +3401,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const eventRequest = events.get(event.id);
         eventRequest.onerror = () => {
           pending = failure(eventRequest.error, database);
@@ -3211,11 +3418,11 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        eventRequest.onsuccess = () => {
+        eventRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existingEvent = eventRequest.result as FinancialEvent | undefined;
           if (existingEvent) {
             const loanRequest = receivedLoans.get(record.id);
-            loanRequest.onsuccess = () => {
+            loanRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               const existingLoan = loanRequest.result as ReceivedLoanRecord | undefined;
               pending = {
                 ok: true,
@@ -3226,7 +3433,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               } catch {
                 if (pending) finish(pending);
               }
-            };
+            });
             loanRequest.onerror = () => {
               pending = failure(loanRequest.error, database);
               try {
@@ -3248,7 +3455,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (pending) finish(pending);
             }
           };
-          keyScanRequest.onsuccess = () => {
+          keyScanRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
             const keyReplay = findReceivedLoanEventByKey(
               keyScanRequest.result as FinancialEvent[],
               event.idempotencyKey,
@@ -3256,7 +3463,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             );
             if (keyReplay) {
               const loanRequest = receivedLoans.get(record.id);
-              loanRequest.onsuccess = () => {
+              loanRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
                 const existingLoan = loanRequest.result as ReceivedLoanRecord | undefined;
                 pending = {
                   ok: true,
@@ -3267,7 +3474,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 } catch {
                   if (pending) finish(pending);
                 }
-              };
+              });
               loanRequest.onerror = () => {
                 pending = failure(loanRequest.error, database);
                 try {
@@ -3282,7 +3489,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
              * دفعة متزامنة سبقت هذه الكتابة تكسر علاقة «دفعة واحدة بالضبط»
              * فيُرفض الالتزام ويبقى السجل متسقًا مع أحداثه. */
             const loanRequest = receivedLoans.get(record.id);
-            loanRequest.onsuccess = () => {
+            loanRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               const storedLoan = loanRequest.result as ReceivedLoanRecord | undefined;
               const relation = validateReceivedLoanCommitRelation(storedLoan, record, event);
               if (!relation.ok) {
@@ -3296,7 +3503,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               }
               receivedLoans.put(record);
               events.put(event);
-            };
+            });
             loanRequest.onerror = () => {
               pending = failure(loanRequest.error, database);
               try {
@@ -3305,8 +3512,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
                 if (pending) finish(pending);
               }
             };
-          };
-        };
+          });
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -3352,6 +3559,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const reversalRequest = events.get(reversal.id);
         reversalRequest.onerror = () => {
           pending = failure(reversalRequest.error, database);
@@ -3361,10 +3576,10 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        reversalRequest.onsuccess = () => {
+        reversalRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           if (reversalRequest.result) {
             const replacementRequest = events.get(replacement.id);
-            replacementRequest.onsuccess = () => {
+            replacementRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               pending = {
                 ok: true,
                 value: {
@@ -3379,7 +3594,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               } catch {
                 if (pending) finish(pending);
               }
-            };
+            });
             replacementRequest.onerror = () => {
               pending = failure(replacementRequest.error, database);
               try {
@@ -3393,7 +3608,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           receivedLoans.put(record);
           events.put(reversal);
           events.put(replacement);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -3426,6 +3641,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const eventRequest = events.get(event.id);
         eventRequest.onerror = () => {
           pending = failure(eventRequest.error, database);
@@ -3435,11 +3658,11 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        eventRequest.onsuccess = () => {
+        eventRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existingEvent = eventRequest.result as FinancialEvent | undefined;
           if (existingEvent) {
             const orderRequest = orders.get(order.id);
-            orderRequest.onsuccess = () => {
+            orderRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               const existingOrder = orderRequest.result as StoredCraftOrder | undefined;
               pending = {
                 ok: true,
@@ -3450,7 +3673,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               } catch {
                 if (pending) finish(pending);
               }
-            };
+            });
             orderRequest.onerror = () => {
               pending = failure(orderRequest.error, database);
               try {
@@ -3463,7 +3686,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           }
           orders.put(order);
           events.put(event);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -3509,6 +3732,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         ) => {
           resolve(result);
         };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const reversalRequest = events.get(reversal.id);
         reversalRequest.onerror = () => {
           pending = failure(reversalRequest.error, database);
@@ -3518,10 +3749,10 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        reversalRequest.onsuccess = () => {
+        reversalRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           if (reversalRequest.result) {
             const replacementRequest = events.get(replacement.id);
-            replacementRequest.onsuccess = () => {
+            replacementRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               pending = {
                 ok: true,
                 value: {
@@ -3536,7 +3767,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               } catch {
                 if (pending) finish(pending);
               }
-            };
+            });
             replacementRequest.onerror = () => {
               pending = failure(replacementRequest.error, database);
               try {
@@ -3550,7 +3781,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           orders.put(order);
           events.put(reversal);
           events.put(replacement);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -3616,6 +3847,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             reused: boolean;
           }>,
         ) => resolve(result);
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const seriesRequest = serieses.get(series.id);
         seriesRequest.onerror = () => {
           pending = failure(seriesRequest.error, database);
@@ -3625,7 +3864,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        seriesRequest.onsuccess = () => {
+        seriesRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const storedSeries = seriesRequest.result as RecurringExpenseSeries | undefined;
           const revisionRequest = revisions.get(revision.id);
           revisionRequest.onerror = () => {
@@ -3636,7 +3875,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               if (pending) finish(pending);
             }
           };
-          revisionRequest.onsuccess = () => {
+          revisionRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
             const storedRevision = revisionRequest.result as RecurringExpenseRuleRevision | undefined;
             const guard = validateRecurringExpenseDraftCommit(storedSeries, storedRevision, series, revision);
             if (!guard.ok) {
@@ -3667,8 +3906,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             }
             serieses.put(series);
             revisions.put(revision);
-          };
-        };
+          });
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -3719,17 +3958,18 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
+        const failFromListener = (error: unknown) => abortWith(failure(error, database));
         const seriesRequest = serieses.get(seriesBase.id);
         seriesRequest.onerror = () => abortWith(failure(seriesRequest.error, database));
-        seriesRequest.onsuccess = () => {
+        seriesRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const storedSeries = seriesRequest.result as RecurringExpenseSeries | undefined;
           const revisionsRequest = revisions.getAll();
           revisionsRequest.onerror = () => abortWith(failure(revisionsRequest.error, database));
-          revisionsRequest.onsuccess = () => {
+          revisionsRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
             const storedRevisions = revisionsRequest.result as RecurringExpenseRuleRevision[];
             const occurrencesRequest = occurrences.getAll();
             occurrencesRequest.onerror = () => abortWith(failure(occurrencesRequest.error, database));
-            occurrencesRequest.onsuccess = () => {
+            occurrencesRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               const storedOccurrences = occurrencesRequest.result as RecurringExpenseOccurrence[];
               const guard = validateRecurringExpenseSeriesChange(
                 storedSeries,
@@ -3747,9 +3987,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               serieses.put(seriesNext);
               if (revision !== null) revisions.put(revision);
               for (const update of occurrenceUpdates) occurrences.put(update.next);
-            };
-          };
-        };
+            });
+          });
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -3791,9 +4031,10 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
+        const failFromListener = (error: unknown) => abortWith(failure(error, database));
         const allRequest = store.getAll();
         allRequest.onerror = () => abortWith(failure(allRequest.error, database));
-        allRequest.onsuccess = () => {
+        allRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const storedById = new Map(
             (allRequest.result as RecurringExpenseOccurrence[]).map(occurrence => [
               occurrence.id,
@@ -3813,7 +4054,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               createdCount += 1;
             }
           }
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -3838,6 +4079,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         let pending: StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }> | null = null;
         const finish = (result: StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>) =>
           resolve(result);
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const occurrenceRequest = occurrences.get(next.id);
         occurrenceRequest.onerror = () => {
           pending = failure(occurrenceRequest.error, database);
@@ -3847,7 +4096,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        occurrenceRequest.onsuccess = () => {
+        occurrenceRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const stored = occurrenceRequest.result as RecurringExpenseOccurrence | undefined;
           const guard = validateRecurringExpenseOccurrenceDecision(stored, base, next);
           if (!guard.ok) {
@@ -3870,7 +4119,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           occurrences.put(next);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -3914,13 +4163,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
+        const failFromListener = (error: unknown) => abortWith(failure(error, database));
         const eventRequest = events.get(event.id);
         eventRequest.onerror = () => abortWith(failure(eventRequest.error, database));
-        eventRequest.onsuccess = () => {
+        eventRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existingEvent = eventRequest.result as FinancialEvent | undefined;
           const keyScanRequest = events.getAll();
           keyScanRequest.onerror = () => abortWith(failure(keyScanRequest.error, database));
-          keyScanRequest.onsuccess = () => {
+          keyScanRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
             const keyReplay = findRecurringExpenseEventByKey(
               keyScanRequest.result as FinancialEvent[],
               event.idempotencyKey,
@@ -3942,7 +4192,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             }
             const occurrenceRequest = occurrences.get(next.id);
             occurrenceRequest.onerror = () => abortWith(failure(occurrenceRequest.error, database));
-            occurrenceRequest.onsuccess = () => {
+            occurrenceRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
               const storedOccurrence = occurrenceRequest.result as RecurringExpenseOccurrence | undefined;
               const guard = validateRecurringExpenseOccurrenceRecordCommit(
                 storedOccurrence,
@@ -3973,9 +4223,9 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
               }
               occurrences.put(next);
               events.put(event);
-            };
-          };
-        };
+            });
+          });
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -4008,6 +4258,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         let pending: StorageResult<{ record: ExpenseBudgetRecord; reused: boolean }> | null = null;
         const finish = (result: StorageResult<{ record: ExpenseBudgetRecord; reused: boolean }>) =>
           resolve(result);
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
         const storedRequest = budgets.get(record.id);
         storedRequest.onerror = () => {
           pending = failure(storedRequest.error, database);
@@ -4017,7 +4275,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        storedRequest.onsuccess = () => {
+        storedRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const stored = storedRequest.result as ExpenseBudgetRecord | undefined;
           const guard = validateExpenseBudgetSave(stored, record, expected);
           if (!guard.ok) {
@@ -4040,7 +4298,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             return;
           }
           budgets.put(record);
-        };
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
@@ -4084,13 +4342,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
+        const failFromListener = (error: unknown) => abortWith(failure(error, database));
         const successorRequest = budgets.get(successor.id);
         successorRequest.onerror = () => abortWith(failure(successorRequest.error, database));
-        successorRequest.onsuccess = () => {
+        successorRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const storedSuccessor = successorRequest.result as ExpenseBudgetRecord | undefined;
           const previousRequest = budgets.get(supersededPrevious.id);
           previousRequest.onerror = () => abortWith(failure(previousRequest.error, database));
-          previousRequest.onsuccess = () => {
+          previousRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
             const storedPrevious = previousRequest.result as ExpenseBudgetRecord | undefined;
             const guard = validateExpenseBudgetRevisionPair(
               storedSuccessor,
@@ -4121,8 +4380,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             }
             budgets.put(successor);
             budgets.put(supersededPrevious);
-          };
-        };
+          });
+        });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };

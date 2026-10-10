@@ -1249,7 +1249,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts": {
-      "nbLoc": 4133,
+      "nbLoc": 4391,
       "band": "SPLIT_NOW"
     },
     "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts": {
@@ -1409,7 +1409,7 @@
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts": {
-      "nbLoc": 106,
+      "nbLoc": 120,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts": {

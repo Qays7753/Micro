@@ -146,6 +146,42 @@
         "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
         "trigger": "R9 continuation execution prompt, Fix Group C (owner-authorized)"
       }
+    },
+    {
+      "id": "R9-GA-F7-ROOT-FIX-ADAPTER",
+      "date": "2026-10-10",
+      "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+      "from": {
+        "nbLoc": 4133,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 4391,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "R9-GA-F7 root fix: every write-queueing onsuccess listener body (73 listeners across 37 commit methods) is hardened through the guardedSuccessListener wrapper with a per-method failFromListener (pending=failure(original error) then guarded transaction.abort()), so a synchronous throw inside a listener can no longer depend on engine abort-on-listener-throw semantics or lose the original error payload behind a replacement AbortError; also guards the one bare transaction.abort() in commitCashContinuity. Request order, transaction fingerprints, and all existing failure codes/messages unchanged.",
+      "authorization": {
+        "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
+        "trigger": "R9 continuation execution prompt, Fix Group E (owner-authorized)"
+      }
+    },
+    {
+      "id": "R9-GA-F7-ROOT-FIX-PRIMITIVE",
+      "date": "2026-10-10",
+      "path": "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts",
+      "from": {
+        "nbLoc": 106,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 120,
+        "band": "NORMAL"
+      },
+      "reason": "R9-GA-F7 root fix (primitive): the writeOneIdempotent scan-success listener is wrapped in a try/catch that resolves the original error payload and then aborts the transaction guarded, mirroring the R9-GA-F1 shape for the listener phase.",
+      "authorization": {
+        "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
+        "trigger": "R9 continuation execution prompt, Fix Group E (owner-authorized)"
+      }
     }
   ]
 }

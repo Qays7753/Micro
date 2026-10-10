@@ -7,11 +7,20 @@
  * the documented cursor boundary → no partial durable state → recovery →
  * transformed-under-contract comparison. The transfer re-derivation leg is
  * an import-path in-memory complement only (pure function, no durable I/O).
+ * RB-3 (R9 continuation — R9-GA-F7 root fix) proves the hardened
+ * put-inside-onsuccess listeners: a synchronous throw inside a request
+ * success listener resolves with the ORIGINAL error payload (never the
+ * engine's replacement AbortError, never a false success), rolls back every
+ * already-queued write in the transaction, and leaves state A whole.
  */
 import "fake-indexeddb/auto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createDirectSale } from "@micro-domain/direct-sale/index.js";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
+import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
+import type { ExpenseBudgetRecord } from "@micro-domain/budget/index.js";
+import type { DirectSale } from "@micro-domain/direct-sale/index.js";
+import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 import { migrateTransferSnapshot } from "../../application/transfers/transferSnapshotMigrations";
 import { localPreferencesId, localProfileId, type LocalStoreSnapshot } from "./types";
@@ -256,6 +265,201 @@ describe("R9-W2 RB-1 — snapshot backup / replace / failure / restore (owner pa
     const final = await store.readSnapshot();
     if (!final.ok) throw new Error("post-restore read should succeed");
     expect(stableHash(final.value)).toBe(hashA);
+  });
+});
+
+describe("R9C RB-3 (R9-GA-F7) — hardened put-inside-onsuccess listeners fail honestly with the original error and roll back fully", () => {
+  /* بطاقة الدليل: قبل التحصين كان أي رمي متزامن داخل مستمع onsuccess (مثل
+   * DataCloneError من put بسجل غير قابل للاستنساخ) يعتمد على معالجة المحرك
+   * لاستثناء المستمع: المواصفة (IndexedDB 3.0 §5.9) تُحبِط المعاملة بحمولة
+   * AbortError بديلة تفقد رسالة الخطأ الأصلي، وأي محرك لا يحترم الراية
+   * القديمة يترك المعاملة تكتمل فيُنجَح الوعد بقيمة لم تُكتب. الحدود المثبتة
+   * هنا على fake-indexeddb (المتاح في CI): (١) فشل صادق محسوم بلا رفض، (٢)
+   * رسالة الخطأ الأصلي نفسها لا بديل AbortError الفارغ — وهذا هو الخطاف
+   * الذي يفشل عند إزالة التحصين، (٣) كل كتابة ارتُتبت سلفًا في المعاملة
+   * نفسها تتدحرج، (٤) الحالة A سليمة بالكامل. الطرف المتصفح-الحقيقي
+   * (المحرك لا يحترم الراية) لا يمكن استنساخه على fake-indexeddb ومسجل
+   * بحدوده في التقرير. */
+
+  it("leg A (primitive writeOneIdempotent via saveDirectSale): the original DataCloneError payload survives, no sale is written, and state A stays whole", async () => {
+    const store = new IndexedDbLocalStore();
+    const seeded = await seedStateA(store);
+    const backup = await store.readSnapshot();
+    if (!backup.ok) throw new Error("backup read should succeed");
+    const hashA = stableHash(backup.value);
+
+    const poisonedSale = {
+      ...createDirectSale({
+        id: "rb3-sale-poison",
+        itemName: "بيع مسموم",
+        quantity: 1,
+        revenueMinor: 9_000,
+        collectedMinor: 9_000,
+        catalogItemId: null,
+        customerName: null,
+        costMinor: null,
+        occurredOn: "2026-10-04",
+        recordedAt: TS,
+        note: "حقن فشل متزامن",
+        idempotencyKey: "rb3-sale-poison-op",
+      }),
+      uncloneable: () => "poison",
+    } as unknown as DirectSale;
+    const failed = await store.saveDirectSale(poisonedSale);
+    expect(failed.ok).toBe(false);
+    expect(failed.ok === false && failed.code).toBe("storage_error");
+    expect(failed.ok === false && failed.message).toContain("could not be cloned");
+
+    const after = await store.readSnapshot();
+    if (!after.ok) throw new Error("post-failure read should succeed");
+    expect(after.value.directSales).toHaveLength(1);
+    expect(stableHash(after.value)).toBe(hashA);
+    await assertStateAReadable(store, seeded);
+  });
+
+  it("leg B (Style A commitFinancialEventCorrection): a poisoned reversal fails with the original error and the events family is untouched", async () => {
+    const store = new IndexedDbLocalStore();
+    const seeded = await seedStateA(store);
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    const source = events.value.find(event => event.id === seeded.event.id);
+    if (!source) throw new Error("seeded source event missing");
+
+    const poisonedReversal = {
+      ...source,
+      id: "rb3-reversal-poison",
+      idempotencyKey: "rb3-reversal-poison-op",
+      correctionType: "reverse",
+      correctionOfEventId: source.id,
+      cashDeltaMinor: -source.cashDeltaMinor,
+      payableDeltaMinor: -source.payableDeltaMinor,
+      ownerCapitalDeltaMinor: -source.ownerCapitalDeltaMinor,
+      operatingExpenseDeltaMinor: -source.operatingExpenseDeltaMinor,
+      uncloneable: () => "poison",
+    } as unknown as FinancialEvent;
+    const failed = await store.commitFinancialEventCorrection(source.id, poisonedReversal);
+    expect(failed.ok).toBe(false);
+    expect(failed.ok === false && failed.code).toBe("storage_error");
+    expect(failed.ok === false && failed.message).toContain("could not be cloned");
+
+    await expect(store.listFinancialEvents()).resolves.toMatchObject({
+      ok: true,
+      value: [{ id: seeded.event.id, amountMinor: seeded.event.amountMinor }],
+    });
+    await assertStateAReadable(store, seeded);
+  });
+
+  it("leg C (Style B saveExpenseBudget): a poisoned fresh budget record fails with the original error and nothing is written", async () => {
+    const store = new IndexedDbLocalStore();
+    const seeded = await seedStateA(store);
+    const poisonedBudget = {
+      id: "rb3-budget-poison",
+      periodKind: "month",
+      periodKey: "2026-10",
+      scope: { kind: "general_expense" },
+      amountMinor: 12_000,
+      note: null,
+      createdAt: TS,
+      status: "active",
+      supersededById: null,
+      uncloneable: () => "poison",
+    } as unknown as ExpenseBudgetRecord;
+    const failed = await store.saveExpenseBudget(poisonedBudget);
+    expect(failed.ok).toBe(false);
+    expect(failed.ok === false && failed.code).toBe("storage_error");
+    expect(failed.ok === false && failed.message).toContain("could not be cloned");
+
+    await expect(store.listExpenseBudgets()).resolves.toMatchObject({ ok: true, value: [] });
+    await assertStateAReadable(store, seeded);
+  });
+
+  it("leg C2 (special commitCashContinuity): a poisoned entry rolls back the wallet write queued in the same transaction and state A stays whole", async () => {
+    const store = new IndexedDbLocalStore();
+    const seeded = await seedStateA(store);
+    const backup = await store.readSnapshot();
+    if (!backup.ok) throw new Error("backup read should succeed");
+    const hashA = stableHash(backup.value);
+
+    const poisonedWallet = {
+      id: "rb3-wallet-poison",
+      name: "درج السم",
+      kind: "cash_drawer",
+      createdAt: TS,
+      createdOperationKey: "rb3-wallet-poison-op",
+    } as CashWallet;
+    const poisonedEntry = {
+      id: "rb3-entry-poison",
+      walletId: poisonedWallet.id,
+      type: "opening_balance",
+      occurredOn: "2026-10-05",
+      recordedAt: TS,
+      cashDeltaMinor: 1_000,
+      note: "افتتاح مسموم",
+      reason: null,
+      operationKey: "rb3-entry-poison-op",
+      transferId: null,
+      reversesEntryId: null,
+      uncloneable: () => "poison",
+    } as unknown as CashContinuityEntry;
+    const failed = await store.commitCashContinuity(poisonedWallet, [poisonedEntry]);
+    expect(failed.ok).toBe(false);
+    expect(failed.ok === false && failed.code).toBe("storage_error");
+    expect(failed.ok === false && failed.message).toContain("could not be cloned");
+
+    const after = await store.readSnapshot();
+    if (!after.ok) throw new Error("post-failure read should succeed");
+    expect(stableHash(after.value)).toBe(hashA);
+    await assertStateAReadable(store, seeded);
+  });
+
+  it("leg D (exact-message negative proof): a deterministic injected put failure surfaces its own message verbatim — removing the guard turns it into the empty engine AbortError", async () => {
+    const store = new IndexedDbLocalStore();
+    const seeded = await seedStateA(store);
+    const events = await store.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    const source = events.value.find(event => event.id === seeded.event.id);
+    if (!source) throw new Error("seeded source event missing");
+    const injected = {
+      ...source,
+      id: "rb3-reversal-injected",
+      idempotencyKey: "rb3-reversal-injected-op",
+      correctionType: "reverse",
+      correctionOfEventId: source.id,
+      cashDeltaMinor: -source.cashDeltaMinor,
+      payableDeltaMinor: -source.payableDeltaMinor,
+      ownerCapitalDeltaMinor: -source.ownerCapitalDeltaMinor,
+      operatingExpenseDeltaMinor: -source.operatingExpenseDeltaMinor,
+    } as unknown as FinancialEvent;
+
+    const originalPut = IDBObjectStore.prototype.put;
+    const putSpy = vi.spyOn(IDBObjectStore.prototype, "put").mockImplementation(function (
+      this: IDBObjectStore,
+      value: unknown,
+    ) {
+      if (
+        value !== null &&
+        typeof value === "object" &&
+        (value as { id?: unknown }).id === "rb3-reversal-injected"
+      ) {
+        throw new Error("F7-injected");
+      }
+      return originalPut.call(this, value as never);
+    });
+    let failed: Awaited<ReturnType<typeof store.commitFinancialEventCorrection>>;
+    try {
+      failed = await store.commitFinancialEventCorrection(source.id, injected);
+    } finally {
+      putSpy.mockRestore();
+    }
+    expect(failed.ok).toBe(false);
+    expect(failed.ok === false && failed.code).toBe("storage_error");
+    expect(failed.ok === false && failed.message).toBe("F7-injected");
+
+    await expect(store.listFinancialEvents()).resolves.toMatchObject({
+      ok: true,
+      value: [{ id: seeded.event.id }],
+    });
+    await assertStateAReadable(store, seeded);
   });
 });
 
