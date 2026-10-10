@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "8b3c9aeb09ca33ed66f0a929c157b668839d0463",
+  "head": "5bf1a327c797a387463e375fa4c4fb6b8515bedb",
   "pages": {
     "total": 60,
     "map": {
@@ -82,7 +82,8 @@
           "storage/local/IndexedDbLocalStore.test.ts",
           "storage/local/adapterConformance.group10.test.ts",
           "storage/local/adapterDeliveryReversal.test.ts",
-          "storage/local/cashContinuityOpeningGuard.test.ts"
+          "storage/local/cashContinuityOpeningGuard.test.ts",
+          "storage/local/rollbackRehearsal.r9.test.ts"
         ]
       },
       "pages/Catalog.tsx": {

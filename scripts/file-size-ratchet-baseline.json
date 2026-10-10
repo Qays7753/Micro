@@ -1413,7 +1413,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts": {
-      "nbLoc": 430,
+      "nbLoc": 451,
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/storage/local/indexedDbStores.ts": {

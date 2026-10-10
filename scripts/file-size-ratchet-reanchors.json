@@ -56,6 +56,24 @@
         "ownerReview": "R8-N1 continuation review (WS-216/ARCH-007) — owner classified R8-N1 as FIX_NOW; this entry is part of the R8 PR #345 diff",
         "trigger": "R8-N1 root-fix continuation prompt: deterministic tests must fail if the duplicate condition returns; the guard must fail closed on malformed or unsafe output"
       }
+    },
+    {
+      "id": "R9-GA-F1-ROOT-FIX",
+      "date": "2026-10-10",
+      "path": "apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts",
+      "from": {
+        "nbLoc": 430,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 451,
+        "band": "WATCH"
+      },
+      "reason": "R9-GA-F1 root-fix (owner-authorized W2 recovery-defect boundary): replaceIndexedDbSnapshot was non-atomic on synchronous queueing failures — a put() throw (e.g. DataCloneError) escaped the Promise executor before the onerror/onabort handlers were attached, so the readwrite transaction auto-committed the already-queued clear()+put() requests and destroyed the previous state while the caller received an honest failure (proven experimentally on fake-indexeddb at Gate A). The fix wraps the queueing section in try/catch, calls a guarded transaction.abort() on throw, and rethrows the original error so the failure payload is byte-identical to today's contract. Growth = the try/catch scaffold + two dated header comment blocks; no behavior change on any success or async-failure path (regression proof: rollbackRehearsal.r9.test.ts leg 1 fails with the abort disabled, passes with it; legs 2-4 and the full storage/transfers suites green).",
+      "authorization": {
+        "ownerReview": "Owner-authorized R9 execution contract, section 9 (W2): root-fix of any current recovery defect found within the approved boundary; R9 repair card R9-GA-F1; Gate B storage reviewer design approval (abort-then-rethrow, guarded).",
+        "trigger": "R9-GA-F1 discovery during the authorized R9 W2 rollback rehearsals"
+      }
     }
   ]
 }
