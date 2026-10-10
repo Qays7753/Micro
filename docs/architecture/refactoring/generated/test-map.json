@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "adad399af56fc453f7520181d5348a6ab4f43a81",
+  "head": "c86c4f2c8dc33b770a57e3fad2d7503987ed2bec",
   "pages": {
     "total": 60,
     "map": {
@@ -541,6 +541,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/inventory/inventoryMaterialService.test.ts",
+          "apps/prototype-web/client/src/application/inventory/inventoryMaterialsViewModel.test.ts",
           "apps/prototype-web/client/src/storage/local/capabilities/inventoryMaterialCapability.contract.test.ts",
           "tests/domain/inventory-material.test.ts",
           "tests/domain/waste-context.characterization.test.ts"
@@ -703,6 +704,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/inventory/inventoryMaterialService.test.ts",
+          "apps/prototype-web/client/src/application/inventory/inventoryMaterialsViewModel.test.ts",
           "apps/prototype-web/client/src/storage/local/capabilities/inventoryMaterialCapability.contract.test.ts",
           "tests/domain/inventory-material.test.ts"
         ]

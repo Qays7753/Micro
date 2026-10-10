@@ -17,6 +17,11 @@ import { Button, FeedbackMessage, FeedbackNote, StatusChip } from "@/components/
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
+/* R7/R6-F17-P09 (2026-10-10): قراءة الصفحة الرباعية عند صاحبها التطبيقي. */
+import {
+  readInventoryMaterialsPage,
+  type InventoryMaterialsState,
+} from "@/application/inventory/inventoryMaterialsViewModel";
 import type { InventoryShortage, InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import type {
   InventoryActivationState,
@@ -48,16 +53,8 @@ const unitWord = (unit: string) =>
         : unit === "liter"
           ? "لتر"
           : "وحدة أخرى";
-type State =
-  | { phase: "loading" }
-  | { phase: "error" }
-  | {
-      phase: "ready";
-      overview: InventoryOverview;
-      movements: readonly InventoryMovement[];
-      shortages: readonly InventoryShortage[];
-      activation: InventoryActivationState;
-    };
+/* R7/P09: حالة الصفحة انتقلت مع قراءتها إلى البيت التطبيقي. */
+type State = InventoryMaterialsState;
 /* القرار ٢٠: تأكيد إخراج الفاقد يعرض القيمة كاملة ويبيّن أن الفعل تسجيل هدر — قبل التنفيذ وبعده. */
 type ExtractionDraft = {
   materialId: string;
@@ -93,24 +90,10 @@ export default function InventoryMaterials() {
   const extractionKeyRef = useRef<string | null>(null);
   useEffect(() => {
     let active = true;
-    Promise.all([
-      inventory.overview(),
-      inventory.movements(),
-      inventory.shortages(),
-      inventory.readActivation(),
-    ]).then(([overview, movements, shortages, activation]) => {
-      if (!active) return;
-      if (!overview.ok || !movements.ok || !shortages.ok || !activation.ok) {
-        setState({ phase: "error" });
-        return;
-      }
-      setState({
-        phase: "ready",
-        overview: overview.value,
-        movements: movements.value,
-        shortages: shortages.value,
-        activation: activation.value,
-      });
+    /* R7/P09: القراءة الرباعية عند صاحبها التطبيقي — نفس القراءات
+     * وترتيبها وفشلها الجماعي الصادق. */
+    void readInventoryMaterialsPage({ inventory }).then(next => {
+      if (active) setState(next);
     });
     return () => {
       active = false;

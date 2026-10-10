@@ -357,11 +357,13 @@ describe("R6 (Step 6 — STR-615 system-wide ratchet: UI -> application interior
      * R7/R7-2 (P07+P03+P01، 2026-10-10): +٣ مفاتيح موثقة — نماذج عرض المحررات
      * والطلبات المستخرجة (directSaleEditorModel/financialEventEditorModel/
      * orderDetailViewModel) تستهلكها مساراتها الكسولة باستيراد عميق مؤرخ؛
-     * المجموع ٤٦ (٣٦ + ١٠). */
+     * المجموع ٤٦ (٣٦ + ١٠).
+     * R7/R7-3 (P04+P08+P09، 2026-10-10): +٣ مفاتيح موثقة — نماذج عرض
+     * الموردين والمخزون المستخرجة؛ المجموع ٤٩ (٣٦ + ١٣). */
     const contextKeys = raw.allowed.filter(k => k.includes("PrototypeServicesContext"));
     const otherKeys = raw.allowed.filter(k => !k.includes("PrototypeServicesContext"));
     expect(contextKeys.length).toBe(36);
-    expect(otherKeys.length).toBe(10);
+    expect(otherKeys.length).toBe(13);
     expect(otherKeys.some(k => k.includes("finance/expenseBudgetService.ts"))).toBe(false);
     expect(otherKeys.filter(k => k.includes("g5/g5Service.ts")).length).toBe(3);
     expect(otherKeys.some(k => k.includes("activity/activityLabels.ts"))).toBe(true);
