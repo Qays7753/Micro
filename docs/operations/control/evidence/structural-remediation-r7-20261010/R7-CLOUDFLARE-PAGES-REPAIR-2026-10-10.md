@@ -89,8 +89,12 @@ No guard was weakened: the comparison semantics (`current > base` fails), the gu
 | Command | Result | Environment |
 |---|---|---|
 | `npx vitest run scripts/check-bundle-surfaces.test.mjs scripts/check-bundle-budget.test.mjs` (app) | 2 files / **24 tests passed** | local |
+| `pnpm check` (canonical 15-command aggregate) | **exit 0** — full chain green | local Node 24.21.0 |
 | `pnpm prototype:build` | **PASS** — budget 629,300/154,683; surfaces 101 / 1,417,088 / 434,742 / precache 187 / 2,748,709 (code bytes identical pre/post repair) | local Node 24.21.0 |
-| CI + Cloudflare Pages on the repair head | pinned in the PR body after completion | PR head |
+| GitHub CI on repair head `006a6f7e` | run `38030668039` / job `114150750862` — **success**, every step (2026-10-10T06:21:53Z→06:26:02Z); entry 629,412 raw / 154,740 gzip vs ceilings 650,000/155,300; surfaces 101 / 1,417,088 / 434,853 / precache 187 / 2,748,821 — PASS | PR head CI (Node 22.23.3, zlib 1.3.1-e00f703) |
+| Cloudflare Pages on repair head `006a6f7e` | check-run `114150848470` — **success** (the previously failed provider build now completes green with the identical code graph) | PR head Cloudflare Pages |
+
+**Post-fix observation (recorded for R8):** the two GitHub-CI runs of this PR measured `lazyGzipTotal` 434,686 (`47490e52`) vs 434,853 (`006a6f7e`) — a **+167-byte run-to-run swing on near-identical code** (only docs + the baseline JSON differ; not in the bundle graph) — with a changed entry chunk hash (`index-CryMmVt8` → `index-D4jLZRGF`) while raw totals stayed identical (fixed-length hash strings embedded in chunk references). Conclusion: bundle gzip measurements carry **run-to-run variance even within one environment**, on top of cross-environment drift. The R8 bundle-surfaces package must account for both (environment-aware anchoring + variance allowance); the +512 tolerance of this repair is sized above the largest observed single swing (+167) but is explicitly an interim bridge, not the terminal design.
 
 ## 7. Record corrections carried by this slice (A2)
 
@@ -103,7 +107,7 @@ The R7-COMPLETE report and the PR body are corrected from live GitHub facts (dat
 **Status after this slice:**
 
 ```text
-R7_COMPLETE — PR_READY (pending the exact-head CI + Cloudflare re-run on the repair commit)
+R7_COMPLETE — PR_READY (CI + Cloudflare Pages green on the exact final head 006a6f7e)
 R7_MERGE_PENDING_OWNER
 NO_MERGE_PERFORMED
 NO_CLEANUP_PERFORMED
