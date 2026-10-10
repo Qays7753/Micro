@@ -1,0 +1,40 @@
+
+ RUN  v4.1.11 /home/z/my-project/work/micro/repo/apps/prototype-web
+
+ ✓ client/src/storage/local/capabilities/financialEventCapability.contract.test.ts (6 tests) 2655ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  2636ms
+ ✓ client/src/storage/local/capabilities/expenseBudgetCapability.contract.test.ts (6 tests) 1007ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  986ms
+ ✓ client/src/storage/local/capabilities/scheduleCapability.contract.test.ts (6 tests) 1000ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  976ms
+ ✓ client/src/storage/local/capabilities/inventoryMaterialCapability.contract.test.ts (8 tests) 1027ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  1006ms
+ ✓ client/src/storage/local/capabilities/ownerEntitlementCapability.contract.test.ts (6 tests) 998ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  973ms
+ ✓ client/src/storage/local/capabilities/directSaleCapability.contract.test.ts (6 tests) 981ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  965ms
+ ✓ client/src/storage/local/capabilities/loanCapability.contract.test.ts (6 tests) 1022ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  990ms
+ ✓ client/src/storage/local/capabilities/assetCapability.contract.test.ts (6 tests) 972ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  955ms
+ ✓ client/src/storage/local/capabilities/catalogCapability.contract.test.ts (8 tests) 967ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  945ms
+ ✓ client/src/storage/local/capabilities/shortCashDeclarationCapability.contract.test.ts (6 tests) 971ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  952ms
+ ✓ client/src/storage/local/capabilities/actualTimeCapability.contract.test.ts (8 tests) 978ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  954ms
+ ✓ client/src/storage/local/capabilities/orderLifecycleCapability.contract.test.ts (6 tests) 1002ms
+     ✓ both adapters and the compatibility facade still satisfy the capability (tsc on the anchors file)  973ms
+ ✓ client/src/storage/local/capabilities/supplierPurchaseCapability.contract.test.ts (6 tests) 1015ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  996ms
+ ✓ client/src/storage/local/capabilities/costEstimateCapability.contract.test.ts (8 tests) 928ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  910ms
+ ✓ client/src/storage/local/capabilities/allocationPolicyCapability.contract.test.ts (6 tests) 946ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  926ms
+ ✓ client/src/storage/local/capabilities/recurringExpenseCapability.contract.test.ts (6 tests) 973ms
+     ✓ المحوّلان والواجهة التوافقية ما زالوا يحققون القدرة (tsc على ملف المراسي)  949ms
+
+ Test Files  16 passed (16)
+      Tests  104 passed (104)
+   Start at  15:52:16
+   Duration  21.53s (transform 856ms, setup 0ms, import 2.20s, tests 17.44s, environment 1ms)

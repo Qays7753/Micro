@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "7341f91195a59100a4b9111b1d81c21f0f184368",
+        "head": "6574d5609b29e53c0d9846bff2c85edc91d440c3",
         "date": "2026-10-10",
-        "method": "local production build of the R8-N1 root-fix code head 7341f911 (pnpm prototype:build) - sw.js precache manifest drops the 31 duplicate entries (187 -> 156 entries; unique URL set proven identical: lost=[], gained=[]); swRuntimeRawTotal 28,885 -> 26,170 (reduction locked in this PR per the guard protocol); all other guarded surfaces byte-identical to the R8-1 anchor"
+        "method": "R9-W2 R9-GA-F1 root-fix re-anchor from the local production build of the W2 code head 6574d560 (pnpm --filter @micro/prototype-web build): the guarded-abort fix in storage/local/indexedDbSnapshot.ts adds +21 nbLOC compiled into the entry chunk (+49 raw / +20 gzip; entry 629,349/154,703 — far under the 650,000/155,300 ceilings) and thus +49 to the precache total (2,672,243 -> 2,672,292). Authorized by the owner-authorized R9 execution contract section 9 (recovery-defect root fix) with the ratchet ledger entry R9-GA-F1-ROOT-FIX in the same PR. Superseded anchor: R8-N1 local build of 7341f911 (precache 2,672,243). All other measurements unchanged; entry ceilings untouched."
       },
       "toolchain": {
         "node": "v24.21.0",
@@ -34,7 +34,7 @@
         "initialGzipNormTotal": 70716,
         "lazyRawTotal": 1206629,
         "lazyGzipNormTotal": 363974,
-        "precacheBytesTotal": 2672243,
+        "precacheBytesTotal": 2672292,
         "swRuntimeRawTotal": 26170
       },
       "counts": {
@@ -47,9 +47,9 @@
     },
     "cloudflare-pages": {
       "anchored": {
-        "head": "7341f91195a59100a4b9111b1d81c21f0f184368",
+        "head": "6574d5609b29e53c0d9846bff2c85edc91d440c3",
         "date": "2026-10-10",
-        "method": "R8-N1 root-fix re-anchor from the local production build of code head 7341f911 (the same tree the PR-head Cloudflare Pages build compiles); sw.js byte size is environment-invariant (fixed-length revision digests; all three environments measured identical 28,885 pre-fix at the R8-1 anchor); verified by the Cloudflare Pages check-run on the final PR head (URL pinned in the PR body and the R8-N1 report); superseded record: live production deployment fetch of main@1e267864 (2026-10-10) measured swRuntimeRawTotal 28,885 pre-fix"
+        "method": "R9-W2 R9-GA-F1 root-fix same-tree re-anchor (code head 6574d560): raw precache totals are environment-invariant (the precached build outputs are byte-fixed; only gzip varied across environments and normalized gzip is anchored identically at 363,974). The cloud records carried +112 raw over local (documented R8-1 variance: embedded provider metadata); the +49 code delta applies equally: 2,672,355 -> 2,672,404. To be verified by the CI and Cloudflare Pages runs on the final R9 PR head (URLs pinned in the PR body per the R8 precedent; the post-merge reconciliation back-fills them into the canonical evidence directory). Superseded anchor: R8-N1 same-tree re-anchor of 7341f911."
       },
       "toolchain": {
         "node": "not-exposed-by-provider",
@@ -62,7 +62,7 @@
         "initialGzipNormTotal": 70716,
         "lazyRawTotal": 1206629,
         "lazyGzipNormTotal": 363974,
-        "precacheBytesTotal": 2672355,
+        "precacheBytesTotal": 2672404,
         "swRuntimeRawTotal": 26170
       },
       "counts": {
@@ -75,9 +75,9 @@
     },
     "github-actions": {
       "anchored": {
-        "head": "7341f91195a59100a4b9111b1d81c21f0f184368",
+        "head": "6574d5609b29e53c0d9846bff2c85edc91d440c3",
         "date": "2026-10-10",
-        "method": "R8-N1 root-fix re-anchor from the local production build of code head 7341f911 (the same tree the PR-head CI compiles); sw.js byte size is environment-invariant (fixed-length revision digests; all three environments measured identical 28,885 pre-fix); verified by the CI run on the final PR head (URL pinned in the PR body and the R8-N1 report); superseded record: workflow_dispatch bootstrap run 38046254527 on head a69f1e14 (https://github.com/Qays7753/Micro/actions/runs/38046254527) measured swRuntimeRawTotal 28,885 pre-fix"
+        "method": "R9-W2 R9-GA-F1 root-fix same-tree re-anchor (code head 6574d560): raw precache totals are environment-invariant (the precached build outputs are byte-fixed; only gzip varied across environments and normalized gzip is anchored identically at 363,974). The cloud records carried +112 raw over local (documented R8-1 variance: embedded provider metadata); the +49 code delta applies equally: 2,672,355 -> 2,672,404. To be verified by the CI and Cloudflare Pages runs on the final R9 PR head (URLs pinned in the PR body per the R8 precedent; the post-merge reconciliation back-fills them into the canonical evidence directory). Superseded anchor: R8-N1 same-tree re-anchor of 7341f911."
       },
       "toolchain": {
         "node": "v22.23.3",
@@ -93,7 +93,7 @@
         "initialGzipNormTotal": 70716,
         "lazyRawTotal": 1206629,
         "lazyGzipNormTotal": 363974,
-        "precacheBytesTotal": 2672355,
+        "precacheBytesTotal": 2672404,
         "swRuntimeRawTotal": 26170
       },
       "counts": {

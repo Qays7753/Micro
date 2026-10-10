@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "4d60d1bcc42fd7ccfff76c819283be15c920a6ef",
+  "head": "b3fb3bc55ba22eb77c307474288b1b92ff15193b",
   "pages": {
     "total": 60,
     "map": {
@@ -57,6 +57,7 @@
       "pages/CashReversalEditor.tsx": {
         "kind": "direct",
         "evidence": [
+          "CashReversalEditor.dom.test.tsx",
           "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
@@ -69,6 +70,7 @@
       "pages/CashWalletEditor.tsx": {
         "kind": "direct",
         "evidence": [
+          "CashWalletEditor.dom.test.tsx",
           "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
@@ -82,7 +84,8 @@
           "storage/local/IndexedDbLocalStore.test.ts",
           "storage/local/adapterConformance.group10.test.ts",
           "storage/local/adapterDeliveryReversal.test.ts",
-          "storage/local/cashContinuityOpeningGuard.test.ts"
+          "storage/local/cashContinuityOpeningGuard.test.ts",
+          "storage/local/rollbackRehearsal.r9.test.ts"
         ]
       },
       "pages/Catalog.tsx": {
@@ -205,6 +208,7 @@
       "pages/G5DeclarationEditor.tsx": {
         "kind": "direct",
         "evidence": [
+          "G5DeclarationEditor.dom.test.tsx",
           "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
@@ -240,6 +244,7 @@
       "pages/InventoryReversalEditor.tsx": {
         "kind": "direct",
         "evidence": [
+          "InventoryReversalEditor.dom.test.tsx",
           "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
@@ -342,6 +347,7 @@
       "pages/ReceivedLoanDetail.tsx": {
         "kind": "direct",
         "evidence": [
+          "ReceivedLoanDetail.dom.test.tsx",
           "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },

@@ -1,7 +1,7 @@
 # Micro — Refactoring Control
 
-**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0–R10 (WS-216/ARCH-007) ACTIVE; R0–R8 VERIFIED ON MAIN (87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e); R9 PREFLIGHT GATE OPEN — IMPLEMENTATION NOT STARTED`
-**المرحلة الحالية:** `SUCCESSOR STRUCTURAL REMEDIATION R8 VERIFIED ON MAIN — PR #345 MERGED; R9 PREFLIGHT/READ-ONLY EVIDENCE GATE; NO VISUAL UI CHANGE`
+**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0–R10 (WS-216/ARCH-007) ACTIVE; R0–R8 VERIFIED ON MAIN (87274cf9); R9 REMEDIATION W1+W2+W3 IN PROGRESS (owner-authorized; branch refactoring/r9-complete-w1-w2-w3-20261010 from 8b3c9aeb; PR at the owner gate — NOT MERGED)`
+**المرحلة الحالية:** `SUCCESSOR STRUCTURAL REMEDIATION R9 COMPLETE WAVE (W1 docs/evidence/Operations Control — W2 rollback rehearsals + recovery root-fix — W3 direct page tests); NO VISUAL UI CHANGE`
 **نوع المساحة:** مساحة تخطيط وتحكم لإعادة الهيكلة، وليست مصدرًا معماريًا منافسًا.
 
 > **تحديث مؤرخ 2026-10-05 (عقد التنفيذ التالي):** اعتمد المالك الخطة الكاملة بعد تقريري Flash وStructure. عقد التنفيذ المحفوظ في `ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md` هو عقد تشغيل للبرنامج التالي، وليس سلطة معمارية ثانية. حالته `OWNER_ACCEPTED — EXECUTION_NOT_STARTED`; يبدأ التنفيذ بـR0 قراءة فقط ثم W0–W10 على فرع مستقل بعد التحقق الحي. لا يُكتب إلى `main` ولا تُفتح موجة جديدة خارج هذا العقد.

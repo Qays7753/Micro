@@ -311,120 +311,141 @@ export async function replaceIndexedDbSnapshot(
         ],
         "readwrite",
       );
-      const profiles = transaction.objectStore(profileStore);
-      const ownerProfiles = transaction.objectStore(ownerProfileStore);
-      const preferences = transaction.objectStore(preferencesStore);
-      const drafts = transaction.objectStore(draftStore);
-      const orders = transaction.objectStore(orderStore);
-      const directSales = transaction.objectStore(directSaleStore);
-      const schedules = transaction.objectStore(scheduleStore);
-      const recurrences = transaction.objectStore(recurrenceStore);
-      const financialEvents = transaction.objectStore(financialEventStore);
-      const supplierPurchases = transaction.objectStore(supplierPurchaseStore);
-      const cashWallets = transaction.objectStore(cashWalletStore);
-      const cashContinuityEntries = transaction.objectStore(cashContinuityEntryStore);
-      const materials = transaction.objectStore(materialStore);
-      const inventoryMovements = transaction.objectStore(inventoryMovementStore);
-      const inventoryShortages = transaction.objectStore(inventoryShortageStore);
-      const inventoryActivation = transaction.objectStore(inventoryActivationStore);
-      const catalogItems = transaction.objectStore(catalogItemStore);
-      const measurementUnits = transaction.objectStore(measurementUnitStore);
-      const directConversions = transaction.objectStore(directConversionStore);
-      const catalogTemplates = transaction.objectStore(catalogTemplateStore);
-      const actualTimeRecords = transaction.objectStore(actualTimeStore);
-      const shortCashDeclarations = transaction.objectStore(shortCashDeclarationStore);
-      const ownerEntitlementPolicies = transaction.objectStore(ownerEntitlementPolicyStore);
-      const ownerEntitlementRecords = transaction.objectStore(ownerEntitlementRecordStore);
-      const ownerEntitlementOpeningBalances = transaction.objectStore(ownerEntitlementOpeningBalanceStore);
-      const ownerMovements = transaction.objectStore(ownerMovementStore);
-      const allocationPolicies = transaction.objectStore(allocationPolicyStore);
-      const costEstimates = transaction.objectStore(costEstimateStore);
-      const assets = transaction.objectStore(assetStore);
-      const loans = transaction.objectStore(loanStore);
-      const receivedLoans = transaction.objectStore(receivedLoanStore);
-      const recurringSeries = transaction.objectStore(recurringExpenseSeriesStore);
-      const recurringRevisions = transaction.objectStore(recurringExpenseRevisionStore);
-      const recurringOccurrences = transaction.objectStore(recurringExpenseOccurrenceStore);
-      const expenseBudgets = transaction.objectStore(expenseBudgetStore);
-      profiles.clear();
-      ownerProfiles.clear();
-      preferences.clear();
-      drafts.clear();
-      orders.clear();
-      directSales.clear();
-      schedules.clear();
-      recurrences.clear();
-      financialEvents.clear();
-      supplierPurchases.clear();
-      cashWallets.clear();
-      cashContinuityEntries.clear();
-      materials.clear();
-      inventoryMovements.clear();
-      inventoryShortages.clear();
-      inventoryActivation.clear();
-      catalogItems.clear();
-      measurementUnits.clear();
-      directConversions.clear();
-      catalogTemplates.clear();
-      actualTimeRecords.clear();
-      shortCashDeclarations.clear();
-      ownerEntitlementPolicies.clear();
-      ownerEntitlementRecords.clear();
-      ownerEntitlementOpeningBalances.clear();
-      ownerMovements.clear();
-      allocationPolicies.clear();
-      costEstimates.clear();
-      assets.clear();
-      loans.clear();
-      receivedLoans.clear();
-      recurringSeries.clear();
-      recurringRevisions.clear();
-      recurringOccurrences.clear();
-      /* FIN-002 (عقد ٤٢): تنظيف وكتابة الميزانيات — الاستبدال لا يترك خطة قديمة. */
-      expenseBudgets.clear();
-      if (normalized.profile) profiles.put(normalized.profile);
-      if (normalized.ownerProfile) ownerProfiles.put(normalized.ownerProfile);
-      if (normalized.preferences) preferences.put(normalized.preferences);
-      normalized.drafts.forEach(draft => drafts.put(draft));
-      normalized.orders.forEach(order => orders.put(order));
-      normalized.directSales?.forEach(sale => directSales.put(sale));
-      normalized.schedules.forEach(schedule => schedules.put(schedule));
-      normalized.recurrences?.forEach(recurrence => recurrences.put(recurrence));
-      normalized.financialEvents.forEach(event => financialEvents.put(event));
-      normalized.supplierPurchases?.forEach(purchase => supplierPurchases.put(purchase));
-      normalized.cashWallets?.forEach(wallet => cashWallets.put(wallet));
-      normalized.cashContinuityEntries?.forEach(entry => cashContinuityEntries.put(entry));
-      normalized.materials?.forEach(material => materials.put(material));
-      normalized.inventoryMovements?.forEach(movement => inventoryMovements.put(movement));
-      /* المجموعة ٢ (عقد ٢٨): تنظيف وكتابة سجلات النقص — «ابدأ من جديد» لا يترك نقصًا قديمًا. */
-      normalized.inventoryShortages?.forEach(shortage => inventoryShortages.put(shortage));
-      if (normalized.inventoryActivation) inventoryActivation.put(normalized.inventoryActivation);
-      normalized.catalogItems?.forEach(item => catalogItems.put(item));
-      normalized.measurementUnits?.forEach(unit => measurementUnits.put(unit));
-      normalized.directConversions?.forEach(conversion => directConversions.put(conversion));
-      normalized.catalogTemplates?.forEach(template => catalogTemplates.put(template));
-      normalized.actualTimeRecords?.forEach(record => actualTimeRecords.put(record));
-      normalized.shortCashDeclarations?.forEach(declaration => shortCashDeclarations.put(declaration));
-      normalized.ownerEntitlementPolicies?.forEach(policy => ownerEntitlementPolicies.put(policy));
-      normalized.ownerEntitlementRecords?.forEach(record => ownerEntitlementRecords.put(record));
-      normalized.ownerEntitlementOpeningBalances?.forEach(balance =>
-        ownerEntitlementOpeningBalances.put(balance),
-      );
-      normalized.ownerMovements?.forEach(movement => ownerMovements.put(movement));
-      normalized.allocationPolicies?.forEach(policy => allocationPolicies.put(policy));
-      normalized.costEstimates?.forEach(estimate => costEstimates.put(estimate));
-      normalized.assets?.forEach(asset => assets.put(asset));
-      normalized.loans?.forEach(loan => loans.put(loan));
-      normalized.receivedLoans?.forEach(loan => receivedLoans.put(loan));
-      normalized.recurringExpenseSeries?.forEach(series => recurringSeries.put(series));
-      normalized.recurringExpenseRevisions?.forEach(revision => recurringRevisions.put(revision));
-      normalized.recurringExpenseOccurrences?.forEach(occurrence => recurringOccurrences.put(occurrence));
-      normalized.expenseBudgets?.forEach(budget => expenseBudgets.put(budget));
-      transaction.onerror = () => resolve(failure(transaction.error, database));
-      transaction.onabort = () => resolve(failure(transaction.error, database));
-      transaction.oncomplete = () => {
-        resolve({ ok: true, value: normalized });
-      };
+      /* R9-W2 (R9-GA-F1 — جذر عيب عدم-الذرية): أي رمي متزامن أثناء ترتيب
+       * الطلبات (clear/put — مثل DataCloneError من استنساخ سجل غير قابل
+       * للنسخ) كان يفلت من المُنفّذ قبل تركيب معالجات onerror/onabort،
+       * فيُرجِع الوعد فشلًا صادقًا بينما تُكمل المعاملة المُرتّبة إلزامها
+       * وتُدمّر الحالة السابقة. العلاج الجذري: إحباط المعاملة صراحةً قبل
+       * إعادة رمي الخطأ الأصلي — الإحباط المُحرس يُدرج كل الطلبات
+       * المرتّبة في سجل التراجع، والرمي الأصلي يمر كما هو إلى الالتقاط
+       * الخارجي فيبقى عقد الفشل (الكود/الرسالة) مطابقًا لسلوك اليوم. */
+      try {
+        const profiles = transaction.objectStore(profileStore);
+        const ownerProfiles = transaction.objectStore(ownerProfileStore);
+        const preferences = transaction.objectStore(preferencesStore);
+        const drafts = transaction.objectStore(draftStore);
+        const orders = transaction.objectStore(orderStore);
+        const directSales = transaction.objectStore(directSaleStore);
+        const schedules = transaction.objectStore(scheduleStore);
+        const recurrences = transaction.objectStore(recurrenceStore);
+        const financialEvents = transaction.objectStore(financialEventStore);
+        const supplierPurchases = transaction.objectStore(supplierPurchaseStore);
+        const cashWallets = transaction.objectStore(cashWalletStore);
+        const cashContinuityEntries = transaction.objectStore(cashContinuityEntryStore);
+        const materials = transaction.objectStore(materialStore);
+        const inventoryMovements = transaction.objectStore(inventoryMovementStore);
+        const inventoryShortages = transaction.objectStore(inventoryShortageStore);
+        const inventoryActivation = transaction.objectStore(inventoryActivationStore);
+        const catalogItems = transaction.objectStore(catalogItemStore);
+        const measurementUnits = transaction.objectStore(measurementUnitStore);
+        const directConversions = transaction.objectStore(directConversionStore);
+        const catalogTemplates = transaction.objectStore(catalogTemplateStore);
+        const actualTimeRecords = transaction.objectStore(actualTimeStore);
+        const shortCashDeclarations = transaction.objectStore(shortCashDeclarationStore);
+        const ownerEntitlementPolicies = transaction.objectStore(ownerEntitlementPolicyStore);
+        const ownerEntitlementRecords = transaction.objectStore(ownerEntitlementRecordStore);
+        const ownerEntitlementOpeningBalances = transaction.objectStore(ownerEntitlementOpeningBalanceStore);
+        const ownerMovements = transaction.objectStore(ownerMovementStore);
+        const allocationPolicies = transaction.objectStore(allocationPolicyStore);
+        const costEstimates = transaction.objectStore(costEstimateStore);
+        const assets = transaction.objectStore(assetStore);
+        const loans = transaction.objectStore(loanStore);
+        const receivedLoans = transaction.objectStore(receivedLoanStore);
+        const recurringSeries = transaction.objectStore(recurringExpenseSeriesStore);
+        const recurringRevisions = transaction.objectStore(recurringExpenseRevisionStore);
+        const recurringOccurrences = transaction.objectStore(recurringExpenseOccurrenceStore);
+        const expenseBudgets = transaction.objectStore(expenseBudgetStore);
+        profiles.clear();
+        ownerProfiles.clear();
+        preferences.clear();
+        drafts.clear();
+        orders.clear();
+        directSales.clear();
+        schedules.clear();
+        recurrences.clear();
+        financialEvents.clear();
+        supplierPurchases.clear();
+        cashWallets.clear();
+        cashContinuityEntries.clear();
+        materials.clear();
+        inventoryMovements.clear();
+        inventoryShortages.clear();
+        inventoryActivation.clear();
+        catalogItems.clear();
+        measurementUnits.clear();
+        directConversions.clear();
+        catalogTemplates.clear();
+        actualTimeRecords.clear();
+        shortCashDeclarations.clear();
+        ownerEntitlementPolicies.clear();
+        ownerEntitlementRecords.clear();
+        ownerEntitlementOpeningBalances.clear();
+        ownerMovements.clear();
+        allocationPolicies.clear();
+        costEstimates.clear();
+        assets.clear();
+        loans.clear();
+        receivedLoans.clear();
+        recurringSeries.clear();
+        recurringRevisions.clear();
+        recurringOccurrences.clear();
+        /* FIN-002 (عقد ٤٢): تنظيف وكتابة الميزانيات — الاستبدال لا يترك خطة قديمة. */
+        expenseBudgets.clear();
+        if (normalized.profile) profiles.put(normalized.profile);
+        if (normalized.ownerProfile) ownerProfiles.put(normalized.ownerProfile);
+        if (normalized.preferences) preferences.put(normalized.preferences);
+        normalized.drafts.forEach(draft => drafts.put(draft));
+        normalized.orders.forEach(order => orders.put(order));
+        normalized.directSales?.forEach(sale => directSales.put(sale));
+        normalized.schedules.forEach(schedule => schedules.put(schedule));
+        normalized.recurrences?.forEach(recurrence => recurrences.put(recurrence));
+        normalized.financialEvents.forEach(event => financialEvents.put(event));
+        normalized.supplierPurchases?.forEach(purchase => supplierPurchases.put(purchase));
+        normalized.cashWallets?.forEach(wallet => cashWallets.put(wallet));
+        normalized.cashContinuityEntries?.forEach(entry => cashContinuityEntries.put(entry));
+        normalized.materials?.forEach(material => materials.put(material));
+        normalized.inventoryMovements?.forEach(movement => inventoryMovements.put(movement));
+        /* المجموعة ٢ (عقد ٢٨): تنظيف وكتابة سجلات النقص — «ابدأ من جديد» لا يترك نقصًا قديمًا. */
+        normalized.inventoryShortages?.forEach(shortage => inventoryShortages.put(shortage));
+        if (normalized.inventoryActivation) inventoryActivation.put(normalized.inventoryActivation);
+        normalized.catalogItems?.forEach(item => catalogItems.put(item));
+        normalized.measurementUnits?.forEach(unit => measurementUnits.put(unit));
+        normalized.directConversions?.forEach(conversion => directConversions.put(conversion));
+        normalized.catalogTemplates?.forEach(template => catalogTemplates.put(template));
+        normalized.actualTimeRecords?.forEach(record => actualTimeRecords.put(record));
+        normalized.shortCashDeclarations?.forEach(declaration => shortCashDeclarations.put(declaration));
+        normalized.ownerEntitlementPolicies?.forEach(policy => ownerEntitlementPolicies.put(policy));
+        normalized.ownerEntitlementRecords?.forEach(record => ownerEntitlementRecords.put(record));
+        normalized.ownerEntitlementOpeningBalances?.forEach(balance =>
+          ownerEntitlementOpeningBalances.put(balance),
+        );
+        normalized.ownerMovements?.forEach(movement => ownerMovements.put(movement));
+        normalized.allocationPolicies?.forEach(policy => allocationPolicies.put(policy));
+        normalized.costEstimates?.forEach(estimate => costEstimates.put(estimate));
+        normalized.assets?.forEach(asset => assets.put(asset));
+        normalized.loans?.forEach(loan => loans.put(loan));
+        normalized.receivedLoans?.forEach(loan => receivedLoans.put(loan));
+        normalized.recurringExpenseSeries?.forEach(series => recurringSeries.put(series));
+        normalized.recurringExpenseRevisions?.forEach(revision => recurringRevisions.put(revision));
+        normalized.recurringExpenseOccurrences?.forEach(occurrence => recurringOccurrences.put(occurrence));
+        normalized.expenseBudgets?.forEach(budget => expenseBudgets.put(budget));
+        transaction.onerror = () => resolve(failure(transaction.error, database));
+        transaction.onabort = () => resolve(failure(transaction.error, database));
+        transaction.oncomplete = () => {
+          resolve({ ok: true, value: normalized });
+        };
+      } catch (error) {
+        /* R9-W2 (R9-GA-F1): الإحباط المحرس — إن كانت المعاملة ما تزال نشطة
+         * (لم تكتمل/لم تُحبَط بعد) فإحباطها يُدرج الطلبات المرتّبة في
+         * التراجع ويمنع الإلزام الصامت؛ ثم يُعاد رمي الخطأ الأصلي ليصل
+         * إلى الالتقاط الخارجي بحمولته الدقيقة (لا نحل محله بخطأ الإحباط). */
+        try {
+          transaction.abort();
+        } catch {
+          /* المعاملة انتهت فعلًا — لا شيء يُحبَط ولا شيء يُرتّب. */
+        }
+        throw error;
+      }
     });
   } catch (error) {
     return failure(error);

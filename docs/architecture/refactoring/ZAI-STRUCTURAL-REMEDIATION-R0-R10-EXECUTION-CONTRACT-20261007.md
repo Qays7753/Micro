@@ -1,6 +1,6 @@
 # Micro — Structural Remediation R0–R10 Execution Contract
 
-**Status:** `OWNER_ACCEPTED — R0–R8_VERIFIED_ON_MAIN; R9_PREFLIGHT_GATE`
+**Status:** `OWNER_ACCEPTED — R0–R8_VERIFIED_ON_MAIN; R9_REMEDIATION_IN_PROGRESS (W1+W2+W3 owner-authorized)` *(dated 2026-10-10 — R9/W1: was `R9_PREFLIGHT_GATE`; the preflight package was owner-accepted and the three-wave remediation authorized on branch `refactoring/r9-complete-w1-w2-w3-20261010` from `8b3c9aeb`; no merge — the PR stops at the owner gate)*
 
 **Owner authorization:** On 2026-10-07 the owner accepted the updated Arabic execution plan and its explicit traceability matrix, and authorized this program to start with the contract publication followed by R0. This contract operationalizes that plan. It does not replace `AGENTS.md`, financial/domain contracts, the canonical architecture plan, or live Operations Control.
 
@@ -18,7 +18,7 @@
 
 **Current verified main (2026-10-10):** `87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e` — R8 Merge commit from PR #345; post-merge CI run `38060781329` succeeded on this exact SHA.
 
-**Current phase:** R0–R8 are verified on main. R9 has not started. Its next operation is the R9 preflight/read-only evidence reconciliation: maps, parity/boundary matrices, guard claims, journey/test evidence, and rollback-rehearsal scope; no R9 implementation write starts before the scoped package is owner-accepted.
+**Current phase:** R0–R8 are verified on main. R9 preflight is complete and owner-accepted (the five-reviewer package and the canonical findings copy live under `docs/operations/control/evidence/structural-remediation-r9-20261010/`); the authorized W1+W2+W3 remediation is executing on `refactoring/r9-complete-w1-w2-w3-20261010` from `8b3c9aeb` — W1 documentation/Operations Control reconciliation, W2 genuine rollback rehearsals + root-fix of the discovered recovery defect, W3 direct tests for the five named pages. One PR at the end; no merge without owner authorization. *(dated correction 2026-10-10 — R9/W1: the preceding sentence described the preflight gate and is superseded as stated.)*
 
 **Workstream:** `WS-216`
 
