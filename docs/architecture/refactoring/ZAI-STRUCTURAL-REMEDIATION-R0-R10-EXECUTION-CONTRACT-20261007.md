@@ -1,6 +1,6 @@
 # Micro — Structural Remediation R0–R10 Execution Contract
 
-**Status:** `OWNER_ACCEPTED — R0–R6_VERIFIED_ON_MAIN; R7_PREPARATION_GATE`
+**Status:** `OWNER_ACCEPTED — R0–R8_VERIFIED_ON_MAIN; R9_PREFLIGHT_GATE`
 
 **Owner authorization:** On 2026-10-07 the owner accepted the updated Arabic execution plan and its explicit traceability matrix, and authorized this program to start with the contract publication followed by R0. This contract operationalizes that plan. It does not replace `AGENTS.md`, financial/domain contracts, the canonical architecture plan, or live Operations Control.
 
@@ -16,9 +16,9 @@
 
 **Initial verified base:** `25594773a83ec5eb1e9dde5feaf1c808c0ff686f`
 
-**Current verified main (2026-10-10):** `8f7ba482c92b33fd1565df3284b992c6b28a128b` — final R6 merge commit from PR #340; post-merge CI run `37998261599` succeeded on this exact SHA.
+**Current verified main (2026-10-10):** `87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e` — R8 Merge commit from PR #345; post-merge CI run `38060781329` succeeded on this exact SHA.
 
-**Current phase:** R6 W1/W2/W3 is verified on main. R7 has not started. Its next operation is R7 preflight/repair-card reconciliation from the R6-F17-P01..P11 package; no R7 structural write starts before a scoped branch, consumer inventory, tests, and rollback boundary are recorded.
+**Current phase:** R0–R8 are verified on main. R9 has not started. Its next operation is the R9 preflight/read-only evidence reconciliation: maps, parity/boundary matrices, guard claims, journey/test evidence, and rollback-rehearsal scope; no R9 implementation write starts before the scoped package is owner-accepted.
 
 **Workstream:** `WS-216`
 
