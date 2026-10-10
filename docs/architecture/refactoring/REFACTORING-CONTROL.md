@@ -1,9 +1,9 @@
 # Micro — Refactoring Control
 
-**الإصدار:** v1.16 (R6-W1/W2/W3 مدموجة ومتحققة على main؛ R7 منفذة وجاهزة للدمج عبر PR #342 — 2026-10-10؛ v1.15 وما قبلها سجل تاريخي)
+**الإصدار:** v1.17 (R7 مدموجة ومتحققة على main؛ بوابة R8 مفتوحة — 2026-10-10؛ v1.16 وما قبلها سجل تاريخي)
 **التاريخ:** 2026-10-10
-**الحالة:** `OWNER_ACCEPTED — R6 VERIFIED_ON_MAIN; R7 PR_READY — MERGE_PENDING_OWNER`
-**المرحلة:** `SUCCESSOR R0–R6 VERIFIED ON MAIN; R7 COMPLETE_ON_BRANCH; R8 GATE_PENDING_R7_MERGE_AND_POST_MERGE_VERIFICATION`
+**الحالة:** `OWNER_ACCEPTED — R7 VERIFIED_ON_MAIN; R8 PREFLIGHT GATE OPEN`
+**المرحلة:** `SUCCESSOR R0–R7 VERIFIED ON MAIN; R8 NOT STARTED — PREPARE R8 PREFLIGHT/REPAIR CARDS`
 **النطاق:** Structure / Architecture / Code Organization فقط
 
 ## 1. الهدف
@@ -185,7 +185,7 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 - **الخطة:** `STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
 - **البداية المسموحة:** R0 قراءة فقط ومصالحة الخط الأساسي؛ لا نقل أو تقسيم أو حذف أو تعديل كودي في R0.
 - **قاعدة الاستمرار:** بعد تقرير R0 فقط، تنفذ R1–R10 على فرع مستقل، وبطاقات Repair، وPR مستقل أو شريحة قابلة للمراجعة، وفحوص مركزة وCI وحد رجوع لكل موجة.
-- **الخطوة الحية:** R4 وR5 مدموجتان ومتحققتان على main؛ R6 W1/W2/W3 ومصالحتها مدموجة ومتحققة عند `e01d560539476c1c7f712891f2355200d2d74aa6` مع CI post-merge `37999470232` ناجح. R7 منفذة على فرعها في PR #342 عند الرأس `6b652e853258144b145f2389d09cfa2178d45570`، وCI `38031209971` وCloudflare Pages `114152425904` ناجحان؛ لا تغييرات مالية/دلالية/تاريخية أو Schema/Export/Import أو UI بصري. **التالي: مراجعة المالك ودمج PR #342؛ بعد التحقق على main فقط تفتح بوابة R8.**
+- **الخطوة الحية:** R4–R6 ومصالحتها متحققة على main، ثم دُمجت R7 عبر PR #342 عند merge commit `74908e1334098a51bb516aa3bbdcc898a4bedb1f` بوالديه `e01d560539476c1c7f712891f2355200d2d74aa6` و`db78225d877ecddb9067caaafceb2d85256f73bc`; CI post-merge `38037936319` ناجح. لا تغييرات مالية/دلالية/تاريخية أو Schema/Export/Import أو UI بصري. **التالي: R8 preflight/repair-card gate؛ لا تبدأ كتابة R8 قبل تثبيت نطاقها وبطاقاتها وحدود الرجوع.**
 
 ## 15. سلّم الأولوية ودورة حياة قطع الحوكمة (R1/TG-04 — 2026-10-07)
 
