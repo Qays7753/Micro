@@ -1533,8 +1533,8 @@
       "band": "NORMAL"
     },
     "scripts/check-module-boundaries.mjs": {
-      "nbLoc": 398,
-      "band": "NORMAL"
+      "nbLoc": 431,
+      "band": "WATCH"
     },
     "scripts/check-registry-coverage.mjs": {
       "nbLoc": 82,

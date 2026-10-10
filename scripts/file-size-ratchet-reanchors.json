@@ -2,5 +2,24 @@
   "version": 1,
   "schema": "micro-file-size-ratchet-reanchors/1",
   "comment": "R8-2: the single documented authorization path for baseline value increases. Each entry: id, date, path, from{nbLoc,band}, to{nbLoc,band}, reason, authorization{ownerReview, trigger}. The drift audit chain-validates from == merge-base baseline value. Entries authorize growth UP TO to.nbLoc; they are bounded per-path authorizations, never blanket exemptions.",
-  "entries": []
+  "entries": [
+    {
+      "id": "R8-3-RULE-R7",
+      "date": "2026-10-10",
+      "path": "scripts/check-module-boundaries.mjs",
+      "from": {
+        "nbLoc": 398,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 431,
+        "band": "WATCH"
+      },
+      "reason": "R8-3 adds boundary rule R7 (component->page forbidden class, R8-F-019): rule block, baseline list, stats field, and CLI summary. The file was already 2 nbLOC under the WATCH threshold at main (register section 7 documents it as watched-until-R8); the rule addition crosses it.",
+      "authorization": {
+        "ownerReview": "R8 PR review (WS-216/ARCH-007) — this entry is part of the R8 PR diff",
+        "trigger": "R8 execution prompt section 8, R8-3: the new rule must be measured and documented same-PR"
+      }
+    }
+  ]
 }

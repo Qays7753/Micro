@@ -18,6 +18,7 @@ import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
 import {
   APPLICATION_TO_PRESENTATION_VALUE_BASELINE,
+  COMPONENT_TO_PAGE_BASELINE,
   DEEP_DOMAIN_IMPORT_BASELINE,
   DOMAIN_CROSS_AREA_DEEP_BASELINE,
   UI_TO_DOMAIN_VALUE_BASELINE,
@@ -262,6 +263,84 @@ describe("boundary rules on a synthetic tree (each rule can fail)", () => {
     expect(new Set(APPLICATION_TO_PRESENTATION_VALUE_BASELINE).size).toBe(
       APPLICATION_TO_PRESENTATION_VALUE_BASELINE.length,
     );
+  });
+});
+
+describe("R7 component->page regression class (R8-F-019)", () => {
+  const COMPONENT = "apps/prototype-web/client/src/components/finance/Section.tsx";
+  const PAGE = "apps/prototype-web/client/src/pages/Finance.tsx";
+
+  function treeWith(edgeLine) {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/pages/Finance.tsx", "export function Finance() { return 1; }\n");
+    write(root, "apps/prototype-web/client/src/components/finance/Section.tsx", edgeLine);
+    /* حواف قانونية غير ذات صلة تبقى بلا أثر. */
+    write(
+      root,
+      "apps/prototype-web/client/src/components/presentation/DisplayValue.tsx",
+      'import { MoneyValue } from "@/components/presentation/DisplayValueInner";\nexport const V = 1;\n',
+    );
+    write(root, "apps/prototype-web/client/src/components/presentation/DisplayValueInner.ts", "export const MoneyValue = 1;\n");
+    return root;
+  }
+
+  it("a component -> page VALUE import is rejected", () => {
+    const root = treeWith('import { Finance } from "@/pages/Finance";\nexport const S = Finance;\n');
+    const result = checkModuleBoundaries(root);
+    expect(result.ok).toBe(false);
+    expect(result.violations.some(v => v.rule === "R7-component-to-page" && v.key.includes("pages/Finance.tsx"))).toBe(true);
+  });
+
+  it("a component -> page TYPE import is rejected (the exact former Finance-cycle form, STR-204c)", () => {
+    const root = treeWith('import type { FinanceState } from "@/pages/Finance";\nexport type X = FinanceState;\n');
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.some(v => v.rule === "R7-component-to-page")).toBe(true);
+  });
+
+  it("a component -> page DYNAMIC import is rejected", () => {
+    const root = treeWith('export async function load() { return import("@/pages/Finance"); }\n');
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.some(v => v.rule === "R7-component-to-page")).toBe(true);
+  });
+
+  it("a component -> page RELATIVE import is rejected after resolution", () => {
+    const root = treeWith('import type { FinanceState } from "../../pages/Finance";\nexport type X = FinanceState;\n');
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.some(v => v.rule === "R7-component-to-page" && v.key.includes("pages/Finance.tsx"))).toBe(true);
+  });
+
+  it("a component -> page import-type position and re-export forms are rejected", () => {
+    const root = treeWith('export type { Something } from "@/pages/Finance";\n');
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.some(v => v.rule === "R7-component-to-page")).toBe(true);
+    const root2 = treeWith('export type P = import("@/pages/Finance").PageProps;\n');
+    const result2 = checkModuleBoundaries(root2);
+    expect(result2.violations.some(v => v.rule === "R7-component-to-page")).toBe(true);
+  });
+
+  it("the LEGAL page -> component direction passes, and unrelated legal UI imports are unaffected", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/pages/Finance.tsx", 'import { Section } from "@/components/finance/Section";\nexport function Finance() { return Section; }\n');
+    write(root, "apps/prototype-web/client/src/components/finance/Section.tsx", "export const Section = 1;\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/components/finance/Helper.ts",
+      'import { formatMoney } from "@/presentation/formatters";\nexport const f = formatMoney;\n',
+    );
+    write(root, "apps/prototype-web/client/src/presentation/formatters.ts", "export const formatMoney = 1;\n");
+    const result = checkModuleBoundaries(root);
+    expect(result.ok).toBe(true);
+    expect(result.stats.componentToPage).toBe(0);
+  });
+
+  it("the baseline is an explicit owner-reviewed list, empty at establishment", () => {
+    expect(COMPONENT_TO_PAGE_BASELINE).toEqual([]);
+  });
+
+  it("the live repository has ZERO component->page violations (R7 outcome held)", () => {
+    const result = checkModuleBoundaries(REPO_ROOT);
+    expect(result.ok).toBe(true);
+    expect(result.stats.componentToPage).toBe(0);
   });
 });
 
