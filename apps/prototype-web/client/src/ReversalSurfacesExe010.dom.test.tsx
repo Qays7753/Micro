@@ -15,7 +15,7 @@ import { CollectionService } from "@/application/collections/collectionService";
 import { SaleCollectionReversalService } from "@/application/collections/saleCollectionReversalService";
 import { CatalogService } from "@/application/catalog/catalogService";
 import { FormDraftService } from "@/application/drafts/formDraftService";
-import { RetainedDepositService } from "@/application/finance/retainedDepositService";
+import { RetainedDepositService } from "@/application/financial-records/retainedDepositService";
 import { LoanService } from "@/application/loans/loanService";
 import { AssetService } from "@/application/assets/assetService";
 import { AgreementService } from "@/application/agreements/agreementService";

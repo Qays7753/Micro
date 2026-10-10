@@ -26,6 +26,18 @@ import {
   localDateInAmman,
 } from "@/presentation/formatters";
 import type { SupplierPurchase, SupplierPurchasePayment } from "@micro-domain/supplier-purchase/index.js";
+/* R7/R6-F17-P04 (2026-10-10): قرار المحرر النقي (قاعدة مصدر الصرف FIN-003/
+ * بوابات التحقق/خريطة السجل/فحص المادة المتتبَّعة EXE-011) من بيته التطبيقي. */
+import {
+  UNSET_PAYMENT_SOURCE,
+  isLinkedMaterialTracked,
+  paymentWalletPayload,
+  resolveDefaultPaymentSource,
+  supplierPurchaseToFormValues,
+  validatePaymentSubmission,
+  validatePurchaseEditSubmission,
+  validatePurchaseSubmission,
+} from "@/application/suppliers/supplierPurchaseEditorModel";
 import type { Material } from "@micro-domain/inventory-material/index.js";
 import type { PurchaseReceiptStatus } from "@/application/inventory";
 
@@ -37,7 +49,6 @@ type EditorMode = "new" | "payment" | "edit";
 /* FIN-003 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): مصدر دفعة المورد — القيمة
  * الفارغة = الكاش غير الموزع (خيار صريح)، والقيمة الحرجة تعني «لم يُختر
  * بعد» في حالة المحافظ المتعددة حيث الاختيار إلزامي. */
-const UNSET_PAYMENT_SOURCE = "__unset__";
 
 export default function SupplierPurchaseEditor() {
   const { id } = useParams<{ id?: string }>();
@@ -116,9 +127,8 @@ export default function SupplierPurchaseEditor() {
    * (محفظة أو الكاش غير الموزع) — لا اختيار صامت نيابة عن المالك. */
   useEffect(() => {
     if (paymentSourceChosenRef.current) return;
-    if (walletOptions.length === 1) setPaymentWalletId(walletOptions[0]!.id);
-    else if (walletOptions.length === 0) setPaymentWalletId("");
-    else setPaymentWalletId(UNSET_PAYMENT_SOURCE);
+    /* R7/P04: قاعدة مصدر الصرف FIN-003 عند صاحبها التطبيقي. */
+    setPaymentWalletId(resolveDefaultPaymentSource(walletOptions));
   }, [walletOptions]);
 
   useEffect(() => {
@@ -128,17 +138,16 @@ export default function SupplierPurchaseEditor() {
         const found = result.value.find(item => item.id === id) ?? null;
         setPurchase(found);
         if (found) {
-          /* وضع التعديل يبدأ معبّأً بقيم الشراء الحالية — البديل هو ما يُصحّح. */
-          setSupplierName(found.supplierName);
-          setNote(found.note);
-          setPurchasedOn(found.purchasedOn);
-          setDueOn(found.dueOn ?? "");
-          setTotalMinor(found.totalMinor);
-          const initial = found.payments.find(payment => payment.id === `${found.id}:initial`);
-          setInitialPaidMinor(initial?.amountMinor ?? 0);
-          /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة من السجل. */
-          setMaterialId(found.materialId ?? "");
-          setExpectedQuantityMilli(found.expectedQuantityMilli ?? 0);
+          /* R7/P04: خريطة السجل المحمّل عند صاحبها التطبيقي. */
+          const values = supplierPurchaseToFormValues(found);
+          setSupplierName(values.supplierName);
+          setNote(values.note);
+          setPurchasedOn(values.purchasedOn);
+          setDueOn(values.dueOn);
+          setTotalMinor(values.totalMinor);
+          setInitialPaidMinor(values.initialPaidMinor);
+          setMaterialId(values.materialId);
+          setExpectedQuantityMilli(values.expectedQuantityMilli);
         }
       }
       setLoading(false);
@@ -275,11 +284,19 @@ export default function SupplierPurchaseEditor() {
   }
 
   async function savePurchase(): Promise<boolean> {
-    if (!validMoney || totalMinor <= 0 || initialPaidMinor < 0) {
+    /* R7/P04: بوابة التحقق كودًا عند صاحبها التطبيقي — النص هنا. */
+    const problem = validatePurchaseSubmission({
+      validMoney,
+      totalMinor,
+      initialPaidMinor,
+      walletCount: walletOptions.length,
+      paymentWalletId,
+    });
+    if (problem === "total_invalid") {
       setFeedback({ tone: "error", text: "أدخل إجماليًا صالحًا بالأرقام 0–9.", source: "purchase" });
       return false;
     }
-    if (initialPaidMinor > totalMinor) {
+    if (problem === "initial_exceeds_total") {
       setFeedback({
         tone: "error",
         text: "لا يمكن أن يتجاوز المدفوع الآن إجمالي الشراء.",
@@ -287,8 +304,7 @@ export default function SupplierPurchaseEditor() {
       });
       return false;
     }
-    /* FIN-003: مصدر الدفعة الأولية — إلزامي صريح عند تعدد المحافظ. */
-    if (initialPaidMinor > 0 && walletOptions.length > 1 && paymentWalletId === UNSET_PAYMENT_SOURCE) {
+    if (problem === "payment_source_required") {
       setFeedback({
         tone: "error",
         text: "اختر مصدر الصرف لهذه الدفعة: محفظة أو الكاش غير الموزع.",
@@ -309,11 +325,8 @@ export default function SupplierPurchaseEditor() {
       /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة — اختياري. */
       materialId: materialId || null,
       expectedQuantityMilli: expectedQuantityMilli > 0 ? expectedQuantityMilli : null,
-      /* FIN-003: مصدر الدفعة الأولية كما اختاره المالك. */
-      initialPaymentWalletId:
-        initialPaidMinor > 0 && paymentWalletId && paymentWalletId !== UNSET_PAYMENT_SOURCE
-          ? paymentWalletId
-          : null,
+      /* FIN-003: مصدر الدفعة الأولية كما اختاره المالك (R7/P04: عند صاحبها). */
+      initialPaymentWalletId: initialPaidMinor > 0 ? paymentWalletPayload(paymentWalletId) : null,
     });
     setSaving(false);
     if (!result.ok) {
@@ -342,11 +355,7 @@ export default function SupplierPurchaseEditor() {
      * استمرارًا واضحًا إلى الاستلام — الشراء نفسه لا يضيف مخزونًا، والجسر
      * هو الرحلة الصريحة. المادة غير المتتبَّعة تبقى على مسارها المعلن
      * (تفعيل المتابعة أولًا) فلا نعرض زر استلام مضللًا. */
-    const linkedMaterialTracked =
-      materialId &&
-      (materialOptions.find(material => material.id === materialId)?.tracking?.status ?? "untracked") !==
-        "untracked";
-    if (!result.reused && result.value.materialId && linkedMaterialTracked) {
+    if (!result.reused && result.value.materialId && isLinkedMaterialTracked(materialOptions, materialId)) {
       setReceiptContinuation({ purchaseId: result.value.id });
       return true;
     }
@@ -355,12 +364,18 @@ export default function SupplierPurchaseEditor() {
     return true;
   }
   async function savePayment(): Promise<boolean> {
-    if (!purchase || !validMoney || paymentMinor <= 0) {
+    /* R7/P04: بوابة الدفعة كودًا عند صاحبها التطبيقي — النص هنا. */
+    const problem = validatePaymentSubmission({
+      validMoney,
+      paymentMinor,
+      walletCount: walletOptions.length,
+      paymentWalletId,
+    });
+    if (!purchase || problem === "payment_invalid") {
       setFeedback({ tone: "error", text: "أدخل دفعة صالحة بالأرقام 0–9.", source: "payment" });
       return false;
     }
-    /* FIN-003: الاختيار إلزامي عند تعدد المحافظ — محفظة أو غير الموزع صراحةً. */
-    if (walletOptions.length > 1 && paymentWalletId === UNSET_PAYMENT_SOURCE) {
+    if (problem === "payment_source_required") {
       setFeedback({
         tone: "error",
         text: "اختر مصدر الصرف لهذه الدفعة: محفظة أو الكاش غير الموزع.",
@@ -376,8 +391,8 @@ export default function SupplierPurchaseEditor() {
       occurredOn: purchasedOn,
       note: note || "دفعة مورد",
       idempotencyKey: idempotencyKey.current,
-      /* FIN-003: مصدر الدفعة كما اختاره المالك — يُتحقق ويُخصم مرة واحدة. */
-      walletId: paymentWalletId && paymentWalletId !== UNSET_PAYMENT_SOURCE ? paymentWalletId : null,
+      /* FIN-003: مصدر الدفعة كما اختاره المالك — يُتحقق ويُخصم مرة واحدة (R7/P04). */
+      walletId: paymentWalletPayload(paymentWalletId),
     });
     setSaving(false);
     if (!result.ok) {
@@ -407,7 +422,11 @@ export default function SupplierPurchaseEditor() {
 
   /* المجموعة ٢ (§10.4): التعديل الموثق — مراجعة + سبب + حفظ يمر بالخدمة. */
   async function saveEdit(): Promise<boolean> {
-    if (!purchase || !validMoney || totalMinor <= 0 || initialPaidMinor < 0 || !quantityValid) {
+    /* R7/P04: بوابة التعديل كودًا عند صاحبها التطبيقي. */
+    if (
+      !purchase ||
+      validatePurchaseEditSubmission({ validMoney, totalMinor, initialPaidMinor, quantityValid }) !== null
+    ) {
       setFeedback({ tone: "error", text: "أدخل إجماليًا صالحًا بالأرقام 0–9.", source: "edit" });
       return false;
     }

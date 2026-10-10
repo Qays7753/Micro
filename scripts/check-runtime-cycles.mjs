@@ -7,8 +7,9 @@
  * المبدأ: الدورة «النوعية فقط» تُمحى عند التجميع فلا وجود لها في زمن التشغيل.
  * (قياس المسح المعماري 2026-10-02 — STR-204: ثلاث SCCs نوعية مسجلة اليوم:
  * 1) types.ts ↔ supplierScheduleCommitGuard — الاتجاهان `import type`، مصنّفة Preserve؛
- * 2) g5Service ↔ projectFinancialService (نوعية فقط)؛
- * 3) FinancePeriodResultSection ↔ pages/Finance (نوعية فقط، جذر مكوّن داخل صفحة).
+ * 2) g5Service ↔ projectFinancialService (نوعية فقط) — أُغلقت (Wave E/STR-620)؛
+ * 3) FinancePeriodResultSection ↔ pages/Finance (نوعية فقط، جذر مكوّن داخل صفحة) —
+ *    فُكّت (R7/P02، 2026-10-10): الحالة عند البيت التطبيقي financeState.ts.
  * هذا الفحص يرصد الدورة *القابلة للتنفيذ* فقط: استيراد قيم (افتراضي/مسماة/تأثير جانبي/ديناميكي)
  * أو إعادة تصدير قيم. الاستيراد `import type` واستيراد/إعادة تصدير تكون كل
  * عناصرها `type` تُتجاهل عمدًا — بمستوى AST لا بتخمين نصي.

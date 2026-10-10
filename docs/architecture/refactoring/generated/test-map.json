@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "fb11c6c71be7124c3bf4ac62704d5186eede43d6",
+  "head": "4d60d1bcc42fd7ccfff76c819283be15c920a6ef",
   "pages": {
     "total": 60,
     "map": {
@@ -366,7 +366,8 @@
       "pages/Schedule.tsx": {
         "kind": "direct",
         "evidence": [
-          "G004CapabilityGuard.dom.test.tsx"
+          "G004CapabilityGuard.dom.test.tsx",
+          "ScheduleJourneys.dom.test.tsx"
         ]
       },
       "pages/ScheduleEditor.tsx": {
@@ -457,6 +458,7 @@
           "apps/prototype-web/client/src/application/finance/periodResultCanonical.test.ts",
           "apps/prototype-web/client/src/application/finance/statementMarkdownService.test.ts",
           "apps/prototype-web/client/src/application/finance/statementService.test.ts",
+          "apps/prototype-web/client/src/application/finance/statementViewModel.test.ts",
           "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.shortCashHorizon.test.ts",
           "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.test.ts",
           "tests/domain/financial-analysis.test.ts"
@@ -511,7 +513,8 @@
         "curated": [
           "apps/prototype-web/client/src/application/scheduling/capacityDecisionService.test.ts",
           "apps/prototype-web/client/src/application/scheduling/capacityDecisionViewModel.test.ts",
-          "apps/prototype-web/client/src/application/scheduling/scheduleService.test.ts"
+          "apps/prototype-web/client/src/application/scheduling/scheduleService.test.ts",
+          "apps/prototype-web/client/src/application/scheduling/scheduleViewModel.test.ts"
         ]
       },
       "08-expense-classification-prototype-contract.md": {
@@ -541,6 +544,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/inventory/inventoryMaterialService.test.ts",
+          "apps/prototype-web/client/src/application/inventory/inventoryMaterialsViewModel.test.ts",
           "apps/prototype-web/client/src/storage/local/capabilities/inventoryMaterialCapability.contract.test.ts",
           "tests/domain/inventory-material.test.ts",
           "tests/domain/waste-context.characterization.test.ts"
@@ -598,6 +602,7 @@
       "18-derived-monthly-order-schedule-g6-a-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/ScheduleJourneys.dom.test.tsx",
           "apps/prototype-web/client/src/application/supplierScheduleConcurrency.test.ts",
           "apps/prototype-web/client/src/application/supplierScheduleStaleResults.test.ts",
           "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.derivationCoupling.test.ts",
@@ -612,6 +617,7 @@
       "19-bounded-local-schedule-recurrence-g6-b-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/ScheduleJourneys.dom.test.tsx",
           "apps/prototype-web/client/src/application/supplierScheduleConcurrency.test.ts",
           "apps/prototype-web/client/src/application/supplierScheduleStaleResults.test.ts",
           "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.derivationCoupling.test.ts",
@@ -629,6 +635,7 @@
           "apps/prototype-web/client/src/application/agreements/agreementPrice.test.ts",
           "apps/prototype-web/client/src/application/agreements/agreementService.test.ts",
           "apps/prototype-web/client/src/application/agreements/followUpDate.test.ts",
+          "apps/prototype-web/client/src/application/agreements/orderDetailViewModel.test.ts",
           "apps/prototype-web/client/src/presentation/orderAgreementPresentation.test.ts"
         ]
       },
@@ -702,6 +709,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/inventory/inventoryMaterialService.test.ts",
+          "apps/prototype-web/client/src/application/inventory/inventoryMaterialsViewModel.test.ts",
           "apps/prototype-web/client/src/storage/local/capabilities/inventoryMaterialCapability.contract.test.ts",
           "tests/domain/inventory-material.test.ts"
         ]

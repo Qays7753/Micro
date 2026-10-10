@@ -50,6 +50,15 @@ import {
 import type { DeliveryResponsibility } from "@micro-domain/craft-order/index.js";
 import { formatLocalDate, formatLocalDateTime, formatMoneyMinor } from "@/presentation/formatters";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
+/* R7/R6-F17-P01 (2026-10-10): سطح استعلام تفصيل الطلب وقرارات أقسامه —
+ * من بيته التطبيقي في بيت الاتفاقيات (قارئ الطلب). */
+import {
+  deriveOrderSectionDecisions,
+  readAvailableWalletOptions,
+  readOrderDetail,
+  readPartyNameSuggestions,
+  readSourceEstimate,
+} from "@/application/agreements/orderDetailViewModel";
 
 import { Button } from "@/components/primitives";
 /* §10.2: الحقيقة في الرقم والتسمية — النتيجة تسمية حالتها، بلا جملة تشرح نفسها. */
@@ -65,11 +74,10 @@ type OrderDetailState =
   | { phase: "error" }
   | { phase: "not_found" }
   | { phase: "ready"; stored: StoredCraftOrder };
+/* AV-07 (قابلية الإلغاء) انتقلت مع قرارات الأقسام إلى البيت التطبيقي —
+ * R7/R6-F17-P01، 2026-10-10. قائمة ما قبل التسليم تبقى هنا: بوابات عرض
+ * لوحات الشروط (واجهة) لا قرارات كتابة. */
 const preDeliveryStatuses = ["provisional_agreement", "confirmed", "in_progress", "ready"];
-/* Conflict F (AV-07): الإلغاء متاح حيث يُتِمّ بأمان — يشمل «يحتاج مراجعة» بعد عكس
- * التسليم (النطاق يسمح والقفل الموثق يحرس المسلّم غير المعكوس برسالة صادقة). */
-const cancellableStatuses = [...preDeliveryStatuses, "needs_review", "postponed"];
-const canCancelOrder = (order: { status: string }) => cancellableStatuses.includes(order.status);
 /* المجموعة ١ (Scope E): القدرات الحقيقية تُكشف في سياقها — الوقت والمادة الفعليان
  * يصعدان من «تفاصيل إضافية» إلى سطح الطلب عندما يصل التنفيذ؛ ما قبله يبقى مطويًا. */
 const executionStatuses = ["in_progress", "ready"];
@@ -225,28 +233,23 @@ export default function OrderDetail() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([agreements.get(params.id), inventory.readOrderActualMaterialComparison(params.id)])
-      .then(([orderResult, materialResult]) => {
-        if (!active) return;
-        /* R1: فصل صادق — فشل القراءة خطأ (إعادة محاولة)، والسجل الغائب
-         * بعد قراءة ناجحة هو «غير موجود» (عودة)؛ لا يُخلط الاثنان أبدًا. */
-        if (!orderResult.ok) {
-          setState({ phase: "error" });
-          return;
-        }
-        if (!orderResult.stored) {
-          setState({ phase: "not_found" });
-          return;
-        }
-        setStored(orderResult.stored);
-        setState({ phase: "ready", stored: orderResult.stored });
-        setMaterialState(
-          materialResult.ok ? { phase: "ready", comparison: materialResult.value } : { phase: "error" },
-        );
-      })
-      .catch(() => {
-        if (active) setState({ phase: "error" });
-      });
+    /* R1: فصل صادق — فشل القراءة خطأ (إعادة محاولة)، والسجل الغائب
+     * بعد قراءة ناجحة هو «غير موجود» (عودة)؛ لا يُخلط الاثنان أبدًا.
+     * R7/P01: القراءة الرئيسية عند صاحبها التطبيقي. */
+    void readOrderDetail({ agreements, inventory }, params.id).then(load => {
+      if (!active) return;
+      if (load.phase === "error") {
+        setState({ phase: "error" });
+        return;
+      }
+      if (load.phase === "not_found") {
+        setState({ phase: "not_found" });
+        return;
+      }
+      setStored(load.stored);
+      setState({ phase: "ready", stored: load.stored });
+      setMaterialState(load.material);
+    });
     return () => {
       active = false;
     };
@@ -256,15 +259,9 @@ export default function OrderDetail() {
    * العرض وصلة قراءة لا تغيّر شيئًا، والتقدير المحذوف يُغيب بصدق لا بخطأ. */
   useEffect(() => {
     let active = true;
-    void (async () => {
-      const draftsResult = await drafts.list();
-      if (!active || !draftsResult.ok) return;
-      const draft = draftsResult.value.find(candidate => candidate.linkedOrderId === params.id) ?? null;
-      if (!draft?.sourceEstimateId) return;
-      const estimateResult = await costEstimates.get(draft.sourceEstimateId);
-      if (!active || !estimateResult.ok || !estimateResult.value) return;
-      setSourceEstimate(estimateResult.value);
-    })();
+    void readSourceEstimate({ drafts, costEstimates }, params.id).then(estimate => {
+      if (active && estimate !== null) setSourceEstimate(estimate);
+    });
     return () => {
       active = false;
     };
@@ -286,10 +283,9 @@ export default function OrderDetail() {
   useEffect(() => {
     if (!depositPanelOpen) return;
     let active = true;
-    void (async () => {
-      const overview = await cashContinuity.overview();
-      if (active && overview.ok) setWalletOptions(overview.value.wallets);
-    })();
+    void readAvailableWalletOptions({ cashContinuity }).then(wallets => {
+      if (active && wallets !== null) setWalletOptions(wallets);
+    });
     return () => {
       active = false;
     };
@@ -299,11 +295,9 @@ export default function OrderDetail() {
   useEffect(() => {
     if (!stored || stored.order.customerName.trim()) return;
     let active = true;
-    void (async () => {
-      const ledger = await partyLedger.read();
-      if (active && ledger.ok)
-        setPartySuggestions(ledger.value.parties.map(party => party.name).slice(0, 12));
-    })();
+    void readPartyNameSuggestions({ partyLedger }).then(names => {
+      if (active && names !== null) setPartySuggestions(names);
+    });
     return () => {
       active = false;
     };
@@ -360,29 +354,19 @@ export default function OrderDetail() {
   });
   const label = agreement.label;
   const result = resultLabel[order.resultStatus] ?? resultLabel.review_required;
-  /* ORD-002: لحظة التسليم الأصلية من حدث التسليم نفسه — لا وقت فتح الصفحة. */
-  const deliveredAtIso =
-    [...order.events].reverse().find(event => event.toStatus === "delivered")?.createdAt ?? null;
-  /* Z2.2 (§3.3): لحظة التسليم القائمة — تُذكر ما دام التسليم غير معكوس؛ بعد
-   * التراجع الموثق لم يعد للطلب تسليم قائم فيعود الموعد المستحق مؤهلًا. */
-  const standingDeliveryIso = deliveredAtIso && !hasDeliveryReversal(order) ? deliveredAtIso : null;
+  /* R7/P01: قرارات الأقسام النقية (ORD-002/Z2.2/D-031/S3-12/AV-07) عند
+   * صاحبها التطبيقي — النصوص تُبنى هنا فوق الأعلام. */
+  const sections = deriveOrderSectionDecisions(stored);
+  const { deliveredAtIso, standingDeliveryIso, lockedInDeliveredReview } = sections;
   /* Z2.2: فعل الدومين هو الفعل التالي المعروض — متسقًا مع الفعل السياقي
    * الظاهر على الشاشة نفسها؛ خريطة العرض احتياط حين يغيب نص الدومين. */
   const decisionNextAction = order.nextAction?.trim() || agreement.nextAction;
-  /* التحصين الكامل (D-031، المجموعة ٣): القفل الحقيقي — سجل مسلّم داخل «يحتاج
-   * مراجعة» بلا تراجع موثق عن التسليم؛ مسندا النطاق نفسه (STR-008، المجموعة ٩). */
-  const lockedInDeliveredReview =
-    order.status === "needs_review" && hasDeliveredEvent(order) && !hasDeliveryReversal(order);
   /* المجموعة ٦ (البند ٤ — S3-12): ملخص الإفصاح يسمي الأفعال المتاحة فعلًا حسب
    * حالة الطلب — قابل للاكتشاف بلا فتح، وبلا ذكر فعل لا ينطبق. */
   const correctionsSummary = [
-    ...(["draft", "cancelled", "needs_review"].includes(order.status) ? [] : ["تعديل السعر"]),
-    ...(order.status !== "cancelled" &&
-    !lockedInDeliveredReview &&
-    order.events.some(event => event.type === "collection_recorded")
-      ? ["تراجع عن قبضة"]
-      : []),
-    ...(canCancelOrder(order) ? ["إلغاء الطلب"] : []),
+    ...(sections.canEditPrice ? ["تعديل السعر"] : []),
+    ...(sections.canReverseCollection ? ["تراجع عن قبضة"] : []),
+    ...(sections.canCancel ? ["إلغاء الطلب"] : []),
   ].join(" · ");
 
   /* إصلاح المتابعة (ORD-003): فتح لوحة الشروط يبدأ من القيم المسجلة نفسها
@@ -1077,8 +1061,8 @@ export default function OrderDetail() {
             {/* القرار ١٩ + Conflict F (AV-07): الإلغاء من أي حالة قبل التسليم ومن
                 «يحتاج مراجعة»/«مؤجل» عبر cancelOrder وحدها (عقد ٠٢) — مع معاينة
                 أثر إلزامية قبل القرار؛ وإن تعذّر الإكمال الآمن يُقفل برسالة صادقة
-                من النطاق، لا إلغاء جزئي صامت. */}
-            {canCancelOrder(order) ? (
+                من النطاق، لا إلغاء جزئي صامت. (R7/P01: العلم من قرارات الأقسام.) */}
+            {sections.canCancel ? (
               cancelPanelOpen ? (
                 <section className="micro-cancel-panel" aria-label="تأكيد إلغاء الطلب">
                   <strong>لماذا تلغي هذا الطلب؟</strong>

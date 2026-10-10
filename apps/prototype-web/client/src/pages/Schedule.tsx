@@ -16,6 +16,13 @@ import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
+/* R7/R6-F17-P06 (2026-10-10): القراءة الثلاثية ومعامل طبقة السعة عند
+ * صاحبهما التطبيقي في بيت الجدولة. */
+import {
+  capacityLayerParam,
+  readSchedulePage,
+  type ScheduleState,
+} from "@/application/scheduling/scheduleViewModel";
 import { Button, EmptyState, StatusChip } from "@/components/primitives";
 import { withReturnTo } from "@/app/navigationContract";
 import type { MonthOverview, ScheduleDay, ScheduleOverview, ScheduledOrder } from "@/application/scheduling";
@@ -33,15 +40,7 @@ import {
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 import { todayInAmman } from "@/application/time";
 
-type ScheduleState =
-  | { phase: "loading" }
-  | { phase: "error"; message: string }
-  | {
-      phase: "ready";
-      overview: ScheduleOverview;
-      month: MonthOverview;
-      recurrences: readonly RecurrenceView[];
-    };
+/* R7/P06: حالة الصفحة انتقلت مع قراءتها إلى البيت التطبيقي. */
 const weekdayLabels = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 const dateLabel = (date: string) => formatLocalDate(date) ?? "غير متاح";
 const monthLabel = (month: string) => formatMonthLabel(month);
@@ -89,45 +88,22 @@ export default function Schedule() {
   const [savingCapacity, setSavingCapacity] = useState(false);
   /* المجموعة ١ (Scope A/E): وصلة عميقة دفاعية — ?focus=capacity يفتح طبقة «التكرار
    * والسعة» حيث يُقرأ الضغط؛ القيمة المجهولة تُهمل بلا أثر. */
-  const [capacityLayerOpen, setCapacityLayerOpen] = useState(() => {
-    try {
-      /* S1-09: focus=recurrence يفتح نفس طبقة «التكرار والسعة» (معجم عقد ٢٦ §3.1). */
-      return ["capacity", "recurrence"].includes(new URLSearchParams(search ?? "").get("focus") ?? "");
-    } catch {
-      return false;
-    }
-  });
+  /* S1-09: focus=recurrence يفتح نفس طبقة «التكرار والسعة» (معجم عقد ٢٦ §3.1) —
+   * التحليل عند صاحبه التطبيقي (R7/P06). */
+  const [capacityLayerOpen, setCapacityLayerOpen] = useState(() => capacityLayerParam(search));
 
   useEffect(() => {
     let active = true;
     /* S5-08 (المجموعة ٦ — البند ٦): بلا وميض تحميل عند تحديث البيانات —
      * القراءة السابقة تبقى معروضة حتى تصل الجديدة. */
     setState(current => (current.phase === "ready" ? current : { phase: "loading" }));
-    Promise.all([schedules.overview(), schedules.monthOverview(selectedMonth), recurrences.list()])
-      .then(([overviewResult, monthResult, recurrenceResult]) => {
-        if (!active) return;
-        if (!overviewResult.ok || !monthResult.ok || !recurrenceResult.ok) {
-          const message = !overviewResult.ok
-            ? overviewResult.message
-            : !monthResult.ok
-              ? monthResult.message
-              : !recurrenceResult.ok
-                ? recurrenceResult.message
-                : "تعذر قراءة جدول المواعيد المحلي.";
-          setState({ phase: "error", message });
-          return;
-        }
-        setState({
-          phase: "ready",
-          overview: overviewResult.value,
-          month: monthResult.value,
-          recurrences: recurrenceResult.value,
-        });
-        setCapacityChoice(overviewResult.value.dailyCapacityMinutes?.toString() ?? "");
-      })
-      .catch(() => {
-        if (active) setState({ phase: "error", message: "تعذر قراءة جدول المواعيد المحلي." });
-      });
+    /* R7/P06: القراءة الثلاثية عند صاحبها التطبيقي — نفس الترتيب وأسبقية
+     * الرسائل ونص الاحتياط. */
+    readSchedulePage({ schedules, recurrences }, selectedMonth).then(next => {
+      if (!active) return;
+      setState(next);
+      if (next.phase === "ready") setCapacityChoice(next.overview.dailyCapacityMinutes?.toString() ?? "");
+    });
     return () => {
       active = false;
     };

@@ -7,7 +7,7 @@
  * جديد في الواجهة يفشل بالاسم، فلا تنمو العائلة بصمت بينما ينتظر إصلاحها
  * موجة UI مستقلة. والجزء الثاني يثبت أن كل قارئ كنوني له تعريف إنتاجي واحد —
  * لا نسخة منافسة للمعادلة (بند 2 من الميثاق). */
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join, relative, sep } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -84,6 +84,41 @@ describe("W5-A — تجميد سطح حساب المال في الواجهة (ع
     const observedTotal = Object.values(observed).reduce((a, b) => a + b, 0);
     expect(observedTotal).toBe(frozenTotal);
     expect(observed).toEqual(FROZEN_SURFACE);
+  });
+});
+
+/* R7 (R6-F17 — تعديل المراجعة العدائية رقم 4، 2026-10-10): وحدات نموذج العرض
+ * التطبيقية (view-model/query surfaces المستخرجة من الصفحات في R7) لا تملك
+ * حساب المال إطلاقًا — عزل قراءات وتصنيف كتل فقط. هذا القسم يثبّت كل وحدة
+ * عند صفر أسطر حساب مالي (بنمط القسم الأول نفسه) فلا تتحول أي منها صامتةً
+ * إلى مستنقع مرايا جديد خارج أسرة F-049 المجمدة داخل الصفحات. تطبيق القائمة
+ * = تعديل مقصود في نفس الـPR الذي يضيف وحدة عرض جديدة. */
+const VIEW_MODEL_MODULES: readonly string[] = [
+  "application/finance/financeState.ts",
+  "application/direct-sales/directSaleEditorModel.ts",
+  "application/finance/financialEventEditorModel.ts",
+  "application/agreements/orderDetailViewModel.ts",
+  "application/suppliers/supplierPurchaseEditorModel.ts",
+  "application/inventory/inventoryMovementEditorModel.ts",
+  "application/inventory/inventoryMaterialsViewModel.ts",
+  "application/owner-money/ownerEntitlementViewModel.ts",
+  "application/scheduling/scheduleViewModel.ts",
+  "application/finance/statementViewModel.ts",
+];
+
+describe("R7 — وحدات نموذج العرض التطبيقية بلا حساب مال (صفر أسطر حساب)", () => {
+  it("every registered view-model module has zero money-computation lines", () => {
+    for (const rel of VIEW_MODEL_MODULES) {
+      const file = join(CLIENT_SRC, rel);
+      const lines = moneyComputeLines(file);
+      expect(lines, `${rel}: ${lines.join(" | ")}`).toEqual([]);
+    }
+  });
+
+  it("view-model modules exist on disk (stale pin fails loudly)", () => {
+    for (const rel of VIEW_MODEL_MODULES) {
+      expect(existsSync(join(CLIENT_SRC, rel)), rel).toBe(true);
+    }
   });
 });
 

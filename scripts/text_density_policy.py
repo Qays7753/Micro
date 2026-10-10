@@ -127,6 +127,10 @@ CAPS: dict[str, int] = {
     # Finance 257 → 258 (2026-09-16, financial-trust package FIN-001, owner-approved):
     # one new at-rest truth label «غير مسجل» — metrics without recorded evidence
     # must not render as a confirmed 0.00 anywhere on the finance surface.
+    # Finance 258 -> 259 (2026-10-10, R7/R6-F17-P02+P10, structural wave — module-path
+    # strings changed with the application-owned import migration; no copy change:
+    # the +1 is a module specifier, not user-visible text; cap unchanged 332):
+    #   measured 259 after the R7-1..R7-5 import migrations.
     # Finance 258 → 261 (2026-09-16, product-journey package NAV-002, owner-approved):
     # «النتيجة المتاحة» joins level one as a decision card linking to the period
     # view — honest unavailable state, never mixed with cash.
@@ -163,7 +167,7 @@ CAPS: dict[str, int] = {
     # labels («٧ أيام» / «٣٠ يومًا» / «٩٠ يومًا») plus one group aria-label
     # («أفق قراءة الكاش») on the existing cash-decision card. Four mandated
     # strings, no prose; the two resolver validation messages are moment-of-
-    # action `message:` literals (g5Service pattern) and count nowhere.
+    # action `message:` literals (the historical g5Service — now financialAnalysisService — pattern) and count nowhere.
     # Owner-vetoable at review, same as the 318 precedent above.
     # Finance 322 -> 330 (2026-09-23, Wave 4 WS-176 FIN-004, owner-approved
     # roadmap §4.5): the mandated advisory safe-withdrawal vocabulary on the
@@ -794,6 +798,9 @@ PAGES = [
     "Schedule",
     "ScheduleEditor",
     "OwnerWithdrawalEditor",
+    # G5DeclarationEditor 23 -> 24 (2026-10-10, R7/R7-5 — the g5Service module-path
+    # string swapped for the canonical financialAnalysisService specifier; no copy
+    # change; cap unchanged 30).
     "G5DeclarationEditor",
     # المجموعة ١ (Scope G): ملف المالك والمشروع — شاشة جديدة مقيسة من يومها الأول.
     "Profile",

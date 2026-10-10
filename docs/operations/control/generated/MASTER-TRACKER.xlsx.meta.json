@@ -1,6 +1,6 @@
 {
   "schema": "micro-operations-control-excel-provenance-v1",
-  "source_digest": "60b73845c579b883d6598863b9e628e6a5f7c8042c7f36295b524e2fa78a73bf",
+  "source_digest": "5b08243e9e717ff42b64066782d56adc404351e65c93535f3e973c6456638b92",
   "source_files": [
     "docs/operations/control/items/ARCH-001.json",
     "docs/operations/control/items/ARCH-002.json",
@@ -151,7 +151,7 @@
   "workbook_path": "docs/operations/control/generated/MASTER-TRACKER.xlsx",
   "workbook_sha256": "b02476e416820cd17b1c7eb3898628848905ea53275bf819337845a722fed555",
   "generated_by": "reviewed Excel view update + scripts/operations-control/generate_tracker.py --refresh-excel-meta",
-  "generated_at": "2026-10-09",
+  "generated_at": "2026-10-10",
   "read_only_view": true,
   "json_is_source_of_truth": true
 }

@@ -5,6 +5,12 @@ import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+/* R7/R6-F17-P05 (2026-10-10): اشتقاقات السجلات النشطة وقراءة الدفتر الموحد
+ * عند بيتهما التطبيقي — الخدمة الكنسية (PC-4) لم تُمس. */
+import {
+  deriveActiveOwnerRecords,
+  readOwnerMoneyOverviewBlock,
+} from "@/application/owner-money/ownerEntitlementViewModel";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateField } from "@/components/forms/LocalDateField";
 import { percentToBpsExact } from "@/application/input";
@@ -147,8 +153,8 @@ export default function OwnerEntitlement() {
   /* المجموعة ٦ (البند ٢): الدفتر الموحد يُقرأ مع كل تحديث بيانات. */
   useEffect(() => {
     let active = true;
-    ownerEntitlement.readOwnerMoneyOverview().then(result => {
-      if (active && result.ok) setOwnerMoney(result.value);
+    readOwnerMoneyOverviewBlock({ ownerEntitlement }).then(value => {
+      if (active && value !== null) setOwnerMoney(value);
     });
     return () => {
       active = false;
@@ -163,38 +169,25 @@ export default function OwnerEntitlement() {
     () => overview?.policies.find(policy => policy.id === successorPolicyId) ?? null,
     [overview, successorPolicyId],
   );
-  const reversedEntitlementIds = new Set(
-    (overview?.entitlements ?? [])
-      .filter(record => record.reversalOfId !== null)
-      .map(record => record.reversalOfId),
-  );
-  const reversedOpeningIds = new Set(
-    (overview?.openingBalances ?? [])
-      .filter(balance => balance.reversalOfId !== null)
-      .map(balance => balance.reversalOfId),
-  );
-  const reversedMovementIds = new Set(
-    (overview?.movements ?? [])
-      .filter(movement => movement.reversalOfId !== null)
-      .map(movement => movement.reversalOfId),
-  );
-  const activeEntitlements =
-    overview?.entitlements.filter(
-      record => record.reversalOfId === null && !reversedEntitlementIds.has(record.id),
-    ) ?? [];
-  const activeOpeningBalances =
-    overview?.openingBalances.filter(
-      balance => balance.reversalOfId === null && !reversedOpeningIds.has(balance.id),
-    ) ?? [];
-  const priorDraws =
-    overview?.movements.filter(
-      movement =>
-        movement.kind === "draw" &&
-        movement.reversalOfId === null &&
-        !reversedMovementIds.has(movement.id) &&
-        movement.reason !== "entitlement_settlement" &&
-        movement.reason !== "opening_balance_settlement",
-    ) ?? [];
+  /* R7/P05: اشتقاقات السجلات النشطة (استحقاقات/أرصدة/سحوبات سابقة) عند
+   * صاحبها التطبيقي — نفس تصفية الصفحة حرفيًا فوق القراءة الموحدة. */
+  const {
+    reversedEntitlementIds,
+    reversedOpeningIds,
+    reversedMovementIds,
+    activeEntitlements,
+    activeOpeningBalances,
+    priorDraws,
+  } = overview
+    ? deriveActiveOwnerRecords(overview)
+    : {
+        reversedEntitlementIds: new Set<string | null>(),
+        reversedOpeningIds: new Set<string | null>(),
+        reversedMovementIds: new Set<string | null>(),
+        activeEntitlements: [] as NonNullable<typeof overview>["entitlements"],
+        activeOpeningBalances: [] as NonNullable<typeof overview>["openingBalances"],
+        priorDraws: [] as NonNullable<typeof overview>["movements"],
+      };
   const reasonOptions = ownerMovementReasonsForKind(movementKind);
   const successorRequirements = successorPolicyFormRequirements(successorKind);
 

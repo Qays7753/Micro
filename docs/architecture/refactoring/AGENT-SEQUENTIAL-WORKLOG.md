@@ -1022,3 +1022,52 @@
 - **Findings answer:** no new product/tree defect was discovered beyond R6-SCAN-F-001..027. The only additional issues were W1 record-delivery blockers found in owner review (evidence replacement and stale first-commit pointer); both were fixed before merge. No unresolved R6 implementation finding remains.
 - **Boundaries:** no financial/semantic/historical/schema/export/import/rejection/security/visual-UI change; no branch deletion or unrelated cleanup.
 - **Next:** R7 is not started; prepare preflight/Repair Cards from R6-F17-P01..P11, then obtain the R7 scoped gate before any structural write.
+
+---
+## Entry 74 — R7: UI Structural Boundaries & Compatibility Shims (2026-10-10, WS-216/ARCH-007)
+
+**Executor:** Z AI (single primary executor; five read-only review gates at R7-0)
+**Branch:** `refactoring/r7-structural-ui-boundaries-20261010` from `origin/main` @ `e01d5605` (verified live: 0 open PRs, CI 37999470232 success, clean worktree, no STATE_DRIFT)
+**Write boundary:** BRANCH_AND_PR_ONLY — no direct main writes, no merges, no deletions of branches/PRs/evidence, no cleanup, preserved UI branch untouched, token never printed (secure askpass only).
+
+**Slices (strictly sequential, one writer):**
+- R7-0 `db0921d5` — preflight + 11 repair cards + live consumer inventories + 10-unit shim census + 5 review gates with 15 binding amendments; Operations Control claim (append-only proven: 26→31 WS / 52→57 item evidence entries at closure).
+- R7-1 `adad399a` — P02 FinanceState extraction (application/finance/financeState.ts; types via door type-only; readers via documented deep key) + **F-019 mixed-cycle root dissolution** (no production `@/pages/Finance` import remains; type/runtime cycle guards green; STR-204c registry row retired at closure) + P10 FinancialEventRow verbatim split (EventsLayer SPLIT_CANDIDATE→NORMAL).
+- R7-2 `c86c4f2c` — P01/P03/P07 editor/order models (codes-not-copy; decision logic verbatim; frozen mirrors/EXE-010/contract-27 untouched).
+- R7-3 `c0fe0df2` — P04/P08/P09 supplier+inventory models (FIN-003 rule, movement gate, four-way materials query).
+- R7-4 `4d60d1bc` — P05/P06/P11 owner (PC-4 untouched)/schedule (+2 new journeys)/statement (markdown injected; F-022 stays a track-T note).
+- R7-5 `bfa48d44` — **9 shims removed with zero-consumer proof** (26 consumers migrated; parity guard retired with the barrel; ratchet −9 entries; ui-import −4 frozen keys +4 documented swap keys; bundle byte-identical).
+
+**New guard capability:** moneyLayerGuard VIEW_MODEL_MODULES — every extracted view-model module pinned at zero money-compute lines (10 modules at closure).
+
+**Verification at wave head:** `pnpm check` exit 0 (full 15-command chain); root 729/729; app 333/2,449; bundle entry 629,300/154,683 vs ceilings 650,000/155,300; bundle-surfaces baseline updated 3× with dated structural-cost reasons (not a ceiling change); all 17 guards PASS; test-map regenerated each slice (CI-enforced).
+
+**Impact:** none — financial/semantic/schema (38/30)/export-import/history/rejection/security/visual-UI all untouched; DOM behavior pinned by 300+ focused journey/dom tests across the 11 packages.
+
+**Next:** single PR to main for owner review + owner-only merge; post-merge verification then R8 gate.
+
+---
+## Entry 75 — R7-CF-REPAIR: Cloudflare Pages build failure diagnosed and repaired on PR #342 (2026-10-10, WS-216/ARCH-007)
+
+**Executor:** Z AI (single primary executor; continuation after session interruption — all six R7 slices verified complete on the live branch first; nothing redone)
+
+**Observed live state at resumption:** branch head `47490e52` (= origin, worktree clean, 7 commits); PR #342 open/mergeable (99 files, +5,176/−2,090); GitHub CI run `38011723976` success on the exact head; **Cloudflare Pages check-run `114092902153` failure** on the same head. The PR body/report metadata had drifted (6 commits/95 files claimed; CI/CF URLs promised "later").
+
+**Diagnosis (classified `REPOSITORY_BUILD_FAILURE` — full chain in `R7-CLOUDFLARE-PAGES-REPAIR-2026-10-10.md`):** the CI job log proves the bundle-surfaces baseline sat at **zero headroom** on `lazyRawTotal` (1,417,088 = baseline) and `precacheBytesTotal` (2,748,821 = baseline) at the GitHub-CI environment; the baseline covered only two build environments (local Node-24 + CI Node-22 per W10) while the Pages toolchain is a documented third (ADR-012 +112–117 raw; Wave F: Pages failed the budget gate by 9 gzip bytes). The guards run inside the Pages build command, so any positive Pages-vs-CI delta fails the build. Entry budget excluded (543 bytes gzip headroom vs documented +9 Pages drift).
+
+**Repair:** +512-byte documented cross-environment tolerance per guarded total in `bundle-surfaces-baseline.json` (environment-variance headroom, not code-growth permission — code bytes byte-identical pre/post; entry ceilings 650,000/155,300 untouched; guard semantics untouched; R8 owns the proper environment-aware anchoring). Focused guard suites 24/24; local build PASS with identical code measurements.
+
+**Record corrections (A2):** dated correction block in the R7-COMPLETE report (live 7 commits/99 files +5,176/−2,090 at `47490e52`; CF failure + diagnosis pointer); state-log §160; this entry; Operations Control evidence append; PR body rewritten from live facts with the CI success URL, the CF failure + repair record, and the repair-head URLs pinned after the run completes.
+
+**Impact:** none — no production code, no financial/schema (38/30)/history/UI/provider change; no merge; no cleanup.
+
+**Next:** owner review + merge of PR #342 (owner-only); post-merge verification then R8 gate.
+
+
+## Entry 76 — 2026-10-10 — R7 pre-merge documentation reconciliation and R8 gate preparation (WS-216/ARCH-007)
+
+- **التفويض:** تجهيز R7 بالكامل للدمج والانتقال المنضبط إلى R8، من دون دمج أو بدء R8.
+- **التحقق:** PR #342 مفتوحة وقابلة للدمج على `refactoring/r7-structural-ui-boundaries-20261010` عند الرأس `6b652e853258144b145f2389d09cfa2178d45570`; CI `38031209971` وCloudflare Pages `114152425904` ناجحان؛ `main` ثابت عند `e01d560539476c1c7f712891f2355200d2d74aa6`.
+- **المصالحة:** حُدثت مؤشرات الحالة الحية في `docs/architecture/refactoring/README.md` و`REFACTORING-CONTROL.md` و`docs/operations/current-state.md`، مع إبقاء التاريخ append-only وعدم تغيير كود التطبيق.
+- **الحالة:** `R7_COMPLETE — PR_READY — MERGE_PENDING_OWNER`; بعد دمج المالك والتحقق من `main` فقط تصبح `R8_GATE_OPEN`. لم تبدأ R8.
+- **الأثر والحدود:** لا تغيير مالي أو دلالي أو تاريخي أو Schema/Export/Import أو UI بصري؛ لا حذف فروع أو PRs أو أدلة؛ لا دمج من هذه الخطوة.

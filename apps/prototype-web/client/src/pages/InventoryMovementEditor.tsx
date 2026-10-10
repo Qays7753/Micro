@@ -16,7 +16,13 @@ import { resolveInventoryMovementType, type InventoryMovementRouteType } from "@
 import { MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";
 import { todayInAmman } from "@/application/time";
-const ID_SHAPE = /^[A-Za-z0-9_-]{1,64}$/;
+/* R7/R6-F17-P08 (2026-10-10): قرار المحرر النقي (روابط الوصلة/بوابة التحقق
+ * المطابقة لنوع الحركة/سياق الهدر) من بيته التطبيقي في بيت المخزون. */
+import {
+  deriveWasteContext,
+  parseMovementLinkParams,
+  validateMovementSubmission,
+} from "@/application/inventory/inventoryMovementEditorModel";
 type MovementType = InventoryMovementRouteType;
 const unitWord = (unit: string) =>
   unit === "piece"
@@ -38,24 +44,10 @@ export default function InventoryMovementEditor() {
    * /inventory/movement/consume?order=<id>&from=/orders/<id> تُعبّئ الطلب مسبقًا.
    * المجموعة ٢ (عقد ٢٨): ?purchase=<id> جسر الاستلام من سجل الشراء،
    * و?material=<id> يمنع الافتراض الصامت لأول مادة. */
-  const query = new URLSearchParams(search ?? "");
-  const linkedOrderId = (() => {
-    const order = query.get("order");
-    return order && ID_SHAPE.test(order) ? order : null;
-  })();
-  /* المجموعة ٣ (عقد D6): وصلة استهلاك بيع مباشر — /inventory/movement/consume?sale=<id>. */
-  const linkedSaleId = (() => {
-    const sale = query.get("sale");
-    return sale && ID_SHAPE.test(sale) ? sale : null;
-  })();
-  const linkedPurchaseId = (() => {
-    const purchase = query.get("purchase");
-    return purchase && ID_SHAPE.test(purchase) ? purchase : null;
-  })();
-  const linkedMaterialId = (() => {
-    const material = query.get("material");
-    return material && ID_SHAPE.test(material) ? material : null;
-  })();
+  /* R7/P08: تحليل روابط الوصلة العميقة عند صاحبها التطبيقي — الطلب
+   * (المجموعة ١/عقد ٢٨) والبيع المباشر (المجموعة ٣/عقد D6) وجسر
+   * الاستلام والمادة الصريحة. */
+  const { linkedOrderId, linkedSaleId, linkedPurchaseId, linkedMaterialId } = parseMovementLinkParams(search);
   const { dataVersion, inventory, notifyDataChanged } = usePrototypeServices();
   const [references, setReferences] = useState<InventoryReferences | null>(null);
   const [materialId, setMaterialId] = useState("");
@@ -242,69 +234,72 @@ export default function InventoryMovementEditor() {
     quantityMilli > availableMilli;
 
   async function save(): Promise<boolean> {
-    if (
-      !safeType ||
-      !references ||
-      !materialId ||
-      !quantityValid ||
-      quantityMilli <= 0 ||
-      !note.trim() ||
-      !valueValid
-    ) {
+    /* R7/P08: البوابة كودًا عند صاحبها التطبيقي — النصوص هنا وبنفس ترتيبها. */
+    const problem = validateMovementSubmission({
+      safeType,
+      referencesLoaded: !!references,
+      materialId,
+      quantityValid,
+      quantityMilli,
+      note,
+      valueValid,
+      purchaseId,
+      costKnown,
+      valueMinor,
+      consumeTarget,
+      orderId,
+      saleId,
+      reason,
+      wasteContextKind,
+      wasteOrderId,
+      wasteCatalogItemId,
+      wasteTemplateId,
+    });
+    if (problem === "missing_fields") {
       setMessage("أدخل المادة والكمية والبيان بالأرقام 0–9 قبل الحفظ.");
       return false;
     }
-    if (safeType === "receipt" && (!purchaseId || (costKnown && valueMinor <= 0))) {
+    if (problem === "receipt_needs_purchase") {
       setMessage(costKnown ? "اختر شراء مواد وأدخل قيمة الجزء المستلم." : "اختر شراء مواد قبل الحفظ.");
       return false;
     }
-    if (safeType === "consume" && consumeTarget === "order" && !orderId) {
+    if (problem === "consume_needs_order") {
       setMessage("اختر طلبًا موجودًا لاستهلاك المادة.");
       return false;
     }
-    if (safeType === "consume" && consumeTarget === "sale" && !saleId) {
+    if (problem === "consume_needs_sale") {
       setMessage("اختر بيعًا مباشرًا موجودًا لاستهلاك المادة.");
       return false;
     }
-    if (safeType === "consume" && consumeTarget === "project" && !note.trim()) {
+    if (problem === "consume_project_needs_note") {
       setMessage("اكتب بيان الاستهلاك — استهلاك بلا طلب يحتاج بيانًا واضحًا.");
       return false;
     }
-    if ((safeType === "waste" || safeType === "adjust") && !reason.trim()) {
+    if (problem === "movement_needs_reason") {
       setMessage("أدخل سببًا واضحًا للحركة.");
       return false;
     }
-    if (safeType === "waste" && wasteContextKind === "order" && !wasteOrderId) {
+    if (problem === "waste_needs_order") {
       setMessage("اختر الطلب المرتبط بالهدر.");
       return false;
     }
-    if (safeType === "waste" && wasteContextKind === "catalog_item" && !wasteCatalogItemId) {
+    if (problem === "waste_needs_catalog_item") {
       setMessage("اختر مرجع العمل المرتبط بالهدر.");
       return false;
     }
-    if (
-      safeType === "waste" &&
-      wasteContextKind === "catalog_template" &&
-      (!wasteCatalogItemId || !wasteTemplateId)
-    ) {
+    if (problem === "waste_needs_template") {
       setMessage("اختر مرجع العمل والقالب المرتبطين بالهدر.");
       return false;
     }
     setSaving(true);
-    const wasteContext =
-      wasteContextKind === "order"
-        ? { kind: "order" as const, orderId: wasteOrderId }
-        : wasteContextKind === "catalog_item"
-          ? { kind: "catalog_item" as const, catalogItemId: wasteCatalogItemId }
-          : wasteContextKind === "catalog_template"
-            ? {
-                kind: "catalog_template" as const,
-                catalogItemId: wasteCatalogItemId,
-                templateId: wasteTemplateId,
-              }
-            : wasteContextKind === "unallocated"
-              ? { kind: "unallocated" as const, allocationNote: wasteAllocationNote.trim() || null }
-              : { kind: "general_project" as const };
+    /* R7/P08: سياق الهدر عند صاحبها التطبيقي. */
+    const wasteContext = deriveWasteContext({
+      wasteContextKind,
+      wasteOrderId,
+      wasteCatalogItemId,
+      wasteTemplateId,
+      wasteAllocationNote,
+    });
     const result =
       safeType === "receipt"
         ? await inventory.receivePurchase({

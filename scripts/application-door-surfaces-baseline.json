@@ -136,6 +136,10 @@
     "resolvePeriodPreset"
    ],
    "type": [
+    "BridgeState",
+    "CashHorizonState",
+    "FinanceBlockId",
+    "FinanceState",
     "FinancialInsights",
     "FinancialMetricEvidence",
     "IntegrityCheckReport",

@@ -17,8 +17,8 @@ import * as craftOrder from "../../src/domain/craft-order/index.js";
 import * as directSale from "../../src/domain/direct-sale/index.js";
 import * as financialEvent from "../../src/domain/financial-event/index.js";
 import * as financialAnalysis from "../../src/domain/financial-analysis/index.js";
-/* Wave 4A: برميل التوافق التاريخي g5 يجب أن يصدّر السطح نفسه تمامًا. */
-import * as g5Compat from "../../src/domain/g5/index.js";
+/* R7/R7-5 (2026-10-10): برميل التوافق التاريخي g5 أُزيل بعد ترحيل كل مستهلكيه
+ * إلى البرميل الكنوني financial-analysis — حراسة التطابق تقاعدت معه. */
 import * as inventoryMaterial from "../../src/domain/inventory-material/index.js";
 import * as ownerEntitlement from "../../src/domain/owner-entitlement/index.js";
 import * as recurringMargin from "../../src/domain/recurring-margin/index.js";
@@ -245,12 +245,6 @@ describe("قفل سطح الدومين العام (١) — المجموعة ٦ (
 });
 
 describe("قفل سطح الدومين العام (٢) — المجموعة ٦ (البند ٧)", () => {
-  it("financial-analysis (Wave 4A): برميل التوافق التاريخي g5 يصدّر السطح العام نفسه تمامًا", () => {
-    const canonical = Object.keys(financialAnalysis).sort();
-    const compat = Object.keys(g5Compat).sort();
-    expect(compat).toEqual(canonical);
-  });
-
   it("financial-analysis: دوال العقد العام حاضرة وقت التشغيل", () => {
     expect(typeof financialAnalysis.calculateBreakEven).toBe("function");
     expect(typeof financialAnalysis.calculateShortCash).toBe("function");
