@@ -42,10 +42,11 @@ main
 Last verified baseline:
 
 ```text
-PR head: 762541c39c3ef6e03983ba28d80e04923f5c4537
+PR head at prompt publication: c354c532dc0375085d75946d8d2ae465a7f8486c
+Previous implementation head: 762541c39c3ef6e03983ba28d80e04923f5c4537
 Base main: 8b3c9aeb09ca33ed66f0a929c157b668839d0463
 PR state: OPEN / MERGEABLE / CLEAN
-Checks at that baseline: CI SUCCESS; Cloudflare Pages SUCCESS
+The prompt-publication commit is documentation-only; verify all required checks live on the current final head.
 ```
 
 These values are a checkpoint only. They MUST be verified live before editing.
@@ -69,6 +70,40 @@ STATE_DRIFT — <exact difference and safe next action>
 ```
 
 Do not guess or restart.
+
+---
+
+## 1A. Context hygiene, workspace inventory, and uninterrupted execution
+
+You are expected to carry this task from the verified starting point through the final merge-ready delivery without routine questions or avoidable pauses.
+
+Before implementation, inventory the current execution context explicitly:
+
+- current conversation/task state and any previous R9 checkpoint;
+- repository files, relevant reports, evidence, scripts, and generated control views;
+- current branch, worktree, uncommitted files, active processes, and any other writer;
+- completed groups versus incomplete groups;
+- the exact first action that remains.
+
+If your execution environment has accumulated old completed tasks, stale conversational context, or irrelevant internal working material, use the environment’s **safe context compaction/reset mechanism** if available. Keep a concise checkpoint containing the repository, PR, branch, exact head SHA, completed groups, open findings, constraints, and next action, then discard only irrelevant completed context. This is context hygiene, not repository cleanup.
+
+You MUST NOT use context cleanup as a reason to delete or reset:
+
+- repository files, commits, branches, PR history, reports, evidence, or generated views;
+- uncommitted work that you did not create and verify as disposable;
+- another writer’s process, worktree, CI run, or background task;
+- any artifact needed for rollback or audit.
+
+Use one focused worktree and one writer. You may stop only an ephemeral process or task that you created, can identify as stale, and can prove is unrelated to the current PR; record that action. If an old task may conflict and cannot be safely identified, preserve it and report `STATE_DRIFT` rather than killing it.
+
+Do not ask the owner routine questions about implementation choices, file grouping, test order, or normal remediation decisions. Decide using the live contracts and the rules in this prompt, then continue automatically. Do not pause between approved groups after their acceptance gate passes. Stop and report only for:
+
+1. a genuine protected financial, historical, Schema/Export/Import, security, compatibility, rejection, or product-contract decision;
+2. missing authority or required secure permission;
+3. an unexpected branch/writer/worktree state;
+4. a required environment or check that is unavailable and cannot be honestly verified.
+
+In any of those cases, do not guess and do not make a silent choice. Produce the exact blocking status and the minimum evidence needed for resolution. Otherwise, keep working until the complete final report and merge-readiness gate are satisfied.
 
 ---
 
