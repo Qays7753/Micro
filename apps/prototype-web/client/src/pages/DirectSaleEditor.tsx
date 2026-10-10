@@ -20,26 +20,25 @@ import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentat
 import type { DirectSaleCollectionStatus, DirectSale } from "@micro-domain/direct-sale/index.js";
 import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
+/* R7/R6-F17-P07 (2026-10-10): قرار المحرر النقي (بوابة التحقق/قرار الفرق
+ * X-06/تعيين المرجع من الوصلة/خريطة السجل المحمّل) من بيته التطبيقي —
+ * استيراد عميق موثق بأساس (لا باب لبيت direct-sales بعد). */
+import {
+  directSaleToFormValues,
+  proposeProductParam,
+  resolveDifferenceOutcome,
+  validateDirectSaleSubmission,
+  type DifferenceChoice,
+} from "@/application/direct-sales/directSaleEditorModel";
 
 import { Button, FeedbackNote } from "@/components/primitives";
 import { todayInAmman } from "@/application/time";
-
-type DifferenceChoice = "price_cut" | "remaining_debt" | "needs_review";
 
 const collectionStatusLabel: Record<DirectSaleCollectionStatus, string> = {
   collected_in_full: "مقبوض كامل",
   partial_debt: "الفرق دَين على العميل",
   partial_needs_review: "الفرق يحتاج مراجعة",
 };
-
-/* المجموعة ٣ (Scope D — §10.1): معامل سياق السجل ?product=<id> — يصل من زر
- * «سجّل بيع هذا المنتج» في الكتالوج؛ يعبّئ المرجع واقتراحاته المعلنة مرة واحدة،
- * والسعر الفعلي يبقى بيد المالك (P-002). غير الصالح يُهمل بهدوء كإخوته.
- * (و٥-ب): يُقرأ من useSearch — المسار الحقيقي يصل بلا استعلام.) */
-function productParamFromSearch(search: string): string | null {
-  const value = new URLSearchParams(search).get("product");
-  return value && /^[A-Za-z0-9_-]{1,64}$/.test(value) ? value : null;
-}
 
 type SaleDone = {
   sale: DirectSale;
@@ -137,28 +136,32 @@ export default function DirectSaleEditor() {
       .then(result => {
         if (!result.ok) return;
         setReferences(result.items);
-        /* المجموعة ٣ (§10.1): الوصلة العميقة للمنتج تُطبق مرة واحدة عند الإنشاء —
-         * المرجع الموقوف لا يُعبّأ (إشعار صادق)، والمحذوف يُهمل بهدوء. */
-        const requestedProduct =
-          !editing && !appliedProductRef.current ? productParamFromSearch(search) : null;
-        if (!requestedProduct) return;
+        /* R7/P07: تعيين المرجع المقترح قرار تطبيقي — الإشعار والقيم المطبقة
+         * تُنفذ هنا (النسخة والإشعارات واجهة). */
+        const proposal = proposeProductParam(result.items, search, {
+          editing,
+          alreadyApplied: appliedProductRef.current,
+          itemName,
+          revenueMinor,
+          quantity,
+          costKnown,
+        });
+        if (proposal.kind === "none") return;
+        /* الطلب يُستهلك مرة واحدة في كل الحالات غير «none» — كما كان الأصل. */
         appliedProductRef.current = true;
-        const selected = result.items.find(item => item.id === requestedProduct) ?? null;
-        if (!selected) return;
-        if (!selected.active) {
+        if (proposal.kind === "unavailable") return;
+        if (proposal.kind === "inactive_reference") {
           setProductNotice("هذا المرجع موقوف — سُجّل البيع بلا ربط أو فعّله من منتجاتي وخدماتي.");
           return;
         }
-        setCatalogItemId(selected.id);
-        if (!itemName.trim() || result.items.some(reference => reference.name === itemName.trim()))
-          setItemName(selected.name);
-        if (selected.defaultPriceMinor != null && revenueMinor === 0 && quantity === 1)
-          setRevenueMinor(selected.defaultPriceMinor);
-        if (selected.defaultUnitCostMinor != null && quantity === 1 && !costKnown) {
+        setCatalogItemId(proposal.catalogItemId);
+        if (proposal.itemName !== null) setItemName(proposal.itemName);
+        if (proposal.revenueMinor !== null) setRevenueMinor(proposal.revenueMinor);
+        if (proposal.cost !== null) {
           setCostKnown(true);
-          setCostMinor(selected.defaultUnitCostMinor);
+          setCostMinor(proposal.cost.minor);
         }
-        setSuggestedReference(selected);
+        setSuggestedReference(result.items.find(item => item.id === proposal.suggestedReferenceId) ?? null);
         /* فحص حي (مجموعة ٣): التعبئة المقترحة «قيم محمّلة» لا كتابة مستخدم —
          * تُعاد لقطة الوسخ بعدها فلا يعترض الخروج الصامت بمستخدم لم يكتب شيئًا. */
         setLoadedToken(token => token + 1);
@@ -205,24 +208,20 @@ export default function DirectSaleEditor() {
         preserveFormRef.current = false;
         return;
       }
-      setItemName(sale.itemName);
-      setQuantity(sale.quantity);
-      setRevenueMinor(sale.revenueMinor);
-      if (sale.collectedMinor === sale.revenueMinor) {
-        setCollectedEmpty(true);
-        setCollectedMinor(sale.revenueMinor);
-      } else {
-        setCollectedEmpty(false);
-        setCollectedMinor(sale.collectedMinor);
-      }
-      setCostKnown(sale.costMinor !== null);
-      setCostMinor(sale.costMinor ?? 0);
-      setCustomerName(sale.customerName ?? "");
-      setCatalogItemId(sale.catalogItemId ?? "");
-      setOccurredOn(sale.occurredOn);
-      setNote(sale.note);
-      if (sale.collectionStatus === "partial_debt") setDifferenceChoice("remaining_debt");
-      else if (sale.collectionStatus === "partial_needs_review") setDifferenceChoice("needs_review");
+      /* R7/P07: خريطة السجل المحمّل إلى قيم النموذج عند صاحبها التطبيقي. */
+      const values = directSaleToFormValues(sale);
+      setItemName(values.itemName);
+      setQuantity(values.quantity);
+      setRevenueMinor(values.revenueMinor);
+      setCollectedEmpty(values.collectedEmpty);
+      setCollectedMinor(values.collectedMinor);
+      setCostKnown(values.costKnown);
+      setCostMinor(values.costMinor);
+      setCustomerName(values.customerName);
+      setCatalogItemId(values.catalogItemId);
+      setOccurredOn(values.occurredOn);
+      setNote(values.note);
+      setDifferenceChoice(values.differenceChoice);
       /* اللقطة الأولية تُعاد التقاطها مع القيم المحمّلة في نفس الدفعة. */
       setLoadedToken(token => token + 1);
     });
@@ -326,39 +325,38 @@ export default function DirectSaleEditor() {
       setMessage("هذا البيع ملغى ولا يمكن تعديله.");
       return false;
     }
-    if (
-      !note.trim() ||
-      !validQuantity ||
-      !Number.isInteger(quantity) ||
-      quantity < 1 ||
-      !validRevenue ||
-      revenueMinor <= 0 ||
-      !validCollected ||
-      !Number.isInteger(resolvedCollected) ||
-      resolvedCollected < 0 ||
-      (costKnown && (!validCost || costMinor < 0))
-    ) {
+    /* R7/P07: بوابة التحقق عند صاحبها التطبيقي — القرار كود والنسخة هنا. */
+    const problem = validateDirectSaleSubmission({
+      note,
+      validQuantity,
+      quantity,
+      validRevenue,
+      revenueMinor,
+      validCollected,
+      resolvedCollected,
+      costKnown,
+      validCost,
+      costMinor,
+      difference,
+      differenceChoice,
+    });
+    if (problem === "missing_required_fields") {
       setMessage("أدخل المبلغ والكمية بالأرقام 0–9 قبل الحفظ — المبلغ هو الحقل الإلزامي الوحيد.");
       return false;
     }
-    if (resolvedCollected > revenueMinor) {
+    if (problem === "collected_exceeds_price") {
       setMessage("المقبوض لا يتجاوز السعر المتفق عليه — سجّل فرقك قرارًا في التسعير لا في القبض.");
       return false;
     }
-    /* X-06: النظام ينبّه ولا يقرّر — الفرق يوقف الحفظ ويعرض الخيارات الثلاثة. */
-    if (difference > 0 && differenceChoice === null) {
+    if (problem === "difference_choice_required") {
       setMessage("at_difference_prompt");
       return false;
     }
-    const priceCutChosen = difference > 0 && differenceChoice === "price_cut";
-    const status: DirectSaleCollectionStatus =
-      difference > 0
-        ? differenceChoice === "remaining_debt"
-          ? "partial_debt"
-          : differenceChoice === "needs_review"
-            ? "partial_needs_review"
-            : "collected_in_full"
-        : "collected_in_full";
+    /* R7/P07: قرار الفرق X-06 عند صاحبه التطبيقي. */
+    const { collectionStatus: status, priceCut: priceCutChosen } = resolveDifferenceOutcome(
+      difference,
+      differenceChoice,
+    );
     /* و٦: رقم المراجعة الذي فُتح عليه السجل — يحرس من طمس تعديل أحدث من نافذة أخرى. */
     const openedRevisionCount = savedSale?.revisions?.length ?? 0;
     setMessage(null);

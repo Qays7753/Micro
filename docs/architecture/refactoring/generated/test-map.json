@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "db0921d51a1e5e0aff41200cef129a6f8374f7db",
+  "head": "adad399af56fc453f7520181d5348a6ab4f43a81",
   "pages": {
     "total": 60,
     "map": {
@@ -629,6 +629,7 @@
           "apps/prototype-web/client/src/application/agreements/agreementPrice.test.ts",
           "apps/prototype-web/client/src/application/agreements/agreementService.test.ts",
           "apps/prototype-web/client/src/application/agreements/followUpDate.test.ts",
+          "apps/prototype-web/client/src/application/agreements/orderDetailViewModel.test.ts",
           "apps/prototype-web/client/src/presentation/orderAgreementPresentation.test.ts"
         ]
       },

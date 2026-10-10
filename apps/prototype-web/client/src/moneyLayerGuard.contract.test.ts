@@ -93,7 +93,12 @@ describe("W5-A — تجميد سطح حساب المال في الواجهة (ع
  * عند صفر أسطر حساب مالي (بنمط القسم الأول نفسه) فلا تتحول أي منها صامتةً
  * إلى مستنقع مرايا جديد خارج أسرة F-049 المجمدة داخل الصفحات. تطبيق القائمة
  * = تعديل مقصود في نفس الـPR الذي يضيف وحدة عرض جديدة. */
-const VIEW_MODEL_MODULES: readonly string[] = ["application/finance/financeState.ts"];
+const VIEW_MODEL_MODULES: readonly string[] = [
+  "application/finance/financeState.ts",
+  "application/direct-sales/directSaleEditorModel.ts",
+  "application/finance/financialEventEditorModel.ts",
+  "application/agreements/orderDetailViewModel.ts",
+];
 
 describe("R7 — وحدات نموذج العرض التطبيقية بلا حساب مال (صفر أسطر حساب)", () => {
   it("every registered view-model module has zero money-computation lines", () => {

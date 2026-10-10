@@ -25,7 +25,7 @@ import {
   expenseSourceHint,
   expenseSourceRuleViolation,
 } from "@/components/finance/expenseFormModel";
-import { formatMoneyMinor, isValidLocalDate } from "@/presentation/formatters";
+import { formatMoneyMinor } from "@/presentation/formatters";
 import {
   deriveExpenseCategorySuggestions,
   normalizeCategoryLabelInput,
@@ -37,7 +37,20 @@ import {
 } from "@/application/drafts";
 import type { SettleablePayable } from "@/application/finance";
 import type { CrossModelOwnerDuplicate } from "@/application/owner-money";
-import { percentToBpsExact } from "@/application/input";
+/* R7/R6-F17-P03 (2026-10-10): قرار المحرر النقي (سياق المصروف المشترك/
+ * أساس ومعرفة الحصة/بوابة صلاحية المبلغ/غرض المصروف/إكراه المسودة TR-11)
+ * من بيته التطبيقي المالي — نفس بيت قناة الكتابة projectFinancialEventWrites. */
+import {
+  basisFromMode,
+  coerceEditorDraft,
+  deriveExpenseContext,
+  derivePrimaryAmountProblem,
+  deriveSharedExpenseIntent,
+  deriveSharedPercentageBps,
+  knowledgeFromBasis,
+  type EditorDraft,
+  type SharedMode,
+} from "@/application/finance/financialEventEditorModel";
 import type {
   FinancialEventType,
   OperatingExpenseContext,
@@ -46,7 +59,6 @@ import type {
 
 import { Button } from "@/components/primitives";
 import { todayInAmman } from "@/application/time";
-type SharedMode = "fixed" | "percentage" | "estimate" | "defer";
 /* المجموعة ٤ (عقد ٢٩): أحداث الأصول والقروض وتصنيف العربون تُنشأ من أسطحها
  * المخصصة لأنها تتطلب ربط سجل مصدر (أصل/قرض/طلب) — المحرر العام يبقى
  * للأفعال المالية المستقلة الثمانية الأصلية فقط. */
@@ -116,20 +128,6 @@ const definition: Record<
   },
 };
 const types = new Set<GuidedFinancialEventType>(Object.keys(definition) as GuidedFinancialEventType[]);
-const basisFromMode = (mode: SharedMode): SharedProjectShareBasis =>
-  mode === "percentage"
-    ? "agreed_percentage"
-    : mode === "estimate"
-      ? "owner_estimate"
-      : mode === "defer"
-        ? "needs_review"
-        : "agreed_fixed_share";
-const knowledgeFromBasis = (basis: SharedProjectShareBasis): OperatingExpenseContext["knowledge"] =>
-  basis === "agreed_fixed_share" || basis === "agreed_percentage"
-    ? "known"
-    : basis === "owner_estimate"
-      ? "estimated"
-      : "needs_review";
 const sourceDescription: Record<SharedProjectShareBasis, string> = {
   agreed_fixed_share: "أدخل حصة المشروع فقط؛ لا يحفظ النظام إجمالي فاتورة البيت.",
   agreed_percentage: "أدخل الإجمالي والنسبة الصريحة؛ يحسب النظام حصة المشروع بدقة ويحفظها في السجل.",
@@ -137,73 +135,8 @@ const sourceDescription: Record<SharedProjectShareBasis, string> = {
   needs_review: "يحفظ إجمالي المصدر كغير موزّع؛ لا يصبح صفرًا ولا يخصم من النتيجة.",
 };
 /* المجموعة ١ (مسودة محفوظة — TR-11): مدخلات فقط لا سجلات؛ تُسترجع بفعل صريح
- * ولا تُحوَّل حدثًا ماليًا أبدًا إلا بزر الحفظ. المفتاح لكل نوع على حدة. */
-type EditorDraft = {
-  amountMinor: number;
-  sharedTotalAmountMinor: number;
-  sharedPercentage: number;
-  date: string;
-  note: string;
-  counterparty: string;
-  relationship: OperatingExpenseContext["relationship"];
-  behavior: OperatingExpenseContext["behavior"];
-  purpose: OperatingExpenseContext["purpose"];
-  knowledge: OperatingExpenseContext["knowledge"];
-  sharedMode: SharedMode;
-  sharedNote: string;
-  categoryLabel: string;
-  relatedEventId: string;
-  walletId: string;
-};
-
-/* Conflict I (AV-09): إكراه دفاعي لمسودة محلية تالفة — القيم غير الصالحة تُستبدل
- * بقيم آمنة بدل أن تكسر النموذج أو تصل إلى الحفظ؛ التاريخ المشوّه يرجع لليوم،
- * والمعدّات لا تقبل إلا أعدادًا صحيحة موجبة، والقيم المعدودة تُرشّح على قوائمها. */
-/* R2 (M-04/D8، 2026-10-08): إكراه المسودة الدفاعي عبر النواة الكنسية —
- * كان النمط أعمى تقويميًا فيقبل 2023-02-29 إلى مسودة النموذج. */
-const RELATIONSHIP_VALUES = ["project", "shared"] as const;
-const BEHAVIOR_VALUES = ["fixed", "variable", "mixed", "unknown"] as const;
-const PURPOSE_VALUES = ["project_general", "period", "order", "product", "campaign", "unallocated"] as const;
-const KNOWLEDGE_VALUES = ["known", "estimated", "needs_review"] as const;
-const SHARED_MODE_VALUES = ["fixed", "percentage", "estimate", "defer"] as const;
-/* FIN-005 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): «لم يُختر بعد» — غير الخيار
- * الصريح «الكاش غير الموزع»؛ إلزامي التخطي عند تعدد المحافظ. */
-/* EXE-007: القيمة المحجوزة مستوردة من المواصفة الموحدة (expenseFormModel)
- * ومُعاد تسميتها محليًا للحفاظ على نصوص الكود القائمة — تعريف واحد. */
-
-const safeDraftAmount = (value: unknown): number =>
-  typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : 0;
-const safeDraftString = (value: unknown): string => (typeof value === "string" ? value : "");
-const safeDraftEnum = <T extends string>(value: unknown, allowed: readonly T[], fallback: T): T =>
-  typeof value === "string" && (allowed as readonly string[]).includes(value) ? (value as T) : fallback;
-
-function coerceEditorDraft(value: unknown): EditorDraft | null {
-  if (typeof value !== "object" || value === null) return null;
-  const draft = value as Record<string, unknown>;
-  const amountMinor = safeDraftAmount(draft.amountMinor);
-  const note = safeDraftString(draft.note);
-  const date = typeof draft.date === "string" && isValidLocalDate(draft.date) ? draft.date : todayInAmman();
-  /* لا شيء ذو معنى قابل للترجيع؟ لا نعرض عرض استرجاع فارغًا. */
-  if (amountMinor === 0 && note.trim() === "" && date === todayInAmman()) return null;
-  return {
-    amountMinor,
-    sharedTotalAmountMinor: safeDraftAmount(draft.sharedTotalAmountMinor),
-    sharedPercentage: safeDraftAmount(draft.sharedPercentage),
-    date,
-    note,
-    counterparty: safeDraftString(draft.counterparty),
-    relationship: safeDraftEnum(draft.relationship, RELATIONSHIP_VALUES, "project"),
-    behavior: safeDraftEnum(draft.behavior, BEHAVIOR_VALUES, "unknown"),
-    purpose: safeDraftEnum(draft.purpose, PURPOSE_VALUES, "project_general"),
-    knowledge: safeDraftEnum(draft.knowledge, KNOWLEDGE_VALUES, "known"),
-    sharedMode: safeDraftEnum(draft.sharedMode, SHARED_MODE_VALUES, "fixed"),
-    sharedNote: safeDraftString(draft.sharedNote),
-    /* وسم التصنيف محدود بـ٨٠ حرفًا في النطاق — القص هنا إكراه آمن لا تشويه صامت. */
-    categoryLabel: safeDraftString(draft.categoryLabel).slice(0, 80),
-    relatedEventId: safeDraftString(draft.relatedEventId),
-    walletId: safeDraftString(draft.walletId),
-  };
-}
+ * ولا تُحوّل حدثًا ماليًا أبدًا إلا بزر الحفظ. النوع والإكراه الدفاعي
+ * (AV-09/M-04) عند بيتهما التطبيقي — R7/R6-F17-P03، 2026-10-10. */
 
 export default function FinancialEventEditor() {
   const { type: rawType } = useParams<{ type: string }>();
@@ -510,57 +443,46 @@ export default function FinancialEventEditor() {
   const content = definition[type];
   const isOperatingExpense = type === "operating_expense_cash" || type === "operating_expense_payable";
   const isShared = isOperatingExpense && relationship === "shared";
-  const sharedBasis = basisFromMode(sharedMode);
-  const sharedKnowledge = knowledgeFromBasis(sharedBasis);
   const normalizedCategoryLabel = normalizeCategoryLabelInput(categoryLabel);
-  const expenseContext: OperatingExpenseContext | null = !isOperatingExpense
-    ? null
-    : relationship === "shared"
-      ? {
-          relationship,
-          behavior,
-          purpose,
-          knowledge: sharedKnowledge,
-          sharedProjectShare: { basis: sharedBasis, note: sharedNote.trim() || null },
-          categoryLabel: normalizedCategoryLabel,
-        }
-      : {
-          relationship,
-          behavior,
-          purpose,
-          knowledge,
-          sharedProjectShare: null,
-          categoryLabel: normalizedCategoryLabel,
-        };
+  /* R7/P03: اشتقاق سياق المصروف عند بيته التطبيقي. */
+  const expenseContext = deriveExpenseContext({
+    isOperatingExpense,
+    relationship,
+    behavior,
+    purpose,
+    knowledge,
+    sharedMode,
+    sharedNote,
+    categoryLabel: normalizedCategoryLabel,
+  });
   /* المجموعة ١١ (11-0 — سياسة القيم الدقيقة): تحويل النسبة إلى bps دقيقًا فقط؛
    * الدقة الأدق من منزلتين تُرفض (null) فيُمنع الحفظ برسالة آمنة وتعود
    * المعاينة للنص الثابت — لا تقريب صامت أبدًا. */
-  const sharedPercentageBps =
-    isShared && sharedMode === "percentage" ? percentToBpsExact(sharedPercentage) : null;
-  const primaryAmountValid =
-    isShared && sharedMode === "percentage"
-      ? validSharedTotal &&
-        sharedTotalAmountMinor > 0 &&
-        validSharedPercentage &&
-        sharedPercentage > 0 &&
-        sharedPercentage <= 100 &&
-        sharedPercentageBps !== null
-      : validAmount && amountMinor > 0;
+  const sharedPercentageBps = deriveSharedPercentageBps(isShared, sharedMode, sharedPercentage);
+  /* R7/P03: بوابة صلاحية المبلغ الأساسي كودًا عند بيته التطبيقي. */
+  const primaryAmountProblem = derivePrimaryAmountProblem({
+    isShared,
+    sharedMode,
+    validSharedTotal,
+    sharedTotalAmountMinor,
+    validSharedPercentage,
+    sharedPercentage,
+    sharedPercentageBps,
+    validAmount,
+    amountMinor,
+  });
+  const primaryAmountValid = primaryAmountProblem === null;
   const selectedWallet = wallets.find(wallet => wallet.id === walletId) ?? null;
-  const sharedExpenseIntent = isShared
-    ? sharedMode === "percentage"
-      ? sharedPercentageBps === null
-        ? undefined
-        : {
-            mode: "percentage" as const,
-            sharedTotalAmountMinor,
-            sharedPercentageBps,
-          }
-      : sharedMode === "defer"
-        ? { mode: "defer" as const, sharedTotalAmountMinor: amountMinor }
-        : { mode: sharedMode, amountMinor }
-    : undefined;
+  const sharedExpenseIntent = deriveSharedExpenseIntent({
+    isShared,
+    sharedMode,
+    sharedPercentageBps,
+    sharedTotalAmountMinor,
+    amountMinor,
+  });
   const walletNameForPreview = type === "operating_expense_cash" ? (selectedWallet?.name ?? null) : null;
+  /* R7/P03: معرفة الحصة لقسم التصنيف — من الخريطة التطبيقية نفسها. */
+  const sharedKnowledge = knowledgeFromBasis(basisFromMode(sharedMode));
 
   function clearDraft() {
     if (!type) return;
@@ -610,15 +532,13 @@ export default function FinancialEventEditor() {
       return true;
     }
     if (!primaryAmountValid) {
+      /* R7/P03: كود المشكلة من البوابة التطبيقية — النص هنا (نسخة واجهة). */
       setMessage(
-        isShared && sharedMode === "percentage"
-          ? validSharedPercentage &&
-            sharedPercentage > 0 &&
-            sharedPercentage <= 100 &&
-            sharedPercentageBps === null
-            ? "دقة النسبة أدق من المدعوم — أدخل نسبة بمنزلتين عشريتين كحد أقصى (خطوة 0.01%) ثم أعد الحفظ."
-            : "أدخل إجماليًا ونسبة صحيحة بين 0 و100 قبل الحفظ."
-          : "أدخل مبلغًا صالحًا بالأرقام 0–9 قبل الحفظ.",
+        primaryAmountProblem === "percentage_precision"
+          ? "دقة النسبة أدق من المدعوم — أدخل نسبة بمنزلتين عشريتين كحد أقصى (خطوة 0.01%) ثم أعد الحفظ."
+          : isShared && sharedMode === "percentage"
+            ? "أدخل إجماليًا ونسبة صحيحة بين 0 و100 قبل الحفظ."
+            : "أدخل مبلغًا صالحًا بالأرقام 0–9 قبل الحفظ.",
       );
       return false;
     }
