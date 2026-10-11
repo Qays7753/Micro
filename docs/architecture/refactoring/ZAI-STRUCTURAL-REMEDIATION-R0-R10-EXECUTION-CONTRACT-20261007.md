@@ -1,6 +1,6 @@
 # Micro — Structural Remediation R0–R10 Execution Contract
 
-**Status:** `OWNER_ACCEPTED — R0–R9_VERIFIED_ON_MAIN; R10_HOSTILE_FINAL_AUDIT_AND_CLOSURE_NOT_STARTED` *(updated 2026-10-11 after PR #347 code Merge commit `e80f7509` and post-merge CI `38127377464`; PR #348/#349 documentation reconciliations are verified; before R10, fetch and read `origin/main`; R10 requires an independent final audit before closure)*
+**Status:** `OWNER_ACCEPTED — حالة البرنامج التنفيذية الحية تُقرأ حصرًا من docs/operations/current-state.md §9 (المرجع الحي)` *(تحويل مؤرخ 2026-10-11 — R10-B1/R10A-F-033: كان هذا السطر يثبت حالة الموجات بنفسه — «R0–R9_VERIFIED_ON_MAIN; R10_HOSTILE_FINAL_AUDIT_AND_CLOSURE_NOT_STARTED» عند تحديث 2026-10-11 بعد دمج كود PR #347 عند e80f7509 وCI 38127377464 ومصالحتي #348/#349 — فتقادم فور تقدم البرنامج إلى R10-A/R10-B؛ منعًا لمصدر حقيقة موازٍ صار السطر إحالة مؤرخة، والتقدم الفعلي (W0 مقبولة عند c9fbac25 ثم B1..B6 جارية على فرع R10-B) مسجل في الحالة الحية واللوق فقط؛ هذا العقد يُقرأ كعقد ثابت لا كسجل حالة)*
 
 **Owner authorization:** On 2026-10-07 the owner accepted the updated Arabic execution plan and its explicit traceability matrix, and authorized this program to start with the contract publication followed by R0. This contract operationalizes that plan. It does not replace `AGENTS.md`, financial/domain contracts, the canonical architecture plan, or live Operations Control.
 
@@ -16,9 +16,9 @@
 
 **Initial verified base:** `25594773a83ec5eb1e9dde5feaf1c808c0ff686f`
 
-**Verified R9 code merge (2026-10-11):** `e80f750977cb3f0200a2db5e1627bb01627f9c09` — PR #347 (source head `ec83fcaed23c2bad9a4dbd544f2e709b91a429a3`); post-merge CI `38127377464` succeeded on that exact code SHA. PR #348 and #349 were documentation-only reconciliations and their post-merge checks succeeded. **Before R10, fetch `origin/main` and record the live SHA in the R10 claim; do not pin a prior docs merge as a permanent current-main head.**
+**Verified R9 code merge (2026-10-11, سجل تاريخي مؤرخ):** `e80f750977cb3f0200a2db5e1627bb01627f9c09` — PR #347 (source head `ec83fcaed23c2bad9a4dbd544f2e709b91a429a3`); post-merge CI `38127377464` succeeded on that exact code SHA. PR #348 and #349 were documentation-only reconciliations and their post-merge checks succeeded. *(تعليق مؤرخ 2026-10-11 — R10-B1/R10A-F-033: جملة «قبل R10 نفّذ fetch...» أدّت دورها وأنجزت في R10-A/R10-B؛ القاعدة الدائمة تبقى: قبل أي claim جديد يُقرأ `origin/main` الحي — الحالة الحية هي المرجع.)*
 
-**Current phase:** R0–R9 are verified on main. R9 W1+W2+W3 and the owner-authorized systemic root-fix/evidence closure are complete and verified through PR #347 at code merge e80f7509 and post-merge CI. Documentation-only reconciliations #348 and #349 are complete. The next authorized operation is R10 hostile final audit and closure; before its claim, fetch/read `origin/main` and use that exact live SHA as the branch base. R10 must independently re-check every finding, decision, large-file classification, public/deep-import/cycle/runtime boundary, shim, registry, capability, parity result, test, guard, generated view, bundle measure, and rollback boundary. R10 implementation/closure is not started by this reconciliation.
+**Current phase:** *(حُوّل بتاريخ 2026-10-11 — R10-B1/R10A-F-033 إلى إحالة: كان هذا الموضع يكرر حقيقة المرحلة «R0–R9 verified؛ R10 next» فتقادم فور نشر R10-A وقبول W0 وبدء B1..B6.)* **المرحلة الحية تُقرأ حصرًا من `docs/operations/current-state.md` §9** — هذه الوثيقة عقد ثابت لا سجل حالة. متطلب R10 المسجل أعلاه (إعادة تحقق مستقلة من كل finding وقرار وتصنيف وحد وراتشة وسجل وقدرة وتكافؤ واختبار وحارس وView وقياس حزمة وحد رجوع) سُنفذ في R10-A (تدقيق معادٍ قراءة-فقط) ثم R10-B W0 (مصالحة وبحث) وينفذ إغلاقه في موجات R10-B.
 
 **Workstream:** `WS-216`
 

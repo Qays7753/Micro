@@ -34,7 +34,15 @@
    "required_tests": "Register re-read; pnpm guards incl. registry coverage; operations-control validate.",
    "acceptance_criteria": "Both rows carry dated removal notes; no other register row describes a file absent from disk without a note.",
    "rollback_boundary": "Single docs commit; revert restores prior text.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "0e0bea2b",
+    "date": "2026-10-11",
+    "evidence": "Dated removal notes on register rows 63 (bfa48d44/R7-5) and 413 (07a8b7e4/Wave E); rows now self-declare as historical records. check-registry-coverage PASS.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-002",
@@ -62,7 +70,15 @@
    "required_tests": "Doc re-read against `ls src/domain`.",
    "acceptance_criteria": "Count reads 18; no stale g5 reference in live sections.",
    "rollback_boundary": "Single docs commit; revert restores prior text.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "0e0bea2b",
+    "date": "2026-10-11",
+    "evidence": "apps/prototype-web/ARCHITECTURE.md domain count 19->18 with dated correction (g5 barrel removed bfa48d44); live count verified 18.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-003",
@@ -149,7 +165,15 @@
    "required_tests": "Doc re-read; cross-check with baseline JSON.",
    "acceptance_criteria": "ADR figures match live baseline; original text preserved with dated correction.",
    "rollback_boundary": "Single docs commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "0e0bea2b",
+    "date": "2026-10-11",
+    "evidence": "ADR-018 dated correction: baseline 52 documented keys (36 comp-root + 16 UI-consumer: 3 presentation shims + 13 dated R7 keys) vs recorded 43; authority = live baseline JSON.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-006",
@@ -212,7 +236,15 @@
    "required_tests": "Doc re-read.",
    "acceptance_criteria": "Static direction stated unambiguously.",
    "rollback_boundary": "Single docs commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "0e0bea2b",
+    "date": "2026-10-11",
+    "evidence": "ARCHITECTURE.md dated static-vs-responsibility direction note; 75 storage->domain production edges (all barrel), 0 reverse edges — verified live by grep census.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-008",
@@ -654,7 +686,15 @@
    "required_tests": "Doc re-read; doc-index coverage guard.",
    "acceptance_criteria": "No live contract row cites a removed module.",
    "rollback_boundary": "Docs commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "0e0bea2b",
+    "date": "2026-10-11",
+    "evidence": "Contract 40 owner-entitlement row dated correction: finance/ compat unit removed at R7-5 (bfa48d44); live owner = application/owner-money/.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-023",
@@ -940,7 +980,15 @@
    "required_tests": "Doc re-read; doc-index guard.",
    "acceptance_criteria": "Zero live routing to todo.md for closure.",
    "rollback_boundary": "Docs commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "0e0bea2b",
+    "date": "2026-10-11",
+    "evidence": "agent-handoff-protocol-v1.md lines 17/31/51 routed to Operations Control (AGENT-BRIEF/ACTIVE-WORK + Item/Workstream JSON) with dated notes; todo.md = frozen stub only.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-033",
@@ -969,7 +1017,15 @@
    "required_tests": "validate.py + generator --check + doc-index + current-state-size guards.",
    "acceptance_criteria": "No non-authoritative doc asserts a current phase/SHA without a dated pointer.",
    "rollback_boundary": "Docs batch commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "PENDING_SLICE5",
+    "date": "2026-10-11",
+    "evidence": "Phase-fact single-sourced: ZAI contract :3/:19/:21, plan :13, REFACTORING-CONTROL :188/:213 converted to dated pointers to current-state.md §9; generated views regenerated from JSON in same PR.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-034",
@@ -997,7 +1053,15 @@
    "required_tests": "validate.py; generator; JSON schema unchanged (fields exist).",
    "acceptance_criteria": "3 items each carry item-specific trigger/detection; views regenerated.",
    "rollback_boundary": "JSON batch commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "7f42335d",
+    "date": "2026-10-11",
+    "evidence": "SCOPE-001/SCOPE-002/UX-002: per-item observable trigger + detection method written into deferred_reason/next_action (was byte-identical boilerplate). OD-3 batch executed.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-035",
@@ -1023,7 +1087,15 @@
    "required_tests": "Doc re-read.",
    "acceptance_criteria": "Gap explained in a live control doc.",
    "rollback_boundary": "Docs commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "7f42335d",
+    "date": "2026-10-11",
+    "evidence": "Dated HARD-001..008 numbering-gap note in items/README.md (migration-map row 122 is the canonical migration record).",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-036",
@@ -1052,7 +1124,15 @@
    "required_tests": "generate_tracker --check; validate.py; view diff inspection.",
    "acceptance_criteria": "Views render backticks correctly; no other cell affected.",
    "rollback_boundary": "Generator+views commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "e46c311c",
+    "date": "2026-10-11",
+    "evidence": "generate_tracker.py md_cell backtick-escaping removed (rendered literal backslash artifacts); test updated; views regenerated; 9/9 ops-control tests PASS; zero escaped-backtick artifacts remain.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-037",
@@ -1081,7 +1161,15 @@
    "required_tests": "doc-index coverage; skill-references; validators.",
    "acceptance_criteria": "All 5 artifacts present and routed; no competing source of truth created.",
    "rollback_boundary": "Docs batch commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "96850ab1",
+    "date": "2026-10-11",
+    "evidence": "Canonical handoff set created: agent-development-sop-v1.md + views/storage-parity-view.md + views/transfer-legacy-golden-view.md + views/guard-proves-view.md (referral views, no second truth); R10-A evidence already on main (27e41803); R10-B evidence rides this PR. Routing: doc-index rows 0A-1/0A-2 + handoff-protocol ladder rows.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-001",
@@ -1321,7 +1409,15 @@
    "required_tests": "Doc re-read.",
    "acceptance_criteria": "Enumeration accurate or delegated to registry.",
    "rollback_boundary": "Docs commit revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "0e0bea2b",
+    "date": "2026-10-11",
+    "evidence": "ADR-018 dated correction: doorless houses 7 of 36 (+formatting/identity/recurring) vs recorded 4; live tree verified.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-009",
@@ -1898,7 +1994,15 @@
    "required_tests": "validate.py.",
    "acceptance_criteria": "Blocker text reflects the live dependency graph.",
    "rollback_boundary": "JSON batch revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "7f42335d",
+    "date": "2026-10-11",
+    "evidence": "LEGAL-001 blocked_reason dated correction: FIN-007 verified 2026-09-22 (893e3c864) dropped; real blocker = external specialist selection.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-028",
@@ -1924,7 +2028,15 @@
    "required_tests": "validate.py.",
    "acceptance_criteria": "Blocker accurate.",
    "rollback_boundary": "JSON batch revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "7f42335d",
+    "date": "2026-10-11",
+    "evidence": "DEVICE-001 blocked_reason dated correction: REL-001 verified 2026-09-23 (027fc7b5) dropped; UX-001 + device availability remain.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-029",
@@ -1953,7 +2065,15 @@
    "required_tests": "validate.py; doc-index; manual read.",
    "acceptance_criteria": "No stale live claim in context.md.",
    "rollback_boundary": "Docs batch revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "PENDING_SLICE5",
+    "date": "2026-10-11",
+    "evidence": "context.md live-state rows (:10-12 main/wave/claims, :75 PRE-PILOT 35->43, :87, :91) converted to dated pointers to current-state/AGENT-BRIEF/ACTIVE-WORK.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-030",
@@ -1979,7 +2099,15 @@
    "required_tests": "validate.py.",
    "acceptance_criteria": "Definitions agree or difference documented.",
    "rollback_boundary": "JSON batch revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "7f42335d",
+    "date": "2026-10-11",
+    "evidence": "PILOT-001 dependencies reconciled 35->43 with pre-pilot.json (added FIN-009, REM-001..007, all VERIFIED) + dated note; definitions now agree.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-031",
@@ -2007,7 +2135,15 @@
    "required_tests": "Link check.",
    "acceptance_criteria": "No dangling pointer.",
    "rollback_boundary": "Docs batch revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "0e0bea2b",
+    "date": "2026-10-11",
+    "evidence": "review-finance-c2-decision-v1.md ref [1] dated correction: Review.tsx removed 4975e80f; pulse merged into Finance.tsx.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-032",
@@ -2035,7 +2171,15 @@
    "required_tests": "Link check.",
    "acceptance_criteria": "Pointer resolves or is explained.",
    "rollback_boundary": "Docs batch revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "0e0bea2b",
+    "date": "2026-10-11",
+    "evidence": "remaining-capabilities-review-v1.md ref [1] dated note: pasted attachment never committed; canonical content in decision body + deferred-capabilities plan.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-033",
@@ -2061,7 +2205,15 @@
    "required_tests": "validate.py.",
    "acceptance_criteria": "Readable text.",
    "rollback_boundary": "JSON batch revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "7f42335d",
+    "date": "2026-10-11",
+    "evidence": "BE-001..003 next_action Python-tuple text replaced with human-readable phrasing.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-034",
@@ -2092,7 +2244,15 @@
    "required_tests": "n/a (this record).",
    "acceptance_criteria": "Corrections part of the canonical record.",
    "rollback_boundary": "n/a.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B1",
+    "closed_at_commit": "PENDING_SLICE5",
+    "date": "2026-10-11",
+    "evidence": "Verified: both R10-A record corrections (PILOT canonical count 14; INDEPENDENT-TRACKS attribution) are recorded in this matrix (summary.notes + NF-034 record) and were published to main via the W0 merge c9fbac25; owner acknowledgment rides the PR #352/#356 review. No further record change needed.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   }
  ],
  "summary": {
@@ -2115,5 +2275,35 @@
    "DISPROVED": 1
   },
   "notes": "R10A-F-023 disproved (FALSE_POSITIVE, retraction recorded). R10-A effective confirmed total: 36 of 37. New findings from W0-C systemic search: RV1 x9 (one folded into F-011), RV2 x7 (one design note), RV3 x7 (folded to 5), RV4 x11 (three folded into F-024/F-025/F-027), RV5 x9 -> consolidated to 34 stable IDs."
- }
+ },
+ "implementation_log": [
+  {
+   "wave": "R10-B1",
+   "date": "2026-10-11",
+   "branch": "refactoring/r10b-complete-b1-b6-20261011",
+   "slices": [
+    {
+     "commit": "0e0bea2b",
+     "scope": "static documentation truth corrections (9 findings)"
+    },
+    {
+     "commit": "7f42335d",
+     "scope": "control records batch + WS-216 claim (6 findings + claim)"
+    },
+    {
+     "commit": "e46c311c",
+     "scope": "generator markdown-cell escaping fix (F-036)"
+    },
+    {
+     "commit": "96850ab1",
+     "scope": "SOP + 3 views + OD-13 PILOT detection specs + registry metadata (F-037/OD-13)"
+    },
+    {
+     "commit": "PENDING_SLICE5",
+     "scope": "phase-fact single-source pointers (F-033/NF-029) + NF-034 verification + closure records"
+    }
+   ],
+   "note": "OD-13 executed (14 PILOT detection specs, docs-only). OD-1..OD-7 recorded per W0 acceptance; OD-8/OD-9/OD-12 remain explicit gates before B2/B5/B4 respectively."
+  }
+ ]
 }
