@@ -31,7 +31,7 @@
   "pr": null,
   "started_at": "2026-10-07",
   "updated_at": "2026-10-11",
-  "next_action": "R9 VERIFIED_ON_MAIN: code merge PR #347 is e80f750977cb3f0200a2db5e1627bb01627f9c09; post-merge CI 38127377464 succeeded on that exact code SHA. Post-merge reconciliation PR #348 is itself merged at current main head 507a28e22e89bd0e45843d88cdc548c766c51ab7 with CI 38129424451 successful; WS-216.base_sha intentionally points to this current control head for the next wave, while merge_sha and verified_on_main_sha remain the R9 code-verification reference. R10 hostile final audit and closure is next and has not started. No cleanup or branch deletion.",
+  "next_action": "R9 VERIFIED_ON_MAIN: code merge PR #347 is e80f750977cb3f0200a2db5e1627bb01627f9c09; post-merge CI 38127377464 succeeded on that exact code SHA. The subsequent documentation-only reconciliations PR #348 and PR #349 are merged and verified; base_sha is the claim-base snapshot, not a permanently pinned current-main pointer. Before R10, fetch origin/main, record the live SHA in the new R10 claim, and create the dedicated R10 branch/PR from that exact fetched head. R10 hostile final audit and closure is next and has not started. No cleanup or branch deletion.",
   "notes": [
     "اعتماد المالك في 2026-10-07 للخطة المحدثة ومصفوفة التتبع الكاملة المبنية على تقريري Structure وFlash.",
     "هذا successor مستقل؛ لا يعيد فتح WS-212 أو WS-214 أو WS-215 ولا يعدل عقودها التاريخية.",
@@ -152,7 +152,9 @@
     "https://github.com/Qays7753/Micro/actions/runs/38127377464",
     "https://github.com/Qays7753/Micro/pull/348",
     "https://github.com/Qays7753/Micro/commit/507a28e22e89bd0e45843d88cdc548c766c51ab7",
-    "https://github.com/Qays7753/Micro/actions/runs/38129424451"
+    "https://github.com/Qays7753/Micro/actions/runs/38129424451",
+    "https://github.com/Qays7753/Micro/pull/349",
+    "https://github.com/Qays7753/Micro/actions/runs/38130404154"
   ],
   "status_history": [
     {

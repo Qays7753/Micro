@@ -170,7 +170,9 @@
     "https://github.com/Qays7753/Micro/actions/runs/38127377464",
     "https://github.com/Qays7753/Micro/pull/348",
     "https://github.com/Qays7753/Micro/commit/507a28e22e89bd0e45843d88cdc548c766c51ab7",
-    "https://github.com/Qays7753/Micro/actions/runs/38129424451"
+    "https://github.com/Qays7753/Micro/actions/runs/38129424451",
+    "https://github.com/Qays7753/Micro/pull/349",
+    "https://github.com/Qays7753/Micro/actions/runs/38130404154"
   ],
   "dependencies": [],
   "related_items": [
@@ -188,5 +190,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R9 VERIFIED_ON_MAIN: code merge PR #347 is e80f750977cb3f0200a2db5e1627bb01627f9c09; post-merge CI 38127377464 succeeded on that exact code SHA. Post-merge reconciliation PR #348 is merged at current main head 507a28e22e89bd0e45843d88cdc548c766c51ab7 with CI 38129424451 successful. The next authorized operation is R10 hostile final audit and closure; its own preflight, five read-only reviewers, focused tests, CI, dedicated branch/PR, and owner merge authorization are required. Do not claim final closure or perform cleanup in this control-head correction."
+  "next_action": "R9 VERIFIED_ON_MAIN: code merge PR #347 is e80f750977cb3f0200a2db5e1627bb01627f9c09 and post-merge CI 38127377464 succeeded on that exact code SHA. Documentation-only reconciliations PR #348 and PR #349 are merged and verified. Before R10, re-fetch origin/main and use that live SHA as the R10 claim base; do not treat any prior documentation merge SHA as a permanent current-main pointer. R10 hostile final audit and closure requires its own preflight, five read-only reviewers, focused tests, CI, dedicated branch/PR, and owner merge authorization. Do not claim final closure or perform cleanup before R10."
 }

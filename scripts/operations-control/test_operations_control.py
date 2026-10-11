@@ -96,6 +96,13 @@ class OperationsControlTests(unittest.TestCase):
         self.assertTrue(VALIDATOR.scopes_overlap('docs\\operations\\control', 'docs/operations'))
         self.assertFalse(VALIDATOR.scopes_overlap('reports', 'src/domain'))
 
+    def test_main_program_claim_keeps_snapshot_base_without_live_head_warning(self):
+        workstream = {'branch': 'main', 'pr': None, 'status': 'IN_PROGRESS'}
+        self.assertTrue(VALIDATOR.is_snapshot_only_main_workstream(workstream))
+
+        workstream['pr'] = 349
+        self.assertFalse(VALIDATOR.is_snapshot_only_main_workstream(workstream))
+
     def test_markdown_cells_escape_structural_characters(self):
         item = self.base_item()
         item['title'] = 'عنوان | سطر\nثانٍ `مهم`'

@@ -2253,3 +2253,10 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - **Correction:** PR #348 was merged as documentation-only Merge commit `507a28e22e89bd0e45843d88cdc548c766c51ab7`; post-merge CI `38129424451` succeeded on that exact SHA. Therefore the current control head is `507a28e2`, while the R9 code-verification references remain `merge_sha=verified_on_main_sha=e80f750977cb3f0200a2db5e1627bb01627f9c09` and CI `38127377464`.
 - **Tracker rule:** `WS-216.base_sha` now points to current main `507a28e22e89bd0e45843d88cdc548c766c51ab7` for the next wave; it is intentionally separate from R9's code merge and verification SHAs. This removes the newly observed base/main drift without rewriting historical entries.
 - **Next:** R10 hostile final audit and closure remains not started; no R10 implementation or cleanup is included in this correction.
+
+## §175 — 2026-10-11 — Permanent base_sha policy correction before R10
+
+- **Finding:** بعد دمج PR #349 أصبح `origin/main` رأسًا جديدًا، فظهر تحذير لأن `WS-216.base_sha` كان يُفهم خطأً كمؤشر دائم إلى current main. هذا ليس خلل كود أو CI؛ إنه خلل في convention الإداري.
+- **القرار الجذري:** `base_sha` هو snapshot لقاعدة claim/الفرع عند فتحه، وليس مرجعًا حيًا يجب أن يساوي `origin/main` بعد كل Merge commit توثيقي. تبقى `merge_sha` و`verified_on_main_sha` مرجعَي تحقق النتيجة التي تخص الموجة، ولا يتغيران بسبب مصالحة توثيقية لاحقة.
+- **البروتوكول من الآن:** قبل R10 أو أي موجة جديدة، نفّذ `git fetch origin --prune`، اقرأ `origin/main` في نفس اللحظة، وسجّل ذلك كـ`base_sha` للـclaim/branch الجديد. لا تُحدّث موجة مغلقة لتطارد SHA توثيقيًا لاحقًا.
+- **الحالة:** R9 code merge وCI محفوظان كمرجعين مستقلين؛ R9 ومصالحاتا #348/#349 مكتملة، وR10 لم تبدأ. لا تغيير كودي أو مالي أو دلالي أو تاريخي أو Schema/Export/Import أو UI بصري.
