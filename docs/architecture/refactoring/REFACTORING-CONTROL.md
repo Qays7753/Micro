@@ -1,6 +1,6 @@
 # Micro — Refactoring Control
 
-**الإصدار:** v1.20 (R9 VERIFIED_ON_MAIN؛ R10 بوابة التدقيق العدائي والإغلاق التالية — 2026-10-11؛ v1.19 وما قبلها سجل تاريخي)
+**الإصدار:** v1.21 (R9 VERIFIED_ON_MAIN؛ current main `507a28e2` بعد مصالحة #348؛ R10 بوابة التدقيق العدائي التالية — 2026-10-11؛ v1.20 وما قبلها سجل تاريخي)
 **التاريخ:** 2026-10-11
 **الحالة:** `OWNER_ACCEPTED — R0–R9 VERIFIED_ON_MAIN; R10 HOSTILE FINAL AUDIT AND CLOSURE NOT STARTED`
 **المرحلة:** `SUCCESSOR R0–R9 VERIFIED ON MAIN; R10 preflight/hostile audit gate next`
@@ -185,7 +185,7 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 - **الخطة:** `STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
 - **البداية المسموحة:** R0 قراءة فقط ومصالحة الخط الأساسي؛ لا نقل أو تقسيم أو حذف أو تعديل كودي في R0.
 - **قاعدة الاستمرار:** بعد تقرير R0 فقط، تنفذ R1–R10 على فرع مستقل، وبطاقات Repair، وPR مستقل أو شريحة قابلة للمراجعة، وفحوص مركزة وCI وحد رجوع لكل موجة.
-- **الخطوة الحية:** R8 تحققت على `main` عند Merge commit `87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e` (PR #345؛ CI post-merge `38060781329` ناجح)، ثم اكتملت R9 على `main` بدمج PR #347 عند Merge commit `e80f750977cb3f0200a2db5e1627bb01627f9c09` من الرأس `ec83fcaed23c2bad9a4dbd544f2e709b91a429a3`، ونجح CI post-merge `38127377464` على الرأس نفسه. R9 VERIFIED_ON_MAIN وتشمل W1/W2/W3 والاستمرارات الجذرية والأدلة؛ R10 هي التالية ولم تبدأ. لا تغيير مالي/دلالي/تاريخي أو Schema/Export/Import أو UI بصري. *(تحديث مؤرخ 2026-10-11 — مصالحة R9 بعد الدمج)*
+- **الخطوة الحية:** R8 تحققت على `main` عند Merge commit `87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e` (PR #345؛ CI post-merge `38060781329` ناجح)، ثم اكتملت R9 على `main` بدمج PR #347 عند Merge commit `e80f750977cb3f0200a2db5e1627bb01627f9c09` من الرأس `ec83fcaed23c2bad9a4dbd544f2e709b91a429a3`، ونجح CI post-merge `38127377464` على الرأس نفسه. R9 VERIFIED_ON_MAIN عند code merge e80f7509؛ رأس main الحالي 507a28e2 بعد مصالحة #348 التوثيقية؛ تشمل W1/W2/W3 والاستمرارات الجذرية والأدلة، وR10 هي التالية ولم تبدأ. لا تغيير مالي/دلالي/تاريخي أو Schema/Export/Import أو UI بصري. *(تحديث مؤرخ 2026-10-11 — مصالحة R9 بعد الدمج)*
 
 ## 15. سلّم الأولوية ودورة حياة قطع الحوكمة (R1/TG-04 — 2026-10-07)
 
@@ -210,7 +210,7 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 | `REFACTORING-PLAN-A-TO-Z.md` §4 | مالك المنتج | أي تعديل مبدأ أو آلية PG/RS | حية؛ §4.3.1 صُححت مؤرخًا في R1 (13→14 حارسًا + R5/R6) | تبقى مرجعًا دائمًا للمبادئ |
 | `STRUCTURAL-REMEDIATION-PLAN-20261007.md` | مالك المنتج (خطة successor) | إغلاق كل موجة R0–R10 | حية؛ R1 يعمل بها؛ «131 طريقة» صُححت مؤرخًا إلى 130 | سجل تاريخي عند R10 |
 | `ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md` | مالك المنتج | تغيير نطاق أو حدود ممنوعات | حية؛ «131-method port» صُححت مؤرخًا إلى 130 | سجل تاريخي عند R10 |
-| `REFACTORING-CONTROL.md` (هذا الملف) | برنامج successor | كل موجة مدموجة (تحديث الحقول الحية) | حية v1.20 (R9 post-merge؛ R10 التالية) | سجل حالة تاريخي عند R10 |
+| `REFACTORING-CONTROL.md` (هذا الملف) | برنامج successor | كل موجة مدموجة (تحديث الحقول الحية) | حية v1.21 (R9 post-merge؛ current main 507a28e2؛ R10 التالية) | سجل حالة تاريخي عند R10 |
 | `OWNERSHIP-AND-TRUTH-REGISTRY.md` | برنامج successor (PG-1) | كل دمج يغير ملكية/اسمًا/عددًا + مصالحة مؤرخة لكل موجة | حية v1.3 (مصالحة R1 مؤرخة 2026-10-07) | مرجع ملكية دائم للشجرة الحية |
 | `FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md` | برنامج successor | كل نقل/تقسيم/نمو شريطي | حية؛ §4 صُححت مؤرخًا في R1 | يُعاد قياسه عند كل رأس موجة |
 | `TEST-AND-DOCUMENTATION-MAP.md` | برنامج successor (مولدة الجزء الخرائطي) | أي تغيير هيكلي يمس الصفحات/الاختبارات/العقود (نفس-الـPR) | حية؛ §1/§2 صُححتا مؤرخًا في R1 (34/298 و55/5) | مولّدة من `generated/test-map.json` |

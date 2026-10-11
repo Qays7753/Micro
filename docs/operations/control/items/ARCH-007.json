@@ -167,7 +167,10 @@
     "https://github.com/Qays7753/Micro/pull/347",
     "https://github.com/Qays7753/Micro/commit/ec83fcaed23c2bad9a4dbd544f2e709b91a429a3",
     "https://github.com/Qays7753/Micro/commit/e80f750977cb3f0200a2db5e1627bb01627f9c09",
-    "https://github.com/Qays7753/Micro/actions/runs/38127377464"
+    "https://github.com/Qays7753/Micro/actions/runs/38127377464",
+    "https://github.com/Qays7753/Micro/pull/348",
+    "https://github.com/Qays7753/Micro/commit/507a28e22e89bd0e45843d88cdc548c766c51ab7",
+    "https://github.com/Qays7753/Micro/actions/runs/38129424451"
   ],
   "dependencies": [],
   "related_items": [
@@ -185,5 +188,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R9 VERIFIED_ON_MAIN: PR #347 merged as Merge commit e80f750977cb3f0200a2db5e1627bb01627f9c09 from source head ec83fcaed23c2bad9a4dbd544f2e709b91a429a3; post-merge CI run 38127377464 succeeded on the exact main SHA. The complete R9 implementation and systemic root-fix/evidence closure are verified on main. Next is R10 hostile final audit and closure: independently re-check the complete finding and principle matrix, all decisions, large-file classifications, public/deep-import/cycle/runtime boundaries, shims, registries, capabilities, adapter parity, tests, guards, generated artifacts, bundle measurements, and rollback boundaries. R10 requires its own preflight package, one dedicated branch/PR, five read-only reviewers, focused tests and CI, and owner authorization at the merge gate. Do not claim final program closure or perform cleanup in this reconciliation."
+  "next_action": "R9 VERIFIED_ON_MAIN: code merge PR #347 is e80f750977cb3f0200a2db5e1627bb01627f9c09; post-merge CI 38127377464 succeeded on that exact code SHA. Post-merge reconciliation PR #348 is merged at current main head 507a28e22e89bd0e45843d88cdc548c766c51ab7 with CI 38129424451 successful. The next authorized operation is R10 hostile final audit and closure; its own preflight, five read-only reviewers, focused tests, CI, dedicated branch/PR, and owner merge authorization are required. Do not claim final closure or perform cleanup in this control-head correction."
 }
