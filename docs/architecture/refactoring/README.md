@@ -1,6 +1,6 @@
 # Micro — Refactoring Control
 
-**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0–R10 (WS-216/ARCH-007) ACTIVE; R0–R9 VERIFIED ON MAIN (R9 merge e80f7509; CI 38127377464); R10 NOT STARTED`
+**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0–R10 (WS-216/ARCH-007) ACTIVE; R0–R9 VERIFIED ON MAIN (R9 code merge e80f7509; current main 507a28e2 after docs reconciliation #348; R10 NOT STARTED)`
 **المرحلة الحالية:** `SUCCESSOR R10 HOSTILE FINAL AUDIT AND CLOSURE GATE; R9 VERIFIED_ON_MAIN; NO VISUAL UI CHANGE`
 **نوع المساحة:** مساحة تخطيط وتحكم لإعادة الهيكلة، وليست مصدرًا معماريًا منافسًا.
 
@@ -54,8 +54,8 @@
 | `ZAI-A-TO-Z-EXECUTION-CONTRACT.md` | عقد تنفيذ برنامج A-to-Z السابق (تاريخي منجز) | موجود (منجز بالكامل — دمج #311) |
 | `skills/micro-a-to-z-structural-refactoring/SKILL.md` | مهارة التشغيل والإفتيش المشتقة من الخطة | موجودة (v1.0 — Wave A0) |
 | `ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md` | عقد التنفيذ الإنجليزي الكامل للبرنامج التالي من R0 إلى W10، بما في ذلك التوقفات والاختبارات والـPRs | مقبول من المالك؛ W0–W10 متحقق ومغلق على main (PR #316 — 2026-10-06) |
-| `STRUCTURAL-REMEDIATION-PLAN-20261007.md` | الخطة الجذرية المعتمدة ومصفوفة تتبع نتائج Structure وFlash لبرنامج successor | مقبولة من المالك؛ R0–R9 متحققة على main عند `e80f750977cb3f0200a2db5e1627bb01627f9c09`؛ R10 هي بوابة التدقيق العدائي والإغلاق التالية |
-| `ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md` | عقد التنفيذ المتسلسل لبرنامج successor، وبوابات R0–R10 وPRs والرجوع | `WS-216/ARCH-007`؛ R0–R9 متحققة على main عند `e80f750977cb3f0200a2db5e1627bb01627f9c09`؛ R10 preflight/التدقيق العدائي التالية، ولا إعلان إغلاق قبلها |
+| `STRUCTURAL-REMEDIATION-PLAN-20261007.md` | الخطة الجذرية المعتمدة ومصفوفة تتبع نتائج Structure وFlash لبرنامج successor | مقبولة من المالك؛ R0–R9 متحققة؛ كود R9 عند `e80f750977cb3f0200a2db5e1627bb01627f9c09`، ورأس main الحالي `507a28e22e89bd0e45843d88cdc548c766c51ab7` بعد مصالحة #348؛ R10 هي بوابة التدقيق العدائي والإغلاق التالية |
+| `ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md` | عقد التنفيذ المتسلسل لبرنامج successor، وبوابات R0–R10 وPRs والرجوع | `WS-216/ARCH-007`؛ R0–R9 متحققة؛ كود R9 عند `e80f750977cb3f0200a2db5e1627bb01627f9c09`، ورأس main الحالي `507a28e22e89bd0e45843d88cdc548c766c51ab7`؛ R10 preflight/التدقيق العدائي التالية، ولا إعلان إغلاق قبلها |
 
 ## القاعدة الأساسية
 

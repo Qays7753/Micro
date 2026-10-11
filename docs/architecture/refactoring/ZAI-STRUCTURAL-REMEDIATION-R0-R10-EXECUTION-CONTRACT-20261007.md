@@ -1,6 +1,6 @@
 # Micro — Structural Remediation R0–R10 Execution Contract
 
-**Status:** `OWNER_ACCEPTED — R0–R9_VERIFIED_ON_MAIN; R10_HOSTILE_FINAL_AUDIT_AND_CLOSURE_NOT_STARTED` *(updated 2026-10-11 after PR #347 Merge commit `e80f7509` and post-merge CI `38127377464` on the exact main SHA; R10 requires an independent final audit before closure)*
+**Status:** `OWNER_ACCEPTED — R0–R9_VERIFIED_ON_MAIN; R10_HOSTILE_FINAL_AUDIT_AND_CLOSURE_NOT_STARTED` *(updated 2026-10-11 after PR #347 code Merge commit `e80f7509` and post-merge CI `38127377464`; current main is `507a28e2` after documentation-only PR #348 and CI `38129424451`; R10 requires an independent final audit before closure)*
 
 **Owner authorization:** On 2026-10-07 the owner accepted the updated Arabic execution plan and its explicit traceability matrix, and authorized this program to start with the contract publication followed by R0. This contract operationalizes that plan. It does not replace `AGENTS.md`, financial/domain contracts, the canonical architecture plan, or live Operations Control.
 
@@ -16,9 +16,9 @@
 
 **Initial verified base:** `25594773a83ec5eb1e9dde5feaf1c808c0ff686f`
 
-**Current verified main (2026-10-11):** `e80f750977cb3f0200a2db5e1627bb01627f9c09` — R9 Merge commit from PR #347 (source head `ec83fcaed23c2bad9a4dbd544f2e709b91a429a3`); post-merge CI run `38127377464` succeeded on this exact SHA.
+**Current verified R9 code merge (2026-10-11):** `e80f750977cb3f0200a2db5e1627bb01627f9c09` — PR #347 (source head `ec83fcaed23c2bad9a4dbd544f2e709b91a429a3`); post-merge CI `38127377464` succeeded on that exact code SHA. **Current main control head:** `507a28e22e89bd0e45843d88cdc548c766c51ab7` after docs-only PR #348; CI `38129424451` succeeded.
 
-**Current phase:** R0–R9 are verified on main. R9 W1+W2+W3 and the owner-authorized systemic root-fix/evidence closure are complete and verified through PR #347 and post-merge CI. The next authorized operation is R10 hostile final audit and closure; it must independently re-check every finding, decision, large-file classification, public/deep-import/cycle/runtime boundary, shim, registry, capability, parity result, test, guard, generated view, bundle measure, and rollback boundary. R10 implementation/closure is not started by this reconciliation.
+**Current phase:** R0–R9 are verified on main. R9 W1+W2+W3 and the owner-authorized systemic root-fix/evidence closure are complete and verified through PR #347 at code merge e80f7509 and post-merge CI. The current main control head is 507a28e2 after documentation-only PR #348. The next authorized operation is R10 hostile final audit and closure; it must independently re-check every finding, decision, large-file classification, public/deep-import/cycle/runtime boundary, shim, registry, capability, parity result, test, guard, generated view, bundle measure, and rollback boundary. R10 implementation/closure is not started by this reconciliation.
 
 **Workstream:** `WS-216`
 

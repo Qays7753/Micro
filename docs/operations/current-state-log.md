@@ -2247,3 +2247,9 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - **الحالة:** `R9_VERIFIED_ON_MAIN`. يشمل ذلك W1/W2/W3، إصلاحات الجذر والاستمرارات الجذرية المصرح بها، وإغلاق الأدلة/السجلات المرتبطة بها، بما فيها F3.6/F3.7/G5.1/G5.2/F7.1/F8 وإصلاح إرساء بيئتي CI/Pages.
 - **الحدود:** لا تغيير مالي أو دلالي أو تاريخي أو Schema/Export/Import أو رفض أو أمان أو UI بصري في R9 أو في هذه المصالحة الإدارية؛ `localSchemaVersion=38` و`localExportVersion=30` محفوظان. لا حذف فروع أو PRs أو أدلة.
 - **الخطوة التالية:** `R10_HOSTILE_FINAL_AUDIT_AND_CLOSURE` — لم تبدأ. يجب أن يعيد التدقيق المستقل فحص كل finding وقرار ومبدأ وتصنيف ملف كبير وسطح عام وDeep Import ودورة وقناة runtime وشيم وسجل ملكية وقدرات وتكافؤ adapters والاختبارات والحراس والـgenerated views وقياسات الحزمة وحدود التراجع، ثم يثبت الإغلاق النهائي فقط على Merge commit متحقق على `main`. هذه المصالحة لا تُعد إغلاقًا نهائيًا للبرنامج.
+
+## §174 — 2026-10-11 — Reconcile current main head after PR #348
+
+- **Correction:** PR #348 was merged as documentation-only Merge commit `507a28e22e89bd0e45843d88cdc548c766c51ab7`; post-merge CI `38129424451` succeeded on that exact SHA. Therefore the current control head is `507a28e2`, while the R9 code-verification references remain `merge_sha=verified_on_main_sha=e80f750977cb3f0200a2db5e1627bb01627f9c09` and CI `38127377464`.
+- **Tracker rule:** `WS-216.base_sha` now points to current main `507a28e22e89bd0e45843d88cdc548c766c51ab7` for the next wave; it is intentionally separate from R9's code merge and verification SHAs. This removes the newly observed base/main drift without rewriting historical entries.
+- **Next:** R10 hostile final audit and closure remains not started; no R10 implementation or cleanup is included in this correction.

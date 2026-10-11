@@ -10,7 +10,7 @@
 
 **Spec:** تقريري `FLASH-PASS-A-PRINCIPLES-REVIEW-2026-10-04.md` و`STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-04.md`، ومرجع Micro المعماري، وعقد الملكية التقنية 40، وقرارات المالك المثبتة في هذه الخطة.
 
-**الحالة:** `OWNER_ACCEPTED — R0–R9_VERIFIED_ON_MAIN; R10_HOSTILE_FINAL_AUDIT_AND_CLOSURE_NOT_STARTED` *(تحديث مؤرخ 2026-10-11: PR #347 دُمج عند `e80f750977cb3f0200a2db5e1627bb01627f9c09` ونجح CI `38127377464` على الرأس نفسه؛ R10 هي بوابة التدقيق العدائي والإغلاق ولا يُعلن الإغلاق قبل إتمامها)*
+**الحالة:** `OWNER_ACCEPTED — R0–R9_VERIFIED_ON_MAIN; R10_HOSTILE_FINAL_AUDIT_AND_CLOSURE_NOT_STARTED` *(تحديث مؤرخ 2026-10-11: كود PR #347 دُمج عند `e80f750977cb3f0200a2db5e1627bb01627f9c09` ونجح CI `38127377464` على الرأس نفسه؛ رأس main الحالي `507a28e22e89bd0e45843d88cdc548c766c51ab7` بعد مصالحة #348؛ R10 هي بوابة التدقيق العدائي والإغلاق ولا يُعلن الإغلاق قبل إتمامها)*
 
 **خط البداية الحي الذي تم التحقق منه قبل كتابة الخطة:**
 
