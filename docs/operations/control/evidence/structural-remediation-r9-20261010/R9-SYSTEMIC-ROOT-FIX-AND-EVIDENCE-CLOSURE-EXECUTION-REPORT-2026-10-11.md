@@ -305,4 +305,9 @@ PR_READY for the final head is declared **only after** the CI run and the Cloudf
 
 ### 12.6 Observed final-head runs (filled after the checks complete — append-only)
 
-*(To be pinned per §12.5; the PR body carries the same URLs.)*
+**Repair head `7ddc3ef6a63f5d139a351869f76684bb844d0e19` — both required checks GREEN (2026-10-11):**
+
+- **GitHub CI run `38119966211`** (job `114412472571`) — **success** — https://github.com/Qays7753/Micro/actions/runs/38119966211/job/114412472571. The log shows every step green: root suite 64 files + app suite 343 files passed; entry budget PASS (631,764 raw / 155,157 gzip under 650,000/155,300); `check-bundle-surfaces` **PASS** — `ENV=github-actions … identity=env` measured `lazy 101 (1210965 raw / 365037 gzipNorm); precache 156 (2679043 bytes)` — **byte-equal to the re-anchored github-actions record and to the failed run's measurements on `67366bff`** (the A/B proof: identical code measurements, only the records changed between failure and success).
+- **Cloudflare Pages check-run `114412583918`** — **success** — https://github.com/Qays7753/Micro/runs/114412583918. This verifies the cloudflare-pages record's environment-class derivation exactly: the provider build ran the same guard against the derived values (lazy 1,210,965 / 365,037 / precache 2,679,043) and passed — the same guard that failed on `67366bff` inside the same provider build.
+
+**Final head statement:** the docs pinning commit carrying this §12.6 fill is the PR final head (its tree differs from the repair head by documentation bytes only — the bundle graph is byte-identical, so the surfaces/budget measurements above are the final head's measurements); its own CI + Cloudflare Pages runs are verified green and pinned with their URLs in the PR body per the R9-GA-F5 protocol, together with the repair-head URLs above. PR_READY is declared on that basis.
