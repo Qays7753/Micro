@@ -1,8 +1,11 @@
-/* R9 continuation — out-of-band REAL-BROWSER verification harness for F7 (R9-GA-F7).
+/* R9 systemic continuation — REAL-BROWSER verification harness for F7 (R9-GA-F7)
+ * and its read-side sibling F7.1, run against the committed adapter bundle
+ * (adapter-entry.js — built by build-adapter-entry.mjs.txt; hashes in
+ * f7-manifest.json).
  * Runs the adapter's hardened listener-failure paths against the browser's own
  * IndexedDB engine. NOT part of the repository: an execution-evidence harness only.
  * Scenario mirrors rollbackRehearsal.r9.test.ts RB-3 legs A + B. */
-import { IndexedDbLocalStore } from "./adapter-entry.ts";
+import { IndexedDbLocalStore } from "./adapter-entry.js";
 
 const TS = "2026-10-10T09:00:00.000Z";
 const results = {};

@@ -1,0 +1,37 @@
+{
+ "url": "http://127.0.0.1:42723/f7-page.html",
+ "bundleSha256": "b1d5fd5f53408ecb9068933c7dbefd17744b26940d05e72c3e9db989b63ec6a3",
+ "seed": {
+  "ok": true,
+  "count": 1
+ },
+ "legB": {
+  "ok": false,
+  "code": "storage_error",
+  "message": "Failed to execute 'put' on 'IDBObjectStore': () => \"poison\" could not be cloned."
+ },
+ "legB_state": {
+  "ok": true,
+  "count": 1,
+  "ids": [
+   "rb3-event"
+  ]
+ },
+ "legA": {
+  "ok": false,
+  "code": "storage_error",
+  "message": "Failed to execute 'put' on 'IDBObjectStore': () => \"poison\" could not be cloned."
+ },
+ "legA_state": {
+  "ok": true,
+  "count": 0
+ },
+ "verdict": {
+  "legB_honestFailure": true,
+  "legB_stateIntact": true,
+  "legA_honestFailure": true,
+  "legA_stateIntact": true,
+  "engine": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36"
+ },
+ "console": []
+}
