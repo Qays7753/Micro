@@ -1198,3 +1198,8 @@ Executed the canonical R10-B prompt's mandatory W0 phase. Live baseline re-deriv
 - The owner accepted the W0 evidence package and authorized the scoped R10-B1..B6 sequence on PR #354. This authorizes execution, not merge, and does not silently choose OD-8, OD-9, OD-12, or OD-13.
 - Protected channels remain explicit: no unmanifested financial, historical, Schema 38 / Export 30 / Import, rejection, security, or visual-UI change. OD-8 gates B2; OD-12 gates NF-015 in B4; OD-9 gates RC-4 in B5; applicable decisions must be recorded before their wave.
 - No code remediation, main write, merge, branch cleanup, or deletion occurred in this correction.
+
+
+## Entry 92 — 2026-10-11 — R10-B W0 post-merge verification; B1 next
+
+PR #354 merged as `c9fbac254319c84ff228ab686f72bc9aac7ce107` from source head `90c60e0ee14a5659144267c8aaafee150a02798d`; post-merge CI `38161910588` succeeded on the exact merge SHA. W0 is now VERIFIED_ON_MAIN. Its scope was W0 findings/evidence reconciliation, NF-013 contract correction, owner acceptance, and Operations Control only; no application-code remediation was performed. WS-216/ARCH-007 remain active for R10-B1..B6, with the current claim reopened on `main` and the next branch required to start from a fresh live `origin/main` snapshot. Protected decisions remain gated: OD-8 before B2, OD-12 before NF-015 in B4, OD-9 before RC-4 in B5, and other applicable owner decisions before their waves. The merged W0 source branch is no longer active; preserved UI and unmerged documentation branches were not deleted.

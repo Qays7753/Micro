@@ -2,7 +2,7 @@
   "id": "ARCH-007",
   "title": "الإصلاح البنيوي الجذري بعد تقريري Flash وStructure — مصفوفة التتبع وتنفيذ R0–R10",
   "type": "GOVERNANCE",
-  "status": "IN_REVIEW",
+  "status": "REOPENED",
   "priority": "P0",
   "stage": "structural-remediation-r0-r10-20261007",
   "summary": "تنفيذ الخطة الجذرية المعتمدة لإغلاق العيوب البنيوية الحالية، وتثبيت مصدر حقيقة واحد، ومعالجة التخزين والنقل والملفات الكبيرة والحراس والاختبارات، مع بوابة R0 قراءة فقط قبل أي كتابة كودية.",
@@ -180,7 +180,10 @@
     "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-REPAIR-CARDS-2026-10-11.md",
     "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-OWNER-DECISION-PACKAGE-2026-10-11.md",
     "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-SYNTHESIS-2026-10-11.md",
-    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-REPORTS-2026-10-11/"
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-REPORTS-2026-10-11/",
+    "https://github.com/Qays7753/Micro/pull/354",
+    "https://github.com/Qays7753/Micro/actions/runs/38161910588",
+    "https://github.com/Qays7753/Micro/commit/c9fbac254319c84ff228ab686f72bc9aac7ce107"
   ],
   "dependencies": [],
   "related_items": [
@@ -201,8 +204,26 @@
       "changed_at": "2026-10-11",
       "actor": "owner:explicit-w0-acceptance",
       "reason": "قبل المالك حزمة R10-B W0 بعد تصحيح بطاقة R10B-NF-013، وفوّض تسلسل B1..B6 ضمن الحواجز المحمية؛ تبقى قرارات OD-8/OD-9/OD-12/OD-13 عند بواباتها ولا يبدأ الكود المحمي قبلها."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-11",
+      "actor": "reconciliation:post-merge-354",
+      "reason": "PR #354 merged to main at c9fbac254319c84ff228ab686f72bc9aac7ce107; post-merge verification started."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-11",
+      "actor": "reconciliation:post-merge-354",
+      "reason": "CI run 38161910588 succeeded on the exact merge SHA; R10-B W0 is verified on main."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-10-11",
+      "actor": "reconciliation:post-merge-354",
+      "reason": "ARCH-007 remains active for R10-B1..B6; W0 is closed and verified, and B1 must be claimed separately from the new main snapshot."
     }
   ],
   "migration_baseline": true,
-  "next_action": "W0 accepted by owner on PR #354 after NF-013 card correction; authorize R10-B1 on this branch after PR checks. Keep protected gates explicit: OD-8 before B2, OD-12 before NF-015 in B4, OD-9 before RC-4 in B5, and OD-1..OD-7/OD-10/OD-11/OD-13 recorded before their applicable work. No silent financial, historical, Schema/Export/Import, rejection, security, or visual-UI change; no merge or cleanup in this slice."
+  "next_action": "R10-B W0 is VERIFIED_ON_MAIN at merge commit c9fbac254319c84ff228ab686f72bc9aac7ce107 (PR #354; post-merge CI 38161910588 succeeded). Begin R10-B1 only by creating a new dedicated branch from this exact main snapshot; B1 is docs/control-only. Keep OD-8 before B2, OD-12 before NF-015 in B4, OD-9 before RC-4 in B5, and record applicable OD-1..OD-7/OD-10/OD-11/OD-13 before their waves. No silent financial, historical, Schema/Export/Import, rejection, security, or visual-UI change; no direct main writes."
 }
