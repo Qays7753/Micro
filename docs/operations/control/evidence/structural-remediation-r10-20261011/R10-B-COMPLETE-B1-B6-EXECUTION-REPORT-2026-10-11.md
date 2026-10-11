@@ -70,7 +70,7 @@
 | `node scripts/check-registry-coverage.mjs` | ✅ 36 بيت تطبيق + 18 منطقة مجال |
 | `node scripts/check-skill-references.mjs` | ✅ 8 مهارات، كل المراجع تحل |
 | `node scripts/check-current-state-size.mjs` | ✅ ضمن السقف (يُعاد عند S5) |
-| `node scripts/check-file-size-ratchet.mjs` | ✅ PASS — 3 إرساءات موثقة (اثنتان لموجة B1: نمو تعليقات/اختبار F-036 فقط؛ صفر نمو غير مبرر) |
+| `node scripts/check-file-size-ratchet.mjs` | ✅ PASS — 3 إرساءات موثقة وقتها (اثنتان لموجة B1 F-036 + 1 سابقة R9؛ وصلت 8 بإرساءات B2 الأربع + تعليق RV1 — راجع §10) |
 | `git diff --check` | ✅ نظيف |
 
 **صنف الدليل:** VERIFIED محليًا على رأس الموجة؛ أدلة PR-CI تُلحق بعد الدفع (تُسجل في §8).
@@ -117,7 +117,7 @@
 | `pnpm typecheck` (الجذر) + `pnpm prototype:check` (tsc التطبيق) | ✅ الأخضران — *(بعد تصحيح بوابة RV1 لخطأين نوعيين في ملف السجل الجديد كانا يفشلان check التطبيق فقط)* |
 | `pnpm prototype:build` (بما فيه budget + surfaces) | ✅ — entry 631,652/155,090 تحت السقفين 650,000/155,300؛ الأسطح داخل الأساس المُرسى |
 | `node scripts/check-entity-touchpoints.mjs` | ✅ PASS |
-| `node scripts/check-file-size-ratchet.mjs` | ✅ PASS — 8 إرساءات موثقة (4 لكود RC-1 + 1 لحزمة سجلات B1 + 3 سابقة) |
+| `node scripts/check-file-size-ratchet.mjs` | ✅ PASS — 8 إرساءات موثقة (4 لكود RC-1 + 1 لتعليق بوابة RV1 + 2 لـB1/F-036 + 1 سابقة R9) |
 | rc1Gate / oracle / directInvocations | ✅ 8/8 + 11/11 + 10/10 |
 
 **صنف الدليل:** VERIFIED محليًا على رأس الموجة؛ أدلة PR-CI تُلحق بعد الدفع.

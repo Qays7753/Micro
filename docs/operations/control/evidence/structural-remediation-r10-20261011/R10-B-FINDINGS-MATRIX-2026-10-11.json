@@ -2340,13 +2340,14 @@
   },
   "severities": {
    "S3": 55,
-   "S2": 4,
+   "S2": 5,
    "S4": 12
   },
   "states": {
    "CONFIRMED": 64,
    "REFINED": 6,
-   "DISPROVED": 1
+   "DISPROVED": 1,
+   "CONFIRMED_AND_FIXED_IN_WAVE": 1
   },
   "notes": "R10A-F-023 disproved (FALSE_POSITIVE, retraction recorded). R10-A effective confirmed total: 36 of 37. New findings from W0-C systemic search: RV1 x9 (one folded into F-011), RV2 x7 (one design note), RV3 x7 (folded to 5), RV4 x11 (three folded into F-024/F-025/F-027), RV5 x9 -> consolidated to 34 stable IDs."
  },
