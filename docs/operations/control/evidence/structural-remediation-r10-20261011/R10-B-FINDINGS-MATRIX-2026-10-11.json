@@ -1472,6 +1472,12 @@
    "acceptance_criteria": "Scope decided and recorded.",
    "rollback_boundary": "n/a (decision).",
    "owner_decision_text": "OD-8: RC-1 scope - 4 owner families (minimal) vs 13 uncounted (uniform).",
+   "trigger_and_detection_method": {
+    "trigger": "Before R10-B2/RC-1 implementation or when the owner requests widening RC-1 after selecting the minimal scope.",
+    "detection": "Verify the recorded OD-8 choice matches the RC-1 family registry, required-array gate, counters characterization, and current-pair golden/MANIFEST plan; if uniform is chosen, verify all 13 applicable families are counted and covered.",
+    "review": "Owner review at the R10-B2/RC-1 entry gate; implementation review must confirm the selected scope and must not silently expand or narrow it.",
+    "exit": "OD-8 is recorded in the canonical owner-decision package and Tracker; RC-1 implements exactly that scope; counter/tamper/legacy/golden/parity tests pass; Schema 38 and Export 30 remain unchanged."
+   },
    "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
   },
   {

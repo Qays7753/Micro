@@ -209,3 +209,11 @@ No application code, test, guard, baseline, threshold, configuration, or generat
 
 R10B_W0_COMPLETE — OWNER_DECISION_REQUIRED
 NO_CODE_REMEDIATION_PERFORMED
+
+
+## 15. Post-publication owner-acceptance addendum — 2026-10-11
+
+The owner accepted the W0 package after the required documentation correction to `R10B-NF-013`. Its canonical matrix record now contains the complete `trigger_and_detection_method` contract (trigger, detection, review, and exit) while retaining the precise `DEFER` disposition because the RC-1 scope is still the protected `OD-8` decision. No application code, tests, guards, baselines, thresholds, configuration, or generated-view semantics were changed by this correction. The owner authorized the scoped R10-B1..B6 sequence, with OD-8, OD-9, OD-12, and OD-13 remaining explicit gates before their applicable work.
+
+`R10B_W0_ACCEPTED — EXECUTION_AUTHORIZED_WITH_PROTECTED_GATES`
+`NO_CODE_REMEDIATION_PERFORMED_IN_THIS_CORRECTION`

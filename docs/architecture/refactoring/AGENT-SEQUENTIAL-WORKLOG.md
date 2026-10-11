@@ -1188,3 +1188,13 @@ The final post-merge check exposed a control-model defect: treating `base_sha` a
 ## Entry 90 — 2026-10-11 — R10-B W0 reconciliation/research on dedicated branch (owner gate)
 
 Executed the canonical R10-B prompt's mandatory W0 phase. Live baseline re-derived (fetch -> origin/main ffc54eb1150932c9bba88b48a7c38275f2a3effa, no drift vs R10-A window; open PRs #344/#351/#352 unmerged; preserved UI branch untouched). Branch refactoring/r10b-systemic-findings-root-fix-20261011 created from that exact SHA. Five independent read-only specialist reviewers (RV1-RV5) re-verified all 37 R10-A findings from live source; the W0-C systemic search produced 34 new findings (R10B-NF-001..034). Canonical artifacts published under docs/operations/control/evidence/structural-remediation-r10-20261011/: W0 findings-reconciliation report, findings matrix JSON (71 complete records: 54 FIX_NOW in waves R10-B1..B6, 16 precise DEFER cards, 1 disproved retraction R10A-F-023), reads/locations matrix, unverified-research report (12 E-UNV items), repair cards, owner decision package (OD-1..OD-13), reviewer synthesis, and the five reviewer reports. WS-216/ARCH-007 evidence extended (JSON sources first, then official generator); current-state live fields updated; append-only logs extended. PILOT_EVIDENCE_REQUIRED corrected 17->14 (machine census). 2 of 3 BLOCKED blockers found stale (corrections staged for the B1 wave). PRESERVE cards re-ratified 9-10/10 elements. No code remediation performed: the branch contains W0 evidence, tracker sources, regenerated views, and live-state docs only. Stopped at the exact owner gate: R10B_W0_COMPLETE - OWNER_DECISION_REQUIRED / NO_CODE_REMEDIATION_PERFORMED. No merge, no cleanup, no branch deletion, no main writes.
+
+
+## Entry 91 — 2026-10-11 — R10-B W0 accepted; NF-013 contract corrected (WS-216/ARCH-007)
+
+**Executor:** Manus orchestration; no application writer in this correction.
+
+- Corrected the canonical matrix record `R10B-NF-013` by adding the missing complete `trigger_and_detection_method` object. The finding remains a precise `DEFER`/OD-8 scope decision; it was not silently converted to `FIX_NOW`, and no Transfer code or golden changed.
+- The owner accepted the W0 evidence package and authorized the scoped R10-B1..B6 sequence on PR #354. This authorizes execution, not merge, and does not silently choose OD-8, OD-9, OD-12, or OD-13.
+- Protected channels remain explicit: no unmanifested financial, historical, Schema 38 / Export 30 / Import, rejection, security, or visual-UI change. OD-8 gates B2; OD-12 gates NF-015 in B4; OD-9 gates RC-4 in B5; applicable decisions must be recorded before their wave.
+- No code remediation, main write, merge, branch cleanup, or deletion occurred in this correction.

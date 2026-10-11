@@ -2,7 +2,7 @@
   "id": "ARCH-007",
   "title": "الإصلاح البنيوي الجذري بعد تقريري Flash وStructure — مصفوفة التتبع وتنفيذ R0–R10",
   "type": "GOVERNANCE",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P0",
   "stage": "structural-remediation-r0-r10-20261007",
   "summary": "تنفيذ الخطة الجذرية المعتمدة لإغلاق العيوب البنيوية الحالية، وتثبيت مصدر حقيقة واحد، ومعالجة التخزين والنقل والملفات الكبيرة والحراس والاختبارات، مع بوابة R0 قراءة فقط قبل أي كتابة كودية.",
@@ -195,8 +195,14 @@
       "changed_at": "2026-10-07",
       "actor": "owner:approval-and-manus-orchestration",
       "reason": "اعتمد المالك الخطة ومصفوفة التتبع، وبدأت بوابة العقد ثم R0 القراءة فقط من الرأس الحي."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-11",
+      "actor": "owner:explicit-w0-acceptance",
+      "reason": "قبل المالك حزمة R10-B W0 بعد تصحيح بطاقة R10B-NF-013، وفوّض تسلسل B1..B6 ضمن الحواجز المحمية؛ تبقى قرارات OD-8/OD-9/OD-12/OD-13 عند بواباتها ولا يبدأ الكود المحمي قبلها."
     }
   ],
   "migration_baseline": true,
-  "next_action": "R10-B W0 COMPLETE at R10B_BASE_SHA ffc54eb1150932c9bba88b48a7c38275f2a3effa (branch refactoring/r10b-systemic-findings-root-fix-20261011, docs/evidence-only): all 37 R10-A findings + 34 new findings (R10B-NF-001..034) reconciled in the canonical R10-B findings matrix (54 FIX_NOW grouped into waves R10-B1..R10-B6, 16 precise DEFER cards, 1 disproved retraction R10A-F-023); 12 E-UNV limitations re-researched; 5 PRESERVE cards re-ratified 9-10/10; PILOT count corrected to 14; BLOCKED blockers 2/3 stale corrections staged. OWNER GATE: OD-6 (W0 acceptance + wave authorization) plus OD-1..OD-13 per the owner decision package. NO code remediation performed before owner approval. Next: owner decision, then waves R10-B1..R10-B6 on this branch; no merge, no cleanup, no branch deletion."
+  "next_action": "W0 accepted by owner on PR #354 after NF-013 card correction; authorize R10-B1 on this branch after PR checks. Keep protected gates explicit: OD-8 before B2, OD-12 before NF-015 in B4, OD-9 before RC-4 in B5, and OD-1..OD-7/OD-10/OD-11/OD-13 recorded before their applicable work. No silent financial, historical, Schema/Export/Import, rejection, security, or visual-UI change; no merge or cleanup in this slice."
 }

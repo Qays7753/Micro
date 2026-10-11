@@ -1,12 +1,12 @@
 {
   "id": "WS-216",
   "title": "الإصلاح البنيوي الجذري بعد مصالحة تقريري Flash وStructure — R0–R10",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "ARCH-007"
   ],
-  "branch": "main",
-  "base_sha": "507a28e22e89bd0e45843d88cdc548c766c51ab7",
+  "branch": "refactoring/r10b-systemic-findings-root-fix-20261011",
+  "base_sha": "ffc54eb1150932c9bba88b48a7c38275f2a3effa",
   "areas": [
     "architecture-governance",
     "docs/architecture/refactoring",
@@ -28,10 +28,10 @@
     "docs/architecture/refactoring/ZAI-STRUCTURAL-REMEDIATION-R0-R10-EXECUTION-CONTRACT-20261007.md"
   ],
   "agent": "Manus orchestration + Z AI sequential executor; R0 read-only first; one writer at a time",
-  "pr": null,
+  "pr": 354,
   "started_at": "2026-10-07",
   "updated_at": "2026-10-11",
-  "next_action": "R10-B W0 COMPLETE at R10B_BASE_SHA ffc54eb1150932c9bba88b48a7c38275f2a3effa (branch refactoring/r10b-systemic-findings-root-fix-20261011, docs/evidence-only): all 37 R10-A findings + 34 new findings (R10B-NF-001..034) reconciled in the canonical R10-B findings matrix (54 FIX_NOW grouped into waves R10-B1..R10-B6, 16 precise DEFER cards, 1 disproved retraction R10A-F-023); 12 E-UNV limitations re-researched; 5 PRESERVE cards re-ratified 9-10/10; PILOT count corrected to 14; BLOCKED blockers 2/3 stale corrections staged. OWNER GATE: OD-6 (W0 acceptance + wave authorization) plus OD-1..OD-13 per the owner decision package. NO code remediation performed before owner approval. Next: owner decision, then waves R10-B1..R10-B6 on this branch; no merge, no cleanup, no branch deletion.",
+  "next_action": "W0 accepted by owner on PR #354 after NF-013 card correction; authorize R10-B1 on this branch after PR checks. Keep protected gates explicit: OD-8 before B2, OD-12 before NF-015 in B4, OD-9 before RC-4 in B5, and OD-1..OD-7/OD-10/OD-11/OD-13 recorded before their applicable work. No silent financial, historical, Schema/Export/Import, rejection, security, or visual-UI change; no merge or cleanup in this slice.",
   "notes": [
     "اعتماد المالك في 2026-10-07 للخطة المحدثة ومصفوفة التتبع الكاملة المبنية على تقريري Structure وFlash.",
     "هذا successor مستقل؛ لا يعيد فتح WS-212 أو WS-214 أو WS-215 ولا يعدل عقودها التاريخية.",
@@ -74,7 +74,8 @@
     "2026-10-10 (استمرار R9 — إصلاح جذور ما بعد المراجعة، تفويض المالك على نفس الفرع/PR #347): نفّذ الاستمرار الحزم المخوّلة — المجموعة أ/ب/د (آلة حالة القراءة الصريحة لمحرري التراجع مع سطح خطأ قراءة فعلي وإعادة محاولة، وخروج الحفظ الناجح بعقد الرجوع S1-07، وتصحيح صفة alert لسطحي خطأ) في 56c47a27؛ المجموعة ج (هوية حتمية G5 بتسلسل JSON لكل المدخلات الدلالية الثمانية مع بادئة g5-ui: المجمدة، وتوثيق أثر مفاتيح النسق القديم) في c1d294b1؛ المجموعة هـ (تحصين 73 مستمع كتابة عبر 37 دالة + البدائية + تحرس الإحباط الأعزل في commitCashContinuity، بحمولة الخطأ الأصلي، مع تصحيح مؤرخ لدقة نص المواصفة في بطاقة R9-GA-F7) في 0bb51d1e. الأدلة: RB-3 خمسة اختبارات ببراهين سلبية مُتحققة بإزالة كل حرس على حدة؛ تحقق متصفح حقيقي خارج النطاق (Chromium حقيقي: فشل صادق بحمولة DataCloneError الأصلية وحالة سليمة؛ سطحا «لم نجد»؛ هوية G5 عبر الواجهة الفعلية) محفوظ في r9c-browser-evidence؛ سقفا الميزانية محفوظان (631,254/155,009)؛ الأشرطة والأسطح مُرساة في نفس الـPR. لا دمج — بوابة المالك.",
     "R9 systemic continuation (2026-10-11): the owner rejected the first continuation's 'future card' deferrals (PR #347 comments) and issued the systemic prompt at 3cf59707; the five read-only reviews ran pre-implementation and the repair matrix was committed before code; six new repair cards (F3.6-ERROR-ROLE-INVENTORY, F3.7, G5.1, G5.2, F7.1, F8) all CLOSED_WITH_EVIDENCE; no schema/export/financial/visual change; schema 38/export 30 verified.",
     "R9 post-push cloud-anchor repair (2026-10-11): the push of the systemic head 67366bff failed both required checks exactly on the three grown bundle surfaces — the cloud records of the R8-1 per-environment baseline had been left at 0bb51d1e while local was re-anchored per-group; the repair commit re-anchors github-actions to the exact CI-measured values (run 38118248772) and cloudflare-pages by the proven environment-class derivation, with the local head field corrected (dated); tolerances/ceilings/counts/guard code untouched; locally pre-verified by reproducing the CI build identity (both simulated cloud environments PASS). Full record: systemic report §12.",
-    "2026-10-11 (R9 post-merge verification): PR #347 merged as Merge commit e80f750977cb3f0200a2db5e1627bb01627f9c09 from source head ec83fcaed23c2bad9a4dbd544f2e709b91a429a3; origin/main points to the exact merge commit and post-merge CI run 38127377464 succeeded on that exact SHA. R9 is VERIFIED_ON_MAIN, including W1/W2/W3 and the owner-authorized systemic root-fix/evidence closure (F3.6/F3.7/G5.1/G5.2/F7.1/F8 and the cloud-anchor repair). No financial, semantic, historical, Schema/Export/Import, rejection, security, or visual-UI change was introduced. R10 hostile final audit and closure is next; no R10 implementation or cleanup began."
+    "2026-10-11 (R9 post-merge verification): PR #347 merged as Merge commit e80f750977cb3f0200a2db5e1627bb01627f9c09 from source head ec83fcaed23c2bad9a4dbd544f2e709b91a429a3; origin/main points to the exact merge commit and post-merge CI run 38127377464 succeeded on that exact SHA. R9 is VERIFIED_ON_MAIN, including W1/W2/W3 and the owner-authorized systemic root-fix/evidence closure (F3.6/F3.7/G5.1/G5.2/F7.1/F8 and the cloud-anchor repair). No financial, semantic, historical, Schema/Export/Import, rejection, security, or visual-UI change was introduced. R10 hostile final audit and closure is next; no R10 implementation or cleanup began.",
+    "2026-10-11 (R10-B W0 owner acceptance): the owner accepted W0 and authorized the scoped R10-B1..B6 sequence on PR #354 after the NF-013 DEFER-card contract correction. This does not choose OD-8/OD-9/OD-12/OD-13 silently: each remains a protected gate before its applicable wave. Protected channels remain closed to unmanifested financial, historical, Schema/Export/Import, rejection, security, or visual-UI changes."
   ],
   "merge_sha": "e80f750977cb3f0200a2db5e1627bb01627f9c09",
   "verified_on_main_sha": "e80f750977cb3f0200a2db5e1627bb01627f9c09",
@@ -162,7 +163,8 @@
     "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-REPAIR-CARDS-2026-10-11.md",
     "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-OWNER-DECISION-PACKAGE-2026-10-11.md",
     "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-SYNTHESIS-2026-10-11.md",
-    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-REPORTS-2026-10-11/"
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-REPORTS-2026-10-11/",
+    "https://github.com/Qays7753/Micro/pull/354"
   ],
   "status_history": [
     {
@@ -170,6 +172,12 @@
       "changed_at": "2026-10-07",
       "actor": "owner:approval-and-manus-orchestration",
       "reason": "اعتمد المالك الخطة ومصفوفة التتبع، وبدأ تثبيت عقد التنفيذ ثم R0 القراءة فقط من origin/main المتحقق عند 25594773a83ec5eb1e9dde5feaf1c808c0ff686f."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-11",
+      "actor": "owner:explicit-w0-acceptance",
+      "reason": "قبل المالك حزمة R10-B W0 بعد تصحيح بطاقة R10B-NF-013، وفوّض تسلسل B1..B6 ضمن الحواجز المحمية؛ تبقى قرارات OD-8/OD-9/OD-12/OD-13 عند بواباتها ولا يبدأ الكود المحمي قبلها."
     }
   ],
   "migration_baseline": true
