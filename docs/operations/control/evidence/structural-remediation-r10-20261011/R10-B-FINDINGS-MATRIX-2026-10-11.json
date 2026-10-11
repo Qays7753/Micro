@@ -1021,7 +1021,7 @@
    "implementation_status": {
     "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
     "wave": "R10-B1",
-    "closed_at_commit": "PENDING_SLICE5",
+    "closed_at_commit": "583b0738",
     "date": "2026-10-11",
     "evidence": "Phase-fact single-sourced: ZAI contract :3/:19/:21, plan :13, REFACTORING-CONTROL :188/:213 converted to dated pointers to current-state.md §9; generated views regenerated from JSON in same PR.",
     "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
@@ -2069,7 +2069,7 @@
    "implementation_status": {
     "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
     "wave": "R10-B1",
-    "closed_at_commit": "PENDING_SLICE5",
+    "closed_at_commit": "583b0738",
     "date": "2026-10-11",
     "evidence": "context.md live-state rows (:10-12 main/wave/claims, :75 PRE-PILOT 35->43, :87, :91) converted to dated pointers to current-state/AGENT-BRIEF/ACTIVE-WORK.",
     "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
@@ -2248,7 +2248,7 @@
    "implementation_status": {
     "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
     "wave": "R10-B1",
-    "closed_at_commit": "PENDING_SLICE5",
+    "closed_at_commit": "583b0738",
     "date": "2026-10-11",
     "evidence": "Verified: both R10-A record corrections (PILOT canonical count 14; INDEPENDENT-TRACKS attribution) are recorded in this matrix (summary.notes + NF-034 record) and were published to main via the W0 merge c9fbac25; owner acknowledgment rides the PR #352/#356 review. No further record change needed.",
     "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
@@ -2299,7 +2299,7 @@
      "scope": "SOP + 3 views + OD-13 PILOT detection specs + registry metadata (F-037/OD-13)"
     },
     {
-     "commit": "PENDING_SLICE5",
+     "commit": "583b0738",
      "scope": "phase-fact single-source pointers (F-033/NF-029) + NF-034 verification + closure records"
     }
    ],
