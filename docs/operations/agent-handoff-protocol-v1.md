@@ -16,6 +16,8 @@
 | هل القدرة منفذة فعليًا؟ | `main` + الاختبارات + PR المدمج + `current-state.md` |
 | ما المسموح بدءه الآن؟ | طلب المالك الحالي + `current-state.md` + سجلات Operations Control (`generated/AGENT-BRIEF.md` و`generated/ACTIVE-WORK.md`) *(تصحيح مؤرخ 2026-10-11 — R10-B1/R10A-F-032: كان المسار إلى `todo.md` — صار كعب توافق مجمدًا بقرار OD-06 ولا يُدار منه عمل)* |
 | كيف تبنى الشريحة؟ | العقد، `AGENTS.md`، المهارة ذات الصلة، وقالب الشريحة |
+| ما مسار العمل الكامل خطوة بخطوة؟ | `agent-development-sop-v1.md` (SOP الموحد — R10-B1/F-037) |
+| أين دليل تكافؤ التخزين والنقل/الذهبيات وما يثبته كل حارس؟ | `views/storage-parity-view.md` · `views/transfer-legacy-golden-view.md` · `views/guard-proves-view.md` (عروض إحالية) |
 | ماذا نؤجل أو نرفض؟ | خارطة القدرات وقرارات `docs/decisions/` |
 
 لا يتغلب `todo.md` أو وصف PR أو ذاكرة محادثة على عقد مالي. ولا يجوز لملف الحالة أن يعلن قدرة منفذة إذا لم يوجد كود وفحص ودمج على `main`.
