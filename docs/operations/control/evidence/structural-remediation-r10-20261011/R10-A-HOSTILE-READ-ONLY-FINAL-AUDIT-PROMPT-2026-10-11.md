@@ -853,6 +853,18 @@ EXACT_REMAINING_ITEMS_REPORTED
 
 Use this only when the audit report and ledgers are complete, even if findings remain.
 
+The `NO_*_WRITES_PERFORMED` lines above describe the **audit phase before publication**. If the separate post-audit publication phase is completed, append one additional publication line after those audit-status lines:
+
+```text
+R10_AUDIT_PUBLICATION: COMPLETED — <docs-only PR URL>
+```
+
+If the report was not published, append:
+
+```text
+R10_AUDIT_PUBLICATION: UNVERIFIED — <exact reason>
+```
+
 ### Incomplete audit delivery
 
 ```text
