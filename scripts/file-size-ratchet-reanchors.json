@@ -452,6 +452,42 @@
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
         "trigger": "R9 systemic continuation execution prompt, Group C (owner-authorized)"
       }
+    },
+    {
+      "id": "R9-CONTROL-BASE-SNAPSHOT-VALIDATOR",
+      "date": "2026-10-11",
+      "path": "scripts/operations-control/validate.py",
+      "from": {
+        "nbLoc": 368,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 377,
+        "band": "NORMAL"
+      },
+      "reason": "Root fix for the post-merge control defect: a long-lived main-branch program claim with no open PR keeps base_sha as its claim-base snapshot, while code branches and open-PR claims retain live drift warnings. The explicit predicate and documentation-grade explanation prevent every later documentation-only merge from creating a false reconciliation loop.",
+      "authorization": {
+        "ownerReview": "R9 post-merge control correction review in PR #350; owner merge authorization remains separate and explicit",
+        "trigger": "Final post-merge verification after PR #349 exposed base_sha self-drift; validator regression requires the snapshot-only main claim rule"
+      }
+    },
+    {
+      "id": "R9-CONTROL-BASE-SNAPSHOT-TEST",
+      "date": "2026-10-11",
+      "path": "scripts/operations-control/test_operations_control.py",
+      "from": {
+        "nbLoc": 99,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 104,
+        "band": "NORMAL"
+      },
+      "reason": "Regression coverage for the base_sha policy: a main-branch program claim with pr=null is snapshot-only, while assigning a PR makes it an active branch claim again. The test prevents future validator changes from reintroducing false current-main drift or suppressing drift for real open-PR work.",
+      "authorization": {
+        "ownerReview": "R9 post-merge control correction review in PR #350; owner merge authorization remains separate and explicit",
+        "trigger": "Required regression proof for the validator root fix; no production or financial behavior is changed"
+      }
     }
   ]
 }

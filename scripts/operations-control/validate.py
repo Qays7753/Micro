@@ -152,6 +152,18 @@ def scopes_overlap(left: str, right: str) -> bool:
     return left_norm == right_norm or left_norm.startswith(right_norm + "/") or right_norm.startswith(left_norm + "/")
 
 
+def is_snapshot_only_main_workstream(work: dict[str, Any]) -> bool:
+    """Whether a main-branch program claim intentionally keeps a base snapshot.
+
+    A long-lived control Workstream may remain on ``main`` with no open PR while
+    documentation-only reconciliation commits advance ``origin/main``. Its
+    ``base_sha`` is the claim-base snapshot, not a live pointer that must chase
+    every later merge. Code branches and open-PR claims still receive the drift
+    warning below.
+    """
+    return work.get("branch") == "main" and work.get("pr") is None
+
+
 def validate_history(record: dict[str, Any], allowed_statuses: set[str], transitions: dict[str, set[str]], label: str, errors: list[str]) -> None:
     history = record.get("status_history")
     if not isinstance(history, list) or not history:
@@ -349,7 +361,7 @@ def main() -> int:
                     errors.append(f"{wid}: active claim requires branch and full base SHA")
                 if not commit_exists(work.get("base_sha", "")):
                     errors.append(f"{wid}: base_sha is not a local commit")
-                elif work.get("base_sha") != main_ref:
+                elif work.get("base_sha") != main_ref and not is_snapshot_only_main_workstream(work):
                     warnings.append(f"{wid}: base_sha {work['base_sha']} differs from origin/main {main_ref}")
                 active.append((wid, work))
             elif work.get("status") in {"REVIEW_REQUIRED", "DEFERRED", "REOPENED"} and work.get("base_sha") and work.get("base_sha") != main_ref:
