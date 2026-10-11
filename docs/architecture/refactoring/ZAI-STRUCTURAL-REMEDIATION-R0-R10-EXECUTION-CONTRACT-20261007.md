@@ -1,6 +1,6 @@
 # Micro — Structural Remediation R0–R10 Execution Contract
 
-**Status:** `OWNER_ACCEPTED — R0–R8_VERIFIED_ON_MAIN; R9_REMEDIATION_IN_PROGRESS (W1+W2+W3 owner-authorized)` *(dated 2026-10-10 — R9/W1: was `R9_PREFLIGHT_GATE`; the preflight package was owner-accepted and the three-wave remediation authorized on branch `refactoring/r9-complete-w1-w2-w3-20261010` from `8b3c9aeb`; no merge — the PR stops at the owner gate)*
+**Status:** `OWNER_ACCEPTED — R0–R9_VERIFIED_ON_MAIN; R10_HOSTILE_FINAL_AUDIT_AND_CLOSURE_NOT_STARTED` *(updated 2026-10-11 after PR #347 Merge commit `e80f7509` and post-merge CI `38127377464` on the exact main SHA; R10 requires an independent final audit before closure)*
 
 **Owner authorization:** On 2026-10-07 the owner accepted the updated Arabic execution plan and its explicit traceability matrix, and authorized this program to start with the contract publication followed by R0. This contract operationalizes that plan. It does not replace `AGENTS.md`, financial/domain contracts, the canonical architecture plan, or live Operations Control.
 
@@ -16,9 +16,9 @@
 
 **Initial verified base:** `25594773a83ec5eb1e9dde5feaf1c808c0ff686f`
 
-**Current verified main (2026-10-10):** `87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e` — R8 Merge commit from PR #345; post-merge CI run `38060781329` succeeded on this exact SHA.
+**Current verified main (2026-10-11):** `e80f750977cb3f0200a2db5e1627bb01627f9c09` — R9 Merge commit from PR #347 (source head `ec83fcaed23c2bad9a4dbd544f2e709b91a429a3`); post-merge CI run `38127377464` succeeded on this exact SHA.
 
-**Current phase:** R0–R8 are verified on main. R9 preflight is complete and owner-accepted (the five-reviewer package and the canonical findings copy live under `docs/operations/control/evidence/structural-remediation-r9-20261010/`); the authorized W1+W2+W3 remediation is executing on `refactoring/r9-complete-w1-w2-w3-20261010` from `8b3c9aeb` — W1 documentation/Operations Control reconciliation, W2 genuine rollback rehearsals + root-fix of the discovered recovery defect, W3 direct tests for the five named pages. One PR at the end; no merge without owner authorization. *(dated correction 2026-10-10 — R9/W1: the preceding sentence described the preflight gate and is superseded as stated.)*
+**Current phase:** R0–R9 are verified on main. R9 W1+W2+W3 and the owner-authorized systemic root-fix/evidence closure are complete and verified through PR #347 and post-merge CI. The next authorized operation is R10 hostile final audit and closure; it must independently re-check every finding, decision, large-file classification, public/deep-import/cycle/runtime boundary, shim, registry, capability, parity result, test, guard, generated view, bundle measure, and rollback boundary. R10 implementation/closure is not started by this reconciliation.
 
 **Workstream:** `WS-216`
 
