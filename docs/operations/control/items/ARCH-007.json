@@ -231,5 +231,5 @@
   }
  ],
  "migration_baseline": true,
- "next_action": "R10-B1 COMPLETE on branch (PR #356; 20 findings + OD-13 specs; five-reviewer gate with amendments). Next: B2 (RC-1 + F-008 + F-010 + NF-009) with OD-8 gate before RC-1; OD-12 before B4/NF-015; OD-9 before B5/RC-4. IN_REVIEW after PR; MERGED_UNVERIFIED after owner merge; VERIFIED only with on-main evidence."
+ "next_action": "R10-B2 COMPLETE on branch (code 16108527; RC-1 + NF-035 + F-008/F-010/NF-009; OD-8 package pending owner ratification at PR review). Next: B3 (RC-2 + 8 more IDs). IN_REVIEW after PR; VERIFIED only with on-main evidence."
 }

@@ -273,7 +273,15 @@
    "required_tests": "Adapter conformance suites green; method-name census shows 130/130 named per corpus.",
    "acceptance_criteria": "Census script output shows zero unnamed methods in the storage-local corpus.",
    "rollback_boundary": "Test-only commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B2",
+    "closed_at_commit": "16108527",
+    "date": "2026-10-11",
+    "evidence": "adapterConformance.directInvocations.test.ts (10 tests, dual adapter): direct invocations for getOwnerProfile/saveOwnerProfile/saveSchedule/deleteDraft/deleteFormDraft/deleteLocalSecurity; census 130/130 named in the recursive storage-local corpus (was 6 unnamed).",
+    "evidence_class": "VERIFIED_LOCAL_SUITES (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-009",
@@ -306,7 +314,15 @@
    "required_tests": "New tamper test (drop families from re-sealed current file -> reject); counters characterization updated; legacy pairs still accepted (24 goldens unaffected); full transfer/golden suites; dual-adapter parity tests.",
    "acceptance_criteria": "Re-sealed current-pair file missing any owner family is REJECTED; legacy files still import; counts blocks on new exports include the 4 keys; export version stays 30; goldens regenerated through the official path with MANIFEST updated.",
    "rollback_boundary": "Single commit revert restores prior gates (no data migration; goldens re-pinned).",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B2",
+    "closed_at_commit": "16108527",
+    "date": "2026-10-11",
+    "evidence": "RC-1 minimal scope implemented: 4 owner families in LocalExportCounts/exportCountsOf (additive keys; 38/30 unchanged) + required-present on current-pair raw gate; goldens regenerated via GOLDEN_UPDATE=1 (2 current-pair + MANIFEST, 22 count keys); drop-and-reseal tamper test asserts rejection (localTransferService.rc1Gate.test.ts 8/8). OD-8 applied per the canonical prompt default (minimal + compile-complete registry) — owner ratification package: R10-B-OD8-RC1-SCOPE-DECISION-PACKAGE-2026-10-11.md.",
+    "evidence_class": "VERIFIED_LOCAL_SUITES (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-010",
@@ -334,7 +350,15 @@
    "required_tests": "New oracle tests green in root/prototype suites.",
    "acceptance_criteria": "Digest implementation proven against independent oracle; deviation documented.",
    "rollback_boundary": "Test-only commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B2",
+    "closed_at_commit": "16108527",
+    "date": "2026-10-11",
+    "evidence": "syncSha256.oracle.test.ts (11 tests): FIPS 180-4 official vectors (empty/abc/two-block/55-56-64-byte padding edges) + node:crypto cross-checks on representative JSON payloads incl. escaped-surrogate stringify output; CESU-8 lone-surrogate latent deviation + unreachability documented dated in syncSha256.ts (not corrected — gratuitous digest break, no beneficiary).",
+    "evidence_class": "VERIFIED_LOCAL_SUITES (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-011",
@@ -1446,7 +1470,15 @@
    "required_tests": "RC-1 test set.",
    "acceptance_criteria": "Non-array owner family rejected on current-pair files.",
    "rollback_boundary": "With RC-1 commit.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B2",
+    "closed_at_commit": "16108527",
+    "date": "2026-10-11",
+    "evidence": "Present-but-non-array owner values now REJECTED on both eras by the raw gate (verifyTransferArrayFamilies before migration); legacy absence stays acceptable. Was: silent coercion to [] in migration+validation.",
+    "evidence_class": "VERIFIED_LOCAL_SUITES (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-010",
@@ -2253,12 +2285,54 @@
     "evidence": "Verified: both R10-A record corrections (PILOT canonical count 14; INDEPENDENT-TRACKS attribution) are recorded in this matrix (summary.notes + NF-034 record) and were published to main via the W0 merge c9fbac25; owner acknowledgment rides the PR #352/#356 review. No further record change needed.",
     "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
    }
+  },
+  {
+   "original_finding_id": "R10B-NF-035",
+   "canonical_control_id_or_canonical_ledger_key": "R10B-LEDGER:R10B-NF-035",
+   "first_observed_sha": "2f78fba2e3d980590c75912345c1ea4d3a094efa",
+   "source_report_and_evidence": "R10-B2 implementation-time hostile probe (localTransferService prepareImport re-seal experiment, 2026-10-11) — discovered while root-fixing R10A-F-009; classification NEW (same defect family, broader than the named finding).",
+   "finding_classification": "NEW_FINDING",
+   "finding_state": "CONFIRMED_AND_FIXED_IN_WAVE",
+   "severity": "S2",
+   "current_behavior": "BEFORE R10-B2: every top-level structural gate ran on POST-migration data, and migrateTransferSnapshot null-coalesces every malformed/absent array family to [] — so a re-sealed current-pair file (attacker recomputes integrity digest and counts) could delete ANY family (even required ones like drafts) or replace it with a non-array value and still import cleanly: replaceSnapshot then wiped the affected stores and a re-export laundered the result. Probe evidence (pre-fix): non-array inventoryShortages/receivedLoans/assets ACCEPTED; deleted owner families ACCEPTED; deleted drafts ACCEPTED (all with recomputed digest+counts).",
+   "required_behavior": "Structural array-family gates must run on RAW data before migration: present-must-be-array for all 31 array families on both eras; required families (19 strict + 4 owner per RC-1) must be present on current-pair files; legacy keeps optional-if-absent.",
+   "root_cause": "The migration null-coalescing (correct per se for legacy seeding) silently defeated every top-level Array.isArray gate in validateSnapshot because validation ran after migration; only element-level relation checks and counts constrained re-sealed files.",
+   "affected_files_and_symbols": "apps/prototype-web/client/src/application/transfers/localTransferService.ts (prepareImport); transferSnapshotMigrations.ts (migrateTransferSnapshot); transferSnapshotValidation.ts (validateSnapshot top-level gate); NEW transferArrayFamilyRoles.ts (verifyTransferArrayFamilies + registry)",
+   "layers": [
+    "application",
+    "storage",
+    "transfer",
+    "security-adjacent"
+   ],
+   "impact": "Tamper-evidence integrity for re-sealed files across ALL families (owner money was the proven exploit; any family was launderable). No financial meaning change; import-time rejection only.",
+   "owner": "Micro owner (Qays7753) via WS-216/ARCH-007 R10-B program",
+   "related_items": [
+    "R10A-F-009",
+    "R10B-NF-009"
+   ],
+   "explicit_dependencies": [
+    "RC-1"
+   ],
+   "proposed_disposition": "FIX_NOW",
+   "minimum_safe_remediation": "Raw-structure gate before migration (implemented in-wave with RC-1).",
+   "required_tests": "Re-seal laundering matrix tests (drop/non-array across required+optional families, both eras) — localTransferService.rc1Gate.test.ts.",
+   "acceptance_criteria": "All re-seal laundering vectors rejected with honest messages; untampered round-trip green; legacy absence semantics preserved; census of gate families compile-complete via satisfies registry.",
+   "rollback_boundary": "Single commit revert (16108527) + golden re-pin via official path.",
+   "limitations": "Verified on Memory + fake-indexeddb adapters and FIPS/node:crypto oracles locally; PR-CI verification pending at record time.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B2",
+    "closed_at_commit": "16108527",
+    "date": "2026-10-11",
+    "evidence": "verifyTransferArrayFamilies raw gate wired in prepareImport (after integrity, before migration); 6/6 probe vectors now rejected; rc1Gate suite 8/8; full app suite 2,550/2,550.",
+    "evidence_class": "VERIFIED_LOCAL_SUITES (push/PR-CI pending at record time)"
+   }
   }
  ],
  "summary": {
-  "total_records": 71,
+  "total_records": 72,
   "r10a_original_findings": 37,
-  "r10b_new_findings": 34,
+  "r10b_new_findings": 35,
   "dispositions": {
    "FIX_NOW": 54,
    "DEFER": 16,
@@ -2304,6 +2378,23 @@
     }
    ],
    "note": "OD-13 executed (14 PILOT detection specs, docs-only). OD-1..OD-7 recorded per W0 acceptance; OD-8/OD-9/OD-12 remain explicit gates before B2/B5/B4 respectively."
+  },
+  {
+   "wave": "R10-B2",
+   "date": "2026-10-11",
+   "branch": "refactoring/r10b-complete-b1-b6-20261011",
+   "slices": [
+    {
+     "commit": "16108527",
+     "scope": "RC-1 raw-array gate + owner counts + compile-complete registry + goldens + F-008 direct invocations + F-010 digest oracle + ratchet ledger (4 entries)"
+    },
+    {
+     "commit": "RECORDS",
+     "scope": "bundle-surfaces re-anchor (3 environments, documented same-PR protocol) + OD-8 decision package + matrix/report/state records"
+    }
+   ],
+   "note": "OD-8 applied per the canonical prompt default (minimal 4 owner families + registry); owner ratification package published: R10-B-OD8-RC1-SCOPE-DECISION-PACKAGE-2026-10-11.md. NEW finding R10B-NF-035 (re-seal laundering family beyond owner money) discovered by hostile probe, fixed in-wave, recorded here.",
+   "summary_note": "total_records 71 -> 72 (R10B-NF-035 added)"
   }
  ]
 }
