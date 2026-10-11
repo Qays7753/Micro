@@ -318,9 +318,9 @@
    "implementation_status": {
     "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
     "wave": "R10-B2",
-    "closed_at_commit": "16108527",
+    "closed_at_commit": "dd1e320b",
     "date": "2026-10-11",
-    "evidence": "RC-1 minimal scope implemented: 4 owner families in LocalExportCounts/exportCountsOf (additive keys; 38/30 unchanged) + required-present on current-pair raw gate; goldens regenerated via GOLDEN_UPDATE=1 (2 current-pair + MANIFEST, 22 count keys); drop-and-reseal tamper test asserts rejection (localTransferService.rc1Gate.test.ts 8/8). OD-8 applied per the canonical prompt default (minimal + compile-complete registry) — owner ratification package: R10-B-OD8-RC1-SCOPE-DECISION-PACKAGE-2026-10-11.md.",
+    "evidence": "RC-1 minimal scope implemented: 4 owner families in LocalExportCounts/exportCountsOf (additive keys; 38/30 unchanged) + required-present on current-pair raw gate; goldens regenerated via GOLDEN_UPDATE=1 (2 current-pair + MANIFEST, 22 count keys); drop-and-reseal tamper test asserts rejection (localTransferService.rc1Gate.test.ts 8/8). OD-8 applied per the canonical prompt default (minimal + compile-complete registry) — owner ratification package: R10-B-OD8-RC1-SCOPE-DECISION-PACKAGE-2026-10-11.md. RV5-gate amendment: era-uniform presence (ALL families required on current) after RV5 proved optional-family deletion laundering; disclosed compatibility impact: pre-B2 30/38 exports (18-key counts) are rejected by the strict counts gate — declared in the OD-8 package §4/§6.2 (no production users; goldens regenerated).",
     "evidence_class": "VERIFIED_LOCAL_SUITES (push/PR-CI pending at record time)"
    }
   },
@@ -2322,9 +2322,9 @@
    "implementation_status": {
     "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
     "wave": "R10-B2",
-    "closed_at_commit": "16108527",
+    "closed_at_commit": "dd1e320b",
     "date": "2026-10-11",
-    "evidence": "verifyTransferArrayFamilies raw gate wired in prepareImport (after integrity, before migration); 6/6 probe vectors now rejected; rc1Gate suite 8/8; full app suite 2,550/2,550.",
+    "evidence": "verifyTransferArrayFamilies raw gate wired in prepareImport (after integrity, before migration); 6/6 probe vectors now rejected; rc1Gate suite 8/8; full app suite 2,550/2,550. RV5-gate amendment: the initial closure claim was DISPROVED by RV5 (optional-family deletion/null still laundered on current files — a full loan-ledger wipe proven E2E); the gate is now era-uniform (all 31 families required-present on current; legacy absence incl. null preserved) and the rc1Gate suite carries the deletion/null vectors (10 tests).",
     "evidence_class": "VERIFIED_LOCAL_SUITES (push/PR-CI pending at record time)"
    }
   }
@@ -2390,11 +2390,27 @@
      "scope": "RC-1 raw-array gate + owner counts + compile-complete registry + goldens + F-008 direct invocations + F-010 digest oracle + ratchet ledger (4 entries)"
     },
     {
-     "commit": "RECORDS",
-     "scope": "bundle-surfaces re-anchor (3 environments, documented same-PR protocol) + OD-8 decision package + matrix/report/state records"
+     "commit": "d64e7c2e",
+     "scope": "bundle-surfaces re-anchor (3 envs) + OD-8 decision package + matrix/report/state records"
+    },
+    {
+     "commit": "3321c7b2",
+     "scope": "RV1 gate amendments: registry type-correctness BLOCKER (-? mapped type + filter type-guard), fixture intent, records corrections"
+    },
+    {
+     "commit": "ece07258",
+     "scope": "RV4 gate amendments: matrix summary sub-tallies + report ratchet attribution"
+    },
+    {
+     "commit": "dd1e320b",
+     "scope": "RV5 gate amendment: era-uniform presence gate closes optional-family deletion/null laundering; rc1Gate 8->10 tests; bundle re-anchor #2"
+    },
+    {
+     "commit": "FINAL-RECORDS",
+     "scope": "final B2 records: implementation_log SHAs, F-009/NF-035 evidence updates, report/state/worklog gate records"
     }
    ],
-   "note": "OD-8 applied per the canonical prompt default (minimal 4 owner families + registry); owner ratification package published: R10-B-OD8-RC1-SCOPE-DECISION-PACKAGE-2026-10-11.md. NEW finding R10B-NF-035 (re-seal laundering family beyond owner money) discovered by hostile probe, fixed in-wave, recorded here.",
+   "note": "OD-8 applied per the canonical prompt default (minimal 4 owner families + registry); owner ratification package published: R10-B-OD8-RC1-SCOPE-DECISION-PACKAGE-2026-10-11.md. NEW finding R10B-NF-035 (re-seal laundering family beyond owner money) discovered by hostile probe, fixed in-wave, recorded here. Reviewer verdicts: RV1 FAIL->amended (type-correctness blocker fixed); RV2 PASS; RV3 PASS; RV4 PASS (2 minor docs fixed); RV5 FAIL_AS_CLOSED->amended (D1 laundering vectors closed; D2 compat impact disclosed; D3 SHAs recorded). Era-relabel observation (30/38->29/37 reopens deletion via the legacy path) recorded as a pre-existing designed legacy-acceptance trade-off for B6 re-examination, not a wave defect.",
    "summary_note": "total_records 71 -> 72 (R10B-NF-035 added)"
   }
  ]
