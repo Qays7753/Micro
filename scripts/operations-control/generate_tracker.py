@@ -31,8 +31,12 @@ def load(pattern: str) -> list[dict]:
 
 
 def md_cell(value: object) -> str:
+    # R10-B1/F-036 (2026-10-11): backtick escaping removed — it rendered literal `\`` artifacts in
+    # Markdown views (ACTIVE-WORK/AGENT-BRIEF branch cells). Backticks need no escaping inside
+    # GFM table cells (cells are pipe-delimited before inline parsing; code spans stay intra-cell),
+    # and the branch column deliberately wraps values in backticks to render as code.
     text = "" if value is None else str(value)
-    return text.replace("\\", "\\\\").replace("|", "\\|").replace("\r\n", "<br>").replace("\n", "<br>").replace("`", "\\`")
+    return text.replace("\\", "\\\\").replace("|", "\\|").replace("\r\n", "<br>").replace("\n", "<br>")
 
 
 def table(items: list[dict], *, include_action: bool = False) -> str:
