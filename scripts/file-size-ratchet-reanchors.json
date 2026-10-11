@@ -501,9 +501,9 @@
     "nbLoc": 199,
     "band": "NORMAL"
    },
-   "reason": "F-036 root-fix documentation: a 4-line comment block on md_cell explaining why backtick escaping was removed (GFM table cells are pipe-delimited before inline parsing; the branch column intentionally renders code spans) so the fix cannot be silently reverted by a future 'restore escaping' edit. Pure comment growth; zero executable-line change.",
+   "reason": "F-036 root-fix disclosure: a 4-line comment block documents why backtick escaping was removed from md_cell (GFM table cells are pipe-delimited before inline parsing; the branch column intentionally renders code spans) so the fix cannot be silently reverted. The nbLOC growth is comment-only; the executable change itself (the removed .replace) is the disclosed F-036 fix.",
    "authorization": {
-    "ownerReview": "R10-B1 five-reviewer wave gate (RV1-RV5) + owner review of PR #356; owner merge authorization remains separate and explicit",
+    "ownerReview": "R10-B1 five-reviewer wave gate (RV1-RV4 at wave head; RV5 hostile pass at the gate-fix head 5d2cb29a) + owner review of PR #356; owner merge authorization remains separate and explicit",
     "trigger": "Guard-semantic fix disclosure requirement (AGENTS 10.143 double-diff principle applied to guard-adjacent scripts); no production or financial behavior is changed"
    }
   },
@@ -521,7 +521,7 @@
    },
    "reason": "F-036 test-contract update: the markdown-cell test now pins the corrected rendering (backtick preserved, pipe escaped, newline converted) with a 2-line comment recording the R10-B1 date and rationale, so the old escaped-backtick expectation cannot be reintroduced silently. Chains over R9-CONTROL-BASE-SNAPSHOT-TEST (99->104) in the same PR window: from-baseline 99 -> 106.",
    "authorization": {
-    "ownerReview": "R10-B1 five-reviewer wave gate (RV1-RV5) + owner review of PR #356; owner merge authorization remains separate and explicit",
+    "ownerReview": "R10-B1 five-reviewer wave gate (RV1-RV4 at wave head; RV5 hostile pass at the gate-fix head 5d2cb29a) + owner review of PR #356; owner merge authorization remains separate and explicit",
     "trigger": "Required test update for the F-036 root fix; the test asserts the fix and fails under the old behavior"
    }
   }

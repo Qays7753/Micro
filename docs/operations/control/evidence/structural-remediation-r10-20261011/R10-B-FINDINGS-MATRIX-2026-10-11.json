@@ -1976,7 +1976,7 @@
    "finding_classification": "NEW_FINDING",
    "finding_state": "CONFIRMED",
    "severity": "S3",
-   "current_behavior": "LEGAL-001 blocked_reason is stale/false: cites FIN-007 as unmet, but FIN-007 has been VERIFIED since 2026-09-22 (893e3c864, WS-173/PR #211); the true remaining blocker is external (specialist selection, owner_decision field). Refutes R10-A's '3 BLOCKED carry exact blockers' for this item.",
+   "current_behavior": "LEGAL-001 blocked_reason is stale/false: cites FIN-007 as unmet, but FIN-007 has been VERIFIED since 2026-09-22 (89e3c864e6008f6d7ec558be4950425fff71d651, WS-173/PR #211); the true remaining blocker is external (specialist selection, owner_decision field). Refutes R10-A's '3 BLOCKED carry exact blockers' for this item.",
    "required_behavior": "Dated correction of blocked_reason to the real external blocker.",
    "root_cause": "Blocked item never re-derived when dependencies landed.",
    "affected_files_and_symbols": "items/LEGAL-001.json vs items/FIN-007.json",
