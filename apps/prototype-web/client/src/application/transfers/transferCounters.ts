@@ -27,6 +27,14 @@ export function exportCountsOf(snapshot: LocalStoreSnapshot): LocalExportCounts 
     receivedLoans: snapshot.receivedLoans?.length ?? 0,
     schedules: snapshot.schedules?.length ?? 0,
     drafts: snapshot.drafts?.length ?? 0,
+    /* R10-B2/RC-1 (R10A-F-009 — عائلات مال المالك الأربع داخل العدادات
+     * الصارمة؛ المفتاح إضافي والإصدار يبقى ٣٠ (الأزواج الموروثة بلا كتل
+     * عدادات أصلًا لا يمسها التغيير). السجل الكنوني للأدوار:
+     * transferArrayFamilyRoles.ts — نطاق OD-8 الأدنى.) */
+    ownerEntitlementPolicies: snapshot.ownerEntitlementPolicies?.length ?? 0,
+    ownerEntitlementRecords: snapshot.ownerEntitlementRecords?.length ?? 0,
+    ownerEntitlementOpeningBalances: snapshot.ownerEntitlementOpeningBalances?.length ?? 0,
+    ownerMovements: snapshot.ownerMovements?.length ?? 0,
   };
 }
 

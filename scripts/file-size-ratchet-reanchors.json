@@ -524,6 +524,78 @@
     "ownerReview": "R10-B1 five-reviewer wave gate (RV1-RV4 at wave head; RV5 hostile pass at the gate-fix head 5d2cb29a) + owner review of PR #356; owner merge authorization remains separate and explicit",
     "trigger": "Required test update for the F-036 root fix; the test asserts the fix and fails under the old behavior"
    }
+  },
+  {
+   "date": "2026-10-11",
+   "authorization": {
+    "ownerReview": "R10-B2 five-reviewer wave gate (RV1-RV4 at wave head; RV5 hostile pass at gate-fix head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+    "trigger": "Owner-approved RC-1/F-009 root fix (B2 wave): the 4 owner-money families enter the strict export counts and the current-pair raw-array gate; no financial meaning or rejection semantics change beyond the approved card"
+   },
+   "id": "R10B-B2-RC1-SERVICE-RAW-GATE",
+   "path": "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+   "from": {
+    "nbLoc": 306,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 315,
+    "band": "NORMAL"
+   },
+   "reason": "RC-1 raw-array gate wiring: prepareImport now calls verifyTransferArrayFamilies(candidate.data, isCurrent) after integrity and before migration (+9 lines call + dated rationale comment). Closes the re-seal laundering chain (R10A-F-009 exploit) — see localTransferService.rc1Gate.test.ts."
+  },
+  {
+   "date": "2026-10-11",
+   "authorization": {
+    "ownerReview": "R10-B2 five-reviewer wave gate (RV1-RV4 at wave head; RV5 hostile pass at gate-fix head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+    "trigger": "Owner-approved RC-1/F-009 root fix (B2 wave): the 4 owner-money families enter the strict export counts and the current-pair raw-array gate; no financial meaning or rejection semantics change beyond the approved card"
+   },
+   "id": "R10B-B2-RC1-COUNTERS-OWNER-FAMILIES",
+   "path": "apps/prototype-web/client/src/application/transfers/transferCounters.ts",
+   "from": {
+    "nbLoc": 62,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 70,
+    "band": "NORMAL"
+   },
+   "reason": "RC-1 count extension: the 4 owner-money families (ownerEntitlementPolicies/Records/OpeningBalances, ownerMovements) enter exportCountsOf with a dated comment; additive count keys only — export version stays 30 (OD-8 minimal scope; registry: transferArrayFamilyRoles.ts)."
+  },
+  {
+   "date": "2026-10-11",
+   "authorization": {
+    "ownerReview": "R10-B2 five-reviewer wave gate (RV1-RV4 at wave head; RV5 hostile pass at gate-fix head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+    "trigger": "Owner-approved RC-1/F-009 root fix (B2 wave): the 4 owner-money families enter the strict export counts and the current-pair raw-array gate; no financial meaning or rejection semantics change beyond the approved card"
+   },
+   "id": "R10B-B2-F010-SYNCSHA256-DOCS",
+   "path": "apps/prototype-web/client/src/lib/syncSha256.ts",
+   "from": {
+    "nbLoc": 112,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 125,
+    "band": "NORMAL"
+   },
+   "reason": "F-010 dated documentation block: the CESU-8 lone-surrogate latent deviation and its unreachability analysis (JSON.stringify never emits raw lone surrogates) + pointer to the new independent-oracle test syncSha256.oracle.test.ts (FIPS 180-4 vectors + node:crypto cross-check). Comment-only growth."
+  },
+  {
+   "date": "2026-10-11",
+   "authorization": {
+    "ownerReview": "R10-B2 five-reviewer wave gate (RV1-RV4 at wave head; RV5 hostile pass at gate-fix head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+    "trigger": "Owner-approved RC-1/F-009 root fix (B2 wave): the 4 owner-money families enter the strict export counts and the current-pair raw-array gate; no financial meaning or rejection semantics change beyond the approved card"
+   },
+   "id": "R10B-B2-RC1-TYPES-COUNT-KEYS",
+   "path": "apps/prototype-web/client/src/storage/local/types.ts",
+   "from": {
+    "nbLoc": 876,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 884,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "RC-1 type surface: LocalExportCounts gains the 4 owner-family count keys (additive; pair stays 38/30) with a dated comment. The file remains SPLIT_CANDIDATE-band with no band change; growth is the approved card's enumerated surface."
   }
  ]
 }

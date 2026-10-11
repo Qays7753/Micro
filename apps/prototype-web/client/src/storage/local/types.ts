@@ -134,6 +134,14 @@ export type LocalExportCounts = {
   expenseBudgets: number;
   /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة داخل العدادات الصارمة. */
   receivedLoans: number;
+  /* R10-B2/RC-1 (R10A-F-009): عائلات مال المالك الأربع داخل العدادات
+   * الصارمة — مفاتيح إضافية داخل المفتاح counts نفسه والإصدار يبقى ٣٠
+   * (الأزواج الموروثة بلا كتل عدادات لا يمسها التغيير؛ السجل الكنوني:
+   * application/transfers/transferArrayFamilyRoles.ts). */
+  ownerEntitlementPolicies: number;
+  ownerEntitlementRecords: number;
+  ownerEntitlementOpeningBalances: number;
+  ownerMovements: number;
 };
 /* المجموعة ٢ (عقد ٢٨ — مخزون انتقائي): مخزن ٣٢/نسخة ٢٤ أضافتا قرار المتابعة
  * ومعرفة رصيد البداية لكل مادة، ووسم معرفة التكلفة على الحركات، وربط الشراء

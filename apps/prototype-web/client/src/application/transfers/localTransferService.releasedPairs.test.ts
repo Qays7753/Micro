@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { LocalTransferService } from "./localTransferService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { syncSha256Hex } from "@/lib/syncSha256";
+import { TRANSFER_ARRAY_FAMILY_ROLES, countedArrayFamilyKeys } from "./transferArrayFamilyRoles";
 import { localExportVersion, localSchemaVersion, type LocalExportFile } from "@/storage/local/types";
 
 /* المجموعة ٢ (التحصين الكامل — HIGH-002/D-1): زوج ٨/١٧ صدر فعلًا مع الالتزام
@@ -321,18 +322,23 @@ function auditFixture817(file: typeof file817): void {
  * البيانات تعبر الترحيل والتحقق كاملين فتنجح المعاينة. زوج الإصدار الحالي
  * يحمل مظروفه الإلزامي (بصمة + عدادات) كما ينتجه المصدر الحقيقي. */
 function minimalFileForPair(version: number, schemaVersion: number): string {
-  const data = {
+  /* R10-B2/RC-1: الزوج الحالي يصدر دائمًا بكل عائلات المصفوفات (اللقطة
+   * الكاملة) — الملف الحالي الأدني الصادق يحملها كلها فارغة، وتُبنى من
+   * السجل الكنوني نفسه (TRANSFER_ARRAY_FAMILY_ROLES) فلا تتقادم. الأزواج
+   * الموروثة تبقى على لقطتها الأدنية التاريخية (الغياب = بذرة []). */
+  const data: Record<string, unknown> = {
     profile: null,
     preferences: null,
     drafts: [],
     orders: [],
     schedules: [],
     financialEvents: [],
-    /* زوج الإصدار الحالي يصدر دائمًا بعائلة الوقت الفعلي (readSnapshot)؛
-     * مسار الترحيل يتركها undefined للملف الحالي فتفشل البنية إن غابت. */
     actualTimeRecords: [] as unknown[],
   };
   const isCurrent = version === localExportVersion && schemaVersion === localSchemaVersion;
+  if (isCurrent) {
+    for (const family of Object.keys(TRANSFER_ARRAY_FAMILY_ROLES)) data[family] = [];
+  }
   return JSON.stringify({
     format: "micro-prototype-local-export",
     version,
@@ -342,29 +348,9 @@ function minimalFileForPair(version: number, schemaVersion: number): string {
     ...(isCurrent
       ? {
           integrity: { algorithm: "sha256", digest: syncSha256Hex(JSON.stringify(data)) },
-          counts: {
-            orders: 0,
-            directSales: 0,
-            financialEvents: 0,
-            supplierPurchases: 0,
-            cashWallets: 0,
-            cashContinuityEntries: 0,
-            materials: 0,
-            inventoryMovements: 0,
-            inventoryShortages: 0,
-            assets: 0,
-            loans: 0,
-            /* OPS-003 (عقد ٤١): عدادات عائلات المصروف المتكرر في الزوج الحالي. */
-            recurringExpenseSeries: 0,
-            recurringExpenseRevisions: 0,
-            recurringExpenseOccurrences: 0,
-            /* FIN-002 (عقد ٤٢): عدادات عائلة الميزانيات في الزوج الحالي. */
-            expenseBudgets: 0,
-            /* FIN-001 (WS-178 — Wave 6): عدادات عائلة القروض المستلمة في الزوج الحالي. */
-            receivedLoans: 0,
-            schedules: 0,
-            drafts: 0,
-          },
+          /* R10-B2/RC-1: العدادات الصارمة تُشتق من السجل الكنوني (٢٢ مفتاحًا
+           * بعد عائلات مال المالك الأربع) — لا قائمة يدوية تتقادم. */
+          counts: Object.fromEntries(countedArrayFamilyKeys().map(key => [key, 0])),
         }
       : {}),
   });
