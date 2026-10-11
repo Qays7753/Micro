@@ -12,6 +12,15 @@
 > `R9-POST-REVIEW-ROOT-FIX-EXECUTION-REPORT-2026-10-10.md`. البنود التي صارت متقادمة
 > هنا صُحّحت بتشطيب مؤرخ أدناه؛ تاريخ الموجات الثلاث يبقى صحيحًا كما هو لالتزاماته.
 
+> **تصحيح مؤرخ 2026-10-11 (الاستمرار الجذري):** بعد تقرير الاستمرار الأول، رفض
+> المالك إرجاء «المواقع الإضافية» كبطاقة مستقبلية وأصدر تفويض الاستمرار
+> الجذري (R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11 عند
+> `3cf59707`). أُغلق فيه: جرد الدور الدلالي الكامل (F3.6-ERROR-ROLE-INVENTORY)،
+> وثلاث صفحات إضافية من عائلة البلع/التحميل الأبدي (F3.7)، وجسر توافق مفاتيح G5
+> القديمة (G5.1)، ومفتاح مزيج المساهمة (G5.2)، وحارس قراءة listAll + الحارس
+> الاستاتيكي للمستمعات (F7.1)، وسلسلة أدلة المتصفح القابلة لإعادة الإنتاج (F8).
+> التقرير الكنوني: `R9-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-EXECUTION-REPORT-2026-10-11.md`.
+
 ## 1. Executive Summary
 
 R9 was executed as the owner authorized: one branch, three sequential waves, one PR, no merge. **W1** reconciled the documentation/evidence/Operations Control defects of the accepted preflight (N1–N10) and preserved the complete preflight evidence package in-repo for the first time. **W2** turned the rollback claims into direct rehearsal evidence (RB-1/RB-2, no test doubles on the durable legs, with a negative proof) and root-fixed the recovery defect discovered at Gate A (R9-GA-F1: `replaceIndexedDbSnapshot` non-atomic on synchronous queueing failures) inside the authorized boundary, with the ratchet drift ledgered and the bundle-surface delta re-anchored with provenance. **W3** added direct behavioral tests for the five named-reference pages (19 tests, real services, second-instance read-backs) with zero production/UI change, and recorded — without enshrining — the page-boundary defects the tests surfaced (including the new R9-W3-F1). All four five-reviewer gates passed (Gate B after two correction rounds that the hostile reviewer independently verified). The full `pnpm check` exits 0 on the final tree. The PR now stands at the owner gate; **merging is owner-only**. *(Dated continuation note 2026-10-10: the owner then authorized the root-fix continuation on the same PR — the five protected packages and the F7 deferral were executed; see the continuation addendum. The gate is again owner-only at the new head.)*

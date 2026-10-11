@@ -152,6 +152,49 @@ Every card below carries: exact evidence, root cause, impact, minimum safe remed
 
 ---
 
+### R9-GA-F3.6-ERROR-ROLE-INVENTORY — the owner's complete semantic error-role inventory (systemic continuation)
+- **Severity:** HIGH (accessibility truthfulness across the application) · **Relationship:** NEW (owner-assigned finding ID, PR #347 comment 2026-10-10) · **Disposition:** FIX_NOW — **CLOSED_WITH_EVIDENCE in the systemic continuation** (commit `da8747ca`).
+- **Numbering note (dated 2026-10-11):** the owner's hyphenated ID `R9-GA-F3.6-ERROR-ROLE-INVENTORY` is distinct from the pre-existing informational card `R9-GA-F3.6` (the ReceivedLoanDetail type-only import, OUT_OF_SCOPE with its exact trigger — unchanged by this finding). Both IDs remain stable; no card was rewritten.
+- **Evidence (complete deterministic inventory):** 99 `micro-field-error` elements (65 `role=alert`, 22 `role=status`, 12 role-less/dynamic) + 30 page-level error/not-found headed sections + complementary dynamic-role scans. Every occurrence classified semantically.
+- **Closed sub-families:** (a) 11 error-only message surfaces flipped `status`→`alert` (InventoryMovementEditor:935, DirectSaleEditor:891, EstimateDetail:203, MaterialEditor:308+479, Tools:218, ToolsIntegrity:157, CorrectionsLayer:221, SaleCollectionReversalSection:197, CostCalculator:545, CashAdjustmentEditor:143); (b) 9 mixed-tone single-element announcements split with tone-in-state per the canonical repo pattern (AgreementContextPanel:180, OwnerEntitlement:620, CashCount:216, CashDistribution:251, CostCalculator:550, FinancialEventEditor:959, Profile:301, Schedule:556+349 — the last carrying the current info-as-error mislabel «أُزيلت السعة اليومية.»); (c) 24 read-error paragraphs gained `role="alert"` (role-only, zero visual change); (d) PRESERVE with evidence: linkIssue advisory, empty-state guidance, cross-model review notice, inline row markers, static destructive warnings, loading surfaces, not-found pages.
+- **Regression evidence:** `ErrorAnnouncementSemantics.r9.dom.test.tsx` — the source contract (every error-only file carries alert on its micro-field-error surfaces; no prefix-sniffing remains; preserved sites stay status) + the CashCount behavior journey (error ⇒ alert, info ⇒ status + save-note).
+- **Acceptance:** every confirmed error/read-failure/validation-failure surface announces `role="alert"`; `role="status"` only where semantically correct; no CSS/layout change.
+- **Rollback:** revert `da8747ca`.
+
+### R9-GA-F3.7 — the swallowed-read/infinite-loading family recurrence (three more pages)
+- **Severity:** HIGH · **Relationship:** DEEPENS R9-GA-F3.1/.2 + R9-W3-F1 · **Disposition:** FIX_NOW — **CLOSED_WITH_EVIDENCE in the systemic continuation** (commit `da8747ca`).
+- **Evidence (REV2 systemic scan, beyond the owner's named list):** `CashAdjustmentEditor.tsx:70–84` — the exact old reversal-editor guard: unknown wallet id ⇒ infinite loading; read failure ⇒ mislabeled not-found with the message never rendered. `ScheduleEditor.tsx:195` — `phase === "error" || !schedule` collapsed into «الموعد غير متاح محليًا» with the error message discarded. `RecurringExpenseEditor.tsx:192` — read failure AND unknown series left `loaded` false ⇒ infinite loading with the message never rendered.
+- **Closed:** explicit read state machines (loading/ready/not-found/read-error + retry) mirroring the fixed reversal editors; `save()` phase guards. `InventoryMovementEditor:397`'s similar-looking guard is a verified false positive (references unconditionally set on success; the failure path renders the actual message — now with alert).
+- **Regression evidence:** three new direct page-journey files (9 tests). `StateRecovery.w44` phase regex extended (dated note).
+- **Rollback:** revert `da8747ca`.
+
+### R9-GA-G5.1 — G5 cross-format retry duplication (the legacy-key migration note, closed)
+- **Severity:** MEDIUM (development-stage only) · **Relationship:** DEEPENS R9-GA-F3.4's documented migration note · **Disposition:** FIX_NOW — **CLOSED_WITH_EVIDENCE in the systemic continuation** (commit `ecc4b963`).
+- **Evidence:** the F3.4 key-format change orphaned old-format keys — a genuinely identical retry across the boundary created a second semantically identical record.
+- **Closed (the Group B determination):** a **safe semantic compatibility lookup** in `createDeclaration` — after the exact-key miss, an eight-field exact comparison (direction, dueOn, amountMinor, source, note, knowledge, relatedOrderId, relatedEventId; trimmed-to-trimmed per the domain constructor) reuses the stored record regardless of key format. Cannot falsely reuse (fields, not keys), includes knowledge as identity, mutates nothing, identical on Memory and IndexedDB, covers imported old-format records. No schema/export version change (38/30); the exact-key fast path and the reversal identity untouched; the service remains a caller-key gate (the prompt's Group B explicitly offers canonical semantic comparison).
+- **Regression evidence:** +4 service tests (cross-format reuse incl. the IndexedDB parity leg, knowledge-difference no-reuse, colon-collision no-false-reuse). Negative proof: bridge disabled ⇒ exactly the two cross-format reuse tests fail; restored green. Transfers 289/289.
+- **Rollback:** revert `ecc4b963`.
+
+### R9-GA-G5.2 — contribution-mix grouping key collision (sibling identity builder)
+- **Severity:** LOW (display aggregation only) · **Relationship:** NEW · **Disposition:** FIX_NOW — **CLOSED_WITH_EVIDENCE in the systemic continuation** (commit `ecc4b963`).
+- **Evidence:** `src/domain/financial-analysis/policies.ts:291` — free-text `::` concatenation grouping key; a crafted itemName containing `::` merges distinct (name, unit) pairs.
+- **Closed:** collision-free JSON array key; grouping semantics unchanged for non-colliding inputs. Domain test: colliding pairs stay two mix rows.
+- **Rollback:** revert `ecc4b963`.
+
+### R9-GA-F7.1 — the listAll read-path listener hang (the F7 family's read side)
+- **Severity:** HIGH (latent; app-bricking hang) · **Relationship:** NEW (read-side sibling of R9-GA-F7) · **Disposition:** FIX_NOW — **CLOSED_WITH_EVIDENCE in the systemic continuation** (commit `ecf17620`).
+- **Evidence:** `indexedDbPrimitives.ts:119` — the `listAll` `onsuccess` body ran the caller's sort comparator unguarded; a synchronous throw escaped to the engine and the promise **never settled** — the page hangs in loading forever. Reachability: the same latent class as R9-GA-F1. Memory parity: the Memory adapter rejects on the same trigger (the documented divergence now covers the read path).
+- **Closed:** the listener body is guarded (in-body try/catch settling the honest `StorageResult` failure with the original error). **Permanent static guard:** `scripts/check-storage-listener-guards.mjs` (+ companion test, registered in the `pnpm guards` chain + CI, §4.3.1 guard #20) — every `onsuccess` assignment in the four storage boundary files must be `guardedSuccessListener`-wrapped or carry an in-body try/catch, with two documented exemptions.
+- **Regression evidence:** RB-4 (two malformed records; `listOrders` must settle `ok:false` with the original message within a bounded race). Negative proof: guard removed ⇒ RB-4 fails «listOrders never settled»; restored ⇒ 10/10. The static guard fails on its own negative fixtures.
+- **Rollback:** revert `ecf17620`.
+
+### R9-GA-F8 — browser-evidence artifact chain incomplete (the owner's second required correction)
+- **Severity:** MEDIUM (evidence/documentation integrity; not a code defect) · **Relationship:** NEW (owner finding) · **Disposition:** FIX_NOW — **CLOSED_WITH_EVIDENCE in the systemic continuation** (commit `91bd07ac`).
+- **Evidence:** `f7-harness.mjs.txt` imported `./adapter-entry.ts` — not committed; the README's «all artifacts preserved» claim was not reproducible from the repository alone.
+- **Closed:** the complete reproducible chain — the deterministic builder (lockfile-pinned esbuild 0.28.2), **the exact executed bundle committed** (`adapter-entry.js`, 246,768 bytes, SHA-256 `b1d5fd5f…`, rebuild verified byte-identical), the host page, a content-addressed manifest, and a **fresh real-browser run executed from the committed artifacts** (real Chromium `HeadlessChrome/156.0.8078.4` via playwright; both poisoned-write legs `ok:false` with the original DataCloneError message and intact state; zero console errors) recorded in `f7-verdict.json` + `f7-run.json`.
+- **Acceptance:** a clean checkout can reproduce exactly what was executed; no stale source claim remains.
+- **Rollback:** revert `91bd07ac`.
+
 ## Disposition summary
 
 | Card | Severity | Relationship | Disposition | Wave |
@@ -168,6 +211,12 @@ Every card below carries: exact evidence, root cause, impact, minimum safe remed
 | R9-GA-F2 | LOW | NEW | PRESERVE (by design) | W1 |
 | R9-GA-F3.1–.5 | HIGH/MED | NEW | ~~PROTECTED_DECISION_REQUIRED~~ → FIX_NOW — CLOSED_WITH_EVIDENCE (R9 continuation: 56c47a27 + c1d294b1) | continuation |
 | R9-GA-F3.6 | LOW | NEW | OUT_OF_SCOPE (exact trigger — unchanged; the import block was not edited) | reported |
+| R9-GA-F3.6-ERROR-ROLE-INVENTORY | HIGH | NEW (owner ID) | FIX_NOW — CLOSED_WITH_EVIDENCE (da8747ca; numbering note above) | systemic |
+| R9-GA-F3.7 | HIGH | DEEPENS F3.1/.2/W3-F1 | FIX_NOW — CLOSED_WITH_EVIDENCE (da8747ca) | systemic |
+| R9-GA-G5.1 | MEDIUM | DEEPENS F3.4 note | FIX_NOW — CLOSED_WITH_EVIDENCE (ecc4b963) | systemic |
+| R9-GA-G5.2 | LOW | NEW | FIX_NOW — CLOSED_WITH_EVIDENCE (ecc4b963) | systemic |
+| R9-GA-F7.1 | HIGH | NEW (F7 read side) | FIX_NOW — CLOSED_WITH_EVIDENCE (ecf17620) | systemic |
+| R9-GA-F8 | MEDIUM | NEW (owner finding) | FIX_NOW — CLOSED_WITH_EVIDENCE (91bd07ac) | systemic |
 | R9-GA-F4 | exec | NEW | FIX_NOW (adopted commands) | all waves |
 | R9-GA-F5 | MEDIUM | DEEPENS | FIX_NOW (protocol) | W1/final |
 | R9-GA-F6 | LOW | NEW | FIX_NOW (metadata row) | W1 |
