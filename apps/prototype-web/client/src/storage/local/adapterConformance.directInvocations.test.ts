@@ -47,7 +47,7 @@ const schedule: ScheduleEntry = {
 
 const orderDraft = {
   id: "draft-f008",
-  intent: "new_order",
+  intent: "customer_order",
   customerName: "سامي",
   orderName: null,
   itemName: "طلب اختبار",

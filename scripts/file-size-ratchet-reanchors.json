@@ -596,6 +596,24 @@
     "band": "SPLIT_CANDIDATE"
    },
    "reason": "RC-1 type surface: LocalExportCounts gains the 4 owner-family count keys (additive; pair stays 38/30) with a dated comment. The file remains SPLIT_CANDIDATE-band with no band change; growth is the approved card's enumerated surface."
+  },
+  {
+   "id": "R10B-B2-RV1-GATE-ANNOTATION",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts",
+   "from": {
+    "nbLoc": 1192,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 1197,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "R10-B2 five-reviewer gate amendment (RV1/D8): a dated 5-line annotation on validateSnapshot declaring transferArrayFamilyRoles.ts the canonical family-rule registry and this post-migration top-level gate a defense-in-depth belt (not the first rejection path). Comment-only growth; no band change.",
+   "authorization": {
+    "ownerReview": "R10-B2 five-reviewer wave gate (RV1 FAIL -> amendments applied; RV2-RV5 to follow on the gate-fix head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+    "trigger": "Reviewer-required source-of-truth annotation; no production or financial behavior is changed"
+   }
   }
  ]
 }

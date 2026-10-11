@@ -15,15 +15,17 @@
  * الاكتمال مفروض وقت الترجمة عبر satisfies على مفاتيح LocalStoreSnapshot
  * ذات النوع المصفوفي (سابقة influentialSnapshotFamilies.ts:22-114): أي
  * عائلة مصفوفية جديدة تُضاف للمخطط تكسر البناء حتى تُسجَّل هنا صراحة
- * بقرارها (بوابةً وعدًّا)، وأي عائلة «معدودة» بلا مفتاح في LocalExportCounts
- * (أو العكس) تكسر البناء أيضًا عبر تأكيدي النوع أدناه — «نسيت العدادات»
- * لم يعد ممكنًا بصمت.
+ * بقرارها (بوابةً وعدًّا). أما تطابق مفاتيح LocalExportCounts مع المعدودات
+ * فيثبته اختبار الجرد الزمني في transferCounters.migrations.characterization
+ * وrc1Gate (تطابق Runtime، لا تأكيد نوعي هنا — تصحيح RV1/B2 للصياغة).
  */
 import type { LocalExportCounts, LocalStoreSnapshot } from "@/storage/local/types";
 
-/** كل مفاتيح اللقطة التي قيمتها مصفوفة (اختيارية أو إلزامية). */
+/** كل مفاتيح اللقطة التي قيمتها مصفوفة (اختيارية أو إلزامية). (-? يزيل
+ * اختيارية المفتاح من نتيجة الخريطة وإلا تسربت undefined إلى اتحاد
+ * المفاتيح فكسرت satisfies — مكتشف بوابة RV1/B2.) */
 type ArrayFamilyKey = {
-  [K in keyof LocalStoreSnapshot]: LocalStoreSnapshot[K] extends readonly unknown[] | undefined ? K : never;
+  [K in keyof LocalStoreSnapshot]-?: LocalStoreSnapshot[K] extends readonly unknown[] | undefined ? K : never;
 }[keyof LocalStoreSnapshot];
 
 export type TransferArrayFamilyRole = {
@@ -87,10 +89,11 @@ export type CountedArrayFamilyKey = {
  * وتطابق مفاتيح LocalExportCounts مع المعدودات هنا يثبته اختبار التوصيف
  * transferCounters.migrations.characterization.test.ts وليس هذا الملف.) */
 
-/** مفاتيح العائلات المعدودة بترتيب السجل — لاختبار التطابق الكنوني. */
+/** مفاتيح العائلات المعدودة بترتيب السجل — لاختبار التطابق الكنوني
+ * (الحارس النوعي مرسل الترميز أدناه يفرض الاتحاد). */
 export function countedArrayFamilyKeys(): readonly CountedArrayFamilyKey[] {
   return (Object.keys(TRANSFER_ARRAY_FAMILY_ROLES) as Array<keyof typeof TRANSFER_ARRAY_FAMILY_ROLES>).filter(
-    key => TRANSFER_ARRAY_FAMILY_ROLES[key].counted,
+    (key): key is CountedArrayFamilyKey => TRANSFER_ARRAY_FAMILY_ROLES[key].counted,
   );
 }
 

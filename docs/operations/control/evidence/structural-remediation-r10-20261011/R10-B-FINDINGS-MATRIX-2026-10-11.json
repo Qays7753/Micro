@@ -2334,7 +2334,7 @@
   "r10a_original_findings": 37,
   "r10b_new_findings": 35,
   "dispositions": {
-   "FIX_NOW": 54,
+   "FIX_NOW": 55,
    "DEFER": 16,
    "OUT_OF_SCOPE": 1
   },
