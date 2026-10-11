@@ -434,6 +434,24 @@
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
         "trigger": "R9 systemic continuation execution prompt, Group B (owner-authorized)"
       }
+    },
+    {
+      "id": "R9-SYS-C-IDEDB-PRIMITIVES-LISTALL-GUARD",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts",
+      "from": {
+        "nbLoc": 106,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 132,
+        "band": "NORMAL"
+      },
+      "reason": "R9-GA-F7.1 (covering this PR's full drift for the file — chains over R9-GA-F7-ROOT-FIX-PRIMITIVE 106->120 from the first continuation): the writeOneIdempotent listener hardening (first continuation) and the listAll read-path guard (this continuation — an in-body try/catch settling a sort-comparator throw as an honest StorageResult failure with the original error instead of an unresolved promise) bring the file 106 -> 132.",
+      "authorization": {
+        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+        "trigger": "R9 systemic continuation execution prompt, Group C (owner-authorized)"
+      }
     }
   ]
 }

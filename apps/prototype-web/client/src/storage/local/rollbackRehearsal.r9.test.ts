@@ -615,3 +615,49 @@ describe("R9-W2 RB-2 — migration failure / recovery cycle (owner path)", () =>
     expect(migrated.expenseBudgets).toEqual([]);
   });
 });
+
+/* R9-GA-F7.1 (استمرار R9 الجذري — الوجه القرائي لعائلة F7): جسم مستمع
+ * نجاح listAll كان يستدعي مقارن الترتيب بلا التقاط — سجل مشوّه يُفشِل
+ * المقارن كان يهرب الرمي إلى المحرك فلا يُحسم الوعد أبدًا وتبقى الصفحة
+ * في التحميل الأبدي. البروفة: سجلان (سليم + مشوّه updatedAt رقمية) ثم
+ * قراءة القائمة داخل سباق محدود — الحارس يحسم الفشل بالخطأ الأصلي،
+ * وإزالته تُعلّق القراءة فيفشل السباق (الإثبات السلبي). */
+describe("R9C RB-4 (R9-GA-F7.1) — the listAll read path settles honestly when a sort comparator throws on a malformed stored record", () => {
+  it("a malformed record resolves listOrders as an honest storage failure with the original error message — never an unresolved promise", async () => {
+    const store = new IndexedDbLocalStore();
+    /* بذر سجلين مباشرة عبر المهايئ (writeOne بلا تحقق — نفس مسار الإنتاج):
+     * سليم + مشوّه (updatedAt رقمية) — المقارن يستدعي localeCompare عليها. */
+    /* سجلان مشوّها التاريخ (updatedAt رقمية لا نصية): أي استدعاء للمقارن
+     * يرمي — اتجاه الاستدعاء غير ذي صلة لأن كلا الطرفين فاسد. */
+    const first = await store.saveOrder({
+      id: "rb4-order-a",
+      order: { status: "delivered" },
+      updatedAt: 17_294_400_000,
+      events: [],
+    } as unknown as Parameters<typeof store.saveOrder>[0]);
+    if (!first.ok) throw new Error(first.message);
+    const second = await store.saveOrder({
+      id: "rb4-order-b",
+      order: { status: "delivered" },
+      updatedAt: 17_295_000_000,
+      events: [],
+    } as unknown as Parameters<typeof store.saveOrder>[0]);
+    if (!second.ok) throw new Error(second.message);
+
+    const listing = await Promise.race([
+      store.listOrders(),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("RB-4: listOrders never settled — the read hang regression")),
+          2_000,
+        ),
+      ),
+    ]);
+    /* الفشل الصادق: ok:false برسالة الخطأ الأصلي نفسها، لا تعليقًا أبدًا. */
+    expect(listing.ok).toBe(false);
+    if (!listing.ok) {
+      expect(listing.code).toBe("storage_error");
+      expect(listing.message).toContain("localeCompare");
+    }
+  });
+});
