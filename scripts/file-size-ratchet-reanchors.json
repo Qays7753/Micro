@@ -1,493 +1,529 @@
 {
-  "version": 1,
-  "schema": "micro-file-size-ratchet-reanchors/1",
-  "comment": "R8-2: the single documented authorization path for baseline value increases. Each entry: id, date, path, from{nbLoc,band}, to{nbLoc,band}, reason, authorization{ownerReview, trigger}. The drift audit chain-validates from == merge-base baseline value. Entries authorize growth UP TO to.nbLoc; they are bounded per-path authorizations, never blanket exemptions.",
-  "entries": [
-    {
-      "id": "R8-3-RULE-R7",
-      "date": "2026-10-10",
-      "path": "scripts/check-module-boundaries.mjs",
-      "from": {
-        "nbLoc": 398,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 431,
-        "band": "WATCH"
-      },
-      "reason": "R8-3 adds boundary rule R7 (component->page forbidden class, R8-F-019): rule block, baseline list, stats field, and CLI summary. The file was already 2 nbLOC under the WATCH threshold at main (register section 7 documents it as watched-until-R8); the rule addition crosses it.",
-      "authorization": {
-        "ownerReview": "R8 PR review (WS-216/ARCH-007) — this entry is part of the R8 PR diff",
-        "trigger": "R8 execution prompt section 8, R8-3: the new rule must be measured and documented same-PR"
-      }
-    },
-    {
-      "id": "R8-4-CI-ANCHOR",
-      "date": "2026-10-10",
-      "path": "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
-      "from": {
-        "nbLoc": 76,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 108,
-        "band": "NORMAL"
-      },
-      "reason": "the github-actions environment record anchored from the documented CI bootstrap (run 38046254527) adds the record block and the environment-convergence provenance note; the file is measurement data whose size tracks anchor provenance, and the growth is documented through this ledger entry rather than by excluding the file from scope mid-PR",
-      "authorization": {
-        "ownerReview": "R8 PR review (WS-216/ARCH-007) — part of the R8 PR diff",
-        "trigger": "R8-4 CI bootstrap anchoring per the R8-1 documented protocol"
-      }
-    },
-    {
-      "id": "R8-N1-ROOT-FIX",
-      "date": "2026-10-10",
-      "path": "apps/prototype-web/scripts/check-bundle-surfaces.mjs",
-      "from": {
-        "nbLoc": 457,
-        "band": "WATCH"
-      },
-      "to": {
-        "nbLoc": 467,
-        "band": "WATCH"
-      },
-      "reason": "R8-N1 root-fix closure (owner decision FIX_NOW): duplicate precache URLs in the generated sw.js change from measured-and-reported to a hard fail-closed error (DUPLICATE_PRECACHE_URLS with the full duplicate list in the message) — failure-code table entry, the fail branch itself, and the dated header comment; the report-only console line and the duplicatePrecacheUrls normalization field are removed as dead paths. Guard strengthening only: no tolerance, ceiling, or baseline semantics touched.",
-      "authorization": {
-        "ownerReview": "R8-N1 continuation review (WS-216/ARCH-007) — owner classified R8-N1 as FIX_NOW; this entry is part of the R8 PR #345 diff",
-        "trigger": "R8-N1 root-fix continuation prompt: deterministic tests must fail if the duplicate condition returns; the guard must fail closed on malformed or unsafe output"
-      }
-    },
-    {
-      "id": "R9-GA-F1-ROOT-FIX",
-      "date": "2026-10-10",
-      "path": "apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts",
-      "from": {
-        "nbLoc": 430,
-        "band": "WATCH"
-      },
-      "to": {
-        "nbLoc": 451,
-        "band": "WATCH"
-      },
-      "reason": "R9-GA-F1 root-fix (owner-authorized W2 recovery-defect boundary): replaceIndexedDbSnapshot was non-atomic on synchronous queueing failures — a put() throw (e.g. DataCloneError) escaped the Promise executor before the onerror/onabort handlers were attached, so the readwrite transaction auto-committed the already-queued clear()+put() requests and destroyed the previous state while the caller received an honest failure (proven experimentally on fake-indexeddb at Gate A). The fix wraps the queueing section in try/catch, calls a guarded transaction.abort() on throw, and rethrows the original error so the failure payload is byte-identical to today's contract. Growth = the try/catch scaffold + two dated header comment blocks; no behavior change on any success or async-failure path (regression proof: rollbackRehearsal.r9.test.ts leg 1 fails with the abort disabled, passes with it; legs 2-4 and the full storage/transfers suites green).",
-      "authorization": {
-        "ownerReview": "Owner-authorized R9 execution contract, section 9 (W2): root-fix of any current recovery defect found within the approved boundary; R9 repair card R9-GA-F1; Gate B storage reviewer design approval (abort-then-rethrow, guarded).",
-        "trigger": "R9-GA-F1 discovery during the authorized R9 W2 rollback rehearsals"
-      }
-    },
-    {
-      "id": "R9-GA-F3-ROOT-FIX-CASH-REVERSAL",
-      "date": "2026-10-10",
-      "path": "apps/prototype-web/client/src/pages/CashReversalEditor.tsx",
-      "from": {
-        "nbLoc": 177,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 220,
-        "band": "NORMAL"
-      },
-      "reason": "R9-GA-F3.1 + R9-W3-F1 root fix: the explicit four-phase read state machine (loading/ready/not-found/read-error) replaces the defective !entry/!message render guard that made the not-found surface unreachable on the success path and swallowed read failures into it; adds the read-error surface (ReceivedLoanDetail pattern: back button + actual message + retry) and the retry token, with the save() phase guard.",
-      "authorization": {
-        "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
-        "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-GA-F3-ROOT-FIX-INVENTORY-REVERSAL",
-      "date": "2026-10-10",
-      "path": "apps/prototype-web/client/src/pages/InventoryReversalEditor.tsx",
-      "from": {
-        "nbLoc": 128,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 170,
-        "band": "NORMAL"
-      },
-      "reason": "R9-GA-F3.2 + R9-GA-F3.3 + R9-GA-F3.5 + R9-W3-F1 root fix: the same four-phase read state machine as the cash reversal editor (not-found reachable, read failures rendered with their actual message + retry), the successful-save exit switched from the undocumented hardcoded /inventory to the S1-07 return-path contract (navigate(returnPath)), and the form error paragraph role corrected to alert.",
-      "authorization": {
-        "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
-        "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-GA-F3-ROOT-FIX-CASH-WALLET-ROLE",
-      "date": "2026-10-10",
-      "path": "apps/prototype-web/client/src/pages/CashWalletEditor.tsx",
-      "from": {
-        "nbLoc": 132,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 135,
-        "band": "NORMAL"
-      },
-      "reason": "R9-GA-F3.5 root fix: the form message paragraph is an actual error surface (validation gate or save failure) and is now announced with role=alert, matching the repo-wide micro-field-error convention.",
-      "authorization": {
-        "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
-        "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-GA-F3-ROOT-FIX-G5-KEY",
-      "date": "2026-10-10",
-      "path": "apps/prototype-web/client/src/pages/G5DeclarationEditor.tsx",
-      "from": {
-        "nbLoc": 238,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 256,
-        "band": "NORMAL"
-      },
-      "reason": "R9-GA-F3.4 root fix: the idempotency key derivation serializes all eight persisted semantic inputs (direction, dueOn, amountMinor, source, note, knowledge, relatedOrderId, relatedEventId) through JSON with the frozen g5-ui: prefix — closing both the knowledge omission (a knowledge-differing correction was silently swallowed as reused) and the free-text colon-collision hole; schema/export versions untouched.",
-      "authorization": {
-        "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
-        "trigger": "R9 continuation execution prompt, Fix Group C (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-GA-F7-ROOT-FIX-ADAPTER",
-      "date": "2026-10-10",
-      "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
-      "from": {
-        "nbLoc": 4133,
-        "band": "SPLIT_NOW"
-      },
-      "to": {
-        "nbLoc": 4391,
-        "band": "SPLIT_NOW"
-      },
-      "reason": "R9-GA-F7 root fix: every write-queueing onsuccess listener body (73 listeners across 37 commit methods) is hardened through the guardedSuccessListener wrapper with a per-method failFromListener (pending=failure(original error) then guarded transaction.abort()), so a synchronous throw inside a listener can no longer depend on engine abort-on-listener-throw semantics or lose the original error payload behind a replacement AbortError; also guards the one bare transaction.abort() in commitCashContinuity. Request order, transaction fingerprints, and all existing failure codes/messages unchanged.",
-      "authorization": {
-        "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
-        "trigger": "R9 continuation execution prompt, Fix Group E (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-GA-F7-ROOT-FIX-PRIMITIVE",
-      "date": "2026-10-10",
-      "path": "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts",
-      "from": {
-        "nbLoc": 106,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 120,
-        "band": "NORMAL"
-      },
-      "reason": "R9-GA-F7 root fix (primitive): the writeOneIdempotent scan-success listener is wrapped in a try/catch that resolves the original error payload and then aborts the transaction guarded, mirroring the R9-GA-F1 shape for the listener phase.",
-      "authorization": {
-        "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
-        "trigger": "R9 continuation execution prompt, Fix Group E (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-A-AGREEMENTCONTEXTPANEL",
-      "date": "2026-10-11",
-      "path": "apps/prototype-web/client/src/components/order/AgreementContextPanel.tsx",
-      "from": {
-        "nbLoc": 205,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 208,
-        "band": "NORMAL"
-      },
-      "reason": "R9-GA-F3.6b: the mixed-tone single announcement element is split — the role now derives from the carried saveState.kind flag (ok => status, error => alert) instead of a fixed role=status that hid actual errors from assertive announcement.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-A-CASHADJUSTMENTEDITOR",
-      "date": "2026-10-11",
-      "path": "apps/prototype-web/client/src/pages/CashAdjustmentEditor.tsx",
-      "from": {
-        "nbLoc": 159,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 202,
-        "band": "NORMAL"
-      },
-      "reason": "R9-GA-F3.7: explicit four-phase read state machine (loading/ready/not-found/read-error) replaces the old !wallet&&!message guard that produced infinite loading for an unknown wallet id and swallowed read failures into the not-found surface; the read-error surface follows the established ReceivedLoanDetail pattern (back button + role=alert + retry) and save() gains a phase guard.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-A-CASHCOUNT",
-      "date": "2026-10-11",
-      "path": "apps/prototype-web/client/src/pages/CashCount.tsx",
-      "from": {
-        "nbLoc": 224,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 228,
-        "band": "NORMAL"
-      },
-      "reason": "R9-GA-F3.6b: the message state carries its tone ({text, tone}) and the render splits the announcement — errors => micro-field-error + role=alert, info/success => micro-save-note + role=status; also role=alert on the page read-error paragraph.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-A-CASHDISTRIBUTION",
-      "date": "2026-10-11",
-      "path": "apps/prototype-web/client/src/pages/CashDistribution.tsx",
-      "from": {
-        "nbLoc": 265,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 274,
-        "band": "NORMAL"
-      },
-      "reason": "R9-GA-F3.6b + F3.6c: tone-carrying message state with the split announcement (errors alert, success/info status) replacing the string-prefix class sniffing; role=alert on the page read-error paragraph.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-A-COSTCALCULATOR",
-      "date": "2026-10-11",
-      "path": "apps/prototype-web/client/src/pages/CostCalculator.tsx",
-      "from": {
-        "nbLoc": 601,
-        "band": "WATCH"
-      },
-      "to": {
-        "nbLoc": 609,
-        "band": "WATCH"
-      },
-      "reason": "R9-GA-F3.6a + F3.6b: the live validation-failure preview announces role=alert; the save message carries its tone with the split announcement.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-A-FINANCIALEVENTEDITOR",
-      "date": "2026-10-11",
-      "path": "apps/prototype-web/client/src/pages/FinancialEventEditor.tsx",
-      "from": {
-        "nbLoc": 1191,
-        "band": "SPLIT_CANDIDATE"
-      },
-      "to": {
-        "nbLoc": 1194,
-        "band": "SPLIT_CANDIDATE"
-      },
-      "reason": "R9-GA-F3.6b: tone-carrying message state with the split announcement — the success message was previously rendered with the error class because it did not start with the sniffed prefixes.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-A-OWNERENTITLEMENT",
-      "date": "2026-10-11",
-      "path": "apps/prototype-web/client/src/pages/OwnerEntitlement.tsx",
-      "from": {
-        "nbLoc": 1134,
-        "band": "SPLIT_CANDIDATE"
-      },
-      "to": {
-        "nbLoc": 1137,
-        "band": "SPLIT_CANDIDATE"
-      },
-      "reason": "R9-GA-F3.6b + F3.6c: the notice announcement role derives from the carried tone (success => status, error => alert); role=alert on the page read-error paragraph.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-A-PROFILE",
-      "date": "2026-10-11",
-      "path": "apps/prototype-web/client/src/pages/Profile.tsx",
-      "from": {
-        "nbLoc": 326,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 333,
-        "band": "NORMAL"
-      },
-      "reason": "R9-GA-F3.6b + F3.6c: tone-carrying message state with the split announcement; role=alert on the page read-error paragraph.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-A-RECURRINGEXPENSEEDITOR",
-      "date": "2026-10-11",
-      "path": "apps/prototype-web/client/src/pages/RecurringExpenseEditor.tsx",
-      "from": {
-        "nbLoc": 348,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 381,
-        "band": "NORMAL"
-      },
-      "reason": "R9-GA-F3.7: explicit read state machine (loading/read-error/ready) replaces the loaded gate that left edit mode in infinite loading whenever readDetail failed (including unknown series ids); the read-error surface renders the actual service message with role=alert + retry, and save() gains a phase guard.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-A-SCHEDULE",
-      "date": "2026-10-11",
-      "path": "apps/prototype-web/client/src/pages/Schedule.tsx",
-      "from": {
-        "nbLoc": 986,
-        "band": "SPLIT_CANDIDATE"
-      },
-      "to": {
-        "nbLoc": 996,
-        "band": "SPLIT_CANDIDATE"
-      },
-      "reason": "R9-GA-F3.6b: both message states (capacity + template) carry their tones with split announcements — the info message «أُزيلت السعة اليومية.» was previously announced assertively as an error because of prefix sniffing; also role=alert on the page read-error paragraph.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-A-SCHEDULEEDITOR",
-      "date": "2026-10-11",
-      "path": "apps/prototype-web/client/src/pages/ScheduleEditor.tsx",
-      "from": {
-        "nbLoc": 367,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 402,
-        "band": "WATCH"
-      },
-      "reason": "R9-GA-F3.7: the collapsed error||not-found branch is split into explicit phases — not_found renders the existing surface, other read failures render their actual message with role=alert + retry (the error message was previously discarded); the band moves to WATCH with this documented reorganization, same-PR.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-A-TEXT-DENSITY-POLICY",
-      "date": "2026-10-11",
-      "path": "scripts/text_density_policy.py",
-      "from": {
-        "nbLoc": 853,
-        "band": "SPLIT_CANDIDATE"
-      },
-      "to": {
-        "nbLoc": 859,
-        "band": "SPLIT_CANDIDATE"
-      },
-      "reason": "R9-GA-F3.7: the RecurringExpenseEditor at-rest cap is re-measured 33 -> 34 with the dated provenance comment (the explicit read state machine adds the honest read-error retry label); the golden fixture regenerated byte-identically through the official characterization path.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-B-FINANCIALANALYSISSERVICE",
-      "date": "2026-10-11",
-      "path": "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts",
-      "from": {
-        "nbLoc": 549,
-        "band": "WATCH"
-      },
-      "to": {
-        "nbLoc": 572,
-        "band": "WATCH"
-      },
-      "reason": "R9-GA-G5.1: the legacy-key semantic bridge in createDeclaration — after the exact-key miss, an eight-field semantic comparison (direction, dueOn, amountMinor, source, note, knowledge, relatedOrderId, relatedEventId) reuses a stored declaration whose key format differs (pre-F3.4 records), closing the cross-format retry-duplication hole without any schema/export/import change.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group B (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-B-POLICIES",
-      "date": "2026-10-11",
-      "path": "src/domain/financial-analysis/policies.ts",
-      "from": {
-        "nbLoc": 937,
-        "band": "SPLIT_CANDIDATE"
-      },
-      "to": {
-        "nbLoc": 941,
-        "band": "SPLIT_CANDIDATE"
-      },
-      "reason": "R9-GA-G5.2: the contribution-mix grouping key becomes a collision-free JSON array key instead of free-text '::' concatenation (a crafted itemName containing '::' could merge distinct name/unit pairs in the mix display); grouping semantics unchanged for non-colliding inputs.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group B (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-SYS-C-IDEDB-PRIMITIVES-LISTALL-GUARD",
-      "date": "2026-10-11",
-      "path": "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts",
-      "from": {
-        "nbLoc": 106,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 132,
-        "band": "NORMAL"
-      },
-      "reason": "R9-GA-F7.1 (covering this PR's full drift for the file — chains over R9-GA-F7-ROOT-FIX-PRIMITIVE 106->120 from the first continuation): the writeOneIdempotent listener hardening (first continuation) and the listAll read-path guard (this continuation — an in-body try/catch settling a sort-comparator throw as an honest StorageResult failure with the original error instead of an unresolved promise) bring the file 106 -> 132.",
-      "authorization": {
-        "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group C (owner-authorized)"
-      }
-    },
-    {
-      "id": "R9-CONTROL-BASE-SNAPSHOT-VALIDATOR",
-      "date": "2026-10-11",
-      "path": "scripts/operations-control/validate.py",
-      "from": {
-        "nbLoc": 368,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 377,
-        "band": "NORMAL"
-      },
-      "reason": "Root fix for the post-merge control defect: a long-lived main-branch program claim with no open PR keeps base_sha as its claim-base snapshot, while code branches and open-PR claims retain live drift warnings. The explicit predicate and documentation-grade explanation prevent every later documentation-only merge from creating a false reconciliation loop.",
-      "authorization": {
-        "ownerReview": "R9 post-merge control correction review in PR #350; owner merge authorization remains separate and explicit",
-        "trigger": "Final post-merge verification after PR #349 exposed base_sha self-drift; validator regression requires the snapshot-only main claim rule"
-      }
-    },
-    {
-      "id": "R9-CONTROL-BASE-SNAPSHOT-TEST",
-      "date": "2026-10-11",
-      "path": "scripts/operations-control/test_operations_control.py",
-      "from": {
-        "nbLoc": 99,
-        "band": "NORMAL"
-      },
-      "to": {
-        "nbLoc": 104,
-        "band": "NORMAL"
-      },
-      "reason": "Regression coverage for the base_sha policy: a main-branch program claim with pr=null is snapshot-only, while assigning a PR makes it an active branch claim again. The test prevents future validator changes from reintroducing false current-main drift or suppressing drift for real open-PR work.",
-      "authorization": {
-        "ownerReview": "R9 post-merge control correction review in PR #350; owner merge authorization remains separate and explicit",
-        "trigger": "Required regression proof for the validator root fix; no production or financial behavior is changed"
-      }
-    }
-  ]
+ "version": 1,
+ "schema": "micro-file-size-ratchet-reanchors/1",
+ "comment": "R8-2: the single documented authorization path for baseline value increases. Each entry: id, date, path, from{nbLoc,band}, to{nbLoc,band}, reason, authorization{ownerReview, trigger}. The drift audit chain-validates from == merge-base baseline value. Entries authorize growth UP TO to.nbLoc; they are bounded per-path authorizations, never blanket exemptions.",
+ "entries": [
+  {
+   "id": "R8-3-RULE-R7",
+   "date": "2026-10-10",
+   "path": "scripts/check-module-boundaries.mjs",
+   "from": {
+    "nbLoc": 398,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 431,
+    "band": "WATCH"
+   },
+   "reason": "R8-3 adds boundary rule R7 (component->page forbidden class, R8-F-019): rule block, baseline list, stats field, and CLI summary. The file was already 2 nbLOC under the WATCH threshold at main (register section 7 documents it as watched-until-R8); the rule addition crosses it.",
+   "authorization": {
+    "ownerReview": "R8 PR review (WS-216/ARCH-007) — this entry is part of the R8 PR diff",
+    "trigger": "R8 execution prompt section 8, R8-3: the new rule must be measured and documented same-PR"
+   }
+  },
+  {
+   "id": "R8-4-CI-ANCHOR",
+   "date": "2026-10-10",
+   "path": "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+   "from": {
+    "nbLoc": 76,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 108,
+    "band": "NORMAL"
+   },
+   "reason": "the github-actions environment record anchored from the documented CI bootstrap (run 38046254527) adds the record block and the environment-convergence provenance note; the file is measurement data whose size tracks anchor provenance, and the growth is documented through this ledger entry rather than by excluding the file from scope mid-PR",
+   "authorization": {
+    "ownerReview": "R8 PR review (WS-216/ARCH-007) — part of the R8 PR diff",
+    "trigger": "R8-4 CI bootstrap anchoring per the R8-1 documented protocol"
+   }
+  },
+  {
+   "id": "R8-N1-ROOT-FIX",
+   "date": "2026-10-10",
+   "path": "apps/prototype-web/scripts/check-bundle-surfaces.mjs",
+   "from": {
+    "nbLoc": 457,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 467,
+    "band": "WATCH"
+   },
+   "reason": "R8-N1 root-fix closure (owner decision FIX_NOW): duplicate precache URLs in the generated sw.js change from measured-and-reported to a hard fail-closed error (DUPLICATE_PRECACHE_URLS with the full duplicate list in the message) — failure-code table entry, the fail branch itself, and the dated header comment; the report-only console line and the duplicatePrecacheUrls normalization field are removed as dead paths. Guard strengthening only: no tolerance, ceiling, or baseline semantics touched.",
+   "authorization": {
+    "ownerReview": "R8-N1 continuation review (WS-216/ARCH-007) — owner classified R8-N1 as FIX_NOW; this entry is part of the R8 PR #345 diff",
+    "trigger": "R8-N1 root-fix continuation prompt: deterministic tests must fail if the duplicate condition returns; the guard must fail closed on malformed or unsafe output"
+   }
+  },
+  {
+   "id": "R9-GA-F1-ROOT-FIX",
+   "date": "2026-10-10",
+   "path": "apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts",
+   "from": {
+    "nbLoc": 430,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 451,
+    "band": "WATCH"
+   },
+   "reason": "R9-GA-F1 root-fix (owner-authorized W2 recovery-defect boundary): replaceIndexedDbSnapshot was non-atomic on synchronous queueing failures — a put() throw (e.g. DataCloneError) escaped the Promise executor before the onerror/onabort handlers were attached, so the readwrite transaction auto-committed the already-queued clear()+put() requests and destroyed the previous state while the caller received an honest failure (proven experimentally on fake-indexeddb at Gate A). The fix wraps the queueing section in try/catch, calls a guarded transaction.abort() on throw, and rethrows the original error so the failure payload is byte-identical to today's contract. Growth = the try/catch scaffold + two dated header comment blocks; no behavior change on any success or async-failure path (regression proof: rollbackRehearsal.r9.test.ts leg 1 fails with the abort disabled, passes with it; legs 2-4 and the full storage/transfers suites green).",
+   "authorization": {
+    "ownerReview": "Owner-authorized R9 execution contract, section 9 (W2): root-fix of any current recovery defect found within the approved boundary; R9 repair card R9-GA-F1; Gate B storage reviewer design approval (abort-then-rethrow, guarded).",
+    "trigger": "R9-GA-F1 discovery during the authorized R9 W2 rollback rehearsals"
+   }
+  },
+  {
+   "id": "R9-GA-F3-ROOT-FIX-CASH-REVERSAL",
+   "date": "2026-10-10",
+   "path": "apps/prototype-web/client/src/pages/CashReversalEditor.tsx",
+   "from": {
+    "nbLoc": 177,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 220,
+    "band": "NORMAL"
+   },
+   "reason": "R9-GA-F3.1 + R9-W3-F1 root fix: the explicit four-phase read state machine (loading/ready/not-found/read-error) replaces the defective !entry/!message render guard that made the not-found surface unreachable on the success path and swallowed read failures into it; adds the read-error surface (ReceivedLoanDetail pattern: back button + actual message + retry) and the retry token, with the save() phase guard.",
+   "authorization": {
+    "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
+    "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-GA-F3-ROOT-FIX-INVENTORY-REVERSAL",
+   "date": "2026-10-10",
+   "path": "apps/prototype-web/client/src/pages/InventoryReversalEditor.tsx",
+   "from": {
+    "nbLoc": 128,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 170,
+    "band": "NORMAL"
+   },
+   "reason": "R9-GA-F3.2 + R9-GA-F3.3 + R9-GA-F3.5 + R9-W3-F1 root fix: the same four-phase read state machine as the cash reversal editor (not-found reachable, read failures rendered with their actual message + retry), the successful-save exit switched from the undocumented hardcoded /inventory to the S1-07 return-path contract (navigate(returnPath)), and the form error paragraph role corrected to alert.",
+   "authorization": {
+    "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
+    "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-GA-F3-ROOT-FIX-CASH-WALLET-ROLE",
+   "date": "2026-10-10",
+   "path": "apps/prototype-web/client/src/pages/CashWalletEditor.tsx",
+   "from": {
+    "nbLoc": 132,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 135,
+    "band": "NORMAL"
+   },
+   "reason": "R9-GA-F3.5 root fix: the form message paragraph is an actual error surface (validation gate or save failure) and is now announced with role=alert, matching the repo-wide micro-field-error convention.",
+   "authorization": {
+    "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
+    "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-GA-F3-ROOT-FIX-G5-KEY",
+   "date": "2026-10-10",
+   "path": "apps/prototype-web/client/src/pages/G5DeclarationEditor.tsx",
+   "from": {
+    "nbLoc": 238,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 256,
+    "band": "NORMAL"
+   },
+   "reason": "R9-GA-F3.4 root fix: the idempotency key derivation serializes all eight persisted semantic inputs (direction, dueOn, amountMinor, source, note, knowledge, relatedOrderId, relatedEventId) through JSON with the frozen g5-ui: prefix — closing both the knowledge omission (a knowledge-differing correction was silently swallowed as reused) and the free-text colon-collision hole; schema/export versions untouched.",
+   "authorization": {
+    "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
+    "trigger": "R9 continuation execution prompt, Fix Group C (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-GA-F7-ROOT-FIX-ADAPTER",
+   "date": "2026-10-10",
+   "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+   "from": {
+    "nbLoc": 4133,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 4391,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "R9-GA-F7 root fix: every write-queueing onsuccess listener body (73 listeners across 37 commit methods) is hardened through the guardedSuccessListener wrapper with a per-method failFromListener (pending=failure(original error) then guarded transaction.abort()), so a synchronous throw inside a listener can no longer depend on engine abort-on-listener-throw semantics or lose the original error payload behind a replacement AbortError; also guards the one bare transaction.abort() in commitCashContinuity. Request order, transaction fingerprints, and all existing failure codes/messages unchanged.",
+   "authorization": {
+    "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
+    "trigger": "R9 continuation execution prompt, Fix Group E (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-GA-F7-ROOT-FIX-PRIMITIVE",
+   "date": "2026-10-10",
+   "path": "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts",
+   "from": {
+    "nbLoc": 106,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 120,
+    "band": "NORMAL"
+   },
+   "reason": "R9-GA-F7 root fix (primitive): the writeOneIdempotent scan-success listener is wrapped in a try/catch that resolves the original error payload and then aborts the transaction guarded, mirroring the R9-GA-F1 shape for the listener phase.",
+   "authorization": {
+    "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
+    "trigger": "R9 continuation execution prompt, Fix Group E (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-A-AGREEMENTCONTEXTPANEL",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/components/order/AgreementContextPanel.tsx",
+   "from": {
+    "nbLoc": 205,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 208,
+    "band": "NORMAL"
+   },
+   "reason": "R9-GA-F3.6b: the mixed-tone single announcement element is split — the role now derives from the carried saveState.kind flag (ok => status, error => alert) instead of a fixed role=status that hid actual errors from assertive announcement.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-A-CASHADJUSTMENTEDITOR",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/pages/CashAdjustmentEditor.tsx",
+   "from": {
+    "nbLoc": 159,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 202,
+    "band": "NORMAL"
+   },
+   "reason": "R9-GA-F3.7: explicit four-phase read state machine (loading/ready/not-found/read-error) replaces the old !wallet&&!message guard that produced infinite loading for an unknown wallet id and swallowed read failures into the not-found surface; the read-error surface follows the established ReceivedLoanDetail pattern (back button + role=alert + retry) and save() gains a phase guard.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-A-CASHCOUNT",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/pages/CashCount.tsx",
+   "from": {
+    "nbLoc": 224,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 228,
+    "band": "NORMAL"
+   },
+   "reason": "R9-GA-F3.6b: the message state carries its tone ({text, tone}) and the render splits the announcement — errors => micro-field-error + role=alert, info/success => micro-save-note + role=status; also role=alert on the page read-error paragraph.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-A-CASHDISTRIBUTION",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/pages/CashDistribution.tsx",
+   "from": {
+    "nbLoc": 265,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 274,
+    "band": "NORMAL"
+   },
+   "reason": "R9-GA-F3.6b + F3.6c: tone-carrying message state with the split announcement (errors alert, success/info status) replacing the string-prefix class sniffing; role=alert on the page read-error paragraph.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-A-COSTCALCULATOR",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/pages/CostCalculator.tsx",
+   "from": {
+    "nbLoc": 601,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 609,
+    "band": "WATCH"
+   },
+   "reason": "R9-GA-F3.6a + F3.6b: the live validation-failure preview announces role=alert; the save message carries its tone with the split announcement.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-A-FINANCIALEVENTEDITOR",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/pages/FinancialEventEditor.tsx",
+   "from": {
+    "nbLoc": 1191,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 1194,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "R9-GA-F3.6b: tone-carrying message state with the split announcement — the success message was previously rendered with the error class because it did not start with the sniffed prefixes.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-A-OWNERENTITLEMENT",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/pages/OwnerEntitlement.tsx",
+   "from": {
+    "nbLoc": 1134,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 1137,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "R9-GA-F3.6b + F3.6c: the notice announcement role derives from the carried tone (success => status, error => alert); role=alert on the page read-error paragraph.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-A-PROFILE",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/pages/Profile.tsx",
+   "from": {
+    "nbLoc": 326,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 333,
+    "band": "NORMAL"
+   },
+   "reason": "R9-GA-F3.6b + F3.6c: tone-carrying message state with the split announcement; role=alert on the page read-error paragraph.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-A-RECURRINGEXPENSEEDITOR",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/pages/RecurringExpenseEditor.tsx",
+   "from": {
+    "nbLoc": 348,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 381,
+    "band": "NORMAL"
+   },
+   "reason": "R9-GA-F3.7: explicit read state machine (loading/read-error/ready) replaces the loaded gate that left edit mode in infinite loading whenever readDetail failed (including unknown series ids); the read-error surface renders the actual service message with role=alert + retry, and save() gains a phase guard.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-A-SCHEDULE",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/pages/Schedule.tsx",
+   "from": {
+    "nbLoc": 986,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 996,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "R9-GA-F3.6b: both message states (capacity + template) carry their tones with split announcements — the info message «أُزيلت السعة اليومية.» was previously announced assertively as an error because of prefix sniffing; also role=alert on the page read-error paragraph.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-A-SCHEDULEEDITOR",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/pages/ScheduleEditor.tsx",
+   "from": {
+    "nbLoc": 367,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 402,
+    "band": "WATCH"
+   },
+   "reason": "R9-GA-F3.7: the collapsed error||not-found branch is split into explicit phases — not_found renders the existing surface, other read failures render their actual message with role=alert + retry (the error message was previously discarded); the band moves to WATCH with this documented reorganization, same-PR.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-A-TEXT-DENSITY-POLICY",
+   "date": "2026-10-11",
+   "path": "scripts/text_density_policy.py",
+   "from": {
+    "nbLoc": 853,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 859,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "R9-GA-F3.7: the RecurringExpenseEditor at-rest cap is re-measured 33 -> 34 with the dated provenance comment (the explicit read state machine adds the honest read-error retry label); the golden fixture regenerated byte-identically through the official characterization path.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-B-FINANCIALANALYSISSERVICE",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts",
+   "from": {
+    "nbLoc": 549,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 572,
+    "band": "WATCH"
+   },
+   "reason": "R9-GA-G5.1: the legacy-key semantic bridge in createDeclaration — after the exact-key miss, an eight-field semantic comparison (direction, dueOn, amountMinor, source, note, knowledge, relatedOrderId, relatedEventId) reuses a stored declaration whose key format differs (pre-F3.4 records), closing the cross-format retry-duplication hole without any schema/export/import change.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group B (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-B-POLICIES",
+   "date": "2026-10-11",
+   "path": "src/domain/financial-analysis/policies.ts",
+   "from": {
+    "nbLoc": 937,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 941,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "R9-GA-G5.2: the contribution-mix grouping key becomes a collision-free JSON array key instead of free-text '::' concatenation (a crafted itemName containing '::' could merge distinct name/unit pairs in the mix display); grouping semantics unchanged for non-colliding inputs.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group B (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-SYS-C-IDEDB-PRIMITIVES-LISTALL-GUARD",
+   "date": "2026-10-11",
+   "path": "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts",
+   "from": {
+    "nbLoc": 106,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 132,
+    "band": "NORMAL"
+   },
+   "reason": "R9-GA-F7.1 (covering this PR's full drift for the file — chains over R9-GA-F7-ROOT-FIX-PRIMITIVE 106->120 from the first continuation): the writeOneIdempotent listener hardening (first continuation) and the listAll read-path guard (this continuation — an in-body try/catch settling a sort-comparator throw as an honest StorageResult failure with the original error instead of an unresolved promise) bring the file 106 -> 132.",
+   "authorization": {
+    "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
+    "trigger": "R9 systemic continuation execution prompt, Group C (owner-authorized)"
+   }
+  },
+  {
+   "id": "R9-CONTROL-BASE-SNAPSHOT-VALIDATOR",
+   "date": "2026-10-11",
+   "path": "scripts/operations-control/validate.py",
+   "from": {
+    "nbLoc": 368,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 377,
+    "band": "NORMAL"
+   },
+   "reason": "Root fix for the post-merge control defect: a long-lived main-branch program claim with no open PR keeps base_sha as its claim-base snapshot, while code branches and open-PR claims retain live drift warnings. The explicit predicate and documentation-grade explanation prevent every later documentation-only merge from creating a false reconciliation loop.",
+   "authorization": {
+    "ownerReview": "R9 post-merge control correction review in PR #350; owner merge authorization remains separate and explicit",
+    "trigger": "Final post-merge verification after PR #349 exposed base_sha self-drift; validator regression requires the snapshot-only main claim rule"
+   }
+  },
+  {
+   "id": "R9-CONTROL-BASE-SNAPSHOT-TEST",
+   "date": "2026-10-11",
+   "path": "scripts/operations-control/test_operations_control.py",
+   "from": {
+    "nbLoc": 99,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 104,
+    "band": "NORMAL"
+   },
+   "reason": "Regression coverage for the base_sha policy: a main-branch program claim with pr=null is snapshot-only, while assigning a PR makes it an active branch claim again. The test prevents future validator changes from reintroducing false current-main drift or suppressing drift for real open-PR work.",
+   "authorization": {
+    "ownerReview": "R9 post-merge control correction review in PR #350; owner merge authorization remains separate and explicit",
+    "trigger": "Required regression proof for the validator root fix; no production or financial behavior is changed"
+   }
+  },
+  {
+   "id": "R10B-B1-F036-GENERATOR-COMMENT",
+   "date": "2026-10-11",
+   "path": "scripts/operations-control/generate_tracker.py",
+   "from": {
+    "nbLoc": 195,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 199,
+    "band": "NORMAL"
+   },
+   "reason": "F-036 root-fix documentation: a 4-line comment block on md_cell explaining why backtick escaping was removed (GFM table cells are pipe-delimited before inline parsing; the branch column intentionally renders code spans) so the fix cannot be silently reverted by a future 'restore escaping' edit. Pure comment growth; zero executable-line change.",
+   "authorization": {
+    "ownerReview": "R10-B1 five-reviewer wave gate (RV1-RV5) + owner review of PR #356; owner merge authorization remains separate and explicit",
+    "trigger": "Guard-semantic fix disclosure requirement (AGENTS 10.143 double-diff principle applied to guard-adjacent scripts); no production or financial behavior is changed"
+   }
+  },
+  {
+   "id": "R10B-B1-F036-TEST-EXPECTATION",
+   "date": "2026-10-11",
+   "path": "scripts/operations-control/test_operations_control.py",
+   "from": {
+    "nbLoc": 99,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 106,
+    "band": "NORMAL"
+   },
+   "reason": "F-036 test-contract update: the markdown-cell test now pins the corrected rendering (backtick preserved, pipe escaped, newline converted) with a 2-line comment recording the R10-B1 date and rationale, so the old escaped-backtick expectation cannot be reintroduced silently. Chains over R9-CONTROL-BASE-SNAPSHOT-TEST (99->104) in the same PR window: from-baseline 99 -> 106.",
+   "authorization": {
+    "ownerReview": "R10-B1 five-reviewer wave gate (RV1-RV5) + owner review of PR #356; owner merge authorization remains separate and explicit",
+    "trigger": "Required test update for the F-036 root fix; the test asserts the fix and fails under the old behavior"
+   }
+  }
+ ]
 }

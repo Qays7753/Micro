@@ -1204,7 +1204,7 @@ Executed the canonical R10-B prompt's mandatory W0 phase. Live baseline re-deriv
 
 PR #354 merged as `c9fbac254319c84ff228ab686f72bc9aac7ce107` from source head `90c60e0ee14a5659144267c8aaafee150a02798d`; post-merge CI `38161910588` succeeded on the exact merge SHA. W0 is now VERIFIED_ON_MAIN. Its scope was W0 findings/evidence reconciliation, NF-013 contract correction, owner acceptance, and Operations Control only; no application-code remediation was performed. WS-216/ARCH-007 remain active for R10-B1..B6, with the current claim reopened on `main` and the next branch required to start from a fresh live `origin/main` snapshot. Protected decisions remain gated: OD-8 before B2, OD-12 before NF-015 in B4, OD-9 before RC-4 in B5, and other applicable owner decisions before their waves. The merged W0 source branch is no longer active; preserved UI and unmerged documentation branches were not deleted.
 
-### Entry 87 — R10-B1 (docs/control-only) complete on the dedicated branch — 2026-10-11
+## Entry 93 — R10-B1 (docs/control-only) complete on the dedicated branch — 2026-10-11
 
 **Agent:** R10-B executor (Z AI) · **Branch:** `refactoring/r10b-complete-b1-b6-20261011` (from live main `2f78fba2`) · **PR:** #356 · **Claim:** WS-216 IN_PROGRESS recorded before code.
 
@@ -1215,3 +1215,5 @@ Root fixes: dated removal notes for deleted-file register rows (F-001); live cou
 Checks on the wave head: generate_tracker --refresh-excel-meta/--check, validate.py (1 active claim, base=live main), 9/9 ops-control tests, doc-index, test-map --check, registry-coverage, skill-references, current-state-size, git diff --check — all green. Matrix: 20 findings CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH (implementation_status field + implementation_log). Report: R10-B-COMPLETE-B1-B6-EXECUTION-REPORT §1–§9.
 
 Impact: zero financial/semantic/historical/Schema(38)/Export(30)/security/visual change; no guard weakened. Next: five read-only reviewers gate for B1, then B2 — **OD-8 gate before B2/RC-1**; OD-12 before B4/NF-015; OD-9 before B5/RC-4.
+
+> **(تصحيح مؤرخ 2026-10-11 — بوابة R10-B1 الخماسية، RV1/RV2):** قُيّد سجل R10-B1 أعلاه أول الأمر بالرقم «Entry 87» وهو رقم مشغول بسجل R9 post-merge الموجود سابقًا؛ رقمه الصحيح **Entry 93** (آخر سجل قبله كان 92) وصُحح العنوان في نفس موجة البوابة قبل الدفع (التصحيح من نفس الموجة غير المدموجة لا يكسر قاعدة append-only للمؤرخ المدموج)، ومستوى العنوان صُحح إلى `##` ليطابق نمط السجل.

@@ -231,5 +231,5 @@
   }
  ],
  "migration_baseline": true,
- "next_action": "R10-B1..B6 executing on refactoring/r10b-complete-b1-b6-20261011 (PR #356, WS-216 claim from live main 2f78fba2). B1 = docs/control-only (R10A-F-001/002/005/007/022/032/033/034/035/036/037 + NF-008/027/028/029/030/031/032/033/034 + OD-13 PILOT specs + SOP + 3 views). OD-8 before B2/RC-1; OD-12 before B4/NF-015; OD-9 before B5/RC-4. After PR: IN_REVIEW; after owner merge: MERGED_UNVERIFIED; VERIFIED only with on-main evidence."
+ "next_action": "R10-B1 COMPLETE on branch (PR #356; 20 findings + OD-13 specs; five-reviewer gate with amendments). Next: B2 (RC-1 + F-008 + F-010 + NF-009) with OD-8 gate before RC-1; OD-12 before B4/NF-015; OD-9 before B5/RC-4. IN_REVIEW after PR; MERGED_UNVERIFIED after owner merge; VERIFIED only with on-main evidence."
 }
