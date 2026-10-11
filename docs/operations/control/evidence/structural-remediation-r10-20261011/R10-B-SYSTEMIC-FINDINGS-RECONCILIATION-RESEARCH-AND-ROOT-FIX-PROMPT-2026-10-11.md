@@ -197,6 +197,101 @@ R10A-F-024  Replit post-merge hook conflicts with environment detection
 
 You MUST independently read and re-check all `R10A-F-001..037`. Do not reduce the task to the four S2 findings.
 
+### Complete R10-A finding coverage map
+
+The following list is the minimum required coverage. Re-verify each ID, search for analogous cases, and give each one a permanent record and disposition. The descriptions below are compact routing labels; the canonical report and evidence files remain the source for exact file/line evidence.
+
+```text
+R10A-F-001  stale File Register rows for deleted recurring-expense stub/test lack removal notes
+R10A-F-002  stale ARCHITECTURE.md path count/reference including the removed G5 barrel
+R10A-F-003  duplicated WasteContext union between domain and application [S2]
+R10A-F-004  CapabilityId duplicated and persisted without sufficient validation
+R10A-F-005  ADR-018 count says 43 keys while the live surface is 52
+R10A-F-006  17 UI-to-storage type-only import pairs lack an explicitly governed seam
+R10A-F-007  ARCHITECTURE.md responsibility arrow is inverted
+R10A-F-008  six adapter methods lack direct test invocation coverage
+R10A-F-009  owner-money families absent from counters and required-array gates [S2]
+R10A-F-010  syncSha256 lacks an independent oracle and has a CESU-8 surrogate deviation concern
+R10A-F-011  RECURRENCE_STALE_MESSAGE is duplicated without cross-adapter identity proof
+R10A-F-012  three divergent ID generators exist
+R10A-F-013  MoneyMinor is an unbranded alias
+R10A-F-014  date-slice guard is textual/line-based rather than semantic
+R10A-F-015  smoke list is stale and nine router paths are absent
+R10A-F-016  ErrorBoundary focus is dead for post-mount crashes [S2]
+R10A-F-017  two error-announcement channels exist; polite channel is outside role inventory
+R10A-F-018  StateMarker accepts a role prop but does not render the ARIA role
+R10A-F-019  64 read-like files sit outside read/write guard families
+R10A-F-020  three pages remain smoke-only
+R10A-F-021  UI preview arithmetic duplicates Domain derivations at seven sites
+R10A-F-022  Contract 40 cites a removed compatibility module
+R10A-F-023  CONTRIBUTING audit-policy pointer is dangling
+R10A-F-024  Replit post-merge hook conflicts with environment detection [S2]
+R10A-F-025  Actions use floating tags and Node minor is not pinned
+R10A-F-026  lint warning ceiling is saturated at 35/37
+R10A-F-027  secrets guard is first-match-only and misses pattern families
+R10A-F-028  ratchet authorization strings are not machine-verifiable and direct-main merge-base handling degenerates
+R10A-F-029  inert undocumented nanoid override exists
+R10A-F-030  Python design guards have no negative tests
+R10A-F-031  guard scripts and tools/ are outside lint/typecheck
+R10A-F-032  handoff protocol routes to todo.md in three places, contradicting OD-06
+R10A-F-033  live-phase fact is duplicated across five documents
+R10A-F-034  three OUT_OF_SCOPE items lack observable triggers/detection
+R10A-F-035  HARD-001..008 ID gap is undocumented
+R10A-F-036  escaped-backtick artifact exists in two generated views
+R10A-F-037  handoff minimum set lacks five canonical artifacts/views
+```
+
+### Exact uncertainty and control-package coverage
+
+You MUST explicitly re-check and report every one of these IDs, even if the result is “not executable in this environment”:
+
+```text
+E-UNV-001  real-browser IndexedDB behavior
+E-UNV-002  visual parity, visual UX quality, and screen-reader behavior
+E-UNV-003  full security posture, penetration testing, and threat modeling
+E-UNV-004  other operating systems and browsers
+E-UNV-005  behavior after AUDIT_SHA_X / audit-window validity after main moves
+E-UNV-006  preserved UI-branch immutability since 2026-09-21
+E-UNV-007  GitHub API fields affected by rate limits or unavailable captures
+E-UNV-008  live mutation negative controls for build-dependent guards
+E-UNV-009  negative behavior of Python design guards
+E-UNV-010  deep per-finding re-verification beyond the sampled S3 set
+E-UNV-011  production and real-user-data behavior
+E-UNV-012  accounting correctness against external accounting standards
+```
+
+Also enumerate and reconcile these existing control packages instead of treating their counts as closure:
+
+```text
+PRESERVE_BY_DESIGN cards:
+- IndexedDbLocalStore
+- MemoryLocalStore
+- src/domain/craft-order/policies
+- storage/local/types.ts
+- transferFamilyValidators plus ADR-017
+
+OUT_OF_SCOPE items requiring trigger/detection review:
+- SCOPE-001
+- SCOPE-002
+- UX-002
+
+INDEPENDENT-TRACKS rows with recorded triggers:
+- L-C, L-E, L-G, V7, V10, V12
+
+BLOCKED items:
+- all three existing BLOCKED control items, with their exact blockers read from the live tracker
+
+PILOT_EVIDENCE_REQUIRED:
+- all 17 items, each of which currently has an event but no detection method
+
+DEFERRED:
+- all 20 existing DEFERRED items, each rechecked for a real reason, next action, trigger, detection method, and exit condition
+```
+
+The five PRESERVE cards are not automatically accepted. Re-ratify them against the complete ten-element test in the report. If a card lacks a durable owner, bounded growth, guard, review trigger, exit criteria, tests, rollback, or coherent responsibility, classify it for correction rather than preserving it for convenience.
+
+The R10-A report says that the machine-readable ledger contains complete fields for all 37 findings. Independently reconcile this claim: the published Evidence Ledger visibly contains evidence rows (including four S2 verification rows and a small number of S3 verification rows), while the `R10A-F-*` identifiers were not present in `ARCH-007.json`, `WS-216.json`, `current-state.md`, `ACTIVE-WORK.md`, or `AGENT-BRIEF.md` at the audited SHA. Treat this as a required source-of-truth reconciliation, not as a reason to discard the audit.
+
 ---
 
 ## 6. Five read-only specialist reviewers
@@ -318,9 +413,10 @@ Re-check all 12 R10-A `NOT VERIFIED` limitations and every `PARTIAL` or disputed
 2. determine whether the current environment can prove it;
 3. run the strongest safe verification available;
 4. search for analogous cases throughout the repository;
-5. classify the result as `VERIFIED`, `INFERRED`, `UNVERIFIED`, `NOT_EXECUTED`, `DEFERRED`, or `BLOCKER`;
-6. never call an unexecuted check PASS;
-7. record commands, paths, outputs, exit codes, and limitations.
+5. consult authoritative technical specifications or maintained ecosystem guidance when a language/runtime/tool behavior is uncertain, and record the source and version; do not substitute generic internet opinion for repository evidence;
+6. classify the result as `VERIFIED`, `INFERRED`, `UNVERIFIED`, `NOT_EXECUTED`, `DEFERRED`, or `BLOCKER`;
+7. never call an unexecuted check PASS;
+8. record commands, paths, outputs, exit codes, sources, and limitations.
 
 At minimum, revisit:
 
@@ -334,7 +430,8 @@ At minimum, revisit:
 - Python design-guard negative behavior;
 - deep verification of every S3 finding rather than relying only on sampling;
 - absence of production data and the exact limits that creates;
-- accounting-standard claims, which must remain preservation-only unless separately authorized.
+- accounting-standard claims, which must remain preservation-only unless separately authorized;
+- the system’s real short-term and long-term maintainability: every proposed disposition must explain immediate correctness, future change locality, reviewability, extension cost, and the reason the option is the best fit for Micro rather than merely the easiest patch.
 
 ### W0-C — Mandatory semantic/systemic search
 
@@ -354,6 +451,8 @@ For every confirmed finding, search for the complete family of analogous pattern
 - all `OUT_OF_SCOPE`, `BLOCKED`, `DEFERRED`, and `PILOT_EVIDENCE_REQUIRED` items lacking complete triggers or detection methods.
 
 If the search finds a new current defect, assign a stable ID in the reconciliation matrix, add it to the permanent tracker/evidence source, classify it, and include it in the repair plan. Do not silently expand the code diff before the owner gate.
+
+After the owner gate, if implementation or testing reveals another current defect, investigate its root cause and fix it in the same approved branch/wave when it is safely within scope. If it touches a protected semantic, financial, historical, Schema, Export, Import, security, visual-UI, settings, or deployment boundary, stop only with an exact owner-decision package. Never leave a confirmed current defect as an untracked recommendation merely because it was not in the original report.
 
 ### W0-D — Protected baseline and differential strategy
 
@@ -460,7 +559,8 @@ The owner has approved the following policy direction, subject to the evidence p
 - search for and fix analogous patterns;
 - keep schema/export versions at 38/30 unless a separate protected decision changes them;
 - preserve legacy acceptance and financial/historical meaning;
-- prefer root fixes now because the product has no production users/data;
+- prefer root fixes now because the product has no production users or production data;
+- do not choose a workaround, compatibility shim, or preserve decision merely because it is cheaper or faster; compare the short-term and long-term system consequences and choose the option that best protects Micro’s correctness, maintainability, extensibility, reviewability, and future UI/feature change;
 - use the strongest safe tests and guards available;
 - use one dedicated feature/fix branch;
 - keep `main` untouched;
