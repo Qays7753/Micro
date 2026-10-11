@@ -9,8 +9,8 @@
  * التصدير فيغسل التاريخ (سلسلة R10A-F-009). البوابة هنا تعمل على البيانات
  * *الخام* قبل الترحيل، فتصبح دلالة «الموجود يجب أن يكون مصفوفة» حقيقية
  * على الملفين الحالي والموروث، و«الغائب» يبقى مقبولًا على الموروث فقط
- * (اختياري-عند-الغياب) بينما تفرض عائلات المالك الأربع حضورها على الحالي
- * (بطاقة RC-1) كما العائلات الصارمة التسع عشرة.
+ * (اختياري-عند-الغياب) بينما يُفرض حضور كل العائلات على الحالي (سياسة
+ * العصر الموحدة — بطاقة RC-1 + تصحيح بوابة RV5).
  *
  * الاكتمال مفروض وقت الترجمة عبر satisfies على مفاتيح LocalStoreSnapshot
  * ذات النوع المصفوفي (سابقة influentialSnapshotFamilies.ts:22-114): أي
@@ -29,52 +29,58 @@ type ArrayFamilyKey = {
 }[keyof LocalStoreSnapshot];
 
 export type TransferArrayFamilyRole = {
-  /** current-pair: required = غيابها على الملف الحالي رفض؛ optionalIfAbsent = غيابها مقبول (بذرة []). الموروث: الكل اختياري-عند-الغياب. */
-  rule: "required" | "optionalIfAbsent";
   /** هل تدخل العائلة في عدادات التصدير الصارمة (LocalExportCounts)؟ */
   counted: boolean;
   /** الاسم العربي — يظهر في رسائل الرفض والتشخيص. */
   label: string;
+  /** تصنيف تاريخي موثق فقط (صارمة/اختيارية في بوابة validateSnapshot القديمة):
+   * سياسة العصر تفرضها البوابة أدناه موحدةً لكل العائلات — الحالي: كل
+   * العائلات مطلوبة الحضور (التصدير الصادق يحملها كلها)؛ الموروث: الكل
+   * اختياري-عند-الغياب (بذرة []). لا تقرأها البوابة. (تصحيح بوابة RV5/B2:
+   * كان التمييز قائمًا على current أيضًا فبقي حذف العائلات الاختيارية الثماني
+   * أو جعلها null غسلًا ناجحًا على الملف الحالي — أثبت RV5 محو دفتر قروض
+   * كاملًا بهذا المسار.) */
+  historicalClass: "strict" | "optional";
 };
 
 export const TRANSFER_ARRAY_FAMILY_ROLES = {
   /* — العائلات الصارمة (بوابة !Array.isArray التاريخية) — */
-  drafts: { rule: "required", counted: true, label: "مسودات الطلبات" },
-  orders: { rule: "required", counted: true, label: "الطلبات" },
-  directSales: { rule: "required", counted: true, label: "المبيعات المباشرة" },
-  schedules: { rule: "required", counted: true, label: "المواعيد" },
-  recurrences: { rule: "required", counted: false, label: "تكرارات المواعيد" },
-  financialEvents: { rule: "required", counted: true, label: "الأحداث المالية" },
-  supplierPurchases: { rule: "required", counted: true, label: "مشتريات الموردين" },
-  cashWallets: { rule: "required", counted: true, label: "محافظ الكاش" },
-  cashContinuityEntries: { rule: "required", counted: true, label: "قيود استمرارية الكاش" },
-  materials: { rule: "required", counted: true, label: "المواد" },
-  inventoryMovements: { rule: "required", counted: true, label: "حركات المخزون" },
-  catalogItems: { rule: "required", counted: false, label: "بنود منتجاتي وخدماتي" },
-  measurementUnits: { rule: "required", counted: false, label: "وحدات القياس" },
-  directConversions: { rule: "required", counted: false, label: "تحويلات الوحدات المباشرة" },
-  catalogTemplates: { rule: "required", counted: false, label: "قوالب منتجاتي وخدماتي" },
-  actualTimeRecords: { rule: "required", counted: false, label: "سجلات الوقت الفعلي" },
-  shortCashDeclarations: { rule: "required", counted: false, label: "تصريحات النقد الناقص" },
-  allocationPolicies: { rule: "required", counted: false, label: "سياسات التوزيع" },
-  costEstimates: { rule: "required", counted: false, label: "تقديرات التكلفة" },
+  drafts: { historicalClass: "strict", counted: true, label: "مسودات الطلبات" },
+  orders: { historicalClass: "strict", counted: true, label: "الطلبات" },
+  directSales: { historicalClass: "strict", counted: true, label: "المبيعات المباشرة" },
+  schedules: { historicalClass: "strict", counted: true, label: "المواعيد" },
+  recurrences: { historicalClass: "strict", counted: false, label: "تكرارات المواعيد" },
+  financialEvents: { historicalClass: "strict", counted: true, label: "الأحداث المالية" },
+  supplierPurchases: { historicalClass: "strict", counted: true, label: "مشتريات الموردين" },
+  cashWallets: { historicalClass: "strict", counted: true, label: "محافظ الكاش" },
+  cashContinuityEntries: { historicalClass: "strict", counted: true, label: "قيود استمرارية الكاش" },
+  materials: { historicalClass: "strict", counted: true, label: "المواد" },
+  inventoryMovements: { historicalClass: "strict", counted: true, label: "حركات المخزون" },
+  catalogItems: { historicalClass: "strict", counted: false, label: "بنود منتجاتي وخدماتي" },
+  measurementUnits: { historicalClass: "strict", counted: false, label: "وحدات القياس" },
+  directConversions: { historicalClass: "strict", counted: false, label: "تحويلات الوحدات المباشرة" },
+  catalogTemplates: { historicalClass: "strict", counted: false, label: "قوالب منتجاتي وخدماتي" },
+  actualTimeRecords: { historicalClass: "strict", counted: false, label: "سجلات الوقت الفعلي" },
+  shortCashDeclarations: { historicalClass: "strict", counted: false, label: "تصريحات النقد الناقص" },
+  allocationPolicies: { historicalClass: "strict", counted: false, label: "سياسات التوزيع" },
+  costEstimates: { historicalClass: "strict", counted: false, label: "تقديرات التكلفة" },
   /* — الاختيارية التاريخية (اختياري-عند-الغياب؛ الموجود المعطوب يُرفض) — */
-  inventoryShortages: { rule: "optionalIfAbsent", counted: true, label: "سجلات النقص" },
-  assets: { rule: "optionalIfAbsent", counted: true, label: "الأصول" },
-  loans: { rule: "optionalIfAbsent", counted: true, label: "القروض" },
-  recurringExpenseSeries: { rule: "optionalIfAbsent", counted: true, label: "سلاسل المصروف المتكرر" },
-  recurringExpenseRevisions: { rule: "optionalIfAbsent", counted: true, label: "مراجعات المصروف المتكرر" },
-  recurringExpenseOccurrences: { rule: "optionalIfAbsent", counted: true, label: "فترات المصروف المتكرر" },
-  expenseBudgets: { rule: "optionalIfAbsent", counted: true, label: "الميزانيات" },
-  receivedLoans: { rule: "optionalIfAbsent", counted: true, label: "القروض المستلمة" },
-  /* — R10-B2/RC-1: عائلات مال المالك الأربع — كانت الغابة الوحيدة الكاملة
-   * (لا عدّ ولا بوابة)؛ صارت مطلوبة على الملف الحالي ومعدودة (نطاق OD-8
-   * الأدنى). الموروث يبقى اختياري-عند-الغياب كما ثبت
-   * ownerEntitlementTransfer.test.ts (أزواج ١٢/٢١ وأقدم). — */
-  ownerEntitlementPolicies: { rule: "required", counted: true, label: "سياسات استحقاق المالك" },
-  ownerEntitlementRecords: { rule: "required", counted: true, label: "سجلات استحقاق المالك" },
-  ownerEntitlementOpeningBalances: { rule: "required", counted: true, label: "أرصدة استحقاق المالك" },
-  ownerMovements: { rule: "required", counted: true, label: "حركات مال المالك" },
+  inventoryShortages: { historicalClass: "optional", counted: true, label: "سجلات النقص" },
+  assets: { historicalClass: "optional", counted: true, label: "الأصول" },
+  loans: { historicalClass: "optional", counted: true, label: "القروض" },
+  recurringExpenseSeries: { historicalClass: "optional", counted: true, label: "سلاسل المصروف المتكرر" },
+  recurringExpenseRevisions: { historicalClass: "optional", counted: true, label: "مراجعات المصروف المتكرر" },
+  recurringExpenseOccurrences: { historicalClass: "optional", counted: true, label: "فترات المصروف المتكرر" },
+  expenseBudgets: { historicalClass: "optional", counted: true, label: "الميزانيات" },
+  receivedLoans: { historicalClass: "optional", counted: true, label: "القروض المستلمة" },
+  /* — R10-B2/RC-1: عائلات مال المالك الأربع — كانت الفجوة الوحيدة الكاملة
+   * (لا عدّ ولا بوابة)؛ صارت معدودة (نطاق OD-8 الأدنى). حضورها على الحالي
+   * تفرضه سياسة العصر الموحدة أدناه؛ الموروث يبقى اختياري-عند-الغياب كما
+   * ثبت ownerEntitlementTransfer.test.ts (أزواج ١٢/٢١ وأقدم). — */
+  ownerEntitlementPolicies: { historicalClass: "strict", counted: true, label: "سياسات استحقاق المالك" },
+  ownerEntitlementRecords: { historicalClass: "strict", counted: true, label: "سجلات استحقاق المالك" },
+  ownerEntitlementOpeningBalances: { historicalClass: "strict", counted: true, label: "أرصدة استحقاق المالك" },
+  ownerMovements: { historicalClass: "strict", counted: true, label: "حركات مال المالك" },
 } as const satisfies Record<ArrayFamilyKey, TransferArrayFamilyRole>;
 
 /** مفاتيح العائلات المعدودة (تُشتق من السجل — لا تُعدّ يدويًا). */
@@ -112,7 +118,7 @@ export function verifyTransferArrayFamilies(
     const role: TransferArrayFamilyRole = TRANSFER_ARRAY_FAMILY_ROLES[key];
     const value = data[key];
     if (value === undefined || value === null) {
-      if (isCurrent && role.rule === "required")
+      if (isCurrent)
         return `بنية الملف الحالي ناقصة — عائلة «${role.label}» غائبة وهذا لا يصدر عن تصدير Micro؛ يبدو أن الملف فُتح وحُذفت منه بيانات ثم أُعيد ختمه؛ لا يعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.`;
       continue;
     }

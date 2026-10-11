@@ -126,6 +126,27 @@ describe("R10-B2/RC-1 — current-pair raw-array gate (re-sealed laundering clos
     }
   });
 
+  it("rejects DELETION of a historical optional family on a re-sealed current file (RV5/D1 — the loan-wipe vector)", async () => {
+    const { service, file } = await seededExport();
+    for (const family of ["loans", "receivedLoans", "assets", "inventoryShortages", "expenseBudgets", "recurringExpenseSeries"]) {
+      const prepared = service.prepareImport(resealed(file, data => {
+        delete data[family];
+      }));
+      expect(prepared.ok, family).toBe(false);
+      if (!prepared.ok) expect(prepared.message, family).toContain("غائبة");
+    }
+  });
+
+  it("rejects JSON null for any family on a re-sealed current file (null is absence, not an array)", async () => {
+    const { service, file } = await seededExport();
+    for (const family of ["loans", "ownerMovements", "drafts"]) {
+      const prepared = service.prepareImport(resealed(file, data => {
+        data[family] = null;
+      }));
+      expect(prepared.ok, family).toBe(false);
+    }
+  });
+
   it("rejects a re-sealed current file with a REQUIRED family deleted (e.g. drafts — laundering beyond owner money)", async () => {
     const { service, file } = await seededExport();
     const prepared = service.prepareImport(resealed(file, data => {
@@ -141,7 +162,7 @@ describe("R10-B2/RC-1 — current-pair raw-array gate (re-sealed laundering clos
     expect(prepared.ok).toBe(true);
   });
 
-  it("legacy absence stays acceptable and present-but-non-array rejects on legacy pairs too", () => {
+  it("legacy absence (undefined AND null) stays acceptable and present-but-non-array rejects on legacy pairs too", () => {
     const legacyMinimal = {
       profile: null,
       preferences: null,
@@ -152,6 +173,10 @@ describe("R10-B2/RC-1 — current-pair raw-array gate (re-sealed laundering clos
     };
     /* غياب كل العائلات الاختيارية على موروث: مقبول (اختياري-عند-الغياب). */
     expect(verifyTransferArrayFamilies(legacyMinimal as Record<string, unknown>, false)).toBeNull();
+    /* null على موروث: غياب مقبول كundefined (عقد التوافق). */
+    expect(
+      verifyTransferArrayFamilies({ ...legacyMinimal, loans: null } as Record<string, unknown>, false),
+    ).toBeNull();
     /* موجود معطوب على موروث: مرفوض — «الموجود المعطوب يُرفض» بلا فرق عصر. */
     expect(
       verifyTransferArrayFamilies(
@@ -159,8 +184,12 @@ describe("R10-B2/RC-1 — current-pair raw-array gate (re-sealed laundering clos
         false,
       ),
     ).toContain("ليست مصفوفة");
-    /* عائلة صارمة غائبة على الحالي: مرفوضة (RC-1 يفرض الحضور). */
+    /* أي عائلة غائبة على الحالي — صارمة أو اختيارية أو مالك: مرفوضة
+     * (سياسة العصر الموحدة؛ تصحيح RV5). */
     expect(verifyTransferArrayFamilies(legacyMinimal as Record<string, unknown>, true)).toContain("غائبة");
+    expect(
+      verifyTransferArrayFamilies({ ...legacyMinimal, loans: [], assets: [] } as Record<string, unknown>, true),
+    ).toContain("غائبة");
   });
 
   it("counted registry keys match exportCountsOf output exactly (compile-complete census)", () => {
