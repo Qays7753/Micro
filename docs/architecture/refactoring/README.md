@@ -1,7 +1,7 @@
 # Micro — Refactoring Control
 
-**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0–R10 (WS-216/ARCH-007) ACTIVE; R0–R9 VERIFIED ON MAIN (R9 code merge e80f7509; read origin/main after fetch before R10; R10 NOT STARTED)`
-**المرحلة الحالية:** `SUCCESSOR R10 HOSTILE FINAL AUDIT AND CLOSURE GATE; R9 VERIFIED_ON_MAIN; NO VISUAL UI CHANGE`
+**الحالة:** `OWNER_ACCEPTED — SUCCESSOR R0–R10 (WS-216/ARCH-007) ACTIVE; R0–R9 VERIFIED ON MAIN; R10-B W0 VERIFIED_ON_MAIN at c9fbac2; R10-B1 NEXT`
+**المرحلة الحالية:** `SUCCESSOR R10-B W0 VERIFIED_ON_MAIN; R10-B1 docs/control-only gate next; NO VISUAL UI CHANGE`
 **نوع المساحة:** مساحة تخطيط وتحكم لإعادة الهيكلة، وليست مصدرًا معماريًا منافسًا.
 
 > **تحديث مؤرخ 2026-10-05 (عقد التنفيذ التالي):** اعتمد المالك الخطة الكاملة بعد تقريري Flash وStructure. عقد التنفيذ المحفوظ في `ZAI-POST-SCAN-STRUCTURAL-EXECUTION-CONTRACT-20261005.md` هو عقد تشغيل للبرنامج التالي، وليس سلطة معمارية ثانية. حالته `OWNER_ACCEPTED — EXECUTION_NOT_STARTED`; يبدأ التنفيذ بـR0 قراءة فقط ثم W0–W10 على فرع مستقل بعد التحقق الحي. لا يُكتب إلى `main` ولا تُفتح موجة جديدة خارج هذا العقد.
@@ -45,7 +45,7 @@
 | `ZAI-STRUCTURE-ARCHITECTURE-SCAN-PROMPT.md` | الأمر الجاهز لـZ AI لتنفيذ المسح وإعداد التقرير | Prompt إصدار 1 |
 | `FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md` | جرد الملفات والحجم والمسؤوليات والنمو والاستثناءات | موجود (v1.5 — رأس قياس مثبت في رأسه؛ 1,484 ملفًا متتبعًا عند رأس أساس R1 `8bc5196` بقياس `git ls-files` — ورأس الموجة 1,486 بعد ملفَي R1 الجديدين *(تصحيح مؤرخ 2026-10-07 — R1/TG-01 [R0-N9/gate-C2]: كان «v1.4 — 1,323 متتبعًا/752 في النطاق»))؛ ليس مصدر منطق أو سياسة |
 | `REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md` | خطة Z AI النهائية من الوضع الحالي إلى الوضع المستهدف وموجات النقل | موجودة (v1.1+§23؛ مصالحة ما بعد PR #312) — الموجات المنفذة مثبتة في سجل الإغلاق |
-| `AGENT-SEQUENTIAL-WORKLOG.md` | سجل الوكلاء المتسلسل (بطاقات الموجات) | حي — آخر قيد Entry 87 (R9 post-merge reconciliation؛ 2026-10-11) |
+| `AGENT-SEQUENTIAL-WORKLOG.md` | سجل الوكلاء المتسلسل (بطاقات الموجات) | حي — آخر قيد Entry 92 (R10-B W0 post-merge؛ 2026-10-11) |
 | `OWNERSHIP-AND-TRUTH-REGISTRY.md` | سجل الملكية ومصادر الحقيقة والاستثناءات الموثقة (أُغفلت صفوفه من الجدول سابقًا — استكمال F-01-f/W1) | موجود (مصالحة ما بعد A-to-Z)؛ يُصالَح حيًّا لا يُنسخ |
 | `TEST-AND-DOCUMENTATION-MAP.md` | خريطة الصفحات إلى الاختبارات والعقود واصطلاح مواضعها (Wave G2/STR-619) | موجودة (60 صفحة بأدلة — 55 direct + 5 named بتصحيح R1 المؤرخ؛ 49 عقدًا موصولًا) |
 | `A-TO-Z-CLOSURE-RECORD.md` | سجل إغلاق A-to-Z: الجدول الاثني عشري، الخفض الإلزامي، المجمد، وشرط الخروج | موجود؛ متحقق مع سجل الدمج النهائي |

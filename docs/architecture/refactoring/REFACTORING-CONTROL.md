@@ -1,9 +1,9 @@
 # Micro — Refactoring Control
 
-**الإصدار:** v1.22 (R9 VERIFIED_ON_MAIN؛ convention `base_sha` = claim-base snapshot؛ R10 بوابة التدقيق العدائي التالية — 2026-10-11؛ v1.21 وما قبلها سجل تاريخي)
+**الإصدار:** v1.23 (R10-B W0 VERIFIED_ON_MAIN؛ convention `base_sha` = claim-base snapshot؛ R10-B1 التالية — 2026-10-11؛ v1.22 وما قبلها سجل تاريخي)
 **التاريخ:** 2026-10-11
-**الحالة:** `OWNER_ACCEPTED — R0–R9 VERIFIED_ON_MAIN; R10 HOSTILE FINAL AUDIT AND CLOSURE NOT STARTED`
-**المرحلة:** `SUCCESSOR R0–R9 VERIFIED ON MAIN; R10 preflight/hostile audit gate next`
+**الحالة:** `OWNER_ACCEPTED — R0–R9 VERIFIED_ON_MAIN; R10-B W0 VERIFIED_ON_MAIN; R10-B1 NEXT`
+**المرحلة:** `SUCCESSOR R0–R9 VERIFIED ON MAIN; R10-B W0 VERIFIED ON MAIN; B1 docs/control-only next`
 **النطاق:** Structure / Architecture / Code Organization فقط
 
 ## 1. الهدف
@@ -185,7 +185,7 @@ NO_SCHEMA_OR_EXPORT_IMPORT_CHANGED
 - **الخطة:** `STRUCTURAL-REMEDIATION-PLAN-20261007.md`.
 - **البداية المسموحة:** R0 قراءة فقط ومصالحة الخط الأساسي؛ لا نقل أو تقسيم أو حذف أو تعديل كودي في R0.
 - **قاعدة الاستمرار:** بعد تقرير R0 فقط، تنفذ R1–R10 على فرع مستقل، وبطاقات Repair، وPR مستقل أو شريحة قابلة للمراجعة، وفحوص مركزة وCI وحد رجوع لكل موجة.
-- **الخطوة الحية:** R8 تحققت على `main` عند Merge commit `87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e` (PR #345؛ CI post-merge `38060781329` ناجح)، ثم اكتملت R9 على `main` بدمج PR #347 عند Merge commit `e80f750977cb3f0200a2db5e1627bb01627f9c09` من الرأس `ec83fcaed23c2bad9a4dbd544f2e709b91a429a3`، ونجح CI post-merge `38127377464` على الرأس نفسه. مصالحات #348 و#349 التوثيقيتان أغلقتا drift السجل. `base_sha` هو snapshot لقاعدة claim وليس مؤشرًا دائمًا إلى رأس `main`; قبل R10 يجب تنفيذ fetch وقراءة `origin/main` ثم فتح claim/branch منه. R9 VERIFIED_ON_MAIN، وR10 هي التالية ولم تبدأ. لا تغيير مالي/دلالي/تاريخي أو Schema/Export/Import أو UI بصري. *(تحديث مؤرخ 2026-10-11 — سياسة مؤشرات المصالحة)*
+- **الخطوة الحية:** R8 تحققت على `main` عند Merge commit `87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e` (PR #345؛ CI post-merge `38060781329` ناجح)، ثم اكتملت R9 على `main` بدمج PR #347 عند Merge commit `e80f750977cb3f0200a2db5e1627bb01627f9c09` من الرأس `ec83fcaed23c2bad9a4dbd544f2e709b91a429a3`، ونجح CI post-merge `38127377464` على الرأس نفسه. مصالحات #348 و#349 التوثيقيتان أغلقتا drift السجل. R10-B W0 دُمجت عبر PR #354 عند Merge commit `c9fbac254319c84ff228ab686f72bc9aac7ce107` ونجح CI `38161910588` على الرأس نفسه. `base_sha` هو snapshot لقاعدة claim وليس مؤشرًا دائمًا إلى رأس `main`; قبل R10-B1 يجب تنفيذ fetch وقراءة `origin/main` ثم فتح فرع/claim جديد منه. R10-B1 هي التالية ولم تبدأ؛ W0 كانت مصالحة أدلة/تحكم فقط ولا معالجة كودية. لا تغيير مالي/دلالي/تاريخي أو Schema/Export/Import أو UI بصري. *(تحديث مؤرخ 2026-10-11 — W0 post-merge reconciliation)*
 
 ## 15. سلّم الأولوية ودورة حياة قطع الحوكمة (R1/TG-04 — 2026-10-07)
 
