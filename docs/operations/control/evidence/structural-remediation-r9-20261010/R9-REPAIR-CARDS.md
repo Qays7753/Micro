@@ -195,6 +195,12 @@ Every card below carries: exact evidence, root cause, impact, minimum safe remed
 - **Acceptance:** a clean checkout can reproduce exactly what was executed; no stale source claim remains.
 - **Rollback:** revert `91bd07ac`.
 
+### Post-push cloud-anchor gap (dated 2026-10-11 — records completion, closed in the repair commit)
+- **Class:** guard-baseline bookkeeping (not a code defect; no new finding family). **Severity:** MEDIUM (blocked the required checks on the pushed head). **Disposition:** FIX_NOW — closed in the post-push repair commit on top of `67366bff`.
+- **Evidence:** CI run `38118248772` (job `114407454941`) and Cloudflare Pages check-run `114407518003` on head `67366bff` both failed `check-bundle-surfaces` on exactly the three surfaces the systemic continuation grew (lazy raw +3,001 / lazy gzip-norm +740 / precache raw +3,399) — the cloud environment records in `bundle-surfaces-baseline.json` were still anchored at `0bb51d1e` while the local record had been re-anchored per-group.
+- **Closed:** both cloud records re-anchored to the `67366bff` measurements (github-actions = the exact CI-measured values; cloudflare-pages = the environment-class derivation proven on the previous generation, verified by the repair-head Pages run); the local record's stale head field corrected with a dated note. Tolerances/ceilings/counts/guard code untouched. Full record: §12 of the systemic execution report.
+- **Rollback:** revert the repair commit (guard semantics untouched — reverting restores only the stale anchors).
+
 ## Disposition summary
 
 | Card | Severity | Relationship | Disposition | Wave |

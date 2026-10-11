@@ -207,7 +207,7 @@ Re-scan results versus the pre-implementation matrix:
 
 | Command                                                                                           | Result                                                                                       |
 | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `pnpm --filter @micro/prototype-web exec vitest run client/src/storage/local/`                    | 305/305 (exit 0) — includes RB-1/RB-2/RB-3/RB-4                                              |
+| `pnpm --filter @micro/prototype-web exec vitest run client/src/storage/local/`                    | 305/305 (exit 0) — includes RB-1/RB-2/RB-3/RB-4 *(dated correction 2026-10-11: re-measured on the final tree = 301/301 across 45 files incl. the capabilities contracts and the 10 rehearsal tests RB-1..RB-4; the 305 figure was a transcription slip in this table — no test was removed; CI on head 67366bff ran the same suite green)*                                              |
 | `pnpm --filter @micro/prototype-web exec vitest run` (full app suite)                             | 2,521/2,521 across 343 files (exit 0)                                                        |
 | `pnpm --filter @micro/prototype-web check` (tsc)                                                  | exit 0                                                                                       |
 | `pnpm exec vitest run` (root)                                                                     | 754/754 (exit 0) — includes the guard's 6 tests                                              |
@@ -276,3 +276,33 @@ NO_REPOSITORY_WRITES_AFTER_FINAL_REPORT
 ```
 
 All in-scope defects (F3.6-ERROR-ROLE-INVENTORY a–d, F3.7, G5.1, G5.2, F7.1, F8) are closed with root-cause changes, negative proofs, and regression evidence; the standing limitations are the recorded CI-harness trigger and the jsdom-proven read-error surfaces — neither is an open defect; the full canonical checks pass on the final tree; the final-head CI/Cloudflare results are pinned in the PR body; the documentation and tracker agree with the final head.
+
+---
+
+## 12. Post-push verification record and cloud-anchor repair (dated 2026-10-11 — appended; supersedes nothing above except where noted)
+
+This section is appended after the five commits of the systemic continuation (Groups A–D + the docs closure `67366bff`) were pushed to PR #347, exactly as the R9-GA-F5 protocol requires the final head to be verified live rather than locally.
+
+### 12.1 The failure (observed on the exact pushed head)
+
+On head `67366bffb2847235c9c3e1fa827c76cab59af052` both required checks failed — GitHub CI run `38118248772` (job `114407454941`, https://github.com/Qays7753/Micro/actions/runs/38118248772/job/114407454941) and the Cloudflare Pages check-run `114407518003` (https://github.com/Qays7753/Micro/runs/114407518003). The CI log shows every test suite green (64 root files, 343 app files), the entry budget green (631,764 raw / 155,157 gzip under 650,000/155,300), every recorded count at baseline — and exactly three guard failures from `check-bundle-surfaces`: `lazyRawTotal 1,210,965 > 1,207,964+8`, `lazyGzipNormTotal 365,037 > 364,297+16`, `precacheBytesTotal 2,679,043 > 2,675,644+8`. The Pages failure is the same guard inside the provider build command (the R7-CF-REPAIR precedent: the guards run inside the Pages build).
+
+### 12.2 Diagnosis (records gap, not code growth)
+
+The R8-1 per-environment anchoring schema holds one record per measurement environment. During the systemic continuation, Groups A–C each re-anchored the **local** record in-step (`da8747ca`, `ecc4b963`, `ecf17620`), but the **github-actions** and **cloudflare-pages** records were left at the pre-continuation head `0bb51d1e` with a "to be verified by the final runs" note — the push performed exactly that verification and the gap failed honestly, at the tolerance boundary, exactly on the three surfaces the continuation grew (+3,001 lazy raw / +740 lazy gzip-norm / +3,399 precache raw — all authorized, ratchet-ledgered `R9-SYS-A/B/C-*`, and documented in the per-group local anchor methods). No test, budget, count, or ceiling was violated; the code growth itself was already justified and evidenced.
+
+### 12.3 Repair (this commit — the guard's own documented same-PR protocol)
+
+`bundle-surfaces-baseline.json`: both cloud records re-anchored to the measured values of head `67366bff` — `github-actions` to the **exact CI-measured numbers** from the failed run (lazy 1,210,965 / gzipNorm 365,037 / precache 2,679,043); `cloudflare-pages` to the same values by the environment-class derivation proven on the previous anchor generation (both cloud records measured identical values at `0bb51d1e`; lazy/initial/swRuntime are environment-invariant — the failed CI run measured lazy byte-equal to local — and the precache carries the documented +112 env-identity footprint: local 2,678,931 → cloud 2,679,043, exactly what CI measured). The **local** record's head field was corrected to `67366bff` with a dated note (it had recorded the working-tree base at the Group C re-anchor; the measurements are verified byte-identical on `67366bff` by the canonical local build). Tolerances untouched (raw +8 / gzip +16); entry ceilings untouched (owned by check-bundle-budget); counts untouched; the guard and its 22 tests untouched.
+
+### 12.4 Pre-push verification of the repair (local reproduction of both cloud environments)
+
+The exact CI measurement was reproduced locally before pushing: a rebuild with the CI's 40-hex build identity reproduces the CI entry raw byte-exactly (631,764) and measures lazy 1,210,965 raw / 365,037 gzipNorm / precache 2,679,043 — and the guard **PASSES** in both simulated cloud environments (`GITHUB_ACTIONS=true GITHUB_SHA=67366bff…` → ENV=github-actions PASS; `CF_PAGES=1 CF_PAGES_COMMIT_SHA=67366bff…` → ENV=cloudflare-pages PASS). The full canonical `pnpm check` exits 0 on the repair tree (754/754 root, 2,521/2,521 app; local null-identity build: entry 631,652/155,093; surfaces within the local anchor).
+
+### 12.5 Live verification protocol (what PR_READY is conditioned on)
+
+PR_READY for the final head is declared **only after** the CI run and the Cloudflare Pages check-run on the exact repair head (and, if a follow-up docs pinning commit is made, on that exact final head too) are both `success`, with their URLs pinned in the PR body per the R9-GA-F5 protocol; the merge manifest's "Source full SHA" is that same head. The repair-head run URLs are recorded in §12.6 below once observed (append-only).
+
+### 12.6 Observed final-head runs (filled after the checks complete — append-only)
+
+*(To be pinned per §12.5; the PR body carries the same URLs.)*
