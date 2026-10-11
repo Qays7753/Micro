@@ -172,7 +172,15 @@
     "https://github.com/Qays7753/Micro/commit/507a28e22e89bd0e45843d88cdc548c766c51ab7",
     "https://github.com/Qays7753/Micro/actions/runs/38129424451",
     "https://github.com/Qays7753/Micro/pull/349",
-    "https://github.com/Qays7753/Micro/actions/runs/38130404154"
+    "https://github.com/Qays7753/Micro/actions/runs/38130404154",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-FINDINGS-RECONCILIATION-AND-RESEARCH-REPORT-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-FINDINGS-MATRIX-2026-10-11.json",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-READS-LOCATIONS-MATRIX-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-UNVERIFIED-RESEARCH-REPORT-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-REPAIR-CARDS-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-OWNER-DECISION-PACKAGE-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-SYNTHESIS-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-REPORTS-2026-10-11/"
   ],
   "dependencies": [],
   "related_items": [
@@ -190,5 +198,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R9 VERIFIED_ON_MAIN: code merge PR #347 is e80f750977cb3f0200a2db5e1627bb01627f9c09 and post-merge CI 38127377464 succeeded on that exact code SHA. Documentation-only reconciliations PR #348 and PR #349 are merged and verified. Before R10, re-fetch origin/main and use that live SHA as the R10 claim base; do not treat any prior documentation merge SHA as a permanent current-main pointer. R10 hostile final audit and closure requires its own preflight, five read-only reviewers, focused tests, CI, dedicated branch/PR, and owner merge authorization. Do not claim final closure or perform cleanup before R10."
+  "next_action": "R10-B W0 COMPLETE at R10B_BASE_SHA ffc54eb1150932c9bba88b48a7c38275f2a3effa (branch refactoring/r10b-systemic-findings-root-fix-20261011, docs/evidence-only): all 37 R10-A findings + 34 new findings (R10B-NF-001..034) reconciled in the canonical R10-B findings matrix (54 FIX_NOW grouped into waves R10-B1..R10-B6, 16 precise DEFER cards, 1 disproved retraction R10A-F-023); 12 E-UNV limitations re-researched; 5 PRESERVE cards re-ratified 9-10/10; PILOT count corrected to 14; BLOCKED blockers 2/3 stale corrections staged. OWNER GATE: OD-6 (W0 acceptance + wave authorization) plus OD-1..OD-13 per the owner decision package. NO code remediation performed before owner approval. Next: owner decision, then waves R10-B1..R10-B6 on this branch; no merge, no cleanup, no branch deletion."
 }

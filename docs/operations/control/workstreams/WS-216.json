@@ -31,7 +31,7 @@
   "pr": null,
   "started_at": "2026-10-07",
   "updated_at": "2026-10-11",
-  "next_action": "R9 VERIFIED_ON_MAIN: code merge PR #347 is e80f750977cb3f0200a2db5e1627bb01627f9c09; post-merge CI 38127377464 succeeded on that exact code SHA. The subsequent documentation-only reconciliations PR #348 and PR #349 are merged and verified; base_sha is the claim-base snapshot, not a permanently pinned current-main pointer. Before R10, fetch origin/main, record the live SHA in the new R10 claim, and create the dedicated R10 branch/PR from that exact fetched head. R10 hostile final audit and closure is next and has not started. No cleanup or branch deletion.",
+  "next_action": "R10-B W0 COMPLETE at R10B_BASE_SHA ffc54eb1150932c9bba88b48a7c38275f2a3effa (branch refactoring/r10b-systemic-findings-root-fix-20261011, docs/evidence-only): all 37 R10-A findings + 34 new findings (R10B-NF-001..034) reconciled in the canonical R10-B findings matrix (54 FIX_NOW grouped into waves R10-B1..R10-B6, 16 precise DEFER cards, 1 disproved retraction R10A-F-023); 12 E-UNV limitations re-researched; 5 PRESERVE cards re-ratified 9-10/10; PILOT count corrected to 14; BLOCKED blockers 2/3 stale corrections staged. OWNER GATE: OD-6 (W0 acceptance + wave authorization) plus OD-1..OD-13 per the owner decision package. NO code remediation performed before owner approval. Next: owner decision, then waves R10-B1..R10-B6 on this branch; no merge, no cleanup, no branch deletion.",
   "notes": [
     "اعتماد المالك في 2026-10-07 للخطة المحدثة ومصفوفة التتبع الكاملة المبنية على تقريري Structure وFlash.",
     "هذا successor مستقل؛ لا يعيد فتح WS-212 أو WS-214 أو WS-215 ولا يعدل عقودها التاريخية.",
@@ -154,7 +154,15 @@
     "https://github.com/Qays7753/Micro/commit/507a28e22e89bd0e45843d88cdc548c766c51ab7",
     "https://github.com/Qays7753/Micro/actions/runs/38129424451",
     "https://github.com/Qays7753/Micro/pull/349",
-    "https://github.com/Qays7753/Micro/actions/runs/38130404154"
+    "https://github.com/Qays7753/Micro/actions/runs/38130404154",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-FINDINGS-RECONCILIATION-AND-RESEARCH-REPORT-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-FINDINGS-MATRIX-2026-10-11.json",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-READS-LOCATIONS-MATRIX-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-UNVERIFIED-RESEARCH-REPORT-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-REPAIR-CARDS-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-OWNER-DECISION-PACKAGE-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-SYNTHESIS-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-REPORTS-2026-10-11/"
   ],
   "status_history": [
     {
