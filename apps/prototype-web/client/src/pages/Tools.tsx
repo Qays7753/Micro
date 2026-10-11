@@ -215,7 +215,7 @@ export default function Tools() {
               ))
             )}
             {message ? (
-              <p className="micro-field-error" role="status">
+              <p className="micro-field-error" role="alert">
                 {message}
               </p>
             ) : null}

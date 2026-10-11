@@ -187,7 +187,11 @@ export default function FinancialEventEditor() {
   const confirmedDistinctRef = useRef(false);
   const [payableOptions, setPayableOptions] = useState<readonly SettleablePayable[]>([]);
   const [relatedEventId, setRelatedEventId] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
+  /* R9-GA-F3.6b (استمرار R9 الجذري): نبرة الرسالة في الحالة لا بقراءة
+   * بادئة النص — كانت رسالة النجاح نفسها («حُفظ الحدث المالي محليًا.»)
+   * تُعرض بفئة الخطأ لأنها لا تبدأ بـ«تم »/«هذا ». الفصل الكنوني: خطأ ⇒
+   * micro-field-error + alert، نجاح/معلومة ⇒ micro-save-note + status. */
+  const [message, setMessage] = useState<{ text: string; tone: "error" | "success" | "info" } | null>(null);
   const [saving, setSaving] = useState(false);
   /* P0 (إعادة الدخول): حوار «احفظ واستمر» أو ضغطة ثانية أثناء حفظ جارٍ لا
    * تعيد نداء السجل نفسه — العهدة التزامنية كخط أول، وحتمية المخزن كخط ثانٍ. */
@@ -214,7 +218,7 @@ export default function FinancialEventEditor() {
     projectFinance.listSettleablePayables().then(result => {
       /* W2 (completion — تدقيق الوكيل ٢، F4): فشل قراءة الخيارات لم يعد صامتًا. */
       if (result.ok) setPayableOptions(result.value);
-      else setMessage(result.message);
+      else setMessage({ text: result.message, tone: "error" });
     });
   }, [projectFinance, dataVersion]);
   /* F-006: رصيد الأمانات الحالي أمام العين قبل تسليم أي مبلغ — لا اكتشاف بعد الحفظ. */
@@ -225,7 +229,7 @@ export default function FinancialEventEditor() {
     projectFinance.readPosition().then(result => {
       if (!active) return;
       if (result.ok) setAmanahHeldMinor(result.value.amanahHeldMinor);
-      else setMessage(result.message);
+      else setMessage({ text: result.message, tone: "error" });
     });
     return () => {
       active = false;
@@ -238,7 +242,7 @@ export default function FinancialEventEditor() {
     projectFinance.listEvents().then(result => {
       if (!active) return;
       if (result.ok) setSuggestions(deriveExpenseCategorySuggestions(result.value));
-      else setMessage(result.message);
+      else setMessage({ text: result.message, tone: "error" });
     });
     return () => {
       active = false;
@@ -257,7 +261,7 @@ export default function FinancialEventEditor() {
     cashContinuity.overview().then(result => {
       if (!active) return;
       if (result.ok) setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
-      else setMessage(result.message);
+      else setMessage({ text: result.message, tone: "error" });
     });
     return () => {
       active = false;
@@ -533,17 +537,19 @@ export default function FinancialEventEditor() {
     }
     if (!primaryAmountValid) {
       /* R7/P03: كود المشكلة من البوابة التطبيقية — النص هنا (نسخة واجهة). */
-      setMessage(
-        primaryAmountProblem === "percentage_precision"
-          ? "دقة النسبة أدق من المدعوم — أدخل نسبة بمنزلتين عشريتين كحد أقصى (خطوة 0.01%) ثم أعد الحفظ."
-          : isShared && sharedMode === "percentage"
-            ? "أدخل إجماليًا ونسبة صحيحة بين 0 و100 قبل الحفظ."
-            : "أدخل مبلغًا صالحًا بالأرقام 0–9 قبل الحفظ.",
-      );
+      setMessage({
+        tone: "error",
+        text:
+          primaryAmountProblem === "percentage_precision"
+            ? "دقة النسبة أدق من المدعوم — أدخل نسبة بمنزلتين عشريتين كحد أقصى (خطوة 0.01%) ثم أعد الحفظ."
+            : isShared && sharedMode === "percentage"
+              ? "أدخل إجماليًا ونسبة صحيحة بين 0 و100 قبل الحفظ."
+              : "أدخل مبلغًا صالحًا بالأرقام 0–9 قبل الحفظ.",
+      });
       return false;
     }
     if (!note.trim()) {
-      setMessage(EXPENSE_NOTE_REQUIRED_MESSAGE);
+      setMessage({ text: EXPENSE_NOTE_REQUIRED_MESSAGE, tone: "error" });
       return false;
     }
     /* FIN-005: محافظ متعددة — لا حفظ لمصروف نقدي بلا اختيار صريح لمصدره.
@@ -551,7 +557,7 @@ export default function FinancialEventEditor() {
     if (selectedType === "operating_expense_cash") {
       const sourceViolation = expenseSourceRuleViolation(wallets.length, walletId);
       if (sourceViolation) {
-        setMessage(sourceViolation);
+        setMessage({ text: sourceViolation, tone: "error" });
         return false;
       }
     }
@@ -601,14 +607,15 @@ export default function FinancialEventEditor() {
     }
     if (!result.ok) {
       setSaving(false);
-      setMessage(result.message);
+      setMessage({ text: result.message, tone: "error" });
       return false;
     }
     if (result.reused) {
       setSaving(false);
-      setMessage(
-        "لم يُحفظ التعديل. هذا الحدث مسجل سابقًا بنفس المفتاح؛ للتصحيح تراجع عن الحدث الأصلي وسجّل حدثًا جديدًا.",
-      );
+      setMessage({
+        tone: "info",
+        text: "لم يُحفظ التعديل. هذا الحدث مسجل سابقًا بنفس المفتاح؛ للتصحيح تراجع عن الحدث الأصلي وسجّل حدثًا جديدًا.",
+      });
       return false;
     }
     /* المال محفوظ الآن — المسودة تُمسح قبل أي خطوة لاحقة مهما صار، والوسخ
@@ -670,7 +677,7 @@ export default function FinancialEventEditor() {
     }
     /* N-92 (إصلاح نصي 4.3): صيغة الماضي الموحدة «حُفظ…» كإخواتها (الملف:
      * «حُفظ ملفك محليًا») — بلا تغيير معنى. */
-    setMessage("حُفظ الحدث المالي محليًا.");
+    setMessage({ text: "حُفظ الحدث المالي محليًا.", tone: "success" });
     /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
     navigate(returnPath);
     return true;
@@ -953,14 +960,10 @@ export default function FinancialEventEditor() {
         </label>
         {message ? (
           <p
-            className={
-              message.startsWith("تم ") || message.startsWith("هذا ")
-                ? "micro-save-note"
-                : "micro-field-error"
-            }
-            role="status"
+            className={message.tone === "error" ? "micro-field-error" : "micro-save-note"}
+            role={message.tone === "error" ? "alert" : "status"}
           >
-            {message}
+            {message.text}
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">

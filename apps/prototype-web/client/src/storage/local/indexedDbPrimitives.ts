@@ -55,13 +55,27 @@ export async function writeOneIdempotent<T>(
       const scanRequest = store.getAll();
       scanRequest.onerror = () => resolve(failure(scanRequest.error, database));
       scanRequest.onsuccess = () => {
-        const existing = (scanRequest.result as T[]).find(isDuplicate);
-        if (existing) {
-          resolve({ ok: true, value: existing });
-          return;
+        /* R9-GA-F7 (استمرار R9): أي رمي متزامن داخل مستمع النجاح (put بعنصر
+         * غير قابل للاستنساخ، أو خطأ في فاحص التكرار) لم يكن يُلتقط — فاعتمد
+         * السلوك على معالجة المحرك لاستثناء المستمع (إحباط مع فقدان حمولة
+         * الخطأ الأصلي، أو ما هو أسوأ على محرك لا يحترمها). الالتقاط هنا
+         * يجعل الفشل حتميًا ببنية الكود: إحباط محرس + فشل صادق بالخطأ الأصلي. */
+        try {
+          const existing = (scanRequest.result as T[]).find(isDuplicate);
+          if (existing) {
+            resolve({ ok: true, value: existing });
+            return;
+          }
+          const putRequest = store.put(value);
+          putRequest.onerror = () => resolve(failure(putRequest.error, database));
+        } catch (error) {
+          resolve(failure(error, database));
+          try {
+            transaction.abort();
+          } catch {
+            /* المعاملة انتهت فعلًا — لا شيء يُحبَط. */
+          }
         }
-        const putRequest = store.put(value);
-        putRequest.onerror = () => resolve(failure(putRequest.error, database));
       };
       transaction.onabort = () => resolve(failure(transaction.error, database));
       transaction.onerror = () => resolve(failure(transaction.error, database));
@@ -102,7 +116,19 @@ export async function listAll<T>(
       const transaction = database.transaction(storeName, "readonly");
       const request = transaction.objectStore(storeName).getAll();
       request.onerror = () => resolve(failure(request.error, database));
-      request.onsuccess = () => resolve({ ok: true, value: (request.result as T[]).sort(sort) });
+      /* R9-GA-F7.1 (استمرار R9 الجذري — الوجه القرائي لعائلة F7): جسم
+       * المستمع كان يستدعي مقارن ترتيب المستدعي داخل onsuccess بلا التقاط
+       * — أي رمي متزامن (سجل مشوّه يُفشِل المقارن) يهرب إلى المحرك فلا
+       * يُحسم الوعد أبدًا (لا onabort ولا oncomplete يسلّم) وتبقى الصفحة
+       * في التحميل الأبدي. الالتقاط هنا يحسم الفشل بالخطأ الأصلي وفق عقد
+       * النتائج المعلن — معاملة قراءة لا كتابة فيها فلا إحباط مطلوبًا. */
+      request.onsuccess = () => {
+        try {
+          resolve({ ok: true, value: (request.result as T[]).sort(sort) });
+        } catch (error) {
+          resolve(failure(error, database));
+        }
+      };
       transaction.oncomplete = () => {};
     });
   } catch (error) {

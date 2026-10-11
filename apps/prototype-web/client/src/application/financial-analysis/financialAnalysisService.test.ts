@@ -566,3 +566,203 @@ describe("G5 short-cash receivables count only registered debt (A-05)", () => {
     expect(decision.ok && decision.value.shortCash.undatedReceivablesMinor).toBe(5000);
   });
 });
+
+/* ─── استمرار R9 (R9-GA-F3.4): عقد إعادة استخدام createDeclaration على
+ * محرك IndexedDB الحقيقي (fake-indexeddb) — الهوية من المُستدعي والمطابقة
+ * نصية داخل النوع؛ نفس مدخلات g5-ui الجديدة تُعاد بصدق، واختلاف knowledge
+ * وحده يُنشئ سجلًا ثانيًا. ─── */
+describe("FinancialAnalysisService.createDeclaration idempotency on IndexedDB (R9 continuation)", () => {
+  it("an identical retry reuses the stored declaration and a knowledge-only difference persists a second one", async () => {
+    await import("fake-indexeddb/auto");
+    const { IndexedDbLocalStore } = await import("@/storage/local/IndexedDbLocalStore");
+    const store = new IndexedDbLocalStore();
+    const projectFinance = new ProjectFinancialService(store, now);
+    const service = new FinancialAnalysisService(store, projectFinance);
+    const base = {
+      direction: "collection" as const,
+      amountMinor: 2_500,
+      dueOn: "2026-08-10",
+      source: "مصدر على IndexedDB",
+      note: "ملاحظة على IndexedDB",
+      relatedOrderId: null,
+      relatedEventId: null,
+      idempotencyKey:
+        'g5-ui:["collection","2026-08-10",2500,"مصدر على IndexedDB","ملاحظة على IndexedDB","known",null,null]',
+    };
+    const first = await service.createDeclaration({ ...base, knowledge: "known" });
+    expect(first.ok).toBe(true);
+    const retry = await service.createDeclaration({ ...base, knowledge: "known" });
+    expect(retry.ok).toBe(true);
+    expect(retry.ok && retry.reused).toBe(true);
+    const differing = await service.createDeclaration({
+      ...base,
+      knowledge: "estimated",
+      idempotencyKey:
+        'g5-ui:["collection","2026-08-10",2500,"مصدر على IndexedDB","ملاحظة على IndexedDB","estimated",null,null]',
+    });
+    expect(differing.ok).toBe(true);
+    expect(differing.ok && differing.reused).toBeUndefined();
+    const declarations = await service.listDeclarations();
+    expect(declarations.ok).toBe(true);
+    expect(declarations.ok && declarations.value).toHaveLength(2);
+    expect(declarations.ok && declarations.value.filter(item => item.knowledge === "known")).toHaveLength(1);
+    expect(declarations.ok && declarations.value.filter(item => item.knowledge === "estimated")).toHaveLength(
+      1,
+    );
+    await new Promise<void>(resolve => {
+      const request = indexedDB.deleteDatabase("micro-prototype-local");
+      request.onsuccess = () => resolve();
+      request.onerror = () => resolve();
+    });
+  });
+});
+
+describe("FinancialAnalysisService.createDeclaration legacy-key semantic bridge (R9-GA-G5.1)", () => {
+  /* نسق المفتاح القديم (قبل إصلاح F3.4): بصل «:» وإسقاط knowledge —
+   * سجل مبذور بهذا النسق يحاكي قاعدة تطوير موجودة قبل الإصلاح. */
+  const legacyKey = (source: string, note: string) =>
+    `g5-ui:collection:2026-08-10:2500:${source}:${note}:none`;
+  const base = {
+    direction: "collection" as const,
+    amountMinor: 2_500,
+    dueOn: "2026-08-10",
+    knowledge: "known" as const,
+    relatedOrderId: null,
+    relatedEventId: null,
+  };
+
+  it("an identical retry across the key-format boundary reuses the stored record (no semantic duplicate)", async () => {
+    const store = new MemoryLocalStore();
+    const service = new FinancialAnalysisService(store, new ProjectFinancialService(store, now));
+    /* بذر سجل بالنسق القديم مباشرة عبر المهايئ — كما خُزِّن قبل الإصلاح. */
+    const seeded = await store.saveShortCashDeclaration({
+      id: "legacy-decl-1",
+      kind: "declaration",
+      direction: "collection",
+      amountMinor: 2_500,
+      dueOn: "2026-08-10",
+      source: "مصدر النسق القديم",
+      knowledge: "known",
+      note: "ملاحظة النسق القديم",
+      relatedOrderId: null,
+      relatedEventId: null,
+      idempotencyKey: legacyKey("مصدر النسق القديم", "ملاحظة النسق القديم"),
+      reversalOfId: null,
+      createdAt: now(),
+    });
+    expect(seeded.ok).toBe(true);
+    const retry = await service.createDeclaration({
+      ...base,
+      source: "مصدر النسق القديم",
+      note: "ملاحظة النسق القديم",
+      idempotencyKey:
+        'g5-ui:["collection","2026-08-10",2500,"مصدر النسق القديم","ملاحظة النسق القديم","known",null,null]',
+    });
+    expect(retry.ok).toBe(true);
+    expect(retry.ok && retry.reused).toBe(true);
+    expect(retry.ok && retry.value.id).toBe("legacy-decl-1");
+    const declarations = await service.listDeclarations();
+    expect(declarations.ok && declarations.value).toHaveLength(1);
+  });
+
+  it("a knowledge-only difference does not reuse the legacy record (the semantic field is part of the identity)", async () => {
+    const store = new MemoryLocalStore();
+    const service = new FinancialAnalysisService(store, new ProjectFinancialService(store, now));
+    await store.saveShortCashDeclaration({
+      id: "legacy-decl-2",
+      kind: "declaration",
+      direction: "collection",
+      amountMinor: 2_500,
+      dueOn: "2026-08-10",
+      source: "مصدر النسق القديم",
+      knowledge: "known",
+      note: "ملاحظة النسق القديم",
+      relatedOrderId: null,
+      relatedEventId: null,
+      idempotencyKey: legacyKey("مصدر النسق القديم", "ملاحظة النسق القديم"),
+      reversalOfId: null,
+      createdAt: now(),
+    });
+    const differing = await service.createDeclaration({
+      ...base,
+      knowledge: "needs_review",
+      source: "مصدر النسق القديم",
+      note: "ملاحظة النسق القديم",
+      idempotencyKey:
+        'g5-ui:["collection","2026-08-10",2500,"مصدر النسق القديم","ملاحظة النسق القديم","needs_review",null,null]',
+    });
+    expect(differing.ok).toBe(true);
+    expect(differing.ok && differing.reused).toBeUndefined();
+    const declarations = await service.listDeclarations();
+    expect(declarations.ok && declarations.value).toHaveLength(2);
+  });
+
+  it("a legacy colon-collision input cannot falsely reuse the wrong semantic record (field comparison, not key matching)", async () => {
+    const store = new MemoryLocalStore();
+    const service = new FinancialAnalysisService(store, new ProjectFinancialService(store, now));
+    /* تحت النسق القديم كانت المفاتيح تتطابق لهذا الزوج — الجسر الدلالي
+     * يقارن الحقول فلا يعيد إلا التطابق التام. */
+    await store.saveShortCashDeclaration({
+      id: "legacy-decl-3",
+      kind: "declaration",
+      direction: "collection",
+      amountMinor: 2_500,
+      dueOn: "2026-08-10",
+      source: "أ",
+      knowledge: "known",
+      note: "ب:ج",
+      relatedOrderId: null,
+      relatedEventId: null,
+      idempotencyKey: legacyKey("أ", "ب:ج"),
+      reversalOfId: null,
+      createdAt: now(),
+    });
+    const colliding = await service.createDeclaration({
+      ...base,
+      source: "أ:ب",
+      note: "ج",
+      idempotencyKey: 'g5-ui:["collection","2026-08-10",2500,"أ:ب","ج","known",null,null]',
+    });
+    expect(colliding.ok).toBe(true);
+    expect(colliding.ok && colliding.reused).toBeUndefined();
+    const declarations = await service.listDeclarations();
+    expect(declarations.ok && declarations.value).toHaveLength(2);
+  });
+
+  it("adapter parity: the semantic bridge behaves identically on the IndexedDB adapter", async () => {
+    await import("fake-indexeddb/auto");
+    const { IndexedDbLocalStore } = await import("@/storage/local/IndexedDbLocalStore");
+    const store = new IndexedDbLocalStore();
+    const service = new FinancialAnalysisService(store, new ProjectFinancialService(store, now));
+    await store.saveShortCashDeclaration({
+      id: "legacy-decl-4",
+      kind: "declaration",
+      direction: "collection",
+      amountMinor: 2_500,
+      dueOn: "2026-08-10",
+      source: "مصدر على المحرك الحقيقي",
+      knowledge: "known",
+      note: "ملاحظة على المحرك الحقيقي",
+      relatedOrderId: null,
+      relatedEventId: null,
+      idempotencyKey: legacyKey("مصدر على المحرك الحقيقي", "ملاحظة على المحرك الحقيقي"),
+      reversalOfId: null,
+      createdAt: now(),
+    });
+    const retry = await service.createDeclaration({
+      ...base,
+      source: "مصدر على المحرك الحقيقي",
+      note: "ملاحظة على المحرك الحقيقي",
+      idempotencyKey:
+        'g5-ui:["collection","2026-08-10",2500,"مصدر على المحرك الحقيقي","ملاحظة على المحرك الحقيقي","known",null,null]',
+    });
+    expect(retry.ok).toBe(true);
+    expect(retry.ok && retry.reused).toBe(true);
+    expect(retry.ok && retry.value.id).toBe("legacy-decl-4");
+    await new Promise<void>(resolve => {
+      const request = indexedDB.deleteDatabase("micro-prototype-local");
+      request.onsuccess = () => resolve();
+      request.onerror = () => resolve();
+    });
+  });
+});

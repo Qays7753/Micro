@@ -13,13 +13,28 @@ import { CashWalletBalance } from "@/application/cash";
 
 import { Button } from "@/components/primitives";
 import { todayInAmman } from "@/application/time";
+
+/* R9-GA-F3.7 (استمرار R9 الجذري — عائلة F3.1/F3.2/W3-F1): حارس العرض
+ * القديم (!wallet && !message ⇒ تحميل، !wallet ⇒ «لم نجد») يجعل مسار نجاح
+ * القراءة لمحفظة مجهولة الهوية تحميلًا أبديًا، ويبتلع فشل القراءة داخل سطح
+ * «لم نجد» (رسالة الخطأ الفعلية لا تُعرض أبدًا). الفصل الصريح للمراحل
+ * (تحميل/جاهز/غير موجود/خطأ قراءة) يجعل كل حالة صادقة بذاتها — نفس نمط
+ * CashReversalEditor/EstimateDetail؛ لا تغيير في النصوص العربية القائمة
+ * ولا في أي سطح بصري إلا سطح خطأ القراءة الجديد وفق النمط القائم. */
+type AdjustmentReadState =
+  | { phase: "loading" }
+  | { phase: "not-found" }
+  | { phase: "read-error"; message: string }
+  | { phase: "ready"; wallet: CashWalletBalance };
+
 export default function CashAdjustmentEditor() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
   const { dataVersion, cashContinuity, notifyDataChanged } = usePrototypeServices();
-  const [wallet, setWallet] = useState<CashWalletBalance | null>(null);
+  const [state, setState] = useState<AdjustmentReadState>({ phase: "loading" });
+  const [retryCount, setRetryCount] = useState(0);
   const [direction, setDirection] = useState<"increase" | "decrease">("decrease");
   const [amountMinor, setAmountMinor] = useState(0);
   const [validAmount, setValidAmount] = useState(true);
@@ -30,21 +45,31 @@ export default function CashAdjustmentEditor() {
   const [saving, setSaving] = useState(false);
   const operationKey = useRef(`cash-adjustment-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   useEffect(() => {
+    let active = true;
     cashContinuity.overview().then(result => {
+      if (!active) return;
       if (!result.ok) {
-        setMessage(result.message);
+        setState({ phase: "read-error", message: result.message });
         return;
       }
-      setWallet(result.value.wallets.find(candidate => candidate.id === id) ?? null);
+      const found = result.value.wallets.find(candidate => candidate.id === id) ?? null;
+      setState(found ? { phase: "ready", wallet: found } : { phase: "not-found" });
     });
-  }, [cashContinuity, id, dataVersion]);
+    return () => {
+      active = false;
+    };
+  }, [cashContinuity, id, dataVersion, retryCount]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
   const isDirty = useFormDirty([direction, amountMinor, date, reason, note]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
 
   async function save(): Promise<boolean> {
-    if (!wallet || !validAmount || amountMinor <= 0 || !reason.trim() || !note.trim()) {
+    /* R9-GA-F3.7: لا حفظ ولا رسالة خارج مرحلة الجاهزية — حارس الحوار
+     * (احفظ ثم اخرج) قد يستدعي الحفظ بعد تغيّر المرحلة. */
+    if (state.phase !== "ready") return false;
+    const { wallet } = state;
+    if (!validAmount || amountMinor <= 0 || !reason.trim() || !note.trim()) {
       setMessage("أدخل فرق الكاش وسببًا وبيانًا قبل الحفظ.");
       return false;
     }
@@ -67,13 +92,13 @@ export default function CashAdjustmentEditor() {
     navigate(returnPath);
     return true;
   }
-  if (!wallet && !message)
+  if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
         جارٍ فتح المحفظة…
       </div>
     );
-  if (!wallet)
+  if (state.phase === "not-found")
     return (
       <section className="micro-page micro-not-found">
         <h1>لم نجد محفظة الكاش</h1>
@@ -83,6 +108,26 @@ export default function CashAdjustmentEditor() {
         </Button>
       </section>
     );
+  if (state.phase === "read-error")
+    /* R9-GA-F3.7: فشل القراءة يُعرض برسالته الفعلية لا مموّهًا ك«عدم
+     * وجود» — نمط ReceivedLoanDetail: زر رجوع + رسالة الخطأ الحقيقية
+     * بصفة alert + إعادة محاولة. لا حفظ ولا تنقل ولا إشعار هنا. */
+    return (
+      <section className="micro-page">
+        <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+          محافظ الكاش
+        </button>
+        <p className="micro-field-error" role="alert">
+          {state.message}
+        </p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
+      </section>
+    );
+  const wallet = state.wallet;
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
@@ -140,7 +185,7 @@ export default function CashAdjustmentEditor() {
           />
         </label>
         {message ? (
-          <p className="micro-field-error" role="status">
+          <p className="micro-field-error" role="alert">
             {message}
           </p>
         ) : null}

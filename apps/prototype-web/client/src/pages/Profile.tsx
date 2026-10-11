@@ -41,7 +41,11 @@ export default function Profile() {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [projectName, setProjectName] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
+  /* R9-GA-F3.6b (استمرار R9 الجذري): نبرة الرسالة في الحالة لا بقراءة
+   * بادئة النص — العنصر الواحد كان يخلط النجاح مع الخطأ بصفة إعلان
+   * واحدة (status) فيُخفى الخطأ الفعلي. الفصل الكنوني: خطأ ⇒
+   * micro-field-error + alert، نجاح ⇒ micro-save-note + status. */
+  const [message, setMessage] = useState<{ text: string; tone: "error" | "success" } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [returnTarget] = useState(() => resolveReturnPath(search, "/", location));
 
@@ -101,7 +105,7 @@ export default function Profile() {
   async function save(): Promise<boolean> {
     if (state.phase !== "ready") return false;
     if (!projectName.trim()) {
-      setMessage("اسم المشروع لا يمكن أن يصبح فارغًا؛ اكتب اسمًا أو ألغِ التعديل.");
+      setMessage({ text: "اسم المشروع لا يمكن أن يصبح فارغًا؛ اكتب اسمًا أو ألغِ التعديل.", tone: "error" });
       return false;
     }
     setIsSaving(true);
@@ -112,18 +116,18 @@ export default function Profile() {
     });
     if (!ownerResult.ok) {
       setIsSaving(false);
-      setMessage(ownerResult.message);
+      setMessage({ text: ownerResult.message, tone: "error" });
       return false;
     }
     const projectResult = await profiles.save(projectName.trim());
     if (!projectResult.ok) {
       setIsSaving(false);
-      setMessage(projectResult.message);
+      setMessage({ text: projectResult.message, tone: "error" });
       return false;
     }
     setIsSaving(false);
     notifyDataChanged();
-    setMessage("حُفظ ملفك محليًا على هذا الجهاز.");
+    setMessage({ text: "حُفظ ملفك محليًا على هذا الجهاز.", tone: "success" });
     setIsEditing(false);
     return true;
   }
@@ -154,7 +158,7 @@ export default function Profile() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر فتح ملفك</h1>
-        <p>{state.message}</p>
+        <p role="alert">{state.message}</p>
         <Button
           action="save"
 
@@ -298,8 +302,11 @@ export default function Profile() {
           </dl>
         )}
         {message ? (
-          <p className={message.includes("حُفظ") ? "micro-save-note" : "micro-field-error"} role="status">
-            {message}
+          <p
+            className={message.tone === "error" ? "micro-field-error" : "micro-save-note"}
+            role={message.tone === "error" ? "alert" : "status"}
+          >
+            {message.text}
           </p>
         ) : null}
         <div className="micro-form-actions">

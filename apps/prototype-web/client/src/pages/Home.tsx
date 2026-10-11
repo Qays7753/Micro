@@ -262,7 +262,7 @@ export default function Home() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر تحميل مشروعك</h1>
-        <p>{state.message}</p>
+        <p role="alert">{state.message}</p>
         {/* W4 + Z1.4: فعل الإعادة فعل اعتيادي — صنف الحفظ (سطح دافئ + حبر)،
          * ويعيد القراءة في مكانها لا إعادة تحميل الصفحة. */}
         <Button action="save" onClick={() => setRetryCount(count => count + 1)}>

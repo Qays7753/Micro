@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "4d60d1bcc42fd7ccfff76c819283be15c920a6ef",
+  "head": "ecc4b963e82a0c5b5b9c595671cde430132e961c",
   "pages": {
     "total": 60,
     "map": {
@@ -30,15 +30,16 @@
         ]
       },
       "pages/CashAdjustmentEditor.tsx": {
-        "kind": "named-reference",
+        "kind": "direct",
         "evidence": [
-          "moneyLayerGuard.contract.test.ts"
+          "CashAdjustmentEditor.dom.test.tsx"
         ]
       },
       "pages/CashCount.tsx": {
         "kind": "direct",
         "evidence": [
-          "CashJourneys.dom.test.tsx"
+          "CashJourneys.dom.test.tsx",
+          "ErrorAnnouncementSemantics.r9.dom.test.tsx"
         ]
       },
       "pages/CashDistribution.tsx": {
@@ -57,6 +58,7 @@
       "pages/CashReversalEditor.tsx": {
         "kind": "direct",
         "evidence": [
+          "CashReversalEditor.dom.test.tsx",
           "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
@@ -69,12 +71,14 @@
       "pages/CashWalletEditor.tsx": {
         "kind": "direct",
         "evidence": [
+          "CashWalletEditor.dom.test.tsx",
           "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
       "pages/CashWallets.tsx": {
         "kind": "named-reference",
         "evidence": [
+          "CashAdjustmentEditor.dom.test.tsx",
           "StateRecovery.w44.dom.test.tsx",
           "application/transfers/guidedOpeningImportService.g82.test.ts",
           "application/transfers/localTransferService.capabilitiesRoundTrip.test.ts",
@@ -82,7 +86,8 @@
           "storage/local/IndexedDbLocalStore.test.ts",
           "storage/local/adapterConformance.group10.test.ts",
           "storage/local/adapterDeliveryReversal.test.ts",
-          "storage/local/cashContinuityOpeningGuard.test.ts"
+          "storage/local/cashContinuityOpeningGuard.test.ts",
+          "storage/local/rollbackRehearsal.r9.test.ts"
         ]
       },
       "pages/Catalog.tsx": {
@@ -205,6 +210,7 @@
       "pages/G5DeclarationEditor.tsx": {
         "kind": "direct",
         "evidence": [
+          "G5DeclarationEditor.dom.test.tsx",
           "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
@@ -240,6 +246,7 @@
       "pages/InventoryReversalEditor.tsx": {
         "kind": "direct",
         "evidence": [
+          "InventoryReversalEditor.dom.test.tsx",
           "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
@@ -342,6 +349,7 @@
       "pages/ReceivedLoanDetail.tsx": {
         "kind": "direct",
         "evidence": [
+          "ReceivedLoanDetail.dom.test.tsx",
           "SmokeOnlyPagesJourneys.dom.test.tsx"
         ]
       },
@@ -360,6 +368,7 @@
       "pages/RecurringExpenseEditor.tsx": {
         "kind": "direct",
         "evidence": [
+          "RecurringExpenseEditor.dom.test.tsx",
           "RecurringExpenseSurfaces.dom.test.tsx"
         ]
       },
@@ -373,7 +382,8 @@
       "pages/ScheduleEditor.tsx": {
         "kind": "direct",
         "evidence": [
-          "G3Hardening.dom.test.tsx"
+          "G3Hardening.dom.test.tsx",
+          "ScheduleEditor.dom.test.tsx"
         ]
       },
       "pages/Settings.tsx": {
@@ -602,6 +612,7 @@
       "18-derived-monthly-order-schedule-g6-a-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/ScheduleEditor.dom.test.tsx",
           "apps/prototype-web/client/src/ScheduleJourneys.dom.test.tsx",
           "apps/prototype-web/client/src/application/supplierScheduleConcurrency.test.ts",
           "apps/prototype-web/client/src/application/supplierScheduleStaleResults.test.ts",
@@ -617,6 +628,7 @@
       "19-bounded-local-schedule-recurrence-g6-b-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/ScheduleEditor.dom.test.tsx",
           "apps/prototype-web/client/src/ScheduleJourneys.dom.test.tsx",
           "apps/prototype-web/client/src/application/supplierScheduleConcurrency.test.ts",
           "apps/prototype-web/client/src/application/supplierScheduleStaleResults.test.ts",
@@ -829,6 +841,7 @@
       "41-recurring-expense-reminders-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/RecurringExpenseEditor.dom.test.tsx",
           "apps/prototype-web/client/src/RecurringExpenseSurfaces.dom.test.tsx",
           "apps/prototype-web/client/src/application/recurring/recurringExpenseService.test.ts",
           "apps/prototype-web/client/src/application/transfers/localTransferService.recurringExpense.test.ts",

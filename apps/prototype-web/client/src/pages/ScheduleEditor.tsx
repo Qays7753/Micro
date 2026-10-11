@@ -12,7 +12,16 @@ import type { ScheduleEntry } from "@/storage/local/types";
 import { localDatePlusDays } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
-type EditorState = "loading" | "ready" | "error";
+/* R9-GA-F3.7 (استمرار R9 الجذري — عائلة F3.1/F3.2/W3-F1): كانت مرحلة
+ * الخطأ تُدمج مع «غير موجود» في فرع واحد («الموعد غير متاح محليًا») ورسالة
+ * الخطأ الفعلية تُهمَل (setPhase("error") بلا التقاط للرسالة) — فشل القراءة
+ * يُعرض كعدم وجود. الفصل الصريح يجعل كل حالة صادقة بذاتها — نفس نمط
+ * CashReversalEditor/EstimateDetail؛ النصوص القائمة محفوظة حرفيًا. */
+type EditorState =
+  | { phase: "loading" }
+  | { phase: "not-found" }
+  | { phase: "read-error"; message: string }
+  | { phase: "ready"; entry: ScheduleEntry };
 type ScheduleFormValues = { date: string; time: string; duration: string; reason: string };
 const eventLabel: Record<string, string> = {
   created: "تسجيل الموعد",
@@ -47,9 +56,9 @@ export default function ScheduleEditor() {
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
   const { schedules, notifyDataChanged, dataVersion } = usePrototypeServices();
-  const [phase, setPhase] = useState<EditorState>("loading");
+  const [state, setState] = useState<EditorState>({ phase: "loading" });
   const [retryCount, setRetryCount] = useState(0);
-  const [schedule, setSchedule] = useState<ScheduleEntry | null>(null);
+  const readySchedule = state.phase === "ready" ? state.entry : null;
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [duration, setDuration] = useState("");
@@ -68,7 +77,14 @@ export default function ScheduleEditor() {
     schedules.get(id).then(result => {
       if (!active) return;
       if (!result.ok) {
-        setPhase("error");
+        /* R9-GA-F3.7: عدم الوجود (not_found) يُفصل عن فشل القراءة — الأول
+         * رسالة «غير متاح محليًا» القائمة، والثاني يُعرض برسالته الفعلية
+         * بصفة alert مع إعادة محاولة (نمط ReceivedLoanDetail). */
+        setState(
+          result.code === "not_found"
+            ? { phase: "not-found" }
+            : { phase: "read-error", message: result.message },
+        );
         return;
       }
       const loadedValues = {
@@ -77,13 +93,12 @@ export default function ScheduleEditor() {
         duration: result.value.durationMinutes?.toString() ?? "",
         reason: "",
       };
-      setSchedule(result.value);
       setDate(loadedValues.date);
       setTime(loadedValues.time);
       setDuration(loadedValues.duration);
       setReason(loadedValues.reason);
       initialValuesRef.current = loadedValues;
-      setPhase("ready");
+      setState({ phase: "ready", entry: result.value });
     });
     return () => {
       active = false;
@@ -98,7 +113,7 @@ export default function ScheduleEditor() {
       return;
     }
     setStaleConflict(false);
-    setSchedule(result.value);
+    setState({ phase: "ready", entry: result.value });
     initialValuesRef.current = {
       date: result.value.scheduledFor,
       time: result.value.scheduledTime ?? "",
@@ -112,10 +127,10 @@ export default function ScheduleEditor() {
     initialValuesRef.current && !equalScheduleValues(currentValues, initialValuesRef.current),
   );
   async function persistTiming(): Promise<boolean> {
-    if (!schedule) return false;
+    if (!readySchedule) return false;
     setFeedback(null);
     setSaving(true);
-    const result = await schedules.updateTiming(schedule.id, {
+    const result = await schedules.updateTiming(readySchedule.id, {
       scheduledFor: date,
       scheduledTime: time || null,
       durationMinutes: duration ? Number(duration) : null,
@@ -133,7 +148,7 @@ export default function ScheduleEditor() {
       duration: result.value.durationMinutes?.toString() ?? "",
       reason: "",
     };
-    setSchedule(result.value);
+    setState({ phase: "ready", entry: result.value });
     setDate(nextValues.date);
     setTime(nextValues.time);
     setDuration(nextValues.duration);
@@ -152,26 +167,26 @@ export default function ScheduleEditor() {
   /* F-080: فعل «أجّل» — غلاف راحة معلن: تأجيل الموعد يومًا واحدًا بسببه الموثق.
    * لا يخترع سببًا؛ يسجّل ما فُعل بالضبط، ومن أراد تاريخًا أو سببًا آخر يستخدم النموذج. */
   async function postponeOneDay() {
-    if (!schedule) return;
+    if (!readySchedule) return;
     /* R2 (DATE-08، 2026-10-08): إزاحة اليوم من نواة التاريخ الكنسية — كانت
      * مرساة ظهر بلا حارس ترمي RangeError على موعد فاسد (يصل عبر ملف مصنوع
      * قبل تشديد الاستيراد) فيعلّق الفعل؛ حد التمثيل يعود null فيُعرض خطأ
      * صادق بدل الانهيار. */
-    const nextDay = localDatePlusDays(schedule.scheduledFor, 1);
+    const nextDay = localDatePlusDays(readySchedule.scheduledFor, 1);
     if (nextDay === null) {
       setFeedback({ tone: "error", text: "تاريخ الموعد خارج النطاق القابل للتأجيل؛ راجعه في النموذج." });
       return;
     }
     setFeedback(null);
     setPostponing(true);
-    const result = await schedules.postpone(schedule.id, nextDay, "تأجيل سريع يومًا واحدًا");
+    const result = await schedules.postpone(readySchedule.id, nextDay, "تأجيل سريع يومًا واحدًا");
     setPostponing(false);
     if (!result.ok) {
       if (result.code === "storage_stale") setStaleConflict(true);
       setFeedback({ tone: "error", text: result.message });
       return;
     }
-    setSchedule(result.value);
+    setState({ phase: "ready", entry: result.value });
     setDate(result.value.scheduledFor);
     initialValuesRef.current = {
       date: result.value.scheduledFor,
@@ -186,13 +201,13 @@ export default function ScheduleEditor() {
       text: "تم تأجيل الموعد يومًا واحدًا — التأجيل موثق في سجل الموعد.",
     });
   }
-  if (phase === "loading")
+  if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
         جارٍ فتح الموعد…
       </div>
     );
-  if (phase === "error" || !schedule)
+  if (state.phase === "not-found")
     return (
       <section className="micro-page micro-not-found">
         <h1>الموعد غير متاح محليًا</h1>
@@ -211,6 +226,26 @@ export default function ScheduleEditor() {
         </Button>
       </section>
     );
+  if (state.phase === "read-error")
+    /* R9-GA-F3.7: فشل القراءة يُعرض برسالته الفعلية لا مموّهًا ك«عدم
+     * وجود» — نمط ReceivedLoanDetail: زر رجوع + رسالة الخطأ الحقيقية
+     * بصفة alert + إعادة محاولة. */
+    return (
+      <section className="micro-page">
+        <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
+          المواعيد
+        </button>
+        <p className="micro-field-error" role="alert">
+          {state.message}
+        </p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
+      </section>
+    );
+  const schedule = state.entry;
   return (
     <section className="micro-page micro-schedule-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>

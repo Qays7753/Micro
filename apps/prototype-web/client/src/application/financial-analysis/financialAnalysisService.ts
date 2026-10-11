@@ -462,6 +462,29 @@ export class FinancialAnalysisService {
         declaration.kind === "declaration" && declaration.idempotencyKey === input.idempotencyKey,
     );
     if (repeated) return { ok: true, value: repeated, reused: true };
+    /* R9-GA-G5.1 (استمرار R9 الجذري — توافق النسق القديم): مفتاح الحتمية
+     * غيّر نسقه (تسلسل JSON لكل المدخلات الدلالية الثمانية) فلم تعد
+     * مفاتيح النسق القديم تطابق الجديدة — إعادة محاولة مطابقة تمامًا عبر
+     * الحدود كانت تنشئ سجلًا مكررًا دلاليًا. الجسر الدلالي: بعد خط المفتاح
+     * الحرفي، مقارنة الحقول الدلالية الثمانية المحفوظة (بما فيها المعرفة
+     * knowledge) — تطابق حقلي تام يعني نفس السجل فيُعاد بصدق أيا كان نسق
+     * مفتاحه؛ لا يمكن أن يعيد خطأً (مقارنة حقول لا مفاتيح، فثغرة تصادم
+     * نقطتي النسق القديم لا تصل هنا)، ولا يغيّر المخطط/التصدير/الاستيراد
+     * (38/30)، ويعمل بالتساوي على المهايئين. المجال يخزّن القيم
+     * المقصوصة (trim) فتقارن المقصوص بالمقصوص. */
+    const semanticTwin = declarations.value.find(
+      declaration =>
+        declaration.kind === "declaration" &&
+        declaration.direction === input.direction &&
+        declaration.dueOn === input.dueOn &&
+        declaration.amountMinor === input.amountMinor &&
+        declaration.source === input.source.trim() &&
+        declaration.note === input.note.trim() &&
+        declaration.knowledge === input.knowledge &&
+        (declaration.relatedOrderId ?? null) === (input.relatedOrderId?.trim() || null) &&
+        (declaration.relatedEventId ?? null) === (input.relatedEventId?.trim() || null),
+    );
+    if (semanticTwin) return { ok: true, value: semanticTwin, reused: true };
     const relatedValidation = await this.validateRelation(input, declarations.value);
     if (!relatedValidation.ok) return relatedValidation;
     try {

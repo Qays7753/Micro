@@ -333,7 +333,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts": {
-      "nbLoc": 549,
+      "nbLoc": 572,
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/application/financial-pulse/financialPulseService.ts": {
@@ -809,7 +809,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/components/order/AgreementContextPanel.tsx": {
-      "nbLoc": 205,
+      "nbLoc": 208,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/components/order/OrderEventLog.tsx": {
@@ -961,15 +961,15 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/CashAdjustmentEditor.tsx": {
-      "nbLoc": 159,
+      "nbLoc": 202,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/CashCount.tsx": {
-      "nbLoc": 224,
+      "nbLoc": 228,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/CashDistribution.tsx": {
-      "nbLoc": 265,
+      "nbLoc": 274,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/CashOpeningLaterEditor.tsx": {
@@ -977,7 +977,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/CashReversalEditor.tsx": {
-      "nbLoc": 177,
+      "nbLoc": 220,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/CashTransferEditor.tsx": {
@@ -985,7 +985,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/CashWalletEditor.tsx": {
-      "nbLoc": 132,
+      "nbLoc": 135,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/CashWallets.tsx": {
@@ -1001,7 +1001,7 @@
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/pages/CostCalculator.tsx": {
-      "nbLoc": 601,
+      "nbLoc": 609,
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/pages/CostEditor.tsx": {
@@ -1045,7 +1045,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/FinancialEventEditor.tsx": {
-      "nbLoc": 1191,
+      "nbLoc": 1194,
       "band": "SPLIT_CANDIDATE"
     },
     "apps/prototype-web/client/src/pages/Foundation.tsx": {
@@ -1053,7 +1053,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/G5DeclarationEditor.tsx": {
-      "nbLoc": 238,
+      "nbLoc": 256,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/Home.tsx": {
@@ -1069,7 +1069,7 @@
       "band": "SPLIT_CANDIDATE"
     },
     "apps/prototype-web/client/src/pages/InventoryReversalEditor.tsx": {
-      "nbLoc": 128,
+      "nbLoc": 170,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/LoanDetail.tsx": {
@@ -1109,7 +1109,7 @@
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/pages/OwnerEntitlement.tsx": {
-      "nbLoc": 1134,
+      "nbLoc": 1137,
       "band": "SPLIT_CANDIDATE"
     },
     "apps/prototype-web/client/src/pages/OwnerWithdrawalEditor.tsx": {
@@ -1121,7 +1121,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/Profile.tsx": {
-      "nbLoc": 326,
+      "nbLoc": 333,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/ReceivedLoanDetail.tsx": {
@@ -1137,16 +1137,16 @@
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/pages/RecurringExpenseEditor.tsx": {
-      "nbLoc": 348,
+      "nbLoc": 381,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/Schedule.tsx": {
-      "nbLoc": 986,
+      "nbLoc": 996,
       "band": "SPLIT_CANDIDATE"
     },
     "apps/prototype-web/client/src/pages/ScheduleEditor.tsx": {
-      "nbLoc": 367,
-      "band": "NORMAL"
+      "nbLoc": 402,
+      "band": "WATCH"
     },
     "apps/prototype-web/client/src/pages/Settings.tsx": {
       "nbLoc": 704,
@@ -1249,7 +1249,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts": {
-      "nbLoc": 4133,
+      "nbLoc": 4391,
       "band": "SPLIT_NOW"
     },
     "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts": {
@@ -1409,11 +1409,11 @@
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts": {
-      "nbLoc": 106,
+      "nbLoc": 132,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts": {
-      "nbLoc": 430,
+      "nbLoc": 451,
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/storage/local/indexedDbStores.ts": {
@@ -1701,7 +1701,7 @@
       "band": "WATCH"
     },
     "scripts/text_density_policy.py": {
-      "nbLoc": 853,
+      "nbLoc": 859,
       "band": "SPLIT_CANDIDATE"
     },
     "scripts/theme-contrast-guard.py": {
@@ -1825,7 +1825,7 @@
       "band": "NORMAL"
     },
     "src/domain/financial-analysis/policies.ts": {
-      "nbLoc": 937,
+      "nbLoc": 941,
       "band": "SPLIT_CANDIDATE"
     },
     "src/domain/financial-analysis/types.ts": {

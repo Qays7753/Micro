@@ -114,7 +114,7 @@ export default function Orders() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر تحميل الطلبات</h1>
-        <p>لم يتم تغيير شيء — بياناتك كما هي؛ أعد المحاولة.</p>
+        <p role="alert">لم يتم تغيير شيء — بياناتك كما هي؛ أعد المحاولة.</p>
         <Button
           action="save"
 

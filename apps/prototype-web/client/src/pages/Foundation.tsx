@@ -71,7 +71,7 @@ export default function Foundation() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الموقف</h1>
-        <p>لم يتم تغيير بياناتك. أعد فتح التطبيق للمحاولة.</p>
+        <p role="alert">لم يتم تغيير بياناتك. أعد فتح التطبيق للمحاولة.</p>
         <div className="micro-form-actions">
           <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
             إعادة المحاولة

@@ -146,7 +146,24 @@
     "https://github.com/Qays7753/Micro/commit/7341f91195a59100a4b9111b1d81c21f0f184368",
     "https://github.com/Qays7753/Micro/commit/87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e",
     "https://github.com/Qays7753/Micro/actions/runs/38060781329",
-    "https://github.com/Qays7753/Micro/actions/runs/38060781329/job/114238432384"
+    "https://github.com/Qays7753/Micro/actions/runs/38060781329/job/114238432384",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/R9-PREFLIGHT-CONSOLIDATED-FINDINGS-CANONICAL-COPY-2026-10-10.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/R9-REPAIR-CARDS.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-1-architecture-ownership.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-2-storage-data.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-3-ui-boundaries.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-4-tests-guards-ci.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-5-hostile-evidence.md",
+    "https://github.com/Qays7753/Micro/actions/runs/38061919149",
+    "docs/operations/control/evidence/structural-remediation-r8-20261010/R8-N1-CANONICAL-EVIDENCE-ANNEX-2026-10-10.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/R9-W2-ROLLBACK-REHEARSAL-EXECUTION-REPORT-2026-10-10.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/R9-W2-ROLLBACK-REHEARSAL-MANIFEST.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/R9-W3-DIRECT-PAGE-COVERAGE-EXECUTION-REPORT-2026-10-10.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/R9-COMPLETE-PR-READINESS-REPORT-2026-10-10.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/R9-POST-REVIEW-ROOT-FIX-EXECUTION-REPORT-2026-10-10.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/R9-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-EXECUTION-REPORT-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/r9c-browser-evidence/f7-manifest.json",
+    "docs/operations/control/evidence/structural-remediation-r9-20261010/r9c-browser-evidence/f7-run.json"
   ],
   "dependencies": [],
   "related_items": [
@@ -154,7 +171,7 @@
     "ARCH-006"
   ],
   "owner_decision": "اعتماد الخطة المحدثة ومصفوفة التتبع وبدء تثبيت العقد ثم R0 في 2026-10-07.",
-  "updated_at": "2026-10-10",
+  "updated_at": "2026-10-11",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -164,5 +181,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "R8 VERIFIED_ON_MAIN at merge commit 87274cf91a9d27b9b5f9c3cee3f980218ae6aa0e (PR #345; post-merge CI 38060781329 succeeded on the exact main SHA). R8-N1 is FIX_NOW — CLOSED_WITH_EVIDENCE and all R8 findings are closed with evidence. Next: R9 preflight/read-only evidence reconciliation only — verify main, build the feature/module/contract/test/owner map, test and documentation map, storage parity matrix, Transfer/Legacy/Golden matrix, boundary/door matrix, guard claims matrix, and rollback-rehearsal scope. R9 implementation writes require a scoped owner-accepted package; R9 has not started."
+  "next_action": "R9 SYSTEMIC root-fix continuation COMPLETE — post-push cloud-anchor repair landed: the five systemic commits (da8747ca + ecc4b963 + ecf17620 + 91bd07ac + the docs closure 67366bff) pushed to PR #347 exposed that the bundle-surfaces cloud environment records were still anchored at 0bb51d1e (CI run 38118248772 + Pages check-run 114407518003 failed exactly the three grown surfaces); the repair commit re-anchors both cloud records to the 67366bff measurements (github-actions = exact CI-measured values, locally reproduced and pre-verified in both simulated cloud environments) and records the full chain in §12 of the systemic report. All finding closures unchanged: F3.6-ERROR-ROLE-INVENTORY (99-element semantic inventory), F3.7 (three read state machines), G5.1 (legacy-key semantic bridge), G5.2, F7.1 (listAll guard + static guard #20), F8 (reproducible browser-evidence chain). Full pnpm check exit 0 (754/754 root, 2,521/2,521 app); entry 631,652/155,093 local — 631,764/155,157 CI — under 650,000/155,300. PR_READY is conditioned on green CI + Cloudflare Pages on the exact final head (URLs pinned in the PR body per R9-GA-F5). Canonical report: R9-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-EXECUTION-REPORT-2026-10-11 (§12 = the repair record). Owner gate: review + merge by separate authorization; post-merge reconciliation then R10."
 }

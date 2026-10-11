@@ -149,7 +149,11 @@ export default function CostCalculator() {
   const [deliveryMinor, setDeliveryMinor] = useState(0);
   const [wasteMinor, setWasteMinor] = useState(0);
   const [showOptional, setShowOptional] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  /* R9-GA-F3.6b (استمرار R9 الجذري): نبرة الرسالة في الحالة لا بقراءة
+   * بادئة النص — العنصر الواحد كان يخلط النجاح مع الخطأ بصفة إعلان
+   * واحدة (status) فيُخفى الخطأ الفعلي. الفصل الكنوني: خطأ ⇒
+   * micro-field-error + alert، نجاح ⇒ micro-save-note + status. */
+  const [message, setMessage] = useState<{ text: string; tone: "error" | "success" } | null>(null);
   /* بعد الحفظ: المسار يرتبط بالمعرّف نفسه — التعديل اللاحق يحدّث ولا يكرر تقديرًا. */
   const [savedId, setSavedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -243,7 +247,7 @@ export default function CostCalculator() {
 
   async function save(): Promise<boolean> {
     if (!preview.ok) {
-      setMessage(preview.message);
+      setMessage({ text: preview.message, tone: "error" });
       return false;
     }
     setSaving(true);
@@ -251,18 +255,19 @@ export default function CostCalculator() {
     const result = editingId ? await costEstimates.update(editingId, input) : await costEstimates.save(input);
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setMessage({ text: result.message, tone: "error" });
       return false;
     }
     notifyDataChanged();
     setEditingId(result.value.id);
     setSavedId(result.value.id);
     setLoadedToken(token => token + 1);
-    setMessage(
-      editingId
+    setMessage({
+      tone: "success",
+      text: editingId
         ? "حُفظ تعديل التقدير كما هو — بلا أي حركة مالية أو مخزون."
         : "حُفظ التقدير لمراجعته لاحقًا — لم تُنشأ أي حركة مالية ولا مخزون.",
-    );
+    });
     return true;
   }
 
@@ -542,13 +547,16 @@ export default function CostCalculator() {
             <p className="micro-cost-disclaimer">هذا حساب تقديري. ما انحفظت أي حركة مالية ولا مخزون.</p>
           </section>
         ) : (
-          <p className="micro-field-error" role="status">
+          <p className="micro-field-error" role="alert">
             {preview.message}
           </p>
         )}
         {message ? (
-          <p className={message.startsWith("حُفظ") ? "micro-save-note" : "micro-field-error"} role="status">
-            {message}
+          <p
+            className={message.tone === "error" ? "micro-field-error" : "micro-save-note"}
+            role={message.tone === "error" ? "alert" : "status"}
+          >
+            {message.text}
           </p>
         ) : null}
         <Button

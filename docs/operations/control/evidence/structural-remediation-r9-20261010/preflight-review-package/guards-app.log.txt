@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /home/z/my-project/work/micro/repo/apps/prototype-web
+
+ ✓ scripts/check-bundle-budget.test.mjs (18 tests) 256ms
+ ✓ scripts/check-bundle-surfaces.test.mjs (22 tests) 139ms
+
+ Test Files  2 passed (2)
+      Tests  40 passed (40)
+   Start at  15:53:07
+   Duration  737ms (transform 52ms, setup 0ms, import 92ms, tests 395ms, environment 0ms)

@@ -177,7 +177,10 @@ export function AgreementContextPanel({
           />
         </label>
         {saveState ? (
-          <p className={saveState.kind === "ok" ? "micro-save-note" : "micro-field-error"} role="status">
+          <p
+            className={saveState.kind === "ok" ? "micro-save-note" : "micro-field-error"}
+            role={saveState.kind === "ok" ? "status" : "alert"}
+          >
             {saveState.text}
           </p>
         ) : null}

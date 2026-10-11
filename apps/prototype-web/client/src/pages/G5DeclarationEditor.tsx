@@ -79,6 +79,15 @@ export default function G5DeclarationEditor() {
       return false;
     }
     setSaving(true);
+    /* R9-GA-F3.4 (استمرار R9 — هوية الحتمية السيمانطية الكاملة): مفتاح
+     * الحتمية كان يُبنى بوصل النصوص الحرة بعلامة «:» ويُسقط حالة المعرفة
+     * (knowledge) — فيتطابق مفتاحان لسجلين مختلفين دلاليًا (تعديل درجة
+     * المعرفة يُبتلع كـreused) ويتصادم مصدر/ملاحظة يحتويان «:». البديل
+     * الجذري: تسلسل مصفوفة كل المدخلات الدلالية المُخزَّنة الثمانية
+     * بترتيب ثابت عبر JSON (لا تصادم فواصل، وnull صريح للروابط) مع
+     * الإبقاء على بادئة g5-ui: المتوافقة. مفاتيح النسق القديم في قواعد
+     * التطوير لن تتطابق مع الجديدة — أثر مقصول وموثق (تطبيق قيد التطوير
+     * بلا مستخدمين)؛ لا تغيير في المخطط/التصدير/الاستيراد (38/30). */
     const result = await g5.createDeclaration({
       direction,
       amountMinor,
@@ -88,7 +97,16 @@ export default function G5DeclarationEditor() {
       note,
       relatedOrderId: direction === "collection" ? relatedOrderId : null,
       relatedEventId: direction === "commitment" ? relatedEventId : null,
-      idempotencyKey: `g5-ui:${direction}:${dueOn}:${amountMinor}:${source.trim()}:${note.trim()}:${relatedOrderId ?? relatedEventId ?? "none"}`,
+      idempotencyKey: `g5-ui:${JSON.stringify([
+        direction,
+        dueOn,
+        amountMinor,
+        source.trim(),
+        note.trim(),
+        knowledge,
+        relatedOrderId,
+        relatedEventId,
+      ])}`,
     });
     setSaving(false);
     if (!result.ok) {

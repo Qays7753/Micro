@@ -313,7 +313,7 @@ export default function OrderDetail() {
     return (
       <section className="micro-page micro-not-found" data-void="error">
         <h1>تعذر قراءة الطلب</h1>
-        <p>لم يتغير أي سجل؛ أعِد المحاولة أو ارجع للطلبات.</p>
+        <p role="alert">لم يتغير أي سجل؛ أعِد المحاولة أو ارجع للطلبات.</p>
         <div className="micro-form-actions">
           <Button
             action="secondary"

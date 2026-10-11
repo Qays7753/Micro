@@ -288,7 +288,11 @@ function markQuantityUnitMismatch(state: ContributionWindowState, unitKey: strin
 
 /* و٩: قراءة المزيج لكل اسم عمل ووحدة — إيراد وتكلفة وهامش. */
 function collectContributionMixItem(order: G5OrderInput, state: ContributionWindowState): void {
-  const mixKey = `${order.itemName.trim()}::${order.unitKey?.trim() || "legacy:recorded-mix"}`;
+  /* R9-GA-G5.2 (استمرار R9 الجذري): مفتاح تجميع المزيج كان وصلًا نصيًا
+   * حرًّا بعلامة «::» — اسم عمل يحوي «::» يمكن أن يندمج مع زوج (اسم،
+   * وحدة) مختلف في عرض المزيج. تسلسل JSON للمصفوفة خالٍ من التصادم
+   * بنفس عائلة إصلاح هوية G5، بلا تغيير في دلالة التجميع. */
+  const mixKey = JSON.stringify([order.itemName.trim(), order.unitKey?.trim() || "legacy:recorded-mix"]);
   const existing = state.mix.get(mixKey);
   const current = existing ?? {
     itemName: order.itemName.trim(),

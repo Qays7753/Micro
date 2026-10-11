@@ -47,7 +47,11 @@ export default function CashDistribution() {
     modeParam === "cover" ? "cover_payment" : "into_wallet",
   );
   const [note, setNote] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
+  /* R9-GA-F3.6b (استمرار R9 الجذري): نبرة الرسالة في الحالة لا بقراءة
+   * بادئة النص — العنصر الواحد كان يخلط النجاح/المعلومة مع الخطأ بصفة
+   * إعلان واحدة (status) فيُخفى الخطأ الفعلي. الفصل الكنوني: خطأ ⇒
+   * micro-field-error + alert، نجاح/معلومة ⇒ micro-save-note + status. */
+  const [message, setMessage] = useState<{ text: string; tone: "error" | "success" | "info" } | null>(null);
   const [saving, setSaving] = useState(false);
   /* S2-06: مفتاح عملية لكل فتح صفحة — إعادة محاولة نفس التوزيع لا تكرره. */
   const operationKeyRef = useRef(`cash-distribute-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
@@ -76,7 +80,10 @@ export default function CashDistribution() {
           setWalletId(requested);
         } else {
           setWalletId("");
-          setMessage("الرابط طلب محفظة غير موجودة أو محذوفة — اختر محفظة بنفسك قبل التوزيع.");
+          setMessage({
+            text: "الرابط طلب محفظة غير موجودة أو محذوفة — اختر محفظة بنفسك قبل التوزيع.",
+            tone: "error",
+          });
         }
       } else {
         setWalletId(current => current || overview.value.wallets[0]?.id || "");
@@ -99,7 +106,7 @@ export default function CashDistribution() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر قراءة الكاش</h1>
-        <p>{state.message}</p>
+        <p role="alert">{state.message}</p>
         <div className="micro-form-actions">
           <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
             إعادة المحاولة
@@ -122,11 +129,11 @@ export default function CashDistribution() {
   /* حارس المدخلات يستدعي نفس المسار: النجاح يرجع true ليكتمل الخروج بعد الحفظ. */
   async function distribute(): Promise<boolean> {
     if (!walletId) {
-      setMessage("اختر محفظة قبل التوزيع.");
+      setMessage({ text: "اختر محفظة قبل التوزيع.", tone: "error" });
       return false;
     }
     if (!Number.isInteger(amountMinor) || amountMinor <= 0) {
-      setMessage("أدخل مبلغًا صحيحًا موجبًا بالأرقام 0–9.");
+      setMessage({ text: "أدخل مبلغًا صحيحًا موجبًا بالأرقام 0–9.", tone: "error" });
       return false;
     }
     setSaving(true);
@@ -139,24 +146,26 @@ export default function CashDistribution() {
     });
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setMessage({ text: result.message, tone: "error" });
       return false;
     }
     /* EXE-001 (AUD-NEW-01): إعادة إرسال التأكيد نفسه ليست توزيعًا جديدًا —
      * رسالة صادقة بلا ادعاء نجاح جديد فوق كتابة لم تحدث. */
     if (result.reused) {
-      setMessage("هذا التوزيع نفسه سُجّل سابقًا — لم يُنشأ قيد جديد بهذا التأكيد.");
+      setMessage({ text: "هذا التوزيع نفسه سُجّل سابقًا — لم يُنشأ قيد جديد بهذا التأكيد.", tone: "info" });
       return true;
     }
     notifyDataChanged();
     /* F08 (قرار المالك — Wave 4.2، تنفيذ P-4.3-5): رسالة النجاح الموحدة
      * «سُجّل التوزيع ✓» لاتجاه التوزيع؛ واتجاه التغطية بصيغة الفعل المعتمد
      * نفسها «غطِّ» — لا مفردات لهجة ولا أرقام مختلقة. */
-    setMessage(
-      direction === "into_wallet"
-        ? `سُجّل التوزيع ✓ — انتقلت القيمة إلى «${selectedWallet?.name ?? "المحفظة"}». الإجمالي المسجل لم يتغير.`
-        : `سُجّلت التغطية ✓ — خرجت القيمة من «${selectedWallet?.name ?? "المحفظة"}» إلى غير الموزع. الإجمالي لم يتغير.`,
-    );
+    setMessage({
+      tone: "success",
+      text:
+        direction === "into_wallet"
+          ? `سُجّل التوزيع ✓ — انتقلت القيمة إلى «${selectedWallet?.name ?? "المحفظة"}». الإجمالي المسجل لم يتغير.`
+          : `سُجّلت التغطية ✓ — خرجت القيمة من «${selectedWallet?.name ?? "المحفظة"}» إلى غير الموزع. الإجمالي لم يتغير.`,
+    });
     setAmountMinor(0);
     setNote("");
     /* EXE-001: كل تأكيد مقصود بعد نجاح سابق يملك مفتاح عملية جديدًا — الزيارة
@@ -248,10 +257,10 @@ export default function CashDistribution() {
             </label>
             {message ? (
               <p
-                className={message.startsWith("سُجّل") ? "micro-save-note" : "micro-field-error"}
-                role="status"
+                className={message.tone === "error" ? "micro-field-error" : "micro-save-note"}
+                role={message.tone === "error" ? "alert" : "status"}
               >
-                {message}
+                {message.text}
               </p>
             ) : null}
             <Button

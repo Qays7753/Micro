@@ -1,0 +1,86 @@
+{
+ "schema": "micro-r9c-browser-evidence/2",
+ "purpose": "Reproducible real-browser evidence chain for the F7 listener-hardening family (R9-GA-F7) and its read-side sibling (R9-GA-F7.1) — closes R9-GA-F8 (artifact completeness).",
+ "source": {
+  "git_head_at_build": "ecf1762023a18db50e4a29908b6d25e599c57210",
+  "adapter": {
+   "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+   "blob_sha": "a840adf3364daf0b1ce6e8a48bfb529156259a8e"
+  },
+  "primitives": {
+   "path": "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts",
+   "blob_sha": "7308e7331ab8e674f5156c3fb8865909d23385a8",
+   "includes": "the F7.1 listAll read guard (this continuation)"
+  }
+ },
+ "build": {
+  "tool": "esbuild",
+  "version": "0.28.2 (the repository lockfile's pinned transitive devDependency, materialized by pnpm at node_modules/.pnpm/esbuild@0.28.2/)",
+  "command": "node docs/operations/control/evidence/structural-remediation-r9-20261010/r9c-browser-evidence/build-adapter-entry.mjs.txt (from the repository root, after pnpm install)",
+  "options": {
+   "entryPoints": [
+    "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts"
+   ],
+   "bundle": true,
+   "format": "esm",
+   "platform": "browser",
+   "target": "es2022",
+   "minify": false,
+   "sourcemap": false
+  },
+  "output": {
+   "file": "adapter-entry.js",
+   "bytes": 246768,
+   "sha256": "b1d5fd5f53408ecb9068933c7dbefd17744b26940d05e72c3e9db989b63ec6a3"
+  }
+ },
+ "artifacts": {
+  "builder": {
+   "file": "build-adapter-entry.mjs.txt",
+   "sha256": "621ead2a7e74d0123bffb67f7079588b3d035303b7ed80716a3357f7a003712a"
+  },
+  "harness": {
+   "file": "f7-harness.mjs.txt",
+   "sha256": "01bb139ab6b3ba4bd9e26edf3605546b3c0dba0d3e52e468bb1a86fda7515966",
+   "imports": "./adapter-entry.js (the committed bundle)"
+  },
+  "host_page": {
+   "file": "f7-page.html",
+   "sha256": "9eabb75c6ec4a2a811dc084b97986c24aa07151671757c8c2e613963c408eab8"
+  },
+  "verdict": "f7-verdict.json (machine-readable, written by the browser run)",
+  "run_log": "f7-run.json (the full run record: URL, hashes, per-leg results, console)"
+ },
+ "reproduction": [
+  "pnpm install (the lockfile pins esbuild 0.28.2)",
+  "node docs/operations/control/evidence/structural-remediation-r9-20261010/r9c-browser-evidence/build-adapter-entry.mjs.txt",
+  "verify: sha256sum adapter-entry.js matches adapter-entry.sha256 and this manifest",
+  "serve this directory over localhost and open f7-page.html in a real browser (the README carries the exact playwright runner used for the recorded run)",
+  "DONE flips the title; #result carries the JSON verdict; f7-verdict.json is the recorded result"
+ ],
+ "recorded_run": {
+  "date": "2026-10-11",
+  "engine": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.8078.4 Safari/537.36",
+  "driver": "playwright (host installation) driving real Chromium headless",
+  "verdict": {
+   "legB_honestFailure": true,
+   "legB_stateIntact": true,
+   "legA_honestFailure": true,
+   "legA_stateIntact": true
+  },
+  "state_integrity": {
+   "legB_events": {
+    "ok": true,
+    "count": 1,
+    "ids": [
+     "rb3-event"
+    ]
+   },
+   "legA_sales": {
+    "ok": true,
+    "count": 0
+   }
+  },
+  "console_errors": 0
+ }
+}

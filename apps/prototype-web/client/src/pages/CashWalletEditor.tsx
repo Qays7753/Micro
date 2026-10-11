@@ -112,7 +112,10 @@ export default function CashWalletEditor() {
           />
         </label>
         {message ? (
-          <p className="micro-field-error" role="status">
+          /* R9-GA-F3.5 (استمرار R9): رسائل هذا السطح كلها أخطاء فعلية
+           * (بوابة التحقق أو فشل الحفظ) — صفة الإعلان الصادقة alert لا
+           * status، اتساقًا مع نمط micro-field-error في بقية الصفحات. */
+          <p className="micro-field-error" role="alert">
             {message}
           </p>
         ) : null}

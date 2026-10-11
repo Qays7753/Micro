@@ -305,7 +305,7 @@ export default function MaterialEditor() {
             <textarea value={note} onChange={event => setNote(event.target.value)} />
           </label>
           {message ? (
-            <p className="micro-field-error" role="status">
+            <p className="micro-field-error" role="alert">
               {message}
             </p>
           ) : null}
@@ -476,7 +476,7 @@ export default function MaterialEditor() {
             />
           </label>
           {message ? (
-            <p className="micro-field-error" role="status">
+            <p className="micro-field-error" role="alert">
               {message}
             </p>
           ) : null}

@@ -1,0 +1,134 @@
+/* R9 systemic continuation — REAL-BROWSER verification harness for F7 (R9-GA-F7)
+ * and its read-side sibling F7.1, run against the committed adapter bundle
+ * (adapter-entry.js — built by build-adapter-entry.mjs.txt; hashes in
+ * f7-manifest.json).
+ * Runs the adapter's hardened listener-failure paths against the browser's own
+ * IndexedDB engine. NOT part of the repository: an execution-evidence harness only.
+ * Scenario mirrors rollbackRehearsal.r9.test.ts RB-3 legs A + B. */
+import { IndexedDbLocalStore } from "./adapter-entry.js";
+
+const TS = "2026-10-10T09:00:00.000Z";
+const results = {};
+const record = () => {
+  const element = document.getElementById("result");
+  element.textContent = JSON.stringify(results, null, 1);
+  document.title = "DONE";
+};
+
+async function deleteDatabase() {
+  await new Promise(resolve => {
+    const request = indexedDB.deleteDatabase("micro-prototype-local");
+    request.onsuccess = () => resolve();
+    request.onerror = () => resolve();
+    request.onblocked = () => resolve();
+  });
+}
+
+const baseEvent = {
+  id: "rb3-event",
+  type: "operating_expense_cash",
+  amountMinor: 1250,
+  occurredOn: "2026-10-02",
+  recordedAt: TS,
+  idempotencyKey: "rb3-event-op",
+  note: "browser harness event",
+  counterparty: null,
+  expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
+  cashDeltaMinor: -1250,
+  payableDeltaMinor: 0,
+  ownerCapitalDeltaMinor: 0,
+  operatingExpenseDeltaMinor: 1250,
+  correctionType: null,
+  correctionOfEventId: null,
+  relatedEventId: null,
+};
+
+async function main() {
+  try {
+    await deleteDatabase();
+    const store = new IndexedDbLocalStore();
+
+    /* seed */
+    const seeded = await store.saveFinancialEvent(baseEvent);
+    const listed = await store.listFinancialEvents();
+    results.seed = { ok: seeded.ok, count: listed.ok ? listed.value.length : -1 };
+
+    /* Leg B — Style A commitFinancialEventCorrection with a poisoned reversal:
+     * a synchronous DataCloneError inside the success listener. */
+    const poisonedReversal = {
+      ...baseEvent,
+      id: "rb3-reversal-poison",
+      idempotencyKey: "rb3-reversal-poison-op",
+      correctionType: "reverse",
+      correctionOfEventId: baseEvent.id,
+      cashDeltaMinor: -baseEvent.cashDeltaMinor,
+      payableDeltaMinor: -baseEvent.payableDeltaMinor,
+      ownerCapitalDeltaMinor: -baseEvent.ownerCapitalDeltaMinor,
+      operatingExpenseDeltaMinor: -baseEvent.operatingExpenseDeltaMinor,
+      uncloneable: () => "poison",
+    };
+    const correction = await store.commitFinancialEventCorrection(baseEvent.id, poisonedReversal);
+    results.legB = {
+      ok: correction.ok,
+      code: correction.ok ? null : correction.code,
+      message: correction.ok ? null : correction.message,
+    };
+
+    /* state integrity: the events family must be untouched (exactly the seed). */
+    const afterCorrection = await store.listFinancialEvents();
+    results.legB_state = {
+      ok: afterCorrection.ok,
+      count: afterCorrection.ok ? afterCorrection.value.length : -1,
+      ids: afterCorrection.ok ? afterCorrection.value.map(event => event.id) : null,
+    };
+
+    /* Leg A — primitive writeOneIdempotent via saveDirectSale with a poisoned sale. */
+    const poisonedSale = {
+      id: "rb3-sale-poison",
+      itemName: "browser poison sale",
+      quantity: 1,
+      revenueMinor: 9000,
+      collectedMinor: 9000,
+      catalogItemId: null,
+      customerName: null,
+      costMinor: null,
+      occurredOn: "2026-10-04",
+      recordedAt: TS,
+      note: "poison",
+      idempotencyKey: "rb3-sale-poison-op",
+      uncloneable: () => "poison",
+    };
+    const sale = await store.saveDirectSale(poisonedSale);
+    results.legA = {
+      ok: sale.ok,
+      code: sale.ok ? null : sale.code,
+      message: sale.ok ? null : sale.message,
+    };
+    const afterSale = await store.listDirectSales();
+    results.legA_state = {
+      ok: afterSale.ok,
+      count: afterSale.ok ? afterSale.value.length : -1,
+    };
+
+    /* verdicts */
+    results.verdict = {
+      legB_honestFailure:
+        correction.ok === false &&
+        correction.code === "storage_error" &&
+        typeof correction.message === "string" &&
+        correction.message.length > 0 &&
+        correction.message.includes("could not be cloned"),
+      legB_stateIntact: results.legB_state.count === 1 && String(results.legB_state.ids) === "rb3-event",
+      legA_honestFailure:
+        sale.ok === false && sale.code === "storage_error" && String(sale.message).includes("could not be cloned"),
+      legA_stateIntact: results.legA_state.count === 0,
+      engine: navigator.userAgent,
+    };
+    record();
+  } catch (error) {
+    results.harnessError = String(error && error.stack ? error.stack : error);
+    record();
+  }
+}
+
+main();

@@ -1,0 +1,54 @@
+/* R9 systemic continuation — deterministic adapter-entry builder for the
+ * f7 browser-evidence package (R9-GA-F8). NOT part of the repository test
+ * infrastructure: an execution-evidence builder only, preserved verbatim so
+ * a clean checkout can reproduce the exact bundle that ran in the browser.
+ *
+ * Usage — from the REPOSITORY ROOT (cwd is the root), after pnpm install:
+ *   node docs/operations/control/evidence/structural-remediation-r9-20261010/r9c-browser-evidence/build-adapter-entry.mjs.txt
+ * Produces adapter-entry.js + adapter-entry.sha256 next to this file.
+ * The pinned esbuild is the repository's own devDependency
+ * (node_modules/.pnpm/esbuild@0.28.2/...); the version is recorded in
+ * f7-manifest.json and must match for byte-identical reproduction.
+ */
+import { createHash } from "node:crypto";
+import { writeFile, readFile } from "node:fs/promises";
+import path from "node:path";
+import process from "node:process";
+
+const repoRoot = process.cwd();
+const here = path.join(
+  repoRoot,
+  "docs/operations/control/evidence/structural-remediation-r9-20261010/r9c-browser-evidence",
+);
+const entry = path.join(
+  repoRoot,
+  "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+);
+const outfile = path.join(here, "adapter-entry.js");
+
+/* The repository's own pinned esbuild (a transitive devDependency of vite,
+ * materialized by pnpm at the deterministic store path below — the version
+ * is pinned by the repository lockfile and recorded in f7-manifest.json). */
+const esbuildPath = path.join(
+  repoRoot,
+  "node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js",
+);
+const { build } = await import(esbuildPath);
+
+const result = await build({
+  entryPoints: [entry],
+  outfile,
+  bundle: true,
+  format: "esm",
+  platform: "browser",
+  target: "es2022",
+  minify: false,
+  sourcemap: false,
+  logLevel: "info",
+});
+if (result.errors && result.errors.length > 0) throw new Error("esbuild reported errors");
+
+const bytes = await readFile(outfile);
+const sha256 = createHash("sha256").update(bytes).digest("hex");
+await writeFile(path.join(here, "adapter-entry.sha256"), sha256 + "  adapter-entry.js\n", "utf8");
+process.stdout.write(`adapter-entry.js written: ${bytes.length} bytes, sha256=${sha256}\n`);
