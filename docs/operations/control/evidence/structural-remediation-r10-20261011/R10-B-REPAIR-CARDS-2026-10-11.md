@@ -42,7 +42,7 @@
 
 ## RC-4 / R10A-F-024 — Replit post-merge hook [S2, Wave R10-B5; owner picks A/B/C — OD-9]
 
-**Complete A/B/C comparison** (full table in RV4 report §4/F-024): 
+**Complete A/B/C comparison** (full table in RV4 report §4/F-024):
 - **A — drop `export CI=1`:** nothing else in the hook reads CI; guard stays fail-closed; FP risk: Replit Node-20 gzip vs local anchor unproven (convergence proven only Node 22/24); `timeoutMs=180000` suspect (RV4-N4).
 - **B — documented Replit alias in `detectEnvironment` + anchored `replit` baseline:** strongest if the hook is load-bearing; marker choice (`REPL_ID`/`REPLIT_DEV_DOMAIN`) not statically provable; permanent external coupling; unit tests + `ANCHOR_RECORD` bootstrap path exist.
 - **C — retire hook + `[postMerge]` + register/ratchet rows (RECOMMENDED DEFAULT):** broken since R8-1 (`c70d3eed`, 2026-10-10); zero current documentation; zero in-repo consumers besides `.replit`; CI + Cloudflare Pages anchor all real verification; Replit remains a dev workspace served by its Project workflows.
