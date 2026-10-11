@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 56 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 56 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-216 | IN_PROGRESS | \`main\` | — | ARCH-007 | R9 VERIFIED_ON_MAIN: code merge PR #347 is e80f750977cb3f0200a2db5e1627bb01627f9c09; post-merge CI 38127377464 succeeded on that exact code SHA. The subsequent documentation-only reconciliations PR #348 and PR #349 are merged and verified; base_sha is the claim-base snapshot, not a permanently pinned current-main pointer. Before R10, fetch origin/main, record the live SHA in the new R10 claim, and create the dedicated R10 branch/PR from that exact fetched head. R10 hostile final audit and closure is next and has not started. No cleanup or branch deletion. |
+| WS-216 | IN_REVIEW | \`refactoring/r10b-systemic-findings-root-fix-20261011\` | 354 | ARCH-007 | W0 accepted by owner on PR #354 after NF-013 card correction; authorize R10-B1 on this branch after PR checks. Keep protected gates explicit: OD-8 before B2, OD-12 before NF-015 in B4, OD-9 before RC-4 in B5, and OD-1..OD-7/OD-10/OD-11/OD-13 recorded before their applicable work. No silent financial, historical, Schema/Export/Import, rejection, security, or visual-UI change; no merge or cleanup in this slice. |

@@ -2,7 +2,7 @@
   "id": "ARCH-007",
   "title": "الإصلاح البنيوي الجذري بعد تقريري Flash وStructure — مصفوفة التتبع وتنفيذ R0–R10",
   "type": "GOVERNANCE",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P0",
   "stage": "structural-remediation-r0-r10-20261007",
   "summary": "تنفيذ الخطة الجذرية المعتمدة لإغلاق العيوب البنيوية الحالية، وتثبيت مصدر حقيقة واحد، ومعالجة التخزين والنقل والملفات الكبيرة والحراس والاختبارات، مع بوابة R0 قراءة فقط قبل أي كتابة كودية.",
@@ -172,7 +172,15 @@
     "https://github.com/Qays7753/Micro/commit/507a28e22e89bd0e45843d88cdc548c766c51ab7",
     "https://github.com/Qays7753/Micro/actions/runs/38129424451",
     "https://github.com/Qays7753/Micro/pull/349",
-    "https://github.com/Qays7753/Micro/actions/runs/38130404154"
+    "https://github.com/Qays7753/Micro/actions/runs/38130404154",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-FINDINGS-RECONCILIATION-AND-RESEARCH-REPORT-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-FINDINGS-MATRIX-2026-10-11.json",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-READS-LOCATIONS-MATRIX-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-UNVERIFIED-RESEARCH-REPORT-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-REPAIR-CARDS-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-OWNER-DECISION-PACKAGE-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-SYNTHESIS-2026-10-11.md",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-REPORTS-2026-10-11/"
   ],
   "dependencies": [],
   "related_items": [
@@ -187,8 +195,14 @@
       "changed_at": "2026-10-07",
       "actor": "owner:approval-and-manus-orchestration",
       "reason": "اعتمد المالك الخطة ومصفوفة التتبع، وبدأت بوابة العقد ثم R0 القراءة فقط من الرأس الحي."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-11",
+      "actor": "owner:explicit-w0-acceptance",
+      "reason": "قبل المالك حزمة R10-B W0 بعد تصحيح بطاقة R10B-NF-013، وفوّض تسلسل B1..B6 ضمن الحواجز المحمية؛ تبقى قرارات OD-8/OD-9/OD-12/OD-13 عند بواباتها ولا يبدأ الكود المحمي قبلها."
     }
   ],
   "migration_baseline": true,
-  "next_action": "R9 VERIFIED_ON_MAIN: code merge PR #347 is e80f750977cb3f0200a2db5e1627bb01627f9c09 and post-merge CI 38127377464 succeeded on that exact code SHA. Documentation-only reconciliations PR #348 and PR #349 are merged and verified. Before R10, re-fetch origin/main and use that live SHA as the R10 claim base; do not treat any prior documentation merge SHA as a permanent current-main pointer. R10 hostile final audit and closure requires its own preflight, five read-only reviewers, focused tests, CI, dedicated branch/PR, and owner merge authorization. Do not claim final closure or perform cleanup before R10."
+  "next_action": "W0 accepted by owner on PR #354 after NF-013 card correction; authorize R10-B1 on this branch after PR checks. Keep protected gates explicit: OD-8 before B2, OD-12 before NF-015 in B4, OD-9 before RC-4 in B5, and OD-1..OD-7/OD-10/OD-11/OD-13 recorded before their applicable work. No silent financial, historical, Schema/Export/Import, rejection, security, or visual-UI change; no merge or cleanup in this slice."
 }
