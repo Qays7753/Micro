@@ -1506,3 +1506,35 @@ export function reclassifyRetainedDeposit(
     note: `تصحيح إلى ${correction.toMeaning === "owner" ? "مال مالك" : "إيراد مشروع"} (${persistedMoneyTextMinor(correction.toAmountMinor)}) — ${correction.reason.trim()}`,
   });
 }
+
+/* R10-B4/F-021 (2026-10-12): اشتقاقات قراءة صرفة لعائلة العربون — الملكية
+ * هنا حيث تكتب المسارات أعلاه. الواجهة (OrderDepositPanels) كانت تعيد
+ * كتابة هذه الحسابات من الحقول الخام (مرايا F-049 الأعلى انحرافًا: ?? 0
+ * و ?? depositCollectedMinor حرفيًا) فتفقد التوافق الرجعي الموثق الذي
+ * تقرأ به المسارات الكاتبة (retainedDepositMinor / classifiedSumsOf).
+ * الاشتقاقات أدناه تستخدم القارئات الكنسية نفسها حرفيًا — لا صيغة ثانية. */
+export function standingDepositMinorOf(order: CraftOrder): MoneyMinor {
+  return Math.max(order.depositCollectedMinor - retainedDepositMinor(order), 0);
+}
+
+export function pendingDepositSettlementMinorOf(order: CraftOrder): MoneyMinor {
+  return order.depositCollectedMinor - retainedDepositMinor(order);
+}
+
+export function unclassifiedRetainedDepositMinorOf(order: CraftOrder): MoneyMinor {
+  const retained = retainedDepositMinor(order);
+  const sums = classifiedSumsOf(order);
+  return retained - sums.ownerMinor - sums.revenueMinor;
+}
+
+/* معاينة اقتراح تسوية عربون الملغى (Conflict E): التغطية حتى التكلفة
+ * الموثقة والرد المقترح للباقي — اقتراح قرار لا قرارًا؛ المبلغ الصريح
+ * للمالك يعلو دائمًا. */
+export function cancelledDepositProposalOf(order: CraftOrder): {
+  coverProposalMinor: MoneyMinor;
+  refundProposalMinor: MoneyMinor;
+} {
+  const pendingMinor = pendingDepositSettlementMinorOf(order);
+  const coverProposalMinor = Math.min(pendingMinor, order.costSnapshot.plannedCostMinor);
+  return { coverProposalMinor, refundProposalMinor: pendingMinor - coverProposalMinor };
+}

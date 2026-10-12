@@ -65,8 +65,10 @@ const assertPurchaseFields = (input: {
     throw new Error("المدفوع مبدئيًا لا يمكن أن يتجاوز إجمالي الشراء.");
 };
 /* المجموعة ٢ (§10.4): المدفوع بعد التعديل = الدفع الأولي الجديد + الدفعات اللاحقة
- * − تراجعاتها الموثقة. معيّن صريح؛ الشروط في استدعائه لا في صياغته. */
-const paidAfterEditFor = (purchase: SupplierPurchase, input: UpdateSupplierPurchaseInput): number => {
+ * − تراجعاتها الموثقة. معيّن صريح؛ الشروط في استدعائه لا في صياغته.
+ * R10-B4/F-021: البنية المقبولة اتسعت إلى الحقول المقروءة فعلًا
+ * (initialPaidMinor وحده) لتخدم معاينة القراءة الصرفة أدناه بنفس العقد. */
+const paidAfterEditFor = (purchase: SupplierPurchase, input: { initialPaidMinor: number }): number => {
   const laterPayments = purchase.payments.filter(payment => payment.id !== `${purchase.id}:initial`);
   const laterPaidMinor = laterPayments.reduce((sum, payment) => sum + payment.amountMinor, 0);
   const reversedLaterMinor = totalReversed(purchase.paymentReversals);
@@ -289,4 +291,25 @@ export function reverseSupplierPurchasePayment(
     effectivePaid(purchase) - payment.amountMinor,
     input.recordedAt,
   );
+}
+
+/* R10-B4/F-021 (2026-10-12): معاينات قراءة صرفة لنواة المدفوع/المستحق —
+ * الملكية هنا في الدومين لا في الواجهة. الصفحة كانت تعيد كتابة الحساب
+ * (مرايا F-049 الأعلى انحرافًا) فتستورده الآن من مصدر الحقيقة نفسه الذي
+ * تكتب به مسارات التعديل والتراجع أعلاه: نفس الدوال الحرفية
+ * (paidAfterEditFor / effectivePaid) — لا صيغة ثانية تتباعد. */
+export function previewSupplierPurchaseEdit(
+  purchase: SupplierPurchase,
+  input: { totalMinor: number; initialPaidMinor: number },
+): { paidAfterMinor: number; payableAfterMinor: number } {
+  const paidAfterMinor = paidAfterEditFor(purchase, input);
+  return { paidAfterMinor, payableAfterMinor: input.totalMinor - paidAfterMinor };
+}
+
+export function previewSupplierPurchasePaymentReversal(
+  purchase: SupplierPurchase,
+  payment: SupplierPurchasePayment,
+): { paidAfterMinor: number; payableAfterMinor: number } {
+  const paidAfterMinor = effectivePaid(purchase) - payment.amountMinor;
+  return { paidAfterMinor, payableAfterMinor: purchase.totalMinor - paidAfterMinor };
 }

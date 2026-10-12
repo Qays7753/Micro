@@ -26,6 +26,10 @@ import {
   localDateInAmman,
 } from "@/presentation/formatters";
 import type { SupplierPurchase, SupplierPurchasePayment } from "@micro-domain/supplier-purchase/index.js";
+import {
+  previewSupplierPurchaseEdit,
+  previewSupplierPurchasePaymentReversal,
+} from "@micro-domain/supplier-purchase/index.js";
 /* R7/R6-F17-P04 (2026-10-10): قرار المحرر النقي (قاعدة مصدر الصرف FIN-003/
  * بوابات التحقق/خريطة السجل/فحص المادة المتتبَّعة EXE-011) من بيته التطبيقي. */
 import {
@@ -506,21 +510,15 @@ export default function SupplierPurchaseEditor() {
    * مبكر يغيّر عدد الهوكات بين الرندرات ويرمي React رقم 310 على مسار الدفعة/التعديل. */
   const editPreview = useMemo(() => {
     if (!purchase || mode !== "edit") return null;
-    /* الإجمالي والدفع الأولي الجديدان يحددان المدفوع الجديد فوق الدفعات اللاحقة. */
-    const laterPayments = purchase.payments
-      .filter(payment => payment.id !== `${purchase.id}:initial`)
-      .reduce((sum, payment) => sum + payment.amountMinor, 0);
-    const reversed = (purchase.paymentReversals ?? []).reduce(
-      (sum, reversal) => sum + reversal.amountMinor,
-      0,
-    );
-    const paidAfter = initialPaidMinor + laterPayments - reversed;
-    const payableComputed = totalMinor - paidAfter;
+    /* R10-B4/F-021: نواة المدفوع/المستحق تُستورد من الدومين — نفس دوال
+     * مسارات الكتابة (paidAfterEditFor/effectivePaid) حرفيًا؛ لا مرآة
+     * حسابية ثانية في الواجهة (كانت أعلى مرايا F-049 انحرافًا). */
+    const kernel = previewSupplierPurchaseEdit(purchase, { totalMinor, initialPaidMinor });
     return {
       payableBefore: purchase.payableMinor,
-      payableAfter: payableComputed,
+      payableAfter: kernel.payableAfterMinor,
       cashBefore: purchase.paidMinor,
-      cashAfter: paidAfter,
+      cashAfter: kernel.paidAfterMinor,
     };
   }, [purchase, mode, totalMinor, initialPaidMinor]);
 
@@ -545,14 +543,18 @@ export default function SupplierPurchaseEditor() {
       </section>
     );
 
+  const reversalKernel =
+    reversalTarget && purchase ? previewSupplierPurchasePaymentReversal(purchase, reversalTarget) : null;
   const reversalPreview =
-    reversalTarget && purchase
+    reversalTarget && purchase && reversalKernel
       ? {
           payment: reversalTarget,
           payableBefore: purchase.payableMinor,
-          payableAfter: purchase.payableMinor + reversalTarget.amountMinor,
+          /* R10-B4/F-021: معاينة التراجع من نواة الدومين — مطابقة لمسار
+           * reverseSupplierPurchasePayment حرفيًا. */
+          payableAfter: reversalKernel.payableAfterMinor,
           paidBefore: purchase.paidMinor,
-          paidAfter: purchase.paidMinor - reversalTarget.amountMinor,
+          paidAfter: reversalKernel.paidAfterMinor,
         }
       : null;
 

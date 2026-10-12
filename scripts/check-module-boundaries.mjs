@@ -231,6 +231,14 @@ export const DEEP_DOMAIN_IMPORT_BASELINE = [
  * Wave H (STR-617 بند 4، 2026-10-04): حافتا العرض المسجلتان بعد ضم presentation
  * إلى UI_LAYERS — formatters.ts انتقلت إلى التطبيق في Wave B فلم تبقَ. */
 export const UI_TO_DOMAIN_VALUE_BASELINE = [
+  /* R10-B4/F-021 (2026-10-12): اشتقاقات قراءة الدومين التي حلّت أعلى مرايا
+   * F-049 انحرافًا — previewSupplierPurchaseEdit/previewSupplierPurchasePaymentReversal
+   * وstandingDepositMinorOf/pendingDepositSettlementMinorOf/
+   * unclassifiedRetainedDepositMinorOf/cancelledDepositProposalOf. نفس نمط
+   * السوابق المسجلة (knowledgeGapsOf/residualOf): اشتقاق دومين صرف يُستهلك
+   * للعرض؛ التسجيل في نفس الـPR الذي أدخل الحافة (بروتوكول الراتشة). */
+  "apps/prototype-web/client/src/components/orders/OrderDepositPanels.tsx -> @micro-domain/craft-order/index.js",
+  "apps/prototype-web/client/src/pages/SupplierPurchaseEditor.tsx -> @micro-domain/supplier-purchase/index.js",
   "apps/prototype-web/client/src/components/finance/AllocationReviewCard.tsx -> @micro-domain/financial-event/index.js",
   "apps/prototype-web/client/src/components/finance/ExpenseBudgetsSectionBody.tsx -> @micro-domain/shared/index.js",
   "apps/prototype-web/client/src/components/finance/quickFormHelpers.ts -> @micro-domain/cash-continuity/index.js",
