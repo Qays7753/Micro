@@ -1332,6 +1332,25 @@
         "trigger": "R10-B execution prompt section 7 wave B5 scope; canonical matrix records R10A-F-028 and R10B-NF-021 required_behavior",
         "ocRef": "ARCH-007"
       }
+    },
+    {
+      "id": "R10B-B5-NF024-NF026-TEST-FOCUS-VOCABULARY",
+      "date": "2026-10-13",
+      "path": "scripts/check-test-focus.mjs",
+      "from": {
+        "nbLoc": 137,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 162,
+        "band": "NORMAL"
+      },
+      "reason": "R10-B5/NF-024+NF-026 (W0 RV4): the test-focus guard's vocabulary extends to the two unguarded disabling paths — .fails( joins the vitest focus alternation (expected-failure buries a live regression exactly like skip), and Python test files (test_*.py / *_test.py under the approved roots) are collected and scanned with PY_SKIP_REGEX covering @unittest.skip/@skipIf/@skipUnless, the prefix-less imports, @pytest.mark.skip/skipif/xfail, and self.skipTest( calls; non-test Python tools are not scanned; CLI messages updated. +3 tests (fails modifier, python skip vocabulary with exact lines, clean-python/non-test-tool silence) and the live smoke asserts the JS+Python census.",
+      "authorization": {
+        "ownerReview": "R10-B W0 owner-approved 54-item B1-B5 FIX_NOW backlog (matrix disposition FIX_NOW; repair cards wave R10-B5 line: NF-024 + NF-026 test-focus Python + .fails() — executed on PR #356 under the ARCH-007/WS-216 governance",
+        "trigger": "R10-B execution prompt section 7 wave B5 scope; canonical matrix records R10B-NF-024 and R10B-NF-026 required_behavior",
+        "ocRef": "ARCH-007"
+      }
     }
   ]
 }

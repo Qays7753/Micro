@@ -153,6 +153,74 @@ describe("check-test-focus — detection", () => {
     const findings = scanTestTree(root);
     expect(findings.map(finding => finding.method).sort()).toEqual(["fixme", "runIf", "skipIf", "todo"]);
   });
+
+  it("NF-026: catches the vitest expected-failure modifier as a focus call", () => {
+    const root = makeTempDir();
+    writeTestFile(
+      root,
+      "tests/expected.test.ts",
+      [`it${dotCall("fails")}("regression must stay failing", () => {});`, ""].join("\n"),
+    );
+    const findings = scanTestTree(root);
+    expect(findings).toHaveLength(1);
+    expect(findings[0]?.method).toBe("fails");
+    expect(findings[0]?.line).toBe(1);
+  });
+
+  it("NF-024: catches Python unittest/pytest skip vocabulary in test_*.py files", () => {
+    const root = makeTempDir();
+    /* المزينات تُبنى وقت التشغيل كالأسلاف كي لا يصطاد الفحص الحي مصدر
+     * هذا الاختبار نفسه (الملف .mjs لكن الحيطة عادة البيت). */
+    const at = name => ["@", name].join("");
+    writeTestFile(
+      root,
+      "scripts/operations-control/test_probe.py",
+      [
+        "import unittest",
+        "class T(unittest.TestCase):",
+        `    ${at("unittest.skip")}("whole class")`,
+        "    def test_a(self):",
+        "        pass",
+        `    ${at("unittest.skipIf")}(True, "cond")`,
+        "    def test_b(self):",
+        "        pass",
+        `    ${at("skipUnless")}(False, "cond2")`,
+        "    def test_c(self):",
+        "        pass",
+        "    def test_d(self):",
+        '        self.skipTest("runtime bail")',
+        "",
+      ].join("\n"),
+    );
+    writeTestFile(
+      root,
+      "scripts/operations-control/test_pytest_probe.py",
+      [`    ${at("pytest.mark.skip")}("pytest path")`, "def test_x():", "    pass", ""].join("\n"),
+    );
+    const findings = scanTestTree(root);
+    expect(findings).toHaveLength(5);
+    expect(findings.every(f => f.method === "py-skip")).toBe(true);
+    expect(findings.filter(f => f.file.endsWith("/test_probe.py")).map(f => f.line).sort((a, b) => a - b)).toEqual([
+      3, 6, 9, 13,
+    ]);
+    expect(findings.some(f => f.file.includes("test_pytest_probe.py"))).toBe(true);
+  });
+
+  it("NF-024: clean Python test files and non-test Python tools stay silent", () => {
+    const root = makeTempDir();
+    writeTestFile(
+      root,
+      "scripts/operations-control/test_clean.py",
+      ["import unittest", "class T(unittest.TestCase):", "    def test_ok(self):", "        self.assertTrue(True)", ""].join("\n"),
+    );
+    /* أداة إنتاج بايثونية تذكر المفردات في نص عادي — ليست ملف اختبار. */
+    writeTestFile(
+      root,
+      "scripts/some_tool.py",
+      ['TOOL_DOC = "mentions unittest.skip conceptually"', ""].join("\n"),
+    );
+    expect(scanTestTree(root)).toHaveLength(0);
+  });
 });
 
 describe("check-test-focus — CLI behavior", () => {
@@ -188,5 +256,7 @@ describe("check-test-focus — CLI behavior", () => {
     const result = runCli(ROOT);
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("check-test-focus: PASS");
+    /* NF-024: الدخاني الحي يشمل الآن ملف اختبار بايثون الحي (يتجمع مع JS). */
+    expect(result.stdout).toContain("(JS + Python)");
   });
 });

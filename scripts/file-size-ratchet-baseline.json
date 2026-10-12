@@ -1553,7 +1553,7 @@
       "band": "NORMAL"
     },
     "scripts/check-test-focus.mjs": {
-      "nbLoc": 137,
+      "nbLoc": 162,
       "band": "NORMAL"
     },
     "scripts/check-type-cycles.mjs": {
