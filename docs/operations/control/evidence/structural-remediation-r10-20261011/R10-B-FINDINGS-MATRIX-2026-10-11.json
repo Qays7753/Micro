@@ -107,7 +107,15 @@
    "required_tests": "Focused unit test of the editor model; module-boundaries guard; typecheck; duplicate-symbol scan.",
    "acceptance_criteria": "Editor model uses the imported domain type; duplication guard green; zero behavior change (type-only).",
    "rollback_boundary": "Single commit revert restores the duplicated union (no data/format impact).",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B3",
+    "closed_at_commit": "6e674967",
+    "date": "2026-10-12",
+    "evidence": "inventoryMovementEditorModel.ts imports the canonical domain WasteContext (type-only, sanctioned direction — the sibling inventoryMaterialModel.ts pattern) and the local re-declaration is deleted; typecheck + focused editor-model tests green; the messageIdentity suite and door guards green.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-004",
@@ -137,7 +145,15 @@
    "required_tests": "Unit tests for both consumers incl. unknown-string read-back; typecheck.",
    "acceptance_criteria": "Single declaration; unknown persisted strings handled explicitly; no visual/UX change.",
    "rollback_boundary": "Single commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B3",
+    "closed_at_commit": "6e674967",
+    "date": "2026-10-12",
+    "evidence": "Single canonical CapabilityId: CAPABILITY_IDS + CapabilityId + isKnownCapabilityId declared once at the persistence owner (preferenceService.ts), exported through the preferences door (baseline + contract-test registry updated same-PR, PC-3); useDisabledCapabilities re-exports the type; SettingsCapabilitiesSection narrows with .filter(isKnownCapabilityId) replacing the two unsound `as CapabilityId[]` casts; unknown persisted strings are handled explicitly (fail-closed rendering of known ids only); focused preference and capabilities DOM suites green.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-005",
@@ -388,7 +404,15 @@
    "required_tests": "Conformance suite extended; existing suites green.",
    "acceptance_criteria": "Byte-identity proven for the sampled family set; RECURRENCE_STALE_MESSAGE single-sourced or pinned.",
    "rollback_boundary": "Revert restores prior tests/messages.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B3",
+    "closed_at_commit": "6e674967",
+    "date": "2026-10-12",
+    "evidence": "RECURRENCE_STALE_MESSAGE single-sourced: MemoryLocalStore imports the canonical export from indexedDbStores.ts (the SECOND_WALLET_OPENING_MESSAGE pattern) and its private duplicate literal is deleted; the new adapterConformance.messageIdentity suite pins the recurrence stale message byte-identically across both adapters.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-012",
@@ -418,7 +442,15 @@
    "required_tests": "Unit tests for the 4 services incl. fallback path (mocked crypto absent); typecheck.",
    "acceptance_criteria": "No bare crypto.randomUUID() without fallback in production; insecure-origin creation path returns an id instead of throwing.",
    "rollback_boundary": "Single commit revert (4 files).",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B3",
+    "closed_at_commit": "6e674967",
+    "date": "2026-10-12",
+    "evidence": "The four services with bare crypto.randomUUID() (assetService, loanService, receivedLoanService, retainedDepositService) now use the established optional-chain guard (globalThis.crypto?.randomUUID?.() ?? deterministic-unique fallback — inventoryMaterialModel.ts pattern); 11 focused tests incl. mocked-absent crypto and secure-path sentinel identity; no unguarded crypto.randomUUID remains in production.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10A-F-013",
@@ -1222,7 +1254,15 @@
    "required_tests": "Existing surface tests; door-surfaces guard.",
    "acceptance_criteria": "Single policy source; door baseline updated; zero behavior change.",
    "rollback_boundary": "Single commit revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B3",
+    "closed_at_commit": "6e674967",
+    "date": "2026-10-12",
+    "evidence": "The __unset__ sentinel and the 0/1/multi-wallet default rule are owned once by application/finance/paymentSourcePolicy.ts; the suppliers editor model and expenseFormModel delegate to it (documented re-exports); the UI consumer imports through the finance door per STR-615/R6 (module-boundaries PASS with zero new deep edges); door surface +PAYMENT_SOURCE_UNSET +resolveDefaultPaymentSource documented same-PR (PC-3); both surfaces' tests green.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-002",
@@ -1250,7 +1290,15 @@
    "required_tests": "Existing surface tests green.",
    "acceptance_criteria": "One mapping source; tests unchanged in behavior.",
    "rollback_boundary": "Single commit revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B3",
+    "closed_at_commit": "6e674967",
+    "date": "2026-10-12",
+    "evidence": "The MaterialUnit Arabic label mapping is single-sourced in application/inventory/materialUnitLabels.ts; the six per-surface copies (materialSuggestions, deliveryReviewService, and the four inventory/catalog pages) are deleted; UI consumers import through the inventory door (PC-3 door widening documented); a new unit touches one file; the text-density §10 caps hold (screen counts updated in the regenerated characterization golden, same-PR ratchet protocol); all focused suites green.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-003",
@@ -1277,7 +1325,15 @@
    "required_tests": "Typecheck; theme tests.",
    "acceptance_criteria": "Single declaration.",
    "rollback_boundary": "Single commit revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B3",
+    "closed_at_commit": "6e674967",
+    "date": "2026-10-12",
+    "evidence": "ThemeContext imports ThemePreference from the preferences door (type-only, sanctioned pattern); the local re-declaration is deleted; door type surface documented same-PR (PC-3); typecheck + theme-related suites green.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-004",
@@ -1372,7 +1428,15 @@
    "required_tests": "Unit tests incl. mocked-absent crypto.",
    "acceptance_criteria": "No unguarded crypto.randomUUID in production.",
    "rollback_boundary": "Single commit revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B3",
+    "closed_at_commit": "6e674967",
+    "date": "2026-10-12",
+    "evidence": "Closed with R10A-F-012: the 4 no-fallback services are guarded with the established optional-chain pattern; the ~60-site consolidation into a shared ID helper remains the owner DEFER card (helper-home decision), unchanged in scope.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-007",
@@ -1507,7 +1571,15 @@
    "required_tests": "Conformance suite.",
    "acceptance_criteria": "Identity proven or single-sourced.",
    "rollback_boundary": "Revert restores prior state.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B3",
+    "closed_at_commit": "6e674967",
+    "date": "2026-10-12",
+    "evidence": "Cross-adapter rejection-message byte identity is proven by the new adapterConformance.messageIdentity suite (8 tests): a sampled rejection set per guard family (financial-event correction/replacement source-missing, reversal-of-reversal, data mismatch; recurrence stale; supplier old-state conflict; cash second-wallet opening) runs on BOTH adapters and asserts identical messages, pinning the shared constants (RECURRENCE_STALE_MESSAGE, SECOND_WALLET_OPENING_MESSAGE, the four financial-event messages) where exported. The remaining ~40 duplicated literals stay identity-pinned by the same mechanism (the finding's accepted short-term closure); extraction to shared constants follows the SECOND_WALLET_OPENING pattern per family as bounded in later waves.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   },
   {
    "original_finding_id": "R10B-NF-011",
@@ -2327,19 +2399,57 @@
     "evidence": "verifyTransferArrayFamilies raw gate wired in prepareImport (after integrity, before migration); 6/6 probe vectors now rejected; rc1Gate suite 8/8; full app suite 2,550/2,550. RV5-gate amendment: the initial closure claim was DISPROVED by RV5 (optional-family deletion/null still laundered on current files — a full loan-ledger wipe proven E2E); the gate is now era-uniform (all 31 families required-present on current; legacy absence incl. null preserved) and the rc1Gate suite carries the deletion/null vectors (10 tests).",
     "evidence_class": "VERIFIED_LOCAL_SUITES (push/PR-CI pending at record time)"
    }
+  },
+  {
+   "original_finding_id": "R10B-NF-036",
+   "canonical_control_id_or_canonical_ledger_key": "R10B-LEDGER:R10B-NF-036",
+   "first_observed_sha": "446e8a470b7597ee5484f2e2822c46fd0496350d",
+   "source_report_and_evidence": "R10-B3 implementation-time adapter-parity testing (financial-event correction experiments across Memory + fake-indexeddb, 2026-10-12) — discovered while building the F-011/NF-010 message-identity conformance suite; classification NEW (adapter parity gap in the reversal-source guard family).",
+   "finding_classification": "NEW_FINDING",
+   "finding_state": "CONFIRMED_AND_FIXED_IN_WAVE",
+   "severity": "S3",
+   "current_behavior": "BEFORE R10-B3: MemoryLocalStore.commitFinancialEventCorrection committed a reversal without checking that the source is not itself a reversal (IndexedDB rejects with the byte-identical message) and without checking that the reversal payload mirrors the source (correction fields, type, amount, relatedEventId, negated deltas); commitFinancialEventReplacement had the source checks but lacked the mirror check. A hostile or drifted caller committing a non-mirroring reversal on the Memory adapter would succeed while IndexedDB rejects the same payload — silent adapter behavior divergence with no test pinning it.",
+   "required_behavior": "Both adapters enforce the identical reversal-source contract inside their write boundaries: source must exist and not be a reversal; the reversal payload must mirror the source (correction variant incl. relatedEventId; replacement variant without it, exactly as the IndexedDB reference); rejection messages byte-identical across adapters; no partial writes.",
+   "root_cause": "The financial-event correction/replacement validation was written inline per adapter and drifted: IndexedDB carried the full guard set, Memory only a subset; no conformance assertion on .message existed to catch the divergence (the F-011/NF-010 family gap).",
+   "affected_files_and_symbols": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts (commitFinancialEventCorrection, commitFinancialEventReplacement); IndexedDbLocalStore.ts (same methods — reference); NEW financialEventCorrectionMessages.ts (the four shared message constants)",
+   "layers": [
+    "storage",
+    "tests"
+   ],
+   "impact": "Adapter behavior divergence for reversal commits (Memory is the test/preview adapter — production uses IndexedDB, so no production data path was affected; the divergence masked what the conformance matrix claimed to prove).",
+   "owner": "Micro owner (Qays7753) via WS-216/ARCH-007 R10-B program",
+   "related_items": [
+    "R10A-F-011",
+    "R10B-NF-010"
+   ],
+   "explicit_dependencies": [],
+   "proposed_disposition": "FIX_NOW",
+   "minimum_safe_remediation": "Memory gains the missing guards with byte-identical messages; the message literals single-sourced (resultCodes pattern) so adapters cannot drift textually; regression + parity tests prove both adapters reject the same payloads with the same messages and write nothing.",
+   "required_tests": "adapterConformance.messageIdentity.test.ts (reversal-of-reversal, correction mismatch, replacement mismatch — both adapters, no-partial-write read-back proof).",
+   "acceptance_criteria": "Both adapters reject the identical hostile payloads with byte-identical messages; no partial writes; single source for the four message literals; full storage suites green.",
+   "rollback_boundary": "Single commit revert (6e674967) restores the prior adapter bodies; the messages module and the conformance suite revert with it.",
+   "limitations": "Verified on Memory + fake-indexeddb locally; PR-CI verification pending at record time. The full shared-guard-function extraction (checks as functions, not just constants) was implemented and measured at +129 entry gzip against the protected 155,300 ceiling — documented in the module header; the constants+inline form with test-pinned parity was adopted instead.",
+   "implementation_status": {
+    "state": "CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH",
+    "wave": "R10-B3",
+    "closed_at_commit": "6e674967",
+    "date": "2026-10-12",
+    "evidence": "NEW FINDING (discovered in-wave during B3 testing, first recorded here): the Memory adapter implemented commitFinancialEventCorrection/Replacement without the reversal-source guards present in IndexedDB — a reversal-of-a-reversal or a non-mirroring reversal payload would commit on the Memory adapter while IndexedDB rejects it. Root fix: the four message literals are single-sourced in financialEventCorrectionMessages.ts (resultCodes pattern) and BOTH adapters carry the identical inline checks inside their write boundaries; the regression + parity tests (messageIdentity suite, 4 scenarios incl. read-back no-partial-write proof) close the gap. The shared-guard-function alternative was implemented and measured first: +129 entry gzip against the protected 155,300 ceiling (CI headroom 135 bytes) — the constants+inline form was adopted and the measurement documented in the module header and the wave report.",
+    "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
+   }
   }
  ],
  "summary": {
-  "total_records": 72,
+  "total_records": 73,
   "r10a_original_findings": 37,
-  "r10b_new_findings": 35,
+  "r10b_new_findings": 36,
   "dispositions": {
-   "FIX_NOW": 55,
+   "FIX_NOW": 56,
    "DEFER": 16,
    "OUT_OF_SCOPE": 1
   },
   "severities": {
-   "S3": 55,
+   "S3": 56,
    "S2": 5,
    "S4": 12
   },
@@ -2347,7 +2457,7 @@
    "CONFIRMED": 64,
    "REFINED": 6,
    "DISPROVED": 1,
-   "CONFIRMED_AND_FIXED_IN_WAVE": 1
+   "CONFIRMED_AND_FIXED_IN_WAVE": 2
   },
   "notes": "R10A-F-023 disproved (FALSE_POSITIVE, retraction recorded). R10-A effective confirmed total: 36 of 37. New findings from W0-C systemic search: RV1 x9 (one folded into F-011), RV2 x7 (one design note), RV3 x7 (folded to 5), RV4 x11 (three folded into F-024/F-025/F-027), RV5 x9 -> consolidated to 34 stable IDs."
  },
@@ -2412,6 +2522,18 @@
    ],
    "note": "OD-8 applied per the canonical prompt default (minimal 4 owner families + registry); owner ratification package published: R10-B-OD8-RC1-SCOPE-DECISION-PACKAGE-2026-10-11.md. NEW finding R10B-NF-035 (re-seal laundering family beyond owner money) discovered by hostile probe, fixed in-wave, recorded here. Reviewer verdicts: RV1 FAIL->amended (type-correctness blocker fixed); RV2 PASS; RV3 PASS; RV4 PASS (2 minor docs fixed); RV5 FAIL_AS_CLOSED->amended (D1 laundering vectors closed; D2 compat impact disclosed; D3 SHAs recorded). Era-relabel observation (30/38->29/37 reopens deletion via the legacy path) recorded as a pre-existing designed legacy-acceptance trade-off for B6 re-examination, not a wave defect.",
    "summary_note": "total_records 71 -> 72 (R10B-NF-035 added)"
+  },
+  {
+   "wave": "R10-B3",
+   "date": "2026-10-12",
+   "branch": "refactoring/r10b-complete-b1-b6-20261011",
+   "slices": [
+    {
+     "commit": "6e674967",
+     "scope": "source-of-truth wave code: RC-2/F-003 WasteContext + F-004 CapabilityId + F-011/NF-010 message identity + F-012/NF-006 insecure-context guards + NF-001 payment-source policy (door) + NF-002 MaterialUnit labels (door) + NF-003 ThemePreference + NF-036 Memory reversal-source guards (new finding, constants+inline form after measuring the guard-module alternative at +129 entry gzip)"
+    }
+   ],
+   "notes": "Entry ceilings untouched (local 631,664/155,188 under 650,000/155,300; CI projection ~155,264 from the measured +76 local-to-CI delta on the B2 head). Bundle surfaces re-anchored per the documented protocol (first B3 re-anchor): lazyRaw 1,214,850->1,214,715 and precache 2,682,816->2,682,693 locked improvements; lazyGzipNorm 366,062->366,112 and swRuntime 26,170->26,231 grown surfaces; lazyJsCount 101->102 (shared paymentSourcePolicy chunk), precacheEntryCount 156->157. 24 ratchet ledger entries. Text-density golden regenerated same-PR. Door surfaces: preferences/finance/inventory documented widenings (PC-3) with the contract-test registry updated."
   }
  ]
 }

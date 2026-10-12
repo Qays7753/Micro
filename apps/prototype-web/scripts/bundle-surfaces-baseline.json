@@ -16,7 +16,7 @@
  "environments": {
   "local": {
    "anchored": {
-    "head": "446e8a470b7597ee5484f2e2822c46fd0496350d",
+    "head": "6e674967a06e51990bf8a0ddb18befd172ed3ccb",
     "date": "2026-10-12",
     "method": "R10-B3 wave re-anchor (code head 446e8a470b75, 2026-10-12): the B3 source-of-truth wave consolidates six MaterialUnit label copies into one application-house module (lazy raw shrinks 1,214,850 -> 1,214,715; precache 2,682,816 -> 2,682,693 local), single-sources the payment-source policy (new shared lazy chunk: lazyJsCount 101 -> 102, precacheEntryCount 156 -> 157), and single-sources the financial-event reversal message literals (resultCodes pattern: constants module + inline checks) which grows the normalized lazy gzip 366,062 -> 366,112 and the sw runtime 26,170 -> 26,231 (the sw precache manifest gains one chunk entry). Entry ceilings untouched (local 631,664/155,188 under 650,000/155,300); tolerances/counts/guard untouched. This is the first documented same-PR re-anchor of the B3 wave."
    },
@@ -47,7 +47,7 @@
   },
   "cloudflare-pages": {
    "anchored": {
-    "head": "446e8a470b7597ee5484f2e2822c46fd0496350d",
+    "head": "6e674967a06e51990bf8a0ddb18befd172ed3ccb",
     "date": "2026-10-12",
     "method": "R10-B3 wave re-anchor (code head 446e8a470b75, 2026-10-12): the B3 source-of-truth wave consolidates six MaterialUnit label copies into one application-house module (lazy raw shrinks 1,214,850 -> 1,214,715; precache 2,682,816 -> 2,682,693 local), single-sources the payment-source policy (new shared lazy chunk: lazyJsCount 101 -> 102, precacheEntryCount 156 -> 157), and single-sources the financial-event reversal message literals (resultCodes pattern: constants module + inline checks) which grows the normalized lazy gzip 366,062 -> 366,112 and the sw runtime 26,170 -> 26,231 (the sw precache manifest gains one chunk entry). Entry ceilings untouched (local 631,664/155,188 under 650,000/155,300); tolerances/counts/guard untouched. This is the first documented same-PR re-anchor of the B3 wave."
    },
@@ -75,7 +75,7 @@
   },
   "github-actions": {
    "anchored": {
-    "head": "446e8a470b7597ee5484f2e2822c46fd0496350d",
+    "head": "6e674967a06e51990bf8a0ddb18befd172ed3ccb",
     "date": "2026-10-12",
     "method": "R10-B3 wave re-anchor (code head 446e8a470b75, 2026-10-12): the B3 source-of-truth wave consolidates six MaterialUnit label copies into one application-house module (lazy raw shrinks 1,214,850 -> 1,214,715; precache 2,682,816 -> 2,682,693 local), single-sources the payment-source policy (new shared lazy chunk: lazyJsCount 101 -> 102, precacheEntryCount 156 -> 157), and single-sources the financial-event reversal message literals (resultCodes pattern: constants module + inline checks) which grows the normalized lazy gzip 366,062 -> 366,112 and the sw runtime 26,170 -> 26,231 (the sw precache manifest gains one chunk entry). Entry ceilings untouched (local 631,664/155,188 under 650,000/155,300); tolerances/counts/guard untouched. This is the first documented same-PR re-anchor of the B3 wave."
    },
