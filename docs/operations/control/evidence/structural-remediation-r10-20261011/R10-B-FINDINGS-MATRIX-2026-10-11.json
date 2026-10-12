@@ -543,7 +543,8 @@
    "required_tests": "renderSmoke suite; router sync test.",
    "acceptance_criteria": "Comment count matches; every router path is either smoked or direct-tested with a documented reason.",
    "rollback_boundary": "Test-only commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": "CLOSED_WITH_EVIDENCE in R10-B4 (commit 02fe4e06, 2026-10-12): smoke list reconciled with the router — the 9 missing patterns (received-loan pair, finance more/upcoming/recurring family, EXE-009 owner-withdrawal redirect) + the catch-all added (56 -> 66 routes); comment count corrected; new RouterSmokeSync.r10b.test pins coverage mechanically (every pattern structurally covered, catch-all covered by a matching-nothing route, comment count == array length). Full smoke suite green in both themes."
   },
   {
    "original_finding_id": "R10A-F-016",
@@ -572,7 +573,8 @@
    "required_tests": "New DOM test (post-mount crash -> focus in fallback) + existing mount-time test; full component suite.",
    "acceptance_criteria": "Both crash paths move focus; no visual/CSS change; no copy change.",
    "rollback_boundary": "Single commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": "CLOSED_WITH_EVIDENCE in R10-B4 (commits f737f396 + 4743f275, 2026-10-12): focus reception via a stable class-field ref callback on the focusable heading — fires exactly when the fallback mounts, covering BOTH crash paths (mount-time and post-mount) with no lifecycle pair, and the stable identity prevents re-firing on incident-id arrival (no focus steal; RV3 option analysis honored). Behavioral DOM tests assert element identity (not body-text containment — the vacuous form was caught and fixed); negative proof on the final form: neutering the focus fails 2 tests (both paths)."
   },
   {
    "original_finding_id": "R10A-F-017",
@@ -600,7 +602,8 @@
    "required_tests": "Role-inventory test extended; component suites; a11y semantics tests.",
    "acceptance_criteria": "Every error channel inventoried; same-class errors use consistent assertiveness; no visual redesign.",
    "rollback_boundary": "Revert restores prior channels.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": "CLOSED_WITH_EVIDENCE in R10-B4 (commit bfba629a, 2026-10-12): the two primitive error channels join the unified assertiveness rule — InlineError and the Field error paragraph flipped status -> alert with the rule documented in their headers (errors assertive; advisory/completion/loading polite; the R9-preserved advisories stay status). Deterministic census on the final tree: 133 production files, 129 alert sites, 10 tone-driven, 2 primitives flipped, 3 documented preserved advisories, 0 unclassified polite error channels; aria-live sweep clean. FeedbackNote channel behavior pinned (error=alert, completion/advisory=status)."
   },
   {
    "original_finding_id": "R10A-F-018",
@@ -626,7 +629,8 @@
    "required_tests": "Component test asserting rendered role (or absence of prop).",
    "acceptance_criteria": "role prop reaches the DOM or is removed; no visual change.",
    "rollback_boundary": "Single commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": "CLOSED_WITH_EVIDENCE in R10-B4 (commit f737f396, 2026-10-12): the misnomer chain renamed for API honesty — StateMarker prop role -> marker, type StateMarkerRole -> StateMarkerKind, presentation field markerRole -> markerKind, and the dead Notice markerRole prop removed (zero consumers; would have leaked to DOM via rest). Semantics, values, and visuals unchanged; ADR-003 dated note records the rename. Source + behavior contract tests pin the honest API (no role prop; all outputs aria-hidden decorative)."
   },
   {
    "original_finding_id": "R10A-F-019",
@@ -689,7 +693,8 @@
    "required_tests": "New page tests; test-map drift check green.",
    "acceptance_criteria": "3 pages direct-tested; map entry corrected.",
    "rollback_boundary": "Test-only commit revert.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": "CLOSED_WITH_EVIDENCE in R10-B4 (commits de1abd07 + 4743f275, 2026-10-12): direct journeys for the three smoke-only pages — AgreementEditor (4: read-error alert+retry with recovery, honest not-found message, cost-unavailable split, ready+validation), CashOpeningLaterEditor (4: ready+validation, documented save lifts the unknown seal + returns to source, already-known, read-error retry), CashWallets (4: wallets+unknown hint, empty deferred actions, amanah trust + negative-unallocated alert, read-error retry). The test-map named-reference false-positive class eliminated: countsAsNameMention is word-boundary precise (identifier substrings and guard-table path literals never count; unit-tested); map regenerated: 59 direct + 1 genuine named-reference (NotFound Nav003 journey), withoutDirectEvidence empty."
   },
   {
    "original_finding_id": "R10A-F-021",
@@ -716,7 +721,8 @@
    "required_tests": "moneyLayerGuard contract test updated + green; focused page tests for touched surfaces.",
    "acceptance_criteria": "Highest-risk mirrors single-sourced; guard contract matches the new reality; no visual change.",
    "rollback_boundary": "Revert restores mirrors + contract list.",
-   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution."
+   "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
+   "implementation_status": "CLOSED_WITH_EVIDENCE in R10-B4 (commits 4cd26974 + 4743f275, 2026-10-12): the two highest-drift mirror families consolidated onto domain read-only derivations — supplier-purchase previewSupplierPurchaseEdit/previewSupplierPurchasePaymentReversal (paidAfterEditFor/effectivePaid verbatim) and craft-order standingDepositMinorOf/pendingDepositSettlementMinorOf/unclassifiedRetainedDepositMinorOf/cancelledDepositProposalOf (canonical retainedDepositMinor/classifiedSumsOf readers including the legacy backward-compat the raw mirrors missed). The derivations live in sibling modules (depositDerivations.ts / previewDerivations.ts) so they bundle with their lazy consumers — the first placement in policies.ts pulled them into the ENTRY chunk (155,355 > the protected 155,300) and was restructured after per-commit measurement attribution; the final entry is 631,632/155,189 under the untouched ceilings (records-time correction: the in-wave draft said 155,187; a clean-dist re-measure on the final head reproduced 155,189 twice). moneyLayerGuard frozen surface contracted 18 files/45 lines -> 16/33 with a dated note; 17 domain tests (write-path equivalence, legacy drift cases, purity); the two new UI->domain value edges registered in the boundaries ratchet baseline same-PR."
   },
   {
    "original_finding_id": "R10A-F-022",
@@ -1742,7 +1748,8 @@
    "required_tests": "DOM tests (focus after navigation; title per route).",
    "acceptance_criteria": "Focus lands on defined target per navigation; titles set; no visual change.",
    "rollback_boundary": "Single commit revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": "OWNER_DECISION_REQUIRED (2026-10-12): OD-12 is NOT explicitly accepted in the live records (verified: no owner acceptance in the Owner Decision Package, PR #356 comments, or Operations Control through the B4 head). Per the canonical prompt sections 7/10-B4 (route focus and document.title only if explicitly accepted), NF-015 was NOT implemented. One consolidated decision package published: R10-B-OD12-ROUTE-FOCUS-TITLES-DECISION-PACKAGE-2026-10-11.md (exact decision sentence, affected files, alternatives, evidence/impact, required tests, allowed/forbidden side effects, rollback, safe stopping state, and the action for each owner choice). MicroAppShell.tsx untouched (verified in the wave diff)."
   },
   {
    "original_finding_id": "R10B-NF-016",
@@ -1770,7 +1777,8 @@
    "required_tests": "Component test asserting alert + retry.",
    "acceptance_criteria": "State machine consistent; no visual redesign.",
    "rollback_boundary": "Single commit revert.",
-   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS."
+   "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
+   "implementation_status": "CLOSED_WITH_EVIDENCE in R10-B4 (commit de1abd07, 2026-10-12): the merged error branch is replaced by the R9-canonical explicit read state machine — read failures render their actual message with role=alert + retry + lawful exit; not-found rides the same surface as the honest message (moment-of-action string); cost-unavailable keeps its distinct guidance surface. Density: +2 at-rest strings via the policy file own dated-growth protocol (cap 63 -> 65, four precedents on this page). Direct page tests cover all branches."
   },
   {
    "original_finding_id": "R10B-NF-017",
@@ -2534,6 +2542,20 @@
     }
    ],
    "notes": "Entry ceilings untouched (local 631,664/155,188 under 650,000/155,300; CI projection ~155,264 from the measured +76 local-to-CI delta on the B2 head). Bundle surfaces re-anchored per the documented protocol (first B3 re-anchor): lazyRaw 1,214,850->1,214,715 and precache 2,682,816->2,682,693 locked improvements; lazyGzipNorm 366,062->366,112 and swRuntime 26,170->26,231 grown surfaces; lazyJsCount 101->102 (shared paymentSourcePolicy chunk), precacheEntryCount 156->157. 24 ratchet ledger entries. Text-density golden regenerated same-PR. Door surfaces: preferences/finance/inventory documented widenings (PC-3) with the contract-test registry updated."
+  },
+  {
+   "wave": "R10-B4",
+   "date": "2026-10-12",
+   "code_commits": [
+    "f737f396",
+    "bfba629a",
+    "4cd26974",
+    "de1abd07",
+    "02fe4e06",
+    "4743f275"
+   ],
+   "records_commit": "this B4 records reconciliation commit (SHA pinned by the post-push evidence commit, per the B3 convention)",
+   "summary": "Runtime semantics, UI boundaries, and journey coverage: 7 findings closed with evidence; NF-015 gated on OD-12 (decision package published, not implemented). Entry 631,632/155,189 under untouched 650,000/155,300 after the entry-neutrality restructure (records-time correction from the drafted 155,187 — clean-dist re-measure reproduced twice); surfaces re-anchored same-PR (lazy 1,215,139 raw / 366,371 gzipNorm / precache 2,683,085 local); root 772/772; app 2,594/2,594; five-reviewer gate PASS (RV5 amendments applied in-wave)."
   }
  ]
 }

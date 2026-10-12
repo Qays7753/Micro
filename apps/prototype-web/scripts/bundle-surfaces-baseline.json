@@ -16,9 +16,9 @@
  "environments": {
   "local": {
    "anchored": {
-    "head": "6e674967a06e51990bf8a0ddb18befd172ed3ccb",
+    "head": "4743f2755e00a21e8f4fa29e7c8deb5f0f0c2239",
     "date": "2026-10-12",
-    "method": "R10-B3 wave re-anchor (code head 446e8a470b75, 2026-10-12): the B3 source-of-truth wave consolidates six MaterialUnit label copies into one application-house module (lazy raw shrinks 1,214,850 -> 1,214,715; precache 2,682,816 -> 2,682,693 local), single-sources the payment-source policy (new shared lazy chunk: lazyJsCount 101 -> 102, precacheEntryCount 156 -> 157), and single-sources the financial-event reversal message literals (resultCodes pattern: constants module + inline checks) which grows the normalized lazy gzip 366,062 -> 366,112 and the sw runtime 26,170 -> 26,231 (the sw precache manifest gains one chunk entry). Entry ceilings untouched (local 631,664/155,188 under 650,000/155,300); tolerances/counts/guard untouched. This is the first documented same-PR re-anchor of the B3 wave."
+    "method": "R10-B4 wave re-anchor (code head 4743f2755e00, 2026-10-12): the B4 runtime-semantics wave grows the lazy surfaces with the relocated domain derivation modules (craft-order depositDerivations.ts + supplier-purchase previewDerivations.ts — bundled with their lazy consumers after the entry-neutrality restructure), the StateMarker/announcement primitive changes, and the AgreementEditor read state machine: lazy raw 1,214,715 -> 1,215,139 (+424), normalized lazy gzip 366,112 -> 366,371 (+259), precache 2,682,693 -> 2,683,085 local (+392; two derivation chunk contents + page graphs). Counts unchanged (102/2/70/157/2); swRuntime unchanged (26,231); entry ceilings untouched — the restructure holds the entry at 631,632/155,189, under the protected 650,000/155,300 (margin 111). Records-time correction (2026-10-12): the in-wave draft recorded 155,187/1,215,136/2,683,082; a clean-dist re-measure on the final code head reproduced 155,189/1,215,139/2,683,085 twice (same entry content hash index-BtlwxcTO.js; same toolchain node v24.21.0 / zlib 1.3.2.1-motley-8002e91), so the anchors now carry the reproducible values; the deterministic gzipNorm (366,371) and all counts are unchanged. Tolerances/guard untouched; documented same-PR per protocol."
    },
    "toolchain": {
     "node": "v24.21.0",
@@ -32,9 +32,9 @@
    "measurements": {
     "initialRawTotal": 224687,
     "initialGzipNormTotal": 70716,
-    "lazyRawTotal": 1214715,
-    "lazyGzipNormTotal": 366112,
-    "precacheBytesTotal": 2682693,
+    "lazyRawTotal": 1215139,
+    "lazyGzipNormTotal": 366371,
+    "precacheBytesTotal": 2683085,
     "swRuntimeRawTotal": 26231
    },
    "counts": {
@@ -47,9 +47,9 @@
   },
   "cloudflare-pages": {
    "anchored": {
-    "head": "6e674967a06e51990bf8a0ddb18befd172ed3ccb",
+    "head": "4743f2755e00a21e8f4fa29e7c8deb5f0f0c2239",
     "date": "2026-10-12",
-    "method": "R10-B3 wave re-anchor (code head 446e8a470b75, 2026-10-12): the B3 source-of-truth wave consolidates six MaterialUnit label copies into one application-house module (lazy raw shrinks 1,214,850 -> 1,214,715; precache 2,682,816 -> 2,682,693 local), single-sources the payment-source policy (new shared lazy chunk: lazyJsCount 101 -> 102, precacheEntryCount 156 -> 157), and single-sources the financial-event reversal message literals (resultCodes pattern: constants module + inline checks) which grows the normalized lazy gzip 366,062 -> 366,112 and the sw runtime 26,170 -> 26,231 (the sw precache manifest gains one chunk entry). Entry ceilings untouched (local 631,664/155,188 under 650,000/155,300); tolerances/counts/guard untouched. This is the first documented same-PR re-anchor of the B3 wave."
+    "method": "R10-B4 wave re-anchor (code head 4743f2755e00, 2026-10-12): the B4 runtime-semantics wave grows the lazy surfaces with the relocated domain derivation modules (craft-order depositDerivations.ts + supplier-purchase previewDerivations.ts — bundled with their lazy consumers after the entry-neutrality restructure), the StateMarker/announcement primitive changes, and the AgreementEditor read state machine: lazy raw 1,214,715 -> 1,215,139 (+424), normalized lazy gzip 366,112 -> 366,371 (+259), precache 2,682,693 -> 2,683,085 local (+392; two derivation chunk contents + page graphs). Counts unchanged (102/2/70/157/2); swRuntime unchanged (26,231); entry ceilings untouched — the restructure holds the entry at 631,632/155,189, under the protected 650,000/155,300 (margin 111). Records-time correction (2026-10-12): the in-wave draft recorded 155,187/1,215,136/2,683,082; a clean-dist re-measure on the final code head reproduced 155,189/1,215,139/2,683,085 twice (same entry content hash index-BtlwxcTO.js; same toolchain node v24.21.0 / zlib 1.3.2.1-motley-8002e91), so the anchors now carry the reproducible values; the deterministic gzipNorm (366,371) and all counts are unchanged. Tolerances/guard untouched; documented same-PR per protocol."
    },
    "toolchain": {
     "node": "not-exposed-by-provider",
@@ -60,9 +60,9 @@
    "measurements": {
     "initialRawTotal": 224687,
     "initialGzipNormTotal": 70716,
-    "lazyRawTotal": 1214715,
-    "lazyGzipNormTotal": 366112,
-    "precacheBytesTotal": 2682805,
+    "lazyRawTotal": 1215139,
+    "lazyGzipNormTotal": 366371,
+    "precacheBytesTotal": 2683197,
     "swRuntimeRawTotal": 26231
    },
    "counts": {
@@ -75,9 +75,9 @@
   },
   "github-actions": {
    "anchored": {
-    "head": "6e674967a06e51990bf8a0ddb18befd172ed3ccb",
+    "head": "4743f2755e00a21e8f4fa29e7c8deb5f0f0c2239",
     "date": "2026-10-12",
-    "method": "R10-B3 wave re-anchor (code head 446e8a470b75, 2026-10-12): the B3 source-of-truth wave consolidates six MaterialUnit label copies into one application-house module (lazy raw shrinks 1,214,850 -> 1,214,715; precache 2,682,816 -> 2,682,693 local), single-sources the payment-source policy (new shared lazy chunk: lazyJsCount 101 -> 102, precacheEntryCount 156 -> 157), and single-sources the financial-event reversal message literals (resultCodes pattern: constants module + inline checks) which grows the normalized lazy gzip 366,062 -> 366,112 and the sw runtime 26,170 -> 26,231 (the sw precache manifest gains one chunk entry). Entry ceilings untouched (local 631,664/155,188 under 650,000/155,300); tolerances/counts/guard untouched. This is the first documented same-PR re-anchor of the B3 wave."
+    "method": "R10-B4 wave re-anchor (code head 4743f2755e00, 2026-10-12): the B4 runtime-semantics wave grows the lazy surfaces with the relocated domain derivation modules (craft-order depositDerivations.ts + supplier-purchase previewDerivations.ts — bundled with their lazy consumers after the entry-neutrality restructure), the StateMarker/announcement primitive changes, and the AgreementEditor read state machine: lazy raw 1,214,715 -> 1,215,139 (+424), normalized lazy gzip 366,112 -> 366,371 (+259), precache 2,682,693 -> 2,683,085 local (+392; two derivation chunk contents + page graphs). Counts unchanged (102/2/70/157/2); swRuntime unchanged (26,231); entry ceilings untouched — the restructure holds the entry at 631,632/155,189, under the protected 650,000/155,300 (margin 111). Records-time correction (2026-10-12): the in-wave draft recorded 155,187/1,215,136/2,683,082; a clean-dist re-measure on the final code head reproduced 155,189/1,215,139/2,683,085 twice (same entry content hash index-BtlwxcTO.js; same toolchain node v24.21.0 / zlib 1.3.2.1-motley-8002e91), so the anchors now carry the reproducible values; the deterministic gzipNorm (366,371) and all counts are unchanged. Tolerances/guard untouched; documented same-PR per protocol."
    },
    "toolchain": {
     "node": "v22.23.3",
@@ -91,9 +91,9 @@
    "measurements": {
     "initialRawTotal": 224687,
     "initialGzipNormTotal": 70716,
-    "lazyRawTotal": 1214715,
-    "lazyGzipNormTotal": 366112,
-    "precacheBytesTotal": 2682805,
+    "lazyRawTotal": 1215139,
+    "lazyGzipNormTotal": 366371,
+    "precacheBytesTotal": 2683197,
     "swRuntimeRawTotal": 26231
    },
    "counts": {
