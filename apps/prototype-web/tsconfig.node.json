@@ -1,4 +1,8 @@
 {
+  /* R10-B5/F-031 + NF-022 (2026-10-13): هذا الإعداد لم يعد ميتًا — سلكته
+   * check في package.json: `tsc --noEmit -p tsconfig.node.json` بعد أن كان
+   * لا يشير إليه شيء، فصار vite.config.ts (مالك manualChunks وprecache
+   * globPatterns ووسيط أسرار التطوير) داخل حدود التدقيق النوعي. */
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2023"],
