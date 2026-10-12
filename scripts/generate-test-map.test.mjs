@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
-import { generate, ROOT } from "./generate-test-map.mjs";
+import { countsAsNameMention, generate, ROOT } from "./generate-test-map.mjs";
 
 /** دبوس انجراف خريطة G2 (STR-619): الأدلة الملتزمة تطابق الشجرة الحية دائمًا. */
 describe("generate-test-map (Wave G2 — STR-619 drift pin)", () => {
   it("every page has control evidence or is explicitly listed as uncovered", () => {
     const data = generate();
     expect(data.pages.withoutDirectEvidence).toEqual([]);
-    expect(Object.values(data.pages.map).every((v) => v.evidence.length > 0)).toBe(true);
+    expect(Object.values(data.pages.map).every(v => v.evidence.length > 0)).toBe(true);
   });
 
   it("contract coverage is complete: literal citations, curated concept links, or the documented-reason set", () => {
@@ -28,6 +28,26 @@ describe("generate-test-map (Wave G2 — STR-619 drift pin)", () => {
       expect(hasEvidence || DOCUMENTED_REASON.has(contract)).toBe(true);
     }
     expect(data.contracts.total).toBe(49);
+  });
+
+  /* R10-B4/F-020: دقة مطابقة الإشارة بالاسم — سقوط الإيجابيات الكاذبة
+   * (جزء المعرّف والمسار الحرفي) وبقاء الإشارات الحقيقية. */
+  it("name-mention matching is precise: identifier substrings and path literals never count", () => {
+    /* جزء معرّف أطول ليس إشارة للصفحة (كان يحسب خامًا). */
+    expect(countsAsNameMention("override async listCashWallets() {", "CashWallets")).toBe(false);
+    expect(countsAsNameMention("store.listCashWallets()", "CashWallets")).toBe(false);
+    /* مسار حرفي داخل جدول حارس ليس تغطية. */
+    expect(countsAsNameMention('const T = { "pages/AgreementEditor.tsx": 13 };', "AgreementEditor")).toBe(
+      false,
+    );
+    expect(countsAsNameMention('readFileSync("pages/CashWallets.tsx")', "CashWallets")).toBe(false);
+    /* الإشارات الحقيقية تبقى: مصفوفة عقد مصدر، وعنوان رحلة. */
+    expect(countsAsNameMention('  "CashOpeningLaterEditor",\n', "CashOpeningLaterEditor")).toBe(true);
+    expect(countsAsNameMention('it("المسار المجهول يفشل بأمان: NotFound بلا انفجار", …', "NotFound")).toBe(
+      true,
+    );
+    /* الاسم المرفق بشرطة سفلية جزء من معرّف — لا يحتسب. */
+    expect(countsAsNameMention("CashWalletsHeader", "CashWallets")).toBe(false);
   });
 
   it("committed evidence JSON matches the live tree (no silent drift)", () => {
