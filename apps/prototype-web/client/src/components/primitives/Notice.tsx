@@ -11,6 +11,11 @@ import { StateMarker } from "./markers";
  * على السطح الدافئ (قاعدة المعيار: على الأسطح الدافئة تحمل العلامة المعنى
  * بالشكل، والحبر هو الآمن) + كلمة بصيغة الماضي (ملك المنتج — تُمرَّر).
  * الأخطاء: حبر الخطأ (آمن نصيًا 5.46:1 على الأرضية) + علامة تنبيه.
+ *
+ * R10-B4/F-017 (قاعدة الحزم الموحدة — امتداد جرد R9 إلى الأوليات):
+ * الأخطاء المؤكدة (تعذّر/فشل تحقق/طلب تصحيح) تعلن بـ role="alert" حازمًا؛
+ * والإرشاد/الإتمام/التحميل تبقى status مهذبة. InlineError كانت الوحيدة
+ * التي تخالف القاعدة (status) فصارت alert كإخواتها في كل الأسطح.
  */
 
 export interface NoticeProps extends HTMLAttributes<HTMLDivElement> {
@@ -57,7 +62,7 @@ export function InlineError({
 }: { children: ReactNode } & HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      role="status"
+      role="alert"
       className={clsx("micro-prim-notice", "micro-prim-notice--error-inline", rest.className)}
       {...rest}
     >

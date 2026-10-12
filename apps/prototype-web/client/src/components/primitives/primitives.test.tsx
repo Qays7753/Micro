@@ -213,10 +213,26 @@ describe("Notice family: inline feedback regime (U-07)", () => {
     expect(container.querySelector(".micro-prim-notice--quiet-completion svg")).toBeTruthy();
   });
 
-  it("InlineError renders the error word with an alert marker", () => {
+  it("InlineError announces the confirmed error assertively (role=alert) with the alert marker", () => {
     const { container } = render(<InlineError>تعذّر الحفظ</InlineError>);
-    expect(screen.getByRole("status").textContent).toContain("تعذّر الحفظ");
+    /* R10-B4/F-017: قناة الخطأ المؤكد حازمة — كقنوات الخطأ في كل الأسطح. */
+    expect(screen.getByRole("alert").textContent).toContain("تعذّر الحفظ");
+    expect(screen.queryByRole("status")).toBeNull();
     expect(container.querySelector("svg")).toBeTruthy();
+  });
+
+  it("FeedbackNote channels: error is assertive; completion and advisory stay polite", () => {
+    /* R10-B4/F-017: عقد القنوات الصريح عبر الملاحظة المصنّفة — نفس قاعدة R9
+     * على مستوى الأوليات: الخطأ alert، والإتمام/الإرشاد status. */
+    const { rerender } = render(<FeedbackNote kind="error" word="تعذّر الحفظ" />);
+    expect(screen.getByRole("alert").textContent).toContain("تعذّر الحفظ");
+    expect(screen.queryByRole("status")).toBeNull();
+    rerender(<FeedbackNote kind="completion" word="تم الحفظ" />);
+    expect(screen.getByRole("status").textContent).toContain("تم الحفظ");
+    expect(screen.queryByRole("alert")).toBeNull();
+    rerender(<FeedbackNote kind="advisory" word="إرشاد محايد" />);
+    expect(screen.getByRole("status").textContent).toContain("إرشاد محايد");
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });
 

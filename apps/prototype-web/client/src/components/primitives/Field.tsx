@@ -13,6 +13,9 @@ import { StateMarker } from "./markers";
  * السياسة المالية والتقريب ملك المنتج خارج هذا العقد.
  * وصلات الوصول مسؤولية المستهلك: aria-invalid + aria-describedby على
  * العنصر التحكم عندما يظهر خطأ (موثقة في عقد المكوّن).
+ *
+ * R10-B4/F-017 (قاعدة الحزم الموحدة): نص خطأ الحقل فشل تحقق مؤكد —
+ * يعلن بـ role="alert" حازمًا كقنوات الخطأ كلها؛ كان الوحيد status.
  */
 
 export interface FieldProps extends HTMLAttributes<HTMLDivElement> {
@@ -53,7 +56,7 @@ export function Field({ label, hint, error, controlId, className, children, ...r
       </label>
       {wiredChildren}
       {error ? (
-        <p className="micro-prim-field__error" role="status" id={errorId}>
+        <p className="micro-prim-field__error" role="alert" id={errorId}>
           <StateMarker marker="alert" />
           <span>{error}</span>
         </p>
