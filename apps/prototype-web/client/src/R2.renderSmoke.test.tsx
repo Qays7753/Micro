@@ -53,8 +53,12 @@ function navigateTo(path: string) {
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-/* كل مسارات الموجّه المسجّلة (55)؛ المسارات ذات المعاملات تُفتح بمعرّف تجريبي —
- * الصفحة تعرض فراغها الصادق (غير موجود/خطأ قراءة) وهو نفسه ضمن العقد. */
+/* كل مسارات الموجّه المسجّلة (66 = 65 نمطًا + المسار الافتراضي)؛ المسارات ذات
+ * المعاملات تُفتح بمعرّف تجريبي — الصفحة تعرض فراغها الصادق (غير موجود/خطأ
+ * قراءة) وهو نفسه ضمن العقد. R10-B4/F-015: القائمة صارت مغطاة ميكانيكيًا
+ * — اختبار المزامنة RouterSmokeSync.r10b.test.ts يفشل عند أي انجراف بين
+ * هذه القائمة وأنماط الموجّه (كانت 9 أنماط + الافتراضي غائبة والتعليق
+ * يقول 55 بينما 56). */
 const ROUTES: readonly string[] = [
   "/",
   "/orders",
@@ -104,6 +108,20 @@ const ROUTES: readonly string[] = [
   "/tools",
   /* NAV-001: السوق — سطح إعلان «قريبًا» يرسم في الوضعين. */
   "/market",
+  /* R10-B4/F-015: الأنماط العشرة الغائبة — بترتيب الموجّه نفسه. */
+  /* الإحالة الموثقة EXE-009: المسار الموازي القديم لسحب المالك يعبر إلى المدخل الموحد. */
+  "/finance/new/owner_withdrawal_cash",
+  "/finance/more",
+  "/finance/upcoming",
+  "/finance/recurring",
+  "/finance/recurring/new",
+  "/finance/recurring/reminder-x",
+  "/finance/recurring/reminder-x/edit",
+  /* FIN-001: القرض المستلم — المحرر والتفصيل قبل نمط :id الأعم. */
+  "/loans/received/new",
+  "/loans/received/loan-x",
+  /* المسار الافتراضي (catch-all): صفحة غير موجود الصادقة. */
+  "/no-such-route-x",
   "/tools/calculator",
   "/tools/estimate/estimate-x",
   "/tools/integrity",
