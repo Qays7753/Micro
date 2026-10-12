@@ -61,7 +61,7 @@ Full comparison in RC-4. **Recommended: C (retire)** — broken since 2026-10-10
 Branding is feasible (326 sites) but sibling concepts stay raw; compensating controls verified live (integer kernel, sole formatter, frozen surface, moneyLayerGuard).
 **Decision:** keep unbranded with documented policy (recommended) or schedule a branding wave.
 
-## OD-12 (NEW) — Route-focus + document.title addition (NF-015) — visibility decision
+## OD-12 (NEW) — Route-focus + document.title addition (NF-015) — ACCEPTED 2026-10-13 (continuation directive) — implemented as the complementary B4 commit 86e1a05f
 
 A B4 card adds navigation focus management and per-route `document.title` (a11y semantic addition; no visual change). Surfaced because it *adds* runtime behavior rather than only repairing a defect.
 **Decision:** include in B4 (recommended) or defer to the UI track.
@@ -96,5 +96,5 @@ The 14 `PILOT_EVIDENCE_REQUIRED` items (BE-004, BE-005, V-001..012) define an ev
 | OD-9 | Replit hook | C (retire) | B5 |
 | OD-10 | app-internal seam | document now, ratchet later | — |
 | OD-11 | MoneyMinor branding | keep unbranded (documented) | — |
-| OD-12 | route focus + titles | include in B4 | B4 |
+| OD-12 | route focus + titles | **accepted 2026-10-13 — implemented (commit 86e1a05f)** | B4 (closed) |
 | OD-13 | PILOT detection methods | include in B1 | B1 |
