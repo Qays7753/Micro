@@ -2554,7 +2554,7 @@
     "02fe4e06",
     "4743f275"
    ],
-   "records_commit": "this B4 records reconciliation commit (SHA pinned by the post-push evidence commit, per the B3 convention)",
+   "records_commit": "55779158 (records reconciliation; CI 38278556879 + Cloudflare Pages success verified on it; pinned by this evidence commit)",
    "summary": "Runtime semantics, UI boundaries, and journey coverage: 7 findings closed with evidence; NF-015 gated on OD-12 (decision package published, not implemented). Entry 631,632/155,189 under untouched 650,000/155,300 after the entry-neutrality restructure (records-time correction from the drafted 155,187 — clean-dist re-measure reproduced twice); surfaces re-anchored same-PR (lazy 1,215,139 raw / 366,371 gzipNorm / precache 2,683,085 local); root 772/772; app 2,594/2,594; five-reviewer gate PASS (RV5 amendments applied in-wave)."
   }
  ]
