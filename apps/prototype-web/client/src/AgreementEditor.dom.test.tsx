@@ -87,17 +87,17 @@ async function seedDraftWithCost(): Promise<string> {
         quantity: 1,
         unit: "قطعة",
         unitPriceMinor: 300,
-        priceDate: "2026-10-01",
+        confidence: "known",
       },
     ],
-    time: { minutes: 60, hourlyRateMinor: 100 },
+    time: { minutes: 60, hourlyRateMinor: 100, confidence: "known" },
     packagingMinor: 0,
     deliveryMinor: 0,
     wasteMinor: 0,
     safetyBufferMinor: 0,
     quantity: 1,
   });
-  if (!saved.ok) throw new Error(saved.snapshot ? "" : "cost save failed");
+  if (!saved.ok) throw new Error("cost save failed: " + saved.message);
   return saved.draft.id;
 }
 

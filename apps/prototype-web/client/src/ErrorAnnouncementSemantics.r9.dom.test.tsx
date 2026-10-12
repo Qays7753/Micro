@@ -201,9 +201,7 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
     const inlineIndex = notice.indexOf("micro-prim-notice--error-inline");
     expect.soft(inlineIndex).toBeGreaterThan(-1);
     const inlineWindow = notice.slice(Math.max(0, inlineIndex - 260), inlineIndex + 80);
-    expect
-      .soft(inlineWindow.includes('role="alert"'), "InlineError must announce as alert")
-      .toBe(true);
+    expect.soft(inlineWindow.includes('role="alert"'), "InlineError must announce as alert").toBe(true);
     expect.soft(inlineWindow.includes('role="status"')).toBe(false);
 
     const field = readFileSync(resolve(CLIENT_SRC, "components/primitives/Field.tsx"), "utf8");

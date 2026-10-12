@@ -26,18 +26,14 @@ const ICON_BY_KIND = {
 
 export function StateMarker({ marker }: { marker: StateMarkerKind }) {
   if (marker === "none") return null;
-  if (marker === "tilde") {
+  /* أشكال CSS الثلاثة (tilde/dot/partial) — عنصر واحد بلا أيقونة مكتبة،
+   * والشكل يحدده المعدِّل نفسه؛ المخرج مطابق حرفيًا للفروع الثلاثة. */
+  if (marker === "tilde" || marker === "dot" || marker === "partial") {
     return (
-      <span aria-hidden="true" className="micro-prim-marker micro-prim-marker--tilde">
-        ~
+      <span aria-hidden="true" className={`micro-prim-marker micro-prim-marker--${marker}`}>
+        {marker === "tilde" ? "~" : null}
       </span>
     );
-  }
-  if (marker === "dot") {
-    return <span aria-hidden="true" className="micro-prim-marker micro-prim-marker--dot" />;
-  }
-  if (marker === "partial") {
-    return <span aria-hidden="true" className="micro-prim-marker micro-prim-marker--partial" />;
   }
   const Icon = ICON_BY_KIND[marker];
   return <Icon aria-hidden="true" className="micro-prim-marker" />;

@@ -262,10 +262,7 @@ describe("R10-B4 StateMarker: marker-kind API honesty (F-018)", () => {
   it("none renders nothing and the presentation vocabulary carries no ARIA role", () => {
     const { container } = render(<StatusChip state="no-data">لا بيانات</StatusChip>);
     expect(container.querySelector(".micro-prim-marker")).toBeNull();
-    const adapter = readFileSync(
-      resolve(import.meta.dirname, "../../presentation/stateAdapter.ts"),
-      "utf8",
-    );
+    const adapter = readFileSync(resolve(import.meta.dirname, "../../presentation/stateAdapter.ts"), "utf8");
     expect(adapter).toContain("export type StateMarkerKind =");
     /* الرمز الحي غائب — الذكر الوحيد المتبقي هو الملاحظة التاريخية المؤرخة. */
     expect(adapter).not.toContain("type StateMarkerRole");

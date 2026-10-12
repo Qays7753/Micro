@@ -111,13 +111,7 @@ describe("R10-B4/F-021 — pendingDepositSettlementMinorOf (cancelled settlement
 
   it("shrinks with a partial retain exactly as the write path records it", () => {
     const cancelled = cancelledWithDeposit("pending-2", 5000);
-    const afterPartialRetain = settleDepositRetain(
-      cancelled,
-      2000,
-      "تغطية جزئية موثقة",
-      "retain-key-2",
-      NOW,
-    );
+    const afterPartialRetain = settleDepositRetain(cancelled, 2000, "تغطية جزئية موثقة", "retain-key-2", NOW);
     /* المحتفظ 2000 صار مقروءًا كنواة — المعلق 3000. */
     expect(pendingDepositSettlementMinorOf(afterPartialRetain)).toBe(3000);
     expect(afterPartialRetain.depositSettlement).toBe("needs_review");

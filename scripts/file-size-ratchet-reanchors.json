@@ -902,6 +902,276 @@
         "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
         "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change"
       }
+    },
+    {
+      "id": "R10B-B4-F016-ERRORBOUNDARY",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/components/ErrorBoundary.tsx",
+      "from": {
+        "nbLoc": 80,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 88,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-016/RC-3: the componentDidUpdate hasError-transition moves focus into the fallback when a child re-render crashes after a healthy mount (option A from RV3); mount path unchanged.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-F018-FIELD",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/components/primitives/Field.tsx",
+      "from": {
+        "nbLoc": 62,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 65,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-017: the field-error paragraph joins the unified assertiveness rule (role=alert, was status) with the rule documented in the header; R10A-F-018 rode the same edit (StateMarker marker prop).",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-F017-NOTICE",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/components/primitives/Notice.tsx",
+      "from": {
+        "nbLoc": 91,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 97,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-017: InlineError joins the unified assertiveness rule (role=alert) with the rule documented in the header; R10A-F-018: the dead markerRole prop (zero consumers, would leak to DOM via rest) removed in the same file.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-F018-MARKERS",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/components/primitives/markers.tsx",
+      "from": {
+        "nbLoc": 36,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 41,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-018: API-honesty rename with a dated comment — the prop is marker (icon kind), never a role; every output stays aria-hidden decorative. Zero behavior change.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-NF016-AGREEMENT",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/pages/AgreementEditor.tsx",
+      "from": {
+        "nbLoc": 652,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 686,
+        "band": "WATCH"
+      },
+      "reason": "R10B-NF-016: the explicit read state machine replaces the merged error branch — read failures render the actual message with role=alert + retry + lawful exit (R9-GA-F3.7 pattern); cost-unavailable keeps its distinct surface. Density cap 63->65 documented in text_density_policy.py.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-SUPPLIER-PAGE",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/pages/SupplierPurchaseEditor.tsx",
+      "from": {
+        "nbLoc": 1176,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1178,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R10A-F-021: editPreview/reversalPreview consume the domain preview kernels (previewSupplierPurchaseEdit/previewSupplierPurchasePaymentReversal) — the highest-drift mirror family replaced by imports; net growth is the import block.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-F018-STATEADAPTER",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/presentation/stateAdapter.ts",
+      "from": {
+        "nbLoc": 149,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 151,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-018: the misnomer chain renamed — type StateMarkerRole->StateMarkerKind, field markerRole->markerKind, with the dated honesty note; mapping values unchanged.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-BOUNDARIES",
+      "date": "2026-10-12",
+      "path": "scripts/check-module-boundaries.mjs",
+      "from": {
+        "nbLoc": 431,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "reason": "R10A-F-021: the two new UI->domain value edges (OrderDepositPanels->craft-order, SupplierPurchaseEditor->supplier-purchase) registered in the ratchet baseline same-PR with a dated comment — the established knowledgeGapsOf/residualOf pattern.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-F020-TESTMAP",
+      "date": "2026-10-12",
+      "path": "scripts/generate-test-map.mjs",
+      "from": {
+        "nbLoc": 291,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 309,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-020: name-mention matching is now precise (exported countsAsNameMention: word-boundary, no identifier substrings, no path literals) — the false-positive class eliminated with a documented helper.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-NF016-DENSITY",
+      "date": "2026-10-12",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 864,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R10B-NF-016: AgreementEditor cap 63->65 via the file's own dated-growth protocol (4 precedents on this page): +2 at-rest strings (retry + back labels) for the canonical read-error surface; the not-found prose is a moment-of-action message.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-CRAFT-INDEX",
+      "date": "2026-10-12",
+      "path": "src/domain/craft-order/index.ts",
+      "from": {
+        "nbLoc": 52,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 61,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-021: the four deposit read-only derivations exported from the barrel with a dated comment (consumed by the order chunk, not the entry bundle).",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-CRAFT-POLICIES",
+      "date": "2026-10-12",
+      "path": "src/domain/craft-order/policies.ts",
+      "from": {
+        "nbLoc": 1413,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1441,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "R10A-F-021: standingDepositMinorOf/pendingDepositSettlementMinorOf/unclassifiedRetainedDepositMinorOf/cancelledDepositProposalOf — read-only derivations reading the canonical retainedDepositMinor/classifiedSumsOf (legacy backward-compat included); no write path touched.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-SUPPLIER-POLICIES",
+      "date": "2026-10-12",
+      "path": "src/domain/supplier-purchase/policies.ts",
+      "from": {
+        "nbLoc": 281,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 302,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-021: previewSupplierPurchaseEdit/previewSupplierPurchasePaymentReversal reusing paidAfterEditFor/effectivePaid verbatim; paidAfterEditFor widened to the fields it reads (initialPaidMinor).",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-DEPOSITPANELS",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/components/orders/OrderDepositPanels.tsx",
+      "from": {
+        "nbLoc": 523,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 527,
+        "band": "WATCH"
+      },
+      "reason": "R10A-F-021: the seven deposit mirror lines replaced by the four domain derivations (standingDepositMinorOf/pendingDepositSettlementMinorOf/unclassifiedRetainedDepositMinorOf/cancelledDepositProposalOf) with dated comments; net growth is the import block + comments after canonical formatting.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-SUPPLIER-INDEX",
+      "date": "2026-10-12",
+      "path": "src/domain/supplier-purchase/index.ts",
+      "from": {
+        "nbLoc": 2,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 5,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-021: the barrel re-exports the read-only purchase preview derivations from the sibling module previewDerivations.ts (bundled with its lazy consumer, not the entry); dated comment documents the chunk-allocation intent.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
+      }
     }
   ]
 }

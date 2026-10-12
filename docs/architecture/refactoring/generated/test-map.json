@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "4cd269740eb2a1cb585205a707eb900a32d7ee9c",
+  "head": "02fe4e069b7af218db99614c3b638b5d2228578b",
   "pages": {
     "total": 60,
     "map": {
@@ -284,7 +284,8 @@
       "pages/NotFound.tsx": {
         "kind": "named-reference",
         "evidence": [
-          "Nav003.exe016.dom.test.tsx"
+          "Nav003.exe016.dom.test.tsx",
+          "RouterSmokeSync.r10b.test.ts"
         ]
       },
       "pages/OrderDetail.tsx": {

@@ -262,7 +262,11 @@ export function OrderDepositPanels({
                   <div>
                     <dt>التكلفة الموثقة للطلب</dt>
                     <dd>
-                      <MoneyValue minor={order.costSnapshot.plannedCostMinor} className="micro-inline-number" /> د.أ
+                      <MoneyValue
+                        minor={order.costSnapshot.plannedCostMinor}
+                        className="micro-inline-number"
+                      />{" "}
+                      د.أ
                     </dd>
                   </div>
                   <div>
@@ -275,10 +279,10 @@ export function OrderDepositPanels({
                     <dt>الاقتراح بعد التكلفة الموثقة</dt>
                     <dd>
                       احتفظ بما يغطي التكلفة (حتى{" "}
-                      <MoneyValue minor={proposal.coverProposalMinor} className="micro-inline-number" /> د.أ) وردّ
-                      الباقي (
-                      <MoneyValue minor={proposal.refundProposalMinor} className="micro-inline-number" /> د.أ) — عدّل
-                      المبلغ كما تقرر؛ القرار سببه موثق دائمًا.
+                      <MoneyValue minor={proposal.coverProposalMinor} className="micro-inline-number" /> د.أ)
+                      وردّ الباقي (
+                      <MoneyValue minor={proposal.refundProposalMinor} className="micro-inline-number" /> د.أ)
+                      — عدّل المبلغ كما تقرر؛ القرار سببه موثق دائمًا.
                     </dd>
                   </div>
                   <div>
