@@ -58,7 +58,7 @@ export function StatusChip({ state, className, children, ...rest }: StatusChipPr
       data-family={presentation.family}
       {...rest}
     >
-      <StateMarker role={presentation.markerRole} />
+      <StateMarker marker={presentation.markerKind} />
       <span className="micro-prim-chip__word">{children}</span>
     </span>
   );

@@ -17,8 +17,10 @@
  * - العلامة غير اللونية هي حامل المعنى الأساسي؛ اللون تعزيز فقط.
  */
 
-/** أدوار العلامات غير اللونية — تُربط بأيقونات في طبقة المكوّنات فقط. */
-export type StateMarkerRole =
+/** أنواع العلامات غير اللونية — ليست أدوار ARIA إطلاقًا (R10-B4/F-018:
+ * الاسم القديم StateMarkerRole/markerRole أوهم بأنها دور وصول؛ هي مفردات
+ * شكل العلامة وتربط بأيقونات في طبقة المكوّنات فقط). */
+export type StateMarkerKind =
   | "check"
   | "clock"
   | "alert"
@@ -38,8 +40,8 @@ export type StateTone = "success" | "error" | "info" | "status" | "partial" | "n
 export type StateFamily = "outcome" | "knowledge" | "void" | "activity";
 
 export interface StatePresentation {
-  /** العلامة غير اللونية (حامل المعنى الأساسي). */
-  readonly markerRole: StateMarkerRole;
+  /** العلامة غير اللونية (حامل المعنى الأساسي) — نوع شكل لا دور ARIA. */
+  readonly markerKind: StateMarkerKind;
   /** نغمة العلامة اللونية — تعزيز فقط، لا تحمل المعنى وحدها. */
   readonly tone: StateTone;
   /** عائلة الحالة (نتيجة/معرفة/فراغ/نشاط). */
@@ -72,32 +74,32 @@ export type KnowledgeStateKey =
   "unconfirmed" | "incomplete" | "needs-review" | "estimated" | "unknown-magnitude";
 
 const OUTCOME_PRESENTATIONS: Record<SemanticStateKey, StatePresentation> = {
-  success: { markerRole: "check", tone: "success", family: "outcome", isKnowledge: false },
-  error: { markerRole: "alert", tone: "error", family: "outcome", isKnowledge: false },
-  unknown: { markerRole: "question", tone: "neutral", family: "outcome", isKnowledge: false },
-  due: { markerRole: "clock", tone: "neutral", family: "outcome", isKnowledge: false },
-  overdue: { markerRole: "alert", tone: "error", family: "outcome", isKnowledge: false },
+  success: { markerKind: "check", tone: "success", family: "outcome", isKnowledge: false },
+  error: { markerKind: "alert", tone: "error", family: "outcome", isKnowledge: false },
+  unknown: { markerKind: "question", tone: "neutral", family: "outcome", isKnowledge: false },
+  due: { markerKind: "clock", tone: "neutral", family: "outcome", isKnowledge: false },
+  overdue: { markerKind: "alert", tone: "error", family: "outcome", isKnowledge: false },
   partial: {
-    markerRole: "partial",
+    markerKind: "partial",
     tone: "partial",
     family: "outcome",
     isKnowledge: false,
   } /* UX-001 V2 (OD-02): partial is neutral gray, not info blue */,
-  draft: { markerRole: "dot", tone: "neutral", family: "outcome", isKnowledge: false },
-  reviewed: { markerRole: "eye", tone: "status", family: "outcome", isKnowledge: false },
-  unrecorded: { markerRole: "dot", tone: "neutral", family: "void", isKnowledge: false },
-  unavailable: { markerRole: "none", tone: "neutral", family: "void", isKnowledge: false },
-  "measured-zero": { markerRole: "none", tone: "neutral", family: "void", isKnowledge: false },
-  "no-data": { markerRole: "none", tone: "neutral", family: "void", isKnowledge: false },
-  "no-results": { markerRole: "none", tone: "neutral", family: "void", isKnowledge: false },
+  draft: { markerKind: "dot", tone: "neutral", family: "outcome", isKnowledge: false },
+  reviewed: { markerKind: "eye", tone: "status", family: "outcome", isKnowledge: false },
+  unrecorded: { markerKind: "dot", tone: "neutral", family: "void", isKnowledge: false },
+  unavailable: { markerKind: "none", tone: "neutral", family: "void", isKnowledge: false },
+  "measured-zero": { markerKind: "none", tone: "neutral", family: "void", isKnowledge: false },
+  "no-data": { markerKind: "none", tone: "neutral", family: "void", isKnowledge: false },
+  "no-results": { markerKind: "none", tone: "neutral", family: "void", isKnowledge: false },
 };
 
 const KNOWLEDGE_PRESENTATIONS: Record<KnowledgeStateKey, StatePresentation> = {
-  unconfirmed: { markerRole: "question", tone: "neutral", family: "knowledge", isKnowledge: true },
-  incomplete: { markerRole: "partial", tone: "neutral", family: "knowledge", isKnowledge: true },
-  "needs-review": { markerRole: "eye", tone: "neutral", family: "knowledge", isKnowledge: true },
-  estimated: { markerRole: "tilde", tone: "neutral", family: "knowledge", isKnowledge: true },
-  "unknown-magnitude": { markerRole: "question", tone: "neutral", family: "knowledge", isKnowledge: true },
+  unconfirmed: { markerKind: "question", tone: "neutral", family: "knowledge", isKnowledge: true },
+  incomplete: { markerKind: "partial", tone: "neutral", family: "knowledge", isKnowledge: true },
+  "needs-review": { markerKind: "eye", tone: "neutral", family: "knowledge", isKnowledge: true },
+  estimated: { markerKind: "tilde", tone: "neutral", family: "knowledge", isKnowledge: true },
+  "unknown-magnitude": { markerKind: "question", tone: "neutral", family: "knowledge", isKnowledge: true },
 };
 
 /** حالات النشاط الحية في Micro — نفس مفاتيح ActivityStatus في
@@ -107,10 +109,10 @@ export type MicroActivityStatus = "active" | "pending" | "reversed" | "cancelled
 
 /** حالات النشاط الحية في Micro (ActivityStatus) — الكلمات في activityStatusLabel. */
 const ACTIVITY_PRESENTATIONS: Record<MicroActivityStatus, StatePresentation> = {
-  active: { markerRole: "check", tone: "success", family: "activity", isKnowledge: false },
-  pending: { markerRole: "clock", tone: "info", family: "activity", isKnowledge: false },
-  reversed: { markerRole: "return", tone: "info", family: "activity", isKnowledge: false },
-  cancelled: { markerRole: "close", tone: "neutral", family: "activity", isKnowledge: false },
+  active: { markerKind: "check", tone: "success", family: "activity", isKnowledge: false },
+  pending: { markerKind: "clock", tone: "info", family: "activity", isKnowledge: false },
+  reversed: { markerKind: "return", tone: "info", family: "activity", isKnowledge: false },
+  cancelled: { markerKind: "close", tone: "neutral", family: "activity", isKnowledge: false },
 };
 
 /** عرض حالة دلالية عامة. */

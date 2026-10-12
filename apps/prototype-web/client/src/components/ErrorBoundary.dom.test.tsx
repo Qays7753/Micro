@@ -6,6 +6,7 @@
  * التحميل. المجموعة ٥ أضافت العقد المعتمد: حادثة واحدة بمعرّف آمن تُخزن
  * محليًا في حلقة محدودة — بلا أسماء أو مبالغ أو كائن الاستثناء أبدًا. */
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { localDiagnostics } from "@/application/diagnostics/localDiagnosticsService";
@@ -58,8 +59,9 @@ describe("ErrorBoundary fallback — safe, private, focused recovery", () => {
     expect(body.includes("خطأ داخلي حساس")).toBe(false);
     expect(body.includes("Error")).toBe(false);
     expect(body.includes("42.00")).toBe(false);
-    /* التركيز ينتقل إلى العنوان القابل للتوجيه. */
-    expect(document.activeElement?.textContent).toContain("لم يتم تغيير بياناتك");
+    /* التركيز ينتقل إلى العنوان القابل للتوجيه — تحديد الهوية لا الاحتواء:
+     * احتواء نص body يمر حتى لو بقي التركيز على body (نصه يشمل البديل). */
+    expect(document.activeElement).toBe(screen.getByText("لم يتم تغيير بياناتك"));
     consoleError.mockRestore();
   });
 
@@ -72,6 +74,49 @@ describe("ErrorBoundary fallback — safe, private, focused recovery", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "إعادة الفتح" }));
     expect(reloadSpy).toHaveBeenCalledTimes(1);
+    consoleError.mockRestore();
+  });
+
+  /* R10-B4/RC-3 (F-016): مسار السقوط الثاني — انفجار إعادة رسم بعد تركيب
+   * سليم. componentDidMount لن يُستدعى ثانيةً، فالتركيز ينتقل عبر انتقال
+   * hasError في componentDidUpdate. قبل الإصلاح كان التركيز يبقى على body. */
+  it("a crash AFTER a healthy mount moves focus into the fallback (post-mount path)", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    let explode = false;
+    function ConditionalBomb(): React.ReactElement {
+      if (explode) throw new Error("سقوط لاحق بعد تركيب سليم");
+      return <p>سطح سليم يعمل</p>;
+    }
+    /* مضيف خارجي: زر واحد يقلب الشرط ويحدّث الحالة فيُعاد رسم الابن فيرمي. */
+    function Host(): React.ReactElement {
+      const [, setTick] = useState(0);
+      return (
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              explode = true;
+              setTick(tick => tick + 1);
+            }}
+          >
+            أطلق السقوط
+          </button>
+          <ErrorBoundary>
+            <ConditionalBomb />
+          </ErrorBoundary>
+        </div>
+      );
+    }
+    render(<Host />);
+    /* التركيب السليم: لا سقوط ولا سطح استرداد. */
+    expect(screen.getByText("سطح سليم يعمل")).toBeTruthy();
+    expect(document.querySelector(".micro-error-boundary")).toBeNull();
+    /* إطلاق السقوط بعد التركيب — إعادة رسم الابن ترمي داخل حدود الحارس. */
+    fireEvent.click(screen.getByRole("button", { name: "أطلق السقوط" }));
+    expect(screen.getByRole("alert")).toBeTruthy();
+    expect(screen.getByText("لم يتم تغيير بياناتك")).toBeTruthy();
+    /* هوية العنصر المركز: العنوان نفسه — لا body الذي يحوي نص البديل أصلًا. */
+    expect(document.activeElement).toBe(screen.getByText("لم يتم تغيير بياناتك"));
     consoleError.mockRestore();
   });
 

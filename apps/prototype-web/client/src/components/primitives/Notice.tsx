@@ -15,9 +15,11 @@ import { StateMarker } from "./markers";
 
 export interface NoticeProps extends HTMLAttributes<HTMLDivElement> {
   tone?: "neutral" | "info" | "success" | "error";
-  /** علامة اختيارية تُضاف قبل المحتوى (دور من مهايئ الحالات عند الحاجة). */
-  markerRole?: ReactNode;
 }
+
+/* R10-B4/F-018 (عائلة صلاحية الواجهة): أُزيلت الخاصية الميتة markerRole
+ * (ReactNode) — لم يمررها أي مستهلك قط، ولو مُرّت لتسربت إلى DOM عبر
+ * {...rest} كسمة غير معروفة بدل أن تُعرض علامة كما وعد توثيقها. */
 
 export function Notice({ tone = "neutral", className, children, ...rest }: NoticeProps) {
   return (
@@ -59,7 +61,7 @@ export function InlineError({
       className={clsx("micro-prim-notice", "micro-prim-notice--error-inline", rest.className)}
       {...rest}
     >
-      <StateMarker role="alert" />
+      <StateMarker marker="alert" />
       <span>{children}</span>
     </p>
   );

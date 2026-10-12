@@ -27,6 +27,14 @@ class ErrorBoundary extends Component<Props, State> {
   componentDidMount() {
     if (this.state.hasError) this.headingRef.current?.focus();
   }
+  /* R10-B4/RC-3 (F-016): السقوط بعد التركيب (خطأ إعادة رسم وليد) لا يعيد
+   * componentDidMount — الانتقال hasError false→true في componentDidUpdate
+   * يستقبل التركيز بنفسه (الخيار A من RV3؛ المفتاح state.hasError لا
+   * incidentId — فشل المسجّل لا يسرق التركيز ولا يمنعه). تحديثات لاحقة
+   * داخل السقوط (وصول معرّف الحادثة) لا تعيد التركيز لأن الحالة بقيت true. */
+  componentDidUpdate(_props: Props, prevState: State): void {
+    if (this.state.hasError && !prevState.hasError) this.headingRef.current?.focus();
+  }
   static getDerivedStateFromError(): State {
     return { hasError: true, incidentId: null };
   }

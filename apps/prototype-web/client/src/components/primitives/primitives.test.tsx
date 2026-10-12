@@ -18,6 +18,7 @@ import {
 } from "./index";
 import { MoneyWithUnit } from "@/components/presentation/DisplayValue";
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { Activity } from "lucide-react";
 
 /*
@@ -216,6 +217,43 @@ describe("Notice family: inline feedback regime (U-07)", () => {
     const { container } = render(<InlineError>تعذّر الحفظ</InlineError>);
     expect(screen.getByRole("status").textContent).toContain("تعذّر الحفظ");
     expect(container.querySelector("svg")).toBeTruthy();
+  });
+});
+
+/* R10-B4/F-018: صلاحية واجهة StateMarker — الخاصية نوع شكل (marker) لا دور
+ * وصول؛ كل مخرجاتها زخرفية aria-hidden ولا تدّعي أبدًا أنها تصل إلى DOM
+ * كدور. عقد مصدر + عقد سلوك. */
+describe("R10-B4 StateMarker: marker-kind API honesty (F-018)", () => {
+  it("the component source accepts a marker prop and never a role prop", () => {
+    const source = readFileSync(resolve(import.meta.dirname, "markers.tsx"), "utf8");
+    expect(source).toContain("export function StateMarker({ marker }:");
+    expect(source).not.toMatch(/StateMarker\(\{ role \}/);
+    expect(source).not.toContain("role=");
+  });
+
+  it("every marker output is decorative (aria-hidden) — the meaning lives in the adjacent word", () => {
+    const { container } = render(<StatusChip state="error">فشل القراءة</StatusChip>);
+    const markers = container.querySelectorAll(".micro-prim-marker");
+    expect(markers.length).toBeGreaterThan(0);
+    for (const marker of markers) {
+      expect(marker.getAttribute("aria-hidden")).toBe("true");
+      expect(marker.getAttribute("role")).toBeNull();
+    }
+    /* القناة الدلالية الحقيقية هي كلمة الشريحة نفسها (نص)، لا العلامة. */
+    expect(screen.getByText("فشل القراءة")).toBeTruthy();
+  });
+
+  it("none renders nothing and the presentation vocabulary carries no ARIA role", () => {
+    const { container } = render(<StatusChip state="no-data">لا بيانات</StatusChip>);
+    expect(container.querySelector(".micro-prim-marker")).toBeNull();
+    const adapter = readFileSync(
+      resolve(import.meta.dirname, "../../presentation/stateAdapter.ts"),
+      "utf8",
+    );
+    expect(adapter).toContain("export type StateMarkerKind =");
+    /* الرمز الحي غائب — الذكر الوحيد المتبقي هو الملاحظة التاريخية المؤرخة. */
+    expect(adapter).not.toContain("type StateMarkerRole");
+    expect(adapter).not.toContain("markerRole:");
   });
 });
 

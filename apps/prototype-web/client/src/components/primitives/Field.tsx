@@ -54,7 +54,7 @@ export function Field({ label, hint, error, controlId, className, children, ...r
       {wiredChildren}
       {error ? (
         <p className="micro-prim-field__error" role="status" id={errorId}>
-          <StateMarker role="alert" />
+          <StateMarker marker="alert" />
           <span>{error}</span>
         </p>
       ) : hint ? (
