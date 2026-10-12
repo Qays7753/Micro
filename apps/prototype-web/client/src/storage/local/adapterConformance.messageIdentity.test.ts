@@ -312,6 +312,88 @@ describe("adapter rejection-message byte identity (R10-B3 — F-011 + NF-010 + N
     expect(message).toBe(SECOND_WALLET_OPENING_MESSAGE);
   });
 
+  /* RV5/B3 (بوابة الموجة): تثبيت سلوكي لقوائم الحقول نفسها — لكل حقل من
+   * حقول المطابقة، مرآة مضروبة في حقل واحد فقط يجب أن يرفضها المحوّلان
+   * معًا؛ أي حقل يُضاف مستقبلًا إلى سلسلة محوّل دون الآخر يُصطاد هنا. */
+  it("RV5 pin: every correction conformance field is enforced by BOTH adapters (tamper-one-field sweep)", async () => {
+    const tamper: Record<string, (mirrored: FinancialEvent) => FinancialEvent> = {
+      correctionType: m => ({ ...m, correctionType: null }),
+      correctionOfEventId: m => ({ ...m, correctionOfEventId: "other-id" }),
+      type: m => ({ ...m, type: "asset_purchase_cash" as FinancialEvent["type"] }),
+      amountMinor: m => ({ ...m, amountMinor: m.amountMinor + 100 }),
+      relatedEventId: m => ({ ...m, relatedEventId: "unrelated" }),
+      cashDeltaMinor: m => ({ ...m, cashDeltaMinor: m.cashDeltaMinor + 100 }),
+      payableDeltaMinor: m => ({ ...m, payableDeltaMinor: m.payableDeltaMinor + 100 }),
+      ownerCapitalDeltaMinor: m => ({ ...m, ownerCapitalDeltaMinor: m.ownerCapitalDeltaMinor + 100 }),
+      operatingExpenseDeltaMinor: m => ({
+        ...m,
+        operatingExpenseDeltaMinor: m.operatingExpenseDeltaMinor + 100,
+      }),
+    };
+    for (const [field, tamperFn] of Object.entries(tamper)) {
+      const source = expenseEvent("event-live", 2500);
+      const mirrored = createFinancialReversal({
+        id: `event-live-rev-${field}`,
+        sourceEvent: source,
+        occurredOn: "2026-09-08",
+        recordedAt: TS,
+        idempotencyKey: `rev-key-${field}`,
+        reason: "تصحيح",
+      });
+      const tampered = tamperFn(mirrored);
+      const message = expectIdenticalRejection(
+        await bothAdapters(async store => {
+          await store.saveFinancialEvent(source);
+          return store.commitFinancialEventCorrection(source.id, tampered);
+        }),
+      );
+      expect(message).toBe(REVERSAL_MISMATCH_MESSAGE);
+    }
+  });
+
+  it("RV5 pin: every replacement conformance field is enforced by BOTH adapters (relatedEventId deliberately unchecked in this path, mirroring the reference)", async () => {
+    const fields = [
+      "correctionType",
+      "correctionOfEventId",
+      "type",
+      "amountMinor",
+      "cashDeltaMinor",
+      "payableDeltaMinor",
+      "ownerCapitalDeltaMinor",
+      "operatingExpenseDeltaMinor",
+    ] as const;
+    for (const field of fields) {
+      const source = expenseEvent("event-live", 2500);
+      const mirrored = createFinancialReversal({
+        id: `event-live-rev-${field}`,
+        sourceEvent: source,
+        occurredOn: "2026-09-08",
+        recordedAt: TS,
+        idempotencyKey: `rev-key-${field}`,
+        reason: "تصحيح",
+      });
+      const tampered: FinancialEvent = {
+        ...mirrored,
+        [field]:
+          field === "correctionType"
+            ? null
+            : field === "correctionOfEventId"
+              ? "other-id"
+              : field === "type"
+                ? ("asset_purchase_cash" as FinancialEvent["type"])
+                : (mirrored[field] as number) + 100,
+      };
+      const replacement = expenseEvent(`event-replacement-${field}`, 2600);
+      const message = expectIdenticalRejection(
+        await bothAdapters(async store => {
+          await store.saveFinancialEvent(source);
+          return store.commitFinancialEventReplacement(source.id, tampered, replacement);
+        }),
+      );
+      expect(message).toBe(REVERSAL_MISMATCH_MESSAGE);
+    }
+  });
+
   it("financial-event replacement: missing source — same message on both adapters", async () => {
     const source = expenseEvent("event-live", 2500);
     const reversal = createFinancialReversal({
