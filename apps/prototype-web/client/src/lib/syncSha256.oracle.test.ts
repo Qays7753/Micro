@@ -25,20 +25,24 @@ describe("syncSha256Hex — FIPS 180-4 official test vectors", () => {
 
   it("block-boundary messages (55/56/64 bytes — padding edge cases)", () => {
     /* 55 بايت: آخر كتلة ممكنة تستوعب التبطئة داخل الكتلة الأولى. */
-    expect(syncSha256Hex("a".repeat(55))).toBe("9f4390f8d30c2dd92ec9f095b65e2b9ae9b0a925a5258e241c9f1e910f734318");
+    expect(syncSha256Hex("a".repeat(55))).toBe(
+      "9f4390f8d30c2dd92ec9f095b65e2b9ae9b0a925a5258e241c9f1e910f734318",
+    );
     /* 56 بايت: طول الرسالة يدفع علامة التبطئة إلى كتلة ثانية. */
-    expect(syncSha256Hex("a".repeat(56))).toBe("b35439a4ac6f0948b6d6f9e3c6af0f5f590ce20f1bde7090ef7970686ec6738a");
+    expect(syncSha256Hex("a".repeat(56))).toBe(
+      "b35439a4ac6f0948b6d6f9e3c6af0f5f590ce20f1bde7090ef7970686ec6738a",
+    );
     /* 64 بايت: كتلة كاملة + كتلة تبطئة كاملة. */
-    expect(syncSha256Hex("a".repeat(64))).toBe("ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb");
+    expect(syncSha256Hex("a".repeat(64))).toBe(
+      "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb",
+    );
   });
 
   it("multi-byte UTF-8 content (Arabic + numerals)", () => {
     /* المتجه محسوب بـnode:crypto (المقاطعة أدناه تثبت الاتساق دائمًا؛
      * هذا التثبيت الإضافي يحمي من انحراف يخص الطرفين معًا). */
     const message = "المخطط ٣٨ والتصدير ٣٠ — بقيت بيانات هذا الجهاز دون تغيير.";
-    expect(syncSha256Hex(message)).toBe(
-      createHash("sha256").update(message, "utf8").digest("hex"),
-    );
+    expect(syncSha256Hex(message)).toBe(createHash("sha256").update(message, "utf8").digest("hex"));
   });
 });
 
@@ -53,7 +57,14 @@ describe("syncSha256Hex — node:crypto cross-check on representative JSON paylo
         note: "قيمة مالية ١٢٣٤٥٦ ورموز ASCII/LTR: 123456.78",
       },
     }),
-    JSON.stringify({ nested: { deep: [{ id: "أ-١", amountMinor: -450 }, { id: "b-2", amountMinor: 0 }] } }),
+    JSON.stringify({
+      nested: {
+        deep: [
+          { id: "أ-١", amountMinor: -450 },
+          { id: "b-2", amountMinor: 0 },
+        ],
+      },
+    }),
     "ملف فيه كل حدود البنية: أرقام سالبة -0 وأصفار وتكرارات\nوأسطر جديدة\tوجدولة",
     "x".repeat(1000),
   ];

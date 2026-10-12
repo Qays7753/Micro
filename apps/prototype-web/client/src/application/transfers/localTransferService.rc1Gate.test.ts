@@ -109,9 +109,11 @@ describe("R10-B2/RC-1 — current-pair raw-array gate (re-sealed laundering clos
 
   it("rejects a re-sealed current file with a non-array owner family (NF-009 silent coercion closed)", async () => {
     const { service, file } = await seededExport();
-    const prepared = service.prepareImport(resealed(file, data => {
-      data.ownerEntitlementPolicies = { nope: true };
-    }));
+    const prepared = service.prepareImport(
+      resealed(file, data => {
+        data.ownerEntitlementPolicies = { nope: true };
+      }),
+    );
     expect(prepared.ok).toBe(false);
     if (!prepared.ok) expect(prepared.message).toContain("ليست مصفوفة");
   });
@@ -119,19 +121,30 @@ describe("R10-B2/RC-1 — current-pair raw-array gate (re-sealed laundering clos
   it("rejects present-but-non-array for the historical optional families too (same defect family)", async () => {
     const { service, file } = await seededExport();
     for (const family of ["inventoryShortages", "assets", "loans", "receivedLoans", "expenseBudgets"]) {
-      const prepared = service.prepareImport(resealed(file, data => {
-        data[family] = { nope: true };
-      }));
+      const prepared = service.prepareImport(
+        resealed(file, data => {
+          data[family] = { nope: true };
+        }),
+      );
       expect(prepared.ok, family).toBe(false);
     }
   });
 
   it("rejects DELETION of a historical optional family on a re-sealed current file (RV5/D1 — the loan-wipe vector)", async () => {
     const { service, file } = await seededExport();
-    for (const family of ["loans", "receivedLoans", "assets", "inventoryShortages", "expenseBudgets", "recurringExpenseSeries"]) {
-      const prepared = service.prepareImport(resealed(file, data => {
-        delete data[family];
-      }));
+    for (const family of [
+      "loans",
+      "receivedLoans",
+      "assets",
+      "inventoryShortages",
+      "expenseBudgets",
+      "recurringExpenseSeries",
+    ]) {
+      const prepared = service.prepareImport(
+        resealed(file, data => {
+          delete data[family];
+        }),
+      );
       expect(prepared.ok, family).toBe(false);
       if (!prepared.ok) expect(prepared.message, family).toContain("غائبة");
     }
@@ -140,18 +153,22 @@ describe("R10-B2/RC-1 — current-pair raw-array gate (re-sealed laundering clos
   it("rejects JSON null for any family on a re-sealed current file (null is absence, not an array)", async () => {
     const { service, file } = await seededExport();
     for (const family of ["loans", "ownerMovements", "drafts"]) {
-      const prepared = service.prepareImport(resealed(file, data => {
-        data[family] = null;
-      }));
+      const prepared = service.prepareImport(
+        resealed(file, data => {
+          data[family] = null;
+        }),
+      );
       expect(prepared.ok, family).toBe(false);
     }
   });
 
   it("rejects a re-sealed current file with a REQUIRED family deleted (e.g. drafts — laundering beyond owner money)", async () => {
     const { service, file } = await seededExport();
-    const prepared = service.prepareImport(resealed(file, data => {
-      delete data.drafts;
-    }));
+    const prepared = service.prepareImport(
+      resealed(file, data => {
+        delete data.drafts;
+      }),
+    );
     expect(prepared.ok).toBe(false);
     if (!prepared.ok) expect(prepared.message).toContain("غائبة");
   });
@@ -188,7 +205,10 @@ describe("R10-B2/RC-1 — current-pair raw-array gate (re-sealed laundering clos
      * (سياسة العصر الموحدة؛ تصحيح RV5). */
     expect(verifyTransferArrayFamilies(legacyMinimal as Record<string, unknown>, true)).toContain("غائبة");
     expect(
-      verifyTransferArrayFamilies({ ...legacyMinimal, loans: [], assets: [] } as Record<string, unknown>, true),
+      verifyTransferArrayFamilies(
+        { ...legacyMinimal, loans: [], assets: [] } as Record<string, unknown>,
+        true,
+      ),
     ).toContain("غائبة");
   });
 

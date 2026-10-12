@@ -79,15 +79,19 @@ export const TRANSFER_ARRAY_FAMILY_ROLES = {
    * ثبت ownerEntitlementTransfer.test.ts (أزواج ١٢/٢١ وأقدم). — */
   ownerEntitlementPolicies: { historicalClass: "strict", counted: true, label: "سياسات استحقاق المالك" },
   ownerEntitlementRecords: { historicalClass: "strict", counted: true, label: "سجلات استحقاق المالك" },
-  ownerEntitlementOpeningBalances: { historicalClass: "strict", counted: true, label: "أرصدة استحقاق المالك" },
+  ownerEntitlementOpeningBalances: {
+    historicalClass: "strict",
+    counted: true,
+    label: "أرصدة استحقاق المالك",
+  },
   ownerMovements: { historicalClass: "strict", counted: true, label: "حركات مال المالك" },
 } as const satisfies Record<ArrayFamilyKey, TransferArrayFamilyRole>;
 
 /** مفاتيح العائلات المعدودة (تُشتق من السجل — لا تُعدّ يدويًا). */
 export type CountedArrayFamilyKey = {
-  [K in keyof typeof TRANSFER_ARRAY_FAMILY_ROLES]: (typeof TRANSFER_ARRAY_FAMILY_ROLES)[K]["counted"] extends true
-    ? K
-    : never;
+  [
+    K in keyof typeof TRANSFER_ARRAY_FAMILY_ROLES
+  ]: (typeof TRANSFER_ARRAY_FAMILY_ROLES)[K]["counted"] extends true ? K : never;
 }[keyof typeof TRANSFER_ARRAY_FAMILY_ROLES];
 
 /* (NF-013/OD-8: العائلات المطلوبة-غير-المعدودة التسع تبقى بلا عدّ عمدًا
@@ -114,7 +118,9 @@ export function verifyTransferArrayFamilies(
   data: Record<string, unknown>,
   isCurrent: boolean,
 ): string | null {
-  for (const key of Object.keys(TRANSFER_ARRAY_FAMILY_ROLES) as Array<keyof typeof TRANSFER_ARRAY_FAMILY_ROLES>) {
+  for (const key of Object.keys(TRANSFER_ARRAY_FAMILY_ROLES) as Array<
+    keyof typeof TRANSFER_ARRAY_FAMILY_ROLES
+  >) {
     const role: TransferArrayFamilyRole = TRANSFER_ARRAY_FAMILY_ROLES[key];
     const value = data[key];
     if (value === undefined || value === null) {
