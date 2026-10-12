@@ -253,6 +253,9 @@ export default [
       "apps/prototype-web/client/src/presentation/**/*.{ts,tsx}",
       "apps/prototype-web/client/src/pwa/**/*.{ts,tsx}",
       "apps/prototype-web/client/src/lib/**/*.{ts,tsx}",
+      /* R10-B5/NF-020: بيت دعم الاختبارات الجديد تحت المحرك نفسه — لا منطقة
+       * صامتة بلا كتلة (درس W4-D/F-044). */
+      "apps/prototype-web/client/src/testing/**/*.{ts,tsx}",
     ],
     languageOptions: {
       parser: tseslint.parser,

@@ -48,7 +48,27 @@ Minimal: count/gate only the 4 owner families (the only full gaps; golden churn 
 
 ## OD-9 (NEW) — F-024 Replit hook: option A/B/C — REQUIRED before B5
 
-Full comparison in RC-4. **Recommended: C (retire)** — broken since 2026-10-10, zero current documentation/consumers, CI+Pages anchor all real verification. If a Replit post-merge safety net is wanted: **A+B together** with a re-derived `timeoutMs` (RV4-N4: 180s likely insufficient).
+**Exact decision sentence (owner fills one):** OD-9 = **A** (drop `export CI=1`, hook runs as local-env) / **B** (documented Replit alias in `detectEnvironment` + an anchored `replit` baseline) / **C** (retire the hook + `[postMerge]` + its register/ratchet rows).
+
+**Affected files and findings.** `.replit:17-19` (`[postMerge]` block); `scripts/post-merge.sh:4` (`export CI=1`); `apps/prototype-web/scripts/check-bundle-surfaces.mjs:97-124` (detectEnvironment — option B only); `docs/architecture/refactoring/FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md:792` + the size-ratchet baseline row for the hook script (option C removal notes); finding R10A-F-024 (S2, CONFIRMED); consumers verified by W0: only `.replit` + the register row + the archived handoff — nothing else in the repository reads the hook or its `CI=1`.
+
+**Alternatives considered (full comparison in RC-4 §F-024).**
+- **A — drop `export CI=1`:** nothing else in the hook reads CI; the surfaces guard stays fail-closed; residual risk: Replit Node-20 gzip vs the local anchor is unproven (convergence proven only Node 22/24) and `timeoutMs=180000` is suspect (RV4-N4).
+- **B — documented Replit alias + anchored `replit` baseline:** strongest if the hook is load-bearing; the marker choice (`REPL_ID`/`REPLIT_DEV_DOMAIN`) is not statically provable, adds a permanent external coupling, and requires unit tests + the `ANCHOR_RECORD` bootstrap path.
+- **C — retire (RECOMMENDED DEFAULT):** the hook has been structurally broken since R8-1 (`c70d3eed`, 2026-10-10 — `CI=1` makes `detectEnvironment` return null and the guard fails `UNVERIFIED_ENVIRONMENT`, killing the hook via `set -e`); zero current documentation; zero in-repo consumers besides `.replit`; CI + Cloudflare Pages anchor all real verification; Replit remains a dev workspace served by its Project workflows. If a Replit post-merge safety net is wanted later: **A+B together** with a re-derived `timeoutMs` (RV4-N4: 180s likely insufficient).
+
+**Evidence and impact.** Broken >=1 day (last documented working run predates both bundle guards, 2026-08-29); no user-facing or financial surface is touched by any option (hook/docs only; option B touches only the guard's environment map).
+
+**Tests required.** A: guard suite green (no new tests — the hook becomes local-env; its gzip-vs-anchor risk stays documented). B: `detectEnvironment` unit tests for the Replit marker + a real anchored `replit` baseline record. C: grep-verify no dangling references (`.replit`, register, ratchet, docs) + full guard suite green.
+
+**Exact allowed side effects.** A: the hook's guard run reports `ENV=local` under Replit. B: `detectEnvironment` gains a `replit` identity + baseline record; `bundle-surfaces-baseline.json` gains the environment entry through the official anchor path. C: `.replit` loses the `[postMerge]` block; `scripts/post-merge.sh` and its two register/ratchet rows are removed with dated notes; nothing else changes.
+
+**Forbidden side effects (all options).** Any weakening of the fail-closed unknown-environment contract; any ceiling/tolerance change; any change to CI/Pages verification; any second environment-detection vocabulary (the F-028/NF-021 unified `CI_MARKER_KEYS` is the one vocabulary — a B-option alias must extend it in BOTH guards with the conformance test updated, not bypass it).
+
+**Rollback boundary.** Single small commit revert in every option (8-line hook + 3-line `.replit` + 2 doc rows under C; the alias map entry + baseline record under B; the one-line export under A).
+
+**Safe stopping state.** F-024 stays `OWNER_DECISION_REQUIRED` with this package; the hook remains broken-but-inert (it never runs outside Replit merges, and no merges happen there); every other B5 item proceeds independently — none depends on this decision.
+
 **Decision:** A / B / C (fail-closed contract preserved in every option).
 
 ## OD-10 (NEW) — Application-internal seam policy (NF-005) — DEFER-card ratification
