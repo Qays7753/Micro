@@ -1208,6 +1208,25 @@
         "ownerReview": "Owner OD-12 acceptance in the R10-B continuation directive (2026-10-13): one centralized system-wide route-transition design based on the canonical router/navigation source, not scattered per-page patches or a second route registry; behavioral tests for focused-element identity, route titles, direct entry, normal navigation, back/forward + negative proof; five-reviewer gate on the OD-12 slice + owner review of PR #356; owner merge authorization remains separate and explicit",
         "trigger": "Owner-accepted OD-12 (canonical prompt section 11 protected decision, accepted in the 2026-10-13 continuation message)"
       }
+    },
+    {
+      "id": "R10B-B5-F027-SECRETS-FAMILIES",
+      "date": "2026-10-13",
+      "path": "scripts/check-secrets.mjs",
+      "from": {
+        "nbLoc": 152,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 204,
+        "band": "NORMAL"
+      },
+      "reason": "R10-B5/F-027 (W0 RV4-N6 + the W0-enumerated six families): scanContent iterates ALL matches per pattern via a fresh /g clone (multi-occurrence inventory instead of first-match-per-family underreport) and six new high-precision secret families join SECRET_PATTERNS (stripe sk_live_, anthropic sk-ant-, gitlab glpat-, three-segment JWT, context-anchored AWS secret access key, db URLs with embedded user:pass@ credentials), each with runtime-built fake fixtures, precision near-miss negatives (incl. the 40-hex git-SHA case that forbids a bare base64 pattern in this repository), multi-hit CLI/tree tests, and the documented limits block in the header (working tree only per R10B-NF-025, no entropy scan by design, identifier-context requirement for AWS, no-password URLs are not secrets).",
+      "authorization": {
+        "ownerReview": "R10-B W0 owner-approved 54-item B1-B5 FIX_NOW backlog (matrix disposition FIX_NOW; repair cards wave R10-B5 line: F-027 +RV4-N6 multi-match) — executed on PR #356 under the ARCH-007/WS-216 governance",
+        "trigger": "R10-B execution prompt section 7 wave B5 scope; canonical matrix record R10A-F-027 required_behavior",
+        "ocRef": "ARCH-007"
+      }
     }
   ]
 }

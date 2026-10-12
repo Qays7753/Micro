@@ -27,6 +27,15 @@ const FAKE_OPENAI = `sk-${"E".repeat(40)}`;
 const FAKE_GITHUB_SECONDARY = `gho_${"F".repeat(40)}`;
 const FAKE_GOOGLE_KEY = `AIza${"G".repeat(35)}`;
 const FAKE_NPM_TOKEN = `npm_${"H".repeat(36)}`;
+/* F-027 (R10-B5 — 2026-10-13): عينات العائلات الست المضافة — تُبنى وقت
+ * التشغيل بالأسلوب نفسه (قطع مفصولة في المصدر) كي لا يحمل مصدر الاختبار
+ * نفسه نمطًا كاملًا يصطاده الفحص الحقيقي على المستودع الحي. */
+const FAKE_STRIPE_LIVE = ["sk", "live", "K".repeat(28)].join("_");
+const FAKE_ANTHROPIC = ["sk", "ant", "M".repeat(24)].join("-");
+const FAKE_GITLAB = ["glpat", "N".repeat(20)].join("-");
+const FAKE_JWT = ["eyJ", "Q".repeat(12), ".", "R".repeat(16), ".", "S".repeat(16)].join("");
+const FAKE_AWS_SECRET = [["AWS", "SECRET", "ACCESS", "KEY"].join("_"), "=", "T".repeat(40)].join("");
+const FAKE_DB_URL = ["postgres", "://", "svc", ":", "U".repeat(12), "@", "db.internal", "/prod"].join("");
 /* يُبنى وقت التشغيل كي لا يحمل مصدر الاختبار نفسه نمطًا كاملًا يصطاده
  * الفحص الحقيقي على المستودع الحي (الاستثناء الأنيق: لا استثناء). */
 const FAKE_PRIVATE_KEY = ["-----BEGIN", "RSA", "PRIVATE", "KEY-----"].join(" ");
@@ -77,6 +86,72 @@ describe("check-secrets — pattern detection", () => {
     expect(rendered).not.toContain("github_pat_");
   });
 
+  it("F-027: catches each of the six new families and never returns the value", () => {
+    const content = [
+      `stripe ${FAKE_STRIPE_LIVE} here`,
+      `anthropic ${FAKE_ANTHROPIC}`,
+      `gitlab ${FAKE_GITLAB}`,
+      `jwt ${FAKE_JWT} tail`,
+      `config ${FAKE_AWS_SECRET}`,
+      `url ${FAKE_DB_URL} end`,
+    ].join("\n");
+    const findings = scanContent(content);
+    const names = findings.map(f => f.patternName);
+    expect(names).toContain("stripe-live-secret-key");
+    expect(names).toContain("anthropic-api-key");
+    expect(names).toContain("gitlab-token");
+    expect(names).toContain("jwt");
+    expect(names).toContain("aws-secret-access-key");
+    expect(names).toContain("db-url-with-credentials");
+    const rendered = JSON.stringify(findings);
+    expect(rendered).not.toContain(FAKE_STRIPE_LIVE);
+    expect(rendered).not.toContain(FAKE_ANTHROPIC);
+    expect(rendered).not.toContain(FAKE_GITLAB);
+    expect(rendered).not.toContain(FAKE_JWT);
+    expect(rendered).not.toContain(FAKE_AWS_SECRET);
+    expect(rendered).not.toContain(FAKE_DB_URL);
+  });
+
+  it("F-027: iterates ALL matches per pattern (multi-occurrence inventory, not first-match-only)", () => {
+    const content = [
+      "intro line",
+      `first ${FAKE_GITHUB_CLASSIC} here`,
+      "middle",
+      `second ${FAKE_GITHUB_CLASSIC} again`,
+      `third ${FAKE_GITHUB_CLASSIC} too`,
+    ].join("\n");
+    const findings = scanContent(content).filter(f => f.patternName === "github-classic-token");
+    expect(findings).toHaveLength(3);
+    expect(findings.map(f => f.line)).toEqual([2, 4, 5]);
+  });
+
+  it("F-027: reports two same-family hits sharing one line with the same line number", () => {
+    const content = `x ${FAKE_SLACK} y ${FAKE_SLACK} z\n`;
+    const findings = scanContent(content).filter(f => f.patternName === "slack-token");
+    expect(findings).toHaveLength(2);
+    expect(findings.every(f => f.line === 1)).toBe(true);
+  });
+
+  it("F-027: precision near-misses stay silent (each documented limit proves its edge)", () => {
+    /* بصمة git/SHA-1 بطول 40 سداسي عشري بلا سياق معرّف — تمتلئ بها وثائق
+     * هذا المستودع مشروعيًا؛ الاصطياد هنا كان سيجعل الفحص يصرخ كذبًا. */
+    const shaLike = ["ffc54eb1150932c9bb", "a88b48a7c38275f2a3effa"].join("");
+    const nearMisses = [
+      `commit ${shaLike} landed`,
+      `short stripe ${["sk", "live", "K".repeat(23)].join("_")} stays silent`,
+      `short anthropic ${["sk", "ant", "M".repeat(19)].join("-")} stays silent`,
+      `short gitlab ${["glpat", "N".repeat(15)].join("-")} stays silent`,
+      `bare eyJ ${["eyJ", "Q".repeat(20)].join("")} without dots is not a jwt`,
+      `url without password ${["postgres", "://", "svc", "@", "db.internal", "/prod"].join("")} is not a secret`,
+      `url with port only ${["mysql", "://", "localhost:3306", "/app"].join("")} has no userinfo`,
+      `aws identifier with a 39-char value ${[["AWS", "SECRET", "ACCESS", "KEY"].join("_"), "=", "T".repeat(39)].join("")} stays silent`,
+      `identifier far from the value ${[["SECRET", "ACCESS", "KEY"].join("_"), " ".repeat(20), "T".repeat(40)].join("")} exceeds the documented gap`,
+    ];
+    for (const sample of nearMisses) {
+      expect(scanContent(sample), sample).toHaveLength(0);
+    }
+  });
+
   it("reports the correct line number for a mid-file secret", () => {
     const content = `alpha\nbeta\ngamma ${FAKE_SLACK}\ndelta\n`;
     const findings = scanContent(content);
@@ -123,6 +198,18 @@ describe("check-secrets — tree scan on fixtures", () => {
     expect(scanTree(root)).toHaveLength(1);
   });
 
+  it("F-027: tree scan inventories multiple occurrences inside one file", () => {
+    const root = makeTempDir();
+    fs.writeFileSync(
+      path.join(root, "leak.ts"),
+      `const a = "${FAKE_OPENAI}";\nconst b = "${FAKE_OPENAI}";\n`,
+    );
+    const findings = scanTree(root);
+    expect(findings).toHaveLength(2);
+    expect(findings.every(f => f.patternName === "openai-style-key")).toBe(true);
+    expect(findings.map(f => f.line)).toEqual([1, 2]);
+  });
+
   it("scans binary-ish files by bytes without crashing", () => {
     const root = makeTempDir();
     const buffer = Buffer.concat([
@@ -146,6 +233,20 @@ describe("check-secrets — CLI behavior", () => {
     expect(result.stderr).toContain("github-classic-token");
     expect(result.stderr).not.toContain(FAKE_GITHUB_CLASSIC);
     expect(result.stderr).not.toContain(FAKE_GITHUB_CLASSIC.slice(0, 8));
+  });
+
+  it("F-027: CLI reports every occurrence in one file (multi-hit inventory)", () => {
+    const root = makeTempDir();
+    fs.writeFileSync(
+      path.join(root, "multi.md"),
+      `a\n${FAKE_GITHUB_CLASSIC}\nb\n${FAKE_GITHUB_CLASSIC}\n`,
+    );
+    const result = runCli(root);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("2 hit(s)");
+    expect(result.stderr).toContain("line 2");
+    expect(result.stderr).toContain("line 4");
+    expect(result.stderr).not.toContain(FAKE_GITHUB_CLASSIC);
   });
 
   it("exits 0 with a pass report on a clean tree", () => {

@@ -1545,7 +1545,7 @@
       "band": "NORMAL"
     },
     "scripts/check-secrets.mjs": {
-      "nbLoc": 152,
+      "nbLoc": 204,
       "band": "NORMAL"
     },
     "scripts/check-skill-references.mjs": {
