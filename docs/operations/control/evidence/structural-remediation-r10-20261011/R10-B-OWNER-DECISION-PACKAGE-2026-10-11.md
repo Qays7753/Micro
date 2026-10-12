@@ -118,3 +118,28 @@ The 14 `PILOT_EVIDENCE_REQUIRED` items (BE-004, BE-005, V-001..012) define an ev
 | OD-11 | MoneyMinor branding | keep unbranded (documented) | — |
 | OD-12 | route focus + titles | **accepted 2026-10-13 — implemented (commit 86e1a05f)** | B4 (closed) |
 | OD-13 | PILOT detection methods | include in B1 | B1 |
+
+## OD-14 (NEW) — R10B-NF-038 entry headroom vs the identity hash-cascade — REQUIRED before further code commits / the merge
+
+**Exact decision sentence (owner fills one):** OD-14 = **A** (authorize a scoped minimal entry reduction of at least ~70 bytes of CI-zlib headroom) / **B** (pin the CI build identity via VITE_APP_VERSION, accepting the documented PWA cache-busting tradeoff) / **C** (explicitly accept the per-commit re-roll risk with a documented re-push-on-red policy).
+
+**Affected files and findings.** `apps/prototype-web/vite.config.ts` (buildIdentityFromEnv, the identity embedding, chunk graph); `.github/workflows/ci.yml` (identity source); `apps/prototype-web/scripts/check-bundle-budget.mjs` (the protected ceiling — reference only, NOT to be touched); finding R10B-NF-038 (S2, NEW, merge-blocking).
+
+**Evidence (deterministic, byte-exact).** Every CI build embeds the merge-commit SHA once in the entry; that re-hashes the entry, rewrites every chunk import specifier, re-hashes 92/105 chunks, and rewrites the entry's chunk-URL manifest — so each commit re-rolls the entry gzip with zero content change. Measured draws on IDENTICAL production content: 155,247 · 155,277 · 155,281 · 155,284 · **155,310 (FAIL, +10 over)** — a 63-byte spread under the 155,300 ceiling. Local reproduction is byte-exact: VITE_APP_VERSION=4c7fbbdf… → index-C6VOawSl.js 631,833/155,281; VITE_APP_VERSION=15a72f52… → index-DYGnR5jx.js 631,833/155,310. The branch head `ca9fe368` is red on CI (run 38314154278, GZIP_OVER) from this alone — no content defect exists.
+
+**Alternatives considered.**
+- **A — scoped entry reduction (root fix):** an owner-authorized minimal slice reducing the entry by enough to restore ~70+ bytes of CI headroom (e.g. the branded-title/label derivations territory already measured in OD-12, or an equivalent owner-scoped trim). Pros: eliminates the class; keeps identity semantics. Cons: touches production app code (needs its own scoped slice + tests + the five-reviewer gate).
+- **B — pin the CI identity:** set VITE_APP_VERSION in ci.yml to a fixed value (it takes priority over GITHUB_SHA). Pros: zero app-code change; makes CI builds deterministic. Cons: changes PWA cache-busting semantics (the precache revision no longer varies per deploy — stale-serve risk on real Cloudflare Pages deploys unless the pin is derive-per-deploy); needs PWA regression evidence.
+- **C — accept the risk:** document that any commit (including the merge) may fail the budget gate with no content change, with a re-push/re-roll policy. Pros: no change. Cons: the merge commit itself can land red; every future wave lives with coin-flip CI.
+
+**Tests required.** A: entry measurement on the exact head + multi-draw merge simulation + the slice's own tests. B: PWA cache-busting regression evidence (precache revision varies per deploy) + determinism proof across consecutive runs. C: the policy recorded in the execution contract.
+
+**Exact allowed side effects.** A: a reduced entry (visual/semantic neutrality proven per the OD-12 method). B: deterministic CI identity + the documented PWA tradeoff. C: none.
+
+**Forbidden side effects (all options).** Raising or weakening the 650,000/155,300 ceilings or the tolerances; hiding a red draw by silent re-pushes without documentation; any change to the budget guard's measurement; touching the surfaces baseline to mask the entry.
+
+**Rollback boundary.** The chosen slice (A: one revertible commit; B: one workflow line; C: the policy record).
+
+**Safe stopping state.** PR #356 open, the finding recorded (NF-038), no further code commits until OD-14 (each carries the red risk); docs-only records commits remain possible but each is another draw.
+
+**Decision:** A / B / C.

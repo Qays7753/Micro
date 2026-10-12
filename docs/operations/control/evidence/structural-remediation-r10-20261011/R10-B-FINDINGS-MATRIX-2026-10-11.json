@@ -2626,24 +2626,63 @@
     "evidence": "Normalized in the OD-12 records slice (same commit as the NF-015 closure): the seven B4 string records became dict records with state CLOSED_WITH_EVIDENCE_ON_R10B_BRANCH, wave R10-B4, their original commit references and 2026-10-12 dates, evidence carrying the original string verbatim, and a dated evidence_class note recording the normalization; NF-015 itself closed directly in the dict schema. validate.py + generate_tracker --check green after the change.",
     "evidence_class": "VERIFIED_LOCAL_GUARDS (push/PR-CI pending at record time)"
    }
+  },
+  {
+   "original_finding_id": "R10B-NF-038",
+   "canonical_control_id_or_canonical_ledger_key": "R10B-LEDGER:R10B-NF-038",
+   "first_observed_sha": "ca9fe368b3db4de01d7b3a84753dc46dc29157ac",
+   "source_report_and_evidence": "R10-B5 wave push evidence: CI run 38314154278 (head ca9fe368, merge 15a72f52) FAIL bundle-budget GZIP_OVER, while runs 38311831152 (4a993836/4c7fbbdf, 155,281), 38313589004 (1ee88779/3ac41bbc, 155,277), 38299676446 (81ca06df, 155,284), 38278556879 (55779158, 155,247) all PASS — local deterministic reproduction: building the SAME tree with VITE_APP_VERSION=4c7fbbdf... yields entry index-C6VOawSl.js 631,833/155,281 (byte-identical to the green artifact) and with VITE_APP_VERSION=15a72f52... yields index-DYGnR5jx.js 631,833/155,310 (byte-identical hash to the failing run) — a +29 gzip delta from the identity string alone.",
+   "finding_classification": "NEW_FINDING",
+   "finding_state": "CONFIRMED",
+   "severity": "S2",
+   "current_behavior": "The CI build identity (the PR merge-commit SHA via GITHUB_SHA) is embedded once in the entry, which re-hashes the entry, which rewrites every chunk's import specifier, which re-hashes 92 of 105 chunks, which rewrites the entry's embedded chunk-URL manifest — so every new commit deterministically re-rolls the entry's gzip by tens of bytes with ZERO production-content change. Observed draws on identical content: 155,247..155,310 (63-byte spread) against the protected 155,300 ceiling — the ca9fe368 draw landed 10 bytes OVER and its CI run failed GZIP_OVER. The documented identity sway (+58..+69 local-vs-CI, band 155,280-155,291) captured only the fixed-content environment delta, not this commit-to-commit cascade.",
+   "required_behavior": "The protected ceiling 155,300 must not be raised or weakened. The entry must regain enough gzip headroom to absorb the observed ~63-byte cascade spread (i.e. a CI-zlib margin safely above ~70 bytes), OR the owner must explicitly choose how to handle the residual per-commit risk (see OD-14). Until then, every new commit — including the owner's own merge commit — carries a non-zero probability of failing the budget gate with no content change.",
+   "root_cause": "The build identity feeds the content-addressed chunk graph: a 40-char identity change cascades through every chunk hash into the entry's manifest, and gzip compressibility of the re-rolled hash list varies by more than the remaining ceiling margin (a structural property of the protected 155,300 ceiling being ~99.98% consumed).",
+   "affected_files_and_symbols": "apps/prototype-web/vite.config.ts (buildIdentityFromEnv + the identity embedding); apps/prototype-web/scripts/check-bundle-budget.mjs (the untouched ceiling); .github/workflows/ci.yml (identity source GITHUB_SHA)",
+   "layers": [
+    "build",
+    "guards",
+    "ci"
+   ],
+   "impact": "Merge-blocking: PR #356's head ca9fe368 is red on CI from this finding alone (no content defect). All prior green runs passed with 16-53 bytes of margin; the spread implies any future commit (owner merge included) can flip red. No financial/storage/semantic impact — build/gate only.",
+   "owner": "Micro owner (Qays7753)",
+   "related_items": [
+    "R10A-F-024"
+   ],
+   "explicit_dependencies": [
+    "Owner decision OD-14 (entry headroom: reduction vs identity pinning vs risk acceptance)"
+   ],
+   "proposed_disposition": "FIX_NOW",
+   "minimum_safe_remediation": "Owner decision OD-14: (a) a scoped minimal entry reduction (>= ~70 bytes CI-zlib headroom) in an owner-authorized slice; (b) pin the CI build identity via VITE_APP_VERSION (documented PWA cache-busting tradeoff); (c) explicitly accept the per-commit re-roll risk with a documented re-push policy. The ceiling is NOT an option to touch.",
+   "required_tests": "Whatever OD-14 chooses: (a) entry measurement on the exact head + merge simulation across several identity draws; (b) PWA cache-busting regression evidence; (c) the documented risk policy recorded.",
+   "acceptance_criteria": "PR #356 mergeable with a head whose CI is green AND whose merge-commit draw risk is either eliminated (a/b) or explicitly accepted (c).",
+   "rollback_boundary": "The chosen option's slice; the finding record stays.",
+   "limitations": "Deterministic local reproduction of both draws (green and failing) verified byte-exactly; the CI-zlib absolute measurement of the green artifacts is inferred (PASS <= 155,300) — the local zlib measurements are the comparative evidence.",
+   "implementation_status": {
+    "state": "OWNER_DECISION_REQUIRED",
+    "wave": "R10-B5",
+    "closed_at_commit": null,
+    "date": "2026-10-13",
+    "evidence": "OWNER_DECISION_REQUIRED — OD-14 (entry headroom vs identity pinning vs risk acceptance). Discovered and root-caused during the B5 wave push; the branch head ca9fe368 is red on CI from this finding alone. Fully deterministic reproduction recorded (same tree, two identities, 155,281 vs 155,310). The ceiling was not, and will not be, touched."
+   }
   }
  ],
  "summary": {
-  "total_records": 74,
+  "total_records": 75,
   "r10a_original_findings": 37,
-  "r10b_new_findings": 37,
+  "r10b_new_findings": 38,
   "dispositions": {
-   "FIX_NOW": 57,
+   "FIX_NOW": 58,
    "DEFER": 16,
    "OUT_OF_SCOPE": 1
   },
   "severities": {
    "S3": 56,
-   "S2": 5,
+   "S2": 6,
    "S4": 12
   },
   "states": {
-   "CONFIRMED": 64,
+   "CONFIRMED": 65,
    "REFINED": 6,
    "DISPROVED": 1,
    "CONFIRMED_AND_FIXED_IN_WAVE": 2
