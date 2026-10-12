@@ -1489,7 +1489,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/scripts/check-bundle-surfaces.mjs": {
-      "nbLoc": 467,
+      "nbLoc": 487,
       "band": "WATCH"
     },
     "scripts/application-door-surfaces-baseline.json": {
@@ -1525,8 +1525,8 @@
       "band": "NORMAL"
     },
     "scripts/check-file-size-ratchet.mjs": {
-      "nbLoc": 391,
-      "band": "NORMAL"
+      "nbLoc": 553,
+      "band": "WATCH"
     },
     "scripts/check-image-policy.mjs": {
       "nbLoc": 164,

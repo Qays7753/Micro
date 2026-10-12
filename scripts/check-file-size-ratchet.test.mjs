@@ -20,11 +20,15 @@ import { afterAll, describe, expect, it } from "vitest";
 import {
   BASELINE_SCHEMA,
   BAND_RANK,
+  REANCHOR_LEDGER_PATH,
+  REANCHOR_SCHEMA_V2,
   auditBaselineDrift,
   bandOf,
   category,
   checkFileSizeRatchet,
+  loadReanchorLedger,
   nonBlankLines,
+  resolveOcRef,
   validateBaseline,
 } from "./check-file-size-ratchet.mjs";
 
@@ -75,6 +79,30 @@ function baselineV2(map) {
 }
 function ledgerWith(entries) {
   return { entries };
+}
+
+/* F-028 (R10-B5): مدخل إرساء اصطناعي كامل البنية — الترخيص v2 يتطلب ocRef
+ * بنيويًا في ledgerCovers (الحل الكامل ضد شجرة OC يتم في loadReanchorLedger). */
+function reanchorEntry(overrides = {}) {
+  return {
+    id: "T-1",
+    date: "2026-10-13",
+    path: "src/service.ts",
+    from: { nbLoc: 300, band: "NORMAL" },
+    to: { nbLoc: 360, band: "NORMAL" },
+    reason: "documented test re-anchor",
+    authorization: { ownerReview: "PR #999", ocRef: "ARCH-007" },
+    ...overrides,
+  };
+}
+
+/* F-028: شجرة OC مصغرة داخل مستودع اصطناعي — لاختبار حلّ ocRef الكامل. */
+function seedOcTree(root, records = [{ id: "ARCH-007", status: "IN_PROGRESS" }]) {
+  const itemsDir = path.join(root, "docs", "operations", "control", "items");
+  fs.mkdirSync(itemsDir, { recursive: true });
+  for (const record of records)
+    fs.writeFileSync(path.join(itemsDir, `${record.id}.json`), JSON.stringify(record, null, 2));
+  return path.join(root, "docs", "operations", "control");
 }
 
 describe("band thresholds (registry methodology, literal)", () => {
@@ -189,7 +217,7 @@ describe("within-band ratchet rules on synthetic trees (each rule can fail)", ()
         path: "src/service.ts",
         from: { nbLoc: 300, band: "NORMAL" },
         to: { nbLoc: 320, band: "NORMAL" },
-        authorization: { ownerReview: "PR #999 review" },
+        authorization: { ownerReview: "PR #999 review", ocRef: "ARCH-007" },
       },
     ]);
     const result = checkFileSizeRatchet(root, baseline, undefined, ledger);
@@ -198,7 +226,7 @@ describe("within-band ratchet rules on synthetic trees (each rule can fail)", ()
     expect(result.reanchored[0]).toContain("src/service.ts: 300 -> 320");
     /* سلسلة خاطئة (from لا يطابق) = لا تغطية. */
     const badChain = ledgerWith([
-      { path: "src/service.ts", from: { nbLoc: 299, band: "NORMAL" }, to: { nbLoc: 320, band: "NORMAL" }, authorization: { ownerReview: "x" } },
+      { path: "src/service.ts", from: { nbLoc: 299, band: "NORMAL" }, to: { nbLoc: 320, band: "NORMAL" }, authorization: { ownerReview: "x", ocRef: "ARCH-007" } },
     ]);
     expect(checkFileSizeRatchet(root, baseline, undefined, badChain).ok).toBe(false);
     /* بلا مرجع مراجعة مالك = لا تغطية (لا ثقة المؤلف المجردة). */
@@ -206,6 +234,11 @@ describe("within-band ratchet rules on synthetic trees (each rule can fail)", ()
       { path: "src/service.ts", from: { nbLoc: 300, band: "NORMAL" }, to: { nbLoc: 320, band: "NORMAL" }, authorization: {} },
     ]);
     expect(checkFileSizeRatchet(root, baseline, undefined, noAuth).ok).toBe(false);
+    /* F-028: نثر بلا ocRef = لا تغطية (الترخيص قابل للتحقق آليًا). */
+    const proseOnly = ledgerWith([
+      { path: "src/service.ts", from: { nbLoc: 300, band: "NORMAL" }, to: { nbLoc: 320, band: "NORMAL" }, authorization: { ownerReview: "prose only" } },
+    ]);
+    expect(checkFileSizeRatchet(root, baseline, undefined, proseOnly).ok).toBe(false);
   });
 
   it("test files and other excluded categories remain outside the ratchet even when huge", () => {
@@ -299,26 +332,35 @@ describe("same-PR concealment prevention (drift audit against the merge base)", 
     fs.writeFileSync(path.join(root, "scripts", "file-size-ratchet-baseline.json"), JSON.stringify(bumped, null, 2));
     fs.writeFileSync(
       path.join(root, "scripts", "file-size-ratchet-reanchors.json"),
-      JSON.stringify(
-        ledgerWith([
-          {
-            id: "T-1",
-            date: "2026-10-10",
-            path: "src/service.ts",
-            from: { nbLoc: 300, band: "NORMAL" },
-            to: { nbLoc: 360, band: "NORMAL" },
-            reason: "documented test re-anchor",
-            authorization: { ownerReview: "PR #999" },
-          },
-        ]),
-        null,
-        2,
-      ),
+      JSON.stringify(ledgerWith([reanchorEntry()]), null, 2),
     );
     commit("grow + documented re-anchor");
     const audit = auditBaselineDrift(root, { inCi: true });
     expect(audit.status).toBe("clean");
     expect(audit.reanchored).toEqual(["src/service.ts: 300 -> 360"]);
+  });
+
+  it("F-028: a ledger entry without ocRef no longer covers growth (v2 structural requirement)", () => {
+    const { root, git, commit } = initRepo();
+    seedMainWithBaseline(root, git, commit, 300);
+    git(["checkout", "-qb", "feature"]);
+    fs.writeFileSync(path.join(root, "src", "service.ts"), filler(360), "utf8");
+    const bumped = baselineV2({ "src/service.ts": 360 });
+    fs.writeFileSync(path.join(root, "scripts", "file-size-ratchet-baseline.json"), JSON.stringify(bumped, null, 2));
+    fs.writeFileSync(
+      path.join(root, "scripts", "file-size-ratchet-reanchors.json"),
+      JSON.stringify(
+        ledgerWith([
+          reanchorEntry({ authorization: { ownerReview: "prose-only authorization is no longer enough (F-028)" } }),
+        ]),
+        null,
+        2,
+      ),
+    );
+    commit("grow + prose-only re-anchor");
+    const audit = auditBaselineDrift(root, { inCi: true });
+    expect(audit.status).toBe("drift");
+    expect(audit.violations[0]?.rule).toBe("drift-unauthorized");
   });
 
   it("removing a live file's baseline entry in the same PR is rejected", () => {
@@ -365,6 +407,142 @@ describe("same-PR concealment prevention (drift audit against the merge base)", 
     const local = auditBaselineDrift(root, { inCi: false, mergeBase: null });
     expect(local.status).toBe("unavailable");
     expect(local.violations).toHaveLength(0);
+  });
+
+  it("F-028/NF-021: CI='1' is CI by the unified vocabulary (env-driven, not options-driven)", () => {
+    /* كان هذا هو الانفصال: CI='1' يجعل حارس الراتشة «محليًا» (تحذير فقط)
+     * بينما حارس الأسطح يرفض — المعجم الموحد يوحّد الحكم. */
+    const { root, git, commit } = initRepo();
+    fs.writeFileSync(path.join(root, "src", "service.ts"), filler(300), "utf8");
+    commit("no baseline branch");
+    const previousCi = process.env.CI;
+    process.env.CI = "1";
+    try {
+      const audit = auditBaselineDrift(root, { mergeBase: null });
+      expect(audit.status).toBe("unavailable-in-ci");
+      expect(audit.violations[0]?.rule).toBe("drift-audit-unavailable");
+    } finally {
+      if (previousCi === undefined) delete process.env.CI;
+      else process.env.CI = previousCi;
+    }
+  });
+
+  it("F-028: a direct-to-main baseline bump no longer passes vacuously (parent HEAD~1 audit)", () => {
+    const { root, git, commit } = initRepo();
+    seedMainWithBaseline(root, git, commit, 300);
+    /* دفع مباشر على main نفسه — قاعدة الدمج == HEAD فكان التدقيق فارغًا. */
+    fs.writeFileSync(path.join(root, "src", "service.ts"), filler(360), "utf8");
+    const bumped = baselineV2({ "src/service.ts": 360 });
+    fs.writeFileSync(path.join(root, "scripts", "file-size-ratchet-baseline.json"), JSON.stringify(bumped, null, 2));
+    commit("direct push: grow + bump baseline silently");
+    const audit = auditBaselineDrift(root, { inCi: true });
+    expect(audit.status).toBe("drift");
+    expect(audit.violations[0]?.rule).toBe("drift-unauthorized");
+    expect(audit.violations[0]?.key).toContain("300 -> 360");
+    expect(audit.notes.some(note => note.includes("HEAD~1"))).toBe(true);
+  });
+
+  it("F-028: a direct-to-main authorized reanchor passes the parent audit and is reported", () => {
+    const { root, git, commit } = initRepo();
+    seedOcTree(root);
+    seedMainWithBaseline(root, git, commit, 300);
+    fs.writeFileSync(path.join(root, "src", "service.ts"), filler(360), "utf8");
+    const bumped = baselineV2({ "src/service.ts": 360 });
+    fs.writeFileSync(path.join(root, "scripts", "file-size-ratchet-baseline.json"), JSON.stringify(bumped, null, 2));
+    fs.writeFileSync(
+      path.join(root, "scripts", "file-size-ratchet-reanchors.json"),
+      JSON.stringify(
+        { schema: "micro-file-size-ratchet-reanchors/2", entries: [reanchorEntry()] },
+        null,
+        2,
+      ),
+    );
+    commit("direct push: grow + documented re-anchor");
+    const audit = auditBaselineDrift(root, { inCi: true });
+    expect(audit.status).toBe("clean");
+    expect(audit.reanchored).toEqual(["src/service.ts: 300 -> 360"]);
+    expect(audit.ledgerSchema).toBe(REANCHOR_SCHEMA_V2);
+    expect(audit.ledgerOcRefs).toBe(1);
+  });
+
+  it("F-028: a single-commit main repo is an explicit root-commit establishment, not a silent clean", () => {
+    const { root, git, commit } = initRepo();
+    seedMainWithBaseline(root, git, commit, 300);
+    const audit = auditBaselineDrift(root, { inCi: true });
+    expect(audit.status).toBe("root-commit-establishment");
+    expect(audit.violations).toHaveLength(0);
+  });
+});
+
+describe("reanchor ledger v2 — machine-verifiable authorization (F-028)", () => {
+  let ledgerFileCounter = 0;
+  function v2LedgerFile(root, entries) {
+    ledgerFileCounter += 1;
+    const file = path.join(root, "scripts", `file-size-ratchet-reanchors-${ledgerFileCounter}.json`);
+    fs.writeFileSync(file, JSON.stringify({ schema: REANCHOR_SCHEMA_V2, entries }, null, 2));
+    return file;
+  }
+
+  it("resolves ocRef against the OC tree (items before workstreams) and accepts a live item", () => {
+    const { root } = initRepo();
+    const ocRoot = seedOcTree(root, [
+      { id: "ARCH-007", status: "IN_PROGRESS" },
+      { id: "WS-999", status: "IN_PROGRESS" },
+    ]);
+    expect(resolveOcRef(ocRoot, "ARCH-007")).toEqual({ ok: true, kind: "items" });
+    const wsRoot = path.join(root, "docs", "operations", "control");
+    fs.mkdirSync(path.join(wsRoot, "workstreams"), { recursive: true });
+    expect(resolveOcRef(wsRoot, "NOPE-404")).toEqual({ ok: false, reason: "not-found" });
+    expect(resolveOcRef(wsRoot, "bad ref")).toEqual({ ok: false, reason: "malformed-ref" });
+    expect(resolveOcRef(wsRoot, 42)).toEqual({ ok: false, reason: "malformed-ref" });
+  });
+
+  it("rejects a SUPERSEDED record and an id that does not match its file", () => {
+    const { root } = initRepo();
+    const ocRoot = seedOcTree(root, [
+      { id: "ARCH-007", status: "SUPERSEDED" },
+      { id: "OTHER-ID", status: "IN_PROGRESS" },
+    ]);
+    expect(resolveOcRef(ocRoot, "ARCH-007")).toEqual({ ok: false, reason: "superseded" });
+    /* الملف باسم ARCH-007 لكن معرّفه الداخلي OTHER-ID — مرجع مضلل يُرفض. */
+    const mismatchDir = path.join(root, "docs", "operations", "control", "items");
+    fs.writeFileSync(path.join(mismatchDir, "WS-100.json"), JSON.stringify({ id: "WRONG", status: "IN_PROGRESS" }));
+    expect(resolveOcRef(ocRoot, "WS-100")).toEqual({ ok: false, reason: "id-mismatch:items" });
+  });
+
+  it("loadReanchorLedger v2 fails closed on a bogus, missing, or unparseable ocRef", () => {
+    const { root } = initRepo();
+    seedOcTree(root);
+    const good = v2LedgerFile(root, [reanchorEntry()]);
+    expect(() => loadReanchorLedger(good)).not.toThrow();
+    const bogus = v2LedgerFile(root, [reanchorEntry({ authorization: { ownerReview: "x", ocRef: "ARCH-404" } })]);
+    expect(() => loadReanchorLedger(bogus)).toThrow(/does not resolve \(not-found\)/);
+    const noRef = v2LedgerFile(root, [reanchorEntry({ authorization: { ownerReview: "x" } })]);
+    expect(() => loadReanchorLedger(noRef)).toThrow(/does not resolve \(malformed-ref\)/);
+    fs.writeFileSync(
+      path.join(root, "docs", "operations", "control", "items", "ARCH-007.json"),
+      "{ not json",
+    );
+    expect(() => loadReanchorLedger(good)).toThrow(/does not resolve \(unparseable:items\)/);
+  });
+
+  it("v1 ledgers (no schema field) still load for frozen history; unknown schemas fail", () => {
+    const { root } = initRepo();
+    const v1Path = path.join(root, "scripts", "file-size-ratchet-reanchors.json");
+    fs.writeFileSync(v1Path, JSON.stringify(ledgerWith([reanchorEntry({ authorization: { ownerReview: "PR #1" } })])));
+    const loaded = loadReanchorLedger(v1Path);
+    expect(loaded.entries).toHaveLength(1);
+    const unknownPath = path.join(root, "scripts", "file-size-ratchet-reanchors2.json");
+    fs.writeFileSync(unknownPath, JSON.stringify({ schema: "micro-file-size-ratchet-reanchors/9", entries: [] }));
+    expect(() => loadReanchorLedger(unknownPath)).toThrow(/unknown schema/);
+  });
+
+  it("the committed live ledger is a valid v2 census with every ocRef resolving against the live OC tree", () => {
+    const loaded = loadReanchorLedger(REANCHOR_LEDGER_PATH);
+    expect(loaded.schema).toBe(REANCHOR_SCHEMA_V2);
+    expect(loaded.entries.length).toBeGreaterThan(60);
+    for (const entry of loaded.entries)
+      expect(typeof entry.authorization?.ocRef).toBe("string");
   });
 });
 

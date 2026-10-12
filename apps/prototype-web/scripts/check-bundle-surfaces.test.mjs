@@ -143,6 +143,11 @@ describe("environment and identity detection", () => {
     expect(detectEnvironment({ CI: "true" })).toBeNull();
     expect(detectEnvironment({ GITLAB_CI: "true" })).toBeNull();
     expect(detectEnvironment({ CI: "false" })).toBe("local");
+    /* F-028/NF-021 (R10-B5): قيمة غير قياسية لمؤشر معروف = مجهولة الهوية —
+     * تقوية الفشل المغلق (كانت تسقط إلى «local» لأن المفتاح لم يكن في قائمة
+     * المسح)؛ التوافق مع حارس الراتشة يفرزه الاختبار التوافقي في الجذر. */
+    expect(detectEnvironment({ GITHUB_ACTIONS: "weird" })).toBeNull();
+    expect(detectEnvironment({ CI: "1" })).toBeNull();
   });
 
   it("build identity follows the vite.config priority: explicit, GitHub, Pages, none", () => {

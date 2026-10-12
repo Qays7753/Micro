@@ -94,14 +94,35 @@ const FAILURE_CODES = {
 };
 
 /** هوية بيئة القياس من متغيراتها — ترتيب الفحص CF ثم Actions ثم محلي. */
+/* F-028/NF-021 (R10-B5 — 2026-10-13): معجم مؤشرات CI الموحّد — نفس المفاتيح
+ * التي يمسحها scripts/check-file-size-ratchet.mjs::ciMarkerPresent حرفيًا
+ * (CI_MARKER_KEYS هناك). الاختبار التوافقي check-ci-semantics-conformance.test.mjs
+ * يفرز استمرار التطابق بين الحارسين آليًا: أي بيئة يراها هذا الحارس غير
+ * موثقة (null) أو بهوية CI يجب أن يراها حارس الراتشة «CI حاضرة»، وكل بيئة
+ * محلية خالية من المؤشرات عند كليهما. قيم "false" الصريحة ليست مؤشرًا
+ * (إلغاء واعٍ)، والقيم غير القياسية لمؤشر معروف (GITHUB_ACTIONS="weird")
+ * صارت مجهولة الهوية فتُرفض — تقوية الفشل المغلق لا استثناء عليه. */
+export const CI_MARKER_KEYS = [
+  "CI",
+  "GITHUB_ACTIONS",
+  "GITLAB_CI",
+  "JENKINS_URL",
+  "TEAMCITY_VERSION",
+  "CF_PAGES",
+  "CF_PAGES_COMMIT_SHA",
+];
+
 export function detectEnvironment(env = process.env) {
-  if (env.CF_PAGES === "1" || (typeof env.CF_PAGES_COMMIT_SHA === "string" && env.CF_PAGES_COMMIT_SHA !== ""))
+  if (
+    env.CF_PAGES === "1" ||
+    (typeof env.CF_PAGES_COMMIT_SHA === "string" && env.CF_PAGES_COMMIT_SHA !== "" && env.CF_PAGES_COMMIT_SHA !== "false")
+  )
     return "cloudflare-pages";
   if (env.GITHUB_ACTIONS === "true") return "github-actions";
   /* مؤشرات CI أخرى بلا هوية موثوقة = بيئة غير موثقة (GitLab/GitHub-مقلد) —
    * الرفض الصادق بدل تطبيق أساس محلي على بناء مجهول الأداة. */
-  const ciMarkers = [env.CI, env.GITLAB_CI, env.JENKINS_URL, env.TEAMCITY_VERSION];
-  if (ciMarkers.some(v => v !== undefined && v !== null && v !== "" && v !== "false")) return null;
+  if (CI_MARKER_KEYS.some(key => env[key] !== undefined && env[key] !== null && env[key] !== "" && env[key] !== "false"))
+    return null;
   return "local";
 }
 
