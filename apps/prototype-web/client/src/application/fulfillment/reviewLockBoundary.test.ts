@@ -14,6 +14,7 @@ const now = () => "2026-09-08T09:00:00.000Z";
 
 function buildCostSnapshot() {
   return calculateCostSnapshot("cost-app-lock", {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },

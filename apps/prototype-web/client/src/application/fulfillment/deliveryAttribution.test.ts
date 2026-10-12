@@ -15,6 +15,7 @@ import {
 
 function baseOrder(id: string): CraftOrder {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [
       {

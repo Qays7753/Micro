@@ -29,6 +29,7 @@ function makeServices(store: MemoryLocalStore) {
 /** طلب مسلّم بمتبقٍ — التحصيل الجزئي والكامل مشروعه، والدين يُسجل بعدها. */
 async function deliveredOrderWithRemaining(store: MemoryLocalStore, id: string, price = 10000) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },

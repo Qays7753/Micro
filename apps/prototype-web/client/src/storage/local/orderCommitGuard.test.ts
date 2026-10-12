@@ -8,6 +8,7 @@ import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-ord
 
 function storedOrder(id: string, status: string, extraEvents: StoredCraftOrder["order"]["events"] = []) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },

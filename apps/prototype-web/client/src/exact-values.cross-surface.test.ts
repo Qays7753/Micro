@@ -61,7 +61,7 @@ function receipt(
 }
 
 function overview(materials: readonly InventoryMaterialOverview[]): InventoryOverview {
-  return { materials, untrackedNames: [] } as InventoryOverview;
+  return { materials, untrackedNames: [] } as unknown as InventoryOverview;
 }
 
 function byId(suggestions: readonly { materialId: string }[], materialId: string) {

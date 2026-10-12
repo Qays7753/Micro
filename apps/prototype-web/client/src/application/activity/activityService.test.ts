@@ -224,6 +224,7 @@ describe("activity reader (المجموعة ٥ — عقد ٣٠)", () => {
   it("order events map by kind: collection cash-in, deposit pending, correction family", async () => {
     const store = new MemoryLocalStore();
     const cost = calculateCostSnapshot("cost-order-1", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },
@@ -313,6 +314,7 @@ describe("activity reader (المجموعة ٥ — عقد ٣٠)", () => {
       } as unknown as OrderEvent,
     ];
     const cost = calculateCostSnapshot("cost-order-2", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },

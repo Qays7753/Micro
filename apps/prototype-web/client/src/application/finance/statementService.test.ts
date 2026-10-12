@@ -225,6 +225,7 @@ describe("StatementService — كشف الفترة (المجموعة ٢ §9.2)",
     const finance = new ProjectFinancialService(store, now);
     const statement = new StatementService(store, finance);
     const cost = calculateCostSnapshot("st-decomp-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 1000, confidence: "known" },
@@ -255,6 +256,7 @@ describe("StatementService — كشف الفترة (المجموعة ٢ §9.2)",
     ] as const)
       order = transitionOrder(order, { to, idempotencyKey: `st-decomp-${to}`, createdAt: stamp });
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-09-04",
@@ -439,6 +441,7 @@ describe("StatementService — تراجعات القبض ورد العربون (
     /* طلب مسلّم: عربون 2000 بتاريخ 2026-09-01 ثم قبضة 3000 بتاريخ 2026-09-02
      * ثم تراجع موثق عن القبضة كاملة بتاريخ 2026-09-03. */
     const cost = calculateCostSnapshot("st-1-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -507,6 +510,7 @@ describe("StatementService — تراجعات القبض ورد العربون (
     const finance = new ProjectFinancialService(store, clock);
     const statement = new StatementService(store, finance);
     const cost = calculateCostSnapshot("st-2-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },

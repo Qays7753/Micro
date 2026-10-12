@@ -51,6 +51,7 @@ describe("InventoryMaterialService", () => {
       }),
     ).resolves.toMatchObject({ ok: true, value: { type: "purchase_receipt", valueDeltaMinor: 3000 } });
     const cost = calculateCostSnapshot("cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -73,6 +74,7 @@ describe("InventoryMaterialService", () => {
       createdAt: "2026-08-23T09:00:00.000Z",
     });
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-08-30",
@@ -173,6 +175,7 @@ describe("InventoryMaterialService", () => {
     });
     if (!opened.ok) throw new Error("material should open");
     const cost = calculateCostSnapshot("actual-material-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [
         {
@@ -205,6 +208,7 @@ describe("InventoryMaterialService", () => {
       createdAt: "2026-08-01T09:00:00.000Z",
     });
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-08-30",
@@ -1356,6 +1360,7 @@ describe("Stage 2 — OPS-007/OPS-009: إعلان سبب المراجعة وحت
     });
     if (!opened.ok) throw new Error("material should open");
     const cost = calculateCostSnapshot("ops7-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [
         {
@@ -1388,6 +1393,7 @@ describe("Stage 2 — OPS-007/OPS-009: إعلان سبب المراجعة وحت
       createdAt: "2026-08-01T09:00:00.000Z",
     });
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-09-20",
@@ -1489,6 +1495,7 @@ describe("Stage 2 — OPS-007/OPS-009: إعلان سبب المراجعة وحت
       });
     }
     await store.saveOrder({
+      catalogItemId: null,
       id: orderId,
       order: delivered,
       deliveryDate: "2026-09-20",

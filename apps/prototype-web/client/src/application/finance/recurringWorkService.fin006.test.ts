@@ -18,6 +18,7 @@ function deliveredStored(
   price = 5000,
 ): StoredCraftOrder {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [
       {

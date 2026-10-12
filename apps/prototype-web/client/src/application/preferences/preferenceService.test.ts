@@ -144,7 +144,9 @@ describe("PreferenceService", () => {
       "saveLowStockThreshold",
     ]);
     for (const name of publicMethods) {
-      expect(typeof (PreferenceService.prototype as Record<string, unknown>)[name]).toBe("function");
+      expect(typeof (PreferenceService.prototype as unknown as Record<string, unknown>)[name]).toBe(
+        "function",
+      );
     }
   });
 });

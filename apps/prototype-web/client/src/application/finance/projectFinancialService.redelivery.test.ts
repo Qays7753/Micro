@@ -16,6 +16,7 @@ const now = () => "2026-09-05T09:00:00.000Z";
 
 function deliveredOrder(id: string, deliveredAt: string) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [
       {

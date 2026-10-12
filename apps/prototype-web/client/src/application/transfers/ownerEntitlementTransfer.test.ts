@@ -192,7 +192,7 @@ describe("O1 local transfer boundary", () => {
     });
     const exported = await new LocalTransferService(source).createExport();
     if (!exported.ok) throw new Error("export should succeed");
-    const broken = structuredClone(exported.value) as {
+    const broken = structuredClone(exported.value) as unknown as {
       data: { cashContinuityEntries: Array<{ operationKey: string }> };
     };
     broken.data.cashContinuityEntries = [];

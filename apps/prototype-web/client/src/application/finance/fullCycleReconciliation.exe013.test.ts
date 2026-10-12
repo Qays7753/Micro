@@ -77,6 +77,7 @@ async function walkAndAssert(store: PrototypeLocalStore): Promise<void> {
   /* ٢ — بيع بدين وقبض جزئي: طلب 50.00، عربون 20.00، دين مسجل 30.00، قبض 10.00
    * (نسخة التكلفة: مواد 10.00 + وقت 5.00 = 15.00) */
   const snapshot = calculateCostSnapshot("cycle-cost", {
+    source: "draft",
     currency: "JOD",
     materialItems: [
       {

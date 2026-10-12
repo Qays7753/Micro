@@ -6,6 +6,7 @@ import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 async function storedOrder(id = "order-context") {
   const store = new MemoryLocalStore();
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },

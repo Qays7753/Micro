@@ -56,6 +56,7 @@ async function seedPurchase(store: MemoryLocalStore, key: string, name: string, 
 
 function draftOrder(id: string, deliveryDate: string) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },

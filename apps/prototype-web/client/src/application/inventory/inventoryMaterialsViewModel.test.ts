@@ -19,10 +19,10 @@ describe("R7/P09 — القراءة الرباعية لصفحة المواد", (
     const state = await readInventoryMaterialsPage({ inventory: service(null) });
     expect(state.phase).toBe("ready");
     if (state.phase !== "ready") return;
-    expect((state.overview as { marker: string }).marker).toBe("overview");
+    expect((state.overview as unknown as { marker: string }).marker).toBe("overview");
     expect(state.movements).toHaveLength(1);
     expect(state.shortages).toHaveLength(1);
-    expect((state.activation as { marker: string }).marker).toBe("activation");
+    expect((state.activation as unknown as { marker: string }).marker).toBe("activation");
   });
 
   it("فشل أي قراءة من الأربع = خطأ صادق واحد (إعادة محاولة)", async () => {

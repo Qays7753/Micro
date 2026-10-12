@@ -32,6 +32,7 @@ const now = () => "2026-08-23T09:00:00.000Z";
  * على كميتين (2000 ملي) — الكلفة المعترف بها = 1000 + مكون التوصيل. */
 function d03Order(id: string, snapshotDeliveryMinor: number, priceMinor = 5500) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 1000, confidence: "known" },
@@ -93,6 +94,7 @@ function deliverConfirmed(
 
 async function saveAndFix(store: MemoryLocalStore, order: ReturnType<typeof d03Order>, fixedKey: string) {
   await store.saveOrder({
+    catalogItemId: null,
     id: order.id,
     order,
     deliveryDate: "2026-08-05",

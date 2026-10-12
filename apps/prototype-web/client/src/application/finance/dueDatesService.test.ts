@@ -58,6 +58,7 @@ async function seedPurchase(
 /** طلب مسلّم بدين مسجل — مصدر ذمة تحصيل حقيقي من مسار النطاق. */
 async function deliveredOrderWithDebt(store: MemoryLocalStore, id: string, price = 10000) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },

@@ -318,6 +318,7 @@ describe("F-058 — عقد ٥ §3.2.1 (نتيجة الفترة المسجلة): 
     ] as const)
       order = transitionOrder(order, { to, idempotencyKey: `oracle05-${to}`, createdAt: stamp });
     const stored = await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-09-05",

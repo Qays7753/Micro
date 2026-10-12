@@ -19,6 +19,7 @@ const NOW = "2026-09-05T09:00:00.000Z";
 
 function buildStored(overrides: Record<string, unknown> = {}) {
   const cost = calculateCostSnapshot("cost-1", {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },
@@ -45,7 +46,7 @@ function buildStored(overrides: Record<string, unknown> = {}) {
     collectedMinor: 5000,
     receivableMinor: 10000,
     status: "in_progress" as const,
-    settlementStatus: "partial" as const,
+    settlementStatus: "partially_paid" as const,
   };
   return {
     id: "order-1",

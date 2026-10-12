@@ -15,6 +15,7 @@ function finalOrder(
   quantity = 2,
 ) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [
       {

@@ -310,6 +310,7 @@ describe("EXE-014 export → change → restore returns every covered family int
     });
     if (!material.ok) throw new Error(material.message);
     const snapshotCost = calculateCostSnapshot("exe014-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 90, hourlyRateMinor: 500, confidence: "known" },

@@ -33,6 +33,7 @@ async function saveProfile(store: MemoryLocalStore) {
 
 async function saveOrder(store: MemoryLocalStore, id: string) {
   const cost = calculateCostSnapshot(`cost-${id}`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },
@@ -108,6 +109,7 @@ describe("HomeControlCenterService", () => {
     const store = new MemoryLocalStore();
     await saveProfile(store);
     const cost = calculateCostSnapshot("cost-today", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },
@@ -262,6 +264,7 @@ describe("HomeControlCenterService", () => {
     await saveProfile(store);
     const id = "home-incomplete-settled";
     const cost = calculateCostSnapshot(`cost-${id}`, {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: null,
