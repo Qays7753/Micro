@@ -13,19 +13,13 @@ import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { MaterialUnit } from "@micro-domain/inventory-material/index.js";
 import type { InventoryMaterialOverview } from "@/application/inventory";
 import { formatQuantityMilliFixed3 } from "@/presentation/formatters";
+/* R10-B3/R10B-NF-002: تسمية الوحدة من باب بيت المخزون. */
+import { materialUnitLabel as unitLabel } from "@/application/inventory";
 import { MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";
 import { todayInAmman } from "@/application/time";
-const unitLabel = (unit: MaterialUnit): string =>
-  unit === "piece"
-    ? "قطعة"
-    : unit === "meter"
-      ? "متر"
-      : unit === "kilogram"
-        ? "كيلوغرام"
-        : unit === "liter"
-          ? "لتر"
-          : "وحدة أخرى";
+/* R10-B3/R10B-NF-002 (2026-10-12): تسمية الوحدة من نواة التنسيق عبر
+ * واجهة العرض — كان تعريفًا محليًا رابعًا للخريطة نفسها. */
 type TrackingChoice = "tracked" | "untracked";
 type OpeningChoice = "quantity" | "unconfirmed" | "zero";
 

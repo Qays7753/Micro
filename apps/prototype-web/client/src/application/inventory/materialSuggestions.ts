@@ -12,6 +12,7 @@ import type {
 } from "@/application/inventory/inventoryMaterialService";
 import type { InventoryMovement } from "@micro-domain/inventory-material/index.js";
 import { roundHalfUp } from "@micro-domain/shared/index.js";
+import { materialUnitLabel } from "./materialUnitLabels";
 
 /** مقترح مادة للتعبئة في محرري التكلفة (المجموعة ٢ — عقد ٢٨، السيناريو G). */
 export type MaterialSuggestion = {
@@ -62,16 +63,9 @@ export function materialSuggestionsFrom(
     return {
       materialId: material.id,
       name: material.name,
-      unit:
-        material.unit === "piece"
-          ? "قطعة"
-          : material.unit === "meter"
-            ? "متر"
-            : material.unit === "kilogram"
-              ? "كيلوغرام"
-              : material.unit === "liter"
-                ? "لتر"
-                : "وحدة أخرى",
+      /* R10-B3/R10B-NF-002 (2026-10-12): التسمية من نواة التنسيق الكنونية
+       * — كانت نسخة محلية سادسة من الخريطة. */
+      unit: materialUnitLabel(material.unit),
       unitPriceMinor,
       fromReceipt: Boolean(lastReceipt),
     };

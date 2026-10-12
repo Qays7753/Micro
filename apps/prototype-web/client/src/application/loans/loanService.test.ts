@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { LoanService } from "./loanService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 
@@ -169,5 +169,84 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(loan.value.repayments.length).toBe(1);
     /* السجل والأحداث متسقان: المتبقي محسوب من دفعة واحدة مسجلة في الموضعين. */
     expect(loan.value.repayments[0]!.eventId).toBe(repaymentEvents[0]!.id);
+  });
+});
+
+/* R10-B3/R10A-F-012 + R10B-NF-006 (2026-10-12): الإقراض في السياق غير الآمن —
+ * كان newId يستدعي crypto.randomUUID مباشرة فيرمي TypeError على الأصول
+ * غير الآمنة؛ الآن مسار randomUUID الحرفي عند توفره وبديل فريد خارجه.
+ * المرآة نفسها لنمط Catalog.operationKey.test.ts. */
+type CryptoLike = typeof globalThis.crypto;
+const originalCrypto: CryptoLike | undefined = globalThis.crypto;
+function restoreCrypto() {
+  if (originalCrypto === undefined) {
+    delete (globalThis as { crypto?: CryptoLike }).crypto;
+    return;
+  }
+  Object.defineProperty(globalThis, "crypto", {
+    value: originalCrypto,
+    configurable: true,
+    writable: true,
+  });
+}
+afterEach(restoreCrypto);
+
+describe("loan service insecure-context ids (R10-B3 — F-012 + NF-006)", () => {
+  it("creates a loan when crypto is absent (non-secure origin) instead of throwing", async () => {
+    const store = new MemoryLocalStore();
+    const service = new LoanService(store, now);
+    delete (globalThis as { crypto?: CryptoLike }).crypto;
+    const created = await service.create({
+      borrowerName: "خالد",
+      principalMinor: 5000,
+      loanDate: "2026-07-01",
+      purposeNote: null,
+      sourceWalletId: null,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    expect(created.value.loan.id).toMatch(/^loan-\d+-[0-9a-z]+$/);
+    expect(created.value.event.id).toMatch(/^event-\d+-[0-9a-z]+$/);
+    const events = await store.listFinancialEvents();
+    expect(events.ok && events.value).toHaveLength(1);
+  });
+
+  it("returns the secure randomUUID id verbatim when crypto is available", async () => {
+    const store = new MemoryLocalStore();
+    const service = new LoanService(store, now);
+    const sentinel = "abcdefab-1234-5678-9abc-def012345678";
+    Object.defineProperty(globalThis, "crypto", {
+      value: { randomUUID: () => sentinel },
+      configurable: true,
+      writable: true,
+    });
+    const created = await service.create({
+      borrowerName: "سامر",
+      principalMinor: 2500,
+      loanDate: "2026-07-02",
+      purposeNote: null,
+      sourceWalletId: null,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    expect(created.value.loan.id).toBe(`loan-${sentinel}`);
+  });
+
+  it("fallback ids stay collision-free across rapid successive creations", async () => {
+    const store = new MemoryLocalStore();
+    const service = new LoanService(store, now);
+    delete (globalThis as { crypto?: CryptoLike }).crypto;
+    const ids = new Set<string>();
+    for (let index = 0; index < 50; index += 1) {
+      const created = await service.create({
+        borrowerName: `مقترض ${index}`,
+        principalMinor: 100,
+        loanDate: "2026-07-01",
+        purposeNote: null,
+        sourceWalletId: null,
+      });
+      if (created.ok) ids.add(created.value.loan.id);
+    }
+    expect(ids.size).toBe(50);
   });
 });

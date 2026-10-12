@@ -16,9 +16,9 @@
  "environments": {
   "local": {
    "anchored": {
-    "head": "dd1e320b",
-    "date": "2026-10-11",
-    "method": "R10-B2 gate-fix re-anchor (RV5/D1, code head dd1e320b): the era-uniform presence-gate correction (current-pair requires ALL 31 array families present; registry value shape rule->historicalClass) grows the lazy transfers module further: lazy 1,214,640 -> 1,214,850 raw / 366,065 -> 366,062 gzipNorm; precache 2,682,606 -> 2,682,816 local (same lazy growth; +112 cloud identity footprint). Initial companions and swRuntime byte-identical; entry ceilings untouched; tolerances/counts/guard untouched. This is the second documented same-PR re-anchor of the B2 wave (RV1 type-fix did not shift bytes; RV5 gate-fix did)."
+    "head": "446e8a470b7597ee5484f2e2822c46fd0496350d",
+    "date": "2026-10-12",
+    "method": "R10-B3 wave re-anchor (code head 446e8a470b75, 2026-10-12): the B3 source-of-truth wave consolidates six MaterialUnit label copies into one application-house module (lazy raw shrinks 1,214,850 -> 1,214,715; precache 2,682,816 -> 2,682,693 local), single-sources the payment-source policy (new shared lazy chunk: lazyJsCount 101 -> 102, precacheEntryCount 156 -> 157), and single-sources the financial-event reversal message literals (resultCodes pattern: constants module + inline checks) which grows the normalized lazy gzip 366,062 -> 366,112 and the sw runtime 26,170 -> 26,231 (the sw precache manifest gains one chunk entry). Entry ceilings untouched (local 631,664/155,188 under 650,000/155,300); tolerances/counts/guard untouched. This is the first documented same-PR re-anchor of the B3 wave."
    },
    "toolchain": {
     "node": "v24.21.0",
@@ -32,24 +32,24 @@
    "measurements": {
     "initialRawTotal": 224687,
     "initialGzipNormTotal": 70716,
-    "lazyRawTotal": 1214850,
-    "lazyGzipNormTotal": 366062,
-    "precacheBytesTotal": 2682816,
-    "swRuntimeRawTotal": 26170
+    "lazyRawTotal": 1214715,
+    "lazyGzipNormTotal": 366112,
+    "precacheBytesTotal": 2682693,
+    "swRuntimeRawTotal": 26231
    },
    "counts": {
-    "lazyJsCount": 101,
+    "lazyJsCount": 102,
     "initialJsCount": 2,
     "dynamicRootsCount": 70,
-    "precacheEntryCount": 156,
+    "precacheEntryCount": 157,
     "swRuntimeFileCount": 2
    }
   },
   "cloudflare-pages": {
    "anchored": {
-    "head": "dd1e320b",
-    "date": "2026-10-11",
-    "method": "R10-B2 gate-fix re-anchor (RV5/D1, code head dd1e320b): the era-uniform presence-gate correction (current-pair requires ALL 31 array families present; registry value shape rule->historicalClass) grows the lazy transfers module further: lazy 1,214,640 -> 1,214,850 raw / 366,065 -> 366,062 gzipNorm; precache 2,682,606 -> 2,682,816 local (same lazy growth; +112 cloud identity footprint). Initial companions and swRuntime byte-identical; entry ceilings untouched; tolerances/counts/guard untouched. This is the second documented same-PR re-anchor of the B2 wave (RV1 type-fix did not shift bytes; RV5 gate-fix did)."
+    "head": "446e8a470b7597ee5484f2e2822c46fd0496350d",
+    "date": "2026-10-12",
+    "method": "R10-B3 wave re-anchor (code head 446e8a470b75, 2026-10-12): the B3 source-of-truth wave consolidates six MaterialUnit label copies into one application-house module (lazy raw shrinks 1,214,850 -> 1,214,715; precache 2,682,816 -> 2,682,693 local), single-sources the payment-source policy (new shared lazy chunk: lazyJsCount 101 -> 102, precacheEntryCount 156 -> 157), and single-sources the financial-event reversal message literals (resultCodes pattern: constants module + inline checks) which grows the normalized lazy gzip 366,062 -> 366,112 and the sw runtime 26,170 -> 26,231 (the sw precache manifest gains one chunk entry). Entry ceilings untouched (local 631,664/155,188 under 650,000/155,300); tolerances/counts/guard untouched. This is the first documented same-PR re-anchor of the B3 wave."
    },
    "toolchain": {
     "node": "not-exposed-by-provider",
@@ -60,24 +60,24 @@
    "measurements": {
     "initialRawTotal": 224687,
     "initialGzipNormTotal": 70716,
-    "lazyRawTotal": 1214850,
-    "lazyGzipNormTotal": 366062,
-    "precacheBytesTotal": 2682928,
-    "swRuntimeRawTotal": 26170
+    "lazyRawTotal": 1214715,
+    "lazyGzipNormTotal": 366112,
+    "precacheBytesTotal": 2682805,
+    "swRuntimeRawTotal": 26231
    },
    "counts": {
-    "lazyJsCount": 101,
+    "lazyJsCount": 102,
     "initialJsCount": 2,
     "dynamicRootsCount": 70,
-    "precacheEntryCount": 156,
+    "precacheEntryCount": 157,
     "swRuntimeFileCount": 2
    }
   },
   "github-actions": {
    "anchored": {
-    "head": "dd1e320b",
-    "date": "2026-10-11",
-    "method": "R10-B2 gate-fix re-anchor (RV5/D1, code head dd1e320b): the era-uniform presence-gate correction (current-pair requires ALL 31 array families present; registry value shape rule->historicalClass) grows the lazy transfers module further: lazy 1,214,640 -> 1,214,850 raw / 366,065 -> 366,062 gzipNorm; precache 2,682,606 -> 2,682,816 local (same lazy growth; +112 cloud identity footprint). Initial companions and swRuntime byte-identical; entry ceilings untouched; tolerances/counts/guard untouched. This is the second documented same-PR re-anchor of the B2 wave (RV1 type-fix did not shift bytes; RV5 gate-fix did)."
+    "head": "446e8a470b7597ee5484f2e2822c46fd0496350d",
+    "date": "2026-10-12",
+    "method": "R10-B3 wave re-anchor (code head 446e8a470b75, 2026-10-12): the B3 source-of-truth wave consolidates six MaterialUnit label copies into one application-house module (lazy raw shrinks 1,214,850 -> 1,214,715; precache 2,682,816 -> 2,682,693 local), single-sources the payment-source policy (new shared lazy chunk: lazyJsCount 101 -> 102, precacheEntryCount 156 -> 157), and single-sources the financial-event reversal message literals (resultCodes pattern: constants module + inline checks) which grows the normalized lazy gzip 366,062 -> 366,112 and the sw runtime 26,170 -> 26,231 (the sw precache manifest gains one chunk entry). Entry ceilings untouched (local 631,664/155,188 under 650,000/155,300); tolerances/counts/guard untouched. This is the first documented same-PR re-anchor of the B3 wave."
    },
    "toolchain": {
     "node": "v22.23.3",
@@ -91,16 +91,16 @@
    "measurements": {
     "initialRawTotal": 224687,
     "initialGzipNormTotal": 70716,
-    "lazyRawTotal": 1214850,
-    "lazyGzipNormTotal": 366062,
-    "precacheBytesTotal": 2682928,
-    "swRuntimeRawTotal": 26170
+    "lazyRawTotal": 1214715,
+    "lazyGzipNormTotal": 366112,
+    "precacheBytesTotal": 2682805,
+    "swRuntimeRawTotal": 26231
    },
    "counts": {
-    "lazyJsCount": 101,
+    "lazyJsCount": 102,
     "initialJsCount": 2,
     "dynamicRootsCount": 70,
-    "precacheEntryCount": 156,
+    "precacheEntryCount": 157,
     "swRuntimeFileCount": 2
    }
   }

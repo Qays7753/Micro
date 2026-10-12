@@ -27,6 +27,15 @@ export type {
 export { PeriodComparisonService } from "./periodComparisonService";
 export type { PeriodComparisonReading } from "./periodComparisonService";
 
+/* R10-B3/R10B-NF-001 (2026-10-12): سياسة مصدر الصرف من مالكها الكنوني عبر
+ * الباب — القيمة الحارسة «لم يُختر بعد» وقاعدة 0/1/متعدد صارت ملكية واحدة
+ * في paymentSourcePolicy.ts؛ سطح الباب يصدّر ما تستهلكه الواجهة فعلًا
+ * (EXPENSE_SOURCE_UNSET/defaultExpenseSource في components/finance) —
+ * توسيع سطح مقصود بنفس الـPR مع تحديث أساس الأبواب (بروتوكول PC-3).
+ * الاستهلاك التطبيقي الداخلي (application/suppliers) من ملف الوحدة مباشرة
+ * كالنمط القائم؛ paymentSourcePayload يبقى داخليًا بلا مستهلك واجهة. */
+export { PAYMENT_SOURCE_UNSET, resolveDefaultPaymentSource } from "./paymentSourcePolicy";
+
 export { isPeriodActive, previousEqualPeriod, resolvePeriodPreset } from "./periodPresets";
 
 export { ProfitToCashBridgeService } from "./profitToCashBridgeService";

@@ -86,6 +86,14 @@ import {
 } from "./supplierAttributionCommitGuard";
 
 import { RECURRENCE_STALE_MESSAGE } from "./indexedDbStores";
+/* R10-B3/R10B-NF-036 (2026-10-12): حرفيات رسائل التراجع من مالكها المشترك
+ * (نمط resultCodes) — الشروط نفسها داخلية كما هي؛ المطابقة مثبتة بالاختبار. */
+import {
+  FINANCIAL_EVENT_SOURCE_MISSING_CORRECTION,
+  FINANCIAL_EVENT_SOURCE_MISSING_REPLACEMENT,
+  REVERSAL_MISMATCH_MESSAGE,
+  REVERSAL_OF_REVERSAL_MESSAGE,
+} from "./financialEventCorrectionMessages";
 import { STORAGE_ERROR, STORAGE_STALE } from "./resultCodes";
 import {
   actualTimeStore,
@@ -1452,12 +1460,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             abortWith({
               ok: false,
               code: STORAGE_ERROR,
-              message: "لم يعد الحدث المصدر موجودًا؛ لم يُحفظ التراجع.",
+              message: FINANCIAL_EVENT_SOURCE_MISSING_CORRECTION,
             });
             return;
           }
           if (source.correctionType === "reverse" || source.correctionOfEventId) {
-            abortWith({ ok: false, code: STORAGE_ERROR, message: "لا يمكن التراجع عن حدث تراجع سابق." });
+            abortWith({ ok: false, code: STORAGE_ERROR, message: REVERSAL_OF_REVERSAL_MESSAGE });
             return;
           }
           const existing = events.find(
@@ -1497,7 +1505,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             abortWith({
               ok: false,
               code: STORAGE_ERROR,
-              message: "بيانات التراجع لا تطابق الحدث الأصلي؛ لم يتغير السجل.",
+              message: REVERSAL_MISMATCH_MESSAGE,
             });
             return;
           }
@@ -1554,12 +1562,12 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             abortWith({
               ok: false,
               code: STORAGE_ERROR,
-              message: "لم يعد الحدث الأصلي موجودًا؛ لم يتغير السجل.",
+              message: FINANCIAL_EVENT_SOURCE_MISSING_REPLACEMENT,
             });
             return;
           }
           if (source.correctionType === "reverse" || source.correctionOfEventId) {
-            abortWith({ ok: false, code: STORAGE_ERROR, message: "لا يمكن التراجع عن حدث تراجع سابق." });
+            abortWith({ ok: false, code: STORAGE_ERROR, message: REVERSAL_OF_REVERSAL_MESSAGE });
             return;
           }
           const existing = events.find(
@@ -1598,7 +1606,7 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             abortWith({
               ok: false,
               code: STORAGE_ERROR,
-              message: "بيانات التراجع لا تطابق الحدث الأصلي؛ لم يتغير السجل.",
+              message: REVERSAL_MISMATCH_MESSAGE,
             });
             return;
           }

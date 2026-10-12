@@ -18,10 +18,14 @@ import type { usePrototypeServices } from "@/app/PrototypeServicesContext";
 
 type Services = ReturnType<typeof usePrototypeServices>;
 
-/* FIN-005 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): قيمة «لم يُختر بعد» — تُميّز عدم
- * الاختيار عن الخيار الصريح «الكاش غير الموزع» (قيمة فارغة) في حالة المحافظ
- * المتعددة حيث الاختيار إلزامي. */
-export const EXPENSE_SOURCE_UNSET = "__unset__";
+/* R10-B3/R10B-NF-001 (2026-10-11): القيمة الحارسة صارت ملكية واحدة في
+ * application/finance/paymentSourcePolicy.ts (كانت منسوختين هنا وفي
+ * application/suppliers باسمين) — الاستيراد هنا عبر باب البيت المالي
+ * `@/application/finance` (المسار الكنوني للواجهة — STR-615/R6؛ لا
+ * استيراد عميقًا لدواخل بيوت التطبيق)؛ الاسم أدناه إعادة تسمية توافقًا
+ * لمستهلكي هذه الوحدة. */
+import { PAYMENT_SOURCE_UNSET } from "@/application/finance";
+export const EXPENSE_SOURCE_UNSET = PAYMENT_SOURCE_UNSET;
 
 /** رسالة إلزامية الوصف — نفس الحرفية في المدخلين؛ الوصف جزء من السجل المالي. */
 export const EXPENSE_NOTE_REQUIRED_MESSAGE = "اكتب ما حدث قبل الحفظ؛ الوصف جزء من السجل المالي.";
@@ -56,10 +60,9 @@ export function compactExpenseClassification(categoryLabel: string | null): Oper
 }
 
 /** تعيين مصدر الصرف بالقاعدة الموحدة (FIN-005): بلا محافظ = غير الموزع،
- *  محفظة واحدة = معيَّنة مسبقًا، متعددة = لم يُختر بعد. لا تُذكر آخر محفظة. */
-export function defaultExpenseSource(wallets: readonly { id: string }[]): string {
-  return wallets.length === 1 ? (wallets[0]!.id as string) : wallets.length === 0 ? "" : EXPENSE_SOURCE_UNSET;
-}
+ *  محفظة واحدة = معيَّنة مسبقًا، متعددة = لم يُختر بعد. لا تُذكر آخر محفظة.
+ *  (R10-B3/NF-001: تفويض للقاعدة الكنونية الموحدة.) */
+export { resolveDefaultPaymentSource as defaultExpenseSource } from "@/application/finance";
 
 /** تغطية المصروف من المحفظة المختارة — التوقيع الموحد للمدخلين: قيد تخصيص
  *  سالب بمصدر «expense» ومفتاح مشتق من مفتاح الحدث فلا تخصيص مزدوج عند

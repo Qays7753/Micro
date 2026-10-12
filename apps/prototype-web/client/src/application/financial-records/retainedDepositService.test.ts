@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { RetainedDepositService } from "./retainedDepositService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
@@ -257,5 +257,54 @@ describe("retained deposit service (المجموعة ٤ — عقد ٢٩)", () =>
     const active = events.value.find(event => event.id === eventId);
     expect(active?.correctionType ?? null).toBeNull();
     expect(events.value.filter(event => event.correctionOfEventId === eventId)).toHaveLength(0);
+  });
+});
+
+/* R10-B3/R10A-F-012 + R10B-NF-006 (2026-10-12): قرار تصنيف العربون في
+ * السياق غير الآمن — كان newId يستدعي crypto.randomUUID مباشرة فيرمي
+ * TypeError على الأصول غير الآمنة؛ الآن مسار randomUUID الحرفي عند توفره
+ * وبديل فريد خارجه. المرآة نفسها لنمط Catalog.operationKey.test.ts. */
+type CryptoLike = typeof globalThis.crypto;
+const originalCrypto: CryptoLike | undefined = globalThis.crypto;
+function restoreCrypto() {
+  if (originalCrypto === undefined) {
+    delete (globalThis as { crypto?: CryptoLike }).crypto;
+    return;
+  }
+  Object.defineProperty(globalThis, "crypto", {
+    value: originalCrypto,
+    configurable: true,
+    writable: true,
+  });
+}
+afterEach(restoreCrypto);
+
+describe("retained deposit service insecure-context ids (R10-B3 — F-012 + NF-006)", () => {
+  it("classifies a retained deposit when crypto is absent (non-secure origin) instead of throwing", async () => {
+    const store = new MemoryLocalStore();
+    const service = new RetainedDepositService(store, now);
+    await cancelledOrderWithRetainedDeposit(store);
+    delete (globalThis as { crypto?: CryptoLike }).crypto;
+    const result = await service.classify("order-1", "owner", "قرار على أصل غير آمن");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.event.id).toMatch(/^event-\d+-[0-9a-z]+$/);
+    expect(result.value.event.type).toBe("deposit_retained_owner");
+  });
+
+  it("returns the secure randomUUID event id verbatim when crypto is available", async () => {
+    const store = new MemoryLocalStore();
+    const service = new RetainedDepositService(store, now);
+    await cancelledOrderWithRetainedDeposit(store);
+    const sentinel = "0a1b2c3d-1111-2222-3333-444455556666";
+    Object.defineProperty(globalThis, "crypto", {
+      value: { randomUUID: () => sentinel },
+      configurable: true,
+      writable: true,
+    });
+    const result = await service.classify("order-1", "revenue", "قرار آمن");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.event.id).toBe(`event-${sentinel}`);
   });
 });

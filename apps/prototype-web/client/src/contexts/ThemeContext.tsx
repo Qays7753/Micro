@@ -1,9 +1,12 @@
 /** Micro design reminder: theme is a local UI preference saved through Application/LocalStore, never a financial value. */
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+/* R10-B3/R10B-NF-003 (2026-10-11): النوع الكنوني من خدمة التفضيلات
+ * (استيراد نوعي معتمد UI→application عبر الأبواب) بدل إعادة التعريف
+ * المحلية — كانت متطابقة بنيويًا اليوم ومنحرفة النسخ غدًا. */
+import type { ThemePreference } from "@/application/preferences";
 
 type Theme = "light" | "dark";
-type ThemePreference = Theme | "system";
 interface ThemeContextType {
   theme: Theme;
   preference: ThemePreference;
