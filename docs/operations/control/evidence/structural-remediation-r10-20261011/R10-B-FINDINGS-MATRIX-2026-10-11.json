@@ -2763,8 +2763,16 @@
     "b279a6b3",
     "257d0f54"
    ],
-   "records_commit": "(this commit)",
-   "summary": "R10-B5 guards/CI/operability wave: 11 of 13 findings CLOSED_WITH_EVIDENCE (F-025 CI supply-chain pinning; F-027 secrets multi-match + six families zero-FP; F-028 unified CI vocabulary + direct-main parent drift audit + machine-verifiable ocRef authorization on reanchor ledger v2; NF-021 folded into F-028 with the cross-guard conformance test; F-029 inert override removal with byte-identical lockfile proof; F-030 negative suites for both Python design guards; F-031+NF-022 tsconfig.node.json wired and wiring-guarded; NF-023 tools/ inside eslint with a minimal security block; NF-024+NF-026 test-focus Python skips + .fails(); plus the E-UNV-008 live mutation drill executed 6/6 against the real production dist — budget raw/gzip ceilings trip at measured-1, surfaces -1 stays inside the documented tolerance and -(tol+1) trips, unmutated controls green). NF-020 part 1 of 2 landed behavior-verified (2,603/2,603; probe 589->428; exclusion still in place; continuation artifacts preserved). F-024 remains OWNER_DECISION_REQUIRED — OD-9 package strengthened to the full canonical field list, no option chosen. Local entry measurement this wave: 631,721/155,222 PASS under the untouched 650,000/155,300 (byte-identical to the OD-12 records; no production code touched by B5)."
+   "records_commit": "4a993836",
+   "summary": "R10-B5 guards/CI/operability wave: 11 of 13 findings CLOSED_WITH_EVIDENCE (F-025 CI supply-chain pinning; F-027 secrets multi-match + six families zero-FP; F-028 unified CI vocabulary + direct-main parent drift audit + machine-verifiable ocRef authorization on reanchor ledger v2; NF-021 folded into F-028 with the cross-guard conformance test; F-029 inert override removal with byte-identical lockfile proof; F-030 negative suites for both Python design guards; F-031+NF-022 tsconfig.node.json wired and wiring-guarded; NF-023 tools/ inside eslint with a minimal security block; NF-024+NF-026 test-focus Python skips + .fails(); plus the E-UNV-008 live mutation drill executed 6/6 against the real production dist — budget raw/gzip ceilings trip at measured-1, surfaces -1 stays inside the documented tolerance and -(tol+1) trips, unmutated controls green). NF-020 part 1 of 2 landed behavior-verified (2,603/2,603; probe 589->428; exclusion still in place; continuation artifacts preserved). F-024 remains OWNER_DECISION_REQUIRED — OD-9 package strengthened to the full canonical field list, no option chosen. Local entry measurement this wave: 631,721/155,222 PASS under the untouched 650,000/155,300 (byte-identical to the OD-12 records; no production code touched by B5).",
+   "ci_evidence": {
+    "ci_run": 38311831152,
+    "ci_run_url": "https://github.com/Qays7753/Micro/actions/runs/38311831152",
+    "ci_conclusion": "success",
+    "cloudflare_pages": "success (check-run on head 4a993836)",
+    "ci_entry_measurement": "raw=631,833 / gzip=155,281 PASS under the untouched 650,000/155,300 (19-byte gzip margin) — measured byte-exactly from the uploaded CI artifact (entry index-C6VOawSl.js); CI-over-local delta raw +112 exactly (the documented identity footprint), gzip +59 inside the documented sway band (+58..+69); the branch tree is identical to the merge tree (main 2f78fba2 is an ancestor).",
+    "note": "Local full chain on the same head: root 811/811, app 2,608/2,608, all guards green, prototype:build entry 631,721/155,222 (byte-identical to the OD-12 records — B5 touches zero production files)."
+   }
   }
  ]
 }
