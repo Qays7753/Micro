@@ -1172,6 +1172,42 @@
         "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
         "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change"
       }
+    },
+    {
+      "id": "R10B-B4-OD12-ROUTECLASSIFIER-PATHNAMEONLY",
+      "date": "2026-10-13",
+      "path": "apps/prototype-web/client/src/app/routeClassifier.ts",
+      "from": {
+        "nbLoc": 80,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 82,
+        "band": "NORMAL"
+      },
+      "reason": "R10-B4/OD-12 (owner-accepted 2026-10-13): pathnameOnly exported as the single owner of bare-pathname derivation (the shell now imports it instead of repeating the split idiom inline) — a 2-line dated comment + export keyword; zero behavior change.",
+      "authorization": {
+        "ownerReview": "Owner OD-12 acceptance in the R10-B continuation directive (2026-10-13): centralized route-transition focus management + per-route document.title as a complementary B4 commit; five-reviewer gate on the OD-12 slice + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-accepted OD-12 (canonical prompt section 11 protected decision, accepted in the 2026-10-13 continuation message)"
+      }
+    },
+    {
+      "id": "R10B-B4-OD12-SHELL-ROUTE-TRANSITION",
+      "date": "2026-10-13",
+      "path": "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx",
+      "from": {
+        "nbLoc": 93,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 119,
+        "band": "NORMAL"
+      },
+      "reason": "R10-B4/OD-12 (owner-accepted 2026-10-13): the single centralized route-transition system — a module-level stable ref callback receiving focus on main at every route remount (RC-3 pattern, preventScroll preserves scroll behavior) + one effect deriving document.title from the canonical navigation label; entry measured +89 raw/+33 gzip (631,721/155,222 local; CI band 155,280-155,291) under the untouched 650,000/155,300 ceilings; brand-suffix title form measured (+64 gzip) and rejected under the ceiling.",
+      "authorization": {
+        "ownerReview": "Owner OD-12 acceptance in the R10-B continuation directive (2026-10-13): one centralized system-wide route-transition design based on the canonical router/navigation source, not scattered per-page patches or a second route registry; behavioral tests for focused-element identity, route titles, direct entry, normal navigation, back/forward + negative proof; five-reviewer gate on the OD-12 slice + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-accepted OD-12 (canonical prompt section 11 protected decision, accepted in the 2026-10-13 continuation message)"
+      }
     }
   ]
 }
