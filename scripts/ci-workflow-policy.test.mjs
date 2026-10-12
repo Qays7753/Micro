@@ -72,4 +72,35 @@ describe("ci-workflow-policy (Step 4 — intended event/branch behavior)", () =>
     const ci = readCi();
     expect(ci).toContain("fetch-depth: 0");
   });
+
+  /* R10-B5/F-025 (2026-10-13): تكلفة سلسلة التوريد — كلمات المرور الثابتة.
+   * أي رجوع إلى وسم عائم أو اعتماد محفوظ يكسر هذه الاختبارات عمدًا. */
+  it("every action use is SHA-pinned to a full 40-hex commit (no floating tags)", () => {
+    const ci = readCi();
+    const uses = [...ci.matchAll(/uses:\s*(\S+)/g)].map(match => match[1]);
+    expect(uses.length).toBeGreaterThanOrEqual(4);
+    for (const ref of uses) {
+      expect(ref, `المرجع ${ref} يجب أن يكون بصمة كاملة`).toMatch(/^[^@]+@[0-9a-f]{40}(#.*)?$/);
+    }
+  });
+
+  it("checkout does not persist credentials past the step (RV4-N10)", () => {
+    const ci = readCi();
+    const checkoutBlock = ci.split("- name: Checkout")[1].split("- name:")[0];
+    expect(checkoutBlock).toContain("persist-credentials: false");
+  });
+
+  it("node-version is an exact pinned minor matching the anchored github-actions toolchain (v22.23.3)", () => {
+    const ci = readCi();
+    expect(ci).toMatch(/node-version:\s*22\.23\.3\s*$/m);
+    /* لا رجوع إلى رقم رئيسي عائم — القياسات المرساة تعتمد الإصدار الدقيق. */
+    expect(ci).not.toMatch(/node-version:\s*22\s*$/m);
+  });
+
+  it("workflow permissions stay least-privilege (contents: read only)", () => {
+    const ci = readCi();
+    const permBlock = ci.split("permissions:")[1].split("concurrency:")[0];
+    expect(permBlock).toContain("contents: read");
+    expect(permBlock.match(/:\s*(write|admin)/g) ?? []).toEqual([]);
+  });
 });
