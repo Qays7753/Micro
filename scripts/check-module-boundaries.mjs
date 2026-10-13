@@ -50,6 +50,16 @@
  *      للمسارات (نسبي/مستعار) لا مطابقة نصية. الاتجاه القانوني المعاكس
  *      (صفحة -> مكوّن) يبقى حرًّا. الاستثناء الوحيد: قائمة مراجعة مالك صريحة
  *      (فارغة عند التأسيس) — لا أساس انجراري مفتوح.
+ *  R8) حافة نوعية من طبقات الواجهة إلى التخزين (R11 W1A-1 / D-01 —
+ *      R10A-F-006، قرار OD-GUARD الخيار A، 2026-10-13): الأساس الكامل
+ *      19 مفتاحًا (17 صفحة/مكوّنًا + ملفَي app-shell) — النمط النوعي
+ *      ذاته مصرَّح به في ESLint؛ الراتشة تمنع نموه الصامت فقط: أي مفتاح
+ *      جديد يُرفض، وأي مفتاح غادر الشجرة يُرفض (نظافة الأساس نفس-الـPR)،
+ *      ومجموعة الـ17 القديمة محفوظة كثابت تاريخي مسمّى للمقارنة لا كأساس.
+ *      العدّ بحل الاستيرادات (المختلط = قيمة) ويشمل `import type` وكل
+ *      المحددات النوعية و`import("…")` النوعي و`export type … from`،
+ *      ومنذ R11 أيضًا صيغة `import x = require("…")` (و النوعية) — جمع
+ *      ImportEqualsDeclaration أُضيف إلى المجمّع فلا إفلات بتغيير إملاء.
  * تحديث الأساس عمدًا مشروط: أي حافة جديدة مشروعة تُضاف إلى الأساس في نفس
  * الـPR مع صف/تحديث في سجل الملكية §5 (سجل الاستثناءات) — الحارس يجعل
  * الزيادة مرئية لا مستحيلة، ويمنعها الصامتة فحسب.
@@ -173,15 +183,21 @@ export function collectAllImports(repoRoot, files) {
     for (const statement of sourceFile.statements) {
       if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
         push(statement.moduleSpecifier.text, importCarriesRuntimeValue(statement), false);
-      } else if (
-        ts.isExportDeclaration(statement) &&
-        statement.moduleSpecifier &&
-        ts.isStringLiteral(statement.moduleSpecifier)
-      ) {
+      } else if (ts.isExportDeclaration(statement) && statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier)) {
         /* Wave H: تصدير-من النوعي (`export type {X} from ...`) صار حافة نوع
          * مرئية للقواعد (كان محذوفًا) — يغذي R4 بمصداقية ولا يمس R2/R3
          * (قيمتان فقط) ولا R1 (قياس حي: صفر حواف من النوع خارج المجال). */
         push(statement.moduleSpecifier.text, !statement.isTypeOnly, false);
+      } else if (ts.isImportEqualsDeclaration(statement)) {
+        /* R11 W1A-1 (D-01، 2026-10-14): صيغة `import x = require("…")` (و
+         * النوعية `import type x = require("…")`) كانت خارج الجمع كله —
+         * تهرّب من كل القواعد بتغيير الإملاء فقط. الإضافة تراكمية: صفر
+         * مواقع حية عند التأسيس (قياس مباشر عند 5ef4ce08) فلا سلوك يتغير
+         * للقواعد القائمة، والصيغة تصير مقودة تحت R8/R9 كسائر الأشكال. */
+        const moduleReference = statement.moduleReference;
+        if (ts.isExternalModuleReference(moduleReference) && ts.isStringLiteral(moduleReference.expression)) {
+          push(moduleReference.expression.text, !statement.isTypeOnly, false);
+        }
       }
     }
     const visitDynamic = node => {
@@ -287,6 +303,57 @@ export const UI_TO_STORAGE_VALUE_BASELINE = [
  * تتطلب صف سجل ملكية ومرجع قرار، ولا تُقبل كأساس انجراري. */
 export const COMPONENT_TO_PAGE_BASELINE = [];
 
+/** R8 (R11 W1A-1 / D-01 — R10A-F-006، OD-GUARD الخيار A، 2026-10-14):
+ * الأساس الكامل لحواف النوع فقط من طبقات الواجهة إلى التخزين — 19 مفتاحًا
+ * مقيسة حية عند 5ef4ce08 (كلها إلى `@/storage/local/types`): 12 صفحة +
+ * 5 مكوّنات + ملفَا app-shell الموثقان (StartupGate، PrototypeServicesContext
+ * — نفس استثنائي R5 القيميَين). النمط النوعي نفسه قانوني بتصرية ESLint؛
+ * الراتشة تمنع النمو الصامت والانكماش غير الموثق فحطمًا. */
+export const UI_TO_STORAGE_TYPE_BASELINE = [
+  "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/app/StartupGate.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/components/cost/MaterialSheet.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/components/forms/useFormDraft.ts -> @/storage/local/types",
+  "apps/prototype-web/client/src/components/order/AgreementContextPanel.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/components/settings/SettingsOperatingModeSection.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/AgreementEditor.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/CostCalculator.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/CostEditor.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/DraftEditor.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/EstimateDetail.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/Finance.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/NewDraft.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/OrderDetail.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/Orders.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/ScheduleEditor.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/Settings.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/Tools.tsx -> @/storage/local/types",
+];
+
+/** R8 — المجموعة التاريخية الـ17 (إحصاء RV1/R10-A: صفحات/مكوّنات فقط، بلا
+ * ملفَي app-shell) — تُحفظ للمقارنة التاريخية المسماة لا كأساس تنفيذي؛
+ * يتحقق الاختبار أنها مجموعة جزئية صارمة من الأساس الكامل فوقه. */
+export const UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17 = [
+  "apps/prototype-web/client/src/components/cost/MaterialSheet.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/components/forms/useFormDraft.ts -> @/storage/local/types",
+  "apps/prototype-web/client/src/components/order/AgreementContextPanel.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/components/settings/SettingsOperatingModeSection.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/AgreementEditor.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/CostCalculator.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/CostEditor.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/DraftEditor.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/EstimateDetail.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/Finance.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/NewDraft.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/OrderDetail.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/Orders.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/ScheduleEditor.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/Settings.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/Tools.tsx -> @/storage/local/types",
+];
+
 /** الفحص الكامل: يعيد الخروق الجديدة والإحصاءات. */
 export function checkModuleBoundaries(repoRoot, imports) {
   const all = imports ?? collectAllImports(repoRoot);
@@ -299,6 +366,8 @@ export function checkModuleBoundaries(repoRoot, imports) {
   const r6Allowed = loadUiApplicationImportBaseline(repoRoot);
   const r6Seen = new Set();
   const componentToPage = new Set(COMPONENT_TO_PAGE_BASELINE);
+  const uiToStorageType = new Set(UI_TO_STORAGE_TYPE_BASELINE);
+  const r8Seen = new Set();
   const stats = {
     files: new Set(all.map(i => i.file)).size,
     deepDomain: 0,
@@ -308,6 +377,7 @@ export function checkModuleBoundaries(repoRoot, imports) {
     uiToStorage: 0,
     uiToApplicationDeep: 0,
     componentToPage: 0,
+    uiToStorageType: 0,
   };
   const domainArea = f => (f.match(/src\/domain\/([^/]+)\//) || [])[1] ?? null;
 
@@ -419,6 +489,22 @@ export function checkModuleBoundaries(repoRoot, imports) {
         });
       }
     }
+    /* R8 (R11 W1A-1 / D-01، 2026-10-14): حافة نوعية من طبقات الواجهة إلى
+     * التخزين — راتشة على النمط المصرَّح به (R10A-F-006/OD-GUARD). النمو
+     * الصامت يُرفض، والانكماش غير الموثق يُرفض (نظافة الأساس نفس-الـPR). */
+    if (UI_LAYERS.has(imp.layer) && imp.kind === "type" && imp.resolved?.startsWith("apps/prototype-web/client/src/storage/")) {
+      stats.uiToStorageType += 1;
+      const key = `${imp.file} -> ${imp.specifier}`;
+      if (uiToStorageType.has(key)) {
+        r8Seen.add(key);
+      } else {
+        violations.push({
+          rule: "R8-ui-to-storage-type",
+          key,
+          hint: "حافة نوعية جديدة من الواجهة إلى التخزين (R10A-F-006/OD-GUARD): النمط مصرَّح به لكن نموه يحتاج تحديث أساس موثقًا في نفس الـPR مع صف سجل الملكية §5",
+        });
+      }
+    }
   }
   /* R6 — نظافة الأساس: صف غادر الشجرة الحية (هجرة/حذف) يُزال من الملف
    * في نفس الـPR؛ بقاؤه يُبقي الراتشة متساهلة بلا ضرورة. */
@@ -428,6 +514,17 @@ export function checkModuleBoundaries(repoRoot, imports) {
         rule: "R6-baseline-stale",
         key,
         hint: "صف أساس R6 لم يعد حيًّا في الشجرة (هاجر الموقع أو حُذف الملف) — أزل الصف من scripts/ui-application-import-baseline.json في نفس الـPR",
+      });
+    }
+  }
+  /* R8 — نظافة الأساس: مفتاح غادر الشجرة (هجرة/حذف/تحويل لقيمة) يُزال من
+   * الثابت في نفس الـPR؛ بقاؤه يُبقي الراتشة متساهلة بلا ضرورة. */
+  for (const key of uiToStorageType) {
+    if (!r8Seen.has(key)) {
+      violations.push({
+        rule: "R8-baseline-stale",
+        key,
+        hint: "مفتاح أساس R8 لم يعد حيًّا في الشجرة (هاجر الموقع أو حُذف الملف أو صار الاستيراد قيميًّا) — أزل السطر من UI_TO_STORAGE_TYPE_BASELINE في نفس الـPR",
       });
     }
   }
@@ -451,7 +548,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض، ${stats.domainCrossArea} حافة عميقة عابرة لمناطق المجال، ${stats.uiToStorage} حافة واجهة→تخزين (resolution-based)، ${stats.uiToApplicationDeep} استيرادًا عميقًا واجهة→دواخل بيوت التطبيق (راتشة R6/STR-615)، ${stats.componentToPage} حافة مكوّن→صفحة (الصنف الممنوع — R8-F-019)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617 + الخطوة ٦/STR-615 + R8/R8-F-019)`,
+    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض، ${stats.domainCrossArea} حافة عميقة عابرة لمناطق المجال، ${stats.uiToStorage} حافة واجهة→تخزين (resolution-based)، ${stats.uiToApplicationDeep} استيرادًا عميقًا واجهة→دواخل بيوت التطبيق (راتشة R6/STR-615)، ${stats.componentToPage} حافة مكوّن→صفحة (الصنف الممنوع — R8-F-019)؛ ${stats.uiToStorageType} حافة نوعية واجهة→تخزين (راتشة R8/D-01 على أساس 19 مفتاحًا)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617 + الخطوة ٦/STR-615 + R8/R8-F-019)`,
   );
 }
 

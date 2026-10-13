@@ -1370,6 +1370,25 @@
         "trigger": "R10-B-D1-OD14-OD9-NF020-B6-EXECUTION-PROMPT-2026-10-13 Phase 1: D1 touches the existing identity bridge/getter module; in-band growth gets a ledger entry",
         "ocRef": "ARCH-007"
       }
+    },
+    {
+      "id": "R11-W1A1-D01-MODULE-BOUNDARIES-R8",
+      "date": "2026-10-14",
+      "path": "scripts/check-module-boundaries.mjs",
+      "from": {
+        "nbLoc": 431,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 534,
+        "band": "WATCH"
+      },
+      "reason": "R11 W1A-1 / D-01 (R10A-F-006, OD-GUARD Option A, owner-approved 2026-10-13): the module-boundaries guard gains rule R8 — the type-only UI->storage edge ratchet pinned at the full 19-key baseline (12 pages + 5 components + the two documented app-shell files), with the historical 17-key subset preserved as a named comparison constant, plus additive ImportEqualsDeclaration collection in the shared collector (zero live occurrences at the base 5ef4ce08, so R1-R7 behavior is unchanged at baseline; closes the import-spelling bypass route). Guard-only growth: no production file, no ceiling, no runtime change.",
+      "authorization": {
+        "ownerReview": "OD-GUARD Option A — part of the R11 S0+W1A execution PR #361 (branch refactoring/r11-s0-w1a-20261013, code commit follows this ledger entry in the same PR)",
+        "trigger": "R11-S0-W1A-EXECUTION-PROMPT-2026-10-13 section 7.1 (D-01) — in-band guard growth requires a ledger entry with an Operations Control reference",
+        "ocRef": "ARCH-008"
+      }
     }
   ]
 }

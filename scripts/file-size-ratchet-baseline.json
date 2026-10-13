@@ -1533,7 +1533,7 @@
       "band": "NORMAL"
     },
     "scripts/check-module-boundaries.mjs": {
-      "nbLoc": 431,
+      "nbLoc": 534,
       "band": "WATCH"
     },
     "scripts/check-registry-coverage.mjs": {
@@ -1958,6 +1958,10 @@
     },
     "tools/micromatch-shim/lib/braces-free.js": {
       "nbLoc": 317,
+      "band": "NORMAL"
+    },
+    "scripts/security/scan-git-history-secrets.mjs": {
+      "nbLoc": 303,
       "band": "NORMAL"
     }
   }
