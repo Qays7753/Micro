@@ -871,11 +871,11 @@ The prior §11 scan report (external docs repo, `17b264c`) was not readable from
 
 ## 21. Report publication details
 
-- **Branch:** `audit/r11-wave0-structure-scan-20261013` (from `origin/main` @ `31afaf39ad57a82e72aa61e59879e46f8801ce36`)
-- **Commit SHA:** *(filled at publication — see below)*
-- **PR:** *(URL filled at publication)*
-- **Changed files:** exactly 2 — this report (new) and `docs/00-document-index.md` (+1 row).
-- **Checks:** recorded at publication below.
+- **Branch:** `audit/r11-wave0-structure-scan-20261013` (from verified live `origin/main` @ `31afaf39ad57a82e72aa61e59879e46f8801ce36`)
+- **Publication commit SHA (report + index row):** `840f24eba4c793d638e9c1debc70805370e47724`
+- **PR:** https://github.com/Qays7753/Micro/pull/359 (documentation-only, base `main`; this evidence-pin commit is the PR head)
+- **Changed files:** exactly 2 — this report (new, 898 lines) and `docs/00-document-index.md` (+1 row). Proven by `git diff --name-status`: `A` the report, `M` the index; 899 insertions, 0 deletions; no other file touched.
+- **Checks:** pre-publication local checks green (`git diff --check` clean; `check-doc-index-coverage` PASS; `check-current-state-size` PASS 18,834/20,480). CI/Cloudflare-Pages status on the PR head is recorded in the PR conversation at publication time (this scan makes no claim beyond what the PR checks show).
 
 ## 22. Final owner handoff
 
