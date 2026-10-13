@@ -276,7 +276,8 @@ const pwa = VitePWA({
     lang: "ar",
     dir: "rtl",
     background_color: "#F0F3F4",
-    theme_color: "#F0F3F4", /* UX-001 V2: canvas chrome — matches index.html meta + ThemeContext runtime value; identity lives on the create surface, not app chrome */
+    theme_color:
+      "#F0F3F4" /* UX-001 V2: canvas chrome — matches index.html meta + ThemeContext runtime value; identity lives on the create surface, not app chrome */,
     /* W2 (brand): approved symbol-only icons. 512 any stays the install anchor; the
      * maskable 512 is declared separately with purpose "maskable" so platforms never
      * letterbox or crop the any-purpose mark. */
@@ -306,10 +307,14 @@ function devOnlyPlugins(mode: string) {
   return [vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginStorageProxy()];
 }
 
-/* المجموعة ٥ (التحصين الكامل — هوية البناء): مصدر واحد يُحقن في
- * الحزمة عبر define — VITE_APP_VERSION إن حُدد صراحة؛ وإلا SHA البيئة
- * (GITHUB_SHA في Actions أو CF_PAGES_COMMIT_SHA في Pages) متاحة تلقائيًا بلا أي تعديل على التدفق؛ وغيابها
- * جميعًا = null فيرجع البديل المحلي الصادق (لا انتحال إنتاج). لا أسرار في الهوية أبدًا. */
+/* المجموعة ٥ (التحصين الكامل — هوية البناء) + OD-14 = D1 (2026-10-13 — الجذر
+ * المعتمد لـ R10B-NF-038): الهوية تُحمل في index.html (وسم meta واحد) عند حدود
+ * الإصدار لا في مدخل الجافاسكربت — فيصير رسم شظايا الحزمة محصّنًا ضد تغيّر
+ * الهوية (نهاية شلال إعادة التهشير الذي كان يعيد لف gzip الدخول عشرات
+ * البايتات مع كل التزام بلا أي تغيير محتوى)، ويبقى إبطال ذاكرة PWA سليمًا
+ * عبر مراجعة precache الخاصة بـ index.html ذاتها. وسم meta هو الحامل الوحيد
+ * الممكن تحت CSP (script-src 'self' بلا unsafe-inline): لا سكربت مضمن ولا
+ * ملف بيانات يُجلب وقت التشغيل ولا مصدر هوية ثانٍ. */
 function buildIdentityFromEnv(): string | null {
   const explicit = process.env.VITE_APP_VERSION?.trim();
   if (explicit) return explicit;
@@ -321,18 +326,123 @@ function buildIdentityFromEnv(): string | null {
 }
 const MICRO_APP_IDENTITY = buildIdentityFromEnv();
 
+/** اسم وسم الحامل في index.html — نفس ثابت buildIdentity.ts (يفرز اختبار
+ * سلكي تساويهما، وقراءته وقت التشغيل محروسة ضد غياب المستند). */
+export const MICRO_APP_IDENTITY_META_NAME = "micro-app-identity";
+
+/* نفس حد الإكراه في buildIdentity.ts::MAX_APP_IDENTITY_CHARS (مصدر الحقيقة
+ * وقت التشغيل) — التطابق مثبت بالاختبار السلكي scripts/vite-build-identity.test.mjs. */
+const MAX_BUILD_IDENTITY_CHARS = 64;
+
+/** تهريب سمة HTML قبل الإدراج — المحارف الخمسة وحدها تكفي لسلامة السمة
+ * المقتبسة، والقراءة عبر getAttribute تعيد فك التهريب للقيمة الأصلية ذاتها. */
+function escapeHtmlAttribute(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+export function vitePluginBuildIdentity(identity: string | null): Plugin {
+  /* تحقق صارم وقت البناء: هوية صريحة لا تجتاز عقد الإكراه (فارغة بعد
+   * التقليم أو أطول من الحد) تفشل البناء الآن — لا سقوط صامت إلى قيمة
+   * محلية في مخرج إنتاج. */
+  if (identity !== null && (identity.trim() === "" || identity.length > MAX_BUILD_IDENTITY_CHARS)) {
+    throw new Error(
+      `micro-build-identity: الهوية فشلت التحقق الصارم (OD-14/D1) — فارغة بعد التقليم أو أطول من ${MAX_BUILD_IDENTITY_CHARS} محرفًا (عقد buildIdentity.ts)`,
+    );
+  }
+  let watching = false;
+  let distRoot = path.join(PROJECT_ROOT, "dist", "public");
+  return {
+    name: "micro-build-identity",
+    configResolved(config) {
+      watching = Boolean(config.build.watch);
+      if (typeof config.build.outDir === "string" && config.build.outDir !== "") {
+        distRoot = config.build.outDir;
+      }
+    },
+    transformIndexHtml(html) {
+      if (html.includes(`name="${MICRO_APP_IDENTITY_META_NAME}"`)) {
+        throw new Error(
+          `micro-build-identity: تعارض الحامل (OD-14/D1) — index.html المصدر يحمل وسم ${MICRO_APP_IDENTITY_META_NAME} مسبقًا والحامل يُدخل وقت البناء وحده`,
+        );
+      }
+      if (identity === null) {
+        /* لا هوية من البيئة (تطوير/اختبار محلي) — لا وسم؛ حارس وقت التشغيل
+         * في buildIdentity يرجع البديل المحلي الصادق تمامًا كما كان define: null. */
+        return html;
+      }
+      const anchor = "  </head>";
+      const anchorAt = html.indexOf(anchor);
+      if (anchorAt === -1) {
+        throw new Error("micro-build-identity: لا مرساة </head> في index.html لإدراج الحامل (OD-14/D1)");
+      }
+      const tag = `    <meta name="${MICRO_APP_IDENTITY_META_NAME}" content="${escapeHtmlAttribute(identity)}" />\n`;
+      return html.slice(0, anchorAt) + tag + html.slice(anchorAt);
+    },
+    closeBundle() {
+      if (watching || identity === null) return;
+      /* التحقق الختامي الصارم — يفشل البناء قبل قبول أي مخرجات: الحامل موجود
+       * مرة واحدة بالقيمة المطابقة حرفيًا، والهوية غائبة من كل مخرجات JS/CSS/
+       * خرائط المصدر (تسريب الهوية لغير index.html عيب يُرفض صادقًا).
+       * الهويات الأقصر من 16 محرفًا لا تُمسح بايتيًا — إبرة بهذا القصر غير
+       * قابلة للتمييز دون إيجابيات كاذبة؛ الآلية مثبتة بالاختبار السلبي
+       * الدائم بهوية بطول SHA (واقع Actions/Pages دائمًا). */
+      const html = fs.readFileSync(path.join(distRoot, "index.html"), "utf8");
+      const tagPattern = new RegExp(`<meta[^>]*name="${MICRO_APP_IDENTITY_META_NAME}"[^>]*>`, "g");
+      const tags = html.match(tagPattern) ?? [];
+      if (tags.length !== 1) {
+        throw new Error(
+          `micro-build-identity: وسم الحامل موجود ${tags.length} مرة — المطلوب 1 بالضبط (OD-14/D1)`,
+        );
+      }
+      const expectedContent = `content="${escapeHtmlAttribute(identity)}"`;
+      if (!tags[0].includes(expectedContent)) {
+        throw new Error(
+          "micro-build-identity: قيمة الحامل لا تطابق الهوية (فارغة/معطوبة/غير مستبدلة — OD-14/D1)",
+        );
+      }
+      if (identity.length >= 16) {
+        const needle = Buffer.from(identity, "utf8");
+        const scan = (dir: string) => {
+          for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+            const full = path.join(dir, entry.name);
+            if (entry.isDirectory()) {
+              scan(full);
+              continue;
+            }
+            if (entry.name === "index.html") continue;
+            if (!/\.(js|css|map)$/.test(entry.name)) continue;
+            if (fs.readFileSync(full).includes(needle)) {
+              throw new Error(
+                `micro-build-identity: تسريب هوية (OD-14/D1) — الهوية موجودة في ${path.relative(distRoot, full)} ولا تجوز إلا في index.html`,
+              );
+            }
+          }
+        };
+        scan(distRoot);
+      }
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), tailwindcss(), ...devOnlyPlugins(mode), pwa, ...(mode === "production" ? [vitePluginBundleBudgetGate()] : [])],
+  plugins: [
+    react(),
+    tailwindcss(),
+    vitePluginBuildIdentity(MICRO_APP_IDENTITY),
+    ...devOnlyPlugins(mode),
+    pwa,
+    ...(mode === "production" ? [vitePluginBundleBudgetGate()] : []),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
       "@micro-domain": path.resolve(import.meta.dirname, "..", "..", "src", "domain"),
     },
-  },
-  define: {
-    /* مصدر هوية البناء الواحد — يقرأه مدلل buildIdentity في الوبلنت
-     * وفيه تتشاركه بيانات التصدير والتشخيص (null = بديل محلي). */
-    __MICRO_APP_IDENTITY__: JSON.stringify(MICRO_APP_IDENTITY),
   },
   envDir: path.resolve(import.meta.dirname),
   root: path.resolve(import.meta.dirname, "client"),
@@ -348,7 +458,8 @@ export default defineConfig(({ mode }) => ({
          * في حزمة التفاعل. الشكل الكائني لا يضمن ترتيب الإسناد فالدالة تحسمه. */
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
-          if (/[\\/]node_modules[\\/](react|react-dom|scheduler|wouter)[\\/]/.test(id)) return "react-runtime";
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler|wouter)[\\/]/.test(id))
+            return "react-runtime";
           if (/[\\/]node_modules[\\/](vaul)[\\/]/.test(id)) return "interaction-runtime";
           if (/[\\/]node_modules[\\/]lucide-react[\\/]/.test(id)) return "iconography";
           /* S5-10: فصل radix — مشترك بين Tooltip المتحمس وvaul الكسول؛ فصله يجعل كسل التفاعل حقيقيًا. */
