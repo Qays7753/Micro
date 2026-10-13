@@ -86,6 +86,7 @@ describe("InventoryMaterialService", () => {
       service.consume({
         materialId: opened.value.material.id,
         orderId: order.id,
+        reason: null,
         quantityMilli: 2000,
         occurredOn: "2026-08-23",
         note: "طلب سارة",
@@ -228,6 +229,7 @@ describe("InventoryMaterialService", () => {
     const consumed = await service.consume({
       materialId: opened.value.material.id,
       orderId: order.id,
+      reason: null,
       quantityMilli: 2000,
       occurredOn: "2026-08-23",
       note: "تنفيذ صندوق ليان",
@@ -1404,6 +1406,7 @@ describe("Stage 2 — OPS-007/OPS-009: إعلان سبب المراجعة وحت
     const consumed = await service.consume({
       materialId: opened.value.material.id,
       orderId: order.id,
+      reason: null,
       quantityMilli: 2000,
       occurredOn: "2026-09-16",
       note: "تنفيذ الطرحة",

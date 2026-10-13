@@ -155,7 +155,7 @@ function pendingDepositStored(id: string): StoredCraftOrder {
 
 function linkedDraft(orderId: string): OrderDraft {
   return {
-  catalogItemId: null,
+    catalogItemId: null,
     id: `draft-${orderId}`,
     intent: "customer_order",
     customerName: "سارة",
@@ -380,6 +380,10 @@ function shortageFixture(id: string): InventoryShortage {
     recordedAt: TS,
     note: "نقص موثق",
     orderId: null,
+    operationKey: id,
+    status: "open",
+    resolvedOn: null,
+    resolutionNote: null,
   };
 }
 

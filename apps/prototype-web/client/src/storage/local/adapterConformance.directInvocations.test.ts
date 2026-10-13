@@ -37,10 +37,13 @@ const schedule: ScheduleEntry = {
   orderId: "order-1",
   kind: "delivery",
   scheduledFor: "2026-10-12T10:00:00.000Z",
+  scheduledTime: null,
+  durationMinutes: null,
+  status: "scheduled",
+  postponeReason: null,
   createdAt: TS,
   updatedAt: TS,
   events: [],
-  status: "pending",
   recurrenceId: null,
   recurrenceIndex: null,
 };
@@ -55,13 +58,15 @@ const orderDraft = {
   specifications: "مواصفة",
   quantity: 1,
   costSnapshots: [],
+  activeCostSnapshotId: null,
+  linkedOrderId: null,
   createdAt: TS,
   updatedAt: TS,
 } as const;
 
 const formDraft = {
-  id: "expense:new",
-  formKind: "expense",
+  id: "finance_event:new",
+  formKind: "finance_event",
   scopeId: null,
   valuesVersion: 1,
   values: { note: "مسودة نموذج" },
@@ -75,6 +80,9 @@ const securityRecord = {
   salt: "cd".repeat(16),
   autoLockMinutes: 5,
   lastActiveAt: null,
+  failedAttempts: 0,
+  createdAt: TS,
+  updatedAt: TS,
 } as const;
 
 function adapters(): Array<[name: string, make: () => PrototypeLocalStore]> {
@@ -132,11 +140,11 @@ describe("R10-B2/F-008 — direct per-adapter invocations for the six never-name
       const store = make();
       const saved = await store.saveFormDraft({ ...formDraft });
       expect(saved.ok).toBe(true);
-      const removed = await store.deleteFormDraft("expense:new");
+      const removed = await store.deleteFormDraft("finance_event:new");
       expect(removed.ok).toBe(true);
       const listed = await store.listFormDrafts();
       expect(listed.ok && listed.value).toHaveLength(0);
-      const again = await store.deleteFormDraft("expense:new");
+      const again = await store.deleteFormDraft("finance_event:new");
       expect(again.ok).toBe(true);
     });
 

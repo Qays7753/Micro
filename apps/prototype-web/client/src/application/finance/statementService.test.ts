@@ -340,6 +340,7 @@ describe("StatementService — كشف الفترة (المجموعة ٢ §9.2)",
         idempotencyKey: "purchase-rev-st-key",
       }),
     );
+    assertOk(purchaseSaved);
     expect(purchaseSaved.ok).toBe(true);
     /* دفعة لاحقة 10.00 داخل الفترة + تراجع موثق عنها بنفس الفترة. */
     const withPaymentAndReversal: typeof purchaseSaved extends { ok: true; value: infer V } ? V : never = {

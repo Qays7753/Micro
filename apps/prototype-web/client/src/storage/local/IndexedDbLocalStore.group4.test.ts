@@ -150,6 +150,7 @@ describe("IndexedDbLocalStore Group 4 atomic commits (المجموعة ٤ — ع
     if (!created.ok) return;
     const loanId = created.value.loan.id;
     const repaid = await service.recordRepayment(loanId, { amountMinor: 5000, date: "2026-08-01" });
+    assertOk(repaid);
     expect(repaid.ok).toBe(true);
     const events = await store.listFinancialEvents();
     assertOk(events);

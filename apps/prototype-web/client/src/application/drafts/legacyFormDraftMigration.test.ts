@@ -20,6 +20,7 @@ type TestStorage = LegacyFormDraftStorage & {
   removed: string[];
   failGet: boolean;
   failRemove: boolean;
+  setItem(key: string, value: string): void;
 };
 
 function memoryStorage(seed: Record<string, string> = {}): TestStorage {

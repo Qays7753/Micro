@@ -230,7 +230,9 @@ describe("G-002 — supplier payment wallet attribution atomicity and healing", 
     if (!snapshot.ok) throw new Error(snapshot.message);
     const stripped = {
       ...snapshot.value,
-      cashContinuityEntries: snapshot.value.cashContinuityEntries.filter(entry => entry.id !== allocation.id),
+      cashContinuityEntries: snapshot.value.cashContinuityEntries!.filter(
+        entry => entry.id !== allocation.id,
+      ),
     };
     const replaced = await store.replaceSnapshot(stripped);
     if (!replaced.ok) throw new Error(replaced.message);
@@ -419,7 +421,7 @@ describe("G-002 — supplier payment wallet attribution atomicity and healing", 
     if (!snapshot.ok) throw new Error(snapshot.message);
     const stripped = {
       ...snapshot.value,
-      cashContinuityEntries: snapshot.value.cashContinuityEntries.filter(
+      cashContinuityEntries: snapshot.value.cashContinuityEntries!.filter(
         entry => entry.operationKey !== "g002-incomplete:initial-attribute",
       ),
     };

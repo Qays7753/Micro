@@ -436,7 +436,8 @@ describe("F-058 — عقد ٥ §3.2.1 (نتيجة الفترة المسجلة): 
     const savedRetained = await store.saveOrder({
       id: retained.id,
       order: retained,
-      deliveryDate: null,
+      catalogItemId: null,
+      deliveryDate: "",
       agreementSource: "test",
       createdAt: retained.createdAt,
       updatedAt: now(),

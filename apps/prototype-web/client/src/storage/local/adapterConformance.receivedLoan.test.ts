@@ -71,7 +71,7 @@ async function runConformanceScenarios(store: PrototypeLocalStore) {
   expect(replayed.value.reused).toBe(true);
 
   /* ٢) القراءة: مرتبة زمنيًا (تاريخ القبض ثم المعرف)، والسجل كما كُتب حرفيًا. */
-  const laterEvent = principalEvent("rloan-b", 5_000, "event-b", "2026-08-01");
+  const laterEvent = principalEvent("rloan-b", 5_000, "event-b");
   const laterLoan = makeLoan("rloan-b", 5_000, "event-b", "2026-08-01");
   const laterSaved = await store.commitReceivedLoanRecord(laterLoan, laterEvent);
   expect(laterSaved.ok).toBe(true);

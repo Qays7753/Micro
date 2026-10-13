@@ -51,7 +51,7 @@ describe("canonical period result (قراءة الفترة الواحدة)", () 
     if (!reader.ok || !reading.ok || !insights.ok) throw new Error("reads should succeed");
     expect(reading.value.result).toEqual(reader.value);
     expect(insights.value.period).toEqual(reader.value);
-    expect(reading.value.resultMinor ?? reading.value.result.resultMinor).toBeDefined();
+    expect(reading.value.result.resultMinor).toBeDefined();
   });
 
   it("spies that statement.read and readFinancialInsights invoke the canonical reader", async () => {

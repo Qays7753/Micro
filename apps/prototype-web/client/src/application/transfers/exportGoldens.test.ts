@@ -106,7 +106,7 @@ async function seedSupplementStore(): Promise<MemoryLocalStore> {
   const cash = new CashContinuityService(store, NOW);
   const finance = new ProjectFinancialService(store, NOW);
   const suppliers = new SupplierPurchaseService(store, NOW);
-  const owner = new OwnerEntitlementService(store, NOW);
+  const owner = new OwnerEntitlementService(store, (from, to) => finance.readRecordedPeriodResult(from, to));
   const loans = new LoanService(store, NOW);
   const received = new ReceivedLoanService(store, NOW);
   const assets = new AssetService(store, NOW);
@@ -220,7 +220,6 @@ async function seedSupplementStore(): Promise<MemoryLocalStore> {
       suggestedWalletId: null,
       categoryLabel: "إيجار",
       changeReason: null,
-      note: null,
     },
   });
   if (!series.ok) throw new Error(series.message);
@@ -338,7 +337,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
   it("MANIFEST pins every golden's sha256 — any manual edit is caught", () => {
     const manifestName = "MANIFEST.json";
     if (GENERATE) {
-      const entries: GoldenManifestEntry[] = [
+      const defined: GoldenManifestEntry[] = [
         {
           file: "current-pair.golden.json",
           sha256: "",
@@ -368,7 +367,8 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
           description: "عهدة 570eba1 الأمينة (8/17) — مشتركة مع اختبارها الأصلي",
           byteStable: true,
         },
-      ].map(e => ({ ...e, sha256: sha256Of(readGolden(e.file)) }));
+      ];
+      const entries = defined.map(e => ({ ...e, sha256: sha256Of(readGolden(e.file)) }));
       const manifest: GoldenManifest = {
         generatedAt: NOW(),
         generator: "apps/prototype-web/client/src/application/transfers/exportGoldens.test.ts",

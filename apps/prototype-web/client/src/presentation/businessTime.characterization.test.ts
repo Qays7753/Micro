@@ -66,7 +66,7 @@ describe("localDateInAmman fixed-instant characterization (STR-029/STR-031)", ()
      * التطبيق المسماى (todayInAmman فوق systemClock) — يغطيه اختبار
      * application/time/clock.test.ts. هنا نقفل أن النداء بلا وسيط يرمي
      * بهوية الخطأ المعتمدة (undefined = طابع غير صالح). */
-    expect(() => localDateInAmman()).toThrowError("Invalid instant");
+    expect(() => localDateInAmman(undefined as unknown as Date | string)).toThrowError("Invalid instant");
   });
 
   it("throws the explicit invalid-instant error for unparseable inputs (throw variant contract)", () => {

@@ -335,7 +335,7 @@ describe("FIN-001 — عقد الالتزام المحروس للقروض الم
     expect(snapshot.ok).toBe(true);
     if (!snapshot.ok) throw new Error(snapshot.message);
     expect(snapshot.value.receivedLoans).toHaveLength(1);
-    expect(snapshot.value.receivedLoans[0]?.id).toBe("rloan-5");
+    expect(snapshot.value.receivedLoans?.[0]?.id).toBe("rloan-5");
     const replaced = await store.replaceSnapshot({ ...snapshot.value, receivedLoans: [] });
     expect(replaced.ok).toBe(true);
     const loansAfter = await store.listReceivedLoans();

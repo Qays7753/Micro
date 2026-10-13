@@ -175,7 +175,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
     expect(result.value.allocationReversal!.operationKey).toBe("root-reverse-1:unattribute");
 
     const after = await positionOf(store, clock);
-    expect(after.orderCollectedMinor ?? 0).toBeLessThanOrEqual(2000);
+    expect(after.orderCollectionsMinor ?? 0).toBeLessThanOrEqual(2000);
     expect(after.walletCashMinor).toBe(5000);
     expect(after.unallocatedCashMinor).toBe(2000);
     expect(after.recordedCashMinor).toBe(before.recordedCashMinor - 3000);

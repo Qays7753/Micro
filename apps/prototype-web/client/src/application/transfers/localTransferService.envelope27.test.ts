@@ -64,6 +64,7 @@ describe("export envelope v27 (المجموعة ٥ — عقد ٣٩)", () => {
     const tampered = JSON.parse(JSON.stringify(exported.value));
     tampered.data.financialEvents[0].amountMinor = 10;
     const prepared = transfers.prepareImport(JSON.stringify(tampered));
+    if (prepared.ok) throw new Error("expected the tampered file to be rejected");
     expect(prepared.ok).toBe(false);
     if (!prepared.ok) expect(prepared.code).toBe("validation_error");
     expect(prepared.message).toContain("بصمة التكامل");

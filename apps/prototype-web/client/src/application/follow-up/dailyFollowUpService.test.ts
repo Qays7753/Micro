@@ -1,5 +1,6 @@
 /* مبدأ Micro: يثبت الاختبار أن Hero المتابعة لا يعرض فعلًا أقدم من حالة الاتفاق المحفوظة. */
 import { describe, expect, it } from "vitest";
+import type { OrderStatus, SettlementStatus } from "@micro-domain/craft-order/index.js";
 import { deriveDailyFollowUp, type DailyFollowUp } from "./dailyFollowUpService";
 
 const noDrafts = [] as const;
@@ -9,8 +10,8 @@ const order = (
     itemName: string;
     nextAction: string;
     receivableMinor: number;
-    settlementStatus: string;
-    status: string;
+    settlementStatus: SettlementStatus;
+    status: OrderStatus;
     agreedPriceMinor: number;
   }> = {},
 ) => ({
@@ -20,7 +21,7 @@ const order = (
     itemName: overrides.itemName ?? "صندوق مخصص",
     nextAction: overrides.nextAction ?? "سجّل التسليم",
     receivableMinor: overrides.receivableMinor ?? 0,
-    settlementStatus: overrides.settlementStatus ?? "open",
+    settlementStatus: overrides.settlementStatus ?? "unpaid",
     status: overrides.status ?? "in_progress",
     agreedPriceMinor: overrides.agreedPriceMinor ?? 1200,
   },

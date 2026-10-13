@@ -50,7 +50,7 @@ function baseOrder(id: string): CraftOrder {
 }
 
 function throughPreDelivery(order: CraftOrder, id: string): CraftOrder {
-  return ["provisional_agreement", "confirmed", "in_progress", "ready"].reduce<CraftOrder>(
+  return (["provisional_agreement", "confirmed", "in_progress", "ready"] as const).reduce<CraftOrder>(
     (current, to, index) =>
       transitionOrder(current, {
         to,

@@ -1,3 +1,4 @@
+/// <reference path="../../../../node_modules/fake-indexeddb/auto.d.ts" />
 import { describe, expect, it } from "vitest";
 import { FinancialAnalysisService } from "./financialAnalysisService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";

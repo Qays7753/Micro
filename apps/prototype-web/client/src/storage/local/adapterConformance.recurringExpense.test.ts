@@ -206,11 +206,7 @@ async function runConformanceScenarios(store: PrototypeLocalStore) {
   expect(reusedCount).toBeGreaterThanOrEqual(1);
 
   /* ٩) التعارض: أساس قديم بعد كتابة أخرى — رفض بلا كتابة (storage_stale). */
-  const staleAttempt = await store.commitRecurringExpenseOccurrenceDecision(
-    october,
-    attemptedOctober,
-    snoozeRecurringExpenseOccurrence(october, "2026-10-01", TODAY, AT),
-  );
+  const staleAttempt = await store.commitRecurringExpenseOccurrenceDecision(october, attemptedOctober);
   expect(staleAttempt.ok).toBe(false);
   if (!staleAttempt.ok) expect(staleAttempt.code).toBe("storage_stale");
 

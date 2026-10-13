@@ -56,7 +56,7 @@ async function walkAndAssert(store: PrototypeLocalStore): Promise<void> {
   const suppliers = new SupplierPurchaseService(store, now);
   const finance = new ProjectFinancialService(store, now);
   const statement = new StatementService(store, finance);
-  const owner = new OwnerEntitlementService(store, now);
+  const owner = new OwnerEntitlementService(store, undefined, now);
   const loans = new LoanService(store, now);
   const assets = new AssetService(store, now);
   const inventory = new InventoryMaterialService(store, now);
@@ -151,7 +151,8 @@ async function walkAndAssert(store: PrototypeLocalStore): Promise<void> {
   const savedRetained = await store.saveOrder({
     id: retainedOrder.id,
     order: retainedOrder,
-    deliveryDate: null,
+    catalogItemId: null,
+    deliveryDate: "",
     agreementSource: "test",
     createdAt: retainedOrder.createdAt,
     updatedAt: NOW,

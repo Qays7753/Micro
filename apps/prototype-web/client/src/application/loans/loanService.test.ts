@@ -150,6 +150,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(correction.message).toContain("لا تغيير عن المسجّل");
     const events = await store.listFinancialEvents();
     /* لا عكس ولا بديل — التاريخ لم يُلوَّث. */
+    assertOk(events);
     expect(events.value.filter(event => event.correctionType === "reverse")).toHaveLength(0);
   });
 

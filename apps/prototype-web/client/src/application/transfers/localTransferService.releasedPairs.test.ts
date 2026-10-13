@@ -453,15 +453,15 @@ describe("historical 8/17 pair (commit 570eba1) — faithful fixture", () => {
     expect(migrated.data.orders[0]?.followUpEvents).toEqual([]);
     expect(migrated.data.financialEvents[0]?.amanahDeltaMinor).toBe(0);
     expect(migrated.data.financialEvents[0]?.assetDeltaMinor).toBe(0);
-    expect(migrated.data.supplierPurchases[0]?.materialId).toBeNull();
+    expect(migrated.data.supplierPurchases?.[0]?.materialId).toBeNull();
     expect(migrated.data.schedules[0]?.recurrenceId).toBeNull();
-    expect(migrated.data.materials[0]?.tracking).toBeNull();
-    expect(migrated.data.inventoryMovements[0]?.costKnowledge).toBe("known");
+    expect(migrated.data.materials?.[0]?.tracking).toBeNull();
+    expect(migrated.data.inventoryMovements?.[0]?.costKnowledge).toBe("known");
     /* الأصل التاريخي محفوظ كما هو — لا حذف ولا تعديل. */
     expect(migrated.data.orders[0]?.order.collectedMinor).toBe(12000);
     expect(migrated.data.orders[0]?.order.events.length).toBe(3);
     expect(migrated.data.financialEvents[0]?.amountMinor).toBe(20000);
-    expect(migrated.data.supplierPurchases[0]?.paidMinor).toBe(2100);
+    expect(migrated.data.supplierPurchases?.[0]?.paidMinor).toBe(2100);
     /* دورة كاملة: الاستيراد ثم التصدير ثم معاينة الملف الخارج. */
     const store = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(store, now);
@@ -568,6 +568,7 @@ describe("current envelope counters — strict tamper detection", () => {
     const transfers = new LocalTransferService(store, now);
     const saved = await store.saveFinancialEvent({
       ...financialEvent817,
+      currency: "JOD",
     });
     if (!saved.ok) throw new Error(saved.message);
     const exported = await transfers.createExport();

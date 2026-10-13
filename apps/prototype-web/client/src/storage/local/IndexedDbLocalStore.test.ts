@@ -10,6 +10,7 @@ import {
   localProfileId,
   localSchemaVersion,
   type ActivityProfile,
+  type LocalPreferences,
   type OrderDraft,
   type StoredCraftOrder,
 } from "./types";
@@ -180,7 +181,7 @@ describe("IndexedDbLocalStore", () => {
       updatedAt: "2026-08-22T00:00:00.000Z",
     };
     const draft: OrderDraft = {
-    catalogItemId: null,
+      catalogItemId: null,
       id: "draft-1",
       intent: "customer_order",
       customerName: "سارة",
@@ -200,6 +201,9 @@ describe("IndexedDbLocalStore", () => {
         id: localPreferencesId,
         theme: "dark",
         dailyScheduleCapacityMinutes: null,
+        workMode: null,
+        actualTimeTrackingEnabled: false,
+        installBannerDismissedAt: null,
         updatedAt: "2026-08-22T00:00:00.000Z",
       }),
     ).resolves.toMatchObject({ ok: true, value: { theme: "dark" } });
@@ -213,7 +217,7 @@ describe("IndexedDbLocalStore", () => {
   it("returns local drafts with the latest update first", async () => {
     const store = new IndexedDbLocalStore();
     const early: OrderDraft = {
-    catalogItemId: null,
+      catalogItemId: null,
       id: "early",
       intent: "planned_design",
       customerName: "",
@@ -511,7 +515,7 @@ describe("IndexedDbLocalStore", () => {
       updatedAt: "2026-08-22T00:00:00.000Z",
     };
     const draft: OrderDraft = {
-    catalogItemId: null,
+      catalogItemId: null,
       id: "draft-linked",
       intent: "customer_order",
       customerName: "سارة",
@@ -599,7 +603,7 @@ describe("IndexedDbLocalStore", () => {
   it("replaces the full local snapshot in one IndexedDB transaction", async () => {
     const store = new IndexedDbLocalStore();
     const oldDraft: OrderDraft = {
-    catalogItemId: null,
+      catalogItemId: null,
       id: "old",
       intent: "customer_order",
       customerName: "",
@@ -636,10 +640,13 @@ describe("IndexedDbLocalStore", () => {
       createdAt: "2026-08-22T01:00:00.000Z",
       updatedAt: "2026-08-22T01:00:00.000Z",
     };
-    const importedPreferences = {
+    const importedPreferences: LocalPreferences = {
       id: localPreferencesId,
       theme: "light" as const,
       dailyScheduleCapacityMinutes: null,
+      workMode: null,
+      actualTimeTrackingEnabled: false,
+      installBannerDismissedAt: null,
       updatedAt: "2026-08-22T01:00:00.000Z",
     };
     await expect(
@@ -649,6 +656,7 @@ describe("IndexedDbLocalStore", () => {
         drafts: [replacementDraft],
         orders: [],
         schedules: [],
+        financialEvents: [],
       }),
     ).resolves.toMatchObject({
       ok: true,
@@ -724,13 +732,15 @@ describe("IndexedDbLocalStore", () => {
   it("fails a migration on cursor error without partially writing the legacy record", async () => {
     await seedVersionTwentyFiveLegacyPolicy();
     const originalOpenCursor = IDBObjectStore.prototype.openCursor;
-    const cursorSpy = vi
-      .spyOn(IDBObjectStore.prototype, "openCursor")
-      .mockImplementation(function (query?, direction?) {
-        const request = originalOpenCursor.call(this, query, direction);
-        if (this.name === "allocation-policies") queueMicrotask(() => request.onerror?.(new Event("error")));
-        return request;
-      });
+    const cursorSpy = vi.spyOn(IDBObjectStore.prototype, "openCursor").mockImplementation(function (
+      this: IDBObjectStore,
+      query?,
+      direction?,
+    ) {
+      const request = originalOpenCursor.call(this, query, direction);
+      if (this.name === "allocation-policies") queueMicrotask(() => request.onerror?.(new Event("error")));
+      return request;
+    });
 
     await expect(new IndexedDbLocalStore().listAllocationPolicies()).resolves.toMatchObject({
       ok: false,

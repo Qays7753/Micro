@@ -63,6 +63,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     const second = await service.recordDepreciation(assetId, { asOf: "2026-09-01" });
     expect(second.ok).toBe(false);
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value.filter(event => event.type === "asset_depreciation")).toHaveLength(1);
   });
 
@@ -326,6 +327,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     if (correction.ok) return;
     expect(correction.message).toContain("لا تغيير عن المسجّل");
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value.filter(event => event.correctionType === "reverse")).toHaveLength(0);
   });
 });

@@ -199,7 +199,7 @@ describe("retained deposit service (المجموعة ٤ — عقد ٢٩)", () =>
     const store = new MemoryLocalStore();
     const service = new RetainedDepositService(store, now);
     await cancelledOrderWithRetainedDeposit(store);
-    const result = await service.reclassify("order-1", "revenue", "لا تصنيف قائم");
+    const result = await service.reclassify("order-1", { toMeaning: "revenue", reason: "لا تصنيف قائم" });
     expect(result.ok).toBe(false);
   });
 

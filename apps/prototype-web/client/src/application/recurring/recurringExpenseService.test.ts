@@ -12,6 +12,7 @@ import {
   type RecurringExpenseRuleDraft,
 } from "@micro-domain/recurring-expense/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { assertOk } from "@/testing/resultAssertions";
 import { RecurringExpenseService, type RecurringExpenseReview } from "./recurringExpenseService";
 import { ProjectFinancialService } from "../finance/projectFinancialService";
 
@@ -188,8 +189,11 @@ describe("RecurringExpenseService OPS-003 (عقد ٤١)", () => {
     const occurrence = await occurrenceByPeriod(service, seriesId, "2026-09");
 
     const first = await service.confirm(occurrence.occurrence.id, review());
+    assertOk(first);
     expect(first.ok && first.value.status).toBe("recorded");
+    if (first.value.status === "record_failed") throw new Error(first.value.message);
     const second = await service.confirm(occurrence.occurrence.id, review());
+    assertOk(second);
     expect(second.ok && second.value.status).toBe("reused");
     if (second.value.status === "record_failed") throw new Error(second.value.message);
     expect(second.ok && second.value.event.id).toBe(first.ok ? first.value.event.id : "");
@@ -516,12 +520,17 @@ describe("RecurringExpenseService OPS-003 (عقد ٤١)", () => {
   it("تخصيص المحفظة خطوة لاحقة مستقلة: فشلها غير مالي ولا يغير حالة الفترة", async () => {
     const store = new MemoryLocalStore();
     const service = new RecurringExpenseService(store, () => SEPTEMBER, {
-      distributeUnallocated: async () => ({ ok: false, code: "storage_error", message: "المحفظة غير موجودة" }),
+      distributeUnallocated: async () => ({
+        ok: false,
+        code: "storage_error",
+        message: "المحفظة غير موجودة",
+      }),
     });
     const seriesId = await activatedSeries(service);
     const occurrence = await occurrenceByPeriod(service, seriesId, "2026-09");
 
     const confirmed = await service.confirm(occurrence.occurrence.id, review({ walletId: "wallet-1" }));
+    assertOk(confirmed);
     expect(confirmed.ok && confirmed.value.status).toBe("recorded");
     if (confirmed.value.status === "record_failed") throw new Error(confirmed.value.message);
     expect(confirmed.ok && confirmed.value.attributionNote).toBe("المحفظة غير موجودة");

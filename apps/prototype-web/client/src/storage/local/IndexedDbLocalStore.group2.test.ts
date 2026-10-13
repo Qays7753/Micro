@@ -9,6 +9,7 @@ import {
   type FormDraftEnvelope,
   type LocalSecurityRecord,
   type LocalStoreSnapshot,
+  type PrototypeLocalStore,
 } from "./types";
 
 /* المجموعة ٢ (التحصين الكامل — MED-017/RISK-003/LOW-003): اختبارات محوّل
@@ -232,6 +233,10 @@ const security: LocalSecurityRecord = {
   pinHash: "0123456789abcdef",
   salt: "fedcba9876543210",
   autoLockMinutes: 5,
+  lastActiveAt: null,
+  failedAttempts: 0,
+  createdAt: TS,
+  updatedAt: TS,
 };
 
 async function replaceWithEmptySnapshot(store: {
@@ -240,14 +245,17 @@ async function replaceWithEmptySnapshot(store: {
   return store.replaceSnapshot(LocalTransferService.emptySnapshot());
 }
 
-async function expectDraftsAndSecuritySurvive(store: {
-  getFormDraft(id: string): Promise<{ ok: boolean; value: FormDraftEnvelope | null }>;
-  saveFormDraft(draft: FormDraftEnvelope): Promise<{ ok: boolean }>;
-  getLocalSecurity(): Promise<{ ok: boolean; value: LocalSecurityRecord | null }>;
-  saveLocalSecurity(security: LocalSecurityRecord): Promise<{ ok: boolean }>;
-  readSnapshot(): Promise<{ ok: boolean; value: LocalStoreSnapshot }>;
-  replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<{ ok: boolean }>;
-}): Promise<void> {
+async function expectDraftsAndSecuritySurvive(
+  store: Pick<
+    PrototypeLocalStore,
+    | "getFormDraft"
+    | "saveFormDraft"
+    | "getLocalSecurity"
+    | "saveLocalSecurity"
+    | "readSnapshot"
+    | "replaceSnapshot"
+  >,
+): Promise<void> {
   await store.saveFormDraft(draft);
   await store.saveLocalSecurity(security);
   const replacement = await replaceWithEmptySnapshot(store);

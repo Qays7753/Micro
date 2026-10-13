@@ -50,8 +50,11 @@ const record = createOwnerEntitlementRecord({
   calculationBasis: "time_period",
   baseMinor: null,
   quantity: null,
+  sourceKeys: [],
   note: "آب",
   idempotencyKey: "entitlement-1",
+  reversalOfId: null,
+  reversalReason: null,
 });
 const wallet = createCashWallet({
   id: "wallet-1",

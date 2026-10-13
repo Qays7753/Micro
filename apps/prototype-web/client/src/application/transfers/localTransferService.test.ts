@@ -21,9 +21,10 @@ import { createAllocationPolicy } from "@micro-domain/recurring-margin/index.js"
 import { createActualTimeRecord, reverseActualTimeRecord } from "@micro-domain/actual-time/index.js";
 import { cancelDirectSale, createDirectSale, updateDirectSale } from "@micro-domain/direct-sale/index.js";
 import { assertOk } from "@/testing/resultAssertions";
+import type { ActivityProfile } from "@/storage/local/types";
 
-const profile = {
-  id: localProfileId as const,
+const profile: ActivityProfile = {
+  id: localProfileId,
   activityName: "مشغل ليان",
   currency: "JOD" as const,
   activityType: "custom_craft" as const,

@@ -40,7 +40,7 @@ async function saveOrder(store: MemoryLocalStore, id: string, deliveryDate: stri
     createdAt: "2026-08-22T00:00:00.000Z",
   });
   const stored: StoredCraftOrder = {
-  catalogItemId: null,
+    catalogItemId: null,
     id,
     order: { ...order, status: "in_progress", nextAction: "أكمل التنفيذ" },
     deliveryDate,
@@ -77,7 +77,7 @@ async function saveProvisionalOrder(store: MemoryLocalStore, id: string) {
     createdAt: "2026-08-22T00:00:00.000Z",
   });
   const stored: StoredCraftOrder = {
-  catalogItemId: null,
+    catalogItemId: null,
     id,
     order: { ...order, status: "provisional_agreement", nextAction: "أكمل تأكيد الاتفاق" },
     deliveryDate: "2026-09-10",
@@ -263,20 +263,20 @@ describe("G-003 — order write stale conflicts surface typed storage_stale", ()
     await saveOrder(store, orderId, "2026-09-10");
     /* سجل قديم بلا الحقول الاختيارية إطلاقًا (null ≡ undefined في الحارس). */
     const legacy = okValue(await store.getOrder(orderId))!;
-    const legacyLive: StoredCraftOrder = {
+    const legacyLive = {
       ...legacy,
       retainedMeaning: undefined,
       orderName: undefined,
-    };
+    } as StoredCraftOrder;
     delete (legacyLive as Record<string, unknown>).retainedMeaning;
     delete (legacyLive as Record<string, unknown>).orderName;
     await store.saveOrder(legacyLive);
     const base = okValue(await store.getOrder(orderId))!;
-    const baseWithNulls: StoredCraftOrder = {
+    const baseWithNulls = {
       ...base,
       retainedMeaning: null,
       orderName: null,
-    };
+    } as StoredCraftOrder;
     const fulfillment = new FulfillmentService(store, now);
     /* الكتابة الواعية فوق البيانات القديمة تنجح — null/undefined متكافئان. */
     const written = await store.commitOrderUpdate(

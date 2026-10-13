@@ -46,8 +46,11 @@ const record = createOwnerEntitlementRecord({
   calculationBasis: "time_period",
   baseMinor: null,
   quantity: null,
+  sourceKeys: [],
   note: "آب",
   idempotencyKey: "entitlement-transfer",
+  reversalOfId: null,
+  reversalReason: null,
 });
 
 describe("O1 local transfer boundary", () => {

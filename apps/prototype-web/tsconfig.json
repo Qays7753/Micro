@@ -1,6 +1,9 @@
 {
   "include": ["client/src/**/*"],
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
+  /* NF-020 part 2 (2026-10-13): أُزيل استثناء ملفات الاختبار — كل ملفات
+   * الاختبار داخل التدقيق النوعي الآن (226 ملفًا صارت مدققة؛ حراسة التغطية
+   * في scripts/check-test-typecheck-coverage.mjs تمنع عودته). */
+  "exclude": ["node_modules", "build", "dist"],
   "compilerOptions": {
     "target": "ES2022",
     "incremental": true,

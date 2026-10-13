@@ -50,8 +50,11 @@ const record = createOwnerEntitlementRecord({
   calculationBasis: "time_period",
   baseMinor: null,
   quantity: null,
+  sourceKeys: ["period:policy-rc1:2026-08-01:2026-08-31"],
   note: "آب",
   idempotencyKey: "rec-rc1",
+  reversalOfId: null,
+  reversalReason: null,
 });
 
 /** نسخة مُعاد ختمها بأمانة كاملة (بصمة + عدادات معاد حسابهما) — هجوم

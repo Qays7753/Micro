@@ -305,7 +305,7 @@ describe("Stage 2 — OPS-004: قراءة التكلفة/الكمية المخط
     const store = new MemoryLocalStore();
     class FailingTemplatesStore extends MemoryLocalStore {
       async listCatalogTemplates() {
-        return { ok: false, code: "storage_error" as const, message: "فشل قراءة مفتعل" };
+        return { ok: false as const, code: "storage_error" as const, message: "فشل قراءة مفتعل" };
       }
     }
     const failing = new FailingTemplatesStore();

@@ -11,7 +11,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { createMaterial } from "@micro-domain/inventory-material/index.js";
-import type { InventoryMovement } from "@micro-domain/inventory-material/index.js";
+import type { InventoryMovement, InventoryShortage } from "@micro-domain/inventory-material/index.js";
+import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import { IndexedDbLocalStore } from "../IndexedDbLocalStore";
 import { MemoryLocalStore } from "../MemoryLocalStore";
 import type { InventoryActivation } from "../types";
@@ -59,6 +60,7 @@ function movementFixture(id: string, materialId: string, key: string): Inventory
     purchaseId: null,
     orderId: null,
     reversesMovementId: null,
+    wasteContext: null,
   });
 }
 /** السيناريو يستقبل النوع الضيق حصرًا — عدسة مستهلك القدرة لا أوسع. */
@@ -97,7 +99,7 @@ async function runCapabilityScenario(store: InventoryMaterialStore) {
   /* ٤) النواقص: قائمة فارغة ثم كتابة ذرّية مع نقص (D-027). */
   const noShortages = await store.listInventoryShortages();
   expect(noShortages.ok && noShortages.value).toHaveLength(0);
-  const shortage = Object.freeze({
+  const shortage: InventoryShortage = Object.freeze({
     id: "shortage-cap-1",
     materialId: "mat-cap-1",
     requestedQuantityMilli: 8_000,
@@ -108,6 +110,9 @@ async function runCapabilityScenario(store: InventoryMaterialStore) {
     note: "طلب ٨ كيلو والمتاح ٥",
     orderId: null,
     operationKey: "op-shortage-cap-1",
+    status: "open",
+    resolvedOn: null,
+    resolutionNote: null,
   });
   const withShortage = await store.commitInventoryWithShortage(material, [movement], shortage);
   expect(withShortage.ok).toBe(true);
@@ -128,7 +133,7 @@ async function runCapabilityScenario(store: InventoryMaterialStore) {
 async function runDeterminismWing(store: InventoryMaterialStore) {
   const material = materialFixture("mat-det-1", "op-mat-det-1");
   const movement = movementFixture("mv-det-1", "mat-det-1", "op-mv-det-1");
-  const event = Object.freeze({
+  const event: FinancialEvent = Object.freeze<FinancialEvent>({
     id: "event-det-1",
     type: "operating_expense_cash",
     currency: "JOD",

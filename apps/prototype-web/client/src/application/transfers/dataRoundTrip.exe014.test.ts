@@ -175,7 +175,7 @@ describe("EXE-014 opening-import gate refuses any occupied influential family", 
           operationKey: "exe014-gate-wallet",
         });
         if (!wallet.ok) throw new Error(wallet.message);
-        const owner = new OwnerEntitlementService(store, now);
+        const owner = new OwnerEntitlementService(store, undefined, now);
         const saved = await owner.recordMovement({
           kind: "draw",
           amountMinor: 500,
@@ -232,7 +232,7 @@ describe("EXE-014 export → change → restore returns every covered family int
     const cash = new CashContinuityService(source, now);
     const finance = new ProjectFinancialService(source, now);
     const suppliers = new SupplierPurchaseService(source, now);
-    const owner = new OwnerEntitlementService(source, now);
+    const owner = new OwnerEntitlementService(source, undefined, now);
     const loans = new LoanService(source, now);
     const assets = new AssetService(source, now);
     const inventory = new InventoryMaterialService(source, now);

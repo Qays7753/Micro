@@ -5,7 +5,7 @@
 import { describe, expect, it } from "vitest";
 import type { StoredCraftOrder } from "@/storage/local/types";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
-import type { OrderEvent } from "@micro-domain/craft-order/index.js";
+import type { CraftOrder, OrderEvent } from "@micro-domain/craft-order/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import {
   collectionShareDraft,
@@ -32,7 +32,7 @@ function buildStored(): StoredCraftOrder {
     createdAt: NOW,
     freshnessDays: null,
   });
-  const order = {
+  const order: CraftOrder = {
     ...createCraftOrder({
       id: "order-1",
       customerName: "أم خالد",

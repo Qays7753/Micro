@@ -4,9 +4,23 @@ import { isInstallBannerDismissalActive, isIosSafari, isStandaloneMode } from ".
 describe("PWA install detection", () => {
   it("suppresses install UI for display-mode standalone", () => {
     expect(
-      isStandaloneMode({ matchMedia: () => ({ matches: true }) }, { standalone: false } as Navigator & {
-        standalone?: boolean;
-      }),
+      isStandaloneMode(
+        {
+          matchMedia: () => ({
+            matches: true,
+            media: "(display-mode: standalone)",
+            onchange: null,
+            addEventListener: () => {},
+            removeEventListener: () => {},
+            addListener: () => {},
+            removeListener: () => {},
+            dispatchEvent: () => false,
+          }),
+        },
+        { standalone: false } as Navigator & {
+          standalone?: boolean;
+        },
+      ),
     ).toBe(true);
   });
 

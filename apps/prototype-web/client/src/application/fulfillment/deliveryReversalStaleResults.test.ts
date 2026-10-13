@@ -101,7 +101,7 @@ class RacingReversalStore extends MemoryLocalStore {
   async commitOrderDeliveryReversal(
     order: StoredCraftOrder,
     reversalMovements: readonly InventoryMovement[],
-  ): Promise<ReturnType<MemoryLocalStore["commitOrderDeliveryReversal"]>> {
+  ): Promise<Awaited<ReturnType<MemoryLocalStore["commitOrderDeliveryReversal"]>>> {
     if (this.armed) {
       this.armed = false;
       const concurrent = collectRemaining(
@@ -131,7 +131,7 @@ class GenuineFailureStore extends MemoryLocalStore {
   override async commitOrderDeliveryReversal(
     order: StoredCraftOrder,
     reversalMovements: readonly InventoryMovement[],
-  ): Promise<ReturnType<MemoryLocalStore["commitOrderDeliveryReversal"]>> {
+  ): Promise<Awaited<ReturnType<MemoryLocalStore["commitOrderDeliveryReversal"]>>> {
     void order;
     void reversalMovements;
     return { ok: false, code: "storage_error", message: "فشل تخزيني حقيقي مُحقن." };

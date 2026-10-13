@@ -24,7 +24,8 @@ import type {
   ShortCashHorizonReading,
 } from "../financial-analysis/financialAnalysisService";
 import type { FinancialPulseService } from "../financial-pulse/financialPulseService";
-import type { InventoryMaterialService, PeriodWasteReading } from "../inventory/inventoryMaterialModel";
+import type { InventoryMaterialService } from "../inventory/inventoryMaterialService";
+import type { PeriodWasteReading } from "../inventory/inventoryMaterialModel";
 import type { LoanOverviewRead, LoanService } from "../loans/loanService";
 import type {
   OwnerEntitlementOverview,

@@ -85,7 +85,6 @@ function deliveredOrder(): StoredCraftOrder {
     createdAt: "2026-09-04T09:00:00.000Z",
   });
   return {
-  catalogItemId: null,
     id: "order-1",
     order: noteDeliveryConsumption(withDelivery, {
       note: "مواد مستهلكة عند التسليم: قماش (2 متر)",
@@ -98,13 +97,14 @@ function deliveredOrder(): StoredCraftOrder {
     catalogItemId: null,
     deliveryDate: "2026-09-10",
     agreementSource: null,
+    createdAt: withDelivery.createdAt,
     updatedAt: "2026-09-04T09:00:00.000Z",
   };
 }
 
 describe("IndexedDbLocalStore — Group 3 atomic delivery commits", () => {
   it("commitOrderDelivery writes order, movements, shortages, and cash entry together", async () => {
-    const store = new IndexedDbLocalStore(() => "2026-09-04T09:00:00.000Z");
+    const store = new IndexedDbLocalStore();
     /* المخزون قبل التسليم: الطلب جاهز — والنسخة الواردة للتسليم هي المسلّمة. */
     const delivered = deliveredOrder();
     const readyVersion: StoredCraftOrder = {
@@ -209,7 +209,7 @@ describe("IndexedDbLocalStore — Group 3 atomic delivery commits", () => {
   });
 
   it("commitOrderDeliveryReversal writes the reversed order and mirrored movements, refusing duplicates", async () => {
-    const store = new IndexedDbLocalStore(() => "2026-09-04T10:00:00.000Z");
+    const store = new IndexedDbLocalStore();
     const stored = deliveredOrder();
     await store.saveOrder(stored);
     const deliveryEventId = [...stored.order.events]

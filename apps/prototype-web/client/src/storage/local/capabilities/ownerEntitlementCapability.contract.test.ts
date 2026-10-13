@@ -92,6 +92,7 @@ async function runCapabilityScenario(store: OwnerEntitlementStore) {
    *    بمفتاح الخلف تعيد المخزن؛ والأصل غير الفعال رفض صادر بلا كتابة. */
   const successor = createOwnerEntitlementPolicySuccessor({
     id: "policy-cap-2",
+    seriesId: "policy-cap-1",
     version: 2,
     kind: "monthly",
     amountMinor: 2000,
@@ -139,8 +140,11 @@ async function runCapabilityScenario(store: OwnerEntitlementStore) {
     calculationBasis: "time_period",
     baseMinor: null,
     quantity: null,
+    sourceKeys: [],
     note: "آب",
     idempotencyKey: "entitlement-cap-1",
+    reversalOfId: null,
+    reversalReason: null,
   });
   const savedRecord = await store.saveOwnerEntitlementRecord(record);
   expect(savedRecord.ok).toBe(true);

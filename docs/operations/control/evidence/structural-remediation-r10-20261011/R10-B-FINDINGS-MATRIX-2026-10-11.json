@@ -2010,11 +2010,11 @@
       "rollback_boundary": "Commit revert (may be multi-file).",
       "limitations": "Read-only W0 verification; reviewer file:line evidence retained in R10-B-W0-REVIEWER-REPORTS.",
       "implementation_status": {
-        "state": "IN_PROGRESS_PART1_OF_2_ON_R10B_BRANCH",
-        "wave": "R10-B5",
-        "closed_at_commit": "257d0f54 (part 1 of 2)",
+        "state": "CLOSED_WITH_EVIDENCE",
+        "wave": "R10-B5 part 2 (R10-B Phase 5)",
+        "closed_at_commit": "(this NF-020 part-2 head)",
         "date": "2026-10-13",
-        "evidence": "PART 1 CLOSED_WITH_EVIDENCE in R10-B5 (commit 257d0f54, 2026-10-13) — behavior-verified groundwork, exclusion NOT yet removed (the tree stays green by design): 60 CostSnapshotInput fixtures completed with source:'draft' (field carried, never branched on — verified against policies.ts), 28 StoredCraftOrder fixtures completed with catalogItemId:null (the honest no-catalog value), shareMessageService's stale settlementStatus:'partial' corrected to the legal 'partially_paid' (13/13 green — cosmetic to the derivation), 29 hostile-shape casts rewritten as-unknown-as (the sanctioned idiom for tamper probes), and the test-support home client/src/testing/resultAssertions.ts created (assertOk — an asserts-function narrowing any ok-discriminated union via Extract, no casts; okValue — the inline form for (await x()).value sites) with a 5-test smoke suite, added to the eslint lib block (W4-D/F-044 lesson). FULL app suite 2,603/2,603 after the changes (behavior-safety proof). Probe census (exclusion removed in a scratch config, deleted after measuring): 589 -> 428 errors remaining. PART 2 REMAINS: the narrowing inserts (assertOk after the existing expect(x.ok) lines; okValue for expression receivers — failure-path tests that rely on .value? tolerance must narrow to the failure arm instead), the remaining fixture-shape drift (StoredCraftOrder inner order objects, OwnerEntitlementRecord, PeriodResultReader, ConsumeMaterialInput, fake stores), implicit-any callback annotations, then REMOVE the '**/*.test.ts' exclusion and add the coverage guard (count test files vs tsconfig include). Continuation artifacts: /home/z/my-project/work/nf020-continuation/ (current census + codemods + hazard notes)."
+        "evidence": "Part 2 executed after the D1 gate as the canonical prompt requires. (1) Narrowing insertions: 60+ assertOk after const result declarations and 70+ okValue inline rewrites via the Extract-based B5 helper house, plus in-place status-union guards (record_failed etc.) — every failure-expecting path kept its failure-arm semantics (one wrong insertion on the envelope27 tampered-file rejection was caught by the runtime suite and removed). (2) Fixture drifts repaired against the REAL type definitions: catalogItemId:null completions, lowStock/createdOperationKey/sourceKeys/reversalOfId/seriesId/currency/profitMinor field completions, stale union literals swapped to the real members with create+filter kept consistent (loss_non_cash, partially_paid, unpaid), hostile fixtures via the approved as-unknown-as convention, helper types bound to real domain types (MaterialSuggestion, ActivityProfile, StoredCraftOrder, LocalExportCounts), and the check-bundle-budget.d.mts declaration for the doc-test import. (3) The EXCLUSION IS REMOVED: tsconfig.json exclude no longer contains the test-file pattern (dated note in place). (4) Coverage guard: scripts/check-test-typecheck-coverage.mjs (18th guard, wired into pnpm guards) proves LIVE via tsc --listFilesOnly that all 353 test/spec files under client/src are inside the app typecheck program and fails closed on any returning exclusion pattern — 4 negative tests. Census: 428 surfaced errors -> 0 (waves: 428->295->212->202->177->159->143->142->27->0 across 69+ files; three parallel controlled batches + supervised manual waves). Full chain green on the final tree: pnpm check exit 0 — root 811/811, app 358 files/2,636 tests (incl. the 4 new guard tests), 18 guards, typechecks x3, lint 35<=37, format, budget+surfaces PASS, and the D1 entry remains BYTE-IDENTICAL (index-CPVmJmgX.js 631,903/155,290 sha256 f6f86858…) proving the slice is test-only. Genuine finding recorded: the pre-part-2 withdrawalWalletGuard assertion compared undefined===undefined vacuously (operatingExpenseMinor never existed on the type) — now a real assertion on recordedOperatingExpenseMinor."
       }
     },
     {
@@ -2832,6 +2832,17 @@
       ],
       "records_commit": "(same commit)",
       "summary": "OD-9=C executed as a separately revertible commit after the D1 gate and the no-consumer proof: the broken Replit post-merge hook is retired (.replit [postMerge] block removed; scripts/post-merge.sh deleted; its register row and ratchet baseline row 488->487 removed with dated notes). Fail-closed unknown-environment contract untouched (surfaces tests 22/22; E-UNV-008 drill 6/6 on this head)."
+    },
+    {
+      "wave": "R10-B Phase 5 (NF-020 part 2)",
+      "date": "2026-10-13",
+      "branch": "refactoring/r10b-complete-b1-b6-20261011",
+      "code_commits": [
+        "5359fbc6 (wave 1 checkpoint)",
+        "(this final head)"
+      ],
+      "records_commit": "(same commit)",
+      "summary": "NF-020 part 2 complete: narrowing insertions (assertOk/okValue/status guards), fixture drift repairs against real types, the tsconfig test exclusion REMOVED, and the 18th guard check-test-typecheck-coverage.mjs added (live tsc --listFilesOnly proof, 4 negative tests, wired into pnpm guards). 428 -> 0 surfaced type errors; pnpm check exit 0 (root 811/811, app 358/2,636); the D1 entry stays byte-identical (631,903/155,290) — test-only slice."
     }
   ]
 }

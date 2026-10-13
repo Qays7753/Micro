@@ -120,6 +120,7 @@ describe("received loan service (FIN-001 — WS-178 Wave 6)", () => {
     const replayCreate = await store.commitReceivedLoanRecord(created.value.loan, created.value.event);
     expect(replayCreate.ok && replayCreate.value.reused).toBe(true);
     let events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value).toHaveLength(1);
     const repaid = await service.recordRepayment(loanId, { amountMinor: 5000, date: "2026-08-01" });
     expect(repaid.ok).toBe(true);
@@ -127,6 +128,7 @@ describe("received loan service (FIN-001 — WS-178 Wave 6)", () => {
     const replayRepayment = await store.commitReceivedLoanRecord(repaid.value.loan, repaid.value.event);
     expect(replayRepayment.ok && replayRepayment.value.reused).toBe(true);
     events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value.filter(event => event.type === "loan_received_repayment_cash")).toHaveLength(1);
     const overview = await service.overview();
     expect(overview.ok && overview.value.rows[0]!.reading.outstandingMinor).toBe(15000);
@@ -161,6 +163,7 @@ describe("received loan service (FIN-001 — WS-178 Wave 6)", () => {
     const again = await service.reverseRepayment(loanId, repaid.value.loan.repayments[0]!.id, "ثانية");
     expect(again.ok).toBe(false);
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value.filter(event => event.correctionType === "reverse")).toHaveLength(1);
   });
 

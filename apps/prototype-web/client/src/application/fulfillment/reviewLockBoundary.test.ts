@@ -170,7 +170,7 @@ describe("application-level review lock boundary (D-031)", () => {
      * المعاينة؛ المخزن نفسه هو مصدر العرض. */
     const stored = await store.getOrder("order-app-lock");
     assertOk(stored);
-    if (!stored.ok || !stored.value) throw new Error(stored.message);
+    if (!stored.value) throw new Error("expected the locked order to be stored");
     expect(stored.value.order.status).toBe(locked.order.status);
     expect(stored.value.order.events.some(event => event.type === "collection_recorded")).toBe(true);
     const mutation = await fulfillment.reverseCollection("order-app-lock", {
@@ -180,7 +180,8 @@ describe("application-level review lock boundary (D-031)", () => {
     });
     expect(mutation.ok).toBe(false);
     const unchanged = await store.getOrder("order-app-lock");
-    if (!unchanged.ok || !unchanged.value) throw new Error(unchanged.message);
+    assertOk(unchanged);
+    if (!unchanged.value) throw new Error("expected the locked order to be stored");
     expect(unchanged.value.order.collectedMinor).toBe(3000);
   });
 });

@@ -222,9 +222,7 @@ describe("AgreementContextService", () => {
   it("returns due follow-ups separately from upcoming ones and rejects invalid local dates", async () => {
     const store = await storedOrder("order-due");
     await store.saveOrder({
-      ...(okValue(await store.getOrder("order-due")) as NonNullable<
-        Awaited<ReturnType<MemoryLocalStore["getOrder"]>> extends { ok: true; value: infer T } ? T : never
-      >),
+      ...okValue(await store.getOrder("order-due"))!,
       id: "order-due",
     });
     const secondStore = await storedOrder("order-upcoming");
