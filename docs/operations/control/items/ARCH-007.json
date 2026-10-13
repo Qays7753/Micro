@@ -2,7 +2,7 @@
   "id": "ARCH-007",
   "title": "الإصلاح البنيوي الجذري بعد تقريري Flash وStructure — مصفوفة التتبع وتنفيذ R0–R10",
   "type": "GOVERNANCE",
-  "status": "IN_PROGRESS",
+  "status": "VERIFIED",
   "priority": "P0",
   "stage": "structural-remediation-r0-r10-20261007",
   "summary": "تنفيذ الخطة الجذرية المعتمدة لإغلاق العيوب البنيوية الحالية، وتثبيت مصدر حقيقة واحد، ومعالجة التخزين والنقل والملفات الكبيرة والحراس والاختبارات، مع بوابة R0 قراءة فقط قبل أي كتابة كودية.",
@@ -183,7 +183,13 @@
     "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-REPORTS-2026-10-11/",
     "https://github.com/Qays7753/Micro/pull/354",
     "https://github.com/Qays7753/Micro/actions/runs/38161910588",
-    "https://github.com/Qays7753/Micro/commit/c9fbac254319c84ff228ab686f72bc9aac7ce107"
+    "https://github.com/Qays7753/Micro/commit/c9fbac254319c84ff228ab686f72bc9aac7ce107",
+    "https://github.com/Qays7753/Micro/pull/356",
+    "https://github.com/Qays7753/Micro/commit/b5f1bcc35cb6292d04b6234aa8c7c0eb41b94708",
+    "https://github.com/Qays7753/Micro/actions/runs/38386445465",
+    "https://github.com/Qays7753/Micro/runs/115259301752",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-COMPLETE-B1-B6-EXECUTION-REPORT-2026-10-11.md",
+    "docs/operations/current-state-log.md"
   ],
   "dependencies": [],
   "related_items": [
@@ -228,8 +234,28 @@
       "changed_at": "2026-10-11",
       "actor": "R10-B executor (Z AI) via PR #356",
       "reason": "بدء تنفيذ R10-B على الفرع المخصص من main الحي؛ الادعاء مسجل في WS-216."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-13",
+      "actor": "post-merge-reconciliation:final-review",
+      "reason": "PR #356 كان في حالة مراجعة نهائية بعد اكتمال B6 وتصحيح current-state، وقبل تفويض المالك للدمج؛ جميع فحوص الرأس النهائي كانت ناجحة."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-13",
+      "actor": "merge:pr-356",
+      "reason": "PR #356 دُمج بـMerge commit b5f1bcc35cb6292d04b6234aa8c7c0eb41b94708 من رأس المصدر 930345cd6336982097285d9781a5dc996945073e إلى main؛ بدأت مصالحة ما بعد الدمج."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-13",
+      "actor": "verify:main-tree",
+      "reason": "origin/main يطابق Merge commit b5f1bcc35cb6292d04b6234aa8c7c0eb41b94708؛ CI run 38386445465 وCloudflare Pages check 115259301752 نجحا على الرأس نفسه؛ سجل الحالة ومصادر التحكم صُولحت."
     }
   ],
   "migration_baseline": true,
-  "next_action": "R10-B COMPLETE (B6 closed on final head ca4550f9): matrix reconciled (58 FIX_NOW all closed incl. this session's NF-038/D1 + F-024/OD-9=C + NF-020 part 2; 16 precise DEFER; 1 disproved), five read-only reviewers PASS on the final head, full chain green locally AND CI + Cloudflare Pages success on the exact final head, final bundle 631,903/155,290 deterministic (sigma-hat 0, headroom 10 >= 2*sigma-hat under the untouched 650,000/155,300), unified final report §16 + Merge Manifest. PR #356 OPEN for owner review and owner-only merge. STATUS: R10B_D1_OD9_NF020_B6_COMPLETE — PR_READY — NO_FURTHER_WRITES — NO_MERGE — NO_CLEANUP."
+  "next_action": "لا إجراء تنفيذي إضافي لـARCH-007: R10-B1..B6 مدمجة ومتحققة على main عند Merge commit b5f1bcc35cb6292d04b6234aa8c7c0eb41b94708؛ التقرير النهائي في docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-COMPLETE-B1-B6-EXECUTION-REPORT-2026-10-11.md §16. لا يبدأ successor جديد تلقائيًا؛ أي مسار لاحق يحتاج مسحًا/قرار نطاق وبوابة مالك مستقلة.",
+  "merge_sha": "b5f1bcc35cb6292d04b6234aa8c7c0eb41b94708",
+  "verified_on_main_sha": "b5f1bcc35cb6292d04b6234aa8c7c0eb41b94708"
 }

@@ -1,7 +1,7 @@
 {
   "id": "WS-216",
   "title": "الإصلاح البنيوي الجذري بعد مصالحة تقريري Flash وStructure — R0–R10",
-  "status": "IN_PROGRESS",
+  "status": "VERIFIED",
   "items": [
     "ARCH-007"
   ],
@@ -31,7 +31,7 @@
   "pr": 356,
   "started_at": "2026-10-07",
   "updated_at": "2026-10-13",
-  "next_action": "R10-B COMPLETE (B6 closed on final head ca4550f9): matrix reconciled (58 FIX_NOW all closed incl. this session's NF-038/D1 + F-024/OD-9=C + NF-020 part 2; 16 precise DEFER; 1 disproved), five read-only reviewers PASS on the final head, full chain green locally AND CI + Cloudflare Pages success on the exact final head, final bundle 631,903/155,290 deterministic (sigma-hat 0, headroom 10 >= 2*sigma-hat under the untouched 650,000/155,300), unified final report §16 + Merge Manifest. PR #356 OPEN for owner review and owner-only merge. STATUS: R10B_D1_OD9_NF020_B6_COMPLETE — PR_READY — NO_FURTHER_WRITES — NO_MERGE — NO_CLEANUP.",
+  "next_action": "لا إجراء تنفيذي إضافي لـWS-216: R10-B1..B6 مدمجة ومتحققة على main عند Merge commit b5f1bcc35cb6292d04b6234aa8c7c0eb41b94708؛ التقرير النهائي في docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-COMPLETE-B1-B6-EXECUTION-REPORT-2026-10-11.md §16. لا يبدأ مسار جديد تلقائيًا؛ أي عمل لاحق يحتاج نطاقًا وقرار مالك وبوابة مستقلة.",
   "notes": [
     "اعتماد المالك في 2026-10-07 للخطة المحدثة ومصفوفة التتبع الكاملة المبنية على تقريري Structure وFlash.",
     "هذا successor مستقل؛ لا يعيد فتح WS-212 أو WS-214 أو WS-215 ولا يعدل عقودها التاريخية.",
@@ -78,10 +78,11 @@
     "2026-10-11 (R10-B W0 owner acceptance): the owner accepted W0 and authorized the scoped R10-B1..B6 sequence on PR #354 after the NF-013 DEFER-card contract correction. This does not choose OD-8/OD-9/OD-12/OD-13 silently: each remains a protected gate before its applicable wave. Protected channels remain closed to unmanifested financial, historical, Schema/Export/Import, rejection, security, or visual-UI changes.",
     "2026-10-11 (R10-B W0 post-merge verification): PR #354 merged as Merge commit c9fbac254319c84ff228ab686f72bc9aac7ce107 from source head 90c60e0ee14a5659144267c8aaafee150a02798d; post-merge CI run 38161910588 succeeded on the exact main SHA. W0 is VERIFIED_ON_MAIN; the next claim is R10-B1 from a fresh dedicated branch. The merged slice contains W0 evidence/control reconciliation only; no application code remediation was performed. The source branch was removed by the merge flow; preserved UI and unmerged documentation branches remain untouched.",
     "ادّعاء تنفيذ R10-B الكامل (B1-B6) على الفرع المخصص refactoring/r10b-complete-b1-b6-20261011 من القاعدة الحية 2f78fba2 — بدأ 2026-10-11 بعد قبول W0 (دمج c9fbac25) ونشر prompt التنفيذ على main (2f78fba2). البوابات المحمية OD-8/OD-9/OD-12 تصار عند موجاتها؛ التنفيذ لا يدمج نفسه.",
-    "2026-10-12 (R10-B4 على الفرع): سبع نتائج مغلقة بدليل على رأس الكود 4743f275 (RC-3/F-016/F-017/F-018/F-020/F-021/NF-016)؛ NF-015 محجوبة على OD-12 (تحقق حي: لا قبول — حزمة القرار منشورة وMicroAppShell لم يُمس)؛ الدخول 631,632/155,189 تحت السقفين بلا رفع أي سقف (تصحيح وقت-السجلات: المسودة 155,187 أعيد قياسها نظيفًا فأنتجت 155,189 مرتين متطابقتين)؛ الأسطح مرساة بنفس-الـPR؛ بوابة المراجعين الخمسة PASS. B5 تالية وOD-9 قبل RC-4."
+    "2026-10-12 (R10-B4 على الفرع): سبع نتائج مغلقة بدليل على رأس الكود 4743f275 (RC-3/F-016/F-017/F-018/F-020/F-021/NF-016)؛ NF-015 محجوبة على OD-12 (تحقق حي: لا قبول — حزمة القرار منشورة وMicroAppShell لم يُمس)؛ الدخول 631,632/155,189 تحت السقفين بلا رفع أي سقف (تصحيح وقت-السجلات: المسودة 155,187 أعيد قياسها نظيفًا فأنتجت 155,189 مرتين متطابقتين)؛ الأسطح مرساة بنفس-الـPR؛ بوابة المراجعين الخمسة PASS. B5 تالية وOD-9 قبل RC-4.",
+    "2026-10-13 post-merge reconciliation: PR #356 merged at b5f1bcc35cb6292d04b6234aa8c7c0eb41b94708; main and both post-merge checks verified on the exact SHA; no application/financial/schema/export/UI change in this reconciliation; no branch deletion or cleanup."
   ],
-  "merge_sha": "c9fbac254319c84ff228ab686f72bc9aac7ce107",
-  "verified_on_main_sha": "c9fbac254319c84ff228ab686f72bc9aac7ce107",
+  "merge_sha": "b5f1bcc35cb6292d04b6234aa8c7c0eb41b94708",
+  "verified_on_main_sha": "b5f1bcc35cb6292d04b6234aa8c7c0eb41b94708",
   "evidence": [
     "https://github.com/Qays7753/Micro/pull/335",
     "https://github.com/Qays7753/Micro/actions/runs/37892032808",
@@ -169,7 +170,13 @@
     "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-REPORTS-2026-10-11/",
     "https://github.com/Qays7753/Micro/pull/354",
     "https://github.com/Qays7753/Micro/actions/runs/38161910588",
-    "https://github.com/Qays7753/Micro/commit/c9fbac254319c84ff228ab686f72bc9aac7ce107"
+    "https://github.com/Qays7753/Micro/commit/c9fbac254319c84ff228ab686f72bc9aac7ce107",
+    "https://github.com/Qays7753/Micro/pull/356",
+    "https://github.com/Qays7753/Micro/commit/b5f1bcc35cb6292d04b6234aa8c7c0eb41b94708",
+    "https://github.com/Qays7753/Micro/actions/runs/38386445465",
+    "https://github.com/Qays7753/Micro/runs/115259301752",
+    "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-COMPLETE-B1-B6-EXECUTION-REPORT-2026-10-11.md",
+    "docs/operations/current-state-log.md"
   ],
   "status_history": [
     {
@@ -207,6 +214,24 @@
       "changed_at": "2026-10-11",
       "actor": "R10-B executor (Z AI) via PR #356",
       "reason": "Claim جديد لموجات R10-B1..B6 على الفرع المخصص من main الحي 2f78fba2 بعد نشر prompt التنفيذ؛ W0 مقبولة ومقفلة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-13",
+      "actor": "post-merge-reconciliation:final-review",
+      "reason": "PR #356 كان في حالة مراجعة نهائية بعد اكتمال B6 وتصحيح current-state، وقبل تفويض المالك للدمج؛ جميع فحوص الرأس النهائي كانت ناجحة."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-13",
+      "actor": "merge:pr-356",
+      "reason": "PR #356 دُمج بـMerge commit b5f1bcc35cb6292d04b6234aa8c7c0eb41b94708 من رأس المصدر 930345cd6336982097285d9781a5dc996945073e إلى main؛ بدأت مصالحة ما بعد الدمج."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-13",
+      "actor": "verify:main-tree",
+      "reason": "origin/main يطابق Merge commit b5f1bcc35cb6292d04b6234aa8c7c0eb41b94708؛ CI run 38386445465 وCloudflare Pages check 115259301752 نجحا على الرأس نفسه؛ current-state وOperations Control صُولحت."
     }
   ],
   "migration_baseline": true
