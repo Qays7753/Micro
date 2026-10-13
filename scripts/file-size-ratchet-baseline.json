@@ -409,7 +409,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/application/identity/buildIdentity.ts": {
-      "nbLoc": 32,
+      "nbLoc": 48,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/application/input/englishNumeric.ts": {

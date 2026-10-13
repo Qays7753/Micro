@@ -312,6 +312,7 @@
 | `src/domain/craft-order/deliveryContribution.ts` | production | 51 | 53 | 4060 | 2 | 3 | 1 | 0 | NORMAL | domain | NORMAL | — |
 | `apps/prototype-web/client/src/components/finance/RestatementNote.tsx` | production | 50 | 53 | 2163 | 1 | 3 | 6 | 1 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleStore.ts` | production | 48 | 51 | 3373 | 3 | 1 | 5 | 1 | NORMAL | storage | NORMAL — registry §2 row updated; consumer migration continues per capability (RC-7) | — |
+| `apps/prototype-web/client/src/application/identity/buildIdentity.ts` | production | 48 | 54 | 3913 | 4 | 0 | 3 | 3 | NORMAL | application | NORMAL — OD-14=D1 (2026-10-13): identity carrier bridge (guarded one-shot meta read; was 32 nbLOC define-based); growth via reanchor R10B-D1-IDENTITY-CARRIER | — |
 | `apps/prototype-web/client/src/application/financial-records/expenseCategorySuggestions.ts` | production | 47 | 51 | 2050 | 3 | 1 | 2 | 1 | NORMAL | application | NORMAL | — |
 | `apps/prototype-web/client/src/components/owner/CrossModelDuplicateNotice.tsx` | production | 47 | 49 | 2485 | 1 | 4 | 3 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `src/domain/owner-safe-withdrawal/types.ts` | production | 47 | 51 | 2945 | 4 | 1 | 2 | 0 | NORMAL | domain | NORMAL | — |
@@ -326,7 +327,6 @@
 | `apps/prototype-web/client/src/app/useDisabledCapabilities.ts` | production | 36 | 40 | 1971 | 3 | 2 | 14 | 0 | NORMAL | app-root | NORMAL | M |
 | `apps/prototype-web/client/src/components/primitives/markers.tsx` | production | 36 | 39 | 1446 | 1 | 2 | 4 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleCapabilityAnchors.ts` | production | 33 | 37 | 2178 | 3 | 4 | 0 | 0 | NORMAL | storage | NORMAL — keep in lockstep with the capability membership | — |
-| `apps/prototype-web/client/src/application/identity/buildIdentity.ts` | production | 32 | 37 | 2408 | 3 | 0 | 3 | 1 | NORMAL | application | NORMAL | — |
 | `apps/prototype-web/client/src/presentation/financialEventLabels.ts` | production | 30 | 31 | 1947 | 1 | 1 | 3 | 0 | NORMAL | presentation | NORMAL | — |
 | `src/domain/actual-time/types.ts` | production | 29 | 31 | 848 | 5 | 0 | 2 | 0 | NORMAL | domain | NORMAL | — |
 | `apps/prototype-web/client/src/storage/local/cashContinuityCommitGuard.ts` | production | 28 | 30 | 2093 | 2 | 1 | 3 | 1 | NORMAL | storage | NORMAL | — |
@@ -1558,3 +1558,5 @@
 | F-027 | سلاسل الاكتشاف مكتملة والمواقع الكسولة الخمسة موثقة | PRESERVE | CONFIRMS | R7 (مدخل) | مواقع FIN-002 الخمسة مرصودة لجرد R7 |
 
 *(أُنشئ هذا القسم بمصالحة R6-W1، 2026-10-09، عند `fd92d7e8` — علاقات NEW/DEEPENS/REOPENED/CONFIRMS كما في تقرير المسح §13؛ لا توجد IDs مكررة ولا مكتشفات محذفة صامتة.)*
+
+**تحديث مؤرخ 2026-10-13 (R10-B/D1 [OD-14 = قرار المالك المعتمد]: حامل هوية البناء في index.html — إصلاح جذري لـ R10B-NF-038):** صار `apps/prototype-web/client/src/application/identity/buildIdentity.ts` جسر حامل الهوية: قراءة DOM محروسة أحادية (وسم meta واحد في index.html يُدخل وقت البناء) بدل ثابت define المحقون — **32 → 48 nbLOC (+16)** عبر مدخل الإرساء `R10B-D1-IDENTITY-CARRIER` في سجل الراتشة (ocRef: ARCH-007). `vite.config.ts` (ملف إعدادي خارج الراتشة والسجل) يستضيف الوسيط الجديد `micro-build-identity`: حقن الوسم مع تحقق صارم وقت البناء (فشل صادق على هوية فارغة/طويلة/مكررة/مسرّبة إلى JS/CSS/خريطة) — لا مس إطلاقًا للسقوف أو التسامحات أو الحراس أو سير عمل CI أو CSP. الملفات الاختبارية الجديدة (خارج الراتشة بحكم الفئة): `buildIdentity.carrier.dom.test.ts` و`buildIdentity.leak.test.ts` و`apps/prototype-web/scripts/vite-build-identity.test.mjs` — تُدرج صفوفها عند إعادة القياس الشاملة القادمة. أثر الحزمة: المدخل صار محصّنًا ضد الهوية (631,903/155,290 — 30 قرعة هوية متطابقة بالبايت، σ̂=0، هامش 10 ≥ 2σ̂ تحت السقفين المحروسين 650,000/155,300)؛ أسطح الأساس أُعيد إرساؤها نفس-الـPR وفق البروتوكول (precache محلي 2,683,356؛ سحابي 2,683,446).

@@ -1351,6 +1351,25 @@
         "trigger": "R10-B execution prompt section 7 wave B5 scope; canonical matrix records R10B-NF-024 and R10B-NF-026 required_behavior",
         "ocRef": "ARCH-007"
       }
+    },
+    {
+      "id": "R10B-D1-IDENTITY-CARRIER",
+      "date": "2026-10-13",
+      "path": "apps/prototype-web/client/src/application/identity/buildIdentity.ts",
+      "from": {
+        "nbLoc": 32,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 48,
+        "band": "NORMAL"
+      },
+      "reason": "OD-14=D1 root fix (R10B-NF-038, owner-approved): the identity bridge drops the injected-define declaration and becomes a guarded one-shot DOM carrier read (meta tag in index.html) coerced by the unchanged resolveAppIdentity contract — the rewritten doc-contract header, the exported carrier-name constant, the structural DOM types, and the guarded read replace the old injectedIdentity shape. Both consumers (Export 30 appVersion, diagnostics) and the honest micro-local-dev fallback are untouched; the entry becomes identity-invariant (30-draw proof).",
+      "authorization": {
+        "ownerReview": "OD-14=D1 owner-approved root fix — part of the R10-B PR #356 diff (code commit 0a829bf6)",
+        "trigger": "R10-B-D1-OD14-OD9-NF020-B6-EXECUTION-PROMPT-2026-10-13 Phase 1: D1 touches the existing identity bridge/getter module; in-band growth gets a ledger entry",
+        "ocRef": "ARCH-007"
+      }
     }
   ]
 }

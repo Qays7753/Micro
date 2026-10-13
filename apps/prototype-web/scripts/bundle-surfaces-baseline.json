@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "86e1a05f0e27304132feb8536781fe0709b0a750",
+        "head": "0a829bf65017d9ec4df1c2ad791f25d0a05a317b",
         "date": "2026-10-13",
-        "method": "R10-B4/OD-12 complementary-slice re-anchor (code head 86e1a05f, 2026-10-13): the accepted centralized route-transition system grows the entry by +89 raw/+33 gzip (631,721/155,222 local — the branded-suffix title form was measured at +64 gzip minimum and rejected under the protected 155,300 ceiling; the canonical-label title form adopted). Precache 2,683,085 -> 2,683,174 local (+89 — exactly the entry delta; the entry is precached) and 2,683,286 for both cloud environments (+112 identity footprint derivation, verified on every previous generation). Lazy surfaces, initial companions, swRuntime, and all counts byte-identical (102/2/70/157/2). Entry ceilings untouched and owned exclusively by check-bundle-budget (projected CI band 155,280-155,291 under the untouched 650,000/155,300; observed identity sway 58-69 gzip, never above 69). Tolerances/guard untouched; documented same-PR per protocol."
+        "method": "R10-B/D1 OD-14 re-anchor (code head 0a829bf6, 2026-10-13): the owner-approved D1 root fix removes the build identity from the JS entry and carries it in ONE index.html meta tag — the entry becomes identity-invariant (30 controlled identity draws on the committed tree: byte-identical entry+chunks, sigma-hat 0) at 631,903/155,290, and index.html carries the +90-byte meta for a 40-hex SHA identity. Precache 2,683,174 -> 2,683,356 local (+182 = the entry's guarded DOM-read delta over the old null-literal form) and 2,683,446 for both cloud environments (local + 90 meta; JS byte-identical local==CI==Pages post-D1 per the invariance proof — CI artifact verification recorded post-push). Lazy surfaces, initial companions, swRuntime, and all counts byte-identical (102/2/70/157/2). Entry ceilings untouched and owned exclusively by check-bundle-budget. Tolerances/guard untouched; documented same-PR per protocol under the OD-14=D1 owner authorization."
       },
       "toolchain": {
         "node": "v24.21.0",
@@ -34,7 +34,7 @@
         "initialGzipNormTotal": 70716,
         "lazyRawTotal": 1215139,
         "lazyGzipNormTotal": 366371,
-        "precacheBytesTotal": 2683174,
+        "precacheBytesTotal": 2683356,
         "swRuntimeRawTotal": 26231
       },
       "counts": {
@@ -47,9 +47,9 @@
     },
     "cloudflare-pages": {
       "anchored": {
-        "head": "86e1a05f0e27304132feb8536781fe0709b0a750",
+        "head": "0a829bf65017d9ec4df1c2ad791f25d0a05a317b",
         "date": "2026-10-13",
-        "method": "R10-B4/OD-12 complementary-slice re-anchor (code head 86e1a05f, 2026-10-13): the accepted centralized route-transition system grows the entry by +89 raw/+33 gzip (631,721/155,222 local — the branded-suffix title form was measured at +64 gzip minimum and rejected under the protected 155,300 ceiling; the canonical-label title form adopted). Precache 2,683,085 -> 2,683,174 local (+89 — exactly the entry delta; the entry is precached) and 2,683,286 for both cloud environments (+112 identity footprint derivation, verified on every previous generation). Lazy surfaces, initial companions, swRuntime, and all counts byte-identical (102/2/70/157/2). Entry ceilings untouched and owned exclusively by check-bundle-budget (projected CI band 155,280-155,291 under the untouched 650,000/155,300; observed identity sway 58-69 gzip, never above 69). Tolerances/guard untouched; documented same-PR per protocol."
+        "method": "R10-B/D1 OD-14 re-anchor (code head 0a829bf6, 2026-10-13): the owner-approved D1 root fix removes the build identity from the JS entry and carries it in ONE index.html meta tag — the entry becomes identity-invariant (30 controlled identity draws on the committed tree: byte-identical entry+chunks, sigma-hat 0) at 631,903/155,290, and index.html carries the +90-byte meta for a 40-hex SHA identity. Precache 2,683,174 -> 2,683,356 local (+182 = the entry's guarded DOM-read delta over the old null-literal form) and 2,683,446 for both cloud environments (local + 90 meta; JS byte-identical local==CI==Pages post-D1 per the invariance proof — CI artifact verification recorded post-push). Lazy surfaces, initial companions, swRuntime, and all counts byte-identical (102/2/70/157/2). Entry ceilings untouched and owned exclusively by check-bundle-budget. Tolerances/guard untouched; documented same-PR per protocol under the OD-14=D1 owner authorization."
       },
       "toolchain": {
         "node": "not-exposed-by-provider",
@@ -62,7 +62,7 @@
         "initialGzipNormTotal": 70716,
         "lazyRawTotal": 1215139,
         "lazyGzipNormTotal": 366371,
-        "precacheBytesTotal": 2683286,
+        "precacheBytesTotal": 2683446,
         "swRuntimeRawTotal": 26231
       },
       "counts": {
@@ -75,9 +75,9 @@
     },
     "github-actions": {
       "anchored": {
-        "head": "86e1a05f0e27304132feb8536781fe0709b0a750",
+        "head": "0a829bf65017d9ec4df1c2ad791f25d0a05a317b",
         "date": "2026-10-13",
-        "method": "R10-B4/OD-12 complementary-slice re-anchor (code head 86e1a05f, 2026-10-13): the accepted centralized route-transition system grows the entry by +89 raw/+33 gzip (631,721/155,222 local — the branded-suffix title form was measured at +64 gzip minimum and rejected under the protected 155,300 ceiling; the canonical-label title form adopted). Precache 2,683,085 -> 2,683,174 local (+89 — exactly the entry delta; the entry is precached) and 2,683,286 for both cloud environments (+112 identity footprint derivation, verified on every previous generation). Lazy surfaces, initial companions, swRuntime, and all counts byte-identical (102/2/70/157/2). Entry ceilings untouched and owned exclusively by check-bundle-budget (projected CI band 155,280-155,291 under the untouched 650,000/155,300; observed identity sway 58-69 gzip, never above 69). Tolerances/guard untouched; documented same-PR per protocol."
+        "method": "R10-B/D1 OD-14 re-anchor (code head 0a829bf6, 2026-10-13): the owner-approved D1 root fix removes the build identity from the JS entry and carries it in ONE index.html meta tag — the entry becomes identity-invariant (30 controlled identity draws on the committed tree: byte-identical entry+chunks, sigma-hat 0) at 631,903/155,290, and index.html carries the +90-byte meta for a 40-hex SHA identity. Precache 2,683,174 -> 2,683,356 local (+182 = the entry's guarded DOM-read delta over the old null-literal form) and 2,683,446 for both cloud environments (local + 90 meta; JS byte-identical local==CI==Pages post-D1 per the invariance proof — CI artifact verification recorded post-push). Lazy surfaces, initial companions, swRuntime, and all counts byte-identical (102/2/70/157/2). Entry ceilings untouched and owned exclusively by check-bundle-budget. Tolerances/guard untouched; documented same-PR per protocol under the OD-14=D1 owner authorization."
       },
       "toolchain": {
         "node": "v22.23.3",
@@ -93,7 +93,7 @@
         "initialGzipNormTotal": 70716,
         "lazyRawTotal": 1215139,
         "lazyGzipNormTotal": 366371,
-        "precacheBytesTotal": 2683286,
+        "precacheBytesTotal": 2683446,
         "swRuntimeRawTotal": 26231
       },
       "counts": {
