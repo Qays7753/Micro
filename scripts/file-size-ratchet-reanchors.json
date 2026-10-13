@@ -1389,6 +1389,25 @@
         "trigger": "R11-S0-W1A-EXECUTION-PROMPT-2026-10-13 section 7.1 (D-01) — in-band guard growth requires a ledger entry with an Operations Control reference",
         "ocRef": "ARCH-008"
       }
+    },
+    {
+      "id": "R11-W1A1-D04-READWRITE-CORPUS",
+      "date": "2026-10-14",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 143,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 315,
+        "band": "NORMAL"
+      },
+      "reason": "R11 W1A-1 / D-04 (R10A-F-019, OD-GUARD Option A, owner-approved 2026-10-13): the readwrite guard gains the full read-like corpus ratchet outside the five PC-4 families — membership + property enforcement on a 63-file baseline (recorded verbatim text predicate; the two method-boundary files stay text-classified writers), with three distinct failure rules (growth / stale / property) and the RV2 footnote recorded in the header (localDiagnosticsService localStorage.setItem — R11-W1A-NF-001). Guard-only growth: no production file, no ceiling, no runtime change.",
+      "authorization": {
+        "ownerReview": "OD-GUARD Option A — part of the R11 S0+W1A execution PR #361",
+        "trigger": "R11-S0-W1A-EXECUTION-PROMPT-2026-10-13 section 7.2 (D-04) — in-band guard growth requires a ledger entry with an Operations Control reference",
+        "ocRef": "ARCH-008"
+      }
     }
   ]
 }
