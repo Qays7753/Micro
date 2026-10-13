@@ -202,6 +202,7 @@
  - **Prompt تنفيذ R10-B — B1 إلى B6:** `docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-COMPLETE-B1-B6-EXECUTION-PROMPT-2026-10-11.md` (تنفيذ الإصلاحات الجذرية الـ54 على فرع واحد، عبر B1–B6، مع خمسة مراجعين قراءة فقط، اختبارات وبوابات كاملة، وتقرير PR جاهز للدمج دون دمج ذاتي).
  - **Prompt استكمال R10-B — OD-14/D1 ثم OD-9/NF-020/B6:** `docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-D1-OD14-OD9-NF020-B6-EXECUTION-PROMPT-2026-10-13.md` (مرجع الاستكمال الحالي على PR #356؛ يسجل اعتماد المالك لـOD-14=D1 وOD-9=C وتسلسل التنفيذ، وبوابات الحتمية والقياس وPWA والتوقف، ولا يلغي الـPrompt التاريخي السابق ولا يمنح إذن الدمج).
  - **حزمة قرار OD-8 (نطاق RC-1):** `docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-OD8-RC1-SCOPE-DECISION-PACKAGE-2026-10-11.md` (ما نُفذ، البدائل، الأثر، الآثار المسموحة/المحظورة، حد الاستعادة — لتصديق المالك عند مراجعة PR #356).
+ - **R11 Wave 0 — CURRENT / OWNER REVIEW REQUIRED:** `docs/architecture/refactoring/r11-wave0-20261013/R11-W0-STRUCTURE-ARCHITECTURE-CONTRACT-SCAN-REPORT-2026-10-13.md` (canonical read-only structure, architecture, code-organization, contract, and deferred-findings scan; report-only PR; no remediation performed — إعادة تحقق حية لكل بنود DEFER الـ16 وبطاقات الحفظ الخمس عند `31afaf39`، مع مصالحة مسح §11، مكتشف جديد واحد R11-W0-NF-001، وخريطة موجات W1a–W5 وعشر بطاقات قرار مالك).
 
 ## ملفات الجذر والأدوات الحاكمة
 
