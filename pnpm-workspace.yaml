@@ -1,6 +1,3 @@
 packages:
   - "apps/*"
   - "tools/*"
-
-overrides:
-  tailwindcss>nanoid: 3.3.7

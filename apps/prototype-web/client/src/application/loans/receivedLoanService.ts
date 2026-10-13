@@ -92,8 +92,12 @@ function failure(code: "storage_error" | "invalid_state" | "validation_error", m
   return { ok: false as const, code, message };
 }
 
+/* R10-B3/R10A-F-012 + R10B-NF-006 (2026-10-12): حارس السياق غير الآمن —
+ * نمط السلسلة الاختيارية المعتمد في البيت (inventoryMaterialModel.ts:231
+ * نفسه): randomUUID حرفيًا عند توفره، وبديل حتمي-آمن فريد خارجه؛ الاقتراض
+ * على أصل غير آمن لا يرمي TypeError بعد اليوم. */
 function newId(prefix: string): string {
-  return `${prefix}-${crypto.randomUUID()}`;
+  return `${prefix}-${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
 }
 
 export class ReceivedLoanService {

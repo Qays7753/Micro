@@ -43,6 +43,9 @@ describe("quick action contract — expense joins the moment's actions (F-036, d
   });
 
   it("keeps material-with-opening-balance out of the quick sheet by decision 23-b", () => {
-    expect(actionItems.some(item => item.action === "material")).toBe(false);
+    /* حارس النفي: «مادة» خارج اتحاد QuickAction أصلًا — تُقارن كمعرّف نصي
+     * موسّع ليبقى الحارس صادقًا لو تسلل الفعل يومًا إلى الاتحاد. */
+    const excludedAction: string = "material";
+    expect(actionItems.some(item => item.action === excludedAction)).toBe(false);
   });
 });

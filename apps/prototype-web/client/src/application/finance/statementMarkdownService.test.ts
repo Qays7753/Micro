@@ -41,6 +41,10 @@ const baseResult: RecordedPeriodResult = {
   /* F-019/F-008 (W2-D): بنود الإعلان الجديدة — صفران في هذا الفكسجر. */
   nonCashLossMinor: 0,
   projectDeliveryCostMinor: 0,
+  /* F-020 (W3-B): بنود المتبقي غير المحصّل — لا بيع مباشر هنا، والطلب
+   * النهائي الواحد متبقيه ١٠٠٠٠ يطابق ذمم العملاء في المركز. */
+  orderReceivableMinor: 10000,
+  directSaleUncollectedMinor: 0,
   resultMinor: 9000,
   finalOrderCount: 1,
   excludedOrderCount: 0,
@@ -59,6 +63,9 @@ const basePosition: ProjectFinancialPosition = {
   projectEventCount: 4,
   supplierPurchaseCount: 1,
   supplierMaterialPayablesMinor: 4000,
+  /* Wave 4.4 (P-4.4-1): المصاريف المستحقة = الذمم العامة للمشروع —
+   * ٤٠٠٠ − ٤٠٠٠ = ٠ هنا. */
+  operatingPayablesMinor: 0,
   walletCashMinor: 12000,
   unallocatedCashMinor: 8000,
   cashWalletCount: 1,
@@ -69,6 +76,17 @@ const basePosition: ProjectFinancialPosition = {
   /* FIN-001 (WS-178 — Wave 6): التزام الاقتراض القائم — طبقة مستقلة. */
   borrowedLoansOutstandingMinor: 2000,
   pendingRetainedDepositsMinor: 3000,
+  /* FIN-001 (قرار المالك ٢٠٢٦-٠٩-١٦): فكسجر مكتمل التسجيل — كل مقياس موثق. */
+  evidence: {
+    cash: "recorded",
+    customerReceivables: "recorded",
+    supplierPayables: "recorded",
+    ownerCapital: "recorded",
+    walletCash: "recorded",
+    unallocatedCash: "recorded",
+    operatingExpenses: "recorded",
+    borrowedLoans: "recorded",
+  },
 };
 
 function reading(overrides: Partial<StatementReading> = {}): StatementReading {

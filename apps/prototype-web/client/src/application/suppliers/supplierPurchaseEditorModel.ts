@@ -16,22 +16,18 @@
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import type { Material } from "@micro-domain/inventory-material/index.js";
 
-/** FIN-003: «لم يُختر بعد» — غير الخيار الصريح «الكاش غير الموزع»؛ إلزامي
- *  التخطي عند تعدد المحافظ. */
-export const UNSET_PAYMENT_SOURCE = "__unset__";
-
-/** قاعدة مصدر الصرف FIN-003 — بلا محافظ: غير الموزع؛ محفظة واحدة: تُعيّن
- *  مسبقًا بشكل مرئي؛ محافظ متعددة: اختيار إلزامي صريح لا صامت. */
-export function resolveDefaultPaymentSource(walletOptions: readonly { id: string }[]): string {
-  if (walletOptions.length === 1) return walletOptions[0]!.id;
-  if (walletOptions.length === 0) return "";
-  return UNSET_PAYMENT_SOURCE;
-}
-
-/** مصدر الدفعة كما يُرسل مع الحدث — null يعني الكاش غير الموزع/بلا دفعة. */
-export function paymentWalletPayload(paymentWalletId: string): string | null {
-  return paymentWalletId && paymentWalletId !== UNSET_PAYMENT_SOURCE ? paymentWalletId : null;
-}
+/* R10-B3/R10B-NF-001 (2026-10-11): القيمة الحارسة والقاعدة الموحدة
+ * 0/1/متعدد صارت ملكية واحدة في application/finance/paymentSourcePolicy.ts
+ * — كانت منسوختين هنا وفي components/finance/expenseFormModel.ts باسمين.
+ *  الأسماء أدناه إعادة تصدير توافقًا لمستهلكي هذه الوحدة (لا مصدر حقيقة
+ *  ثانٍ). */
+import {
+  PAYMENT_SOURCE_UNSET,
+  paymentSourcePayload,
+  resolveDefaultPaymentSource,
+} from "@/application/finance/paymentSourcePolicy";
+export { PAYMENT_SOURCE_UNSET as UNSET_PAYMENT_SOURCE, resolveDefaultPaymentSource };
+export { paymentSourcePayload as paymentWalletPayload };
 
 /** بوابة تحقق تسجيل الشراء — أكواد؛ النص عند الصفحة. */
 export type PurchaseSubmissionProblem = "total_invalid" | "initial_exceeds_total" | "payment_source_required";
@@ -46,7 +42,7 @@ export function validatePurchaseSubmission(input: {
   if (!input.validMoney || input.totalMinor <= 0 || input.initialPaidMinor < 0) return "total_invalid";
   if (input.initialPaidMinor > input.totalMinor) return "initial_exceeds_total";
   /* FIN-003: مصدر الدفعة الأولية — إلزامي صريح عند تعدد المحافظ. */
-  if (input.initialPaidMinor > 0 && input.walletCount > 1 && input.paymentWalletId === UNSET_PAYMENT_SOURCE)
+  if (input.initialPaidMinor > 0 && input.walletCount > 1 && input.paymentWalletId === PAYMENT_SOURCE_UNSET)
     return "payment_source_required";
   return null;
 }
@@ -61,7 +57,7 @@ export function validatePaymentSubmission(input: {
   paymentWalletId: string;
 }): PaymentSubmissionProblem | null {
   if (input.paymentMinor <= 0 || !input.validMoney) return "payment_invalid";
-  if (input.walletCount > 1 && input.paymentWalletId === UNSET_PAYMENT_SOURCE)
+  if (input.walletCount > 1 && input.paymentWalletId === PAYMENT_SOURCE_UNSET)
     return "payment_source_required";
   return null;
 }

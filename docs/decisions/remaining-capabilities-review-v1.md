@@ -152,7 +152,7 @@
 
 ## References
 
-[1]: [الخريطة المرفقة للقدرات](../../../upload/pasted_content.txt)
+[1]: [الخريطة المرفقة للقدرات](../../../upload/pasted_content.txt) — *(تصحيح مؤرخ 2026-10-11 — R10-B1/R10B-NF-032: المرفق `upload/pasted_content.txt` لم يُلتزم أبدًا إلى المستودع ولا يوجد مجلد `upload/`؛ الخريطة كانت مرفق محادثة خارجي عند كتابة القرار (2026-09) وموقعه الكنوني خارج المستودع لدى المالك. المحتوى المعتمد من هذه المراجعة مُستخلص في متن القرار نفسه، والقدرات المؤجلة الكنسية في `docs/product/deferred-capabilities-execution-plan-v1.md` وخارطة التطور [3]؛ لا يعتمد أي عمل على الملف الغائب)*
 [2]: [خطة القدرات المؤجلة](../product/deferred-capabilities-execution-plan-v1.md)
 [3]: [خارطة تطور القدرات](../product/capability-evolution-roadmap-v1.md)
 [4]: [مصالحة خريطة القدرات](capability-roadmap-reconciliation-v1.md)

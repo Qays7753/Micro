@@ -87,6 +87,7 @@ describe("REM-006 — قرار المالك D-08: «تمت التسوية» ال
 
   it("a transition refusal out of the settled state names it by its canonical Arabic name", () => {
     const cost = calculateCostSnapshot("d08-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -132,6 +133,7 @@ describe("REM-006 — قرار المالك D-08: «تمت التسوية» ال
   it("recurrence on a finished lifecycle order is rejected without changing any record (behavior only)", async () => {
     const store = new MemoryLocalStore();
     const cost = calculateCostSnapshot("d08b-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -154,6 +156,7 @@ describe("REM-006 — قرار المالك D-08: «تمت التسوية» ال
       createdAt: "2026-08-22T00:00:00.000Z",
     });
     await store.saveOrder({
+      catalogItemId: null,
       id: "d08b-order",
       /* بذر اختبار مباشر للحالة المنتهية — المسار الكامل مغطى في اختبار
        * الانتقال أعلاه؛ هنا مقصوده استدعاء الخدمة نفسها. */

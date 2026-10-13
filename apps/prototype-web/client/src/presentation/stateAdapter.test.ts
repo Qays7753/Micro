@@ -67,14 +67,14 @@ describe("W1 State Adapter: state-word preservation (no renames)", () => {
 
   it("returns presentations only — never a word (the adapter owns markers/tone, not vocabulary)", () => {
     const p = activityStatePresentation("pending");
-    expect(Object.keys(p).sort()).toEqual(["family", "isKnowledge", "markerRole", "tone"]);
+    expect(Object.keys(p).sort()).toEqual(["family", "isKnowledge", "markerKind", "tone"]);
   });
 });
 
 describe("W1 State Adapter: pending is never success; unknown is never failure", () => {
   it("pending maps to an info-tone clock marker — not a success tone", () => {
     const p = activityStatePresentation("pending");
-    expect(p.markerRole).toBe("clock");
+    expect(p.markerKind).toBe("clock");
     expect(p.tone).not.toBe("success");
     expect(p.tone).toBe("info");
   });
@@ -91,7 +91,7 @@ describe("W1 State Adapter: pending is never success; unknown is never failure",
 
   it("unknown result is its own state — neither success nor error", () => {
     const p = semanticStatePresentation("unknown");
-    expect(p.markerRole).toBe("question");
+    expect(p.markerKind).toBe("question");
     expect(p.tone).toBe("neutral");
     expect(p.family).toBe("outcome");
   });
@@ -108,7 +108,7 @@ describe("W1 State Adapter: knowledge states stay neutral (knowledge-state contr
       const p = knowledgeStatePresentation(key);
       expect(p.isKnowledge, key).toBe(true);
       expect(p.tone, `${key} must be neutral`).toBe("neutral");
-      expect(p.markerRole, key).not.toBe("none");
+      expect(p.markerKind, key).not.toBe("none");
     }
   });
 
@@ -121,7 +121,7 @@ describe("W1 State Adapter: knowledge states stay neutral (knowledge-state contr
   });
 
   it("estimated carries the tilde approximate marker", () => {
-    expect(knowledgeStatePresentation("estimated").markerRole).toBe("tilde");
+    expect(knowledgeStatePresentation("estimated").markerKind).toBe("tilde");
   });
 });
 
@@ -130,9 +130,9 @@ describe("W1 State Adapter: honest voids stay distinct", () => {
     const unrecorded = honestVoidPresentation("unrecorded");
     const unavailable = honestVoidPresentation("unavailable");
     const zero = honestVoidPresentation("measured-zero");
-    expect(unrecorded.markerRole).toBe("dot");
-    expect(unavailable.markerRole).toBe("none");
-    expect(zero.markerRole).toBe("none");
+    expect(unrecorded.markerKind).toBe("dot");
+    expect(unavailable.markerKind).toBe("none");
+    expect(zero.markerKind).toBe("none");
     expect(new Set([unrecorded, unavailable, zero]).size).toBe(3);
   });
 
@@ -164,8 +164,8 @@ describe("W1 State Adapter: presentation rules are internally consistent", () =>
   });
 
   it("success and error markers are check and alert respectively (word + marker + tone)", () => {
-    expect(semanticStatePresentation("success").markerRole).toBe("check");
-    expect(semanticStatePresentation("error").markerRole).toBe("alert");
+    expect(semanticStatePresentation("success").markerKind).toBe("check");
+    expect(semanticStatePresentation("error").markerKind).toBe("alert");
   });
 
   it("numeric slot contract keeps mono font, LTR direction, bidi isolation, and the 15px financial floor", () => {

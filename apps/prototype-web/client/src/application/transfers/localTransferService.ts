@@ -32,6 +32,7 @@ import { syncSha256Hex } from "@/lib/syncSha256";
 import { isDate, isRecord, normalizeImportedCategoryLabel } from "./transferFamilyValidators";
 import { isCurrentPair, isReleasedLegacyPair, verifyTransferIntegrity } from "./transferEnvelope";
 import { exportCountsOf, verifyTransferCounts } from "./transferCounters";
+import { verifyTransferArrayFamilies } from "./transferArrayFamilyRoles";
 import { migrateTransferSnapshot } from "./transferSnapshotMigrations";
 import { validateSnapshot } from "./transferSnapshotValidation";
 import { STORAGE_ERROR, VALIDATION_ERROR, storageFailure } from "@/application/resultCodes";
@@ -196,6 +197,14 @@ export class LocalTransferService {
     try {
       const integrityError = verifyTransferIntegrity(candidate, isCurrent);
       if (integrityError !== null) return fail(integrityError);
+      /* R10-B2/RC-1 (+NF-009): بوابة البنية الخام قبل الترحيل — الموجود من
+       * كل عائلة مصفوفية يجب أن يكون مصفوفة (حاليًا وموروثًا)، وعائلات مال
+       * المالك الأربع (والعائلات الصارمة) غيابها على الملف الحالي رفض. قبل
+       * هذه البوابة كان الترحيل يسوّي كل قيمة معطوبة إلى [] فيمر الملف
+       * المُعاد ختمه (بصمة وعدادات معاد حسابهما) وتُغسل العائلات المحذوفة
+       * عند الاستبدال. الموروث يبقى اختياريًا-عند-الغياب كما كان. */
+      const rawStructureError = verifyTransferArrayFamilies(candidate.data, isCurrent);
+      if (rawStructureError !== null) return fail(rawStructureError);
       migrated = migrateTransferSnapshot(candidate.data, isCurrent);
       if (!validateSnapshot(migrated))
         return fail("الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.");

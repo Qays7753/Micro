@@ -18,6 +18,8 @@ import {
   formatQuantityMilliFixed3,
   localDateInAmman,
 } from "@/presentation/formatters";
+/* R10-B3/R10B-NF-002: تسمية الوحدة من باب بيت المخزون. */
+import { materialUnitLabel } from "@/application/inventory";
 import {
   buildCatalogConversionPreview,
   buildCatalogPerUnitPreview,
@@ -202,16 +204,7 @@ export default function Catalog() {
         materialsResult.value.materials.map(material => ({
           id: material.id,
           name: material.name,
-          unitLabel:
-            material.unit === "piece"
-              ? "قطعة"
-              : material.unit === "meter"
-                ? "متر"
-                : material.unit === "kilogram"
-                  ? "كيلوغرام"
-                  : material.unit === "liter"
-                    ? "لتر"
-                    : "وحدة أخرى",
+          unitLabel: materialUnitLabel(material.unit),
           tracked: !material.tracking || material.tracking.status === "tracked",
         })),
       );

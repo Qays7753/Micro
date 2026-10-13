@@ -66,7 +66,9 @@ const deepFlowPatterns: readonly RegExp[] = [
   /^\/finance\/recurring\/[^/]+\/edit$/,
 ];
 
-function pathnameOnly(location: string) {
+/* مشتق المسار المجرد من موضع كامل — ملكية نظام المسار (R10-B4/OD-12:
+ * مصدر واحد للمسار المجرد؛ القشرة تستورده بدل تكرار الاشتقاق inline). */
+export function pathnameOnly(location: string) {
   return location.split(/[?#]/, 1)[0] ?? location;
 }
 

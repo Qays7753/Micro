@@ -1,3 +1,4 @@
+/// <reference path="../../../../node_modules/fake-indexeddb/auto.d.ts" />
 import { describe, expect, it } from "vitest";
 import { FinancialAnalysisService } from "./financialAnalysisService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
@@ -20,6 +21,7 @@ const now = () => "2026-08-01T09:00:00.000Z";
 
 function deliveredOrder(id: string, price = 5000) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 120, hourlyRateMinor: 900, confidence: "known" },
@@ -479,6 +481,7 @@ describe("G5 short-cash receivables count only registered debt (A-05)", () => {
     const finance = new ProjectFinancialService(store, now);
     const g5 = new FinancialAnalysisService(store, finance, now);
     const draftSnapshot = calculateCostSnapshot("a05-draft-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -527,6 +530,7 @@ describe("G5 short-cash receivables count only registered debt (A-05)", () => {
     const g5 = new FinancialAnalysisService(store, finance, now);
     const pulseService = new FinancialPulseService(store);
     const draftSnapshot = calculateCostSnapshot("a05-agree-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },

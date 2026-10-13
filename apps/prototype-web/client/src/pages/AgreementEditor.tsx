@@ -117,7 +117,13 @@ export default function AgreementEditor() {
   const [isDeliveryCostValid, setIsDeliveryCostValid] = useState(true);
   const [isProjectShareValid, setIsProjectShareValid] = useState(true);
   const [isCustomerShareValid, setIsCustomerShareValid] = useState(true);
-  const [state, setState] = useState<"loading" | "ready" | "error">("loading");
+  /* R10-B4/NF-016: آلة قراءة صريحة — فشل القراءة برسالته الحقيقية مع إعادة
+   * محاولة، و«غير موجود» صادق منفصل عنه، لا دمج الاثنين في «التكلفة غير
+   * متاحة» (نمط R9-GA-F3.7 الثابت في المحررات المصلحة). */
+  const [readState, setReadState] = useState<
+    { phase: "loading" } | { phase: "read-error"; message: string } | { phase: "ready" }
+  >({ phase: "loading" });
+  const [retryCount, setRetryCount] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isPriceValid, setIsPriceValid] = useState(true);
@@ -127,8 +133,17 @@ export default function AgreementEditor() {
     let active = true;
     drafts.get(params.id).then(result => {
       if (!active) return;
-      if (!result.ok || !result.value) {
-        setState("error");
+      if (!result.ok) {
+        setReadState({ phase: "read-error", message: result.message });
+        return;
+      }
+      if (!result.value) {
+        /* «غير موجود» رسالة صادقة على سطح خطأ القراءة — نمط R9 الثابت؛
+         * لاحظ أنها نص لحظة فعل (message) لا نص سكون. */
+        setReadState({
+          phase: "read-error",
+          message: "لم نجد هذه المسودة؛ قد تكون حذفت محليًا أو أصبحت طلبًا محفوظًا.",
+        });
         return;
       }
       const loaded = result.value;
@@ -160,12 +175,12 @@ export default function AgreementEditor() {
       setCustomerName(loadedValues.customerName);
       setOrderName(loaded.orderName ?? "");
       initialValuesRef.current = loadedValues;
-      setState("ready");
+      setReadState({ phase: "ready" });
     });
     return () => {
       active = false;
     };
-  }, [costs, dataVersion, drafts, navigate, params.id]);
+  }, [costs, dataVersion, drafts, navigate, params.id, retryCount]);
   const snapshot = draft?.costSnapshots.find(item => item.id === draft.activeCostSnapshotId) ?? null;
   const preview = useMemo(() => (snapshot ? costs.previewStored(snapshot) : null), [costs, snapshot]);
   const protectionPriceMinor = preview?.ok ? preview.snapshot.priceFloorMinor * (draft?.quantity ?? 1) : null;
@@ -317,13 +332,32 @@ export default function AgreementEditor() {
     isDirty,
     onSave: async () => Boolean(await persistAgreement()),
   });
-  if (state === "loading")
+  if (readState.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
         جارٍ فتح الاتفاق…
       </div>
     );
-  if (state === "error" || !draft || !preview?.ok)
+  if (readState.phase === "read-error")
+    /* R10-B4/NF-016: فشل القراءة و«غير موجود» معًا برسالتهما الفعلية على
+     * سطح خطأ القراءة (نمط R9-GA-F3.7 الثابت) — بصفة alert وإعادة محاولة
+     * ومخرج قانوني؛ لا تحميلًا أبديًا ولا دمجًا مع «التكلفة غير متاحة». */
+    return (
+      <section className="micro-page">
+        <button className="micro-back-button" type="button" onClick={() => navigate("/orders")}>
+          العودة للطلبات
+        </button>
+        <p className="micro-field-error" role="alert">
+          {readState.message}
+        </p>
+        <div className="micro-form-actions">
+          <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
+      </section>
+    );
+  if (!draft || !preview?.ok)
     return (
       <section className="micro-page micro-not-found">
         <h1>التكلفة المطلوبة غير متاحة</h1>

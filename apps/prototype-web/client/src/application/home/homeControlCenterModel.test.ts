@@ -65,6 +65,8 @@ const baseInput = (): HomeControlCenterInput => ({
   ],
   optionalModules: [],
   recentChanges: [],
+  /* التدفق ٢٣ يفعّل قسم «أثناء غيابك» عند الانقطاع — هذه الاختبارات بلا غياب. */
+  awaySection: null,
   /* Wave 4.3 — P-4.3-2: أرقام الفترة والـInsights جزء إلزامي من المدخلات. */
   periodNumbers: {
     today: {
@@ -196,6 +198,8 @@ describe("buildHomeControlCenterViewModel", () => {
         title: `تغيير ${index}`,
         detail: "تفصيل محلي",
         href: "/review",
+        effectWord: null,
+        amountMinor: null,
       })),
     });
     expect(model.recentChanges).toHaveLength(5);

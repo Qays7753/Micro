@@ -17,6 +17,20 @@
  * - تهميش الملفات الثنائية: النمط ASCII فالفحص على بايتات الملف كما هي
  *   (latin1) يعطي نفس النتيجة دون فك ترميز.
  *
+ * F-027 (R10-B5 — 2026-10-13): الحدود الموثقة للفحص بقرار الموجة —
+ * - شجرة العمل الحية وحدها تُفحص؛ تاريخ git ليس مفحوصًا هنا (البطاقة الدقيقة
+ *   R10B-NF-025 تملك مسح التاريخ: المالك = المالك، المُشغّل = طلب المالك أو
+ *   مراجعة أمنية، الكشف = مسح `git log -p` لمرة واحدة أو أداة تاريخ).
+ * - لا فحص إنتروبيا عام (استبعاد تصميمي أصيل لا نقص تغطية: القيمة عالية
+ *   الدقة أولًا لأن الإنذار الكاذب يُضعف الثقة بالفحص كله).
+ * - مفاتيح AWS السرية مقيّدة بسياق المعرّف القانوني وحده (انظر النمط أدناه)
+ *   لأن 40 محرفًا base64 مجردة لا تُميَّز عن بصمات git/SHA-1 الممتلئ بها
+ *   مستودعنا المشروعي — القيد سياقي ليبقى الاصطياد صادقًا لا صارخًا كذبًا.
+ * - JWT يتطلب البنية الثلاثية الكاملة بالنقاط؛ «eyJ» مجردة تظهر عرضًا في
+ *   نصوص base64 عادية فلا تصلح دليلًا وحدها.
+ * - عناوين قواعد البيانات بلا كلمة مرور (`scheme://user@host`) ليست سرًا
+ *   ولا تُصطاد؛ الاصطياد لصيغة المعلومات المضمّنة user:pass@ حصرًا.
+ *
  * الاستخدام: node scripts/check-secrets.mjs [root] (الافتراضي: جذر المستودع).
  * الخروج: 0 = نظيف؛ 1 = أي إصابة (تُطبع أسماء الأنماط والمواقع بلا قيم).
  */
@@ -40,6 +54,38 @@ export const SECRET_PATTERNS = [
   { name: "aws-access-key-id", regex: /\bAKIA[0-9A-Z]{16}\b/ },
   { name: "slack-token", regex: /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/ },
   { name: "openai-style-key", regex: /\bsk-[A-Za-z0-9]{32,}\b/ },
+  /* F-027 (R10-B5 — 2026-10-13): ست عائلات مضافة بتعداد W0 الموثق — نفس
+   * مبدأ الدقة العالية (بادئات صناعية مميزة أو بنية تركيبية كاملة)، مع
+   * قيود السياق الموثقة في رأس الملف حيثما كان التمييز يستلزمها:
+   * - stripe-live-secret-key: مفاتيح Stripe الحية `sk_live_` (عتبة الطول
+   *   الموثقة علنًا 24+)؛ مفاتيح الاختبار sk_test_ ليست سر إنتاج فلا تُصطاد.
+   * - anthropic-api-key: `sk-ant-` بحدث أدنى 20؛ الشكل القانوني
+   *   sk-ant-api03-... يدخل ضمنه ولا يتقاطع مع openai-style-key (الشرطة
+   *   بعد ant تكسر صنف [A-Za-z0-9] الخاص بذاك).
+   * - gitlab-token: `glpat-` بحدث أدنى 16 (أطوال PAT الحالية 16-26).
+   * - jwt: الرأس eyJ + حمولة + توقيع بالنقاط الفاصلة — بنية كاملة لا بادئة.
+   * - aws-secret-access-key: المفتاح السري (40 base64) مقيدًا بمعرّفه
+   *   القانوني secret[_ ]?access[_ ]?key (بفجوة ≤12 محرفًا ليس من أبجدية
+   *   base64) — الحصر الموصوف في الرأس أعلاه.
+   * - db-url-with-credentials: صيغة scheme://user:pass@ لقواعد البيانات
+   *   الشائعة؛ بلا كلمة مرور لا اصطياد (موثق في الرأس). */
+  { name: "stripe-live-secret-key", regex: /\bsk_live_[A-Za-z0-9]{24,}\b/ },
+  { name: "anthropic-api-key", regex: /\bsk-ant-[A-Za-z0-9_-]{20,}\b/ },
+  { name: "gitlab-token", regex: /\bglpat-[A-Za-z0-9_-]{16,}\b/ },
+  {
+    name: "jwt",
+    regex: /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/,
+  },
+  {
+    name: "aws-secret-access-key",
+    regex:
+      /(?<![A-Za-z0-9/+])secret[_ ]?access[_ ]?key[^A-Za-z0-9/+]{0,12}[A-Za-z0-9/+]{40}(?![A-Za-z0-9/+])/i,
+  },
+  {
+    name: "db-url-with-credentials",
+    regex:
+      /\b(?:postgres(?:ql)?|mariadb|mysql|mongodb(?:\+srv)?|rediss|redis|amqps|amqp):\/\/[^\s:@/'"<>]{1,64}:[^\s@/'"<>]{1,}@/,
+  },
   {
     name: "private-key-block",
     regex: /-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY(?: BLOCK)?-----/,
@@ -92,14 +138,20 @@ export function listFiles(
   return files;
 }
 
-/** فحص محتوى واحد — يعيد أسماء الأنماط وأرقام الأسطر فقط، لا القيم أبدًا. */
+/** فحص محتوى واحد — يعيد أسماء الأنماط وأرقام الأسطر فقط، لا القيم أبدًا.
+ * F-027 (R10-B5 — 2026-10-13): تكرار كل الإصابات لا الأولى فقط لكل نمط —
+ * كان الفحص يسرد أول إصابة لكل عائلة في كل ملف فنقصَ مخزون الاصطياد
+ * (RV4-N6) دون أن يمرر شيئًا (الفشل مغلق على أي إصابة). الآن matchAll
+ * عبر نسخة /g جديدة لكل استدعاء — كائن جديد فيبدأ lastIndex من صفر في كل
+ * مرة (حتمية كاملة بلا حالة متسربة بين الملفات أو الاستدعاءات). */
 export function scanContent(content, patterns = SECRET_PATTERNS) {
   const findings = [];
   for (const { name, regex } of patterns) {
-    const match = regex.exec(content);
-    if (match === null) continue;
-    const line = content.slice(0, match.index).split("\n").length;
-    findings.push({ patternName: name, line });
+    const flags = regex.flags.includes("g") ? regex.flags : `${regex.flags}g`;
+    for (const match of content.matchAll(new RegExp(regex.source, flags))) {
+      const line = content.slice(0, match.index).split("\n").length;
+      findings.push({ patternName: name, line });
+    }
   }
   return findings;
 }

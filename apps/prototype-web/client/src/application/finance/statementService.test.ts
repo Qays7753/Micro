@@ -18,6 +18,7 @@ import {
   reverseOrderCollection,
   transitionOrder,
 } from "@micro-domain/craft-order/index.js";
+import { assertOk, okValue } from "@/testing/resultAssertions";
 
 const now = () => "2026-09-02T10:00:00.000Z";
 
@@ -225,6 +226,7 @@ describe("StatementService — كشف الفترة (المجموعة ٢ §9.2)",
     const finance = new ProjectFinancialService(store, now);
     const statement = new StatementService(store, finance);
     const cost = calculateCostSnapshot("st-decomp-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 1000, confidence: "known" },
@@ -255,6 +257,7 @@ describe("StatementService — كشف الفترة (المجموعة ٢ §9.2)",
     ] as const)
       order = transitionOrder(order, { to, idempotencyKey: `st-decomp-${to}`, createdAt: stamp });
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-09-04",
@@ -337,6 +340,7 @@ describe("StatementService — كشف الفترة (المجموعة ٢ §9.2)",
         idempotencyKey: "purchase-rev-st-key",
       }),
     );
+    assertOk(purchaseSaved);
     expect(purchaseSaved.ok).toBe(true);
     /* دفعة لاحقة 10.00 داخل الفترة + تراجع موثق عنها بنفس الفترة. */
     const withPaymentAndReversal: typeof purchaseSaved extends { ok: true; value: infer V } ? V : never = {
@@ -400,6 +404,7 @@ describe("StatementService — كشف الفترة (المجموعة ٢ §9.2)",
         idempotencyKey: "purchase-rev-st2-key",
       }),
     );
+    assertOk(purchaseSaved);
     const withReversalNextPeriod = {
       ...purchaseSaved.value,
       paidMinor: 3000,
@@ -439,6 +444,7 @@ describe("StatementService — تراجعات القبض ورد العربون (
     /* طلب مسلّم: عربون 2000 بتاريخ 2026-09-01 ثم قبضة 3000 بتاريخ 2026-09-02
      * ثم تراجع موثق عن القبضة كاملة بتاريخ 2026-09-03. */
     const cost = calculateCostSnapshot("st-1-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -507,6 +513,7 @@ describe("StatementService — تراجعات القبض ورد العربون (
     const finance = new ProjectFinancialService(store, clock);
     const statement = new StatementService(store, finance);
     const cost = calculateCostSnapshot("st-2-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -554,7 +561,7 @@ describe("StatementService — تراجعات القبض ورد العربون (
       expect(first.value.blocks.cashIn.find(line => line.id === "order-collections")?.amountMinor).toBe(5000);
     }
     /* تراجع في 2026-09-10: يظهر في فترة التراجع (خارج الفترة الأولى). */
-    const stored = (await store.getOrder("order-st-2")).value!;
+    const stored = okValue(await store.getOrder("order-st-2"))!;
     const reversed = reverseOrderCollection(stored.order, {
       collectionEventId: "order-st-2:st2-collect",
       amountMinor: 3000,

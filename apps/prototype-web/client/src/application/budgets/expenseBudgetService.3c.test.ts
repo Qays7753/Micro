@@ -14,6 +14,7 @@ import { describe, expect, it } from "vitest";
 import { ExpenseBudgetService } from "./expenseBudgetService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { okValue } from "@/testing/resultAssertions";
 
 const NOW = () => "2026-10-03T10:00:00.000Z" as const;
 
@@ -255,7 +256,7 @@ describe("Wave 3C — ExpenseBudgetService direct coverage (STR-406)", () => {
       amountMinor: 12_000,
       operationKey: "eb-3c-no-event",
     });
-    await budgets.reviseBudget((await budgets.listBudgets("2026-09")).value!.active[0]!.id, {
+    await budgets.reviseBudget(okValue(await budgets.listBudgets("2026-09"))!.active[0]!.id, {
       amountMinor: 13_000,
       operationKey: "eb-3c-no-event-rev",
     });

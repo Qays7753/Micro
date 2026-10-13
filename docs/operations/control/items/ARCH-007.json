@@ -2,7 +2,7 @@
   "id": "ARCH-007",
   "title": "الإصلاح البنيوي الجذري بعد تقريري Flash وStructure — مصفوفة التتبع وتنفيذ R0–R10",
   "type": "GOVERNANCE",
-  "status": "REOPENED",
+  "status": "IN_PROGRESS",
   "priority": "P0",
   "stage": "structural-remediation-r0-r10-20261007",
   "summary": "تنفيذ الخطة الجذرية المعتمدة لإغلاق العيوب البنيوية الحالية، وتثبيت مصدر حقيقة واحد، ومعالجة التخزين والنقل والملفات الكبيرة والحراس والاختبارات، مع بوابة R0 قراءة فقط قبل أي كتابة كودية.",
@@ -191,7 +191,7 @@
     "ARCH-006"
   ],
   "owner_decision": "اعتماد الخطة المحدثة ومصفوفة التتبع وبدء تثبيت العقد ثم R0 في 2026-10-07.",
-  "updated_at": "2026-10-11",
+  "updated_at": "2026-10-13",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -222,8 +222,14 @@
       "changed_at": "2026-10-11",
       "actor": "reconciliation:post-merge-354",
       "reason": "ARCH-007 remains active for R10-B1..B6; W0 is closed and verified, and B1 must be claimed separately from the new main snapshot."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-11",
+      "actor": "R10-B executor (Z AI) via PR #356",
+      "reason": "بدء تنفيذ R10-B على الفرع المخصص من main الحي؛ الادعاء مسجل في WS-216."
     }
   ],
   "migration_baseline": true,
-  "next_action": "R10-B W0 is VERIFIED_ON_MAIN at merge commit c9fbac254319c84ff228ab686f72bc9aac7ce107 (PR #354; post-merge CI 38161910588 succeeded). Begin R10-B1 only by creating a new dedicated branch from this exact main snapshot; B1 is docs/control-only. Keep OD-8 before B2, OD-12 before NF-015 in B4, OD-9 before RC-4 in B5, and record applicable OD-1..OD-7/OD-10/OD-11/OD-13 before their waves. No silent financial, historical, Schema/Export/Import, rejection, security, or visual-UI change; no direct main writes."
+  "next_action": "R10-B COMPLETE (B6 closed on final head ca4550f9): matrix reconciled (58 FIX_NOW all closed incl. this session's NF-038/D1 + F-024/OD-9=C + NF-020 part 2; 16 precise DEFER; 1 disproved), five read-only reviewers PASS on the final head, full chain green locally AND CI + Cloudflare Pages success on the exact final head, final bundle 631,903/155,290 deterministic (sigma-hat 0, headroom 10 >= 2*sigma-hat under the untouched 650,000/155,300), unified final report §16 + Merge Manifest. PR #356 OPEN for owner review and owner-only merge. STATUS: R10B_D1_OD9_NF020_B6_COMPLETE — PR_READY — NO_FURTHER_WRITES — NO_MERGE — NO_CLEANUP."
 }

@@ -36,6 +36,9 @@ import type { ProjectFinancialService } from "@/application/finance/projectFinan
 import type { ScheduleService } from "@/application/scheduling/scheduleService";
 import { localDateInAmman, persistedMoneyTextMinor } from "@micro-domain/shared/index.js";
 import { formatQuantityMilli } from "@/application/formatting/formatters";
+/* R10-B3/R10B-NF-002 (2026-10-12): تسمية الوحدة من بيت المخزون التطبيقي —
+ * كانت نسخة Record محلية خامسة هنا. */
+import { materialUnitLabel } from "@/application/inventory/materialUnitLabels";
 import { storageFailureCode, type PrototypeLocalStore, type StoredCraftOrder } from "@/storage/local/types";
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءة الطلب والمواد والحركات والقوالب مع التزامَي التسليم وعكسه المحرسين. */
@@ -143,14 +146,6 @@ export type ReverseDeliveryResult =
       value: { stored: StoredCraftOrder; reversalMovements: readonly InventoryMovement[]; reused: boolean };
     }
   | { ok: false; code: "storage_error" | "storage_stale" | "invalid_state"; message: string };
-
-const UNIT_LABELS: Record<string, string> = {
-  piece: "قطعة",
-  meter: "متر",
-  kilogram: "كيلوغرام",
-  liter: "لتر",
-  other: "وحدة أخرى",
-};
 
 function failure<C extends "storage_error" | "storage_stale" | "invalid_state" | "validation_error">(
   code: C,
@@ -283,7 +278,7 @@ export class DeliveryReviewService {
         rows.push({
           materialId,
           materialName: material.name,
-          unitLabel: UNIT_LABELS[material.unit] ?? "وحدة أخرى",
+          unitLabel: materialUnitLabel(material.unit),
           tracked: false,
           plannedQuantityMilli: planned,
           alreadyConsumedForOrderMilli: 0,
@@ -324,14 +319,14 @@ export class DeliveryReviewService {
         warnings.push(
           `المادة «${material.name}»: استُهلك لهذا الطلب سابقًا ${formatQuantityMilli(
             alreadyConsumedForOrderMilli,
-          )} ${UNIT_LABELS[material.unit] ?? ""} — والمتبقي للاستهلاك ${formatQuantityMilli(
+          )} ${materialUnitLabel(material.unit)} — والمتبقي للاستهلاك ${formatQuantityMilli(
             remainingToConsume,
-          )} ${UNIT_LABELS[material.unit] ?? ""}؛ الاقتراح بالمتبقي لا بالمخطط كاملًا.`,
+          )} ${materialUnitLabel(material.unit)}؛ الاقتراح بالمتبقي لا بالمخطط كاملًا.`,
         );
       rows.push({
         materialId,
         materialName: material.name,
-        unitLabel: UNIT_LABELS[material.unit] ?? "وحدة أخرى",
+        unitLabel: materialUnitLabel(material.unit),
         tracked: true,
         plannedQuantityMilli: planned,
         alreadyConsumedForOrderMilli,
@@ -528,7 +523,7 @@ export class DeliveryReviewService {
           assertInventoryRemainsNonNegative(row.materialId, [...existingMovements, movement]);
           newMovements.push(movement);
           consumedNotes.push(
-            `${material.name} (${formatQuantityMilli(consumeQuantity)} ${UNIT_LABELS[material.unit] ?? ""})`.trim(),
+            `${material.name} (${formatQuantityMilli(consumeQuantity)} ${materialUnitLabel(material.unit)})`.trim(),
           );
         } catch (error) {
           return failure("validation_error", errorMessageOf(error, "بيانات استهلاك التسليم غير صالحة."));

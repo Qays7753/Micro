@@ -33,6 +33,7 @@ async function saveProfile(store: MemoryLocalStore) {
 
 async function saveOrder(store: MemoryLocalStore, id: string) {
   const cost = calculateCostSnapshot(`cost-${id}`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },
@@ -108,6 +109,7 @@ describe("HomeControlCenterService", () => {
     const store = new MemoryLocalStore();
     await saveProfile(store);
     const cost = calculateCostSnapshot("cost-today", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },
@@ -262,6 +264,7 @@ describe("HomeControlCenterService", () => {
     await saveProfile(store);
     const id = "home-incomplete-settled";
     const cost = calculateCostSnapshot(`cost-${id}`, {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: null,
@@ -379,14 +382,16 @@ describe("HomeControlCenterService", () => {
       id: "u002-sale",
       itemName: "كوب",
       quantity: 1,
+      currency: "JOD",
       revenueMinor: 1500,
       collectedMinor: 1500,
       catalogItemId: null,
       customerName: null,
       costMinor: null,
+      profitMinor: null,
       occurredOn: "2026-08-20",
       recordedAt: "2026-08-10T10:00:00.000Z",
-      note: null,
+      note: "",
       idempotencyKey: "u002-sale-key",
       status: "active",
       revisions: [],
@@ -641,7 +646,9 @@ describe("HomeControlCenterService — group 1 target hierarchy", () => {
       id: "z1-partial-debt-sale",
       itemName: "كوب آجل",
       quantity: 1,
+      currency: "JOD",
       revenueMinor: 2000,
+      profitMinor: 1400,
       collectedMinor: 500,
       collectionStatus: "partial_debt",
       catalogItemId: null,
@@ -649,7 +656,7 @@ describe("HomeControlCenterService — group 1 target hierarchy", () => {
       costMinor: 600,
       occurredOn: "2026-08-25",
       recordedAt: "2026-08-25T10:00:00.000Z",
-      note: null,
+      note: "",
       idempotencyKey: "z1-partial-debt-sale-key",
       status: "active",
       revisions: [],

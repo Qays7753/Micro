@@ -1,13 +1,13 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "ecc4b963e82a0c5b5b9c595671cde430132e961c",
+  "head": "02fe4e069b7af218db99614c3b638b5d2228578b",
   "pages": {
     "total": 60,
     "map": {
       "pages/AgreementEditor.tsx": {
-        "kind": "named-reference",
+        "kind": "direct",
         "evidence": [
-          "moneyLayerGuard.contract.test.ts"
+          "AgreementEditor.dom.test.tsx"
         ]
       },
       "pages/AssetDetail.tsx": {
@@ -50,9 +50,9 @@
         ]
       },
       "pages/CashOpeningLaterEditor.tsx": {
-        "kind": "named-reference",
+        "kind": "direct",
         "evidence": [
-          "StateRecovery.w44.dom.test.tsx"
+          "CashOpeningLaterEditor.dom.test.tsx"
         ]
       },
       "pages/CashReversalEditor.tsx": {
@@ -76,18 +76,9 @@
         ]
       },
       "pages/CashWallets.tsx": {
-        "kind": "named-reference",
+        "kind": "direct",
         "evidence": [
-          "CashAdjustmentEditor.dom.test.tsx",
-          "StateRecovery.w44.dom.test.tsx",
-          "application/transfers/guidedOpeningImportService.g82.test.ts",
-          "application/transfers/localTransferService.capabilitiesRoundTrip.test.ts",
-          "storage/local/IndexedDbLocalStore.open-count.test.ts",
-          "storage/local/IndexedDbLocalStore.test.ts",
-          "storage/local/adapterConformance.group10.test.ts",
-          "storage/local/adapterDeliveryReversal.test.ts",
-          "storage/local/cashContinuityOpeningGuard.test.ts",
-          "storage/local/rollbackRehearsal.r9.test.ts"
+          "CashWallets.dom.test.tsx"
         ]
       },
       "pages/Catalog.tsx": {
@@ -293,7 +284,8 @@
       "pages/NotFound.tsx": {
         "kind": "named-reference",
         "evidence": [
-          "Nav003.exe016.dom.test.tsx"
+          "Nav003.exe016.dom.test.tsx",
+          "RouterSmokeSync.r10b.test.ts"
         ]
       },
       "pages/OrderDetail.tsx": {
@@ -484,6 +476,7 @@
           "tests/domain/craft-order-d031.test.ts",
           "tests/domain/craft-order-d15-settlement.test.ts",
           "tests/domain/craft-order-delivery-terms.test.ts",
+          "tests/domain/craft-order-deposit-derivations.test.ts",
           "tests/domain/craft-order-g3.test.ts",
           "tests/domain/craft-order-review-lock.test.ts",
           "tests/domain/craft-order.test.ts"
@@ -539,7 +532,8 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/pages/SupplierPurchaseEditor.ui.test.tsx",
-          "tests/domain/supplier-purchase-corrections.test.ts"
+          "tests/domain/supplier-purchase-corrections.test.ts",
+          "tests/domain/supplier-purchase-preview-derivations.test.ts"
         ]
       },
       "10-cash-continuity-prototype-contract.md": {
@@ -643,6 +637,7 @@
       "20-agreement-source-follow-up-g7-a-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/AgreementEditor.dom.test.tsx",
           "apps/prototype-web/client/src/application/agreements/agreementContextService.test.ts",
           "apps/prototype-web/client/src/application/agreements/agreementPrice.test.ts",
           "apps/prototype-web/client/src/application/agreements/agreementService.test.ts",
@@ -890,6 +885,7 @@
       "tests/domain/craft-order-d031.test.ts",
       "tests/domain/craft-order-d15-settlement.test.ts",
       "tests/domain/craft-order-delivery-terms.test.ts",
+      "tests/domain/craft-order-deposit-derivations.test.ts",
       "tests/domain/craft-order-g3.test.ts",
       "tests/domain/craft-order-review-lock.test.ts",
       "tests/domain/craft-order.test.ts",
@@ -912,6 +908,7 @@
       "tests/domain/rounding-boundaries.characterization.test.ts",
       "tests/domain/shared.test.ts",
       "tests/domain/supplier-purchase-corrections.test.ts",
+      "tests/domain/supplier-purchase-preview-derivations.test.ts",
       "tests/domain/waste-context.characterization.test.ts"
     ],
     "tests/ (root)": [

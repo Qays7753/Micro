@@ -13,6 +13,16 @@
 
 const ID_SHAPE = /^[A-Za-z0-9_-]{1,64}$/;
 
+/* R10-B3/RC-2 (R10A-F-003 — 2026-10-11): سياق الهدر بنوعه الكنوني من
+ * المجال مباشرة (نمط الاستيراد النوعي المعتمد application→domain —
+ * الأخ inventoryMaterialModel.ts:14 بالسطر نفسه). كان الاتحاد معاد
+ * تعريفه محليًا هنا بترتيب أعضاء منحرف (unallocated قبل general_project)
+ * — تطابق دلالي اليوم وانحراف نسخ كامل لاحقًا؛ الصورة النصية المحلية
+ * حُذفت وبقيت إعادة التصدير لتوافق مستهلكي الوحدة (إعادة تصدير موثقة
+ * لا مصدر حقيقة ثانٍ). */
+import type { WasteContext } from "@micro-domain/inventory-material/index.js";
+export type { WasteContext };
+
 /** المجموعة ١/٢/٣: روابط الوصلة العميقة — تحفظ سياق المصدر الأصلي
  *  (الطلب، البيع المباشر، جسر الاستلام من الشراء، والمادة الصريحة). */
 export type MovementLinkParams = {
@@ -108,15 +118,6 @@ export function validateMovementSubmission(input: MovementSubmissionInput): Move
   }
   return null;
 }
-
-/** سياق الهدر كما يُرسل مع الحركة — نفس اشتقاق الصفحة حرفيًا (العائلة
- *  الخمس الكاملة: طلب/مرجع عمل/قالب/غير موزَّع بملاحظته/مشروع عام). */
-export type WasteContext =
-  | { kind: "order"; orderId: string }
-  | { kind: "catalog_item"; catalogItemId: string }
-  | { kind: "catalog_template"; catalogItemId: string; templateId: string }
-  | { kind: "unallocated"; allocationNote: string | null }
-  | { kind: "general_project" };
 
 export function deriveWasteContext(input: {
   wasteContextKind: "order" | "catalog_item" | "catalog_template" | "unallocated" | "general_project";

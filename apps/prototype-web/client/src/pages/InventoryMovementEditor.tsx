@@ -12,7 +12,12 @@ import { LocalDateField } from "@/components/forms/LocalDateField";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import type { InventoryReferences, PurchaseReceiptStatus } from "@/application/inventory";
-import { resolveInventoryMovementType, type InventoryMovementRouteType } from "@/application/inventory";
+/* R10-B3/R10B-NF-002: تسمية الوحدة من باب بيت المخزون (نفس الباب أعلاه). */
+import {
+  materialUnitLabel as unitWord,
+  resolveInventoryMovementType,
+  type InventoryMovementRouteType,
+} from "@/application/inventory";
 import { MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";
 import { todayInAmman } from "@/application/time";
@@ -24,16 +29,8 @@ import {
   validateMovementSubmission,
 } from "@/application/inventory/inventoryMovementEditorModel";
 type MovementType = InventoryMovementRouteType;
-const unitWord = (unit: string) =>
-  unit === "piece"
-    ? "قطعة"
-    : unit === "meter"
-      ? "متر"
-      : unit === "kilogram"
-        ? "كيلوغرام"
-        : unit === "liter"
-          ? "لتر"
-          : "وحدة أخرى";
+/* R10-B3/R10B-NF-002 (2026-10-12): تسمية الوحدة من نواة التنسيق عبر
+ * واجهة العرض — كان تعريفًا محليًا رابعًا للخريطة نفسها. */
 export default function InventoryMovementEditor() {
   const { type } = useParams<{ type: string }>();
   const [, navigate] = useLocation();

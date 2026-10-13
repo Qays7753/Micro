@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { LocalTransferService } from "./localTransferService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { syncSha256Hex } from "@/lib/syncSha256";
+import { TRANSFER_ARRAY_FAMILY_ROLES, countedArrayFamilyKeys } from "./transferArrayFamilyRoles";
 import { localExportVersion, localSchemaVersion, type LocalExportFile } from "@/storage/local/types";
 
 /* المجموعة ٢ (التحصين الكامل — HIGH-002/D-1): زوج ٨/١٧ صدر فعلًا مع الالتزام
@@ -321,18 +322,23 @@ function auditFixture817(file: typeof file817): void {
  * البيانات تعبر الترحيل والتحقق كاملين فتنجح المعاينة. زوج الإصدار الحالي
  * يحمل مظروفه الإلزامي (بصمة + عدادات) كما ينتجه المصدر الحقيقي. */
 function minimalFileForPair(version: number, schemaVersion: number): string {
-  const data = {
+  /* R10-B2/RC-1: الزوج الحالي يصدر دائمًا بكل عائلات المصفوفات (اللقطة
+   * الكاملة) — الملف الحالي الأدني الصادق يحملها كلها فارغة، وتُبنى من
+   * السجل الكنوني نفسه (TRANSFER_ARRAY_FAMILY_ROLES) فلا تتقادم. الأزواج
+   * الموروثة تبقى على لقطتها الأدنية التاريخية (الغياب = بذرة []). */
+  const data: Record<string, unknown> = {
     profile: null,
     preferences: null,
     drafts: [],
     orders: [],
     schedules: [],
     financialEvents: [],
-    /* زوج الإصدار الحالي يصدر دائمًا بعائلة الوقت الفعلي (readSnapshot)؛
-     * مسار الترحيل يتركها undefined للملف الحالي فتفشل البنية إن غابت. */
     actualTimeRecords: [] as unknown[],
   };
   const isCurrent = version === localExportVersion && schemaVersion === localSchemaVersion;
+  if (isCurrent) {
+    for (const family of Object.keys(TRANSFER_ARRAY_FAMILY_ROLES)) data[family] = [];
+  }
   return JSON.stringify({
     format: "micro-prototype-local-export",
     version,
@@ -342,29 +348,9 @@ function minimalFileForPair(version: number, schemaVersion: number): string {
     ...(isCurrent
       ? {
           integrity: { algorithm: "sha256", digest: syncSha256Hex(JSON.stringify(data)) },
-          counts: {
-            orders: 0,
-            directSales: 0,
-            financialEvents: 0,
-            supplierPurchases: 0,
-            cashWallets: 0,
-            cashContinuityEntries: 0,
-            materials: 0,
-            inventoryMovements: 0,
-            inventoryShortages: 0,
-            assets: 0,
-            loans: 0,
-            /* OPS-003 (عقد ٤١): عدادات عائلات المصروف المتكرر في الزوج الحالي. */
-            recurringExpenseSeries: 0,
-            recurringExpenseRevisions: 0,
-            recurringExpenseOccurrences: 0,
-            /* FIN-002 (عقد ٤٢): عدادات عائلة الميزانيات في الزوج الحالي. */
-            expenseBudgets: 0,
-            /* FIN-001 (WS-178 — Wave 6): عدادات عائلة القروض المستلمة في الزوج الحالي. */
-            receivedLoans: 0,
-            schedules: 0,
-            drafts: 0,
-          },
+          /* R10-B2/RC-1: العدادات الصارمة تُشتق من السجل الكنوني (٢٢ مفتاحًا
+           * بعد عائلات مال المالك الأربع) — لا قائمة يدوية تتقادم. */
+          counts: Object.fromEntries(countedArrayFamilyKeys().map(key => [key, 0])),
         }
       : {}),
   });
@@ -467,15 +453,15 @@ describe("historical 8/17 pair (commit 570eba1) — faithful fixture", () => {
     expect(migrated.data.orders[0]?.followUpEvents).toEqual([]);
     expect(migrated.data.financialEvents[0]?.amanahDeltaMinor).toBe(0);
     expect(migrated.data.financialEvents[0]?.assetDeltaMinor).toBe(0);
-    expect(migrated.data.supplierPurchases[0]?.materialId).toBeNull();
+    expect(migrated.data.supplierPurchases?.[0]?.materialId).toBeNull();
     expect(migrated.data.schedules[0]?.recurrenceId).toBeNull();
-    expect(migrated.data.materials[0]?.tracking).toBeNull();
-    expect(migrated.data.inventoryMovements[0]?.costKnowledge).toBe("known");
+    expect(migrated.data.materials?.[0]?.tracking).toBeNull();
+    expect(migrated.data.inventoryMovements?.[0]?.costKnowledge).toBe("known");
     /* الأصل التاريخي محفوظ كما هو — لا حذف ولا تعديل. */
     expect(migrated.data.orders[0]?.order.collectedMinor).toBe(12000);
     expect(migrated.data.orders[0]?.order.events.length).toBe(3);
     expect(migrated.data.financialEvents[0]?.amountMinor).toBe(20000);
-    expect(migrated.data.supplierPurchases[0]?.paidMinor).toBe(2100);
+    expect(migrated.data.supplierPurchases?.[0]?.paidMinor).toBe(2100);
     /* دورة كاملة: الاستيراد ثم التصدير ثم معاينة الملف الخارج. */
     const store = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(store, now);
@@ -582,6 +568,7 @@ describe("current envelope counters — strict tamper detection", () => {
     const transfers = new LocalTransferService(store, now);
     const saved = await store.saveFinancialEvent({
       ...financialEvent817,
+      currency: "JOD",
     });
     if (!saved.ok) throw new Error(saved.message);
     const exported = await transfers.createExport();

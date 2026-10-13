@@ -127,7 +127,7 @@ async function runCapabilityScenario(store: ScheduleStore) {
 
   /* ٣) التحديث بحدث واحد جديد بالضبط: الحقول «قبل» تطابق المخزّن الحي؛
    *    وإعادة الإرسال إعادة استخدام. */
-  const stored = single.ok ? single.value : schedule;
+  const stored = single.ok && single.value ? single.value : schedule;
   const postponed = postponedSchedule(stored, "2026-10-12", "op-sched-cap-postpone-1");
   const updated = await store.commitScheduleUpdate(postponed);
   expect(updated.ok).toBe(true);

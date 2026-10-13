@@ -18,6 +18,20 @@ import {
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type ThemePreference = LocalPreferences["theme"];
+
+/* R10-B3/R10A-F-004 (2026-10-11): الإعلان الكنوني الوحيد لمعرّفات القدرات
+ * — كانت معاد تعريفه في app/useDisabledCapabilities.ts و
+ * components/settings/SettingsCapabilitiesSection.tsx مع قوالب as غير
+ * صادقة عند قراءة القائمة المثبتة. المعرّف ملكية خدمة التفضيلات (مالك
+ * التخزين) ويُصدَّر عبر الباب؛ القائمة المثبتة تبقى string[] صادقة النوع
+ * عند الخدمة، والترشيح إلى المعرّف المعروف يتم عند المستهلك بحدث التحقق
+ * isKnownCapabilityId (خيار البطاقة: narrowing صريح عند الاستهلاك لا فرض
+ * على مسار التخزين). */
+export const CAPABILITY_IDS = ["orders", "inventory", "suppliers", "catalog"] as const;
+export type CapabilityId = (typeof CAPABILITY_IDS)[number];
+export function isKnownCapabilityId(value: string): value is CapabilityId {
+  return (CAPABILITY_IDS as readonly string[]).includes(value);
+}
 export type PreferenceResult =
   { ok: true; preference: ThemePreference } | { ok: false; code: "storage_error"; message: string };
 export type InstallBannerDismissalResult =

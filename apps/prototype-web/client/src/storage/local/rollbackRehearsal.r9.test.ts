@@ -84,6 +84,9 @@ async function seedStateA(store: IndexedDbLocalStore) {
       id: localPreferencesId,
       theme: "dark",
       dailyScheduleCapacityMinutes: null,
+      workMode: null,
+      actualTimeTrackingEnabled: false,
+      installBannerDismissedAt: null,
       updatedAt: TS,
     }),
   ).resolves.toMatchObject({ ok: true });
@@ -93,6 +96,7 @@ async function seedStateA(store: IndexedDbLocalStore) {
       intent: "customer_order",
       customerName: "ليلى",
       itemName: "رف خشبي",
+      catalogItemId: null,
       specifications: "",
       quantity: 1,
       costSnapshots: [],
@@ -198,6 +202,8 @@ describe("R9-W2 RB-1 — snapshot backup / replace / failure / restore (owner pa
     /* Backup A through the real snapshot reader + stable hash. */
     const backup = await store.readSnapshot();
     if (!backup.ok) throw new Error("backup read should succeed");
+    const seededSales = backup.value.directSales;
+    if (!seededSales) throw new Error("expected the seeded direct sales in the snapshot");
     const hashA = stableHash(backup.value);
     expect(backup.value.cashWallets).toHaveLength(1);
     expect(backup.value.directSales).toHaveLength(1);
@@ -209,7 +215,7 @@ describe("R9-W2 RB-1 — snapshot backup / replace / failure / restore (owner pa
      * destroyed state A while reporting an honest failure. */
     const poisoned = {
       ...backup.value,
-      directSales: backup.value.directSales.map(sale =>
+      directSales: seededSales.map(sale =>
         sale.id === "rb1-sale" ? { ...sale, uncloneable: () => "poison" } : sale,
       ),
     } as LocalStoreSnapshot;
@@ -241,6 +247,8 @@ describe("R9-W2 RB-1 — snapshot backup / replace / failure / restore (owner pa
     const seeded = await seedStateA(store);
     const backup = await store.readSnapshot();
     if (!backup.ok) throw new Error("backup read should succeed");
+    const seededSales = backup.value.directSales;
+    if (!seededSales) throw new Error("expected the seeded direct sales in the snapshot");
     const hashA = stableHash(backup.value);
 
     /* Engine-native failure injection (no test doubles): two direct sales
@@ -249,7 +257,7 @@ describe("R9-W2 RB-1 — snapshot backup / replace / failure / restore (owner pa
      * documented transaction.onerror path with faithful rollback. */
     const colliding = {
       ...backup.value,
-      directSales: [...backup.value.directSales, { ...backup.value.directSales[0], id: "rb1-sale-clone" }],
+      directSales: [...seededSales, { ...seededSales[0], id: "rb1-sale-clone" }],
     } as LocalStoreSnapshot;
     const failed = await store.replaceSnapshot(colliding);
     expect(failed.ok).toBe(false);
@@ -538,13 +546,15 @@ describe("R9-W2 RB-2 — migration failure / recovery cycle (owner path)", () =>
      * uses) → guardUpgradeCursor records the cause and aborts the upgrade
      * transaction. */
     const originalOpenCursor = IDBObjectStore.prototype.openCursor;
-    const cursorSpy = vi
-      .spyOn(IDBObjectStore.prototype, "openCursor")
-      .mockImplementation(function (query?, direction?) {
-        const request = originalOpenCursor.call(this, query, direction);
-        if (this.name === "allocation-policies") queueMicrotask(() => request.onerror?.(new Event("error")));
-        return request;
-      });
+    const cursorSpy = vi.spyOn(IDBObjectStore.prototype, "openCursor").mockImplementation(function (
+      this: IDBObjectStore,
+      query?,
+      direction?,
+    ) {
+      const request = originalOpenCursor.call(this, query, direction);
+      if (this.name === "allocation-policies") queueMicrotask(() => request.onerror?.(new Event("error")));
+      return request;
+    });
     const failing = new IndexedDbLocalStore();
     const failed = await failing.listAllocationPolicies();
     expect(failed.ok).toBe(false);

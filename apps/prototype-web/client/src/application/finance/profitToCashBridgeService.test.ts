@@ -27,6 +27,7 @@ const now = () => "2026-10-05T09:00:00.000Z";
 
 function knownSnapshot(id: string, timeRateMinor: number) {
   return calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: timeRateMinor, confidence: "known" },
@@ -87,6 +88,7 @@ async function saveCollectedOrder(
   const stored: StoredCraftOrder = {
     id: order.id,
     order,
+    catalogItemId: null,
     deliveryDate: input.deliveredOn,
     agreementSource: "test",
     createdAt: order.createdAt,

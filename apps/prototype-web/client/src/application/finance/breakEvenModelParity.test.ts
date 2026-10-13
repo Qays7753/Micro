@@ -13,6 +13,7 @@ const now = () => "2026-08-23T09:00:00.000Z";
  * = 5000 − 1000 = 4000؛ وحدات التعادل = ceil(1000 × 2000 ÷ (4000 × 1000)) = 1. */
 function deliveredFinalOrder(id: string, itemName: string) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 1000, confidence: "known" },
@@ -49,6 +50,7 @@ async function baseStore() {
   const store = new MemoryLocalStore();
   const order = deliveredFinalOrder("parity-order", "صندوق هدية");
   await store.saveOrder({
+    catalogItemId: null,
     id: order.id,
     order,
     deliveryDate: "2026-08-05",

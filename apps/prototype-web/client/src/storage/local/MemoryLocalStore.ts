@@ -76,13 +76,23 @@ import type {
   StoredCraftOrder,
 } from "./types";
 import { STORAGE_ERROR, STORAGE_STALE } from "./resultCodes";
+/* R10-B3/R10A-F-011 (2026-10-12): الحرفية صارت مصدرًا واحدًا — كانت نسخة
+ * خاصة مطابقة هنا والمعرّف المُصدّر في indexedDbStores.ts هو الكنوني
+ * (نفس نمط SECOND_WALLET_OPENING_MESSAGE في حارس مشترك)؛ الاستيراد هنا
+ * يثبت تطابق الرسالة بين المحوّلين بنيويًا لا بالتزام الذاكرة. */
+import { RECURRENCE_STALE_MESSAGE } from "./indexedDbStores";
+/* R10-B3/R10B-NF-036 (2026-10-12): حرفيات رسائل التراجع من مالكها المشترك
+ * (نمط resultCodes) — الشروط داخلية مرآة لمحوّل IndexedDB كما هي؛ سدّ الفجوة:
+ * كانت حراسا «لا تراجع عن تراجع» و«مطابقة بيانات التراجع» في
+ * محوّل IndexedDB وحده؛ المطابقة مثبتة باختبار الرسائل. */
+import {
+  FINANCIAL_EVENT_SOURCE_MISSING_CORRECTION,
+  FINANCIAL_EVENT_SOURCE_MISSING_REPLACEMENT,
+  REVERSAL_MISMATCH_MESSAGE,
+  REVERSAL_OF_REVERSAL_MESSAGE,
+} from "./financialEventCorrectionMessages";
 
 const clone = <T>(value: T): T => structuredClone(value);
-
-/* المجموعة ٢ (التحصين الكامل — HIGH-001): رسالة تعارض قالب التكرار — مطابقة
- * لمحوّل IndexedDB حرفيًا فتتطابق رسائل المحوّلين أمام المستخدم. */
-const RECURRENCE_STALE_MESSAGE =
-  "قالب التكرار أو مواعده تغيّرت من مسار آخر بعد فتحك لها — لم يُسجَّل شيء؛ أعد المحاولة.";
 
 export class MemoryLocalStore implements PrototypeLocalStore {
   private profile: ActivityProfile | null = null;
@@ -709,7 +719,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<FinancialEvent>> {
     const source = this.financialEvents.get(sourceEventId);
     if (!source)
-      return { ok: false, code: STORAGE_ERROR, message: "لم يعد الحدث المصدر موجودًا؛ لم يُحفظ التراجع." };
+      return { ok: false, code: STORAGE_ERROR, message: FINANCIAL_EVENT_SOURCE_MISSING_CORRECTION };
+    if (source.correctionType === "reverse" || source.correctionOfEventId)
+      return { ok: false, code: STORAGE_ERROR, message: REVERSAL_OF_REVERSAL_MESSAGE };
+
     const existing = Array.from(this.financialEvents.values()).find(
       event => event.correctionOfEventId === sourceEventId && event.correctionType === "reverse",
     );
@@ -723,6 +736,18 @@ export class MemoryLocalStore implements PrototypeLocalStore {
           };
     if (this.financialEvents.has(reversal.id))
       return { ok: false, code: STORAGE_ERROR, message: "تعذر حفظ التراجع بسبب تعارض هوية محلية." };
+    if (
+      reversal.correctionType !== "reverse" ||
+      reversal.correctionOfEventId !== source.id ||
+      reversal.type !== source.type ||
+      reversal.amountMinor !== source.amountMinor ||
+      reversal.relatedEventId !== source.relatedEventId ||
+      reversal.cashDeltaMinor !== -source.cashDeltaMinor ||
+      reversal.payableDeltaMinor !== -source.payableDeltaMinor ||
+      reversal.ownerCapitalDeltaMinor !== -source.ownerCapitalDeltaMinor ||
+      reversal.operatingExpenseDeltaMinor !== -source.operatingExpenseDeltaMinor
+    )
+      return { ok: false, code: STORAGE_ERROR, message: REVERSAL_MISMATCH_MESSAGE };
     this.financialEvents.set(reversal.id, clone(reversal));
     return { ok: true, value: clone(reversal) };
   }
@@ -734,9 +759,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<{ reversal: FinancialEvent; replacement: FinancialEvent }>> {
     const source = this.financialEvents.get(sourceEventId);
     if (!source)
-      return { ok: false, code: STORAGE_ERROR, message: "لم يعد الحدث الأصلي موجودًا؛ لم يتغير السجل." };
+      return { ok: false, code: STORAGE_ERROR, message: FINANCIAL_EVENT_SOURCE_MISSING_REPLACEMENT };
     if (source.correctionType === "reverse" || source.correctionOfEventId)
-      return { ok: false, code: STORAGE_ERROR, message: "لا يمكن التراجع عن حدث تراجع سابق." };
+      return { ok: false, code: STORAGE_ERROR, message: REVERSAL_OF_REVERSAL_MESSAGE };
+
     const existing = Array.from(this.financialEvents.values()).find(
       event => event.correctionOfEventId === sourceEventId && event.correctionType === "reverse",
     );
@@ -750,6 +776,17 @@ export class MemoryLocalStore implements PrototypeLocalStore {
           };
     if (this.financialEvents.has(reversal.id) || this.financialEvents.has(replacement.id))
       return { ok: false, code: STORAGE_ERROR, message: "تعذر حفظ التعديل بسبب تعارض هوية محلية." };
+    if (
+      reversal.correctionType !== "reverse" ||
+      reversal.correctionOfEventId !== source.id ||
+      reversal.type !== source.type ||
+      reversal.amountMinor !== source.amountMinor ||
+      reversal.cashDeltaMinor !== -source.cashDeltaMinor ||
+      reversal.payableDeltaMinor !== -source.payableDeltaMinor ||
+      reversal.ownerCapitalDeltaMinor !== -source.ownerCapitalDeltaMinor ||
+      reversal.operatingExpenseDeltaMinor !== -source.operatingExpenseDeltaMinor
+    )
+      return { ok: false, code: STORAGE_ERROR, message: REVERSAL_MISMATCH_MESSAGE };
     this.financialEvents.set(reversal.id, clone(reversal));
     this.financialEvents.set(replacement.id, clone(replacement));
     return { ok: true, value: { reversal: clone(reversal), replacement: clone(replacement) } };

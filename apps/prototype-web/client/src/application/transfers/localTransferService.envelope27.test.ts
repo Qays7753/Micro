@@ -6,6 +6,7 @@ import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { syncSha256Hex } from "@/lib/syncSha256";
 import { LocalTransferService } from "./localTransferService";
+import { assertOk } from "@/testing/resultAssertions";
 
 const now = () => "2026-09-05T09:00:00.000Z";
 
@@ -63,6 +64,7 @@ describe("export envelope v27 (المجموعة ٥ — عقد ٣٩)", () => {
     const tampered = JSON.parse(JSON.stringify(exported.value));
     tampered.data.financialEvents[0].amountMinor = 10;
     const prepared = transfers.prepareImport(JSON.stringify(tampered));
+    if (prepared.ok) throw new Error("expected the tampered file to be rejected");
     expect(prepared.ok).toBe(false);
     if (!prepared.ok) expect(prepared.code).toBe("validation_error");
     expect(prepared.message).toContain("بصمة التكامل");

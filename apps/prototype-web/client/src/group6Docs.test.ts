@@ -26,7 +26,21 @@ const prTemplate = readRepoFile("../../../../.github/pull_request_template.md");
 const sliceTemplate = readRepoFile("../../../../docs/operations/slice-handoff-template.md");
 const rootPackageJson = JSON.parse(readRepoFile("../../../../package.json"));
 const rootVitestConfig = readRepoFile("../../../../vitest.config.ts");
-const manifest = JSON.parse(readRepoFile("../../../../docs/quality/persistent-entity-touchpoints.json"));
+/* شكل سجل نقاط اتصال الكيانات الدائمة كما يستهلكه هذا الاختبار — الكيانات
+ * المصدَّرة تحمل حقل اللقطة وسببًا فارغًا، والمستثناة منه تحمل السبب
+ * الإلزامي (≥١٠ محارف) — نفس العلاقة التي يحرسها check-entity-touchpoints.mjs. */
+type ManifestObjectStore =
+  | { store: string; snapshotField: string; notExportedReason: null }
+  | { store: string; snapshotField: null; notExportedReason: string };
+type ManifestLocalOnlyRecord = { record: string };
+type EntityTouchpointsManifest = {
+  policy: string;
+  objectStores: readonly ManifestObjectStore[];
+  localOnlyRecords: readonly ManifestLocalOnlyRecord[];
+};
+const manifest: EntityTouchpointsManifest = JSON.parse(
+  readRepoFile("../../../../docs/quality/persistent-entity-touchpoints.json"),
+);
 
 describe("governance consistency — Group 6 prevention implemented on the remediation branch", () => {
   it("AGENTS.md carries the Group 6 execution rules (pre-read, understanding card, boundaries, stop rules)", () => {

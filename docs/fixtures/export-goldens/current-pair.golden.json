@@ -389,7 +389,11 @@
     "expenseBudgets": 0,
     "receivedLoans": 0,
     "schedules": 1,
-    "drafts": 1
+    "drafts": 1,
+    "ownerEntitlementPolicies": 0,
+    "ownerEntitlementRecords": 0,
+    "ownerEntitlementOpeningBalances": 0,
+    "ownerMovements": 0
   },
   "appVersion": "micro-local-dev"
 }

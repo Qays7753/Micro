@@ -30,6 +30,8 @@ import type {
 } from "@/application/inventory";
 import { LocalDateValue, MoneyValue, QuantityValue } from "@/components/presentation/DisplayValue";
 import { formatArabicPlural, formatMoneyMinor, formatQuantityMilli } from "@/presentation/formatters";
+/* R10-B3/R10B-NF-002: تسمية الوحدة من باب بيت المخزون. */
+import { materialUnitLabel as unitWord } from "@/application/inventory";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { quantityMilliExact } from "@micro-domain/shared/index.js";
 import { savedMovementCountLabel } from "@/presentation/plurals";
@@ -43,16 +45,8 @@ const label = (type: InventoryMovement["type"]) =>
     adjustment: "ضبط مادة",
     reversal: "تراجع عن حركة",
   })[type];
-const unitWord = (unit: string) =>
-  unit === "piece"
-    ? "قطعة"
-    : unit === "meter"
-      ? "متر"
-      : unit === "kilogram"
-        ? "كيلوغرام"
-        : unit === "liter"
-          ? "لتر"
-          : "وحدة أخرى";
+/* R10-B3/R10B-NF-002 (2026-10-12): تسمية الوحدة من نواة التنسيق عبر
+ * واجهة العرض — كان تعريفًا محليًا رابعًا للخريطة نفسها. */
 /* R7/P09: حالة الصفحة انتقلت مع قراءتها إلى البيت التطبيقي. */
 type State = InventoryMaterialsState;
 /* القرار ٢٠: تأكيد إخراج الفاقد يعرض القيمة كاملة ويبيّن أن الفعل تسجيل هدر — قبل التنفيذ وبعده. */

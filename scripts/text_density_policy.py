@@ -320,7 +320,12 @@ CAPS: dict[str, int] = {
     # AgreementEditor 61 -> 63 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "AgreementEditor": 63,
+    # AgreementEditor 63 -> 65 (2026-10-12, R10-B4/NF-016): آلة القراءة الصريحة —
+    # سطح خطأ القراءة النظامي (نمط R9-GA-F3.7) بإعلان alert وإعادة محاولة
+    # ومخرج قانوني: «إعادة المحاولة» و«العودة للطلبات» فقط نصّا سكون
+    # جديدان؛ رسالة «غير موجودة» نص لحظة فعل (message) لا يُحتسب — الفصل
+    # الصادق بحد ذاته، والدمج القديم مع «التكلفة غير متاحة» زال.
+    "AgreementEditor": 65,
     # Catalog 84 → 92 (2026-09-01, repair cycle P-002): optional suggested default
     # price/cost fields + per-item defaults editor labels — Option A mandated fields.
     # Catalog 92 → 94 (2026-09-02, Group 3 Scope C §9.3, owner-approved execution

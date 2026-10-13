@@ -47,7 +47,10 @@ describe("R2 regression — priceDate is a true Local Date (Amman business date 
      * العلة كانت تظهر عند freshnessDays=0 وما فوق مع تواريخ الحد) — الآن
      * priceDate يشتق من اليوم نفسه فلا حداثة كاذبة أبدًا. */
     const service = new CostService(new MemoryLocalStore(), () => "2026-10-07T21:30:00.000Z");
-    const result = service.preview({ ...input, freshnessDays: 7 });
+    /* مشهد M-06 كما كُتب: مدخل المحرر مع مقبض الحداثة فوقه — الحقل فوق عقد
+     * CostEditorInput (المحرر لا يمرره للنطاق) ويبقى جزءًا من المشهد المسائي. */
+    const eveningWithFreshness: CostEditorInput & { freshnessDays: number } = { ...input, freshnessDays: 7 };
+    const result = service.preview(eveningWithFreshness);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.snapshot.knowledgeState).not.toBe("stale");

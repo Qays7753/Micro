@@ -7,6 +7,7 @@ describe("ActualTimeService", () => {
   it("keeps work mode optional and records time only as an explanatory comparison", async () => {
     const store = new MemoryLocalStore();
     const cost = calculateCostSnapshot("time-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -80,6 +81,7 @@ describe("ActualTimeService", () => {
   it("lists order records, reverses once with a reason, and reuses the reverse operation", async () => {
     const store = new MemoryLocalStore();
     const cost = calculateCostSnapshot("reverse-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -156,6 +158,7 @@ describe("ActualTimeService", () => {
   it("marks an estimated planned time as needs_review while retaining the explanatory variance", async () => {
     const store = new MemoryLocalStore();
     const cost = calculateCostSnapshot("estimated-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "estimated" },
@@ -203,6 +206,7 @@ describe("ActualTimeService", () => {
   it("keeps missing planned time explicit when actual time exists", async () => {
     const store = new MemoryLocalStore();
     const cost = calculateCostSnapshot("missing-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: null,
@@ -255,6 +259,7 @@ describe("Stage 2 — OPS-008: صدق مقارنة الوقت — السبب م�
   }) {
     const store = new MemoryLocalStore();
     const cost = calculateCostSnapshot("ops8-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems:
         options.materialConfidence === "known"

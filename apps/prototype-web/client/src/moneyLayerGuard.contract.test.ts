@@ -44,11 +44,18 @@ function moneyComputeLines(file: string): string[] {
 /* السطح المجمد عند إغلاق الموجة 5 (2026-09-29): عدد أسطر الحساب المالي لكل
  * ملف واجهة إنتاجي. عائلة F-049 — إصلاحها (إزالة المرايا لصالح اشتقاقات
  * المجال) عمل TSX/UI خلف بوابة موجة عرض مستقلة؛ حتى ذلك الحين لا ينمو
- * السطح ولا يتقلص بصمت (التقلص المتعمد يحدّث هذا الجدول بدليله). */
+ * السطح ولا يتقلص بصمت (التقلص المتعمد يحدّث هذا الجدول بدليله).
+ *
+ * R10-B4/F-021 (2026-10-12): تقلص موثق — أعلى مرايا العائلة انحرافًا
+ * أُغلقت بجذرها: نواتا SupplierPurchaseEditor (المدفوع/المستحق)
+ * وOrderDepositPanels (عائلة العربون كلها) صارتا اشتقاقات دومين مستوردة
+ * (previewSupplierPurchaseEdit/previewSupplierPurchasePaymentReversal و
+ * standingDepositMinorOf/pendingDepositSettlementMinorOf/
+ * unclassifiedRetainedDepositMinorOf/cancelledDepositProposalOf) تقرأ
+ * بالقارئات الكنسية نفسها التي تكتب بها المسارات — 45 → 33 سطرًا،
+ * 18 → 16 ملفًا. البقية مقبولة بموجب هذا الجدول نفسه (التجميد الموثق). */
 const FROZEN_SURFACE: Readonly<Record<string, number>> = {
   "pages/OrderDetail.tsx": 13,
-  "components/orders/OrderDepositPanels.tsx": 7,
-  "pages/SupplierPurchaseEditor.tsx": 5,
   "components/catalog/CatalogReadingsSection.tsx": 3,
   "pages/DirectSaleEditor.tsx": 2,
   "components/finance/QuickSaleForm.tsx": 2,

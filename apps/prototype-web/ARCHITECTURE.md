@@ -19,11 +19,13 @@ prompt) عبر `vite-plugin-pwa`. لا تنفذ Cloud Sync أو Auth أو SaaS �
 
 ```text
 React UI
-  → Application services (43 خدمة موصولة عبر PrototypeServicesContext؛ 58 ملف `*Service.ts` — العد الحي المعاد عند `04895f2`، 2026-10-03/بعد إغلاق برنامج المعالجة #299–#308، بالطريقة الموثقة نفسها: `new *Service(` في `PrototypeServicesContext.tsx` + `git ls-files 'apps/prototype-web/client/src/application/**/*Service.ts'`؛ كان 42/53 عند `15060f0` قبل نقل العناقيد)
-  → Micro Domain Core في ../../src/domain (19 مسارًا نطاقيًا = 18 منطقة + برميل التوافق `g5` — `ls src/domain`)
+  → Application services (43 خدمة موصولة عبر PrototypeServicesContext؛ 53 ملف `*Service.ts` — العد الحي المعاد عند رأس R10-B1، 2026-10-11، بالطريقة الموثقة نفسها: `git ls-files 'apps/prototype-web/client/src/application/**/*Service.ts'`؛ *(تصحيح مؤرخ 2026-10-11 — R10-B1/RV1: كان العد المثبت 58 عند `04895f2` (2026-10-03) — إغلاق شيم R7-5 عند `bfa48d44` حذف 5 ملفات خدمة توافق فصار الحي 53؛ «43 خدمة موصولة» أعلاه ظل صحيحًا طوال ذلك)*؛ كان 42/53 عند `15060f0` قبل نقل العناقيد)
+  → Micro Domain Core في ../../src/domain (18 مسارًا نطاقيًا — `ls src/domain`؛ *(تصحيح مؤرخ 2026-10-11 — R10-B1/R10A-F-002: كان «19 مسارًا = 18 منطقة + برميل التوافق `g5`» — برميل g5 أُزيل ضمن إغلاق شيم R7-5 عند `bfa48d44`؛ العد الحي 18 بلا برميل)*)
   → LocalStore port (PrototypeLocalStore)
   → IndexedDB adapter (IndexedDbLocalStore — 37 مخزن كائنات، مخطط 38/تصدير 30 — العد: `createObjectStore` في `indexedDbMigrations.ts` والقيم في `storage/local/types.ts`)
 ```
+
+> **اتجاه الاستاتيك مقابل اتجاه المسؤولية (تصحيح مؤرخ 2026-10-11 — R10-B1/R10A-F-007):** المسار أعلاه يصف **تسلسل المسؤولية التشغيلية** (من يخدم من في وقت التشغيل)، لا اتجاه الاستيراد الاستاتيكي. الاتجاه الاستاتيكي الفعلي معاكس لسهم «Domain → LocalStore»: **محوّلات التخزين تستورد أنواع المجال** (75 حافة إنتاجية، كلها عبر البراميل؛ صفر حافة عكسية — يثبتها `check-module-boundaries.mjs` و`check-type-cycles.mjs`)، فالمجال لا يعرف التخزين ولا يستورده أبدًا؛ الـport (`PrototypeLocalStore`) والـadapter ينتميان لطبقة التخزين ويستهلكان عقود المجال.
 
 ملاحظة تسمية موثقة (توثيقًا لا تغييرًا): أربعة ملفات `*Service.ts` لا تُبنى في جذر التركيب دون أن تكسر أيٌّ منها حدود الطبقات — `capacityDecisionService` و`shareMessageService` وحدتا دوال نقية؛ و`statementMarkdownService` يُنشأ داخل `Statement.tsx` (بلا حالة فيبقى متسقًا)؛ و`localDiagnosticsService` مفرد على مستوى الوحدة (مقصود: يُستورد من `ErrorBoundary` بلا سياق React). هذه استثناءات تسمية معلنة لا عيوبًا هيكلية (مكتشف المسح STR-013).
 

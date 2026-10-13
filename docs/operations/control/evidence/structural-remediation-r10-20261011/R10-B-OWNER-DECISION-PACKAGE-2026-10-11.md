@@ -48,7 +48,27 @@ Minimal: count/gate only the 4 owner families (the only full gaps; golden churn 
 
 ## OD-9 (NEW) — F-024 Replit hook: option A/B/C — REQUIRED before B5
 
-Full comparison in RC-4. **Recommended: C (retire)** — broken since 2026-10-10, zero current documentation/consumers, CI+Pages anchor all real verification. If a Replit post-merge safety net is wanted: **A+B together** with a re-derived `timeoutMs` (RV4-N4: 180s likely insufficient).
+**Exact decision sentence (owner fills one):** OD-9 = **A** (drop `export CI=1`, hook runs as local-env) / **B** (documented Replit alias in `detectEnvironment` + an anchored `replit` baseline) / **C** (retire the hook + `[postMerge]` + its register/ratchet rows).
+
+**Affected files and findings.** `.replit:17-19` (`[postMerge]` block); `scripts/post-merge.sh:4` (`export CI=1`); `apps/prototype-web/scripts/check-bundle-surfaces.mjs:97-124` (detectEnvironment — option B only); `docs/architecture/refactoring/FILE-SIZE-AND-RESPONSIBILITY-REGISTER.md:792` + the size-ratchet baseline row for the hook script (option C removal notes); finding R10A-F-024 (S2, CONFIRMED); consumers verified by W0: only `.replit` + the register row + the archived handoff — nothing else in the repository reads the hook or its `CI=1`.
+
+**Alternatives considered (full comparison in RC-4 §F-024).**
+- **A — drop `export CI=1`:** nothing else in the hook reads CI; the surfaces guard stays fail-closed; residual risk: Replit Node-20 gzip vs the local anchor is unproven (convergence proven only Node 22/24) and `timeoutMs=180000` is suspect (RV4-N4).
+- **B — documented Replit alias + anchored `replit` baseline:** strongest if the hook is load-bearing; the marker choice (`REPL_ID`/`REPLIT_DEV_DOMAIN`) is not statically provable, adds a permanent external coupling, and requires unit tests + the `ANCHOR_RECORD` bootstrap path.
+- **C — retire (RECOMMENDED DEFAULT):** the hook has been structurally broken since R8-1 (`c70d3eed`, 2026-10-10 — `CI=1` makes `detectEnvironment` return null and the guard fails `UNVERIFIED_ENVIRONMENT`, killing the hook via `set -e`); zero current documentation; zero in-repo consumers besides `.replit`; CI + Cloudflare Pages anchor all real verification; Replit remains a dev workspace served by its Project workflows. If a Replit post-merge safety net is wanted later: **A+B together** with a re-derived `timeoutMs` (RV4-N4: 180s likely insufficient).
+
+**Evidence and impact.** Broken >=1 day (last documented working run predates both bundle guards, 2026-08-29); no user-facing or financial surface is touched by any option (hook/docs only; option B touches only the guard's environment map).
+
+**Tests required.** A: guard suite green (no new tests — the hook becomes local-env; its gzip-vs-anchor risk stays documented). B: `detectEnvironment` unit tests for the Replit marker + a real anchored `replit` baseline record. C: grep-verify no dangling references (`.replit`, register, ratchet, docs) + full guard suite green.
+
+**Exact allowed side effects.** A: the hook's guard run reports `ENV=local` under Replit. B: `detectEnvironment` gains a `replit` identity + baseline record; `bundle-surfaces-baseline.json` gains the environment entry through the official anchor path. C: `.replit` loses the `[postMerge]` block; `scripts/post-merge.sh` and its two register/ratchet rows are removed with dated notes; nothing else changes.
+
+**Forbidden side effects (all options).** Any weakening of the fail-closed unknown-environment contract; any ceiling/tolerance change; any change to CI/Pages verification; any second environment-detection vocabulary (the F-028/NF-021 unified `CI_MARKER_KEYS` is the one vocabulary — a B-option alias must extend it in BOTH guards with the conformance test updated, not bypass it).
+
+**Rollback boundary.** Single small commit revert in every option (8-line hook + 3-line `.replit` + 2 doc rows under C; the alias map entry + baseline record under B; the one-line export under A).
+
+**Safe stopping state.** F-024 stays `OWNER_DECISION_REQUIRED` with this package; the hook remains broken-but-inert (it never runs outside Replit merges, and no merges happen there); every other B5 item proceeds independently — none depends on this decision.
+
 **Decision:** A / B / C (fail-closed contract preserved in every option).
 
 ## OD-10 (NEW) — Application-internal seam policy (NF-005) — DEFER-card ratification
@@ -61,7 +81,7 @@ Full comparison in RC-4. **Recommended: C (retire)** — broken since 2026-10-10
 Branding is feasible (326 sites) but sibling concepts stay raw; compensating controls verified live (integer kernel, sole formatter, frozen surface, moneyLayerGuard).
 **Decision:** keep unbranded with documented policy (recommended) or schedule a branding wave.
 
-## OD-12 (NEW) — Route-focus + document.title addition (NF-015) — visibility decision
+## OD-12 (NEW) — Route-focus + document.title addition (NF-015) — ACCEPTED 2026-10-13 (continuation directive) — implemented as the complementary B4 commit 86e1a05f
 
 A B4 card adds navigation focus management and per-route `document.title` (a11y semantic addition; no visual change). Surfaced because it *adds* runtime behavior rather than only repairing a defect.
 **Decision:** include in B4 (recommended) or defer to the UI track.
@@ -96,5 +116,30 @@ The 14 `PILOT_EVIDENCE_REQUIRED` items (BE-004, BE-005, V-001..012) define an ev
 | OD-9 | Replit hook | C (retire) | B5 |
 | OD-10 | app-internal seam | document now, ratchet later | — |
 | OD-11 | MoneyMinor branding | keep unbranded (documented) | — |
-| OD-12 | route focus + titles | include in B4 | B4 |
+| OD-12 | route focus + titles | **accepted 2026-10-13 — implemented (commit 86e1a05f)** | B4 (closed) |
 | OD-13 | PILOT detection methods | include in B1 | B1 |
+
+## OD-14 (NEW) — R10B-NF-038 entry headroom vs the identity hash-cascade — REQUIRED before further code commits / the merge
+
+**Exact decision sentence (owner fills one):** OD-14 = **A** (authorize a scoped minimal entry reduction of at least ~70 bytes of CI-zlib headroom) / **B** (pin the CI build identity via VITE_APP_VERSION, accepting the documented PWA cache-busting tradeoff) / **C** (explicitly accept the per-commit re-roll risk with a documented re-push-on-red policy).
+
+**Affected files and findings.** `apps/prototype-web/vite.config.ts` (buildIdentityFromEnv, the identity embedding, chunk graph); `.github/workflows/ci.yml` (identity source); `apps/prototype-web/scripts/check-bundle-budget.mjs` (the protected ceiling — reference only, NOT to be touched); finding R10B-NF-038 (S2, NEW, merge-blocking).
+
+**Evidence (deterministic, byte-exact).** Every CI build embeds the merge-commit SHA once in the entry; that re-hashes the entry, rewrites every chunk import specifier, re-hashes 92/105 chunks, and rewrites the entry's chunk-URL manifest — so each commit re-rolls the entry gzip with zero content change. Measured draws on IDENTICAL production content: 155,247 · 155,277 · 155,281 · 155,284 · **155,310 (FAIL, +10 over)** — a 63-byte spread under the 155,300 ceiling. Local reproduction is byte-exact: VITE_APP_VERSION=4c7fbbdf… → index-C6VOawSl.js 631,833/155,281; VITE_APP_VERSION=15a72f52… → index-DYGnR5jx.js 631,833/155,310. The branch head `ca9fe368` is red on CI (run 38314154278, GZIP_OVER) from this alone — no content defect exists.
+
+**Alternatives considered.**
+- **A — scoped entry reduction (root fix):** an owner-authorized minimal slice reducing the entry by enough to restore ~70+ bytes of CI headroom (e.g. the branded-title/label derivations territory already measured in OD-12, or an equivalent owner-scoped trim). Pros: eliminates the class; keeps identity semantics. Cons: touches production app code (needs its own scoped slice + tests + the five-reviewer gate).
+- **B — pin the CI identity:** set VITE_APP_VERSION in ci.yml to a fixed value (it takes priority over GITHUB_SHA). Pros: zero app-code change; makes CI builds deterministic. Cons: changes PWA cache-busting semantics (the precache revision no longer varies per deploy — stale-serve risk on real Cloudflare Pages deploys unless the pin is derive-per-deploy); needs PWA regression evidence.
+- **C — accept the risk:** document that any commit (including the merge) may fail the budget gate with no content change, with a re-push/re-roll policy. Pros: no change. Cons: the merge commit itself can land red; every future wave lives with coin-flip CI.
+
+**Tests required.** A: entry measurement on the exact head + multi-draw merge simulation + the slice's own tests. B: PWA cache-busting regression evidence (precache revision varies per deploy) + determinism proof across consecutive runs. C: the policy recorded in the execution contract.
+
+**Exact allowed side effects.** A: a reduced entry (visual/semantic neutrality proven per the OD-12 method). B: deterministic CI identity + the documented PWA tradeoff. C: none.
+
+**Forbidden side effects (all options).** Raising or weakening the 650,000/155,300 ceilings or the tolerances; hiding a red draw by silent re-pushes without documentation; any change to the budget guard's measurement; touching the surfaces baseline to mask the entry.
+
+**Rollback boundary.** The chosen slice (A: one revertible commit; B: one workflow line; C: the policy record).
+
+**Safe stopping state.** PR #356 open, the finding recorded (NF-038), no further code commits until OD-14 (each carries the red risk); docs-only records commits remain possible but each is another draw.
+
+**Decision:** A / B / C.

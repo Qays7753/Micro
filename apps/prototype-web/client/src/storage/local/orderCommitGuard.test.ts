@@ -8,6 +8,7 @@ import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-ord
 
 function storedOrder(id: string, status: string, extraEvents: StoredCraftOrder["order"]["events"] = []) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -30,6 +31,7 @@ function storedOrder(id: string, status: string, extraEvents: StoredCraftOrder["
     createdAt: "2026-08-22T00:00:00.000Z",
   });
   const stored: StoredCraftOrder = {
+    catalogItemId: null,
     id,
     order: { ...order, status: status as never, events: [...order.events, ...extraEvents] },
     deliveryDate: "2026-09-10",
@@ -115,10 +117,13 @@ describe("orderCommitGuard — validateOrderCommit", () => {
 
   it("null and undefined optional fields are equivalent (old-data compatibility)", () => {
     const base = storedOrder("g3-g", "in_progress");
-    const baseWithNulls: StoredCraftOrder = { ...base, retainedMeaning: null, orderName: null };
+    const baseWithNulls: StoredCraftOrder = {
+      ...base,
+      order: { ...base.order, retainedMeaning: null, orderName: null },
+    };
     const liveAbsents = structuredClone(baseWithNulls);
-    delete (liveAbsents as Record<string, unknown>).retainedMeaning;
-    delete (liveAbsents as Record<string, unknown>).orderName;
+    delete (liveAbsents.order as unknown as Record<string, unknown>).retainedMeaning;
+    delete (liveAbsents.order as unknown as Record<string, unknown>).orderName;
     const next: StoredCraftOrder = {
       ...baseWithNulls,
       updatedAt: "2026-09-08T09:01:00.000Z",

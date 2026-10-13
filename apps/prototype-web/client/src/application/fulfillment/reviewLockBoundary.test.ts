@@ -9,11 +9,13 @@ import { ProjectFinancialService } from "@/application/finance/projectFinancialS
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
 import type { StoredCraftOrder } from "@/storage/local/types";
+import { assertOk } from "@/testing/resultAssertions";
 
 const now = () => "2026-09-08T09:00:00.000Z";
 
 function buildCostSnapshot() {
   return calculateCostSnapshot("cost-app-lock", {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -167,7 +169,8 @@ describe("application-level review lock boundary (D-031)", () => {
     /* القراءة (عرض المراجعة والتدقيق) متاحة — القفل على الطفر المالي لا على
      * المعاينة؛ المخزن نفسه هو مصدر العرض. */
     const stored = await store.getOrder("order-app-lock");
-    if (!stored.ok || !stored.value) throw new Error(stored.message);
+    assertOk(stored);
+    if (!stored.value) throw new Error("expected the locked order to be stored");
     expect(stored.value.order.status).toBe(locked.order.status);
     expect(stored.value.order.events.some(event => event.type === "collection_recorded")).toBe(true);
     const mutation = await fulfillment.reverseCollection("order-app-lock", {
@@ -177,7 +180,8 @@ describe("application-level review lock boundary (D-031)", () => {
     });
     expect(mutation.ok).toBe(false);
     const unchanged = await store.getOrder("order-app-lock");
-    if (!unchanged.ok || !unchanged.value) throw new Error(unchanged.message);
+    assertOk(unchanged);
+    if (!unchanged.value) throw new Error("expected the locked order to be stored");
     expect(unchanged.value.order.collectedMinor).toBe(3000);
   });
 });

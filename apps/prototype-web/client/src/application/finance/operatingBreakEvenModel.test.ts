@@ -25,6 +25,7 @@ const now = () => "2026-08-23T09:00:00.000Z";
 
 function deliveredFinalOrder(id: string, itemName: string, depositMinor: number | null = null) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 1000, confidence: "known" },
@@ -66,6 +67,7 @@ async function baseStore() {
   const store = new MemoryLocalStore();
   const order = deliveredFinalOrder("operating-order", "صندوق هدية");
   await store.saveOrder({
+    catalogItemId: null,
     id: order.id,
     order,
     deliveryDate: "2026-08-05",
@@ -202,6 +204,7 @@ describe("REM-007 — التعادل التشغيلي عبر طبقة التطب
     const paid = new MemoryLocalStore();
     const paidOrder = deliveredFinalOrder("paid-order", "صندوق مسدد", 5000);
     await paid.saveOrder({
+      catalogItemId: null,
       id: paidOrder.id,
       order: paidOrder,
       deliveryDate: "2026-08-05",
@@ -212,6 +215,7 @@ describe("REM-007 — التعادل التشغيلي عبر طبقة التطب
     const debt = new MemoryLocalStore();
     const debtOrder = deliveredFinalOrder("debt-order", "صندوق بالدين", 1000);
     await debt.saveOrder({
+      catalogItemId: null,
       id: debtOrder.id,
       order: debtOrder,
       deliveryDate: "2026-08-05",

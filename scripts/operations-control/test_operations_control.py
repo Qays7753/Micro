@@ -107,7 +107,9 @@ class OperationsControlTests(unittest.TestCase):
         item = self.base_item()
         item['title'] = 'عنوان | سطر\nثانٍ `مهم`'
         rendered = GENERATOR.table([item])
-        self.assertIn('عنوان \\| سطر<br>ثانٍ \\`مهم\\`', rendered)
+        # R10-B1/F-036 (2026-10-11): backticks are no longer escaped (they rendered as literal
+        # backslash artifacts in the views); pipes and newlines remain escaped/converted.
+        self.assertIn('عنوان \\| سطر<br>ثانٍ `مهم`', rendered)
 
     def test_current_source_digest_is_deterministic(self):
         first = GENERATOR.source_digest()

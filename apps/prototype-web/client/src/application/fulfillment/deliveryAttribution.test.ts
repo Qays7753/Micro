@@ -15,6 +15,7 @@ import {
 
 function baseOrder(id: string): CraftOrder {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [
       {
@@ -49,7 +50,7 @@ function baseOrder(id: string): CraftOrder {
 }
 
 function throughPreDelivery(order: CraftOrder, id: string): CraftOrder {
-  return ["provisional_agreement", "confirmed", "in_progress", "ready"].reduce<CraftOrder>(
+  return (["provisional_agreement", "confirmed", "in_progress", "ready"] as const).reduce<CraftOrder>(
     (current, to, index) =>
       transitionOrder(current, {
         to,

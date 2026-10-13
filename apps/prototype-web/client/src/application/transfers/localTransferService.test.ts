@@ -20,8 +20,10 @@ import { createCatalogItem, createMeasurementUnit } from "@micro-domain/catalog/
 import { createAllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import { createActualTimeRecord, reverseActualTimeRecord } from "@micro-domain/actual-time/index.js";
 import { cancelDirectSale, createDirectSale, updateDirectSale } from "@micro-domain/direct-sale/index.js";
+import { assertOk } from "@/testing/resultAssertions";
+import type { ActivityProfile } from "@/storage/local/types";
 
-const profile = {
+const profile: ActivityProfile = {
   id: localProfileId,
   activityName: "مشغل ليان",
   currency: "JOD" as const,
@@ -49,6 +51,7 @@ describe("LocalTransferService", () => {
     const source = new MemoryLocalStore();
     await source.saveProfile(profile);
     const cost = calculateCostSnapshot("cost-1", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -366,7 +369,7 @@ describe("LocalTransferService", () => {
         },
       ],
     });
-    const legacy = structuredClone(exported.value) as {
+    const legacy = structuredClone(exported.value) as unknown as {
       version: number;
       schemaVersion: number;
       data: { financialEvents: Array<Record<string, unknown>> };
@@ -390,14 +393,14 @@ describe("LocalTransferService", () => {
       ok: true,
       value: { file: { data: { financialEvents: [{ id: "transfer-source" }] } } },
     });
-    const broken = structuredClone(exported.value) as {
+    const broken = structuredClone(exported.value) as unknown as {
       data: { financialEvents: Array<{ id: string; cashDeltaMinor: number }> };
     };
     broken.data.financialEvents.find(event => event.id === "transfer-reversal")!.cashDeltaMinor = -1199;
     expect(
       new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(broken)),
     ).toMatchObject({ ok: false, code: "validation_error" });
-    const missingSource = structuredClone(exported.value) as {
+    const missingSource = structuredClone(exported.value) as unknown as {
       data: { financialEvents: Array<{ id: string }> };
     };
     missingSource.data.financialEvents = missingSource.data.financialEvents.filter(
@@ -546,7 +549,7 @@ describe("LocalTransferService", () => {
     await source.saveDraft(draft);
     const exported = await new LocalTransferService(source).createExport();
     if (!exported.ok) throw new Error("export should succeed");
-    const legacy = structuredClone(exported.value) as {
+    const legacy = structuredClone(exported.value) as unknown as {
       version: number;
       schemaVersion: number;
       data: { catalogItems?: unknown; drafts: Array<Record<string, unknown>> };
@@ -604,7 +607,7 @@ describe("LocalTransferService", () => {
       ok: true,
       value: { catalogItemId: item.id },
     });
-    const broken = structuredClone(exported.value) as {
+    const broken = structuredClone(exported.value) as unknown as {
       data: { drafts: Array<{ catalogItemId: string | null }> };
     };
     broken.data.drafts[0]!.catalogItemId = "missing-catalog-item";
@@ -642,7 +645,7 @@ describe("LocalTransferService", () => {
       ok: true,
       value: [{ id: "cup", defaultPriceMinor: 250, defaultUnitCostMinor: 120 }],
     });
-    const corrupted = structuredClone(exported.value) as {
+    const corrupted = structuredClone(exported.value) as unknown as {
       data: { catalogItems: Array<{ defaultPriceMinor?: number | null }> };
     };
     corrupted.data.catalogItems[0]!.defaultPriceMinor = -5;
@@ -678,7 +681,7 @@ describe("LocalTransferService", () => {
       ok: true,
       value: [{ id: "purchase-1", paidMinor: 400, payableMinor: 600 }],
     });
-    const broken = structuredClone(exported.value) as {
+    const broken = structuredClone(exported.value) as unknown as {
       data: { supplierPurchases: Array<{ paidMinor: number }> };
     };
     broken.data.supplierPurchases[0]!.paidMinor = 999;
@@ -753,7 +756,7 @@ describe("LocalTransferService", () => {
       ok: true,
       value: [{ id: "opening" }, { id: "out" }, { id: "in" }],
     });
-    const broken = structuredClone(exported.value) as {
+    const broken = structuredClone(exported.value) as unknown as {
       data: { cashContinuityEntries: Array<{ id: string }> };
     };
     broken.data.cashContinuityEntries = broken.data.cashContinuityEntries.filter(entry => entry.id !== "in");
@@ -816,7 +819,7 @@ describe("LocalTransferService", () => {
     await source.commitCashContinuity(bank, [out, into]);
     const exported = await new LocalTransferService(source).createExport();
     if (!exported.ok) throw new Error("export should succeed");
-    const reversed = structuredClone(exported.value) as {
+    const reversed = structuredClone(exported.value) as unknown as {
       data: { cashContinuityEntries: Array<{ id: string; cashDeltaMinor: number }> };
     };
     for (const entry of reversed.data.cashContinuityEntries) {
@@ -888,7 +891,7 @@ describe("LocalTransferService", () => {
       ok: true,
       value: [{ id: "reverse-wood" }, { id: "waste-wood" }, { id: "opening-wood" }],
     });
-    const broken = structuredClone(exported.value) as {
+    const broken = structuredClone(exported.value) as unknown as {
       data: { inventoryMovements: Array<{ id: string; valueDeltaMinor: number }> };
     };
     broken.data.inventoryMovements.find(movement => movement.id === "reverse-wood")!.valueDeltaMinor = 401;
@@ -1242,7 +1245,7 @@ describe("LocalTransferService", () => {
         { id: "opening-waste" },
       ],
     });
-    const legacy = structuredClone(exported.value) as {
+    const legacy = structuredClone(exported.value) as unknown as {
       version: number;
       schemaVersion: number;
       data: { allocationPolicies: Array<Record<string, unknown>> };
@@ -1283,7 +1286,9 @@ describe("LocalTransferService", () => {
     const source = new MemoryLocalStore();
     const exported = await new LocalTransferService(source).createExport();
     if (!exported.ok) throw new Error("export should succeed");
-    const broken = structuredClone(exported.value) as { data: { shortCashDeclarations: unknown[] } };
+    const broken = structuredClone(exported.value) as unknown as {
+      data: { shortCashDeclarations: unknown[] };
+    };
     broken.data.shortCashDeclarations = [
       {
         id: "original",
@@ -1325,6 +1330,7 @@ describe("LocalTransferService", () => {
     const source = new MemoryLocalStore();
     await source.saveProfile(profile);
     const cost = calculateCostSnapshot("actual-time-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -1431,6 +1437,7 @@ describe("LocalTransferService", () => {
     const source = new MemoryLocalStore();
     await source.saveProfile(profile);
     const cost = calculateCostSnapshot("actual-time-invalid-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 30, hourlyRateMinor: 500, confidence: "known" },
@@ -1530,6 +1537,7 @@ describe("LocalTransferService G6-B recurrence migration", () => {
     const source = new MemoryLocalStore();
     await source.saveProfile(profile);
     const cost = calculateCostSnapshot("recurrence-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -1650,7 +1658,7 @@ describe("LocalTransferService G6-B recurrence migration", () => {
         { id: appearance.id, recurrenceId: recurrence.id, recurrenceIndex: 1 },
       ],
     });
-    const legacy = structuredClone(exported.value) as {
+    const legacy = structuredClone(exported.value) as unknown as {
       version: number;
       schemaVersion: number;
       data: { recurrences?: unknown; schedules: unknown[] };
@@ -1679,6 +1687,7 @@ describe("LocalTransferService G7-A agreement context", () => {
     const source = new MemoryLocalStore();
     await source.saveProfile(profile);
     const cost = calculateCostSnapshot("context-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -1745,14 +1754,14 @@ describe("LocalTransferService G7-A agreement context", () => {
         order: { agreedPriceMinor: 2400, collectedMinor: 0 },
       },
     });
-    const invalidSource = structuredClone(exported.value) as {
+    const invalidSource = structuredClone(exported.value) as unknown as {
       data: { orders: Array<{ agreementSource: string | null }> };
     };
     invalidSource.data.orders[0]!.agreementSource = "telegram";
     expect(
       new LocalTransferService(new MemoryLocalStore()).prepareImport(JSON.stringify(invalidSource)),
     ).toMatchObject({ ok: false, code: "validation_error" });
-    const invalidDate = structuredClone(exported.value) as {
+    const invalidDate = structuredClone(exported.value) as unknown as {
       data: { orders: Array<{ followUpDate: string | null }> };
     };
     invalidDate.data.orders[0]!.followUpDate = "2026-02-30";
@@ -1962,6 +1971,7 @@ it("round-trips a verified export containing a documented payment reversal (S2-0
   if (!saved.ok) throw new Error("reversed purchase should save");
   /* createVerifiedExport نفسها: التحقق يقبل الحالة بعد التراجع. */
   const verified = await new LocalTransferService(source).createVerifiedExport();
+  assertOk(verified);
   expect(verified).toMatchObject({ ok: true });
   const target = new MemoryLocalStore();
   const transfers = new LocalTransferService(target);
@@ -2043,6 +2053,7 @@ describe("Group 6 — allocation source line survives export/import round trip",
     expect(imported.ok).toBe(true);
     if (!imported.ok) return;
     const entries = await target.listCashContinuityEntries();
+    assertOk(entries);
     expect(entries.ok).toBe(true);
     const restored = entries.value.find(entry => entry.id === "g6-alloc");
     expect(restored?.sourceRefLineId).toBe("g6-order:g6-sheet");

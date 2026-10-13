@@ -86,7 +86,9 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
   ],
   loans: ["ReceivedLoanService"],
   parties: [],
-  preferences: [],
+  /* R10-B3 (R10A-F-004، 2026-10-11): حارس ترشيح المعرّفات المعروفة عبر
+   * الباب بعد توحيد إعلان CapabilityId — توسيع سطح مقصود PC-3. */
+  preferences: ["isKnownCapabilityId"],
   scheduling: ["buildCapacityDecisionViewModel"],
   security: ["LOCK_AUTO_LOCK_OPTIONS", "LocalLockService"],
   share: ["collectionShareDraft", "customerShareDraft", "standingCollectionEvent"],
@@ -122,6 +124,10 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
     "isPeriodActive",
     "previousEqualPeriod",
     "resolvePeriodPreset",
+    /* R10-B3 (R10B-NF-001، 2026-10-12): سياسة مصدر الصرف من مالكها الكنوني
+     * عبر الباب — توسيع سطح مقصود PC-3. */
+    "PAYMENT_SOURCE_UNSET",
+    "resolveDefaultPaymentSource",
   ],
   "financial-records": [
     "CorrectionHistoryService",
@@ -130,7 +136,14 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
     "expandExpenseRecordIntent",
     "normalizeCategoryLabelInput",
   ],
-  inventory: ["InventoryMaterialService", "readMaterialSuggestions", "resolveInventoryMovementType"],
+  /* R10-B3 (R10B-NF-002، 2026-10-12): تسمية وحدة المادة من بيتها الكنوني
+   * عبر الباب — توسيع سطح مقصود PC-3. */
+  inventory: [
+    "InventoryMaterialService",
+    "materialUnitLabel",
+    "readMaterialSuggestions",
+    "resolveInventoryMovementType",
+  ],
   "owner-money": ["OwnerEntitlementService"],
 };
 

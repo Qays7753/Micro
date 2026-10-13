@@ -11,6 +11,7 @@ import {
   type LegacyFormDraftStorage,
 } from "./legacyFormDraftMigration";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { okValue } from "@/testing/resultAssertions";
 
 const NOW = "2026-09-11T09:00:00.000Z";
 
@@ -19,6 +20,7 @@ type TestStorage = LegacyFormDraftStorage & {
   removed: string[];
   failGet: boolean;
   failRemove: boolean;
+  setItem(key: string, value: string): void;
 };
 
 function memoryStorage(seed: Record<string, string> = {}): TestStorage {
@@ -98,7 +100,7 @@ describe("legacy form draft migration (group 5 — write, verify, then delete)",
      * الغائب يعني none — لا ازدواج ولا كتابة ثانية. */
     const reopened = setup();
     await reopened.store.saveFormDraft(
-      (await params.store.getFormDraft("finance_event:operating_expense_cash")).value!,
+      okValue(await params.store.getFormDraft("finance_event:operating_expense_cash"))!,
     );
     const result = await migrate(reopened);
     expect(result.status).toBe("none");

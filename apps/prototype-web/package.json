@@ -8,7 +8,7 @@
     "dev": "vite --host",
     "build": "vite build && node scripts/check-bundle-budget.mjs && node scripts/check-bundle-surfaces.mjs",
     "preview": "vite preview --host",
-    "check": "tsc --noEmit",
+    "check": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "test": "vitest run",
     "format": "prettier --write ."
   },

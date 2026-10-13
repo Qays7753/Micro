@@ -5,6 +5,7 @@ import { FulfillmentService } from "@/application/fulfillment/fulfillmentService
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import type { StoredCraftOrder } from "@/storage/local/types";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
+import { okValue } from "@/testing/resultAssertions";
 
 /* G-003 (تدقيق الإدارة المالية المتدرجة 2026-09-19): عقد الأكواد المطبوعة
  * لمسارات كتابة الطلب — تعارض القراءة-التعديل-الكتابة بين مسارين يظهر
@@ -16,6 +17,7 @@ const now = () => "2026-09-08T09:00:00.000Z";
 
 async function saveOrder(store: MemoryLocalStore, id: string, deliveryDate: string) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -38,6 +40,7 @@ async function saveOrder(store: MemoryLocalStore, id: string, deliveryDate: stri
     createdAt: "2026-08-22T00:00:00.000Z",
   });
   const stored: StoredCraftOrder = {
+    catalogItemId: null,
     id,
     order: { ...order, status: "in_progress", nextAction: "أكمل التنفيذ" },
     deliveryDate,
@@ -51,6 +54,7 @@ async function saveOrder(store: MemoryLocalStore, id: string, deliveryDate: stri
 
 async function saveProvisionalOrder(store: MemoryLocalStore, id: string) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -73,6 +77,7 @@ async function saveProvisionalOrder(store: MemoryLocalStore, id: string) {
     createdAt: "2026-08-22T00:00:00.000Z",
   });
   const stored: StoredCraftOrder = {
+    catalogItemId: null,
     id,
     order: { ...order, status: "provisional_agreement", nextAction: "أكمل تأكيد الاتفاق" },
     deliveryDate: "2026-09-10",
@@ -229,7 +234,7 @@ describe("G-003 — order write stale conflicts surface typed storage_stale", ()
     const marked = await fulfillment.markReady(orderId);
     expect(marked.ok).toBe(true);
     /* القاعدة كما قرأتها خدمة التسليم. */
-    const base = (await store.getOrder(orderId)).value!;
+    const base = okValue(await store.getOrder(orderId))!;
     /* مسار متزامن يكتب عربونًا بين قراءة الخدمة والالتزام. */
     const deposit = await fulfillment.collectDeposit(orderId, {
       amountMinor: 500,
@@ -257,21 +262,21 @@ describe("G-003 — order write stale conflicts surface typed storage_stale", ()
     const orderId = "order-olddata-1";
     await saveOrder(store, orderId, "2026-09-10");
     /* سجل قديم بلا الحقول الاختيارية إطلاقًا (null ≡ undefined في الحارس). */
-    const legacy = (await store.getOrder(orderId)).value!;
-    const legacyLive: StoredCraftOrder = {
+    const legacy = okValue(await store.getOrder(orderId))!;
+    const legacyLive = {
       ...legacy,
       retainedMeaning: undefined,
       orderName: undefined,
-    };
+    } as StoredCraftOrder;
     delete (legacyLive as Record<string, unknown>).retainedMeaning;
     delete (legacyLive as Record<string, unknown>).orderName;
     await store.saveOrder(legacyLive);
-    const base = (await store.getOrder(orderId)).value!;
-    const baseWithNulls: StoredCraftOrder = {
+    const base = okValue(await store.getOrder(orderId))!;
+    const baseWithNulls = {
       ...base,
       retainedMeaning: null,
       orderName: null,
-    };
+    } as StoredCraftOrder;
     const fulfillment = new FulfillmentService(store, now);
     /* الكتابة الواعية فوق البيانات القديمة تنجح — null/undefined متكافئان. */
     const written = await store.commitOrderUpdate(

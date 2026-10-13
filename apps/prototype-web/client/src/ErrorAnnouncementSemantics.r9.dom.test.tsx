@@ -192,6 +192,30 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
         .toBe(true);
     }
   });
+
+  /* R10-B4/F-017: الجرد يغطي الآن قناتي الإعلان الأوليتين أيضًا — InlineError
+   * وفقرة خطأ Field كانتا خارج جرد R9 (status مهذبة ضد 125 موقع alert)
+   * فصارتا alert حازمًا كالقاعدة الموحدة. */
+  it("the primitive error channels (InlineError, Field error) announce assertively", () => {
+    const notice = readFileSync(resolve(CLIENT_SRC, "components/primitives/Notice.tsx"), "utf8");
+    const inlineIndex = notice.indexOf("micro-prim-notice--error-inline");
+    expect.soft(inlineIndex).toBeGreaterThan(-1);
+    const inlineWindow = notice.slice(Math.max(0, inlineIndex - 260), inlineIndex + 80);
+    expect.soft(inlineWindow.includes('role="alert"'), "InlineError must announce as alert").toBe(true);
+    expect.soft(inlineWindow.includes('role="status"')).toBe(false);
+
+    const field = readFileSync(resolve(CLIENT_SRC, "components/primitives/Field.tsx"), "utf8");
+    const fieldErrorIndex = field.indexOf("micro-prim-field__error");
+    expect.soft(fieldErrorIndex).toBeGreaterThan(-1);
+    const fieldWindow = field.slice(Math.max(0, fieldErrorIndex - 260), fieldErrorIndex + 80);
+    expect
+      .soft(fieldWindow.includes('role="alert"'), "Field error paragraph must announce as alert")
+      .toBe(true);
+    expect.soft(fieldWindow.includes('role="status"')).toBe(false);
+
+    /* القنوات المهذبة الشرعية تبقى status: الإتمام الهادئ والإرشاد والتحميل. */
+    expect.soft(notice.includes('role="status"')).toBe(true);
+  });
 });
 
 /* ─── الجزء الثاني: السلوك عبر صفحة العدّ (خطأ ⇒ alert، معلومة ⇒ status) ─── */

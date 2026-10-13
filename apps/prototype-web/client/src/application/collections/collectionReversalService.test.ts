@@ -16,6 +16,7 @@ import {
   transitionOrder,
 } from "@micro-domain/craft-order/index.js";
 import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
+import { assertOk, okValue } from "@/testing/resultAssertions";
 
 /** ساعة قابلة للتقدم — كشف عيوب المفاتيح الزمنية (نمط انحدار S2-02). */
 function advancingClock(start = "2026-09-02T10:00:00.000Z") {
@@ -132,13 +133,14 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       walletId: "drawer-1",
       idempotencyKey: "sheet-collect-1",
     });
+    assertOk(collected);
     expect(collected.ok).toBe(true);
     const before = await positionOf(store, clock);
     expect(before.unallocatedCashMinor).toBe(2000 + 3000 - 3000);
     expect(before.walletCashMinor).toBe(5000 + 3000);
 
     const event = collected.value
-      ? (await store.getOrder("order-1")).value!.order.events.find(
+      ? okValue(await store.getOrder("order-1"))!.order.events.find(
           e => e.type === "collection_recorded" && e.amountMinor === 3000,
         )!
       : null;
@@ -148,6 +150,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       orderId: "order-1",
       collectionEventId: event!.id,
     });
+    assertOk(preview);
     expect(preview.ok).toBe(true);
     expect(preview.value.status).toBe("full_match");
     expect(preview.value.allocation?.walletId).toBe("drawer-1");
@@ -163,6 +166,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       operationKey: "root-reverse-1",
       alsoReverseAllocation: true,
     });
+    assertOk(result);
     expect(result.ok).toBe(true);
     expect(result.value.reused).toBe(false);
     expect(result.value.allocationReversal).not.toBeNull();
@@ -171,19 +175,19 @@ describe("CollectionReversalService — التراجع المزدوج الموث
     expect(result.value.allocationReversal!.operationKey).toBe("root-reverse-1:unattribute");
 
     const after = await positionOf(store, clock);
-    expect(after.orderCollectedMinor ?? 0).toBeLessThanOrEqual(2000);
+    expect(after.orderCollectionsMinor ?? 0).toBeLessThanOrEqual(2000);
     expect(after.walletCashMinor).toBe(5000);
     expect(after.unallocatedCashMinor).toBe(2000);
     expect(after.recordedCashMinor).toBe(before.recordedCashMinor - 3000);
     /* الطلب: المقبوض نقص والمتبقي فُتح والوضع صار دينًا. */
-    const stored = (await store.getOrder("order-1")).value!;
+    const stored = okValue(await store.getOrder("order-1"))!;
     expect(stored.order.collectedMinor).toBe(2000);
     expect(stored.order.receivableMinor).toBe(8000);
     /* طلب مسلّم (غير مقفول) بعد التراجع: مقبوض جزئيًا ومتبقٍ مفتوح. */
     expect(stored.order.settlementStatus).toBe("partially_paid");
     expect(stored.order.events.some(e => e.type === "collection_reversed")).toBe(true);
     /* حدثا التراجع موجودان معًا — الأصلان باقيان. */
-    const entries = (await store.listCashContinuityEntries()).value!;
+    const entries = okValue(await store.listCashContinuityEntries())!;
     expect(entries.some(e => e.type === "reversal" && e.reversesEntryId)).toBe(true);
     expect(entries.filter(e => e.sourceRefLineId === event!.id).length).toBe(1);
   });
@@ -201,7 +205,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       idempotencyKey: "sheet-collect-2",
     });
     expect(collected.ok).toBe(true);
-    const event = (await store.getOrder("order-2")).value!.order.events.find(
+    const event = okValue(await store.getOrder("order-2"))!.order.events.find(
       e => e.type === "collection_recorded" && e.amountMinor === 3000,
     )!;
 
@@ -209,6 +213,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       orderId: "order-2",
       collectionEventId: event.id,
     });
+    assertOk(preview);
     expect(preview.value.status).toBe("no_allocation");
     expect(preview.value.refusalReason).toContain("ليست مرتبطة بتوزيع");
 
@@ -230,9 +235,10 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       operationKey: "root-reverse-2s",
       alsoReverseAllocation: false,
     });
+    assertOk(single);
     expect(single.ok).toBe(true);
     expect(single.value.allocationReversal).toBeNull();
-    const stored = (await store.getOrder("order-2")).value!;
+    const stored = okValue(await store.getOrder("order-2"))!;
     expect(stored.order.collectedMinor).toBe(2000);
   });
 
@@ -250,7 +256,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       idempotencyKey: "sheet-collect-3",
     });
     expect(collected.ok).toBe(true);
-    const event = (await store.getOrder("order-3")).value!.order.events.find(
+    const event = okValue(await store.getOrder("order-3"))!.order.events.find(
       e => e.type === "collection_recorded" && e.amountMinor === 2000,
     )!;
     await openDrawer(store);
@@ -275,6 +281,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       orderId: "order-3",
       collectionEventId: event.id,
     });
+    assertOk(preview);
     expect(preview.value.status).toBe("ambiguous");
     expect(preview.value.refusalReason).toContain("أكثر من تخصيص");
     const compound = await collectionReversal.reverse({
@@ -301,11 +308,11 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       walletId: "drawer-1",
       idempotencyKey: "sheet-collect-4",
     });
-    const event = (await store.getOrder("order-4")).value!.order.events.find(
+    const event = okValue(await store.getOrder("order-4"))!.order.events.find(
       e => e.type === "collection_recorded" && e.amountMinor === 3000,
     )!;
     /* تعديل يدوي لمبلغ التخصيص: تراجع ناقص ثم تخصيص بمبلغ مختلف — يكسر تطابق المبلغ. */
-    const entries = (await store.listCashContinuityEntries()).value!;
+    const entries = okValue(await store.listCashContinuityEntries())!;
     const allocation = entries.find(e => e.sourceRefLineId === event.id)!;
     const partialReversal = createCashContinuityEntry({
       id: "manual-part-rev",
@@ -324,6 +331,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       orderId: "order-4",
       collectionEventId: event.id,
     });
+    assertOk(preview);
     expect(preview.value.status).not.toBe("full_match");
     const compound = await collectionReversal.reverse({
       orderId: "order-4",
@@ -349,10 +357,10 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       walletId: "drawer-1",
       idempotencyKey: "sheet-collect-5",
     });
-    const event = (await store.getOrder("order-5")).value!.order.events.find(
+    const event = okValue(await store.getOrder("order-5"))!.order.events.find(
       e => e.type === "collection_recorded" && e.amountMinor === 3000,
     )!;
-    const entries = (await store.listCashContinuityEntries()).value!;
+    const entries = okValue(await store.listCashContinuityEntries())!;
     const allocation = entries.find(e => e.sourceRefLineId === event.id)!;
     const manualReversal = createCashContinuityEntry({
       id: "manual-rev-5",
@@ -371,6 +379,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       orderId: "order-5",
       collectionEventId: event.id,
     });
+    assertOk(preview);
     expect(preview.value.status).toBe("allocation_already_reversed");
     const compound = await collectionReversal.reverse({
       orderId: "order-5",
@@ -388,7 +397,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
     const clock = advancingClock();
     const { collectionReversal } = makeServices(store, clock);
     await deliveredOrderWithRemaining(store, "order-6");
-    const stored = (await store.getOrder("order-6")).value!;
+    const stored = okValue(await store.getOrder("order-6"))!;
     const order = collectRemaining(stored.order, 3000, "sheet-collect-6", "2026-09-02T10:30:00.000Z");
     await store.saveOrder({ ...stored, order, updatedAt: "2026-09-02T10:31:00.000Z" });
     const event = order.events.find(e => e.type === "collection_recorded" && e.amountMinor === 3000)!;
@@ -405,6 +414,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       orderId: "order-6",
       collectionEventId: event.id,
     });
+    assertOk(preview);
     expect(preview.value.status).toBe("partial_only");
   });
 
@@ -421,7 +431,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       walletId: "drawer-1",
       idempotencyKey: "sheet-collect-7",
     });
-    const event = (await store.getOrder("order-7")).value!.order.events.find(
+    const event = okValue(await store.getOrder("order-7"))!.order.events.find(
       e => e.type === "collection_recorded" && e.amountMinor === 3000,
     )!;
     const first = await collectionReversal.reverse({
@@ -443,11 +453,12 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       operationKey: "root-reverse-7",
       alsoReverseAllocation: true,
     });
+    assertOk(second);
     expect(second.ok).toBe(true);
     expect(second.value.reused).toBe(true);
-    const stored = (await store.getOrder("order-7")).value!;
+    const stored = okValue(await store.getOrder("order-7"))!;
     expect(stored.order.events.filter(e => e.type === "collection_reversed").length).toBe(1);
-    const entries = (await store.listCashContinuityEntries()).value!;
+    const entries = okValue(await store.listCashContinuityEntries())!;
     expect(entries.filter(e => e.operationKey === "root-reverse-7:unattribute").length).toBe(1);
     const after = await positionOf(store, clock);
     expect(after.walletCashMinor).toBe(5000);
@@ -467,11 +478,11 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       walletId: "drawer-1",
       idempotencyKey: "sheet-collect-8",
     });
-    const event = (await store.getOrder("order-8")).value!.order.events.find(
+    const event = okValue(await store.getOrder("order-8"))!.order.events.find(
       e => e.type === "collection_recorded" && e.amountMinor === 3000,
     )!;
     const before = await positionOf(store, clock);
-    const storedBefore = (await store.getOrder("order-8")).value!;
+    const storedBefore = okValue(await store.getOrder("order-8"))!;
     /* مخزن يفشل معاملة التراجع المزدوج حصرًا — لا شيء يُكتب. */
     class FailingStore extends MemoryLocalStore {
       async commitOrderCollectionReversal() {
@@ -501,7 +512,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
     expect(result.ok).toBe(false);
     const after = await positionOf(store, clock);
     expect(after.recordedCashMinor).toBe(before.recordedCashMinor);
-    const storedAfter = (await store.getOrder("order-8")).value!;
+    const storedAfter = okValue(await store.getOrder("order-8"))!;
     expect(storedAfter.order.events.length).toBe(storedBefore.order.events.length);
     expect(storedAfter.order.collectedMinor).toBe(storedBefore.order.collectedMinor);
   });
@@ -530,7 +541,7 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       operationKey: "panel-root-9",
     });
     expect(second.ok).toBe(true);
-    const final = (await store.getOrder("order-9")).value!;
+    const final = okValue(await store.getOrder("order-9"))!;
     expect(final.order.events.filter(e => e.type === "collection_reversed").length).toBe(1);
     /* 2000 عربون + 6000 قبضة − 2000 تراجع واحد = 6000. */
     expect(final.order.collectedMinor).toBe(6000);
@@ -559,13 +570,14 @@ describe("CollectionReversalService — التراجع المزدوج الموث
       sourceRefId: "order-10",
       sourceRefKind: "order",
     });
-    const event = (await store.getOrder("order-10")).value!.order.events.find(
+    const event = okValue(await store.getOrder("order-10"))!.order.events.find(
       e => e.type === "collection_recorded" && e.amountMinor === 3000,
     )!;
     const preview = await collectionReversal.preview({
       orderId: "order-10",
       collectionEventId: event.id,
     });
+    assertOk(preview);
     expect(preview.value.status).toBe("full_match");
     expect(preview.value.walletBalanceAfterMinor).toBe(1000 + 3000 - 2500 - 3000);
     expect(preview.value.walletWarning).toContain("سالب");

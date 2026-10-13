@@ -1355,7 +1355,9 @@ export function reverseActiveDeposit(
  * (الافتراضي الآمن). التصنيف حدث مالي مرتبط يُنشئه الكاتب الواحد خارج
  * الدومين؛ هنا يوثَّق القرار على الطلب نفسه. إعادة نفس المفتاح = إعادة
  * استخدام صادقة بلا أثر جديد. */
-function classifiedSumsOf(order: CraftOrder): { ownerMinor: MoneyMinor; revenueMinor: MoneyMinor } {
+/* R10-B4/F-021: صارت معلنة — تستهلكها وحدة اشتقاقات العربون الشقيقة
+ * (depositDerivations.ts) بقراءة نقية؛ عقدها الدلالي لم يتغير إطلاقًا. */
+export function classifiedSumsOf(order: CraftOrder): { ownerMinor: MoneyMinor; revenueMinor: MoneyMinor } {
   const retained = retainedDepositMinor(order);
   if (order.depositClassifiedOwnerMinor != null || order.depositClassifiedRevenueMinor != null) {
     return {

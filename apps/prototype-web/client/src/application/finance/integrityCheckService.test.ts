@@ -1226,7 +1226,7 @@ describe("EXE-003 — MIC-2 consumes domain source kinds (no duplicated list dri
       id: "exe003-forged",
       operationKey: "exe003-forged-key",
       sourceRefKind: "bogus_source",
-    } as CashContinuityEntry;
+    } as unknown as CashContinuityEntry;
     const committed = await store.commitCashContinuity(null, [forged]);
     if (!committed.ok) throw new Error(committed.message ?? "commit failed");
     const report = await services.integrityCheck.run();
@@ -1335,7 +1335,7 @@ describe("MIC-18 — settlement-basis invariant (Group 1: F-004/F-005)", () => {
       id: order.id,
       order,
       catalogItemId: null,
-      deliveryDate: null,
+      deliveryDate: "",
       agreementSource: null,
       createdAt: order.createdAt,
       updatedAt: order.createdAt,
@@ -1434,7 +1434,7 @@ describe("MIC-18 — settlement-basis invariant (Group 1: F-004/F-005)", () => {
       id: "order-mic18c",
       order,
       catalogItemId: null,
-      deliveryDate: null,
+      deliveryDate: "",
       agreementSource: null,
       createdAt: order.createdAt,
       updatedAt: order.createdAt,

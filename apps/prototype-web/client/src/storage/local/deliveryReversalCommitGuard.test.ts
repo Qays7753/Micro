@@ -422,7 +422,7 @@ describe("deliveryReversalCommitGuard — mirror movement relation", () => {
     const guard = validateDeliveryReversalCommit(stored, reversalPayload(stored));
     if (!guard.ok) throw new Error(guard.message);
     const consumption = consumptionMovement(stored);
-    const smuggled = { ...mirrorMovement(consumption), type: "consumption" };
+    const smuggled = { ...mirrorMovement(consumption), type: "consumption" as const };
     const verdict = validateDeliveryReversalMovements(
       stored.id,
       guard.deliveryEventId,

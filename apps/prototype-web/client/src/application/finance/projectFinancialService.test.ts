@@ -66,6 +66,7 @@ async function saveDirectSale(
 }
 function completedMaterialOrder(id: string) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [
       {
@@ -248,6 +249,7 @@ describe("ProjectFinancialService", () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     const cost = calculateCostSnapshot("cost-period", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -278,6 +280,7 @@ describe("ProjectFinancialService", () => {
     ] as const)
       order = transitionOrder(order, { to, idempotencyKey: `period-${to}`, createdAt: stamp });
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-08-05",
@@ -490,6 +493,7 @@ describe("ProjectFinancialService", () => {
       const store = new MemoryLocalStore();
       const finance = new ProjectFinancialService(store, now);
       const cost = calculateCostSnapshot("f020-cost", {
+        source: "draft",
         currency: "JOD",
         materialItems: [],
         time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -535,6 +539,7 @@ describe("ProjectFinancialService", () => {
       ] as const)
         order = transitionOrder(order, { to, idempotencyKey: `f020-${to}`, createdAt: stamp });
       await store.saveOrder({
+        catalogItemId: null,
         id: order.id,
         order,
         deliveryDate: "2026-08-05",
@@ -999,6 +1004,7 @@ describe("ProjectFinancialService", () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     const cost = calculateCostSnapshot("cost-boundary", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 400, confidence: "known" },
@@ -1029,6 +1035,7 @@ describe("ProjectFinancialService", () => {
     ] as const)
       order = transitionOrder(order, { to, idempotencyKey: `boundary-${to}`, createdAt: stamp });
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-08-01",
@@ -1074,6 +1081,7 @@ describe("ProjectFinancialService", () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     const cost = calculateCostSnapshot("cost-incomplete", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 300, confidence: "estimated" },
@@ -1104,6 +1112,7 @@ describe("ProjectFinancialService", () => {
     ] as const)
       order = transitionOrder(order, { to, idempotencyKey: `incomplete-${to}`, createdAt: stamp });
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-08-05",
@@ -1273,6 +1282,7 @@ describe("ProjectFinancialService", () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     const cost = calculateCostSnapshot("cost-insight", {
+      source: "draft",
       currency: "JOD",
       materialItems: [
         {
@@ -1313,6 +1323,7 @@ describe("ProjectFinancialService", () => {
     ] as const)
       order = transitionOrder(order, { to, idempotencyKey: `insight-${to}`, createdAt: stamp });
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-08-05",
@@ -1366,6 +1377,7 @@ describe("ProjectFinancialService", () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     const cost = calculateCostSnapshot("cost-overflow", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -1396,6 +1408,7 @@ describe("ProjectFinancialService", () => {
     ] as const)
       order = transitionOrder(order, { to, idempotencyKey: `overflow-${to}`, createdAt: stamp });
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-08-05",
@@ -1431,6 +1444,7 @@ describe("ProjectFinancialService", () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     const cost = calculateCostSnapshot("cost-guard", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -1461,6 +1475,7 @@ describe("ProjectFinancialService", () => {
     ] as const)
       order = transitionOrder(order, { to, idempotencyKey: `guard-${to}`, createdAt: stamp });
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-08-05",
@@ -1953,6 +1968,7 @@ describe("ProjectFinancialService", () => {
     const order = completedMaterialOrder("cogs-order");
     const fixture = inventoryFixture(order.id);
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-08-05",
@@ -2004,6 +2020,7 @@ describe("ProjectFinancialService", () => {
       purchaseId: "purchase-1",
     });
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-08-05",
@@ -2055,6 +2072,7 @@ describe("ProjectFinancialService", () => {
     nonFinalOrder.status = "in_progress";
     nonFinalOrder.resultStatus = "incomplete";
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-08-05",
@@ -2063,6 +2081,7 @@ describe("ProjectFinancialService", () => {
       updatedAt: "2026-08-05T09:00:00.000Z",
     });
     await store.saveOrder({
+      catalogItemId: null,
       id: nonFinalOrder.id,
       order: nonFinalOrder,
       deliveryDate: "2026-08-05",
@@ -2382,6 +2401,7 @@ describe("ProjectFinancialService direct-sale cash truth (journey 1, §5-13)", (
     const finance = new ProjectFinancialService(store, now);
     const order = completedMaterialOrder("w2d-loss-order");
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-08-05",
@@ -2438,6 +2458,7 @@ describe("ProjectFinancialService direct-sale cash truth (journey 1, §5-13)", (
       quantity: 1,
       agreedPriceMinor: 5000,
       costSnapshot: calculateCostSnapshot("w2d-delivery-cost", {
+        source: "draft",
         currency: "JOD",
         materialItems: [],
         time: { minutes: 60, hourlyRateMinor: 1700, confidence: "known" },
@@ -2471,6 +2492,7 @@ describe("ProjectFinancialService direct-sale cash truth (journey 1, §5-13)", (
     ] as const)
       order = transitionOrder(order, { to, idempotencyKey: `w2d-${to}`, createdAt: stamp });
     await store.saveOrder({
+      catalogItemId: null,
       id: order.id,
       order,
       deliveryDate: "2026-08-05",

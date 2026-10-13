@@ -46,8 +46,11 @@ const record = createOwnerEntitlementRecord({
   calculationBasis: "time_period",
   baseMinor: null,
   quantity: null,
+  sourceKeys: [],
   note: "آب",
   idempotencyKey: "entitlement-transfer",
+  reversalOfId: null,
+  reversalReason: null,
 });
 
 describe("O1 local transfer boundary", () => {
@@ -192,7 +195,7 @@ describe("O1 local transfer boundary", () => {
     });
     const exported = await new LocalTransferService(source).createExport();
     if (!exported.ok) throw new Error("export should succeed");
-    const broken = structuredClone(exported.value) as {
+    const broken = structuredClone(exported.value) as unknown as {
       data: { cashContinuityEntries: Array<{ operationKey: string }> };
     };
     broken.data.cashContinuityEntries = [];

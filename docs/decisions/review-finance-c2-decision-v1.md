@@ -64,7 +64,7 @@
 
 ## مراجع
 
-[1]: [`../../apps/prototype-web/client/src/pages/Review.tsx`](../../apps/prototype-web/client/src/pages/Review.tsx)
+[1]: [`../../apps/prototype-web/client/src/pages/Review.tsx`](../../apps/prototype-web/client/src/pages/Review.tsx) — *(تصحيح مؤرخ 2026-10-11 — R10-B1/R10B-NF-031: الصفحة أُزيلت عند `4975e80f` (2026-08-29، «الشريط السفلي الجديد») واندماج نبضة المراجعة في `pages/Finance.tsx` (المسار القديم `/review` يحيل إلى `/finance`)؛ المرجع الحي لسطح المراجعة المالية: [`../../apps/prototype-web/client/src/pages/Finance.tsx`](../../apps/prototype-web/client/src/pages/Finance.tsx))*
 [2]: [`../../apps/prototype-web/client/src/pages/Finance.tsx`](../../apps/prototype-web/client/src/pages/Finance.tsx)
 [3]: [`../quality/pre-build-experiment-simulation-v1.md`](../quality/pre-build-experiment-simulation-v1.md)
 [4]: [`../contracts/01-financial-result-contract.md`](../contracts/01-financial-result-contract.md)

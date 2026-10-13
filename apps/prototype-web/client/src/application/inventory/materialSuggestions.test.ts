@@ -29,6 +29,8 @@ function overviewMaterial(id: string, unit: Material["unit"]): InventoryMaterial
     openShortageCount: 0,
     awaitingReceiptPurchaseCount: 0,
     awaitingReceiptRemainingMinor: 0,
+    lowStock: "untracked",
+    lowStockThresholdMilli: null,
   };
 }
 

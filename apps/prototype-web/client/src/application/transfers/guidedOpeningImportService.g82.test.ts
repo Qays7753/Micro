@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { GuidedOpeningImportService } from "./guidedOpeningImportService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { okValue } from "@/testing/resultAssertions";
 
 const fixtureUrl = new URL(
   "../../../../../../docs/fixtures/g82-guided-opening-import-fixtures.json",
@@ -89,7 +90,7 @@ describe("guided opening import — the documented g82 fixture scenarios (STR-01
     const service = new GuidedOpeningImportService(store);
     const result = await service.prepare(text);
     expect(result).toMatchObject({ ok: false, code: "validation_error" });
-    expect(await emptyStore()).toEqual(await store.readSnapshot().then(current => current.value));
+    expect(await emptyStore()).toEqual(okValue(await store.readSnapshot()));
     await expect(store.readSnapshot()).resolves.toMatchObject({
       ok: true,
       value: { profile: null, cashWallets: [], materials: [], inventoryMovements: [] },

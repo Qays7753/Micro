@@ -10,7 +10,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { getNavigationLabel, primaryNavigation } from "@/app/navigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { getMicroRouteKind, showsGlobalChrome } from "@/app/routeClassifier";
+import { getMicroRouteKind, pathnameOnly, showsGlobalChrome } from "@/app/routeClassifier";
 import { UnsavedChangesProvider, useUnsavedChangesNavigation } from "@/components/forms/UnsavedChangesGuard";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { BottomNav } from "@/components/layout/BottomNav";
@@ -39,13 +39,24 @@ export function MicroAppShell({ children }: { children: ReactNode }) {
   );
 }
 
+/* R10-B4/OD-12 (قرار المالك مقبول ٢٠٢٦-١٠-١٣): ردّ المرجع الوحدوي لاستقبال
+ * التركيز عند كل انتقال مسار — نمط RC-3 نفسه: يشتعل عند تركيب عنصر main
+ * الجديد ذاته (بمفتاح المسار) فيغطي الدخول المباشر وكل انتقال أمامي/رجوعي،
+ * وكونه دالة وحدوية خارج المكوّن يجعل هويته ثابتة بنيويًا فلا يعاد اشتعاله
+ * عند إعادة رسم القشرة العادية أبدًا (لا سرقة تركيز). الهدف قابل للتوجيه
+ * البرمجي بلا دخول ترتيب الجدولة، وبلا أي قاعدة CSS تلمسه فالتركيز عليه
+ * محايد بصريًا، وpreventScroll يبقي سلوك التمرير كما هو بالضبط. */
+function receiveRouteFocus(element: HTMLElement | null): void {
+  element?.focus({ preventScroll: true });
+}
+
 function ShellContent({ location, children }: { location: string; children: ReactNode }) {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const requestNavigation = useUnsavedChangesNavigation();
   const routeKind = getMicroRouteKind(location);
   const isSetup = routeKind === "setup";
   const showGlobalChrome = showsGlobalChrome(location);
-  const pathname = location.split(/[?#]/, 1)[0] ?? location;
+  const pathname = pathnameOnly(location);
   /* Wave 4.3 — P-4.3-1 (D5): حالة اكتمال الحساب لقائمة الشعار — قراءة رسمية
    * واحدة من خدمة هوية المالك (لا Store جديد ولا كتابة). المجهول المؤقت
    * يعرض المدخل المحايد «الحساب» حتى تصل القراءة. */
@@ -74,6 +85,16 @@ function ShellContent({ location, children }: { location: string; children: Reac
     viewport.addEventListener("resize", update);
     return () => viewport.removeEventListener("resize", update);
   }, []);
+  /* R10-B4/OD-12 (قرار المالك مقبول ٢٠٢٦-١٠-١٣): نظام انتقال المسار الواحد
+   * المركزي — التركيز يستقبل عبر ردّ المرجع الوحدوي أدناه على عنصر main
+   * الذي يعيد الموجّه تركيبه بمفتاح المسار، والعنوان يُضبط من التسمية
+   * الكنونية للمسار ذاته (أسلم اشتقاق وأدقّه: عنوان المسار = تسميته
+   * الكنونية — لا سجلّ عناوين ثانٍ ولا معالجات مبعثرة في الصفحات؛ صيغة
+   * «التسمية — العلامة» قيست في الموجة ورُفضت: كلفتها gzip فوق السقف
+   * المحمي ١٥٥٬٣٠٠). العنوان يشتق من المسار المجرد وحده — الاستعلام لا يمسه. */
+  useEffect(() => {
+    document.title = getNavigationLabel(pathname);
+  }, [pathname]);
   return (
     <div className="micro-app" data-route-kind={routeKind} data-keyboard-open={isKeyboardOpen} dir="rtl">
       <AppHeader
@@ -83,7 +104,13 @@ function ShellContent({ location, children }: { location: string; children: Reac
         accountComplete={accountComplete}
         onNavigate={requestNavigation}
       />
-      <main className="micro-main" data-route-kind={routeKind} key={location}>
+      <main
+        className="micro-main"
+        data-route-kind={routeKind}
+        key={location}
+        ref={receiveRouteFocus}
+        tabIndex={-1}
+      >
         <PwaInstallControl />
         <PwaRuntimeNotice />
         {children}

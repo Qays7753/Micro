@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { AssetService } from "./assetService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
+import { assertOk } from "@/testing/resultAssertions";
 
 function fixedNow() {
   let tick = 0;
@@ -36,6 +37,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     if (!created.ok) return;
     expect(created.value.asset.acquisitionEventId).toBe(created.value.event?.id);
     const events = await store.listFinancialEvents();
+    assertOk(events);
     const acquisition = events.value.find(event => event.type === "asset_purchase_cash");
     expect(acquisition?.cashDeltaMinor).toBe(-60000);
     expect(acquisition?.assetDeltaMinor).toBe(60000);
@@ -61,6 +63,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     const second = await service.recordDepreciation(assetId, { asOf: "2026-09-01" });
     expect(second.ok).toBe(false);
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value.filter(event => event.type === "asset_depreciation")).toHaveLength(1);
   });
 
@@ -73,6 +76,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     const reversal = await service.reverseDepreciation(recorded.value.event.id, "تصحيح المدة");
     expect(reversal.ok).toBe(true);
     const events = await store.listFinancialEvents();
+    assertOk(events);
     const reversals = events.value.filter(event => event.correctionType === "reverse");
     expect(reversals).toHaveLength(1);
     expect(reversals[0]!.assetDeltaMinor).toBe(7500);
@@ -148,6 +152,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(detail.ok && detail.value.asset.status).toBe("disposed");
     expect(detail.ok && detail.value.summary.bookValueMinor).toBe(0);
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value.filter(event => event.correctionType === "reverse")).toHaveLength(0);
   });
 
@@ -236,6 +241,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(writeOff.value.event.assetDeltaMinor).toBe(-60000);
     expect(writeOff.value.asset.status).toBe("written_off");
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value.filter(event => event.type === "asset_writeoff")).toHaveLength(1);
   });
 
@@ -251,6 +257,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(correction.ok).toBe(true);
     if (!correction.ok) return;
     const events = await store.listFinancialEvents();
+    assertOk(events);
     const acquisitions = events.value.filter(
       event => event.type === "asset_purchase_cash" || event.type === "asset_purchase_payable",
     );
@@ -320,6 +327,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     if (correction.ok) return;
     expect(correction.message).toContain("لا تغيير عن المسجّل");
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value.filter(event => event.correctionType === "reverse")).toHaveLength(0);
   });
 });
@@ -347,6 +355,7 @@ describe("asset service residual value (contract 43, WS-179)", () => {
     expect(created.value.asset.residualValueMinor).toBe(6000);
     expect(created.value.asset.note).toBe("فاتورة ٢٠٢٦-٩٩٣");
     const events = await store.listFinancialEvents();
+    assertOk(events);
     const acquisition = events.value.find(event => event.type === "asset_purchase_cash");
     /* المتبقية والملاحظة وسمان على السجل — حدث الاقتناء كما كان: كاش سالب وأصل موجب. */
     expect(acquisition?.cashDeltaMinor).toBe(-48000);
@@ -425,8 +434,97 @@ describe("asset service residual value (contract 43, WS-179)", () => {
     expect(revised.value.asset.contractRevisions[0]!.reason).toBe("تقدير أعلى بعد الصيانة");
     /* الإهلاك المسجّل سابقًا لم يُمسّ. */
     const events = await store.listFinancialEvents();
+    assertOk(events);
     const depreciation = events.value.filter(event => event.type === "asset_depreciation");
     expect(depreciation).toHaveLength(1);
     expect(depreciation[0]!.amountMinor).toBe(recordedBefore);
+  });
+});
+
+/* R10-B3/R10A-F-012 + R10B-NF-006 (2026-10-12): إنشاء الأصل في السياق غير
+ * الآمن — كان newId يستدعي crypto.randomUUID مباشرة فيرمي TypeError على
+ * الأصول غير الآمنة؛ الآن مسار randomUUID الحرفي عند توفره وبديل فريد
+ * خارجه. المرآة نفسها لنمط Catalog.operationKey.test.ts. */
+type CryptoLike = typeof globalThis.crypto;
+const originalCrypto: CryptoLike | undefined = globalThis.crypto;
+function restoreCrypto() {
+  if (originalCrypto === undefined) {
+    delete (globalThis as { crypto?: CryptoLike }).crypto;
+    return;
+  }
+  Object.defineProperty(globalThis, "crypto", {
+    value: originalCrypto,
+    configurable: true,
+    writable: true,
+  });
+}
+afterEach(restoreCrypto);
+
+describe("asset service insecure-context ids (R10-B3 — F-012 + NF-006)", () => {
+  it("creates an asset when crypto is absent (non-secure origin) instead of throwing", async () => {
+    const store = new MemoryLocalStore();
+    const service = new AssetService(store, now);
+    delete (globalThis as { crypto?: CryptoLike }).crypto;
+    const created = await service.create({
+      name: "مكيف",
+      categoryLabel: null,
+      acquisitionAmountMinor: 30000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-06-01",
+      lifeMonths: null,
+      depreciationStartOn: null,
+      note: null,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    expect(created.value.asset.id).toMatch(/^asset-\d+-[0-9a-z]+$/);
+    expect(created.value.event?.id).toMatch(/^event-\d+-[0-9a-z]+$/);
+    const events = await store.listFinancialEvents();
+    expect(events.ok && events.value).toHaveLength(1);
+  });
+
+  it("returns the secure randomUUID id verbatim when crypto is available", async () => {
+    const store = new MemoryLocalStore();
+    const service = new AssetService(store, now);
+    const sentinel = "12345678-1234-1234-1234-123456789012";
+    Object.defineProperty(globalThis, "crypto", {
+      value: { randomUUID: () => sentinel },
+      configurable: true,
+      writable: true,
+    });
+    const created = await service.create({
+      name: "شاشة",
+      categoryLabel: null,
+      acquisitionAmountMinor: 10000,
+      acquisitionKind: "payable",
+      purchaseDate: "2026-06-01",
+      lifeMonths: 12,
+      depreciationStartOn: "2026-06-01",
+      note: null,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    expect(created.value.asset.id).toBe(`asset-${sentinel}`);
+  });
+
+  it("fallback ids stay collision-free across rapid successive creations", async () => {
+    const store = new MemoryLocalStore();
+    const service = new AssetService(store, now);
+    delete (globalThis as { crypto?: CryptoLike }).crypto;
+    const ids = new Set<string>();
+    for (let index = 0; index < 50; index += 1) {
+      const created = await service.create({
+        name: `أصل ${index}`,
+        categoryLabel: null,
+        acquisitionAmountMinor: 100,
+        acquisitionKind: "cash",
+        purchaseDate: "2026-06-01",
+        lifeMonths: null,
+        depreciationStartOn: null,
+        note: null,
+      });
+      if (created.ok) ids.add(created.value.asset.id);
+    }
+    expect(ids.size).toBe(50);
   });
 });

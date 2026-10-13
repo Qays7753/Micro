@@ -29,3 +29,8 @@ export type { InventoryMovementRouteType } from "./inventoryMovementRoute";
 
 export { readMaterialSuggestions } from "./materialSuggestions";
 export type { MaterialSuggestion } from "./materialSuggestions";
+
+/* R10-B3/R10B-NF-002 (2026-10-12): تسمية وحدة المادة من بيتها الكنوني —
+ * تستهلكها الواجهة (صفحات المخزون الأربع) عبر الباب؛ توسيع سطح مقصود
+ * بنفس الـPR مع تحديث أساس الأبواب (بروتوكول PC-3). */
+export { materialUnitLabel } from "./materialUnitLabels";

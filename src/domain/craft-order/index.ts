@@ -1,4 +1,13 @@
 export * from "./types.js";
+/* R10-B4/F-021: اشتقاقات قراءة عائلة العربون — تقرأ بالقارئات الكنسية
+ * نفسها (retainedDepositMinor/classifiedSumsOf) وتُستهلك من لوحات عرض
+ * العربون (chunk الطلب) فتُحزم معه لا مع حزمة الدخول. */
+export {
+  cancelledDepositProposalOf,
+  pendingDepositSettlementMinorOf,
+  standingDepositMinorOf,
+  unclassifiedRetainedDepositMinorOf,
+} from "./depositDerivations.js";
 export {
   calculateCostSnapshot,
   cancelOrder,

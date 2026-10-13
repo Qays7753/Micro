@@ -253,6 +253,9 @@ export default [
       "apps/prototype-web/client/src/presentation/**/*.{ts,tsx}",
       "apps/prototype-web/client/src/pwa/**/*.{ts,tsx}",
       "apps/prototype-web/client/src/lib/**/*.{ts,tsx}",
+      /* R10-B5/NF-020: بيت دعم الاختبارات الجديد تحت المحرك نفسه — لا منطقة
+       * صامتة بلا كتلة (درس W4-D/F-044). */
+      "apps/prototype-web/client/src/testing/**/*.{ts,tsx}",
     ],
     languageOptions: {
       parser: tseslint.parser,
@@ -470,6 +473,32 @@ export default [
     },
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
+    },
+  },
+  /* R10-B5/NF-023 (2026-10-13): tools/ داخل حدود eslint أخيرًا — المحاكي
+   * (micromatch-braces-free، 609 أسطر أمنية الحرجة) كان خارج كل فحص ساكن.
+   * كتلة قواعد دنيا مقصودة: حزمة CommonJS منقولة حرفيًا من micromatch@4.0.8
+   * (مرآة أصلية موثقة المصدر)، فقواعد الأسلوب ستصرخ على الشكل المنقول لا
+   * على عيوبه — القواعد المختارة أمنية/سلامية وحدها تثبّت أهم ما يُراد
+   * لكسلا المنقول: لا eval بأي صورة، لا Function مركّب، لا prototype مباشر،
+   * لا مقارنات فضفاضة، ولا تخصيص داخل شرط. أي استثناء مستقبلي يحتاج كتلة
+   * موثقة هنا بقرار مؤرخ. سقف التحذيرات العام (37) يشمل هذه الملفات الآن. */
+  {
+    files: ["tools/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "commonjs",
+    },
+    rules: {
+      "no-eval": "error",
+      "no-implied-eval": "error",
+      "no-new-func": "error",
+      "no-proto": "error",
+      "no-prototype-builtins": "error",
+      eqeqeq: ["error", "always"],
+      "no-self-compare": "error",
+      "no-cond-assign": "error",
+      "no-unused-vars": ["error", { args: "none" }],
     },
   },
 ];

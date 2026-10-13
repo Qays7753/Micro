@@ -33,7 +33,8 @@ const totalPaid = (payments: readonly SupplierPurchasePayment[]) =>
  * علاقة التدقيق تبقى، ولا تُحذف الدفعة الأصلية أبدًا. */
 const totalReversed = (reversals: readonly SupplierPurchasePaymentReversal[] | undefined) =>
   (reversals ?? []).reduce((sum, reversal) => sum + reversal.amountMinor, 0);
-const effectivePaid = (purchase: SupplierPurchase): number =>
+/* R10-B4/F-021: معلنًا لمعاينات القراءة الشقيقة — القراءة النقية نفسها. */
+export const effectivePaid = (purchase: SupplierPurchase): number =>
   totalPaid(purchase.payments) - totalReversed(purchase.paymentReversals);
 const recompute = (purchase: SupplierPurchase, paidMinor: number, recordedAt: string): SupplierPurchase =>
   Object.freeze({
@@ -66,7 +67,9 @@ const assertPurchaseFields = (input: {
 };
 /* المجموعة ٢ (§10.4): المدفوع بعد التعديل = الدفع الأولي الجديد + الدفعات اللاحقة
  * − تراجعاتها الموثقة. معيّن صريح؛ الشروط في استدعائه لا في صياغته. */
-const paidAfterEditFor = (purchase: SupplierPurchase, input: UpdateSupplierPurchaseInput): number => {
+/* R10-B4/F-021: صار معلنًا — تستهلكه وحدة معاينات القراءة الشقيقة
+ * (previewDerivations.ts)؛ المعادلة نفسها بلا أي تغيير. */
+export const paidAfterEditFor = (purchase: SupplierPurchase, input: { initialPaidMinor: number }): number => {
   const laterPayments = purchase.payments.filter(payment => payment.id !== `${purchase.id}:initial`);
   const laterPaidMinor = laterPayments.reduce((sum, payment) => sum + payment.amountMinor, 0);
   const reversedLaterMinor = totalReversed(purchase.paymentReversals);

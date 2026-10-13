@@ -15,6 +15,7 @@ import {
 } from "@micro-domain/craft-order/index.js";
 import { createDirectSale } from "@micro-domain/direct-sale/index.js";
 import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
+import { assertOk, okValue } from "@/testing/resultAssertions";
 
 const now = () => "2026-09-02T10:00:00.000Z";
 
@@ -29,6 +30,7 @@ function makeServices(store: MemoryLocalStore) {
 /** طلب مسلّم بمتبقٍ — التحصيل الجزئي والكامل مشروعه، والدين يُسجل بعدها. */
 async function deliveredOrderWithRemaining(store: MemoryLocalStore, id: string, price = 10000) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -122,6 +124,7 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
       }),
     );
     const list = await collections.listReceivableSources();
+    assertOk(list);
     expect(list.ok).toBe(true);
     const ids = list.value.map(source => source.id);
     expect(ids).toContain("order-1");
@@ -142,6 +145,7 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
     const drawer = await openDrawer(store);
     /* الأساس بعد فتح الدرج: عربون 2000 غير موزع + افتتاح درج 5000 = 7000. */
     const before = await projectFinance.readPosition();
+    assertOk(before);
     expect(before.value.recordedCashMinor).toBe(7000);
     const result = await collections.collect({
       sourceKind: "order",
@@ -150,6 +154,7 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
       walletId: drawer.id,
       idempotencyKey: "collect-partial-1",
     });
+    assertOk(result);
     expect(result.ok).toBe(true);
     expect(result.value.collectedMinor).toBe(3000);
     /* 8000 متبقٍ − 3000 = 5000. */
@@ -157,12 +162,13 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
     expect(result.value.attributedToWalletMinor).toBe(3000);
     expect(result.value.walletName).toBe("درج المحل");
     const after = await projectFinance.readPosition();
+    assertOk(after);
     expect(after.value.recordedCashMinor).toBe(10000);
     /* التخصيص نقل المقبوض للدرج: غير الموزع بقي 2000 (العربون). */
     expect(after.value.unallocatedCashMinor).toBe(2000);
     expect(after.value.walletCashMinor).toBe(8000);
     /* الإيراد المعروف لا يتغير بالتحصيل — يُعرف عند التسليم. */
-    const order = (await store.getOrder("order-2")).value!;
+    const order = okValue(await store.getOrder("order-2"))!;
     expect(order.order.recognizedRevenueMinor).toBe(10000);
     expect(order.order.receivableMinor).toBe(5000);
   });
@@ -184,7 +190,7 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
       expect(result.message).toContain("80.00");
     }
     /* لم يُكتب شيء. */
-    const order = (await store.getOrder("order-3")).value!;
+    const order = okValue(await store.getOrder("order-3"))!;
     expect(order.order.receivableMinor).toBe(8000);
     expect(order.order.collectedMinor).toBe(2000);
   });
@@ -217,15 +223,16 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
       walletId: drawer.id,
       idempotencyKey: "collect-sale-1",
     });
+    assertOk(result);
     expect(result.ok).toBe(true);
     expect(result.value.remainingAfterMinor).toBe(0);
-    const sale = (await store.listDirectSales()).value!.find(item => item.id === "sale-2")!;
+    const sale = okValue(await store.listDirectSales())!.find(item => item.id === "sale-2")!;
     expect(sale.collectedMinor).toBe(5000);
     expect(sale.collectionStatus).toBe("collected_in_full");
     expect(sale.customerName).toBe("ريم");
     expect(sale.revisions?.length).toBe(1);
     /* وصل المصدر محفوظ في حركة التخصيص — دفتر المحفظة يصل للسجل. */
-    const entries = (await store.listCashContinuityEntries()).value!;
+    const entries = okValue(await store.listCashContinuityEntries())!;
     const allocation = entries.find(entry => entry.type === "allocation");
     expect(allocation?.sourceRefId).toBe("sale-2");
     expect(allocation?.sourceRefKind).toBe("sale");
@@ -242,10 +249,11 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
       walletId: null,
       idempotencyKey: "collect-unallocated-1",
     });
+    assertOk(result);
     expect(result.ok).toBe(true);
     expect(result.value.attributedToWalletMinor).toBe(0);
     expect(result.value.walletName).toBeNull();
-    const entries = (await store.listCashContinuityEntries()).value!;
+    const entries = okValue(await store.listCashContinuityEntries())!;
     expect(entries.filter(entry => entry.type === "allocation")).toHaveLength(0);
   });
 
@@ -299,7 +307,7 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
       idempotencyKey: "collect-dup-sale",
     });
     expect(saleSecond.ok).toBe(true);
-    const sale = (await store.listDirectSales()).value!.find(item => item.id === "sale-3")!;
+    const sale = okValue(await store.listDirectSales())!.find(item => item.id === "sale-3")!;
     /* قبض واحد فقط: 1000 أساس + 1000 بوابة واحدة. */
     expect(sale.collectedMinor).toBe(2000);
     expect(sale.revisions?.length).toBe(1);
@@ -328,7 +336,7 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.message).toContain("تعذر");
     /* لم يتغير شيء على الطلب. */
-    const order = (await store.getOrder("order-6")).value!;
+    const order = okValue(await store.getOrder("order-6"))!;
     expect(order.order.receivableMinor).toBe(8000);
   });
 
@@ -401,7 +409,7 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
     expect(result.value.attributedToWalletMinor).toBe(0);
     expect(result.value.walletName).toBeNull();
     expect(result.value.attributionNotice).toContain("غير الموزع");
-    const sale = (await store.listDirectSales()).value!.find(item => item.id === "sale-hole")!;
+    const sale = okValue(await store.listDirectSales())!.find(item => item.id === "sale-hole")!;
     expect(sale.collectedMinor).toBe(5000);
     expect(sale.collectionStatus).toBe("collected_in_full");
     /* الحكم الحاسم: الكاش المسجل = القبض − المصروف (لا فقدان ولا اختراع)،

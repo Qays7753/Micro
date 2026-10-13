@@ -18,6 +18,10 @@
 - `VERIFIED` يتطلب `merge_sha` و`verified_on_main_sha` ودليلًا قابلًا للوصول، ويثبت Validator وجود الـcommits وتاريخها على `origin/main`.
 - كل حالة غير نهائية تتطلب `next_action` واضحة.
 
+## ملاحظة فجوة الترقيم HARD-001..008
+
+> **(توضيح مؤرخ 2026-10-11 — R10-B1/R10A-F-035):** بنود HARD هنا تبدأ من `HARD-009` عمدًا لا سهوًا. المجموعات ١–٨ من برنامج التحصين 2026 أُغلقت قبل ترحيل النظام إلى Operations Control v2 وسُجلت كمصالحة تاريخية (لا بنود items منفصلة)؛ أما المجموعات ٩–١١ فمثلت البنود التسعة الأولى المهاجرة (المجموعات 9–11 → `HARD-009..011` وفق صف 122 في `migration-map.md`). المصدر الكنوني لهذا الترحيل: `docs/operations/control/migration-map.md` (صف 122) ودليل `evidence/hardening-main-verification.md`. لا تُنشأ هويات HARD-001..008 لاحقًا (المعرّف ثابت ولا يُعاد استخدامه — README التحكم).
+
 ## الإغلاق
 
 `VERIFIED` يتطلب Merge SHA وSHA تحقق على `main` ودليلًا. لا يكفي تقرير Agent أو نجاح محلي أو SHA نصي. شغّل `python3 scripts/operations-control/validate.py` بعد تحديث JSON، ثم أعد توليد Views.

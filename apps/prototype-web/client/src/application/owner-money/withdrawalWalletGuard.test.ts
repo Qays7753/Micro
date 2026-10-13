@@ -404,7 +404,7 @@ describe("G-006 — event path (ProjectFinancialService.record)", () => {
     if (!after.ok) throw new Error(after.message);
     /* سحب المالك ليس مصروفًا تشغيليًا ولا يغير النتيجة — الفرق الوحيد
      * المسموح هو علم مصروفات محتمل تغيّر عدّ القيود لا قيمها. */
-    expect(after.value.operatingExpenseMinor).toBe(before.value.operatingExpenseMinor);
+    expect(after.value.recordedOperatingExpenseMinor).toBe(before.value.recordedOperatingExpenseMinor);
     expect(after.value.resultMinor).toBe(before.value.resultMinor);
   });
 });

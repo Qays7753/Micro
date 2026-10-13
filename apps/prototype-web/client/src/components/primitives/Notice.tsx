@@ -11,13 +11,20 @@ import { StateMarker } from "./markers";
  * على السطح الدافئ (قاعدة المعيار: على الأسطح الدافئة تحمل العلامة المعنى
  * بالشكل، والحبر هو الآمن) + كلمة بصيغة الماضي (ملك المنتج — تُمرَّر).
  * الأخطاء: حبر الخطأ (آمن نصيًا 5.46:1 على الأرضية) + علامة تنبيه.
+ *
+ * R10-B4/F-017 (قاعدة الحزم الموحدة — امتداد جرد R9 إلى الأوليات):
+ * الأخطاء المؤكدة (تعذّر/فشل تحقق/طلب تصحيح) تعلن بـ role="alert" حازمًا؛
+ * والإرشاد/الإتمام/التحميل تبقى status مهذبة. InlineError كانت الوحيدة
+ * التي تخالف القاعدة (status) فصارت alert كإخواتها في كل الأسطح.
  */
 
 export interface NoticeProps extends HTMLAttributes<HTMLDivElement> {
   tone?: "neutral" | "info" | "success" | "error";
-  /** علامة اختيارية تُضاف قبل المحتوى (دور من مهايئ الحالات عند الحاجة). */
-  markerRole?: ReactNode;
 }
+
+/* R10-B4/F-018 (عائلة صلاحية الواجهة): أُزيلت الخاصية الميتة markerRole
+ * (ReactNode) — لم يمررها أي مستهلك قط، ولو مُرّت لتسربت إلى DOM عبر
+ * {...rest} كسمة غير معروفة بدل أن تُعرض علامة كما وعد توثيقها. */
 
 export function Notice({ tone = "neutral", className, children, ...rest }: NoticeProps) {
   return (
@@ -55,11 +62,11 @@ export function InlineError({
 }: { children: ReactNode } & HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      role="status"
+      role="alert"
       className={clsx("micro-prim-notice", "micro-prim-notice--error-inline", rest.className)}
       {...rest}
     >
-      <StateMarker role="alert" />
+      <StateMarker marker="alert" />
       <span>{children}</span>
     </p>
   );

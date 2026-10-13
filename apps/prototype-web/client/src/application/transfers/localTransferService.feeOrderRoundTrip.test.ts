@@ -5,6 +5,7 @@ import { CostService, type CostEditorInput } from "@/application/cost/costServic
 import { AgreementService } from "@/application/agreements/agreementService";
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { okValue } from "@/testing/resultAssertions";
 
 const now = () => "2026-09-28T09:00:00.000Z";
 
@@ -69,7 +70,7 @@ async function feeOrderWithJourney(): Promise<{ store: MemoryLocalStore; orderId
   /* قبض 40 من دين 45 ثم عكس 5 — الأحداث والحالة تعبران الدورة كاملتين. */
   await fulfillment.collectDebt(orderId, 4000, "f7-collect");
   const gripId =
-    (await store.getOrder(orderId)).value?.order.events.find(event => event.id === `${orderId}:f7-collect`)
+    okValue(await store.getOrder(orderId))?.order.events.find(event => event.id === `${orderId}:f7-collect`)
       ?.id ?? `${orderId}:f7-collect`;
   await fulfillment.reverseCollection(orderId, {
     collectionEventId: gripId,

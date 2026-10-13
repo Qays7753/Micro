@@ -108,6 +108,10 @@ function makeEvent(id: string, key: string): FinancialEvent {
     correctionType: null,
     correctionOfEventId: null,
     correctionReason: null,
+    cashDeltaMinor: -25_000,
+    payableDeltaMinor: 0,
+    ownerCapitalDeltaMinor: 0,
+    operatingExpenseDeltaMinor: 25_000,
   };
 }
 

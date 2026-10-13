@@ -12,6 +12,7 @@ import {
   settleDepositRetain,
 } from "@micro-domain/craft-order/index.js";
 import type { StoredCraftOrder } from "./types";
+import { assertOk } from "@/testing/resultAssertions";
 
 /* المجموعة ٤ (عقد ٢٩): معاملات الأصول والقروض وتصنيف العربون ذرّية على مستوى
  * IndexedDB نفسه — السجل وحدثه المالي معًا أو لا شيء، وإعادة المحاولة تعيد
@@ -90,16 +91,20 @@ describe("IndexedDbLocalStore Group 4 atomic commits (المجموعة ٤ — ع
     expect(created.ok).toBe(true);
     if (!created.ok) return;
     const events = await store.listFinancialEvents();
+    assertOk(events);
     const acquisitions = events.value.filter(event => event.type === "asset_purchase_cash");
     expect(acquisitions).toHaveLength(1);
     const assets = await store.listAssets();
+    assertOk(assets);
     expect(assets.value).toHaveLength(1);
     /* إعادة المحاولة عبر المخزن مباشرة: إعادة استخدام لا تكرار. */
     const commit = await store.commitAssetRecord(assets.value[0]!, acquisitions[0]!);
     expect(commit.ok && commit.value.reused).toBe(true);
     const after = await store.listAssets();
+    assertOk(after);
     expect(after.value).toHaveLength(1);
     const afterEvents = await store.listFinancialEvents();
+    assertOk(afterEvents);
     expect(afterEvents.value.filter(event => event.type === "asset_purchase_cash")).toHaveLength(1);
   });
 
@@ -125,9 +130,11 @@ describe("IndexedDbLocalStore Group 4 atomic commits (المجموعة ٤ — ع
     });
     expect(disposed.ok).toBe(true);
     const events = await store.listFinancialEvents();
+    assertOk(events);
     /* اقتناء + إهلاك + تخلص = ٣ أحداث مترابطة بسياق الأصل نفسه. */
     expect(events.value.filter(event => event.assetContext?.assetId === assetId)).toHaveLength(3);
     const assets = await store.listAssets();
+    assertOk(assets);
     expect(assets.value[0]!.status).toBe("disposed");
     expect(assets.value[0]!.disposal?.eventId).toBeTruthy();
   });
@@ -143,17 +150,22 @@ describe("IndexedDbLocalStore Group 4 atomic commits (المجموعة ٤ — ع
     if (!created.ok) return;
     const loanId = created.value.loan.id;
     const repaid = await service.recordRepayment(loanId, { amountMinor: 5000, date: "2026-08-01" });
+    assertOk(repaid);
     expect(repaid.ok).toBe(true);
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value.filter(event => event.loanContext?.loanId === loanId)).toHaveLength(2);
     const loans = await store.listLoans();
+    assertOk(loans);
     expect(loans.value[0]!.repayments).toHaveLength(1);
     /* إعادة استخدام عبر المخزن: الحدث موجود → لا كتابة ثانية. */
     const commit = await store.commitLoanRecord(loans.value[0]!, repaid.value.event);
     expect(commit.ok && commit.value.reused).toBe(true);
     const after = await store.listLoans();
+    assertOk(after);
     expect(after.value[0]!.repayments).toHaveLength(1);
     const afterEvents = await store.listFinancialEvents();
+    assertOk(afterEvents);
     expect(afterEvents.value.filter(event => event.type === "loan_repayment_cash")).toHaveLength(1);
   });
 
@@ -164,8 +176,10 @@ describe("IndexedDbLocalStore Group 4 atomic commits (المجموعة ٤ — ع
     const classified = await service.classify("order-idb", "revenue", "تعويض الإلغاء");
     expect(classified.ok).toBe(true);
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value.filter(event => event.type === "deposit_retained_revenue")).toHaveLength(1);
     const orders = await store.listOrders();
+    assertOk(orders);
     expect(orders.value[0]!.order.retainedMeaning).toBe("revenue");
     /* إعادة المحاولة عبر المخزن — إعادة استخدام صادقة. */
     const commit = await store.commitDepositClassification(
@@ -174,6 +188,7 @@ describe("IndexedDbLocalStore Group 4 atomic commits (المجموعة ٤ — ع
     );
     expect(commit.ok && commit.value.reused).toBe(true);
     const after = await store.listOrders();
+    assertOk(after);
     expect(after.value[0]!.order.events.filter(event => event.type === "deposit_classified")).toHaveLength(1);
   });
 
@@ -196,8 +211,10 @@ describe("IndexedDbLocalStore Group 4 atomic commits (المجموعة ٤ — ع
     const replaced = await store.replaceSnapshot({ ...snapshot.value, loans: [] });
     expect(replaced.ok).toBe(true);
     const loansAfter = await store.listLoans();
+    assertOk(loansAfter);
     expect(loansAfter.value).toHaveLength(0);
     const assetsAfter = await store.listAssets();
+    assertOk(assetsAfter);
     expect(assetsAfter.value).toHaveLength(1);
   });
 });

@@ -58,6 +58,7 @@ async function seedPurchase(
 /** طلب مسلّم بدين مسجل — مصدر ذمة تحصيل حقيقي من مسار النطاق. */
 async function deliveredOrderWithDebt(store: MemoryLocalStore, id: string, price = 10000) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -201,13 +202,27 @@ describe("Stage 2 — OPS-001: تقادم الذمم الدائنة (readPayable
     /* 09:00Z = 12:00 عمّان → اليوم 2026-09-16 → الاستحقاق اليوم (حالي). */
     const morning = new DueDatesService(
       store,
-      new CollectionService(store),
+      new CollectionService(
+        store,
+        new FulfillmentService(store),
+        new DirectSaleService(store),
+        new ProjectFinancialService(store),
+      ),
       () => "2026-09-16T09:00:00.000Z",
     );
     const morningResult = await morning.readPayablesAging();
     expect(morningResult.ok && morningResult.value.rows[0]?.dueState).toBe("today");
     /* 21:30Z = 00:30 عمّان اليوم التالي → اليوم 2026-09-17 → الاستحقاق متأخر. */
-    const night = new DueDatesService(store, new CollectionService(store), () => "2026-09-16T21:30:00.000Z");
+    const night = new DueDatesService(
+      store,
+      new CollectionService(
+        store,
+        new FulfillmentService(store),
+        new DirectSaleService(store),
+        new ProjectFinancialService(store),
+      ),
+      () => "2026-09-16T21:30:00.000Z",
+    );
     const nightResult = await night.readPayablesAging();
     expect(nightResult.ok && nightResult.value.rows[0]?.dueState).toBe("overdue");
   });

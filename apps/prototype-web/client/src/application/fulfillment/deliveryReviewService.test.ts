@@ -314,12 +314,13 @@ describe("DeliveryReviewService — commitDelivery", () => {
       await store.replaceSnapshot({
         ...seeded.value,
         cashWallets: [
-          ...seeded.value.cashWallets,
+          ...(seeded.value.cashWallets ?? []),
           {
             id: "wallet-note-golden",
             name: "محفظة الذهبية",
             kind: "cash_drawer",
             createdAt: "2026-08-22T03:00:00.000Z",
+            createdOperationKey: "wallet-note-golden",
           },
         ],
       });
@@ -527,6 +528,6 @@ describe("sale recognition at delivery only (Conflict C/D)", () => {
     /* لا حدث مالي إيرادٍ بعد التحصيل — الإيراد عُرِف عند التسليم وحده. */
     const events = await store.listFinancialEvents();
     if (!events.ok) throw new Error(events.message);
-    expect(events.value.filter(event => event.revenueDeltaMinor > 0)).toHaveLength(0);
+    expect(events.value.filter(event => (event.revenueDeltaMinor ?? 0) > 0)).toHaveLength(0);
   });
 });

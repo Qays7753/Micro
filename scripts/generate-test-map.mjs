@@ -33,9 +33,11 @@ export const CONTROL_LINKS = {
   "08-expense-classification-prototype-contract.md": "expense-category|expenseCategory|EventsLayer",
   "09-supplier-purchase-prototype-contract.md": "supplier-purchase|SupplierPurchase",
   "10-cash-continuity-prototype-contract.md": "cash-continuity|cashContinuity",
-  "11-inventory-material-consumption-prototype-contract.md": "inventory-material|inventoryMaterial|waste-context",
+  "11-inventory-material-consumption-prototype-contract.md":
+    "inventory-material|inventoryMaterial|waste-context",
   "12-financial-insights-g5-prototype-contract.md": "g5|operatingBreakEven|financialPulse",
-  "13-actual-material-per-order-prototype-contract.md": "CatalogPlannedCost|templatePlannedCost|materialSuggestions",
+  "13-actual-material-per-order-prototype-contract.md":
+    "CatalogPlannedCost|templatePlannedCost|materialSuggestions",
   "14-period-result-allocation-policy-prototype-contract.md": "allocationPolicy|AllocationPolicy",
   "15-catalog-reference-prototype-contract.md": "domain/catalog|CatalogCoreStorage|catalogItem",
   "16-optional-operating-mode-and-actual-time-contract.md": "actual-time|actualTime|Set003",
@@ -138,6 +140,19 @@ function sameFile(a, b) {
   return realpathCached(a) !== null && realpathCached(a) === realpathCached(b);
 }
 
+/**
+ * R10-B4/F-020 (2026-10-12): هل يذكر مصدر الاختبار الصفحةَ ذكرًا يحتسب؟
+ * المطابقة الخام `includes(base)` كانت تحسب: أجزاء معرّفات (listCashWallets
+ * ⊃ CashWallets)، ومسارات ملفات حرفية داخل جداول الحراس ("pages/X.tsx").
+ * المطابقة الدقيقة: الاسم بحدود وحدة (لا حرف كلمة قبله أو بعده ولا نقطة
+ * مسار) — فتبقى الإشارات الحقيقية (مصفوفات عقود المصدر، عناوين الرحلات)
+ * وتسقط الإيجابيات الكاذبة.
+ */
+export function countsAsNameMention(source, base) {
+  const pattern = new RegExp(`(?<![\\w./])${base}(?![\\w.])`);
+  return pattern.test(source);
+}
+
 export function generate() {
   const appFiles = walk(APP);
   const testFiles = appFiles.filter(f => /\.(test|spec)\.[tj]sx?$/.test(f));
@@ -167,11 +182,7 @@ export function generate() {
         let p2;
         if (s.startsWith("@/")) p2 = path.join(APP, s.slice(2));
         else p2 = path.resolve(path.dirname(t), s);
-        if (
-          sameFile(p2, page) ||
-          sameFile(p2 + ".tsx", page) ||
-          sameFile(p2 + ".ts", page)
-        ) {
+        if (sameFile(p2, page) || sameFile(p2 + ".tsx", page) || sameFile(p2 + ".ts", page)) {
           direct.push(toRel(t, APP));
           break;
         }
@@ -180,8 +191,11 @@ export function generate() {
     let kind = "direct";
     let evidence = [...new Set(direct)].sort();
     if (evidence.length === 0) {
-      /* إشارة بالاسم داخل ملفات الاختبار */
-      const named = testFiles.filter(t => readCached(t).includes(base)).map(t => toRel(t, APP));
+      /* إشارة بالاسم داخل ملفات الاختبار — المطابقة الدقيقة فقط (F-020):
+       * الاسم كوحدة مستقلة لا جزءًا من معرّف أطول (listCashWallets لا تحسب
+       * إشارة لـ CashWallets) وليس داخل مسار ملف حرفي ("pages/X.tsx" في
+       * جدول حارس ليس تغطية). */
+      const named = testFiles.filter(t => countsAsNameMention(readCached(t), base)).map(t => toRel(t, APP));
       if (named.length > 0) {
         kind = "named-reference";
         evidence = [...new Set(named)].sort();
@@ -192,9 +206,7 @@ export function generate() {
         if (route) {
           const prefix = route.split("/:")[0].replace(/^\//, "");
           const needle = "/" + prefix;
-          const byRoute = testFiles
-            .filter(t => readCached(t).includes(needle))
-            .map(t => toRel(t, APP));
+          const byRoute = testFiles.filter(t => readCached(t).includes(needle)).map(t => toRel(t, APP));
           if (byRoute.length > 0) {
             kind = "route-reference";
             evidence = [...new Set(byRoute)].sort();
@@ -208,7 +220,10 @@ export function generate() {
 
   /* العقود: استشهاد حرفي + نمط مفهوم مُنسّق */
   const contractDir = path.join(ROOT, "docs/contracts");
-  const contracts = fs.readdirSync(contractDir).filter(f => f.endsWith(".md")).sort();
+  const contracts = fs
+    .readdirSync(contractDir)
+    .filter(f => f.endsWith(".md"))
+    .sort();
   const allTestRel = [
     ...walk(path.join(ROOT, "tests")).filter(f => /\.(ts|tsx|mjs)$/.test(f)),
     ...testFiles,
@@ -293,7 +308,9 @@ function main(argv) {
     delete a.head;
     delete b.head;
     if (JSON.stringify(a) !== JSON.stringify(b)) {
-      console.error("generate-test-map: FAIL drift detected — regenerate with node scripts/generate-test-map.mjs");
+      console.error(
+        "generate-test-map: FAIL drift detected — regenerate with node scripts/generate-test-map.mjs",
+      );
       process.exit(1);
     }
     console.log("generate-test-map: no drift (matches committed evidence)");
@@ -301,7 +318,9 @@ function main(argv) {
   }
   fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
   fs.writeFileSync(OUT_PATH, json);
-  console.log(`generate-test-map: wrote ${toRel(OUT_PATH, ROOT)} (pages ${data.pages.total}, contracts ${data.contracts.total})`);
+  console.log(
+    `generate-test-map: wrote ${toRel(OUT_PATH, ROOT)} (pages ${data.pages.total}, contracts ${data.contracts.total})`,
+  );
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))) {

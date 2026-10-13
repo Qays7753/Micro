@@ -19,6 +19,31 @@
  *     حلّ قاعدة الدمج = فشل؛ محليًا تحذير صريح.
  *  5) فشل مغلق: مخطط تالف، مسارات مكررة، شريط لا يطابق قياسه، نسخة مجهولة.
  *
+ * F-028 + NF-021 (R10-B5 — 2026-10-13): ثلاثة إحكامات متصلة —
+ *  أ) معجم مؤشرات CI الموحّد (CI_MARKER_KEYS/ciMarkerPresent): نفس مفردات
+ *     check-bundle-surfaces.mjs::detectEnvironment حرفيًا — أي مؤشر معروف
+ *     غير فارغ وقيمته ليست "false" يعني «بيئة CI حاضرة». كان هذا الحارس
+ *     يطلب GITHUB_ACTIONS==='true' أو CI==='true' فقط فكانت CI='1' تُعامل
+ *     محليًا (تحذير فقط) بينما حارس الأسطح يعتبرها CI مجهولة ويرفض —
+ *     الاختبار التوافقي (check-ci-semantics-conformance.test.mjs) يفرز
+ *     الاتفاق آليًا للأبد: local ⟺ لا مؤشر؛ null/هوية-CI ⟹ مؤشر حاضر.
+ *  ب) سياسة الدفع المباشر إلى main (تدقيق الانجراف كان فارغًا هناك بنيويًا:
+ *     merge-base(HEAD, origin/main) == HEAD فلا مقارنة تحدث): حين تساوي
+ *     قاعدة الدمج رأس HEAD نفسه، يُدقّق الأب HEAD~1 (حالة ما قبل الدفع)
+ *     بدل التمرير الصامت كـ«نظيف» — رفع قيمة أساس بلا إرساء بين HEAD~1
+ *     وHEAD يُصطاد الآن. الحد المتبقي الموثق: دفعة مباشرة متعددة الالتزامات
+ *     يخفي إرساءها في التزام أبعد من HEAD~1 لا يكشفها هذا المسار (تغطيه
+ *     تشغيلات pull_request على الفروع — وهي مسار المراجعة القانوني).
+ *     جذر المستودع بلا أب = تأسيس أول موثق ببذرة مطابقة للقياس الحي.
+ *  ج) ترخيص الإرساء قابل للتحقق آليًا (سجل الإرساء v2): كان شرط التغطية
+ *     نصًا حرًا غير فارغ فقط (قابل للتزوير بصياغة أي جملة)؛ الآن كل مدخل
+ *     يحمل authorization.ocRef يشير لسجل Operations Control حيّ (عنصر أو
+ *     مسار عمل بملف JSON فعلي ومعرّف مطابق وحالة ليست SUPERSEDED) —
+ *     الحارس يرفض المخطط كله إن لم يُحلّ المرجع.
+ *     ما يُثبته: الترخيص يستند لسجل حاكم قانوني فعلي في شجرة المستودع
+ *     (لا نثرًا حرًا معلقًا). ما لا يُثبته: أن السجل المذكور يغطي هذا
+ *     الإرساء بعينه دلاليًا — ذلك يبقى نطاق مراجعة المالك على الـPR.
+ *
  * الفئات المشمولة: production + script (دالة تصنيف السجل حرفيًا)؛ الاختبارات
  * والـfixtures والمولدة والإعدادات خارج الراتشة (تُحكم بأنظمتها). بيانات
  * الحارس نفسه (baseline + reanchors) خارج القياس عمدًا (وإلا حرس نفسه بذاته).
@@ -119,6 +144,27 @@ export function bandOf(nbLoc) {
 export const BAND_RANK = { NORMAL: 0, WATCH: 1, SPLIT_CANDIDATE: 2, SPLIT_NOW: 3 };
 export const BASELINE_SCHEMA = "micro-file-size-ratchet/2";
 
+/* F-028/NF-021 (R10-B5 — 2026-10-13): معجم مؤشرات CI الموحّد — نفس المفاتيح
+ * التي يمسحها check-bundle-surfaces.mjs::detectEnvironment حرفيًا. أي مفتاح
+ * بقيمة غير فارغة وليست "false" = بيئة CI حاضرة. الاختبار التوافقي يفرز
+ * استمرار التطابق بين الحارسين. */
+export const CI_MARKER_KEYS = [
+  "CI",
+  "GITHUB_ACTIONS",
+  "GITLAB_CI",
+  "JENKINS_URL",
+  "TEAMCITY_VERSION",
+  "CF_PAGES",
+  "CF_PAGES_COMMIT_SHA",
+];
+
+export function ciMarkerPresent(env = process.env) {
+  return CI_MARKER_KEYS.some(key => {
+    const value = env[key];
+    return value !== undefined && value !== null && value !== "" && value !== "false";
+  });
+}
+
 /** الأسطر غير الفارغة (nbLOC) — نفس تعريف القياس في سجل الجرد. */
 export function nonBlankLines(content) {
   return content.split("\n").filter(line => line.trim().length > 0).length;
@@ -180,8 +226,46 @@ export function validateBaseline(baseline, rawText) {
   return null;
 }
 
-/** قراءة سجل الإرساء (الترخيص الموثق الوحيد لنمو قيمة أساس). */
-export function loadReanchorLedger(ledgerPath = REANCHOR_LEDGER_PATH) {
+/* ─── سجل الإرساء v2 (F-028 — ترخيص قابل للتحقق آليًا) ───────────────────── */
+
+export const REANCHOR_SCHEMA_V1 = "micro-file-size-ratchet-reanchors/1";
+export const REANCHOR_SCHEMA_V2 = "micro-file-size-ratchet-reanchors/2";
+
+/** حلّ مرجع الترخيص ocRef داخل شجرة Operations Control — عنصر أو مسار عمل
+ * حيّ (الملف موجود ويُحلّل ومعرّفه مطابق وحالته ليست SUPERSEDED). */
+export function resolveOcRef(ocRoot, ref) {
+  if (typeof ref !== "string" || !/^[A-Z0-9]+(-[A-Z0-9]+)*$/.test(ref))
+    return { ok: false, reason: "malformed-ref" };
+  for (const kind of ["items", "workstreams"]) {
+    const file = path.join(ocRoot, kind, `${ref}.json`);
+    let raw;
+    try {
+      raw = fs.readFileSync(file, "utf8");
+    } catch {
+      continue;
+    }
+    try {
+      const record = JSON.parse(raw);
+      if (record.id !== ref) return { ok: false, reason: `id-mismatch:${kind}` };
+      if (record.status === "SUPERSEDED") return { ok: false, reason: "superseded" };
+      return { ok: true, kind };
+    } catch {
+      return { ok: false, reason: `unparseable:${kind}` };
+    }
+  }
+  return { ok: false, reason: "not-found" };
+}
+
+/** جذر OC الافتراضي لسجل إرساء داخل <repoRoot>/scripts/. */
+function defaultOcRootFor(ledgerPath) {
+  return path.join(path.dirname(path.dirname(path.resolve(ledgerPath))), "docs", "operations", "control");
+}
+
+/** قراءة سجل الإرساء (الترخيص الموثق الوحيد لنمو قيمة أساس).
+ * v2 (F-028): كل مدخل يجب أن يحمل authorization.ocRef قابلاً للحل ضد شجرة
+ * OC — أي فشل تحليل يُرفض المخطط كله (فشل مغلق). v1 القديم (بلا حقل
+ * schema أو بمخطط /1) يُقبل كما هو للتاريخ المتجمد فقط. */
+export function loadReanchorLedger(ledgerPath = REANCHOR_LEDGER_PATH, options = {}) {
   let parsed;
   try {
     parsed = JSON.parse(fs.readFileSync(ledgerPath, "utf8"));
@@ -191,10 +275,27 @@ export function loadReanchorLedger(ledgerPath = REANCHOR_LEDGER_PATH) {
   }
   if (parsed === null || typeof parsed !== "object" || !Array.isArray(parsed.entries))
     throw new Error("reanchor ledger invalid");
+  const schema = parsed.schema ?? REANCHOR_SCHEMA_V1;
+  if (schema !== REANCHOR_SCHEMA_V1 && schema !== REANCHOR_SCHEMA_V2)
+    throw new Error(`reanchor ledger unknown schema: ${schema}`);
+  if (schema === REANCHOR_SCHEMA_V2) {
+    const ocRoot = options.ocRoot ?? defaultOcRootFor(ledgerPath);
+    for (const [index, entry] of parsed.entries.entries()) {
+      const ref = entry?.authorization?.ocRef;
+      const resolved = resolveOcRef(ocRoot, ref);
+      if (!resolved.ok)
+        throw new Error(
+          `reanchor ledger entry ${entry?.id ?? `#${index}`}: authorization.ocRef "${ref}" does not resolve (${resolved.reason})`,
+        );
+    }
+  }
   return parsed;
 }
 
-/** تغطية ledger لزيادة قيمة مسار: from مطابق للقيمة القديمة وإلى ≥ الجديدة. */
+/** تغطية ledger لزيادة قيمة مسار: from مطابق للقيمة القديمة وإلى ≥ الجديدة،
+ * وترخيص v2 حاضر بنيويًا (ocRef غير فارغ — الحل الكامل ضد شجرة OC يتم
+ * في loadReanchorLedger؛ هذا الفحص البنيوي يمنع تجاوز الترخيص بتمرير
+ * كائن ledger غير محمّل عبر المسار القانوني). */
 function ledgerCovers(ledgerEntries, rel, fromNbLoc, toNbLoc) {
   return ledgerEntries.some(
     entry =>
@@ -203,7 +304,9 @@ function ledgerCovers(ledgerEntries, rel, fromNbLoc, toNbLoc) {
       Number.isInteger(entry.to?.nbLoc) &&
       entry.to.nbLoc >= toNbLoc &&
       typeof entry.authorization?.ownerReview === "string" &&
-      entry.authorization.ownerReview.length > 0,
+      entry.authorization.ownerReview.length > 0 &&
+      typeof entry.authorization?.ocRef === "string" &&
+      entry.authorization.ocRef.length > 0,
   );
 }
 
@@ -272,6 +375,28 @@ export function resolveMergeBase(repoRoot) {
   return null;
 }
 
+/** رأس HEAD الحالي (بصمة كاملة) — أو null إن تعذر. */
+export function resolveHead(repoRoot) {
+  try {
+    const out = execFileSync("git", ["-C", repoRoot, "rev-parse", "HEAD"], { encoding: "utf8" });
+    const sha = out.trim();
+    return sha !== "" ? sha : null;
+  } catch {
+    return null;
+  }
+}
+
+/** الأب المباشر HEAD~1 — أو null إن لم يوجد (جذر المستودع). */
+function resolveParent(repoRoot) {
+  try {
+    const out = execFileSync("git", ["-C", repoRoot, "rev-parse", "HEAD~1"], { encoding: "utf8" });
+    const sha = out.trim();
+    return sha !== "" ? sha : null;
+  } catch {
+    return null;
+  }
+}
+
 function baselineAtCommit(repoRoot, sha) {
   const out = execFileSync("git", ["-C", repoRoot, "show", `${sha}:scripts/file-size-ratchet-baseline.json`], {
     encoding: "utf8",
@@ -283,10 +408,38 @@ function baselineAtCommit(repoRoot, sha) {
  * تدقيق الانجراف: مقارنة أساس رأس الدمج بأساس HEAD — كل زيادة قيمة تتطلب
  * مدخل إرساء بسلسلة صحيحة، وكل حذف صف لملف حي يُرفض. أساس v1 عند القاعدة
  * = هجرة موثقة (تحقق البذرة == القياس الحي) لا تدقيق قيم.
+ *
+ * F-028 (R10-B5 — 2026-10-13): سياسة الدفع المباشر إلى main — إن كانت قاعدة
+ * الدمج هي HEAD نفسه (دفع مباشر لـmain أو دمج PR أو فحص محلي على main)
+ * فالتدقيق مقابلها فارغ بنيويًا؛ يُدقّق الأب HEAD~1 (حالة ما قبل الدفع)
+ * بتدقيق كامل بدل التمرير الصامت، مع ملاحظة صريحة بالسياسة المطبقة. جذر
+ * المستودع (لا أب) = تأسيس أول موثق. F-028/NF-021: حضور CI بالمعجم
+ * الموحد (ciMarkerPresent) — CI='1' الآن CI كاملة الفشل المغلق لا محليّ.
  */
 export function auditBaselineDrift(repoRoot, options = {}) {
-  const inCI = options.inCi ?? (process.env.GITHUB_ACTIONS === "true" || process.env.CI === "true");
-  const mergeBase = options.mergeBase !== undefined ? options.mergeBase : resolveMergeBase(repoRoot);
+  const inCI = options.inCi ?? ciMarkerPresent();
+  let mergeBase = options.mergeBase !== undefined ? options.mergeBase : resolveMergeBase(repoRoot);
+  const notes = [];
+  /* F-028: القاعدة الفارغة (== HEAD) لا تُدقق — الأب هو المرجع. */
+  if (mergeBase !== null) {
+    const head = resolveHead(repoRoot);
+    if (head !== null && mergeBase.sha === head) {
+      const parent = resolveParent(repoRoot);
+      if (parent === null) {
+        return {
+          status: "root-commit-establishment",
+          violations: [],
+          notes: [
+            "merge-base == HEAD وجذر المستودع بلا أب — تأسيس أول؛ البذرة يجب أن تطابق القياس الحي (تحقق المخطط/الشجرة يفرضه)",
+          ],
+        };
+      }
+      notes.push(
+        "سياسة الدفع المباشر (F-028): قاعدة الدمج == HEAD فالتدقيق الفارغ استُبدل بتدقيق الأب HEAD~1 (حالة ما قبل الدفع) — الحد المتبقي موثق في رأس الحارس",
+      );
+      mergeBase = { sha: parent, ref: "HEAD~1" };
+    }
+  }
   if (mergeBase === null) {
     return {
       status: inCI ? "unavailable-in-ci" : "unavailable",
@@ -331,7 +484,13 @@ export function auditBaselineDrift(repoRoot, options = {}) {
     };
   }
   const ledger =
-    options.ledger ?? loadReanchorLedger(path.join(repoRoot, "scripts", "file-size-ratchet-reanchors.json"));
+    options.ledger ??
+    loadReanchorLedger(path.join(repoRoot, "scripts", "file-size-ratchet-reanchors.json"));
+  /* F-028: بيانات الترخيص للتقرير — المخطط المحمّل وعدد المراجع المحسولة. */
+  const ledgerSchema = ledger.schema ?? REANCHOR_SCHEMA_V1;
+  const ledgerOcRefs = new Set(
+    (ledger.entries ?? []).map(entry => entry?.authorization?.ocRef).filter(ref => typeof ref === "string"),
+  ).size;
   const violations = [];
   const reanchored = [];
   const oldMeasurements = old.parsed.measurements ?? {};
@@ -360,7 +519,14 @@ export function auditBaselineDrift(repoRoot, options = {}) {
       });
     }
   }
-  return { status: violations.length > 0 ? "drift" : "clean", violations, reanchored, notes: [`تدقيق الانجراف مقابل ${mergeBase.ref} @ ${mergeBase.sha}`] };
+  return {
+    status: violations.length > 0 ? "drift" : "clean",
+    violations,
+    reanchored,
+    ledgerSchema,
+    ledgerOcRefs,
+    notes: [...notes, `تدقيق الانجراف مقابل ${mergeBase.ref} @ ${mergeBase.sha}`],
+  };
 }
 
 /* ─── CLI ─────────────────────────────────────────────────────────────────── */
@@ -400,8 +566,12 @@ function main() {
   for (const line of result.reanchored) console.log(`file-size-ratchet: REANCHORED (documented) ${line}`);
   for (const line of drift.reanchored ?? []) console.log(`file-size-ratchet: DRIFT-AUTHORIZED ${line}`);
   const s = result.stats;
+  const ledgerNote =
+    drift.ledgerSchema === REANCHOR_SCHEMA_V2
+      ? `؛ تراخيص الإرساء محسولة آليًا ضد شجرة OC (${drift.ledgerOcRefs} مرجعًا — F-028)`
+      : "";
   console.log(
-    `file-size-ratchet: PASS — ${s.measured} ملفًا مشمولًا (الأساس ${s.baseline}؛ انكماش ${s.shrunk}؛ محذوف ${s.removed}؛ إرساءات موثقة ${result.reanchored.length})؛ صفر نمو غير مبرر داخل الشريط أو عابره (R8-2/R8-F-005+F-006)`,
+    `file-size-ratchet: PASS — ${s.measured} ملفًا مشمولًا (الأساس ${s.baseline}؛ انكماش ${s.shrunk}؛ محذوف ${s.removed}؛ إرساءات موثقة ${result.reanchored.length})؛ صفر نمو غير مبرر داخل الشريط أو عابره (R8-2/R8-F-005+F-006)${ledgerNote}`,
   );
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

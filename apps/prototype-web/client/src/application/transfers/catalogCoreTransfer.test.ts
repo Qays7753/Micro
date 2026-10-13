@@ -184,12 +184,14 @@ describe("G4-A catalog transfer boundary", () => {
     const exported = await new LocalTransferService(source).createExport();
     if (!exported.ok) throw new Error("export should succeed");
     const previous = structuredClone(exported.value);
-    previous.version = 14;
+    /* ملف عهدة قديم متعمَّد (نسخة ١٤/مخطط ٢٣) لاختبار الترحيل — قيم إرثية
+     * مقصودة لا يقبلها النوع الحرفي للنسخة الحية. */
+    previous.version = 14 as unknown as typeof localExportVersion;
     delete (previous as Record<string, unknown>).integrity;
     delete (previous as Record<string, unknown>).counts;
     delete (previous as Record<string, unknown>).appVersion;
 
-    previous.schemaVersion = 23;
+    previous.schemaVersion = 23 as unknown as typeof localSchemaVersion;
     previous.data.catalogItems = previous.data.catalogItems?.map(({ unitId: _unitId, ...legacy }) => legacy);
     delete previous.data.measurementUnits;
     delete previous.data.directConversions;

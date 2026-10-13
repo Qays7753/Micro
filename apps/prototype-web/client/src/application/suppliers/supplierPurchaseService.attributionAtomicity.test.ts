@@ -8,6 +8,7 @@ import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { summarizeCashContinuity } from "@micro-domain/cash-continuity/index.js";
 import { createCashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
+import { assertOk } from "@/testing/resultAssertions";
 
 /* G-002 (تدقيق الإدارة المالية المتدرجة 2026-09-19): تخصيص دفعة المورد
  * لمحفظته ذرّي أو حتمي الشفاء — الدفعة وقيد تغطيتها في معاملة واحدة؛ إعادة
@@ -107,6 +108,7 @@ describe("G-002 — supplier payment wallet attribution atomicity and healing", 
       idempotencyKey: "g002-credit-purchase",
       initialPaymentWalletId: wallet.id,
     });
+    assertOk(result);
     expect(result.ok).toBe(true);
     const allocations = await supplierAllocations(store);
     expect(allocations).toHaveLength(1);
@@ -228,7 +230,9 @@ describe("G-002 — supplier payment wallet attribution atomicity and healing", 
     if (!snapshot.ok) throw new Error(snapshot.message);
     const stripped = {
       ...snapshot.value,
-      cashContinuityEntries: snapshot.value.cashContinuityEntries.filter(entry => entry.id !== allocation.id),
+      cashContinuityEntries: snapshot.value.cashContinuityEntries!.filter(
+        entry => entry.id !== allocation.id,
+      ),
     };
     const replaced = await store.replaceSnapshot(stripped);
     if (!replaced.ok) throw new Error(replaced.message);
@@ -417,7 +421,7 @@ describe("G-002 — supplier payment wallet attribution atomicity and healing", 
     if (!snapshot.ok) throw new Error(snapshot.message);
     const stripped = {
       ...snapshot.value,
-      cashContinuityEntries: snapshot.value.cashContinuityEntries.filter(
+      cashContinuityEntries: snapshot.value.cashContinuityEntries!.filter(
         entry => entry.operationKey !== "g002-incomplete:initial-attribute",
       ),
     };

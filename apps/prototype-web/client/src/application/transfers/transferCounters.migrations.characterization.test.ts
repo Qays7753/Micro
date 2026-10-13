@@ -70,7 +70,7 @@ describe("verifyTransferCounts — tamper detection (عقد ٣٩)", () => {
   });
 
   it("rejects mismatched counts, NaN, Infinity, floats, negatives, strings, and extra keys", () => {
-    const cases: Record<string, LocalExportCounts>[] = [
+    const cases: LocalExportCounts[] = [
       { ...supplement.counts, assets: (supplement.counts.assets ?? 0) + 1 },
       { ...supplement.counts, loans: Number.NaN },
       { ...supplement.counts, loans: Number.POSITIVE_INFINITY },

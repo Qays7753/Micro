@@ -24,7 +24,8 @@ import type {
   ShortCashHorizonReading,
 } from "../financial-analysis/financialAnalysisService";
 import type { FinancialPulseService } from "../financial-pulse/financialPulseService";
-import type { InventoryMaterialService, PeriodWasteReading } from "../inventory/inventoryMaterialModel";
+import type { InventoryMaterialService } from "../inventory/inventoryMaterialService";
+import type { PeriodWasteReading } from "../inventory/inventoryMaterialModel";
 import type { LoanOverviewRead, LoanService } from "../loans/loanService";
 import type {
   OwnerEntitlementOverview,
@@ -161,14 +162,14 @@ describe("R7/P02 — readFinanceOverview (تجميع G-005 المستخرج)", (
     const state = await readFinanceOverview(makeDeps(), "2026-09-01", "2026-09-30");
     expect(state.phase).toBe("ready");
     if (state.phase !== "ready") return;
-    expect((state.position as { marker: string }).marker).toBe("position");
-    expect((state.period as { marker: string }).marker).toBe("period");
-    expect((state.insights as { marker: string }).marker).toBe("insights");
-    expect((state.decision as { marker: string }).marker).toBe("decision");
-    expect((state.owner as { marker: string }).marker).toBe("owner");
-    expect((state.deposits as { marker: string }).marker).toBe("deposits");
-    expect((state.assetsOverview as { marker: string }).marker).toBe("assets");
-    expect((state.loansOverview as { marker: string }).marker).toBe("loans");
+    expect((state.position as unknown as { marker: string }).marker).toBe("position");
+    expect((state.period as unknown as { marker: string }).marker).toBe("period");
+    expect((state.insights as unknown as { marker: string }).marker).toBe("insights");
+    expect((state.decision as unknown as { marker: string }).marker).toBe("decision");
+    expect((state.owner as unknown as { marker: string }).marker).toBe("owner");
+    expect((state.deposits as unknown as { marker: string }).marker).toBe("deposits");
+    expect((state.assetsOverview as unknown as { marker: string }).marker).toBe("assets");
+    expect((state.loansOverview as unknown as { marker: string }).marker).toBe("loans");
     expect(state.events).toHaveLength(1);
     expect(state.declarations).toHaveLength(1);
     expect(state.pendingRetainedDeposits).toHaveLength(1);
@@ -208,7 +209,7 @@ describe("R7/P02 — readFinanceOverview (تجميع G-005 المستخرج)", (
     if (state.phase !== "ready") return;
     expect(state.failedBlocks).toEqual({ period: true });
     expect(state.correctionsInPeriod).toBeNull();
-    expect((state.correctionsAllTime as { marker: string }).marker).toBe("corrections");
+    expect((state.correctionsAllTime as unknown as { marker: string }).marker).toBe("corrections");
   });
 
   it("القروض غير المجهزة بعد (null) = كتلة معطوبة صادقة تُعاد قراءتها فور جاهزيتها", async () => {

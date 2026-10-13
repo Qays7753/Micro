@@ -21,8 +21,12 @@ type CapabilityMeta = {
   appearsIn: string;
 };
 
-/* المعرّفات المستقرة للقدرات — لا تُترجم ولا تُخزن بغيرها (قيم مخزنة). */
-export type CapabilityId = "orders" | "inventory" | "suppliers" | "catalog";
+/* R10-B3/R10A-F-004 (2026-10-11): النوع الكنوني من باب التفضيلات — كان
+ * معاد تعريفه محليًا (التعريف الثالث)؛ القوالب as غير الصادقة استُبدلت
+ * بترشيح صريح على المعرّفات المعروفة (قراءة القائمة المثبتة تعرض المعروف
+ * وتترك ما لا تعرفه هذه النسخة — نفس دلالة بوابة includes الحرفية). */
+import type { CapabilityId } from "@/application/preferences";
+import { isKnownCapabilityId } from "@/application/preferences";
 
 type SectionProps = {
   preferences: PreferenceService;
@@ -54,7 +58,7 @@ export function SettingsCapabilitiesSection({
     let active = true;
     void (async () => {
       const preference = await preferences.readDisabledCapabilities();
-      if (active && preference.ok) setDisabled(preference.disabled as CapabilityId[]);
+      if (active && preference.ok) setDisabled(preference.disabled.filter(isKnownCapabilityId));
       /* أعداد السجلات القائمة — أساس تحذير الأثر الصادق عند الإيقاف. */
       const [ordersResult, materialsResult, purchasesResult, catalogResult] = await Promise.all([
         agreements.list(),
@@ -98,7 +102,7 @@ export function SettingsCapabilitiesSection({
       setMessage(result.message);
       return;
     }
-    setDisabled(result.disabled as CapabilityId[]);
+    setDisabled(result.disabled.filter(isKnownCapabilityId));
     notifyDataChanged();
   }
 

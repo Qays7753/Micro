@@ -11,3 +11,12 @@
  */
 
 export type { BrowserPersistenceReading, PreferenceService } from "./preferenceService";
+/* R10-B3/R10B-NF-003 (2026-10-11): إضافة النوع الكنوني لتفضيل السمة إلى
+ * الباب — مستهلكه contexts/ThemeContext.tsx (استيراد نوعي) بعد إلغاء
+ * إعادة تعريفه المحلية؛ توسيع سطح مقصود بنفس الـPR مع تحديث أساس
+ * الأبواب (بروتوكول PC-3). */
+export type { ThemePreference } from "./preferenceService";
+export type { CapabilityId } from "./preferenceService";
+/* R10-B3/R10A-F-004 (2026-10-11): حارس الترشيح قيمةً عبر الباب لمستهلكي
+ * الواجهة (توسيع سطح مقصود بنفس الـPR — PC-3). */
+export { isKnownCapabilityId } from "./preferenceService";

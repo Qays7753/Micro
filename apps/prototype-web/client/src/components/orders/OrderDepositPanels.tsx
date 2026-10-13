@@ -15,6 +15,12 @@ import type { AgreementResult } from "@/application/agreements";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { CraftOrder } from "@micro-domain/craft-order/index.js";
+import {
+  cancelledDepositProposalOf,
+  pendingDepositSettlementMinorOf,
+  standingDepositMinorOf,
+  unclassifiedRetainedDepositMinorOf,
+} from "@micro-domain/craft-order/index.js";
 
 import { Button, ChoiceButton, ChoiceRow } from "@/components/primitives";
 export type OrderDepositPanelsProps = {
@@ -89,9 +95,10 @@ export function OrderDepositPanels({
   const reversalOperationKeyRef = useRef(freshReversalOperationKey());
   const [reverseAmount, setReverseAmount] = useState<number | null>(null);
   const [reverseReason, setReverseReason] = useState("");
-  /* العربون القائم القابل للعكس: المحصل − المحتفظ (المحصل ينقص مع كل عكس
-   * فالسقف يتقلص طبيعيًا — لا جمع مزدوج مع أحداث العكس). */
-  const standingDepositMinor = Math.max(order.depositCollectedMinor - (order.depositRetainedMinor ?? 0), 0);
+  /* العربون القائم القابل للعكس — R10-B4/F-021: اشتقاق قراءة من الدومين
+   * يقرأ بالقارئ الكنسي نفسه الذي يكتب به reverseActiveDeposit
+   * (بما فيه التوافق الرجعي للبيانات القديمة)؛ لا مرآة ?? 0 خام. */
+  const standingDepositMinor = standingDepositMinorOf(order);
   const activePreDelivery =
     order.status !== "delivered" &&
     order.status !== "settled" &&
@@ -227,10 +234,10 @@ export function OrderDepositPanels({
           {/* معاينة الأثر الإلزامية (Conflict E): لا قرار بلا أرقام — التكلفة
               الموثقة، ما استُهلك فعلًا، والاقتراح القائم عليها. */}
           {(() => {
-            const pendingMinor = order.depositCollectedMinor - (order.depositRetainedMinor ?? 0);
-            const documentedCostMinor = order.costSnapshot.plannedCostMinor;
-            const coverProposalMinor = Math.min(pendingMinor, documentedCostMinor);
-            const refundProposalMinor = pendingMinor - coverProposalMinor;
+            /* R10-B4/F-021: المعلق والاقتراح اشتقاقا دومين — التغطية حتى
+             * التكلفة الموثقة والرد للباقي؛ لا حساب واجهة خام. */
+            const pendingMinor = pendingDepositSettlementMinorOf(order);
+            const proposal = cancelledDepositProposalOf(order);
             return (
               <div className="micro-finance-reversal-review" data-testid="deposit-settlement-preview">
                 <strong>معاينة أثر قرار العربون</strong>
@@ -255,7 +262,11 @@ export function OrderDepositPanels({
                   <div>
                     <dt>التكلفة الموثقة للطلب</dt>
                     <dd>
-                      <MoneyValue minor={documentedCostMinor} className="micro-inline-number" /> د.أ
+                      <MoneyValue
+                        minor={order.costSnapshot.plannedCostMinor}
+                        className="micro-inline-number"
+                      />{" "}
+                      د.أ
                     </dd>
                   </div>
                   <div>
@@ -268,10 +279,10 @@ export function OrderDepositPanels({
                     <dt>الاقتراح بعد التكلفة الموثقة</dt>
                     <dd>
                       احتفظ بما يغطي التكلفة (حتى{" "}
-                      <MoneyValue minor={coverProposalMinor} className="micro-inline-number" /> د.أ) وردّ
-                      الباقي (
-                      <MoneyValue minor={refundProposalMinor} className="micro-inline-number" /> د.أ) — عدّل
-                      المبلغ كما تقرر؛ القرار سببه موثق دائمًا.
+                      <MoneyValue minor={proposal.coverProposalMinor} className="micro-inline-number" /> د.أ)
+                      وردّ الباقي (
+                      <MoneyValue minor={proposal.refundProposalMinor} className="micro-inline-number" /> د.أ)
+                      — عدّل المبلغ كما تقرر؛ القرار سببه موثق دائمًا.
                     </dd>
                   </div>
                   <div>
@@ -294,7 +305,7 @@ export function OrderDepositPanels({
               مبلغ التسوية <small>اختياري — الافتراضي كامل المعلق</small>
             </span>
             <EnglishNumberInput
-              value={settleAmount ?? order.depositCollectedMinor - (order.depositRetainedMinor ?? 0)}
+              value={settleAmount ?? pendingDepositSettlementMinorOf(order)}
               kind="money"
               onNumericChange={value => setSettleAmount(value)}
             />
@@ -367,10 +378,9 @@ export function OrderDepositPanels({
             تعمل فيه؟
           </strong>
           {(() => {
-            const retainedMinor = order.depositRetainedMinor ?? order.depositCollectedMinor;
-            const classifiedMinor =
-              (order.depositClassifiedOwnerMinor ?? 0) + (order.depositClassifiedRevenueMinor ?? 0);
-            const unclassifiedMinor = retainedMinor - classifiedMinor;
+            /* R10-B4/F-021: غير المصنّف اشتقاق دومين واحد — بلا مرآة خام
+             * وبالتوافق الرجعي الذي تقرأ به classifiedSumsOf. */
+            const unclassifiedMinor = unclassifiedRetainedDepositMinorOf(order);
             return unclassifiedMinor > 0;
           })() ? (
             <>
@@ -382,10 +392,7 @@ export function OrderDepositPanels({
               {/* المجموعة ٥ (تسديد دَين المجموعة ٤ — بند ٢) + Conflict E: سطر الأثر
                * الرقمي قبل التأكيد — بمبلغ التصنيف الفعلي لا الرقم الكامل فقط. */}
               {(() => {
-                const retainedMinor = order.depositRetainedMinor ?? order.depositCollectedMinor;
-                const classifiedMinor =
-                  (order.depositClassifiedOwnerMinor ?? 0) + (order.depositClassifiedRevenueMinor ?? 0);
-                const unclassifiedMinor = retainedMinor - classifiedMinor;
+                const unclassifiedMinor = unclassifiedRetainedDepositMinorOf(order);
                 return (
                   <p className="micro-deposit-effect-line" role="note">
                     هذا التغيير سيؤثر على الرصيد كالتالي: «مال مالك» يرفع مال المالك{" "}
@@ -417,10 +424,7 @@ export function OrderDepositPanels({
                 );
               })()}
               {(() => {
-                const retainedMinor = order.depositRetainedMinor ?? order.depositCollectedMinor;
-                const classifiedMinor =
-                  (order.depositClassifiedOwnerMinor ?? 0) + (order.depositClassifiedRevenueMinor ?? 0);
-                const unclassifiedMinor = retainedMinor - classifiedMinor;
+                const unclassifiedMinor = unclassifiedRetainedDepositMinorOf(order);
                 return (
                   <label className="micro-field">
                     <span>

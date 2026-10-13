@@ -21,7 +21,11 @@ const projectContext: OperatingExpenseContext = {
 
 describe("expandExpenseRecordIntent (pure helper, STR-032)", () => {
   it("refuses an expense without a context", () => {
-    const result = expandExpenseRecordIntent({ type: "operating_expense_cash", amountMinor: 1000 });
+    const result = expandExpenseRecordIntent({
+      type: "operating_expense_cash",
+      amountMinor: 1000,
+      expenseContext: null,
+    });
     expect(result).toEqual({ ok: false, message: "حدد سياق المصروف ودرجة معرفته قبل الحفظ." });
   });
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { DirectSaleService } from "./directSaleService";
+import { assertOk } from "@/testing/resultAssertions";
 
 describe("DirectSaleService", () => {
   it("saves a direct sale independently while preserving unknown cost", async () => {
@@ -373,6 +374,7 @@ describe("DirectSaleService agreed vs collected (X-06, و٤)", () => {
       note: "بيع",
       idempotencyKey: "x06-ref-1",
     });
+    assertOk(recorded);
     expect(recorded).toMatchObject({ ok: true, value: { catalogItemId: "catalog-item-1" } });
     const updated = await service.update(recorded.value.id, {
       itemName: "خاتم",

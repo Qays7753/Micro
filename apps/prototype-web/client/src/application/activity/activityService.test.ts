@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import { createFinancialEvent, createFinancialReversal } from "@micro-domain/financial-event/index.js";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
-import type { OrderEvent } from "@micro-domain/craft-order/index.js";
+import type { CraftOrder, OrderEvent } from "@micro-domain/craft-order/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { ActivityService } from "./activityService";
 
@@ -224,6 +224,7 @@ describe("activity reader (المجموعة ٥ — عقد ٣٠)", () => {
   it("order events map by kind: collection cash-in, deposit pending, correction family", async () => {
     const store = new MemoryLocalStore();
     const cost = calculateCostSnapshot("cost-order-1", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },
@@ -237,7 +238,7 @@ describe("activity reader (المجموعة ٥ — عقد ٣٠)", () => {
     });
     /* القارئ يقرأ السجل المخزّن كما هو — نموذج بيانات مخزنة (تاريخ وارد أو مسجل):
      * بناء الطلب عبر التخزين المباشر يغطي الأحداث الثلاث المطلوبة للعائلات. */
-    const created = {
+    const created: CraftOrder = {
       ...createCraftOrder({
         id: "order-1",
         customerName: "أم خالد",
@@ -252,7 +253,7 @@ describe("activity reader (المجموعة ٥ — عقد ٣٠)", () => {
       collectedMinor: 2000,
       receivableMinor: 10000,
       status: "in_progress",
-      settlementStatus: "partial",
+      settlementStatus: "partially_paid",
       events: [
         { id: "ev-1", type: "created", idempotencyKey: "o1-created", createdAt: "2026-08-25T08:00:00.000Z" },
         {
@@ -313,6 +314,7 @@ describe("activity reader (المجموعة ٥ — عقد ٣٠)", () => {
       } as unknown as OrderEvent,
     ];
     const cost = calculateCostSnapshot("cost-order-2", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },

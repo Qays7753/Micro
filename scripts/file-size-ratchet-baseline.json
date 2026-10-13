@@ -409,7 +409,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/application/identity/buildIdentity.ts": {
-      "nbLoc": 32,
+      "nbLoc": 48,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/application/input/englishNumeric.ts": {
@@ -1489,7 +1489,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/scripts/check-bundle-surfaces.mjs": {
-      "nbLoc": 467,
+      "nbLoc": 487,
       "band": "WATCH"
     },
     "scripts/application-door-surfaces-baseline.json": {
@@ -1525,8 +1525,8 @@
       "band": "NORMAL"
     },
     "scripts/check-file-size-ratchet.mjs": {
-      "nbLoc": 391,
-      "band": "NORMAL"
+      "nbLoc": 553,
+      "band": "WATCH"
     },
     "scripts/check-image-policy.mjs": {
       "nbLoc": 164,
@@ -1545,7 +1545,7 @@
       "band": "NORMAL"
     },
     "scripts/check-secrets.mjs": {
-      "nbLoc": 152,
+      "nbLoc": 204,
       "band": "NORMAL"
     },
     "scripts/check-skill-references.mjs": {
@@ -1553,7 +1553,7 @@
       "band": "NORMAL"
     },
     "scripts/check-test-focus.mjs": {
-      "nbLoc": 137,
+      "nbLoc": 162,
       "band": "NORMAL"
     },
     "scripts/check-type-cycles.mjs": {
@@ -1594,10 +1594,6 @@
     },
     "scripts/operations-control/validate.py": {
       "nbLoc": 368,
-      "band": "NORMAL"
-    },
-    "scripts/post-merge.sh": {
-      "nbLoc": 6,
       "band": "NORMAL"
     },
     "scripts/security/braces-elimination/capture-baseline.mjs": {

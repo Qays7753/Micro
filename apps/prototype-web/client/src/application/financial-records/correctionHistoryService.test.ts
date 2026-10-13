@@ -3,6 +3,7 @@ import { CorrectionHistoryService } from "./correctionHistoryService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import type { StoredCraftOrder } from "@/storage/local/types";
 import { createDirectSale } from "@micro-domain/direct-sale/index.js";
 import { createFinancialEvent, createFinancialReversal } from "@micro-domain/financial-event/index.js";
 
@@ -374,7 +375,7 @@ describe("CorrectionHistoryService — امتداد المجموعة ٥ (عقد 
     );
     if (!committed.ok) throw new Error(committed.message);
     /* طلب بعكس تسليم وتصنيف عربون. */
-    const storedOrder = {
+    const storedOrder: StoredCraftOrder = {
       id: "order-h",
       order: {
         id: "order-h",
@@ -384,7 +385,35 @@ describe("CorrectionHistoryService — امتداد المجموعة ٥ (عقد 
         quantity: 1,
         currency: "JOD",
         agreedPriceMinor: 10000,
-        costSnapshot: { currency: "JOD", quantity: 1, createdAt: now() },
+        /* لقطة تكلفة مكتملة متسقة مع التكلفة المعترف بها ٤٠٠٠:
+         * ٢٥٠٠ مواد + ١٠٠٠ وقت + ٢٠٠ تغليف + ١٥٠ توصيل + ١٥٠ هالك. */
+        costSnapshot: {
+          id: "order-h-cost",
+          currency: "JOD",
+          materialCostMinor: 2500,
+          timeCostMinor: 1000,
+          packagingMinor: 200,
+          deliveryMinor: 150,
+          wasteMinor: 150,
+          plannedCostMinor: 4000,
+          unitCostMinor: 4000,
+          priceFloorMinor: 4400,
+          quantity: 1,
+          knowledgeState: "known",
+          input: {
+            currency: "JOD",
+            materialItems: [],
+            time: { minutes: 120, hourlyRateMinor: 500, confidence: "known" },
+            packagingMinor: 200,
+            deliveryMinor: 150,
+            wasteMinor: 150,
+            safetyBufferMinor: 400,
+            quantity: 1,
+            createdAt: now(),
+            source: "draft",
+          },
+          createdAt: now(),
+        },
         costSnapshots: [],
         status: "delivered",
         settlementStatus: "paid",
@@ -397,7 +426,7 @@ describe("CorrectionHistoryService — امتداد المجموعة ٥ (عقد 
         recognizedCostMinor: 4000,
         profitIndicatorMinor: 6000,
         resultStatus: "final",
-        nextAction: null,
+        nextAction: "راجع النتيجة والخطوة التالية",
         events: [
           {
             id: "ev-delivered",

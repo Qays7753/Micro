@@ -73,6 +73,11 @@ import {
   validSupplierPurchase,
 } from "./transferFamilyValidators";
 
+/* (تعليق مؤرخ 2026-10-11 — R10-B2/RC-1، بوابة RV1/D8): السجل الكنوني
+ * لقواعد عائلات المصفوفات صار transferArrayFamilyRoles.ts وبوابتها الخام
+ * verifyTransferArrayFamilies (قبل الترحيل في prepareImport). فحوص
+ * Array.isArray العلوية أدناه تعمل على البيانات بعد الترحيل فتبقى حزام
+ * أمان دفاعيًا لا مسار الرفض الأول — تحديث قواعد العائلات يتم في السجل.) */
 export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
   if (
     !isRecord(data) ||

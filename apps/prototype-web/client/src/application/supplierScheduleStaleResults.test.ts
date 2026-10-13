@@ -16,6 +16,7 @@ const now = () => "2026-09-08T09:00:00.000Z";
 
 async function saveOrder(store: MemoryLocalStore, id: string, deliveryDate: string) {
   const cost = calculateCostSnapshot(`${id}-cost`, {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
@@ -38,6 +39,7 @@ async function saveOrder(store: MemoryLocalStore, id: string, deliveryDate: stri
     createdAt: "2026-08-22T00:00:00.000Z",
   });
   await store.saveOrder({
+    catalogItemId: null,
     id,
     order: { ...order, status: "in_progress", nextAction: "أكمل التنفيذ" },
     deliveryDate,

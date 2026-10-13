@@ -19,6 +19,7 @@ type CapturedOptions = {
   immediate?: boolean;
   onNeedRefresh?: () => void;
   onOfflineReady?: () => void;
+  onNeedReload?: () => void;
   onRegisteredSW?: (scriptUrl: string, registration: ServiceWorkerRegistration | undefined) => void;
   onRegisterError?: (error: Error) => void;
 };

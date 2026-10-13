@@ -18,6 +18,7 @@ import {
 } from "./index";
 import { MoneyWithUnit } from "@/components/presentation/DisplayValue";
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { Activity } from "lucide-react";
 
 /*
@@ -212,10 +213,60 @@ describe("Notice family: inline feedback regime (U-07)", () => {
     expect(container.querySelector(".micro-prim-notice--quiet-completion svg")).toBeTruthy();
   });
 
-  it("InlineError renders the error word with an alert marker", () => {
+  it("InlineError announces the confirmed error assertively (role=alert) with the alert marker", () => {
     const { container } = render(<InlineError>تعذّر الحفظ</InlineError>);
-    expect(screen.getByRole("status").textContent).toContain("تعذّر الحفظ");
+    /* R10-B4/F-017: قناة الخطأ المؤكد حازمة — كقنوات الخطأ في كل الأسطح. */
+    expect(screen.getByRole("alert").textContent).toContain("تعذّر الحفظ");
+    expect(screen.queryByRole("status")).toBeNull();
     expect(container.querySelector("svg")).toBeTruthy();
+  });
+
+  it("FeedbackNote channels: error is assertive; completion and advisory stay polite", () => {
+    /* R10-B4/F-017: عقد القنوات الصريح عبر الملاحظة المصنّفة — نفس قاعدة R9
+     * على مستوى الأوليات: الخطأ alert، والإتمام/الإرشاد status. */
+    const { rerender } = render(<FeedbackNote kind="error" word="تعذّر الحفظ" />);
+    expect(screen.getByRole("alert").textContent).toContain("تعذّر الحفظ");
+    expect(screen.queryByRole("status")).toBeNull();
+    rerender(<FeedbackNote kind="completion" word="تم الحفظ" />);
+    expect(screen.getByRole("status").textContent).toContain("تم الحفظ");
+    expect(screen.queryByRole("alert")).toBeNull();
+    rerender(<FeedbackNote kind="advisory" word="إرشاد محايد" />);
+    expect(screen.getByRole("status").textContent).toContain("إرشاد محايد");
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+});
+
+/* R10-B4/F-018: صلاحية واجهة StateMarker — الخاصية نوع شكل (marker) لا دور
+ * وصول؛ كل مخرجاتها زخرفية aria-hidden ولا تدّعي أبدًا أنها تصل إلى DOM
+ * كدور. عقد مصدر + عقد سلوك. */
+describe("R10-B4 StateMarker: marker-kind API honesty (F-018)", () => {
+  it("the component source accepts a marker prop and never a role prop", () => {
+    const source = readFileSync(resolve(import.meta.dirname, "markers.tsx"), "utf8");
+    expect(source).toContain("export function StateMarker({ marker }:");
+    expect(source).not.toMatch(/StateMarker\(\{ role \}/);
+    expect(source).not.toContain("role=");
+  });
+
+  it("every marker output is decorative (aria-hidden) — the meaning lives in the adjacent word", () => {
+    const { container } = render(<StatusChip state="error">فشل القراءة</StatusChip>);
+    const markers = container.querySelectorAll(".micro-prim-marker");
+    expect(markers.length).toBeGreaterThan(0);
+    for (const marker of markers) {
+      expect(marker.getAttribute("aria-hidden")).toBe("true");
+      expect(marker.getAttribute("role")).toBeNull();
+    }
+    /* القناة الدلالية الحقيقية هي كلمة الشريحة نفسها (نص)، لا العلامة. */
+    expect(screen.getByText("فشل القراءة")).toBeTruthy();
+  });
+
+  it("none renders nothing and the presentation vocabulary carries no ARIA role", () => {
+    const { container } = render(<StatusChip state="no-data">لا بيانات</StatusChip>);
+    expect(container.querySelector(".micro-prim-marker")).toBeNull();
+    const adapter = readFileSync(resolve(import.meta.dirname, "../../presentation/stateAdapter.ts"), "utf8");
+    expect(adapter).toContain("export type StateMarkerKind =");
+    /* الرمز الحي غائب — الذكر الوحيد المتبقي هو الملاحظة التاريخية المؤرخة. */
+    expect(adapter).not.toContain("type StateMarkerRole");
+    expect(adapter).not.toContain("markerRole:");
   });
 });
 

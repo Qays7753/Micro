@@ -1,7 +1,7 @@
 {
-  "version": 1,
-  "schema": "micro-file-size-ratchet-reanchors/1",
-  "comment": "R8-2: the single documented authorization path for baseline value increases. Each entry: id, date, path, from{nbLoc,band}, to{nbLoc,band}, reason, authorization{ownerReview, trigger}. The drift audit chain-validates from == merge-base baseline value. Entries authorize growth UP TO to.nbLoc; they are bounded per-path authorizations, never blanket exemptions.",
+  "version": 2,
+  "schema": "micro-file-size-ratchet-reanchors/2",
+  "comment": "R8-2: the single documented authorization path for baseline value increases. Each entry: id, date, path, from{nbLoc,band}, to{nbLoc,band}, reason, authorization{ownerReview, trigger, ocRef}. The drift audit chain-validates from == merge-base baseline value. Entries authorize growth UP TO to.nbLoc. F-028 (R10-B5, 2026-10-13) schema v2: authorization.ocRef is required and machine-resolved against the live Operations Control tree (items/ or workstreams/ with a matching id and a status that is not SUPERSEDED); the ownerReview prose remains the human-auditable detail. The 67 v1 entries were backfilled with their governing record ARCH-007 (every wave in this ledger — R8, R9, R10-B — executed under that item's owner-authorized program); no prose was altered.",
   "entries": [
     {
       "id": "R8-3-RULE-R7",
@@ -18,7 +18,8 @@
       "reason": "R8-3 adds boundary rule R7 (component->page forbidden class, R8-F-019): rule block, baseline list, stats field, and CLI summary. The file was already 2 nbLOC under the WATCH threshold at main (register section 7 documents it as watched-until-R8); the rule addition crosses it.",
       "authorization": {
         "ownerReview": "R8 PR review (WS-216/ARCH-007) — this entry is part of the R8 PR diff",
-        "trigger": "R8 execution prompt section 8, R8-3: the new rule must be measured and documented same-PR"
+        "trigger": "R8 execution prompt section 8, R8-3: the new rule must be measured and documented same-PR",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -36,7 +37,8 @@
       "reason": "the github-actions environment record anchored from the documented CI bootstrap (run 38046254527) adds the record block and the environment-convergence provenance note; the file is measurement data whose size tracks anchor provenance, and the growth is documented through this ledger entry rather than by excluding the file from scope mid-PR",
       "authorization": {
         "ownerReview": "R8 PR review (WS-216/ARCH-007) — part of the R8 PR diff",
-        "trigger": "R8-4 CI bootstrap anchoring per the R8-1 documented protocol"
+        "trigger": "R8-4 CI bootstrap anchoring per the R8-1 documented protocol",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -54,7 +56,8 @@
       "reason": "R8-N1 root-fix closure (owner decision FIX_NOW): duplicate precache URLs in the generated sw.js change from measured-and-reported to a hard fail-closed error (DUPLICATE_PRECACHE_URLS with the full duplicate list in the message) — failure-code table entry, the fail branch itself, and the dated header comment; the report-only console line and the duplicatePrecacheUrls normalization field are removed as dead paths. Guard strengthening only: no tolerance, ceiling, or baseline semantics touched.",
       "authorization": {
         "ownerReview": "R8-N1 continuation review (WS-216/ARCH-007) — owner classified R8-N1 as FIX_NOW; this entry is part of the R8 PR #345 diff",
-        "trigger": "R8-N1 root-fix continuation prompt: deterministic tests must fail if the duplicate condition returns; the guard must fail closed on malformed or unsafe output"
+        "trigger": "R8-N1 root-fix continuation prompt: deterministic tests must fail if the duplicate condition returns; the guard must fail closed on malformed or unsafe output",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -72,7 +75,8 @@
       "reason": "R9-GA-F1 root-fix (owner-authorized W2 recovery-defect boundary): replaceIndexedDbSnapshot was non-atomic on synchronous queueing failures — a put() throw (e.g. DataCloneError) escaped the Promise executor before the onerror/onabort handlers were attached, so the readwrite transaction auto-committed the already-queued clear()+put() requests and destroyed the previous state while the caller received an honest failure (proven experimentally on fake-indexeddb at Gate A). The fix wraps the queueing section in try/catch, calls a guarded transaction.abort() on throw, and rethrows the original error so the failure payload is byte-identical to today's contract. Growth = the try/catch scaffold + two dated header comment blocks; no behavior change on any success or async-failure path (regression proof: rollbackRehearsal.r9.test.ts leg 1 fails with the abort disabled, passes with it; legs 2-4 and the full storage/transfers suites green).",
       "authorization": {
         "ownerReview": "Owner-authorized R9 execution contract, section 9 (W2): root-fix of any current recovery defect found within the approved boundary; R9 repair card R9-GA-F1; Gate B storage reviewer design approval (abort-then-rethrow, guarded).",
-        "trigger": "R9-GA-F1 discovery during the authorized R9 W2 rollback rehearsals"
+        "trigger": "R9-GA-F1 discovery during the authorized R9 W2 rollback rehearsals",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -90,7 +94,8 @@
       "reason": "R9-GA-F3.1 + R9-W3-F1 root fix: the explicit four-phase read state machine (loading/ready/not-found/read-error) replaces the defective !entry/!message render guard that made the not-found surface unreachable on the success path and swallowed read failures into it; adds the read-error surface (ReceivedLoanDetail pattern: back button + actual message + retry) and the retry token, with the save() phase guard.",
       "authorization": {
         "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
-        "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)"
+        "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -108,7 +113,8 @@
       "reason": "R9-GA-F3.2 + R9-GA-F3.3 + R9-GA-F3.5 + R9-W3-F1 root fix: the same four-phase read state machine as the cash reversal editor (not-found reachable, read failures rendered with their actual message + retry), the successful-save exit switched from the undocumented hardcoded /inventory to the S1-07 return-path contract (navigate(returnPath)), and the form error paragraph role corrected to alert.",
       "authorization": {
         "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
-        "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)"
+        "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -126,7 +132,8 @@
       "reason": "R9-GA-F3.5 root fix: the form message paragraph is an actual error surface (validation gate or save failure) and is now announced with role=alert, matching the repo-wide micro-field-error convention.",
       "authorization": {
         "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
-        "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)"
+        "trigger": "R9 continuation execution prompt, Fix Groups A/B/D (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -144,7 +151,8 @@
       "reason": "R9-GA-F3.4 root fix: the idempotency key derivation serializes all eight persisted semantic inputs (direction, dueOn, amountMinor, source, note, knowledge, relatedOrderId, relatedEventId) through JSON with the frozen g5-ui: prefix — closing both the knowledge omission (a knowledge-differing correction was silently swallowed as reused) and the free-text colon-collision hole; schema/export versions untouched.",
       "authorization": {
         "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
-        "trigger": "R9 continuation execution prompt, Fix Group C (owner-authorized)"
+        "trigger": "R9 continuation execution prompt, Fix Group C (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -162,7 +170,8 @@
       "reason": "R9-GA-F7 root fix: every write-queueing onsuccess listener body (73 listeners across 37 commit methods) is hardened through the guardedSuccessListener wrapper with a per-method failFromListener (pending=failure(original error) then guarded transaction.abort()), so a synchronous throw inside a listener can no longer depend on engine abort-on-listener-throw semantics or lose the original error payload behind a replacement AbortError; also guards the one bare transaction.abort() in commitCashContinuity. Request order, transaction fingerprints, and all existing failure codes/messages unchanged.",
       "authorization": {
         "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
-        "trigger": "R9 continuation execution prompt, Fix Group E (owner-authorized)"
+        "trigger": "R9 continuation execution prompt, Fix Group E (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -180,7 +189,8 @@
       "reason": "R9-GA-F7 root fix (primitive): the writeOneIdempotent scan-success listener is wrapped in a try/catch that resolves the original error payload and then aborts the transaction guarded, mirroring the R9-GA-F1 shape for the listener phase.",
       "authorization": {
         "ownerReview": "R9 continuation owner mandate (PR #347 root-fix continuation, 2026-10-10) — this entry is part of the same PR diff",
-        "trigger": "R9 continuation execution prompt, Fix Group E (owner-authorized)"
+        "trigger": "R9 continuation execution prompt, Fix Group E (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -198,7 +208,8 @@
       "reason": "R9-GA-F3.6b: the mixed-tone single announcement element is split — the role now derives from the carried saveState.kind flag (ok => status, error => alert) instead of a fixed role=status that hid actual errors from assertive announcement.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -216,7 +227,8 @@
       "reason": "R9-GA-F3.7: explicit four-phase read state machine (loading/ready/not-found/read-error) replaces the old !wallet&&!message guard that produced infinite loading for an unknown wallet id and swallowed read failures into the not-found surface; the read-error surface follows the established ReceivedLoanDetail pattern (back button + role=alert + retry) and save() gains a phase guard.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -234,7 +246,8 @@
       "reason": "R9-GA-F3.6b: the message state carries its tone ({text, tone}) and the render splits the announcement — errors => micro-field-error + role=alert, info/success => micro-save-note + role=status; also role=alert on the page read-error paragraph.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -252,7 +265,8 @@
       "reason": "R9-GA-F3.6b + F3.6c: tone-carrying message state with the split announcement (errors alert, success/info status) replacing the string-prefix class sniffing; role=alert on the page read-error paragraph.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -270,7 +284,8 @@
       "reason": "R9-GA-F3.6a + F3.6b: the live validation-failure preview announces role=alert; the save message carries its tone with the split announcement.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -288,7 +303,8 @@
       "reason": "R9-GA-F3.6b: tone-carrying message state with the split announcement — the success message was previously rendered with the error class because it did not start with the sniffed prefixes.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -306,7 +322,8 @@
       "reason": "R9-GA-F3.6b + F3.6c: the notice announcement role derives from the carried tone (success => status, error => alert); role=alert on the page read-error paragraph.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -324,7 +341,8 @@
       "reason": "R9-GA-F3.6b + F3.6c: tone-carrying message state with the split announcement; role=alert on the page read-error paragraph.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -342,7 +360,8 @@
       "reason": "R9-GA-F3.7: explicit read state machine (loading/read-error/ready) replaces the loaded gate that left edit mode in infinite loading whenever readDetail failed (including unknown series ids); the read-error surface renders the actual service message with role=alert + retry, and save() gains a phase guard.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -360,7 +379,8 @@
       "reason": "R9-GA-F3.6b: both message states (capacity + template) carry their tones with split announcements — the info message «أُزيلت السعة اليومية.» was previously announced assertively as an error because of prefix sniffing; also role=alert on the page read-error paragraph.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -378,7 +398,8 @@
       "reason": "R9-GA-F3.7: the collapsed error||not-found branch is split into explicit phases — not_found renders the existing surface, other read failures render their actual message with role=alert + retry (the error message was previously discarded); the band moves to WATCH with this documented reorganization, same-PR.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -396,7 +417,8 @@
       "reason": "R9-GA-F3.7: the RecurringExpenseEditor at-rest cap is re-measured 33 -> 34 with the dated provenance comment (the explicit read state machine adds the honest read-error retry label); the golden fixture regenerated byte-identically through the official characterization path.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group A (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -414,7 +436,8 @@
       "reason": "R9-GA-G5.1: the legacy-key semantic bridge in createDeclaration — after the exact-key miss, an eight-field semantic comparison (direction, dueOn, amountMinor, source, note, knowledge, relatedOrderId, relatedEventId) reuses a stored declaration whose key format differs (pre-F3.4 records), closing the cross-format retry-duplication hole without any schema/export/import change.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group B (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group B (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -432,7 +455,8 @@
       "reason": "R9-GA-G5.2: the contribution-mix grouping key becomes a collision-free JSON array key instead of free-text '::' concatenation (a crafted itemName containing '::' could merge distinct name/unit pairs in the mix display); grouping semantics unchanged for non-colliding inputs.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group B (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group B (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -450,7 +474,8 @@
       "reason": "R9-GA-F7.1 (covering this PR's full drift for the file — chains over R9-GA-F7-ROOT-FIX-PRIMITIVE 106->120 from the first continuation): the writeOneIdempotent listener hardening (first continuation) and the listAll read-path guard (this continuation — an in-body try/catch settling a sort-comparator throw as an honest StorageResult failure with the original error instead of an unresolved promise) bring the file 106 -> 132.",
       "authorization": {
         "ownerReview": "R9 systemic continuation owner mandate (PR #347, R9-ZAI-SYSTEMIC-ROOT-FIX-AND-EVIDENCE-CLOSURE-PROMPT-2026-10-11) — this entry is part of the same PR diff",
-        "trigger": "R9 systemic continuation execution prompt, Group C (owner-authorized)"
+        "trigger": "R9 systemic continuation execution prompt, Group C (owner-authorized)",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -468,7 +493,8 @@
       "reason": "Root fix for the post-merge control defect: a long-lived main-branch program claim with no open PR keeps base_sha as its claim-base snapshot, while code branches and open-PR claims retain live drift warnings. The explicit predicate and documentation-grade explanation prevent every later documentation-only merge from creating a false reconciliation loop.",
       "authorization": {
         "ownerReview": "R9 post-merge control correction review in PR #350; owner merge authorization remains separate and explicit",
-        "trigger": "Final post-merge verification after PR #349 exposed base_sha self-drift; validator regression requires the snapshot-only main claim rule"
+        "trigger": "Final post-merge verification after PR #349 exposed base_sha self-drift; validator regression requires the snapshot-only main claim rule",
+        "ocRef": "ARCH-007"
       }
     },
     {
@@ -486,7 +512,863 @@
       "reason": "Regression coverage for the base_sha policy: a main-branch program claim with pr=null is snapshot-only, while assigning a PR makes it an active branch claim again. The test prevents future validator changes from reintroducing false current-main drift or suppressing drift for real open-PR work.",
       "authorization": {
         "ownerReview": "R9 post-merge control correction review in PR #350; owner merge authorization remains separate and explicit",
-        "trigger": "Required regression proof for the validator root fix; no production or financial behavior is changed"
+        "trigger": "Required regression proof for the validator root fix; no production or financial behavior is changed",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B1-F036-GENERATOR-COMMENT",
+      "date": "2026-10-11",
+      "path": "scripts/operations-control/generate_tracker.py",
+      "from": {
+        "nbLoc": 195,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 199,
+        "band": "NORMAL"
+      },
+      "reason": "F-036 root-fix disclosure: a 4-line comment block documents why backtick escaping was removed from md_cell (GFM table cells are pipe-delimited before inline parsing; the branch column intentionally renders code spans) so the fix cannot be silently reverted. The nbLOC growth is comment-only; the executable change itself (the removed .replace) is the disclosed F-036 fix.",
+      "authorization": {
+        "ownerReview": "R10-B1 five-reviewer wave gate (RV1-RV4 at wave head; RV5 hostile pass at the gate-fix head 5d2cb29a) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Guard-semantic fix disclosure requirement (AGENTS 10.143 double-diff principle applied to guard-adjacent scripts); no production or financial behavior is changed",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B1-F036-TEST-EXPECTATION",
+      "date": "2026-10-11",
+      "path": "scripts/operations-control/test_operations_control.py",
+      "from": {
+        "nbLoc": 99,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 106,
+        "band": "NORMAL"
+      },
+      "reason": "F-036 test-contract update: the markdown-cell test now pins the corrected rendering (backtick preserved, pipe escaped, newline converted) with a 2-line comment recording the R10-B1 date and rationale, so the old escaped-backtick expectation cannot be reintroduced silently. Chains over R9-CONTROL-BASE-SNAPSHOT-TEST (99->104) in the same PR window: from-baseline 99 -> 106.",
+      "authorization": {
+        "ownerReview": "R10-B1 five-reviewer wave gate (RV1-RV4 at wave head; RV5 hostile pass at the gate-fix head 5d2cb29a) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Required test update for the F-036 root fix; the test asserts the fix and fails under the old behavior",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "date": "2026-10-11",
+      "authorization": {
+        "ownerReview": "R10-B2 five-reviewer wave gate (RV1-RV4 at wave head; RV5 hostile pass at gate-fix head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved RC-1/F-009 root fix (B2 wave): the 4 owner-money families enter the strict export counts and the current-pair raw-array gate; no financial meaning or rejection semantics change beyond the approved card",
+        "ocRef": "ARCH-007"
+      },
+      "id": "R10B-B2-RC1-SERVICE-RAW-GATE",
+      "path": "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+      "from": {
+        "nbLoc": 306,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 315,
+        "band": "NORMAL"
+      },
+      "reason": "RC-1 raw-array gate wiring: prepareImport now calls verifyTransferArrayFamilies(candidate.data, isCurrent) after integrity and before migration (+9 lines call + dated rationale comment). Closes the re-seal laundering chain (R10A-F-009 exploit) — see localTransferService.rc1Gate.test.ts."
+    },
+    {
+      "date": "2026-10-11",
+      "authorization": {
+        "ownerReview": "R10-B2 five-reviewer wave gate (RV1-RV4 at wave head; RV5 hostile pass at gate-fix head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved RC-1/F-009 root fix (B2 wave): the 4 owner-money families enter the strict export counts and the current-pair raw-array gate; no financial meaning or rejection semantics change beyond the approved card",
+        "ocRef": "ARCH-007"
+      },
+      "id": "R10B-B2-RC1-COUNTERS-OWNER-FAMILIES",
+      "path": "apps/prototype-web/client/src/application/transfers/transferCounters.ts",
+      "from": {
+        "nbLoc": 62,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 70,
+        "band": "NORMAL"
+      },
+      "reason": "RC-1 count extension: the 4 owner-money families (ownerEntitlementPolicies/Records/OpeningBalances, ownerMovements) enter exportCountsOf with a dated comment; additive count keys only — export version stays 30 (OD-8 minimal scope; registry: transferArrayFamilyRoles.ts)."
+    },
+    {
+      "date": "2026-10-11",
+      "authorization": {
+        "ownerReview": "R10-B2 five-reviewer wave gate (RV1-RV4 at wave head; RV5 hostile pass at gate-fix head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved RC-1/F-009 root fix (B2 wave): the 4 owner-money families enter the strict export counts and the current-pair raw-array gate; no financial meaning or rejection semantics change beyond the approved card",
+        "ocRef": "ARCH-007"
+      },
+      "id": "R10B-B2-F010-SYNCSHA256-DOCS",
+      "path": "apps/prototype-web/client/src/lib/syncSha256.ts",
+      "from": {
+        "nbLoc": 112,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 125,
+        "band": "NORMAL"
+      },
+      "reason": "F-010 dated documentation block: the CESU-8 lone-surrogate latent deviation and its unreachability analysis (JSON.stringify never emits raw lone surrogates) + pointer to the new independent-oracle test syncSha256.oracle.test.ts (FIPS 180-4 vectors + node:crypto cross-check). Comment-only growth."
+    },
+    {
+      "date": "2026-10-11",
+      "authorization": {
+        "ownerReview": "R10-B2 five-reviewer wave gate (RV1-RV4 at wave head; RV5 hostile pass at gate-fix head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved RC-1/F-009 root fix (B2 wave): the 4 owner-money families enter the strict export counts and the current-pair raw-array gate; no financial meaning or rejection semantics change beyond the approved card",
+        "ocRef": "ARCH-007"
+      },
+      "id": "R10B-B2-RC1-TYPES-COUNT-KEYS",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 884,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "RC-1 type surface: LocalExportCounts gains the 4 owner-family count keys (additive; pair stays 38/30) with a dated comment. The file remains SPLIT_CANDIDATE-band with no band change; growth is the approved card's enumerated surface."
+    },
+    {
+      "id": "R10B-B2-RV1-GATE-ANNOTATION",
+      "date": "2026-10-11",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts",
+      "from": {
+        "nbLoc": 1192,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1197,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R10-B2 five-reviewer gate amendment (RV1/D8): a dated 5-line annotation on validateSnapshot declaring transferArrayFamilyRoles.ts the canonical family-rule registry and this post-migration top-level gate a defense-in-depth belt (not the first rejection path). Comment-only growth; no band change.",
+      "authorization": {
+        "ownerReview": "R10-B2 five-reviewer wave gate (RV1 FAIL -> amendments applied; RV2-RV5 to follow on the gate-fix head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Reviewer-required source-of-truth annotation; no production or financial behavior is changed",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-F004-HOOK-REEXPORT",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/app/useDisabledCapabilities.ts",
+      "from": {
+        "nbLoc": 36,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 39,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-004: the local CapabilityId union is deleted and re-exported from the canonical owner (application/preferences door) with a dated comment; type-only change, zero runtime delta.",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-F012-ASSET-ID-GUARD",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/application/assets/assetService.ts",
+      "from": {
+        "nbLoc": 501,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 505,
+        "band": "WATCH"
+      },
+      "reason": "R10A-F-012 + R10B-NF-006: newId gains the established optional-chain insecure-context guard (globalThis.crypto?.randomUUID?.() ?? deterministic-unique fallback) + dated comment; secure-path ids byte-identical, creation no longer throws TypeError on non-secure origins.",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-NF001-FINANCE-DOOR",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/application/finance/index.ts",
+      "from": {
+        "nbLoc": 64,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 72,
+        "band": "NORMAL"
+      },
+      "reason": "R10B-NF-001: the finance door exports the payment-source policy surface consumed by the UI (PAYMENT_SOURCE_UNSET, resolveDefaultPaymentSource) from its canonical owner paymentSourcePolicy.ts, closing the STR-615/R6 deep-import edge from components/finance; door baseline updated same-PR (PC-3).",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-F012-DEPOSIT-ID-GUARD",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/application/financial-records/retainedDepositService.ts",
+      "from": {
+        "nbLoc": 248,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 252,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-012 + R10B-NF-006: newId gains the established optional-chain insecure-context guard + dated comment; classification decisions no longer throw TypeError on non-secure origins.",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-RC2-WASTE-CONTEXT",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/application/inventory/inventoryMovementEditorModel.ts",
+      "from": {
+        "nbLoc": 136,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 137,
+        "band": "NORMAL"
+      },
+      "reason": "RC-2 / R10A-F-003: the locally re-declared WasteContext union is deleted and imported from the domain owner (type-only, sanctioned direction) with a dated comment; sibling inventoryMaterialModel.ts already used this pattern.",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-F012-LOAN-ID-GUARD",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/application/loans/loanService.ts",
+      "from": {
+        "nbLoc": 289,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 293,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-012 + R10B-NF-006: newId gains the established optional-chain insecure-context guard + dated comment; loan creation no longer throws TypeError on non-secure origins.",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-F012-RLOAN-ID-GUARD",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/application/loans/receivedLoanService.ts",
+      "from": {
+        "nbLoc": 311,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 315,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-012 + R10B-NF-006: newId gains the established optional-chain insecure-context guard + dated comment; received-loan creation no longer throws TypeError on non-secure origins.",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-NF003-F004-PREF-DOOR",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/application/preferences/index.ts",
+      "from": {
+        "nbLoc": 12,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 21,
+        "band": "NORMAL"
+      },
+      "reason": "R10B-NF-003 + R10A-F-004: the preferences door exports ThemePreference (canonical type after deleting the ThemeContext re-declaration) and CapabilityId + isKnownCapabilityId (canonical capability-id narrowing replacing unsound casts); door baseline updated same-PR (PC-3).",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-F004-CANONICAL-IDS",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/application/preferences/preferenceService.ts",
+      "from": {
+        "nbLoc": 164,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 177,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-004: the single canonical CapabilityId declaration (CAPABILITY_IDS const + type + isKnownCapabilityId guard) moves to the persistence owner with a dated comment; the persisted list stays honestly string[] at the service and narrowing happens at consumers.",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-NF001-EXPENSE-MODEL",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/components/finance/expenseFormModel.ts",
+      "from": {
+        "nbLoc": 77,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 80,
+        "band": "NORMAL"
+      },
+      "reason": "R10B-NF-001: the sentinel constant and the default-source rule delegate to the canonical owner via the finance door (EXPENSE_SOURCE_UNSET re-export + defaultExpenseSource re-export); the duplicated local copies are deleted.",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-F004-SETTINGS-NARROWING",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/components/settings/SettingsCapabilitiesSection.tsx",
+      "from": {
+        "nbLoc": 197,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 201,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-004: the third local CapabilityId re-declaration is deleted (import from the preferences door) and the two `as CapabilityId[]` unsound casts become explicit .filter(isKnownCapabilityId) narrowing; identical rendered behavior for known ids.",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-NF003-THEME-TYPE",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/contexts/ThemeContext.tsx",
+      "from": {
+        "nbLoc": 72,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 75,
+        "band": "NORMAL"
+      },
+      "reason": "R10B-NF-003: the local ThemePreference re-declaration is deleted in favor of a type-only import from the preferences door with a dated comment; structurally identical today, single source going forward.",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-NF036-F011-MEMORY-GUARDS",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+      "from": {
+        "nbLoc": 2087,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 2123,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "R10B-NF-036 + R10A-F-011: the Memory adapter gains the reversal-source guards it lacked (no reversal-of-reversal; correction/replacement data must mirror the source — inline checks mirroring the IndexedDB reference) with the message literals imported from the shared financialEventCorrectionMessages module (resultCodes pattern), and its private RECURRENCE_STALE_MESSAGE duplicate becomes an import of the canonical export. Test-only adapter in the production bundle graph is unaffected at runtime; parity pinned by adapterConformance.messageIdentity.",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-DOOR-BASELINE",
+      "date": "2026-10-12",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 365,
+        "band": "NORMAL"
+      },
+      "reason": "R10-B3 documented door-surface updates (PC-3): preferences door +ThemePreference +CapabilityId +isKnownCapabilityId; finance door +PAYMENT_SOURCE_UNSET +resolveDefaultPaymentSource; inventory door +materialUnitLabel; four dated notes added. Measurement data tracks the documented surface changes of this wave.",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-NF002-INVENTORY-DOOR",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/application/inventory/index.ts",
+      "from": {
+        "nbLoc": 28,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 32,
+        "band": "NORMAL"
+      },
+      "reason": "R10B-NF-002: the inventory door exports materialUnitLabel from its canonical house module materialUnitLabels.ts (the single Arabic MaterialUnit display mapping after deleting six per-surface copies); the four UI pages import through the door per STR-615/R6; door baseline updated same-PR (PC-3).",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B3-NF036-IDB-MESSAGES",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+      "from": {
+        "nbLoc": 4391,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 4399,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "R10B-NF-036: the four reversal-message literals in the correction/replacement commit paths reference the shared financialEventCorrectionMessages constants (resultCodes pattern — single source for the drift-prone literals); the checks themselves stay inline and byte-identical in behavior. The shared-guard-function alternative was measured first and cost +129 entry gzip against the protected 155,300 ceiling, so the constants-only form was adopted.",
+      "authorization": {
+        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-F016-ERRORBOUNDARY",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/components/ErrorBoundary.tsx",
+      "from": {
+        "nbLoc": 80,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 88,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-016/RC-3: the componentDidUpdate hasError-transition moves focus into the fallback when a child re-render crashes after a healthy mount (option A from RV3); mount path unchanged.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-F018-FIELD",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/components/primitives/Field.tsx",
+      "from": {
+        "nbLoc": 62,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 65,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-017: the field-error paragraph joins the unified assertiveness rule (role=alert, was status) with the rule documented in the header; R10A-F-018 rode the same edit (StateMarker marker prop).",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-F017-NOTICE",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/components/primitives/Notice.tsx",
+      "from": {
+        "nbLoc": 91,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 97,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-017: InlineError joins the unified assertiveness rule (role=alert) with the rule documented in the header; R10A-F-018: the dead markerRole prop (zero consumers, would leak to DOM via rest) removed in the same file.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-F018-MARKERS",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/components/primitives/markers.tsx",
+      "from": {
+        "nbLoc": 36,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 41,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-018: API-honesty rename with a dated comment — the prop is marker (icon kind), never a role; every output stays aria-hidden decorative. Zero behavior change.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-NF016-AGREEMENT",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/pages/AgreementEditor.tsx",
+      "from": {
+        "nbLoc": 652,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 686,
+        "band": "WATCH"
+      },
+      "reason": "R10B-NF-016: the explicit read state machine replaces the merged error branch — read failures render the actual message with role=alert + retry + lawful exit (R9-GA-F3.7 pattern); cost-unavailable keeps its distinct surface. Density cap 63->65 documented in text_density_policy.py.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-SUPPLIER-PAGE",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/pages/SupplierPurchaseEditor.tsx",
+      "from": {
+        "nbLoc": 1176,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1178,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R10A-F-021: editPreview/reversalPreview consume the domain preview kernels (previewSupplierPurchaseEdit/previewSupplierPurchasePaymentReversal) — the highest-drift mirror family replaced by imports; net growth is the import block.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-F018-STATEADAPTER",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/presentation/stateAdapter.ts",
+      "from": {
+        "nbLoc": 149,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 151,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-018: the misnomer chain renamed — type StateMarkerRole->StateMarkerKind, field markerRole->markerKind, with the dated honesty note; mapping values unchanged.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-BOUNDARIES",
+      "date": "2026-10-12",
+      "path": "scripts/check-module-boundaries.mjs",
+      "from": {
+        "nbLoc": 431,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "reason": "R10A-F-021: the two new UI->domain value edges (OrderDepositPanels->craft-order, SupplierPurchaseEditor->supplier-purchase) registered in the ratchet baseline same-PR with a dated comment — the established knowledgeGapsOf/residualOf pattern.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-F020-TESTMAP",
+      "date": "2026-10-12",
+      "path": "scripts/generate-test-map.mjs",
+      "from": {
+        "nbLoc": 291,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 309,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-020: name-mention matching is now precise (exported countsAsNameMention: word-boundary, no identifier substrings, no path literals) — the false-positive class eliminated with a documented helper.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-NF016-DENSITY",
+      "date": "2026-10-12",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 864,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R10B-NF-016: AgreementEditor cap 63->65 via the file's own dated-growth protocol (4 precedents on this page): +2 at-rest strings (retry + back labels) for the canonical read-error surface; the not-found prose is a moment-of-action message.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-CRAFT-INDEX",
+      "date": "2026-10-12",
+      "path": "src/domain/craft-order/index.ts",
+      "from": {
+        "nbLoc": 52,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 61,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-021: the four deposit read-only derivations exported from the barrel with a dated comment (consumed by the order chunk, not the entry bundle).",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-CRAFT-POLICIES",
+      "date": "2026-10-12",
+      "path": "src/domain/craft-order/policies.ts",
+      "from": {
+        "nbLoc": 1413,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1441,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "R10A-F-021: standingDepositMinorOf/pendingDepositSettlementMinorOf/unclassifiedRetainedDepositMinorOf/cancelledDepositProposalOf — read-only derivations reading the canonical retainedDepositMinor/classifiedSumsOf (legacy backward-compat included); no write path touched.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-SUPPLIER-POLICIES",
+      "date": "2026-10-12",
+      "path": "src/domain/supplier-purchase/policies.ts",
+      "from": {
+        "nbLoc": 281,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 302,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-021: previewSupplierPurchaseEdit/previewSupplierPurchasePaymentReversal reusing paidAfterEditFor/effectivePaid verbatim; paidAfterEditFor widened to the fields it reads (initialPaidMinor).",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-DEPOSITPANELS",
+      "date": "2026-10-12",
+      "path": "apps/prototype-web/client/src/components/orders/OrderDepositPanels.tsx",
+      "from": {
+        "nbLoc": 523,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 527,
+        "band": "WATCH"
+      },
+      "reason": "R10A-F-021: the seven deposit mirror lines replaced by the four domain derivations (standingDepositMinorOf/pendingDepositSettlementMinorOf/unclassifiedRetainedDepositMinorOf/cancelledDepositProposalOf) with dated comments; net growth is the import block + comments after canonical formatting.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-F021-SUPPLIER-INDEX",
+      "date": "2026-10-12",
+      "path": "src/domain/supplier-purchase/index.ts",
+      "from": {
+        "nbLoc": 2,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 5,
+        "band": "NORMAL"
+      },
+      "reason": "R10A-F-021: the barrel re-exports the read-only purchase preview derivations from the sibling module previewDerivations.ts (bundled with its lazy consumer, not the entry); dated comment documents the chunk-allocation intent.",
+      "authorization": {
+        "ownerReview": "R10-B4 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-approved R10-B4 wave (canonical prompt section 7, Wave B4): runtime semantics, UI boundaries, and journey coverage; no visual/CSS/copy/navigation change, no financial meaning, schema, export, rejection-semantics change",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-OD12-ROUTECLASSIFIER-PATHNAMEONLY",
+      "date": "2026-10-13",
+      "path": "apps/prototype-web/client/src/app/routeClassifier.ts",
+      "from": {
+        "nbLoc": 80,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 82,
+        "band": "NORMAL"
+      },
+      "reason": "R10-B4/OD-12 (owner-accepted 2026-10-13): pathnameOnly exported as the single owner of bare-pathname derivation (the shell now imports it instead of repeating the split idiom inline) — a 2-line dated comment + export keyword; zero behavior change.",
+      "authorization": {
+        "ownerReview": "Owner OD-12 acceptance in the R10-B continuation directive (2026-10-13): centralized route-transition focus management + per-route document.title as a complementary B4 commit; five-reviewer gate on the OD-12 slice + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-accepted OD-12 (canonical prompt section 11 protected decision, accepted in the 2026-10-13 continuation message)",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B4-OD12-SHELL-ROUTE-TRANSITION",
+      "date": "2026-10-13",
+      "path": "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx",
+      "from": {
+        "nbLoc": 93,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 119,
+        "band": "NORMAL"
+      },
+      "reason": "R10-B4/OD-12 (owner-accepted 2026-10-13): the single centralized route-transition system — a module-level stable ref callback receiving focus on main at every route remount (RC-3 pattern, preventScroll preserves scroll behavior) + one effect deriving document.title from the canonical navigation label; entry measured +89 raw/+33 gzip (631,721/155,222 local; CI band 155,280-155,291) under the untouched 650,000/155,300 ceilings; brand-suffix title form measured (+64 gzip) and rejected under the ceiling.",
+      "authorization": {
+        "ownerReview": "Owner OD-12 acceptance in the R10-B continuation directive (2026-10-13): one centralized system-wide route-transition design based on the canonical router/navigation source, not scattered per-page patches or a second route registry; behavioral tests for focused-element identity, route titles, direct entry, normal navigation, back/forward + negative proof; five-reviewer gate on the OD-12 slice + owner review of PR #356; owner merge authorization remains separate and explicit",
+        "trigger": "Owner-accepted OD-12 (canonical prompt section 11 protected decision, accepted in the 2026-10-13 continuation message)",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B5-F027-SECRETS-FAMILIES",
+      "date": "2026-10-13",
+      "path": "scripts/check-secrets.mjs",
+      "from": {
+        "nbLoc": 152,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 204,
+        "band": "NORMAL"
+      },
+      "reason": "R10-B5/F-027 (W0 RV4-N6 + the W0-enumerated six families): scanContent iterates ALL matches per pattern via a fresh /g clone (multi-occurrence inventory instead of first-match-per-family underreport) and six new high-precision secret families join SECRET_PATTERNS (stripe sk_live_, anthropic sk-ant-, gitlab glpat-, three-segment JWT, context-anchored AWS secret access key, db URLs with embedded user:pass@ credentials), each with runtime-built fake fixtures, precision near-miss negatives (incl. the 40-hex git-SHA case that forbids a bare base64 pattern in this repository), multi-hit CLI/tree tests, and the documented limits block in the header (working tree only per R10B-NF-025, no entropy scan by design, identifier-context requirement for AWS, no-password URLs are not secrets).",
+      "authorization": {
+        "ownerReview": "R10-B W0 owner-approved 54-item B1-B5 FIX_NOW backlog (matrix disposition FIX_NOW; repair cards wave R10-B5 line: F-027 +RV4-N6 multi-match) — executed on PR #356 under the ARCH-007/WS-216 governance",
+        "trigger": "R10-B execution prompt section 7 wave B5 scope; canonical matrix record R10A-F-027 required_behavior",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B5-F028-RATCHET-CI-SEMANTICS-AUTH",
+      "date": "2026-10-13",
+      "path": "scripts/check-file-size-ratchet.mjs",
+      "from": {
+        "nbLoc": 391,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 553,
+        "band": "WATCH"
+      },
+      "reason": "R10-B5/F-028+NF-021 (W0 RV4-N2): three connected tightenings — (1) unified CI marker vocabulary (CI_MARKER_KEYS/ciMarkerPresent, the same 7 keys the surfaces guard scans) so CI='1' is CI here too instead of warn-local while the surfaces guard rejects it; (2) explicit direct-main drift policy: when merge-base == HEAD (push-to-main/merge/local-main) the vacuous audit is replaced by a full parent HEAD~1 audit with an explicit policy note (root commit = documented first establishment); (3) reanchor ledger schema v2 with machine-verifiable authorization — every entry's authorization.ocRef must resolve against the live Operations Control tree (items/ or workstreams/, matching id, status not SUPERSEDED) or the whole ledger fails closed; ledgerCovers additionally requires the structural ocRef; CLI reports the resolved authorization count. New exports: CI_MARKER_KEYS, ciMarkerPresent, resolveOcRef, resolveHead, REANCHOR_SCHEMA_V1/V2.",
+      "authorization": {
+        "ownerReview": "R10-B W0 owner-approved 54-item B1-B5 FIX_NOW backlog (matrix disposition FIX_NOW; repair cards wave R10-B5 line: F-028 + NF-021 CI-semantics unification + direct-main drift policy + machine-verifiable authorization) — executed on PR #356 under the ARCH-007/WS-216 governance",
+        "trigger": "R10-B execution prompt section 7 wave B5 scope; canonical matrix records R10A-F-028 and R10B-NF-021 required_behavior",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B5-NF021-SURFACES-CI-VOCABULARY",
+      "date": "2026-10-13",
+      "path": "apps/prototype-web/scripts/check-bundle-surfaces.mjs",
+      "from": {
+        "nbLoc": 467,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 487,
+        "band": "WATCH"
+      },
+      "reason": "R10-B5/NF-021 (F-028 sibling): detectEnvironment now scans the unified CI_MARKER_KEYS vocabulary (same 7 keys as the ratchet's ciMarkerPresent — exported here as CI_MARKER_KEYS with a cross-reference) instead of a private 4-key list: a non-standard value of a known marker (GITHUB_ACTIONS='weird') is now unknown-CI (fail-closed) instead of silently local, and CF_PAGES_COMMIT_SHA='false' is a conscious opt-out like every other marker (a SHA field can never be the literal 'false'). The cross-guard agreement is machine-enforced by scripts/check-ci-semantics-conformance.test.mjs (local <=> no marker; any non-local verdict => marker present). Identity order (CF -> Actions -> local) and all baseline/tolerance logic unchanged.",
+      "authorization": {
+        "ownerReview": "R10-B W0 owner-approved 54-item B1-B5 FIX_NOW backlog (matrix disposition FIX_NOW; repair cards wave R10-B5 line: F-028 + NF-021 CI-semantics unification + direct-main drift policy + machine-verifiable authorization) — executed on PR #356 under the ARCH-007/WS-216 governance",
+        "trigger": "R10-B execution prompt section 7 wave B5 scope; canonical matrix records R10A-F-028 and R10B-NF-021 required_behavior",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-B5-NF024-NF026-TEST-FOCUS-VOCABULARY",
+      "date": "2026-10-13",
+      "path": "scripts/check-test-focus.mjs",
+      "from": {
+        "nbLoc": 137,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 162,
+        "band": "NORMAL"
+      },
+      "reason": "R10-B5/NF-024+NF-026 (W0 RV4): the test-focus guard's vocabulary extends to the two unguarded disabling paths — .fails( joins the vitest focus alternation (expected-failure buries a live regression exactly like skip), and Python test files (test_*.py / *_test.py under the approved roots) are collected and scanned with PY_SKIP_REGEX covering @unittest.skip/@skipIf/@skipUnless, the prefix-less imports, @pytest.mark.skip/skipif/xfail, and self.skipTest( calls; non-test Python tools are not scanned; CLI messages updated. +3 tests (fails modifier, python skip vocabulary with exact lines, clean-python/non-test-tool silence) and the live smoke asserts the JS+Python census.",
+      "authorization": {
+        "ownerReview": "R10-B W0 owner-approved 54-item B1-B5 FIX_NOW backlog (matrix disposition FIX_NOW; repair cards wave R10-B5 line: NF-024 + NF-026 test-focus Python + .fails() — executed on PR #356 under the ARCH-007/WS-216 governance",
+        "trigger": "R10-B execution prompt section 7 wave B5 scope; canonical matrix records R10B-NF-024 and R10B-NF-026 required_behavior",
+        "ocRef": "ARCH-007"
+      }
+    },
+    {
+      "id": "R10B-D1-IDENTITY-CARRIER",
+      "date": "2026-10-13",
+      "path": "apps/prototype-web/client/src/application/identity/buildIdentity.ts",
+      "from": {
+        "nbLoc": 32,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 48,
+        "band": "NORMAL"
+      },
+      "reason": "OD-14=D1 root fix (R10B-NF-038, owner-approved): the identity bridge drops the injected-define declaration and becomes a guarded one-shot DOM carrier read (meta tag in index.html) coerced by the unchanged resolveAppIdentity contract — the rewritten doc-contract header, the exported carrier-name constant, the structural DOM types, and the guarded read replace the old injectedIdentity shape. Both consumers (Export 30 appVersion, diagnostics) and the honest micro-local-dev fallback are untouched; the entry becomes identity-invariant (30-draw proof).",
+      "authorization": {
+        "ownerReview": "OD-14=D1 owner-approved root fix — part of the R10-B PR #356 diff (code commit 0a829bf6)",
+        "trigger": "R10-B-D1-OD14-OD9-NF020-B6-EXECUTION-PROMPT-2026-10-13 Phase 1: D1 touches the existing identity bridge/getter module; in-band growth gets a ledger entry",
+        "ocRef": "ARCH-007"
       }
     }
   ]

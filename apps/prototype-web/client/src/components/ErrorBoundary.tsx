@@ -1,8 +1,7 @@
 /** Micro design reminder: recovery states are calm, Arabic, and explicit about the next action. */
 import { AlertTriangle, RotateCcw } from "lucide-react";
-import { Component, createRef, type ReactNode } from "react";
-import { localDiagnostics } from "@/application/diagnostics";
-import { routeTemplateFor } from "@/application/diagnostics";
+import { Component, type ReactNode } from "react";
+import { localDiagnostics, routeTemplateFor } from "@/application/diagnostics";
 
 import { Button } from "@/components/primitives";
 interface Props {
@@ -16,16 +15,20 @@ interface State {
 }
 class ErrorBoundary extends Component<Props, State> {
   /* التحصين الكامل (المجموعة ٣): السقوط يُعلن صوتيًا ويستقبل التركيز —
-   * لا Stack Trace ولا تفاصيل داخلية تظهر للمستخدم (خصوصية كاملة). */
-  private readonly headingRef = createRef<HTMLHeadingElement>();
+   * لا Stack Trace ولا تفاصيل داخلية تظهر للمستخدم (خصوصية كاملة).
+   * R10-B4/RC-3 (F-016): استقبال التركيز عبر مرجع-ردّ ثابت على العنوان
+   * القابل للتوجيه — يشتعل عند تركيب البديل نفسه فيغطي مسارَي السقوط
+   * معًا (وقت التركيب وبعده) بلا دورتَي حياة؛ وثبات هوية الردّ يمنع
+   * إعادة الاشتعال عند وصول معرّف الحادثة (لا سرقة تركيز — تحليل RV3
+   * للخيارات الثلاثة)، وفشل المسجّل لا يمنعه ولا يمسّه. */
+  private readonly focusHeading = (heading: HTMLHeadingElement | null): void => {
+    heading?.focus();
+  };
   /* المجموعة ٥: حارس التكرار — حادثة واحدة لكل سقوط مهما أُعيد النداء. */
   private recordedIncident = false;
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, incidentId: null };
-  }
-  componentDidMount() {
-    if (this.state.hasError) this.headingRef.current?.focus();
   }
   static getDerivedStateFromError(): State {
     return { hasError: true, incidentId: null };
@@ -59,7 +62,7 @@ class ErrorBoundary extends Component<Props, State> {
             <AlertTriangle aria-hidden="true" />
           </span>
           <span className="micro-overline">تعذر فتح هذا السطح</span>
-          <h1 tabIndex={-1} ref={this.headingRef}>
+          <h1 tabIndex={-1} ref={this.focusHeading}>
             لم يتم تغيير بياناتك
           </h1>
           <p>أعد فتح التطبيق. إذا تكرر الأمر لاحقًا، ستتمكن من تصدير بياناتك المحلية قبل أي إعادة ضبط.</p>

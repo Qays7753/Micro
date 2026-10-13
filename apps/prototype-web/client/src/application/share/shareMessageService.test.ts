@@ -3,8 +3,9 @@
  * للمتابعة»، والمعكوس لا يبقى تحصيلًا قائمًا، والبناء حتمي بلا تكرار، ونصوص
  * بلا هامش ولا تكلفة ولا معرفات داخلية. */
 import { describe, expect, it } from "vitest";
+import type { StoredCraftOrder } from "@/storage/local/types";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
-import type { OrderEvent } from "@micro-domain/craft-order/index.js";
+import type { CraftOrder, OrderEvent } from "@micro-domain/craft-order/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import {
   collectionShareDraft,
@@ -17,8 +18,9 @@ import {
 
 const NOW = "2026-09-05T09:00:00.000Z";
 
-function buildStored(overrides: Record<string, unknown> = {}) {
+function buildStored(): StoredCraftOrder {
   const cost = calculateCostSnapshot("cost-1", {
+    source: "draft",
     currency: "JOD",
     materialItems: [],
     time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },
@@ -30,7 +32,7 @@ function buildStored(overrides: Record<string, unknown> = {}) {
     createdAt: NOW,
     freshnessDays: null,
   });
-  const order = {
+  const order: CraftOrder = {
     ...createCraftOrder({
       id: "order-1",
       customerName: "أم خالد",
@@ -44,8 +46,8 @@ function buildStored(overrides: Record<string, unknown> = {}) {
     depositCollectedMinor: 3000,
     collectedMinor: 5000,
     receivableMinor: 10000,
-    status: "in_progress" as const,
-    settlementStatus: "partial" as const,
+    status: "in_progress",
+    settlementStatus: "partially_paid",
   };
   return {
     id: "order-1",
@@ -55,7 +57,6 @@ function buildStored(overrides: Record<string, unknown> = {}) {
     agreementSource: null,
     createdAt: NOW,
     updatedAt: NOW,
-    ...overrides,
   };
 }
 

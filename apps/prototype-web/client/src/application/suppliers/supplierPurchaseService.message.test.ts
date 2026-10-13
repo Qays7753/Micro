@@ -32,14 +32,19 @@ async function seededPurchaseWithReceipt() {
    * receivedValueMinor — حركات purchase_receipt لا الدفعات). */
   const snapshot = await store.readSnapshot();
   if (!snapshot.ok) return { store, service, created };
+  const seededMovements = snapshot.value.inventoryMovements;
+  if (!seededMovements) throw new Error("expected the inventory movements family in the snapshot");
   await store.replaceSnapshot({
     ...snapshot.value,
     inventoryMovements: [
-      ...snapshot.value.inventoryMovements,
+      ...seededMovements,
       {
         id: "movement-msg-test",
         materialId: "material-msg-test",
         type: "purchase_receipt",
+        operationKey: "movement-msg-test-op",
+        orderId: null,
+        wasteContext: null,
         occurredOn: "2026-10-02",
         recordedAt: FIXED_NOW,
         quantityDeltaMilli: 1000,
@@ -48,7 +53,6 @@ async function seededPurchaseWithReceipt() {
         reason: null,
         purchaseId: created.value.id,
         costKnowledge: "known",
-        reversalOfId: null,
         reversesMovementId: null,
       },
     ],
@@ -81,6 +85,8 @@ describe("R2 regression — supplier purchase money message uses the canonical f
       initialPaidMinor: 0,
       reason: "محاولة خفض الإجمالي دون المستلم",
       idempotencyKey: "msg-test-edit",
+      materialId: null,
+      expectedQuantityMilli: null,
     });
     expect(rejected.ok).toBe(false);
     if (!rejected.ok) {

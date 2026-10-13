@@ -31,6 +31,7 @@ import {
   transitionOrder,
 } from "@micro-domain/craft-order/index.js";
 import type { StoredCraftOrder } from "@/storage/local/types";
+import { okValue } from "@/testing/resultAssertions";
 
 const NOW = "2026-09-17T09:00:00.000Z";
 const now = () => NOW;
@@ -174,7 +175,7 @@ describe("EXE-014 opening-import gate refuses any occupied influential family", 
           operationKey: "exe014-gate-wallet",
         });
         if (!wallet.ok) throw new Error(wallet.message);
-        const owner = new OwnerEntitlementService(store, now);
+        const owner = new OwnerEntitlementService(store, undefined, now);
         const saved = await owner.recordMovement({
           kind: "draw",
           amountMinor: 500,
@@ -215,7 +216,7 @@ describe("EXE-014 opening-import gate refuses any occupied influential family", 
     if (!prepared.ok) return;
     const confirmed = await service.confirm(prepared.value);
     expect(confirmed.ok).toBe(true);
-    const counts = influentialFamilyCounts((await store.readSnapshot()).value!);
+    const counts = influentialFamilyCounts(okValue(await store.readSnapshot())!);
     /* الكتابة حدثت فعلًا: محفظة ومادة وحركة وقيود — لا بوابة تمنع كل شيء. */
     expect(counts.find(family => family.key === "cashWallets")?.count).toBe(1);
     expect(counts.find(family => family.key === "materials")?.count).toBe(1);
@@ -231,7 +232,7 @@ describe("EXE-014 export → change → restore returns every covered family int
     const cash = new CashContinuityService(source, now);
     const finance = new ProjectFinancialService(source, now);
     const suppliers = new SupplierPurchaseService(source, now);
-    const owner = new OwnerEntitlementService(source, now);
+    const owner = new OwnerEntitlementService(source, undefined, now);
     const loans = new LoanService(source, now);
     const assets = new AssetService(source, now);
     const inventory = new InventoryMaterialService(source, now);
@@ -310,6 +311,7 @@ describe("EXE-014 export → change → restore returns every covered family int
     });
     if (!material.ok) throw new Error(material.message);
     const snapshotCost = calculateCostSnapshot("exe014-cost", {
+      source: "draft",
       currency: "JOD",
       materialItems: [],
       time: { minutes: 90, hourlyRateMinor: 500, confidence: "known" },

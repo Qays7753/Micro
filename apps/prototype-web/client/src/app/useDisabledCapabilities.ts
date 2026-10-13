@@ -8,7 +8,10 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
  * يبقى بعد إعادة التفعيل. غياب خدمة التفضيلات في بيئة اختبار لا يُسقط
  * السطح (نمط S5-08 نفسه في الرئيسية). */
 
-export type CapabilityId = "orders" | "inventory" | "suppliers" | "catalog";
+/* R10-B3/R10A-F-004 (2026-10-11): النوع الكنوني من مالك التخزين (باب
+ * التفضيلات) — كان معاد تعريفه محليًا هنا وفي قسم الإعدادات. إعادة
+ * التصدير توافقًا لمستهلكي هذه الوحدة (CapabilityRouteGate). */
+export type { CapabilityId } from "@/application/preferences";
 
 export type DisabledCapabilitiesState = {
   disabled: readonly string[];
