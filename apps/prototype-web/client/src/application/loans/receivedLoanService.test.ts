@@ -3,6 +3,7 @@ import { ReceivedLoanService } from "./receivedLoanService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { summarizeFinancialEvents } from "@micro-domain/financial-event/index.js";
+import { assertOk } from "@/testing/resultAssertions";
 
 /* FIN-001 (WS-178 — Wave 6): مرآة loanService.test.ts (MemoryLocalStore + ساعة
  * ثابتة) — «المقترض ليس دخلًا»: قبض القرض كاش والتزام (loanPayable)، وسداد
@@ -53,6 +54,7 @@ describe("received loan service (FIN-001 — WS-178 Wave 6)", () => {
     expect(overview.ok && overview.value.totals.borrowedPrincipalMinor).toBe(20000);
     expect(overview.ok && overview.value.totals.openCount).toBe(1);
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value).toHaveLength(1);
   });
 
@@ -182,6 +184,7 @@ describe("received loan service (FIN-001 — WS-178 Wave 6)", () => {
     });
     expect(repaid.ok).toBe(true);
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value).toHaveLength(2);
     const totals = summarizeFinancialEvents(events.value);
     expect(totals.retainedDepositRevenueMinor).toBe(0);
@@ -202,6 +205,7 @@ describe("received loan service (FIN-001 — WS-178 Wave 6)", () => {
     if (!created.ok) return;
     expect(created.value.loan.dueOn).toBe("2026-12-01");
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value).toHaveLength(1);
     expect(events.value.filter(event => event.type.startsWith("operating_expense"))).toHaveLength(0);
     expect(events.value.every(event => event.operatingExpenseDeltaMinor === 0)).toBe(true);

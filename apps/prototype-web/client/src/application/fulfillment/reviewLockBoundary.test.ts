@@ -9,6 +9,7 @@ import { ProjectFinancialService } from "@/application/finance/projectFinancialS
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
 import type { StoredCraftOrder } from "@/storage/local/types";
+import { assertOk } from "@/testing/resultAssertions";
 
 const now = () => "2026-09-08T09:00:00.000Z";
 
@@ -168,6 +169,7 @@ describe("application-level review lock boundary (D-031)", () => {
     /* القراءة (عرض المراجعة والتدقيق) متاحة — القفل على الطفر المالي لا على
      * المعاينة؛ المخزن نفسه هو مصدر العرض. */
     const stored = await store.getOrder("order-app-lock");
+    assertOk(stored);
     if (!stored.ok || !stored.value) throw new Error(stored.message);
     expect(stored.value.order.status).toBe(locked.order.status);
     expect(stored.value.order.events.some(event => event.type === "collection_recorded")).toBe(true);

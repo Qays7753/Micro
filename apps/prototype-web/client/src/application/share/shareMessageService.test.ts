@@ -3,6 +3,7 @@
  * للمتابعة»، والمعكوس لا يبقى تحصيلًا قائمًا، والبناء حتمي بلا تكرار، ونصوص
  * بلا هامش ولا تكلفة ولا معرفات داخلية. */
 import { describe, expect, it } from "vitest";
+import type { StoredCraftOrder } from "@/storage/local/types";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
 import type { OrderEvent } from "@micro-domain/craft-order/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
@@ -17,7 +18,7 @@ import {
 
 const NOW = "2026-09-05T09:00:00.000Z";
 
-function buildStored(overrides: Record<string, unknown> = {}) {
+function buildStored(): StoredCraftOrder {
   const cost = calculateCostSnapshot("cost-1", {
     source: "draft",
     currency: "JOD",
@@ -45,8 +46,8 @@ function buildStored(overrides: Record<string, unknown> = {}) {
     depositCollectedMinor: 3000,
     collectedMinor: 5000,
     receivableMinor: 10000,
-    status: "in_progress" as const,
-    settlementStatus: "partially_paid" as const,
+    status: "in_progress",
+    settlementStatus: "partially_paid",
   };
   return {
     id: "order-1",
@@ -56,7 +57,6 @@ function buildStored(overrides: Record<string, unknown> = {}) {
     agreementSource: null,
     createdAt: NOW,
     updatedAt: NOW,
-    ...overrides,
   };
 }
 

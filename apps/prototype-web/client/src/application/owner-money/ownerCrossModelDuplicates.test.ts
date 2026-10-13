@@ -13,6 +13,7 @@ import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-
 import { createFinancialEvent, createFinancialReversal } from "@micro-domain/financial-event/index.js";
 import { OwnerEntitlementService } from "./ownerEntitlementService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { okValue } from "@/testing/resultAssertions";
 
 const wallet = createCashWallet({
   id: "wallet-guard",
@@ -151,7 +152,7 @@ describe("EXE-009 — cross-model duplicate guard (OWN-001)", () => {
     });
     expect(before.ok && before.value).not.toBeNull();
     /* تراجع موثق عن الحدث — مرآة كاملة عبر آلية السجل العام نفسها. */
-    const original = (await store.listFinancialEvents()).value.find(event => event.id === "wd-1");
+    const original = okValue(await store.listFinancialEvents()).find(event => event.id === "wd-1");
     if (!original) throw new Error("seeded withdrawal event missing");
     const reversal = await store.saveFinancialEvent(
       createFinancialReversal({

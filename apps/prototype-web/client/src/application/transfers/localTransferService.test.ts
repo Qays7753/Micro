@@ -20,6 +20,7 @@ import { createCatalogItem, createMeasurementUnit } from "@micro-domain/catalog/
 import { createAllocationPolicy } from "@micro-domain/recurring-margin/index.js";
 import { createActualTimeRecord, reverseActualTimeRecord } from "@micro-domain/actual-time/index.js";
 import { cancelDirectSale, createDirectSale, updateDirectSale } from "@micro-domain/direct-sale/index.js";
+import { assertOk } from "@/testing/resultAssertions";
 
 const profile = {
   id: localProfileId as const,
@@ -1969,6 +1970,7 @@ it("round-trips a verified export containing a documented payment reversal (S2-0
   if (!saved.ok) throw new Error("reversed purchase should save");
   /* createVerifiedExport نفسها: التحقق يقبل الحالة بعد التراجع. */
   const verified = await new LocalTransferService(source).createVerifiedExport();
+  assertOk(verified);
   expect(verified).toMatchObject({ ok: true });
   const target = new MemoryLocalStore();
   const transfers = new LocalTransferService(target);
@@ -2050,6 +2052,7 @@ describe("Group 6 — allocation source line survives export/import round trip",
     expect(imported.ok).toBe(true);
     if (!imported.ok) return;
     const entries = await target.listCashContinuityEntries();
+    assertOk(entries);
     expect(entries.ok).toBe(true);
     const restored = entries.value.find(entry => entry.id === "g6-alloc");
     expect(restored?.sourceRefLineId).toBe("g6-order:g6-sheet");

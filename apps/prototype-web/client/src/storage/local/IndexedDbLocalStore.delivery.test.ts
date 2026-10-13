@@ -85,6 +85,7 @@ function deliveredOrder(): StoredCraftOrder {
     createdAt: "2026-09-04T09:00:00.000Z",
   });
   return {
+  catalogItemId: null,
     id: "order-1",
     order: noteDeliveryConsumption(withDelivery, {
       note: "مواد مستهلكة عند التسليم: قماش (2 متر)",

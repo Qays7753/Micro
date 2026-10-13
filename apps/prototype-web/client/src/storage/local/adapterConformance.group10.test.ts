@@ -37,15 +37,16 @@ import {
 } from "@micro-domain/supplier-purchase/index.js";
 import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 import { MemoryLocalStore } from "./MemoryLocalStore";
+import type { CatalogTemplate } from "@micro-domain/catalog/index.js";
+import type { InventoryShortage } from "@micro-domain/inventory-material/index.js";
 import type {
-  CatalogTemplate,
-  InventoryShortage,
   OrderDraft,
   PrototypeLocalStore,
   ScheduleEntry,
   ScheduleRecurrence,
   StoredCraftOrder,
 } from "./types";
+import { assertOk, okValue } from "@/testing/resultAssertions";
 
 /* المجموعة ١٠ (المرحلة 10-أ): مصفوفة مطابقة المحوّلين الكاملة — كل عمليات
  * الالتزام الثمانية والعشرين في واجهة المخزن (28) عبر المحوّلين (الذاكرة
@@ -154,6 +155,7 @@ function pendingDepositStored(id: string): StoredCraftOrder {
 
 function linkedDraft(orderId: string): OrderDraft {
   return {
+  catalogItemId: null,
     id: `draft-${orderId}`,
     intent: "customer_order",
     customerName: "سارة",
@@ -253,6 +255,8 @@ function scheduleEntry(id: string, orderId: string, date: string): ScheduleEntry
     ],
     recurrenceId: null,
     recurrenceIndex: null,
+    createdAt: TS,
+    updatedAt: TS,
   };
 }
 
@@ -326,7 +330,7 @@ function expenseEvent(id: string, amountMinor: number) {
 function wasteEvent(id: string, amountMinor: number) {
   return createFinancialEvent({
     id,
-    type: "inventory_waste_noncash",
+    type: "loss_non_cash",
     amountMinor,
     occurredOn: "2026-09-08",
     recordedAt: TS,
@@ -401,9 +405,10 @@ async function orders(store: PrototypeLocalStore): Promise<void> {
   /* 5. commitOrderFromDraft — الطلب ومسودته المرتبطة معًا. */
   const fromDraft = await store.commitOrderFromDraft(storedOrder("order-1"), linkedDraft("order-1"));
   expect(fromDraft.ok).toBe(true);
-  const savedDraft = (await store.listDrafts()).value.find(draft => draft.id === "draft-order-1");
+  const savedDraft = okValue(await store.listDrafts()).find(draft => draft.id === "draft-order-1");
   expect(savedDraft?.linkedOrderId).toBe("order-1");
   const savedOrder = await store.getOrder("order-1");
+  assertOk(savedOrder);
   expect(savedOrder.value?.order.customerName).toBe("سارة");
 
   /* 6. commitOrderDelivery — تسليم ذرّي ثم إعادة تشغيل بالمفتاح نفسه؛ المخزون
@@ -425,10 +430,10 @@ async function orders(store: PrototypeLocalStore): Promise<void> {
   );
   expect(deliveryReplay.ok).toBe(true);
   if (deliveryReplay.ok) expect(deliveryReplay.value.reused).toBe(true);
-  expect((await store.listInventoryMovements()).value).toHaveLength(1);
+  expect(okValue(await store.listInventoryMovements())).toHaveLength(1);
 
   /* 7. commitOrderDeliveryReversal — عكس التسليم ثم إعادة التشغيل. */
-  const storedAfterDelivery = (await store.getOrder("order-2")).value!;
+  const storedAfterDelivery = okValue(await store.getOrder("order-2"))!;
   const { reverseDelivery } = await import("@micro-domain/craft-order/index.js");
   const reversedOrder = reverseDelivery(storedAfterDelivery.order, {
     reason: "سُلّم للزبون الخطأ",
@@ -446,7 +451,7 @@ async function orders(store: PrototypeLocalStore): Promise<void> {
   );
   expect(reversalReplay.ok).toBe(true);
   if (reversalReplay.ok) expect(reversalReplay.value.reused).toBe(true);
-  expect((await store.listInventoryMovements()).value).toHaveLength(2);
+  expect(okValue(await store.listInventoryMovements())).toHaveLength(2);
 
   /* 8. commitOrderCollectionReversal — تراجع القبضة ثم إعادة التشغيل. */
   const collected = collectedStored("order-3");
@@ -472,7 +477,7 @@ async function orders(store: PrototypeLocalStore): Promise<void> {
   );
   expect(collectionReversalReplay.ok).toBe(true);
   if (collectionReversalReplay.ok) expect(collectionReversalReplay.value.reused).toBe(true);
-  const rereadThree = (await store.getOrder("order-3")).value!;
+  const rereadThree = okValue(await store.getOrder("order-3"))!;
   expect(rereadThree.order.events.filter(event => event.type === "collection_reversed")).toHaveLength(1);
 
   /* 9. commitDepositRefundSettlement — رد العربون المعلق بعد الإلغاء ثم إعادة التشغيل. */
@@ -492,7 +497,7 @@ async function orders(store: PrototypeLocalStore): Promise<void> {
   );
   expect(refundReplay.ok).toBe(true);
   if (refundReplay.ok) expect(refundReplay.value.reused).toBe(true);
-  const rereadFour = (await store.getOrder("order-4")).value!;
+  const rereadFour = okValue(await store.getOrder("order-4"))!;
   expect(rereadFour.order.events.filter(event => event.type === "deposit_refunded")).toHaveLength(1);
 }
 
@@ -504,10 +509,10 @@ async function schedulesAndSupplier(store: PrototypeLocalStore): Promise<void> {
   const createReplay = await store.commitScheduleCreate(scheduleEntry("schedule-1", "order-1", "2026-09-10"));
   expect(createReplay.ok).toBe(true);
   if (createReplay.ok) expect(createReplay.value.reused).toBe(true);
-  expect((await store.listSchedules()).value).toHaveLength(1);
+  expect(okValue(await store.listSchedules())).toHaveLength(1);
 
   /* 2. commitScheduleUpdate. */
-  const stored = (await store.getSchedule("schedule-1")).value!;
+  const stored = okValue(await store.getSchedule("schedule-1"))!;
   const postponed = postponedSchedule(stored, "2026-09-11", "schedule-1:postponed:1");
   const updated = await store.commitScheduleUpdate(postponed);
   expect(updated.ok).toBe(true);
@@ -519,7 +524,7 @@ async function schedulesAndSupplier(store: PrototypeLocalStore): Promise<void> {
   );
   expect(staleUpdate.ok).toBe(false);
   if (!staleUpdate.ok) expect(staleUpdate.code).toBe("storage_stale");
-  const afterStale = (await store.getSchedule("schedule-1")).value!;
+  const afterStale = okValue(await store.getSchedule("schedule-1"))!;
   expect(afterStale.scheduledFor).toBe("2026-09-11");
   expect(afterStale.events).toHaveLength(2);
 
@@ -546,8 +551,8 @@ async function schedulesAndSupplier(store: PrototypeLocalStore): Promise<void> {
   ]);
   expect(blocked.ok).toBe(false);
   if (!blocked.ok) expect(blocked.code).toBe("storage_stale");
-  expect((await store.getRecurrence("recurrence-1")).value).toBeNull();
-  expect((await store.getSchedule("recurrence-1:1")).value).toBeNull();
+  expect(okValue(await store.getRecurrence("recurrence-1"))).toBeNull();
+  expect(okValue(await store.getSchedule("recurrence-1:1"))).toBeNull();
 
   /* 4. commitSupplierPurchase — إنشاء ثم إعادة مفتاح ثم تعارض مراجعة قديمة. */
   const purchase = createSupplierPurchase({
@@ -611,7 +616,7 @@ async function schedulesAndSupplier(store: PrototypeLocalStore): Promise<void> {
   });
   expect(stalePayment.ok).toBe(false);
   if (!stalePayment.ok) expect(stalePayment.code).toBe("storage_stale");
-  expect((await store.listSupplierPurchases()).value[0]!.payments).toHaveLength(2);
+  expect(okValue(await store.listSupplierPurchases())[0]!.payments).toHaveLength(2);
 }
 
 async function financeAndCash(store: PrototypeLocalStore): Promise<void> {
@@ -621,8 +626,8 @@ async function financeAndCash(store: PrototypeLocalStore): Promise<void> {
   const cashCommit = await store.commitCashContinuity(wallet, [entry]);
   expect(cashCommit.ok).toBe(true);
   await store.commitCashContinuity(wallet, [entry]);
-  expect((await store.listCashContinuityEntries()).value).toHaveLength(1);
-  expect((await store.listCashWallets()).value).toHaveLength(1);
+  expect(okValue(await store.listCashContinuityEntries())).toHaveLength(1);
+  expect(okValue(await store.listCashWallets())).toHaveLength(1);
 
   /* 14. commitFinancialEventCorrection — تراجع موثق ثم إعادة المفتاح نفسه. */
   const source = expenseEvent("event-1", 2500);
@@ -652,7 +657,7 @@ async function financeAndCash(store: PrototypeLocalStore): Promise<void> {
   );
   expect(secondReversal.ok).toBe(false);
   if (!secondReversal.ok) expect(secondReversal.code).toBe("storage_error");
-  expect((await store.listFinancialEvents()).value).toHaveLength(2);
+  expect(okValue(await store.listFinancialEvents())).toHaveLength(2);
 
   /* 15. commitFinancialEventReplacement — التراجع والبديل معًا. */
   const sourceTwo = expenseEvent("event-2", 1000);
@@ -679,7 +684,7 @@ async function financeAndCash(store: PrototypeLocalStore): Promise<void> {
   );
   expect(replaceReplay.ok).toBe(true);
   /* المصدر + تراجعه + البديل للأول + المصدر الثاني + تراجعه وبديله = 5. */
-  expect((await store.listFinancialEvents()).value).toHaveLength(5);
+  expect(okValue(await store.listFinancialEvents())).toHaveLength(5);
 }
 
 async function inventoryAndCatalog(store: PrototypeLocalStore): Promise<void> {
@@ -697,8 +702,8 @@ async function inventoryAndCatalog(store: PrototypeLocalStore): Promise<void> {
   expect(invCommit.ok).toBe(true);
   await store.commitInventory(material, [movement]);
   /* حركتا قسم الطلبات (استهلاك التسليم ومرآته) + حركة القسم هذه = 3. */
-  expect((await store.listInventoryMovements()).value).toHaveLength(3);
-  expect((await store.listMaterials()).value).toHaveLength(1);
+  expect(okValue(await store.listInventoryMovements())).toHaveLength(3);
+  expect(okValue(await store.listMaterials())).toHaveLength(1);
 
   /* 12. commitInventoryWithShortage — المادة والحركة وسجل النقص ذرّية. */
   const shortageCommit = await store.commitInventoryWithShortage(
@@ -707,7 +712,7 @@ async function inventoryAndCatalog(store: PrototypeLocalStore): Promise<void> {
     shortageFixture("shortage-1"),
   );
   expect(shortageCommit.ok).toBe(true);
-  expect((await store.listInventoryShortages()).value).toHaveLength(1);
+  expect(okValue(await store.listInventoryShortages())).toHaveLength(1);
 
   /* 13. commitInventoryWithEvents — حركة هدر مع حدث خسارة غير نقدية. */
   const wasteMovement = createInventoryMovement({
@@ -731,7 +736,7 @@ async function inventoryAndCatalog(store: PrototypeLocalStore): Promise<void> {
   expect(wasteReplay.ok).toBe(true);
   if (wasteReplay.ok) expect(wasteReplay.value.reused).toBe(true);
   expect(
-    (await store.listFinancialEvents()).value.filter(event => event.type === "inventory_waste_noncash"),
+    okValue(await store.listFinancialEvents()).filter(event => event.type === "loss_non_cash"),
   ).toHaveLength(1);
 
   /* 16. commitCatalogTemplateRevision — النسخة الجديدة والموقوفة معًا. */
@@ -749,7 +754,7 @@ async function inventoryAndCatalog(store: PrototypeLocalStore): Promise<void> {
     next,
   );
   expect(revisionReplay.ok).toBe(true);
-  const templates = (await store.listCatalogTemplates()).value;
+  const templates = okValue(await store.listCatalogTemplates());
   expect(templates.find(template => template.id === "template-1")?.active).toBe(false);
   expect(templates.find(template => template.id === "template-2")?.active).toBe(true);
 }
@@ -779,7 +784,7 @@ async function g5AndOwner(store: PrototypeLocalStore): Promise<void> {
   expect(shortCommit.ok).toBe(true);
   const shortReplay = await store.commitShortCashDeclarationReversal("short-1", shortReversal);
   expect(shortReplay.ok).toBe(true);
-  const declarations = (await store.listShortCashDeclarations()).value;
+  const declarations = okValue(await store.listShortCashDeclarations());
   expect(declarations.find(entry => entry.id === "short-1")!.kind).toBe("declaration");
   expect(declarations.find(entry => entry.id === "short-1-rev")!.kind).toBe("reversal");
 
@@ -803,6 +808,7 @@ async function g5AndOwner(store: PrototypeLocalStore): Promise<void> {
   await store.saveOwnerEntitlementPolicy(policy);
   const successor = createOwnerEntitlementPolicySuccessor({
     id: "policy-2",
+    seriesId: "policy-series-1",
     version: 2,
     kind: "monthly",
     amountMinor: 2000,
@@ -827,7 +833,7 @@ async function g5AndOwner(store: PrototypeLocalStore): Promise<void> {
     successor,
   );
   expect(successorReplay.ok).toBe(true);
-  const policies = (await store.listOwnerEntitlementPolicies()).value;
+  const policies = okValue(await store.listOwnerEntitlementPolicies());
   expect(policies).toHaveLength(2);
 
   /* 19. commitOwnerEntitlementRecordReversal. */
@@ -844,8 +850,11 @@ async function g5AndOwner(store: PrototypeLocalStore): Promise<void> {
     calculationBasis: "time_period",
     baseMinor: null,
     quantity: null,
+    sourceKeys: [],
     note: "آب",
     idempotencyKey: "entitlement-1",
+    reversalOfId: null,
+    reversalReason: null,
   });
   await store.saveOwnerEntitlementRecord(record);
   const recordReversal = createOwnerEntitlementRecordReversal({
@@ -862,7 +871,7 @@ async function g5AndOwner(store: PrototypeLocalStore): Promise<void> {
   );
   expect(recordReversalCommit.ok).toBe(true);
   await store.commitOwnerEntitlementRecordReversal("entitlement-1", recordReversal);
-  expect((await store.listOwnerEntitlementRecords()).value).toHaveLength(2);
+  expect(okValue(await store.listOwnerEntitlementRecords())).toHaveLength(2);
 
   /* 20. commitOwnerEntitlementOpeningBalanceReversal. */
   const opening = createOwnerEntitlementOpeningBalance({
@@ -890,7 +899,7 @@ async function g5AndOwner(store: PrototypeLocalStore): Promise<void> {
     openingReversal,
   );
   expect(openingReversalCommit.ok).toBe(true);
-  expect((await store.listOwnerEntitlementOpeningBalances()).value).toHaveLength(2);
+  expect(okValue(await store.listOwnerEntitlementOpeningBalances())).toHaveLength(2);
 
   /* 21. commitOwnerMovement — الحركة وأثر الكاش معًا. */
   const movement = createOwnerMovement({
@@ -919,7 +928,7 @@ async function g5AndOwner(store: PrototypeLocalStore): Promise<void> {
   const movementCommit = await store.commitOwnerMovement(movement, movementCashEntry);
   expect(movementCommit.ok).toBe(true);
   await store.commitOwnerMovement(movement, movementCashEntry);
-  expect((await store.listOwnerMovements()).value).toHaveLength(1);
+  expect(okValue(await store.listOwnerMovements())).toHaveLength(1);
 
   /* 22. commitAllocationPolicySuccessor. */
   const allocationPolicy = createAllocationPolicy({
@@ -981,7 +990,7 @@ async function g5AndOwner(store: PrototypeLocalStore): Promise<void> {
     allocationSuccessor,
   );
   expect(allocationReplay.ok).toBe(true);
-  expect((await store.listAllocationPolicies()).value).toHaveLength(2);
+  expect(okValue(await store.listAllocationPolicies())).toHaveLength(2);
 }
 
 async function assetsLoansDeposits(store: PrototypeLocalStore): Promise<void> {
@@ -1003,13 +1012,13 @@ async function assetsLoansDeposits(store: PrototypeLocalStore): Promise<void> {
   });
   expect(assetCreated.ok).toBe(true);
   if (!assetCreated.ok) return;
-  const assetEvents = (await store.listFinancialEvents()).value.filter(
+  const assetEvents = okValue(await store.listFinancialEvents()).filter(
     event => event.type === "asset_purchase_cash",
   );
   expect(assetEvents).toHaveLength(1);
   const assetReplay = await store.commitAssetRecord(assetCreated.value.asset, assetEvents[0]!);
   expect(assetReplay.ok && assetReplay.value.reused).toBe(true);
-  expect((await store.listAssets()).value).toHaveLength(1);
+  expect(okValue(await store.listAssets())).toHaveLength(1);
 
   /* 24. commitAssetAcquisitionCorrection — التراجع والبديل والسجل معًا. */
   const corrected = await assets.correctAcquisition(assetCreated.value.asset.id, {
@@ -1037,7 +1046,7 @@ async function assetsLoansDeposits(store: PrototypeLocalStore): Promise<void> {
   if (!loanCreated.ok) return;
   const loanReplay = await store.commitLoanRecord(loanCreated.value.loan, loanCreated.value.event);
   expect(loanReplay.ok && loanReplay.value.reused).toBe(true);
-  expect((await store.listLoans()).value).toHaveLength(1);
+  expect(okValue(await store.listLoans())).toHaveLength(1);
 
   /* 26. commitLoanCorrection. */
   const loanCorrected = await loans.correctLoan(loanCreated.value.loan.id, {
@@ -1065,14 +1074,14 @@ async function assetsLoansDeposits(store: PrototypeLocalStore): Promise<void> {
     classified.value.event,
   );
   expect(classificationReplay.ok && classificationReplay.value.reused).toBe(true);
-  const classifiedEvents = (await store.listFinancialEvents()).value.filter(
+  const classifiedEvents = okValue(await store.listFinancialEvents()).filter(
     event => event.type === "deposit_retained_revenue",
   );
   expect(classifiedEvents).toHaveLength(1);
 
   /* 28. commitDepositClassificationCorrection. */
   const reclassified = await deposits.reclassify("order-deposit", {
-    toMeaning: "owner_capital",
+    toMeaning: "owner",
     reason: "إعادة تصنيف",
   });
   expect(reclassified.ok).toBe(true);
@@ -1105,7 +1114,7 @@ async function runFullMatrix(store: PrototypeLocalStore): Promise<void> {
   if (!restored.ok) return;
   expect(restored.value.orders.length).toBe(snapshot.value.orders.length);
   expect(restored.value.financialEvents.length).toBe(snapshot.value.financialEvents.length);
-  expect(restored.value.inventoryMovements.length).toBe(snapshot.value.inventoryMovements.length);
+  expect(restored.value.inventoryMovements?.length).toBe(snapshot.value.inventoryMovements?.length);
 }
 
 describe("Group 10 adapter conformance — the complete 28-commit-operation matrix", () => {

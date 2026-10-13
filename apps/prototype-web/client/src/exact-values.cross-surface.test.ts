@@ -20,6 +20,7 @@ import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js
 import { formatMoneyWithUnit, formatQuantityMilli } from "@/presentation/formatters";
 import { parseEnglishQuantityText } from "@/application/input/englishNumeric";
 import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
+import type { MaterialSuggestion } from "@/application/inventory/materialSuggestions";
 
 function overviewMaterial(id: string, unit: Material["unit"]): InventoryMaterialOverview {
   return {
@@ -36,6 +37,8 @@ function overviewMaterial(id: string, unit: Material["unit"]): InventoryMaterial
     openShortageCount: 0,
     awaitingReceiptPurchaseCount: 0,
     awaitingReceiptRemainingMinor: 0,
+    lowStock: "above",
+    lowStockThresholdMilli: null,
   };
 }
 
@@ -64,7 +67,7 @@ function overview(materials: readonly InventoryMaterialOverview[]): InventoryOve
   return { materials, untrackedNames: [] } as unknown as InventoryOverview;
 }
 
-function byId(suggestions: readonly { materialId: string }[], materialId: string) {
+function byId(suggestions: readonly MaterialSuggestion[], materialId: string) {
   const found = suggestions.find(suggestion => suggestion.materialId === materialId);
   if (!found) throw new Error(`missing suggestion ${materialId}`);
   return found;

@@ -117,6 +117,7 @@ function pendingDepositStored(id: string): StoredCraftOrder {
 
 function linkedDraft(orderId: string): OrderDraft {
   return {
+  catalogItemId: null,
     id: `draft-${orderId}`,
     intent: "customer_order",
     customerName: "سارة",

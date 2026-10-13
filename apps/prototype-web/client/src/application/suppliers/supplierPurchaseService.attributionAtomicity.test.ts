@@ -8,6 +8,7 @@ import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import { summarizeCashContinuity } from "@micro-domain/cash-continuity/index.js";
 import { createCashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
+import { assertOk } from "@/testing/resultAssertions";
 
 /* G-002 (تدقيق الإدارة المالية المتدرجة 2026-09-19): تخصيص دفعة المورد
  * لمحفظته ذرّي أو حتمي الشفاء — الدفعة وقيد تغطيتها في معاملة واحدة؛ إعادة
@@ -107,6 +108,7 @@ describe("G-002 — supplier payment wallet attribution atomicity and healing", 
       idempotencyKey: "g002-credit-purchase",
       initialPaymentWalletId: wallet.id,
     });
+    assertOk(result);
     expect(result.ok).toBe(true);
     const allocations = await supplierAllocations(store);
     expect(allocations).toHaveLength(1);

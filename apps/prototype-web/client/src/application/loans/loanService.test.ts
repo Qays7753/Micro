@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { LoanService } from "./loanService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { assertOk } from "@/testing/resultAssertions";
 
 function fixedNow() {
   let tick = 0;
@@ -31,6 +32,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(created.ok).toBe(true);
     if (!created.ok) return;
     const events = await store.listFinancialEvents();
+    assertOk(events);
     const principal = events.value.find(event => event.type === "loan_outgoing_cash");
     expect(principal?.cashDeltaMinor).toBe(-15000);
     expect(principal?.loanDeltaMinor).toBe(15000);
@@ -62,6 +64,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(overview.value.rows[0]!.reading.outstandingMinor).toBe(0);
     /* المسدَّد يبقى في التاريخ. */
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value.filter(event => event.type === "loan_repayment_cash")).toHaveLength(2);
   });
 
@@ -89,6 +92,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
     const overview = await service.overview();
     expect(overview.ok && overview.value.rows[0]!.reading.outstandingMinor).toBe(15000);
     const events = await store.listFinancialEvents();
+    assertOk(events);
     const reversals = events.value.filter(event => event.correctionType === "reverse");
     expect(reversals).toHaveLength(1);
     expect(reversals[0]!.cashDeltaMinor).toBe(-5000);
@@ -113,6 +117,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
     if (!correction.ok) return;
     expect(correction.value.loan.principalMinor).toBe(20000);
     const events = await store.listFinancialEvents();
+    assertOk(events);
     expect(events.value.filter(event => event.type === "loan_outgoing_cash")).toHaveLength(3);
     const overview = await service.overview();
     expect(overview.ok && overview.value.rows[0]!.reading.outstandingMinor).toBe(20000);
@@ -162,6 +167,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
     const refused = [first, second].find(outcome => !outcome.ok);
     expect(refused?.message).toContain("أعد المحاولة");
     const events = await store.listFinancialEvents();
+    assertOk(events);
     const repaymentEvents = events.value.filter(event => event.type === "loan_repayment_cash");
     expect(repaymentEvents.length).toBe(1);
     const loan = await store.getLoan(loanId);

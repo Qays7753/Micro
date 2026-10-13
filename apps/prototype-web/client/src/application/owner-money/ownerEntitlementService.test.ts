@@ -3,6 +3,7 @@ import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-
 import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { OwnerEntitlementService } from "./ownerEntitlementService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { assertOk, okValue } from "@/testing/resultAssertions";
 
 const wallet = createCashWallet({
   id: "wallet-1",
@@ -71,7 +72,7 @@ describe("OwnerEntitlementService", () => {
     });
     expect(entitlement.ok).toBe(true);
     expect(
-      (await store.listCashContinuityEntries()).value.filter(entry => entry.id !== "wallet-1-opening"),
+      okValue(await store.listCashContinuityEntries()).filter(entry => entry.id !== "wallet-1-opening"),
     ).toHaveLength(0);
     const draw = await movement(service, {
       kind: "draw",
@@ -89,7 +90,7 @@ describe("OwnerEntitlementService", () => {
     expect(overview.value.remainingEntitlementBalanceMinor).toBe(1000);
     expect(overview.value.drawnForEntitlementMinor).toBe(500);
     expect(
-      (await store.listCashContinuityEntries()).value.filter(entry => entry.id !== "wallet-1-opening"),
+      okValue(await store.listCashContinuityEntries()).filter(entry => entry.id !== "wallet-1-opening"),
     ).toMatchObject([{ cashDeltaMinor: -500, walletId: "wallet-1" }]);
   });
 
@@ -803,6 +804,7 @@ describe("OwnerEntitlementService — الدفتر الموحد لمال الم�
       reason: "pre_entitlement_draw",
       idempotencyKey: "g6-pre-key",
     });
+    assertOk(draw);
     expect(draw.ok).toBe(true);
     const reversed = await service.reverseMovement({
       movementId: draw.value.movement.id,
@@ -810,6 +812,7 @@ describe("OwnerEntitlementService — الدفتر الموحد لمال الم�
       reason: "سجلت السحب بالخطأ",
       idempotencyKey: "g6-pre-rev-key",
     });
+    assertOk(reversed);
     expect(reversed.ok).toBe(true);
 
     const overview = await service.readOwnerMoneyOverview();

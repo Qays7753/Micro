@@ -12,6 +12,7 @@ import {
 } from "@micro-domain/craft-order/index.js";
 import type { CostSnapshotInput, CraftOrder } from "@micro-domain/craft-order/index.js";
 import type { StoredCraftOrder } from "@/storage/local/types";
+import { assertOk } from "@/testing/resultAssertions";
 
 const COST_INPUT: CostSnapshotInput = {
   currency: "JOD",
@@ -168,6 +169,7 @@ describe("retained deposit service (المجموعة ٤ — عقد ٢٩)", () =>
     if (!correction.ok) return;
     expect(correction.value.order.order.retainedMeaning).toBe("revenue");
     const events = await store.listFinancialEvents();
+    assertOk(events);
     /* تصنيف + تراجع + بديل = ٣ أحداث؛ الصافي: إيراد فقط. */
     const classifications = events.value.filter(
       event => event.type === "deposit_retained_owner" || event.type === "deposit_retained_revenue",

@@ -163,6 +163,7 @@ describe("RecurringExpenseService OPS-003 (عقد ٤١)", () => {
     const confirmed = await service.confirm(occurrence.occurrence.id, review({ occurredOn: "2026-09-04" }));
     expect(confirmed.ok).toBe(true);
     if (!confirmed.ok) return;
+    if (confirmed.value.status === "record_failed") throw new Error(confirmed.value.message);
 
     expect(confirmed.value.status).toBe("recorded");
     expect(confirmed.value.event.type).toBe("operating_expense_cash");
@@ -190,6 +191,7 @@ describe("RecurringExpenseService OPS-003 (عقد ٤١)", () => {
     expect(first.ok && first.value.status).toBe("recorded");
     const second = await service.confirm(occurrence.occurrence.id, review());
     expect(second.ok && second.value.status).toBe("reused");
+    if (second.value.status === "record_failed") throw new Error(second.value.message);
     expect(second.ok && second.value.event.id).toBe(first.ok ? first.value.event.id : "");
 
     const events = await eventsOf(store);
@@ -474,6 +476,7 @@ describe("RecurringExpenseService OPS-003 (عقد ٤١)", () => {
 
     const confirmed = await service.confirm(occurrence.occurrence.id, review());
     if (!confirmed.ok) throw new Error(confirmed.message);
+    if (confirmed.value.status === "record_failed") throw new Error(confirmed.value.message);
     const sourceEventId = confirmed.value.event.id;
 
     const reversed = await finance.reverse({
@@ -513,13 +516,14 @@ describe("RecurringExpenseService OPS-003 (عقد ٤١)", () => {
   it("تخصيص المحفظة خطوة لاحقة مستقلة: فشلها غير مالي ولا يغير حالة الفترة", async () => {
     const store = new MemoryLocalStore();
     const service = new RecurringExpenseService(store, () => SEPTEMBER, {
-      distributeUnallocated: async () => ({ ok: false, message: "المحفظة غير موجودة" }),
+      distributeUnallocated: async () => ({ ok: false, code: "storage_error", message: "المحفظة غير موجودة" }),
     });
     const seriesId = await activatedSeries(service);
     const occurrence = await occurrenceByPeriod(service, seriesId, "2026-09");
 
     const confirmed = await service.confirm(occurrence.occurrence.id, review({ walletId: "wallet-1" }));
     expect(confirmed.ok && confirmed.value.status).toBe("recorded");
+    if (confirmed.value.status === "record_failed") throw new Error(confirmed.value.message);
     expect(confirmed.ok && confirmed.value.attributionNote).toBe("المحفظة غير موجودة");
     expect(confirmed.ok && confirmed.value.occurrence.status).toBe("recorded");
   });

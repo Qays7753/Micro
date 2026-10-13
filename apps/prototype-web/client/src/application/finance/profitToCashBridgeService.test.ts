@@ -88,6 +88,7 @@ async function saveCollectedOrder(
   const stored: StoredCraftOrder = {
     id: order.id,
     order,
+    catalogItemId: null,
     deliveryDate: input.deliveredOn,
     agreementSource: "test",
     createdAt: order.createdAt,

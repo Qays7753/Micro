@@ -6,6 +6,7 @@ import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { syncSha256Hex } from "@/lib/syncSha256";
 import { LocalTransferService } from "./localTransferService";
+import { assertOk } from "@/testing/resultAssertions";
 
 const now = () => "2026-09-05T09:00:00.000Z";
 

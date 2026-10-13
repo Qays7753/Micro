@@ -31,6 +31,7 @@ function storedOrder(id: string, status: string, extraEvents: StoredCraftOrder["
     createdAt: "2026-08-22T00:00:00.000Z",
   });
   const stored: StoredCraftOrder = {
+  catalogItemId: null,
     id,
     order: { ...order, status: status as never, events: [...order.events, ...extraEvents] },
     deliveryDate: "2026-09-10",

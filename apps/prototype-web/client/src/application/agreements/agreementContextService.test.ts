@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createCraftOrder, calculateCostSnapshot } from "@micro-domain/craft-order/index.js";
 import { AgreementContextService } from "./agreementContextService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { okValue } from "@/testing/resultAssertions";
 
 async function storedOrder(id = "order-context") {
   const store = new MemoryLocalStore();
@@ -221,7 +222,7 @@ describe("AgreementContextService", () => {
   it("returns due follow-ups separately from upcoming ones and rejects invalid local dates", async () => {
     const store = await storedOrder("order-due");
     await store.saveOrder({
-      ...((await store.getOrder("order-due")).value as NonNullable<
+      ...(okValue(await store.getOrder("order-due")) as NonNullable<
         Awaited<ReturnType<MemoryLocalStore["getOrder"]>> extends { ok: true; value: infer T } ? T : never
       >),
       id: "order-due",

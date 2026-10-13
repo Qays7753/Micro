@@ -123,6 +123,7 @@ async function walkAndAssert(store: PrototypeLocalStore): Promise<void> {
   const storedOrder: StoredCraftOrder = {
     id: order.id,
     order,
+    catalogItemId: null,
     deliveryDate: "2026-09-05",
     agreementSource: "test",
     createdAt: order.createdAt,

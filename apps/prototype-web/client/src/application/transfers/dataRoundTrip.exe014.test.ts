@@ -31,6 +31,7 @@ import {
   transitionOrder,
 } from "@micro-domain/craft-order/index.js";
 import type { StoredCraftOrder } from "@/storage/local/types";
+import { okValue } from "@/testing/resultAssertions";
 
 const NOW = "2026-09-17T09:00:00.000Z";
 const now = () => NOW;
@@ -215,7 +216,7 @@ describe("EXE-014 opening-import gate refuses any occupied influential family", 
     if (!prepared.ok) return;
     const confirmed = await service.confirm(prepared.value);
     expect(confirmed.ok).toBe(true);
-    const counts = influentialFamilyCounts((await store.readSnapshot()).value!);
+    const counts = influentialFamilyCounts(okValue(await store.readSnapshot())!);
     /* الكتابة حدثت فعلًا: محفظة ومادة وحركة وقيود — لا بوابة تمنع كل شيء. */
     expect(counts.find(family => family.key === "cashWallets")?.count).toBe(1);
     expect(counts.find(family => family.key === "materials")?.count).toBe(1);

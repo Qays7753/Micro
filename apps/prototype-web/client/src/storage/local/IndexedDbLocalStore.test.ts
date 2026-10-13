@@ -180,6 +180,7 @@ describe("IndexedDbLocalStore", () => {
       updatedAt: "2026-08-22T00:00:00.000Z",
     };
     const draft: OrderDraft = {
+    catalogItemId: null,
       id: "draft-1",
       intent: "customer_order",
       customerName: "سارة",
@@ -212,6 +213,7 @@ describe("IndexedDbLocalStore", () => {
   it("returns local drafts with the latest update first", async () => {
     const store = new IndexedDbLocalStore();
     const early: OrderDraft = {
+    catalogItemId: null,
       id: "early",
       intent: "planned_design",
       customerName: "",
@@ -502,12 +504,14 @@ describe("IndexedDbLocalStore", () => {
     const stored: StoredCraftOrder = {
       id: "order-1",
       order,
+      catalogItemId: null,
       deliveryDate: "2026-08-30",
       agreementSource: "conversation",
       createdAt: "2026-08-22T00:00:00.000Z",
       updatedAt: "2026-08-22T00:00:00.000Z",
     };
     const draft: OrderDraft = {
+    catalogItemId: null,
       id: "draft-linked",
       intent: "customer_order",
       customerName: "سارة",
@@ -595,6 +599,7 @@ describe("IndexedDbLocalStore", () => {
   it("replaces the full local snapshot in one IndexedDB transaction", async () => {
     const store = new IndexedDbLocalStore();
     const oldDraft: OrderDraft = {
+    catalogItemId: null,
       id: "old",
       intent: "customer_order",
       customerName: "",
