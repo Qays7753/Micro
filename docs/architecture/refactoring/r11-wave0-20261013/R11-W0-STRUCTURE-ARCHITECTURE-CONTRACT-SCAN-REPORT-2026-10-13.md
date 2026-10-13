@@ -401,10 +401,10 @@ Matrix columns: ID | supplied classification | live verdict | priority | evidenc
 | Evidence class | VERIFIED (live code read) |
 | Root cause | Deliberate single-pass design; future callers could bypass |
 | Impact | None today |
-| Recommendation | **FIX_NEXT (Wave W1b — type contract)**: document the contract on `confirmImport` (typed brand or comment); optional cheap re-validation as defense-in-depth. No wire-semantics change |
+| Recommendation | **FIX_NEXT (Wave W1b — type contract)**: adopt an opaque/type-level `PreparedImport` provenance type minted only by `prepareImport` and required by `confirmImport`; comment-only documentation is not sufficient because it cannot prevent a future caller from bypassing the contract. Keep runtime re-validation out of scope unless a separate owner decision authorizes it. No wire-semantics change |
 | Dependencies | None |
-| Tests/evidence | n/a (documentation) |
-| Acceptance | Contract documented |
+| Tests/evidence | Caller census; type-level negative test proving an unvalidated object cannot be passed to `confirmImport`; compile/typecheck proof that the only minting path is `prepareImport` |
+| Acceptance | A new caller cannot compile with an unvalidated object without an explicit, reviewed, ratcheted escape hatch; the single-validation runtime contract remains unchanged |
 | Rollback | n/a |
 | Protected behavior | The single-validation wire semantics; backup-first (EXE-014) |
 | Confidence | High |
@@ -872,8 +872,9 @@ The prior §11 scan report (external docs repo, `17b264c`) was not readable from
 ## 21. Report publication details
 
 - **Branch:** `audit/r11-wave0-structure-scan-20261013` (from verified live `origin/main` @ `31afaf39ad57a82e72aa61e59879e46f8801ce36`)
-- **Publication commit SHA (report + index row):** `840f24eba4c793d638e9c1debc70805370e47724`
-- **PR:** https://github.com/Qays7753/Micro/pull/359 (documentation-only, base `main`; this evidence-pin commit is the PR head)
+- **Initial publication commit SHA (report + index row):** `840f24eba4c793d638e9c1debc70805370e47724`
+- **Previous evidence-pin commit SHA:** `a04fa274319339818c8f980d7b70053cabe6cf8e`
+- **PR:** https://github.com/Qays7753/Micro/pull/359 (documentation-only, base `main`; the final report-bearing head SHA is recorded below after this correction commit)
 - **Changed files:** exactly 2 — this report (new, 898 lines) and `docs/00-document-index.md` (+1 row). Proven by `git diff --name-status`: `A` the report, `M` the index; 899 insertions, 0 deletions; no other file touched.
 - **Checks:** pre-publication local checks green (`git diff --check` clean; `check-doc-index-coverage` PASS; `check-current-state-size` PASS 18,834/20,480). CI/Cloudflare-Pages status on the PR head is recorded in the PR conversation at publication time (this scan makes no claim beyond what the PR checks show).
 
