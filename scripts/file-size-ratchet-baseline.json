@@ -1963,6 +1963,10 @@
     "scripts/security/scan-git-history-secrets.mjs": {
       "nbLoc": 303,
       "band": "NORMAL"
+    },
+    "scripts/check-lint-warning-baseline.mjs": {
+      "nbLoc": 152,
+      "band": "NORMAL"
     }
   }
 }
