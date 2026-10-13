@@ -1596,10 +1596,6 @@
       "nbLoc": 368,
       "band": "NORMAL"
     },
-    "scripts/post-merge.sh": {
-      "nbLoc": 6,
-      "band": "NORMAL"
-    },
     "scripts/security/braces-elimination/capture-baseline.mjs": {
       "nbLoc": 227,
       "band": "NORMAL"

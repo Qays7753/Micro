@@ -857,11 +857,11 @@
       "owner_decision_text": "OD-9: owner selects A/B/C; recommended C (retire). RV4-N4 (timeout 180s insufficient) folds into any revival.",
       "limitations": "Read-only W0 verification (static + git evidence); no runtime execution.",
       "implementation_status": {
-        "state": "OWNER_DECISION_REQUIRED",
-        "wave": "R10-B5",
-        "closed_at_commit": null,
+        "state": "CLOSED_WITH_EVIDENCE",
+        "wave": "R10-B Phase 4 (OD-9=C)",
+        "closed_at_commit": "(this OD-9 retirement commit)",
         "date": "2026-10-13",
-        "evidence": "OWNER_DECISION_REQUIRED — OD-9 (A/B/C) not accepted in any live record as of 2026-10-13. The consolidated decision package in R10-B-OWNER-DECISION-PACKAGE-2026-10-11.md OD-9 was strengthened this wave to be fully self-contained per the canonical section-11 field list: exact decision sentence (A: drop export CI=1 / B: documented Replit alias + anchored replit baseline / C: retire hook + [postMerge] + register/ratchet rows), affected files and findings, alternatives with the full RC-4 comparison, evidence and impact, per-option tests required, exact allowed side effects, forbidden side effects for every option (no weakening of the fail-closed unknown-environment contract; no ceiling/tolerance change; a B-option alias must extend the F-028/NF-021 unified CI_MARKER_KEYS vocabulary in BOTH guards with the conformance test updated — not bypass it), rollback boundary (single small commit revert in every option), and safe stopping state (the hook stays broken-but-inert; no other B5 item depends on this decision). Recommendation recorded: C (retire). No option was chosen by the executor."
+        "evidence": "OD-9=C owner-approved (canonical continuation prompt afadac02: 'OD-9 = C, implemented as a separate later commit after the D1 gate and no-consumer proof'). Fresh no-consumer census before the change: the [postMerge] block in .replit is the ONLY invocation path; git grep over the whole tree finds no workflow, deployment config, runbook, or live code that reads the hook or its CI=1 (the remaining mentions are append-only historical evidence: W0/R10 reports, the archived handoff docs/operations/archive/agent-handoff-2026-08-29.md, and the agent worklog). vite.config.ts '.replit.dev' is a dev-server host allowance, not a hook consumer. Retirement executed: [postMerge] block removed from .replit (43->39 lines, 32->29 nbLOC); scripts/post-merge.sh deleted; its register row and its size-ratchet baseline row removed in the same PR (baseline 488->487) per the deleted-file cleanup rule; dated register note added. Fail-closed contract preserved: surfaces guard untouched, 22/22 guard tests green (CI='1' still UNVERIFIED_ENVIRONMENT), E-UNV-008 mutation drill re-run on this head: 6/6. PLATFORM-SIDE LIMITATION (honest, owner-covered): Replit workspace merge activity is not observable from this environment; non-invocation is owner-asserted via the OD-9=C approval, and with the [postMerge] block gone the platform carries no instruction to run any post-merge step (removal is self-consistent; a future Replit safety net would be the documented A+B path with a re-derived timeoutMs). Rollback: single commit revert restores block+script+rows."
       }
     },
     {
@@ -2822,6 +2822,16 @@
       ],
       "records_commit": "(this records head)",
       "summary": "OD-14=D1 owner-approved root fix for R10B-NF-038: the build identity is removed from the JS entry and carried through ONE index.html meta tag injected at the release boundary (vite.config.ts micro-build-identity plugin: strict build-time validation, HTML-attribute escaping, closeBundle fail-closed carrier verification + JS/CSS/source-map leak scan; the meta tag is the only CSP-viable carrier). buildIdentity.ts becomes a guarded one-shot DOM carrier read (no throw in Node/Vitest) with the unchanged resolveAppIdentity coercion and honest micro-local-dev fallback; both consumers (Export 30 appVersion, diagnostics) untouched. Phase-2 gate on the committed tree: 30 differing identities -> byte-identical entry+chunks (index-CPVmJmgX.js 631,903/155,290; sigma-hat 0); same-identity rebuild fully identical; null-vs-identity builds differ only in index.html + sw.js (carrier + precache revision = preserved PWA cache-busting); headroom 10 >= 2*sigma-hat under the untouched 650,000/155,300 — D1_GATE_PASS. 28 identity tests + 326 consumer tests green; surfaces re-anchored same-PR (local 2,683,356 / cloud 2,683,446); ratchet R10B-D1-IDENTITY-CARRIER (ocRef ARCH-007)."
+    },
+    {
+      "wave": "R10-B Phase 4 (OD-9=C)",
+      "date": "2026-10-13",
+      "branch": "refactoring/r10b-complete-b1-b6-20261011",
+      "code_commits": [
+        "(this retirement commit)"
+      ],
+      "records_commit": "(same commit)",
+      "summary": "OD-9=C executed as a separately revertible commit after the D1 gate and the no-consumer proof: the broken Replit post-merge hook is retired (.replit [postMerge] block removed; scripts/post-merge.sh deleted; its register row and ratchet baseline row 488->487 removed with dated notes). Fail-closed unknown-environment contract untouched (surfaces tests 22/22; E-UNV-008 drill 6/6 on this head)."
     }
   ]
 }

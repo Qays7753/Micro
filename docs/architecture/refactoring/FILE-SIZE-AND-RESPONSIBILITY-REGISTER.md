@@ -744,7 +744,7 @@
 | `apps/prototype-web/client/src/application/scheduling/capacityDecisionService.test.ts` | test | 34 | 36 | 1235 | 0 | 3 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/presentation/plurals.test.ts` | test | 33 | 37 | 1758 | 0 | 2 | 0 | 0 | NORMAL | presentation | TEST — judged as test asset, not production | — |
 | `.gitignore` | config | 32 | 38 | 348 | 0 | 0 | 1 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
-| `.replit` | config | 32 | 43 | 731 | 0 | 0 | 2 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
+| `.replit` | config | 29 | 39 | 668 | 0 | 0 | 2 | 0 | NORMAL | infra | INFRA — change via own slice only؛ OD-9=C (2026-10-13): [postMerge] block removed (hook retired) | — |
 | `apps/prototype-web/client/src/application/agreements/agreementPrice.test.ts` | test | 32 | 36 | 1552 | 0 | 2 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/application/input/englishNumeric.normalize.test.ts` | test | 29 | 34 | 2053 | 0 | 2 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
 | `scripts/check-doc-index-coverage.test.mjs` | test | 29 | 32 | 1437 | 0 | 5 | 0 | 0 | NORMAL | infra | TEST — judged as test asset, not production | — |
@@ -791,7 +791,6 @@
 | `apps/prototype-web/client/src/pages/OwnerWithdrawalEditor.ui.test.ts` | test | 10 | 12 | 576 | 0 | 2 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `vitest.config.ts` | config | 8 | 9 | 415 | 1 | 1 | 3 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
 | `.prettierrc.json` | config | 6 | 6 | 100 | 0 | 0 | 1 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
-| `scripts/post-merge.sh` | script | 6 | 8 | 170 | 1 | 0 | 0 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
 | `docs/operations/control/generated/ACTIVE-WORK.md` | generated | 5 | 7 | 850 | 0 | 0 | 0 | 0 | NORMAL | ops-generated | GENERATED — no hand edits | — |
 | `pnpm-workspace.yaml` | config | 4 | 5 | 63 | 0 | 0 | 1 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
 | `.gitattributes` | config | 1 | 2 | 49 | 0 | 0 | 1 | 0 | NORMAL | infra | INFRA — change via own slice only | — |
@@ -1560,3 +1559,5 @@
 *(أُنشئ هذا القسم بمصالحة R6-W1، 2026-10-09، عند `fd92d7e8` — علاقات NEW/DEEPENS/REOPENED/CONFIRMS كما في تقرير المسح §13؛ لا توجد IDs مكررة ولا مكتشفات محذفة صامتة.)*
 
 **تحديث مؤرخ 2026-10-13 (R10-B/D1 [OD-14 = قرار المالك المعتمد]: حامل هوية البناء في index.html — إصلاح جذري لـ R10B-NF-038):** صار `apps/prototype-web/client/src/application/identity/buildIdentity.ts` جسر حامل الهوية: قراءة DOM محروسة أحادية (وسم meta واحد في index.html يُدخل وقت البناء) بدل ثابت define المحقون — **32 → 48 nbLOC (+16)** عبر مدخل الإرساء `R10B-D1-IDENTITY-CARRIER` في سجل الراتشة (ocRef: ARCH-007). `vite.config.ts` (ملف إعدادي خارج الراتشة والسجل) يستضيف الوسيط الجديد `micro-build-identity`: حقن الوسم مع تحقق صارم وقت البناء (فشل صادق على هوية فارغة/طويلة/مكررة/مسرّبة إلى JS/CSS/خريطة) — لا مس إطلاقًا للسقوف أو التسامحات أو الحراس أو سير عمل CI أو CSP. الملفات الاختبارية الجديدة (خارج الراتشة بحكم الفئة): `buildIdentity.carrier.dom.test.ts` و`buildIdentity.leak.test.ts` و`apps/prototype-web/scripts/vite-build-identity.test.mjs` — تُدرج صفوفها عند إعادة القياس الشاملة القادمة. أثر الحزمة: المدخل صار محصّنًا ضد الهوية (631,903/155,290 — 30 قرعة هوية متطابقة بالبايت، σ̂=0، هامش 10 ≥ 2σ̂ تحت السقفين المحروسين 650,000/155,300)؛ أسطح الأساس أُعيد إرساؤها نفس-الـPR وفق البروتوكول (precache محلي 2,683,356؛ سحابي 2,683,446).
+
+**تحديث مؤرخ 2026-10-13 (R10-B/OD-9 = قرار المالك C: إحالة معلق Replit ما بعد الدمج):** أُحيل المعلق المكسور بنيويًا منذ R8-1 (`c70d3eed`) تنفيذًا لقرار المالك OD-9=C: حُذف كتلة `[postMerge]` من `.replit` (43→39 سطرًا؛ 32→29 nbLOC) وحُذف `scripts/post-merge.sh` (كان 6 nbLOC) **مع صفّه في هذا السجل وصفه في أساس الراتشة (488→487)** — التنظيف الموثق نفس-الـPR لملف محذوف وفق قاعدة الراتشة. جرد المستهلكين قبل الحذف: الكتلة في `.replit` هي الاستدعاء الوحيد؛ لا سير عمل CI ولا Pages ولا أي ملف حي آخر يقرأ المعلق أو `CI=1` الخاص به (الإحالات التاريخية في سجلات الأدلة append-only تبقى كما هي). حد الاستعادة: التزام واحد يعيد الكتلة والسكربت والصفّين. عقد الفشل المغلق للبيئات المجهولة في حارس الأسطح لم يُمس (الاختبارات شاهدة).
