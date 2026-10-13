@@ -202,6 +202,7 @@
  - **Prompt تنفيذ R10-B — B1 إلى B6:** `docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-COMPLETE-B1-B6-EXECUTION-PROMPT-2026-10-11.md` (تنفيذ الإصلاحات الجذرية الـ54 على فرع واحد، عبر B1–B6، مع خمسة مراجعين قراءة فقط، اختبارات وبوابات كاملة، وتقرير PR جاهز للدمج دون دمج ذاتي).
  - **Prompt استكمال R10-B — OD-14/D1 ثم OD-9/NF-020/B6:** `docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-D1-OD14-OD9-NF020-B6-EXECUTION-PROMPT-2026-10-13.md` (مرجع الاستكمال الحالي على PR #356؛ يسجل اعتماد المالك لـOD-14=D1 وOD-9=C وتسلسل التنفيذ، وبوابات الحتمية والقياس وPWA والتوقف، ولا يلغي الـPrompt التاريخي السابق ولا يمنح إذن الدمج).
  - **حزمة قرار OD-8 (نطاق RC-1):** `docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-OD8-RC1-SCOPE-DECISION-PACKAGE-2026-10-11.md` (ما نُفذ، البدائل، الأثر، الآثار المسموحة/المحظورة، حد الاستعادة — لتصديق المالك عند مراجعة PR #356).
+ - **Prompt تنفيذ R11 — Wave 0:** `docs/architecture/refactoring/r11-wave0-20261013/R11-W0-READONLY-STRUCTURE-SCAN-REPORT-UPLOAD-PROMPT-2026-10-13.md` (عقد المسح القراءة فقط ومصالحة المسح الهيكلي السابق مع حالة ما بعد R10-B؛ يسمح برفع التقرير والفهرس فقط على فرع وPR توثيقيين، دون إصلاح أو دمج أو تنظيف).
 
 ## ملفات الجذر والأدوات الحاكمة
 
