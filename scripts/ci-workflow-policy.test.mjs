@@ -8,7 +8,11 @@
  *  2) الدفع إلى main يشغّل CI (تحقق ما بعد الدمج على main)؛
  *  3) الوسوم v* تشغّل الفحوص نفسها (سياسة المجموعة ٦ AR-01/AR-03/AR-10)؛
  *  4) تنفيذ يدوي (workflow_dispatch) متاح ولا يشغّل نفسه؛
- *  5) لا سير عمل موازٍ مكرر (ملف workflows واحد فقط يملك الفحوص).
+ *  5) لا سير عمل موازٍ مكرر — قائمة ملفات workflows محصورة بالاسم
+ *     حصرًا: ci.yml وحده يملك الفحوص (بوابة الدمج)، وhistory-secret-scan.yml
+ *     (R11 W1b-5 / OD-SEC، قرار المالك A_PLUS_C — NON_BLOCKING_RECURRING)
+ *     مسموح بالاسم لأنه ماسح تاريخ مجدول لا يعمل على PRs ولا الدفع
+ *     أبدًا — مسنود أدناه بتثبيت آلي لأحداثه (لا pull_request/push).
  *
  * R4-A4 [تصويب مؤرخ 2026-10-08 — إغلاق R3-N5]: حُذف سطر فرع التنفيذ
  * المخصص المتقاعد refactoring/post-scan-structural-completion-20261005
@@ -55,9 +59,33 @@ describe("ci-workflow-policy (Step 4 — intended event/branch behavior)", () =>
     expect(ci).toMatch(/^  workflow_dispatch:\s*$/m);
   });
 
-  it("no duplicate CI workflow exists (single checks workflow)", () => {
+  it("the workflows directory is exactly the two named files (single checks workflow + the OD-SEC scheduled history scanner)", () => {
     const files = fs.readdirSync(WORKFLOWS_DIR).filter(f => f.endsWith(".yml") || f.endsWith(".yaml"));
-    expect(files).toEqual(["ci.yml"]);
+    /* R11 W1b-5: قائمة محصورة بالاسم — لا ملف ثالث يظهر بصمت؛ ci.yml
+     * يبقى سير عمل الفحوص الوحيد، وhistory-secret-scan.yml هو ماسح
+     * التاريخ المجدول المعتمد (A_PLUS_C) فقط. */
+    expect(files.sort()).toEqual(["ci.yml", "history-secret-scan.yml"]);
+  });
+
+  it("history-secret-scan never triggers on PRs or pushes (OD-SEC A_PLUS_C non-blocking, machine-pinned)", () => {
+    const scan = fs.readFileSync(path.join(WORKFLOWS_DIR, "history-secret-scan.yml"), "utf8");
+    /* اقتطاع سطري المرساة (^…$m) — «cron:» و«runs-on:» يحتويان «on:»
+     * حرفيًا كنص جزئي، فالاقتطاع البسيط على «on:» يقطع الكتلة مبكرًا. */
+    const onBlock = scan.split(/^on:$/m)[1].split(/^permissions:$/m)[0];
+    expect(onBlock).not.toMatch(/pull_request|push/);
+    expect(onBlock).toContain("schedule:");
+    expect(onBlock).toContain("workflow_dispatch:");
+    /* نفس عقد least-privilege المفروض على ci.yml أعلاه ينطبق هنا. */
+    expect(scan).toContain("persist-credentials: false");
+    const permBlock = scan.split(/^permissions:$/m)[1].split(/^concurrency:$/m)[0];
+    expect(permBlock).toContain("contents: read");
+    expect(permBlock.match(/:\s*(write|admin)/g) ?? []).toEqual([]);
+    /* ومرجع الـaction الوحيد مثبت بالبصمة الكاملة نفسها المعتمدة في ci.yml. */
+    const uses = [...scan.matchAll(/uses:\s*(\S+)/g)].map(match => match[1]);
+    expect(uses.length).toBeGreaterThanOrEqual(1);
+    for (const ref of uses) {
+      expect(ref, `المرجع ${ref} يجب أن يكون بصمة كاملة`).toMatch(/^[^@]+@[0-9a-f]{40}(#.*)?$/);
+    }
   });
 
   it("the audit step calls the fixed, testable script (Step 2 wiring pin)", () => {
