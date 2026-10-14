@@ -1,0 +1,90 @@
+{
+ "tool_versions": {
+  "node": "v24.21.0",
+  "git": "git version 2.47.3"
+ },
+ "r10b_base": {
+  "sha": "ffc54eb1150932c9bba88b48a7c38275f2a3effa",
+  "minor_census": {
+   "money_minor_exact": {
+    "prod_files": 14,
+    "prod_line_refs": 142,
+    "all_files": 15,
+    "all_line_refs": 144
+   },
+   "minor_family": {
+    "prod_files": 212,
+    "prod_line_refs": 4849,
+    "all_files": 486,
+    "all_line_refs": 11034
+   }
+  },
+  "house_edges": {
+   "sites": 697,
+   "uniqueEdges": 126,
+   "valueDominant": 78,
+   "typeOnly": 48,
+   "housePairs": 80,
+   "srcHouseTargetFilePairs": 89,
+   "targetHouses": 27
+  },
+  "house_edges_list_sha256": "c1d25f52ba3cbc94865f3d93f26e4d252a86427dc1e4b154e9dea912ad62fe42",
+  "house_edges_list_count": 126
+ },
+ "wave0_head": {
+  "sha": "31afaf39",
+  "minor_census": {
+   "money_minor_exact": {
+    "prod_files": 15,
+    "prod_line_refs": 148,
+    "all_files": 16,
+    "all_line_refs": 150
+   },
+   "minor_family": {
+    "prod_files": 214,
+    "prod_line_refs": 4869,
+    "all_files": 496,
+    "all_line_refs": 11170
+   }
+  },
+  "house_edges": {
+   "sites": 709,
+   "uniqueEdges": 128,
+   "valueDominant": 80,
+   "typeOnly": 48,
+   "housePairs": 82,
+   "srcHouseTargetFilePairs": 91,
+   "targetHouses": 27
+  },
+  "house_edges_list_sha256": "3cea0d00ef72dbc7635c0a782fb77c8e8649a7025e501194b085d8c8a0422d7e",
+  "house_edges_list_count": 128
+ },
+ "w1b_base": {
+  "sha": "0ede6e941a7ec276baf1594febb34e2d4ebf14ee",
+  "minor_census": {
+   "money_minor_exact": {
+    "prod_files": 15,
+    "prod_line_refs": 148,
+    "all_files": 16,
+    "all_line_refs": 150
+   },
+   "minor_family": {
+    "prod_files": 214,
+    "prod_line_refs": 4869,
+    "all_files": 496,
+    "all_line_refs": 11170
+   }
+  },
+  "house_edges": {
+   "sites": 709,
+   "uniqueEdges": 128,
+   "valueDominant": 80,
+   "typeOnly": 48,
+   "housePairs": 82,
+   "srcHouseTargetFilePairs": 91,
+   "targetHouses": 27
+  },
+  "house_edges_list_sha256": "3cea0d00ef72dbc7635c0a782fb77c8e8649a7025e501194b085d8c8a0422d7e",
+  "house_edges_list_count": 128
+ }
+}

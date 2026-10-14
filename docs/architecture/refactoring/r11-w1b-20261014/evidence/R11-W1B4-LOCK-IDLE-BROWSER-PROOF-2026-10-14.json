@@ -1,0 +1,51 @@
+{
+ "steps": [
+  "real Chromium + the exact production bundle (dist/public); local lock enabled via the real settings UI with auto-lock = 1 minute",
+  "app hidden (visibilitychange dispatched; headless Chromium does not switch visibilityState on tab switches — documented limitation; the production handler itself ran) for a real 70s wall-clock duration exceeding the 1-minute threshold",
+  "returning the app to visible triggered the real evaluation and the full-screen lock overlay appeared",
+  "the correct PIN (real PBKDF2 verification) removed the overlay; content stayed mounted underneath",
+  "characterization note: the VISIBLE app never idle-locks by design (the 30s heartbeat evaluates then touches, renewing the idle clock) — the lock engages on hidden-duration, exactly as contract 37 documents"
+ ],
+ "consoleLines": [],
+ "timeline": [
+  {
+   "label": "app loaded",
+   "atMs": 1090
+  },
+  {
+   "label": "setup submitted",
+   "atMs": 1322
+  },
+  {
+   "label": "lock enabled (auto-lock = 1 minute)",
+   "atMs": 4376
+  },
+  {
+   "label": "on a gated route (home)",
+   "atMs": 21528
+  },
+  {
+   "label": "app hidden (synthetic visibilitychange; real handler)",
+   "atMs": 21532
+  },
+  {
+   "label": "lock overlay appeared (hidden duration + threshold + real handler)",
+   "atMs": 91551
+  },
+  {
+   "label": "unlocked with correct PIN",
+   "atMs": 91609
+  }
+ ],
+ "ok": true,
+ "lockedAtMs": 91551,
+ "environment": {
+  "browser": "Chromium (Playwright /home/z/.npm-global/lib/node_modules/playwright)",
+  "served": "the exact production bundle apps/prototype-web/dist/public (entry index-CPVmJmgX.js 631903/155290) over 127.0.0.1",
+  "context": "locale ar-JO, timezone Asia/Amman",
+  "date": "2026-10-14",
+  "script": "scripts/r11w1b_browser_lock_proof.mjs (workspace copy; run from the repo root, read-only for the repository)",
+  "artifacts": "w1b4-browser-final.png kept OUTSIDE the repository (repo image policy forbids report screenshots in docs/) — available in the execution workspace only",
+  "headless_limitation": "headless Chromium does not switch document.visibilityState on tab switches; the visibilitychange event was dispatched synthetically while the production handler, real timers, real wall clock, real IndexedDB, and real PBKDF2 all ran for real"
+ }
+}

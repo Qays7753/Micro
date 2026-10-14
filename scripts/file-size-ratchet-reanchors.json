@@ -1484,6 +1484,82 @@
         "trigger": "PR #361 review: 'Fix both findings on the same branch and PR' — enumerate all reachable tree path entries while caching content scanning by blob SHA; replace delimiter-based commit-message parsing with a provably unambiguous length-framed/raw commit-object method",
         "ocRef": "ARCH-008"
       }
+    },
+    {
+      "id": "R11-W1B2-S2-PREPARED-IMPORT-PROVENANCE",
+      "date": "2026-10-14",
+      "path": "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+      "from": {
+        "nbLoc": 306,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 329,
+        "band": "NORMAL"
+      },
+      "reason": "R11 W1b-2 / S-2 (R10B-NF-012, owner-approved OPAQUE_PREPARED_IMPORT): the import provenance contract — an ambient unique-symbol phantom brand (no runtime footprint; the symbol is module-private and never exported) plus the exported opaque type PreparedImport = TransferPreview & { readonly [brand]: literal }; prepareImport returns TransferResult<PreparedImport> and mints the value with a single documented cast at its success return; confirmImport accepts only PreparedImport, so an unvalidated ordinary object fails typecheck. Type-only change: single-validation runtime contract and backup-first behavior preserved verbatim (303 transfers tests + 18 Settings DOM caller tests green); door re-export + the two UI consumers updated to the branded type (zero growth there); provenance proof pinned by preparedImport.provenance.test.ts (negative type test, widening direction, identity forge helper, production source-scan banning every other cast site).",
+      "authorization": {
+        "ownerReview": "S-2 OWNER_APPROVED — OPAQUE_PREPARED_IMPORT (R11 owner decision package §4) — part of the R11 W1b execution PR #365",
+        "trigger": "R11-W1B-EXECUTION-PROMPT-2026-10-14 section 6 slice W1b-2 — in-band growth requires a ledger entry with an Operations Control reference",
+        "ocRef": "ARCH-009"
+      }
+    },
+    {
+      "id": "R11-W1B2-S2-TRANSFERS-DOOR-SURFACE-TYPE",
+      "date": "2026-10-14",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 366,
+        "band": "NORMAL"
+      },
+      "reason": "R11 W1b-2 / S-2 (owner-approved OPAQUE_PREPARED_IMPORT): the transfers door now exports the opaque provenance type PreparedImport alongside the existing five type exports, so the door-surfaces ratchet baseline (R5/S2 - PC-3/R0-N20) registers the widened surface: transfers [type] = GuidedOpeningImportPreview, GuidedOpeningImportService, LocalTransferService, PreparedImport, TransferPreview, TransferSummary. One line, alphabetical position preserved, no other door touched; the guard itself re-verified PASS (29 doors + 1 root file, exact match). Supersedes the R10B-B3-DOOR-BASELINE coverage range (354->365) for this file; the S-2 provenance test additionally bans every production forge site.",
+      "authorization": {
+        "ownerReview": "S-2 OWNER_APPROVED — OPAQUE_PREPARED_IMPORT (R11 owner decision package §4) — part of the R11 W1b execution PR #365",
+        "trigger": "door-surfaces ratchet surface-widened detection on the W1b-2 commit; re-anchor required in the same PR per R5/S2 protocol",
+        "ocRef": "ARCH-009"
+      }
+    },
+    {
+      "id": "R11-W1B5-OD-SEC-DOCUMENTED-LIMIT",
+      "date": "2026-10-14",
+      "path": "scripts/check-secrets.mjs",
+      "from": {
+        "nbLoc": 204,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 213,
+        "band": "NORMAL"
+      },
+      "reason": "R11 W1b-5 / D-16 (R10B-NF-025, owner-approved OD-SEC A_PLUS_C): the F-027 header section now documents the working-tree-only limitation explicitly and points to the two approved history channels — the preserved one-time S0 evidence (ZERO_FINDINGS under complete adversarial enumeration) and the new least-privilege recurring workflow .github/workflows/history-secret-scan.yml. Comment-only growth: the pattern table, first-match behavior, redaction, and output sanitization are untouched (guard re-run PASS; the scanner's pattern-sharing test still pins the mechanical import).",
+      "authorization": {
+        "ownerReview": "OD-SEC OWNER_APPROVED — A_PLUS_C — NON_BLOCKING_RECURRING (R11 owner decision package) — part of the R11 W1b execution PR #365",
+        "trigger": "R11-W1B-EXECUTION-PROMPT-2026-10-14 section 6 slice W1b-5 item 1 — document the working-tree-only limit in the guard header",
+        "ocRef": "ARCH-009"
+      }
+    },
+    {
+      "id": "R11-W1B-FINAL-DOOR-FORMAT-REFLOW",
+      "date": "2026-10-15",
+      "path": "apps/prototype-web/client/src/application/transfers/index.ts",
+      "from": {
+        "nbLoc": 13,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 18,
+        "band": "NORMAL"
+      },
+      "reason": "R11 W1b final verification gate (mechanical formatting fix, zero semantic change): the W1b-2 PreparedImport door export line exceeded the repository prettier print width and is reflowed by the canonical repository formatter (prettier --write) into its multi-line form — the six exported type names, their order, and the door surface are byte-identical in content (door-surfaces ratchet unchanged at 366; module-boundaries unchanged); only line wrapping changed. Format-only growth required by the W1b final gate 'pnpm check' format:check on the final head.",
+      "authorization": {
+        "ownerReview": "R11 W1b execution PR #365 final verification gate — repository formatter conformance on the final head (canonical W1b execution prompt section 9: pnpm check on the exact final head)",
+        "trigger": "R11-W1B-EXECUTION-PROMPT-2026-10-14 section 9 verification contract — format:check must pass on the final head; the single non-conforming line was introduced by W1b-2 in this same PR",
+        "ocRef": "ARCH-009"
+      }
     }
   ]
 }

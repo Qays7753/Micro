@@ -27,7 +27,7 @@ import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/forma
 import { withReturnTo } from "@/app/navigationContract";
 import type { GuidedOpeningImportPreview } from "@/application/transfers";
 import type { BrowserPersistenceReading } from "@/application/preferences";
-import type { TransferPreview, TransferSummary } from "@/application/transfers";
+import type { PreparedImport, TransferSummary } from "@/application/transfers";
 import type { LocalExportFile } from "@/storage/local/types";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 
@@ -56,8 +56,8 @@ export type SettingsDataProtectionSectionProps = {
   restoreCheck: { overall: "PASS" | "WARN" | "UNAVAILABLE" | "FAIL"; note: string } | null;
   restoreBackup: LocalExportFile | null;
   downloadRestoreBackup: () => void;
-  preview: TransferPreview | null;
-  setPreview: Dispatch<SetStateAction<TransferPreview | null>>;
+  preview: PreparedImport | null;
+  setPreview: Dispatch<SetStateAction<PreparedImport | null>>;
   isWorking: boolean;
   notice: { kind: FeedbackKind; text: string; section: "storage" | "mode" } | null;
   copyDiagnosticReport: () => Promise<void>;
