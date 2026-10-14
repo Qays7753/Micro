@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "1fbbe3663ba1260204cc84d9bb01cb5ba1363fab",
+  "head": "09c4600f385c1895faa36dbd0934d6dea9310571",
   "pages": {
     "total": 60,
     "map": {
@@ -162,7 +162,8 @@
         "kind": "direct",
         "evidence": [
           "G5Activity.dom.test.tsx",
-          "R2.financeActivityVoid.test.tsx"
+          "R2.financeActivityVoid.test.tsx",
+          "pages/FinanceActivity.periodKey.test.ts"
         ]
       },
       "pages/FinanceMore.tsx": {
@@ -747,7 +748,8 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/EventsLayer.familyGuard.dom.test.tsx",
-          "apps/prototype-web/client/src/application/activity/activityService.test.ts"
+          "apps/prototype-web/client/src/application/activity/activityService.test.ts",
+          "apps/prototype-web/client/src/pages/FinanceActivity.periodKey.test.ts"
         ]
       },
       "31-period-statement-depth-contract.md": {
