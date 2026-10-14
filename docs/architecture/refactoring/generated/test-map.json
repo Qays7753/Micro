@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "0bd0b3337797a07f86133a796d13ab8c967174b7",
+  "head": "6563d070529a3dc64c4bf467504aec6802dd3c4b",
   "pages": {
     "total": 60,
     "map": {
@@ -803,6 +803,7 @@
           "scripts/security/braces-elimination/capture-baseline.mjs",
           "scripts/security/braces-elimination/harness-lib.mjs",
           "scripts/security/ci-audit-gate.test.mjs",
+          "scripts/security/history-secret-scan-workflow.test.mjs",
           "scripts/security/scan-git-history-secrets.mjs",
           "scripts/security/scan-git-history-secrets.test.mjs"
         ]
@@ -894,6 +895,7 @@
       "tests/domain/craft-order-g3.test.ts",
       "tests/domain/craft-order-review-lock.test.ts",
       "tests/domain/craft-order.test.ts",
+      "tests/domain/craftOrderPolicyCharacterization.mutation.test.ts",
       "tests/domain/exact-values.characterization.test.ts",
       "tests/domain/expense-category-label.test.ts",
       "tests/domain/financial-analysis.test.ts",
