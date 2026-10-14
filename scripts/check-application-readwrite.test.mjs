@@ -13,7 +13,13 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, describe, expect, it } from "vitest";
-import { READER_FILES, checkApplicationReadWrite } from "./check-application-readwrite.mjs";
+import {
+  READ_LIKE_CORPUS_BASELINE,
+  READER_FILES,
+  checkApplicationReadWrite,
+  readLikeCorpusInScope,
+  satisfiesReadLikeProperty,
+} from "./check-application-readwrite.mjs";
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url).replace(
   /check-application-readwrite\.test\.mjs$/,
@@ -42,6 +48,10 @@ function write(root, rel, content) {
 function cleanTree() {
   const root = makeTempDir();
   for (const rel of READER_FILES) write(root, path.join(APP, rel), "export const read = () => 1;\n");
+  /* (R11 W1A-1 / D-04 — 2026-10-14): جسم القراءة الـ63 صار جزءًا من الشجرة
+   * النظيفة المرجعية — بدونه تفشل كل الأشجار التركيبية بنظافة أساس الجسم
+   * لغياب المفاتيح الحية (نفس منطق الأساس في R6/R8). */
+  for (const rel of READ_LIKE_CORPUS_BASELINE) write(root, path.join(APP, rel), "export const read = () => 1;\n");
   return root;
 }
 
@@ -122,5 +132,75 @@ describe("application read/write guard (R5/S3 — readers never write)", () => {
     expect(okRun.stdout).toContain("application-readwrite: PASS");
     const badRun = spawnSync("node", [SCRIPT_PATH, os.tmpdir()], { encoding: "utf8" });
     expect(badRun.status).toBe(2);
+  });
+});
+
+describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-019, OD-GUARD Option A)", () => {
+  it("the live repository passes at the baseline: 63 corpus files, zero violations", () => {
+    const result = checkApplicationReadWrite(REPO_ROOT);
+    expect(result.ok).toBe(true);
+    expect(result.stats.readLikeCorpus).toBe(63);
+    expect(result.stats.readLikeBaseline).toBe(63);
+    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(63);
+    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(63);
+  });
+
+  it("growth: a new read-like file outside the governed corpus fails", () => {
+    const root = cleanTree();
+    write(root, path.join(APP, "brand-new-house", "freshReads.ts"), "export const listThings = () => 1;\n");
+    const result = checkApplicationReadWrite(root);
+    expect(result.violations.some(v => v.rule === "read-like-corpus-growth" && v.key === "brand-new-house/freshReads.ts")).toBe(true);
+  });
+
+  it("property: a baseline file whose text gains a write-vocabulary definition fails", () => {
+    const root = cleanTree();
+    /* التعريف (لا الاستدعاء) يكفي لخرق الخاصية النصية — نفس منهج الأساس
+     * الذي صنّف preferenceService.ts وlegacyFormDraftMigration.ts كاتبين. */
+    write(
+      root,
+      path.join(APP, "activity", "activityLabels.ts"),
+      "export function saveActivityLabels() { return 1; }\n",
+    );
+    const result = checkApplicationReadWrite(root);
+    expect(result.violations.some(v => v.rule === "read-like-corpus-property" && v.key === "activity/activityLabels.ts")).toBe(true);
+  });
+
+  it("stale: a baseline key that left the tree fails (same-PR hygiene)", () => {
+    const root = cleanTree();
+    fs.rmSync(path.join(root, APP, "time", "clock.ts"));
+    const result = checkApplicationReadWrite(root);
+    expect(result.violations.some(v => v.rule === "read-like-corpus-stale" && v.key === "time/clock.ts")).toBe(true);
+  });
+
+  it("swap is caught: the arriving file is growth AND the departing key is stale", () => {
+    const root = cleanTree();
+    fs.rmSync(path.join(root, APP, "cash", "walletLedgerService.ts"));
+    write(root, path.join(APP, "cash", "walletReads.ts"), "export const listWallets = () => 1;\n");
+    const result = checkApplicationReadWrite(root);
+    expect(result.violations.some(v => v.rule === "read-like-corpus-growth" && v.key === "cash/walletReads.ts")).toBe(true);
+    expect(result.violations.some(v => v.rule === "read-like-corpus-stale" && v.key === "cash/walletLedgerService.ts")).toBe(true);
+  });
+
+  it("a text-writer (defines save*/clear* methods) stays OUTSIDE the corpus by definition", () => {
+    const root = cleanTree();
+    write(
+      root,
+      path.join(APP, "some-house", "preferenceLikeService.ts"),
+      "export async function saveBackupReminderEnabled() { return 1; }\n",
+    );
+    const result = checkApplicationReadWrite(root);
+    /* لا نمو: الملف كاتب نصي (التعريف يُحتسب) فليس ملف قراءة أصلًا. */
+    expect(result.violations.filter(v => v.key === "some-house/preferenceLikeService.ts")).toEqual([]);
+    expect(satisfiesReadLikeProperty("function saveBackup() {}\n")).toBe(false);
+    expect(satisfiesReadLikeProperty("function listThings() {}\n")).toBe(true);
+  });
+
+  it("scope: family files and root-family paths are excluded from the corpus predicate", () => {
+    expect(readLikeCorpusInScope("finance/anythingReads.ts")).toBe(false);
+    expect(readLikeCorpusInScope("transfers/anythingReads.ts")).toBe(false);
+    expect(readLikeCorpusInScope("inventory/materialReads.ts")).toBe(true);
+    expect(readLikeCorpusInScope("resultCodes.ts")).toBe(true);
+    expect(readLikeCorpusInScope("anything.spec.ts")).toBe(false);
+    expect(readLikeCorpusInScope("anything.tsx")).toBe(false);
   });
 });

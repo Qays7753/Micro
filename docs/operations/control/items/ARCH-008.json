@@ -1,0 +1,116 @@
+{
+  "id": "ARCH-008",
+  "title": "R11 S0 + W1A — مسح تاريخ Git الأمني لمرة واحدة وإكمال حراس النقاط الست (D-01/D-04/D-05/D-07/D-03/D-02) بقرارات المالك المعتمدة",
+  "type": "GOVERNANCE",
+  "status": "VERIFIED",
+  "priority": "P0",
+  "stage": "r11-s0-w1a-20261013",
+  "summary": "تنفيذ النطاق المعتمد حصريًا من R11: مسح S0 لتاريخ Git بحثًا عن أسرار (دليل فقط، مخرجات منقحة بالبصمات، بلا إعادة كتابة تاريخ) على فرع refactoring/r11-s0-w1a-20261013 وPR واحد إلى main، ثم W1A-1 (حراس D-01 راتشة 19 حافة نوعية UI→Storage، وD-04 جسم القراءة 63 ملفًا، وD-05 نقطة استقصاء 35 تحذير lint تحت سقف 37، وD-07 راتشة أزواج البيوت 128/80/48 مع إعفاءات OD-10 الورقية) وW1A-2 (D-03 إعفاء ?? مربوط بالـAST، وD-02 مراقب casts عائلة Minor). حراس واختبارات وأدلة ووثائق فقط — لا تغيير إنتاجي ولا رفع أي سقف. تحديث مؤرخ 2026-10-14 (إصلاح مراجعة PR): المكتشفان R11-REV-NF-001/002 (كتلتا قبول S0 العليا المست reproduction من مراجعة PR المستقلة عند 98d22362) أُغلقا بالدليل عند 1fbbe366 — تعداد مسارات blob كامل عبر قراءة كل كائنات الشجر الخام وتحليلها الثنائي ونشر البادئات من كل الجذور (المحتوى مرة واحدة لكل SHA؛ كل الأسماء المستعارة تُنسب)، ورسائل الالتزامات من كائن خام بتأطير طولي بعد أول سطر فارغ (الفاصل القانوني غير الملتبس)؛ خمسة انحدارات خصومية تفشل 5/5 ضد الشيفرة ما قبل الإصلاح و14/14 خضراء عليه؛ إعادة المسح الرسمية على مرآة نظيفة ZERO_FINDINGS تحت التعداد الكامل (367 مرجعًا/1,568 التزامًا/10,775 شجرة/10,852 blob/11,006 مدخل مسار)؛ pnpm check خروج 0 على شجرة الإصلاح بدخول JS مطابق بالبايت؛ التفاصيل في دليل S0 §0 والتقرير الموحد §10 وسجل §192 وملاحظات WS-217. مصالحة ما بعد الدمج: PR #361 دُمج بـMerge commit 8393f9e68f6975244849e8bd4885672e0b2cbaf0 من الرأس المصدر 81c3290d3ef599c1829a85ee1ec3f71638f984fb؛ CI وCloudflare Pages نجحا على رأس الدمج نفسه؛ R11 S0 + W1A متحققة على main. مصالحة R11-REV-NF-003: عولج انجراف رأس الأدلة بين d4553bcc و81c3290d بإعادة مسح مرآة نظيفة ZERO_FINDINGS وتوحيد التقرير دون تغيير كودي.",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "classification": "HARDENING",
+  "gate_classification": "EVIDENCE_RECONCILIATION_REQUIRED",
+  "root_cause": "ست فجوات تحكم موثقة في مصفوفة R10-B (R10A-F-006/F-013/F-014/F-019/F-026 وR10B-NF-005) أقر المالك إغلاقها بالحراس بموجب حزمة قرارات R11 (OD-GUARD/OD-MONEY/OD-10/OD-SEC — الخيار A لكل منها)، إضافة إلى مسح التاريخ الأمني المؤجل (R10B-NF-025/OD-SEC).",
+  "owner": "Micro owner (Qays7753)",
+  "tests_required": [
+    "npx vitest run scripts/security/scan-git-history-secrets.test.mjs",
+    "npx vitest run scripts/check-module-boundaries.test.mjs",
+    "npx vitest run scripts/check-application-readwrite.test.mjs",
+    "npx vitest run scripts/check-lint-warning-baseline.test.mjs",
+    "npx vitest run scripts/check-date-arithmetic-ownership.test.mjs",
+    "npx vitest run scripts/check-money-minor-casts.test.mjs",
+    "python3 scripts/operations-control/validate.py",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "pnpm check (full gate at each wave head)"
+  ],
+  "layers": [
+    "governance",
+    "architecture",
+    "operations-control",
+    "guards",
+    "tests"
+  ],
+  "source": {
+    "report": "R11 Wave 0 structure scan report (merged 5ef4ce08) §11/§15/§16 + R11 owner decision package (all 11 decisions approved, 2026-10-13) + canonical execution prompt on PR #360 head 96100590",
+    "discovered_at_sha": "5ef4ce08841bcd4ff7c5fb185a0fe2eeef6852fd",
+    "evidence": [
+      "docs/architecture/refactoring/r11-wave0-20261013/R11-W0-STRUCTURE-ARCHITECTURE-CONTRACT-SCAN-REPORT-2026-10-13.md",
+      "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-FINDINGS-MATRIX-2026-10-11.json"
+    ]
+  },
+  "acceptance": [
+    "S0: all reachable refs enumerated and scanned on a fresh mirror; synthetic-planted-secret self-test detected; redaction test passed; zero secret text in any output; ZERO_FINDINGS or sanitized incident report; no history/credential mutation.",
+    "D-01: type-only UI→storage ratchet live at baseline 19 with the 17-key historical subset preserved; growth/shrink/swap/mixed/export-type/import-type fixtures red for the intended reason.",
+    "D-04: read-like corpus membership ratchet live at 63 with the recorded predicate; new/stale/property fixtures red; the 63-file audit recorded.",
+    "D-05: exact lint warning tripwire live at 35 (18 max-lines-per-function + 17 complexity) with ceiling 37 untouched; +1/-1 drills with distinct messages.",
+    "D-07: house-pair ratchet live on the full 128-edge census (80 value + 48 type), 42 governed pairs (21v+42t), OD-10 leaf exemptions verified every run with pinned import allowlists, SCC baselines recorded (2 value + 1 type), new-pair/cap-growth/stale/drift/exemption/cycle fixtures red.",
+    "D-03: AST-bound ?? exemption fail-closed on parse errors, five approved sites pinned by operand+receiver keys, all false-exemption fixtures red, file set identical to the prior text guard.",
+    "D-02: Minor-family cast monitor live (0 entering / 13 identity-narrowing exit sites ratcheted), approved kernel/formatter zones excluded, mutation fixture red, emitted JS proven unchanged.",
+    "All required checks green at each wave head and on the exact post-merge main SHA; bundle ceilings 650000/155300 and lint ceiling 37 untouched; no protected production surface changed; PR #361 merged by owner request and verified on main; no branch cleanup performed in this reconciliation."
+  ],
+  "areas": [
+    "architecture-governance",
+    "docs/architecture/refactoring",
+    "docs/operations/control",
+    "scripts",
+    "tests"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "https://github.com/Qays7753/Micro/pull/360 (R11-S0-W1A-EXECUTION-PROMPT-2026-10-13.md — canonical execution prompt, head 96100590)",
+    "docs/architecture/refactoring/r11-wave0-20261013/R11-W0-STRUCTURE-ARCHITECTURE-CONTRACT-SCAN-REPORT-2026-10-13.md"
+  ],
+  "evidence": [
+    "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-S0-W1A-EXECUTION-REPORT-2026-10-13.md",
+    "docs/architecture/refactoring/r11-s0-w1a-20261013/evidence/R11-S0-GIT-HISTORY-SECRET-SCAN-2026-10-13.md",
+    "docs/architecture/refactoring/r11-s0-w1a-20261013/evidence/R11-W1A1-GUARDS-EVIDENCE-2026-10-14.md",
+    "docs/architecture/refactoring/r11-s0-w1a-20261013/evidence/R11-W1A2-D03-D02-EVIDENCE-2026-10-14.md",
+    "https://github.com/Qays7753/Micro/pull/361",
+    "https://github.com/Qays7753/Micro/commit/8393f9e68f6975244849e8bd4885672e0b2cbaf0",
+    "https://github.com/Qays7753/Micro/actions/runs/38554971742/job/115821740511",
+    "https://github.com/Qays7753/Micro/runs/115822020901",
+    "docs/operations/current-state-log.md"
+  ],
+  "dependencies": [],
+  "related_items": [
+    "ARCH-007"
+  ],
+  "owner_decision": "R11 owner decision package 2026-10-13: OD-GUARD Option A (19/63/35 baselines), OD-MONEY Option A (monitor only, W5 trigger-gated), OD-10 Option A (guard-only, leaf exemptions time/formatting/identity/resultCodes.ts), OD-SEC A+C gated to S0 now (recurring workflow belongs to W1b).",
+  "updated_at": "2026-10-14",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-14",
+      "actor": "owner:decision-package-2026-10-13+zai-executor",
+      "reason": "اعتمد المالك حزمة قرارات R11 كاملة (S0_SCOPE_APPROVED / W1A_SCOPE_APPROVED — ZAI_EXECUTION_ONLY)؛ فُتح Claim تنفيذي على الفرع الوحيد من الأساس الحي 5ef4ce08 قبل أي تعديل كودي."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-14",
+      "actor": "zai-executor",
+      "reason": "بدأ تنفيذ النطاق فعليًا بعد Claim: S0 ثم W1A-1 ثم W1A-2 على الفرع التنفيذي الوحيد مع بوابات كاملة بعد كل موجة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-14",
+      "actor": "zai-executor",
+      "reason": "S0 + W1A-1 + W1A-2 مكتملة وبوابتا الموجة خضراوان (pnpm check exit 0 عند c160f8ae و7f4fa716)؛ PR #361 مفتوح وPR_READY بانتظار مراجعة المالك وقرار دمجه المستقل."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-14",
+      "actor": "merge:pr-361",
+      "reason": "PR #361 دُمج بـMerge commit 8393f9e68f6975244849e8bd4885672e0b2cbaf0 من رأس المصدر 81c3290d3ef599c1829a85ee1ec3f71638f984fb إلى main؛ بدأت مصالحة ما بعد الدمج."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-14",
+      "actor": "verify:main-ci",
+      "reason": "main يطابق Merge commit 8393f9e68f6975244849e8bd4885672e0b2cbaf0؛ CI وCloudflare Pages نجحا على رأس الدمج نفسه؛ مصالحة الحالة الحية وسجل الدمج مطلوبة في هذه الشريحة. R11-REV-NF-003 أُغلق لاحقًا في التقرير والسجل بمصالحة evidence عند source head 81c3290d؛ لا تغيير كودي."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "لا إجراء تنفيذي إضافي لـARCH-008: R11 S0 + W1A متحققتان على main عند Merge commit 8393f9e68f6975244849e8bd4885672e0b2cbaf0 بعد نجاح CI وCloudflare؛ القرار التالي مستقل: مصير R11-W1A-NF-002 وفتح W1b من عدمه. لا يبدأ successor تلقائيًا ولا تُحذف الفروع غير المدموجة.",
+  "merge_sha": "8393f9e68f6975244849e8bd4885672e0b2cbaf0",
+  "verified_on_main_sha": "8393f9e68f6975244849e8bd4885672e0b2cbaf0"
+}
