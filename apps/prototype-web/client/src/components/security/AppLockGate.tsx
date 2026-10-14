@@ -251,6 +251,7 @@ export function AppLockGate({ children }: { children: ReactNode }) {
          * تدميري أو مالي (عقد ٣٧ مبدأ ٥ — غياب القفل ليس تحققًا). */
         <LockOverlayShell label="تعذر التحقق من قفل Micro">
           <h1>تعذر التحقق من قفل Micro</h1>
+          <p>تعذّر التحقق من حالة القفل — حُجب المحتوى احتياطًا ولم تتغير أي بيانات.</p>
           <Button action="save" onClick={() => void retryAfterUnreadable()}>
             أعد المحاولة
           </Button>
