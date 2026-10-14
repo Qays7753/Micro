@@ -1522,6 +1522,25 @@
         "trigger": "door-surfaces ratchet surface-widened detection on the W1b-2 commit; re-anchor required in the same PR per R5/S2 protocol",
         "ocRef": "ARCH-009"
       }
+    },
+    {
+      "id": "R11-W1B5-OD-SEC-DOCUMENTED-LIMIT",
+      "date": "2026-10-14",
+      "path": "scripts/check-secrets.mjs",
+      "from": {
+        "nbLoc": 204,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 213,
+        "band": "NORMAL"
+      },
+      "reason": "R11 W1b-5 / D-16 (R10B-NF-025, owner-approved OD-SEC A_PLUS_C): the F-027 header section now documents the working-tree-only limitation explicitly and points to the two approved history channels — the preserved one-time S0 evidence (ZERO_FINDINGS under complete adversarial enumeration) and the new least-privilege recurring workflow .github/workflows/history-secret-scan.yml. Comment-only growth: the pattern table, first-match behavior, redaction, and output sanitization are untouched (guard re-run PASS; the scanner's pattern-sharing test still pins the mechanical import).",
+      "authorization": {
+        "ownerReview": "OD-SEC OWNER_APPROVED — A_PLUS_C — NON_BLOCKING_RECURRING (R11 owner decision package) — part of the R11 W1b execution PR #365",
+        "trigger": "R11-W1B-EXECUTION-PROMPT-2026-10-14 section 6 slice W1b-5 item 1 — document the working-tree-only limit in the guard header",
+        "ocRef": "ARCH-009"
+      }
     }
   ]
 }

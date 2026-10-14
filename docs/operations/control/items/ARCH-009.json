@@ -83,7 +83,10 @@
     "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B2-S2-PREPARED-IMPORT-EVIDENCE-2026-10-14.md",
     "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B3-OD-TIME-EVIDENCE-2026-10-14.md",
     "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B4-LOCK-IDLE-CHARACTERIZATION-2026-10-14.md",
-    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B4-LOCK-IDLE-BROWSER-PROOF-2026-10-14.json"
+    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B4-LOCK-IDLE-BROWSER-PROOF-2026-10-14.json",
+    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B5-OD-SEC-EVIDENCE-2026-10-14.md",
+    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B5-OD-SEC-WORKFLOW-DRYRUN-2026-10-14.json",
+    ".github/workflows/history-secret-scan.yml"
   ],
   "dependencies": [
     "ARCH-008"

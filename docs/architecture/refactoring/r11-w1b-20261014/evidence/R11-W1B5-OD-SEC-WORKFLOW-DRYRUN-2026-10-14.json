@@ -1,0 +1,26 @@
+{
+ "schema": "micro-r11-s0-history-secret-scan/2",
+ "scanner": "scripts/security/scan-git-history-secrets.mjs",
+ "pattern_source": "scripts/check-secrets.mjs (SECRET_PATTERNS + SECRET_FILE_NAMES — the working-tree guard's table, shared mechanically)",
+ "date": "2026-10-14",
+ "repo": "dryrun-mirror.git",
+ "scanned": {
+  "refs": 368,
+  "commits": 1590,
+  "trees": 10920,
+  "blobs": 10942,
+  "blob_path_entries": 11096,
+  "tag_objects": 0
+ },
+ "result": "ZERO_FINDINGS",
+ "findings": [],
+ "redaction": "ASSERTED",
+ "dry_run": {
+  "what": "controlled dry run of the exact history-secret-scan.yml scan command (fresh GitHub mirror + the canonical scanner) — workflow-proof execution required by the W1b-5 contract",
+  "date": "2026-10-14",
+  "command": "git clone --mirror https://github.com/Qays7753/Micro.git && node scripts/security/scan-git-history-secrets.mjs <mirror> --report <out>",
+  "exit_code": 0,
+  "environment": "node v24.21.0 / git 2.47.3 / anonymous public clone",
+  "note": "the first scheduled or manually-dispatched run on GitHub Actions is the authoritative first platform execution (NOT_EXECUTED here — no claim); this dry run proves the command shape end-to-end on the live mirror"
+ }
+}
