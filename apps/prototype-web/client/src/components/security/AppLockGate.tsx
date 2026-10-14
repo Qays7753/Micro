@@ -33,6 +33,20 @@ type GateState =
   | { phase: "locked"; failedAttempts: number }
   | { phase: "unreadable" };
 
+/* R11 Lock Remediation: هيكل الغطاء المشترك — نفس الغطاء الكامل الشاشة
+ * وطبقاته لكلًّا من القفل وحالة القراءة غير الموثوقة (ناتج DOM مطابق). */
+function LockOverlayShell({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <>
+      <div aria-hidden="true" className="micro-lock-veil" />
+      <div className="micro-lock-overlay" role="dialog" aria-modal="true" aria-label={label}>
+        <Lock aria-hidden="true" className="micro-lock-icon" />
+        {children}
+      </div>
+    </>
+  );
+}
+
 export function AppLockGate({ children }: { children: ReactNode }) {
   const { localLock } = usePrototypeServices();
   const [location] = useLocation();
@@ -55,7 +69,7 @@ export function AppLockGate({ children }: { children: ReactNode }) {
      * حالة القفل ليس «لا قفل» — لا فتح أبدًا؛ حالة unreadable صادقة والمحتوى
      * المحمي خامل غير قابل للتفاعل أو التركيز حتى قراءة موثوقة ناجحة. */
     if (!status.ok) {
-      setState(current => (current.phase === "unreadable" ? current : { phase: "unreadable" }));
+      setUnreadable();
       return;
     }
     if (!status.value.enabled) {
@@ -64,7 +78,7 @@ export function AppLockGate({ children }: { children: ReactNode }) {
     }
     const shouldLock = await localLock.shouldLockNow();
     if (!shouldLock.ok) {
-      setState(current => (current.phase === "unreadable" ? current : { phase: "unreadable" }));
+      setUnreadable();
       return;
     }
     if (shouldLock.value) {
@@ -78,6 +92,12 @@ export function AppLockGate({ children }: { children: ReactNode }) {
       setState(current => (current.phase === "locked" ? current : { phase: "open" }));
     }
   }, [localLock, location]);
+
+  /* R11 Lock Remediation: قراءة غير موثوقة واحدة تضبط unreadable — ولا
+   * تسحب حالة أحدث (قفلٌ لاحق يبقى). */
+  const setUnreadable = useCallback(() => {
+    setState(current => (current.phase === "unreadable" ? current : { phase: "unreadable" }));
+  }, []);
 
   useEffect(() => {
     void evaluate();
@@ -168,90 +188,73 @@ export function AppLockGate({ children }: { children: ReactNode }) {
   return (
     <>
       {locked ? (
-        <>
-          {/* المحتوى يبقى محمّلًا تحته — القفل غطاء لا إعادة توجيه، فلا يفقد
-              المالك نموذجًا مفتوحًا غير محفوظ. */}
-          <div aria-hidden="true" className="micro-lock-veil" />
-          <div className="micro-lock-overlay" role="dialog" aria-modal="true" aria-label="قفل Micro">
-            <Lock aria-hidden="true" className="micro-lock-icon" />
-            <h1>Micro مقفل</h1>
-            <p>
-              أدخل رمز القفل لمتابعة عملك كما تركته — بياناتك محلية على هذا الجهاز كما هي، والقفل يحمي من
-              النظرة العابرة فقط.
-            </p>
-            <form
-              className="micro-lock-form"
-              onSubmit={event => {
-                event.preventDefault();
-                void tryUnlock();
-              }}
-            >
-              <label className="micro-field">
-                <span>رمز القفل</span>
-                {/* رمز القفل نص أرقام إنجليزية بخط واحد — معيّن المدخلات الرقمي
+        /* المحتوى يبقى محمّلًا تحته — القفل غطاء لا إعادة توجيه، فلا يفقد
+         * المالك نموذجًا مفتوحًا غير محفوظ. */
+        <LockOverlayShell label="قفل Micro">
+          <h1>Micro مقفل</h1>
+          <p>
+            أدخل رمز القفل لمتابعة عملك كما تركته — بياناتك محلية على هذا الجهاز كما هي، والقفل يحمي من النظرة
+            العابرة فقط.
+          </p>
+          <form
+            className="micro-lock-form"
+            onSubmit={event => {
+              event.preventDefault();
+              void tryUnlock();
+            }}
+          >
+            <label className="micro-field">
+              <span>رمز القفل</span>
+              {/* رمز القفل نص أرقام إنجليزية بخط واحد — معيّن المدخلات الرقمي
                 والاتجاه المعزول كنمط EnglishNumberInput بلا قيمة رقمية.
                 المجموعة ٦ (تدقيق A1): أرقام لوحة المفاتيح العربية (٠–٩)
                 تُطبّع إلى الإنجليزية عند الإدخال كما في كل حقول الأرقام،
                 والإدخال مقنّع عن النظرة الجانبية (نمط كلمة مرور). */}
-                <input
-                  type="password"
-                  value={pin}
-                  onChange={event =>
-                    setPin(
-                      normalizeAsciiDigits(event.target.value)
-                        .replace(/[^0-9]/g, "")
-                        .slice(0, 8),
-                    )
-                  }
-                  inputMode="numeric"
-                  autoComplete="off"
-                  dir="ltr"
-                  lang="en"
-                  pattern="[0-9]*"
-                  autoFocus
-                />
-              </label>
-              <Button action="save" type="submit" disabled={pin.trim().length < 4}>
-                <LockOpen aria-hidden="true" /> افتح
-              </Button>
-            </form>
-            {message ? (
-              <p className="micro-field-error" role="alert">
-                {message}
-              </p>
-            ) : null}
-            <p className="micro-offline-truth">
-              {/* مراجعة 5-RV-D: صياغة صادقة — لا مسار استرداد بلا الرمز؛ التعطيل من
-              الإعدادات يحتاج الرمز نفسه ولا بديل سحابي. */}
-              لا يوجد استرداد بلا الرمز: تعطيل القفل من إعدادات هذا الجهاز يتطلب الرمز نفسه، ولا يوجد بديل
-              سحابي. بياناتك تبقى محلية كما هي.
+              <input
+                type="password"
+                value={pin}
+                onChange={event =>
+                  setPin(
+                    normalizeAsciiDigits(event.target.value)
+                      .replace(/[^0-9]/g, "")
+                      .slice(0, 8),
+                  )
+                }
+                inputMode="numeric"
+                autoComplete="off"
+                dir="ltr"
+                lang="en"
+                pattern="[0-9]*"
+                autoFocus
+              />
+            </label>
+            <Button action="save" type="submit" disabled={pin.trim().length < 4}>
+              <LockOpen aria-hidden="true" /> افتح
+            </Button>
+          </form>
+          {message ? (
+            <p className="micro-field-error" role="alert">
+              {message}
             </p>
-          </div>
-        </>
+          ) : null}
+          <p className="micro-offline-truth">
+            {/* مراجعة 5-RV-D: صياغة صادقة — لا مسار استرداد بلا الرمز؛ التعطيل من
+              الإعدادات يحتاج الرمز نفسه ولا بديل سحابي. */}
+            لا يوجد استرداد بلا الرمز: تعطيل القفل من إعدادات هذا الجهاز يتطلب الرمز نفسه، ولا يوجد بديل
+            سحابي. بياناتك تبقى محلية كما هي.
+          </p>
+        </LockOverlayShell>
       ) : null}
       {state.phase === "unreadable" ? (
-        <>
-          {/* المحتوى يبقى محجوبًا خاملًا تحته — فشل قراءة سجل القفل ليس دليل
-              غيابه؛ الخطأ صادق قابل للاستعادة بلا تغيير أي بيانات وبلا أي
-              فعل تدميري أو مالي (عقد ٣٧ مبدأ ٥ — غياب القفل ليس تحققًا). */}
-          <div aria-hidden="true" className="micro-lock-veil" />
-          <div
-            className="micro-lock-overlay"
-            role="dialog"
-            aria-modal="true"
-            aria-label="تعذر التحقق من قفل Micro"
-          >
-            <Lock aria-hidden="true" className="micro-lock-icon" />
-            <h1>تعذر التحقق من حالة القفل</h1>
-            <p>
-              لم يستطع التطبيق قراءة إعداد القفل من التخزين المحلي. حُجب المحتوى احتياطًا ولم تتغير أي بيانات
-              — أعد المحاولة، فإن تكرر الفشل أغلق أي نوافذ أخرى مفتوحة لهذا التطبيق ثم أعد تحميله.
-            </p>
-            <Button action="save" type="button" onClick={() => void retryAfterUnreadable()}>
-              أعد المحاولة
-            </Button>
-          </div>
-        </>
+        /* المحتوى يبقى محجوبًا خاملًا تحته — فشل قراءة سجل القفل ليس دليل
+         * غيابه؛ الخطأ صادق قابل للاستعادة بلا تغيير أي بيانات وبلا أي فعل
+         * تدميري أو مالي (عقد ٣٧ مبدأ ٥ — غياب القفل ليس تحققًا). */
+        <LockOverlayShell label="تعذر التحقق من قفل Micro">
+          <h1>تعذر التحقق من قفل Micro</h1>
+          <Button action="save" onClick={() => void retryAfterUnreadable()}>
+            أعد المحاولة
+          </Button>
+        </LockOverlayShell>
       ) : null}
       <div inert={state.phase !== "open"}>{children}</div>
     </>
