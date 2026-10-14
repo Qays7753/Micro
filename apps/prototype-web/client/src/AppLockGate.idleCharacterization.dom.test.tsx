@@ -1,15 +1,19 @@
 /** @vitest-environment jsdom */
 /**
- * R11 W1b-4 / D-12 (OD-TIME — lock-idle characterization only):
- * مصفوفة توصيف بوابة القفل على مستوى المكوّن — الإخفاء/الظهور، نبض الثلاثين
- * ثانية، الفتح بالرمز، مسار الاسترداد المعفى، وفشل قراءة التخزين.
+ * R11 W1b-4 (التوصيف الأصلي) ← R11 Lock Remediation (الإصلاح الفاشل-المغلق —
+ * OD-LOCK-STORAGE=A وOD-LOCK-SEMANTICS=A): مصفوفة بوابة القفل على مستوى
+ * المكوّن — الإخفاء/الظهور، نبض الثلاثين ثانية بالإدخال الفعلي، حالة
+ * checking الخاملة، فشل قراءة التخزين (unreadable)، الفتح بالرمز، مسار
+ * الاسترداد المعفى، وإعادة التحميل.
  *
- * ⚠️ توصيف لا إصلاح: تسجيل السلوك القائم كما هو؛ النتائج المصنفة
- * FAIL_OPEN تُسجَّل findings جديدة بقرار مالك (لا ترقيع داخل W1b).
+ * تحديث موجة الإصلاح (2026-10-15): النتائج القديمة المصنفة FAIL_OPEN
+ * (R11-W1B4-NF-003) وAS_DESIGNED القديمة للنبض (NF-004) صارت FAIL_CLOSED
+ * بموجب قرارات المالك. التوصيف التاريخي الكامل محفوظ حرفيًا في دليل W1b-4؛
+ * هذا الملف الآن يثبت العقد المنفذ لا السلوك المتقادم.
  *
  * المنضبط: ساعة زمنية واحدة وهمية (vi.useFakeTimers على Date وsetInterval)
  * تحرك معًا ساعة الخدمة المحقونة ونبض المكوّن وقياس خمول الإدخال؛ الخدمة
- * حقيقية (LocalLockService + MemoryLocalStore + PBKDF2 الفعلي)؛ لا كتابة إنتاج.
+ * حقيقية (LocalLockService + MemoryLocalStore + PBKDF2 الفعلي).
  */
 import React from "react";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
@@ -39,7 +43,11 @@ function lockOverlayPresent() {
   return screen.queryByRole("dialog", { name: "قفل Micro" }) !== null;
 }
 
-describe("lock-idle characterization — AppLockGate component level (R11 W1b-4; توصيف لا إصلاح)", () => {
+function unreadableOverlayPresent() {
+  return screen.queryByRole("dialog", { name: "تعذر التحقق من قفل Micro" }) !== null;
+}
+
+describe("lock-idle — AppLockGate component level (R11 W1b-4 characterization → R11 Lock Remediation fail-closed)", () => {
   let store: MemoryLocalStore;
   let service: LocalLockService;
 
@@ -121,24 +129,23 @@ describe("lock-idle characterization — AppLockGate component level (R11 W1b-4;
     expect(lockOverlayPresent()).toBe(false); /* لم يقفل رغم مرور ١٠٠+ ثانية وهمية. */
   });
 
-  it("HEARTBEAT KEEP-ALIVE (تصنيف): AS_DESIGNED — التطبيق الظاهر بلا إدخال لا يقفل أبدًا؛ النبض يقيّم ثم يلمس فيجدد الخمول كل ٣٠ ثانية", async () => {
+  it("HEARTBEAT WITHOUT INPUT (تصنيف): FAIL_CLOSED — التطبيق الظاهر بلا إدخال فعلي يقفل بعد العتبة (OD-LOCK-SEMANTICS=A / R11-W1B4-NF-004)", async () => {
     render(
       <AppLockGate>
         <div>المحتوى</div>
       </AppLockGate>,
     );
     await act(async () => {});
-    /* زمن حقيقي متدرج: كل جولة ٣١ ثانية عبر advanceTimersByTime وحدها
-     * (تقدّم المؤقت والتاريخ الوهمي معًا بلا مضاعفة)؛ النبض يرى خمول إدخال
-     * > ٣٠ ثانية فيقيّم، ودون العتبة (دقيقة) يلمس النشاط فيصفّر ساعة الخمول
-     * — الحلقة تجدد نفسها إلى أجل غير مسمى والغطاء لا يظهر. هذا هو التصميم
-     * الموثق («نبض ٣٠ ثانية أثناء الظهور يمنع قفلًا أثناء الاستخدام المتواصل»). */
+    /* زمن حقيقي متدرج بلا أي إدخال (٨ جولات × ٣١ ث): النبض يقيّم فقط ولا
+     * يجدد النشاط — العتبة دقيقة فالغطاء يجب أن يظهر. السلوك القديم
+     * («الظاهر للأبد بلا إدخال»: كل تقييم يلمس النشاط فيجدد الخمول) صار
+     * مخالفًا للعقد المنفذ ومرفوضًا هنا. */
     for (let round = 0; round < 8; round += 1) {
       await act(async () => {
         vi.advanceTimersByTime(31_000);
       });
     }
-    expect(lockOverlayPresent()).toBe(false); /* ٤+ دقائق «وهمية متدرجة» بلا إدخال: مفتوح */
+    expect(lockOverlayPresent()).toBe(true);
   });
 
   it("HEARTBEAT TIME JUMP (تصنيف): FAIL_CLOSED — قفزة زمنية كبيرة فوق العتبة بين نبضين تقفل عند النبض التالي (مسار اللحاق الطارئ)", async () => {
@@ -225,19 +232,20 @@ describe("lock-idle characterization — AppLockGate component level (R11 W1b-4;
     expect(lockOverlayPresent()).toBe(false);
   });
 
-  it("STORAGE READ FAILURE (تصنيف): FAIL_OPEN — فشل قراءة سجل القفل يفتح البوابة بلا غطاء", async () => {
+  it("STORAGE READ FAILURE (تصنيف): FAIL_CLOSED — فشل قراءة سجل القفل يبقي المحتوى محجوبًا خاملًا بلا أي كتابة (OD-LOCK-STORAGE=A / R11-W1B4-NF-003)", async () => {
+    const saveSpy = vi.fn(async () => ({ ok: true as const, value: null as never }));
     const failing = new LocalLockService(
       {
         getLocalSecurity: async () => ({ ok: false, message: "boom" }),
-        saveLocalSecurity: async () => ({ ok: false, message: "boom" }),
-        deleteLocalSecurity: async () => ({ ok: false, message: "boom" }),
+        saveLocalSecurity: saveSpy as never,
+        deleteLocalSecurity: async () => ({ ok: true as const, value: null as never }),
       } as never,
       () => new Date().toISOString(),
     );
     mockedUsePrototypeServices.mockReturnValue({ localLock: failing } as never);
     render(
       <AppLockGate>
-        <div>المحتوى</div>
+        <button type="button">زر محمي</button>
       </AppLockGate>,
     );
     await act(async () => {});
@@ -246,8 +254,133 @@ describe("lock-idle characterization — AppLockGate component level (R11 W1b-4;
       setVisibility("visible");
     });
     await act(async () => {});
-    /* السلوك القائم: status غير ناجح → فتح مباشر. توصيف صادق: finding
-     * مسجل (R11-W1B4-NF-003) — قرار مالك، لا ترقيع داخل W1b. */
+    /* الإصلاح الفاشل-المغلق: لا فتح — غطاء خطأ صادق قادر على إعادة المحاولة،
+     * الأبناء خاملون غير قابلين للتفاعل أو التركيز، ولا أي كتابة بيانات.
+     * المحرِّر الذي يعيد فتح البوابة عند !status.ok يفشل هنا بالضبط. */
+    expect(unreadableOverlayPresent()).toBe(true);
     expect(lockOverlayPresent()).toBe(false);
+    expect(screen.getByText("زر محمي").parentElement?.hasAttribute("inert")).toBe(true);
+    expect(saveSpy.mock.calls.length).toBe(0);
+    expect(screen.getByRole("button", { name: "أعد المحاولة" })).toBeTruthy();
+  });
+
+  it("CHECKING PHASE: الحالة الابتدائية تخمل المحتوى المحمي (inert) حتى تكتمل القراءة الأولى (عقد §7.2)", async () => {
+    let releaseStatus: ((value: { ok: true; value: null }) => void) | null = null;
+    const deferred = new LocalLockService(
+      {
+        getLocalSecurity: () =>
+          new Promise(resolve => {
+            releaseStatus = resolve;
+          }),
+        saveLocalSecurity: async () => ({ ok: true as const, value: null as never }),
+        deleteLocalSecurity: async () => ({ ok: true as const, value: null as never }),
+      } as never,
+      () => new Date().toISOString(),
+    );
+    mockedUsePrototypeServices.mockReturnValue({ localLock: deferred } as never);
+    const { container } = render(
+      <AppLockGate>
+        <button type="button">زر محمي</button>
+      </AppLockGate>,
+    );
+    /* أثناء checking: الأبناء خاملون غير قابلين للتفاعل أو التركيز. */
+    const checkingWrapper = screen.getByText("زر محمي").parentElement;
+    expect(checkingWrapper?.hasAttribute("inert")).toBe(true);
+    await act(async () => {
+      releaseStatus?.({ ok: true, value: null });
+      await Promise.resolve();
+    });
+    await act(async () => {});
+    expect(lockOverlayPresent()).toBe(false);
+    expect(unreadableOverlayPresent()).toBe(false);
+    expect(screen.getByText("زر محمي").parentElement?.hasAttribute("inert")).toBe(false);
+  });
+
+  it("NO-LOCK READ: قراءة ناجحة بلا قفل مضبوط تفتح طبيعيًا بلا غطاء (OD-LOCK-STORAGE=A)", async () => {
+    const unlocked = new LocalLockService(new MemoryLocalStore(), () => new Date().toISOString());
+    mockedUsePrototypeServices.mockReturnValue({ localLock: unlocked } as never);
+    render(
+      <AppLockGate>
+        <div>المحتوى</div>
+      </AppLockGate>,
+    );
+    await act(async () => {});
+    expect(lockOverlayPresent()).toBe(false);
+    expect(unreadableOverlayPresent()).toBe(false);
+    expect(screen.getByText("المحتوى").parentElement?.hasAttribute("inert")).toBe(false);
+  });
+
+  it("RELOAD/SESSION: تركيب جديد (نمط إعادة التحميل) بعد خمول فوق العتبة يقفل عند أول تقييم", async () => {
+    vi.setSystemTime(NOW_MS + 10 * 60_000); /* العتبة دقيقة وقد مضى ١٠ دقائق بلا جلسة */
+    render(
+      <AppLockGate>
+        <div>المحتوى</div>
+      </AppLockGate>,
+    );
+    await act(async () => {});
+    expect(lockOverlayPresent()).toBe(true);
+  });
+
+  it("OVERLAY KEEPS FORM STATE: نموذج مفتوح تحت الغطاء يحفظ قيمته عبر القفل والفتح (غطاء لا إعادة تركيب)", async () => {
+    render(
+      <AppLockGate>
+        <input defaultValue="" aria-label="حقل مسودة" onChange={() => {}} />
+      </AppLockGate>,
+    );
+    await act(async () => {});
+    const field = screen.getByLabelText("حقل مسودة") as HTMLInputElement;
+    fireEvent.change(field, { target: { value: "قيمة غير محفوظة" } });
+    expect(field.value).toBe("قيمة غير محفوظة");
+    act(() => {
+      setVisibility("hidden");
+    });
+    await act(async () => {});
+    act(() => {
+      vi.setSystemTime(NOW_MS + 10 * 60_000);
+      setVisibility("visible");
+    });
+    await act(async () => {});
+    expect(lockOverlayPresent()).toBe(true);
+    /* الحقل ما زال موجودًا تحت الغطاء بقيمته — لا إعادة تركيب ولا فقدان. */
+    expect((screen.getByLabelText("حقل مسودة") as HTMLInputElement).value).toBe("قيمة غير محفوظة");
+    const pinInput = screen.getByLabelText("رمز القفل");
+    fireEvent.change(pinInput, { target: { value: "4179" } });
+    await act(async () => {
+      fireEvent.submit(pinInput.closest("form")!);
+      await new Promise(resolve => setTimeout(resolve, 400));
+    });
+    expect(lockOverlayPresent()).toBe(false);
+    expect((screen.getByLabelText("حقل مسودة") as HTMLInputElement).value).toBe("قيمة غير محفوظة");
+  });
+
+  it("UNREADABLE RETRY: إعادة المحاولة بعد شفاء القراءة تفتح بلا غطاء وبلا أي كتابة بيانات", async () => {
+    const saveSpy = vi.fn(async () => ({ ok: true as const, value: null as never }));
+    let failReads = true;
+    const flaky = new LocalLockService(
+      {
+        getLocalSecurity: async () =>
+          failReads ? { ok: false, message: "boom" } : { ok: true as const, value: null },
+        saveLocalSecurity: saveSpy as never,
+        deleteLocalSecurity: async () => ({ ok: true as const, value: null as never }),
+      } as never,
+      () => new Date().toISOString(),
+    );
+    mockedUsePrototypeServices.mockReturnValue({ localLock: flaky } as never);
+    render(
+      <AppLockGate>
+        <button type="button">زر محمي</button>
+      </AppLockGate>,
+    );
+    await act(async () => {});
+    expect(unreadableOverlayPresent()).toBe(true);
+    expect(screen.getByText("زر محمي").parentElement?.hasAttribute("inert")).toBe(true);
+    expect(saveSpy.mock.calls.length).toBe(0);
+    failReads = false;
+    fireEvent.click(screen.getByRole("button", { name: "أعد المحاولة" }));
+    await act(async () => {});
+    expect(unreadableOverlayPresent()).toBe(false);
+    expect(lockOverlayPresent()).toBe(false);
+    expect(screen.getByText("زر محمي").parentElement?.hasAttribute("inert")).toBe(false);
+    expect(saveSpy.mock.calls.length).toBe(0);
   });
 });
