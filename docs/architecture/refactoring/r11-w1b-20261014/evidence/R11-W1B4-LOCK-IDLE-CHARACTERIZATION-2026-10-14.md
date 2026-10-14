@@ -90,3 +90,13 @@ NEW_FINDINGS — 3 (R11-W1B4-NF-001/002/003 — all OWNER_DECISION_REQUIRED; non
 ## 7. Rollback boundary
 
 This slice's commit contains only the two new test files, the browser-proof JSON, and records — reverting it removes the characterization evidence and changes nothing else.
+
+## 8. Dated addendum — 2026-10-15 (five-reviewer gate; R11-W1B-RV3-1)
+
+The final RV3 review (read-only, at head `72b4c729`) surfaced a documentation-completeness gap in this characterization: the in-code SP-03 audit comment inside `apps/prototype-web/client/src/components/security/AppLockGate.tsx:79-82` (pre-existing at base `0ede6e94`, untouched by W1b) asserts that an unattended **visible** desktop locks after the chosen idle — while the deterministic matrix above (test 4, "HEARTBEAT KEEP-ALIVE") pins the opposite runtime behavior: the 30 s heartbeat evaluates-then-touches whenever input-idle exceeds 30 s, and since the heartbeat period is strictly below the minimum auto-lock setting (60 s), **the visible app never gradually idle-locks for any allowed setting; locking is governed by hidden-duration** — matching the user-facing copy in `LockSettingsCard.tsx` and contract 37. This contradiction between a historical audit comment and the characterized (and now test-pinned) behavior is recorded as a new durable finding:
+
+| ID | Finding | Severity | Classification | Disposition |
+|---|---|---|---|---|
+| **R11-W1B4-NF-004** | The SP-03 audit comment in `AppLockGate.tsx:79-82` contradicts the characterized-and-pinned runtime behavior ("visible app never idle-locks; lock is hidden-duration-governed") — a future maintainer "fixing" the heartbeat to match the comment would silently change characterized lock behavior | Medium (documentation/intent contradiction, not a runtime defect) | `VERIFIED_FROM_REPOSITORY` (RV3 evidence, 2026-10-15) | `OWNER_DECISION_REQUIRED` — the owner ratifies (or rejects) the AS_DESIGNED classification of the keep-alive behavior versus the SP-03 comment intent; the comment is reconciled only when a future phase touches `AppLockGate.tsx`. No code change in W1b. |
+
+The three original findings NF-001/002/003 remain exactly as recorded above — durable `OWNER_DECISION_REQUIRED`, unpatched in W1b (owner instruction 2026-10-15: keep them recorded; do not implement inside this PR).

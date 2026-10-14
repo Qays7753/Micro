@@ -81,3 +81,7 @@ async confirmImport(preview: PreparedImport): Promise<TransferResult<RestoreResu
 ## 6. Rollback boundary
 
 Revert this slice's commit to restore the unbranded `TransferPreview` signatures everywhere (service + door + two UI consumers + ledger entry travel with the same commit; the provenance test file is deleted with it). The revert restores exactly the pre-S-2 tree — no other slice depends on `PreparedImport`.
+
+## 7. Dated addendum — 2026-10-15 (five-reviewer gate; R11-W1B-RV1-2 + R11-W1B-RV2-2)
+
+The final reviews recorded one residual inherent to the owner-approved phantom-brand pattern, documented here as a boundary (not a defect): a type-level **spread/assign derivation from a genuine minted value** (`{ ...prepared, file: X }` or `Object.assign(minted, …)`) retains the phantom brand in the result type without re-entering `prepareImport` — it is not a cast, so the source-scan family cannot cover it. Fresh forging remains impossible (module-private unexported symbol; `as`/`satisfies`/angle-bracket casts scan-banned; `@typescript-eslint/no-explicit-any: error` in all production scopes). This requires possession of a genuine minted value (post-mint tampering, a different threat class than unvalidated-object injection). Exact hardening trigger if the owner ever wants it closed: a W2-era lint rule banning spread/assign of `PreparedImport` outside `localTransferService.ts`, or `no-unsafe-argument` for the transfers module.

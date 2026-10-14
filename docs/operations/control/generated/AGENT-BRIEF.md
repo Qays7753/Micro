@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 58 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 3 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 58 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-218 | CLAIMED | `refactoring/r11-w1b-20261014` | — | ARCH-009 | تنفيذ الشرائح W1b-0..W1b-6 بالترتيب مع الاختبارات المركزة لكل شريحة وcheckpoint لكل شريحة مقبولة، ثم البوابة الكاملة والمراجعات الخمسة والتقرير النهائي؛ لا دمج ولا تنظيف. |
+| WS-218 | IN_REVIEW | `refactoring/r11-w1b-20261014` | 365 | ARCH-009 | مراجعة المالك لـPR #365: كل الشرائح والبوابة الكاملة والمراجعات الخمسة والتقرير الرسمي مكتملة؛ الدمج قرار مالك؛ لا W2a إلا ببوابة مستقلة. |

@@ -1,52 +1,59 @@
 {
-  "id": "WS-218",
-  "title": "تنفيذ R11 W1b — أدلة NF-001 وS-1 وS-2 وOD-TIME وتوصيف lock-idle وOD-SEC وأدلة الحفظ على فرع تنفيذي واحد",
-  "status": "CLAIMED",
-  "items": [
-    "ARCH-009"
-  ],
-  "branch": "refactoring/r11-w1b-20261014",
-  "base_sha": "0ede6e941a7ec276baf1594febb34e2d4ebf14ee",
-  "areas": [
-    "architecture-governance",
-    "docs/architecture/refactoring",
-    "docs/operations/control",
-    "docs/quality",
-    "scripts",
-    "scripts/security",
-    "tests",
-    "src/domain",
-    "src/application",
-    "apps/prototype-web/client/src",
-    ".github/workflows"
-  ],
-  "contracts": [
-    "AGENTS.md",
-    "https://github.com/Qays7753/Micro/pull/364 (R11-W1B-EXECUTION-PROMPT-2026-10-14.md — العقد الرسمي المثبت، الرأس 2802d119)",
-    "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-OWNER-DECISION-PACKAGE-2026-10-13.md",
-    "docs/architecture/refactoring/r11-wave0-20261013/R11-W0-STRUCTURE-ARCHITECTURE-CONTRACT-SCAN-REPORT-2026-10-13.md"
-  ],
-  "agent": "ZAI sequential executor (one writer; five read-only reviewers RV1-RV5 after implementation slices before final readiness)",
-  "pr": null,
-  "started_at": "2026-10-14",
-  "updated_at": "2026-10-14",
-  "next_action": "تنفيذ الشرائح W1b-0..W1b-6 بالترتيب مع الاختبارات المركزة لكل شريحة وcheckpoint لكل شريحة مقبولة، ثم البوابة الكاملة والمراجعات الخمسة والتقرير النهائي؛ لا دمج ولا تنظيف.",
-  "notes": [
-    "Claim أُنشئ قبل أي تعديل وفق AGENTS.md §14؛ لا تداخل مع أي Claim نشط (0 active claims عند الإنشاء؛ WS-217 = VERIFIED).",
-    "العقد الرسمي المثبت للW1b هو الرأس 2802d119d41dd5e5c7df509f6d487fb0d26a13e2 على فرع docs/r11-w1b-execution-prompt-20261014 (PR #364 المفتوح)؛ تحقق ZAI من مطابقته بايت-ببايت قبل التنفيذ.",
-    "خط الأساس الحي تحقق منه مباشرة: origin/main = 0ede6e941a7ec276baf1594febb34e2d4ebf14ee مطابقًا لتلميح العقد تمامًا؛ لا انحراف؛ PR #364 (توثيقي — العقد نفسه) هو الوحيد المفتوح ولا يُمس.",
-    "حدود صارمة: لا كتابة مباشرة على main، لا دمج، لا حذف فروع، لا force-push، لا W2/W3/W4/W5، لا تغيير مالي/تاريخي/Schema 38/Export 30/Legacy/goldens/أسبقية رفض/أمن دلالي/UI/copy/layout/بصري؛ لا رفع سقوف (lint 37 / raw 650000 / gzip 155300).",
-    "الفرع مُنشأ من origin/main الحي وworktree نظيف؛ manifest خط الأساس (Node v24.21.0 / pnpm 9.15.9 / lock 187bbc52 / 1704 ملفًا) مسجل في مساحة العمل قبل أول كتابة.",
-    "خمس مراجعات قراءة-فقط متسلسلة (RV1 معماريات/حدود بنيوية، RV2 مجال/مالية/تخزين/Transfer/عقود محفوظة، RV3 تشغيل/UI/زمن/أداء، RV4 اختبارات/CI/أمن/صلاحيات workflows، RV5 وثائق/تتبع/قرارات) بعد اكتمال الشرائح وقبل ادعاء الجهوزية النهائية."
-  ],
-  "status_history": [
-    {
-      "status": "CLAIMED",
-      "changed_at": "2026-10-14",
-      "actor": "zai-executor",
-      "reason": "فتح Claim تنفيذي لموجة W1b المعتمدة؛ الفرع refactoring/r11-w1b-20261014 منشأ من origin/main الحي 0ede6e94 بعد اكتمال البوابة التوثيقية."
-    }
-  ],
-  "migration_baseline": false,
-  "evidence": []
+ "id": "WS-218",
+ "title": "تنفيذ R11 W1b — أدلة NF-001 وS-1 وS-2 وOD-TIME وتوصيف lock-idle وOD-SEC وأدلة الحفظ على فرع تنفيذي واحد",
+ "status": "IN_REVIEW",
+ "items": [
+  "ARCH-009"
+ ],
+ "branch": "refactoring/r11-w1b-20261014",
+ "base_sha": "0ede6e941a7ec276baf1594febb34e2d4ebf14ee",
+ "areas": [
+  "architecture-governance",
+  "docs/architecture/refactoring",
+  "docs/operations/control",
+  "docs/quality",
+  "scripts",
+  "scripts/security",
+  "tests",
+  "src/domain",
+  "src/application",
+  "apps/prototype-web/client/src",
+  ".github/workflows"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "https://github.com/Qays7753/Micro/pull/364 (R11-W1B-EXECUTION-PROMPT-2026-10-14.md — العقد الرسمي المثبت، الرأس 2802d119)",
+  "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-OWNER-DECISION-PACKAGE-2026-10-13.md",
+  "docs/architecture/refactoring/r11-wave0-20261013/R11-W0-STRUCTURE-ARCHITECTURE-CONTRACT-SCAN-REPORT-2026-10-13.md"
+ ],
+ "agent": "ZAI sequential executor (one writer; five read-only reviewers RV1-RV5 after implementation slices before final readiness)",
+ "pr": 365,
+ "started_at": "2026-10-14",
+ "updated_at": "2026-10-15",
+ "next_action": "مراجعة المالك لـPR #365: كل الشرائح والبوابة الكاملة والمراجعات الخمسة والتقرير الرسمي مكتملة؛ الدمج قرار مالك؛ لا W2a إلا ببوابة مستقلة.",
+ "notes": [
+  "Claim أُنشئ قبل أي تعديل وفق AGENTS.md §14؛ لا تداخل مع أي Claim نشط (0 active claims عند الإنشاء؛ WS-217 = VERIFIED).",
+  "العقد الرسمي المثبت للW1b هو الرأس 2802d119d41dd5e5c7df509f6d487fb0d26a13e2 على فرع docs/r11-w1b-execution-prompt-20261014 (PR #364 المفتوح)؛ تحقق ZAI من مطابقته بايت-ببايت قبل التنفيذ.",
+  "خط الأساس الحي تحقق منه مباشرة: origin/main = 0ede6e941a7ec276baf1594febb34e2d4ebf14ee مطابقًا لتلميح العقد تمامًا؛ لا انحراف؛ PR #364 (توثيقي — العقد نفسه) هو الوحيد المفتوح ولا يُمس.",
+  "حدود صارمة: لا كتابة مباشرة على main، لا دمج، لا حذف فروع، لا force-push، لا W2/W3/W4/W5، لا تغيير مالي/تاريخي/Schema 38/Export 30/Legacy/goldens/أسبقية رفض/أمن دلالي/UI/copy/layout/بصري؛ لا رفع سقوف (lint 37 / raw 650000 / gzip 155300).",
+  "الفرع مُنشأ من origin/main الحي وworktree نظيف؛ manifest خط الأساس (Node v24.21.0 / pnpm 9.15.9 / lock 187bbc52 / 1704 ملفًا) مسجل في مساحة العمل قبل أول كتابة.",
+  "خمس مراجعات قراءة-فقط متسلسلة (RV1 معماريات/حدود بنيوية، RV2 مجال/مالية/تخزين/Transfer/عقود محفوظة، RV3 تشغيل/UI/زمن/أداء، RV4 اختبارات/CI/أمن/صلاحيات workflows، RV5 وثائق/تتبع/قرارات) بعد اكتمال الشرائح وقبل ادعاء الجهوزية النهائية.",
+  "تحديث مؤرخ 2026-10-15: البوابة الكاملة خضراء على رأس التنفيذ النهائي (الجذر 919 والتطبيق 2,671 وlint 35 بالضبط والبناء داخل السقوف دون مسها)؛ إصلاحا بوابة (ci-workflow-policy تقوية قائمة السيرين؛ portSurfaceEvidence أنواع آمنة)؛ المراجعون الخمسة بالتسلسل اكتملوا مع مصالحة المُصنِّف ومعالجاتهم في سجلات Operations Control؛ حارس التشخيص R11-W1A-NF-001 نطاق متابعة منفصل بقرار المالك 2026-10-15 (ARCH-010)."
+ ],
+ "status_history": [
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-10-14",
+   "actor": "zai-executor",
+   "reason": "فتح Claim تنفيذي لموجة W1b المعتمدة؛ الفرع refactoring/r11-w1b-20261014 منشأ من origin/main الحي 0ede6e94 بعد اكتمال البوابة التوثيقية."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "اكتمال كل الشرائح W1b-0..W1b-6 والبوابة الكاملة pnpm check والمراجعات الخمسة والتقرير الرسمي على PR #365؛ الدمج قرار مالك لاحق."
+  }
+ ],
+ "migration_baseline": false,
+ "evidence": []
 }

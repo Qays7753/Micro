@@ -70,3 +70,7 @@ Live-census pin (0 violations; 21 regions / 21 exempted calls / 1 boundary / par
 ## 7. Rollback boundary
 
 Revert the W1b-3 commits (guard + test + package.json chain line; the formatting fix travels with them) to restore the 21-guard chain. The re-anchor fix commit `2eb1c017` is independently revertable (it would re-expose the door-surfaces ratchet failure from W1b-2 — so in practice revert W1b-2 first or together).
+
+## 8. Dated addendum — 2026-10-15 (five-reviewer gate; R11-W1B-RV1-3)
+
+One documented detection-side boundary, surfaced by RV1: the classification of out-of-family `Date.now()` reads anchors on receiver **text** (`"Date"`), so a cloaked alias on the detection side (`const D = Date; D.now()`) would not be classified at all. Note the **exemption** side is different: aliased receivers there are conservatively rejected and adversarially tested (`.test.mjs` "aliased receiver" negative). Mitigations on the detection side: the pinned 21-site census file list, the test's global `approvedDateNowCalls === 21` pin (a new site — cloaked or not — shifts the count and fails), and the single-writer/review model. Related same-class note: an approved region exempts the whole fallback-branch subtree, so an *extra* `Date.now()` hidden inside an existing approved fallback passes the guard but trips the test's 21-call pin — the defense is deliberately split across guard + test, both in CI. Exact hardening trigger if ever needed: AT-6 alias detection or a Program-based pass.

@@ -1,116 +1,125 @@
 {
-  "id": "ARCH-009",
-  "title": "R11 W1b — تنفيذ موجة W1b: ملحق أدلة NF-001، وS-1 PeriodRange، وS-2 PreparedImport، وOD-TIME، وتوصيف lock-idle، وOD-SEC، وأدلة P-01..P-04",
-  "type": "GOVERNANCE",
-  "status": "IN_PROGRESS",
-  "priority": "P0",
-  "stage": "r11-w1b-20261014",
-  "summary": "تنفيذ النطاق المعتمد حصريًا من R11 W1b وفق عقد التنفيذ الرسمي المثبت (docs/architecture/refactoring/r11-w1b-20261014/R11-W1B-EXECUTION-PROMPT-2026-10-14.md على الرأس 2802d119d41dd5e5c7df509f6d487fb0d26a13e2 عبر PR #364 المفتوح): (W1b-0) ملحق أدلة append-only لـ R11-W0-NF-001 يسجل الطريقة والكميات التاريخية والقابلة لإعادة الإنتاج مع الحفاظ على مصفوفة R10-B دون تعديل صامت؛ (W1b-1) إحصاء استدعاءات S-1 PeriodRange ثم إعادة تسمية type-only للمعنى page-local باسم مؤكد من الإحصاء (الفرضية FinanceActivityPeriodKey) مع إبقاء الاسم على المعنى المالي/date-owned؛ (W1b-2) عقد مصدر S-2 PreparedImport الشفاف/الوهمي بسكّة mint وحيدة داخل prepareImport واختبار سلبي type-level؛ (W1b-3) حارس OD-TIME بتأثير AST لتصنيف مواقع الوقت المحيطي في طبقة التطبيق (عائلة ID-fallback المعتمدة) مع سلبيات خصومية وبدون أي تغيير سلوك إنتاجي؛ (W1b-4) توصيف lock-idle فقط (زمن أمامي/خلفي، suspend/resume، انتهاء، قفل/فتح) بلا أي إصلاح سلوكي؛ (W1b-5) توثيق حدود الماسح working-tree-only لـ OD-SEC وسير عمل دوري least-privilege لمسح التاريخ دون إضعاف الماسح التسعة الأنماط أو جدوله المشترك؛ (W1b-6) أدلة الحفظ P-01..P-04 (اختبارات وأدلة فقط، لا تفكيك). اختبارات وأدلة ووثائق وحوكم فقط حيثما ينص العقد؛ لا تغيير مالي/تاريخي/مخطط/تصدير/رفض/أمن دلالي/UI؛ لا W2-W5. || W1b-4 تحديث مؤرخ 2026-10-14: توصيف lock-idle مكتمل بلا أي تغيير سلوك — مصفوفتان حتميتان (خدمة 13/13 وبوابة 9/9) + إثبات متصفح حقيقي على الحزمة الإنتاجية نفسها؛ ثلاثة findings جديدة مُصنفة ب أمانة: R11-W1B4-NF-001 (الساعة الخلفية تمنع قفل الخمول — FAIL_OPEN)، NF-002 (الساعة الخلفية تستبق وقفة التخمين)، NF-003 (فشل قراءة التخزين يفتح البوابة) — كلها OWNER_DECISION_REQUIRED بلا أي ترقيع داخل W1b. || W1b-6 تحديث مؤرخ 2026-10-14: أدلة الحفظ P-01..P-04 مكتملة بلا أي تفكيك — 19 اختبارًا مركّزًا جديدًا (5 سطح المنفذ: 130 طريقة AST + عضوية مثبتة الاتجاهين + 38/30 + حد الذاكرة؛ 14 توصيف/تحوير لسياسات أمر الشغل: نقاط كود الرسائل وحدود التسوية وتدريبات التحوير) + الأطقم القائمة (48/326 تخزينًا و114 أمر شغل و303 نقلًا) خضراء؛ صفر أسطر إنتاج.",
-  "finding_classification": "NOT_APPLICABLE",
-  "finding_state": "NOT_APPLICABLE",
-  "classification": "HARDENING",
-  "gate_classification": "EVIDENCE_RECONCILIATION_REQUIRED",
-  "root_cause": "موجة W1b المعتمدة في حزمة قرارات المالك R11 (OD-RECORD الخيار A، وS-1، وS-2، وOD-TIME، وOD-SEC الخيار A+C الجزء C، وOD-PRESERVE أدلة فقط) مع شكل ما بعد W1A الملحق §7.3-§7.4: بوابة توثيقية مقفلة على main (PRs #358/#360 مدموجان) وخط أساس حي مسجل، ثم تنفيذ ZAI فقط على فرع refactoring/r11-w1b-20261014 وPR واحد إلى main.",
-  "owner": "Micro owner (Qays7753)",
-  "tests_required": [
-    "npx vitest run scripts/security/scan-git-history-secrets.test.mjs (workflow self-tests بعد إضافة OD-SEC)",
-    "npx vitest run scripts/check-module-boundaries.test.mjs",
-    "npx vitest run scripts/check-date-arithmetic-ownership.test.mjs (حارس OD-TIME الجديد أو امتداده)",
-    "npx vitest run <S-1 collision/assignability type-level tests>",
-    "npx vitest run <S-2 negative + import/confirm caller tests>",
-    "npx vitest run <lock-idle characterization matrix>",
-    "npx vitest run <P-01/P-02 parity & atomicity suites>",
-    "npx vitest run <P-03 direct characterization/mutation>",
-    "npx vitest run <P-04 method/schema/export evidence>",
-    "python3 scripts/operations-control/validate.py",
-    "python3 scripts/operations-control/generate_tracker.py --check",
-    "node scripts/check-doc-index-coverage.mjs",
-    "node scripts/check-current-state-size.mjs",
-    "pnpm check (البوابة الكاملة على الرأس النهائي)"
-  ],
-  "layers": [
-    "governance",
-    "architecture",
-    "operations-control",
-    "guards",
-    "tests",
-    "security-workflow"
-  ],
-  "source": {
-    "report": "R11 owner decision package §7 (post-W1A addendum + crosswalk + W1B_OPEN) وR11-W1B-EXECUTION-PROMPT-2026-10-14.md الرسمي المثبت على 2802d119d41dd5e5c7df509f6d487fb0d26a13e2",
-    "discovered_at_sha": "0ede6e941a7ec276baf1594febb34e2d4ebf14ee",
-    "evidence": [
-      "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-OWNER-DECISION-PACKAGE-2026-10-13.md",
-      "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-S0-W1A-EXECUTION-REPORT-2026-10-13.md",
-      "docs/architecture/refactoring/r11-wave0-20261013/R11-W0-STRUCTURE-ARCHITECTURE-CONTRACT-SCAN-REPORT-2026-10-13.md",
-      "https://github.com/Qays7753/Micro/pull/364 (W1b execution prompt — branch head 2802d119d41d)"
-    ]
-  },
-  "acceptance": [
-    "W1b-0: ملحق أدلة append-only لـ R11-W0-NF-001 يسمح لمراجع مستقبلي بإعادة إنتاج العدّ وفهم التباين دون الاعتماد على هذه المحادثة؛ مصفوفة R10-B التاريخية بلا أي تعديل صامت؛ تحديث مصادر JSON أولًا ثم توليد Views رسميًا.",
-    "W1b-1: صفر تصريحات غامضة تحت تصادم PeriodRange القديم؛ typecheck والاختبارات المركزة خضراء؛ الإحصاء والاسم النهائي مسجلان؛ لا تغيير wire/runtime/مالي/UI-copy.",
-    "W1b-2: المتصل الحالي يجتاز الترجمة والاختبارات السلوكية دون تغيير؛ أي تجاوز مستقبلي يفشل typecheck؛ Schema 38/Export 30/Legacy/goldens/أسبقية الرفض دون تغيير؛ mint وحيد مثبت باختبار سلبي type-level ومسح مصدر.",
-    "W1b-3: الحارس يجتاز خط الأساس الدقيق ويرفض كل سلبي خصومي (تعليقات، نصوص، ||، مستقبل خاطئ، fallback خاطئ، متغيرات معاد تسميتها، قراءات ساعة خارج العائلة)؛ لا تغيير سلوك إنتاجي؛ lock-idle خارج الحارس.",
-    "W1b-4: مصفوفة توصيف حتمية كاملة (أمامي/خلفي/suspend-resume/انتهاء/قفل/فتح/أحداث متكررة) مع تصنيف صادق fail-closed/fail-open/غير محدد؛ لا إصلاح سلوكي؛ أي نتيجة fail-open = finding جديد وقرار مالك.",
-    "W1b-5: حدود الماسح موثقة في ترويسة الحارس ووثيقة الأمن؛ سير عمل دوري least-privilege بمراجع actions مثبتة وبدون write token وخرائط بصمات فقط؛ اختبارات خصومية للأنماط/المسارات الخام/الملفات المحذوفة/بايتات الرسائل غير الاعتيادية/التطهير؛ فشل المسح لا يظهر كنجاح.",
-    "W1b-6: لكل سطح محمي صف أدلة (مصدر، عقد، مرساة اختبار، مالك، سلوك محفوظ، حد استعادة)؛ الاختبارات المختارة خضراء؛ لا تفكيك أو نقل.",
-    "المرحلة: خمس مراجعات قراءة-فقط متسلسلة + مصالِح؛ تقرير W1b الرسمي بكل العلامات المطلوبة؛ CI أخضر على الرأس النهائي؛ PR يبقى مفتوحًا للمالك؛ لا دمج ولا تنظيف."
-  ],
-  "areas": [
-    "architecture-governance",
-    "docs/architecture/refactoring",
-    "docs/operations/control",
-    "docs/quality",
-    "scripts",
-    "scripts/security",
-    "tests",
-    "src/domain",
-    "src/application",
-    "apps/prototype-web/client/src",
-    ".github/workflows"
-  ],
-  "contracts": [
-    "AGENTS.md",
-    "https://github.com/Qays7753/Micro/pull/364 (R11-W1B-EXECUTION-PROMPT-2026-10-14.md — canonical execution prompt, head 2802d119)",
-    "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-OWNER-DECISION-PACKAGE-2026-10-13.md",
-    "docs/architecture/refactoring/r11-wave0-20261013/R11-W0-STRUCTURE-ARCHITECTURE-CONTRACT-SCAN-REPORT-2026-10-13.md",
-    "docs/quality/security-boundaries.md"
-  ],
+ "id": "ARCH-009",
+ "title": "R11 W1b — تنفيذ موجة W1b: ملحق أدلة NF-001، وS-1 PeriodRange، وS-2 PreparedImport، وOD-TIME، وتوصيف lock-idle، وOD-SEC، وأدلة P-01..P-04",
+ "type": "GOVERNANCE",
+ "status": "IN_REVIEW",
+ "priority": "P0",
+ "stage": "r11-w1b-20261014",
+ "summary": "تنفيذ النطاق المعتمد حصريًا من R11 W1b وفق عقد التنفيذ الرسمي المثبت (docs/architecture/refactoring/r11-w1b-20261014/R11-W1B-EXECUTION-PROMPT-2026-10-14.md على الرأس 2802d119d41dd5e5c7df509f6d487fb0d26a13e2 عبر PR #364 المفتوح): (W1b-0) ملحق أدلة append-only لـ R11-W0-NF-001 يسجل الطريقة والكميات التاريخية والقابلة لإعادة الإنتاج مع الحفاظ على مصفوفة R10-B دون تعديل صامت؛ (W1b-1) إحصاء استدعاءات S-1 PeriodRange ثم إعادة تسمية type-only للمعنى page-local باسم مؤكد من الإحصاء (الفرضية FinanceActivityPeriodKey) مع إبقاء الاسم على المعنى المالي/date-owned؛ (W1b-2) عقد مصدر S-2 PreparedImport الشفاف/الوهمي بسكّة mint وحيدة داخل prepareImport واختبار سلبي type-level؛ (W1b-3) حارس OD-TIME بتأثير AST لتصنيف مواقع الوقت المحيطي في طبقة التطبيق (عائلة ID-fallback المعتمدة) مع سلبيات خصومية وبدون أي تغيير سلوك إنتاجي؛ (W1b-4) توصيف lock-idle فقط (زمن أمامي/خلفي، suspend/resume، انتهاء، قفل/فتح) بلا أي إصلاح سلوكي؛ (W1b-5) توثيق حدود الماسح working-tree-only لـ OD-SEC وسير عمل دوري least-privilege لمسح التاريخ دون إضعاف الماسح التسعة الأنماط أو جدوله المشترك؛ (W1b-6) أدلة الحفظ P-01..P-04 (اختبارات وأدلة فقط، لا تفكيك). اختبارات وأدلة ووثائق وحوكم فقط حيثما ينص العقد؛ لا تغيير مالي/تاريخي/مخطط/تصدير/رفض/أمن دلالي/UI؛ لا W2-W5. || W1b-4 تحديث مؤرخ 2026-10-14: توصيف lock-idle مكتمل بلا أي تغيير سلوك — مصفوفتان حتميتان (خدمة 13/13 وبوابة 9/9) + إثبات متصفح حقيقي على الحزمة الإنتاجية نفسها؛ ثلاثة findings جديدة مُصنفة ب أمانة: R11-W1B4-NF-001 (الساعة الخلفية تمنع قفل الخمول — FAIL_OPEN)، NF-002 (الساعة الخلفية تستبق وقفة التخمين)، NF-003 (فشل قراءة التخزين يفتح البوابة) — كلها OWNER_DECISION_REQUIRED بلا أي ترقيع داخل W1b. || W1b-6 تحديث مؤرخ 2026-10-14: أدلة الحفظ P-01..P-04 مكتملة بلا أي تفكيك — 19 اختبارًا مركّزًا جديدًا (5 سطح المنفذ: 130 طريقة AST + عضوية مثبتة الاتجاهين + 38/30 + حد الذاكرة؛ 14 توصيف/تحوير لسياسات أمر الشغل: نقاط كود الرسائل وحدود التسوية وتدريبات التحوير) + الأطقم القائمة (48/326 تخزينًا و114 أمر شغل و303 نقلًا) خضراء؛ صفر أسطر إنتاج. || تحديث مؤرخ 2026-10-15 (البوابة النهائية والمراجعات): البوابة الكاملة pnpm check خضراء على رأس التنفيذ النهائي — الجذر 75 ملفًا/919 اختبارًا والتطبيق 363 ملفًا/2,671 اختبارًا وlint بالأساس 35 بالضبط (18+17) والسقف 37 دون مس والبناء 631,903/155,290 تحت السقفين 650,000/155,300 والحزمة مطابقة بالبایت لأساس S0/W1A؛ إصلاحا بوابة صادقان: ci-workflow-policy أعيدت صياغتها لقائمة سيرين محصورة بالاسم مع تثبيت آلي لعقد اللاحجب (لا pull_request/push أبدًا) — تقوية لا إضعاف، وportSurfaceEvidence أصبحت آمنة الأنواع تحت tsconfig التطبيق (الجذر لا يغطي apps/)؛ المراجعون الخمسة بالتسلسل: RV1 PASS_WITH_REMEDIATION وRV2 PASS وRV3 PASS_WITH_REMEDIATION وRV4 PASS وRV5 PASS_WITH_REMEDIATION؛ معالجاتهم الميكانيكية (وصلة دليل W1B1 في هذا السجل، وتحديث حقول WS-218، وبند ARCH-010 لمتابعة حارس التشخيص المنفصل بقرار المالك 2026-10-15) معتمدة هنا؛ مصالحة عدد الأنماط: عبارة «الماسح التسعة أنماط» في العقد التاريخي تساوي فعليًا جدول 15 نمط محتوى + 6 قواعد أسماء ملفات حيًا — الحارس المعتمد دون إضعاف كما وثّق دليل W1b-5؛ التوثيف الجوهري للتطبيق الظاهر لا يقفل بالخمول أبدًا (عقد 37) يتعارض مع تعليق SP-03 التاريخي داخل AppLockGate.tsx —finding جديد R11-W1B4-NF-004 بقرار مالك في ملحق دليل W1b-4.",
+ "finding_classification": "NOT_APPLICABLE",
+ "finding_state": "NOT_APPLICABLE",
+ "classification": "HARDENING",
+ "gate_classification": "EVIDENCE_RECONCILIATION_REQUIRED",
+ "root_cause": "موجة W1b المعتمدة في حزمة قرارات المالك R11 (OD-RECORD الخيار A، وS-1، وS-2، وOD-TIME، وOD-SEC الخيار A+C الجزء C، وOD-PRESERVE أدلة فقط) مع شكل ما بعد W1A الملحق §7.3-§7.4: بوابة توثيقية مقفلة على main (PRs #358/#360 مدموجان) وخط أساس حي مسجل، ثم تنفيذ ZAI فقط على فرع refactoring/r11-w1b-20261014 وPR واحد إلى main.",
+ "owner": "Micro owner (Qays7753)",
+ "tests_required": [
+  "npx vitest run scripts/security/scan-git-history-secrets.test.mjs (workflow self-tests بعد إضافة OD-SEC)",
+  "npx vitest run scripts/check-module-boundaries.test.mjs",
+  "npx vitest run scripts/check-date-arithmetic-ownership.test.mjs (حارس OD-TIME الجديد أو امتداده)",
+  "npx vitest run <S-1 collision/assignability type-level tests>",
+  "npx vitest run <S-2 negative + import/confirm caller tests>",
+  "npx vitest run <lock-idle characterization matrix>",
+  "npx vitest run <P-01/P-02 parity & atomicity suites>",
+  "npx vitest run <P-03 direct characterization/mutation>",
+  "npx vitest run <P-04 method/schema/export evidence>",
+  "python3 scripts/operations-control/validate.py",
+  "python3 scripts/operations-control/generate_tracker.py --check",
+  "node scripts/check-doc-index-coverage.mjs",
+  "node scripts/check-current-state-size.mjs",
+  "pnpm check (البوابة الكاملة على الرأس النهائي)",
+  "npx vitest run scripts/check-application-ambient-time.test.mjs (حارس OD-TIME المنفذ فعليًا — 17/17)",
+  "npx vitest run scripts/ci-workflow-policy.test.mjs (11/11 بعد تحديث قائمة السيرين للبوابة النهائية)"
+ ],
+ "layers": [
+  "governance",
+  "architecture",
+  "operations-control",
+  "guards",
+  "tests",
+  "security-workflow"
+ ],
+ "source": {
+  "report": "R11 owner decision package §7 (post-W1A addendum + crosswalk + W1B_OPEN) وR11-W1B-EXECUTION-PROMPT-2026-10-14.md الرسمي المثبت على 2802d119d41dd5e5c7df509f6d487fb0d26a13e2",
+  "discovered_at_sha": "0ede6e941a7ec276baf1594febb34e2d4ebf14ee",
   "evidence": [
-    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B0-NF-001-EVIDENCE-ADDENDUM-2026-10-14.md",
-    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B0-NF-001-CENSUS-COUNTS-2026-10-14.json",
-    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B0-NF-001-HOUSE-EDGE-LISTS-2026-10-14.json",
-    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B2-S2-PREPARED-IMPORT-EVIDENCE-2026-10-14.md",
-    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B3-OD-TIME-EVIDENCE-2026-10-14.md",
-    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B4-LOCK-IDLE-CHARACTERIZATION-2026-10-14.md",
-    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B4-LOCK-IDLE-BROWSER-PROOF-2026-10-14.json",
-    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B5-OD-SEC-EVIDENCE-2026-10-14.md",
-    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B5-OD-SEC-WORKFLOW-DRYRUN-2026-10-14.json",
-    ".github/workflows/history-secret-scan.yml",
-    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B6-PRESERVE-EVIDENCE-2026-10-14.md"
-  ],
-  "dependencies": [
-    "ARCH-008"
-  ],
-  "related_items": [
-    "ARCH-008",
-    "ARCH-007"
-  ],
-  "updated_at": "2026-10-14",
-  "status_history": [
-    {
-      "status": "CLAIMED",
-      "changed_at": "2026-10-14",
-      "actor": "zai-executor",
-      "reason": "فتح Claim تنفيذي لموجة W1b بعد اكتمال البوابة التوثيقية (PRs #358/#360 مدموجان على main عند 0ede6e94) وتسجيل manifest خط الأساس؛ الفرع refactoring/r11-w1b-20261014 مُنشأ من origin/main الحي."
-    },
-    {
-      "status": "IN_PROGRESS",
-      "changed_at": "2026-10-14",
-      "actor": "zai-executor",
-      "reason": "شريحة W1b-0 (ملحق أدلة NF-001) منفذة مع إعادة إنتاج كاملة للكميات: 15/148 و16/150 و214 ملفًا و126/128 حافة و89 زوجًا تُعاد كلها بالطرق المسجلة؛ تباين وحيد +1 سطر في مراجع العائلة (4,869 مقابل 4,868) مسجل بأمانة؛ المصفوفة التاريخية دون تعديل."
-    }
-  ],
-  "migration_baseline": false,
-  "next_action": "تنفيذ الشرائح W1b-0 حتى W1b-6 بالترتيب على الفرع والPR الواحد، مع اختبارات مركزة لكل شريحة وتعليقات checkpoint، ثم المراجعات الخمسة والتقرير النهائي؛ الدمج قرار مالك لاحق."
+   "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-OWNER-DECISION-PACKAGE-2026-10-13.md",
+   "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-S0-W1A-EXECUTION-REPORT-2026-10-13.md",
+   "docs/architecture/refactoring/r11-wave0-20261013/R11-W0-STRUCTURE-ARCHITECTURE-CONTRACT-SCAN-REPORT-2026-10-13.md",
+   "https://github.com/Qays7753/Micro/pull/364 (W1b execution prompt — branch head 2802d119d41d)"
+  ]
+ },
+ "acceptance": [
+  "W1b-0: ملحق أدلة append-only لـ R11-W0-NF-001 يسمح لمراجع مستقبلي بإعادة إنتاج العدّ وفهم التباين دون الاعتماد على هذه المحادثة؛ مصفوفة R10-B التاريخية بلا أي تعديل صامت؛ تحديث مصادر JSON أولًا ثم توليد Views رسميًا.",
+  "W1b-1: صفر تصريحات غامضة تحت تصادم PeriodRange القديم؛ typecheck والاختبارات المركزة خضراء؛ الإحصاء والاسم النهائي مسجلان؛ لا تغيير wire/runtime/مالي/UI-copy.",
+  "W1b-2: المتصل الحالي يجتاز الترجمة والاختبارات السلوكية دون تغيير؛ أي تجاوز مستقبلي يفشل typecheck؛ Schema 38/Export 30/Legacy/goldens/أسبقية الرفض دون تغيير؛ mint وحيد مثبت باختبار سلبي type-level ومسح مصدر.",
+  "W1b-3: الحارس يجتاز خط الأساس الدقيق ويرفض كل سلبي خصومي (تعليقات، نصوص، ||، مستقبل خاطئ، fallback خاطئ، متغيرات معاد تسميتها، قراءات ساعة خارج العائلة)؛ لا تغيير سلوك إنتاجي؛ lock-idle خارج الحارس.",
+  "W1b-4: مصفوفة توصيف حتمية كاملة (أمامي/خلفي/suspend-resume/انتهاء/قفل/فتح/أحداث متكررة) مع تصنيف صادق fail-closed/fail-open/غير محدد؛ لا إصلاح سلوكي؛ أي نتيجة fail-open = finding جديد وقرار مالك.",
+  "W1b-5: حدود الماسح موثقة في ترويسة الحارس ووثيقة الأمن؛ سير عمل دوري least-privilege بمراجع actions مثبتة وبدون write token وخرائط بصمات فقط؛ اختبارات خصومية للأنماط/المسارات الخام/الملفات المحذوفة/بايتات الرسائل غير الاعتيادية/التطهير؛ فشل المسح لا يظهر كنجاح.",
+  "W1b-6: لكل سطح محمي صف أدلة (مصدر، عقد، مرساة اختبار، مالك، سلوك محفوظ، حد استعادة)؛ الاختبارات المختارة خضراء؛ لا تفكيك أو نقل.",
+  "المرحلة: خمس مراجعات قراءة-فقط متسلسلة + مصالِح؛ تقرير W1b الرسمي بكل العلامات المطلوبة؛ CI أخضر على الرأس النهائي؛ PR يبقى مفتوحًا للمالك؛ لا دمج ولا تنظيف."
+ ],
+ "areas": [
+  "architecture-governance",
+  "docs/architecture/refactoring",
+  "docs/operations/control",
+  "docs/quality",
+  "scripts",
+  "scripts/security",
+  "tests",
+  "src/domain",
+  "src/application",
+  "apps/prototype-web/client/src",
+  ".github/workflows"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "https://github.com/Qays7753/Micro/pull/364 (R11-W1B-EXECUTION-PROMPT-2026-10-14.md — canonical execution prompt, head 2802d119)",
+  "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-OWNER-DECISION-PACKAGE-2026-10-13.md",
+  "docs/architecture/refactoring/r11-wave0-20261013/R11-W0-STRUCTURE-ARCHITECTURE-CONTRACT-SCAN-REPORT-2026-10-13.md",
+  "docs/quality/security-boundaries.md"
+ ],
+ "evidence": [
+  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B0-NF-001-EVIDENCE-ADDENDUM-2026-10-14.md",
+  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B0-NF-001-CENSUS-COUNTS-2026-10-14.json",
+  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B0-NF-001-HOUSE-EDGE-LISTS-2026-10-14.json",
+  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B1-S1-PERIODRANGE-EVIDENCE-2026-10-14.md",
+  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B2-S2-PREPARED-IMPORT-EVIDENCE-2026-10-14.md",
+  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B3-OD-TIME-EVIDENCE-2026-10-14.md",
+  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B4-LOCK-IDLE-CHARACTERIZATION-2026-10-14.md",
+  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B4-LOCK-IDLE-BROWSER-PROOF-2026-10-14.json",
+  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B5-OD-SEC-EVIDENCE-2026-10-14.md",
+  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B5-OD-SEC-WORKFLOW-DRYRUN-2026-10-14.json",
+  ".github/workflows/history-secret-scan.yml",
+  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B6-PRESERVE-EVIDENCE-2026-10-14.md"
+ ],
+ "dependencies": [
+  "ARCH-008"
+ ],
+ "related_items": [
+  "ARCH-008",
+  "ARCH-007"
+ ],
+ "updated_at": "2026-10-15",
+ "status_history": [
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-10-14",
+   "actor": "zai-executor",
+   "reason": "فتح Claim تنفيذي لموجة W1b بعد اكتمال البوابة التوثيقية (PRs #358/#360 مدموجان على main عند 0ede6e94) وتسجيل manifest خط الأساس؛ الفرع refactoring/r11-w1b-20261014 مُنشأ من origin/main الحي."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-10-14",
+   "actor": "zai-executor",
+   "reason": "شريحة W1b-0 (ملحق أدلة NF-001) منفذة مع إعادة إنتاج كاملة للكميات: 15/148 و16/150 و214 ملفًا و126/128 حافة و89 زوجًا تُعاد كلها بالطرق المسجلة؛ تباين وحيد +1 سطر في مراجع العائلة (4,869 مقابل 4,868) مسجل بأمانة؛ المصفوفة التاريخية دون تعديل."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "كل الشرائح W1b-0..W1b-6 منفذة على PR #365 (الرأس 72b4c729 عند اكتمال التنفيذ قبل السجلات)؛ البوابة الكاملة pnpm check خضراء على الرأس النهائي للتنفيذ مع إصلاحي بوابة صادقين (ci-workflow-policy للسير الثاني، وportSurfaceEvidence لنوع tsconfig التطبيق)؛ المراجعون الخمسة القراءة-فقط اكتملوا بالتسلسل (RV1 PASS_WITH_REMEDIATION، RV2 PASS، RV3 PASS_WITH_REMEDIATION، RV4 PASS، RV5 PASS_WITH_REMEDIATION) مع مصالحة المُصنِّف واعتماد معالجاتهم في سجلات هذا الالتزام؛ التقرير الرسمي الكنسي مكتمل بكل العلامات المطلوبة؛ القرار التالي للمالك على PR #365."
+  }
+ ],
+ "migration_baseline": false,
+ "next_action": "مراجعة المالك لـPR #365 (كل الشرائح + البوابة + المراجعات الخمسة + التقرير الرسمي مكتملة)؛ الدمج قرار مالك لاحق؛ لا يبدأ W2a إلا ببوابة مالك مستقلة."
 }
