@@ -354,6 +354,7 @@
     "GuidedOpeningImportPreview",
     "GuidedOpeningImportService",
     "LocalTransferService",
+    "PreparedImport",
     "TransferPreview",
     "TransferSummary"
    ]

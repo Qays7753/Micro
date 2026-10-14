@@ -1503,6 +1503,25 @@
         "trigger": "R11-W1B-EXECUTION-PROMPT-2026-10-14 section 6 slice W1b-2 — in-band growth requires a ledger entry with an Operations Control reference",
         "ocRef": "ARCH-009"
       }
+    },
+    {
+      "id": "R11-W1B2-S2-TRANSFERS-DOOR-SURFACE-TYPE",
+      "date": "2026-10-14",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 366,
+        "band": "NORMAL"
+      },
+      "reason": "R11 W1b-2 / S-2 (owner-approved OPAQUE_PREPARED_IMPORT): the transfers door now exports the opaque provenance type PreparedImport alongside the existing five type exports, so the door-surfaces ratchet baseline (R5/S2 - PC-3/R0-N20) registers the widened surface: transfers [type] = GuidedOpeningImportPreview, GuidedOpeningImportService, LocalTransferService, PreparedImport, TransferPreview, TransferSummary. One line, alphabetical position preserved, no other door touched; the guard itself re-verified PASS (29 doors + 1 root file, exact match). Supersedes the R10B-B3-DOOR-BASELINE coverage range (354->365) for this file; the S-2 provenance test additionally bans every production forge site.",
+      "authorization": {
+        "ownerReview": "S-2 OWNER_APPROVED — OPAQUE_PREPARED_IMPORT (R11 owner decision package §4) — part of the R11 W1b execution PR #365",
+        "trigger": "door-surfaces ratchet surface-widened detection on the W1b-2 commit; re-anchor required in the same PR per R5/S2 protocol",
+        "ocRef": "ARCH-009"
+      }
     }
   ]
 }
