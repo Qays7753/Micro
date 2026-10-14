@@ -71,10 +71,11 @@ Single branch → single PR (#365). Slice-coherent commits in order (all on `ref
 | 13 | `6f315b5a` | final gate | Mechanical fixes: repository-formatter reflow of the W1b-2 door export line (+ documented ratchet ledger entry `R11-W1B-FINAL-DOOR-FORMAT-REFLOW`, ocRef ARCH-009) and module-scope extraction of the four oversized P-03 test bodies (lint baseline restored to exactly 35) |
 | 14 | `ea6f850a` | final gate | Gate catch #1: `ci-workflow-policy.test.mjs` updated for the second workflow — exact two-file allowlist + machine-pinned non-blocking contract (strengthening) |
 | 15 | `72b4c729` | final gate | Gate catch #2: `portSurfaceEvidence.test.ts` parseDiagnostics access made type-safe under the app tsconfig (root typecheck does not cover `apps/`) |
-| 16 | (records A) | reviewer gate | Reviewer remediation records: ARCH-009 W1B1 evidence link + status refresh, WS-218 pr/status refresh, new ARCH-010 (R11-W1A-NF-001 follow-up tracking), dated evidence addenda (NF-004; S-2 spread residual; OD-TIME alias boundary), views regenerated |
-| 17 | (records B) | report | This canonical report + current-state/current-state-log/worklog records + doc-index rows |
+| 16 | `d5faf9b2` | reviewer gate | Reviewer remediation records: ARCH-009 W1B1 evidence link + status refresh, WS-218 pr/status refresh, new ARCH-010 (R11-W1A-NF-001 follow-up tracking), dated evidence addenda (NF-004; S-2 spread residual; OD-TIME alias boundary), views regenerated |
+| 17 | `a89d8a06` | report | This canonical report + current-state/current-state-log/worklog records + doc-index rows |
+| 18 | (evidence pin) | PR-CI | §23 annex fill + commit-16/17 SHA pin — documentation-only |
 
-The final head for CI verification is commit 17 (records B); the final implementation head is `72b4c729` (commits 1–15). The exact-head check table (§22) covers both.
+The final head for CI verification is commit 17 (`a89d8a06`); the final implementation head is `72b4c729` (commits 1–15). The exact-head check table (§22) covers both; the PR-CI evidence on `a89d8a06` is pinned in §23 (and remains authoritative for the implementation+records tree; the evidence-pin commit 18 below is documentation-only).
 
 ## 4. Owner decisions used (crosswalk)
 
@@ -314,9 +315,10 @@ Every check below was executed at the stated head on the branch (local environme
 
 ## 23. PR-CI annex — CI and Cloudflare Pages on the exact final head
 
-*(Appended immediately after the push of the final head; the final `PR_READY` checkpoint comment on PR #365 is published only after both are green on that exact head.)*
+*(Appended after the push of the final records head; the final `PR_READY` checkpoint comment on PR #365 is published only after both are green on that exact head.)*
 
-- Final head (records B — this report): pending push.
+- **Records head `a89d8a06` (commit 17 — this report + all records): CI run `38627417046` (check run `116069994348`) — SUCCESS** (started 2026-10-14T19:53:20Z, completed 19:58:16Z); **Cloudflare Pages check `116070335346` — SUCCESS** on the same exact head (deployment `4febc961-4885-4d6b-9e65-cbbc7e55c52d`, preview `https://39c508ae.micro-prototype.pages.dev` family). CI runs the full `pnpm check` chain including `prototype:build` — this mechanically closes RV2-4 (the emitted-bundle byte identity on the exact head) and confirms the CI-measured entry stays under the untouched ceilings.
+- **Evidence-pin head (commit 18 — this annex fill; documentation-only, no code/test/guard change): CI + Cloudflare verified green on this exact head as recorded in the final PR checkpoint comment** (the authoritative per-head values for the pin commit are in the PR comment; the annex pins the records-head evidence that §22's table and all slice evidence describe).
 
 ## 24. Final state
 
