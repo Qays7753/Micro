@@ -1,896 +1,896 @@
 {
-  "schema": "micro-application-house-edges-census/1",
-  "provenance": {
-    "base_sha": "5ef4ce08841bcd4ff7c5fb185a0fe2eeef6852fd",
-    "measured_at": "2026-10-14",
-    "method": "guard-mirroring semantics: application-layer production files importing application house interiors (house-interior targets only; doors (index.ts) and root files excluded as targets; root files excluded as sources — shared-by-definition layer); all import kinds (static, dynamic import(), ImportTypeNode, export-from re-exports, import-equals require()); unique edge = (source file -> resolved target) with TYPE-DOMINANT classification: kind=type if ANY site is type-only, value iff ALL sites carry value (the only arithmetic reproducing the recorded counts; R11 Lock Remediation 2026-10-15: +1 type edge pinOperations.ts -> time/clock (lazy PIN-operations module, exempt OD-10 target) -> 129/80/49)",
-    "authority": "OD-10 Option A (owner-approved 2026-10-13, R11 owner decision package) + R11 W0 census (128 edges / 80 value / 48 type) + RV1/R11-RV1 independent reproductions"
+ "schema": "micro-application-house-edges-census/1",
+ "provenance": {
+  "base_sha": "5ef4ce08841bcd4ff7c5fb185a0fe2eeef6852fd",
+  "measured_at": "2026-10-14",
+  "method": "guard-mirroring semantics: application-layer production files importing application house interiors (house-interior targets only; doors (index.ts) and root files excluded as targets; root files excluded as sources — shared-by-definition layer); all import kinds (static, dynamic import(), ImportTypeNode, export-from re-exports, import-equals require()); unique edge = (source file -> resolved target) with TYPE-DOMINANT classification: kind=type if ANY site is type-only, value iff ALL sites carry value (the only arithmetic reproducing the recorded counts; R11 Lock Remediation 2026-10-15: +1 type edge pinOperations.ts -> time/clock (lazy PIN-operations module, exempt OD-10 target) -> 129/80/49)",
+  "authority": "OD-10 Option A (owner-approved 2026-10-13, R11 owner decision package) + R11 W0 census (128 edges / 80 value / 48 type) + RV1/R11-RV1 independent reproductions"
+ },
+ "totals": {
+  "edges": 129,
+  "value": 80,
+  "type": 49,
+  "governedEdges": 63,
+  "governedPairs": 42,
+  "exemptTargetEdges": 66
+ },
+ "edges": [
+  {
+   "key": "application/agreements/agreementContextService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
   },
-  "totals": {
-    "edges": 129,
-    "value": 80,
-    "type": 49,
-    "governedEdges": 63,
-    "governedPairs": 42,
-    "exemptTargetEdges": 66
+  {
+   "key": "application/agreements/agreementContextService.ts -> application/transfers/transferCompatibilityValues.ts",
+   "kind": "value",
+   "exemptTarget": false
   },
-  "edges": [
-    {
-      "key": "application/agreements/agreementContextService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/agreements/agreementContextService.ts -> application/transfers/transferCompatibilityValues.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/agreements/agreementService.ts -> application/cost/costService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/agreements/agreementService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/agreements/agreementService.ts -> application/transfers/transferCompatibilityValues.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/agreements/followUpDate.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/agreements/orderDetailViewModel.ts -> application/cash/cashContinuityService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/agreements/orderDetailViewModel.ts -> application/drafts/draftService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/agreements/orderDetailViewModel.ts -> application/estimates/costEstimateService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/agreements/orderDetailViewModel.ts -> application/inventory/inventoryMaterialModel.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/agreements/orderDetailViewModel.ts -> application/inventory/inventoryMaterialService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/agreements/orderDetailViewModel.ts -> application/parties/partyLedgerService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/assets/assetService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/budgets/expenseBudgetService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/cash/cashContinuityService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/catalog/catalogService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/catalog/templatePlannedCostService.ts -> application/inventory/inventoryMaterialService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/catalog/templatePlannedCostService.ts -> application/inventory/materialSuggestions.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/collections/collectionReversalService.ts -> application/finance/projectFinancialService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/collections/collectionReversalService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/collections/collectionService.ts -> application/direct-sales/directSaleService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/collections/collectionService.ts -> application/finance/projectFinancialService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/collections/collectionService.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/collections/collectionService.ts -> application/fulfillment/fulfillmentService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/collections/collectionService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/collections/saleCollectionReversalService.ts -> application/finance/projectFinancialService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/collections/saleCollectionReversalService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/cost/costService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/diagnostics/localDiagnosticsService.ts -> application/identity/buildIdentity.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/diagnostics/localDiagnosticsService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/direct-sales/directSaleService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/drafts/draftService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/drafts/formDraftService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/estimates/costEstimateService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/dueDateAging.ts -> application/agreements/followUpDate.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/dueDatesService.ts -> application/collections/collectionService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/dueDatesService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/financeState.ts -> application/assets/assetService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/financeState.ts -> application/financial-analysis/financialAnalysisService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/financeState.ts -> application/financial-pulse/financialPulseService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/financeState.ts -> application/financial-records/correctionHistoryService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/financeState.ts -> application/financial-records/retainedDepositService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/financeState.ts -> application/fulfillment/fulfillmentService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/financeState.ts -> application/inventory/inventoryMaterialModel.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/financeState.ts -> application/inventory/inventoryMaterialService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/financeState.ts -> application/loans/loanService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/financeState.ts -> application/owner-money/ownerEntitlementService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/index.ts -> application/recurring/recurringExpenseService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/integrityCheckAssetsLoans.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/integrityCheckContinuity.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/integrityCheckModel.ts -> application/cash/cashContinuityService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/integrityCheckService.ts -> application/cash/cashContinuityService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/integrityCheckService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/periodComparisonService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/profitToCashBridgeService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/projectFinancialEventWrites.ts -> application/financial-records/expenseRecordIntent.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/projectFinancialEventWrites.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/projectFinancialEventWrites.ts -> application/owner-money/withdrawalWalletGuard.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/projectFinancialEventWrites.ts -> application/time/clock.ts",
-      "kind": "type",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/projectFinancialInsights.ts -> application/financial-analysis/financialAnalysisService.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/projectFinancialInsights.ts -> application/fulfillment/deliveryAttribution.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/projectFinancialPeriodReads.ts -> application/fulfillment/deliveryAttribution.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/projectFinancialReads.ts -> application/financial-pulse/financialPulseService.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/projectFinancialService.ts -> application/financial-records/expenseRecordIntent.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/projectFinancialService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/projectFinancialTypes.ts -> application/financial-records/expenseRecordIntent.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/recurringWorkService.ts -> application/fulfillment/deliveryAttribution.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/recurringWorkService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/statementMarkdownService.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/statementMarkdownService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/statementService.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/finance/upcomingService.ts -> application/collections/collectionService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/finance/upcomingService.ts -> application/scheduling/scheduleService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/financial-analysis/financialAnalysisService.ts -> application/finance/projectFinancialTypes.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/financial-analysis/financialAnalysisService.ts -> application/finance/shortCashHorizon.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/financial-analysis/financialAnalysisService.ts -> application/fulfillment/deliveryAttribution.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/financial-analysis/financialAnalysisService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/financial-records/correctionHistoryService.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/financial-records/retainedDepositService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/follow-up/dailyFollowUpService.ts -> application/agreements/agreementPresentation.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/follow-up/dailyFollowUpService.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/fulfillment/deliveryReviewService.ts -> application/finance/projectFinancialService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/fulfillment/deliveryReviewService.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/fulfillment/deliveryReviewService.ts -> application/inventory/materialUnitLabels.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/fulfillment/deliveryReviewService.ts -> application/scheduling/scheduleService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/fulfillment/deliveryReviewService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/fulfillment/fulfillmentService.ts -> application/scheduling/scheduleService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/fulfillment/fulfillmentService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/home/homeControlCenterService.ts -> application/activity/activityLabels.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/home/homeControlCenterService.ts -> application/activity/activityService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/home/homeControlCenterService.ts -> application/agreements/agreementContextService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/home/homeControlCenterService.ts -> application/finance/projectFinancialService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/home/homeControlCenterService.ts -> application/follow-up/dailyFollowUpService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/home/homeControlCenterService.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/home/homeControlCenterService.ts -> application/inventory/inventoryMaterialService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/home/homeControlCenterService.ts -> application/suppliers/supplierPurchaseService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/home/homeControlCenterService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/inventory/inventoryMaterialActivation.ts -> application/time/clock.ts",
-      "kind": "type",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/inventory/inventoryMaterialLifecycle.ts -> application/time/clock.ts",
-      "kind": "type",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/inventory/inventoryMaterialService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/inventory/inventoryMaterialShortages.ts -> application/time/clock.ts",
-      "kind": "type",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/inventory/inventoryMaterialWaste.ts -> application/time/clock.ts",
-      "kind": "type",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/inventory/inventoryMaterialWrites.ts -> application/time/clock.ts",
-      "kind": "type",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/loans/loanService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/loans/receivedLoanService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/owner-money/ownerEntitlementService.ts -> application/fulfillment/deliveryAttribution.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/owner-money/ownerEntitlementService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/owner-money/withdrawalWalletGuard.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/owner/ownerProfileService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/preferences/preferenceService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/preferences/updateLocalPreferences.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/profile/profileService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/recurring/recurringExpenseService.ts -> application/finance/projectFinancialService.ts",
-      "kind": "type",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/recurring/recurringExpenseService.ts -> application/financial-records/expenseRecordIntent.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/recurring/recurringExpenseService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/scheduling/recurrenceService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/scheduling/scheduleService.ts -> application/preferences/updateLocalPreferences.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/scheduling/scheduleService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/security/localLockService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/security/pinOperations.ts -> application/time/clock.ts",
-      "kind": "type",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/share/shareMessageService.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/share/shareMessageService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/suppliers/supplierPurchaseEditorModel.ts -> application/finance/paymentSourcePolicy.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/suppliers/supplierPurchaseService.ts -> application/formatting/formatters.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/suppliers/supplierPurchaseService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/time/actualTimeService.ts -> application/preferences/updateLocalPreferences.ts",
-      "kind": "value",
-      "exemptTarget": false
-    },
-    {
-      "key": "application/transfers/guidedOpeningImportService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/transfers/localTransferService.ts -> application/identity/buildIdentity.ts",
-      "kind": "value",
-      "exemptTarget": true
-    },
-    {
-      "key": "application/transfers/localTransferService.ts -> application/time/clock.ts",
-      "kind": "value",
-      "exemptTarget": true
-    }
+  {
+   "key": "application/agreements/agreementService.ts -> application/cost/costService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/agreements/agreementService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/agreements/agreementService.ts -> application/transfers/transferCompatibilityValues.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/agreements/followUpDate.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/agreements/orderDetailViewModel.ts -> application/cash/cashContinuityService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/agreements/orderDetailViewModel.ts -> application/drafts/draftService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/agreements/orderDetailViewModel.ts -> application/estimates/costEstimateService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/agreements/orderDetailViewModel.ts -> application/inventory/inventoryMaterialModel.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/agreements/orderDetailViewModel.ts -> application/inventory/inventoryMaterialService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/agreements/orderDetailViewModel.ts -> application/parties/partyLedgerService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/assets/assetService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/budgets/expenseBudgetService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/cash/cashContinuityService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/catalog/catalogService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/catalog/templatePlannedCostService.ts -> application/inventory/inventoryMaterialService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/catalog/templatePlannedCostService.ts -> application/inventory/materialSuggestions.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/collections/collectionReversalService.ts -> application/finance/projectFinancialService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/collections/collectionReversalService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/collections/collectionService.ts -> application/direct-sales/directSaleService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/collections/collectionService.ts -> application/finance/projectFinancialService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/collections/collectionService.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/collections/collectionService.ts -> application/fulfillment/fulfillmentService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/collections/collectionService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/collections/saleCollectionReversalService.ts -> application/finance/projectFinancialService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/collections/saleCollectionReversalService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/cost/costService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/diagnostics/localDiagnosticsService.ts -> application/identity/buildIdentity.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/diagnostics/localDiagnosticsService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/direct-sales/directSaleService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/drafts/draftService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/drafts/formDraftService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/estimates/costEstimateService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/dueDateAging.ts -> application/agreements/followUpDate.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/dueDatesService.ts -> application/collections/collectionService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/dueDatesService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/financeState.ts -> application/assets/assetService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/financeState.ts -> application/financial-analysis/financialAnalysisService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/financeState.ts -> application/financial-pulse/financialPulseService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/financeState.ts -> application/financial-records/correctionHistoryService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/financeState.ts -> application/financial-records/retainedDepositService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/financeState.ts -> application/fulfillment/fulfillmentService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/financeState.ts -> application/inventory/inventoryMaterialModel.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/financeState.ts -> application/inventory/inventoryMaterialService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/financeState.ts -> application/loans/loanService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/financeState.ts -> application/owner-money/ownerEntitlementService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/index.ts -> application/recurring/recurringExpenseService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/integrityCheckAssetsLoans.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/integrityCheckContinuity.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/integrityCheckModel.ts -> application/cash/cashContinuityService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/integrityCheckService.ts -> application/cash/cashContinuityService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/integrityCheckService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/periodComparisonService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/profitToCashBridgeService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/projectFinancialEventWrites.ts -> application/financial-records/expenseRecordIntent.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/projectFinancialEventWrites.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/projectFinancialEventWrites.ts -> application/owner-money/withdrawalWalletGuard.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/projectFinancialEventWrites.ts -> application/time/clock.ts",
+   "kind": "type",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/projectFinancialInsights.ts -> application/financial-analysis/financialAnalysisService.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/projectFinancialInsights.ts -> application/fulfillment/deliveryAttribution.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/projectFinancialPeriodReads.ts -> application/fulfillment/deliveryAttribution.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/projectFinancialReads.ts -> application/financial-pulse/financialPulseService.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/projectFinancialService.ts -> application/financial-records/expenseRecordIntent.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/projectFinancialService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/projectFinancialTypes.ts -> application/financial-records/expenseRecordIntent.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/recurringWorkService.ts -> application/fulfillment/deliveryAttribution.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/recurringWorkService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/statementMarkdownService.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/statementMarkdownService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/statementService.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/finance/upcomingService.ts -> application/collections/collectionService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/finance/upcomingService.ts -> application/scheduling/scheduleService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/financial-analysis/financialAnalysisService.ts -> application/finance/projectFinancialTypes.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/financial-analysis/financialAnalysisService.ts -> application/finance/shortCashHorizon.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/financial-analysis/financialAnalysisService.ts -> application/fulfillment/deliveryAttribution.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/financial-analysis/financialAnalysisService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/financial-records/correctionHistoryService.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/financial-records/retainedDepositService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/follow-up/dailyFollowUpService.ts -> application/agreements/agreementPresentation.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/follow-up/dailyFollowUpService.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/fulfillment/deliveryReviewService.ts -> application/finance/projectFinancialService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/fulfillment/deliveryReviewService.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/fulfillment/deliveryReviewService.ts -> application/inventory/materialUnitLabels.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/fulfillment/deliveryReviewService.ts -> application/scheduling/scheduleService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/fulfillment/deliveryReviewService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/fulfillment/fulfillmentService.ts -> application/scheduling/scheduleService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/fulfillment/fulfillmentService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/home/homeControlCenterService.ts -> application/activity/activityLabels.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/home/homeControlCenterService.ts -> application/activity/activityService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/home/homeControlCenterService.ts -> application/agreements/agreementContextService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/home/homeControlCenterService.ts -> application/finance/projectFinancialService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/home/homeControlCenterService.ts -> application/follow-up/dailyFollowUpService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/home/homeControlCenterService.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/home/homeControlCenterService.ts -> application/inventory/inventoryMaterialService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/home/homeControlCenterService.ts -> application/suppliers/supplierPurchaseService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/home/homeControlCenterService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/inventory/inventoryMaterialActivation.ts -> application/time/clock.ts",
+   "kind": "type",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/inventory/inventoryMaterialLifecycle.ts -> application/time/clock.ts",
+   "kind": "type",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/inventory/inventoryMaterialService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/inventory/inventoryMaterialShortages.ts -> application/time/clock.ts",
+   "kind": "type",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/inventory/inventoryMaterialWaste.ts -> application/time/clock.ts",
+   "kind": "type",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/inventory/inventoryMaterialWrites.ts -> application/time/clock.ts",
+   "kind": "type",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/loans/loanService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/loans/receivedLoanService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/owner-money/ownerEntitlementService.ts -> application/fulfillment/deliveryAttribution.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/owner-money/ownerEntitlementService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/owner-money/withdrawalWalletGuard.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/owner/ownerProfileService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/preferences/preferenceService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/preferences/updateLocalPreferences.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/profile/profileService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/recurring/recurringExpenseService.ts -> application/finance/projectFinancialService.ts",
+   "kind": "type",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/recurring/recurringExpenseService.ts -> application/financial-records/expenseRecordIntent.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/recurring/recurringExpenseService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/scheduling/recurrenceService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/scheduling/scheduleService.ts -> application/preferences/updateLocalPreferences.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/scheduling/scheduleService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/security/localLockService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/security/pinOperations.ts -> application/time/clock.ts",
+   "kind": "type",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/share/shareMessageService.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/share/shareMessageService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/suppliers/supplierPurchaseEditorModel.ts -> application/finance/paymentSourcePolicy.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/suppliers/supplierPurchaseService.ts -> application/formatting/formatters.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/suppliers/supplierPurchaseService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/time/actualTimeService.ts -> application/preferences/updateLocalPreferences.ts",
+   "kind": "value",
+   "exemptTarget": false
+  },
+  {
+   "key": "application/transfers/guidedOpeningImportService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/transfers/localTransferService.ts -> application/identity/buildIdentity.ts",
+   "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/transfers/localTransferService.ts -> application/time/clock.ts",
+   "kind": "value",
+   "exemptTarget": true
+  }
+ ],
+ "pairCaps": {
+  "agreements->transfers": {
+   "value": 2,
+   "type": 0
+  },
+  "agreements->cost": {
+   "value": 0,
+   "type": 1
+  },
+  "agreements->cash": {
+   "value": 0,
+   "type": 1
+  },
+  "agreements->drafts": {
+   "value": 0,
+   "type": 1
+  },
+  "agreements->estimates": {
+   "value": 0,
+   "type": 1
+  },
+  "agreements->inventory": {
+   "value": 0,
+   "type": 2
+  },
+  "agreements->parties": {
+   "value": 0,
+   "type": 1
+  },
+  "catalog->inventory": {
+   "value": 1,
+   "type": 1
+  },
+  "collections->finance": {
+   "value": 0,
+   "type": 3
+  },
+  "collections->direct-sales": {
+   "value": 0,
+   "type": 1
+  },
+  "collections->fulfillment": {
+   "value": 0,
+   "type": 1
+  },
+  "finance->agreements": {
+   "value": 1,
+   "type": 0
+  },
+  "finance->collections": {
+   "value": 0,
+   "type": 2
+  },
+  "finance->assets": {
+   "value": 0,
+   "type": 1
+  },
+  "finance->financial-analysis": {
+   "value": 1,
+   "type": 1
+  },
+  "finance->financial-pulse": {
+   "value": 1,
+   "type": 1
+  },
+  "finance->financial-records": {
+   "value": 1,
+   "type": 4
+  },
+  "finance->fulfillment": {
+   "value": 3,
+   "type": 1
+  },
+  "finance->inventory": {
+   "value": 0,
+   "type": 2
+  },
+  "finance->loans": {
+   "value": 0,
+   "type": 1
+  },
+  "finance->owner-money": {
+   "value": 1,
+   "type": 1
+  },
+  "finance->recurring": {
+   "value": 0,
+   "type": 1
+  },
+  "finance->cash": {
+   "value": 0,
+   "type": 2
+  },
+  "finance->scheduling": {
+   "value": 0,
+   "type": 1
+  },
+  "financial-analysis->finance": {
+   "value": 1,
+   "type": 1
+  },
+  "financial-analysis->fulfillment": {
+   "value": 1,
+   "type": 0
+  },
+  "follow-up->agreements": {
+   "value": 1,
+   "type": 0
+  },
+  "fulfillment->finance": {
+   "value": 0,
+   "type": 1
+  },
+  "fulfillment->inventory": {
+   "value": 1,
+   "type": 0
+  },
+  "fulfillment->scheduling": {
+   "value": 0,
+   "type": 2
+  },
+  "home->activity": {
+   "value": 1,
+   "type": 1
+  },
+  "home->agreements": {
+   "value": 0,
+   "type": 1
+  },
+  "home->finance": {
+   "value": 0,
+   "type": 1
+  },
+  "home->follow-up": {
+   "value": 0,
+   "type": 1
+  },
+  "home->inventory": {
+   "value": 0,
+   "type": 1
+  },
+  "home->suppliers": {
+   "value": 0,
+   "type": 1
+  },
+  "owner-money->fulfillment": {
+   "value": 1,
+   "type": 0
+  },
+  "recurring->finance": {
+   "value": 0,
+   "type": 1
+  },
+  "recurring->financial-records": {
+   "value": 1,
+   "type": 0
+  },
+  "scheduling->preferences": {
+   "value": 1,
+   "type": 0
+  },
+  "suppliers->finance": {
+   "value": 1,
+   "type": 0
+  },
+  "time->preferences": {
+   "value": 1,
+   "type": 0
+  }
+ },
+ "exemptModules": [
+  {
+   "path": "application/time/clock.ts",
+   "role": "leaf",
+   "importAllowlist": [
+    "@micro-domain/shared/index.js"
+   ],
+   "notes": "The clock port (STR-618): the ONLY active ambient clock (systemClock) + todayInAmman. 49 census edges target it. Frozen behind OD-10; additions require a new owner decision."
+  },
+  {
+   "path": "application/formatting/formatters.ts",
+   "role": "leaf",
+   "importAllowlist": [
+    "@micro-domain/shared/index.js"
+   ],
+   "notes": "The canonical display-formatting kernel (ADR-011 §2). 14 census edges target it. const Intl.NumberFormat initializers are declarations (syntactic purity proxy passes)."
+  },
+  {
+   "path": "application/identity/buildIdentity.ts",
+   "role": "leaf",
+   "importAllowlist": [],
+   "notes": "The build-identity bridge (OD-14/D1). 2 census edges target it. Zero imports; the one-shot guarded DOM meta read lives in a const initializer (appIdentity) — recorded honestly, not overclaimed as side-effect-free."
+  },
+  {
+   "path": "application/resultCodes.ts",
+   "role": "root-file",
+   "importAllowlist": [
+    "@/storage/local/resultCodes"
+   ],
+   "notes": "Legal-by-definition ROOT file (imports targeting it are outside the census by the house-interior rule). Its single import is the ADR-012 single-sourcing of two pure string constants from @/storage/local/resultCodes (STORAGE_ERROR/STORAGE_STALE) — a dated, documented allowance recorded with this census entry, not a storage-machinery dependency."
+  }
+ ],
+ "sccBaselines": {
+  "value": [
+   [
+    "finance",
+    "financial-analysis"
+   ],
+   [
+    "preferences",
+    "time"
+   ]
   ],
-  "pairCaps": {
-    "agreements->transfers": {
-      "value": 2,
-      "type": 0
-    },
-    "agreements->cost": {
-      "value": 0,
-      "type": 1
-    },
-    "agreements->cash": {
-      "value": 0,
-      "type": 1
-    },
-    "agreements->drafts": {
-      "value": 0,
-      "type": 1
-    },
-    "agreements->estimates": {
-      "value": 0,
-      "type": 1
-    },
-    "agreements->inventory": {
-      "value": 0,
-      "type": 2
-    },
-    "agreements->parties": {
-      "value": 0,
-      "type": 1
-    },
-    "catalog->inventory": {
-      "value": 1,
-      "type": 1
-    },
-    "collections->finance": {
-      "value": 0,
-      "type": 3
-    },
-    "collections->direct-sales": {
-      "value": 0,
-      "type": 1
-    },
-    "collections->fulfillment": {
-      "value": 0,
-      "type": 1
-    },
-    "finance->agreements": {
-      "value": 1,
-      "type": 0
-    },
-    "finance->collections": {
-      "value": 0,
-      "type": 2
-    },
-    "finance->assets": {
-      "value": 0,
-      "type": 1
-    },
-    "finance->financial-analysis": {
-      "value": 1,
-      "type": 1
-    },
-    "finance->financial-pulse": {
-      "value": 1,
-      "type": 1
-    },
-    "finance->financial-records": {
-      "value": 1,
-      "type": 4
-    },
-    "finance->fulfillment": {
-      "value": 3,
-      "type": 1
-    },
-    "finance->inventory": {
-      "value": 0,
-      "type": 2
-    },
-    "finance->loans": {
-      "value": 0,
-      "type": 1
-    },
-    "finance->owner-money": {
-      "value": 1,
-      "type": 1
-    },
-    "finance->recurring": {
-      "value": 0,
-      "type": 1
-    },
-    "finance->cash": {
-      "value": 0,
-      "type": 2
-    },
-    "finance->scheduling": {
-      "value": 0,
-      "type": 1
-    },
-    "financial-analysis->finance": {
-      "value": 1,
-      "type": 1
-    },
-    "financial-analysis->fulfillment": {
-      "value": 1,
-      "type": 0
-    },
-    "follow-up->agreements": {
-      "value": 1,
-      "type": 0
-    },
-    "fulfillment->finance": {
-      "value": 0,
-      "type": 1
-    },
-    "fulfillment->inventory": {
-      "value": 1,
-      "type": 0
-    },
-    "fulfillment->scheduling": {
-      "value": 0,
-      "type": 2
-    },
-    "home->activity": {
-      "value": 1,
-      "type": 1
-    },
-    "home->agreements": {
-      "value": 0,
-      "type": 1
-    },
-    "home->finance": {
-      "value": 0,
-      "type": 1
-    },
-    "home->follow-up": {
-      "value": 0,
-      "type": 1
-    },
-    "home->inventory": {
-      "value": 0,
-      "type": 1
-    },
-    "home->suppliers": {
-      "value": 0,
-      "type": 1
-    },
-    "owner-money->fulfillment": {
-      "value": 1,
-      "type": 0
-    },
-    "recurring->finance": {
-      "value": 0,
-      "type": 1
-    },
-    "recurring->financial-records": {
-      "value": 1,
-      "type": 0
-    },
-    "scheduling->preferences": {
-      "value": 1,
-      "type": 0
-    },
-    "suppliers->finance": {
-      "value": 1,
-      "type": 0
-    },
-    "time->preferences": {
-      "value": 1,
-      "type": 0
-    }
-  },
-  "exemptModules": [
-    {
-      "path": "application/time/clock.ts",
-      "role": "leaf",
-      "importAllowlist": [
-        "@micro-domain/shared/index.js"
-      ],
-      "notes": "The clock port (STR-618): the ONLY active ambient clock (systemClock) + todayInAmman. 49 census edges target it. Frozen behind OD-10; additions require a new owner decision."
-    },
-    {
-      "path": "application/formatting/formatters.ts",
-      "role": "leaf",
-      "importAllowlist": [
-        "@micro-domain/shared/index.js"
-      ],
-      "notes": "The canonical display-formatting kernel (ADR-011 §2). 14 census edges target it. const Intl.NumberFormat initializers are declarations (syntactic purity proxy passes)."
-    },
-    {
-      "path": "application/identity/buildIdentity.ts",
-      "role": "leaf",
-      "importAllowlist": [],
-      "notes": "The build-identity bridge (OD-14/D1). 2 census edges target it. Zero imports; the one-shot guarded DOM meta read lives in a const initializer (appIdentity) — recorded honestly, not overclaimed as side-effect-free."
-    },
-    {
-      "path": "application/resultCodes.ts",
-      "role": "root-file",
-      "importAllowlist": [
-        "@/storage/local/resultCodes"
-      ],
-      "notes": "Legal-by-definition ROOT file (imports targeting it are outside the census by the house-interior rule). Its single import is the ADR-012 single-sourcing of two pure string constants from @/storage/local/resultCodes (STORAGE_ERROR/STORAGE_STALE) — a dated, documented allowance recorded with this census entry, not a storage-machinery dependency."
-    }
-  ],
-  "sccBaselines": {
-    "value": [
-      [
-        "finance",
-        "financial-analysis"
-      ],
-      [
-        "preferences",
-        "time"
-      ]
-    ],
-    "type": [
-      [
-        "collections",
-        "finance",
-        "financial-analysis",
-        "fulfillment",
-        "recurring"
-      ]
-    ]
-  },
-  "reviewCandidates": [
-    "inventory/materialUnitLabels"
-  ],
-  "notes": [
-    "inventory/materialUnitLabels (review candidate, OD-10): pure MaterialUnit label vocabulary created by the documented R10-B3 slice; target of 1 cross-house edge (fulfillment/deliveryReviewService.ts). NOT exempted and NOT moved (OD-10 prohibition) — reported for a future owner review only.",
-    "House-level SCC baselines are recorded as the LIVE state at 5ef4ce08: 2 value cycles ({finance,financial-analysis} and {preferences,time}) and 1 type cycle ({collections,finance,financial-analysis,fulfillment,recurring}). Any NEW cycle fails; a RESOLVED cycle also fails until the census is re-anchored in the same PR (nothing changes silently).",
-    "The two dual-kind pairs (application/finance/index.ts -> application/recurring/recurringExpenseService.ts and application/fulfillment/fulfillmentService.ts -> application/scheduling/scheduleService.ts) classify TYPE under the type-dominant rule.",
-    "The two R10-B growth edges recorded with provenance: fulfillment/deliveryReviewService.ts -> application/inventory/materialUnitLabels.ts and suppliers/supplierPurchaseEditorModel.ts -> application/finance/paymentSourcePolicy.ts (both from documented R10-B3 work, now inside the census)."
+  "type": [
+   [
+    "collections",
+    "finance",
+    "financial-analysis",
+    "fulfillment",
+    "recurring"
+   ]
   ]
+ },
+ "reviewCandidates": [
+  "inventory/materialUnitLabels"
+ ],
+ "notes": [
+  "inventory/materialUnitLabels (review candidate, OD-10): pure MaterialUnit label vocabulary created by the documented R10-B3 slice; target of 1 cross-house edge (fulfillment/deliveryReviewService.ts). NOT exempted and NOT moved (OD-10 prohibition) — reported for a future owner review only.",
+  "House-level SCC baselines are recorded as the LIVE state at 5ef4ce08: 2 value cycles ({finance,financial-analysis} and {preferences,time}) and 1 type cycle ({collections,finance,financial-analysis,fulfillment,recurring}). Any NEW cycle fails; a RESOLVED cycle also fails until the census is re-anchored in the same PR (nothing changes silently).",
+  "The two dual-kind pairs (application/finance/index.ts -> application/recurring/recurringExpenseService.ts and application/fulfillment/fulfillmentService.ts -> application/scheduling/scheduleService.ts) classify TYPE under the type-dominant rule.",
+  "The two R10-B growth edges recorded with provenance: fulfillment/deliveryReviewService.ts -> application/inventory/materialUnitLabels.ts and suppliers/supplierPurchaseEditorModel.ts -> application/finance/paymentSourcePolicy.ts (both from documented R10-B3 work, now inside the census)."
+ ]
 }
