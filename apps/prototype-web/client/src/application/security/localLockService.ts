@@ -8,6 +8,10 @@
  *   ثم تُرقّى تلقائيًا للمشتق البطيء بعد أول فتح ناجح — لا قفل خارج صاحب الرمز.
  * - الخمول بمراقبة إخفاء/ظهور التطبيق (visibilitychange) مع آخر نشاط محفوظ —
  *   يعمل مع تبديل التطبيق وقفل الشاشة وإعادة فتح PWA بعد ساعات.
+ * - سياسة الزمن الفاشلة-الإغلاق (R11 Lock Remediation — OD-LOCK-ROLLBACK=A):
+ *   ساعة الجهاز المتأخرة عن آخر نشاط تقفل لا تنتظر للأبد، والمتأخرة عن آخر
+ *   فشل تُبقي وقفة التخمين كاملة بلا تخمين ولا كتابة، والطوابع التالفة
+ *   تُعامل بالمثل — حماية البيانات تُقدَّم على زمن لا يمكن تصديقه.
  * - محاولات الفتح الفاشلة تُعدّ وتُصفّر عند النجاح — عدّاد ظاهر لا قفل دائم،
  *   ووقفة تصاعدية مُنفَّذة فعليًا (٣/١٠/٣٠ ثانية) بعد ٣/٥/٨ محاولات فاشلة.
  * - التعطيل يتطلب الرمز الصحيح؛ والتخزين بلا حالة سوى السجل الواحد.
@@ -125,6 +129,19 @@ export class LocalLockService {
     private readonly now: Clock = systemClock,
   ) {}
 
+  /** R11 Lock Remediation (OD-LOCK-ROLLBACK=A — R11-W1B4-NF-002): كامل
+   * الوقفة عندما لا يمكن تصديق الزمن — ساعة متأخرة عن آخر فشل أو طابع
+   * تالف؛ وnull فيغادر المسار للنافذة الأمامية القائمة كما هي. لا كتابة
+   * سجل هنا أبدًا فلا تُعاد إرساءة lastFailedAt إلى الوراء ولا يُزاد العدّاد. */
+  private backoffWhenTimeUnverifiable(record: LocalSecurityRecord): number | null {
+    const backoffMs = delayForAttempts(record.failedAttempts);
+    if (backoffMs <= 0 || !record.lastFailedAt) return null;
+    const lastFailedMs = Date.parse(record.lastFailedAt);
+    const nowMs = Date.parse(this.now());
+    if (Number.isNaN(lastFailedMs) || Number.isNaN(nowMs) || nowMs < lastFailedMs) return backoffMs;
+    return null;
+  }
+
   async status(): Promise<LockStatusResult> {
     const result = await this.store.getLocalSecurity();
     if (!result.ok) return storageFailure(result.message);
@@ -174,6 +191,16 @@ export class LocalLockService {
     if (!result.ok) return storageFailure(result.message);
     const record = result.value;
     if (record === null) return { ok: true, value: { unlocked: true, failedAttempts: 0 } };
+    /* R11 Lock Remediation (OD-LOCK-ROLLBACK=A — R11-W1B4-NF-002): الوقفة لا
+     * تُستبق — الزمن غير القابل للتصديق يُعامل داخل النافذة بكاملها قبل أي
+     * تحقق: لا تخمين منفّذ، لا زيادة عدّاد، لا كتابة سجل. */
+    const unverifiableBackoffMs = this.backoffWhenTimeUnverifiable(record);
+    if (unverifiableBackoffMs !== null) {
+      return {
+        ok: true,
+        value: { unlocked: false, failedAttempts: record.failedAttempts, retryInMs: unverifiableBackoffMs },
+      };
+    }
     const normalized = normalizePin(pin);
     if (normalized !== null) {
       const { matches, upgradedHash } = await verifyPin(record, normalized);
@@ -228,7 +255,15 @@ export class LocalLockService {
     const record = result.value;
     if (record === null || record.autoLockMinutes === null) return { ok: true, value: false };
     if (record.lastActiveAt === null) return { ok: true, value: true };
-    const elapsedMinutes = (Date.parse(this.now()) - Date.parse(record.lastActiveAt)) / 60_000;
+    /* R11 Lock Remediation (OD-LOCK-ROLLBACK=A — R11-W1B4-NF-001): سياسة
+     * واحدة صريحة للترتيب الزمني غير الصالح — طابع غير قابل للتحليل أو ساعة
+     * متأخرة عن آخر نشاط يقفلان فورًا؛ لا يُفتح المحتوى المحمي على زمن لا
+     * يمكن تصديقه أبدًا (الحدّ الشامل >= يبقى للزمن الأمامي الصالح). */
+    const lastActiveMs = Date.parse(record.lastActiveAt);
+    const nowMs = Date.parse(this.now());
+    if (Number.isNaN(lastActiveMs) || Number.isNaN(nowMs)) return { ok: true, value: true };
+    const elapsedMinutes = (nowMs - lastActiveMs) / 60_000;
+    if (elapsedMinutes < 0) return { ok: true, value: true };
     return { ok: true, value: elapsedMinutes >= record.autoLockMinutes };
   }
 
@@ -244,6 +279,16 @@ export class LocalLockService {
     if (!result.ok) return storageFailure(result.message);
     const record = result.value;
     if (record === null) return { ok: true, value: null };
+    /* R11 Lock Remediation (OD-LOCK-ROLLBACK=A — R11-W1B4-NF-002): مسار
+     * التعطيل يخضع للسياسة نفسها — لا نافذة أضعف تحت زمن غير قابل للتصديق. */
+    const unverifiableBackoffMs = this.backoffWhenTimeUnverifiable(record);
+    if (unverifiableBackoffMs !== null) {
+      return {
+        ok: false,
+        code: "wrong_pin",
+        message: `انتظر قليلًا قبل المحاولة التالية (${Math.ceil(unverifiableBackoffMs / 1000)} ثانية تقريبًا).`,
+      };
+    }
     const normalized = normalizePin(pin);
     if (normalized !== null) {
       const { matches, upgradedHash } = await verifyPin(record, normalized);
