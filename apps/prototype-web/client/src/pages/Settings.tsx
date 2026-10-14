@@ -24,7 +24,7 @@ import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
 import type { OperatingModeValue } from "@/application/time";
-import type { TransferPreview, TransferSummary } from "@/application/transfers";
+import type { PreparedImport, TransferSummary } from "@/application/transfers";
 import type { GuidedOpeningImportPreview } from "@/application/transfers";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
@@ -216,7 +216,7 @@ export default function SettingsPage() {
   }, [preferences, transfers, dataVersion]);
   const inputRef = useRef<HTMLInputElement>(null);
   const guidedInputRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<TransferPreview | null>(null);
+  const [preview, setPreview] = useState<PreparedImport | null>(null);
   const [guidedPreview, setGuidedPreview] = useState<GuidedOpeningImportPreview | null>(null);
   /* S3-11: الإشعار يُعرض داخل القسم الذي أنتجه — لا في أسفل صفحة بطول ٨٤١ سطرًا. */
   const [notice, setNotice] = useState<{

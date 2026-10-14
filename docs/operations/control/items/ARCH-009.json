@@ -79,7 +79,8 @@
   "evidence": [
     "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B0-NF-001-EVIDENCE-ADDENDUM-2026-10-14.md",
     "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B0-NF-001-CENSUS-COUNTS-2026-10-14.json",
-    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B0-NF-001-HOUSE-EDGE-LISTS-2026-10-14.json"
+    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B0-NF-001-HOUSE-EDGE-LISTS-2026-10-14.json",
+    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B2-S2-PREPARED-IMPORT-EVIDENCE-2026-10-14.md"
   ],
   "dependencies": [
     "ARCH-008"

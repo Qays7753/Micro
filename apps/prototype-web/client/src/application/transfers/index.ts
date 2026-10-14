@@ -10,6 +10,6 @@
  * الديناميكي للباب (مدخل الشظية يحتاج جدول تصدير حاضرًا في زمن التشغيل).
  */
 
-export type { LocalTransferService, TransferPreview, TransferSummary } from "./localTransferService";
+export type { LocalTransferService, PreparedImport, TransferPreview, TransferSummary } from "./localTransferService";
 
 export type { GuidedOpeningImportPreview, GuidedOpeningImportService } from "./guidedOpeningImportService";

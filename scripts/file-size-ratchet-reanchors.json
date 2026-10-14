@@ -1484,6 +1484,25 @@
         "trigger": "PR #361 review: 'Fix both findings on the same branch and PR' — enumerate all reachable tree path entries while caching content scanning by blob SHA; replace delimiter-based commit-message parsing with a provably unambiguous length-framed/raw commit-object method",
         "ocRef": "ARCH-008"
       }
+    },
+    {
+      "id": "R11-W1B2-S2-PREPARED-IMPORT-PROVENANCE",
+      "date": "2026-10-14",
+      "path": "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+      "from": {
+        "nbLoc": 306,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 329,
+        "band": "NORMAL"
+      },
+      "reason": "R11 W1b-2 / S-2 (R10B-NF-012, owner-approved OPAQUE_PREPARED_IMPORT): the import provenance contract — an ambient unique-symbol phantom brand (no runtime footprint; the symbol is module-private and never exported) plus the exported opaque type PreparedImport = TransferPreview & { readonly [brand]: literal }; prepareImport returns TransferResult<PreparedImport> and mints the value with a single documented cast at its success return; confirmImport accepts only PreparedImport, so an unvalidated ordinary object fails typecheck. Type-only change: single-validation runtime contract and backup-first behavior preserved verbatim (303 transfers tests + 18 Settings DOM caller tests green); door re-export + the two UI consumers updated to the branded type (zero growth there); provenance proof pinned by preparedImport.provenance.test.ts (negative type test, widening direction, identity forge helper, production source-scan banning every other cast site).",
+      "authorization": {
+        "ownerReview": "S-2 OWNER_APPROVED — OPAQUE_PREPARED_IMPORT (R11 owner decision package §4) — part of the R11 W1b execution PR #365",
+        "trigger": "R11-W1B-EXECUTION-PROMPT-2026-10-14 section 6 slice W1b-2 — in-band growth requires a ledger entry with an Operations Control reference",
+        "ocRef": "ARCH-009"
+      }
     }
   ]
 }

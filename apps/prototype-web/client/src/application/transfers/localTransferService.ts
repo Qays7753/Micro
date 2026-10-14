@@ -83,6 +83,17 @@ export type TransferSummary = {
   exportedAt: string;
 };
 export type TransferPreview = { file: LocalExportFile; summary: TransferSummary };
+/* S-2 (R11 W1b / D-10 — R10B-NF-012، قرار المالك OPAQUE_PREPARED_IMPORT):
+ * عقد مصدر الاستيراد المُحضّر. `PreparedImport` نوع شفاف (phantom brand):
+ * البصمة الرمزية معلنة ambient ولا وجود لها في زمن التشغيل إطلاقًا، والرمز
+ * نفسه غير مصدّر فلا يستطيع مستهلك خارجي كتابتها في كائن حرفي. الكائن
+ * يبقى `{ file, summary }` كما كان بالضبط؛ الفرق كله في زمن الترجمة:
+ * `confirmImport` لا يقبل إلا قيمة خرجت من `prepareImport` — السكّة
+ * الوحيدة التي تصبغ القيمة (cast واحد مُوثّق داخلها) — فيفشل تمرير كائن
+ * عادي غير مُتحقق منه فشلَ ترجمة، وتُحفظ عقدود التحقق الأحادي والنسخة
+ * الاحتياطية قبل الكتابة كما هي بلا أي تمرير تحقق ثانٍ. */
+declare const preparedImportBrand: unique symbol;
+export type PreparedImport = TransferPreview & { readonly [preparedImportBrand]: "minted-by-prepareImport" };
 export type TransferResult<T> =
   { ok: true; value: T } | { ok: false; code: "validation_error" | "storage_error"; message: string };
 /* EXE-014 (DATA-001 / AUD-NEW-09): نتيجة الاستعادة الكاملة — الملخص نفسه
@@ -170,7 +181,7 @@ export class LocalTransferService {
     };
   }
 
-  prepareImport(text: string): TransferResult<TransferPreview> {
+  prepareImport(text: string): TransferResult<PreparedImport> {
     let candidate: unknown;
     try {
       candidate = JSON.parse(text);
@@ -230,10 +241,13 @@ export class LocalTransferService {
       ...(isRecord(candidate.counts) ? { counts: exportCountsOf(migrated) } : {}),
       ...(typeof candidate.appVersion === "string" ? { appVersion: candidate.appVersion } : {}),
     };
-    return { ok: true, value: { file, summary: summary(file) } };
+    /* السكّة الوحيدة للسكّ (S-2): هذا الـcast إلى النوع الموسوم هو نقطة الختم
+     * الوحيدة في الإنتاج — ممنوع أي cast آخر إلى النوع نفسه خارج prepareImport
+     * (يُحرس باختبار مسح المصدر في preparedImport.provenance.test.ts). */
+    return { ok: true, value: { file, summary: summary(file) } as PreparedImport };
   }
 
-  async confirmImport(preview: TransferPreview): Promise<TransferResult<RestoreResult>> {
+  async confirmImport(preview: PreparedImport): Promise<TransferResult<RestoreResult>> {
     /* EXE-014 (DATA-001): نسخة قابلة للاسترجاع قبل الاستبدال — ملف مُتحقق
      * منه دورة كاملة للبيانات الحالية؛ إن تعذر إنشاؤها أو التحقق منها يُمنع
      * التأكيد ولا يُمس أي شيء، فلا استبدال بلا طريق رجوع. */
