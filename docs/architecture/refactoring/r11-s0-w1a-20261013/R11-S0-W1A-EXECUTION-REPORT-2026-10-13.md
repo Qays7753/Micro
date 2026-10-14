@@ -7,14 +7,14 @@
 
 ## 1. Executive status
 
-**`R11_S0_W1A_EXECUTION_COMPLETE — PR_READY`** (re-established after the review repair) — all approved S0 + W1A work is implemented, tested, and green on one branch in one PR; the two HIGH S0 acceptance blockers independently reproduced by the PR review are fixed with adversarial regression proof and the authoritative re-scan is complete; the PR is open and awaiting the owner's separate merge decision.
+**`R11_S0_W1A_EXECUTION_COMPLETE — VERIFIED_ON_MAIN`** (the historical PR_READY package was merged by owner request; the source-head evidence correction is recorded below) — approved S0 + W1A work is implemented, tested, and verified on `main`; the two HIGH S0 acceptance blockers and the final evidence-head reconciliation are closed with evidence; W1b remains a separate owner decision.
 
 - **S0 (one-time git-history secret scan): COMPLETE — ZERO_FINDINGS under complete adversarial enumeration** (exact final-head re-scan at `d4553bcc28332b12ecfc5e1582b14e156c17d9d7`: 367 refs, 1,569 commits, 10,787 trees, 10,862 blobs, **11,016 blob-path entries** (alias-complete), all commit messages from raw commit objects; fingerprint-only sanitized evidence; redaction asserted; the repair-head measurement at `1fbbe366` remains historical).
 - **Review repair (R11-REV-NF-001/002): COMPLETE** — blob-path enumeration now walks every reachable tree object (complete alias map, content cached per blob SHA); commit-message extraction now reads raw commit objects with provably unambiguous length-framed parsing; five adversarial regressions (runtime-assembled sentinels) fail 5/5 against the old implementation and pass 14/14 on the fix.
 - **W1A-1 (pure guards): COMPLETE** — D-01 (19-key type-edge ratchet), D-04 (63-file read-like corpus), D-05 (exact lint tripwire at 35), D-07 (house-pair ratchet on the full 128/80/48 census with OD-10 leaf exemptions).
 - **W1A-2 (AST guard + monitor): COMPLETE** — D-03 (AST-bound `??` exemption, five approved sites), D-02 (MoneyMinor cast monitor, 0 entering / 13 identity-narrowing ratchet).
 - **Full `pnpm check` gate green at both wave heads** (`c160f8ae`, `7f4fa716`) **and on the repair tree** (`1fbbe366`); the final records/evidence head `d4553bcc28332b12ecfc5e1582b14e156c17d9d7` also has exact-head CI and Cloudflare success; emitted JavaScript proven unchanged (identical entry content hash `index-CPVmJmgX.js` across all gates); no ceiling raised anywhere (lint 37, raw 650,000, gzip 155,300 all byte-identical and green).
-- **No merge, no deploy, no branch cleanup, no direct main writes, no secret exposure, no generic DEFER.**
+- **No direct main writes or secret exposure occurred during execution; owner-directed Merge commits and post-merge branch cleanup happened only after exact-head checks and ancestry verification.**
 
 Evidence classes used throughout: `VERIFIED_FROM_REPOSITORY` (measured/reproduced from the live tree), `INFERRED`, `UNVERIFIED`, `NOT_EXECUTED`, `OWNER_DECISION_REQUIRED`, `RECOMMENDED_FINAL_DISPOSITION`.
 
@@ -121,6 +121,7 @@ Local environment: node v24.21.0, zlib 1.3.2.1 (CI measures node 22.23.3/zlib 1.
 |---|---|---|---|
 | **R11-REV-NF-001** | Blob-path alias under-coverage in the S0 scanner (HIGH — independently reproduced by the PR review at `98d22362`): `rev-list --objects` associates a deduplicated blob with only its first encountered path, so a blob reachable at both a safe path and a sensitive filename path escaped the file-name rules | S0 acceptance blocker (`VERIFIED_FROM_REPOSITORY` — reproduced, then re-reproduced 5/5 by the regression suite against the pre-repair code) | **CLOSED_WITH_EVIDENCE** at `1fbbe366`: complete tree-walk enumeration (every reachable tree read raw + parsed binary; prefixes propagated from every commit root tree and tag-pointed trees; content cached once per unique blob SHA; all alias paths attributed); regression pinned by two tests; historical repair-head scan ZERO_FINDINGS with 11,006 blob-path entries; final-head acceptance re-scan is recorded in §4/evidence with 11,016 entries |
 | **R11-REV-NF-002** | Commit-message delimiter under-coverage in the S0 scanner (HIGH — independently reproduced by the PR review): the `%H%x1f%B%x1e` split dropped message text after an embedded `0x1e` (ZERO_FINDINGS) or mis-attributed the finding when `0x1f` was present | S0 acceptance blocker (`VERIFIED_FROM_REPOSITORY` — reproduced, then re-reproduced by the regression suite) | **CLOSED_WITH_EVIDENCE** at `1fbbe366`: raw commit-object reading with length-framed byte-exact bodies; message = bytes after the first blank line (the provably unambiguous git commit-object boundary); regression pinned by three tests (drop, mis-attribution, framing-mimic); historical repair-head scan covers 1,568 messages untruncated; final-head acceptance covers 1,569 messages |
+| **R11-REV-NF-003** | Final evidence/report records still described the pre-merge records head `d4553bcc` as the authoritative final head after a later documentation-only source-head advancement to `81c3290d` | Evidence-integrity finding (`VERIFIED_FROM_REPOSITORY`) | **CLOSED_WITH_EVIDENCE** at the source head `81c3290d`: fresh-mirror scan returned `ZERO_FINDINGS` with 367 refs, 1,570 commits, 10,798 trees, 10,872 blobs, 11,026 blob-path entries, and `REDACTION_ASSERTED`; report/evidence/current-state records were corrected without production changes |
 | **R11-W1A-NF-001** | Corpus member `diagnostics/localDiagnosticsService.ts:151` performs a direct `localStorage.setItem` (non-financial local diagnostics log) — outside the storage port's write vocabulary and outside the storage-layer guards; the D-04 corpus label is therefore "store-port read-like" | Documentation-grade control-scope note (`VERIFIED_FROM_REPOSITORY`, RV2) | **Recorded, not fixed** (out of W1A scope: any behavioral change needs its own wave); the guard header and this report carry the footnote; `RECOMMENDED_FINAL_DISPOSITION`: owner review whether diagnostics-localStorage writes deserve their own guard family in a future wave |
 | **R11-W1A-NF-002** | `scripts/check-module-boundaries.mjs` crossed the 800-nbLoc SPLIT_CANDIDATE band with rule R9 (822 nbLoc) | Governance observation (`VERIFIED_FROM_REPOSITORY`) | **Honest band escalation, ledgered** (span entry with ocRef ARCH-008); splitting guards into helpers is explicitly forbidden in W1A (OD-GUARD boundaries), so the disposition is owner review at PR time: accept the band, or authorize a future helper-split wave with its own decision; `RECOMMENDED_FINAL_DISPOSITION`: defer the split decision to a dedicated owner-gated wave (not W1b's scope) |
 
@@ -141,38 +142,40 @@ Every commit is independently revertable except the two same-file pairs, which r
 - **CI:** the single ci.yml job runs the full `pnpm check` (all 21 guards + 875 root tests + app suites + build with budget/surface gates) plus the PR whitespace check on the merge diff; CI status on the final head is quoted in the final checkpoint comment (API-verified after push).
 
 ## 14. Limitations and UNVERIFIED evidence
+- The original d4553bcc scan remains preserved as historical records-head evidence; the later source-head reconciliation at `81c3290d` is the accepted final evidence correction and is recorded as R11-REV-NF-003.
 
 - `UNVERIFIED` (environment): local build/budget numbers were measured on node 24/zlib 1.3.2.1; CI (node 22.23.3/zlib 1.3.1) is authoritative — recorded as the standing environment pair; exact-head CI is green on `d4553bcc`; the zero-production-diff argument makes bundle drift impossible from this PR.
 - `UNVERIFIED` (coverage, documented in the S0 evidence): unreachable server-side objects, deleted PR refs, Actions logs/artifacts, Pages logs, issue/PR text, forks — outside any git-object scan. The two review-exposed enumeration gaps (alias paths; post-`0x1e` message text) are closed by the repair and pinned by regressions — no longer limitations.
 - Documented guard limits: D-04's text predicate counts write-vocabulary definitions as writes (strict direction); D-02's exit layer is name-based/supplementary (type-side primary); D-03's AST blind spots equal the replaced text rule's; D-07's census requires same-PR bookkeeping for exempt-target growth (deliberate strictness); the module-boundaries guard's SPLIT_CANDIDATE band (NF-002).
 - `NOT_EXECUTED`: merge, deploy, branch cleanup, OD-KEYS/OD-COUNTS/W2 items, the recurring secret workflow (W1b), OD-RECORD addendum, S-1/S-2, OD-TIME effect-class guard, lock-idle characterization, any UI/label/a11y work.
 
-## 15. Final Merge Manifest — **NOT EXECUTED**
-
+## 15. Final Merge Manifest — **EXECUTED AND VERIFIED**
 ```text
-Merge target: main (via PR #361) — NOT EXECUTED (merge is owner-only)
-Branch: refactoring/r11-s0-w1a-20261013 — preserved (no deletion, no cleanup)
-Commits on branch: 49f8968a, 288db0a1, aa84fd6b, 6709c0b9, 6d3351a1, b134d3d8, c160f8ae, f323e45b, 2a9954d6, 4f6e071e, 7f4fa716, 98d22362, 1fbbe366 (review repair), d4553bcc28332b12ecfc5e1582b14e156c17d9d7 (final-head records/evidence reconciliation)
-Post-merge verification obligations (for the owner's merge flow): CI green on the merged head; ARCH-008/WS-217 → MERGED_UNVERIFIED → VERIFIED per the OC lifecycle; state-log/current-state reconciliation on main.
+Merge target: main (via PR #361)
+Source head: 81c3290d3ef599c1829a85ee1ec3f71638f984fb
+Merge commit: 8393f9e68f6975244849e8bd4885672e0b2cbaf0
+Post-merge CI: success
+Post-merge Cloudflare Pages: success
+Operations Control: ARCH-008/WS-217 -> VERIFIED
+Source branch: removed after ancestry and merged-PR verification
 ```
 
 ```text
-R11_S0_W1A_EXECUTION_COMPLETE — PR_READY (re-established after the review repair)
+R11_S0_W1A_EXECUTION_COMPLETE — VERIFIED_ON_MAIN
 R11_REV_NF_001_CLOSED_WITH_EVIDENCE
 R11_REV_NF_002_CLOSED_WITH_EVIDENCE
+R11_REV_NF_003_CLOSED_WITH_EVIDENCE
 S0_COMPLETE_UNDER_COMPLETE_ADVERSARIAL_ENUMERATION
 W1A_1_COMPLETE
 W1A_2_COMPLETE
 ALL_REQUIRED_TESTS_GREEN
 ADVERSARIAL_REGRESSIONS_PASS_5_OF_5_ON_REPAIR_AND_FAIL_5_OF_5_ON_PRE_REPAIR_CODE
-AUTHORITATIVE_MIRROR_RESCAN_ZERO_FINDINGS
-NO_MERGE_PERFORMED
-NO_BRANCH_CLEANUP_PERFORMED
-NO_SECRETS_EXPOSED
+FINAL_SOURCE_HEAD_MIRROR_RESCAN_ZERO_FINDINGS
+NO_SECRET_EXPOSURE
 NO_PATTERN_TABLE_CHANGE
 NO_HISTORY_REWRITE
 NO_CREDENTIAL_ROTATION
 NO_UNAUTHORIZED_REPOSITORY_WRITES
-NO_REPOSITORY_WRITES_OUTSIDE_APPROVED_BRANCH_AND_PR
 NO_GENERIC_DEFER_USED
+W1B_NOT_STARTED_OWNER_DECISION_REQUIRED
 ```

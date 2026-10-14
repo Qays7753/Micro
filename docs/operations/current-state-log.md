@@ -2386,3 +2386,9 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - **Operations Control:** ARCH-008 وWS-217 انتقلا إلى `VERIFIED` مع `merge_sha` و`verified_on_main_sha` يثبتان `8393f9e68f6975244849e8bd4885672e0b2cbaf0`؛ العروض المولدة ستعاد من JSON المصدر.
 - **التنظيف:** لم تُحذف فروع في هذه المصالحة قبل جرد ancestry والـPRs؛ الفروع التوثيقية المفتوحة #358/#360 محفوظة، وأي حذف لاحق يقتصر على فرع PR #361 بعد إثبات دمجه.
 - **الحالة:** `POST_MERGE_VERIFICATION: PASS` — R11 S0 + W1A متحققتان على `main`؛ لا يبدأ W1b تلقائيًا.
+
+## §195 — 2026-10-14 — R11-REV-NF-003 final evidence correction
+- **المكتشف:** كانت حزمة التقرير/الدليل تشير إلى `d4553bcc` بوصفه رأس الأدلة النهائي، بينما تقدمت سجلات المصدر لاحقًا إلى رأس توثيقي `81c3290d` قبل دمج PR #361. هذا انجراف أدلة، لا عيبًا في كود التطبيق أو ماسح الأسرار.
+- **التصنيف:** `R11-REV-NF-003` — `VERIFIED_FROM_REPOSITORY` — Evidence Integrity.
+- **الإغلاق الجذري:** أُعيد فحص مرآة نظيفة على `81c3290d`: `ZERO_FINDINGS`، 367 refs، 1,570 commits، 10,798 trees، 10,872 blobs، 11,026 blob-path entries، و`REDACTION_ASSERTED`. حُدّث التقرير ودليل S0 والـcanonical Operations Control append-only؛ لا تغيير كودي أو مالي أو Schema/Export/Import أو تاريخ أو سياسة أمن.
+- **الحالة:** `R11-REV-NF-003_CLOSED_WITH_EVIDENCE`; R11 S0 + W1A كانت مدموجة ومتحققة على main عند `8393f9e68f6975244849e8bd4885672e0b2cbaf0`، وW1b لا تبدأ تلقائيًا.

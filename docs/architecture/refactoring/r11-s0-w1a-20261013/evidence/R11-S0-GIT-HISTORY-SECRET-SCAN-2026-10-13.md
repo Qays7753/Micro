@@ -1,7 +1,7 @@
 # R11 S0 — Git-History Secret Scan Evidence (Sanitized)
 
 **Scan ID:** R11-S0-GIT-HISTORY-SECRET-SCAN-2026-10-13
-**Execution date:** 2026-10-14 (UTC) — authoritative final-head re-scan of the repository state as of branch head `d4553bcc28332b12ecfc5e1582b14e156c17d9d7` (the records/evidence commit; the repair-head scan at `1fbbe3663ba1260204cc84d9bb01cb5ba1363fab` remains preserved in §0 and the historical reconciliation below)
+**Execution date:** 2026-10-14 (UTC) — historical records-head re-scan at `d4553bcc28332b12ecfc5e1582b14e156c17d9d7`; the accepted source-head reconciliation at `81c3290d3ef599c1829a85ee1ec3f71638f984fb` is recorded in §4A below; the repair-head scan at `1fbbe3663ba1260204cc84d9bb01cb5ba1363fab` remains preserved.
 **Decision authority:** OD-SEC Option A (owner-approved 2026-10-13): one-time full-history scan, fingerprint-only evidence, no history rewrite, no automatic rotation, no working-tree guard modification. The recurring workflow belongs to W1b and is explicitly NOT part of this execution.
 
 ---
@@ -77,6 +77,22 @@ The self-test suite (`scripts/security/scan-git-history-secrets.test.mjs`) prove
 | Annotated tag objects | 0 (the repository has no tags) |
 | Commit messages scanned | all 1,569 (raw commit objects; complete, untruncated) |
 | Duration | ~3.9 s (local, read-only) |
+
+## 4A. Accepted source-head reconciliation — R11-REV-NF-003
+
+The records/evidence commit advanced after the historical `d4553bcc` scan. To close that evidence-integrity gap without changing production behavior, a fresh mirror was scanned at source head `81c3290d3ef599c1829a85ee1ec3f71638f984fb` before the owner Merge commit. The exact output was:
+
+```text
+ZERO_FINDINGS
+refs=367
+commits=1570
+trees=10798
+blobs=10872
+blob_path_entries=11026
+REDACTION_ASSERTED
+```
+
+This is a documentation/evidence reconciliation only. No scanner code, pattern table, production code, financial behavior, schema/export contract, history, or security policy was changed by the reconciliation. The owner then merged PR #361 at `8393f9e68f6975244849e8bd4885672e0b2cbaf0`; CI and Cloudflare Pages succeeded on that exact merge commit.
 
 ## 5. Findings
 

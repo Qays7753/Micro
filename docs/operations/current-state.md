@@ -1,7 +1,7 @@
 # حالة Micro الحية
 
 **الحالة:** `CURRENT / UPDATE WITH EVERY MERGED SLICE`
-**آخر تحديث:** 14 أكتوبر 2026 (**R11 S0 + W1A متحققتان على `main` بعد دمج PR #361 بMerge commit `8393f9e68f6975244849e8bd4885672e0b2cbaf0`؛ CI وCloudflare Pages ناجحان على الرأس نفسه؛ فحص المصدر قبل الدمج `81c3290d` كان ZERO_FINDINGS؛ لا يبدأ W1b تلقائيًا.**)
+**آخر تحديث:** 14 أكتوبر 2026 (**R11 S0 + W1A متحققتان على `main` بعد دمج PR #361 بMerge commit `8393f9e68f6975244849e8bd4885672e0b2cbaf0`؛ تصحيح R11-REV-NF-003 موثق في التقرير والسجل؛ CI وCloudflare Pages ناجحان على رأس التنفيذ؛ لا يبدأ W1b تلقائيًا.**)
 **التاريخ:** كل سجل الشرائح والموجات المؤرخ (§9–§138 وفقرات المتابعة قبل 2026-10-01) في [`current-state-log.md`](current-state-log.md) — append-only ولا يُحمَّل مع هذا الملف.
 
 **قاعدة العمل:** العربية، RTL، phone-first، والأرقام المالية ASCII/LTR.
