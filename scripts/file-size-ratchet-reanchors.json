@@ -1446,6 +1446,25 @@
         "trigger": "new-file-enters-band rule — new script-category file above NORMAL requires a documented ledger entry",
         "ocRef": "ARCH-008"
       }
+    },
+    {
+      "id": "R11-W1A2-D03-DATE-GUARD-AST-R4",
+      "date": "2026-10-14",
+      "path": "scripts/check-date-arithmetic-ownership.mjs",
+      "from": {
+        "nbLoc": 208,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 360,
+        "band": "NORMAL"
+      },
+      "reason": "R11 W1A-2 / D-03 (R10A-F-014, OD-GUARD Option A, owner-approved 2026-10-13): rule R4's textual same-line ?? exemption is replaced by an AST-bound binding — parse-only ts.createSourceFile with explicit per-extension ScriptKind, fail-closed on parseDiagnostics, raw-slice detection via AST (slice/substring(0,10) calls and split(\"T\")[0] element access), exemption ONLY when the slice node is the direct ?? right operand, and the five approved sites pinned by file + left-operand text + receiver text + kind (sixth/stale sites fail until same-PR re-anchor). R1/R2/R3/R5/R6 unchanged (text-based, out of approved scope). Guard-only growth: no production file, no ceiling, no runtime change.",
+      "authorization": {
+        "ownerReview": "OD-GUARD Option A — part of the R11 S0+W1A execution PR #361",
+        "trigger": "R11-S0-W1A-EXECUTION-PROMPT-2026-10-13 section 8.1 (D-03) — in-band guard growth requires a ledger entry with an Operations Control reference",
+        "ocRef": "ARCH-008"
+      }
     }
   ]
 }
