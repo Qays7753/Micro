@@ -1541,6 +1541,25 @@
         "trigger": "R11-W1B-EXECUTION-PROMPT-2026-10-14 section 6 slice W1b-5 item 1 — document the working-tree-only limit in the guard header",
         "ocRef": "ARCH-009"
       }
+    },
+    {
+      "id": "R11-W1B-FINAL-DOOR-FORMAT-REFLOW",
+      "date": "2026-10-15",
+      "path": "apps/prototype-web/client/src/application/transfers/index.ts",
+      "from": {
+        "nbLoc": 13,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 18,
+        "band": "NORMAL"
+      },
+      "reason": "R11 W1b final verification gate (mechanical formatting fix, zero semantic change): the W1b-2 PreparedImport door export line exceeded the repository prettier print width and is reflowed by the canonical repository formatter (prettier --write) into its multi-line form — the six exported type names, their order, and the door surface are byte-identical in content (door-surfaces ratchet unchanged at 366; module-boundaries unchanged); only line wrapping changed. Format-only growth required by the W1b final gate 'pnpm check' format:check on the final head.",
+      "authorization": {
+        "ownerReview": "R11 W1b execution PR #365 final verification gate — repository formatter conformance on the final head (canonical W1b execution prompt section 9: pnpm check on the exact final head)",
+        "trigger": "R11-W1B-EXECUTION-PROMPT-2026-10-14 section 9 verification contract — format:check must pass on the final head; the single non-conforming line was introduced by W1b-2 in this same PR",
+        "ocRef": "ARCH-009"
+      }
     }
   ]
 }

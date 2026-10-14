@@ -101,87 +101,110 @@ function lockedOrderWithCollection(): CraftOrder {
   });
 }
 
+/** عنقود ١ / اختبار ١: تثبيت رسالة القفل بنقاط الكود الكاملة لكل
+ * مسارات الكتابة المالية الأربعة (تحصيل، دين، عربون، عكس تحصيل) —
+ * مستخرج لنطاق الوحدة ليبقى جسم التوصيف تحت سقف الدالة (لا تغطية أبدلت). */
+function lockMessageIsPinnedByFullCodePoints(): void {
+  const locked = lockedOrderWithCollection();
+  const collectionEvent = locked.events.find(event => event.type === "collection_recorded");
+  if (!collectionEvent) throw new Error("collection event missing");
+  const expectedCodePoints = Array.from("الطلب المسلّم لا يخرج من «يحتاج مراجعة» إلا بتصحيح موثق صريح.");
+  const pin = (fn: () => unknown) => {
+    try {
+      fn();
+      throw new Error("expected the lock to throw");
+    } catch (error) {
+      const message = (error as Error).message;
+      expect(Array.from(message)).toEqual(expectedCodePoints);
+    }
+  };
+  pin(() => collectRemaining(locked, 500, "x-1", "2026-09-03T10:00:00Z"));
+  pin(() => registerDebt(locked, "x-2", "2026-09-03T10:01:00Z"));
+  pin(() => collectDeposit(locked, 100, "x-3", "2026-09-03T10:02:00Z"));
+  pin(() =>
+    reverseOrderCollection(locked, {
+      collectionEventId: collectionEvent.id,
+      amountMinor: 1000,
+      reason: "محاولة تحوير",
+      idempotencyKey: "x-4",
+      createdAt: "2026-09-03T10:03:00Z",
+    }),
+  );
+}
+
+/** عنقود ١ / اختبار ٢ (مستخرج لنطاق الوحدة — نفس الجسم بلا تبديل). */
+function priceRevisionOnLockedThrowsItsOwnMessage(): void {
+  const locked = lockedOrderWithCollection();
+  expect(() =>
+    reviseAgreedPrice(locked, {
+      newPriceMinor: 9000,
+      reason: "محاولة تعديل على مقفل",
+      idempotencyKey: "revise-locked",
+      createdAt: "2026-09-03T10:04:00Z",
+    }),
+  ).toThrow("راجع تعارض الطلب أولًا ثم عدّل السعر بعدها");
+}
+
+/** عنقود ١ / اختبار ٣ (مستخرج لنطاق الوحدة — نفس الجسم بلا تبديل). */
+function needsReviewFromDraftIsNotLocked(): void {
+  const reviewFromDraft = transitionOrder(makeOrder(), {
+    to: "needs_review",
+    idempotencyKey: "draft-review",
+    createdAt: "2026-09-01T09:06:00Z",
+  });
+  expect(reviewFromDraft.status).toBe("needs_review");
+  const withDeposit = collectDeposit(reviewFromDraft, 500, "deposit-open-review", "2026-09-01T09:07:00Z");
+  expect(withDeposit.depositCollectedMinor).toBe(500);
+}
+
+/** عنقود ١ / اختبار ٤ (مستخرج لنطاق الوحدة — نفس الجسم بلا تبديل). */
+function documentedUnlockPathReopensCollection(): void {
+  const locked = lockedOrderWithCollection();
+  const unlocked = reverseDelivery(locked, {
+    reason: "تصحيح موثق لفتح المراجعة",
+    idempotencyKey: "reverse-to-unlock",
+    createdAt: "2026-09-03T11:00:00Z",
+  });
+  /* بعد العكس يعود الطلب لما قبل التسليم (ليس مسلّمًا) — التحصيل يتطلب
+   * إعادة تسليم موثقة جديدة (المسار الموثق لا اختصار له). */
+  expect(() => collectRemaining(unlocked, 500, "too-early", "2026-09-03T11:00:30Z")).toThrow(
+    "تحصيل المتبقي يتطلب طلبًا مسلّمًا.",
+  );
+  const reconfirmed = transitionOrder(unlocked, {
+    to: "confirmed",
+    idempotencyKey: "reconfirm-after-review",
+    createdAt: "2026-09-03T11:00:45Z",
+  });
+  const redelivered = (["in_progress", "ready", "delivered"] as const).reduce(
+    (current, to) =>
+      transitionOrder(current, {
+        to,
+        idempotencyKey: `redeliver-${to}`,
+        createdAt: "2026-09-03T11:01:00Z",
+      }),
+    reconfirmed,
+  );
+  const collectable = collectRemaining(redelivered, 500, "after-unlock", "2026-09-03T11:02:00Z");
+  expect(collectable.collectedMinor).toBe(3500);
+}
+
 describe("P-03 عنقود ١ — قفل المراجعة: الرسائل العربية بالنقاط الكاملة وحدود القفل", () => {
-  it("رسالة القفل مثبتة بنقاط الكود الكاملة (لا تقريب نصي) لكل مسارات الكتابة المالية", () => {
-    const locked = lockedOrderWithCollection();
-    const collectionEvent = locked.events.find(event => event.type === "collection_recorded");
-    if (!collectionEvent) throw new Error("collection event missing");
-    const expectedCodePoints = Array.from("الطلب المسلّم لا يخرج من «يحتاج مراجعة» إلا بتصحيح موثق صريح.");
-    const pin = (fn: () => unknown) => {
-      try {
-        fn();
-        throw new Error("expected the lock to throw");
-      } catch (error) {
-        const message = (error as Error).message;
-        expect(Array.from(message)).toEqual(expectedCodePoints);
-      }
-    };
-    pin(() => collectRemaining(locked, 500, "x-1", "2026-09-03T10:00:00Z"));
-    pin(() => registerDebt(locked, "x-2", "2026-09-03T10:01:00Z"));
-    pin(() => collectDeposit(locked, 100, "x-3", "2026-09-03T10:02:00Z"));
-    pin(() =>
-      reverseOrderCollection(locked, {
-        collectionEventId: collectionEvent.id,
-        amountMinor: 1000,
-        reason: "محاولة تحوير",
-        idempotencyKey: "x-4",
-        createdAt: "2026-09-03T10:03:00Z",
-      }),
-    );
-  });
-
-  it("تعديل السعر على المقفل برسالته الخاصة (مسار مختلف عمدًا — نفس القفل)", () => {
-    const locked = lockedOrderWithCollection();
-    expect(() =>
-      reviseAgreedPrice(locked, {
-        newPriceMinor: 9000,
-        reason: "محاولة تعديل على مقفل",
-        idempotencyKey: "revise-locked",
-        createdAt: "2026-09-03T10:04:00Z",
-      }),
-    ).toThrow("راجع تعارض الطلب أولًا ثم عدّل السعر بعدها");
-  });
-
-  it("حد القفل: «يحتاج مراجعة» بلا حدث تسليم (من المسودة) ليس مقفلًا — العربون يمر", () => {
-    const reviewFromDraft = transitionOrder(makeOrder(), {
-      to: "needs_review",
-      idempotencyKey: "draft-review",
-      createdAt: "2026-09-01T09:06:00Z",
-    });
-    expect(reviewFromDraft.status).toBe("needs_review");
-    const withDeposit = collectDeposit(reviewFromDraft, 500, "deposit-open-review", "2026-09-01T09:07:00Z");
-    expect(withDeposit.depositCollectedMinor).toBe(500);
-  });
-
-  it("حد فتح القفل الموثق: عكس التسليم ثم إعادة التسليم يفتح طريق التحصيل من جديد", () => {
-    const locked = lockedOrderWithCollection();
-    const unlocked = reverseDelivery(locked, {
-      reason: "تصحيح موثق لفتح المراجعة",
-      idempotencyKey: "reverse-to-unlock",
-      createdAt: "2026-09-03T11:00:00Z",
-    });
-    /* بعد العكس يعود الطلب لما قبل التسليم (ليس مسلّمًا) — التحصيل يتطلب
-     * إعادة تسليم موثقة جديدة (المسار الموثق لا اختصار له). */
-    expect(() => collectRemaining(unlocked, 500, "too-early", "2026-09-03T11:00:30Z")).toThrow(
-      "تحصيل المتبقي يتطلب طلبًا مسلّمًا.",
-    );
-    const reconfirmed = transitionOrder(unlocked, {
-      to: "confirmed",
-      idempotencyKey: "reconfirm-after-review",
-      createdAt: "2026-09-03T11:00:45Z",
-    });
-    const redelivered = (["in_progress", "ready", "delivered"] as const).reduce(
-      (current, to) =>
-        transitionOrder(current, {
-          to,
-          idempotencyKey: `redeliver-${to}`,
-          createdAt: "2026-09-03T11:01:00Z",
-        }),
-      reconfirmed,
-    );
-    const collectable = collectRemaining(redelivered, 500, "after-unlock", "2026-09-03T11:02:00Z");
-    expect(collectable.collectedMinor).toBe(3500);
-  });
+  it(
+    "رسالة القفل مثبتة بنقاط الكود الكاملة (لا تقريب نصي) لكل مسارات الكتابة المالية",
+    lockMessageIsPinnedByFullCodePoints,
+  );
+  it(
+    "تعديل السعر على المقفل برسالته الخاصة (مسار مختلف عمدًا — نفس القفل)",
+    priceRevisionOnLockedThrowsItsOwnMessage,
+  );
+  it(
+    "حد القفل: «يحتاج مراجعة» بلا حدث تسليم (من المسودة) ليس مقفلًا — العربون يمر",
+    needsReviewFromDraftIsNotLocked,
+  );
+  it(
+    "حد فتح القفل الموثق: عكس التسليم ثم إعادة التسليم يفتح طريق التحصيل من جديد",
+    documentedUnlockPathReopensCollection,
+  );
 });
 
 describe("P-03 عنقود ٢ — حدود التسوية والتحصيل (توصيف مباشر بقيم الحدود)", () => {
