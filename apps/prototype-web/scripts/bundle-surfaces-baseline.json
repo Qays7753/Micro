@@ -16,14 +16,14 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "985ac4731805e0a659e6ab5a6b6be769920c2eaa",
+        "head": "388c1fe5d8e419405097fb37f747f99a2c189adf",
         "date": "2026-10-15",
-        "method": "R11 Lock Remediation re-anchor (code head 985ac4731805e0a659e6ab5a6b6be769920c2eaa, 2026-10-15): the owner-approved fail-closed lock fix (OD-LOCK-ROLLBACK/STORAGE/SEMANTICS=A per the pinned contract via PR #367) initially grew the entry chunk ~+320 gzip over the 10-byte headroom of the protected 155,300 ceiling (D-034/ADR-017 — a growth ceiling that may not be raised in a slice). The root accommodation keeps the entry SMALLER than the pre-wave baseline (630,697/154,941 vs 631,903/155,290): PIN operations (KDF, verification, and the verbatim-relocated enable/unlock/disable bodies) moved to a lazy precached module pinOperations.js (+2,561 raw lazy, +1,018 normalized gzip) with the public service API, eager validation, and the fail-closed time guards unchanged — the same lazy-service pattern the app already uses for every page and service chunk. Surfaces re-anchored from the actual local measurement (deterministic build, identity-invariant entry per R10-B/D1): lazyRawTotal 1,215,139 -> 1,217,700; lazyGzipNormTotal 366,371 -> 367,389; precacheBytesTotal 2,683,356 -> 2,684,711 local (both cloud environments = local +90 meta = 2,684,801, per the documented D1 invariance derivation; JS byte-identical local == CI == Pages — CI artifact verification recorded post-push); swRuntimeRawTotal 26,231 -> 26,286 (sw.js lists the one new precached chunk URL); counts lazyJsCount 102 -> 103, dynamicRootsCount 70 -> 71, precacheEntryCount 157 -> 158. Companions unchanged. Entry ceilings remain owned exclusively by check-bundle-budget and were NOT touched.",
+        "method": "R11 Lock Remediation re-anchor (code head 388c1fe5d8e419405097fb37f747f99a2c189adf, 2026-10-15): the owner-approved fail-closed lock fix (OD-LOCK-ROLLBACK/STORAGE/SEMANTICS=A per the pinned contract via PR #367) initially grew the entry chunk ~+320 gzip over the 10-byte headroom of the protected 155,300 ceiling (D-034/ADR-017 — a growth ceiling that may not be raised in a slice). The root accommodation keeps the entry smaller than the pre-wave baseline (630,852/154,977 vs 631,903/155,290): PIN operations (KDF, verification, and the verbatim-relocated enable/unlock/disable bodies) moved to a lazy precached module pinOperations.js (+2,561 raw lazy, +1,018 normalized gzip) with the public service API, eager validation, and the fail-closed time guards unchanged — the same lazy-service pattern the app already uses for every page and service chunk. Surfaces re-anchored from the actual local measurement (deterministic build, identity-invariant entry per R10-B/D1): lazyRawTotal 1,215,139 -> 1,217,700; lazyGzipNormTotal 366,371 -> 367,389; precacheBytesTotal 2,683,356 -> 2,684,866 local (both cloud environments = local +90 meta = 2,684,956, per the documented D1 invariance derivation; JS byte-identical local == CI == Pages — CI artifact verification recorded post-push); swRuntimeRawTotal 26,231 -> 26,286 (sw.js lists the one new precached chunk URL); counts lazyJsCount 102 -> 103, dynamicRootsCount 70 -> 71, precacheEntryCount 157 -> 158. Companions unchanged. Entry ceilings remain owned exclusively by check-bundle-budget and were NOT touched.",
         "initialRawTotal": 224687,
         "initialGzipNormTotal": 70716,
         "lazyRawTotal": 1217700,
         "lazyGzipNormTotal": 367389,
-        "precacheBytesTotal": 2684711,
+        "precacheBytesTotal": 2684866,
         "swRuntimeRawTotal": 26286
       },
       "toolchain": {
@@ -40,7 +40,7 @@
         "initialGzipNormTotal": 70716,
         "lazyRawTotal": 1217700,
         "lazyGzipNormTotal": 367389,
-        "precacheBytesTotal": 2684711,
+        "precacheBytesTotal": 2684866,
         "swRuntimeRawTotal": 26286
       },
       "counts": {
@@ -53,14 +53,14 @@
     },
     "cloudflare-pages": {
       "anchored": {
-        "head": "985ac4731805e0a659e6ab5a6b6be769920c2eaa",
+        "head": "388c1fe5d8e419405097fb37f747f99a2c189adf",
         "date": "2026-10-15",
-        "method": "R11 Lock Remediation re-anchor (code head 985ac4731805e0a659e6ab5a6b6be769920c2eaa, 2026-10-15): the owner-approved fail-closed lock fix (OD-LOCK-ROLLBACK/STORAGE/SEMANTICS=A per the pinned contract via PR #367) initially grew the entry chunk ~+320 gzip over the 10-byte headroom of the protected 155,300 ceiling (D-034/ADR-017 — a growth ceiling that may not be raised in a slice). The root accommodation keeps the entry SMALLER than the pre-wave baseline (630,697/154,941 vs 631,903/155,290): PIN operations (KDF, verification, and the verbatim-relocated enable/unlock/disable bodies) moved to a lazy precached module pinOperations.js (+2,561 raw lazy, +1,018 normalized gzip) with the public service API, eager validation, and the fail-closed time guards unchanged — the same lazy-service pattern the app already uses for every page and service chunk. Surfaces re-anchored from the actual local measurement (deterministic build, identity-invariant entry per R10-B/D1): lazyRawTotal 1,215,139 -> 1,217,700; lazyGzipNormTotal 366,371 -> 367,389; precacheBytesTotal 2,683,356 -> 2,684,711 local (both cloud environments = local +90 meta = 2,684,801, per the documented D1 invariance derivation; JS byte-identical local == CI == Pages — CI artifact verification recorded post-push); swRuntimeRawTotal 26,231 -> 26,286 (sw.js lists the one new precached chunk URL); counts lazyJsCount 102 -> 103, dynamicRootsCount 70 -> 71, precacheEntryCount 157 -> 158. Companions unchanged. Entry ceilings remain owned exclusively by check-bundle-budget and were NOT touched.",
+        "method": "R11 Lock Remediation re-anchor (code head 388c1fe5d8e419405097fb37f747f99a2c189adf, 2026-10-15): the owner-approved fail-closed lock fix (OD-LOCK-ROLLBACK/STORAGE/SEMANTICS=A per the pinned contract via PR #367) initially grew the entry chunk ~+320 gzip over the 10-byte headroom of the protected 155,300 ceiling (D-034/ADR-017 — a growth ceiling that may not be raised in a slice). The root accommodation keeps the entry smaller than the pre-wave baseline (630,852/154,977 vs 631,903/155,290): PIN operations (KDF, verification, and the verbatim-relocated enable/unlock/disable bodies) moved to a lazy precached module pinOperations.js (+2,561 raw lazy, +1,018 normalized gzip) with the public service API, eager validation, and the fail-closed time guards unchanged — the same lazy-service pattern the app already uses for every page and service chunk. Surfaces re-anchored from the actual local measurement (deterministic build, identity-invariant entry per R10-B/D1): lazyRawTotal 1,215,139 -> 1,217,700; lazyGzipNormTotal 366,371 -> 367,389; precacheBytesTotal 2,683,356 -> 2,684,866 local (both cloud environments = local +90 meta = 2,684,956, per the documented D1 invariance derivation; JS byte-identical local == CI == Pages — CI artifact verification recorded post-push); swRuntimeRawTotal 26,231 -> 26,286 (sw.js lists the one new precached chunk URL); counts lazyJsCount 102 -> 103, dynamicRootsCount 70 -> 71, precacheEntryCount 157 -> 158. Companions unchanged. Entry ceilings remain owned exclusively by check-bundle-budget and were NOT touched.",
         "initialRawTotal": 224687,
         "initialGzipNormTotal": 70716,
         "lazyRawTotal": 1217700,
         "lazyGzipNormTotal": 367389,
-        "precacheBytesTotal": 2684801,
+        "precacheBytesTotal": 2684956,
         "swRuntimeRawTotal": 26286
       },
       "toolchain": {
@@ -74,7 +74,7 @@
         "initialGzipNormTotal": 70716,
         "lazyRawTotal": 1217700,
         "lazyGzipNormTotal": 367389,
-        "precacheBytesTotal": 2684801,
+        "precacheBytesTotal": 2684956,
         "swRuntimeRawTotal": 26286
       },
       "counts": {
@@ -87,14 +87,14 @@
     },
     "github-actions": {
       "anchored": {
-        "head": "985ac4731805e0a659e6ab5a6b6be769920c2eaa",
+        "head": "388c1fe5d8e419405097fb37f747f99a2c189adf",
         "date": "2026-10-15",
-        "method": "R11 Lock Remediation re-anchor (code head 985ac4731805e0a659e6ab5a6b6be769920c2eaa, 2026-10-15): the owner-approved fail-closed lock fix (OD-LOCK-ROLLBACK/STORAGE/SEMANTICS=A per the pinned contract via PR #367) initially grew the entry chunk ~+320 gzip over the 10-byte headroom of the protected 155,300 ceiling (D-034/ADR-017 — a growth ceiling that may not be raised in a slice). The root accommodation keeps the entry SMALLER than the pre-wave baseline (630,697/154,941 vs 631,903/155,290): PIN operations (KDF, verification, and the verbatim-relocated enable/unlock/disable bodies) moved to a lazy precached module pinOperations.js (+2,561 raw lazy, +1,018 normalized gzip) with the public service API, eager validation, and the fail-closed time guards unchanged — the same lazy-service pattern the app already uses for every page and service chunk. Surfaces re-anchored from the actual local measurement (deterministic build, identity-invariant entry per R10-B/D1): lazyRawTotal 1,215,139 -> 1,217,700; lazyGzipNormTotal 366,371 -> 367,389; precacheBytesTotal 2,683,356 -> 2,684,711 local (both cloud environments = local +90 meta = 2,684,801, per the documented D1 invariance derivation; JS byte-identical local == CI == Pages — CI artifact verification recorded post-push); swRuntimeRawTotal 26,231 -> 26,286 (sw.js lists the one new precached chunk URL); counts lazyJsCount 102 -> 103, dynamicRootsCount 70 -> 71, precacheEntryCount 157 -> 158. Companions unchanged. Entry ceilings remain owned exclusively by check-bundle-budget and were NOT touched.",
+        "method": "R11 Lock Remediation re-anchor (code head 388c1fe5d8e419405097fb37f747f99a2c189adf, 2026-10-15): the owner-approved fail-closed lock fix (OD-LOCK-ROLLBACK/STORAGE/SEMANTICS=A per the pinned contract via PR #367) initially grew the entry chunk ~+320 gzip over the 10-byte headroom of the protected 155,300 ceiling (D-034/ADR-017 — a growth ceiling that may not be raised in a slice). The root accommodation keeps the entry smaller than the pre-wave baseline (630,852/154,977 vs 631,903/155,290): PIN operations (KDF, verification, and the verbatim-relocated enable/unlock/disable bodies) moved to a lazy precached module pinOperations.js (+2,561 raw lazy, +1,018 normalized gzip) with the public service API, eager validation, and the fail-closed time guards unchanged — the same lazy-service pattern the app already uses for every page and service chunk. Surfaces re-anchored from the actual local measurement (deterministic build, identity-invariant entry per R10-B/D1): lazyRawTotal 1,215,139 -> 1,217,700; lazyGzipNormTotal 366,371 -> 367,389; precacheBytesTotal 2,683,356 -> 2,684,866 local (both cloud environments = local +90 meta = 2,684,956, per the documented D1 invariance derivation; JS byte-identical local == CI == Pages — CI artifact verification recorded post-push); swRuntimeRawTotal 26,231 -> 26,286 (sw.js lists the one new precached chunk URL); counts lazyJsCount 102 -> 103, dynamicRootsCount 70 -> 71, precacheEntryCount 157 -> 158. Companions unchanged. Entry ceilings remain owned exclusively by check-bundle-budget and were NOT touched.",
         "initialRawTotal": 224687,
         "initialGzipNormTotal": 70716,
         "lazyRawTotal": 1217700,
         "lazyGzipNormTotal": 367389,
-        "precacheBytesTotal": 2684801,
+        "precacheBytesTotal": 2684956,
         "swRuntimeRawTotal": 26286
       },
       "toolchain": {
@@ -111,7 +111,7 @@
         "initialGzipNormTotal": 70716,
         "lazyRawTotal": 1217700,
         "lazyGzipNormTotal": 367389,
-        "precacheBytesTotal": 2684801,
+        "precacheBytesTotal": 2684956,
         "swRuntimeRawTotal": 26286
       },
       "counts": {
