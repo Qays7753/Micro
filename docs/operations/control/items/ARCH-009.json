@@ -2,7 +2,7 @@
  "id": "ARCH-009",
  "title": "R11 W1b — تنفيذ موجة W1b: ملحق أدلة NF-001، وS-1 PeriodRange، وS-2 PreparedImport، وOD-TIME، وتوصيف lock-idle، وOD-SEC، وأدلة P-01..P-04",
  "type": "GOVERNANCE",
- "status": "IN_REVIEW",
+ "status": "VERIFIED",
  "priority": "P0",
  "stage": "r11-w1b-20261014",
  "summary": "تنفيذ النطاق المعتمد حصريًا من R11 W1b وفق عقد التنفيذ الرسمي المثبت (docs/architecture/refactoring/r11-w1b-20261014/R11-W1B-EXECUTION-PROMPT-2026-10-14.md على الرأس 2802d119d41dd5e5c7df509f6d487fb0d26a13e2 عبر PR #364 المفتوح): (W1b-0) ملحق أدلة append-only لـ R11-W0-NF-001 يسجل الطريقة والكميات التاريخية والقابلة لإعادة الإنتاج مع الحفاظ على مصفوفة R10-B دون تعديل صامت؛ (W1b-1) إحصاء استدعاءات S-1 PeriodRange ثم إعادة تسمية type-only للمعنى page-local باسم مؤكد من الإحصاء (الفرضية FinanceActivityPeriodKey) مع إبقاء الاسم على المعنى المالي/date-owned؛ (W1b-2) عقد مصدر S-2 PreparedImport الشفاف/الوهمي بسكّة mint وحيدة داخل prepareImport واختبار سلبي type-level؛ (W1b-3) حارس OD-TIME بتأثير AST لتصنيف مواقع الوقت المحيطي في طبقة التطبيق (عائلة ID-fallback المعتمدة) مع سلبيات خصومية وبدون أي تغيير سلوك إنتاجي؛ (W1b-4) توصيف lock-idle فقط (زمن أمامي/خلفي، suspend/resume، انتهاء، قفل/فتح) بلا أي إصلاح سلوكي؛ (W1b-5) توثيق حدود الماسح working-tree-only لـ OD-SEC وسير عمل دوري least-privilege لمسح التاريخ دون إضعاف الماسح التسعة الأنماط أو جدوله المشترك؛ (W1b-6) أدلة الحفظ P-01..P-04 (اختبارات وأدلة فقط، لا تفكيك). اختبارات وأدلة ووثائق وحوكم فقط حيثما ينص العقد؛ لا تغيير مالي/تاريخي/مخطط/تصدير/رفض/أمن دلالي/UI؛ لا W2-W5. || W1b-4 تحديث مؤرخ 2026-10-14: توصيف lock-idle مكتمل بلا أي تغيير سلوك — مصفوفتان حتميتان (خدمة 13/13 وبوابة 9/9) + إثبات متصفح حقيقي على الحزمة الإنتاجية نفسها؛ ثلاثة findings جديدة مُصنفة ب أمانة: R11-W1B4-NF-001 (الساعة الخلفية تمنع قفل الخمول — FAIL_OPEN)، NF-002 (الساعة الخلفية تستبق وقفة التخمين)، NF-003 (فشل قراءة التخزين يفتح البوابة) — كلها OWNER_DECISION_REQUIRED بلا أي ترقيع داخل W1b. || W1b-6 تحديث مؤرخ 2026-10-14: أدلة الحفظ P-01..P-04 مكتملة بلا أي تفكيك — 19 اختبارًا مركّزًا جديدًا (5 سطح المنفذ: 130 طريقة AST + عضوية مثبتة الاتجاهين + 38/30 + حد الذاكرة؛ 14 توصيف/تحوير لسياسات أمر الشغل: نقاط كود الرسائل وحدود التسوية وتدريبات التحوير) + الأطقم القائمة (48/326 تخزينًا و114 أمر شغل و303 نقلًا) خضراء؛ صفر أسطر إنتاج. || تحديث مؤرخ 2026-10-15 (البوابة النهائية والمراجعات): البوابة الكاملة pnpm check خضراء على رأس التنفيذ النهائي — الجذر 75 ملفًا/919 اختبارًا والتطبيق 363 ملفًا/2,671 اختبارًا وlint بالأساس 35 بالضبط (18+17) والسقف 37 دون مس والبناء 631,903/155,290 تحت السقفين 650,000/155,300 والحزمة مطابقة بالبایت لأساس S0/W1A؛ إصلاحا بوابة صادقان: ci-workflow-policy أعيدت صياغتها لقائمة سيرين محصورة بالاسم مع تثبيت آلي لعقد اللاحجب (لا pull_request/push أبدًا) — تقوية لا إضعاف، وportSurfaceEvidence أصبحت آمنة الأنواع تحت tsconfig التطبيق (الجذر لا يغطي apps/)؛ المراجعون الخمسة بالتسلسل: RV1 PASS_WITH_REMEDIATION وRV2 PASS وRV3 PASS_WITH_REMEDIATION وRV4 PASS وRV5 PASS_WITH_REMEDIATION؛ معالجاتهم الميكانيكية (وصلة دليل W1B1 في هذا السجل، وتحديث حقول WS-218، وبند ARCH-010 لمتابعة حارس التشخيص المنفصل بقرار المالك 2026-10-15) معتمدة هنا؛ مصالحة عدد الأنماط: عبارة «الماسح التسعة أنماط» في العقد التاريخي تساوي فعليًا جدول 15 نمط محتوى + 6 قواعد أسماء ملفات حيًا — الحارس المعتمد دون إضعاف كما وثّق دليل W1b-5؛ التوثيف الجوهري للتطبيق الظاهر لا يقفل بالخمول أبدًا (عقد 37) يتعارض مع تعليق SP-03 التاريخي داخل AppLockGate.tsx —finding جديد R11-W1B4-NF-004 بقرار مالك في ملحق دليل W1b-4.",
@@ -89,8 +89,9 @@
   "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B4-LOCK-IDLE-BROWSER-PROOF-2026-10-14.json",
   "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B5-OD-SEC-EVIDENCE-2026-10-14.md",
   "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B5-OD-SEC-WORKFLOW-DRYRUN-2026-10-14.json",
-  ".github/workflows/history-secret-scan.yml",
-  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B6-PRESERVE-EVIDENCE-2026-10-14.md"
+  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B6-PRESERVE-EVIDENCE-2026-10-14.md",
+  "docs/architecture/refactoring/r11-w1b-20261014/R11-W1B-EXECUTION-REPORT-2026-10-14.md",
+  "docs/operations/current-state-log.md"
  ],
  "dependencies": [
   "ARCH-008"
@@ -118,8 +119,22 @@
    "changed_at": "2026-10-15",
    "actor": "zai-executor",
    "reason": "كل الشرائح W1b-0..W1b-6 منفذة على PR #365 (الرأس 72b4c729 عند اكتمال التنفيذ قبل السجلات)؛ البوابة الكاملة pnpm check خضراء على الرأس النهائي للتنفيذ مع إصلاحي بوابة صادقين (ci-workflow-policy للسير الثاني، وportSurfaceEvidence لنوع tsconfig التطبيق)؛ المراجعون الخمسة القراءة-فقط اكتملوا بالتسلسل (RV1 PASS_WITH_REMEDIATION، RV2 PASS، RV3 PASS_WITH_REMEDIATION، RV4 PASS، RV5 PASS_WITH_REMEDIATION) مع مصالحة المُصنِّف واعتماد معالجاتهم في سجلات هذا الالتزام؛ التقرير الرسمي الكنسي مكتمل بكل العلامات المطلوبة؛ القرار التالي للمالك على PR #365."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-10-15",
+   "actor": "merge:pr-365",
+   "reason": "PR #365 merged with Merge commit df85d5cef4d11df1e0b4dfe826bce9814c8478f8 from source head 7a3d2bc0a5e2cc3b0282ea7495b834c53e244998 onto main; post-merge verification started."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-10-15",
+   "actor": "verify:main-ci",
+   "reason": "origin/main equals Merge commit df85d5cef4d11df1e0b4dfe826bce9814c8478f8; CI and Cloudflare Pages succeeded on the exact merge SHA. W1b is verified on main. The four lock-idle findings remain owner-approved separate follow-up scope; ARCH-010 remains a separate diagnostics-storage workstream; W2a is not started and requires its own owner gate."
   }
  ],
  "migration_baseline": false,
- "next_action": "مراجعة المالك لـPR #365 (كل الشرائح + البوابة + المراجعات الخمسة + التقرير الرسمي مكتملة)؛ الدمج قرار مالك لاحق؛ لا يبدأ W2a إلا ببوابة مالك مستقلة."
+ "next_action": "لا إجراء إضافي لـARCH-009: R11 W1b مدمجة ومتحققة على main عند Merge commit df85d5cef4d11df1e0b4dfe826bce9814c8478f8 بعد نجاح CI وCloudflare على الرأس نفسه. الخطوة التالية المستقلة هي إصلاح findings القفل الأربعة في PR أمني منفصل وفق قرار المالك؛ ARCH-010 حارس تشخيص منفصل؛ W2a لا يبدأ تلقائيًا ويحتاج بوابة مالك مستقلة.",
+ "merge_sha": "df85d5cef4d11df1e0b4dfe826bce9814c8478f8",
+ "verified_on_main_sha": "df85d5cef4d11df1e0b4dfe826bce9814c8478f8"
 }

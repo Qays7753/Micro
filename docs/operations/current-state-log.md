@@ -2399,3 +2399,12 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - **المراجعات الخمسة بالتسلسل (قراءة-فقط على `0ede6e94..72b4c729`):** RV1 PASS_WITH_REMEDIATION، RV2 PASS، RV3 PASS_WITH_REMEDIATION، RV4 PASS، RV5 PASS_WITH_REMEDIATION؛ المصالحة سجلت كل خلاف (لا متوسطات): معالجات FIX_NOW في سجلات موثقة (وصلة دليل W1B1 في ARCH-009، تحديث حقول WS-218، إنشاء ARCH-010)، وPRESERVE/DEFER_WITH_EXACT_TRIGGER لكل حد موثف بمحفزه الدقيق.
 - **قرارات المالك المباشرة (2026-10-15):** findings الـlock-idle الأربعة (NF-001..004) تبقى OWNER_DECISION_REQUIRED بلا ترقيع داخل PR #365؛ وحارس التشخيص R11-W1A-NF-001 نطاق متابعة منفصل (ARCH-010؛ NOT_EXECUTED في W1b — مسجلًا لا مخفيًا).
 - **الحالة:** `R11_W1B_EXECUTION_COMPLETE — PR_READY`؛ PR #365 مفتوح للمراجعة؛ لا دمج ولا تنظيف ولا W2a إلا ببوابة مالك مستقلة. التقرير الرسمي: `docs/architecture/refactoring/r11-w1b-20261014/R11-W1B-EXECUTION-REPORT-2026-10-14.md`.
+
+
+## §197 — 2026-10-15 — R11 W1b post-merge verification
+
+- **الدمج:** PR #365 (`refactoring/r11-w1b-20261014`) دُمج بMerge commit `df85d5cef4d11df1e0b4dfe826bce9814c8478f8` من رأس المصدر `7a3d2bc0a5e2cc3b0282ea7495b834c53e244998` إلى `main`.
+- **التحقق:** `origin/main` يطابق `df85d5cef4d11df1e0b4dfe826bce9814c8478f8`؛ فحص `checks` وفحص `Cloudflare Pages` نجحا على الرأس المدموج نفسه.
+- **الحالة:** `R11_W1B_VERIFIED_ON_MAIN`. الشرائح W1b-0..W1b-6 والأدلة والمراجعات الخمسة متحققة داخل النطاق المعتمد.
+- **الحدود:** findings القفل الأربعة `R11-W1B4-NF-001..004` لم تُخفَ ولم تُعتبر مغلقة؛ قرار المالك يفتح إصلاحًا أمنيًا مستقلًا. `R11-W1A-NF-001` ما زال `ARCH-010` في مسار Diagnostics Storage منفصل. `W2a` لم تبدأ وتحتاج بوابة مالك مستقلة.
+- **التنظيف:** لا حذف فروع أو PRs في هذه المصالحة؛ PR #364 يبقى مرجع Prompt W1b التاريخي المفتوح حتى يصدر قرار أرشفة/دمج مستقل.

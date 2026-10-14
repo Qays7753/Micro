@@ -1,7 +1,7 @@
 {
  "id": "WS-218",
  "title": "تنفيذ R11 W1b — أدلة NF-001 وS-1 وS-2 وOD-TIME وتوصيف lock-idle وOD-SEC وأدلة الحفظ على فرع تنفيذي واحد",
- "status": "IN_REVIEW",
+ "status": "VERIFIED",
  "items": [
   "ARCH-009"
  ],
@@ -30,7 +30,7 @@
  "pr": 365,
  "started_at": "2026-10-14",
  "updated_at": "2026-10-15",
- "next_action": "مراجعة المالك لـPR #365: كل الشرائح والبوابة الكاملة والمراجعات الخمسة والتقرير الرسمي مكتملة؛ الدمج قرار مالك؛ لا W2a إلا ببوابة مستقلة.",
+ "next_action": "لا successor تلقائي لـWS-218: PR #365 مدموج ومتحقق على main عند Merge commit df85d5cef4d11df1e0b4dfe826bce9814c8478f8. القرار التالي هو فتح PR أمني مستقل لإصلاح lock-idle findings الأربعة، ثم PR مستقل لـARCH-010؛ W2a يبقى owner-gated ولا يبدأ تلقائيًا.",
  "notes": [
   "Claim أُنشئ قبل أي تعديل وفق AGENTS.md §14؛ لا تداخل مع أي Claim نشط (0 active claims عند الإنشاء؛ WS-217 = VERIFIED).",
   "العقد الرسمي المثبت للW1b هو الرأس 2802d119d41dd5e5c7df509f6d487fb0d26a13e2 على فرع docs/r11-w1b-execution-prompt-20261014 (PR #364 المفتوح)؛ تحقق ZAI من مطابقته بايت-ببايت قبل التنفيذ.",
@@ -52,8 +52,26 @@
    "changed_at": "2026-10-15",
    "actor": "zai-executor",
    "reason": "اكتمال كل الشرائح W1b-0..W1b-6 والبوابة الكاملة pnpm check والمراجعات الخمسة والتقرير الرسمي على PR #365؛ الدمج قرار مالك لاحق."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-10-15",
+   "actor": "merge:pr-365",
+   "reason": "PR #365 merged with Merge commit df85d5cef4d11df1e0b4dfe826bce9814c8478f8 from source head 7a3d2bc0a5e2cc3b0282ea7495b834c53e244998 onto main; post-merge verification started."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-10-15",
+   "actor": "verify:main-ci",
+   "reason": "origin/main equals Merge commit df85d5cef4d11df1e0b4dfe826bce9814c8478f8; CI and Cloudflare Pages succeeded on the exact merge SHA. W1b is verified on main. The four lock-idle findings remain owner-approved separate follow-up scope; ARCH-010 remains a separate diagnostics-storage workstream; W2a is not started and requires its own owner gate."
   }
  ],
  "migration_baseline": false,
- "evidence": []
+ "evidence": [
+  "docs/architecture/refactoring/r11-w1b-20261014/R11-W1B-EXECUTION-REPORT-2026-10-14.md",
+  "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B4-LOCK-IDLE-CHARACTERIZATION-2026-10-14.md",
+  "docs/operations/current-state-log.md"
+ ],
+ "merge_sha": "df85d5cef4d11df1e0b4dfe826bce9814c8478f8",
+ "verified_on_main_sha": "df85d5cef4d11df1e0b4dfe826bce9814c8478f8"
 }
