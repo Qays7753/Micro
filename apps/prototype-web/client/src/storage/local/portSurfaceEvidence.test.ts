@@ -165,12 +165,21 @@ export const PINNED_PORT_METHODS: readonly string[] = [
 ];
 
 /** استخراج AST لأسماء طرق الواجهة من المصدر الحي (لا نسخ يدوي). */
+interface SourceFileWithParseDiagnostics extends ts.SourceFile {
+  /* خاصية داخلية حقيقية وقت التشغيل (يتحقق الماسح من صحة التحليل) لكنها
+   * ليست على النوع العام ts.SourceFile — tsconfig التطبيق يرفض الوصول
+   * المباشر (TS2339)، فهذه الواجهة الموصّفة موضعيًا هي المسار المكتوب
+   * النوع نفسه دون أي إضعاف للفحص المغلق. */
+  readonly parseDiagnostics?: readonly { readonly messageText: ts.DiagnosticMessageChain | string }[];
+}
+
 function extractInterfaceMethodNames(): string[] {
   const source = fs.readFileSync(TYPES_PATH, "utf8");
   const sourceFile = ts.createSourceFile(TYPES_PATH, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  if (sourceFile.parseDiagnostics.length > 0) {
+  const parseDiagnostics = (sourceFile as SourceFileWithParseDiagnostics).parseDiagnostics ?? [];
+  if (parseDiagnostics.length > 0) {
     throw new Error(
-      `parse diagnostics in types.ts — fail-closed (first: ${sourceFile.parseDiagnostics[0].messageText})`,
+      `parse diagnostics in types.ts — fail-closed (first: ${parseDiagnostics[0].messageText})`,
     );
   }
   const names: string[] = [];
