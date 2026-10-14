@@ -3,16 +3,16 @@
   "provenance": {
     "base_sha": "5ef4ce08841bcd4ff7c5fb185a0fe2eeef6852fd",
     "measured_at": "2026-10-14",
-    "method": "guard-mirroring semantics: application-layer production files importing application house interiors (house-interior targets only; doors (index.ts) and root files excluded as targets; root files excluded as sources — shared-by-definition layer); all import kinds (static, dynamic import(), ImportTypeNode, export-from re-exports, import-equals require()); unique edge = (source file -> resolved target) with TYPE-DOMINANT classification: kind=type if ANY site is type-only, value iff ALL sites carry value (the only arithmetic reproducing the recorded 128/80/48)",
+    "method": "guard-mirroring semantics: application-layer production files importing application house interiors (house-interior targets only; doors (index.ts) and root files excluded as targets; root files excluded as sources — shared-by-definition layer); all import kinds (static, dynamic import(), ImportTypeNode, export-from re-exports, import-equals require()); unique edge = (source file -> resolved target) with TYPE-DOMINANT classification: kind=type if ANY site is type-only, value iff ALL sites carry value (the only arithmetic reproducing the recorded counts; R11 Lock Remediation 2026-10-15: +1 type edge pinOperations.ts -> time/clock (lazy PIN-operations module, exempt OD-10 target) -> 129/80/49)",
     "authority": "OD-10 Option A (owner-approved 2026-10-13, R11 owner decision package) + R11 W0 census (128 edges / 80 value / 48 type) + RV1/R11-RV1 independent reproductions"
   },
   "totals": {
     "edges": 129,
     "value": 80,
-    "type": 48,
+    "type": 49,
     "governedEdges": 63,
     "governedPairs": 42,
-    "exemptTargetEdges": 65
+    "exemptTargetEdges": 66
   },
   "edges": [
     {
@@ -612,7 +612,7 @@
     },
     {
       "key": "application/security/pinOperations.ts -> application/time/clock.ts",
-      "kind": "value",
+      "kind": "type",
       "exemptTarget": true
     },
     {

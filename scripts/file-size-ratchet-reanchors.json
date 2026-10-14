@@ -1636,6 +1636,25 @@
         "trigger": "pinOperations.ts extraction for the entry gzip ceiling (OD-LOCK contract section 10)",
         "ocRef": "ARCH-011"
       }
+    },
+    {
+      "id": "R11-LOCK-READWRITE-CORPUS-ROW",
+      "date": "2026-10-15",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 315,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 316,
+        "band": "NORMAL"
+      },
+      "reason": "R11 Lock Remediation corpus visibility row (per the read-like-corpus-growth rule, D-04/R10A-F-019 OD-GUARD Option A): security/localLockBackoff.ts — the new shared backoff tier/wait-message module (read-only, no writes) — is added to READ_LIKE_CORPUS_BASELINE with its test pin updated 63 -> 64 in the same PR. One-line growth; no rule or classification weakened.",
+      "authorization": {
+        "ownerReview": "check-application-readwrite documented-corpus protocol (add with documented classification in the same PR) — part of the R11 lock remediation execution PR #368",
+        "trigger": "localLockBackoff.ts extraction for the entry gzip ceiling (OD-LOCK contract section 10)",
+        "ocRef": "ARCH-011"
+      }
     }
   ]
 }
