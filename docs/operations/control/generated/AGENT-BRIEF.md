@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · CLAIMED: 1 · BACKLOG: 3 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 59 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · BACKLOG: 3 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 59 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-219 | CLAIMED | `security/r11-lock-fail-closed-20261015` | — | ARCH-011 | Test-first للنتائج الأربع ثم الإصلاح (الخدمة ثم البوابة) ثم العقود والسجلات والتقرير ثم البوابة الكاملة والمراجعات الخمسة ثم الدفع والتحقق على الرأس النهائي؛ لا دمج ولا تنظيف. |
+| WS-219 | IN_PROGRESS | `security/r11-lock-fail-closed-20261015` | — | ARCH-011 | Test-first للنتائج الأربع ثم الإصلاح (الخدمة ثم البوابة) ثم العقود والسجلات والتقرير ثم البوابة الكاملة والمراجعات الخمسة ثم الدفع والتحقق على الرأس النهائي؛ لا دمج ولا تنظيف. |

@@ -1,7 +1,7 @@
 {
  "id": "WS-219",
  "title": "تنفيذ R11 Lock Remediation — إصلاح فاشل-مغلق للقفل المحلي R11-W1B4-NF-001..004 على فرع أمني واحد بقرارات OD-LOCK الثلاثة",
- "status": "CLAIMED",
+ "status": "IN_PROGRESS",
  "items": [
   "ARCH-011"
  ],
@@ -39,6 +39,12 @@
    "changed_at": "2026-10-15",
    "actor": "zai-executor",
    "reason": "فتح Claim تنفيذي لموجة إصلاح القفل المعتمدة؛ الفرع security/r11-lock-fail-closed-20261015 منشأ من origin/main الحي 9303ea44 بعد التحقق من خط الأساس والمدقق (Operations Control valid و0 active claims)."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "test-first ثم الإصلاح الجذري منفذان (الخدمة + البوابة)؛ العقد ٣٧ ومرجع حدود الأمن محدّثان؛ البوابة الكاملة والمراجعات الخمسة والتقرير الرسمي تلي على الرأس النهائي."
   }
  ],
  "migration_baseline": false,
