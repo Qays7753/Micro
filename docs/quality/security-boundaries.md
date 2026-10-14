@@ -5,7 +5,7 @@
 
 ## ١. التخزين المحلي وحده — لا خروج شبكي
 
-- كل بيانات Micro تُحفظ محليًا عبر `PrototypeLocalStore` (محوّلا IndexedDB والذاكرة) — `storage/local/types.ts` و`createBrowserLocalStore.ts`.
+- كل بيانات Micro تُحفظ محليًا عبر `PrototypeLocalStore` (محوّلا IndexedDB والذاكرة) — `storage/local/types.ts` و`createBrowserLocalStore.ts`؛ وباستثناء وحيد مسجل: حلقة التشخيص `micro.diagnostics.v1` (localStorage) عبر مهايئها المسجل في حد تخزين صريح `storage/diagnostics/browserDiagnosticStorage.ts` (R11 ARCH-010 — موجات المتابعة 2026-10-15) — الحارس المخصص `scripts/check-diagnostics-storage.mjs` يرفض أي وصول إنتاجي جديد لمفاتيح تخزين المتصفح خارج الموضعين المسجلين بالضبط (مهايئ التشخيص؛ ومهايئ مفاتيح المسودات التراثية الموثق بإيجاد R11-ARCH010-NF-001 بقرار مالك معلق).
 - لا مسار خروج شبكي في التطبيق إطلاقًا: فحص المسح الهيكلي (المجموعة ٧، §15 من التقرير) لم يجد طلب شبكة خارج أصول PWA المحلية (`navigateFallback` محلي).
 - كل وصول UI للتخزين ممنوع في زمن التشغيل — يفرضه ESLint (صفحات/مكونات: لا `@/storage/local/*` قيمًا ولا `localStorage`/`sessionStorage` بكل صورها) ويثبته `scripts/check-layer-boundaries.test.mjs` بمحرك ESLint نفسه.
 
@@ -25,6 +25,7 @@
 
 ## ٤. التشخيص المحلي — ثمانية حقول ولا رفع أبدًا
 
+- الحد البنيوي (R11 ARCH-010): خدمة التشخيص `application/diagnostics/localDiagnosticsService.ts` تستهلك منفذها المحقون `DiagnosticStorage` ولا تعرف المتصفح؛ مهايئ الإنتاج الوحيد يقيم في حد تخزين صريح `storage/diagnostics/browserDiagnosticStorage.ts` خارج `storage/local/` وعقد التخزين المالية كليًا (التشخيص غير مالي ومحلي — لا يُوجّه عبر `PrototypeLocalStore` أبدًا)، والحارس المخصص `scripts/check-diagnostics-storage.mjs` (داخل `pnpm guards`) مسجل-البنود فاشل-المغلق.
 - حلقة محدودة: **٢٥ إدخالًا / ٤٨٬٠٠٠ بايت UTF-8**، الأحدث أولًا، المعطوب يُستعاد سجلًا فارغًا، والكتابة لا ترمي أبدًا — `application/diagnostics/localDiagnosticsService.ts`.
 - الحقول الثمانية فقط: `errorId`، `appVersion`، `schemaVersion`، `routeTemplate`، `operation`، `errorCode`، `timestamp`، `safeMessage` من خريطة عربية ثابتة — **لا نص من كائن الاستثناء أبدًا** ولا قيم مالية ولا معرفات شخصية.
 - إخفاء المسار: جدول قوالب معروف من المسارات، والاستعلام يسقط كله دومًا، وخارج الجدول `/unknown` — المسار الخام لا يُخزَّن.

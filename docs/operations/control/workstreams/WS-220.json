@@ -1,7 +1,7 @@
 {
  "id": "WS-220",
  "title": "R11 متابعة — Phase 1: ARCH-010 حارس Diagnostics Storage المخصص (R11-W1A-NF-001) بإحصاء web-storage كامل وحد جذري مسجل البنود",
- "status": "CLAIMED",
+ "status": "IN_PROGRESS",
  "items": [
   "ARCH-010"
  ],
@@ -37,5 +37,13 @@
  "migration_baseline": false,
  "evidence": [
   "docs/architecture/refactoring/r11-arch010-20261015/"
+ ],
+ "status_history": [
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "تنفيذ الحد الجذري جارٍ على الفرع (المهايئ + الحارس + الاختبارات + الوثائق)؛ الإحصاء مكتمل وموثق في دليل الموجة قبل أي كتابة."
+  }
  ]
 }
