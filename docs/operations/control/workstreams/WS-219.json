@@ -1,7 +1,7 @@
 {
  "id": "WS-219",
  "title": "تنفيذ R11 Lock Remediation — إصلاح فاشل-مغلق للقفل المحلي R11-W1B4-NF-001..004 على فرع أمني واحد بقرارات OD-LOCK الثلاثة",
- "status": "IN_PROGRESS",
+ "status": "IN_REVIEW",
  "items": [
   "ARCH-011"
  ],
@@ -22,10 +22,10 @@
   "docs/quality/security-boundaries.md"
  ],
  "agent": "ZAI sequential executor (one writer; five read-only reviewers RV1-RV5 after implementation before final readiness)",
- "pr": null,
+ "pr": 368,
  "started_at": "2026-10-15",
  "updated_at": "2026-10-15",
- "next_action": "Test-first للنتائج الأربع ثم الإصلاح (الخدمة ثم البوابة) ثم العقود والسجلات والتقرير ثم البوابة الكاملة والمراجعات الخمسة ثم الدفع والتحقق على الرأس النهائي؛ لا دمج ولا تنظيف.",
+ "next_action": "قرار المالك على PR #368؛ بعد الدمج: تحقق ما بعد الدمج (CI/Cloudflare على رأس الدمج بالضبط) ثم MERGED_UNVERIFIED → VERIFIED كسابقتها؛ لا successor تلقائي.",
  "notes": [
   "Claim أُنشئ قبل أي تعديل وفق AGENTS.md §14؛ لا تداخل مع أي Claim نشط (0 active claims عند الإنشاء).",
   "العقد الرسمي المثبت هو الرأس 6733ba34637d47986050ecf955efd8cd413b3f5e على فرع docs/r11-lock-fail-closed-prompt-20261015 (PR #367 المفتوح)؛ تحقق ZAI من مطابقته بالمطابقة الحرفية قبل التنفيذ.",
@@ -45,10 +45,19 @@
    "changed_at": "2026-10-15",
    "actor": "zai-executor",
    "reason": "test-first ثم الإصلاح الجذري منفذان (الخدمة + البوابة)؛ العقد ٣٧ ومرجع حدود الأمن محدّثان؛ البوابة الكاملة والمراجعات الخمسة والتقرير الرسمي تلي على الرأس النهائي."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "كل التزامات الموجة على PR #368: test-first ثم الإصلاح الجذري للنتائج الأربع، واستيعاب الميزانية بالنقل الكسول داخل الحد المسموح (المدخل أصغر من الأساس)، والبوابة الكاملة 17/17 على الرأس 469aba03، والمراجعات الخمسة مع مصالحة المُصنِّف، والسجلات والتقرير الرسمي — PR_READY؛ الدمج قرار مالك."
   }
  ],
  "migration_baseline": false,
  "evidence": [
-  "docs/architecture/refactoring/r11-lock-fail-closed-20261015/R11-LOCK-FAIL-CLOSED-EXECUTION-REPORT-2026-10-15.md"
+  "docs/architecture/refactoring/r11-lock-fail-closed-20261015/R11-LOCK-FAIL-CLOSED-EXECUTION-REPORT-2026-10-15.md",
+  "docs/architecture/refactoring/r11-lock-fail-closed-20261015/R11-LOCK-FIVE-REVIEWER-RECORD-2026-10-15.md",
+  "docs/architecture/refactoring/r11-lock-fail-closed-20261015/R11-LOCK-OWNER-DECISION-ADDENDUM-2026-10-15.md",
+  "docs/operations/current-state-log.md"
  ]
 }
