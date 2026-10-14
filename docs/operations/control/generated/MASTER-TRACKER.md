@@ -2,7 +2,7 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 57 · SUPERSEDED: 1
+BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 58 · SUPERSEDED: 1
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
@@ -34,6 +34,7 @@ BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20
 | V-011 | DEFERRED | PILOT_VALIDATION | PILOT_EVIDENCE_REQUIRED | P2 | pilot-validation | V-11 — فهم نموذج التوزيع الصريح للكاش | Product owner / Manus coordination | pilot-validation | — |
 | V-012 | DEFERRED | PILOT_VALIDATION | PILOT_EVIDENCE_REQUIRED | P2 | pilot-validation | V-12 — تسجيل الإهلاك بعد شهر استخدام | Product owner / Manus coordination | pilot-validation | — |
 | ARCH-007 | VERIFIED | GOVERNANCE | EVIDENCE_RECONCILIATION_REQUIRED | P0 | structural-remediation-r0-r10-20261007 | الإصلاح البنيوي الجذري بعد تقريري Flash وStructure — مصفوفة التتبع وتنفيذ R0–R10 | Micro owner (Qays7753) | governance, architecture, operations-control, domain, application, storage, presentation, tests | — |
+| ARCH-008 | VERIFIED | HARDENING | EVIDENCE_RECONCILIATION_REQUIRED | P0 | r11-s0-w1a-20261013 | R11 S0 + W1A — مسح تاريخ Git الأمني لمرة واحدة وإكمال حراس النقاط الست (D-01/D-04/D-05/D-07/D-03/D-02) بقرارات المالك المعتمدة | Micro owner (Qays7753) | governance, architecture, operations-control, guards, tests | — |
 | ARCH-001 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | architecture-refactoring-phase1 | مسح معماري/بنيوي للقراءة فقط وخطة انتقال CURRENT→TARGET→MIGRATION WAVES — المرحلة الأولى لبرنامج إعادة الهيكلة | Product owner / Z AI (Phase-1 report agent) | documentation, architecture-governance | — |
 | ARCH-002 | VERIFIED | HARDENING | NOT_APPLICABLE | P1 | architecture-remediation-wave-3a | الموجة 3A — أساس التكافؤ: ذهبيات التصدير/الاستيراد + اختبارات وصف مباشرة لعنقود النقل (STR-401/405) | agent:remediation-program | application, storage, tests | — |
 | ARCH-004 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | atoz-structural-completion-implementation | برنامج إكمال A-to-Z البنيوي — تنفيذ جذري معتمد (Post-Closure A-to-Z Structural Completion) | Micro owner (Qays7753) | domain, application, storage, scripts, docs | — |

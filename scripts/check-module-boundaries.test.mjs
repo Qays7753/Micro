@@ -22,9 +22,13 @@ import {
   DEEP_DOMAIN_IMPORT_BASELINE,
   DOMAIN_CROSS_AREA_DEEP_BASELINE,
   UI_TO_DOMAIN_VALUE_BASELINE,
+  UI_TO_STORAGE_TYPE_BASELINE,
+  UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17,
   UI_TO_STORAGE_VALUE_BASELINE,
   checkModuleBoundaries,
   collectAllImports,
+  collectHouseEdges,
+  houseSccs,
   layerOf,
 } from "./check-module-boundaries.mjs";
 
@@ -329,7 +333,10 @@ describe("R7 component->page regression class (R8-F-019)", () => {
     );
     write(root, "apps/prototype-web/client/src/presentation/formatters.ts", "export const formatMoney = 1;\n");
     const result = checkModuleBoundaries(root);
-    expect(result.ok).toBe(true);
+    /* (R11 W1A-1 / D-01 — 2026-10-14): الشجرة التركيبية لا تحمل ملفات أساس R8 الـ19 الحية، فيُتوقع من نظافة الأساس
+     * أن تفشل هنا بأسباب غير متعلق بهدف هذا الاختبار (الاتجاه القانوني صفحة→مكوّن) —
+     * يُحصر التأكيد على القواعد المختبرة هنا، ونظافة أساس R8 يختبرها جهاز R8 المختص أدناه على المستودع الحي. */
+    expect(result.violations.filter(v => !v.rule.startsWith("R8") && !v.rule.startsWith("R9"))).toEqual([]);
     expect(result.stats.componentToPage).toBe(0);
   });
 
@@ -344,159 +351,328 @@ describe("R7 component->page regression class (R8-F-019)", () => {
   });
 });
 
-describe("CLI on the live repo (smoke)", () => {
-  it("exits 0 with a summary line on the live tree", () => {
-    const run = spawnSync(process.execPath, [SCRIPT_PATH, REPO_ROOT], { encoding: "utf8" });
-    expect(run.status).toBe(0);
-    expect(run.stdout).toContain("module-boundaries: PASS");
+describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD Option A)", () => {
+  it("the full baseline is exactly 19 keys and the historical 17 is a strict subset", () => {
+    expect(UI_TO_STORAGE_TYPE_BASELINE).toHaveLength(19);
+    expect(new Set(UI_TO_STORAGE_TYPE_BASELINE).size).toBe(19);
+    expect(UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17).toHaveLength(17);
+    for (const key of UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17) {
+      expect(UI_TO_STORAGE_TYPE_BASELINE).toContain(key);
+    }
+    /* مفتاحا app-shell الموثقان هما الفرق المسموح بين الأساسين. */
+    const diff = UI_TO_STORAGE_TYPE_BASELINE.filter(k => !UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17.includes(k));
+    expect(diff).toEqual([
+      "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> @/storage/local/types",
+      "apps/prototype-web/client/src/app/StartupGate.tsx -> @/storage/local/types",
+    ]);
+  });
+
+  it("the live repository passes at the baseline: 19 type edges, zero violations", () => {
+    const result = checkModuleBoundaries(REPO_ROOT);
+    expect(result.ok).toBe(true);
+    expect(result.stats.uiToStorageType).toBe(19);
+  });
+
+  it("growth: a new type-only UI->storage edge is rejected", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/storage/local/types.ts", "export type StoredThing = { a: number };\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/NewPage.tsx",
+      'import type { StoredThing } from "@/storage/local/types";\nexport function p(x: StoredThing) { return x; }\n',
+    );
+    const result = checkModuleBoundaries(root);
+    const r8 = result.violations.filter(v => v.rule === "R8-ui-to-storage-type");
+    expect(r8).toHaveLength(1);
+    expect(r8[0].key).toContain("pages/NewPage.tsx");
+    expect(result.stats.uiToStorageType).toBe(1);
+  });
+
+  it("mixed imports count as VALUE (no R8 edge; the R5 value ratchet owns it instead)", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/storage/local/types.ts", "export type T1 = { a: number };\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/Mixed.tsx",
+      'import { type T1, someValue } from "@/storage/local/types";\nexport const x = 1;\n',
+    );
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.filter(v => v.rule === "R8-ui-to-storage-type")).toEqual([]);
+    expect(result.violations.some(v => v.rule === "R5-ui-to-storage-value")).toBe(true);
+    expect(result.stats.uiToStorageType).toBe(0);
+  });
+
+  it("all-type specifier lists are type edges; export type re-exports are type edges", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/storage/local/types.ts", "export type T1 = { a: number };\nexport const someValue = 1;\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/AllType.tsx",
+      'import { type T1, type T2 } from "@/storage/local/types";\nexport type T2 = { b: number };\nexport function p() { return 1; }\n',
+    );
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/Reexport.ts",
+      'export type { T1 as R1 } from "@/storage/local/types";\n',
+    );
+    const result = checkModuleBoundaries(root);
+    const r8 = result.violations.filter(v => v.rule === "R8-ui-to-storage-type");
+    expect(r8).toHaveLength(2);
+    expect(result.stats.uiToStorageType).toBe(2);
+  });
+
+  it("spelling cannot bypass: a relative path resolving to storage still counts", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/storage/local/types.ts", "export type StoredThing = { a: number };\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/Relative.tsx",
+      'import type { StoredThing } from "../storage/local/types";\nexport function p(x: StoredThing) { return x; }\n',
+    );
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.filter(v => v.rule === "R8-ui-to-storage-type")).toHaveLength(1);
+    expect(result.stats.uiToStorageType).toBe(1);
+  });
+
+  it('type-position import("...") nodes into storage are type edges', () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/storage/local/types.ts", "export type StoredThing = { a: number };\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/DynamicType.ts",
+      'export type Box = import("@/storage/local/types").StoredThing;\nexport function p(b: Box) { return b; }\n',
+    );
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.filter(v => v.rule === "R8-ui-to-storage-type")).toHaveLength(1);
+    expect(result.stats.uiToStorageType).toBe(1);
+  });
+
+  it("import-equals require() spelling is collected (no import-spelling escape)", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/storage/local/types.ts", "export type StoredThing = { a: number };\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/Equals.ts",
+      'import type StoredThing = require("@/storage/local/types");\nexport function p(x: StoredThing) { return x; }\n',
+    );
+    const imports = collectAllImports(root);
+    const storageTypeImports = imports.filter(
+      i => i.kind === "type" && i.resolved?.startsWith("apps/prototype-web/client/src/storage/"),
+    );
+    expect(storageTypeImports).toHaveLength(1);
+    expect(storageTypeImports[0].specifier).toBe("@/storage/local/types");
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.filter(v => v.rule === "R8-ui-to-storage-type")).toHaveLength(1);
+  });
+
+  it("stale: a baseline key absent from the live tree fails (same-PR hygiene)", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/pages/Unrelated.tsx", "export const u = 1;\n");
+    const result = checkModuleBoundaries(root);
+    const stale = result.violations.filter(v => v.rule === "R8-baseline-stale");
+    expect(stale).toHaveLength(19);
+    /* على المستودع الحي: صفر مفاتيح متقدمة (يثبته اختبار المستودع الحي أعلاه). */
+  });
+
+  it("swap is caught from both sides: a new key arrives AND the replaced key goes stale", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/storage/local/types.ts", "export type StoredThing = { a: number };\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/Finance.tsx",
+      'import type { StoredThing } from "../storage/local/types";\nexport function p(x: StoredThing) { return x; }\n',
+    );
+    /* الملف مسجل في الأساس بالمحدد المستعار؛ الحافة الحية صارت بالمحدد النسبي —
+     * مفتاح جديد (نمو) + المفتاح المسجل غادر (قِدم) في آن واحد: التبديل مرئي من الجهتين. */
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.some(v => v.rule === "R8-ui-to-storage-type" && v.key.includes("pages/Finance.tsx") && v.key.includes("../storage/local/types"))).toBe(true);
+    expect(result.violations.some(v => v.rule === "R8-baseline-stale" && v.key.includes("pages/Finance.tsx"))).toBe(true);
   });
 });
 
-describe("R6 (Step 6 — STR-615 system-wide ratchet: UI -> application interiors)", () => {
-  const PAGE = specifier => `import { Thing } from "${specifier}";\nexport const P = Thing;\n`;
-  const SERVICE = "export class Thing {}\n";
+describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)", () => {
+  const EXEMPT_LEAF = "application/time/clock.ts";
 
-  function writeBaseline(root, allowed) {
+  function houseTree() {
+    const root = makeTempDir();
+    /* الورقة المعفاة + بيتا ميزات + حواف حاكمة ومعفاة. */
+    write(root, "apps/prototype-web/client/src/application/time/clock.ts", 'export const systemClock = (): string => "2026-01-01T00:00:00.000Z";\n');
     write(
       root,
-      "scripts/ui-application-import-baseline.json",
-      JSON.stringify({ version: 1, allowed }, null, 1),
+      "apps/prototype-web/client/src/application/finance/serviceA.ts",
+      'import { systemClock } from "@/application/time/clock";\nexport const a = systemClock;\n',
     );
+    write(root, "apps/prototype-web/client/src/application/parties/types.ts", "export type Thing = { id: string };\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/application/inventory/reads.ts",
+      'import type { Thing } from "@/application/parties/types";\nexport type T = Thing;\n',
+    );
+    return root;
   }
 
-  it("a baseline-registered deep import passes; a NEW deep import is caught; a door import is free", () => {
-    const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
+  /** يبني جردًا متسقًا مع الشجرة الحية (baseline == current) للأشجار التركيبية. */
+  function writeCensusFor(root, { exemptModules = [], sccOverride = null } = {}) {
+    const edges = collectHouseEdges(collectAllImports(root));
+    const exemptSet = new Set(exemptModules.map(m => m.path));
+    const pairCaps = {};
+    for (const edge of edges) {
+      if (exemptSet.has(edge.key.split(" -> ")[1])) continue;
+      const pairKey = `${edge.sourceHouse}->${edge.targetHouse}`;
+      pairCaps[pairKey] = pairCaps[pairKey] || { value: 0, type: 0 };
+      pairCaps[pairKey][edge.kind]++;
+    }
+    const census = {
+      schema: "micro-application-house-edges-census/1",
+      provenance: { base_sha: "synthetic-fixture", measured_at: "2026-10-14", method: "test fixture", authority: "test" },
+      totals: {
+        edges: edges.length,
+        value: edges.filter(e => e.kind === "value").length,
+        type: edges.filter(e => e.kind === "type").length,
+        governedEdges: edges.filter(e => !exemptSet.has(e.key.split(" -> ")[1])).length,
+        governedPairs: Object.keys(pairCaps).length,
+        exemptTargetEdges: edges.filter(e => exemptSet.has(e.key.split(" -> ")[1])).length,
+      },
+      edges: edges.map(e => ({ key: e.key, kind: e.kind, exemptTarget: exemptSet.has(e.key.split(" -> ")[1]) })),
+      pairCaps,
+      exemptModules,
+      sccBaselines: sccOverride ?? { value: houseSccs(edges, "value"), type: houseSccs(edges, "type") },
+      reviewCandidates: [],
+      notes: [],
+    };
+    write(root, "scripts/application-house-edges-census.json", JSON.stringify(census, null, 1));
+    return census;
+  }
+
+  const r9Only = result => result.violations.filter(v => v.rule.startsWith("R9"));
+
+  it("the live repository passes on the recorded census: 128 edges (80 value + 48 type)", () => {
+    const result = checkModuleBoundaries(REPO_ROOT);
+    expect(result.ok).toBe(true);
+    expect(result.stats.houseEdges).toBe(128);
+    expect(result.stats.houseEdgesValue).toBe(80);
+    expect(result.stats.houseEdgesType).toBe(48);
+  });
+
+  it("fail-closed: a missing census file is a violation, never a pass", () => {
+    const root = houseTree(); /* لا جرد مكتوب */
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.some(v => v.rule === "R9-census-invalid")).toBe(true);
+  });
+
+  it("fail-closed: an unknown census schema version is rejected", () => {
+    const root = houseTree();
+    writeCensusFor(root, { exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }] });
+    const censusPath = path.join(root, "scripts", "application-house-edges-census.json");
+    const census = JSON.parse(fs.readFileSync(censusPath, "utf8"));
+    census.schema = "micro-application-house-edges-census/999";
+    fs.writeFileSync(censusPath, JSON.stringify(census));
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.some(v => v.rule === "R9-census-invalid" && v.hint.includes("999"))).toBe(true);
+  });
+
+  it("a tree matching its census passes (and internal consistency is verified)", () => {
+    const root = houseTree();
+    writeCensusFor(root, { exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }] });
+    const result = checkModuleBoundaries(root);
+    expect(r9Only(result)).toEqual([]);
+  });
+
+  it("new pair: an edge forming an unregistered house pair fails", () => {
+    const root = houseTree();
+    writeCensusFor(root, { exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }] });
+    write(root, "apps/prototype-web/client/src/application/catalog/imports.ts", 'import type { Thing } from "@/application/inventory/reads";\nexport type U = Thing;\n');
+    const result = checkModuleBoundaries(root);
+    expect(result.violations.some(v => v.rule === "R9-new-pair" && v.key.includes("catalog"))).toBe(true);
+  });
+
+  it("cap growth: a second edge inside a registered pair fails (value/type separate)", () => {
+    const root = houseTree();
+    writeCensusFor(root, { exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }] });
+    /* inventory->parties مسجل بقيمة نوعية 1؛ حافة قيمة ثانية في الزوج نفسه = تجاوز سقف النوع/القيمة. */
     write(
       root,
-      "apps/prototype-web/client/src/application/house/index.ts",
-      'export { Thing } from "./service.js";\n',
+      "apps/prototype-web/client/src/application/inventory/secondValue.ts",
+      'import { nothing } from "@/application/parties/types";\nexport const v = nothing;\n',
     );
-    write(root, "apps/prototype-web/client/src/pages/A.tsx", PAGE("@/application/house/service"));
-    write(root, "apps/prototype-web/client/src/pages/B.tsx", PAGE("@/application/house"));
-    writeBaseline(root, [
-      "apps/prototype-web/client/src/pages/A.tsx -> apps/prototype-web/client/src/application/house/service.ts",
-    ]);
-    let result = checkModuleBoundaries(root);
-    expect(result.violations.filter(v => v.rule.startsWith("R6"))).toEqual([]);
-    expect(result.stats.uiToApplicationDeep).toBe(1);
-
-    /* استيراد عميق جديد غير مسجل — يُرفض. */
-    write(root, "apps/prototype-web/client/src/pages/C.tsx", PAGE("@/application/house/service"));
-    result = checkModuleBoundaries(root);
-    const r6 = result.violations.filter(v => v.rule === "R6-ui-to-application-deep");
-    expect(r6.length).toBe(1);
-    expect(r6[0].key).toContain("pages/C.tsx");
-  });
-
-  it("a migrated site that reverts is caught (its key left the baseline)", () => {
-    const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
-    write(root, "apps/prototype-web/client/src/pages/A.tsx", PAGE("@/application/house/service"));
-    /* لا أساس: أي استيراد عميق خرق. */
-    let result = checkModuleBoundaries(root);
-    expect(result.violations.filter(v => v.rule === "R6-ui-to-application-deep")).toHaveLength(1);
-    /* هجرة الموقع إلى الباب: يمر، لكن بلا تنظيف الأساس لا يحدث شيء هنا
-     * (الأساس فارغ أصلًا) — نختبر الاتجاه المعاكس أسفل. */
-    write(root, "apps/prototype-web/client/src/pages/A.tsx", PAGE("@/application/house"));
-    result = checkModuleBoundaries(root);
-    expect(result.violations.filter(v => v.rule.startsWith("R6"))).toEqual([]);
-  });
-
-  it("a stale baseline entry (site no longer live) fails — same-PR hygiene", () => {
-    const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
-    /* الموقع A لا يزال عميقًا ومسجلًا (حي)؛ GONE مسجل لكن ملفه غير موجود. */
-    write(root, "apps/prototype-web/client/src/pages/A.tsx", PAGE("@/application/house/service"));
-    writeBaseline(root, [
-      "apps/prototype-web/client/src/pages/A.tsx -> apps/prototype-web/client/src/application/house/service.ts",
-      "apps/prototype-web/client/src/pages/GONE.tsx -> apps/prototype-web/client/src/application/house/service.ts",
-    ]);
+    write(root, "apps/prototype-web/client/src/application/parties/types.ts", "export type Thing = { id: string };\nexport const nothing = 1;\n");
     const result = checkModuleBoundaries(root);
-    expect(result.violations.filter(v => v.rule === "R6-ui-to-application-deep")).toEqual([]);
-    const stale = result.violations.filter(v => v.rule === "R6-baseline-stale");
-    expect(stale.length).toBe(1);
-    expect(stale[0].key).toContain("pages/GONE.tsx");
+    expect(result.violations.some(v => v.rule === "R9-cap-growth")).toBe(true);
   });
 
-  it("pwa layer is covered (runtime UI-adjacent consumer), storage is not an application interior", () => {
-    const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
-    write(root, "apps/prototype-web/client/src/pwa/register.ts", PAGE("@/application/house/service"));
-    const result = checkModuleBoundaries(root);
-    expect(result.stats.uiToApplicationDeep).toBe(1);
-    expect(result.violations.filter(v => v.rule === "R6-ui-to-application-deep")).toHaveLength(1);
-  });
-
-  it("live repo: the R6 baseline file is unique-keyed and fully live (no stale rows)", () => {
-    const raw = JSON.parse(
-      fs.readFileSync(path.join(REPO_ROOT, "scripts", "ui-application-import-baseline.json"), "utf8"),
-    );
-    expect(raw.version).toBe(1);
-    expect(new Set(raw.allowed).size).toBe(raw.allowed.length);
-    /* الحالة بعد R5/S1 (2026-10-09): ٤٢ مفتاحًا محتجزًا موثقًا — ٣٦ لجذر
-     * التركيب + ٦ لأسطح التوافق المجمدة (٣ شيمة g5 + ٣ واجهات عرض)؛ هاجر
-     * مفتاح شيمة الميزانيات إلى باب budgets في نفس الشريحة (كان ٤٣). أي
-     * نقصان لاحق = تقدم (يُثبت بتحديث هذا الدبوس في نفس الـPR)؛ أي زيادة
-     * = خرق راتشة.
-     * R7/R6-F17-P02 (2026-10-10): +١ مفتاح موثق — مسار المالية الكسول يستهلك
-     * قراء نموذج عرض المالية من financeState.ts مباشرة (الباب يبقى أنواعًا فقط
-     * كي لا تدخل قيم كومة الإقلاع)؛ المجموع ٤٣ (٣٦ + ٧).
-     * R7/R7-2 (P07+P03+P01، 2026-10-10): +٣ مفاتيح موثقة — نماذج عرض المحررات
-     * والطلبات المستخرجة (directSaleEditorModel/financialEventEditorModel/
-     * orderDetailViewModel) تستهلكها مساراتها الكسولة باستيراد عميق مؤرخ؛
-     * المجموع ٤٦ (٣٦ + ١٠).
-     * R7/R7-3 (P04+P08+P09، 2026-10-10): +٣ مفاتيح موثقة — نماذج عرض
-     * الموردين والمخزون المستخرجة؛ المجموع ٤٩ (٣٦ + ١٣).
-     * R7/R7-4 (P05+P06+P11، 2026-10-10): +٣ مفاتيح موثقة — نموذجا عرض مال
-     * المالك والجدولة والبيان المستخرجة؛ المجموع النهائي ٥٢ (٣٦ + ١٦) —
-     * الطرف النهائي لموجة R7 (كل الحزم الإحدى عشرة منفذة).
-     * R7/R7-5 (2026-10-10): −٤ مفاتيح — شيمات g5/recurringExpense أُزيلت بترحيل
-     * كل مستهلكيها إلى المسارات الكنسية وإثبات صفر مستهلكين؛ المجموع ٤٨
-     * (٣٦ + ١٣) — نقصان موثق = تقدم (بروتوكول الراتشة نفسه). ثم مفاتيح التبديل
-     * الموثقة الأربعة (تعديل المراجعة 10): PSC→recurring الكنوني + ثلاثة مواقع
-     * g5 النوعية → financial-analysis؛ المجموع ٥٢ (٣٦ + ١٦) — صافي التبديل صفر. */
-    const contextKeys = raw.allowed.filter(k => k.includes("PrototypeServicesContext"));
-    const otherKeys = raw.allowed.filter(k => !k.includes("PrototypeServicesContext"));
-    expect(contextKeys.length).toBe(36);
-    expect(otherKeys.length).toBe(16);
-    expect(otherKeys.some(k => k.includes("finance/expenseBudgetService.ts"))).toBe(false);
-    expect(otherKeys.filter(k => k.includes("g5/g5Service.ts")).length).toBe(0); /* R7/R7-5: أُزيلت الشيمة بمستهلكيها */
-    expect(otherKeys.some(k => k.includes("activity/activityLabels.ts"))).toBe(true);
-    expect(otherKeys.some(k => k.includes("formatting/formatters.ts"))).toBe(true);
-    expect(otherKeys.some(k => k.includes("agreements/agreementPresentation.ts"))).toBe(true);
-    expect(otherKeys.some(k => k.includes("pages/Finance.tsx -> "))).toBe(true);
-    const live = checkModuleBoundaries(REPO_ROOT);
-    expect(live.violations.filter(v => v.rule === "R6-baseline-stale")).toEqual([]);
-  });
-
-  /* ── R5/S1 (2026-10-09): المحدّد النوعي `import("…").X` وملفات `.js` ── */
-
-  it('R5/S1: type-position import("…") into an application interior is counted and rejected when un-baselined', () => {
-    const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
+  it("stale edge: a census edge that left the tree fails (same-PR hygiene)", () => {
+    const root = houseTree();
+    writeCensusFor(root, { exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }] });
+    /* هجرة الاستيراد إلى الباب: الحافة المسجلة تغادر. */
     write(
       root,
-      "apps/prototype-web/client/src/pages/P.tsx",
-      `type T = import("@/application/house/service").Thing;\nexport const p: T | null = null;\n`,
+      "apps/prototype-web/client/src/application/inventory/reads.ts",
+      'import type { Thing } from "@/application/parties";\nexport type T = Thing;\n',
     );
+    write(root, "apps/prototype-web/client/src/application/parties/index.ts", 'export type { Thing } from "./types.js";\n');
     const result = checkModuleBoundaries(root);
-    expect(result.stats.uiToApplicationDeep).toBe(1);
-    const hit = result.violations.find(v => v.rule === "R6-ui-to-application-deep");
-    expect(hit?.key).toContain("application/house/service.ts");
+    expect(result.violations.some(v => v.rule === "R9-stale-edge" && v.key.includes("inventory/reads.ts"))).toBe(true);
   });
 
-  it("R5/S1: a .js production file deep-importing an application interior is scanned and caught", () => {
-    const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/application/house/service.ts", SERVICE);
+  it("census drift: a new edge onto an exempt leaf is bookkeeping, not a pair violation", () => {
+    const root = houseTree();
+    writeCensusFor(root, { exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }] });
     write(
       root,
-      "apps/prototype-web/client/src/pages/Q.js",
-      `import { s } from "@/application/house/service";\nexport const q = s;\n`,
+      "apps/prototype-web/client/src/application/inventory/alsoClock.ts",
+      'import { systemClock } from "@/application/time/clock";\nexport const b = systemClock;\n',
     );
     const result = checkModuleBoundaries(root);
-    expect(result.stats.uiToApplicationDeep).toBe(1);
-    const hit = result.violations.find(v => v.rule === "R6-ui-to-application-deep");
-    expect(hit?.key).toContain("pages/Q.js");
+    expect(result.violations.some(v => v.rule === "R9-census-drift" && v.key.includes("alsoClock.ts"))).toBe(true);
+    expect(result.violations.some(v => v.rule === "R9-new-pair" && v.key.includes("alsoClock.ts"))).toBe(false);
+  });
+
+  it("exemption invariants: mutable state / import drift / outgoing edge each revoke loudly", () => {
+    const exemptEntry = { path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" };
+    /* 1) حالة قابلة للتغيير */
+    const root1 = houseTree();
+    writeCensusFor(root1, { exemptModules: [exemptEntry] });
+    write(root1, "apps/prototype-web/client/src/application/time/clock.ts", 'export const systemClock = (): string => "x";\nlet hidden = 0;\nexport const leak = () => hidden;\n');
+    expect(checkModuleBoundaries(root1).violations.some(v => v.rule === "R9-exemption-violation" && v.key.includes("MUTABLE_MODULE_STATE"))).toBe(true);
+    /* 2) انحراف قائمة الاستيراد */
+    const root2 = houseTree();
+    writeCensusFor(root2, { exemptModules: [exemptEntry] });
+    write(root2, "apps/prototype-web/client/src/application/time/clock.ts", 'import { localDateInAmman } from "@micro-domain/shared/index.js";\nexport const systemClock = (): string => "x";\n');
+    expect(checkModuleBoundaries(root2).violations.some(v => v.rule === "R9-exemption-violation" && v.key.includes("IMPORT_ALLOWLIST_DRIFT"))).toBe(true);
+    /* 3) حافة خارجة من الورقة المعفاة */
+    const root3 = houseTree();
+    writeCensusFor(root3, { exemptModules: [exemptEntry] });
+    write(root3, "apps/prototype-web/client/src/application/time/clock.ts", 'import { helper } from "@/application/parties/types";\nexport const systemClock = (): string => "x";\n');
+    expect(checkModuleBoundaries(root3).violations.some(v => v.rule === "R9-exemption-violation" && v.key.includes("OUTGOING_CROSS_HOUSE"))).toBe(true);
+  });
+
+  it("new value cycle between houses fails; a resolved recorded cycle also fails until re-anchored", () => {
+    const exemptEntry = { path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" };
+    /* دورة قيمة حقيقية جديدة: a->b وb->a */
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/application/alpha/mod.ts", 'import { betaFn } from "@/application/beta/mod";\nexport const alphaFn = () => betaFn;\n');
+    write(root, "apps/prototype-web/client/src/application/beta/mod.ts", 'import { alphaFn } from "@/application/alpha/mod";\nexport const betaFn = () => alphaFn;\n');
+    /* الجرد بلا دورة مسجلة -> الدورة الحية جديدة. */
+    writeCensusFor(root, { exemptModules: [exemptEntry], sccOverride: { value: [], type: [] } });
+    expect(checkModuleBoundaries(root).violations.some(v => v.rule === "R9-new-value-cycle" && v.key.includes("alpha"))).toBe(true);
+    /* والعكس: جرد يسجل دورة غير موجودة حيًا -> محلولة (إعادة إرساء مطلوبة). */
+    writeCensusFor(root, { exemptModules: [exemptEntry], sccOverride: { value: [["alpha", "beta"]], type: [] } });
+    const before = collectHouseEdges(collectAllImports(root)).length;
+    write(root, "apps/prototype-web/client/src/application/beta/mod.ts", "export const betaFn = () => 1;\n");
+    expect(collectHouseEdges(collectAllImports(root)).length).toBe(before - 1);
+    expect(checkModuleBoundaries(root).violations.some(v => v.rule === "R9-resolved-cycle")).toBe(true);
+  });
+
+  it("type-dominant classification: a pair with one type site and one value site is TYPE", () => {
+    const root = makeTempDir();
+    write(root, "apps/prototype-web/client/src/application/parties/types.ts", "export type Thing = { id: string };\nexport const thingValue = 1;\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/application/inventory/dual.ts",
+      'import { thingValue } from "@/application/parties/types";\nimport type { Thing } from "@/application/parties/types";\nexport const v = thingValue;\nexport type T = Thing;\n',
+    );
+    const edges = collectHouseEdges(collectAllImports(root));
+    expect(edges).toHaveLength(1);
+    expect(edges[0].kind).toBe("type");
   });
 });
