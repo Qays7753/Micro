@@ -2,7 +2,7 @@
   "id": "ARCH-008",
   "title": "R11 S0 + W1A — مسح تاريخ Git الأمني لمرة واحدة وإكمال حراس النقاط الست (D-01/D-04/D-05/D-07/D-03/D-02) بقرارات المالك المعتمدة",
   "type": "GOVERNANCE",
-  "status": "CLAIMED",
+  "status": "IN_REVIEW",
   "priority": "P0",
   "stage": "r11-s0-w1a-20261013",
   "summary": "تنفيذ النطاق المعتمد حصريًا من R11: مسح S0 لتاريخ Git بحثًا عن أسرار (دليل فقط، مخرجات منقحة بالبصمات، بلا إعادة كتابة تاريخ) على فرع refactoring/r11-s0-w1a-20261013 وPR واحد إلى main، ثم W1A-1 (حراس D-01 راتشة 19 حافة نوعية UI→Storage، وD-04 جسم القراءة 63 ملفًا، وD-05 نقطة استقصاء 35 تحذير lint تحت سقف 37، وD-07 راتشة أزواج البيوت 128/80/48 مع إعفاءات OD-10 الورقية) وW1A-2 (D-03 إعفاء ?? مربوط بالـAST، وD-02 مراقب casts عائلة Minor). حراس واختبارات وأدلة ووثائق فقط — لا تغيير إنتاجي ولا رفع أي سقف.",
@@ -60,7 +60,12 @@
     "https://github.com/Qays7753/Micro/pull/360 (R11-S0-W1A-EXECUTION-PROMPT-2026-10-13.md — canonical execution prompt, head 96100590)",
     "docs/architecture/refactoring/r11-wave0-20261013/R11-W0-STRUCTURE-ARCHITECTURE-CONTRACT-SCAN-REPORT-2026-10-13.md"
   ],
-  "evidence": [],
+  "evidence": [
+    "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-S0-W1A-EXECUTION-REPORT-2026-10-13.md",
+    "docs/architecture/refactoring/r11-s0-w1a-20261013/evidence/R11-S0-GIT-HISTORY-SECRET-SCAN-2026-10-13.md",
+    "docs/architecture/refactoring/r11-s0-w1a-20261013/evidence/R11-W1A1-GUARDS-EVIDENCE-2026-10-14.md",
+    "docs/architecture/refactoring/r11-s0-w1a-20261013/evidence/R11-W1A2-D03-D02-EVIDENCE-2026-10-14.md"
+  ],
   "dependencies": [],
   "related_items": [
     "ARCH-007"
@@ -73,8 +78,20 @@
       "changed_at": "2026-10-14",
       "actor": "owner:decision-package-2026-10-13+zai-executor",
       "reason": "اعتمد المالك حزمة قرارات R11 كاملة (S0_SCOPE_APPROVED / W1A_SCOPE_APPROVED — ZAI_EXECUTION_ONLY)؛ فُتح Claim تنفيذي على الفرع الوحيد من الأساس الحي 5ef4ce08 قبل أي تعديل كودي."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-14",
+      "actor": "zai-executor",
+      "reason": "بدأ تنفيذ النطاق فعليًا بعد Claim: S0 ثم W1A-1 ثم W1A-2 على الفرع التنفيذي الوحيد مع بوابات كاملة بعد كل موجة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-14",
+      "actor": "zai-executor",
+      "reason": "S0 + W1A-1 + W1A-2 مكتملة وبوابتا الموجة خضراوان (pnpm check exit 0 عند c160f8ae و7f4fa716)؛ PR #361 مفتوح وPR_READY بانتظار مراجعة المالك وقرار دمجه المستقل."
     }
   ],
   "migration_baseline": false,
-  "next_action": "التنفيذ الجاري على فرع refactoring/r11-s0-w1a-20261013 وPR واحد إلى main: S0 ثم W1A-1 (D-01/D-04/D-05/D-07) ثم W1A-2 (D-03/D-02) مع تعليقات نقاط تفتيش بعد كل موجة؛ الدمج قرار مالك لاحق لا يجوز تنفيذه هنا."
+  "next_action": "مراجعة المالك لPR #361 (R11_S0_W1A_EXECUTION_COMPLETE — PR_READY): قرارات الدمج المستقلة، ومصير R11-W1A-NF-002 (عبور شريط SPLIT_CANDIDATE لحارس الحدود)، وفتح W1b من عدمه — لا تنفيذ إضافي هنا."
 }

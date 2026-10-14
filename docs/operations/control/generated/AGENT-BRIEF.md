@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · CLAIMED: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 57 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 57 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-217 | CLAIMED | `refactoring/r11-s0-w1a-20261013` | — | ARCH-008 | S0 (history secret scan, evidence-only) ثم W1A-1 (D-01/D-04/D-05/D-07) ثم W1A-2 (D-03/D-02) على الفرع نفسه وPR واحد؛ تعليق نقطة تفتيش بعد كل موجة؛ لا دمج ولا تنظيف فروع. |
+| WS-217 | IN_REVIEW | `refactoring/r11-s0-w1a-20261013` | 361 | ARCH-008 | مراجعة المالك وقرار الدمج لPR #361؛ بعد الدمج (إن قُبل): MERGED_UNVERIFIED ثم VERIFIED وفق دورة الحالة مع إثبات SHA على main. |

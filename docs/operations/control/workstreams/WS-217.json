@@ -1,7 +1,7 @@
 {
   "id": "WS-217",
   "title": "تنفيذ R11 S0 + W1A — مسح التاريخ الأمني وحراس النقاط الست على فرع تنفيذي واحد",
-  "status": "CLAIMED",
+  "status": "IN_REVIEW",
   "items": [
     "ARCH-008"
   ],
@@ -20,10 +20,10 @@
     "docs/architecture/refactoring/r11-wave0-20261013/R11-W0-STRUCTURE-ARCHITECTURE-CONTRACT-SCAN-REPORT-2026-10-13.md"
   ],
   "agent": "ZAI sequential executor (one writer; five read-only reviewers RV1-RV5 completed before implementation)",
-  "pr": null,
+  "pr": 361,
   "started_at": "2026-10-14",
   "updated_at": "2026-10-14",
-  "next_action": "S0 (history secret scan, evidence-only) ثم W1A-1 (D-01/D-04/D-05/D-07) ثم W1A-2 (D-03/D-02) على الفرع نفسه وPR واحد؛ تعليق نقطة تفتيش بعد كل موجة؛ لا دمج ولا تنظيف فروع.",
+  "next_action": "مراجعة المالك وقرار الدمج لPR #361؛ بعد الدمج (إن قُبل): MERGED_UNVERIFIED ثم VERIFIED وفق دورة الحالة مع إثبات SHA على main.",
   "notes": [
     "Claim أنشئ قبل أي تعديل كودي وفق AGENTS.md §14 وREADME العمليات؛ لا تداخل مع أي Claim نشط (WS-216 = VERIFIED).",
     "الأساس الحي تحقق منه مباشرة: origin/main = 5ef4ce08841bcd4ff7c5fb185a0fe2eeef6852fd بلا انحراف؛ PR #358 وPR #360 توثيقيان لا يُمسّان.",
@@ -36,6 +36,12 @@
       "changed_at": "2026-10-14",
       "actor": "zai-executor",
       "reason": "فتح Claim تنفيذي بعد اكتمال حزمة قرارات المالك وخمس مراجعات قراءة فقط؛ الفرع مُنشأ من origin/main الحي 5ef4ce08."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-14",
+      "actor": "zai-executor",
+      "reason": "كل موجات النطاق (S0 + W1A-1 + W1A-2) منفذة ومتحقق منها على الفرع؛ PR #361 جاهز لمراجعة المالك؛ لا دمج ولا تنظيف."
     }
   ],
   "migration_baseline": false
