@@ -1560,6 +1560,44 @@
         "trigger": "R11-W1B-EXECUTION-PROMPT-2026-10-14 section 9 verification contract — format:check must pass on the final head; the single non-conforming line was introduced by W1b-2 in this same PR",
         "ocRef": "ARCH-009"
       }
+    },
+    {
+      "id": "R11-LOCK-GATE-FAIL-CLOSED-STATE-MODEL",
+      "date": "2026-10-15",
+      "path": "apps/prototype-web/client/src/components/security/AppLockGate.tsx",
+      "from": {
+        "nbLoc": 192,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 249,
+        "band": "NORMAL"
+      },
+      "reason": "R11 Lock Remediation (owner-approved OD-LOCK-STORAGE=A and OD-LOCK-SEMANTICS=A, findings R11-W1B4-NF-003/NF-004): the gate state model now separates checking/open/locked/unreadable — a failed storage read renders an honest full-screen unreadable overlay in the existing visual language with a retry action instead of opening (children stay mounted but inert in every non-open phase), and the visible-app heartbeat tracks real input in a component-level ref (no fake initial value) so passive evaluation never renews lastActiveAt. The growth is the required fail-closed behavior itself plus its governing comments; no unrelated responsibility was added and no visual system changed. All four lock suites re-verified green (56/56).",
+      "authorization": {
+        "ownerReview": "OD-LOCK-STORAGE=A + OD-LOCK-SEMANTICS=A OWNER_APPROVED — R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15 section 3 (pinned head 6733ba34 via PR #367) — part of the R11 lock remediation execution PR #368",
+        "trigger": "R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15 sections 7.2 (storage failure at the application gate) and 7.3 (real-input inactivity)",
+        "ocRef": "ARCH-011"
+      }
+    },
+    {
+      "id": "R11-LOCK-SERVICE-FAIL-CLOSED-TIME-POLICY",
+      "date": "2026-10-15",
+      "path": "apps/prototype-web/client/src/application/security/localLockService.ts",
+      "from": {
+        "nbLoc": 258,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 302,
+        "band": "NORMAL"
+      },
+      "reason": "R11 Lock Remediation (owner-approved OD-LOCK-ROLLBACK=A, findings R11-W1B4-NF-001/NF-002): shouldLockNow parses both timestamps explicitly and locks on an unparseable value or a clock earlier than lastActiveAt; a single private policy (backoffWhenTimeUnverifiable) guards both unlock and disable BEFORE any PIN verification — an unverifiable clock inside an active backoff window early-rejects with the full window, executing no guess, incrementing no counter, and rewriting no record. The growth is the required fail-closed policy plus its governing comments; forward-time behavior is preserved exactly as characterized in W1b-4. Service suites re-verified green (28/28).",
+      "authorization": {
+        "ownerReview": "OD-LOCK-ROLLBACK=A OWNER_APPROVED — R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15 section 3 (pinned head 6733ba34 via PR #367) — part of the R11 lock remediation execution PR #368",
+        "trigger": "R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15 section 7.1 (clock rollback and idle lock)",
+        "ocRef": "ARCH-011"
+      }
     }
   ]
 }
