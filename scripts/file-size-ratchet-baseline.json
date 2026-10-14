@@ -1971,6 +1971,10 @@
     "scripts/application-house-edges-census.json": {
       "nbLoc": 891,
       "band": "SPLIT_CANDIDATE"
+    },
+    "scripts/check-money-minor-casts.mjs": {
+      "nbLoc": 222,
+      "band": "NORMAL"
     }
   }
 }
