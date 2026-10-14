@@ -1408,6 +1408,44 @@
         "trigger": "R11-S0-W1A-EXECUTION-PROMPT-2026-10-13 section 7.2 (D-04) — in-band guard growth requires a ledger entry with an Operations Control reference",
         "ocRef": "ARCH-008"
       }
+    },
+    {
+      "id": "R11-W1A1-D0X-MODULE-BOUNDARIES-R8-R9-SPAN",
+      "date": "2026-10-14",
+      "path": "scripts/check-module-boundaries.mjs",
+      "from": {
+        "nbLoc": 431,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 822,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R11 W1A-1 / D-01 + D-07 in one PR (R10A-F-006 + R10B-NF-005, OD-GUARD + OD-10 Option A, owner-approved 2026-10-13): this entry spans the PR's full documented growth of the module-boundaries guard from the merge-base value (R8 type-edge ratchet + ImportEqualsDeclaration collection at commit aa84fd6b: 431->534; R9 house-pair ratchet on the 128-edge census with OD-10 leaf exemptions, pinned allowlists and SCC baselines at this commit: 534->822). 822 nbLoc crosses the 800 SPLIT_CANDIDATE threshold — recorded as an honest band escalation; splitting guards into helpers is explicitly out of W1A scope per the owner decision, so the disposition is documented in the execution report for the owner's review.",
+      "authorization": {
+        "ownerReview": "OD-10 Option A — part of the R11 S0+W1A execution PR #361",
+        "trigger": "R11-S0-W1A-EXECUTION-PROMPT-2026-10-13 section 7.4 (D-07) — in-band guard growth requires a ledger entry with an Operations Control reference",
+        "ocRef": "ARCH-008"
+      }
+    },
+    {
+      "id": "R11-W1A1-D07-CENSUS-ARTIFACT",
+      "date": "2026-10-14",
+      "path": "scripts/application-house-edges-census.json",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 891,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R11 W1A-1 / D-07: the full application-house-edges census artifact (128 edges / 80 value / 48 type / 42 governed pairs / exemption entries with pinned allowlists / SCC baselines / review candidate materialUnitLabels) — new guard-data file entering the SPLIT_CANDIDATE band (891 nbLoc > 800); the from=0 seed documents its establishment (not growth of an existing file).",
+      "authorization": {
+        "ownerReview": "OD-10 Option A — part of the R11 S0+W1A execution PR #361",
+        "trigger": "new-file-enters-band rule — new script-category file above NORMAL requires a documented ledger entry",
+        "ocRef": "ARCH-008"
+      }
     }
   ]
 }

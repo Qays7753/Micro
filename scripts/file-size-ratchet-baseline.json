@@ -1533,8 +1533,8 @@
       "band": "NORMAL"
     },
     "scripts/check-module-boundaries.mjs": {
-      "nbLoc": 534,
-      "band": "WATCH"
+      "nbLoc": 822,
+      "band": "SPLIT_CANDIDATE"
     },
     "scripts/check-registry-coverage.mjs": {
       "nbLoc": 82,
@@ -1967,6 +1967,10 @@
     "scripts/check-lint-warning-baseline.mjs": {
       "nbLoc": 152,
       "band": "NORMAL"
+    },
+    "scripts/application-house-edges-census.json": {
+      "nbLoc": 891,
+      "band": "SPLIT_CANDIDATE"
     }
   }
 }
