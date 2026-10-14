@@ -1,7 +1,7 @@
 # R11 S0 — Git-History Secret Scan Evidence (Sanitized)
 
 **Scan ID:** R11-S0-GIT-HISTORY-SECRET-SCAN-2026-10-13
-**Execution date:** 2026-10-14 (UTC) — authoritative re-scan of the repository state as of branch head `1fbbe3663ba1260204cc84d9bb01cb5ba1363fab` (the repair commit; see §0)
+**Execution date:** 2026-10-14 (UTC) — authoritative final-head re-scan of the repository state as of branch head `d4553bcc28332b12ecfc5e1582b14e156c17d9d7` (the records/evidence commit; the repair-head scan at `1fbbe3663ba1260204cc84d9bb01cb5ba1363fab` remains preserved in §0 and the historical reconciliation below)
 **Decision authority:** OD-SEC Option A (owner-approved 2026-10-13): one-time full-history scan, fingerprint-only evidence, no history rewrite, no automatic rotation, no working-tree guard modification. The recurring workflow belongs to W1b and is explicitly NOT part of this execution.
 
 ---
@@ -22,7 +22,7 @@ The independent PR review of 2026-10-14 reproduced two HIGH S0 acceptance blocke
 
 Verified against the pre-repair implementation: **all five fail (5/5)** — reproducing both review blockers exactly; against the repair commit: **14/14 green** (the nine original tests included). The scanner schema moved `/1` → `/2` (enumeration semantics hardened; additive `scanned.trees` + `scanned.blob_path_entries` fields). The pattern table was NOT touched (still imported mechanically from `scripts/check-secrets.mjs`). Ratchet ledger entry `R11-REV-S0-SCANNER-COMPLETE-ENUMERATION` (303 → 458 nbLOC, ocRef ARCH-008) documents the scanner growth.
 
-The first scan's numbers (1,556 commits / 10,804 blobs at head `49f8968a`) are superseded by this re-scan; the §8 raw output below is the authoritative record.
+The first scan's numbers (1,556 commits / 10,804 blobs at head `49f8968a`) and the historical repair-head scan at `1fbbe366` (1,568 / 10,775 / 10,852 / 11,006) are superseded for final-head acceptance by the final-head re-scan below; both historical measurements remain preserved in the repair record. The §8 raw output below is the final-head authoritative record.
 
 ## 1. Result
 
@@ -34,7 +34,7 @@ NO_HISTORY_MUTATION: the scan is read-only (rev-list / cat-file / for-each-ref o
 NO_CREDENTIAL_ROTATION_OR_REVOCATION: performed by this scan, by design
 ```
 
-The result holds under the complete adversarial enumeration: all 11,006 blob-path entries (including 154 alias associations beyond the 10,852 unique blobs that the first implementation could have missed) and all 1,568 commit messages parsed from raw commit objects.
+The result holds under the complete adversarial enumeration on the exact final head: all 11,016 blob-path entries (including 154 alias associations beyond the 10,862 unique blobs) and all 1,569 commit messages parsed from raw commit objects. The earlier repair-head measurement of 11,006 / 1,568 remains historical evidence of the code-repair checkpoint.
 
 ## 2. Method (exactly reproducible)
 
@@ -43,7 +43,7 @@ The result holds under the complete adversarial enumeration: all 11,006 blob-pat
 | Scanner | `scripts/security/scan-git-history-secrets.mjs` — scanner git blob SHA `df5f77919a72ec7917af9988c2e32a34000a4490` (schema `micro-r11-s0-history-secret-scan/2`; committed in this PR; the blob SHA is stable and verifiable with `git hash-object`) |
 | Self-test | `scripts/security/scan-git-history-secrets.test.mjs` — git blob SHA `6942e0cf3fc8f49e711e8aaa81aed2607706354f`; **14/14 tests green** (`npx vitest run scripts/security/scan-git-history-secrets.test.mjs`), including the five R11-REV adversarial regressions of §0 |
 | Pattern-table source | `scripts/check-secrets.mjs` — the working-tree guard's own table, imported mechanically (`SECRET_PATTERNS` = 15 content patterns, `SECRET_FILE_NAMES` = 6 file-name rules). No weaker or divergent table is used; any future change to the guard's table automatically governs this scanner. |
-| Scan target | Fresh mirror clone `git clone --mirror https://github.com/Qays7753/Micro.git` (created immediately before the scan, after pushing the repair commit; includes `refs/pull/*/head` which ordinary clones do not fetch) |
+| Scan target | Fresh mirror clone `git clone --mirror https://github.com/Qays7753/Micro.git` (created for the exact final-head verification at `d4553bcc`; includes the currently advertised refs, including `refs/pull/*`, which ordinary clones do not fetch) |
 | Enumeration | `git rev-list --objects --all` for the reachable-object universe (all refs in the mirror: heads, pull refs, tags); `git cat-file --batch-check` for object typing (blobs + trees); **every tree object read raw via `cat-file --batch` with byte-exact length-framing and parsed binary** (`<mode> <name> \0 <20-byte sha>`), with path prefixes propagated from every commit root tree and every annotated tag pointing at a tree — the complete (blob → all paths) map; **commit objects read raw** (same framing): root tree from the mandatory first `tree` header, message = bytes after the first blank line (the provably unambiguous boundary); blob contents via `cat-file --batch` sliced by announced size (never line-split), once per unique blob SHA; `git cat-file -p` for annotated-tag messages; every enumerated path measured against the file-name rules. Gitlinks (mode `160000`) are external submodules and not targets; a tag pointing at a tree missing from the enumeration fails closed. |
 | Text decoding | latin1 (byte-permissive), identical to the working-tree guard's approach; tree-entry names are handled as raw bytes (latin1-safe paths) |
 | Output sanitization | Only rule ID, object SHA, kind, path (paths are safe-to-emit per the working-tree guard's precedent of printing file+line), non-reversible fingerprint (first 16 hex of SHA-256 over the matched region), and containing commits (`git log --all --find-object`, first/last/count). The matched text and the secret value are NEVER printed, stored, or emitted. An in-emitter redaction assertion verifies the serialized report contains no captured value (≥8 chars) before any write; a hit aborts with `REDACTION_FAILURE` |
@@ -69,13 +69,13 @@ The self-test suite (`scripts/security/scan-git-history-secrets.test.mjs`) prove
 | Measure | Value |
 |---|---|
 | Refs scanned | **367** = 5 `refs/heads/*` + 362 `refs/pull/*` + 0 `refs/tags/*` |
-| Branch heads included | `main` @ `5ef4ce08…`, `audit/r11-wave0-structure-scan-20261013` @ `c8fa57e3…`, `docs/r11-s0-w1a-execution-contract-20261013` @ `96100590…`, `docs/r11-wave0-prompt-20261013` @ `6f97fa96…`, `refactoring/r11-s0-w1a-20261013` @ `1fbbe366…` (the repair head) |
-| Commits reachable | **1,568** (oldest `24cb03e7e6312821527dfd13be28330267b49abe`) |
-| Tree objects read + parsed | **10,775** (every reachable tree, raw binary parse) |
-| Blobs scanned | **10,852** (every reachable blob, content scanned once per unique SHA) |
-| Blob-path entries enumerated | **11,006** distinct (blob, path) pairs — 154 alias associations beyond the unique-blob count, all measured against the file-name rules |
+| Branch heads included | `main` @ `5ef4ce08…`, `audit/r11-wave0-structure-scan-20261013` @ `c8fa57e3…`, `docs/r11-s0-w1a-execution-contract-20261013` @ `96100590…`, `docs/r11-wave0-prompt-20261013` @ `6f97fa96…`, `refactoring/r11-s0-w1a-20261013` @ `d4553bcc…` (the exact final head) |
+| Commits reachable | **1,569** (oldest `24cb03e7e6312821527dfd13be28330267b49abe`) |
+| Tree objects read + parsed | **10,787** (every reachable tree, raw binary parse) |
+| Blobs scanned | **10,862** (every reachable blob, content scanned once per unique SHA) |
+| Blob-path entries enumerated | **11,016** distinct (blob, path) pairs — 154 alias associations beyond the unique-blob count, all measured against the file-name rules |
 | Annotated tag objects | 0 (the repository has no tags) |
-| Commit messages scanned | all 1,568 (raw commit objects; complete, untruncated) |
+| Commit messages scanned | all 1,569 (raw commit objects; complete, untruncated) |
 | Duration | ~3.9 s (local, read-only) |
 
 ## 5. Findings
@@ -84,7 +84,7 @@ The self-test suite (`scripts/security/scan-git-history-secrets.test.mjs`) prove
 ZERO_FINDINGS
 ```
 
-No content-pattern match and no secret-file-name match exists anywhere in the reachable history of the scanned refs — **under the complete enumeration** (all alias paths of every deduplicated blob, and raw untruncated commit messages). A pre-verification run of the same fixed scanner against the mirror state at the pre-push head `98d22362` (1,567 commits / 10,849 blobs / 11,003 path entries) and against the local working clone (1,187 commits / 9,971 blobs / 10,121 path entries) also returned zero findings; the authoritative run documented here is the post-repair mirror scan above.
+No content-pattern match and no secret-file-name match exists anywhere in the reachable history of the scanned refs — **under the complete enumeration** (all alias paths of every deduplicated blob, and raw untruncated commit messages). The exact final-head mirror run documented here is the acceptance run; the repair-head scan at `1fbbe366` remains preserved as the historical code-repair checkpoint.
 
 ## 6. Blind spots (what this scan does NOT cover)
 
@@ -128,10 +128,10 @@ Had a likely real credential been found, the execution contract required: stop s
         "refs/tags/*": 0
       }
     },
-    "commits": 1568,
-    "trees": 10775,
-    "blobs": 10852,
-    "blob_path_entries": 11006,
+    "commits": 1569,
+    "trees": 10787,
+    "blobs": 10862,
+    "blob_path_entries": 11016,
     "tag_objects": 0
   },
   "result": "ZERO_FINDINGS",
