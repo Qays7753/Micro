@@ -40,7 +40,7 @@ type State =
   | { phase: "error"; message: string }
   | { phase: "ready"; rows: readonly ActivityRecord[] };
 
-type PeriodRange = "this_week" | "last_week" | "this_month" | "all" | "custom";
+export type FinanceActivityPeriodKey = "this_week" | "last_week" | "this_month" | "all" | "custom";
 
 /* R2 (M-02/X1، 2026-10-08): حساب حدود الأسبوع من نواة التاريخ الكنسية —
  * كانت Date.UTC رقمية (تعيد السنوات < 0100 إلى 1900+). اليوم من ساعة
@@ -138,14 +138,14 @@ export default function FinanceActivity() {
   const thisWeek = weekBounds(today);
   const lastWeek = weekBounds(shiftDate(today, -7));
   const thisMonth = monthBounds(today);
-  const [range, setRange] = useState<PeriodRange>("this_week");
+  const [range, setRange] = useState<FinanceActivityPeriodKey>("this_week");
   const [from, setFrom] = useState(thisWeek.from);
   const [retryCount, setRetryCount] = useState(0);
   const [to, setTo] = useState(thisWeek.to);
   const [family, setFamily] = useState<ActivityFamily | "all">("all");
   const [state, setState] = useState<State>({ phase: "loading" });
 
-  const applyQuick = (value: PeriodRange) => {
+  const applyQuick = (value: FinanceActivityPeriodKey) => {
     setRange(value);
     if (value === "this_week") {
       setFrom(thisWeek.from);
@@ -249,7 +249,7 @@ export default function FinanceActivity() {
               ["this_month", "هذا الشهر"],
               ["all", "منذ البداية"],
               ["custom", "نطاق مخصص"],
-            ] as readonly [PeriodRange, string][]
+            ] as readonly [FinanceActivityPeriodKey, string][]
           ).map(([value, label]) => (
             <button
               key={value}
