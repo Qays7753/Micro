@@ -1,0 +1,48 @@
+{
+ "id": "WS-219",
+ "title": "تنفيذ R11 Lock Remediation — إصلاح فاشل-مغلق للقفل المحلي R11-W1B4-NF-001..004 على فرع أمني واحد بقرارات OD-LOCK الثلاثة",
+ "status": "CLAIMED",
+ "items": [
+  "ARCH-011"
+ ],
+ "branch": "security/r11-lock-fail-closed-20261015",
+ "base_sha": "9303ea445cc4f3ee87d7a4514e3e9d47d608d339",
+ "areas": [
+  "apps/prototype-web/client/src/application/security",
+  "apps/prototype-web/client/src/components/security",
+  "docs/contracts",
+  "docs/quality",
+  "docs/operations",
+  "docs/architecture/refactoring"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/contracts/37-local-app-lock-contract.md",
+  "https://github.com/Qays7753/Micro/pull/367 (R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15.md — العقد الرسمي المثبت، الرأس 6733ba34)",
+  "docs/quality/security-boundaries.md"
+ ],
+ "agent": "ZAI sequential executor (one writer; five read-only reviewers RV1-RV5 after implementation before final readiness)",
+ "pr": null,
+ "started_at": "2026-10-15",
+ "updated_at": "2026-10-15",
+ "next_action": "Test-first للنتائج الأربع ثم الإصلاح (الخدمة ثم البوابة) ثم العقود والسجلات والتقرير ثم البوابة الكاملة والمراجعات الخمسة ثم الدفع والتحقق على الرأس النهائي؛ لا دمج ولا تنظيف.",
+ "notes": [
+  "Claim أُنشئ قبل أي تعديل وفق AGENTS.md §14؛ لا تداخل مع أي Claim نشط (0 active claims عند الإنشاء).",
+  "العقد الرسمي المثبت هو الرأس 6733ba34637d47986050ecf955efd8cd413b3f5e على فرع docs/r11-lock-fail-closed-prompt-20261015 (PR #367 المفتوح)؛ تحقق ZAI من مطابقته بالمطابقة الحرفية قبل التنفيذ.",
+  "خط الأساس الحي تحقق منه مباشرة: origin/main = 9303ea445cc4f3ee87d7a4514e3e9d47d608d339 مطابقًا لتلميح العقد تمامًا (PR #366 مدموج عنده)؛ لا انحراف.",
+  "حدود صارمة: لا كتابة مباشرة على main، لا دمج، لا حذف فروع، لا force-push، لا ARCH-010 ولا W2a/W2b، لا تغيير مالي/تاريخي/Schema 38/Export 30/Legacy/goldens/أسبقية رفض/UI بصري؛ لا رفع سقوف (lint 37 / raw 650000 / gzip 155300).",
+  "قرارات المالك المنفذة حرفيًا: OD-LOCK-ROLLBACK=A وOD-LOCK-STORAGE=A وOD-LOCK-SEMANTICS=A كما وردت في القسم ٣ من العقد."
+ ],
+ "status_history": [
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "فتح Claim تنفيذي لموجة إصلاح القفل المعتمدة؛ الفرع security/r11-lock-fail-closed-20261015 منشأ من origin/main الحي 9303ea44 بعد التحقق من خط الأساس والمدقق (Operations Control valid و0 active claims)."
+  }
+ ],
+ "migration_baseline": false,
+ "evidence": [
+  "docs/architecture/refactoring/r11-lock-fail-closed-20261015/R11-LOCK-FAIL-CLOSED-EXECUTION-REPORT-2026-10-15.md"
+ ]
+}
