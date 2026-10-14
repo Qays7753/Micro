@@ -2,10 +2,10 @@
   "id": "ARCH-008",
   "title": "R11 S0 + W1A — مسح تاريخ Git الأمني لمرة واحدة وإكمال حراس النقاط الست (D-01/D-04/D-05/D-07/D-03/D-02) بقرارات المالك المعتمدة",
   "type": "GOVERNANCE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P0",
   "stage": "r11-s0-w1a-20261013",
-  "summary": "تنفيذ النطاق المعتمد حصريًا من R11: مسح S0 لتاريخ Git بحثًا عن أسرار (دليل فقط، مخرجات منقحة بالبصمات، بلا إعادة كتابة تاريخ) على فرع refactoring/r11-s0-w1a-20261013 وPR واحد إلى main، ثم W1A-1 (حراس D-01 راتشة 19 حافة نوعية UI→Storage، وD-04 جسم القراءة 63 ملفًا، وD-05 نقطة استقصاء 35 تحذير lint تحت سقف 37، وD-07 راتشة أزواج البيوت 128/80/48 مع إعفاءات OD-10 الورقية) وW1A-2 (D-03 إعفاء ?? مربوط بالـAST، وD-02 مراقب casts عائلة Minor). حراس واختبارات وأدلة ووثائق فقط — لا تغيير إنتاجي ولا رفع أي سقف. تحديث مؤرخ 2026-10-14 (إصلاح مراجعة PR): المكتشفان R11-REV-NF-001/002 (كتلتا قبول S0 العليا المست reproduction من مراجعة PR المستقلة عند 98d22362) أُغلقا بالدليل عند 1fbbe366 — تعداد مسارات blob كامل عبر قراءة كل كائنات الشجر الخام وتحليلها الثنائي ونشر البادئات من كل الجذور (المحتوى مرة واحدة لكل SHA؛ كل الأسماء المستعارة تُنسب)، ورسائل الالتزامات من كائن خام بتأطير طولي بعد أول سطر فارغ (الفاصل القانوني غير الملتبس)؛ خمسة انحدارات خصومية تفشل 5/5 ضد الشيفرة ما قبل الإصلاح و14/14 خضراء عليه؛ إعادة المسح الرسمية على مرآة نظيفة ZERO_FINDINGS تحت التعداد الكامل (367 مرجعًا/1,568 التزامًا/10,775 شجرة/10,852 blob/11,006 مدخل مسار)؛ pnpm check خروج 0 على شجرة الإصلاح بدخول JS مطابق بالبايت؛ التفاصيل في دليل S0 §0 والتقرير الموحد §10 وسجل §192 وملاحظات WS-217.",
+  "summary": "تنفيذ النطاق المعتمد حصريًا من R11: مسح S0 لتاريخ Git بحثًا عن أسرار (دليل فقط، مخرجات منقحة بالبصمات، بلا إعادة كتابة تاريخ) على فرع refactoring/r11-s0-w1a-20261013 وPR واحد إلى main، ثم W1A-1 (حراس D-01 راتشة 19 حافة نوعية UI→Storage، وD-04 جسم القراءة 63 ملفًا، وD-05 نقطة استقصاء 35 تحذير lint تحت سقف 37، وD-07 راتشة أزواج البيوت 128/80/48 مع إعفاءات OD-10 الورقية) وW1A-2 (D-03 إعفاء ?? مربوط بالـAST، وD-02 مراقب casts عائلة Minor). حراس واختبارات وأدلة ووثائق فقط — لا تغيير إنتاجي ولا رفع أي سقف. تحديث مؤرخ 2026-10-14 (إصلاح مراجعة PR): المكتشفان R11-REV-NF-001/002 (كتلتا قبول S0 العليا المست reproduction من مراجعة PR المستقلة عند 98d22362) أُغلقا بالدليل عند 1fbbe366 — تعداد مسارات blob كامل عبر قراءة كل كائنات الشجر الخام وتحليلها الثنائي ونشر البادئات من كل الجذور (المحتوى مرة واحدة لكل SHA؛ كل الأسماء المستعارة تُنسب)، ورسائل الالتزامات من كائن خام بتأطير طولي بعد أول سطر فارغ (الفاصل القانوني غير الملتبس)؛ خمسة انحدارات خصومية تفشل 5/5 ضد الشيفرة ما قبل الإصلاح و14/14 خضراء عليه؛ إعادة المسح الرسمية على مرآة نظيفة ZERO_FINDINGS تحت التعداد الكامل (367 مرجعًا/1,568 التزامًا/10,775 شجرة/10,852 blob/11,006 مدخل مسار)؛ pnpm check خروج 0 على شجرة الإصلاح بدخول JS مطابق بالبايت؛ التفاصيل في دليل S0 §0 والتقرير الموحد §10 وسجل §192 وملاحظات WS-217. مصالحة ما بعد الدمج: PR #361 دُمج بـMerge commit 8393f9e68f6975244849e8bd4885672e0b2cbaf0 من الرأس المصدر 81c3290d3ef599c1829a85ee1ec3f71638f984fb؛ CI وCloudflare Pages نجحا على رأس الدمج نفسه؛ R11 S0 + W1A متحققة على main.",
   "finding_classification": "NEW_FINDING",
   "finding_state": "CONFIRMED",
   "classification": "HARDENING",
@@ -46,7 +46,7 @@
     "D-07: house-pair ratchet live on the full 128-edge census (80 value + 48 type), 42 governed pairs (21v+42t), OD-10 leaf exemptions verified every run with pinned import allowlists, SCC baselines recorded (2 value + 1 type), new-pair/cap-growth/stale/drift/exemption/cycle fixtures red.",
     "D-03: AST-bound ?? exemption fail-closed on parse errors, five approved sites pinned by operand+receiver keys, all false-exemption fixtures red, file set identical to the prior text guard.",
     "D-02: Minor-family cast monitor live (0 entering / 13 identity-narrowing exit sites ratcheted), approved kernel/formatter zones excluded, mutation fixture red, emitted JS proven unchanged.",
-    "All required checks green at each wave head; bundle ceilings 650000/155300 and lint ceiling 37 untouched; no protected production surface changed; PR open with checkpoint comments; no merge performed."
+    "All required checks green at each wave head and on the exact post-merge main SHA; bundle ceilings 650000/155300 and lint ceiling 37 untouched; no protected production surface changed; PR #361 merged by owner request and verified on main; no branch cleanup performed in this reconciliation."
   ],
   "areas": [
     "architecture-governance",
@@ -64,7 +64,12 @@
     "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-S0-W1A-EXECUTION-REPORT-2026-10-13.md",
     "docs/architecture/refactoring/r11-s0-w1a-20261013/evidence/R11-S0-GIT-HISTORY-SECRET-SCAN-2026-10-13.md",
     "docs/architecture/refactoring/r11-s0-w1a-20261013/evidence/R11-W1A1-GUARDS-EVIDENCE-2026-10-14.md",
-    "docs/architecture/refactoring/r11-s0-w1a-20261013/evidence/R11-W1A2-D03-D02-EVIDENCE-2026-10-14.md"
+    "docs/architecture/refactoring/r11-s0-w1a-20261013/evidence/R11-W1A2-D03-D02-EVIDENCE-2026-10-14.md",
+    "https://github.com/Qays7753/Micro/pull/361",
+    "https://github.com/Qays7753/Micro/commit/8393f9e68f6975244849e8bd4885672e0b2cbaf0",
+    "https://github.com/Qays7753/Micro/actions/runs/38554971742/job/115821740511",
+    "https://github.com/Qays7753/Micro/runs/115822020901",
+    "docs/operations/current-state-log.md"
   ],
   "dependencies": [],
   "related_items": [
@@ -90,8 +95,22 @@
       "changed_at": "2026-10-14",
       "actor": "zai-executor",
       "reason": "S0 + W1A-1 + W1A-2 مكتملة وبوابتا الموجة خضراوان (pnpm check exit 0 عند c160f8ae و7f4fa716)؛ PR #361 مفتوح وPR_READY بانتظار مراجعة المالك وقرار دمجه المستقل."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-14",
+      "actor": "merge:pr-361",
+      "reason": "PR #361 دُمج بـMerge commit 8393f9e68f6975244849e8bd4885672e0b2cbaf0 من رأس المصدر 81c3290d3ef599c1829a85ee1ec3f71638f984fb إلى main؛ بدأت مصالحة ما بعد الدمج."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-14",
+      "actor": "verify:main-ci",
+      "reason": "main يطابق Merge commit 8393f9e68f6975244849e8bd4885672e0b2cbaf0؛ CI وCloudflare Pages نجحا على رأس الدمج نفسه؛ مصالحة الحالة الحية وسجل الدمج مطلوبة في هذه الشريحة."
     }
   ],
   "migration_baseline": false,
-  "next_action": "مراجعة المالك لPR #361 بعد إصلاح المراجعة ومصالحة الرأس النهائي (R11_S0_W1A_EXECUTION_COMPLETE — PR_READY): آخر S0 mirror re-scan على d4553bcc ZERO_FINDINGS (367/1,569/10,787/10,862/11,016)، ثم قرار الدمج المستقل؛ مصير R11-W1A-NF-002 وفتح W1b من عدمه — لا تنفيذ إضافي هنا."
+  "next_action": "لا إجراء تنفيذي إضافي لـARCH-008: R11 S0 + W1A متحققتان على main عند Merge commit 8393f9e68f6975244849e8bd4885672e0b2cbaf0 بعد نجاح CI وCloudflare؛ القرار التالي مستقل: مصير R11-W1A-NF-002 وفتح W1b من عدمه. لا يبدأ successor تلقائيًا ولا تُحذف الفروع غير المدموجة.",
+  "merge_sha": "8393f9e68f6975244849e8bd4885672e0b2cbaf0",
+  "verified_on_main_sha": "8393f9e68f6975244849e8bd4885672e0b2cbaf0"
 }
