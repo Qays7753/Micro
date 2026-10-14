@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "02fe4e069b7af218db99614c3b638b5d2228578b",
+  "head": "b134d3d806a7da8d18057367bf4d2dff31701f92",
   "pages": {
     "total": 60,
     "map": {
@@ -799,7 +799,9 @@
           "scripts/security/braces-elimination/braces-elimination.parity.test.mjs",
           "scripts/security/braces-elimination/capture-baseline.mjs",
           "scripts/security/braces-elimination/harness-lib.mjs",
-          "scripts/security/ci-audit-gate.test.mjs"
+          "scripts/security/ci-audit-gate.test.mjs",
+          "scripts/security/scan-git-history-secrets.mjs",
+          "scripts/security/scan-git-history-secrets.test.mjs"
         ]
       },
       "38-pwa-dirty-safe-update-contract.md": {
