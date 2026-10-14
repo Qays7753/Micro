@@ -1570,10 +1570,10 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 250,
+        "nbLoc": 251,
         "band": "NORMAL"
       },
-      "reason": "R11 Lock Remediation (owner-approved OD-LOCK-STORAGE=A and OD-LOCK-SEMANTICS=A, findings R11-W1B4-NF-003/NF-004): the gate state model now separates checking/open/locked/unreadable — a failed storage read renders an honest full-screen unreadable overlay in the existing visual language with a retry action instead of opening (children stay mounted but inert in every non-open phase), and the visible-app heartbeat tracks real input in a component-level ref (no fake initial value) so passive evaluation never renews lastActiveAt. The growth is the required fail-closed behavior itself plus its governing comments; no unrelated responsibility was added and no visual system changed. All four lock suites re-verified green (56/56). Final measured nbLOC after the budget-fit shared-overlay refactor: 250 (the unreadable state shares one LockOverlayShell with the locked overlay — identical DOM, no visual change).",
+      "reason": "R11 Lock Remediation (owner-approved OD-LOCK-STORAGE=A and OD-LOCK-SEMANTICS=A, findings R11-W1B4-NF-003/NF-004): the gate state model now separates checking/open/locked/unreadable — a failed storage read renders an honest full-screen unreadable overlay in the existing visual language with a retry action instead of opening (children stay mounted but inert in every non-open phase), and the visible-app heartbeat tracks real input in a component-level ref (no fake initial value) so passive evaluation never renews lastActiveAt. The growth is the required fail-closed behavior itself plus its governing comments; no unrelated responsibility was added and no visual system changed. All four lock suites re-verified green (56/56). Final measured nbLOC after the budget-fit shared-overlay refactor (with the honest explanation line restored): 251 (the unreadable state shares one LockOverlayShell with the locked overlay — identical DOM, no visual change).",
       "authorization": {
         "ownerReview": "OD-LOCK-STORAGE=A + OD-LOCK-SEMANTICS=A OWNER_APPROVED — R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15 section 3 (pinned head 6733ba34 via PR #367) — part of the R11 lock remediation execution PR #368",
         "trigger": "R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15 sections 7.2 (storage failure at the application gate) and 7.3 (real-input inactivity)",
