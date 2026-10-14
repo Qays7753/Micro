@@ -21,10 +21,22 @@
  *  R3 — `Date.parse(` inside src/domain/ is allowed ONLY in the exact file
  *       src/domain/shared/numeric.ts (isValidTimestamp).
  *  R4 — raw business-date slicing (`.slice(0,10)` / `.substring(0,10)` /
- *       `.split("T")[0]`, any spacing) is forbidden across ALL layers of
+ *       `.split("T")[0]`) is forbidden across ALL layers of
  *       apps/prototype-web/client/src/ EXCEPT as the fallback branch of a
- *       guarded derivation (a `??` earlier on the same line) — the R2-D4
- *       clock-slicing bug class can never return in any layer.
+ *       guarded derivation — the R2-D4 clock-slicing bug class can never
+ *       return in any layer.
+ *       **R11 W1A-2 / D-03 (R10A-F-014، قرار OD-GUARD الخيار A، 2026-10-14):
+ *       الإعفاء صار مربوطًا بالـAST لا بالنص** — الكشف والربط عبر تحليل
+ *       تحليلي بـ`ts.createSourceFile` (بلا Program ولا مدقق أنواع ولا حل
+ *       وحدات ولا تنفيذ): العقدة القاطعة معفاة **فقط** إذا كانت المعامل
+ *       الأيمن المباشر لتعبير `??` ثلاثي، والإعفاء مثبت على المواقع الخمسة
+ *       المعتمدة حصرًا (الملف + نص المعامل الأيسر + نص مستقبل القص + نوع
+ *       القص) — تعليق يحوي `??`، أو نص يحويه، أو `??` مجاور في نفس السطر،
+ *       أو `||` بدله: لا يُعفي أيٌّ منها (سلبيات مثبتة). أي سادس fallback
+ *       محروس يُرفض حتى إعادة إرساء موثقة، وأي موقع مثبت تغيّر أو غادر
+ *       يُرفض، وخطأ التحليل يُفشل الحارس فاشلًا-مغلقًا (parseDiagnostics).
+ *       مجموعة الملفات الممسوحة هي نفسها مجموعة الحارس النصي السابق
+ *       (collectProductionFiles) — superset بالتساوي.
  *  R5 (date-ownership R5 — M-11/D13, 2026-10-08): a zero-argument
  *       `localDateInAmman()` call, or one whose argument is a directly
  *       constructed ambient `new Date()`, is FORBIDDEN in all production
@@ -43,9 +55,11 @@
  *       fails. The ONLY active ambient clock in the app is systemClock
  *       (application/time/clock.ts — the documented infra boundary).
  *
- * Comments are stripped with string-literal awareness (a `//` inside quotes
- * never blanks a line). Test files, fixtures, and dist output are out of
- * scope (tests legitimately build clocks and legacy-comparison algorithms).
+ * R1/R2/R3/R5/R6 remain text-based (out of D-03's approved scope); comments
+ * are stripped with string-literal awareness for them (a `//` inside quotes
+ * never blanks a line). R4 is AST-bound (see above). Test files, fixtures,
+ * and dist output are out of scope (tests legitimately build clocks and
+ * legacy-comparison algorithms).
  *
  * FAILS on the first violation with file:line and the rule text; exit 0 only
  * when the whole production tree is clean.
@@ -54,6 +68,7 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import ts from "typescript";
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const SCANNED_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
@@ -126,9 +141,6 @@ export function stripComments(text) {
   return result;
 }
 
-/** Raw business-date slicing shapes (any spacing) — R4's detection set. */
-export const RAW_DATE_SLICE_PATTERN = /\.(slice|substring)\(\s*0\s*,\s*10\s*\)|\.split\(\s*["']T["']\s*\)\s*\[\s*0\s*\]/;
-
 /** Numeric Date.UTC in direct or bracket-access form — R1's detection set. */
 export const DATE_UTC_PATTERN = /Date\s*\.\s*UTC\s*\(|Date\s*\[\s*["']UTC["']\s*\]/;
 
@@ -139,8 +151,107 @@ export const AMBIENT_LOCAL_DATE_PATTERN =
 /** Zero-argument ambient Date construction — R6's detection set (domain only). */
 export const AMBIENT_NEW_DATE_PATTERN = /new\s+Date\s*\(\s*\)/;
 
+/* ─── R4 (D-03 — R11 W1A-2): الكشف والربط التحليلي ───────────────────────────
+ * خمسة مواقع معتمدة (قياس حي عند 5ef4ce08 بتاريخ 2026-10-14) — كل موقع
+ * مثبت بالملف + نص المعامل الأيسر + مستقبل القص + نوع القص؛ تغيّر أي مكوّن
+ * = إعادة إرساء في نفس الـPR (لا موقع سادس، ولا تعديل صامت). */
+export const GUARDED_FALLBACK_SITES = [
+  {
+    file: "apps/prototype-web/client/src/components/finance/CorrectionsLayer.tsx",
+    left: "formatLocalDate(businessDateFromTimestamp(entry.recordedAt))",
+    receiver: "entry.recordedAt",
+    kind: "slice",
+  },
+  {
+    file: "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx",
+    left: "formatLocalDate(businessDateFromTimestamp(lastExport))",
+    receiver: "lastExport",
+    kind: "slice",
+  },
+  {
+    file: "apps/prototype-web/client/src/components/forms/FormDraftRestoreBanner.tsx",
+    left: "formatLocalDate(businessDateFromTimestamp(savedAt))",
+    receiver: "savedAt",
+    kind: "slice",
+  },
+  {
+    file: "apps/prototype-web/client/src/application/financial-records/correctionHistoryService.ts",
+    left: "ammanDateOrNull(revision.createdAt)",
+    receiver: "revision.createdAt",
+    kind: "slice",
+  },
+  {
+    file: "apps/prototype-web/client/src/application/financial-records/correctionHistoryService.ts",
+    left: "ammanDateOrNull(revision.changedAt)",
+    receiver: "revision.changedAt",
+    kind: "slice",
+  },
+];
+
+const guardedSiteKey = site => `${site.file} :: ${site.left} ?? ${site.receiver}.${site.kind}`;
+
+/** ScriptKind صريح لكل امتداد (RV3-A1: الاستدلال العام يفسد تحليل 140/427). */
+function scriptKindFor(file) {
+  if (file.endsWith(".tsx")) return ts.ScriptKind.TSX;
+  if (file.endsWith(".jsx")) return ts.ScriptKind.JSX;
+  if (file.endsWith(".ts")) return ts.ScriptKind.TS;
+  return ts.ScriptKind.JS;
+}
+
+/** هل العقدة رقم حرفي بقيمة معينة؟ */
+function isNumericLiteralOf(node, value) {
+  return node !== undefined && ts.isNumericLiteral(node) && Number(node.text) === value;
+}
+
 /**
- * Evaluate the four ownership rules over the production tree.
+ * كشف مواقع القص الخام تحليليًا داخل ملف واحد (بلا Program ولا فحص أنواع):
+ *  - CallExpression بمستقبل slice/substring ووسيطين حرفيين 0 و10؛
+ *  - ElementAccessExpression بفهرس 0 فوق استدعاء split("T").
+ * يعيد قائمة {node, kind, receiverText} — العقدة هي التعبير الخام كله.
+ */
+export function findRawDateSlicesAst(sourceFile) {
+  const found = [];
+  const visit = node => {
+    if (ts.isCallExpression(node)) {
+      const callee = node.expression;
+      if (
+        ts.isPropertyAccessExpression(callee) &&
+        (callee.name.text === "slice" || callee.name.text === "substring") &&
+        node.arguments.length === 2 &&
+        isNumericLiteralOf(node.arguments[0], 0) &&
+        isNumericLiteralOf(node.arguments[1], 10)
+      ) {
+        found.push({ node, kind: callee.name.text, receiverText: callee.expression.getText(sourceFile) });
+      } else if (
+        ts.isPropertyAccessExpression(callee) &&
+        callee.name.text === "split" &&
+        node.arguments.length === 1 &&
+        ts.isStringLiteral(node.arguments[0]) &&
+        node.arguments[0].text === "T" &&
+        ts.isElementAccessExpression(node.parent) &&
+        isNumericLiteralOf(node.parent.argumentExpression, 0)
+      ) {
+        found.push({ node: node.parent, kind: "splitT", receiverText: callee.expression.getText(sourceFile) });
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+  return found;
+}
+
+/** هل العقدة المعامل الأيمن المباشر لتعبير ?? (الربط التحليلي للإعفاء)؟ */
+export function isDirectNullishRightOperand(node) {
+  return (
+    node.parent !== undefined &&
+    ts.isBinaryExpression(node.parent) &&
+    node.parent.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken &&
+    node.parent.right === node
+  );
+}
+
+/**
+ * Evaluate the six ownership rules over the production tree.
  * Returns an array of violation objects { rule, file, line, excerpt }.
  */
 export function findViolations(root = ROOT) {
@@ -149,9 +260,56 @@ export function findViolations(root = ROOT) {
     collectProductionFiles(path.join(root, "apps", "prototype-web", "client", "src")),
   );
 
+  /* تعداد المواقع المحروسة الحية للتحقق من مطابقة الأساس الخماسي. */
+  const liveGuardedKeys = new Set();
+
   for (const file of scanned) {
     const relative = path.relative(root, file).split(path.sep).join("/");
-    const code = stripComments(fs.readFileSync(file, "utf8"));
+    const content = fs.readFileSync(file, "utf8");
+
+    /* ── R4 (D-03): التحليل التحليلي — فشل مغلق على أخطاء التحليل. ── */
+    const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true, scriptKindFor(file));
+    if (sourceFile.parseDiagnostics.length > 0) {
+      const first = sourceFile.parseDiagnostics[0];
+      violations.push({
+        rule: "R4-PARSE-ERROR (fail-closed — AST exemption requires a parseable file)",
+        file: relative,
+        line: first.start === undefined ? 1 : sourceFile.getLineAndCharacterOfPosition(first.start).line + 1,
+        excerpt: "(parse diagnostic — content not excerpted)",
+      });
+      continue; /* لا فحص نصي آخر لملف لا يُحلَّل — فاشل مغلق. */
+    }
+    for (const slice of findRawDateSlicesAst(sourceFile)) {
+      if (isDirectNullishRightOperand(slice.node)) {
+        /* fallback محروس: يجب أن يكون أحد المواقع الخمسة المعتمدة بالنص الكامل. */
+        const parent = slice.node.parent;
+        const site = {
+          file: relative,
+          left: parent.left.getText(sourceFile),
+          receiver: slice.receiverText,
+          kind: slice.kind,
+        };
+        liveGuardedKeys.add(guardedSiteKey(site));
+        if (!GUARDED_FALLBACK_SITES.some(pinned => guardedSiteKey(pinned) === guardedSiteKey(site))) {
+          violations.push({
+            rule: "R4-guarded-fallback-unregistered (سادس fallback محروس — D-03: خمسة مواقع فقط معتمدة)",
+            file: relative,
+            line: sourceFile.getLineAndCharacterOfPosition(slice.node.getStart()).line + 1,
+            excerpt: `${site.left} ?? ${site.receiver}.${slice.kind}(…)`,
+          });
+        }
+      } else {
+        violations.push({
+          rule: "R4 (raw business-date slicing — use localDateInAmman/businessDateFromTimestamp)",
+          file: relative,
+          line: sourceFile.getLineAndCharacterOfPosition(slice.node.getStart()).line + 1,
+          excerpt: `${slice.receiverText}.${slice.kind === "splitT" ? 'split("T")[0]' : `${slice.kind}(0, 10)`} (AST-bound — الإعفاء يتطلب أن يكون القص المعامل الأيمن المباشر لـ ??)`,
+        });
+      }
+    }
+
+    /* ── R1/R2/R3/R5/R6: كما هي — نصية، خارج نطاق D-03 المعتمد. ── */
+    const code = stripComments(content);
     const lines = code.split("\n");
     lines.forEach((line, index) => {
       const at = { file: relative, line: index + 1, excerpt: line.trim().slice(0, 120) };
@@ -170,16 +328,6 @@ export function findViolations(root = ROOT) {
           violations.push({ rule: "R3 (Date.parse in domain outside shared/numeric.ts)", ...at });
         }
       }
-      /* R4: raw date slicing in ANY app layer — only legal as a guarded fallback. */
-      if (relative.startsWith("apps/prototype-web/client/src/") && RAW_DATE_SLICE_PATTERN.test(line)) {
-        const match = RAW_DATE_SLICE_PATTERN.exec(line);
-        const before = match !== null ? line.slice(0, match.index) : "";
-        if (before.includes("??")) return; /* guarded fallback — documented pattern */
-        violations.push({
-          rule: "R4 (raw business-date slicing — use localDateInAmman/businessDateFromTimestamp)",
-          ...at,
-        });
-      }
       /* R5 (date-ownership): zero-arg or ambient-new-Date localDateInAmman
        * calls are forbidden in ALL production layers. */
       if (AMBIENT_LOCAL_DATE_PATTERN.test(line)) {
@@ -196,6 +344,19 @@ export function findViolations(root = ROOT) {
     });
   }
 
+  /* ── نظافة أساس المواقع الخمسة: موقع مثبت غادر أو تغيّر = إعادة إرساء. ── */
+  for (const pinned of GUARDED_FALLBACK_SITES) {
+    const key = guardedSiteKey(pinned);
+    if (!liveGuardedKeys.has(key)) {
+      violations.push({
+        rule: "R4-guarded-fallback-stale (موقع معتمد غادر الشجرة أو تغيّر نص معامله/مستقبله — أعد الإرساء في نفس الـPR)",
+        file: pinned.file,
+        line: 0,
+        excerpt: key,
+      });
+    }
+  }
+
   return violations;
 }
 
@@ -203,7 +364,7 @@ function main() {
   const violations = findViolations();
   if (violations.length === 0) {
     console.log(
-      "check-date-arithmetic-ownership: PASS — no Date.UTC in production; the Date object/Date.parse are kernel-file-only in the domain; no unguarded business-date slicing in any app layer; no localDateInAmman without an explicit instant; no ambient new Date() in the domain (R1–R6 clean).",
+      "check-date-arithmetic-ownership: PASS — no Date.UTC in production; the Date object/Date.parse are kernel-file-only in the domain; no unguarded business-date slicing in any app layer (AST-bound ?? exemption, five approved sites); no localDateInAmman without an explicit instant; no ambient new Date() in the domain (R1–R6 clean).",
     );
     return 0;
   }
