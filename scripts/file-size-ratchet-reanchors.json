@@ -1570,10 +1570,10 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 249,
+        "nbLoc": 250,
         "band": "NORMAL"
       },
-      "reason": "R11 Lock Remediation (owner-approved OD-LOCK-STORAGE=A and OD-LOCK-SEMANTICS=A, findings R11-W1B4-NF-003/NF-004): the gate state model now separates checking/open/locked/unreadable — a failed storage read renders an honest full-screen unreadable overlay in the existing visual language with a retry action instead of opening (children stay mounted but inert in every non-open phase), and the visible-app heartbeat tracks real input in a component-level ref (no fake initial value) so passive evaluation never renews lastActiveAt. The growth is the required fail-closed behavior itself plus its governing comments; no unrelated responsibility was added and no visual system changed. All four lock suites re-verified green (56/56).",
+      "reason": "R11 Lock Remediation (owner-approved OD-LOCK-STORAGE=A and OD-LOCK-SEMANTICS=A, findings R11-W1B4-NF-003/NF-004): the gate state model now separates checking/open/locked/unreadable — a failed storage read renders an honest full-screen unreadable overlay in the existing visual language with a retry action instead of opening (children stay mounted but inert in every non-open phase), and the visible-app heartbeat tracks real input in a component-level ref (no fake initial value) so passive evaluation never renews lastActiveAt. The growth is the required fail-closed behavior itself plus its governing comments; no unrelated responsibility was added and no visual system changed. All four lock suites re-verified green (56/56). Final measured nbLOC after the budget-fit shared-overlay refactor: 250 (the unreadable state shares one LockOverlayShell with the locked overlay — identical DOM, no visual change).",
       "authorization": {
         "ownerReview": "OD-LOCK-STORAGE=A + OD-LOCK-SEMANTICS=A OWNER_APPROVED — R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15 section 3 (pinned head 6733ba34 via PR #367) — part of the R11 lock remediation execution PR #368",
         "trigger": "R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15 sections 7.2 (storage failure at the application gate) and 7.3 (real-input inactivity)",
@@ -1596,6 +1596,44 @@
       "authorization": {
         "ownerReview": "OD-LOCK-ROLLBACK=A OWNER_APPROVED — R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15 section 3 (pinned head 6733ba34 via PR #367) — part of the R11 lock remediation execution PR #368",
         "trigger": "R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15 section 7.1 (clock rollback and idle lock)",
+        "ocRef": "ARCH-011"
+      }
+    },
+    {
+      "id": "R11-LOCK-SURFACES-BASELINE-REANCHOR",
+      "date": "2026-10-15",
+      "path": "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 108,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 126,
+        "band": "NORMAL"
+      },
+      "reason": "R11 Lock Remediation documented surfaces re-anchor (per check-bundle-surfaces' own in-PR protocol): the fail-closed lock fix keeps the entry under the protected 155,300 gzip ceiling by moving PIN operations to a lazy precached module (pinOperations.js) — lazyRawTotal 1,215,139 -> 1,217,700 (+2,561), lazyGzipNormTotal 366,371 -> 367,389, precache 2,683,356 -> 2,684,711 local (cloud = local +90 = 2,684,801), swRuntime 26,231 -> 26,286, counts 102/70/157 -> 103/71/158. The growth is the provenance text required by the guard; entry ceilings (650,000/155,300) were NOT touched and the entry is now smaller than the pre-wave baseline (630,697/154,941 vs 631,903/155,290).",
+      "authorization": {
+        "ownerReview": "R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15 section 10 (record the exact before/after measurement and root cause) — part of the R11 lock remediation execution PR #368",
+        "trigger": "check-bundle-surfaces documented re-anchor protocol (growth with provenance in the same PR)",
+        "ocRef": "ARCH-011"
+      }
+    },
+    {
+      "id": "R11-LOCK-HOUSE-EDGES-CENSUS-ROW",
+      "date": "2026-10-15",
+      "path": "scripts/application-house-edges-census.json",
+      "from": {
+        "nbLoc": 891,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 896,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R11 Lock Remediation census visibility row (per module-boundaries' R9-census-drift rule): the new lazy module pinOperations.ts declares the Clock type import edge (application/security/pinOperations.ts -> application/time/clock.ts, kind=value, exemptTarget per OD-10) — access allowed by design; the row makes the edge visible, not silent. No boundary or layer rule changed.",
+      "authorization": {
+        "ownerReview": "check-module-boundaries R9-census-drift protocol (add the edge row in the same PR) — part of the R11 lock remediation execution PR #368",
+        "trigger": "pinOperations.ts extraction for the entry gzip ceiling (OD-LOCK contract section 10)",
         "ocRef": "ARCH-011"
       }
     }
