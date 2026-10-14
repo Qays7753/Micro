@@ -5,7 +5,7 @@
   "status": "IN_PROGRESS",
   "priority": "P0",
   "stage": "r11-w1b-20261014",
-  "summary": "تنفيذ النطاق المعتمد حصريًا من R11 W1b وفق عقد التنفيذ الرسمي المثبت (docs/architecture/refactoring/r11-w1b-20261014/R11-W1B-EXECUTION-PROMPT-2026-10-14.md على الرأس 2802d119d41dd5e5c7df509f6d487fb0d26a13e2 عبر PR #364 المفتوح): (W1b-0) ملحق أدلة append-only لـ R11-W0-NF-001 يسجل الطريقة والكميات التاريخية والقابلة لإعادة الإنتاج مع الحفاظ على مصفوفة R10-B دون تعديل صامت؛ (W1b-1) إحصاء استدعاءات S-1 PeriodRange ثم إعادة تسمية type-only للمعنى page-local باسم مؤكد من الإحصاء (الفرضية FinanceActivityPeriodKey) مع إبقاء الاسم على المعنى المالي/date-owned؛ (W1b-2) عقد مصدر S-2 PreparedImport الشفاف/الوهمي بسكّة mint وحيدة داخل prepareImport واختبار سلبي type-level؛ (W1b-3) حارس OD-TIME بتأثير AST لتصنيف مواقع الوقت المحيطي في طبقة التطبيق (عائلة ID-fallback المعتمدة) مع سلبيات خصومية وبدون أي تغيير سلوك إنتاجي؛ (W1b-4) توصيف lock-idle فقط (زمن أمامي/خلفي، suspend/resume، انتهاء، قفل/فتح) بلا أي إصلاح سلوكي؛ (W1b-5) توثيق حدود الماسح working-tree-only لـ OD-SEC وسير عمل دوري least-privilege لمسح التاريخ دون إضعاف الماسح التسعة الأنماط أو جدوله المشترك؛ (W1b-6) أدلة الحفظ P-01..P-04 (اختبارات وأدلة فقط، لا تفكيك). اختبارات وأدلة ووثائق وحوكم فقط حيثما ينص العقد؛ لا تغيير مالي/تاريخي/مخطط/تصدير/رفض/أمن دلالي/UI؛ لا W2-W5.",
+  "summary": "تنفيذ النطاق المعتمد حصريًا من R11 W1b وفق عقد التنفيذ الرسمي المثبت (docs/architecture/refactoring/r11-w1b-20261014/R11-W1B-EXECUTION-PROMPT-2026-10-14.md على الرأس 2802d119d41dd5e5c7df509f6d487fb0d26a13e2 عبر PR #364 المفتوح): (W1b-0) ملحق أدلة append-only لـ R11-W0-NF-001 يسجل الطريقة والكميات التاريخية والقابلة لإعادة الإنتاج مع الحفاظ على مصفوفة R10-B دون تعديل صامت؛ (W1b-1) إحصاء استدعاءات S-1 PeriodRange ثم إعادة تسمية type-only للمعنى page-local باسم مؤكد من الإحصاء (الفرضية FinanceActivityPeriodKey) مع إبقاء الاسم على المعنى المالي/date-owned؛ (W1b-2) عقد مصدر S-2 PreparedImport الشفاف/الوهمي بسكّة mint وحيدة داخل prepareImport واختبار سلبي type-level؛ (W1b-3) حارس OD-TIME بتأثير AST لتصنيف مواقع الوقت المحيطي في طبقة التطبيق (عائلة ID-fallback المعتمدة) مع سلبيات خصومية وبدون أي تغيير سلوك إنتاجي؛ (W1b-4) توصيف lock-idle فقط (زمن أمامي/خلفي، suspend/resume، انتهاء، قفل/فتح) بلا أي إصلاح سلوكي؛ (W1b-5) توثيق حدود الماسح working-tree-only لـ OD-SEC وسير عمل دوري least-privilege لمسح التاريخ دون إضعاف الماسح التسعة الأنماط أو جدوله المشترك؛ (W1b-6) أدلة الحفظ P-01..P-04 (اختبارات وأدلة فقط، لا تفكيك). اختبارات وأدلة ووثائق وحوكم فقط حيثما ينص العقد؛ لا تغيير مالي/تاريخي/مخطط/تصدير/رفض/أمن دلالي/UI؛ لا W2-W5. || W1b-4 تحديث مؤرخ 2026-10-14: توصيف lock-idle مكتمل بلا أي تغيير سلوك — مصفوفتان حتميتان (خدمة 13/13 وبوابة 9/9) + إثبات متصفح حقيقي على الحزمة الإنتاجية نفسها؛ ثلاثة findings جديدة مُصنفة ب أمانة: R11-W1B4-NF-001 (الساعة الخلفية تمنع قفل الخمول — FAIL_OPEN)، NF-002 (الساعة الخلفية تستبق وقفة التخمين)، NF-003 (فشل قراءة التخزين يفتح البوابة) — كلها OWNER_DECISION_REQUIRED بلا أي ترقيع داخل W1b.",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "NOT_APPLICABLE",
   "classification": "HARDENING",
@@ -81,7 +81,9 @@
     "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B0-NF-001-CENSUS-COUNTS-2026-10-14.json",
     "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B0-NF-001-HOUSE-EDGE-LISTS-2026-10-14.json",
     "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B2-S2-PREPARED-IMPORT-EVIDENCE-2026-10-14.md",
-    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B3-OD-TIME-EVIDENCE-2026-10-14.md"
+    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B3-OD-TIME-EVIDENCE-2026-10-14.md",
+    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B4-LOCK-IDLE-CHARACTERIZATION-2026-10-14.md",
+    "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B4-LOCK-IDLE-BROWSER-PROOF-2026-10-14.json"
   ],
   "dependencies": [
     "ARCH-008"

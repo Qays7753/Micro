@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "09c4600f385c1895faa36dbd0934d6dea9310571",
+  "head": "0bd0b3337797a07f86133a796d13ab8c967174b7",
   "pages": {
     "total": 60,
     "map": {
@@ -797,6 +797,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/Settings.lockGate.dom.test.tsx",
+          "apps/prototype-web/client/src/application/security/localLockService.idleCharacterization.test.ts",
           "apps/prototype-web/client/src/application/security/localLockService.test.ts",
           "scripts/security/braces-elimination/braces-elimination.parity.test.mjs",
           "scripts/security/braces-elimination/capture-baseline.mjs",
