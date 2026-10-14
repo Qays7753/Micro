@@ -2,7 +2,7 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 57 · SUPERSEDED: 1
+BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 58 · SUPERSEDED: 1
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
@@ -10,7 +10,6 @@ BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1
 | LEGAL-001 | BLOCKED | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-8 | مراجعة أردنية مالية وقانونية | Product owner / Manus coordination | legal, product-scope | FIN-007 |
 | PILOT-001 | BLOCKED | RELEASE_GATE | RELEASE_GATE | P1 | stage-10 | قرار بدء Pilot | Product owner / Manus coordination | release, pilot | AUDIT-001, CLEAN-001, CTRL-001, CTRL-002, DEVICE-001, FIN-001, FIN-002, FIN-003, FIN-004, FIN-005, FIN-006, FIN-007, FIN-008, FIN-009, G-001, G-002, G-003, G-004, G-005, G-006, HARD-009, HARD-010, HARD-011, LEGAL-001, OPS-001, OPS-002, OPS-003, OPS-004, OPS-005, OPS-006, OPS-007, OPS-008, OPS-009, REL-001, REM-001, REM-002, REM-003, REM-004, REM-005, REM-006, REM-007, UAT-001, UX-001 |
 | UX-001 | IN_PROGRESS | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P1 | stage-5 | إعادة تصميم UI وUX جذرية | Product owner / Manus coordination | ui/ux, presentation | CLEAN-001 |
-| ARCH-008 | IN_REVIEW | HARDENING | EVIDENCE_RECONCILIATION_REQUIRED | P0 | r11-s0-w1a-20261013 | R11 S0 + W1A — مسح تاريخ Git الأمني لمرة واحدة وإكمال حراس النقاط الست (D-01/D-04/D-05/D-07/D-03/D-02) بقرارات المالك المعتمدة | Micro owner (Qays7753) | governance, architecture, operations-control, guards, tests | — |
 | AUDIT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | تدقيق مستقل نهائي قبل الـPilot | Product owner / Manus coordination | uat, audit, cross-layer | UAT-001 |
 | UAT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | قبول داخلي ببيانات Demo كاملة | Product owner / Manus coordination | uat, audit, cross-layer | DEVICE-001, LEGAL-001 |
 | GOV-001 | REVIEW_REQUIRED | GOVERNANCE | NOT_APPLICABLE | P1 | governance | مصالحة G10-A مع تعارض عقد C1 | Product owner / Manus coordination | governance, contracts | — |
@@ -35,6 +34,7 @@ BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1
 | V-011 | DEFERRED | PILOT_VALIDATION | PILOT_EVIDENCE_REQUIRED | P2 | pilot-validation | V-11 — فهم نموذج التوزيع الصريح للكاش | Product owner / Manus coordination | pilot-validation | — |
 | V-012 | DEFERRED | PILOT_VALIDATION | PILOT_EVIDENCE_REQUIRED | P2 | pilot-validation | V-12 — تسجيل الإهلاك بعد شهر استخدام | Product owner / Manus coordination | pilot-validation | — |
 | ARCH-007 | VERIFIED | GOVERNANCE | EVIDENCE_RECONCILIATION_REQUIRED | P0 | structural-remediation-r0-r10-20261007 | الإصلاح البنيوي الجذري بعد تقريري Flash وStructure — مصفوفة التتبع وتنفيذ R0–R10 | Micro owner (Qays7753) | governance, architecture, operations-control, domain, application, storage, presentation, tests | — |
+| ARCH-008 | VERIFIED | HARDENING | EVIDENCE_RECONCILIATION_REQUIRED | P0 | r11-s0-w1a-20261013 | R11 S0 + W1A — مسح تاريخ Git الأمني لمرة واحدة وإكمال حراس النقاط الست (D-01/D-04/D-05/D-07/D-03/D-02) بقرارات المالك المعتمدة | Micro owner (Qays7753) | governance, architecture, operations-control, guards, tests | — |
 | ARCH-001 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | architecture-refactoring-phase1 | مسح معماري/بنيوي للقراءة فقط وخطة انتقال CURRENT→TARGET→MIGRATION WAVES — المرحلة الأولى لبرنامج إعادة الهيكلة | Product owner / Z AI (Phase-1 report agent) | documentation, architecture-governance | — |
 | ARCH-002 | VERIFIED | HARDENING | NOT_APPLICABLE | P1 | architecture-remediation-wave-3a | الموجة 3A — أساس التكافؤ: ذهبيات التصدير/الاستيراد + اختبارات وصف مباشرة لعنقود النقل (STR-401/405) | agent:remediation-program | application, storage, tests | — |
 | ARCH-004 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | atoz-structural-completion-implementation | برنامج إكمال A-to-Z البنيوي — تنفيذ جذري معتمد (Post-Closure A-to-Z Structural Completion) | Micro owner (Qays7753) | domain, application, storage, scripts, docs | — |

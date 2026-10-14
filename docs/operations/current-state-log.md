@@ -2378,3 +2378,11 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - **إعادة المسح على مرآة نظيفة:** `ZERO_FINDINGS`، schema `/2`، 367 مرجعًا، 1,569 التزامًا، 10,787 شجرة، 10,862 blob، 11,016 مدخل `(blob,path)`، 0 findings، و`REDACTION_ASSERTED`. شملت المرآة الرأس النهائي وفرع `main` والـrefs المعلنة؛ القياسات قابلة لإعادة الإنتاج من `scripts/security/scan-git-history-secrets.mjs`.
 - **البوابات:** الاختباران الخصوميان المستقلان للـalias وcommit delimiter نجحا على الإصلاح؛ CI وCloudflare Pages أخضرا على الرأس النهائي؛ `git diff --check` نظيف؛ لا دمج بعد، ولا تنظيف فروع بعد.
 - **الحالة:** `R11_S0_W1A_EXECUTION_COMPLETE — PR_READY` بعد مصالحة الأدلة؛ PR #361 ما يزال مفتوحًا بانتظار قرار الدمج.
+
+## §194 — 2026-10-14 — R11 S0 + W1A post-merge verification
+- **الدمج:** PR #361 (`https://github.com/Qays7753/Micro/pull/361`) دُمج بMerge commit `8393f9e68f6975244849e8bd4885672e0b2cbaf0` من الرأس المصدر `81c3290d3ef599c1829a85ee1ec3f71638f984fb` إلى `main` بناءً على تفويض المالك؛ لا تغيير إضافي في الكود بعد رأس المصدر، وهذه الشريحة توثيقية/حَوْكمية فقط.
+- **التحقق:** رأس `origin/main` يطابق `8393f9e68f6975244849e8bd4885672e0b2cbaf0`؛ فحص CI نجح: `https://github.com/Qays7753/Micro/actions/runs/38554971742/job/115821740511`؛ وفحص Cloudflare Pages نجح: `https://github.com/Qays7753/Micro/runs/115822020901`.
+- **نطاق R11:** S0 وW1A-1 وW1A-2 متحققة على `main`؛ الإصلاحان R11-REV-NF-001/002 مغلقان، وفحص المصدر قبل الدمج عند `81c3290d3ef599c1829a85ee1ec3f71638f984fb` أعطى `ZERO_FINDINGS` مع `REDACTION_ASSERTED`؛ القياسات التاريخية والفحص النهائي محفوظة في دليل S0 والتقرير الموحد.
+- **Operations Control:** ARCH-008 وWS-217 انتقلا إلى `VERIFIED` مع `merge_sha` و`verified_on_main_sha` يثبتان `8393f9e68f6975244849e8bd4885672e0b2cbaf0`؛ العروض المولدة ستعاد من JSON المصدر.
+- **التنظيف:** لم تُحذف فروع في هذه المصالحة قبل جرد ancestry والـPRs؛ الفروع التوثيقية المفتوحة #358/#360 محفوظة، وأي حذف لاحق يقتصر على فرع PR #361 بعد إثبات دمجه.
+- **الحالة:** `POST_MERGE_VERIFICATION: PASS` — R11 S0 + W1A متحققتان على `main`؛ لا يبدأ W1b تلقائيًا.
