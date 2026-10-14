@@ -1465,6 +1465,25 @@
         "trigger": "R11-S0-W1A-EXECUTION-PROMPT-2026-10-13 section 8.1 (D-03) — in-band guard growth requires a ledger entry with an Operations Control reference",
         "ocRef": "ARCH-008"
       }
+    },
+    {
+      "id": "R11-REV-S0-SCANNER-COMPLETE-ENUMERATION",
+      "date": "2026-10-14",
+      "path": "scripts/security/scan-git-history-secrets.mjs",
+      "from": {
+        "nbLoc": 303,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 458,
+        "band": "WATCH"
+      },
+      "reason": "R11-REV-NF-001 + R11-REV-NF-002 repair (PR #361 independent review, 2026-10-14 — two HIGH S0 acceptance blockers): (1) blob-path enumeration is now complete — every reachable tree object is read raw (length-framed cat-file --batch) and parsed binary (<mode> <name> \\0 <20-byte sha>), path prefixes are propagated from every commit root tree (plus tags pointing at trees), so a deduplicated blob carries ALL its alias paths instead of the single first path rev-list --objects associates; content scanning stays once per unique blob sha. (2) commit messages are extracted from the raw commit objects themselves (length-framed, message = bytes after the first blank line — the provably unambiguous header/message boundary) replacing the %H%x1f%B%x1e delimiter split that a 0x1e inside a message could truncate. Added the generic batchReadObjects/parseTreeEntries/parseCommitObject helpers, the walk state, scanned.trees + scanned.blob_path_entries report fields, schema /2, and five adversarial regression tests. Guard-only growth: no production file, no ceiling, no pattern-table change.",
+      "authorization": {
+        "ownerReview": "PR #361 review comment (2026-10-14) — the owner's independent reproduction of both blockers and the required corrections list; this entry is part of the same-PR repair",
+        "trigger": "PR #361 review: 'Fix both findings on the same branch and PR' — enumerate all reachable tree path entries while caching content scanning by blob SHA; replace delimiter-based commit-message parsing with a provably unambiguous length-framed/raw commit-object method",
+        "ocRef": "ARCH-008"
+      }
     }
   ]
 }

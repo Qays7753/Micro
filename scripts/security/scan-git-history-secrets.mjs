@@ -8,12 +8,25 @@
  *    يجلبها المشغل — `git clone --mirror`) عبر `rev-list --objects --all` ثم
  *    `cat-file --batch` بتأطير طولي بايت-دقيق (لا تقسيم أسطر — الجسم يُقرأ
  *    بطوله المعلن بالضبط فلا التباس مع محارف فاصلة داخل المحتوى).
+ *  - R11-REV-NF-001 (2026-10-14، إصلاح مراجعة PR): `rev-list --objects`
+ *    يقرن الكائن المكرر (deduplicated blob) بمسار واحد فقط — أول مسار
+ *    يصادفه — فتضيع الأسماء المستعارة؛ الآن تُقرأ كل كائنات الشجر الخام
+ *    وتُبنى خريطة كاملة (blob → كل مساراته في كل شجرة قابلة للوصول) بنشر
+ *    البادئات من جذور الالتزامات، ومسح المحتوى يبقى مرة واحدة لكل كائن
+ *    (تخزين مؤقت بمعرف SHA).
+ *  - R11-REV-NF-002 (2026-10-14، إصلاح مراجعة PR): رسائل الالتزامات لم تعد
+ *    تُستخرج بفواصل تنسيق git log (0x1e/0x1f قابلة للظهور داخل الرسالة فتقطعها)؛
+ *    بل تُقرأ كائنات الالتزام الخام نفسها بتأطير طولي، والرسالة = البايتات بعد
+ *    أول `\n\n` — الفاصل القانوني الوحيد بين رؤوس الالتزام ورسالته (أسطر
+ *    الرؤوس لا تكون فارغة أبدًا؛ أسطر الاستمرار كتوقيع gpg تبدأ بمسافة) —
+ *    فالاستخلاص غير ملتبس إثباتيًا مع أي ثنائي داخل الرسالة.
  *  - جدول الأنماط هو نفسه حارس شجرة العمل حرفيًا (imports from
  *    ../check-secrets.mjs: SECRET_PATTERNS + SECRET_FILE_NAMES) — لا جدول
  *    أضعف ولا نسخة منحرفة؛ أي تعديل مستقبلي على الجدول ينعكس هنا آليًا.
- *  - الرسائل: كل رسائل الالتزامات (`git log --all`) ورسائل الوسوم المعرّفة
+ *  - الرسائل: كل رسائل الالتزامات (كائنات خام) ورسائل الوسوم المعرّفة
  *    (annotated tags عبر cat-file) تُفحص بالنمط نفسه.
- *  - أسماء الملفات: كل مسار blob يُقاس على SECRET_FILE_NAMES.
+ *  - أسماء الملفات: كل مسار blob في كل شجرة قابلة للوصول يُقاس على
+ *    SECRET_FILE_NAMES.
  *
  * قواعد الأمن (الـPrompt الكنوني §6.2 — إلزامية):
  *  - لا يُطبع نص المطابقة ولا قيمة السر أبدًا؛ المخزون: اسم النمط + SHA
@@ -30,7 +43,8 @@
  *
  * المخرجات (JSON إلى stdout أو --report <path>):
  *  { schema, scanner, pattern_source, date, repo, scanned: { refs, ref_names,
- *    commits, blobs, tag_objects }, result: "ZERO_FINDINGS" | "FINDINGS",
+ *    commits, trees, blobs, blob_path_entries, tag_objects }, result:
+ *    "ZERO_FINDINGS" | "FINDINGS",
  *    findings: [{ rule, object, kind: "blob-path"|"blob-content"|"commit-message"|"tag-message",
  *    path?, fingerprint, commits: {first, last, count} }], redaction: "ASSERTED" }
  *
@@ -45,7 +59,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { SECRET_FILE_NAMES, SECRET_PATTERNS } from "../check-secrets.mjs";
 
-export const SCANNER_SCHEMA = "micro-r11-s0-history-secret-scan/1";
+export const SCANNER_SCHEMA = "micro-r11-s0-history-secret-scan/2";
 const BATCH_CHUNK = 400;
 
 function fail(message) {
@@ -78,7 +92,10 @@ export function fingerprintOf(value) {
 export function matchSecrets(text) {
   const hits = [];
   for (const pattern of SECRET_PATTERNS) {
-    const regex = new RegExp(pattern.regex.source, pattern.regex.flags.includes("g") ? pattern.regex.flags : `${pattern.regex.flags}g`);
+    const regex = new RegExp(
+      pattern.regex.source,
+      pattern.regex.flags.includes("g") ? pattern.regex.flags : `${pattern.regex.flags}g`,
+    );
     let match;
     while ((match = regex.exec(text)) !== null) {
       hits.push({ rule: pattern.name, value: match[0], start: match.index });
@@ -98,6 +115,75 @@ export function matchSecretFileName(relPath) {
 }
 
 /**
+ * قراءة كائنات بتأطير طولي بايت-دقيق عبر `cat-file --batch` — يُقرأ كل جسم
+ * بطوله المعلن حصرًا فلا التباس مع أي محتوى ثنائي أو محارف تشبه الرؤوس
+ * أو فواصل تحكم داخل المحتوى (R11-REV-NF-002: نفس المبدأ طُبّق على رسائل
+ * الالتزامات). فاشل-مغلق عند أي كسر في الإطار.
+ */
+function batchReadObjects(repoPath, shas, onObject) {
+  for (let offset = 0; offset < shas.length; offset += BATCH_CHUNK) {
+    const chunk = shas.slice(offset, offset + BATCH_CHUNK);
+    const batchOutput = git(repoPath, ["cat-file", "--batch"], { input: `${chunk.join("\n")}\n` });
+    let cursor = 0;
+    for (let index = 0; index < chunk.length; index += 1) {
+      const headerEnd = batchOutput.indexOf(0x0a, cursor);
+      if (headerEnd === -1) fail(`cat-file batch framing broken (header) at chunk ${offset + index}`);
+      const header = batchOutput.slice(cursor, headerEnd).toString("utf8");
+      const parts = header.split(" ");
+      if (parts.length < 3 || parts[1] === "missing" || !/^\d+$/.test(parts[2]))
+        fail(`cat-file unexpected header: ${parts.slice(0, 2).join(" ")}`);
+      const size = Number.parseInt(parts[2], 10);
+      const bodyStart = headerEnd + 1;
+      const body = batchOutput.slice(bodyStart, bodyStart + size);
+      if (body.length !== size) fail(`cat-file truncated body for ${parts[0]}`);
+      cursor = bodyStart + size + 1; /* الفاصل \n بعد الجسم */
+      onObject(parts[0], parts[1], body);
+    }
+  }
+}
+
+/**
+ * تحليل كائن شجرة خام (R11-REV-NF-001): تسلسل `<mode> <name>\0<20 بايت
+ * SHA ثنائية>` — بلا أي افتراض نصي؛ الأسماء بايتات خام (latin1). فاشل-مغلق
+ * عند أي كسر في بنية المدخلات.
+ */
+export function parseTreeEntries(body) {
+  const entries = [];
+  let cursor = 0;
+  while (cursor < body.length) {
+    const spaceAt = body.indexOf(0x20, cursor);
+    if (spaceAt === -1) fail(`tree entry broken (mode terminator) at byte ${cursor}`);
+    const nulAt = body.indexOf(0x00, spaceAt + 1);
+    if (nulAt === -1 || nulAt + 21 > body.length)
+      fail(`tree entry broken (name terminator) at byte ${cursor}`);
+    entries.push({
+      mode: body.slice(cursor, spaceAt).toString("latin1"),
+      name: body.slice(spaceAt + 1, nulAt).toString("latin1"),
+      sha: body.slice(nulAt + 1, nulAt + 21).toString("hex"),
+    });
+    cursor = nulAt + 21;
+  }
+  return entries;
+}
+
+const BLANK_LINE = Buffer.from([0x0a, 0x0a]);
+
+/**
+ * تحليل كائن التزام خام (R11-REV-NF-002): الرؤوس ثم سطر فارغ ثم الرسالة.
+ * أول `\n\n` هو الفاصل القانوني الوحيد — أسطر الرؤوس لا تكون فارغة أبدًا
+ * (أسطر الاستمرار كتوقيع gpg تبدأ بمسافة) — فالرسالة تُستخلص بلا لبس مع
+ * أي 0x1e/0x1f أو أي ثنائي داخلها. رأس `tree` هو حتميًا أول سطر في
+ * الكائن (صيغة git الموثقة)؛ غيابه = كائن مشوه = فشل مغلق.
+ */
+export function parseCommitObject(body) {
+  const treeMatch = /^tree ([0-9a-f]{40})\n/.exec(body.toString("latin1"));
+  if (!treeMatch) fail("commit object missing its mandatory tree header");
+  const separator = body.indexOf(BLANK_LINE);
+  const message = separator === -1 ? "" : body.slice(separator + 2).toString("latin1");
+  return { treeSha: treeMatch[1], message };
+}
+
+/**
  * الفحص الكامل لمستودع git (قراءة فقط). يعيد تقريرًا خامًا يحمل القيم
  * المطابقة داخليًا للتنقية ثم تُحذف قبل الإخراج — لا تعبر القيم حد هذه
  * الدالة إلا إلى مدقق التنقية.
@@ -112,33 +198,29 @@ export function scanHistory(repoPath) {
     .toString("utf8")
     .split("\n")
     .filter(Boolean);
-  /* 2) كل الالتزامات القابلة للوصول + تعداد الكائنات بمساراتها */
-  const commits = git(repoPath, ["rev-list", "--all"])
-    .toString("utf8")
-    .split("\n")
-    .filter(Boolean);
-  const objectsRaw = git(repoPath, ["rev-list", "--objects", "--all"]).toString("latin1");
-  const blobPaths = new Map(); /* blob sha -> Set(paths) */
-  const blobOrder = [];
-  for (const line of objectsRaw.split("\n")) {
-    if (!line) continue;
-    const spaceAt = line.indexOf(" ");
-    const sha = spaceAt === -1 ? line : line.slice(0, spaceAt);
-    const objectPath = spaceAt === -1 ? "" : line.slice(spaceAt + 1);
-    if (sha.length !== 40) continue; /* ليس معرف كائن (سطور شاذة) */
-    if (!blobPaths.has(sha)) {
-      blobPaths.set(sha, new Set());
-      blobOrder.push(sha);
-    }
-    if (objectPath) blobPaths.get(sha).add(objectPath);
-  }
+  /* 2) كل الالتزامات القابلة للوصول + تعداد الكائنات (المسارات تُستكمل
+   *    من الشجر نفسها في الخطوة 4 — R11-REV-NF-001) */
+  const commits = git(repoPath, ["rev-list", "--all"]).toString("utf8").split("\n").filter(Boolean);
+  const objectShas = [
+    ...new Set(
+      git(repoPath, ["rev-list", "--objects", "--all"])
+        .toString("latin1")
+        .split("\n")
+        .map(line => {
+          const spaceAt = line.indexOf(" ");
+          const sha = spaceAt === -1 ? line : line.slice(0, spaceAt);
+          return sha.length === 40 ? sha : null; /* ليس معرف كائن (سطور شاذة) */
+        })
+        .filter(Boolean),
+    ),
+  ];
   const blobs = [];
+  const trees = [];
   {
-    /* فحص أنواع دفعي واحد: cat-file --batch-check يرد النوع والحجم لكل
-     * الكائنات في نداء واحد — لا عملية منفصلة لكل كائن. */
-    const shas = blobOrder;
-    for (let offset = 0; offset < shas.length; offset += BATCH_CHUNK) {
-      const chunk = shas.slice(offset, offset + BATCH_CHUNK);
+    /* فحص أنواع دفعي واحد: cat-file --batch-check يرد النوع لكل الكائنات في
+     * نداء واحد — لا عملية منفصلة لكل كائن. */
+    for (let offset = 0; offset < objectShas.length; offset += BATCH_CHUNK) {
+      const chunk = objectShas.slice(offset, offset + BATCH_CHUNK);
       const checkOutput = git(repoPath, ["cat-file", "--batch-check=%(objectname) %(objecttype)"], {
         input: `${chunk.join("\n")}\n`,
       })
@@ -148,64 +230,66 @@ export function scanHistory(repoPath) {
       for (const line of checkOutput) {
         const [sha, type] = line.split(" ");
         if (type === "blob") blobs.push(sha);
+        else if (type === "tree") trees.push(sha);
       }
     }
   }
-  const rawFindings = [];
-  /* 3) أسماء ملفات الأسرار على كل مسارات كل blob (بلا قراءة المحتوى).
-   * قيمة التنقية فارغة عمدًا: المسار نفسه هو الدليل المقصود إصداره (سابقة
-   * حارس شجرة العمل يطبع الملف والسطر) — ليس نص مطابقة سري يُحتَجَب. */
-  for (const sha of blobs) {
-    for (const objectPath of blobPaths.get(sha)) {
-      const rule = matchSecretFileName(objectPath);
-      if (rule) rawFindings.push({ rule, object: sha, kind: "blob-path", path: objectPath, value: "" });
-    }
-  }
-  /* 4) محتوى الـblobs عبر cat-file --batch بتأطير طولي بايت-دقيق */
-  for (let offset = 0; offset < blobs.length; offset += BATCH_CHUNK) {
-    const chunk = blobs.slice(offset, offset + BATCH_CHUNK);
-    const batchOutput = git(repoPath, ["cat-file", "--batch"], { input: `${chunk.join("\n")}\n` });
-    let cursor = 0;
-    for (let index = 0; index < chunk.length; index += 1) {
-      const headerEnd = batchOutput.indexOf(0x0a, cursor);
-      if (headerEnd === -1) fail(`cat-file batch framing broken (header) at chunk ${offset + index}`);
-      const header = batchOutput.slice(cursor, headerEnd).toString("utf8");
-      const parts = header.split(" ");
-      if (parts.length < 3 || parts[1] !== "blob") fail(`cat-file unexpected header: ${parts.slice(0, 2).join(" ")}`);
-      const size = Number.parseInt(parts[2], 10);
-      if (!Number.isSafeInteger(size) || size < 0) fail(`cat-file invalid size in header: ${parts[2]}`);
-      const bodyStart = headerEnd + 1;
-      const body = batchOutput.slice(bodyStart, bodyStart + size);
-      if (body.length !== size) fail(`cat-file truncated body for ${parts[0]}`);
-      cursor = bodyStart + size + 1; /* الفاصل \n بعد الجسم */
-      const text = body.toString("latin1");
-      const paths = [...blobPaths.get(parts[0])];
-      for (const hit of matchSecrets(text)) {
-        rawFindings.push({
-          rule: hit.rule,
-          object: parts[0],
-          kind: "blob-content",
-          path: paths.length > 0 ? paths.sort().join(" | ") : "",
-          value: hit.value,
-        });
-      }
-    }
-  }
-  /* 5) رسائل الالتزامات — إطار سجلات بفواصل تحكم غير قابلة للالتباس عمليًا */
-  const logRaw = git(repoPath, ["log", "--all", "--format=%H%x1f%B%x1e"]).toString("latin1");
-  for (const record of logRaw.split("\x1e")) {
-    const trimmed = record.replace(/^\s+/, "");
-    if (!trimmed) continue;
-    const separatorAt = trimmed.indexOf("\x1f");
-    if (separatorAt === -1) continue;
-    const commitSha = trimmed.slice(0, separatorAt);
-    const message = trimmed.slice(separatorAt + 1);
+  /* 3) كل كائنات الشجر تُقرأ خامًا وتُحلل مرة واحدة (تأطير طولي — الإطار
+   *    لا يتأثر بأسماء/محارف داخل المدخلات؛ التحليل ثنائي صرف). */
+  const parsedTrees = new Map(); /* tree sha -> entries[] */
+  batchReadObjects(repoPath, trees, (sha, type, body) => {
+    if (type !== "tree") fail(`cat-file expected tree, got ${type} for ${sha}`);
+    parsedTrees.set(sha, parseTreeEntries(body));
+  });
+  /* 4) كائنات الالتزام الخام: رسائل بلا فواصل قابلة للالتباس (R11-REV-NF-002)
+   *    + جذور الشجر لبذر مسح المسارات الكامل (R11-REV-NF-001). */
+  const commitMessageFindings = [];
+  const rootTreeShas = new Set();
+  batchReadObjects(repoPath, commits, (sha, type, body) => {
+    if (type !== "commit") fail(`cat-file expected commit, got ${type} for ${sha}`);
+    const { treeSha, message } = parseCommitObject(body);
+    rootTreeShas.add(treeSha);
     for (const hit of matchSecrets(message)) {
-      rawFindings.push({ rule: hit.rule, object: commitSha, kind: "commit-message", path: "", value: hit.value });
+      commitMessageFindings.push({
+        rule: hit.rule,
+        object: sha,
+        kind: "commit-message",
+        path: "",
+        value: hit.value,
+      });
     }
-  }
-  /* 6) رسائل الوسوم المعرّفة (annotated tags) */
-  const tagLines = git(repoPath, ["for-each-ref", "--format=%(objecttype) %(objectname) %(refname)", "refs/tags"])
+  });
+  const rawFindings = [];
+  const tagMessageFindings = [];
+  /* 5) حالة مسح المسارات (R11-REV-NF-001): الخريطة الكاملة blob → كل
+   *    مساراته في كل شجرة قابلة للوصول — بذر البادئات من جذور الالتزامات
+   *    (وكل وسم معرّف يشير لشجرة) ثم نشرها عبر مدخلات الشجر. الخريطة تحوي
+   *    كل زوج (blob، مسار) في كل شجرة قابلة للوصول، لا أول مسار يصادفه
+   *    rev-list فقط. الكائن المتكرر يُمسح محتواه مرة واحدة (blobs فريدة)
+   *    وتُنسب إليه كل أسمائه. */
+  const blobPaths = new Map(); /* blob sha -> Set(paths) */
+  const treePrefixes = new Map(); /* tree sha -> Set(dir prefixes) */
+  const processedPrefixCount = new Map(); /* tree sha -> prefixes propagated */
+  const walkQueue = [];
+  const seedTreePath = (treeSha, prefix) => {
+    if (!parsedTrees.has(treeSha)) return; /* هدف وسم ليس شجرة معدودة — لا مسار له */
+    let prefixes = treePrefixes.get(treeSha);
+    if (!prefixes) {
+      prefixes = new Set();
+      treePrefixes.set(treeSha, prefixes);
+    }
+    if (prefixes.has(prefix)) return;
+    prefixes.add(prefix);
+    walkQueue.push(treeSha);
+  };
+  /* 6) رسائل الوسوم المعرّفة (annotated tags) — قبل مسح المسارات: وسم
+   *    يشير مباشرة لشجرة يُبذرها بذرة جذر إضافية (اكتمال التعداد، فاشل-مغلق
+   *    لو غابت الشجرة من التعداد). */
+  const tagLines = git(repoPath, [
+    "for-each-ref",
+    "--format=%(objecttype) %(objectname) %(refname)",
+    "refs/tags",
+  ])
     .toString("utf8")
     .split("\n")
     .filter(Boolean);
@@ -215,11 +299,79 @@ export function scanHistory(repoPath) {
     if (type !== "tag") continue; /* الوسم الخفيف هدفه التزام غطاه فحص الرسائل */
     tagObjects += 1;
     const tagText = git(repoPath, ["cat-file", "-p", sha]).toString("latin1");
+    const pointed = /^object ([0-9a-f]{40})\ntype (\w+)/m.exec(tagText);
+    if (pointed && pointed[2] === "tree") {
+      if (!parsedTrees.has(pointed[1]))
+        fail(`tag ${refname} points at tree ${pointed[1]} which the object enumeration did not list`);
+      seedTreePath(pointed[1], "");
+    }
     for (const hit of matchSecrets(tagText)) {
-      rawFindings.push({ rule: hit.rule, object: sha, kind: "tag-message", path: refname, value: hit.value });
+      tagMessageFindings.push({
+        rule: hit.rule,
+        object: sha,
+        kind: "tag-message",
+        path: refname,
+        value: hit.value,
+      });
     }
   }
-  /* 7) مواقع الالتزامات الحاوية لا تُحسب إلا للاكتشافات (كفاءة + دقة) */
+  for (const treeSha of rootTreeShas) {
+    if (!parsedTrees.has(treeSha)) fail(`commit root tree ${treeSha} missing from the object enumeration`);
+    seedTreePath(treeSha, "");
+  }
+  while (walkQueue.length > 0) {
+    const treeSha = walkQueue.shift();
+    const prefixes = treePrefixes.get(treeSha);
+    if (processedPrefixCount.get(treeSha) === prefixes.size) continue; /* لم تنمُ المجموعة */
+    for (const entry of parsedTrees.get(treeSha)) {
+      const childPaths = [...prefixes].map(prefix =>
+        prefix === "" ? entry.name : `${prefix}/${entry.name}`,
+      );
+      if (entry.mode === "40000") {
+        for (const childPath of childPaths) seedTreePath(entry.sha, childPath);
+      } else if (entry.mode !== "160000") {
+        /* gitlink (160000): التزام وحدة خارجية ليس في هذا المخزن — ليس هدفًا. */
+        let paths = blobPaths.get(entry.sha);
+        if (!paths) {
+          paths = new Set();
+          blobPaths.set(entry.sha, paths);
+        }
+        for (const childPath of childPaths) paths.add(childPath);
+      }
+    }
+    processedPrefixCount.set(treeSha, prefixes.size);
+  }
+  const blobPathEntries = [...blobPaths.values()].reduce((total, paths) => total + paths.size, 0);
+  /* 7) أسماء ملفات الأسرار على كل مسار معدود لكل blob (بلا قراءة المحتوى).
+   * قيمة التنقية فارغة عمدًا: المسار نفسه هو الدليل المقصود إصداره (سابقة
+   * حارس شجرة العمل يطبع الملف والسطر) — ليس نص مطابقة سري يُحتَجَب. */
+  for (const sha of blobs) {
+    const paths = blobPaths.get(sha);
+    if (!paths) continue; /* blob بمسار شجرة — محتواه يُفحص، لا قاعدة اسم عليه */
+    for (const objectPath of [...paths].sort()) {
+      const rule = matchSecretFileName(objectPath);
+      if (rule) rawFindings.push({ rule, object: sha, kind: "blob-path", path: objectPath, value: "" });
+    }
+  }
+  /* 7) محتوى الـblobs عبر cat-file --batch بتأطير طولي بايت-دقيق — مرة
+   *    واحدة لكل كائن فريد، وكل الأسماء المسجلة تُنسب إليه */
+  batchReadObjects(repoPath, blobs, (sha, type, body) => {
+    if (type !== "blob") fail(`cat-file expected blob, got ${type} for ${sha}`);
+    const paths = blobPaths.get(sha);
+    const text = body.toString("latin1");
+    for (const hit of matchSecrets(text)) {
+      rawFindings.push({
+        rule: hit.rule,
+        object: sha,
+        kind: "blob-content",
+        path: paths && paths.size > 0 ? [...paths].sort().join(" | ") : "",
+        value: hit.value,
+      });
+    }
+  });
+  /* 8) رسائل الالتزامات — من كائنات الالتزام الخام نفسها (الخطوة 4)، ثم رسائل الوسوم */
+  rawFindings.push(...commitMessageFindings, ...tagMessageFindings);
+  /* 9) مواقع الالتزامات الحاوية لا تُحسب إلا للاكتشافات (كفاءة + دقة) */
   const findings = rawFindings.map(finding => {
     const entry = {
       rule: finding.rule,
@@ -246,7 +398,9 @@ export function scanHistory(repoPath) {
       refs: refNames.length,
       ref_names: refNames,
       commits: commits.length,
+      trees: trees.length,
       blobs: blobs.length,
+      blob_path_entries: blobPathEntries,
       tag_objects: tagObjects,
     },
     findings,
@@ -269,8 +423,11 @@ export function buildSanitizedReport(repoPath, date) {
   const { scanned, findings } = scanHistory(repoPath);
   const report = {
     schema: SCANNER_SCHEMA,
-    scanner: path.relative(process.cwd(), fileURLToPath(import.meta.url)) || "scripts/security/scan-git-history-secrets.mjs",
-    pattern_source: "scripts/check-secrets.mjs (SECRET_PATTERNS + SECRET_FILE_NAMES — the working-tree guard's table, shared mechanically)",
+    scanner:
+      path.relative(process.cwd(), fileURLToPath(import.meta.url)) ||
+      "scripts/security/scan-git-history-secrets.mjs",
+    pattern_source:
+      "scripts/check-secrets.mjs (SECRET_PATTERNS + SECRET_FILE_NAMES — the working-tree guard's table, shared mechanically)",
     date,
     repo: path.basename(path.resolve(repoPath)),
     scanned,
@@ -302,11 +459,13 @@ function main() {
   if (reportPath) fs.writeFileSync(reportPath, serialized, "utf8");
   else process.stdout.write(serialized);
   if (findingCount > 0) {
-    console.error(`scan-git-history-secrets: FINDINGS — ${findingCount} sanitized finding(s); values never printed`);
+    console.error(
+      `scan-git-history-secrets: FINDINGS — ${findingCount} sanitized finding(s); values never printed`,
+    );
     process.exit(1);
   }
   console.error(
-    `scan-git-history-secrets: ZERO_FINDINGS — ${report.scanned.commits} commits, ${report.scanned.blobs} blobs, ${report.scanned.refs} refs scanned (${report.scanned.tag_objects} annotated tags); pattern table shared with the working-tree guard; redaction asserted`,
+    `scan-git-history-secrets: ZERO_FINDINGS — ${report.scanned.commits} commits, ${report.scanned.trees} trees, ${report.scanned.blobs} blobs (${report.scanned.blob_path_entries} blob-path entries), ${report.scanned.refs} refs scanned (${report.scanned.tag_objects} annotated tags); pattern table shared with the working-tree guard; redaction asserted`,
   );
   process.exit(0);
 }

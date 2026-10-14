@@ -15,6 +15,10 @@
  *  6) التأطير البايتي الدقيق: محتوى يقلد رؤوس cat-file لا يكسر الماسح.
  *  7) مدقق التنقية مباشرة (redactionViolations): يلتقط التسرب ولا يكذب.
  *  8) أكواد خروج CLI: 0 نظيف / 1 اكتشافات / 2 خطأ استخدام.
+ *  9) R11-REV-NF-001: الكائن المكرر (نفس البايتات في مسارين) يُعدّد كل
+ *     أسمائه — المسار الحساس لا يضيع بسبب إقران rev-list بمسار واحد.
+ * 10) R11-REV-NF-002: رسالة التزام تحوي 0x1e (و0x1f) قبل حارس مُجمّع وقت
+ *     التشغيل تُفحص كاملة وتُنسب لالتزامها بالضبط — لا قطع بالفواصل.
  */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -49,7 +53,15 @@ afterAll(() => {
 function git(repoPath, args, options = {}) {
   const run = spawnSync(
     "git",
-    ["-c", "user.email=zai-s0-selftest@example.invalid", "-c", "user.name=S0 self-test", "-C", repoPath, ...args],
+    [
+      "-c",
+      "user.email=zai-s0-selftest@example.invalid",
+      "-c",
+      "user.name=S0 self-test",
+      "-C",
+      repoPath,
+      ...args,
+    ],
     { encoding: "utf8", ...options },
   );
   if (run.status !== 0) throw new Error(`git ${args.join(" ")} failed: ${run.stderr}`);
@@ -85,7 +97,9 @@ describe("S0 history secret scan", () => {
     const { report, findingCount } = buildSanitizedReport(repoPath, "2026-10-14");
     expect(findingCount).toBeGreaterThan(0);
     expect(report.result).toBe("FINDINGS");
-    const contentFindings = report.findings.filter(f => f.rule === "github-classic-token" && f.kind === "blob-content");
+    const contentFindings = report.findings.filter(
+      f => f.rule === "github-classic-token" && f.kind === "blob-content",
+    );
     expect(contentFindings.length).toBeGreaterThan(0);
     for (const finding of contentFindings) {
       expect(finding.object).toMatch(/^[0-9a-f]{40}$/);
@@ -161,7 +175,11 @@ describe("S0 history secret scan", () => {
     expect(redactionViolations(`{"x":"contains ${fakeClassicToken}"}`, findings)).toEqual(["ab".repeat(8)]);
     expect(redactionViolations('{"x":"clean"}', findings)).toEqual([]);
     /* القيم القصيرة (<8) لا تفحص — قاعدة الطول موثقة في المُخرِج. */
-    expect(redactionViolations('{"x":"short"}', [{ entry: { fingerprint: "c".repeat(16) }, secretValue: "short" }])).toEqual([]);
+    expect(
+      redactionViolations('{"x":"short"}', [
+        { entry: { fingerprint: "c".repeat(16) }, secretValue: "short" },
+      ]),
+    ).toEqual([]);
   });
 
   it("fingerprint is non-reversible and stable", () => {
@@ -196,5 +214,107 @@ describe("S0 history secret scan", () => {
     const usageRun = spawnSync("node", [SCRIPT_PATH], { encoding: "utf8" });
     expect(usageRun.status).toBe(2);
     expect(usageRun.stderr).toContain("USAGE");
+  });
+});
+
+describe("S0 adversarial regressions (PR review R11-REV-NF-001 / R11-REV-NF-002)", () => {
+  it("enumerates every alias path of a deduplicated blob — sensitive filename never lost (R11-REV-NF-001)", () => {
+    const repoPath = initRepo();
+    /* نفس البايتات في مسارين — كائن blob واحد له اسمان؛ التحليل القديم
+     * المعتمد على rev-list --objects كان يقرن الكائن بمسار واحد فقط
+     * (README.txt) فيُفوّت قاعدة اسم id_rsa كليًا — ZERO_FINDINGS كاذبة. */
+    commitFile(repoPath, "README.txt", "ordinary documentation body\n", "add readme");
+    const keyPath = path.join(repoPath, "keys/id_rsa");
+    fs.mkdirSync(path.dirname(keyPath), { recursive: true });
+    fs.copyFileSync(path.join(repoPath, "README.txt"), keyPath);
+    git(repoPath, ["add", "keys/id_rsa"]);
+    git(repoPath, ["commit", "-m", "alias identical content at a sensitive path"]);
+    const { report } = buildSanitizedReport(repoPath, "2026-10-14");
+    expect(report.scanned.blobs).toBe(1); /* كائن واحد مكرر في مسارين لا اثنان */
+    const pathFindings = report.findings.filter(f => f.kind === "blob-path");
+    expect(pathFindings).toHaveLength(1);
+    expect(pathFindings[0].path).toBe("keys/id_rsa");
+    expect(pathFindings[0].rule).toContain("id_rsa");
+    expect(pathFindings[0].object).toMatch(/^[0-9a-f]{40}$/);
+    expect(pathFindings[0].commits.count).toBeGreaterThanOrEqual(1);
+    /* المسار الآمن لا يُصطاد (README.txt ليس اسم سر) — الاصطياد للاسم الحساس وحده. */
+  });
+
+  it("attributes all alias paths to the one blob-content finding and scans content once per object (R11-REV-NF-001)", () => {
+    const repoPath = initRepo();
+    commitFile(repoPath, "docs/readme.txt", `token=${fakeClassicToken}\n`, "add doc");
+    /* الكائن نفسه (البايتات نفسها) في مسار ثانٍ حساس الاسم عبر التزام لاحق —
+     * مسح المحتوى مرة واحدة لكل كائن، وكل الأسماء تُنسب إلى الاكتشاف. */
+    const aliasPath = path.join(repoPath, "archive/creds.pem");
+    fs.mkdirSync(path.dirname(aliasPath), { recursive: true });
+    fs.copyFileSync(path.join(repoPath, "docs/readme.txt"), aliasPath);
+    git(repoPath, ["add", "archive/creds.pem"]);
+    git(repoPath, ["commit", "-m", "alias the same blob at an archive path"]);
+    const { report } = buildSanitizedReport(repoPath, "2026-10-14");
+    expect(report.scanned.blobs).toBe(1);
+    const contentFindings = report.findings.filter(f => f.kind === "blob-content");
+    expect(contentFindings).toHaveLength(1); /* مرة واحدة لكل كائن فريد */
+    expect(contentFindings[0].rule).toBe("github-classic-token");
+    expect(contentFindings[0].path).toBe("archive/creds.pem | docs/readme.txt"); /* كل الأسماء */
+    const pathFindings = report.findings.filter(f => f.kind === "blob-path");
+    expect(pathFindings.some(f => f.path === "archive/creds.pem")).toBe(true);
+    expect(JSON.stringify(report)).not.toContain(fakeClassicToken);
+  });
+
+  it("scans commit-message text after an embedded 0x1e record separator (R11-REV-NF-002)", () => {
+    const repoPath = initRepo();
+    commitFile(repoPath, "a.txt", "content\n", "normal commit");
+    const full = path.join(repoPath, "b.txt");
+    fs.writeFileSync(full, "b\n", "utf8");
+    git(repoPath, ["add", "b.txt"]);
+    /* الرسالة تحوي فاصل السجلات 0x1e قبل الحارس المُجمّع وقت التشغيل وبلا أي
+     * 0x1f بعده — التحليل القديم بالفواصل كان يُسقط المقطع كليًا (ZERO_FINDINGS
+     * كاذبة)؛ الاستخراج الخام بطول معلن لا يتأثر بأي محرف داخل الرسالة. */
+    git(repoPath, ["commit", "-m", `notes\x1efinal token ${fakeClassicToken}`]);
+    const { report } = buildSanitizedReport(repoPath, "2026-10-14");
+    const messageFindings = report.findings.filter(f => f.kind === "commit-message");
+    expect(messageFindings).toHaveLength(1);
+    expect(messageFindings[0].rule).toBe("github-classic-token");
+    expect(messageFindings[0].object).toBe(git(repoPath, ["rev-parse", "HEAD"]).trim());
+    expect(JSON.stringify(report)).not.toContain(fakeClassicToken);
+  });
+
+  it("attributes commit-message findings to the exact commit even with 0x1e and 0x1f inside the message (R11-REV-NF-002)", () => {
+    const repoPath = initRepo();
+    commitFile(repoPath, "a.txt", "content\n", "clean");
+    const full = path.join(repoPath, "b.txt");
+    fs.writeFileSync(full, "b\n", "utf8");
+    git(repoPath, ["add", "b.txt"]);
+    /* الفاصلان معًا: 0x1e و0x1f قبل الحارس — التحليل القديم كان يلتقطه أحيانًا
+     * لكن بنسبته لمعرف مشوه؛ الاستخراج الخام ينسبه لالتزامه الحقيقي حصرًا. */
+    git(repoPath, ["commit", "-m", `head\x1e mid\x1f tail ${fakeFineGrained}`]);
+    const headSha = git(repoPath, ["rev-parse", "HEAD"]).trim();
+    const { report } = buildSanitizedReport(repoPath, "2026-10-14");
+    const messageFindings = report.findings.filter(f => f.kind === "commit-message");
+    expect(messageFindings).toHaveLength(1);
+    expect(messageFindings[0].rule).toBe("github-fine-grained-token");
+    expect(messageFindings[0].object).toBe(headSha);
+    expect(JSON.stringify(report)).not.toContain(fakeFineGrained);
+  });
+
+  it("survives commit messages that mimic cat-file batch framing (byte-exact raw-object parsing)", () => {
+    const repoPath = initRepo();
+    /* رسالة تقلد رؤوس cat-file وثنائية 0x1e/0x1f — التأطير الطولي للكائن الخام
+     * لا ينكسر، والاستخلاص بعد أول سطر فارغ قانوني يظل مضبوطًا. */
+    const hostile = [
+      "0123456789abcdef0123456789abcdef01234567 commit 999",
+      "",
+      `framing-like body\x1e\x1f ${fakeClassicToken}`,
+    ].join("\n");
+    fs.writeFileSync(path.join(repoPath, "h.txt"), "h\n", "utf8");
+    git(repoPath, ["add", "h.txt"]);
+    git(repoPath, ["commit", "-m", hostile]);
+    const headSha = git(repoPath, ["rev-parse", "HEAD"]).trim();
+    const { report } = buildSanitizedReport(repoPath, "2026-10-14");
+    expect(report.scanned.commits).toBe(1);
+    const messageFindings = report.findings.filter(f => f.kind === "commit-message");
+    expect(messageFindings).toHaveLength(1);
+    expect(messageFindings[0].object).toBe(headSha);
+    expect(messageFindings[0].rule).toBe("github-classic-token");
   });
 });
