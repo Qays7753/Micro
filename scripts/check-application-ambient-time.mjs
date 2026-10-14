@@ -112,7 +112,8 @@ export const APPROVED_ID_FALLBACK_SITES = [
   { file: "application/time/actualTimeService.ts", shape: "ternary" },
 ];
 
-const isTestFile = filePath => /\.(?:test|spec|fixture)\.[jt]sx?$/.test(filePath) || filePath.includes("__fixtures__");
+const isTestFile = filePath =>
+  /\.(?:test|spec|fixture)\.[jt]sx?$/.test(filePath) || filePath.includes("__fixtures__");
 const isDist = filePath => filePath.includes(`${path.sep}dist${path.sep}`);
 
 /** تطبيع النص: مسافات متتالية ← مسافة واحدة (للمقارنة الحرفية المتسامحة مع التنسيق فقط). */
@@ -144,7 +145,13 @@ export function collectApplicationFiles(repoRoot) {
 }
 
 function relToApplication(repoRoot, file) {
-  return "application/" + path.relative(path.join(repoRoot, "apps", "prototype-web", "client", "src", "application"), file).split(path.sep).join("/");
+  return (
+    "application/" +
+    path
+      .relative(path.join(repoRoot, "apps", "prototype-web", "client", "src", "application"), file)
+      .split(path.sep)
+      .join("/")
+  );
 }
 
 /** هل الاستدعاء/العقدة داخل مدى منطقة معفاة (احتواء موضعي في نفس الملف)؟ */

@@ -63,7 +63,9 @@ describe("check-application-ambient-time (R11 W1b-3 / D-12 — OD-TIME)", () => 
       },
       result => result,
     );
-    expect(rulesOf(violations).filter(rule => rule.startsWith("AT-date-now") || rule === "AT-performance-now")).toEqual([]);
+    expect(
+      rulesOf(violations).filter(rule => rule.startsWith("AT-date-now") || rule === "AT-performance-now"),
+    ).toEqual([]);
     expect(stats.approvedIdFallbackRegions).toBe(0);
   });
 
@@ -103,7 +105,7 @@ describe("check-application-ambient-time (R11 W1b-3 / D-12 — OD-TIME)", () => 
           tree,
           "apps/prototype-web/client/src/application/demo/wrongrecv.ts",
           "export const a = globalThis.crypto?.randomXUUID?.() ?? `x-${Date.now()}`;\n" +
-            "const foo = { randomUUID: () => \"u\" };\n" +
+            'const foo = { randomUUID: () => "u" };\n' +
             "export const b = foo.randomUUID?.() ?? `y-${Date.now()}`;\n",
         );
       },
@@ -196,7 +198,7 @@ describe("check-application-ambient-time (R11 W1b-3 / D-12 — OD-TIME)", () => 
         write(
           tree,
           "apps/prototype-web/client/src/application/demo/parse.ts",
-          'export const f = (v: string) => new Date(v);\nexport const g = (v: string) => Date.parse(v);\n',
+          "export const f = (v: string) => new Date(v);\nexport const g = (v: string) => Date.parse(v);\n",
         );
       },
       result => result,
@@ -247,7 +249,9 @@ describe("check-application-ambient-time (R11 W1b-3 / D-12 — OD-TIME)", () => 
     const rules = rulesOf(violations);
     expect(rules).toContain("AT-new-id-fallback-site");
     expect(rules).not.toContain("AT-date-now-out-of-family"); /* الشكل بنيويًا سليم — الرفض للجاتشة فقط */
-    expect(rules.filter(rule => rule === "AT-stale-id-fallback-site")).toHaveLength(APPROVED_ID_FALLBACK_SITES.length);
+    expect(rules.filter(rule => rule === "AT-stale-id-fallback-site")).toHaveLength(
+      APPROVED_ID_FALLBACK_SITES.length,
+    );
   });
 
   it("الشكلان المعتمدان في ملف مثبت (fixture للشكل أ والشكل ب) يعفيان النداءَين", () => {
@@ -271,17 +275,15 @@ describe("check-application-ambient-time (R11 W1b-3 / D-12 — OD-TIME)", () => 
     expect(rules).not.toContain("AT-new-id-fallback-site");
     expect(stats.approvedIdFallbackRegions).toBe(2);
     expect(stats.approvedDateNowCalls).toBe(2);
-    expect(rules.filter(rule => rule === "AT-stale-id-fallback-site")).toHaveLength(APPROVED_ID_FALLBACK_SITES.length - 2);
+    expect(rules.filter(rule => rule === "AT-stale-id-fallback-site")).toHaveLength(
+      APPROVED_ID_FALLBACK_SITES.length - 2,
+    );
   });
 
   it("خطأ تحليل TypeScript: فشل مغلق (AT-parse-error)", () => {
     const { violations } = withTree(
       tree => {
-        write(
-          tree,
-          "apps/prototype-web/client/src/application/demo/broken.ts",
-          "export const = :::\n",
-        );
+        write(tree, "apps/prototype-web/client/src/application/demo/broken.ts", "export const = :::\n");
       },
       result => result,
     );
