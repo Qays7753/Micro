@@ -2,7 +2,7 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 4 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 59 · SUPERSEDED: 1
+BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 60 · SUPERSEDED: 1
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
@@ -13,7 +13,6 @@ BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 4 · BACKLOG: 2 · REVIEW_REQUIRED: 1
 | ARCH-011 | IN_REVIEW | HARDENING | NOT_APPLICABLE | P0 | r11-lock-fail-closed-20261015 | R11 Lock Remediation — إصلاح فاشل-مغلق للقفل المحلي: R11-W1B4-NF-001..004 (ساعة خلفية ضد خمول القفل ووقفة التخمين، فشل قراءة التخزين عند البوابة، وعقد خمول الإدخال الفعلي) | Micro owner (Qays7753) | application, security, ui-gate, tests, contracts, docs, operations-control | ARCH-009 |
 | ARCH-010 | IN_REVIEW | HARDENING | NOT_APPLICABLE | P1 | r11-followup-post-w1b | متابعة منفصلة — حارس Diagnostics Storage المخصص (R11-W1A-NF-001) بعد إخراجه من نطاق W1b بقرار المالك | Micro owner (Qays7753) | governance, guards, tests, diagnostics | ARCH-009 |
 | ARCH-013 | IN_REVIEW | GOVERNANCE | EXTERNAL_REVIEW_REQUIRED | P1 | r11-continuation-phase2-3 | R11 W2a/W2b — توصيف Transfer الكامل وعدّاد OD-COUNTS الجانبي-الاختبار وبوابة حمولة W2b (OD-KEYS) | Micro owner (Qays7753) | application, transfers, tests, docs, operations-control | — |
-| ARCH-012 | IN_REVIEW | HARDENING | EXTERNAL_REVIEW_REQUIRED | P2 | r11-continuation-followup | متابعة منفصلة — ترحيل مهايئ مفاتيح المسودات التراثية إلى حد تخزين صريح (R11-ARCH010-NF-001 — مكتشف إحصاء ARCH-010) | Micro owner (Qays7753) | governance, application, storage-boundary, pages | ARCH-010 |
 | AUDIT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | تدقيق مستقل نهائي قبل الـPilot | Product owner / Manus coordination | uat, audit, cross-layer | UAT-001 |
 | UAT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | قبول داخلي ببيانات Demo كاملة | Product owner / Manus coordination | uat, audit, cross-layer | DEVICE-001, LEGAL-001 |
 | GOV-001 | REVIEW_REQUIRED | GOVERNANCE | NOT_APPLICABLE | P1 | governance | مصالحة G10-A مع تعارض عقد C1 | Product owner / Manus coordination | governance, contracts | — |
@@ -71,6 +70,7 @@ BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 4 · BACKLOG: 2 · REVIEW_REQUIRED: 1
 | REM-006 | VERIFIED | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P1 | final-logic-remediation | المعالجة المنطقية النهائية — قرارات المالك D-03/D-08/D-09/D-11 وتحقيق التعادل (بلا UI وبلا دمج) | Product owner / Z AI execution | docs, application, domain, tests | REM-002, REM-003, REM-004, REM-005 |
 | REM-007 | VERIFIED | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P1 | canonical-operating-breakeven | النموذج الكنوني للتعادل التشغيلي والنتيجة التشغيلية المستهدفة TARGET_OPERATING_RESULT (بلا UI وبلا مخطط) | Product owner / Z AI execution | domain, application, docs, tests | REM-006 |
 | TEST-001 | VERIFIED | HARDENING | NOT_APPLICABLE | P1 | test-stability | تثبيت اختبار الإهلاك المعتمد على الساعة الحية في G4Assets.dom | Product owner / Manus coordination | tests, verification | — |
+| ARCH-012 | VERIFIED | HARDENING | EXTERNAL_REVIEW_REQUIRED | P2 | r11-continuation-followup | متابعة منفصلة — ترحيل مهايئ مفاتيح المسودات التراثية إلى حد تخزين صريح (R11-ARCH010-NF-001 — مكتشف إحصاء ARCH-010) | Micro owner (Qays7753) | governance, application, storage-boundary, pages | ARCH-010 |
 | CLEAN-001 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | stage-4 | تنظيف الأسطح الجزئية والميتة | Product owner / Manus coordination | cross-layer, presentation | FIN-007, OPS-004 |
 | DOC-001 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P2 | documentation-hygiene | تصحيحات صدق السطح التوثيقي وأرشفة الأدلة المغلقة — موجتا A+B من تدقيق الحد الأدنى 2026-10-01 | Product owner / Zed coordination | documentation | — |
 | DOC-004 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P2 | documentation-hygiene | حذف 42 ملفًا محذومَ المرجعية وتقاعد 93 ملف تقارير مساند — دفعة الجولة الثانية | Product owner / Z AI coordination | documentation | — |

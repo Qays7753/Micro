@@ -2,7 +2,7 @@
  "id": "ARCH-012",
  "title": "متابعة منفصلة — ترحيل مهايئ مفاتيح المسودات التراثية إلى حد تخزين صريح (R11-ARCH010-NF-001 — مكتشف إحصاء ARCH-010)",
  "type": "GOVERNANCE",
- "status": "IN_REVIEW",
+ "status": "VERIFIED",
  "priority": "P2",
  "stage": "r11-continuation-followup",
  "summary": "إحصاء web-storage الكامل الذي فرضه بند ARCH-010 (قبل أي كتابة) كشف موضعًا إنتاجيًا ثانيًا يلمس globalThis.localStorage خارج طبقة التخزين: browserLegacyFormDraftStorage() في application/drafts/legacyFormDraftMigration.ts:32 — مهايئ مفاتيح المسودات التراثية (micro.finance-draft.<type>.v1 وmicro.setup-draft.v1) الذي تستدعيه ثلاث صفحات مباشرة (Setup.tsx وFinancialEventEditor.tsx وSettings.tsx) ثم تمرره لدوال الترحيل. الكيان نفسه مسجل قانونيًا في persistent-entity-touchpoints.json (مفاتيح تراثية تُحذف من المصدر بعقد اكتب←تحقق←احذف) لكن المهايئ يقيم داخل طبقة التطبيق لا في حد تخزين صريح — صنف DEEPENS للمكتشف الأصلي R11-W1A-NF-001 (الذي أُغلق جذريًا للتشخيص في Phase 1). خارج نطاق موجة ARCH-010 بعقد المتابعة §7 (لا نقل ملفات غير مترابطة) ويحتاج قرار مالك مستقلًا: أين يقيم المهايئ (حد تخزين صريح بنمط storage/diagnostics/) وهل يبقى استدعاء الصفحات له مباشرًا أم ينتقل لخدمة التطبيق.",
@@ -90,8 +90,23 @@
    "changed_at": "2026-10-15",
    "actor": "zai-executor",
    "reason": "التنفيذ الكامل على PR #369: الحذف المتسق + الحراس والسلبية + إرساءات الأسس الموثقة + البوابة الكاملة EXIT 0 (الجذر 948/948 والتطبيق 2,712/2,712 وlint 35 بالضبط و25/25 حراسًا) + المراجعات الخمسة والمُخلّص — PR_READY؛ الدمج قرار مالك."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-10-15",
+   "actor": "merge:pr-369",
+   "reason": "دُمج PR #369 بMerge commit عند f0904260447647e0b4436a5bb203c7bcc4e7d0a6 بعد نجاح فحوص الرأس 2bd35baed261bdbb1b0ca4225e4e0885435c7a09؛ تحقق main المباشر ما زال بوابة مستقلة."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-10-15",
+   "actor": "verify:main",
+   "reason": "main عند f0904260447647e0b4436a5bb203c7bcc4e7d0a6؛ فحصا CI checks وCloudflare Pages SUCCESS على رأس الدمج نفسه وفق تحقق GitHub API المباشر، وفرع التنفيذ حُذف بعد الدمج."
   }
  ],
  "migration_baseline": false,
- "next_action": "قرار المالك على PR #369 (المراجعة ثم الدمج المستقل يتبعه تحقق ما بعد الدمج كما في PRs #365/#368): Outcome A منفذ كاملًا ومتسقًا على الفرع refactoring/arch012-retire-legacy-draft-20261015 من الأساس f221a0127e — الترحيل التراثي واختباراته واستثناء الحارس أزيلت؛ FormDraftService وسلوك المسودات والتخزين الحالي محفوظ؛ W2b/W5 دون مساس؛ البوابة الكاملة EXIT 0 والمراجعات الخمسة مكتملة؛ المكتشفتان NF-001/002 (نافذتا دورة حياة المسودة القائمتان قبل الموجة) مسجلتان بمحفزات لقرار مستقل."
+ "next_action": "لا إجراء إضافي لـARCH-012؛ Outcome A مدموج ومتحقق على main عند f0904260447647e0b4436a5bb203c7bcc4e7d0a6. تبقى ARCH-012-NF-001 وARCH-012-NF-002 مسجلتين كمحفزين مستقلين لموجة سلوكية لاحقة بقرار مالك؛ W2b وW5 دون تغيير. يُعاد فتح البند فقط بدليل فشل جديد."
+ ,
+ "merge_sha": "f0904260447647e0b4436a5bb203c7bcc4e7d0a6",
+ "verified_on_main_sha": "f0904260447647e0b4436a5bb203c7bcc4e7d0a6"
 }

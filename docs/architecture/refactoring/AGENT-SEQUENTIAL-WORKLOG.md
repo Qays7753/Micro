@@ -1356,3 +1356,13 @@ Full verification gate 17/17 EXIT 0 on implementation head `469aba03` (root 919/
 - Full gate EXIT 0 on the implementation head: root 948/948, app 2,712/2,712, lint exactly 35, 25/25 guards, budget+surfaces PASS. Branch pushed; PR #369 created (open, base main).
 - Commit 4 (records): current-state updated within the ceiling (20180/20480; PR #368 recorded as merged+verified at f221a012), state-log §210, this entry, ARCH-012/WS-221 -> IN_REVIEW with pr=369, views regenerated, canonical report completed, group5Docs retirement assertions added.
 - Status: ARCH012_RETIREMENT_COMPLETE — PR_READY (PR #369 open, awaiting owner review); W2B_REMAINS_PENDING — NO_BEHAVIOR_CHANGE; W5_CLOSED_BY_POLICY — NO_TRIGGER_PROVEN; NO_MERGE / NO_CLEANUP / NO_SECRETS_EXPOSED.
+
+
+## Entry 115 — 2026-10-15 — ARCH-012 post-merge reconciliation and main verification
+
+- **نطاق المصالحة:** بدأ من `main` بعد دمج PR #369 عند `f0904260447647e0b4436a5bb203c7bcc4e7d0a6`؛ لا كود إنتاج جديد ولا إعادة تنفيذ للموجة.
+- **نتيجة المراجعة المستقلة:** تنفيذ Outcome A كان متسقًا، لكن المراجعة وجدت مراجع توثيقية حيّة قديمة تصف ترحيل المفاتيح بعد تقاعده. صُححت تعليقات `Setup.tsx` و`FinancialEventEditor.tsx` وعقد 36 في commit `2bd35baed261bdbb1b0ca4225e4e0885435c7a09` قبل الدمج؛ التصحيح بلا أثر سلوكي أو مالي أو تاريخي أو Schema/Export/Import أو UI بصري.
+- **الفحوص:** diagnostics-storage وapplication-readwrite وmodule-boundaries PASS؛ 29 اختبارًا جذريًا و22 اختبار صفحة PASS؛ Prettier وJSON validation و`git diff --check` PASS؛ CI وCloudflare Pages SUCCESS على الرأس المصحح، ثم SUCCESS مرة أخرى على رأس main بعد الدمج.
+- **Merge Manifest:** PR #369، فرع `refactoring/arch012-retire-legacy-draft-20261015`، merge method = Merge commit، merge commit = `f0904260447647e0b4436a5bb203c7bcc4e7d0a6`؛ فرع التنفيذ حُذف بعد تحقق الدمج.
+- **Operations Control:** ARCH-012 وWS-221 صارا `VERIFIED` مع `merge_sha` و`verified_on_main_sha`؛ `current-state.md` و`current-state-log.md` صُولحا، والمحفزان ARCH-012-NF-001/002 بقيا مستقلين بقرار مالك لاحق.
+- **الحالة:** `ARCH012_RETIREMENT_VERIFIED_ON_MAIN — POST_MERGE_VERIFICATION: PASS — NO_SECRETS_EXPOSED`.
