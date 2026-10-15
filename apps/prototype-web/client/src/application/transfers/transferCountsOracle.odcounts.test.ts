@@ -109,7 +109,7 @@ describe("OD-COUNTS meta-tests — registry == oracle (السجل يطابق ا�
   });
 
   it("the counted set (22) matches the exporter's counts keys exactly", () => {
-    const counted = countedArrayFamilyKeys().sort();
+    const counted = [...countedArrayFamilyKeys()].sort();
     expect(counted).toHaveLength(22);
     expect(Object.keys(supplement.counts).sort()).toEqual(counted);
     expect(Object.keys(exportCountsOf(supplement.data)).sort()).toEqual(counted);
@@ -141,6 +141,7 @@ describe("OD-COUNTS oracle over IndexedDB — all 31 families, counted and uncou
     const replaced = await store.replaceSnapshot(seed);
     expect(replaced.ok).toBe(true);
     const read = await store.readSnapshot();
+    if (!read.ok) throw new Error(read.message);
     expect(read.ok).toBe(true);
 
     const oracle = oracleCounts(read.value);
@@ -149,6 +150,7 @@ describe("OD-COUNTS oracle over IndexedDB — all 31 families, counted and uncou
 
     const transfers = new LocalTransferService(store, NOW);
     const exported = await transfers.createExport();
+    if (!exported.ok) throw new Error(exported.message);
     expect(exported.ok).toBe(true);
 
     const envelopeCounts = exported.value.counts as unknown as Record<string, number>;
@@ -169,6 +171,7 @@ describe("OD-COUNTS oracle over Memory — all 31 families, counted and uncounte
     const replaced = await store.replaceSnapshot(seed);
     expect(replaced.ok).toBe(true);
     const read = await store.readSnapshot();
+    if (!read.ok) throw new Error(read.message);
     expect(read.ok).toBe(true);
 
     const oracle = oracleCounts(read.value);
@@ -177,6 +180,7 @@ describe("OD-COUNTS oracle over Memory — all 31 families, counted and uncounte
 
     const transfers = new LocalTransferService(store, NOW);
     const exported = await transfers.createExport();
+    if (!exported.ok) throw new Error(exported.message);
     expect(exported.ok).toBe(true);
 
     const envelopeCounts = exported.value.counts as unknown as Record<string, number>;
@@ -205,14 +209,14 @@ describe("OD-COUNTS full-cycle round trip — import → confirm → re-export k
       expect(replaced.ok).toBe(true);
 
       const first = await transfers.createExport();
-      expect(first.ok).toBe(true);
+      if (!first.ok) throw new Error(first.message);
       const prepared = transfers.prepareImport(JSON.stringify(first.value));
-      expect(prepared.ok).toBe(true);
+      if (!prepared.ok) throw new Error(prepared.message);
       const confirmed = await transfers.confirmImport(prepared.value);
-      expect(confirmed.ok).toBe(true);
+      if (!confirmed.ok) throw new Error(confirmed.message);
 
       const reExported = await transfers.createExport();
-      expect(reExported.ok).toBe(true);
+      if (!reExported.ok) throw new Error(reExported.message);
       const oracle = oracleCounts(seed);
       const envelopeCounts = reExported.value.counts as unknown as Record<string, number>;
       for (const key of Object.keys(TRANSFER_ARRAY_FAMILY_ROLES)) {

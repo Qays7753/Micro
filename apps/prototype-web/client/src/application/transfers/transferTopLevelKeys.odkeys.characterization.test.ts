@@ -124,7 +124,7 @@ describe("OD-KEYS — allowed-set derivation from the registry plus exporter-emi
       for (const source of [store, makeStore()]) {
         const transfers = new LocalTransferService(source, NOW);
         const exported = await transfers.createExport();
-        expect(exported.ok).toBe(true);
+        if (!exported.ok) throw new Error(exported.message);
         for (const key of Object.keys(exported.value.data as Record<string, unknown>)) {
           expect(allowedDataKeys.has(key)).toBe(true);
         }
@@ -135,6 +135,7 @@ describe("OD-KEYS — allowed-set derivation from the registry plus exporter-emi
   it("the current envelope's top-level keys are pinned exactly (eight keys)", async () => {
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     const exported = await transfers.createExport();
+    if (!exported.ok) throw new Error(exported.message);
     expect(exported.ok).toBe(true);
     expect(Object.keys(exported.value).sort()).toEqual([
       "appVersion",
@@ -153,13 +154,13 @@ describe("OD-KEYS — current behavior characterization: an unknown top-level da
   it("is ACCEPTED today (prepareImport ok) and survives into the prepared preview data", async () => {
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     const exported = await transfers.createExport();
-    expect(exported.ok).toBe(true);
+    if (!exported.ok) throw new Error(exported.message);
     const base = clone(exported.value as unknown as ExportFileShape);
     (base.data as Record<string, unknown>)[ROGUE_KEY] = { not: "a micro family" };
     const tampered = restamp(base);
 
     const prepared = transfers.prepareImport(JSON.stringify(tampered));
-    expect(prepared.ok).toBe(true);
+    if (!prepared.ok) throw new Error(prepared.message);
     expect(ROGUE_KEY in (prepared.value.file.data as unknown as Record<string, unknown>)).toBe(true);
   });
 
@@ -174,22 +175,22 @@ describe("OD-KEYS — current behavior characterization: an unknown top-level da
       const seeded = await store.replaceSnapshot(supplementGolden.data as LocalStoreSnapshot);
       expect(seeded.ok).toBe(true);
       const exported = await transfers.createExport();
-      expect(exported.ok).toBe(true);
+      if (!exported.ok) throw new Error(exported.message);
       const base = clone(exported.value as unknown as ExportFileShape);
       (base.data as Record<string, unknown>)[ROGUE_KEY] = [1, 2, 3];
       const tampered = restamp(base);
 
       const prepared = transfers.prepareImport(JSON.stringify(tampered));
-      expect(prepared.ok).toBe(true);
+      if (!prepared.ok) throw new Error(prepared.message);
       const confirmed = await transfers.confirmImport(prepared.value);
-      expect(confirmed.ok).toBe(true);
+      if (!confirmed.ok) throw new Error(confirmed.message);
 
       const read = await store.readSnapshot();
-      expect(read.ok).toBe(true);
+      if (!read.ok) throw new Error(read.message);
       expect(ROGUE_KEY in (read.value as unknown as Record<string, unknown>)).toBe(false);
 
       const reExported = await transfers.createExport();
-      expect(reExported.ok).toBe(true);
+      if (!reExported.ok) throw new Error(reExported.message);
       expect(ROGUE_KEY in (reExported.value.data as unknown as Record<string, unknown>)).toBe(false);
       /* البيانات المعروفة نجت كاملة — الإسقاط لا يمس العائلات القائمة */
       expect((reExported.value.data as unknown as Record<string, unknown>).financialEvents).toHaveLength(
@@ -206,7 +207,7 @@ describe("OD-KEYS — legacy pair (8/17) behavior characterization: unchanged", 
     (legacy.data as Record<string, unknown>)[ROGUE_KEY] = "legacy extra";
 
     const prepared = transfers.prepareImport(JSON.stringify(legacy));
-    expect(prepared.ok).toBe(true);
+    if (!prepared.ok) throw new Error(prepared.message);
     expect(prepared.value.file.version).toBe(30);
     expect(prepared.value.file.schemaVersion).toBe(38);
   });
@@ -217,11 +218,11 @@ describe("OD-KEYS — legacy pair (8/17) behavior characterization: unchanged", 
     const legacy = clone(file817 as unknown as ExportFileShape);
     (legacy.data as Record<string, unknown>)[ROGUE_KEY] = "legacy extra";
     const prepared = transfers.prepareImport(JSON.stringify(legacy));
-    expect(prepared.ok).toBe(true);
+    if (!prepared.ok) throw new Error(prepared.message);
     const confirmed = await transfers.confirmImport(prepared.value);
-    expect(confirmed.ok).toBe(true);
+    if (!confirmed.ok) throw new Error(confirmed.message);
     const read = await store.readSnapshot();
-    expect(read.ok).toBe(true);
+    if (!read.ok) throw new Error(read.message);
     expect(ROGUE_KEY in (read.value as unknown as Record<string, unknown>)).toBe(false);
   });
 });
@@ -230,6 +231,7 @@ describe("OD-KEYS — counts-block unknown key on the Current pair (existing MED
   it("an extra key inside counts is rejected with the exact current message", async () => {
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     const exported = await transfers.createExport();
+    if (!exported.ok) throw new Error(exported.message);
     expect(exported.ok).toBe(true);
     const tampered = restamp(exported.value as unknown as ExportFileShape);
     (tampered.counts as Record<string, number>).rogueExtraCount = 7;
@@ -296,6 +298,7 @@ describe("OD-KEYS — first-rejection precedence matrix with an unknown data key
   it("a corrupted integrity digest wins before structure/validation/counts (unknown key present)", async () => {
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     const exported = await transfers.createExport();
+    if (!exported.ok) throw new Error(exported.message);
     expect(exported.ok).toBe(true);
     const tampered = clone(exported.value as unknown as ExportFileShape);
     (tampered.data as Record<string, unknown>)[ROGUE_KEY] = { evil: true };
@@ -311,7 +314,7 @@ describe("OD-KEYS — first-rejection precedence matrix with an unknown data key
   it("a non-array family wins at the raw-structure gate (unknown key present)", async () => {
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     const exported = await transfers.createExport();
-    expect(exported.ok).toBe(true);
+    if (!exported.ok) throw new Error(exported.message);
     const base = clone(exported.value as unknown as ExportFileShape);
     (base.data as Record<string, unknown>)[ROGUE_KEY] = 1;
     (base.data as Record<string, unknown>).materials = { not: "an array" };
@@ -327,7 +330,7 @@ describe("OD-KEYS — first-rejection precedence matrix with an unknown data key
   it("an invalid family record wins at validation (unknown key present)", async () => {
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     const exported = await transfers.createExport();
-    expect(exported.ok).toBe(true);
+    if (!exported.ok) throw new Error(exported.message);
     const base = clone(exported.value as unknown as ExportFileShape);
     (base.data as Record<string, unknown>)[ROGUE_KEY] = 1;
     (base.data as Record<string, unknown>).drafts = [{ id: 42, definitelyNot: "a valid draft" }];
@@ -346,7 +349,7 @@ describe("OD-KEYS — first-rejection precedence matrix with an unknown data key
     expect(seeded.ok).toBe(true);
     const transfers = new LocalTransferService(store, NOW);
     const exported = await transfers.createExport();
-    expect(exported.ok).toBe(true);
+    if (!exported.ok) throw new Error(exported.message);
     const base = clone(exported.value as unknown as ExportFileShape);
     (base.data as Record<string, unknown>)[ROGUE_KEY] = 1;
     const tampered = restamp(base);
