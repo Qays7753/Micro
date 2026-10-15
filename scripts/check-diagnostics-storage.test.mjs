@@ -48,18 +48,44 @@ function runCli(repoRoot) {
 }
 
 describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
-  it("passes on the live repository tree with exactly the two registered entries", () => {
+  it("passes on the live repository tree with exactly the one registered entry", () => {
     const stdout = runCli(ROOT);
     expect(stdout).toContain("PASS");
-    /* 370 (كانت 369 عند ARCH-010): W4/D-14 (e2bcc752) أضاف ملف إنتاج جديد —
-     * components/security/overlayFocusContract.ts — فنما عدّ الملفات المزروعة
-     * 369→370. الحارس نفسه PASS بالموضعين المسجلين بالضبط؛ تحديث العدّ المتوقع
-     * هنا هو بروتوكول الراتشة نفسه (تحديث بنفس الـPR مع السبب الجذري الموثق). */
-    expect(stdout).toMatch(/370 ملف إنتاج/);
+    /* 369 (كانت 370 عند ARCH-010/W4): R11 ARCH-012 (2026-10-15) حذف مهايئ
+     * المسودات التراثية application/drafts/legacyFormDraftMigration.ts فانكمش
+     * عدّ الملفات المزروعة 370→369؛ والتسجيل صار موضعًا واحدًا بالضبط (مهايئ
+     * التشخيص) بعد إزالة الاستثناء التراثي بقرار المالك الموثق. تحديث العدّ
+     * المتوقع هنا هو بروتوكول الراتشة نفسه (تحديث بنفس الـPR مع السبب الموثق). */
+    expect(stdout).toMatch(/369 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
-    expect(stats.registeredEntries).toBe(2);
-    expect(stats.exemptedSites).toBeGreaterThanOrEqual(2);
+    expect(stats.registeredEntries).toBe(1);
+    expect(stats.exemptedSites).toBeGreaterThanOrEqual(1);
+  });
+
+  it("ARCH-012: a reintroduced legacy drafts adapter is no longer registered and is rejected", () => {
+    /* R11 ARCH-012 (2026-10-15): التقاعد أزال التسجيل التراثي — إعادة إدخال
+     * مهايئ مسودات تراثي في طبقة التطبيق (المسار القديم نفسه أو أي جار)
+     * خرق غير مسجل يُرفض فورًا؛ الاستثناء لا يعود إلا بقرار مالك جديد
+     * يوسع التسجيل صراحةً. */
+    const dir = tempRepo();
+    withRegisteredTree(dir);
+    writeClientFile(
+      dir,
+      "application/drafts/legacyFormDraftMigration.ts",
+      [
+        "export function browserLegacyFormDraftStorage() {",
+        "  return globalThis.localStorage;",
+        "}",
+        "",
+      ].join("\n"),
+    );
+    const { ok, violations } = checkDiagnosticsStorage(dir);
+    expect(ok).toBe(false);
+    expect(
+      violations.some(v => v.rule === "unregistered-web-storage-access" && v.key.includes("legacyFormDraftMigration.ts:2")),
+    ).toBe(true);
+    fs.rmSync(dir, { recursive: true, force: true });
   });
 
   it("rejects a new unregistered direct globalThis.localStorage access in an application service", () => {

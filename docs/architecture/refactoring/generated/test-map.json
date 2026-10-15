@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "4b35378dc30ee2c84672f3b029a8d3363e85de11",
+  "head": "5cf13dbf0798886214d836fe5e7c26fb9e860271",
   "pages": {
     "total": 60,
     "map": {
@@ -794,8 +794,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/drafts/draftService.test.ts",
-          "apps/prototype-web/client/src/application/drafts/formDraftService.test.ts",
-          "apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.test.ts"
+          "apps/prototype-web/client/src/application/drafts/formDraftService.test.ts"
         ]
       },
       "37-local-app-lock-contract.md": {

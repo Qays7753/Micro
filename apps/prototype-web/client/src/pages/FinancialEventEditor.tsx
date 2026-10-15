@@ -30,11 +30,6 @@ import {
   deriveExpenseCategorySuggestions,
   normalizeCategoryLabelInput,
 } from "@/application/financial-records";
-import {
-  browserLegacyFormDraftStorage,
-  legacyFinanceDraftKey,
-  migrateLegacyFormDraft,
-} from "@/application/drafts";
 import type { SettleablePayable } from "@/application/finance";
 import type { CrossModelOwnerDuplicate } from "@/application/owner-money";
 /* R7/R6-F17-P03 (2026-10-10): قرار المحرر النقي (سياق المصروف المشترك/
@@ -205,7 +200,7 @@ export default function FinancialEventEditor() {
   const savedRef = useRef(false);
   /* المجموعة ٥: المسح يجي فقط بعد وسخ حقيقي ثم عودة إلى
    * النقاء — لا مسح عند الفتح (يحفظ المسودة لعرض الاسترجاع لا يمسحها) ولا سباق
-   * لقراءة الفتح والترحيل. */
+   * لقراءة الفتح أو أي مسار تراثي متقاعد. */
   const wasDirtyRef = useRef(false);
   const idempotencyKey = useRef(`finance-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   /* المجموعة ١ (مسودة محفوظة): عرض استرجاع عند الفتح فقط — وضع الإنشاء حصريًا. */
@@ -307,28 +302,15 @@ export default function FinancialEventEditor() {
       active = false;
     };
   }, [recurringExpenses, type, date, dataVersion]);
-  /* المجموعة ٥ (التحصين الكامل): مفتاح الصفحة القديم يُرحَّل مرة واحدة عبر
-   * المهاجئ الضيق (اكتب ← تحقق ← احذف) ثم تصبح القراءة من الحد الموحّد فقط —
-   * لا وصول مباشرًا لتخزين الصفحة في الكود الطبيعي بعد اليوم. */
+  /* المجموعة ٥ (التحصين الكامل): القراءة عند الفتح من حد المسودات العابرة
+   * الموحّد فقط — لا وصول مباشرًا لتخزين الصفحة في الكود الطبيعي.
+   * R11 ARCH-012 (2026-10-15): ترحيل مفتاح الصفحة القديم تقاعد قبل
+   * الإطلاق بقرار مالك موثق (r11-arch012-20261015) — القراءة الحية
+   * وحدها تبقى هنا. */
   useEffect(() => {
     if (!type) return;
     let active = true;
-    const storage = browserLegacyFormDraftStorage();
     void (async () => {
-      if (storage !== null) {
-        await migrateLegacyFormDraft({
-          service: formDrafts,
-          storage,
-          legacyKey: legacyFinanceDraftKey(type),
-          formKind: "finance_event",
-          scopeId: type,
-          parse: raw => {
-            const coerced = coerceEditorDraft(raw);
-            return coerced === null ? null : { ...coerced };
-          },
-        });
-      }
-      if (!active) return;
       const result = await formDrafts.read("finance_event", type);
       if (!active || !result.ok || result.value === null) return;
       /* AV-09: الإكراه الدفاعي يبقى على القيم المقروءة كما كان — القيم غير

@@ -108,44 +108,38 @@ describe("Setup wallet-skip path never asks and discards (F-002 regression)", ()
 });
 
 /* المجموعة ١ (Scope F) + المجموعة ٥ (التحصين الكامل): مسودة الإعداد داخل الحد
- * الموحّد — الاستعادة فعل صريح من المالك (لا تطبيق صامت عند الفتح)، والمفتاح
- * القديم يُرحَّل مرة واحدة (اكتب ← تحقق ← احذف)، ولا حدث مالي قبل التأكيد. */
+ * الموحّد — الاستعادة فعل صريح من المالك (لا تطبيق صامت عند الفتح)، ولا حدث
+ * مالي قبل التأكيد.
+ * R11 ARCH-012 (2026-10-15): ترحيل مفتاح الصفحة القديم تقاعد قبل الإطلاق —
+ * البذر هنا من الحد الموحّد مباشرة، والمفتاح التراثي المتروك يختبر خموله
+ * (لا قراءة ولا عرض ولا حذف تخريبي). */
 describe("Setup progressive draft persistence (group 1 scope F, group 5 unified boundary)", () => {
   afterEach(() => {
     cleanup();
     globalThis.localStorage?.clear();
   });
 
-  it("offers an explicit restore for a migrated legacy draft and applies it only when accepted", async () => {
-    globalThis.localStorage?.setItem(
-      "micro.setup-draft.v1",
-      JSON.stringify({
-        step: 3,
-        activityName: "مشغل ليان",
-        walletName: "الدرج",
-        openingChoice: "unknown",
-        openingMinor: 0,
-        savedAt: "2026-09-01T10:00:00.000Z",
-      }),
-    );
+  it("offers an explicit restore for a saved draft from the unified boundary and applies it only when accepted", async () => {
     const { services, store } = draftServices();
+    await new FormDraftService(store).save("setup", null, {
+      step: 3,
+      activityName: "مشغل ليان",
+      walletName: "الدرج",
+      openingChoice: "unknown",
+      openingMinor: 0,
+      savedAt: "2026-09-01T10:00:00.000Z",
+    });
     const profilesSave = services.profiles.save as ReturnType<typeof vi.fn>;
     const openWallet = services.cashContinuity.openWallet as ReturnType<typeof vi.fn>;
     mockedUsePrototypeServices.mockReturnValue(services);
 
     render(<Setup />);
 
-    /* العرض صريح — القيم لم تُطبَّق بعد ولا سجل مالي. */
+    /* العرض صريح — القيم لم تُطبّق بعد ولا سجل مالي. */
     expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
     expect((screen.getByLabelText(/اسم المشروع/) as HTMLInputElement).value).toBe("");
     expect(profilesSave).not.toHaveBeenCalled();
     expect(openWallet).not.toHaveBeenCalled();
-    /* الترحيل الوحيد: المفتاح القديم زال والقيم في الحد الموحّد. */
-    await waitFor(() => expect(globalThis.localStorage?.getItem("micro.setup-draft.v1")).toBeNull());
-    const migrated = await store.getFormDraft("setup:new");
-    if (!migrated.ok) throw new Error("read failed");
-    expect(migrated.value).not.toBeNull();
-    expect((migrated.value?.values as { activityName?: string }).activityName).toBe("مشغل ليان");
 
     fireEvent.click(screen.getByRole("button", { name: "استعدها وأكمل" }));
     /* التطبيق بعد القبول: الخطوة ٣ بقيمها المحفوظة. */
@@ -155,18 +149,15 @@ describe("Setup progressive draft persistence (group 1 scope F, group 5 unified 
   });
 
   it("the offer discard clears the draft and starts pristine", async () => {
-    globalThis.localStorage?.setItem(
-      "micro.setup-draft.v1",
-      JSON.stringify({
-        step: 2,
-        activityName: "مشغل قديم",
-        walletName: "الدرج",
-        openingChoice: null,
-        openingMinor: 0,
-        savedAt: "2026-09-01T10:00:00.000Z",
-      }),
-    );
     const { services, store } = draftServices();
+    await new FormDraftService(store).save("setup", null, {
+      step: 2,
+      activityName: "مشغل قديم",
+      walletName: "الدرج",
+      openingChoice: null,
+      openingMinor: 0,
+      savedAt: "2026-09-01T10:00:00.000Z",
+    });
     mockedUsePrototypeServices.mockReturnValue(services);
 
     render(<Setup />);
@@ -177,13 +168,25 @@ describe("Setup progressive draft persistence (group 1 scope F, group 5 unified 
       const cleared = await store.getFormDraft("setup:new");
       expect(cleared.ok && cleared.value).toBeNull();
     });
-    expect(globalThis.localStorage?.getItem("micro.setup-draft.v1")).toBeNull();
     expect((screen.getByLabelText(/اسم المشروع/) as HTMLInputElement).value).toBe("");
     expect(screen.getByText("ما اسم مشروعك؟")).toBeTruthy();
   });
 
-  it("corrupted legacy draft data is ignored without breaking setup and is never converted", async () => {
-    globalThis.localStorage?.setItem("micro.setup-draft.v1", "{not-json");
+  it("a leftover legacy page-storage key is inert — never read, offered, or deleted (ARCH-012)", async () => {
+    /* R11 ARCH-012 (2026-10-15): المفتاح التراثي المتروك في متصفح مالك
+     * سابق لا يُقرأ ولا يُعرض ولا يُحذف — لا مسح تخزين تخريبي؛ السلوك
+     * الحي من الحد الموحّد وحده. */
+    globalThis.localStorage?.setItem(
+      "micro.setup-draft.v1",
+      JSON.stringify({
+        step: 3,
+        activityName: "بقايا تراثية",
+        walletName: "الدرج",
+        openingChoice: "unknown",
+        openingMinor: 0,
+        savedAt: "2026-09-01T10:00:00.000Z",
+      }),
+    );
     const { services, store } = draftServices();
     mockedUsePrototypeServices.mockReturnValue(services);
 
@@ -192,10 +195,35 @@ describe("Setup progressive draft persistence (group 1 scope F, group 5 unified 
     expect(await screen.findByText("ما اسم مشروعك؟")).toBeTruthy();
     expect(screen.queryByText(/عندك مسودة إعداد من آخر مرة/)).toBeNull();
     expect((screen.getByLabelText(/اسم المشروع/) as HTMLInputElement).value).toBe("");
-    /* المعطوب يُرفض لا يُحذف — سياسة عدم الحذف الصامت لما لا يُقرأ. */
+    /* لا تحويل صامت — الحد الموحّد بقي فارغًا والمفتاح في مكانه خاملًا. */
     const notMigrated = await store.getFormDraft("setup:new");
     expect(notMigrated.ok && notMigrated.value).toBeNull();
-    expect(globalThis.localStorage?.getItem("micro.setup-draft.v1")).toBe("{not-json");
+    expect(globalThis.localStorage?.getItem("micro.setup-draft.v1")).not.toBeNull();
+  });
+
+  it("corrupted draft values are ignored without breaking setup and are never converted", async () => {
+    const { services, store } = draftServices();
+    await new FormDraftService(store).save("setup", null, {
+      step: 3,
+      activityName: 42,
+      walletName: "الدرج",
+      openingChoice: "unknown",
+      openingMinor: 0,
+      savedAt: "2026-09-01T10:00:00.000Z",
+    });
+    mockedUsePrototypeServices.mockReturnValue(services);
+
+    render(<Setup />);
+
+    expect(await screen.findByText("ما اسم مشروعك؟")).toBeTruthy();
+    expect(screen.queryByText(/عندك مسودة إعداد من آخر مرة/)).toBeNull();
+    expect((screen.getByLabelText(/اسم المشروع/) as HTMLInputElement).value).toBe("");
+    /* القيم غير القابلة للإكراه تُرفض بلا عرض ولا انفجار ولا تحويل صامت —
+     * لو كان الإكراه ناجحًا لظهر العرض (قراءة الإقلاع تسبق مسح النموذج
+     * الفارغ في النافذة نفسها). ملاحظة سلوك قائمة (ARCH-012-NF-001،
+     * مسجلة في التقرير خارج نطاق الموجة): كتلة المسح عند الإقلاع تمسح
+     * سجل المسودة للنموذج الفارغ حتى مع عرض الاستعادة — سلوك main الحالي
+     * قبل ARCH-012 وبعده. */
   });
 
   it("the unknown opening stays unknown — never saved as a zero wallet", async () => {
@@ -242,7 +270,8 @@ describe("Setup progressive draft persistence (group 1 scope F, group 5 unified 
       expect(saved.value).not.toBeNull();
       expect((saved.value?.values as { activityName?: string }).activityName).toBe("مشغل الكرامة");
     });
-    /* لا كتابة في تخزين الصفحة المباشر — الحد وحده يكتب. */
+    /* لا يُنشأ مفتاح مسودة في تخزين الصفحة أبدًا — الحد وحده يكتب
+     * (ARCH-012: لا عودة لمسودات الصفحة المباشرة). */
     expect(globalThis.localStorage?.getItem("micro.setup-draft.v1")).toBeNull();
   });
 
@@ -265,18 +294,15 @@ describe("Setup progressive draft persistence (group 1 scope F, group 5 unified 
   });
 
   it("successful completion clears the draft so it never returns as data", async () => {
-    globalThis.localStorage?.setItem(
-      "micro.setup-draft.v1",
-      JSON.stringify({
-        step: 3,
-        activityName: "مشغل ليان",
-        walletName: "الدرج",
-        openingChoice: "zero",
-        openingMinor: 0,
-        savedAt: "2026-09-01T10:00:00.000Z",
-      }),
-    );
     const { services, store } = draftServices();
+    await new FormDraftService(store).save("setup", null, {
+      step: 3,
+      activityName: "مشغل ليان",
+      walletName: "الدرج",
+      openingChoice: "zero",
+      openingMinor: 0,
+      savedAt: "2026-09-01T10:00:00.000Z",
+    });
     mockedUsePrototypeServices.mockReturnValue(services);
 
     render(<Setup />);
@@ -288,6 +314,5 @@ describe("Setup progressive draft persistence (group 1 scope F, group 5 unified 
       const cleared = await store.getFormDraft("setup:new");
       expect(cleared.ok && cleared.value).toBeNull();
     });
-    expect(globalThis.localStorage?.getItem("micro.setup-draft.v1")).toBeNull();
   });
 });

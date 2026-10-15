@@ -58,11 +58,9 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
   cost: [],
   diagnostics: ["localDiagnostics", "routeTemplateFor"],
   drafts: [
-    "LEGACY_SETUP_DRAFT_KEY",
-    "browserLegacyFormDraftStorage",
-    "clearLegacyFormDraftStorage",
-    "legacyFinanceDraftKey",
-    "migrateLegacyFormDraft",
+    /* R11 ARCH-012 (2026-10-15): قيم مهايئ المفاتيح التراثية الخمس أزيلت
+     * مع تقاعد الترحيل (قرار مالك موثق — r11-arch012-20261015)؛ سطح قيم
+     * الباب صار فارغًا والأنواع وحدها تبقى — تقليص مقصود موثق بنفس الـPR. */
   ],
   estimates: [],
   "financial-pulse": [],

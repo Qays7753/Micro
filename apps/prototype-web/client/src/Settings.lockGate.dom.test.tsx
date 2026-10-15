@@ -15,7 +15,6 @@ import { StatementService } from "@/application/finance/statementService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { FormDraftService } from "@/application/drafts/formDraftService";
-import { legacyFinanceDraftKey } from "@/application/drafts/legacyFormDraftMigration";
 import { PreferenceService } from "@/application/preferences/preferenceService";
 import { AgreementService } from "@/application/agreements/agreementService";
 import { CostService } from "@/application/cost/costService";
@@ -467,7 +466,6 @@ describe("Group 5 — destructive replacement protection, reset policy, and loca
     await localLock.enable("4179", 10);
     const drafts = new FormDraftService(store, () => NOW);
     await drafts.save("setup", null, { activityName: "مسودة إعداد" });
-    window.localStorage.setItem(legacyFinanceDraftKey("loss_non_cash"), JSON.stringify({ note: "بقايا" }));
     await mountSettings();
     fireEvent.click(screen.getByRole("button", { name: "بدء مسار المشروع الجديد" }));
     /* بوابة الرمز أولًا (التصدير نفسه إجراء مغادرة بيانات) ثم التصدير
@@ -485,13 +483,14 @@ describe("Group 5 — destructive replacement protection, reset policy, and loca
     fireEvent.click(screen.getByRole("button", { name: "امسح وابدأ من جديد" }));
     /* التحقق مرة واحدة في الجلسة يفتح المسح النهائي بلا بوابة ثانية. */
     await waitFor(() => expect(resetAll).toHaveBeenCalledOnce());
-    /* المسح جاء بعد التصفير فقط وبالسياسة المعلنة: المسودات والبقايا القديمة
-     * زالت، وسجل القفل بقي كما هو — الحماية لا تُمس بإعادة التعيين. */
+    /* المسح جاء بعد التصفير فقط وبالسياسة المعلنة: المسودات زالت، وسجل
+     * القفل بقي كما هو — الحماية لا تُمس بإعادة التعيين.
+     * R11 ARCH-012 (2026-10-15): مسح مفاتيح النظام القديم تقاعد مع مهايئه
+     * التراثي — سياسة المسح المعلنة للمسودات العابرة وحدها (clearAll). */
     await waitFor(async () => {
       const after = await store.listFormDrafts();
       expect(after.ok && after.value).toHaveLength(0);
     });
-    expect(window.localStorage.getItem(legacyFinanceDraftKey("loss_non_cash"))).toBeNull();
     const status = await localLock.status();
     expect(status.ok && status.value.enabled).toBe(true);
   });

@@ -6,7 +6,8 @@
   "r10b-nf003-theme-preference-door-type": "2026-10-11 (R10-B3/R10B-NF-003): preferences type surface +ThemePreference — the canonical theme-preference type consumed by contexts/ThemeContext.tsx (type-only import) after deleting its local re-declaration; same-PR documented widening per PC-3.",
   "r10b-f004-capability-id-door": "2026-10-11 (R10-B3/R10A-F-004): preferences door +type CapabilityId +value isKnownCapabilityId — canonical capability-id declaration consolidated to the persistence owner; UI consumers (hook re-export, Settings) narrow explicitly instead of unsound casts; same-PR documented widening per PC-3.",
   "r10b-nf001-payment-source-door": "2026-10-12 (R10-B3/R10B-NF-001): finance door +value PAYMENT_SOURCE_UNSET +value resolveDefaultPaymentSource — the sentinel and the 0/1/multi-wallet default rule consolidated to their canonical owner application/finance/paymentSourcePolicy.ts; the UI consumer (components/finance/expenseFormModel) imports through the door per STR-615/R6 (no deep UI-to-application imports); same-PR documented widening per PC-3.",
-  "r10b-nf002-inventory-unit-label-door": "2026-10-12 (R10-B3/R10B-NF-002): inventory door +value materialUnitLabel — the Arabic MaterialUnit display mapping consolidated to its canonical owner application/inventory/materialUnitLabels.ts after deleting six per-surface copies (2 application + 4 pages); the UI consumers import through the door per STR-615/R6; same-PR documented widening per PC-3."
+  "r10b-nf002-inventory-unit-label-door": "2026-10-12 (R10-B3/R10B-NF-002): inventory door +value materialUnitLabel — the Arabic MaterialUnit display mapping consolidated to its canonical owner application/inventory/materialUnitLabels.ts after deleting six per-surface copies (2 application + 4 pages); the UI consumers import through the door per STR-615/R6; same-PR documented widening per PC-3.",
+  "arch012-drafts-door-retirement": "2026-10-15 (R11 ARCH-012 / retirement): drafts door value surface emptied (-LEGACY_SETUP_DRAFT_KEY, -browserLegacyFormDraftStorage, -clearLegacyFormDraftStorage, -legacyFinanceDraftKey, -migrateLegacyFormDraft) — the legacy form-draft migration adapter was intentionally retired before launch by owner decision (census + decision record in docs/architecture/refactoring/r11-arch012-20261015/evidence/); type surface (FormDraftService, FormDraftValues) unchanged; documented same-PR deliberate shrink."
  },
  "doors": {
   "activity": {
@@ -101,13 +102,7 @@
    "type": []
   },
   "drafts": {
-   "value": [
-    "LEGACY_SETUP_DRAFT_KEY",
-    "browserLegacyFormDraftStorage",
-    "clearLegacyFormDraftStorage",
-    "legacyFinanceDraftKey",
-    "migrateLegacyFormDraft"
-   ],
+   "value": [],
    "type": [
     "FormDraftService",
     "FormDraftValues"

@@ -5,7 +5,7 @@
 
 ## ١. التخزين المحلي وحده — لا خروج شبكي
 
-- كل بيانات Micro تُحفظ محليًا عبر `PrototypeLocalStore` (محوّلا IndexedDB والذاكرة) — `storage/local/types.ts` و`createBrowserLocalStore.ts`؛ وباستثناء وحيد مسجل: حلقة التشخيص `micro.diagnostics.v1` (localStorage) عبر مهايئها المسجل في حد تخزين صريح `storage/diagnostics/browserDiagnosticStorage.ts` (R11 ARCH-010 — موجات المتابعة 2026-10-15) — الحارس المخصص `scripts/check-diagnostics-storage.mjs` يرفض أي وصول إنتاجي جديد لمفاتيح تخزين المتصفح خارج الموضعين المسجلين بالضبط (مهايئ التشخيص؛ ومهايئ مفاتيح المسودات التراثية الموثق بإيجاد R11-ARCH010-NF-001 بقرار مالك معلق).
+- كل بيانات Micro تُحفظ محليًا عبر `PrototypeLocalStore` (محوّلا IndexedDB والذاكرة) — `storage/local/types.ts` و`createBrowserLocalStore.ts`؛ وباستثناء وحيد مسجل: حلقة التشخيص `micro.diagnostics.v1` (localStorage) عبر مهايئها المسجل في حد تخزين صريح `storage/diagnostics/browserDiagnosticStorage.ts` (R11 ARCH-010 — موجات المتابعة 2026-10-15) — الحارس المخصص `scripts/check-diagnostics-storage.mjs` يرفض أي وصول إنتاجي جديد لمفاتيح تخزين المتصفح خارج الموضع المسجل الوحيد بالضبط (مهايئ التشخيص). تقاعد مؤرخ (R11 ARCH-012، 2026-10-15): الاستثناء التراثي الثاني — مهايئ مفاتيح المسودات التراثية (R11-ARCH010-NF-001) — أُزيل من التسجيل مع حذف الترحيل بقرار المالك الموثق قبل الإطلاق؛ أي إعادة إدخال لمهايئ مسودات تراثي خرق غير مسجل يُرفض فورًا (الإثبات في r11-arch012-20261015).
 - لا مسار خروج شبكي في التطبيق إطلاقًا: فحص المسح الهيكلي (المجموعة ٧، §15 من التقرير) لم يجد طلب شبكة خارج أصول PWA المحلية (`navigateFallback` محلي).
 - كل وصول UI للتخزين ممنوع في زمن التشغيل — يفرضه ESLint (صفحات/مكونات: لا `@/storage/local/*` قيمًا ولا `localStorage`/`sessionStorage` بكل صورها) ويثبته `scripts/check-layer-boundaries.test.mjs` بمحرك ESLint نفسه.
 
