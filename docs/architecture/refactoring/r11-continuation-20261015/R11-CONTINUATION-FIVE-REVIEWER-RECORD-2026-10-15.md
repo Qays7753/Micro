@@ -1,8 +1,8 @@
 # R11 Continuation — Five Sequential Read-Only Reviewer Record (2026-10-15)
 
-**Scope:** the complete PR #368 diff `9303ea44..ddb9927a` (75 files: lock remediation records reconciliation, ARCH-010, W2a, W2b gate, W3, W4, W5 audit, CI-catch remediations) + all canonical evidence documents + Operations Control.
+**Scope:** the complete implementation/evidence diff reviewed by RV1–RV5, `9303ea44..ddb9927a` (75 files: lock remediation records reconciliation, ARCH-010, W2a, W2b gate, W3, W4, W5 audit, CI-catch remediations) + all canonical evidence documents + Operations Control. A later records-only tail (`ddb9927a..dd7b06e0`) changed documentation/JSON only and was separately checked for final-head consistency.
 **Reviewers:** five sequential, strictly read-only (no edit, no commit, no push, no merge, no workflow rerun). Each ran concrete live probes; verdicts per contract §15: `PASS` / `PASS_WITH_REMEDIATION` / `BLOCKER`.
-**Review heads:** implementation code head `5c9316eb` (full 18-command gate EXIT 0) → CI/Cloudflare-green head `ddb9927a`.
+**Review heads:** implementation code head `5c9316eb` (full 18-command gate EXIT 0) → CI/Cloudflare-green code head `ddb9927a`. The exact final PR head is `dd7b06e023b0433f5b1982ef672d5814a24779b7`; it is records-only, and CI + Cloudflare Pages were re-verified successfully on that exact SHA.
 
 ---
 
@@ -57,7 +57,7 @@
 | Full gate (contract §14) on code head `5c9316eb` | `pnpm check` EXIT 0 (chains OC:test 9/9 + OC:check + typecheck + lint + format + text-density + design-guards + guards + root vitest **947/947** + app typecheck + app vitest **2,721/2,721** + build) + commands 14–18 all EXIT 0 (`generate_tracker --check`, `validate.py`, doc-index, current-state-size 20,475/20,480, `git diff --check` incl. merge-base) |
 | Focused suites (§14 list) | script-side **99/99** (diagnostics 12, label 9, money 13, a11y 7, module-boundaries, runtime-cycles, type-cycles, text-density 7) + app-side **417/417** (lock remediation, diagnostics, transfers incl. PreparedImport/confirmImport, AgreementLabel DOM, W4 DOM surfaces) |
 | Protected measurements | lint **exactly 35** (ceiling 37 untouched); entry **630,783/154,984** (≤ 650,000/155,300); surfaces within all three environment records |
-| CI truth chain | three consecutive CI catches on this PR (text-density golden → two structurally-broken guard tests → cloud-only surfaces baseline) — each root-caused with provenance and remediated in-PR; final CI `checks` **SUCCESS** (run 116298906627) + Cloudflare Pages **SUCCESS** (check-run 116299031598) on the exact head `ddb9927a` |
+| CI truth chain | three consecutive CI catches on this PR (text-density golden → two structurally-broken guard tests → cloud-only surfaces baseline) — each root-caused with provenance and remediated in-PR; CI `checks` **SUCCESS** (run 116298906627) + Cloudflare Pages **SUCCESS** (run 116299031598) on code head `ddb9927a`, then both **SUCCESS** again on the exact final records head `dd7b06e0` (CI run 38700431496/job 116307018705; Pages run 116307240651) |
 | Guard tests | money 13/13, a11y 7/7 (plus 16/16 suite), diagnostics 12/12, label 9/9 — all adversarial-negative-bearing |
 | Operability | OC tracker current; validate.py clean (91 items, 62 workstreams, 1 active claim); doc-index coverage complete |
 
@@ -73,9 +73,9 @@
 | OC traceability | WS-219 (pr=368) owns the program; ARCH-011 IN_REVIEW; ARCH-010 IN_REVIEW with the census + guard + negative tests complete (its `next_action` points to the PR #368 owner review); ARCH-012 BACKLOG = the owner-gated legacy form-draft finding (R11-ARCH010-NF-001) — honestly not executed; ARCH-013 IN_REVIEW |
 | ADR-017 addendum | 22/31 counted-family asymmetry recorded as dated evidence (2026-10-15) in the W2a corpus document |
 | Findings registry | every new finding in the continuation carries a durable ID + classification: R11-ARCH010-NF-001 (ARCH-012, OWNER_DECISION_REQUIRED), the W1b-era RV findings carried forward with dispositions in W4 evidence §5; no untracked finding; no generic DEFER |
-| Contract §16 final records | **pending by design** — the contract orders records reconciliation + the unified final report AFTER the five reviewers; the required canonical updates (r11-complete-20261015 report, current-state, state-log, worklog, OC views, doc-index) are the next and final executable step |
+| Contract §16 final records | **EXECUTED** — the contract-ordered records reconciliation and unified final report were added after the five reviewers; the exact final PR head was then re-verified for CI/Cloudflare consistency |
 
-**Remediation (executed immediately after this record, per the contract's own ordering):** produce the unified final report under `docs/architecture/refactoring/r11-complete-20261015/` with the seventeen required sections and the honest W2b owner-gate statement; reconcile current-state/state-log/worklog/doc-index/OC generated views; verify CI + Cloudflare on the exact final head; post the final PR checkpoint.
+**Remediation (executed immediately after this record, per the contract's own ordering):** the unified final report, current-state/state-log/worklog/doc-index/OC generated views, and the honest W2b owner-gate statement were published; the final records-only tail was checked, and CI + Cloudflare were re-verified on the exact final head `dd7b06e0`.
 
 ---
 

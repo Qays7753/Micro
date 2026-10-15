@@ -1338,3 +1338,10 @@ Full verification gate 17/17 EXIT 0 on implementation head `469aba03` (root 919/
 - Five sequential read-only reviewers with live probes: RV1 PASS (boundaries at baseline, no barrels/moves), RV2 PASS (domain/storage byte-identical, 326/326 transfers, money 0/0/13/13), RV3 PASS (zero visual change, fail-closed lock, both modals contracted, secrets clean), RV4 PASS (18-command gate, totals, in-ceiling measurements, honest CI chain), RV5 PASS_WITH_REMEDIATION (append-only verified, all markers present, OC traceable — remediation bound to this records commit). Synthesizer: no unresolved blockers.
 - Final records: unified 17-section report at r11-complete-20261015/R11-UNIFIED-CONTINUATION-EXECUTION-REPORT-2026-10-15.md (evidence-class labeled throughout); current-state live fields updated within the ceiling (20,472/20,480); WS-219 + ARCH-011 next_actions finalized; OC views regenerated + Excel provenance refreshed; five-reviewer record + report added to doc-index; state-log §208; this entry.
 - Status: R11_ALL_APPROVED_WAVES_COMPLETE — PR_READY, with W2B_BEHAVIOR_FLIP_OWNER_GATED and W5_CLOSED_BY_POLICY — NO_TRIGGER_PROVEN stated honestly; NO_MERGE / NO_CLEANUP / NO_SECRETS_EXPOSED. PR #368 awaits the owner's review and merge decision.
+
+
+## Entry 113 — 2026-10-15 — R11 PR #368 final-head records reconciliation
+
+- Independent review confirmed that the four final checklist items were complete and that the implementation/evidence code head `ddb9927a` was green. A records-only tail `ddb9927a..dd7b06e0` was then checked; it contains documentation/JSON records only and no production-code change.
+- The unified report and five-reviewer record were corrected to distinguish the reviewed code head from the exact final PR head `dd7b06e023b0433f5b1982ef672d5814a24779b7`. CI `checks` succeeded on the exact final head (run 38700431496/job 116307018705) and Cloudflare Pages succeeded on the exact final head (run 116307240651).
+- Owner decision recorded: W2b remains gated until the exact error code and Arabic payload are approved; ARCH-012 is a separate wave after merge. No merge, branch cleanup, force-push, or direct main write was performed.
