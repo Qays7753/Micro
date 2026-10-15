@@ -78,10 +78,10 @@ export const CLASSIFIED_DIALOG_SURFACES = [
   },
   {
     file: "pages/RecurringExpenseDetail.tsx",
-    role: "dialog",
+    role: "region",
     ariaModal: null,
-    model: "INLINE_MISDECLARED",
-    focusContract: "D-13 FIX_NOW — أقسام داخلية موسعة مصرحة dialog خطأً (بلا aria-modal وبلا إزاحة تركيز)؛ الهدف: region بلا فخ ولا إزاحة",
+    model: "INLINE_REGION",
+    focusContract: "D-13 منفذ — أقسام داخلية موسعة مصرحة region (كانت dialog خطأً)؛ لا فخ ولا إزاحة تركيز (قرار OD-A11Y: لا فخ لغير المودال)",
   },
 ];
 
