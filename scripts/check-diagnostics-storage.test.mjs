@@ -51,7 +51,11 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
   it("passes on the live repository tree with exactly the two registered entries", () => {
     const stdout = runCli(ROOT);
     expect(stdout).toContain("PASS");
-    expect(stdout).toMatch(/369 ملف إنتاج/);
+    /* 370 (كانت 369 عند ARCH-010): W4/D-14 (e2bcc752) أضاف ملف إنتاج جديد —
+     * components/security/overlayFocusContract.ts — فنما عدّ الملفات المزروعة
+     * 369→370. الحارس نفسه PASS بالموضعين المسجلين بالضبط؛ تحديث العدّ المتوقع
+     * هنا هو بروتوكول الراتشة نفسه (تحديث بنفس الـPR مع السبب الجذري الموثق). */
+    expect(stdout).toMatch(/370 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(2);

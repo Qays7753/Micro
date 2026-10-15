@@ -120,7 +120,18 @@ describe("check-label-vocabulary (R11 W3 OD-LABEL duplicate-literal ratchet)", (
 
   it("fails on a pinned entry that left the live tree (baseline hygiene)", () => {
     const dir = tempRepoWithLiveDomain();
-    /* لا ملفات عميل إطلاقًا — كل مداخل المجموعة المثبتة متقادمة */
+    /* ملف مثبت واحد موجود لكن بلا تسميته المثبتة (يطلق pinned-literal-stale)،
+     * وكل ملفات المجموعة المثبتة الأخرى غائبة (تطلق pinned-file-stale).
+     * تصحيح مؤرخ (2026-10-15، التقطه CI على رأس a1c174f5): التوقع الأصلي
+     * «كل الملفات غائبة» كان مستحيلًا بنيويًا لكلا القاعدتين معًا — فرع غياب
+     * الملف في الحارس يستمر (continue) قبل فحص التسمية، فلا يمكن أن تُطلق
+     * pinned-literal-stale في مستودع بلا ملفات عميل أصلًا؛ الاختبار كما كُتب أول
+     * مرة لم ينجز قط. هذا الشكل يثبت كل قاعدة في شرطها الصحيح. */
+    writeClientFile(
+      dir,
+      "pages/Collect.tsx",
+      'export const plain = "نص عادي لا يطابق أي تسمية دومين";\n',
+    );
     const { ok, violations } = checkLabelVocabulary(dir);
     expect(ok).toBe(false);
     expect(violations.some(v => v.rule === "pinned-file-stale")).toBe(true);
