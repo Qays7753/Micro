@@ -9,7 +9,7 @@
  "finding_classification": "NEW_FINDING",
  "finding_state": "CONFIRMED",
  "classification": "HARDENING",
- "gate_classification": "IN_SCOPE (owner-approved continuation contract 3fd10015, Phase 1)",
+ "gate_classification": "NOT_APPLICABLE",
  "root_cause": "خدمة التشخيص المحلية تكتب localStorage مباشرة خارج طبقة التخزين المحلية الموحدة — اكتشفها RV2 في بوابة W1A وأوصى مالك القرار FIX_NOW بعد إحصاء web-storage على مستوى المستودع (حزمة قرارات المالك R11 §R11-W1A-NF-001)، لكن عقد W1b الرسمي لم يخصص له شريحة ضمن W1b-0..W1b-6 رغم وروده في قائمة فحوص §9 وقسم تقرير §12.",
  "owner": "Micro owner (Qays7753)",
  "tests_required": [
@@ -51,8 +51,8 @@
   "docs/architecture/refactoring/r11-arch010-20261015/R11-ARCH010-EXECUTION-REPORT-2026-10-15.md",
   "docs/architecture/refactoring/r11-arch010-20261015/evidence/R11-ARCH010-WEB-STORAGE-CENSUS-2026-10-15.md",
   "docs/architecture/refactoring/r11-arch010-20261015/evidence/R11-ARCH010-WEB-STORAGE-CENSUS-2026-10-15.json",
-  "docs/quality/security-boundaries.md (§1/§4)",
-  "docs/quality/persistent-entity-touchpoints.json (micro.diagnostics.v1)"
+  "docs/quality/security-boundaries.md",
+  "docs/quality/persistent-entity-touchpoints.json"
  ],
  "dependencies": [
   "ARCH-009"
@@ -68,6 +68,12 @@
    "changed_at": "2026-10-15",
    "actor": "zai-executor",
    "reason": "إنشاء تتبع متين بموجب قرار المالك المباشر (2026-10-15): نطاق متابعة منفصل خارج PR #365؛ المحفز الدقيق = افتتاح موجة/قرار تنفيذ مستقل من المالك؛ لا يبدأ تلقائيًا."
+  },
+  {
+   "status": "READY",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "عقد المتابعة الموحد المثبت على 3fd10015 (PR #368) فتح البند للجدولة كـ Phase 1 بتوجيه المالك المباشر."
   },
   {
    "status": "CLAIMED",

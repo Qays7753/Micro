@@ -1,37 +1,47 @@
 {
  "id": "WS-219",
- "title": "تنفيذ R11 Lock Remediation — إصلاح فاشل-مغلق للقفل المحلي R11-W1B4-NF-001..004 على فرع أمني واحد بقرارات OD-LOCK الثلاثة",
+ "title": "تنفيذ R11 Lock Remediation ثم برنامج المتابعة الموحد — كل موجات R11 المتبقية المعتمدة على نفس الفرع/PR #368",
  "status": "IN_REVIEW",
  "items": [
-  "ARCH-011"
+  "ARCH-011",
+  "ARCH-010",
+  "ARCH-012",
+  "ARCH-013"
  ],
  "branch": "security/r11-lock-fail-closed-20261015",
  "base_sha": "9303ea445cc4f3ee87d7a4514e3e9d47d608d339",
  "areas": [
   "apps/prototype-web/client/src/application/security",
   "apps/prototype-web/client/src/components/security",
+  "apps/prototype-web/client/src/application/diagnostics",
+  "apps/prototype-web/client/src/storage/diagnostics",
+  "apps/prototype-web/client/src/application/transfers",
+  "scripts",
   "docs/contracts",
   "docs/quality",
   "docs/operations",
-  "docs/architecture/refactoring"
+  "docs/architecture"
  ],
  "contracts": [
   "AGENTS.md",
   "docs/contracts/37-local-app-lock-contract.md",
-  "https://github.com/Qays7753/Micro/pull/367 (R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15.md — العقد الرسمي المثبت، الرأس 6733ba34)",
+  "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
+  "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-OWNER-DECISION-PACKAGE-2026-10-13.md",
   "docs/quality/security-boundaries.md"
  ],
  "agent": "ZAI sequential executor (one writer; five read-only reviewers RV1-RV5 after implementation before final readiness)",
  "pr": 368,
  "started_at": "2026-10-15",
  "updated_at": "2026-10-15",
- "next_action": "قرار المالك على PR #368؛ بعد الدمج: تحقق ما بعد الدمج (CI/Cloudflare على رأس الدمج بالضبط) ثم MERGED_UNVERIFIED → VERIFIED كسابقتها؛ لا successor تلقائي.",
+ "next_action": "استكمال موجات المتابعة تسلسليًا على PR #368 (W2b بانتظار حمولة المالك؛ ثم W3 ثم W4 ثم تدقيق W5 ثم التحقق النهائي والمراجعات الخمسة والتقرير الموحد)؛ الدمج قرار مالك بعد التقرير النهائي.",
  "notes": [
   "Claim أُنشئ قبل أي تعديل وفق AGENTS.md §14؛ لا تداخل مع أي Claim نشط (0 active claims عند الإنشاء).",
   "العقد الرسمي المثبت هو الرأس 6733ba34637d47986050ecf955efd8cd413b3f5e على فرع docs/r11-lock-fail-closed-prompt-20261015 (PR #367 المفتوح)؛ تحقق ZAI من مطابقته بالمطابقة الحرفية قبل التنفيذ.",
   "خط الأساس الحي تحقق منه مباشرة: origin/main = 9303ea445cc4f3ee87d7a4514e3e9d47d608d339 مطابقًا لتلميح العقد تمامًا (PR #366 مدموج عنده)؛ لا انحراف.",
   "حدود صارمة: لا كتابة مباشرة على main، لا دمج، لا حذف فروع، لا force-push، لا ARCH-010 ولا W2a/W2b، لا تغيير مالي/تاريخي/Schema 38/Export 30/Legacy/goldens/أسبقية رفض/UI بصري؛ لا رفع سقوف (lint 37 / raw 650000 / gzip 155300).",
-  "قرارات المالك المنفذة حرفيًا: OD-LOCK-ROLLBACK=A وOD-LOCK-STORAGE=A وOD-LOCK-SEMANTICS=A كما وردت في القسم ٣ من العقد."
+  "قرارات المالك المنفذة حرفيًا: OD-LOCK-ROLLBACK=A وOD-LOCK-STORAGE=A وOD-LOCK-SEMANTICS=A كما وردت في القسم ٣ من العقد.",
+  "توسيع مؤرخ (2026-10-15 — عقد المتابعة الموحد): هذا الـWorkstream هو ملك الـPR #368 نفسه، فامتد معه ليشمل برنامج المتابعة كاملًا (ARCH-010 مكتملة؛ ARCH-013 مكتملة توصيفيًا؛ ARCH-012 بقرار مالك معلق)؛ WS-220 استُوعب هنا وسُد (SUPERSEDED) لا حذف — نموذج Claim واحد نشط للبرنامج الواحد على الفرع الواحد.",
+  "بوابات محمية: W2b معلقة على حمولة خطأ معتمدة (رمز + نص عربي)؛ W5 trigger-gated؛ لا دمج ولا تنظيف قبل قرار المالك."
  ],
  "status_history": [
   {
@@ -58,6 +68,8 @@
   "docs/architecture/refactoring/r11-lock-fail-closed-20261015/R11-LOCK-FAIL-CLOSED-EXECUTION-REPORT-2026-10-15.md",
   "docs/architecture/refactoring/r11-lock-fail-closed-20261015/R11-LOCK-FIVE-REVIEWER-RECORD-2026-10-15.md",
   "docs/architecture/refactoring/r11-lock-fail-closed-20261015/R11-LOCK-OWNER-DECISION-ADDENDUM-2026-10-15.md",
+  "docs/architecture/refactoring/r11-arch010-20261015/R11-ARCH010-EXECUTION-REPORT-2026-10-15.md",
+  "docs/architecture/refactoring/r11-w2a-20261015/R11-W2A-CORPUS-MATRIX-AND-EVIDENCE-2026-10-15.md",
   "docs/operations/current-state-log.md"
  ]
 }

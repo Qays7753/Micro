@@ -9,7 +9,7 @@
  "finding_classification": "NEW_FINDING",
  "finding_state": "CONFIRMED",
  "classification": "HARDENING",
- "gate_classification": "OWNER_DECISION_REQUIRED",
+ "gate_classification": "EXTERNAL_REVIEW_REQUIRED",
  "root_cause": "نمط تأريخي سابق لحدود التخزين الحالية: مهايئ المتصفح عرّف داخل وحدة ترحيل بطبقة التطبيق واستدعته الصفحات مباشرة عند الحاجة لقراءة المفاتيح التراثية مرة واحدة — القيد مسجل في حارس التشخيص الجديد scripts/check-diagnostics-storage.mjs كاستثناء تراثي موثق بمعرف هذا البند وشرط إزالته (قرار المالك بالترحيل).",
  "owner": "Micro owner (Qays7753)",
  "tests_required": [
@@ -43,11 +43,12 @@
  ],
  "contracts": [
   "AGENTS.md",
-  "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md (§7 حدود الموجة)",
+  "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
   "docs/quality/security-boundaries.md"
  ],
  "evidence": [
-  "scripts/check-diagnostics-storage.mjs (الاستثناء التراثي الموثق بمعرف هذا البند)"
+  "scripts/check-diagnostics-storage.mjs",
+  "docs/architecture/refactoring/r11-arch010-20261015/R11-ARCH010-EXECUTION-REPORT-2026-10-15.md"
  ],
  "dependencies": [
   "ARCH-010"
