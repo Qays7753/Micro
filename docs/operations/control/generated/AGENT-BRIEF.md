@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 59 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 4 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 59 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-221 | IN_PROGRESS | `refactoring/arch012-retire-legacy-draft-20261015` | — | ARCH-012 | تنفيذ Outcome A (تقاعد ترحيل المسودات التراثية) على الفرع المخصوص من الأساس f221a012؛ ثم الحراس والاختبارات السلبية والسجلات والمراجعات الخمسة وPR مستقل يبقى مفتوحًا بلا دمج. |
+| WS-221 | IN_REVIEW | `refactoring/arch012-retire-legacy-draft-20261015` | 369 | ARCH-012 | قرار المالك على PR #369: الموجة مكتملة ومتسقة من الأساس f221a012 (الحذف + الحراس + السجلات + المراجعات الخمسة + البوابة الكاملة EXIT 0)؛ يتبع الدمج المستقل تحقق ما بعد الدمج كالمعتاد. المعلق بمحفزات مستقلة: ARCH-012-NF-001 وNF-002 (نافذتا دورة حياة المسودة القائمتان قبل الموجة). |

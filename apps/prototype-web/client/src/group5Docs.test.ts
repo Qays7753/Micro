@@ -69,6 +69,19 @@ describe("documentation consistency — Group 5 boundaries implemented on the re
     expect(transferSource).not.toContain('appVersion: "micro-prototype-web"');
   });
 
+  it("§210 records the ARCH-012 intentional retirement of the legacy draft migration before launch", () => {
+    /* R11 ARCH-012 (2026-10-15): السجل المؤرخ يثبت أن توافق المسودات التراثية
+     * تقاعد تقاعدًا مقصودًا قبل الإطلاق بقرار مالك — لا صمتًا ولا انجرافًا. */
+    const section210 = currentState.split("## §210 ")[1] ?? "";
+    expect(section210).toContain("ARCH012_RETIREMENT_COMPLETE — PR_READY");
+    expect(section210).toContain("تقاعد ترحيل مسودات الصفحة التراثية (Outcome A)");
+    expect(section210).toContain("legacyFormDraftMigration");
+    expect(section210).toContain("micro.finance-draft.<type>.v1");
+    expect(section210).toContain("micro.setup-draft.v1");
+    expect(section210).toContain("FormDraftService");
+    expect(section210).toContain("369");
+  });
+
   it("todo reflects the program truth: Group 5 implemented on the branch, Group 6 not started", () => {
     const group5 = todo
       .split("\n")
