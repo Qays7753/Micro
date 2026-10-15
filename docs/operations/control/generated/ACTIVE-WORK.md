@@ -5,3 +5,4 @@
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
 | WS-219 | IN_REVIEW | `security/r11-lock-fail-closed-20261015` | 368 | ARCH-011 | قرار المالك على PR #368؛ بعد الدمج: تحقق ما بعد الدمج (CI/Cloudflare على رأس الدمج بالضبط) ثم MERGED_UNVERIFIED → VERIFIED كسابقتها؛ لا successor تلقائي. |
+| WS-220 | IN_REVIEW | `security/r11-lock-fail-closed-20261015` | 368 | ARCH-010 | قرار المالك ضمن مراجعة PR #368 بعد التقرير الموحد النهائي لبرنامج المتابعة؛ بعد الدمج: تحقق ما بعد الدمج ثم MERGED_UNVERIFIED → VERIFIED. |

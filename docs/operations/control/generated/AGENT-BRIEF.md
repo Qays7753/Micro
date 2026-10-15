@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 3 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 59 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 2 · BACKLOG: 3 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 59 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -35,3 +35,4 @@ python3 scripts/operations-control/validate.py
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
 | WS-219 | IN_REVIEW | `security/r11-lock-fail-closed-20261015` | 368 | ARCH-011 | قرار المالك على PR #368؛ بعد الدمج: تحقق ما بعد الدمج (CI/Cloudflare على رأس الدمج بالضبط) ثم MERGED_UNVERIFIED → VERIFIED كسابقتها؛ لا successor تلقائي. |
+| WS-220 | IN_REVIEW | `security/r11-lock-fail-closed-20261015` | 368 | ARCH-010 | قرار المالك ضمن مراجعة PR #368 بعد التقرير الموحد النهائي لبرنامج المتابعة؛ بعد الدمج: تحقق ما بعد الدمج ثم MERGED_UNVERIFIED → VERIFIED. |

@@ -2,7 +2,7 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 3 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 59 · SUPERSEDED: 1
+BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 2 · BACKLOG: 3 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 59 · SUPERSEDED: 1
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
@@ -11,9 +11,10 @@ BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 3 · REVIEW_REQUIRED: 1
 | PILOT-001 | BLOCKED | RELEASE_GATE | RELEASE_GATE | P1 | stage-10 | قرار بدء Pilot | Product owner / Manus coordination | release, pilot | AUDIT-001, CLEAN-001, CTRL-001, CTRL-002, DEVICE-001, FIN-001, FIN-002, FIN-003, FIN-004, FIN-005, FIN-006, FIN-007, FIN-008, FIN-009, G-001, G-002, G-003, G-004, G-005, G-006, HARD-009, HARD-010, HARD-011, LEGAL-001, OPS-001, OPS-002, OPS-003, OPS-004, OPS-005, OPS-006, OPS-007, OPS-008, OPS-009, REL-001, REM-001, REM-002, REM-003, REM-004, REM-005, REM-006, REM-007, UAT-001, UX-001 |
 | UX-001 | IN_PROGRESS | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P1 | stage-5 | إعادة تصميم UI وUX جذرية | Product owner / Manus coordination | ui/ux, presentation | CLEAN-001 |
 | ARCH-011 | IN_REVIEW | HARDENING | NOT_APPLICABLE | P0 | r11-lock-fail-closed-20261015 | R11 Lock Remediation — إصلاح فاشل-مغلق للقفل المحلي: R11-W1B4-NF-001..004 (ساعة خلفية ضد خمول القفل ووقفة التخمين، فشل قراءة التخزين عند البوابة، وعقد خمول الإدخال الفعلي) | Micro owner (Qays7753) | application, security, ui-gate, tests, contracts, docs, operations-control | ARCH-009 |
-| ARCH-010 | BACKLOG | HARDENING | OUT_OF_SCOPE | P1 | r11-followup-post-w1b | متابعة منفصلة — حارس Diagnostics Storage المخصص (R11-W1A-NF-001) بعد إخراجه من نطاق W1b بقرار المالك | Micro owner (Qays7753) | governance, guards, tests, diagnostics | ARCH-009 |
+| ARCH-010 | IN_REVIEW | HARDENING | IN_SCOPE (owner-approved continuation contract 3fd10015, Phase 1) | P1 | r11-followup-post-w1b | متابعة منفصلة — حارس Diagnostics Storage المخصص (R11-W1A-NF-001) بعد إخراجه من نطاق W1b بقرار المالك | Micro owner (Qays7753) | governance, guards, tests, diagnostics | ARCH-009 |
 | AUDIT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | تدقيق مستقل نهائي قبل الـPilot | Product owner / Manus coordination | uat, audit, cross-layer | UAT-001 |
 | UAT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | قبول داخلي ببيانات Demo كاملة | Product owner / Manus coordination | uat, audit, cross-layer | DEVICE-001, LEGAL-001 |
+| ARCH-012 | BACKLOG | HARDENING | OWNER_DECISION_REQUIRED | P2 | r11-continuation-followup | متابعة منفصلة — ترحيل مهايئ مفاتيح المسودات التراثية إلى حد تخزين صريح (R11-ARCH010-NF-001 — مكتشف إحصاء ARCH-010) | Micro owner (Qays7753) | governance, application, storage-boundary, pages | ARCH-010 |
 | GOV-001 | REVIEW_REQUIRED | GOVERNANCE | NOT_APPLICABLE | P1 | governance | مصالحة G10-A مع تعارض عقد C1 | Product owner / Manus coordination | governance, contracts | — |
 | SCOPE-001 | DEFERRED | FUTURE_SCOPE | OUT_OF_SCOPE | P1 | future-scope | بوابة POS وCRM وWhatsApp والمزامنة وAuth والصلاحيات وCloud | Product owner / Manus coordination | future-scope | — |
 | BE-001 | DEFERRED | HISTORICAL | DUPLICATE_HISTORICAL | P2 | build-after-evidence | مصاريف متكررة محلية | Product owner / Manus coordination | future-capability | — |
