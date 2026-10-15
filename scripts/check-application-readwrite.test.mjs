@@ -158,7 +158,9 @@ describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-01
   it("property: a baseline file whose text gains a write-vocabulary definition fails", () => {
     const root = cleanTree();
     /* التعريف (لا الاستدعاء) يكفي لخرق الخاصية النصية — نفس منهج الأساس
-     * الذي صنّف preferenceService.ts وlegacyFormDraftMigration.ts كاتبين. */
+     * الذي صنّف preferenceService.ts وlegacyFormDraftMigration.ts كاتبين
+     * (الثاني حُذف بتقاعد ARCH-012 في 2026-10-15 — الجسم 63 لم يتغير: الملف
+     * كان خارج جسم القراءة أصلًا بوصفه كاتبًا نصيًا). */
     write(
       root,
       path.join(APP, "activity", "activityLabels.ts"),

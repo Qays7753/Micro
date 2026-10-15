@@ -13,16 +13,16 @@
  *    (`globalThis["localStorage"]`)، وتفكيك الكائن
  *    (`const {localStorage: ls} = globalThis` و`const {localStorage} = …`)،
  *    وربط الاستيراد/التصدير بالاسمين. التعليقات لا تُحتسب (ليست عقدًا).
- *  - الموضعان المسجلان حرفيًا:
- *    1) `storage/diagnostics/browserDiagnosticStorage.ts` — مهايئ تشخيص
- *       المتصفح (الحد الجذري لـ R11-W1A-NF-001)؛ ويتحقق الحارس إضافيًا أنه
- *       لا يستورد من `@/storage/local` (قرار العقد: لا توجيه للتشخيص عبر
- *       منفذ التخزين المالية/المحلية أبدًا).
- *    2) `application/drafts/legacyFormDraftMigration.ts` — استثناء تراثي
- *       موثق بإيجاد مستقل `R11-ARCH010-NF-001` (DEEPENS —
- *       OWNER_DECISION_REQUIRED): مهايئ مفاتيح المسودات التراثية المسجل
- *       كيانيًا في persistent-entity-touchpoints. شرط إزالته: قرار المالك
- *       بترحيله لحد تخزين صريح — لا يُمس في موجة ARCH-010 (عقد المتابعة §7).
+ *  - الموضع المسجل حرفيًا (واحد فقط):
+ *    `storage/diagnostics/browserDiagnosticStorage.ts` — مهايئ تشخيص
+ *    المتصفح (الحد الجذري لـ R11-W1A-NF-001)؛ ويتحقق الحارس إضافيًا أنه
+ *    لا يستورد من `@/storage/local` (قرار العقد: لا توجيه للتشخيص عبر
+ *    منفذ التخزين المالية/المحلية أبدًا).
+ *    R11 ARCH-012 (2026-10-15 — تقاعد مؤرخ): الاستثناء التراثي الثاني
+ *    (application/drafts/legacyFormDraftMigration.ts — R11-ARCH010-NF-001)
+ *    أُزيل مع تقاعد الترحيل بقرار المالك الموثق؛ عودة أي مهايئ مسودات
+ *    تراثي = خرق غير مسجل يُرفض فورًا (القرار والإثبات في
+ *    r11-arch012-20261015/evidence/).
  *  - موضع مسجل غادر الشجرة = فشل (تسجيل متقادم).
  *
  * لا يثبت (حدود موثقة):
@@ -48,21 +48,15 @@ const SOURCE_EXT = new Set([".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs"
 const WEB_STORAGE_KEYS = new Set(["localStorage", "sessionStorage"]);
 const GLOBAL_RECEIVERS = new Set(["window", "globalThis", "self", "global"]);
 
-/** المدخلان المسجلان حرفيًا (registered-entry) — لا اجتهاد في العدّ. */
+/** المدخل المسجل حرفيًا (registered-entry) — لا اجتهاد في العدّ.
+ * R11 ARCH-012 (2026-10-15): المدخل التراثي الثاني أُزيل بتقاعد الترحيل. */
 export const REGISTERED_DIAGNOSTICS_ADAPTER = path.join(
   CLIENT_SRC, "storage", "diagnostics", "browserDiagnosticStorage.ts",
-);
-export const REGISTERED_LEGACY_DRAFTS_ADAPTER = path.join(
-  CLIENT_SRC, "application", "drafts", "legacyFormDraftMigration.ts",
 );
 export const REGISTERED_ENTRIES = [
   {
     file: REGISTERED_DIAGNOSTICS_ADAPTER,
     reason: "مهايئ تشخيص المتصفح — الحد الجذري R11-W1A-NF-001 (ARCH-010)",
-  },
-  {
-    file: REGISTERED_LEGACY_DRAFTS_ADAPTER,
-    reason: "استثناء تراثي موثق — R11-ARCH010-NF-001 (OWNER_DECISION_REQUIRED)؛ شرط الإزالة: قرار مالك بترحيله",
   },
 ];
 
@@ -222,7 +216,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    `diagnostics-storage: PASS — ${stats.scanned} ملف إنتاج زُرع؛ صفر وصول غير مسجل لمفاتيح تخزين المتصفح؛ الموضعان المسجلان بالضبط: مهايئ التشخيص (${REGISTERED_DIAGNOSTICS_ADAPTER} — R11-W1A-NF-001) والاستثناء التراثي الموثق (R11-ARCH010-NF-001)؛ والمهايئ نظيف من منفذ التخزين المالية/المحلية (فصل الحدود سارٍ)`,
+    `diagnostics-storage: PASS — ${stats.scanned} ملف إنتاج زُرع؛ صفر وصول غير مسجل لمفاتيح تخزين المتصفح؛ الموضع المسجل الوحيد بالضبط: مهايئ التشخيص (${REGISTERED_DIAGNOSTICS_ADAPTER} — R11-W1A-NF-001)؛ الاستثناء التراثي للمسودات أُزيل بتقاعد ARCH-012 (2026-10-15)؛ والمهايئ نظيف من منفذ التخزين المالية/المحلية (فصل الحدود سارٍ)`,
   );
 }
 

@@ -216,7 +216,7 @@
 | `src/domain/loan/policies.ts` | production | 143 | 153 | 6639 | 6 | 3 | 1 | 0 | NORMAL | domain | NORMAL | — |
 | `apps/prototype-web/client/src/components/loans/RepaymentSheet.tsx` | production | 141 | 145 | 5848 | 1 | 9 | 3 | 1 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `src/domain/catalog/types.ts` | production | 141 | 156 | 5623 | 17 | 0 | 2 | 0 | NORMAL | domain | NORMAL | — |
-| `apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.ts` | production | 140 | 148 | 7306 | 7 | 3 | 6 | 3 | NORMAL | application | NORMAL | M |
+| `apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.ts` | production | ~~140~~ → **محذوف (R11 ARCH-012، 2026-10-15)** | — | — | — | — | — | — | — | — | — | — | *أُزيل بتقاعد الترحيل التراثي بقرار مالك موثق (Outcome A — دليل الإحصاء في r11-arch012-20261015)؛ بقايا الصف محفوظة بملاحظة الإزالة وفق بروتوكول السجل («صف يصف ملفًا غائبًا بلا ملاحظة إزالة = عيب»)* |
 | `apps/prototype-web/client/src/components/loans/ReceivedLoanRepaymentSheet.tsx` | production | 139 | 143 | 5875 | 1 | 9 | 1 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
 | `apps/prototype-web/client/src/components/forms/useFormDraft.ts` | production | 137 | 146 | 5877 | 3 | 3 | 4 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | M |
 | `apps/prototype-web/client/src/components/settings/SettingsOperatingModeSection.tsx` | production | 134 | 139 | 6149 | 4 | 5 | 1 | 0 | NORMAL | ui | UI_OUT_OF_SCOPE (Wave T) | — |
@@ -539,7 +539,7 @@
 | `apps/prototype-web/client/src/presentation/PresentationFormats.w44.dom.test.tsx` | test | 212 | 238 | 13531 | 0 | 5 | 0 | 0 | NORMAL | presentation | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/Ops001MovementSelection.dom.test.tsx` | test | 211 | 225 | 10576 | 0 | 11 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/FinalLogicOwnerDecisions.contract.test.ts` | test | 210 | 219 | 11045 | 0 | 7+ | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | M |
-| `apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.test.ts` | test | 210 | 227 | 9781 | 0 | 4 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |
+| `apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.test.ts` | test | ~~210~~ → **محذوف (R11 ARCH-012، 2026-10-15)** | — | — | — | — | — | — | — | — | — | *توصيف الترحيل حُذف مع وحدته؛ مواضع اختبارات الصفحات أُعيدت كتابتها لبذر الحد الموحّد + سلبية خمول المفتاح التراثي* |
 | `apps/prototype-web/client/src/D005.dom.test.tsx` | test | 209 | 221 | 12308 | 0 | 17 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/Nav001.dom.test.tsx` | test | 209 | 221 | 12046 | 0 | 22 | 0 | 0 | NORMAL | ui | TEST — judged as test asset, not production | — |
 | `apps/prototype-web/client/src/application/transfers/catalogCoreTransfer.test.ts` | test | 208 | 215 | 8446 | 0 | 5 | 0 | 0 | NORMAL | application | TEST — judged as test asset, not production | — |

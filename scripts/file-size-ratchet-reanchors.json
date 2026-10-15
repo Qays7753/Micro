@@ -1731,6 +1731,63 @@
     "trigger": "continuation contract section 11",
     "ocRef": "WS-219"
    }
+  },
+  {
+   "id": "R11-ARCH012-SETTINGS-RETIREMENT-COMMENT",
+   "date": "2026-10-15",
+   "path": "apps/prototype-web/client/src/pages/Settings.tsx",
+   "from": {
+    "nbLoc": 704,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 732,
+    "band": "WATCH"
+   },
+   "reason": "R11 ARCH-012: the legacy-key clear call was removed with its adapter (owner-decided retirement) and the declared reset policy comment now records the retirement and the no-destructive-wipe boundary — net +1 nbLOC (731->732) from the dated comment; behavior narrowed, responsibility not grown. Ledger entry spans the baseline value (704) per the ledgerCovers contract; the intermediate 704->731 step belongs to R11-W4-D14 (its own entry).",
+   "authorization": {
+    "ownerReview": "ARCH-012 conditional retirement contract (Outcome A)",
+    "trigger": "owner execution prompt on main f221a0127e",
+    "ocRef": "WS-221"
+   }
+  },
+  {
+   "id": "R11-ARCH012-READWRITE-BOUNDARY-COMMENT",
+   "date": "2026-10-15",
+   "path": "scripts/check-application-readwrite.mjs",
+   "from": {
+    "nbLoc": 315,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 317,
+    "band": "NORMAL"
+   },
+   "reason": "R11 ARCH-012: the textual-predicate methodology comment updated to record that the boundary-case file legacyFormDraftMigration.ts was deleted by the retirement (corpus count 63 unchanged — the file was a text-classified writer, outside the read corpus); net +1 nbLOC from the dated comment. Ledger entry spans the baseline value (315) per the ledgerCovers contract.",
+   "authorization": {
+    "ownerReview": "ARCH-012 conditional retirement contract (Outcome A)",
+    "trigger": "owner execution prompt on main f221a0127e",
+    "ocRef": "WS-221"
+   }
+  },
+  {
+   "id": "R11-ARCH012-SURFACES-BASELINE-REANCHOR",
+   "date": "2026-10-15",
+   "path": "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+   "from": {
+    "nbLoc": 108,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 129,
+    "band": "NORMAL"
+   },
+   "reason": "R11 ARCH-012: the three-environment surfaces baseline re-anchored for the retirement's deliberate shrink (entry 630,709/154,931; lazy -2,024 raw/-968 gzipNorm; precache -2,098; sw -66) with full dated provenance per the guard's documented same-PR improvement-lock protocol — the growth is provenance text, not guarded surface.",
+   "authorization": {
+    "ownerReview": "ARCH-012 conditional retirement contract (Outcome A)",
+    "trigger": "owner execution prompt on main f221a0127e",
+    "ocRef": "WS-221"
+   }
   }
  ]
 }

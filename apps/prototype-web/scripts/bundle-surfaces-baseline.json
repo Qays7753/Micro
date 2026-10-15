@@ -16,109 +16,112 @@
  "environments": {
   "local": {
    "anchored": {
-    "head": "a76afabbc30b1ba38a52c52a63117d1bb52d6d2f",
+    "head": "5cf13dbf0798886214d836fe5e7c26fb9e860271",
     "date": "2026-10-15",
-    "method": "R11 W4 / D-14 re-anchor (code head a76afabb, continuation program PR #368, 2026-10-15): the OD-A11Y semantics-only D-14 focus contracts add the shared overlayFocusContract hook (veil + focus-in + Tab containment + Escape + restore) to the two true modals (DataActionPinGate + the Settings protectionBlocked overlay via its owning ProtectionBlockedOverlay component) — semantics/focus only, no visual change, no protection-logic change, no AppLockGate modification. Measured at the code head: lazy +1,168 raw / +449 gzipNorm, precache +1,099; the entry stays under the untouched ceilings (630,783/154,984 vs 650,000/155,300). Sanctioned by the guard documented same-PR re-anchor protocol (OD-A11Y OPTION_B; ocRef WS-219).",
+    "method": "R11 ARCH-012 retirement re-anchor (2026-10-15, code head 5cf13dbf, WS-221, PR branch refactoring/arch012-retire-legacy-draft-20261015): the owner-decided retirement of the legacy form-draft migration removed the adapter module, its three page call sites, and the barrel re-exports — a deliberate documented shrink, not drift. Locally measured on the exact code head: lazy -2,024 raw / -968 gzipNorm (one lazy chunk gone: lazyJsCount 103 -> 102), precache -2,098 (precacheEntryCount 158 -> 157), swRuntime -66; initial companions unchanged (224,687 / 70,716). Entry measured 630,709/154,931 — smaller than before the wave; ceilings remain owned exclusively by check-bundle-budget (650,000/155,300) and were NOT touched. Sanctioned by the guard's documented same-PR improvement-lock protocol.",
     "initialRawTotal": 224687,
     "initialGzipNormTotal": 70716,
-    "lazyRawTotal": 1218868,
-    "lazyGzipNormTotal": 367838,
-    "precacheBytesTotal": 2685965,
-    "swRuntimeRawTotal": 26286
+    "lazyRawTotal": 1216844,
+    "lazyGzipNormTotal": 366870,
+    "precacheBytesTotal": 2683867,
+    "swRuntimeRawTotal": 26220
    },
    "toolchain": {
-    "node": "v24.21.0",
-    "zlib": "1.3.2.1-motley-8002e91",
+    "node": "not-exposed-by-provider",
+    "zlib": "not-exposed-by-provider",
     "platform": "linux/x64",
-    "pnpm": "9.15.9",
-    "vite": "7.3.6",
-    "rollup": "4.62.4",
+    "pnpm": "not-exposed-by-provider",
+    "vite": "not-exposed-by-provider",
+    "rollup": "not-exposed-by-provider",
     "identityMode": "null-fallback"
    },
    "measurements": {
     "initialRawTotal": 224687,
     "initialGzipNormTotal": 70716,
-    "lazyRawTotal": 1218868,
-    "lazyGzipNormTotal": 367838,
-    "precacheBytesTotal": 2685965,
-    "swRuntimeRawTotal": 26286
+    "lazyRawTotal": 1216844,
+    "lazyGzipNormTotal": 366870,
+    "precacheBytesTotal": 2683867,
+    "swRuntimeRawTotal": 26220
    },
    "counts": {
-    "lazyJsCount": 103,
+    "lazyJsCount": 102,
     "initialJsCount": 2,
     "dynamicRootsCount": 71,
-    "precacheEntryCount": 158,
+    "precacheEntryCount": 157,
     "swRuntimeFileCount": 2
    }
   },
   "cloudflare-pages": {
    "anchored": {
-    "head": "5c9316ebd759d0bed0a671517d2887a99ae60e3c",
+    "head": "5cf13dbf0798886214d836fe5e7c26fb9e860271",
     "date": "2026-10-15",
-    "method": "R11 continuation post-push cloud re-anchor (2026-10-15, tests-green head 5c9316ebd759d0bed0a671517d2887a99ae60e3c): the W4 accessibility semantics track (D-14 overlay focus contracts at code head a76afabb) re-anchored the LOCAL surfaces record in the same PR but the two cloud records were left at the lock-wave values (head 388c1fe5) — the same exposure pattern as the R9 67366bff incident, caught here by the first CI run that reached prototype:build on this PR (the earlier pushes failed the root vitest suite before the build step). github-actions carries the CI-directly-measured values of run 116293773653: lazyRawTotal 1,217,700 -> 1,218,868 and lazyGzipNormTotal 367,389 -> 367,838 (byte-identical to local — lazy files carry no build identity, per the D1 invariance), precacheBytesTotal 2,684,956 -> 2,686,055 (= local 2,685,965 + 90 identity footprint, the documented derivation). cloudflare-pages carries the same values by the environment-class derivation proven on the previous generations; the final PR-head CI and Cloudflare Pages runs verify both cloud records. Entry ceilings remain owned exclusively by check-bundle-budget (630,783/154,984 on this head — PASS) and were NOT touched; counts, initial companions, and swRuntime byte-identical.",
+    "method": "R11 ARCH-012 retirement re-anchor (2026-10-15, code head 5cf13dbf, WS-221): the two cloud records carry the derived values by the documented environment-class derivation proven on the previous generations (R9/67366bff protocol; R11 continuation head 5c9316eb): lazy surfaces byte-identical to local (lazy files carry no build identity — the D1 invariance), initial companions and swRuntime byte-identical, precacheBytesTotal = local 2,683,867 + 90 identity footprint = 2,683,957. The PR-head CI run (github-actions, directly measured) and the Cloudflare Pages run verify both cloud records after push. Entry ceilings remain owned exclusively by check-bundle-budget (630,709/154,931 local-null draw — PASS) and were NOT touched.",
     "initialRawTotal": 224687,
     "initialGzipNormTotal": 70716,
-    "lazyRawTotal": 1218868,
-    "lazyGzipNormTotal": 367838,
-    "precacheBytesTotal": 2686055,
-    "swRuntimeRawTotal": 26286
+    "lazyRawTotal": 1216844,
+    "lazyGzipNormTotal": 366870,
+    "precacheBytesTotal": 2683957,
+    "swRuntimeRawTotal": 26220
    },
    "toolchain": {
     "node": "not-exposed-by-provider",
     "zlib": "not-exposed-by-provider",
     "platform": "cloudflare-pages",
+    "pnpm": "not-exposed-by-provider",
+    "vite": "not-exposed-by-provider",
+    "rollup": "not-exposed-by-provider",
     "identityMode": "env"
    },
    "measurements": {
     "initialRawTotal": 224687,
     "initialGzipNormTotal": 70716,
-    "lazyRawTotal": 1218868,
-    "lazyGzipNormTotal": 367838,
-    "precacheBytesTotal": 2686055,
-    "swRuntimeRawTotal": 26286
+    "lazyRawTotal": 1216844,
+    "lazyGzipNormTotal": 366870,
+    "precacheBytesTotal": 2683957,
+    "swRuntimeRawTotal": 26220
    },
    "counts": {
-    "lazyJsCount": 103,
+    "lazyJsCount": 102,
     "initialJsCount": 2,
     "dynamicRootsCount": 71,
-    "precacheEntryCount": 158,
+    "precacheEntryCount": 157,
     "swRuntimeFileCount": 2
    }
   },
   "github-actions": {
    "anchored": {
-    "head": "5c9316ebd759d0bed0a671517d2887a99ae60e3c",
+    "head": "5cf13dbf0798886214d836fe5e7c26fb9e860271",
     "date": "2026-10-15",
-    "method": "R11 continuation post-push cloud re-anchor (2026-10-15, tests-green head 5c9316ebd759d0bed0a671517d2887a99ae60e3c): the W4 accessibility semantics track (D-14 overlay focus contracts at code head a76afabb) re-anchored the LOCAL surfaces record in the same PR but the two cloud records were left at the lock-wave values (head 388c1fe5) — the same exposure pattern as the R9 67366bff incident, caught here by the first CI run that reached prototype:build on this PR (the earlier pushes failed the root vitest suite before the build step). github-actions carries the CI-directly-measured values of run 116293773653: lazyRawTotal 1,217,700 -> 1,218,868 and lazyGzipNormTotal 367,389 -> 367,838 (byte-identical to local — lazy files carry no build identity, per the D1 invariance), precacheBytesTotal 2,684,956 -> 2,686,055 (= local 2,685,965 + 90 identity footprint, the documented derivation). cloudflare-pages carries the same values by the environment-class derivation proven on the previous generations; the final PR-head CI and Cloudflare Pages runs verify both cloud records. Entry ceilings remain owned exclusively by check-bundle-budget (630,783/154,984 on this head — PASS) and were NOT touched; counts, initial companions, and swRuntime byte-identical.",
+    "method": "R11 ARCH-012 retirement re-anchor (2026-10-15, code head 5cf13dbf, WS-221): the two cloud records carry the derived values by the documented environment-class derivation proven on the previous generations (R9/67366bff protocol; R11 continuation head 5c9316eb): lazy surfaces byte-identical to local (lazy files carry no build identity — the D1 invariance), initial companions and swRuntime byte-identical, precacheBytesTotal = local 2,683,867 + 90 identity footprint = 2,683,957. The PR-head CI run (github-actions, directly measured) and the Cloudflare Pages run verify both cloud records after push. Entry ceilings remain owned exclusively by check-bundle-budget (630,709/154,931 local-null draw — PASS) and were NOT touched.",
     "initialRawTotal": 224687,
     "initialGzipNormTotal": 70716,
-    "lazyRawTotal": 1218868,
-    "lazyGzipNormTotal": 367838,
-    "precacheBytesTotal": 2686055,
-    "swRuntimeRawTotal": 26286
+    "lazyRawTotal": 1216844,
+    "lazyGzipNormTotal": 366870,
+    "precacheBytesTotal": 2683957,
+    "swRuntimeRawTotal": 26220
    },
    "toolchain": {
-    "node": "v22.23.3",
-    "zlib": "1.3.1-e00f703",
-    "platform": "linux/x64",
-    "pnpm": "9.15.9",
-    "vite": "7.3.6",
-    "rollup": "4.62.4",
+    "node": "not-exposed-by-provider",
+    "zlib": "not-exposed-by-provider",
+    "platform": "github-actions",
+    "pnpm": "not-exposed-by-provider",
+    "vite": "not-exposed-by-provider",
+    "rollup": "not-exposed-by-provider",
     "identityMode": "env"
    },
    "measurements": {
     "initialRawTotal": 224687,
     "initialGzipNormTotal": 70716,
-    "lazyRawTotal": 1218868,
-    "lazyGzipNormTotal": 367838,
-    "precacheBytesTotal": 2686055,
-    "swRuntimeRawTotal": 26286
+    "lazyRawTotal": 1216844,
+    "lazyGzipNormTotal": 366870,
+    "precacheBytesTotal": 2683957,
+    "swRuntimeRawTotal": 26220
    },
    "counts": {
-    "lazyJsCount": 103,
+    "lazyJsCount": 102,
     "initialJsCount": 2,
     "dynamicRootsCount": 71,
-    "precacheEntryCount": 158,
+    "precacheEntryCount": 157,
     "swRuntimeFileCount": 2
    }
   }
