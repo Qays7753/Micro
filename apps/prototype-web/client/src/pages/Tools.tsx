@@ -78,7 +78,7 @@ export default function Tools() {
       </div>
 
       {phase === "loading" ? (
-        <p className="micro-route-loading" role="status" aria-live="polite">
+        <p className="micro-route-loading" role="status">
           جارٍ قراءة أدواتك المحلية…
         </p>
       ) : null}

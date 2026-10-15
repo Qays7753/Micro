@@ -640,7 +640,7 @@ export default function Catalog() {
   /* مبدأ Micro: يبدأ الكتالوج بمرجع عملي، وتأتي القياسات والقوالب والقراءات عند الحاجة فقط. */
   if (!ready)
     return (
-      <div className="micro-route-loading" role="status" aria-live="polite">
+      <div className="micro-route-loading" role="status">
         جارٍ قراءة الفهرس المحلي…
       </div>
     );

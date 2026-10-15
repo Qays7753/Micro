@@ -290,15 +290,45 @@ export function generate() {
         .filter(([, v]) => v.evidence.length === 0)
         .map(([k]) => k)
         .sort(),
+      /* R11 W4 / D-15: الصفحات التي لا يستوردها أي اختبار مباشرة (kind !=
+       * direct) — إفصاح صادق كان تخفيه أنواع الإشارة التقريبية. */
+      withoutDirectRendering: Object.entries(pageMap)
+        .filter(([, v]) => v.kind !== "direct")
+        .map(([k]) => k)
+        .sort(),
     },
     contracts: { total: contracts.length, map: contractMap },
     domainTestLocations: domainLocations,
   };
 }
 
+/* R11 W4 / D-15 (RV3-NF-7 — عقد المتابعة §11): راتشة الأدلة المباشرة —
+ * الصفحات بلا اختبار يستوردها مباشرة تُعلن صراحةً في withoutDirectRendering
+ * (كانت أنواع الإشارة التقريبية named/route-reference تخفيها)، والمجموعة
+ * المثبتة أدناه هي الحد الأعلى المقيس حيًّا عند تنفيذ D-15: أي صفحة جديدة
+ * بلا دليل مباشر تُرفض حتى يُضاف اختبار مباشر أو يُوثَّق القرار هنا بنفس
+ * الـPR. (صفحات R10-B/F-020 الثلاث صار لها اختبارات مباشرة منذئذ.) */
+export const PINNED_WITHOUT_DIRECT_RENDERING = [
+  "pages/NotFound.tsx",
+];
+
+/** R11 W4 / D-15: راتشة الأدلة المباشرة — المجموعة الحية لا تنمو فوق
+ * المثبت؛ النمو قرار موثق بنفس الـPR (اختبار مباشر أو تصنيف مقصود). */
+function assertWithoutDirectRenderingRatchet(live) {
+  const pinned = new Set(PINNED_WITHOUT_DIRECT_RENDERING);
+  const growth = live.filter(page => !pinned.has(page));
+  if (growth.length > 0) {
+    console.error(
+      `generate-test-map: FAIL — صفحات جديدة بلا اختبار يستوردها مباشرة (راتشة RV3-NF-7/D-15): ${growth.join(", ")} — أضف اختبارًا مباشرًا أو وثّق الإضافة في PINNED_WITHOUT_DIRECT_RENDERING بقرار بنفس الـPR`,
+    );
+    process.exit(1);
+  }
+}
+
 function main(argv) {
   const check = argv.includes("--check");
   const data = generate();
+  assertWithoutDirectRenderingRatchet(data.pages.withoutDirectRendering);
   const json = JSON.stringify(data, null, 2) + "\n";
   if (check) {
     const committed = fs.readFileSync(OUT_PATH, "utf8");
