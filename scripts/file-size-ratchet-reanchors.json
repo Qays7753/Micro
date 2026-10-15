@@ -1674,6 +1674,63 @@
     "trigger": "continuation contract section 10 Phase 4 (W3)",
     "ocRef": "WS-219"
    }
+  },
+  {
+   "id": "R11-W4-D14-PIN-GATE-FOCUS-CONTRACT",
+   "date": "2026-10-15",
+   "path": "apps/prototype-web/client/src/components/security/DataActionPinGate.tsx",
+   "from": {
+    "nbLoc": 97,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 112,
+    "band": "NORMAL"
+   },
+   "reason": "R11 W4 / D-14 (OD-A11Y, continuation contract section 11): the PIN-confirmation true modal gains the full focus contract (veil + focus-in + Tab containment + Escape + restore) via the shared overlayFocusContract hook — semantics/focus only, no visual or PIN-logic change.",
+   "authorization": {
+    "ownerReview": "OD-A11Y OPTION_B SEMANTICS_ONLY — D-14 first",
+    "trigger": "continuation contract section 11",
+    "ocRef": "WS-219"
+   }
+  },
+  {
+   "id": "R11-W4-D14-SETTINGS-PROTECTION-OVERLAY",
+   "date": "2026-10-15",
+   "path": "apps/prototype-web/client/src/pages/Settings.tsx",
+   "from": {
+    "nbLoc": 704,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 731,
+    "band": "WATCH"
+   },
+   "reason": "R11 W4 / D-14: the protectionBlocked destructive-block overlay extracted into the owning ProtectionBlockedOverlay component (mounts with the overlay so the focus-contract hook actually engages) with veil + focus-in + Tab containment + Escape + restore — semantics/focus only.",
+   "authorization": {
+    "ownerReview": "OD-A11Y OPTION_B SEMANTICS_ONLY — D-14 first",
+    "trigger": "continuation contract section 11",
+    "ocRef": "WS-219"
+   }
+  },
+  {
+   "id": "R11-W4-D15-TEST-MAP-DIRECT-RATCHET",
+   "date": "2026-10-15",
+   "path": "scripts/generate-test-map.mjs",
+   "from": {
+    "nbLoc": 291,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 337,
+    "band": "NORMAL"
+   },
+   "reason": "R11 W4 / D-15 (RV3-NF-7): withoutDirectRendering report field + the pinned direct-evidence ratchet (new pages without a direct test import are rejected until documented in-PR) — the exact recommendation of the finding.",
+   "authorization": {
+    "ownerReview": "OD-A11Y D-15 batched cleanup + direct-only ratchet",
+    "trigger": "continuation contract section 11",
+    "ocRef": "WS-219"
+   }
   }
  ]
 }
