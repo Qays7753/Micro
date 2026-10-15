@@ -200,7 +200,7 @@ export default function FinancialEventEditor() {
   const savedRef = useRef(false);
   /* المجموعة ٥: المسح يجي فقط بعد وسخ حقيقي ثم عودة إلى
    * النقاء — لا مسح عند الفتح (يحفظ المسودة لعرض الاسترجاع لا يمسحها) ولا سباق
-   * لقراءة الفتح والترحيل. */
+   * لقراءة الفتح أو أي مسار تراثي متقاعد. */
   const wasDirtyRef = useRef(false);
   const idempotencyKey = useRef(`finance-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   /* المجموعة ١ (مسودة محفوظة): عرض استرجاع عند الفتح فقط — وضع الإنشاء حصريًا. */
