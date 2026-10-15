@@ -2,7 +2,7 @@
  "id": "ARCH-012",
  "title": "متابعة منفصلة — ترحيل مهايئ مفاتيح المسودات التراثية إلى حد تخزين صريح (R11-ARCH010-NF-001 — مكتشف إحصاء ARCH-010)",
  "type": "GOVERNANCE",
- "status": "BACKLOG",
+ "status": "IN_PROGRESS",
  "priority": "P2",
  "stage": "r11-continuation-followup",
  "summary": "إحصاء web-storage الكامل الذي فرضه بند ARCH-010 (قبل أي كتابة) كشف موضعًا إنتاجيًا ثانيًا يلمس globalThis.localStorage خارج طبقة التخزين: browserLegacyFormDraftStorage() في application/drafts/legacyFormDraftMigration.ts:32 — مهايئ مفاتيح المسودات التراثية (micro.finance-draft.<type>.v1 وmicro.setup-draft.v1) الذي تستدعيه ثلاث صفحات مباشرة (Setup.tsx وFinancialEventEditor.tsx وSettings.tsx) ثم تمرره لدوال الترحيل. الكيان نفسه مسجل قانونيًا في persistent-entity-touchpoints.json (مفاتيح تراثية تُحذف من المصدر بعقد اكتب←تحقق←احذف) لكن المهايئ يقيم داخل طبقة التطبيق لا في حد تخزين صريح — صنف DEEPENS للمكتشف الأصلي R11-W1A-NF-001 (الذي أُغلق جذريًا للتشخيص في Phase 1). خارج نطاق موجة ARCH-010 بعقد المتابعة §7 (لا نقل ملفات غير مترابطة) ويحتاج قرار مالك مستقلًا: أين يقيم المهايئ (حد تخزين صريح بنمط storage/diagnostics/) وهل يبقى استدعاء الصفحات له مباشرًا أم ينتقل لخدمة التطبيق.",
@@ -48,7 +48,9 @@
  ],
  "evidence": [
   "scripts/check-diagnostics-storage.mjs",
-  "docs/architecture/refactoring/r11-arch010-20261015/R11-ARCH010-EXECUTION-REPORT-2026-10-15.md"
+  "docs/architecture/refactoring/r11-arch010-20261015/R11-ARCH010-EXECUTION-REPORT-2026-10-15.md",
+  "docs/architecture/refactoring/r11-arch012-20261015/evidence/R11-ARCH012-LEGACY-DRAFT-CENSUS-AND-DECISION-2026-10-15.md",
+  "docs/architecture/refactoring/r11-arch012-20261015/R11-ARCH012-EXECUTION-REPORT-2026-10-15.md"
  ],
  "dependencies": [
   "ARCH-010"
@@ -64,8 +66,26 @@
    "changed_at": "2026-10-15",
    "actor": "zai-executor",
    "reason": "إنشاء تتبع متين للإيجاد المكتشف بإحصاء ARCH-010 (R11-ARCH010-NF-001 — DEEPENS للمكتشف الأصلي): خارج نطاق الموجة بعقد المتابعة §7؛ المحفز الدقيق = قرار المالك المستقل بالترحيل؛ لا يبدأ تلقائيًا."
+  },
+  {
+   "status": "READY",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "قرار المالك المعطى بجدولة التنفيذ عبر عقد التنفيذ الشرطي المنشور على main (R11-ARCH012-CONDITIONAL-RETIREMENT-W2B-PENDING-EXECUTION-PROMPT-2026-10-15.md) — المحفز الدقيق المطلوب بالقبول تحقق."
+  },
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "فتح Claim ‏WS-221 من الأساس المتحقق f221a0127e (رأس دمج PR #368؛ فحصاه SUCCESS)؛ لا تداخل Claims نشطة (WS-219 أُغلقت VERIFIED بنفس العملية بعد إثبات دمجها وتحققها حيًا)."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "الإحصاء الكامل أعيد اشتقاقه على الأساس الحي وأثبت شروط Outcome A الستة (دليل الإحصاء والقرار مؤرخ)؛ تنفيذ التقاعد المتسق بدأ."
   }
  ],
  "migration_baseline": false,
- "next_action": "بانتظار قرار مالك مستقل بجدولة الترحيل؛ المحفز: قرار المالك فقط."
+ "next_action": "التنفيذ جارٍ على WS-221/الفرع refactoring/arch012-retire-legacy-draft-20261015 من الأساس f221a012: القرار Outcome A (ARCH012_RETIRE_LEGACY_DRAFT_MIGRATION) مثبت بدليل الإحصاء؛ الحذف المتسق (الوحدة + مستدعوه + اختباراته + استثناء الحارس) قيد التنفيذ، تليه الحراس والسلبية والسجلات والمراجعات الخمسة."
 }
