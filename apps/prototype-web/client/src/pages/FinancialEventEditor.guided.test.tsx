@@ -8,7 +8,6 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { FormDraftService } from "@/application/drafts/formDraftService";
-import { legacyFinanceDraftKey } from "@/application/drafts/legacyFormDraftMigration";
 import { createFormDraftHarness } from "@/application/drafts/formDraftTestHarness";
 import type { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
@@ -266,6 +265,8 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
       if (!saved.ok) throw new Error("read failed");
       expect(saved.value).not.toBeNull();
     });
+    /* لا يُنشأ مفتاح مسودة في تخزين الصفحة أبدًا (ARCH-012: لا عودة
+     * لمسودات الصفحة المباشرة) — الحد وحده يكتب. */
     expect(window.localStorage.getItem("micro.finance-draft.operating_expense_cash.v1")).toBeNull();
     cleanup();
     /* إعادة الفتح: عرض الاسترجاع — لا تحويل سجل تلقائي أبدًا. */
@@ -274,6 +275,14 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     expect(record).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
     expect((screen.getByLabelText("المبلغ بالدينار الأردني") as HTMLInputElement).value).toContain("30");
+    /* دورة الاسترجاع (سلوك قائم): التطبيق يمسح السجل ثم يعيد حفظه
+     * بفعل الوسخ — ننتظر استقرار إعادة الحفظ قبل إعادة الفتح حتى لا
+     * تسبق القراءة الكتابة في نافذة المهام الدقيقة (كانت مهام الترحيل
+     * التراثي تؤخرها قبل ARCH-012 — انظر ARCH-012-NF-002 في التقرير). */
+    await waitFor(async () => {
+      const resaved = await store.getFormDraft("finance_event:operating_expense_cash");
+      expect(resaved.ok && resaved.value).not.toBeNull();
+    });
     const savedRecord = vi.fn().mockResolvedValueOnce({ ok: true, value: storedEvent(3000) });
     cleanup();
     renderEditor({ record: savedRecord, store });
@@ -332,29 +341,28 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
    * قيمًا غير آمنة — الإكراه الدفاعي يُرجّع السليم ويُصفّر/يُبدّل التالف،
    * والمسودة غير القابلة للترجيع تُتجاهل بلا عرض استرجاع فارغ. */
   it("restores a corrupted draft through defensive coercion — form stays functional and safe", async () => {
-    const draftKey = "micro.finance-draft.operating_expense_cash.v1";
-    window.localStorage.setItem(
-      draftKey,
-      JSON.stringify({
-        amountMinor: -5,
-        sharedTotalAmountMinor: "ليس عددًا",
-        sharedPercentage: true,
-        date: 42,
-        note: "ملاحظة سليمة",
-        counterparty: 7,
-        relationship: "bogus",
-        behavior: true,
-        purpose: null,
-        knowledge: "hax",
-        sharedMode: 42,
-        sharedNote: {},
-        categoryLabel: 99,
-        relatedEventId: [],
-        walletId: { op: 1 },
-      }),
-    );
+    /* سجل قيمُه تالفة/مُعدَّلة خارج المسار الطبيعي في الحد الموحّد — الإكراه
+     * الدفاعي عند القراءة هو الحارس (AV-09). */
+    const store = createFormDraftHarness().store;
+    await new FormDraftService(store).save("finance_event", "operating_expense_cash", {
+      amountMinor: -5,
+      sharedTotalAmountMinor: "ليس عددًا",
+      sharedPercentage: true,
+      date: 42,
+      note: "ملاحظة سليمة",
+      counterparty: 7,
+      relationship: "bogus",
+      behavior: true,
+      purpose: null,
+      knowledge: "hax",
+      sharedMode: 42,
+      sharedNote: {},
+      categoryLabel: 99,
+      relatedEventId: [],
+      walletId: { op: 1 },
+    });
     const user = userEvent.setup();
-    const { record } = renderEditor({});
+    const { record } = renderEditor({ store });
     record.mockResolvedValueOnce({ ok: true, value: storedEvent(1200) });
     expect(await screen.findByText(/مسودة غير محفوظة من إدخال سابق — ترجّعها؟/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
@@ -368,13 +376,14 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     await user.type(amountField, "12");
     await user.click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
     await waitFor(() => expect(record).toHaveBeenCalledOnce());
-    expect(window.localStorage.getItem(draftKey)).toBeNull();
+    /* لا يُنشأ مفتاح مسودة في تخزين الصفحة أبدًا (ARCH-012). */
+    expect(window.localStorage.getItem("micro.finance-draft.operating_expense_cash.v1")).toBeNull();
   });
 
-  it("a garbage legacy draft is rejected without an offer or a crash, and is never silently converted", async () => {
-    /* المجموعة ٥: المعطوب الغير القابل للترجيع يُرفض محفوظًا
-     * في مكانه (لا حذف لما لا يُقرأ) — لا عرض فارغًا ولا حدث مالي
-     * ولا مسودة جديدة في الحد الموحّد. */
+  it("a leftover legacy page-storage draft is inert — no offer, no crash, no conversion, no deletion (ARCH-012)", async () => {
+    /* R11 ARCH-012 (2026-10-15): المفتاح التراثي المتروك لا يُقرأ أبدًا —
+     * لا عرض فارغ ولا حدث مالي ولا مسودة في الحد الموحّد ولا حذف صامت
+     * لما لا نقرؤه (لا مسح تخزين تخريبي). */
     window.localStorage.setItem(
       "micro.finance-draft.operating_expense_cash.v1",
       JSON.stringify({ amountMinor: [], date: 99, note: 42 }),
@@ -386,22 +395,22 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     expect(record).not.toHaveBeenCalled();
     const notMigrated = await store.getFormDraft("finance_event:operating_expense_cash");
     expect(notMigrated.ok && notMigrated.value).toBeNull();
-    /* المفتاح القديم بقى في مكانه خاملًا — سياسة عدم الحذف الصامت لما لا يُقرأ. */
+    /* المفتاح القديم بقى في مكانه خاملًا — سياسة عدم الحذف الصامت. */
     expect(window.localStorage.getItem("micro.finance-draft.operating_expense_cash.v1")).not.toBeNull();
   });
 
-  it("a valid legacy page draft migrates exactly once and preserves its values — with no page storage writes afterward", async () => {
-    /* المجموعة ٥: الترحيل الوحيد — اكتب ← تحقق ← احذف؛
-     * المفتاح يزول مرة واحدة والقيم تعود في عرض
-     * الاسترجاع من الحد الموحّد لا من تخزين الصفحة. */
+  it("the restore offer comes only from the unified boundary — a leftover legacy key is never read (ARCH-012)", async () => {
+    /* R11 ARCH-012 (2026-10-15): مصدر العرض هو الحد الموحّد وحده؛ المفتاح
+     * التراثي (حتى بقيم صالحة) لا يُقرأ ولا يُرحَّل ولا يُحذف — خامل
+     * تمامًا، وإعادة الفتح تقرأ من الحد في قيمة واحدة لا تنسخ. */
     window.localStorage.setItem(
       "micro.finance-draft.operating_expense_cash.v1",
       JSON.stringify({
-        amountMinor: 3000,
+        amountMinor: 9900,
         sharedTotalAmountMinor: 0,
         sharedPercentage: 0,
         date: "2026-09-01",
-        note: "مسودة قديمة",
+        note: "قيمة تراثية لا تُقرأ",
         counterparty: "مورد",
         relationship: "project",
         behavior: "fixed",
@@ -415,24 +424,41 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
       }),
     );
     const store = createFormDraftHarness().store;
+    await new FormDraftService(store).save("finance_event", "operating_expense_cash", {
+      amountMinor: 3000,
+      sharedTotalAmountMinor: 0,
+      sharedPercentage: 0,
+      date: "2026-09-01",
+      note: "مسودة حالية",
+      counterparty: "مورد",
+      relationship: "project",
+      behavior: "fixed",
+      purpose: "period",
+      knowledge: "known",
+      sharedMode: "fixed",
+      sharedNote: "",
+      categoryLabel: "تغليف",
+      relatedEventId: "",
+      walletId: "",
+    });
     const { record } = renderEditor({ store });
     expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
     expect(record).not.toHaveBeenCalled();
-    const migrated = await store.getFormDraft("finance_event:operating_expense_cash");
-    expect(migrated.ok).toBe(true);
-    if (!migrated.ok) throw new Error("read failed");
-    expect(migrated.value).not.toBeNull();
-    expect((migrated.value?.values as { note?: string }).note).toBe("مسودة قديمة");
-    expect((migrated.value?.values as { amountMinor?: number }).amountMinor).toBe(3000);
-    expect(window.localStorage.getItem("micro.finance-draft.operating_expense_cash.v1")).toBeNull();
-    /* إعادة الفتح: حتمية التكرار — المفتاح غائب والعرض
-     * يأتي من الحد في قيمة واحدة لا تنسخ. */
+    const offered = await store.getFormDraft("finance_event:operating_expense_cash");
+    expect(offered.ok).toBe(true);
+    if (!offered.ok) throw new Error("read failed");
+    expect(offered.value).not.toBeNull();
+    expect((offered.value?.values as { note?: string }).note).toBe("مسودة حالية");
+    expect((offered.value?.values as { amountMinor?: number }).amountMinor).toBe(3000);
+    /* المفتاح التراثي لم يُمس — لا قراءة ولا حذف. */
+    expect(window.localStorage.getItem("micro.finance-draft.operating_expense_cash.v1")).not.toBeNull();
+    /* إعادة الفتح: العرض من الحد وحده بقيمة واحدة لا تنسخ. */
     cleanup();
     renderEditor({ store });
     expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
     const stillOne = await store.getFormDraft("finance_event:operating_expense_cash");
     if (!stillOne.ok) throw new Error("read failed");
-    expect((stillOne.value?.values as { note?: string }).note).toBe("مسودة قديمة");
-    expect(window.localStorage.getItem("micro.finance-draft.operating_expense_cash.v1")).toBeNull();
+    expect((stillOne.value?.values as { note?: string }).note).toBe("مسودة حالية");
+    expect(window.localStorage.getItem("micro.finance-draft.operating_expense_cash.v1")).not.toBeNull();
   });
 });

@@ -8,11 +8,6 @@ import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import {
-  browserLegacyFormDraftStorage,
-  LEGACY_SETUP_DRAFT_KEY,
-  migrateLegacyFormDraft,
-} from "@/application/drafts";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 
 import { Button } from "@/components/primitives";
@@ -81,28 +76,16 @@ export default function Setup() {
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   /* U-003 + المجموعة ٥: القراءة عند الفتح تعرض استعادة صريحة — لا
-   * تطبيق للقيم إلا بفعل المالك؛ ومفتاح الصفحة
-   * القديم يُرحّل مرة واحدة قبل القراءة. */
+   * تطبيق للقيم إلا بفعل المالك؛ والقراءة من حد المسودات العابرة
+   * الموحّد وحده.
+   * R11 ARCH-012 (2026-10-15): ترحيل مفتاح الصفحة القديم تقاعد قبل
+   * الإطلاق بقرار مالك موثق (r11-arch012-20261015) — القراءة الحية
+   * وحدها تبقى هنا. */
   const [draftOffer, setDraftOffer] = useState<SetupDraft | null>(null);
   const [draftSaveFailed, setDraftSaveFailed] = useState(false);
   useEffect(() => {
     let active = true;
-    const storage = browserLegacyFormDraftStorage();
     void (async () => {
-      if (storage !== null) {
-        await migrateLegacyFormDraft({
-          service: formDrafts,
-          storage,
-          legacyKey: LEGACY_SETUP_DRAFT_KEY,
-          formKind: "setup",
-          scopeId: null,
-          parse: raw => {
-            const coerced = coerceSetupDraft(raw);
-            return coerced === null ? null : { ...coerced };
-          },
-        });
-      }
-      if (!active) return;
       const result = await formDrafts.read("setup", null);
       if (!active || !result.ok || result.value === null) return;
       const coerced = coerceSetupDraft(result.value.values);
