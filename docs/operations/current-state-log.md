@@ -2515,3 +2515,14 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - **المكتشفات الجديدة (خارج النطاق، بمحفزات دقيقة):** ARCH-012-NF-001 — نافذة إقلاع Setup: مسح النموذج الفارغ عند الفتح يمسح سجل مسودة الإعداد حتى مع عرض الاستعادة قائمًا (القيم تنجو في العرض والقبول يعيد الحفظ)؛ قائمة على main قبل الموجة وكشفها إعادة توقيت الاختبارات. ARCH-012-NF-002 — نافذة دورة استرجاع المحرر (مسح ثم إعادة حفظ بفعل الوسخ)؛ قائمة كذلك. إصلاحهما تغيير لسلوك المسودات المحمي يحتاج موجة مستقلة بقرار مالك.
 - **الحفاظ المثبت:** `FormDraftService` وكل سلوك المسودات الحالي وIndexedDB وMemoryLocalStore وSchema 38 وExport 30 والدلالات المالية والتاريخية وسلوك التخزين الحالي — بلا مساس؛ W2b بقيت PENDING بلا تغيير سلوك وW5 مغلقة بالسياسة.
 - **الحالة:** `ARCH012_RETIREMENT_COMPLETE — PR_READY` على PR #369 (مفتوح، base main، بانتظار مراجعة المالك) مع `NO_MERGE_PERFORMED / NO_CLEANUP_PERFORMED / NO_SECRETS_EXPOSED`. حد الرجوع: دمج الـPR نقطة اللاعودة؛ قبله إغلاقه دون دمج؛ بعده revert كتلة واحدة.
+
+## §211 — 2026-10-15 — ARCH-012: تحقق ما بعد دمج PR #369 على main
+
+- **Merge Manifest:** PR #369 (`refactoring/arch012-retire-legacy-draft-20261015`) من الرأس المصحح `2bd35baed261bdbb1b0ca4225e4e0885435c7a09` فوق base `f221a0127e634eafc1be01047247136fb1829835`؛ طريقة الدمج `Merge commit`؛ merge commit = `f0904260447647e0b4436a5bb203c7bcc4e7d0a6`.
+- **المراجعة والتصحيح:** المراجعة المستقلة وجدت ثلاث عبارات حيّة متقادمة فقط في تعليقات `Setup.tsx` و`FinancialEventEditor.tsx` وعقد 36؛ صُححت في الرأس `2bd35ba` دون تغيير سلوك أو Schema/Export/Import أو دلالات مالية/تاريخية أو UI بصري. الحراس المركزية و29 اختبارًا جذريًا و22 اختبار صفحة نجحت، ثم أعيد تشغيل CI وCloudflare على الرأس المصحح.
+- **فحوص الرأس المصحح قبل الدمج:** `checks` و`Cloudflare Pages` SUCCESS على الرأس `2bd35baed261bdbb1b0ca4225e4e0885435c7a09`.
+- **تحقق ما بعد الدمج على الرأس نفسه:** `checks` SUCCESS — https://github.com/Qays7753/Micro/actions/runs/38790665838/job/116614054343؛ `Cloudflare Pages` SUCCESS — https://github.com/Qays7753/Micro/runs/116614460597؛ تحقق GitHub API مباشر، و`main` بقي عند `f0904260447647e0b4436a5bb203c7bcc4e7d0a6`.
+- **Operations Control:** ARCH-012 وWS-221 انتقلا من `IN_REVIEW` إلى `MERGED_UNVERIFIED` ثم `VERIFIED`، مع `merge_sha` و`verified_on_main_sha` متطابقين مع `f0904260447647e0b4436a5bb203c7bcc4e7d0a6`; الحالة الحية صُححت لتزيل ادعاء PR المفتوح.
+- **المحفزات الباقية:** `ARCH-012-NF-001` و`ARCH-012-NF-002` بقيا مسجلين كموجة سلوكية مستقلة بقرار مالك؛ لم يُخفَ أي finding ولم يتغير W2b أو W5.
+- **النظافة وحد الرجوع:** فرع التنفيذ حُذف بعد الدمج؛ لا حذف بيانات أو مسح تخزين متصفح؛ حد الرجوع هو revert كتلة Merge commit `f0904260` إذا ظهر دليل فشل جديد.
+- **الحالة:** `ARCH012_RETIREMENT_VERIFIED_ON_MAIN — POST_MERGE_VERIFICATION: PASS — NO_SECRETS_EXPOSED`.

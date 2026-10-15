@@ -1,7 +1,7 @@
 {
  "id": "WS-221",
  "title": "ARCH-012 — التقاعد الشرطي لترحيل مسودات الصفحة التراثية (Outcome A: حذف مهايئ المفاتيح التراثية) على فرع وPR مستقلين",
- "status": "IN_REVIEW",
+ "status": "VERIFIED",
  "items": [
   "ARCH-012"
  ],
@@ -26,7 +26,7 @@
  "pr": 369,
  "started_at": "2026-10-15",
  "updated_at": "2026-10-15",
- "next_action": "قرار المالك على PR #369: الموجة مكتملة ومتسقة من الأساس f221a012 (الحذف + الحراس + السجلات + المراجعات الخمسة + البوابة الكاملة EXIT 0)؛ يتبع الدمج المستقل تحقق ما بعد الدمج كالمعتاد. المعلق بمحفزات مستقلة: ARCH-012-NF-001 وNF-002 (نافذتا دورة حياة المسودة القائمتان قبل الموجة).",
+ "next_action": "مغلق: PR #369 دُمج بMerge commit f0904260447647e0b4436a5bb203c7bcc4e7d0a6 وتحقق main على الرأس نفسه بفحصي checks وCloudflare Pages SUCCESS؛ تبقى ARCH-012-NF-001 وARCH-012-NF-002 محفزين مستقلين لموجة سلوكية لاحقة بقرار مالك.",
  "notes": [
   "Claim أُنشئ قبل أي تعديل كود وفق AGENTS.md §14؛ صفر Claims نشطة عند الإنشاء (WS-219 أُغلقت VERIFIED بنفس العملية بعد إثبات الدمج والتحقق حيًا — انظر سجلها).",
   "العقد الحاكم: R11-ARCH012-CONDITIONAL-RETIREMENT-W2B-PENDING-EXECUTION-PROMPT-2026-10-15.md على main عند f221a0127e634eafc1be01047247136fb1829835 — قرأه المنفذ كاملًا والتزم به.",
@@ -52,11 +52,26 @@
    "changed_at": "2026-10-15",
    "actor": "zai-executor",
    "reason": "كل التزامات الموجة على PR #369 (رأس الكود 6ea96b5f): التقاعد المتسق، الحراس والسلبية، إرساءات الأسس الموثقة، البوابة الكاملة EXIT 0، المراجعات الخمسة مع المُخلّص، والسجلات — PR_READY؛ الدمج قرار مالك."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-10-15",
+   "actor": "merge:pr-369",
+   "reason": "دُمج PR #369 عند f0904260447647e0b4436a5bb203c7bcc4e7d0a6 بعد نجاح فحوص الرأس المصحح؛ تحقق main مستقل مطلوب قبل إخلاء الملكية."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-10-15",
+   "actor": "verify:main",
+   "reason": "تحقق GitHub API المباشر من main عند f0904260447647e0b4436a5bb203c7bcc4e7d0a6: checks وCloudflare Pages SUCCESS على رأس الدمج نفسه؛ فرع التنفيذ حُذف بعد الدمج."
   }
  ],
  "migration_baseline": false,
  "evidence": [
   "docs/architecture/refactoring/r11-arch012-20261015/evidence/R11-ARCH012-LEGACY-DRAFT-CENSUS-AND-DECISION-2026-10-15.md",
-  "docs/architecture/refactoring/r11-arch012-20261015/R11-ARCH012-EXECUTION-REPORT-2026-10-15.md"
- ]
+  "docs/architecture/refactoring/r11-arch012-20261015/R11-ARCH012-EXECUTION-REPORT-2026-10-15.md",
+  "docs/operations/current-state-log.md"
+ ],
+ "merge_sha": "f0904260447647e0b4436a5bb203c7bcc4e7d0a6",
+ "verified_on_main_sha": "f0904260447647e0b4436a5bb203c7bcc4e7d0a6"
 }
