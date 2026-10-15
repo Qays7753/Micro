@@ -62,7 +62,7 @@
  *      ImportEqualsDeclaration أُضيف إلى المجمّع فلا إفلات بتغيير إملاء.
  *  R9) راتشة أزواج بيوت التطبيق الداخلية (R11 W1A-1 / D-07 — R10B-NF-005،
  *      قرار OD-10 الخيار A، 2026-10-13): جرد كامل مسجل بملف
- *      `scripts/application-house-edges-census.json` — 128 حافة فريدة
+ *      `scripts/application-house-edges-census.json` — 129 حافة فريدة
  *      (80 قيمة + 48 نوعًا؛ التصنيف مهيمن-النوع: أي موقع نوعي واحد يجعل
  *      الحافة نوعية) بين بيوت التطبيق (الأبواب وملفات الجذر مستثناة
  *      أهدافًا ومصادر — مشتركة بالتعريف). الإعفاءات الورقية المعتمدة:
@@ -842,7 +842,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض، ${stats.domainCrossArea} حافة عميقة عابرة لمناطق المجال، ${stats.uiToStorage} حافة واجهة→تخزين (resolution-based)، ${stats.uiToApplicationDeep} استيرادًا عميقًا واجهة→دواخل بيوت التطبيق (راتشة R6/STR-615)، ${stats.componentToPage} حافة مكوّن→صفحة (الصنف الممنوع — R8-F-019)؛ ${stats.uiToStorageType} حافة نوعية واجهة→تخزين (راتشة R8/D-01 على أساس 19 مفتاحًا)؛ ${stats.houseEdges} حافة أزواج بيوت تطبيق منها ${stats.houseEdgesValue} قيمة و${stats.houseEdgesType} نوعًا (راتشة R9/D-07 على جرد 128/80/48 مع إعفاءات OD-10 الورقية)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617 + الخطوة ٦/STR-615 + R8/R8-F-019)`,
+    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض، ${stats.domainCrossArea} حافة عميقة عابرة لمناطق المجال، ${stats.uiToStorage} حافة واجهة→تخزين (resolution-based)، ${stats.uiToApplicationDeep} استيرادًا عميقًا واجهة→دواخل بيوت التطبيق (راتشة R6/STR-615)، ${stats.componentToPage} حافة مكوّن→صفحة (الصنف الممنوع — R8-F-019)؛ ${stats.uiToStorageType} حافة نوعية واجهة→تخزين (راتشة R8/D-01 على أساس 19 مفتاحًا)؛ ${stats.houseEdges} حافة أزواج بيوت تطبيق منها ${stats.houseEdgesValue} قيمة و${stats.houseEdgesType} نوعًا (راتشة R9/D-07 على جرد 129/80/49 مع إعفاءات OD-10 الورقية)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617 + الخطوة ٦/STR-615 + R8/R8-F-019)`,
   );
 }
 

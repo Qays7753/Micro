@@ -447,8 +447,10 @@
     {
       "record": "micro.diagnostics.v1",
       "storage": "localStorage",
+      "boundary": "storage/diagnostics/browserDiagnosticStorage.ts (R11 ARCH-010 — المهايئ الإنتاجي المسجل الوحيد؛ الحارس scripts/check-diagnostics-storage.mjs)",
       "adapterTests": [
-        "apps/prototype-web/client/src/application/diagnostics/localDiagnosticsService.test.ts"
+        "apps/prototype-web/client/src/application/diagnostics/localDiagnosticsService.test.ts",
+        "apps/prototype-web/client/src/storage/diagnostics/browserDiagnosticStorage.test.ts"
       ],
       "notExportedReason": "التشخيص المحلي الخصوصي (G5 §35): حلقة محدودة ٢٥ إدخالًا/٤٨٠٠٠ بايت بحقول الثمانية المسوحة؛ لا يُصدَّر ولا يُرفع ولا يدخل أي ملف نقل — عزل مقصود لا نقص.",
       "docs": "current-state.md §35 (التشخيص الخصوصي)"

@@ -76,7 +76,7 @@ export function StartupGate({ children, onSettled }: { children: ReactNode; onSe
   }, [dataVersion, location, navigate, ownerProfile, profiles, state]);
   if (state === "loading")
     return (
-      <div className="micro-route-loading" role="status" aria-live="polite">
+      <div className="micro-route-loading" role="status">
         جارٍ فتح مشروعك المحلي…
       </div>
     );

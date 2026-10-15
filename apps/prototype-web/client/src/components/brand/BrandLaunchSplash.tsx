@@ -83,7 +83,7 @@ export function BrandLaunchSplash({ gateSettled, onRelease }: BrandLaunchSplashP
 
   const content = (
     <div className="micro-launch-splash" data-releasing={releasing || undefined} data-theme={theme} dir="rtl">
-      <p className="micro-launch-splash-status" role="status" aria-live="polite">
+      <p className="micro-launch-splash-status" role="status">
         جارٍ فتح مشروعك المحلي…
       </p>
       <div className="micro-launch-splash-mark" aria-hidden="true">

@@ -92,3 +92,16 @@ C = ceil_to_100(G + P + m) = ceil_to_100(155,291.4255) = 155,300
 **Z true-up executed (2026-10-04, Wave Z):** `GZIP_BYTE_LIMIT = ceil_to_100(final measured gzip + 200) = ceil_to_100(155,088 + 200) = 155,300` — identical to the adopted value (the finite-pool allowance P = 3.4255 fell inside the same 100-byte window), so the constant is unchanged while its basis is now the final measurement alone; the deferred STR-623 unification remains gated on the resulting 212-byte margin. Closure record: `docs/architecture/refactoring/A-TO-Z-CLOSURE-RECORD.md`.
 
 **Evidence class:** VERIFIED for G, all rates, export/LOC counts, consumer topology, and artifact byte-identities (re-measured live 2026-10-04); ESTIMATED for E_STR-623 (no landed micro-slice observation); the F2 split-alone figure is MEASURED at preserved-log precision (±5 B, state never committed).
+
+---
+
+## Addendum (2026-10-15 — R11 W2a / OD-COUNTS): the 22/31 count-field asymmetry recorded as evidence
+
+Owner decision OD-COUNTS (R11 Owner Decision Package, 2026-10-13 — `OWNER_APPROVED — TEST_SIDE_ONLY — 31_OF_31_REQUIRED`) directs that the export-count asymmetry be recorded **here as evidence**, not as a field in Export 30. Measured and pinned by the registry-driven test-side oracle (`application/transfers/transferCountsOracle.odcounts.test.ts`, R11 continuation Phase 2 on PR #368):
+
+- The canonical 31-family registry (`TRANSFER_ARRAY_FAMILY_ROLES` in `application/transfers/transferArrayFamilyRoles.ts`) matches, key-for-key, the array-valued families emitted by the live exporter (derived independently from the current-pair goldens and fresh exports over IndexedDB and Memory).
+- **22 of 31** families carry a count field in `LocalExportCounts` (the strict envelope counters, verified against the exporter's `counts` keys over both adapters); the envelope counter set equals the registry's `counted: true` set exactly.
+- **9 of 31** families are required-but-uncounted, pinned by name: `recurrences`, `catalogItems`, `measurementUnits`, `directConversions`, `catalogTemplates`, `actualTimeRecords`, `shortCashDeclarations`, `allocationPolicies`, `costEstimates` (the documented NF-013/OD-8 decision — unification awaits its own owner decision; this addendum changes nothing in Export 30, Goldens, MANIFEST, Legacy, or Schema 38).
+- The oracle proves, per family over both adapters, that `exportCountsOf(snapshot)[family]` equals the test-side count for every counted family, that no uncounted family has a count field, and that the full import→confirm→re-export cycle preserves these cardinalities exactly.
+
+**Evidence class:** VERIFIED (live tests on both adapters; registry and exporter corpus cross-derived). **No production change:** test-side only.

@@ -1,0 +1,71 @@
+{
+ "id": "ARCH-012",
+ "title": "متابعة منفصلة — ترحيل مهايئ مفاتيح المسودات التراثية إلى حد تخزين صريح (R11-ARCH010-NF-001 — مكتشف إحصاء ARCH-010)",
+ "type": "GOVERNANCE",
+ "status": "BACKLOG",
+ "priority": "P2",
+ "stage": "r11-continuation-followup",
+ "summary": "إحصاء web-storage الكامل الذي فرضه بند ARCH-010 (قبل أي كتابة) كشف موضعًا إنتاجيًا ثانيًا يلمس globalThis.localStorage خارج طبقة التخزين: browserLegacyFormDraftStorage() في application/drafts/legacyFormDraftMigration.ts:32 — مهايئ مفاتيح المسودات التراثية (micro.finance-draft.<type>.v1 وmicro.setup-draft.v1) الذي تستدعيه ثلاث صفحات مباشرة (Setup.tsx وFinancialEventEditor.tsx وSettings.tsx) ثم تمرره لدوال الترحيل. الكيان نفسه مسجل قانونيًا في persistent-entity-touchpoints.json (مفاتيح تراثية تُحذف من المصدر بعقد اكتب←تحقق←احذف) لكن المهايئ يقيم داخل طبقة التطبيق لا في حد تخزين صريح — صنف DEEPENS للمكتشف الأصلي R11-W1A-NF-001 (الذي أُغلق جذريًا للتشخيص في Phase 1). خارج نطاق موجة ARCH-010 بعقد المتابعة §7 (لا نقل ملفات غير مترابطة) ويحتاج قرار مالك مستقلًا: أين يقيم المهايئ (حد تخزين صريح بنمط storage/diagnostics/) وهل يبقى استدعاء الصفحات له مباشرًا أم ينتقل لخدمة التطبيق.",
+ "finding_classification": "NEW_FINDING",
+ "finding_state": "CONFIRMED",
+ "classification": "HARDENING",
+ "gate_classification": "EXTERNAL_REVIEW_REQUIRED",
+ "root_cause": "نمط تأريخي سابق لحدود التخزين الحالية: مهايئ المتصفح عرّف داخل وحدة ترحيل بطبقة التطبيق واستدعته الصفحات مباشرة عند الحاجة لقراءة المفاتيح التراثية مرة واحدة — القيد مسجل في حارس التشخيص الجديد scripts/check-diagnostics-storage.mjs كاستثناء تراثي موثق بمعرف هذا البند وشرط إزالته (قرار المالك بالترحيل).",
+ "owner": "Micro owner (Qays7753)",
+ "tests_required": [
+  "عند التنفيذ: اختبارات المهايئ في موقعه الجديد بنمط browserDiagnosticStorage.test.ts (الغائب/Hاضر/الفشل الآمن)",
+  "تحديث الاستثناء الموثق في حارس check-diagnostics-storage.mjs في نفس الـPR (إزالة التسجيل التراثي عند اكتمال الترحيل)",
+  "سلبية: أي وصول جديد آخر لمفاتيح تخزين المتصفح يظل مرفوضًا"
+ ],
+ "layers": [
+  "governance",
+  "application",
+  "storage-boundary",
+  "pages"
+ ],
+ "source": {
+  "report": "R11 ARCH-010 web-storage census (2026-10-15) — docs/architecture/refactoring/r11-arch010-20261015/evidence/R11-ARCH010-WEB-STORAGE-CENSUS-2026-10-15.md §2.1",
+  "discovered_at_sha": "f3fd8cc78352d23d6762f4c5828daffc11a3dcb4",
+  "evidence": [
+   "docs/architecture/refactoring/r11-arch010-20261015/R11-ARCH010-EXECUTION-REPORT-2026-10-15.md",
+   "docs/architecture/refactoring/r11-arch010-20261015/evidence/R11-ARCH010-WEB-STORAGE-CENSUS-2026-10-15.json"
+  ]
+ },
+ "acceptance": [
+  "قرار مالك مستقل بجدولة الترحيل (المحفز الدقيق: قرار المالك فقط — لا يبدأ تلقائيًا)",
+  "عند التنفيذ: المهايئ في حد تخزين صريح والصفحات لا تستدعي مهايئ متصفح مباشرة",
+  "إزالة الاستثناء التراثي من الحارس في نفس الـPR مع بقاء السلبيات خضراء"
+ ],
+ "areas": [
+  "apps/prototype-web/client/src/application/drafts",
+  "apps/prototype-web/client/src/pages",
+  "scripts"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
+  "docs/quality/security-boundaries.md"
+ ],
+ "evidence": [
+  "scripts/check-diagnostics-storage.mjs",
+  "docs/architecture/refactoring/r11-arch010-20261015/R11-ARCH010-EXECUTION-REPORT-2026-10-15.md"
+ ],
+ "dependencies": [
+  "ARCH-010"
+ ],
+ "related_items": [
+  "ARCH-010",
+  "ARCH-011"
+ ],
+ "updated_at": "2026-10-15",
+ "status_history": [
+  {
+   "status": "BACKLOG",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "إنشاء تتبع متين للإيجاد المكتشف بإحصاء ARCH-010 (R11-ARCH010-NF-001 — DEEPENS للمكتشف الأصلي): خارج نطاق الموجة بعقد المتابعة §7؛ المحفز الدقيق = قرار المالك المستقل بالترحيل؛ لا يبدأ تلقائيًا."
+  }
+ ],
+ "migration_baseline": false,
+ "next_action": "بانتظار قرار مالك مستقل بجدولة الترحيل؛ المحفز: قرار المالك فقط."
+}

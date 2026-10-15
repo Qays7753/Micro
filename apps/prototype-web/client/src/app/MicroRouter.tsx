@@ -250,7 +250,7 @@ export function MicroRouter() {
 
 function RouteLoadingState() {
   return (
-    <div className="micro-route-loading" role="status" aria-live="polite">
+    <div className="micro-route-loading" role="status">
       جارٍ فتح المسار…
     </div>
   );

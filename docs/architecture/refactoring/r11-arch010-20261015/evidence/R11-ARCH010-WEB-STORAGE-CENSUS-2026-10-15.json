@@ -1,0 +1,2004 @@
+{
+ "census": "R11-ARCH010 web-storage census (repository-wide) — pre-write requirement per ARCH-010 acceptance",
+ "root": "/home/z/my-project/work/micro/repo",
+ "generatedAt": "2026-10-14T23:41:18.181Z",
+ "patterns": [
+  "localStorage",
+  "sessionStorage",
+  "indexedDB",
+  "IDBDatabase",
+  "IDBFactory",
+  "IDBKeyRange",
+  "caches.open"
+ ],
+ "totalHits": 232,
+ "byArea": {
+  "docs": 76,
+  "test": 108,
+  "production-client": 18,
+  "other-source": 15,
+  "tooling": 15
+ },
+ "files": [
+  {
+   "file": "AGENTS.md",
+   "classes": [
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "ai-skills/micro-local-first-prototype/SKILL.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/Clean001.surfaceAudit.test.tsx",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/Settings.lockGate.dom.test.tsx",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/cash/cashCountMessages.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/diagnostics/localDiagnosticsService.ts",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.ts",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/finance/fullCycleReconciliation.exe013.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/components/ErrorBoundary.dom.test.tsx",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/group6Docs.test.ts",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/OwnerJourneysExe009.dom.test.tsx",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/CatalogCoreStorage.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.delivery.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.expenseBudget.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts",
+   "classes": [
+    "IDBDatabase",
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group4.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.open-count.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.receivedLoan.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.recurringExpense.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/OwnerEntitlementStorage.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.directInvocations.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.expenseBudget.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.group10.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.messageIdentity.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.receivedLoan.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.recurringExpense.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterDeliveryReversal.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/actualTimeCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/allocationPolicyCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/assetCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/catalogCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/costEstimateCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/directSaleCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/financialEventCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/inventoryMaterialCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/loanCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/ownerEntitlementCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/recurringExpenseCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/scheduleCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/shortCashDeclarationCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/supplierPurchaseCapability.contract.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/cashContinuityOpeningGuard.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+   "classes": [
+    "IDBDatabase",
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/indexedDbMigrations.ts",
+   "classes": [
+    "IDBDatabase"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/rollbackRehearsal.r9.test.ts",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/types.ts",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md",
+   "classes": [
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
+   "classes": [
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-S0-W1A-EXECUTION-REPORT-2026-10-13.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-s0-w1a-20261013/evidence/R11-W1A1-GUARDS-EVIDENCE-2026-10-14.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-w1b-20261014/R11-W1B-EXECUTION-REPORT-2026-10-14.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/agent-development-sop-v1.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/archive/o1-browser-qa-consolidated-2026-08-26.md",
+   "classes": [
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/archive/quality-history/VERIFICATION-LOG.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/archive/quality-history/agreement-protection-price-b3-acceptance-v1.md",
+   "classes": [
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/archive/quality-history/final-qa-pilot-acceptance-protocol-v1.md",
+   "classes": [
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/archive/quality-history/follow-up-local-date-acceptance-v1.md",
+   "classes": [
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/control/evidence/reconciliation-2026-09-26/03-zai-flash-walkthrough/Micro-Flash-Holistic-Usability-Review-AR.md",
+   "classes": [
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-REPORTS-2026-10-11/reviewer-2-domain-finance-storage-transfer.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-PREFLIGHT-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-09.md",
+   "classes": [
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-1-architecture-ownership.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-3-ui-boundaries.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r9-20261010/r9c-browser-evidence/adapter-entry.js",
+   "classes": [
+    "indexedDB"
+   ]
+  },
+  {
+   "file": "docs/operations/control/items/ARCH-010.json",
+   "classes": [
+    "indexedDB",
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/control/workstreams/review/WS-180.json",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "docs/operations/current-state-log.md",
+   "classes": [
+    "indexedDB",
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "docs/product-audit/financial-system-approved-repairs-source.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "docs/quality/g15-device-production-acceptance.md",
+   "classes": [
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "docs/quality/g16-pilot-kit-and-decision-gate.md",
+   "classes": [
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "docs/quality/persistent-entity-touchpoints.json",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "docs/quality/security-boundaries.md",
+   "classes": [
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "eslint.config.js",
+   "classes": [
+    "indexedDB",
+    "localStorage",
+    "sessionStorage"
+   ]
+  },
+  {
+   "file": "planning/micro-standard-ui-aux-integration-2026-09/IMPORT_BOUNDARIES.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "reports/agent-report/2026-09-16_00-25-financial-trust/report.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "reports/agent-report/2026-09-18_wave-4-3-professional-screens/report.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/execution-map.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "reports/agent-report/2026-09-23_fin-roadmap-wave-8-clean-001/report.md",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "scripts/check-application-readwrite.mjs",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "scripts/check-entity-touchpoints.mjs",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "scripts/check-entity-touchpoints.test.mjs",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "scripts/check-layer-boundaries.test.mjs",
+   "classes": [
+    "localStorage"
+   ]
+  },
+  {
+   "file": "scripts/file-size-ratchet-reanchors.json",
+   "classes": [
+    "localStorage"
+   ]
+  }
+ ],
+ "hits": [
+  {
+   "file": "AGENTS.md",
+   "line": 133,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "AGENTS.md",
+   "line": 133,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "ai-skills/micro-local-first-prototype/SKILL.md",
+   "line": 62,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "apps/prototype-web/client/src/Clean001.surfaceAudit.test.tsx",
+   "line": 5,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/Clean001.surfaceAudit.test.tsx",
+   "line": 21,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/Clean001.surfaceAudit.test.tsx",
+   "line": 28,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/Clean001.surfaceAudit.test.tsx",
+   "line": 45,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/Clean001.surfaceAudit.test.tsx",
+   "line": 50,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/Settings.lockGate.dom.test.tsx",
+   "line": 316,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/Settings.lockGate.dom.test.tsx",
+   "line": 470,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/Settings.lockGate.dom.test.tsx",
+   "line": 494,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/Settings.lockGate.dom.test.tsx",
+   "line": 524,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/cash/cashCountMessages.test.ts",
+   "line": 107,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/diagnostics/localDiagnosticsService.ts",
+   "line": 39,
+   "matchClass": "localStorage",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/diagnostics/localDiagnosticsService.ts",
+   "line": 175,
+   "matchClass": "localStorage",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.ts",
+   "line": 3,
+   "matchClass": "localStorage",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.ts",
+   "line": 21,
+   "matchClass": "localStorage",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.ts",
+   "line": 25,
+   "matchClass": "localStorage",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.ts",
+   "line": 32,
+   "matchClass": "localStorage",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/finance/fullCycleReconciliation.exe013.test.ts",
+   "line": 48,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.test.ts",
+   "line": 617,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.test.ts",
+   "line": 767,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/components/ErrorBoundary.dom.test.tsx",
+   "line": 21,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/components/ErrorBoundary.dom.test.tsx",
+   "line": 43,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/components/ErrorBoundary.dom.test.tsx",
+   "line": 147,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/components/ErrorBoundary.dom.test.tsx",
+   "line": 158,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/components/ErrorBoundary.dom.test.tsx",
+   "line": 185,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/group6Docs.test.ts",
+   "line": 53,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx",
+   "line": 124,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx",
+   "line": 269,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx",
+   "line": 336,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx",
+   "line": 371,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx",
+   "line": 378,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx",
+   "line": 390,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx",
+   "line": 397,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx",
+   "line": 427,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx",
+   "line": 436,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/OwnerJourneysExe009.dom.test.tsx",
+   "line": 163,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/OwnerJourneysExe009.dom.test.tsx",
+   "line": 224,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+   "line": 116,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+   "line": 120,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+   "line": 144,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+   "line": 158,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+   "line": 180,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+   "line": 186,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+   "line": 198,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+   "line": 246,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+   "line": 268,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+   "line": 291,
+   "matchClass": "localStorage",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/CatalogCoreStorage.test.ts",
+   "line": 12,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/CatalogCoreStorage.test.ts",
+   "line": 77,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.delivery.test.ts",
+   "line": 27,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.expenseBudget.test.ts",
+   "line": 20,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.expenseBudget.test.ts",
+   "line": 28,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.expenseBudget.test.ts",
+   "line": 125,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts",
+   "line": 25,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts",
+   "line": 39,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts",
+   "line": 100,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts",
+   "line": 180,
+   "matchClass": "IDBDatabase",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts",
+   "line": 181,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts",
+   "line": 187,
+   "matchClass": "IDBDatabase",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts",
+   "line": 188,
+   "matchClass": "IDBDatabase",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts",
+   "line": 189,
+   "matchClass": "IDBDatabase",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts",
+   "line": 190,
+   "matchClass": "IDBDatabase",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group4.test.ts",
+   "line": 25,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.open-count.test.ts",
+   "line": 8,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.open-count.test.ts",
+   "line": 20,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.open-count.test.ts",
+   "line": 44,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.open-count.test.ts",
+   "line": 55,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.open-count.test.ts",
+   "line": 59,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.receivedLoan.test.ts",
+   "line": 24,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.receivedLoan.test.ts",
+   "line": 32,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.receivedLoan.test.ts",
+   "line": 141,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.recurringExpense.test.ts",
+   "line": 15,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.recurringExpense.test.ts",
+   "line": 23,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.recurringExpense.test.ts",
+   "line": 124,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
+   "line": 21,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
+   "line": 30,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
+   "line": 61,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
+   "line": 90,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
+   "line": 127,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
+   "line": 289,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
+   "line": 312,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
+   "line": 337,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
+   "line": 364,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
+   "line": 753,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
+   "line": 775,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.test.ts",
+   "line": 780,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/OwnerEntitlementStorage.test.ts",
+   "line": 19,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.directInvocations.test.ts",
+   "line": 16,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.expenseBudget.test.ts",
+   "line": 16,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.group10.test.ts",
+   "line": 61,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.messageIdentity.test.ts",
+   "line": 45,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.receivedLoan.test.ts",
+   "line": 22,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.recurringExpense.test.ts",
+   "line": 29,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterConformance.test.ts",
+   "line": 21,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/adapterDeliveryReversal.test.ts",
+   "line": 24,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/actualTimeCapability.contract.test.ts",
+   "line": 24,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/allocationPolicyCapability.contract.test.ts",
+   "line": 45,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/assetCapability.contract.test.ts",
+   "line": 26,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/catalogCapability.contract.test.ts",
+   "line": 26,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/costEstimateCapability.contract.test.ts",
+   "line": 25,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/directSaleCapability.contract.test.ts",
+   "line": 25,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/expenseBudgetCapability.contract.test.ts",
+   "line": 42,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/financialEventCapability.contract.test.ts",
+   "line": 41,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/inventoryMaterialCapability.contract.test.ts",
+   "line": 28,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/loanCapability.contract.test.ts",
+   "line": 62,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/orderLifecycleCapability.contract.test.ts",
+   "line": 46,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/ownerEntitlementCapability.contract.test.ts",
+   "line": 51,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/recurringExpenseCapability.contract.test.ts",
+   "line": 49,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/scheduleCapability.contract.test.ts",
+   "line": 25,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/shortCashDeclarationCapability.contract.test.ts",
+   "line": 48,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/capabilities/supplierPurchaseCapability.contract.test.ts",
+   "line": 29,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/cashContinuityOpeningGuard.test.ts",
+   "line": 21,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+   "line": 16,
+   "matchClass": "IDBDatabase",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+   "line": 18,
+   "matchClass": "IDBDatabase",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+   "line": 29,
+   "matchClass": "IDBDatabase",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+   "line": 49,
+   "matchClass": "indexedDB",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+   "line": 54,
+   "matchClass": "IDBDatabase",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+   "line": 65,
+   "matchClass": "IDBDatabase",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+   "line": 67,
+   "matchClass": "indexedDB",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+   "line": 71,
+   "matchClass": "indexedDB",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+   "line": 112,
+   "matchClass": "IDBDatabase",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+   "line": 117,
+   "matchClass": "IDBDatabase",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/indexedDbMigrations.ts",
+   "line": 62,
+   "matchClass": "IDBDatabase",
+   "area": "production-client"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/rollbackRehearsal.r9.test.ts",
+   "line": 31,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/rollbackRehearsal.r9.test.ts",
+   "line": 478,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/rollbackRehearsal.r9.test.ts",
+   "line": 517,
+   "matchClass": "indexedDB",
+   "area": "test"
+  },
+  {
+   "file": "apps/prototype-web/client/src/storage/local/types.ts",
+   "line": 74,
+   "matchClass": "localStorage",
+   "area": "production-client"
+  },
+  {
+   "file": "docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md",
+   "line": 61,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md",
+   "line": 202,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md",
+   "line": 221,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md",
+   "line": 221,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md",
+   "line": 254,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md",
+   "line": 348,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md",
+   "line": 348,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/REFACTORING-ARCHITECTURE-AND-MIGRATION-PLAN.md",
+   "line": 395,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
+   "line": 180,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
+   "line": 185,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
+   "line": 186,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
+   "line": 200,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
+   "line": 208,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
+   "line": 208,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-S0-W1A-EXECUTION-REPORT-2026-10-13.md",
+   "line": 39,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-S0-W1A-EXECUTION-REPORT-2026-10-13.md",
+   "line": 125,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-s0-w1a-20261013/evidence/R11-W1A1-GUARDS-EVIDENCE-2026-10-14.md",
+   "line": 58,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/architecture/refactoring/r11-w1b-20261014/R11-W1B-EXECUTION-REPORT-2026-10-14.md",
+   "line": 171,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/agent-development-sop-v1.md",
+   "line": 26,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/archive/o1-browser-qa-consolidated-2026-08-26.md",
+   "line": 25,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/archive/o1-browser-qa-consolidated-2026-08-26.md",
+   "line": 25,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/archive/o1-browser-qa-consolidated-2026-08-26.md",
+   "line": 51,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/archive/o1-browser-qa-consolidated-2026-08-26.md",
+   "line": 51,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/archive/o1-browser-qa-consolidated-2026-08-26.md",
+   "line": 67,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/archive/o1-browser-qa-consolidated-2026-08-26.md",
+   "line": 67,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/archive/quality-history/VERIFICATION-LOG.md",
+   "line": 41,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/archive/quality-history/agreement-protection-price-b3-acceptance-v1.md",
+   "line": 36,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/archive/quality-history/agreement-protection-price-b3-acceptance-v1.md",
+   "line": 36,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/archive/quality-history/final-qa-pilot-acceptance-protocol-v1.md",
+   "line": 52,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/archive/quality-history/final-qa-pilot-acceptance-protocol-v1.md",
+   "line": 52,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/archive/quality-history/follow-up-local-date-acceptance-v1.md",
+   "line": 39,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/archive/quality-history/follow-up-local-date-acceptance-v1.md",
+   "line": 39,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/evidence/reconciliation-2026-09-26/03-zai-flash-walkthrough/Micro-Flash-Holistic-Usability-Review-AR.md",
+   "line": 26,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/evidence/reconciliation-2026-09-26/03-zai-flash-walkthrough/Micro-Flash-Holistic-Usability-Review-AR.md",
+   "line": 26,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r10-20261011/R10-B-W0-REVIEWER-REPORTS-2026-10-11/reviewer-2-domain-finance-storage-transfer.md",
+   "line": 240,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-PREFLIGHT-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-09.md",
+   "line": 95,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r6-20261009/R6-PREFLIGHT-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-2026-10-09.md",
+   "line": 95,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-1-architecture-ownership.md",
+   "line": 91,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-1-architecture-ownership.md",
+   "line": 109,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r9-20261010/preflight-review-package/reviewer-3-ui-boundaries.md",
+   "line": 147,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r9-20261010/r9c-browser-evidence/adapter-entry.js",
+   "line": 1107,
+   "matchClass": "indexedDB",
+   "area": "other-source"
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r9-20261010/r9c-browser-evidence/adapter-entry.js",
+   "line": 1121,
+   "matchClass": "indexedDB",
+   "area": "other-source"
+  },
+  {
+   "file": "docs/operations/control/evidence/structural-remediation-r9-20261010/r9c-browser-evidence/adapter-entry.js",
+   "line": 1125,
+   "matchClass": "indexedDB",
+   "area": "other-source"
+  },
+  {
+   "file": "docs/operations/control/items/ARCH-010.json",
+   "line": 8,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/items/ARCH-010.json",
+   "line": 13,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/items/ARCH-010.json",
+   "line": 16,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/items/ARCH-010.json",
+   "line": 16,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/items/ARCH-010.json",
+   "line": 16,
+   "matchClass": "indexedDB",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/control/workstreams/review/WS-180.json",
+   "line": 25,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/current-state-log.md",
+   "line": 502,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/current-state-log.md",
+   "line": 517,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/current-state-log.md",
+   "line": 517,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/current-state-log.md",
+   "line": 522,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/current-state-log.md",
+   "line": 522,
+   "matchClass": "indexedDB",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/current-state-log.md",
+   "line": 527,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/current-state-log.md",
+   "line": 1263,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/operations/current-state-log.md",
+   "line": 2361,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/product-audit/financial-system-approved-repairs-source.md",
+   "line": 149,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/quality/g15-device-production-acceptance.md",
+   "line": 121,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/quality/g15-device-production-acceptance.md",
+   "line": 121,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/quality/g15-device-production-acceptance.md",
+   "line": 129,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/quality/g15-device-production-acceptance.md",
+   "line": 130,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/quality/g16-pilot-kit-and-decision-gate.md",
+   "line": 139,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/quality/g16-pilot-kit-and-decision-gate.md",
+   "line": 139,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/quality/persistent-entity-touchpoints.json",
+   "line": 449,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/quality/persistent-entity-touchpoints.json",
+   "line": 458,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/quality/persistent-entity-touchpoints.json",
+   "line": 465,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/quality/security-boundaries.md",
+   "line": 10,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/quality/security-boundaries.md",
+   "line": 10,
+   "matchClass": "sessionStorage",
+   "area": "docs"
+  },
+  {
+   "file": "docs/quality/security-boundaries.md",
+   "line": 16,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "eslint.config.js",
+   "line": 57,
+   "matchClass": "indexedDB",
+   "area": "other-source"
+  },
+  {
+   "file": "eslint.config.js",
+   "line": 58,
+   "matchClass": "localStorage",
+   "area": "other-source"
+  },
+  {
+   "file": "eslint.config.js",
+   "line": 61,
+   "matchClass": "indexedDB",
+   "area": "other-source"
+  },
+  {
+   "file": "eslint.config.js",
+   "line": 62,
+   "matchClass": "localStorage",
+   "area": "other-source"
+  },
+  {
+   "file": "eslint.config.js",
+   "line": 63,
+   "matchClass": "sessionStorage",
+   "area": "other-source"
+  },
+  {
+   "file": "eslint.config.js",
+   "line": 419,
+   "matchClass": "localStorage",
+   "area": "other-source"
+  },
+  {
+   "file": "eslint.config.js",
+   "line": 419,
+   "matchClass": "sessionStorage",
+   "area": "other-source"
+  },
+  {
+   "file": "eslint.config.js",
+   "line": 424,
+   "matchClass": "localStorage",
+   "area": "other-source"
+  },
+  {
+   "file": "eslint.config.js",
+   "line": 424,
+   "matchClass": "sessionStorage",
+   "area": "other-source"
+  },
+  {
+   "file": "eslint.config.js",
+   "line": 430,
+   "matchClass": "localStorage",
+   "area": "other-source"
+  },
+  {
+   "file": "eslint.config.js",
+   "line": 430,
+   "matchClass": "sessionStorage",
+   "area": "other-source"
+  },
+  {
+   "file": "eslint.config.js",
+   "line": 438,
+   "matchClass": "localStorage",
+   "area": "other-source"
+  },
+  {
+   "file": "planning/micro-standard-ui-aux-integration-2026-09/IMPORT_BOUNDARIES.md",
+   "line": 22,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "reports/agent-report/2026-09-16_00-25-financial-trust/report.md",
+   "line": 28,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "reports/agent-report/2026-09-18_wave-4-3-professional-screens/report.md",
+   "line": 167,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "reports/agent-report/2026-09-22_financial-roadmap-phase-0-baseline/execution-map.md",
+   "line": 24,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "reports/agent-report/2026-09-23_fin-roadmap-wave-8-clean-001/report.md",
+   "line": 9,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "reports/agent-report/2026-09-23_fin-roadmap-wave-8-clean-001/report.md",
+   "line": 19,
+   "matchClass": "localStorage",
+   "area": "docs"
+  },
+  {
+   "file": "scripts/check-application-readwrite.mjs",
+   "line": 32,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/check-application-readwrite.mjs",
+   "line": 34,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/check-entity-touchpoints.mjs",
+   "line": 220,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/check-entity-touchpoints.mjs",
+   "line": 221,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/check-entity-touchpoints.test.mjs",
+   "line": 9,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/check-entity-touchpoints.test.mjs",
+   "line": 135,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/check-entity-touchpoints.test.mjs",
+   "line": 266,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/check-entity-touchpoints.test.mjs",
+   "line": 276,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/check-layer-boundaries.test.mjs",
+   "line": 74,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/check-layer-boundaries.test.mjs",
+   "line": 99,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/check-layer-boundaries.test.mjs",
+   "line": 102,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/check-layer-boundaries.test.mjs",
+   "line": 107,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/check-layer-boundaries.test.mjs",
+   "line": 110,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/check-layer-boundaries.test.mjs",
+   "line": 117,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  },
+  {
+   "file": "scripts/file-size-ratchet-reanchors.json",
+   "line": 1405,
+   "matchClass": "localStorage",
+   "area": "tooling"
+  }
+ ],
+ "outputSha256": "427673ef5a21cab36999984bd49cd5f1bcd6ce648a599c59cbdb9b8cc3777972",
+ "baseSha": "f3fd8cc78352d23d6762f4c5828daffc11a3dcb4",
+ "date": "2026-10-15",
+ "reviewer": "ZAI executor (RV1-RV5 read-only reviews at program end)",
+ "method": {
+  "tool": "arch010_web_storage_census.mjs (node text-scan over tracked tree)",
+  "nodeVersion": "v24.21.0",
+  "command": "node /home/z/my-project/scripts/r11-continue/arch010_web_storage_census.mjs . <out.json> (script persisted alongside run logs outside the repo; logic documented here)",
+  "scope": "all .ts/.tsx/.mts/.cts/.js/.jsx/.mjs/.cjs/.md/.json/.yaml/.yml/.html under repo root excluding node_modules/.git/dist/coverage/.vite",
+  "patterns": [
+   "localStorage",
+   "sessionStorage",
+   "indexedDB",
+   "IDBDatabase",
+   "IDBFactory",
+   "IDBKeyRange",
+   "caches.open"
+  ],
+  "classification": "production-client / test / tooling / worker-or-public-js / other-source / docs / public-asset",
+  "note": "hits carry file+line+matchClass+area; the full-line text was retained in the run output outside the repo to avoid duplicating source content; membership lists are complete"
+ },
+ "provenance": {
+  "runOutputSha256": "58e866362564080e58e1464b19efe89c52f88c44a8b7fc58a95a817c012c4ecc",
+  "runOutputNote": "الناتج الخام للتشغيل (بأسطر النص الكاملة للمطابقات) محفوظ في سجلات التشغيل خارج الشجرة؛ نسخة الشجعة هذه تسقط نص السطر وتحتفظ بالعضوية الكاملة (ملف/سطر/فئة/منطقة) — لكلا النسختين بصمة مستقلة مسجلة هنا.",
+  "repoCopySha256": "427673ef5a21cab36999984bd49cd5f1bcd6ce648a599c59cbdb9b8cc3777972"
+ }
+}
