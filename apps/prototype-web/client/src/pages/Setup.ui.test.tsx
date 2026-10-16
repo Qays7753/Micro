@@ -407,7 +407,8 @@ describe("ARCH-012-NF-001 — Setup launch lifecycle is race-free (unified follo
     expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
     /* القيم نفسها تُعرض مرة أخرى — لا نسخ ولا فقد بين الإعادات. */
     const kept = await store.getFormDraft("setup:new");
-    expect(kept.ok && kept.value).not.toBeNull();
+    if (!kept.ok) throw new Error("read failed");
+    expect(kept.value).not.toBeNull();
     expect((kept.value?.values as { activityName?: string }).activityName).toBe("مشغل النور");
     second.unmount();
   });

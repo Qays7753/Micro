@@ -168,7 +168,7 @@ describe("W2b — Current pair (38/30) unknown top-level data keys are rejected 
       if (!after.ok) throw new Error(after.message);
       expect(after.value).toEqual(before.value);
       /* ولا توجد قيمة مُحضّرة يمكن تأكيدها أصلًا — البوابة الوحيدة مغلقة. */
-      expect(prepared.value).toBeUndefined();
+      expect("value" in prepared).toBe(false);
     },
   );
 });
@@ -205,7 +205,7 @@ describe("W2b — every exporter-produced key stays accepted (no false rejection
       const exportedAgain = await transfers.createExport();
       if (!exportedAgain.ok) throw new Error(exportedAgain.message);
       const roundTrip = transfers.prepareImport(JSON.stringify(exportedAgain.value));
-      expect(roundTrip.ok).toBe(true);
+      if (!roundTrip.ok) throw new Error(roundTrip.message);
       const confirmed = await transfers.confirmImport(roundTrip.value);
       expect(confirmed.ok).toBe(true);
       const finalExport = await transfers.createExport();

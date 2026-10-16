@@ -193,7 +193,7 @@ describe("OD-KEYS — Current-pair behavior after W2b activation: an unknown top
       const prepared = transfers.prepareImport(JSON.stringify(tampered));
       expect(prepared.ok).toBe(false);
       if (prepared.ok) throw new Error("must be rejected");
-      expect(prepared.value).toBeUndefined();
+      expect("value" in prepared).toBe(false);
 
       const after = await store.readSnapshot();
       if (!after.ok) throw new Error(after.message);

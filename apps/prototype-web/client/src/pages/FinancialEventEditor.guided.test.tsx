@@ -523,7 +523,8 @@ describe("ARCH-012-NF-002 — editor restore/autosave lifecycle is race-free (un
     expect(saveSpy).not.toHaveBeenCalled();
     /* السجل باقٍ بقيمه الأصلية — لم يُمس ولم يُعاد كتابته. */
     const kept = await store.getFormDraft("finance_event:operating_expense_cash");
-    expect(kept.ok && kept.value).not.toBeNull();
+    if (!kept.ok) throw new Error("read failed");
+    expect(kept.value).not.toBeNull();
     expect((kept.value?.values as { note?: string }).note).toBe("مسودة المحرر");
   });
 
@@ -548,9 +549,10 @@ describe("ARCH-012-NF-002 — editor restore/autosave lifecycle is race-free (un
     /* الإغلاق المبكر: لم يصدر أي مسح والسجل الوحيد باقٍ في مكانه. */
     await new Promise(resolve => setTimeout(resolve, 20));
     expect(deleteSpy).not.toHaveBeenCalled();
-    const kept = await store.getFormDraft("finance_event:operating_expense_cash");
-    expect(kept.ok && kept.value).not.toBeNull();
-    expect((kept.value?.values as { note?: string }).note).toBe("مسودة المحرر");
+    const keptEarly = await store.getFormDraft("finance_event:operating_expense_cash");
+    if (!keptEarly.ok) throw new Error("read failed");
+    expect(keptEarly.value).not.toBeNull();
+    expect((keptEarly.value?.values as { note?: string }).note).toBe("مسودة المحرر");
   });
 
   it("a real edit after restore resumes autosave through the canonical service", async () => {
@@ -569,7 +571,8 @@ describe("ARCH-012-NF-002 — editor restore/autosave lifecycle is race-free (un
     await user.type(screen.getByLabelText("المبلغ بالدينار الأردني"), "45");
     await waitFor(async () => {
       const saved = await store.getFormDraft("finance_event:operating_expense_cash");
-      expect(saved.ok && saved.value).not.toBeNull();
+      if (!saved.ok) throw new Error("read failed");
+      expect(saved.value).not.toBeNull();
       expect((saved.value?.values as { amountMinor?: number }).amountMinor).not.toBe(3000);
     });
     expect(saveSpy).toHaveBeenCalled();
@@ -592,9 +595,10 @@ describe("ARCH-012-NF-002 — editor restore/autosave lifecycle is race-free (un
     expect(await screen.findByText(/تعذر حفظ المسودة محليًا/)).toBeTruthy();
     await new Promise(resolve => setTimeout(resolve, 20));
     expect(deleteSpy).not.toHaveBeenCalled();
-    const kept = await store.getFormDraft("finance_event:operating_expense_cash");
-    expect(kept.ok && kept.value).not.toBeNull();
-    expect((kept.value?.values as { note?: string }).note).toBe("مسودة المحرر");
+    const keptFailed = await store.getFormDraft("finance_event:operating_expense_cash");
+    if (!keptFailed.ok) throw new Error("read failed");
+    expect(keptFailed.value).not.toBeNull();
+    expect((keptFailed.value?.values as { note?: string }).note).toBe("مسودة المحرر");
   });
 
   it("reopen after restore offers the same draft again (reload stability)", async () => {
@@ -610,7 +614,8 @@ describe("ARCH-012-NF-002 — editor restore/autosave lifecycle is race-free (un
     expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
     expect(record).not.toHaveBeenCalled();
     const stillOne = await store.getFormDraft("finance_event:operating_expense_cash");
-    expect(stillOne.ok && stillOne.value).not.toBeNull();
+    if (!stillOne.ok) throw new Error("read failed");
+    expect(stillOne.value).not.toBeNull();
     expect((stillOne.value?.values as { note?: string }).note).toBe("مسودة المحرر");
   });
 
