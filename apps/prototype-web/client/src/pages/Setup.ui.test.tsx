@@ -219,11 +219,11 @@ describe("Setup progressive draft persistence (group 1 scope F, group 5 unified 
     expect(screen.queryByText(/عندك مسودة إعداد من آخر مرة/)).toBeNull();
     expect((screen.getByLabelText(/اسم المشروع/) as HTMLInputElement).value).toBe("");
     /* القيم غير القابلة للإكراه تُرفض بلا عرض ولا انفجار ولا تحويل صامت —
-     * لو كان الإكراه ناجحًا لظهر العرض (قراءة الإقلاع تسبق مسح النموذج
-     * الفارغ في النافذة نفسها). ملاحظة سلوك قائمة (ARCH-012-NF-001،
-     * مسجلة في التقرير خارج نطاق الموجة): كتلة المسح عند الإقلاع تمسح
-     * سجل المسودة للنموذج الفارغ حتى مع عرض الاستعادة — سلوك main الحالي
-     * قبل ARCH-012 وبعده. */
+     * لو كان الإكراه ناجحًا لظهر العرض (قراءة الإقلاع تسبق أي كتابة في
+     * الأثر الموحّد).
+     * R11 ARCH-012-NF-001 (2026-10-16 — إصلاح موجة المتابعة الموحدة):
+     * السجل غير القابل للإكراه يبقى في حده خاملًا — لا مسح عند الفتح
+     * (لا نعرف أنه بلا إدخال حقيقي فلا نحذف ما لا نقرأ). */
   });
 
   it("the unknown opening stays unknown — never saved as a zero wallet", async () => {
@@ -314,5 +314,188 @@ describe("Setup progressive draft persistence (group 1 scope F, group 5 unified 
       const cleared = await store.getFormDraft("setup:new");
       expect(cleared.ok && cleared.value).toBeNull();
     });
+  });
+});
+
+/* R11 ARCH-012-NF-001 (موجة المتابعة الموحدة 2026-10-16): دورة حياة إقلاع
+ * Setup الخالية من السباق — أثر الحفظ/المسح كان يعمل عند الفتح بنموذج فارغ
+ * قبل استقرار قراءة المسودة فيمسح السجل المحفوظ حتى والعرض قائم؛ إغلاق
+ * التبويب قبل قرار الاستعادة كان يفقد المسودة نهائيًا. الإصلاح الجذري:
+ * بوابة استقرار صريحة — لا كتابة ولا مسح قبل استقرار قراءة الفتح، ولا مسح
+ * والحالة مجهولة (فشل قراءة)، والمسح مرة واحدة عند الانتقال الحقيقي←الفارغ
+ * فقط. الحد الموحّد وسلوك القرار الصريح محفوظان كما هما. */
+describe("ARCH-012-NF-001 — Setup launch lifecycle is race-free (unified follow-up 2026-10-16)", () => {
+  afterEach(() => {
+    cleanup();
+    globalThis.localStorage?.clear();
+  });
+
+  /** بذر مسودة إعداد حقيقية عبر الحد الموحّد على مخزن حقيقي. */
+  async function seedSetupDraft(store: PrototypeLocalStore) {
+    await new FormDraftService(store).save("setup", null, {
+      step: 3,
+      activityName: "مشغل النور",
+      walletName: "الدرج",
+      openingChoice: "unknown",
+      openingMinor: 0,
+      savedAt: "2026-09-01T10:00:00.000Z",
+    });
+  }
+
+  /** لف المخزن بجواسيس تمرير حقيقية — عدّ الكتابات (حفظ/مسح) بلا تغيير سلوك. */
+  function spyStore(store: PrototypeLocalStore) {
+    const saveSpy = vi.fn(store.saveFormDraft.bind(store));
+    const deleteSpy = vi.fn(store.deleteFormDraft.bind(store));
+    store.saveFormDraft = saveSpy as never;
+    store.deleteFormDraft = deleteSpy as never;
+    return { saveSpy, deleteSpy };
+  }
+
+  it("closing the page while the restore offer is pending keeps the stored draft (no clear on mount)", async () => {
+    const { services, store } = draftServices();
+    await seedSetupDraft(store);
+    mockedUsePrototypeServices.mockReturnValue(services);
+
+    const { unmount } = render(<Setup />);
+    /* العرض قائم ولم يتخذ المالك أي قرار بعد. */
+    expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
+    unmount();
+
+    /* الإغلاق قبل القرار لا يجوز أن يفقد المسودة — السجل باقٍ بقيمه. */
+    const kept = await store.getFormDraft("setup:new");
+    expect(kept.ok).toBe(true);
+    if (!kept.ok) throw new Error("read failed");
+    expect(kept.value).not.toBeNull();
+    expect((kept.value?.values as { activityName?: string }).activityName).toBe("مشغل النور");
+  });
+
+  it("zero writes while the restore decision is pending — no save, no discard, then unmount stays silent", async () => {
+    const { services, store } = draftServices();
+    await seedSetupDraft(store);
+    const { saveSpy, deleteSpy } = spyStore(store);
+    mockedUsePrototypeServices.mockReturnValue(services);
+
+    const { unmount } = render(<Setup />);
+    expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
+    /* استقرار كامل للمهام الدقيقة ثم تأكيد: لا كتابة واحدة قبل القرار. */
+    await waitFor(async () => {
+      const still = await store.getFormDraft("setup:new");
+      expect(still.ok && still.value).not.toBeNull();
+    });
+    expect(saveSpy).not.toHaveBeenCalled();
+    expect(deleteSpy).not.toHaveBeenCalled();
+
+    unmount();
+    await waitFor(async () => {
+      const after = await store.getFormDraft("setup:new");
+      expect(after.ok && after.value).not.toBeNull();
+    });
+    expect(saveSpy).not.toHaveBeenCalled();
+    expect(deleteSpy).not.toHaveBeenCalled();
+  });
+
+  it("repeated mount/unmount cycles keep re-offering the same intact draft", async () => {
+    const { services, store } = draftServices();
+    await seedSetupDraft(store);
+    mockedUsePrototypeServices.mockReturnValue(services);
+
+    const first = render(<Setup />);
+    expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
+    first.unmount();
+
+    const second = render(<Setup />);
+    expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
+    /* القيم نفسها تُعرض مرة أخرى — لا نسخ ولا فقد بين الإعادات. */
+    const kept = await store.getFormDraft("setup:new");
+    expect(kept.ok && kept.value).not.toBeNull();
+    expect((kept.value?.values as { activityName?: string }).activityName).toBe("مشغل النور");
+    second.unmount();
+  });
+
+  it("a failed opening read never clears the stored draft (unknown state is not blindly wiped)", async () => {
+    const { services, store } = draftServices();
+    await seedSetupDraft(store);
+    const { deleteSpy } = spyStore(store);
+    /* القراءة تفشل وحدها — الحالة مجهولة فلا مسح أعمى للنموذج الفارغ. */
+    const originalGet = store.getFormDraft.bind(store);
+    store.getFormDraft = vi.fn(async () => ({ ok: false, message: "read failed" })) as never;
+    mockedUsePrototypeServices.mockReturnValue(services);
+
+    render(<Setup />);
+    expect(await screen.findByText("ما اسم مشروعك؟")).toBeTruthy();
+    expect(screen.queryByText(/عندك مسودة إعداد من آخر مرة/)).toBeNull();
+    /* استقرار المهام الدقيقة: لا مسح أبدًا عند فشل القراءة. */
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(deleteSpy).not.toHaveBeenCalled();
+    /* القراءة الأصلية (بلا حقن الفشل) تثبت أن السجل بقى في مكانه. */
+    const kept = await originalGet("setup:new");
+    expect(kept.ok && kept.value).not.toBeNull();
+  });
+
+  it("unmounting before the opening read settles stays silent and keeps the draft", async () => {
+    const { services, store } = draftServices();
+    await seedSetupDraft(store);
+    const { saveSpy, deleteSpy } = spyStore(store);
+    /* قراءة معلّقة لا تستقر إلا بقرار الاختبار — مقاطعة الإقلاع نفسها. */
+    let releaseRead!: (value: unknown) => void;
+    const gate = new Promise<unknown>(resolve => {
+      releaseRead = resolve;
+    });
+    const originalGet = store.getFormDraft.bind(store);
+    store.getFormDraft = (async (id: string) => {
+      if (id === "setup:new") await gate;
+      return originalGet(id);
+    }) as never;
+    mockedUsePrototypeServices.mockReturnValue(services);
+
+    const { unmount } = render(<Setup />);
+    /* الإغلاق قبل استقرار القراءة: لا حالة بعد الفكرك ولا كتابة أبدًا. */
+    unmount();
+    releaseRead({ ok: true, value: null });
+    await waitFor(async () => {
+      const kept = await originalGet("setup:new");
+      expect(kept.ok && kept.value).not.toBeNull();
+    });
+    expect(saveSpy).not.toHaveBeenCalled();
+    expect(deleteSpy).not.toHaveBeenCalled();
+  });
+
+  it("new typing while the offer is pending is the basis — the offer hides and the draft follows the user's values", async () => {
+    const { services, store } = draftServices();
+    await seedSetupDraft(store);
+    mockedUsePrototypeServices.mockReturnValue(services);
+
+    render(<Setup />);
+    expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(/اسم المشروع/), { target: { value: "مشغلي الجديد" } });
+
+    await waitFor(async () => {
+      const saved = await store.getFormDraft("setup:new");
+      if (!saved.ok) throw new Error("read failed");
+      expect(saved.value).not.toBeNull();
+      expect((saved.value?.values as { activityName?: string }).activityName).toBe("مشغلي الجديد");
+    });
+    expect(screen.queryByText(/عندك مسودة إعداد من آخر مرة/)).toBeNull();
+  });
+
+  it("clearing typed input back to empty discards exactly once, and a fresh session offers nothing", async () => {
+    const { services, store } = draftServices();
+    const { deleteSpy } = spyStore(store);
+    mockedUsePrototypeServices.mockReturnValue(services);
+
+    render(<Setup />);
+    const name = screen.getByLabelText(/اسم المشروع/) as HTMLInputElement;
+    fireEvent.change(name, { target: { value: "تجربة عابرة" } });
+    await waitFor(async () => {
+      const saved = await store.getFormDraft("setup:new");
+      expect(saved.ok && saved.value).not.toBeNull();
+    });
+    /* حذف الإدخال يعيد النموذج إلى الفراغ — المسح مرة واحدة بالضبط. */
+    fireEvent.change(name, { target: { value: "" } });
+    await waitFor(async () => {
+      const cleared = await store.getFormDraft("setup:new");
+      expect(cleared.ok && cleared.value).toBeNull();
+    });
+    expect(deleteSpy).toHaveBeenCalledTimes(1);
   });
 });
