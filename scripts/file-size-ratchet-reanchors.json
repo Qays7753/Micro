@@ -1788,6 +1788,44 @@
     "trigger": "owner execution prompt on main f221a0127e",
     "ocRef": "WS-221"
    }
+  },
+  {
+   "id": "R11FU-W2B-GATE",
+   "date": "2026-10-16",
+   "path": "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+   "from": {
+    "nbLoc": 306,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 344,
+    "band": "NORMAL"
+   },
+   "reason": "R11 unified follow-up W2b activation: prepareImport gains the current-pair-only unknown top-level data-key gate (registry import + guarded check placed strictly after the counts gate per the W2a seven-fault precedence proof) with its mandatory dated contract comments. The growth is the owner-approved behavior flip itself (contract section 3.2 / Phase 3), not responsibility drift; the derivation and payload live in the separate transferTopLevelDataKeys.ts module.",
+   "authorization": {
+    "ownerReview": "Unified follow-up PR review (WS-222) — this entry is part of the same PR diff",
+    "trigger": "Unified follow-up execution contract section 3.2 / Phase 3: the W2b gate ships in a dedicated behavior commit with the append-only payload addendum in the same PR",
+    "ocRef": "WS-222"
+   }
+  },
+  {
+   "id": "R11FU-NF001-LIFECYCLE",
+   "date": "2026-10-16",
+   "path": "apps/prototype-web/client/src/pages/Setup.tsx",
+   "from": {
+    "nbLoc": 432,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 454,
+    "band": "WATCH"
+   },
+   "reason": "R11 unified follow-up ARCH-012-NF-001 root fix: the launch lifecycle gains the explicit settling gate (no draft write of any kind before the opening read settles), the unknown-state clear-safety ref, the clear-exactly-once real-to-empty transition guard, and their mandatory dated comments. The growth is the owner-approved race fix itself (contract section 3.1 / Phase 1); band unchanged (WATCH).",
+   "authorization": {
+    "ownerReview": "Unified follow-up PR review (WS-222) — this entry is part of the same PR diff",
+    "trigger": "Unified follow-up execution contract section 3.1 / Phase 1: the NF-001 root fix with focused failing-first tests in the same PR",
+    "ocRef": "WS-222"
+   }
   }
  ]
 }
