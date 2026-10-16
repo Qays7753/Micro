@@ -1391,3 +1391,14 @@ Full verification gate 17/17 EXIT 0 on implementation head `469aba03` (root 919/
 - Synthesizer: no unresolved blockers; the single real finding fixed in-wave with a coherent commit and the affected reviewer re-run; dispositions are FIX_NOW (delivered) / PRESERVE / FUTURE_GATED+OWNER_REVIEW (documented with triggers) / RECORDS_ONLY.
 - Final records: canonical report completed (reviewer records §10, disposition table §7, ARCH-012-NF-003 in §13, final readiness §14); this entry.
 - Status: R11_UNIFIED_FOLLOWUP_COMPLETE — PR_READY on PR #372 (open, awaiting owner review); NO_MERGE / NO_CLEANUP / NO_SECRETS_EXPOSED.
+
+
+## Entry 118 — 2026-10-16 — R11 unified follow-up post-merge reconciliation
+
+- **النطاق:** مصالحة سجلات فقط من `main` بعد دمج PR #372؛ لا إعادة تنفيذ للكود ولا تغيير سلوكي.
+- **Merge Manifest:** PR #372 (`remediation/r11-nf001-nf002-w2b-d12-20261016`) دُمج بMerge commit `3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2` فوق base `cb3b9aaae16b2e6336a6b831d2c1de8cf3603acf`; رأس المصدر `3e8b8e8c12dbc94606044c95c7c004f366b2cbed`.
+- **التحقق:** main يطابق Merge commit؛ GitHub API أثبت `checks` و`Cloudflare Pages` SUCCESS على الرأس نفسه (checks run `38926973322`, job `117060897508`).
+- **Operations Control:** ARCH-012 وARCH-013 وDOC-006 وWS-222 صارت `VERIFIED` مع `merge_sha` و`verified_on_main_sha` مساويين لرأس الدمج. ARCH-012 يوثق إغلاق NF-001/002/003، ARCH-013 إغلاق W2b الحالي، وDOC-006 إغلاق D-12/F-040. لا Claim نشط.
+- **السجلات:** صُححت `current-state.md` ضمن حد الحجم؛ أُلحقت §213 في `current-state-log.md`; ستعاد العوارض المولدة من JSON المصدر فقط.
+- **الحدود:** لا مساس بالمال أو التاريخ أو Schema/Export/Import أو UI/New Design؛ حد الرجوع revert كتلة PR #372؛ فرع التنفيذ المدموج حُذف بعد التحقق، دون حذف فروع Prompt التوثيقية المفتوحة.
+- **الحالة:** `R11_UNIFIED_FOLLOWUP_VERIFIED_ON_MAIN — POST_MERGE_VERIFICATION: PASS — NO_SECRETS_EXPOSED`.
