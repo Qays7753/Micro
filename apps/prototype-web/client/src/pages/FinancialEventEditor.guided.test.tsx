@@ -19,11 +19,12 @@ vi.mock("@/app/PrototypeServicesContext", () => ({
 }));
 
 const wouterMocks = vi.hoisted(() => ({ navigate: vi.fn() }));
+const routeParams = vi.hoisted(() => ({ type: "operating_expense_cash" }));
 
 vi.mock("wouter", () => ({
   useSearch: () => "",
   useLocation: () => ["/finance/new/operating_expense_cash", wouterMocks.navigate],
-  useParams: () => ({ type: "operating_expense_cash" }),
+  useParams: () => ({ type: routeParams.type }),
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
@@ -120,6 +121,7 @@ function renderEditor(
 describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
   beforeEach(() => {
     wouterMocks.navigate.mockClear();
+    routeParams.type = "operating_expense_cash";
     window.localStorage.clear();
   });
   afterEach(() => cleanup());
@@ -474,6 +476,7 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
 describe("ARCH-012-NF-002 — editor restore/autosave lifecycle is race-free (unified follow-up 2026-10-16)", () => {
   beforeEach(() => {
     wouterMocks.navigate.mockClear();
+    routeParams.type = "operating_expense_cash";
     window.localStorage.clear();
   });
   afterEach(() => cleanup());
@@ -629,5 +632,82 @@ describe("ARCH-012-NF-002 — editor restore/autosave lifecycle is race-free (un
     await new Promise(resolve => setTimeout(resolve, 20));
     expect(saveSpy).not.toHaveBeenCalled();
     expect(deleteSpy).not.toHaveBeenCalled();
+  });
+
+  it("RV1 — switching the event type on a mounted editor never discards the new type's unread draft (stale-dirty scoping)", async () => {
+    /* جولة RV1 (المراجع ١ — دورة المسودات): المكوّن يبقى مركّبًا عند تغيّر
+     * معامل المسار (رجوع/تقدم المتصفح)، وwasDirtyRef قد يحمل وسخ النوع
+     * السابق — كان فرع المسح يمسح سجل النوع الجديد قبل استقرار قراءته
+     * (نفس صنف NF-001 التدميري). الإصلاح: المسح محصور بالنوع الذي توسّخ
+     * فعليًا فقط. */
+    const store = createFormDraftHarness().store;
+    /* مسودة محفوظة لنوع آخر (استثمار المالك) لها إدخال حقيقي. */
+    await new FormDraftService(store).save("finance_event", "owner_investment_cash", {
+      amountMinor: 5000,
+      sharedTotalAmountMinor: 0,
+      sharedPercentage: 0,
+      date: "2026-09-02",
+      note: "مسودة استثمار",
+      counterparty: "",
+      relationship: "project",
+      behavior: "fixed",
+      purpose: "period",
+      knowledge: "known",
+      sharedMode: "fixed",
+      sharedNote: "",
+      categoryLabel: "",
+      relatedEventId: "",
+      walletId: "",
+    });
+    const { saveSpy, deleteSpy } = spyWrites(store);
+    mockedUsePrototypeServices.mockReturnValue({
+      projectFinance: {
+        record: vi.fn(),
+        listSettleablePayables: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        listEvents: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        readPosition: vi.fn().mockResolvedValue({ ok: true, value: { amanahHeldMinor: 0 } }),
+        distributeUnallocated: vi.fn().mockResolvedValue({ ok: true, value: {} }),
+      },
+      cashContinuity: { overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }) },
+      recurringExpenses: {
+        findUnhandledOccurrenceForDate: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
+      dataVersion: 0,
+      notifyDataChanged: vi.fn(),
+      formDrafts: new FormDraftService(store),
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    /* ١) الفتح على المصروف وتوسيخه — wasDirtyRef صار true للنوع A. */
+    const view = render(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <FinancialEventEditor />
+      </UnsavedChangesProvider>,
+    );
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("المبلغ بالدينار الأردني"), "7");
+    await waitFor(async () => {
+      const savedA = await store.getFormDraft("finance_event:operating_expense_cash");
+      expect(savedA.ok && savedA.value).not.toBeNull();
+    });
+
+    /* ٢) تبديل النوع على المكوّن نفسه (رجوع/تقدم مسار) — لا مسح لسجل النوع
+     * الجديد غير المقروء، وعرض استرجاعه يظهر بقيمه المحفوظة. */
+    routeParams.type = "owner_investment_cash";
+    view.rerender(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <FinancialEventEditor />
+      </UnsavedChangesProvider>,
+    );
+    expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
+    expect((screen.getByLabelText(/المبلغ بالدينار/) as HTMLInputElement).value).toContain("");
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(saveSpy.mock.calls.every(call => call[0]?.id !== "finance_event:owner_investment_cash")).toBe(
+      true,
+    );
+    expect(deleteSpy.mock.calls.every(call => call[0] !== "finance_event:owner_investment_cash")).toBe(true);
+    const keptB = await store.getFormDraft("finance_event:owner_investment_cash");
+    if (!keptB.ok) throw new Error("read failed");
+    expect(keptB.value).not.toBeNull();
+    expect((keptB.value?.values as { note?: string }).note).toBe("مسودة استثمار");
   });
 });
