@@ -4,15 +4,15 @@
  "type": "GOVERNANCE",
  "status": "IN_REVIEW",
  "priority": "P1",
- "stage": "r11-continuation-phase2-3",
- "summary": "تنفيذ W2a كاملة وفق عقد المتابعة §8 (اختباريًا فقط — لا تغيير إنتاجي): مصفوفة الجسد الكاملة موثقة (الزوج الحالي 38/30، 24 زوجًا موروثًا، 27 ذهبيًا + MANIFEST بايتًا بايت، مخرجات المصدّر فوق المهايئين، العهدات، القيم المعطوبة، الأعطال المتعددة وأسبقية الرفض الأول بسبع رسائل حرفية)؛ عدّاد OD-COUNTS الجانبي-الاختبار المدفوع بالسجل يغطي العائلات الـ31 فوق IndexedDB وMemory مع meta-test يثبت سجل العائلات == مخرجات المصدّر والمعدود 22 == مفاتيح عدادات الملف، واللاتماثل 22/31 مسجل كدليل في ملحق ADR-017 المؤرخ؛ توصيف OD-KEYS: المجموعة المسموحة الـ35 مشتقة من السجل + مفاتيح المصدّر غير العائلية، جسد المصدّر نظيف، السلوك الحالي موصوف بالضبط (مفتاح data مجهول حالٍ مقبول اليوم ويُسقط عند الاستبدال بلا حفظ دوري؛ الإرث unchanged؛ مفتاح counts مجهول مرفوض أصلًا). بوابة W2b (تفعيل الرفض للزوج الحالي وحده) معلقة على اعتماد حمولة الخطأ الدقيقة (رمز + نص عربي) — المسودة في حزمة المالك ليست اعتمادًا نهائيًا.",
+ "stage": "r11-unified-followup-20261016",
+ "summary": "W2a (مدموجة — توصيف فقط بلا تغيير إنتاجي): مصفوفة الجسد الكاملة (الزوج الحالي 38/30، 24 زوجًا موروثًا، 27 ذهبيًا + MANIFEST بايتًا بايت، مخرجات المصدّر فوق المهايئين، العهدات، القيم المعطوبة، أسبقية الرفض الأول السباعية الحرفية)؛ عدّاد OD-COUNTS الجانبي-الاختبار 31/31 مع meta-test السجل==المصدّر واللاتماثل 22/31 مسجلًا في ملحق ADR-017؛ توصيف OD-KEYS بالمجموعة المسموحة الـ35 المشتقة. W2b/W2-2 (منفذة في موجة المتابعة الموحدة 2026-10-16): فُعِّل رفض مفاتيح data العلوية المجهولة للزوج الحالي وحده بالحمولة المعتمدة حرفيًا (validation_error عبر الثابت الكنوني القائم + النص العربي الدقيق في transferTopLevelDataKeys.ts) — الموضع بعد بوابة العدادات حصرًا (الأسبقية السباعية ثابتة)، الإرث الـ24 كما هو، الذهبيات وMANIFEST ومخرج المصدّر بلا مس، الرفض صفر كتابات فوق المهايئين، ولا صدى لأسماء المفاتيح. الأدلة: ملحق اعتماد الحمولة append-only + إضافة مؤرخة في تقرير W2a + ملف اختبارات w2b.rejection المستقل؛ أطقم transfers 336/336 خضراء.",
  "finding_classification": "NOT_APPLICABLE",
  "finding_state": "NOT_APPLICABLE",
  "classification": "GOVERNANCE",
  "gate_classification": "EXTERNAL_REVIEW_REQUIRED",
  "root_cause": "مكتشفا D-09 (R10B-NF-011 مفاتيح علوية مجهولة) وD-11 (R10B-NF-013 تغطية العدادات) وثّقا فجوة أدلة قبل أي تغيير سلوك؛ قرارات المالك OD-KEYS (W2-1 توصيف ثم W2-2 تفعيل محكوم) وOD-COUNTS (اختباري فقط 31/31) تفرض هذه المرحلة الدلالية قبل أي رفض صارم.",
  "owner": "Micro owner (Qays7753)",
- "owner_decision": "OD-KEYS = OWNER_APPROVED — OPTION_A — W2_GATED (الرفض للزوج الحالي وحده بعد التوصيف وكامل الشروط وبعد حمولة معتمدة)؛ OD-COUNTS = OWNER_APPROVED — TEST_SIDE_ONLY — 31_OF_31_REQUIRED؛ المفتاح التالي لW2-2: EXACT_PAYLOAD_REQUIRED (رمز الخطأ + النص العربي).",
+ "owner_decision": "OD-KEYS = OWNER_APPROVED — OPTION_A — W2_GATED (الرفض للزوج الحالي وحده بعد التوصيف وكامل الشروط وبعد حمولة معتمدة)؛ OD-COUNTS = OWNER_APPROVED — TEST_SIDE_ONLY — 31_OF_31_REQUIRED. اعتماد الحمولة النهائي (2026-10-16): عقد المتابعة الموحدة §3.2 فك بوابة EXACT_PAYLOAD_REQUIRED — الرمز = validation_error عبر الثابت الكنوني القائم VALIDATION_ERROR (لا عائلة أكواد موازية)؛ النص العربي الحرفي = «تعذّر استيراد الملف لأنه يحتوي على أقسام بيانات غير معروفة لهذا الإصدار. بقيت بيانات هذا الجهاز دون تغيير.» — مسجل append-only في evidence/W2B-OWNER-PAYLOAD-ADDENDUM-2026-10-16.md.",
  "tests_required": [
   "العدّاد الجانبي-الاختبار 31/31 فوق المهايئين مع meta-test السجل==المصدّر",
   "توصيف مفاتيح data العلوية: الاشتقاق + نظافة الجسد + السلوك الحالي + الإرث + counts + أسبقية الرفض السباعية",
@@ -45,11 +45,16 @@
  "contracts": [
   "AGENTS.md",
   "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
-  "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-OWNER-DECISION-PACKAGE-2026-10-13.md"
+  "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-OWNER-DECISION-PACKAGE-2026-10-13.md",
+  "https://github.com/Qays7753/Micro/blob/b0aa8d8b9acbb98d6c262bc76851405936db0112/docs/architecture/refactoring/r11-unified-followup-20261016/R11-UNIFIED-FOLLOWUP-EXECUTION-PROMPT-2026-10-16.md"
  ],
  "evidence": [
   "apps/prototype-web/client/src/application/transfers/transferCountsOracle.odcounts.test.ts",
   "apps/prototype-web/client/src/application/transfers/transferTopLevelKeys.odkeys.characterization.test.ts",
+  "apps/prototype-web/client/src/application/transfers/transferTopLevelKeys.w2b.rejection.test.ts",
+  "apps/prototype-web/client/src/application/transfers/transferTopLevelDataKeys.ts",
+  "docs/architecture/refactoring/r11-w2a-20261015/R11-W2A-CORPUS-MATRIX-AND-EVIDENCE-2026-10-15.md",
+  "docs/architecture/refactoring/r11-unified-followup-20261016/evidence/W2B-OWNER-PAYLOAD-ADDENDUM-2026-10-16.md",
   "docs/architecture/ADRs/ADR-017-bundle-ceiling-derivation-and-finite-pool.md"
  ],
  "dependencies": [],
@@ -57,7 +62,7 @@
   "ARCH-010",
   "ARCH-011"
  ],
- "updated_at": "2026-10-15",
+ "updated_at": "2026-10-16",
  "status_history": [
   {
    "status": "CLAIMED",
@@ -76,8 +81,26 @@
    "changed_at": "2026-10-15",
    "actor": "zai-executor",
    "reason": "المرحلة مكتملة: أطقم transfers 326/326 خضراء (23 اختبارًا جديدًا)؛ لا تغيير إنتاجي؛ بوابة حمولة W2b مسجلة بانتظار اعتماد المالك (رمز + نص)."
+  },
+  {
+   "status": "REOPENED",
+   "changed_at": "2026-10-16",
+   "actor": "zai-executor",
+   "reason": "بوابة حمولة W2b (EXACT_PAYLOAD_REQUIRED) فُكّت باعتماد المالك النهائي في عقد المتابعة الموحدة §3.2 (الرمز + النص العربي الحرفي) — إعادة فتح موثقة لإتمام W2-2؛ توصيف W2a المدموج محفوظ كما هو."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-10-16",
+   "actor": "zai-executor",
+   "reason": "التنفيذ تحت Claim ‏WS-222 من الأساس المتحقق cb3b9aaa — اختبارات الرفض أولًا ثم التفعيل في التزام سلوك مستقل."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-10-16",
+   "actor": "zai-executor",
+   "reason": "W2b مفعّلة بالحمولة المعتمدة حرفيًا على PR #372 (اختبارات فاشلة-أولًا؛ الأسبقية السباعية ثابتة؛ الإرث والذهبيات بلا مس) — بانتظار مراجعة المالك ودمجه ثم التحقق على main."
   }
  ],
  "migration_baseline": false,
- "next_action": "اعتماد المالك لحمولة خطأ W2b الدقيقة (رمز + نص) يفتح W2-2 في commit سلوك مستقل؛ خلاف ذلك تبقى W2b معلقة والموجات المستقلة تستمر."
+ "next_action": "السلوك مكتمل على فرع المتابعة الموحدة (Claim WS-222): ينتقل البند إلى IN_REVIEW مع PR الموجة؛ بعد الدمج يُحقق على main ثم VERIFIED كالمعتاد. لا عمل W2b متبقٍ."
 }

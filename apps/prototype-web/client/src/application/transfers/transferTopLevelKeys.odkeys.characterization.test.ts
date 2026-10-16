@@ -8,19 +8,21 @@
  *     قائمة يدوية عامة.
  *  2) كامل جسد مصدّر الزوج الحالي (ذهبيا 30/38 + تصدير حي فوق المهايئين)
  *     لا ينتج أي مفتاح خارج المجموعة المسموحة — شرط W2-2 الأول.
- *  3) توصيف السلوك الحالي بالضبط: مفتاح data علوي مجهول في ملف حالٍ
- *     يُقبل اليوم (يظهر في معاينة الاستيراد) لكنه يُسقط عند الاستبدال
- *     (replaceSnapshot لا يكتبه) ولا يُحفظ عبر جولة إعادة التصدير — لا
- *     حفظ دوري للمفاتيح المجهولة في السلوك القائم.
+ *  3) سلوك ما بعد التفعيل (W2b — 2026-10-16 مؤرخ): مفتاح data علوي مجهول
+ *     في ملف الزوج الحالي **مرفوض الآن** بالحمولة المعتمدة (validation_error
+ *     + النص العربي الحرفي) والرفض صفر كتابات — كان مقبولًا يُسقط عند
+ *     الاستبدال؛ السلوك المفصل الكامل في ملف w2b.rejection المستقل.
  *  4) الزوج الموروث (8/17) بمفتاح مجهول: مقبول كما هو — الإرث لا يتغير.
  *  5) مفتاح مجهول داخل كتلة counts (الملف الحالي): مرفوض أصلًا (MED-002).
  *  6) مصفوفة أسبقية الرفض المتعددة الأعطال: مع مفتاح مجهول حاضر، كل عطل
  *     قائم يظل يُرفض برسالته الأصلية وبترتيبه الأول نفسه — المفتاح المجهول
  *     لا يغير أسبقية الرفض ولا يتقدم عليها (شرط W2-2 الثالث).
  *
- * قرار W2-2 (الرفض الصارم للزوج الحالي وحده) لا يُفعَّل هنا — ينتظر
- * اعتماد حمولة الخطأ الدقيقة (رمز الخطأ والنص العربي) من المالك: البوابة
- * مسجلة OWNER_PAYLOAD_GATE_REQUIRED في تقرير الموجة.
+ * W2-2/W2b مُفعَّلة الآن (موجة المتابعة الموحدة 2026-10-16): المفتاح
+ * المجهول للزوج الحالي مرفوض بالحمولة المعتمدة حرفيًا — المصدر الكنوني
+ * transferTopLevelDataKeys.ts والسلوك المفصل في
+ * transferTopLevelKeys.w2b.rejection.test.ts (كانت البوابة مسجلة
+ * OWNER_PAYLOAD_GATE_REQUIRED قبل الاعتماد).
  */
 import "fake-indexeddb/auto";
 import { readFileSync } from "node:fs";
@@ -150,8 +152,8 @@ describe("OD-KEYS — allowed-set derivation from the registry plus exporter-emi
   });
 });
 
-describe("OD-KEYS — current behavior characterization: an unknown top-level data key on the Current pair", () => {
-  it("is ACCEPTED today (prepareImport ok) and survives into the prepared preview data", async () => {
+describe("OD-KEYS — Current-pair behavior after W2b activation: an unknown top-level data key is REJECTED (2026-10-16)", () => {
+  it("is rejected with the exact owner payload (code + verbatim Arabic message)", async () => {
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     const exported = await transfers.createExport();
     if (!exported.ok) throw new Error(exported.message);
@@ -160,20 +162,28 @@ describe("OD-KEYS — current behavior characterization: an unknown top-level da
     const tampered = restamp(base);
 
     const prepared = transfers.prepareImport(JSON.stringify(tampered));
-    if (!prepared.ok) throw new Error(prepared.message);
-    expect(ROGUE_KEY in (prepared.value.file.data as unknown as Record<string, unknown>)).toBe(true);
+    expect(prepared.ok).toBe(false);
+    if (prepared.ok) throw new Error("must be rejected");
+    expect(prepared.code).toBe("validation_error");
+    expect(prepared.message).toBe(
+      "تعذّر استيراد الملف لأنه يحتوي على أقسام بيانات غير معروفة لهذا الإصدار. بقيت بيانات هذا الجهاز دون تغيير.",
+    );
+    /* لا صدى لاسم المفتاح في الرسالة أبدًا. */
+    expect(prepared.message).not.toContain(ROGUE_KEY);
   });
 
   it.each([
     ["memory", () => new MemoryLocalStore()],
     ["indexeddb", () => new IndexedDbLocalStore()],
   ] as const)(
-    "over %s: confirmImport drops the unknown key at persistence — no round-trip preservation (current pinned behavior)",
+    "over %s: rejection performs zero writes — no preview value exists and the device stays unchanged",
     async (_name, makeStore) => {
       const store = makeStore();
       const transfers = new LocalTransferService(store, NOW);
       const seeded = await store.replaceSnapshot(supplementGolden.data as LocalStoreSnapshot);
       expect(seeded.ok).toBe(true);
+      const before = await store.readSnapshot();
+      if (!before.ok) throw new Error(before.message);
       const exported = await transfers.createExport();
       if (!exported.ok) throw new Error(exported.message);
       const base = clone(exported.value as unknown as ExportFileShape);
@@ -181,19 +191,15 @@ describe("OD-KEYS — current behavior characterization: an unknown top-level da
       const tampered = restamp(base);
 
       const prepared = transfers.prepareImport(JSON.stringify(tampered));
-      if (!prepared.ok) throw new Error(prepared.message);
-      const confirmed = await transfers.confirmImport(prepared.value);
-      if (!confirmed.ok) throw new Error(confirmed.message);
+      expect(prepared.ok).toBe(false);
+      if (prepared.ok) throw new Error("must be rejected");
+      expect("value" in prepared).toBe(false);
 
-      const read = await store.readSnapshot();
-      if (!read.ok) throw new Error(read.message);
-      expect(ROGUE_KEY in (read.value as unknown as Record<string, unknown>)).toBe(false);
-
-      const reExported = await transfers.createExport();
-      if (!reExported.ok) throw new Error(reExported.message);
-      expect(ROGUE_KEY in (reExported.value.data as unknown as Record<string, unknown>)).toBe(false);
-      /* البيانات المعروفة نجت كاملة — الإسقاط لا يمس العائلات القائمة */
-      expect((reExported.value.data as unknown as Record<string, unknown>).financialEvents).toHaveLength(
+      const after = await store.readSnapshot();
+      if (!after.ok) throw new Error(after.message);
+      expect(after.value).toEqual(before.value);
+      /* البيانات المعروفة لم تُمس — لا استبدال ولا إسقاط: الرفض قبل أي أثر. */
+      expect((after.value as unknown as Record<string, unknown[]>).financialEvents).toHaveLength(
         (supplementGolden.data as unknown as Record<string, unknown[]>).financialEvents.length,
       );
     },

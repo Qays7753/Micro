@@ -19,11 +19,12 @@ vi.mock("@/app/PrototypeServicesContext", () => ({
 }));
 
 const wouterMocks = vi.hoisted(() => ({ navigate: vi.fn() }));
+const routeParams = vi.hoisted(() => ({ type: "operating_expense_cash" }));
 
 vi.mock("wouter", () => ({
   useSearch: () => "",
   useLocation: () => ["/finance/new/operating_expense_cash", wouterMocks.navigate],
-  useParams: () => ({ type: "operating_expense_cash" }),
+  useParams: () => ({ type: routeParams.type }),
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
@@ -120,6 +121,7 @@ function renderEditor(
 describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
   beforeEach(() => {
     wouterMocks.navigate.mockClear();
+    routeParams.type = "operating_expense_cash";
     window.localStorage.clear();
   });
   afterEach(() => cleanup());
@@ -275,10 +277,11 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     expect(record).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
     expect((screen.getByLabelText("المبلغ بالدينار الأردني") as HTMLInputElement).value).toContain("30");
-    /* دورة الاسترجاع (سلوك قائم): التطبيق يمسح السجل ثم يعيد حفظه
-     * بفعل الوسخ — ننتظر استقرار إعادة الحفظ قبل إعادة الفتح حتى لا
-     * تسبق القراءة الكتابة في نافذة المهام الدقيقة (كانت مهام الترحيل
-     * التراثي تؤخرها قبل ARCH-012 — انظر ARCH-012-NF-002 في التقرير). */
+    /* دورة الاسترجاع بعد إصلاح ARCH-012-NF-002 (موجة المتابعة الموحدة
+     * 2026-10-16): الاسترجاع ترطيب لا تعديل مستخدم — لا مسح للسجل ولا
+     * إعادة حفظ بفعل الوسخ (كان التطبيق يمسح السجل ثم يعيد حفظه في
+     * نافذة مهام دقيقة يفقد فيها الإغلاق المبكر المسودة — عولج جذريًا).
+     * السجل باقٍ بقيمه الأصلية فالانتظار الاستقراري أمان فقط. */
     await waitFor(async () => {
       const resaved = await store.getFormDraft("finance_event:operating_expense_cash");
       expect(resaved.ok && resaved.value).not.toBeNull();
@@ -460,5 +463,251 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     if (!stillOne.ok) throw new Error("read failed");
     expect((stillOne.value?.values as { note?: string }).note).toBe("مسودة حالية");
     expect(window.localStorage.getItem("micro.finance-draft.operating_expense_cash.v1")).not.toBeNull();
+  });
+});
+
+/* R11 ARCH-012-NF-002 (موجة المتابعة الموحدة 2026-10-16): دورة استرجاع المحرر
+ * الخالية من السباق — الاسترجاع كان يمسح السجل من التخزين ثم يعيد حفظه بفعل
+ * أثر الوسخ (القيم المسترجعة تخالف اللقطة الابتدائية) في نافذة مهام دقيقة
+ * يفقد فيها الإغلاق المبكر أو فشل إعادة الحفظ المسودةَ الوحيدة. الإصلاح
+ * الجذري: الاسترجاع ترطيب لا تعديل مستخدم — لا مسح ولا إعادة حفظ؛ الحفظ
+ * التلقائي يستأنف فقط بعد تعديل حقيقي من المستخدم. سلوك القرار الصريح
+ * والنصوص والحسابات المالية وحدود التخزين كما هي. */
+describe("ARCH-012-NF-002 — editor restore/autosave lifecycle is race-free (unified follow-up 2026-10-16)", () => {
+  beforeEach(() => {
+    wouterMocks.navigate.mockClear();
+    routeParams.type = "operating_expense_cash";
+    window.localStorage.clear();
+  });
+  afterEach(() => cleanup());
+
+  /** بذر مسودة محرر حقيقية عبر الحد الموحّد على مخزن حقيقي. */
+  async function seedEditorDraft(store: MemoryLocalStore) {
+    await new FormDraftService(store).save("finance_event", "operating_expense_cash", {
+      amountMinor: 3000,
+      sharedTotalAmountMinor: 0,
+      sharedPercentage: 0,
+      date: "2026-09-01",
+      note: "مسودة المحرر",
+      counterparty: "مورد",
+      relationship: "project",
+      behavior: "fixed",
+      purpose: "period",
+      knowledge: "known",
+      sharedMode: "fixed",
+      sharedNote: "",
+      categoryLabel: "تغليف",
+      relatedEventId: "",
+      walletId: "",
+    });
+  }
+
+  /** لف المخزن بجواسيس تمرير حقيقية — عدّ الكتابات (حفظ/مسح) بلا تغيير سلوك. */
+  function spyWrites(store: MemoryLocalStore) {
+    const saveSpy = vi.fn(store.saveFormDraft.bind(store));
+    const deleteSpy = vi.fn(store.deleteFormDraft.bind(store));
+    store.saveFormDraft = saveSpy as never;
+    store.deleteFormDraft = deleteSpy as never;
+    return { saveSpy, deleteSpy };
+  }
+
+  it("restore performs zero writes — no clear-then-resave cycle (the record already holds the values)", async () => {
+    const store = createFormDraftHarness().store;
+    await seedEditorDraft(store);
+    const { saveSpy, deleteSpy } = spyWrites(store);
+    renderEditor({ store });
+
+    expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
+    /* القيم ظُهرت في النموذج — الاسترجاع ترطيب لا تعديل مستخدم. */
+    expect((screen.getByLabelText("المبلغ بالدينار الأردني") as HTMLInputElement).value).toContain("30");
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(deleteSpy).not.toHaveBeenCalled();
+    expect(saveSpy).not.toHaveBeenCalled();
+    /* السجل باقٍ بقيمه الأصلية — لم يُمس ولم يُعاد كتابته. */
+    const kept = await store.getFormDraft("finance_event:operating_expense_cash");
+    if (!kept.ok) throw new Error("read failed");
+    expect(kept.value).not.toBeNull();
+    expect((kept.value?.values as { note?: string }).note).toBe("مسودة المحرر");
+  });
+
+  it("early close right after restore keeps the only draft copy (a blocked autosave cannot strand a deleted record)", async () => {
+    const store = createFormDraftHarness().store;
+    await seedEditorDraft(store);
+    const { deleteSpy } = spyWrites(store);
+    /* حفظ معلق لا يستقر — يحاكي إغلاق التبويب داخل نافذة المهام الدقيقة:
+     * لو صدر مسح لَفُقد السجل قبل أن تكتمل أي إعادة حفظ. */
+    store.saveFormDraft = vi.fn(
+      () =>
+        new Promise(resolve => {
+          /* لا استقرار أبدًا داخل هذا الاختبار — الإغلاق يسبق أي كتابة. */
+          void resolve;
+        }),
+    ) as never;
+    renderEditor({ store });
+
+    expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
+    cleanup();
+    /* الإغلاق المبكر: لم يصدر أي مسح والسجل الوحيد باقٍ في مكانه. */
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(deleteSpy).not.toHaveBeenCalled();
+    const keptEarly = await store.getFormDraft("finance_event:operating_expense_cash");
+    if (!keptEarly.ok) throw new Error("read failed");
+    expect(keptEarly.value).not.toBeNull();
+    expect((keptEarly.value?.values as { note?: string }).note).toBe("مسودة المحرر");
+  });
+
+  it("a real edit after restore resumes autosave through the canonical service", async () => {
+    const store = createFormDraftHarness().store;
+    await seedEditorDraft(store);
+    const { saveSpy, deleteSpy } = spyWrites(store);
+    renderEditor({ store });
+
+    expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
+    expect(saveSpy).not.toHaveBeenCalled();
+    /* تعديل حقيقي واحد فقط يستأنف الحفظ بقيم المستخدم الجديدة (تغيير
+     * المبلغ فعليًا لا إلحاق رقم بعد المنزلتين العشريتين). */
+    const user = userEvent.setup();
+    await user.clear(screen.getByLabelText("المبلغ بالدينار الأردني"));
+    await user.type(screen.getByLabelText("المبلغ بالدينار الأردني"), "45");
+    await waitFor(async () => {
+      const saved = await store.getFormDraft("finance_event:operating_expense_cash");
+      if (!saved.ok) throw new Error("read failed");
+      expect(saved.value).not.toBeNull();
+      expect((saved.value?.values as { amountMinor?: number }).amountMinor).not.toBe(3000);
+    });
+    expect(saveSpy).toHaveBeenCalled();
+    expect(deleteSpy).not.toHaveBeenCalled();
+  });
+
+  it("a failed autosave after restore preserves the draft and announces the failure honestly", async () => {
+    const store = createFormDraftHarness().store;
+    await seedEditorDraft(store);
+    const { deleteSpy } = spyWrites(store);
+    store.saveFormDraft = vi.fn(async () => ({ ok: false, message: "quota" })) as never;
+    renderEditor({ store });
+
+    expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
+    const user = userEvent.setup();
+    await user.clear(screen.getByLabelText("المبلغ بالدينار الأردني"));
+    await user.type(screen.getByLabelText("المبلغ بالدينار الأردني"), "99");
+    /* فشل الحفظ يُعلن والقيم أمام المستخدم — والمسودة الأصلية باقية. */
+    expect(await screen.findByText(/تعذر حفظ المسودة محليًا/)).toBeTruthy();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(deleteSpy).not.toHaveBeenCalled();
+    const keptFailed = await store.getFormDraft("finance_event:operating_expense_cash");
+    if (!keptFailed.ok) throw new Error("read failed");
+    expect(keptFailed.value).not.toBeNull();
+    expect((keptFailed.value?.values as { note?: string }).note).toBe("مسودة المحرر");
+  });
+
+  it("reopen after restore offers the same draft again (reload stability)", async () => {
+    const store = createFormDraftHarness().store;
+    await seedEditorDraft(store);
+    renderEditor({ store });
+    expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
+    cleanup();
+
+    /* إعادة الفتح بعد الاسترجاع والإغلاق: العرض نفسه بقيمة واحدة لا تنسخ. */
+    const { record } = renderEditor({ store });
+    expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
+    expect(record).not.toHaveBeenCalled();
+    const stillOne = await store.getFormDraft("finance_event:operating_expense_cash");
+    if (!stillOne.ok) throw new Error("read failed");
+    expect(stillOne.value).not.toBeNull();
+    expect((stillOne.value?.values as { note?: string }).note).toBe("مسودة المحرر");
+  });
+
+  it("mount with a stored draft issues no write at all until a decision or a real edit", async () => {
+    const store = createFormDraftHarness().store;
+    await seedEditorDraft(store);
+    const { saveSpy, deleteSpy } = spyWrites(store);
+    renderEditor({ store });
+
+    expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(saveSpy).not.toHaveBeenCalled();
+    expect(deleteSpy).not.toHaveBeenCalled();
+  });
+
+  it("RV1 — switching the event type on a mounted editor never discards the new type's unread draft (stale-dirty scoping)", async () => {
+    /* جولة RV1 (المراجع ١ — دورة المسودات): المكوّن يبقى مركّبًا عند تغيّر
+     * معامل المسار (رجوع/تقدم المتصفح)، وwasDirtyRef قد يحمل وسخ النوع
+     * السابق — كان فرع المسح يمسح سجل النوع الجديد قبل استقرار قراءته
+     * (نفس صنف NF-001 التدميري). الإصلاح: المسح محصور بالنوع الذي توسّخ
+     * فعليًا فقط. */
+    const store = createFormDraftHarness().store;
+    /* مسودة محفوظة لنوع آخر (استثمار المالك) لها إدخال حقيقي. */
+    await new FormDraftService(store).save("finance_event", "owner_investment_cash", {
+      amountMinor: 5000,
+      sharedTotalAmountMinor: 0,
+      sharedPercentage: 0,
+      date: "2026-09-02",
+      note: "مسودة استثمار",
+      counterparty: "",
+      relationship: "project",
+      behavior: "fixed",
+      purpose: "period",
+      knowledge: "known",
+      sharedMode: "fixed",
+      sharedNote: "",
+      categoryLabel: "",
+      relatedEventId: "",
+      walletId: "",
+    });
+    const { saveSpy, deleteSpy } = spyWrites(store);
+    mockedUsePrototypeServices.mockReturnValue({
+      projectFinance: {
+        record: vi.fn(),
+        listSettleablePayables: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        listEvents: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        readPosition: vi.fn().mockResolvedValue({ ok: true, value: { amanahHeldMinor: 0 } }),
+        distributeUnallocated: vi.fn().mockResolvedValue({ ok: true, value: {} }),
+      },
+      cashContinuity: { overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }) },
+      recurringExpenses: {
+        findUnhandledOccurrenceForDate: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
+      dataVersion: 0,
+      notifyDataChanged: vi.fn(),
+      formDrafts: new FormDraftService(store),
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    /* ١) الفتح على المصروف وتوسيخه — wasDirtyRef صار true للنوع A. */
+    const view = render(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <FinancialEventEditor />
+      </UnsavedChangesProvider>,
+    );
+    const user = userEvent.setup();
+    await user.type(await screen.findByLabelText("المبلغ بالدينار الأردني"), "7");
+    await waitFor(async () => {
+      const savedA = await store.getFormDraft("finance_event:operating_expense_cash");
+      expect(savedA.ok && savedA.value).not.toBeNull();
+    });
+
+    /* ٢) تبديل النوع على المكوّن نفسه (رجوع/تقدم مسار) — لا مسح لسجل النوع
+     * الجديد غير المقروء، وعرض استرجاعه يظهر بقيمه المحفوظة. */
+    routeParams.type = "owner_investment_cash";
+    view.rerender(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <FinancialEventEditor />
+      </UnsavedChangesProvider>,
+    );
+    expect(await screen.findByText(/ترجّعها؟/)).toBeTruthy();
+    expect((screen.getByLabelText(/المبلغ بالدينار/) as HTMLInputElement).value).toContain("");
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(saveSpy.mock.calls.every(call => call[0]?.id !== "finance_event:owner_investment_cash")).toBe(
+      true,
+    );
+    expect(deleteSpy.mock.calls.every(call => call[0] !== "finance_event:owner_investment_cash")).toBe(true);
+    const keptB = await store.getFormDraft("finance_event:owner_investment_cash");
+    if (!keptB.ok) throw new Error("read failed");
+    expect(keptB.value).not.toBeNull();
+    expect((keptB.value?.values as { note?: string }).note).toBe("مسودة استثمار");
   });
 });
