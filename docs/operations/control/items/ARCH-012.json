@@ -2,10 +2,10 @@
  "id": "ARCH-012",
  "title": "متابعة منفصلة — ترحيل مهايئ مفاتيح المسودات التراثية إلى حد تخزين صريح (R11-ARCH010-NF-001 — مكتشف إحصاء ARCH-010)",
  "type": "GOVERNANCE",
- "status": "VERIFIED",
+ "status": "IN_PROGRESS",
  "priority": "P2",
- "stage": "r11-continuation-followup",
- "summary": "إحصاء web-storage الكامل الذي فرضه بند ARCH-010 (قبل أي كتابة) كشف موضعًا إنتاجيًا ثانيًا يلمس globalThis.localStorage خارج طبقة التخزين: browserLegacyFormDraftStorage() في application/drafts/legacyFormDraftMigration.ts:32 — مهايئ مفاتيح المسودات التراثية (micro.finance-draft.<type>.v1 وmicro.setup-draft.v1) الذي تستدعيه ثلاث صفحات مباشرة (Setup.tsx وFinancialEventEditor.tsx وSettings.tsx) ثم تمرره لدوال الترحيل. الكيان نفسه مسجل قانونيًا في persistent-entity-touchpoints.json (مفاتيح تراثية تُحذف من المصدر بعقد اكتب←تحقق←احذف) لكن المهايئ يقيم داخل طبقة التطبيق لا في حد تخزين صريح — صنف DEEPENS للمكتشف الأصلي R11-W1A-NF-001 (الذي أُغلق جذريًا للتشخيص في Phase 1). خارج نطاق موجة ARCH-010 بعقد المتابعة §7 (لا نقل ملفات غير مترابطة) ويحتاج قرار مالك مستقلًا: أين يقيم المهايئ (حد تخزين صريح بنمط storage/diagnostics/) وهل يبقى استدعاء الصفحات له مباشرًا أم ينتقل لخدمة التطبيق.",
+ "stage": "r11-unified-followup-20261016",
+ "summary": "الأصل (مغلق ومدموج): تقاعد ترحيل مسودات الصفحة التراثية (Outcome A) — حذف مهايئ المفاتيح التراثية micro.finance-draft.<type>.v1 وmicro.setup-draft.v1 وكل مستدعيه — دُمج عبر PR #369 وتحقق على main عند f0904260447647e0b4436a5bb203c7bcc4e7d0a6 (اللوق §210–§211؛ الحارس صار أشد بموضع مسجل واحد). الإعادة الحالية (2026-10-16): تنفيذ الإصلاحين الجذريين المسجلين كمحفزين مستقلين من إحصاء الموجة السابقة بقرار المالك عبر عقد المتابعة الموحدة §3.1: ARCH-012-NF-001 (نافذة إقلاع Setup — مسح النموذج الفارغ عند الفتح يمسح سجل المسودة قبل استقرار القراءة وقبل قرار الاستعادة) وARCH-012-NF-002 (دورة استرجاع المحرر — مسح السجل ثم إعادة حفظه بفعل الوسخ في نافذة مهام دقيقة). لا عودة لمهايئ تراثي ولا وصول مباشر لlocalStorage؛ حد FormDraftService الموحد وتكافؤ IndexedDB/Memory وحد الحجم/الذرّية ودلالات القرار الصريح محفوظة.",
  "finding_classification": "NEW_FINDING",
  "finding_state": "CONFIRMED",
  "classification": "HARDENING",
@@ -13,9 +13,11 @@
  "root_cause": "نمط تأريخي سابق لحدود التخزين الحالية: مهايئ المتصفح عرّف داخل وحدة ترحيل بطبقة التطبيق واستدعته الصفحات مباشرة عند الحاجة لقراءة المفاتيح التراثية مرة واحدة — القيد مسجل في حارس التشخيص الجديد scripts/check-diagnostics-storage.mjs كاستثناء تراثي موثق بمعرف هذا البند وشرط إزالته (قرار المالك بالترحيل).",
  "owner": "Micro owner (Qays7753)",
  "tests_required": [
-  "عند التنفيذ: اختبارات المهايئ في موقعه الجديد بنمط browserDiagnosticStorage.test.ts (الغائب/Hاضر/الفشل الآمن)",
-  "تحديث الاستثناء الموثق في حارس check-diagnostics-storage.mjs في نفس الـPR (إزالة التسجيل التراثي عند اكتمال الترحيل)",
-  "سلبية: أي وصول جديد آخر لمفاتيح تخزين المتصفح يظل مرفوضًا"
+  "NF-001: اختبار فاشل مركز أولًا يثبت النافذة (فتح على مسودة محفوظة + نموذج فارغ يمسح السجل قبل القرار) ثم إصلاح يجعله أخضر",
+  "NF-001: إيجابية وسلبية وإغلاق مبكر وتركيب متكرر وفشل قراءة وبلا كتابة قبل القرار",
+  "NF-002: اختبار فاشل مركز أولًا يثبت نافذة المسح-ثم-إعادة-الحفظ في الاسترجاع ثم إصلاح يجعله أخضر",
+  "NF-002: إغلاق مبكر أثناء الاسترجاع واسترجاع متكرر وتعديل حقيقي بعده وفشل حفظ وتجاهل وإعادة فتح وبلا كتابة/مسح زائف",
+  "خدمة المسودات وحدود التخزين تبقى خضراء (formDraftService + الجذر/التطبيق الكاملان)"
  ],
  "layers": [
   "governance",
@@ -39,18 +41,20 @@
  "areas": [
   "apps/prototype-web/client/src/application/drafts",
   "apps/prototype-web/client/src/pages",
-  "scripts"
+  "docs/operations",
+  "docs/architecture"
  ],
  "contracts": [
   "AGENTS.md",
-  "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
+  "https://github.com/Qays7753/Micro/blob/b0aa8d8b9acbb98d6c262bc76851405936db0112/docs/architecture/refactoring/r11-unified-followup-20261016/R11-UNIFIED-FOLLOWUP-EXECUTION-PROMPT-2026-10-16.md",
+  "docs/contracts/36-form-drafts-local-boundary-contract.md",
   "docs/quality/security-boundaries.md"
  ],
  "evidence": [
-  "scripts/check-diagnostics-storage.mjs",
-  "docs/architecture/refactoring/r11-arch010-20261015/R11-ARCH010-EXECUTION-REPORT-2026-10-15.md",
   "docs/architecture/refactoring/r11-arch012-20261015/evidence/R11-ARCH012-LEGACY-DRAFT-CENSUS-AND-DECISION-2026-10-15.md",
-  "docs/architecture/refactoring/r11-arch012-20261015/R11-ARCH012-EXECUTION-REPORT-2026-10-15.md"
+  "docs/architecture/refactoring/r11-arch012-20261015/R11-ARCH012-EXECUTION-REPORT-2026-10-15.md",
+  "docs/architecture/refactoring/r11-unified-followup-20261016/evidence/R11-UNIFIED-FOLLOWUP-BASELINE-2026-10-16.md",
+  "docs/architecture/refactoring/r11-unified-followup-20261016/R11-UNIFIED-FOLLOWUP-EXECUTION-REPORT-2026-10-16.md"
  ],
  "dependencies": [
   "ARCH-010"
@@ -59,7 +63,7 @@
   "ARCH-010",
   "ARCH-011"
  ],
- "updated_at": "2026-10-15",
+ "updated_at": "2026-10-16",
  "status_history": [
   {
    "status": "BACKLOG",
@@ -102,11 +106,22 @@
    "changed_at": "2026-10-15",
    "actor": "verify:main",
    "reason": "main عند f0904260447647e0b4436a5bb203c7bcc4e7d0a6؛ فحصا CI checks وCloudflare Pages SUCCESS على رأس الدمج نفسه وفق تحقق GitHub API المباشر، وفرع التنفيذ حُذف بعد الدمج."
+  },
+  {
+   "status": "REOPENED",
+   "changed_at": "2026-10-16",
+   "actor": "zai-executor",
+   "reason": "المحفزان المسجلان عند الإغلاق ARCH-012-NF-001/002 (نافختا دورة حياة المسودات القائمتان قبل موجات R11) صارا موجة سلوكية معتمدة بقرار مالك عبر عقد المتابعة الموحد §3.1 (المثبت b0aa8d8b عبر PR #371) — إعادة فتح موثقة بقرار؛ تاريخ Outcome A المدموج محفوظ كما هو أعلاه."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-10-16",
+   "actor": "zai-executor",
+   "reason": "فتح Claim ‏WS-222 من الأساس المتحقق cb3b9aaae16b2e6336a6b831d2c1de8cf3603acf (رأس main الحي)؛ صفر Claims نشطة عند الفتح؛ الجرد المجمد قبل أول كتابة في دليل الأساس r11-unified-followup-20261016."
   }
  ],
  "migration_baseline": false,
- "next_action": "لا إجراء إضافي لـARCH-012؛ Outcome A مدموج ومتحقق على main عند f0904260447647e0b4436a5bb203c7bcc4e7d0a6. تبقى ARCH-012-NF-001 وARCH-012-NF-002 مسجلتين كمحفزين مستقلين لموجة سلوكية لاحقة بقرار مالك؛ W2b وW5 دون تغيير. يُعاد فتح البند فقط بدليل فشل جديد."
- ,
+ "next_action": "تنفيذ الموجة السلوكية المعتمدة (NF-001 ثم NF-002) على الفرع remediation/r11-nf001-nf002-w2b-d12-20261016 من cb3b9aaa تحت Claim WS-222؛ بعد الاكتمال IN_REVIEW بPR المتابعة الموحد.",
  "merge_sha": "f0904260447647e0b4436a5bb203c7bcc4e7d0a6",
  "verified_on_main_sha": "f0904260447647e0b4436a5bb203c7bcc4e7d0a6"
 }
