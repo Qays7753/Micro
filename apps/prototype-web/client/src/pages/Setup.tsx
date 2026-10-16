@@ -148,7 +148,16 @@ export default function Setup() {
       if (result.ok) draftClearSafe.current = true;
       setDraftSaveFailed(result.ok === false && result.code !== "conflict");
     });
-  }, [step, activityName, walletName, openingChoice, openingMinor, offerPending, draftReadSettled, formDrafts]);
+  }, [
+    step,
+    activityName,
+    walletName,
+    openingChoice,
+    openingMinor,
+    offerPending,
+    draftReadSettled,
+    formDrafts,
+  ]);
   /* إدخال جديد قبل حل عرض الاستعادة: الإدخال الجديد هو
    * الأساس — يُخفى العرض وتُدار المسودة بقيم المستخدم (نفس
    * دلالة محرر الأحداث). */

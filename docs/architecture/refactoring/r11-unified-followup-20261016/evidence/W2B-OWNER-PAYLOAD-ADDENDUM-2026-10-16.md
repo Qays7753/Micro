@@ -31,9 +31,22 @@
 
 قبل دمج الـPR: إغلاقه دون دمج (لا أثر سلوكي على main). بعد الدمج: revert الالتزام السلوكي وحده يعيد سلوك القبول القائم (الفحص معزول في موضعه بعد العدادات ولا يشاركه كود آخر).
 
+## 6. إضافة مؤرخة — دليل التفعيل المنفذ (2026-10-16، نفس اليوم)
+
+> **Append-only:** تسجيل التنفيذ الفعلي بعد اكتماله؛ الأقسام 1–5 أعلاه كما كُتبت.
+
+- **التنفيذ:** الفحص مُفعَّل في `LocalTransferService.prepareImport` بعد بوابة العدادات حصرًا وللزوج الحالي وحده؛ المصدر الكنوني للاشتقاق والحمولة `application/transfers/transferTopLevelDataKeys.ts` (سجل العائلات الـ31 + Record مستنفد وقت الترجمة للمفاتيح غير العائلية الأربعة = 35 مفتاحًا مسموحًا).
+- **قبل/بعد مقيسَين بالاختبارات (اختبارات كُتبت أولًا وفشلت ضد الرأس غير المُفعَّل ثم خضرت بعده):**
+  - قبل: مفتاح data علوي مجهول في ملف 38/30 **مقبول** ويظهر في المعاينة ويُسقط عند الاستبدال.
+  - بعد: **مرفوض** برمز `validation_error` وبالنص العربي الحرفي المعتمد أعلاه (مطابقة حرفية مثبتة بالاختبار)، بلا صدى لأسماء المفاتيح، وبلا أي كتابة (deep-equal للجهاز قبل/بعد فوق IndexedDB وMemory معًا، ولا قيمة مُحضّرة قابلة للتأكيد).
+- **الثبات المثبت:** مصفوفة الأعطال السبعة خضراء بلا تعديل (الأسبقية كما هي)؛ الأزواج التراثية الـ24 مقبولة حتى مع مفتاح مجهول؛ الذهبيان الحاليان وMANIFEST مقبولان ببصمات sha256؛ مفاتيح المصدّر غير العائلية الأربعة مقبولة؛ مخرجات المصدّر الحية نظيفة فوق المهايئين؛ جولة الاستيراد←التأكيد←إعادة التصدير نظيفة؛ أطقم transfers كاملة **336/336 خضراء** (34 ملفًا + ملف w2b.rejection الجديد).
+- **الملفات:** `application/transfers/transferTopLevelDataKeys.ts` (جديد)؛ `application/transfers/localTransferService.ts` (الفحص وحده)؛ `transferTopLevelKeys.w2b.rejection.test.ts` (جديد — 7 اختبارات)؛ `transferTopLevelKeys.odkeys.characterization.test.ts` (تحديث اختباري السلوك القديم الموثق إلى السلوك المفعَّل + ترويسة مؤرخة).
+- **التقارض صفري مع:** Schema 38 / Export 30 / الذهبيات / MANIFEST / مخرج المصدّر / backup-first / PreparedImport / confirmImport / ذرّية التخزين / الإرث / المفاتيح المتداخلة داخل سجلات العائلات.
+
 ```text
 W2B_OWNER_PAYLOAD_RECORDED — APPEND_ONLY
 CODE_VALIDATION_ERROR_CONSTANT — EXACT_MATCH
 ARABIC_MESSAGE_VERBATIM_AS_CONTRACT_SECTION_3_2
 CURRENT_PAIR_38_30_ONLY — LEGACY_24_UNCHANGED
+W2B_ACTIVATED — PRECEDENCE_PRESERVED — ZERO_WRITE_ON_REJECTION
 ```
