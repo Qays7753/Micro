@@ -202,6 +202,12 @@ export default function FinancialEventEditor() {
    * النقاء — لا مسح عند الفتح (يحفظ المسودة لعرض الاسترجاع لا يمسحها) ولا سباق
    * لقراءة الفتح أو أي مسار تراثي متقاعد. */
   const wasDirtyRef = useRef(false);
+  /* R11 ARCH-012-NF-002 (موجة المتابعة الموحدة 2026-10-16): حد الترطيب —
+   * الاسترجاع ترطيب للقيم المحفوظة لا تعديل مستخدم؛ الحفظ التلقائي لا
+   * يعمل أثناءه ولا بعده مباشرة، بل يستأنف فقط بعد تعديل حقيقي. كان
+   * الاسترجاع يمسح السجل ثم يعيد حفظه بفعل الوسخ في نافذة مهام دقيقة
+   * يفقد فيها الإغلاق المبكر أو فشل إعادة الحفظ المسودةَ الوحيدة. */
+  const restoringRef = useRef(false);
   const idempotencyKey = useRef(`finance-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   /* المجموعة ١ (مسودة محفوظة): عرض استرجاع عند الفتح فقط — وضع الإنشاء حصريًا. */
   const [draftOffer, setDraftOffer] = useState<EditorDraft | null>(null);
@@ -361,6 +367,9 @@ export default function FinancialEventEditor() {
    * النافذة هبطت قبلها فلا يُعرض كفشل. */
   useEffect(() => {
     if (!type || savedRef.current) return;
+    /* NF-002: أثناء الترطيب (تطبيق قيم الاسترجاع) لا حفظ ولا مسح —
+     * السجل يحمل هذه القيم سلفًا؛ الاستئناف بعد تعديل حقيقي فقط. */
+    if (restoringRef.current) return;
     if (isDirty) {
       wasDirtyRef.current = true;
       void formDrafts
@@ -497,7 +506,14 @@ export default function FinancialEventEditor() {
       setWalletId(draftOffer.walletId);
     }
     setDraftOffer(null);
-    clearDraft();
+    /* NF-002 (موجة المتابعة الموحدة 2026-10-16): لا مسح هنا — السجل يحمل
+     * القيم المسترجعة نفسها فلا نافذة «مسح ثم إعادة حفظ» بعد الآن؛
+     * حد الترطيب يمنع أثر الوسخ من تصنيف الاسترجاع تعديلًا مستخدمًا،
+     * ويُرفع بعد استقرار الالتزام فيستأنف الحفظ عند أول تعديل حقيقي. */
+    restoringRef.current = true;
+    globalThis.setTimeout(() => {
+      restoringRef.current = false;
+    }, 0);
   }
   function discardDraft() {
     setDraftOffer(null);
