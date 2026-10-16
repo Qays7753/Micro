@@ -1826,6 +1826,25 @@
     "trigger": "Unified follow-up execution contract section 3.1 / Phase 1: the NF-001 root fix with focused failing-first tests in the same PR",
     "ocRef": "WS-222"
    }
+  },
+  {
+   "id": "R11FU-RV1-DIRTY-TYPE-SCOPE",
+   "date": "2026-10-16",
+   "path": "apps/prototype-web/client/src/pages/FinancialEventEditor.tsx",
+   "from": {
+    "nbLoc": 1194,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 1204,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "R11 unified follow-up RV1 remediation: the return-to-clean discard gains dirtyTypeRef scoping (the discard fires only for the event type that was actually dirtied — a route-param change on the mounted editor can no longer delete the new type's unread draft) plus its mandatory dated comments, on top of the NF-002 hydration boundary from the same wave. The band escalation to SPLIT_NOW is recorded here rather than actioned: splitting the editor is structural work that sits behind the F-043 owner gate (read-only comprehensive structure scan + owner review + controlled remediation waves), which the unified follow-up contract explicitly forbids in this PR. The growth is the owner-approved race fixes themselves, not responsibility drift.",
+   "authorization": {
+    "ownerReview": "Unified follow-up PR review (WS-222) — this entry is part of the same PR diff; the split decision itself remains behind the F-043 structural gate (REM-005 separation)",
+    "trigger": "Unified follow-up execution contract section 6: a reviewer finding must be fixed in a new coherent commit in the same PR; sections 3.4/4 forbid structural reorganization here",
+    "ocRef": "WS-222"
+   }
   }
  ]
 }
