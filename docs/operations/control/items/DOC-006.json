@@ -5,7 +5,7 @@
  "status": "IN_PROGRESS",
  "priority": "P2",
  "stage": "r11-unified-followup-20261016",
- "summary": "إغلاق فجوة مصدر الحقيقة الموثقة منذ W4-A (F-040 خلف قرار المالك D-12 المعلق): صف لوحة الألوان الجارية في SOURCE_OF_TRUTH.md يحيل إلى مصدر خارج المستودع (Documents/main micro-standard-v2/design-tokens.css) بلا تثبيت مرجعي مقيس، فبقي الصف «إحالة موثقة» لا سلطة مثبتة. العقد الحاكم §3.3 (2026-10-16) يفتح الإغلاق بالدليل: جرد محدود لكل مراجع Standard ومستهلكيها، اختيار مرجع حاكم واحد بالقياس، إغلاق مؤرخ append-only بالمسار/النسخة/SHA/النطاق/المالك وسلم السلطة، تصحيح السطور الحية المضللة فقط مع حفظ التاريخ، تحديث JSON المصدر ثم توليد العوارض، وبلا إنشاء Standard ثانٍ أو مصدر حقيقة موازٍ إطلاقًا. القياس الأولي (2026-10-16): المستودع Qays7753/Documents عام، رأس main=2396ff09fa52bb7872ae40c10adfc86ee7a0808d، المسار micro-standard-v2/design-tokens.css بblob de64f4fe0b2e5b75045e9e54d562c5aa6b85a756 وآخر التزام لامس 12504582c0c19e2b0ea621a8caf45146410f12df (2026-09-13) وحجم 7,636 بايت وsha256 محفوظة في دليل الإغلاق.",
+ "summary": "إغلاق فجوة مصدر حقيقة Micro Standard (F-040 خلف D-12 المعلق منذ W4-A): جرد محدود لكل مراجع Standard ومستهلكيها (سلطة حية: SOURCE_OF_TRUTH.md وUI_AUX؛ قواعد فصل: EXTENSION_PLAYBOOK/ADR-005؛ تاريخ محفوظ لا يُمس)؛ تثبيت المرجع الحاكم بالقياس المباشر (GitHub API قراءة فقط 2026-10-16): `Qays7753/Documents@main` الرأس 2396ff09fa52bb7872ae40c10adfc86ee7a0808d، المسار micro-standard-v2/design-tokens.css بblob de64f4fe0b2e5b75045e9e54d562c5aa6b85a756 وآخر التزام لامس 12504582c0c19e2b0ea621a8caf45146410f12df (2026-09-13) و7,636 بايت وsha256 مثبتة؛ الحزمة 31 ملفًا بالضبط. دليل الإغلاق append-only بسلم السلطة الواحد (المال/المجال/التخزين/التصدير ملك Micro؛ العقود البصرية للحزمة المثبتة قراءةً واستشهادًا؛ vf-tokens.css الجسر الوحيد؛ New Design/V2 عمل منفصل لم يُقرأ). تصحيح سطرين حيين فقط (صف المصدر في SOURCE_OF_TRUTH.md وقائمة المؤجل في current-state.md §8.2-4) بإضافة مؤرخة؛ لا تغيير كود أو عقد — F-040 = VERIFIED (documentation/evidence closure) ولا مكتشف جديد.",
  "finding_classification": "DEEPENS_EXISTING",
  "finding_state": "CONFIRMED",
  "classification": "GOVERNANCE",
@@ -49,7 +49,9 @@
   "docs/architecture/SOURCE_OF_TRUTH.md"
  ],
  "evidence": [
-  "docs/architecture/refactoring/r11-unified-followup-20261016/evidence/R11-UNIFIED-FOLLOWUP-BASELINE-2026-10-16.md"
+  "docs/architecture/refactoring/r11-unified-followup-20261016/evidence/R11-UNIFIED-FOLLOWUP-BASELINE-2026-10-16.md",
+  "docs/architecture/refactoring/r11-unified-followup-20261016/evidence/D12-F040-STANDARD-SOURCE-CLOSURE-2026-10-16.md",
+  "docs/architecture/SOURCE_OF_TRUTH.md"
  ],
  "dependencies": [
   "REM-004"
@@ -74,5 +76,5 @@
   }
  ],
  "migration_baseline": false,
- "next_action": "تنفيذ إغلاق الدليل (دليل الإغلاق المؤرخ + سطر المصدر الحي + doc-index + السجلات) تحت Claim ‏WS-222؛ ثم IN_REVIEW بPR المتابعة الموحد."
+ "next_action": "الإغلاق مكتمل على فرع المتابعة الموحدة (Claim WS-222): ينتقل البند إلى IN_REVIEW مع PR الموجة؛ بعد الدمج يُتحقق على main ثم VERIFIED كالمعتاد. لا عمل متبقٍ داخل هذا النطاق."
 }
