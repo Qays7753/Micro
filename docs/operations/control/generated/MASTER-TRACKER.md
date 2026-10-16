@@ -2,7 +2,7 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 61 · SUPERSEDED: 1
+BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 64 · SUPERSEDED: 1
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
@@ -10,9 +10,6 @@ BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 1
 | LEGAL-001 | BLOCKED | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-8 | مراجعة أردنية مالية وقانونية | Product owner / Manus coordination | legal, product-scope | FIN-007 |
 | PILOT-001 | BLOCKED | RELEASE_GATE | RELEASE_GATE | P1 | stage-10 | قرار بدء Pilot | Product owner / Manus coordination | release, pilot | AUDIT-001, CLEAN-001, CTRL-001, CTRL-002, DEVICE-001, FIN-001, FIN-002, FIN-003, FIN-004, FIN-005, FIN-006, FIN-007, FIN-008, FIN-009, G-001, G-002, G-003, G-004, G-005, G-006, HARD-009, HARD-010, HARD-011, LEGAL-001, OPS-001, OPS-002, OPS-003, OPS-004, OPS-005, OPS-006, OPS-007, OPS-008, OPS-009, REL-001, REM-001, REM-002, REM-003, REM-004, REM-005, REM-006, REM-007, UAT-001, UX-001 |
 | UX-001 | IN_PROGRESS | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P1 | stage-5 | إعادة تصميم UI وUX جذرية | Product owner / Manus coordination | ui/ux, presentation | CLEAN-001 |
-| ARCH-013 | IN_REVIEW | GOVERNANCE | EXTERNAL_REVIEW_REQUIRED | P1 | r11-unified-followup-20261016 | R11 W2a/W2b — توصيف Transfer الكامل وعدّاد OD-COUNTS الجانبي-الاختبار وبوابة حمولة W2b (OD-KEYS) | Micro owner (Qays7753) | application, transfers, tests, docs, operations-control | — |
-| ARCH-012 | IN_REVIEW | HARDENING | EXTERNAL_REVIEW_REQUIRED | P2 | r11-unified-followup-20261016 | متابعة منفصلة — ترحيل مهايئ مفاتيح المسودات التراثية إلى حد تخزين صريح (R11-ARCH010-NF-001 — مكتشف إحصاء ARCH-010) | Micro owner (Qays7753) | governance, application, storage-boundary, pages | ARCH-010 |
-| DOC-006 | IN_REVIEW | GOVERNANCE | NOT_APPLICABLE | P2 | r11-unified-followup-20261016 | D-12 / F-040 — إغلاق مصدر حقيقة Micro Standard بالدليل: تثبيت المرجع الحاكم بلا مصدر ثانٍ | Micro owner (Qays7753) | docs, governance, operations-control | REM-004 |
 | AUDIT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | تدقيق مستقل نهائي قبل الـPilot | Product owner / Manus coordination | uat, audit, cross-layer | UAT-001 |
 | UAT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | قبول داخلي ببيانات Demo كاملة | Product owner / Manus coordination | uat, audit, cross-layer | DEVICE-001, LEGAL-001 |
 | GOV-001 | REVIEW_REQUIRED | GOVERNANCE | NOT_APPLICABLE | P1 | governance | مصالحة G10-A مع تعارض عقد C1 | Product owner / Manus coordination | governance, contracts | — |
@@ -46,6 +43,7 @@ BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 1
 | ARCH-005 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | post-scan-structural-completion-implementation | برنامج الإكمال البنيوي ما بعد المسح — تنفيذ W0–W10 وفق عقد التنفيذ 2026-10-05 (Post-Scan Structural Completion Program) | Micro owner (Qays7753) | domain, application, storage, scripts, docs, tests | ARCH-004 |
 | ARCH-006 | VERIFIED | HARDENING | MAIN_VERIFIED | P1 | security-closure-verification | الإغلاق الجذري الأمني لنسخ braces@3.0.3 المتجسدة — برمجا PR #317 (إزالة المخطط) وPR #318 (إغلاق المتجسد) — 2026-10-06 | Product owner / security agent | governance, verification, toolchain | — |
 | ARCH-010 | VERIFIED | HARDENING | NOT_APPLICABLE | P1 | r11-followup-post-w1b | متابعة منفصلة — حارس Diagnostics Storage المخصص (R11-W1A-NF-001) بعد إخراجه من نطاق W1b بقرار المالك | Micro owner (Qays7753) | governance, guards, tests, diagnostics | ARCH-009 |
+| ARCH-013 | VERIFIED | GOVERNANCE | EXTERNAL_REVIEW_REQUIRED | P1 | r11-unified-followup-20261016 | R11 W2a/W2b — توصيف Transfer الكامل وعدّاد OD-COUNTS الجانبي-الاختبار وبوابة حمولة W2b (OD-KEYS) | Micro owner (Qays7753) | application, transfers, tests, docs, operations-control | — |
 | CTRL-001 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P1 | stage-0 | اعتماد Operations Control v2 | Product owner / Manus coordination | governance, documentation | — |
 | CTRL-002 | VERIFIED | GOVERNANCE | EVIDENCE_RECONCILIATION_REQUIRED | P1 | stage-0 | مصالحة القدرات والتقارير ومصادر الحقيقة | Product owner / Manus coordination | governance, documentation | — |
 | FIN-001 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-3 | تسجيل اقتراض داخل المشروع | Product owner / Manus coordination | Layer 3, domain, application, presentation | CTRL-001 |
@@ -72,10 +70,12 @@ BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 1
 | REM-006 | VERIFIED | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P1 | final-logic-remediation | المعالجة المنطقية النهائية — قرارات المالك D-03/D-08/D-09/D-11 وتحقيق التعادل (بلا UI وبلا دمج) | Product owner / Z AI execution | docs, application, domain, tests | REM-002, REM-003, REM-004, REM-005 |
 | REM-007 | VERIFIED | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P1 | canonical-operating-breakeven | النموذج الكنوني للتعادل التشغيلي والنتيجة التشغيلية المستهدفة TARGET_OPERATING_RESULT (بلا UI وبلا مخطط) | Product owner / Z AI execution | domain, application, docs, tests | REM-006 |
 | TEST-001 | VERIFIED | HARDENING | NOT_APPLICABLE | P1 | test-stability | تثبيت اختبار الإهلاك المعتمد على الساعة الحية في G4Assets.dom | Product owner / Manus coordination | tests, verification | — |
+| ARCH-012 | VERIFIED | HARDENING | EXTERNAL_REVIEW_REQUIRED | P2 | r11-unified-followup-20261016 | متابعة منفصلة — ترحيل مهايئ مفاتيح المسودات التراثية إلى حد تخزين صريح (R11-ARCH010-NF-001 — مكتشف إحصاء ARCH-010) | Micro owner (Qays7753) | governance, application, storage-boundary, pages | ARCH-010 |
 | CLEAN-001 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | stage-4 | تنظيف الأسطح الجزئية والميتة | Product owner / Manus coordination | cross-layer, presentation | FIN-007, OPS-004 |
 | DOC-001 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P2 | documentation-hygiene | تصحيحات صدق السطح التوثيقي وأرشفة الأدلة المغلقة — موجتا A+B من تدقيق الحد الأدنى 2026-10-01 | Product owner / Zed coordination | documentation | — |
 | DOC-004 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P2 | documentation-hygiene | حذف 42 ملفًا محذومَ المرجعية وتقاعد 93 ملف تقارير مساند — دفعة الجولة الثانية | Product owner / Z AI coordination | documentation | — |
 | DOC-005 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P2 | documentation-hygiene | بنود سلطة وتوافق الجولة الثانية — OD-01/OD-06/OD-08a/OD-07 + أرشيفات محتكرة + دمج 02-by-tier | Product owner / Z AI coordination | documentation | — |
+| DOC-006 | VERIFIED | GOVERNANCE | NOT_APPLICABLE | P2 | r11-unified-followup-20261016 | D-12 / F-040 — إغلاق مصدر حقيقة Micro Standard بالدليل: تثبيت المرجع الحاكم بلا مصدر ثانٍ | Micro owner (Qays7753) | docs, governance, operations-control | REM-004 |
 | FIN-002 | VERIFIED | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P2 | stage-3 | ميزانيات وأهداف بسيطة | Product owner / Manus coordination | Layer 3, domain, application, presentation | CTRL-001 |
 | FIN-006 | VERIFIED | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P2 | stage-3 | ربحية المنتج بمعرف كتالوج ثابت | Product owner / Manus coordination | Layer 3, domain, application, presentation | OPS-004 |
 | FIN-007 | VERIFIED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P2 | stage-3 | مراجعة فترة مرنة | Product owner / Manus coordination | Layer 3, domain, application, presentation | FIN-003 |

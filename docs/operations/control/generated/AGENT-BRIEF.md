@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 61 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 64 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -32,6 +32,4 @@ python3 scripts/operations-control/validate.py
 
 > مولّد آليًا من Workstream claims؛ يشمل المراجعة المطلوبة حتى لا يختفي Claim قديم.
 
-| ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
-|---|---|---|---|---|---|
-| WS-222 | IN_REVIEW | `remediation/r11-nf001-nf002-w2b-d12-20261016` | 372 | ARCH-012, ARCH-013, DOC-006 | تنفيذ عقد المتابعة الموحدة بالترتيب: NF-001 ثم NF-002 ثم W2b (بالحمولة المعتمدة) ثم إغلاق D-12/F-040 ثم المصالحة الكاملة والبوابة والمراجعات الخمسة والدفع وPR واحد مفتوح. |
+لا يوجد Workstream نشط أو يحتاج مراجعة.

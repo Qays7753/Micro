@@ -2538,3 +2538,13 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - **الإرساءات الموثقة بنفس الـPR:** راتشة حجم الملفات (إرساءان بمرجع WS-222: localTransferService 306→344 وSetup 432→454 — نمو الإصلاح المعتمد نفسه)؛ عدّ الملفات المزروعة 369→370 (الوحدة الجديدة لا تلمس تخزين المتصفح)؛ أسطح الحِزم المحلية (lazy +671 خام/+224 gzip وprecache +671 — وحدة W2b تنضم لشريحة lazy قائمة؛ العدّ ثابت؛ الدخول 630,709/154,948 داخل السقوفين اللذين لم يُمسا؛ سجلات السحابة تتبع بروتوكول القياس بعد الدفع الموثق).
 - **البوابة الكاملة على رأس الكود `2b6f9586`:** `pnpm check` EXIT 0 — الجذر 948/948، التطبيق 2,736/2,736، lint 35 بالضبط، 25/25 حراسًا، البناء والميزانية 630,709/154,948 (650,000/155,300 كما هما)، الأسطح PASS؛ والأوامر الكنونية (توليد/تحقق/فهرس/سقف الحالة 20,468/20,480/diff-check) كلها EXIT 0.
 - **الحالة:** `R11_UNIFIED_FOLLOWUP_COMPLETE — PR_READY` على PR #372 (مفتوح، base main) مع `ARCH012_NF001_NF002_FIXED` و`W2B_BEHAVIOR_COMPLETE — CURRENT_38_30_ONLY` و`D12_F040_CLOSED_WITH_EVIDENCE` و`TRACKER_DISPOSITIONS_RECONCILED` و`NO_MERGE_PERFORMED / NO_CLEANUP_PERFORMED / NO_SECRETS_EXPOSED`. حد الرجوع: قبل الدمج إغلاق الـPR دون أثر؛ بعده revert كل التزام متسق منفردًا. المراجعات الخمسة والمُخلّص تُسجل في التقرير الكنوني.
+
+## §213 — 2026-10-16 — تحقق ما بعد دمج R11 unified follow-up على main
+
+- **Merge Manifest:** PR #372 (`remediation/r11-nf001-nf002-w2b-d12-20261016`) دُمج بMerge commit `3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2` فوق `cb3b9aaae16b2e6336a6b831d2c1de8cf3603acf`؛ رأس الكود المصدر كان `3e8b8e8c12dbc94606044c95c7c004f366b2cbed`. لا كود جديد أُضيف في هذه المصالحة.
+- **تحقق main:** `main` يطابق `3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2`. فحص GitHub API المباشر على رأس الدمج نفسه أثبت `checks=SUCCESS` (run `38926973322`, job `117060897508`) و`Cloudflare Pages=SUCCESS`؛ لا استنتاج من رأس أقدم.
+- **Operations Control:** ARCH-012 وARCH-013 وDOC-006 وWS-222 انتقلت من `IN_REVIEW` إلى `MERGED_UNVERIFIED` ثم `VERIFIED` مع `merge_sha=verified_on_main_sha=3831d047e8fb1e69f2dc1e11e85ab717c7e05ba`. ARCH-012 يشمل NF-001/002/003؛ ARCH-013 يغلق W2b للزوج الحالي 38/30؛ DOC-006 يغلق D-12/F-040 بالدليل. لا Claim نشط.
+- **الحالة الحية:** صُحح `current-state.md` ليعرض R11 unified follow-up مدموجًا ومتحققًا، مع إبقاء التاريخ التفصيلي هنا append-only. حجم الملف `20,373` بايتًا، تحت حد `20,480`.
+- **الحدود:** لا تغيير مالي أو تاريخي أو Schema/Export/Import أو UI بصري أو New Design؛ لا حذف بيانات أو مسح تخزين متصفح. حد الرجوع هو revert لالتزامات PR #372 كوحدة متسقة إذا ظهر دليل فشل جديد.
+- **النظافة:** بعد تحقق ancestry والدمج، حُذف فرع التنفيذ المدموج فقط؛ تبقى فروع Prompt التوثيقية المفتوحة منفصلة ولا تُحذف تلقائيًا.
+- **الحالة:** `R11_UNIFIED_FOLLOWUP_VERIFIED_ON_MAIN — POST_MERGE_VERIFICATION: PASS — NO_SECRETS_EXPOSED`.

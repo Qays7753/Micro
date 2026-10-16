@@ -1,7 +1,7 @@
 {
  "id": "WS-222",
  "title": "المتابعة الموحدة R11 — إصلاحا ARCH-012-NF-001/002 + تفعيل W2b + إغلاق D-12/F-040 + مصالحة Tracker",
- "status": "IN_REVIEW",
+ "status": "VERIFIED",
  "items": [
   "ARCH-012",
   "ARCH-013",
@@ -28,12 +28,13 @@
  "agent": "ZAI sequential executor (one writer; five read-only reviewers RV1-RV5 after implementation before final readiness)",
  "started_at": "2026-10-16",
  "updated_at": "2026-10-16",
- "next_action": "تنفيذ عقد المتابعة الموحدة بالترتيب: NF-001 ثم NF-002 ثم W2b (بالحمولة المعتمدة) ثم إغلاق D-12/F-040 ثم المصالحة الكاملة والبوابة والمراجعات الخمسة والدفع وPR واحد مفتوح.",
+ "next_action": "مغلق: PR #372 دُمج بMerge commit 3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2 وتحقق main على الرأس نفسه بفحصي checks وCloudflare Pages SUCCESS. البنود ARCH-012 وARCH-013 وDOC-006 انتقلت إلى VERIFIED؛ لا Claim نشط.",
  "notes": [
   "Claim أُنشئ قبل أي تعديل كود وفق AGENTS.md §14؛ صفر Claims نشطة عند الإنشاء (ACTIVE-WORK فارغ؛ آخر Claim WS-221 مغلق VERIFIED).",
   "الأساس المتحقق: origin/main = cb3b9aaae16b2e6336a6b831d2c1de8cf3603acf (git fetch + GitHub API تطابقًا تامًا؛ STATE_DRIFT=NONE).",
   "العقد الحاكم مثبت على b0aa8d8b عبر PR #371 (docs فقط) وقُرئ كاملًا؛ الجرد المجمد قبل أول كتابة في evidence/R11-UNIFIED-FOLLOWUP-BASELINE-2026-10-16.md.",
-  "حدود صارمة: لا New Design ولا UI بصري ولا Schema 38/Export 30/Legacy/Goldens/MANIFEST ولا دلالات مالية/تاريخية ولا عمل بنيوي؛ لا دمج ولا force-push ولا حذف فروع/PRs."
+  "حدود صارمة: لا New Design ولا UI بصري ولا Schema 38/Export 30/Legacy/Goldens/MANIFEST ولا دلالات مالية/تاريخية ولا عمل بنيوي؛ لا دمج ولا force-push ولا حذف فروع/PRs.",
+  "مصالحة ما بعد الدمج: main عند 3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2، والفرع remediation/r11-nf001-nf002-w2b-d12-20261016 حُذف بعد تحقق ancestry والدمج؛ لا حذف بيانات أو مسح تخزين أو تنظيف لفروع غير مدموجة."
  ],
  "pr": 372,
  "status_history": [
@@ -54,7 +55,26 @@
    "changed_at": "2026-10-16",
    "actor": "zai-executor",
    "reason": "التنفيذ الكامل على PR #372 (رأس الكود 2b6f9586: البوابة الكاملة EXIT 0 والجذر 948/948 والتطبيق 2,736/2,736 وlint 35 بالضبط)؛ السجلات النهائية تُدفع على الفرع نفسه — قرار الدمج للمالك."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-10-16",
+   "actor": "merge:pr-372",
+   "reason": "PR #372 دُمج في main بMerge commit 3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2 بعد نجاح فحوص الرأس 3e8b8e8c12dbc94606044c95c7c004f366b2cbed; تحقق main مستقل مطلوب قبل إخلاء Claim."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-10-16",
+   "actor": "verify:main",
+   "reason": "تحقق GitHub API المباشر من checks وCloudflare Pages SUCCESS على رأس main 3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2؛ ARCH-012/ARCH-013/DOC-006 صارت VERIFIED ولا Claims نشطة."
   }
  ],
- "migration_baseline": false
+ "migration_baseline": false,
+ "merge_sha": "3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2",
+ "verified_on_main_sha": "3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2",
+ "evidence": [
+  "docs/architecture/refactoring/r11-unified-followup-20261016/R11-UNIFIED-FOLLOWUP-EXECUTION-REPORT-2026-10-16.md",
+  "docs/architecture/refactoring/r11-unified-followup-20261016/evidence/W2B-OWNER-PAYLOAD-ADDENDUM-2026-10-16.md",
+  "docs/operations/current-state-log.md"
+ ]
 }

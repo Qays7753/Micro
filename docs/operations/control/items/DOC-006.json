@@ -2,7 +2,7 @@
  "id": "DOC-006",
  "title": "D-12 / F-040 — إغلاق مصدر حقيقة Micro Standard بالدليل: تثبيت المرجع الحاكم بلا مصدر ثانٍ",
  "type": "GOVERNANCE",
- "status": "IN_REVIEW",
+ "status": "VERIFIED",
  "priority": "P2",
  "stage": "r11-unified-followup-20261016",
  "summary": "إغلاق فجوة مصدر حقيقة Micro Standard (F-040 خلف D-12 المعلق منذ W4-A): جرد محدود لكل مراجع Standard ومستهلكيها (سلطة حية: SOURCE_OF_TRUTH.md وUI_AUX؛ قواعد فصل: EXTENSION_PLAYBOOK/ADR-005؛ تاريخ محفوظ لا يُمس)؛ تثبيت المرجع الحاكم بالقياس المباشر (GitHub API قراءة فقط 2026-10-16): `Qays7753/Documents@main` الرأس 2396ff09fa52bb7872ae40c10adfc86ee7a0808d، المسار micro-standard-v2/design-tokens.css بblob de64f4fe0b2e5b75045e9e54d562c5aa6b85a756 وآخر التزام لامس 12504582c0c19e2b0ea621a8caf45146410f12df (2026-09-13) و7,636 بايت وsha256 مثبتة؛ الحزمة 31 ملفًا بالضبط. دليل الإغلاق append-only بسلم السلطة الواحد (المال/المجال/التخزين/التصدير ملك Micro؛ العقود البصرية للحزمة المثبتة قراءةً واستشهادًا؛ vf-tokens.css الجسر الوحيد؛ New Design/V2 عمل منفصل لم يُقرأ). تصحيح سطرين حيين فقط (صف المصدر في SOURCE_OF_TRUTH.md وقائمة المؤجل في current-state.md §8.2-4) بإضافة مؤرخة؛ لا تغيير كود أو عقد — F-040 = VERIFIED (documentation/evidence closure) ولا مكتشف جديد.",
@@ -79,8 +79,22 @@
    "changed_at": "2026-10-16",
    "actor": "zai-executor",
    "reason": "إغلاق D-12/F-040 بالدليل المثبت مكتمل على PR #372 (تصحيح سطرين حيين فقط؛ لا تغيير كود) — بانتظار مراجعة المالك ودمجه ثم التحقق على main."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-10-16",
+   "actor": "merge:pr-372",
+   "reason": "دُمج إغلاق D-12/F-040 التوثيقي في PR #372 بMerge commit عند 3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2؛ تحقق main مستقل مطلوب."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-10-16",
+   "actor": "verify:main",
+   "reason": "main عند 3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2؛ checks وCloudflare Pages SUCCESS على رأس الدمج نفسه، ولا تغيير كودي أو New Design أو CSS/UI أو مالي/Schema/Export/Import."
   }
  ],
  "migration_baseline": false,
- "next_action": "الإغلاق مكتمل على فرع المتابعة الموحدة (Claim WS-222): ينتقل البند إلى IN_REVIEW مع PR الموجة؛ بعد الدمج يُتحقق على main ثم VERIFIED كالمعتاد. لا عمل متبقٍ داخل هذا النطاق."
+ "next_action": "لا عمل متبقٍ داخل نطاق D-12/F-040؛ المرجع الخارجي مثبت بالدليل وسلّم السلطة موثق. يُعاد فتحه فقط بدليل تغيّر خارجي أو finding جديد.",
+ "merge_sha": "3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2",
+ "verified_on_main_sha": "3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2"
 }
