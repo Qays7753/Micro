@@ -2548,3 +2548,8 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - **الحدود:** لا تغيير مالي أو تاريخي أو Schema/Export/Import أو UI بصري أو New Design؛ لا حذف بيانات أو مسح تخزين متصفح. حد الرجوع هو revert لالتزامات PR #372 كوحدة متسقة إذا ظهر دليل فشل جديد.
 - **النظافة:** بعد تحقق ancestry والدمج، حُذف فرع التنفيذ المدموج فقط؛ تبقى فروع Prompt التوثيقية المفتوحة منفصلة ولا تُحذف تلقائيًا.
 - **الحالة:** `R11_UNIFIED_FOLLOWUP_VERIFIED_ON_MAIN — POST_MERGE_VERIFICATION: PASS — NO_SECRETS_EXPOSED`.
+
+
+## §214 — 2026-10-18 — Agent governance documentation contract opened
+
+فُتح Claim توثيقي مستقل `DOC-007` / `WS-223` من رأس `origin/main` `d24b7b78911a516aca547b3411b432a651d16c57` على الفرع `docs/agent-governance-contract-20261018`. النطاق هو مصالحة مسؤوليات `AGENTS.md` وSOP تطوير Agent وبروتوكول Handoff و`README.md` والملفات الداعمة، مع حارس آلي واختبارات؛ لا تغيير في التطبيق أو Domain أو التخزين أو Schema/Export/Import أو المال أو التاريخ أو UI أو مواصفات المكونات. الموجة التالية Micro Component Specification and Architecture Review تبقى Claimًا مستقلًا ولا تبدأ تلقائيًا.

@@ -1,5 +1,7 @@
 ## بطاقة الشريحة
 
+> **عقد القراءة والتسليم:** `AGENTS.md` هو نقطة الدخول؛ `docs/operations/current-state.md` يثبت الحالة الحية؛ `docs/operations/agent-development-sop-v1.md` يصف دورة التنفيذ؛ و`docs/operations/control/README.md` يثبت الـClaims. لا تستخدم `todo.md` أو ذاكرة المحادثة كحالة تنفيذ.
+
 | الحقل | المحتوى |
 |---|---|
 | مرجع `main` عند البدء | <!-- commit --> |

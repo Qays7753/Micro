@@ -4,6 +4,8 @@
 
 **مسار القراءة الوحيد هو `AGENTS.md` §2 (النواة + حزم السياق التسع)** — حمّل النواة ثم حزمة نوع تغييرك (المالية، التخزين، الواجهة، الجودة...) وفق الجدول هناك؛ `docs/00-document-index.md` كتالوج سلطة للبحث والاستشهاد لا قائمة قراءة. (تحديث مؤرخ 2026-10-01 — WS-204.)
 
+للتنفيذ المتسلسل اتبع [`docs/operations/agent-development-sop-v1.md`](docs/operations/agent-development-sop-v1.md)، ولتسليم الحالة بين الوكلاء اتبع [`docs/operations/agent-handoff-protocol-v1.md`](docs/operations/agent-handoff-protocol-v1.md). لا تنشئ قائمة قراءة أو SOP منافسًا؛ سجل Claims والحالة في Operations Control والحالة الحية فقط.
+
 قبل كتابة الكود، اكتب بطاقة قرار مختصرة تتضمن المشكلة المرتبطة، الدليل، أقل نطاق، معيار القبول، معيار الفشل، والملفات التي ستتغير. لا تعتبر Accounting أو zman-app أو مشروع GitHub مصدر تعريف للمنتج.
 
 ## نطاق الشريحة الحالية
