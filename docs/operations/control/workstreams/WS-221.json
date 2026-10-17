@@ -1,0 +1,77 @@
+{
+ "id": "WS-221",
+ "title": "ARCH-012 — التقاعد الشرطي لترحيل مسودات الصفحة التراثية (Outcome A: حذف مهايئ المفاتيح التراثية) على فرع وPR مستقلين",
+ "status": "VERIFIED",
+ "items": [
+  "ARCH-012"
+ ],
+ "branch": "refactoring/arch012-retire-legacy-draft-20261015",
+ "base_sha": "f221a0127e634eafc1be01047247136fb1829835",
+ "areas": [
+  "apps/prototype-web/client/src/application/drafts",
+  "apps/prototype-web/client/src/pages",
+  "scripts",
+  "docs/quality",
+  "docs/contracts",
+  "docs/operations",
+  "docs/architecture"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/architecture/refactoring/r11-arch012-20261015/R11-ARCH012-CONDITIONAL-RETIREMENT-W2B-PENDING-EXECUTION-PROMPT-2026-10-15.md",
+  "docs/contracts/36-form-drafts-local-boundary-contract.md",
+  "docs/quality/security-boundaries.md"
+ ],
+ "agent": "ZAI sequential executor (one writer; five read-only reviewers RV1-RV5 after implementation before final readiness)",
+ "pr": 369,
+ "started_at": "2026-10-15",
+ "updated_at": "2026-10-15",
+ "next_action": "مغلق: PR #369 دُمج بMerge commit f0904260447647e0b4436a5bb203c7bcc4e7d0a6 وتحقق main على الرأس نفسه بفحصي checks وCloudflare Pages SUCCESS؛ تبقى ARCH-012-NF-001 وARCH-012-NF-002 محفزين مستقلين لموجة سلوكية لاحقة بقرار مالك.",
+ "notes": [
+  "Claim أُنشئ قبل أي تعديل كود وفق AGENTS.md §14؛ صفر Claims نشطة عند الإنشاء (WS-219 أُغلقت VERIFIED بنفس العملية بعد إثبات الدمج والتحقق حيًا — انظر سجلها).",
+  "العقد الحاكم: R11-ARCH012-CONDITIONAL-RETIREMENT-W2B-PENDING-EXECUTION-PROMPT-2026-10-15.md على main عند f221a0127e634eafc1be01047247136fb1829835 — قرأه المنفذ كاملًا والتزم به.",
+  "القرار المالك المعطى: تنفيذ التقاعد إذا ثبت أمانه (Outcome A)؛ وإلا ترميم الحدود (Outcome B). الإحصاء أعاد إثبات شروط Outcome A الستة — دليل الإحصاء والقران في evidence/R11-ARCH012-LEGACY-DRAFT-CENSUS-AND-DECISION-2026-10-15.md.",
+  "حدود صارمة: لا كتابة على main، لا دمج، لا حذف فروع، لا force-push؛ لا مساس FormDraftService/المسودات الحالية/IndexedDB/MemoryLocalStore/Schema 38/Export 30/المالي/التاريخي؛ لا مسح تخزين المتصفح وقت التشغيل؛ W2B تبقى PENDING وW5 مغلقة بالسياسة؛ لا رفع سقوف.",
+  "بروتوكول الاستئناف: عمل الجلسة السابقة على هذه الموجة لم يبقَ محليًا (إعادة تعيين بيئة) — أُعيد البناء من الأساس المتحقق نفسه دون إعادة فعل أي موجة مكتملة؛ الإحصاء أعيد اشتقاقه (إلزامي قبل الكود) ووُجد مطابقًا لاستنتاج التحقيق السابق."
+ ],
+ "status_history": [
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "فتح Claim تنفيذي لبند ARCH-012 بقرار المالك المعطى عبر عقد التنفيذ الشرطي؛ الفرع refactoring/arch012-retire-legacy-draft-20261015 منشأ من origin/main الحي f221a0127e (رأس دمج PR #368) بعد التحقق الحي (PR مدموج؛ فحصا checks وCloudflare Pages SUCCESS على الرأس)."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "الإحصاء وقرار Outcome A مسجلان (دليل الإحصاء + هيكل التقرير)؛ التنفيذ الكودي للحذف المتسق يبدأ الآن على الفرع."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "كل التزامات الموجة على PR #369 (رأس الكود 6ea96b5f): التقاعد المتسق، الحراس والسلبية، إرساءات الأسس الموثقة، البوابة الكاملة EXIT 0، المراجعات الخمسة مع المُخلّص، والسجلات — PR_READY؛ الدمج قرار مالك."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-10-15",
+   "actor": "merge:pr-369",
+   "reason": "دُمج PR #369 عند f0904260447647e0b4436a5bb203c7bcc4e7d0a6 بعد نجاح فحوص الرأس المصحح؛ تحقق main مستقل مطلوب قبل إخلاء الملكية."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-10-15",
+   "actor": "verify:main",
+   "reason": "تحقق GitHub API المباشر من main عند f0904260447647e0b4436a5bb203c7bcc4e7d0a6: checks وCloudflare Pages SUCCESS على رأس الدمج نفسه؛ فرع التنفيذ حُذف بعد الدمج."
+  }
+ ],
+ "migration_baseline": false,
+ "evidence": [
+  "docs/architecture/refactoring/r11-arch012-20261015/evidence/R11-ARCH012-LEGACY-DRAFT-CENSUS-AND-DECISION-2026-10-15.md",
+  "docs/architecture/refactoring/r11-arch012-20261015/R11-ARCH012-EXECUTION-REPORT-2026-10-15.md",
+  "docs/operations/current-state-log.md"
+ ],
+ "merge_sha": "f0904260447647e0b4436a5bb203c7bcc4e7d0a6",
+ "verified_on_main_sha": "f0904260447647e0b4436a5bb203c7bcc4e7d0a6"
+}

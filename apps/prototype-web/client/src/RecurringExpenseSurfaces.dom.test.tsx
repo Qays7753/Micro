@@ -407,6 +407,23 @@ describe("R2 (M-11/D13) — توصيل حد «اليوم» الكنوني بعم
     expect((anchor as HTMLInputElement).value).toBe("2026-09-22");
   });
 
+  it("R11 W4 / D-13: الأقسام الداخلية الموسعة regions لا dialogs — بلا فخ تركيز ولا إزاحة (OD-A11Y)", async () => {
+    const seriesId = await seedActiveSeries();
+    wouterMocks.params = { id: seriesId };
+    render(<RecurringExpenseDetail />);
+    const user = userEvent.setup();
+    /* لوحة الإلغاء: قسم موسع داخل الصفحة — يُعلن region بلا حوار */
+    await user.click(await screen.findByRole("button", { name: "ألغِ تذكير المستقبل" }));
+    expect(await screen.findByRole("region", { name: "إلغاء تذكير المستقبل" })).toBeTruthy();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    /* لوحة التأجيل كذلك: region بتصريحها الصادق */
+    const snoozeButtons = await screen.findAllByRole("button", { name: "أجّل انتباهه" });
+    await user.click(snoozeButtons[0]!);
+    expect(await screen.findByRole("region", { name: "تأجيل انتباه الفترة" })).toBeTruthy();
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
   it("افتراضي التأجيل المخصص في التفصيل = اليوم بعمّان + 7 أيام بحساب النواة الصحيح", async () => {
     const seriesId = await seedActiveSeries();
     wouterMocks.params = { id: seriesId };

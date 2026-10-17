@@ -140,7 +140,7 @@ export function describeEventEffect(
 export function EventEffectPreview({ intent, walletName, fallbackText }: EventEffectPreviewProps) {
   const lines = useMemo(() => describeEventEffect(intent, walletName), [intent, walletName]);
   return (
-    <div className="micro-effect-preview" role="status" aria-live="polite">
+    <div className="micro-effect-preview" role="status">
       <span className="micro-effect-preview-label">بعد الحفظ:</span>
       {lines === null ? (
         <strong>{fallbackText}</strong>

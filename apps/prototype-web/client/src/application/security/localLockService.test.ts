@@ -185,6 +185,39 @@ describe("local lock service (المجموعة ٥ — عقد ٣٧)", () => {
     const right = await lock.disable("4179");
     expect(right.ok).toBe(true);
   });
+  /* R11 Lock Remediation (OD-LOCK-ROLLBACK=A — R11-W1B4-NF-001/002): تراجع
+   * ساعة الجهاز لا ينتج حالة مفتوحة أو أقل حماية أبدًا. */
+  it("locks under a backward device clock instead of staying open forever", async () => {
+    const store = new MemoryLocalStore();
+    let clock = NOW;
+    const lock = new LocalLockService(store, () => clock);
+    await lock.enable("4179", 1);
+    clock = minutesLater(-120); /* الساعة قبل آخر نشاط بساعتين */
+    const rolled = await lock.shouldLockNow();
+    if (!rolled.ok) throw new Error(rolled.message);
+    expect(rolled.value).toBe(true);
+  });
+
+  it("wrong-pin backoff holds under a backward clock without counting or rewriting the record", async () => {
+    const store = new MemoryLocalStore();
+    let clock = NOW;
+    const lock = new LocalLockService(store, () => clock);
+    await lock.enable("4179", 10);
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await lock.unlock("0000");
+    }
+    const before = await store.getLocalSecurity();
+    if (!before.ok) throw new Error(before.message);
+    clock = minutesLater(-15);
+    const throttled = await lock.unlock("0000");
+    if (!throttled.ok) throw new Error(throttled.message);
+    expect(throttled.value.unlocked).toBe(false);
+    expect(throttled.value.failedAttempts).toBe(3);
+    expect(throttled.value.retryInMs).toBeGreaterThan(0);
+    const after = await store.getLocalSecurity();
+    if (!after.ok) throw new Error(after.message);
+    expect(after.value?.lastFailedAt).toBe(before.value?.lastFailedAt);
+  });
 });
 
 /** بصمة مفردة بنفس بناء المسار القديم — لأغراض اختبار الترقية فقط. */

@@ -243,7 +243,7 @@ export default function RecurringExpenseDetail() {
             </Button>
           ) : null}
           {decision?.kind === "cancel-series" ? (
-            <div className="micro-cancel-panel" role="dialog" aria-label="إلغاء تذكير المستقبل">
+            <div className="micro-cancel-panel" role="region" aria-label="إلغاء تذكير المستقبل">
               <p>الإلغاء يوقف التذكير المستقبلي فقط — لا حذف ولا عكس ولا مس للتاريخ المالي، وسببك يُوثَّق.</p>
               <label className="micro-field">
                 <span>سبب الإلغاء</span>
@@ -495,7 +495,7 @@ function OccurrenceRow({
         </div>
       </div>
       {decision?.kind === "snooze" && decision.occurrenceId === occurrence.id ? (
-        <div className="micro-cancel-panel" role="dialog" aria-label="تأجيل انتباه الفترة">
+        <div className="micro-cancel-panel" role="region" aria-label="تأجيل انتباه الفترة">
           <p>التأجيل انتباه فقط — موعد التذكير المجدول لا يتغير، والقرار يُحفظ موثقًا.</p>
           <div className="micro-form-actions">
             <Button
@@ -541,7 +541,7 @@ function OccurrenceRow({
         </div>
       ) : null}
       {decision?.kind === "skip" && decision.occurrenceId === occurrence.id ? (
-        <div className="micro-cancel-panel" role="dialog" aria-label="تخطي الفترة">
+        <div className="micro-cancel-panel" role="region" aria-label="تخطي الفترة">
           <p>التخطي قرار محفوظ لهذه الفترة وحدها — لا يكتب صفرًا ولا حدثًا ولا أي أثر مالي.</p>
           <label className="micro-field">
             <span>سبب التخطي (اختياري، يُوثَّق)</span>

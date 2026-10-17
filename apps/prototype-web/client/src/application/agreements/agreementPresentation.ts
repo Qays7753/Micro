@@ -1,4 +1,10 @@
 /* مبدأ Micro: تعرض هذه الخريطة حالة الاتفاق وفعلًا واحدًا، ولا تستبدل مرحلة Domain بتسمية عرضية. */
+/* R11 W3 / OD-LABEL (2026-10-15): تسمية السعر تُستهلك من مفردة الدومين
+ * الكنونية (fieldLabelAr) لا من نسخة حرفية — المستهلك الوحيد القابل
+ * للترحيل المحايد (طبقة تطبيق؛ حافة تطبيق→دومين قانونية لا تمس R2/R6)؛
+ * «موعد التسليم» بلا مفتاح مطابق في المفردة فتبقى نصًا معلنًا هنا حتى
+ * قرار مالك مستقل (لا توحيد صامتيًا). */
+import { fieldLabelAr } from "@micro-domain/shared/index.js";
 
 export type AgreementPresentationKind =
   "none" | "incomplete" | "review" | "saved" | "execution" | "delivery" | "settled";
@@ -22,7 +28,7 @@ const hasDate = (value: string | null | undefined) => Boolean(value?.trim());
 
 function incompleteAgreement(hasAgreedPrice: boolean, hasDeliveryDate: boolean): AgreementPresentation {
   const missing = [
-    !hasAgreedPrice ? "السعر المتفق عليه" : null,
+    !hasAgreedPrice ? fieldLabelAr("agreedPriceMinor") : null,
     !hasDeliveryDate ? "موعد التسليم" : null,
   ].filter((value): value is string => Boolean(value));
   const missingLabel = missing.length === 2 ? "السعر وموعد التسليم" : missing[0];

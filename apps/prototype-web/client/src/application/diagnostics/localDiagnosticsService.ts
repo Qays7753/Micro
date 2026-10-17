@@ -21,6 +21,10 @@
 import { localSchemaVersion } from "@/storage/local/types";
 import { appIdentity } from "@/application/identity/buildIdentity";
 import { systemClock, type Clock } from "@/application/time/clock";
+import {
+  browserDiagnosticStorage,
+  type DiagnosticStorage,
+} from "@/storage/diagnostics/browserDiagnosticStorage";
 
 export type DiagnosticErrorCode =
   "render_crash" | "pwa_register_failed" | "pwa_update_failed" | "unknown_error";
@@ -36,11 +40,10 @@ export type LocalDiagnosticEntry = {
   safeMessage: string;
 };
 
-/** واجهة تخزين ضيقة قابلة للحقن — الإنتاج localStorage والاختبار كعب. */
-export type DiagnosticStorage = {
-  getItem(key: string): string | null;
-  setItem(key: string, value: string): void;
-};
+/** واجهة تخزين ضيقة قابلة للحقن — منفذ التشخيص مملوك لحد التخزين
+ * (`storage/diagnostics/browserDiagnosticStorage.ts`) ومهايئ الإنتاج مسجل
+ * هناك وحده (R11 ARCH-010): هذه الخدمة لا تعرف المتصفح إطلاقًا. */
+export type { DiagnosticStorage };
 
 const DIAGNOSTICS_STORAGE_KEY = "micro.diagnostics.v1";
 /** حد عدد الإدخالات — حلقة صغيرة تكفي لأحدث الحوادث فقط. */
@@ -171,21 +174,6 @@ export class LocalDiagnosticsService {
   }
 }
 
-function browserDiagnosticStorage(): DiagnosticStorage {
-  const storage = globalThis.localStorage;
-  if (storage === undefined || storage === null) {
-    /* بلا تخزين: سجل يُرمى كتابته بلا انفجار — recordIncident يعيد null. */
-    return {
-      getItem: () => {
-        throw new Error("diagnostics storage unavailable");
-      },
-      setItem: () => {
-        throw new Error("diagnostics storage unavailable");
-      },
-    };
-  }
-  return storage;
-}
-
-/** المفردة للإنتاج — يستعملها ErrorBoundary وregister والنسخ اليدوي فقط. */
+/** المفردة للإنتاج — يستعملها ErrorBoundary وregister والنسخ اليدوي فقط؛
+ * المهايئ المسجل وحده (حد تخزين التشخيص) هو من يلمس المتصفح. */
 export const localDiagnostics = new LocalDiagnosticsService(browserDiagnosticStorage());

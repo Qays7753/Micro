@@ -30,11 +30,6 @@ import {
   deriveExpenseCategorySuggestions,
   normalizeCategoryLabelInput,
 } from "@/application/financial-records";
-import {
-  browserLegacyFormDraftStorage,
-  legacyFinanceDraftKey,
-  migrateLegacyFormDraft,
-} from "@/application/drafts";
 import type { SettleablePayable } from "@/application/finance";
 import type { CrossModelOwnerDuplicate } from "@/application/owner-money";
 /* R7/R6-F17-P03 (2026-10-10): قرار المحرر النقي (سياق المصروف المشترك/
@@ -205,8 +200,19 @@ export default function FinancialEventEditor() {
   const savedRef = useRef(false);
   /* المجموعة ٥: المسح يجي فقط بعد وسخ حقيقي ثم عودة إلى
    * النقاء — لا مسح عند الفتح (يحفظ المسودة لعرض الاسترجاع لا يمسحها) ولا سباق
-   * لقراءة الفتح والترحيل. */
+   * لقراءة الفتح أو أي مسار تراثي متقاعد. */
   const wasDirtyRef = useRef(false);
+  /* RV1 (جولة المراجعة ١ — 2026-10-16): النوع الذي تعبّر عنه الوسخ فعليًا —
+   * المكوّن يبقى مركّبًا عند تغيّر معامل المسار (رجوع/تقدم المتصفح) فكان
+   * وسخ النوع السابق قد يمسح سجل النوع الجديد قبل استقرار قراءته؛ المسح
+   * الآن محصور بالنوع الذي توسّخ فعلًا وحده. */
+  const dirtyTypeRef = useRef<GuidedFinancialEventType | null>(null);
+  /* R11 ARCH-012-NF-002 (موجة المتابعة الموحدة 2026-10-16): حد الترطيب —
+   * الاسترجاع ترطيب للقيم المحفوظة لا تعديل مستخدم؛ الحفظ التلقائي لا
+   * يعمل أثناءه ولا بعده مباشرة، بل يستأنف فقط بعد تعديل حقيقي. كان
+   * الاسترجاع يمسح السجل ثم يعيد حفظه بفعل الوسخ في نافذة مهام دقيقة
+   * يفقد فيها الإغلاق المبكر أو فشل إعادة الحفظ المسودةَ الوحيدة. */
+  const restoringRef = useRef(false);
   const idempotencyKey = useRef(`finance-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`);
   /* المجموعة ١ (مسودة محفوظة): عرض استرجاع عند الفتح فقط — وضع الإنشاء حصريًا. */
   const [draftOffer, setDraftOffer] = useState<EditorDraft | null>(null);
@@ -307,28 +313,15 @@ export default function FinancialEventEditor() {
       active = false;
     };
   }, [recurringExpenses, type, date, dataVersion]);
-  /* المجموعة ٥ (التحصين الكامل): مفتاح الصفحة القديم يُرحَّل مرة واحدة عبر
-   * المهاجئ الضيق (اكتب ← تحقق ← احذف) ثم تصبح القراءة من الحد الموحّد فقط —
-   * لا وصول مباشرًا لتخزين الصفحة في الكود الطبيعي بعد اليوم. */
+  /* المجموعة ٥ (التحصين الكامل): القراءة عند الفتح من حد المسودات العابرة
+   * الموحّد فقط — لا وصول مباشرًا لتخزين الصفحة في الكود الطبيعي.
+   * R11 ARCH-012 (2026-10-15): ترحيل مفتاح الصفحة القديم تقاعد قبل
+   * الإطلاق بقرار مالك موثق (r11-arch012-20261015) — القراءة الحية
+   * وحدها تبقى هنا. */
   useEffect(() => {
     if (!type) return;
     let active = true;
-    const storage = browserLegacyFormDraftStorage();
     void (async () => {
-      if (storage !== null) {
-        await migrateLegacyFormDraft({
-          service: formDrafts,
-          storage,
-          legacyKey: legacyFinanceDraftKey(type),
-          formKind: "finance_event",
-          scopeId: type,
-          parse: raw => {
-            const coerced = coerceEditorDraft(raw);
-            return coerced === null ? null : { ...coerced };
-          },
-        });
-      }
-      if (!active) return;
       const result = await formDrafts.read("finance_event", type);
       if (!active || !result.ok || result.value === null) return;
       /* AV-09: الإكراه الدفاعي يبقى على القيم المقروءة كما كان — القيم غير
@@ -379,8 +372,12 @@ export default function FinancialEventEditor() {
    * النافذة هبطت قبلها فلا يُعرض كفشل. */
   useEffect(() => {
     if (!type || savedRef.current) return;
+    /* NF-002: أثناء الترطيب (تطبيق قيم الاسترجاع) لا حفظ ولا مسح —
+     * السجل يحمل هذه القيم سلفًا؛ الاستئناف بعد تعديل حقيقي فقط. */
+    if (restoringRef.current) return;
     if (isDirty) {
       wasDirtyRef.current = true;
+      dirtyTypeRef.current = type;
       void formDrafts
         .save("finance_event", type, {
           amountMinor,
@@ -405,8 +402,14 @@ export default function FinancialEventEditor() {
         });
     } else if (wasDirtyRef.current) {
       wasDirtyRef.current = false;
-      setDraftSaveFailed(false);
-      void formDrafts.discard("finance_event", type);
+      /* RV1: مسح العودة إلى النقاء لا يجوز أن يمسح إلا سجل النوع الذي توسّخ
+       * فعلًا — سجل نوع آخر (كتغيّر مسار على مكوّن مركّب) لا يُمسح قبل
+       * استقرار قراءته أبدًا. */
+      if (dirtyTypeRef.current === type) {
+        setDraftSaveFailed(false);
+        void formDrafts.discard("finance_event", type);
+      }
+      dirtyTypeRef.current = null;
     }
   }, [
     type,
@@ -515,7 +518,14 @@ export default function FinancialEventEditor() {
       setWalletId(draftOffer.walletId);
     }
     setDraftOffer(null);
-    clearDraft();
+    /* NF-002 (موجة المتابعة الموحدة 2026-10-16): لا مسح هنا — السجل يحمل
+     * القيم المسترجعة نفسها فلا نافذة «مسح ثم إعادة حفظ» بعد الآن؛
+     * حد الترطيب يمنع أثر الوسخ من تصنيف الاسترجاع تعديلًا مستخدمًا،
+     * ويُرفع بعد استقرار الالتزام فيستأنف الحفظ عند أول تعديل حقيقي. */
+    restoringRef.current = true;
+    globalThis.setTimeout(() => {
+      restoringRef.current = false;
+    }, 0);
   }
   function discardDraft() {
     setDraftOffer(null);

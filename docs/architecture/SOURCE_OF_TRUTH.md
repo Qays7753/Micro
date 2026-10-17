@@ -14,7 +14,7 @@
 
 | Concept | Defined in (authoritative) | Consumed by | Never defined in |
 |---|---|---|---|
-| Current runtime palette (18 values + disclosed derivatives; pending V2 mapping) | `Documents/main micro-standard-v2/design-tokens.css` — **مصدر خارج المستودع** (W4-A/F-040: قرار D-12 معلّق لتثبيت الموقع أو نسخة مرجعية بـSHA؛ حتى حسمه يُعامل هذا الصف كإحالة موثقة لا ملفًا مقروءًا داخل المستودع) | `styles/vf-tokens.css` (the only bridge) | pages, components, index.css |
+| Current runtime palette (18 values + disclosed derivatives; pending V2 mapping) | `Documents/main micro-standard-v2/design-tokens.css` — **مصدر خارج المستودع المثبت بSHA** (D-12/F-040 أُغلق بالدليل 2026-10-16: الرأس `Qays7753/Documents@main` = `2396ff09fa52bb7872ae40c10adfc86ee7a0808d`، blob الملف `de64f4fe0b2e5b75045e9e54d562c5aa6b85a756`، آخر التزام لامس `12504582c0c19e2b0ea621a8caf45146410f12df` — القياس الكامل وسلّم السلطة في `docs/architecture/refactoring/r11-unified-followup-20261016/evidence/D12-F040-STANDARD-SOURCE-CLOSURE-2026-10-16.md`) | `styles/vf-tokens.css` (the only bridge) | pages, components, index.css |
 | Approved **new visual direction** (not yet production tokens) | Bold Modular V2 `DESIGN-DECISIONS-V2.md` and `COLOR-STANDARD-V2.md` at the revision above | V2-to-Micro read-only mapping, then authorized changes through existing layers | the current palette, legacy screenshots, or studio JSX/CSS copied into Micro |
 | `--vf-*` runtime tokens + action-class bindings | `styles/vf-tokens.css` | `index.css` `:root` aliases, `styles/primitives.css`, all surfaces | any other CSS or TSX |
 | Legacy Micro names (`--primary`, `--color-*`) | `index.css` `:root` — bound to `var(--vf-*)` aliases | legacy CSS rules still live in `index.css` | new code (use `--vf-*` or primitives) |

@@ -1,0 +1,61 @@
+{
+ "id": "WS-220",
+ "title": "R11 متابعة — Phase 1: ARCH-010 حارس Diagnostics Storage المخصص (R11-W1A-NF-001) بإحصاء web-storage كامل وحد جذري مسجل البنود",
+ "status": "SUPERSEDED",
+ "items": [
+  "ARCH-010"
+ ],
+ "branch": "security/r11-lock-fail-closed-20261015",
+ "base_sha": "f3fd8cc78352d23d6762f4c5828daffc11a3dcb4",
+ "areas": [
+  "apps/prototype-web/client/src/application/diagnostics",
+  "apps/prototype-web/client/src/storage/diagnostics",
+  "scripts",
+  "docs/quality",
+  "docs/operations",
+  "docs/architecture/refactoring"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
+  "docs/operations/control/items/ARCH-010.json",
+  "docs/quality/security-boundaries.md",
+  "docs/quality/persistent-entity-touchpoints.json"
+ ],
+ "agent": "ZAI sequential executor (one writer; five read-only reviewers RV1-RV5 at the end of the whole continuation program)",
+ "pr": 368,
+ "started_at": "2026-10-15",
+ "updated_at": "2026-10-15",
+ "next_action": "مستوعَب في WS-219 (مالك برنامج المتابعة على نفس الفرع/PR #368) — نموذج الحوكمة يقضي بمسار Claim واحد نشط للبرنامج؛ كل أدلة ARCH-010 في البند وتقرير الموجة كما هي.",
+ "notes": [
+  "Claim أُنشئ قبل أي تعديل كود وفق AGENTS.md §14؛ لا تداخل مع Claim نشط (WS-219 على نفس الفرع/PR لكن مساحة ARCH-011 مؤمَّنة IN_REVIEW ومكتملة التنفيذ — لا تداخل مساحات).",
+  "المحفز هو قرار المالك المباشر عبر عقد المتابعة الموحد المثبت على 3fd10015 (PR #368 نفسه) الذي يفتح Phase 1 = ARCH-010 صراحة، بدل انتظار قرار جدولة مستقل — البند كان BACKLOG بانتظار هذا المحفز بالضبط.",
+  "الإحصاء (قبل أي كتابة كما يشترط البند): 232 مطابقة عبر 90 ملفًا؛ موضعا إنتاج مباشران فقط لتخزين المتصفح خارج طبقة التخزين: localDiagnosticsService.ts (المكتشف الأصلي R11-W1A-NF-001) وlegacyFormDraftMigration.ts (مكتشف جديد — DEEPENS، يسجل بمعرف مستقل وقرار مالك).",
+  "حدود صارمة: لا توجيه للتشخيص عبر PrototypeLocalStore أو منفذ التخزين المالية/المحلية أو التصدير/الاستيراد (قرار العقد)؛ لا تغيير سلوك التشخيص القائم (لا رمي، لا شبكة، لا رفع، لا بيانات حساسة)؛ لا تغيير Schema 38/Export 30/Legacy/Transfer/مالي/تاريخي؛ لا رفع سقوف.",
+  "حد الاستعادة: التزام الحارس واختباراته والمهايئ الجديد قائم بذاته — عكسه يعيد الشكل السابق بلا ترحيلة بيانات."
+ ],
+ "migration_baseline": false,
+ "evidence": [
+  "docs/architecture/refactoring/r11-arch010-20261015/"
+ ],
+ "status_history": [
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "تنفيذ الحد الجذري جارٍ على الفرع (المهايئ + الحارس + الاختبارات + الوثائق)؛ الإحصاء مكتمل وموثق في دليل الموجة قبل أي كتابة."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "تنفيذ المرحلة والبوابة والسجلات مكتملة على PR #368: الإحصاء (232/90) ثم الحد الجذري والحارس واختباراته الخصومية والوثائق والتقرير؛ المراجعات الخمس تُجرى على الـPR كاملًا في نهاية البرنامج وفق عقد المتابعة §15."
+  },
+  {
+   "status": "SUPERSEDED",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "استيعاب في WS-219: برنامج المتابعة الموحد يعمل على نفس الفرع والـPR (#368) الذي يملكه WS-219 أصلًا، والتحقق يمنع تزامن Workstreams نشطة متداخلة المساحات؛ كل أدلة الموجة محفوظة في البند ARCH-011/ARCH-010 وتقارير الموجات — لا حذف ولا إعادة كتابة تاريخ."
+  }
+ ]
+}

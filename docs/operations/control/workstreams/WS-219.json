@@ -1,0 +1,90 @@
+{
+ "id": "WS-219",
+ "title": "تنفيذ R11 Lock Remediation ثم برنامج المتابعة الموحد — كل موجات R11 المتبقية المعتمدة على نفس الفرع/PR #368",
+ "status": "VERIFIED",
+ "items": [
+  "ARCH-011",
+  "ARCH-010",
+  "ARCH-012",
+  "ARCH-013"
+ ],
+ "branch": "security/r11-lock-fail-closed-20261015",
+ "base_sha": "9303ea445cc4f3ee87d7a4514e3e9d47d608d339",
+ "areas": [
+  "apps/prototype-web/client/src/application/security",
+  "apps/prototype-web/client/src/components/security",
+  "apps/prototype-web/client/src/application/diagnostics",
+  "apps/prototype-web/client/src/storage/diagnostics",
+  "apps/prototype-web/client/src/application/transfers",
+  "scripts",
+  "docs/contracts",
+  "docs/quality",
+  "docs/operations",
+  "docs/architecture"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/contracts/37-local-app-lock-contract.md",
+  "docs/architecture/refactoring/r11-continuation-20261015/R11-CONTINUE-ALL-REMAINING-WAVES-SAME-PR-2026-10-15.md",
+  "docs/architecture/refactoring/r11-s0-w1a-20261013/R11-OWNER-DECISION-PACKAGE-2026-10-13.md",
+  "docs/quality/security-boundaries.md"
+ ],
+ "agent": "ZAI sequential executor (one writer; five read-only reviewers RV1-RV5 after implementation before final readiness)",
+ "pr": 368,
+ "started_at": "2026-10-15",
+ "updated_at": "2026-10-15",
+ "next_action": "مغلق: PR #368 دُمج في main عند f221a0127e634eafc1be01047247136fb1829835 (merge commit) وتحقق ما بعد الدمج مباشر على الرأس نفسه (فحص checks SUCCESS وCloudflare Pages SUCCESS — تحقق API 2026-10-15). ARCH-012 (الاستثناء التراثي للنماذج) انتقل بقرار مالك إلى Claim مستقل WS-221 على فرع مستقل من الأساس نفسه؛ والتنسيق المتبقي (تقديم حالات بند ARCH-011 بعد الدمج) يتبع مسار OC المعتاد.",
+ "notes": [
+  "Claim أُنشئ قبل أي تعديل وفق AGENTS.md §14؛ لا تداخل مع أي Claim نشط (0 active claims عند الإنشاء).",
+  "العقد الرسمي المثبت هو الرأس 6733ba34637d47986050ecf955efd8cd413b3f5e على فرع docs/r11-lock-fail-closed-prompt-20261015 (PR #367 المفتوح)؛ تحقق ZAI من مطابقته بالمطابقة الحرفية قبل التنفيذ.",
+  "خط الأساس الحي تحقق منه مباشرة: origin/main = 9303ea445cc4f3ee87d7a4514e3e9d47d608d339 مطابقًا لتلميح العقد تمامًا (PR #366 مدموج عنده)؛ لا انحراف.",
+  "حدود صارمة: لا كتابة مباشرة على main، لا دمج، لا حذف فروع، لا force-push، لا ARCH-010 ولا W2a/W2b، لا تغيير مالي/تاريخي/Schema 38/Export 30/Legacy/goldens/أسبقية رفض/UI بصري؛ لا رفع سقوف (lint 37 / raw 650000 / gzip 155300).",
+  "قرارات المالك المنفذة حرفيًا: OD-LOCK-ROLLBACK=A وOD-LOCK-STORAGE=A وOD-LOCK-SEMANTICS=A كما وردت في القسم ٣ من العقد.",
+  "توسيع مؤرخ (2026-10-15 — عقد المتابعة الموحد): هذا الـWorkstream هو ملك الـPR #368 نفسه، فامتد معه ليشمل برنامج المتابعة كاملًا (ARCH-010 مكتملة؛ ARCH-013 مكتملة توصيفيًا؛ ARCH-012 بقرار مالك معلق)؛ WS-220 استُوعب هنا وسُد (SUPERSEDED) لا حذف — نموذج Claim واحد نشط للبرنامج الواحد على الفرع الواحد.",
+  "بوابات محمية: W2b معلقة على حمولة خطأ معتمدة (رمز + نص عربي)؛ W5 trigger-gated؛ لا دمج ولا تنظيف قبل قرار المالك.",
+  "إغلاق مؤرخ (2026-10-15 — أثناء فتح Claim ‏ARCH-012/WS-221): دمج PR #368 تحقق حيًا عبر API (state=closed, merged=true, merge_commit_sha=f221a0127e634eafc1be01047247136fb1829835، الرأس 58c3e3b8) وفحصا الرأس على main (checks وCloudflare Pages) SUCCESS — شرط VERIFIED مثبت بالدليل المباشر؛ تقدم الحالة عبر MERGED_UNVERIFIED إلى VERIFIED في نفس اليوم. نطاق هذا الـWorkstream ينتهي هنا: ARCH-012 كانت ضمن بنوده بوصفها بوابة قرار مالك فقط (لم تُنفذ فيه أبدًا — NO_ARCH012_CODE_WRITTEN على PR #368)، وقد صدر قرار المالك بتنفيذها، فانتقلت إلى WS-221 بملكية بند نظيفة بلا تداخل Claims نشطة."
+ ],
+ "status_history": [
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "فتح Claim تنفيذي لموجة إصلاح القفل المعتمدة؛ الفرع security/r11-lock-fail-closed-20261015 منشأ من origin/main الحي 9303ea44 بعد التحقق من خط الأساس والمدقق (Operations Control valid و0 active claims)."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "test-first ثم الإصلاح الجذري منفذان (الخدمة + البوابة)؛ العقد ٣٧ ومرجع حدود الأمن محدّثان؛ البوابة الكاملة والمراجعات الخمسة والتقرير الرسمي تلي على الرأس النهائي."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "كل التزامات الموجة على PR #368: test-first ثم الإصلاح الجذري للنتائج الأربع، واستيعاب الميزانية بالنقل الكسول داخل الحد المسموح (المدخل أصغر من الأساس)، والبوابة الكاملة 17/17 على الرأس 469aba03، والمراجعات الخمسة مع مصالحة المُصنِّف، والسجلات والتقرير الرسمي — PR_READY؛ الدمج قرار مالك."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "PR #368 دُمج في main (merge commit f221a0127e634eafc1be01047247136fb1829835)؛ التحقق ما بعد الدمج قيد الإثبات المباشر على الرأس."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "تحقق ما بعد الدمج مباشر على main عند f221a0127e: فحص checks SUCCESS (run على رأس الدمج) وCloudflare Pages SUCCESS — مثبت بتحقق API قراءة فقط 2026-10-15 أثناء فتح Claim ‏ARCH-012/WS-221 (الشرط المطلوب لإخلاء الملكية النشطة قبل الـClaim الجديد)."
+  }
+ ],
+ "migration_baseline": false,
+ "evidence": [
+  "docs/architecture/refactoring/r11-lock-fail-closed-20261015/R11-LOCK-FAIL-CLOSED-EXECUTION-REPORT-2026-10-15.md",
+  "docs/architecture/refactoring/r11-lock-fail-closed-20261015/R11-LOCK-FIVE-REVIEWER-RECORD-2026-10-15.md",
+  "docs/architecture/refactoring/r11-lock-fail-closed-20261015/R11-LOCK-OWNER-DECISION-ADDENDUM-2026-10-15.md",
+  "docs/architecture/refactoring/r11-arch010-20261015/R11-ARCH010-EXECUTION-REPORT-2026-10-15.md",
+  "docs/architecture/refactoring/r11-w2a-20261015/R11-W2A-CORPUS-MATRIX-AND-EVIDENCE-2026-10-15.md",
+  "docs/operations/current-state-log.md"
+ ],
+ "merge_sha": "f221a0127e634eafc1be01047247136fb1829835",
+ "verified_on_main_sha": "f221a0127e634eafc1be01047247136fb1829835"
+}

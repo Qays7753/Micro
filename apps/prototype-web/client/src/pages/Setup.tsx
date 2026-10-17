@@ -5,14 +5,9 @@
  */
 /* مبدأ Micro: توحيد اسم العملة في البداية عرضي، ولا يغيّر القيمة الداخلية أو حدود الحفظ المحلي. */
 import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import {
-  browserLegacyFormDraftStorage,
-  LEGACY_SETUP_DRAFT_KEY,
-  migrateLegacyFormDraft,
-} from "@/application/drafts";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 
 import { Button } from "@/components/primitives";
@@ -24,8 +19,8 @@ type OpeningChoice = "known" | "unknown" | "zero";
  * حتى تأكيد المالك؛ استرجاع آمن: بيانات معطوبة تُتجاهل بلا انفجار؛ والمسودة تمحى بعد
  * الإتمام أو إعادة التعيين الصريحة. */
 /* المجموعة ٥ (التحصين الكامل): المسودة داخل حد المسودات العابرة
- * الموحّد (نوع setup) — مفتاحها القديم يُرحّل مرة واحدة (اكتب ← تحقق ← احذف)،
- * والاستعادة فعلٌ صريح من المالك — لا تطبيق صامت عند الفتح بعد اليوم. */
+ * الموحّد (نوع setup) — لا قراءة للمفتاح التراثي بعد تقاعد الترحيل بقرار
+ * ARCH-012، والاستعادة فعلٌ صريح من المالك — لا تطبيق صامت عند الفتح. */
 type SetupDraft = {
   step: Step;
   activityName: string;
@@ -34,8 +29,8 @@ type SetupDraft = {
   openingMinor: number;
   savedAt: string;
 };
-/* الإكراه الدفاعي نفسه (قواعد U-003) — أي مصدر للقيم
- * (مفتاح قديم مرحّل أو قيم مقروءة من الحد) يمر من هنا لا مباشرة. */
+/* الإكراه الدفاعي نفسه (قواعد U-003) — كل قيم المسودة المقروءة من الحد
+ * الموحّد تمر من هنا قبل عرضها، ولا يوجد مسار تراثي موازٍ. */
 function coerceSetupDraft(raw: unknown): SetupDraft | null {
   if (typeof raw !== "object" || raw === null) return null;
   const candidate = raw as Partial<SetupDraft>;
@@ -81,42 +76,55 @@ export default function Setup() {
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   /* U-003 + المجموعة ٥: القراءة عند الفتح تعرض استعادة صريحة — لا
-   * تطبيق للقيم إلا بفعل المالك؛ ومفتاح الصفحة
-   * القديم يُرحّل مرة واحدة قبل القراءة. */
+   * تطبيق للقيم إلا بفعل المالك؛ والقراءة من حد المسودات العابرة
+   * الموحّد وحده.
+   * R11 ARCH-012 (2026-10-15): ترحيل مفتاح الصفحة القديم تقاعد قبل
+   * الإطلاق بقرار مالك موثق (r11-arch012-20261015) — القراءة الحية
+   * وحدها تبقى هنا.
+   * R11 ARCH-012-NF-001 (موجة المتابعة الموحدة 2026-10-16): دورة حياة
+   * صريحة خالية من السباق — أثر الحفظ/المسح كان يعمل عند الفتح بنموذج
+   * فارغ قبل استقرار قراءة المسودة فيمسح السجل المحفوظ حتى والعرض
+   * قائمًا، وإغلاق التبويب قبل القرار كان يفقد المسودة. الآن: لا كتابة
+   * ولا مسح قبل استقرار القراءة، ولا مسح والعرض قائم أو الحالة مجهولة
+   * (فشل قراءة)، والمسح الفارغ مرة واحدة عند الانتقال الحقيقي←الفارغ
+   * فقط — سلوك القرار الصريح والحد الموحّد كما هما. */
   const [draftOffer, setDraftOffer] = useState<SetupDraft | null>(null);
   const [draftSaveFailed, setDraftSaveFailed] = useState(false);
+  /* بوابة الاستقرار: تحجز أثر الحفظ/المسح كله حتى تستقر قراءة الفتح —
+   * هي التي تغلق نافذة السباق (كان المسح الفارغ الابتدائي يسبق القراءة). */
+  const [draftReadSettled, setDraftReadSettled] = useState(false);
+  /* أمان المسح: لا يمسح المسودة الفارغة إلا بعد قراءة مستقرة ناجحة أو
+   * حفظ ناجح في هذه الجلسة — فشل القراءة يبقي الحالة مجهولة فلا مسح
+   * أعمى لسجل لا نستطيع قراءته. */
+  const draftClearSafe = useRef(false);
+  /* المسح عند العودة إلى الفراغ مرة واحدة بالضبط لكل دورة إدخال حقيقي. */
+  const hadRealInput = useRef(false);
   useEffect(() => {
     let active = true;
-    const storage = browserLegacyFormDraftStorage();
     void (async () => {
-      if (storage !== null) {
-        await migrateLegacyFormDraft({
-          service: formDrafts,
-          storage,
-          legacyKey: LEGACY_SETUP_DRAFT_KEY,
-          formKind: "setup",
-          scopeId: null,
-          parse: raw => {
-            const coerced = coerceSetupDraft(raw);
-            return coerced === null ? null : { ...coerced };
-          },
-        });
-      }
-      if (!active) return;
       const result = await formDrafts.read("setup", null);
-      if (!active || !result.ok || result.value === null) return;
-      const coerced = coerceSetupDraft(result.value.values);
-      if (coerced !== null && hasRealSetupInput(coerced)) setDraftOffer(coerced);
+      if (!active) return;
+      if (result.ok) {
+        draftClearSafe.current = true;
+        if (result.value !== null) {
+          const coerced = coerceSetupDraft(result.value.values);
+          if (coerced !== null && hasRealSetupInput(coerced)) setDraftOffer(coerced);
+        }
+      }
+      setDraftReadSettled(true);
     })();
     return () => {
       active = false;
     };
   }, [formDrafts]);
   /* U-003: كل تغير حقيقي يحفظ المسودة فورًا — كتابة صغيرة محلية بلا أثر
-   * مالي؛ المسودة الفارغة من الإدخال الحقيقي لا تُنشأ أصلًا (وطلم
-   * الواجهة) والمسح يستقر إلى مصيره الصريح وحده. */
+   * مالي؛ المسودة الفارغة من الإدخال الحقيقي لا تُنشأ أصلًا، ومسح ما
+   * أنشأته الجلسة يستقر إلى مصيره الصريح وحده. */
   const offerPending = draftOffer !== null;
   useEffect(() => {
+    /* NF-001: لا كتابة (حفظًا أو مسحًا) قبل استقرار قراءة الفتح، ولا
+     * كتابة والعرض قائم — القرار الصريح وحده يحرك السجل. */
+    if (!draftReadSettled) return;
     if (offerPending) return;
     const values = {
       step,
@@ -129,13 +137,27 @@ export default function Setup() {
     const real = hasRealSetupInput(values);
     if (!real) {
       setDraftSaveFailed(false);
-      void formDrafts.discard("setup", null);
+      if (hadRealInput.current && draftClearSafe.current) {
+        hadRealInput.current = false;
+        void formDrafts.discard("setup", null);
+      }
       return;
     }
+    hadRealInput.current = true;
     void formDrafts.save("setup", null, { ...values }).then(result => {
+      if (result.ok) draftClearSafe.current = true;
       setDraftSaveFailed(result.ok === false && result.code !== "conflict");
     });
-  }, [step, activityName, walletName, openingChoice, openingMinor, offerPending, formDrafts]);
+  }, [
+    step,
+    activityName,
+    walletName,
+    openingChoice,
+    openingMinor,
+    offerPending,
+    draftReadSettled,
+    formDrafts,
+  ]);
   /* إدخال جديد قبل حل عرض الاستعادة: الإدخال الجديد هو
    * الأساس — يُخفى العرض وتُدار المسودة بقيم المستخدم (نفس
    * دلالة محرر الأحداث). */

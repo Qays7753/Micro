@@ -8,14 +8,12 @@
  * الإقلاع (بروتوكول FIN-001/OPS-003 للميزانية)؛ توثيقه في سجل الملكية.
  * الأنواع أعيد تصديرها `export type` والقيم `export` — شرط أمان الاستيراد
  * الديناميكي للباب (مدخل الشظية يحتاج جدول تصدير حاضرًا في زمن التشغيل).
+ *
+ * R11 ARCH-012 (2026-10-15 — تقاعد مؤرخ قبل الإطلاق): صادرات مهايئ
+ * المفاتيح التراثية (legacyFormDraftMigration) أزيلت بعد إثبات الإحصاء
+ * أن لا عقدًا مدعومًا يعتمدها — القرار والإثبات في
+ * r11-arch012-20261015/evidence/ دليل الإحصاء. سطح القيم صار فارغًا
+ * (الأنواع وحدها تبقى) — إرساء الأساس الموثق بنفس الـPR.
  */
 
 export type { FormDraftService, FormDraftValues } from "./formDraftService";
-
-export {
-  LEGACY_SETUP_DRAFT_KEY,
-  browserLegacyFormDraftStorage,
-  clearLegacyFormDraftStorage,
-  legacyFinanceDraftKey,
-  migrateLegacyFormDraft,
-} from "./legacyFormDraftMigration";

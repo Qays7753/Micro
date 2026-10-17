@@ -20,6 +20,7 @@ import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { LockSettingsCard } from "@/components/security/LockSettingsCard";
 import { DataActionPinGate } from "@/components/security/DataActionPinGate";
+import { useOverlayFocusContract } from "@/components/security/overlayFocusContract";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
@@ -32,7 +33,6 @@ import { useTheme } from "@/contexts/ThemeContext";
 import type { BrowserPersistenceReading } from "@/application/preferences";
 import type { OperatingWorkMode, LocalExportFile } from "@/storage/local/types";
 import { localDiagnostics } from "@/application/diagnostics";
-import { browserLegacyFormDraftStorage, clearLegacyFormDraftStorage } from "@/application/drafts";
 
 import { SettingsDataProtectionSection } from "@/components/settings/SettingsDataProtectionSection";
 import {
@@ -391,11 +391,13 @@ export default function SettingsPage() {
       return;
     }
     /* S5-03 + المجموعة ٥ (التحصين الكامل): سياسة المسودات المعلنة بعد نجاح التصفير
-     * فقط — تُمسح مسودات النماذج والإعداد العابرة ومفاتيحها القديمة؛ ويبقى سجل
+     * فقط — تُمسح مسودات النماذج والإعداد العابرة؛ ويبقى سجل
      * القفل المحلي كما هو (الحماية لا تُمسح بصامت). فشل مسح المسودات
-     * يُعلن صادقًا ولا يرد التصفير. */
-    const storage = browserLegacyFormDraftStorage();
-    if (storage !== null) clearLegacyFormDraftStorage(storage);
+     * يُعلن صادقًا ولا يرد التصفير.
+     * R11 ARCH-012 (2026-10-15): مسح مفاتيح النظام القديم تقاعد مع
+     * مهايئه التراثي بقرار مالك موثق (r11-arch012-20261015) — المفاتيح
+     * المتروكة في المتصفح تصير خاملة لا تُقرأ أبدًا، ولا مسح تخزين
+     * تخريبي وقت التشغيل (ممنوع بالعقد). */
     const cleared = await formDrafts.clearAll();
     setResetFlow({ phase: "done" });
     notifyDataChanged();
@@ -686,25 +688,11 @@ export default function SettingsPage() {
 
       <SettingsAppearanceSection theme={theme} toggleTheme={toggleTheme} />
       {protectionBlocked ? (
-        <div
-          className="micro-lock-overlay"
-          role="alertdialog"
-          aria-modal="true"
-          aria-label={protectionBlocked.title}
-        >
-          <ShieldAlert aria-hidden="true" className="micro-lock-icon" />
-          <h1>{protectionBlocked.title}</h1>
-          <p>{protectionBlocked.message}</p>
-          <div className="micro-lock-form">
-            <Button
-              action="secondary"
-
-              onClick={() => setProtectionBlocked(null)}
-            >
-              حسنًا
-            </Button>
-          </div>
-        </div>
+        <ProtectionBlockedOverlay
+          title={protectionBlocked.title}
+          message={protectionBlocked.message}
+          onAcknowledge={() => setProtectionBlocked(null)}
+        />
       ) : null}
       {gatedAction ? (
         <DataActionPinGate
@@ -724,5 +712,45 @@ export default function SettingsPage() {
         />
       ) : null}
     </section>
+  );
+}
+
+/* R11 W4 / D-14 (OD-A11Y — 2026-10-15): غطاء الحجب التدميري — مكوّن مالك
+ * لعقد التركيز (يُركّب مع الغطاء فيعمل المساعد عند الفتح فعلًا): ستار +
+ * focus-in + احتواء Tab + Escape=حسنًا + استعادة لمُشغّل الفتح. دلالات
+ * وتركيز فقط — لا تغيير بصري ولا منطق حماية (نفس النمط الذهبي
+ * AppLockGate/UnsavedChangesGuard). */
+function ProtectionBlockedOverlay({
+  title,
+  message,
+  onAcknowledge,
+}: {
+  title: string;
+  message: string;
+  onAcknowledge: () => void;
+}) {
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  useOverlayFocusContract(overlayRef, onAcknowledge);
+  return (
+    <>
+      <div aria-hidden="true" className="micro-lock-veil" />
+      <div
+        ref={overlayRef}
+        tabIndex={-1}
+        className="micro-lock-overlay"
+        role="alertdialog"
+        aria-modal="true"
+        aria-label={title}
+      >
+        <ShieldAlert aria-hidden="true" className="micro-lock-icon" />
+        <h1>{title}</h1>
+        <p>{message}</p>
+        <div className="micro-lock-form">
+          <Button action="secondary" onClick={onAcknowledge}>
+            حسنًا
+          </Button>
+        </div>
+      </div>
+    </>
   );
 }

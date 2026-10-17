@@ -75,7 +75,7 @@ export default function CashTransferEditor() {
   }
   if (loading)
     return (
-      <div className="micro-route-loading" role="status" aria-live="polite">
+      <div className="micro-route-loading" role="status">
         جارٍ قراءة محافظ الكاش…
       </div>
     );

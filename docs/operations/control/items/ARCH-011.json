@@ -1,0 +1,116 @@
+{
+ "id": "ARCH-011",
+ "title": "R11 Lock Remediation — إصلاح فاشل-مغلق للقفل المحلي: R11-W1B4-NF-001..004 (ساعة خلفية ضد خمول القفل ووقفة التخمين، فشل قراءة التخزين عند البوابة، وعقد خمول الإدخال الفعلي)",
+ "type": "GOVERNANCE",
+ "status": "VERIFIED",
+ "priority": "P0",
+ "stage": "r11-lock-fail-closed-20261015",
+ "summary": "تنفيذ الإصلاح الجذري المعتمد من المالك لموجة القفل المحلي الفاشل-المغلق وفق العقد الرسمي المثبت (R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15.md عبر PR #367 المفتوح على الرأس 6733ba34): (NF-001) سياسة زمن صريحة فاشلة-الإغلاق في shouldLockNow — ساعة الجهاز قبل lastActiveAt أو طابع زمني غير قابل للتحليل يقفل لا أن يبقي مفتوحًا إلى أجل غير مسمى؛ (NF-002) نفس السياسة في وقفة التخمين الخاطئ داخل unlock وdisable — الساعة قبل lastFailedAt تُرفض مبكرًا بكامل الوقفة بلا زيادة عدّاد ولا كتابة سجل ولا تخمين منفَّذ، والفحص يُرفع قبل التحقيق ليكون الرفض حقيقيًا؛ (NF-003) نموذج حالات البوابة يفصل checking/open/locked/unreadable — فشل قراءة التخزين لا يفتح أبدًا: المحتوى المحمي خامل غير قابل للتفاعل أو التركيز أثناء checking وunreadable مع غطاء خطأ صادق قابل للاستعادة داخل اللغة البصرية القائمة بلا إعادة تصميم؛ (NF-004) عقد الخمول بالمصدر الحقيقي «إدخال المستخدم الفعلي»: النبض والظهور والتقييم وحدهما لا يجددان النشاط — الإدخال الفعلي (لمس/مفاتيح/عجلة) وحده يجدد، والتطبيق الظاهر بلا إدخال يقفل بعد autoLockMinutes، مع بقاء الغطاء فوق المحتوى المحمّل والإخفاء/الظهور والقفل/الفتح المتكرر حتميين. قرارات المالك المنفذة: OD-LOCK-ROLLBACK=A وOD-LOCK-STORAGE=A وOD-LOCK-SEMANTICS=A. لا ARCH-010 (نطاق متابعة منفصل) ولا W2a/W2b (بوابة مالك مستقلة) ولا أي تغيير مالي/تاريخي/مخطط 38/تصدير 30/إرث/Transfer/أسبقية رفض/UI بصري.",
+ "finding_classification": "NOT_APPLICABLE",
+ "finding_state": "NOT_APPLICABLE",
+ "classification": "HARDENING",
+ "gate_classification": "NOT_APPLICABLE",
+ "root_cause": "أربعة عيوب جذرية وُصفت في W1b-4 وبقيت عمدًا بلا ترقيع بقرار المالك، ثم اعتُمد إصلاحها كموجة أمنية منفصلة: (1) shouldLockNow يحسب فارقًا موقّعًا فالساعة الخلفية تجعله سالبًا فلا يبلغ العتبة أبدًا؛ (2) شرط elapsed >= 0 في وقفة التخمين يجعل الساعة الخلفية تتجاوز الرفض المبكر وتعيد إرساء lastFailedAt إلى الوراء فتتسارع التخمينات؛ (3) البوابة تفتح عند !status.ok أو !shouldLockNow.ok ففشل قراءة سجل القفل يفتح التطبيق بلا غطاء، والمحتوى تفاعلي أثناء checking؛ (4) النبض يلمس النشاط عند كل تقييم مفتوح مع قيمة بدء مزيفة لآخر إدخال = الآن، فيجدد الخمول إلى أجل غير مسمى للتطبيق الظاهر بلا إدخال — عكس تعليق SP-03 وعكس عقد ٣٧ مبدأ ٣ «خمول بإدخال فعلي».",
+ "owner": "Micro owner (Qays7753)",
+ "owner_decision": "OD-LOCK-ROLLBACK = A (فاشل-مغلق ضد تراجع الساعة في الخمول والوقفة معًا)؛ OD-LOCK-STORAGE = A (فصل القراءة الناجحة بلا قفل/بقفل عن فشل القراءة؛ الفشل لا يفتح أبدًا)؛ OD-LOCK-SEMANTICS = A (الخمول بإدخال المستخدم الفعلي — لا الظهور ولا التقييم يجددان النشاط) — العقد الرسمي: R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15.md (الرأس 6733ba34 عبر PR #367).",
+ "tests_required": [
+  "خدمة: خمول بساعة خلفية يقفل (NF-001) — أمامية/خلفية/حافة العتبة بالضبط/طابع مفقود/طابع تالف/دورات متكررة",
+  "خدمة: وقفة بساعة خلفية تُرفض مبكرًا بكامل الوقفة بلا زيادة عدّاد ولا كتابة، في unlock وdisable معًا (NF-002)، والصحيح بعد انقضاء النافذة يعمل",
+  "بوابة: فشل قراءة التخزين لا يفتح — حالة unreadable بغطاء صادق وزر إعادة محاولة، بلا تفاعل/تركيز على الأبناء وبلا أي كتابة بيانات (NF-003)",
+  "بوابة: حالة checking الابتدائية تخمل الأبناء (inert) ولا تكشفهم تفاعليًا",
+  "بوابة: قراءة ناجحة بلا قفل تفتح طبيعيًا؛ قفل مفعّل مع صحيح/خاطئ كما هو",
+  "بوابة: إدخال فعلي حديث يبقي الجلسة حية؛ بلا إدخال بعد autoLockMinutes يقفل التطبيق الظاهر (NF-004) — عكس التوصيف القديم",
+  "بوابة: إخفاء/ظهور وإعادة تحميل صادقتان؛ الغطاء يبقي النماذج محمّلة؛ مسارات الاسترداد داخل حدود عقد ٣٧",
+  "سلبيات خصومية: فرع فاشل-مفتوح مُخصٍّ يفشل الاختبارات (تدريبات تحوير)",
+  "أطقم Settings.lockGate.dom القائمة تبقى خضراء (بوابات الأفعال التدميرية فاشلة-الإغلاق)"
+ ],
+ "layers": [
+  "application",
+  "security",
+  "ui-gate",
+  "tests",
+  "contracts",
+  "docs",
+  "operations-control"
+ ],
+ "source": {
+  "report": "R11 W1b-4 lock-idle characterization (R11-W1B4-LOCK-IDLE-CHARACTERIZATION-2026-10-14.md — المصفوفة 13/13 و9/9 والتوصيف الجوهري) + عقد المعالجة الرسمي المثبت عبر PR #367 (الرأس 6733ba34)",
+  "discovered_at_sha": "72b4c729",
+  "evidence": [
+   "docs/architecture/refactoring/r11-w1b-20261014/evidence/R11-W1B4-LOCK-IDLE-CHARACTERIZATION-2026-10-14.md",
+   "docs/architecture/refactoring/r11-w1b-20261014/R11-W1B-EXECUTION-REPORT-2026-10-14.md"
+  ]
+ },
+ "acceptance": [
+  "الأثر الرصدي إلزامي: تقديم الساعة قبل lastActiveAt لا ينتج أبدًا حالة مفتوحة أو أقل حماية (NF-001)",
+  "تقديم الساعة قبل lastFailedAt لا يتجاوز وقفة التخمين ولا يضعفها (NF-002)",
+  "فشل قراءة التخزين عند البوابة لا يفتح المحتوى المحمي ولا يغير أي بيانات ويظهر خطأً صادقًا قابلًا للاستعادة (NF-003)",
+  "التطبيق الظاهر بلا إدخال فعلي يقفل بعد autoLockMinutes؛ الظهور والتقييم وحدهما لا يجددان النشاط (NF-004)",
+  "التعليقات والتوصيف والعقد ٣٧ وحدود الأمن تصف السلوك المنفذ لا القديم",
+  "البوابة الكاملة pnpm check خضراء على الرأس النهائي داخل الأسقف دون رفعها (lint بالضبط عند الأساس، raw <= 650000، gzip <= 155300)",
+  "خمسة مراجعين قراءة-فقط بالتسلسل + مصالحة المُصنِّف بلا حجب متبقٍ",
+  "CI وCloudflare ناجحان على الرأس النهائي بالضبط، وPR يبقى مفتوحًا بقرار المالك (لا دمج)"
+ ],
+ "areas": [
+  "apps/prototype-web/client/src/application/security",
+  "apps/prototype-web/client/src/components/security",
+  "docs/contracts",
+  "docs/quality",
+  "docs/operations",
+  "docs/architecture/refactoring/r11-lock-fail-closed-20261015"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "docs/contracts/37-local-app-lock-contract.md",
+  "https://github.com/Qays7753/Micro/pull/367 (R11-LOCK-FAIL-CLOSED-REMEDIATION-PROMPT-2026-10-15.md — العقد الرسمي المثبت، الرأس 6733ba34)",
+  "docs/architecture/refactoring/r11-w1b-20261014/R11-W1B-EXECUTION-REPORT-2026-10-14.md"
+ ],
+ "evidence": [
+  "docs/architecture/refactoring/r11-lock-fail-closed-20261015/R11-LOCK-FAIL-CLOSED-EXECUTION-REPORT-2026-10-15.md",
+  "docs/architecture/refactoring/r11-lock-fail-closed-20261015/R11-LOCK-OWNER-DECISION-ADDENDUM-2026-10-15.md"
+ ],
+ "dependencies": [
+  "ARCH-009"
+ ],
+ "related_items": [
+  "ARCH-009",
+  "ARCH-010"
+ ],
+ "updated_at": "2026-10-16",
+ "status_history": [
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "فتح Claim تنفيذي لموجة إصلاح القفل الفاشل-المغلق المعتمدة من المالك (OD-LOCK-ROLLBACK/STORAGE/SEMANTICS = A)؛ الفرع security/r11-lock-fail-closed-20261015 منشأ من origin/main الحي 9303ea44؛ لا Claim نشط متداخل (0 active claims عند الإنشاء) وبند UX-001 الـIN_PROGRESS الوحيد بلا claim ولا تداخل مع سطح القفل."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "التنفيذ جارٍ على الفرع: اختبارات test-first مثبتة فاشلة ضد الرأس غير المُصلَح (12 حالة عبر ثلاثة ملفات: 8 خدمة و4 بوابة) ثم الإصلاح الجذري منفذ — الخدمة (سياسة الزمن الفاشلة-الإغلاق NF-001/002) والبوابة (نموذج الحالات وunreadable وchecking وخمول الإدخال الفعلي NF-003/004)؛ 56/56 عبر ملفات القفل الأربعة على رأس التنفيذ."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-10-15",
+   "actor": "zai-executor",
+   "reason": "التنفيذ والبوابة الكاملة والمراجعات الخمسة والتقرير الرسمي مكتملة على PR #368 (الرأس الكودي 469aba03): 17/17 EXIT 0 (الجذر 919/919 والتطبيق 2,682/2,682 وlint بالضبط 35 والبناء داخل السقوف دون مسّها والمدخل أصغر من الأساس)؛ RV1 PASS وRV2 PASS وRV3 PASS وRV4 PASS وRV5 PASS_WITH_REMEDIATION (خطوة السجلات هذه) ومصالحة بلا حاجبات. الدمج قرار مالك لاحق."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-10-16",
+   "actor": "reconcile:r11-unified-followup",
+   "reason": "مصالحة سجلات فقط (لا كود): PR #368 حامل إصلاح القفل الفاشل-المغلق الأربعة دُمج بMerge commit f221a0127e634eafc1be01047247136fb1829835 — البند بقي IN_REVIEW وnext_action يطلب قرار المالك على الـPR والقرار حاصل بالدمج."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-10-16",
+   "actor": "reconcile:r11-unified-followup",
+   "reason": "التحقق الموثق سلفًا على رأس الدمج نفسه: checks وCloudflare Pages SUCCESS على f221a0127e (تحقق API مسجل في أساس §210)؛ سلوك القفل يعمل على main واختباراته ضمن كل بوابة كاملة منذ الدمج (947/947 ثم 948/948 جذرًا)؛ WS-219 صاحبة الملكية مغلقة VERIFIED بmerge_sha=verified_on_main_sha=f221a0127e."
+  }
+ ],
+ "migration_baseline": false,
+ "next_action": "لا إجراء إضافي: الإصلاح الأربعة مدموج ومتحقق على main (f221a012)؛ يُعاد فتح البند فقط بدليل فشل جديد.",
+ "merge_sha": "f221a0127e634eafc1be01047247136fb1829835",
+ "verified_on_main_sha": "f221a0127e634eafc1be01047247136fb1829835"
+}

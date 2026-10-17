@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "6563d070529a3dc64c4bf467504aec6802dd3c4b",
+  "head": "5cf13dbf0798886214d836fe5e7c26fb9e860271",
   "pages": {
     "total": 60,
     "map": {
@@ -382,6 +382,7 @@
       "pages/Settings.tsx": {
         "kind": "direct",
         "evidence": [
+          "OverlayFocusContract.w4.dom.test.tsx",
           "Set003SettingsSection.dom.test.tsx",
           "Settings.lockGate.dom.test.tsx",
           "SettingsDataBackupSection.w42.dom.test.tsx",
@@ -449,7 +450,10 @@
         ]
       }
     },
-    "withoutDirectEvidence": []
+    "withoutDirectEvidence": [],
+    "withoutDirectRendering": [
+      "pages/NotFound.tsx"
+    ]
   },
   "contracts": {
     "total": 49,
@@ -639,6 +643,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/AgreementEditor.dom.test.tsx",
+          "apps/prototype-web/client/src/AgreementLabel.odlabel.dom.test.tsx",
           "apps/prototype-web/client/src/application/agreements/agreementContextService.test.ts",
           "apps/prototype-web/client/src/application/agreements/agreementPrice.test.ts",
           "apps/prototype-web/client/src/application/agreements/agreementService.test.ts",
@@ -789,8 +794,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/drafts/draftService.test.ts",
-          "apps/prototype-web/client/src/application/drafts/formDraftService.test.ts",
-          "apps/prototype-web/client/src/application/drafts/legacyFormDraftMigration.test.ts"
+          "apps/prototype-web/client/src/application/drafts/formDraftService.test.ts"
         ]
       },
       "37-local-app-lock-contract.md": {
