@@ -1,0 +1,100 @@
+{
+ "id": "DOC-006",
+ "title": "D-12 / F-040 — إغلاق مصدر حقيقة Micro Standard بالدليل: تثبيت المرجع الحاكم بلا مصدر ثانٍ",
+ "type": "GOVERNANCE",
+ "status": "VERIFIED",
+ "priority": "P2",
+ "stage": "r11-unified-followup-20261016",
+ "summary": "إغلاق فجوة مصدر حقيقة Micro Standard (F-040 خلف D-12 المعلق منذ W4-A): جرد محدود لكل مراجع Standard ومستهلكيها (سلطة حية: SOURCE_OF_TRUTH.md وUI_AUX؛ قواعد فصل: EXTENSION_PLAYBOOK/ADR-005؛ تاريخ محفوظ لا يُمس)؛ تثبيت المرجع الحاكم بالقياس المباشر (GitHub API قراءة فقط 2026-10-16): `Qays7753/Documents@main` الرأس 2396ff09fa52bb7872ae40c10adfc86ee7a0808d، المسار micro-standard-v2/design-tokens.css بblob de64f4fe0b2e5b75045e9e54d562c5aa6b85a756 وآخر التزام لامس 12504582c0c19e2b0ea621a8caf45146410f12df (2026-09-13) و7,636 بايت وsha256 مثبتة؛ الحزمة 31 ملفًا بالضبط. دليل الإغلاق append-only بسلم السلطة الواحد (المال/المجال/التخزين/التصدير ملك Micro؛ العقود البصرية للحزمة المثبتة قراءةً واستشهادًا؛ vf-tokens.css الجسر الوحيد؛ New Design/V2 عمل منفصل لم يُقرأ). تصحيح سطرين حيين فقط (صف المصدر في SOURCE_OF_TRUTH.md وقائمة المؤجل في current-state.md §8.2-4) بإضافة مؤرخة؛ لا تغيير كود أو عقد — F-040 = VERIFIED (documentation/evidence closure) ولا مكتشف جديد.",
+ "finding_classification": "DEEPENS_EXISTING",
+ "finding_state": "CONFIRMED",
+ "classification": "GOVERNANCE",
+ "gate_classification": "NOT_APPLICABLE",
+ "root_cause": "F-040 (برنامج المعالجة الرئيسي W4-A): المرجع البصري الحاكم للوحة الجارية يقيم خارج مستودع Micro ولم يُثبت له موقع أو نسخة مرجعية بSHA — قرار المالك D-12 بقي معلقًا فظل الصف إحالة موثقة (W4-A) بدل سلطة مقيسة.",
+ "owner": "Micro owner (Qays7753)",
+ "owner_decision": "قرار المالك عبر عقد المتابعة الموحدة §3.3 (2026-10-16): إغلاق D-12/F-040 كبند مصدر حقيقة وأدلة — حدد المصدر الحاكم بالدليل، أضف إغلاقًا مؤرخًا append-only، لا تعيد كتابة التاريخ المحمي، ولا تنشئ Standard ثانيًا؛ إن أثبت الدليل حاجة لتغيير كود أو عقد فسجل مكتشفًا دقيقًا وتوقف عند OWNER_DECISION_REQUIRED لذلك النطاق الفرعي.",
+ "tests_required": [
+  "جرد محدود موثق لكل مراجع Standard ومستهلكيها داخل المستودع",
+  "قياس مباشر للمرجع الخارجي الحاكم (مسار/رأس/blob SHA/آخر التزام لامس/sha256/حجم) مسجل في دليل الإغلاق",
+  "node scripts/check-doc-index-coverage.mjs أخضر بعد أي صف فهرس جديد",
+  "validate.py + generate_tracker.py --check أخضران بعد تحديث JSON المصدر وتوليد العوارض"
+ ],
+ "layers": [
+  "docs",
+  "governance",
+  "operations-control"
+ ],
+ "source": {
+  "report": "REM program F-040 deferral (W4-A slice report 2026-09-29) + unified follow-up contract §3.3 (2026-10-16)",
+  "discovered_at_sha": "d7b208a",
+  "evidence": [
+   "docs/architecture/SOURCE_OF_TRUTH.md",
+   "docs/operations/control/evidence/micro-master-remediation-2026-09-27/W4A-SLICE-REPORT-2026-09-29.md"
+  ]
+ },
+ "acceptance": [
+  "F-040 إما VERIFIED بدليل مباشر (المرجع الحاكم مثبت بالمسار/النسخة/SHA والنطاق والمالك وسلم السلطة) أو BLOCKED/OWNER_DECISION_REQUIRED بالنقص الدقيق — لا إغلاق كاذب",
+  "لا يوجد Standard ثانٍ ولا مصدر حقيقة موازٍ بعد الإغلاق",
+  "السطور الحية المضللة فقط تُصحح؛ التقارير التاريخية والقياسات القديمة محفوظة",
+  "لا مساس لأي ملف New Design أو Drive أو CSS أو UI أو مالي أو Schema/Export/Import أو تاريخي"
+ ],
+ "areas": [
+  "docs",
+  "docs/operations"
+ ],
+ "contracts": [
+  "AGENTS.md",
+  "https://github.com/Qays7753/Micro/blob/b0aa8d8b9acbb98d6c262bc76851405936db0112/docs/architecture/refactoring/r11-unified-followup-20261016/R11-UNIFIED-FOLLOWUP-EXECUTION-PROMPT-2026-10-16.md",
+  "docs/05-documentation-governance.md",
+  "docs/architecture/SOURCE_OF_TRUTH.md"
+ ],
+ "evidence": [
+  "docs/architecture/refactoring/r11-unified-followup-20261016/evidence/R11-UNIFIED-FOLLOWUP-BASELINE-2026-10-16.md",
+  "docs/architecture/refactoring/r11-unified-followup-20261016/evidence/D12-F040-STANDARD-SOURCE-CLOSURE-2026-10-16.md",
+  "docs/architecture/SOURCE_OF_TRUTH.md"
+ ],
+ "dependencies": [
+  "REM-004"
+ ],
+ "related_items": [
+  "REM-004",
+  "UX-001"
+ ],
+ "updated_at": "2026-10-16",
+ "status_history": [
+  {
+   "status": "CLAIMED",
+   "changed_at": "2026-10-16",
+   "actor": "zai-executor",
+   "reason": "فتح بند الإغلاق بقرار المالك المعتمد في عقد المتابعة الموحدة §3.3؛ الجرد الأولي المباشر للمرجع الخارجي مُسجل في دليل الأساس (رأس المستودع الخارجي وblob SHA وsha256 المحتوى)."
+  },
+  {
+   "status": "IN_PROGRESS",
+   "changed_at": "2026-10-16",
+   "actor": "zai-executor",
+   "reason": "التنفيذ تحت Claim ‏WS-222: دليل الإغلاق append-only + تصحيح سطر SOURCE_OF_TRUTH.md الحي + تحديث الفهرس والسجلات ثم توليد العوارض."
+  },
+  {
+   "status": "IN_REVIEW",
+   "changed_at": "2026-10-16",
+   "actor": "zai-executor",
+   "reason": "إغلاق D-12/F-040 بالدليل المثبت مكتمل على PR #372 (تصحيح سطرين حيين فقط؛ لا تغيير كود) — بانتظار مراجعة المالك ودمجه ثم التحقق على main."
+  },
+  {
+   "status": "MERGED_UNVERIFIED",
+   "changed_at": "2026-10-16",
+   "actor": "merge:pr-372",
+   "reason": "دُمج إغلاق D-12/F-040 التوثيقي في PR #372 بMerge commit عند 3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2؛ تحقق main مستقل مطلوب."
+  },
+  {
+   "status": "VERIFIED",
+   "changed_at": "2026-10-16",
+   "actor": "verify:main",
+   "reason": "main عند 3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2؛ checks وCloudflare Pages SUCCESS على رأس الدمج نفسه، ولا تغيير كودي أو New Design أو CSS/UI أو مالي/Schema/Export/Import."
+  }
+ ],
+ "migration_baseline": false,
+ "next_action": "لا عمل متبقٍ داخل نطاق D-12/F-040؛ المرجع الخارجي مثبت بالدليل وسلّم السلطة موثق. يُعاد فتحه فقط بدليل تغيّر خارجي أو finding جديد.",
+ "merge_sha": "3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2",
+ "verified_on_main_sha": "3831d047e8fb1e69f2dc1e11e85ab717c7e05ba2"
+}

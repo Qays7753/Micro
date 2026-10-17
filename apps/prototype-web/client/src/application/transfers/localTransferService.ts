@@ -35,6 +35,10 @@ import { exportCountsOf, verifyTransferCounts } from "./transferCounters";
 import { verifyTransferArrayFamilies } from "./transferArrayFamilyRoles";
 import { migrateTransferSnapshot } from "./transferSnapshotMigrations";
 import { validateSnapshot } from "./transferSnapshotValidation";
+import {
+  findUnknownTopLevelDataKey,
+  W2B_UNKNOWN_TOP_LEVEL_DATA_KEY_MESSAGE,
+} from "./transferTopLevelDataKeys";
 import { STORAGE_ERROR, VALIDATION_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
@@ -226,6 +230,17 @@ export class LocalTransferService {
       return fail(
         `الملف لا يطابق بنية Micro المطلوبة فتعذر التحقق منه${detail}. بقيت بيانات هذا الجهاز دون تغيير.`,
       );
+    }
+    /* R11 W2b / OD-KEYS — W2-2 (تفعيل 2026-10-16 بالحمولة المعتمدة حرفيًا):
+     * رفض مفاتيح data العلوية المجهولة للزوج الحالي وحده — الموضع بعد بوابة
+     * العدادات حصرًا هو الموضع الوحيد الذي أثبت توصيف W2a أنه لا يعيد ترتيب
+     * أي من الرفوضات السبع القائمة (مصفوفة الأعطال السبعة). الإرث (الأزواج
+     * الـ24) لا يُفحص أصلًا؛ لا صدى لاسم المفتاح؛ والرفض قبل أي كتابة.
+     * الحمولة: رمز validation_error (الثابت الكنوني عبر fail) + النص العربي
+     * الدقيق في transferTopLevelDataKeys.ts (ملحق الاعتماد append-only). */
+    if (isCurrent) {
+      const unknownDataKey = findUnknownTopLevelDataKey(candidate.data);
+      if (unknownDataKey !== null) return fail(W2B_UNKNOWN_TOP_LEVEL_DATA_KEY_MESSAGE);
     }
     const file: LocalExportFile = {
       format: localExportFormat,

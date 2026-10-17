@@ -51,12 +51,13 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
   it("passes on the live repository tree with exactly the one registered entry", () => {
     const stdout = runCli(ROOT);
     expect(stdout).toContain("PASS");
-    /* 369 (كانت 370 عند ARCH-010/W4): R11 ARCH-012 (2026-10-15) حذف مهايئ
-     * المسودات التراثية application/drafts/legacyFormDraftMigration.ts فانكمش
-     * عدّ الملفات المزروعة 370→369؛ والتسجيل صار موضعًا واحدًا بالضبط (مهايئ
-     * التشخيص) بعد إزالة الاستثناء التراثي بقرار المالك الموثق. تحديث العدّ
-     * المتوقع هنا هو بروتوكول الراتشة نفسه (تحديث بنفس الـPR مع السبب الموثق). */
-    expect(stdout).toMatch(/369 ملف إنتاج/);
+    /* 370 (كانت 369 بعد ARCH-012): R11 موجة المتابعة الموحدة (2026-10-16)
+     * أضافت وحدة W2b application/transfers/transferTopLevelDataKeys.ts (اشتقاق
+     * المفاتيح المسموحة وحمولة الرفض — لا وصول لتخزين المتصفح) فنما عدّ
+     * الملفات المزروعة 369→370؛ والتسجيل يبقى موضعًا واحدًا بالضبط (مهايئ
+     * التشخيص). تحديث العدّ المتوقع هنا هو بروتوكول الراتشة نفسه (تحديث
+     * بنفس الـPR مع السبب الموثق). */
+    expect(stdout).toMatch(/370 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);
