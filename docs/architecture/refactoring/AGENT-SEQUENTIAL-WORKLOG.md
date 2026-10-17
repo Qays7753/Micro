@@ -1402,3 +1402,12 @@ Full verification gate 17/17 EXIT 0 on implementation head `469aba03` (root 919/
 - **السجلات:** صُححت `current-state.md` ضمن حد الحجم؛ أُلحقت §213 في `current-state-log.md`; ستعاد العوارض المولدة من JSON المصدر فقط.
 - **الحدود:** لا مساس بالمال أو التاريخ أو Schema/Export/Import أو UI/New Design؛ حد الرجوع revert كتلة PR #372؛ فرع التنفيذ المدموج حُذف بعد التحقق، دون حذف فروع Prompt التوثيقية المفتوحة.
 - **الحالة:** `R11_UNIFIED_FOLLOWUP_VERIFIED_ON_MAIN — POST_MERGE_VERIFICATION: PASS — NO_SECRETS_EXPOSED`.
+
+
+## Entry 119 — 2026-10-18 — Agent governance documentation contract
+
+- **الأساس:** `origin/main` عند `d24b7b78911a516aca547b3411b432a651d16c57`؛ الفرع `docs/agent-governance-contract-20261018`؛ Claim `DOC-007` / `WS-223`.
+- **النطاق:** توحيد مسؤوليات `AGENTS.md` و`docs/operations/agent-development-sop-v1.md` و`docs/operations/agent-handoff-protocol-v1.md` و`README.md` والوثائق الداعمة، وإضافة `scripts/check-agent-document-contract.mjs` واختباراته.
+- **الحدود:** توثيق وحوكمة فقط؛ لا كود منتج، ولا تغيير مالي/تاريخي/تخزين/Schema/Export/Import/أمني/مرئي، ولا مراجعة مكونات أو New Design.
+- **النتيجة الحالية:** الحارس واختباراته يمران؛ Operations Control وindex coverage وcurrent-state size وJSON validation مرّت. الحالة تبقى `IN_PROGRESS` حتى اكتمال الفحوص وفتح PR؛ لا `VERIFIED` قبل الدمج والتحقق على `main`.
+- **البوابة التالية:** Micro Component Specification and Architecture Review بعقد وClaim مستقلين بعد قبول هذه الموجة.

@@ -1,0 +1,68 @@
+{
+  "id": "WS-223",
+  "title": "مصالحة عقد توثيق وتشغيل الوكلاء — AGENTS/SOP/Handoff/README قبل مراجعة مكونات Micro",
+  "status": "IN_REVIEW",
+  "items": [
+    "DOC-007"
+  ],
+  "branch": "docs/agent-governance-contract-20261018",
+  "base_sha": "d24b7b78911a516aca547b3411b432a651d16c57",
+  "areas": [
+    "AGENTS.md",
+    "README.md",
+    "CONTRIBUTING.md",
+    "docs/operations",
+    ".github/pull_request_template.md",
+    "docs/00-document-index.md",
+    "scripts/check-agent-document-contract.mjs",
+    "scripts/check-agent-document-contract.test.mjs",
+    "package.json"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/05-documentation-governance.md",
+    ".github/pull_request_template.md"
+  ],
+  "agent": "Manus orchestration with one writer; read-only review gate before merge",
+  "pr": null,
+  "started_at": "2026-10-18",
+  "updated_at": "2026-10-18",
+  "next_action": "فتح PR توثيقي مستقل للمراجعة؛ لا دمج ولا بدء مراجعة المكونات قبل قبول المالك.",
+  "notes": [
+    "Claim توثيقي فقط؛ لا تطبيق/Domain/storage/Schema/Export/Import/financial/history/security/visual-UI/component implementation changes.",
+    "AGENTS.md يبقى نقطة الدخول الوحيدة؛ لا إنشاء AGENT.md منافس أو قائمة قراءة جديدة.",
+    "SOP يصف دورة التنفيذ، Handoff يصف نقل الحالة، README يصف المستودع، وOperations Control يبقى مصدر Claims.",
+    "todo.md يبقى كعب توافق مجمدًا ولا يعود مصدرًا لإدارة العمل.",
+    "الحد التالي بعد إغلاق هذا Workstream هو Micro Component Specification and Architecture Review، بعقد وClaim مستقلين.",
+    "حد الاستعادة: base_sha d24b7b78911a516aca547b3411b432a651d16c57؛ يمكن عكس كل commits هذا الفرع دون أثر على main."
+  ],
+  "migration_baseline": false,
+  "evidence": [
+    "docs/operations/control/items/DOC-007.json",
+    "scripts/check-agent-document-contract.mjs",
+    "scripts/check-agent-document-contract.test.mjs"
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-18",
+      "actor": "owner-orchestration",
+      "reason": "فتح Workstream من origin/main d24b7b78911a516aca547b3411b432a651d16c57 بعد فحص ACTIVE-WORK وPRs المفتوحة؛ لا تداخل مع Claim نشط."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-18",
+      "actor": "owner-orchestration",
+      "reason": "بدء توحيد عقد الوثائق التشغيلية وإضافة الحارس الآلي على فرع مخصص، مع إبقاء الدمج قرارًا لاحقًا."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-18",
+      "actor": "owner-orchestration",
+      "reason": "عقد الملفات الأربعة والحارس والاختبارات وسجلات الحالة اجتازت الفحص المحلي؛ PR مستقل مطلوب قبل أي VERIFIED."
+    }
+  ]
+}

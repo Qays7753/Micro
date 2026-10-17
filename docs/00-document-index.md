@@ -15,6 +15,7 @@
 | 0A-1 | `docs/operations/agent-development-sop-v1.md` | CURRENT / OPERATIONAL — SOP تطوير Agent الموحد | مسار العمل الكامل من البداية الباردة إلى الإغلاق (ادعاء → شريحة → فحوص → سجلات)؛ يُحيل إلى مصادره ولا ينافسها *(أُنشئ R10-B1/R10A-F-037 — 2026-10-11)* |
 | 0A-2 | `docs/operations/views/storage-parity-view.md` · `docs/operations/views/transfer-legacy-golden-view.md` · `docs/operations/views/guard-proves-view.md` | CURRENT / VIEWS — إحالية لا مصدر حقيقة | عروض تسليم باردة: تكافؤ التخزين، النقل/التوافق/الذهبيات، وما يثبته كل حارس — كل منها يحيل إلى مصدره الحاكم *(أُنشئت R10-B1/R10A-F-037 — 2026-10-11)* |
 | 0A-3 | `docs/operations/control/pilot-evidence-detection-specs-v1.md` | CURRENT / SPEC — المصدر الكنوني الوحيد لمواصفات كشف أدلة Pilot | البنود الـ14 (BE-004/BE-005/V-001..V-012): ما يُقاس/كيف/العتبة/قاعدة القرار *(OD-13، أُنشئ R10-B1 — 2026-10-11)* |
+| 0A-4 | `docs/operations/control/items/DOC-007.json` · `docs/operations/control/workstreams/WS-223.json` | CURRENT / CONTROL CLAIM — مصالحة توثيق Agent | عقد مسؤوليات AGENTS/SOP/Handoff/README والحارس الآلي قبل فتح مراجعة مواصفات مكونات Micro (2026-10-18) |
 | 0B | `docs/operations/micro-thinking-charter-v1.md` | CURRENT / THINKING GATE | هدف Micro وطريقة التفكير وأسئلة النقد وبطاقة الفهم قبل أي كود |
 | 0C | `AGENTS.md` | CURRENT / ENTRY POINT | نقطة الدخول الأولى وترتيب القراءة والقواعد غير القابلة للكسر |
 | 1 | `docs/01-product-and-technical-blueprint.md` | CURRENT / AUTHORITY | كل قرار منتج أو تقنية أو تنفيذ |

@@ -1,0 +1,106 @@
+{
+  "id": "DOC-007",
+  "title": "توحيد عقد توثيق وتشغيل الوكلاء قبل مراجعة مواصفات مكونات Micro",
+  "type": "GOVERNANCE",
+  "status": "IN_REVIEW",
+  "priority": "P1",
+  "stage": "agent-governance-reconciliation-20261018",
+  "summary": "توحيد المسؤوليات والإحالات بين AGENTS.md وSOP تطوير Agent وبروتوكول Handoff وREADME والملفات الداعمة، مع إضافة حارس آلي يمنع عودة مصادر القراءة أو التشغيل المتنافسة قبل فتح مسار Micro Component Specification and Architecture Review.",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "classification": "GOVERNANCE",
+  "gate_classification": "NOT_APPLICABLE",
+  "root_cause": "تراكم توثيق التشغيل عبر موجات متعددة ترك مسؤوليات متقاربة وإحالات متفاوتة دون حارس واحد يثبت عقد الملفات الأربعة.",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "نطاق معتمد: تحديث منظومة AGENTS/SOP/Handoff/README والملفات الداعمة والحارس الآلي في PR توثيقي واحد؛ لا إنشاء AGENT.md منافس ولا خلط مع مراجعة المكونات أو New Design UI/UX.",
+  "tests_required": [
+    "node scripts/check-agent-document-contract.mjs",
+    "pnpm vitest run scripts/check-agent-document-contract.test.mjs",
+    "node scripts/check-doc-index-coverage.mjs",
+    "node scripts/check-current-state-size.mjs",
+    "python3 scripts/operations-control/validate.py",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "git diff --check"
+  ],
+  "layers": [
+    "documentation",
+    "governance",
+    "operations-control",
+    "tooling"
+  ],
+  "source": {
+    "report": "Owner-approved Agent/SOP/Handoff/README reconciliation scope, 2026-10-18",
+    "discovered_at_sha": "d24b7b78911a516aca547b3411b432a651d16c57",
+    "evidence": [
+      "README.md",
+      "AGENTS.md",
+      "docs/operations/agent-development-sop-v1.md",
+      "docs/operations/agent-handoff-protocol-v1.md"
+    ]
+  },
+  "acceptance": [
+    "AGENTS.md remains the only repository reading/routing entry point.",
+    "SOP, Handoff, README, CONTRIBUTING, Operations README, slice template, and PR template have distinct responsibilities and consistent links.",
+    "A deterministic guard and tests reject missing files, missing authority links, a competing root AGENT.md, or mutable todo.md routing.",
+    "Operations Control JSON and generated Views are valid and fresh.",
+    "No application, Domain, storage, Schema/Export/Import, financial, historical, security, visual UI, or component implementation change is included.",
+    "The next gate is explicitly recorded as a separate owner-approved Micro Component Specification and Architecture Review scope."
+  ],
+  "areas": [
+    "AGENTS.md",
+    "README.md",
+    "CONTRIBUTING.md",
+    "docs/operations",
+    ".github/pull_request_template.md",
+    "docs/00-document-index.md",
+    "scripts/check-agent-document-contract.mjs"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/05-documentation-governance.md",
+    ".github/pull_request_template.md"
+  ],
+  "evidence": [
+    "scripts/check-agent-document-contract.mjs",
+    "scripts/check-agent-document-contract.test.mjs",
+    "docs/operations/current-state-log.md",
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md"
+  ],
+  "dependencies": [
+    "DOC-005"
+  ],
+  "related_items": [
+    "DOC-001",
+    "DOC-002",
+    "DOC-003",
+    "DOC-004",
+    "DOC-005",
+    "UX-001"
+  ],
+  "updated_at": "2026-10-18",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-18",
+      "actor": "owner-orchestration",
+      "reason": "فتح Claim توثيقي جديد من origin/main d24b7b78911a516aca547b3411b432a651d16c57 بعد التحقق من عدم وجود Workstream نشط أو تداخل حوكمي معروف."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-18",
+      "actor": "owner-orchestration",
+      "reason": "بدء مصالحة الملفات الأربعة والحواجز الداعمة والحارس الآلي على فرع مخصص؛ لا تغيير في كود المنتج أو main."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-18",
+      "actor": "owner-orchestration",
+      "reason": "عقد الملفات الأربعة والحارس والاختبارات وسجلات الحالة اجتازت الفحص المحلي؛ PR مستقل مطلوب قبل أي VERIFIED."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "فتح PR توثيقي مستقل للمراجعة؛ لا دمج ولا بدء مراجعة المكونات قبل قبول المالك."
+}
