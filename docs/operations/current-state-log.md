@@ -2553,3 +2553,14 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 ## §214 — 2026-10-18 — Agent governance documentation contract opened
 
 فُتح Claim توثيقي مستقل `DOC-007` / `WS-223` من رأس `origin/main` `d24b7b78911a516aca547b3411b432a651d16c57` على الفرع `docs/agent-governance-contract-20261018`. النطاق هو مصالحة مسؤوليات `AGENTS.md` وSOP تطوير Agent وبروتوكول Handoff و`README.md` والملفات الداعمة، مع حارس آلي واختبارات؛ لا تغيير في التطبيق أو Domain أو التخزين أو Schema/Export/Import أو المال أو التاريخ أو UI أو مواصفات المكونات. الموجة التالية Micro Component Specification and Architecture Review تبقى Claimًا مستقلًا ولا تبدأ تلقائيًا.
+
+
+## §215 — 2026-10-18 — تحقق ما بعد دمج PR #374 (عقد توثيق Agent governance) ومصالحة المؤشرات الحية
+
+- **Merge Manifest:** PR #374 (`docs/agent-governance-contract-20261018`) دُمج بMerge commit `dcb51adbb775c94ede8a8a90b32371f3aeb570f4` فوق `d24b7b78911a516aca547b3411b432a651d16c57`؛ رأس الكود المصدر كان `c2a9b7b1affa9b7d95b44b0ab7097ba370be96bb`. لا كود جديد أُضيف في هذه المصالحة.
+- **تحقق main:** `main` يطابق `dcb51adbb775c94ede8a8a90b32371f3aeb570f4`. فحص GitHub API المباشر على رأس الدمج نفسه أثبت `checks=SUCCESS` (run `39075456676`, job `117521562583`) و`Cloudflare Pages=SUCCESS` (run `117521649865`)؛ جرد الفروع الحي يثبت بقاء `main` فقط، وPRs المفتوحة = 0.
+- **Operations Control:** DOC-007 وWS-223 انتقلا من `IN_REVIEW` إلى `MERGED_UNVERIFIED` ثم `VERIFIED` مع `merge_sha=verified_on_main_sha=dcb51adbb775c94ede8a8a90b32371f3aeb570f4` و`pr=374`؛ العوارض المولدة أُعيد إخراجها من JSON المصدر حصرًا.
+- **الحالة الحية:** صُحح `current-state.md` (المؤشر العلوي عند `dcb51adb…`، §8.2-4 Claim التوثيق مغلق لا جاري، §8.2-5 فرع `docs/ux-ui-zed-handoff-20260921` وُسم تاريخيًا/غير حي بدل «محفوظ عمدًا» حيًا)؛ حجم الملف `20,446` بايتًا تحت حد `20,480`. التاريخ التفصيلي هنا append-only.
+- **الحدود:** لا تغيير مالي أو تاريخي أو Schema/Export/Import أو UI بصري أو New Design؛ لا حذف فروع ولا تنظيف ولا إعادة نشر. حد الرجوع هو revert لالتزامات PR #374 كوحدة متسقة إذا ظهر دليل فشل جديد.
+- **البوابة التالية:** Micro Component Specification and Architecture Review بClaim وعقد مستقلين — لا بدء تلقائي في هذه الموجة.
+- **الحالة:** `AGENT_GOVERNANCE_CONTRACT_VERIFIED_ON_MAIN — POST_MERGE_VERIFICATION: PASS — NO_SECRETS_EXPOSED`.

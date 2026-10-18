@@ -2,7 +2,7 @@
   "id": "DOC-007",
   "title": "توحيد عقد توثيق وتشغيل الوكلاء قبل مراجعة مواصفات مكونات Micro",
   "type": "GOVERNANCE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "agent-governance-reconciliation-20261018",
   "summary": "توحيد المسؤوليات والإحالات بين AGENTS.md وSOP تطوير Agent وبروتوكول Handoff وREADME والملفات الداعمة، مع إضافة حارس آلي يمنع عودة مصادر القراءة أو التشغيل المتنافسة قبل فتح مسار Micro Component Specification and Architecture Review.",
@@ -80,6 +80,8 @@
     "DOC-005",
     "UX-001"
   ],
+  "merge_sha": "dcb51adbb775c94ede8a8a90b32371f3aeb570f4",
+  "verified_on_main_sha": "dcb51adbb775c94ede8a8a90b32371f3aeb570f4",
   "updated_at": "2026-10-18",
   "status_history": [
     {
@@ -99,8 +101,20 @@
       "changed_at": "2026-10-18",
       "actor": "owner-orchestration",
       "reason": "عقد الملفات الأربعة والحارس والاختبارات وسجلات الحالة اجتازت الفحص المحلي؛ PR مستقل مطلوب قبل أي VERIFIED."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-18",
+      "actor": "merge:pr-374",
+      "reason": "PR #374 دُمج في main بMerge commit dcb51adbb775c94ede8a8a90b32371f3aeb570f4 بعد نجاح فحوص رأس المصدر c2a9b7b1affa9b7d95b44b0ab7097ba370be96bb؛ تحقق main مستقل مطلوب."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-18",
+      "actor": "verify:main",
+      "reason": "تحقق GitHub API المباشر من checks وCloudflare Pages SUCCESS على رأس main dcb51adbb775c94ede8a8a90b32371f3aeb570f4؛ DOC-007 صار VERIFIED ولا Claim نشط."
     }
   ],
   "migration_baseline": false,
-  "next_action": "فتح PR توثيقي مستقل للمراجعة؛ لا دمج ولا بدء مراجعة المكونات قبل قبول المالك."
+  "next_action": "مغلق: PR #374 دُمج بMerge commit dcb51adbb775c94ede8a8a90b32371f3aeb570f4 وتحقق main على الرأس نفسه بفحصي checks وCloudflare Pages SUCCESS؛ لا عمل متبقٍ داخل نطاق DOC-007. البوابة التالية Micro Component Specification and Architecture Review بعقد وClaim مستقلين — لا بدء تلقائي."
 }

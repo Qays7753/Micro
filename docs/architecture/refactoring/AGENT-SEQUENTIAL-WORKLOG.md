@@ -1411,3 +1411,14 @@ Full verification gate 17/17 EXIT 0 on implementation head `469aba03` (root 919/
 - **الحدود:** توثيق وحوكمة فقط؛ لا كود منتج، ولا تغيير مالي/تاريخي/تخزين/Schema/Export/Import/أمني/مرئي، ولا مراجعة مكونات أو New Design.
 - **النتيجة الحالية:** الحارس واختباراته يمران؛ Operations Control وindex coverage وcurrent-state size وJSON validation مرّت. الحالة تبقى `IN_PROGRESS` حتى اكتمال الفحوص وفتح PR؛ لا `VERIFIED` قبل الدمج والتحقق على `main`.
 - **البوابة التالية:** Micro Component Specification and Architecture Review بعقد وClaim مستقلين بعد قبول هذه الموجة.
+
+
+## Entry 120 — 2026-10-18 — Agent governance contract post-merge reconciliation
+
+- **النطاق:** مصالحة سجلات فقط بعد دمج PR #374 على الفرع التوثيقي `docs/zai-environment-smoke-20261018`؛ لا إعادة تنفيذ للكود ولا تغيير سلوكي ولا بدء مراجعة المكونات.
+- **Merge Manifest:** PR #374 (`docs/agent-governance-contract-20261018`) دُمج بMerge commit `dcb51adbb775c94ede8a8a90b32371f3aeb570f4` فوق base `d24b7b78911a516aca547b3411b432a651d16c57`؛ رأس المصدر `c2a9b7b1affa9b7d95b44b0ab7097ba370be96bb`.
+- **التحقق:** `main` يطابق Merge commit؛ GitHub API أثبت `checks` (run `39075456676`) و`Cloudflare Pages` SUCCESS على الرأس نفسه؛ جرد الفروع الحي يثبت بقاء `main` فقط وPRs المفتوحة = 0.
+- **Operations Control:** DOC-007 وWS-223 صارا `VERIFIED` مع `merge_sha` و`verified_on_main_sha` مساويين لرأس الدمج و`pr=374`؛ لا Claim نشط. العوارض المولدة أُعيد إخراجها من JSON المصدر حصرًا بلا تح يدوي.
+- **السجلات:** صُحح `current-state.md` ضمن حد الحجم (20,446/20,480)؛ أُلحقت §215 في `current-state-log.md` وهذا المدخل هنا append-only.
+- **الحدود:** لا مساس بالمال أو التاريخ أو Schema/Export/Import أو UI/New Design؛ لا دمج ولا حذف فروع ولا تنظيف ولا إعادة نشر. حد الرجوع: revert كتلة PR #374.
+- **الحالة:** `AGENT_GOVERNANCE_CONTRACT_VERIFIED_ON_MAIN — POST_MERGE_VERIFICATION: PASS — NO_SECRETS_EXPOSED`.
