@@ -4,4 +4,4 @@
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-224 | CLAIMED | `feature/r11-unit001-project-setup-20261018` | — | DOC-008 | Publish the GitHub-canonical specification and execution prompt; then ZAI must verify the live base, perform the consumer/ownership census, implement only UNIT-001, run all gates, and leave one PR open for owner review. |
+| WS-224 | IN_REVIEW | `feature/r11-unit001-project-setup-20261018` | 377 | DOC-008 | مراجعة المالك للـPR #377 ثم قرار الدمج (الترتيب الموصى: #376 أولًا ثم #377 — انظر خطة المصالحة في notes)؛ بعد دمج موافق: MERGED_UNVERIFIED ثم VERIFIED بإثبات ما-بعد-الدمج على رأس main الفعلي؛ لا دمج ولا تنظيف ولا UNIT-002 من هذه الموجة. |

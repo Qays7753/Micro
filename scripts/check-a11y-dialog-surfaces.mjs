@@ -29,7 +29,8 @@ import ts from "typescript";
 import { ROOT } from "./check-runtime-cycles.mjs";
 
 const CLIENT_SRC = path.join("apps", "prototype-web", "client", "src");
-const TEST_PAT = /\.(test|spec|dom\.test|ui\.test|contract\.test|characterization\.test|mutation\.test)\.[cm]?[jt]sx?$/;
+const TEST_PAT =
+  /\.(test|spec|dom\.test|ui\.test|contract\.test|characterization\.test|mutation\.test)\.[cm]?[jt]sx?$/;
 const SOURCE_EXT = new Set([".ts", ".tsx"]);
 
 /** السجل المصنف — كل سطح حواري معلن في كود الإنتاج يجب أن يكون هنا. */
@@ -46,14 +47,16 @@ export const CLASSIFIED_DIALOG_SURFACES = [
     role: "alertdialog",
     ariaModal: true,
     model: "TRUE_MODAL",
-    focusContract: "D-14 FIX_NOW — autoFocus فقط اليوم؛ الهدف: veil + احتواء + Escape + استعادة (نمط AppLockGate/UnsavedChangesGuard)",
+    focusContract:
+      "D-14 FIX_NOW — autoFocus فقط اليوم؛ الهدف: veil + احتواء + Escape + استعادة (نمط AppLockGate/UnsavedChangesGuard)",
   },
   {
     file: "pages/Settings.tsx",
     role: "alertdialog",
     ariaModal: true,
     model: "TRUE_MODAL",
-    focusContract: "D-14 FIX_NOW — لا عقد تركيز إطلاقًا اليوم (protectionBlocked)؛ الهدف: veil + focus-in + احتواء + Escape + استعادة",
+    focusContract:
+      "D-14 FIX_NOW — لا عقد تركيز إطلاقًا اليوم (protectionBlocked)؛ الهدف: veil + focus-in + احتواء + Escape + استعادة",
   },
   {
     file: "components/forms/UnsavedChangesGuard.tsx",
@@ -61,6 +64,19 @@ export const CLASSIFIED_DIALOG_SURFACES = [
     ariaModal: true,
     model: "TRUE_MODAL",
     focusContract: "conformant pre-existing — focus-in + Tab-cycle trap + Escape + restore",
+  },
+  {
+    /* UNIT-001 V2 (R08، موجة r11-unit001-20261018): حوار «معلومات الإعداد» —
+     * قراءة خالصة لا يحفظ ولا يغيّر؛ نمط UnsavedChangesGuard المطابق: غطاء +
+     * focus-in + احتواء Tab + Escape + استعادة تركيز للمشغّل، وزر الرجوع
+     * يغلق الحوار وحده (حارس entry تاريخي داخل الصفحة). مصنف بنفس الـPR
+     * الذي أدخله (قاعدة الحارس). */
+    file: "pages/Setup.tsx",
+    role: "dialog",
+    ariaModal: true,
+    model: "TRUE_MODAL",
+    focusContract:
+      "conformant UNIT-001 — veil + focus-in + Tab-cycle trap + Escape + back-sentinel + restore to trigger",
   },
   {
     file: "components/layout/AppHeader.tsx",
@@ -81,7 +97,8 @@ export const CLASSIFIED_DIALOG_SURFACES = [
     role: "region",
     ariaModal: null,
     model: "INLINE_REGION",
-    focusContract: "D-13 منفذ — أقسام داخلية موسعة مصرحة region (كانت dialog خطأً)؛ لا فخ ولا إزاحة تركيز (قرار OD-A11Y: لا فخ لغير المودال)",
+    focusContract:
+      "D-13 منفذ — أقسام داخلية موسعة مصرحة region (كانت dialog خطأً)؛ لا فخ ولا إزاحة تركيز (قرار OD-A11Y: لا فخ لغير المودال)",
   },
 ];
 
@@ -103,19 +120,32 @@ function listClientProductionFiles(repoRoot) {
 export function declaredDialogSurfaces(fileName, content) {
   const sf = ts.createSourceFile(fileName, content, ts.ScriptTarget.Latest, true);
   const surfaces = [];
-  const valueOf = attr => (ts.isStringLiteral(attr.initializer) ? attr.initializer.text : `<expr:${attr.initializer.getText(sf)}>`);
+  const valueOf = attr =>
+    ts.isStringLiteral(attr.initializer) ? attr.initializer.text : `<expr:${attr.initializer.getText(sf)}>`;
   const visit = node => {
     if (ts.isJsxAttribute(node)) {
       const name = node.name.text;
-      if (name === "role" && node.initializer && (ts.isStringLiteral(node.initializer) || ts.isJsxExpression(node.initializer))) {
+      if (
+        name === "role" &&
+        node.initializer &&
+        (ts.isStringLiteral(node.initializer) || ts.isJsxExpression(node.initializer))
+      ) {
         const value = ts.isStringLiteral(node.initializer)
           ? node.initializer.text
           : `<expr:${node.initializer.getText(sf)}>`;
         if (value === "dialog" || value === "alertdialog") {
-          surfaces.push({ line: sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1, kind: "role", value });
+          surfaces.push({
+            line: sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1,
+            kind: "role",
+            value,
+          });
         }
       } else if (name === "aria-modal" && node.initializer) {
-        surfaces.push({ line: sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1, kind: "aria-modal", value: valueOf(node) });
+        surfaces.push({
+          line: sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1,
+          kind: "aria-modal",
+          value: valueOf(node),
+        });
       }
     }
     ts.forEachChild(node, visit);
@@ -194,7 +224,9 @@ export function checkA11yDialogSurfaces(repoRoot) {
    * أن تبقى regions لا dialogs — يفحص فقط بعد أن ينفذ D-13 (انقراض
    * INLINE_MISDECLARED من السجل). */
   const recurring = path.join(repoRoot, CLIENT_SRC, "pages/RecurringExpenseDetail.tsx");
-  const stillMisdeclared = CLASSIFIED_DIALOG_SURFACES.some(s => s.file === "pages/RecurringExpenseDetail.tsx" && s.model === "INLINE_MISDECLARED");
+  const stillMisdeclared = CLASSIFIED_DIALOG_SURFACES.some(
+    s => s.file === "pages/RecurringExpenseDetail.tsx" && s.model === "INLINE_MISDECLARED",
+  );
   if (!stillMisdeclared && fs.existsSync(recurring)) {
     const content = fs.readFileSync(recurring, "utf8");
     const regionCount = (content.match(/role="region"/g) ?? []).length;

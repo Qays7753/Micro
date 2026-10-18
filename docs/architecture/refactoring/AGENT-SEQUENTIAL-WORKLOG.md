@@ -1423,9 +1423,23 @@ Full verification gate 17/17 EXIT 0 on implementation head `469aba03` (root 919/
 - **الحدود:** لا مساس بالمال أو التاريخ أو Schema/Export/Import أو UI/New Design؛ لا دمج ولا حذف فروع ولا تنظيف ولا إعادة نشر. حد الرجوع: revert كتلة PR #374.
 - **الحالة:** `AGENT_GOVERNANCE_CONTRACT_VERIFIED_ON_MAIN — POST_MERGE_VERIFICATION: PASS — NO_SECRETS_EXPOSED`.
 
-## Entry 121 — 2026-10-18 — UNIT-001 component specification and execution claim
-- **Baseline:** `origin/main` verified at `fd5d7ce689d32d8dcc462bcea2ff1c006256f064` after the ZAI environment smoke PR #375 merge; no open PRs or remote branches beyond `main` at claim opening.
-- **Scope:** GitHub-canonical UNIT-001 specification, one ZAI implementation branch/PR, root ownership and duplication review, tests, evidence, and tracker reconciliation. No UNIT-002, general New Design, global UI redesign, bulk move, merge, or cleanup.
-- **Control:** `DOC-008` / `WS-224`, status `CLAIMED`; implementation branch reserved as `feature/r11-unit001-project-setup-20261018`; ZAI is the writer and owner review remains required before merge.
-- **Source of truth:** `docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md`; execution contract `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-PROMPT-2026-10-18.md`. External Drive copies are provenance only and are not an execution dependency.
-- **Status:** `UNIT001_SPECIFICATION_PUBLISHED — IMPLEMENTATION_NOT_STARTED — OWNER_REVIEW_REQUIRED_BEFORE_EXECUTION`.
+## Entry 122 — 2026-10-18 — UNIT-001 implementation wave (ZAI sequential writer)
+
+> يرقّم هذا القسم 122 احتسابًا للقسم 121 الذي يضيفه فرع PR #376 التوثيقي (مصالحة القيد المشترك موثقة في تقرير التنفيذ §1 وWS-224 notes؛ إن اختلف ترتيب الدمج فللمالك إعادة الترقيم عند الحل — لا يُحسم صمتًا).
+
+- **الرأس المُسلَّم:** فرع `feature/r11-unit001-project-setup-20261018` من `fd5d7ce6` (أساس متحقق git+API)؛ الالتزامات: `5b1e7ca8` (جمد الأساس والClaim) → `ca557e14` (تنفيذ الشاشة الواحدة + create() + الحوار + التفويض) → `32692c7c` (أسس الحراس) → `48cddc21` (إصلاح RV3 الثلاثي) → `3a3ef71b` (إرساء الأسطح عند رأس الإصلاح) → `e62989d4` (إعادة اختبار ARCH-012-NF-001 السابع).
+- **البوابة الكاملة على رأس الكود:** `pnpm check` EXIT 0 — 952/952 جذرًا، 2768/2768 تطبيقًا، 26/26 حارسًا، ميزانية 631,388/154,996، أسطح داخل الأسس المرسّاة الموثقة، 44 اختبار Setup تغطي AC01..AC10 وACD001/002/023/024 والسلبيات.
+- **المراجعون الخمسة قراءة-فقط + المُصالِح:** السجل الكنوني `r11-unit001-20261018/R11-UNIT001-FIVE-REVIEWER-RECORD-2026-10-18.md` — RV3/RV4 عولجا جذريًا وأعيد تشغيلهما حتى PASS؛ بروفة الاستعادة REHEARSAL_PASS (revert كامل = شجرة مطابقة للأساس).
+- **السجلات:** DOC-008/WS-224 (areas مطابقة للـdiff)؛ current-state live fields محدّثة داخل السقف (20,466/20,480)؛ اللوق §216 append-only؛ الفهرس يحل إحالات المواد الثلاث.
+- **الحالة:** `UNIT001_COMPONENT_IMPLEMENTATION_COMPLETE — PR_READY`؛ لا دمج ولا تنظيف ولا UNIT-002 ولا New Design؛ الخطوة التالية قرار مالك مستقل.
+
+## Entry 123 — 2026-10-18 — UNIT-001 independent-review remediation wave (ZAI sequential writer)
+
+> استكمال Entry 122 على الفرع نفسه والـPR نفسه (#377) — معالجة المراجعة المستقلة (تعليق 6250612100 على الرأس 1995c930) بلا إعادة تشغيل ولا دفع قسري ولا دمج.
+
+- **الانطلاق المُتحقق:** PR #377 UNSTABLE عند 1995c930 بفشلَي السطح الابتدائي حصرًا (run 39129587374 + نشر a44ffa5f)؛ main fd5d7ce6 لم يتغير؛ PR #376 سليم؛ STATE_DRIFT=NONE.
+- **الجذر المُصلَح:** commitProfileCreate الذرّي عند حد الكتابة (منفذ 130→131 موثقًا + المحوّلان + الخدمة + اختبارات حتمية وتكافؤ) + عقد تزامن مسودة الإعداد (expectedUpdatedAt محتفَظ يُمرَّر في كل حفظ + سلسلة كتابة واحدة + تعارض role=alert صادق بنص الخدمة) — الالتزام f13d5f02.
+- **إرساء الأسطح:** محلي عند رأس الكود f13d5f02 (الالتزام f5b8d460) ثم السحابتان من القياس الفعلي نفس-الرأس f5b8d460 (github-actions مباشرة من التشغيل 39136747222؛ cloudflare-pages باشتقاق فئة البيئة المثبت بدليل التكافؤ المسجل — النشر 3eeb424e)؛ السقوف والسماحات لم تُمس.
+- **البوابة:** pnpm check EXIT 0 — 952/952 + 2780/2780 + 26/26 حارسًا + ميزانية 631,807/155,041؛ إرساءات الراتشة الست (ocRef DOC-008)؛ عدّ المستمعين 77→78 (مُغلّف)؛ OC valid (94/66/1) وViews مولدة من JSON.
+- **السجلات:** تقرير التنفيذ §15 + سجل المراجعين (المصالحة الثانية) + DOC-008/WS-224 (areas محدّثة بالملفات الست الجديدة) + current-state live fields داخل السقف + اللوق §217 + هذا القيد.
+- **الحالة:** معالجة المراجعة المستقلة كاملة داخل نفس الـPR؛ لا دمج ولا تنظيف ولا UNIT-002؛ PR_READY يسري فقط على رأس نهائي اخضرت فحوصه المطلوبة عليه.
