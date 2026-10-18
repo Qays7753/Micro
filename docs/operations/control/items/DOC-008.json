@@ -64,11 +64,15 @@
   "areas": [
     "apps/prototype-web/client/src/pages/Setup.tsx",
     "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+    "apps/prototype-web/client/src/Nav001.dom.test.tsx",
     "apps/prototype-web/client/src/application/profile/profileService.ts",
     "apps/prototype-web/client/src/application/profile/profileService.test.ts",
     "apps/prototype-web/client/src/pages/Home.tsx",
-    "apps/prototype-web/client/src/Home.dom.test.tsx",
     "scripts/check-a11y-dialog-surfaces.mjs",
+    "scripts/check-a11y-dialog-surfaces.test.mjs",
+    "scripts/file-size-ratchet-reanchors.json",
+    "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+    "docs/fixtures/text-density/w3-characterization.golden.txt",
     "docs/architecture/refactoring/r11-unit001-20261018",
     "docs/operations/current-state.md",
     "docs/operations/current-state-log.md",
@@ -82,7 +86,9 @@
     "docs/architecture/COMPONENT_CONTRACTS.md"
   ],
   "evidence": [
-    "docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-BASELINE-2026-10-18.md"
+    "docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-BASELINE-2026-10-18.md",
+    "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-REPORT-2026-10-18.md",
+    "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-FIVE-REVIEWER-RECORD-2026-10-18.md"
   ],
   "dependencies": [],
   "related_items": ["DOC-007"],

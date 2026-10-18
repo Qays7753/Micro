@@ -1422,3 +1422,13 @@ Full verification gate 17/17 EXIT 0 on implementation head `469aba03` (root 919/
 - **السجلات:** صُحح `current-state.md` ضمن حد الحجم (20,446/20,480)؛ أُلحقت §215 في `current-state-log.md` وهذا المدخل هنا append-only.
 - **الحدود:** لا مساس بالمال أو التاريخ أو Schema/Export/Import أو UI/New Design؛ لا دمج ولا حذف فروع ولا تنظيف ولا إعادة نشر. حد الرجوع: revert كتلة PR #374.
 - **الحالة:** `AGENT_GOVERNANCE_CONTRACT_VERIFIED_ON_MAIN — POST_MERGE_VERIFICATION: PASS — NO_SECRETS_EXPOSED`.
+
+## Entry 122 — 2026-10-18 — UNIT-001 implementation wave (ZAI sequential writer)
+
+> يرقّم هذا القسم 122 احتسابًا للقسم 121 الذي يضيفه فرع PR #376 التوثيقي (مصالحة القيد المشترك موثقة في تقرير التنفيذ §1 وWS-224 notes؛ إن اختلف ترتيب الدمج فللمالك إعادة الترقيم عند الحل — لا يُحسم صمتًا).
+
+- **الرأس المُسلَّم:** فرع `feature/r11-unit001-project-setup-20261018` من `fd5d7ce6` (أساس متحقق git+API)؛ الالتزامات: `5b1e7ca8` (جمد الأساس والClaim) → `ca557e14` (تنفيذ الشاشة الواحدة + create() + الحوار + التفويض) → `32692c7c` (أسس الحراس) → `48cddc21` (إصلاح RV3 الثلاثي) → `3a3ef71b` (إرساء الأسطح عند رأس الإصلاح) → `e62989d4` (إعادة اختبار ARCH-012-NF-001 السابع).
+- **البوابة الكاملة على رأس الكود:** `pnpm check` EXIT 0 — 952/952 جذرًا، 2768/2768 تطبيقًا، 26/26 حارسًا، ميزانية 631,388/154,996، أسطح داخل الأسس المرسّاة الموثقة، 44 اختبار Setup تغطي AC01..AC10 وACD001/002/023/024 والسلبيات.
+- **المراجعون الخمسة قراءة-فقط + المُصالِح:** السجل الكنوني `r11-unit001-20261018/R11-UNIT001-FIVE-REVIEWER-RECORD-2026-10-18.md` — RV3/RV4 عولجا جذريًا وأعيد تشغيلهما حتى PASS؛ بروفة الاستعادة REHEARSAL_PASS (revert كامل = شجرة مطابقة للأساس).
+- **السجلات:** DOC-008/WS-224 (areas مطابقة للـdiff)؛ current-state live fields محدّثة داخل السقف (20,466/20,480)؛ اللوق §216 append-only؛ الفهرس يحل إحالات المواد الثلاث.
+- **الحالة:** `UNIT001_COMPONENT_IMPLEMENTATION_COMPLETE — PR_READY`؛ لا دمج ولا تنظيف ولا UNIT-002 ولا New Design؛ الخطوة التالية قرار مالك مستقل.

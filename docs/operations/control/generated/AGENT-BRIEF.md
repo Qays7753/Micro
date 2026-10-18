@@ -34,4 +34,4 @@ python3 scripts/operations-control/validate.py
 
 | ID | الحالة | الفرع | PR | البنود | الخطوة التالية |
 |---|---|---|---|---|---|
-| WS-224 | IN_PROGRESS | `feature/r11-unit001-project-setup-20261018` | — | DOC-008 | تنفيذ عقد R11-UNIT001 كاملًا من الجمد حتى PR جاهز لمراجعة المالك؛ لا دمج ولا تنظيف فروع ولا بدء UNIT-002 أو New Design. |
+| WS-224 | IN_PROGRESS | `feature/r11-unit001-project-setup-20261018` | — | DOC-008 | المراجعة الملكية للـPR التنفيذ ثم قرار الدمج؛ لا دمج ولا تنظيف ولا بدء UNIT-002 أو New Design من هذه الموجة. |

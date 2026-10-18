@@ -10,11 +10,15 @@
   "areas": [
     "apps/prototype-web/client/src/pages/Setup.tsx",
     "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+    "apps/prototype-web/client/src/Nav001.dom.test.tsx",
     "apps/prototype-web/client/src/application/profile/profileService.ts",
     "apps/prototype-web/client/src/application/profile/profileService.test.ts",
     "apps/prototype-web/client/src/pages/Home.tsx",
-    "apps/prototype-web/client/src/Home.dom.test.tsx",
     "scripts/check-a11y-dialog-surfaces.mjs",
+    "scripts/check-a11y-dialog-surfaces.test.mjs",
+    "scripts/file-size-ratchet-reanchors.json",
+    "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+    "docs/fixtures/text-density/w3-characterization.golden.txt",
     "docs/architecture/refactoring/r11-unit001-20261018",
     "docs/operations/control/items/DOC-008.json",
     "docs/operations/current-state.md",
@@ -33,14 +37,15 @@
   "pr": null,
   "started_at": "2026-10-18",
   "updated_at": "2026-10-18",
-  "next_action": "تنفيذ عقد R11-UNIT001 كاملًا من الجمد حتى PR جاهز لمراجعة المالك؛ لا دمج ولا تنظيف فروع ولا بدء UNIT-002 أو New Design.",
+  "next_action": "المراجعة الملكية للـPR التنفيذ ثم قرار الدمج؛ لا دمج ولا تنظيف ولا بدء UNIT-002 أو New Design من هذه الموجة.",
   "notes": [
     "Claim واحد لهذه الموجة فقط؛ PR #376 (عقد التنفيذ، توثيقي) لا يُعدَّل ولا يُدمج من هنا.",
     "المواصفة الكنسية: docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md عند c8d9d5a81807862cfef98ee99b4813d8d2e14b9c (فرع PR #376 — خارج شجرة هذا الفرع عمدًا؛ مرجع مسار+SHA لا ملف محلي).",
     "خط الأساس الحي مثبت في evidence/R11-UNIT001-BASELINE-2026-10-18.md (fd5d7ce6…؛ لا انحراف حالة).",
-    "حذف أي حقل/مدخل نقدي من Setup لا يحدث قبل جرد مستهلكين مكتمل وبديل مالك مثبت وسلبيات (بوابة الإزالة في B-DUP).",
+    "حذف أي حقل/مدخل نقدي من Setup جرى بعد جرد مستهلكين كامل وبمالك بديل قائم وسلبيات (بوابة الإزالة في B-DUP — التفصيل في تقرير التنفيذ §جرد المستهلكين).",
     "لا تغيير Schema/Export (38/30) ولا سياسة مالية ولا تنسيق تاريخي ولا تصميم بصري عام؛ نصوص المكوّن المعتمدة فقط (T01..T16).",
-    "حد الاستعادة: كل التزامات الفرع تُعكس كوحدة متسقة؛ إغلاق PR قبل الدمج بلا أثر على main."
+    "مصالحة القيد المشترك مع PR #376 (RV5-N002): فرع PR #376 يسجّل DOC-008/WS-224 مسبقًا كتعريف Claim (RESEARCH/CLAIMED) مع Entry 121؛ هذا الفرع يوفي القيد بالمعرّفات نفسها التي يوجبها عقد التنفيذ بحالة الحياة الحقيقية. ترتيب الدمج الموصى: #376 أولًا ثم هذا الـPR؛ وعند تعارض الملفات المشتركة تُعتمد نسخة فرع التنفيذ (استمرارية القيد الحية) مع بقاء قصد التعريف منفّذًا — قرار الدمج للمالك لا يُحسم صمتًا.",
+    "حد الاستعادة: كل التزامات الفرع تُعكس كوحدة متسقة؛ إغلاق PR قبل الدمج بلا أثر على main؛ بروفة الاستعادة نُفذت وموثقة في تقرير التنفيذ (revert كامل بلا تعارض يعيد شجرة مطابقة للأساس بايتًا وبايت)."
   ],
   "migration_baseline": false,
   "evidence": [
