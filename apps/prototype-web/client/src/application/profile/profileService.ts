@@ -2,7 +2,13 @@
 import { localProfileId, type ActivityProfile, type PrototypeLocalStore } from "@/storage/local/types";
 
 /** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — زوج الملف فقط. */
-export type ProfileServiceStore = Pick<PrototypeLocalStore, "getProfile" | "saveProfile">;
+/* U001-IR-002 (مراجعة مستقلة 2026-10-18): الإنشاء الذرّي حدُّ الكتابة الجديد
+ * يُضاف للعدسة — القراءة/الكتابة المنفصلتان كانتا تسمحان بنافذتين متزامنتين
+ * بطمس أول هوية؛ الحد الذرّي يغلق السباق عند الجذر. */
+export type ProfileServiceStore = Pick<
+  PrototypeLocalStore,
+  "getProfile" | "saveProfile" | "commitProfileCreate"
+>;
 import {
   STORAGE_ERROR,
   VALIDATION_ERROR,
@@ -29,18 +35,17 @@ export class ProfileService {
     return this.store.getProfile();
   }
   /**
-   * UNIT-001 V2 (R02/R07، DUP-002): إنشاء الهوية وحدها — مسار الإنشاء idempotent
-   * ولا يعدّل هوية قائمة أبدًا: يقرأ الملف أولًا؛ وجوده يعيده كما هو دون أي كتابة
-   * (التعديل ملك 039 عبر save)، وغيابه ينشئه مرة واحدة بمصدر الهوية الواحد
-   * الثابت. فشل القراءة فشل صريح لا كتابة بديلة بعده.
+   * UNIT-001 V2 (R02/R07، DUP-002) + U001-IR-002 (مراجعة مستقلة 2026-10-18):
+   * إنشاء الهوية وحده — مسار الإنشاء idempotent ذرّيًا ولا يعدّل هوية قائمة
+   * أبدًا: الحد commitProfileCreate يقرأ ويكتب في معاملة واحدة فوجود الملف
+   * سلفًا يعيده كما هو دون أي كتابة (reused → created:false الصادق) وغيابه
+   * يُنشأه مرة واحدة؛ نافذتان متزامنتان لا تطمسان أول هوية منشأة أبدًا.
+   * فشل الحد فشل صريح لا كتابة بديلة بعده. (التعديل ملك 039 عبر save.)
    */
   async create(activityName: string): Promise<ProfileCreateResult> {
     const normalizedName = activityName.trim();
     if (!normalizedName)
       return validationFailure("اسم النشاط: اكتب اسم النشاط أو اسمك أولًا، ثم أعد المحاولة.");
-    const current = await this.store.getProfile();
-    if (!current.ok) return storageFailure("تعذر قراءة التأسيس المحلي. حاول مرة أخرى.");
-    if (current.value) return { ok: true, profile: current.value, created: false };
     const timestamp = this.now();
     const profile: ActivityProfile = {
       id: localProfileId,
@@ -50,9 +55,9 @@ export class ProfileService {
       createdAt: timestamp,
       updatedAt: timestamp,
     };
-    const saved = await this.store.saveProfile(profile);
-    return saved.ok
-      ? { ok: true, profile: saved.value, created: true }
+    const committed = await this.store.commitProfileCreate(profile);
+    return committed.ok
+      ? { ok: true, profile: committed.value.profile, created: !committed.value.reused }
       : storageFailure("لم يتم حفظ التأسيس على هذا الجهاز. تحقق من مساحة التخزين ثم أعد المحاولة.");
   }
   async save(activityName: string): Promise<ProfileSaveResult> {

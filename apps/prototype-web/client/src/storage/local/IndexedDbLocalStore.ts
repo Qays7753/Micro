@@ -172,6 +172,62 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   saveProfile(profile: ActivityProfile) {
     return writeOne(profileStore, profile);
   }
+  /* U001-IR-002 (مراجعة مستقلة 2026-10-18): إنشاء ملف الهوية داخل معاملة
+   * واحدة — القراءة والكتابة معًا (نفس عقد commitScheduleCreate وبنيته)
+   * فلا تُنشئ نافذتان متزامنتان هويتين ولا تطمس الثانية الأولى: الحاضر
+   * يُعاد كما هو بلا كتابة، والغياب يُنشأ مرة واحدة بمفتاح المصدر الثابت. */
+  async commitProfileCreate(
+    profile: ActivityProfile,
+  ): Promise<StorageResult<{ profile: ActivityProfile; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([profileStore], "readwrite");
+        const profiles = transaction.objectStore(profileStore);
+        let pending: StorageResult<{ profile: ActivityProfile; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ profile: ActivityProfile; reused: boolean }>) => {
+          resolve(result);
+        };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const storedRequest = profiles.get("local-profile");
+        storedRequest.onerror = () => {
+          pending = failure(storedRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        storedRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const stored = storedRequest.result as ActivityProfile | undefined;
+          if (stored) {
+            pending = { ok: true, value: { profile: stored, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          profiles.put(profile);
+        });
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { profile, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   getOwnerProfile() {
     return readOne<OwnerProfile>(ownerProfileStore, localOwnerProfileId);
   }

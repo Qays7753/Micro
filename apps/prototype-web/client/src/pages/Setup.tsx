@@ -72,6 +72,21 @@ export default function Setup() {
    * الانتقال الحقيقي←الفارغ فقط. */
   const [draftOffer, setDraftOffer] = useState<SetupDraft | null>(null);
   const [draftSaveFailed, setDraftSaveFailed] = useState(false);
+  /* U001-IR-003 (مراجعة مستقلة 2026-10-18): الطابع المتوقع للمسودة — آخر حالة
+   * معروفة لهذه الجلسة من حد المسودات الموحّد (عقد ٣٦: نافذة قديمة لا تطمس
+   * أحدث). يُقرأ من قراءة الفتح، ويُمرّر في كل حفظ، ولا يتحدث إلا بعد حفظ
+   * ناجح، ويُصفّر بعد تجاهل/مسح ناجح — القبول الصريح للاستعادة يستمر من
+   * طابع العرض المقبول نفسه. */
+  const draftExpectedUpdatedAt = useRef<string | null>(null);
+  /* سلسلة كتابة واحدة للحفظ والمسح: الكتابات تتسلسل فلا يتعارض حفظ متأخر مع
+   * حفظ سابق لنفس النافذة بطابع متقادم، ولا يُبعث مسود بعد مسح ناجح. */
+  const draftWriteChain = useRef<Promise<unknown>>(Promise.resolve());
+  const enqueueDraftWrite = (operation: () => Promise<void>) => {
+    draftWriteChain.current = draftWriteChain.current.then(operation, operation);
+  };
+  /* U001-IR-003: التعارض حالة صادقة معلنة — نص الخدمة المعتمد يظهر كما هو
+   * (role=alert) ولا يُبتلع نجاحًا صمتًا ولا يُعرض كفشل تخزين. */
+  const [draftConflict, setDraftConflict] = useState<string | null>(null);
   /* بوابة الاستقرار: تحجز أثر الحفظ/المسح كله حتى تستقر قراءة الفتح. */
   const [draftReadSettled, setDraftReadSettled] = useState(false);
   /* أمان المسح: لا يمسح المسودة الفارغة إلا بعد قراءة مستقرة ناجحة أو حفظ
@@ -118,6 +133,9 @@ export default function Setup() {
       if (!active) return;
       if (result.ok) {
         draftClearSafe.current = true;
+        /* U001-IR-003: الطابع المتوقع يُستقر من قراءة الفتح نفسها — الغلاف كما
+         * هو (حتى غير القابل للإكراه) يملك طابعه؛ الغياب طابع معدوم. */
+        draftExpectedUpdatedAt.current = result.value === null ? null : result.value.updatedAt;
         if (result.value !== null) {
           const coerced = coerceSetupDraft(result.value.values);
           if (coerced !== null && hasRealSetupInput(coerced)) setDraftOffer(coerced);
@@ -145,16 +163,35 @@ export default function Setup() {
     const real = hasRealSetupInput(values);
     if (!real) {
       setDraftSaveFailed(false);
+      setDraftConflict(null);
       if (hadRealInput.current && draftClearSafe.current) {
         hadRealInput.current = false;
-        void formDrafts.discard("setup", null);
+        enqueueDraftWrite(async () => {
+          const removed = await formDrafts.discard("setup", null);
+          /* U001-IR-003: التصفير بعد مسح ناجح فقط — فشل المسح يبقي الطابع على
+           * آخر حالة صحيحة معروفة فلا تعارض زائف ولا طمس. */
+          if (removed.ok) draftExpectedUpdatedAt.current = null;
+        });
       }
       return;
     }
     hadRealInput.current = true;
-    void formDrafts.save("setup", null, { ...values }).then(result => {
-      if (result.ok) draftClearSafe.current = true;
-      setDraftSaveFailed(result.ok === false && result.code !== "conflict");
+    enqueueDraftWrite(async () => {
+      /* U001-IR-003: كل حفظ يمر بالطابع المتوقع (عقد ٣٦) — النافذة القديمة
+       * تتعارض ولا تكتب فوق الأحدث، والقيم تبقى أمام المستخدم. */
+      const result = await formDrafts.save("setup", null, { ...values }, draftExpectedUpdatedAt.current);
+      if (result.ok) {
+        draftClearSafe.current = true;
+        draftExpectedUpdatedAt.current = result.value.updatedAt;
+        setDraftSaveFailed(false);
+        setDraftConflict(null);
+      } else if (result.code === "conflict") {
+        /* لا طمس حدث ولا نجاح صمت — نص الخدمة الصادق معروض كما هو حتى يقرر
+         * المالك (إكمال/تفريغ/تجاهل)؛ الطابع المتوقع لا يتغير هنا. */
+        setDraftConflict(result.message);
+      } else {
+        setDraftSaveFailed(true);
+      }
     });
   }, [activityName, offerPending, draftReadSettled, formDrafts]);
   /* إدخال جديد قبل حل عرض الاستعادة: الإدخال الجديد هو الأساس — يُخفى العرض
@@ -227,7 +264,10 @@ export default function Setup() {
       /* R02: هوية قائمة — يفتح المشروع القائم؛ لا هوية ثانية ولا تعديل. */
       setIsSaving(false);
       consumeInfoSentinel();
-      void formDrafts.discard("setup", null);
+      enqueueDraftWrite(async () => {
+        const removed = await formDrafts.discard("setup", null);
+        if (removed.ok) draftExpectedUpdatedAt.current = null;
+      });
       navigate("/?setup=1", { replace: true });
       return;
     }
@@ -243,7 +283,10 @@ export default function Setup() {
     notifyDataChanged();
     setIsSaving(false);
     consumeInfoSentinel();
-    void formDrafts.discard("setup", null);
+    enqueueDraftWrite(async () => {
+      const removed = await formDrafts.discard("setup", null);
+      if (removed.ok) draftExpectedUpdatedAt.current = null;
+    });
     navigate("/?setup=1", { replace: true });
   }
 
@@ -307,7 +350,10 @@ export default function Setup() {
             className="micro-text-action"
             type="button"
             onClick={() => {
-              void formDrafts.discard("setup", null);
+              enqueueDraftWrite(async () => {
+                const removed = await formDrafts.discard("setup", null);
+                if (removed.ok) draftExpectedUpdatedAt.current = null;
+              });
               setDraftOffer(null);
             }}
           >
@@ -318,6 +364,13 @@ export default function Setup() {
       {draftSaveFailed ? (
         <p className="micro-field-error" role="alert">
           تعذر حفظ المسودة. احتفظ بالشاشة مفتوحة حتى تكمل الإعداد.
+        </p>
+      ) : null}
+      {/* U001-IR-003: تعارض التزامن الصادق — نص الخدمة المعتمد كما هو، بلا
+          تصميم جديد وبلا إخفاء أو تحويل إلى فشل تخزين. */}
+      {draftConflict ? (
+        <p className="micro-field-error" role="alert" data-testid="setup-draft-conflict">
+          {draftConflict}
         </p>
       ) : null}
       <form

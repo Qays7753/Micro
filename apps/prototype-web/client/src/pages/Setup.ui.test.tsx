@@ -918,3 +918,126 @@ describe("ARCH-012-NF-001 — Setup launch lifecycle stays race-free after UNIT-
     expect(deleteSpy).toHaveBeenCalledTimes(1);
   });
 });
+
+/* U001-IR-003 (مراجعة مستقلة 2026-10-18): الحفظ التلقائي لمسودة الإعداد
+ * يمر بطابع التوقع الموثق (عقد ٣٦ — نافذة قديمة لا تطمس أحدث): التعارض
+ * حالة صادقة معلنة بنص الخدمة المعتمد لا نجاح صمت، وقيم المستخدم باقية،
+ * والمسودة الأحدث لا تُكتب فوقها، ولا أي أثر مالي في أي مسار. */
+describe("UNIT-001 setup draft autosave — the concurrency contract is honored (U001-IR-003)", () => {
+  async function readDraftName(store: PrototypeLocalStore): Promise<string | null> {
+    const draft = await store.getFormDraft("setup:new");
+    if (!draft.ok) throw new Error("read failed");
+    if (draft.value === null) return null;
+    return (draft.value.values as { activityName?: string }).activityName ?? null;
+  }
+
+  it("a stale window never overwrites a newer draft — truthful conflict, typed values kept, no financial write", async () => {
+    const { services, store } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "اسم هذه النافذة" } });
+    await waitFor(async () => {
+      if ((await readDraftName(store)) !== "اسم هذه النافذة") throw new Error("own draft not saved");
+    });
+    /* نافذة أخرى أحدث تكتب مسودة جديدة على المفتاح نفسه. */
+    const otherWindow = new FormDraftService(store, () => "2026-10-18T12:00:00.000Z");
+    const newer = await otherWindow.save("setup", null, {
+      activityName: "مسودة أحدث",
+      savedAt: "2026-10-18T12:00:00.000Z",
+    });
+    expect(newer.ok).toBe(true);
+    /* هذه النافذة (القديمة الآن) تكمل الكتابة — يجب أن تتعارض بلا طمس. */
+    fireEvent.change(input, { target: { value: "اسم هذه النافذة المعدل" } });
+    expect(await screen.findByTestId("setup-draft-conflict")).toBeTruthy();
+    expect(screen.getByTestId("setup-draft-conflict").getAttribute("role")).toBe("alert");
+    /* التعارض ليس فشل حفظ صامتًا ولا نجاحًا — نص الخدمة الصادق وحده. */
+    expect(screen.queryByText("تعذر حفظ المسودة. احتفظ بالشاشة مفتوحة حتى تكمل الإعداد.")).toBeNull();
+    /* المسودة الأحدث باقية حرفيًا — لم تُكتب فوقها قيم النافذة القديمة. */
+    expect(await readDraftName(store)).toBe("مسودة أحدث");
+    /* قيم المستخدم باقية في الحقل كما هي. */
+    expect(input.value).toBe("اسم هذه النافذة المعدل");
+    /* لا أي أثر مالي من أي مسار مسودة. */
+    const events = await store.listFinancialEvents();
+    expect(events).toMatchObject({ ok: true, value: [] });
+    const wallets = await store.listCashWallets();
+    expect(wallets).toMatchObject({ ok: true, value: [] });
+    const profile = await store.getProfile();
+    expect(profile).toMatchObject({ ok: true, value: null });
+  });
+
+  it("after a conflict, an explicit discard settles it and fresh typing saves cleanly (retry/continuation)", async () => {
+    const { services, store } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "قيمة أولى" } });
+    await waitFor(async () => {
+      if ((await readDraftName(store)) !== "قيمة أولى") throw new Error("draft not saved");
+    });
+    const otherWindow = new FormDraftService(store, () => "2026-10-18T12:00:00.000Z");
+    await otherWindow.save("setup", null, { activityName: "الأحدث", savedAt: "2026-10-18T12:00:00.000Z" });
+    fireEvent.change(input, { target: { value: "قيمة معدلة قديمة" } });
+    expect(await screen.findByTestId("setup-draft-conflict")).toBeTruthy();
+    /* إفراغ الحقل = قرار المالك الصريح: المسح يصفّر الطابع المتوقع ويزيل التعارض. */
+    fireEvent.change(input, { target: { value: "" } });
+    await waitFor(async () => {
+      const cleared = await store.getFormDraft("setup:new");
+      expect(cleared.ok && cleared.value).toBeNull();
+    });
+    expect(screen.queryByTestId("setup-draft-conflict")).toBeNull();
+    /* كتابة جديدة بعد التصفير تنجح نظيفة بلا تعارض زائف. */
+    fireEvent.change(input, { target: { value: "اسم جديد بعد التسوية" } });
+    await waitFor(async () => {
+      if ((await readDraftName(store)) !== "اسم جديد بعد التسوية") throw new Error("retry save failed");
+    });
+    expect(screen.queryByTestId("setup-draft-conflict")).toBeNull();
+  });
+
+  it("rapid consecutive typing serializes saves — no self-conflict and the final draft equals the latest value", async () => {
+    const { services, store } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "ح" } });
+    fireEvent.change(input, { target: { value: "حلو" } });
+    fireEvent.change(input, { target: { value: "حلويات" } });
+    await waitFor(async () => {
+      if ((await readDraftName(store)) !== "حلويات") throw new Error("final value not saved");
+    });
+    expect(screen.queryByTestId("setup-draft-conflict")).toBeNull();
+    expect(screen.queryByText("تعذر حفظ المسودة. احتفظ بالشاشة مفتوحة حتى تكمل الإعداد.")).toBeNull();
+  });
+
+  it("accepting the restore offer continues from the offer's own draft state — no spurious conflict (accepted restore)", async () => {
+    const { services, store } = setupServices();
+    await seedNameDraft(store, "الاسم المقبول");
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    await screen.findByTestId("setup-draft-offer");
+    fireEvent.click(screen.getByRole("button", { name: "أكمل الإعداد" }));
+    const input = screen.getByLabelText("اسم المشروع") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "الاسم المقبول المعدل" } });
+    await waitFor(async () => {
+      if ((await readDraftName(store)) !== "الاسم المقبول المعدل")
+        throw new Error("continuation save failed");
+    });
+    expect(screen.queryByTestId("setup-draft-conflict")).toBeNull();
+  });
+
+  it("unmounting after a settled save writes nothing further and keeps the stored draft", async () => {
+    const { services, store } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    const { unmount } = render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "قيمة قبل الإغلاق" } });
+    await waitFor(async () => {
+      if ((await readDraftName(store)) !== "قيمة قبل الإغلاق") throw new Error("draft not saved");
+    });
+    const before = await store.getFormDraft("setup:new");
+    unmount();
+    await new Promise(resolve => setTimeout(resolve, 30));
+    const after = await store.getFormDraft("setup:new");
+    expect(after).toEqual(before);
+  });
+});

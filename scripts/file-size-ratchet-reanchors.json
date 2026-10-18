@@ -1864,6 +1864,101 @@
     "trigger": "R11-UNIT001 execution contract section 2.2: root fixes inside the component boundary are FIX_NOW in this PR; spec B-DUP DUP-002 requires creation/rename split at the single identity source",
     "ocRef": "WS-224"
    }
+  },
+  {
+   "id": "U1IR002-PROFILE-SERVICE-ATOMIC",
+   "date": "2026-10-18",
+   "path": "apps/prototype-web/client/src/application/profile/profileService.ts",
+   "from": {
+    "nbLoc": 43,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 79,
+    "band": "NORMAL"
+   },
+   "reason": "U001-IR-002 (independent review on head 1995c930): ProfileService.create() now commits through the atomic create-if-absent storage boundary (commitProfileCreate) instead of the racy separate getProfile()/saveProfile() pair; the method contract comment and the store lens (Pick of commitProfileCreate) document the root fix. Same-PR growth sanctioned by the documented re-anchor protocol; save() ownership for UNIT-039 unchanged.",
+   "authorization": {
+    "ownerReview": "PR #377 independent review U001-IR-002 — this entry is part of the remediation PR diff",
+    "trigger": "PR #377 review comment 6250612100 (FIX_NOW correctness blocker)",
+    "ocRef": "DOC-008"
+   }
+  },
+  {
+   "id": "U1IR003-SETUP-DRAFT-CONCURRENCY",
+   "date": "2026-10-18",
+   "path": "apps/prototype-web/client/src/pages/Setup.tsx",
+   "from": {
+    "nbLoc": 432,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 487,
+    "band": "WATCH"
+   },
+   "reason": "U001-IR-003 (independent review on head 1995c930): the setup draft autosave now honors the contract-36 concurrency boundary — retained expected updatedAt passed on every save (updated only after success, reset after a successful discard), serialized write chain so a window never self-conflicts or resurrects a discarded draft, and a truthful role=alert conflict state carrying the service's canonical copy instead of the suppressed `code !== \"conflict\"` branch. Within-band growth documented same-PR; no visual redesign (existing micro-field-error pattern only).",
+   "authorization": {
+    "ownerReview": "PR #377 independent review U001-IR-003 — this entry is part of the remediation PR diff",
+    "trigger": "PR #377 review comment 6250612100 (FIX_NOW correctness/honesty blocker)",
+    "ocRef": "DOC-008"
+   }
+  },
+  {
+   "id": "U1IR002-IDB-PROFILE-COMMIT",
+   "date": "2026-10-18",
+   "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+   "from": {
+    "nbLoc": 4391,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 4455,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "U001-IR-002: commitProfileCreate added to the IndexedDB adapter — one readwrite transaction reads and writes the fixed local-profile key inside the same boundary (the commitScheduleCreate structure verbatim: guarded listeners, fail-closed aborts, reused result), so two concurrent Setup windows can never overwrite the first created identity.",
+   "authorization": {
+    "ownerReview": "PR #377 independent review U001-IR-002 — this entry is part of the remediation PR diff",
+    "trigger": "PR #377 review comment 6250612100 (FIX_NOW correctness blocker)",
+    "ocRef": "DOC-008"
+   }
+  },
+  {
+   "id": "U1IR002-MEMORY-PROFILE-COMMIT",
+   "date": "2026-10-18",
+   "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+   "from": {
+    "nbLoc": 2087,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 2134,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "U001-IR-002: commitProfileCreate added to the Memory adapter — check and write in one synchronous step (no await window in the single-threaded memory structure) mirroring the IndexedDB contract exactly; adapter parity is pinned by IndexedDbLocalStore.profileCommit.test.ts.",
+   "authorization": {
+    "ownerReview": "PR #377 independent review U001-IR-002 — this entry is part of the remediation PR diff",
+    "trigger": "PR #377 review comment 6250612100 (FIX_NOW correctness blocker)",
+    "ocRef": "DOC-008"
+   }
+  },
+  {
+   "id": "U1IR002-PORT-PROFILE-COMMIT",
+   "date": "2026-10-18",
+   "path": "apps/prototype-web/client/src/storage/local/types.ts",
+   "from": {
+    "nbLoc": 876,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 892,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "U001-IR-002: the PrototypeLocalStore port gains the atomic create-if-absent signature commitProfileCreate (documented in the port next to getProfile/saveProfile). The pinned port surface re-anchors 130 -> 131 methods in portSurfaceEvidence.test.ts in the same PR (documented ratchet, no silent growth); localSchemaVersion 38 and localExportVersion 30 untouched.",
+   "authorization": {
+    "ownerReview": "PR #377 independent review U001-IR-002 — this entry is part of the remediation PR diff",
+    "trigger": "PR #377 review comment 6250612100 (FIX_NOW correctness blocker)",
+    "ocRef": "DOC-008"
+   }
   }
  ]
 }
