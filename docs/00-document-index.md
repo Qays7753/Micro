@@ -263,6 +263,15 @@
 | `.github/pull_request_template.md` | قالب PR (مقيد باختبار حوكم الوثائق) |
 | `docs/quality/persistent-entity-touchpoints.json` | بيان الكيانات الدائمة — يُحرسه `scripts/check-entity-touchpoints.mjs` واختبار حوكم |
 
+## مواصفات المكونات — المصدر الكنسي داخل GitHub
+
+| الملف | الدور |
+|---|---|
+| `docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md` | نسخة GitHub canonical لمواصفة UNIT-001؛ لا تعتمد على Google Drive أثناء التنفيذ |
+| `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-PROMPT-2026-10-18.md` | عقد التنفيذ الوحيد لـZAI لمراجعة وتنفيذ UNIT-001 على فرع وPR مستقلين |
+| `docs/operations/control/items/DOC-008.json` | سجل Control لمواصفة وتنفيذ UNIT-001 |
+| `docs/operations/control/workstreams/WS-224.json` | Claim وفرع التنفيذ والحدود والتسليم لـUNIT-001 |
+
 ## مخازن الأدلة — غير سلطوية وخارج القراءة الافتراضية
 
 شهادات تنفيذ وتاريخ، تُقرأ بمسار صريح فقط (بند Control أو Workstream أو إحالة من مستند سلطوي) وفق قائمة المنع في `AGENTS.md` §2، ولا تعلو أبدًا على العقود أو الحالة الحية أو القرارات المعتمدة:

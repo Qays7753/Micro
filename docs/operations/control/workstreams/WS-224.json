@@ -1,0 +1,62 @@
+{
+  "id": "WS-224",
+  "title": "UNIT-001 — مراجعة مواصفة إعداد المشروع وتنفيذها الجذري على فرع مستقل",
+  "status": "CLAIMED",
+  "items": [
+    "DOC-008"
+  ],
+  "branch": "feature/r11-unit001-project-setup-20261018",
+  "base_sha": "fd5d7ce689d32d8dcc462bcea2ff1c006256f064",
+  "areas": [
+    "docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md",
+    "apps/prototype-web/client/src/pages/Setup.tsx",
+    "apps/prototype-web/client/src/app/StartupGate.tsx",
+    "apps/prototype-web/client/src/application/profile",
+    "apps/prototype-web/client/src/application/drafts",
+    "apps/prototype-web/client/src/application/restore",
+    "apps/prototype-web/client/src/pages/Home.tsx",
+    "apps/prototype-web/client/src/components",
+    "tests and fixtures for UNIT-001",
+    "docs/operations/control",
+    "docs/operations/current-state.md",
+    "docs/00-document-index.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md",
+    "docs/architecture/COMPONENT_CONTRACTS.md",
+    "docs/operations/control/README.md",
+    "docs/contracts/39-local-export-import-contract.md"
+  ],
+  "agent": "ZAI writer on one feature branch with five sequential read-only reviewers and one synthesizer; Manus owner review before merge",
+  "pr": null,
+  "started_at": "2026-10-18",
+  "updated_at": "2026-10-18",
+  "next_action": "Publish the GitHub-canonical specification and execution prompt; then ZAI must verify the live base, perform the consumer/ownership census, implement only UNIT-001, run all gates, and leave one PR open for owner review.",
+  "notes": [
+    "This is a single-component claim, not a general New Design, UI redesign, structural refactor, or bulk move.",
+    "The source specification is inside GitHub; ZAI must not access Google Drive or rely on external attachments.",
+    "No direct push to main; no merge; no branch deletion or repository cleanup in this workstream.",
+    "No silent changes to financial meaning, history, Schema 38, Export 30, import/export wire format, security, or rejection precedence.",
+    "Any new finding receives a durable ID and FIX_NOW, PRESERVE, DEFERRED_WITH_EXACT_TRIGGER, or OUT_OF_SCOPE classification.",
+    "If a safe in-scope defect is found, ZAI fixes it in the same component PR and reports it.",
+    "Rollback boundary is the coherent set of UNIT-001 commits on the feature branch before merge.",
+    "The component implementation claim remains CLAIMED/IN_PROGRESS/IN_REVIEW until an owner-approved merge and exact post-merge verification."
+  ],
+  "migration_baseline": false,
+  "evidence": [
+    "docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md",
+    "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-PROMPT-2026-10-18.md",
+    "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-BASELINE-EVIDENCE-2026-10-18.md",
+    "docs/operations/current-state-log.md",
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md"
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-18",
+      "actor": "owner-orchestration",
+      "reason": "Claim مستقل من main fd5d7ce689d32d8dcc462bcea2ff1c006256f064 بعد نجاح اختبار ZAI السابق؛ فرع التنفيذ والـPR سيُنشآن من الرأس الحي بعد نشر العقد التوثيقي."
+    }
+  ]
+}
