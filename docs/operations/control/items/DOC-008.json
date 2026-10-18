@@ -76,7 +76,13 @@
   "docs/architecture/refactoring/r11-unit001-20261018",
   "docs/operations/current-state.md",
   "docs/operations/current-state-log.md",
-  "docs/00-document-index.md"
+  "docs/00-document-index.md",
+  "apps/prototype-web/client/src/storage/local/types.ts",
+  "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+  "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+  "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.profileCommit.test.ts",
+  "apps/prototype-web/client/src/storage/local/portSurfaceEvidence.test.ts",
+  "scripts/check-storage-listener-guards.test.mjs"
  ],
  "contracts": [
   "docs/contracts/36-form-drafts-local-boundary-contract.md",
@@ -116,5 +122,5 @@
   }
  ],
  "migration_baseline": false,
- "next_action": "مراجعة المالك للـPR #377 (التقرير الكنوني وسجل المراجعين مرفقان في مجلد r11-unit001-20261018) ثم قرار الدمج وفق خطة المصالحة مع PR #376؛ بعد الدمج: التحقق على رأس main الفعلي قبل أي VERIFIED."
+ "next_action": "مراجعة المالك للـPR #377 بعد معالجة المراجعة المستقلة (U001-IR-001..004 مغلقة عند الجذور بالأدلة — راجع الملحق §15 في تقرير التنفيذ والمصالحة الثانية في سجل المراجعين) ثم قرار الدمج وفق خطة المصالحة مع PR #376؛ بعد الدمج: التحقق على رأس main الفعلي قبل أي VERIFIED."
 }

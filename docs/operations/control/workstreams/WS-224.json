@@ -24,7 +24,13 @@
   "docs/operations/current-state.md",
   "docs/operations/current-state-log.md",
   "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
-  "docs/00-document-index.md"
+  "docs/00-document-index.md",
+  "apps/prototype-web/client/src/storage/local/types.ts",
+  "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+  "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+  "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.profileCommit.test.ts",
+  "apps/prototype-web/client/src/storage/local/portSurfaceEvidence.test.ts",
+  "scripts/check-storage-listener-guards.test.mjs"
  ],
  "contracts": [
   "docs/contracts/36-form-drafts-local-boundary-contract.md",
@@ -45,7 +51,8 @@
   "حذف أي حقل/مدخل نقدي من Setup جرى بعد جرد مستهلكين كامل وبمالك بديل قائم وسلبيات (بوابة الإزالة في B-DUP — التفصيل في تقرير التنفيذ §جرد المستهلكين).",
   "لا تغيير Schema/Export (38/30) ولا سياسة مالية ولا تنسيق تاريخي ولا تصميم بصري عام؛ نصوص المكوّن المعتمدة فقط (T01..T16).",
   "مصالحة القيد المشترك مع PR #376 (RV5-N002): فرع PR #376 يسجّل DOC-008/WS-224 مسبقًا كتعريف Claim (RESEARCH/CLAIMED) مع Entry 121؛ هذا الفرع يوفي القيد بالمعرّفات نفسها التي يوجبها عقد التنفيذ بحالة الحياة الحقيقية. ترتيب الدمج الموصى: #376 أولًا ثم هذا الـPR؛ وعند تعارض الملفات المشتركة تُعتمد نسخة فرع التنفيذ (استمرارية القيد الحية) مع بقاء قصد التعريف منفّذًا — قرار الدمج للمالك لا يُحسم صمتًا.",
-  "حد الاستعادة: كل التزامات الفرع تُعكس كوحدة متسقة؛ إغلاق PR قبل الدمج بلا أثر على main؛ بروفة الاستعادة نُفذت وموثقة في تقرير التنفيذ (revert كامل بلا تعارض يعيد شجرة مطابقة للأساس بايتًا وبايت)."
+  "حد الاستعادة: كل التزامات الفرع تُعكس كوحدة متسقة؛ إغلاق PR قبل الدمج بلا أثر على main؛ بروفة الاستعادة نُفذت وموثقة في تقرير التنفيذ (revert كامل بلا تعارض يعيد شجرة مطابقة للأساس بايتًا وبايت).",
+  "معالجة المراجعة المستقلة (2026-10-18، تعليق PR #377 6250612100): U001-IR-001..004 أُغلقت عند جذورها داخل نفس الـPR — commitProfileCreate الذرّي عند حد الكتابة (منفذ 130→131 موثقًا + تكافؤ المحوّلين) وعقد تزامن مسودة الإعداد (expectedUpdatedAt + سلسلة كتابة واحدة + تعارض صادق معلن) وإرساء أسطح السحابة من القياس الفعلي نفس-الرأس (github-actions مباشرة من التشغيل 39136747222 على f5b8d460؛ cloudflare-pages باشتقاق فئة البيئة المثبت مع دليل التكافؤ المسجل؛ السقوف والسماحات لم تُمس) وتصحيح الحالة الكنونية بالأدلة الفعلية (f13d5f02 + f5b8d460؛ 952/952 + 2780/2780). لا دمج ولا تنظيف ولا UNIT-002."
  ],
  "migration_baseline": false,
  "evidence": [

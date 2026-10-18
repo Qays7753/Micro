@@ -1972,7 +1972,7 @@
     "nbLoc": 129,
     "band": "NORMAL"
    },
-   "reason": "U001-IR-001 (independent review on head 1995c930): the local environment record is re-anchored with the exact same-head measurements of the remediation code head (f13d5f02) — lazy 1,214,634/366,062 and precache 2,682,910 with documented provenance (initial companions and swRuntime byte-identical; counts unchanged; entry 631,807/155,041 within the untouched 650,000/155,300 ceilings; raw tolerance 8 and gzip tolerance 16 unchanged). The growth is the honest cost of the U001-IR-002/003 root fixes on the lazy setup route. Cloud records follow the documented post-push measurement protocol.",
+   "reason": "U001-IR-001 (independent review on head 1995c930): the local environment record is re-anchored with the exact same-head measurements of the remediation code head (f13d5f02) — lazy 1,214,634/366,062 and precache 2,682,910 with documented provenance (initial companions and swRuntime byte-identical; counts unchanged; entry 631,807/155,041 within the untouched 650,000/155,300 ceilings; raw tolerance 8 and gzip tolerance 16 unchanged). The growth is the honest cost of the U001-IR-002/003 root fixes on the lazy setup route. Cloud records follow the documented post-push measurement protocol. The follow-up cloud re-anchor commit extends the same provenance history in-place (same PR, same authorization).",
    "authorization": {
     "ownerReview": "PR #377 independent review U001-IR-001 — this entry is part of the remediation PR diff",
     "trigger": "PR #377 review comment 6250612100 (FIX_NOW merge blocker — cloud re-anchor incomplete)",
