@@ -251,6 +251,8 @@
  - **R11 UNIT-001 — تقرير تنفيذ V2 التاريخي (2026-10-18):** `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-REPORT-2026-10-18.md` (سجل التنفيذ السابق على مصدر V2؛ لا يُستخدم وحده لإغلاق V3).
  - **R11 UNIT-001 — سجل مراجعي V2 التاريخي (2026-10-18):** `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-FIVE-REVIEWER-RECORD-2026-10-18.md` (سجل مراجعة التنفيذ السابق؛ لا يستبدل مراجعة V3 الجديدة).
  - **R11 UNIT-001 — مقارنة V2/V3 ومصدر Drive (2026-10-18):** `docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-V2-V3-DRIVE-GITHUB-COMPARISON-2026-10-18.md` (مقارنة قراءة فقط؛ Drive provenance، وV3 GitHub canonical).
+ - **R11 UNIT-001 — تقرير تنفيذ V3 ومصالحتها (2026-10-19):** `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-REPORT-2026-10-18.md` (السجل الكنوني لموجة V3 على فرع التكامل: مصفوفة أدلة ORG-AC01..03 وQ01 باختبارات مستقلة، خمسة مراجعين قراءة-فقط، ودليل هاتف صادق `NOT_EXECUTED` — العلامة `OWNER_REVIEW_REQUIRED` حتى قرار المالك).
+ - **R11 UNIT-001 — سجل مراجعي V3 قراءة-فقط (2026-10-19):** `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-FIVE-REVIEWER-RECORD-2026-10-18.md` (RV1..RV5 + المُصالِح؛ صفر FIX_NOW؛ تصنيف دائم لكل مكتشف؛ لا مراجع كتب شيئًا).
 
 ## ملفات الجذر والأدوات الحاكمة
 
@@ -275,6 +277,8 @@
 | `docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V3.md` | النسخة الكنسية الحالية لـUNIT-001؛ منقولة ومصالحة من Drive provenance، ويقرأها Zed AI من GitHub فقط |
 | `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-PROMPT-2026-10-18.md` | عقد تنفيذ V2 التاريخي؛ لا يوجه الموجة الحالية |
 | `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-PROMPT-2026-10-18.md` | عقد التنفيذ الحالي لـZed AI لمراجعة وتنفيذ V3 على فرع التكامل وPR #378 |
+| `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-REPORT-2026-10-18.md` | تقرير تنفيذ مصالحة V3 الحالي (بوابات ORG-AC/Q01 وأدلتها وحدودها) |
+| `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-FIVE-REVIEWER-RECORD-2026-10-18.md` | سجل المراجعين الخمسة قراءة-فقط لموجة V3 |
 | `docs/operations/control/items/DOC-008.json` | سجل Control لمواصفة وتنفيذ UNIT-001 |
 | `docs/operations/control/workstreams/WS-224.json` | Claim وفرع التنفيذ والحدود والتسليم لـUNIT-001 |
 

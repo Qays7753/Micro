@@ -15,6 +15,7 @@
  "owner_decision": "نطاق V3 معتمد للتنفيذ المضبوط على الفرع طويل العمر components/integration-20261018 وPR #378؛ لا كتابة على main ولا دمج ولا تنظيف فروع ولا بدء UNIT-002 أو New Design في هذه الموجة.",
  "tests_required": [
   "pnpm --filter @micro/prototype-web test -- client/src/pages/Setup.ui.test.tsx",
+  "pnpm --filter @micro/prototype-web test -- client/src/pages/Setup.v3Gates.test.tsx",
   "pnpm --filter @micro/prototype-web test -- client/src/application/profile/profileService.test.ts",
   "pnpm --filter @micro/prototype-web test -- client/src/Home.dom.test.tsx",
   "pnpm --filter @micro/prototype-web test -- client/src/app/StartupGate.recovery.test.ts",
@@ -69,6 +70,8 @@
   "اختبار الهاتف أو دليل صادق يوضح PASS أو NOT_EXECUTED/UNVERIFIED؛ لا يكفي CI وحده لإثباته."
  ],
  "areas": [
+  "docs/architecture/refactoring/generated/test-map.json",
+  "apps/prototype-web/client/src/pages/Setup.v3Gates.test.tsx",
   "apps/prototype-web/client/src/pages/Setup.tsx",
   "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
   "apps/prototype-web/client/src/Nav001.dom.test.tsx",
@@ -104,13 +107,15 @@
  "evidence": [
   "docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-BASELINE-2026-10-18.md",
   "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-REPORT-2026-10-18.md",
-  "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-FIVE-REVIEWER-RECORD-2026-10-18.md"
+  "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-FIVE-REVIEWER-RECORD-2026-10-18.md",
+  "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-REPORT-2026-10-18.md",
+  "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-FIVE-REVIEWER-RECORD-2026-10-18.md"
  ],
  "dependencies": [],
  "related_items": [
   "DOC-007"
  ],
- "updated_at": "2026-10-18",
+ "updated_at": "2026-10-19",
  "status_history": [
   {
    "status": "CLAIMED",
@@ -132,5 +137,5 @@
   }
  ],
  "migration_baseline": false,
- "next_action": "تشغيل Prompt V3 على الفرع components/integration-20261018 من خلال PR #378: فحص حي ثم مراجعة Q01 وORG-AC01..03، إصلاح جذري لأي فجوة مثبتة، خمس مراجعات قراءة-فقط، وتحديث الأدلة. لا PR_READY إذا بقيت بوابة غير مثبتة؛ بعد اكتمال البرنامج فقط يُطلب قرار دمج صريح."
+ "next_action": "مراجعة مالك PR #378 على أدلة موجة V3 (تقرير V3 + سجل المراجعين + جناح البوابات 9/9)؛ بوابة دليل الهاتف الفعلي خارجية (UAT-001/DEVICE-001 ضمن PRE-PILOT) تُغلق بجلسة جهاز حقيقية عند قرار المالك؛ ثم قرار الدمج الصريح — بعده فقط MERGED_UNVERIFIED ثم VERIFIED بأدلة على رأس main الفعلي؛ لا UNIT-002 قبل عقده المستقل."
 }

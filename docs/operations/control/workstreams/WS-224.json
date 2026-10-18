@@ -8,6 +8,8 @@
  "branch": "components/integration-20261018",
  "base_sha": "fd5d7ce689d32d8dcc462bcea2ff1c006256f064",
  "areas": [
+  "docs/architecture/refactoring/generated/test-map.json",
+  "apps/prototype-web/client/src/pages/Setup.v3Gates.test.tsx",
   "apps/prototype-web/client/src/pages/Setup.tsx",
   "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
   "apps/prototype-web/client/src/Nav001.dom.test.tsx",
@@ -42,8 +44,8 @@
  "agent": "ZAI — one sequential writer; five read-only reviewers after implementation (no code edits by reviewers)",
  "pr": 378,
  "started_at": "2026-10-18",
- "updated_at": "2026-10-18",
- "next_action": "تنفيذ مراجعة ومصالحة V3 على PR #378 بواسطة Zed AI؛ إثبات Q01 وORG-AC01..03 وتحديث السجلات. بعد اكتمال البرنامج فقط يُطلب قرار دمج صريح؛ قبل ذلك لا MERGED_UNVERIFIED ولا VERIFIED ولا تنظيف ولا UNIT-002.",
+ "updated_at": "2026-10-19",
+ "next_action": "قرار مالك PR #378 بعد مراجعة أدلة V3؛ بوابة دليل الهاتف الفعلي خارجية تُغلق بجلسة جهاز عند قرار المالك؛ لا MERGED_UNVERIFIED/VERIFIED قبل دمج موافق وإثبات على main؛ لا تنظيف ولا UNIT-002 ولا موجة أخرى تلقائيًا.",
  "notes": [
   "Claim واحد لهذه الموجة فقط؛ PR #376 (عقد التنفيذ، توثيقي) لا يُعدَّل ولا يُدمج من هنا.",
   "المواصفة الكنسية الحالية: docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V3.md؛ V2 محفوظة تاريخيًا. مصدر Drive provenance موثق في evidence/R11-UNIT001-V2-V3-DRIVE-GITHUB-COMPARISON-2026-10-18.md؛ Zed AI لا يقرأ Drive.",
@@ -52,11 +54,14 @@
   "لا تغيير Schema/Export (38/30) ولا سياسة مالية ولا تنسيق تاريخي ولا تصميم بصري عام؛ نصوص المكوّن المعتمدة فقط (T01..T16).",
   "المصالحة السابقة مع PR #376/#377 محفوظة كسجل تاريخي فقط؛ source PRs لا تُدمج منفردة. فرع التكامل PR #378 هو مسار العمل الحالي، وقرار الدمج النهائي للمالك وحده بعد اكتمال V3.",
   "حد الاستعادة: كل تغييرات V3 تُعكس كوحدة متسقة؛ إغلاق PR #378 قبل الدمج بلا أثر على main؛ لا force-push ولا حذف فروع.",
-  "معالجة المراجعة المستقلة (2026-10-18، تعليق PR #377 6250612100): U001-IR-001..004 أُغلقت عند جذورها داخل نفس الـPR — commitProfileCreate الذرّي عند حد الكتابة (منفذ 130→131 موثقًا + تكافؤ المحوّلين) وعقد تزامن مسودة الإعداد (expectedUpdatedAt + سلسلة كتابة واحدة + تعارض صادق معلن) وإرساء أسطح السحابة من القياس الفعلي نفس-الرأس (github-actions مباشرة من التشغيل 39136747222 على f5b8d460؛ cloudflare-pages باشتقاق فئة البيئة المثبت مع دليل التكافؤ المسجل؛ السقوف والسماحات لم تُمس) وتصحيح الحالة الكنونية بالأدلة الفعلية (f13d5f02 + f5b8d460؛ 952/952 + 2780/2780). لا دمج ولا تنظيف ولا UNIT-002."
+  "معالجة المراجعة المستقلة (2026-10-18، تعليق PR #377 6250612100): U001-IR-001..004 أُغلقت عند جذورها داخل نفس الـPR — commitProfileCreate الذرّي عند حد الكتابة (منفذ 130→131 موثقًا + تكافؤ المحوّلين) وعقد تزامن مسودة الإعداد (expectedUpdatedAt + سلسلة كتابة واحدة + تعارض صادق معلن) وإرساء أسطح السحابة من القياس الفعلي نفس-الرأس (github-actions مباشرة من التشغيل 39136747222 على f5b8d460؛ cloudflare-pages باشتقاق فئة البيئة المثبت مع دليل التكافؤ المسجل؛ السقوف والسماحات لم تُمس) وتصحيح الحالة الكنونية بالأدلة الفعلية (f13d5f02 + f5b8d460؛ 952/952 + 2780/2780). لا دمج ولا تنظيف ولا UNIT-002.",
+  "موجة مصالحة V3 (2026-10-19): استمرار على نفس الفرع/PR من رأس نشر V3 5b86bf4؛ الجديد = قيود ملكية/أدلة فقط (جناح اختبار V3 9/9 مسمّى بمعرفات البوابات + Views مولدة + وثائق)؛ صفر تغيير إنتاج فقياسات الأسطح تطابق الأسس بلا إعادة إرساء؛ دليل الهاتف الفعلي NOT_EXECUTED بمانع ادعاء PR_READY وفق عقد V3 (لا يُحوَّل NOT_EXECUTED إلى PR_READY)."
  ],
  "migration_baseline": false,
  "evidence": [
-  "docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-BASELINE-2026-10-18.md"
+  "docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-BASELINE-2026-10-18.md",
+  "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-REPORT-2026-10-18.md",
+  "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-FIVE-REVIEWER-RECORD-2026-10-18.md"
  ],
  "status_history": [
   {
