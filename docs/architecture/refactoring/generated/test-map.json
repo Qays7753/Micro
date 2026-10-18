@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "5cf13dbf0798886214d836fe5e7c26fb9e860271",
+  "head": "5b86bf4ba884ce0ce3c181136ba19c9c562047c8",
   "pages": {
     "total": 60,
     "map": {
@@ -392,7 +392,8 @@
       "pages/Setup.tsx": {
         "kind": "direct",
         "evidence": [
-          "pages/Setup.ui.test.tsx"
+          "pages/Setup.ui.test.tsx",
+          "pages/Setup.v3Gates.test.tsx"
         ]
       },
       "pages/SharePreview.tsx": {
