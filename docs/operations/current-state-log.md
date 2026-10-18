@@ -2593,3 +2593,10 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 
 - على الرأس `10c054c57c7ac7b69854db9cd09f15239c7725f4`: فحص checks **success** (تشغيل `39138297474` / job `117707262320` — check-bundle-surfaces PASS بحدود السماحين 8/16 والميزانية 631,807/155,041) وفحص Cloudflare Pages **success** (نشر `0c243ebf-11d6-42f5-beba-1af6f40740fe` — Deploy successful؛ معاينة `0c243ebf.micro-prototype.pages.dev`). سطر الحارس الحرفي وروابط الأدلة في تقرير التنفيذ §15 (التحقق النهائي). الالتزام التوثيقي الموالي لا يمس الحزمة؛ الرأس النهائي يُقرأ من `git ls-remote origin` — شرط سريان PR_READY مستوفًى على الرأس الأخضر.
 - **الحالة:** `UNIT001_INDEPENDENT_FINDINGS_RESOLVED — CI_AND_PAGES_GREEN_ON_HEAD — NO_MERGE_PERFORMED`.
+
+## §219 — 2026-10-18 — نشر مواصفة UNIT-001 V3 ومصالحة Drive/GitHub قبل استكمال التنفيذ
+- قورنت قراءة فقط نسخة Drive `Micro/03-New-Design/UNIT-001-إعداد-المشروع.md` (V3، آخر تعديل 2026-10-18، provenance فقط) مع نسخة GitHub V2. أضيف تقرير المقارنة إلى `docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-V2-V3-DRIVE-GITHUB-COMPARISON-2026-10-18.md`.
+- أضيفت نسخة GitHub الكنسية `docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V3.md` مع حفظ V2 تاريخيًا. V3 تضيف ORG-001/002/009/024 وبوابات `U001-ORG-AC01..03` وQ01 ومسؤوليات الجيران؛ لا تثبت وحدها نجاح التنفيذ أو اختبار الهاتف.
+- نُشر عقد Zed AI الجديد `R11-UNIT001-V3-EXECUTION-PROMPT-2026-10-18.md` على فرع التكامل `components/integration-20261018` وPR #378. لا وصول Zed AI إلى Drive؛ GitHub V3 هو المصدر الوحيد للتنفيذ.
+- تم تحديث DOC-008/WS-224 والفهرس والحالة الحية من مصادرها؛ الحالة `IN_REVIEW`، لا كتابة على `main`، لا دمج، لا تنظيف فروع، ولا UNIT-002. الخطوة التالية: فحص حي V3 ثم تنفيذ/اختبار/خمس مراجعات قراءة-فقط على PR #378.
+- الحالة: `UNIT001_V3_SPEC_PUBLISHED — IMPLEMENTATION_REVIEW_REQUIRED — NO_MAIN_WRITE — NO_MERGE_PERFORMED — NO_BRANCH_CLEANUP_PERFORMED — NO_SECRETS_EXPOSED`.

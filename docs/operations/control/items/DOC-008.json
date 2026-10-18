@@ -1,18 +1,18 @@
 {
  "id": "DOC-008",
- "title": "UNIT-001 إعداد المشروع لأول استخدام — تنفيذ مواصفة V2 بملكية واحدة وحذف مكرر مُثبت",
+ "title": "UNIT-001 إعداد المشروع لأول استخدام — مصالحة V3 وتنفيذ مضبوط على فرع التكامل",
  "type": "FEATURE",
  "status": "IN_REVIEW",
  "priority": "P1",
  "stage": "r11-unit001-20261018",
- "summary": "تنفيذ مواصفة المكوّن UNIT-001 V2 (شاشة اسم واحدة بلا إعداد نقدي، حوار معلومات مكتبة، مدخل استعادة يفوّض لمالك 044، مسودة اسم منفصلة، حارس هوية قائمة) مع جرد المستهلكين قبل أي حذف، واختبارات AC01..AC11 وACD001/002/005/023/024 وسلبية، في PR واحد من فرع مستقل. لا UNIT-002 ولا New Design ولا تعديل PR #376.",
+ "summary": "مراجعة ومصالحة مواصفة UNIT-001 V3 مع تنفيذ V2 القائم على فرع التكامل components/integration-20261018 وPR #378: شاشة الاسم بلا إعداد نقدي، ملكية الهوية الواحدة، تفويض الاستعادة إلى 044، مصالحة ORG-001/002/009/024، وبوابات U001-ORG-AC01..03 وQ01. الإصلاح الجذري داخل النطاق فقط؛ لا UNIT-002 ولا New Design ولا دمج أو تنظيف في هذه الموجة.",
  "finding_classification": "NOT_APPLICABLE",
  "finding_state": "NOT_APPLICABLE",
  "classification": "BUILD_AFTER_EVIDENCE",
  "gate_classification": "NOT_APPLICABLE",
  "root_cause": "معالج الإعداد الحالي يجمع إنشاء الهوية وإعداد النقد (كاتب مالي ثانٍ داخل البداية) ويترك دليلًا لتحرير هوية قائمة من مسار الإعداد، بلا مدخل استعادة في شاشة الإعداد — المواصفة V2 تفصل الملكية: 001 ينشئ الهوية وحدها، و022 يملك النقد، و044 يملك الاستعادة، و039 يملك تعديل الاسم.",
  "owner": "Micro owner (Qays7753)",
- "owner_decision": "نطاق معتمد عبر عقد التنفيذ R11-UNIT001 (PR #376 التوثيقي): موجة واحدة منفصلة من origin/main على فرع feature/r11-unit001-project-setup-20261018؛ لا دمج ولا تنظيف فروع ولا بدء UNIT-002 أو New Design في هذه الموجة.",
+ "owner_decision": "نطاق V3 معتمد للتنفيذ المضبوط على الفرع طويل العمر components/integration-20261018 وPR #378؛ لا كتابة على main ولا دمج ولا تنظيف فروع ولا بدء UNIT-002 أو New Design في هذه الموجة.",
  "tests_required": [
   "pnpm --filter @micro/prototype-web test -- client/src/pages/Setup.ui.test.tsx",
   "pnpm --filter @micro/prototype-web test -- client/src/application/profile/profileService.test.ts",
@@ -34,7 +34,7 @@
   "operations-control"
  ],
  "source": {
-  "report": "docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md (GitHub canonical، c8d9d5a8…) + R11-UNIT001-EXECUTION-PROMPT-2026-10-18.md (PR #376)",
+  "report": "docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V3.md (GitHub canonical؛ provenance Drive موثق في evidence/R11-UNIT001-V2-V3-DRIVE-GITHUB-COMPARISON-2026-10-18.md) + docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-PROMPT-2026-10-18.md",
   "discovered_at_sha": "fd5d7ce689d32d8dcc462bcea2ff1c006256f064",
   "evidence": [
    "apps/prototype-web/client/src/pages/Setup.tsx",
@@ -42,7 +42,10 @@
    "apps/prototype-web/client/src/application/profile/profileService.ts",
    "apps/prototype-web/client/src/pages/Home.tsx",
    "docs/contracts/36-form-drafts-local-boundary-contract.md",
-   "docs/contracts/40-technical-ownership-map-contract.md"
+   "docs/contracts/40-technical-ownership-map-contract.md",
+   "docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V3.md",
+   "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-PROMPT-2026-10-18.md",
+   "docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-V2-V3-DRIVE-GITHUB-COMPARISON-2026-10-18.md"
   ]
  },
  "acceptance": [
@@ -59,7 +62,11 @@
   "RTL وأرقام ASCII 0-9 وتسميات قارئ الشاشة وأهداف لمس وتركيز مرئي محفوظة (R15).",
   "اختبارات U001-AC01..AC11 وACD001/002/005/023/024 وسلبية (لا هوية ثانية، لا سجل مالي تلقائي، لا استعادة مسودة تراثية، لا مالك استعادة ثانٍ، لا وصول UI مباشر للتخزين) ناجحة ضمن البوابة الكاملة.",
   "جرد مستهلكين قبل/بعد لكل حذف أو تغيير ملكية (openWallet من Setup، حقول النقد، EnglishNumberInput،todayInAmman) مع بديل مثبت وسلبيات.",
-  "السجلات الكنونية محدثة في نفس PR: تقرير التنفيذ، سجل المراجعين الخمسة، DOC-008/WS-224 بصدق الحالة (IN_REVIEW قبل الدمج)، current-state live fields، اللوق append-only، سجل الوكلاء، Views مولدة من JSON، الفهرس."
+  "السجلات الكنونية محدثة في نفس PR: تقرير التنفيذ، سجل المراجعين الخمسة، DOC-008/WS-224 بصدق الحالة (IN_REVIEW قبل الدمج)، current-state live fields، اللوق append-only، سجل الوكلاء، Views مولدة من JSON، الفهرس.",
+  "V3 ORG-AC01: إتمام الاسم يفتح المشروع دون أثر مالي أو اشتراط حقول اختيارية؛ بدليل اختبار مستقل.",
+  "V3 ORG-AC02: البيانات السابقة أو فشل قراءتها لا ينشئان مشروعًا ثانيًا؛ بدليل اختبار مستقل.",
+  "V3 ORG-AC03/Q01: الاستعادة والإلغاء والرجوع والفشل والاستبدال تحافظ على السياق ولا تنشئ هوية ثانية؛ لا إغلاق إذا بقيت غير مثبتة.",
+  "اختبار الهاتف أو دليل صادق يوضح PASS أو NOT_EXECUTED/UNVERIFIED؛ لا يكفي CI وحده لإثباته."
  ],
  "areas": [
   "apps/prototype-web/client/src/pages/Setup.tsx",
@@ -82,7 +89,10 @@
   "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
   "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.profileCommit.test.ts",
   "apps/prototype-web/client/src/storage/local/portSurfaceEvidence.test.ts",
-  "scripts/check-storage-listener-guards.test.mjs"
+  "scripts/check-storage-listener-guards.test.mjs",
+  "docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V3.md",
+  "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-PROMPT-2026-10-18.md",
+  "docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-V2-V3-DRIVE-GITHUB-COMPARISON-2026-10-18.md"
  ],
  "contracts": [
   "docs/contracts/36-form-drafts-local-boundary-contract.md",
@@ -122,5 +132,5 @@
   }
  ],
  "migration_baseline": false,
- "next_action": "مراجعة المالك للـPR #377 بعد معالجة المراجعة المستقلة (U001-IR-001..004 مغلقة عند الجذور بالأدلة — راجع الملحق §15 في تقرير التنفيذ والمصالحة الثانية في سجل المراجعين) ثم قرار الدمج وفق خطة المصالحة مع PR #376؛ بعد الدمج: التحقق على رأس main الفعلي قبل أي VERIFIED."
+ "next_action": "تشغيل Prompt V3 على الفرع components/integration-20261018 من خلال PR #378: فحص حي ثم مراجعة Q01 وORG-AC01..03، إصلاح جذري لأي فجوة مثبتة، خمس مراجعات قراءة-فقط، وتحديث الأدلة. لا PR_READY إذا بقيت بوابة غير مثبتة؛ بعد اكتمال البرنامج فقط يُطلب قرار دمج صريح."
 }

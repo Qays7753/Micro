@@ -248,8 +248,9 @@
  - **R11 متابعة موحدة — ملحق اعتماد حمولة W2b (2026-10-16):** `docs/architecture/refactoring/r11-unified-followup-20261016/evidence/W2B-OWNER-PAYLOAD-ADDENDUM-2026-10-16.md` (سجل append-only للحمولة الدقيقة المعتمدة من المالك قبل أي كتابة سلوك: رمز `validation_error` عبر الثابت الكنوني القائم والنص العربي الحرفي؛ النطاق للزوج الحالي وحده والموضع بعد بوابة العدادات حصرًا؛ لا صدى لأسماء المفاتيح ولا تغيير للإرث أو الذهبيات أو MANIFEST).
  - **R11 متابعة موحدة — إغلاق مصدر Standard بالدليل D-12/F-040 (2026-10-16):** `docs/architecture/refactoring/r11-unified-followup-20261016/evidence/D12-F040-STANDARD-SOURCE-CLOSURE-2026-10-16.md` (تثبيت المرجع الحاكم بالقياس المباشر: رأس `Qays7753/Documents@main` وblob SHA لمسار design-tokens.css وآخر التزام لامس وsha256 المحتوى؛ سلّم سلطة واحد بلا مصدر ثانٍ؛ تصحيح سطرين حيين بإضافة مؤرخة؛ إغلاق توثيق/أدلة بلا تغيير كود أو عقد؛ New Design لم يُمس).
  - **R11 UNIT-001 — دليل الأساس المجمد لموجة تنفيذ المكوّن (2026-10-18):** `docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-BASELINE-2026-10-18.md` (جرد القراءة فقط قبل أول كتابة كود لمكوّن UNIT-001: الأساس الحي `fd5d7ce6` وفحص انحراف الحالة، PR #376 التوثيقي وحده مفتوح، صفر Claims نشطة، ملفات الشاشة الحية وأسطرها، 42/42 اختبارًا مركزيًا عند الأساس، وأسطح الملكية والتكرار الخمسة B-DUP عند الأساس، وحد الاستعادة).
- - **R11 UNIT-001 — تقرير تنفيذ المكوّن (2026-10-18):** `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-REPORT-2026-10-18.md` (التقرير الكنوني لتنفيذ مواصفة UNIT-001 V2: الشاشة الواحدة وحوار المكتبة ومدخل الاستعادة المفوّض وcreate() الهوية الواحدة، جرد المستهلكين قبل/بعد الحذف، مصفوفة المتطلب-إلى-الاختبار لكل R/F/T/AC/ACD، أوامر البوابة ورموز الخروج، المراجعات الخمسة قراءة-فقط مع المُصالِح، وحدود النطاق الصريحة — UNIT-001 فقط، لا دمج ولا تنظيف ولا New Design).
- - **R11 UNIT-001 — سجل المراجعين الخمسة (2026-10-18):** `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-FIVE-REVIEWER-RECORD-2026-10-18.md` (سجل المراجعات التخصصية الخمس المتسلسلة قراءة-فوق-القراءة على الرأس النهائي للفرع: المعمارية والملكية، البيانات والتخزين والسلامة المالية، واجهة التشغيل والوصول، الاختبارات والحراس والأمن، والتوثيق والتتبع؛ مع المُصالِح وتصنيف كل مكتشف ونتيجة PASS/REMEDIATION).
+ - **R11 UNIT-001 — تقرير تنفيذ V2 التاريخي (2026-10-18):** `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-REPORT-2026-10-18.md` (سجل التنفيذ السابق على مصدر V2؛ لا يُستخدم وحده لإغلاق V3).
+ - **R11 UNIT-001 — سجل مراجعي V2 التاريخي (2026-10-18):** `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-FIVE-REVIEWER-RECORD-2026-10-18.md` (سجل مراجعة التنفيذ السابق؛ لا يستبدل مراجعة V3 الجديدة).
+ - **R11 UNIT-001 — مقارنة V2/V3 ومصدر Drive (2026-10-18):** `docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-V2-V3-DRIVE-GITHUB-COMPARISON-2026-10-18.md` (مقارنة قراءة فقط؛ Drive provenance، وV3 GitHub canonical).
 
 ## ملفات الجذر والأدوات الحاكمة
 
@@ -270,8 +271,10 @@
 
 | الملف | الدور |
 |---|---|
-| `docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md` | نسخة GitHub canonical لمواصفة UNIT-001؛ لا تعتمد على Google Drive أثناء التنفيذ |
-| `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-PROMPT-2026-10-18.md` | عقد التنفيذ الوحيد لـZAI لمراجعة وتنفيذ UNIT-001 على فرع وPR مستقلين |
+| `docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md` | نسخة V2 التاريخية لمواصفة UNIT-001؛ محفوظة للتتبع ولا تعتمد عليها موجة V3 |
+| `docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V3.md` | النسخة الكنسية الحالية لـUNIT-001؛ منقولة ومصالحة من Drive provenance، ويقرأها Zed AI من GitHub فقط |
+| `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-PROMPT-2026-10-18.md` | عقد تنفيذ V2 التاريخي؛ لا يوجه الموجة الحالية |
+| `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-PROMPT-2026-10-18.md` | عقد التنفيذ الحالي لـZed AI لمراجعة وتنفيذ V3 على فرع التكامل وPR #378 |
 | `docs/operations/control/items/DOC-008.json` | سجل Control لمواصفة وتنفيذ UNIT-001 |
 | `docs/operations/control/workstreams/WS-224.json` | Claim وفرع التنفيذ والحدود والتسليم لـUNIT-001 |
 
