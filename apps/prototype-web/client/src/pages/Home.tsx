@@ -325,13 +325,13 @@ export default function Home() {
           </Button>
         </section>
       ) : null}
-      {/* SET-002: نجاح واضح بعد الإعداد الأول — المشروع جاهز للاستخدام فورًا. */}
+      {/* SET-002 + UNIT-001 V2 (R06/T08): نجاح واضح بعد الإعداد الأول — نص
+          المواصفة المعتمد وحده؛ اسم المشروع يظهر في ترويسة الرئيسية من مصدرها،
+          لا يتكرر داخل اللافتة. */}
       {setupDone ? (
         <section className="micro-note-card" role="status" data-testid="setup-success-banner">
           <ShieldCheck aria-hidden="true" />
-          <p>
-            {`تم إنشاء مشروعك «${model.heading.activityName}» — ابدأ الآن بتسجيل أول عملية من أزرار التسجيل السريع هنا؛ وصفحة الأساس عمق اختياري تكمله لاحقًا من زر «صفحة الأساس» في قسم «المالية» أسفل هذه الصفحة.`}
-          </p>
+          <p>تم إعداد مشروعك.</p>
         </section>
       ) : null}
       {model.truthLine ? (

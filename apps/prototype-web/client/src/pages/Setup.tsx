@@ -1,104 +1,116 @@
 /**
- * Anti-vibe setup: one required identity input, one default cash location, and an honest
- * opening-position choice — known / unknown / started-from-zero (owner principle 5.1).
- * Unknown is never rendered as zero; it stays an explicit unresolved state.
+ * UNIT-001 V2 (مواصفة 2026-10-18): إعداد المشروع لأول استخدام — شاشة واحدة:
+ * اسم المشروع وفعل رئيسي واحد ومدخل استعادة يفوّض لمالك 044 القائم في
+ * الإعدادات، ومعلومات الإعداد خلف أيقونة تفتح حوار المكتبة المعتمد.
+ *
+ * ملكية صريحة (B-DUP):
+ * - DUP-001: لا محفظة ولا رصيد افتتاحي ولا أي حدث مالي من هذه الشاشة أبدًا —
+ *   إعداد النقد ملك UNIT-022/المحافظ القائمة؛ غياب السجل لا يعني صفرًا.
+ * - DUP-002: الإنشاء فقط عبر ProfileService.create() الـidempotent — الهوية
+ *   القائمة تُفتح ولا تُعدَّل من هنا؛ تعديل الاسم ملك 039 (Profile).
+ * - DUP-005: الاستعادة تفوّض لمالك 044 (الإعدادات ← البيانات والنسخ الاحتياطي)
+ *   عبر عقد التنقل returnTo؛ لا صفحة استيراد ثانية ولا نسخ حماية.
+ * - DUP-023: مسودة الاسم وحدها منفصلة عن الهوية النهائية داخل الحد الموحّد
+ *   (عقد ٣٦)؛ لا تُطبق قيم مالية من مسودات الأجيال السابقة أبدًا.
  */
-/* مبدأ Micro: توحيد اسم العملة في البداية عرضي، ولا يغيّر القيمة الداخلية أو حدود الحفظ المحلي. */
-import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
+import { Info } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
-
+import { storageRecoveryCopy } from "@/app/StartupGate";
+import { withReturnTo } from "@/app/navigationContract";
 import { Button } from "@/components/primitives";
-import { todayInAmman } from "@/application/time";
-type Step = 1 | 2 | 3;
-type OpeningChoice = "known" | "unknown" | "zero";
 
-/* U-003: مسودة الإعداد مقيمة محليًا أثناء الكتابة — بلا أي حدث مالي
- * حتى تأكيد المالك؛ استرجاع آمن: بيانات معطوبة تُتجاهل بلا انفجار؛ والمسودة تمحى بعد
- * الإتمام أو إعادة التعيين الصريحة. */
-/* المجموعة ٥ (التحصين الكامل): المسودة داخل حد المسودات العابرة
- * الموحّد (نوع setup) — لا قراءة للمفتاح التراثي بعد تقاعد الترحيل بقرار
- * ARCH-012، والاستعادة فعلٌ صريح من المالك — لا تطبيق صامت عند الفتح. */
+/* نوع فشل التخزين مشتق من المصدر المشترك نفسه (StartupGate) — لا حافة نوعية
+ * جديدة من الواجهة إلى التخزين (R10A-F-006/OD-GUARD): نُسخ الاسترداد نص مشترك
+ * والنوع يتبعه. */
+type ProfileReadFailure = Parameters<typeof storageRecoveryCopy>[0];
+
+/* U-003 + المجموعة ٥ + عقد ٣٦: مسودة الإعداد داخل حد المسودات العابر الموحّد
+ * (نوع setup) — كتابة مؤقتة بلا أي حدث مالي؛ الاستعادة فعل صريح من المالك.
+ * UNIT-001 V2 (DUP-023): قيم المسودة اسم فقط — أي حقول تراثية (walletName/
+ * openingChoice/openingMinor) في مسودات الأجيال السابقة لا تُقرأ ولا تُطبق
+ * ولا تُحوَّل إلى مال أبدًا. */
 type SetupDraft = {
-  step: Step;
   activityName: string;
-  walletName: string;
-  openingChoice: OpeningChoice | null;
-  openingMinor: number;
   savedAt: string;
 };
-/* الإكراه الدفاعي نفسه (قواعد U-003) — كل قيم المسودة المقروءة من الحد
- * الموحّد تمر من هنا قبل عرضها، ولا يوجد مسار تراثي موازٍ. */
+/* الإكراه الدفاعي نفسه (قواعد U-003): كل قيم المسودة المقروءة من الحد الموحّد
+ * تمر من هنا قبل عرضها — الاسم نص أو لا عرض؛ لا مسار تراثي موازٍ. */
 function coerceSetupDraft(raw: unknown): SetupDraft | null {
   if (typeof raw !== "object" || raw === null) return null;
   const candidate = raw as Partial<SetupDraft>;
-  const step: Step = candidate.step === 2 || candidate.step === 3 ? candidate.step : 1;
-  if (
-    typeof candidate.activityName !== "string" ||
-    typeof candidate.walletName !== "string" ||
-    (candidate.openingChoice !== null &&
-      candidate.openingChoice !== undefined &&
-      candidate.openingChoice !== "known" &&
-      candidate.openingChoice !== "unknown" &&
-      candidate.openingChoice !== "zero") ||
-    (candidate.openingMinor !== undefined &&
-      (typeof candidate.openingMinor !== "number" || !Number.isSafeInteger(candidate.openingMinor)))
-  )
-    return null;
+  if (typeof candidate.activityName !== "string") return null;
   return {
-    step,
     activityName: candidate.activityName,
-    walletName: candidate.walletName || "الدرج",
-    openingChoice:
-      candidate.openingChoice === "known" ||
-      candidate.openingChoice === "unknown" ||
-      candidate.openingChoice === "zero"
-        ? candidate.openingChoice
-        : null,
-    openingMinor: typeof candidate.openingMinor === "number" ? candidate.openingMinor : 0,
     savedAt: typeof candidate.savedAt === "string" ? candidate.savedAt : new Date().toISOString(),
   };
 }
-const hasRealSetupInput = (draft: Pick<SetupDraft, "step" | "activityName" | "openingChoice">): boolean =>
-  draft.step !== 1 || draft.activityName.trim() !== "" || draft.openingChoice !== null;
+const hasRealSetupInput = (draft: Pick<SetupDraft, "activityName">): boolean =>
+  draft.activityName.trim() !== "";
 
 export default function Setup() {
   const [, navigate] = useLocation();
-  const { profiles, cashContinuity, notifyDataChanged, formDrafts } = usePrototypeServices();
-  const [step, setStep] = useState<Step>(1);
+  const { profiles, notifyDataChanged, formDrafts } = usePrototypeServices();
   const [activityName, setActivityName] = useState("");
-  const [walletName, setWalletName] = useState("الدرج");
-  const [openingChoice, setOpeningChoice] = useState<OpeningChoice | null>(null);
-  const [openingMinor, setOpeningMinor] = useState(0);
-  const [openingValid, setOpeningValid] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [nameError, setNameError] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  /* U-003 + المجموعة ٥: القراءة عند الفتح تعرض استعادة صريحة — لا
-   * تطبيق للقيم إلا بفعل المالك؛ والقراءة من حد المسودات العابرة
-   * الموحّد وحده.
-   * R11 ARCH-012 (2026-10-15): ترحيل مفتاح الصفحة القديم تقاعد قبل
-   * الإطلاق بقرار مالك موثق (r11-arch012-20261015) — القراءة الحية
-   * وحدها تبقى هنا.
-   * R11 ARCH-012-NF-001 (موجة المتابعة الموحدة 2026-10-16): دورة حياة
-   * صريحة خالية من السباق — أثر الحفظ/المسح كان يعمل عند الفتح بنموذج
-   * فارغ قبل استقرار قراءة المسودة فيمسح السجل المحفوظ حتى والعرض
-   * قائمًا، وإغلاق التبويب قبل القرار كان يفقد المسودة. الآن: لا كتابة
-   * ولا مسح قبل استقرار القراءة، ولا مسح والعرض قائم أو الحالة مجهولة
-   * (فشل قراءة)، والمسح الفارغ مرة واحدة عند الانتقال الحقيقي←الفارغ
-   * فقط — سلوك القرار الصريح والحد الموحّد كما هما. */
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  /* R02/B4: حارس وجود الهوية — القراءة عند الفتح تفصل «لا ملف» (تعرض الشاشة)
+   * عن «فشل القراءة» (استرداد) عن «ملف قائم» (يفتح المشروع؛ لا هوية ثانية
+   * ولا تعديل من مسار الإعداد، ولا مشروع جديد لتغطية فشل قراءة). */
+  const [profileCheck, setProfileCheck] = useState<"absent" | "read-failed">("absent");
+  const [storageFailure, setStorageFailure] = useState<ProfileReadFailure | null>(null);
+  /* U-003 + المجموعة ٥: القراءة عند الفتح تعرض استعادة صريحة — لا تطبيق
+   * للقيم إلا بفعل المالك؛ والقراءة من حد المسودات العابرة الموحّد وحده.
+   * R11 ARCH-012 (2026-10-15): ترحيل مفتاح الصفحة القديم تقاعد بقرار مالك —
+   * القراءة الحية وحدها تبقى هنا.
+   * R11 ARCH-012-NF-001 (موجة المتابعة الموحدة 2026-10-16): دورة حياة صريحة
+   * خالية من السباق — لا كتابة ولا مسح قبل استقرار قراءة الفتح، ولا مسح
+   * والعرض قائم أو الحالة مجهولة (فشل قراءة)، والمسح الفارغ مرة واحدة عند
+   * الانتقال الحقيقي←الفارغ فقط. */
   const [draftOffer, setDraftOffer] = useState<SetupDraft | null>(null);
   const [draftSaveFailed, setDraftSaveFailed] = useState(false);
-  /* بوابة الاستقرار: تحجز أثر الحفظ/المسح كله حتى تستقر قراءة الفتح —
-   * هي التي تغلق نافذة السباق (كان المسح الفارغ الابتدائي يسبق القراءة). */
+  /* بوابة الاستقرار: تحجز أثر الحفظ/المسح كله حتى تستقر قراءة الفتح. */
   const [draftReadSettled, setDraftReadSettled] = useState(false);
-  /* أمان المسح: لا يمسح المسودة الفارغة إلا بعد قراءة مستقرة ناجحة أو
-   * حفظ ناجح في هذه الجلسة — فشل القراءة يبقي الحالة مجهولة فلا مسح
-   * أعمى لسجل لا نستطيع قراءته. */
+  /* أمان المسح: لا يمسح المسودة الفارغة إلا بعد قراءة مستقرة ناجحة أو حفظ
+   * ناجح في هذه الجلسة — فشل القراءة يبقي الحالة مجهولة فلا مسح أعمى. */
   const draftClearSafe = useRef(false);
   /* المسح عند العودة إلى الفراغ مرة واحدة بالضبط لكل دورة إدخال حقيقي. */
   const hadRealInput = useRef(false);
+  /* R08/B4: حوار معلومات الإعداد — يفتح من الأيقونة ويغلق بالزر أو Escape أو
+   * الرجوع؛ فتحه وإغلاقه لا يحفظان المشروع ولا يغيران الاسم أبدًا. */
+  const [infoOpen, setInfoOpen] = useState(false);
+  const infoSentinelRef = useRef(false);
+  const suppressInfoPopRef = useRef(false);
+  const infoOpenRef = useRef(false);
+  useEffect(() => {
+    infoOpenRef.current = infoOpen;
+  }, [infoOpen]);
+
+  /* R02: عند الفتح يُقرأ مصدر الهوية الواحد — النجاح بلا ملف يعرض الإعداد
+   * (فشل القراءة ليس بيانات فارغة)، والملف القائم يفتح المشروع فورًا. */
+  useEffect(() => {
+    let active = true;
+    void profiles.load().then(result => {
+      if (!active) return;
+      if (!result.ok) {
+        setStorageFailure(result);
+        setProfileCheck("read-failed");
+        return;
+      }
+      if (result.value) {
+        navigate("/", { replace: true });
+        return;
+      }
+      setProfileCheck("absent");
+    });
+    return () => {
+      active = false;
+    };
+  }, [profiles, navigate]);
+
   useEffect(() => {
     let active = true;
     void (async () => {
@@ -117,21 +129,17 @@ export default function Setup() {
       active = false;
     };
   }, [formDrafts]);
-  /* U-003: كل تغير حقيقي يحفظ المسودة فورًا — كتابة صغيرة محلية بلا أثر
-   * مالي؛ المسودة الفارغة من الإدخال الحقيقي لا تُنشأ أصلًا، ومسح ما
+  /* U-003/R09: كل تغير حقيقي يحفظ مسودة الاسم فورًا — كتابة صغيرة محلية بلا
+   * أثر مالي؛ المسودة الفارغة من الإدخال الحقيقي لا تُنشأ أصلًا، ومسح ما
    * أنشأته الجلسة يستقر إلى مصيره الصريح وحده. */
   const offerPending = draftOffer !== null;
   useEffect(() => {
-    /* NF-001: لا كتابة (حفظًا أو مسحًا) قبل استقرار قراءة الفتح، ولا
-     * كتابة والعرض قائم — القرار الصريح وحده يحرك السجل. */
+    /* NF-001: لا كتابة (حفظًا أو مسحًا) قبل استقرار قراءة الفتح، ولا كتابة
+     * والعرض قائم — القرار الصريح وحده يحرك السجل. */
     if (!draftReadSettled) return;
     if (offerPending) return;
     const values = {
-      step,
       activityName,
-      walletName,
-      openingChoice,
-      openingMinor,
       savedAt: new Date().toISOString(),
     } satisfies SetupDraft;
     const real = hasRealSetupInput(values);
@@ -148,128 +156,144 @@ export default function Setup() {
       if (result.ok) draftClearSafe.current = true;
       setDraftSaveFailed(result.ok === false && result.code !== "conflict");
     });
-  }, [
-    step,
-    activityName,
-    walletName,
-    openingChoice,
-    openingMinor,
-    offerPending,
-    draftReadSettled,
-    formDrafts,
-  ]);
-  /* إدخال جديد قبل حل عرض الاستعادة: الإدخال الجديد هو
-   * الأساس — يُخفى العرض وتُدار المسودة بقيم المستخدم (نفس
-   * دلالة محرر الأحداث). */
+  }, [activityName, offerPending, draftReadSettled, formDrafts]);
+  /* إدخال جديد قبل حل عرض الاستعادة: الإدخال الجديد هو الأساس — يُخفى العرض
+   * وتُدار المسودة بقيم المستخدم (نفس دلالة محرر الأحداث). */
   useEffect(() => {
     if (!offerPending) return;
-    if (step !== 1 || activityName.trim() !== "" || openingChoice !== null) setDraftOffer(null);
-  }, [step, activityName, openingChoice, offerPending]);
+    if (activityName.trim() !== "") setDraftOffer(null);
+  }, [activityName, offerPending]);
 
-  async function submit() {
-    setIsSaving(true);
-    setError(null);
-    const profileResult = await profiles.save(activityName);
-    if (!profileResult.ok) {
-      setIsSaving(false);
-      setError(profileResult.message);
-      return;
-    }
-    /* ٥.١: محفظة نقد افتراضية عند أول تشغيل — ما لم يختر المالك تخطي الخطوة كلها. */
-    if (walletName.trim() && openingChoice) {
-      const walletResult = await cashContinuity.openWallet({
-        name: walletName.trim(),
-        kind: "cash_drawer",
-        openingMinor: openingChoice === "known" ? openingMinor : 0,
-        occurredOn: todayInAmman(),
-        note:
-          openingChoice === "known"
-            ? "رصيد بداية معلن من الإعداد الأول"
-            : openingChoice === "unknown"
-              ? "رصيد غير معروف عند الإعداد الأول — يُحدَّد لاحقًا برصيد موثق"
-              : "بدأت من الصفر — رصيد افتتاحي صفري موثق",
-        operationKey: `setup-wallet-${profileResult.profile.id}`,
-        openingStatus: openingChoice === "unknown" ? "unknown" : "known",
-      });
-      if (!walletResult.ok) {
-        setIsSaving(false);
-        setError(walletResult.message);
+  /* R08/B4: زر الرجوع (المتصفح/الهاتف) يغلق الحوار وحده ولا يغادر الشاشة —
+   * حارس entry تاريخي واحد يفتح مع الحوار ويُستهلك عند إغلاقه. */
+  useEffect(() => {
+    const onPopState = () => {
+      if (suppressInfoPopRef.current) {
+        suppressInfoPopRef.current = false;
         return;
       }
+      if (infoOpenRef.current) {
+        infoSentinelRef.current = false;
+        setInfoOpen(false);
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+  const openInfo = () => {
+    infoSentinelRef.current = true;
+    history.pushState({ microSetupInfo: true }, "");
+    setInfoOpen(true);
+  };
+  const closeInfo = () => {
+    if (infoSentinelRef.current) {
+      infoSentinelRef.current = false;
+      suppressInfoPopRef.current = true;
+      history.back();
     }
+    setInfoOpen(false);
+  };
+
+  /* R04/R05/R06/R07/R12 — الحفظ: فراغ الاسم بعد trim يُرفض قرب الحقل مع
+   * التركيز؛ أثناء التنفيذ يُعلن التقدم ويُمنع الإرسال المتكرر والانتقال
+   * لفعل استعادة يغيّر البيانات؛ النجاح المثبت وحده يفتح الرئيسية ويمسح
+   * المسودة؛ الفشل يبقي الاسم ويعيد المحاولة بعد التحقق من الملف القائم. */
+  async function submit() {
+    if (isSaving) return;
+    if (!activityName.trim()) {
+      setSaveFailed(false);
+      setNameError(true);
+      nameInputRef.current?.focus();
+      return;
+    }
+    setNameError(false);
+    setSaveFailed(false);
+    setIsSaving(true);
+    /* R07: التحقق من الملف قبل أي إنشاء جديد — الملف الذي ثبت حفظه يُستخدم
+     * ولا يُنشأ بديل؛ تعذر القراءة ينتقل للاسترداد دون كتابة بديلة. */
+    const check = await profiles.load();
+    if (!check.ok) {
+      setIsSaving(false);
+      setStorageFailure(check);
+      setProfileCheck("read-failed");
+      return;
+    }
+    if (check.value) {
+      /* R02: هوية قائمة — يفتح المشروع القائم؛ لا هوية ثانية ولا تعديل. */
+      setIsSaving(false);
+      void formDrafts.discard("setup", null);
+      navigate("/?setup=1", { replace: true });
+      return;
+    }
+    const result = await profiles.create(activityName);
+    if (!result.ok) {
+      /* T07: الاسم باقٍ والفعل متاح لإعادة المحاولة. */
+      setIsSaving(false);
+      setSaveFailed(true);
+      return;
+    }
+    /* R06: نجاح مثبت → الرئيسية مباشرة مع T08 على الرئيسية؛ لا شاشة إيصال
+     * ولا إعداد نقدي؛ المسودة تمسح بعد إثبات النجاح فقط. */
     notifyDataChanged();
     setIsSaving(false);
-    /* U-003: الإتمام الناجح يمسح المسودة — لا تعود بعد أن صارت بيانات فعلية. */
     void formDrafts.discard("setup", null);
-    /* SET-002: البداية السريعة — نجاح واضح ثم مشروعي الآن مباشرة؛ صفحة الأساس
-     * عمق اختياري يُفتح من الرئيسية عند الحاجة، لا نموذج إلزامي بعد الحفظ. */
     navigate("/?setup=1", { replace: true });
   }
 
-  const nextFromStep2 = () => {
-    if (!activityName.trim()) {
-      setError("حط اسم لمشروعك أولًا.");
-      setStep(1);
-      return;
-    }
-    setError(null);
-    setStep(3);
+  /* R11/DUP-005: مدخل الاستعادة يفوّض لمالك 044 القائم (الإعدادات ← البيانات
+   * والنسخ الاحتياطي) عبر عقد التنقل returnTo — لا صفحة استيراد ثانية؛
+   * الإلغاء يعيد سياق الإعداد والقيم محفوظة في مسودة الاسم. */
+  const openRestore = () => {
+    if (isSaving) return;
+    navigate(withReturnTo("/settings", "/setup"));
   };
+
+  /* R01/B4: فشل قراءة مصدر الهوية — استرداد المصدر المشترك، لا بيانات فارغة
+   * ولا مشروع جديد ولا كتابة بديلة. */
+  if (profileCheck === "read-failed") {
+    const copy = storageRecoveryCopy(storageFailure ?? { ok: false, code: "storage_error", message: "" });
+    return (
+      <div className="micro-storage-error" role="alert" data-testid="setup-storage-recovery">
+        <strong>{copy.title}</strong>
+        <p>{copy.description}</p>
+        <Button action="save" onClick={() => window.location.reload()}>
+          إعادة المحاولة
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <section className="micro-page micro-setup-page">
       <div className="micro-page-heading micro-setup-heading">
-        <span className="micro-overline">قرار البداية</span>
-        <h1>{step === 1 ? "ما اسم مشروعك؟" : step === 2 ? "وين تحط فلوسك؟" : "شو وضع الدرج هلق؟"}</h1>
-        <p>
-          {step === 1
-            ? "اسم واحد فقط إلزامي — كل ما بعده اختياري ويمكن إكماله لاحقًا."
-            : step === 2
-              ? "محفظة نقد افتراضية تكفي للبداية؛ تقدر تضيف محافظ أخرى لاحقًا من «المالية»."
-              : "ثلاثة أجوبة صادقة: رقم تعرفه، أو «ما بعرف» الآن، أو بدأت فعلًا من الصفر."}
-        </p>
-        {/* SET-001: قيمة المنتج داخل شاشة الاسم الأولى — بلا عرض تقديمي
-            ولا وعود سحابة/سوق/نقل/مساعد؛ نسخة محلية صادقة. */}
-        {step === 1 ? (
-          <div className="micro-setup-intro" data-testid="setup-value-statement">
-            <p>
-              Micro يساعدك تدير، حسب ما تسجله أنت: المبيعات والمصاريف والطلبات والكاش والديون، ونتيجة عملك
-              المتاحة من بيناتك المسجلة.
-            </p>
-            <p>
-              سجلات مشروعك محفوظة على هذا الجهاز فقط في هذه النسخة — لا مزامنة سحابية ولا دخول من جهاز آخر،
-              ومسح بيانات المتصفح قد يمسحها؛ صدّر نسخة من الإعدادات لاحقًا للاحتياط.
-            </p>
-          </div>
-        ) : null}
-        <div className="micro-setup-impact">
-          <span>ما يعرفه Micro الآن</span>
-          <strong>
-            {/* P-003: تسمية محايدة — لا يفترض النظام قطاعًا ولا حرفة بعينها. */}
-            مشروعك <b>·</b> الدينار الأردني <em>د.أ</em>
-          </strong>
-          <small>«ما بعرف» تبقى حالة معلنة — لا تُعرض صفرًا في أي شاشة.</small>
-        </div>
+        <h1>إعداد مشروعك</h1>
+        {/* R08: أيقونة المعلومات — مسماة لقارئ الشاشة (T09)؛ تفتح حوار
+            المكتبة وحده؛ تبقى متاحة أثناء الحفظ (معلومة قرائية لا تغيّر بيانات). */}
+        <button
+          type="button"
+          className="micro-icon-action"
+          aria-label="معلومات الإعداد وحفظ البيانات"
+          data-testid="setup-info-trigger"
+          onClick={openInfo}
+        >
+          <Info aria-hidden="true" />
+        </button>
       </div>
-      {/* U-003 + المجموعة ٥: عرض استعادة صريح — لا تطبيق صامت
-          للقيم عند الفتح؛ الاستعادة أو البدء من جديد بفعل معلن. */}
+      {/* U-003 + المجموعة ٥ + R10: عرض استعادة صريح لمسودة اسم — «أكمل» يطبق
+          الاسم و«تجاهل» يمسح المسودة وحدها؛ لا مشروع ولا نقود قبل التأكيد. */}
       {draftOffer ? (
-        <p className="micro-save-note" role="status">
-          عندك مسودة إعداد من آخر مرة ولم يُسجّل شيء بعد — استعدها لتكمل من حيث توقفت، أو ابدأ من جديد.{" "}
+        <p className="micro-save-note" role="status" data-testid="setup-draft-offer">
+          إعداد غير مكتمل{" "}
           <button
             className="micro-text-action"
             type="button"
             onClick={() => {
-              setStep(draftOffer.step);
               setActivityName(draftOffer.activityName);
-              setWalletName(draftOffer.walletName);
-              setOpeningChoice(draftOffer.openingChoice);
-              setOpeningMinor(draftOffer.openingMinor);
               setDraftOffer(null);
-              setError(null);
+              setNameError(false);
             }}
           >
-            استعدها وأكمل
+            أكمل الإعداد
           </button>{" "}
           <button
             className="micro-text-action"
@@ -279,183 +303,133 @@ export default function Setup() {
               setDraftOffer(null);
             }}
           >
-            ابدأ الإعداد من جديد
+            تجاهل المسودة
           </button>
         </p>
       ) : null}
       {draftSaveFailed ? (
         <p className="micro-field-error" role="alert">
-          تعذر حفظ مسودة الإعداد محليًا — قيمك أمامك كما هي ولم يُسجّل أي شيء؛ أكمل ثم اضغط الحفظ.
+          تعذر حفظ المسودة. احتفظ بالشاشة مفتوحة حتى تكمل الإعداد.
         </p>
       ) : null}
       <form
         className="micro-form-card micro-setup-decision"
         onSubmit={event => {
           event.preventDefault();
-          if (step === 1) {
-            if (!activityName.trim()) {
-              setError("حط اسم لمشروعك أولًا.");
-              return;
-            }
-            setError(null);
-            setStep(2);
-            return;
-          }
-          if (step === 2) {
-            nextFromStep2();
-            return;
-          }
-          if (step === 3) {
-            if (openingChoice === "known" && (!openingValid || openingMinor < 0)) {
-              setError("أدخل الرصيد بالأرقام 0–9.");
-              return;
-            }
-            void submit();
-          }
+          void submit();
         }}
       >
-        <div className="micro-setup-step">
-          <span>{step}</span>
-          <div>
-            <b>{step === 1 ? "سمّ سجل مشروعك" : step === 2 ? "أماكن الفلوس" : "الموقف الافتتاحي"}</b>
-            <p>
-              {step === 1
-                ? "بعد الحفظ يفتح «مشروعي الآن» مباشرة، وصفحة الأساس عمق اختياري من هناك لاحقًا."
-                : step === 2
-                  ? "محفظة «الدرج» مقترحة افتراضيًا — عدّل اسمها أو تخطَّ هذه الخطوة."
-                  : "اختيارك يُسجَّل كما هو: معرفة، أو مجهولة معلنة، أو صفر موثق."}
-            </p>
-          </div>
-        </div>
-        {step === 1 ? (
-          <label className="micro-field">
-            <span>اسم المشروع</span>
-            <input
-              autoFocus
-              value={activityName}
-              onChange={event => setActivityName(event.target.value)}
-              placeholder="مثال: مشغل ليان"
-              aria-invalid={Boolean(error)}
-              aria-describedby={error ? "setup-error" : undefined}
-            />
-          </label>
-        ) : null}
-        {step === 2 ? (
-          <>
-            <label className="micro-field">
-              <span>اسم محفظة النقد الافتراضية</span>
-              <input
-                autoFocus
-                value={walletName}
-                onChange={event => setWalletName(event.target.value)}
-                placeholder="الدرج"
-              />
-            </label>
-            <button
-              className="micro-text-action"
-              type="button"
-              disabled={isSaving}
-              onClick={() => {
-                /* F-002: تخطّي المحفظة يتخطى سؤال الموقف الافتتاحي أيضًا — لا يُسأل جواب
-                 * ثم يُهمل عند الحفظ. المحفظة والرصيد يُسجَّلان لاحقًا من «المالية». */
-                if (!activityName.trim()) {
-                  setError("حط اسم لمشروعك أولًا.");
-                  setStep(1);
-                  return;
-                }
-                setWalletName("");
-                setOpeningChoice(null);
-                setError(null);
-                void submit();
-              }}
-            >
-              تخطَّ المحفظة الآن — أسجلها لاحقًا من «المالية» <ArrowLeft aria-hidden="true" />
-            </button>
-          </>
-        ) : null}
-        {step === 3 ? (
-          <div className="micro-wallet-select-grid">
-            <label className="micro-field">
-              <span>الموقف الافتتاحي</span>
-              <select
-                value={openingChoice ?? ""}
-                onChange={event =>
-                  setOpeningChoice(
-                    event.target.value === "known"
-                      ? "known"
-                      : event.target.value === "unknown"
-                        ? "unknown"
-                        : event.target.value === "zero"
-                          ? "zero"
-                          : null,
-                  )
-                }
-              >
-                <option value="">اختر جوابًا</option>
-                <option value="known">أعرف الرقم</option>
-                <option value="unknown">ما بعرف الآن — يُحدَّد لاحقًا</option>
-                <option value="zero">بدأت من الصفر</option>
-              </select>
-            </label>
-            {openingChoice === "known" ? (
-              <label className="micro-field">
-                <span>كم في الدرج الآن؟ (د.أ)</span>
-                <EnglishNumberInput
-                  value={openingMinor}
-                  kind="money"
-                  onNumericChange={setOpeningMinor}
-                  onTextValidityChange={setOpeningValid}
-                  aria-label="الرصيد الافتتاحي"
-                />
-                <small>تاريخ البداية يقبل يومًا سابقًا لاحقًا من صفحة المحفظة.</small>
-              </label>
-            ) : null}
-            {openingChoice === "unknown" ? (
-              /* S3-17: خيار صادق معتمد — ملاحظة محايدة لا تنبيه خطأ. */
-              <p className="micro-save-note" role="status">
-                ستبقى المحفظة «غير محددة» — تُظهر طريقًا لإدخال رصيد موثق لاحقًا، ولا تُعرض صفرًا أبدًا.
-              </p>
-            ) : null}
-            {openingChoice === "zero" ? (
-              <p className="micro-save-note" role="status">
-                صفر موثق = بداية نظيفة معلنة؛ ليس مجهولًا مقنّعًا.
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-        {error ? (
-          <p id="setup-error" className="micro-field-error" role="alert">
-            {error}
+        <label className="micro-field" htmlFor="setup-activity-name">
+          <span>اسم المشروع</span>
+          <input
+            id="setup-activity-name"
+            ref={nameInputRef}
+            autoFocus
+            value={activityName}
+            onChange={event => {
+              setActivityName(event.target.value);
+              if (nameError && event.target.value.trim() !== "") setNameError(false);
+            }}
+            placeholder="مثال: حلويات ليان"
+            aria-invalid={nameError}
+            aria-describedby={nameError ? "setup-name-error" : undefined}
+          />
+        </label>
+        {/* R04/T05: الخطأ قرب الحقل وخارج تسميته — نص التسمية يبقى نظيفًا لقارئ
+            الشاشة والوصف يربقه بالحقل نفسه. */}
+        {nameError ? (
+          <p id="setup-name-error" className="micro-field-error" role="alert">
+            اكتب اسم مشروعك.
           </p>
         ) : null}
-        <div className="micro-local-truth">
-          <ShieldCheck aria-hidden="true" />
-          <p>
-            <b>سطر حقيقة:</b> كل ما تدخله هنا يُحفظ على هذا الجهاز فقط في هذا الإصدار.
+        {saveFailed ? (
+          <p className="micro-field-error" role="alert" data-testid="setup-save-failed">
+            تعذر حفظ مشروعك. أعد المحاولة.
           </p>
-        </div>
+        ) : null}
         <div className="micro-form-actions">
-          {step > 1 ? (
-            <Button
-              action="secondary"
-
-              onClick={() => setStep(current => (current === 3 ? 2 : 1))}
-            >
-              <ArrowRight aria-hidden="true" /> خطوة سابقة
-            </Button>
-          ) : null}
           <Button action="save" block type="submit" disabled={isSaving}>
-            {isSaving
-              ? "جارٍ الحفظ…"
-              : step === 1
-                ? "التالي"
-                : step === 2
-                  ? "التالي"
-                  : "احفظ وابدأ في مشروعي الآن"}
-            {step === 3 && !isSaving ? <ArrowLeft aria-hidden="true" /> : null}
+            {isSaving ? "جارٍ الحفظ…" : "احفظ وابدأ"}
           </Button>
         </div>
+        {/* R11: فعل ثانوي — مدخل الاستعادة القائمة لمن لديه بيانات سابقة؛
+            لا يحتاج اسمًا جديدًا أولًا. معطّل أثناء الحفظ فقط (R12). */}
+        <Button
+          action="secondary"
+          block
+          type="button"
+          disabled={isSaving}
+          onClick={openRestore}
+          data-testid="setup-restore-entry"
+        >
+          استعادة نسخة احتياطية
+        </Button>
       </form>
+      {infoOpen ? <SetupInfoDialog onClose={closeInfo} /> : null}
     </section>
+  );
+}
+
+/* R08/B4: حوار «معلومات الإعداد» — عنصر المكتبة (micro-dialog) بعقد TRUE_MODAL
+ * كامل: غطاء + دخول تركيز + احتواء Tab + Escape + استعادة تركيز للمشغّل؛
+ * الرجوع (زر النظام/المتصفح) يغلقه دون مغادرة الشاشة (حارس history أعلاه)؛
+ * فتحه وإغلاقه لا يحفظان النموذج ولا يمسحان الاسم — قراءة خالصة. */
+function SetupInfoDialog({ onClose }: { onClose: () => void }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    triggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeButtonRef.current?.focus();
+    return () => {
+      triggerRef.current?.focus?.();
+    };
+  }, []);
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusables = dialogRef.current.querySelectorAll<HTMLElement>("button:not([disabled])");
+      if (focusables.length === 0) return;
+      const first = focusables[0]!;
+      const last = focusables[focusables.length - 1]!;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+  return (
+    <div className="micro-dialog-overlay" onClick={onClose} data-testid="setup-info-overlay">
+      <div
+        ref={dialogRef}
+        className="micro-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="setup-info-title"
+        dir="rtl"
+        data-testid="setup-info-dialog"
+        onClick={event => event.stopPropagation()}
+      >
+        <h2 id="setup-info-title">معلومات الإعداد</h2>
+        <p>يمكنك تغيير اسم المشروع لاحقًا.</p>
+        <p>تُحفظ بياناتك على هذا الجهاز فقط. مسح بيانات المتصفح قد يحذفها.</p>
+        <p>احتفظ بنسخة احتياطية من الإعدادات.</p>
+        <div className="micro-dialog-actions">
+          <Button ref={closeButtonRef} action="secondary" onClick={onClose}>
+            إغلاق
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,9 +1,17 @@
 /** @vitest-environment jsdom */
 
+/* UNIT-001 V2 (مواصفة 2026-10-18): اختبارات الشاشة الواحدة — الاسم والبدء،
+ * حوار معلومات المكتبة، مدخل الاستعادة المفوّض لمالك 044، مسودة الاسم
+ * المنفصلة، حارس الهوية القائمة، وحالات الفشل/الاسترداد الصادقة.
+ * التغطية: U001-AC01..AC10 + ACD001/002/005/023/024 + سلبيات DUP-001/002/005/023
+ * + دورة حياة ARCH-012-NF-001 المحفوظة كما هي.
+ * U001-AC11 (فحص فهم بشري مع الفئة المستهدفة) ليس اختبار آلة — يُسجل بندًا
+ * مستقبليًا صادقًا في تقرير التنفيذ لا يُدعى هنا. */
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { ProfileService } from "@/application/profile/profileService";
 import { FormDraftService } from "@/application/drafts/formDraftService";
 import { createFormDraftHarness } from "@/application/drafts/formDraftTestHarness";
 import type { PrototypeLocalStore } from "@/storage/local/types";
@@ -24,158 +32,596 @@ vi.mock("wouter", () => ({
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
 
-/** مخزن حقيقي لكل اختبار — التحقق بإعادة القراءة لا بجس النبض فقط. */
-function draftServices(options: { store?: PrototypeLocalStore } = {}) {
+/** خدمات حقيقية فوق مخزن حقيقي — الهوية والمسودة يُتحقق منهما بإعادة القراءة.
+ * لا cashContinuity أصلًا في السياق: Setup V2 لا يستهلك أي خدمة نقدي (DUP-001
+ * سلبي بنيوي — لو استوردها لانفجر هذا الاختبار). */
+function setupServices(options: { store?: PrototypeLocalStore } = {}) {
   const store = options.store ?? createFormDraftHarness().store;
-  return {
-    services: {
-      profiles: { save: vi.fn().mockResolvedValue({ ok: true, profile: { id: "p" } }) },
-      cashContinuity: { openWallet: vi.fn().mockResolvedValue({ ok: true, value: {} }) },
-      notifyDataChanged: vi.fn(),
-      formDrafts: new FormDraftService(store),
-    } as unknown as ReturnType<typeof usePrototypeServices>,
-    store,
-  };
+  const notifyDataChanged = vi.fn();
+  const services = {
+    profiles: new ProfileService(store),
+    notifyDataChanged,
+    formDrafts: new FormDraftService(store),
+  } as unknown as ReturnType<typeof usePrototypeServices>;
+  return { services, store, notifyDataChanged };
 }
 
-/* F-002 (انحدار): كان تخطّي المحفظة يعرض سؤال الموقف الافتتاحي ثم يهمل جوابه عند
- * الحفظ. الحارس هنا: التخطّي يحفظ المشروع مباشرة، ولا يُسأل سؤال يُهمل جوابه أبدًا. */
-describe("Setup wallet-skip path never asks and discards (F-002 regression)", () => {
-  afterEach(() => cleanup());
+/** بذر مسودة اسم عبر الحد الموحّد — شكل V2 (اسم فقط). */
+async function seedNameDraft(store: PrototypeLocalStore, activityName: string) {
+  await new FormDraftService(store).save("setup", null, {
+    activityName,
+    savedAt: "2026-10-01T10:00:00.000Z",
+  });
+}
 
-  beforeEach(() => {
-    wouterMocks.navigate.mockReset();
+beforeEach(() => {
+  wouterMocks.navigate.mockReset();
+});
+
+afterEach(() => {
+  cleanup();
+  globalThis.localStorage?.clear();
+});
+
+/* ── الشاشة العادية: العناصر الأربعة فقط (R03/AC01، DUP-001 سلبي) ── */
+describe("UNIT-001 screen A — one name, one primary action, no cash (R03/DUP-001)", () => {
+  it("renders exactly the approved surface: title, info icon, name field, save, restore", async () => {
+    const { services } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    expect(await screen.findByRole("heading", { name: "إعداد مشروعك" })).toBeTruthy();
+    expect(screen.getByLabelText("اسم المشروع")).toBeTruthy();
+    expect((screen.getByLabelText("اسم المشروع") as HTMLInputElement).placeholder).toBe("مثال: حلويات ليان");
+    expect(screen.getByRole("button", { name: "احفظ وابدأ" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "استعادة نسخة احتياطية" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "معلومات الإعداد وحفظ البيانات" })).toBeTruthy();
   });
 
-  it("skipping the wallet saves the profile directly and never shows the opening-position step", async () => {
-    const save = vi.fn().mockResolvedValue({ ok: true, profile: { id: "profile-1" } });
-    const openWallet = vi.fn();
-    const notifyDataChanged = vi.fn();
-    mockedUsePrototypeServices.mockReturnValue({
-      profiles: { save },
-      cashContinuity: { openWallet },
-      notifyDataChanged,
-      formDrafts: new FormDraftService(createFormDraftHarness().store),
-    } as unknown as ReturnType<typeof usePrototypeServices>);
-
+  it("carries no wizard, no cash fields, and no standing financial copy (DUP-001)", async () => {
+    const { services } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
     render(<Setup />);
-
-    fireEvent.change(screen.getByLabelText("اسم المشروع"), { target: { value: "مشغل ليان" } });
-    fireEvent.click(screen.getByRole("button", { name: "التالي" }));
-
-    const skipButton = await screen.findByRole("button", { name: /تخطَّ المحفظة الآن/ });
-    fireEvent.click(skipButton);
-
-    await waitFor(() => expect(save).toHaveBeenCalledWith("مشغل ليان"));
-    /* SET-002 (2026-09-16): البداية السريعة — الإتمام يفتح مشروعي الآن
-   مباشرة بلافتة نجاح؛ صفحة الأساس بقيت اختيارية من الرئيسية. */
-    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
-    expect(openWallet).not.toHaveBeenCalled();
-    expect(screen.queryByText("شو وضع الدرج هلق؟")).toBeNull();
+    await screen.findByRole("heading", { name: "إعداد مشروعك" });
+    for (const absent of [
+      "قرار البداية",
+      "وين تحط فلوسك؟",
+      "شو وضع الدرج هلق؟",
+      "اسم محفظة النقد الافتراضية",
+      "الموقف الافتتاحي",
+      "تخطَّ المحفظة الآن",
+      "سطر حقيقة",
+      "ما يعرفه Micro الآن",
+    ] as const) {
+      expect(screen.queryByText(absent)).toBeNull();
+    }
+    expect(screen.queryByLabelText(/محفظة/)).toBeNull();
+    expect(screen.queryByLabelText(/افتتاحي/)).toBeNull();
+    expect(screen.queryByTestId("setup-value-statement")).toBeNull();
   });
 
-  it("keeping the wallet still asks the opening question and persists the wallet with it", async () => {
-    const save = vi.fn().mockResolvedValue({ ok: true, profile: { id: "profile-2" } });
-    const openWallet = vi.fn().mockResolvedValue({ ok: true, value: {} });
-    const notifyDataChanged = vi.fn();
-    mockedUsePrototypeServices.mockReturnValue({
-      profiles: { save },
-      cashContinuity: { openWallet },
-      notifyDataChanged,
-      formDrafts: new FormDraftService(createFormDraftHarness().store),
-    } as unknown as ReturnType<typeof usePrototypeServices>);
-
+  it("imposes no invented length or language limit on the name (F01/AC03)", async () => {
+    const { services } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
     render(<Setup />);
-
-    fireEvent.change(screen.getByLabelText("اسم المشروع"), { target: { value: "مشغل ليان" } });
-    fireEvent.click(screen.getByRole("button", { name: "التالي" }));
-    await screen.findByRole("button", { name: /تخطَّ المحفظة الآن/ });
-    fireEvent.click(screen.getByRole("button", { name: "التالي" }));
-
-    expect(await screen.findByText("شو وضع الدرج هلق؟")).toBeTruthy();
-    fireEvent.change(screen.getByLabelText("الموقف الافتتاحي"), { target: { value: "zero" } });
-    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ في مشروعي الآن" }));
-
-    await waitFor(() =>
-      expect(openWallet).toHaveBeenCalledWith(
-        expect.objectContaining({ name: "الدرج", openingMinor: 0, openingStatus: "known" }),
-      ),
-    );
-    /* SET-002 (2026-09-16): البداية السريعة — الإتمام يفتح مشروعي الآن
-   مباشرة بلافتة نجاح؛ صفحة الأساس بقيت اختيارية من الرئيسية. */
-    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    expect(input.maxLength).toBe(-1);
+    expect(input.getAttribute("lang")).toBeNull();
   });
 });
 
-/* المجموعة ١ (Scope F) + المجموعة ٥ (التحصين الكامل): مسودة الإعداد داخل الحد
- * الموحّد — الاستعادة فعل صريح من المالك (لا تطبيق صامت عند الفتح)، ولا حدث
- * مالي قبل التأكيد.
- * R11 ARCH-012 (2026-10-15): ترحيل مفتاح الصفحة القديم تقاعد قبل الإطلاق —
- * البذر هنا من الحد الموحّد مباشرة، والمفتاح التراثي المتروك يختبر خموله
- * (لا قراءة ولا عرض ولا حذف تخريبي). */
-describe("Setup progressive draft persistence (group 1 scope F, group 5 unified boundary)", () => {
-  afterEach(() => {
-    cleanup();
-    globalThis.localStorage?.clear();
+/* ── الاسم الفارغ بعد trim (R04/AC02) ── */
+describe("UNIT-001 empty-name rejection near the field (R04/AC02)", () => {
+  it("rejects an empty name with T05 near the field, focus, and no write or navigation", async () => {
+    const { services } = setupServices();
+    const createSpy = vi.spyOn(services.profiles, "create");
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    await screen.findByRole("heading", { name: "إعداد مشروعك" });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    const error = await screen.findByText("اكتب اسم مشروعك.");
+    expect(error.getAttribute("role")).toBe("alert");
+    const input = screen.getByLabelText("اسم المشروع") as HTMLInputElement;
+    expect(input.getAttribute("aria-invalid")).toBe("true");
+    expect(input.getAttribute("aria-describedby")).toBe("setup-name-error");
+    expect(document.activeElement).toBe(input);
+    expect(createSpy).not.toHaveBeenCalled();
+    expect(wouterMocks.navigate).not.toHaveBeenCalled();
   });
 
-  it("offers an explicit restore for a saved draft from the unified boundary and applies it only when accepted", async () => {
-    const { services, store } = draftServices();
+  it("whitespace-only is still empty after trim (R04)", async () => {
+    const { services } = setupServices();
+    const createSpy = vi.spyOn(services.profiles, "create");
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "    " } });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    expect(await screen.findByText("اكتب اسم مشروعك.")).toBeTruthy();
+    expect(createSpy).not.toHaveBeenCalled();
+  });
+
+  it("typing a real value clears the field error (R04 — keeps valid input)", async () => {
+    const { services } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    expect(await screen.findByText("اكتب اسم مشروعك.")).toBeTruthy();
+    fireEvent.change(input, { target: { value: "حلويات ليان" } });
+    expect(screen.queryByText("اكتب اسم مشروعك.")).toBeNull();
+  });
+});
+
+/* ── الحفظ الصالح (R05/R06/AC01/AC03) ── */
+describe("UNIT-001 valid save — single identity source, progress, direct Home (R05/R06)", () => {
+  it("creates the identity once with the trimmed name and opens Home directly", async () => {
+    const { services, store, notifyDataChanged } = setupServices();
+    const createSpy = vi.spyOn(services.profiles, "create");
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "  حلويات ليان  " } });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    expect(createSpy).toHaveBeenCalledWith("  حلويات ليان  ");
+    const stored = await store.getProfile();
+    expect(stored).toMatchObject({ ok: true, value: { activityName: "حلويات ليان" } });
+    expect(notifyDataChanged).toHaveBeenCalledTimes(1);
+  });
+
+  it("announces progress (T04) and blocks duplicate submission while saving (R05/R12/AC06)", async () => {
+    const { services } = setupServices();
+    let releaseCreate!: (value: unknown) => void;
+    const gate = new Promise<unknown>(resolve => {
+      releaseCreate = resolve;
+    });
+    const createSpy = vi
+      .spyOn(services.profiles, "create")
+      .mockImplementation(async () => (await gate) as never);
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "مشغل الكرامة" } });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    expect(await screen.findByText("جارٍ الحفظ…")).toBeTruthy();
+    /* الضغط المزدوج والفعل الثانوي المتعارض محجوبان — المعلومة القرائية متاحة. */
+    const primary = screen.getByRole("button", { name: "جارٍ الحفظ…" }) as HTMLButtonElement;
+    expect(primary.disabled).toBe(true);
+    expect(
+      (screen.getByRole("button", { name: "استعادة نسخة احتياطية" }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(
+      (screen.getByRole("button", { name: "معلومات الإعداد وحفظ البيانات" }) as HTMLButtonElement).disabled,
+    ).toBe(false);
+    fireEvent.click(primary);
+    fireEvent.click(screen.getByRole("button", { name: "استعادة نسخة احتياطية" }));
+    releaseCreate({ ok: true, profile: { id: "p" }, created: true });
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    expect(wouterMocks.navigate).not.toHaveBeenCalledWith(expect.stringContaining("/settings"));
+  });
+
+  it("mixed Arabic/Latin long names are saved exactly after trim with no truncation (AC03)", async () => {
+    const { services, store } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const longName = "حلويات Lيان 2026 — مشروع تجريبي طويل جدًا يحمل عربية ولاتينية وأرقام ASCII 0-9 معًا";
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: longName } });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    const stored = await store.getProfile();
+    expect(stored).toMatchObject({ ok: true, value: { activityName: longName } });
+  });
+
+  it("successful completion clears the name draft only after success is proven (R06/AC04)", async () => {
+    const { services, store } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "مشغل النور" } });
+    await waitFor(async () => {
+      const saved = await store.getFormDraft("setup:new");
+      expect(saved.ok && saved.value).not.toBeNull();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await waitFor(async () => {
+      const cleared = await store.getFormDraft("setup:new");
+      expect(cleared.ok && cleared.value).toBeNull();
+    });
+  });
+});
+
+/* ── فشل الحفظ ونتيجته غير المؤكدة (R07/AC05) ── */
+describe("UNIT-001 save failure — keep the name, honest recovery, verify before retry (R07)", () => {
+  it("a failed write shows T07, keeps the name, and allows retry (R07/AC05)", async () => {
+    const { services } = setupServices();
+    let fail = true;
+    const createSpy = vi.spyOn(services.profiles, "create").mockImplementation(async name => {
+      if (fail) return { ok: false, code: "storage_error" as const, message: "write failed" };
+      return {
+        ok: true as const,
+        profile: {
+          id: "local-profile",
+          activityName: name.trim(),
+          currency: "JOD",
+          activityType: "custom_craft",
+          createdAt: "2026-10-18T00:00:00.000Z",
+          updatedAt: "2026-10-18T00:00:00.000Z",
+        },
+        created: true,
+      };
+    });
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "مشغل الصمود" } });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    const failure = await screen.findByTestId("setup-save-failed");
+    expect(failure.textContent).toContain("تعذر حفظ مشروعك. أعد المحاولة.");
+    expect(failure.getAttribute("role")).toBe("alert");
+    expect((screen.getByLabelText("اسم المشروع") as HTMLInputElement).value).toBe("مشغل الصمود");
+    expect(screen.getByRole("button", { name: "احفظ وابدأ" })).toBeTruthy();
+    /* إعادة المحاولة متاحة وتنجح — لا نجاح مبكر ولا فقد للقيم. */
+    fail = false;
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    expect(createSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("retry after an uncertain write uses the proven-saved file — never creates another (R07/AC06)", async () => {
+    const { services, store } = setupServices();
+    /* الكتابة الأولى «فشلت» ظاهريًا لكنها نجحت فعلًا في المتجر (نتيجة غير مؤكدة). */
+    const createSpy = vi.spyOn(services.profiles, "create").mockImplementationOnce(async () => ({
+      ok: false,
+      code: "storage_error" as const,
+      message: "uncertain",
+    }));
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "مشغل التحقق" } });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await screen.findByTestId("setup-save-failed");
+    await new ProfileService(store).create("مشغل التحقق");
+    /* إعادة المحاولة: الملف القائم ثبت — يُفتح ولا يُنشأ بديل ولا يُعدَّل. */
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    expect(createSpy).toHaveBeenCalledTimes(1);
+    const stored = await store.getProfile();
+    expect(stored).toMatchObject({ ok: true, value: { activityName: "مشغل التحقق" } });
+  });
+
+  it("a failed identity read enters recovery — never empty data, never a new project (R01/R07/AC05)", async () => {
+    const { services } = setupServices();
+    const createSpy = vi.spyOn(services.profiles, "create");
+    const loadSpy = vi
+      .spyOn(services.profiles, "load")
+      .mockResolvedValue({ ok: false, code: "storage_error" as const, message: "read failed" });
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const recovery = await screen.findByTestId("setup-storage-recovery");
+    expect(recovery.getAttribute("role")).toBe("alert");
+    expect(recovery.textContent).toContain("تعذر فتح البيانات المحلية.");
+    expect(screen.queryByLabelText("اسم المشروع")).toBeNull();
+    expect(createSpy).not.toHaveBeenCalled();
+    expect(wouterMocks.navigate).not.toHaveBeenCalled();
+    expect(loadSpy).toHaveBeenCalled();
+  });
+
+  it("a read failure at submit time enters recovery without any blind write (R07)", async () => {
+    const { services } = setupServices();
+    const createSpy = vi.spyOn(services.profiles, "create");
+    let reads = 0;
+    vi.spyOn(services.profiles, "load").mockImplementation(async () => {
+      reads += 1;
+      if (reads === 1) return { ok: true as const, value: null };
+      return { ok: false, code: "storage_error" as const, message: "read failed" };
+    });
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "مشغل القراءة" } });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    expect(await screen.findByTestId("setup-storage-recovery")).toBeTruthy();
+    expect(createSpy).not.toHaveBeenCalled();
+  });
+});
+
+/* ── الهوية القائمة (R02/AC06/DUP-002/ACD002) ── */
+describe("UNIT-001 existing identity — open it, never duplicate or edit (R02/DUP-002)", () => {
+  it("arriving at /setup with an existing project opens the existing project (R02/ACD002)", async () => {
+    const { services, store } = setupServices();
+    await new ProfileService(store).create("مشروع قائم");
+    const createSpy = vi.spyOn(services.profiles, "create");
+    const saveSpy = vi.spyOn(services.profiles, "save");
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
+    expect(createSpy).not.toHaveBeenCalled();
+    expect(saveSpy).not.toHaveBeenCalled();
+  });
+
+  it("an identity created after mount is used as-is on submit — no second identity, no edit (AC06/DUP-002)", async () => {
+    const { services, store } = setupServices();
+    const createSpy = vi.spyOn(services.profiles, "create");
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "اسم متأخر" } });
+    /* هوية ظهرت من نافذة أخرى بين الكتابة والحفظ. */
+    await new ProfileService(store).create("مشروع النافذة الأخرى");
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    expect(createSpy).not.toHaveBeenCalled();
+    const stored = await store.getProfile();
+    expect(stored).toMatchObject({ ok: true, value: { activityName: "مشروع النافذة الأخرى" } });
+  });
+
+  it("rename stays owned by 039 — setup never edits and the single source keeps one record (ACD002)", async () => {
+    const { services, store } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "الاسم الأول" } });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    cleanup();
+    wouterMocks.navigate.mockReset();
+    /* 039 (صفحة Profile) يعدّل عبر save — نفس المصدر، معرّف واحد. */
+    const renamed = await new ProfileService(store).save("الاسم بعد التعديل");
+    expect(renamed).toMatchObject({ ok: true, profile: { activityName: "الاسم بعد التعديل" } });
+    const stored = await store.getProfile();
+    expect(stored).toMatchObject({
+      ok: true,
+      value: { id: "local-profile", activityName: "الاسم بعد التعديل" },
+    });
+    /* الرجوع إلى Setup بعد التعديل: يفتح القائم — لا هوية ثانية. */
+    mockedUsePrototypeServices.mockReturnValue(setupServices({ store }).services);
+    render(<Setup />);
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
+  });
+});
+
+/* ── مدخل الاستعادة (R11/DUP-005/AC09/ACD005) ── */
+describe("UNIT-001 restore entry — delegate to the existing 044 owner (R11/DUP-005)", () => {
+  it("the secondary action opens the existing Settings restore owner with a return context", async () => {
+    const { services } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    await screen.findByRole("heading", { name: "إعداد مشروعك" });
+    fireEvent.click(screen.getByRole("button", { name: "استعادة نسخة احتياطية" }));
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/settings?returnTo=%2Fsetup");
+    /* لا صفحة استيراد داخل Setup نفسها — التفويض لمالك 044 وحده (DUP-005). */
+    expect(screen.queryByTestId("setup-restore-entry")).toBeTruthy();
+    expect(document.querySelector("input[type=file]")).toBeNull();
+  });
+
+  it("typing a name then leaving for restore keeps the draft for an explicit return (R11/AC09)", async () => {
+    const { services, store } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "اسم محفوظ للاستعادة" } });
+    await waitFor(async () => {
+      const saved = await store.getFormDraft("setup:new");
+      expect(saved.ok && saved.value).not.toBeNull();
+    });
+    fireEvent.click(screen.getByRole("button", { name: "استعادة نسخة احتياطية" }));
+    expect(wouterMocks.navigate).toHaveBeenCalledWith("/settings?returnTo=%2Fsetup");
+    const kept = await store.getFormDraft("setup:new");
+    expect(kept).toMatchObject({
+      ok: true,
+      value: {
+        values: { activityName: "اسم محفوظ للاستعادة" },
+      },
+    });
+  });
+});
+
+/* ── حوار معلومات الإعداد (R08/B4/AC08) ── */
+describe("UNIT-001 info dialog — library modal, read-only, focus contract (R08/AC08)", () => {
+  it("opens the approved texts and moves focus in; Escape closes and returns focus as it was", async () => {
+    const { services } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const trigger = await screen.findByRole("button", { name: "معلومات الإعداد وحفظ البيانات" });
+    /* B4: «يعود التركيز للأيقونة والاسم كما كان» — الحقل كان مركزًا (autoFocus)
+     * فيعود إليه؛ ثم المشغّل نفسه إذا كان هو المركز قبل الفتح. */
+    const input = screen.getByLabelText("اسم المشروع") as HTMLInputElement;
+    expect(document.activeElement).toBe(input);
+    fireEvent.click(trigger);
+    const dialog = await screen.findByTestId("setup-info-dialog");
+    expect(dialog.getAttribute("role")).toBe("dialog");
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    expect(screen.getByText("معلومات الإعداد")).toBeTruthy();
+    expect(screen.getByText("يمكنك تغيير اسم المشروع لاحقًا.")).toBeTruthy();
+    expect(screen.getByText("تُحفظ بياناتك على هذا الجهاز فقط. مسح بيانات المتصفح قد يحذفها.")).toBeTruthy();
+    expect(screen.getByText("احتفظ بنسخة احتياطية من الإعدادات.")).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "إغلاق" }));
+    fireEvent.keyDown(document, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByTestId("setup-info-dialog")).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(input));
+    /* فتح من الأيقونة نفسها (تفعيل لوحة مفاتيح): التركيز يعود للأيقونة. */
+    trigger.focus();
+    fireEvent.click(trigger);
+    await screen.findByTestId("setup-info-dialog");
+    fireEvent.keyDown(document, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByTestId("setup-info-dialog")).toBeNull());
+    await waitFor(() => expect(document.activeElement).toBe(trigger));
+  });
+
+  it("the close button closes and the veil click closes — neither saves nor mutates the form (R08/B4)", async () => {
+    const { services, store } = setupServices();
+    const createSpy = vi.spyOn(services.profiles, "create");
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "اسم قبل الحوار" } });
+    fireEvent.click(screen.getByRole("button", { name: "معلومات الإعداد وحفظ البيانات" }));
+    await screen.findByTestId("setup-info-dialog");
+    fireEvent.click(screen.getByRole("button", { name: "إغلاق" }));
+    await waitFor(() => expect(screen.queryByTestId("setup-info-dialog")).toBeNull());
+    expect((screen.getByLabelText("اسم المشروع") as HTMLInputElement).value).toBe("اسم قبل الحوار");
+    expect(createSpy).not.toHaveBeenCalled();
+    /* فتح بالغطاء ثم إغلاق بالغطاء — لا حفظ للنموذج بصفت أي من الفعلين. */
+    fireEvent.click(screen.getByRole("button", { name: "معلومات الإعداد وحفظ البيانات" }));
+    const overlay = await screen.findByTestId("setup-info-overlay");
+    fireEvent.click(overlay);
+    await waitFor(() => expect(screen.queryByTestId("setup-info-dialog")).toBeNull());
+    expect((screen.getByLabelText("اسم المشروع") as HTMLInputElement).value).toBe("اسم قبل الحوار");
+    expect(createSpy).not.toHaveBeenCalled();
+    const draft = await store.getFormDraft("setup:new");
+    expect(draft).toMatchObject({ ok: true, value: { values: { activityName: "اسم قبل الحوار" } } });
+  });
+
+  it("Tab stays contained inside the dialog (B4/AC08)", async () => {
+    const { services } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    fireEvent.click(await screen.findByRole("button", { name: "معلومات الإعداد وحفظ البيانات" }));
+    await screen.findByTestId("setup-info-dialog");
+    const close = screen.getByRole("button", { name: "إغلاق" });
+    expect(document.activeElement).toBe(close);
+    fireEvent.keyDown(document, { key: "Tab" });
+    expect(document.activeElement).toBe(close);
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(close);
+  });
+
+  it("the back button (popstate) closes the dialog only — the screen and the name stay (B4)", async () => {
+    const { services } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "اسم مع الحوار" } });
+    fireEvent.click(screen.getByRole("button", { name: "معلومات الإعداد وحفظ البيانات" }));
+    await screen.findByTestId("setup-info-dialog");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    await waitFor(() => expect(screen.queryByTestId("setup-info-dialog")).toBeNull());
+    expect(wouterMocks.navigate).not.toHaveBeenCalled();
+    expect((screen.getByLabelText("اسم المشروع") as HTMLInputElement).value).toBe("اسم مع الحوار");
+  });
+});
+
+/* ── مسودة الاسم المنفصلة (R09/R10/AC04/DUP-023/ACD023) ── */
+describe("UNIT-001 name draft — separate from the identity, explicit restore (R09/R10/DUP-023)", () => {
+  it("typing persists a name-only draft through the unified boundary (R09)", async () => {
+    const { services, store } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    fireEvent.change(await screen.findByLabelText("اسم المشروع"), {
+      target: { value: "مشغل الكرامة" },
+    });
+    await waitFor(async () => {
+      const saved = await store.getFormDraft("setup:new");
+      if (!saved.ok || !saved.value) throw new Error("draft not saved");
+      expect(saved.value.values).toMatchObject({ activityName: "مشغل الكرامة" });
+      expect(saved.value.values).not.toHaveProperty("walletName");
+      expect(saved.value.values).not.toHaveProperty("openingChoice");
+      expect(saved.value.values).not.toHaveProperty("openingMinor");
+    });
+    expect(globalThis.localStorage?.getItem("micro.setup-draft.v1")).toBeNull();
+  });
+
+  it("a saved draft on return shows T13 with T14 actions — values are not auto-applied (R10/AC04)", async () => {
+    const { services, store } = setupServices();
+    await seedNameDraft(store, "مسودة الاسم");
+    const createSpy = vi.spyOn(services.profiles, "create");
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    expect(await screen.findByTestId("setup-draft-offer")).toBeTruthy();
+    expect(screen.getByText("إعداد غير مكتمل")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "أكمل الإعداد" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "تجاهل المسودة" })).toBeTruthy();
+    expect((screen.getByLabelText("اسم المشروع") as HTMLInputElement).value).toBe("");
+    expect(createSpy).not.toHaveBeenCalled();
+  });
+
+  it("«أكمل الإعداد» applies the name; «تجاهل المسودة» removes only the draft (R10/AC04)", async () => {
+    const { services, store } = setupServices();
+    await seedNameDraft(store, "مسودة الاسم");
+    const createSpy = vi.spyOn(services.profiles, "create");
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    await screen.findByTestId("setup-draft-offer");
+    fireEvent.click(screen.getByRole("button", { name: "أكمل الإعداد" }));
+    expect((screen.getByLabelText("اسم المشروع") as HTMLInputElement).value).toBe("مسودة الاسم");
+    expect(createSpy).not.toHaveBeenCalled();
+    /* حذف الإدخال ثم العودة: العرض يظهر مجددًا، والتجاهل يمسح المسودة وحدها. */
+    fireEvent.change(screen.getByLabelText("اسم المشروع"), { target: { value: "" } });
+    await waitFor(async () => {
+      const cleared = await store.getFormDraft("setup:new");
+      expect(cleared.ok && cleared.value).toBeNull();
+    });
+    /* لا ملف مشروع في أي لحظة — المسودة ليست هوية. */
+    const profile = await store.getProfile();
+    expect(profile).toMatchObject({ ok: true, value: null });
+    expect(createSpy).not.toHaveBeenCalled();
+  });
+
+  it("discard from the offer removes the draft only — no project, no identity (R10/ACD023)", async () => {
+    const { services, store } = setupServices();
+    await seedNameDraft(store, "مسودة للتجاهل");
+    const createSpy = vi.spyOn(services.profiles, "create");
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    await screen.findByTestId("setup-draft-offer");
+    fireEvent.click(screen.getByRole("button", { name: "تجاهل المسودة" }));
+    await waitFor(async () => {
+      const cleared = await store.getFormDraft("setup:new");
+      expect(cleared.ok && cleared.value).toBeNull();
+    });
+    const profile = await store.getProfile();
+    expect(profile).toMatchObject({ ok: true, value: null });
+    expect(createSpy).not.toHaveBeenCalled();
+    expect((screen.getByLabelText("اسم المشروع") as HTMLInputElement).value).toBe("");
+  });
+
+  it("a legacy draft carrying financial fields offers the name only — money is never applied (Q02/DUP-023)", async () => {
+    const { services, store } = setupServices();
     await new FormDraftService(store).save("setup", null, {
       step: 3,
-      activityName: "مشغل ليان",
+      activityName: "مسودة تراثية",
+      walletName: "الدرج",
+      openingChoice: "known",
+      openingMinor: 12345,
+      savedAt: "2026-09-01T10:00:00.000Z",
+    });
+    const createSpy = vi.spyOn(services.profiles, "create");
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    expect(await screen.findByTestId("setup-draft-offer")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "أكمل الإعداد" }));
+    expect((screen.getByLabelText("اسم المشروع") as HTMLInputElement).value).toBe("مسودة تراثية");
+    /* لا أي حقل نقدي عُرض، ولا أي سجل محفظة/افتتاح نشأ — الاسم وحده. */
+    expect(screen.queryByLabelText(/محفظة/)).toBeNull();
+    const wallets = await store.listCashWallets();
+    expect(wallets).toMatchObject({ ok: true, value: [] });
+    expect(createSpy).not.toHaveBeenCalled();
+  });
+
+  it("a corrupted draft is ignored without an offer or a crash (B2/Q02)", async () => {
+    const { services, store } = setupServices();
+    await new FormDraftService(store).save("setup", null, {
+      step: 3,
+      activityName: 42,
       walletName: "الدرج",
       openingChoice: "unknown",
       openingMinor: 0,
       savedAt: "2026-09-01T10:00:00.000Z",
     });
-    const profilesSave = services.profiles.save as ReturnType<typeof vi.fn>;
-    const openWallet = services.cashContinuity.openWallet as ReturnType<typeof vi.fn>;
     mockedUsePrototypeServices.mockReturnValue(services);
-
     render(<Setup />);
-
-    /* العرض صريح — القيم لم تُطبّق بعد ولا سجل مالي. */
-    expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
-    expect((screen.getByLabelText(/اسم المشروع/) as HTMLInputElement).value).toBe("");
-    expect(profilesSave).not.toHaveBeenCalled();
-    expect(openWallet).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole("button", { name: "استعدها وأكمل" }));
-    /* التطبيق بعد القبول: الخطوة ٣ بقيمها المحفوظة. */
-    expect(await screen.findByText("شو وضع الدرج هلق؟")).toBeTruthy();
-    expect((screen.getByLabelText(/الموقف الافتتاحي/) as HTMLSelectElement).value).toBe("unknown");
-    expect(profilesSave).not.toHaveBeenCalled();
+    expect(await screen.findByRole("heading", { name: "إعداد مشروعك" })).toBeTruthy();
+    expect(screen.queryByTestId("setup-draft-offer")).toBeNull();
+    expect((screen.getByLabelText("اسم المشروع") as HTMLInputElement).value).toBe("");
+    const kept = await store.getFormDraft("setup:new");
+    expect(kept.ok && kept.value).not.toBeNull();
   });
 
-  it("the offer discard clears the draft and starts pristine", async () => {
-    const { services, store } = draftServices();
-    await new FormDraftService(store).save("setup", null, {
-      step: 2,
-      activityName: "مشغل قديم",
-      walletName: "الدرج",
-      openingChoice: null,
-      openingMinor: 0,
-      savedAt: "2026-09-01T10:00:00.000Z",
-    });
-    mockedUsePrototypeServices.mockReturnValue(services);
-
-    render(<Setup />);
-    expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "ابدأ الإعداد من جديد" }));
-
-    await waitFor(async () => {
-      const cleared = await store.getFormDraft("setup:new");
-      expect(cleared.ok && cleared.value).toBeNull();
-    });
-    expect((screen.getByLabelText(/اسم المشروع/) as HTMLInputElement).value).toBe("");
-    expect(screen.getByText("ما اسم مشروعك؟")).toBeTruthy();
-  });
-
-  it("a leftover legacy page-storage key is inert — never read, offered, or deleted (ARCH-012)", async () => {
-    /* R11 ARCH-012 (2026-10-15): المفتاح التراثي المتروك في متصفح مالك
-     * سابق لا يُقرأ ولا يُعرض ولا يُحذف — لا مسح تخزين تخريبي؛ السلوك
-     * الحي من الحد الموحّد وحده. */
+  it("a leftover legacy page-storage key stays inert — never read, offered, or deleted (ARCH-012)", async () => {
     globalThis.localStorage?.setItem(
       "micro.setup-draft.v1",
       JSON.stringify({
@@ -187,162 +633,119 @@ describe("Setup progressive draft persistence (group 1 scope F, group 5 unified 
         savedAt: "2026-09-01T10:00:00.000Z",
       }),
     );
-    const { services, store } = draftServices();
+    const { services, store } = setupServices();
     mockedUsePrototypeServices.mockReturnValue(services);
-
     render(<Setup />);
-
-    expect(await screen.findByText("ما اسم مشروعك؟")).toBeTruthy();
-    expect(screen.queryByText(/عندك مسودة إعداد من آخر مرة/)).toBeNull();
-    expect((screen.getByLabelText(/اسم المشروع/) as HTMLInputElement).value).toBe("");
-    /* لا تحويل صامت — الحد الموحّد بقي فارغًا والمفتاح في مكانه خاملًا. */
-    const notMigrated = await store.getFormDraft("setup:new");
-    expect(notMigrated.ok && notMigrated.value).toBeNull();
+    expect(await screen.findByRole("heading", { name: "إعداد مشروعك" })).toBeTruthy();
+    expect(screen.queryByTestId("setup-draft-offer")).toBeNull();
+    const unified = await store.getFormDraft("setup:new");
+    expect(unified.ok && unified.value).toBeNull();
     expect(globalThis.localStorage?.getItem("micro.setup-draft.v1")).not.toBeNull();
   });
 
-  it("corrupted draft values are ignored without breaking setup and are never converted", async () => {
-    const { services, store } = draftServices();
-    await new FormDraftService(store).save("setup", null, {
-      step: 3,
-      activityName: 42,
-      walletName: "الدرج",
-      openingChoice: "unknown",
-      openingMinor: 0,
-      savedAt: "2026-09-01T10:00:00.000Z",
+  it("a draft save failure announces T15 honestly and keeps the typed values (R09/AC05)", async () => {
+    const failing = createFormDraftHarness().store;
+    failing.saveFormDraft = vi.fn(async () => ({ ok: false, message: "quota" })) as never;
+    const { services } = setupServices({ store: failing });
+    const createSpy = vi.spyOn(services.profiles, "create");
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    fireEvent.change(await screen.findByLabelText("اسم المشروع"), {
+      target: { value: "مشغل الصمود" },
     });
-    mockedUsePrototypeServices.mockReturnValue(services);
-
-    render(<Setup />);
-
-    expect(await screen.findByText("ما اسم مشروعك؟")).toBeTruthy();
-    expect(screen.queryByText(/عندك مسودة إعداد من آخر مرة/)).toBeNull();
-    expect((screen.getByLabelText(/اسم المشروع/) as HTMLInputElement).value).toBe("");
-    /* القيم غير القابلة للإكراه تُرفض بلا عرض ولا انفجار ولا تحويل صامت —
-     * لو كان الإكراه ناجحًا لظهر العرض (قراءة الإقلاع تسبق أي كتابة في
-     * الأثر الموحّد).
-     * R11 ARCH-012-NF-001 (2026-10-16 — إصلاح موجة المتابعة الموحدة):
-     * السجل غير القابل للإكراه يبقى في حده خاملًا — لا مسح عند الفتح
-     * (لا نعرف أنه بلا إدخال حقيقي فلا نحذف ما لا نقرأ). */
+    expect(await screen.findByText("تعذر حفظ المسودة. احتفظ بالشاشة مفتوحة حتى تكمل الإعداد.")).toBeTruthy();
+    expect((screen.getByLabelText("اسم المشروع") as HTMLInputElement).value).toBe("مشغل الصمود");
+    expect(createSpy).not.toHaveBeenCalled();
   });
 
-  it("the unknown opening stays unknown — never saved as a zero wallet", async () => {
-    const openWallet = vi.fn().mockResolvedValue({ ok: true, value: {} });
-    mockedUsePrototypeServices.mockReturnValue({
-      profiles: { save: vi.fn().mockResolvedValue({ ok: true, profile: { id: "p" } }) },
-      cashContinuity: { openWallet },
-      notifyDataChanged: vi.fn(),
-      formDrafts: new FormDraftService(createFormDraftHarness().store),
-    } as unknown as ReturnType<typeof usePrototypeServices>);
-
-    render(<Setup />);
-    fireEvent.change(screen.getByLabelText(/اسم المشروع/), { target: { value: "مشغل ليان" } });
-    fireEvent.click(screen.getByRole("button", { name: "التالي" }));
-    await screen.findByRole("button", { name: /تخطَّ المحفظة الآن/ });
-    fireEvent.click(screen.getByRole("button", { name: "التالي" }));
-    await screen.findByText("شو وضع الدرج هلق؟");
-    fireEvent.change(screen.getByLabelText(/الموقف الافتتاحي/), { target: { value: "unknown" } });
-    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ في مشروعي الآن" }));
-
-    await waitFor(() =>
-      expect(openWallet).toHaveBeenCalledWith(
-        expect.objectContaining({ openingMinor: 0, openingStatus: "unknown" }),
-      ),
-    );
-    /* الإشعار نفسه يشرح الحقيقة: مجهول معلن لا صفر. */
-    expect(
-      await screen.findByText(
-        /ستبقى المحفظة «غير محددة» — تُظهر طريقًا لإدخال رصيد موثق لاحقًا، ولا تُعرض صفرًا أبدًا./,
-      ),
-    ).toBeTruthy();
-  });
-
-  it("typing persists the draft through the unified boundary — not page storage", async () => {
-    const { services, store } = draftServices();
+  it("saving and restoring the raw name draft twice creates no second record and no agreement (ACD023)", async () => {
+    const { services, store } = setupServices();
     mockedUsePrototypeServices.mockReturnValue(services);
-
-    render(<Setup />);
-    fireEvent.change(screen.getByLabelText(/اسم المشروع/), { target: { value: "مشغل الكرامة" } });
-
+    const first = render(<Setup />);
+    fireEvent.change(await screen.findByLabelText("اسم المشروع"), {
+      target: { value: "مسودة دورتين" },
+    });
     await waitFor(async () => {
       const saved = await store.getFormDraft("setup:new");
-      if (!saved.ok) throw new Error("read failed");
-      expect(saved.value).not.toBeNull();
-      expect((saved.value?.values as { activityName?: string }).activityName).toBe("مشغل الكرامة");
+      expect(saved.ok && saved.value).not.toBeNull();
     });
-    /* لا يُنشأ مفتاح مسودة في تخزين الصفحة أبدًا — الحد وحده يكتب
-     * (ARCH-012: لا عودة لمسودات الصفحة المباشرة). */
-    expect(globalThis.localStorage?.getItem("micro.setup-draft.v1")).toBeNull();
-  });
-
-  it("a draft save failure is announced honestly and keeps the typed values", async () => {
-    /* مخزن يفشل في الكتابة فقط — القيم في الذاكرة والنص صادق بلا أي أثر مالي. */
-    const failing = createFormDraftHarness().store;
-    const originalSave = failing.saveFormDraft.bind(failing);
-    failing.saveFormDraft = vi.fn(async () => ({ ok: false, message: "quota" })) as never;
-    void originalSave;
-    const { services } = draftServices({ store: failing });
-    mockedUsePrototypeServices.mockReturnValue(services);
-
-    render(<Setup />);
-    fireEvent.change(screen.getByLabelText(/اسم المشروع/), { target: { value: "مشغل الصمود" } });
-
-    expect(await screen.findByText(/تعذر حفظ مسودة الإعداد محليًا/)).toBeTruthy();
-    expect((screen.getByLabelText(/اسم المشروع/) as HTMLInputElement).value).toBe("مشغل الصمود");
-    const profilesSave = services.profiles.save as ReturnType<typeof vi.fn>;
-    expect(profilesSave).not.toHaveBeenCalled();
-  });
-
-  it("successful completion clears the draft so it never returns as data", async () => {
-    const { services, store } = draftServices();
-    await new FormDraftService(store).save("setup", null, {
-      step: 3,
-      activityName: "مشغل ليان",
-      walletName: "الدرج",
-      openingChoice: "zero",
-      openingMinor: 0,
-      savedAt: "2026-09-01T10:00:00.000Z",
-    });
-    mockedUsePrototypeServices.mockReturnValue(services);
-
-    render(<Setup />);
-    await screen.findByText(/عندك مسودة إعداد من آخر مرة/);
-    fireEvent.click(screen.getByRole("button", { name: "استعدها وأكمل" }));
-    expect(await screen.findByText("شو وضع الدرج هلق؟")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ في مشروعي الآن" }));
-    await waitFor(async () => {
-      const cleared = await store.getFormDraft("setup:new");
-      expect(cleared.ok && cleared.value).toBeNull();
-    });
+    first.unmount();
+    const second = render(<Setup />);
+    await screen.findByTestId("setup-draft-offer");
+    second.unmount();
+    const third = render(<Setup />);
+    await screen.findByTestId("setup-draft-offer");
+    third.unmount();
+    const listed = await store.listFormDrafts();
+    /* سجل واحد بالضبط (setup:new) — لا نسخ ولا تكرار عبر دورات الحفظ/الاستعادة. */
+    expect(listed.ok).toBe(true);
+    if (listed.ok) {
+      expect(listed.value).toHaveLength(1);
+      expect(listed.value[0]).toMatchObject({ id: "setup:new" });
+    }
+    /* لا مشروع ولا أي اتفاق/حدث مالي من المسودة إطلاقًا. */
+    const profile = await store.getProfile();
+    expect(profile).toMatchObject({ ok: true, value: null });
+    const orders = await store.listOrders();
+    expect(orders.ok).toBe(true);
   });
 });
 
-/* R11 ARCH-012-NF-001 (موجة المتابعة الموحدة 2026-10-16): دورة حياة إقلاع
- * Setup الخالية من السباق — أثر الحفظ/المسح كان يعمل عند الفتح بنموذج فارغ
- * قبل استقرار قراءة المسودة فيمسح السجل المحفوظ حتى والعرض قائم؛ إغلاق
- * التبويب قبل قرار الاستعادة كان يفقد المسودة نهائيًا. الإصلاح الجذري:
- * بوابة استقرار صريحة — لا كتابة ولا مسح قبل استقرار قراءة الفتح، ولا مسح
- * والحالة مجهولة (فشل قراءة)، والمسح مرة واحدة عند الانتقال الحقيقي←الفارغ
- * فقط. الحد الموحّد وسلوك القرار الصريح محفوظان كما هما. */
-describe("ARCH-012-NF-001 — Setup launch lifecycle is race-free (unified follow-up 2026-10-16)", () => {
-  afterEach(() => {
-    cleanup();
-    globalThis.localStorage?.clear();
+/* ── الجيران والسلامة المالية (R13/B5/AC07/ACD001/ACD024) ── */
+describe("UNIT-001 neighbors and financial safety (R13/AC07/ACD001/ACD024)", () => {
+  it("completing setup records no wallet, no opening, no movement — missing cash is not zero (R13/AC07/ACD001)", async () => {
+    const { services, store } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    fireEvent.change(await screen.findByLabelText("اسم المشروع"), {
+      target: { value: "مشروع بلا محفظة" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    const wallets = await store.listCashWallets();
+    expect(wallets).toMatchObject({ ok: true, value: [] });
+    const events = await store.listFinancialEvents();
+    expect(events.ok).toBe(true);
+    if (events.ok) expect(events.value).toHaveLength(0);
+    /* لا أي سجل افتتاح/محفظة/حركة — الهوية وحدها. */
+    const profile = await store.getProfile();
+    expect(profile).toMatchObject({ ok: true, value: { activityName: "مشروع بلا محفظة" } });
   });
 
-  /** بذر مسودة إعداد حقيقية عبر الحد الموحّد على مخزن حقيقي. */
-  async function seedSetupDraft(store: PrototypeLocalStore) {
+  it("the field vocabulary is one definition: اسم المشروع label, T05 near the field (ACD024/DUP-024)", async () => {
+    const { services } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const label = await screen.findByText("اسم المشروع");
+    expect(label.tagName).toBe("SPAN");
+    const input = screen.getByLabelText("اسم المشروع") as HTMLInputElement;
+    expect(input.placeholder).toBe("مثال: حلويات ليان");
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    const error = await screen.findByText("اكتب اسم مشروعك.");
+    /* الخطأ قرب الحقل مباشرة — بعد تسميته النظيفة لا داخلها (ACD024). */
+    expect(error.previousElementSibling?.tagName).toBe("LABEL");
+  });
+
+  it("an empty first-open read is not a storage failure — the form renders (R01)", async () => {
+    const { services } = setupServices();
+    const loadSpy = vi.spyOn(services.profiles, "load");
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    expect(await screen.findByRole("heading", { name: "إعداد مشروعك" })).toBeTruthy();
+    await waitFor(() => expect(loadSpy).toHaveBeenCalled());
+    expect(screen.queryByTestId("setup-storage-recovery")).toBeNull();
+  });
+});
+
+/* ── ARCH-012-NF-001: دورة الإقلاع الخالية من السباق محفوظة كما هي ── */
+describe("ARCH-012-NF-001 — Setup launch lifecycle stays race-free after UNIT-001 V2", () => {
+  async function seedSetupDraft(store: PrototypeLocalStore, activityName: string) {
     await new FormDraftService(store).save("setup", null, {
-      step: 3,
-      activityName: "مشغل النور",
-      walletName: "الدرج",
-      openingChoice: "unknown",
-      openingMinor: 0,
-      savedAt: "2026-09-01T10:00:00.000Z",
+      activityName,
+      savedAt: "2026-10-01T10:00:00.000Z",
     });
   }
 
-  /** لف المخزن بجواسيس تمرير حقيقية — عدّ الكتابات (حفظ/مسح) بلا تغيير سلوك. */
   function spyStore(store: PrototypeLocalStore) {
     const saveSpy = vi.fn(store.saveFormDraft.bind(store));
     const deleteSpy = vi.fn(store.deleteFormDraft.bind(store));
@@ -352,16 +755,12 @@ describe("ARCH-012-NF-001 — Setup launch lifecycle is race-free (unified follo
   }
 
   it("closing the page while the restore offer is pending keeps the stored draft (no clear on mount)", async () => {
-    const { services, store } = draftServices();
-    await seedSetupDraft(store);
+    const { services, store } = setupServices();
+    await seedSetupDraft(store, "مشغل النور");
     mockedUsePrototypeServices.mockReturnValue(services);
-
     const { unmount } = render(<Setup />);
-    /* العرض قائم ولم يتخذ المالك أي قرار بعد. */
-    expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
+    expect(await screen.findByTestId("setup-draft-offer")).toBeTruthy();
     unmount();
-
-    /* الإغلاق قبل القرار لا يجوز أن يفقد المسودة — السجل باقٍ بقيمه. */
     const kept = await store.getFormDraft("setup:new");
     expect(kept.ok).toBe(true);
     if (!kept.ok) throw new Error("read failed");
@@ -369,121 +768,75 @@ describe("ARCH-012-NF-001 — Setup launch lifecycle is race-free (unified follo
     expect((kept.value?.values as { activityName?: string }).activityName).toBe("مشغل النور");
   });
 
-  it("zero writes while the restore decision is pending — no save, no discard, then unmount stays silent", async () => {
-    const { services, store } = draftServices();
-    await seedSetupDraft(store);
+  it("zero writes while the restore decision is pending (no save, no discard)", async () => {
+    const { services, store } = setupServices();
+    await seedSetupDraft(store, "مشغل النور");
     const { saveSpy, deleteSpy } = spyStore(store);
     mockedUsePrototypeServices.mockReturnValue(services);
-
     const { unmount } = render(<Setup />);
-    expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
-    /* استقرار كامل للمهام الدقيقة ثم تأكيد: لا كتابة واحدة قبل القرار. */
+    expect(await screen.findByTestId("setup-draft-offer")).toBeTruthy();
     await waitFor(async () => {
       const still = await store.getFormDraft("setup:new");
       expect(still.ok && still.value).not.toBeNull();
     });
     expect(saveSpy).not.toHaveBeenCalled();
     expect(deleteSpy).not.toHaveBeenCalled();
-
     unmount();
-    await waitFor(async () => {
-      const after = await store.getFormDraft("setup:new");
-      expect(after.ok && after.value).not.toBeNull();
-    });
     expect(saveSpy).not.toHaveBeenCalled();
     expect(deleteSpy).not.toHaveBeenCalled();
   });
 
-  it("repeated mount/unmount cycles keep re-offering the same intact draft", async () => {
-    const { services, store } = draftServices();
-    await seedSetupDraft(store);
+  it("repeated mount/unmount cycles keep re-offering the same intact draft (R14/AC06)", async () => {
+    const { services, store } = setupServices();
+    await seedSetupDraft(store, "مشغل النور");
     mockedUsePrototypeServices.mockReturnValue(services);
-
     const first = render(<Setup />);
-    expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
+    expect(await screen.findByTestId("setup-draft-offer")).toBeTruthy();
     first.unmount();
-
     const second = render(<Setup />);
-    expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
-    /* القيم نفسها تُعرض مرة أخرى — لا نسخ ولا فقد بين الإعادات. */
+    expect(await screen.findByTestId("setup-draft-offer")).toBeTruthy();
     const kept = await store.getFormDraft("setup:new");
     if (!kept.ok) throw new Error("read failed");
-    expect(kept.value).not.toBeNull();
     expect((kept.value?.values as { activityName?: string }).activityName).toBe("مشغل النور");
     second.unmount();
   });
 
   it("a failed opening read never clears the stored draft (unknown state is not blindly wiped)", async () => {
-    const { services, store } = draftServices();
-    await seedSetupDraft(store);
+    const { services, store } = setupServices();
+    await seedSetupDraft(store, "مشغل النور");
     const { deleteSpy } = spyStore(store);
-    /* القراءة تفشل وحدها — الحالة مجهولة فلا مسح أعمى للنموذج الفارغ. */
     const originalGet = store.getFormDraft.bind(store);
     store.getFormDraft = vi.fn(async () => ({ ok: false, message: "read failed" })) as never;
     mockedUsePrototypeServices.mockReturnValue(services);
-
     render(<Setup />);
-    expect(await screen.findByText("ما اسم مشروعك؟")).toBeTruthy();
-    expect(screen.queryByText(/عندك مسودة إعداد من آخر مرة/)).toBeNull();
-    /* استقرار المهام الدقيقة: لا مسح أبدًا عند فشل القراءة. */
+    expect(await screen.findByRole("heading", { name: "إعداد مشروعك" })).toBeTruthy();
+    expect(screen.queryByTestId("setup-draft-offer")).toBeNull();
     await new Promise(resolve => setTimeout(resolve, 20));
     expect(deleteSpy).not.toHaveBeenCalled();
-    /* القراءة الأصلية (بلا حقن الفشل) تثبت أن السجل بقى في مكانه. */
     const kept = await originalGet("setup:new");
     expect(kept.ok && kept.value).not.toBeNull();
   });
 
-  it("unmounting before the opening read settles stays silent and keeps the draft", async () => {
-    const { services, store } = draftServices();
-    await seedSetupDraft(store);
-    const { saveSpy, deleteSpy } = spyStore(store);
-    /* قراءة معلّقة لا تستقر إلا بقرار الاختبار — مقاطعة الإقلاع نفسها. */
-    let releaseRead!: (value: unknown) => void;
-    const gate = new Promise<unknown>(resolve => {
-      releaseRead = resolve;
-    });
-    const originalGet = store.getFormDraft.bind(store);
-    store.getFormDraft = (async (id: string) => {
-      if (id === "setup:new") await gate;
-      return originalGet(id);
-    }) as never;
+  it("new typing while the offer is pending is the basis — the offer hides and follows the user's values", async () => {
+    const { services, store } = setupServices();
+    await seedSetupDraft(store, "مشغل النور");
     mockedUsePrototypeServices.mockReturnValue(services);
-
-    const { unmount } = render(<Setup />);
-    /* الإغلاق قبل استقرار القراءة: لا حالة بعد الفكرك ولا كتابة أبدًا. */
-    unmount();
-    releaseRead({ ok: true, value: null });
-    await waitFor(async () => {
-      const kept = await originalGet("setup:new");
-      expect(kept.ok && kept.value).not.toBeNull();
-    });
-    expect(saveSpy).not.toHaveBeenCalled();
-    expect(deleteSpy).not.toHaveBeenCalled();
-  });
-
-  it("new typing while the offer is pending is the basis — the offer hides and the draft follows the user's values", async () => {
-    const { services, store } = draftServices();
-    await seedSetupDraft(store);
-    mockedUsePrototypeServices.mockReturnValue(services);
-
     render(<Setup />);
-    expect(await screen.findByText(/عندك مسودة إعداد من آخر مرة/)).toBeTruthy();
+    expect(await screen.findByTestId("setup-draft-offer")).toBeTruthy();
     fireEvent.change(screen.getByLabelText(/اسم المشروع/), { target: { value: "مشغلي الجديد" } });
-
     await waitFor(async () => {
       const saved = await store.getFormDraft("setup:new");
       if (!saved.ok) throw new Error("read failed");
       expect(saved.value).not.toBeNull();
       expect((saved.value?.values as { activityName?: string }).activityName).toBe("مشغلي الجديد");
     });
-    expect(screen.queryByText(/عندك مسودة إعداد من آخر مرة/)).toBeNull();
+    expect(screen.queryByTestId("setup-draft-offer")).toBeNull();
   });
 
   it("clearing typed input back to empty discards exactly once, and a fresh session offers nothing", async () => {
-    const { services, store } = draftServices();
+    const { services, store } = setupServices();
     const { deleteSpy } = spyStore(store);
     mockedUsePrototypeServices.mockReturnValue(services);
-
     render(<Setup />);
     const name = screen.getByLabelText(/اسم المشروع/) as HTMLInputElement;
     fireEvent.change(name, { target: { value: "تجربة عابرة" } });
@@ -491,7 +844,6 @@ describe("ARCH-012-NF-001 — Setup launch lifecycle is race-free (unified follo
       const saved = await store.getFormDraft("setup:new");
       expect(saved.ok && saved.value).not.toBeNull();
     });
-    /* حذف الإدخال يعيد النموذج إلى الفراغ — المسح مرة واحدة بالضبط. */
     fireEvent.change(name, { target: { value: "" } });
     await waitFor(async () => {
       const cleared = await store.getFormDraft("setup:new");

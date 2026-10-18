@@ -1845,6 +1845,25 @@
     "trigger": "Unified follow-up execution contract section 6: a reviewer finding must be fixed in a new coherent commit in the same PR; sections 3.4/4 forbid structural reorganization here",
     "ocRef": "WS-222"
    }
+  },
+  {
+   "id": "R11U1-PROFILE-CREATE-ONLY",
+   "date": "2026-10-18",
+   "path": "apps/prototype-web/client/src/application/profile/profileService.ts",
+   "from": {
+    "nbLoc": 43,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 74,
+    "band": "NORMAL"
+   },
+   "reason": "UNIT-001 V2 (DUP-002/R02/R07): the single identity source gains an explicit create-only path — ProfileService.create() reads the existing profile first and returns it untouched without any write when present (rename stays owned by 039 via save), creating exactly once with the fixed localProfileId when absent. The growth is the owner-approved identity-ownership root fix itself, not responsibility drift; the service remains the single profile boundary with no second writer.",
+   "authorization": {
+    "ownerReview": "UNIT-001 implementation PR review (WS-224/DOC-008) — this entry is part of the same PR diff",
+    "trigger": "R11-UNIT001 execution contract section 2.2: root fixes inside the component boundary are FIX_NOW in this PR; spec B-DUP DUP-002 requires creation/rename split at the single identity source",
+    "ocRef": "WS-224"
+   }
   }
  ]
 }
