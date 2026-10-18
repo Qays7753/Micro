@@ -856,6 +856,33 @@ describe("ARCH-012-NF-001 — Setup launch lifecycle stays race-free after UNIT-
     expect(kept.ok && kept.value).not.toBeNull();
   });
 
+  it("unmounting before the opening read settles stays silent and keeps the draft (ARCH-012-NF-001 7/7)", async () => {
+    const { services, store } = setupServices();
+    await seedSetupDraft(store, "مشغل النور");
+    const { saveSpy, deleteSpy } = spyStore(store);
+    /* قراءة معلّقة لا تستقر إلا بقرار الاختبار — مقاطعة الإقلاع نفسها. */
+    let releaseRead!: (value: unknown) => void;
+    const gate = new Promise<unknown>(resolve => {
+      releaseRead = resolve;
+    });
+    const originalGet = store.getFormDraft.bind(store);
+    store.getFormDraft = (async (id: string) => {
+      if (id === "setup:new") await gate;
+      return originalGet(id);
+    }) as never;
+    mockedUsePrototypeServices.mockReturnValue(services);
+    const { unmount } = render(<Setup />);
+    /* الإغلاق قبل استقرار القراءة: لا حالة بعد الفكرك ولا كتابة أبدًا. */
+    unmount();
+    releaseRead({ ok: true, value: null });
+    await waitFor(async () => {
+      const kept = await originalGet("setup:new");
+      expect(kept.ok && kept.value).not.toBeNull();
+    });
+    expect(saveSpy).not.toHaveBeenCalled();
+    expect(deleteSpy).not.toHaveBeenCalled();
+  });
+
   it("new typing while the offer is pending is the basis — the offer hides and follows the user's values", async () => {
     const { services, store } = setupServices();
     await seedSetupDraft(store, "مشغل النور");
