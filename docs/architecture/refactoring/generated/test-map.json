@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "5b86bf4ba884ce0ce3c181136ba19c9c562047c8",
+  "head": "3b9dc7a58060a28e74ed864dfd9840e8c29e73ee",
   "pages": {
     "total": 60,
     "map": {
@@ -214,7 +214,8 @@
           "HomeRedesign.w43.dom.test.tsx",
           "Nav001.dom.test.tsx",
           "ReadLayerParity.w44.dom.test.tsx",
-          "Set003Capabilities.dom.test.tsx"
+          "Set003Capabilities.dom.test.tsx",
+          "pages/Setup.v3Gates.test.tsx"
         ]
       },
       "pages/InventoryMaterials.tsx": {
@@ -386,7 +387,8 @@
           "Set003SettingsSection.dom.test.tsx",
           "Settings.lockGate.dom.test.tsx",
           "SettingsDataBackupSection.w42.dom.test.tsx",
-          "U11.dom.test.tsx"
+          "U11.dom.test.tsx",
+          "pages/Setup.v3Gates.test.tsx"
         ]
       },
       "pages/Setup.tsx": {
