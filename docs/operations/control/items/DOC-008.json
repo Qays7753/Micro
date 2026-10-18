@@ -1,0 +1,101 @@
+{
+  "id": "DOC-008",
+  "title": "UNIT-001 — مواصفة إعداد المشروع ومراجعة الملكية قبل التنفيذ",
+  "type": "RESEARCH",
+  "status": "CLAIMED",
+  "priority": "P1",
+  "stage": "r11-unit001-component-review-20261018",
+  "summary": "Claim مستقل لمراجعة مواصفة UNIT-001 من نسخة GitHub canonical ثم تنفيذها جذريًا داخل فرع وPR واحدين، مع إثبات الملكية وعدم التكرار والحدود مع الاستعادة والمسودات والمال، دون بدء UNIT-002 أو New Design العام.",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "classification": "GOVERNANCE",
+  "gate_classification": "NOT_APPLICABLE",
+  "root_cause": "مواصفات المكونات كانت محفوظة خارج المستودع وبلا Claim تنفيذي منفصل يربط المواصفة بالمالك والعقود والاختبارات وسجل عدم التكرار؛ هذا يعرّض التنفيذ لتشتت المصدر وتكرار المسؤوليات.",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "اعتماد UNIT-001 كمكوّن مستقل: نسخة GitHub هي المصدر الوحيد، Prompt واحد شامل لـZAI، فرع وPR مستقلان، إصلاح جذري داخل النطاق، لا دمج أو تنظيف تلقائي، ومراجعة مستقلة قبل أي دمج.",
+  "tests_required": [
+    "python3 scripts/operations-control/validate.py",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "node scripts/check-doc-index-coverage.mjs",
+    "node scripts/check-current-state-size.mjs",
+    "node scripts/check-agent-document-contract.mjs",
+    "pnpm check",
+    "git diff --check"
+  ],
+  "layers": [
+    "product-specification",
+    "application",
+    "storage-boundary",
+    "domain-contracts",
+    "ui-semantics",
+    "tests",
+    "governance"
+  ],
+  "source": {
+    "report": "GitHub-canonical UNIT-001 specification and owner-approved execution contract, 2026-10-18",
+    "discovered_at_sha": "fd5d7ce689d32d8dcc462bcea2ff1c006256f064",
+    "evidence": [
+      "docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md",
+      "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-PROMPT-2026-10-18.md",
+      "AGENTS.md",
+      "docs/architecture/COMPONENT_CONTRACTS.md"
+    ]
+  },
+  "acceptance": [
+    "UNIT-001 specification is available from GitHub and no external Drive access is required.",
+    "A complete live consumer and ownership census covers Setup, profile identity, drafts, restore/import, startup, Home handoff, neighbors, tests, fixtures, deep links, and documentation.",
+    "U001-R01..R15, U001-F01, U001-T01..T16, B4, B5, B-DUP, and U001-AC01..AC11 are mapped to implementation and tests.",
+    "The implementation has one clear owner for identity, draft, restore/import, and financial setup; no duplicate owner is hidden in Setup.",
+    "No accidental wallet, opening balance, cash movement, owner investment, debt, schema, export/import, or historical change is introduced.",
+    "All new findings have durable IDs and exact classifications; no generic DEFER is used.",
+    "Five sequential read-only reviewers and one synthesizer complete on the final head.",
+    "Operations Control JSON and generated views are valid and fresh; the item remains IN_REVIEW until an owner-approved merge and exact post-merge verification.",
+    "No UNIT-002, general New Design, global visual redesign, bulk move, merge, or branch cleanup is included."
+  ],
+  "areas": [
+    "docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md",
+    "apps/prototype-web/client/src/pages/Setup.tsx",
+    "apps/prototype-web/client/src/app/StartupGate.tsx",
+    "apps/prototype-web/client/src/application/profile",
+    "apps/prototype-web/client/src/application/drafts",
+    "apps/prototype-web/client/src/application/restore",
+    "apps/prototype-web/client/src/pages/Home.tsx",
+    "apps/prototype-web/client/src/components",
+    "tests and fixtures for the above",
+    "docs/operations/control",
+    "docs/operations/current-state.md",
+    "docs/00-document-index.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md",
+    "docs/architecture/COMPONENT_CONTRACTS.md",
+    "docs/operations/control/README.md",
+    "docs/contracts/39-export-envelope-integrity-contract.md"
+  ],
+  "evidence": [
+    "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-PROMPT-2026-10-18.md",
+    "docs/operations/current-state-log.md",
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md"
+  ],
+  "dependencies": [
+    "DOC-007"
+  ],
+  "related_items": [
+    "UX-001",
+    "ARCH-012",
+    "ARCH-013",
+    "DOC-006"
+  ],
+  "updated_at": "2026-10-18",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-18",
+      "actor": "owner-orchestration",
+      "reason": "فتح Claim UNIT-001 من origin/main عند fd5d7ce689d32d8dcc462bcea2ff1c006256f064 بعد تحقق نجاح اختبار بيئة ZAI #375 وعدم وجود PR أو Claim متداخل؛ المواصفة وPrompt التنفيذ مسجلان في GitHub PR توثيقي منفصل قبل التنفيذ."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "نشر حزمة المواصفة وPrompt وClaim على PR توثيقي، ثم يبدأ ZAI Phase 0 على فرع feature/r11-unit001-project-setup-20261018 بعد قراءة GitHub canonical؛ لا تنفيذ قبل تحقق baseline الحي ولا VERIFIED قبل merge/post-merge proof."
+}

@@ -1422,3 +1422,10 @@ Full verification gate 17/17 EXIT 0 on implementation head `469aba03` (root 919/
 - **السجلات:** صُحح `current-state.md` ضمن حد الحجم (20,446/20,480)؛ أُلحقت §215 في `current-state-log.md` وهذا المدخل هنا append-only.
 - **الحدود:** لا مساس بالمال أو التاريخ أو Schema/Export/Import أو UI/New Design؛ لا دمج ولا حذف فروع ولا تنظيف ولا إعادة نشر. حد الرجوع: revert كتلة PR #374.
 - **الحالة:** `AGENT_GOVERNANCE_CONTRACT_VERIFIED_ON_MAIN — POST_MERGE_VERIFICATION: PASS — NO_SECRETS_EXPOSED`.
+
+## Entry 121 — 2026-10-18 — UNIT-001 component specification and execution claim
+- **Baseline:** `origin/main` verified at `fd5d7ce689d32d8dcc462bcea2ff1c006256f064` after the ZAI environment smoke PR #375 merge; no open PRs or remote branches beyond `main` at claim opening.
+- **Scope:** GitHub-canonical UNIT-001 specification, one ZAI implementation branch/PR, root ownership and duplication review, tests, evidence, and tracker reconciliation. No UNIT-002, general New Design, global UI redesign, bulk move, merge, or cleanup.
+- **Control:** `DOC-008` / `WS-224`, status `CLAIMED`; implementation branch reserved as `feature/r11-unit001-project-setup-20261018`; ZAI is the writer and owner review remains required before merge.
+- **Source of truth:** `docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md`; execution contract `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-PROMPT-2026-10-18.md`. External Drive copies are provenance only and are not an execution dependency.
+- **Status:** `UNIT001_SPECIFICATION_PUBLISHED — IMPLEMENTATION_NOT_STARTED — OWNER_REVIEW_REQUIRED_BEFORE_EXECUTION`.

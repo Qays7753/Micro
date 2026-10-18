@@ -2564,3 +2564,10 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - **الحدود:** لا تغيير مالي أو تاريخي أو Schema/Export/Import أو UI بصري أو New Design؛ لا حذف فروع ولا تنظيف ولا إعادة نشر. حد الرجوع هو revert لالتزامات PR #374 كوحدة متسقة إذا ظهر دليل فشل جديد.
 - **البوابة التالية:** Micro Component Specification and Architecture Review بClaim وعقد مستقلين — لا بدء تلقائي في هذه الموجة.
 - **الحالة:** `AGENT_GOVERNANCE_CONTRACT_VERIFIED_ON_MAIN — POST_MERGE_VERIFICATION: PASS — NO_SECRETS_EXPOSED`.
+
+## §216 — 2026-10-18 — فتح Claim مواصفة وتنفيذ UNIT-001 بعد تحقق بيئة ZAI
+- **تحقق البيئة:** PR #375 (`docs/zai-environment-smoke-20261018`) دُمج بMerge commit `fd5d7ce689d32d8dcc462bcea2ff1c006256f064` فوق `dcb51adbb775c94ede8a8a90b32371f3aeb570f4`; رأس المصدر `45ac1fa99419b6f36da75da158d89fa26525c1da`. checks وCloudflare Pages نجحا على رأس الدمج نفسه؛ الاختبار توثيقي ولم يغيّر كود المنتج.
+- **Claim الجديد:** `DOC-008` / `WS-224`، من base `fd5d7ce689d32d8dcc462bcea2ff1c006256f064`، لقراءة وتنفيذ UNIT-001 فقط. المصدر الكنسي هو `docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md` داخل GitHub؛ لا Google Drive ولا مصدر خارجي مطلوب لـZAI.
+- **العقد:** Prompt التنفيذ `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-PROMPT-2026-10-18.md` يفرض Phase 0 حيًا، consumer/ownership census، إصلاحًا جذريًا داخل النطاق، خمسة مراجعين قراءة-فقط، وPR واحدًا بلا merge أو cleanup.
+- **الحدود:** لا UNIT-002، لا New Design عام، لا bulk moves أو structural refactor، ولا تغيير مالي/تاريخي/Schema 38/Export 30/import-export/security/rejection semantics بصمت. أي finding جديد له ID وتصنيف دقيق.
+- **الحالة:** `UNIT001_SPECIFICATION_PUBLISHED — IMPLEMENTATION_NOT_STARTED — CLAIMED`; لا يُرفع `VERIFIED` قبل تنفيذ ZAI، مراجعة المالك، merge مستقل، وتحقق post-merge على SHA الرئيسي نفسه.
