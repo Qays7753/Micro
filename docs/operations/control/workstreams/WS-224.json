@@ -1,0 +1,63 @@
+{
+  "id": "WS-224",
+  "title": "تنفيذ مواصفة UNIT-001 — إعداد المشروع لأول استخدام (V2) بفرع مستقل واحد",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-008"
+  ],
+  "branch": "feature/r11-unit001-project-setup-20261018",
+  "base_sha": "fd5d7ce689d32d8dcc462bcea2ff1c006256f064",
+  "areas": [
+    "apps/prototype-web/client/src/pages/Setup.tsx",
+    "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+    "apps/prototype-web/client/src/application/profile/profileService.ts",
+    "apps/prototype-web/client/src/application/profile/profileService.test.ts",
+    "apps/prototype-web/client/src/pages/Home.tsx",
+    "apps/prototype-web/client/src/Home.dom.test.tsx",
+    "scripts/check-a11y-dialog-surfaces.mjs",
+    "docs/architecture/refactoring/r11-unit001-20261018",
+    "docs/operations/control/items/DOC-008.json",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+    "docs/00-document-index.md"
+  ],
+  "contracts": [
+    "docs/contracts/36-form-drafts-local-boundary-contract.md",
+    "docs/contracts/26-navigation-referrer-and-deep-link-contract.md",
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/contracts/40-technical-ownership-map-contract.md",
+    "docs/architecture/COMPONENT_CONTRACTS.md"
+  ],
+  "agent": "ZAI — one sequential writer; five read-only reviewers after implementation (no code edits by reviewers)",
+  "pr": null,
+  "started_at": "2026-10-18",
+  "updated_at": "2026-10-18",
+  "next_action": "تنفيذ عقد R11-UNIT001 كاملًا من الجمد حتى PR جاهز لمراجعة المالك؛ لا دمج ولا تنظيف فروع ولا بدء UNIT-002 أو New Design.",
+  "notes": [
+    "Claim واحد لهذه الموجة فقط؛ PR #376 (عقد التنفيذ، توثيقي) لا يُعدَّل ولا يُدمج من هنا.",
+    "المواصفة الكنسية: docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md عند c8d9d5a81807862cfef98ee99b4813d8d2e14b9c (فرع PR #376 — خارج شجرة هذا الفرع عمدًا؛ مرجع مسار+SHA لا ملف محلي).",
+    "خط الأساس الحي مثبت في evidence/R11-UNIT001-BASELINE-2026-10-18.md (fd5d7ce6…؛ لا انحراف حالة).",
+    "حذف أي حقل/مدخل نقدي من Setup لا يحدث قبل جرد مستهلكين مكتمل وبديل مالك مثبت وسلبيات (بوابة الإزالة في B-DUP).",
+    "لا تغيير Schema/Export (38/30) ولا سياسة مالية ولا تنسيق تاريخي ولا تصميم بصري عام؛ نصوص المكوّن المعتمدة فقط (T01..T16).",
+    "حد الاستعادة: كل التزامات الفرع تُعكس كوحدة متسقة؛ إغلاق PR قبل الدمج بلا أثر على main."
+  ],
+  "migration_baseline": false,
+  "evidence": [
+    "docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-BASELINE-2026-10-18.md"
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-18",
+      "actor": "owner-orchestration",
+      "reason": "فتح Workstream من origin/main fd5d7ce689d32d8dcc462bcea2ff1c006256f064 بعد جرد ACTIVE-WORK وPRs؛ لا تداخل مع Claim نشط."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-18",
+      "actor": "owner-orchestration",
+      "reason": "بدء التنفيذ المتحكم على فرع feature/r11-unit001-project-setup-20261018 وفق عقد التنفيذ R11-UNIT001."
+    }
+  ]
+}
