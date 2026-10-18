@@ -185,12 +185,17 @@ export default function Setup() {
     history.pushState({ microSetupInfo: true }, "");
     setInfoOpen(true);
   };
+  /* استهلاك حارس entry التاريخي في كل مسار خروج — الإغلاق البرمجي أو مغادرة
+   * الشاشة أثناء فتح الحوار (نجاح الحفظ مثلًا)؛ يمنع بقية entry يجعل أول
+   * رجوع من الرئيسية يُبتلع (RV3-N003). */
+  const consumeInfoSentinel = () => {
+    if (!infoSentinelRef.current) return;
+    infoSentinelRef.current = false;
+    suppressInfoPopRef.current = true;
+    history.back();
+  };
   const closeInfo = () => {
-    if (infoSentinelRef.current) {
-      infoSentinelRef.current = false;
-      suppressInfoPopRef.current = true;
-      history.back();
-    }
+    consumeInfoSentinel();
     setInfoOpen(false);
   };
 
@@ -221,6 +226,7 @@ export default function Setup() {
     if (check.value) {
       /* R02: هوية قائمة — يفتح المشروع القائم؛ لا هوية ثانية ولا تعديل. */
       setIsSaving(false);
+      consumeInfoSentinel();
       void formDrafts.discard("setup", null);
       navigate("/?setup=1", { replace: true });
       return;
@@ -236,6 +242,7 @@ export default function Setup() {
      * ولا إعداد نقدي؛ المسودة تمسح بعد إثبات النجاح فقط. */
     notifyDataChanged();
     setIsSaving(false);
+    consumeInfoSentinel();
     void formDrafts.discard("setup", null);
     navigate("/?setup=1", { replace: true });
   }
@@ -268,10 +275,11 @@ export default function Setup() {
       <div className="micro-page-heading micro-setup-heading">
         <h1>إعداد مشروعك</h1>
         {/* R08: أيقونة المعلومات — مسماة لقارئ الشاشة (T09)؛ تفتح حوار
-            المكتبة وحده؛ تبقى متاحة أثناء الحفظ (معلومة قرائية لا تغيّر بيانات). */}
+            المكتبة وحده؛ تبقى متاحة أثناء الحفظ (معلومة قرائية لا تغيّر بيانات)؛
+            صنف زر الأيقونة المكتبي القائم (هدف لمس 44×44). */}
         <button
           type="button"
-          className="micro-icon-action"
+          className="micro-icon-button"
           aria-label="معلومات الإعداد وحفظ البيانات"
           data-testid="setup-info-trigger"
           onClick={openInfo}
@@ -348,7 +356,9 @@ export default function Setup() {
           </p>
         ) : null}
         <div className="micro-form-actions">
-          <Button action="save" block type="submit" disabled={isSaving}>
+          {/* عقد المكتبة للتحميل: aria-busy + دوّار + منع التكرار، مع نص T04
+              المعتمد بلا إزاحة تخطيط (R05/R12). */}
+          <Button action="save" block type="submit" loading={isSaving} disabled={isSaving}>
             {isSaving ? "جارٍ الحفظ…" : "احفظ وابدأ"}
           </Button>
         </div>

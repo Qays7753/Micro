@@ -107,6 +107,15 @@ describe("UNIT-001 screen A — one name, one primary action, no cash (R03/DUP-0
     expect(input.maxLength).toBe(-1);
     expect(input.getAttribute("lang")).toBeNull();
   });
+
+  it("uses the library icon-button class for the info trigger (R15 touch target — RV3-N001 regression)", async () => {
+    const { services } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const trigger = (await screen.findByTestId("setup-info-trigger")) as HTMLButtonElement;
+    expect(trigger.className).toContain("micro-icon-button");
+    expect(trigger.className).not.toContain("micro-icon-action");
+  });
 });
 
 /* ── الاسم الفارغ بعد trim (R04/AC02) ── */
@@ -185,9 +194,11 @@ describe("UNIT-001 valid save — single identity source, progress, direct Home 
     fireEvent.change(input, { target: { value: "مشغل الكرامة" } });
     fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
     expect(await screen.findByText("جارٍ الحفظ…")).toBeTruthy();
-    /* الضغط المزدوج والفعل الثانوي المتعارض محجوبان — المعلومة القرائية متاحة. */
-    const primary = screen.getByRole("button", { name: "جارٍ الحفظ…" }) as HTMLButtonElement;
+    /* الضغط المزدوج والفعل الثانوي المتعارض محجوبان — المعلومة القرائية متاحة،
+     * وعقد المكتبة للتحميل مصرّح (aria-busy — RV3-N002). */
+    const primary = screen.getByRole("button", { name: /جارٍ الحفظ/ }) as HTMLButtonElement;
     expect(primary.disabled).toBe(true);
+    expect(primary.getAttribute("aria-busy")).toBe("true");
     expect(
       (screen.getByRole("button", { name: "استعادة نسخة احتياطية" }) as HTMLButtonElement).disabled,
     ).toBe(true);
@@ -502,6 +513,34 @@ describe("UNIT-001 info dialog — library modal, read-only, focus contract (R08
     await waitFor(() => expect(screen.queryByTestId("setup-info-dialog")).toBeNull());
     expect(wouterMocks.navigate).not.toHaveBeenCalled();
     expect((screen.getByLabelText("اسم المشروع") as HTMLInputElement).value).toBe("اسم مع الحوار");
+  });
+
+  it("a save completing while the dialog is open consumes the sentinel before leaving (RV3-N003)", async () => {
+    const { services } = setupServices();
+    let releaseCreate!: (value: unknown) => void;
+    const gate = new Promise<unknown>(resolve => {
+      releaseCreate = resolve;
+    });
+    vi.spyOn(services.profiles, "create").mockImplementation(async () => (await gate) as never);
+    /* jsdom لا ينفذ أثر history.back على الحالة — الاستهلاك يُثبت بنداء الواجهة
+     * نفسها (المتصفح الحقيقي يستهلك الـentry بها). */
+    const backSpy = vi.spyOn(history, "back").mockImplementation(() => {});
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    fireEvent.change(await screen.findByLabelText("اسم المشروع"), {
+      target: { value: "مشغل الحوار المفتوح" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await screen.findByText(/جارٍ الحفظ/);
+    /* معلومة قرائية تبقى متاحة أثناء الحفظ — الحوار يُفتح ويبقى. */
+    fireEvent.click(screen.getByRole("button", { name: "معلومات الإعداد وحفظ البيانات" }));
+    await screen.findByTestId("setup-info-dialog");
+    expect(history.state?.microSetupInfo === true).toBe(true);
+    releaseCreate({ ok: true, profile: { id: "local-profile" }, created: true });
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    /* الحارس استُهلك قبل المغادرة — لا entry تاريخي فائض يبتلع أول رجوع. */
+    expect(backSpy).toHaveBeenCalledTimes(1);
+    backSpy.mockRestore();
   });
 });
 
