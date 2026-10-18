@@ -1959,6 +1959,25 @@
     "trigger": "PR #377 review comment 6250612100 (FIX_NOW correctness blocker)",
     "ocRef": "DOC-008"
    }
+  },
+  {
+   "id": "U1IR001-LOCAL-SURFACES-REANCHOR",
+   "date": "2026-10-18",
+   "path": "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+   "from": {
+    "nbLoc": 129,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 129,
+    "band": "NORMAL"
+   },
+   "reason": "U001-IR-001 (independent review on head 1995c930): the local environment record is re-anchored with the exact same-head measurements of the remediation code head (f13d5f02) — lazy 1,214,634/366,062 and precache 2,682,910 with documented provenance (initial companions and swRuntime byte-identical; counts unchanged; entry 631,807/155,041 within the untouched 650,000/155,300 ceilings; raw tolerance 8 and gzip tolerance 16 unchanged). The growth is the honest cost of the U001-IR-002/003 root fixes on the lazy setup route. Cloud records follow the documented post-push measurement protocol.",
+   "authorization": {
+    "ownerReview": "PR #377 independent review U001-IR-001 — this entry is part of the remediation PR diff",
+    "trigger": "PR #377 review comment 6250612100 (FIX_NOW merge blocker — cloud re-anchor incomplete)",
+    "ocRef": "DOC-008"
+   }
   }
  ]
 }
