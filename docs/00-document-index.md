@@ -281,6 +281,11 @@
 | `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-FIVE-REVIEWER-RECORD-2026-10-18.md` | سجل المراجعين الخمسة قراءة-فقط لموجة V3 |
 | `docs/operations/control/items/DOC-008.json` | سجل Control لمواصفة وتنفيذ UNIT-001 |
 | `docs/operations/control/workstreams/WS-224.json` | Claim وفرع التنفيذ والحدود والتسليم لـUNIT-001 |
+| `docs/product/components/UNIT-002-PROJECT-DATA-COMPLETION-SPEC-V5.md` | النسخة الكنسية لـUNIT-002 V5؛ اقتراح للمراجعة والاعتماد، وDrive provenance فقط |
+| `docs/architecture/components/unit002-20261019/evidence/UNIT-002-V5-DRIVE-GITHUB-PROVENANCE-2026-10-19.md` | إثبات مصدر Drive ونسخ UNIT-002 إلى GitHub دون ادعاء تنفيذ |
+| `docs/architecture/components/unit002-20261019/UNIT-002-ZAI-AUTHORIZATION-REVIEW-PROMPT-2026-10-19.md` | عقد مراجعة واعتماد ZAI قراءة-فقط قبل أي تنفيذ UNIT-002 |
+| `docs/operations/control/items/DOC-009.json` | سجل Control لمواصفة ومراجعة اعتماد UNIT-002 |
+| `docs/operations/control/workstreams/WS-225.json` | Workstream مراجعة UNIT-002 على فرع التكامل؛ لا Claim تنفيذ نشط |
 
 ## مخازن الأدلة — غير سلطوية وخارج القراءة الافتراضية
 

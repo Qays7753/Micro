@@ -1464,3 +1464,13 @@ Full verification gate 17/17 EXIT 0 on implementation head `469aba03` (root 919/
 - **المراجعون الخمسة جولة ثانية** (متسلسلون قراءة-فقط): الخمسة PASS؛ صفر FIX_NOW على الكود؛ ثلاثة التزامات توثيقية من RV5 أُنفذت في نفس الموجة (إعادة كتابة §4، الالتزام الثالث والجولة الثانية في §1/§6/§10، والحقول الحية داخل السقف).
 - **السجلات:** تقرير V3 محدّث (الربط التركيبي INFERRED→VERIFIED؛ العلامتان الجديدتان)؛ سجل المراجعين بجولته الثانية (append-only)؛ DOC-008/WS-224 محدّثان (IN_REVIEW كما هي)؛ اللوق §221؛ `test-map.json` بالمولد الرسمي (إدخالات Home/Settings/Setup)؛ current-state live fields داخل السقف.
 - **حدود:** لا تغيير إنتاج بايتًا؛ لا دمج ولا تنظيف ولا كتابة main ولا UNIT-002/New Design؛ دليل الهاتف `NOT_EXECUTED` يبقى مانع PR_READY؛ حد الرجوع: الالتزام الثالث عكسي بحت (اختبار + خريطة + سجلات).
+
+## Entry 126 — 2026-10-19 — UNIT-002 V5 specification canonicalization and authorization review setup
+
+> بدأ تجهيز UNIT-002 على فرع التكامل `components/integration-20261018` دون فرع جديد ودون تنفيذ كود؛ مصدر Drive provenance فقط، وGitHub هو المصدر الكنسي لـZAI.
+
+- **الأساس المتحقق:** `main` عند `fd5d7ce689d32d8dcc462bcea2ff1c006256f064`؛ رأس فرع التكامل عند `f51f63cd5e192da9a89fffb75b156bbb73632603`؛ PR #378 مفتوح ونظيف؛ لا كتابة على `main`.
+- **المخرجات:** مواصفة `docs/product/components/UNIT-002-PROJECT-DATA-COMPLETION-SPEC-V5.md`، تقرير provenance، وعقد `docs/architecture/components/unit002-20261019/UNIT-002-ZAI-AUTHORIZATION-REVIEW-PROMPT-2026-10-19.md`، مع `DOC-009/WS-225`.
+- **الحدود:** المواصفة V5 مقترح للمراجعة؛ لا تنفيذ تطبيق أو Domain/storage أو حذف/نقل ملكية أو تغيير مالي/تاريخي/Schema 38/Export 30/Import؛ لا structural refactoring ولا New Design UI/UX ولا UNIT-003.
+- **الخطوة التالية:** مراجعة ZAI قراءة-فقط بخمس مراجعات متسلسلة واستخراج decision payloads؛ يبقى `DOC-009/WS-225` في `REVIEW_REQUIRED` حتى قبول المالك وعقد تنفيذ مستقل.
+- **الحالة:** `UNIT002_SPEC_PUBLISHED — AUTHORIZATION_REVIEW_REQUIRED — NO_APPLICATION_WRITES — NO_MAIN_WRITE — NO_MERGE_PERFORMED — NO_BRANCH_CLEANUP_PERFORMED — NO_SECRETS_EXPOSED`.

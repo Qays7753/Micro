@@ -2616,3 +2616,11 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - البوابة: المركزي 9/9؛ المتأثر 112/112؛ 044 الخدمية 49/49؛ `pnpm check` EXIT 0 (952/952، 2789/2789، 26/26، 631,807/155,041)؛ validate/tracker/views/doc-index/current-state-size (20,462/20,480)/agent-doc-contract/`git diff --check` كلها EXIT 0. صفر تغيير إنتاج (ملف اختبار + خريطة مولدة + سجلات فقط).
 - المراجعون الخمسة جولة ثانية قراءة-فقط متسلسلون (RV1 معمارية/ملكية، RV2 تخزين/استعادة/مالية، RV3 واجهة/تنقل/وصول، RV4 اختبارات/CI/أمن، RV5 توثيق/تتبع): الخمسة PASS وصفر FIX_NOW على الكود؛ سجلهم الجولة الثانية ملحق بالسجل الكنوني نفسه.
 - الحالة: `Q01_REAL_RESTORE_INTEGRATION_EVIDENCE — VERIFIED` و`NO_PROFILE_CREATE_SIMULATION_FOR_RESTORE_SUCCESS`؛ دليل الهاتف يبقى `NOT_EXECUTED` (بوابة خارجية تمنع PR_READY)؛ لا دمج ولا تنظيف ولا كتابة main ولا أسرار مكشوفة.
+
+## §222 — 2026-10-19 — نشر مواصفة UNIT-002 V5 وحزمة مراجعة الاعتماد على PR #378
+
+- جُلبت مواصفة `UNIT-002-استكمال-بيانات-المشروع.md` من `Micro/03-New-Design` في Drive للقراءة فقط؛ Drive provenance لا سلطة تنفيذية. المصدر 66,142 بايت، وSHA-256 `97c90b53bacfc7766e914876a1a258b054c5e7bad02a44ae136062be4597037d`.
+- نُشرت النسخة الكنسية `docs/product/components/UNIT-002-PROJECT-DATA-COMPLETION-SPEC-V5.md` على فرع التكامل `components/integration-20261018`، مع حفظ نص V5 وإضافة إشعار provenance وحد تنفيذ واضح. الحالة في المصدر: مقترح للمراجعة؛ التنفيذ والتحقق التشغيلي لم يبدآ.
+- أضيف تقرير provenance وعقد `UNIT-002-ZAI-AUTHORIZATION-REVIEW-PROMPT-2026-10-19.md`. العقد يطلب مراجعة متطلبات/ملكية/معمارية قراءة-فقط وخمس مراجعات متسلسلة، ولا يجيز كودًا أو حذف مداخل أو تغيير مال/تاريخ/Schema 38/Export 30/Import أو دمجًا.
+- أضيف `DOC-009` و`WS-225` بحالة `REVIEW_REQUIRED`، لا Claim تنفيذ نشط. السجل يطلب قرار المالك لكل نقطة مفتوحة في V5، خصوصًا ملكية البوابة، Q01–Q03، returnTo، الاستيراد الافتتاحي مقابل الاستعادة، وإزالة المداخل القديمة.
+- **الحالة:** `UNIT002_SPEC_PUBLISHED — AUTHORIZATION_REVIEW_REQUIRED — IMPLEMENTATION_NOT_AUTHORIZED — NO_MAIN_WRITE — NO_MERGE_PERFORMED — NO_BRANCH_CLEANUP_PERFORMED — NO_SECRETS_EXPOSED`.

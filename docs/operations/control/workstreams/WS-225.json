@@ -1,0 +1,60 @@
+{
+  "id": "WS-225",
+  "title": "مراجعة واعتماد مواصفة UNIT-002 V5 قبل التنفيذ — استكمال بيانات المشروع",
+  "status": "REVIEW_REQUIRED",
+  "items": [
+    "DOC-009"
+  ],
+  "branch": "components/integration-20261018",
+  "base_sha": "fd5d7ce689d32d8dcc462bcea2ff1c006256f064",
+  "areas": [
+    "docs/product/components/UNIT-002-PROJECT-DATA-COMPLETION-SPEC-V5.md",
+    "docs/architecture/components/unit002-20261019",
+    "docs/operations/control/items/DOC-009.json",
+    "docs/operations/control/workstreams/WS-225.json",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/00-document-index.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/architecture/COMPONENT_CONTRACTS.md",
+    "docs/contracts/26-navigation-referrer-and-deep-link-contract.md",
+    "docs/contracts/36-form-drafts-local-boundary-contract.md",
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/contracts/40-technical-ownership-map-contract.md"
+  ],
+  "agent": "Manus canonicalization; ZAI read-only authorization review with one synthesizer and five sequential read-only reviewers; no implementation writer until owner decisions are accepted",
+  "pr": 378,
+  "started_at": "2026-10-19",
+  "updated_at": "2026-10-19",
+  "next_action": "إرسال عقد UNIT-002-ZAI-AUTHORIZATION-REVIEW-PROMPT من GitHub؛ إبقاء Workstream REVIEW_REQUIRED؛ لا Claim تنفيذ ولا تعديل تطبيق حتى يقبل المالك decision payloads وعقد التنفيذ.",
+  "notes": [
+    "مصدر Drive provenance فقط؛ ZAI يقرأ النسخة الكنسية من GitHub ولا يقرأ Drive.",
+    "UNIT-002 V5 تقول صراحة إن التنفيذ والتحقق التشغيلي لم يبدآ وإن التصميم التفصيلي والتكامل يحتاجان مراجعة.",
+    "الاقتراح الحالي: بوابة اختيارية قصيرة بلا أرصدة أو نسبة اكتمال، تفتح أصحاب البيانات 020/022/027/028/044، مع حفظ returnTo وعدم إزالة أي مدخل قبل البديل والجرد والاختبار.",
+    "المراجعة تشمل U002-R01..R13 وU002-AC01..AC10 وDUP-001/003/004/005/019/024 وQ01-Q03، وتصنف كل شيء VERIFIED/INFERRED/UNVERIFIED/NOT_EXECUTED/DEFERRED/BLOCKER.",
+    "لا تنفيذ UNIT-002 أو UNIT-003 أو neighbor specs أو structural refactoring أو global UI/UX في هذه الموجة.",
+    "فرع التكامل هو الفرع الوحيد للعمل المستقبلي؛ main لا يتغير ولا يوجد merge قبل اكتمال كل المكونات وبوابة الهاتف النهائية."
+  ],
+  "evidence": [
+    "docs/product/components/UNIT-002-PROJECT-DATA-COMPLETION-SPEC-V5.md",
+    "docs/architecture/components/unit002-20261019/evidence/UNIT-002-V5-DRIVE-GITHUB-PROVENANCE-2026-10-19.md",
+    "docs/architecture/components/unit002-20261019/UNIT-002-ZAI-AUTHORIZATION-REVIEW-PROMPT-2026-10-19.md"
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-19",
+      "actor": "owner-orchestration",
+      "reason": "فتح Workstream مراجعة مواصفة UNIT-002 على فرع التكامل بعد التحقق من عدم وجود فرع أو PR مستقل للمكون؛ لا Claim تنفيذ نشط جديد."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-10-19",
+      "actor": "owner-orchestration",
+      "reason": "حزمة GitHub canonical/provenance/authorization review جاهزة، لكن التنفيذ محجوب بقرارات المالك المفتوحة في V5."
+    }
+  ],
+  "migration_baseline": false
+}

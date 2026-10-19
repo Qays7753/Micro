@@ -2,7 +2,7 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1 · DEFERRED: 20 · VERIFIED: 65 · SUPERSEDED: 1
+BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 65 · SUPERSEDED: 1
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
@@ -13,6 +13,7 @@ BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 1
 | DOC-008 | IN_REVIEW | BUILD_AFTER_EVIDENCE | NOT_APPLICABLE | P1 | r11-unit001-20261018 | UNIT-001 إعداد المشروع لأول استخدام — مصالحة V3 وتنفيذ مضبوط على فرع التكامل | Micro owner (Qays7753) | application, ui, tests, documentation, operations-control | — |
 | AUDIT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | تدقيق مستقل نهائي قبل الـPilot | Product owner / Manus coordination | uat, audit, cross-layer | UAT-001 |
 | UAT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | قبول داخلي ببيانات Demo كاملة | Product owner / Manus coordination | uat, audit, cross-layer | DEVICE-001, LEGAL-001 |
+| DOC-009 | REVIEW_REQUIRED | BUILD_AFTER_EVIDENCE | EXTERNAL_REVIEW_REQUIRED | P1 | component-specification-review-20261019 | UNIT-002 استكمال بيانات المشروع — مواصفة V5 ومراجعة الاعتماد قبل التنفيذ | Micro owner (Qays7753) | documentation, governance, operations-control | DOC-008 |
 | GOV-001 | REVIEW_REQUIRED | GOVERNANCE | NOT_APPLICABLE | P1 | governance | مصالحة G10-A مع تعارض عقد C1 | Product owner / Manus coordination | governance, contracts | — |
 | SCOPE-001 | DEFERRED | FUTURE_SCOPE | OUT_OF_SCOPE | P1 | future-scope | بوابة POS وCRM وWhatsApp والمزامنة وAuth والصلاحيات وCloud | Product owner / Manus coordination | future-scope | — |
 | BE-001 | DEFERRED | HISTORICAL | DUPLICATE_HISTORICAL | P2 | build-after-evidence | مصاريف متكررة محلية | Product owner / Manus coordination | future-capability | — |
