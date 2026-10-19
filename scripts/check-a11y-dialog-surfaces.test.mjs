@@ -41,10 +41,12 @@ describe("check-a11y-dialog-surfaces (R11 W4-0 interaction-model census guard)",
   it("passes on the live repository tree with the classified registry", () => {
     const stdout = runCli(ROOT);
     expect(stdout).toContain("PASS");
-    expect(stdout).toMatch(/7 سطحًا حواريًا مصنفًا/);
+    /* UNIT-001 (r11-unit001-20261018): حوار معلومات الإعداد في Setup صُنف في
+     * نفس الـPR — السجل صار 8 أسطح (7 ملفات بتصريح حي). */
+    expect(stdout).toMatch(/8 سطحًا حواريًا مصنفًا/);
     const { ok, stats } = checkA11yDialogSurfaces(ROOT);
     expect(ok).toBe(true);
-    expect(stats.classified).toBe(7);
+    expect(stats.classified).toBe(8);
   });
 
   it("extracts string and expression dialog declarations from JSX", () => {

@@ -1,0 +1,91 @@
+{
+  "id": "DOC-009",
+  "title": "UNIT-002 استكمال بيانات المشروع — مواصفة V5 ومراجعة الاعتماد قبل التنفيذ",
+  "type": "FEATURE",
+  "status": "REVIEW_REQUIRED",
+  "priority": "P1",
+  "stage": "component-specification-review-20261019",
+  "summary": "تثبيت مواصفة UNIT-002 V5 من Drive provenance إلى GitHub canonical وتجهيز مراجعة ZAI للملكية والتكامل والقرارات المفتوحة قبل أي تنفيذ. المكون بوابة اختيارية تستكمل البيانات عند مالكيها ولا يملك رصيدًا أو حدثًا أو نسبة اكتمال أو استيرادًا موازيًا.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "UNVERIFIED",
+  "classification": "BUILD_AFTER_EVIDENCE",
+  "gate_classification": "EXTERNAL_REVIEW_REQUIRED",
+  "root_cause": "المواصفة V5 موثقة لكنها تصف التصميم والتكامل والرجوع والإزالة كعناصر مراجعة مفتوحة؛ لا يوجد بعد عقد تنفيذ مفوض أو دليل تشغيلي للمكون على الفرع الحالي.",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "اعتماد مراجعة مواصفة UNIT-002 V5 على فرع التكامل فقط؛ لا تنفيذ كود قبل إغلاق قرارات الملكية والرجوع والاستيراد والإزالة وقبول عقد تنفيذ مستقل.",
+  "tests_required": [
+    "python3 scripts/operations-control/validate.py",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "node scripts/check-doc-index-coverage.mjs",
+    "node scripts/check-current-state-size.mjs",
+    "node scripts/check-agent-document-contract.mjs",
+    "git diff --check",
+    "ZAI read-only UNIT-002 requirement/ownership/architecture review with five sequential reviewers"
+  ],
+  "layers": [
+    "documentation",
+    "governance",
+    "operations-control"
+  ],
+  "source": {
+    "report": "docs/product/components/UNIT-002-PROJECT-DATA-COMPLETION-SPEC-V5.md + docs/architecture/components/unit002-20261019/evidence/UNIT-002-V5-DRIVE-GITHUB-PROVENANCE-2026-10-19.md",
+    "discovered_at_sha": "f51f63cd5e192da9a89fffb75b156bbb73632603",
+    "evidence": [
+      "docs/product/components/UNIT-002-PROJECT-DATA-COMPLETION-SPEC-V5.md",
+      "docs/architecture/components/unit002-20261019/evidence/UNIT-002-V5-DRIVE-GITHUB-PROVENANCE-2026-10-19.md",
+      "docs/architecture/components/unit002-20261019/UNIT-002-ZAI-AUTHORIZATION-REVIEW-PROMPT-2026-10-19.md"
+    ]
+  },
+  "acceptance": [
+    "مواصفة V5 محفوظة في GitHub كالمصدر الكنسي الوحيد مع provenance Drive واضح.",
+    "تقرير ZAI يغطي كل U002-R01..R13 وU002-AC01..AC10 وB-DUP وQ01-Q03 ويصنف الأدلة بصدق.",
+    "كل قرار مفتوح له payload صريح ومالك واعتماد ومحفز قبول وحد رجوع.",
+    "لا تنفيذ كود أو حذف مدخل أو نقل ملكية قبل قبول القرارات وعقد التنفيذ المستقل.",
+    "DOC-009 يبقى REVIEW_REQUIRED ولا يتحول إلى CLAIMED أو IN_PROGRESS قبل تفويض مالك صريح.",
+    "لا تغيير Schema 38 أو Export 30 أو المعنى المالي أو التاريخي أو الأمني أو global UI/UX في مرحلة المراجعة."
+  ],
+  "areas": [
+    "docs/product/components/UNIT-002-PROJECT-DATA-COMPLETION-SPEC-V5.md",
+    "docs/architecture/components/unit002-20261019",
+    "docs/operations/control/items/DOC-009.json",
+    "docs/operations/control/workstreams/WS-225.json",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/00-document-index.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/architecture/COMPONENT_CONTRACTS.md",
+    "docs/contracts/26-navigation-referrer-and-deep-link-contract.md",
+    "docs/contracts/36-form-drafts-local-boundary-contract.md",
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/contracts/40-technical-ownership-map-contract.md"
+  ],
+  "evidence": [
+    "docs/architecture/components/unit002-20261019/evidence/UNIT-002-V5-DRIVE-GITHUB-PROVENANCE-2026-10-19.md",
+    "docs/architecture/components/unit002-20261019/UNIT-002-ZAI-AUTHORIZATION-REVIEW-PROMPT-2026-10-19.md"
+  ],
+  "dependencies": [
+    "DOC-008"
+  ],
+  "related_items": [
+    "DOC-008"
+  ],
+  "updated_at": "2026-10-19",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-19",
+      "actor": "owner-orchestration",
+      "reason": "فتح حزمة مراجعة مواصفة UNIT-002 V5 على فرع التكامل بعد جلب المصدر من Drive وتثبيت provenance؛ لا كتابة كود ولا Claim تنفيذ جديد."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-10-19",
+      "actor": "owner-orchestration",
+      "reason": "المواصفة الكنسية وPrompt المراجعة جاهزان، لكن V5 نفسها تصف التصميم والتكامل والقرارات المفتوحة كمقترح يحتاج مراجعة مالك قبل التفويض التنفيذي."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "قراءة Prompt مراجعة UNIT-002 على GitHub بواسطة ZAI في وضع القراءة والتحليل فقط؛ استخراج مصفوفة المتطلبات والملكية والقرارات المفتوحة؛ ثم قرار المالك قبل إنشاء عقد تنفيذ أو تغيير كود."
+}

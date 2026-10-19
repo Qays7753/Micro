@@ -150,6 +150,17 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.profile = clone(profile);
     return { ok: true, value: clone(profile) };
   }
+  /* U001-IR-002 (مراجعة مستقلة 2026-10-18): نفس عقد محوّل IndexedDB — إنشاء
+   * أول فقط ذرّيًا: الفحص والكتابة في خطوة متزامنة واحدة (لا فجوة تزامن في
+   * بنية الذاكرة أحادية الخيط) فلا يطمس استدعاء متزامن أول هوية منشأة. */
+  async commitProfileCreate(
+    profile: ActivityProfile,
+  ): Promise<StorageResult<{ profile: ActivityProfile; reused: boolean }>> {
+    const stored = this.profile;
+    if (stored) return { ok: true, value: { profile: clone(stored), reused: true } };
+    this.profile = clone(profile);
+    return { ok: true, value: { profile: clone(profile), reused: false } };
+  }
   async getOwnerProfile(): Promise<StorageResult<OwnerProfile | null>> {
     return { ok: true, value: this.ownerProfile ? clone(this.ownerProfile) : null };
   }

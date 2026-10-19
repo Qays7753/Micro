@@ -437,6 +437,14 @@ export type RecurringExpenseOccurrenceChange = {
 export interface PrototypeLocalStore {
   getProfile(): Promise<StorageResult<ActivityProfile | null>>;
   saveProfile(profile: ActivityProfile): Promise<StorageResult<ActivityProfile>>;
+  /* U001-IR-002 (مراجعة مستقلة 2026-10-18): إنشاء ملف الهوية كتابةً أولى فقط
+   * ذرّيًا عند حد الكتابة — القراءة والكتابة في معاملة واحدة (IndexedDB) أو
+   * خطوة متزامنة واحدة (الذاكرة)؛ وجوده سلفًا إعادة استخدام بلا كتابة فوقه
+   * (نفس عقد commitScheduleCreate) فلا يطمس استدعاءان متزامنان أول هوية
+   * منشأة (الخدمة تُحوِّل reused إلى created:false الصادق). */
+  commitProfileCreate(
+    profile: ActivityProfile,
+  ): Promise<StorageResult<{ profile: ActivityProfile; reused: boolean }>>;
   /** ملف المالك (المجموعة ١): هوية محلية مستقلة — سجل واحد بمعرّف ثابت. */
   getOwnerProfile(): Promise<StorageResult<OwnerProfile | null>>;
   saveOwnerProfile(profile: OwnerProfile): Promise<StorageResult<OwnerProfile>>;

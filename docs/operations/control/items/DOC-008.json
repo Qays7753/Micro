@@ -1,0 +1,141 @@
+{
+  "id": "DOC-008",
+  "title": "UNIT-001 إعداد المشروع لأول استخدام — مصالحة V3 وتنفيذ مضبوط على فرع التكامل",
+  "type": "FEATURE",
+  "status": "IN_REVIEW",
+  "priority": "P1",
+  "stage": "r11-unit001-20261018",
+  "summary": "مراجعة ومصالحة مواصفة UNIT-001 V3 مع تنفيذ V2 القائم على فرع التكامل components/integration-20261018 وPR #378: شاشة الاسم بلا إعداد نقدي، ملكية الهوية الواحدة، تفويض الاستعادة إلى 044، مصالحة ORG-001/002/009/024، وبوابات U001-ORG-AC01..03 وQ01. الإصلاح الجذري داخل النطاق فقط؛ لا UNIT-002 ولا New Design ولا دمج أو تنظيف في هذه الموجة.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "NOT_APPLICABLE",
+  "classification": "BUILD_AFTER_EVIDENCE",
+  "gate_classification": "NOT_APPLICABLE",
+  "root_cause": "معالج الإعداد الحالي يجمع إنشاء الهوية وإعداد النقد (كاتب مالي ثانٍ داخل البداية) ويترك دليلًا لتحرير هوية قائمة من مسار الإعداد، بلا مدخل استعادة في شاشة الإعداد — المواصفة V2 تفصل الملكية: 001 ينشئ الهوية وحدها، و022 يملك النقد، و044 يملك الاستعادة، و039 يملك تعديل الاسم.",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "نطاق V3 معتمد للتنفيذ المضبوط على الفرع طويل العمر components/integration-20261018 وPR #378؛ لا كتابة على main ولا دمج ولا تنظيف فروع ولا بدء UNIT-002 أو New Design في هذه الموجة.",
+  "tests_required": [
+    "pnpm --filter @micro/prototype-web test -- client/src/pages/Setup.ui.test.tsx",
+    "pnpm --filter @micro/prototype-web test -- client/src/pages/Setup.v3Gates.test.tsx",
+    "pnpm --filter @micro/prototype-web test -- client/src/application/profile/profileService.test.ts",
+    "pnpm --filter @micro/prototype-web test -- client/src/Home.dom.test.tsx",
+    "pnpm --filter @micro/prototype-web test -- client/src/app/StartupGate.recovery.test.ts",
+    "pnpm typecheck && pnpm lint && pnpm format:check",
+    "pnpm text-density && pnpm design-guards && pnpm guards",
+    "pnpm test && pnpm prototype:check && pnpm prototype:test && pnpm prototype:build",
+    "python3 scripts/operations-control/validate.py",
+    "node scripts/check-doc-index-coverage.mjs",
+    "node scripts/check-current-state-size.mjs",
+    "git diff --check"
+  ],
+  "layers": [
+    "application",
+    "ui",
+    "tests",
+    "documentation",
+    "operations-control"
+  ],
+  "source": {
+    "report": "docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V3.md (GitHub canonical؛ provenance Drive موثق في evidence/R11-UNIT001-V2-V3-DRIVE-GITHUB-COMPARISON-2026-10-18.md) + docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-PROMPT-2026-10-18.md",
+    "discovered_at_sha": "fd5d7ce689d32d8dcc462bcea2ff1c006256f064",
+    "evidence": [
+      "apps/prototype-web/client/src/pages/Setup.tsx",
+      "apps/prototype-web/client/src/app/StartupGate.tsx",
+      "apps/prototype-web/client/src/application/profile/profileService.ts",
+      "apps/prototype-web/client/src/pages/Home.tsx",
+      "docs/contracts/36-form-drafts-local-boundary-contract.md",
+      "docs/contracts/40-technical-ownership-map-contract.md",
+      "docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V3.md",
+      "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-PROMPT-2026-10-18.md",
+      "docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-V2-V3-DRIVE-GITHUB-COMPARISON-2026-10-18.md"
+    ]
+  },
+  "acceptance": [
+    "شاشة A الواحدة: عنوان T01 + حقل اسم T02 + فعل رئيسي T03 + فعل ثانوي T06 — بلا معالج خطوات ولا إدخال نقدي (R03/R13، DUP-001).",
+    "فشل القراءة يعرض الاسترداد القائم لا بيانات فارغة، ونجاح القراءة بلا مشروع يعرض الإعداد (R01)، ووجود مشروع يفتح القائم بلا هوية ثانية ولا تعديل من الإعداد (R02، DUP-002).",
+    "الاسم الفارغ بعد trim يُرفض بنص T05 قرب الحقل مع تركيز صحيح، بلا حد طول أو حظر لغة مخترع (R04/F01/AC02/AC03).",
+    "الحفظ يعلن T04 ويمنع الإرسال المتزامن، والنجاح يفتح الرئيسية مباشرة مع T08 ويمسح مسودة الإعداد بعد إثبات النجاح فقط، بلا شاشة إيصال ولا إعداد نقدي إجباري (R05/R06).",
+    "فشل الحفظ يبقي الاسم ويعرض T07 ويعيد المحاولة بعد التحقق من الملف القائم لا بإنشاء بديل؛ وتعذر القراءة ينتقل للاسترداد (R07).",
+    "حوار المعلومات بنصوص T09..T12 وإغلاق T16 من عنصر الواجهة المعتمد بعقد تركيز modal، وفتحه/إغلاقه لا يحفظ ولا يغيّر (R08/AC08)؛ السطح مصنف في سجل حوار check-a11y-dialog-surfaces بنفس PR.",
+    "مسودة اسم منفصلة تُعرض عند العودة بنص T13 وفعلَي T14؛ التجاهل يمسح المسودة وحدها؛ لا تطبيق تلقائي لقيم مالية من مسودات قديمة (R09/R10، DUP-023).",
+    "مدخل الاستعادة يفوّض لمالك 044 القائم في /settings عبر عقد التنقل returnTo؛ الإلغاء يعيد سياق الإعداد؛ لا صفحة استيراد ثانية (R11، DUP-005).",
+    "لا محفظة ولا رصيد افتتاحي ولا حركة مالية من 001 أبدًا؛ غياب سجل نقدي لا يعني صفرًا (R13، AC07).",
+    "رجوع/تحديث لا يعيدان تنفيذ الحفظ ولا يحولان فشل القراءة لمشروع جديد (R14، AC06).",
+    "RTL وأرقام ASCII 0-9 وتسميات قارئ الشاشة وأهداف لمس وتركيز مرئي محفوظة (R15).",
+    "اختبارات U001-AC01..AC11 وACD001/002/005/023/024 وسلبية (لا هوية ثانية، لا سجل مالي تلقائي، لا استعادة مسودة تراثية، لا مالك استعادة ثانٍ، لا وصول UI مباشر للتخزين) ناجحة ضمن البوابة الكاملة.",
+    "جرد مستهلكين قبل/بعد لكل حذف أو تغيير ملكية (openWallet من Setup، حقول النقد، EnglishNumberInput،todayInAmman) مع بديل مثبت وسلبيات.",
+    "السجلات الكنونية محدثة في نفس PR: تقرير التنفيذ، سجل المراجعين الخمسة، DOC-008/WS-224 بصدق الحالة (IN_REVIEW قبل الدمج)، current-state live fields، اللوق append-only، سجل الوكلاء، Views مولدة من JSON، الفهرس.",
+    "V3 ORG-AC01: إتمام الاسم يفتح المشروع دون أثر مالي أو اشتراط حقول اختيارية؛ بدليل اختبار مستقل.",
+    "V3 ORG-AC02: البيانات السابقة أو فشل قراءتها لا ينشئان مشروعًا ثانيًا؛ بدليل اختبار مستقل.",
+    "V3 ORG-AC03/Q01: الاستعادة والإلغاء والرجوع والفشل والاستبدال تحافظ على السياق ولا تنشئ هوية ثانية؛ لا إغلاق إذا بقيت غير مثبتة.",
+    "اختبار الهاتف أو دليل صادق يوضح PASS أو NOT_EXECUTED/UNVERIFIED؛ لا يكفي CI وحده لإثباته."
+  ],
+  "areas": [
+    "docs/architecture/refactoring/generated/test-map.json",
+    "apps/prototype-web/client/src/pages/Setup.v3Gates.test.tsx",
+    "apps/prototype-web/client/src/pages/Setup.tsx",
+    "apps/prototype-web/client/src/pages/Setup.ui.test.tsx",
+    "apps/prototype-web/client/src/Nav001.dom.test.tsx",
+    "apps/prototype-web/client/src/application/profile/profileService.ts",
+    "apps/prototype-web/client/src/application/profile/profileService.test.ts",
+    "apps/prototype-web/client/src/pages/Home.tsx",
+    "scripts/check-a11y-dialog-surfaces.mjs",
+    "scripts/check-a11y-dialog-surfaces.test.mjs",
+    "scripts/file-size-ratchet-reanchors.json",
+    "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+    "docs/fixtures/text-density/w3-characterization.golden.txt",
+    "docs/architecture/refactoring/r11-unit001-20261018",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/00-document-index.md",
+    "apps/prototype-web/client/src/storage/local/types.ts",
+    "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+    "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+    "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.profileCommit.test.ts",
+    "apps/prototype-web/client/src/storage/local/portSurfaceEvidence.test.ts",
+    "scripts/check-storage-listener-guards.test.mjs",
+    "docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V3.md",
+    "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-PROMPT-2026-10-18.md",
+    "docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-V2-V3-DRIVE-GITHUB-COMPARISON-2026-10-18.md"
+  ],
+  "contracts": [
+    "docs/contracts/36-form-drafts-local-boundary-contract.md",
+    "docs/contracts/26-navigation-referrer-and-deep-link-contract.md",
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/contracts/40-technical-ownership-map-contract.md",
+    "docs/architecture/COMPONENT_CONTRACTS.md"
+  ],
+  "evidence": [
+    "docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-BASELINE-2026-10-18.md",
+    "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-REPORT-2026-10-18.md",
+    "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-FIVE-REVIEWER-RECORD-2026-10-18.md",
+    "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-REPORT-2026-10-18.md",
+    "docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-FIVE-REVIEWER-RECORD-2026-10-18.md"
+  ],
+  "dependencies": [],
+  "related_items": [
+    "DOC-007"
+  ],
+  "updated_at": "2026-10-19",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-18",
+      "actor": "owner-orchestration (ZAI sequential writer)",
+      "reason": "فتح Claim تنفيذ UNIT-001 من origin/main fd5d7ce689d32d8dcc462bcea2ff1c006256f064 بعد فحص ACTIVE-WORK وPRs المفتوحة (#376 توثيقي فقط)؛ لا تداخل areas/contracts مع Claim نشط؛ الجمد المسبق في evidence/R11-UNIT001-BASELINE-2026-10-18.md."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-18",
+      "actor": "owner-orchestration (ZAI sequential writer)",
+      "reason": "بدء التنفيذ المتحكم على الفرع feature/r11-unit001-project-setup-20261018 وفق عقد التنفيذ؛ لا دمج ولا تنظيف ولا موجة أخرى."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-18",
+      "actor": "owner-orchestration",
+      "reason": "اكتمال التنفيذ والاختبارات (44 Setup + 6 service) والبوابة الكاملة EXIT 0 والمراجعات الخمس مع الإغلاق الجذري لكل FIX_NOW؛ فُتح PR #377 للمراجعة الملكية — لا VERIFIED قبل الدمج والتحقق على main."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "مراجعة مالك PR #378 على أدلة الموجتين: موجة المصالحة (تقرير V3 + سجل المراجعين جولة 1 + جناح البوابات 9/9) وموجة دمج Q01 الحقيقي (اختبارا 044 الفعليان: نجاح برمز واستبدال replaceSnapshot حقيقيين ورجوع returnTo وفتح المستعاد بلا هوية ثانية، ورفض بلا كتابة جزئية — سجل المراجعين جولة 2)؛ الربط التركيبي لـ044 صار VERIFIED والهاتف الفعلي يبقى NOT_EXECUTED (بوابة خارجية UAT-001/DEVICE-001)؛ ثم قرار الدمج الصريح — بعده فقط MERGED_UNVERIFIED ثم VERIFIED بأدلة على رأس main الفعلي؛ لا UNIT-002 قبل عقده المستقل."
+}
