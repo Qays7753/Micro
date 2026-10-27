@@ -2638,3 +2638,8 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - `DOC-008` و`WS-224` انتقلا من `MERGED_UNVERIFIED`/`REVIEW_REQUIRED` إلى `VERIFIED`، مع `merge_sha=55eca55ace0e069779e1ca20e6288b82551cc7be` و`verified_on_main_sha=dba90fa9d7e7e01652a16c311421d05b7320f34e`.
 - لا تغيير مالي أو تاريخي أو Schema/Export/Import أو UI بصري؛ إصلاح التبعيات كان أمنيًا/بنيويًا فقط، مع إبقاء الحراس والسقوف. PR #379 أُغلق باعتباره superseded ولا يُدمج.
 - الخطوة التشغيلية التالية: تحديث `current-state.md` إلى الرأس النهائي بعد PR المصالحة، ثم حذف الفروع التاريخية غير `main` بعد تحقق ancestry وعدم وجود PR مفتوح.
+
+## §225 — 2026-10-27 — تثبيت الرأس النهائي قبل تنظيف الفروع
+- PR #381 (مصالحة `DOC-008` و`WS-224` إلى `VERIFIED`) دُمج بMerge commit `d3ec806f7a2597d496917ff3627f7e7a80cb0a2e` بعد نجاح GitHub CI وCloudflare Pages على PR؛ لم تُعد الاختبارات المحلية، لأن المحتوى نفسه سبق إثباته على الرؤوس السابقة والدمج التوثيقي لا يغير المنتج.
+- `main` هو المصدر الوحيد للعمل اللاحق بعد إغلاق دورة UNIT-001؛ الفروع `components/integration-20261018` و`security/dependency-audit-remediation-20261027` و`docs/postmerge-reconciliation-20261027` و`docs/finalize-unit001-verification-20261027` تاريخية/مغلقة أو مدموجة وقابلة للحذف بعد التحقق النهائي.
+- هذا السجل يثبت حالة التنسيق فقط؛ لا تغيير مالي أو تخزيني أو Schema/Export/Import أو UI.
