@@ -40,7 +40,7 @@ The current UNIT-021 delivery fingerprint after that whitespace correction is `1
 |---|---|
 | `00-PROGRAM.md` | `9e52d314612151f29a181a87e324ebe072f80924137c8ab4e1be8948d5669129` |
 | `01-STAGES.md` | `a3957f280b553642330ac9f4ffa23ec7e237732ca815be6d4f636a9601de320a` |
-| `02-PROGRESS-AND-HANDOFF.md` | `93551f6121873a49645075881c8038cce29c70c94a4112dc0a1153aa53abefe9` |
+| `02-PROGRESS-AND-HANDOFF.md` | `a5aa990e57950a1774295c7d873568670ea016f506805020f277c3fdf57d9ea2` |
 | `02-SPECIFICATIONS/00-START-HERE-AR.md` | `91e3b3f1e84086ab55a38c90173655ab9c7f0d98e9853a23b5fe1a2bd89fda98` |
 | `02-SPECIFICATIONS/01-Standards/01-Component-Criteria-AR.md` | `bff0e8b2e9a67a9f058faf67cfbd019f9ac39cc781878f45c0f4f5f6a2cc1443` |
 | `02-SPECIFICATIONS/01-Standards/02-System-Data-and-Financial-Readiness-AR.md` | `0153aea752ac0609893283829313741b40302ac324d6583f9f3922b1bca6cea5` |
@@ -114,7 +114,7 @@ The current UNIT-021 delivery fingerprint after that whitespace correction is `1
 | `02-SPECIFICATIONS/05-Data-and-Implementation/04-Staged-Execution-and-Review-Protocol-AR.md` | `eecb3b69bff30a6fcc0cb83d444cd353387a48245f93ec3c8a665713c6aaee11` |
 | `BASELINE-RECONCILIATION.md` | `90df56b549138fa69b19e67801905ca40e763659b3cda98dee1daad40b11f4a4` |
 | `DEPENDENCIES-AND-TRACEABILITY.md` | `c204b9847b9c259f9833a29b79d795946a69180131dec11de5017d4b998b0dc5` |
-| `MANIFEST.md` | `53d5db3da3714d760b43809c5bea864bfbf62973d32abe6da06bbc5ade5ffc1c` |
+| `MANIFEST.md` | `c4e0a39df5fdcc1293bb43137ff025172ee4606c3cec80608e775b7ad8f5ef5a` |
 
 ## 5. Operations Control generated-view fingerprints after correction
 
@@ -122,9 +122,9 @@ The source JSON was regenerated into the official views after the S01 correction
 
 | path | SHA-256 |
 |---|---|
-| `docs/operations/control/generated/MASTER-TRACKER.csv` | `6506910097b3993ef7d4c049392e280c08b78bc42bfaf52f97aef594a131f554` |
+| `docs/operations/control/generated/MASTER-TRACKER.csv` | `0c9841be3805c8b11bcac261e88bc4233c251e0676cfb71a4c88ab1f8f9e213d` |
 | `docs/operations/control/generated/MASTER-TRACKER.md` | `15a218f16e9b25f9d85d44ff1f473b2444dce389d353212ce8c40c49d2a94755` |
-| `docs/operations/control/generated/MASTER-TRACKER.xlsx.meta.json` | `4c87efad370bd741288ab602c008c150b636ccfe93353b33f943e43c9a6f10fb` |
+| `docs/operations/control/generated/MASTER-TRACKER.xlsx.meta.json` | `61102861aebb518deaa4df128a1662d4d5a15a6270843c823184523668c498f3` |
 
 ## 6. Exact correction-head evidence
 
