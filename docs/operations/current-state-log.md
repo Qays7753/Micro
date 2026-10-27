@@ -2659,3 +2659,8 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - أُنشئ PR #383 بحالة Draft؛ لم تُجرَ كتابة على `main` ولم يُدمج أو يُنظف أي فرع، ولا يوجد أمر ZAI أو S02.
 - الحواجز التوثيقية على candidate: Operations Control PASS (96/68/1)، Tracker check PASS، doc-index PASS، current-state-size PASS (20,252/20,480)، agent-document-contract PASS، و`git diff --check` PASS؛ تحذيرات Workstreams التاريخية معروفة وليست blocker جديدًا.
 - **الحالة:** `S01_DOCUMENTATION_DELIVERED — REVIEW_REQUIRED — CANDIDATE_B67E249 — PR383_DRAFT`.
+
+
+## §227 — 2026-10-27 — S01 documentation correction checkpoint
+
+مراجعة Manus/GPT الحية لـPR #383 أثبتت أن رأس `fd265351d44ab5b32ae69a0c51c53082e1e875ee` يحتاج تصحيحًا توثيقيًا قبل قبول S01: استثناء SOP غير مثبت، رؤوس السجلات تشير إلى checkpoint أقدم، توزيع UNIT-026 وبوابات S14/S15 غير مثبتة في البطاقات، بصمة Tracker تحتاج إعادة تثبيت، وتعريف أرقام المصدر مقابل V9/V11 يحتاج فصلًا. كما فشل GitHub `checks` على مخالفات whitespace في ملفات الحزمة؛ Cloudflare Pages نجح. صُنف العمل تصحيحًا docs/control فقط؛ لا كود منتج ولا main ولا S02.

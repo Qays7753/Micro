@@ -1488,3 +1488,14 @@ Full verification gate 17/17 EXIT 0 on implementation head `469aba03` (root 919/
 - **Candidate:** `b67e249ae59e7a3982e3877afeca95e7a04a9321`; **base:** `3584aa1d08cea3e0a00623b719fed7f991ce187f`; **PR:** #383 Draft.
 - **النتيجة:** بوابات S01 التوثيقية ناجحة على candidate؛ تسليم للمراجعة فقط، لا قبول أو انتقال أو ZAI.
 - **الحدود:** لا main write، لا merge، لا cleanup، لا كود منتج.
+
+
+---
+
+## Entry 129 — 2026-10-27 — S01 correction batch prepared
+
+- **الرأس الذي بدأت منه المراجعة:** `fd265351d44ab5b32ae69a0c51c53082e1e875ee` فوق base `3584aa1d08cea3e0a00623b719fed7f991ce187f`؛ PR #383 Draft.
+- **التصحيح:** تثبيت استثناء SOP فعليًا، توحيد سجل S01 والرأس، عكس توزيع UNIT-026 وبوابات S14/S15 في البطاقات، فصل أرقام مصدر 001/002 عن V9/V11، وتحديث مصدر Control.
+- **بوابة CI:** إزالة مخالفات whitespace التي أثبتها `git diff --check` على ملفات الحزمة فقط.
+- **الحدود:** docs/control فقط؛ لا كود منتج، لا قرار مالي، لا Schema/Export/Import، لا main، لا merge، لا cleanup، لا S02.
+- **الخطوة التالية:** توليد Views من JSON ثم فحص الوثائق والتحكم على الرأس الجديد وتسليمه لمراجعة مستقلة.

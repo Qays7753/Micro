@@ -29,13 +29,13 @@ The original ZIP hash remains recorded above. The post-correction file hashes ar
 
 | path | SHA-256 after S01 correction |
 |---|---|
-| `00-PROGRAM.md` | `5a8fdeb586dc34ac3d6356b74ad86a38106f183a3dcaed8c6e5234d6cebbdbfe` |
-| `01-STAGES.md` | `b8703cbfd1e48e92724ea6b7818e5c09c5e1d49d3f155decbfa61a6ecbad686c` |
-| `02-PROGRESS-AND-HANDOFF.md` | `f23db9dfd4a49badd8b0d9fe1018127a9a49e941000e843e0266ee8af70e27f2` |
+| `00-PROGRAM.md` | `9e52d314612151f29a181a87e324ebe072f80924137c8ab4e1be8948d5669129` |
+| `01-STAGES.md` | `a3957f280b553642330ac9f4ffa23ec7e237732ca815be6d4f636a9601de320a` |
+| `02-PROGRESS-AND-HANDOFF.md` | `a2c4907861b79e2fad5137c70295b9e0e0cc70c29add7d9f8f056a63b18171ae` |
 | `02-SPECIFICATIONS/00-START-HERE-AR.md` | `91e3b3f1e84086ab55a38c90173655ab9c7f0d98e9853a23b5fe1a2bd89fda98` |
 | `02-SPECIFICATIONS/01-Standards/01-Component-Criteria-AR.md` | `bff0e8b2e9a67a9f058faf67cfbd019f9ac39cc781878f45c0f4f5f6a2cc1443` |
 | `02-SPECIFICATIONS/01-Standards/02-System-Data-and-Financial-Readiness-AR.md` | `0153aea752ac0609893283829313741b40302ac324d6583f9f3922b1bca6cea5` |
-| `02-SPECIFICATIONS/02-Current-System/02-Current-Components-AR.md` | `b3157e73e8da8f8cc41a93e0ec1bb80016a5cf540ec813210bf60ed0c13a2f8f` |
+| `02-SPECIFICATIONS/02-Current-System/02-Current-Components-AR.md` | `86ade2bc1f0d6242141fd3b029c6349cfe1e72f9567e913248be183153e8e1ae` |
 | `02-SPECIFICATIONS/02-Current-System/03-As-Is-Audit-2026-10-27-fd5d7ce/01-Component-Data-and-Financial-Map-AR.md` | `270cc0a97fcaa82576ca561593bf2cf4227bcab1e9d5585125efc19822d3e9f7` |
 | `02-SPECIFICATIONS/02-Current-System/03-As-Is-Audit-2026-10-27-fd5d7ce/02-Repository-Structure-and-Implementation-Map-AR.md` | `725c2542a63ab23027826e5e37730d6bc223fa44fa409df04e97d84657935f00` |
 | `02-SPECIFICATIONS/03-New-Design/00-COMPONENTS-INDEX-AR.md` | `024488990fc7e5f694ee767747ee4bf709bad7ae11b6f6e063f1826695d3fd28` |
@@ -103,6 +103,16 @@ The original ZIP hash remains recorded above. The post-correction file hashes ar
 | `02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md` | `591cad4bbd2eb8f8b1eb830bca86419b8afd926a82a5481cf14e9fa75efe2fa7` |
 | `02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md` | `bbc34270fada3c31e419da8f607f19dc858e6b7154dbb0548429c2925e4d3e70` |
 | `02-SPECIFICATIONS/05-Data-and-Implementation/04-Staged-Execution-and-Review-Protocol-AR.md` | `eecb3b69bff30a6fcc0cb83d444cd353387a48245f93ec3c8a665713c6aaee11` |
-| `BASELINE-RECONCILIATION.md` | `9100b4983e33185efbb0417a76811dce658facc69cc57e0b36fa237d2e382e21` |
-| `DEPENDENCIES-AND-TRACEABILITY.md` | `28bfccf90a6e5c63a0941f1d3b7e8d4496a230b06b82804711e9c1f7dabfd264` |
-| `MANIFEST.md` | `32c201150b7f0072d39814124ddbfb777c5c8bee01752b161ac8548715486e50` |
+| `BASELINE-RECONCILIATION.md` | `90df56b549138fa69b19e67801905ca40e763659b3cda98dee1daad40b11f4a4` |
+| `DEPENDENCIES-AND-TRACEABILITY.md` | `c204b9847b9c259f9833a29b79d795946a69180131dec11de5017d4b998b0dc5` |
+| `MANIFEST.md` | `c332c9219912109454d4cc9061f25fbcba9ffe06636f118fca8c51b3cbe9d1e5` |
+
+## 5. Operations Control generated-view fingerprints after correction
+
+The source JSON was regenerated into the official views after the S01 correction. These are fingerprints of the actual candidate tree, not independent sources of truth:
+
+| path | SHA-256 |
+|---|---|
+| `docs/operations/control/generated/MASTER-TRACKER.csv` | `ab1ca2d40cfceadf348eaf3d0a4a76dca0ef93140673075a1d5812c8cf4fbc2b` |
+| `docs/operations/control/generated/MASTER-TRACKER.md` | `15a218f16e9b25f9d85d44ff1f473b2444dce389d353212ce8c40c49d2a94755` |
+| `docs/operations/control/generated/MASTER-TRACKER.xlsx.meta.json` | `794e88c91f0a6061fab0f31acfc0712c50df42ac03bf7630373d6c5e91bff68b` |
