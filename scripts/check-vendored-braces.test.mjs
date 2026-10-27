@@ -163,7 +163,7 @@ describe("check-vendored-braces — live tree (reproducibility pin)", () => {
     expect(keys).toContain("prettier@3.9.6:index.mjs");
     expect(keys).toContain("rollup@4.62.4:dist/es/shared/watch.js");
     expect(keys).toContain("rollup@4.62.4:dist/shared/index.js");
-    expect(keys).toContain("vite@7.3.6:dist/node/chunks/config.js");
+    expect(keys).toContain("vite@7.3.7:dist/node/chunks/config.js");
     expect(keys).toHaveLength(4);
     /* the removed tsx copies must stay gone: their return would be new-copy drift */
     expect(keys.some(k => k.startsWith("tsx@"))).toBe(false);
