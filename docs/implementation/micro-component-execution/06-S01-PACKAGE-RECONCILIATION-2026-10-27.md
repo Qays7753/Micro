@@ -25,13 +25,22 @@ The following package metadata files received the bounded publication-state corr
 
 The original ZIP hash remains recorded above. The post-correction file hashes are generated below from the actual branch contents, so the output is not claimed byte-identical to the input ZIP.
 
+
+The preceding S01 correction also removed the CI-reported trailing whitespace only; no semantic or financial content was changed. The affected package files were:
+
+- `00-S01-APPROVED-TASK-2026-10-27.md` — lines 31 and 33;
+- `02-SPECIFICATIONS/02-Current-System/02-Current-Components-AR.md` — the CI-reported lines 386, 1864, 2039, 2116, 2259, 2333, 2902, 2972, 3053, 3130, 3203, and 4451;
+- `02-SPECIFICATIONS/03-New-Design/UNIT-021-التوقعات-النقدية-المؤجلة.md` — line 214.
+
+The current UNIT-021 delivery fingerprint after that whitespace correction is `197136ea98df9345af59132d464ca32bd00aea43ab9b080d24f0480c9d4c5e53`; it is intentionally distinct from the original ZIP fingerprint above.
+
 ## 4. Package file hashes after correction
 
 | path | SHA-256 after S01 correction |
 |---|---|
 | `00-PROGRAM.md` | `9e52d314612151f29a181a87e324ebe072f80924137c8ab4e1be8948d5669129` |
 | `01-STAGES.md` | `a3957f280b553642330ac9f4ffa23ec7e237732ca815be6d4f636a9601de320a` |
-| `02-PROGRESS-AND-HANDOFF.md` | `a2c4907861b79e2fad5137c70295b9e0e0cc70c29add7d9f8f056a63b18171ae` |
+| `02-PROGRESS-AND-HANDOFF.md` | `2191beefcf55f14d04c30b38438bbcef075ea9f13e2c9784eaa4d3a6b0faf8f0` |
 | `02-SPECIFICATIONS/00-START-HERE-AR.md` | `91e3b3f1e84086ab55a38c90173655ab9c7f0d98e9853a23b5fe1a2bd89fda98` |
 | `02-SPECIFICATIONS/01-Standards/01-Component-Criteria-AR.md` | `bff0e8b2e9a67a9f058faf67cfbd019f9ac39cc781878f45c0f4f5f6a2cc1443` |
 | `02-SPECIFICATIONS/01-Standards/02-System-Data-and-Financial-Readiness-AR.md` | `0153aea752ac0609893283829313741b40302ac324d6583f9f3922b1bca6cea5` |
@@ -62,7 +71,7 @@ The original ZIP hash remains recorded above. The post-correction file hashes ar
 | `02-SPECIFICATIONS/03-New-Design/UNIT-018-المتابعة-المالية.md` | `94cf090473ad09080c4480781cf5ce7d4be6deaaf28fcf1c438f7c1f80960635` |
 | `02-SPECIFICATIONS/03-New-Design/UNIT-019-تكرار-المصروف.md` | `7ad67749577a0463be96163a0f825c404d329c6116fbed88e8fed64aeba22a71` |
 | `02-SPECIFICATIONS/03-New-Design/UNIT-020-مال-المالك.md` | `7831f001ca5513851d5431ef8f761ada385724e673b2f7fec464966559fbc8e5` |
-| `02-SPECIFICATIONS/03-New-Design/UNIT-021-التوقعات-النقدية-المؤجلة.md` | `e52899ca8a907f02b26b2dba6665f5501b1f51b33bf287c3e0815109ff084792` |
+| `02-SPECIFICATIONS/03-New-Design/UNIT-021-التوقعات-النقدية-المؤجلة.md` | `197136ea98df9345af59132d464ca32bd00aea43ab9b080d24f0480c9d4c5e53` |
 | `02-SPECIFICATIONS/03-New-Design/UNIT-022-إدارة-النقد.md` | `4a539684d4a9f573da49945894906571455040596072df0a5374ebb5e5f20088` |
 | `02-SPECIFICATIONS/03-New-Design/UNIT-023-التحويل-بين-أماكن-النقد.md` | `4c1b6520b4557570ad361fe3a88f09d068206d62daf83e45cc5b49c8dfffa345` |
 | `02-SPECIFICATIONS/03-New-Design/UNIT-024-تحديد-مكان-النقد.md` | `f654562cb609d0afed4545948764a05c05deeaedd54225d04c2b48b01671d285` |
@@ -105,7 +114,7 @@ The original ZIP hash remains recorded above. The post-correction file hashes ar
 | `02-SPECIFICATIONS/05-Data-and-Implementation/04-Staged-Execution-and-Review-Protocol-AR.md` | `eecb3b69bff30a6fcc0cb83d444cd353387a48245f93ec3c8a665713c6aaee11` |
 | `BASELINE-RECONCILIATION.md` | `90df56b549138fa69b19e67801905ca40e763659b3cda98dee1daad40b11f4a4` |
 | `DEPENDENCIES-AND-TRACEABILITY.md` | `c204b9847b9c259f9833a29b79d795946a69180131dec11de5017d4b998b0dc5` |
-| `MANIFEST.md` | `c332c9219912109454d4cc9061f25fbcba9ffe06636f118fca8c51b3cbe9d1e5` |
+| `MANIFEST.md` | `fffce26852b7bf664fea2cfc1c4cbb416252ee98d9ea81009254e8eea1c4ca92` |
 
 ## 5. Operations Control generated-view fingerprints after correction
 
@@ -113,6 +122,6 @@ The source JSON was regenerated into the official views after the S01 correction
 
 | path | SHA-256 |
 |---|---|
-| `docs/operations/control/generated/MASTER-TRACKER.csv` | `ab1ca2d40cfceadf348eaf3d0a4a76dca0ef93140673075a1d5812c8cf4fbc2b` |
+| `docs/operations/control/generated/MASTER-TRACKER.csv` | `f181fa7c6f3faa60e0eaf90cac5ea6e1fed1b38c7d8252f03f07a3eda201da68` |
 | `docs/operations/control/generated/MASTER-TRACKER.md` | `15a218f16e9b25f9d85d44ff1f473b2444dce389d353212ce8c40c49d2a94755` |
-| `docs/operations/control/generated/MASTER-TRACKER.xlsx.meta.json` | `794e88c91f0a6061fab0f31acfc0712c50df42ac03bf7630373d6c5e91bff68b` |
+| `docs/operations/control/generated/MASTER-TRACKER.xlsx.meta.json` | `e07a08b61ad91e0281baed5e04caea5554efca2f516e009d517384d2c2b673a2` |
