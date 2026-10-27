@@ -12,7 +12,7 @@
   "gate_classification": "EXTERNAL_REVIEW_REQUIRED",
   "root_cause": "الحزمة كانت خارج GitHub، ونسخ UNIT-001/002 السابقة والجديدة وخطة المراحل لم تكن مرتبطة بسجل S01 واحد يميز مصدر التنفيذ عن التاريخ ويثبت نقطة الاستئناف.",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "اعتماد تنفيذ S01 التوثيقية على فرع التكامل الواحد؛ لا ZAI ولا كود منتج ولا انتقال أو دمج قبل مراجعة Manus وChatGPT واعتماد المالك.",
+  "owner_decision": "اعتمد المالك قبول S01 على فرع التكامل components/integration-20261027 استنادًا إلى PASS ChatGPT المنسوب إليه وPASS Manus المستقل على الرأس المراجع 3b1b24b508edb68996fa0ac33418a96ee05957ad؛ هذا ليس VERIFIED على main ولا إذن دمج.",
   "tests_required": [
     "python3 scripts/operations-control/generate_tracker.py",
     "python3 scripts/operations-control/validate.py",
@@ -46,7 +46,8 @@
     "حالة مراجعة S01 قبل دفعة التصحيح: GPT-001 وGPT-003 وGPT-005 مغلقة؛ GPT-002 وGPT-004 جزئيتان. هذه الدفعة تعالج الجزئيتين فقط على PR #383 ولا تعيد فتح البنود المغلقة.",
     "تسليم تصحيح S01-GPT-002 وS01-GPT-004 عند الرأس 1ab46931689daacaa766eacba6fb439d9ac04894؛ GitHub CI وCloudflare Pages ناجحان على الرأس نفسه، وGPT-001 و003 و005 مغلقة ولا تعاد.",
     "حكم ChatGPT (منسوب إليه كما بلّغه المالك): PASS على الرأس المحدد 3b1b24b508edb68996fa0ac33418a96ee05957ad؛ جميع S01-GPT-001..005 مغلقة؛ مرآة Drive محدثة إلى V4. هذا attribution محفوظ، وليس مصدر تنفيذ بديلًا عن GitHub.",
-    "حكم Manus المستقل: PASS على الرأس نفسه 3b1b24b508edb68996fa0ac33418a96ee05957ad; لا critical/major/minor blocker ضمن نطاق S01. CI وCloudflare وControl والفهرس والحجم والعقد والبصمات ناجحة؛ لا منتج ولا مالية ولا Schema/Export/Import."
+    "حكم Manus المستقل: PASS على الرأس نفسه 3b1b24b508edb68996fa0ac33418a96ee05957ad; لا critical/major/minor blocker ضمن نطاق S01. CI وCloudflare وControl والفهرس والحجم والعقد والبصمات ناجحة؛ لا منتج ولا مالية ولا Schema/Export/Import.",
+    "اعتماد المالك الصريح لـS01 على فرع التكامل؛ يبقى الدمج إلى main بوابة البرنامج النهائية بعد S18، ومسودة S02 تحتاج مراجعة ChatGPT واعتماد أمرها بصورة مستقلة."
   ],
   "areas": [
     "docs/implementation/micro-component-execution",
@@ -109,5 +110,5 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "اعتماد المالك الصريح لقبول S01 على الرأس المراجع 3b1b24b508edb68996fa0ac33418a96ee05957ad; بعد الاعتماد فقط يمكن صياغة تكليف S02. لا merge ولا cleanup ولا تنفيذ S02 قبل اعتماد المالك."
+  "next_action": "مراجعة docs/implementation/micro-component-execution/00-S02-TASK-DRAFT-2026-10-27.md من ChatGPT؛ بعد تنقيحها واعتماد المالك فقط يمكن إصدار أمر S02 مستقل. لا ZAI ولا merge ولا cleanup ولا S03."
 }

@@ -1,11 +1,11 @@
 # Micro — برنامج تنفيذ المكونات ومراجعتها
 
 **النسخة:** V1 · **التاريخ:** 2026-10-27 — عمّان.
-**الحالة:** S01 نُفذت توثيقيًا على فرع التكامل `components/integration-20261027` وسُلّمت للمراجعة؛ S02–S18 ما زالت PLANNED_REVIEW ولا يوجد أمر READY.
+**الحالة:** S01 مقبولة على فرع التكامل `components/integration-20261027` بعد PASS مستقل واعتماد المالك؛ S02 لها مسودة تكليف للمراجعة فقط، وS03–S18 ما زالت PLANNED_REVIEW ولا يوجد أمر ZAI READY.
 
 **خط الأساس المقروء:** `main @ 3584aa1d08cea3e0a00623b719fed7f991ce187f`. أُنشئ بعده فرع التكامل `components/integration-20261027` وPR #383 Draft لـS01؛ يبقى main دون كتابة. CI وCloudflare كانا ناجحين على خط الأساس، أما PR #383 فيسجل فحوصه على الرأس الدقيق في RESULT. يبقى DOC-008/WS-224 متحققًا ضمن نطاقه السابق، وDOC-009/WS-225 في REVIEW_REQUIRED. لا تغلق بوابات PRE-PILOT أو الجهاز أو Pilot بهذه الحزمة.
 
-ابدأ بمراجعة [جدول المراحل](01-STAGES.md)، ثم [الملكية والتتبع](DEPENDENCIES-AND-TRACEABILITY.md)، ثم [مصالحة خط الأساس](BASELINE-RECONCILIATION.md) و[Manifest](MANIFEST.md). هذه إحالات خاصة بالبرنامج، وليست جدول توجيه ينافس AGENTS.
+ابدأ بمراجعة [جدول المراحل](01-STAGES.md)، ثم [الملكية والتتبع](DEPENDENCIES-AND-TRACEABILITY.md)، ثم [مصالحة خط الأساس](BASELINE-RECONCILIATION.md) و[Manifest](MANIFEST.md). تكليف S02 الحالي هو [مسودة للمراجعة](00-S02-TASK-DRAFT-2026-10-27.md) فقط، وليس أمر تنفيذ. هذه إحالات خاصة بالبرنامج، وليست جدول توجيه ينافس AGENTS.
 
 ## 1. الأدوار وطريقة الفرع
 

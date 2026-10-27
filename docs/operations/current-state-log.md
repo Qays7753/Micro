@@ -2679,3 +2679,15 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 ## §230 — 2026-10-27 — S01 independent review PASS pending owner acceptance
 
 راجع Manus الرأس `3b1b24b508edb68996fa0ac33418a96ee05957ad` مستقلًا وأصدر `PASS` بلا critical/major/minor blocker ضمن S01؛ ChatGPT أصدر `PASS` كما بلّغه المالك، مع إغلاق S01-GPT-001..005 ومرآة Drive V4. بقيت الحالة `IN_REVIEW/PASS_PENDING_OWNER_ACCEPTANCE` لأن قبول المالك لم يصدر بعد. لا S02 ولا merge ولا cleanup.
+
+
+## §231. 2026-10-27 — قبول المالك لـS01 ومسودة تكليف S02
+
+اعتمد مالك Micro قبول S01 على فرع التكامل `components/integration-20261027` بعد PASS مستقل من Manus وPASS ChatGPT منسوبًا إليه، مع إغلاق S01-GPT-001..005. الرأس الذي ينطبق عليه حكم القبول هو `3b1b24b508edb68996fa0ac33418a96ee05957ad`؛ commit سجل المراجعة اللاحق `424c6fd59c4ce91ef7fa52324110abecb35b10e7` يحفظ السجل ولا يغير رأس الحكم. القبول ليس VERIFIED على `main` ولا إذن دمج.
+
+نُشرت `00-S02-TASK-DRAFT-2026-10-27.md` كمسودة مستقلة لحماية الكتابة والاستعادة وإزالة PIN ضمن 042/044. المسودة ليست أمر ZAI READY، ولا تغيّر كود المنتج، ولا تفتح Claim تنفيذ، ولا تبدأ S02. الفعل التالي هو مراجعة ChatGPT للمسودة ثم اعتماد المالك للأمر النهائي؛ يبقى الدمج إلى `main` مؤجلًا إلى نهاية البرنامج.
+
+`S01_OWNER_ACCEPTED_ON_INTEGRATION`
+`S02_DRAFT_FOR_CHATGPT_REVIEW`
+`NO_ZAI_EXECUTION_AUTHORIZED`
+`NO_MAIN_WRITE_OR_MERGE`

@@ -100,15 +100,15 @@
 
 | الملف | SHA-256 | الحالة |
 |---|---|---|
-| [00-PROGRAM.md](00-PROGRAM.md) | `9e52d314612151f29a181a87e324ebe072f80924137c8ab4e1be8948d5669129` | مقترح للمراجعة؛ لا PROMPT |
-| [01-STAGES.md](01-STAGES.md) | `a3957f280b553642330ac9f4ffa23ec7e237732ca815be6d4f636a9601de320a` | مقترح للمراجعة؛ لا PROMPT |
-| [02-PROGRESS-AND-HANDOFF.md](02-PROGRESS-AND-HANDOFF.md) | `a5aa990e57950a1774295c7d873568670ea016f506805020f277c3fdf57d9ea2` | مقترح للمراجعة؛ لا PROMPT |
+| [00-PROGRAM.md](00-PROGRAM.md) | `3be17c0cccc3aea646881df48145869934b8c01da3b0331257eaa8ec4f151bc4` | مقترح للمراجعة؛ لا PROMPT |
+| [01-STAGES.md](01-STAGES.md) | `1d2d8cf96298140225772232905ffd08968c93776c0acfca98f674f473523649` | مقترح للمراجعة؛ لا PROMPT |
+| [02-PROGRESS-AND-HANDOFF.md](02-PROGRESS-AND-HANDOFF.md) | `a53a43202f59fea2ed402a3d0079f3d82e097f27dae85480fddc6fe24e1fc711` | مقترح للمراجعة؛ لا PROMPT |
 | [DEPENDENCIES-AND-TRACEABILITY.md](DEPENDENCIES-AND-TRACEABILITY.md) | `c204b9847b9c259f9833a29b79d795946a69180131dec11de5017d4b998b0dc5` | مقترح للمراجعة؛ لا PROMPT |
 | [BASELINE-RECONCILIATION.md](BASELINE-RECONCILIATION.md) | `90df56b549138fa69b19e67801905ca40e763659b3cda98dee1daad40b11f4a4` | مقترح للمراجعة؛ لا PROMPT |
 
 ## 4. ما لا تحتويه الحزمة
 
-لا token أو اعتماد أو بيانات مستخدمين حقيقية، ولا كود منتج أو ملفات تشغيل أو مجلد git. لا PROMPT/RESULT/REVIEW فارغة توهم الجاهزية. لا نسخ لمرجع AGENTS أوOperations Control تصير قديمة؛ يقرأ ZAI المراجع الحية من المستودع نفسه. لا أمر لإنشاء المخازن المرشحة أو رفع schema/export أو تعديل CI.
+لا token أو اعتماد أو بيانات مستخدمين حقيقية، ولا كود منتج أو ملفات تشغيل أو مجلد git. لا يوجد أمر S02 READY أو Prompt تنفيذ؛ توجد فقط مسودة S02 موسومة صراحة للمراجعة. لا نسخ لمرجع AGENTS أوOperations Control تصير قديمة؛ يقرأ ZAI المراجع الحية من المستودع نفسه. لا أمر لإنشاء المخازن المرشحة أو رفع schema/export أو تعديل CI.
 
 هذا Manifest لا يضع بصمة لنفسه أو للـZIP المحتوي عليه تجنبًا للمرجع الذاتي؛ بصمة ZIP الخارجية تسجل في محضر التسليم. عدد المراحل 18 مقترح حتى مراجعة Manus واعتماد المالك، وليس اعتمادًا تلقائيًا لتكليف تنفيذ.
 
@@ -120,4 +120,5 @@
 - **الرأس الأساس المتحقق:** `3584aa1d08cea3e0a00623b719fed7f991ce187f`.
 - **فرع S01:** `components/integration-20261027`.
 - **ملفات S01 الإضافية:** `00-S01-APPROVED-TASK-2026-10-27.md`، `03-S01-RESULT-2026-10-27.md`، `04-S01-AUTHORITY-MATRIX-2026-10-27.md`، `05-S01-RESUME-INSTRUCTIONS-2026-10-27.md`، و`06-S01-PACKAGE-RECONCILIATION-2026-10-27.md`.
+- **إضافة انتقالية بعد S01:** `00-S02-TASK-DRAFT-2026-10-27.md` أضيفت بعد الحزمة الأصلية وبعد قبول S01؛ ليست من ملفات ZIP الـ77 وليست أمر ZAI READY.
 - لا تعلو سجلات S01 الإضافية على `AGENTS.md` أو Operations Control؛ وهي سجل نشر/تسليم، لا أمر تنفيذ منتج.

@@ -1,11 +1,11 @@
 # Micro — جدول مراحل التنفيذ وبطاقاتها
 
 **النسخة:** V1 · **التاريخ:** 2026-10-27 — عمّان.
-**الحالة:** جدول المراحل منشور ضمن S01 للمراجعة؛ S01 `DELIVERED_FOR_REVIEW`، وS02–S18 `PLANNED_REVIEW` بلا أوامر تنفيذ.
+**الحالة:** S01 مقبولة على فرع التكامل؛ S02 لديها مسودة تكليف `DRAFT_FOR_CHATGPT_REVIEW` فقط؛ S03–S18 `PLANNED_REVIEW` بلا أوامر تنفيذ.
 
 **الاقتراح:** 18 مرحلة S01..S18: تجهيز توثيقي، و16 شريحة تطوير، وقبول تكامل نهائي. العدد مبني على فصل الكتّاب والعقود والقراء، ويحتاج مراجعة Manus؛ لا يساوي 45 مكونًا ولا المجموعات السبع. S01 `DELIVERED_FOR_REVIEW`، وS02–S18 `PLANNED_REVIEW`؛ لا أمر تنفيذ جاهز.
 
-الأرقام تسلسل عمل لكاتب واحد. شروط البدء أدناه تبعيات فعلية، وليست كل علاقة جوار. الرأس الحي لكل مرحلة يرث جميع commits المراحل المقبولة السابقة ولو لم تكن كلها تبعيات وظيفية مباشرة.
+الأرقام تسلسل عمل لكاتب واحد. شروط البدء أدناه تبعيات فعلية، وليست كل علاقة جوار. قبول S01 على فرع التكامل لا يعني دمجًا أو `VERIFIED` على `main`. الرأس الحي لكل مرحلة يرث جميع commits المراحل المقبولة السابقة ولو لم تكن كلها تبعيات وظيفية مباشرة.
 
 | المرحلة | الهدف | UNIT داخل النطاق | شروط البدء |
 |---|---|---|---|
@@ -38,7 +38,7 @@
 
 ### S01 — تثبيت الحزمة والسلطة وخط الأساس
 
-**الحالة:** `DELIVERED_FOR_REVIEW` على فرع التكامل؛ لا أمر ZAI ولا انتقال إلى S02.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` على فرع التكامل؛ لا دمج أو `VERIFIED` على `main`، وتكليف S02 ما زال مسودة مراجعة.
 
 **المواصفات:** توثيق أو قبول برنامج؛ لا مكون منتج جديد، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -48,7 +48,7 @@
 
 **البيانات والنقل:** تثبيت schema 38 / export 30 كخط أساس حالي. تحدد فروق السلطة والأرقام المحروسة التي تحتاج اعتمادًا ملموسًا قبل المرحلة المتأثرة.
 
-**القبول المطلوب:** نجاح حراس الوثائق والفهرس وOperations Control، وفحص الروابط والبصمات ومصدر كل نسخة. لا سجل حالة منافس ولا أصلان قابلان للتعديل؛ يحفظ اعتماد 001 السابق بحدوده. أي تعارض غير مغلق يبقى مانع بدء مسمى. هذه نتيجة تسليم للمراجعة وليست قبولًا أو إذنًا لـS02.
+**القبول المطلوب:** نجاح حراس الوثائق والفهرس وOperations Control، وفحص الروابط والبصمات ومصدر كل نسخة. لا سجل حالة منافس ولا أصلان قابلان للتعديل؛ يحفظ اعتماد 001 السابق بحدوده. أي تعارض غير مغلق يبقى مانع بدء مسمى. هذه نتيجة S01 مقبولة على فرع التكامل فقط؛ لا تمنح إذن تنفيذ S02 أو الدمج إلى `main`.
 
 **خارج النطاق:** لا أوامر لجميع المراحل، ولا خدمات أو مخازن جديدة، ولا تغيير لسياسة CI.
 
@@ -64,7 +64,7 @@
 
 ### S02 — حماية الكتابة والاستعادة وإزالة القفل
 
-**الحالة:** PLANNED_REVIEW؛ لا فرع مرحلة ولا أمر منشور.
+**الحالة:** `DRAFT_FOR_CHATGPT_REVIEW`؛ توجد مسودة تكليف منشورة، ولا يوجد أمر ZAI READY أو تنفيذ كود.
 
 **المواصفات:** [UNIT-042](02-SPECIFICATIONS/03-New-Design/UNIT-042-قفل-التطبيق.md)، [UNIT-044](02-SPECIFICATIONS/03-New-Design/UNIT-044-النسخ-الاحتياطي-والاستعادة.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -78,7 +78,7 @@
 
 **خارج النطاق:** لا إعادة بناء للهوية الذرية المنفذة. لا إغلاق شامل لـ044 قبل عائلات المراحل اللاحقة؛ تختبر كل عائلة عند تغييرها، والتجربة النهائية في S17.
 
-**شروط البدء:** S01. **العقود المملوكة:** SH-02, SH-03, SH-04.
+**شروط البدء:** S01 مقبولة على فرع التكامل، ومراجعة ChatGPT لمسودة التكليف، واعتماد المالك للأمر النهائي. **العقود المملوكة:** SH-02, SH-03, SH-04.
 
 **مواضع البنية القائمة المحتملة:** `apps/prototype-web/client/src/application/security/index.ts`؛ `apps/prototype-web/client/src/application/security/localLockBackoff.ts`؛ `apps/prototype-web/client/src/application/security/localLockService.ts`؛ `apps/prototype-web/client/src/application/security/pinOperations.ts`؛ `apps/prototype-web/client/src/application/transfers/index.ts`؛ `apps/prototype-web/client/src/application/transfers/localTransferService.ts`؛ `apps/prototype-web/client/src/components/security/AppLockGate.tsx`؛ `apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx`؛ `apps/prototype-web/client/src/pages/Settings.tsx`؛ `apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts`؛ `src/domain/shared/index.ts`.
 

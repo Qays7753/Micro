@@ -297,6 +297,7 @@
 | `docs/implementation/micro-component-execution/06-S01-PACKAGE-RECONCILIATION-2026-10-27.md` | مصالحة بصمة ZIP وعدد ملفات الحزمة والإضافات |
 | `docs/operations/control/items/DOC-010.json` | سجل Control لـS01 |
 | `docs/operations/control/workstreams/WS-226.json` | Workstream S01 على فرع التكامل |
+| `docs/implementation/micro-component-execution/00-S02-TASK-DRAFT-2026-10-27.md` | مسودة تكليف S02 للمراجعة؛ ليست أمر تنفيذ ولا جزءًا من حزمة ZIP الأصلية |
 
 ### تغطية ملفات الحزمة الأصلية
 
