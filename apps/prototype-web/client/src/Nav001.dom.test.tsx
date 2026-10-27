@@ -135,13 +135,10 @@ describe("NAV-001 — approved five-seat navigation", () => {
     wouterMocks.search = "?setup=1";
     render(<Harness page={<Home />} />);
     const banner = await screen.findByTestId("setup-success-banner");
-    expect(banner.textContent).toContain("تم إنشاء مشروعك");
-    expect(banner.textContent).toContain("مشروع-NAV3");
-    /* EXE-006 (AUD-NEW-11): اللافتة تدل على الموقع الحقيقي لصفحة الأساس —
-     * زر «صفحة الأساس» في قسم «المالية» بهذه الصفحة (N-03 الاسم الموحد)،
-     * لا إحالة لمقعد المالية بوصفه مصدر الصفحة. */
-    expect(banner.textContent).toContain("قسم «المالية»");
-    expect(banner.textContent).not.toContain("من «المالية»");
+    /* UNIT-001 V2 (R06/T08): نص المواصفة المعتمد وحده على لافتة النجاح؛ اسم
+     * المشروع يظهر في ترويسة الرئيسية من مصدره لا داخل اللافتة. */
+    expect(banner.textContent).toContain("تم إعداد مشروعك.");
+    expect(banner.textContent).not.toContain("مشروع-NAV3");
     cleanup();
     wouterMocks.search = "";
     render(<Harness page={<Home />} />);

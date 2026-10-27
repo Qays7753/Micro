@@ -247,6 +247,12 @@
  - **R11 متابعة موحدة — دليل الأساس المجمد (2026-10-16):** `docs/architecture/refactoring/r11-unified-followup-20261016/evidence/R11-UNIFIED-FOLLOWUP-BASELINE-2026-10-16.md` (جرد القراءة فقط قبل أول كتابة: الأساس الحي `cb3b9aaa` وفحص انحراف الحالة، حالات البنود التسعة، مخطط استدعاء خدمة المسودات وحدود التخزين، تتبع NF-001/002، حالة W2a والاشتقاق والأسبقية السباعية، سطح الاستيراد، وجرد مراجع مصدر Standard بقياس المرجع الخارجي الحي).
  - **R11 متابعة موحدة — ملحق اعتماد حمولة W2b (2026-10-16):** `docs/architecture/refactoring/r11-unified-followup-20261016/evidence/W2B-OWNER-PAYLOAD-ADDENDUM-2026-10-16.md` (سجل append-only للحمولة الدقيقة المعتمدة من المالك قبل أي كتابة سلوك: رمز `validation_error` عبر الثابت الكنوني القائم والنص العربي الحرفي؛ النطاق للزوج الحالي وحده والموضع بعد بوابة العدادات حصرًا؛ لا صدى لأسماء المفاتيح ولا تغيير للإرث أو الذهبيات أو MANIFEST).
  - **R11 متابعة موحدة — إغلاق مصدر Standard بالدليل D-12/F-040 (2026-10-16):** `docs/architecture/refactoring/r11-unified-followup-20261016/evidence/D12-F040-STANDARD-SOURCE-CLOSURE-2026-10-16.md` (تثبيت المرجع الحاكم بالقياس المباشر: رأس `Qays7753/Documents@main` وblob SHA لمسار design-tokens.css وآخر التزام لامس وsha256 المحتوى؛ سلّم سلطة واحد بلا مصدر ثانٍ؛ تصحيح سطرين حيين بإضافة مؤرخة؛ إغلاق توثيق/أدلة بلا تغيير كود أو عقد؛ New Design لم يُمس).
+ - **R11 UNIT-001 — دليل الأساس المجمد لموجة تنفيذ المكوّن (2026-10-18):** `docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-BASELINE-2026-10-18.md` (جرد القراءة فقط قبل أول كتابة كود لمكوّن UNIT-001: الأساس الحي `fd5d7ce6` وفحص انحراف الحالة، PR #376 التوثيقي وحده مفتوح، صفر Claims نشطة، ملفات الشاشة الحية وأسطرها، 42/42 اختبارًا مركزيًا عند الأساس، وأسطح الملكية والتكرار الخمسة B-DUP عند الأساس، وحد الاستعادة).
+ - **R11 UNIT-001 — تقرير تنفيذ V2 التاريخي (2026-10-18):** `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-REPORT-2026-10-18.md` (سجل التنفيذ السابق على مصدر V2؛ لا يُستخدم وحده لإغلاق V3).
+ - **R11 UNIT-001 — سجل مراجعي V2 التاريخي (2026-10-18):** `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-FIVE-REVIEWER-RECORD-2026-10-18.md` (سجل مراجعة التنفيذ السابق؛ لا يستبدل مراجعة V3 الجديدة).
+ - **R11 UNIT-001 — مقارنة V2/V3 ومصدر Drive (2026-10-18):** `docs/architecture/refactoring/r11-unit001-20261018/evidence/R11-UNIT001-V2-V3-DRIVE-GITHUB-COMPARISON-2026-10-18.md` (مقارنة قراءة فقط؛ Drive provenance، وV3 GitHub canonical).
+ - **R11 UNIT-001 — تقرير تنفيذ V3 ومصالحتها (2026-10-19):** `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-REPORT-2026-10-18.md` (السجل الكنوني لموجة V3 على فرع التكامل: مصفوفة أدلة ORG-AC01..03 وQ01 باختبارات مستقلة، خمسة مراجعين قراءة-فقط، ودليل هاتف صادق `NOT_EXECUTED` — العلامة `OWNER_REVIEW_REQUIRED` حتى قرار المالك).
+ - **R11 UNIT-001 — سجل مراجعي V3 قراءة-فقط (2026-10-19):** `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-FIVE-REVIEWER-RECORD-2026-10-18.md` (RV1..RV5 + المُصالِح؛ صفر FIX_NOW؛ تصنيف دائم لكل مكتشف؛ لا مراجع كتب شيئًا).
 
 ## ملفات الجذر والأدوات الحاكمة
 
@@ -262,6 +268,24 @@
 | `docs/operations/slice-handoff-template.md` | قالب بطاقة الشريحة (مقيد باختبار حوكم الوثائق) |
 | `.github/pull_request_template.md` | قالب PR (مقيد باختبار حوكم الوثائق) |
 | `docs/quality/persistent-entity-touchpoints.json` | بيان الكيانات الدائمة — يُحرسه `scripts/check-entity-touchpoints.mjs` واختبار حوكم |
+
+## مواصفات المكونات — المصدر الكنسي داخل GitHub
+
+| الملف | الدور |
+|---|---|
+| `docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V2.md` | نسخة V2 التاريخية لمواصفة UNIT-001؛ محفوظة للتتبع ولا تعتمد عليها موجة V3 |
+| `docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V3.md` | النسخة الكنسية الحالية لـUNIT-001؛ منقولة ومصالحة من Drive provenance، ويقرأها Zed AI من GitHub فقط |
+| `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-EXECUTION-PROMPT-2026-10-18.md` | عقد تنفيذ V2 التاريخي؛ لا يوجه الموجة الحالية |
+| `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-PROMPT-2026-10-18.md` | عقد التنفيذ الحالي لـZed AI لمراجعة وتنفيذ V3 على فرع التكامل وPR #378 |
+| `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-EXECUTION-REPORT-2026-10-18.md` | تقرير تنفيذ مصالحة V3 الحالي (بوابات ORG-AC/Q01 وأدلتها وحدودها) |
+| `docs/architecture/refactoring/r11-unit001-20261018/R11-UNIT001-V3-FIVE-REVIEWER-RECORD-2026-10-18.md` | سجل المراجعين الخمسة قراءة-فقط لموجة V3 |
+| `docs/operations/control/items/DOC-008.json` | سجل Control لمواصفة وتنفيذ UNIT-001 |
+| `docs/operations/control/workstreams/WS-224.json` | Claim وفرع التنفيذ والحدود والتسليم لـUNIT-001 |
+| `docs/product/components/UNIT-002-PROJECT-DATA-COMPLETION-SPEC-V5.md` | النسخة الكنسية لـUNIT-002 V5؛ اقتراح للمراجعة والاعتماد، وDrive provenance فقط |
+| `docs/architecture/components/unit002-20261019/evidence/UNIT-002-V5-DRIVE-GITHUB-PROVENANCE-2026-10-19.md` | إثبات مصدر Drive ونسخ UNIT-002 إلى GitHub دون ادعاء تنفيذ |
+| `docs/architecture/components/unit002-20261019/UNIT-002-ZAI-AUTHORIZATION-REVIEW-PROMPT-2026-10-19.md` | عقد مراجعة واعتماد ZAI قراءة-فقط قبل أي تنفيذ UNIT-002 |
+| `docs/operations/control/items/DOC-009.json` | سجل Control لمواصفة ومراجعة اعتماد UNIT-002 |
+| `docs/operations/control/workstreams/WS-225.json` | Workstream مراجعة UNIT-002 على فرع التكامل؛ لا Claim تنفيذ نشط |
 
 ## مخازن الأدلة — غير سلطوية وخارج القراءة الافتراضية
 
