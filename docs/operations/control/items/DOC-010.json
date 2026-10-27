@@ -98,5 +98,5 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "مراجعة Manus وChatGPT لنفس candidate SHA، إغلاق العوائق إن وجدت، ثم اعتماد المالك لـS01؛ لا كتابة أو أمر تنفيذ لـS02 قبل ذلك."
+  "next_action": "مراجعة Manus وChatGPT لنفس candidate SHA b67e249ae59e7a3982e3877afeca95e7a04a9321 على PR #383، إغلاق العوائق إن وجدت، ثم اعتماد المالك لـS01؛ لا كتابة أو أمر تنفيذ لـS02."
 }

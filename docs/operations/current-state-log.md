@@ -2652,3 +2652,10 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - **Control:** أُنشئا `DOC-010` و`WS-226` بحالة `IN_REVIEW`؛ `DOC-008/WS-224` و`DOC-009/WS-225` لم يوسعا.
 - **الحدود:** لا كود منتج، لا اختبارات إنتاجية، لا Schema 38/Export 30/Import wire format، لا قرار مالي، لا ZAI، لا كتابة main، لا merge، لا cleanup، ولا S02.
 - **الحالة:** `S01_DOCUMENTATION_DELIVERED — REVIEW_REQUIRED — NO_MAIN_WRITES_PERFORMED — NO_PRODUCT_CODE_CHANGED — NO_MERGE_PERFORMED — NO_CLEANUP_PERFORMED`.
+
+
+## §227 — 2026-10-27 — S01 candidate and Draft PR handoff
+- أُثبت candidate S01 عند `b67e249ae59e7a3982e3877afeca95e7a04a9321` فوق base `3584aa1d08cea3e0a00623b719fed7f991ce187f`، ورفعت الحزمة على فرع `components/integration-20261027`.
+- أُنشئ PR #383 بحالة Draft؛ لم تُجرَ كتابة على `main` ولم يُدمج أو يُنظف أي فرع، ولا يوجد أمر ZAI أو S02.
+- الحواجز التوثيقية على candidate: Operations Control PASS (96/68/1)، Tracker check PASS، doc-index PASS، current-state-size PASS (20,252/20,480)، agent-document-contract PASS، و`git diff --check` PASS؛ تحذيرات Workstreams التاريخية معروفة وليست blocker جديدًا.
+- **الحالة:** `S01_DOCUMENTATION_DELIVERED — REVIEW_REQUIRED — CANDIDATE_B67E249 — PR383_DRAFT`.
