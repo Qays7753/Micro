@@ -40,7 +40,7 @@ The current UNIT-021 delivery fingerprint after that whitespace correction is `1
 |---|---|
 | `00-PROGRAM.md` | `9e52d314612151f29a181a87e324ebe072f80924137c8ab4e1be8948d5669129` |
 | `01-STAGES.md` | `a3957f280b553642330ac9f4ffa23ec7e237732ca815be6d4f636a9601de320a` |
-| `02-PROGRESS-AND-HANDOFF.md` | `2191beefcf55f14d04c30b38438bbcef075ea9f13e2c9784eaa4d3a6b0faf8f0` |
+| `02-PROGRESS-AND-HANDOFF.md` | `93551f6121873a49645075881c8038cce29c70c94a4112dc0a1153aa53abefe9` |
 | `02-SPECIFICATIONS/00-START-HERE-AR.md` | `91e3b3f1e84086ab55a38c90173655ab9c7f0d98e9853a23b5fe1a2bd89fda98` |
 | `02-SPECIFICATIONS/01-Standards/01-Component-Criteria-AR.md` | `bff0e8b2e9a67a9f058faf67cfbd019f9ac39cc781878f45c0f4f5f6a2cc1443` |
 | `02-SPECIFICATIONS/01-Standards/02-System-Data-and-Financial-Readiness-AR.md` | `0153aea752ac0609893283829313741b40302ac324d6583f9f3922b1bca6cea5` |
@@ -114,7 +114,7 @@ The current UNIT-021 delivery fingerprint after that whitespace correction is `1
 | `02-SPECIFICATIONS/05-Data-and-Implementation/04-Staged-Execution-and-Review-Protocol-AR.md` | `eecb3b69bff30a6fcc0cb83d444cd353387a48245f93ec3c8a665713c6aaee11` |
 | `BASELINE-RECONCILIATION.md` | `90df56b549138fa69b19e67801905ca40e763659b3cda98dee1daad40b11f4a4` |
 | `DEPENDENCIES-AND-TRACEABILITY.md` | `c204b9847b9c259f9833a29b79d795946a69180131dec11de5017d4b998b0dc5` |
-| `MANIFEST.md` | `fffce26852b7bf664fea2cfc1c4cbb416252ee98d9ea81009254e8eea1c4ca92` |
+| `MANIFEST.md` | `53d5db3da3714d760b43809c5bea864bfbf62973d32abe6da06bbc5ade5ffc1c` |
 
 ## 5. Operations Control generated-view fingerprints after correction
 
@@ -122,6 +122,13 @@ The source JSON was regenerated into the official views after the S01 correction
 
 | path | SHA-256 |
 |---|---|
-| `docs/operations/control/generated/MASTER-TRACKER.csv` | `f181fa7c6f3faa60e0eaf90cac5ea6e1fed1b38c7d8252f03f07a3eda201da68` |
+| `docs/operations/control/generated/MASTER-TRACKER.csv` | `6506910097b3993ef7d4c049392e280c08b78bc42bfaf52f97aef594a131f554` |
 | `docs/operations/control/generated/MASTER-TRACKER.md` | `15a218f16e9b25f9d85d44ff1f473b2444dce389d353212ce8c40c49d2a94755` |
-| `docs/operations/control/generated/MASTER-TRACKER.xlsx.meta.json` | `e07a08b61ad91e0281baed5e04caea5554efca2f516e009d517384d2c2b673a2` |
+| `docs/operations/control/generated/MASTER-TRACKER.xlsx.meta.json` | `4c87efad370bd741288ab602c008c150b636ccfe93353b33f943e43c9a6f10fb` |
+
+## 6. Exact correction-head evidence
+
+- **Correction head:** `1ab46931689daacaa766eacba6fb439d9ac04894`; parent/start head: `027f31f0d735e8a48d3ab9f33fa4cfb3efc72cfa`.
+- **GitHub CI:** [run 40558258212](https://github.com/Qays7753/Micro/actions/runs/40558258212) / [checks job](https://github.com/Qays7753/Micro/actions/runs/40558258212/job/122380026027) — `SUCCESS` on `1ab46931689daacaa766eacba6fb439d9ac04894`.
+- **Cloudflare Pages:** [deployment](https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/3cdfb790-a16a-4623-afc7-e23b20348738) — `SUCCESS` on `1ab46931689daacaa766eacba6fb439d9ac04894`.
+- **Original ZIP:** `330c88c7b19301787b7581524137d846dd1417459f456db36633dc7355542662` remains the external input fingerprint and is not replaced by any post-correction file fingerprint.

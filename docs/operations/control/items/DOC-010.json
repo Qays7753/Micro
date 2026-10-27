@@ -5,7 +5,7 @@
   "status": "IN_REVIEW",
   "priority": "P1",
   "stage": "micro-component-execution-s01-20261027",
-  "summary": "نشر حزمة تنفيذ المكونات ذات 45 مواصفة وتثبيت سلطة النسخ والتبعيات وملكية المراحل وفرع التكامل الواحد ضمن S01؛ تصحيح ملاحظتي GPT-002 وGPT-004 فقط؛ لا تنفيذ كود ولا انتقال إلى S02.",
+  "summary": "نشر حزمة تنفيذ المكونات ذات 45 مواصفة وتثبيت سلطة النسخ والتبعيات وملكية المراحل وفرع التكامل الواحد ضمن S01؛ تصحيح GPT-002 وGPT-004 سُلّم على الرأس المحدد؛ لا تنفيذ كود ولا انتقال إلى S02.",
   "finding_classification": "NEW_FINDING",
   "finding_state": "CONFIRMED",
   "classification": "GOVERNANCE",
@@ -43,7 +43,8 @@
     "DOC-010/WS-226 في IN_REVIEW، وPR واحد Draft على فرع التكامل، ولا كتابة على main.",
     "Generated views صحيحة ومولدة من JSON المصدر، وحراس الفهرس والحجم وعقد الوثائق يمرون.",
     "لا تغيير في كود المنتج أو الاختبارات أو Schema 38 أو Export 30 أو Import wire format أو القرارات المالية أو سياسة CI.",
-    "حالة مراجعة S01 قبل دفعة التصحيح: GPT-001 وGPT-003 وGPT-005 مغلقة؛ GPT-002 وGPT-004 جزئيتان. هذه الدفعة تعالج الجزئيتين فقط على PR #383 ولا تعيد فتح البنود المغلقة."
+    "حالة مراجعة S01 قبل دفعة التصحيح: GPT-001 وGPT-003 وGPT-005 مغلقة؛ GPT-002 وGPT-004 جزئيتان. هذه الدفعة تعالج الجزئيتين فقط على PR #383 ولا تعيد فتح البنود المغلقة.",
+    "تسليم تصحيح S01-GPT-002 وS01-GPT-004 عند الرأس 1ab46931689daacaa766eacba6fb439d9ac04894؛ GitHub CI وCloudflare Pages ناجحان على الرأس نفسه، وGPT-001 و003 و005 مغلقة ولا تعاد."
   ],
   "areas": [
     "docs/implementation/micro-component-execution",
@@ -68,7 +69,10 @@
     "docs/implementation/micro-component-execution/04-S01-AUTHORITY-MATRIX-2026-10-27.md",
     "docs/implementation/micro-component-execution/05-S01-RESUME-INSTRUCTIONS-2026-10-27.md",
     "docs/implementation/micro-component-execution/06-S01-PACKAGE-RECONCILIATION-2026-10-27.md",
-    "https://github.com/Qays7753/Micro/pull/383"
+    "https://github.com/Qays7753/Micro/pull/383",
+    "https://github.com/Qays7753/Micro/actions/runs/40558258212",
+    "https://github.com/Qays7753/Micro/actions/runs/40558258212/job/122380026027",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/3cdfb790-a16a-4623-afc7-e23b20348738"
   ],
   "dependencies": [
     "DOC-007"
@@ -100,5 +104,5 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "مراجعة رأس تصحيح S01 الجديد على PR #383 للتحقق من إغلاق GPT-002 وGPT-004 بالأدلة نفسها، ثم مراجعة Manus وChatGPT واعتماد المالك؛ لا S02 ولا merge ولا cleanup."
+  "next_action": "مراجعة الرأس المحدد 1ab46931689daacaa766eacba6fb439d9ac04894 وإغلاق GPT-002 وGPT-004 رسميًا بالأدلة المنشورة، ثم مراجعة Manus وChatGPT واعتماد المالك؛ لا S02 ولا merge ولا cleanup."
 }
