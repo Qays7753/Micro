@@ -29,23 +29,26 @@
     },
     {
       "package": "vite",
-      "version": "7.3.6",
+      "version": "7.3.7",
       "file": "dist/node/chunks/config.js",
       "classification": "dev-only (dev server / build); config-sourced patterns",
       "carrier_chain": "chokidar v3 watcher chain (anymatch -> micromatch -> braces) bundled into vite's dist at build time from the vite source repo's devDependency chokidar ^3.6.0 — NOT a runtime dependency of the published package, so no override can reach it",
-      "upstream_latest_checked": "8.3.3 + in-range 7.3.7 (re-verified live 2026-10-07 by tarball scan) — both still carry the code (build-time-bundled chokidar-3 chain); vite 8.3.0-beta.1 also carries it"
+      "upstream_latest_checked": "8.3.5 + in-range 7.3.7 (re-verified live 2026-10-27 by installed-tree scan) — both still carry the code; vite 8.3.0-beta.1 also carries it"
     }
   ],
   "removed_entries": [
     {
       "package": "tsx",
       "version": "4.23.12",
-      "files": ["dist/cli.mjs", "dist/cli.cjs"],
+      "files": [
+        "dist/cli.mjs",
+        "dist/cli.cjs"
+      ],
       "removed_in": "this PR (2026-10-06) by graph removal: .npmrc auto-install-peers=false + @testing-library/dom declared as an explicit app devDependency — tsx was an auto-installed optional peer of vite, never invoked by any script/CI/config in this repository",
       "verified_by": "clean reinstall reproduces the 4-copy inventory; full gate green; hostile-review experiment independently reproduced the removal route"
     }
   ],
-  "documented_limitation": "The four remaining copies have no safe removal route today (routes A-E re-exhausted with live tarball evidence on 2026-10-07): the latest stable releases of all three tools on every stable line still inline the braces@3.0.3 code (vite 7.3.7 and 8.3.3; rollup 4.64.0; prettier 3.9.9); the code is build-time-inlined into published dist files so dependency upgrades and pnpm overrides cannot alter the bundled bytes; none of the tools officially supports custom rebuilds; and hand-editing generated third-party bundles is forbidden. See docs/quality/vendored-braces-inventory.md for the full route analysis, the adopted tsx-removal route, and the revisit triggers.",
-  "generated_at": "2026-10-06",
-  "reverified_at": "2026-10-07"
+  "documented_limitation": "The four remaining copies have no safe removal route today (routes A-E re-exhausted with live tarball evidence on 2026-10-07): the latest stable releases of all three tools on every stable line still inline the braces@3.0.3 code (vite 7.3.7 and 8.3.5; rollup 4.64.0; prettier 3.9.9); the code is build-time-inlined into published dist files so dependency upgrades and pnpm overrides cannot alter the bundled bytes; none of the tools officially supports custom rebuilds; and hand-editing generated third-party bundles is forbidden. See docs/quality/vendored-braces-inventory.md for the full route analysis, the adopted tsx-removal route, and the revisit triggers.",
+  "generated_at": "2026-10-27",
+  "reverified_at": "2026-10-27"
 }

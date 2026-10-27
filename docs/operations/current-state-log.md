@@ -2624,3 +2624,11 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - أضيف تقرير provenance وعقد `UNIT-002-ZAI-AUTHORIZATION-REVIEW-PROMPT-2026-10-19.md`. العقد يطلب مراجعة متطلبات/ملكية/معمارية قراءة-فقط وخمس مراجعات متسلسلة، ولا يجيز كودًا أو حذف مداخل أو تغيير مال/تاريخ/Schema 38/Export 30/Import أو دمجًا.
 - أضيف `DOC-009` و`WS-225` بحالة `REVIEW_REQUIRED`، لا Claim تنفيذ نشط. السجل يطلب قرار المالك لكل نقطة مفتوحة في V5، خصوصًا ملكية البوابة، Q01–Q03، returnTo، الاستيراد الافتتاحي مقابل الاستعادة، وإزالة المداخل القديمة.
 - **الحالة:** `UNIT002_SPEC_PUBLISHED — AUTHORIZATION_REVIEW_REQUIRED — IMPLEMENTATION_NOT_AUTHORIZED — NO_MAIN_WRITE — NO_MERGE_PERFORMED — NO_BRANCH_CLEANUP_PERFORMED — NO_SECRETS_EXPOSED`.
+
+## §223 — 2026-10-27 — مصالحة ما بعد دمج PR #378
+- دُمج PR #378 من `components/integration-20261018` إلى `main` باستخدام Merge commit `55eca55ace0e069779e1ca20e6288b82551cc7be` بعد تحقق الرأس `3e2194d674c539eb8e21f484f1b7b51359bc22ab` ومحاكاة دمج نظيفة.
+- Cloudflare Pages على Merge commit نجح؛ CI فشل بعد الدمج في Dependency Audit بعد ثلاث محاولات، مع 12 advisory محجوبة بلا استثناء مسجل (Vite، Vitest mocker، serialize-javascript، fast-uri). لا يُعامل ذلك كفشل عشوائي ولا يُحل بإضعاف الحارس.
+- `DOC-008` و`WS-224` انتقلا من `IN_REVIEW` إلى `MERGED_UNVERIFIED` مع توثيق Merge SHA. لا `VERIFIED` قبل إصلاح Dependency Audit وإعادة التحقق على `main` نفسه.
+- حواجز الوثائق والفهرس والحجم وعقد الوكلاء نجحت على الرأس المدموج؛ `validate.py` كان محجوبًا مؤقتًا لأن السجلات كانت لا تزال `IN_REVIEW` قبل هذه المصالحة.
+- فرع التكامل محفوظ كحد استعادة؛ لا حذف فروع ولا بدء UNIT-002 قبل نجاح البوابات ومصالحة ما بعد الدمج.
+- الحالة: `PR378_MERGED_UNVERIFIED — CLOUDflare_PASS — CI_DEPENDENCY_AUDIT_BLOCKED — NO_BRANCH_CLEANUP — NO_UNIT002_EXECUTION`.

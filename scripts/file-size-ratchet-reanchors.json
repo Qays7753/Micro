@@ -1978,6 +1978,25 @@
     "trigger": "PR #377 review comment 6250612100 (FIX_NOW merge blocker — cloud re-anchor incomplete)",
     "ocRef": "DOC-008"
    }
+  },
+  {
+   "id": "SECURITY-DEPENDENCY-AUDIT-VENDORED-BASELINE-20261027",
+   "date": "2026-10-27",
+   "path": "scripts/vendored-braces-baseline.json",
+   "from": {
+    "nbLoc": 51,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 54,
+    "band": "NORMAL"
+   },
+   "reason": "Dependency Audit remediation: Vite 7.3.6→7.3.7 changed the documented vendored-braces inventory metadata (version, provenance date, and current limitation wording) while the guard baseline was updated deliberately to reflect the exact installed-tree result. The guard remains fail-closed and the four vendored copies remain fully disclosed; no threshold or scan behavior changed.",
+   "authorization": {
+    "ownerReview": "Owner-approved post-merge remediation on 2026-10-27: repair the real Dependency Audit failure without suppression or guard weakening; update vendored baseline and evidence in the same PR as the dependency patch.",
+    "trigger": "Post-merge CI Dependency Audit failure on main after PR #378; remediation candidate updates Vite 7.3.7, fast-uri 3.1.9, and serialize-javascript 7.1.4 with clean pnpm audit.",
+    "ocRef": "DOC-008"
+   }
   }
  ]
 }
