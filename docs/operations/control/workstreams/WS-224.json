@@ -1,7 +1,7 @@
 {
   "id": "WS-224",
   "title": "مصالحة وتنفيذ مواصفة UNIT-001 V3 — إعداد المشروع لأول استخدام على فرع التكامل",
-  "status": "IN_REVIEW",
+  "status": "REVIEW_REQUIRED",
   "items": [
     "DOC-008"
   ],
@@ -44,8 +44,8 @@
   "agent": "ZAI — one sequential writer; five read-only reviewers after implementation (no code edits by reviewers)",
   "pr": 378,
   "started_at": "2026-10-18",
-  "updated_at": "2026-10-19",
-  "next_action": "قرار مالك PR #378 بعد مراجعة أدلة الموجتين (المصالحة + دمج Q01 الحقيقي عبر 044 — VERIFIED)؛ بوابة دليل الهاتف الفعلي خارجية تُغلق بجلسة جهاز عند قرار المالك؛ لا MERGED_UNVERIFIED/VERIFIED قبل دمج موافق وإثبات على main؛ لا تنظيف ولا UNIT-002 ولا موجة أخرى تلقائيًا.",
+  "updated_at": "2026-10-27",
+  "next_action": "إصلاح Dependency Audit على main في PR مستقل دون إضعاف الحارس؛ بعد CI أخضر والتحقق من الرأس المدموج تُراجع DOC-008/WS-224 للانتقال إلى VERIFIED ثم قرار حذف فرع التكامل؛ لا UNIT-002 تنفيذًا تلقائيًا.",
   "notes": [
     "Claim واحد لهذه الموجة فقط؛ PR #376 (عقد التنفيذ، توثيقي) لا يُعدَّل ولا يُدمج من هنا.",
     "المواصفة الكنسية الحالية: docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V3.md؛ V2 محفوظة تاريخيًا. مصدر Drive provenance موثق في evidence/R11-UNIT001-V2-V3-DRIVE-GITHUB-COMPARISON-2026-10-18.md؛ Zed AI لا يقرأ Drive.",
@@ -56,7 +56,9 @@
     "حد الاستعادة: كل تغييرات V3 تُعكس كوحدة متسقة؛ إغلاق PR #378 قبل الدمج بلا أثر على main؛ لا force-push ولا حذف فروع.",
     "معالجة المراجعة المستقلة (2026-10-18، تعليق PR #377 6250612100): U001-IR-001..004 أُغلقت عند جذورها داخل نفس الـPR — commitProfileCreate الذرّي عند حد الكتابة (منفذ 130→131 موثقًا + تكافؤ المحوّلين) وعقد تزامن مسودة الإعداد (expectedUpdatedAt + سلسلة كتابة واحدة + تعارض صادق معلن) وإرساء أسطح السحابة من القياس الفعلي نفس-الرأس (github-actions مباشرة من التشغيل 39136747222 على f5b8d460؛ cloudflare-pages باشتقاق فئة البيئة المثبت مع دليل التكافؤ المسجل؛ السقوف والسماحات لم تُمس) وتصحيح الحالة الكنونية بالأدلة الفعلية (f13d5f02 + f5b8d460؛ 952/952 + 2780/2780). لا دمج ولا تنظيف ولا UNIT-002.",
     "موجة مصالحة V3 (2026-10-19): استمرار على نفس الفرع/PR من رأس نشر V3 5b86bf4؛ الجديد = قيود ملكية/أدلة فقط (جناح اختبار V3 9/9 مسمّى بمعرفات البوابات + Views مولدة + وثائق)؛ صفر تغيير إنتاج فقياسات الأسطح تطابق الأسس بلا إعادة إرساء؛ دليل الهاتف الفعلي NOT_EXECUTED بمانع ادعاء PR_READY وفق عقد V3 (لا يُحوَّل NOT_EXECUTED إلى PR_READY).",
-    "موجة الاستكمال (2026-10-19، تعليق المالك 6255532246): استُبدل اختبارا محاكاة Q01 باختباري دمج حقيقي عبر مالك 044 الحي (prepareImport الفعلي + بوابة رمز القفل + confirmImport/replaceSnapshot الفعليان + رجوع returnTo + فتح المستعاد في الرئيسية بلا هوية ثانية؛ ورفض ملف أجنبي بلا كتابة جزئية) — صفر تغيير إنتاج؛ الربط التركيبي لـ044 صار VERIFIED في تقرير V3 §5 والهاتف يبقى NOT_EXECUTED؛ المراجعون الخمسة جولة ثانية قراءة-فقط صفر FIX_NOW على الكود."
+    "موجة الاستكمال (2026-10-19، تعليق المالك 6255532246): استُبدل اختبارا محاكاة Q01 باختباري دمج حقيقي عبر مالك 044 الحي (prepareImport الفعلي + بوابة رمز القفل + confirmImport/replaceSnapshot الفعليان + رجوع returnTo + فتح المستعاد في الرئيسية بلا هوية ثانية؛ ورفض ملف أجنبي بلا كتابة جزئية) — صفر تغيير إنتاج؛ الربط التركيبي لـ044 صار VERIFIED في تقرير V3 §5 والهاتف يبقى NOT_EXECUTED؛ المراجعون الخمسة جولة ثانية قراءة-فقط صفر FIX_NOW على الكود.",
+    "2026-10-27: PR #378 دُمج إلى main بMerge commit 55eca55ace0e069779e1ca20e6288b82551cc7be. Cloudflare ناجح؛ CI فشل في Dependency Audit بسبب 12 advisory غير مستثناة؛ الفرع محفوظ كحد استعادة حتى إصلاح البوابة والتحقق.",
+    "2026-10-27: وفق Validator، نُقلت حالة Workstream من MERGED_UNVERIFIED إلى REVIEW_REQUIRED لأن PR #378 مدموج وبوابة Dependency Audit بعد الدمج فاشلة؛ DOC-008 يبقى MERGED_UNVERIFIED حتى الإصلاح والتحقق."
   ],
   "migration_baseline": false,
   "evidence": [
@@ -82,6 +84,19 @@
       "changed_at": "2026-10-18",
       "actor": "owner-orchestration",
       "reason": "اكتمال التنفيذ والبوابة الكاملة (pnpm check EXIT 0؛ 952/952 جذرًا و2768/2768 تطبيقًا و26/26 حارسًا) والمراجعون الخمسة قراءة-فقط مع إغلاق كل FIX_NOW بالدليل وبروفة استعادة REHEARSAL_PASS؛ فُتح PR #377 من الرأس b29b2e3c إلى main للمراجعة الملكية — لا VERIFIED قبل الدمج والتحقق."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-27",
+      "actor": "owner-orchestration",
+      "reason": "PR #378 مدموج بMerge commit 55eca55ace0e069779e1ca20e6288b82551cc7be؛ Cloudflare Pages ناجح وCI Dependency Audit فاشل بعد الدمج، لذلك تبقى الحالة MERGED_UNVERIFIED ولا يُحذف الفرع قبل بوابة خضراء."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-10-27",
+      "actor": "reconciliation:post-merge-378",
+      "reason": "PR #378 مدموج، لكن CI بعد الدمج فشل في Dependency Audit؛ Workstream لا يبقى Claim نشطًا بعد الدمج، وتبقى المصالحة مطلوبة قبل VERIFIED أو حذف فرع التكامل."
     }
-  ]
+  ],
+  "merge_sha": "55eca55ace0e069779e1ca20e6288b82551cc7be"
 }

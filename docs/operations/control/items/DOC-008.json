@@ -2,7 +2,7 @@
   "id": "DOC-008",
   "title": "UNIT-001 إعداد المشروع لأول استخدام — مصالحة V3 وتنفيذ مضبوط على فرع التكامل",
   "type": "FEATURE",
-  "status": "IN_REVIEW",
+  "status": "MERGED_UNVERIFIED",
   "priority": "P1",
   "stage": "r11-unit001-20261018",
   "summary": "مراجعة ومصالحة مواصفة UNIT-001 V3 مع تنفيذ V2 القائم على فرع التكامل components/integration-20261018 وPR #378: شاشة الاسم بلا إعداد نقدي، ملكية الهوية الواحدة، تفويض الاستعادة إلى 044، مصالحة ORG-001/002/009/024، وبوابات U001-ORG-AC01..03 وQ01. الإصلاح الجذري داخل النطاق فقط؛ لا UNIT-002 ولا New Design ولا دمج أو تنظيف في هذه الموجة.",
@@ -12,7 +12,7 @@
   "gate_classification": "NOT_APPLICABLE",
   "root_cause": "معالج الإعداد الحالي يجمع إنشاء الهوية وإعداد النقد (كاتب مالي ثانٍ داخل البداية) ويترك دليلًا لتحرير هوية قائمة من مسار الإعداد، بلا مدخل استعادة في شاشة الإعداد — المواصفة V2 تفصل الملكية: 001 ينشئ الهوية وحدها، و022 يملك النقد، و044 يملك الاستعادة، و039 يملك تعديل الاسم.",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "نطاق V3 معتمد للتنفيذ المضبوط على الفرع طويل العمر components/integration-20261018 وPR #378؛ لا كتابة على main ولا دمج ولا تنظيف فروع ولا بدء UNIT-002 أو New Design في هذه الموجة.",
+  "owner_decision": "نطاق V3 دُمج إلى main عبر PR #378 بMerge commit موثق؛ يبقى MERGED_UNVERIFIED حتى نجاح فحوص ما بعد الدمج ومصالحة الحالة، ولا يبدأ UNIT-002 قبل عقده المستقل.",
   "tests_required": [
     "pnpm --filter @micro/prototype-web test -- client/src/pages/Setup.ui.test.tsx",
     "pnpm --filter @micro/prototype-web test -- client/src/pages/Setup.v3Gates.test.tsx",
@@ -115,7 +115,7 @@
   "related_items": [
     "DOC-007"
   ],
-  "updated_at": "2026-10-19",
+  "updated_at": "2026-10-27",
   "status_history": [
     {
       "status": "CLAIMED",
@@ -134,8 +134,15 @@
       "changed_at": "2026-10-18",
       "actor": "owner-orchestration",
       "reason": "اكتمال التنفيذ والاختبارات (44 Setup + 6 service) والبوابة الكاملة EXIT 0 والمراجعات الخمس مع الإغلاق الجذري لكل FIX_NOW؛ فُتح PR #377 للمراجعة الملكية — لا VERIFIED قبل الدمج والتحقق على main."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-10-27",
+      "actor": "owner-orchestration",
+      "reason": "دُمج PR #378 بMerge commit 55eca55ace0e069779e1ca20e6288b82551cc7be؛ Cloudflare Pages نجح، لكن CI بعد الدمج حُجب في Dependency Audit، لذلك لا يصح VERIFIED أو حذف الفرع قبل إصلاح البوابة والتحقق على main."
     }
   ],
   "migration_baseline": false,
-  "next_action": "مراجعة مالك PR #378 على أدلة الموجتين: موجة المصالحة (تقرير V3 + سجل المراجعين جولة 1 + جناح البوابات 9/9) وموجة دمج Q01 الحقيقي (اختبارا 044 الفعليان: نجاح برمز واستبدال replaceSnapshot حقيقيين ورجوع returnTo وفتح المستعاد بلا هوية ثانية، ورفض بلا كتابة جزئية — سجل المراجعين جولة 2)؛ الربط التركيبي لـ044 صار VERIFIED والهاتف الفعلي يبقى NOT_EXECUTED (بوابة خارجية UAT-001/DEVICE-001)؛ ثم قرار الدمج الصريح — بعده فقط MERGED_UNVERIFIED ثم VERIFIED بأدلة على رأس main الفعلي؛ لا UNIT-002 قبل عقده المستقل."
+  "next_action": "إصلاح Dependency Audit على main عبر PR مستقل دون إضعاف الحارس، ثم إعادة تشغيل CI والتحقق من الرأس 55eca55ace0e069779e1ca20e6288b82551cc7be؛ بعد نجاح البوابة يمكن ترقية الحالة إلى VERIFIED وتقرير حذف فرع التكامل.",
+  "merge_sha": "55eca55ace0e069779e1ca20e6288b82551cc7be"
 }
