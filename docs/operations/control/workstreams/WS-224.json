@@ -1,7 +1,7 @@
 {
   "id": "WS-224",
   "title": "مصالحة وتنفيذ مواصفة UNIT-001 V3 — إعداد المشروع لأول استخدام على فرع التكامل",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-008"
   ],
@@ -45,7 +45,7 @@
   "pr": 378,
   "started_at": "2026-10-18",
   "updated_at": "2026-10-27",
-  "next_action": "إصلاح Dependency Audit على main في PR مستقل دون إضعاف الحارس؛ بعد CI أخضر والتحقق من الرأس المدموج تُراجع DOC-008/WS-224 للانتقال إلى VERIFIED ثم قرار حذف فرع التكامل؛ لا UNIT-002 تنفيذًا تلقائيًا.",
+  "next_action": "لا إجراء تنفيذ مطلوب لـUNIT-001؛ Workstream VERIFIED على main عند dba90fa9d7e7e01652a16c311421d05b7320f34e بعد نجاح GitHub CI وCloudflare Pages. لا UNIT-002 تنفيذًا تلقائيًا.",
   "notes": [
     "Claim واحد لهذه الموجة فقط؛ PR #376 (عقد التنفيذ، توثيقي) لا يُعدَّل ولا يُدمج من هنا.",
     "المواصفة الكنسية الحالية: docs/product/components/UNIT-001-PROJECT-SETUP-SPEC-V3.md؛ V2 محفوظة تاريخيًا. مصدر Drive provenance موثق في evidence/R11-UNIT001-V2-V3-DRIVE-GITHUB-COMPARISON-2026-10-18.md؛ Zed AI لا يقرأ Drive.",
@@ -96,7 +96,14 @@
       "changed_at": "2026-10-27",
       "actor": "reconciliation:post-merge-378",
       "reason": "PR #378 مدموج، لكن CI بعد الدمج فشل في Dependency Audit؛ Workstream لا يبقى Claim نشطًا بعد الدمج، وتبقى المصالحة مطلوبة قبل VERIFIED أو حذف فرع التكامل."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-27",
+      "actor": "owner-orchestration",
+      "reason": "PR #380 أصلح Dependency Audit جذريًا دون إضعاف الحارس، ثم دُمج بMerge commit dba90fa9d7e7e01652a16c311421d05b7320f34e؛ GitHub CI وCloudflare Pages نجحا على main عند الرأس نفسه."
     }
   ],
-  "merge_sha": "55eca55ace0e069779e1ca20e6288b82551cc7be"
+  "merge_sha": "55eca55ace0e069779e1ca20e6288b82551cc7be",
+  "verified_on_main_sha": "dba90fa9d7e7e01652a16c311421d05b7320f34e"
 }

@@ -2632,3 +2632,9 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 - حواجز الوثائق والفهرس والحجم وعقد الوكلاء نجحت على الرأس المدموج؛ `validate.py` كان محجوبًا مؤقتًا لأن السجلات كانت لا تزال `IN_REVIEW` قبل هذه المصالحة.
 - فرع التكامل محفوظ كحد استعادة؛ لا حذف فروع ولا بدء UNIT-002 قبل نجاح البوابات ومصالحة ما بعد الدمج.
 - الحالة: `PR378_MERGED_UNVERIFIED — CLOUDflare_PASS — CI_DEPENDENCY_AUDIT_BLOCKED — NO_BRANCH_CLEANUP — NO_UNIT002_EXECUTION`.
+
+## §224 — 2026-10-27 — تحقق نهائي لـUNIT-001 بعد إصلاح Dependency Audit
+- PR #380 (إصلاح Dependency Audit) دُمج إلى `main` بMerge commit `dba90fa9d7e7e01652a16c311421d05b7320f34e` بعد نجاح فحوص PR، ونجح GitHub CI بعد الدمج (run `40515273571`) على الرأس نفسه؛ Cloudflare Pages على PR #380 نجح، ونتيجة النشر بعد الدمج متحققة عبر بوابة Pages المرتبطة بالمشروع.
+- `DOC-008` و`WS-224` انتقلا من `MERGED_UNVERIFIED`/`REVIEW_REQUIRED` إلى `VERIFIED`، مع `merge_sha=55eca55ace0e069779e1ca20e6288b82551cc7be` و`verified_on_main_sha=dba90fa9d7e7e01652a16c311421d05b7320f34e`.
+- لا تغيير مالي أو تاريخي أو Schema/Export/Import أو UI بصري؛ إصلاح التبعيات كان أمنيًا/بنيويًا فقط، مع إبقاء الحراس والسقوف. PR #379 أُغلق باعتباره superseded ولا يُدمج.
+- الخطوة التشغيلية التالية: تحديث `current-state.md` إلى الرأس النهائي بعد PR المصالحة، ثم حذف الفروع التاريخية غير `main` بعد تحقق ancestry وعدم وجود PR مفتوح.
