@@ -12,7 +12,6 @@ import React from "react";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { LocalLockService } from "@/application/security/localLockService";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { StatementService } from "@/application/finance/statementService";
@@ -47,7 +46,6 @@ describe("P-4.2-3 — القسم الموحد «البيانات والنسخ ا
     );
     const settingsStore = new MemoryLocalStore();
     mockedUsePrototypeServices.mockReturnValue({
-      localLock: new LocalLockService(new MemoryLocalStore()),
       integrityCheck: new IntegrityCheckService(
         new MemoryLocalStore(),
         new ProjectFinancialService(new MemoryLocalStore()),

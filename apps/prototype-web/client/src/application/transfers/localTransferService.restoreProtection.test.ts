@@ -260,6 +260,7 @@ describe("S02-A restore protection boundary — SDF-037/038/042 command receipt 
     const protection = await protectionOf(store);
     expect(protection.generation).toBe(generationAfterFirst);
     const rollbackAfterSecond = await service.readActiveRollback();
+    if (!rollbackAfterSecond.ok || !rollbackAfterFirst.ok) throw new Error("rollback read failed");
     expect(rollbackAfterSecond.value?.createdAt).toBe(rollbackAfterFirst.value?.createdAt);
   });
 
@@ -275,7 +276,9 @@ describe("S02-A restore protection boundary — SDF-037/038/042 command receipt 
 
     /* إيصال مزوّر بنفس المفتاح وحمولة مختلفة — عبر منفذ المخزن نفسه (محاكاة
      * سجل تالف/مكتوب خارجيًا): التعارض يُرفض بلا أي كتابة. */
-    const digestBefore = canonicalSnapshotDigest((await store.readSnapshot()).value!);
+    const before = await store.readSnapshot();
+    if (!before.ok) throw new Error(before.message);
+    const digestBefore = canonicalSnapshotDigest(before.value);
     const protection = await protectionOf(store);
     const doctoredReceipt = {
       ...protection.receipt!,

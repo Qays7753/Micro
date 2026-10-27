@@ -88,7 +88,9 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
    * الباب بعد توحيد إعلان CapabilityId — توسيع سطح مقصود PC-3. */
   preferences: ["isKnownCapabilityId"],
   scheduling: ["buildCapacityDecisionViewModel"],
-  security: ["LOCK_AUTO_LOCK_OPTIONS", "LocalLockService"],
+  /* S02-B (SH-04 — UNIT-042): باب الأمن بعد تقاعد القفل — المقيم الوحيد
+   * هو تقاعد السجل القديم؛ لا خدمة قفل ولا خياراتها بعد اليوم. */
+  security: ["retireLocalLockRecord"],
   share: ["collectionShareDraft", "customerShareDraft", "standingCollectionEvent"],
   suppliers: [],
   /* R2 (M-11/D13، 2026-10-08): أول قيمة في باب الوقت — حد «اليوم»

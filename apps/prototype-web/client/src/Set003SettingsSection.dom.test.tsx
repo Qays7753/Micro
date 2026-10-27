@@ -15,7 +15,6 @@ import { CostService } from "@/application/cost/costService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import { CatalogService } from "@/application/catalog/catalogService";
-import { LocalLockService } from "@/application/security/localLockService";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { StatementService } from "@/application/finance/statementService";
@@ -49,7 +48,6 @@ describe("SET-003 follow-up — Settings capabilities section over contract-comp
     store = new MemoryLocalStore();
     preferences = new PreferenceService(store, () => NOW);
     mockedUsePrototypeServices.mockReturnValue({
-      localLock: new LocalLockService(store, () => NOW),
       formDrafts: new FormDraftService(store),
       integrityCheck: new IntegrityCheckService(
         store,

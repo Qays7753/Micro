@@ -6758,67 +6758,6 @@ button.micro-month-cell:active {
   margin: var(--space-1) 0 0;
 }
 
-/* المجموعة ٥ (عقد ٣٧): غطاء القفل — حجاب ثابت كامل الشاشة فوق كل شيء
- * (طبقة القوة ٦٠ أعلى التنقل والأوراق، دون الطبقات النظامية)؛ النماذج تبقى
- * محمّلة تحته فلا يُفقد شيء غير محفوظ. */
-.micro-lock-veil {
-  position: fixed;
-  inset: 0;
-  background: var(--color-surface);
-  /* المجموعة ٦ (تدقيق A1 — SP-05): غطاء معتم تمامًا — ٠.٩٦ كانت تكشف
-   * وميض المحتوى تحته للناظر عن قرب والوعد «حماية من النظرة العابرة». */
-  opacity: 1;
-  z-index: 60;
-}
-.micro-lock-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  text-align: center;
-}
-.micro-lock-overlay h1 {
-  font-size: 1.25rem;
-  margin: 0;
-}
-.micro-lock-overlay > p {
-  max-width: 34ch;
-  color: var(--color-text-secondary);
-  font-size: 0.8125rem;
-  margin: 0;
-}
-.micro-lock-icon {
-  width: 28px;
-  height: 28px;
-  color: var(--color-accent-text);
-}
-.micro-lock-form {
-  display: grid;
-  gap: var(--space-3);
-  width: min(320px, 100%);
-  text-align: start;
-}
-.micro-lock-form input {
-  text-align: center;
-  letter-spacing: 0.3em;
-}
-
-/* المجموعة ٥ (عقد ٣٧): نموذج إدارة القفل داخل الإعدادات. */
-.micro-lock-admin {
-  display: grid;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-  max-width: 340px;
-}
-.micro-lock-admin input {
-  text-align: center;
-  letter-spacing: 0.3em;
-}
-
 /* المجموعة ٥ (عقد ٣٣): معاينة المشاركة — منطقة نص واسعة بحدود واضحة. */
 .micro-share-body textarea {
   min-height: 160px;

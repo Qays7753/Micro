@@ -35,29 +35,11 @@ const SOURCE_EXT = new Set([".ts", ".tsx"]);
 
 /** السجل المصنف — كل سطح حواري معلن في كود الإنتاج يجب أن يكون هنا. */
 export const CLASSIFIED_DIALOG_SURFACES = [
-  {
-    file: "components/security/AppLockGate.tsx",
-    role: "dialog",
-    ariaModal: true,
-    model: "TRUE_MODAL",
-    focusContract: "oracle — veil + inert content + autoFocus (AppLockGate نفسه؛ لا يعدل في W4 بقرار العقد)",
-  },
-  {
-    file: "components/security/DataActionPinGate.tsx",
-    role: "alertdialog",
-    ariaModal: true,
-    model: "TRUE_MODAL",
-    focusContract:
-      "D-14 FIX_NOW — autoFocus فقط اليوم؛ الهدف: veil + احتواء + Escape + استعادة (نمط AppLockGate/UnsavedChangesGuard)",
-  },
-  {
-    file: "pages/Settings.tsx",
-    role: "alertdialog",
-    ariaModal: true,
-    model: "TRUE_MODAL",
-    focusContract:
-      "D-14 FIX_NOW — لا عقد تركيز إطلاقًا اليوم (protectionBlocked)؛ الهدف: veil + focus-in + احتواء + Escape + استعادة",
-  },
+  /* S02-B (SH-04 — UNIT-042، إلغاء المالك 2026-10-24): أسطح القفل الثلاثة
+   * (AppLockGate وDataActionPinGate وprotectionBlocked في الإعدادات) حُذفت
+   * مع مكوّناتها — لا غطاء قفل ولا بوابة رمز بعد اليوم؛ إزالتها من السجل
+   * المصنف نتيجة موثقة للإلغاء المعتمد لا تخفيفًا للحارس (الأسطح الحية
+   * كلها ما زالت مصنفة ومفحوصة كما هي). */
   {
     file: "components/forms/UnsavedChangesGuard.tsx",
     role: "dialog",

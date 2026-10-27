@@ -17,10 +17,11 @@
  * محاكاة نتيجته: /setup (مسودة) → الرابط القانوني ‎/settings?returnTo=/setup
  * → صفحة الإعدادات الحقيقية (قسم حماية البيانات) → رفع ملف نسخة حقيقي عبر
  * حد الإدخال العام → prepareImport الفعلي (تحقق المظروف/الترحيل/العدادات)
- * → زر «استبدال البيانات المحلية» → بوابة الحماية الحقيقية (رمز القفل عبر
- * LocalLockService العام: enable ثم unlock من واجهة الحوار نفسها) →
+ * → زر «استبدال البيانات المحلية» → (S02-B: بوابة رمز القفل أُلغيت بقرار
+ * المالك — التأكيد الصريح بعد المراجعة وحده، والحماية تقنية داخل حد
+ * الكتابة: نسخة رجوع دائمة وسياج ونية وجيل — بروتوكول S02-A) →
  * confirmImport/replaceSnapshot الفعليان على المخزن الحي (مع نسخة ما قبل
- * الاستبدال) → زر الرجوع الحقيقي بعقد returnTo → /setup يكتشف الهوية
+ * الاستبدال الدائمة) → زر الرجوع الحقيقي بعقد returnTo → /setup يكتشف الهوية
  * المستعادة ويفتح المشروع في الرئيسية. ملف النسخة نفسه يُصنَّع بالطريق
  * الإنتاجي الحقيقي على جهاز مصدر مستقل (إنشاء هوية عبر حد الإنشاء الإنتاجي
  * ثم createVerifiedExport): هذا هو السبيل الوحيد الصادق لوجود هوية داخل
@@ -41,7 +42,6 @@ import { FormDraftService } from "@/application/drafts/formDraftService";
 import { createFormDraftHarness } from "@/application/drafts/formDraftTestHarness";
 import { LocalTransferService } from "@/application/transfers/localTransferService";
 import { GuidedOpeningImportService } from "@/application/transfers/guidedOpeningImportService";
-import { LocalLockService } from "@/application/security/localLockService";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { StatementService } from "@/application/finance/statementService";
@@ -108,7 +108,6 @@ function setupServices(options: { store?: PrototypeLocalStore } = {}) {
  * المخزن نفسه عبر الحدود العامة وحدها. ── */
 const NOW = "2026-10-18T12:00:00.000Z";
 const clock = () => NOW;
-const DEVICE_PIN = "4179";
 const RESTORED_NAME = "مشروع الاستعادة من النسخة";
 
 function buildDeviceServices(store: PrototypeLocalStore) {
@@ -118,7 +117,6 @@ function buildDeviceServices(store: PrototypeLocalStore) {
     profiles: new ProfileService(store, clock),
     notifyDataChanged: vi.fn(),
     formDrafts: new FormDraftService(store, clock),
-    localLock: new LocalLockService(store, clock),
     transfers: new LocalTransferService(store, clock),
     guidedOpeningImport: new GuidedOpeningImportService(store, testBackupBuilder(store), clock),
     integrityCheck: new IntegrityCheckService(
@@ -405,10 +403,9 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
       expect(createSpy).not.toHaveBeenCalled();
       cleanup();
       wouterMocks.navigate.mockReset();
-      /* (ب) مالك 044 الحي: تفعيل الحماية بحد الخدمة العام (شرط 044
-       * التصادقي للاستبدال التدميري — نفس ما تستدعيه بطاقة القفل) ثم
-       * المسار الكامل من الواجهة: ملف → معاينة → رمز → استبدال → رجوع. */
-      await services.localLock.enable(DEVICE_PIN, 10);
+      /* (ب) مالك 044 الحي (S02-B: بلا رمز — بوابة PIN أُلغيت بقرار المالك
+       * 2026-10-24، وحماية الاستبدال تقنية داخل حد الكتابة): المسار الكامل
+       * من الواجهة: ملف → معاينة → تأكيد صريح → استبدال محروس → رجوع. */
       wouterMocks.location = "/settings";
       wouterMocks.search = "?returnTo=%2Fsetup";
       await mountSettings();
@@ -420,13 +417,10 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
       expect(afterPreview).toMatchObject({ ok: true, value: null });
       expect(replaceSnapshotSpy).not.toHaveBeenCalled();
       fireEvent.click(confirmButton);
-      const pinInput = await screen.findByLabelText("رمز القفل", { selector: "input" });
-      fireEvent.change(pinInput, { target: { value: DEVICE_PIN } });
-      fireEvent.submit(pinInput.closest("form")!);
-      /* الاستبدال الحقيقي تم: إشعار الإكمال + إبقاء المسودة العابرة
-       * (عقد ٣٦: خارج اللقطة) + نسخة ما قبل الاستبدال + الفحص بعدها. */
+      /* الاستبدال الحقيقي تم: إشعار الإكمال + المسودة العابرة عُزلت مع
+       * اللقطة القديمة في نسخة الرجوع الدائمة (S02-A/عقد ٠٤٤ B6 — لم تعد
+       * تبقى فوق بيانات استُبدلت) + الفحص بعدها. */
       expect(await screen.findByText(/تم استبدال البيانات المحلية بالملف الذي راجعته/)).toBeTruthy();
-      expect(await screen.findByText(/أُبقيت 1 مسودة نموذج غير مُسلّمة/)).toBeTruthy();
       expect((await screen.findAllByText(/نسخة ما قبل الاستبدال جاهزة/)).length).toBeGreaterThan(0);
       expect(await screen.findByText(/فحص السلامة بعد الاستعادة/)).toBeTruthy();
       /* حد الالتزام الحقيقي: استبدال واحد بالضبط، والهوية الناتجة تطابق
@@ -453,11 +447,10 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
       expect(saveSpy).not.toHaveBeenCalled();
       const afterReturn = await store.getProfile();
       expect(afterReturn).toMatchObject({ ok: true, value: sourceIdentity });
+      /* S02-A (عقد ٠٤٤ B6): مسودة الإعداد العابرة لم تعد تُستأنف فوق المشروع
+       * المستعاد — عُزلت مع اللقطة القديمة في نسخة الرجوع الدائمة. */
       const draft = await store.getFormDraft("setup:new");
-      expect(draft).toMatchObject({
-        ok: true,
-        value: { values: { activityName: "مسودة قبل الاستعادة" } },
-      });
+      expect(draft).toMatchObject({ ok: true, value: null });
       cleanup();
       wouterMocks.navigate.mockReset();
       /* (د) الرئيسية تفتح المشروع المستعاد نفسه من المصدر الواحد. */

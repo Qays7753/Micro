@@ -12,15 +12,11 @@ import {
   RotateCcw,
   Save,
   Shield,
-  ShieldAlert,
   Upload,
 } from "lucide-react";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { LockSettingsCard } from "@/components/security/LockSettingsCard";
-import { DataActionPinGate } from "@/components/security/DataActionPinGate";
-import { useOverlayFocusContract } from "@/components/security/overlayFocusContract";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
@@ -62,64 +58,12 @@ export default function SettingsPage() {
     dataVersion,
     notifyDataChanged,
     integrityCheck,
-    localLock,
     formDrafts,
   } = usePrototypeServices();
-  /* المجموعة ٦ (تدقيق A1 — SP-01/DP-04): مسار الاسترداد معفى من الغطاء لكن
-   * إجراءات مغادرة البيانات (تصدير/استيراد/تصفير) تتطلب إثبات رمز القفل مرة
-   * واحدة في الجلسة — الجهاز المقفل لا يُصدّر أرقامه ولا يُمسح بلا الرمز. */
-  const lockVerifiedRef = useRef(false);
-  const pendingGatedActionRef = useRef<(() => void | Promise<void>) | null>(null);
-  const [gatedAction, setGatedAction] = useState<null | { title: string; description: string }>(null);
-  const runWhenUnlocked = async (action: () => void | Promise<void>, title: string, description: string) => {
-    if (lockVerifiedRef.current) {
-      await action();
-      return;
-    }
-    const status = await localLock.status();
-    /* فشل القراءة لا يحبس المالك عن بياناته — تخفي صادق كما في كل البوابات. */
-    if (!status.ok || !status.value.enabled) {
-      await action();
-      return;
-    }
-    pendingGatedActionRef.current = action;
-    setGatedAction({ title, description });
-  };
-  /* المجموعة ٥ (التحصين الكامل): الاستبدال التدميري (استيراد كامل أو
-   * تأكيد إدخال البداية) لا يمر بلا حماية أبدًا — قفل مفعّل = بوابة
-   * الرمز القائمة؛ ولا قفل = حجب صريح حتى إتمام خطوة تفعيل الحماية
-   * (غياب القفل ليس تحقًا ولا يُعد تفويضًا صامتًا)؛ وفشل قراءة سجل
-   * القفل = إقفال صادق مصرح بلا تغيير أي بيانات. المعاينة وحدها قراءة خالصة
-   * قبل هذه البوابة. */
-  const [protectionBlocked, setProtectionBlocked] = useState<null | {
-    title: string;
-    message: string;
-  }>(null);
-  const runWhenProtected = async (action: () => void | Promise<void>, title: string, gateMessage: string) => {
-    if (lockVerifiedRef.current) {
-      await action();
-      return;
-    }
-    const status = await localLock.status();
-    if (!status.ok) {
-      setProtectionBlocked({
-        title,
-        message:
-          "لم نستطع قراءة إعداد القفل قبل إجراء يستبدل بياناتك؛ لم يتغير أي شيء. أعد المحاولة؛ فإن تكرر فافتح فحص السلامة من الأدوات.",
-      });
-      return;
-    }
-    if (!status.value.enabled) {
-      setProtectionBlocked({
-        title,
-        message:
-          "هذا الإجراء يستبدل بيانات هذا الجهاز ويحتاج حماية بالرمز أولاً — فعّل «قفل التطبيق المحلي» من قسم «احمِ بياناتك» أعلى هذه الصفحة ثم أعد المحاولة. المعاينة التي رأيتها لم تغيّر شيئًا.",
-      });
-      return;
-    }
-    pendingGatedActionRef.current = action;
-    setGatedAction({ title, description: gateMessage });
-  };
+  /* S02-B (SH-04 — UNIT-042، إلغاء المالك المعتمد): بوابة الرمز حُذفت كاملة
+   * — لا طلب PIN للتصدير/الاستيراد/التصفير ولا فعل معلق ينتظر رمزًا. حماية
+   * البيانات مستقلة عن القفل وتبقى كما هي: المعاينة المراجعة والتأكيد
+   * الصريح والنسخة الرجوع الدائمة (S02-A) والتحقق من الملف وحراس المال. */
   /* المجموعة ٥ (التحصين الكامل — نسخ تشخيص محلي خصوصي): أثر
    * النسخ يظهر في موضعه دون فتح طبقة أخرى. */
   const [diagnosticCopyResult, setDiagnosticCopyResult] = useState<null | {
@@ -286,11 +230,7 @@ export default function SettingsPage() {
   }
 
   async function exportLocal() {
-    await runWhenUnlocked(
-      performExportLocal,
-      "تصدير بياناتك يحتاج رمز القفل",
-      "التصدير يُنشئ ملفًا فيه كل أرقامك — تأكيد الرمز مرة واحدة في هذه الجلسة يفتح الإجراء، ويبقى الرمز في هذا الجهاز.",
-    );
+    await performExportLocal();
   }
 
   async function performExportLocal() {
@@ -328,11 +268,7 @@ export default function SettingsPage() {
 
   /* ٥.٧: بوابة «ابدأ من جديد» — لا تصفير قبل نسخة مُتحقق منها، ولا استمرار إن فشل التصدير. */
   async function startResetFlow() {
-    await runWhenUnlocked(
-      performResetFlow,
-      "البدء من جديد يحتاج رمز القفل",
-      "المسار يمسح كل بيانات هذا الجهاز بعد نسخة احتياطية إلزامية — تأكيد الرمز يفتح البوابة.",
-    );
+    await performResetFlow();
   }
 
   async function performResetFlow() {
@@ -367,11 +303,7 @@ export default function SettingsPage() {
   }
 
   async function confirmReset() {
-    await runWhenUnlocked(
-      performReset,
-      "المسح النهائي يحتاج رمز القفل",
-      "آخر خطوة قبل مسح كل بيانات هذا الجهاز — أدخل رمز القفل للتأكيد النهائي.",
-    );
+    await performReset();
   }
 
   async function performReset() {
@@ -444,13 +376,9 @@ export default function SettingsPage() {
 
   async function confirmImport() {
     if (!preview) return;
-    /* المجموعة ٥ (التحصين الكامل): الاستبدال النهائي محمي دومًا —
-     * رمز إن وجد، وإلا خطوة تفعيل الحماية قبل أي كتابة. */
-    await runWhenProtected(
-      performImport,
-      "استبدال بياناتك يحتاج رمز القفل",
-      "الاستيراد يستبدل كل بيانات هذا الجهاز بملف النسخة التي راجعتها — أدخل رمز القفل للتأكيد.",
-    );
+    /* S02-B: التأكيد الصريح بعد المراجعة + حماية ٠٤٤ التقنية (النسخة
+     * الرجوع الدائمة والسياج) — بلا رمز أبدًا (قرار إلغاء ٠٤٢ المعتمد). */
+    await performImport();
   }
 
   async function performImport() {
@@ -539,16 +467,9 @@ export default function SettingsPage() {
 
   async function confirmGuidedOpeningImport() {
     if (!guidedPreview) return;
-    /* المجموعة ٥ (التحصين الكامل): تأكيد إدخال البداية فعل
-     * استبدال/كتابة حساس — المعاينة قراءة خالصة ثم
-     * نفس قاعدة الحماية الصريحة للاستيراد الكامل بلا استثناء. */
-    const guidedProtection = {
-      /* عنوان البوابة نفسه من حوار الرمز القائم — الوصف المختص يحمل تخصيص الإجراء. */
-      title: "تأكيد رمز القفل",
-      message:
-        "إدخال الموقف الافتتاحي يكتب على بيانات هذا الجهاز مرة واحدة آمنة التكرار — أدخل رمز القفل للتأكيد.",
-    };
-    await runWhenProtected(performGuidedOpeningImport, guidedProtection.title, guidedProtection.message);
+    /* S02-B: نفس قاعدة الاستعادة الكاملة بلا رمز — تأكيد صريح بعد معاينة
+     * وحماية تقنية داخل حد الكتابة (بروتوكول S02-A). */
+    await performGuidedOpeningImport();
   }
 
   async function performGuidedOpeningImport() {
@@ -690,70 +611,6 @@ export default function SettingsPage() {
       />
 
       <SettingsAppearanceSection theme={theme} toggleTheme={toggleTheme} />
-      {protectionBlocked ? (
-        <ProtectionBlockedOverlay
-          title={protectionBlocked.title}
-          message={protectionBlocked.message}
-          onAcknowledge={() => setProtectionBlocked(null)}
-        />
-      ) : null}
-      {gatedAction ? (
-        <DataActionPinGate
-          actionTitle={gatedAction.title}
-          actionDescription={gatedAction.description}
-          onVerified={() => {
-            setGatedAction(null);
-            lockVerifiedRef.current = true;
-            const action = pendingGatedActionRef.current;
-            pendingGatedActionRef.current = null;
-            void action?.();
-          }}
-          onCancel={() => {
-            setGatedAction(null);
-            pendingGatedActionRef.current = null;
-          }}
-        />
-      ) : null}
     </section>
-  );
-}
-
-/* R11 W4 / D-14 (OD-A11Y — 2026-10-15): غطاء الحجب التدميري — مكوّن مالك
- * لعقد التركيز (يُركّب مع الغطاء فيعمل المساعد عند الفتح فعلًا): ستار +
- * focus-in + احتواء Tab + Escape=حسنًا + استعادة لمُشغّل الفتح. دلالات
- * وتركيز فقط — لا تغيير بصري ولا منطق حماية (نفس النمط الذهبي
- * AppLockGate/UnsavedChangesGuard). */
-function ProtectionBlockedOverlay({
-  title,
-  message,
-  onAcknowledge,
-}: {
-  title: string;
-  message: string;
-  onAcknowledge: () => void;
-}) {
-  const overlayRef = useRef<HTMLDivElement | null>(null);
-  useOverlayFocusContract(overlayRef, onAcknowledge);
-  return (
-    <>
-      <div aria-hidden="true" className="micro-lock-veil" />
-      <div
-        ref={overlayRef}
-        tabIndex={-1}
-        className="micro-lock-overlay"
-        role="alertdialog"
-        aria-modal="true"
-        aria-label={title}
-      >
-        <ShieldAlert aria-hidden="true" className="micro-lock-icon" />
-        <h1>{title}</h1>
-        <p>{message}</p>
-        <div className="micro-lock-form">
-          <Button action="secondary" onClick={onAcknowledge}>
-            حسنًا
-          </Button>
-        </div>
-      </div>
-    </>
   );
 }

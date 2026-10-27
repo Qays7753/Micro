@@ -9,8 +9,6 @@ import { StartupGate } from "@/app/StartupGate";
 import { CapabilityCreateGate } from "@/app/CapabilityRouteGate";
 /* W3 (brand launch splash): one-shot in-app launch splash at the existing startup boundary. */
 import { BrandLaunchSplash } from "@/components/brand/BrandLaunchSplash";
-/* المجموعة ٥ (عقد ٣٧): بوابة القفل المحلي — غطاء فوق المحتوى بعد الإقلاع. */
-import { AppLockGate } from "@/components/security/AppLockGate";
 
 const Home = lazy(() => import("@/pages/Home"));
 const Orders = lazy(() => import("@/pages/Orders"));
@@ -110,135 +108,137 @@ export function MicroRouter() {
   return (
     <MicroAppShell>
       <Suspense fallback={<RouteLoadingState />}>
+        {/* S02-B (SH-04 — UNIT-042): بوابة القفل أُلغيت بقرار المالك — لا
+         * غطاء ولا مؤقتات ولا طلب رمز عند الفتح أو العودة؛ حراس بيانات ٠٤٤
+         * (المعاينة والتأكيد والنسخة الرجوع الدائمة والسياج) مستقلة عن القفل
+         * وتبقى كما هي. */}
         <StartupGate onSettled={() => setGateSettled(true)}>
-          <AppLockGate>
-            <Switch>
-              <Route path="/setup" component={Setup} />
-              {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
-              <Route path="/foundation" component={Foundation} />
-              <Route path="/orders/new" component={NewDraft} />
-              {/* و٥ (§٥-١): محرر النية الفارغ — المسودة تُنشأ عند أول إدخال حقيقي لا عند النقر.
-               * (المجموعة ٣): المسار الحرفي `/orders/draft/new` حُذف — كان يطابق أولًا في
-               * Switch بلا معاملات فيصل params.id غير معرّف للمحرر؛ النمط `:id` يغطيه
-               * بـ id="new" كما تختبره U-004/G3. */}
-              <Route path="/direct-sales/new" component={DirectSaleEditor} />
-              <Route path="/direct-sales/:id" component={DirectSaleEditor} />
-              <Route path="/orders/draft/:id/agreement" component={AgreementEditor} />
-              <Route path="/orders/draft/:id/cost" component={CostEditor} />
-              {/* G-004: حرس مسار الإنشاء — الرابط العميق البارد إلى مسودة
-               * جديدة والطلبات متوقفة يعرض وضع القدرة المتوقفة لا المحرر. */}
-              <Route path="/orders/draft/:id">
-                {params => (
-                  <CapabilityCreateGate capability="orders" isCreate={params.id === "new"}>
-                    <DraftEditor />
-                  </CapabilityCreateGate>
-                )}
-              </Route>
-              {/* المجموعة ٣ (عقد D5): مراجعة التسليم قبل المسار الأكثر تحديدًا */}
-              <Route path="/orders/:id/deliver" component={DeliveryReview} />
-              <Route path="/orders/:id" component={OrderDetail} />
-              <Route path="/schedule/:id" component={ScheduleEditor} />
-              <Route path="/schedule" component={Schedule} />
-              {/* EXE-009 (OWN-002): المسار الموازي القديم لسحب المالك (حدث عام
-               * مباشر) يحال للمدخل الموحد /finance/withdraw الذي يوجه للمسار
-               * الصحيح بحسب السياسة — لا كاتب موازٍ يتجاوز التوجيه. الوسم ?from
-               * يبقى محفوظًا في الإحالة. */}
-              <Route path="/finance/new/owner_withdrawal_cash">
-                <OwnerWithdrawalLegacyRedirect />
-              </Route>
-              <Route path="/finance/new/:type" component={FinancialEventEditor} />
-              <Route path="/finance/withdraw" component={OwnerWithdrawalEditor} />
-              <Route path="/finance/owner-entitlement" component={OwnerEntitlement} />
-              <Route path="/finance/g5/declaration" component={G5DeclarationEditor} />
-              <Route path="/suppliers/purchase/:id/payment" component={SupplierPurchaseEditor} />
-              {/* G-004: حرس مسار الإنشاء — شراء مورد جديد والموردين متوقفة. */}
-              <Route path="/suppliers/purchase/:id">
-                {params => (
-                  <CapabilityCreateGate capability="suppliers" isCreate={params.id === "new"}>
-                    <SupplierPurchaseEditor />
-                  </CapabilityCreateGate>
-                )}
-              </Route>
-              <Route path="/suppliers" component={Suppliers} />
-              <Route path="/cash/wallet/new" component={CashWalletEditor} />
-              {/* المجموعة ٢ (§9.1): دفتر المحفظة — قارئ، يبقى التنقل السفلي، ويعود لمحافظه. */}
-              <Route path="/cash/wallet/:id" component={WalletLedger} />
-              <Route path="/cash/wallet/:id/opening-later" component={CashOpeningLaterEditor} />
-              <Route path="/cash/transfer" component={CashTransferEditor} />
-              <Route path="/cash/distribute" component={CashDistribution} />
-              <Route path="/cash/count" component={CashCount} />
-              <Route path="/cash/wallet/:id/adjust" component={CashAdjustmentEditor} />
-              <Route path="/cash/entry/:id/reverse" component={CashReversalEditor} />
-              <Route path="/cash" component={CashWallets} />
-              {/* المجموعة ٢ (Scope B): ورقة التحصيل — تحصيل الذمم من كل المداخل المعتمدة. */}
-              <Route path="/collect" component={Collect} />
-              {/* G-004: حرس مسار الإنشاء — مادة جديدة والمخزون متوقف.
-               * تأكيد رصيد مادة قائمة (/:id/confirm) تصحيح موثق لا يُحرس. */}
-              <Route path="/inventory/material/new">
-                <CapabilityCreateGate capability="inventory" isCreate={true}>
-                  <MaterialEditor />
+          <Switch>
+            <Route path="/setup" component={Setup} />
+            {/* §2.5: صفحة الأساس — باب أمامي دائم الوصول لا يُغلق بعد اليوم الأول (القرار ٧). */}
+            <Route path="/foundation" component={Foundation} />
+            <Route path="/orders/new" component={NewDraft} />
+            {/* و٥ (§٥-١): محرر النية الفارغ — المسودة تُنشأ عند أول إدخال حقيقي لا عند النقر.
+             * (المجموعة ٣): المسار الحرفي `/orders/draft/new` حُذف — كان يطابق أولًا في
+             * Switch بلا معاملات فيصل params.id غير معرّف للمحرر؛ النمط `:id` يغطيه
+             * بـ id="new" كما تختبره U-004/G3. */}
+            <Route path="/direct-sales/new" component={DirectSaleEditor} />
+            <Route path="/direct-sales/:id" component={DirectSaleEditor} />
+            <Route path="/orders/draft/:id/agreement" component={AgreementEditor} />
+            <Route path="/orders/draft/:id/cost" component={CostEditor} />
+            {/* G-004: حرس مسار الإنشاء — الرابط العميق البارد إلى مسودة
+             * جديدة والطلبات متوقفة يعرض وضع القدرة المتوقفة لا المحرر. */}
+            <Route path="/orders/draft/:id">
+              {params => (
+                <CapabilityCreateGate capability="orders" isCreate={params.id === "new"}>
+                  <DraftEditor />
                 </CapabilityCreateGate>
-              </Route>
-              {/* المجموعة ٢ (عقد ٢٨): تأكيد رصيد مادة قائمة — نفس مكوّن الرحلة بوضع التأكيد. */}
-              <Route path="/inventory/material/:id/confirm" component={MaterialEditor} />
-              <Route path="/inventory/movement/:id/reverse" component={InventoryReversalEditor} />
-              {/* G-004: حرس مسار الإنشاء — حركة جديدة (استلام/استهلاك/هدر/ضبط)
-               * والمخزون متوقف. عكس حركة قائمة (/:id/reverse) تصحيح موثق. */}
-              <Route path="/inventory/movement/:type">
-                {params => (
-                  <CapabilityCreateGate capability="inventory" isCreate={true}>
-                    <InventoryMovementEditor key={params.type} />
-                  </CapabilityCreateGate>
-                )}
-              </Route>
-              <Route path="/inventory" component={InventoryMaterials} />
-              <Route path="/catalog" component={Catalog} />
-              <Route path="/tools" component={Tools} />
-              {/* NAV-001: السوق — سطح يبقي التنقل السفلي؛ إعلان توسعة لا وظيفة. */}
-              <Route path="/market" component={Market} />
-              {/* المجموعة ٣ (Scope A/B): حاسبة عميقة + تفصيل تقدير — يخفيان التنقل كإخوتهما المحررات. */}
-              <Route path="/tools/calculator" component={CostCalculator} />
-              <Route path="/tools/estimate/:id" component={EstimateDetail} />
-              {/* المجموعة ١ (فحص سلامة مالي): مسار سطح — قارئ يبقي التنقل السفلي. */}
-              <Route path="/tools/integrity" component={ToolsIntegrity} />
-              {/* المجموعة ٤ (عقد ٢٩): محررا الأصل والقرض قبل المسارات الأكثر تحديدًا */}
-              <Route path="/assets/new" component={AssetEditor} />
-              <Route path="/assets/:id" component={AssetDetail} />
-              <Route path="/assets" component={Assets} />
-              {/* FIN-001 (WS-178 — Wave 6): مسارا القرض المستلم قبل /loans/:id
-               * (وإلا لابتلعه نمط :id بمعرف "received"). */}
-              <Route path="/loans/received/new" component={ReceivedLoanEditor} />
-              <Route path="/loans/received/:id" component={ReceivedLoanDetail} />
-              <Route path="/loans/new" component={LoanEditor} />
-              <Route path="/loans/:id" component={LoanDetail} />
-              <Route path="/loans" component={Loans} />
-              <Route path="/parties" component={Parties} />
-              <Route path="/finance" component={Finance} />
-              {/* F01: سطح «المزيد» — قارئ منظم لا يكتب شيئًا؛ بديله الكنوني المالية. */}
-              <Route path="/finance/more" component={FinanceMore} />
-              <Route path="/finance/upcoming" component={FinanceUpcoming} />
-              {/* OPS-003 (عقد ٤١): تذكيرات المصروف المتكرر — القائمة والتفصيل سطحان
-               * يبقيان التنقل السفلي؛ المحرر عمق كإخوته (يخفي الشريط ويحرس
-               * المدخلات غير المحفوظة). الأكثر تحديدًا قبل الأعم. */}
-              <Route path="/finance/recurring/new" component={RecurringExpenseEditor} />
-              <Route path="/finance/recurring/:id/edit" component={RecurringExpenseEditor} />
-              <Route path="/finance/recurring/:id" component={RecurringExpenseDetail} />
-              <Route path="/finance/recurring" component={FinanceRecurring} />
-              {/* المجموعة ٢ (§9.2): كشف الفترة — قراءة بسيطة تربط كل سطر بمصدره. */}
-              <Route path="/finance/statement" component={Statement} />
-              <Route path="/finance/activity" component={FinanceActivity} />
-              <Route path="/share/preview" component={SharePreview} />
-              <Route path="/orders" component={Orders} />
-              {/* §2.2: المراجعة اندمجت نبضة داخل مالي؛ المسار القديم يقود إليها لا إلى 404. */}
-              <Route path="/review">
-                <Redirect to="/finance" />
-              </Route>
-              <Route path="/settings" component={SettingsPage} />
-              <Route path="/profile" component={Profile} />
-              <Route path="/" component={Home} />
-              <Route component={NotFound} />
-            </Switch>
-          </AppLockGate>
+              )}
+            </Route>
+            {/* المجموعة ٣ (عقد D5): مراجعة التسليم قبل المسار الأكثر تحديدًا */}
+            <Route path="/orders/:id/deliver" component={DeliveryReview} />
+            <Route path="/orders/:id" component={OrderDetail} />
+            <Route path="/schedule/:id" component={ScheduleEditor} />
+            <Route path="/schedule" component={Schedule} />
+            {/* EXE-009 (OWN-002): المسار الموازي القديم لسحب المالك (حدث عام
+             * مباشر) يحال للمدخل الموحد /finance/withdraw الذي يوجه للمسار
+             * الصحيح بحسب السياسة — لا كاتب موازٍ يتجاوز التوجيه. الوسم ?from
+             * يبقى محفوظًا في الإحالة. */}
+            <Route path="/finance/new/owner_withdrawal_cash">
+              <OwnerWithdrawalLegacyRedirect />
+            </Route>
+            <Route path="/finance/new/:type" component={FinancialEventEditor} />
+            <Route path="/finance/withdraw" component={OwnerWithdrawalEditor} />
+            <Route path="/finance/owner-entitlement" component={OwnerEntitlement} />
+            <Route path="/finance/g5/declaration" component={G5DeclarationEditor} />
+            <Route path="/suppliers/purchase/:id/payment" component={SupplierPurchaseEditor} />
+            {/* G-004: حرس مسار الإنشاء — شراء مورد جديد والموردين متوقفة. */}
+            <Route path="/suppliers/purchase/:id">
+              {params => (
+                <CapabilityCreateGate capability="suppliers" isCreate={params.id === "new"}>
+                  <SupplierPurchaseEditor />
+                </CapabilityCreateGate>
+              )}
+            </Route>
+            <Route path="/suppliers" component={Suppliers} />
+            <Route path="/cash/wallet/new" component={CashWalletEditor} />
+            {/* المجموعة ٢ (§9.1): دفتر المحفظة — قارئ، يبقى التنقل السفلي، ويعود لمحافظه. */}
+            <Route path="/cash/wallet/:id" component={WalletLedger} />
+            <Route path="/cash/wallet/:id/opening-later" component={CashOpeningLaterEditor} />
+            <Route path="/cash/transfer" component={CashTransferEditor} />
+            <Route path="/cash/distribute" component={CashDistribution} />
+            <Route path="/cash/count" component={CashCount} />
+            <Route path="/cash/wallet/:id/adjust" component={CashAdjustmentEditor} />
+            <Route path="/cash/entry/:id/reverse" component={CashReversalEditor} />
+            <Route path="/cash" component={CashWallets} />
+            {/* المجموعة ٢ (Scope B): ورقة التحصيل — تحصيل الذمم من كل المداخل المعتمدة. */}
+            <Route path="/collect" component={Collect} />
+            {/* G-004: حرس مسار الإنشاء — مادة جديدة والمخزون متوقف.
+             * تأكيد رصيد مادة قائمة (/:id/confirm) تصحيح موثق لا يُحرس. */}
+            <Route path="/inventory/material/new">
+              <CapabilityCreateGate capability="inventory" isCreate={true}>
+                <MaterialEditor />
+              </CapabilityCreateGate>
+            </Route>
+            {/* المجموعة ٢ (عقد ٢٨): تأكيد رصيد مادة قائمة — نفس مكوّن الرحلة بوضع التأكيد. */}
+            <Route path="/inventory/material/:id/confirm" component={MaterialEditor} />
+            <Route path="/inventory/movement/:id/reverse" component={InventoryReversalEditor} />
+            {/* G-004: حرس مسار الإنشاء — حركة جديدة (استلام/استهلاك/هدر/ضبط)
+             * والمخزون متوقف. عكس حركة قائمة (/:id/reverse) تصحيح موثق. */}
+            <Route path="/inventory/movement/:type">
+              {params => (
+                <CapabilityCreateGate capability="inventory" isCreate={true}>
+                  <InventoryMovementEditor key={params.type} />
+                </CapabilityCreateGate>
+              )}
+            </Route>
+            <Route path="/inventory" component={InventoryMaterials} />
+            <Route path="/catalog" component={Catalog} />
+            <Route path="/tools" component={Tools} />
+            {/* NAV-001: السوق — سطح يبقي التنقل السفلي؛ إعلان توسعة لا وظيفة. */}
+            <Route path="/market" component={Market} />
+            {/* المجموعة ٣ (Scope A/B): حاسبة عميقة + تفصيل تقدير — يخفيان التنقل كإخوتهما المحررات. */}
+            <Route path="/tools/calculator" component={CostCalculator} />
+            <Route path="/tools/estimate/:id" component={EstimateDetail} />
+            {/* المجموعة ١ (فحص سلامة مالي): مسار سطح — قارئ يبقي التنقل السفلي. */}
+            <Route path="/tools/integrity" component={ToolsIntegrity} />
+            {/* المجموعة ٤ (عقد ٢٩): محررا الأصل والقرض قبل المسارات الأكثر تحديدًا */}
+            <Route path="/assets/new" component={AssetEditor} />
+            <Route path="/assets/:id" component={AssetDetail} />
+            <Route path="/assets" component={Assets} />
+            {/* FIN-001 (WS-178 — Wave 6): مسارا القرض المستلم قبل /loans/:id
+             * (وإلا لابتلعه نمط :id بمعرف "received"). */}
+            <Route path="/loans/received/new" component={ReceivedLoanEditor} />
+            <Route path="/loans/received/:id" component={ReceivedLoanDetail} />
+            <Route path="/loans/new" component={LoanEditor} />
+            <Route path="/loans/:id" component={LoanDetail} />
+            <Route path="/loans" component={Loans} />
+            <Route path="/parties" component={Parties} />
+            <Route path="/finance" component={Finance} />
+            {/* F01: سطح «المزيد» — قارئ منظم لا يكتب شيئًا؛ بديله الكنوني المالية. */}
+            <Route path="/finance/more" component={FinanceMore} />
+            <Route path="/finance/upcoming" component={FinanceUpcoming} />
+            {/* OPS-003 (عقد ٤١): تذكيرات المصروف المتكرر — القائمة والتفصيل سطحان
+             * يبقيان التنقل السفلي؛ المحرر عمق كإخوته (يخفي الشريط ويحرس
+             * المدخلات غير المحفوظة). الأكثر تحديدًا قبل الأعم. */}
+            <Route path="/finance/recurring/new" component={RecurringExpenseEditor} />
+            <Route path="/finance/recurring/:id/edit" component={RecurringExpenseEditor} />
+            <Route path="/finance/recurring/:id" component={RecurringExpenseDetail} />
+            <Route path="/finance/recurring" component={FinanceRecurring} />
+            {/* المجموعة ٢ (§9.2): كشف الفترة — قراءة بسيطة تربط كل سطر بمصدره. */}
+            <Route path="/finance/statement" component={Statement} />
+            <Route path="/finance/activity" component={FinanceActivity} />
+            <Route path="/share/preview" component={SharePreview} />
+            <Route path="/orders" component={Orders} />
+            {/* §2.2: المراجعة اندمجت نبضة داخل مالي؛ المسار القديم يقود إليها لا إلى 404. */}
+            <Route path="/review">
+              <Redirect to="/finance" />
+            </Route>
+            <Route path="/settings" component={SettingsPage} />
+            <Route path="/profile" component={Profile} />
+            <Route path="/" component={Home} />
+            <Route component={NotFound} />
+          </Switch>
         </StartupGate>
       </Suspense>
       {splashActive ? (

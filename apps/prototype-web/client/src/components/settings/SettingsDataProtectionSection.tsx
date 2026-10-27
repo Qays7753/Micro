@@ -22,7 +22,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { type RefObject } from "react";
-import { LockSettingsCard } from "@/components/security/LockSettingsCard";
 import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
 import { withReturnTo } from "@/app/navigationContract";
 import type { GuidedOpeningImportPreview } from "@/application/transfers";
@@ -158,8 +157,8 @@ export function SettingsDataProtectionSection({
             </div>
           </article>
         ) : null}
-        {/* ٢ — الحماية: قفل محلي اختياري (عقد ٣٧) — تفعيل وتعطيل بالرمز. */}
-        <LockSettingsCard />
+        {/* S02-B (SH-04 — UNIT-042): بطاقة إعداد القفل حُذفت مع مكوّنها بقرار
+         * المالك المعتمد — لا إعداد رمز ولا مدة خمول ولا بديل مصادقة. */}
         {/* ٣ — الفعل الأساسي للقسم: تصدير ينشئ ملفًا ولا يمس السجل. */}
         <StorageRow
           icon={Download}

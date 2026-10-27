@@ -156,10 +156,16 @@ describe("governance consistency — Group 6 prevention implemented on the remed
     expect(rootVitestConfig).toContain("scripts/**/*.test.mjs");
   });
 
-  it("the persistent-entity manifest exists, covers all 37 stores, and states its honest limits", () => {
-    expect(manifest.objectStores).toHaveLength(37);
+  it("the persistent-entity manifest exists, covers all 38 stores (S02-A added restore-protection), and states its honest limits", () => {
+    expect(manifest.objectStores).toHaveLength(38);
     const notExported = manifest.objectStores.filter(entry => entry.snapshotField === null);
-    expect(notExported.map(entry => entry.store).sort()).toEqual(["form-drafts", "local-security"]);
+    /* S02-A (SH-02/SH-03): مخزن حماية الاستبدال المنفصل انضم للمستثنى من
+     * التصدير — أدلة حماية محلية لا تغادر الجهاز أبدًا. */
+    expect(notExported.map(entry => entry.store).sort()).toEqual([
+      "form-drafts",
+      "local-security",
+      "restore-protection",
+    ]);
     for (const entry of notExported) {
       expect(entry.notExportedReason.length).toBeGreaterThanOrEqual(10);
     }

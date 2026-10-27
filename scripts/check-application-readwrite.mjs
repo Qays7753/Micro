@@ -156,7 +156,6 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "scheduling/index.ts",
   "scheduling/scheduleViewModel.ts",
   "security/index.ts",
-  "security/localLockBackoff.ts",
   "share/index.ts",
   "share/shareMessageService.ts",
   "suppliers/index.ts",

@@ -566,11 +566,12 @@
     "indexeddb"
    ],
    "adapterTests": [
-    "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts"
+    "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts",
+    "apps/prototype-web/client/src/application/security/retireLocalLockRecord.test.tsx"
    ],
    "transferTests": [],
-   "notExportedReason": "سجل الأمن المحلي (G5 §35): لا يُصدَّر أبدًا ولا يدخل ملف النقل — غيابه من الملف سلوك مقصود ومحروس.",
-   "docs": "current-state.md §35 (سجل الأمن المحلي خارج التصدير)"
+   "notExportedReason": "سجل الأمن المحلي (G5 §35) — متقاعد بقرار المالك المعتمد (S02-B/SH-04 — UNIT-042، إلغاء 2026-10-24): لا يُصدَّر أبدًا ولا يدخل ملف النقل؛ المخزن تاريخ مجمّد في المخطط ٣٨ فبقي بلا حذف (حذفه يرفع إصدار القاعدة المحروس)، والسجل نفسه يُنظَّف مرة عند الإقلاع (retireLocalLockRecord) — لا كاتب له في مسارات المنتج بعد اليوم، والكتابة بقاء للترحيل/التقاعد والاختبارات فقط.",
+   "docs": "docs/implementation/micro-component-execution/03-S02-RESULT-2026-10-27.md (S02-B تقاعد سجل القفل)"
   },
   {
    "store": "restore-protection",

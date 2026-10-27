@@ -4,7 +4,6 @@ import React from "react";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { LocalLockService } from "@/application/security/localLockService";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { StatementService } from "@/application/finance/statementService";
@@ -43,7 +42,6 @@ describe("Settings backup actions carry visible Arabic labels (U-11)", () => {
     const settingsStore = new MemoryLocalStore();
     mockedUsePrototypeServices.mockReturnValue({
       /* المجموعة ٥: القفل المحلي وفحص السلامة بعد الاستعادة — موجودان في السياق الحقيقي. */
-      localLock: new LocalLockService(new MemoryLocalStore()),
       integrityCheck: new IntegrityCheckService(
         new MemoryLocalStore(),
         new ProjectFinancialService(new MemoryLocalStore()),
