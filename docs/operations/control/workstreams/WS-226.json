@@ -1,0 +1,67 @@
+{
+  "id": "WS-226",
+  "title": "برنامج تنفيذ مكونات Micro — S01 نشر الحزمة والسلطة والتبعيات",
+  "status": "IN_REVIEW",
+  "items": [
+    "DOC-010"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "3584aa1d08cea3e0a00623b719fed7f991ce187f",
+  "areas": [
+    "docs/implementation/micro-component-execution",
+    "docs/operations/control/items/DOC-010.json",
+    "docs/operations/control/workstreams/WS-226.json",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+    "docs/00-document-index.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-PROGRAM.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md"
+  ],
+  "agent": "Manus documentation executor; ChatGPT and Manus independent review; no ZAI in S01; owner controls acceptance and transition",
+  "pr": null,
+  "started_at": "2026-10-27",
+  "updated_at": "2026-10-27",
+  "next_action": "إنشاء/تثبيت PR Draft الوحيد ثم تسليم candidate SHA للمراجعتين؛ لا merge أو cleanup أو S02.",
+  "notes": [
+    "هذا Workstream يخص S01 فقط ولا يوسع DOC-008/WS-224 أو DOC-009/WS-225.",
+    "فرع التكامل الواحد استثناء برنامج محدد موثق في SOP؛ لا ينشئ سياسة عامة للمهام الأخرى.",
+    "الحزمة الأصلية 77 ملفًا مميزة عن ملفات S01 الإضافية؛ UNIT-001 V9 وUNIT-002 V11 غير منفذتين.",
+    "لا كود منتج أو اختبار إنتاجي أو Schema/Export/Import أو قرار مالي أو تغيير CI.",
+    "الدمج النهائي إلى main مؤجل إلى نهاية البرنامج وبموافقة مالك مستقلة؛ S01 لا تمنح إذن الدمج."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/03-S01-RESULT-2026-10-27.md",
+    "docs/implementation/micro-component-execution/04-S01-AUTHORITY-MATRIX-2026-10-27.md",
+    "docs/implementation/micro-component-execution/05-S01-RESUME-INSTRUCTIONS-2026-10-27.md",
+    "docs/implementation/micro-component-execution/06-S01-PACKAGE-RECONCILIATION-2026-10-27.md"
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-27",
+      "actor": "owner-approved-s01",
+      "reason": "فتح S01 بعد اعتماد المالك ومنع أي فرع تجهيز أو PR ثانٍ."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-27",
+      "actor": "manus-s01-executor",
+      "reason": "تنفيذ النشر التوثيقي ومصالحة السلطة والتبعيات على فرع التكامل."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-27",
+      "actor": "manus-s01-delivery",
+      "reason": "نطاق S01 مسلّم للمراجعة المستقلة؛ لا قبول أو انتقال تلقائي."
+    }
+  ],
+  "migration_baseline": false
+}

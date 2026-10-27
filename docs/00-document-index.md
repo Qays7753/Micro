@@ -287,6 +287,104 @@
 | `docs/operations/control/items/DOC-009.json` | سجل Control لمواصفة ومراجعة اعتماد UNIT-002 |
 | `docs/operations/control/workstreams/WS-225.json` | Workstream مراجعة UNIT-002 على فرع التكامل؛ لا Claim تنفيذ نشط |
 
+## برنامج تنفيذ مكونات Micro — S01
+| الملف | الدور |
+|---|---|
+| `docs/implementation/micro-component-execution/00-S01-APPROVED-TASK-2026-10-27.md` | تكليف S01 المعتمد وحدود الكتابة والتوقف؛ لا أمر ZAI |
+| `docs/implementation/micro-component-execution/03-S01-RESULT-2026-10-27.md` | نتيجة تسليم S01 للمراجعة، والحدود وما لم يتغير |
+| `docs/implementation/micro-component-execution/04-S01-AUTHORITY-MATRIX-2026-10-27.md` | مصفوفة السلطة بين النسخ السابقة والجديدة والحالة التنفيذية |
+| `docs/implementation/micro-component-execution/05-S01-RESUME-INSTRUCTIONS-2026-10-27.md` | عقد الاستئناف ونقطة التوقف الآمنة |
+| `docs/implementation/micro-component-execution/06-S01-PACKAGE-RECONCILIATION-2026-10-27.md` | مصالحة بصمة ZIP وعدد ملفات الحزمة والإضافات |
+| `docs/operations/control/items/DOC-010.json` | سجل Control لـS01 |
+| `docs/operations/control/workstreams/WS-226.json` | Workstream S01 على فرع التكامل |
+
+### تغطية ملفات الحزمة الأصلية
+
+الحزمة التالية مسجلة كحزمة تنفيذ واحدة؛ القائمة تحفظ التغطية الفردية للحارس ولا تنشئ مصدر مواصفة منافسًا:
+
+- `docs/implementation/micro-component-execution/00-PROGRAM.md`
+- `docs/implementation/micro-component-execution/00-S01-APPROVED-TASK-2026-10-27.md`
+- `docs/implementation/micro-component-execution/01-STAGES.md`
+- `docs/implementation/micro-component-execution/02-PROGRESS-AND-HANDOFF.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/00-START-HERE-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/01-Standards/01-Component-Criteria-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/01-Standards/02-System-Data-and-Financial-Readiness-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/02-Current-System/02-Current-Components-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/02-Current-System/03-As-Is-Audit-2026-10-27-fd5d7ce/01-Component-Data-and-Financial-Map-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/02-Current-System/03-As-Is-Audit-2026-10-27-fd5d7ce/02-Repository-Structure-and-Implementation-Map-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/00-COMPONENTS-INDEX-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/01-OWNERSHIP-AND-DUPLICATION-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/02-STRUCTURE-DECISIONS-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-001-إعداد-المشروع.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-002-استكمال-بيانات-المشروع.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-003-مشروعي-الآن.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-004-التسجيل-السريع.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-005-البيع-المباشر.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-006-العمل.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-007-مسودة-الطلب.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-008-التكلفة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-009-الاتفاق-والعربون.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-010-تفاصيل-الطلب.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-011-مراجعة-التسليم.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-012-المواعيد-والمتابعات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-013-المالية-وملخص-الفترة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-013B-ميزانيات-المصروف-الاختيارية.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-014-أدوات-وسجلات-المالية.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-015-تسجيل-العمليات-المالية.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-016-كشف-الفترة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-017-سجل-العمليات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-018-المتابعة-المالية.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-019-تكرار-المصروف.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-020-مال-المالك.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-021-التوقعات-النقدية-المؤجلة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-022-إدارة-النقد.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-023-التحويل-بين-أماكن-النقد.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-024-تحديد-مكان-النقد.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-025-مطابقة-رصيد-الصندوق.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-026-تسجيل-دفعة-على-مستحق.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-027-المشتريات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-028-المواد-والمخزون.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-029-المنتجات-والخدمات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-030-نقل-وظائف-أدواتي.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-031-التكلفة-والتسعير.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-032-التقديرات-المحفوظة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-033-فحص-البيانات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-034-الأصول-والمعدات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-035-القروض-التي-أعطاها-المشروع.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-036-القروض-التي-أخذها-المشروع.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-037-العملاء-والموردون.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-038-الإعدادات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-039-بيانات-المشروع-والمالك.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-040-المشاركة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-041-السوق.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-042-قفل-التطبيق.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-043-الخدمات-القادمة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-044-النسخ-الاحتياطي-والاستعادة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/00-System-Navigation-Master-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/00-JOURNEYS-INDEX-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/01-First-Use-and-First-Task-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/02-Customer-Order-Lifecycle-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/03-Direct-Sale-and-Collection-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/04-Purchases-Payments-and-Optional-Stock-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/05-Expenses-and-Recurring-Commitments-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/06-Cash-and-Owner-Money-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/07-Optional-Capabilities-and-Planning-Tools-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/08-Settings-Maintenance-Backup-and-Restore-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/09-Future-Services-Entries-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/10-Account-Completion-and-Return-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/02-Consistency-Review-and-Decisions-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/01-Current-vs-Approved-Components-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/04-Staged-Execution-and-Review-Protocol-AR.md`
+- `docs/implementation/micro-component-execution/03-S01-RESULT-2026-10-27.md`
+- `docs/implementation/micro-component-execution/04-S01-AUTHORITY-MATRIX-2026-10-27.md`
+- `docs/implementation/micro-component-execution/05-S01-RESUME-INSTRUCTIONS-2026-10-27.md`
+- `docs/implementation/micro-component-execution/06-S01-PACKAGE-RECONCILIATION-2026-10-27.md`
+- `docs/implementation/micro-component-execution/BASELINE-RECONCILIATION.md`
+- `docs/implementation/micro-component-execution/DEPENDENCIES-AND-TRACEABILITY.md`
+- `docs/implementation/micro-component-execution/MANIFEST.md`
+
 ## مخازن الأدلة — غير سلطوية وخارج القراءة الافتراضية
 
 شهادات تنفيذ وتاريخ، تُقرأ بمسار صريح فقط (بند Control أو Workstream أو إحالة من مستند سلطوي) وفق قائمة المنع في `AGENTS.md` §2، ولا تعلو أبدًا على العقود أو الحالة الحية أو القرارات المعتمدة:

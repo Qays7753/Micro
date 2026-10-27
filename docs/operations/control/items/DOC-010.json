@@ -1,0 +1,102 @@
+{
+  "id": "DOC-010",
+  "title": "برنامج تنفيذ مكونات Micro — نشر الحزمة وS01 التوثيقية",
+  "type": "GOVERNANCE",
+  "status": "IN_REVIEW",
+  "priority": "P1",
+  "stage": "micro-component-execution-s01-20261027",
+  "summary": "نشر حزمة تنفيذ المكونات ذات 45 مواصفة وتثبيت سلطة النسخ والتبعيات وملكية المراحل وفرع التكامل الواحد ضمن S01؛ لا تنفيذ كود ولا انتقال إلى S02.",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "classification": "GOVERNANCE",
+  "gate_classification": "EXTERNAL_REVIEW_REQUIRED",
+  "root_cause": "الحزمة كانت خارج GitHub، ونسخ UNIT-001/002 السابقة والجديدة وخطة المراحل لم تكن مرتبطة بسجل S01 واحد يميز مصدر التنفيذ عن التاريخ ويثبت نقطة الاستئناف.",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "اعتماد تنفيذ S01 التوثيقية على فرع التكامل الواحد؛ لا ZAI ولا كود منتج ولا انتقال أو دمج قبل مراجعة Manus وChatGPT واعتماد المالك.",
+  "tests_required": [
+    "python3 scripts/operations-control/generate_tracker.py",
+    "python3 scripts/operations-control/validate.py",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "node scripts/check-doc-index-coverage.mjs",
+    "node scripts/check-current-state-size.mjs",
+    "node scripts/check-agent-document-contract.mjs",
+    "git diff --check"
+  ],
+  "layers": [
+    "documentation",
+    "governance",
+    "operations-control"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S01-APPROVED-TASK-2026-10-27.md",
+    "discovered_at_sha": "3584aa1d08cea3e0a00623b719fed7f991ce187f",
+    "evidence": [
+      "docs/implementation/micro-component-execution/MANIFEST.md",
+      "docs/implementation/micro-component-execution/BASELINE-RECONCILIATION.md",
+      "docs/implementation/micro-component-execution/DEPENDENCIES-AND-TRACEABILITY.md"
+    ]
+  },
+  "acceptance": [
+    "حزمة التنفيذ الأصلية منشورة كاملة ومميزة عن ملفات S01 الإضافية، مع بصمات ZIP والنسخة الناتجة.",
+    "Authority Matrix تفصل UNIT-001 V3 عن V9 وUNIT-002 V5 عن V11 وتثبت أن الجديد غير منفذ.",
+    "خريطة S01..S18 توثق مالك كل عقدة وتبقي S02–S18 PLANNED_REVIEW دون أمر READY.",
+    "DOC-010/WS-226 في IN_REVIEW، وPR واحد Draft على فرع التكامل، ولا كتابة على main.",
+    "Generated views صحيحة ومولدة من JSON المصدر، وحراس الفهرس والحجم وعقد الوثائق يمرون.",
+    "لا تغيير في كود المنتج أو الاختبارات أو Schema 38 أو Export 30 أو Import wire format أو القرارات المالية أو سياسة CI."
+  ],
+  "areas": [
+    "docs/implementation/micro-component-execution",
+    "docs/operations/control/items/DOC-010.json",
+    "docs/operations/control/workstreams/WS-226.json",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+    "docs/00-document-index.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-PROGRAM.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/03-S01-RESULT-2026-10-27.md",
+    "docs/implementation/micro-component-execution/04-S01-AUTHORITY-MATRIX-2026-10-27.md",
+    "docs/implementation/micro-component-execution/05-S01-RESUME-INSTRUCTIONS-2026-10-27.md",
+    "docs/implementation/micro-component-execution/06-S01-PACKAGE-RECONCILIATION-2026-10-27.md"
+  ],
+  "dependencies": [
+    "DOC-007"
+  ],
+  "related_items": [
+    "DOC-007",
+    "DOC-008",
+    "DOC-009"
+  ],
+  "updated_at": "2026-10-27",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-27",
+      "actor": "owner-approved-s01",
+      "reason": "اعتمد المالك تنفيذ S01 التوثيقية على فرع التكامل الواحد؛ لا ZAI ولا كود منتج."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-27",
+      "actor": "manus-s01-executor",
+      "reason": "بدأ Manus التحقق والنشر التوثيقي من origin/main عند الرأس الحي الكامل؛ لا كتابة على main."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-27",
+      "actor": "manus-s01-delivery",
+      "reason": "اكتمل نطاق S01 التوثيقي وسُلّم على PR Draft للمراجعة؛ لا يعني ذلك قبول المرحلة أو الانتقال إلى S02."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "مراجعة Manus وChatGPT لنفس candidate SHA، إغلاق العوائق إن وجدت، ثم اعتماد المالك لـS01؛ لا كتابة أو أمر تنفيذ لـS02 قبل ذلك."
+}
