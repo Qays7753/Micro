@@ -142,15 +142,17 @@ import {
 import { connection, failure } from "./indexedDbLifecycle";
 import { deleteOne, listAll, readOne, writeOne, writeOneIdempotent } from "./indexedDbPrimitives";
 import { readIndexedDbSnapshot, replaceIndexedDbSnapshot } from "./indexedDbSnapshot";
-/* S02-A (SH-02/SH-03): محرك قاعدة حماية الاستبدال المنفصلة — الأسماء المستعارة
- * تفصل دوال الوحدة عن أعضاء المنفذ بالأسماء نفسها. */
-import {
-  abortReplacementIntent as abortReplacementIntentEngine,
-  beginReplacementIntent as beginReplacementIntentEngine,
-  readDataGeneration,
-  readRestoreProtectionState,
-  commitReplacementIntent as commitReplacementIntentEngine,
-} from "./restoreProtectionStore";
+/* S02-A (SH-02/SH-03): محرك قاعدة حماية الاستبدال المنفصلة يُحمَّل كسولًا —
+ * عمليات الحماية كلها تُستدعى من بروتوكول الاستبدال (شظية النقل الكسولة)
+ * فلا reason لدخوله كومة إقلاع المحوّل؛ الاستيراد الكسول داخل الأساليب
+ * غير المتزامنة آمن تمامًا (لا معاملة قيد التنفيذ هنا — لكل عملية معاملتها
+ * الخاصة في قاعدة الحماية المنفصلة). */
+type RestoreProtectionEngine = typeof import("./restoreProtectionStore");
+let protectionEngine: Promise<RestoreProtectionEngine> | null = null;
+function loadProtectionEngine(): Promise<RestoreProtectionEngine> {
+  protectionEngine ??= import("./restoreProtectionStore");
+  return protectionEngine;
+}
 /* R9-GA-F7 (استمرار R9 — تحصين مسارات الكتابة داخل مستمعات النجاح): كل طلب
  * كتابة (put/add/delete) يُرتَّب داخل مستمع onsuccess كان يعتمد نجاحه على
  * معالجة المحرك لاستثناء يرميه المستمع نفسه (DataCloneError مثلًا): المواصفة
@@ -2978,26 +2980,31 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   /* S02-A (SH-02/SH-03): حماية الاستبدال الدائمة — تفويض إلى قاعدة الحماية
    * المنفصلة (restoreProtectionStore) خارج قاعدة البيانات المستبدلة. */
   async getDataGeneration(): Promise<StorageResult<number>> {
-    return readDataGeneration();
+    const engine = await loadProtectionEngine();
+    return engine.readDataGeneration();
   }
   async readRestoreProtection(): Promise<StorageResult<RestoreProtectionState>> {
-    return readRestoreProtectionState();
+    const engine = await loadProtectionEngine();
+    return engine.readRestoreProtectionState();
   }
   async beginReplacementIntent(
     pending: RestoreRollbackRecord,
     intent: ReplacementIntentRecord,
   ): Promise<StorageResult<null>> {
-    return beginReplacementIntentEngine(pending, intent);
+    const engine = await loadProtectionEngine();
+    return engine.beginReplacementIntent(pending, intent);
   }
   async commitReplacementIntent(
     generation: number,
     receipt: ReplacementReceiptRecord,
     resolvedAt: string,
   ): Promise<StorageResult<null>> {
-    return commitReplacementIntentEngine(generation, receipt, resolvedAt);
+    const engine = await loadProtectionEngine();
+    return engine.commitReplacementIntent(generation, receipt, resolvedAt);
   }
   async abortReplacementIntent(): Promise<StorageResult<null>> {
-    return abortReplacementIntentEngine();
+    const engine = await loadProtectionEngine();
+    return engine.abortReplacementIntent();
   }
   /* المجموعة ٤ (عقد ٢٩ — الأصول): قراءة سجل الأصول. */
   listAssets() {

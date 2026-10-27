@@ -309,6 +309,9 @@ export async function runProtectedReplacement(
   }
   const replacement = await store.replaceSnapshot(request.payload, {
     expectedSnapshotDigest: liveDigest,
+    /* S02-A: دالة البصمة تمر عبر السياج — محوّل IndexedDB يعمل داخل معاملة
+     * فلا يستورد جهاز البصمة في كومة إقلاعه (الاستيراد هنا من الشظية الكسولة). */
+    digestOf: canonicalSnapshotDigest,
     ...(request.restoreFormDrafts !== undefined ? { restoreFormDrafts: request.restoreFormDrafts } : {}),
   });
   if (!replacement.ok) {

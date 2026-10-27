@@ -190,9 +190,13 @@ export type RestoreProtectionState = {
 /** سياج الاستبدال داخل حد الكتابة — البصمة المرجوة تُقارن داخل معاملة
  * الاستبدال نفسها بعد قراءة كل المخازن وقبل أي مسح (ضمان مخزني لا طبقة
  * واجهة)، والقائمة الاختيارية تعيد مسودات النماذج المعزولة مع اللقطة
- * القديمة في الحد نفسه (مسار استرجاع النسخة السابقة وحده يمررها). */
+ * القديمة في الحد نفسه (مسار استرجاع النسخة السابقة وحده يمررها).
+ * digestOf تُمرَّر من صاحب البروتوكول (شظية النقل الكسولة) كي لا يدخل
+ * جهاز البصمة الكنونية كومة إقلاع المحوّل — السياج يعمل داخل المعاملة
+ * فلا يصلح استيراد كسول هناك. */
 export type ReplacementGuard = {
   expectedSnapshotDigest: string;
+  digestOf: (snapshot: LocalStoreSnapshot) => string;
   restoreFormDrafts?: readonly FormDraftEnvelope[];
 };
 export type LocalExportIntegrity = {

@@ -599,6 +599,14 @@ textarea:disabled,
 .micro-setting-row:last-child {
   border-bottom: 0;
 }
+/* S02-A (عقد ٠٤٤ B4.4): أزرار النسخة السابقة الدائمة — تنزيل واسترجاع جنبًا
+ * إلى جنب بلا تمدد على حساب النص (استثناء مقصود من قاعدة تمدد أبناء الصف). */
+.micro-setting-row .micro-setting-row-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
 .micro-setting-row > div {
   flex: 1;
   min-width: 0;

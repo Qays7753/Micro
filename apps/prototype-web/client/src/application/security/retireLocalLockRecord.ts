@@ -21,8 +21,9 @@
  *   اليوم أي كاتب له في مسارات المنتج.
  */
 import type { PrototypeLocalStore } from "@/storage/local/types";
-import { localDiagnostics } from "@/application/diagnostics/localDiagnosticsService";
-import { routeTemplateFor } from "@/application/diagnostics/routeTemplate";
+/* R9 (OD-10): الزوج الأمني→التشخيصي يمر عبر باب البيت الموثق (STR-615) —
+ * الباب يصدّر المفردة ودالة القالب معًا فلا استيراد عميق بين البيتين. */
+import { localDiagnostics, routeTemplateFor } from "@/application/diagnostics";
 
 export type LockRetirementOutcome =
   { status: "cleaned" } | { status: "nothing-to-clean" } | { status: "cleanup-failed" };

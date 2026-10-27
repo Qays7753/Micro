@@ -421,7 +421,7 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
        * اللقطة القديمة في نسخة الرجوع الدائمة (S02-A/عقد ٠٤٤ B6 — لم تعد
        * تبقى فوق بيانات استُبدلت) + الفحص بعدها. */
       expect(await screen.findByText(/تم استبدال البيانات المحلية بالملف الذي راجعته/)).toBeTruthy();
-      expect((await screen.findAllByText(/نسخة ما قبل الاستبدال جاهزة/)).length).toBeGreaterThan(0);
+      expect((await screen.findAllByText(/نسخة بياناتك السابقة محفوظة/)).length).toBeGreaterThan(0);
       expect(await screen.findByText(/فحص السلامة بعد الاستعادة/)).toBeTruthy();
       /* حد الالتزام الحقيقي: استبدال واحد بالضبط، والهوية الناتجة تطابق
        * هوية النسخة (المصدر) حرفيًا — لا ثانية ولا تعديل. */

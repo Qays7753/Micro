@@ -27,7 +27,7 @@ import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { useTheme } from "@/contexts/ThemeContext";
 import type { BrowserPersistenceReading } from "@/application/preferences";
-import type { OperatingWorkMode, LocalExportFile } from "@/storage/local/types";
+import type { OperatingWorkMode } from "@/storage/local/types";
 import { localDiagnostics } from "@/application/diagnostics";
 
 import { SettingsDataProtectionSection } from "@/components/settings/SettingsDataProtectionSection";
@@ -100,10 +100,10 @@ export default function SettingsPage() {
     overall: "PASS" | "WARN" | "UNAVAILABLE" | "FAIL";
     note: string;
   } | null>(null);
-  /* EXE-014 (DATA-001 / AUD-NEW-09): نسخة ما قبل الاستبدال القابلة
-   * للاسترجاع — تُنشأ داخل confirmImport قبل أي كتابة وتُعرض للتنزيل
-   * بعد الاستعادة حتى لا تضيع بغلقة الصفحة. */
-  const [restoreBackup, setRestoreBackup] = useState<LocalExportFile | null>(null);
+  /* S02-A (SH-03): حالة النسخة السابقة الدائمة — من قاعدة الحماية عبر
+   * readRestoreStatus لا من ذاكرة الصفحة، فتصمد بعد الإغلاق وإعادة
+   * التحميل، وتحسم أي نية استبدال معلقة أولًا بصدق. */
+  const [rollbackStatus, setRollbackStatus] = useState<{ createdAt: string } | null>(null);
   const guidedCardRef = useRef<HTMLDivElement>(null);
   /* Wave 4.2 — P-4.2-3 (T2): القسم الموحد «البيانات والنسخ الاحتياطي» —
    * الطبقتان القديمتان دُمجتا في قسم واحد مفتوح افتراضيًا؛ الوصلة العميقة
@@ -152,6 +152,15 @@ export default function SettingsPage() {
         const serialized = JSON.stringify(value.value, null, 2);
         const prepared = transfers.prepareImport(serialized);
         if (prepared.ok) setCurrentSummary(prepared.value.summary);
+      }
+    });
+    /* S02-A: النسخة السابقة الدائمة تُقرأ من قاعدة الحماية — بعد أي إعادة
+     * تحميل تظل ظاهرة، وأي نية معلقة تُحسم أولًا بصدق. */
+    void transfers.readRestoreStatus().then(value => {
+      if (active && value.ok) {
+        setRollbackStatus(
+          value.value.rollbackCreatedAt ? { createdAt: value.value.rollbackCreatedAt } : null,
+        );
       }
     });
     return () => {
@@ -397,18 +406,23 @@ export default function SettingsPage() {
     }
     setPreview(null);
     notifyDataChanged();
-    /* EXE-014 (DATA-001 / AUD-NEW-09): نسخة ما قبل الاستبدال جاهزة للتنزيل —
-     * الاستعادة الكاملة لا تحدث بلا طريق رجوع محفوظ بيد المالك. */
-    setRestoreBackup(result.value.backup);
-    /* المجموعة ٥ (التحصين الكامل): المسودات العابرة لا تُمسح صامتًا ولا تُستبدل —
-     * السياسة المختارة: الإبقاء مع إفصاح صادق
-     * عن حالتها المستقلة عن الملف. */
-    const drafts = await formDrafts.list();
+    /* S02-A (SH-03): النسخة السابقة الدائمة جاهزة — من قاعدة الحماية لا من
+     * حالة الصفحة، فطريق الرجوع محفوظ بيد المالك حتى بعد إعادة التحميل. */
+    if (transfers) {
+      void transfers.readRestoreStatus().then(value => {
+        if (value.ok) {
+          setRollbackStatus(
+            value.value.rollbackCreatedAt ? { createdAt: value.value.rollbackCreatedAt } : null,
+          );
+        }
+      });
+    }
+    /* S02-A (عقد ٠٤٤ B6): المسودات العابرة عُزلت مع اللقطة القديمة داخل نسخة
+     * الرجوع الدائمة — لا تبقى فوق بيانات استُبدلت ولا تضيع بصمت؛ تُسترد
+     * مع اللقطة القديمة عند الاسترجاع. */
     setStorageNotice(
       "completion",
-      drafts.ok && drafts.value.length > 0
-        ? `تم استبدال البيانات المحلية بالملف الذي راجعته؛ وأُبقيت ${drafts.value.length} مسودة نموذج غير مُسلّمة محليًا كما هي (مستقلة عن الملف) — تُعرض عند فتح نماذجها ويمكن تجاهلها هناك، ونسخة ما قبل الاستبدال جاهزة للتنزيل أدناه.`
-        : "تم استبدال البيانات المحلية بالملف الذي راجعته؛ نسخة ما قبل الاستبدال جاهزة للتنزيل أدناه.",
+      "تم استبدال البيانات المحلية بالملف الذي راجعته؛ نسخة بياناتك السابقة محفوظة أدناه (تنزيل أو استرجاع كامل بمراجعة وتأكيد) — ومعها المسودات غير المُسلّمة معزولة كما كانت.",
     );
     /* المجموعة ٥ (عقد ٣٩): فحص سلامة بعد الاستعادة مباشرة — قراءة جديدة فوق
      * البيانات المستعادة، بلا إصلاح تلقائي؛ النتيجة إجمالية مع رابط للتفاصيل. */
@@ -427,18 +441,45 @@ export default function SettingsPage() {
     if (!result.value.profile) navigate("/setup");
   }
 
-  /* EXE-014 (DATA-001): تنزيل نسخة ما قبل الاستبدال — نفس آلية التصدير
-   * المتحقق منه (Blob + رابط مؤجل الإبطال)؛ النسخة محفوظة في الحالة فلا
-   * تضيع بالتنقل قبل التنزيل. */
-  function downloadRestoreBackup() {
-    if (!restoreBackup) return;
-    const blob = new Blob([JSON.stringify(restoreBackup, null, 2)], { type: "application/json" });
+  /* S02-A (SH-03): تنزيل النسخة السابقة الدائمة — من قاعدة الحماية نفسها،
+   * فتُنزَّل حتى بعد إعادة التحميل (نفس آلية التصدير: Blob + رابط مؤجل الإبطال). */
+  async function downloadRestoreBackup() {
+    if (!transfers) {
+      setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
+      return;
+    }
+    const rollback = await transfers.readActiveRollback();
+    if (!rollback.ok || rollback.value === null) {
+      setStorageNotice("error", "لا توجد نسخة سابقة محفوظة على هذا الجهاز — لا ما يُنزَّل.");
+      return;
+    }
+    const blob = new Blob([JSON.stringify(rollback.value.file, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `micro-backup-before-restore-${businessDateFromTimestamp(restoreBackup.exportedAt)}.json`;
+    link.download = `micro-backup-before-restore-${businessDateFromTimestamp(rollback.value.file.exportedAt)}.json`;
     link.click();
     globalThis.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  }
+
+  /* S02-A (عقد ٠٤٤ B4.4): استرجاع البيانات السابقة — نفس خدمة الاستعادة
+   * نفسها: معاينة وأثر وتأكيد، وحماية كاملة للبيانات الحالية التي سيستبدلها
+   * الرجوع أيضًا؛ لا استرجاع من مجرد نقرة إشعار. */
+  async function startRollbackRestore() {
+    if (!transfers) {
+      setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
+      return;
+    }
+    setNotice(null);
+    setIsWorking(true);
+    const prepared = await transfers.prepareRollbackRestore();
+    setIsWorking(false);
+    if (!prepared.ok) {
+      setStorageNotice("error", prepared.message);
+      return;
+    }
+    setPreview(prepared.value);
+    setGuidedAttention(true);
   }
 
   async function chooseGuidedOpeningImport(event: ChangeEvent<HTMLInputElement>) {
@@ -487,7 +528,6 @@ export default function SettingsPage() {
       return;
     }
     setGuidedPreview(null);
-    setRestoreBackup(null);
     notifyDataChanged();
     setStorageNotice(
       "completion",
@@ -564,8 +604,9 @@ export default function SettingsPage() {
         guidedPreview={guidedPreview}
         setGuidedPreview={setGuidedPreview}
         restoreCheck={restoreCheck}
-        restoreBackup={restoreBackup}
-        downloadRestoreBackup={downloadRestoreBackup}
+        rollbackStatus={rollbackStatus}
+        downloadRestoreBackup={() => void downloadRestoreBackup()}
+        startRollbackRestore={startRollbackRestore}
         preview={preview}
         setPreview={setPreview}
         isWorking={isWorking}

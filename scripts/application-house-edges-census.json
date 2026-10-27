@@ -7,12 +7,11 @@
   "authority": "OD-10 Option A (owner-approved 2026-10-13, R11 owner decision package) + R11 W0 census (128 edges / 80 value / 48 type) + RV1/R11-RV1 independent reproductions"
  },
  "totals": {
-  "edges": 129,
-  "value": 80,
+  "edges": 128,
+  "value": 79,
   "type": 49,
   "governedEdges": 63,
-  "governedPairs": 42,
-  "exemptTargetEdges": 66
+  "governedPairs": 42
  },
  "edges": [
   {
@@ -606,16 +605,6 @@
    "exemptTarget": true
   },
   {
-   "key": "application/security/localLockService.ts -> application/time/clock.ts",
-   "kind": "value",
-   "exemptTarget": true
-  },
-  {
-   "key": "application/security/pinOperations.ts -> application/time/clock.ts",
-   "kind": "type",
-   "exemptTarget": true
-  },
-  {
    "key": "application/share/shareMessageService.ts -> application/formatting/formatters.ts",
    "kind": "value",
    "exemptTarget": true
@@ -658,6 +647,11 @@
   {
    "key": "application/transfers/localTransferService.ts -> application/time/clock.ts",
    "kind": "value",
+   "exemptTarget": true
+  },
+  {
+   "key": "application/transfers/replacementProtectionProtocol.ts -> application/time/clock.ts",
+   "kind": "type",
    "exemptTarget": true
   }
  ],
@@ -891,6 +885,7 @@
   "inventory/materialUnitLabels (review candidate, OD-10): pure MaterialUnit label vocabulary created by the documented R10-B3 slice; target of 1 cross-house edge (fulfillment/deliveryReviewService.ts). NOT exempted and NOT moved (OD-10 prohibition) — reported for a future owner review only.",
   "House-level SCC baselines are recorded as the LIVE state at 5ef4ce08: 2 value cycles ({finance,financial-analysis} and {preferences,time}) and 1 type cycle ({collections,finance,financial-analysis,fulfillment,recurring}). Any NEW cycle fails; a RESOLVED cycle also fails until the census is re-anchored in the same PR (nothing changes silently).",
   "The two dual-kind pairs (application/finance/index.ts -> application/recurring/recurringExpenseService.ts and application/fulfillment/fulfillmentService.ts -> application/scheduling/scheduleService.ts) classify TYPE under the type-dominant rule.",
-  "The two R10-B growth edges recorded with provenance: fulfillment/deliveryReviewService.ts -> application/inventory/materialUnitLabels.ts and suppliers/supplierPurchaseEditorModel.ts -> application/finance/paymentSourcePolicy.ts (both from documented R10-B3 work, now inside the census)."
+  "The two R10-B growth edges recorded with provenance: fulfillment/deliveryReviewService.ts -> application/inventory/materialUnitLabels.ts and suppliers/supplierPurchaseEditorModel.ts -> application/finance/paymentSourcePolicy.ts (both from documented R10-B3 work, now inside the census).",
+  "2026-10-27 (S02/SH-02/SH-03/SH-04): حافتا القفل المتقاعد (localLockService وpinOperations -> time/clock) حُذفتا مع وحدتيهما بقرار إلغاء ٠٤٢؛ وحافة بروتوكول حماية الاستبدال الجديد (replacementProtectionProtocol -> time/clock) أُضيفت — هدف معفى ورقي (OD-10) والوصول مسموح بتصميم."
  ]
 }

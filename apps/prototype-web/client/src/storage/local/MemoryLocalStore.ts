@@ -80,8 +80,10 @@ import type {
   StorageResult,
   StoredCraftOrder,
 } from "./types";
-/* S02-A: البصمة الكنونية لسياج الاستبدال داخل حد الكتابة (توافق المهايئين). */
+/* S02-A: البصمة الكنونية لسياج الاستبدال داخل حد الكتابة، والتطبيع الموحد —
+ * المحوّل الذاكري خارج كومة الإقلاع (اختبارات/توافق) فالاستيرادان مباشران. */
 import { canonicalSnapshotDigest } from "./snapshotCanonicalization";
+import { normalizeSnapshotForReplacement } from "./snapshotNormalization";
 import { STORAGE_ERROR, STORAGE_STALE } from "./resultCodes";
 /* R10-B3/R10A-F-011 (2026-10-12): الحرفية صارت مصدرًا واحدًا — كانت نسخة
  * خاصة مطابقة هنا والمعرّف المُصدّر في indexedDbStores.ts هو الكنوني

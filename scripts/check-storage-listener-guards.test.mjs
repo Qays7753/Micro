@@ -45,7 +45,7 @@ describe("check-storage-listener-guards (R9-GA-F7.1 static guard)", () => {
     /* U001-IR-002 (2026-10-18): 77 -> 78 — مستمع onsuccess جديد واحد في
      * commitProfileCreate (IndexedDbLocalStore) مغلّف بguardedSuccessListener
      * نفسه؛ إعادة إرساء العدّ موثقة نفس-الـPR لا تعديلًا صامتًا. */
-    expect(stdout).toMatch(/78 onsuccess listeners/);
+    expect(stdout).toMatch(/79 onsuccess listeners/);
   });
 
   it("fails on an unguarded write-queueing onsuccess listener (the F7 family recurrence)", () => {

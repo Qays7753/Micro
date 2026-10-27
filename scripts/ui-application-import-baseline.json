@@ -33,7 +33,6 @@
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/recurring/recurringExpenseService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/scheduling/recurrenceService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/scheduling/scheduleService.ts",
-  "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/security/localLockService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/suppliers/supplierPurchaseService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/time/actualTimeService.ts",
   "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
@@ -67,6 +66,7 @@
   "r7-p06-schedule-view-model": "2026-10-10 (R7/R6-F17-P06): the schedule lazy route consumes the extracted three-way page query (overview/month/recurrences with the original error-message precedence) and the capacity-layer param from the scheduling house.",
   "r7-p11-statement-view-model": "2026-10-10 (R7/R6-F17-P11): the statement lazy route consumes the extracted statement query, comparison side-B resolution, and week bounds from the finance house; the markdown renderer is injected as an explicit parameter (review amendment 6).",
   "r7-5-shim-removal": "2026-10-10 (R7/R7-5): removed the four frozen-shim keys (3x application/g5/g5Service for G5DecisionPanel/Finance/G5DeclarationEditor + PrototypeServicesContext -> finance/recurringExpenseService) — every consumer migrated to the canonical owners (financial-analysis, recurring) and the shims deleted with zero-consumer proof; see the R7-5 evidence report.",
-  "r7-5-swap-keys": "2026-10-10 (R7/R7-5, amendment 10): the four documented swap keys for the shim-removal migrations — PSC's dynamic recurring-expense load now points at the canonical recurring home, and the three g5 type-only sites (G5DecisionPanel/Finance/G5DeclarationEditor) now point at the canonical financial-analysis module (doorless interior; path-based rule keys type imports too). Net key count unchanged by the swap."
+  "r7-5-swap-keys": "2026-10-10 (R7/R7-5, amendment 10): the four documented swap keys for the shim-removal migrations — PSC's dynamic recurring-expense load now points at the canonical recurring home, and the three g5 type-only sites (G5DecisionPanel/Finance/G5DeclarationEditor) now point at the canonical financial-analysis module (doorless interior; path-based rule keys type imports too). Net key count unchanged by the swap.",
+  "s02-b-lock-retirement": "2026-10-27 (S02-B/SH-04 — UNIT-042، إلغاء المالك المعتمد): صف القفل العميق (PrototypeServicesContext -> application/security/localLockService.ts) حُذف مع تقاعد القفل؛ تقاعد السجل القديم يُحمَّل كسولًا عبر باب البيت @/application/security (STR-615) فلا صف تعويضي."
  }
 }

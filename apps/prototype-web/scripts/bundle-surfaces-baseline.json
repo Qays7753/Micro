@@ -16,15 +16,15 @@
  "environments": {
   "local": {
    "anchored": {
-    "head": "f13d5f024b3ff90a6a5dea247bfe34b174f98656",
-    "date": "2026-10-18",
-    "method": "R11 UNIT-001 independent-review remediation local re-anchor (2026-10-18, code head f13d5f024b3ff90a6a5dea247bfe34b174f98656, WS-224/DOC-008): the U001-IR-002/003 root fixes — the atomic profile create (port surface 130->131 with commitProfileCreate in both adapters + the service) and the setup-draft concurrency contract (retained expected timestamp, serialized write chain, truthful conflict state) — grow the lazy setup route deliberately: lazyRawTotal 1,214,111 -> 1,214,634 and lazyGzipNormTotal 365,948 -> 366,062 (lazyJsCount stays 102); precacheBytesTotal mirrors it 2,681,968 -> 2,682,910 (precacheEntryCount stays 157). initial companions and swRuntime are byte-identical (224,842 / 70,752 / 26,220). Entry measured 631,807/155,041 — within the entry ceilings owned exclusively by check-bundle-budget (650,000/155,300), NOT touched. Cloud records follow the documented post-push measurement protocol. Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol.",
-    "initialRawTotal": 224842,
-    "initialGzipNormTotal": 70752,
-    "lazyRawTotal": 1214634,
-    "lazyGzipNormTotal": 366062,
-    "precacheBytesTotal": 2682910,
-    "swRuntimeRawTotal": 26220
+    "head": "fdfaaab5e705209dc4b8d475f4b8e2188ea40f41",
+    "date": "2026-10-27",
+    "method": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤/UNIT-042، 2026-10-27) local re-anchor per the guard's documented same-PR re-anchor-with-provenance protocol: the protected restore boundary grows the lazy surface deliberately — the replacement protocol (intent marker/receipt + digest machinery in snapshotCanonicalization, split out of the entry chunk via guard.digestOf injection) and the separate restore-protection database engine (lazy-loaded from the adapter) add lazyRawTotal 1,214,634 -> 1,220,928 and lazyGzipNormTotal 366,062 -> 368,136; lazyJsCount 102 -> 104 and precacheEntryCount 157 -> 159 (retireLocalLockRecord + restoreProtectionStore chunks); dynamicRootsCount 71 -> 72. The lock retirement (UNIT-042) and the entry-chunk discipline REDUCE the initial companions (224,842 -> 224,222 raw; 70,752 -> 70,645 gzip norm) and precacheBytesTotal (2,682,910 -> 2,682,337); swRuntimeRawTotal 26,220 -> 26,363 (precache manifest entries). Entry measured 626,242/153,250 — within the ceilings owned exclusively by check-bundle-budget (650,000/155,300), NOT touched. Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol.",
+    "initialRawTotal": 224222,
+    "initialGzipNormTotal": 70645,
+    "lazyRawTotal": 1220928,
+    "lazyGzipNormTotal": 368136,
+    "precacheBytesTotal": 2682337,
+    "swRuntimeRawTotal": 26363
    },
    "toolchain": {
     "node": "not-exposed-by-provider",
@@ -36,18 +36,18 @@
     "identityMode": "null-fallback"
    },
    "measurements": {
-    "initialRawTotal": 224842,
-    "initialGzipNormTotal": 70752,
-    "lazyRawTotal": 1214634,
-    "lazyGzipNormTotal": 366062,
-    "precacheBytesTotal": 2682910,
-    "swRuntimeRawTotal": 26220
+    "initialRawTotal": 224222,
+    "initialGzipNormTotal": 70645,
+    "lazyRawTotal": 1220928,
+    "lazyGzipNormTotal": 368136,
+    "precacheBytesTotal": 2682337,
+    "swRuntimeRawTotal": 26363
    },
    "counts": {
-    "lazyJsCount": 102,
+    "lazyJsCount": 104,
     "initialJsCount": 2,
-    "dynamicRootsCount": 71,
-    "precacheEntryCount": 157,
+    "dynamicRootsCount": 72,
+    "precacheEntryCount": 159,
     "swRuntimeFileCount": 2
    }
   },

@@ -223,6 +223,7 @@ describe("S02-A restore protection boundary — SDF-050 stale review and the in-
       const staleDigest = "0".repeat(64);
       const replacement = await store.replaceSnapshot(file.data, {
         expectedSnapshotDigest: staleDigest,
+        digestOf: canonicalSnapshotDigest,
       });
       expect(replacement.ok).toBe(false);
       if (!replacement.ok) expect(replacement.code).toBe("replacement_context_stale");

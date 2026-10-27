@@ -53,8 +53,12 @@ export type SettingsDataProtectionSectionProps = {
   guidedPreview: GuidedOpeningImportPreview | null;
   setGuidedPreview: Dispatch<SetStateAction<GuidedOpeningImportPreview | null>>;
   restoreCheck: { overall: "PASS" | "WARN" | "UNAVAILABLE" | "FAIL"; note: string } | null;
-  restoreBackup: LocalExportFile | null;
+  /* S02-A/SH-03: النسخة السابقة الدائمة من قاعدة الحماية — تصمد بعد إعادة
+   * التحميل (لا حالة واجهة)، ولها استرجاع كامل بنفس خدمة الاستعادة
+   * ومعاينتها وتأكيدها (عقد ٠٤٤ B4.4). */
+  rollbackStatus: { createdAt: string } | null;
   downloadRestoreBackup: () => void;
+  startRollbackRestore: () => Promise<void>;
   preview: BoundRestoreIntent | null;
   setPreview: Dispatch<SetStateAction<BoundRestoreIntent | null>>;
   isWorking: boolean;
@@ -93,8 +97,9 @@ export function SettingsDataProtectionSection({
   guidedPreview,
   setGuidedPreview,
   restoreCheck,
-  restoreBackup,
+  rollbackStatus,
   downloadRestoreBackup,
+  startRollbackRestore,
   preview,
   setPreview,
   isWorking,
@@ -165,10 +170,12 @@ export function SettingsDataProtectionSection({
           title={lastExport ? "تصدير محلي مُتحقق" : "تصدير محلي"}
           text={
             lastExport
-              ? `آخر نسخة مُتحقق منها: ${
-                  /* R2 (M-05/X3): تاريخ العرض من اللحظة المخزنة عبر عقد وقت الأعمال. */
+              ? `آخر ملف نسخة جرى تجهيزه: ${
+                  /* R2 (M-05/X3): تاريخ العرض من اللحظة المخزنة عبر عقد وقت الأعمال.
+                   * S02-B (عقد ٠٤٤ B2/U044-P03): صدق النتيجة — تجهيز الملف وطلب حفظه،
+                   * لا ادعاء حفظ خارجي مؤكد من المتصفح. */
                   formatLocalDate(businessDateFromTimestamp(lastExport)) ?? lastExport.slice(0, 10)
-                } — يُعاد التحقق من الملف دورة كاملة قبل إعلان جهوزيته.`
+                } — التحقق دورة كاملة قبل إعلان الجهوزية، وتأكيد حفظه خارج الجهاز منك أنت.`
               : "ينشئ ملف نسخة مُتحققًا منه لبياناتك الحالية على هذا الجهاز، دون أسرار أو مفاتيح."
           }
           actionLabel="تصدير"
@@ -290,20 +297,27 @@ export function SettingsDataProtectionSection({
             </div>
           </section>
         ) : null}
-        {/* EXE-014 (DATA-001 / AUD-NEW-09): نسخة ما قبل الاستبدال القابلة للاسترجاع + تنزيلها. */}
-        {restoreBackup ? (
+        {/* S02-A/SH-03 (عقد ٠٤٤ B4/B6): نسخة ما قبل الاستبدال الدائمة — من
+         * قاعدة الحماية لا من ذاكرة الصفحة، فتبقى بعد الإغلاق وإعادة التحميل
+         * حتى تنجح عملية استبدال تالية وتجهّز لقطتها البديلة؛ ولها استرجاع
+         * كامل: معاينة وأثر وتأكيد وحماية للحالي الذي سيُستبدل أيضًا. */}
+        {rollbackStatus ? (
           <article className="micro-setting-row" data-testid="restore-backup-row">
             <div>
-              <strong>نسخة ما قبل الاستبدال جاهزة</strong>
+              <strong>نسخة بياناتك السابقة محفوظة</strong>
               <small>
-                مُنشأة قبل الكتابة ومُتحقّقة دورة كاملة — صدرت{" "}
-                <DateTimeValue value={restoreBackup.exportedAt} />؛ نزّلها واحفظها خارج الجهاز قبل أي خطوة
-                لاحقة.
+                لقطة ما قبل آخر استبدال — جُهزت <DateTimeValue value={rollbackStatus.createdAt} /> وصمدت
+                لإعادة التحميل؛ نزّلها خارج الجهاز للاطمئنان، أو استرجعها بمراجعة وتأكيد كاملين.
               </small>
             </div>
-            <Button action="secondary" onClick={downloadRestoreBackup}>
-              <Download aria-hidden="true" /> نزّل النسخة الاحتياطية
-            </Button>
+            <div className="micro-setting-row-actions">
+              <Button action="secondary" onClick={downloadRestoreBackup}>
+                <Download aria-hidden="true" /> نزّلها
+              </Button>
+              <Button action="secondary" disabled={isWorking} onClick={() => void startRollbackRestore()}>
+                <RotateCcw aria-hidden="true" /> استرجعها
+              </Button>
+            </div>
           </article>
         ) : null}
         {restoreCheck ? (

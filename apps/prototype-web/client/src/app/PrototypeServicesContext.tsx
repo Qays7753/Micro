@@ -13,9 +13,6 @@ import { DraftService } from "@/application/drafts/draftService";
 /* المجموعة ٥ (عقد ٣٦): مسودات النماذج الطويلة — خارج اللقطة، بلا أثر مالي. */
 import { FormDraftService } from "@/application/drafts/formDraftService";
 /* المجموعة ٥ (عقد ٣٧): القفل المحلي — بصمة الرمز فقط، خارج اللقطة. */
-/* S02-B (SH-04 — UNIT-042): تقاعد سجل القفل المحلي — تنظيف موثق لمرة
- * واحدة عند الإقلاع؛ استيراد مباشر من الوحدة (نمط جذر التركيب الموثق). */
-import { retireLocalLockRecord } from "@/application/security/retireLocalLockRecord";
 import { CostService } from "@/application/cost/costService";
 import { AgreementService } from "@/application/agreements/agreementService";
 import { AgreementContextService } from "@/application/agreements/agreementContextService";
@@ -179,9 +176,12 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
   /* S02-B (SH-04 — UNIT-042): تقاعد سجل القفل المحلي مرة واحدة عند أول تركيب —
    * بيئة فُعِّل فيها القفل سابقًا تفتح دون غطاء (البوابة حُذفت مع مكوّنها)
    * وتُنظَّف مادة PIN بمعروف؛ فشل التنظيف حادثة تشخيصية آمنة لا يحبس
-   * المستخدم ولا يمحو بياناته ولا يوقف الإقلاع. */
+   * المستخدم ولا يمحو بياناته ولا يوقف الإقلاع. التحميل كسول كخدمات الإقلاع
+   * كلها (بروتوكول FIN-001/OPS-003 للميزانية: لا ينام في كومة الإقلاع). */
   useEffect(() => {
-    void retireLocalLockRecord(singletonStore);
+    void import("@/application/security").then(module => {
+      void module.retireLocalLockRecord(singletonStore);
+    });
   }, []);
   const notifyDataChanged = useCallback(() => {
     setDataVersion(version => version + 1);

@@ -63,9 +63,17 @@ describe("Settings backup actions carry visible Arabic labels (U-11)", () => {
       transfers: {
         createExport: vi.fn(async () => ({ ok: false })),
         prepareImport: vi.fn(),
+        prepareRestore: vi.fn(),
         confirmImport: vi.fn(),
         createVerifiedExport: vi.fn(async () => ({ ok: false })),
         resetAll: vi.fn(async () => ({ ok: false })),
+        /* S02-A: واجهة حماية الاستبدال الدائمة في مضاعف الاختبار. */
+        readRestoreStatus: vi.fn(async () => ({
+          ok: true,
+          value: { generation: 0, rollbackCreatedAt: null, unresolvedIntent: false },
+        })),
+        readActiveRollback: vi.fn(async () => ({ ok: true, value: null })),
+        prepareRollbackRestore: vi.fn(async () => ({ ok: false })),
       },
       guidedOpeningImport: { prepare: vi.fn(), confirm: vi.fn() },
       dataVersion: 0,

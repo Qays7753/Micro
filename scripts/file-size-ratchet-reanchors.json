@@ -1997,6 +1997,253 @@
     "trigger": "Post-merge CI Dependency Audit failure on main after PR #378; remediation candidate updates Vite 7.3.7, fast-uri 3.1.9, and serialize-javascript 7.1.4 with clean pnpm audit.",
     "ocRef": "DOC-008"
    }
+  },
+  {
+   "id": "S02-PROTECTED-REPLACE-20261027-01",
+   "date": "2026-10-27",
+   "path": "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+   "from": {
+    "nbLoc": 360,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 373,
+    "band": "NORMAL"
+   },
+   "reason": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤ §14/§16 والسجل المشترك، UNIT-042 إلغاء المالك المعتمد 2026-10-24): نمو مقصود لنفس الشريحة — حماية الاستبدال الدائمة (نية/إيصال/نسخة رجوع/جيل/سياج داخل حد الكتابة) وتقاعد القفل وPIN بلا بديل مصادقة. راجع تقرير S02 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S02 execution prompt (00-S02-EXECUTION-PROMPT-2026-10-27.md, READY_FOR_ZAI): protected backup/restore with durable rollback, generation, concurrency and unknown-outcome handling; PIN/application-lock retirement with non-lock guards preserved. Growth anchored in the same PR.",
+    "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-011"
+   }
+  },
+  {
+   "id": "S02-PROTECTED-REPLACE-20261027-02",
+   "date": "2026-10-27",
+   "path": "apps/prototype-web/client/src/application/drafts/formDraftService.ts",
+   "from": {
+    "nbLoc": 129,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 146,
+    "band": "NORMAL"
+   },
+   "reason": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤ §14/§16 والسجل المشترك، UNIT-042 إلغاء المالك المعتمد 2026-10-24): نمو مقصود لنفس الشريحة — حماية الاستبدال الدائمة (نية/إيصال/نسخة رجوع/جيل/سياج داخل حد الكتابة) وتقاعد القفل وPIN بلا بديل مصادقة. راجع تقرير S02 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S02 execution prompt (00-S02-EXECUTION-PROMPT-2026-10-27.md, READY_FOR_ZAI): protected backup/restore with durable rollback, generation, concurrency and unknown-outcome handling; PIN/application-lock retirement with non-lock guards preserved. Growth anchored in the same PR.",
+    "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-011"
+   }
+  },
+  {
+   "id": "S02-PROTECTED-REPLACE-20261027-03",
+   "date": "2026-10-27",
+   "path": "apps/prototype-web/client/src/application/security/index.ts",
+   "from": {
+    "nbLoc": 12,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 18,
+    "band": "NORMAL"
+   },
+   "reason": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤ §14/§16 والسجل المشترك، UNIT-042 إلغاء المالك المعتمد 2026-10-24): نمو مقصود لنفس الشريحة — حماية الاستبدال الدائمة (نية/إيصال/نسخة رجوع/جيل/سياج داخل حد الكتابة) وتقاعد القفل وPIN بلا بديل مصادقة. راجع تقرير S02 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S02 execution prompt (00-S02-EXECUTION-PROMPT-2026-10-27.md, READY_FOR_ZAI): protected backup/restore with durable rollback, generation, concurrency and unknown-outcome handling; PIN/application-lock retirement with non-lock guards preserved. Growth anchored in the same PR.",
+    "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-011"
+   }
+  },
+  {
+   "id": "S02-PROTECTED-REPLACE-20261027-04",
+   "date": "2026-10-27",
+   "path": "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
+   "from": {
+    "nbLoc": 382,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 409,
+    "band": "WATCH"
+   },
+   "reason": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤ §14/§16 والسجل المشترك، UNIT-042 إلغاء المالك المعتمد 2026-10-24): نمو مقصود لنفس الشريحة — حماية الاستبدال الدائمة (نية/إيصال/نسخة رجوع/جيل/سياج داخل حد الكتابة) وتقاعد القفل وPIN بلا بديل مصادقة. راجع تقرير S02 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S02 execution prompt (00-S02-EXECUTION-PROMPT-2026-10-27.md, READY_FOR_ZAI): protected backup/restore with durable rollback, generation, concurrency and unknown-outcome handling; PIN/application-lock retirement with non-lock guards preserved. Growth anchored in the same PR.",
+    "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-011"
+   }
+  },
+  {
+   "id": "S02-PROTECTED-REPLACE-20261027-05",
+   "date": "2026-10-27",
+   "path": "apps/prototype-web/client/src/application/transfers/index.ts",
+   "from": {
+    "nbLoc": 13,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 21,
+    "band": "NORMAL"
+   },
+   "reason": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤ §14/§16 والسجل المشترك، UNIT-042 إلغاء المالك المعتمد 2026-10-24): نمو مقصود لنفس الشريحة — حماية الاستبدال الدائمة (نية/إيصال/نسخة رجوع/جيل/سياج داخل حد الكتابة) وتقاعد القفل وPIN بلا بديل مصادقة. راجع تقرير S02 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S02 execution prompt (00-S02-EXECUTION-PROMPT-2026-10-27.md, READY_FOR_ZAI): protected backup/restore with durable rollback, generation, concurrency and unknown-outcome handling; PIN/application-lock retirement with non-lock guards preserved. Growth anchored in the same PR.",
+    "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-011"
+   }
+  },
+  {
+   "id": "S02-PROTECTED-REPLACE-20261027-06",
+   "date": "2026-10-27",
+   "path": "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+   "from": {
+    "nbLoc": 306,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 516,
+    "band": "WATCH"
+   },
+   "reason": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤ §14/§16 والسجل المشترك، UNIT-042 إلغاء المالك المعتمد 2026-10-24): نمو مقصود لنفس الشريحة — حماية الاستبدال الدائمة (نية/إيصال/نسخة رجوع/جيل/سياج داخل حد الكتابة) وتقاعد القفل وPIN بلا بديل مصادقة. راجع تقرير S02 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S02 execution prompt (00-S02-EXECUTION-PROMPT-2026-10-27.md, READY_FOR_ZAI): protected backup/restore with durable rollback, generation, concurrency and unknown-outcome handling; PIN/application-lock retirement with non-lock guards preserved. Growth anchored in the same PR.",
+    "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-011"
+   }
+  },
+  {
+   "id": "S02-PROTECTED-REPLACE-20261027-07",
+   "date": "2026-10-27",
+   "path": "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx",
+   "from": {
+    "nbLoc": 583,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 596,
+    "band": "WATCH"
+   },
+   "reason": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤ §14/§16 والسجل المشترك، UNIT-042 إلغاء المالك المعتمد 2026-10-24): نمو مقصود لنفس الشريحة — حماية الاستبدال الدائمة (نية/إيصال/نسخة رجوع/جيل/سياج داخل حد الكتابة) وتقاعد القفل وPIN بلا بديل مصادقة. راجع تقرير S02 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S02 execution prompt (00-S02-EXECUTION-PROMPT-2026-10-27.md, READY_FOR_ZAI): protected backup/restore with durable rollback, generation, concurrency and unknown-outcome handling; PIN/application-lock retirement with non-lock guards preserved. Growth anchored in the same PR.",
+    "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-011"
+   }
+  },
+  {
+   "id": "S02-PROTECTED-REPLACE-20261027-08",
+   "date": "2026-10-27",
+   "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+   "from": {
+    "nbLoc": 4391,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 4504,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤ §14/§16 والسجل المشترك، UNIT-042 إلغاء المالك المعتمد 2026-10-24): نمو مقصود لنفس الشريحة — حماية الاستبدال الدائمة (نية/إيصال/نسخة رجوع/جيل/سياج داخل حد الكتابة) وتقاعد القفل وPIN بلا بديل مصادقة. راجع تقرير S02 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S02 execution prompt (00-S02-EXECUTION-PROMPT-2026-10-27.md, READY_FOR_ZAI): protected backup/restore with durable rollback, generation, concurrency and unknown-outcome handling; PIN/application-lock retirement with non-lock guards preserved. Growth anchored in the same PR.",
+    "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-011"
+   }
+  },
+  {
+   "id": "S02-PROTECTED-REPLACE-20261027-09",
+   "date": "2026-10-27",
+   "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+   "from": {
+    "nbLoc": 2087,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 2226,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤ §14/§16 والسجل المشترك، UNIT-042 إلغاء المالك المعتمد 2026-10-24): نمو مقصود لنفس الشريحة — حماية الاستبدال الدائمة (نية/إيصال/نسخة رجوع/جيل/سياج داخل حد الكتابة) وتقاعد القفل وPIN بلا بديل مصادقة. راجع تقرير S02 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S02 execution prompt (00-S02-EXECUTION-PROMPT-2026-10-27.md, READY_FOR_ZAI): protected backup/restore with durable rollback, generation, concurrency and unknown-outcome handling; PIN/application-lock retirement with non-lock guards preserved. Growth anchored in the same PR.",
+    "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-011"
+   }
+  },
+  {
+   "id": "S02-PROTECTED-REPLACE-20261027-10",
+   "date": "2026-10-27",
+   "path": "apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts",
+   "from": {
+    "nbLoc": 451,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 467,
+    "band": "WATCH"
+   },
+   "reason": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤ §14/§16 والسجل المشترك، UNIT-042 إلغاء المالك المعتمد 2026-10-24): نمو مقصود لنفس الشريحة — حماية الاستبدال الدائمة (نية/إيصال/نسخة رجوع/جيل/سياج داخل حد الكتابة) وتقاعد القفل وPIN بلا بديل مصادقة. راجع تقرير S02 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S02 execution prompt (00-S02-EXECUTION-PROMPT-2026-10-27.md, READY_FOR_ZAI): protected backup/restore with durable rollback, generation, concurrency and unknown-outcome handling; PIN/application-lock retirement with non-lock guards preserved. Growth anchored in the same PR.",
+    "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-011"
+   }
+  },
+  {
+   "id": "S02-PROTECTED-REPLACE-20261027-11",
+   "date": "2026-10-27",
+   "path": "apps/prototype-web/client/src/storage/local/types.ts",
+   "from": {
+    "nbLoc": 876,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 1026,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤ §14/§16 والسجل المشترك، UNIT-042 إلغاء المالك المعتمد 2026-10-24): نمو مقصود لنفس الشريحة — حماية الاستبدال الدائمة (نية/إيصال/نسخة رجوع/جيل/سياج داخل حد الكتابة) وتقاعد القفل وPIN بلا بديل مصادقة. راجع تقرير S02 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S02 execution prompt (00-S02-EXECUTION-PROMPT-2026-10-27.md, READY_FOR_ZAI): protected backup/restore with durable rollback, generation, concurrency and unknown-outcome handling; PIN/application-lock retirement with non-lock guards preserved. Growth anchored in the same PR.",
+    "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-011"
+   }
+  },
+  {
+   "id": "S02-PROTECTED-REPLACE-20261027-12",
+   "date": "2026-10-27",
+   "path": "scripts/application-door-surfaces-baseline.json",
+   "from": {
+    "nbLoc": 354,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 367,
+    "band": "NORMAL"
+   },
+   "reason": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤ §14/§16 والسجل المشترك، UNIT-042 إلغاء المالك المعتمد 2026-10-24): نمو مقصود لنفس الشريحة — حماية الاستبدال الدائمة (نية/إيصال/نسخة رجوع/جيل/سياج داخل حد الكتابة) وتقاعد القفل وPIN بلا بديل مصادقة. راجع تقرير S02 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S02 execution prompt (00-S02-EXECUTION-PROMPT-2026-10-27.md, READY_FOR_ZAI): protected backup/restore with durable rollback, generation, concurrency and unknown-outcome handling; PIN/application-lock retirement with non-lock guards preserved. Growth anchored in the same PR.",
+    "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-011"
+   }
+  },
+  {
+   "id": "S02-PROTECTED-REPLACE-20261027-13",
+   "date": "2026-10-27",
+   "path": "scripts/check-entity-touchpoints.mjs",
+   "from": {
+    "nbLoc": 249,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 254,
+    "band": "NORMAL"
+   },
+   "reason": "S02 (SH-02/SH-03/SH-04 — عقد ٠٤٤ §14/§16 والسجل المشترك، UNIT-042 إلغاء المالك المعتمد 2026-10-24): نمو مقصود لنفس الشريحة — حماية الاستبدال الدائمة (نية/إيصال/نسخة رجوع/جيل/سياج داخل حد الكتابة) وتقاعد القفل وPIN بلا بديل مصادقة. راجع تقرير S02 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S02 execution prompt (00-S02-EXECUTION-PROMPT-2026-10-27.md, READY_FOR_ZAI): protected backup/restore with durable rollback, generation, concurrency and unknown-outcome handling; PIN/application-lock retirement with non-lock guards preserved. Growth anchored in the same PR.",
+    "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-011"
+   }
   }
  ]
 }

@@ -1,26 +1,24 @@
-/** S02-A (SH-02/SH-03 — عقد الاستبدال المحروس): التطبيع الكنوني والبصمة
- * الكنونية للقطة التخزين — الأساس الحسابي الوحيد لسياج الاستبدال داخل حد
- * الكتابة (المقارنة-قبل-الكتابة) ولبصمات المآل في علامة الاستبدال.
+/** S02-A (SH-02/SH-03 — عقد الاستبدال المحروس): البصمة الكنونية للقطة —
+ * الأساس الحسابي لسياج الاستبدال ولبصمات المآل في علامة الاستبدال.
  *
- * لماذا هنا ولماذا كنونيًا:
- * - المقارنة داخل معاملة الاستبدال تقرأ المخازن فتُعاد السجلات بترتيب
- *   المفتاح الأساسي (getAll) لا بترتيب الملف الوارد، ومفاتيح الكائنات
- *   تأتي بترتيب الإدراج — فالبصمة الحرفية (JSON.stringify مباشرة) غير
- *   مستقرة عبر الكتابة/القراءة. التطبيع يسوّي العائلات الغائبة إلى قيمها
- *   الآمنة، والبصمة الكنونية تفرز مفاتيح الكائنات وترتب عائلات السجلات
- *   بمعرفها، فتتطابق بصمة «ما سيُخزَّن» مع بصمة «ما يُقرأ لاحقًا» مهما
- *   اختلف مصدر الترتيب.
- * - التطبيع نفسه كان مكررًا حرفيًا في المحوّلين (IndexedDB/Memory)؛
- *   استخراجه هنا ليس إعادة هيكلة بنيوية بل شرط صحة العقد الجديد: بصمة
- *   المآل يجب أن تحسب فوق الشكل المخزَّن نفسه عند المحوّلين معًا.
- * - البصمة تكشف التغير فقط؛ ليست تشفيرًا ولا إثبات مرسل (عقد ٣٩/٠٤٤).
+ * لماذا كنونيًا: المقارنة داخل معاملة الاستبدال تقرأ المخازن فتُعاد السجلات
+ * بترتيب المفتاح الأساسي (getAll) لا بترتيب الملف الوارد، ومفاتيح الكائنات
+ * تأتي بترتيب الإدراج — فالبصمة الحرفية غير مستقرة عبر الكتابة/القراءة.
+ * البصمة الكنونية تفرز مفاتيح الكائنات وترتب عائلات السجلات بمعرفها، فتتطابق
+ * بصمة «ما سيُخزَّن» مع بصمة «ما يُقرأ لاحقًا» مهما اختلف مصدر الترتيب.
+ *
+ * هذا الملف خارج كومة الإقلاع عمدًا: يحتاجه بروتوكول الاستبدال (شظية النقل
+ * الكسولة) والمحوّل الذاكري (اختبارات)؛ ومحوّل IndexedDB يتلقاه عبر سياج
+ * الأمر (guard.digestOf) لأن السياج يعمل داخل المعاملة نفسها — لا استيراد
+ * ثابت من كومة الإقلاع أبدًا. البصمة تكشف التغير فقط؛ ليست تشفيرًا ولا
+ * إثبات مرسل.
  */
 import { syncSha256Hex } from "@/lib/syncSha256";
 import type { LocalStoreSnapshot } from "./types";
+import { normalizeSnapshotForReplacement } from "./snapshotNormalization";
 
-/** كل مفاتيح اللقطة التي قيمتها مصفوفة سجلات (اختيارية أو إلزامية) — مشتق
- * نوعيًا من شكل اللقطة نفسه فلا تنفصل القائمة عن المخطط أبدًا (نمط سجل
- * عائلات المصفوفات في transfers/transferArrayFamilyRoles.ts). */
+/** كل مفاتيح اللقطة التي قيمتها مصفوفة سجلات — مشتق نوعيًا من شكل اللقطة
+ * نفسها فلا تنفصل القائمة عن المخطط أبدًا. */
 type ArrayFamilyKey = {
   [K in keyof LocalStoreSnapshot]-?: LocalStoreSnapshot[K] extends readonly unknown[] | undefined ? K : never;
 }[keyof LocalStoreSnapshot];
@@ -59,49 +57,9 @@ const ARRAY_FAMILY_KEYS: readonly ArrayFamilyKey[] = [
   "expenseBudgets",
 ] as const;
 
-/** التطبيع الموحد للقطة قبل الاستبدال — نفس قواعد المحوّلين الحرفية
- * (الغياب الآمن: قائمة فارغة للعائلات، null للسجلات المفردة)؛ مصدر واحد
- * يحسب فوقه المحوّلان وبصمات المآل معًا. */
-export function normalizeSnapshotForReplacement(snapshot: LocalStoreSnapshot): LocalStoreSnapshot {
-  return {
-    ...snapshot,
-    ownerProfile: snapshot.ownerProfile ?? null,
-    schedules: snapshot.schedules ?? [],
-    directSales: snapshot.directSales ?? [],
-    recurrences: snapshot.recurrences ?? [],
-    financialEvents: snapshot.financialEvents ?? [],
-    supplierPurchases: snapshot.supplierPurchases ?? [],
-    cashWallets: snapshot.cashWallets ?? [],
-    cashContinuityEntries: snapshot.cashContinuityEntries ?? [],
-    materials: snapshot.materials ?? [],
-    inventoryMovements: snapshot.inventoryMovements ?? [],
-    inventoryShortages: snapshot.inventoryShortages ?? [],
-    inventoryActivation: snapshot.inventoryActivation ?? null,
-    catalogItems: snapshot.catalogItems ?? [],
-    measurementUnits: snapshot.measurementUnits ?? [],
-    directConversions: snapshot.directConversions ?? [],
-    catalogTemplates: snapshot.catalogTemplates ?? [],
-    actualTimeRecords: snapshot.actualTimeRecords ?? [],
-    shortCashDeclarations: snapshot.shortCashDeclarations ?? [],
-    ownerEntitlementPolicies: snapshot.ownerEntitlementPolicies ?? [],
-    ownerEntitlementRecords: snapshot.ownerEntitlementRecords ?? [],
-    ownerEntitlementOpeningBalances: snapshot.ownerEntitlementOpeningBalances ?? [],
-    ownerMovements: snapshot.ownerMovements ?? [],
-    allocationPolicies: snapshot.allocationPolicies ?? [],
-    costEstimates: snapshot.costEstimates ?? [],
-    assets: snapshot.assets ?? [],
-    loans: snapshot.loans ?? [],
-    receivedLoans: snapshot.receivedLoans ?? [],
-    recurringExpenseSeries: snapshot.recurringExpenseSeries ?? [],
-    recurringExpenseRevisions: snapshot.recurringExpenseRevisions ?? [],
-    recurringExpenseOccurrences: snapshot.recurringExpenseOccurrences ?? [],
-    expenseBudgets: snapshot.expenseBudgets ?? [],
-  };
-}
-
 /** تسلسل كنوني مستقر: مفاتيح الكائنات مفروزة دائمًا؛ المحتوى المتداخل
- * (مصفوفات داخل سجل) يحفظ ترتيبه كما خُزِّن — الترتيب الوحيد غير المستقر
- * عبر القراءة هو ترتيب عائلات السجلات نفسها ويعالجه canonicalSnapshot. */
+ * يحفظ ترتيبه كما خُزِّن — الترتيب الوحيد غير المستقر عبر القراءة هو ترتيب
+ * عائلات السجلات نفسها ويعالجه canonicalSnapshot. */
 function stableStringify(value: unknown): string {
   if (value === null || typeof value !== "object") return JSON.stringify(value) ?? "null";
   if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;

@@ -104,7 +104,7 @@ import {
   shortCashDeclarationStore,
   supplierPurchaseStore,
 } from "./indexedDbStores";
-import { canonicalSnapshotDigest, normalizeSnapshotForReplacement } from "./snapshotCanonicalization";
+import { normalizeSnapshotForReplacement } from "./snapshotNormalization";
 
 /** مخازن اللقطة الخمسة والثلاثون بترتيب ثابت — مصدر واحد لقراءة اللقطة
  * ومعاملة الاستبدال كي لا يفترق الترتيب بين المسارين أبدًا. */
@@ -277,7 +277,9 @@ function fenceThenWrite(
       remaining -= 1;
       if (remaining > 0) return;
       const current = snapshotFromRequests(requests);
-      if (canonicalSnapshotDigest(current) === guard.expectedSnapshotDigest) {
+      /* S02-A: دالة البصمة تصل عبر السياج من البروتوكول (الشظية الكسولة) —
+       * لا استيراد ثابت هنا فتبقى كومة الإقلاع نظيفة. */
+      if (guard.digestOf(current) === guard.expectedSnapshotDigest) {
         issueWrites();
       } else {
         rejected = true;
