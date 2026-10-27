@@ -2,7 +2,7 @@
   "id": "DOC-008",
   "title": "UNIT-001 إعداد المشروع لأول استخدام — مصالحة V3 وتنفيذ مضبوط على فرع التكامل",
   "type": "FEATURE",
-  "status": "MERGED_UNVERIFIED",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "r11-unit001-20261018",
   "summary": "مراجعة ومصالحة مواصفة UNIT-001 V3 مع تنفيذ V2 القائم على فرع التكامل components/integration-20261018 وPR #378: شاشة الاسم بلا إعداد نقدي، ملكية الهوية الواحدة، تفويض الاستعادة إلى 044، مصالحة ORG-001/002/009/024، وبوابات U001-ORG-AC01..03 وQ01. الإصلاح الجذري داخل النطاق فقط؛ لا UNIT-002 ولا New Design ولا دمج أو تنظيف في هذه الموجة.",
@@ -12,7 +12,7 @@
   "gate_classification": "NOT_APPLICABLE",
   "root_cause": "معالج الإعداد الحالي يجمع إنشاء الهوية وإعداد النقد (كاتب مالي ثانٍ داخل البداية) ويترك دليلًا لتحرير هوية قائمة من مسار الإعداد، بلا مدخل استعادة في شاشة الإعداد — المواصفة V2 تفصل الملكية: 001 ينشئ الهوية وحدها، و022 يملك النقد، و044 يملك الاستعادة، و039 يملك تعديل الاسم.",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "نطاق V3 دُمج إلى main عبر PR #378 بMerge commit موثق؛ يبقى MERGED_UNVERIFIED حتى نجاح فحوص ما بعد الدمج ومصالحة الحالة، ولا يبدأ UNIT-002 قبل عقده المستقل.",
+  "owner_decision": "نطاق V3 دُمج عبر PR #378، وأُصلح Dependency Audit جذريًا عبر PR #380؛ فحوص GitHub وCloudflare على main عند الرأس dba90fa9d7e7e01652a16c311421d05b7320f34e نجحت. الحالة VERIFIED؛ لا يبدأ UNIT-002 قبل عقده المستقل واعتماد المالك.",
   "tests_required": [
     "pnpm --filter @micro/prototype-web test -- client/src/pages/Setup.ui.test.tsx",
     "pnpm --filter @micro/prototype-web test -- client/src/pages/Setup.v3Gates.test.tsx",
@@ -140,9 +140,16 @@
       "changed_at": "2026-10-27",
       "actor": "owner-orchestration",
       "reason": "دُمج PR #378 بMerge commit 55eca55ace0e069779e1ca20e6288b82551cc7be؛ Cloudflare Pages نجح، لكن CI بعد الدمج حُجب في Dependency Audit، لذلك لا يصح VERIFIED أو حذف الفرع قبل إصلاح البوابة والتحقق على main."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-10-27",
+      "actor": "owner-orchestration",
+      "reason": "أُصلح Dependency Audit جذريًا في PR #380 بترقيات مرقعة دون إضعاف الحراس؛ PR #380 دُمج بMerge commit dba90fa9d7e7e01652a16c311421d05b7320f34e، ونجح GitHub CI وCloudflare Pages على الرأس نفسه."
     }
   ],
   "migration_baseline": false,
-  "next_action": "إصلاح Dependency Audit على main عبر PR مستقل دون إضعاف الحارس، ثم إعادة تشغيل CI والتحقق من الرأس 55eca55ace0e069779e1ca20e6288b82551cc7be؛ بعد نجاح البوابة يمكن ترقية الحالة إلى VERIFIED وتقرير حذف فرع التكامل.",
-  "merge_sha": "55eca55ace0e069779e1ca20e6288b82551cc7be"
+  "next_action": "لا إجراء تنفيذ مطلوب لـUNIT-001؛ الحالة VERIFIED على main بعد نجاح GitHub CI وCloudflare Pages. يُحفظ تاريخ الفروع والـPRs في GitHub، ويبدأ أي مكوّن لاحق من main بعد اعتماد مالك مستقل.",
+  "merge_sha": "55eca55ace0e069779e1ca20e6288b82551cc7be",
+  "verified_on_main_sha": "dba90fa9d7e7e01652a16c311421d05b7320f34e"
 }
