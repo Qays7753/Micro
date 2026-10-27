@@ -25,11 +25,11 @@
     "docs/implementation/micro-component-execution/00-PROGRAM.md",
     "docs/implementation/micro-component-execution/01-STAGES.md"
   ],
-  "agent": "Manus documentation executor; ChatGPT and Manus independent review; no ZAI in S01; owner controls acceptance and transition",
+  "agent": "Owner-delegated ChatGPT documentation correction of S02 draft V2 only; Manus resumes final prompt preparation; no product-code writer active",
   "pr": 383,
   "started_at": "2026-10-27",
   "updated_at": "2026-10-27",
-  "next_action": "S01 مقبولة على فرع التكامل؛ راجع مسودة S02 في docs/implementation/micro-component-execution/00-S02-TASK-DRAFT-2026-10-27.md ثم اطلب اعتماد المالك للأمر النهائي. لا merge أو cleanup أو S03.",
+  "next_action": "S01 مقبولة؛ مسودة S02 V2 صححها ChatGPT بتكليف المالك. يراجع Manus التصحيح ويجهز الأمر الإنجليزي النهائي لمراجعة GPT واعتماد المالك؛ لا ZAI أو كود أو merge أو cleanup.",
   "notes": [
     "هذا Workstream يخص S01 فقط ولا يوسع DOC-008/WS-224 أو DOC-009/WS-225.",
     "فرع التكامل الواحد استثناء برنامج محدد موثق في SOP؛ لا ينشئ سياسة عامة للمهام الأخرى.",
@@ -43,7 +43,8 @@
     "حكم ChatGPT النهائي (منسوب إليه كما بلّغه المالك): PASS على الرأس 3b1b24b508edb68996fa0ac33418a96ee05957ad؛ S01-GPT-001..005 مغلقة؛ مرآة Drive = V4. GitHub يبقى المصدر التشغيلي الوحيد.",
     "حكم Manus المستقل: PASS على الرأس نفسه 3b1b24b508edb68996fa0ac33418a96ee05957ad; لا عائق محدد يمنع S01 ضمن النطاق؛ المانع الوحيد المتبقي هو اعتماد المالك. سجل المراجعة هذا يوثق الرأس المراجع ولا يساوي commit توثيقيًا لاحقًا.",
     "اعتماد المالك: S01 مقبولة على فرع التكامل بعد PASS ChatGPT المنسوب إليه وPASS Manus المستقل على الرأس 3b1b24b508edb68996fa0ac33418a96ee05957ad؛ لا VERIFIED على main ولا إذن دمج.",
-    "مسودة S02 منشورة للمراجعة فقط؛ لا Claim جديد ولا تنفيذ ZAI ولا كود منتج قبل مراجعة ChatGPT واعتماد الأمر النهائي."
+    "مسودة S02 منشورة للمراجعة فقط؛ لا Claim جديد ولا تنفيذ ZAI ولا كود منتج قبل مراجعة ChatGPT واعتماد الأمر النهائي.",
+    "2026-10-27: كلف المالك ChatGPT صراحة بتصحيح مسودة S02 نفسها بعد المراجعة. التفويض توثيقي محدود على فرع التكامل نفسه؛ لا Claim تنفيذ S02 أو كود منتج. عولجت S02-GPT-001..004 والتوضيحان في V2؛ تنتظر مراجعة Manus والأمر النهائي واعتماد المالك."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/03-S01-RESULT-2026-10-27.md",
