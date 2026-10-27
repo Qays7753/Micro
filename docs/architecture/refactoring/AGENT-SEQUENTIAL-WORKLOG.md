@@ -1557,3 +1557,12 @@ Full verification gate 17/17 EXIT 0 on implementation head `469aba03` (root 919/
 - **Published:** `00-S02-EXECUTION-PROMPT-2026-10-27.md`; it supersedes the historical S02 draft and requires no ChatGPT step.
 - **Control:** `DOC-011/WS-227`; S02 is READY/CLAIMED for ZAI execution, but no product-code write has started in this publication.
 - **Boundaries:** no main write, merge, cleanup, branch creation, S03, CI-policy change, or structural refactoring.
+
+---
+## Entry 136 — 2026-10-27 — ZAI executes S02 and delivers for review
+- **Authority:** `00-S02-EXECUTION-PROMPT-2026-10-27.md` (READY_FOR_ZAI); `S02_BASE_SHA = 7db0191b433c1f5adce52533064d019899784005`; branch `components/integration-20261027`; PR #383 Draft; `main` untouched at `3584aa1d`.
+- **Commits:** S02-A `0f0a056ef3776794d5d0da84f8499eb74a87f7d3` (protected replacement boundary: separate `micro-prototype-restore` DB, durable rollback + intent/receipt + generation, in-transaction digest fence, atomic draft clearing, single protocol for all destructive writers); S02-B `fdfaaab5e705209dc4b8d475f4b8e2188ea40f41` (full PIN/lock retirement per owner decision 2026-10-24, UNIT-042: no replacement auth, one-time known-outcome record cleanup, non-lock data guards preserved); S02-C `1904eb7b90aa82e6f419996c3835c885ca4db13a` (integration/compat: generation-stamped drafts, durable rollback Settings surface, honest export copy, lazy protection engine/digest-through-fence, same-PR reanchors); S02-D = documentation/Control records (this entry's commit).
+- **Protected baselines:** schema 38 / export 30 / import wire unchanged; financial impact NONE; no CI-policy or guard weakening (all reanchors documented same-PR).
+- **Verification:** full local `pnpm check` chain green (952 + 2750 tests); SDF matrix and five sequential read-only reviews recorded in `07-S02-RESULT-2026-10-27.md`; one OUT_OF_SCOPE finding `S02-R4-F01` (nondeterministic radix focus-scope teardown race in vaul drawer tests — pre-existing third-party, not S02-introduced).
+- **Credential hygiene (resume remediation):** previous session's local credential file securely shredded and its git config removed; scans proved no token in repo files, commits, PR comments, URLs, or shell history; subsequent auth via ephemeral session-memory mechanism only.
+- **Boundary:** no main write, merge, branch cleanup/creation, S03, or CI-policy change. Status `S02_EXECUTION_DELIVERED — REVIEW_REQUIRED`; remote CI/Cloudflare evidence on the exact final SHA appended to PR #383 review comment.

@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · READY: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -36,4 +36,4 @@ python3 scripts/operations-control/validate.py
 |---|---|---|---|---|---|
 | WS-225 | REVIEW_REQUIRED | `components/integration-20261018` | 378 | DOC-009 | إرسال عقد UNIT-002-ZAI-AUTHORIZATION-REVIEW-PROMPT من GitHub؛ إبقاء Workstream REVIEW_REQUIRED؛ لا Claim تنفيذ ولا تعديل تطبيق حتى يقبل المالك decision payloads وعقد التنفيذ. |
 | WS-226 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-010 | S01 مقبولة على فرع التكامل ومحفوظة REVIEW_REQUIRED؛ لا إجراء إضافي على WS-226 حتى بوابة الدمج النهائية بعد S18. S02 تعمل مستقلًا في WS-227 على نفس فرع التكامل. |
-| WS-227 | CLAIMED | `components/integration-20261027` | 383 | DOC-011 | ZAI يقرأ أمر S02 READY من GitHub، يثبت S02_BASE_SHA على الرأس الحي، ثم ينفذ S02-A إلى S02-D فقط ويتوقف عند تسليم المراجعة؛ Manus يراجع candidate نفسه. |
+| WS-227 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-011 | مراجعة Manus المستقلة للمرشح النهائي على PR #383 ثم قرار المالك في القبول أو طلب إصلاحات موسومة S02؛ لا merge ولا cleanup ولا S03. |
