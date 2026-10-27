@@ -1,0 +1,101 @@
+{
+  "id": "DOC-011",
+  "title": "S02 حماية الكتابة والاستعادة وإزالة قفل PIN — أمر التنفيذ الجاهز",
+  "type": "FEATURE",
+  "status": "READY",
+  "priority": "P0",
+  "stage": "micro-component-execution-s02-20261027",
+  "summary": "أمر تنفيذ مستقل لـS02 يغلق جذريًا حدود حماية الاستعادة وإزالة PIN ضمن UNIT-042 وUNIT-044 والعقود SH-02/03/04، مع بقاء GitHub المصدر الوحيد وManus المنسق والمراجع الوحيد من S02 فصاعدًا.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "UNVERIFIED",
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "root_cause": "كانت S02 ممثلة بمسودة مراجعة وبوابة ChatGPT تاريخية رغم أن المالك قرر تشغيل البرنامج مع Manus وZAI فقط؛ كما كانت أحدث ملفات Drive تحتاج إثبات مصالحة مع نسخ GitHub قبل جعل الأمر جاهزًا.",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "اعتمد المالك تجهيز أمر S02 النهائي وتشغيله لاحقًا على فرع التكامل الواحد؛ لا merge أو main write أو cleanup أو S03 ضمن هذا التفويض.",
+  "tests_required": [
+    "python3 scripts/operations-control/validate.py",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "node scripts/check-doc-index-coverage.mjs",
+    "node scripts/check-current-state-size.mjs",
+    "node scripts/check-agent-document-contract.mjs",
+    "git diff --check",
+    "ZAI S02 execution contract: five sequential read-only reviewers on exact candidate SHA"
+  ],
+  "layers": [
+    "application",
+    "storage",
+    "domain",
+    "ui-runtime",
+    "documentation",
+    "governance"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S02-EXECUTION-PROMPT-2026-10-27.md",
+    "discovered_at_sha": "a8b640c1e2de3c3d1962d01d1795947b59c87b77",
+    "evidence": [
+      "docs/implementation/micro-component-execution/01-STAGES.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-042-قفل-التطبيق.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-044-النسخ-الاحتياطي-والاستعادة.md",
+      "docs/implementation/micro-component-execution/S02-DRIVE-GITHUB-RECONCILIATION-2026-10-27.md"
+    ]
+  },
+  "acceptance": [
+    "أمر S02 النهائي منشور في GitHub كملف مستقل ويحدد الرأس والفرع وPR وحدود الكتابة والفحوص والتوقف والتسليم.",
+    "UNIT-042 وUNIT-044 في GitHub هما مصدر التنفيذ؛ مطابقة Drive تثبت أن الفرق روابط provenance فقط ولا توجد متطلبات أحدث مفقودة.",
+    "يشمل الأمر SH-02 وSH-03 وSH-04، حماية rollback المستقلة، الاستعادة الذرية، generation/drafts، unknown outcome، إزالة PIN، وMemory/IndexedDB parity.",
+    "يحافظ الأمر على Schema 38 وExport 30 والقرارات المالية، ويوقف التنفيذ عند أي تغيير محمي أو حاجة لمسح بنيوي.",
+    "DOC-011 وWS-227 يحددان أن Manus هو المنسق والمراجع الوحيد من S02 فصاعدًا؛ ChatGPT ليس بوابة نشطة.",
+    "لا كود منتج أو تغيير مالي أو Schema/Export/Import أو main write أو merge في حزمة نشر الأمر نفسها."
+  ],
+  "areas": [
+    "docs/implementation/micro-component-execution/00-S02-EXECUTION-PROMPT-2026-10-27.md",
+    "docs/implementation/micro-component-execution/00-S02-TASK-DRAFT-2026-10-27.md",
+    "docs/implementation/micro-component-execution/S02-DRIVE-GITHUB-RECONCILIATION-2026-10-27.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-PROGRESS-AND-HANDOFF.md",
+    "docs/operations/control/items/DOC-011.json",
+    "docs/operations/control/workstreams/WS-227.json",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/00-document-index.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/DEPENDENCIES-AND-TRACEABILITY.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S02-EXECUTION-PROMPT-2026-10-27.md",
+    "docs/implementation/micro-component-execution/S02-DRIVE-GITHUB-RECONCILIATION-2026-10-27.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "dependencies": [
+    "DOC-010"
+  ],
+  "related_items": [
+    "DOC-010",
+    "DOC-009"
+  ],
+  "updated_at": "2026-10-27",
+  "status_history": [
+    {
+      "status": "BACKLOG",
+      "changed_at": "2026-10-27",
+      "actor": "owner-approved-s02",
+      "reason": "فتح S02 بعد قبول S01 على فرع التكامل؛ لا تنفيذ كود قبل نشر أمر مستقل ومراجعته."
+    },
+    {
+      "status": "READY",
+      "changed_at": "2026-10-27",
+      "actor": "manus-s02-prompt-publication",
+      "reason": "نُشر أمر S02 النهائي بعد مصالحة Drive/GitHub؛ الأمر يثبت نطاق UNIT-042/044 وحدود التنفيذ والتسليم."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "إرسال رسالة البدء القصيرة إلى ZAI؛ يقرأ الأمر من GitHub، يتحقق من الرأس الحي، ينفذ S02 فقط على فرع التكامل وPR #383، ثم يتوقف عند S02_EXECUTION_DELIVERED — REVIEW_REQUIRED."
+}

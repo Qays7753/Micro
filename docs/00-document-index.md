@@ -298,6 +298,10 @@
 | `docs/operations/control/items/DOC-010.json` | سجل Control لـS01 |
 | `docs/operations/control/workstreams/WS-226.json` | Workstream S01 على فرع التكامل |
 | `docs/implementation/micro-component-execution/00-S02-TASK-DRAFT-2026-10-27.md` | مسودة تكليف S02 للمراجعة؛ ليست أمر تنفيذ ولا جزءًا من حزمة ZIP الأصلية |
+| `docs/implementation/micro-component-execution/00-S02-EXECUTION-PROMPT-2026-10-27.md` | أمر S02 الوحيد الجاهز لـZAI؛ GitHub canonical؛ لا ChatGPT gate |
+| `docs/implementation/micro-component-execution/S02-DRIVE-GITHUB-RECONCILIATION-2026-10-27.md` | دليل provenance لمطابقة أحدث UNIT-042/044؛ ليس مصدر تنفيذ بديلًا |
+| `docs/operations/control/items/DOC-011.json` | سجل Control لـS02 |
+| `docs/operations/control/workstreams/WS-227.json` | Workstream تنفيذ S02 على فرع التكامل |
 
 ### تغطية ملفات الحزمة الأصلية
 

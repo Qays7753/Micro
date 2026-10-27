@@ -45,8 +45,9 @@
     "REM-004",
     "REM-005",
     "REM-006",
-    "REM-007"
+    "REM-007",
+    "DOC-011"
   ],
   "final_gate": "PILOT-001",
-  "updated_at": "2026-09-29"
+  "updated_at": "2026-10-27"
 }

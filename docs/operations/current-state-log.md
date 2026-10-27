@@ -2696,3 +2696,10 @@ PR #244 وPR #245 غير محسوبين كمنجزين لمجرد وجودهما
 ## §232 — 2026-10-27 — تصحيح GPT لمسودة S02 بتكليف المالك
 
 كلف المالك ChatGPT مباشرة بتصحيح مسودة S02 على فرع التكامل بعد مراجعتها عند 99d1acae86ce72089697e3b40d21af1685e4867f. عدلت V2 العقود SH-02..04 وحالات SDF-037/038/042، وفصل المآل المجهول عن الفشل المؤكد، وحد استقلال الرجوع وحماية المسودات، ومنع تغيير 38/30 أو صيغة نقل محروسة دون اعتماد محدد، وقبول 044 الجزئي وبوابات D01..05. أصلح توضيح الرؤوس وحزم القراءة أيضًا. سجل التفويض في WS-226 وحدّث next_action من JSON؛ التعديل توثيقي فقط، ولا يتضمن كود منتج أو تشغيل ZAI أو إذن تنفيذ S02. الفعل التالي: مراجعة Manus وصياغة أمر إنجليزي مستقل ثم مراجعة GPT واعتماد المالك.
+
+
+## 2026-10-27 — S02 READY prompt and Drive/GitHub reconciliation
+- Latest Drive copies of UNIT-042 and UNIT-044 were compared read-only with the GitHub copies. After normalizing only Markdown link targets, semantic content was equal; GitHub remains the execution source because its links are repository-local.
+- Published `00-S02-EXECUTION-PROMPT-2026-10-27.md` as the only S02 execution authority. The old draft remains historical and is not executable.
+- S02 Control is `DOC-011/WS-227`; Manus is the sole active coordinator/reviewer from S02 onward. ChatGPT is not an active S02 gate.
+- Boundary: no product code has been changed by this publication; no `main` write, merge, cleanup, S03, or CI-policy change is authorized.

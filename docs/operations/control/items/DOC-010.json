@@ -47,7 +47,7 @@
     "تسليم تصحيح S01-GPT-002 وS01-GPT-004 عند الرأس 1ab46931689daacaa766eacba6fb439d9ac04894؛ GitHub CI وCloudflare Pages ناجحان على الرأس نفسه، وGPT-001 و003 و005 مغلقة ولا تعاد.",
     "حكم ChatGPT (منسوب إليه كما بلّغه المالك): PASS على الرأس المحدد 3b1b24b508edb68996fa0ac33418a96ee05957ad؛ جميع S01-GPT-001..005 مغلقة؛ مرآة Drive محدثة إلى V4. هذا attribution محفوظ، وليس مصدر تنفيذ بديلًا عن GitHub.",
     "حكم Manus المستقل: PASS على الرأس نفسه 3b1b24b508edb68996fa0ac33418a96ee05957ad; لا critical/major/minor blocker ضمن نطاق S01. CI وCloudflare وControl والفهرس والحجم والعقد والبصمات ناجحة؛ لا منتج ولا مالية ولا Schema/Export/Import.",
-    "اعتماد المالك الصريح لـS01 على فرع التكامل؛ يبقى الدمج إلى main بوابة البرنامج النهائية بعد S18، ومسودة S02 تحتاج مراجعة ChatGPT واعتماد أمرها بصورة مستقلة."
+    "اعتماد المالك الصريح لـS01 على فرع التكامل؛ S02 له Control مستقل DOC-011/WS-227؛ يبقى الدمج إلى main بوابة البرنامج النهائية بعد S18."
   ],
   "areas": [
     "docs/implementation/micro-component-execution",
@@ -110,5 +110,5 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "S01 مقبولة؛ مسودة S02 V2 صححها ChatGPT بتكليف المالك. يراجع Manus التصحيح ويجهز الأمر الإنجليزي النهائي لمراجعة GPT واعتماد المالك؛ لا ZAI أو كود أو merge أو cleanup."
+  "next_action": "S01 مقبولة على فرع التكامل؛ S02 READY في DOC-011/WS-227. لا حاجة لإعادة فتح S01؛ يبقى الدمج إلى main بوابة البرنامج بعد S18."
 }

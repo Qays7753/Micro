@@ -1549,3 +1549,11 @@ Full verification gate 17/17 EXIT 0 on implementation head `469aba03` (root 919/
 - **التصحيح:** S02-GPT-001..004 والتوضيحان مثبتة في المسودة V2؛ ما يزال الوصف DRAFT_FOR_REVIEW ولا يوجد أمر ZAI READY.
 - **الحدود:** لا تعديل منتج/اختبارات/قرار مالي/Schema/Export/Import/CI، ولا main أو merge أو cleanup أو فرع إضافي.
 - **التسليم:** مراجعة Manus للتصحيح وصياغة الأمر النهائي، ثم مراجعة GPT واعتماد المالك. لا بدء S02 من نشر التصحيح.
+
+---
+## Entry 135 — 2026-10-27 — S02 READY prompt publication and source reconciliation
+- **Base:** `3584aa1d08cea3e0a00623b719fed7f991ce187f`; integration branch `components/integration-20261027`; PR #383 Draft.
+- **Source reconciliation:** latest Drive UNIT-042/044 copies are semantically equal to GitHub after link-target normalization; GitHub-local links remain canonical for ZAI.
+- **Published:** `00-S02-EXECUTION-PROMPT-2026-10-27.md`; it supersedes the historical S02 draft and requires no ChatGPT step.
+- **Control:** `DOC-011/WS-227`; S02 is READY/CLAIMED for ZAI execution, but no product-code write has started in this publication.
+- **Boundaries:** no main write, merge, cleanup, branch creation, S03, CI-policy change, or structural refactoring.
