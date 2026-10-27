@@ -245,7 +245,12 @@ async function replaceWithEmptySnapshot(store: {
   return store.replaceSnapshot(LocalTransferService.emptySnapshot());
 }
 
-async function expectDraftsAndSecuritySurvive(
+/* S02-A (SH-03 — عقد ٠٤٤ §16.5، تنقيح LOW-003): المسودات العابرة لم تعد
+ * تنجو من الاستبدال — تُمسح داخل الحد الذرّي نفسه مع اللقطة (كانت تبقى فوق
+ * بيانات استُبدلت فتصير مسودة جيل قديم معروضة للاستئناف فوق بيانات لم
+ * تُنشأ لها). سجل القفل المحلي (المخزن المجمّد تاريخيًا في المخطط ٣٨) يبقى
+ * خارج الاستبدال كما كان — لا تصدير للأسرار أبدًا. */
+async function expectDraftsClearedAndSecuritySurvives(
   store: Pick<
     PrototypeLocalStore,
     | "getFormDraft"
@@ -260,10 +265,11 @@ async function expectDraftsAndSecuritySurvive(
   await store.saveLocalSecurity(security);
   const replacement = await replaceWithEmptySnapshot(store);
   expect(replacement.ok).toBe(true);
+  /* المسودة العابرة مُسحت داخل الحد نفسه — لا مسودة جيل قديم فوق لقطة جديدة. */
   const draftRead = await store.getFormDraft("asset:new");
   if (!draftRead.ok) throw new Error("draft read failed");
-  expect(draftRead.value).not.toBeNull();
-  if (draftRead.value) expect(draftRead.value.values).toEqual({ name: "ماكينة خياطة" });
+  expect(draftRead.value).toBeNull();
+  /* سجل القفل خارج الاستبدال — المخزن مجمّد والمحتوى لا يمسه الاستبدال. */
   const securityRead = await store.getLocalSecurity();
   if (!securityRead.ok) throw new Error("security read failed");
   expect(securityRead.value).not.toBeNull();
@@ -277,26 +283,28 @@ async function expectDraftsAndSecuritySurvive(
   ).toBe(false);
 }
 
-describe("form-drafts and local-security survive reset/import (LOW-003)", () => {
-  it("IndexedDbLocalStore keeps drafts and the security record through replaceSnapshot and resetAll", async () => {
+describe("form-drafts cleared atomically by replacement; local-security store untouched (LOW-003 revised by S02-A)", () => {
+  it("IndexedDbLocalStore clears drafts inside the replaceSnapshot boundary and keeps the security record", async () => {
     const store = new IndexedDbLocalStore();
-    await expectDraftsAndSecuritySurvive(store);
+    await expectDraftsClearedAndSecuritySurvives(store);
+    /* التصفير عبر البروتوكول — المسودة محمية في نسخة الرجوع ثم مُسحت في الحد. */
+    await store.saveFormDraft(draft);
     const transfers = new LocalTransferService(store, () => TS);
     const reset = await transfers.resetAll();
     if (!reset.ok) throw new Error(reset.message);
     const draftRead = await store.getFormDraft("asset:new");
     if (!draftRead.ok) throw new Error("draft read failed");
-    expect(draftRead.value).not.toBeNull();
+    expect(draftRead.value).toBeNull();
     const securityRead = await store.getLocalSecurity();
     if (!securityRead.ok) throw new Error("security read failed");
     expect(securityRead.value).not.toBeNull();
   });
 
-  it("MemoryLocalStore keeps drafts and the security record through replaceSnapshot", async () => {
-    await expectDraftsAndSecuritySurvive(new MemoryLocalStore());
+  it("MemoryLocalStore clears drafts inside the replaceSnapshot boundary and keeps the security record", async () => {
+    await expectDraftsClearedAndSecuritySurvives(new MemoryLocalStore());
   });
 
-  it("survives a full import through a verified round-trip as well", async () => {
+  it("a full import through a verified round-trip clears drafts atomically and protects them in the durable rollback", async () => {
     const source = new MemoryLocalStore();
     const saved = await source.saveFinancialEvent({
       id: "fin-reset-1",
@@ -320,13 +328,18 @@ describe("form-drafts and local-security survive reset/import (LOW-003)", () => 
     if (!exported.ok) throw new Error(exported.message);
     await source.saveFormDraft(draft);
     await source.saveLocalSecurity(security);
-    const prepared = transfers.prepareImport(JSON.stringify(exported.value.file));
+    const prepared = await transfers.prepareRestore(JSON.stringify(exported.value.file));
     if (!prepared.ok) throw new Error(prepared.message);
     const confirmed = await transfers.confirmImport(prepared.value);
     if (!confirmed.ok) throw new Error(confirmed.message);
+    /* المسودة مُسحت داخل حد الاستبدال، ومحفوظة معزولة في نسخة الرجوع الدائمة. */
     const draftRead = await source.getFormDraft("asset:new");
     if (!draftRead.ok) throw new Error("draft read failed");
-    expect(draftRead.value).not.toBeNull();
+    expect(draftRead.value).toBeNull();
+    const rollback = await transfers.readActiveRollback();
+    if (!rollback.ok) throw new Error(rollback.message);
+    expect(rollback.value).not.toBeNull();
+    expect(rollback.value?.drafts.some(envelope => envelope.id === "asset:new")).toBe(true);
     const securityRead = await source.getLocalSecurity();
     if (!securityRead.ok) throw new Error("security read failed");
     expect(securityRead.value).not.toBeNull();

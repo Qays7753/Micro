@@ -70,11 +70,18 @@ import type {
   OwnerProfile,
   PrototypeLocalStore,
   RecurringExpenseOccurrenceChange,
+  ReplacementGuard,
+  ReplacementIntentRecord,
+  ReplacementReceiptRecord,
+  RestoreProtectionState,
+  RestoreRollbackRecord,
   ScheduleEntry,
   ScheduleRecurrence,
   StorageResult,
   StoredCraftOrder,
 } from "./types";
+/* S02-A: البصمة الكنونية لسياج الاستبدال داخل حد الكتابة (توافق المهايئين). */
+import { canonicalSnapshotDigest } from "./snapshotCanonicalization";
 import { STORAGE_ERROR, STORAGE_STALE } from "./resultCodes";
 /* R10-B3/R10A-F-011 (2026-10-12): الحرفية صارت مصدرًا واحدًا — كانت نسخة
  * خاصة مطابقة هنا والمعرّف المُصدّر في indexedDbStores.ts هو الكنوني
@@ -142,6 +149,14 @@ export class MemoryLocalStore implements PrototypeLocalStore {
    * المتصفح؛ هنا أيضًا لا تدخل readSnapshot/replaceSnapshot فتطابق الاستعادة. */
   private formDrafts = new Map<string, FormDraftEnvelope>();
   private security: LocalSecurityRecord | null = null;
+  /* S02-A (SH-02/SH-03): حالة حماية الاستبدال في الذاكرة — تطابق قاعدة
+   * الحماية المنفصلة في المتصفح سلوكًا وعقدًا (قراءة واحدة، وعمليات ذرّية
+   * ببنية أحادية الخيط)؛ للتوافق الاختباري للمهايئين لا للاستمرار. */
+  private dataGeneration = 0;
+  private replacementIntent: ReplacementIntentRecord | null = null;
+  private replacementReceipt: ReplacementReceiptRecord | null = null;
+  private activeRollback: RestoreRollbackRecord | null = null;
+  private pendingRollback: RestoreRollbackRecord | null = null;
 
   async getProfile(): Promise<StorageResult<ActivityProfile | null>> {
     return { ok: true, value: this.profile ? clone(this.profile) : null };
@@ -209,6 +224,59 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   }
   async deleteLocalSecurity(): Promise<StorageResult<null>> {
     this.security = null;
+    return { ok: true, value: null };
+  }
+  /* S02-A (SH-02/SH-03): حماية الاستبدال الدائمة في الذاكرة — نفس عقد قاعدة
+   * الحماية المنفصلة: لا نية بلا نسخة رجوع معلقة، ولا ترقية نسخة نشطة إلا
+   * مع التزام وصك جيل، ومحاولة فاشلة لا تمس النسخة الجيدة أبدًا. */
+  async getDataGeneration(): Promise<StorageResult<number>> {
+    return { ok: true, value: this.dataGeneration };
+  }
+  async readRestoreProtection(): Promise<StorageResult<RestoreProtectionState>> {
+    return {
+      ok: true,
+      value: {
+        generation: this.dataGeneration,
+        intent: this.replacementIntent ? clone(this.replacementIntent) : null,
+        receipt: this.replacementReceipt ? clone(this.replacementReceipt) : null,
+        activeRollback: this.activeRollback ? clone(this.activeRollback) : null,
+        pendingRollback: this.pendingRollback ? clone(this.pendingRollback) : null,
+      },
+    };
+  }
+  async beginReplacementIntent(
+    pending: RestoreRollbackRecord,
+    intent: ReplacementIntentRecord,
+  ): Promise<StorageResult<null>> {
+    /* سياج النية الواحدة — نفس شرط القاعدة المنفصلة داخل الحد. */
+    if (this.replacementIntent !== null) {
+      return {
+        ok: false,
+        code: "replacement_intent_busy",
+        message: "عملية استبدال أخرى قيد الحسم — لن تبدأ عملية ثانية فوقها.",
+      };
+    }
+    this.pendingRollback = clone(pending);
+    this.replacementIntent = clone(intent);
+    return { ok: true, value: null };
+  }
+  async commitReplacementIntent(
+    generation: number,
+    receipt: ReplacementReceiptRecord,
+    resolvedAt: string,
+  ): Promise<StorageResult<null>> {
+    if (this.pendingRollback !== null) {
+      this.activeRollback = this.pendingRollback;
+      this.pendingRollback = null;
+    }
+    this.replacementReceipt = { ...clone(receipt), committedAt: resolvedAt };
+    this.replacementIntent = null;
+    this.dataGeneration = generation;
+    return { ok: true, value: null };
+  }
+  async abortReplacementIntent(): Promise<StorageResult<null>> {
+    this.pendingRollback = null;
+    this.replacementIntent = null;
     return { ok: true, value: null };
   }
   async listDrafts(): Promise<StorageResult<readonly OrderDraft[]>> {
@@ -1482,7 +1550,25 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       },
     };
   }
-  async replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>> {
+  async replaceSnapshot(
+    snapshot: LocalStoreSnapshot,
+    guard?: ReplacementGuard,
+  ): Promise<StorageResult<LocalStoreSnapshot>> {
+    /* S02-A (SH-03): سياج الاستبدال داخل حد الكتابة — البنية أحادية الخيط
+     * هنا فالقراءة والمقارنة والكتابة خطوة متزامنة واحدة لا فجوة تزامن؛
+     * الذاكرة تطابق عقد IndexedDB (المقارنة قبل أي مسح، والرفض بلا كتابة). */
+    if (guard) {
+      const current = await this.readSnapshot();
+      if (!current.ok) return current;
+      if (canonicalSnapshotDigest(current.value) !== guard.expectedSnapshotDigest) {
+        return {
+          ok: false,
+          code: "replacement_context_stale",
+          message:
+            "تغيّرت بيانات هذا الجهاز من مسار آخر بعد مراجعتك — أُلغي الاستبدال ولم يُكتب شيء؛ راجع النسخة مجددًا.",
+        };
+      }
+    }
     const safe = clone({
       ...snapshot,
       ownerProfile: snapshot.ownerProfile ?? null,
@@ -1570,6 +1656,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       (safe.recurringExpenseOccurrences ?? []).map(occurrence => [occurrence.id, occurrence]),
     );
     this.expenseBudgets = new Map((safe.expenseBudgets ?? []).map(budget => [budget.id, budget]));
+    /* S02-A (عقد ٠٤٤ §16.5): مسح المسودات العابرة داخل الحد نفسه — الخطوة
+     * المتزامنة الواحدة هي الحد الذرّي هنا؛ وإعادة المسودات المعزولة (مسار
+     * استرجاع النسخة السابقة وحده) في الخطوة نفسها مع اللقطة القديمة. */
+    this.formDrafts = new Map((guard?.restoreFormDrafts ?? []).map(draft => [draft.id, clone(draft)]));
     return { ok: true, value: clone(safe) };
   }
   async listCostEstimates(): Promise<StorageResult<readonly CostEstimate[]>> {

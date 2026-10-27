@@ -91,7 +91,7 @@ function minimalLegacyFileFor(version: number, schemaVersion: number): LocalExpo
 async function currentGoldenViaMigration(): Promise<LocalExportFile> {
   const target = new MemoryLocalStore();
   const targetTransfers = new LocalTransferService(target, NOW);
-  const prepared = targetTransfers.prepareImport(JSON.stringify(file817));
+  const prepared = await targetTransfers.prepareRestore(JSON.stringify(file817));
   if (!prepared.ok) throw new Error(`عهدة 8/17 رُفضت: ${prepared.message}`);
   const confirmed = await targetTransfers.confirmImport(prepared.value);
   if (!confirmed.ok) throw new Error(`استعادة 8/17 فشلت: ${confirmed.message}`);
@@ -276,7 +276,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
     expect(golden.schemaVersion).toBe(localSchemaVersion);
     /* القبول الكامل: البوابة + الترحيل + التحقق البنيوي + العدادات + البصمة. */
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
-    const prepared = transfers.prepareImport(goldenText);
+    const prepared = await transfers.prepareRestore(goldenText);
     if (!prepared.ok) throw new Error(`الذهبي المكمّل رُفض: ${prepared.message}`);
     expect(prepared.value.file.counts).toEqual(golden.counts);
     expect(prepared.value.file.counts).toEqual(exportCountsOf(prepared.value.file.data));
@@ -301,7 +301,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
     expect(golden.counts?.financialEvents).toBeGreaterThan(0);
   });
 
-  it("every released legacy pair has a frozen minimal golden that still imports to 30/38", () => {
+  it("every released legacy pair has a frozen minimal golden that still imports to 30/38", async () => {
     expect(LEGACY_PAIRS.length).toBe(24);
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     for (const [version, schemaVersion] of LEGACY_PAIRS) {
@@ -309,7 +309,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
       if (GENERATE) {
         writeGolden(name, JSON.stringify(minimalLegacyFileFor(version, schemaVersion), null, 2));
       }
-      const prepared = transfers.prepareImport(readGolden(name));
+      const prepared = await transfers.prepareRestore(readGolden(name));
       if (!prepared.ok) {
         throw new Error(`الزوج التاريخي ${version}/${schemaVersion} رُفض: ${prepared.message}`);
       }
@@ -318,7 +318,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
     }
   });
 
-  it("the faithful historical 8/17 fixture is materialized on disk and still round-trips", () => {
+  it("the faithful historical 8/17 fixture is materialized on disk and still round-trips", async () => {
     const name = "historical-8-17-faithful.golden.json";
     if (GENERATE) {
       writeGolden(name, JSON.stringify(file817, null, 2));
@@ -327,7 +327,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
     /* الملف المساوي تمامًا لعهدة الاختبار الأصلي (مصدر واحد — الاستيراد المشترك). */
     expect(golden).toEqual(file817);
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
-    const prepared = transfers.prepareImport(readGolden(name));
+    const prepared = await transfers.prepareRestore(readGolden(name));
     if (!prepared.ok) throw new Error(`عهدة 8/17 المادية رُفضت: ${prepared.message}`);
     /* نفس ثوابت الأمان التاريخية المثبتة في اختبارها الأصلي. */
     expect(prepared.value.file.data.orders[0]?.order.collectedMinor).toBe(12000);

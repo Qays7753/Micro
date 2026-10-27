@@ -82,6 +82,12 @@ export type FormDraftEnvelope = {
   scopeId: string | null;
   /** إصدار شكل القيم لكل نوع — تغيّره يعني تجاهل المسودة القديمة بلا انفجار. */
   valuesVersion: number;
+  /* S02-A (SH-03 — عقد ٠٤٤/§16): جيل البيانات المحلي الذي حُفظت ضده المسودة —
+   * الغياب (سجلات ما قبل S02) يعامل كالجيل ٠ فتبقى مسودات المالك الحالية
+   * قابلة للاستئناف حتى أول استبدال حقيقي. أي استبدال يصك جيلًا أعلى فتصير
+   * المسودة من جيل قديم: لا تُعرض للاستئناف فوق بيانات لم تُنشأ لها (سياج
+   * النافذة الثانية — SDF-050). */
+  generation?: number;
   values: unknown;
   createdAt: string;
   updatedAt: string;
@@ -106,6 +112,88 @@ export type LocalSecurityRecord = {
   lastFailedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+/* S02-A (SH-02/SH-03 — عقد ٠٤٤ §16 والسجل المشترك §14): سجلات حماية الاستبدال
+ * الدائمة — تعيش في قاعدة بيانات IndexedDB **منفصلة** (micro-prototype-restore)
+ * خارج قاعدة البيانات التي يستبدلها الاسترداد حرفيًا كما يفرض العقد («نسخة
+ * رجوع دائمة قابلة للوصول خارج قاعدة البيانات التي ستستبدل»)، فلا يمسها
+ * مخزن لقطة ولا يمكن للاستبدال إتلافها؛ ولا تُصدَّر أبدًا فلا يعيدها ملف
+ * قديم (الجيل محلي لا يصدر). المفتاح المحروس ٣٨/٣٠ لا يتغير: هذه قاعدة
+ * مستقلة بإصدارها الخاص ١ لا علاقة له بمخطط التصدير. */
+export type RestoreRollbackRecord = {
+  id: "rollback-active" | "rollback-pending";
+  /** ملف نسخة مُتحقق منه دورة كاملة للبيانات قبل الاستبدال — ليس قيمة في
+   * الذاكرة ولا رابط تنزيل؛ يصمد للإغلاق وإعادة التحميل والانهيار. */
+  file: LocalExportFile;
+  /** مسودات النماذج العابرة الموجودة قبل الاستبدال — تُعزل مع اللقطة
+   * القديمة وتُسترد معها (عقد ٠٤٤ B6)؛ تبقى مميزة عن مسودات الأعمال
+   * المحفوظة داخل الملف نفسه. */
+  drafts: readonly FormDraftEnvelope[];
+  /** بصمة الحالة المحمية وقت إنشاء السجل (كنونية — snapshotCanonicalization). */
+  snapshotDigest: string;
+  /** الجيل الذي كانت عليه البيانات عند إنشاء النسخة. */
+  generation: number;
+  createdAt: string;
+};
+export type ReplacementCommandType = "restore" | "reset" | "guided-opening" | "rollback-restore";
+/** نية استبدال قائمة لم يُحسم مآلها — تُكتب قبل أي كتابة مدمرة، ويُحسم
+ * مآلها عند أول قراءة تالية بمقارنة بصمة الحالة الحية بالبصمتين (SDF-051)؛
+ * وجودها يمنع بدء نية استبدال أخرى حتى الحسم (سياج النية الواحدة). */
+export type ReplacementIntentRecord = {
+  id: "replacement-marker";
+  commandId: string;
+  commandType: ReplacementCommandType;
+  fromGeneration: number;
+  toGeneration: number;
+  /** بصمة الحالة قبل الاستبدال وبعده — تطابق القراءة الحية مع الأولى =
+   * القديم كامل، مع الثانية = الجديد كامل، ولا هذا ولا ذاك = مآل غير
+   * محسوم يمنع نية جديدة حتى الحسم. */
+  beforeDigest: string;
+  afterDigest: string;
+  /** بصمة حمولة الأمر المُقدَّمة — ربط التأكيد بالملف المُراجَع نفسه. */
+  payloadDigest: string;
+  /** ملخص نتيجة الأمر مسلسلًا — يُحفظ مع النية كي يكمل الحسمُ إيصالَ الأمر
+   * المنهار بعد التزامه دون فقد نتيجته الأصلية (SDF-037/051). */
+  summaryJson: string;
+  startedAt: string;
+};
+/** إيصال آخر استبدال ملتزم — نتيجة الأمر الأصلية تُعاد حرفيًا عند إعادة
+ * نفس المفتاح والحمولة بلا أثر ثانٍ (SDF-037)؛ لا يُحذف بمحاولة فاشلة
+ * ولا بنية لاحقة — يستبدله فقط التزام ناجح أحدث. */
+export type ReplacementReceiptRecord = {
+  id: "replacement-receipt";
+  commandId: string;
+  commandType: ReplacementCommandType;
+  payloadDigest: string;
+  /** ملخص نتيجة الأمر الأصلي مسلسلًا (يملؤه صاحب العقد في طبقة التطبيق) —
+   * التخزين يحفظه كسلسلة معتمة بلا تفسير؛ ليس حدثًا ماليًا أبدًا. */
+  summaryJson: string;
+  /** الجيل الذي صُكّ مع الالتزام (toGeneration). */
+  generation: number;
+  committedAt: string;
+};
+export type DataGenerationRecord = {
+  id: "data-generation";
+  /** جيل البيانات المحلي — يبدأ صفرًا ويرتفع واحدًا مع كل استبدال ملتزم
+   * داخل حد الكتابة نفسه؛ محلي لا يُصدَّر ولا يستعيده ملف قديم. */
+  generation: number;
+  updatedAt: string;
+};
+export type RestoreProtectionState = {
+  generation: number;
+  intent: ReplacementIntentRecord | null;
+  receipt: ReplacementReceiptRecord | null;
+  activeRollback: RestoreRollbackRecord | null;
+  pendingRollback: RestoreRollbackRecord | null;
+};
+/** سياج الاستبدال داخل حد الكتابة — البصمة المرجوة تُقارن داخل معاملة
+ * الاستبدال نفسها بعد قراءة كل المخازن وقبل أي مسح (ضمان مخزني لا طبقة
+ * واجهة)، والقائمة الاختيارية تعيد مسودات النماذج المعزولة مع اللقطة
+ * القديمة في الحد نفسه (مسار استرجاع النسخة السابقة وحده يمررها). */
+export type ReplacementGuard = {
+  expectedSnapshotDigest: string;
+  restoreFormDrafts?: readonly FormDraftEnvelope[];
 };
 export type LocalExportIntegrity = {
   algorithm: "sha256";
@@ -413,7 +501,18 @@ export type LocalExportFile = {
   appVersion?: string;
 };
 export type StorageFailureCode =
-  "storage_unavailable" | "storage_error" | "storage_upgrade_failed" | "storage_blocked" | "storage_stale";
+  | "storage_unavailable"
+  | "storage_error"
+  | "storage_upgrade_failed"
+  | "storage_blocked"
+  | "storage_stale"
+  /* S02-A (SH-03): سياج الاستبدال داخل حد الكتابة — الحالة الحية داخل معاملة
+   * الاستبدال خالفت البصمة المرجوة (كاتب آخر سبق المعاملة) فأُحبطت المعاملة
+   * بلا أي كتابة؛ ليس قدم إصدار (storage_stale) بل تعارض سياق الاستبدال. */
+  | "replacement_context_stale"
+  /* S02-A (SH-02): نية استبدال قائمة لم تُحسم بعد — لا تبدأ نية ثانية فوقها
+   * (سياج النية الواحدة داخل معاملة البدء نفسها؛ سباق نوافذ لا يعبر أبدًا). */
+  | "replacement_intent_busy";
 export type StorageFailure = { ok: false; code: StorageFailureCode; message: string };
 type StorageSuccess<T> = { ok: true; value: T };
 export type StorageResult<T> = StorageSuccess<T> | StorageFailure;
@@ -715,7 +814,16 @@ export interface PrototypeLocalStore {
     }>
   >;
   readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>>;
-  replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>>;
+  /* S02-A (SH-03 — عقد ٠٤٤ §16.5): الاستبدال حد واحد يشمل مخازن اللقطة كلها
+   * **ومسح مسودات النماذج العابرة في المعاملة نفسها** (كانت تُمسك خارج الحد
+   * فتبقى فوق بيانات استُبدلت)؛ والسياج الاختياري يقارن بصمة الحالة الحية
+   * داخل المعاملة قبل أي مسح فلا يستبدل كاتب آخر سبقه أبدًا (ضمان مخزني).
+   * قائمة الاسترداد الاختيارية تعيد مسودات معزولة مع اللقطة في الحد نفسه
+   * (مسار استرجاع النسخة السابقة وحده). */
+  replaceSnapshot(
+    snapshot: LocalStoreSnapshot,
+    guard?: ReplacementGuard,
+  ): Promise<StorageResult<LocalStoreSnapshot>>;
   /* المجموعة ٥ (عقد المسودة النصية): مسودات النماذج الطويلة — مخزن مستقل خارج
    * اللقطة؛ لا حدث مالي ولا مخزون ولا تغيير رصيد يحدث عبر هذه المسارات أبدًا.
    * الاستعادة عرضٌ صريح يقبله المستخدم؛ التعارض مع سجل نهائي يرفض التطبيق الصامت. */
@@ -733,6 +841,29 @@ export interface PrototypeLocalStore {
   saveLocalSecurity(security: LocalSecurityRecord): Promise<StorageResult<LocalSecurityRecord>>;
   /** تعطيل القفل يحذف سجل الأمان نهائيًا — لا أثر يبقى في الجهاز. */
   deleteLocalSecurity(): Promise<StorageResult<null>>;
+  /* S02-A (SH-02/SH-03): حماية الاستبدال الدائمة — قاعدة منفصلة خارج نطاق
+   * الاستبدال؛ القراءات الأربعة في حد قراءة واحد، والعمليات الثلاث ذرّية
+   * داخل قاعدة الحماية نفسها (لا نية بلا نسخة رجوع معلقة، ولا ترقية نسخة
+   * نشطة إلا مع التزام الاستبدال وصك الجيل معًا). */
+  getDataGeneration(): Promise<StorageResult<number>>;
+  readRestoreProtection(): Promise<StorageResult<RestoreProtectionState>>;
+  /** بدء نية استبدال: النسخة الرجوع المعلقة + النية في معاملة واحدة، ويرفض
+   * (replacement_intent_busy) إن وُجدت نية قائمة لم تُحسم — لا نيتان متزامنتان
+   * أبدًا مهما تعددت النوافذ. */
+  beginReplacementIntent(
+    pending: RestoreRollbackRecord,
+    intent: ReplacementIntentRecord,
+  ): Promise<StorageResult<null>>;
+  /** التزام الاستبدال: ترقية النسخة المعلقة إلى نشطة + صك الجيل + كتابة
+   * الإيصال + حذف النية — معاملة واحدة، لا نصف ترقية أبدًا. */
+  commitReplacementIntent(
+    generation: number,
+    receipt: ReplacementReceiptRecord,
+    resolvedAt: string,
+  ): Promise<StorageResult<null>>;
+  /** إحباط نية: حذف المعلقة + حذف النية معًا — الإيصال والنسخة النشطة
+   * والجيل لا يُمسّان أبدًا بمحاولة فاشلة (عقد ٠٤٤ B4.3). */
+  abortReplacementIntent(): Promise<StorageResult<null>>;
   /* المجموعة ٤ (عقد ٢٩ — الأصول): قراءة سجل الأصول. */
   listAssets(): Promise<StorageResult<readonly AssetRecord[]>>;
   getAsset(id: string): Promise<StorageResult<AssetRecord | null>>;

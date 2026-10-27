@@ -96,7 +96,7 @@ describe("fee order round-trip and layered import validation (F-007)", () => {
 
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);
-    const prepared = targetTransfers.prepareImport(JSON.stringify(verified.value.file));
+    const prepared = await targetTransfers.prepareRestore(JSON.stringify(verified.value.file));
     if (!prepared.ok) throw new Error(prepared.message);
     const confirmed = await targetTransfers.confirmImport(prepared.value);
     if (!confirmed.ok) throw new Error(confirmed.message);
@@ -127,7 +127,7 @@ describe("fee order round-trip and layered import validation (F-007)", () => {
     file.data.orders[0]!.order.deliveryTerms.feeChargedMinor = -300;
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);
-    const prepared = targetTransfers.prepareImport(JSON.stringify(file));
+    const prepared = await targetTransfers.prepareRestore(JSON.stringify(file));
     expect(prepared.ok).toBe(false);
     /* الرفض قبل الكتابة الذرية: الهدف بلا أي بيانات. */
     const orders = await target.listOrders();
@@ -149,7 +149,7 @@ describe("fee order round-trip and layered import validation (F-007)", () => {
     file.data.orders[0]!.order.deliveryTerms.feeChargedMinor = 700;
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);
-    const prepared = targetTransfers.prepareImport(JSON.stringify(file));
+    const prepared = await targetTransfers.prepareRestore(JSON.stringify(file));
     expect(prepared.ok).toBe(false);
     const orders = await target.listOrders();
     if (!orders.ok) throw new Error(orders.message);
@@ -170,7 +170,7 @@ describe("fee order round-trip and layered import validation (F-007)", () => {
     file.data.orders[0]!.order.deliveryTerms.costPaidMinor = 400;
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);
-    const prepared = targetTransfers.prepareImport(JSON.stringify(file));
+    const prepared = await targetTransfers.prepareRestore(JSON.stringify(file));
     expect(prepared.ok).toBe(false);
   });
 

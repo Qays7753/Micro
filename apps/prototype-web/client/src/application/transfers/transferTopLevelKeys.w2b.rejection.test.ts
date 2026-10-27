@@ -204,7 +204,7 @@ describe("W2b — every exporter-produced key stays accepted (no false rejection
       const { store, transfers } = await liveExport(makeStore);
       const exportedAgain = await transfers.createExport();
       if (!exportedAgain.ok) throw new Error(exportedAgain.message);
-      const roundTrip = transfers.prepareImport(JSON.stringify(exportedAgain.value));
+      const roundTrip = await transfers.prepareRestore(JSON.stringify(exportedAgain.value));
       if (!roundTrip.ok) throw new Error(roundTrip.message);
       const confirmed = await transfers.confirmImport(roundTrip.value);
       expect(confirmed.ok).toBe(true);

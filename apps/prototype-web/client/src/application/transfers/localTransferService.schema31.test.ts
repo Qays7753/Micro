@@ -56,7 +56,7 @@ describe("schema 31 export round-trip with expense category labels", () => {
 
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);
-    const prepared = targetTransfers.prepareImport(JSON.stringify(verified.value.file));
+    const prepared = await targetTransfers.prepareRestore(JSON.stringify(verified.value.file));
     if (!prepared.ok) throw new Error(prepared.message);
     const confirmed = await targetTransfers.confirmImport(prepared.value);
     if (!confirmed.ok) throw new Error(confirmed.message);
@@ -154,7 +154,7 @@ describe("schema 31 export round-trip with expense category labels", () => {
       idempotencyKey: "untouched",
     });
     const targetTransfers = new LocalTransferService(target, now);
-    const prepared = targetTransfers.prepareImport(JSON.stringify(file));
+    const prepared = await targetTransfers.prepareRestore(JSON.stringify(file));
     expect(prepared.ok).toBe(false);
     /* فشل التحضير لا يلمس البيانات: الاستثمار باقٍ كما هو. */
     const position = await new ProjectFinancialService(target, now).readPosition();

@@ -174,7 +174,7 @@ describe("export envelope v28 (OPS-003 — عقد ٤١ / عقد ٣٩)", () => {
 
     const target = new MemoryLocalStore();
     const targetService = new LocalTransferService(target, () => NOW);
-    const restored = await targetService.prepareImport(JSON.stringify(exported.value.file));
+    const restored = await targetService.prepareRestore(JSON.stringify(exported.value.file));
     expect(restored.ok).toBe(true);
     if (!restored.ok) throw new Error(restored.message);
     expect(restored.value.file.version).toBe(localExportVersion);

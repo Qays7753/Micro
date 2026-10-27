@@ -210,7 +210,7 @@ describe("OD-COUNTS full-cycle round trip — import → confirm → re-export k
 
       const first = await transfers.createExport();
       if (!first.ok) throw new Error(first.message);
-      const prepared = transfers.prepareImport(JSON.stringify(first.value));
+      const prepared = await transfers.prepareRestore(JSON.stringify(first.value));
       if (!prepared.ok) throw new Error(prepared.message);
       const confirmed = await transfers.confirmImport(prepared.value);
       if (!confirmed.ok) throw new Error(confirmed.message);

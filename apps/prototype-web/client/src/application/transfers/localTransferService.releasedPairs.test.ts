@@ -436,7 +436,7 @@ describe("historical 8/17 pair (commit 570eba1) — faithful fixture", () => {
 
   it("accepts, migrates, and round-trips the faithful 8/17 fixture without inventing values", async () => {
     auditFixture817(file817);
-    const prepared = transfers().prepareImport(JSON.stringify(file817));
+    const prepared = await transfers().prepareRestore(JSON.stringify(file817));
     if (!prepared.ok) throw new Error(prepared.message);
     const migrated = prepared.value.file;
     expect(migrated.version).toBe(localExportVersion);

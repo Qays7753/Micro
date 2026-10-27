@@ -216,9 +216,16 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       import("@/application/recurring/recurringExpenseService"),
     ]).then(([transferModule, guidedModule, recurringModule]) => {
       if (!active) return;
+      /* S02-A (SH-03): الإدخال الافتتاحي يركب بروتوكول الاستبدال المحروس —
+       * باني النسخة الرجوع المُتحقق منها من خدمة النقل نفسها (جذر التركيب
+       * يوصلهما فوق المخزن الوحيد). */
+      const transfers = new transferModule.LocalTransferService(singletonStore);
       setTransferServices({
-        transfers: new transferModule.LocalTransferService(singletonStore),
-        guidedOpeningImport: new guidedModule.GuidedOpeningImportService(singletonStore),
+        transfers,
+        guidedOpeningImport: new guidedModule.GuidedOpeningImportService(
+          singletonStore,
+          transferModule.LocalTransferService.verifiedBackupBuilder(transfers),
+        ),
       });
       setRecurringExpenseService(
         new recurringModule.RecurringExpenseService(

@@ -4,15 +4,19 @@
  *
  * ما يثبته هذا الملف (الفجوة المقررة في بطاقة P-04):
  *  1) واجهة `PrototypeLocalStore` في `storage/local/types.ts` تحمل بالضبط
- *     131 توقيع طريقة — العدّ استخراج AST من المصدر نفسه (لا نسخ يدوي)،
+ *     136 توقيع طريقة — العدّ استخراج AST من المصدر نفسه (لا نسخ يدوي)،
  *     والقائمة المثبتة أدناه تطابقها عضويًا في الاتجاهين؛ أي إضافة/حذف
  *     يفشل الاختبار حتى إعادة إرساء موثقة (نمط ratشة، لا تعديل صامت).
  *     U001-IR-002 (2026-10-18، مراجعة مستقلة على رأس 1995c930): إعادة
  *     الإرساء الموثقة نفس-الـPR — إضافة commitProfileCreate (إنشاء الهوية
  *     الذرّي عند حد الكتابة) نقلت العدّ من 130 إلى 131؛ التصعيد مرغوب
  *     وموثق هنا وفي تقرير التنفيذ، لا نمو صامت.
+ *     S02-A (SH-02/SH-03، 2026-10-27): إعادة إرساء موثقة نفس-الـPR — خمس
+ *     طرق حماية الاستبدال الدائمة (getDataGeneration/readRestoreProtection/
+ *     beginReplacementIntent/commitReplacementIntent/abortReplacementIntent)
+ *     نقلت العدّ من 131 إلى 136؛ التصعيد مرغوب وموثق هنا وفي تقرير S02.
  *  2) محوّلا التخزين (IndexedDbLocalStore وMemoryLocalStore) يعرضان على
- *     نماذجهما بالضبط الأسماء الـ131 ذاتها — مطابقة السطح التنفيذية
+ *     نماذجهما بالضبط الأسماء الـ136 ذاتها — مطابقة السطح التنفيذية
  *     للعقد الكتابي (P-01/P-02 conformance).
  *  3) ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 38 و
  *     localExportVersion = 30 (محروسان بقرار مالك وdiff مزدوج — AGENTS §10).
@@ -34,10 +38,12 @@ import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 
 const TYPES_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "types.ts");
 
-/** الجرد المثبت للـ131 طريقة (مرتب حرفيًا؛ إعادة الإرساء تتطلب توثيقًا بنفس الـPR).
+/** الجرد المثبت للـ136 طريقة (مرتب حرفيًا؛ إعادة الإرساء تتطلب توثيقًا بنفس الـPR).
  * U001-IR-002 (2026-10-18): commitProfileCreate أُضيف بإعادة إرساء موثقة
  * نفس-الـPR (مراجعة مستقلة — إنشاء ملف الهوية ذرّيًا عند حد الكتابة). */
 export const PINNED_PORT_METHODS: readonly string[] = [
+  "abortReplacementIntent",
+  "beginReplacementIntent",
   "clearFormDrafts",
   "commitAllocationPolicySuccessor",
   "commitAssetAcquisitionCorrection",
@@ -73,6 +79,7 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "commitRecurringExpenseOccurrenceRecord",
   "commitRecurringExpenseOccurrences",
   "commitRecurringExpenseSeriesChange",
+  "commitReplacementIntent",
   "commitScheduleCreate",
   "commitScheduleUpdate",
   "commitShortCashDeclarationReversal",
@@ -87,6 +94,7 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "getCatalogItem",
   "getCatalogTemplate",
   "getCostEstimate",
+  "getDataGeneration",
   "getDirectConversion",
   "getDraft",
   "getFinancialEvent",
@@ -141,6 +149,7 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "listSchedules",
   "listShortCashDeclarations",
   "listSupplierPurchases",
+  "readRestoreProtection",
   "readSnapshot",
   "replaceSnapshot",
   "saveActualTimeRecord",
@@ -212,17 +221,17 @@ function publicMethodNames(prototype: object): string[] {
 }
 
 describe("P-04 — أدلة سطح منفذ التخزين المحلي (OD-PRESERVE؛ بلا تقسيم أو نقل)", () => {
-  it("واجهة PrototypeLocalStore تحمل بالضبط 131 طريقة — والقائمة المثبتة مطابقة عضويًا في الاتجاهين", () => {
+  it("واجهة PrototypeLocalStore تحمل بالضبط 136 طريقة — والقائمة المثبتة مطابقة عضويًا في الاتجاهين", () => {
     const live = extractInterfaceMethodNames();
-    expect(live).toHaveLength(131);
+    expect(live).toHaveLength(136);
     expect(live).toEqual([...PINNED_PORT_METHODS]);
   });
 
-  it("P-01: نموذج IndexedDbLocalStore يعرض بالضبط الأسماء الـ131 ذاتها (مطابقة السطح التنفيذية)", () => {
+  it("P-01: نموذج IndexedDbLocalStore يعرض بالضبط الأسماء الـ136 ذاتها (مطابقة السطح التنفيذية)", () => {
     expect(publicMethodNames(IndexedDbLocalStore.prototype)).toEqual([...PINNED_PORT_METHODS]);
   });
 
-  it("P-02: نموذج MemoryLocalStore يعرض الأسماء الـ131 ذاتها + مساعد TS-private واحد موثق فقط", () => {
+  it("P-02: نموذج MemoryLocalStore يعرض الأسماء الـ136 ذاتها + مساعد TS-private واحد موثق فقط", () => {
     /* حدّ موثق: `private` في TypeScript زمن ترجمة لا زمن تشغيل — المساعد
      * يظهر على النموذج؛ نثبّته بالاسم فأي مساعد جديد (خاص أو عام) يفشل
      * الاختبار حتى توثيقه هنا — لا سطح خفي خلف العقد. */

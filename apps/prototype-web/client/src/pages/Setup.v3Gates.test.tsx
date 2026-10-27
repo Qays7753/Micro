@@ -68,6 +68,14 @@ vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
 }));
 
+/* S02-A (SH-03): باني النسخة الرجوع المُتحقق منها للاختبار — من
+ * خدمة النقل نفسها فوق المخزن نفسه (باني الإنتاج يُمرَّر من جذر التركيب). */
+function testBackupBuilder(
+  store: ConstructorParameters<typeof LocalTransferService>[0],
+): ReturnType<typeof LocalTransferService.verifiedBackupBuilder> {
+  return LocalTransferService.verifiedBackupBuilder(new LocalTransferService(store));
+}
+
 const wouterMocks = vi.hoisted(() => ({
   navigate: vi.fn(),
   location: "/setup",
@@ -112,7 +120,7 @@ function buildDeviceServices(store: PrototypeLocalStore) {
     formDrafts: new FormDraftService(store, clock),
     localLock: new LocalLockService(store, clock),
     transfers: new LocalTransferService(store, clock),
-    guidedOpeningImport: new GuidedOpeningImportService(store, clock),
+    guidedOpeningImport: new GuidedOpeningImportService(store, testBackupBuilder(store), clock),
     integrityCheck: new IntegrityCheckService(
       store,
       projectFinance,

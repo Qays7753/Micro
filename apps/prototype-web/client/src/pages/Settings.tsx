@@ -25,7 +25,7 @@ import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
 import type { OperatingModeValue } from "@/application/time";
-import type { PreparedImport, TransferSummary } from "@/application/transfers";
+import type { BoundRestoreIntent, TransferSummary } from "@/application/transfers";
 import type { GuidedOpeningImportPreview } from "@/application/transfers";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
@@ -216,7 +216,7 @@ export default function SettingsPage() {
   }, [preferences, transfers, dataVersion]);
   const inputRef = useRef<HTMLInputElement>(null);
   const guidedInputRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<PreparedImport | null>(null);
+  const [preview, setPreview] = useState<BoundRestoreIntent | null>(null);
   const [guidedPreview, setGuidedPreview] = useState<GuidedOpeningImportPreview | null>(null);
   /* S3-11: الإشعار يُعرض داخل القسم الذي أنتجه — لا في أسفل صفحة بطول ٨٤١ سطرًا. */
   const [notice, setNotice] = useState<{
@@ -424,7 +424,10 @@ export default function SettingsPage() {
         setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
         return;
       }
-      const prepared = transfers.prepareImport(await file.text());
+      /* S02-A (SH-02): المعاينة مربوطة بالمراجعة — الجيل وبصمة الحالة الحية
+       * لحظة العرض؛ التأكيد لا يقبل إلا أمرًا مربوطًا، وتغيّر البيانات بعده
+       * يعيد المراجعة ولا يستبدل عملًا أحدث. */
+      const prepared = await transfers.prepareRestore(await file.text());
       if (!prepared.ok) {
         setStorageNotice("error", prepared.message);
         return;

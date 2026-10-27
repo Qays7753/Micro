@@ -13,6 +13,9 @@
 export type {
   LocalTransferService,
   PreparedImport,
+  BoundRestoreIntent,
+  RestoreIntentContext,
+  RestoreResult,
   TransferPreview,
   TransferSummary,
 } from "./localTransferService";
