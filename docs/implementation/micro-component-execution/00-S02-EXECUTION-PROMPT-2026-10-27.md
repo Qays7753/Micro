@@ -186,6 +186,16 @@ For the final candidate, record the exact `S02_BASE_SHA`, candidate SHA, branch,
 
 Update JSON Control sources first, then run the official generator and checks. Never hand-edit generated Tracker views. Keep `current-state.md` below its size guard and append a dated event to `current-state-log.md`. Update the document index and sequential worklog. Do not claim acceptance, `VERIFIED`, or merge readiness from a green CI result alone.
 
+### 10.1 Remote CI and Cloudflare are part of this ZAI task
+
+After every pushed S02 candidate, ZAI MUST monitor the exact candidate SHA until all required GitHub Actions and Cloudflare Pages checks reach a terminal state. Do not stop merely because the push succeeded, and do not ask Manus to wait for checks that this task can observe itself.
+
+For the final candidate, GitHub Actions and Cloudflare Pages MUST both be `PASS` on the same full SHA. ZAI MUST record the exact run/check URLs, deployment identity, commit SHA, status, and conclusion in the S02 report. A pending, cancelled, stale, or differently headed check is not a pass.
+
+If a check fails, ZAI MUST read the actual failure logs, classify the root cause, and fix an in-scope cause in the same S02 PR. Do not retry randomly, weaken a guard, raise a ceiling, change CI policy, or claim that an expected failure is acceptable. After each fix, push a coherent commit and repeat the exact-head verification. If the failure requires an out-of-scope decision or provider-side action, stop with `BLOCKER` and preserve the safe checkpoint.
+
+The final delivery is not complete until local required checks, GitHub Actions, and Cloudflare Pages evidence are recorded for the exact final candidate, or the report explicitly ends with `S02_EXECUTION_BLOCKED — <reason>`.
+
 ## 11. Stop conditions and final markers
 
 <!-- STOP_CONDITIONS -->
