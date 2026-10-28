@@ -12,6 +12,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { ProfileService } from "@/application/profile/profileService";
+import { PreferenceService } from "@/application/preferences/preferenceService";
 import { FormDraftService } from "@/application/drafts/formDraftService";
 import { createFormDraftHarness } from "@/application/drafts/formDraftTestHarness";
 import type { PrototypeLocalStore } from "@/storage/local/types";
@@ -38,8 +39,11 @@ const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
 function setupServices(options: { store?: PrototypeLocalStore } = {}) {
   const store = options.store ?? createFormDraftHarness().store;
   const notifyDataChanged = vi.fn();
+  /* S03: تفضيل العرض من خدمته الحقيقية فوق المخزن نفسه — نفس نهج الخدمات
+   * الحقيقية في هذا الملف (هوية ومسودة)، فيتحقق من الكتابة بإعادة القراءة. */
   const services = {
     profiles: new ProfileService(store),
+    preferences: new PreferenceService(store, () => "2026-10-28T00:00:00.000Z"),
     notifyDataChanged,
     formDrafts: new FormDraftService(store),
   } as unknown as ReturnType<typeof usePrototypeServices>;
@@ -346,12 +350,13 @@ describe("UNIT-001 existing identity — open it, never duplicate or edit (R02/D
     const { services, store } = setupServices();
     await new ProfileService(store).create("مشروع قائم");
     const createSpy = vi.spyOn(services.profiles, "create");
-    const saveSpy = vi.spyOn(services.profiles, "save");
+    /* S03: التعديل حدُّ محروس واحد (rename) — لا مسار save أصلًا بعد تقاعده. */
+    const renameSpy = vi.spyOn(services.profiles, "rename");
     mockedUsePrototypeServices.mockReturnValue(services);
     render(<Setup />);
     await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
     expect(createSpy).not.toHaveBeenCalled();
-    expect(saveSpy).not.toHaveBeenCalled();
+    expect(renameSpy).not.toHaveBeenCalled();
   });
 
   it("an identity created after mount is used as-is on submit — no second identity, no edit (AC06/DUP-002)", async () => {
@@ -380,9 +385,16 @@ describe("UNIT-001 existing identity — open it, never duplicate or edit (R02/D
     await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
     cleanup();
     wouterMocks.navigate.mockReset();
-    /* 039 (صفحة Profile) يعدّل عبر save — نفس المصدر، معرّف واحد. */
-    const renamed = await new ProfileService(store).save("الاسم بعد التعديل");
-    expect(renamed).toMatchObject({ ok: true, profile: { activityName: "الاسم بعد التعديل" } });
+    /* S03: 039 يعدّل عبر rename المحروس داخل الإعدادات — نفس المصدر،
+     * معرّف واحد، والنسخة المتوقعة من قراءة المحرر (عقد §17). */
+    const current = await new ProfileService(store).load();
+    if (!current.ok || !current.value) throw new Error("identity should exist");
+    const renamed = await new ProfileService(store).rename("الاسم بعد التعديل", current.value.updatedAt);
+    expect(renamed).toMatchObject({
+      ok: true,
+      outcome: "renamed",
+      profile: { activityName: "الاسم بعد التعديل" },
+    });
     const stored = await store.getProfile();
     expect(stored).toMatchObject({
       ok: true,
@@ -1039,5 +1051,142 @@ describe("UNIT-001 setup draft autosave — the concurrency contract is honored 
     await new Promise(resolve => setTimeout(resolve, 30));
     const after = await store.getFormDraft("setup:new");
     expect(after).toEqual(before);
+  });
+});
+
+/* ── S03 (UNIT-001 P3.1/P3.2): سؤال البداية الاختياري المحايد — ما يقدمه
+    المشروع؛ لا يمس نوع النشاط ولا workMode ولا أي رقم، والاسم وحده المطلوب،
+    والفشل الجزئي للتفضيل بعد نجاح الهوية يُعلن بصدق دون إعادة إنشاء. ── */
+/* مستعلم حتمي لخيارات السؤال — التسمية الظاهرة تحمل الشرح فيمنع المطابقة
+ * الحرفية؛ القيمة الكنونية هي المفتاح. */
+function offeringRadio(value: string): HTMLInputElement {
+  const question = screen.getByTestId("setup-offering-question");
+  const radio = question.querySelector(`input[type=radio][value="${value}"]`);
+  if (!(radio instanceof HTMLInputElement)) throw new Error(`offering radio not found: ${value}`);
+  return radio;
+}
+
+describe("UNIT-001 S03 — optional neutral offering question at first use", () => {
+  it("renders the four approved options with the neutral default checked — no preselected products assumption", async () => {
+    const { services } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    await screen.findByRole("heading", { name: "إعداد مشروعك" });
+    const question = screen.getByTestId("setup-offering-question");
+    expect(question).toBeTruthy();
+    const radios = Array.from(question.querySelectorAll("input[type=radio]")) as HTMLInputElement[];
+    expect(radios).toHaveLength(4);
+    expect(radios.filter(r => r.checked)).toHaveLength(1);
+    expect(radios.find(r => r.checked)!.value).toBe("");
+    expect(screen.getByText("منتجات")).toBeTruthy();
+    expect(screen.getByText("خدمات")).toBeTruthy();
+    expect(screen.getByText("منتجات وخدمات معًا")).toBeTruthy();
+    /* الاستقلال عن workMode معلن نصًا في مساعدة السؤال. */
+    expect(screen.getByTestId("setup-offering-question").textContent).toContain("لا يحدد نوع نشاطك");
+  });
+
+  it("name-only submit creates the identity and writes no preference — neutral stays untouched (no assumed products)", async () => {
+    const { services, store } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "حلويات ليان" } });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    const profile = await store.getProfile();
+    expect(profile).toMatchObject({ ok: true, value: { activityName: "حلويات ليان" } });
+    /* لا كتابة تفضيل أصلًا: السجل يبقى غائبًا (محايد صادق لا افتراض). */
+    const preferences = await store.getPreferences();
+    expect(preferences).toMatchObject({ ok: true, value: null });
+  });
+
+  it("an offering selection is saved from its single source after the proven identity — and rides the draft back", async () => {
+    const { services, store } = setupServices();
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "مشغل خالد" } });
+    fireEvent.click(screen.getByLabelText(/منتجات وخدمات معًا/));
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    const profile = await store.getProfile();
+    expect(profile).toMatchObject({ ok: true, value: { activityName: "مشغل خالد" } });
+    const preferences = await store.getPreferences();
+    expect(preferences.ok && preferences.value).toBeTruthy();
+    expect(preferences).toMatchObject({ ok: true, value: { offeringPreference: "both" } });
+  });
+
+  it("a preference write failure after a proven identity is a declared partial result — no second identity, retry completes honestly", async () => {
+    const { services, store } = setupServices();
+    const originalSavePreferences = store.savePreferences.bind(store);
+    let failedOnce = false;
+    store.savePreferences = (async (record: unknown) => {
+      if (!failedOnce) {
+        failedOnce = true;
+        return { ok: false, code: "storage_error", message: "quota exceeded" };
+      }
+      return originalSavePreferences(record as never);
+    }) as never;
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "ورشة سعاد" } });
+    fireEvent.click(offeringRadio("products"));
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    /* النجاح الجزئي معلن: الهوية أُنشئت والتفضيل تعذر — بلا إعادة إنشاء. */
+    const partial = await screen.findByTestId("setup-preference-partial");
+    expect(partial.getAttribute("role")).toBe("status");
+    expect(partial.textContent).toContain("أُنشئ مشروعك باسمه");
+    expect(wouterMocks.navigate).not.toHaveBeenCalled();
+    const profileAfterFailure = await store.getProfile();
+    expect(profileAfterFailure).toMatchObject({ ok: true, value: { activityName: "ورشة سعاد" } });
+    /* إعادة المحاولة تخص التفضيل وحده وتنجح بعد زوال السبب. */
+    fireEvent.click(screen.getByRole("button", { name: "أعد محاولة حفظ التفضيل" }));
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    const profileAfterRetry = await store.getProfile();
+    expect(profileAfterRetry).toMatchObject({ ok: true, value: { activityName: "ورشة سعاد" } });
+    const preferences = await store.getPreferences();
+    expect(preferences).toMatchObject({ ok: true, value: { offeringPreference: "products" } });
+  });
+
+  it("continuing without the preference is an explicit owner decision — the identity stands and the preference stays neutral", async () => {
+    const { services, store } = setupServices();
+    const originalSavePreferences = store.savePreferences.bind(store);
+    store.savePreferences = (async () => ({
+      ok: false,
+      code: "storage_error",
+      message: "quota exceeded",
+    })) as never;
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "ورشة نورة" } });
+    fireEvent.click(offeringRadio("services"));
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await screen.findByTestId("setup-preference-partial");
+    fireEvent.click(screen.getByRole("button", { name: "تابع إلى مشروعك دون التفضيل" }));
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    const profile = await store.getProfile();
+    expect(profile).toMatchObject({ ok: true, value: { activityName: "ورشة نورة" } });
+    const preferences = await store.getPreferences();
+    expect(preferences).toMatchObject({ ok: true, value: null });
+    void originalSavePreferences;
+  });
+
+  it("the setup draft carries the offering choice and restores it with the name (contract 36 semantics)", async () => {
+    const { store } = setupServices();
+    await new FormDraftService(store).save("setup", null, {
+      activityName: "مغسلة الأمانة",
+      offeringPreference: "services",
+      savedAt: "2026-10-28T08:00:00.000Z",
+    });
+    const services = setupServices({ store }).services;
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    await screen.findByTestId("setup-draft-offer");
+    fireEvent.click(screen.getByRole("button", { name: "أكمل الإعداد" }));
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    expect(input.value).toBe("مغسلة الأمانة");
+    expect(offeringRadio("services").checked).toBe(true);
   });
 });

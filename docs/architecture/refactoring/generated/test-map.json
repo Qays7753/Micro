@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "fdfaaab5e705209dc4b8d475f4b8e2188ea40f41",
+  "head": "f193ccd1d925b77054f0c60aea93d49b8a9dd3cc",
   "pages": {
     "total": 60,
     "map": {
@@ -385,6 +385,7 @@
         "evidence": [
           "LockRetirement.dom.test.tsx",
           "Set003SettingsSection.dom.test.tsx",
+          "Settings.s03.dom.test.tsx",
           "SettingsDataBackupSection.w42.dom.test.tsx",
           "U11.dom.test.tsx",
           "pages/Setup.v3Gates.test.tsx"

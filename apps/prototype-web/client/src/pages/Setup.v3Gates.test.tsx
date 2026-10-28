@@ -234,13 +234,17 @@ describe("UNIT-001 V3 ORG-AC01 — name completion opens the project, no financi
     mockedUsePrototypeServices.mockReturnValue(services);
     render(<Setup />);
     await screen.findByRole("heading", { name: "إعداد مشروعك" });
-    /* كل الحقول النصية داخل النموذج = حقل الاسم وحده؛ لا حقل اختياري يُشترط
-     * إكماله ولا أي إدخال نقدي إطلاقًا. */
+    /* S03 (UNIT-001 P3.1/P3.2): سطح البداية المعتمد — حقل الاسم وحده نصًا
+     * + سؤال تفضيل العرض الاختياري المحايد (٤ خيارات راديو لا يُشترط أي
+     * منها للإكمال)؛ لا حقل نقدي ولا file إطلاقًا، والإكمال بالاسم وحده. */
     const form = document.querySelector("form.micro-setup-decision");
     expect(form).not.toBeNull();
     const inputs = Array.from(form!.querySelectorAll("input, select, textarea"));
-    expect(inputs).toHaveLength(1);
+    expect(inputs).toHaveLength(5);
     expect(inputs[0]!.getAttribute("id")).toBe("setup-activity-name");
+    const radios = inputs.slice(1) as HTMLInputElement[];
+    expect(radios.every(r => r.type === "radio" && r.name === "setup-offering")).toBe(true);
+    expect(radios.every(r => r.required === false)).toBe(true);
     expect(document.querySelector("input[type=file]")).toBeNull();
   });
 });
@@ -251,12 +255,13 @@ describe("UNIT-001 V3 ORG-AC02 — prior data or a read failure never creates a 
     const { services, store } = setupServices();
     await new ProfileService(store).create("مشروع قائم مسبقًا");
     const createSpy = vi.spyOn(services.profiles, "create");
-    const saveSpy = vi.spyOn(services.profiles, "save");
+    /* S03: التعديل حدُّ محروس واحد (rename) — لا مسار save أصلًا بعد تقاعده. */
+    const renameSpy = vi.spyOn(services.profiles, "rename");
     mockedUsePrototypeServices.mockReturnValue(services);
     render(<Setup />);
     await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
     expect(createSpy).not.toHaveBeenCalled();
-    expect(saveSpy).not.toHaveBeenCalled();
+    expect(renameSpy).not.toHaveBeenCalled();
     const stored = await store.getProfile();
     expect(stored).toMatchObject({ ok: true, value: { activityName: "مشروع قائم مسبقًا" } });
   });
@@ -367,7 +372,8 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
     const store = createFormDraftHarness(clock).store;
     const services = buildDeviceServices(store);
     const createSpy = vi.spyOn(services.profiles, "create");
-    const saveSpy = vi.spyOn(services.profiles, "save");
+    /* S03: التعديل حدُّ محروس واحد (rename) — لا مسار save أصلًا بعد تقاعده. */
+    const renameSpy = vi.spyOn(services.profiles, "rename");
     const replaceSnapshotSpy = vi.spyOn(store, "replaceSnapshot");
     mockedUsePrototypeServices.mockReturnValue(services);
     vi.stubGlobal(
@@ -429,7 +435,7 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
       const restored = await store.getProfile();
       expect(restored).toMatchObject({ ok: true, value: sourceIdentity });
       expect(createSpy).not.toHaveBeenCalled();
-      expect(saveSpy).not.toHaveBeenCalled();
+      expect(renameSpy).not.toHaveBeenCalled();
       /* النجاح لا يقفز من 044: بلا ملاحة تلقائية (اللقنة فيها ملف نشاط
        * فالقرار للمالك) — والرجوع يتم بالزر الحقيقي بعقد returnTo. */
       expect(wouterMocks.navigate).not.toHaveBeenCalled();
@@ -444,7 +450,7 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
       render(<Setup />);
       await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
       expect(createSpy).not.toHaveBeenCalled();
-      expect(saveSpy).not.toHaveBeenCalled();
+      expect(renameSpy).not.toHaveBeenCalled();
       const afterReturn = await store.getProfile();
       expect(afterReturn).toMatchObject({ ok: true, value: sourceIdentity });
       /* S02-A (عقد ٠٤٤ B6): مسودة الإعداد العابرة لم تعد تُستأنف فوق المشروع
@@ -462,7 +468,7 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
       const finalProfile = await store.getProfile();
       expect(finalProfile).toMatchObject({ ok: true, value: sourceIdentity });
       expect(createSpy).not.toHaveBeenCalled();
-      expect(saveSpy).not.toHaveBeenCalled();
+      expect(renameSpy).not.toHaveBeenCalled();
     } finally {
       vi.unstubAllGlobals();
       cleanup();

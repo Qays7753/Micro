@@ -327,11 +327,20 @@ export default function Home() {
       ) : null}
       {/* SET-002 + UNIT-001 V2 (R06/T08): نجاح واضح بعد الإعداد الأول — نص
           المواصفة المعتمد وحده؛ اسم المشروع يظهر في ترويسة الرئيسية من مصدرها،
-          لا يتكرر داخل اللافتة. */}
+          لا يتكرر داخل اللافتة.
+          S03 (UNIT-001 P3.1): بعد الحفظ اختيار بداية صادق لا إلزام — إما بدء
+          تسجيل البيانات الأساسية لدى 002 (صفحة الأساس) أو الوصول المباشر
+          للمهمة من الأفعال أدناه؛ لا شيء مالي إلزامي من الإعداد أبدًا. */}
       {setupDone ? (
         <section className="micro-note-card" role="status" data-testid="setup-success-banner">
           <ShieldCheck aria-hidden="true" />
-          <p>تم إعداد مشروعك.</p>
+          <p>
+            تم إعداد مشروعك.{" "}
+            <button className="micro-text-action" type="button" onClick={() => openFromHome("/foundation")}>
+              ابدأ تسجيل بيانات مشروعك الأساسية
+            </button>{" "}
+            أو ابدأ مهمتك من الأفعال أدناه — لا شيء إلزامي.
+          </p>
         </section>
       ) : null}
       {model.truthLine ? (

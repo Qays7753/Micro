@@ -38,6 +38,19 @@ import {
 } from "@/components/settings/SettingsOperatingModeSection";
 import { SettingsAppearanceSection } from "@/components/settings/SettingsAppearanceSection";
 import { SettingsCapabilitiesSection } from "@/components/settings/SettingsCapabilitiesSection";
+/* S03 (UNIT-038/UNIT-039): قسما «ما يقدّمه مشروعك» (تفضيل العرض من مصدره
+ * الواحد) و«بيانات المشروع» (محرر الاسم المحروس داخل الإعدادات بعد قرار
+ * دمج 038/039). */
+import {
+  SettingsUsagePreferencesSection,
+  type OfferingSelection,
+  type OfferingState,
+} from "@/components/settings/SettingsUsagePreferencesSection";
+import {
+  SettingsProjectDataSection,
+  type ProjectDataState,
+} from "@/components/settings/SettingsProjectDataSection";
+import type { OfferingPreference } from "@/application/preferences";
 
 import { Button, type FeedbackKind } from "@/components/primitives";
 export default function SettingsPage() {
@@ -51,6 +64,7 @@ export default function SettingsPage() {
     transfers,
     guidedOpeningImport,
     preferences,
+    profiles,
     agreements,
     inventory,
     supplierPurchases,
@@ -220,6 +234,155 @@ export default function SettingsPage() {
       active = false;
     };
   }, [actualTime, dataVersion]);
+
+  /* ── S03 (UNIT-039 P3.1/P3.2 — عقد §17): بيانات المشروع — الحالة المستقلة
+   * (تحميل/غياب/تعذر/جاهز) من مصدر الهوية الواحد، وأساس النسخة المتوقع من
+   * قراءة المحرر نفسه لحد التعديل المحروس (CAS)؛ إعادة القراءة مع كل دورة
+   * بيانات (dataVersion) بعد الاستعادة أو التعديل من نافذة أخرى. ── */
+  const [projectData, setProjectData] = useState<ProjectDataState>({ phase: "loading" });
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editingName, setEditingName] = useState("");
+  const [expectedProfileUpdatedAt, setExpectedProfileUpdatedAt] = useState<string | null>(null);
+  const [nameError, setNameError] = useState(false);
+  const [renameConflict, setRenameConflict] = useState<{
+    message: string;
+    currentName: string | null;
+  } | null>(null);
+  const [renameFailed, setRenameFailed] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const projectNameInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    let active = true;
+    setProjectData(current => (current.phase === "ready" ? current : { phase: "loading" }));
+    profiles.load().then(result => {
+      if (!active) return;
+      if (!result.ok) {
+        setProjectData({ phase: "error", message: result.message });
+        return;
+      }
+      if (result.value === null) {
+        setProjectData({ phase: "absent" });
+        return;
+      }
+      setProjectData({ phase: "ready", profile: result.value });
+    });
+    return () => {
+      active = false;
+    };
+    /* dataVersion: إعادة القراءة بعد أي تغيير بيانات موثّق (استعادة/تعديل) —
+     * حالة المحرر المفتوح لا تُطمس من تحديث خلفي (stale-while-revalidate). */
+  }, [profiles, dataVersion]);
+
+  function beginRename() {
+    if (projectData.phase !== "ready") return;
+    setEditingName(projectData.profile.activityName);
+    setExpectedProfileUpdatedAt(projectData.profile.updatedAt);
+    setNameError(false);
+    setRenameConflict(null);
+    setRenameFailed(false);
+    setIsEditingName(true);
+  }
+
+  function cancelRename() {
+    setIsEditingName(false);
+    setNameError(false);
+    setRenameConflict(null);
+    setRenameFailed(false);
+  }
+
+  async function saveRename() {
+    if (projectData.phase !== "ready" || expectedProfileUpdatedAt === null) return;
+    if (!editingName.trim()) {
+      setRenameConflict(null);
+      setRenameFailed(false);
+      setNameError(true);
+      projectNameInputRef.current?.focus();
+      return;
+    }
+    setIsRenaming(true);
+    setNameError(false);
+    setRenameFailed(false);
+    const result = await profiles.rename(editingName, expectedProfileUpdatedAt);
+    setIsRenaming(false);
+    if (!result.ok) {
+      if (result.code === "validation_error") {
+        setNameError(true);
+        projectNameInputRef.current?.focus();
+      } else {
+        setRenameFailed(true);
+      }
+      return;
+    }
+    if (result.outcome === "conflict") {
+      /* عقد §17: الخاسر يتراجع بوعي — الحالة الحالية تُعرض كما هي وأساس
+       * النسخة يُحدّث إليها؛ نص المالك يقرر: إعادة الحفظ بوعي أو الإلغاء. */
+      setRenameConflict({
+        message: result.message,
+        currentName: result.profile ? result.profile.activityName : null,
+      });
+      if (result.profile) {
+        setProjectData({ phase: "ready", profile: result.profile });
+        setExpectedProfileUpdatedAt(result.profile.updatedAt);
+      } else {
+        setProjectData({ phase: "absent" });
+        setExpectedProfileUpdatedAt(null);
+        setIsEditingName(false);
+      }
+      return;
+    }
+    setProjectData({ phase: "ready", profile: result.profile });
+    setExpectedProfileUpdatedAt(result.profile.updatedAt);
+    setRenameConflict(null);
+    setRenameFailed(false);
+    setIsEditingName(false);
+    notifyDataChanged();
+  }
+
+  /* S03 (UNIT-039 P3.1): الغياب حالة صادقة مستقلة — مدخل واحد للإعداد لا
+   * مشروع ثانٍ من الإعدادات. */
+  function openSetup() {
+    navigate(withReturnTo("/setup", "/settings"));
+  }
+
+  /* ── S03 (UNIT-038 P3.2): تفضيل ما يقدّمه المشروع — قراءة المصدر الواحد
+   * وحفظ الحقل المتغير وحده عبر بوابة الدمج (لا يُسقط غيره). ── */
+  const [offeringState, setOfferingState] = useState<OfferingState>({ phase: "loading" });
+  const [selectedOffering, setSelectedOffering] = useState<OfferingSelection>("");
+  const [isSavingOffering, setIsSavingOffering] = useState(false);
+  const [offeringNotice, setOfferingNotice] = useState<{ kind: FeedbackKind; text: string } | null>(null);
+  useEffect(() => {
+    let active = true;
+    preferences.readOfferingPreference().then(result => {
+      if (!active) return;
+      if (!result.ok) {
+        setOfferingState({ phase: "error", message: result.message });
+        return;
+      }
+      setOfferingState({ phase: "ready", value: result.offering });
+      setSelectedOffering(result.offering ?? "");
+    });
+    return () => {
+      active = false;
+    };
+  }, [preferences, dataVersion]);
+
+  async function saveOffering() {
+    setIsSavingOffering(true);
+    setOfferingNotice(null);
+    const value: OfferingPreference = selectedOffering === "" ? null : selectedOffering;
+    const result = await preferences.saveOfferingPreference(value);
+    setIsSavingOffering(false);
+    if (!result.ok) {
+      setOfferingNotice({ kind: "error", text: result.message });
+      return;
+    }
+    setOfferingState({ phase: "ready", value: result.offering });
+    notifyDataChanged();
+    setOfferingNotice({
+      kind: "completion",
+      text: "تم حفظ تفضيل ما يقدّمه مشروعك على هذا الجهاز فقط — لا يغيّر أي سجل أو رقم.",
+    });
+  }
 
   async function saveOperatingMode() {
     setNotice(null);
@@ -571,12 +734,14 @@ export default function SettingsPage() {
         nextAction="حذف التطبيق أو بيانات المتصفح لا يضمن الاحتفاظ بها؛ صدّر نسخة محلية قبل الحذف أو تغيير الهاتف."
         tone="warning"
       />
-      {/* المجموعة ١ (Scope G): مدخل ملف المالك من الإعدادات — سطر هادئ لا CTA منافس. */}
+      {/* المجموعة ١ (Scope G): مدخل ملف المالك من الإعدادات — سطر هادئ لا CTA
+          منافس. S03 (دمج 038/039): محرر اسم المشروع صار في قسم «بيانات المشروع»
+          أدناه؛ هذا المدخل لهوية المالك وحدها. */}
       <section className="micro-settings-profile-entry">
         <CircleUserRound aria-hidden="true" />
         <div>
-          <b>ملفك وملف مشروعك</b>
-          <small>هوية المالك ومعلومات المشروع — محفوظة على هذا الجهاز فقط.</small>
+          <b>ملف المالك</b>
+          <small>هوية المالك المحلية — محفوظة على هذا الجهاز فقط.</small>
         </div>
         <button
           className="micro-text-action"
@@ -587,6 +752,34 @@ export default function SettingsPage() {
           <ChevronLeft aria-hidden="true" />
         </button>
       </section>
+      {/* S03 (UNIT-039 — دمج المحرر داخل 038): بيانات المشروع — تعديل الاسم
+          المحروس بحد كتابة واحد مع تعارض معلن؛ الغياب حالة صادقة مستقلة. */}
+      <SettingsProjectDataSection
+        projectData={projectData}
+        isEditingName={isEditingName}
+        editingName={editingName}
+        setEditingName={setEditingName}
+        nameError={nameError}
+        clearNameError={() => setNameError(false)}
+        renameConflict={renameConflict}
+        renameFailed={renameFailed}
+        isRenaming={isRenaming}
+        beginRename={beginRename}
+        saveRename={saveRename}
+        cancelRename={cancelRename}
+        openSetup={openSetup}
+        nameInputRef={projectNameInputRef}
+      />
+      {/* S03 (UNIT-038 P3.2): تفضيل ما يقدّمه مشروعك — نفس سؤال البداية من
+          المصدر الواحد؛ حفظ الحقل المتغير وحده دون مساس ببقية التفضيلات. */}
+      <SettingsUsagePreferencesSection
+        offeringState={offeringState}
+        selectedOffering={selectedOffering}
+        setSelectedOffering={setSelectedOffering}
+        isSavingOffering={isSavingOffering}
+        offeringNotice={offeringNotice}
+        saveOffering={saveOffering}
+      />
       <SettingsDataProtectionSection
         dataSectionOpen={dataSectionOpen}
         onToggleDataSection={setDataSectionOpen}

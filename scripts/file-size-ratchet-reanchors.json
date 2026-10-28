@@ -2244,6 +2244,234 @@
     "trigger": "S02 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
     "ocRef": "DOC-011"
    }
+  },
+  {
+   "id": "S03-FIRST-USE-SETTINGS-20261028-01",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/application/preferences/index.ts",
+   "from": {
+    "nbLoc": 12,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 27,
+    "band": "NORMAL"
+   },
+   "reason": "S03 (UNIT-001/UNIT-038/UNIT-039 — عقد §5.1/§15.1/§17 والسجل المشترك، DOC-012): نمو مقصود لنفس الشريحة — تفضيل ما يقدمه المشروع من مصدره الواحد (سؤال البداية في 001 + محرر الإعدادات في 038) وتعديل اسم الهوية القائمة بحد كتابة محروس واحد commitProfileRename (CAS على updatedAt) بعد تقاعد save غير المحروس. راجع سجل نتيجة S03 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 execution (00-S03-EXECUTION-PROMPT-2026-10-28.md; S02→S03 transition authorization recorded on the branch in f193ccd1): project first-use, project data, and core settings (UNIT-001/038/039) with guarded writes, adapter parity, and honest partial/conflict states. Growth anchored in the same PR.",
+    "trigger": "S03 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-012"
+   }
+  },
+  {
+   "id": "S03-FIRST-USE-SETTINGS-20261028-02",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/application/preferences/preferenceService.ts",
+   "from": {
+    "nbLoc": 164,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 209,
+    "band": "NORMAL"
+   },
+   "reason": "S03 (UNIT-001/UNIT-038/UNIT-039 — عقد §5.1/§15.1/§17 والسجل المشترك، DOC-012): نمو مقصود لنفس الشريحة — تفضيل ما يقدمه المشروع من مصدره الواحد (سؤال البداية في 001 + محرر الإعدادات في 038) وتعديل اسم الهوية القائمة بحد كتابة محروس واحد commitProfileRename (CAS على updatedAt) بعد تقاعد save غير المحروس. راجع سجل نتيجة S03 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 execution (00-S03-EXECUTION-PROMPT-2026-10-28.md; S02→S03 transition authorization recorded on the branch in f193ccd1): project first-use, project data, and core settings (UNIT-001/038/039) with guarded writes, adapter parity, and honest partial/conflict states. Growth anchored in the same PR.",
+    "trigger": "S03 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-012"
+   }
+  },
+  {
+   "id": "S03-FIRST-USE-SETTINGS-20261028-03",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/application/preferences/updateLocalPreferences.ts",
+   "from": {
+    "nbLoc": 55,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 60,
+    "band": "NORMAL"
+   },
+   "reason": "S03 (UNIT-001/UNIT-038/UNIT-039 — عقد §5.1/§15.1/§17 والسجل المشترك، DOC-012): نمو مقصود لنفس الشريحة — تفضيل ما يقدمه المشروع من مصدره الواحد (سؤال البداية في 001 + محرر الإعدادات في 038) وتعديل اسم الهوية القائمة بحد كتابة محروس واحد commitProfileRename (CAS على updatedAt) بعد تقاعد save غير المحروس. راجع سجل نتيجة S03 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 execution (00-S03-EXECUTION-PROMPT-2026-10-28.md; S02→S03 transition authorization recorded on the branch in f193ccd1): project first-use, project data, and core settings (UNIT-001/038/039) with guarded writes, adapter parity, and honest partial/conflict states. Growth anchored in the same PR.",
+    "trigger": "S03 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-012"
+   }
+  },
+  {
+   "id": "S03-FIRST-USE-SETTINGS-20261028-04",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/application/profile/profileService.ts",
+   "from": {
+    "nbLoc": 43,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 105,
+    "band": "NORMAL"
+   },
+   "reason": "S03 (UNIT-001/UNIT-038/UNIT-039 — عقد §5.1/§15.1/§17 والسجل المشترك، DOC-012): نمو مقصود لنفس الشريحة — تفضيل ما يقدمه المشروع من مصدره الواحد (سؤال البداية في 001 + محرر الإعدادات في 038) وتعديل اسم الهوية القائمة بحد كتابة محروس واحد commitProfileRename (CAS على updatedAt) بعد تقاعد save غير المحروس. راجع سجل نتيجة S03 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 execution (00-S03-EXECUTION-PROMPT-2026-10-28.md; S02→S03 transition authorization recorded on the branch in f193ccd1): project first-use, project data, and core settings (UNIT-001/038/039) with guarded writes, adapter parity, and honest partial/conflict states. Growth anchored in the same PR.",
+    "trigger": "S03 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-012"
+   }
+  },
+  {
+   "id": "S03-FIRST-USE-SETTINGS-20261028-05",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/pages/Home.tsx",
+   "from": {
+    "nbLoc": 732,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 741,
+    "band": "WATCH"
+   },
+   "reason": "S03 (UNIT-001/UNIT-038/UNIT-039 — عقد §5.1/§15.1/§17 والسجل المشترك، DOC-012): نمو مقصود لنفس الشريحة — تفضيل ما يقدمه المشروع من مصدره الواحد (سؤال البداية في 001 + محرر الإعدادات في 038) وتعديل اسم الهوية القائمة بحد كتابة محروس واحد commitProfileRename (CAS على updatedAt) بعد تقاعد save غير المحروس. راجع سجل نتيجة S03 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 execution (00-S03-EXECUTION-PROMPT-2026-10-28.md; S02→S03 transition authorization recorded on the branch in f193ccd1): project first-use, project data, and core settings (UNIT-001/038/039) with guarded writes, adapter parity, and honest partial/conflict states. Growth anchored in the same PR.",
+    "trigger": "S03 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-012"
+   }
+  },
+  {
+   "id": "S03-FIRST-USE-SETTINGS-20261028-06",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/pages/Setup.tsx",
+   "from": {
+    "nbLoc": 432,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 601,
+    "band": "WATCH"
+   },
+   "reason": "S03 (UNIT-001/UNIT-038/UNIT-039 — عقد §5.1/§15.1/§17 والسجل المشترك، DOC-012): نمو مقصود لنفس الشريحة — تفضيل ما يقدمه المشروع من مصدره الواحد (سؤال البداية في 001 + محرر الإعدادات في 038) وتعديل اسم الهوية القائمة بحد كتابة محروس واحد commitProfileRename (CAS على updatedAt) بعد تقاعد save غير المحروس. راجع سجل نتيجة S03 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 execution (00-S03-EXECUTION-PROMPT-2026-10-28.md; S02→S03 transition authorization recorded on the branch in f193ccd1): project first-use, project data, and core settings (UNIT-001/038/039) with guarded writes, adapter parity, and honest partial/conflict states. Growth anchored in the same PR.",
+    "trigger": "S03 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-012"
+   }
+  },
+  {
+   "id": "S03-FIRST-USE-SETTINGS-20261028-07",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+   "from": {
+    "nbLoc": 4391,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 4565,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "S03 (UNIT-001/UNIT-038/UNIT-039 — عقد §5.1/§15.1/§17 والسجل المشترك، DOC-012): نمو مقصود لنفس الشريحة — تفضيل ما يقدمه المشروع من مصدره الواحد (سؤال البداية في 001 + محرر الإعدادات في 038) وتعديل اسم الهوية القائمة بحد كتابة محروس واحد commitProfileRename (CAS على updatedAt) بعد تقاعد save غير المحروس. راجع سجل نتيجة S03 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 execution (00-S03-EXECUTION-PROMPT-2026-10-28.md; S02→S03 transition authorization recorded on the branch in f193ccd1): project first-use, project data, and core settings (UNIT-001/038/039) with guarded writes, adapter parity, and honest partial/conflict states. Growth anchored in the same PR.",
+    "trigger": "S03 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-012"
+   }
+  },
+  {
+   "id": "S03-FIRST-USE-SETTINGS-20261028-08",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+   "from": {
+    "nbLoc": 2087,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 2243,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "S03 (UNIT-001/UNIT-038/UNIT-039 — عقد §5.1/§15.1/§17 والسجل المشترك، DOC-012): نمو مقصود لنفس الشريحة — تفضيل ما يقدمه المشروع من مصدره الواحد (سؤال البداية في 001 + محرر الإعدادات في 038) وتعديل اسم الهوية القائمة بحد كتابة محروس واحد commitProfileRename (CAS على updatedAt) بعد تقاعد save غير المحروس. راجع سجل نتيجة S03 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 execution (00-S03-EXECUTION-PROMPT-2026-10-28.md; S02→S03 transition authorization recorded on the branch in f193ccd1): project first-use, project data, and core settings (UNIT-001/038/039) with guarded writes, adapter parity, and honest partial/conflict states. Growth anchored in the same PR.",
+    "trigger": "S03 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-012"
+   }
+  },
+  {
+   "id": "S03-FIRST-USE-SETTINGS-20261028-09",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/types.ts",
+   "from": {
+    "nbLoc": 876,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 1049,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "S03 (UNIT-001/UNIT-038/UNIT-039 — عقد §5.1/§15.1/§17 والسجل المشترك، DOC-012): نمو مقصود لنفس الشريحة — تفضيل ما يقدمه المشروع من مصدره الواحد (سؤال البداية في 001 + محرر الإعدادات في 038) وتعديل اسم الهوية القائمة بحد كتابة محروس واحد commitProfileRename (CAS على updatedAt) بعد تقاعد save غير المحروس. راجع سجل نتيجة S03 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 execution (00-S03-EXECUTION-PROMPT-2026-10-28.md; S02→S03 transition authorization recorded on the branch in f193ccd1): project first-use, project data, and core settings (UNIT-001/038/039) with guarded writes, adapter parity, and honest partial/conflict states. Growth anchored in the same PR.",
+    "trigger": "S03 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-012"
+   }
+  },
+  {
+   "id": "S03-FIRST-USE-SETTINGS-20261028-10",
+   "date": "2026-10-28",
+   "path": "scripts/check-module-boundaries.mjs",
+   "from": {
+    "nbLoc": 822,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 826,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "S03 (UNIT-001/UNIT-038/UNIT-039 — عقد §5.1/§15.1/§17 والسجل المشترك، DOC-012): نمو مقصود لنفس الشريحة — تفضيل ما يقدمه المشروع من مصدره الواحد (سؤال البداية في 001 + محرر الإعدادات في 038) وتعديل اسم الهوية القائمة بحد كتابة محروس واحد commitProfileRename (CAS على updatedAt) بعد تقاعد save غير المحروس. راجع سجل نتيجة S03 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 execution (00-S03-EXECUTION-PROMPT-2026-10-28.md; S02→S03 transition authorization recorded on the branch in f193ccd1): project first-use, project data, and core settings (UNIT-001/038/039) with guarded writes, adapter parity, and honest partial/conflict states. Growth anchored in the same PR.",
+    "trigger": "S03 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-012"
+   }
+  },
+  {
+   "id": "S03-FIRST-USE-SETTINGS-20261028-11",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts",
+   "from": {
+    "nbLoc": 1192,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 1207,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "S03 (UNIT-001/UNIT-038/UNIT-039 — عقد §5.1/§15.1/§17 والسجل المشترك، DOC-012): نمو مقصود لنفس الشريحة — تفضيل ما يقدمه المشروع من مصدره الواحد (سؤال البداية في 001 + محرر الإعدادات في 038) وتعديل اسم الهوية القائمة بحد كتابة محروس واحد commitProfileRename (CAS على updatedAt) بعد تقاعد save غير المحروس. راجع سجل نتيجة S03 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 execution (00-S03-EXECUTION-PROMPT-2026-10-28.md; S02→S03 transition authorization recorded on the branch in f193ccd1): project first-use, project data, and core settings (UNIT-001/038/039) with guarded writes, adapter parity, and honest partial/conflict states. Growth anchored in the same PR.",
+    "trigger": "S03 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-012"
+   }
+  },
+  {
+   "id": "S03-FIRST-USE-SETTINGS-20261028-12",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/pages/Settings.tsx",
+   "from": {
+    "nbLoc": 704,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 819,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "S03 (UNIT-001/UNIT-038/UNIT-039 — عقد §5.1/§15.1/§17 والسجل المشترك، DOC-012): نمو مقصود لنفس الشريحة — تفضيل ما يقدمه المشروع من مصدره الواحد (سؤال البداية في 001 + محرر الإعدادات في 038) وتعديل اسم الهوية القائمة بحد كتابة محروس واحد commitProfileRename (CAS على updatedAt) بعد تقاعد save غير المحروس. راجع سجل نتيجة S03 للأدلة الكاملة.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 execution (00-S03-EXECUTION-PROMPT-2026-10-28.md; S02→S03 transition authorization recorded on the branch in f193ccd1): project first-use, project data, and core settings (UNIT-001/038/039) with guarded writes, adapter parity, and honest partial/conflict states. Growth anchored in the same PR.",
+    "trigger": "S03 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
+    "ocRef": "DOC-012"
+   }
   }
  ]
 }

@@ -86,7 +86,10 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
   parties: [],
   /* R10-B3 (R10A-F-004، 2026-10-11): حارس ترشيح المعرّفات المعروفة عبر
    * الباب بعد توحيد إعلان CapabilityId — توسيع سطح مقصود PC-3. */
-  preferences: ["isKnownCapabilityId"],
+  /* S03 (UNIT-038 P3.2/UNIT-001 P3.2): توسيع سطح مقصود بنفس الـPR وفق PC-3 —
+   * حارس ترشيح تفضيل العرض عبر الباب لمستهلكي الواجهة (السؤال في 001
+   * والمحرر في 038)؛ النوع OfferingPreference مسجل في سطح الأنواع أدناه. */
+  preferences: ["isKnownCapabilityId", "isOfferingPreference"],
   scheduling: ["buildCapacityDecisionViewModel"],
   /* S02-B (SH-04 — UNIT-042): باب الأمن بعد تقاعد القفل — المقيم الوحيد
    * هو تقاعد السجل القديم؛ لا خدمة قفل ولا خياراتها بعد اليوم. */
