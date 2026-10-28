@@ -42,7 +42,7 @@ async function completeFirstRun(theme: "light" | "dark") {
   const store = createBrowserLocalStore();
   const profiles = new ProfileService(store);
   const preferences = new PreferenceService(store);
-  const saved = await profiles.save("ورشة الاختبار");
+  const saved = await profiles.create("ورشة الاختبار");
   if (!saved.ok) throw new Error("profile save failed: " + saved.message);
   const themed = await preferences.save(theme);
   if (!themed.ok) throw new Error("theme preference save failed: " + themed.message);

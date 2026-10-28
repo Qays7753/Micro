@@ -68,6 +68,7 @@ import type {
   LocalStoreSnapshot,
   OrderDraft,
   OwnerProfile,
+  ProfileRenameCommitOutcome,
   PrototypeLocalStore,
   RecurringExpenseOccurrenceChange,
   ReplacementGuard,
@@ -177,6 +178,22 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     if (stored) return { ok: true, value: { profile: clone(stored), reused: true } };
     this.profile = clone(profile);
     return { ok: true, value: { profile: clone(profile), reused: false } };
+  }
+  /* S03 (UNIT-039 B2/عقد §17): نفس عقد محوّل IndexedDB — تعديل الاسم بفحص
+   * حي للنسخة في خطوة متزامنة واحدة (لا فجوة تزامن في بنية الذاكرة أحادية
+   * الخيط): تطابق updatedAt المتوقع يكتب التسمية الجديدة، واختلافه أو غياب
+   * الملف يعيد الحالة الحالية كتعارض بلا كتابة — لا سحق للاسم الأحدث ولا
+   * إنشاء من مسار التعديل. */
+  async commitProfileRename(
+    profile: ActivityProfile,
+    expectedUpdatedAt: string,
+  ): Promise<StorageResult<ProfileRenameCommitOutcome>> {
+    const stored = this.profile;
+    if (!stored || stored.updatedAt !== expectedUpdatedAt) {
+      return { ok: true, value: { profile: stored ? clone(stored) : null, outcome: "conflict" } };
+    }
+    this.profile = clone(profile);
+    return { ok: true, value: { profile: clone(profile), outcome: "renamed" } };
   }
   async getOwnerProfile(): Promise<StorageResult<OwnerProfile | null>> {
     return { ok: true, value: this.ownerProfile ? clone(this.ownerProfile) : null };

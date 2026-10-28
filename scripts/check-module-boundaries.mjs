@@ -330,6 +330,10 @@ export const UI_TO_STORAGE_TYPE_BASELINE = [
   "apps/prototype-web/client/src/components/order/AgreementContextPanel.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/components/settings/SettingsOperatingModeSection.tsx -> @/storage/local/types",
+  /* S03/DOC-012 (2026-10-28، نفس-الـPR): +1 موثقة — قسم بيانات المشروع
+   * يستورد نوع ActivityProfile الكنوني وحده (نفس نمط قسمَي الإعدادات
+   * القائمين)؛ الصف المقابل في سجل الملكية §5. */
+  "apps/prototype-web/client/src/components/settings/SettingsProjectDataSection.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/AgreementEditor.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/CostCalculator.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/CostEditor.tsx -> @/storage/local/types",

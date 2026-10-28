@@ -9,17 +9,13 @@
     "r10b-nf002-inventory-unit-label-door": "2026-10-12 (R10-B3/R10B-NF-002): inventory door +value materialUnitLabel — the Arabic MaterialUnit display mapping consolidated to its canonical owner application/inventory/materialUnitLabels.ts after deleting six per-surface copies (2 application + 4 pages); the UI consumers import through the door per STR-615/R6; same-PR documented widening per PC-3.",
     "arch012-drafts-door-retirement": "2026-10-15 (R11 ARCH-012 / retirement): drafts door value surface emptied (-LEGACY_SETUP_DRAFT_KEY, -browserLegacyFormDraftStorage, -clearLegacyFormDraftStorage, -legacyFinanceDraftKey, -migrateLegacyFormDraft) — the legacy form-draft migration adapter was intentionally retired before launch by owner decision (census + decision record in docs/architecture/refactoring/r11-arch012-20261015/evidence/); type surface (FormDraftService, FormDraftValues) unchanged; documented same-PR deliberate shrink.",
     "S02-B": "إعادة إرساء باب الأمن: تقاعد القفل (UNIT-042) — المقيم الوحيد تقاعد سجل القفل القديم.",
-    "S02-A": "إعادة إرساء باب النقل: نوعا الأمر المربوط بالمراجعة (BoundRestoreIntent/RestoreIntentContext) — بروتوكول حماية الاستبدال SH-02/SH-03."
+    "S02-A": "إعادة إرساء باب النقل: نوعا الأمر المربوط بالمراجعة (BoundRestoreIntent/RestoreIntentContext) — بروتوكول حماية الاستبدال SH-02/SH-03.",
+    "s03-offering-preference-door": "2026-10-28 (S03/DOC-012 — UNIT-038 P3.2 + UNIT-001 P3.2): preferences door +type OfferingPreference +value isOfferingPreference — the canonical offering-preference declaration owned by the preferences service (single source for the 001 setup question and the 038 usage-preferences editor); UI consumers import through the door instead of re-declaring; same-PR documented widening per PC-3."
   },
   "doors": {
     "activity": {
       "value": [],
-      "type": [
-        "ActivityEffectClass",
-        "ActivityFamily",
-        "ActivityRecord",
-        "ActivityService"
-      ]
+      "type": ["ActivityEffectClass", "ActivityFamily", "ActivityRecord", "ActivityService"]
     },
     "agreements": {
       "value": [
@@ -29,30 +25,15 @@
         "protectionPriceIsReadyForAgreement",
         "startAgreementPrice"
       ],
-      "type": [
-        "AgreementContextService",
-        "AgreementResult",
-        "AgreementService",
-        "AgreementSourceValue"
-      ]
+      "type": ["AgreementContextService", "AgreementResult", "AgreementService", "AgreementSourceValue"]
     },
     "assets": {
       "value": [],
-      "type": [
-        "AssetOverviewRead",
-        "AssetService",
-        "AssetSummaryRow"
-      ]
+      "type": ["AssetOverviewRead", "AssetService", "AssetSummaryRow"]
     },
     "budgets": {
-      "value": [
-        "ExpenseBudgetService"
-      ],
-      "type": [
-        "ExpenseBudgetMonthList",
-        "ExpenseBudgetStatusLine",
-        "ExpenseBudgetStatusesReading"
-      ]
+      "value": ["ExpenseBudgetService"],
+      "type": ["ExpenseBudgetMonthList", "ExpenseBudgetStatusLine", "ExpenseBudgetStatusesReading"]
     },
     "cash": {
       "value": [
@@ -61,19 +42,11 @@
         "cashCountDifferenceReason",
         "cashCountSettlementNote"
       ],
-      "type": [
-        "CashContinuityOverview",
-        "CashWalletBalance",
-        "WalletLedgerOverview"
-      ]
+      "type": ["CashContinuityOverview", "CashWalletBalance", "WalletLedgerOverview"]
     },
     "catalog": {
       "value": [],
-      "type": [
-        "CatalogService",
-        "TemplatePlannedCost",
-        "TemplatePlannedCostService"
-      ]
+      "type": ["CatalogService", "TemplatePlannedCost", "TemplatePlannedCostService"]
     },
     "collections": {
       "value": [],
@@ -91,31 +64,19 @@
     },
     "cost": {
       "value": [],
-      "type": [
-        "CostEditorInput",
-        "CostService"
-      ]
+      "type": ["CostEditorInput", "CostService"]
     },
     "diagnostics": {
-      "value": [
-        "localDiagnostics",
-        "routeTemplateFor"
-      ],
+      "value": ["localDiagnostics", "routeTemplateFor"],
       "type": []
     },
     "drafts": {
       "value": [],
-      "type": [
-        "FormDraftService",
-        "FormDraftValues"
-      ]
+      "type": ["FormDraftService", "FormDraftValues"]
     },
     "estimates": {
       "value": [],
-      "type": [
-        "CostEstimateInput",
-        "CostEstimateService"
-      ]
+      "type": ["CostEstimateInput", "CostEstimateService"]
     },
     "finance": {
       "value": [
@@ -172,10 +133,7 @@
     },
     "financial-pulse": {
       "value": [],
-      "type": [
-        "FinancialPulseService",
-        "LocalFinancialPulse"
-      ]
+      "type": ["FinancialPulseService", "LocalFinancialPulse"]
     },
     "financial-records": {
       "value": [
@@ -196,10 +154,7 @@
     },
     "follow-up": {
       "value": [],
-      "type": [
-        "DailyFollowUp",
-        "DailyFollowUpService"
-      ]
+      "type": ["DailyFollowUp", "DailyFollowUpService"]
     },
     "fulfillment": {
       "value": [],
@@ -235,9 +190,7 @@
         "parseEnglishQuantityText",
         "percentToBpsExact"
       ],
-      "type": [
-        "EnglishNumericKind"
-      ]
+      "type": ["EnglishNumericKind"]
     },
     "inventory": {
       "value": [
@@ -259,9 +212,7 @@
       ]
     },
     "loans": {
-      "value": [
-        "ReceivedLoanService"
-      ],
+      "value": ["ReceivedLoanService"],
       "type": [
         "LoanOverviewRead",
         "LoanService",
@@ -271,37 +222,25 @@
       ]
     },
     "owner-money": {
-      "value": [
-        "OwnerEntitlementService"
-      ],
-      "type": [
-        "CrossModelOwnerDuplicate",
-        "OwnerEntitlementOverview",
-        "OwnerMoneyOverview"
-      ]
+      "value": ["OwnerEntitlementService"],
+      "type": ["CrossModelOwnerDuplicate", "OwnerEntitlementOverview", "OwnerMoneyOverview"]
     },
     "parties": {
       "value": [],
-      "type": [
-        "PartyLedgerOverview",
-        "PartyLedgerService"
-      ]
+      "type": ["PartyLedgerOverview", "PartyLedgerService"]
     },
     "preferences": {
-      "value": [
-        "isKnownCapabilityId"
-      ],
+      "value": ["isKnownCapabilityId", "isOfferingPreference"],
       "type": [
         "BrowserPersistenceReading",
         "CapabilityId",
+        "OfferingPreference",
         "PreferenceService",
         "ThemePreference"
       ]
     },
     "scheduling": {
-      "value": [
-        "buildCapacityDecisionViewModel"
-      ],
+      "value": ["buildCapacityDecisionViewModel"],
       "type": [
         "MonthOverview",
         "RecurrenceView",
@@ -313,38 +252,20 @@
       ]
     },
     "security": {
-      "value": [
-        "retireLocalLockRecord"
-      ],
-      "type": [
-        "LockRetirementOutcome"
-      ]
+      "value": ["retireLocalLockRecord"],
+      "type": ["LockRetirementOutcome"]
     },
     "share": {
-      "value": [
-        "collectionShareDraft",
-        "customerShareDraft",
-        "standingCollectionEvent"
-      ],
-      "type": [
-        "ShareDraft"
-      ]
+      "value": ["collectionShareDraft", "customerShareDraft", "standingCollectionEvent"],
+      "type": ["ShareDraft"]
     },
     "suppliers": {
       "value": [],
-      "type": [
-        "SupplierPurchaseService",
-        "SupplierPurchaseSummary"
-      ]
+      "type": ["SupplierPurchaseService", "SupplierPurchaseSummary"]
     },
     "time": {
-      "value": [
-        "todayInAmman"
-      ],
-      "type": [
-        "ActualTimeService",
-        "OperatingModeValue"
-      ]
+      "value": ["todayInAmman"],
+      "type": ["ActualTimeService", "OperatingModeValue"]
     },
     "transfers": {
       "value": [],
@@ -361,7 +282,5 @@
       ]
     }
   },
-  "rootFiles": [
-    "resultCodes.ts"
-  ]
+  "rootFiles": ["resultCodes.ts"]
 }

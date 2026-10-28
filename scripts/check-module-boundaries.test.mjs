@@ -352,25 +352,27 @@ describe("R7 component->page regression class (R8-F-019)", () => {
 });
 
 describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD Option A)", () => {
-  it("the full baseline is exactly 19 keys and the historical 17 is a strict subset", () => {
-    expect(UI_TO_STORAGE_TYPE_BASELINE).toHaveLength(19);
-    expect(new Set(UI_TO_STORAGE_TYPE_BASELINE).size).toBe(19);
+  it("the full baseline is exactly 20 keys and the historical 17 is a strict subset", () => {
+    expect(UI_TO_STORAGE_TYPE_BASELINE).toHaveLength(20);
+    expect(new Set(UI_TO_STORAGE_TYPE_BASELINE).size).toBe(20);
     expect(UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17).toHaveLength(17);
     for (const key of UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17) {
       expect(UI_TO_STORAGE_TYPE_BASELINE).toContain(key);
     }
-    /* مفتاحا app-shell الموثقان هما الفرق المسموح بين الأساسين. */
+    /* مفتاحا app-shell الموثقان + مفتاح S03 الموثق (نفس-الـPR، DOC-012)
+     * هما الفرق المسموح بين الأساسين. */
     const diff = UI_TO_STORAGE_TYPE_BASELINE.filter(k => !UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17.includes(k));
     expect(diff).toEqual([
       "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> @/storage/local/types",
       "apps/prototype-web/client/src/app/StartupGate.tsx -> @/storage/local/types",
+      "apps/prototype-web/client/src/components/settings/SettingsProjectDataSection.tsx -> @/storage/local/types",
     ]);
   });
 
-  it("the live repository passes at the baseline: 19 type edges, zero violations", () => {
+  it("the live repository passes at the baseline: 20 type edges, zero violations", () => {
     const result = checkModuleBoundaries(REPO_ROOT);
     expect(result.ok).toBe(true);
-    expect(result.stats.uiToStorageType).toBe(19);
+    expect(result.stats.uiToStorageType).toBe(20);
   });
 
   it("growth: a new type-only UI->storage edge is rejected", () => {
@@ -470,7 +472,7 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
     write(root, "apps/prototype-web/client/src/pages/Unrelated.tsx", "export const u = 1;\n");
     const result = checkModuleBoundaries(root);
     const stale = result.violations.filter(v => v.rule === "R8-baseline-stale");
-    expect(stale).toHaveLength(19);
+    expect(stale).toHaveLength(20);
     /* على المستودع الحي: صفر مفاتيح متقدمة (يثبته اختبار المستودع الحي أعلاه). */
   });
 

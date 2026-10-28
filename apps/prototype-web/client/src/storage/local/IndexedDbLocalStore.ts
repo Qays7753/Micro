@@ -46,6 +46,7 @@ import {
   type OrderDraft,
   type OwnerProfile,
   type PrototypeLocalStore,
+  type ProfileRenameCommitOutcome,
   type RecurringExpenseOccurrenceChange,
   type ReplacementGuard,
   type ReplacementIntentRecord,
@@ -238,6 +239,66 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         };
         transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () => finish({ ok: true, value: { profile, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* S03 (UNIT-039 B2/عقد §17): تعديل اسم الهوية داخل معاملة واحدة بفحص حي
+   * للنسخة — القراءة والمقارنة والكتابة معًا (نفس بنية commitProfileCreate
+   * والمستمعات المحروسة): تطابق updatedAt المتوقع يضع التسمية الجديدة بنفس
+   * المعرف وcreatedAt، واختلافه (نافذة أخرى سبقت) أو غياب الملف يُحبط
+   * المعاملة ويعيد الحالة الحالية كتعارض صادق — لا lost update ولا كتابة
+   * فوق اسم أحدث ولا إنشاء ملف من مسار التعديل. */
+  async commitProfileRename(
+    profile: ActivityProfile,
+    expectedUpdatedAt: string,
+  ): Promise<StorageResult<ProfileRenameCommitOutcome>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([profileStore], "readwrite");
+        const profiles = transaction.objectStore(profileStore);
+        type RenameOutcome = StorageResult<ProfileRenameCommitOutcome>;
+        let pending: RenameOutcome | null = null;
+        const finish = (result: RenameOutcome) => {
+          resolve(result);
+        };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const storedRequest = profiles.get("local-profile");
+        storedRequest.onerror = () => {
+          pending = failure(storedRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        storedRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const stored = storedRequest.result as ActivityProfile | undefined;
+          if (!stored || stored.updatedAt !== expectedUpdatedAt) {
+            pending = { ok: true, value: { profile: stored ?? null, outcome: "conflict" } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          profiles.put(profile);
+        });
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { profile, outcome: "renamed" } });
       });
     } catch (error) {
       return failure(error);

@@ -93,7 +93,7 @@ function buildServices() {
 }
 
 async function seedProfile() {
-  const result = await new ProfileService(store, () => NOW).save("مشغل عمل");
+  const result = await new ProfileService(store, () => NOW).create("مشغل عمل");
   if (!result.ok) throw new Error(result.message);
 }
 

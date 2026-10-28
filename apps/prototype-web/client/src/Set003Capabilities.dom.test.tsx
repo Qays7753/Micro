@@ -81,7 +81,7 @@ describe("SET-003 — layered capability behavior", () => {
     store = new MemoryLocalStore();
     preferences = new PreferenceService(store, () => NOW);
     const profiles = new ProfileService(store);
-    const saved = await profiles.save("مشروع-SET003");
+    const saved = await profiles.create("مشروع-SET003");
     if (!saved.ok) throw new Error(saved.message);
   });
   afterEach(() => cleanup());

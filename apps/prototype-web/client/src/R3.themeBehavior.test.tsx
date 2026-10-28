@@ -52,7 +52,7 @@ describe("R3/W5 theme behavior: light default, explicit persisted dark", () => {
       });
     }
     /* ملف نشاط فقط — لا تفضيل سمة محفوظ: الحالة الفرجية الحقيقية. */
-    await new ProfileService(createBrowserLocalStore()).save("ورشة الاختبار");
+    await new ProfileService(createBrowserLocalStore()).create("ورشة الاختبار");
   });
   afterEach(() => cleanup());
   afterAll(() => cleanup());

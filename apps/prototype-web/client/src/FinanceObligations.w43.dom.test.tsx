@@ -101,7 +101,7 @@ afterEach(() => {
 });
 
 async function seedProfile() {
-  const result = await new ProfileService(store, () => NOW).save("مشغل شو عليّ");
+  const result = await new ProfileService(store, () => NOW).create("مشغل شو عليّ");
   if (!result.ok) throw new Error(result.message);
 }
 

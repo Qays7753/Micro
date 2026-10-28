@@ -94,7 +94,7 @@ afterEach(() => {
 });
 
 async function seedProfile() {
-  const result = await new ProfileService(store, () => NOW).save("مشغل اختبار FIN-001");
+  const result = await new ProfileService(store, () => NOW).create("مشغل اختبار FIN-001");
   if (!result.ok) throw new Error(result.message);
 }
 

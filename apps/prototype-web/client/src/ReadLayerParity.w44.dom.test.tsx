@@ -72,7 +72,7 @@ afterEach(() => {
 });
 
 async function seedProfile(name = "مشغل تكافؤ القراءة") {
-  const result = await new ProfileService(store, now).save(name);
+  const result = await new ProfileService(store, now).create(name);
   if (!result.ok) throw new Error(result.message);
 }
 

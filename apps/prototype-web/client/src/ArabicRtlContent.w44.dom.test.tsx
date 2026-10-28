@@ -179,7 +179,7 @@ describe("Wave 4.4 — P-4.4-3: الشدّة وعزل Bidi والأسماء ال
   });
 
   it("اسم المقترض الحر داخل strong باتجاه auto — الاسم الإنجليزي يعزل والاسم العربي يبقى", async () => {
-    const profile = await new ProfileService(store, () => NOW).save("مالك");
+    const profile = await new ProfileService(store, () => NOW).create("مالك");
     if (!profile.ok) throw new Error(profile.message);
     const loans = new LoanService(store, () => NOW);
     const created = await loans.create({

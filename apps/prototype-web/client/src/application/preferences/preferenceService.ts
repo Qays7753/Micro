@@ -19,6 +19,20 @@ import { systemClock, type Clock } from "@/application/time/clock";
 
 export type ThemePreference = LocalPreferences["theme"];
 
+/* S03 (UNIT-038 P3.2/UNIT-001 P3.2): تفضيل ما يقدمه المشروع — منتجات أو
+ * خدمات أو كلاهما، أو محايد (null) عند عدم الاختيار. مصدر واحد يملكه 038:
+ * سؤال البداية في 001 ومحرر الإعدادات يكتبان ويقرآن من هنا حصرًا؛ مستقل
+ * تمامًا عن workMode (طريقة مواد/وقت) ولا يعيد تصنيف أي سجل تاريخي. */
+export type OfferingPreference = NonNullable<LocalPreferences["offeringPreference"]> | null;
+export const OFFERING_PREFERENCE_VALUES: readonly NonNullable<OfferingPreference>[] = [
+  "products",
+  "services",
+  "both",
+];
+export function isOfferingPreference(value: unknown): value is OfferingPreference {
+  return value === null || OFFERING_PREFERENCE_VALUES.includes(value as NonNullable<OfferingPreference>);
+}
+
 /* R10-B3/R10A-F-004 (2026-10-11): الإعلان الكنوني الوحيد لمعرّفات القدرات
  * — كانت معاد تعريفه في app/useDisabledCapabilities.ts و
  * components/settings/SettingsCapabilitiesSection.tsx مع قوالب as غير
@@ -41,6 +55,9 @@ export type BackupReminderResult =
 /* SET-003: قراءة/حفظ قائمة القدرات المتوقفة عن الإدخال. */
 export type DisabledCapabilitiesResult =
   { ok: true; disabled: readonly string[] } | { ok: false; code: "storage_error"; message: string };
+/* S03 (UNIT-038 P3.2): قراءة/حفظ تفضيل ما يقدمه المشروع من المصدر الواحد. */
+export type OfferingPreferenceResult =
+  { ok: true; offering: OfferingPreference } | { ok: false; code: "storage_error"; message: string };
 /* Stage 2 — OPS-002: قراءة/حفظ حدود تنبيه انخفاض المخزون لكل مادة (بالملي).
  * سياسة تنبيه قراءة-فقط لا معنى ماليًا؛ الغياب = لا سياسة = لا تنبيه. */
 export type LowStockThresholdsResult =
@@ -145,6 +162,24 @@ export class PreferenceService {
     return result.ok
       ? { ok: true, disabled: result.value.disabledCapabilities ?? [] }
       : storageFailure("تعذر حفظ تفضيلات القدرات.");
+  }
+  /* ── S03 (UNIT-038 P3.2/UNIT-001 P3.2): تفضيل ما يقدمه المشروع — المصدر
+   * الواحد لسؤال البداية في 001 وقسم تفضيلات الاستخدام في 038. الغياب محايد
+   * (لا يُفترض منتجات)، والحفظ جزئي عبر بوابة الدمج فلا يُسقط أي حقل آخر. ── */
+
+  async readOfferingPreference(): Promise<OfferingPreferenceResult> {
+    const result = await this.store.getPreferences();
+    return result.ok
+      ? { ok: true, offering: result.value?.offeringPreference ?? null }
+      : storageFailure("تعذر قراءة تفضيل ما يقدمه مشروعك.");
+  }
+
+  async saveOfferingPreference(offering: OfferingPreference): Promise<OfferingPreferenceResult> {
+    /* EXE-002: merge — لا يُمسّ غير حقل تفضيل العرض هذا. */
+    const result = await updateLocalPreferences(this.store, { offeringPreference: offering }, this.now);
+    return result.ok
+      ? { ok: true, offering: result.value.offeringPreference ?? null }
+      : storageFailure("تعذر حفظ التفضيل. حاول مرة أخرى.");
   }
   async readLowStockThresholds(): Promise<LowStockThresholdsResult> {
     const result = await this.store.getPreferences();

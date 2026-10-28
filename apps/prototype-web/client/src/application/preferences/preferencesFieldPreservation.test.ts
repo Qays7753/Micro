@@ -53,6 +53,10 @@ describe("EXE-002 — preferences field preservation across every writer", () =>
     const seededThresholds = await preferences.saveLowStockThreshold("wood", 8000);
     expect(seededThresholds.ok).toBe(true);
     if (seededThresholds.ok) expect(seededThresholds.thresholds.get("wood")).toBe(8000);
+    /* S03 (UNIT-038 P3.2): تفضيل العرض يُبذر — يجب أن ينجو من كل كاتب آخر،
+     * وكاتبه لا يسقط غيره (نفس عقد بقية الحقول الاختيارية). */
+    const seededOffering = await preferences.saveOfferingPreference("both");
+    expect(seededOffering.ok).toBe(true);
 
     const baseline = await store.getPreferences();
     if (!baseline.ok || !baseline.value) throw new Error("baseline preferences should read");
@@ -103,6 +107,13 @@ describe("EXE-002 — preferences field preservation across every writer", () =>
           expected.dailyScheduleCapacityMinutes = 240;
         },
       },
+      {
+        name: "offering preference (preferenceService.saveOfferingPreference)",
+        run: () => preferences.saveOfferingPreference("services"),
+        mutateExpected: () => {
+          expected.offeringPreference = "services";
+        },
+      },
     ];
 
     /* القيم المتوقعة تتتبع آخر كتابة مشروعة: كل كاتب يملك حقه ويحدّث المتوقع،
@@ -116,6 +127,7 @@ describe("EXE-002 — preferences field preservation across every writer", () =>
       lastVerifiedExportAt: string | null;
       installBannerDismissedAt: string | null;
       disabledCapabilities: string[];
+      offeringPreference: NonNullable<LocalPreferences["offeringPreference"]> | null;
     } = {
       theme: "dark",
       workMode: "material_focused",
@@ -125,6 +137,7 @@ describe("EXE-002 — preferences field preservation across every writer", () =>
       lastVerifiedExportAt: NOW,
       installBannerDismissedAt: NOW,
       disabledCapabilities: ["orders", "inventory"],
+      offeringPreference: "both",
     };
 
     for (const writer of writers) {
@@ -158,6 +171,10 @@ describe("EXE-002 — preferences field preservation across every writer", () =>
       expect(record.value.lowStockThresholdsMilli, `${writer.name} kept lowStockThresholdsMilli`).toEqual({
         wood: 8000,
       });
+      /* S03: تفضيل العرض لا يسقط بأي كاتب آخر (والكاتب نفسه يملك حقه فقط). */
+      expect(record.value.offeringPreference, `${writer.name} kept offeringPreference`).toBe(
+        expected.offeringPreference,
+      );
     }
 
     /* كاتب القدرات نفسه يغيّر حقه فقط ولا يمسّ بقية السجل (بقيم ما بعد الكتّاب). */
@@ -188,6 +205,8 @@ describe("EXE-002 — preferences field preservation across every writer", () =>
     expect(update.value.actualTimeTrackingEnabled).toBe(false);
     expect(update.value.installBannerDismissedAt).toBeNull();
     expect(update.value.lastVerifiedExportAt).toBeNull();
+    /* S03: البداية المحايدة الصادقة — لا يُفترض منتجات. */
+    expect(update.value.offeringPreference).toBeNull();
   });
 
   it("re-reading through a fresh service instance returns the same persisted record (reload stability)", async () => {

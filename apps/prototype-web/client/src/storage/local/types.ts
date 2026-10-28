@@ -273,6 +273,11 @@ export type ActivityProfile = {
   createdAt: string;
   updatedAt: string;
 };
+/* S03 (UNIT-039 B2/عقد §17): نتيجة حد تعديل الاسم — اتحاد مميّز صادق:
+ * renamed ⟹ الملف المُعاد هو المسمّى الجديد (موجود دائمًا)، وconflict ⟹
+ * الملف الحالي كما هو (أو null إن غاب الملف) بلا أي كتابة. */
+export type ProfileRenameCommitOutcome =
+  { profile: ActivityProfile; outcome: "renamed" } | { profile: ActivityProfile | null; outcome: "conflict" };
 export type OperatingWorkMode = "material_focused" | "time_focused" | "mixed";
 export type LocalPreferences = {
   id: typeof localPreferencesId;
@@ -296,6 +301,13 @@ export type LocalPreferences = {
    * الفراغ = لا سياسة معلنة = لا تنبيه أبدًا؛ لا يُخترع حد افتراضيًا ولا يُفترض
    * طلب مستقبلي. حقل اختياري ينتقل مع السجل كما disabledCapabilities. */
   lowStockThresholdsMilli?: Record<string, number> | null;
+  /* S03 (UNIT-038 P3.2/UNIT-001 P3.2 — عقد §5.1/§15.1): تفضيل ما يقدمه المشروع
+   * — منتجات/خدمات/كلاهما، اختيار صريح من المصدر الواحد (038) يستخدمه سؤال
+   * البداية في 001 ومحرر الإعدادات. الغياب أو null = محايد: لا يُفترض منتجات
+   * ولا يخفي خدمات. مستقل تمامًا عن workMode (طريقة مواد/وقت) ولا يُعاد تفسيره
+   * أبدًا، ولا يعيد تصنيف أي سجل تاريخي. حقل اختياري داخل السجل القائم ينتقل
+   * معه في اللقطة (بخلاف جيل البيانات المحلي المستثنى صراحة). */
+  offeringPreference?: "products" | "services" | "both" | null;
   updatedAt: string;
 };
 export type DraftIntent = "customer_order" | "planned_design";
@@ -548,6 +560,17 @@ export interface PrototypeLocalStore {
   commitProfileCreate(
     profile: ActivityProfile,
   ): Promise<StorageResult<{ profile: ActivityProfile; reused: boolean }>>;
+  /* S03 (UNIT-039 B2/عقد §17 «نافذتان تعدلان المصدر»): تعديل اسم الهوية
+   * القائمة كتابة محروسة عند حد الكتابة — فحص حي للنسخة داخل المعاملة نفسها
+   * (CAS على updatedAt المخزن مقابل المتوقع): تطابقت النسخة تُكتب التسمية
+   * الجديدة بنفس المعرف وcreatedAt، واختلفت (أو غاب الملف) تُعاد الحالة
+   * الحالية كتعارض صادق بلا كتابة — لا lost update ولا سحق للاسم الأحدث،
+   * ولا إنشاء ملف من مسار التعديل أبدًا. النتيجة مميّزة النوع: renamed
+   * ⟹ الملف المُعاد موجود دائمًا، وconflict ⟹ قد يغيب (null). */
+  commitProfileRename(
+    profile: ActivityProfile,
+    expectedUpdatedAt: string,
+  ): Promise<StorageResult<ProfileRenameCommitOutcome>>;
   /** ملف المالك (المجموعة ١): هوية محلية مستقلة — سجل واحد بمعرّف ثابت. */
   getOwnerProfile(): Promise<StorageResult<OwnerProfile | null>>;
   saveOwnerProfile(profile: OwnerProfile): Promise<StorageResult<OwnerProfile>>;

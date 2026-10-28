@@ -18,6 +18,7 @@ import { StatementService } from "@/application/finance/statementService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { PreferenceService } from "@/application/preferences/preferenceService";
+import { ProfileService } from "@/application/profile/profileService";
 import { AgreementService } from "@/application/agreements/agreementService";
 import { CostService } from "@/application/cost/costService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
@@ -53,6 +54,7 @@ describe("P-4.2-3 — القسم الموحد «البيانات والنسخ ا
         new CashContinuityService(new MemoryLocalStore()),
       ),
       preferences: new PreferenceService(settingsStore),
+      profiles: new ProfileService(settingsStore),
       agreements: new AgreementService(settingsStore, new CostService(settingsStore)),
       inventory: new InventoryMaterialService(settingsStore),
       supplierPurchases: new SupplierPurchaseService(settingsStore),

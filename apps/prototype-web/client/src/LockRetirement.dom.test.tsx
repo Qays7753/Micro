@@ -16,6 +16,7 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import Settings from "@/pages/Settings";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { PreferenceService } from "@/application/preferences/preferenceService";
+import { ProfileService } from "@/application/profile/profileService";
 import { AgreementService } from "@/application/agreements/agreementService";
 import { CostService } from "@/application/cost/costService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
@@ -108,6 +109,7 @@ describe("SDF-057 — PIN removed, then an old backup is restored: no PIN, no lo
         new CashContinuityService(store, () => NOW),
       ),
       preferences: new PreferenceService(store, () => NOW),
+      profiles: new ProfileService(store, () => NOW),
       agreements: new AgreementService(store, new CostService(store, () => NOW), () => NOW),
       inventory: new InventoryMaterialService(store, () => NOW),
       supplierPurchases: new SupplierPurchaseService(store, () => NOW),

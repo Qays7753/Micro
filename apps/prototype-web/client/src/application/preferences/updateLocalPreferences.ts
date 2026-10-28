@@ -30,6 +30,8 @@ const freshRecord = (timestamp: string): LocalPreferences => ({
   lastVerifiedExportAt: null,
   backupReminderEnabled: true,
   disabledCapabilities: [],
+  /* S03 (UNIT-038 P3.2): البداية المحايدة الصادقة — لا يُفترض منتجات. */
+  offeringPreference: null,
   updatedAt: timestamp,
 });
 
@@ -54,6 +56,9 @@ export async function updateLocalPreferences(
   merged.disabledCapabilities = merged.disabledCapabilities ?? [];
   /* Stage 2 — OPS-002: غياب الحد = لا سياسة = لا تنبيه (افتراض صادق يُرسّى بأول حفظ). */
   merged.lowStockThresholdsMilli = merged.lowStockThresholdsMilli ?? null;
+  /* S03 (UNIT-038 P3.2): غياب تفضيل العرض = محايد (لا منتجات) — يُرسّى بأول
+   * حفظ بنفس سلوك الحقول الاختيارية القائمة، فلا يبقى السجل بلا الحقل. */
+  merged.offeringPreference = merged.offeringPreference ?? null;
   const saved = await store.savePreferences(merged);
   return saved.ok ? { ok: true, value: saved.value } : storageFailure("تعذر حفظ التفضيلات المحلية.");
 }

@@ -162,6 +162,16 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
         data.preferences.backupReminderEnabled === undefined ||
         typeof data.preferences.backupReminderEnabled === "boolean"
       ) ||
+      /* S03 (UNIT-038 P3.2/UNIT-001 P3.2): تفضيل ما يقدمه المشروع — غائب أو
+       * null (محايد) أو من المعجم المغلق حصرًا؛ أي قيمة أخرى ترفض الملف
+       * بلا استيراد أفضل-جهد. الحقل اختياري فالملفات القديمة بلاه مقبولة. */
+      !(
+        data.preferences.offeringPreference === undefined ||
+        data.preferences.offeringPreference === null ||
+        data.preferences.offeringPreference === "products" ||
+        data.preferences.offeringPreference === "services" ||
+        data.preferences.offeringPreference === "both"
+      ) ||
       !isDate(data.preferences.updatedAt))
   )
     return false;

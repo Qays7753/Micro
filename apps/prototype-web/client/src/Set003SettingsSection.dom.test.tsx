@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { PreferenceService } from "@/application/preferences/preferenceService";
+import { ProfileService } from "@/application/profile/profileService";
 import { AgreementService } from "@/application/agreements/agreementService";
 import { CostService } from "@/application/cost/costService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
@@ -56,6 +57,7 @@ describe("SET-003 follow-up — Settings capabilities section over contract-comp
         new CashContinuityService(store, () => NOW),
       ),
       preferences,
+      profiles: new ProfileService(store, () => NOW),
       agreements: new AgreementService(store, new CostService(store, () => NOW), () => NOW),
       inventory: new InventoryMaterialService(store, () => NOW),
       supplierPurchases: new SupplierPurchaseService(store, () => NOW),

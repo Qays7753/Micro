@@ -27,7 +27,7 @@ function services(store: MemoryLocalStore) {
   );
 }
 async function saveProfile(store: MemoryLocalStore) {
-  const result = await new ProfileService(store, now).save("مشغل اختبار");
+  const result = await new ProfileService(store, now).create("مشغل اختبار");
   if (!result.ok) throw new Error("profile should save");
 }
 

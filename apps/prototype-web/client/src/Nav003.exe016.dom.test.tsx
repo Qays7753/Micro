@@ -43,7 +43,7 @@ async function seedSession() {
   store = createBrowserLocalStore();
   const profiles = new ProfileService(store);
   const preferences = new PreferenceService(store);
-  const saved = await profiles.save("ورشة الروابط");
+  const saved = await profiles.create("ورشة الروابط");
   if (!saved.ok) throw new Error("profile save failed: " + saved.message);
   const themed = await preferences.save("light");
   if (!themed.ok) throw new Error("theme preference failed: " + themed.message);
