@@ -2510,6 +2510,82 @@
     "trigger": "S03 Reviewer #4 (tests/CI/security/budgets) observation S03-R4-F02 docstring correction on components/integration-20261027 / PR #383.",
     "ocRef": "DOC-012"
    }
+  },
+  {
+   "id": "S03REVAL-PREFS-COMMIT-20261028-01",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/application/preferences/preferenceService.ts",
+   "from": {
+    "nbLoc": 164,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 225,
+    "band": "NORMAL"
+   },
+   "reason": "S03 revalidation (§A2) root fix of the proven concurrent preference-write lost-update (preferencesConcurrency.repro.test.ts): إضافة حد كتابة محروس commitPreferencesUpdate — القراءة الحية والدمج والكتابة داخل معاملة IndexedDB واحدة/خطوة متزامنة واحدة مع CAS اختياري — في المنفذ والمحوّلين، وهجرة البوابة عن مسار read-merge-full-write غير المحروس، وتوصيل CAS في خدمة حدود التنبيه. النمو منطق موثق مشترك المصدر (preferencesCommit.ts) وتوقيعات العقد؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates the concurrent-preference-write root fix at the guarded application/storage boundary on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S03 revalidation §A2: commitPreferencesUpdate guarded boundary added to the port and both adapters; gateway migrated off the unguarded read-merge-full-write; CAS wiring in the thresholds service. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S03REVAL-PREFS-COMMIT-20261028-02",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+   "from": {
+    "nbLoc": 4391,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 4641,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "S03 revalidation (§A2) root fix of the proven concurrent preference-write lost-update (preferencesConcurrency.repro.test.ts): إضافة حد كتابة محروس commitPreferencesUpdate — القراءة الحية والدمج والكتابة داخل معاملة IndexedDB واحدة/خطوة متزامنة واحدة مع CAS اختياري — في المنفذ والمحوّلين، وهجرة البوابة عن مسار read-merge-full-write غير المحروس، وتوصيل CAS في خدمة حدود التنبيه. النمو منطق موثق مشترك المصدر (preferencesCommit.ts) وتوقيعات العقد؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates the concurrent-preference-write root fix at the guarded application/storage boundary on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S03 revalidation §A2: commitPreferencesUpdate guarded boundary added to the port and both adapters; gateway migrated off the unguarded read-merge-full-write; CAS wiring in the thresholds service. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S03REVAL-PREFS-COMMIT-20261028-03",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+   "from": {
+    "nbLoc": 2087,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 2271,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "S03 revalidation (§A2) root fix of the proven concurrent preference-write lost-update (preferencesConcurrency.repro.test.ts): إضافة حد كتابة محروس commitPreferencesUpdate — القراءة الحية والدمج والكتابة داخل معاملة IndexedDB واحدة/خطوة متزامنة واحدة مع CAS اختياري — في المنفذ والمحوّلين، وهجرة البوابة عن مسار read-merge-full-write غير المحروس، وتوصيل CAS في خدمة حدود التنبيه. النمو منطق موثق مشترك المصدر (preferencesCommit.ts) وتوقيعات العقد؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates the concurrent-preference-write root fix at the guarded application/storage boundary on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S03 revalidation §A2: commitPreferencesUpdate guarded boundary added to the port and both adapters; gateway migrated off the unguarded read-merge-full-write; CAS wiring in the thresholds service. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S03REVAL-PREFS-COMMIT-20261028-04",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/types.ts",
+   "from": {
+    "nbLoc": 876,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 1074,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "S03 revalidation (§A2) root fix of the proven concurrent preference-write lost-update (preferencesConcurrency.repro.test.ts): إضافة حد كتابة محروس commitPreferencesUpdate — القراءة الحية والدمج والكتابة داخل معاملة IndexedDB واحدة/خطوة متزامنة واحدة مع CAS اختياري — في المنفذ والمحوّلين، وهجرة البوابة عن مسار read-merge-full-write غير المحروس، وتوصيل CAS في خدمة حدود التنبيه. النمو منطق موثق مشترك المصدر (preferencesCommit.ts) وتوقيعات العقد؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates the concurrent-preference-write root fix at the guarded application/storage boundary on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S03 revalidation §A2: commitPreferencesUpdate guarded boundary added to the port and both adapters; gateway migrated off the unguarded read-merge-full-write; CAS wiring in the thresholds service. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
   }
  ]
 }

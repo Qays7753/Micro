@@ -310,6 +310,18 @@ export type LocalPreferences = {
   offeringPreference?: "products" | "services" | "both" | null;
   updatedAt: string;
 };
+/* S03 revalidation (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28 §A2):
+ * الحقول القابلة للتحقيق فقط — الهوية وطابع التحديث يملكهما حد الكتابة
+ * (commitPreferencesUpdate). */
+export type LocalPreferencesPatch = Partial<Omit<LocalPreferences, "id" | "updatedAt">>;
+/* S03 revalidation: نتيجة حد كتابة التفضيلات — اتحاد مميّز صادق (نمط
+ * ProfileRenameCommitOutcome): updated/created ⟹ السجل المكتوب حاضرًا
+ * دائمًا، وconflict ⟹ السجل الحي كما هو (أو null إن غاب) بلا أي كتابة —
+ * الغياب عند توقع نسخة قائمة تعارض لا إنشاء. */
+export type PreferencesCommitOutcome =
+  | { outcome: "updated"; preferences: LocalPreferences }
+  | { outcome: "created"; preferences: LocalPreferences }
+  | { outcome: "conflict"; live: LocalPreferences | null };
 export type DraftIntent = "customer_order" | "planned_design";
 export type DraftCostMaterial = {
   name: string;
@@ -576,6 +588,19 @@ export interface PrototypeLocalStore {
   saveOwnerProfile(profile: OwnerProfile): Promise<StorageResult<OwnerProfile>>;
   getPreferences(): Promise<StorageResult<LocalPreferences | null>>;
   savePreferences(preferences: LocalPreferences): Promise<StorageResult<LocalPreferences>>;
+  /* S03 revalidation (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28 §A2):
+   * كتابة التفضيلات المحروسة عند حد الكتابة — القراءة والدمج والكتابة
+   * معًا (معاملة IndexedDB واحدة / خطوة متزامنة واحدة في الذاكرة)، فالرقعة
+   * تُطبَّق فوق السجل الحي داخل الحد لا فوق لقطة المتصل: كاتبان متزامنان
+   * على حقول مختلفة لا يفقد أحدهما تحديثه أبدًا (العيب المُثبت في بوابة
+   * read-merge-full-write المتقاعدة كمصدر حقيقة). expectedUpdatedAt=null
+   * لا توقع نسخة (مساركتّاب الحقول)؛ وقيمة نصية فحص CAS حي: الغياب أو
+   * اختلاف الطابع تعارض صادق بلا كتابة (نمط commitProfileRename). */
+  commitPreferencesUpdate(
+    patch: LocalPreferencesPatch,
+    expectedUpdatedAt: string | null,
+    timestamp: string,
+  ): Promise<StorageResult<PreferencesCommitOutcome>>;
   listDrafts(): Promise<StorageResult<readonly OrderDraft[]>>;
   getDraft(id: string): Promise<StorageResult<OrderDraft | null>>;
   saveDraft(draft: OrderDraft): Promise<StorageResult<OrderDraft>>;

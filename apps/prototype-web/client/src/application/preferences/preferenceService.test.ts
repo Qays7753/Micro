@@ -233,8 +233,11 @@ describe("PreferenceService.offeringPreference — single-source optional neutra
       message: "تعذر قراءة تفضيل ما يقدمه مشروعك.",
     });
     store.getPreferences = originalGet;
-    const originalSave = store.savePreferences.bind(store);
-    store.savePreferences = (async () => ({
+    /* S03 revalidation (§A2): حد الكتابة صار commitPreferencesUpdate (لا
+     * read-merge-full-write خارج الحد) — قناة حقن فشل الكتابة تنتقل إليه
+     * والعقد نفسه: الفشل صادق لا نجاح زائف ولا ابتلاع. */
+    const originalCommit = store.commitPreferencesUpdate.bind(store);
+    store.commitPreferencesUpdate = (async () => ({
       ok: false,
       code: "storage_error",
       message: "write failed",
@@ -244,7 +247,7 @@ describe("PreferenceService.offeringPreference — single-source optional neutra
       code: "storage_error",
       message: "تعذر حفظ التفضيل. حاول مرة أخرى.",
     });
-    store.savePreferences = originalSave;
+    store.commitPreferencesUpdate = originalCommit;
     await expect(service.readOfferingPreference()).resolves.toEqual({ ok: true, offering: null });
   });
 });

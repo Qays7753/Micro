@@ -41,10 +41,12 @@ import {
   type FormDraftEnvelope,
   type InventoryActivation,
   type LocalPreferences,
+  type LocalPreferencesPatch,
   type LocalSecurityRecord,
   type LocalStoreSnapshot,
   type OrderDraft,
   type OwnerProfile,
+  type PreferencesCommitOutcome,
   type PrototypeLocalStore,
   type ProfileRenameCommitOutcome,
   type RecurringExpenseOccurrenceChange,
@@ -60,6 +62,9 @@ import {
   type StorageResult,
   type StoredCraftOrder,
 } from "./types";
+/* S03 revalidation (§A2): منطق التزامن المحروس المشترك لسجل التفضيلات —
+ * المصدر الواحد للمحوّلين (نمط financialEventCorrectionMessages). */
+import { decidePreferencesCommit } from "./preferencesCommit";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
 import { findReceivedLoanEventByKey, validateReceivedLoanCommitRelation } from "./receivedLoanCommitGuard";
 import {
@@ -315,6 +320,77 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   savePreferences(preferences: LocalPreferences) {
     return writeOne(preferencesStore, preferences);
+  }
+  /* S03 revalidation (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28 §A2):
+   * كتابة التفضيلات داخل معاملة واحدة — القراءة الحية والدمج والكتابة
+   * معًا (نفس بنية commitProfileRename والمستمعات المحروسة): الرقعة
+   * تُطبَّق فوق السجل الحي داخل المعاملة نفسها فلا يبني أي كاتب سجله من
+   * لقطة متقادمة (العيب المُثبت: read-merge-full-write خارج الحد كان يسمح
+   * لكاتب متزامن بسحق تحديث كاتب آخر بصمت). فحص CAS الحي عند تمرير طابع
+   * متوقع: الغياب أو الاختلاف يُحبط المعاملة ويعيد الحالة الحية كتعارض
+   * صادق بلا كتابة. المنطق المشترك من preferencesCommit.ts — المصدر
+   * الواحد للمحوّلين فتتحقق المطابقة بالبناء. */
+  async commitPreferencesUpdate(
+    patch: LocalPreferencesPatch,
+    expectedUpdatedAt: string | null,
+    timestamp: string,
+  ): Promise<StorageResult<PreferencesCommitOutcome>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([preferencesStore], "readwrite");
+        const preferences = transaction.objectStore(preferencesStore);
+        type CommitOutcome = StorageResult<PreferencesCommitOutcome>;
+        let pending: CommitOutcome | null = null;
+        /* السجل المكتوب عند النجاح — يُلتقط من القرار داخل مستمع القراءة
+         * ويُعاد عند اكتمال المعاملة (storedRequest.result يظل نتيجة
+         * القراءة القديمة لا المكتوب). */
+        let written: { outcome: "updated" | "created"; preferences: LocalPreferences } | null = null;
+        const finish = (result: CommitOutcome) => {
+          resolve(result);
+        };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const storedRequest = preferences.get("local-preferences");
+        storedRequest.onerror = () => {
+          pending = failure(storedRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        storedRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const stored = storedRequest.result as LocalPreferences | undefined;
+          const decision = decidePreferencesCommit(stored ?? null, patch, expectedUpdatedAt, timestamp);
+          if (decision.outcome === "conflict") {
+            pending = { ok: true, value: { outcome: "conflict", live: decision.live ?? null } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          written = { outcome: decision.outcome, preferences: decision.write };
+          preferences.put(decision.write);
+        });
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () =>
+          finish(written ? { ok: true, value: written } : failure(transaction.error, database));
+      });
+    } catch (error) {
+      return failure(error);
+    }
   }
   /* المجموعة ٥: مسودات النماذج وسجل القفل — عمليات سجل واحد كالتفضيلات؛
    * لا مس لهما داخل readSnapshot/replaceSnapshot فتبقى عند الاستعادة. */

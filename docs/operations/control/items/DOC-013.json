@@ -1,0 +1,103 @@
+{
+  "id": "DOC-013",
+  "title": "S03 revalidation (concurrent preference write) + S04 execution — النقد ومال المالك والقياس والتخصيص (UNIT-020/022/023/024/025)",
+  "type": "FEATURE",
+  "status": "IN_PROGRESS",
+  "priority": "P0",
+  "stage": "micro-component-execution-s03reval-s04-20261028",
+  "summary": "تنفيذ واحد متصل على فرع التكامل وPR #383 وفق أمر 00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md: (أ) إعادة تحقق S03 المستقلة وعلاج جذر عيب الكتابة المتزامنة لسجل التفضيلات (كاتبان يقرآن النسخة نفسها فتسحق كتابة كاملة تحديث الأخرى بصمت) بنقل القراءة والدمج والكتابة إلى حد الكتابة المحروس commitPreferencesUpdate في المحوّلين مع CAS اختياري؛ (ب) تنفيذ S04 كاملًا داخل النطاق المعتمد: UNIT-020 مال المالك، UNIT-022 إدارة النقد وأماكنه، UNIT-023 التحويل بجهتيه، UNIT-024 تحديد مكان دفعة قائمة دون قبض ثانٍ، UNIT-025 العدّ والمطابقة بوصفه قياسًا لا حركة، مع عقد البيانات المشترك وحالات SDF-001/015/016/020/021 والمراجعات الخمس القرائية وعلاج كل ملاحظة مؤكدة داخل النطاق من جذرها.",
+  "finding_classification": "DEEPENS_EXISTING",
+  "finding_state": "CONFIRMED",
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "root_cause": "العيب المُثبت S03: بوابة updateLocalPreferences كانت تقرأ السجل ثم تدمج الرقعة ثم تكتب السجل كاملًا خارج أي حد محروس (unguarded read-then-full-write)؛ كاتبان متزامنان يقرآن النسخة نفسها فتسحق كتابة الكاتب الثاني الكاملة تحديث الكاتب الأول بصمت (lost update مُثبت باختبار سلوكي حتمي في preferencesConcurrency.repro.test.ts). أما S04 فمواصفات UNIT-020/022/023/024/025 المعتمدة (P3 بتاريخ 2026-10-27) لم تُنفذ بعدُ: لا رصد نقدي دائم (CashObservation)، ولا حارس تغطية للتحويل داخل حد الكتابة، والعدّ الحالي يقارن مقابل رصيد غير معروف ويعبّر عن الفرق بمصدر ملخّص.",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "المالك أذن صراحةً بأمر 00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md المنشور في 3e7e4dfcd8592b4adbf904ea140f669d38b16ce4: إعادة تحقق S03 وعلاج العيب من جذره ثم المتابعة المباشرة إلى S04 دون انتظار رسالة أخرى، على الفرع وPR نفسيهما، مع حظر كتابة main والدمج وإنشاء فروع/PRs ثانية وبدء S05، وحصر تغيير المخطط 38/التصدير 30 فيما يتطلبه عقد S04 الحي مع كامل أدلة التوافق/الترحيل في النطاق نفسه.",
+  "tests_required": [
+    "python3 scripts/operations-control/validate.py",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "node scripts/check-doc-index-coverage.mjs",
+    "node scripts/check-current-state-size.mjs",
+    "node scripts/check-agent-document-contract.mjs",
+    "git diff --check",
+    "ZAI S03-revalidation + S04 contract: five sequential read-only reviewers on the exact candidate SHA",
+    "pnpm check (full chain) on the exact final candidate SHA"
+  ],
+  "layers": [
+    "application",
+    "storage",
+    "domain",
+    "ui-runtime",
+    "documentation",
+    "governance"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md",
+    "discovered_at_sha": "3e7e4dfcd8592b4adbf904ea140f669d38b16ce4",
+    "evidence": [
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-020-مال-المالك.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-022-إدارة-النقد.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-023-التحويل-بين-أماكن-النقد.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-024-تحديد-مكان-النقد.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-025-مطابقة-رصيد-الصندوق.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+      "docs/implementation/micro-component-execution/08-S03-RESULT-2026-10-28.md"
+    ]
+  },
+  "acceptance": [
+    "علاج جذر عيب تزامن التفضيلات: رقعة تُطبَّق فوق السجل الحي داخل حد الكتابة (معاملة IndexedDB واحدة / خطوة متزامنة واحدة في الذاكرة) — كاتبان متزامنان على حقول مختلفة لا يفقد أحدهما تحديثه أبدًا، مع مطابقة المحوّلين وCAS اختياري صادق.",
+    "حالات S04 المركزية: 100 دينار = 10000 minor (SDF-001)؛ دفتر 100 وعدّ 90 = قياس 90 + تسوية نقص 10 مرتبطتين لا نقص 20 (SDF-016)؛ رصيد مجهول مع رصد 90 يُحفظ بلا فرق مقابل صفر وبلا تمويل مالك (SDF-015)؛ رصد مشروع 200 ورصد محفظة 80 لا يجمعان إلى 280 (SDF-020)؛ فشل الجهة الثانية من تحويل 10 يلغي الجهتين معًا وإعادة المحاولة لا تكرر الأثر (SDF-021).",
+    "التحويل محروس التغطية داخل حد الكتابة: تحويلان متزامنان من مصدر معروف لا يسمح بأكثر من واحد عند عدم كفاية التغطية، والمصدر مجهول الافتتاح يُسمح مع إظهار حد المعرفة، والمصدر المعروف الناقص يُرفض بلا كتابة.",
+    "تخصيص دفعة قائمة لا يقبض ثانية: إدخال تخصيص واحد بمرجع المصدر دون حدث مالي جديد أو إيصال ثانٍ، وإلغاء المصدر الخاطئ يعالج تخصيصه في الحد نفسه بلا روابط يتيمة (SDF-022).",
+    "سحب المالك ليس مصروفًا ولا بيعًا ولا إيرادًا، والعربون والحق والتمويل معانٍ منفصلة، وقياس النقد لا ينشئ نقدًا ولا يمحو حركة ولا يعيد تفسير تسوية قديمة كقياس جديد.",
+    "كل تغيير حقل دائم يحمل معه المهايئين والتصدير/الاستيراد/الاستعادة والمخطط والترحيل في النطاق نفسه مع مطابقة Memory/IndexedDB واختبارات سلوكية عند حد الخدمة/التخزين لا اختبارات محاكاة فقط."
+  ],
+  "areas": [
+    "apps/prototype-web/client/src/application/preferences/",
+    "apps/prototype-web/client/src/application/cash/",
+    "apps/prototype-web/client/src/application/owner-money/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/pages/",
+    "src/domain/cash-continuity/",
+    "src/domain/owner-entitlement/",
+    "docs/operations/control/items/DOC-013.json",
+    "docs/operations/control/workstreams/WS-229.json",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md",
+    "docs/implementation/micro-component-execution/00-S03-EXECUTION-PROMPT-2026-10-28.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md",
+    "docs/implementation/micro-component-execution/08-S03-RESULT-2026-10-28.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "dependencies": [
+    "DOC-012"
+  ],
+  "related_items": [
+    "DOC-011",
+    "DOC-012"
+  ],
+  "updated_at": "2026-10-28",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-28",
+      "actor": "zai-s03reval-s04-execution",
+      "reason": "بدأ التنفيذ المتصل المأذون من رأس النشر 3e7e4dfc على الفرع وPR نفسيهما: إعادة تحقق S03 وعلاج عيب التزامن من الجذر ثم المتابعة المباشرة إلى S04."
+    }
+  ],
+  "migration_baseline": true,
+  "next_action": "التنفيذ جارٍ: علاج S03 مكتمل كوديًا محليًا بانتظار المراجعات والسجلات؛ ثم S04 (UNIT-020/022/023/024/025) ثم السجلات والأدلة والفحوص الكاملة."
+}

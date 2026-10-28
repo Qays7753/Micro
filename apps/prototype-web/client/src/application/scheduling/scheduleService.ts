@@ -16,7 +16,7 @@ export type ScheduleServiceStore = Pick<
   ScheduleStore,
   "listSchedules" | "getSchedule" | "commitScheduleCreate" | "commitScheduleUpdate"
 > &
-  Pick<PrototypeLocalStore, "getPreferences" | "savePreferences" | "listOrders">;
+  Pick<PrototypeLocalStore, "getPreferences" | "savePreferences" | "commitPreferencesUpdate" | "listOrders">;
 import { storageFailureCode } from "@/storage/local/types";
 import {
   daysInMonthOf,

@@ -1118,14 +1118,16 @@ describe("UNIT-001 S03 — optional neutral offering question at first use", () 
 
   it("a preference write failure after a proven identity is a declared partial result — no second identity, retry completes honestly", async () => {
     const { services, store } = setupServices();
-    const originalSavePreferences = store.savePreferences.bind(store);
+    /* S03 revalidation (§A2): حد الكتابة صار commitPreferencesUpdate — قناة
+     * حقن فشل التفضيل تنتقل إليه والعقد السلوكي نفسه بالضبط. */
+    const originalCommitPreferences = store.commitPreferencesUpdate.bind(store);
     let failedOnce = false;
-    store.savePreferences = (async (record: unknown) => {
+    store.commitPreferencesUpdate = (async (patch: unknown, expected: unknown, timestamp: unknown) => {
       if (!failedOnce) {
         failedOnce = true;
         return { ok: false, code: "storage_error", message: "quota exceeded" };
       }
-      return originalSavePreferences(record as never);
+      return originalCommitPreferences(patch as never, expected as never, timestamp as never);
     }) as never;
     mockedUsePrototypeServices.mockReturnValue(services);
     render(<Setup />);
@@ -1154,8 +1156,8 @@ describe("UNIT-001 S03 — optional neutral offering question at first use", () 
 
   it("continuing without the preference is an explicit owner decision — the identity stands and the preference stays neutral", async () => {
     const { services, store } = setupServices();
-    const originalSavePreferences = store.savePreferences.bind(store);
-    store.savePreferences = (async () => ({
+    /* S03 revalidation (§A2): نفس حقن الفشل عند حد الكتابة الجديد. */
+    store.commitPreferencesUpdate = (async () => ({
       ok: false,
       code: "storage_error",
       message: "quota exceeded",
@@ -1173,7 +1175,6 @@ describe("UNIT-001 S03 — optional neutral offering question at first use", () 
     expect(profile).toMatchObject({ ok: true, value: { activityName: "ورشة نورة" } });
     const preferences = await store.getPreferences();
     expect(preferences).toMatchObject({ ok: true, value: null });
-    void originalSavePreferences;
   });
 
   it("the setup draft carries the offering choice and restores it with the name (contract 36 semantics)", async () => {
@@ -1222,14 +1223,15 @@ describe("UNIT-001 S03 — optional neutral offering question at first use", () 
 
   it("S03-R3-F05: re-pressing the primary after a declared partial result retries the preference — never a silent continue", async () => {
     const { services, store } = setupServices();
-    const originalSavePreferences = store.savePreferences.bind(store);
+    /* S03 revalidation (§A2): نفس حقن الفشل عند حد الكتابة الجديد. */
+    const originalCommitPreferences = store.commitPreferencesUpdate.bind(store);
     let failures = 0;
-    store.savePreferences = (async (record: unknown) => {
+    store.commitPreferencesUpdate = (async (patch: unknown, expected: unknown, timestamp: unknown) => {
       failures += 1;
       if (failures <= 1) {
         return { ok: false, code: "storage_error", message: "quota exceeded" };
       }
-      return originalSavePreferences(record as never);
+      return originalCommitPreferences(patch as never, expected as never, timestamp as never);
     }) as never;
     mockedUsePrototypeServices.mockReturnValue(services);
     render(<Setup />);

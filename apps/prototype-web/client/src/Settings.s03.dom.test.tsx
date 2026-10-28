@@ -308,14 +308,16 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
 
   it("offering section: a save failure is announced honestly with the selection kept — retry stays in the owner's hands", async () => {
     await seedProfile(store, "مشغل الاختبار");
-    const originalSave = store.savePreferences.bind(store);
+    /* S03 revalidation (§A2): حد الكتابة صار commitPreferencesUpdate — قناة
+     * حقن فشل التفضيل تنتقل إليه والعقد السلوكي نفسه بالضبط. */
+    const originalCommit = store.commitPreferencesUpdate.bind(store);
     let failed = false;
-    store.savePreferences = (async (record: unknown) => {
+    store.commitPreferencesUpdate = (async (patch: unknown, expected: unknown, timestamp: unknown) => {
       if (!failed) {
         failed = true;
         return { ok: false, code: "storage_error", message: "quota" };
       }
-      return originalSave(record as never);
+      return originalCommit(patch as never, expected as never, timestamp as never);
     }) as never;
     render(
       <ThemeProvider defaultTheme="system" switchable>

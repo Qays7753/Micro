@@ -64,10 +64,12 @@ import type {
   FormDraftEnvelope,
   InventoryActivation,
   LocalPreferences,
+  LocalPreferencesPatch,
   LocalSecurityRecord,
   LocalStoreSnapshot,
   OrderDraft,
   OwnerProfile,
+  PreferencesCommitOutcome,
   ProfileRenameCommitOutcome,
   PrototypeLocalStore,
   RecurringExpenseOccurrenceChange,
@@ -101,6 +103,9 @@ import {
   REVERSAL_MISMATCH_MESSAGE,
   REVERSAL_OF_REVERSAL_MESSAGE,
 } from "./financialEventCorrectionMessages";
+/* S03 revalidation (§A2): منطق التزامن المحروس المشترك لسجل التفضيلات —
+ * المصدر الواحد للمحوّلين (نمط financialEventCorrectionMessages). */
+import { decidePreferencesCommit } from "./preferencesCommit";
 
 const clone = <T>(value: T): T => structuredClone(value);
 
@@ -208,6 +213,29 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   async savePreferences(preferences: LocalPreferences): Promise<StorageResult<LocalPreferences>> {
     this.preferences = clone(preferences);
     return { ok: true, value: clone(preferences) };
+  }
+  /* S03 revalidation (§A2): نفس عقد محوّل IndexedDB — القراءة والدمج
+   * والكتابة في خطوة متزامنة واحدة (لا فجوة تزامن في بنية الذاكرة أحادية
+   * الخيط): الرقعة تُطبَّق فوق السجل الحي داخل الخطوة نفسها فلا يبني أي
+   * كاتب سجله من لقطة متقادمة، وفحص CAS الحي (عند تمرير طابع متوقع)
+   * يعيد الحالة الحية كتعارض صادق بلا كتابة. المنطق المشترك من
+   * preferencesCommit.ts (المصدر الواحد للمحوّلين). */
+  async commitPreferencesUpdate(
+    patch: LocalPreferencesPatch,
+    expectedUpdatedAt: string | null,
+    timestamp: string,
+  ): Promise<StorageResult<PreferencesCommitOutcome>> {
+    const decision = decidePreferencesCommit(
+      this.preferences ? clone(this.preferences) : null,
+      patch,
+      expectedUpdatedAt,
+      timestamp,
+    );
+    if (decision.outcome === "conflict") {
+      return { ok: true, value: { outcome: "conflict", live: decision.live ? clone(decision.live) : null } };
+    }
+    this.preferences = clone(decision.write);
+    return { ok: true, value: { outcome: decision.outcome, preferences: clone(decision.write) } };
   }
   async getFormDraft(id: string): Promise<StorageResult<FormDraftEnvelope | null>> {
     const draft = this.formDrafts.get(id);

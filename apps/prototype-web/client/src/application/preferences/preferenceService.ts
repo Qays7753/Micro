@@ -6,8 +6,13 @@ import {
 } from "@/storage/local/persistentStorage";
 import type { LocalPreferences, PrototypeLocalStore } from "@/storage/local/types";
 
-/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — زوج التفضيلات فقط. */
-export type PreferenceServiceStore = Pick<PrototypeLocalStore, "getPreferences" | "savePreferences">;
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — زوج التفضيلات فقط، والكتابة
+ * عبر حد الالتزام المحروس (S03 revalidation: لا read-merge-full-write
+ * خارج حد الكتابة بعد اليوم). */
+export type PreferenceServiceStore = Pick<
+  PrototypeLocalStore,
+  "getPreferences" | "savePreferences" | "commitPreferencesUpdate"
+>;
 import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
 import {
   STORAGE_ERROR,
@@ -65,7 +70,7 @@ export type LowStockThresholdsResult =
   | { ok: false; code: "storage_error"; message: string };
 export type LowStockThresholdSaveResult =
   | { ok: true; thresholds: ReadonlyMap<string, number> }
-  | { ok: false; code: "validation_error" | "storage_error"; message: string };
+  | { ok: false; code: "validation_error" | "storage_error" | "storage_stale"; message: string };
 
 export class PreferenceService {
   constructor(
@@ -194,20 +199,31 @@ export class PreferenceService {
     /* تحقق الحدود نفسها التي يفرضها الدومين على أي كمية معلنة — لا مسار ثانٍ. */
     if (thresholdMilli !== null && (!Number.isSafeInteger(thresholdMilli) || thresholdMilli <= 0))
       return validationFailure("أدخل حدًا موجبًا صحيحًا بوحدة المادة، أو أزل الحد.");
-    const current = await this.readLowStockThresholds();
-    if (!current.ok) return storageFailure(current.message);
-    const next = new Map(current.thresholds);
+    /* S03 revalidation (§A2): قراءة الخريطة وطابع النسخة في خطوة واحدة ثم
+     * الالتزام بفحص CAS على الطابع المقروء — نافذة القراءة-الكتابة داخل
+     * هذا الاستدعاء نفسه محروسة: كاتب متزامن على الخريطة نفسها بين قراءتنا
+     * والتزامنا يعاد تعارضًا صادقًا (storage_stale) لا سحقًا صامتًا لحدّه.
+     * المتصل يعرض الرسالة ويعيد المحاولة بقرار صريح — لا حلقة إعادة هنا. */
+    const record = await this.store.getPreferences();
+    if (!record.ok) return storageFailure("تعذر قراءة حدود التنبيه المحلية.");
+    const current = record.value?.lowStockThresholdsMilli ?? {};
+    const next = new Map(Object.entries(current));
     if (thresholdMilli === null) next.delete(materialId);
     else next.set(materialId, thresholdMilli);
-    /* EXE-002: merge — لا يُسقط أي كاتب آخر حقولًا قائمة. */
+    /* بوابة الدمج: لا يُسقط أي كاتب آخر حقولًا قائمة، والطابع المتوقع يحمي
+     * الخريطة نفسها من السحق الصامت. */
     const result = await updateLocalPreferences(
       this.store,
       { lowStockThresholdsMilli: Object.fromEntries(next) },
       this.now,
+      record.value?.updatedAt ?? null,
     );
-    return result.ok
-      ? { ok: true, thresholds: new Map(Object.entries(result.value.lowStockThresholdsMilli ?? {})) }
-      : storageFailure("تعذر حفظ حد التنبيه.");
+    if (!result.ok) {
+      return result.code === "storage_stale"
+        ? { ok: false, code: "storage_stale", message: result.message }
+        : storageFailure("تعذر حفظ حد التنبيه.");
+    }
+    return { ok: true, thresholds: new Map(Object.entries(result.value.lowStockThresholdsMilli ?? {})) };
   }
 }
 
