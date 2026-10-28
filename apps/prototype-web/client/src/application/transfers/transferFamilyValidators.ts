@@ -822,6 +822,35 @@ export function validLoanRecord(value: unknown): boolean {
     )
   );
 }
+/* S04 (DOC-013 / UNIT-025): شكل سجل رصد أرصدة النقد — قياس الموجود: هوية
+ * فريدة ونطاق صادق (محفظة بمعرّفها أو إجمالي المشروع بلا محفظة، لا
+ * يجتمعان) ومبلغ مستوى صحيح آمن (الصفر المقصود صادق) ومعرفة معلومة أو
+ * تقديرية وقطع ISO وتاريخ محلي ووقت تسجيل ومفتاح عهدة وملاحظة؛ الرصد
+ * ليس حركة نقدية فلا يُربط بحدث مالي ولا يُعاد تفسيره تسوية عند الاستيراد. */
+export function validBalanceObservation(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isString(value.id) &&
+    value.id.trim().length > 0 &&
+    (value.scopeKind === "wallet" || value.scopeKind === "project_total") &&
+    (value.scopeKind === "wallet"
+      ? isString(value.walletId) && value.walletId.trim().length > 0
+      : value.walletId === null || value.walletId === undefined) &&
+    isMoney(value.countedMinor) &&
+    Number.isSafeInteger(value.countedMinor) &&
+    (value.knowledge === "known" || value.knowledge === "estimated") &&
+    isString(value.cutoff) &&
+    isDate(value.cutoff) &&
+    isString(value.observedOn) &&
+    isLocalDate(value.observedOn) &&
+    isString(value.recordedAt) &&
+    isDate(value.recordedAt) &&
+    isString(value.operationKey) &&
+    value.operationKey.trim().length > 0 &&
+    isString(value.note)
+  );
+}
+
 /* FIN-001 (WS-178 — Wave 6): شكل سجل القرض المستلم — العقد (المُقرض ونوعه
  * الصريح الذي اختاره المستخدم) والأصل وتاريخ القبض وتاريخ الاستحقاق الاختياري
  * (وسم عرض فقط لا مصروف ولا تنبيه) والمحفظة المعلوماتية والدفعات وتراجعها

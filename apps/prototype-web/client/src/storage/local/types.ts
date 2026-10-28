@@ -5,7 +5,11 @@
 import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
-import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
+import type {
+  CashContinuityEntry,
+  CashObservation,
+  CashWallet,
+} from "@micro-domain/cash-continuity/index.js";
 import type {
   InventoryMovement,
   InventoryShortage,
@@ -51,8 +55,13 @@ import type { SupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
  * FIN-001 (WS-178 — Wave 6 / نمط D-037): المخطط ٣٨ يضيف مخزن `received-loans`
  * واحدًا لسجلات القروض المستلمة (الحقيقة المالية في أحداثها داخل
  * financial-events) بالمُنشئ المحروس نفسه — لا حقول جديدة على سجل قائم
- * ولا ترحيل بيانات؛ القديم يفتح ويجده فارغًا. */
-export const localSchemaVersion = 38;
+ * ولا ترحيل بيانات؛ القديم يفتح ويجده فارغًا.
+ * S04 (DOC-013 / UNIT-025 + العقد المشترك §8 — نمط D-037): المخطط ٣٩ يضيف
+ * مخزن `balance-observations` واحدًا لرصد أرصدة النقد (قياس الموجود بنطاقه
+ * وقطعه ومعرفته — ليس حركة نقدية ولا افتتاحًا ولا تمويلًا) بالمُنشئ
+ * المحروس نفسه — لا حقول جديدة على سجل قائم ولا ترحيل بيانات؛ القديم
+ * يفتح ويجده فارغًا. */
+export const localSchemaVersion = 39;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
@@ -67,8 +76,12 @@ export const localExportFormat = "micro-prototype-local-export";
  * الغياب يعني قائمة فارغة.
  * FIN-001 (WS-178 — Wave 6): النسخة ٣٠ تضيف عائلة القروض المستلمة إلى لقطة
  * التصدير وعداداتها؛ ملف ٢٩/٣٧ يبقى زوجًا موروثًا مقبولًا في الاستيراد بلا
- * اختراع قروض مستلمة — الغياب يعني قائمة فارغة بلا اختراع تاريخ. */
-export const localExportVersion = 30;
+ * اختراع قروض مستلمة — الغياب يعني قائمة فارغة بلا اختراع تاريخ.
+ * S04 (DOC-013 / UNIT-025): النسخة ٣١ تضيف عائلة رصد أرصدة النقد إلى لقطة
+ * التصدير وعداداتها — القياس بيانات حقيقية تُنقل مع اللقطة (نطاقها وقطعها
+ * ومعرفتها محفوظة) ولا تُعاد تسويته عند الاستعادة؛ ملف ٣٠/٣٨ يبقى زوجًا
+ * موروثًا مقبولًا في الاستيراد — الغياب يعني قائمة فارغة بلا اختراع قياس. */
+export const localExportVersion = 31;
 export const localSecurityId = "local-security";
 /* المجموعة ٥ (التحصين الكامل — حدود المسودة): نوعان جديدان يدخلان الحد نفسه —
  * مسودة محرر الحدث المالي (مهاجرة من مفتاح localStorage القديم لكل نوع) ومسودة
@@ -226,6 +239,8 @@ export type LocalExportCounts = {
   expenseBudgets: number;
   /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة داخل العدادات الصارمة. */
   receivedLoans: number;
+  /* S04 (DOC-013 / UNIT-025): عائلة رصد أرصدة النقد داخل العدادات الصارمة. */
+  balanceObservations: number;
   /* R10-B2/RC-1 (R10A-F-009): عائلات مال المالك الأربع داخل العدادات
    * الصارمة — مفاتيح إضافية داخل المفتاح counts نفسه والإصدار يبقى ٣٠
    * (الأزواج الموروثة بلا كتل عدادات لا يمسها التغيير؛ السجل الكنوني:
@@ -503,6 +518,11 @@ export type LocalStoreSnapshot = {
    * أحداثها داخل financialEvents؛ الاقتراض التزام مستقل لا إيراد ولا رأس
    * مال. الغياب في التصدير القديم = قائمة فارغة بلا اختراع تاريخ. */
   receivedLoans?: readonly ReceivedLoanRecord[];
+  /* S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1): رصد أرصدة النقد — قياس
+   * الموجود بنطاقه وقطعه ومعرفته؛ ليس حركة نقدية ولا افتتاحًا ولا تمويلًا
+   * ولا يُعاد تفسيره تسويةً عند النقل. الغياب في التصدير القديم = قائمة
+   * فارغة بلا اختراع قياس. */
+  balanceObservations?: readonly CashObservation[];
   /* OPS-003 (عقد ٤١): سلاسل المصروف المتكرر ومراجعاتها وفتراتها — ثلاث مجموعات
    * جديدة فوق أحداثها داخل financialEvents؛ الفترة تحمل رابط الحدث
    * (recordedFinancialEventId) باتجاه واحد. الغياب في التصدير القديم = قائمة
@@ -721,6 +741,26 @@ export interface PrototypeLocalStore {
     wallet: CashWallet | null,
     entries: readonly CashContinuityEntry[],
   ): Promise<StorageResult<{ wallet: CashWallet | null; entries: readonly CashContinuityEntry[] }>>;
+  /* S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§14): رصد أرصدة النقد —
+   * القياس وتسويته المرتبطة (إن وُجدت) يُكتبان معًا أو لا يُكتب شيء: الرصد
+   * بحد ذاته لا يُنشئ نقدًا ولا يمحو حركة؛ والتسوية (cash_adjustment) تحمل
+   * الفرق عن مرجع معروف فقط. الحتمية داخل الحد: مفتاح الرصد المكرر يُعاد
+   * استخدامه، وقيد التسوية يخضع لفلترة مفاتيح القيود نفسها؛ وعند وجود
+   * تسوية يجب أن يطابق رصيد المحفظة الحي داخل المعاملة المرجع المتوقع
+   * (expectedReferenceMinor) وإلا حُبطت المعاملة كاملة بلا أي كتابة — لا
+   * تسوية مزدوجة من نافذتين ولا قياس يُبتلع (نمط base/next المحروس). */
+  listBalanceObservations(): Promise<StorageResult<readonly CashObservation[]>>;
+  commitCashObservation(
+    observation: CashObservation,
+    settlement: CashContinuityEntry | null,
+    expectedReferenceMinor: number | null,
+  ): Promise<
+    StorageResult<{
+      observation: CashObservation;
+      settlement: CashContinuityEntry | null;
+      reused: boolean;
+    }>
+  >;
   listMaterials(): Promise<StorageResult<readonly Material[]>>;
   listInventoryMovements(): Promise<StorageResult<readonly InventoryMovement[]>>;
   getInventoryActivation(): Promise<StorageResult<InventoryActivation | null>>;

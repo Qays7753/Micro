@@ -17,7 +17,11 @@
  */
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
-import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
+import type {
+  CashContinuityEntry,
+  CashObservation,
+  CashWallet,
+} from "@micro-domain/cash-continuity/index.js";
 import type {
   InventoryMovement,
   InventoryShortage,
@@ -73,6 +77,7 @@ import {
   catalogItemStore,
   catalogTemplateStore,
   cashContinuityEntryStore,
+  balanceObservationStore,
   cashWalletStore,
   costEstimateStore,
   directConversionStore,
@@ -121,6 +126,7 @@ const SNAPSHOT_STORES = [
   supplierPurchaseStore,
   cashWalletStore,
   cashContinuityEntryStore,
+  balanceObservationStore,
   materialStore,
   inventoryMovementStore,
   inventoryShortageStore,
@@ -189,6 +195,9 @@ function issueSnapshotReadRequests(transaction: IDBTransaction) {
     /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة جزء من اللقطة —
      * إسقاطها يفقد الالتزام عند التصدير. */
     receivedLoans: transaction.objectStore(receivedLoanStore).getAll(),
+    /* S04 (DOC-013 / UNIT-025): عائلة رصد الأرصدة جزء من اللقطة — إسقاطها
+     * يفقد القياس ونطاقه وقطعه عند التصدير. */
+    balanceObservations: transaction.objectStore(balanceObservationStore).getAll(),
     recurringExpenseSeries: transaction.objectStore(recurringExpenseSeriesStore).getAll(),
     recurringExpenseRevisions: transaction.objectStore(recurringExpenseRevisionStore).getAll(),
     recurringExpenseOccurrences: transaction.objectStore(recurringExpenseOccurrenceStore).getAll(),
@@ -231,6 +240,7 @@ function snapshotFromRequests(requests: ReturnType<typeof issueSnapshotReadReque
     assets: requests.assets.result as AssetRecord[],
     loans: requests.loans.result as LoanRecord[],
     receivedLoans: requests.receivedLoans.result as ReceivedLoanRecord[],
+    balanceObservations: requests.balanceObservations.result as CashObservation[],
     recurringExpenseSeries: requests.recurringExpenseSeries.result as RecurringExpenseSeries[],
     recurringExpenseRevisions: requests.recurringExpenseRevisions.result as RecurringExpenseRuleRevision[],
     recurringExpenseOccurrences: requests.recurringExpenseOccurrences.result as RecurringExpenseOccurrence[],
@@ -344,6 +354,7 @@ export async function replaceIndexedDbSnapshot(
         const assets = transaction.objectStore(assetStore);
         const loans = transaction.objectStore(loanStore);
         const receivedLoans = transaction.objectStore(receivedLoanStore);
+        const balanceObservations = transaction.objectStore(balanceObservationStore);
         const recurringSeries = transaction.objectStore(recurringExpenseSeriesStore);
         const recurringRevisions = transaction.objectStore(recurringExpenseRevisionStore);
         const recurringOccurrences = transaction.objectStore(recurringExpenseOccurrenceStore);
@@ -364,6 +375,7 @@ export async function replaceIndexedDbSnapshot(
           supplierPurchases.clear();
           cashWallets.clear();
           cashContinuityEntries.clear();
+          balanceObservations.clear();
           materials.clear();
           inventoryMovements.clear();
           inventoryShortages.clear();
@@ -425,6 +437,7 @@ export async function replaceIndexedDbSnapshot(
           normalized.assets?.forEach(asset => assets.put(asset));
           normalized.loans?.forEach(loan => loans.put(loan));
           normalized.receivedLoans?.forEach(loan => receivedLoans.put(loan));
+          normalized.balanceObservations?.forEach(observation => balanceObservations.put(observation));
           normalized.recurringExpenseSeries?.forEach(series => recurringSeries.put(series));
           normalized.recurringExpenseRevisions?.forEach(revision => recurringRevisions.put(revision));
           normalized.recurringExpenseOccurrences?.forEach(occurrence => recurringOccurrences.put(occurrence));

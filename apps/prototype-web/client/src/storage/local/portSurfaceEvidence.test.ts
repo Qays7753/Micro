@@ -4,7 +4,7 @@
  *
  * ما يثبته هذا الملف (الفجوة المقررة في بطاقة P-04):
  *  1) واجهة `PrototypeLocalStore` في `storage/local/types.ts` تحمل بالضبط
- *     138 توقيع طريقة — العدّ استخراج AST من المصدر نفسه (لا نسخ يدوي)،
+ *     140 توقيع طريقة — العدّ استخراج AST من المصدر نفسه (لا نسخ يدوي)،
  *     والقائمة المثبتة أدناه تطابقها عضويًا في الاتجاهين؛ أي إضافة/حذف
  *     يفشل الاختبار حتى إعادة إرساء موثقة (نمط ratشة، لا تعديل صامت).
  *     U001-IR-002 (2026-10-18، مراجعة مستقلة على رأس 1995c930): إعادة
@@ -33,8 +33,17 @@
  *     شجرة العمل بفارق commitPreferencesUpdate فقط بلا أي حذف؛ التصعيد
  *     مرغوب وموثق هنا وفي سجل نتيجة S03-revalidation، لا نمو صامت، وبلا
  *     أي رفع سقف أو توسيع تسامح.
+ *     S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14، 2026-10-28):
+ *     إعادة إرساء موثقة نفس-الـPR — إضافة listBalanceObservations
+ *     وcommitCashObservation وحدهما (رصد أرصدة النقد: القياس الدائم
+ *     للموجود بنطاقه وقطعه ومعرفته، وتسويته المرتبطة إن وجدت في معاملة
+ *     واحدة مع مطابقة مرجع حي داخل الحد — قياس لا حركة نقدية) نقلت العدّ
+ *     من 138 إلى 140؛ القياس قبل/بعد على المصدر نفسه: AST أعطى 138 عند
+ *     رأس علاج S03 26fa9437 و140 على مرشح S04 بالفارقين المصرح بهما فقط
+ *     بلا أي حذف؛ التصعيد مرغوب وموثق في سجل نتيجة S04، لا نمو صامت،
+ *     وبلا أي رفع سقف أو توسيع تسامح.
  *  2) محوّلا التخزين (IndexedDbLocalStore وMemoryLocalStore) يعرضان على
- *     نماذجهما بالضبط الأسماء الـ138 ذاتها — مطابقة السطح التنفيذية
+ *     نماذجهما بالضبط الأسماء الـ140 ذاتها — مطابقة السطح التنفيذية
  *     للعقد الكتابي (P-01/P-02 conformance).
  *  3) ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 38 و
  *     localExportVersion = 30 (محروسان بقرار مالك وdiff مزدوج — AGENTS §10).
@@ -56,7 +65,7 @@ import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 
 const TYPES_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "types.ts");
 
-/** الجرد المثبت للـ138 طريقة (مرتب حرفيًا؛ إعادة الإرساء تتطلب توثيقًا بنفس الـPR).
+/** الجرد المثبت للـ140 طريقة (مرتب حرفيًا؛ إعادة الإرساء تتطلب توثيقًا بنفس الـPR).
  * U001-IR-002 (2026-10-18): commitProfileCreate أُضيف بإعادة إرساء موثقة
  * نفس-الـPR (مراجعة مستقلة — إنشاء ملف الهوية ذرّيًا عند حد الكتابة).
  * S03 (UNIT-039 B2/عقد §17، 2026-10-28): commitProfileRename أُضيف بإعادة
@@ -72,6 +81,7 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "commitAssetAcquisitionCorrection",
   "commitAssetRecord",
   "commitCashContinuity",
+  "commitCashObservation",
   "commitCatalogTemplateRevision",
   "commitDepositClassification",
   "commitDepositClassificationCorrection",
@@ -145,6 +155,7 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "listActualTimeRecords",
   "listAllocationPolicies",
   "listAssets",
+  "listBalanceObservations",
   "listCashContinuityEntries",
   "listCashWallets",
   "listCatalogItems",
@@ -248,15 +259,15 @@ function publicMethodNames(prototype: object): string[] {
 describe("P-04 — أدلة سطح منفذ التخزين المحلي (OD-PRESERVE؛ بلا تقسيم أو نقل)", () => {
   it("واجهة PrototypeLocalStore تحمل بالضبط 138 طريقة — والقائمة المثبتة مطابقة عضويًا في الاتجاهين", () => {
     const live = extractInterfaceMethodNames();
-    expect(live).toHaveLength(138);
+    expect(live).toHaveLength(140);
     expect(live).toEqual([...PINNED_PORT_METHODS]);
   });
 
-  it("P-01: نموذج IndexedDbLocalStore يعرض بالضبط الأسماء الـ138 ذاتها (مطابقة السطح التنفيذية)", () => {
+  it("P-01: نموذج IndexedDbLocalStore يعرض بالضبط الأسماء الـ140 ذاتها (مطابقة السطح التنفيذية)", () => {
     expect(publicMethodNames(IndexedDbLocalStore.prototype)).toEqual([...PINNED_PORT_METHODS]);
   });
 
-  it("P-02: نموذج MemoryLocalStore يعرض الأسماء الـ138 ذاتها + مساعد TS-private واحد موثق فقط", () => {
+  it("P-02: نموذج MemoryLocalStore يعرض الأسماء الـ140 ذاتها + مساعد TS-private واحد موثق فقط", () => {
     /* حدّ موثق: `private` في TypeScript زمن ترجمة لا زمن تشغيل — المساعد
      * يظهر على النموذج؛ نثبّته بالاسم فأي مساعد جديد (خاص أو عام) يفشل
      * الاختبار حتى توثيقه هنا — لا سطح خفي خلف العقد. */

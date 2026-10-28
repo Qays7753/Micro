@@ -18,7 +18,12 @@ import {
   validateRecurringExpenseSeriesChange,
 } from "./recurringExpenseCommitGuard";
 import { validateExpenseBudgetRevisionPair, validateExpenseBudgetSave } from "./expenseBudgetCommitGuard";
-import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
+import {
+  findSecondWalletOpening,
+  findTransferCoverageShortfall,
+  SECOND_WALLET_OPENING_MESSAGE,
+  TRANSFER_COVERAGE_MESSAGE,
+} from "./cashContinuityCommitGuard";
 import { orderRecordIdentical, validateOrderCommit } from "./orderCommitGuard";
 import { resolveSupplierPaymentAttribution } from "./supplierAttributionCommitGuard";
 import {
@@ -27,7 +32,11 @@ import {
   type SupplierPurchaseCommit,
 } from "./supplierScheduleCommitGuard";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
-import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
+import type {
+  CashContinuityEntry,
+  CashObservation,
+  CashWallet,
+} from "@micro-domain/cash-continuity/index.js";
 import type {
   InventoryMovement,
   InventoryShortage,
@@ -122,6 +131,9 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   private supplierPurchases = new Map<string, SupplierPurchase>();
   private cashWallets = new Map<string, CashWallet>();
   private cashContinuityEntries = new Map<string, CashContinuityEntry>();
+  /* S04 (DOC-013 / UNIT-025): رصد أرصدة النقد في الذاكرة — تطابق المتصفح
+   * اختبارًا وسلوكًا؛ القياس داخل اللقطة كإخوته. */
+  private balanceObservations = new Map<string, CashObservation>();
   private materials = new Map<string, Material>();
   private inventoryMovements = new Map<string, InventoryMovement>();
   /* المجموعة ٢ (عقد ٢٨): سجلات النقص في الذاكرة أيضًا — تطابق المتصفح اختبارًا وسلوكًا. */
@@ -1034,22 +1046,126 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<{ wallet: CashWallet | null; entries: readonly CashContinuityEntry[] }>> {
     /* P0 (إرسال متزامن): قيد بنفس مفتاح العملية يُتخطى والمحفظة لا تُكتب
      * إلا مع قيد جديد (أو تحديث خالص بلا قيود) — نفس عقد محوّل IndexedDB. */
-    const existingKeys = new Set(Array.from(this.cashContinuityEntries.values()).map(e => e.operationKey));
+    const existingEntries = Array.from(this.cashContinuityEntries.values());
+    const existingKeys = new Set(existingEntries.map(e => e.operationKey));
     const newEntries = entries.filter(entry => !existingKeys.has(entry.operationKey));
     /* EXE-008 (CASH-001): نفس حرس المحوّل الدائم — افتتاح ثانٍ لمحفظة لها
      * افتتاح مسجل يُرفض ولا يُكتب شيء؛ التوأمان لا ينفصلان في السلوك. */
-    const secondOpening = findSecondWalletOpening(
-      Array.from(this.cashContinuityEntries.values()),
-      newEntries,
-    );
+    const secondOpening = findSecondWalletOpening(existingEntries, newEntries);
     if (secondOpening) {
       return { ok: false, code: STORAGE_STALE, message: SECOND_WALLET_OPENING_MESSAGE };
     }
-    newEntries.forEach(entry => this.cashContinuityEntries.set(entry.id, clone(entry)));
-    if (wallet && (newEntries.length > 0 || entries.length === 0)) {
-      this.cashWallets.set(wallet.id, clone(wallet));
+    /* S04 (DOC-013 / UNIT-023 D01): حارس تغطية التحويل — نفس عقد محوّل
+     * IndexedDB بالضبط: أرجل التحويل الجديدة وحدها تُفحص ضد رصيد المصدر
+     * الحي، والمصدر المعروف الافتتاح الناقص يُرفض بلا أي كتابة. */
+    const hasTransferLegs = newEntries.some(
+      entry => entry.type === "transfer_out" || entry.type === "transfer_in",
+    );
+    if (hasTransferLegs) {
+      const shortfall = findTransferCoverageShortfall(
+        Array.from(this.cashWallets.values()),
+        existingEntries,
+        newEntries,
+      );
+      if (shortfall) {
+        return { ok: false, code: STORAGE_STALE, message: TRANSFER_COVERAGE_MESSAGE };
+      }
     }
-    return { ok: true, value: { wallet: wallet ? clone(wallet) : null, entries: entries.map(clone) } };
+    /* S04 (DOC-013 / UNIT-025 — SDF-021 توكيدًا): الاستنساخ كله قبل أول كتابة —
+     * فشل استنساخ أي قيد داخل الدفعة لا يسرّب سابقه (نفس معنى التراجع الكامل
+     * لمعاملة IndexedDB؛ لا نجاح جهة وفشل أخرى). */
+    const clonedEntries = newEntries.map(entry => clone(entry));
+    const clonedWallet = wallet ? clone(wallet) : null;
+    clonedEntries.forEach(entry => this.cashContinuityEntries.set(entry.id, entry));
+    if (clonedWallet && (newEntries.length > 0 || entries.length === 0)) {
+      this.cashWallets.set(clonedWallet.id, clonedWallet);
+    }
+    return { ok: true, value: { wallet: clonedWallet, entries: entries.map(clone) } };
+  }
+  /* S04 (DOC-013 / UNIT-025): رصد أرصدة النقد في الذاكرة — نفس عقد محوّل
+   * IndexedDB: الأحدث أولًا، والرصد قياس لا حركة. */
+  async listBalanceObservations(): Promise<StorageResult<readonly CashObservation[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.balanceObservations.values())
+        .sort((a, b) => b.observedOn.localeCompare(a.observedOn) || b.cutoff.localeCompare(a.cutoff))
+        .map(clone),
+    };
+  }
+  /* S04 (DOC-013 / UNIT-025 + العقد المشترك §14): الرصد وتسويته في خطوة
+   * متزامنة واحدة (لا فجوة تزامن في بنية الذاكرة أحادية الخيط) — نفس عقد
+   * محوّل IndexedDB حرفيًا: العهدة بالمفتاح إعادة صادقة، والنصف حالة ترفض
+   * بصدق، والمرجع الحي يطابق المتوقع وإلا فلا كتابة. */
+  async commitCashObservation(
+    observation: CashObservation,
+    settlement: CashContinuityEntry | null,
+    expectedReferenceMinor: number | null,
+  ): Promise<
+    StorageResult<{ observation: CashObservation; settlement: CashContinuityEntry | null; reused: boolean }>
+  > {
+    if (settlement && expectedReferenceMinor === null) {
+      return {
+        ok: false,
+        code: "storage_error",
+        message: "التسوية المرتبطة بالرصد تتطلب مرجعًا متوقعًا صريحًا داخل حد الكتابة.",
+      };
+    }
+    const existingEntries = Array.from(this.cashContinuityEntries.values());
+    const repeatedObservation = Array.from(this.balanceObservations.values()).find(
+      candidate => candidate.operationKey === observation.operationKey,
+    );
+    if (repeatedObservation) {
+      const repeatedSettlement = settlement
+        ? (existingEntries.find(entry => entry.operationKey === settlement.operationKey) ?? null)
+        : null;
+      if (settlement && !repeatedSettlement) {
+        return {
+          ok: false,
+          code: STORAGE_STALE,
+          message: "وجدنا الرصد دون تسويته المرتبطة — حالة نصفية مرفوضة؛ راجع حركات المكان ثم أعد المحاولة.",
+        };
+      }
+      return {
+        ok: true,
+        value: {
+          observation: clone(repeatedObservation),
+          settlement: repeatedSettlement?.id ? clone(repeatedSettlement) : null,
+          reused: true,
+        },
+      };
+    }
+    if (settlement) {
+      const repeatedSettlement = existingEntries.some(
+        entry => entry.operationKey === settlement.operationKey,
+      );
+      if (repeatedSettlement) {
+        return {
+          ok: false,
+          code: STORAGE_STALE,
+          message: "وجدنا تسوية العدّ دون رصدها — حالة نصفية مرفوضة؛ راجع حركات المكان ثم أعد المحاولة.",
+        };
+      }
+      const liveReference = existingEntries
+        .filter(entry => entry.walletId === settlement.walletId)
+        .reduce((total, entry) => total + entry.cashDeltaMinor, 0);
+      if (liveReference !== expectedReferenceMinor) {
+        return {
+          ok: false,
+          code: STORAGE_STALE,
+          message: "تغيّر رصيد المكان بعد فتح العدّ — لم يُسجَّل شيء؛ راجع حركاته ثم أعد العدّ أو المحاولة.",
+        };
+      }
+    }
+    this.balanceObservations.set(observation.id, clone(observation));
+    if (settlement) this.cashContinuityEntries.set(settlement.id, clone(settlement));
+    return {
+      ok: true,
+      value: {
+        observation: clone(observation),
+        settlement: settlement ? clone(settlement) : null,
+        reused: false,
+      },
+    };
   }
   async listMaterials(): Promise<StorageResult<readonly Material[]>> {
     return {
@@ -1571,6 +1687,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         supplierPurchases: Array.from(this.supplierPurchases.values()).map(clone),
         cashWallets: Array.from(this.cashWallets.values()).map(clone),
         cashContinuityEntries: Array.from(this.cashContinuityEntries.values()).map(clone),
+        balanceObservations: Array.from(this.balanceObservations.values()).map(clone),
         materials: Array.from(this.materials.values()).map(clone),
         inventoryMovements: Array.from(this.inventoryMovements.values()).map(clone),
         inventoryShortages: Array.from(this.inventoryShortages.values()).map(clone),
@@ -1626,6 +1743,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       supplierPurchases: snapshot.supplierPurchases ?? [],
       cashWallets: snapshot.cashWallets ?? [],
       cashContinuityEntries: snapshot.cashContinuityEntries ?? [],
+      balanceObservations: snapshot.balanceObservations ?? [],
       materials: snapshot.materials ?? [],
       inventoryMovements: snapshot.inventoryMovements ?? [],
       inventoryShortages: snapshot.inventoryShortages ?? [],
@@ -1662,6 +1780,9 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.supplierPurchases = new Map(safe.supplierPurchases.map(purchase => [purchase.id, purchase]));
     this.cashWallets = new Map(safe.cashWallets.map(wallet => [wallet.id, wallet]));
     this.cashContinuityEntries = new Map(safe.cashContinuityEntries.map(entry => [entry.id, entry]));
+    this.balanceObservations = new Map(
+      (safe.balanceObservations ?? []).map(observation => [observation.id, observation]),
+    );
     this.materials = new Map(safe.materials.map(material => [material.id, material]));
     this.inventoryMovements = new Map(safe.inventoryMovements.map(movement => [movement.id, movement]));
     this.inventoryShortages = new Map(

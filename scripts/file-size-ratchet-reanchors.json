@@ -2586,6 +2586,348 @@
     "trigger": "S03 revalidation §A2: commitPreferencesUpdate guarded boundary added to the port and both adapters; gateway migrated off the unguarded read-merge-full-write; CAS wiring in the thresholds service. components/integration-20261027 / PR #383.",
     "ocRef": "DOC-013"
    }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-01",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/application/cash/cashContinuityService.ts",
+   "from": {
+    "nbLoc": 319,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 484,
+    "band": "WATCH"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-02",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+   "from": {
+    "nbLoc": 306,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 519,
+    "band": "WATCH"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-03",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/application/transfers/transferCounters.ts",
+   "from": {
+    "nbLoc": 62,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 71,
+    "band": "NORMAL"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-04",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts",
+   "from": {
+    "nbLoc": 1730,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 1758,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-05",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotMigrations.ts",
+   "from": {
+    "nbLoc": 346,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 353,
+    "band": "NORMAL"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-06",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts",
+   "from": {
+    "nbLoc": 1192,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 1223,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-07",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/pages/CashCount.tsx",
+   "from": {
+    "nbLoc": 228,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 339,
+    "band": "NORMAL"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-08",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/pages/CashTransferEditor.tsx",
+   "from": {
+    "nbLoc": 193,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 218,
+    "band": "NORMAL"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-09",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+   "from": {
+    "nbLoc": 4391,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 4842,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-10",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+   "from": {
+    "nbLoc": 2087,
+    "band": "SPLIT_NOW"
+   },
+   "to": {
+    "nbLoc": 2392,
+    "band": "SPLIT_NOW"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-11",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/cashContinuityCommitGuard.ts",
+   "from": {
+    "nbLoc": 28,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 71,
+    "band": "NORMAL"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-12",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/indexedDbMigrations.ts",
+   "from": {
+    "nbLoc": 561,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 573,
+    "band": "WATCH"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-13",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts",
+   "from": {
+    "nbLoc": 451,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 480,
+    "band": "WATCH"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-14",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/indexedDbStores.ts",
+   "from": {
+    "nbLoc": 68,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 75,
+    "band": "NORMAL"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-15",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/influentialSnapshotFamilies.ts",
+   "from": {
+    "nbLoc": 130,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 136,
+    "band": "NORMAL"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-16",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/storage/local/types.ts",
+   "from": {
+    "nbLoc": 876,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 1114,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-17",
+   "date": "2026-10-28",
+   "path": "src/domain/cash-continuity/policies.ts",
+   "from": {
+    "nbLoc": 119,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 179,
+    "band": "NORMAL"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-18",
+   "date": "2026-10-28",
+   "path": "src/domain/cash-continuity/types.ts",
+   "from": {
+    "nbLoc": 100,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 132,
+    "band": "NORMAL"
+   },
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
   }
  ]
 }

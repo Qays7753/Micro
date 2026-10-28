@@ -67,6 +67,7 @@ import {
   validInventoryShortage,
   validLoanRecord,
   validReceivedLoanRecord,
+  validBalanceObservation,
   validMaterial,
   validMeasurementUnit,
   validShortCashDeclaration,
@@ -123,7 +124,12 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       !Array.isArray(data.expenseBudgets)) ||
     /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة اختيارية في الملفات
      * القديمة — المصفوفة إن وُجدت. */
-    (data.receivedLoans !== undefined && data.receivedLoans !== null && !Array.isArray(data.receivedLoans))
+    (data.receivedLoans !== undefined && data.receivedLoans !== null && !Array.isArray(data.receivedLoans)) ||
+    /* S04 (DOC-013 / UNIT-025): عائلة رصد الأرصدة اختيارية في الملفات القديمة
+     * (30/38 وأقدم) — المصفوفة إن وُجدت؛ الغياب = قائمة فارغة بلا اختراع قياس. */
+    (data.balanceObservations !== undefined &&
+      data.balanceObservations !== null &&
+      !Array.isArray(data.balanceObservations))
   )
     return false;
   if (
@@ -1140,6 +1146,16 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       if (!eventIds.has(repayment.eventId)) return false;
       if (repayment.reversal && !eventIds.has(repayment.reversal.reversalEventId)) return false;
     }
+  }
+  /* S04 (DOC-013 / UNIT-025): رصد أرصدة النقد — هوية فريدة وشكل سليم
+   * ونطاق صادق: رصد المحفظة يشير لمحفظة موجودة فعلًا في اللقطة (سجل بلا
+   * محفظته ملف مكسور يُرفض)؛ ورصد إجمالي المشروع بلا محفظة. القياس
+   * يُستورد كما هو — لا فرق مقابل صفر ولا إعادة تسوية عند الاستعادة. */
+  const observationIds = new Set<string>();
+  for (const observation of data.balanceObservations ?? []) {
+    if (!validBalanceObservation(observation) || observationIds.has(observation.id)) return false;
+    observationIds.add(observation.id);
+    if (observation.scopeKind === "wallet" && !walletIds.has(observation.walletId as string)) return false;
   }
   /* OPS-003 (عقد ٤١): عائلة المصروف المتكرر — هوية فريدة وترابط صادق:
    * المراجعة والفترة تشيران لسلسلة موجودة، والفترة المقَرَّرة تربط حدثًا

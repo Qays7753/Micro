@@ -294,6 +294,13 @@ export function migrateTransferSnapshot(
             : loan,
         )
       : [],
+    /* S04 (DOC-013 / UNIT-025): عائلة رصد الأرصدة — الغياب في ملف قديم =
+     * قائمة فارغة بلا اختراع قياس؛ walletId يسوى null لنطاق إجمالي المشروع. */
+    balanceObservations: Array.isArray(raw.balanceObservations)
+      ? raw.balanceObservations.map((observation: Record<string, unknown>) =>
+          isRecord(observation) ? { ...observation, walletId: observation.walletId ?? null } : observation,
+        )
+      : [],
     /* OPS-003 (عقد ٤١): عائلات المصروف المتكرر — الغياب في ملف قديم = قائمة
      * فارغة بلا اختراع تاريخ؛ والحقول الاخيارية تُسوّى بصمت صفرًا صادقًا. */
     recurringExpenseSeries: Array.isArray(raw.recurringExpenseSeries)

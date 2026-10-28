@@ -43,6 +43,7 @@ import {
   shortCashDeclarationStore,
   supplierPurchaseStore,
   receivedLoanStore,
+  balanceObservationStore,
 } from "./indexedDbStores";
 import { STORAGE_UPGRADE_FAILED } from "./resultCodes";
 
@@ -295,6 +296,17 @@ export function applySchemaUpgrade(request: IDBOpenDBRequest, event: IDBVersionC
   if (!database.objectStoreNames.contains(receivedLoanStore)) {
     const receivedLoans = database.createObjectStore(receivedLoanStore, { keyPath: "id" });
     receivedLoans.createIndex("updatedAt", "updatedAt");
+  }
+  /* S04 (DOC-013 / UNIT-025 + العقد المشترك §8 — نمط D-037 — الترقية ٣٨→٣٩):
+   * مخزن رصد أرصدة النقد بمُنشئ محروس — لا ترحيل بيانات ولا تعديل سجل قائم؛
+   * القاعدة القديمة تفتح وتجده فارغًا. فهارس walletId وobservedOn وoperationKey
+   * للتصفح والعهدة؛ لا فهارس فريدة — حارس الالتزام داخل حد الكتابة
+   * (commitCashObservation) يكفي الحتمية. */
+  if (!database.objectStoreNames.contains(balanceObservationStore)) {
+    const observations = database.createObjectStore(balanceObservationStore, { keyPath: "id" });
+    observations.createIndex("walletId", "walletId");
+    observations.createIndex("observedOn", "observedOn");
+    observations.createIndex("operationKey", "operationKey");
   }
   const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
   if (policyStore && !policyStore.indexNames.contains("seriesId"))

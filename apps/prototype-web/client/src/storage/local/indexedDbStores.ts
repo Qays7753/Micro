@@ -67,3 +67,10 @@ export const expenseBudgetStore = "expense-budgets";
  * updatedAt للتصفح الزمني؛ لا فهارس فريدة — حارس الالتزام داخل حد الكتابة
  * (AV-02 نفسه) يكفي الحتمية. */
 export const receivedLoanStore = "received-loans";
+/* S04 (DOC-013 / UNIT-025 P3.2 + العقد المشترك §6.1/§8 — نمط D-037): رصد
+ * أرصدة النقد — القياس الدائم للموجود (نطاق/قطع/معرفة) بلا أي أثر مالي.
+ * المُنشئ محروس في الترقية ٣٨→٣٩: القديم يفتح ويجده فارغًا بلا ترحيل
+ * بيانات ولا تعديل سجل قائم؛ فهارس walletId وobservedOn للتصفح (المحفظة
+ * ثم الزمن) وoperationKey للعهدة؛ لا فهارس فريدة — حارس الالتزام داخل حد
+ * الكتابة يكفي الحتمية. */
+export const balanceObservationStore = "balance-observations";

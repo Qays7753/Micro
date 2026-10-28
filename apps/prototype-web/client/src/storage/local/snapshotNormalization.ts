@@ -36,6 +36,8 @@ export function normalizeSnapshotForReplacement(snapshot: LocalStoreSnapshot): L
     assets: snapshot.assets ?? [],
     loans: snapshot.loans ?? [],
     receivedLoans: snapshot.receivedLoans ?? [],
+    /* S04 (DOC-013 / UNIT-025): رصد الأرصدة — الغياب في اللقطة القديمة = قائمة فارغة بلا اختراع قياس. */
+    balanceObservations: snapshot.balanceObservations ?? [],
     recurringExpenseSeries: snapshot.recurringExpenseSeries ?? [],
     recurringExpenseRevisions: snapshot.recurringExpenseRevisions ?? [],
     recurringExpenseOccurrences: snapshot.recurringExpenseOccurrences ?? [],

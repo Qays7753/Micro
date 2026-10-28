@@ -38,6 +38,12 @@ export const INFLUENTIAL_SNAPSHOT_FAMILIES = {
     label: "قيود استمرارية الكاش",
     count: snapshot => snapshot.cashContinuityEntries?.length ?? 0,
   },
+  /* S04 (DOC-013 / UNIT-025): رصد أرصدة النقد — قياس الموجود لا حركة؛
+   * عدم التسجيل لا يعني عدم وجود نقد، وتسجيله لا يعني تطابقه مع أي رصيد. */
+  balanceObservations: {
+    label: "رصد أرصدة النقد",
+    count: snapshot => snapshot.balanceObservations?.length ?? 0,
+  },
   materials: { label: "المواد", count: snapshot => snapshot.materials?.length ?? 0 },
   inventoryMovements: { label: "حركات المخزون", count: snapshot => snapshot.inventoryMovements?.length ?? 0 },
   inventoryShortages: { label: "سجلات النقص", count: snapshot => snapshot.inventoryShortages?.length ?? 0 },
