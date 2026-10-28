@@ -194,12 +194,16 @@ describe("commitPreferencesUpdate — guarded atomic preference patch at the wri
       await store.commitPreferencesUpdate({ theme: "dark" }, null, T0);
       await store.commitPreferencesUpdate({ offeringPreference: "both" }, null, T1);
       await store.commitPreferencesUpdate({ theme: "light" }, T0, T2); /* تعارض — لا يكتب */
-      /* لا حدث مالي ولا محفظة ولا حركة مالك من كتابة التفضيلات. */
+      /* لا حدث مالي ولا محفظة ولا حركة مالك من كتابة التفضيلات — القراءات
+       * نفسها جزء الإثبات: فشلها يفشل الاختبار لا أن يتخطاه بصمت (S03-reval R4-F01). */
       const events = await store.listFinancialEvents();
+      expect(events.ok).toBe(true);
       if (events.ok) expect(events.value).toHaveLength(0);
       const wallets = await store.listCashWallets();
+      expect(wallets.ok).toBe(true);
       if (wallets.ok) expect(wallets.value).toHaveLength(0);
       const ownerMovements = await store.listOwnerMovements();
+      expect(ownerMovements.ok).toBe(true);
       if (ownerMovements.ok) expect(ownerMovements.value).toHaveLength(0);
       /* المخطط 38 والتصدير 30 كما هما — لا تغيير مخطط أو تصدير أو صيغة استيراد. */
       expect(localSchemaVersion).toBe(38);
