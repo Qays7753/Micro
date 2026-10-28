@@ -126,6 +126,7 @@
 | `00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md` | أمر ZAI الكنسي: إصلاح تزامن تفضيلات S03 ثم تنفيذ S04؛ نفس الفرع وPR؛ لا main ولا merge | `READY_FOR_ZAI — OWNER_AUTHORIZED` |
 | `09-S04-RESULT-2026-10-28.md` | نتيجة إعادة تحقق S03 وعلاج عيبها وتنفيذ S04 ومصفوفة القبول والمراجعات الخمس | `DELIVERED_FOR_REVIEW` |
 | `DOC-013.json` / `WS-229.json` | Control وWorkstream لإعادة التحقق وS04 | `IN_REVIEW` بعد التسليم |
+| `00-S05-EXECUTION-PROMPT-2026-10-29.md` | أمر ZAI الكنسي: تصحيح ملاحظات S04 المحدودة ثم تنفيذ UNIT-037 للعملاء والموردين؛ نفس الفرع وPR؛ لا main ولا merge | `READY_FOR_ZAI — OWNER_AUTHORIZED` |
 
 
 

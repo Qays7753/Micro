@@ -311,6 +311,7 @@
 | `docs/implementation/micro-component-execution/09-S04-RESULT-2026-10-28.md` | نتيجة إعادة تحقق S04 وعلاج عيب التزامن وتنفيذ S04 ومصفوفة القبول والمراجعات الخمس — تسليم للمراجعة |
 | `docs/operations/control/items/DOC-013.json` | سجل Control لإعادة تحقق S04 وعلاجها وتنفيذ S04 |
 | `docs/operations/control/workstreams/WS-229.json` | Workstream تنفيذ إعادة التحقق وS04 على فرع التكامل |
+| `docs/implementation/micro-component-execution/00-S05-EXECUTION-PROMPT-2026-10-29.md` | أمر S05 الكنسي لـZAI: مراجعة خفيفة لـS04 ثم تنفيذ العملاء والموردين UNIT-037 على نفس الفرع وPR؛ لا main ولا merge |
 
 ### تغطية ملفات الحزمة الأصلية
 
