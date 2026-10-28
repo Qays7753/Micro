@@ -304,6 +304,9 @@
 | `docs/operations/control/items/DOC-011.json` | سجل Control لـS02 |
 | `docs/operations/control/workstreams/WS-227.json` | Workstream تنفيذ S02 على فرع التكامل |
 | `docs/implementation/micro-component-execution/00-S03-EXECUTION-PROMPT-2026-10-28.md` | أمر ZAI الأساسي لـS03؛ GitHub canonical؛ تنفيذ مشروط بإغلاق بوابة S02 |
+| `docs/implementation/micro-component-execution/08-S03-RESULT-2026-10-28.md` | نتيجة تنفيذ S03 ومصفوفة القبول العشرة والمراجعات الخمس وحد التراجع — تسليم للمراجعة |
+| `docs/operations/control/items/DOC-012.json` | سجل Control لـS03 |
+| `docs/operations/control/workstreams/WS-228.json` | Workstream تنفيذ S03 على فرع التكامل |
 
 ### تغطية ملفات الحزمة الأصلية
 

@@ -2,7 +2,7 @@
   "id": "DOC-012",
   "title": "S03 بداية المشروع وبياناته وإعداداته الأساسية — تنفيذ UNIT-001/UNIT-038/UNIT-039",
   "type": "FEATURE",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P0",
   "stage": "micro-component-execution-s03-20261028",
   "summary": "تنفيذ S03 على فرع التكامل الواحد وفق أمر 00-S03-EXECUTION-PROMPT-2026-10-28.md: بداية استخدام باسم المشروع وحده مع تفضيل عرض اختياري محايد (UNIT-001)، إعدادات منظمة بمصدر تفضيلات واحد دون PIN أو عملة أو وضع داكن (UNIT-038)، ومحرر اسم المشروع من مصدر الهوية نفسه داخل الإعدادات دون مشروع ثانٍ (UNIT-039).",
@@ -84,7 +84,7 @@
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S03-EXECUTION-PROMPT-2026-10-28.md",
-    "docs/implementation/micro-component-execution/07-S02-RESULT-2026-10-27.md",
+    "docs/implementation/micro-component-execution/08-S03-RESULT-2026-10-28.md",
     "https://github.com/Qays7753/Micro/pull/383"
   ],
   "dependencies": [
@@ -119,8 +119,14 @@
       "changed_at": "2026-10-28",
       "actor": "zai-s03-execution",
       "reason": "بدأ تنفيذ S03 (UNIT-001/038/039) على فرع التكامل وPR #383 من رأس 015c2d6c بكاتب واحد وخمسة مراجعين تخصصيين قراءة-فقط بعد نقطة التحقق."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-28",
+      "actor": "zai-s03-execution",
+      "reason": "اكتمل تنفيذ S03 وسُلّم للمراجعة: سجل النتيجة 08-S03-RESULT-2026-10-28.md، السلسلة الكاملة pnpm check خضراء على المرشح النهائي 9de4f0a5 (952 جذرية + 2786 نموذجية + كل الحراس والبناء والأسطح)، والمراجعات الخمس القرائية اكتملت وكل ملاحظة مؤكدة داخل النطاق عولجت من جذرها في نفس الفرع/PR مع اختبارات انحدار مركزة. لا يُدعى قبول Manus أو المالك؛ الحالة التالية انتظار المراجعة المستقلة وقبول المرحلة."
     }
   ],
   "migration_baseline": false,
-  "next_action": "تنفيذ S03 جارٍ على components/integration-20261027 / PR #383 من 015c2d6c؛ عند الاكتمال: سجل النتيجة 08-S03-RESULT-2026-10-28.md والفحوص الكاملة والمراجعات الخمس ثم IN_REVIEW بانتظار مراجعة Manus المستقلة وقبول المالك؛ لا merge ولا cleanup ولا S04."
+  "next_action": "اكتمل تنفيذ S03 على components/integration-20261027 / PR #383 (النتيجة: 08-S03-RESULT-2026-10-28.md؛ المرشح النهائي 9de4f0a5)؛ المطلوب الآن: مراجعة Manus المستقلة لـS02+S03 وقبول المالك الصريح للمرحلة قبل أي دمج؛ لا merge ولا cleanup ولا S04 ولا كتابة main."
 }
