@@ -16,14 +16,14 @@
  "environments": {
   "local": {
    "anchored": {
-    "head": "c6a76c5d",
+    "head": "e2ea35f1",
     "date": "2026-10-28",
-    "method": "S03 pre-push local re-anchor (2026-10-28, code candidate head c6a76c5d, PR #383): the authorized S03 implementation (DOC-012 — UNIT-001/038/039: offering-preference single source, guarded rename boundary, settings/setup/profile surfaces) grows the lazy surfaces 1,220,928 -> 1,232,230 raw / 368,136 -> 370,820 gzipNorm and the precache 2,682,305 -> 2,695,109; initial (224,222/70,645) and swRuntime (26,347) byte-identical; every count unchanged (104/2/72/159/2) and the entry chunk stays under its 650,000/155,300 ceilings (627,712/153,594). Measured by the definitive local vite build on the candidate tree (full pnpm check chain otherwise green). Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol.",
+    "method": "S03-R3 review-fix local re-anchor (2026-10-28, code candidate head e2ea35f1, PR #383): the owner-mandated reviewer root-fix loop on the authorized S03 implementation (DOC-012) — honest empty/partial announcement channels, in-flight radio locks, rename-editor focus continuity, neutral offering icon (S03-R3-F01/F02/F03/F04/F05/F06) — grows the lazy surfaces 1,232,230 -> 1,232,454 raw / 370,820 -> 370,954 gzipNorm and the precache 2,695,109 -> 2,695,336; initial (224,222/70,645) and swRuntime (26,347) byte-identical; every count unchanged (104/2/72/159/2); the entry chunk moves 627,712/153,594 -> 627,715/153,579 and stays under its 650,000/155,300 ceilings. Measured by the definitive local vite build on the review-fix tree (focused S03 tests, typecheck, lint, format, text-density, design-guards, and the full guards chain green). Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol.",
     "initialRawTotal": 224222,
     "initialGzipNormTotal": 70645,
-    "lazyRawTotal": 1232230,
-    "lazyGzipNormTotal": 370820,
-    "precacheBytesTotal": 2695109,
+    "lazyRawTotal": 1232454,
+    "lazyGzipNormTotal": 370954,
+    "precacheBytesTotal": 2695336,
     "swRuntimeRawTotal": 26347
    },
    "toolchain": {
@@ -38,9 +38,9 @@
    "measurements": {
     "initialRawTotal": 224222,
     "initialGzipNormTotal": 70645,
-    "lazyRawTotal": 1232230,
-    "lazyGzipNormTotal": 370820,
-    "precacheBytesTotal": 2695109,
+    "lazyRawTotal": 1232454,
+    "lazyGzipNormTotal": 370954,
+    "precacheBytesTotal": 2695336,
     "swRuntimeRawTotal": 26347
    },
    "counts": {
@@ -53,14 +53,14 @@
   },
   "cloudflare-pages": {
    "anchored": {
-    "head": "c6a76c5d",
+    "head": "e2ea35f1",
     "date": "2026-10-28",
-    "method": "S03 pre-push derived re-anchor (2026-10-28, code candidate head c6a76c5d, PR #383): github-actions record derived per the PROVEN environment-class derivation (proven across the S02 dual re-anchors on this exact repository and provider): lazy/initial/swRuntime records identical to the local measured anchor on the same code head; cloud precache = local + 90 (the sw.js hex-identity footprint), i.e. 2,695,109 + 90 = 2,695,199. The actual CI run on the pushed head must confirm these values; any deviation is re-anchored from the run's actual measured values per the documented protocol (same-PR, with the run/deployment evidence recorded).",
+    "method": "S03-R3 review-fix derived re-anchor (2026-10-28, code candidate head e2ea35f1, PR #383): github-actions record derived per the PROVEN environment-class derivation (proven across the S02 dual re-anchors and the S03 pre-push re-anchor on this exact repository and provider): lazy/initial/swRuntime records identical to the local measured anchor on the same code head; cloud precache = local + 90 (the sw.js hex-identity footprint), i.e. 2,695,336 + 90 = 2,695,426. The actual CI run on the pushed head must confirm these values; any deviation is re-anchored from the run's actual measured values per the documented protocol (same-PR, with the run/deployment evidence recorded).",
     "initialRawTotal": 224222,
     "initialGzipNormTotal": 70645,
-    "lazyRawTotal": 1232230,
-    "lazyGzipNormTotal": 370820,
-    "precacheBytesTotal": 2695199,
+    "lazyRawTotal": 1232454,
+    "lazyGzipNormTotal": 370954,
+    "precacheBytesTotal": 2695426,
     "swRuntimeRawTotal": 26347
    },
    "toolchain": {
@@ -75,9 +75,9 @@
    "measurements": {
     "initialRawTotal": 224222,
     "initialGzipNormTotal": 70645,
-    "lazyRawTotal": 1232230,
-    "lazyGzipNormTotal": 370820,
-    "precacheBytesTotal": 2695199,
+    "lazyRawTotal": 1232454,
+    "lazyGzipNormTotal": 370954,
+    "precacheBytesTotal": 2695426,
     "swRuntimeRawTotal": 26347
    },
    "counts": {
@@ -90,14 +90,14 @@
   },
   "github-actions": {
    "anchored": {
-    "head": "c6a76c5d",
+    "head": "e2ea35f1",
     "date": "2026-10-28",
-    "method": "S03 pre-push derived re-anchor (2026-10-28, code candidate head c6a76c5d, PR #383): github-actions record derived per the PROVEN environment-class derivation (proven across the S02 dual re-anchors on this exact repository and provider): lazy/initial/swRuntime records identical to the local measured anchor on the same code head; cloud precache = local + 90 (the sw.js hex-identity footprint), i.e. 2,695,109 + 90 = 2,695,199. The actual CI run on the pushed head must confirm these values; any deviation is re-anchored from the run's actual measured values per the documented protocol (same-PR, with the run/deployment evidence recorded).",
+    "method": "S03-R3 review-fix derived re-anchor (2026-10-28, code candidate head e2ea35f1, PR #383): github-actions record derived per the PROVEN environment-class derivation (proven across the S02 dual re-anchors and the S03 pre-push re-anchor on this exact repository and provider): lazy/initial/swRuntime records identical to the local measured anchor on the same code head; cloud precache = local + 90 (the sw.js hex-identity footprint), i.e. 2,695,336 + 90 = 2,695,426. The actual CI run on the pushed head must confirm these values; any deviation is re-anchored from the run's actual measured values per the documented protocol (same-PR, with the run/deployment evidence recorded).",
     "initialRawTotal": 224222,
     "initialGzipNormTotal": 70645,
-    "lazyRawTotal": 1232230,
-    "lazyGzipNormTotal": 370820,
-    "precacheBytesTotal": 2695199,
+    "lazyRawTotal": 1232454,
+    "lazyGzipNormTotal": 370954,
+    "precacheBytesTotal": 2695426,
     "swRuntimeRawTotal": 26347
    },
    "toolchain": {
@@ -112,9 +112,9 @@
    "measurements": {
     "initialRawTotal": 224222,
     "initialGzipNormTotal": 70645,
-    "lazyRawTotal": 1232230,
-    "lazyGzipNormTotal": 370820,
-    "precacheBytesTotal": 2695199,
+    "lazyRawTotal": 1232454,
+    "lazyGzipNormTotal": 370954,
+    "precacheBytesTotal": 2695426,
     "swRuntimeRawTotal": 26347
    },
    "counts": {
