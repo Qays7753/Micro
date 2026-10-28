@@ -2725,3 +2725,8 @@ ZAI نفّذ S02 كاملًا على `components/integration-20261027` / PR #383
 ## 2026-10-28 — S02 exact-head remote gates passed after owner exception
 
 بعد تسجيل `OWNER_ACCEPTED` للمكتشف `GHSA-gcqx-w48m-w2h4` في commit `37804d4775bf0ef0c6f063fc4cca0c3959aa687d`، نجحت GitHub Actions (run `40645300172`) وCloudflare Pages (deployment `69777933-e798-4450-be31-5062affefeec`) على الرأس الكامل نفسه. هذا يثبت عبور بوابة التدقيق القائمة دون تغيير سياسة CI، ولا يساوي قبول S02 أو إذن الدمج. الفعل التالي مراجعة Manus المستقلة ثم قبول المالك؛ لا main write ولا merge ولا cleanup ولا S03.
+
+## 2026-10-28 — نشر أمر S03 المشروط
+- أُضيف `00-S03-EXECUTION-PROMPT-2026-10-28.md` إلى فرع التكامل `components/integration-20261027` كأمر GitHub canonical مستقل لـS03 (UNIT-001/038/039)، مع فهرسته في Document Index وManifest.
+- الأمر يطلب إعادة تحقق ZAI من S02، وإصلاح أي عيب مثبت ضمن نطاقه، ثم تنفيذ S03 فقط بعد إغلاق بوابة S02؛ لا يمنح هذا النشر Claim أو قبولًا أو إذن دمج.
+- النطاق توثيقي فقط: لا كود منتج، لا كتابة على `main`، لا merge، ولا تغيير في القرارات المالية أو Schema/Export/Import.

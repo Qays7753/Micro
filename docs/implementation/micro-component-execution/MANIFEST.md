@@ -120,6 +120,7 @@
 | `00-S02-EXECUTION-PROMPT-2026-10-27.md` | أمر S02 الوحيد لـZAI | `READY_FOR_ZAI` |
 | `S02-DRIVE-GITHUB-RECONCILIATION-2026-10-27.md` | دليل مطابقة آخر UNIT-042/044 مع GitHub | provenance؛ لا يحتاجه ZAI كمصدر خارجي |
 | `DOC-011.json` / `WS-227.json` | Control وWorkstream لتنفيذ S02 | `READY` / `CLAIMED` قبل بدء كود S02 |
+| `00-S03-EXECUTION-PROMPT-2026-10-28.md` | أمر S03 الأساسي لـZAI؛ UNIT-001/038/039؛ خمس مراجعات قراءة-فقط | `PUBLISHED_CONDITIONAL — S02_GATE_REQUIRED` |
 
 
 

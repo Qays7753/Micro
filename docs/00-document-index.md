@@ -287,7 +287,7 @@
 | `docs/operations/control/items/DOC-009.json` | سجل Control لمواصفة ومراجعة اعتماد UNIT-002 |
 | `docs/operations/control/workstreams/WS-225.json` | Workstream مراجعة UNIT-002 على فرع التكامل؛ لا Claim تنفيذ نشط |
 
-## برنامج تنفيذ مكونات Micro — S01
+## برنامج تنفيذ مكونات Micro — S01–S03
 | الملف | الدور |
 |---|---|
 | `docs/implementation/micro-component-execution/00-S01-APPROVED-TASK-2026-10-27.md` | تكليف S01 المعتمد وحدود الكتابة والتوقف؛ لا أمر ZAI |
@@ -303,6 +303,7 @@
 | `docs/implementation/micro-component-execution/07-S02-RESULT-2026-10-27.md` | نتيجة تنفيذ S02 ومصفوفة SDF والمراجعات الخمس وحد التراجع — تسليم للمراجعة |
 | `docs/operations/control/items/DOC-011.json` | سجل Control لـS02 |
 | `docs/operations/control/workstreams/WS-227.json` | Workstream تنفيذ S02 على فرع التكامل |
+| `docs/implementation/micro-component-execution/00-S03-EXECUTION-PROMPT-2026-10-28.md` | أمر ZAI الأساسي لـS03؛ GitHub canonical؛ تنفيذ مشروط بإغلاق بوابة S02 |
 
 ### تغطية ملفات الحزمة الأصلية
 
@@ -388,6 +389,7 @@
 - `docs/implementation/micro-component-execution/05-S01-RESUME-INSTRUCTIONS-2026-10-27.md`
 - `docs/implementation/micro-component-execution/06-S01-PACKAGE-RECONCILIATION-2026-10-27.md`
 - `docs/implementation/micro-component-execution/07-S02-RESULT-2026-10-27.md`
+- `docs/implementation/micro-component-execution/00-S03-EXECUTION-PROMPT-2026-10-28.md`
 - `docs/implementation/micro-component-execution/BASELINE-RECONCILIATION.md`
 - `docs/implementation/micro-component-execution/DEPENDENCIES-AND-TRACEABILITY.md`
 - `docs/implementation/micro-component-execution/MANIFEST.md`
