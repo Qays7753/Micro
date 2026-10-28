@@ -16,14 +16,14 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "4c734716",
+        "head": "9d7d2aee",
         "date": "2026-10-28",
-        "method": "S04 candidate local re-anchor (2026-10-28, code candidate head 4c734716, PR #383): the authorized S04 implementation (DOC-013 — UNIT-020/022/023/024/025: balance-observations store schema 38->39 / export 30->31, atomic measurement/settlement boundary, in-transaction transfer-coverage guard, honest count/reconciliation UI) with the budget-fit lazy split (count service + observation policy follow the transfers/recurring/loans lazy precedent — entry chunk 155,794 -> 155,068 gzip, back under the owner 155,300 ceiling with margin 232) grows the lazy surfaces 1,232,454 -> 1,241,153 raw / 370,954 -> 373,944 gzipNorm and the precache 2,695,336 -> 2,709,183; swRuntime 26,347 -> 26,405; initial (224,222/70,645) unchanged; counts 104/2/72/159/2 -> 105/2/73/160/2 (the new lazy count-service chunk and its dynamic root); entry chunk 632,863/155,068 stays under its 650,000/155,300 ceilings. Measured by the definitive local vite build on the candidate tree (952 root + 2,824 prototype tests, typecheck, lint, format, text-density, design-guards, and the full guards chain green). Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol.",
+        "method": "S04 final-candidate local re-anchor (2026-10-28, code candidate head 9d7d2aee, PR #383): the authorized S04 implementation (DOC-013) with the budget-fit lazy split and the review fixes (R3-F01 render-gate preparing state, R4-F01 touchpoint completion). Locks the measured improvement over the 4c734716 anchor: lazy 1,241,153 -> 1,241,042 raw / 373,944 -> 373,925 gzipNorm; precache 2,709,183 -> 2,709,072; entry chunk 632,863/155,058 (margin 242 under the owner 155,300 ceiling); initial (224,222/70,645) and swRuntime (26,405) unchanged; counts 105/2/73/160/2 unchanged. Measured by the definitive local vite build on the final candidate tree (952 root + 2,824 prototype tests and the full guards chain green). Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol.",
         "initialRawTotal": 224222,
         "initialGzipNormTotal": 70645,
-        "lazyRawTotal": 1241153,
-        "lazyGzipNormTotal": 373944,
-        "precacheBytesTotal": 2709183,
+        "lazyRawTotal": 1241042,
+        "lazyGzipNormTotal": 373925,
+        "precacheBytesTotal": 2709072,
         "swRuntimeRawTotal": 26405
       },
       "toolchain": {
@@ -38,9 +38,9 @@
       "measurements": {
         "initialRawTotal": 224222,
         "initialGzipNormTotal": 70645,
-        "lazyRawTotal": 1241153,
-        "lazyGzipNormTotal": 373944,
-        "precacheBytesTotal": 2709183,
+        "lazyRawTotal": 1241042,
+        "lazyGzipNormTotal": 373925,
+        "precacheBytesTotal": 2709072,
         "swRuntimeRawTotal": 26405
       },
       "counts": {
@@ -53,14 +53,14 @@
     },
     "cloudflare-pages": {
       "anchored": {
-        "head": "4c734716",
+        "head": "9d7d2aee",
         "date": "2026-10-28",
-        "method": "S04 candidate derived re-anchor (2026-10-28, code candidate head 4c734716, PR #383): github-actions record derived per the PROVEN environment-class derivation (proven across the S02 dual re-anchors and the S03 re-anchors on this exact repository and provider): lazy/initial/swRuntime records identical to the local measured anchor on the same code head; cloud precache = local + 90 (the sw.js hex-identity footprint), i.e. 2,709,183 + 90 = 2,709,273. The actual CI run on the pushed head must confirm these values; any deviation is re-anchored from the run's actual measured values per the documented protocol (same-PR, with the run/deployment evidence recorded).",
+        "method": "S04 final-candidate derived re-anchor (2026-10-28, code candidate head 9d7d2aee, PR #383): github-actions record derived per the PROVEN environment-class derivation: lazy/initial/swRuntime records identical to the local measured anchor on the same code head; cloud precache = local + 90 (the sw.js hex-identity footprint), i.e. 2,709,072 + 90 = 2,709,162. The actual CI run on the pushed head must confirm these values; any deviation is re-anchored from the run's actual measured values per the documented protocol (same-PR, with the run/deployment evidence recorded).",
         "initialRawTotal": 224222,
         "initialGzipNormTotal": 70645,
-        "lazyRawTotal": 1241153,
-        "lazyGzipNormTotal": 373944,
-        "precacheBytesTotal": 2709273,
+        "lazyRawTotal": 1241042,
+        "lazyGzipNormTotal": 373925,
+        "precacheBytesTotal": 2709162,
         "swRuntimeRawTotal": 26405
       },
       "toolchain": {
@@ -75,9 +75,9 @@
       "measurements": {
         "initialRawTotal": 224222,
         "initialGzipNormTotal": 70645,
-        "lazyRawTotal": 1241153,
-        "lazyGzipNormTotal": 373944,
-        "precacheBytesTotal": 2709273,
+        "lazyRawTotal": 1241042,
+        "lazyGzipNormTotal": 373925,
+        "precacheBytesTotal": 2709162,
         "swRuntimeRawTotal": 26405
       },
       "counts": {
@@ -90,14 +90,14 @@
     },
     "github-actions": {
       "anchored": {
-        "head": "4c734716",
+        "head": "9d7d2aee",
         "date": "2026-10-28",
-        "method": "S04 candidate derived re-anchor (2026-10-28, code candidate head 4c734716, PR #383): github-actions record derived per the PROVEN environment-class derivation (proven across the S02 dual re-anchors and the S03 re-anchors on this exact repository and provider): lazy/initial/swRuntime records identical to the local measured anchor on the same code head; cloud precache = local + 90 (the sw.js hex-identity footprint), i.e. 2,709,183 + 90 = 2,709,273. The actual CI run on the pushed head must confirm these values; any deviation is re-anchored from the run's actual measured values per the documented protocol (same-PR, with the run/deployment evidence recorded).",
+        "method": "S04 final-candidate derived re-anchor (2026-10-28, code candidate head 9d7d2aee, PR #383): github-actions record derived per the PROVEN environment-class derivation: lazy/initial/swRuntime records identical to the local measured anchor on the same code head; cloud precache = local + 90 (the sw.js hex-identity footprint), i.e. 2,709,072 + 90 = 2,709,162. The actual CI run on the pushed head must confirm these values; any deviation is re-anchored from the run's actual measured values per the documented protocol (same-PR, with the run/deployment evidence recorded).",
         "initialRawTotal": 224222,
         "initialGzipNormTotal": 70645,
-        "lazyRawTotal": 1241153,
-        "lazyGzipNormTotal": 373944,
-        "precacheBytesTotal": 2709183,
+        "lazyRawTotal": 1241042,
+        "lazyGzipNormTotal": 373925,
+        "precacheBytesTotal": 2709072,
         "swRuntimeRawTotal": 26405
       },
       "toolchain": {
@@ -112,9 +112,9 @@
       "measurements": {
         "initialRawTotal": 224222,
         "initialGzipNormTotal": 70645,
-        "lazyRawTotal": 1241153,
-        "lazyGzipNormTotal": 373944,
-        "precacheBytesTotal": 2709183,
+        "lazyRawTotal": 1241042,
+        "lazyGzipNormTotal": 373925,
+        "precacheBytesTotal": 2709072,
         "swRuntimeRawTotal": 26405
       },
       "counts": {
