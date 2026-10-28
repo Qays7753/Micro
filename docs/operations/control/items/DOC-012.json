@@ -1,0 +1,126 @@
+{
+  "id": "DOC-012",
+  "title": "S03 بداية المشروع وبياناته وإعداداته الأساسية — تنفيذ UNIT-001/UNIT-038/UNIT-039",
+  "type": "FEATURE",
+  "status": "IN_PROGRESS",
+  "priority": "P0",
+  "stage": "micro-component-execution-s03-20261028",
+  "summary": "تنفيذ S03 على فرع التكامل الواحد وفق أمر 00-S03-EXECUTION-PROMPT-2026-10-28.md: بداية استخدام باسم المشروع وحده مع تفضيل عرض اختياري محايد (UNIT-001)، إعدادات منظمة بمصدر تفضيلات واحد دون PIN أو عملة أو وضع داكن (UNIT-038)، ومحرر اسم المشروع من مصدر الهوية نفسه داخل الإعدادات دون مشروع ثانٍ (UNIT-039).",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "UNVERIFIED",
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "root_cause": "مواصفات UNIT-001/038/039 المعتمدة (P3 بتاريخ 2026-10-27) لم تُنفذ بعد؛ الشاشات الحالية تطلب تفضيلات عامة تقاعدت (workMode العام، لوحة القدرات في المسار المعتاد، الوضع الداكن) وملف المالك صفحة مستقلة بمدخلات بلا غرض مثبت، وبداية الاستخدام بلا سؤال العرض الاختياري ولا خيار بدء التسجيل بعد الحفظ.",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "المالك أذن صراحة بالانتقال من S02 إلى S03 (2026-10-28) بناء على إعادة تحقق ZAI المكتملة (Phase A): لا مانع كودي، والبوابات البعيدة خضراء على الرأس الكامل نفسه، وسلسلة الفحوص المحلية خضراء؛ أُمر بالتنفيذ الفوري للمرحلة B دون انتظار مراجعة Manus منفصلة، ودون اختراع حكم Manus أو قبول باسم آخر. يبقى قبول S02 ومراجعتها المستقلة مسؤولية Manus/المالك ولا يدعي هذا التنفيذ شيئًا منها.",
+  "tests_required": [
+    "python3 scripts/operations-control/validate.py",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "node scripts/check-doc-index-coverage.mjs",
+    "node scripts/check-current-state-size.mjs",
+    "node scripts/check-agent-document-contract.mjs",
+    "git diff --check",
+    "ZAI S03 execution contract: five sequential read-only reviewers on the exact candidate SHA",
+    "pnpm check (full chain) on the exact final candidate SHA"
+  ],
+  "layers": [
+    "application",
+    "storage",
+    "domain",
+    "ui-runtime",
+    "documentation",
+    "governance"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S03-EXECUTION-PROMPT-2026-10-28.md",
+    "discovered_at_sha": "015c2d6c3bf12c458ef42339d6b1ad0859fa7076",
+    "evidence": [
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-001-إعداد-المشروع.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-038-الإعدادات.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-039-بيانات-المشروع-والمالك.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+      "docs/implementation/micro-component-execution/07-S02-RESULT-2026-10-27.md"
+    ]
+  },
+  "acceptance": [
+    "البداية باسم المشروع وحده مع تفضيل عرض اختياري محايد (منتجات/خدمات/كلاهما أو غير محدد) من مصدر 038 الواحد، دون أي أثر مالي أو محفظة أو PIN من الإعداد.",
+    "نجاح الهوية مع فشل التفضيل الاختياري يُعلن صادقًا كنتيجة جزئية دون إعادة إنشاء الهوية؛ والنتيجة المجهولة تُحسم بقراءة الحالة الحية قبل أي إعادة.",
+    "بعد الحفظ خيار صريح لبدء التسجيل (مدخل بيانات البداية القائم لدى 002/EXE-014) أو الوصول للمهمة دون إلزام مالي.",
+    "الإعدادات منظمة بمجموعات واضحة: بيانات المشروع (039 + مدخل بيانات البداية)، تفضيلات الاستخدام (نوع ما يقدمه + تتبع الوقت)، البيانات والنسخ الاحتياطي (044)، الصيانة والخيارات المتقدمة (033/المسح المحروس)؛ دون لوحات تحذير دائمة على رأس الصفحة.",
+    "لا إعداد حساب أو PIN أو عملة أو وضع داكن أو طبقة أو مشاركة جديدة؛ الوضع الفاتح هو المعتمد وقيمة theme القديمة المستوردة تُحفظ مع بياناتها دون أن تغير العرض.",
+    "تفضيل واحد لكل حقل يُحدَّث جزئيًا عبر بوابة الدمج دون إسقاط حقول أخرى؛ فشل الحفظ يبقي القيمة السابقة معلومة والاختيار محفوظًا لإعادة المحاولة.",
+    "محرر اسم المشروع داخل الإعدادات من مصدر الهوية نفسه: التعديل يحفظ projectId وcreatedAt والعلاقات والمعنى المالي والتاريخ، مع حفظ/إلغاء واضحين وتعارض معلن عند التعديل المتزامن دون سحق الأحدث.",
+    "المسار القديم /profile وتسمية الحساب يتحولان إلى وجهة بيانات المشروع نفسها دون نموذج ملف ثانٍ؛ بيانات المالك القديمة محفوظة ولا يُطلب بريد أو اسم بلا غرض مثبت.",
+    "المخطط 38 والتصدير 30 وصيغة الاستيراد بلا تغيير؛ الحقل الدائم الجديد (offeringPreference) اختياري محايد داخل سجل التفضيلات القائم مع تحقق وارد صريح وتوافق المهايئين.",
+    "Memory/IndexedDB parity لكل عقد دائم تغير؛ واختبارات تركيز للقبول أعلاه وارجعات S02 (الاستبدال المحروس، النسخة الرجوع، الجيل، غياب القفل) تبقى خضراء."
+  ],
+  "areas": [
+    "apps/prototype-web/client/src/pages/Setup.tsx",
+    "apps/prototype-web/client/src/pages/Settings.tsx",
+    "apps/prototype-web/client/src/pages/Profile.tsx",
+    "apps/prototype-web/client/src/application/profile/profileService.ts",
+    "apps/prototype-web/client/src/application/preferences/preferenceService.ts",
+    "apps/prototype-web/client/src/application/preferences/updateLocalPreferences.ts",
+    "apps/prototype-web/client/src/storage/local/types.ts",
+    "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+    "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+    "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts",
+    "apps/prototype-web/client/src/app/MicroRouter.tsx",
+    "apps/prototype-web/client/src/app/navigationContract.ts",
+    "apps/prototype-web/client/src/contexts/ThemeContext.tsx",
+    "docs/operations/control/items/DOC-012.json",
+    "docs/operations/control/workstreams/WS-228.json"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S03-EXECUTION-PROMPT-2026-10-28.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-001-إعداد-المشروع.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-038-الإعدادات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-039-بيانات-المشروع-والمالك.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S03-EXECUTION-PROMPT-2026-10-28.md",
+    "docs/implementation/micro-component-execution/07-S02-RESULT-2026-10-27.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "dependencies": [
+    "DOC-011"
+  ],
+  "related_items": [
+    "DOC-011",
+    "DOC-010"
+  ],
+  "updated_at": "2026-10-28",
+  "status_history": [
+    {
+      "status": "BACKLOG",
+      "changed_at": "2026-10-28",
+      "actor": "manus-s03-prompt-publication",
+      "reason": "أمر S03 منشور على الفرع (00c2c596) كمرجع مشروط؛ لا تنفيذ قبل إغلاق بوابة S02."
+    },
+    {
+      "status": "READY",
+      "changed_at": "2026-10-28",
+      "actor": "owner-authorized-s03",
+      "reason": "المالك أذن صراحة بالانتقال من S02 إلى S03 (2026-10-28) بناء على إعادة تحقق ZAI المكتملة (المرحلة A من أمر S03 عند الرأس 015c2d6c): لا مانع كودي مفتوح، والبوابات البعيدة خضراء على الرأس نفسه، والسلسلة المحلية خضراء، وكان المانع المسجل الوحيد هو غياب إذن الانتقال الموثق. الإذن مسجل بأمانة في سجلات المراحل؛ مراجعة Manus المستقلة لـS02 لم تحدث ولا يُدعى غير ذلك، ودون انتظارها بناء على أمر المالك."
+    },
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-28",
+      "actor": "zai-s03-execution",
+      "reason": "استلم ZAI أمر S03 المأذون وبدأ التنفيذ على فرع التكامل وPR #383 من رأس 015c2d6c."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-28",
+      "actor": "zai-s03-execution",
+      "reason": "بدأ تنفيذ S03 (UNIT-001/038/039) على فرع التكامل وPR #383 من رأس 015c2d6c بكاتب واحد وخمسة مراجعين تخصصيين قراءة-فقط بعد نقطة التحقق."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "تنفيذ S03 جارٍ على components/integration-20261027 / PR #383 من 015c2d6c؛ عند الاكتمال: سجل النتيجة 08-S03-RESULT-2026-10-28.md والفحوص الكاملة والمراجعات الخمس ثم IN_REVIEW بانتظار مراجعة Manus المستقلة وقبول المالك؛ لا merge ولا cleanup ولا S04."
+}

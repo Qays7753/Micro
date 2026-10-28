@@ -1,0 +1,63 @@
+{
+  "id": "WS-228",
+  "title": "تنفيذ S03 — بداية المشروع وبياناته وإعداداته الأساسية (UNIT-001/038/039)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-012"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "015c2d6c3bf12c458ef42339d6b1ad0859fa7076",
+  "areas": [
+    "apps/prototype-web/client/src/pages/Setup.tsx",
+    "apps/prototype-web/client/src/pages/Settings.tsx",
+    "apps/prototype-web/client/src/application/profile/profileService.ts",
+    "apps/prototype-web/client/src/application/preferences/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/app/",
+    "docs/operations/control/items/DOC-012.json",
+    "docs/operations/control/workstreams/WS-228.json",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S03-EXECUTION-PROMPT-2026-10-28.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-001-إعداد-المشروع.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-038-الإعدادات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-039-بيانات-المشروع-والمالك.md"
+  ],
+  "agent": "ZAI sole product-code writer using one sequential writer and five sequential read-only reviewers; Manus remains the independent reviewer for stage acceptance; no ChatGPT gate",
+  "pr": 383,
+  "started_at": "2026-10-28",
+  "updated_at": "2026-10-28",
+  "next_action": "تنفيذ S03 على الفرع والـPR نفسيهما من رأس 015c2d6c بعد إذن انتقال المالك الموثق؛ التسليم: سجل نتيجة، فحوص كاملة على الرأس النهائي، مراجعات خمس، وتحديث PR #383؛ لا merge ولا cleanup ولا S04.",
+  "notes": [
+    "إذن انتقال المالك من S02 إلى S03 مسجل بأمانة بتاريخ 2026-10-28 بناء على إعادة تحقق المرحلة A؛ لم تُراجع S02 من Manus بعد ولا يُدعى ذلك، ودون حالة enum جديدة.",
+    "GitHub هو مصدر التنفيذ الوحيد؛ Drive provenance فقط.",
+    "لا تغيير Schema 38 أو Export 30 أو صيغة الاستيراد أو القرارات المالية أو سياسة CI؛ الحقل الدائم الجديد اختياري داخل سجل قائم مع تحقق وارد.",
+    "لا main write، merge، branch cleanup، S04، أو structural refactoring."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S03-EXECUTION-PROMPT-2026-10-28.md",
+    "docs/implementation/micro-component-execution/07-S02-RESULT-2026-10-27.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-28",
+      "actor": "owner-authorized-s03",
+      "reason": "المالك أذن صراحة ببدء S03 بعد إعادة تحقق S02 الكاملة (Phase A)؛ الإذن موثق في سجل المراحل وسجل الحالة."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-28",
+      "actor": "zai-s03-execution",
+      "reason": "تنفيذ S03 جارٍ على فرع التكامل وPR #383 من رأس 015c2d6c."
+    }
+  ],
+  "migration_baseline": false
+}
