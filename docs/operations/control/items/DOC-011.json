@@ -118,5 +118,5 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "تم تسجيل OWNER_ACCEPTED للـGHSA-gcqx-w48m-w2h4 في سجل الاستثناء الأمني بتاريخ 2026-10-28؛ المطلوب الآن commit موسوم S02 ثم إعادة التحقق المزدوج على الرأس الكامل نفسه (GitHub Actions وCloudflare Pages). لا merge أو S03."
+  "next_action": "تم تسجيل OWNER_ACCEPTED للـGHSA-gcqx-w48m-w2h4، ونجحت GitHub Actions وCloudflare Pages على الرأس 37804d4775bf0ef0c6f063fc4cca0c3959aa687d؛ الخطوة التالية مراجعة Manus المستقلة ثم قبول S02. لا merge أو S03."
 }

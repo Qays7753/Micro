@@ -1581,3 +1581,10 @@ Full verification gate 17/17 EXIT 0 on implementation head `469aba03` (root 919/
 - **Double diff:** Added the machine-readable row to `docs/quality/security-exception-register.json` and the prose mirror to `docs/quality/security-exceptions.md`; the checker remains non-silent and fail-closed for unknown/rejected/stale conditions.
 - **Scope:** No application code, dependency version, lockfile, CI policy, guard threshold, schema 38, Export 30, import wire format, financial behavior, main write, merge, cleanup, or S03.
 - **Next gate:** commit the decision on `components/integration-20261027` / PR #383, then obtain GitHub Actions and Cloudflare Pages PASS on the exact same full SHA. S02 remains `REVIEW_REQUIRED` until Manus review and owner acceptance of the stage, separate from the security-exception decision.
+
+
+## Entry 139 — 2026-10-28 — S02 exact-head remote gates passed
+- **Verified head:** `37804d4775bf0ef0c6f063fc4cca0c3959aa687d` after the owner-accepted advisory record.
+- **Remote evidence:** GitHub Actions run `40645300172` and Cloudflare Pages deployment `69777933-e798-4450-be31-5062affefeec` both PASS on the exact same full SHA.
+- **Status:** S02 remains `REVIEW_REQUIRED`; the security exception decision is recorded, but Manus independent review and explicit owner acceptance of the stage remain separate gates.
+- **Forbidden:** no main write, merge, cleanup, S03, or claim of merge readiness.

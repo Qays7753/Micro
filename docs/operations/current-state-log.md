@@ -2720,3 +2720,8 @@ ZAI نفّذ S02 كاملًا على `components/integration-20261027` / PR #383
 قبل مالك Micro استثناءً أمنيًا موثقًا ومحدودًا للمكتشف `GHSA-gcqx-w48m-w2h4` (low، `deepmerge@4.3.1`، dev-only عبر `vite-plugin-pwa@1.3.0 → workbox-build@7.4.1 → @rollup/plugin-node-resolve@16.0.3`) بعد توثيق عدم وجود نسخة upstream مرقّعة أو مسار ترقية يزيل السلسلة. أضيف الصف إلى `docs/quality/security-exception-register.json` ومرآته `docs/quality/security-exceptions.md`؛ سيطبع الفاحص إشعارًا صريحًا في كل تشغيل، ويعيد الحجب فورًا إذا تغيرت الحالة أو عادت السلسلة خارج الحدود. لا تغيير في كود التطبيق أو CI policy أو Schema 38/Export 30/import wire أو الأثر المالي.
 
 الحالة الحالية: `DOC-011/WS-227` ما زالت `REVIEW_REQUIRED`؛ الفعل التالي commit موسوم S02 ثم إعادة التحقق المزدوج على الرأس الكامل نفسه عبر GitHub Actions وCloudflare Pages. لا merge ولا cleanup ولا S03.
+
+
+## 2026-10-28 — S02 exact-head remote gates passed after owner exception
+
+بعد تسجيل `OWNER_ACCEPTED` للمكتشف `GHSA-gcqx-w48m-w2h4` في commit `37804d4775bf0ef0c6f063fc4cca0c3959aa687d`، نجحت GitHub Actions (run `40645300172`) وCloudflare Pages (deployment `69777933-e798-4450-be31-5062affefeec`) على الرأس الكامل نفسه. هذا يثبت عبور بوابة التدقيق القائمة دون تغيير سياسة CI، ولا يساوي قبول S02 أو إذن الدمج. الفعل التالي مراجعة Manus المستقلة ثم قبول المالك؛ لا main write ولا merge ولا cleanup ولا S03.
