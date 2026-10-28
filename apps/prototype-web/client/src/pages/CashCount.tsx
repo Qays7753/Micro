@@ -77,7 +77,9 @@ export default function CashCount() {
     };
   }, [cashContinuity, dataVersion, retryCount]);
 
-  if (state.phase === "loading")
+  /* الخدمة تُحمَّل ديناميكيًا بعد الإقلاع (نمط transfers/loans) — null يعني
+   * «جارٍ التجهيز»: بوابة عرض صادقة بلا رسالة خطأ كاذبة ولا زر معطّل غامض. */
+  if (state.phase === "loading" || !cashCount)
     return (
       <div className="micro-route-loading" role="status">
         جارٍ تجهيز العدّ…
@@ -112,12 +114,6 @@ export default function CashCount() {
 
   /* حارس المدخلات يستدعي نفس المسار: النجاح يرجع true ليكتمل الخروج بعد الحفظ. */
   async function submit(): Promise<boolean> {
-    /* الخدمة تُحمَّل ديناميكيًا بعد الإقلاع (نمط transfers/loans) — null يعني
-     * «جارٍ التجهيز»: رسالة صادقة بلا كتابة ولا التهام الفعل. */
-    if (!cashCount) {
-      setMessage({ text: "جارٍ تجهيز العدّ — لحظة ثم أعد المحاولة.", tone: "error" });
-      return false;
-    }
     if (!wallet) {
       setMessage({ text: "اختر مكان النقد الذي تعدّه.", tone: "error" });
       return false;
@@ -130,7 +126,7 @@ export default function CashCount() {
     if (referenceUnknown) {
       setSaving(true);
       setMessage(null);
-      const result = await cashCount.recordCashCount({
+      const result = await cashCount!.recordCashCount({
         walletId: wallet.id,
         countedMinor,
         knowledge: "known",
@@ -164,7 +160,7 @@ export default function CashCount() {
     }
     setSaving(true);
     setMessage(null);
-    const result = await cashCount.recordCashCount({
+    const result = await cashCount!.recordCashCount({
       walletId: wallet.id,
       countedMinor,
       knowledge: "known",

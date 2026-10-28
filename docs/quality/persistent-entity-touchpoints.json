@@ -667,7 +667,8 @@
         "indexeddb"
       ],
       "adapterTests": [
-        "apps/prototype-web/client/src/application/cash/cashObservation.s04.test.ts"
+        "apps/prototype-web/client/src/application/cash/cashObservation.s04.test.ts",
+        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.balanceObservation.test.ts"
       ],
       "transferTests": [
         "apps/prototype-web/client/src/application/cash/cashObservation.s04.test.ts"
