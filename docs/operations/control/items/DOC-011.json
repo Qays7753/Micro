@@ -118,5 +118,5 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "التسليم محجوب عند حلقة التحقق البعيد الأخيرة بانتظار قرار المالك على مكتشف GHSA-gcqx-w48m-w2h4 (deepmerge، dev-only، لا نسخة مرقّعة): استثناء OWNER_ACCEPTED موثق أو نسخة مرقّعة من المنبع، ثم commit موسوم S02 وإعادة التحقق المزدوج؛ وبالتوازي مراجعة Manus للمرشح. التفاصيل في 07-S02-RESULT-2026-10-27.md قسم 4-ب."
+  "next_action": "تم تسجيل OWNER_ACCEPTED للـGHSA-gcqx-w48m-w2h4 في سجل الاستثناء الأمني بتاريخ 2026-10-28؛ المطلوب الآن commit موسوم S02 ثم إعادة التحقق المزدوج على الرأس الكامل نفسه (GitHub Actions وCloudflare Pages). لا merge أو S03."
 }

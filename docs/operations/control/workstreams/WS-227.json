@@ -31,8 +31,8 @@
   "agent": "Manus orchestration/review; ZAI sole product-code writer using one sequential writer and five sequential read-only reviewers; no ChatGPT gate",
   "pr": 383,
   "started_at": "2026-10-27",
-  "updated_at": "2026-10-27",
-  "next_action": "قرار المالك على مانع التحقق البعيد الأخير: مكتشف طرف ثالث جديد GHSA-gcqx-w48m-w2h4 (low، dev-only عبر vite-plugin-pwa→workbox-build→@rollup/plugin-node-resolve→deepmerge 4.3.1، لا نسخة مرقّعة) يحجب خطوة تدقيق الاعتماديات في CI — إما صف OWNER_ACCEPTED في docs/quality/security-exception-register.json (سابقة braces الموثقة) أو انتظار نسخة مرقّعة؛ بعدها commit موسوم S02 وإعادة التحقق المزدوج على الرأس الكامل. بالتوازي: مراجعة Manus للمرشح الكودي 328d986e (Cloudflare Pages أخضر عليه؛ CI أخضر حتى الأسطح قبل إعادة الإرساء). لا merge ولا cleanup ولا S03.",
+  "updated_at": "2026-10-28",
+  "next_action": "قرار المالك سُجل: OWNER_ACCEPTED للـGHSA-gcqx-w48m-w2h4 (deepmerge، dev-only، لا نسخة مرقّعة). الخطوة التالية commit موسوم S02 ثم إعادة التحقق المزدوج على الرأس الكامل نفسه؛ لا merge ولا cleanup ولا S03 قبل مراجعة Manus والقبول.",
   "notes": [
     "GitHub هو مصدر التنفيذ الوحيد؛ Drive provenance فقط ولا وصول Drive مطلوب من ZAI.",
     "آخر UNIT-042 وUNIT-044 في Drive متساويان دلاليًا مع نسخ GitHub بعد تطبيع أهداف الروابط؛ لا توجد متطلبات أحدث مفقودة.",
