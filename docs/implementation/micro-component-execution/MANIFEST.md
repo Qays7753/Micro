@@ -123,6 +123,7 @@
 | `00-S03-EXECUTION-PROMPT-2026-10-28.md` | أمر S03 الأساسي لـZAI؛ UNIT-001/038/039؛ خمس مراجعات قراءة-فقط | `EXECUTED 2026-10-28` (البوابة أُغلقت بإذن المالك الموثق) |
 | `08-S03-RESULT-2026-10-28.md` | نتيجة تنفيذ S03 ومصفوفة القبول والمراجعات الخمس | `DELIVERED_FOR_REVIEW` |
 | `DOC-012.json` / `WS-228.json` | Control وWorkstream لتنفيذ S03 | `IN_REVIEW` بعد التسليم |
+| `00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md` | أمر ZAI الكنسي: إصلاح تزامن تفضيلات S03 ثم تنفيذ S04؛ نفس الفرع وPR؛ لا main ولا merge | `READY_FOR_ZAI — OWNER_AUTHORIZED` |
 
 
 

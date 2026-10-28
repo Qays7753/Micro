@@ -287,7 +287,7 @@
 | `docs/operations/control/items/DOC-009.json` | سجل Control لمواصفة ومراجعة اعتماد UNIT-002 |
 | `docs/operations/control/workstreams/WS-225.json` | Workstream مراجعة UNIT-002 على فرع التكامل؛ لا Claim تنفيذ نشط |
 
-## برنامج تنفيذ مكونات Micro — S01–S03
+## برنامج تنفيذ مكونات Micro — S01–S04
 | الملف | الدور |
 |---|---|
 | `docs/implementation/micro-component-execution/00-S01-APPROVED-TASK-2026-10-27.md` | تكليف S01 المعتمد وحدود الكتابة والتوقف؛ لا أمر ZAI |
@@ -307,6 +307,7 @@
 | `docs/implementation/micro-component-execution/08-S03-RESULT-2026-10-28.md` | نتيجة تنفيذ S03 ومصفوفة القبول العشرة والمراجعات الخمس وحد التراجع — تسليم للمراجعة |
 | `docs/operations/control/items/DOC-012.json` | سجل Control لـS03 |
 | `docs/operations/control/workstreams/WS-228.json` | Workstream تنفيذ S03 على فرع التكامل |
+| `docs/implementation/micro-component-execution/00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md` | أمر ZAI الكنسي لإعادة تحقق وإصلاح تزامن S03 ثم تنفيذ S04 على الفرع وPR نفسيهما؛ لا دمج أو كتابة على main |
 
 ### تغطية ملفات الحزمة الأصلية
 
