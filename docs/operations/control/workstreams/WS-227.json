@@ -32,7 +32,7 @@
   "pr": 383,
   "started_at": "2026-10-27",
   "updated_at": "2026-10-28",
-  "next_action": "استثناء OWNER_ACCEPTED للـGHSA-gcqx-w48m-w2h4 مسجل؛ Actions وCloudflare Pages ناجحتان على الرأس 37804d4775bf0ef0c6f063fc4cca0c3959aa687d. الخطوة التالية مراجعة Manus المستقلة ثم قبول S02؛ لا merge ولا cleanup ولا S03.",
+  "next_action": "أُعيد التحقق من S02 (ZAI، 2026-10-28، Phase A من أمر S03): لا مانع كودي، والسجلات صُححت، وسلسلة pnpm check خضراء على الرأس الحي، والبوابات البعيدة ناجحة عبر 1d9a8378 (ودليل الرأس النهائي في تعليق PR). التالي مراجعة Manus المستقلة ثم قبول المالك؛ لا merge ولا cleanup ولا S03.",
   "notes": [
     "GitHub هو مصدر التنفيذ الوحيد؛ Drive provenance فقط ولا وصول Drive مطلوب من ZAI.",
     "آخر UNIT-042 وUNIT-044 في Drive متساويان دلاليًا مع نسخ GitHub بعد تطبيع أهداف الروابط؛ لا توجد متطلبات أحدث مفقودة.",

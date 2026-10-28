@@ -84,7 +84,7 @@
     "DOC-010",
     "DOC-009"
   ],
-  "updated_at": "2026-10-27",
+  "updated_at": "2026-10-28",
   "status_history": [
     {
       "status": "BACKLOG",
@@ -118,5 +118,5 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "تم تسجيل OWNER_ACCEPTED للـGHSA-gcqx-w48m-w2h4، ونجحت GitHub Actions وCloudflare Pages على الرأس 37804d4775bf0ef0c6f063fc4cca0c3959aa687d؛ الخطوة التالية مراجعة Manus المستقلة ثم قبول S02. لا merge أو S03."
+  "next_action": "أُعيد التحقق من S02 من ZAI (2026-10-28، Phase A من أمر S03): لا مانع كودي مفتوح، والاستثناء متسق، وسلسلة pnpm check خضراء على الرأس الحي، والبوابات البعيدة ناجحة عبر 1d9a8378 (ودليل الرأس النهائي في تعليق PR). الخطوة التالية مراجعة Manus المستقلة ثم قبول المالك؛ لا merge ولا cleanup ولا S03."
 }
