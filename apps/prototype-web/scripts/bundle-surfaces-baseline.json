@@ -92,12 +92,12 @@
       "anchored": {
         "head": "9d7d2aee",
         "date": "2026-10-28",
-        "method": "S04 final-candidate derived re-anchor (2026-10-28, code candidate head 9d7d2aee, PR #383): github-actions record derived per the PROVEN environment-class derivation: lazy/initial/swRuntime records identical to the local measured anchor on the same code head; cloud precache = local + 90 (the sw.js hex-identity footprint), i.e. 2,709,072 + 90 = 2,709,162. The actual CI run on the pushed head must confirm these values; any deviation is re-anchored from the run's actual measured values per the documented protocol (same-PR, with the run/deployment evidence recorded).",
+        "method": "S04 final-candidate derived re-anchor (2026-10-28, code candidate head 9d7d2aee, PR #383; corrected same day): github-actions record derived per the PROVEN environment-class derivation: lazy/initial/swRuntime records identical to the local measured anchor on the same code head; precache = local + 90 (the sw.js hex-identity footprint), i.e. 2,709,072 + 90 = 2,709,162 — CONFIRMED by the actual CI run 40775472900 on the pushed head 73f08348 measuring exactly 2,709,162 (the initial re-anchor had wrongly pinned the local value here; this correction re-anchors from the run's actual measured values per the documented protocol, same-PR, with the run evidence recorded).",
         "initialRawTotal": 224222,
         "initialGzipNormTotal": 70645,
         "lazyRawTotal": 1241042,
         "lazyGzipNormTotal": 373925,
-        "precacheBytesTotal": 2709072,
+        "precacheBytesTotal": 2709162,
         "swRuntimeRawTotal": 26405
       },
       "toolchain": {
@@ -114,7 +114,7 @@
         "initialGzipNormTotal": 70645,
         "lazyRawTotal": 1241042,
         "lazyGzipNormTotal": 373925,
-        "precacheBytesTotal": 2709072,
+        "precacheBytesTotal": 2709162,
         "swRuntimeRawTotal": 26405
       },
       "counts": {
