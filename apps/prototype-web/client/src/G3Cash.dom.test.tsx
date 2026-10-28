@@ -82,6 +82,22 @@ describe("G3 hardening — cash transfer journey (page → service → store)", 
     vi.clearAllMocks();
   });
 
+  /* S04 (DOC-013 / UNIT-023 R02/R03): المصدر والوجهة قرار صريح — لا اختيار
+   * تلقائي لأول مكانين؛ الاختبارات تختار «درج → حساب بنكي» كما يفعل المالك. */
+  function selectTransferWallets() {
+    const fromSelect = screen.getByLabelText("من محفظة") as HTMLSelectElement;
+    const fromOption = Array.from(fromSelect.querySelectorAll("option")).find(
+      option => option.value && option.textContent?.includes("درج"),
+    );
+    const toSelect = screen.getByLabelText("إلى محفظة") as HTMLSelectElement;
+    const toOption = Array.from(toSelect.querySelectorAll("option")).find(
+      option => option.value && option.textContent?.includes("حساب بنكي"),
+    );
+    if (!fromOption || !toOption) throw new Error("transfer wallet options not found");
+    fireEvent.change(fromSelect, { target: { value: fromOption.value } });
+    fireEvent.change(toSelect, { target: { value: toOption.value } });
+  }
+
   it("successful transfer: one operation, mirror pair of entries, total cash unchanged, wallet balances move", async () => {
     await openTwoWallets();
     mockedUsePrototypeServices.mockImplementation(
@@ -89,6 +105,7 @@ describe("G3 hardening — cash transfer journey (page → service → store)", 
     );
     render(<Harness page={<CashTransferEditor />} />);
     await screen.findByRole("heading", { name: "حوّل كاشًا بين محافظك" });
+    selectTransferWallets();
 
     fireEvent.change(screen.getByLabelText("مبلغ التحويل"), { target: { value: "25.00" } });
     fireEvent.change(screen.getByPlaceholderText("مثال: أودعت كاش الدرج في الحساب البنكي"), {
@@ -122,6 +139,7 @@ describe("G3 hardening — cash transfer journey (page → service → store)", 
     await screen.findByRole("heading", { name: "حوّل كاشًا بين محافظك" });
 
     /* مبلغ بلا بيان: الرفض بلا كتابة. */
+    selectTransferWallets();
     fireEvent.change(screen.getByLabelText("مبلغ التحويل"), { target: { value: "25.00" } });
     fireEvent.click(screen.getByRole("button", { name: "حفظ التحويل" }));
     const error = await screen.findByRole("alert");
@@ -141,6 +159,7 @@ describe("G3 hardening — cash transfer journey (page → service → store)", 
     render(<Harness page={<CashTransferEditor />} />);
     await screen.findByRole("heading", { name: "حوّل كاشًا بين محافظك" });
 
+    selectTransferWallets();
     fireEvent.change(screen.getByLabelText("مبلغ التحويل"), { target: { value: "10.00" } });
     fireEvent.change(screen.getByPlaceholderText("مثال: أودعت كاش الدرج في الحساب البنكي"), {
       target: { value: "نقر مزدوج" },

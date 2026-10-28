@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { updateLocalPreferences } from "./updateLocalPreferences";
 import { PreferenceService } from "./preferenceService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
-import type { PrototypeLocalStore } from "@/storage/local/types";
+import type { LocalPreferences, PrototypeLocalStore } from "@/storage/local/types";
 
 /* S03 revalidation (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28 §A1):
  * إثبات/نفي عيب الكتابة المتزامنة لسجل التفضيلات — كاتبان يقرآن النسخة
@@ -86,7 +86,7 @@ describe("S03 revalidation — concurrent preference writers through the unified
     ): Promise<void> {
       if (!snapshot.ok) throw new Error("read failed");
       const merged = {
-        ...(snapshot.value ?? ({} as NonNullable<PreferencesReading["value"]>)),
+        ...(snapshot.value ?? ({} as LocalPreferences)),
         ...patch,
         id: "local-preferences" as const,
         updatedAt: NOW,
