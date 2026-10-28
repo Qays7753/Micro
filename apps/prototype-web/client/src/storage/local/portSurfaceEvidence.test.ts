@@ -45,8 +45,8 @@
  *  2) محوّلا التخزين (IndexedDbLocalStore وMemoryLocalStore) يعرضان على
  *     نماذجهما بالضبط الأسماء الـ140 ذاتها — مطابقة السطح التنفيذية
  *     للعقد الكتابي (P-01/P-02 conformance).
- *  3) ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 38 و
- *     localExportVersion = 30 (محروسان بقرار مالك وdiff مزدوج — AGENTS §10).
+ *  3) ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 39 و
+ *     localExportVersion = 31 (محروسان بقرار مالك وdiff مزدوج — AGENTS §10).
  *  4) حدّ الذاكرة الموثق (P-02): كل نسخة MemoryLocalStore حالة مستقلة
  *     بلا أي استمرارية — أدلة اختبارية صريحة لحدود السطح الذاكي.
  *
@@ -277,9 +277,9 @@ describe("P-04 — أدلة سطح منفذ التخزين المحلي (OD-PRES
     );
   });
 
-  it("ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 38 وlocalExportVersion = 30", () => {
-    expect(localSchemaVersion).toBe(38);
-    expect(localExportVersion).toBe(30);
+  it("ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 39 وlocalExportVersion = 31", () => {
+    expect(localSchemaVersion).toBe(39);
+    expect(localExportVersion).toBe(31);
   });
 
   it("P-02 (حدّ موثق): كل نسخة MemoryLocalStore حالة مستقلة بلا استمرارية — النسخة الجديدة تبدأ فارغة", async () => {

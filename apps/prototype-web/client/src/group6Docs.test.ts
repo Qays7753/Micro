@@ -110,9 +110,9 @@ describe("governance consistency — Group 6 prevention implemented on the remed
     expect(section36).toContain("AGENTS.md");
   });
 
-  it("schema/export versions stay 38/30 (owner-approved FIN-001 WS-178) and the limits stay pinned between code and docs (no silent raise; gzip 155,300 per ADR-017 dated 2026-10-04)", () => {
-    expect(localSchemaVersion).toBe(38);
-    expect(localExportVersion).toBe(30);
+  it("schema/export versions stay 39/31 (S04/DOC-013 balance-observations; 38/30 was owner-approved FIN-001 WS-178) and the limits stay pinned between code and docs (no silent raise; gzip 155,300 per ADR-017 dated 2026-10-04)", () => {
+    expect(localSchemaVersion).toBe(39);
+    expect(localExportVersion).toBe(31);
     expect(RAW_BYTE_LIMIT).toBe(650_000);
     expect(GZIP_BYTE_LIMIT).toBe(155_300);
     const lintScript = rootPackageJson.scripts?.lint ?? "";
@@ -156,8 +156,8 @@ describe("governance consistency — Group 6 prevention implemented on the remed
     expect(rootVitestConfig).toContain("scripts/**/*.test.mjs");
   });
 
-  it("the persistent-entity manifest exists, covers all 38 stores (S02-A added restore-protection), and states its honest limits", () => {
-    expect(manifest.objectStores).toHaveLength(38);
+  it("the persistent-entity manifest exists, covers all 39 stores (S04 added balance-observations), and states its honest limits", () => {
+    expect(manifest.objectStores).toHaveLength(39);
     const notExported = manifest.objectStores.filter(entry => entry.snapshotField === null);
     /* S02-A (SH-02/SH-03): مخزن حماية الاستبدال المنفصل انضم للمستثنى من
      * التصدير — أدلة حماية محلية لا تغادر الجهاز أبدًا. */

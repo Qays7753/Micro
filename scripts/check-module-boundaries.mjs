@@ -251,6 +251,10 @@ export function collectAllImports(repoRoot, files) {
  * projectFinancialService.ts إلى بيته الشقيق projectFinancialInsights.ts — حافة
  * operatingBreakEven الموثقة D-034 نفسها (خارج حزمة الدخول عمدًا) انتقلت معها. */
 export const DEEP_DOMAIN_IMPORT_BASELINE = [
+  /* S04 (DOC-013، 2026-10-28): سياسة رصد الأرصدة تُحمَّل مع خدمة العدّ
+   * الديناميكية خارج حزمة الدخول — نفس علة D-034 الموثقة أعلاه؛ إرساء
+   * الحافة في نفس الـPR وفق البروتوكول. */
+  "apps/prototype-web/client/src/application/cash/cashCountService.ts -> @micro-domain/cash-continuity/observationPolicy.js",
   "apps/prototype-web/client/src/application/finance/integrityCheckSettlementBasis.ts -> @micro-domain/craft-order/settlementInvariant.js",
   "apps/prototype-web/client/src/application/finance/projectFinancialInsights.ts -> @micro-domain/financial-analysis/operatingBreakEven.js",
   "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts -> @micro-domain/financial-analysis/operatingBreakEven.js",

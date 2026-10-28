@@ -9,7 +9,7 @@ import { classifyAmbientTime, ROOT, APPROVED_ID_FALLBACK_SITES } from "./check-a
  * يثبت أن الحارس يمسك بكل ما يجب رفضه ويمرر ما هو معتمد — مع سلبيات
  * خصومية صريحة (تعليقات، نصوص، ||، مستقبل خاطئ، fallback خاطئ، متغيرات
  * معاد تسميتها، قراءات خارج العائلة، بناء محيط، ساعة أداء، مرجع بلا
- * نداء، فشل مغلق عند خطأ التحليل) وثبات الجرد الحي (21 موقعًا).
+ * نداء، فشل مغلق عند خطأ التحليل) وثبات الجرد الحي (22 موقعًا).
  *
  * ملاحظة بنيوية: في أشجار الاختبار المؤقتة تغيب الملفات المثبتة الـ21
  * كلها، فتظهر 21 خرق AT-stale-id-fallback-site حتمًا — الاختبارات تعزل
@@ -42,12 +42,12 @@ function withTree(build, run) {
 }
 
 describe("check-application-ambient-time (R11 W1b-3 / D-12 — OD-TIME)", () => {
-  it("الجرد الحي: صفر خرق؛ 21 منطقة معتمدة فيها 21 نداء معفى؛ منفذ ساعة واحد؛ التحليل الصريح مسموح", () => {
+  it("الجرد الحي: صفر خرق؛ 22 منطقة معتمدة فيها 22 نداء معفى؛ منفذ ساعة واحد؛ التحليل الصريح مسموح", () => {
     const { violations, stats } = classifyAmbientTime(ROOT);
     expect(violations).toEqual([]);
     expect(stats.files).toBeGreaterThan(100);
-    expect(stats.approvedIdFallbackRegions).toBe(21);
-    expect(stats.approvedDateNowCalls).toBe(21);
+    expect(stats.approvedIdFallbackRegions).toBe(22);
+    expect(stats.approvedDateNowCalls).toBe(22);
     expect(stats.clockBoundarySites).toBe(1);
     expect(stats.parseCalls).toBeGreaterThan(0);
   });

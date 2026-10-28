@@ -86,13 +86,15 @@ export const CLOCK_BOUNDARY_FILE = "application/time/clock.ts";
 export const CLOCK_BOUNDARY_SHAPE = "new Date().toISOString()";
 
 /**
- * الجرد المثبت للـ21 موقعًا المعتمدًا (قرار OD-TIME — لا يُعدَّل بصمت؛
+ * الجرد المثبت للـ22 موقعًا المعتمدًا (قرار OD-TIME — لا يُعدَّل بصمت؛
  * أي تغيير يتطلب إعادة إرساء موثقة في نفس الـPR مع مرجع مراجعة مالك).
  */
 export const APPROVED_ID_FALLBACK_SITES = [
   { file: "application/assets/assetService.ts", shape: "nullish" },
   { file: "application/budgets/expenseBudgetService.ts", shape: "nullish" },
   { file: "application/cash/cashContinuityService.ts", shape: "nullish" },
+  /* S04 (DOC-013، 2026-10-28): مساعد العهدة نفسه انتقل مع recordCashCount إلى خدمة العدّ المستقلة — إرساء بنفس الـPR. */
+  { file: "application/cash/cashCountService.ts", shape: "nullish" },
   { file: "application/catalog/catalogService.ts", shape: "ternary" },
   { file: "application/collections/collectionReversalService.ts", shape: "nullish" },
   { file: "application/cost/costService.ts", shape: "ternary" },
@@ -353,7 +355,7 @@ function main() {
     `application-ambient-time: PASS — ${stats.files} ملف إنتاج تطبيقي؛ ` +
       `${stats.approvedIdFallbackRegions} منطقة ID-fallback معتمدة فيها ${stats.approvedDateNowCalls} نداء Date.now() معفى؛ ` +
       `${stats.parseCalls} تحليلًا صريحًا (مسموح)؛ منفذ الساعة الموثق ${stats.clockBoundarySites} موقعًا؛ ` +
-      `صفر قراءة ساعة غير عائلية (ratشة OD-TIME على جرد 21 موقعًا: 17 شكل-أ + 4 شكل-ب)`,
+      `صفر قراءة ساعة غير عائلية (ratشة OD-TIME على جرد 22 موقعًا: 18 شكل-أ + 4 شكل-ب)`,
   );
 }
 

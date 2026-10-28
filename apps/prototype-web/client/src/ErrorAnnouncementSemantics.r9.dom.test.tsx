@@ -14,6 +14,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
+import { CashCountService } from "@/application/cash/cashCountService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import CashCount from "@/pages/CashCount";
@@ -47,6 +48,7 @@ const bumpVersion = vi.fn();
 function services() {
   return {
     cashContinuity: new CashContinuityService(store, () => NOW),
+    cashCount: new CashCountService(store, () => NOW),
     notifyDataChanged: bumpVersion,
     dataVersion: 0,
   };
@@ -165,7 +167,8 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
     expect(window).not.toContain('role="alert"');
     /* إرشاد «أنشئ محفظة أولًا» معلوماتي — يبقى status. */
     const cashCount = readFileSync(resolve(CLIENT_SRC, "pages/CashCount.tsx"), "utf8");
-    const emptyIndex = cashCount.indexOf("لا توجد محافظ بعد");
+    /* S04 (DOC-013 / UNIT-025): نص الفراغ الكنوني لأماكن النقد. */
+    const emptyIndex = cashCount.indexOf("لا توجد أماكن نقد بعد");
     expect(emptyIndex).toBeGreaterThan(-1);
     const emptyWindow = cashCount.slice(emptyIndex - 250, emptyIndex + 100);
     expect(emptyWindow).toContain('role="status"');
@@ -237,13 +240,15 @@ describe("R9-GA-F3.6 — mixed-tone announcement behavior (CashCount journey)", 
     const walletSelect = await screen.findByRole("combobox");
     fireEvent.change(walletSelect, { target: { value: opened.value.wallet.id } });
     /* عدّ مطابق للرصيد ⇒ معلومة status بفئة الملاحظة لا الخطأ. */
-    const counted = screen.getByLabelText("المبلغ المعدود");
+    const counted = screen.getByLabelText("المبلغ الموجود");
     fireEvent.change(counted, { target: { value: "100" } });
-    const settle = screen.getByRole("button", { name: "سجّل التسوية" });
+    /* S04 (UNIT-025 R09/AC08): التطابق «تم» — معلومة status بفئة الملاحظة
+     * لا الخطأ، ولا يُكتب شيء البتة. */
+    const settle = screen.getByRole("button", { name: "تم" });
     fireEvent.click(settle);
     const info = await screen.findByRole("status");
     expect(info.className).toContain("micro-save-note");
-    expect(info.textContent).toContain("العدّ يطابق الرصيد المسجل");
+    expect(info.textContent).toContain("المبلغ يطابق الرصيد المسجل");
     expect(screen.queryByRole("alert")).toBeNull();
   });
 });

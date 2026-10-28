@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { LocalTransferService } from "./localTransferService";
-import { localExportFormat, localSchemaVersion, type PrototypeLocalStore } from "@/storage/local/types";
+import {
+  localExportFormat,
+  localExportVersion,
+  localSchemaVersion,
+  type PrototypeLocalStore,
+} from "@/storage/local/types";
 import { exportCountsOf } from "./transferCounters";
 import { syncSha256Hex } from "@/lib/syncSha256";
 
@@ -18,7 +23,7 @@ const emptySnapshot = LocalTransferService.emptySnapshot();
 function envelope(data: unknown): string {
   return JSON.stringify({
     format: localExportFormat,
-    version: 30,
+    version: localExportVersion,
     schemaVersion: localSchemaVersion,
     exportedAt: "2026-10-28T10:00:00.000Z",
     data,

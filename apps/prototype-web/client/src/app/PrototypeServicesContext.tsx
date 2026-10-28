@@ -23,6 +23,9 @@ import { DeliveryReviewService } from "@/application/fulfillment/deliveryReviewS
  * النوع هنا فقط (import type) فلا يسحب الوحدة إلى حزمة الدخول. */
 import type { LocalTransferService } from "@/application/transfers/localTransferService";
 import type { GuidedOpeningImportService } from "@/application/transfers/guidedOpeningImportService";
+/* S04 (DOC-013): النوع هنا فقط (import type) فلا يسحب الوحدة إلى حزمة الدخول —
+ * التحميل ديناميكي أدناه (نمط transfers/loans نفسه). */
+import type { CashCountService } from "@/application/cash/cashCountService";
 import { PreferenceService } from "@/application/preferences/preferenceService";
 import { ProfileService } from "@/application/profile/profileService";
 import { OwnerProfileService } from "@/application/owner/ownerProfileService";
@@ -150,6 +153,10 @@ type PrototypeServices = {
    * الخامل: null يعني «جارٍ التجهيز» (نمط transfers) لا فشلًا صامتًا. */
   assets: AssetService;
   loans: LoanService | null;
+  /* S04 (DOC-013 / UNIT-025، سابقة EXE-014/D-034 نفسها): خدمة العدّ والمطابقة
+   * عبر التحميل الخامل — مسار العدّ لا يحتاجه الإقلاع وميزانية الحزمة محروسة
+   * بسقف مالك؛ null يعني «جارٍ التجهيز» (نمط transfers/loans) لا فشلًا صامتًا. */
+  cashCount: CashCountService | null;
   retainedDeposits: RetainedDepositService;
   dataVersion: number;
   notifyDataChanged: () => void;
@@ -215,6 +222,21 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       active = false;
     };
   }, []);
+  /* S04 (DOC-013 / UNIT-025، السابقة نفسها): خدمة العدّ والمطابقة تُحمَّل
+   * ديناميكيًا بعد الإقلاع — مسار العدّ لا يحتاجه الإقلاع، وميزانية الحزمة
+   * (سقف gzip المحروس بقرار مالك ADR-017) لا تتسع لتكديسه في حزمة الدخول؛
+   * تُبنى فوق المخزن الوحيد فور جاهزيتها ولا يُعاد بناؤها عند dataVersion. */
+  const [cashCountService, setCashCountService] = useState<CashCountService | null>(null);
+  useEffect(() => {
+    let active = true;
+    void import("@/application/cash/cashCountService").then(module => {
+      if (!active) return;
+      setCashCountService(new module.CashCountService(singletonStore));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   useEffect(() => {
     let active = true;
     void Promise.all([
@@ -258,10 +280,18 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       ...(transferServices ?? { transfers: null, guidedOpeningImport: null }),
       recurringExpenses: recurringExpenseService,
       loans: loanService,
+      cashCount: cashCountService,
       dataVersion,
       notifyDataChanged,
     }),
-    [transferServices, recurringExpenseService, loanService, dataVersion, notifyDataChanged],
+    [
+      transferServices,
+      recurringExpenseService,
+      loanService,
+      cashCountService,
+      dataVersion,
+      notifyDataChanged,
+    ],
   );
   return <PrototypeServicesContext.Provider value={services}>{children}</PrototypeServicesContext.Provider>;
 }
@@ -280,6 +310,7 @@ function createServices(): Omit<
   | "transferServices"
   | "recurringExpenses"
   | "loans"
+  | "cashCount"
 > {
   const store = singletonStore;
   const costs = new CostService(store);

@@ -12,8 +12,8 @@
  *   و`docs/decisions/` و`docs/research/` يجب أن يُذكر في الفهرس (بمساره أو
  *   باسم ملفه).
  * - قائمة REQUIRED_CANONICAL (أدناه) يجب أن تُذكر جميعًا — نواة السلطة.
- * - ثابت الزوج الحي «اليوم 38/30» يجب أن يبقى في الفهرس (مرتبط باختبار
- *   group6Docs).
+ * - ثابت الزوج الحي «اليوم 39/31» يجب أن يبقى في الفهرس (مرتبط باختبار
+ *   group6Docs) — رُقّي 38/30 -> 39/31 بترخيص S04 (DOC-013، 2026-10-28).
  *
  * الاستخدام: node scripts/check-doc-index-coverage.mjs [root]
  * الخروج: 0 = التغطية كاملة؛ 1 = أي ملف سلطوي بلا صف.
@@ -134,8 +134,8 @@ export function checkCoverage({ repoRoot = ROOT } = {}) {
       findings.push({ kind: "missing-canonical", path: file, message: `required canonical file not mentioned in ${INDEX_PATH}` });
     }
   }
-  if (!indexText.includes("اليوم 38/30")) {
-    findings.push({ kind: "pin", message: `pinned live pair string "اليوم 38/30" missing from ${INDEX_PATH}` });
+  if (!indexText.includes("اليوم 39/31")) {
+    findings.push({ kind: "pin", message: `pinned live pair string "اليوم 39/31" missing from ${INDEX_PATH}` });
   }
   return findings;
 }

@@ -11,6 +11,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
+import { CashCountService } from "@/application/cash/cashCountService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import CashTransferEditor from "@/pages/CashTransferEditor";
@@ -43,6 +44,7 @@ function Harness({ page }: { page: React.ReactNode }) {
   const [version, setVersion] = React.useState(0);
   contextRef.current = {
     cashContinuity: new CashContinuityService(store, () => NOW),
+    cashCount: new CashCountService(store, () => NOW),
     dataVersion: version,
     notifyDataChanged: () => setVersion(current => current + 1),
   };

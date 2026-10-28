@@ -47,8 +47,15 @@ describe("check-storage-listener-guards (R9-GA-F7.1 static guard)", () => {
      * نفسه؛ إعادة إرساء العدّ موثقة نفس-الـPR لا تعديلًا صامتًا.
      * S03 (UNIT-039/عقد §17، 2026-10-28): 79 -> 80 — مستمع onsuccess جديد
      * واحد في commitProfileRename (نفس بنية commitProfileCreate الحارسة)
-     * مغلّف بguardedSuccessListener نفسه؛ إعادة إرساء موثقة نفس-الـPR. */
-    expect(stdout).toMatch(/80 onsuccess listeners/);
+     * مغلّف بguardedSuccessListener نفسه؛ إعادة إرساء موثقة نفس-الـPR.
+     * S04 (DOC-013، 2026-10-28): 80 -> 85 — خمسة مستمعات onsuccess جديدة
+     * في حدود balance-observations (commitCashObservation والقراءة والكتابة)
+     * والفهارس) كلها بguardedSuccessListener الحارس نفسه؛ إعادة إرساء
+     * موثقة نفس-الـPR لا تعديلًا صامتًا.
+     * S04 (لاحق، DOC-013): 85 -> 84 — نواة قرار التزام الرصد المشتركة
+     * وحّدت قراءة القيود داخل commitCashObservation فصار مستمع واحد بدل
+     * اثنين (نفس الحارس)؛ إعادة إرساء موثقة نفس-الـPR. */
+    expect(stdout).toMatch(/84 onsuccess listeners/);
   });
 
   it("fails on an unguarded write-queueing onsuccess listener (the F7 family recurrence)", () => {

@@ -9,7 +9,7 @@
  *  1) الرفض بالحمولة الدقيقة (رمز + نص) لمفتاح واحد ولمفاتيح متعددة — بلا
  *     صدى لأسماء المفاتيح في الرسالة أبدًا.
  *  2) اشتقاق المجموعة المسموحة الإنتاجي مطابق لمفاتيح اللقطة الفارغة
- *     الكنونية (35 = 31 عائلة + 4 غير عائلية) — لا انجراف يدوي.
+ *     الكنونية (36 = 32 عائلة + 4 غير عائلية) — لا انجراف يدوي.
  *  3) كل مفاتيح المصدّر غير العائلية الصحيحة مقبولة، والذهبيان الحاليان
  *     وMANIFEST مقبولان كما كانا.
  *  4) كل زوج تراثي من الأزواج الـ24 الصادرة يبقى مقبولًا حتى مع مفتاح
@@ -100,12 +100,12 @@ async function liveExport(makeStore: () => MemoryLocalStore | IndexedDbLocalStor
 }
 
 describe("W2b — derivation parity of the production allowed set", () => {
-  it("the production allowed set equals the canonical empty-snapshot keys exactly (35 = 31 families + 4 non-family)", () => {
-    expect(ALLOWED_TOP_LEVEL_DATA_KEYS.size).toBe(35);
+  it("the production allowed set equals the canonical empty-snapshot keys exactly (36 = 32 families + 4 non-family)", () => {
+    expect(ALLOWED_TOP_LEVEL_DATA_KEYS.size).toBe(36);
     expect([...ALLOWED_TOP_LEVEL_DATA_KEYS].sort()).toEqual(
       Object.keys(LocalTransferService.emptySnapshot()).sort(),
     );
-    expect(Object.keys(TRANSFER_ARRAY_FAMILY_ROLES)).toHaveLength(31);
+    expect(Object.keys(TRANSFER_ARRAY_FAMILY_ROLES)).toHaveLength(32);
   });
 });
 

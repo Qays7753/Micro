@@ -153,7 +153,7 @@ export default function CashTransferEditor() {
         <label className="micro-field">
           <span>من محفظة</span>
           <select value={fromWalletId} onChange={event => setFromWalletId(event.target.value)}>
-            <option value="">اختر مكان المصدر</option>
+            <option value="">من محفظة</option>
             {wallets.map(wallet => (
               /* (إصلاح تكاملي — مجموعة ٤): نص خالص داخل option — bdi داخل option تعشيش مرفوض. */
               <option key={wallet.id} value={wallet.id}>
@@ -168,7 +168,7 @@ export default function CashTransferEditor() {
         <label className="micro-field">
           <span>إلى محفظة</span>
           <select value={toWalletId} onChange={event => setToWalletId(event.target.value)}>
-            <option value="">اختر مكان الوجهة</option>
+            <option value="">إلى محفظة</option>
             {wallets.map(wallet => (
               <option key={wallet.id} value={wallet.id}>
                 {wallet.name} ·{" "}

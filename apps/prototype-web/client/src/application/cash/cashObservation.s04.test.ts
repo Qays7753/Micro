@@ -1,6 +1,8 @@
 import "fake-indexeddb/auto";
 import { afterEach, describe, expect, it } from "vitest";
 import { CashContinuityService } from "./cashContinuityService";
+import { CashCountService } from "./cashCountService";
+
 import { IndexedDbLocalStore } from "@/storage/local/IndexedDbLocalStore";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { localExportVersion, localSchemaVersion, type PrototypeLocalStore } from "@/storage/local/types";
@@ -63,8 +65,9 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
   it("SDF-016: known ledger 100, counted 90 with explicit reconciliation → measurement 90 + linked settlement −10, never −20, and the observation is not a second movement", async () => {
     for (const { store } of adapters()) {
       const cash = new CashContinuityService(store, now);
+      const count = new CashCountService(store, now);
       const walletId = await openWalletWith(cash, 10000);
-      const result = await cash.recordCashCount({
+      const result = await count.recordCashCount({
         walletId,
         countedMinor: 9000,
         knowledge: "known",
@@ -98,9 +101,10 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
   it("SDF-015: unknown book balance with observation 90 → the measurement is saved alone; no difference against zero, no owner financing, no settlement, and a settle attempt is rejected honestly", async () => {
     for (const { store } of adapters()) {
       const cash = new CashContinuityService(store, now);
+      const count = new CashCountService(store, now);
       const walletId = await openWalletWith(cash, null);
       /* محاولة التسوية على مرجع مجهول تُرفض بصدق بلا أي كتابة. */
-      const rejected = await cash.recordCashCount({
+      const rejected = await count.recordCashCount({
         walletId,
         countedMinor: 9000,
         knowledge: "known",
@@ -112,7 +116,7 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
       const nothingWritten = await store.listBalanceObservations();
       expect(nothingWritten.ok && nothingWritten.value).toHaveLength(0);
       /* القياس وحده: يُحفظ بلا فرق مقابل صفر وبلا تمويل مالك. */
-      const result = await cash.recordCashCount({
+      const result = await count.recordCashCount({
         walletId,
         countedMinor: 9000,
         knowledge: "known",
@@ -138,8 +142,9 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
   it("a matching count writes nothing at all — no zero adjustment, no observation", async () => {
     for (const { store } of adapters()) {
       const cash = new CashContinuityService(store, now);
+      const count = new CashCountService(store, now);
       const walletId = await openWalletWith(cash, 10000);
-      const result = await cash.recordCashCount({
+      const result = await count.recordCashCount({
         walletId,
         countedMinor: 10000,
         knowledge: "known",
@@ -157,9 +162,10 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
   it("SDF-020: overlapping project-total 200 and wallet 80 observations never sum to 280 — scopes stay separate with no invented distribution", async () => {
     for (const { store } of adapters()) {
       const cash = new CashContinuityService(store, now);
+      const count = new CashCountService(store, now);
       /* محفظة مجهولة الافتتاح: رصد 80 يُحفظ قياسًا وحده (لا فرق مقابل صفر). */
       const walletId = await openWalletWith(cash, null);
-      const walletObserved = await cash.recordCashCount({
+      const walletObserved = await count.recordCashCount({
         walletId,
         countedMinor: 8000,
         knowledge: "known",
@@ -202,9 +208,10 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
   it("the measurement creates no cash and erases no movement — entries identical before and after an unknown-reference observation", async () => {
     for (const { store } of adapters()) {
       const cash = new CashContinuityService(store, now);
+      const count = new CashCountService(store, now);
       const walletId = await openWalletWith(cash, null);
       const beforeEntries = await store.listCashContinuityEntries();
-      await cash.recordCashCount({
+      await count.recordCashCount({
         walletId,
         countedMinor: 5000,
         knowledge: "known",
@@ -223,8 +230,9 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
   it("repeated identical command recovers the same observation once — no duplicate measurement or settlement", async () => {
     for (const { store } of adapters()) {
       const cash = new CashContinuityService(store, now);
+      const count = new CashCountService(store, now);
       const walletId = await openWalletWith(cash, 10000);
-      const first = await cash.recordCashCount({
+      const first = await count.recordCashCount({
         walletId,
         countedMinor: 9000,
         knowledge: "known",
@@ -233,7 +241,7 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
         operationKey: "s04-idempotent-count",
       });
       expect(first.ok && first.value.outcome).toBe("settled");
-      const repeat = await cash.recordCashCount({
+      const repeat = await count.recordCashCount({
         walletId,
         countedMinor: 9000,
         knowledge: "known",
@@ -254,6 +262,7 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
   it("SDF-001 (storage leg): JOD minor units are exact — 100.00 JOD opening is stored 10000 minor and settles with exact minor arithmetic", async () => {
     for (const { store } of adapters()) {
       const cash = new CashContinuityService(store, now);
+      const count = new CashCountService(store, now);
       const walletId = await openWalletWith(cash, 10000);
       const overview = await cash.overview();
       expect(overview.ok && overview.value.wallets[0]?.balanceMinor).toBe(10000);
@@ -276,8 +285,9 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
     expect(localExportVersion).toBe(31);
     for (const { store } of adapters()) {
       const cash = new CashContinuityService(store, now);
+      const count = new CashCountService(store, now);
       const walletId = await openWalletWith(cash, null);
-      await cash.recordCashCount({
+      await count.recordCashCount({
         walletId,
         countedMinor: 7000,
         knowledge: "known",
@@ -308,6 +318,7 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
   it("unknown-outcome honesty: a settlement whose live reference changed is rejected with no write — recovery is a fresh count", async () => {
     for (const { store } of adapters()) {
       const cash = new CashContinuityService(store, now);
+      const count = new CashCountService(store, now);
       const walletId = await openWalletWith(cash, 10000);
       /* كاتب آخر يغيّر رصيد المحفظة بين قراءة الخدمة (المرجع 10000) وحدّ
        * الالتزام — الحقن حتمي: القراءة تعيد اللقطة القديمة ويُلتزم التحويل
@@ -334,7 +345,8 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
         commitCashObservation: store.commitCashObservation.bind(store),
       } as unknown as PrototypeLocalStore;
       const racing = new CashContinuityService(interleaved, now);
-      const conflicted = await racing.recordCashCount({
+      const racingCount = new CashCountService(interleaved, now);
+      const conflicted = await racingCount.recordCashCount({
         walletId,
         countedMinor: 9000,
         knowledge: "known",

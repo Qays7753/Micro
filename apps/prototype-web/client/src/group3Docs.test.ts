@@ -37,8 +37,8 @@ describe("documentation consistency — Group 3 implemented on the remediation b
   it("schema and export versions match the code constants (38/30 after FIN-001 WS-178; the 35/27 statement stays as Group 3 history)", () => {
     const section32 = currentState.split("## §32.")[1] ?? "";
     expect(section32).toContain("٣٥ / ٢٧ بلا تغيير");
-    expect(String(localSchemaVersion)).toBe("38");
-    expect(String(localExportVersion)).toBe("30");
+    expect(String(localSchemaVersion)).toBe("39");
+    expect(String(localExportVersion)).toBe("31");
   });
 
   it("todo marks Group 3 done on the branch and pending merge — not merged", () => {

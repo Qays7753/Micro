@@ -39,7 +39,7 @@ export default function CashCount() {
   const [, navigate] = useLocation();
   /* المجموعة ١ (Scope A): الرجوع للمصدر (?from) أو أماكن النقد كبديل قانوني. */
   const returnPath = useReturnPath();
-  const { cashContinuity, dataVersion, notifyDataChanged } = usePrototypeServices();
+  const { cashContinuity, cashCount, dataVersion, notifyDataChanged } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "loading" });
   const [walletId, setWalletId] = useState("");
   const [countedMinor, setCountedMinor] = useState<number | null>(null);
@@ -112,6 +112,12 @@ export default function CashCount() {
 
   /* حارس المدخلات يستدعي نفس المسار: النجاح يرجع true ليكتمل الخروج بعد الحفظ. */
   async function submit(): Promise<boolean> {
+    /* الخدمة تُحمَّل ديناميكيًا بعد الإقلاع (نمط transfers/loans) — null يعني
+     * «جارٍ التجهيز»: رسالة صادقة بلا كتابة ولا التهام الفعل. */
+    if (!cashCount) {
+      setMessage({ text: "جارٍ تجهيز العدّ — لحظة ثم أعد المحاولة.", tone: "error" });
+      return false;
+    }
     if (!wallet) {
       setMessage({ text: "اختر مكان النقد الذي تعدّه.", tone: "error" });
       return false;
@@ -124,7 +130,7 @@ export default function CashCount() {
     if (referenceUnknown) {
       setSaving(true);
       setMessage(null);
-      const result = await cashContinuity.recordCashCount({
+      const result = await cashCount.recordCashCount({
         walletId: wallet.id,
         countedMinor,
         knowledge: "known",
@@ -158,7 +164,7 @@ export default function CashCount() {
     }
     setSaving(true);
     setMessage(null);
-    const result = await cashContinuity.recordCashCount({
+    const result = await cashCount.recordCashCount({
       walletId: wallet.id,
       countedMinor,
       knowledge: "known",
@@ -188,7 +194,10 @@ export default function CashCount() {
         <div className="micro-page-heading">
           <span className="micro-overline">مطابقة رصيد الصندوق</span>
           <h1>{done.kind === "settled" ? "انسجّل فرق العدّ" : "انسجّل القياس"}</h1>
-          <p>{done.text}</p>
+          {/* R9-GA-F3.6: قناة النتيجة status مهذبة بفئة الملاحظة — ليست خطأ. */}
+          <p role="status" className="micro-save-note">
+            {done.text}
+          </p>
         </div>
         {countedMinor !== null && wallet ? (
           <section className="micro-decision-card" aria-label="نتيجة العدّ">

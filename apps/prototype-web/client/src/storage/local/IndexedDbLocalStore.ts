@@ -1,6 +1,7 @@
 /** Browser persistence adapter. React never imports this module and financial policy lives above it. */
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
+import { TRANSFER_COVERAGE_MESSAGE } from "@micro-domain/cash-continuity/index.js";
 import type {
   CashContinuityEntry,
   CashObservation,
@@ -82,7 +83,7 @@ import {
 } from "./recurringExpenseCommitGuard";
 import { validateExpenseBudgetRevisionPair, validateExpenseBudgetSave } from "./expenseBudgetCommitGuard";
 import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
-import { findTransferCoverageShortfall, TRANSFER_COVERAGE_MESSAGE } from "./cashContinuityCommitGuard";
+import { decideCashObservationCommit, findTransferCoverageShortfall } from "./cashContinuityCommitGuard";
 import {
   committedReversalMovements,
   storedReversalMovementsFor,
@@ -2220,13 +2221,6 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   ): Promise<
     StorageResult<{ observation: CashObservation; settlement: CashContinuityEntry | null; reused: boolean }>
   > {
-    if (settlement && expectedReferenceMinor === null) {
-      return {
-        ok: false,
-        code: "storage_error",
-        message: "التسوية المرتبطة بالرصد تتطلب مرجعًا متوقعًا صريحًا داخل حد الكتابة.",
-      };
-    }
     try {
       const database = await connection();
       return await new Promise(resolve => {
@@ -2243,102 +2237,55 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         };
         let rejection: StorageFailure | null = null;
         let outcome: ObservationCommit | null = null;
+        /* التسوية الموحدة للمخرج: نتيجة إن حُسمت، وإلا الرفض المثبت، وإلا فشل
+         * المعاملة — onabort وoncomplete والمسارات كلها تمر من هنا (لا
+         * تتقاطع النتيجة والرفض أبدًا فأسبقية الفحص بلا أثر). */
         const resolveOutcome = () =>
           resolve(
             outcome ? { ok: true, value: outcome } : (rejection ?? failure(transaction.error, database)),
           );
-        const failFromListener = (error: unknown) => {
-          rejection = failure(error, database);
+        const abortWith = (fallback: () => void) => {
           try {
             transaction.abort();
           } catch {
-            resolve(rejection);
+            fallback();
           }
         };
+        const failFromListener = (error: unknown) => {
+          const failed = failure(error, database);
+          rejection = failed;
+          abortWith(() => resolve(failed));
+        };
+        /* القرار الكامل (عهدة/نصف حالة/مرجع حي) من النواة المشتركة نفسها
+         * التي يستهلكها محوّل الذاكرة — التطابق الدلالي بنيويّ لا بالترجمة.
+         * المخازنان يُقرآن داخل المعاملة الواحدة فالقرار فوق حالة ذرّية. */
         const observationsRequest = observationsStore.getAll();
         observationsRequest.onerror = () => resolve(failure(observationsRequest.error, database));
         observationsRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
-          const existingObservations = observationsRequest.result as CashObservation[];
-          const repeated = existingObservations.find(
-            candidate => candidate.operationKey === observation.operationKey,
-          );
-          if (repeated) {
-            /* الرصد موجود والتسوية المطلوبة قد تكون مسجلة أصلًا (معاملة واحدة
-             * سابقة) — نقرأ القيود للتأكد قبل الإعادة. */
-            const entriesRequest = entriesStore.getAll();
-            entriesRequest.onerror = () => resolve(failure(entriesRequest.error, database));
-            entriesRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
-              const existingEntries = entriesRequest.result as CashContinuityEntry[];
-              const repeatedSettlement = settlement
-                ? (existingEntries.find(entry => entry.operationKey === settlement.operationKey) ?? null)
-                : null;
-              if (settlement && !repeatedSettlement) {
-                /* نصف حالة مستحيلة بنيويًا (الرصد وتسويته يُكتبان معًا) —
-                 * تُرفض بصدق لا تُكمل بصمت. */
-                rejection = {
-                  ok: false,
-                  code: STORAGE_STALE,
-                  message:
-                    "وجدنا الرصد دون تسويته المرتبطة — حالة نصفية مرفوضة؛ راجع حركات المكان ثم أعد المحاولة.",
-                };
-                try {
-                  transaction.abort();
-                } catch {
-                  resolve(rejection);
-                }
-                return;
-              }
-              outcome = { observation: repeated, settlement: repeatedSettlement, reused: true };
-              try {
-                transaction.abort();
-              } catch {
-                resolveOutcome();
-              }
-            });
-            return;
-          }
           const entriesRequest = entriesStore.getAll();
           entriesRequest.onerror = () => resolve(failure(entriesRequest.error, database));
           entriesRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
-            const existingEntries = entriesRequest.result as CashContinuityEntry[];
-            if (settlement) {
-              const existingKeys = new Set(existingEntries.map(entry => entry.operationKey));
-              const repeatedSettlement = settlement && existingKeys.has(settlement.operationKey);
-              if (repeatedSettlement) {
-                /* قيد التسوية موجود والرصد غائب — نصف حالة مرفوضة بصدق. */
-                rejection = {
-                  ok: false,
-                  code: STORAGE_STALE,
-                  message:
-                    "وجدنا تسوية العدّ دون رصدها — حالة نصفية مرفوضة؛ راجع حركات المكان ثم أعد المحاولة.",
-                };
-                try {
-                  transaction.abort();
-                } catch {
-                  resolve(rejection);
-                }
-                return;
-              }
-              /* مطابقة المرجع الحي داخل المعاملة: رصيد محفظة التسوية الآن
-               * يجب أن يساوي المرجع الذي بُني عليه الفرق — اختل فهناك كاتبًا
-               * آخر سبق المعاملة فلا تُكتب تسوية فوق واقع متغير. */
-              const liveReference = existingEntries
-                .filter(entry => entry.walletId === settlement.walletId)
-                .reduce((total, entry) => total + entry.cashDeltaMinor, 0);
-              if (liveReference !== expectedReferenceMinor) {
-                rejection = {
-                  ok: false,
-                  code: STORAGE_STALE,
-                  message:
-                    "تغيّر رصيد المكان بعد فتح العدّ — لم يُسجَّل شيء؛ راجع حركاته ثم أعد العدّ أو المحاولة.",
-                };
-                try {
-                  transaction.abort();
-                } catch {
-                  resolve(rejection);
-                }
-                return;
-              }
+            const decision = decideCashObservationCommit(
+              observationsRequest.result as CashObservation[],
+              entriesRequest.result as CashContinuityEntry[],
+              observation,
+              settlement,
+              expectedReferenceMinor,
+            );
+            if (decision.kind === "reject") {
+              const rejected: StorageFailure = {
+                ok: false,
+                code: decision.code,
+                message: decision.message,
+              };
+              rejection = rejected;
+              abortWith(() => resolve(rejected));
+              return;
+            }
+            if (decision.kind === "reuse") {
+              outcome = { observation: decision.observation, settlement: decision.settlement, reused: true };
+              abortWith(resolveOutcome);
+              return;
             }
             observationsStore.put(observation);
             if (settlement) entriesStore.put(settlement);
@@ -2346,11 +2293,8 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
           });
         });
         transaction.onerror = () => resolve(failure(transaction.error, database));
-        transaction.onabort = () =>
-          resolve(
-            rejection ?? (outcome ? { ok: true, value: outcome } : failure(transaction.error, database)),
-          );
-        transaction.oncomplete = () => resolveOutcome();
+        transaction.onabort = resolveOutcome;
+        transaction.oncomplete = resolveOutcome;
       });
     } catch (error) {
       return failure(error);

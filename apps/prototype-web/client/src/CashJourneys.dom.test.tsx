@@ -9,6 +9,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
+import { CashCountService } from "@/application/cash/cashCountService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
@@ -70,6 +71,9 @@ beforeEach(() => {
   const projectFinance = new ProjectFinancialService(store, () => NOW);
   mockedUsePrototypeServices.mockReturnValue({
     cashContinuity,
+    /* S04 (DOC-013): خدمة العدّ المستقلة (تحميل خامل في الإنتاج) — تُزوَّد
+     * مباشرة في الاختبار بذات المخزن والساعة. */
+    cashCount: new CashCountService(store, () => NOW),
     projectFinance,
     dataVersion,
     notifyDataChanged: bumpVersion,

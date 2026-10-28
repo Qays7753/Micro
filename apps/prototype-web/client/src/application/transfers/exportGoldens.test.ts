@@ -2,11 +2,11 @@
  * Wave 3A (ARCH-002 / WS-212 — STR-401 + STR-405 من المسح المقبول): أصول تكافؤ مادية على القرص.
  *
  * الغرض: تجميد ملفات تصدير حقيقية بوصفها oracles دائمة:
- *  - الزوج الحالي 30/38 مُشتق حتميًا من عهدة 8/17 الأمينة عبر مسار الترحيل والاستعادة
+ *  - الزوج الحالي 31/39 مُشتق حتميًا من عهدة 8/17 الأمينة عبر مسار الترحيل والاستعادة
  *    والتصدير الفعلي (يقارن مقارنة عميقة كاملة في كل تشغيل — أقوى حارس بايتات هنا)؛
  *  - ملف مكمّل غني بالعائلات الجديدة (مصروف متكرر/ميزانية/قرض مستلم/بيع مباشر/أصل/قرض...)
  *    مجمّد من مسار الخدمات الحقيقية (تجميد القيم؛ المطابقة قبولًا وعدادات ودورة كاملة)؛
- *  - ملف ذهبي أدنى لكل زوج تاريخي مقبول (24) — بوابة الأزواج مجمدة ملفًا ملفًا؛
+ *  - ملف ذهبي أدنى لكل زوج تاريخي مقبول (25) — بوابة الأزواج مجمدة ملفًا ملفًا؛
  *  - عهدة 8/17 الأمينة نفسها كملف (تُستورد من اختبارها الأصلي — مصدر واحد).
  *
  * MANIFEST يسجل sha256 لكل ملف وأصل التوليد: أي تعديل يدوي لأي ذهبي يُكشف فورًا.
@@ -30,6 +30,7 @@ import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { localExportVersion, localSchemaVersion, type LocalExportFile } from "@/storage/local/types";
 import { syncSha256Hex } from "@/lib/syncSha256";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
+import { CashCountService } from "@/application/cash/cashCountService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
@@ -87,7 +88,7 @@ function minimalLegacyFileFor(version: number, schemaVersion: number): LocalExpo
   } as unknown as LocalExportFile;
 }
 
-/** الزوج الحالي 30/38 مُشتق حتميًا: 8/17 الأمينة → ترحيل → استعادة → تصدير. */
+/** الزوج الحالي 31/39 مُشتق حتميًا: 8/17 الأمينة → ترحيل → استعادة → تصدير. */
 async function currentGoldenViaMigration(): Promise<LocalExportFile> {
   const target = new MemoryLocalStore();
   const targetTransfers = new LocalTransferService(target, NOW);
@@ -104,6 +105,7 @@ async function currentGoldenViaMigration(): Promise<LocalExportFile> {
 async function seedSupplementStore(): Promise<MemoryLocalStore> {
   const store = new MemoryLocalStore();
   const cash = new CashContinuityService(store, NOW);
+  const count = new CashCountService(store, NOW);
   const finance = new ProjectFinancialService(store, NOW);
   const suppliers = new SupplierPurchaseService(store, NOW);
   const owner = new OwnerEntitlementService(store, (from, to) => finance.readRecordedPeriodResult(from, to));
@@ -123,6 +125,28 @@ async function seedSupplementStore(): Promise<MemoryLocalStore> {
     operationKey: "golden-supplement-wallet",
   });
   if (!wallet.ok) throw new Error(wallet.message);
+
+  /* S04 (DOC-013 / UNIT-025): رصد أرصدة النقد — قياس وحده عبر محفظة مجهولة
+   * الافتتاح (المسار القانوني الوحيد لحفظ قياس بلا تسوية) يغطي العائلة
+   * الجديدة في مسار التصدير الفعلي لا بالقوائم الفارغة وحدها. */
+  const unknownWallet = await cash.openWallet({
+    name: "صندوق-مجهول-مكمل",
+    kind: "cash_drawer",
+    openingMinor: 0,
+    occurredOn: "2026-09-01",
+    note: "افتتاح مجهول للملف المكمّل",
+    operationKey: "golden-supplement-unknown-wallet",
+    openingStatus: "unknown",
+  });
+  if (!unknownWallet.ok) throw new Error(unknownWallet.message);
+  const observation = await count.recordCashCount({
+    walletId: unknownWallet.value.wallet.id,
+    countedMinor: 8800,
+    knowledge: "known",
+    settle: false,
+    operationKey: "golden-supplement-observation",
+  });
+  if (!observation.ok) throw new Error(observation.message);
 
   const expense = await finance.record({
     type: "operating_expense_cash",
@@ -249,7 +273,7 @@ const LEGACY_PAIRS = [...RELEASED_LEGACY_EXPORT_PAIRS]
   .sort((a, b) => b[0] - a[0]);
 
 describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
-  it("current-pair golden (30/38): deterministic migration-derived export matches the frozen golden byte-for-byte", async () => {
+  it("current-pair golden (31/39): deterministic migration-derived export matches the frozen golden byte-for-byte", async () => {
     const live = await currentGoldenViaMigration();
     const name = "current-pair.golden.json";
     if (GENERATE) {
@@ -295,14 +319,15 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
     expect(golden.counts?.loans).toBeGreaterThan(0);
     expect(golden.counts?.cashWallets).toBeGreaterThan(0);
     expect(golden.counts?.cashContinuityEntries).toBeGreaterThan(0);
+    expect(golden.counts?.balanceObservations).toBeGreaterThan(0);
     expect(golden.counts?.materials).toBeGreaterThan(0);
     expect(golden.counts?.inventoryMovements).toBeGreaterThan(0);
     expect(golden.counts?.supplierPurchases).toBeGreaterThan(0);
     expect(golden.counts?.financialEvents).toBeGreaterThan(0);
   });
 
-  it("every released legacy pair has a frozen minimal golden that still imports to 30/38", async () => {
-    expect(LEGACY_PAIRS.length).toBe(24);
+  it("every released legacy pair has a frozen minimal golden that still imports to 31/39", async () => {
+    expect(LEGACY_PAIRS.length).toBe(25);
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     for (const [version, schemaVersion] of LEGACY_PAIRS) {
       const name = `legacy-minimal-${version}-${schemaVersion}.golden.json`;
@@ -342,7 +367,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
           file: "current-pair.golden.json",
           sha256: "",
           kind: "current-pair",
-          description: "30/38 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة",
+          description: "31/39 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة",
           byteStable: true,
         },
         {
@@ -350,7 +375,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
           sha256: "",
           kind: "current-pair-supplement",
           description:
-            "30/38 غني بالعائلات الجديدة عبر الخدمات — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة)",
+            "31/39 غني بالعائلات الجديدة عبر الخدمات — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة)",
           byteStable: false,
         },
         ...LEGACY_PAIRS.map(([v, s]): GoldenManifestEntry => ({
@@ -378,7 +403,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
       writeGolden(manifestName, JSON.stringify(manifest, null, 2));
     }
     const manifest = JSON.parse(readGolden(manifestName)) as GoldenManifest;
-    expect(manifest.files.length).toBe(27);
+    expect(manifest.files.length).toBe(28);
     for (const entry of manifest.files) {
       const actual = sha256Of(readGolden(entry.file));
       expect(actual, `${entry.file} خُعدل يدويًا أو انحرف عن الأصل`).toBe(entry.sha256);

@@ -43,8 +43,8 @@ describe("documentation consistency — Group 4 bundle budget implemented on the
   it("schema and export versions match the code constants (38/30 after FIN-001 WS-178; the 35/27 statement stays as Group 4 history) — build tooling touches no store", () => {
     const section34 = currentState.split("## §34.")[1] ?? "";
     expect(section34).toContain("٣٥/٢٧ بلا تغيير");
-    expect(String(localSchemaVersion)).toBe("38");
-    expect(String(localExportVersion)).toBe("30");
+    expect(String(localSchemaVersion)).toBe("39");
+    expect(String(localExportVersion)).toBe("31");
   });
 
   it("todo marks Group 4 done on the branch and pending merge — not merged", () => {

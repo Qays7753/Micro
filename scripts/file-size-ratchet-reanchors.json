@@ -2786,10 +2786,10 @@
     "band": "NORMAL"
    },
    "to": {
-    "nbLoc": 71,
+    "nbLoc": 126,
     "band": "NORMAL"
    },
-   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح. تصحيح مؤرخ 2026-10-28 (لاحق): نواة قرار التزام الرصد المشتركة (decideCashObservationCommit ورسائلها) استقرت هنا فصار العدد 126 — تطابق المهايئين بنيويًا؛ نفس الـPR.",
    "authorization": {
     "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
     "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
@@ -2900,10 +2900,10 @@
     "band": "NORMAL"
    },
    "to": {
-    "nbLoc": 179,
+    "nbLoc": 182,
     "band": "NORMAL"
    },
-   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح.",
+   "reason": "S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14): رصد أرصدة النقد — القياس الدائم للموجود بنطاقه وقطعه ومعرفته (مخزن محروس بنمط D-037: 38→39 و30→31 مع كامل أدلة التوافق/الترحيل في النطاق نفسه) والتزام الرصد وتسويته المرتبطة في معاملة واحدة بمطابقة مرجع حي، وحارس تغطية التحويل داخل حد الكتابة (UNIT-023 D01)، وعدّ/مطابقة صادقين (SDF-015/016). النمو منطق موثق؛ لا رفع سقف ولا توسيع تسامح. تصحيح مؤرخ 2026-10-28: القيمة المرتبة 179 كانت لملف غير منسّق — تسوية التنسيق (prettier) وحدها رفعت العدد إلى 182 بلا أي تغيير سلوكي؛ الإرساء المصحح في نفس الـPR.",
    "authorization": {
     "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
     "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
@@ -2926,6 +2926,120 @@
    "authorization": {
     "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (UNIT-020/022/023/024/025) on the same branch/PR, including the durable balance-observations family with complete compatibility/migration evidence in the same scope. Same-PR re-anchor per the documented protocol.",
     "trigger": "S04 implementation (DOC-013): CashObservation domain record + balance-observations store (schema 38->39, export 30->31) + commitCashObservation atomic measurement/settlement boundary + in-transaction transfer coverage guard + recordCashCount service + honest count/transfer UI. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-19",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/application/transfers/transferEnvelope.ts",
+   "from": {
+    "nbLoc": 71,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 72,
+    "band": "NORMAL"
+   },
+   "reason": "S04 (DOC-013): سجل الزوج المنشور 30/38 بعد ترقية الزوج الحي إلى 31/39، وقناة نتيجة العدّ الكنونية — سطران موثقان لا سلوك مالي.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation follow-ups (DOC-013): released-pairs registry gains 30/38; count-page done-channel semantics. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-BALANCE-OBSERVATIONS-20261028-20",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/pages/CashCount.tsx",
+   "from": {
+    "nbLoc": 228,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 348,
+    "band": "NORMAL"
+   },
+   "reason": "S04 (DOC-013): سجل الزوج المنشور 30/38 بعد ترقية الزوج الحي إلى 31/39، وقناة نتيجة العدّ الكنونية — سطران موثقان لا سلوك مالي. تصحيح مؤرخ 2026-10-28 (لاحق): بوابة الخدمة الكسولة (جارٍ تجهيز العدّ) في صفحة العدّ رفعت العدد إلى 348 — نفس الـPR.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 implementation follow-ups (DOC-013): released-pairs registry gains 30/38; count-page done-channel semantics. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-CASH-COUNT-20261028-21",
+   "date": "2026-10-28",
+   "path": "scripts/check-module-boundaries.mjs",
+   "from": {
+    "nbLoc": 822,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "to": {
+    "nbLoc": 830,
+    "band": "SPLIT_CANDIDATE"
+   },
+   "reason": "S04 (DOC-013): حافة R1 موثقة (cashCountService -> observationPolicy — سابقة D-034 نفسها) بتعليقها؛ نمو موثق لا سلوك حارس جديد.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (DOC-013) on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 budget-fit refactor (DOC-013): count service extraction to lazy loading (loans/transfers precedent) + observation-policy domain split + shared commit-decision core. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-CASH-COUNT-20261028-22",
+   "date": "2026-10-28",
+   "path": "src/domain/cash-continuity/index.ts",
+   "from": {
+    "nbLoc": 2,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 4,
+    "band": "NORMAL"
+   },
+   "reason": "S04 (DOC-013): إعادة تصدير سياسة رصد الأرصدة من وحدة المجال المستقلة (observationPolicy) — تُحمَّل مع مسار العدّ الديناميكي خارج حزمة الدخول.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (DOC-013) on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 budget-fit refactor (DOC-013): count service extraction to lazy loading (loans/transfers precedent) + observation-policy domain split + shared commit-decision core. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-CASH-COUNT-20261028-23",
+   "date": "2026-10-28",
+   "path": "scripts/ui-application-import-baseline.json",
+   "from": {
+    "nbLoc": 72,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 73,
+    "band": "NORMAL"
+   },
+   "reason": "S04 (DOC-013): حافة R6 موثقة (السياق -> خدمة العدّ — سابقة الخدمات الكسولة loans/transfers نفسها)؛ نمو سجل موثق لا كود حارس.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (DOC-013) on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S04 budget-fit refactor (DOC-013): count service extraction to lazy loading. components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-013"
+   }
+  },
+  {
+   "id": "S04-CASH-COUNT-20261028-24",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+   "from": {
+    "nbLoc": 360,
+    "band": "NORMAL"
+   },
+   "to": {
+    "nbLoc": 404,
+    "band": "WATCH"
+   },
+   "reason": "S04 (DOC-013): تهيئة خدمة العدّ الكسولة (نمط loans/transfers الموثق نفسه: حالة + تأثير + دمج) — النمو الموثق رفع الشريط إلى WATCH بعلم؛ ميزانية حزمة الدخول محروسة (D-034).",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 revalidation + S04 execution (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md published at 3e7e4dfc) mandates S04 (DOC-013) on the same branch/PR. Same-PR re-anchor with band escalation per the documented protocol.",
+    "trigger": "S04 budget-fit refactor (DOC-013): count service lazy wiring in the services context. components/integration-20261027 / PR #383.",
     "ocRef": "DOC-013"
    }
   }

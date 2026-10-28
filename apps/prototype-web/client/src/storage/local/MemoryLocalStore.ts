@@ -19,10 +19,10 @@ import {
 } from "./recurringExpenseCommitGuard";
 import { validateExpenseBudgetRevisionPair, validateExpenseBudgetSave } from "./expenseBudgetCommitGuard";
 import {
+  decideCashObservationCommit,
   findSecondWalletOpening,
   findTransferCoverageShortfall,
   SECOND_WALLET_OPENING_MESSAGE,
-  TRANSFER_COVERAGE_MESSAGE,
 } from "./cashContinuityCommitGuard";
 import { orderRecordIdentical, validateOrderCommit } from "./orderCommitGuard";
 import { resolveSupplierPaymentAttribution } from "./supplierAttributionCommitGuard";
@@ -32,6 +32,7 @@ import {
   type SupplierPurchaseCommit,
 } from "./supplierScheduleCommitGuard";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
+import { TRANSFER_COVERAGE_MESSAGE } from "@micro-domain/cash-continuity/index.js";
 import type {
   CashContinuityEntry,
   CashObservation,
@@ -1057,19 +1058,15 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     }
     /* S04 (DOC-013 / UNIT-023 D01): حارس تغطية التحويل — نفس عقد محوّل
      * IndexedDB بالضبط: أرجل التحويل الجديدة وحدها تُفحص ضد رصيد المصدر
-     * الحي، والمصدر المعروف الافتتاح الناقص يُرفض بلا أي كتابة. */
-    const hasTransferLegs = newEntries.some(
-      entry => entry.type === "transfer_out" || entry.type === "transfer_in",
+     * الحي (الحارس نفسه يتخطى الدفعات بلا أرجل تحويل)، والمصدر المعروف
+     * الافتتاح الناقص يُرفض بلا أي كتابة. */
+    const shortfall = findTransferCoverageShortfall(
+      Array.from(this.cashWallets.values()),
+      existingEntries,
+      newEntries,
     );
-    if (hasTransferLegs) {
-      const shortfall = findTransferCoverageShortfall(
-        Array.from(this.cashWallets.values()),
-        existingEntries,
-        newEntries,
-      );
-      if (shortfall) {
-        return { ok: false, code: STORAGE_STALE, message: TRANSFER_COVERAGE_MESSAGE };
-      }
+    if (shortfall) {
+      return { ok: false, code: STORAGE_STALE, message: TRANSFER_COVERAGE_MESSAGE };
     }
     /* S04 (DOC-013 / UNIT-025 — SDF-021 توكيدًا): الاستنساخ كله قبل أول كتابة —
      * فشل استنساخ أي قيد داخل الدفعة لا يسرّب سابقه (نفس معنى التراجع الكامل
@@ -1103,58 +1100,24 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<
     StorageResult<{ observation: CashObservation; settlement: CashContinuityEntry | null; reused: boolean }>
   > {
-    if (settlement && expectedReferenceMinor === null) {
-      return {
-        ok: false,
-        code: "storage_error",
-        message: "التسوية المرتبطة بالرصد تتطلب مرجعًا متوقعًا صريحًا داخل حد الكتابة.",
-      };
-    }
     const existingEntries = Array.from(this.cashContinuityEntries.values());
-    const repeatedObservation = Array.from(this.balanceObservations.values()).find(
-      candidate => candidate.operationKey === observation.operationKey,
+    const decision = decideCashObservationCommit(
+      Array.from(this.balanceObservations.values()),
+      existingEntries,
+      observation,
+      settlement,
+      expectedReferenceMinor,
     );
-    if (repeatedObservation) {
-      const repeatedSettlement = settlement
-        ? (existingEntries.find(entry => entry.operationKey === settlement.operationKey) ?? null)
-        : null;
-      if (settlement && !repeatedSettlement) {
-        return {
-          ok: false,
-          code: STORAGE_STALE,
-          message: "وجدنا الرصد دون تسويته المرتبطة — حالة نصفية مرفوضة؛ راجع حركات المكان ثم أعد المحاولة.",
-        };
-      }
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.kind === "reuse") {
       return {
         ok: true,
         value: {
-          observation: clone(repeatedObservation),
-          settlement: repeatedSettlement?.id ? clone(repeatedSettlement) : null,
+          observation: clone(decision.observation),
+          settlement: decision.settlement?.id ? clone(decision.settlement) : null,
           reused: true,
         },
       };
-    }
-    if (settlement) {
-      const repeatedSettlement = existingEntries.some(
-        entry => entry.operationKey === settlement.operationKey,
-      );
-      if (repeatedSettlement) {
-        return {
-          ok: false,
-          code: STORAGE_STALE,
-          message: "وجدنا تسوية العدّ دون رصدها — حالة نصفية مرفوضة؛ راجع حركات المكان ثم أعد المحاولة.",
-        };
-      }
-      const liveReference = existingEntries
-        .filter(entry => entry.walletId === settlement.walletId)
-        .reduce((total, entry) => total + entry.cashDeltaMinor, 0);
-      if (liveReference !== expectedReferenceMinor) {
-        return {
-          ok: false,
-          code: STORAGE_STALE,
-          message: "تغيّر رصيد المكان بعد فتح العدّ — لم يُسجَّل شيء؛ راجع حركاته ثم أعد العدّ أو المحاولة.",
-        };
-      }
     }
     this.balanceObservations.set(observation.id, clone(observation));
     if (settlement) this.cashContinuityEntries.set(settlement.id, clone(settlement));

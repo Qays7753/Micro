@@ -4,7 +4,7 @@
  *
  * يثبت هذا الملف (اختباريًا فقط — لا تغيير إنتاجي):
  *  1) اشتقاق مجموعة المفاتيح المسموحة من سجل العائلات الـ31 الكنوني زائد
- *     المفاتيح غير العائلية التي يصدرها المصدّر نفسه (35 مفتاحًا) لا من
+ *     المفاتيح غير العائلية التي يصدرها المصدّر نفسه (36 مفتاحًا) لا من
  *     قائمة يدوية عامة.
  *  2) كامل جسد مصدّر الزوج الحالي (ذهبيا 30/38 + تصدير حي فوق المهايئين)
  *     لا ينتج أي مفتاح خارج المجموعة المسموحة — شرط W2-2 الأول.
@@ -32,7 +32,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { syncSha256Hex } from "@/lib/syncSha256";
 import { IndexedDbLocalStore } from "@/storage/local/IndexedDbLocalStore";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
-import type { LocalStoreSnapshot } from "@/storage/local/types";
+import { localExportVersion, localSchemaVersion, type LocalStoreSnapshot } from "@/storage/local/types";
 import { LocalTransferService } from "./localTransferService";
 import { TRANSFER_ARRAY_FAMILY_ROLES } from "./transferArrayFamilyRoles";
 import { file817 } from "./historical817.fixture";
@@ -102,14 +102,14 @@ function restamp(file: ExportFileShape): ExportFileShape {
 }
 
 describe("OD-KEYS — allowed-set derivation from the registry plus exporter-emitted non-family keys", () => {
-  it("the exporter emits exactly four non-family top-level data keys (35 allowed total)", () => {
+  it("the exporter emits exactly four non-family top-level data keys (36 allowed total)", () => {
     expect(deriveNonFamilyEmittedKeys(exporterCorpus)).toEqual([
       "inventoryActivation",
       "ownerProfile",
       "preferences",
       "profile",
     ]);
-    expect(allowedDataKeys.size).toBe(35);
+    expect(allowedDataKeys.size).toBe(36);
   });
 
   it("the complete Current exporter corpus produces no key outside the allowed set (W2-2 precondition 1)", async () => {
@@ -214,8 +214,8 @@ describe("OD-KEYS — legacy pair (8/17) behavior characterization: unchanged", 
 
     const prepared = await transfers.prepareRestore(JSON.stringify(legacy));
     if (!prepared.ok) throw new Error(prepared.message);
-    expect(prepared.value.file.version).toBe(30);
-    expect(prepared.value.file.schemaVersion).toBe(38);
+    expect(prepared.value.file.version).toBe(localExportVersion);
+    expect(prepared.value.file.schemaVersion).toBe(localSchemaVersion);
   });
 
   it("legacy unknown keys are likewise dropped at persistence (Memory)", async () => {

@@ -1,11 +1,11 @@
 /**
  * R11 W2a / OD-COUNTS (موجة المتابعة 2026-10-15): العدّاد الجانبي-الاختبار
- * المدفوع بالسجل — يغطي العائلات الـ31 كلها فوق IndexedDB وMemory معًا.
+ * المدفوع بالسجل — يغطي العائلات الـ32 كلها فوق IndexedDB وMemory معًا.
  *
  * القرار المعتمد (OD-COUNTS — OWNER_APPROVED — TEST_SIDE_ONLY —
  * 31_OF_31_REQUIRED): cardinality evidence لكل عائلة عبر المهايئين،
  * وmeta-test يثبت أن سجل العائلات (TRANSFER_ARRAY_FAMILY_ROLES) يطابق
- * العدّاد المشتق من مخرجات المصدّر نفسه، مع توثيق اللاتماثل الحالي 22/31
+ * العدّاد المشتق من مخرجات المصدّر نفسه، مع توثيق اللاتماثل الحالي 23/32
  * (تسع عائلات مطلوبة-غير-معدودة) كدليل في ADR-017 — لا كحقل في Export 30.
  *
  * لا تغيير إنتاجي إطلاقًا: العدّاد هنا اختباري بحت؛ exportCountsOf يظل
@@ -39,7 +39,7 @@ const currentPair = JSON.parse(readFileSync(path.join(GOLDEN_DIR, "current-pair.
 
 const NOW = () => "2026-10-15T00:00:00.000Z";
 
-/** العدّاد الجانبي-الاختبار: يعدّ العائلات الـ31 كلها من أي لقطة — بلا
+/** العدّاد الجانبي-الاختبار: يعدّ العائلات الـ32 كلها من أي لقطة — بلا
  * استثناء وبلا اطلاع على مفاتيح LocalExportCounts (استقلال العدّاد). */
 function oracleCounts(snapshot: LocalStoreSnapshot): Record<string, number> {
   const counts: Record<string, number> = {};
@@ -99,7 +99,7 @@ function richSeed(): LocalStoreSnapshot {
 describe("OD-COUNTS meta-tests — registry == oracle (السجل يطابق العدّاد)", () => {
   it("the exporter corpus itself yields exactly the 31 registry families (derived == registered)", () => {
     const registryKeys = Object.keys(TRANSFER_ARRAY_FAMILY_ROLES).sort();
-    expect(registryKeys).toHaveLength(31);
+    expect(registryKeys).toHaveLength(32);
     expect(arrayKeysOfExportedData(currentPair.data as unknown as Record<string, unknown>)).toEqual(
       registryKeys,
     );
@@ -108,9 +108,9 @@ describe("OD-COUNTS meta-tests — registry == oracle (السجل يطابق ا�
     );
   });
 
-  it("the counted set (22) matches the exporter's counts keys exactly", () => {
+  it("the counted set (23) matches the exporter's counts keys exactly", () => {
     const counted = [...countedArrayFamilyKeys()].sort();
-    expect(counted).toHaveLength(22);
+    expect(counted).toHaveLength(23);
     expect(Object.keys(supplement.counts).sort()).toEqual(counted);
     expect(Object.keys(exportCountsOf(supplement.data)).sort()).toEqual(counted);
   });
