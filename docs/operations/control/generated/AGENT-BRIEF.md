@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 3 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 4 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -38,4 +38,4 @@ python3 scripts/operations-control/validate.py
 | WS-226 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-010 | S01 مقبولة على فرع التكامل ومحفوظة REVIEW_REQUIRED؛ لا إجراء إضافي على WS-226 حتى بوابة الدمج النهائية بعد S18. S02 تعمل مستقلًا في WS-227 على نفس فرع التكامل. |
 | WS-227 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-011 | إذن انتقال المالك من S02 إلى S03 مسجل (2026-10-28) بناء على إعادة تحقق المرحلة A عند 015c2d6c؛ S02 تبقى REVIEW_REQUIRED حتى مراجعة Manus المستقلة وقبول المالك؛ التنفيذ الانتقالي في WS-228؛ لا merge ولا cleanup. |
 | WS-228 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-012 | تسليم S03 قائم (النتيجة: 08-S03-RESULT-2026-10-28.md؛ المرشح النهائي 9de4f0a5)؛ علاج عيب التزامن المؤكد يُنفذ في مسار DOC-013/WS-229 المأذون بنفس الأمر؛ يبقى المطلوب: مراجعة Manus المستقلة وقبول المالك الصريح قبل أي دمج. |
-| WS-229 | IN_PROGRESS | `components/integration-20261027` | 383 | DOC-013 | التنفيذ المتصل جارٍ من رأس النشر 3e7e4dfc: علاج جذر تزامن التفضيلات (S03 revalidation) ثم S04 كاملًا داخل النطاق المعتمد، ثم المراجعات الخمس والسجلات والأدلة على الرأس النهائي. |
+| WS-229 | IN_REVIEW | `components/integration-20261027` | 383 | DOC-013 | مراجعة Manus المستقلة وقبول المالك على المرشح النهائي؛ التحقق البعيد مسجل في تعليق PR #383؛ لا دمج ولا كتابة main ولا S05. |

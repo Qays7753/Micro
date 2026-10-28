@@ -2,7 +2,7 @@
   "id": "DOC-013",
   "title": "S03 revalidation (concurrent preference write) + S04 execution — النقد ومال المالك والقياس والتخصيص (UNIT-020/022/023/024/025)",
   "type": "FEATURE",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P0",
   "stage": "micro-component-execution-s03reval-s04-20261028",
   "summary": "تنفيذ واحد متصل على فرع التكامل وPR #383 وفق أمر 00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md: (أ) إعادة تحقق S03 المستقلة وعلاج جذر عيب الكتابة المتزامنة لسجل التفضيلات (كاتبان يقرآن النسخة نفسها فتسحق كتابة كاملة تحديث الأخرى بصمت) بنقل القراءة والدمج والكتابة إلى حد الكتابة المحروس commitPreferencesUpdate في المحوّلين مع CAS اختياري؛ (ب) تنفيذ S04 كاملًا داخل النطاق المعتمد: UNIT-020 مال المالك، UNIT-022 إدارة النقد وأماكنه، UNIT-023 التحويل بجهتيه، UNIT-024 تحديد مكان دفعة قائمة دون قبض ثانٍ، UNIT-025 العدّ والمطابقة بوصفه قياسًا لا حركة، مع عقد البيانات المشترك وحالات SDF-001/015/016/020/021 والمراجعات الخمس القرائية وعلاج كل ملاحظة مؤكدة داخل النطاق من جذرها.",
@@ -42,7 +42,8 @@
       "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-025-مطابقة-رصيد-الصندوق.md",
       "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
       "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
-      "docs/implementation/micro-component-execution/08-S03-RESULT-2026-10-28.md"
+      "docs/implementation/micro-component-execution/08-S03-RESULT-2026-10-28.md",
+      "docs/implementation/micro-component-execution/09-S04-RESULT-2026-10-28.md"
     ]
   },
   "acceptance": [
@@ -96,8 +97,14 @@
       "changed_at": "2026-10-28",
       "actor": "zai-s03reval-s04-execution",
       "reason": "بدأ التنفيذ المتصل المأذون من رأس النشر 3e7e4dfc على الفرع وPR نفسيهما: إعادة تحقق S03 وعلاج عيب التزامن من الجذر ثم المتابعة المباشرة إلى S04."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-28",
+      "actor": "zai-s03reval-s04-execution",
+      "reason": "التنفيذ المتصل مكتمل محليًا وسلّم للمراجعة: عيب تزامن تفضيلات S03 عولج من جذره عند حد الكتابة (2edbd215 + تصحيحا مراجعتيه 26fa9437)، وS04 منفذة كاملة (ad30895d + 1fe815d0 + المرشح النهائي 9d7d2aee: مواءمة ميزانية الحزمة بفصل خدمة العدّ الكسول، بطارية أدلة المخطط 39/التصدير 31، الذهبيات الصادقة) — السلسلة الكاملة خضراء على المرشح النهائي (952+2824 اختبارًا) والمراجعات الخمس القرائية اكتملت وعولجت ملاحظاتها المؤكدة (R3-F01/R4-F01)؛ التفاصيل في سجل النتيجة 09-S04-RESULT-2026-10-28.md."
     }
   ],
   "migration_baseline": true,
-  "next_action": "التنفيذ جارٍ: علاج S03 مكتمل كوديًا محليًا بانتظار المراجعات والسجلات؛ ثم S04 (UNIT-020/022/023/024/025) ثم السجلات والأدلة والفحوص الكاملة."
+  "next_action": "مراجعة Manus المستقلة وقبول المالك لS04 (والحكم على علاج عيب S03) على المرشح النهائي؛ التحقق البعيد (Actions/Cloudflare) على الرأس المدفوع مسجل في تعليق PR #383؛ لا دمج ولا S05 قبل قرار المالك."
 }

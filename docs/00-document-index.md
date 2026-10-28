@@ -308,6 +308,9 @@
 | `docs/operations/control/items/DOC-012.json` | سجل Control لـS03 |
 | `docs/operations/control/workstreams/WS-228.json` | Workstream تنفيذ S03 على فرع التكامل |
 | `docs/implementation/micro-component-execution/00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md` | أمر ZAI الكنسي لإعادة تحقق وإصلاح تزامن S03 ثم تنفيذ S04 على الفرع وPR نفسيهما؛ لا دمج أو كتابة على main |
+| `docs/implementation/micro-component-execution/09-S04-RESULT-2026-10-28.md` | نتيجة إعادة تحقق S04 وعلاج عيب التزامن وتنفيذ S04 ومصفوفة القبول والمراجعات الخمس — تسليم للمراجعة |
+| `docs/operations/control/items/DOC-013.json` | سجل Control لإعادة تحقق S04 وعلاجها وتنفيذ S04 |
+| `docs/operations/control/workstreams/WS-229.json` | Workstream تنفيذ إعادة التحقق وS04 على فرع التكامل |
 
 ### تغطية ملفات الحزمة الأصلية
 
