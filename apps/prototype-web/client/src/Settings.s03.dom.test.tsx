@@ -172,11 +172,42 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
       </ThemeProvider>,
     );
     const absent = await screen.findByText("لا يوجد ملف مشروع على هذا الجهاز بعد");
-    expect(absent.closest("div")!.getAttribute("role")).toBe("status");
+    /* S03-R3-F01: الغياب فراغ محايد (عقد EmptyState الكنوني: رمز هادئ +
+     * عنوان موجّه + فعل واحد) — لا قالب خطأ التخزين الأحمر، وحاله
+     * المستقلة role=status تبقى كما هي. */
+    expect(absent.closest("section")!.getAttribute("role")).toBe("status");
+    expect(absent.closest(".micro-storage-error")).toBeNull();
+    expect(screen.getByTestId("settings-project-absent")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "افتح إعداد المشروع" }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith(expect.stringContaining("/setup"));
     const stored = await store.getProfile();
     expect(stored).toMatchObject({ ok: true, value: null });
+  });
+
+  it("S03-R3-F04: opening the rename editor moves focus into the field, and closing it returns focus to the begin button", async () => {
+    await seedProfile(store, "ورشة التركيز");
+    render(
+      <ThemeProvider defaultTheme="system" switchable>
+        <Settings />
+      </ThemeProvider>,
+    );
+    const begin = (await screen.findByRole("button", {
+      name: "عدّل اسم المشروع",
+    })) as HTMLButtonElement;
+    begin.focus();
+    expect(document.activeElement).toBe(begin);
+    /* الفتح: زر البدء يُستبدل بالمحرر فيفقد التركيز — الحقل يستقر فيه
+     * التركيز (autoFocus كسابقة المحررات الداخلية) لا يسقط إلى body. */
+    fireEvent.click(begin);
+    const input = screen.getByTestId("project-name-input") as HTMLInputElement;
+    await waitFor(() => expect(document.activeElement).toBe(input));
+    /* الإلغاء: التركيز يعود إلى زر التعديل المعاد ظهوره — لا ضياع مكان
+     * المستخدم لوحة المفاتيح/قارئ الشاشة في كلا الاتجاهين. */
+    fireEvent.click(screen.getByRole("button", { name: "إلغاء التعديل" }));
+    const beginAfter = (await screen.findByRole("button", {
+      name: "عدّل اسم المشروع",
+    })) as HTMLButtonElement;
+    await waitFor(() => expect(document.activeElement).toBe(beginAfter));
   });
 
   it("offering section: neutral default, canonical save through the single source, and unrelated preferences preserved", async () => {

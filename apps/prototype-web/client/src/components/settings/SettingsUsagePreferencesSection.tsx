@@ -11,7 +11,9 @@
  *   تصنيف أي سجل تاريخي ولا يمس أي رقم مالي.
  * - الفشل يُعلن صادقًا ويبقى التحكم بيد المالك؛ لا نجاح صامت ولا ابتلاع.
  */
-import { CircleDollarSign, Save } from "lucide-react";
+/* S03-R3-F06: رمز محايد للعرض (Store) لا رمز عملة — القسم يصرّح بأنه لا
+ * يمس أي رقم مالي، والرمز $ يوحي بمال في منتج ديناره أولاً. */
+import { Save, Store } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import type { OfferingPreference } from "@/application/preferences";
 
@@ -64,7 +66,7 @@ export function SettingsUsagePreferencesSection({
             <span className="micro-overline">تفضيل اختياري</span>
             <h2 id="offering-title">ما يقدّمه مشروعك غالبًا؟</h2>
           </div>
-          <CircleDollarSign aria-hidden="true" />
+          <Store aria-hidden="true" />
         </div>
         <p>
           نفس سؤال البداية في الإعداد، من مصدر واحد. مستقل تمامًا عن طريقة العمل (المادة/الوقت) ولا يغيّر نوع

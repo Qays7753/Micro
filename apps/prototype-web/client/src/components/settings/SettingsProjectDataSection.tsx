@@ -15,10 +15,11 @@
  *   كما هي؛ لا كشف بيانات مالك ولا حق مالي من الاسم.
  */
 import { Landmark, Save } from "lucide-react";
+import { useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { ActivityProfile } from "@/storage/local/types";
 
-import { Button } from "@/components/primitives";
+import { Button, EmptyState } from "@/components/primitives";
 
 /* S03: حالة القسم المستقلة — تحميل/غياب/تعذر/جاهز (UNIT-039 P3.1: «حالة
  * تحميل/غياب/تعذر مستقلة، لا كاش أو حق مالك من الاسم»). */
@@ -63,6 +64,16 @@ export function SettingsProjectDataSection({
   openSetup,
   nameInputRef,
 }: SettingsProjectDataSectionProps) {
+  /* S03-R3-F04: زر «عدّل اسم المشروع» يُستبدل بأزرار المحرر عند الفتح فيُفقد
+   * التركيز إلى body — عند الإغلاق (إلغاء/حفظ ناجح) يعود التركيز إلى زر
+   * التعديل نفسه؛ الفتح يستقر في الحقل عبر autoFocus كسابقة المحررات
+   * الداخلية (OwnerEntitlement/FinancialEventRow). */
+  const beginButtonRef = useRef<HTMLButtonElement>(null);
+  const wasEditingNameRef = useRef(false);
+  useEffect(() => {
+    if (wasEditingNameRef.current && !isEditingName) beginButtonRef.current?.focus();
+    wasEditingNameRef.current = isEditingName;
+  }, [isEditingName]);
   return (
     <details className="micro-decision-layer" open>
       <summary className="micro-decision-layer-summary">
@@ -92,13 +103,21 @@ export function SettingsProjectDataSection({
           </div>
         ) : null}
         {projectData.phase === "absent" ? (
-          <div className="micro-storage-error" role="status">
-            <strong>لا يوجد ملف مشروع على هذا الجهاز بعد</strong>
-            <p>الإعداد ينشئ الهوية مرة واحدة — لا مشروع ثانٍ من هنا.</p>
-            <Button action="save" onClick={openSetup}>
-              افتح إعداد المشروع
-            </Button>
-          </div>
+          /* S03-R3-F01: الغياب حالة مستقلة صادقة لا فشل — عقد الفراغ الكنوني
+           * (EmptyState: رمز هادئ + عنوان موجّه + فعل واحد)، لا قالب خطأ
+           * التخزين الأحمر المحجوز لتعذّر القراءة وحده. */
+          <EmptyState
+            role="status"
+            data-testid="settings-project-absent"
+            symbol={<Landmark aria-hidden="true" />}
+            title="لا يوجد ملف مشروع على هذا الجهاز بعد"
+            description="الإعداد ينشئ الهوية مرة واحدة — لا مشروع ثانٍ من هنا."
+            action={
+              <Button action="save" onClick={openSetup}>
+                افتح إعداد المشروع
+              </Button>
+            }
+          />
         ) : null}
         {projectData.phase === "ready" ? (
           <>
@@ -127,6 +146,7 @@ export function SettingsProjectDataSection({
                     id="project-name-input"
                     data-testid="project-name-input"
                     ref={nameInputRef}
+                    autoFocus
                     value={editingName}
                     onChange={event => {
                       setEditingName(event.target.value);
@@ -173,7 +193,7 @@ export function SettingsProjectDataSection({
                   </Button>
                 </>
               ) : (
-                <Button action="secondary" onClick={beginRename}>
+                <Button action="secondary" onClick={beginRename} ref={beginButtonRef}>
                   عدّل اسم المشروع
                 </Button>
               )}

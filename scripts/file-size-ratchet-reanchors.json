@@ -2472,6 +2472,25 @@
     "trigger": "S03 execution on components/integration-20261027 / PR #383 per the published execution prompt.",
     "ocRef": "DOC-012"
    }
+  },
+  {
+   "id": "S03-R3-REVIEW-FIXES-20261028-13",
+   "date": "2026-10-28",
+   "path": "apps/prototype-web/client/src/pages/Setup.tsx",
+   "from": {
+    "nbLoc": 432,
+    "band": "WATCH"
+   },
+   "to": {
+    "nbLoc": 617,
+    "band": "WATCH"
+   },
+   "reason": "S03 Reviewer #3 root fixes on the same S03 candidate (DOC-012): إعلان النتيجة الجزئية (نجاح الهوية + فشل التفضيل) في قناة الخطأ الحازمة role=alert بدل حبر النجاح المهذّب (S03-R3-F02)، وقفل خيارات سؤال البداية أثناء رحلة الحفظ كمحفل الاستعادة — لا اختيار يخالف ما يُحفظ ولا إعادة إدراج مسودة بعد المسح (S03-R3-F03)، ومسار الزر الأساسي بعد النتيجة الجزئية = إعادة محاولة التفضيل المعلنة نفسها لا متابعة صامتة (S03-R3-F05). النمو تعليقات موثقة للأصل الثلاثة فقط؛ راجع سجل نتيجة S03 ونتائج المراجعة الخمس.",
+   "authorization": {
+    "ownerReview": "Owner-authorized S03 execution (00-S03-EXECUTION-PROMPT-2026-10-28.md; S02→S03 transition authorization recorded on the branch in f193ccd1) includes the mandatory reviewer root-fix loop: five sequential read-only reviewers, confirmed in-scope findings fixed at the root on the same branch/PR with focused regression tests. Same-PR re-anchor per the documented protocol.",
+    "trigger": "S03 Reviewer #3 (UI/runtime/RTL/a11y) findings S03-R3-F02/F03/F05 root fixes on components/integration-20261027 / PR #383.",
+    "ocRef": "DOC-012"
+   }
   }
  ]
 }

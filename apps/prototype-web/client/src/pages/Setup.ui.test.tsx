@@ -1133,9 +1133,12 @@ describe("UNIT-001 S03 — optional neutral offering question at first use", () 
     fireEvent.change(input, { target: { value: "ورشة سعاد" } });
     fireEvent.click(offeringRadio("products"));
     fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
-    /* النجاح الجزئي معلن: الهوية أُنشئت والتفضيل تعذر — بلا إعادة إنشاء. */
+    /* النجاح الجزئي معلن: الهوية أُنشئت والتفضيل تعذر — بلا إعادة إنشاء.
+     * S03-R3-F02: القناة الحازمة — فشل التفضيل يعلن كخطأ (alert + حبر
+     * الخطأ) لا كنجاح مهذّب أخضر؛ النص المزدوج يبقى كما هو. */
     const partial = await screen.findByTestId("setup-preference-partial");
-    expect(partial.getAttribute("role")).toBe("status");
+    expect(partial.getAttribute("role")).toBe("alert");
+    expect(partial.className).toContain("micro-field-error");
     expect(partial.textContent).toContain("أُنشئ مشروعك باسمه");
     expect(wouterMocks.navigate).not.toHaveBeenCalled();
     const profileAfterFailure = await store.getProfile();
@@ -1188,5 +1191,60 @@ describe("UNIT-001 S03 — optional neutral offering question at first use", () 
     const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
     expect(input.value).toBe("مغسلة الأمانة");
     expect(offeringRadio("services").checked).toBe(true);
+  });
+
+  it("S03-R3-F03: the offering radios are locked while the save is in flight — the displayed choice cannot diverge from the persisted one", async () => {
+    const { services } = setupServices();
+    let releaseCreate!: (value: unknown) => void;
+    const gate = new Promise<unknown>(resolve => {
+      releaseCreate = resolve;
+    });
+    vi.spyOn(services.profiles, "create").mockImplementation(async () => (await gate) as never);
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "مشغل الثقة" } });
+    fireEvent.click(offeringRadio("both"));
+    expect(offeringRadio("both").disabled).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await screen.findByText("جارٍ الحفظ…");
+    /* أثناء الرحلة: الخيارات مقفلة كمحفل الاستعادة — لا تغيير عرض يخالف
+     * ما يجري حفظه من إغلاق النموذج وقت النقر، ولا إعادة إدراج مسودة
+     * من أثر التغيير بعد المسح. */
+    for (const value of ["", "products", "services", "both"]) {
+      expect(offeringRadio(value).disabled).toBe(true);
+    }
+    releaseCreate({ ok: false, code: "storage_error", message: "gated release" });
+    await waitFor(() => expect(screen.getByTestId("setup-save-failed")).toBeTruthy());
+    /* انتهاء الرحلة يعيد الخيارات متاحة لقرار المالك. */
+    expect(offeringRadio("both").disabled).toBe(false);
+  });
+
+  it("S03-R3-F05: re-pressing the primary after a declared partial result retries the preference — never a silent continue", async () => {
+    const { services, store } = setupServices();
+    const originalSavePreferences = store.savePreferences.bind(store);
+    let failures = 0;
+    store.savePreferences = (async (record: unknown) => {
+      failures += 1;
+      if (failures <= 1) {
+        return { ok: false, code: "storage_error", message: "quota exceeded" };
+      }
+      return originalSavePreferences(record as never);
+    }) as never;
+    mockedUsePrototypeServices.mockReturnValue(services);
+    render(<Setup />);
+    const input = (await screen.findByLabelText("اسم المشروع")) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "ورشة الوفاء" } });
+    fireEvent.click(offeringRadio("products"));
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await screen.findByTestId("setup-preference-partial");
+    /* الزر الأساسي بعد النتيجة الجزئية = القرار المعلن الأول نفسه: إعادة
+     * محاولة التفضيل وحده — لا متابعة صامتة تدّعي الحفظ وهي تتخطاه. */
+    fireEvent.click(screen.getByRole("button", { name: "احفظ وابدأ" }));
+    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/?setup=1", { replace: true }));
+    const preferences = await store.getPreferences();
+    expect(preferences).toMatchObject({ ok: true, value: { offeringPreference: "products" } });
+    const profile = await store.getProfile();
+    expect(profile).toMatchObject({ ok: true, value: { activityName: "ورشة الوفاء" } });
   });
 });

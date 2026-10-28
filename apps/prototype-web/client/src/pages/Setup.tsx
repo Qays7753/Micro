@@ -315,6 +315,14 @@ export default function Setup() {
     if (check.value) {
       /* R02: هوية قائمة — يفتح المشروع القائم؛ لا هوية ثانية ولا تعديل. */
       setIsSaving(false);
+      /* S03-R3-F05: بعد النتيجة الجزئية المعلنة (هوية نجحت/تفضيل تعذّر)،
+       * الزر الأساسي «احفظ وابدأ» يعني إعادة محاولة التفضيل وحده — نفس
+       * القرار الأول المعلن — لا متابعة صامتة تتخطى التفضيل بلا قرار:
+       * الزر الذي يحمل لفظ الحفظ لا يتخطى ما تعذّر حفظه بصمت. */
+      if (preferenceSaveFailed) {
+        await retryPreferenceSave();
+        return;
+      }
       consumeInfoSentinel();
       enqueueDraftWrite(async () => {
         const removed = await formDrafts.discard("setup", null);
@@ -496,6 +504,10 @@ export default function Setup() {
                 value={option.value}
                 checked={offering === option.value}
                 onChange={() => setOffering(option.value)}
+                /* S03-R3-F03: التعطيل أثناء الحفظ مثل محرر الإعدادات — لا
+                 * اختيار يُغيّر العرض أثناء رحلة الحفظ فيخالف ما حُفظ، ولا
+                 * إعادة إدراج مسودة أُنشئت من أثر التغيير بعد المسح. */
+                disabled={isSaving}
                 aria-describedby="setup-offering-help"
               />
               <span>
@@ -507,9 +519,13 @@ export default function Setup() {
         </fieldset>
         {/* S03 (UNIT-001 P3.2): النجاح الجزئي الصادق — الهوية أُنشئت باسمها
             والتفضيل الاختياري تعذر حفظه؛ لا إعادة إنشاء ولا ابتلاع للفشل،
-            والقرار بيد المالك: إعادة محاولة التفضيل وحده أو المتابعة دونه. */}
+            والقرار بيد المالك: إعادة محاولة التفضيل وحده أو المتابعة دونه.
+            S03-R3-F02: القناة الصادقة — النتيجة المزدوجة تعلن في قناة
+            الخطأ الحازمة (role=alert + حبر الخطأ) لا في حبر النجاح المهذّب:
+            نصف الرسالة فشل يحتاج فعل المالك، وسابقة «أُعيد التعيين لكن
+            تعذر مسح المسودات» الكنونية تعلن كذلك. */}
         {preferenceSaveFailed ? (
-          <p className="micro-save-note" role="status" data-testid="setup-preference-partial">
+          <p className="micro-field-error" role="alert" data-testid="setup-preference-partial">
             أُنشئ مشروعك باسمه، لكن تعذّر حفظ تفضيل «ما يقدّمه مشروعك» على هذا الجهاز.{" "}
             <button
               className="micro-text-action"
