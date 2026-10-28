@@ -12,11 +12,11 @@ ZAI is the only code executor. Manus is the program coordinator and independent 
 - Integration branch: `components/integration-20261027`
 - Existing Draft PR: `https://github.com/Qays7753/Micro/pull/383`
 - Base branch: `main`
-- Expected live head at prompt preparation: `1d9a837847c264315bcca0a55a82c132f3b5e1a9`
+- Expected pre-publication checkpoint: `1d9a837847c264315bcca0a55a82c132f3b5e1a9`; the documented prompt-publication commit and its descendants are expected to be present above this checkpoint.
 - Expected base head: `3584aa1d08cea3e0a00623b719fed7f991ce187f`
 - The branch is the only work branch. Do not create another branch or PR.
 
-The expected SHA is a checkpoint, not permission to reset history. Before any write, inspect the live branch, PR, worktree, ancestry, existing commits, and all current records. If the live head differs from the expected SHA, do not reset, force-push, overwrite, or assume the difference is harmless. Report `STATE_DRIFT`, identify the live head and the delta, and continue only if the existing work can be safely preserved and the phase boundary remains valid.
+The checkpoint is not permission to reset history. Before any write, inspect the live branch, PR, worktree, ancestry, existing commits, and all current records. The prompt-publication commit `06e6bfcc8fb7482d4fe553d3ccb19d4de0b0a2e7` is expected on top of the checkpoint; preserve it and any later descendant. If the live head is neither that expected publication line nor a safe descendant, do not reset, force-push, overwrite, or assume the difference is harmless. Report `STATE_DRIFT`, identify the live head and the delta, and continue only if the existing work can be safely preserved and the phase boundary remains valid.
 
 ## Secure credentials
 
