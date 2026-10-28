@@ -46,7 +46,8 @@ export class ProfileService {
    * أبدًا: الحد commitProfileCreate يقرأ ويكتب في معاملة واحدة فوجود الملف
    * سلفًا يعيده كما هو دون أي كتابة (reused → created:false الصادق) وغيابه
    * يُنشأه مرة واحدة؛ نافذتان متزامنتان لا تطمسان أول هوية منشأة أبدًا.
-   * فشل الحد فشل صريح لا كتابة بديلة بعده. (التعديل ملك 039 عبر save.)
+   * فشل الحد فشل صريح لا كتابة بديلة بعده. (التعديل ملك 039 عبر rename
+   * المحروس — S03-R4-F02: save غير المحروس تقاعد.)
    */
   async create(activityName: string): Promise<ProfileCreateResult> {
     const normalizedName = activityName.trim();

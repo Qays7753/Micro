@@ -210,6 +210,80 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
     await waitFor(() => expect(document.activeElement).toBe(beginAfter));
   });
 
+  it("S03-R4-F01: the rename section's degradation channels are honest — loading, read-error, and write-error each announced at the surface", async () => {
+    /* (أ) التحميل: قراءة محروسة بطيئة تُعلن التقدم المهذّب — لا وميض «لا مشروع». */
+    await seedProfile(store, "اسم للتحميل");
+    let releaseLoad!: (value: Awaited<ReturnType<ProfileService["load"]>>) => void;
+    const loadGate = new Promise<Awaited<ReturnType<ProfileService["load"]>>>(resolve => {
+      releaseLoad = resolve;
+    });
+    const gatedServices = buildServices(store);
+    const originalLoad = gatedServices.profiles.load.bind(gatedServices.profiles);
+    gatedServices.profiles.load = (async () => (await loadGate) as never) as never;
+    mockedUsePrototypeServices.mockReturnValue(gatedServices);
+    render(
+      <ThemeProvider defaultTheme="system" switchable>
+        <Settings />
+      </ThemeProvider>,
+    );
+    expect(await screen.findByText("جارٍ قراءة بيانات مشروعك…")).toBeTruthy();
+    expect(screen.queryByText("لا يوجد ملف مشروع على هذا الجهاز بعد")).toBeNull();
+    releaseLoad(await originalLoad());
+    await waitFor(() => expect(screen.getByText("اسم للتحميل")).toBeTruthy());
+    cleanup();
+
+    /* (ب) تعذر القراءة: قالب خطأ التخزين الحازم role=alert — لا فراغ ولا فعل إنشاء. */
+    const failingServices = buildServices(store);
+    failingServices.profiles.load = (async () => ({
+      ok: false,
+      code: "storage_error",
+      message: "تعذر الوصول إلى ملف المشروع",
+    })) as never;
+    mockedUsePrototypeServices.mockReturnValue(failingServices);
+    render(
+      <ThemeProvider defaultTheme="system" switchable>
+        <Settings />
+      </ThemeProvider>,
+    );
+    const readError = await screen.findByText("تعذر قراءة ملف المشروع المحلي");
+    expect(readError.closest("div")!.getAttribute("role")).toBe("alert");
+    expect(screen.queryByText("لا يوجد ملف مشروع على هذا الجهاز بعد")).toBeNull();
+    expect(screen.queryByRole("button", { name: "افتح إعداد المشروع" })).toBeNull();
+    cleanup();
+
+    /* (ج) تعذر الكتابة (إعادة التسمية): إعلان صادق مع بقاء القرار بيد المالك،
+     * ثم النجاح بعد زوال السبب من الحد المحروس نفسه — الهوية المزروعة في (أ)
+     * باقية (الإنشاء idempotent فلا هوية ثانية). */
+    const writeServices = buildServices(store);
+    const originalRename = writeServices.profiles.rename.bind(writeServices.profiles);
+    let failedOnce = false;
+    writeServices.profiles.rename = (async (name: string, expected: string) => {
+      if (!failedOnce) {
+        failedOnce = true;
+        return { ok: false, code: "storage_error", message: "quota" } as never;
+      }
+      return originalRename(name, expected) as never;
+    }) as never;
+    mockedUsePrototypeServices.mockReturnValue(writeServices);
+    render(
+      <ThemeProvider defaultTheme="system" switchable>
+        <Settings />
+      </ThemeProvider>,
+    );
+    await screen.findByText("اسم للتحميل");
+    fireEvent.click(screen.getByRole("button", { name: "عدّل اسم المشروع" }));
+    fireEvent.change(screen.getByTestId("project-name-input"), { target: { value: "اسم بعد التعافي" } });
+    fireEvent.click(screen.getByRole("button", { name: "احفظ الاسم" }));
+    const writeError = await screen.findByTestId("rename-failed-note");
+    expect(writeError.getAttribute("role")).toBe("alert");
+    expect(writeError.textContent).toContain("لم يتم حفظ اسم المشروع");
+    /* الفشل لا يبتلع القيمة ولا يغلق المحرر — إعادة المحاولة تنجح من الحد نفسه. */
+    fireEvent.click(screen.getByRole("button", { name: "احفظ الاسم" }));
+    await waitFor(() => expect(screen.getByText("اسم بعد التعافي")).toBeTruthy());
+    const stored = await store.getProfile();
+    expect(stored).toMatchObject({ ok: true, value: { activityName: "اسم بعد التعافي" } });
+  });
+
   it("offering section: neutral default, canonical save through the single source, and unrelated preferences preserved", async () => {
     await seedProfile(store, "مشغل الاختبار");
     /* بذر تفضيلات أخرى غير مرتبطة — يجب أن تنجو من كتابة تفضيل العرض. */
