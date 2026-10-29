@@ -672,6 +672,15 @@ export class RecurringExpenseService {
         sharedExpense: review.sharedExpense,
       });
       if (!expanded.ok) return validationFailure(expanded.message);
+      /* S07 (S06-MR-001): نية «المدفوع فوق الحصة» تمر حصرًا عبر كاتب الفاتورة
+       * المشتركة بتأكيد صريح مرتبط بقيمة الزوج الكنوني — تأكيد دورة التكرار
+       * يكتب الحدث مباشرة ولا يملك قناة تأكيد الفاتورة المشتركة، فلا يجوز
+       * أن يحمل مدفوعًا يتجاوز الحصة بلا السحب الشخصي المؤكد؛ الرفض قبل أي
+       * كتابة (لا يوجد مستدعٍ حي يحمل هذا الشكل اليوم — حرس منع التجاوز). */
+      if (expanded.ownerPartMinor > 0)
+        return validationFailure(
+          "المدفوع فوق حصة المشروع يُسجل عبر مسار الفاتورة المشتركة بتأكيد صريح من تحمّل الباقي — تأكيد دورة التكرار لا يحمل هذا الفرع؛ سجّله من محرر المصروف بالخيار المؤكد.",
+        );
       event = createFinancialEvent({
         id: newId(),
         type: review.type,

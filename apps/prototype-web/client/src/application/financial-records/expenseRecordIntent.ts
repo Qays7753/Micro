@@ -67,6 +67,38 @@ export type ExpenseRecordIntent =
 const isPositiveSafeMinor = (value: unknown): value is number =>
   typeof value === "number" && Number.isSafeInteger(value) && value > 0;
 
+/* S07 (S06-MR-001 — إصلاح ملاحظة مراجعة S06 المؤكدة): تأكيد «من تحمّل
+ * الباقي» للفاتورة المشتركة مرتبط بقيمة حتمية من الاشتقاق الكنوني نفسه —
+ * زوج (حصة المشروع، المدفوع فعليًا) كما يخرج من expandExpenseRecordIntent
+ * الواحد الذي تستعمله المعاينة والكاتب معًا. الزوج يحدد قيمة الجزء الشخصي
+ * تحديدًا حتميًا (sharedBillOwnerPartMinor نقية)، فمطابقته = مطابقة القيمة
+ * المالية المشتقة؛ لا بصمة ثانية ولا حساب مالي موازٍ في الواجهة. تغيّر
+ * الحصة أو المدفوع (أو أي مدخل يغيرهما) يجعل التأكيد المخزّن غير مطابق
+ * فيُبطل قبل الكتابة، وحد الكتابة يرفض القيمة المتغيرة غير المؤكدة حتى
+ * مع تجاوز الواجهة (recordSharedBillExpense يطالب به عند الحد). */
+export type SharedBillOwnerPartConfirmation = {
+  readonly shareAmountMinor: number;
+  readonly paidAmountMinor: number | null;
+};
+
+export function sharedBillOwnerPartConfirmationOf(
+  shareAmountMinor: number,
+  paidAmountMinor: number | null,
+): SharedBillOwnerPartConfirmation {
+  return Object.freeze({ shareAmountMinor, paidAmountMinor });
+}
+
+export function matchesSharedBillOwnerPartConfirmation(
+  confirmation: SharedBillOwnerPartConfirmation | null | undefined,
+  current: SharedBillOwnerPartConfirmation,
+): boolean {
+  if (confirmation == null) return false;
+  return (
+    confirmation.shareAmountMinor === current.shareAmountMinor &&
+    confirmation.paidAmountMinor === current.paidAmountMinor
+  );
+}
+
 /** نفس توسيع `record` التاريخي حرفيًا — نقل لا إعادة كتابة، والاختبارات القائمة تحرسه. */
 export function expandExpenseRecordIntent(input: ExpenseRecordIntentInput): ExpenseRecordIntent {
   let amountMinor = input.amountMinor;

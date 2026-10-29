@@ -552,3 +552,102 @@ describe("S06-R3 — تصحيحات مراجعة الواجهة الثالثة",
     expect(setupFromExpense).toHaveBeenCalledOnce();
   });
 });
+
+/* S07 (S06-MR-001): تأكيد «من تحمّل الباقي» مرتبط بقيمة الزوج الكنوني —
+ * تغيّر الحصة أو المدفوع بعد التأكيد يُظهره غير معتمد ويُعاد طلبه قبل
+ * الحفظ؛ لا يبقى قائمًا لقيمة تغيّرت (المسار الحي الحقيقي للملاحظة). */
+describe("S07 — S06-MR-001: بطلان تأكيد الجزء الشخصي عند تغير مدخلات قيمته", () => {
+  /* S07 (S06-MR-001): مربع تأكيد تحمّل الباقي — يُحدد عبر نصه داخل ملصقه
+   * (توجد مربعات أخرى بالصفحة كخيار «يتكرر») فلا يلتبس به أداؤه. */
+  function ownerConfirmCheckbox(): HTMLInputElement {
+    const label = screen.getByText(/فوق حصة المشروع على المالك/).closest("label");
+    if (!label) throw new Error("لم يُعثر على ملصق تأكيد تحمّل الباقي");
+    const input = label.querySelector<HTMLInputElement>("input[type=checkbox]");
+    if (!input) throw new Error("لم يُعثر على مربع تأكيد تحمّل الباقي");
+    return input;
+  }
+
+  beforeEach(() => {
+    wouterMocks.navigate.mockClear();
+    routeParams.type = "operating_expense_cash";
+    window.localStorage.clear();
+  });
+  afterEach(() => cleanup());
+
+  it("تأكيد عند (حصة 30/مدفوع 60) ثم تغيير الحصة إلى 20 يبطل التأكيد ويمنع الحفظ — إعادة التأكيد تمرره بالقيم الجديدة", async () => {
+    const { record, recordSharedBill } = renderEditor({});
+    await openSharedFixedForm();
+    const amount = screen.getByLabelText("المبلغ بالدينار الأردني");
+    const paid = screen.getByLabelText("المدفوع فعليًا من صندوق المشروع");
+    await userEvent.setup().type(amount, "30");
+    await userEvent.setup().type(paid, "60");
+    /* تأكيد صريح فوق (30/60) — الجزء الشخصي 30. */
+    const confirmAtThirty = await screen.findByText(/الفارق 30.00 د.أ فوق حصة المشروع على المالك/);
+    fireEvent.click(confirmAtThirty);
+    expect(ownerConfirmCheckbox().checked).toBe(true);
+    /* المستخدم عدّل حصة المشروع إلى 20 بعد التأكيد — الجزء الشخصي صار 40:
+     * التأكيد القديم لا يجوز أن يوثّقه؛ المؤشر يظهر غير معتمد. */
+    fireEvent.change(screen.getByLabelText("المبلغ بالدينار الأردني"), { target: { value: "20" } });
+    /* الحصة الجديدة ظاهرة بمعناها: الفارق 40 (60 − 20) لا 30. */
+    await waitFor(() => expect(screen.getByText(/الفارق 40.00 د.أ فوق حصة المشروع على المالك/)).toBeTruthy());
+    await waitFor(() => expect(ownerConfirmCheckbox().checked).toBe(false));
+    await userEvent
+      .setup()
+      .type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "فاتورة تغيّرت حصتها");
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await waitFor(() =>
+      expect(screen.getByText(/أكّد أن المالك تحمّل الباقي ليُسجل سحبًا شخصيًا بنفس الحفظ/)).toBeTruthy(),
+    );
+    expect(recordSharedBill).not.toHaveBeenCalled();
+    expect(record).not.toHaveBeenCalled();
+    /* إعادة التأكيد فوق القيم الجديدة (20/60) — الجزء 40 — تجيز الحفظ
+     * وتمرر زوج التأكيد المطابق مع النية. */
+    const confirmAtTwenty = await screen.findByText(/الفارق 40.00 د.أ فوق حصة المشروع على المالك/);
+    fireEvent.click(confirmAtTwenty);
+    recordSharedBill.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        expense: { ...baseEvent, amountMinor: 2_000 },
+        ownerPart: {
+          ...baseEvent,
+          id: "event-owner-part-2",
+          type: "owner_withdrawal_cash",
+          amountMinor: 4_000,
+        },
+        ownerPartFailure: null,
+      },
+    });
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await waitFor(() => expect(recordSharedBill).toHaveBeenCalledOnce());
+    const payload = recordSharedBill.mock.calls[0]?.[0] as {
+      amountMinor?: number;
+      sharedExpense?: { paidAmountMinor?: number };
+      ownerPartConfirmation?: { shareAmountMinor: number; paidAmountMinor: number | null };
+    };
+    expect(payload.amountMinor).toBe(2_000);
+    expect(payload.sharedExpense?.paidAmountMinor).toBe(6_000);
+    expect(payload.ownerPartConfirmation).toEqual({ shareAmountMinor: 2_000, paidAmountMinor: 6_000 });
+  });
+
+  it("تغيير المدفوع بعد التأكيد يبطل التأكيد بنفس القاعدة", async () => {
+    const { record, recordSharedBill } = renderEditor({});
+    await openSharedFixedForm();
+    await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "30");
+    await userEvent.setup().type(screen.getByLabelText("المدفوع فعليًا من صندوق المشروع"), "60");
+    fireEvent.click(await screen.findByText(/الفارق 30.00 د.أ فوق حصة المشروع على المالك/));
+    expect(ownerConfirmCheckbox().checked).toBe(true);
+    /* المدفوع صار 90 — الجزء 60 لا 30: التأكيد القديم غير نافذ. */
+    const paidField = screen.getByLabelText("المدفوع فعليًا من صندوق المشروع") as HTMLInputElement;
+    fireEvent.change(paidField, { target: { value: "90" } });
+    await waitFor(() => expect(ownerConfirmCheckbox().checked).toBe(false));
+    await userEvent
+      .setup()
+      .type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "فاتورة تغيّر مدفوعها");
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await waitFor(() =>
+      expect(screen.getByText(/أكّد أن المالك تحمّل الباقي ليُسجل سحبًا شخصيًا بنفس الحفظ/)).toBeTruthy(),
+    );
+    expect(recordSharedBill).not.toHaveBeenCalled();
+    expect(record).not.toHaveBeenCalled();
+  });
+});

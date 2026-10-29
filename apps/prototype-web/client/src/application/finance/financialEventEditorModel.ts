@@ -25,6 +25,10 @@ import {
 import { isValidLocalDate, localDatePlusMonthsClamped } from "@micro-domain/shared/index.js";
 import { percentToBpsExact } from "@/application/input";
 import { todayInAmman } from "@/application/time";
+import {
+  sharedBillOwnerPartConfirmationOf,
+  type SharedBillOwnerPartConfirmation,
+} from "@/application/financial-records/expenseRecordIntent";
 
 /** نمط إدخال حصة المشروع من المصروف المشترك (مواصفة المحرر الموحدة). */
 export type SharedMode = "fixed" | "percentage" | "estimate" | "defer";
@@ -264,9 +268,12 @@ export type EditorDraft = {
   sharedTotalAmountMinor: number;
   sharedPercentage: number;
   /* S06: المدفوع فعليًا للفاتورة المشتركة وتأكيد تحمل المالك الفارق
-   * وخيار «يتكرر» والتذكير القادم — مدخلات مسودة كإخواتها. */
+   * وخيار «يتكرر» والتذكير القادم — مدخلات مسودة كإخواتها.
+   * S07 (S06-MR-001): التأكيد مرتبط بقيمة الزوج الكنوني لحظة التأكيد —
+   * (الحصة + المدفوع) لا boolean بلا قيمة؛ تغيّر أي مدخل يغير القيمة
+   * يجعل المسودة غير مطابقة فيُبطل التأكيد عند الاسترجاع كما عند الحفظ. */
   sharedPaidAmountMinor: number;
-  ownerPartConfirmed: boolean;
+  ownerPartConfirmedFor: SharedBillOwnerPartConfirmation | null;
   recurrenceEnabled: boolean;
   recurrenceNextDate: string;
   date: string;
@@ -299,6 +306,25 @@ const safeDraftAmount = (value: unknown): number =>
 const safeDraftString = (value: unknown): string => (typeof value === "string" ? value : "");
 const safeDraftEnum = <T extends string>(value: unknown, allowed: readonly T[], fallback: T): T =>
   typeof value === "string" && (allowed as readonly string[]).includes(value) ? (value as T) : fallback;
+/* S07 (S06-MR-001): إكراه دفاعي لزوج تأكيد «من تحمّل الباقي» المخزن في مسودة
+ * محلية تالفة — القيم غير الآمنة تُصبح null (بلا تأكيد) لا قيمة مالية
+ * مزعومة؛ كائن التأكيد إما زوج صحيح آمن مجمّدًا أو غائبًا. */
+function safeDraftOwnerPartConfirmation(value: unknown): SharedBillOwnerPartConfirmation | null {
+  if (typeof value !== "object" || value === null) return null;
+  const pair = value as { shareAmountMinor?: unknown; paidAmountMinor?: unknown };
+  if (
+    typeof pair.shareAmountMinor !== "number" ||
+    !Number.isSafeInteger(pair.shareAmountMinor) ||
+    pair.shareAmountMinor <= 0
+  )
+    return null;
+  if (
+    pair.paidAmountMinor !== null &&
+    (typeof pair.paidAmountMinor !== "number" || !Number.isSafeInteger(pair.paidAmountMinor))
+  )
+    return null;
+  return sharedBillOwnerPartConfirmationOf(pair.shareAmountMinor, pair.paidAmountMinor ?? null);
+}
 
 export function coerceEditorDraft(value: unknown): EditorDraft | null {
   if (typeof value !== "object" || value === null) return null;
@@ -313,7 +339,7 @@ export function coerceEditorDraft(value: unknown): EditorDraft | null {
     sharedTotalAmountMinor: safeDraftAmount(draft.sharedTotalAmountMinor),
     sharedPercentage: safeDraftAmount(draft.sharedPercentage),
     sharedPaidAmountMinor: safeDraftAmount(draft.sharedPaidAmountMinor),
-    ownerPartConfirmed: draft.ownerPartConfirmed === true,
+    ownerPartConfirmedFor: safeDraftOwnerPartConfirmation(draft.ownerPartConfirmedFor),
     recurrenceEnabled: draft.recurrenceEnabled === true,
     /* S06: تاريخ التذكير القادم المشوّه يعود للفراغ لا لقيمة قرار صامتة —
      * الإكراه الآمن نفسه (R2/M-04) بلا افتراض تاريخ. */

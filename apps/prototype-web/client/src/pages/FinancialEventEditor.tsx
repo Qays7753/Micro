@@ -29,6 +29,9 @@ import { formatMoneyMinor } from "@/presentation/formatters";
 import {
   deriveExpenseCategorySuggestions,
   normalizeCategoryLabelInput,
+  matchesSharedBillOwnerPartConfirmation,
+  sharedBillOwnerPartConfirmationOf,
+  type SharedBillOwnerPartConfirmation,
 } from "@/application/financial-records";
 import type { SettleablePayable } from "@/application/finance";
 import type { CrossModelOwnerDuplicate } from "@/application/owner-money";
@@ -165,7 +168,13 @@ export default function FinancialEventEditor() {
    * يفتح سؤال «من تحمّل الباقي» بتأكيد صريح لا افتراض نظام. */
   const [sharedPaidAmountMinor, setSharedPaidAmountMinor] = useState(0);
   const [validSharedPaid, setValidSharedPaid] = useState(true);
-  const [ownerPartConfirmed, setOwnerPartConfirmed] = useState(false);
+  /* S06 (CONS-DEC04 / SDF-064): تأكيد «من تحمّل الباقي» — S07 (S06-MR-001):
+   * مرتبط بقيمة الزوج الكنوني (الحصة + المدفوع) لحظة التأكيد لا boolean
+   * بلا قيمة؛ تغيّر أي مدخل يغير القيمة يبطل التأكيد تلقائيًا عند
+   * المطابقة (ownerPartConfirmedCurrent) فيُعاد الطلب قبل الحفظ. */
+  const [ownerPartConfirmedFor, setOwnerPartConfirmedFor] = useState<SharedBillOwnerPartConfirmation | null>(
+    null,
+  );
   /* S06 (UNIT-019 / ORG-011): خيار «يتكرر» داخل المصروف — إعداد مختصر
    * (كل شهر + التذكير القادم) بقصد مترابط مع الحفظ (D07). */
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(false);
@@ -245,6 +254,10 @@ export default function FinancialEventEditor() {
       counterparty: string | null;
       expenseContext: OperatingExpenseContext | null;
       sharedExpense: NonNullable<typeof sharedExpenseIntent>;
+      /* S07 (S06-MR-001): تأكيد الزوج مجمّد مع النية لحظة الفشل — الإعادة
+       * تمر بالقيم نفسها التي فُصلت بها النية، فيطابقها الحد كما طابقها
+       * أول مرة؛ تعديل النموذج بعدها لا يغير السحب (R1-F01). */
+      ownerPartConfirmation: SharedBillOwnerPartConfirmation;
       idempotencyKey: string;
       sourceWalletId: string | null;
     };
@@ -405,7 +418,7 @@ export default function FinancialEventEditor() {
       sharedTotalAmountMinor,
       sharedPercentage,
       sharedPaidAmountMinor,
-      ownerPartConfirmed,
+      ownerPartConfirmedFor,
       recurrenceEnabled,
       recurrenceNextDate,
       date,
@@ -445,7 +458,7 @@ export default function FinancialEventEditor() {
           sharedTotalAmountMinor,
           sharedPercentage,
           sharedPaidAmountMinor,
-          ownerPartConfirmed,
+          ownerPartConfirmedFor,
           recurrenceEnabled,
           recurrenceNextDate,
           date,
@@ -483,7 +496,7 @@ export default function FinancialEventEditor() {
     sharedTotalAmountMinor,
     sharedPercentage,
     sharedPaidAmountMinor,
-    ownerPartConfirmed,
+    ownerPartConfirmedFor,
     recurrenceEnabled,
     recurrenceNextDate,
     date,
@@ -571,6 +584,18 @@ export default function FinancialEventEditor() {
     shareAmountMinor: sharedSharePreviewMinor,
     applies: type === "operating_expense_cash" && isShared && sharedMode !== "defer",
   });
+  /* S07 (S06-MR-001): الزوج الكنوني الحالي للمطابقة — من المعاينة نفسها
+   * (sharedSharePreviewMinor من الدوال النقية الكنسية) لا حساب موازٍ؛
+   * التأكيد المخزن نافذ فقط إذا طابق هذا الزوج، فتغيّر الحصة أو المدفوع
+   * (أو أي مدخل يغيرهما) يُظهر التأكيد غير معتمد ويُعاد طلبه قبل الحفظ. */
+  const ownerPartConfirmation = sharedBillOwnerPartConfirmationOf(
+    sharedSharePreviewMinor ?? 0,
+    sharedPaidAmountMinor > 0 ? sharedPaidAmountMinor : null,
+  );
+  const ownerPartConfirmedCurrent = matchesSharedBillOwnerPartConfirmation(
+    ownerPartConfirmedFor,
+    ownerPartConfirmation,
+  );
   /* S06 (UNIT-019): بوابة التذكير القادم لخيار «يتكرر».
    * R3-F01: المرجع اليوم الحقيقي لا تاريخ الحدث — نفس قاعدة الخدمة
    * الكنسية (setupFromExpense تقارن باليوم الحقيقي)، فلا يقترح المحرر
@@ -604,7 +629,7 @@ export default function FinancialEventEditor() {
     setSharedTotalAmountMinor(draftOffer.sharedTotalAmountMinor);
     setSharedPercentage(draftOffer.sharedPercentage);
     setSharedPaidAmountMinor(draftOffer.sharedPaidAmountMinor);
-    setOwnerPartConfirmed(draftOffer.ownerPartConfirmed);
+    setOwnerPartConfirmedFor(draftOffer.ownerPartConfirmedFor);
     setRecurrenceEnabled(draftOffer.recurrenceEnabled);
     setRecurrenceNextDate(draftOffer.recurrenceNextDate);
     setDate(draftOffer.date);
@@ -690,8 +715,10 @@ export default function FinancialEventEditor() {
       });
       return false;
     }
-    /* الفارق فوق الحصة لا يُفترض شخصيًا — تأكيد صريح من قرره (CONS-DEC04). */
-    if (ownerPartMinor > 0 && !ownerPartConfirmed) {
+    /* الفارق فوق الحصة لا يُفترض شخصيًا — تأكيد صريح من قرره (CONS-DEC04).
+     * S07 (S06-MR-001): التأكيد يجب أن يطابق القيم الحالية — تأكيد قديم
+     * لقيمة سابقة لا يجوز أن يوثّق سحبًا بقيم جديدة. */
+    if (ownerPartMinor > 0 && !ownerPartConfirmedCurrent) {
       setMessage({
         tone: "error",
         text: `دفع المشروع فوق حصته بمقدار ${formatMoneyMinor(ownerPartMinor)} د.أ — أكّد أن المالك تحمّل الباقي ليُسجل سحبًا شخصيًا بنفس الحفظ، أو عدّل المدفوع.`,
@@ -733,8 +760,10 @@ export default function FinancialEventEditor() {
     const sharedExpense = sharedExpenseIntent;
     /* S06 (CONS-DEC04 / SDF-064): فرع الفاتورة المشتركة فوق الحصة — نية
      * واحدة بحدثين عبر الكاتب الكنوني (مصروف الحصة + سحب المالك بالفارق
-     * المؤكد)؛ الإعادة بنفس المفتاح تعيد القائم ولا تضاعف. */
-    const sharedBillApplies = ownerPartMinor > 0 && ownerPartConfirmed;
+     * المؤكد)؛ الإعادة بنفس المفتاح تعيد القائم ولا تضاعف.
+     * S07 (S06-MR-001): التأكيد النافذ هو المطابق للزوج الحالي فقط،
+     * ويمرر مع النية فيطابقه الحد قبل أي كتابة. */
+    const sharedBillApplies = ownerPartMinor > 0 && ownerPartConfirmedCurrent;
     let savedExpense: FinancialEvent | null = null;
     let ownerPartEvent: FinancialEvent | null = null;
     let ownerPartFailure: string | null = null;
@@ -750,6 +779,9 @@ export default function FinancialEventEditor() {
           relatedEventId: null,
           expenseContext,
           sharedExpense,
+          /* S07 (S06-MR-001): زوج التأكيد النافذ يمر مع النية — الحد
+           * يطابقه بالاشتقاق الحالي قبل أي كتابة. */
+          ownerPartConfirmation: ownerPartConfirmedFor,
           idempotencyKey: idempotencyKey.current,
           sourceWalletId: walletId && walletId !== UNSET_EXPENSE_SOURCE ? walletId : null,
         });
@@ -914,7 +946,9 @@ export default function FinancialEventEditor() {
           failedAttributions.length > 0 ? ` كما تعذرت ${failedAttributions.join("، و")}.` : ""
         }`,
         ownerPartRetryMinor: ownerPartMinor,
-        /* R1-F01: النية الفاشلة مجمّدة كما هي — الإعادة لا تقرأ النموذج الحي. */
+        /* R1-F01: النية الفاشلة مجمّدة كما هي — الإعادة لا تقرأ النموذج الحي.
+         * S07 (S06-MR-001): زوج التأكيد يُجمد مع النية — نفس القيم التي
+         * وثّقت السحب أول مرة؛ تعديل النموذج بعدها لا يغير السحب. */
         ownerPartRetryIntent: {
           type: selectedType,
           ...(sharedMode === "percentage" && isShared ? {} : { amountMinor }),
@@ -923,6 +957,7 @@ export default function FinancialEventEditor() {
           counterparty: counterparty || null,
           expenseContext,
           sharedExpense: sharedExpense as NonNullable<typeof sharedExpense>,
+          ownerPartConfirmation: ownerPartConfirmedFor as SharedBillOwnerPartConfirmation,
           idempotencyKey: idempotencyKey.current,
           sourceWalletId: walletId && walletId !== UNSET_EXPENSE_SOURCE ? walletId : null,
         },
@@ -987,6 +1022,10 @@ export default function FinancialEventEditor() {
         relatedEventId: null,
         expenseContext: intent.expenseContext,
         sharedExpense: intent.sharedExpense,
+        /* S07 (S06-MR-001): زوج التأكيد المجمّد مع النية — الإعادة بنفس
+         * القيم التي وثّقت السحب أول مرة، فيطابقها الحد كما طابقها أول
+         * مرة؛ لا يُعاد طلب تأكيد من قيم نموذج حي بعد الفشل. */
+        ownerPartConfirmation: intent.ownerPartConfirmation,
         idempotencyKey: intent.idempotencyKey,
         sourceWalletId: intent.sourceWalletId,
       });
@@ -1293,8 +1332,22 @@ export default function FinancialEventEditor() {
               <label className="micro-checkbox">
                 <input
                   type="checkbox"
-                  checked={ownerPartConfirmed}
-                  onChange={event => setOwnerPartConfirmed(event.target.checked)}
+                  /* S07 (S06-MR-001): المؤشر يتبع صلاحية التأكيد الحالية —
+                   * بعد أي تغيير للحصة/المدفوع يظهر غير معتمد فيُعاد طلبه
+                   * قبل الحفظ؛ لا يبقى مؤشرًا قائمًا لقيمة تغيّرت. */
+                  checked={ownerPartConfirmedCurrent}
+                  onChange={event => {
+                    if (event.target.checked) {
+                      setOwnerPartConfirmedFor(
+                        sharedBillOwnerPartConfirmationOf(
+                          sharedSharePreviewMinor ?? 0,
+                          sharedPaidAmountMinor > 0 ? sharedPaidAmountMinor : null,
+                        ),
+                      );
+                    } else {
+                      setOwnerPartConfirmedFor(null);
+                    }
+                  }}
                 />
                 <span>
                   الفارق {formatMoneyMinor(ownerPartMinor)} د.أ فوق حصة المشروع على المالك — سجّله سحبًا

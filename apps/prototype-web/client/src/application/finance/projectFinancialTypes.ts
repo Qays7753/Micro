@@ -38,6 +38,7 @@ import type {
 import type { SOURCE_REF_KINDS } from "@micro-domain/cash-continuity/index.js";
 import type { OperatingBreakEvenResult } from "@micro-domain/financial-analysis/index.js";
 import type { SharedExpenseRecordInput } from "@/application/financial-records/expenseRecordIntent";
+import type { SharedBillOwnerPartConfirmation } from "@/application/financial-records/expenseRecordIntent";
 
 /** مركز المشروع المالي المسجل — قراءة القارئ الكنوني (عقد ٤٠). */
 export type ProjectFinancialPosition = {
@@ -256,6 +257,12 @@ export type FinancialRecordInput = {
   depositContext?: DepositEventContext | null;
   idempotencyKey: string;
   sharedExpense?: SharedExpenseRecordInput;
+  /* S07 (S06-MR-001): تأكيد تحمّل المالك للباقي المرتبط بقيمة الزوج الكنوني
+   * (الحصة + المدفوع) لحظة التأكيد — يستهلكه كاتب الفاتورة المشتركة فقط
+   * (recordSharedBill) ويطابقه بالقيمة المشتقة الحالية عند الحد قبل أي
+   * كتابة؛ غيابه أو تقادمه (تغير الحصة/المدفوع) يُرفض. المسارات الأخرى
+   * تتجاهله (مثل sourceWalletId التوافقي). */
+  ownerPartConfirmation?: SharedBillOwnerPartConfirmation | null;
 };
 export type FinancialReversalInput = {
   sourceEventId: string;

@@ -68,6 +68,9 @@ for (const adapter of adapters) {
         relatedEventId: null,
         expenseContext: sharedContext,
         sharedExpense: { mode: "fixed", amountMinor: 3_000, paidAmountMinor: 6_000 },
+        /* S07 (S06-MR-001): زوج التأكيد المرتبط بالقيم نفسها — الحد يطابقه
+         * بالاشتقاق الحالي قبل أي كتابة. */
+        ownerPartConfirmation: { shareAmountMinor: 3_000, paidAmountMinor: 6_000 },
         idempotencyKey: "bill-60-30",
       });
       if (!bill.ok) throw new Error(bill.message);
@@ -127,6 +130,9 @@ for (const adapter of adapters) {
         relatedEventId: null,
         expenseContext: sharedContext,
         sharedExpense: { mode: "fixed" as const, amountMinor: 3_000, paidAmountMinor: 6_000 },
+        /* S07 (S06-MR-001): زوج التأكيد جزء من النية — نفس النية تحمل نفس
+         * الزوج، والإعادة بها تعيد القائم (reused) ولا تضاعف. */
+        ownerPartConfirmation: { shareAmountMinor: 3_000, paidAmountMinor: 6_000 },
         idempotencyKey: "bill-replay",
       };
       const first = await service.recordSharedBill(input);
@@ -181,6 +187,7 @@ for (const adapter of adapters) {
         relatedEventId: null,
         expenseContext: sharedContext,
         sharedExpense: { mode: "fixed", amountMinor: 3_000, paidAmountMinor: 9_000 },
+        ownerPartConfirmation: { shareAmountMinor: 3_000, paidAmountMinor: 9_000 },
         idempotencyKey: "bill-partial",
         sourceWalletId: "wallet-thin",
       });
@@ -219,6 +226,8 @@ for (const adapter of adapters) {
         relatedEventId: null,
         expenseContext: sharedContext,
         sharedExpense: { mode: "fixed", amountMinor: 3_000, paidAmountMinor: 9_000 },
+        /* الإعادة بنفس النية (وزوج تأكيدها نفسه) تعيد القائم وتكمل السحب وحده. */
+        ownerPartConfirmation: { shareAmountMinor: 3_000, paidAmountMinor: 9_000 },
         idempotencyKey: "bill-partial",
         sourceWalletId: "wallet-thin",
       });
@@ -268,6 +277,7 @@ describe("S06 (R1-F03) — باب النقل يتحقق من شكل المدفو
       relatedEventId: null,
       expenseContext: sharedContext,
       sharedExpense: { mode: "fixed", amountMinor: 3_000, paidAmountMinor: 6_000 },
+      ownerPartConfirmation: { shareAmountMinor: 3_000, paidAmountMinor: 6_000 },
       idempotencyKey: "wire-paid",
     });
     if (!bill.ok) throw new Error(bill.message);
