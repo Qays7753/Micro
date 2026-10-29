@@ -1,8 +1,10 @@
 import "fake-indexeddb/auto";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { LocalTransferService } from "./localTransferService";
 import { exportCountsOf } from "./transferCounters";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { IndexedDbLocalStore } from "@/storage/local/IndexedDbLocalStore";
+import type { PrototypeLocalStore } from "@/storage/local/types";
 import { localExportVersion, localSchemaVersion } from "@/storage/local/types";
 import { syncSha256Hex } from "@/lib/syncSha256";
 
@@ -145,135 +147,170 @@ function currentPairFile(input: LinesFileInput = {}): Record<string, unknown> {
   return file;
 }
 
-const prepare = (file: Record<string, unknown>) =>
-  new LocalTransferService(new MemoryLocalStore(), () => NOW).prepareRestore(JSON.stringify(file));
-
 const validLines: readonly Record<string, unknown>[] = [
   lineWith({}),
   lineWith({ lineId: "pl-2", valueMinor: 12_000 }),
 ];
 
-describe("S07 — باب النقل مع بنود الشراء (عقد ٤٤)", () => {
-  it("الدورة الكاملة تحفظ بنود الشراء وهوياتها ودفعاته بلا إعادة تشغيل مالي", async () => {
-    const source = new MemoryLocalStore();
-    const prepared = await new LocalTransferService(source, () => NOW).prepareRestore(
-      JSON.stringify(currentPairFile({ lines: validLines })),
-    );
-    if (!prepared.ok) throw new Error(prepared.message);
-    const confirmed = await new LocalTransferService(source, () => NOW).confirmImport(prepared.value);
-    if (!confirmed.ok) throw new Error(confirmed.message);
-    const reExported = await new LocalTransferService(source, () => NOW).createExport();
-    if (!reExported.ok) throw new Error(reExported.message);
-    const exportedPurchases = reExported.value.data.supplierPurchases;
-    if (!exportedPurchases) throw new Error("عائلة المشتريات غائبة عن التصدير");
-    const roundTripped = exportedPurchases.find(p => p.id === "purchase-lines-1");
-    if (!roundTripped) throw new Error("لم يعبر الدورة");
-    expect(roundTripped.lines?.map(line => line.lineId)).toEqual(["pl-1", "pl-2"]);
-    expect(roundTripped.lines?.[0]?.valueMinor).toBe(10_000);
-    expect(roundTripped.lines?.[0]?.treatment).toBe("period_material");
-    expect(roundTripped.lines?.[1]?.costKnowledge).toBe("known");
-    expect(roundTripped.payments.length).toBe(1);
-    expect(roundTripped.payments[0]?.occurredOn).toBe("2026-10-10");
-    expect(roundTripped.paidMinor).toBe(5_000);
+/* R4-F05: دورة المهايئين القياسية — باب النقل يُختبر على الذاكرة وIndexedDB
+ * معًا (نمط suites المجموعة نفسه)؛ التحقق الصرفي قبل المعاينة محض لكن
+ * الاستعادة والإعادة تمر بالمهايئ الحقيقي. */
+async function clearDatabase(): Promise<void> {
+  await new Promise<void>(resolve => {
+    const request = indexedDB.deleteDatabase("micro-prototype");
+    request.onsuccess = () => resolve();
+    request.onerror = () => resolve();
+    request.onblocked = () => resolve();
   });
+}
 
-  it("هوية بند مكررة داخل الشراء تُرفض قبل المعاينة وبلا كتابة في الهدف", async () => {
-    const target = new MemoryLocalStore();
-    const before = await target.readSnapshot();
-    if (!before.ok) throw new Error(before.message);
-    const file = currentPairFile({
-      lines: [lineWith({}), lineWith({ lineId: "pl-1", valueMinor: 5_000 })],
+type StoreFactory = () => Promise<PrototypeLocalStore> | PrototypeLocalStore;
+
+const adapters: ReadonlyArray<{ readonly label: string; readonly make: StoreFactory }> = [
+  { label: "Memory", make: () => new MemoryLocalStore() },
+  {
+    label: "IndexedDB",
+    make: async () => {
+      await clearDatabase();
+      return new IndexedDbLocalStore();
+    },
+  },
+];
+
+for (const adapter of adapters) {
+  describe(`S07 — باب النقل مع بنود الشراء (عقد ٤٤) (${adapter.label})`, () => {
+    afterEach(async () => {
+      if (adapter.label === "IndexedDB") await clearDatabase();
     });
-    const prepared = await new LocalTransferService(target, () => NOW).prepareRestore(JSON.stringify(file));
-    expect(prepared.ok).toBe(false);
-    const after = await target.readSnapshot();
-    if (!after.ok) throw new Error(after.message);
-    expect(after.value).toEqual(before.value);
-  });
 
-  it("قيمة معلومة غير موجبة، ومجهولة بقيمة معلنة، ومتتبعة بلا مادة — تُرفض كلها", async () => {
-    expect((await prepare(currentPairFile({ lines: [lineWith({ valueMinor: 0 })] }))).ok).toBe(false);
-    expect((await prepare(currentPairFile({ lines: [lineWith({ valueMinor: -5_000 })] }))).ok).toBe(false);
-    expect(
-      (await prepare(currentPairFile({ lines: [lineWith({ valueMinor: 7_000, costKnowledge: "unknown" })] })))
-        .ok,
-    ).toBe(false);
-    /* R2-F04: مجموع قيم البنود المعلومة فوق إجمالي الشراء — مرآة ثابت حد
-     * الكتابة عند باب النقل أيضًا؛ الملف الدخيل يُرفض قبل المعاينة. */
-    expect(
-      (
-        await prepare(
-          currentPairFile({
-            lines: [lineWith({ valueMinor: 20_000 }), lineWith({ lineId: "pl-2", valueMinor: 15_000 })],
-          }),
-        )
-      ).ok,
-    ).toBe(false);
-    expect(
-      (await prepare(currentPairFile({ lines: [lineWith({ treatment: "tracked_material" })] }))).ok,
-    ).toBe(false);
-  });
-
-  it("مرجع بند مكسور في حركة استلام يُرفض قبل المعاينة", async () => {
-    const file = currentPairFile({
-      lines: [lineWith({ lineId: "pl-real", valueMinor: 20_000 })],
-      materials: [materialRecord("material-real")],
-      movements: [
-        {
-          id: "movement-broken-1",
-          materialId: "material-real",
-          type: "purchase_receipt",
-          occurredOn: "2026-10-11",
-          recordedAt: NOW,
-          quantityDeltaMilli: 1_000,
-          valueDeltaMinor: 5_000,
-          note: "استلام بمرجع بند مكسور",
-          reason: null,
-          operationKey: "movement-broken-1-op",
-          purchaseId: "purchase-lines-1",
-          purchaseLineId: "pl-ghost",
-          orderId: null,
-          saleId: null,
-          reversesMovementId: null,
-          wasteContext: null,
-          costKnowledge: "known",
-        },
-      ],
+    /* تحضير المعاينة فوق مهايئ الحلقة — التحقق الصرفي واحد لكن الاستعادة
+     * اللاحقة تمر بالمهايئ نفسه. */
+    const prepare = async (file: Record<string, unknown>) =>
+      await new LocalTransferService(await adapter.make(), () => NOW).prepareRestore(JSON.stringify(file));
+    it("الدورة الكاملة تحفظ بنود الشراء وهوياتها ودفعاته بلا إعادة تشغيل مالي", async () => {
+      const source = await adapter.make();
+      const prepared = await new LocalTransferService(source, () => NOW).prepareRestore(
+        JSON.stringify(currentPairFile({ lines: validLines })),
+      );
+      if (!prepared.ok) throw new Error(prepared.message);
+      const confirmed = await new LocalTransferService(source, () => NOW).confirmImport(prepared.value);
+      if (!confirmed.ok) throw new Error(confirmed.message);
+      const reExported = await new LocalTransferService(source, () => NOW).createExport();
+      if (!reExported.ok) throw new Error(reExported.message);
+      const exportedPurchases = reExported.value.data.supplierPurchases;
+      if (!exportedPurchases) throw new Error("عائلة المشتريات غائبة عن التصدير");
+      const roundTripped = exportedPurchases.find(p => p.id === "purchase-lines-1");
+      if (!roundTripped) throw new Error("لم يعبر الدورة");
+      expect(roundTripped.lines?.map(line => line.lineId)).toEqual(["pl-1", "pl-2"]);
+      expect(roundTripped.lines?.[0]?.valueMinor).toBe(10_000);
+      expect(roundTripped.lines?.[0]?.treatment).toBe("period_material");
+      expect(roundTripped.lines?.[1]?.costKnowledge).toBe("known");
+      expect(roundTripped.payments.length).toBe(1);
+      expect(roundTripped.payments[0]?.occurredOn).toBe("2026-10-10");
+      expect(roundTripped.paidMinor).toBe(5_000);
     });
-    const prepared = await prepare(file);
-    expect(prepared.ok).toBe(false);
-  });
 
-  it("رفض مراجع الأطراف المكسورة (S05-MR-001) يبقى ساريًا مع بنود الشراء", async () => {
-    const file = currentPairFile({
-      lines: validLines,
-      purchaseOverrides: { supplierPartyId: "party-ghost" },
+    it("هوية بند مكررة داخل الشراء تُرفض قبل المعاينة وبلا كتابة في الهدف", async () => {
+      const target = await adapter.make();
+      const before = await target.readSnapshot();
+      if (!before.ok) throw new Error(before.message);
+      const file = currentPairFile({
+        lines: [lineWith({}), lineWith({ lineId: "pl-1", valueMinor: 5_000 })],
+      });
+      const prepared = await new LocalTransferService(target, () => NOW).prepareRestore(JSON.stringify(file));
+      expect(prepared.ok).toBe(false);
+      const after = await target.readSnapshot();
+      if (!after.ok) throw new Error(after.message);
+      expect(after.value).toEqual(before.value);
     });
-    const prepared = await prepare(file);
-    expect(prepared.ok).toBe(false);
-  });
 
-  it("بند بمادة غير موجودة في الملف يُرفض قبل المعاينة", async () => {
-    const file = currentPairFile({
-      lines: [lineWith({ materialId: "material-ghost", treatment: "tracked_material" })],
+    it("قيمة معلومة غير موجبة، ومجهولة بقيمة معلنة، ومتتبعة بلا مادة — تُرفض كلها", async () => {
+      expect((await prepare(currentPairFile({ lines: [lineWith({ valueMinor: 0 })] }))).ok).toBe(false);
+      expect((await prepare(currentPairFile({ lines: [lineWith({ valueMinor: -5_000 })] }))).ok).toBe(false);
+      expect(
+        (
+          await prepare(
+            currentPairFile({ lines: [lineWith({ valueMinor: 7_000, costKnowledge: "unknown" })] }),
+          )
+        ).ok,
+      ).toBe(false);
+      /* R2-F04: مجموع قيم البنود المعلومة فوق إجمالي الشراء — مرآة ثابت حد
+       * الكتابة عند باب النقل أيضًا؛ الملف الدخيل يُرفض قبل المعاينة. */
+      expect(
+        (
+          await prepare(
+            currentPairFile({
+              lines: [lineWith({ valueMinor: 20_000 }), lineWith({ lineId: "pl-2", valueMinor: 15_000 })],
+            }),
+          )
+        ).ok,
+      ).toBe(false);
+      expect(
+        (await prepare(currentPairFile({ lines: [lineWith({ treatment: "tracked_material" })] }))).ok,
+      ).toBe(false);
     });
-    const prepared = await prepare(file);
-    expect(prepared.ok).toBe(false);
-  });
 
-  it("بلا بنود (null) يعبر كما هو — الإرث المتوافق بلا افتراض معنى", async () => {
-    const file = currentPairFile({ lines: null });
-    const prepared = await prepare(file);
-    if (!prepared.ok) throw new Error(prepared.message);
-    const target = new LocalTransferService(new MemoryLocalStore(), () => NOW);
-    const confirmed = await target.confirmImport(prepared.value);
-    if (!confirmed.ok) throw new Error(confirmed.message);
-    const reExported = await target.createExport();
-    if (!reExported.ok) throw new Error(reExported.message);
-    const exportedPurchases = reExported.value.data.supplierPurchases;
-    if (!exportedPurchases) throw new Error("عائلة المشتريات غائبة عن التصدير");
-    const restored = exportedPurchases.find(p => p.id === "purchase-lines-1");
-    if (!restored) throw new Error("لم يعبر الدورة");
-    expect(restored.lines ?? null).toBeNull();
+    it("مرجع بند مكسور في حركة استلام يُرفض قبل المعاينة", async () => {
+      const file = currentPairFile({
+        lines: [lineWith({ lineId: "pl-real", valueMinor: 20_000 })],
+        materials: [materialRecord("material-real")],
+        movements: [
+          {
+            id: "movement-broken-1",
+            materialId: "material-real",
+            type: "purchase_receipt",
+            occurredOn: "2026-10-11",
+            recordedAt: NOW,
+            quantityDeltaMilli: 1_000,
+            valueDeltaMinor: 5_000,
+            note: "استلام بمرجع بند مكسور",
+            reason: null,
+            operationKey: "movement-broken-1-op",
+            purchaseId: "purchase-lines-1",
+            purchaseLineId: "pl-ghost",
+            orderId: null,
+            saleId: null,
+            reversesMovementId: null,
+            wasteContext: null,
+            costKnowledge: "known",
+          },
+        ],
+      });
+      const prepared = await prepare(file);
+      expect(prepared.ok).toBe(false);
+    });
+
+    it("رفض مراجع الأطراف المكسورة (S05-MR-001) يبقى ساريًا مع بنود الشراء", async () => {
+      const file = currentPairFile({
+        lines: validLines,
+        purchaseOverrides: { supplierPartyId: "party-ghost" },
+      });
+      const prepared = await prepare(file);
+      expect(prepared.ok).toBe(false);
+    });
+
+    it("بند بمادة غير موجودة في الملف يُرفض قبل المعاينة", async () => {
+      const file = currentPairFile({
+        lines: [lineWith({ materialId: "material-ghost", treatment: "tracked_material" })],
+      });
+      const prepared = await prepare(file);
+      expect(prepared.ok).toBe(false);
+    });
+
+    it("بلا بنود (null) يعبر كما هو — الإرث المتوافق بلا افتراض معنى", async () => {
+      const file = currentPairFile({ lines: null });
+      const prepared = await prepare(file);
+      if (!prepared.ok) throw new Error(prepared.message);
+      const target = new LocalTransferService(await adapter.make(), () => NOW);
+      const confirmed = await target.confirmImport(prepared.value);
+      if (!confirmed.ok) throw new Error(confirmed.message);
+      const reExported = await target.createExport();
+      if (!reExported.ok) throw new Error(reExported.message);
+      const exportedPurchases = reExported.value.data.supplierPurchases;
+      if (!exportedPurchases) throw new Error("عائلة المشتريات غائبة عن التصدير");
+      const restored = exportedPurchases.find(p => p.id === "purchase-lines-1");
+      if (!restored) throw new Error("لم يعبر الدورة");
+      expect(restored.lines ?? null).toBeNull();
+    });
   });
-});
+}

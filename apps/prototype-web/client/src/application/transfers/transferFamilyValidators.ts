@@ -1042,14 +1042,20 @@ export function validSupplierPurchase(value: unknown): boolean {
     ) ||
     /* S07 (UNIT-027 / R2-F04): مجموع قيم البنود المعلومة لا يتجاوز إجمالي
      * الشراء — مرآة ثابت حد الكتابة الكنوني («الأجزاء لا تكرر فوق الكل»)
-     * فلا يعبر ملف دخيل بفترة اعتراف تتجاوز قيمة الفاتورة نفسها. */
+     * فلا يعبر ملف دخيل بفترة اعتراف تتجاوز قيمة الفاتورة نفسها.
+     * R4-F01: تضييق بلا إكراه نوع على عائلة Minor — Array.isArray مع
+     * isRecord/isMoney (نمط الملف نفسه)، وقيمة غير مصفوفة تُرفض لا تُلقي
+     * استثناء داخل المدقق. */
     !(
       value.lines === undefined ||
       value.lines === null ||
-      (isMoney(value.totalMinor) &&
-        (value.lines as { costKnowledge?: unknown; valueMinor?: unknown }[]).reduce<number>(
+      (Array.isArray(value.lines) &&
+        isMoney(value.totalMinor) &&
+        value.lines.reduce<number>(
           (sum, line) =>
-            line.costKnowledge === "known" && isMoney(line.valueMinor) ? sum + line.valueMinor : sum,
+            isRecord(line) && line.costKnowledge === "known" && isMoney(line.valueMinor)
+              ? sum + line.valueMinor
+              : sum,
           0,
         ) <= value.totalMinor)
     )
