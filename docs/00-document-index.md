@@ -316,6 +316,9 @@
 | `docs/implementation/micro-component-execution/00-S06-EXECUTION-PROMPT-2026-10-29.md` | أمر S06 الكنسي لـZAI: إصلاحا عقد S05 المؤكدان (S05-MR-001/S05-MR-002) من الجذر ثم تنفيذ S06 الكامل للمصروف والمتكرر UNIT-015/UNIT-019 على نفس الفرع وPR؛ لا main ولا merge |
 | `docs/implementation/micro-component-execution/10a-S05-ADDENDUM-2026-10-30.md` | ملحق نتيجة S05: الملاحظتان المؤكدتان S05-MR-001/S05-MR-002 وسلوكهما قبل الإصلاح وإصلاحاهما الجذريان وانحداراتهما الدائمة على المهايئين والموقف الصادق وحدود توسع ادعاءات النتيجة الأصلية |
 | `docs/implementation/micro-component-execution/11-S06-RESULT-2026-10-29.md` | نتيجة تنفيذ S06 (المصروف والمتكرر والفاتورة المشتركة) ومصفوفة القبول والمراجعات الخمس — تسليم للمراجعة |
+| `docs/implementation/micro-component-execution/00-S07-EXECUTION-PROMPT-2026-10-29.md` | أمر S07 الكنسي لـZAI: إثبات/إصلاح ملاحظة مراجعة S06 المؤكدة (S06-MR-001) من الجذر ثم تنفيذ S07 الكامل للمشتريات والمواد UNIT-027/UNIT-028 على نفس الفرع وPR؛ لا main ولا merge |
+| `docs/implementation/micro-component-execution/11a-S06-ADDENDUM-2026-10-30.md` | ملحق نتيجة S06: الملاحظة المؤكدة S06-MR-001 وسلوكها قبل الإصلاح وإصلاحها الجذري وانحدارها الدائم على المهايئين والموقف الصادق |
+| `docs/implementation/micro-component-execution/12-S07-RESULT-2026-10-30.md` | نتيجة تنفيذ S07 (المشتريات والمواد والمخزون الاختياري) ومصفوفة القبول وسجل ملاحظات المراجعات الخمس الكامل — تسليم للمراجعة |
 
 ### تغطية ملفات الحزمة الأصلية
 

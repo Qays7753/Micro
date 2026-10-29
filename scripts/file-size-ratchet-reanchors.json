@@ -4477,12 +4477,12 @@
         "band": "SPLIT_NOW"
       },
       "to": {
-        "nbLoc": 1895,
+        "nbLoc": 1901,
         "band": "SPLIT_NOW"
       },
-      "reason": "UNIT-027 (عقد ٤٤/SDF-044): مدققو بنود صارمون + مراجع عابرة للعائلات + مرآة ثابت مجموع القيم المعلومة ≤ الإجمالي (R2-F04) — داخل الملف المقسم أصلًا بقرار هيكلي سابق؛ لا تقسيم جديد خلال S07.",
+      "reason": "UNIT-027 (عقد ٤٤/SDF-044): مدققو بنود صارمون + مراجع عابرة للعائلات + مرآة ثابت مجموع القيم المعلومة ≤ الإجمالي (R2-F04) بتضييق بلا إكراهات Minor (R4-F01) — داخل الملف المقسم أصلًا بقرار هيكلي سابق؛ لا تقسيم جديد خلال S07.",
       "authorization": {
-        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) — R2 read-only-reviewer corrections on the same PR; same-PR re-anchor per R8-1/R11.",
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) — R2/R4 read-only-reviewer corrections on the same PR; same-PR re-anchor per R8-1/R11.",
         "trigger": "S07 delivery (DOC-016): S07 strict line validators + cross-family references on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-016"
       }

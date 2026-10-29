@@ -16,14 +16,14 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "fdf015efba20d26835fda3982b13fe52644ebba8",
+        "head": "28eb7a684f52b3f4dad7e7fae27dff6a7761cfd1",
         "date": "2026-10-30",
-        "method": "S07 code-candidate local re-anchor (2026-10-30, corrections head fdf015ef on top of the S07 candidate bf392b44 + a11y a5995de7 + the S06-MR-001 root fix 18a7128a, PR #383): UNIT-027 purchase lines with declared recognition treatment, UNIT-028 period-material recognition at the canonical period reader, and the S06-MR-001 canonical-pair binding carry the lazy surfaces: lazy 1,283,116 -> 1,313,996 raw / 385,709 -> 393,675 gzipNorm; precache 2,750,425 -> 2,771,202; swRuntime 26,527 -> 26,642 (two new precache manifest entries); initial companions byte-identical (224,976/70,766); counts 107/2/74/162/2 -> 109/2/75/164/2 (the purchases service left the entry chunk by the documented lazy-service precedent transfers/loans/cashCount/partyDirectory — +1 dynamic root, +2 lazy chunks). Entry 620,324 raw / 151,657 gzip — margin 3,643 under the owner 155,300 ceiling (check-bundle-budget PASS; no ceiling raised, no tolerance changed). Measured by the definitive local vite build on the corrected candidate tree (prototype:check green, 960 root + 2,994 prototype tests green on the same tree). Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol (R8-1/R11). Cloud records follow the documented post-push measurement protocol. ",
+        "method": "S07 final-candidate local re-anchor (2026-10-30, post-review corrections head 28eb7a68 — the R1-R4 read-only-reviewer fixes on top of the full-chain repairs fdf015ef, PR #383): the R1 canonical tracking predicate + drift anchor + cast guard, the R2 symmetric SDF-071 guard + beforeLines CAS arm + import sum-bound mirror + direct guard tests, the R3 line-follows-purchase selection + dirty-guard/draft lines + line-aware receipt bridge + aria-label cleanup, and the R4 cast-free narrowing + both-adapter transfer door carry the lazy surfaces over the 12acf1b5 anchor: lazy 1,313,996 -> 1,314,905 raw / 393,675 -> 394,004 gzipNorm; precache 2,771,202 -> 2,772,156; swRuntime 26,642 and initial companions (224,976/70,766) byte-identical; counts 109/2/75/164/2 unchanged. Entry 620,369 raw / 151,675 gzip — margin 3,625 under the owner 155,300 ceiling (check-bundle-budget PASS; no ceiling raised, no tolerance changed). Measured by the definitive local vite build on the final corrected tree (prototype:check green, 960 root + 3,010 prototype tests green on the same tree). Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol (R8-1/R11). Cloud records follow the documented post-push measurement protocol. ",
         "initialRawTotal": 224976,
         "initialGzipNormTotal": 70766,
-        "lazyRawTotal": 1313996,
-        "lazyGzipNormTotal": 393675,
-        "precacheBytesTotal": 2771202,
+        "lazyRawTotal": 1314905,
+        "lazyGzipNormTotal": 394004,
+        "precacheBytesTotal": 2772156,
         "swRuntimeRawTotal": 26642
       },
       "toolchain": {
@@ -38,9 +38,9 @@
       "measurements": {
         "initialRawTotal": 224976,
         "initialGzipNormTotal": 70766,
-        "lazyRawTotal": 1313996,
-        "lazyGzipNormTotal": 393675,
-        "precacheBytesTotal": 2771202,
+        "lazyRawTotal": 1314905,
+        "lazyGzipNormTotal": 394004,
+        "precacheBytesTotal": 2772156,
         "swRuntimeRawTotal": 26642
       },
       "counts": {
