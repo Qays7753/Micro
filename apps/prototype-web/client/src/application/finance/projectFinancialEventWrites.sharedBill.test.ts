@@ -306,73 +306,82 @@ describe("S06 (R1-F03) — باب النقل يتحقق من شكل المدفو
   });
 });
 
-describe("SDF-062 — المنصرف المؤهل عند الميزانية وقارئ الفترة (Memory)", () => {
-  it("ميزانية مع مصروف 10 سُدد منه 3 وأصل 100 ← المنصرف المؤهل 10 لا 3 ولا 110", async () => {
-    const store = new MemoryLocalStore();
-    const finance = new ProjectFinancialService(store, () => NOW);
-    /* مصروف مستحق 10 (سُجل مصروف التشغيل كاملًا مرة واحدة). */
-    const payable = await finance.record({
-      type: "operating_expense_payable",
-      amountMinor: 1_000,
-      occurredOn: "2026-10-05",
-      note: "فاتورة مستحقة",
-      counterparty: null,
-      relatedEventId: null,
-      expenseContext: {
-        relationship: "project",
-        behavior: "variable",
-        purpose: "project_general",
+/* R5-F07 (مراجعة S06 القرائية ٥): إثبات SDF-062 على المهايئين معًا لا
+ * الذاكرة وحدها — قراءة الميزانية والفترة حسابٌ فوق مخزن الأحداث المشترك
+ * لكن العقد يثبت على السطحين المعلنين معًا كإخواته. */
+for (const adapter of adapters) {
+  describe(`SDF-062 — المنصرف المؤهل عند الميزانية وقارئ الفترة (${adapter.label})`, () => {
+    afterEach(async () => {
+      if (adapter.label === "IndexedDB") await clearDatabase();
+    });
+
+    it("ميزانية مع مصروف 10 سُدد منه 3 وأصل 100 ← المنصرف المؤهل 10 لا 3 ولا 110", async () => {
+      const store = await adapter.make();
+      const finance = new ProjectFinancialService(store, () => NOW);
+      /* مصروف مستحق 10 (سُجل مصروف التشغيل كاملًا مرة واحدة). */
+      const payable = await finance.record({
+        type: "operating_expense_payable",
+        amountMinor: 1_000,
+        occurredOn: "2026-10-05",
+        note: "فاتورة مستحقة",
+        counterparty: null,
+        relatedEventId: null,
+        expenseContext: {
+          relationship: "project",
+          behavior: "variable",
+          purpose: "project_general",
+          knowledge: "known",
+        },
+        idempotencyKey: "sdf062-payable",
+      });
+      if (!payable.ok) throw new Error(payable.message);
+      /* تسديد 3 — يخفض الكاش والذمة دون مصروف جديد. */
+      const settlement = await finance.record({
+        type: "payable_settlement_cash",
+        amountMinor: 300,
+        occurredOn: "2026-10-10",
+        note: "سداد جزئي",
+        counterparty: null,
+        relatedEventId: payable.value.id,
+        expenseContext: null,
+        idempotencyKey: "sdf062-settle",
+      });
+      if (!settlement.ok) throw new Error(settlement.message);
+      /* أصل 100 — ليس مصروف تشغيل ولا يدخل المنصرف المؤهل. */
+      const asset = await finance.record({
+        type: "asset_purchase_cash",
+        amountMinor: 10_000,
+        occurredOn: "2026-10-12",
+        note: "ماكينة خياطة",
+        counterparty: null,
+        relatedEventId: null,
+        expenseContext: null,
+        assetContext: { assetId: "asset-sdf062", name: "ماكينة خياطة" },
+        idempotencyKey: "sdf062-asset",
+      });
+      if (!asset.ok) throw new Error(asset.message);
+
+      /* ميزانية مصروف عام على الشهر نفسه. */
+      const budgets = new ExpenseBudgetService(store, () => NOW);
+      const created = await budgets.createBudget({
+        periodKey: "2026-10",
+        scope: { kind: "general_expense" },
+        amountMinor: 5_000,
         knowledge: "known",
-      },
-      idempotencyKey: "sdf062-payable",
-    });
-    if (!payable.ok) throw new Error(payable.message);
-    /* تسديد 3 — يخفض الكاش والذمة دون مصروف جديد. */
-    const settlement = await finance.record({
-      type: "payable_settlement_cash",
-      amountMinor: 300,
-      occurredOn: "2026-10-10",
-      note: "سداد جزئي",
-      counterparty: null,
-      relatedEventId: payable.value.id,
-      expenseContext: null,
-      idempotencyKey: "sdf062-settle",
-    });
-    if (!settlement.ok) throw new Error(settlement.message);
-    /* أصل 100 — ليس مصروف تشغيل ولا يدخل المنصرف المؤهل. */
-    const asset = await finance.record({
-      type: "asset_purchase_cash",
-      amountMinor: 10_000,
-      occurredOn: "2026-10-12",
-      note: "ماكينة خياطة",
-      counterparty: null,
-      relatedEventId: null,
-      expenseContext: null,
-      assetContext: { assetId: "asset-sdf062", name: "ماكينة خياطة" },
-      idempotencyKey: "sdf062-asset",
-    });
-    if (!asset.ok) throw new Error(asset.message);
+        operationKey: "sdf062-budget",
+      });
+      if (!created.ok) throw new Error(created.message);
+      const statuses = await budgets.readBudgetStatuses({ from: "2026-10", to: "2026-10" });
+      if (!statuses.ok) throw new Error(statuses.message);
+      expect(statuses.value.lines).toHaveLength(1);
+      /* المنصرف المؤهل 10: لا 3 (السداد ليس مصروفًا جديدًا) ولا 110 (الأصل ليس
+       * مصروف تشغيل). */
+      expect(statuses.value.lines[0]?.spentMinor).toBe(1_000);
 
-    /* ميزانية مصروف عام على الشهر نفسه. */
-    const budgets = new ExpenseBudgetService(store, () => NOW);
-    const created = await budgets.createBudget({
-      periodKey: "2026-10",
-      scope: { kind: "general_expense" },
-      amountMinor: 5_000,
-      knowledge: "known",
-      operationKey: "sdf062-budget",
+      /* نفس معرفة ونطاق المصروف عند قارئ الفترة الكنوني (013). */
+      const period = await finance.readRecordedPeriodResult("2026-10-01", "2026-10-31");
+      if (!period.ok) throw new Error(period.message);
+      expect(period.value.recordedOperatingExpenseMinor).toBe(1_000);
     });
-    if (!created.ok) throw new Error(created.message);
-    const statuses = await budgets.readBudgetStatuses({ from: "2026-10", to: "2026-10" });
-    if (!statuses.ok) throw new Error(statuses.message);
-    expect(statuses.value.lines).toHaveLength(1);
-    /* المنصرف المؤهل 10: لا 3 (السداد ليس مصروفًا جديدًا) ولا 110 (الأصل ليس
-     * مصروف تشغيل). */
-    expect(statuses.value.lines[0]?.spentMinor).toBe(1_000);
-
-    /* نفس معرفة ونطاق المصروف عند قارئ الفترة الكنوني (013). */
-    const period = await finance.readRecordedPeriodResult("2026-10-01", "2026-10-31");
-    if (!period.ok) throw new Error(period.message);
-    expect(period.value.recordedOperatingExpenseMinor).toBe(1_000);
   });
-});
+}
