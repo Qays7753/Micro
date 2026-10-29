@@ -548,7 +548,22 @@ export default function InventoryMovementEditor() {
         {safeType === "receipt" ? (
           <label className="micro-field">
             <span>شراء المواد المرجعي</span>
-            <select value={purchaseId} onChange={event => setPurchaseId(event.target.value)}>
+            <select
+              value={purchaseId}
+              onChange={event => {
+                const nextPurchaseId = event.target.value;
+                setPurchaseId(nextPurchaseId);
+                /* R3-F01: البند يتبع الشراء — لا يبقى بند شراء سابق فوق
+                 * شراء جديد (هويات البنود موقعية فتتشابه بين المشتريات)
+                 * فيرتبط الاستلام صامتًا ببند من فاتورة أخرى؛ بند متتبع
+                 * وحيد يُختار حتميًا كما في الوصلة العميقة، وما عداه
+                 * يطلب اختيارًا صريحًا (لا اختيار أول بند نيابةً عن المالك). */
+                const nextTrackedLines = (
+                  references.purchases.find(purchase => purchase.id === nextPurchaseId)?.lines ?? []
+                ).filter(line => line.treatment === "tracked_material");
+                setPurchaseLineId(nextTrackedLines.length === 1 ? nextTrackedLines[0]!.lineId : "");
+              }}
+            >
               <option value="">اختر شراء المواد…</option>
               {references.purchases.map(purchase => (
                 <option key={purchase.id} value={purchase.id}>
@@ -574,7 +589,6 @@ export default function InventoryMovementEditor() {
                 );
                 if (chosen?.materialId) setMaterialId(chosen.materialId);
               }}
-              aria-label="بند الشراء المستلم عليه"
             >
               <option value="">اختر بند الشراء…</option>
               {(references.purchases.find(p => p.id === purchaseId)?.lines ?? []).map(line => (
@@ -584,7 +598,10 @@ export default function InventoryMovementEditor() {
                   disabled={line.treatment !== "tracked_material"}
                 >
                   {(() => {
-                    const material = references.materials.find(m => m.id === (line.materialId ?? ""));
+                    /* R3-F05: اسم المادة من قائمة كل المواد — قائمة المواد
+                     * المتتبعة وحدها لا تعرف مواد الفترة فتُظهر بندًا له مادة
+                     * كأنه «بلا مادة». */
+                    const material = references.allMaterials.find(m => m.id === (line.materialId ?? ""));
                     return material ? material.name : "بند بلا مادة";
                   })()}
                   {line.treatment === "tracked_material" ? "" : " (محمّل تكلفته على فترة الشراء — لا يستلم)"}

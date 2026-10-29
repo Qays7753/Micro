@@ -297,4 +297,51 @@ describe("S07 — بنود الفاتورة في محرر الشراء (UNIT-027
     expect(payload.lines?.[0]?.valueMinor).toBeNull();
     expect(payload.lines?.[1]?.valueMinor).toBe(700);
   });
+
+  /* R3-F03 (انحدار دائم): فاتورة برأس بلا مادة وببند متتبع — جسر الاستلام
+   * يظهر بعد الحفظ (المعيّن واعٍ بالبنود لا بالرأس وحده)؛ لا خروج صامت
+   * يخفي الرحلة عن بند متتبع حُفظ للتو. */
+  it("فاتورة برأس بلا مادة وببند متتبع: جسر الاستلام يظهر بعد الحفظ (R3-F03)", async () => {
+    const { recordPurchase } = renderEditor({});
+    await fillBasics();
+    await userEvent.setup().type(screen.getByLabelText(/اسم المورد/), "مؤسسة النسيج");
+    fireEvent.click(screen.getByText("فاتورة بعدة مواد — أضف بندًا"));
+    /* البند الأول بلا ربط مادة (مواد فترة) بقيمة معلومة، والبند الثاني
+     * بمادة متتبعة — الرأس نفسه بلا مادة. */
+    fireEvent.change(screen.getByLabelText("قيمة بند المادة الأولى (د.أ)"), {
+      target: { value: "10" },
+    });
+    fireEvent.change(screen.getByLabelText(/مادة البند 2/), { target: { value: "material-tracked-1" } });
+    fireEvent.change(screen.getByLabelText("قيمة البند 2 (د.أ)"), { target: { value: "20" } });
+    recordPurchase.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        id: "purchase-mixed-1",
+        status: "unpaid",
+        materialId: null,
+        lines: [
+          {
+            lineId: "pl-1",
+            materialId: null,
+            expectedQuantityMilli: null,
+            valueMinor: 10_000,
+            costKnowledge: "known",
+            treatment: "period_material",
+          },
+          {
+            lineId: "pl-2",
+            materialId: "material-tracked-1",
+            expectedQuantityMilli: null,
+            valueMinor: 20_000,
+            costKnowledge: "known",
+            treatment: "tracked_material",
+          },
+        ],
+      } as unknown as SupplierPurchase,
+      reused: false,
+    });
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ شراء المواد" }));
+    await waitFor(() => expect(recordPurchase).toHaveBeenCalledOnce());
+    await waitFor(() => expect(screen.getByText(/استلام المخزون/)).toBeTruthy());
+  });
 });

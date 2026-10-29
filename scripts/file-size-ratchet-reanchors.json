@@ -4534,12 +4534,12 @@
         "band": "SPLIT_CANDIDATE"
       },
       "to": {
-        "nbLoc": 1011,
+        "nbLoc": 1028,
         "band": "SPLIT_CANDIDATE"
       },
-      "reason": "UNIT-027: محرر حركة المخزون يتيح اختيار بند الشراء المؤهل ويملأ من حدوده الحية (بلا زر مضلل لغير المتتبع).",
+      "reason": "UNIT-027: محرر حركة المخزون يتيح اختيار بند الشراء المؤهل ويملأ من حدوده الحية؛ R3-F01: البند يُشتق من جديد عند تغيير الشراء (بند متتبع وحيد حتميًا، وما عداه اختيار صريح) فلا يبقى بند شراء سابق فوق شراء جديد؛ R3-F04: إزالة aria-label المكرر للنص الظاهر (التسمية الملتفة هي اسم الوصول)؛ R3-F05: اسم مادة البند من كل المواد لا المتتبعة وحدها.",
       "authorization": {
-        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) — R3 read-only-reviewer corrections on the same PR; same-PR re-anchor per R8-1/R11.",
         "trigger": "S07 delivery (DOC-016): S07 movement editor line selection/prefill on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-016"
       }
@@ -4553,12 +4553,12 @@
         "band": "SPLIT_CANDIDATE"
       },
       "to": {
-        "nbLoc": 1778,
+        "nbLoc": 1819,
         "band": "SPLIT_NOW"
       },
-      "reason": "UNIT-027: قسم البنود في محرر الشراء (بند أول من ربط المادة بقيمته، بنود إضافية بقيمها ومعرفتها ومجموع صادق، رحلات RTL) ثم تغليف عناصر البنود بملصقات <label> (a11y) بإصلاح السبب داخل سقف كثافة النص 83=83، ثم حراس الخدمة الكسولة الصادقين (نمط transfers/loans)؛ تصعيد الشريحة مُرسى بصدق والتقسيم مؤجل لموجات الهيكلة بقرار المالك.",
+      "reason": "UNIT-027: قسم البنود في محرر الشراء + تغليف a11y بملصقات <label> داخل سقف الكثافة 83=83 + حراس الخدمة الكسولة؛ R3-F02: حقول البنود داخل حارس المدخلات غير المحفوظة والمسودة (توقيع مشتق + استعادة آمنة)؛ R3-F03: جسر الاستلام واعٍ بالبنود لا بالرأس وحده؛ تصعيد الشريحة مُرسى بصدق والتقسيم مؤجل لموجات الهيكلة بقرار المالك.",
       "authorization": {
-        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) — R3 read-only-reviewer corrections on the same PR; same-PR re-anchor per R8-1/R11.",
         "trigger": "S07 delivery (DOC-016): S07 purchase editor lines section + a11y label wrapping on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-016"
       }

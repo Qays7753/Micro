@@ -240,7 +240,11 @@ export default function SupplierPurchaseEditor() {
   }, [mode, id, inventory, dataVersion]);
 
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
-   * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
+   * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة.
+   * R3-F02: حقول البنود داخل الحارس — توقيع مشتق واحد (سلسلة) يمثل قيمة
+   * البند الأول ومعرفته والبنود الإضافية؛ تعديل البنود وحده يلوّث النموذج
+   * فلا يخرج الرجوع صامتًا فوق تحرير غير محفوظ. */
+  const linesSignature = JSON.stringify([firstLineValueMinor, firstLineCostKnown, extraLines]);
   const isDirty = useFormDirty(
     [
       supplierName,
@@ -252,6 +256,7 @@ export default function SupplierPurchaseEditor() {
       paymentMinor,
       materialId,
       expectedQuantityMilli,
+      linesSignature,
       loadedToken,
     ],
     loadedToken,
@@ -273,6 +278,11 @@ export default function SupplierPurchaseEditor() {
     initialPaidMinor: 0,
     materialId: "",
     expectedQuantityMilli: 0,
+    /* R3-F02: البنود داخل المسودة — البنود الإضافية سلسلة JSON مسطحة
+     * (المسودة نصية) والبند الأول بقيمتيه البسيطتين. */
+    firstLineValueMinor: 0,
+    firstLineCostKnown: true,
+    extraLinesJson: "[]",
   });
   const restoredFromOffer = useRef(false);
   useEffect(() => {
@@ -288,6 +298,9 @@ export default function SupplierPurchaseEditor() {
       initialPaidMinor,
       materialId,
       expectedQuantityMilli,
+      firstLineValueMinor,
+      firstLineCostKnown,
+      extraLinesJson: JSON.stringify(extraLines),
     });
   }, [
     supplierName,
@@ -300,6 +313,9 @@ export default function SupplierPurchaseEditor() {
     initialPaidMinor,
     materialId,
     expectedQuantityMilli,
+    firstLineValueMinor,
+    firstLineCostKnown,
+    extraLines,
     isDirty,
     isNew,
     purchaseDraft.state.phase,
@@ -318,6 +334,16 @@ export default function SupplierPurchaseEditor() {
       setInitialPaidMinor(Number(saved.initialPaidMinor ?? 0));
       setMaterialId(String(saved.materialId ?? ""));
       setExpectedQuantityMilli(Number(saved.expectedQuantityMilli ?? 0));
+      /* R3-F02: استعادة البنود — البنود الإضافية تُقرأ من سلسلتها بتحليل
+       * آمن؛ المسودة التالفة لا تُسقط النموذج بل تُترك البنود كما هي. */
+      setFirstLineValueMinor(Number(saved.firstLineValueMinor ?? 0));
+      setFirstLineCostKnown(saved.firstLineCostKnown !== false);
+      try {
+        const restoredLines = JSON.parse(String(saved.extraLinesJson ?? "[]"));
+        if (Array.isArray(restoredLines)) setExtraLines(restoredLines as readonly PurchaseLineDraft[]);
+      } catch {
+        /* مسودة تالفة — لا استعادة للبنود، ولا إسقاط للنموذج. */
+      }
     }
     if (purchaseDraft.state.phase === "restore-offer") restoredFromOffer.current = true;
   }, [purchaseDraft.state.phase]);
@@ -518,8 +544,18 @@ export default function SupplierPurchaseEditor() {
     /* EXE-011 (PUR-001 / AUD-NEW-08): حفظ شراء مرتبط بمادة متتبَّعة يعرض
      * استمرارًا واضحًا إلى الاستلام — الشراء نفسه لا يضيف مخزونًا، والجسر
      * هو الرحلة الصريحة. المادة غير المتتبَّعة تبقى على مسارها المعلن
-     * (تفعيل المتابعة أولًا) فلا نعرض زر استلام مضللًا. */
-    if (!result.reused && result.value.materialId && isLinkedMaterialTracked(materialOptions, materialId)) {
+     * (تفعيل المتابعة أولًا) فلا نعرض زر استلام مضللًا.
+     * R3-F03: المعيّن واعٍ بالبنود — فاتورة برأس بلا مادة (أو بمادة غير
+     * متتبعة) وببند متتبع فيها جديرة بالاستلام كرأس متتبع تمامًا؛ لا خروج
+     * صامت يخفي الرحلة عن بند متتبع حُفظ للتو. */
+    const savedHasTrackedLine = (result.value.lines ?? []).some(
+      line => line.treatment === "tracked_material",
+    );
+    if (
+      !result.reused &&
+      (savedHasTrackedLine ||
+        (result.value.materialId && isLinkedMaterialTracked(materialOptions, materialId)))
+    ) {
       setReceiptContinuation({ purchaseId: result.value.id });
       return true;
     }
@@ -871,6 +907,11 @@ export default function SupplierPurchaseEditor() {
                 ) : null}
               </div>
               {receiptStatus.remainingValueMinor > 0 ? (
+                /* R3-F03: الجسر واعٍ بالبنود — بند متتبع في الفاتورة يجعل
+                 * الاستلام متاحًا ولو كان الرأس بلا مادة أو بمادة غير متتبعة؛
+                 * نص «فعّل المتابعة أولًا» لا يظهر إلا حين لا يوجد بند
+                 * متتبع أصلًا (المادة غير المتتبعة مسارها المعلن). */
+                (purchase.lines ?? []).every(line => line.treatment !== "tracked_material") &&
                 materialOptions.find(material => material.id === (purchase.materialId ?? materialId))
                   ?.tracking?.status === "untracked" ? (
                   <small>للاستلام لاحقًا: فعّل متابعة المادة أولًا.</small>
