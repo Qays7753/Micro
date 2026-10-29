@@ -397,7 +397,11 @@ export default function SupplierPurchaseEditor() {
     /* S05 (DOC-014 / UNIT-037 B3 + SDF-041): حفظ المورد الاختياري منفصل عن
      * التزام الشراء — الشراء نجح، والحفظ أمر مستقل بمفتاح مشتق من مفتاح
      * الإرسال؛ فشله يُعرض نتيجة جزئية صادقة ولا يُعاد الشراء أبدًا. */
-    if (!result.reused && saveForReuse && !supplierPartyId && supplierName.trim() && partyDirectory) {
+    /* S05 (DOC-014 / UNIT-037 B3 + SDF-041): إعادة الضغط على الحفظ بعد فشل
+     * الحفظ الاختياري تعيد محاولة الحفظ وحده — الشراء إعادة استخدام صادقة
+     * بمفتاحه (لا أثر ثانٍ) والحفظ بالمفتاح المشتق نفسه (لا مورد ثانٍ)؛
+     * لا يُعاد الشراء ولا يُتراجع أبدًا. */
+    if (saveForReuse && !supplierPartyId && supplierName.trim() && partyDirectory) {
       const partySaved = await partyDirectory.save({
         label: supplierName,
         phone: null,
@@ -407,7 +411,7 @@ export default function SupplierPurchaseEditor() {
       if (!partySaved.ok)
         setFeedback({
           tone: "info",
-          text: `تم حفظ الشراء؛ لم يُحفظ المورد في القائمة — ${partySaved.message}`,
+          text: `تم حفظ الشراء؛ لم يُحفظ المورد في القائمة — ${partySaved.message} أعد الضغط على الحفظ لإعادة محاولة حفظه وحده.`,
           source: "purchase",
         });
       else notifyDataChanged();

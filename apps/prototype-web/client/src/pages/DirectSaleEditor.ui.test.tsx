@@ -331,4 +331,90 @@ describe("DirectSaleEditor", () => {
     /* FIN-004: إشعار واحد بعد اكتمال كل الكتابات (البيع ثم محاولة النسبة). */
     expect(notifyDataChanged).toHaveBeenCalledOnce();
   });
+
+  /* S05 (DOC-014 / UNIT-037 B3 + SDF-041): فشل حفظ الطرف الاختياري نتيجة
+   * جزئية صادقة، وإعادة المحاولة على شاشة النتيجة تحفظ الطرف وحده — لا
+   * يُعاد البيع ولا يُتراجع ولا يتكرر، والمفتاح المشتق نفسه لا ينشئ طرفًا
+   * ثانيًا. */
+  it("shows the party-save partial failure and the retry button saves the party alone without re-recording the sale", async () => {
+    wouterMocks.location = "/direct-sales/new";
+    const recorded: DirectSale = { ...sale, id: "sale-party-retry" };
+    const record = vi.fn().mockResolvedValue({ ok: true, value: recorded });
+    const distributeUnallocated = vi.fn().mockResolvedValue({ ok: true, value: { walletName: "درج النقد" } });
+    const notifyDataChanged = vi.fn();
+    const partySave = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        code: "storage_error",
+        message: "تعذر حفظ العميل في القائمة الآن.",
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: { party: { id: "party-1", label: "أم أحمد — الجارة" }, reused: false },
+      });
+    mockedUsePrototypeServices.mockReturnValue({
+      formDrafts: {
+        read: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-09-04T12:00:00.000Z" } }),
+        discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
+      catalog: { list: vi.fn().mockResolvedValue({ ok: true, items: [] }) },
+      directSales: { record },
+      cashContinuity: {
+        overview: vi.fn().mockResolvedValue({
+          ok: true,
+          value: { wallets: [{ id: "drawer-party", name: "درج النقد", kind: "cash_drawer" }] },
+        }),
+      },
+      saleCollectionReversal: {
+        listReversibleCollections: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        preview: vi.fn(),
+        reverse: vi.fn(),
+      },
+      projectFinance: { distributeUnallocated },
+      partyDirectory: { save: partySave, suggestParties: vi.fn().mockResolvedValue({ ok: true, value: [] }) },
+      notifyDataChanged,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(
+      <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+        <DirectSaleEditor />
+      </UnsavedChangesProvider>,
+    );
+
+    await screen.findByRole("heading", { name: "تسجيل بيع مباشر" });
+    fireEvent.change(screen.getByLabelText("السعر المتفق عليه"), { target: { value: "12.00" } });
+    fireEvent.change(screen.getByLabelText("ما قبضت الآن"), { target: { value: "5.00" } });
+    /* فرق 7 دينار يوجب قرارًا صريحًا: الضغط الأول يكشف لوحة الفرق (لا يقرر
+     * النظام مكانها)، ثم يُختار «الباقي عليه» ويُعاد الضغط على الحفظ. */
+    fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
+    await screen.findByText("النظام لا يقرّر عنك — اختر ما حدث فعلًا:");
+    fireEvent.click(screen.getByRole("radio", { name: /الباقي عليه/ }));
+    await waitFor(() => expect(screen.getByLabelText("على مَن المبلغ؟ — اسم أو وصف")).toBeTruthy());
+    fireEvent.change(screen.getByLabelText("على مَن المبلغ؟ — اسم أو وصف"), {
+      target: { value: "أم أحمد — الجارة" },
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: /حفظه لإعادة الاستخدام/ }));
+    fireEvent.click(screen.getByRole("button", { name: "أكمل الحفظ بالقرار المختار" }));
+
+    /* الجزء المنجز: البيع سُجل. الجزء الناقص ظاهر بسببه (role=status). */
+    await screen.findByRole("heading", { name: "سُجّل البيع" });
+    const partial = await screen.findByText(/لم يُحفظ العميل في القائمة/);
+    expect(partial.getAttribute("role")).toBe("status");
+    expect(partial.textContent).toContain("تعذر حفظ العميل في القائمة الآن.");
+
+    /* إعادة المحاولة تحفظ الطرف وحده: نفس المفتاح المشتق، البيع لا يُعاد. */
+    expect(record).toHaveBeenCalledTimes(1);
+    expect(partySave).toHaveBeenCalledTimes(1);
+    const firstKey = vi.mocked(partySave).mock.calls[0][0].operationKey;
+    fireEvent.click(screen.getByRole("button", { name: "أعد محاولة حفظه في القائمة" }));
+    await waitFor(() => expect(screen.queryByText(/لم يُحفظ العميل في القائمة/)).toBeNull());
+    expect(partySave).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(partySave).mock.calls[1][0].operationKey).toBe(firstKey);
+    expect(firstKey).toMatch(/:party-save$/);
+    /* البيع لم يُعاد أبدًا — نداء واحد قبل إعادة المحاولة وبعدها. */
+    expect(record).toHaveBeenCalledTimes(1);
+    expect(notifyDataChanged).toHaveBeenCalled();
+  });
 });

@@ -6,7 +6,7 @@
  *  re-renders the component — the exact path the browser hit in the Group 5 sweep.
  *  It also asserts the honest payment form and a documented payment save. */
 import React from "react";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -27,7 +27,9 @@ const wouterMocks = vi.hoisted(() => ({
 vi.mock("wouter", () => ({
   useSearch: () => "?from=%2Fsuppliers",
   useLocation: () => [wouterMocks.location, wouterMocks.navigate],
-  useParams: () => ({ id: "purchase-1" }),
+  useParams: () => ({
+    id: wouterMocks.location.replace(/^\/suppliers\/purchase\//, "").replace(/\/payment\/?$/, ""),
+  }),
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
@@ -267,5 +269,106 @@ describe("SupplierPurchaseEditor payment source rules (FIN-003)", () => {
       await screen.findByText(/ستُسجَّل الدفعة من الكاش غير الموزع، ويمكن تغطيتها من محفظة لاحقًا/),
     ).toBeTruthy();
     expect(screen.queryByLabelText(/مصدر صرف دفعة المورد/)).toBeNull();
+  });
+});
+
+/* S05 (DOC-014 / UNIT-037 B3 + SDF-041): فشل حفظ المورد الاختياري نتيجة
+ * جزئية صادقة على قناة الملاحظات؛ وإعادة الضغط على الحفظ تعيد محاولة الحفظ
+ * وحده — الشراء إعادة استخدام صادقة بمفتاحه (لا أثر ثانٍ) والحفظ بالمفتاح
+ * المشتق نفسه (لا مورد ثانٍ)؛ لا يُعاد الشراء ولا يُتراجع أبدًا. */
+describe("SupplierPurchaseEditor optional party save (S05 / DOC-014)", () => {
+  afterEach(() => cleanup());
+
+  beforeEach(() => {
+    wouterMocks.location = "/suppliers/purchase/new";
+    wouterMocks.navigate.mockReset();
+  });
+
+  it("reports the party-save partial failure and the resubmit retries the party save alone with the same derived key", async () => {
+    const purchase = {
+      id: "purchase-party-retry",
+      supplierName: "مورد الخشب",
+      note: "خامات",
+      purchasedOn: "2026-10-29",
+      dueOn: null,
+      totalMinor: 3000,
+      paidMinor: 1000,
+      payableMinor: 2000,
+      status: "partial",
+      payments: [],
+      revisions: [],
+    };
+    const recordPurchase = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, value: purchase, reused: false, attributionNote: null })
+      .mockResolvedValueOnce({ ok: true, value: purchase, reused: true, attributionNote: null });
+    const partySave = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        code: "storage_error",
+        message: "تعذر حفظ المورد في القائمة الآن.",
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        value: { party: { id: "party-1", label: "مورد الخشب" }, reused: false },
+      });
+    const notifyDataChanged = vi.fn();
+    mockedUsePrototypeServices.mockReturnValue({
+      formDrafts: {
+        read: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-10-29T12:00:00.000Z" } }),
+        discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
+      supplierPurchases: {
+        list: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        recordPurchase,
+        editPurchase: vi.fn(),
+        recordPayment: vi.fn(),
+      },
+      inventory: {
+        readActivation: vi.fn().mockResolvedValue({ ok: true, value: { activatedOn: null } }),
+        references: vi.fn().mockResolvedValue({ ok: true, value: { allMaterials: [] } }),
+        purchaseReceiptStatus: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
+      cashContinuity: {
+        overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }),
+      },
+      partyDirectory: { save: partySave, suggestParties: vi.fn().mockResolvedValue({ ok: true, value: [] }) },
+      notifyDataChanged,
+      dataVersion: 0,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(
+      <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+        <SupplierPurchaseEditor />
+      </UnsavedChangesProvider>,
+    );
+
+    await screen.findByRole("heading", { name: "سجّل شراء مواد" });
+    fireEvent.change(screen.getByLabelText("اسم المورد"), { target: { value: "مورد الخشب" } });
+    fireEvent.change(screen.getByLabelText("ماذا اشتريت؟"), { target: { value: "خامات" } });
+    fireEvent.change(screen.getByLabelText("إجمالي الشراء بالدينار الأردني"), { target: { value: "30.00" } });
+    fireEvent.change(screen.getByLabelText("ما دُفع الآن"), { target: { value: "10.00" } });
+    /* استحقاق قائم 20 يوجب تعريف الجهة — الاسم معبأ أعلاه؛ والحفظ للقائمة
+     * اختياري صريح. */
+    fireEvent.click(screen.getByRole("checkbox", { name: /حفظه لإعادة الاستخدام/ }));
+    fireEvent.click(screen.getByRole("button", { name: "حفظ شراء المواد" }));
+
+    await waitFor(() => expect(screen.getByText(/لم يُحفظ المورد في القائمة/)).toBeTruthy());
+    expect(recordPurchase).toHaveBeenCalledTimes(1);
+    expect(partySave).toHaveBeenCalledTimes(1);
+    const firstKey = vi.mocked(partySave).mock.calls[0][0].operationKey;
+    expect(firstKey).toMatch(/:party-save$/);
+
+    /* إعادة الضغط على الحفظ: الشراء إعادة استخدام (لا أثر ثانٍ) والحفظ
+     * وحده يُعاد بالمفتاح المشتق نفسه. */
+    fireEvent.click(screen.getByRole("button", { name: "حفظ شراء المواد" }));
+    await waitFor(() => expect(screen.queryByText(/لم يُحفظ المورد في القائمة/)).toBeNull());
+    expect(recordPurchase).toHaveBeenCalledTimes(2);
+    await expect(vi.mocked(recordPurchase).mock.results[1].value).resolves.toMatchObject({ reused: true });
+    expect(partySave).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(partySave).mock.calls[1][0].operationKey).toBe(firstKey);
+    expect(notifyDataChanged).toHaveBeenCalled();
   });
 });

@@ -94,7 +94,7 @@ export default function DirectSaleEditor() {
   const [customerPartyId, setCustomerPartyId] = useState<string | null>(null);
   const [saveForReuse, setSaveForReuse] = useState(false);
   const [partyOptions, setPartyOptions] = useState<readonly { id: string; label: string }[]>([]);
-  const [partySaveFailure, setPartySaveFailure] = useState<string | null>(null);
+  const [partySaveFailure, setPartySaveFailure] = useState<{ label: string; message: string } | null>(null);
   const [catalogItemId, setCatalogItemId] = useState("");
   const [references, setReferences] = useState<readonly CatalogItem[]>([]);
   /* P-002: المرجع المختار الآن — لعرض الاقتراحات المعلّمة لا لتقرير السعر. */
@@ -482,7 +482,7 @@ export default function DirectSaleEditor() {
      * من مفتاح الإرسال نفسه (إعادة المحاولة لا تنشئ طرفًا ثانيًا)؛ فشله
      * يُعرض نتيجة جزئية صادقة مع إعادة محاولة للحفظ وحده — لا يُعاد البيع
      * ولا يُتراجع ولا يتكرر أبدًا. */
-    let partySaveFailed: string | null = null;
+    let partySaveFailed: { label: string; message: string } | null = null;
     if (!editing && saveForReuse && !customerPartyId && customerName.trim() && partyDirectory) {
       const partySaved = await partyDirectory.save({
         label: customerName,
@@ -490,7 +490,7 @@ export default function DirectSaleEditor() {
         note: null,
         operationKey: `${idempotencyKey.current}:party-save`,
       });
-      if (!partySaved.ok) partySaveFailed = partySaved.message;
+      if (!partySaved.ok) partySaveFailed = { label: customerName.trim(), message: partySaved.message };
       else notifyDataChanged();
     }
     /* FIN-004 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الإشعار بعد اكتمال كل الكتابات
@@ -501,6 +501,26 @@ export default function DirectSaleEditor() {
     setPartySaveFailure(partySaveFailed);
     setDone({ sale: result.value, walletName, attributedMinor, attributionFailure });
     return true;
+  }
+
+  /* S05 (DOC-014 / UNIT-037 B3 + SDF-041): إعادة محاولة حفظ العميل وحده —
+   * البيع نجح ولا يُعاد ولا يُتراجع أبدًا؛ المفتاح نفسه المتولد من مفتاح
+   * الإرسال: إعادة المحاولة إما نجاح جديد أو إعادة استخدام صادقة إن سبق
+   * نجاحه خفية — لا طرف ثانٍ ولا أثر مكرر أبدًا. */
+  async function retryPartySave() {
+    if (!partyDirectory || !partySaveFailure) return;
+    const retried = await partyDirectory.save({
+      label: partySaveFailure.label,
+      phone: null,
+      note: null,
+      operationKey: `${idempotencyKey.current}:party-save`,
+    });
+    if (!retried.ok) {
+      setPartySaveFailure({ ...partySaveFailure, message: retried.message });
+      return;
+    }
+    setPartySaveFailure(null);
+    notifyDataChanged();
   }
 
   async function cancel() {
@@ -593,7 +613,10 @@ export default function DirectSaleEditor() {
                وحده لم يتم — نتيجة جزئية صادقة مع إعادة محاولة للحفظ وحده؛
                إعادة البيع أو تراجعه مستحيلة من هنا. */
             <p className="micro-local-truth" role="status">
-              تم حفظ البيع؛ لم يُحفظ العميل في القائمة — {partySaveFailure}
+              تم حفظ البيع؛ لم يُحفظ العميل في القائمة — {partySaveFailure.message}{" "}
+              <button type="button" className="micro-text-action" onClick={() => void retryPartySave()}>
+                أعد محاولة حفظه في القائمة
+              </button>
             </p>
           ) : null}
           {reference ? <p>مرجع مرتبط: {reference.name} — الربط للتوثيق فقط.</p> : null}
@@ -903,7 +926,7 @@ export default function DirectSaleEditor() {
               محدد مسبقًا لا شرطًا. يظهر عند وجود دين أو اسم مسجل، وفي
               المدفوع كاملًا يبقى «إضافة عميل — اختياري» متاحًا بالاسم نفسه. */}
           {difference > 0 || customerName.trim() !== "" ? (
-            <section className="micro-party-identity" aria-label="تعريف صاحب المبلغ">
+            <section className="micro-party-identity">
               {partyOptions.length > 0 ? (
                 <label className="micro-field">
                   <span>

@@ -3413,10 +3413,10 @@
         "band": "SPLIT_CANDIDATE"
       },
       "to": {
-        "nbLoc": 1122,
+        "nbLoc": 1144,
         "band": "SPLIT_CANDIDATE"
       },
-      "reason": "S05 (DOC-014): حقول هوية العميل (اختيار محفوظ صريح/تعريف نصي/حفظ اختياري) وقناة نتيجة فشل الحفظ الصادقة (SDF-041).",
+      "reason": "S05 (DOC-014): حقول هوية العميل (اختيار محفوظ صريح/تعريف نصي/حفظ اختياري) وقناة نتيجة فشل الحفظ الصادقة (SDF-041). وتشمل القيمة النهائية إعادة محاولة حفظ الطرف وحده على شاشة النتيجة (UNIT-037 B3).",
       "authorization": {
         "ownerReview": "Owner-authorized S05 execution (00-S05-EXECUTION-PROMPT-2026-10-29.md published at 1663f2452b3769684f8faf0fe1671a410f79f116) mandates UNIT-037 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
         "trigger": "S05 (DOC-014 / UNIT-037): apps/prototype-web/client/src/pages/DirectSaleEditor.tsx on components/integration-20261027 / PR #383.",
@@ -3470,10 +3470,10 @@
         "band": "SPLIT_CANDIDATE"
       },
       "to": {
-        "nbLoc": 1341,
+        "nbLoc": 1345,
         "band": "SPLIT_NOW"
       },
-      "reason": "S05 (DOC-014): حقول هوية المورد وسقف كثافة النص محفوظ بلا رفع (سؤال الحالة في قناة السطر الرمادي).",
+      "reason": "S05 (DOC-014): حقول هوية المورد وسقف كثافة النص محفوظ بلا رفع (سؤال الحالة في قناة السطر الرمادي). وتشمل القيمة النهائية إعادة المحاولة بإعادة الضغط على الحفظ (إعادة استخدام صادقة للشراء وحده).",
       "authorization": {
         "ownerReview": "Owner-authorized S05 execution (00-S05-EXECUTION-PROMPT-2026-10-29.md published at 1663f2452b3769684f8faf0fe1671a410f79f116) mandates UNIT-037 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
         "trigger": "S05 (DOC-014 / UNIT-037): apps/prototype-web/client/src/pages/SupplierPurchaseEditor.tsx on components/integration-20261027 / PR #383.",

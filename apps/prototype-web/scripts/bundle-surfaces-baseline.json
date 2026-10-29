@@ -18,12 +18,12 @@
       "anchored": {
         "head": "030da6afe80a01d3ee66621986f42efdb4cc0308",
         "date": "2026-10-29",
-        "method": "S05 code-candidate local re-anchor (2026-10-29, code candidate head 030da6af, PR #383): the authorized S05 implementation (DOC-014 / UNIT-037) at schema 40 / export 32 with the budget-fit lazy split of homeControlCenter (count/partyDirectory precedent — the entry chunk 632,863/155,058 became 626,753/152,604, margin 2,696 under the owner 155,300 ceiling; no ceiling raised). Lazy surfaces grew with the S05 additions: lazy 1,241,042 -> 1,263,614 raw / 373,925 -> 381,350 gzipNorm; initial companions 224,222 -> 224,976 raw / 70,645 -> 70,766 gzipNorm; precache 2,709,072 -> 2,717,171; swRuntime 26,405 -> 26,527; counts 105/2/73/160/2 -> 107/2/74/162/2 (partyDirectory + homeControlCenter lazy roots). Measured by the definitive local vite build on the candidate tree (root 960 + prototype 2,850 tests and the full guards chain green on the same tree). Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol (R8-1/R11).",
+        "method": "S05 final-candidate local re-anchor (2026-10-29, code candidate 030da6af + the review fix for the party-save-only retry, UNIT-037 B3 / SDF-041, PR #383): entry 626,753 raw / 152,597 gzip — margin 2,703 under the owner 155,300 ceiling; no ceiling raised. Lazy surfaces carry the retry affordance: lazy 1,263,614 -> 1,264,011 raw / 381,350 -> 381,472 gzipNorm; precache 2,717,171 -> 2,727,568; initial companions and swRuntime unchanged; counts 107/2/74/162/2 unchanged. Measured by the definitive local vite build on the final candidate tree (root 960 + prototype 2,852 tests and the full guards chain green on the same tree). Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol (R8-1/R11). The anchored head remains the code candidate 030da6af; the review fix is a same-PR correction on the same branch.",
         "initialRawTotal": 224976,
         "initialGzipNormTotal": 70766,
-        "lazyRawTotal": 1263614,
-        "lazyGzipNormTotal": 381350,
-        "precacheBytesTotal": 2727171,
+        "lazyRawTotal": 1264011,
+        "lazyGzipNormTotal": 381472,
+        "precacheBytesTotal": 2727568,
         "swRuntimeRawTotal": 26527
       },
       "toolchain": {
@@ -38,9 +38,9 @@
       "measurements": {
         "initialRawTotal": 224976,
         "initialGzipNormTotal": 70766,
-        "lazyRawTotal": 1263614,
-        "lazyGzipNormTotal": 381350,
-        "precacheBytesTotal": 2727171,
+        "lazyRawTotal": 1264011,
+        "lazyGzipNormTotal": 381472,
+        "precacheBytesTotal": 2727568,
         "swRuntimeRawTotal": 26527
       },
       "counts": {
