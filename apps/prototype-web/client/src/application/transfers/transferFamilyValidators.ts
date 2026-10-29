@@ -936,8 +936,15 @@ export function validSupplierPurchase(value: unknown): boolean {
   if (
     !isRecord(value) ||
     !isString(value.id) ||
-    !isString(value.supplierName) ||
-    !value.supplierName.trim() ||
+    /* S05-MR-002 (أمر S06 — إصلاح عقد S05 المؤكد / SDF-010): المورد
+     * اختياري في الشراء المسدد كاملًا — null تعني «بلا مورد مسجل» بصدق
+     * كما في سياسة المجال الحية (createSupplierPurchase/assertSupplierIdentityForPayable)
+     * وعقد UNIT-037/SDF-010؛ النص الفارغ/الفراغات ليس اسمًا ولا null فيُرفض.
+     * شرط التعريف عند وجود استحقاق قائم يُفحص بعد حساب المدفوع الفعلي أدناه. */
+    !(
+      value.supplierName === null ||
+      (isString(value.supplierName) && value.supplierName.trim().length > 0)
+    ) ||
     !isString(value.note) ||
     !value.note.trim() ||
     !isString(value.purchasedOn) ||
@@ -1036,6 +1043,14 @@ export function validSupplierPurchase(value: unknown): boolean {
   const effectivePaid = totalPaid - totalReversed;
   const status =
     effectivePaid === 0 ? "unpaid" : effectivePaid === value.totalMinor ? "paid" : "partially_paid";
+  /* S05-MR-002 (تكملة): استحقاق قائم (مدفوع فعلي < الإجمالي) يوجب تعريف جهة
+   * — اسم غير فارغ أو رابط مورد محفوظ — مطابقة لرسالة حارس المجال نفسها؛
+   * والربط المحفوظ يحمل لقطة اسمه معه دائمًا (العقد المشترك §5.1 — PartyRef)
+   * رابط بلا لقطة اسم شكل مكسور فيُرفض مسددًا كان أم مستحقًا. لا تُقبل
+   * بيانات مورد فارغة اعتباطًا لمستحق، ولا يُضعف أي تحقق آخر. */
+  const hasSupplierName = isString(value.supplierName) && value.supplierName.trim().length > 0;
+  const hasSupplierLink = isString(value.supplierPartyId) && value.supplierPartyId.trim().length > 0;
+  const hasSupplierIdentity = hasSupplierName || hasSupplierLink;
   return (
     Number.isInteger(totalPaid) &&
     Number.isInteger(totalReversed) &&
@@ -1043,7 +1058,9 @@ export function validSupplierPurchase(value: unknown): boolean {
     effectivePaid <= value.totalMinor &&
     value.paidMinor === effectivePaid &&
     value.payableMinor === value.totalMinor - effectivePaid &&
-    value.status === status
+    value.status === status &&
+    (effectivePaid === value.totalMinor || hasSupplierIdentity) &&
+    (!hasSupplierLink || hasSupplierName)
   );
 }
 export const isCashWalletKind = (value: unknown) =>
