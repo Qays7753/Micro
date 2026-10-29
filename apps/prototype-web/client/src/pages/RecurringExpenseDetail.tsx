@@ -649,7 +649,13 @@ function LinkExistingPanel({
         الربط يقرّ هذه الفترة بمصروف سجلته يدويًا — لا يُنشئ حدثًا جديدًا ولا يكرر المال، ويُحفظ قرارًا موثقًا
         بالربط نفسه.
       </p>
-      {failed ? <p className="micro-field-error">{failed}</p> : null}
+      {/* R3-F05: فشل قراءة المرشحات يُعلن بالقناة الصوتية نفسها المعتمدة
+       * في اللوحات الشقيقة — خطأ ⇒ alert لا صمت قارئ الشاشة. */}
+      {failed ? (
+        <p className="micro-field-error" role="alert">
+          {failed}
+        </p>
+      ) : null}
       {candidates === null && !failed ? <p role="status">يُقرأ السجل…</p> : null}
       {candidates?.length === 0 ? (
         <p role="status">لا مصروف تشغيل قائم في فترة هذه الدورة يمكن ربطه — سجّل المصروف أولًا أو راجعه.</p>

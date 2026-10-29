@@ -11,6 +11,8 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { FormDraftService } from "@/application/drafts/formDraftService";
 import { createFormDraftHarness } from "@/application/drafts/formDraftTestHarness";
 import type { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { localDatePlusMonthsClamped } from "@micro-domain/shared/index.js";
+import { todayInAmman } from "@/application/time";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import FinancialEventEditor from "./FinancialEventEditor";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
@@ -63,6 +65,7 @@ function renderEditor(
     record?: ReturnType<typeof vi.fn>;
     recordSharedBill?: ReturnType<typeof vi.fn>;
     setupFromExpense?: ReturnType<typeof vi.fn>;
+    distributeUnallocated?: ReturnType<typeof vi.fn>;
     wallets?: { id: string; name: string; kind: string }[];
     store?: MemoryLocalStore;
   } = {},
@@ -70,6 +73,8 @@ function renderEditor(
   const record = overrides.record ?? vi.fn();
   const recordSharedBill = overrides.recordSharedBill ?? vi.fn();
   const setupFromExpense = overrides.setupFromExpense ?? vi.fn();
+  const distributeUnallocated =
+    overrides.distributeUnallocated ?? vi.fn().mockResolvedValue({ ok: true, value: {} });
   const store = overrides.store ?? createFormDraftHarness().store;
   mockedUsePrototypeServices.mockReturnValue({
     projectFinance: {
@@ -78,7 +83,7 @@ function renderEditor(
       listSettleablePayables: vi.fn().mockResolvedValue({ ok: true, value: [] }),
       listEvents: vi.fn().mockResolvedValue({ ok: true, value: [] }),
       readPosition: vi.fn().mockResolvedValue({ ok: true, value: { amanahHeldMinor: 0 } }),
-      distributeUnallocated: vi.fn().mockResolvedValue({ ok: true, value: {} }),
+      distributeUnallocated,
     },
     cashContinuity: {
       overview: vi.fn().mockResolvedValue({
@@ -99,7 +104,7 @@ function renderEditor(
       <FinancialEventEditor />
     </UnsavedChangesProvider>,
   );
-  return { record, recordSharedBill, setupFromExpense, store };
+  return { record, recordSharedBill, setupFromExpense, distributeUnallocated, store };
 }
 
 async function openSharedFixedForm() {
@@ -320,5 +325,230 @@ describe("S06 — خيار «يتكرر» داخل المحرر (UNIT-019 / ORG-
     await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
     await waitFor(() => expect(record).toHaveBeenCalledOnce());
     expect(setupFromExpense).not.toHaveBeenCalled();
+  });
+});
+
+/* R3 (مراجعة S06 القرائية ٣ — واجهة/تشغيل/وصول): انحدارات مركزة لتصحيحات
+ * المراجع الثالث — مرجع افتراضي التذكير وبوابة الاستئناف (R3-F01)، صدق
+ * بانر النتيجة الجزئية (R3-F02)، محفظة النية المجمّدة عند الإعادة
+ * (R3-F03)، عهدة الاستئناف أثناء التنفيذ (R3-F04)، تأليف فشلَي النسبة
+ * معًا (R3-F06)، والزر الأساسي بعد حفظ ثبت وبقيت الصفحة (R3-F07). قناة
+ * الخطأ الصوتية للوحة الربط (R3-F05) تُثبت في ملف تفصيل التذكير. */
+describe("S06-R3 — تصحيحات مراجعة الواجهة الثالثة", () => {
+  beforeEach(() => {
+    wouterMocks.navigate.mockClear();
+    routeParams.type = "operating_expense_cash";
+    window.localStorage.clear();
+  });
+  afterEach(() => cleanup());
+
+  it("R3-F01: مصروف مؤرّخ سابقًا — الافتراضي شهر لاحق حقيقي، والبوابة ترفض الشهر الحالي، والاستئناف يقبل التاريخ المصحح", async () => {
+    const today = todayInAmman();
+    const [year, month] = today.split("-").map(Number);
+    const previousPeriod =
+      month === 1 ? `${year - 1}-12` : `${year}-${String(month - 1).padStart(2, "0")}`;
+    const corrected = localDatePlusMonthsClamped(today, 2) ?? today;
+    const { record, setupFromExpense } = renderEditor({});
+    fireEvent.change(screen.getByLabelText(/تاريخ الحدث/), { target: { value: `${previousPeriod}-15` } });
+    await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "25");
+    await userEvent
+      .setup()
+      .type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "فاتورة قديمة");
+    fireEvent.click(await screen.findByText("يتكرر — ذكّرني بهذا المصروف كل شهر"));
+    const reminder = (await screen.findByLabelText(/التذكير القادم/)) as HTMLInputElement;
+    /* الافتراضي المقترح يرضي بوابة الخدمة الكنسية: شهر لاحق لليوم الحقيقي حصرًا. */
+    expect(reminder.value.slice(0, 7) > today.slice(0, 7)).toBe(true);
+    /* بوابة المحرر باليوم الحقيقي لا بتاريخ الحدث: تذكير الشهر الحالي يُرفض قبل أي كتابة. */
+    fireEvent.change(reminder, { target: { value: today } });
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await waitFor(() =>
+      expect(screen.getByText(/التذكير القادم يجب أن يكون في شهر لاحق/)).toBeTruthy(),
+    );
+    expect(record).not.toHaveBeenCalled();
+    /* الاستئناف يقرأ التاريخ من الحقل الحي — لا جمود على تاريخ رفضته الخدمة. */
+    fireEvent.change(reminder, { target: { value: corrected } });
+    record.mockResolvedValueOnce({ ok: true, value: { ...baseEvent, amountMinor: 2_500 } });
+    setupFromExpense.mockResolvedValueOnce({
+      ok: false,
+      code: "validation_failed",
+      message: "التذكير القادم يجب أن يكون في شهر لاحق — مصروف هذه الفترة سُجل للتو؛ أول تذكير جديد هو القادم.",
+    });
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await waitFor(() => expect(record).toHaveBeenCalledOnce());
+    await waitFor(() => expect(screen.getByText(/حُفظ المصروف، ولم يُحفظ التذكير/)).toBeTruthy());
+    setupFromExpense.mockResolvedValueOnce({
+      ok: true,
+      value: { series: { id: "recurring-x", status: "active" }, reused: false },
+    });
+    await userEvent.setup().click(screen.getByRole("button", { name: "أعد محاولة ضبط التذكير" }));
+    await waitFor(() => expect(setupFromExpense).toHaveBeenCalledTimes(2));
+    const retryPayload = setupFromExpense.mock.calls[1]?.[0] as { nextReminderDate: string };
+    expect(retryPayload.nextReminderDate).toBe(corrected);
+    await waitFor(() => expect(screen.getByText(`ضُبط التذكير القادم ${corrected}.`)).toBeTruthy());
+  });
+
+  it("R3-F02: فشل السحب الشخصي وحده لا يُنسب زورًا إلى فشل النسبة — الرسالة صادقة بذاتها", async () => {
+    const { recordSharedBill } = renderEditor({});
+    await openSharedFixedForm();
+    await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "30");
+    await userEvent.setup().type(screen.getByLabelText("المدفوع فعليًا من صندوق المشروع"), "60");
+    fireEvent.click(screen.getByText(/الفارق 30.00 د.أ فوق حصة المشروع على المالك/));
+    await userEvent
+      .setup()
+      .type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "فاتورة كبيرة");
+    recordSharedBill.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        expense: { ...baseEvent },
+        ownerPart: null,
+        ownerPartFailure: "رصيد المحفظة لا يغطي السحب.",
+      },
+    });
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    const banner = await screen.findByText(/لم يكتمل تسجيل الجزء الشخصي/);
+    /* بلا محفظة مختارة لم تُطلب النسبة أصلًا — لا إطار يدّعي فشلها ولا مالًا غير موزع. */
+    expect(banner.textContent).not.toContain("نسبته للمحفظة لم تتم");
+    expect(banner.textContent).not.toContain("الكاش غير الموزع");
+  });
+
+  it("R3-F03: إعادة الجزء الشخصي تغطي من محفظة النية المجمّدة لا من المحفظة الحية", async () => {
+    const { recordSharedBill, distributeUnallocated } = renderEditor({
+      wallets: [
+        { id: "drawer", name: "الدرج", kind: "cash" },
+        { id: "bank", name: "المصرف", kind: "bank" },
+      ],
+    });
+    await openSharedFixedForm();
+    await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "30");
+    await userEvent.setup().type(screen.getByLabelText("المدفوع فعليًا من صندوق المشروع"), "60");
+    fireEvent.click(screen.getByText(/الفارق 30.00 د.أ فوق حصة المشروع على المالك/));
+    await userEvent
+      .setup()
+      .type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "فاتورة كبيرة");
+    /* محافظ متعددة: اختيار صريح قبل الحفظ (FIN-005). */
+    fireEvent.change(await screen.findByLabelText(/مصدر الصرف/), { target: { value: "drawer" } });
+    recordSharedBill.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        expense: { ...baseEvent },
+        ownerPart: null,
+        ownerPartFailure: "رصيد المحفظة لا يغطي السحب.",
+      },
+    });
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await waitFor(() => expect(screen.getByText(/لم يكتمل تسجيل الجزء الشخصي/)).toBeTruthy());
+    /* المستخدم غيّر المحفظة الحية بعد الفشل — خصم الإعادة من محفظة النية. */
+    fireEvent.change(screen.getByLabelText(/مصدر الصرف/), { target: { value: "bank" } });
+    recordSharedBill.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        expense: { ...baseEvent },
+        ownerPart: {
+          ...baseEvent,
+          id: "event-owner-part",
+          type: "owner_withdrawal_cash",
+          amountMinor: 3_000,
+        },
+        ownerPartFailure: null,
+      },
+    });
+    await userEvent.setup().click(screen.getByRole("button", { name: "أعد محاولة تسجيل الجزء الشخصي" }));
+    /* نداءا النسبة: تغطية الحصة عند الحفظ الأول، ثم تغطية الجزء الشخصي عند
+     * الإعادة — الإعادة وحدها هي موضوع الفحص (النداء الأخير). */
+    await waitFor(() => expect(distributeUnallocated.mock.calls.length).toBeGreaterThanOrEqual(2));
+    const attributionCall = distributeUnallocated.mock.calls.at(-1)?.[0] as {
+      walletId: string;
+      operationKey: string;
+    };
+    expect(attributionCall.walletId).toBe("drawer");
+    expect(attributionCall.operationKey).toContain(":owner-part:attribute");
+  });
+
+  it("R3-F04: النقر المزدوج على استئناف التذكير لا يطلق إعدادين متزامنين", async () => {
+    const { record, setupFromExpense } = renderEditor({});
+    await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "25");
+    await userEvent
+      .setup()
+      .type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "اشتراك إنترنت");
+    fireEvent.click(await screen.findByText("يتكرر — ذكّرني بهذا المصروف كل شهر"));
+    record.mockResolvedValueOnce({ ok: true, value: { ...baseEvent, amountMinor: 2_500 } });
+    setupFromExpense.mockResolvedValueOnce({ ok: false, code: "storage_error", message: "تعذر محلي مؤقت" });
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await waitFor(() => expect(screen.getByText(/حُفظ المصروف، ولم يُحفظ التذكير/)).toBeTruthy());
+    /* الاستئناف الثاني معلّق بيد الاختبار — النقر قبل الهبوط. */
+    let releaseSetup!: (value: unknown) => void;
+    setupFromExpense.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          releaseSetup = resolve;
+        }),
+    );
+    const retry = screen.getByRole("button", { name: "أعد محاولة ضبط التذكير" });
+    fireEvent.click(retry);
+    fireEvent.click(retry);
+    /* عهدة أثناء التنفيذ: نداء الاستئناف الثاني واحد مهما تكرر النقر قبل الهبوط. */
+    await waitFor(() => expect(setupFromExpense).toHaveBeenCalledTimes(2));
+    expect(setupFromExpense).toHaveBeenCalledTimes(2);
+    releaseSetup({ ok: true, value: { series: { id: "recurring-x", status: "active" }, reused: false } });
+    await waitFor(() => expect(screen.getByText(/ضُبط التذكير القادم/)).toBeTruthy());
+    expect(setupFromExpense).toHaveBeenCalledTimes(2);
+    expect(record).toHaveBeenCalledOnce();
+  });
+
+  it("R3-F06: فشل تغطية الحصة والجزء الشخصي معًا — الحقيقتان معًا في نص واحد لا تُبتلع أولاهما", async () => {
+    const { recordSharedBill, distributeUnallocated } = renderEditor({
+      wallets: [{ id: "drawer", name: "الدرج", kind: "cash" }],
+    });
+    await openSharedFixedForm();
+    await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "30");
+    await userEvent.setup().type(screen.getByLabelText("المدفوع فعليًا من صندوق المشروع"), "60");
+    fireEvent.click(screen.getByText(/الفارق 30.00 د.أ فوق حصة المشروع على المالك/));
+    await userEvent
+      .setup()
+      .type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "فاتورة كبيرة");
+    /* الحدثان يحفظان، وتغطيتا المحفظة تفشلان معًا (الرصيد لا يكفي أيًّا منهما). */
+    recordSharedBill.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        expense: { ...baseEvent },
+        ownerPart: {
+          ...baseEvent,
+          id: "event-owner-part",
+          type: "owner_withdrawal_cash",
+          amountMinor: 3_000,
+        },
+        ownerPartFailure: null,
+      },
+    });
+    distributeUnallocated
+      .mockResolvedValueOnce({ ok: false, message: "رصيد الدرج لا يكفي الحصة." })
+      .mockResolvedValueOnce({ ok: false, message: "الرصيد المتبقي لا يكفي الجزء الشخصي." });
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    const banner = await screen.findByText(/نسبته للمحفظة لم تتم/);
+    expect(banner.textContent).toContain("رصيد الدرج لا يكفي الحصة.");
+    expect(banner.textContent).toContain("تغطية الجزء الشخصي من المحفظة: الرصيد المتبقي لا يكفي الجزء الشخصي.");
+    expect(banner.textContent).toContain("الكاش غير الموزع");
+  });
+
+  it("R3-F07: بعد نتيجة جزئية صُرفت بـ«تم» — الزر الأساسي عودة لا حفظ جديد", async () => {
+    const { record, setupFromExpense } = renderEditor({});
+    await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "25");
+    await userEvent
+      .setup()
+      .type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "اشتراك إنترنت");
+    fireEvent.click(await screen.findByText("يتكرر — ذكّرني بهذا المصروف كل شهر"));
+    record.mockResolvedValueOnce({ ok: true, value: { ...baseEvent, amountMinor: 2_500 } });
+    setupFromExpense.mockResolvedValueOnce({ ok: false, code: "storage_error", message: "تعذر محلي مؤقت" });
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await waitFor(() => expect(screen.getByText(/حُفظ المصروف، ولم يُحفظ التذكير/)).toBeTruthy());
+    fireEvent.click(screen.getByRole("button", { name: "تم" }));
+    await waitFor(() => expect(screen.queryByText(/حُفظ المصروف، ولم يُحفظ التذكير/)).toBeNull());
+    /* المصروف محفوظ والصفحة قائمة: الفعل الأساسي عودة — والنقر يخرج بلا نداء جديد للكاتب. */
+    const back = screen.getByRole("button", { name: "ارجع إلى المالية" });
+    expect(back).toBeTruthy();
+    fireEvent.click(back);
+    expect(wouterMocks.navigate).toHaveBeenCalled();
+    expect(record).toHaveBeenCalledOnce();
+    expect(setupFromExpense).toHaveBeenCalledOnce();
   });
 });

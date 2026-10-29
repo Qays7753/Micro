@@ -38,7 +38,7 @@ import type { CrossModelOwnerDuplicate } from "@/application/owner-money";
 import {
   basisFromMode,
   coerceEditorDraft,
-  defaultNextReminderDate,
+  defaultNextReminderDateForExpense,
   deriveExpenseContext,
   derivePrimaryAmountProblem,
   deriveRecurrenceProblem,
@@ -171,16 +171,22 @@ export default function FinancialEventEditor() {
   const [recurrenceEnabled, setRecurrenceEnabled] = useState(false);
   const [recurrenceNextDate, setRecurrenceNextDate] = useState("");
   /* S06 (D07): فشل إعداد التكرار بعد ثبوت المصروف — نتيجة جزئية صادقة
-   * مع استئناف الناقص وحده بنية الإعداد نفسها. */
+   * مع استئناف الناقص وحده بنية الإعداد نفسها. التاريخ المعروض أعلاه
+   * هو مرجع الاستئناف (R3-F01) فتصحيحه ممكن لا جمود على تاريخ فاشل. */
   const [seriesSetupFailure, setSeriesSetupFailure] = useState<{
     seriesId: string;
     title: string;
-    nextDate: string;
     amountMinor: number;
     walletId: string | null;
     categoryLabel: string | null;
     message: string;
   } | null>(null);
+  const seriesRetryInFlightRef = useRef(false);
+  /* R3-F07: نوع الحدث الذي حفظ وبقيت صفحته قائمة (نتيجة جزئية لاحقًا أو
+   * نجاح استئناف) — الزر الأساسي بعدها «ارجع إلى المالية» لا حفظ جديد؛
+   * يحمل النوع لا رمزًا عامًا فتغيير معامل المسار على مكوّن مركّب (RV1)
+   * لا يورّث حالة «محفوظ» لنموذج نوع آخر. */
+  const [savedStandingType, setSavedStandingType] = useState<GuidedFinancialEventType | null>(null);
   const [date, setDate] = useState(() => todayInAmman());
   /* OPS-003 (عقد ٤١ §٨): مصروف يدوي في فترة تذكير غير معالجة — تحذير ظاهر
    * لا حظر صامت؛ التسجيل من هنا يبقى مشروعًا بقرار المستخدم الصريح. */
@@ -242,8 +248,11 @@ export default function FinancialEventEditor() {
       idempotencyKey: string;
       sourceWalletId: string | null;
     };
-    /* R1-F02: فشل نسبة الحصة يبقى ظاهرًا مع فشل الجزء الشخصي ولا يُبتلع. */
+    /* R1-F02: فشل نسبة الحصة السابق لا يُبتلع بنجاح الجزء الشخصي، وفشل
+   * نسبة الجزء الشخصي السابق كذلك (R3-F06) — تُحمل الملاحظتان وتُؤلّف
+   * عند العرض لا تُسقط. */
     attributionNote?: string | null;
+    ownerAttributionNote?: string | null;
   } | null>(null);
   const savedRef = useRef(false);
   /* المجموعة ٥: المسح يجي فقط بعد وسخ حقيقي ثم عودة إلى
@@ -562,11 +571,14 @@ export default function FinancialEventEditor() {
     shareAmountMinor: sharedSharePreviewMinor,
     applies: type === "operating_expense_cash" && isShared && sharedMode !== "defer",
   });
-  /* S06 (UNIT-019): بوابة التذكير القادم لخيار «يتكرر». */
+  /* S06 (UNIT-019): بوابة التذكير القادم لخيار «يتكرر».
+   * R3-F01: المرجع اليوم الحقيقي لا تاريخ الحدث — نفس قاعدة الخدمة
+   * الكنسية (setupFromExpense تقارن باليوم الحقيقي)، فلا يقترح المحرر
+   * ولا يقبل تذكيرًا ترفضه الخدمة بعد ثبوت المصروف. */
   const recurrenceProblem = deriveRecurrenceProblem({
     enabled: recurrenceEnabled,
     nextDate: recurrenceNextDate,
-    today: date,
+    today: todayInAmman(),
   });
   const sharedExpenseIntent = deriveSharedExpenseIntent({
     isShared,
@@ -795,6 +807,11 @@ export default function FinancialEventEditor() {
     setSavedEpoch(epoch => epoch + 1);
     clearDraft();
     let attributionFailed: string | null = null;
+    /* R3-F06: كل فشل نسبة يُجمع بجواره لا يُبتلع — فشل تغطية الحصة وفشل
+   * تغطية الجزء الشخصي قاعدتان مستقلتان وقد تقعان معًا (المحفظة نفسها
+   * لا تكفي أحدهما أو كليهما)، فصيغة «الأول فقط» كانت تُسقط الحقيقة
+   * الثانية عن المستخدم. */
+    let ownerAttributionFailed: string | null = null;
     /* المجموعة ١ (وجهة الصرف): تغطية المحفظة المختارة بعد التسجيل — نفس توقيع
      * ورقة الإضافة (مفتاح مشتق من مفتاح السجل) فلا تخصيص مزدوج عند الإعادة.
      * فشل النسبة لا يمس الحدث: المال محفوظ غير موزع، والنص يظهر قبل الخروج.
@@ -831,7 +848,7 @@ export default function FinancialEventEditor() {
               sourceRefKind: "owner_event",
               operationKey: `${idempotencyKey.current}:attribute`,
             });
-      if (!attribution.ok && !attributionFailed)
+      if (!attribution.ok)
         attributionFailed =
           attribution.message ?? "تعذرت تغطية المحفظة بعد حفظ الحدث؛ المال محفوظ في الكاش غير الموزع.";
       /* S06 (CONS-DEC04): سحب الجزء الشخصي يغطى من المحفظة نفسها التي دفعت
@@ -845,10 +862,16 @@ export default function FinancialEventEditor() {
           sourceRefKind: "owner_event",
           operationKey: `${idempotencyKey.current}:owner-part:attribute`,
         });
-        if (!ownerAttribution.ok && !attributionFailed)
-          attributionFailed = ownerAttribution.message ?? "تعذرت تغطية الجزء الشخصي بعد حفظه.";
+        if (!ownerAttribution.ok)
+          ownerAttributionFailed =
+            ownerAttribution.message ?? "تعذرت تغطية الجزء الشخصي بعد حفظه؛ المال محفوظ في الكاش غير الموزع.";
       }
     }
+    /* R3-F06: تأليف كل حقائق النسبة الفاشلة في جملة واحدة صادقة. */
+    const failedAttributions = [
+      attributionFailed ? `نسبة الحصة للمحفظة: ${attributionFailed}` : null,
+      ownerAttributionFailed ? `تغطية الجزء الشخصي من المحفظة: ${ownerAttributionFailed}` : null,
+    ].filter((part): part is string => part !== null);
     setSaving(false);
     /* FIN-004 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الإشعار بعد اكتمال كل
      * الكتابات (الحدث ثم تغطية المحفظة) — إبطال حالة واحدة بعد النجاح. */
@@ -868,10 +891,12 @@ export default function FinancialEventEditor() {
       });
       if (!setup.ok) {
         setupFailed = setup.message;
+        /* R3-F01: التاريخ لا يُجمّد في نية الاستئناف — حقل «التذكير
+         * القادم» أعلاه هو المرجع الحي للتصحيح، وبقية النية (المعرف
+         * الحتمي والعنوان والمبلغ والمحفظة والتصنيف) مجمّدة كما هي. */
         setSeriesSetupFailure({
           seriesId: `recurring-${idempotencyKey.current}`,
           title: note.trim(),
-          nextDate: recurrenceNextDate,
           amountMinor: result.value.amountMinor,
           walletId: walletId && walletId !== UNSET_EXPENSE_SOURCE ? walletId : null,
           categoryLabel: normalizedCategoryLabel || null,
@@ -882,8 +907,11 @@ export default function FinancialEventEditor() {
     if (ownerPartFailure) {
       setSavedNote({
         eventId: result.value.id,
+        /* R3-F02: الرسالة مكتملة الصدق بذاتها — نسبة الحصة قد تكون نجحت
+         * وفشل السحب الشخصي وحده، فلا إطار ثابت يدّعي فشل النسبة ولا
+         * يحتكر الحقيقة؛ تأليف كل فشل نسبة لاحق هو المعروض (R3-F06). */
         message: `حُفظ مصروف الحصة (${formatMoneyMinor(result.value.amountMinor)} د.أ)، ولم يكتمل تسجيل الجزء الشخصي (${formatMoneyMinor(ownerPartMinor)} د.أ سحبًا على المالك): ${ownerPartFailure} — أعد المحاولة من هنا، فلن يتكرر المصروف.${
-          attributionFailed ? ` كما تعذرت نسبة الحصة للمحفظة: ${attributionFailed}` : ""
+          failedAttributions.length > 0 ? ` كما تعذرت ${failedAttributions.join("، و")}.` : ""
         }`,
         ownerPartRetryMinor: ownerPartMinor,
         /* R1-F01: النية الفاشلة مجمّدة كما هي — الإعادة لا تقرأ النموذج الحي. */
@@ -899,14 +927,35 @@ export default function FinancialEventEditor() {
           sourceWalletId: walletId && walletId !== UNSET_EXPENSE_SOURCE ? walletId : null,
         },
         attributionNote: attributionFailed,
+        ownerAttributionNote: ownerAttributionFailed,
       });
       return true;
     }
-    if (attributionFailed) {
-      setSavedNote({ eventId: result.value.id, message: attributionFailed });
+    if (failedAttributions.length > 0) {
+      /* R3-F02: الإطار الكامل للنسبة الفاشلة داخل الرسالة نفسها — البانر
+         * يعرض الرسالة وحدها فلا يُضاف معنى فوق معناها؛ صيغة «نسبته للمحفظة
+         * لم تتم» محفوظة لحالة فشل الحصة وحدها (عقد المجموعة ١)، والجزء
+         * الشخصي يُفصح باسمه حين يفشل وحده أو معها (R3-F06). */
+      const attributionFraming =
+        attributionFailed && ownerAttributionFailed
+          ? `نسبته للمحفظة لم تتم: ${attributionFailed}، كما تعذرت تغطية الجزء الشخصي من المحفظة: ${ownerAttributionFailed}`
+          : attributionFailed
+            ? `نسبته للمحفظة لم تتم: ${attributionFailed}`
+            : `تعذرت تغطية الجزء الشخصي من المحفظة: ${ownerAttributionFailed ?? ""}`;
+      setSavedNote({
+        eventId: result.value.id,
+        message: `حُفظ الحدث محليًا، لكن ${attributionFraming} — المال محفوظ ضمن الكاش غير الموزع حتى توزّعه بنفسك.`,
+        attributionNote: attributionFailed,
+        ownerAttributionNote: ownerAttributionFailed,
+      });
       return true;
     }
-    if (setupFailed) return true;
+    if (setupFailed) {
+      /* R3-F07: المصروف محفوظ والصفحة قائمة بعد نتيجة جزئية — العودة
+         * هي الفعل الأساسي لا حفظ جديد. */
+      setSavedStandingType(selectedType);
+      return true;
+    }
     /* N-92 (إصلاح نصي 4.3): صيغة الماضي الموحدة «حُفظ…» كإخواتها (الملف:
      * «حُفظ ملفك محليًا») — بلا تغيير معنى. */
     setMessage({
@@ -942,9 +991,12 @@ export default function FinancialEventEditor() {
         sourceWalletId: intent.sourceWalletId,
       });
       if (bill.ok && !bill.value.ownerPartFailure) {
-        if (bill.value.ownerPart && walletId && walletId !== UNSET_EXPENSE_SOURCE) {
+        /* R3-F03: التغطية من محفظة النية المجمّدة لا من محفظة النموذج
+         * الحي — السحب مُرصود على محفظة النية (intent.sourceWalletId)
+         * وتغيير الاختيار بعد الفشل لا يجعل الخصم من محفظة أخرى. */
+        if (bill.value.ownerPart && intent.sourceWalletId) {
           const ownerAttribution = await projectFinance.distributeUnallocated({
-            walletId,
+            walletId: intent.sourceWalletId,
             deltaMinor: -bill.value.ownerPart.amountMinor,
             note: "تغطية الجزء الشخصي من فاتورة مشتركة من رصيد المحفظة",
             sourceRefId: bill.value.ownerPart.id,
@@ -952,24 +1004,38 @@ export default function FinancialEventEditor() {
             operationKey: `${idempotencyKey.current}:owner-part:attribute`,
           });
           if (!ownerAttribution.ok) {
+            /* R3-F06: ملاحظتا النسبة الفاشلتان تُؤلّفان معًا لا أولاهما. */
+            const pendingNotes = [
+              savedNote.attributionNote ? `نسبة الحصة للمحفظة: ${savedNote.attributionNote}` : null,
+              `تغطية الجزء الشخصي من المحفظة: ${ownerAttribution.message ?? "المال محفوظ في الكاش غير الموزع."}`,
+            ].filter((part): part is string => part !== null);
             setSavedNote({
               eventId: bill.value.expense.id,
-              message: `حُفظ الجزء الشخصي، وتعذرت تغطيته من المحفظة: ${ownerAttribution.message ?? "المال محفوظ في الكاش غير الموزع."}`,
+              message: `حُفظ الجزء الشخصي، وتعذرت ${pendingNotes.join("، و")} — المال محفوظ ضمن الكاش غير الموزع حتى توزّعه بنفسك.`,
               attributionNote: savedNote.attributionNote ?? null,
+              ownerAttributionNote: ownerAttribution.message ?? null,
             });
             return;
           }
         }
-        /* R1-F02: فشل نسبة الحصة السابق لا يُبتلع بنجاح الجزء الشخصي. */
-        if (savedNote.attributionNote) {
+        /* R1-F02: فشل نسبة الحصة السابق لا يُبتلع بنجاح الجزء الشخصي، وفشل
+         * نسبة الجزء الشخصي كذلك (R3-F06). */
+        const remainingNotes = [
+          savedNote.attributionNote ? `نسبة الحصة للمحفظة: ${savedNote.attributionNote}` : null,
+          savedNote.ownerAttributionNote ? `تغطية الجزء الشخصي من المحفظة: ${savedNote.ownerAttributionNote}` : null,
+        ].filter((part): part is string => part !== null);
+        if (remainingNotes.length > 0) {
           setSavedNote({
             eventId: bill.value.expense.id,
-            message: `حُفظ الجزء الشخصي سحبًا على المالك بنية الحفظ نفسها. كما تعذرت نسبة الحصة للمحفظة: ${savedNote.attributionNote}`,
+            message: `حُفظ الجزء الشخصي سحبًا على المالك بنية الحفظ نفسها. كما تعذرت ${remainingNotes.join("، و")} — المال محفوظ ضمن الكاش غير الموزع حتى توزّعه بنفسك.`,
             attributionNote: savedNote.attributionNote,
+            ownerAttributionNote: savedNote.ownerAttributionNote,
           });
         } else {
           setSavedNote(null);
         }
+        /* R3-F07: الحدثان محفوظان والصفحة قائمة — العودة هي الفعل الأساسي. */
+        setSavedStandingType(intent.type);
         notifyDataChanged();
         setMessage({ text: "حُفظ الجزء الشخصي سحبًا على المالك بنية الحفظ نفسها.", tone: "success" });
       } else if (bill.ok) {
@@ -979,6 +1045,7 @@ export default function FinancialEventEditor() {
           ownerPartRetryMinor: savedNote.ownerPartRetryMinor,
           ownerPartRetryIntent: intent,
           attributionNote: savedNote.attributionNote ?? null,
+          ownerAttributionNote: savedNote.ownerAttributionNote ?? null,
         });
       } else {
         setSavedNote({
@@ -987,6 +1054,7 @@ export default function FinancialEventEditor() {
           ownerPartRetryMinor: savedNote.ownerPartRetryMinor,
           ownerPartRetryIntent: intent,
           attributionNote: savedNote.attributionNote ?? null,
+          ownerAttributionNote: savedNote.ownerAttributionNote ?? null,
         });
       }
     } finally {
@@ -994,27 +1062,58 @@ export default function FinancialEventEditor() {
     }
   }
 
-  /* S06 (D07): استئناف إعداد التكرار الناقص وحده — نفس نية الإعداد
-   * (المعرّف الحتمي نفسه) بلا إعادة تسجيل المصروف أبدًا. */
+  /* S06 (D07): استئناف إعداد التكرار الناقص وحده — المعرف الحتمي نفسه
+   * فلا تكرار للسلسلة ولا إعادة تسجيل للمصروف أبدًا. التاريخ المعروض في
+   * حقل «التذكير القادم» أعلاه هو مرجع الاستئناف (R3-F01): المصروف مؤرّخ
+   * سابقًا كان يجمّد الاستئناف على تاريخ ترفضه الخدمة حتميًا فلا نجاح
+   * ممكن — التصحيح الحي للتكملة الناقصة، وبقية نية الإعداد مجمّدة. */
   async function retrySeriesSetup(): Promise<void> {
     if (!seriesSetupFailure || !recurringExpenses) return;
-    const setup = await recurringExpenses.setupFromExpense({
-      seriesId: seriesSetupFailure.seriesId,
-      title: seriesSetupFailure.title,
-      nextReminderDate: seriesSetupFailure.nextDate,
-      suggestedAmountMinor: seriesSetupFailure.amountMinor,
-      suggestedWalletId: seriesSetupFailure.walletId,
-      categoryLabel: seriesSetupFailure.categoryLabel,
+    /* R3-F04: عهدة أثناء التنفيذ — النقر المزدوج لا يطلق إعدادين
+     * متزامنين بمفتاح واحد فتبتلع نتيجة بأخرى. */
+    if (seriesRetryInFlightRef.current) return;
+    const problem = deriveRecurrenceProblem({
+      enabled: true,
+      nextDate: recurrenceNextDate,
+      today: todayInAmman(),
     });
-    if (setup.ok) {
-      setSeriesSetupFailure(null);
-      notifyDataChanged();
-      setMessage({
-        text: `ضُبط التذكير القادم ${seriesSetupFailure.nextDate}.`,
-        tone: "success",
+    if (problem) {
+      setSeriesSetupFailure({
+        ...seriesSetupFailure,
+        message:
+          problem === "recurrence_date_invalid"
+            ? "أدخل تاريخ التذكير القادم تاريخًا محليًا صحيحًا."
+            : "التذكير القادم يجب أن يكون في شهر لاحق — مصروف هذه الفترة سُجل للتو؛ عدّل تاريخ التذكير القادم أعلاه.",
       });
-    } else {
-      setSeriesSetupFailure({ ...seriesSetupFailure, message: setup.message });
+      return;
+    }
+    seriesRetryInFlightRef.current = true;
+    setSaving(true);
+    try {
+      const setup = await recurringExpenses.setupFromExpense({
+        seriesId: seriesSetupFailure.seriesId,
+        title: seriesSetupFailure.title,
+        nextReminderDate: recurrenceNextDate,
+        suggestedAmountMinor: seriesSetupFailure.amountMinor,
+        suggestedWalletId: seriesSetupFailure.walletId,
+        categoryLabel: seriesSetupFailure.categoryLabel,
+      });
+      if (setup.ok) {
+        const confirmedDate = recurrenceNextDate;
+        setSeriesSetupFailure(null);
+        /* R3-F07: المصروف محفوظ والاستئناف اكتمل — العودة هي الفعل الأساسي. */
+        setSavedStandingType(type);
+        notifyDataChanged();
+        setMessage({
+          text: `ضُبط التذكير القادم ${confirmedDate}.`,
+          tone: "success",
+        });
+      } else {
+        setSeriesSetupFailure({ ...seriesSetupFailure, message: setup.message });
+      }
+    } finally {
+      seriesRetryInFlightRef.current = false;
+      setSaving(false);
     }
   }
 
@@ -1095,13 +1194,12 @@ export default function FinancialEventEditor() {
           </p>
         ) : null}
         {savedNote ? (
-          /* المجموعة ١ (صدق النسبة): الحدث محفوظ والمال غير موزع — النص والوصلة
-           * قبل الخروج، لا كذب ولا تجاهل ولا إعادة حفز المفتاح. */
+          /* المجموعة ١ (صدق النسبة): الرسالة نفسها كاملة الصدق لكل نتيجة
+           * جزئية (نسبة فاشلة، أو سحب شخصي ناقص، أو تركيبهما — R3-F02/R3-F06)
+           * — لا إطار ثابت يضيف معنى لم يقع؛ النص والوصلة قبل الخروج، لا
+           * كذب ولا تجاهل ولا إعادة حفز المفتاح. */
           <div className="micro-draft-banner" role="status">
-            <p>
-              حُفظ الحدث محليًا، لكن نسبته للمحفظة لم تتم: {savedNote.message} — المال محفوظ ضمن الكاش غير
-              الموزع حتى توزّعه بنفسك.
-            </p>
+            <p>{savedNote.message}</p>
             <div className="micro-form-actions">
               {savedNote.ownerPartRetryMinor ? (
                 <Button action="save" onClick={() => void retryOwnerPart()} disabled={saving}>
@@ -1322,8 +1420,10 @@ export default function FinancialEventEditor() {
                 checked={recurrenceEnabled}
                 onChange={event => {
                   setRecurrenceEnabled(event.target.checked);
+                  /* R3-F01: الافتراضي من أحدث مرجع (تاريخ الحدث أو اليوم
+                   * الحقيقي) — يرضي بوابة الخدمة الكنسية دائمًا. */
                   if (event.target.checked && !recurrenceNextDate)
-                    setRecurrenceNextDate(defaultNextReminderDate(date));
+                    setRecurrenceNextDate(defaultNextReminderDateForExpense(date, todayInAmman()));
                 }}
               />
               <span>يتكرر — ذكّرني بهذا المصروف كل شهر</span>
@@ -1350,11 +1450,12 @@ export default function FinancialEventEditor() {
         ) : null}
         {seriesSetupFailure ? (
           /* S06 (D07): نتيجة جزئية صادقة — المصروف محفوظ والإعداد ناقص،
-           * والاستئناف للناقص وحده بنية الإعداد نفسها. */
+           * والاستئناف للناقص وحده؛ تاريخ «التذكير القادم» أعلاه هو مرجع
+           * الاستئناف فيُصلح من هنا لا يُجمّد على الفاشل (R3-F01). */
           <div className="micro-draft-banner" role="status">
             <p>
-              حُفظ المصروف، ولم يُحفظ التذكير: {seriesSetupFailure.message} — يمكنك استئناف ضبط التذكير من
-              هنا، ولن يُسجّل المصروف مرة أخرى.
+              حُفظ المصروف، ولم يُحفظ التذكير: {seriesSetupFailure.message} — عدّل تاريخ «التذكير القادم» أعلاه
+              إن لزم ثم استأنف الضبط من هنا، ولن يُسجّل المصروف مرة أخرى.
             </p>
             <div className="micro-form-actions">
               <Button action="save" onClick={() => void retrySeriesSetup()} disabled={saving}>
@@ -1401,12 +1502,15 @@ export default function FinancialEventEditor() {
             block
 
             disabled={saving}
-            onClick={() => void save()}
+            /* R3-F07: بعد حفظ ثبت وبقيت الصفحة (نتيجة جزئية صُرفت أو
+             * استئناف اكتمل) الفعل الأساسي عودة لا حفظ جديد — النية
+             * المحفوظة تُحترم بمفتاحها ولا يُدعى الكاتب مرة أخرى. */
+            onClick={() => (savedNote || savedStandingType === type ? leaveAfterSave() : void save())}
           >
             <Save aria-hidden="true" />
             {saving
               ? "جارٍ الحفظ…"
-              : savedNote
+              : savedNote || savedStandingType === type
                 ? "ارجع إلى المالية"
                 : isOperatingExpense
                   ? "حفظ المصروف المصنف"

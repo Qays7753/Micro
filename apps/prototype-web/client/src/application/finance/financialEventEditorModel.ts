@@ -232,6 +232,17 @@ export function defaultNextReminderDate(today: string): string {
   return localDatePlusMonthsClamped(today, 1) ?? today;
 }
 
+/* R3-F01 (مراجعة S06 القرائية ٣): مرجع الافتراضي هو الأحدث بين تاريخ
+ * الحدث واليوم الحقيقي — بوابة الخدمة الكنسية (setupFromExpense) تقارن
+ * باليوم الحقيقي وحده، فمصروف مؤرَّخ سابقًا كان يقترح تذكيرًا في شهر
+ * الحدث الماضي/الحالي وترفضه الخدمة حتميًا بعد ثبوت المصروف. الافتراضي
+ * الجديد يرضي بوابة الخدمة دائمًا: أول تذكير هو الشهر التالي لأحدث
+ * مرجع (المصروف المسجل للتو أو اليوم)، مثبتًا على آخر يوم صالح. */
+export function defaultNextReminderDateForExpense(eventDate: string, today: string): string {
+  const anchor = eventDate > today ? eventDate : today;
+  return defaultNextReminderDate(anchor);
+}
+
 /** بوابة التذكير القادم — التاريخ صالح ويفترض في فترة لاحقة للفترة الحالية. */
 export type RecurrenceProblem = "recurrence_date_invalid" | "recurrence_not_future_period" | null;
 

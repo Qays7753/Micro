@@ -6,6 +6,7 @@ import {
   basisFromMode,
   coerceEditorDraft,
   defaultNextReminderDate,
+  defaultNextReminderDateForExpense,
   deriveExpenseContext,
   deriveOwnerPartMinor,
   derivePrimaryAmountProblem,
@@ -308,6 +309,22 @@ describe("S06 — مشتقات الفاتورة المشتركة وخيار ال
     expect(defaultNextReminderDate("2026-10-15")).toBe("2026-11-15");
     expect(defaultNextReminderDate("2026-01-31")).toBe("2026-02-28");
     expect(defaultNextReminderDate("2024-01-30")).toBe("2024-02-29");
+  });
+
+  /* R3-F01 (مراجعة S06 القرائية ٣): مرجع الافتراضي داخل المصروف هو الأحدث
+   * بين تاريخ الحدث واليوم الحقيقي — بوابة الخدمة الكنسية (setupFromExpense)
+   * تقارن باليوم الحقيقي وحده، فمصروف مؤرّخ سابقًا يجب ألا يقترح تذكيرًا
+   * في شهر الحدث الماضي/الحالي وترفضه الخدمة بعد ثبوت المصروف. */
+  it("افتراضي التذكير داخل المصروف: الأحدث بين تاريخ الحدث واليوم الحقيقي (R3-F01)", () => {
+    /* مصروف مؤرّخ سابقًا: المرجع اليوم الحقيقي — الافتراضي يرضي بوابة الخدمة. */
+    expect(defaultNextReminderDateForExpense("2026-09-15", "2026-10-30")).toBe("2026-11-30");
+    /* نفس اليوم: الشهر القادم باليوم نفسه. */
+    expect(defaultNextReminderDateForExpense("2026-10-30", "2026-10-30")).toBe("2026-11-30");
+    /* مصروف مستقبلي: المرجع تاريخ الحدث — أول تذكير بعد واقعة المصروف. */
+    expect(defaultNextReminderDateForExpense("2026-12-15", "2026-10-30")).toBe("2027-01-15");
+    /* التثبيت على آخر يوم صالح مع أحدث مرجع. */
+    expect(defaultNextReminderDateForExpense("2026-01-31", "2026-01-15")).toBe("2026-02-28");
+    expect(defaultNextReminderDateForExpense("2026-01-15", "2026-01-31")).toBe("2026-02-28");
   });
 
   it("بوابة التكرار: تاريخ صالح في فترة لاحقة حصرًا", () => {

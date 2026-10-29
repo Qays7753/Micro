@@ -175,6 +175,9 @@ describe("S06 — لوحة ربط مصروف مسجل بالدورة (D06 / R1-F
     );
     const [linkButton] = await screen.findAllByRole("button", { name: /اربط مصروفًا مسجلًا/ });
     fireEvent.click(linkButton);
+    /* R3-F05: فشل القراءة يُعلن بالقناة الصوتية المعتمدة (role=alert)
+     * لا فقرة صامتة عن قارئ الشاشة. */
     await waitFor(() => expect(screen.getByText("تعذر قراءة السجل الآن.")).toBeTruthy());
+    expect(screen.getByRole("alert").textContent).toBe("تعذر قراءة السجل الآن.");
   });
 });
