@@ -16,14 +16,14 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "d77ebaacf5bf026a36670260ce5d8484292782f0",
-        "date": "2026-10-29",
-        "method": "S06 code-candidate local re-anchor (2026-10-29, code candidate d77ebaac on top of the S05 fixes 4b78908c/14d825df, UNIT-015 CONS-DEC04/SDF-064 + UNIT-019 ORG-011/D07/D06 + SDF-062, PR #383): entry 629,370 raw / 153,300 gzip — margin 2,000 under the owner 155,300 ceiling; no ceiling raised. Shared-bill branch (paid field + owner-part confirmation + coordinated two-event writer + preview lines), the «يتكرر» recurrence option with deterministic resumable series setup, and the existing-expense link panel carry the lazy surfaces: lazy 1,264,011 -> 1,279,767 raw / 381,472 -> 385,147 gzipNorm; precache 2,727,568 -> 2,745,941; initial companions and swRuntime unchanged; counts 107/2/74/162/2 unchanged. Measured by the definitive local vite build on the final candidate tree (prototype check + 2,917 prototype tests green on the same tree). Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol (R8-1/R11). ",
+        "head": "0a728d146fd3cabe5c5abfbdc3ccd647574a8e52",
+        "date": "2026-10-30",
+        "method": "S06 review-corrections local re-anchor (2026-10-30, code head 0a728d14 on top of the S06 candidate d77ebaac, PR #383): the R1-R5 read-only-reviewer corrections (frozen retry intent + import-door paid guard [R1], link exclusivity inside the store write boundary on both adapters + reversal/period guards [R2], real-today reminder default/gate + live-date resume + truthful partial banners + frozen-wallet retry attribution + in-flight resume guard + standing-after-save button [R3], deterministic recording-link rejection [R4], and the SDF-062 both-adapter extension [R5-F07]) carry the lazy surfaces: lazy 1,279,767 -> 1,283,116 raw / 385,147 -> 385,709 gzipNorm; precache 2,745,941 -> 2,750,425; initial companions and swRuntime byte-identical; counts 107/2/74/162/2 unchanged. Entry 630,505 raw / 153,459 gzip — margin 1,841 under the owner 155,300 ceiling (check-bundle-budget PASS; no ceiling raised). Measured by the definitive local vite build on the corrected candidate tree. Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol (R8-1/R11). Cloud records follow the documented post-push measurement protocol. ",
         "initialRawTotal": 224976,
         "initialGzipNormTotal": 70766,
-        "lazyRawTotal": 1279767,
-        "lazyGzipNormTotal": 385147,
-        "precacheBytesTotal": 2745941,
+        "lazyRawTotal": 1283116,
+        "lazyGzipNormTotal": 385709,
+        "precacheBytesTotal": 2750425,
         "swRuntimeRawTotal": 26527
       },
       "toolchain": {
@@ -38,9 +38,9 @@
       "measurements": {
         "initialRawTotal": 224976,
         "initialGzipNormTotal": 70766,
-        "lazyRawTotal": 1279767,
-        "lazyGzipNormTotal": 385147,
-        "precacheBytesTotal": 2745941,
+        "lazyRawTotal": 1283116,
+        "lazyGzipNormTotal": 385709,
+        "precacheBytesTotal": 2750425,
         "swRuntimeRawTotal": 26527
       },
       "counts": {
