@@ -1,7 +1,7 @@
 {
   "id": "WS-231",
   "title": "S06 — المصروف والمتكرر والفاتورة المشتركة (UNIT-015/UNIT-019) + إصلاحا S05-MR-001/S05-MR-002",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "DOC-015"
   ],
@@ -38,8 +38,8 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-10-29",
-  "updated_at": "2026-10-29",
-  "next_action": "إصلاح S05-MR-001 ثم S05-MR-002 بإثبات دائم على المهايئين، ثم تنفيذ S06 لUNIT-015/019 حتى التسليم للمراجعة المستقلة؛ لا دمج ولا كتابة main.",
+  "updated_at": "2026-10-30",
+  "next_action": "مراجعة Manus المستقلة وقبول المالك على PR #383 (المرشح الكودي 0a728d14 وسجلات التوثيق فوقه)؛ لا دمج ولا كتابة main.",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S06-EXECUTION-PROMPT-2026-10-29.md المنشور في 13197ac0043ab7684a0f64a469a038e11ad434eb؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
@@ -57,6 +57,12 @@
       "changed_at": "2026-10-29",
       "actor": "zai-s06-execution",
       "reason": "مطالبة S06 المأذونة على components/integration-20261027 / PR #383 من رأس نشر الأمر 13197ac0 (لا تداخل مع WS-230 المنتهي إلى IN_REVIEW)."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-30",
+      "actor": "zai-s06-execution",
+      "reason": "سُلمت S06 للمراجعة: المرشح الكودي النهائي 0a728d14 (إصلاحا S05 ثم S06 ثم تصحيحات المراجعات الخمس) والسلسلة المحلية الخضراء عليه وتسليم السجلات الكامل؛ رهن المراجعة المستقلة وقبول المالك."
     }
   ],
   "migration_baseline": true
