@@ -4344,12 +4344,12 @@
         "band": "SPLIT_CANDIDATE"
       },
       "to": {
-        "nbLoc": 1780,
+        "nbLoc": 1789,
         "band": "SPLIT_NOW"
       },
-      "reason": "S06-MR-001: محرر الحدث المالي يبطل تأكيد جزء المالك تلقائيًا عند تغيّر الحصة/المدفوع ويعيد طلبه بالقيم الجديدة (+53 فوق قيمة إرساء S06 1727)؛ تصعيد الشريحة إلى SPLIT_NOW مُرسى بصدق والتقسيم مؤجل لموجات الهيكلة بقرار المالك (البند الهيكلي يمنع التقسيم خلال S07).",
+      "reason": "S06-MR-001: محرر الحدث المالي يبطل تأكيد جزء المالك تلقائيًا عند تغيّر الحصة/المدفوع ويعيد طلبه بالقيم الجديدة (+53 فوق قيمة إرساء S06 1727) ثم R1-F03: حارس صريح بلا إكراه نوع عند نية الإعادة؛ تصعيد الشريحة إلى SPLIT_NOW مُرسى بصدق والتقسيم مؤجل لموجات الهيكلة بقرار المالك.",
       "authorization": {
-        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) mandates the confirmed S06 review finding S06-MR-001 be fixed at its root before any S07 code; the write boundary must reject a changed unconfirmed owner part even when the UI is bypassed. Same-PR re-anchor per R8-1/R11.",
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) — R1 read-only-reviewer corrections on the same PR; same-PR re-anchor per R8-1/R11.",
         "trigger": "S07 delivery (DOC-016): S06-MR-001 UI auto-invalidation on value change on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-016"
       }
@@ -4425,7 +4425,7 @@
       },
       "reason": "UNIT-027: الاستلام مقيد ببند حي — البند المرجع واجب حين توجد بنود، ومادته عقد ملزم، وحدوده من البند لا من الرأس وحده؛ بند الفترة لا يستلم فوق تكلفة قائمة؛ والإرث بلا بنود بمسار الرأس القائم.",
       "authorization": {
-        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) — R1 read-only-reviewer corrections on the same PR; same-PR re-anchor per R8-1/R11.",
         "trigger": "S07 delivery (DOC-016): S07 receivePurchase bound to a live purchase line on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-016"
       }
@@ -4439,10 +4439,10 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 162,
+        "nbLoc": 165,
         "band": "NORMAL"
       },
-      "reason": "UNIT-027: نموذج محرر الشراء يحمل البنود الاختيية (بند أول من ربط المادة وبنود إضافية بقيمها ومعرفتها ومجموع صادق).",
+      "reason": "UNIT-027 + R1-F01: نموذج محرر الشراء يحمل البنود الاختيارية ومهايئ التتبع يفوّض معيّن المجال الكنوني materialIsTracked عبر الباب العام (الحكم الواحد لا اشتقاق موازٍ يناصف حد الكتابة).",
       "authorization": {
         "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
         "trigger": "S07 delivery (DOC-016): S07 purchase editor lines model on components/integration-20261027 / PR #383.",
@@ -4731,6 +4731,25 @@
       "authorization": {
         "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 on components/integration-20261027 / PR #383; the documented lazy-service precedent (transfers/loans/cashCount/partyDirectory) moves the purchases service out of the entry chunk so the owner gzip ceiling 155,300 is met without raising it. Same-PR re-anchor per R8-1/R11.",
         "trigger": "S07 delivery (DOC-016): nullable purchases-service guard in Foundation on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-28",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/transfers/domainTransferDriftAnchors.ts",
+      "from": {
+        "nbLoc": 97,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 106,
+        "band": "NORMAL"
+      },
+      "reason": "R1-F02: مرسى معالجة بند الشراء ينضم لبطارية حراس دريفت المجال↔النقل (satisfies Record<SupplierPurchaseLineTreatment, true>) — أي قيمة مجال جديدة تكسر الأنواع عند المرسى لا أن ترفض التطبيق تصديراته بصمت.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) — R1 read-only-reviewer corrections on the same PR; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07 R1 corrections (DOC-016): drift anchor for the purchase-line treatment on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-016"
       }
     }

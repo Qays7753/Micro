@@ -937,6 +937,15 @@ export default function FinancialEventEditor() {
       }
     }
     if (ownerPartFailure) {
+      /* S07 (R1-F03): حارس صريح بدل إكراه النوع — فشل الجزء الشخصي لا
+       * يقع إلا في مسار الفاتورة المشتركة الذي يوجب زوج تأكيد غير معدوم؛
+       * إن انعدم هنا فهو تناقض يُعلن لا يُتجاوز بصمت. */
+      const frozenConfirmation = ownerPartConfirmedFor;
+      if (frozenConfirmation === null) {
+        setSaving(false);
+        setMessage({ text: "تعذر تجهيز إعادة محاولة الجزء الشخصي — أعد التأكيد ثم أعد المحاولة.", tone: "error" });
+        return false;
+      }
       setSavedNote({
         eventId: result.value.id,
         /* R3-F02: الرسالة مكتملة الصدق بذاتها — نسبة الحصة قد تكون نجحت
@@ -957,7 +966,7 @@ export default function FinancialEventEditor() {
           counterparty: counterparty || null,
           expenseContext,
           sharedExpense: sharedExpense as NonNullable<typeof sharedExpense>,
-          ownerPartConfirmation: ownerPartConfirmedFor as SharedBillOwnerPartConfirmation,
+          ownerPartConfirmation: frozenConfirmation,
           idempotencyKey: idempotencyKey.current,
           sourceWalletId: walletId && walletId !== UNSET_EXPENSE_SOURCE ? walletId : null,
         },

@@ -14,6 +14,7 @@
  */
 
 import type { SupplierPurchase, SupplierPurchaseLine } from "@micro-domain/supplier-purchase/index.js";
+import { materialIsTracked } from "@micro-domain/inventory-material/index.js";
 import type { Material } from "@micro-domain/inventory-material/index.js";
 
 /* R10-B3/R10B-NF-001 (2026-10-11): القيمة الحارسة والقاعدة الموحدة
@@ -77,13 +78,15 @@ export function validatePurchaseEditSubmission(input: {
 }
 
 /** EXE-011 (PUR-001/AUD-NEW-08): حفظ شراء مرتبط بمادة متتبَّعة يعرض استمرارًا
- *  إلى الاستلام — المادة غير المتتبَّعة تبقى على مسارها المعلن فلا زر مضللًا. */
+ *  إلى الاستلام — المادة غير المتتبَّعة تبقى على مسارها المعلن فلا زر مضللًا.
+ * S07 (R1-F01): الحكم الواحد هو معيّن المجال الكنوني نفسه (غياب tracking =
+ * متتبَّعة للإرث القائم) — المهايئ لا يعيد اشتقاق سياسة التتبع ولا
+ * يناقض حد الكتابة أبدًا؛ S07 يجعل هذا المعيّن حاسمًا لمعالجة البند
+ * (period_material/tracked_material) فيجب أن يطابق المجال حرفيًا. */
 export function isLinkedMaterialTracked(materialOptions: readonly Material[], materialId: string): boolean {
-  return (
-    !!materialId &&
-    (materialOptions.find(material => material.id === materialId)?.tracking?.status ?? "untracked") !==
-      "untracked"
-  );
+  if (!materialId) return false;
+  const linked = materialOptions.find(material => material.id === materialId);
+  return linked !== undefined && materialIsTracked(linked);
 }
 
 /** خريطة السجل المحمّل إلى قيم نموذج التحرير — نفس تعبئة الصفحة حرفيًا. */

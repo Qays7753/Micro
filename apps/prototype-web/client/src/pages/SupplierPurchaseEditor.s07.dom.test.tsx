@@ -42,12 +42,27 @@ const trackedMaterial: Material = {
   opening: null,
 };
 
+/* R1-F01: الإرث بلا tracking = متتبَّعة عند المجال الكنوني — هذا الفكسجر
+ * «غير متتبَّعة» يجب أن يصرّح الحالة صراحةً لا أن يستغل غياب الحقل. */
 const untrackedMaterial: Material = {
   id: "material-untracked-1",
   name: "طحين الخبز",
   unit: "kilogram",
   createdAt: "2026-10-01T09:00:00.000Z",
   createdOperationKey: "material-open-2",
+  tracking: { status: "untracked", decidedOn: "2026-10-01", reason: null },
+  opening: null,
+};
+
+/* R1-F01 (انحدار دائم): مادة إرثية بلا حقل tracking إطلاقًا — المجال يعدّها
+ * متتبَّعة (غياب الحقل = متتبَّعة للإرث القائم) فيشتق المحرر معالجة البند
+ * tracked_material مطابقًا لحد الكتابة، لا مسارًا ينتهي برفض حتمي. */
+const legacyTrackedMaterial: Material = {
+  id: "material-legacy-tracked",
+  name: "سكر إرثي",
+  unit: "kilogram",
+  createdAt: "2026-10-01T09:00:00.000Z",
+  createdOperationKey: "material-open-3",
   tracking: null,
   opening: null,
 };
@@ -171,6 +186,35 @@ describe("S07 — بنود الفاتورة في محرر الشراء (UNIT-027
     expect(payload.lines?.[0]?.materialId).toBe("material-tracked-1");
     /* EXE-011: استمرار صريح إلى الاستلام بعد الحفظ — الجسر هو الرحلة. */
     await waitFor(() => expect(screen.getByText(/استلام المخزون/)).toBeTruthy());
+  });
+
+  /* R1-F01 (انحدار دائم): مادة إرثية بلا حقل tracking — المجال يعدّها متتبَّعة
+   * (غياب الحقل = متتبَّعة للإرث القائم) فيشتق المحرر معالجة البند
+   * tracked_material من المعيّن الكنوني نفسه، مطابقًا لحد الكتابة الذي كان
+   * سيرفض المسار المعاكس رفضًا حتميًا (لا جمودًا في الواجهة). */
+  it("مادة إرثية بلا حقل تتبع تُعد متتبَّعة عند المجال — معالجة البند tracked_material مطابقة لحد الكتابة (R1-F01)", async () => {
+    const { recordPurchase } = renderEditor({ materials: [legacyTrackedMaterial] });
+    await fillBasics();
+    await userEvent.setup().type(screen.getByLabelText(/اسم المورد/), "مؤسسة السكر");
+    fireEvent.change(screen.getByLabelText(/المادة المشتراة/), { target: { value: "material-legacy-tracked" } });
+    fireEvent.change(screen.getByLabelText(/الكمية المتوقعة/), { target: { value: "2" } });
+    recordPurchase.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        id: "purchase-legacy-1",
+        status: "unpaid",
+        lines: null,
+        materialId: "material-legacy-tracked",
+      } as unknown as SupplierPurchase,
+      reused: false,
+    });
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ شراء المواد" }));
+    await waitFor(() => expect(recordPurchase).toHaveBeenCalledOnce());
+    const payload = recordPurchase.mock.calls[0]?.[0] as {
+      lines?: { treatment: string; materialId: string | null }[];
+    };
+    expect(payload.lines?.[0]?.treatment).toBe("tracked_material");
+    expect(payload.lines?.[0]?.materialId).toBe("material-legacy-tracked");
   });
 
   it("فاتورة بعدة بنود: قيم البنود ومعرفتها ومجموعها الصادق، والتجاوز فوق الإجمالي يُرفض قبل أي كتابة", async () => {
