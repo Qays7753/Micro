@@ -53,15 +53,15 @@
     },
     "cloudflare-pages": {
       "anchored": {
-        "head": "9d7d2aee",
-        "date": "2026-10-28",
-        "method": "S04 final-candidate derived re-anchor (2026-10-28, code candidate head 9d7d2aee, PR #383): github-actions record derived per the PROVEN environment-class derivation: lazy/initial/swRuntime records identical to the local measured anchor on the same code head; cloud precache = local + 90 (the sw.js hex-identity footprint), i.e. 2,709,072 + 90 = 2,709,162. The actual CI run on the pushed head must confirm these values; any deviation is re-anchored from the run's actual measured values per the documented protocol (same-PR, with the run/deployment evidence recorded).",
-        "initialRawTotal": 224222,
-        "initialGzipNormTotal": 70645,
-        "lazyRawTotal": 1241042,
-        "lazyGzipNormTotal": 373925,
-        "precacheBytesTotal": 2709162,
-        "swRuntimeRawTotal": 26405
+        "head": "641161e07dddb1280c1c617eb2cbf755d8f5aae7",
+        "date": "2026-10-29",
+        "method": "S05 pushed-head derived re-anchor (2026-10-29, code tree bee05336 under docs head 641161e0, PR #383): cloudflare-pages record derived per the PROVEN environment-class derivation: lazy/initial/swRuntime/counts identical to the actual github-actions run 40861181987 on the same tree; cloud precache = local + 90 (the sw.js hex-identity footprint), i.e. 2,727,568 + 90 = 2,727,658. The actual Cloudflare deployment on the corrected head must confirm these values; any deviation is re-anchored from the live values in the same PR.",
+        "initialRawTotal": 224976,
+        "initialGzipNormTotal": 70766,
+        "lazyRawTotal": 1264011,
+        "lazyGzipNormTotal": 381472,
+        "precacheBytesTotal": 2727658,
+        "swRuntimeRawTotal": 26527
       },
       "toolchain": {
         "node": "not-exposed-by-provider",
@@ -73,32 +73,32 @@
         "identityMode": "env"
       },
       "measurements": {
-        "initialRawTotal": 224222,
-        "initialGzipNormTotal": 70645,
-        "lazyRawTotal": 1241042,
-        "lazyGzipNormTotal": 373925,
-        "precacheBytesTotal": 2709162,
-        "swRuntimeRawTotal": 26405
+        "initialRawTotal": 224976,
+        "initialGzipNormTotal": 70766,
+        "lazyRawTotal": 1264011,
+        "lazyGzipNormTotal": 381472,
+        "precacheBytesTotal": 2727658,
+        "swRuntimeRawTotal": 26527
       },
       "counts": {
-        "lazyJsCount": 105,
+        "lazyJsCount": 107,
         "initialJsCount": 2,
-        "dynamicRootsCount": 73,
-        "precacheEntryCount": 160,
+        "dynamicRootsCount": 74,
+        "precacheEntryCount": 162,
         "swRuntimeFileCount": 2
       }
     },
     "github-actions": {
       "anchored": {
-        "head": "9d7d2aee",
-        "date": "2026-10-28",
-        "method": "S04 final-candidate derived re-anchor (2026-10-28, code candidate head 9d7d2aee, PR #383; corrected same day): github-actions record derived per the PROVEN environment-class derivation: lazy/initial/swRuntime records identical to the local measured anchor on the same code head; precache = local + 90 (the sw.js hex-identity footprint), i.e. 2,709,072 + 90 = 2,709,162 — CONFIRMED by the actual CI run 40775472900 on the pushed head 73f08348 measuring exactly 2,709,162 (the initial re-anchor had wrongly pinned the local value here; this correction re-anchors from the run's actual measured values per the documented protocol, same-PR, with the run evidence recorded).",
-        "initialRawTotal": 224222,
-        "initialGzipNormTotal": 70645,
-        "lazyRawTotal": 1241042,
-        "lazyGzipNormTotal": 373925,
-        "precacheBytesTotal": 2709162,
-        "swRuntimeRawTotal": 26405
+        "head": "641161e07dddb1280c1c617eb2cbf755d8f5aae7",
+        "date": "2026-10-29",
+        "method": "S05 pushed-head same-PR re-anchor (2026-10-29, code tree bee05336 under docs head 641161e0, PR #383): github-actions record re-anchored from the ACTUAL CI run 40861181987 on the pushed head 641161e0 per the R8-1 protocol (the prior record was the S04 tree; the run failed only at this guard): entry 626,753/152,597 (reported; check-bundle-budget owns the ceilings and PASSED); initial 224,976/70,766; lazy 1,264,011/381,472; precache 2,727,658; swRuntime 26,527; counts 107/2/74/162/2 (partyDirectory + homeControlCenter lazy roots). node v22.23.3, zlib 1.3.1-e00f703, identity=env. No ceiling raised; sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol.",
+        "initialRawTotal": 224976,
+        "initialGzipNormTotal": 70766,
+        "lazyRawTotal": 1264011,
+        "lazyGzipNormTotal": 381472,
+        "precacheBytesTotal": 2727658,
+        "swRuntimeRawTotal": 26527
       },
       "toolchain": {
         "node": "not-exposed-by-provider",
@@ -110,18 +110,18 @@
         "identityMode": "env"
       },
       "measurements": {
-        "initialRawTotal": 224222,
-        "initialGzipNormTotal": 70645,
-        "lazyRawTotal": 1241042,
-        "lazyGzipNormTotal": 373925,
-        "precacheBytesTotal": 2709162,
-        "swRuntimeRawTotal": 26405
+        "initialRawTotal": 224976,
+        "initialGzipNormTotal": 70766,
+        "lazyRawTotal": 1264011,
+        "lazyGzipNormTotal": 381472,
+        "precacheBytesTotal": 2727658,
+        "swRuntimeRawTotal": 26527
       },
       "counts": {
-        "lazyJsCount": 105,
+        "lazyJsCount": 107,
         "initialJsCount": 2,
-        "dynamicRootsCount": 73,
-        "precacheEntryCount": 160,
+        "dynamicRootsCount": 74,
+        "precacheEntryCount": 162,
         "swRuntimeFileCount": 2
       }
     }
