@@ -287,6 +287,21 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     if (orderIds.has(stored.id)) return false;
     orderIds.add(stored.id);
   }
+  /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة — هوية فريدة وشكل
+   * سليم؛ لا فحص تسمية إطلاقًا (طرفان بالتسمية نفسها هويتان مستقلتان —
+   * لا دمج بالاسم أبدًا)؛ الملف المكسور أو المدموج يدويًا يُرفض قبل أي
+   * معاينة.
+   * S05-MR-001 (أمر S06 — إصلاح عقد S05 المؤكد): بناء طقم معرفات العائلة
+   * يسبق فحص البيع/الشراء — المرجع المصدري غير الفارغ (customerPartyId على
+   * البيع المباشر، supplierPartyId على شراء المورد) يجب أن يحلّ لطرف محفوظ
+   * داخل الملف نفسه؛ المرجع المكسور يُرفض قبل المعاينة ولا يُشتق طرف من
+   * اسم/هاتف/مبلغ/تسمية أبدًا. null/الغياب يبقيان صحيحين حيث يسمح عقد
+   * المصدر، والطرف المؤرشف حاضرًا في العائلة هوية مرجعية صالحة. */
+  const counterpartyIds = new Set<string>();
+  for (const party of data.counterparties ?? []) {
+    if (!validSavedParty(party) || counterpartyIds.has(party.id)) return false;
+    counterpartyIds.add(party.id);
+  }
   const directSaleIds = new Set<string>();
   const directSaleKeys = new Set<string>();
   const directSaleRevisionKeys = new Set<string>();
@@ -304,6 +319,9 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       )
     )
       return false;
+    /* S05-MR-001: ثابت المرجعية للطرف المرتبط بالبيع — يُفحص بعد صحة الشكل
+     * (isDirectSale يضبط شكل الحقل) وقبل أي معاينة. */
+    if (sale.customerPartyId != null && !counterpartyIds.has(sale.customerPartyId)) return false;
     directSaleIds.add(sale.id);
     directSaleKeys.add(sale.idempotencyKey);
     for (const revision of sale.revisions ?? []) directSaleRevisionKeys.add(revision.idempotencyKey);
@@ -506,6 +524,11 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       purchaseIds.has(purchase.id) ||
       purchaseKeys.has(purchase.idempotencyKey)
     )
+      return false;
+    /* S05-MR-001: ثابت المرجعية للمورد المرتبط بالشراء — مثل البيع تمامًا:
+     * معرف غير فارغ بلا طرف محفوظ يحمله الملف = مرجع مكسور يُرفض قبل
+     * المعاينة، ولا كتابة على بيانات الجهاز الهدف. */
+    if (purchase.supplierPartyId != null && !counterpartyIds.has(purchase.supplierPartyId))
       return false;
     purchaseIds.add(purchase.id);
     purchaseKeys.add(purchase.idempotencyKey);
@@ -1162,15 +1185,9 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     observationIds.add(observation.id);
     if (observation.scopeKind === "wallet" && !walletIds.has(observation.walletId as string)) return false;
   }
-  /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة — هوية فريدة وشكل
-   * سليم؛ لا فحص تسمية إطلاقًا (طرفان بالتسمية نفسها هويتان مستقلتان —
-   * لا دمج بالاسم أبدًا)؛ الملف المكسور أو المدموج يدويًا يُرفض قبل أي
-   * معاينة. المراجع المصدرية على البيع/الشراء تُفحص عند عائلاتها. */
-  const counterpartyIds = new Set<string>();
-  for (const party of data.counterparties ?? []) {
-    if (!validSavedParty(party) || counterpartyIds.has(party.id)) return false;
-    counterpartyIds.add(party.id);
-  }
+  /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة فُحصت وبُني طقم
+   * معرفاتها قبل البيع/الشراء (S05-MR-001) — المرجعية تُفحص عند عائلاتها
+   * المحملة للمرجع لا هنا. */
   /* OPS-003 (عقد ٤١): عائلة المصروف المتكرر — هوية فريدة وترابط صادق:
    * المراجعة والفترة تشيران لسلسلة موجودة، والفترة المقَرَّرة تربط حدثًا
    * قائمًا فعلًا؛ الملف المكسور أو المدموج يدويًا يُرفض قبل أي معاينة. */

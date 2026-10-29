@@ -235,6 +235,14 @@ export function isDirectSale(value: unknown): value is DirectSale {
       value.customerName === null ||
       (isString(value.customerName) && value.customerName.trim().length > 0)
     ) ||
+    /* S05-MR-001 (أمر S06 — إصلاح عقد S05 المؤكد): رابط الطرف المحفوظ على
+     * البيع المباشر شكلًا — غائب أو null أو معرّف نصي غير فارغ؛ الملف الذي
+     * يضع نوعًا آخر في هذا الحقل معطوب قبل فحص المرجعية أصلًا. */
+    !(
+      value.customerPartyId === undefined ||
+      value.customerPartyId === null ||
+      (isString(value.customerPartyId) && value.customerPartyId.trim().length > 0)
+    ) ||
     /* P-002 (دورة التدقيق النهائي): مرجع الكتالوج اختياري — null أو معرّف نصي
      * غير فارغ؛ تناظرًا مع تحقق الطلبات والمسودات فلا يُقبل ملف معطوب يضع
      * نوعًا آخر في هذا الحقل. المرجع المعلّق مقبول (حذف المرجع لاحقًا قانوني). */
@@ -944,6 +952,14 @@ export function validSupplierPurchase(value: unknown): boolean {
     !isDate(value.createdAt) ||
     !isDate(value.updatedAt) ||
     !Array.isArray(value.payments) ||
+    /* S05-MR-001 (أمر S06 — إصلاح عقد S05 المؤكد): رابط المورد المحفوظ شكلًا
+     * — غائب أو null أو معرّف نصي غير فارغ؛ فحص المرجعية نفسه عند عائلة
+     * اللقطة (validateSnapshot). */
+    !(
+      value.supplierPartyId === undefined ||
+      value.supplierPartyId === null ||
+      (isString(value.supplierPartyId) && value.supplierPartyId.trim().length > 0)
+    ) ||
     /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة اختياري — الشكل فقط. */
     !(
       value.materialId === undefined ||
