@@ -4,6 +4,7 @@ import type {
   RecordSupplierPurchasePaymentInput,
   ReverseSupplierPurchasePaymentInput,
   SupplierPurchase,
+  SupplierPurchaseLine,
   SupplierPurchasePayment,
   SupplierPurchasePaymentReversal,
   SupplierPurchaseRevision,
@@ -151,11 +152,80 @@ const assertMaterialLink = (input: { materialId?: string | null; expectedQuantit
     throw new Error("أدخل الكمية المتوقعة رقمًا صحيحًا موجبًا، أو اتركها فارغة.");
 };
 
+/* S07 (UNIT-027 D01 / العقد المشترك §5.4 PurchaseLine): بنود الشراء — هوية
+ * ثابتة لكل بند، وقيمة معلومة موجبة لا تجعل مجموع البنود يتجاوز إجمالي
+ * الشراء (الأجزاء لا تكرر فوق الكل)، ومجهولة القيمة null لا صفرًا معلومًا
+ * (SDF-036)، وtracked_material يوجب مادة (لا تتبع بلا مادة). تطابق
+ * معالجة البند مع حالة تتبع المادة الحية فحص تطبيقي عند الخدمة (المجال
+ * النقي لا يملك قائمة المواد)؛ هنا شكل البند وتحدوده الذاتية. */
+const assertPurchaseLines = (
+  lines: readonly SupplierPurchaseLine[] | null | undefined,
+  totalMinor: number,
+): void => {
+  if (lines === undefined || lines === null || lines.length === 0) return;
+  const lineIds = new Set<string>();
+  let knownValueSum = 0;
+  for (const line of lines) {
+    if (!line.lineId?.trim()) throw new Error("لكل بند شراء هوية ثابتة غير فارغة.");
+    if (lineIds.has(line.lineId)) throw new Error("هوية بند الشراء مكررة داخل الشراء الواحد.");
+    lineIds.add(line.lineId);
+    if (line.treatment !== "period_material" && line.treatment !== "tracked_material")
+      throw new Error("معالجة بند الشراء غير صالحة.");
+    if (line.materialId !== undefined && line.materialId !== null && !line.materialId.trim())
+      throw new Error("اربط بند الشراء بمادة موجودة أو اتركه بلا مادة.");
+    if (
+      line.expectedQuantityMilli !== undefined &&
+      line.expectedQuantityMilli !== null &&
+      (!Number.isInteger(line.expectedQuantityMilli) || line.expectedQuantityMilli <= 0)
+    )
+      throw new Error("كمية بند الشراء رقم صحيح موجب بوحدة المادة، أو اتركها فارغة.");
+    if (line.treatment === "tracked_material" && (line.materialId === undefined || line.materialId === null))
+      throw new Error("بند المواد المتتبعة يوجب مادة مرتبطة — لا تتبع بلا مادة.");
+    if (line.costKnowledge === "known") {
+      if (
+        line.valueMinor === undefined ||
+        line.valueMinor === null ||
+        !Number.isInteger(line.valueMinor) ||
+        line.valueMinor <= 0
+      )
+        throw new Error("قيمة بند الشراء المعلومة رقم صحيح موجب بالدينار، أو اتركها مجهولة.");
+      knownValueSum += line.valueMinor;
+    } else if (line.costKnowledge === "unknown") {
+      if (line.valueMinor !== undefined && line.valueMinor !== null)
+        throw new Error("قيمة بند الشراء المجهولة تسجل بلا قيمة معلنة — لا صفرًا موسومًا معلومًا.");
+    } else {
+      throw new Error("معرفة تكلفة بند الشراء غير صالحة.");
+    }
+  }
+  if (knownValueSum > totalMinor)
+    throw new Error("مجموع قيم البنود المعلومة يتجاوز إجمالي الشراء — الأجزاء لا تكرر فوق الكل.");
+};
+
+/* S07: تطبيع بنود الشراء — تجميد كل بند وقصّ المعرفات؛ الغياب/الفراغ = بلا
+ * بنود (null) كالمسار القائم، لا مصفوفة فارغة توهم معنى. */
+const normalizePurchaseLines = (
+  lines: readonly SupplierPurchaseLine[] | null | undefined,
+): readonly SupplierPurchaseLine[] | null => {
+  if (lines === undefined || lines === null || lines.length === 0) return null;
+  return Object.freeze(
+    lines.map(line =>
+      Object.freeze({
+        ...line,
+        lineId: line.lineId.trim(),
+        materialId: line.materialId?.trim() || null,
+        expectedQuantityMilli: line.expectedQuantityMilli ?? null,
+        valueMinor: line.valueMinor ?? null,
+      }),
+    ),
+  );
+};
+
 export function createSupplierPurchase(input: CreateSupplierPurchaseInput): SupplierPurchase {
   assertText(input.id, "id");
   assertText(input.idempotencyKey, "idempotencyKey");
   assertPurchaseFields(input);
   assertMaterialLink(input);
+  assertPurchaseLines(input.lines, input.totalMinor);
   /* S05 (DOC-014 / UNIT-037): عند الإنشاء الدفع الأولي هو المدفوع كله. */
   assertSupplierIdentityForPayable({
     supplierName: input.supplierName,
@@ -181,6 +251,7 @@ export function createSupplierPurchase(input: CreateSupplierPurchaseInput): Supp
     payments,
     materialId: input.materialId?.trim() || null,
     expectedQuantityMilli: input.expectedQuantityMilli ?? null,
+    lines: normalizePurchaseLines(input.lines),
     createdAt: input.recordedAt,
     updatedAt: input.recordedAt,
   });
@@ -248,6 +319,8 @@ const buildEditRevision = (
     beforeDueOn: purchase.dueOn,
     beforeMaterialId: purchase.materialId ?? null,
     beforeExpectedQuantityMilli: purchase.expectedQuantityMilli ?? null,
+    /* S07 (UNIT-027): البنود قبل التعديل — لقطة موثقة كقيم «قبل التصحيح». */
+    beforeLines: purchase.lines ?? null,
   });
 
 /* المجموعة ٢ (§10.4): إعادة بناء الدفعات بعد التعديل — الدفع الأولي الجديد
@@ -282,6 +355,7 @@ export function updateSupplierPurchase(
   if (purchase.revisions?.some(revision => revision.idempotencyKey === input.idempotencyKey)) return purchase;
   assertPurchaseFields(input);
   assertMaterialLink(input);
+  assertPurchaseLines(input.lines, input.totalMinor);
 
   const paidAfterEdit = paidAfterEditFor(purchase, input);
   assertPaidAfterEdit(paidAfterEdit, input.totalMinor);
@@ -309,6 +383,8 @@ export function updateSupplierPurchase(
       payments: rebuildPayments(purchase, input),
       materialId: input.materialId?.trim() || null,
       expectedQuantityMilli: input.expectedQuantityMilli ?? null,
+      /* S07 (UNIT-027): البنود بعد التعديل — استبدال معلن لا صامت. */
+      lines: normalizePurchaseLines(input.lines),
       revisions: Object.freeze([...(purchase.revisions ?? []), revision]),
     },
     paidAfterEdit,

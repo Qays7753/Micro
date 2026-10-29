@@ -142,6 +142,12 @@ export type RecordedPeriodResult = {
   directSaleRevenueMinor: number;
   directSaleCostKnownMinor: number;
   directSaleCostUnknownCount: number;
+  /* S07 (UNIT-028 / D02 المعتمد / SDF-031): تكلفة مواد الفترة المعترف بها
+   * من بنود period_material على فترة تاريخ الشراء — قراءة مشتقة عند هذا
+   * القارئ الكنوني نفسه (لا حدث مالي ثانٍ)؛ والمجهولة القيمة تُعلن بعدّها
+   * وتمنع رقم نتيجة نهائيًا كاذبًا (لا صفرًا ولا مجانية). */
+  untrackedMaterialPurchaseCostMinor: number;
+  untrackedMaterialPurchaseCostUnknownCount: number;
   /* المجموعة ٤ (عقد ٢٩): الإهلاك المسجّل — بند مستقل غير نقدي يخفض النتيجة
    * ولا يدخل بند المصروفات التشغيلية أبدًا. */
   assetDepreciationMinor: number;

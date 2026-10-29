@@ -279,6 +279,34 @@ export async function readPurchaseReceiptStatus(
     purchase.materialId !== null && purchase.materialId !== undefined
       ? active.reduce((sum, movement) => sum + movement.quantityDeltaMilli, 0)
       : null;
+  /* S07 (UNIT-027 D01): حالة الاستلام لكل بند — الإيصالات النشطة لكل بند
+   * بمفتاحه (purchaseLineId)، والمتبقي من حدود البند نفسه (قيمة معلومة →
+   * متبقٍ محسوب؛ مجهولة → null لا صفرًا معلومًا). الغياب (إرث بلا بنود) =
+   * بلا صفوف بنود: مسار الرأس القائم نفسه. */
+  const lines = (purchase.lines ?? []).map(line => {
+    const lineReceipts = active.filter(movement => movement.purchaseLineId === line.lineId);
+    const lineReceivedValueMinor = lineReceipts.reduce((sum, movement) => sum + movement.valueDeltaMinor, 0);
+    const lineReceivedQuantityMilli = lineReceipts.reduce(
+      (sum, movement) => sum + movement.quantityDeltaMilli,
+      0,
+    );
+    const lineValueKnown = line.costKnowledge === "known" && typeof line.valueMinor === "number";
+    return {
+      lineId: line.lineId,
+      materialId: line.materialId ?? null,
+      treatment: line.treatment,
+      expectedQuantityMilli: line.expectedQuantityMilli ?? null,
+      valueMinor: line.valueMinor ?? null,
+      costKnowledge: line.costKnowledge,
+      receivedValueMinor: lineReceivedValueMinor,
+      remainingValueMinor: lineValueKnown ? (line.valueMinor as number) - lineReceivedValueMinor : null,
+      receivedQuantityMilli: lineReceivedQuantityMilli,
+      remainingQuantityMilli:
+        (line.expectedQuantityMilli ?? null) !== null
+          ? (line.expectedQuantityMilli as number) - lineReceivedQuantityMilli
+          : null,
+    };
+  });
   return {
     ok: true,
     value: {
@@ -300,7 +328,9 @@ export async function readPurchaseReceiptStatus(
         valueMinor: movement.valueDeltaMinor,
         occurredOn: movement.occurredOn,
         reversed: reversedMovementIds.has(movement.id),
+        purchaseLineId: movement.purchaseLineId ?? null,
       })),
+      lines: lines.length > 0 ? lines : undefined,
     },
   };
 }

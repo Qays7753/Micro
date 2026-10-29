@@ -116,6 +116,9 @@ export type OpenMaterialInput = {
 export type ReceivePurchaseInput = {
   materialId: string;
   purchaseId: string;
+  /* S07 (UNIT-027): بند الشراء المستلم عليه — واجب حين يكون للشراء بنود
+   * (استلام مقيد ببند حي)؛ اختياري للإرث بلا بنود (مسار الرأس). */
+  purchaseLineId?: string | null;
   quantityMilli: number;
   valueMinor: number;
   /* المجموعة ٢ (عقد ٢٨): قيمة الاستلام قد تكون غير معروفة — قيمة صفرية موسومة. */
@@ -203,6 +206,23 @@ export type PurchaseReceiptStatus = {
     valueMinor: number;
     occurredOn: string;
     reversed: boolean;
+    /* S07 (UNIT-027): البند الذي استُلم عليه — null للإرث بلا بنود. */
+    purchaseLineId: string | null;
+  }[];
+  /* S07 (UNIT-027 D01): حالة الاستلام لكل بند — الغياب (إرث بلا بنود) =
+   * مسار الرأس القائم نفسه؛ البند المجهول القيمة يبقى مجهولًا (remaining
+   * null) لا صفرًا معلومًا. */
+  lines?: readonly {
+    lineId: string;
+    materialId: string | null;
+    treatment: "period_material" | "tracked_material";
+    expectedQuantityMilli: number | null;
+    valueMinor: number | null;
+    costKnowledge: "known" | "unknown";
+    receivedValueMinor: number;
+    remainingValueMinor: number | null;
+    receivedQuantityMilli: number;
+    remainingQuantityMilli: number | null;
   }[];
 };
 export type UntrackMaterialInput = {

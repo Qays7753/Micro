@@ -54,6 +54,10 @@ export type InventoryMovement = {
   reason: string | null;
   operationKey: string;
   purchaseId: string | null;
+  /* S07 (UNIT-027 D01): بند الشراء الذي يُستلم عليه — استلام متتبع مربوط
+   * ببند حي لا بمجرد purchaseId؛ الغياب (الإرث بلا بنود) = مسار الرأس
+   * القائم نفسه. */
+  purchaseLineId?: string | null;
   orderId: string | null;
   /* المجموعة ٣ (عقد D6): ربط حركة المادة ببيع مباشر — نمط purchaseId/orderId
    * نفسه؛ الاستهلاك المرتبط ببيع لا يحتاج بيانًا إضافيًا لأن المرجع صريح. */
@@ -77,10 +81,17 @@ export type CreateMaterialInput = {
 };
 export type CreateInventoryMovementInput = Omit<
   InventoryMovement,
-  "reason" | "purchaseId" | "orderId" | "reversesMovementId" | "wasteContext" | "costKnowledge"
+  | "reason"
+  | "purchaseId"
+  | "purchaseLineId"
+  | "orderId"
+  | "reversesMovementId"
+  | "wasteContext"
+  | "costKnowledge"
 > & {
   reason?: string | null;
   purchaseId?: string | null;
+  purchaseLineId?: string | null;
   orderId?: string | null;
   reversesMovementId?: string | null;
   wasteContext?: WasteContext | null;

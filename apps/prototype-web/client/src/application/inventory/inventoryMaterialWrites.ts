@@ -59,9 +59,6 @@ export async function receivePurchase(
     return validationFailure("المادة غير متتبَّعة — فعّل متابعتها أولًا ثم استلم الشراء.");
   const purchase = purchases.value.find(candidate => candidate.id === input.purchaseId);
   if (!purchase) return validationFailure("اختر شراء مواد موجودًا لاستلامه.");
-  /* المجموعة ٢ (عقد ٢٨): الشراء المرتبط بمادة تُستلم عليها — الربط عقد، لا اقتراح. */
-  if (purchase.materialId && purchase.materialId !== input.materialId)
-    return validationFailure("هذا الشراء مرتبط بمادة أخرى — استلمه على مادته أو عدّل ربط الشراء.");
   const reversedMovementIds = reversedMovementIdsOf(movements.value);
   const activeReceipts = movements.value.filter(
     movement =>
@@ -72,9 +69,49 @@ export async function receivePurchase(
   const receivedValue = activeReceipts.reduce((sum, movement) => sum + movement.valueDeltaMinor, 0);
   if (receivedValue + input.valueMinor > purchase.totalMinor)
     return validationFailure("قيمة الاستلام تتجاوز إجمالي شراء المواد المرجعي.");
+  /* S07 (UNIT-027 D01): الاستلام المقيّد ببند — حين يكون للشراء بنود، يوجب
+   * البند المستلم عليه: مرجعه صريح، ومادته عقد ملزم (لا اقتراح)، ومعالجته
+   * tracked_material (بند period_material محمّل تكلفته على فترة الشراء — لا
+   * يستلم مخزونًا فوق تكلفة قائمة بلا تصحيح اعتراف موثق)، وحدود الكمية/
+   * القيمة من البند نفسه لا من الرأس وحده. الشراء بلا بنود = مسار الرأس
+   * القائم نفسه (متوافق رجعيًا بلا سلوك جديد مفترض). */
+  const purchaseLines = purchase.lines ?? [];
+  if (purchaseLines.length > 0) {
+    const lineId = input.purchaseLineId?.trim() || null;
+    if (!lineId) return validationFailure("هذا الشراء ببنود — اختر البند الذي تستلم عليه.");
+    const line = purchaseLines.find(candidate => candidate.lineId === lineId);
+    if (!line) return validationFailure("اختر بندًا قائمًا من بنود هذا الشراء.");
+    if (line.materialId !== input.materialId)
+      return validationFailure("هذا البند مرتبط بمادة أخرى — استلمه على مادته أو عدّل ربط الشراء.");
+    if (line.treatment !== "tracked_material")
+      return validationFailure(
+        "هذا البند محمّل تكلفته على فترة الشراء — لا يستلم مخزونًا فوق تكلفة قائمة؛ راجع تصحيح الاعتراف أولاً.",
+      );
+    const lineReceipts = activeReceipts.filter(movement => movement.purchaseLineId === line.lineId);
+    const lineReceivedValue = lineReceipts.reduce((sum, movement) => sum + movement.valueDeltaMinor, 0);
+    if (line.costKnowledge === "known" && typeof line.valueMinor === "number") {
+      if (lineReceivedValue + input.valueMinor > line.valueMinor)
+        return validationFailure("قيمة الاستلام تتجاوز قيمة البند المعلومة لهذا الشراء.");
+    }
+    if (line.expectedQuantityMilli !== null && line.expectedQuantityMilli !== undefined) {
+      const lineReceivedQuantity = lineReceipts.reduce(
+        (sum, movement) => sum + movement.quantityDeltaMilli,
+        0,
+      );
+      if (lineReceivedQuantity + input.quantityMilli > line.expectedQuantityMilli)
+        return validationFailure("الكمية المستلمة تتجاوز الكمية المتوقعة لهذا البند.");
+    }
+  } else if (purchase.materialId && purchase.materialId !== input.materialId) {
+    /* المجموعة ٢ (عقد ٢٨): الشراء المرتبط بمادة تُستلم عليها — الربط عقد، لا اقتراح. */
+    return validationFailure("هذا الشراء مرتبط بمادة أخرى — استلمه على مادته أو عدّل ربط الشراء.");
+  }
   /* المجموعة ٢ (عقد ٢٨): حد الكمية المتوقعة — الاستلام الجزئي المتعمد مسموح،
    * والتجاوز فوق المتوقع يُرفض بصدق (وحدة المادة واحدة لأن الربط ملزم أعلاه). */
-  if (purchase.expectedQuantityMilli !== null && purchase.expectedQuantityMilli !== undefined) {
+  if (
+    purchaseLines.length === 0 &&
+    purchase.expectedQuantityMilli !== null &&
+    purchase.expectedQuantityMilli !== undefined
+  ) {
     const receivedQuantity = activeReceipts.reduce((sum, movement) => sum + movement.quantityDeltaMilli, 0);
     if (receivedQuantity + input.quantityMilli > purchase.expectedQuantityMilli)
       return validationFailure("الكمية المستلمة تتجاوز الكمية المتوقعة لهذا الشراء.");
@@ -91,6 +128,7 @@ export async function receivePurchase(
       note: input.note,
       operationKey: input.operationKey,
       purchaseId: input.purchaseId,
+      purchaseLineId: input.purchaseLineId?.trim() || null,
       costKnowledge: input.costKnowledge === "unknown" ? "unknown" : "known",
     });
     const saved = await store.commitInventory(null, [movement]);

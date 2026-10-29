@@ -1,5 +1,6 @@
 import type {
   SupplierPurchase,
+  SupplierPurchaseLine,
   SupplierPurchasePayment,
   SupplierPurchasePaymentReversal,
   SupplierPurchaseRevision,
@@ -92,8 +93,33 @@ function headerIdentical(stored: SupplierPurchase, incoming: SupplierPurchase): 
     stored.totalMinor === incoming.totalMinor &&
     (stored.materialId ?? null) === (incoming.materialId ?? null) &&
     (stored.expectedQuantityMilli ?? null) === (incoming.expectedQuantityMilli ?? null) &&
+    /* S07 (UNIT-027): البنود حقول ثابتة كذلك — تعديل بنود متزامن هو عملية
+     * أخرى لا يمر فوقها الحارس بصمت. */
+    linesIdentical(stored.lines ?? null, incoming.lines ?? null) &&
     stored.createdAt === incoming.createdAt
   );
+}
+
+/* S07 (UNIT-027): مقارنة بنية بنود الشراء — عنصرًا عنصرًا بالحقول الستة
+ * لكل بند؛ الغياب (الإرث) = بلا بنود، لا مصفوفة فارغة معتبرة مختلفة. */
+function linesIdentical(
+  stored: readonly SupplierPurchaseLine[] | null,
+  incoming: readonly SupplierPurchaseLine[] | null,
+): boolean {
+  const storedLines = stored ?? [];
+  const incomingLines = incoming ?? [];
+  if (storedLines.length !== incomingLines.length) return false;
+  return storedLines.every((line, index) => {
+    const other = incomingLines[index]!;
+    return (
+      line.lineId === other.lineId &&
+      (line.materialId ?? null) === (other.materialId ?? null) &&
+      (line.expectedQuantityMilli ?? null) === (other.expectedQuantityMilli ?? null) &&
+      (line.valueMinor ?? null) === (other.valueMinor ?? null) &&
+      line.costKnowledge === other.costKnowledge &&
+      line.treatment === other.treatment
+    );
+  });
 }
 
 function paymentsIdentical(stored: SupplierPurchase, incoming: SupplierPurchase): boolean {
@@ -209,7 +235,10 @@ export function validateSupplierPurchaseCommit(
     newRevision.beforePurchasedOn !== stored.purchasedOn ||
     newRevision.beforeDueOn !== stored.dueOn ||
     (newRevision.beforeMaterialId ?? null) !== (stored.materialId ?? null) ||
-    (newRevision.beforeExpectedQuantityMilli ?? null) !== (stored.expectedQuantityMilli ?? null)
+    (newRevision.beforeExpectedQuantityMilli ?? null) !== (stored.expectedQuantityMilli ?? null) ||
+    /* S07 (UNIT-027): قيم البنود «قبل» تطابق المخزن — تعديل بنود متزامن يُرفض
+     * بلا استبدال أعمى. */
+    !linesIdentical(newRevision.beforeLines ?? null, stored.lines ?? null)
   )
     return { ok: false, message: STALE_MESSAGE };
   const storedLater = stored.payments.filter(payment => payment.id !== `${stored.id}:initial`);

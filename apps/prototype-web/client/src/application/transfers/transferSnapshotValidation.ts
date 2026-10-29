@@ -518,6 +518,8 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     return false;
   const purchaseIds = new Set<string>();
   const purchaseKeys = new Set<string>();
+  /* S07 (UNIT-027): خريطة هويات بنود الشراء لمطابقة مراجع استلام البنود. */
+  const purchaseLineIdsByPurchase = new Map<string, Set<string>>();
   for (const purchase of data.supplierPurchases ?? []) {
     if (
       !validSupplierPurchase(purchase) ||
@@ -529,6 +531,13 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
      * معرف غير فارغ بلا طرف محفوظ يحمله الملف = مرجع مكسور يُرفض قبل
      * المعاينة، ولا كتابة على بيانات الجهاز الهدف. */
     if (purchase.supplierPartyId != null && !counterpartyIds.has(purchase.supplierPartyId)) return false;
+    /* S07 (UNIT-027): هويات بنود الشراء للمطابقة العابرة مع حركات الاستلام —
+     * خريطة بمعرّف الشراء؛ الغياب (إرث بلا بنود) = مجموعة فارغة. الصلاحية
+     * فوقها validSupplierPurchase (هوية نصية غير فارغة لكل بند). */
+    purchaseLineIdsByPurchase.set(
+      purchase.id,
+      new Set((purchase.lines ?? []).map(line => String(line.lineId))),
+    );
     purchaseIds.add(purchase.id);
     purchaseKeys.add(purchase.idempotencyKey);
   }
@@ -630,6 +639,14 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     )
       return false;
     if (movement.purchaseId !== null && !purchaseIds.has(movement.purchaseId)) return false;
+    /* S07 (UNIT-027): مرجع بند الشراء عند الاستلام — إن وُجد فيجب أن يحلّ إلى
+     * بند قائم داخل الشراء المشار إليه نفسه؛ لا مرجع بند مكسور يعبر. */
+    if (
+      movement.purchaseLineId !== null &&
+      movement.purchaseLineId !== undefined &&
+      !purchaseLineIdsByPurchase.get(movement.purchaseId ?? "")?.has(movement.purchaseLineId)
+    )
+      return false;
     if (movement.orderId !== null && !orderIds.has(movement.orderId)) return false;
     if (movement.type === "reversal") {
       if (reversedInventoryIds.has(movement.reversesMovementId)) return false;
@@ -683,7 +700,9 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     shortageIds.add(shortage.id);
     shortageKeys.add(shortage.operationKey);
   }
-  /* المجموعة ٢ (عقد ٢٨): ربط الشراء بمادة — إن وُجد فالمادة موجودة فعلًا. */
+  /* المجموعة ٢ (عقد ٢٨): ربط الشراء بمادة — إن وُجد فالمادة موجودة فعلًا.
+   * S07 (UNIT-027): وبنود الشراء — مادة كل بند مرتبط إن وُجدت فالمادة
+   * موجودة فعلًا؛ مرجع بند مكسور داخل الملف يُرفض قبل المعاينة. */
   for (const purchase of data.supplierPurchases ?? []) {
     if (
       purchase.materialId !== null &&
@@ -691,6 +710,10 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       !materialIds.has(purchase.materialId)
     )
       return false;
+    for (const line of purchase.lines ?? []) {
+      if (line.materialId !== null && line.materialId !== undefined && !materialIds.has(line.materialId))
+        return false;
+    }
   }
   const catalogIds = new Set<string>();
   const catalogKeys = new Set<string>();

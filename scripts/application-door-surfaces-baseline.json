@@ -185,7 +185,9 @@
         "RetainedDepositService",
         "deriveExpenseCategorySuggestions",
         "expandExpenseRecordIntent",
-        "normalizeCategoryLabelInput"
+        "matchesSharedBillOwnerPartConfirmation",
+        "normalizeCategoryLabelInput",
+        "sharedBillOwnerPartConfirmationOf"
       ],
       "type": [
         "CorrectionDigest",
@@ -193,6 +195,7 @@
         "CorrectionHistoryGroup",
         "CorrectionHistoryKind",
         "RetainedDepositRow",
+        "SharedBillOwnerPartConfirmation",
         "SharedExpenseRecordInput"
       ]
     },

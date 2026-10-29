@@ -139,7 +139,11 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
     "RetainedDepositService",
     "deriveExpenseCategorySuggestions",
     "expandExpenseRecordIntent",
+    /* S07 (S06-MR-001): زوج تأكيد الجزء الشخصي المرتبط بالاشتقاق الكنوني —
+     * توسيع سطح مقصود PC-3 بنفس الشريحة (DOC-016). */
+    "matchesSharedBillOwnerPartConfirmation",
     "normalizeCategoryLabelInput",
+    "sharedBillOwnerPartConfirmationOf",
   ],
   /* R10-B3 (R10B-NF-002، 2026-10-12): تسمية وحدة المادة من بيتها الكنوني
    * عبر الباب — توسيع سطح مقصود PC-3. */

@@ -102,10 +102,19 @@ export function migrateTransferSnapshot(
                             ...revision,
                             beforeMaterialId: revision.beforeMaterialId ?? null,
                             beforeExpectedQuantityMilli: revision.beforeExpectedQuantityMilli ?? null,
+                            /* S07 (UNIT-027): لقطة البنود قبل التعديل — الغياب =
+                             * بلا بنود (لا يُخترع سجل قبل). */
+                            beforeLines: revision.beforeLines ?? null,
                           }
                         : revision,
                     )
                   : purchase.revisions,
+                /* S07 (UNIT-027 / SDF-044): البنود — غياب = null (المسار
+                 * القائم). لا يُشتق بند من فراغ أبدًا: الشراء الإرثي أحادي
+                 * البند يبقى بربط رأسه نفسه (هويته) ودفعاته وتواريخه ولقطاته
+                 * كما هي — لا شراء أو دفع أو استلام جديد ولا إعادة تصنيف
+                 * رجعية؛ القارئ يعامله بمسار الرأس المتوافق نفسه. */
+                lines: purchase.lines ?? null,
               }
             : purchase,
         )
@@ -132,6 +141,9 @@ export function migrateTransferSnapshot(
                 costKnowledge: movement.costKnowledge ?? "known",
                 /* المجموعة ٣ (عقد D6): ربط البيع المباشر — غياب = null (لا مرجع مفترض). */
                 saleId: movement.saleId ?? null,
+                /* S07 (UNIT-027): بند الشراء المستلم عليه — غياب = null (مسار
+                 * الرأس القائم للإرث بلا بنود). */
+                purchaseLineId: movement.purchaseLineId ?? null,
               }
             : movement,
         )

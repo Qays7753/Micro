@@ -275,7 +275,8 @@
         "createdAt": "2026-08-21T10:00:00.000Z",
         "updatedAt": "2026-08-21T10:00:00.000Z",
         "materialId": null,
-        "expectedQuantityMilli": null
+        "expectedQuantityMilli": null,
+        "lines": null
       }
     ],
     "cashWallets": [
@@ -332,7 +333,8 @@
         "reversesMovementId": null,
         "wasteContext": null,
         "costKnowledge": "known",
-        "saleId": null
+        "saleId": null,
+        "purchaseLineId": null
       }
     ],
     "inventoryShortages": [],
@@ -371,7 +373,7 @@
   },
   "integrity": {
     "algorithm": "sha256",
-    "digest": "23c74bd20610242861e6602f7628ec544e8e26c2155c02ab6f530687d8a970b0"
+    "digest": "975678f3cdb894b483aac5f2a0928534f4253c5919093fb7bb63fc27b16f178a"
   },
   "counts": {
     "orders": 1,

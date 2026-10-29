@@ -1,5 +1,25 @@
 /** Material purchases affect cash/payables only until inventory consumption is implemented. All money is JOD minor units. */
 export type SupplierPurchaseStatus = "unpaid" | "partially_paid" | "paid";
+/* S07 (UNIT-027 D01 / العقد المشترك §5.4 PurchaseLine): معالجة معلنة لكل
+ * بند تُوثّق لحظة الشراء — قرار الاعتراف المؤرخ الذي يقرأه قارئ الفترة؛
+ * period_material = مواد فترة تُحمل تكلفتها مرة على فترة تاريخ الشراء
+ * (D02 المعتمد)، وtracked_material = مواد متتبعة تكلفتها عند الاستعمال/الهدر
+ * المؤهل عبر حركات المخزون لا عند الشراء. لا يعاد تصنيف الماضي بصمت. */
+export type SupplierPurchaseLineTreatment = "period_material" | "tracked_material";
+export type SupplierPurchaseLine = {
+  lineId: string;
+  /* مرجع مادة اختياري — tracked_material يوجبه؛ وperiod_material قد يكون بلا
+   * مادة (مواد يومية بلا تعريف مادة) وفق SDF-067. */
+  materialId?: string | null;
+  /** الكمية المتوقعة بوحدة المادة — اختيارية؛ null = غير مسجلة. */
+  expectedQuantityMilli?: number | null;
+  /* قيمة البند: معلومة = موجبة آمنة لا تجعل مجموع البنود يتجاوز إجمالي
+   * الشراء؛ مجهولة = null لا صفرًا معلومًا (SDF-036: الكمية قد تعرف والقيمة
+   * مجهولة). */
+  valueMinor?: number | null;
+  costKnowledge: "known" | "unknown";
+  treatment: SupplierPurchaseLineTreatment;
+};
 export type SupplierPurchasePayment = {
   id: string;
   amountMinor: number;
@@ -41,6 +61,9 @@ export type SupplierPurchaseRevision = {
    * القديمة بلاها تُقرأ فارغة (null) بلا تعبئة. */
   beforeMaterialId?: string | null;
   beforeExpectedQuantityMilli?: number | null;
+  /* S07 (UNIT-027): البنود قبل التعديل — لقطة موثقة كقيم «قبل التصحيح»
+   * الأخرى؛ غيابها = لم تكن للشراء بنود. */
+  beforeLines?: readonly SupplierPurchaseLine[] | null;
 };
 export type SupplierPurchase = {
   id: string;
@@ -72,6 +95,10 @@ export type SupplierPurchase = {
   materialId?: string | null;
   /** الكمية المتوقعة بوحدة المادة — اختيارية؛ null = غير مسجلة، والحد يبقى على القيمة. */
   expectedQuantityMilli?: number | null;
+  /* S07 (UNIT-027 D01): بنود اختيارية بهوية ثابتة ومعالجة اعتراف معلنة —
+   * غيابها (الإرث/شراء بلا بنود) يُقرأ بالمسار القائم نفسه ولا يُعاد
+   * تصنيفه رجعيًا أبدًا (حد D02 الصريح). */
+  lines?: readonly SupplierPurchaseLine[] | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -89,6 +116,9 @@ export type CreateSupplierPurchaseInput = {
   idempotencyKey: string;
   materialId?: string | null;
   expectedQuantityMilli?: number | null;
+  /* S07 (UNIT-027 D01): بنود الشراء عند الإنشاء — اختيارية؛ الغياب/الفراغ
+   * = شراء بلا بنود (المسار القائم). */
+  lines?: readonly SupplierPurchaseLine[] | null;
   /* FIN-003: مصدر الدفعة الأولية إن دُفع شيء الآن — نفس دلالة walletId في الدفعة. */
   initialPaymentWalletId?: string | null;
 };
@@ -118,6 +148,9 @@ export type UpdateSupplierPurchaseInput = {
   reason: string;
   materialId?: string | null;
   expectedQuantityMilli?: number | null;
+  /* S07 (UNIT-027): بنود الشراء بعد التعديل — استبدال معلن بقيم «قبل»
+   * موثقة في المراجعة؛ لا تعديل صامت خارجها. */
+  lines?: readonly SupplierPurchaseLine[] | null;
 };
 export type ReverseSupplierPurchasePaymentInput = {
   id: string;

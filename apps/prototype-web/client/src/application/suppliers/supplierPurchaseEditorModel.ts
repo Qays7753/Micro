@@ -13,7 +13,7 @@
  * لا تمسها الوحدة إطلاقًا.
  */
 
-import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
+import type { SupplierPurchase, SupplierPurchaseLine } from "@micro-domain/supplier-purchase/index.js";
 import type { Material } from "@micro-domain/inventory-material/index.js";
 
 /* R10-B3/R10B-NF-001 (2026-10-11): القيمة الحارسة والقاعدة الموحدة
@@ -113,4 +113,65 @@ export function supplierPurchaseToFormValues(purchase: SupplierPurchase): Suppli
     materialId: purchase.materialId ?? "",
     expectedQuantityMilli: purchase.expectedQuantityMilli ?? 0,
   };
+}
+
+/* S07 (UNIT-027 D01 / UNIT-028 D02 المعتمد): بنود الفاتورة من نموذج المحرر —
+ * قرار عرض خلف بيت الموردين التطبيقي (لا حساب مال في TSX): البند الأول هو
+ * ربط المادة الحالي بقيمته، والبنود الإضافية يدخلها المالك لفاتورة متعددة
+ * المواد؛ المعالجة مشتقة من حالة تتبع المادة الحية (متتبعة → tracked_material
+ * تكلفتها عند الاستعمال؛ غير متتبعة/بلا مادة → period_material تكلفتها مرة
+ * على فترة الشراء) — الخدمة تطابقها مع الحالة الحية عند حد الكتابة نفسه.
+ * الشكل الذاتي للبنود (فرادة الهوية، موجبية القيمة، المجموع ≤ الإجمالي)
+ * تحرسه السياسة النقية عند الإنشاء/التعديل؛ هنا نعرض مجموعًا صادقًا فقط. */
+export type PurchaseLineDraft = {
+  materialId: string;
+  expectedQuantityMilli: number;
+  valueMinor: number;
+  costKnown: boolean;
+};
+
+export type PurchaseLinesDerivation =
+  { ok: true; lines: readonly SupplierPurchaseLine[] } | { ok: false; problem: "lines_exceed_total" };
+
+export function derivePurchaseLines(input: {
+  firstLine: PurchaseLineDraft;
+  extraLines: readonly PurchaseLineDraft[];
+  totalMinor: number;
+  /* S07: فهارس البنود المرتبطة بمادة متتبَّعة (البند الأول من ربط النموذج،
+   * والإضافية بموادها) — تحسبها الصفحة من حالة تتبع المادة الحية. */
+  trackedLineIndexes: ReadonlySet<number>;
+  existingLineIds?: readonly string[];
+}): PurchaseLinesDerivation {
+  const drafts = [input.firstLine, ...input.extraLines];
+  const existingIds = input.existingLineIds ?? [];
+  let knownValueSum = 0;
+  const lines: SupplierPurchaseLine[] = drafts.map((draft, index) => {
+    /* S07: معالجة البند تتبع حالة تتبع مادته — متتبعة → tracked_material
+     * (تكلفة عند الاستعمال)؛ بلا مادة/غير متتبعة → period_material (تكلفة
+     * فترة الشراء مرة وفق D02). */
+    const treatment: SupplierPurchaseLine["treatment"] = input.trackedLineIndexes.has(index)
+      ? "tracked_material"
+      : "period_material";
+    const valueKnown = draft.costKnown && draft.valueMinor > 0;
+    if (valueKnown) knownValueSum += draft.valueMinor;
+    return {
+      lineId: existingIds[index] ?? `pl-${index + 1}`,
+      materialId: draft.materialId || null,
+      expectedQuantityMilli: draft.expectedQuantityMilli > 0 ? draft.expectedQuantityMilli : null,
+      valueMinor: valueKnown ? draft.valueMinor : null,
+      costKnowledge: valueKnown ? "known" : "unknown",
+      treatment,
+    };
+  });
+  if (knownValueSum > input.totalMinor) return { ok: false, problem: "lines_exceed_total" };
+  return { ok: true, lines };
+}
+
+/* S07: مجموع قيم البنود المعلومة للعرض الصادق في النموذج — لا يخصم شيئًا،
+ * يعرض فقط (المجمع الفعلي عند السياسة النقية). */
+export function sumKnownLineValuesMinor(drafts: readonly PurchaseLineDraft[]): number {
+  return drafts.reduce(
+    (sum, draft) => sum + (draft.costKnown && draft.valueMinor > 0 ? draft.valueMinor : 0),
+    0,
+  );
 }

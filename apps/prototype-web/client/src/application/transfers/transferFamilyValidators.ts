@@ -954,6 +954,35 @@ export function validReceivedLoanRecord(value: unknown): boolean {
     )
   );
 }
+/* S07 (UNIT-027): شكل بند شراء واحد عند الاستيراد — هوية نصية غير فارغة،
+ * معالجة معلنة، مادة غائبة أو نصية، كمية غائبة أو موجبة آمنة، معرفة تكلفة
+ * من المحتوى، ومعرفة معلومة ⇐ قيمة موجبة آمنة، ومجهولة ⇐ بلا قيمة معلنة،
+ * وtracked_material يوجب مادة. */
+export function validSupplierPurchaseLine(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (!isString(value.lineId) || !value.lineId.trim()) return false;
+  if (value.treatment !== "period_material" && value.treatment !== "tracked_material") return false;
+  if (!(
+    value.materialId === undefined ||
+    value.materialId === null ||
+    (isString(value.materialId) && value.materialId.trim().length > 0)
+  ))
+    return false;
+  if (!(
+    value.expectedQuantityMilli === undefined ||
+    value.expectedQuantityMilli === null ||
+    (isMoney(value.expectedQuantityMilli) && (value.expectedQuantityMilli as number) > 0)
+  ))
+    return false;
+  if (value.costKnowledge !== "known" && value.costKnowledge !== "unknown") return false;
+  if (value.costKnowledge === "known") {
+    if (!isMoney(value.valueMinor) || (value.valueMinor as number) <= 0) return false;
+  } else if (!(value.valueMinor === undefined || value.valueMinor === null)) return false;
+  if (value.treatment === "tracked_material" && (value.materialId === undefined || value.materialId === null))
+    return false;
+  return true;
+}
+
 export function validSupplierPurchase(value: unknown): boolean {
   if (
     !isRecord(value) ||
@@ -999,6 +1028,17 @@ export function validSupplierPurchase(value: unknown): boolean {
       value.expectedQuantityMilli === undefined ||
       value.expectedQuantityMilli === null ||
       (isMoney(value.expectedQuantityMilli) && value.expectedQuantityMilli > 0)
+    ) ||
+    /* S07 (UNIT-027): بنود الشراء — غياب/فراغ = بلا بنود؛ وإلا فكل بند
+     * بالشكل الصارم وهويات فريدة داخل الشراء الواحد. */
+    !(
+      value.lines === undefined ||
+      value.lines === null ||
+      (Array.isArray(value.lines) &&
+        value.lines.length > 0 &&
+        value.lines.every(validSupplierPurchaseLine) &&
+        new Set(value.lines.map((line: { lineId: unknown }) => (isRecord(line) ? line.lineId : null)))
+          .size === value.lines.length)
     )
   )
     return false;
@@ -1204,6 +1244,13 @@ export function validInventoryMovement(value: unknown): boolean {
     !isString(value.operationKey) ||
     !value.operationKey.trim() ||
     !(value.purchaseId === null || isString(value.purchaseId)) ||
+    /* S07 (UNIT-027): مرجع بند الشراء عند الاستلام — غائب أو null أو نص غير
+     * فارغ؛ مرجع بند مكسور داخل الملف يرفضه فحص العائلة عند اللقطة. */
+    !(
+      value.purchaseLineId === undefined ||
+      value.purchaseLineId === null ||
+      (isString(value.purchaseLineId) && value.purchaseLineId.trim().length > 0)
+    ) ||
     !(value.orderId === null || isString(value.orderId)) ||
     /* المجموعة ٣ (عقد D6): ربط البيع المباشر — null أو نص (اختياري). */
     !(value.saleId === undefined || value.saleId === null || isString(value.saleId)) ||

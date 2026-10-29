@@ -5,14 +5,14 @@
   "files": [
     {
       "file": "current-pair.golden.json",
-      "sha256": "4524d2f981641dd4e836fe7fba755a2c030c4664eddac6481b93846a10093ac9",
+      "sha256": "58ac71a7db5ecb2166158896aa094d0e4e0b2ecd83bdb1b19df119c246db407c",
       "kind": "current-pair",
       "description": "32/40 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة",
       "byteStable": true
     },
     {
       "file": "current-pair-supplement.golden.json",
-      "sha256": "35f5361d66570021992c65921e920e7750b258553339b2b3e94b3e4181c2bd6a",
+      "sha256": "13cffac643cf4dc11069f6dcc9aa145ee80ab6c455cd955527f9f216833ca144",
       "kind": "current-pair-supplement",
       "description": "32/40 غني بالعائلات الجديدة عبر الخدمات (بما فيها الأطراف المحفوظة) — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة)",
       "byteStable": false
