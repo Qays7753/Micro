@@ -179,7 +179,7 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
       ["Collect.tsx", "تعذر فتح ورقة التحصيل"],
       ["Finance.tsx", "تعذر قراءة الوضع المالي"],
       ["Orders.tsx", "تعذر تحميل الطلبات"],
-      ["Parties.tsx", "تعذر قراءة دفتر الناس"],
+      ["Parties.tsx", "تعذر قراءة العملاء والموردين"],
       ["Statement.tsx", "تعذر قراءة الكشف"],
       ["WalletLedger.tsx", "دفتر محفظة غير متاح"],
       ["Foundation.tsx", "تعذر قراءة الموقف"],

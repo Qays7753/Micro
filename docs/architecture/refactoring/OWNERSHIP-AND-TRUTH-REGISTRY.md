@@ -10,7 +10,7 @@
 
 ---
 
-## 1. خريطة ملكية مفاهيم المجال (18 منطقة + صف توزيعات مكمّل = 19 صفًا)
+## 1. خريطة ملكية مفاهيم المجال (19 منطقة + صف توزيعات مكمّل = 20 صفًا)
 
 الأعمدة: المفهوم | المصدر السلطوي (سلوكًا) | مالك التنفيذ | مستهلكون رئيسيون | مالك التخزين | مستهلك التصدير/الاستيراد | اختبارات | توثيق | حالة
 
@@ -30,6 +30,7 @@
 | inventory-material | عقد 06 + `src/domain/inventory-material/` | domain/inventory-material | inventory pages؛ integrity؛ transfers | storage (materials/movements) | ضمن snapshot | `tests/domain/inventory-material.test.ts` | عقد 06 | PRESERVE |
 | supplier-purchase | عقد 07 + `src/domain/supplier-purchase/` | domain/supplier-purchase | suppliers pages؛ finance؛ transfers | storage (supplierPurchases) | `supplierPurchase` family | `tests/domain/supplier-purchase*.test.ts` | عقد 07 | PRESERVE |
 | direct-sale | عقد 09 + `src/domain/direct-sale/` | domain/direct-sale | direct-sale pages؛ collections؛ finance | storage (directSales) | `directSale` family | `tests/domain/*.test.ts` colocated + root | عقد 09 | PRESERVE |
+| party | عقد S05/UNIT-037 + `src/domain/party/` | domain/party | parties directory (حفظ/تعديل/أرشفة)؛ direct-sale/supplier-purchase (لقطات الربط) | storage (counterparties — **سجل مخزّن**) | `counterparties` family | `src/domain/party/policies.test.ts` | عقد S05 (UNIT-037 + العقد المشترك §5.1) | PRESERVE؛ هوية تعريفية بلا رصيد — الأرصدة تقرأ من المصادر المرتبطة بمعرف الطرف |
 | owner-entitlement | عقد 13 + `src/domain/owner-entitlement/` | domain/owner-entitlement | finance owner surfaces؛ transfers | storage (ownerEntitlement*) | `ownerEntitlement` family | `tests/owner-entitlement.test.ts` | عقد 13 | PRESERVE — عنقود Owner Money |
 | owner-safe-withdrawal | عقد 13/14 + `src/domain/owner-safe-withdrawal/` | domain/owner-safe-withdrawal | Finance.tsx (قيمة STR-304)؛ owner services | storage (عبر owner movements) | ضمن owner families | `tests/domain/owner-safe-withdrawal.test.ts` | عقد 13/14 | PRESERVE |
 | actual-time | عقد 16 + `src/domain/actual-time/` | domain/actual-time | time surfaces؛ finance reads | storage (actualTimeRecords) | ضمن snapshot | `tests/domain/actual-time.test.ts` | عقد 16 | PRESERVE |

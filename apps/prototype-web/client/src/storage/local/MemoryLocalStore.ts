@@ -26,6 +26,7 @@ import {
 } from "./cashContinuityCommitGuard";
 import { orderRecordIdentical, validateOrderCommit } from "./orderCommitGuard";
 import { resolveSupplierPaymentAttribution } from "./supplierAttributionCommitGuard";
+import { decideCounterpartyCommit, type CounterpartyWriteCommit } from "./counterpartyCommitGuard";
 import {
   validateScheduleUpdate,
   validateSupplierPurchaseCommit,
@@ -58,6 +59,7 @@ import type {
   OwnerMovement,
 } from "@micro-domain/owner-entitlement/index.js";
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
+import type { SavedParty } from "@micro-domain/party/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
@@ -135,6 +137,9 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   /* S04 (DOC-013 / UNIT-025): رصد أرصدة النقد في الذاكرة — تطابق المتصفح
    * اختبارًا وسلوكًا؛ القياس داخل اللقطة كإخوته. */
   private balanceObservations = new Map<string, CashObservation>();
+  /* S05 (DOC-014 / UNIT-037): الأطراف المحفوظة في الذاكرة — تطابق المتصفح
+   * اختبارًا وسلوكًا؛ هوية تعريفية داخل اللقطة كإخوتها. */
+  private counterparties = new Map<string, SavedParty>();
   private materials = new Map<string, Material>();
   private inventoryMovements = new Map<string, InventoryMovement>();
   /* المجموعة ٢ (عقد ٢٨): سجلات النقص في الذاكرة أيضًا — تطابق المتصفح اختبارًا وسلوكًا. */
@@ -1130,6 +1135,37 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       },
     };
   }
+  /* S05 (DOC-014 / UNIT-037): الأطراف المحفوظة في الذاكرة — نفس عقد محوّل
+   * IndexedDB: الأحدث تعديلًا أولًا، وسجل تعريفي لا يمس أي مصدر مالي. */
+  async listCounterparties(): Promise<StorageResult<readonly SavedParty[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.counterparties.values())
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+        .map(clone),
+    };
+  }
+  async getCounterparty(id: string): Promise<StorageResult<SavedParty | null>> {
+    const live = this.counterparties.get(id) ?? null;
+    return { ok: true, value: live ? clone(live) : null };
+  }
+  /* S05 (DOC-014 / UNIT-037 + العقد المشترك §14): كتابة الطرف في خطوة
+   * متزامنة واحدة (لا فجوة تزامن في بنية الذاكرة أحادية الخيط) — نفس عقد
+   * محوّل IndexedDB حرفيًا عبر نواة القرار المشتركة: عهدة المفتاح إعادة
+   * استخدام (بلا طرف ثانٍ)، والتعارض رفض صادق بلا كتابة. */
+  async commitCounterpartyWrite(
+    commit: CounterpartyWriteCommit,
+  ): Promise<StorageResult<{ party: SavedParty; reused: boolean }>> {
+    const liveById = this.counterparties.get(commit.next.id) ?? null;
+    const liveByOperationKey =
+      Array.from(this.counterparties.values()).find(party => party.operationKey === commit.operationKey) ??
+      null;
+    const decision = decideCounterpartyCommit(liveById, liveByOperationKey, commit);
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.kind === "reuse") return { ok: true, value: { party: clone(decision.party), reused: true } };
+    this.counterparties.set(commit.next.id, clone(commit.next));
+    return { ok: true, value: { party: clone(commit.next), reused: false } };
+  }
   async listMaterials(): Promise<StorageResult<readonly Material[]>> {
     return {
       ok: true,
@@ -1651,6 +1687,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         cashWallets: Array.from(this.cashWallets.values()).map(clone),
         cashContinuityEntries: Array.from(this.cashContinuityEntries.values()).map(clone),
         balanceObservations: Array.from(this.balanceObservations.values()).map(clone),
+        counterparties: Array.from(this.counterparties.values()).map(clone),
         materials: Array.from(this.materials.values()).map(clone),
         inventoryMovements: Array.from(this.inventoryMovements.values()).map(clone),
         inventoryShortages: Array.from(this.inventoryShortages.values()).map(clone),
@@ -1707,6 +1744,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       cashWallets: snapshot.cashWallets ?? [],
       cashContinuityEntries: snapshot.cashContinuityEntries ?? [],
       balanceObservations: snapshot.balanceObservations ?? [],
+      counterparties: snapshot.counterparties ?? [],
       materials: snapshot.materials ?? [],
       inventoryMovements: snapshot.inventoryMovements ?? [],
       inventoryShortages: snapshot.inventoryShortages ?? [],
@@ -1746,6 +1784,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.balanceObservations = new Map(
       (safe.balanceObservations ?? []).map(observation => [observation.id, observation]),
     );
+    this.counterparties = new Map((safe.counterparties ?? []).map(party => [party.id, party]));
     this.materials = new Map(safe.materials.map(material => [material.id, material]));
     this.inventoryMovements = new Map(safe.inventoryMovements.map(movement => [movement.id, movement]));
     this.inventoryShortages = new Map(

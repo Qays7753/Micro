@@ -186,6 +186,10 @@ describe("R7/P07 — خريطة السجل المحمّل إلى قيم النم
       costKnown: false,
       costMinor: 0,
       customerName: "",
+      /* S05 (DOC-014 / UNIT-037): ربط الطرف المحفوظ يُستعاد مع المسودة،
+       * والحفظ للاستخدام قيد غير محدد مسبقًا لا يُستعاد من السجل. */
+      customerPartyId: "",
+      saveForReuse: false,
       catalogItemId: "a",
       occurredOn: "2026-09-01",
       note: "ملاحظة",

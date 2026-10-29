@@ -110,9 +110,11 @@ describe("governance consistency — Group 6 prevention implemented on the remed
     expect(section36).toContain("AGENTS.md");
   });
 
-  it("schema/export versions stay 39/31 (S04/DOC-013 balance-observations; 38/30 was owner-approved FIN-001 WS-178) and the limits stay pinned between code and docs (no silent raise; gzip 155,300 per ADR-017 dated 2026-10-04)", () => {
-    expect(localSchemaVersion).toBe(39);
-    expect(localExportVersion).toBe(31);
+  it("schema/export versions stay 40/32 (S05/DOC-014 counterparties; 39/31 was S04 owner-approved) and the limits stay pinned between code and docs (no silent raise; gzip 155,300 per ADR-017 dated 2026-10-04)", () => {
+    /* S05 (DOC-014، 2026-10-29): ٤٠/٣٢ — عائلة الأطراف المحفوظة بأمر S05
+     * المأذون مع كامل أدلة التوافق/الترحيل في النطاق نفسه (نمط D-037). */
+    expect(localSchemaVersion).toBe(40);
+    expect(localExportVersion).toBe(32);
     expect(RAW_BYTE_LIMIT).toBe(650_000);
     expect(GZIP_BYTE_LIMIT).toBe(155_300);
     const lintScript = rootPackageJson.scripts?.lint ?? "";
@@ -156,8 +158,9 @@ describe("governance consistency — Group 6 prevention implemented on the remed
     expect(rootVitestConfig).toContain("scripts/**/*.test.mjs");
   });
 
-  it("the persistent-entity manifest exists, covers all 39 stores (S04 added balance-observations), and states its honest limits", () => {
-    expect(manifest.objectStores).toHaveLength(39);
+  it("the persistent-entity manifest exists, covers all 40 stores (S05 added counterparties), and states its honest limits", () => {
+    /* S05 (DOC-014، 2026-10-29): المخزن الأربعون counterparties (39/31 صار 40/32). */
+    expect(manifest.objectStores).toHaveLength(40);
     const notExported = manifest.objectStores.filter(entry => entry.snapshotField === null);
     /* S02-A (SH-02/SH-03): مخزن حماية الاستبدال المنفصل انضم للمستثنى من
      * التصدير — أدلة حماية محلية لا تغادر الجهاز أبدًا. */

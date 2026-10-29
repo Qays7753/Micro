@@ -53,6 +53,8 @@ const ARRAY_FAMILY_KEYS: readonly ArrayFamilyKey[] = [
   "receivedLoans",
   /* S04 (DOC-013 / UNIT-025): رصد الأرصدة داخل التنسيق الكنوني للبصمة. */
   "balanceObservations",
+  /* S05 (DOC-014 / UNIT-037): الأطراف المحفوظة داخل التنسيق الكنوني للبصمة. */
+  "counterparties",
   "recurringExpenseSeries",
   "recurringExpenseRevisions",
   "recurringExpenseOccurrences",

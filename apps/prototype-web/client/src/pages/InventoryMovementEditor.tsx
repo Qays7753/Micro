@@ -28,6 +28,7 @@ import {
   parseMovementLinkParams,
   validateMovementSubmission,
 } from "@/application/inventory/inventoryMovementEditorModel";
+import { supplierDisplayLabelOf } from "@/application/parties";
 type MovementType = InventoryMovementRouteType;
 /* R10-B3/R10B-NF-002 (2026-10-12): تسمية الوحدة من نواة التنسيق عبر
  * واجهة العرض — كان تعريفًا محليًا رابعًا للخريطة نفسها. */
@@ -123,7 +124,7 @@ export default function InventoryMovementEditor() {
        * (كمية/قيمة متبقية) مرة واحدة لكل شراء؛ الوصلة العميقة تمر بالمسار نفسه. */
       if (purchaseFromLink && safeType === "receipt" && purchaseFromLink.materialId) {
         setMaterialId(purchaseFromLink.materialId);
-        setNote(`استلام شراء: ${purchaseFromLink.supplierName}`);
+        setNote(`استلام شراء: ${supplierDisplayLabelOf(purchaseFromLink)}`);
       }
       /* OPS-001: سياق الطلب/البيع من الوصلة العميقة فقط — المعرّف غير الصالح
        * يُعلن برسالة، ولا نرجع صامتًا إلى أول سجل قائم. */
@@ -170,7 +171,7 @@ export default function InventoryMovementEditor() {
           setValueMinor(result.value.remainingValueMinor);
           setCostKnown(true);
         }
-        if (purchase) setNote(`استلام شراء: ${purchase.supplierName}`);
+        if (purchase) setNote(`استلام شراء: ${supplierDisplayLabelOf(purchase)}`);
       }
     });
   }, [safeType, purchaseId, inventory, references, dataVersion]);
@@ -527,7 +528,7 @@ export default function InventoryMovementEditor() {
               <option value="">اختر شراء المواد…</option>
               {references.purchases.map(purchase => (
                 <option key={purchase.id} value={purchase.id}>
-                  {purchase.supplierName} · {purchase.note}
+                  {supplierDisplayLabelOf(purchase)} · {purchase.note}
                 </option>
               ))}
             </select>

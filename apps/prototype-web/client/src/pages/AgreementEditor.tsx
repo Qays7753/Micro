@@ -66,7 +66,7 @@ export default function AgreementEditor() {
     agreements,
     cashContinuity,
     projectFinance,
-    partyLedger,
+    partyDirectory,
     dataVersion,
     notifyDataChanged,
   } = usePrototypeServices();
@@ -86,16 +86,17 @@ export default function AgreementEditor() {
     void (async () => {
       const overview = await cashContinuity.overview();
       if (active && overview.ok) setWalletOptions(overview.value.wallets);
-      /* FIN-002: مقترحات الجهات — كل الأسماء المسجلة (الأكثر حركة أولًا)،
-       * وكل اسم يظهر في الدفتر من أول حركة مسجلة. */
-      const ledger = await partyLedger.read();
-      if (active && ledger.ok)
-        setPartySuggestions(ledger.value.parties.map(party => party.name).slice(0, 12));
+      /* S05 (DOC-014 / UNIT-037 3D-03): مقترحات الجهة من الأطراف المحفوظة
+       * النشطة — جارٍ التجهيز (null) يعرض بلا مقترحات لا بفشل صامت. */
+      if (partyDirectory) {
+        const suggestions = await partyDirectory.suggestLabels();
+        if (active && suggestions.ok) setPartySuggestions(suggestions.value.slice(0, 12));
+      }
     })();
     return () => {
       active = false;
     };
-  }, [cashContinuity, partyLedger, dataVersion]);
+  }, [cashContinuity, partyDirectory, dataVersion]);
   const [source, setSource] = useState<AgreementSource | "">("");
   const [acknowledgesBelowFloor, setAcknowledgesBelowFloor] = useState(false);
   /* (إصلاح تكاملي — مجموعة ٤): الاسم يُعبّأ من المسودة إن وُجد. */
@@ -532,7 +533,7 @@ export default function AgreementEditor() {
           {!customerName.trim() ? (
             <small className="micro-warning-copy" data-testid="unnamed-party-warning">
               طلب بلا اسم جهة — أي دين لاحق سيظهر «زبون بلا اسم» في ورقة التحصيل مع تحذير، ويمكنك تسمية الجهة
-              لاحقًا من صفحة الطلب (اختيار اسم مسجل أو اسم جديد يظهر في دفتر الناس من أول حركة).
+              لاحقًا من صفحة الطلب (اختيار اسم مسجل أو اسم جديد يتبع دينه من أول حركة).
             </small>
           ) : null}
         </label>

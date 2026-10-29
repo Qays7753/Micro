@@ -46,6 +46,7 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
 import type { ReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
+import type { SavedParty } from "@micro-domain/party/index.js";
 import type {
   RecurringExpenseOccurrence,
   RecurringExpenseRuleRevision,
@@ -78,6 +79,7 @@ import {
   catalogTemplateStore,
   cashContinuityEntryStore,
   balanceObservationStore,
+  counterpartyStore,
   cashWalletStore,
   costEstimateStore,
   directConversionStore,
@@ -127,6 +129,7 @@ const SNAPSHOT_STORES = [
   cashWalletStore,
   cashContinuityEntryStore,
   balanceObservationStore,
+  counterpartyStore,
   materialStore,
   inventoryMovementStore,
   inventoryShortageStore,
@@ -198,6 +201,9 @@ function issueSnapshotReadRequests(transaction: IDBTransaction) {
     /* S04 (DOC-013 / UNIT-025): عائلة رصد الأرصدة جزء من اللقطة — إسقاطها
      * يفقد القياس ونطاقه وقطعه عند التصدير. */
     balanceObservations: transaction.objectStore(balanceObservationStore).getAll(),
+    /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة جزء من اللقطة —
+     * إسقاطها يفقد هوية الطرف وروابط المصادر المرتبطة بمعرفه عند التصدير. */
+    counterparties: transaction.objectStore(counterpartyStore).getAll(),
     recurringExpenseSeries: transaction.objectStore(recurringExpenseSeriesStore).getAll(),
     recurringExpenseRevisions: transaction.objectStore(recurringExpenseRevisionStore).getAll(),
     recurringExpenseOccurrences: transaction.objectStore(recurringExpenseOccurrenceStore).getAll(),
@@ -241,6 +247,7 @@ function snapshotFromRequests(requests: ReturnType<typeof issueSnapshotReadReque
     loans: requests.loans.result as LoanRecord[],
     receivedLoans: requests.receivedLoans.result as ReceivedLoanRecord[],
     balanceObservations: requests.balanceObservations.result as CashObservation[],
+    counterparties: requests.counterparties.result as SavedParty[],
     recurringExpenseSeries: requests.recurringExpenseSeries.result as RecurringExpenseSeries[],
     recurringExpenseRevisions: requests.recurringExpenseRevisions.result as RecurringExpenseRuleRevision[],
     recurringExpenseOccurrences: requests.recurringExpenseOccurrences.result as RecurringExpenseOccurrence[],
@@ -355,6 +362,7 @@ export async function replaceIndexedDbSnapshot(
         const loans = transaction.objectStore(loanStore);
         const receivedLoans = transaction.objectStore(receivedLoanStore);
         const balanceObservations = transaction.objectStore(balanceObservationStore);
+        const counterparties = transaction.objectStore(counterpartyStore);
         const recurringSeries = transaction.objectStore(recurringExpenseSeriesStore);
         const recurringRevisions = transaction.objectStore(recurringExpenseRevisionStore);
         const recurringOccurrences = transaction.objectStore(recurringExpenseOccurrenceStore);
@@ -376,6 +384,7 @@ export async function replaceIndexedDbSnapshot(
           cashWallets.clear();
           cashContinuityEntries.clear();
           balanceObservations.clear();
+          counterparties.clear();
           materials.clear();
           inventoryMovements.clear();
           inventoryShortages.clear();
@@ -438,6 +447,9 @@ export async function replaceIndexedDbSnapshot(
           normalized.loans?.forEach(loan => loans.put(loan));
           normalized.receivedLoans?.forEach(loan => receivedLoans.put(loan));
           normalized.balanceObservations?.forEach(observation => balanceObservations.put(observation));
+          /* S05 (DOC-014 / UNIT-037): كتابة الأطراف المحفوظة — الغياب في ملف
+           * قديم = لا كتابة طرف (قائمة فارغة) بلا اختراع هوية. */
+          normalized.counterparties?.forEach(party => counterparties.put(party));
           normalized.recurringExpenseSeries?.forEach(series => recurringSeries.put(series));
           normalized.recurringExpenseRevisions?.forEach(revision => recurringRevisions.put(revision));
           normalized.recurringExpenseOccurrences?.forEach(occurrence => recurringOccurrences.put(occurrence));

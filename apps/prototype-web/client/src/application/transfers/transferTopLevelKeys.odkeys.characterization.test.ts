@@ -102,14 +102,15 @@ function restamp(file: ExportFileShape): ExportFileShape {
 }
 
 describe("OD-KEYS — allowed-set derivation from the registry plus exporter-emitted non-family keys", () => {
-  it("the exporter emits exactly four non-family top-level data keys (36 allowed total)", () => {
+  it("the exporter emits exactly four non-family top-level data keys (37 allowed total)", () => {
     expect(deriveNonFamilyEmittedKeys(exporterCorpus)).toEqual([
       "inventoryActivation",
       "ownerProfile",
       "preferences",
       "profile",
     ]);
-    expect(allowedDataKeys.size).toBe(36);
+    /* S05 (DOC-014): 33 عائلة + 4 غير عائلية (32 ← 33). */
+    expect(allowedDataKeys.size).toBe(37);
   });
 
   it("the complete Current exporter corpus produces no key outside the allowed set (W2-2 precondition 1)", async () => {

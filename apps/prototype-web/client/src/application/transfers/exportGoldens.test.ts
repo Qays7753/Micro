@@ -2,11 +2,11 @@
  * Wave 3A (ARCH-002 / WS-212 — STR-401 + STR-405 من المسح المقبول): أصول تكافؤ مادية على القرص.
  *
  * الغرض: تجميد ملفات تصدير حقيقية بوصفها oracles دائمة:
- *  - الزوج الحالي 31/39 مُشتق حتميًا من عهدة 8/17 الأمينة عبر مسار الترحيل والاستعادة
+ *  - الزوج الحالي 32/40 مُشتق حتميًا من عهدة 8/17 الأمينة عبر مسار الترحيل والاستعادة
  *    والتصدير الفعلي (يقارن مقارنة عميقة كاملة في كل تشغيل — أقوى حارس بايتات هنا)؛
  *  - ملف مكمّل غني بالعائلات الجديدة (مصروف متكرر/ميزانية/قرض مستلم/بيع مباشر/أصل/قرض...)
  *    مجمّد من مسار الخدمات الحقيقية (تجميد القيم؛ المطابقة قبولًا وعدادات ودورة كاملة)؛
- *  - ملف ذهبي أدنى لكل زوج تاريخي مقبول (25) — بوابة الأزواج مجمدة ملفًا ملفًا؛
+ *  - ملف ذهبي أدنى لكل زوج تاريخي مقبول (26) — بوابة الأزواج مجمدة ملفًا ملفًا؛
  *  - عهدة 8/17 الأمينة نفسها كملف (تُستورد من اختبارها الأصلي — مصدر واحد).
  *
  * MANIFEST يسجل sha256 لكل ملف وأصل التوليد: أي تعديل يدوي لأي ذهبي يُكشف فورًا.
@@ -40,6 +40,7 @@ import { AssetService } from "@/application/assets/assetService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { RecurringExpenseService } from "@/application/recurring/recurringExpenseService";
 import { ExpenseBudgetService } from "@/application/budgets/expenseBudgetService";
+import { PartyDirectoryService } from "@/application/parties/partyLedgerService";
 
 const GOLDEN_DIR = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -88,7 +89,7 @@ function minimalLegacyFileFor(version: number, schemaVersion: number): LocalExpo
   } as unknown as LocalExportFile;
 }
 
-/** الزوج الحالي 31/39 مُشتق حتميًا: 8/17 الأمينة → ترحيل → استعادة → تصدير. */
+/** الزوج الحالي 32/40 مُشتق حتميًا: 8/17 الأمينة → ترحيل → استعادة → تصدير. */
 async function currentGoldenViaMigration(): Promise<LocalExportFile> {
   const target = new MemoryLocalStore();
   const targetTransfers = new LocalTransferService(target, NOW);
@@ -257,6 +258,18 @@ async function seedSupplementStore(): Promise<MemoryLocalStore> {
   });
   if (!budget.ok) throw new Error(budget.message);
 
+  /* S05 (DOC-014 / UNIT-037): طرف محفوظ واحد عبر الخدمة الحقيقية يغطي عائلة
+   * الأطراف في مسار التصدير الفعلي — هوية تعريفية اختيارية بلا أي أثر مالي
+   * (حفظ صريح بمفتاح عهدة؛ لا رصيد ولا حدث ولا ربط تاريخي بالتخمين). */
+  const parties = new PartyDirectoryService(store, NOW);
+  const savedParty = await parties.save({
+    label: "أم أحمد — الجارة",
+    phone: null,
+    note: "طرف الذهبي المكمّل",
+    operationKey: "golden-supplement-party",
+  });
+  if (!savedParty.ok) throw new Error(savedParty.message);
+
   return store;
 }
 
@@ -273,7 +286,7 @@ const LEGACY_PAIRS = [...RELEASED_LEGACY_EXPORT_PAIRS]
   .sort((a, b) => b[0] - a[0]);
 
 describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
-  it("current-pair golden (31/39): deterministic migration-derived export matches the frozen golden byte-for-byte", async () => {
+  it("current-pair golden (32/40): deterministic migration-derived export matches the frozen golden byte-for-byte", async () => {
     const live = await currentGoldenViaMigration();
     const name = "current-pair.golden.json";
     if (GENERATE) {
@@ -310,7 +323,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
     const reExported = await transfers.createExport();
     if (!reExported.ok) throw new Error(reExported.message);
     expect(reExported.value.data).toEqual(prepared.value.file.data);
-    /* تغطية العائلات الجديدة موجودة فعلًا في الملف المجمّد (عدادات العقد ٣٩). */
+    /* تغطية العائلات الجديدة موجودة فعلًا في الملف المجمّد (عدادات العقد ٤٠). */
     expect(golden.counts?.recurringExpenseSeries).toBeGreaterThan(0);
     expect(golden.counts?.recurringExpenseRevisions).toBeGreaterThan(0);
     expect(golden.counts?.expenseBudgets).toBeGreaterThan(0);
@@ -320,14 +333,15 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
     expect(golden.counts?.cashWallets).toBeGreaterThan(0);
     expect(golden.counts?.cashContinuityEntries).toBeGreaterThan(0);
     expect(golden.counts?.balanceObservations).toBeGreaterThan(0);
+    expect(golden.counts?.counterparties).toBeGreaterThan(0);
     expect(golden.counts?.materials).toBeGreaterThan(0);
     expect(golden.counts?.inventoryMovements).toBeGreaterThan(0);
     expect(golden.counts?.supplierPurchases).toBeGreaterThan(0);
     expect(golden.counts?.financialEvents).toBeGreaterThan(0);
   });
 
-  it("every released legacy pair has a frozen minimal golden that still imports to 31/39", async () => {
-    expect(LEGACY_PAIRS.length).toBe(25);
+  it("every released legacy pair has a frozen minimal golden that still imports to 32/40", async () => {
+    expect(LEGACY_PAIRS.length).toBe(26);
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     for (const [version, schemaVersion] of LEGACY_PAIRS) {
       const name = `legacy-minimal-${version}-${schemaVersion}.golden.json`;
@@ -367,7 +381,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
           file: "current-pair.golden.json",
           sha256: "",
           kind: "current-pair",
-          description: "31/39 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة",
+          description: "32/40 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة",
           byteStable: true,
         },
         {
@@ -375,7 +389,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
           sha256: "",
           kind: "current-pair-supplement",
           description:
-            "31/39 غني بالعائلات الجديدة عبر الخدمات — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة)",
+            "32/40 غني بالعائلات الجديدة عبر الخدمات (بما فيها الأطراف المحفوظة) — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة)",
           byteStable: false,
         },
         ...LEGACY_PAIRS.map(([v, s]): GoldenManifestEntry => ({
@@ -403,7 +417,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
       writeGolden(manifestName, JSON.stringify(manifest, null, 2));
     }
     const manifest = JSON.parse(readGolden(manifestName)) as GoldenManifest;
-    expect(manifest.files.length).toBe(28);
+    expect(manifest.files.length).toBe(29);
     for (const entry of manifest.files) {
       const actual = sha256Of(readGolden(entry.file));
       expect(actual, `${entry.file} خُعدل يدويًا أو انحرف عن الأصل`).toBe(entry.sha256);

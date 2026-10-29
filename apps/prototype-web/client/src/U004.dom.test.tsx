@@ -11,7 +11,7 @@ import { DraftService } from "@/application/drafts/draftService";
 import { CatalogService } from "@/application/catalog/catalogService";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
-import { PartyLedgerService } from "@/application/parties/partyLedgerService";
+import { PartyDirectoryService } from "@/application/parties/partyLedgerService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import Tools from "@/pages/Tools";
@@ -83,7 +83,7 @@ describe("U-004 estimate-to-draft bridge", () => {
           inventory: { readActivation: () => Promise.resolve({ ok: true, value: { activatedOn: null } }) },
           schedules: new ScheduleService(store, () => NOW),
           supplierPurchases: new SupplierPurchaseService(store, () => NOW),
-          partyLedger: new PartyLedgerService(store),
+          partyDirectory: new PartyDirectoryService(store, () => NOW),
           dataVersion: 0,
           notifyDataChanged: vi.fn(),
         }) as unknown as ReturnType<typeof usePrototypeServices>,

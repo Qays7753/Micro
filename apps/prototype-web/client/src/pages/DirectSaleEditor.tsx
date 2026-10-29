@@ -62,6 +62,7 @@ export default function DirectSaleEditor() {
     projectFinance,
     cashContinuity,
     saleCollectionReversal,
+    partyDirectory,
     dataVersion,
     notifyDataChanged,
     formDrafts,
@@ -85,8 +86,15 @@ export default function DirectSaleEditor() {
   const [costKnown, setCostKnown] = useState(false);
   const [costMinor, setCostMinor] = useState(0);
   const [validCost, setValidCost] = useState(true);
-  /* D-001: زبون البيع الآجل حقل مستقل — يظهر حيث يوجد دين أو زبون مسجل. */
+  /* D-001: زبون البيع الآجل حقل مستقل — يظهر حيث يوجد دين أو زبون مسجل.
+   * S05 (DOC-014 / UNIT-037 A1/A2): تعريف بسيط أو اختيار محفوظ صريح —
+   * كتابة الاسم تعريف على هذه العملية، وربط المحفوظ يثبّت لقطة تسميته
+   * على المصدر، و«حفظه لإعادة الاستخدام» خيار غير محدد مسبقًا. */
   const [customerName, setCustomerName] = useState("");
+  const [customerPartyId, setCustomerPartyId] = useState<string | null>(null);
+  const [saveForReuse, setSaveForReuse] = useState(false);
+  const [partyOptions, setPartyOptions] = useState<readonly { id: string; label: string }[]>([]);
+  const [partySaveFailure, setPartySaveFailure] = useState<string | null>(null);
   const [catalogItemId, setCatalogItemId] = useState("");
   const [references, setReferences] = useState<readonly CatalogItem[]>([]);
   /* P-002: المرجع المختار الآن — لعرض الاقتراحات المعلّمة لا لتقرير السعر. */
@@ -187,6 +195,21 @@ export default function DirectSaleEditor() {
     };
   }, [cashContinuity, editing, dataVersion]);
 
+  /* S05 (DOC-014 / UNIT-037 A2): خيارات الأطراف المحفوظة النشطة للمختار —
+   * تُحمّل عند جاهزية الخدمة الكسولة؛ الفشل يبقي القائمة فارغة بصدق (لا
+   * يمنع البيع ولا يفرض طرفًا). */
+  useEffect(() => {
+    if (!partyDirectory || editing) return;
+    let active = true;
+    void partyDirectory.suggestParties().then(result => {
+      if (!active || !result.ok) return;
+      setPartyOptions(result.value);
+    });
+    return () => {
+      active = false;
+    };
+  }, [partyDirectory, editing, dataVersion]);
+
   useEffect(() => {
     if (!saleId) return;
     let active = true;
@@ -218,6 +241,7 @@ export default function DirectSaleEditor() {
       setCostKnown(values.costKnown);
       setCostMinor(values.costMinor);
       setCustomerName(values.customerName);
+      setCustomerPartyId(values.customerPartyId || null);
       setCatalogItemId(values.catalogItemId);
       setOccurredOn(values.occurredOn);
       setNote(values.note);
@@ -264,6 +288,8 @@ export default function DirectSaleEditor() {
     costKnown: false,
     costMinor: 0,
     customerName: "",
+    customerPartyId: "",
+    saveForReuse: false,
     catalogItemId: "",
     occurredOn: todayInAmman(),
     note: "",
@@ -280,6 +306,8 @@ export default function DirectSaleEditor() {
       costKnown,
       costMinor,
       customerName,
+      customerPartyId: customerPartyId ?? "",
+      saveForReuse,
       catalogItemId,
       occurredOn,
       note,
@@ -293,6 +321,8 @@ export default function DirectSaleEditor() {
     costKnown,
     costMinor,
     customerName,
+    customerPartyId,
+    saveForReuse,
     catalogItemId,
     occurredOn,
     note,
@@ -312,6 +342,8 @@ export default function DirectSaleEditor() {
       setCostKnown(saved.costKnown === true);
       setCostMinor(Number(saved.costMinor ?? 0));
       setCustomerName(String(saved.customerName ?? ""));
+      setCustomerPartyId(String(saved.customerPartyId ?? "") || null);
+      setSaveForReuse(saved.saveForReuse === true);
       setCatalogItemId(String(saved.catalogItemId ?? ""));
       setOccurredOn(String(saved.occurredOn ?? todayInAmman()));
       setNote(String(saved.note ?? ""));
@@ -374,6 +406,8 @@ export default function DirectSaleEditor() {
             collectionStatus: priceCutChosen ? "collected_in_full" : status,
             catalogItemId: catalogItemId || null,
             customerName: customerName.trim() || null,
+            /* S05 (DOC-014 / UNIT-037): الرابط الصريح إن اختير محفوظًا. */
+            customerPartyId,
             costMinor: costKnown ? costMinor : null,
             occurredOn,
             note,
@@ -388,6 +422,8 @@ export default function DirectSaleEditor() {
             collectionStatus: priceCutChosen ? undefined : status,
             catalogItemId: catalogItemId || null,
             customerName: customerName.trim() || null,
+            /* S05 (DOC-014 / UNIT-037): الرابط الصريح إن اختير محفوظًا. */
+            customerPartyId,
             costMinor: costKnown ? costMinor : null,
             occurredOn,
             note,
@@ -441,11 +477,28 @@ export default function DirectSaleEditor() {
         attributionFailure = attribution.message;
       }
     }
+    /* S05 (DOC-014 / UNIT-037 B3 + SDF-041): حفظ الطرف الاختياري منفصل عن
+     * التزام البيع تمامًا — البيع نجح وأُعلن، والحفظ أمر مستقل بمفتاح مشتق
+     * من مفتاح الإرسال نفسه (إعادة المحاولة لا تنشئ طرفًا ثانيًا)؛ فشله
+     * يُعرض نتيجة جزئية صادقة مع إعادة محاولة للحفظ وحده — لا يُعاد البيع
+     * ولا يُتراجع ولا يتكرر أبدًا. */
+    let partySaveFailed: string | null = null;
+    if (!editing && saveForReuse && !customerPartyId && customerName.trim() && partyDirectory) {
+      const partySaved = await partyDirectory.save({
+        label: customerName,
+        phone: null,
+        note: null,
+        operationKey: `${idempotencyKey.current}:party-save`,
+      });
+      if (!partySaved.ok) partySaveFailed = partySaved.message;
+      else notifyDataChanged();
+    }
     /* FIN-004 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الإشعار بعد اكتمال كل الكتابات
      * (البيع ثم نسبة المحفظة) — الحالة الملتزَمة فقط تُعلن. */
     notifyDataChanged();
     /* نجاح محلي مكتمل: يُعاد ضبط لقطة الوسخ فلا يعترض الخروج من شاشة النتيجة. */
     setLoadedToken(token => token + 1);
+    setPartySaveFailure(partySaveFailed);
     setDone({ sale: result.value, walletName, attributedMinor, attributionFailure });
     return true;
   }
@@ -516,7 +569,7 @@ export default function DirectSaleEditor() {
           <p>
             {outstandingMinor > 0
               ? sale.collectionStatus === "partial_debt"
-                ? `دين على ${sale.customerName ?? "الزبون"}: ${formatMoneyMinor(outstandingMinor)} د.أ — يظهر في «لي عند العملاء» ودفتر الناس.`
+                ? `دين على ${sale.customerName ?? "الزبون"}: ${formatMoneyMinor(outstandingMinor)} د.أ — يظهر في «لي عند العملاء».`
                 : `فرق معلّق للمراجعة: ${formatMoneyMinor(outstandingMinor)} د.أ — لم يُقرّر بعد.`
               : "قُبض المبلغ كاملًا — لا دين من هذا البيع."}
           </p>
@@ -535,6 +588,14 @@ export default function DirectSaleEditor() {
                 : "بقي القبض في الكاش غير الموزع — وزّعه على محفظة عندما تعرف وجهته."}
             </p>
           )}
+          {partySaveFailure ? (
+            /* S05 (DOC-014 / UNIT-037 B3 + SDF-041): البيع نجح والحفظ الاختياري
+               وحده لم يتم — نتيجة جزئية صادقة مع إعادة محاولة للحفظ وحده؛
+               إعادة البيع أو تراجعه مستحيلة من هنا. */
+            <p className="micro-local-truth" role="status">
+              تم حفظ البيع؛ لم يُحفظ العميل في القائمة — {partySaveFailure}
+            </p>
+          ) : null}
           {reference ? <p>مرجع مرتبط: {reference.name} — الربط للتوثيق فقط.</p> : null}
           <p className="micro-local-truth">سُجل محليًا على هذا الجهاز — الضغط مرتين لا يضاعف أثرًا.</p>
         </section>
@@ -837,16 +898,79 @@ export default function DirectSaleEditor() {
             ) : null}
           </details>
           {productNotice ? <FeedbackNote kind="advisory" word={productNotice} /> : null}
-          {/* D-001: الزبون حقل مستقل — يظهر عند وجود دين أو زبون مسجل، ويجتمع باسمه في دفتر الناس. */}
+          {/* D-001 + S05 (DOC-014 / UNIT-037 A1/A2): تعريف صاحب المتبقي —
+              اختيار محفوظ صريح أو اسم لهذه العملية؛ والحفظ للقائمة خيار غير
+              محدد مسبقًا لا شرطًا. يظهر عند وجود دين أو اسم مسجل، وفي
+              المدفوع كاملًا يبقى «إضافة عميل — اختياري» متاحًا بالاسم نفسه. */}
           {difference > 0 || customerName.trim() !== "" ? (
-            <label className="micro-field">
-              <span>اسم الزبون</span>
-              <input
-                value={customerName}
-                onChange={event => setCustomerName(event.target.value)}
-                aria-label="اسم الزبون"
-              />
-            </label>
+            <section className="micro-party-identity" aria-label="تعريف صاحب المبلغ">
+              {partyOptions.length > 0 ? (
+                <label className="micro-field">
+                  <span>
+                    عميل محفوظ{" "}
+                    <small>
+                      {difference > 0
+                        ? "اختر من حفظته أو اكتب اسمًا جديدًا أدناه"
+                        : "اختياري — اتركه فارغًا لبيع نقدي"}
+                    </small>
+                  </span>
+                  <select
+                    value={customerPartyId ?? ""}
+                    onChange={event => {
+                      const selected = event.target.value;
+                      const party = partyOptions.find(option => option.id === selected);
+                      setCustomerPartyId(selected || null);
+                      /* اختيار المحفوظ يثبّت لقطة تسميته على المصدر — لا يورث
+                       * سعرًا ولا موعدًا ولا مبلغًا من عملية سابقة (A2). */
+                      if (party) {
+                        setCustomerName(party.label);
+                        setSaveForReuse(false);
+                      } else {
+                        setCustomerName("");
+                      }
+                    }}
+                    aria-label="عميل محفوظ"
+                  >
+                    <option value="">— بلا اختيار —</option>
+                    {partyOptions.map(option => (
+                      <option key={option.id} value={option.id}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+              <label className="micro-field">
+                <span>{difference > 0 ? "على مَن المبلغ؟ — اسم أو وصف" : "إضافة عميل — اختياري"}</span>
+                <input
+                  value={customerName}
+                  onChange={event => {
+                    setCustomerName(event.target.value);
+                    /* كتابة اسم جديدة تعريف على هذه العملية — تفك أي ربط سابق. */
+                    setCustomerPartyId(null);
+                  }}
+                  aria-label={difference > 0 ? "على مَن المبلغ؟ — اسم أو وصف" : "إضافة عميل — اختياري"}
+                />
+              </label>
+              {!editing && !customerPartyId && customerName.trim() ? (
+                <label className="micro-confirm-warning">
+                  <input
+                    type="checkbox"
+                    checked={saveForReuse}
+                    onChange={event => setSaveForReuse(event.target.checked)}
+                  />
+                  <span>حفظه لإعادة الاستخدام في قائمة العملاء والموردين</span>
+                </label>
+              ) : null}
+              {difference > 0 &&
+              !customerName.trim() &&
+              resolveDifferenceOutcome(difference, differenceChoice).collectionStatus === "partial_debt" ? (
+                <p className="micro-field-error" role="alert">
+                  اكتب اسمًا أو وصفًا يعرّف صاحب المبلغ المتبقي، أو اختر عميلًا محفوظًا — المتبقي بلا تعريف
+                  يضيع من المتابعة.
+                </p>
+              ) : null}
+            </section>
           ) : null}
           {/* المجموعة ٣ (Scope D — §10.1): وجهة القبض الصريحة عند الإنشاء — الدرج افتراضيًا
             حين يوجد وغير الموزع خيار معلن؛ لا تخصيص صامت ولا محفظة تُختار نيابةً عن المالك. */}

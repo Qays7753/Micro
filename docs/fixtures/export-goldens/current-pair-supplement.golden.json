@@ -1,7 +1,7 @@
 {
   "format": "micro-prototype-local-export",
-  "version": 31,
-  "schemaVersion": 39,
+  "version": 32,
+  "schemaVersion": 40,
   "exportedAt": "2026-10-03T10:00:00.000Z",
   "data": {
     "profile": null,
@@ -14,7 +14,7 @@
     "recurrences": [],
     "financialEvents": [
       {
-        "id": "a2dd79dc-1042-4b09-9953-8a572e28092f",
+        "id": "33e15559-a288-4b55-93e3-b4807a1ebb8c",
         "type": "operating_expense_cash",
         "currency": "JOD",
         "amountMinor": 300,
@@ -49,20 +49,20 @@
         "loanPayableDeltaMinor": 0
       },
       {
-        "id": "event-c20045bf-450e-4a97-871c-e48a95ea5928",
+        "id": "event-d2a5eb4b-6463-4e14-827b-564612be7f4e",
         "type": "loan_outgoing_cash",
         "currency": "JOD",
         "amountMinor": 3200,
         "occurredOn": "2026-09-08",
         "recordedAt": "2026-10-03T10:00:00.000Z",
-        "idempotencyKey": "loan-c1396467-bc50-4e76-9d43-d66606618091:principal",
+        "idempotencyKey": "loan-28b3d37d-3e1a-4465-b536-9df2f85f8ee5:principal",
         "note": "قرض الذهبي",
         "counterparty": "سليم المكمّل",
         "relatedEventId": null,
         "expenseContext": null,
         "assetContext": null,
         "loanContext": {
-          "loanId": "loan-c1396467-bc50-4e76-9d43-d66606618091",
+          "loanId": "loan-28b3d37d-3e1a-4465-b536-9df2f85f8ee5",
           "borrower": "سليم المكمّل",
           "lender": null
         },
@@ -81,20 +81,20 @@
         "loanPayableDeltaMinor": 0
       },
       {
-        "id": "event-9209c6ba-a628-40f1-b7cf-e59522adea5e",
+        "id": "event-83b0663f-9b5d-45a0-933d-d86a754919bc",
         "type": "loan_received_cash",
         "currency": "JOD",
         "amountMinor": 21000,
         "occurredOn": "2026-09-02",
         "recordedAt": "2026-10-03T10:00:00.000Z",
-        "idempotencyKey": "rloan-3cd3b616-d888-405f-9696-496abdd48374:principal",
+        "idempotencyKey": "rloan-f8e2e340-a54b-495d-b8da-1191d767c100:principal",
         "note": "قرض مستلم للذهبي",
         "counterparty": "سامي المكمّل",
         "relatedEventId": null,
         "expenseContext": null,
         "assetContext": null,
         "loanContext": {
-          "loanId": "rloan-3cd3b616-d888-405f-9696-496abdd48374",
+          "loanId": "rloan-f8e2e340-a54b-495d-b8da-1191d767c100",
           "borrower": "سامي المكمّل",
           "lender": "سامي المكمّل"
         },
@@ -113,19 +113,19 @@
         "loanPayableDeltaMinor": 21000
       },
       {
-        "id": "event-bd5d0d56-2dff-4e4f-87d9-d3a895cca3e4",
+        "id": "event-fb403248-16fa-484d-8f86-226f4b287e57",
         "type": "asset_purchase_cash",
         "currency": "JOD",
         "amountMinor": 5200,
         "occurredOn": "2026-09-08",
         "recordedAt": "2026-10-03T10:00:00.000Z",
-        "idempotencyKey": "asset-8e98a619-fbd2-4917-8301-326e0a60c923:acquisition",
+        "idempotencyKey": "asset-d6c0bf84-0474-43d0-a0bc-91a6014ca2df:acquisition",
         "note": "أصل الذهبي المكمّل",
         "counterparty": null,
         "relatedEventId": null,
         "expenseContext": null,
         "assetContext": {
-          "assetId": "asset-8e98a619-fbd2-4917-8301-326e0a60c923",
+          "assetId": "asset-d6c0bf84-0474-43d0-a0bc-91a6014ca2df",
           "name": "ماكينة الذهبي"
         },
         "loanContext": null,
@@ -146,8 +146,9 @@
     ],
     "supplierPurchases": [
       {
-        "id": "8046cea2-fe44-44fe-980e-b4fa9392f440",
+        "id": "7a17b6cb-9ece-4119-ab1c-7af93723ed72",
         "supplierName": "مورد الذهبي المكمّل",
+        "supplierPartyId": null,
         "note": "خامات",
         "purchasedOn": "2026-09-06",
         "dueOn": null,
@@ -158,7 +159,7 @@
         "idempotencyKey": "golden-supplement-purchase",
         "payments": [
           {
-            "id": "8046cea2-fe44-44fe-980e-b4fa9392f440:initial",
+            "id": "7a17b6cb-9ece-4119-ab1c-7af93723ed72:initial",
             "amountMinor": 600,
             "occurredOn": "2026-09-06",
             "recordedAt": "2026-10-03T10:00:00.000Z",
@@ -175,14 +176,14 @@
     ],
     "cashWallets": [
       {
-        "id": "f1202f25-c448-455f-8242-a1d825d6fd7b",
+        "id": "4e187d37-dd3b-4b73-aea1-0dc31ccdac25",
         "name": "ذهب-مكمل",
         "kind": "cash_drawer",
         "createdAt": "2026-10-03T10:00:00.000Z",
         "createdOperationKey": "golden-supplement-wallet"
       },
       {
-        "id": "a8db97dc-5a24-40f6-82a7-eefb69b4c6a4",
+        "id": "7b1eb18f-f5a7-4cf3-86b9-14c58e014673",
         "name": "صندوق-مجهول-مكمل",
         "kind": "cash_drawer",
         "createdAt": "2026-10-03T10:00:00.000Z",
@@ -192,8 +193,8 @@
     ],
     "cashContinuityEntries": [
       {
-        "id": "d6fdc8b5-240e-4676-a280-d7bd9dc7d34d",
-        "walletId": "f1202f25-c448-455f-8242-a1d825d6fd7b",
+        "id": "860f50dd-51b7-4715-8e58-d0b36ffc9c24",
+        "walletId": "4e187d37-dd3b-4b73-aea1-0dc31ccdac25",
         "type": "opening_balance",
         "occurredOn": "2026-09-01",
         "recordedAt": "2026-10-03T10:00:00.000Z",
@@ -205,11 +206,11 @@
         "reversesEntryId": null
       },
       {
-        "id": "156a659a-face-4145-ba8a-06b58c56bf96",
-        "walletId": "f1202f25-c448-455f-8242-a1d825d6fd7b",
+        "id": "6c571b76-d699-4774-ae40-cb8bc3972718",
+        "walletId": "4e187d37-dd3b-4b73-aea1-0dc31ccdac25",
         "type": "cash_adjustment",
         "occurredOn": "2026-09-07",
-        "recordedAt": "2026-10-28T20:33:27.845Z",
+        "recordedAt": "2026-10-29T08:14:45.395Z",
         "cashDeltaMinor": -600,
         "note": "سحب الملف المكمّل",
         "reason": "حركة مالك: owner_draw",
@@ -220,9 +221,9 @@
     ],
     "balanceObservations": [
       {
-        "id": "f7b66b83-9c8b-44ae-a496-6fa2c9e60c3d",
+        "id": "3296969e-d12d-49a7-a386-9f18df58121b",
         "scopeKind": "wallet",
-        "walletId": "a8db97dc-5a24-40f6-82a7-eefb69b4c6a4",
+        "walletId": "7b1eb18f-f5a7-4cf3-86b9-14c58e014673",
         "countedMinor": 8800,
         "knowledge": "known",
         "cutoff": "2026-10-03T10:00:00.000Z",
@@ -232,9 +233,21 @@
         "note": "رصد عدّ في صندوق-مجهول-مكمل"
       }
     ],
+    "counterparties": [
+      {
+        "id": "27026797-8f80-4944-a5be-95726ab0cb6b",
+        "label": "أم أحمد — الجارة",
+        "phone": null,
+        "note": "طرف الذهبي المكمّل",
+        "archivedAt": null,
+        "operationKey": "golden-supplement-party",
+        "createdAt": "2026-10-03T10:00:00.000Z",
+        "updatedAt": "2026-10-03T10:00:00.000Z"
+      }
+    ],
     "materials": [
       {
-        "id": "a0629287-1763-4a34-aa04-3b799b07c99b",
+        "id": "655714cd-3bb7-46d0-be6c-a6d231214e4e",
         "name": "خشب الذهبي",
         "unit": "piece",
         "createdAt": "2026-10-03T10:00:00.000Z",
@@ -256,8 +269,8 @@
     ],
     "inventoryMovements": [
       {
-        "id": "644467d3-ac5f-49dd-9b7e-a0618e64f772",
-        "materialId": "a0629287-1763-4a34-aa04-3b799b07c99b",
+        "id": "42b12a8f-9236-4be3-bf15-45455e8bd8c5",
+        "materialId": "655714cd-3bb7-46d0-be6c-a6d231214e4e",
         "type": "opening",
         "occurredOn": "2026-09-01",
         "recordedAt": "2026-10-03T10:00:00.000Z",
@@ -288,12 +301,12 @@
     "ownerEntitlementOpeningBalances": [],
     "ownerMovements": [
       {
-        "id": "d227e775-4347-4bba-93d9-30ba77ea5266",
+        "id": "77766597-5239-456d-8a7c-43d331177823",
         "kind": "draw",
         "amountMinor": 600,
-        "walletId": "f1202f25-c448-455f-8242-a1d825d6fd7b",
+        "walletId": "4e187d37-dd3b-4b73-aea1-0dc31ccdac25",
         "occurredOn": "2026-09-07",
-        "recordedAt": "2026-10-28T20:33:27.845Z",
+        "recordedAt": "2026-10-29T08:14:45.395Z",
         "reason": "owner_draw",
         "note": "سحب الملف المكمّل",
         "idempotencyKey": "golden-supplement-draw",
@@ -312,7 +325,7 @@
     "costEstimates": [],
     "assets": [
       {
-        "id": "asset-8e98a619-fbd2-4917-8301-326e0a60c923",
+        "id": "asset-d6c0bf84-0474-43d0-a0bc-91a6014ca2df",
         "name": "ماكينة الذهبي",
         "categoryLabel": null,
         "acquisitionAmountMinor": 5200,
@@ -323,34 +336,34 @@
         "residualValueMinor": null,
         "note": "أصل الذهبي المكمّل",
         "status": "active",
-        "acquisitionEventId": "event-bd5d0d56-2dff-4e4f-87d9-d3a895cca3e4",
+        "acquisitionEventId": "event-fb403248-16fa-484d-8f86-226f4b287e57",
         "disposal": null,
         "writeOff": null,
         "contractRevisions": [],
-        "operationKey": "asset-8e98a619-fbd2-4917-8301-326e0a60c923:create",
+        "operationKey": "asset-d6c0bf84-0474-43d0-a0bc-91a6014ca2df:create",
         "createdAt": "2026-10-03T10:00:00.000Z",
         "updatedAt": "2026-10-03T10:00:00.000Z"
       }
     ],
     "loans": [
       {
-        "id": "loan-c1396467-bc50-4e76-9d43-d66606618091",
+        "id": "loan-28b3d37d-3e1a-4465-b536-9df2f85f8ee5",
         "borrowerName": "سليم المكمّل",
         "principalMinor": 3200,
         "loanDate": "2026-09-08",
         "purposeNote": "قرض الذهبي",
         "sourceWalletId": null,
-        "principalEventId": "event-c20045bf-450e-4a97-871c-e48a95ea5928",
+        "principalEventId": "event-d2a5eb4b-6463-4e14-827b-564612be7f4e",
         "repayments": [],
         "corrections": [],
-        "operationKey": "loan-c1396467-bc50-4e76-9d43-d66606618091:create",
+        "operationKey": "loan-28b3d37d-3e1a-4465-b536-9df2f85f8ee5:create",
         "createdAt": "2026-10-03T10:00:00.000Z",
         "updatedAt": "2026-10-03T10:00:00.000Z"
       }
     ],
     "receivedLoans": [
       {
-        "id": "rloan-3cd3b616-d888-405f-9696-496abdd48374",
+        "id": "rloan-f8e2e340-a54b-495d-b8da-1191d767c100",
         "lenderName": "سامي المكمّل",
         "lenderType": "person",
         "principalMinor": 21000,
@@ -358,17 +371,17 @@
         "dueOn": null,
         "note": "قرض مستلم للذهبي",
         "walletId": null,
-        "principalEventId": "event-9209c6ba-a628-40f1-b7cf-e59522adea5e",
+        "principalEventId": "event-83b0663f-9b5d-45a0-933d-d86a754919bc",
         "repayments": [],
         "corrections": [],
-        "operationKey": "rloan-3cd3b616-d888-405f-9696-496abdd48374:create",
+        "operationKey": "rloan-f8e2e340-a54b-495d-b8da-1191d767c100:create",
         "createdAt": "2026-10-03T10:00:00.000Z",
         "updatedAt": "2026-10-03T10:00:00.000Z"
       }
     ],
     "recurringExpenseSeries": [
       {
-        "id": "f9d2e114-6f29-4b78-9800-d94544b8df30",
+        "id": "8af0f102-cb6e-436e-94f0-5f020138a1bb",
         "title": "إيجار الذهبي",
         "status": "draft",
         "createdAt": "2026-10-03T10:00:00.000Z",
@@ -382,8 +395,8 @@
     ],
     "recurringExpenseRevisions": [
       {
-        "id": "f9d2e114-6f29-4b78-9800-d94544b8df30:r1",
-        "seriesId": "f9d2e114-6f29-4b78-9800-d94544b8df30",
+        "id": "8af0f102-cb6e-436e-94f0-5f020138a1bb:r1",
+        "seriesId": "8af0f102-cb6e-436e-94f0-5f020138a1bb",
         "revision": 1,
         "effectiveFromPeriod": "2026-09",
         "frequency": "monthly",
@@ -403,7 +416,7 @@
     "recurringExpenseOccurrences": [],
     "expenseBudgets": [
       {
-        "id": "59c8d198-1406-41de-978b-3c778237a0f5",
+        "id": "c10305e7-62bf-4fcc-93a0-ab35cfdb345f",
         "periodKind": "month",
         "periodKey": "2026-09",
         "scope": {
@@ -424,7 +437,7 @@
   },
   "integrity": {
     "algorithm": "sha256",
-    "digest": "622572c93c4d64ac0f0478ca9d887568ff532f5cf6b3e904aad790735a70d683"
+    "digest": "adcd6342d5c75b6547900d5fe9868b6139d356edcaebcc7356747d3a49d4f0d0"
   },
   "counts": {
     "orders": 0,
@@ -444,6 +457,7 @@
     "expenseBudgets": 1,
     "receivedLoans": 1,
     "balanceObservations": 1,
+    "counterparties": 1,
     "schedules": 0,
     "drafts": 0,
     "ownerEntitlementPolicies": 0,

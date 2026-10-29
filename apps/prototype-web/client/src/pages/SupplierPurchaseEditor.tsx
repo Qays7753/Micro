@@ -47,6 +47,7 @@ import type { PurchaseReceiptStatus } from "@/application/inventory";
 
 import { Button } from "@/components/primitives";
 import { todayInAmman } from "@/application/time";
+import { supplierDisplayLabelOf } from "@/application/parties";
 
 type EditorMode = "new" | "payment" | "edit";
 
@@ -62,8 +63,15 @@ export default function SupplierPurchaseEditor() {
   const mode: EditorMode = isNew ? "new" : /\/payment\/?$/u.test(location) ? "payment" : "edit";
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { supplierPurchases, inventory, notifyDataChanged, dataVersion, formDrafts, cashContinuity } =
-    usePrototypeServices();
+  const {
+    supplierPurchases,
+    inventory,
+    notifyDataChanged,
+    dataVersion,
+    formDrafts,
+    cashContinuity,
+    partyDirectory,
+  } = usePrototypeServices();
   /* G-004: المخزون متوقف عن الإدخال — وصلتا استلام المواد في المخزون تختفيان؛
    * الشراء والدفعات والذمم القائمة كما هي (وعد الإعدادات). */
   const { disabled: disabledCapabilities } = useDisabledCapabilities();
@@ -72,6 +80,12 @@ export default function SupplierPurchaseEditor() {
   const [loading, setLoading] = useState(!isNew);
   const [loadedToken, setLoadedToken] = useState(0);
   const [supplierName, setSupplierName] = useState("");
+  /* S05 (DOC-014 / UNIT-037 A1/A2): المورد اختياري في المدفوع كاملًا —
+   * تعريف بسيط أو اختيار محفوظ صريح عند بقاء استحقاق، و«حفظه لإعادة
+   * الاستخدام» خيار غير محدد مسبقًا. */
+  const [supplierPartyId, setSupplierPartyId] = useState<string | null>(null);
+  const [saveForReuse, setSaveForReuse] = useState(false);
+  const [partyOptions, setPartyOptions] = useState<readonly { id: string; label: string }[]>([]);
   const [note, setNote] = useState("");
   const [purchasedOn, setPurchasedOn] = useState(() => todayInAmman());
   const [dueOn, setDueOn] = useState("");
@@ -135,6 +149,22 @@ export default function SupplierPurchaseEditor() {
     setPaymentWalletId(resolveDefaultPaymentSource(walletOptions));
   }, [walletOptions]);
 
+  /* S05 (DOC-014 / UNIT-037 A2): خيارات الموردين المحفوظين للمختار — تُحمّل
+   * عند جاهزية الخدمة الكسولة؛ الفشل يبقي القائمة فارغة بصدق. */
+  useEffect(() => {
+    if (!partyDirectory || mode === "payment") return;
+    let active = true;
+    void partyDirectory.suggestParties().then(result => {
+      if (!active || !result.ok) return;
+      setPartyOptions(result.value);
+    });
+    return () => {
+      active = false;
+    };
+  }, [partyDirectory, mode, dataVersion]);
+  /* S05 (DOC-014 / UNIT-037 A1): هل يبقى استحقاق بعد هذه العملية؟ المدفوع
+   * الآن مقابل الإجمالي في النموذج الحي. */
+  const payableRemains = initialPaidMinor < totalMinor;
   useEffect(() => {
     if (isNew || !id) return;
     supplierPurchases.list().then(result => {
@@ -145,6 +175,7 @@ export default function SupplierPurchaseEditor() {
           /* R7/P04: خريطة السجل المحمّل عند صاحبها التطبيقي. */
           const values = supplierPurchaseToFormValues(found);
           setSupplierName(values.supplierName);
+          setSupplierPartyId(found.supplierPartyId ?? null);
           setNote(values.note);
           setPurchasedOn(values.purchasedOn);
           setDueOn(values.dueOn);
@@ -202,6 +233,8 @@ export default function SupplierPurchaseEditor() {
    * سجل قائم لا مسودة له (تعارضه مع السجل النهائي يمنع الاستعادة الصامتة). */
   const purchaseDraft = useFormDraft(formDrafts, "supplier_purchase", isNew ? "new" : null, {
     supplierName: "",
+    supplierPartyId: "",
+    saveForReuse: false,
     note: "",
     purchasedOn: todayInAmman(),
     dueOn: "",
@@ -215,6 +248,8 @@ export default function SupplierPurchaseEditor() {
     if (!isNew || !isDirty || purchaseDraft.state.phase === "restore-offer") return;
     purchaseDraft.onValuesChanged({
       supplierName,
+      supplierPartyId: supplierPartyId ?? "",
+      saveForReuse,
       note,
       purchasedOn,
       dueOn,
@@ -225,6 +260,8 @@ export default function SupplierPurchaseEditor() {
     });
   }, [
     supplierName,
+    supplierPartyId,
+    saveForReuse,
     note,
     purchasedOn,
     dueOn,
@@ -241,6 +278,8 @@ export default function SupplierPurchaseEditor() {
       restoredFromOffer.current = false;
       const saved = purchaseDraft.state.values;
       setSupplierName(String(saved.supplierName ?? ""));
+      setSupplierPartyId(String(saved.supplierPartyId ?? "") || null);
+      setSaveForReuse(saved.saveForReuse === true);
       setNote(String(saved.note ?? ""));
       setPurchasedOn(String(saved.purchasedOn ?? todayInAmman()));
       setDueOn(String(saved.dueOn ?? ""));
@@ -319,7 +358,10 @@ export default function SupplierPurchaseEditor() {
     setSaving(true);
     setFeedback(null);
     const result = await supplierPurchases.recordPurchase({
-      supplierName,
+      /* S05 (DOC-014 / UNIT-037 AC02): المورد اختياري في المدفوع كاملًا —
+       * الفراغ يُقرأ «بلا مورد مسجل» بصدق. */
+      supplierName: supplierName.trim() || null,
+      supplierPartyId,
       note,
       purchasedOn,
       dueOn: dueOn || null,
@@ -352,6 +394,24 @@ export default function SupplierPurchaseEditor() {
             source: "purchase",
           },
     );
+    /* S05 (DOC-014 / UNIT-037 B3 + SDF-041): حفظ المورد الاختياري منفصل عن
+     * التزام الشراء — الشراء نجح، والحفظ أمر مستقل بمفتاح مشتق من مفتاح
+     * الإرسال؛ فشله يُعرض نتيجة جزئية صادقة ولا يُعاد الشراء أبدًا. */
+    if (!result.reused && saveForReuse && !supplierPartyId && supplierName.trim() && partyDirectory) {
+      const partySaved = await partyDirectory.save({
+        label: supplierName,
+        phone: null,
+        note: null,
+        operationKey: `${idempotencyKey.current}:party-save`,
+      });
+      if (!partySaved.ok)
+        setFeedback({
+          tone: "info",
+          text: `تم حفظ الشراء؛ لم يُحفظ المورد في القائمة — ${partySaved.message}`,
+          source: "purchase",
+        });
+      else notifyDataChanged();
+    }
     if (result.attributionNote) {
       setFeedback({ tone: "info", text: result.attributionNote, source: "purchase" });
     }
@@ -438,7 +498,10 @@ export default function SupplierPurchaseEditor() {
     setFeedback(null);
     const result = await supplierPurchases.editPurchase({
       purchaseId: purchase.id,
-      supplierName,
+      /* S05 (DOC-014 / UNIT-037): المدفوع كامله قد يُخلى المورد؛ والاستحقاق
+       * القائم يوجب التعريف (بوابة المجال تحرس العقد نفسه). */
+      supplierName: supplierName.trim() || null,
+      supplierPartyId,
       note,
       purchasedOn,
       dueOn: dueOn || null,
@@ -570,9 +633,9 @@ export default function SupplierPurchaseEditor() {
         </span>
         <h1>
           {paymentMode
-            ? `دفعة إلى ${purchase?.supplierName ?? ""}`
+            ? `دفعة إلى ${supplierDisplayLabelOf(purchase ?? { supplierName: null })}`
             : mode === "edit"
-              ? `شراء من ${purchase?.supplierName ?? ""}`
+              ? `شراء من ${supplierDisplayLabelOf(purchase ?? { supplierName: null })}`
               : "سجّل شراء مواد"}
         </h1>
         <p>
@@ -753,7 +816,7 @@ export default function SupplierPurchaseEditor() {
           {reversalPreview ? (
             <CorrectionPreview
               action="تراجع موثق عن دفعة مورد"
-              originalLabel={`دفعة ${formatMoneyMinor(reversalPreview.payment.amountMinor)} د.أ لـ${purchase.supplierName}`}
+              originalLabel={`دفعة ${formatMoneyMinor(reversalPreview.payment.amountMinor)} د.أ لـ${supplierDisplayLabelOf(purchase)}`}
               originalDetail={reversalPreview.payment.note}
               intro="الدفعة الأصلية تبقى في السجل وعلاقة التدقيق صريحة؛ التراجع يستعيد المتبقي للمورد ويرد أثر الكاش المدفوع."
               dimensions={[
@@ -808,14 +871,24 @@ export default function SupplierPurchaseEditor() {
           ) : null}
           {editing ? (
             <section className="micro-form-card" aria-label="تعديل الشراء">
-              <label className="micro-field">
-                <span>اسم المورد</span>
-                <input
-                  value={supplierName}
-                  onChange={event => setSupplierName(event.target.value)}
-                  placeholder="مثال: مورد الخشب"
-                />
-              </label>
+              <SupplierIdentityFields
+                payableRemains={payableRemains}
+                supplierName={supplierName}
+                onSupplierNameChange={value => {
+                  setSupplierName(value);
+                  setSupplierPartyId(null);
+                }}
+                supplierPartyId={supplierPartyId}
+                onSupplierPartySelect={(partyId, label) => {
+                  setSupplierPartyId(partyId);
+                  setSupplierName(label);
+                  setSaveForReuse(false);
+                }}
+                partyOptions={partyOptions}
+                saveForReuse={saveForReuse}
+                onSaveForReuseChange={setSaveForReuse}
+                showSaveForReuse={false}
+              />
               <label className="micro-field">
                 <span>ماذا اشتريت؟</span>
                 <textarea value={note} onChange={event => setNote(event.target.value)} />
@@ -888,7 +961,7 @@ export default function SupplierPurchaseEditor() {
               {editPreview ? (
                 <CorrectionPreview
                   action="تعديل موثق لسجل الشراء"
-                  originalLabel={`شراء من ${purchase.supplierName} · ${formatMoneyMinor(purchase.totalMinor)} د.أ`}
+                  originalLabel={`شراء من ${supplierDisplayLabelOf(purchase)} · ${formatMoneyMinor(purchase.totalMinor)} د.أ`}
                   originalDetail={`دفع أولي ${formatMoneyMinor(
                     purchase.payments.find(payment => payment.id === `${purchase.id}:initial`)?.amountMinor ??
                       0,
@@ -956,14 +1029,24 @@ export default function SupplierPurchaseEditor() {
           <section className="micro-form-card">
             {isNew ? (
               <>
-                <label className="micro-field">
-                  <span>اسم المورد</span>
-                  <input
-                    value={supplierName}
-                    onChange={event => setSupplierName(event.target.value)}
-                    placeholder="مثال: مورد الخشب"
-                  />
-                </label>
+                <SupplierIdentityFields
+                  payableRemains={payableRemains}
+                  supplierName={supplierName}
+                  onSupplierNameChange={value => {
+                    setSupplierName(value);
+                    setSupplierPartyId(null);
+                  }}
+                  supplierPartyId={supplierPartyId}
+                  onSupplierPartySelect={(partyId, label) => {
+                    setSupplierPartyId(partyId);
+                    setSupplierName(label);
+                    setSaveForReuse(false);
+                  }}
+                  partyOptions={partyOptions}
+                  saveForReuse={saveForReuse}
+                  onSaveForReuseChange={setSaveForReuse}
+                  showSaveForReuse
+                />
                 <label className="micro-field">
                   <span>ماذا اشتريت؟</span>
                   <textarea
@@ -1200,6 +1283,87 @@ export default function SupplierPurchaseEditor() {
           </section>
         </>
       )}
+    </section>
+  );
+}
+
+/* S05 (DOC-014 / UNIT-037 A1/A2): حقول هوية المورد — اختيار محفوظ صريح أو
+ * تعريف نصي لهذه العملية؛ المورد اختياري في المدفوع كاملًا، والحفظ للقائمة
+ * خيار غير محدد مسبقًا، ولا يُطلب هاتف أبدًا (U037-ACD02/AC28).
+ *
+ * سقف كثافة النص ٣٠/٨٣ (عقد ٢٨) محفوظ بلا رفع: سؤال الحالة (لِمَن المبلغ؟)
+ * واختيارية المدفوع كاملًا يمران في قناة السطر الرمادي الساكن (placeholder)
+ * التي تحل محل حقل «مثال: مورد الخشب» المتقادم — صافي سلسلة ساكنة واحدة
+ * فوق الأساس؛ التسميات الثابتة («اسم المورد» المثبتة بفحص المفردات،
+ * و«مورد محفوظ») على نمط الصفحة نفسها قبل S05. */
+function SupplierIdentityFields({
+  payableRemains,
+  supplierName,
+  onSupplierNameChange,
+  supplierPartyId,
+  onSupplierPartySelect,
+  partyOptions,
+  saveForReuse,
+  onSaveForReuseChange,
+  showSaveForReuse,
+}: {
+  payableRemains: boolean;
+  supplierName: string;
+  onSupplierNameChange: (value: string) => void;
+  supplierPartyId: string | null;
+  onSupplierPartySelect: (partyId: string | null, label: string) => void;
+  partyOptions: readonly { id: string; label: string }[];
+  saveForReuse: boolean;
+  onSaveForReuseChange: (value: boolean) => void;
+  showSaveForReuse: boolean;
+}) {
+  return (
+    <section className="micro-party-identity">
+      {partyOptions.length > 0 ? (
+        <label className="micro-field">
+          <span>مورد محفوظ</span>
+          <select
+            value={supplierPartyId ?? ""}
+            onChange={event => {
+              const selected = event.target.value || null;
+              const party = partyOptions.find(option => option.id === selected);
+              /* اختيار المحفوظ يثبّت لقطة تسميته على المصدر — لا يورث شيئًا. */
+              onSupplierPartySelect(selected, party?.label ?? "");
+            }}
+          >
+            <option value="">— بلا اختيار —</option>
+            {partyOptions.map(option => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+      <label className="micro-field">
+        <span>اسم المورد</span>
+        <input
+          value={supplierName}
+          onChange={event => onSupplierNameChange(event.target.value)}
+          placeholder={payableRemains ? "لِمَن المبلغ؟ — اسم أو وصف" : undefined}
+        />
+      </label>
+      {showSaveForReuse && !supplierPartyId && supplierName.trim() ? (
+        <label className="micro-confirm-warning">
+          <input
+            type="checkbox"
+            checked={saveForReuse}
+            onChange={event => onSaveForReuseChange(event.target.checked)}
+          />
+          <span>حفظه لإعادة الاستخدام في قائمة العملاء والموردين</span>
+        </label>
+      ) : null}
+      {payableRemains && !supplierName.trim() ? (
+        <p className="micro-field-error" role="alert">
+          اكتب اسمًا أو وصفًا يعرّف جهة المبلغ المستحق، أو اختر موردًا محفوظًا — الاستحقاق بلا تعريف يضيع من
+          المتابعة.
+        </p>
+      ) : null}
     </section>
   );
 }

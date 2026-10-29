@@ -215,11 +215,14 @@ describe("REM-006 — قرار المالك D-09: الخريطة الدلالي�
 });
 
 describe("REM-006 — حدود التنفيذ: لا مخطط ولا تصدير ولا ترحيل لأجل الصياغة", () => {
-  it("the version pair stays 39/31 (S04/DOC-013 balance-observations; D-03/D-09 applied documentation-first)", () => {
+  it("the version pair stays 40/32 (S05/DOC-014 counterparties; D-03/D-09 applied documentation-first)", () => {
     /* S04 (DOC-013 / UNIT-025): المخطط ٣٩ والتصدير ٣١ — إضافة عائلة رصد
      * الأرصدة الدائمة بأمر S04 المأذون مع كامل أدلة التوافق/الترحيل في
-     * النطاق نفسه (نمط D-037 نفسه الذي أنشأ ٣٨/٣٠ لـFIN-001). */
-    expect(localSchemaVersion).toBe(39);
-    expect(localExportVersion).toBe(31);
+     * النطاق نفسه (نمط D-037 نفسه الذي أنشأ ٣٨/٣٠ لـFIN-001).
+     * S05 (DOC-014 / UNIT-037): المخطط ٤٠ والتصدير ٣٢ — عائلة الأطراف
+     * المحفوظة (counterparties) بأمر S05 المأذون مع كامل أدلة التوافق/
+     * الترحيل في النطاق نفسه (نمط D-037 نفسه). */
+    expect(localSchemaVersion).toBe(40);
+    expect(localExportVersion).toBe(32);
   });
 });

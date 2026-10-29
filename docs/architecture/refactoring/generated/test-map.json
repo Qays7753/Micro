@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "1fe815d0b28a577d4cbcf629f24e7e7e9978174a",
+  "head": "1663f2452b3769684f8faf0fe1671a410f79f116",
   "pages": {
     "total": 60,
     "map": {
@@ -927,7 +927,8 @@
       "tests/owner-entitlement.test.ts"
     ],
     "src/domain/ (colocated)": [
-      "src/domain/direct-sale/policies.test.ts"
+      "src/domain/direct-sale/policies.test.ts",
+      "src/domain/party/policies.test.ts"
     ]
   }
 }

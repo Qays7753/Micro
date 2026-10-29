@@ -1,7 +1,7 @@
 {
   "format": "micro-prototype-local-export",
-  "version": 31,
-  "schemaVersion": 39,
+  "version": 32,
+  "schemaVersion": 40,
   "exportedAt": "2026-10-03T10:00:00.000Z",
   "data": {
     "profile": {
@@ -303,6 +303,7 @@
       }
     ],
     "balanceObservations": [],
+    "counterparties": [],
     "materials": [
       {
         "id": "material-817-1",
@@ -370,7 +371,7 @@
   },
   "integrity": {
     "algorithm": "sha256",
-    "digest": "3a991bfc612a91a49e8c5a1a4038d8f07fd9d5cb2a7cd256b9487abdf3091bb7"
+    "digest": "23c74bd20610242861e6602f7628ec544e8e26c2155c02ab6f530687d8a970b0"
   },
   "counts": {
     "orders": 1,
@@ -390,6 +391,7 @@
     "expenseBudgets": 0,
     "receivedLoans": 0,
     "balanceObservations": 0,
+    "counterparties": 0,
     "schedules": 1,
     "drafts": 1,
     "ownerEntitlementPolicies": 0,

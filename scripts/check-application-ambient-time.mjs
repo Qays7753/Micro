@@ -22,7 +22,7 @@
  *      الربط بنيوي لا نصي-مجاور: تعليق يحوي النمط أو نص يحويه أو `||`
  *      بدل `??` أو مستقبل خاطئ أو متغير وسيط (alias) — لا يُعفي أيًّا منها.
  *  AT-2 (ratشية المواقع): جرد المناطق المعفاة يطابق حرفيًا القائمة المثبتة
- *      الـ21 موقعًا (17 شكل-أ + 4 شكل-ب) — موقع جديد في ملف غير مثبت
+ *      الـ23 موقعًا (19 شكل-أ + 4 شكل-ب) — موقع جديد في ملف غير مثبت
  *      = رفض حتى إعادة إرساء موثقة، وموقع مثبت غادر = رفض (تحديث القائمة).
  *  AT-3 (بناء محيط): `new Date()` بلا وسيط في طبقة التطبيق مسموح حصريًا في
  *      `application/time/clock.ts` داخل شكل `new Date().toISOString()` —
@@ -109,6 +109,8 @@ export const APPROVED_ID_FALLBACK_SITES = [
   { file: "application/loans/loanService.ts", shape: "nullish" },
   { file: "application/loans/receivedLoanService.ts", shape: "nullish" },
   { file: "application/owner-money/ownerEntitlementService.ts", shape: "nullish" },
+  /* S05 (DOC-014 / UNIT-037، 2026-10-29): مولّد معرف الطرف المحفوظ عند الحفظ الصريح — إرساء بنفس الـPR. */
+  { file: "application/parties/partyLedgerService.ts", shape: "nullish" },
   { file: "application/owner/ownerProfileService.ts", shape: "nullish" },
   { file: "application/recurring/recurringExpenseService.ts", shape: "nullish" },
   { file: "application/suppliers/supplierPurchaseService.ts", shape: "nullish" },
@@ -331,7 +333,7 @@ export function classifyAmbientTime(repoRoot) {
       violations.push({
         rule: "AT-new-id-fallback-site",
         key: `${file}: ${live.nullish}أ/${live.ternary}ب`,
-        hint: "موقع ID-fallback جديد خارج الجرد المعتمد (21 موقعًا) — الإضافة تتطلب إعادة إرساء موثقة بمرجع مراجعة مالك في نفس الـPR (نمط ratشة R9/D-07)",
+        hint: "موقع ID-fallback جديد خارج الجرد المعتمد (23 موقعًا) — الإضافة تتطلب إعادة إرساء موثقة بمرجع مراجعة مالك في نفس الـPR (نمط ratشة R9/D-07)",
       });
     }
   }
@@ -355,7 +357,7 @@ function main() {
     `application-ambient-time: PASS — ${stats.files} ملف إنتاج تطبيقي؛ ` +
       `${stats.approvedIdFallbackRegions} منطقة ID-fallback معتمدة فيها ${stats.approvedDateNowCalls} نداء Date.now() معفى؛ ` +
       `${stats.parseCalls} تحليلًا صريحًا (مسموح)؛ منفذ الساعة الموثق ${stats.clockBoundarySites} موقعًا؛ ` +
-      `صفر قراءة ساعة غير عائلية (ratشة OD-TIME على جرد 22 موقعًا: 18 شكل-أ + 4 شكل-ب)`,
+      `صفر قراءة ساعة غير عائلية (ratشة OD-TIME على جرد 23 موقعًا: 19 شكل-أ + 4 شكل-ب)`,
   );
 }
 

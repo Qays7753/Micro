@@ -109,7 +109,7 @@ export default function OrderDetail() {
     retainedDeposits,
     cashContinuity,
     projectFinance,
-    partyLedger,
+    partyDirectory,
     dataVersion,
     notifyDataChanged,
   } = usePrototypeServices();
@@ -291,17 +291,18 @@ export default function OrderDetail() {
     };
   }, [depositPanelOpen, cashContinuity, dataVersion]);
 
-  /* FIN-002: مقترحات تسمية الجهة — كل الأسماء المسجلة، الأكثر تكرارًا أولًا. */
+  /* S05 (DOC-014 / UNIT-037 3D-03): مقترحات تسمية الجهة من الأطراف المحفوظة
+   * النشطة — جارٍ التجهيز (null) يعرض بلا مقترحات لا بفشل صامت. */
   useEffect(() => {
     if (!stored || stored.order.customerName.trim()) return;
     let active = true;
-    void readPartyNameSuggestions({ partyLedger }).then(names => {
+    void readPartyNameSuggestions({ partyDirectory }).then(names => {
       if (active && names !== null) setPartySuggestions(names);
     });
     return () => {
       active = false;
     };
-  }, [stored, partyLedger, dataVersion]);
+  }, [stored, partyDirectory, dataVersion]);
 
   if (state.phase === "loading")
     return (
@@ -758,7 +759,7 @@ export default function OrderDetail() {
         </section>
       ) : null}
       {/* FIN-002: تسمية جهة طلب بلا اسم — تعبئة باتجاه واحد (اختيار اسم
-          مسجل أو اسم جديد يظهر في دفتر الناس من أول حركة)؛ الديون غير
+          مسجل أو اسم جديد يظهر في المتابعة من أول حركة)؛ الديون غير
           المسماة تبقى ظاهرة بتحذير في ورقة التحصيل حتى التسمية. */}
       {order.status !== "cancelled" && !order.customerName.trim() ? (
         assignNameOpen ? (
@@ -769,8 +770,8 @@ export default function OrderDetail() {
           >
             <strong id="assign-party-heading">سمِّ جهة هذا الطلب</strong>
             <p>
-              اسم الجهة يجعل الدين والتحصيل قابلين للتتبع في دفتر الناس من أول حركة. هذا الطلب بلا اسم حتى
-              الآن — التسمية تعبئة باتجاه واحد لا إعادة تسمية.
+              اسم الجهة يجعل الدين والتحصيل قابلين للتتبع من أول حركة. هذا الطلب بلا اسم حتى الآن — التسمية
+              تعبئة باتجاه واحد لا إعادة تسمية.
             </p>
             <label className="micro-field">
               <span>اسم الجهة</span>

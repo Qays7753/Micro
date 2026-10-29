@@ -205,10 +205,10 @@ describe("commitPreferencesUpdate — guarded atomic preference patch at the wri
       const ownerMovements = await store.listOwnerMovements();
       expect(ownerMovements.ok).toBe(true);
       if (ownerMovements.ok) expect(ownerMovements.value).toHaveLength(0);
-      /* المخطط والتصدير: زوج S04 الحي 39/31 (DOC-013 — عائلة رصد الأرصدة)؛
-       * كتابة التفضيلات نفسها لم تمس المخطط ولا صيغة الاستيراد قط. */
-      expect(localSchemaVersion).toBe(39);
-      expect(localExportVersion).toBe(31);
+      /* المخطط والتصدير: زوج S05 الحي 40/32 (DOC-014 — عائلة الأطراف
+       * المحفوظة)؛ كتابة التفضيلات نفسها لم تمس المخطط ولا صيغة الاستيراد قط. */
+      expect(localSchemaVersion).toBe(40);
+      expect(localExportVersion).toBe(32);
     }
   });
 });

@@ -4,7 +4,7 @@
  * أدواتي أدوات مستقلة فقط:
  * - لا قسم «حالة الوحدات» (F03) — الإعدادات بيت التهيئة والقدرات الوحيد.
  * - لا بطاقة نسخ احتياطي (T4) — بيتها الإعدادات.
- * - لا شارات/قراءات دفتر الناس والموردين (T5) — الحالة تُقرأ من بيتها.
+ * - لا شارات/قراءات العملاء والموردين والموردين بالمشتريات (T5) — الحالة تُقرأ من بيتها.
  * - لا صف «السوق والتوصيل» الميت (T6) — تمثيل السوق مقعده والنقل لوحة الترويسة.
  * - تبقى الحاسبة والتقديرات والجسر والشرح الصادق المطلوب حرفيًا. */
 import React from "react";
@@ -69,7 +69,7 @@ describe("P-4.2-2 — تنظيف «أدواتي» (F03/T4/T5/T6)", () => {
     expect(screen.queryByRole("heading", { name: "حالة الوحدات" })).toBeNull();
     expect(screen.queryByText("النسخ الاحتياطي والبيانات")).toBeNull();
     expect(screen.queryByText("الموردون والمشتريات")).toBeNull();
-    expect(screen.queryByText("دفتر الناس")).toBeNull();
+    expect(screen.queryByText("العملاء والموردون")).toBeNull();
     expect(screen.queryByText("السوق والتوصيل")).toBeNull();
     expect(screen.queryByText("فحص سلامة مالي")).toBeNull();
     expect(screen.queryByText("منتجاتي وخدماتي")).toBeNull();

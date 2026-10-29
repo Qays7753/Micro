@@ -301,6 +301,20 @@ export function migrateTransferSnapshot(
           isRecord(observation) ? { ...observation, walletId: observation.walletId ?? null } : observation,
         )
       : [],
+    /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة — الغياب في ملف قديم =
+     * قائمة فارغة بلا اختراع هوية؛ الحقول الاختيارية تسوّى null صادقة. */
+    counterparties: Array.isArray(raw.counterparties)
+      ? raw.counterparties.map((party: Record<string, unknown>) =>
+          isRecord(party)
+            ? {
+                ...party,
+                phone: party.phone ?? null,
+                note: party.note ?? null,
+                archivedAt: party.archivedAt ?? null,
+              }
+            : party,
+        )
+      : [],
     /* OPS-003 (عقد ٤١): عائلات المصروف المتكرر — الغياب في ملف قديم = قائمة
      * فارغة بلا اختراع تاريخ؛ والحقول الاخيارية تُسوّى بصمت صفرًا صادقًا. */
     recurringExpenseSeries: Array.isArray(raw.recurringExpenseSeries)

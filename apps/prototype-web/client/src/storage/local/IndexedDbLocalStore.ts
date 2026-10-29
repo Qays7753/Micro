@@ -27,6 +27,7 @@ import type {
   OwnerMovement,
 } from "@micro-domain/owner-entitlement/index.js";
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
+import type { SavedParty } from "@micro-domain/party/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
@@ -84,6 +85,7 @@ import {
 import { validateExpenseBudgetRevisionPair, validateExpenseBudgetSave } from "./expenseBudgetCommitGuard";
 import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
 import { decideCashObservationCommit, findTransferCoverageShortfall } from "./cashContinuityCommitGuard";
+import { decideCounterpartyCommit, type CounterpartyWriteCommit } from "./counterpartyCommitGuard";
 import {
   committedReversalMovements,
   storedReversalMovementsFor,
@@ -121,6 +123,7 @@ import {
   cashContinuityEntryStore,
   cashWalletStore,
   balanceObservationStore,
+  counterpartyStore,
   costEstimateStore,
   directConversionStore,
   directSaleStore,
@@ -2302,6 +2305,85 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   listMaterials() {
     return listAll<Material>(materialStore, (left, right) => left.createdAt.localeCompare(right.createdAt));
+  }
+  /* S05 (DOC-014 / UNIT-037): قراءة الأطراف المحفوظة — الأحدث تعديلًا
+   * أولًا؛ سجل تعريفي لا يمس أي مصدر مالي. */
+  listCounterparties() {
+    return listAll<SavedParty>(counterpartyStore, (left, right) =>
+      right.updatedAt.localeCompare(left.updatedAt),
+    );
+  }
+  getCounterparty(id: string) {
+    return readOne<SavedParty>(counterpartyStore, id);
+  }
+  /* S05 (DOC-014 / UNIT-037 + العقد المشترك §14): كتابة الطرف المحروس داخل
+   * معاملة واحدة على مخزن الأطراف — السجل الحي بمعرفه وسجل مفتاح العملية
+   * يُقرآن داخل الحد نفسه، والقرار من النواة المشتركة: عهدة المفتاح إعادة
+   * استخدام (بلا طرف ثانٍ)، والتعارض حبوط صادق بلا أي كتابة. */
+  async commitCounterpartyWrite(
+    commit: CounterpartyWriteCommit,
+  ): Promise<StorageResult<{ party: SavedParty; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([counterpartyStore], "readwrite");
+        const store = transaction.objectStore(counterpartyStore);
+        let rejection: StorageFailure | null = null;
+        let outcome: { party: SavedParty; reused: boolean } | null = null;
+        const resolveOutcome = () =>
+          resolve(
+            outcome ? { ok: true, value: outcome } : (rejection ?? failure(transaction.error, database)),
+          );
+        const abortWith = (fallback: () => void) => {
+          try {
+            transaction.abort();
+          } catch {
+            fallback();
+          }
+        };
+        const failFromListener = (error: unknown) => {
+          const failed = failure(error, database);
+          rejection = failed;
+          abortWith(() => resolve(failed));
+        };
+        const liveRequest = store.get(commit.next.id);
+        const keyRequest = store.index("operationKey").get(commit.operationKey);
+        liveRequest.onerror = () => resolve(failure(liveRequest.error, database));
+        keyRequest.onerror = () => resolve(failure(keyRequest.error, database));
+        /* القراءتان معًا قبل القرار — العدّاد لا يسمح بالحسم قبل اكتمالهما
+         * (نمط fenceThenWrite نفسه؛ الجرس محروس عند موضع الإسناد نفسه). */
+        let readsPending = 2;
+        const onBothRead = () => {
+          readsPending -= 1;
+          if (readsPending > 0 || outcome || rejection) return;
+          const decision = decideCounterpartyCommit(
+            (liveRequest.result as SavedParty | undefined) ?? null,
+            (keyRequest.result as SavedParty | undefined) ?? null,
+            commit,
+          );
+          if (decision.kind === "reject") {
+            const rejected: StorageFailure = { ok: false, code: decision.code, message: decision.message };
+            rejection = rejected;
+            abortWith(() => resolve(rejected));
+            return;
+          }
+          if (decision.kind === "reuse") {
+            outcome = { party: decision.party, reused: true };
+            abortWith(resolveOutcome);
+            return;
+          }
+          store.put(commit.next);
+          outcome = { party: commit.next, reused: false };
+        };
+        liveRequest.onsuccess = guardedSuccessListener(failFromListener, onBothRead);
+        keyRequest.onsuccess = guardedSuccessListener(failFromListener, onBothRead);
+        transaction.onerror = () => resolve(failure(transaction.error, database));
+        transaction.onabort = resolveOutcome;
+        transaction.oncomplete = resolveOutcome;
+      });
+    } catch (error) {
+      return failure(error);
+    }
   }
   getInventoryActivation() {
     return readOne<InventoryActivation>(inventoryActivationStore, localInventoryActivationId);

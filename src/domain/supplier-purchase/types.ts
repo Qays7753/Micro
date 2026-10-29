@@ -32,7 +32,8 @@ export type SupplierPurchaseRevision = {
   reason: string;
   beforeTotalMinor: number;
   beforeInitialPaidMinor: number;
-  beforeSupplierName: string;
+  /* S05 (DOC-014 / UNIT-037): null = الشراء كان بلا مورد مسجل (مدفوع كاملًا). */
+  beforeSupplierName: string | null;
   beforeNote: string;
   beforePurchasedOn: string;
   beforeDueOn: string | null;
@@ -43,7 +44,16 @@ export type SupplierPurchaseRevision = {
 };
 export type SupplierPurchase = {
   id: string;
-  supplierName: string;
+  /* S05 (DOC-014 / UNIT-037 A1/AC02 — U037-ACD02): المورد اختياري في الشراء
+   * المدفوع كاملًا — null تعني «بلا مورد مسجل» بصدق (لا طرف «غير مسجل»
+   * مشترك ولا اسم مصنوع). السجلات القديمة دائمًا اسم غير فارغ؛ والاستحقاق
+   * القائم يوجب تعريفًا بسيطًا أو ربط مورد محفوظ (سياسات الإنشاء/التعديل). */
+  supplierName: string | null;
+  /* S05 (DOC-014 / UNIT-037 P3.2 + العقد المشترك §5.1 — PartyRef): ربط صريح
+   * بمورد محفوظ إن اختاره المستخدم — اختياري: غيابه (أو null) يعني تعريفًا
+   * نصيًا على المصدر أو شراءً بلا مورد؛ لا يُستنتج من الاسم أبدًا. لقطة
+   * الاسم تبقى supplierName كما سُجلت وقت الحفظ. */
+  supplierPartyId?: string | null;
   note: string;
   purchasedOn: string;
   dueOn: string | null;
@@ -67,7 +77,9 @@ export type SupplierPurchase = {
 };
 export type CreateSupplierPurchaseInput = {
   id: string;
-  supplierName: string;
+  /* S05 (DOC-014 / UNIT-037): null = شراء مدفوع كاملًا بلا مورد مسجل. */
+  supplierName: string | null;
+  supplierPartyId?: string | null;
   note: string;
   purchasedOn: string;
   dueOn?: string | null;
@@ -93,7 +105,9 @@ export type RecordSupplierPurchasePaymentInput = {
 /* المجموعة ٢ (§10.4): تعديل موثق لسجل الشراء — التكلفة والدفع الأولي والبيانات
  * وربط المادة والكمية المتوقعة (المجموعة ٢ — عقد ٢٨). */
 export type UpdateSupplierPurchaseInput = {
-  supplierName: string;
+  /* S05 (DOC-014 / UNIT-037): null = بلا مورد مسجل (مسموح ما دام مسددًا كاملًا). */
+  supplierName: string | null;
+  supplierPartyId?: string | null;
   note: string;
   purchasedOn: string;
   dueOn?: string | null;

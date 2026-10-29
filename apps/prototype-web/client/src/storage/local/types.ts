@@ -40,7 +40,9 @@ import type {
   RecurringExpenseSeries,
 } from "@micro-domain/recurring-expense/index.js";
 import type { ExpenseBudgetRecord } from "@micro-domain/budget/index.js";
+import type { SavedParty } from "@micro-domain/party/index.js";
 import type { SupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
+import type { CounterpartyWriteCommit } from "./counterpartyCommitGuard";
 
 /* المجموعة ٥ (الاستمرارية): المخطط ٣٥ أضاف مخزني `form-drafts` و`local-security`
  * بمُنشئ محروس — لا حقول جديدة على أي سجل قائم ولا ترحيل بيانات؛ القديم يفتح
@@ -60,8 +62,13 @@ import type { SupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
  * مخزن `balance-observations` واحدًا لرصد أرصدة النقد (قياس الموجود بنطاقه
  * وقطعه ومعرفته — ليس حركة نقدية ولا افتتاحًا ولا تمويلًا) بالمُنشئ
  * المحروس نفسه — لا حقول جديدة على سجل قائم ولا ترحيل بيانات؛ القديم
- * يفتح ويجده فارغًا. */
-export const localSchemaVersion = 39;
+ * يفتح ويجده فارغًا.
+ * S05 (DOC-014 / UNIT-037 P3.2 + العقد المشترك §5.1/§8 — نمط D-037): المخطط ٤٠
+ * يضيف مخزن `counterparties` واحدًا لهويات الأطراف المحفوظة اختياريًا (عميل/
+ * مورد — تعريف بلا رصيد ولا حدث مالي؛ الأرصدة تقرأ من المصادر المرتبطة
+ * بمعرف الطرف) بالمُنشئ المحروس نفسه — لا حقول جديدة على سجل قائم ولا
+ * ترحيل بيانات؛ القديم يفتح ويجده فارغًا. */
+export const localSchemaVersion = 40;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
@@ -80,8 +87,13 @@ export const localExportFormat = "micro-prototype-local-export";
  * S04 (DOC-013 / UNIT-025): النسخة ٣١ تضيف عائلة رصد أرصدة النقد إلى لقطة
  * التصدير وعداداتها — القياس بيانات حقيقية تُنقل مع اللقطة (نطاقها وقطعها
  * ومعرفتها محفوظة) ولا تُعاد تسويته عند الاستعادة؛ ملف ٣٠/٣٨ يبقى زوجًا
- * موروثًا مقبولًا في الاستيراد — الغياب يعني قائمة فارغة بلا اختراع قياس. */
-export const localExportVersion = 31;
+ * موروثًا مقبولًا في الاستيراد — الغياب يعني قائمة فارغة بلا اختراع قياس.
+ * S05 (DOC-014 / UNIT-037): النسخة ٣٢ تضيف عائلة الأطراف المحفوظة إلى لقطة
+ * التصدير وعداداتها — هوية الطرف (معرّفه الثابت وتسميته الحالية وهاتفه
+ * وملاحظته وحالة أرشيفته) بيانات حقيقية تُنقل مع اللقطة بلا دمج ولا
+ * اختراع أطراف؛ ملف ٣١/٣٩ يبقى زوجًا موروثًا مقبولًا في الاستيراد —
+ * الغياب يعني قائمة فارغة بلا اختراع هوية. */
+export const localExportVersion = 32;
 export const localSecurityId = "local-security";
 /* المجموعة ٥ (التحصين الكامل — حدود المسودة): نوعان جديدان يدخلان الحد نفسه —
  * مسودة محرر الحدث المالي (مهاجرة من مفتاح localStorage القديم لكل نوع) ومسودة
@@ -241,6 +253,8 @@ export type LocalExportCounts = {
   receivedLoans: number;
   /* S04 (DOC-013 / UNIT-025): عائلة رصد أرصدة النقد داخل العدادات الصارمة. */
   balanceObservations: number;
+  /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة داخل العدادات الصارمة. */
+  counterparties: number;
   /* R10-B2/RC-1 (R10A-F-009): عائلات مال المالك الأربع داخل العدادات
    * الصارمة — مفاتيح إضافية داخل المفتاح counts نفسه والإصدار يبقى ٣٠
    * (الأزواج الموروثة بلا كتل عدادات لا يمسها التغيير؛ السجل الكنوني:
@@ -523,6 +537,11 @@ export type LocalStoreSnapshot = {
    * ولا يُعاد تفسيره تسويةً عند النقل. الغياب في التصدير القديم = قائمة
    * فارغة بلا اختراع قياس. */
   balanceObservations?: readonly CashObservation[];
+  /* S05 (DOC-014 / UNIT-037 + العقد المشترك §5.1): الأطراف المحفوظة — هوية
+   * تعريفية اختيارية بلا أي أثر مالي (الرصيد يُشتق من المصادر المرتبطة
+   * بمعرف الطرف وقت القراءة). الغياب في التصدير القديم = قائمة فارغة بلا
+   * اختراع هوية ولا ربط تاريخي بالتخمين. */
+  counterparties?: readonly SavedParty[];
   /* OPS-003 (عقد ٤١): سلاسل المصروف المتكرر ومراجعاتها وفتراتها — ثلاث مجموعات
    * جديدة فوق أحداثها داخل financialEvents؛ الفترة تحمل رابط الحدث
    * (recordedFinancialEventId) باتجاه واحد. الغياب في التصدير القديم = قائمة
@@ -761,6 +780,17 @@ export interface PrototypeLocalStore {
       reused: boolean;
     }>
   >;
+  /* S05 (DOC-014 / UNIT-037 + العقد المشترك §14): كتابة الطرف المحفوظ المحروسة
+   * عند حد الكتابة — القراءة والفحص والكتابة في معاملة واحدة (IndexedDB) أو
+   * خطوة متزامنة واحدة (الذاكرة): إعادة الأمر نفسه (operationKey) إعادة
+   * استخدام صادقة بلا كتابة ثانية؛ والإنشاء فوق سجل قائم بمفتاح مختلف
+   * تعارض صادق؛ والتعديل (تسمية/أرشفة) CAS حي على updatedAt — الأساس الذي
+   * قرأته الخدمة يطابق الحي داخل الحد وإلا حُبط بلا كتابة. */
+  listCounterparties(): Promise<StorageResult<readonly SavedParty[]>>;
+  getCounterparty(id: string): Promise<StorageResult<SavedParty | null>>;
+  commitCounterpartyWrite(
+    commit: CounterpartyWriteCommit,
+  ): Promise<StorageResult<{ party: SavedParty; reused: boolean }>>;
   listMaterials(): Promise<StorageResult<readonly Material[]>>;
   listInventoryMovements(): Promise<StorageResult<readonly InventoryMovement[]>>;
   getInventoryActivation(): Promise<StorageResult<InventoryActivation | null>>;

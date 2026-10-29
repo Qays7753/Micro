@@ -2,7 +2,7 @@
   "version": 1,
   "description": "R5/S2 ratchet baseline (check-application-door-surfaces.mjs): exact value+type export surfaces of every application door (any-depth index.ts) plus the production application root-file set. Widening, shrinking, an unregistered new door/nested barrel/root barrel/root file, a deleted door, or a wildcard export (export * / export * as ns) all FAIL. Deliberate surface changes update this file in the same PR with a dated note.",
   "notes": {
-    "unconsumed-type-symbols": "Six doors carry exactly one type symbol without a live door consumer (the service type): parties, activity, financial-pulse, follow-up, cost, estimates — pinned as-is (R5 ledger §1); trimming is a surface change reserved for a later wave.",
+    "unconsumed-type-symbols": "Five doors carry exactly one type symbol without a live door consumer (the service type): activity, financial-pulse, follow-up, cost, estimates — pinned as-is (R5 ledger §1); trimming is a surface change reserved for a later wave. parties left this list at S05 (DOC-014 / UNIT-037): its door now carries the directory surface with live door consumers.",
     "r10b-nf003-theme-preference-door-type": "2026-10-11 (R10-B3/R10B-NF-003): preferences type surface +ThemePreference — the canonical theme-preference type consumed by contexts/ThemeContext.tsx (type-only import) after deleting its local re-declaration; same-PR documented widening per PC-3.",
     "r10b-f004-capability-id-door": "2026-10-11 (R10-B3/R10A-F-004): preferences door +type CapabilityId +value isKnownCapabilityId — canonical capability-id declaration consolidated to the persistence owner; UI consumers (hook re-export, Settings) narrow explicitly instead of unsound casts; same-PR documented widening per PC-3.",
     "r10b-nf001-payment-source-door": "2026-10-12 (R10-B3/R10B-NF-001): finance door +value PAYMENT_SOURCE_UNSET +value resolveDefaultPaymentSource — the sentinel and the 0/1/multi-wallet default rule consolidated to their canonical owner application/finance/paymentSourcePolicy.ts; the UI consumer (components/finance/expenseFormModel) imports through the door per STR-615/R6 (no deep UI-to-application imports); same-PR documented widening per PC-3.",
@@ -10,12 +10,18 @@
     "arch012-drafts-door-retirement": "2026-10-15 (R11 ARCH-012 / retirement): drafts door value surface emptied (-LEGACY_SETUP_DRAFT_KEY, -browserLegacyFormDraftStorage, -clearLegacyFormDraftStorage, -legacyFinanceDraftKey, -migrateLegacyFormDraft) — the legacy form-draft migration adapter was intentionally retired before launch by owner decision (census + decision record in docs/architecture/refactoring/r11-arch012-20261015/evidence/); type surface (FormDraftService, FormDraftValues) unchanged; documented same-PR deliberate shrink.",
     "S02-B": "إعادة إرساء باب الأمن: تقاعد القفل (UNIT-042) — المقيم الوحيد تقاعد سجل القفل القديم.",
     "S02-A": "إعادة إرساء باب النقل: نوعا الأمر المربوط بالمراجعة (BoundRestoreIntent/RestoreIntentContext) — بروتوكول حماية الاستبدال SH-02/SH-03.",
-    "s03-offering-preference-door": "2026-10-28 (S03/DOC-012 — UNIT-038 P3.2 + UNIT-001 P3.2): preferences door +type OfferingPreference +value isOfferingPreference — the canonical offering-preference declaration owned by the preferences service (single source for the 001 setup question and the 038 usage-preferences editor); UI consumers import through the door instead of re-declaring; same-PR documented widening per PC-3."
+    "s03-offering-preference-door": "2026-10-28 (S03/DOC-012 — UNIT-038 P3.2 + UNIT-001 P3.2): preferences door +type OfferingPreference +value isOfferingPreference — the canonical offering-preference declaration owned by the preferences service (single source for the 001 setup question and the 038 usage-preferences editor); UI consumers import through the door instead of re-declaring; same-PR documented widening per PC-3.",
+    "S05": "2026-10-29 (S05 / DOC-014 / UNIT-037): parties door re-anchored to the saved-party directory surface — +3 values (purchasePartySnapshotOf/salePartySnapshotOf/supplierDisplayLabelOf) and +10 types (directory service/result/store, account entry, movement kinds, save/rename/archive inputs) after retiring the name-aggregation reader (PartyLedgerOverview/PartyLedgerService removed); same-PR documented widening+shrink per PC-3."
   },
   "doors": {
     "activity": {
       "value": [],
-      "type": ["ActivityEffectClass", "ActivityFamily", "ActivityRecord", "ActivityService"]
+      "type": [
+        "ActivityEffectClass",
+        "ActivityFamily",
+        "ActivityRecord",
+        "ActivityService"
+      ]
     },
     "agreements": {
       "value": [
@@ -25,15 +31,30 @@
         "protectionPriceIsReadyForAgreement",
         "startAgreementPrice"
       ],
-      "type": ["AgreementContextService", "AgreementResult", "AgreementService", "AgreementSourceValue"]
+      "type": [
+        "AgreementContextService",
+        "AgreementResult",
+        "AgreementService",
+        "AgreementSourceValue"
+      ]
     },
     "assets": {
       "value": [],
-      "type": ["AssetOverviewRead", "AssetService", "AssetSummaryRow"]
+      "type": [
+        "AssetOverviewRead",
+        "AssetService",
+        "AssetSummaryRow"
+      ]
     },
     "budgets": {
-      "value": ["ExpenseBudgetService"],
-      "type": ["ExpenseBudgetMonthList", "ExpenseBudgetStatusLine", "ExpenseBudgetStatusesReading"]
+      "value": [
+        "ExpenseBudgetService"
+      ],
+      "type": [
+        "ExpenseBudgetMonthList",
+        "ExpenseBudgetStatusLine",
+        "ExpenseBudgetStatusesReading"
+      ]
     },
     "cash": {
       "value": [
@@ -42,11 +63,19 @@
         "cashCountDifferenceReason",
         "cashCountSettlementNote"
       ],
-      "type": ["CashContinuityOverview", "CashWalletBalance", "WalletLedgerOverview"]
+      "type": [
+        "CashContinuityOverview",
+        "CashWalletBalance",
+        "WalletLedgerOverview"
+      ]
     },
     "catalog": {
       "value": [],
-      "type": ["CatalogService", "TemplatePlannedCost", "TemplatePlannedCostService"]
+      "type": [
+        "CatalogService",
+        "TemplatePlannedCost",
+        "TemplatePlannedCostService"
+      ]
     },
     "collections": {
       "value": [],
@@ -64,19 +93,31 @@
     },
     "cost": {
       "value": [],
-      "type": ["CostEditorInput", "CostService"]
+      "type": [
+        "CostEditorInput",
+        "CostService"
+      ]
     },
     "diagnostics": {
-      "value": ["localDiagnostics", "routeTemplateFor"],
+      "value": [
+        "localDiagnostics",
+        "routeTemplateFor"
+      ],
       "type": []
     },
     "drafts": {
       "value": [],
-      "type": ["FormDraftService", "FormDraftValues"]
+      "type": [
+        "FormDraftService",
+        "FormDraftValues"
+      ]
     },
     "estimates": {
       "value": [],
-      "type": ["CostEstimateInput", "CostEstimateService"]
+      "type": [
+        "CostEstimateInput",
+        "CostEstimateService"
+      ]
     },
     "finance": {
       "value": [
@@ -133,7 +174,10 @@
     },
     "financial-pulse": {
       "value": [],
-      "type": ["FinancialPulseService", "LocalFinancialPulse"]
+      "type": [
+        "FinancialPulseService",
+        "LocalFinancialPulse"
+      ]
     },
     "financial-records": {
       "value": [
@@ -154,7 +198,10 @@
     },
     "follow-up": {
       "value": [],
-      "type": ["DailyFollowUp", "DailyFollowUpService"]
+      "type": [
+        "DailyFollowUp",
+        "DailyFollowUpService"
+      ]
     },
     "fulfillment": {
       "value": [],
@@ -190,7 +237,9 @@
         "parseEnglishQuantityText",
         "percentToBpsExact"
       ],
-      "type": ["EnglishNumericKind"]
+      "type": [
+        "EnglishNumericKind"
+      ]
     },
     "inventory": {
       "value": [
@@ -212,7 +261,9 @@
       ]
     },
     "loans": {
-      "value": ["ReceivedLoanService"],
+      "value": [
+        "ReceivedLoanService"
+      ],
       "type": [
         "LoanOverviewRead",
         "LoanService",
@@ -222,15 +273,39 @@
       ]
     },
     "owner-money": {
-      "value": ["OwnerEntitlementService"],
-      "type": ["CrossModelOwnerDuplicate", "OwnerEntitlementOverview", "OwnerMoneyOverview"]
+      "value": [
+        "OwnerEntitlementService"
+      ],
+      "type": [
+        "CrossModelOwnerDuplicate",
+        "OwnerEntitlementOverview",
+        "OwnerMoneyOverview"
+      ]
     },
     "parties": {
-      "value": [],
-      "type": ["PartyLedgerOverview", "PartyLedgerService"]
+      "value": [
+        "purchasePartySnapshotOf",
+        "salePartySnapshotOf",
+        "supplierDisplayLabelOf"
+      ],
+      "type": [
+        "PartyAccountEntry",
+        "PartyDirectoryOverview",
+        "PartyDirectoryResult",
+        "PartyDirectoryService",
+        "PartyDirectoryServiceStore",
+        "PartyMovement",
+        "PartyMovementKind",
+        "RenamePartyInput",
+        "SavePartyInput",
+        "SetPartyArchiveInput"
+      ]
     },
     "preferences": {
-      "value": ["isKnownCapabilityId", "isOfferingPreference"],
+      "value": [
+        "isKnownCapabilityId",
+        "isOfferingPreference"
+      ],
       "type": [
         "BrowserPersistenceReading",
         "CapabilityId",
@@ -240,7 +315,9 @@
       ]
     },
     "scheduling": {
-      "value": ["buildCapacityDecisionViewModel"],
+      "value": [
+        "buildCapacityDecisionViewModel"
+      ],
       "type": [
         "MonthOverview",
         "RecurrenceView",
@@ -252,20 +329,38 @@
       ]
     },
     "security": {
-      "value": ["retireLocalLockRecord"],
-      "type": ["LockRetirementOutcome"]
+      "value": [
+        "retireLocalLockRecord"
+      ],
+      "type": [
+        "LockRetirementOutcome"
+      ]
     },
     "share": {
-      "value": ["collectionShareDraft", "customerShareDraft", "standingCollectionEvent"],
-      "type": ["ShareDraft"]
+      "value": [
+        "collectionShareDraft",
+        "customerShareDraft",
+        "standingCollectionEvent"
+      ],
+      "type": [
+        "ShareDraft"
+      ]
     },
     "suppliers": {
       "value": [],
-      "type": ["SupplierPurchaseService", "SupplierPurchaseSummary"]
+      "type": [
+        "SupplierPurchaseService",
+        "SupplierPurchaseSummary"
+      ]
     },
     "time": {
-      "value": ["todayInAmman"],
-      "type": ["ActualTimeService", "OperatingModeValue"]
+      "value": [
+        "todayInAmman"
+      ],
+      "type": [
+        "ActualTimeService",
+        "OperatingModeValue"
+      ]
     },
     "transfers": {
       "value": [],
@@ -282,5 +377,7 @@
       ]
     }
   },
-  "rootFiles": ["resultCodes.ts"]
+  "rootFiles": [
+    "resultCodes.ts"
+  ]
 }

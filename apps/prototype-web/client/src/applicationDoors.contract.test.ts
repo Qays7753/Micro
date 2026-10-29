@@ -83,7 +83,9 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
     "percentToBpsExact",
   ],
   loans: ["ReceivedLoanService"],
-  parties: [],
+  /* S05 (DOC-014 / UNIT-037، 2026-10-29): باب الدليل — القيم الثلاث
+   * (لقطة البيع/الشراء وتسمية العرض) عبر الباب. */
+  parties: ["purchasePartySnapshotOf", "salePartySnapshotOf", "supplierDisplayLabelOf"],
   /* R10-B3 (R10A-F-004، 2026-10-11): حارس ترشيح المعرّفات المعروفة عبر
    * الباب بعد توحيد إعلان CapabilityId — توسيع سطح مقصود PC-3. */
   /* S03 (UNIT-038 P3.2/UNIT-001 P3.2): توسيع سطح مقصود بنفس الـPR وفق PC-3 —

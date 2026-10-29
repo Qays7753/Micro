@@ -147,8 +147,9 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "inventory/materialSuggestions.ts",
   "inventory/materialUnitLabels.ts",
   "loans/index.ts",
+  /* S05 (DOC-014 / UNIT-037، 2026-10-29): أُخرج parties/partyLedgerService.ts من جسم القراءة —
+   * صار كاتبًا محروسًا (save/rename/archive عند حد commitCounterpartyWrite) لا قارئًا. */
   "parties/index.ts",
-  "parties/partyLedgerService.ts",
   "preferences/index.ts",
   "resultCodes.ts",
   "scheduling/capacityDecisionService.ts",

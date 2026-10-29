@@ -6,7 +6,7 @@
  *    بمصدرَيه (مبالغ للموردين + مصاريف مستحقة) مع السطر المساعد المعتمد،
  *    ولكل نوع مسار تسديده بالكاتب الرسمي القائم — لا Writer جديد.
  * ٢) الحالات الصادقة: غير مسجل طريق؛ صفر موثق نص صريح لا أصفار مضللة.
- * ٣) بطاقات المركز تفتح مصادرها (الكاش → المحافظ، الذمم → دفتر الناس).
+ * ٣) بطاقات المركز تفتح مصادرها (الكاش → المحافظ، الذمم → دليل «العملاء والموردين»).
  * ٤) سلامة الحسابات: السجلات المتأثرة تُعرض بأسماء عملياتها وتواريخها
  *    ومبالغها وروابطها — لا معرّفات تقنية خام حيث يمكن الاسم.
  */
@@ -203,7 +203,7 @@ describe("Wave 4.3 — P-4.3-3: Finance obligations surface (شو عليّ؟)", 
     await screen.findByTestId("finance-obligations");
     fireEvent.click(screen.getByRole("button", { name: "افتح محافظ الكاش" }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/cash?returnTo=%2Ffinance");
-    fireEvent.click(screen.getByRole("button", { name: "افتح دفتر الناس" }));
+    fireEvent.click(screen.getByRole("button", { name: "افتح العملاء والموردين" }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/parties?returnTo=%2Ffinance");
   });
 

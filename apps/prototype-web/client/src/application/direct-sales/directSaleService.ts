@@ -41,6 +41,9 @@ export type DirectSaleRecordInput = {
   catalogItemId?: string | null;
   /* D-001: زبون البيع الآجل كبيانات مستقلة — لا اسم مدفون في الملاحظة. */
   customerName?: string | null;
+  /* S05 (DOC-014 / UNIT-037): ربط طرف محفوظ صريح إن اختير — لقطة الاسم
+   * تبقى customerName كما سُجلت وقت الحفظ. */
+  customerPartyId?: string | null;
   costMinor: number | null;
   occurredOn: string;
   note: string;
@@ -111,6 +114,8 @@ export class DirectSaleService {
         collectionStatus: input.collectionStatus,
         catalogItemId: input.catalogItemId ?? null,
         customerName: input.customerName ?? null,
+        /* S05 (DOC-014 / UNIT-037): الرابط الصريح للمحفوظ المختار. */
+        customerPartyId: input.customerPartyId ?? null,
         costMinor: input.costMinor,
         occurredOn: input.occurredOn,
         recordedAt: this.now(),

@@ -68,6 +68,7 @@ import {
   validLoanRecord,
   validReceivedLoanRecord,
   validBalanceObservation,
+  validSavedParty,
   validMaterial,
   validMeasurementUnit,
   validShortCashDeclaration,
@@ -129,7 +130,11 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
      * (30/38 وأقدم) — المصفوفة إن وُجدت؛ الغياب = قائمة فارغة بلا اختراع قياس. */
     (data.balanceObservations !== undefined &&
       data.balanceObservations !== null &&
-      !Array.isArray(data.balanceObservations))
+      !Array.isArray(data.balanceObservations)) ||
+    /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة اختيارية في الملفات
+     * القديمة (31/39 وأقدم) — المصفوفة إن وُجدت؛ الغياب = قائمة فارغة بلا
+     * اختراع هوية. */
+    (data.counterparties !== undefined && data.counterparties !== null && !Array.isArray(data.counterparties))
   )
     return false;
   if (
@@ -1156,6 +1161,15 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     if (!validBalanceObservation(observation) || observationIds.has(observation.id)) return false;
     observationIds.add(observation.id);
     if (observation.scopeKind === "wallet" && !walletIds.has(observation.walletId as string)) return false;
+  }
+  /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة — هوية فريدة وشكل
+   * سليم؛ لا فحص تسمية إطلاقًا (طرفان بالتسمية نفسها هويتان مستقلتان —
+   * لا دمج بالاسم أبدًا)؛ الملف المكسور أو المدموج يدويًا يُرفض قبل أي
+   * معاينة. المراجع المصدرية على البيع/الشراء تُفحص عند عائلاتها. */
+  const counterpartyIds = new Set<string>();
+  for (const party of data.counterparties ?? []) {
+    if (!validSavedParty(party) || counterpartyIds.has(party.id)) return false;
+    counterpartyIds.add(party.id);
   }
   /* OPS-003 (عقد ٤١): عائلة المصروف المتكرر — هوية فريدة وترابط صادق:
    * المراجعة والفترة تشيران لسلسلة موجودة، والفترة المقَرَّرة تربط حدثًا

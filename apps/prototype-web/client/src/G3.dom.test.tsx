@@ -25,7 +25,7 @@ import { TemplatePlannedCostService } from "@/application/catalog/templatePlanne
 import { ActualTimeService } from "@/application/time/actualTimeService";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
-import { PartyLedgerService } from "@/application/parties/partyLedgerService";
+import { PartyDirectoryService } from "@/application/parties/partyLedgerService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { FormDraftService } from "@/application/drafts/formDraftService";
@@ -91,7 +91,7 @@ function G3Harness({ page }: { page: React.ReactNode }) {
     actualTime: new ActualTimeService(store, () => NOW),
     schedules: new ScheduleService(store, () => NOW),
     supplierPurchases: new SupplierPurchaseService(store, () => NOW),
-    partyLedger: new PartyLedgerService(store),
+    partyDirectory: new PartyDirectoryService(store, () => NOW),
     dataVersion: version,
     notifyDataChanged: () => setVersion(current => current + 1),
   };

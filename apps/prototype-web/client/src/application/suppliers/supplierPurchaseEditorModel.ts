@@ -102,7 +102,8 @@ export function supplierPurchaseToFormValues(purchase: SupplierPurchase): Suppli
   /* وضع التعديل يبدأ معبّأً بقيم الشراء الحالية — البديل هو ما يُصحّح. */
   const initial = purchase.payments.find(payment => payment.id === `${purchase.id}:initial`);
   return {
-    supplierName: purchase.supplierName,
+    /* S05 (DOC-014 / UNIT-037): null = بلا مورد مسجل — النموذج يعرضه فراغًا. */
+    supplierName: purchase.supplierName ?? "",
     note: purchase.note,
     purchasedOn: purchase.purchasedOn,
     dueOn: purchase.dueOn ?? "",

@@ -43,6 +43,7 @@ import {
   validationFailure,
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
+import { supplierDisplayLabelOf } from "../parties";
 
 /* Wave C (ADR-015 مجموعة 5 — 2026-10-04): النوع الضيق للخدمة — قسم تصريحات
  * الكاش القصير من قدرة السجل المخزّن (قيد 4A محفوظ: سجل مخزّن لا read
@@ -307,7 +308,7 @@ function payables(events: readonly FinancialEvent[], purchases: readonly Supplie
       direction: "commitment" as const,
       amountMinor: purchase.payableMinor,
       dueOn: purchase.dueOn,
-      source: `مشتريات مورد: ${purchase.supplierName}`,
+      source: `مشتريات مورد: ${supplierDisplayLabelOf(purchase)}`,
     }));
   return [...eventPayables, ...purchasePayables];
 }

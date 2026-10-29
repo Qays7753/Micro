@@ -26,6 +26,8 @@ export function exportCountsOf(snapshot: LocalStoreSnapshot): LocalExportCounts 
     /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة داخل العدادات الصارمة. */
     receivedLoans: snapshot.receivedLoans?.length ?? 0,
     balanceObservations: snapshot.balanceObservations?.length ?? 0,
+    /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة داخل العدادات الصارمة. */
+    counterparties: snapshot.counterparties?.length ?? 0,
     schedules: snapshot.schedules?.length ?? 0,
     drafts: snapshot.drafts?.length ?? 0,
     /* R10-B2/RC-1 (R10A-F-009 — عائلات مال المالك الأربع داخل العدادات

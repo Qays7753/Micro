@@ -232,6 +232,10 @@ export default function Home() {
   const search = useSearch();
   const setupDone = new URLSearchParams((search ?? "").replace(/^\?/, "")).get("setup") === "1";
   useEffect(() => {
+    /* S05 (ميزانية الحزمة — نمط العدّ/دليل الأطراف): المركز يُحمَّل ديناميكيًا
+     * بعد الإقلاع؛ حتى جاهزيته تبقى الصفحة في حالة تجهيزها الصادقة (role=status)
+     * ولا يُدّعى فشل قراءة — غياب الخدمة ليس خطأ القراءة. */
+    if (!homeControlCenter) return;
     let active = true;
     /* S5-08 (المجموعة ٦ — البند ٦): تحديث خلفي لا وميض تحميل — القراءة السابقة
      * تبقى معروضة حتى تصل الجديدة (stale-while-revalidate)؛ حالة التحميل الكاملة
@@ -495,7 +499,7 @@ export default function Home() {
               <li>
                 {model.awaySection.overdueDebtCount} دين فات موعد متابعته —{" "}
                 <button className="micro-text-action" type="button" onClick={() => openFromHome("/parties")}>
-                  راجع دفتر الناس
+                  راجع العملاء والموردين
                 </button>
               </li>
             ) : null}

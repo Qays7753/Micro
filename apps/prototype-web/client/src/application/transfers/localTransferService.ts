@@ -93,6 +93,8 @@ export type TransferSummary = {
   /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة في ملخص النقل. */
   receivedLoans: number;
   balanceObservations: number;
+  /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة في ملخص النقل. */
+  counterparties: number;
   snapshots: number;
   events: number;
   exportedAt: string;
@@ -174,6 +176,7 @@ function summary(file: LocalExportFile): TransferSummary {
     expenseBudgets: file.data.expenseBudgets?.length ?? 0,
     receivedLoans: file.data.receivedLoans?.length ?? 0,
     balanceObservations: file.data.balanceObservations?.length ?? 0,
+    counterparties: file.data.counterparties?.length ?? 0,
     snapshots,
     events,
     exportedAt: file.exportedAt,
@@ -489,6 +492,9 @@ export class LocalTransferService {
        * من جديد» لا يخترع التزامًا ولا تاريخًا. */
       receivedLoans: [],
       balanceObservations: [],
+      /* S05 (DOC-014 / UNIT-037): لا أطراف محفوظة في اللقطة الفارغة —
+       * «ابدأ من جديد» لا يخترع هوية. */
+      counterparties: [],
     };
   }
 

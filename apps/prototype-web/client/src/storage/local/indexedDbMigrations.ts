@@ -43,6 +43,7 @@ import {
   shortCashDeclarationStore,
   supplierPurchaseStore,
   receivedLoanStore,
+  counterpartyStore,
   balanceObservationStore,
 } from "./indexedDbStores";
 import { STORAGE_UPGRADE_FAILED } from "./resultCodes";
@@ -307,6 +308,17 @@ export function applySchemaUpgrade(request: IDBOpenDBRequest, event: IDBVersionC
     observations.createIndex("walletId", "walletId");
     observations.createIndex("observedOn", "observedOn");
     observations.createIndex("operationKey", "operationKey");
+  }
+  /* S05 (DOC-014 / UNIT-037 + العقد المشترك §8 — نمط D-037 — الترقية 39→40):
+   * مخزن الأطراف المحفوظة بمُنشئ محروس — لا ترحيل بيانات ولا تعديل سجل
+   * قائم؛ القاعدة القديمة تفتح وتجده فارغًا. فهارس updatedAt وoperationKey
+   * للتصفح والعهدة؛ لا فهارس فريدة ولا فهرس تسمية — التسمية ليست هوية
+   * (طرفان بالاسم نفسه مستقلان)، وحارس الالتزام داخل حد الكتابة
+   * (commitCounterpartyWrite) يكفي الحتمية. */
+  if (!database.objectStoreNames.contains(counterpartyStore)) {
+    const counterparties = database.createObjectStore(counterpartyStore, { keyPath: "id" });
+    counterparties.createIndex("updatedAt", "updatedAt");
+    counterparties.createIndex("operationKey", "operationKey");
   }
   const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
   if (policyStore && !policyStore.indexNames.contains("seriesId"))

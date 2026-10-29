@@ -7,8 +7,8 @@
     "authority": "OD-10 Option A (owner-approved 2026-10-13, R11 owner decision package) + R11 W0 census (128 edges / 80 value / 48 type) + RV1/R11-RV1 independent reproductions"
   },
   "totals": {
-    "edges": 129,
-    "value": 80,
+    "edges": 130,
+    "value": 81,
     "type": 49,
     "governedEdges": 63,
     "governedPairs": 42
@@ -565,6 +565,11 @@
       "exemptTarget": true
     },
     {
+      "key": "application/parties/partyLedgerService.ts -> application/time/clock.ts",
+      "kind": "value",
+      "exemptTarget": true
+    },
+    {
       "key": "application/preferences/preferenceService.ts -> application/time/clock.ts",
       "kind": "value",
       "exemptTarget": true
@@ -837,7 +842,7 @@
       "importAllowlist": [
         "@micro-domain/shared/index.js"
       ],
-      "notes": "The clock port (STR-618): the ONLY active ambient clock (systemClock) + todayInAmman. 49 census edges target it. Frozen behind OD-10; additions require a new owner decision."
+      "notes": "The clock port (STR-618): the ONLY active ambient clock (systemClock) + todayInAmman. 50 census edges target it. Frozen behind OD-10; additions require a new owner decision."
     },
     {
       "path": "application/formatting/formatters.ts",

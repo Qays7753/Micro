@@ -31,7 +31,9 @@ import { systemClock, type Clock } from "@/application/time/clock";
 import { formatMoneyWithUnit } from "@/application/formatting/formatters";
 
 export type SupplierPurchaseInput = {
-  supplierName: string;
+  /* S05 (DOC-014 / UNIT-037 AC02): null = شراء مدفوع كاملًا بلا مورد مسجل. */
+  supplierName: string | null;
+  supplierPartyId?: string | null;
   note: string;
   purchasedOn: string;
   dueOn: string | null;
@@ -58,7 +60,9 @@ export type SupplierPurchasePaymentInput = {
 /* المجموعة ٢ (§10.4): تعديل موثق لسجل الشراء — يعرض الأثر قبل التنفيذ من الواجهة. */
 export type SupplierPurchaseEditInput = {
   purchaseId: string;
-  supplierName: string;
+  /* S05 (DOC-014 / UNIT-037): null = بلا مورد مسجل (مسموح ما دام مسددًا كاملًا). */
+  supplierName: string | null;
+  supplierPartyId?: string | null;
   note: string;
   purchasedOn: string;
   dueOn: string | null;
@@ -197,6 +201,7 @@ export class SupplierPurchaseService {
       const purchase = createSupplierPurchase({
         id: id(),
         supplierName: input.supplierName,
+        supplierPartyId: input.supplierPartyId ?? null,
         note: input.note,
         purchasedOn: input.purchasedOn,
         dueOn: input.dueOn,
@@ -353,6 +358,7 @@ export class SupplierPurchaseService {
     try {
       const updated = updateSupplierPurchase(existing.value, {
         supplierName: input.supplierName,
+        supplierPartyId: input.supplierPartyId ?? null,
         note: input.note,
         purchasedOn: input.purchasedOn,
         dueOn: input.dueOn,

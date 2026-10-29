@@ -280,9 +280,11 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
     }
   });
 
-  it("schema and export versions: 39/31 with the observation family exported and restored — and a legacy snapshot without it restores to an empty family", async () => {
-    expect(localSchemaVersion).toBe(39);
-    expect(localExportVersion).toBe(31);
+  it("schema and export versions: 40/32 with the observation family exported and restored — and a legacy snapshot without it restores to an empty family", async () => {
+    /* S05 (DOC-014، 2026-10-29): ٤٠/٣٢ — عائلة الأطراف المحفوظة؛ رصد
+     * الأرصدة (عائلة S04) ينتقل معها بلا ترحيل بيانات. */
+    expect(localSchemaVersion).toBe(40);
+    expect(localExportVersion).toBe(32);
     for (const { store } of adapters()) {
       const cash = new CashContinuityService(store, now);
       const count = new CashCountService(store, now);

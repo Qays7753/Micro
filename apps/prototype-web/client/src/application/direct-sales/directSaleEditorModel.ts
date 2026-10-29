@@ -167,6 +167,11 @@ export type DirectSaleFormValues = {
   costKnown: boolean;
   costMinor: number;
   customerName: string;
+  /* S05 (DOC-014 / UNIT-037): رابط الطرف المحفوظ المختار وقرار حفظه —
+   * يُسترجعان مع المسودة كما كانا (عقد B3: الاستعادة تعيد اختيارها وموافقة
+   * حفظها)، ويُثبّتان على المصدر عند الحفظ. */
+  customerPartyId: string;
+  saveForReuse: boolean;
   catalogItemId: string;
   occurredOn: string;
   note: string;
@@ -184,6 +189,8 @@ export function directSaleToFormValues(sale: DirectSale): DirectSaleFormValues {
     costKnown: sale.costMinor !== null,
     costMinor: sale.costMinor ?? 0,
     customerName: sale.customerName ?? "",
+    customerPartyId: sale.customerPartyId ?? "",
+    saveForReuse: false,
     catalogItemId: sale.catalogItemId ?? "",
     occurredOn: sale.occurredOn,
     note: sale.note,

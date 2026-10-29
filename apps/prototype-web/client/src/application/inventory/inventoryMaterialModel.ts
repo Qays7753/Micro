@@ -76,7 +76,7 @@ export type InventoryReferences = {
   allMaterials: readonly Material[];
   purchases: readonly {
     id: string;
-    supplierName: string;
+    supplierName: string | null;
     note: string;
     totalMinor: number;
     materialId: string | null;

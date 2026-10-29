@@ -69,7 +69,10 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
      * بالضبط (مهايئ التشخيص).
      * S04 (لاحق، DOC-013): خدمة العدّ المستقلة (cashCountService) أُضيفت
      * كملف إنتاج مزروع فصار العدّ 372؛ والتسجيل يبقى موضعًا واحدًا بالضبط. */
-    expect(stdout).toMatch(/372 ملف إنتاج/);
+    /* S05 (DOC-014، 2026-10-29): +counterpartyCommitGuard.ts (حد كتابة الأطراف
+     * عند التخزين — لا وصول لتخزين المتصفح) فنما العدّ 372→373؛ بروتوكول
+     * الراتشة نفسه (تحديث بنفس الـPR مع السبب الموثق). */
+    expect(stdout).toMatch(/373 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

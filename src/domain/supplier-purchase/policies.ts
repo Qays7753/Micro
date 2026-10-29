@@ -44,9 +44,67 @@ const recompute = (purchase: SupplierPurchase, paidMinor: number, recordedAt: st
     status: statusFor(purchase.totalMinor, paidMinor),
     updatedAt: recordedAt,
   });
-/* المجموعة ٢: حقول الشراء المشتركة — نفس تحقق الإنشاء والتعديل لا نسختان تتباعدان. */
+/* S05 (DOC-014 / UNIT-037 A1/AC02/AC04 + U037-F02): تعريف الجهة عند الاستحقاق
+ * القائم — المدفوع الفعلي بعد العملية هو الحاكم (عند الإنشاء: الدفع الأولي
+ * وحده؛ عند التعديل: المدفوع بعد التعديل كاملًا). القاعدة مسطحة بلا
+ * استثناء رجعي: كل استحقاق قائم في تاريخ هذا النظام يحمل تعريفًا (السجلات
+ * القديمة كلها مسماة)، فلا يوجد قديم بلا تعريف يُظلم بالقيد. */
+const SUPPLIER_DEFINITION_REQUIRED_MESSAGE =
+  "اكتب اسمًا أو وصفًا يعرّف جهة المبلغ المستحق، أو اختر موردًا محفوظًا — الاستحقاق بلا تعريف يضيع من المتابعة.";
+
+const assertSupplierIdentityForPayable = (input: {
+  supplierName: string | null;
+  supplierPartyId?: string | null | undefined;
+  paidMinor: number;
+  totalMinor: number;
+}) => {
+  const hasSupplierIdentity = Boolean(input.supplierName?.trim() || input.supplierPartyId?.trim());
+  if (input.paidMinor < input.totalMinor && !hasSupplierIdentity)
+    throw new Error(SUPPLIER_DEFINITION_REQUIRED_MESSAGE);
+  /* S05 (العقد المشترك §5.1 — PartyRef): الرابط المحفوظ يحمل لقطة تسميته
+   * معه دائمًا — رابط بلا لقطة شكل مكسور يُرفض داخل المجال. */
+  if (input.supplierPartyId?.trim() && !input.supplierName?.trim())
+    throw new Error("ربط المورد المحفوظ يحمل لقطة اسمه معه — أعد اختيار المورد قبل الحفظ.");
+};
+
+/* S05 (DOC-014 / UNIT-037 AC02): توحيد هوية المورد على السجل — الفراغ يُقرأ
+ * «بلا مورد مسجل» بصدق، والربط المحفوظ الصريح يُثبّت كما اختير. */
+const supplierIdentityOf = (input: {
+  supplierName?: string | null | undefined;
+  supplierPartyId?: string | null | undefined;
+}): { supplierName: string | null; supplierPartyId: string | null } => ({
+  supplierName: input.supplierName?.trim() || null,
+  supplierPartyId: input.supplierPartyId?.trim() || null,
+});
+
+/* الدفعة الأولية عند التسجيل — حرة تُبنى مرة واحدة للإنشاء وحده. */
+const initialPaymentsFor = (input: {
+  id: string;
+  initialPaidMinor: number;
+  purchasedOn: string;
+  recordedAt: string;
+  idempotencyKey: string;
+  initialPaymentWalletId?: string | null;
+}): readonly SupplierPurchasePayment[] =>
+  input.initialPaidMinor > 0
+    ? [
+        Object.freeze({
+          id: `${input.id}:initial`,
+          amountMinor: input.initialPaidMinor,
+          occurredOn: input.purchasedOn,
+          recordedAt: input.recordedAt,
+          idempotencyKey: `${input.idempotencyKey}:initial`,
+          note: "دفعة عند تسجيل الشراء",
+          /* FIN-003: مصدر الدفعة الأولية إن عُيّن — حركة التغطية تكتبها
+           * خدمة التطبيق بعد حفظ الشراء نفسه. */
+          walletId: input.initialPaymentWalletId?.trim() || null,
+        }),
+      ]
+    : [];
+
 const assertPurchaseFields = (input: {
-  supplierName: string;
+  supplierName: string | null;
+  supplierPartyId?: string | null;
   note: string;
   totalMinor: number;
   initialPaidMinor: number;
@@ -54,7 +112,6 @@ const assertPurchaseFields = (input: {
   dueOn?: string | null;
   recordedAt: string;
 }) => {
-  assertText(input.supplierName, "supplierName");
   assertText(input.note, "note");
   assertPositive(input.totalMinor, "totalMinor");
   assertNonNegative(input.initialPaidMinor, "initialPaidMinor");
@@ -99,26 +156,20 @@ export function createSupplierPurchase(input: CreateSupplierPurchaseInput): Supp
   assertText(input.idempotencyKey, "idempotencyKey");
   assertPurchaseFields(input);
   assertMaterialLink(input);
-  const payments: readonly SupplierPurchasePayment[] =
-    input.initialPaidMinor > 0
-      ? [
-          Object.freeze({
-            id: `${input.id}:initial`,
-            amountMinor: input.initialPaidMinor,
-            occurredOn: input.purchasedOn,
-            recordedAt: input.recordedAt,
-            idempotencyKey: `${input.idempotencyKey}:initial`,
-            note: "دفعة عند تسجيل الشراء",
-            /* FIN-003: مصدر الدفعة الأولية إن عُيّن — حركة التغطية تكتبها
-             * خدمة التطبيق بعد حفظ الشراء نفسه. */
-            walletId: input.initialPaymentWalletId?.trim() || null,
-          }),
-        ]
-      : [];
+  /* S05 (DOC-014 / UNIT-037): عند الإنشاء الدفع الأولي هو المدفوع كله. */
+  assertSupplierIdentityForPayable({
+    supplierName: input.supplierName,
+    supplierPartyId: input.supplierPartyId,
+    paidMinor: input.initialPaidMinor,
+    totalMinor: input.totalMinor,
+  });
+  const payments: readonly SupplierPurchasePayment[] = initialPaymentsFor(input);
   const paidMinor = totalPaid(payments);
   return Object.freeze({
     id: input.id,
-    supplierName: input.supplierName.trim(),
+    /* S05 (DOC-014 / UNIT-037 AC02): المورد اختياري في المدفوع كاملًا — الفراغ
+     * يُقرأ «بلا مورد مسجل» بصدق، والربط المحفوظ الصريح كما اختير. */
+    ...supplierIdentityOf(input),
     note: input.note.trim(),
     purchasedOn: input.purchasedOn,
     dueOn: input.dueOn?.trim() || null,
@@ -234,13 +285,23 @@ export function updateSupplierPurchase(
 
   const paidAfterEdit = paidAfterEditFor(purchase, input);
   assertPaidAfterEdit(paidAfterEdit, input.totalMinor);
+  /* S05 (DOC-014 / UNIT-037): المدفوع بعد التعديل هو الحاكم — تعديل يجعل
+   * الشراء مسددًا كاملًا يسمح بإخلاء المورد؛ واستحقاق قائم يوجب التعريف. */
+  assertSupplierIdentityForPayable({
+    supplierName: input.supplierName,
+    supplierPartyId: input.supplierPartyId,
+    paidMinor: paidAfterEdit,
+    totalMinor: input.totalMinor,
+  });
 
   const initialPayment = purchase.payments.find(payment => payment.id === `${purchase.id}:initial`);
   const revision = buildEditRevision(purchase, input, initialPayment?.amountMinor ?? 0);
   const next = recompute(
     {
       ...purchase,
-      supplierName: input.supplierName.trim(),
+      /* S05 (DOC-014 / UNIT-037): المدفوع كامله قد يُخلى المورد؛ والاستحقاق
+       * القائم يوجب التعريف — والهوية الموحدة تُطبّق فوق السجل. */
+      ...supplierIdentityOf(input),
       note: input.note.trim(),
       purchasedOn: input.purchasedOn,
       dueOn: input.dueOn?.trim() || null,

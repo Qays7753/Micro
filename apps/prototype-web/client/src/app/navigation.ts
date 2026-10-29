@@ -26,7 +26,7 @@ export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/cash")) return "محافظ الكاش";
   if (pathname.startsWith("/inventory")) return "المواد والمخزون";
   if (pathname.startsWith("/suppliers")) return "الموردون والمشتريات";
-  if (pathname.startsWith("/parties")) return "دفتر الناس";
+  if (pathname.startsWith("/parties")) return "العملاء والموردون";
   /* Wave 4.2 — P-4.2-4 (F05/N-22): التسمية السياقية لسطح سلامة الحسابات
    * بموضعه المعتمد — قبل فحص /tools العام (المسار التقني يبقى للتوافق). */
   if (pathname.startsWith("/tools/integrity")) return "سلامة الحسابات";

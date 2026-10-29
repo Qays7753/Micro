@@ -30,7 +30,56 @@ function assertLocalDate(value: string) {
 /* X-06: القبض لا يتجاوز السعر المتفق عليه — والفرق يحمل قرارًا صريحًا لا افتراضًا.
  * F-013 (W2-A): المجهول ليس مقبوضًا كاملًا — مدخلا الإنشاء والتعديل يوجبان قيمة
  * صريحة، ولا افتراض للقبض الكامل داخل المجال؛ عقد البيع النقدي السريع وحده
- * يُحل عند حد التطبيق مرة واحدة موثقًا (DirectSaleService.record). */
+ * يُحل عند حد التطبيق مرة واحدة موثقًا (DirectSaleService.record).
+ * S05 (DOC-014 / UNIT-037 A1/B4 + U037-F02): المستحق الجديد يحتاج تعريفًا
+ * بسيطًا — اسم/وصفًا يعرّف صاحب المبلغ أو ربط طرف محفوظ صريح (لقطته على
+ * المصدر)؛ لا هاتف ولا ملف دائم مفروض، ولا يُقبل فراغ يولّد دينًا بلا
+ * متبوع. القيد على المستحق الجديد فقط: القديم غير المسمى يبقى بحدوده بلا
+ * تعريف رجعي مفروض (UNIT-037 B2/AC14). */
+const PARTY_DEFINITION_REQUIRED_MESSAGE =
+  "اكتب اسمًا أو وصفًا يعرّف صاحب المبلغ المتبقي، أو اختر عميلًا محفوظًا — المتبقي بلا تعريف يضيع من المتابعة.";
+
+function hasPartyIdentity(input: {
+  customerName?: string | null | undefined;
+  customerPartyId?: string | null | undefined;
+}): boolean {
+  return Boolean(input.customerName?.trim() || input.customerPartyId?.trim());
+}
+
+/* S05 (العقد المشترك §5.1 — PartyRef): الرابط المحفوظ يحمل لقطة تسميته معه
+ * دائمًا (saved:{partyId,labelSnapshot}) — رابط بلا لقطة شكل مكسور يُرفض
+ * داخل المجال، فتبقى المصادر معروضة الاسم حتى لو أُعيدت تسمية الطرف لاحقًا. */
+const PARTY_LINK_REQUIRES_SNAPSHOT_MESSAGE =
+  "ربط الطرف المحفوظ يحمل لقطة اسمه معه — أعد اختيار الطرف قبل الحفظ.";
+
+function assertPartyLinkCarriesSnapshot(input: {
+  customerName?: string | null | undefined;
+  customerPartyId?: string | null | undefined;
+}): void {
+  if (input.customerPartyId?.trim() && !input.customerName?.trim())
+    throw new Error(PARTY_LINK_REQUIRES_SNAPSHOT_MESSAGE);
+}
+
+/* S05 (DOC-014 / UNIT-037 A1/AC06): قيد المستحق الجديد فقط عند التعديل —
+ * الدلتا من الحالة الأصلية تحدد هل استُحدث دين جديد (كان غير دَين فصار
+ * partial_debt)؛ القديم غير المسمى الذي بقي دينًا كما كان يبقى بلا تعريف
+ * رجعي مفروض (B2/AC14) — التعديل على أصل قائم لا يستحدث حقًا جديدًا. */
+function assertDebtDefinitionOnEdit(updated: DirectSale, source: DirectSale): void {
+  const introducesNewDebt =
+    updated.collectionStatus === "partial_debt" && source.collectionStatus !== "partial_debt";
+  if (
+    introducesNewDebt &&
+    !hasPartyIdentity({ customerName: updated.customerName, customerPartyId: updated.customerPartyId })
+  )
+    throw new Error(PARTY_DEFINITION_REQUIRED_MESSAGE);
+}
+
+/* إبقاء الأصل عند الغياب (مسار التعديل): undefined يُبقي الأصل، والقيمة الصريحة
+ * (ومنها null) تُطبّق — منطق موحد للمرجع والزبون وربط الطرف المحفوظ. */
+function keepOrOverride<T>(incoming: T | undefined, current: T | null): T | null {
+  return incoming !== undefined ? incoming : current;
+}
+
 function resolveCollection(
   revenueMinor: number,
   collectedMinor: number,
@@ -51,7 +100,10 @@ export function directSaleOutstandingMinor(sale: DirectSale): number {
   return Math.max(sale.revenueMinor - sale.collectedMinor, 0);
 }
 
-export function createDirectSale(input: CreateDirectSaleInput): DirectSale {
+/* بانٍ داخلي واحد — تحقق الحقول المشترك داخل نفسه، وعقد الإنشاء يمتحّن تعريف
+ * المستحق الجديد فوقه؛ ومسار التعديل يمتحّن القيد نفسه بمنطق الدلتا (مستحق
+ * جديد فقط) كي يبقى القديم غير المسمى قابل التعديل بلا تعريف رجعي مفروض. */
+function buildSaleRecord(input: CreateDirectSaleInput): DirectSale {
   assertText(input.id, "id");
   assertText(input.itemName, "itemName");
   assertText(input.note, "note");
@@ -63,7 +115,6 @@ export function createDirectSale(input: CreateDirectSaleInput): DirectSale {
   /* R2 (M-02/X1): فحص الطابع من النواة — سلوك متكافل، مالك واحد. */
   if (!isValidTimestamp(input.recordedAt)) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
   const collection = resolveCollection(input.revenueMinor, input.collectedMinor, input.collectionStatus);
-
   return Object.freeze({
     id: input.id.trim(),
     itemName: input.itemName.trim(),
@@ -75,17 +126,32 @@ export function createDirectSale(input: CreateDirectSaleInput): DirectSale {
     catalogItemId: input.catalogItemId?.trim() || null,
     /* D-001: الزبون حقل مستقل — الفراغ يُقرأ «بلا زبون» لا اسمًا مستخرجًا من الملاحظة. */
     customerName: input.customerName?.trim() || null,
+    /* S05 (DOC-014 / UNIT-037): ربط الطرف المحفوظ الصريح إن اختير — غيابه null. */
+    customerPartyId: input.customerPartyId?.trim() || null,
     costMinor: input.costMinor,
     profitMinor: input.costMinor === null ? null : input.revenueMinor - input.costMinor,
     occurredOn: input.occurredOn,
     recordedAt: input.recordedAt,
     note: input.note.trim(),
     idempotencyKey: input.idempotencyKey.trim(),
-    status: "active",
+    status: "active" as const,
     cancelledAt: null,
     cancellationReason: null,
     revisions: [],
   });
+}
+
+export function createDirectSale(input: CreateDirectSaleInput): DirectSale {
+  const draft = buildSaleRecord(input);
+  /* S05 (DOC-014 / UNIT-037 A1): بيع بقي منه مبلغ مؤهل كدين = مستحق جديد —
+   * «على مَن المبلغ؟» تعريف بسيط أو اختيار محفوظ؛ لا دين جديد بلا تعريف. */
+  if (
+    draft.collectionStatus === "partial_debt" &&
+    !hasPartyIdentity({ customerName: draft.customerName, customerPartyId: draft.customerPartyId })
+  )
+    throw new Error(PARTY_DEFINITION_REQUIRED_MESSAGE);
+  assertPartyLinkCarriesSnapshot(draft);
+  return draft;
 }
 
 function assertRevision(revision: DirectSaleRevision) {
@@ -126,7 +192,7 @@ export function updateDirectSale(
   if (revision.kind !== "edit") throw new Error("تعديل البيع المباشر يحتاج تصحيحًا من نوع التعديل.");
   if ((source.revisions ?? []).some(candidate => candidate.kind === "cancel"))
     throw new Error("لا يمكن تعديل بيع مباشر يحمل إلغاءً سابقًا.");
-  const updated = createDirectSale({
+  const updated = buildSaleRecord({
     id: source.id,
     itemName: input.itemName,
     quantity: input.quantity,
@@ -134,15 +200,23 @@ export function updateDirectSale(
     collectedMinor: input.collectedMinor,
     collectionStatus: input.collectionStatus,
     /* ربط المرجع: التمييز بين «لم يُذكر» (يبقى الأصلي) و«أُلغي صراحة» (null). */
-    catalogItemId: input.catalogItemId !== undefined ? input.catalogItemId : (source.catalogItemId ?? null),
+    catalogItemId: keepOrOverride(input.catalogItemId, source.catalogItemId),
     /* D-001: الزبون بالمنطق نفسه — undefined يُبقي الأصل، وnull الصريح يمحو الزبون. */
-    customerName: input.customerName !== undefined ? input.customerName : (source.customerName ?? null),
+    customerName: keepOrOverride(input.customerName, source.customerName),
+    /* S05 (DOC-014 / UNIT-037): ربط الطرف بالمنطق نفسه — undefined يُبقي الأصل،
+     * وnull الصريح يفك الربط. */
+    customerPartyId: keepOrOverride(input.customerPartyId, source.customerPartyId),
     costMinor: input.costMinor,
     occurredOn: input.occurredOn,
     recordedAt: source.recordedAt,
     note: input.note,
     idempotencyKey: source.idempotencyKey,
   });
+  /* S05 (DOC-014 / UNIT-037 A1/AC06 — قيد المستحق الجديد فقط): التعديل الذي
+   * يدخل بيعًا في دين جديد يوجب تعريفًا بسيطًا — والقيد بدلتا الحالة لا
+   * بالحالة النهائية وحدها. */
+  assertDebtDefinitionOnEdit(updated, source);
+  assertPartyLinkCarriesSnapshot(updated);
   /* X-06: الأصل يبقى في السجل — كل تعديل يغيّر السعر المتفق يحمل سعره الأصلي معه. */
   const before = input.revenueMinor !== source.revenueMinor ? source.revenueMinor : undefined;
   return Object.freeze({

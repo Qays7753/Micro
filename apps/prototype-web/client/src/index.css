@@ -5994,7 +5994,8 @@ button.micro-month-cell:active {
 
 /* ============ «أدواتي» والتدفقات الجديدة (موجة إعادة التدفق المالي) ============ */
 
-/* دفتر الناس: مدخل طرف قابل للفتح مع حركاته. */
+/* العملاء والموردون (S05/DOC-014 — UNIT-037): بطاقة طرف محفوظ وحسابه
+ * من مصادره المرتبطة — نفس لغة الواجهة القائمة بلا أي إعادة تصميم. */
 .micro-party-entry {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
@@ -6078,6 +6079,54 @@ button.micro-month-cell:active {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-text-primary);
+}
+/* S05 (DOC-014 / UNIT-037): نموذج حفظ طرف صريح داخل الدليل. */
+.micro-party-add-form {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  padding: var(--space-4);
+}
+/* قسم الأطراف المؤرشفة — تُقرأ ولا تقترح. */
+.micro-party-archived {
+  display: grid;
+  gap: var(--space-3);
+}
+.micro-party-archived h2 {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+.micro-party-archived .micro-party-entry {
+  opacity: 0.85;
+}
+/* حساب فارغ صادق — الحفظ لا يستحدث دينًا. */
+.micro-party-empty-account {
+  padding: var(--space-3) var(--space-4);
+}
+.micro-party-empty-account small {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+/* أفعال الهوية داخل البطاقة — تعديل/أرشفة بلا رصيد يُحرَّر. */
+.micro-party-identity-actions {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+.micro-party-identity-actions small {
+  color: var(--color-text-secondary);
+  font-size: 0.6875rem;
+  line-height: 1.6;
+}
+/* تعريف صاحب المبلغ في محرر البيع/الشراء (A1/A2) — محفوظ أو اسم للعملية. */
+.micro-party-identity {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
 }
 
 /* شريط توزيع الكاش غير الموزع في مالي/المحافظ. */

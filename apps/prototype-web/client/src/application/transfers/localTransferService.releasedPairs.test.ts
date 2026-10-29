@@ -357,6 +357,7 @@ function minimalFileForPair(version: number, schemaVersion: number): string {
 }
 
 const ACCEPTED_PAIRS: [number, number][] = [
+  [31, 39],
   [30, 38],
   [29, 37],
   [28, 36],

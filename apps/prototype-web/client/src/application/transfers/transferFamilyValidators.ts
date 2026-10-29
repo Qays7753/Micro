@@ -1772,3 +1772,27 @@ export function validExpenseBudgetRecord(value: unknown): boolean {
     return false;
   return true;
 }
+
+/* S05 (DOC-014 / UNIT-037): شكل سجل الطرف المحفوظ — هوية تعريفية بلا أي
+ * مبلغ: معرّف ثابت وتسمية غير فارغة وهاتف/ملاحظة اختياريان (null أو نص)
+ * وحالة أرشفة (null أو طابع) ومفتاح عملية وطابعا إنشاء/تعديل. لا فحص
+ * تفرّد تسمية هنا ولا في أي مكان: طرفان بالتسمية نفسها هويتان مستقلتان
+ * (لا دمج بالاسم أبدًا — SDF-009)، وتفرّد المعرف يفحصه سياق العائلة. */
+export function validSavedParty(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isString(value.id) &&
+    value.id.trim().length > 0 &&
+    isString(value.label) &&
+    value.label.trim().length > 0 &&
+    (value.phone === null ||
+      value.phone === undefined ||
+      (isString(value.phone) && value.phone.trim().length > 0)) &&
+    (value.note === null || value.note === undefined || isString(value.note)) &&
+    (value.archivedAt === null || value.archivedAt === undefined || isDate(value.archivedAt)) &&
+    isString(value.operationKey) &&
+    value.operationKey.trim().length > 0 &&
+    isDate(value.createdAt) &&
+    isDate(value.updatedAt)
+  );
+}
