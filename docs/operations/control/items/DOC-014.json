@@ -1,0 +1,102 @@
+{
+  "id": "DOC-014",
+  "title": "S05 execution — العملاء والموردون عند الحاجة (UNIT-037): دليل هوية محفوظ اختياري وحساب مصدريّ",
+  "type": "FEATURE",
+  "status": "IN_PROGRESS",
+  "priority": "P0",
+  "stage": "micro-component-execution-s05-20261029",
+  "summary": "تنفيذ S05 وحده فوق الفرع/PR نفسيهما وفق أمر 00-S05-EXECUTION-PROMPT-2026-10-29.md المنشور في 1663f2452b3769684f8faf0fe1671a410f79f116: UNIT-037 P3 — هوية طرف محفوظ اختيارية صريحة (تسمية + هاتف/ملاحظة اختياريان بلا هاتف مفروض) مع ربط محفوظ يحمل لقطة تسميته على المصدر، أو تعريف نصي بسيط لهذه العملية عند الاستحقاق الجديد؛ حساب قراءة مصدريّ («لك عنده» من ديون البيع المباشر المرتبطة بمعرف الطرف المؤكد، و«عليك له» من ذمم مشتريات الموردين المرتبطة بمعرفه) بلا دفتر أرصدة قابل للتحرير ولا تجميع بالاسم أبدًا (SDF-009) ولا قائمة ديون منافسة؛ الاسم الواضح «العملاء والموردون» يحل محل «دفتر الناس» في كل الأسطح؛ حفظ الطرف الاختياري منفصل عن التزام العملية الناجحة تمامًا (SDF-041)؛ تعديل التسمية يغيّر العرض الحالي فقط والأرشفة تخفي الاقتراح دون حذف أي لقطة أو حق أو مرجع (SDF-011).",
+  "finding_classification": "DEEPENS_EXISTING",
+  "finding_state": "CONFIRMED",
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "المالك أذن صراحةً بتنفيذ S05 بأمر 00-S05-EXECUTION-PROMPT-2026-10-29.md المنشور في 1663f2452b3769684f8faf0fe1671a410f79f116 على الفرع وPR #383 نفسيهما، مع معالجة الأمرين المحوّلين من مراجعة S04 (CF-001/CF-002) دون إعادة فتح S04، وحظر كتابة main والدمج وإنشاء الفروع/PRs الثانية وبدء S06.",
+  "tests_required": [
+    "python3 scripts/operations-control/validate.py",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "node scripts/check-doc-index-coverage.mjs",
+    "node scripts/check-current-state-size.mjs",
+    "node scripts/check-agent-document-contract.mjs",
+    "git diff --check",
+    "ZAI S05 contract: five sequential read-only reviewers on the exact candidate SHA",
+    "pnpm check (full chain) on the exact final candidate SHA"
+  ],
+  "layers": [
+    "application",
+    "storage",
+    "domain",
+    "ui-runtime",
+    "documentation",
+    "governance"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S05-EXECUTION-PROMPT-2026-10-29.md",
+    "discovered_at_sha": "1663f2452b3769684f8faf0fe1671a410f79f116",
+    "evidence": [
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-037-العملاء-والموردون.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+      "docs/implementation/micro-component-execution/09-S04-RESULT-2026-10-28.md",
+      "https://github.com/Qays7753/Micro/pull/383"
+    ]
+  },
+  "acceptance": [
+    "SDF-009: طرفان بالاسم نفسة وحقان مختلفان — لا دمج تلقائي ولا تحصيل من مصدر خاطئ؛ اختيار الطرف المحفوظ صريح يثبّت لقطة تسميته على المصدر.",
+    "SDF-010: بيع وشراء مسددان كاملًا دون طرف محفوظ يحفظان بلا إجبار عميل/مورد؛ والمستحق الجديد يوجب تعريفًا بسيطًا بلا هاتف أو ملف دائم.",
+    "SDF-011: تعديل تسمية طرف مستخدم أو أرشفته يحفظ لقطات المصادر والحقوق والمراجع؛ لا حذف متسلسل ولا تغيير هوية بالاسم.",
+    "SDF-027: الحق الافتتاحي المؤهل لطرف معلوم يبقى حقًا قديمًا مؤهلًا — لا بيع اليوم ولا بديل قرض ولا ازدواج مصدر قائم.",
+    "SDF-028: القبض التاريخي مجهول المدين الأصلي يبقى محدود المعرفة — لا تسديد عميل عشوائي ولا طرف وهمي ولا حق فردي غير موثق.",
+    "SDF-041: فشل حفظ الطرف الاختياري بعد نجاح البيع/الشراء يُعلن نتيجة جزئية صادقة — لا إعادة العملية ولا تراجعها ولا تكرارها أبدًا.",
+    "تكرار/تعارض/تزامن: إعادة الأمر نفسه إعادة استخدام داخل حد الكتابة المحروس؛ والتعديل (تسمية/أرشفة) CAS حي على updatedAt بين المهايئين معًا.",
+    "الترحيل والنسخ: ترقية مخطط 39→40 وتصدير 31→32 بمُنشئ محروس بلا ترحيل بيانات؛ القديم يفتح ويجد المخزن فارغًا؛ ملف 31/39 زوج موروث مقبول؛ دورة كاملة تصدير→استيراد→إعادة-تصدير بعائلة غير فارغة على المهايئين."
+  ],
+  "areas": [
+    "apps/prototype-web/client/src/application/parties/",
+    "apps/prototype-web/client/src/application/direct-sales/",
+    "apps/prototype-web/client/src/application/suppliers/",
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/pages/",
+    "src/domain/party/",
+    "src/domain/direct-sale/",
+    "src/domain/supplier-purchase/",
+    "docs/operations/control/items/DOC-014.json",
+    "docs/operations/control/workstreams/WS-230.json",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S05-EXECUTION-PROMPT-2026-10-29.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-037-العملاء-والموردون.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/01-Current-vs-Approved-Components-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S05-EXECUTION-PROMPT-2026-10-29.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "dependencies": [
+    "DOC-013"
+  ],
+  "related_items": [
+    "DOC-013"
+  ],
+  "updated_at": "2026-10-29",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-29",
+      "actor": "zai-s05-execution",
+      "reason": "بدأ تنفيذ S05 المأذون من رأس النشر 1663f245 على الفرع وPR #383 نفسيهما؛ يبدأ بالمعالجة المحوّلة من مراجعة S04 (CF-001/CF-002) ثم UNIT-037 في حدوده."
+    }
+  ],
+  "migration_baseline": true,
+  "next_action": "إكمال تنفيذ S05: بقية الواجهة والتسميات وحالات الإتاحة، ثم الاختبارات المركزة والسلسلة الكاملة، فالمراجعات الخمس القرائية وعلاج كل ملاحظة مؤكدة داخل النطاق من جذرها، فالتحقق البعيد على الرأس النهائي."
+}

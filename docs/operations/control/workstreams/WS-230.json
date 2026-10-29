@@ -1,0 +1,57 @@
+{
+  "id": "WS-230",
+  "title": "S05 — العملاء والموردون عند الحاجة (UNIT-037): هوية محفوظة اختيارية وحساب مصدريّ",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-014"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "1663f2452b3769684f8faf0fe1671a410f79f116",
+  "areas": [
+    "apps/prototype-web/client/src/application/parties/",
+    "apps/prototype-web/client/src/application/direct-sales/",
+    "apps/prototype-web/client/src/application/suppliers/",
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/pages/",
+    "src/domain/party/",
+    "src/domain/direct-sale/",
+    "src/domain/supplier-purchase/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S05-EXECUTION-PROMPT-2026-10-29.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-037-العملاء-والموردون.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/01-Current-vs-Approved-Components-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-10-29",
+  "updated_at": "2026-10-29",
+  "next_action": "إكمال التنفيذ ثم الاختبارات المركزة والسلسلة الكاملة فالمراجعات الخمس والتحقق البعيد على الرأس النهائي؛ لا دمج ولا كتابة main ولا S06 قبل قرار المالك.",
+  "notes": [
+    "أمر التنفيذ الوحيد هو 00-S05-EXECUTION-PROMPT-2026-10-29.md المنشور في 1663f2452b3769684f8faf0fe1671a410f79f116؛ GitHub هو مصدر الحقيقة التشغيلي.",
+    "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ ولا بدء S06.",
+    "المعالجة المحوّلة من مراجعة S04 (CF-001/CF-002) توثيق/أدلة فقط — لا إعادة فتح S04 ولا إعادة تنفيذها.",
+    "ترقية المخطط/التصدير مسموحة فقط بما يتطلبه عقد UNIT-037 الحي صراحةً (39→40/31→32 بمُنشئ محروس بلا ترحيل بيانات) مع كامل أدلة التوافق في النطاق نفسه."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S05-EXECUTION-PROMPT-2026-10-29.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-29",
+      "actor": "zai-s05-execution",
+      "reason": "بدأ مسار S05 المأذون على components/integration-20261027 / PR #383 من رأس النشر 1663f245."
+    }
+  ],
+  "migration_baseline": true
+}
