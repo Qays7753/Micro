@@ -1,0 +1,63 @@
+{
+  "id": "WS-231",
+  "title": "S06 — المصروف والمتكرر والفاتورة المشتركة (UNIT-015/UNIT-019) + إصلاحا S05-MR-001/S05-MR-002",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-015"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "13197ac0043ab7684a0f64a469a038e11ad434eb",
+  "areas": [
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/application/recurring/",
+    "apps/prototype-web/client/src/application/financial-records/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/pages/",
+    "apps/prototype-web/client/src/components/finance/",
+    "src/domain/financial-event/",
+    "src/domain/recurring-expense/",
+    "src/domain/shared/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S06-EXECUTION-PROMPT-2026-10-29.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-015-تسجيل-العمليات-المالية.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-019-تكرار-المصروف.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/06-financial-event-prototype-contract.md",
+    "docs/contracts/08-expense-classification-prototype-contract.md",
+    "docs/contracts/41-recurring-expense-reminders-contract.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-10-29",
+  "updated_at": "2026-10-29",
+  "next_action": "إصلاح S05-MR-001 ثم S05-MR-002 بإثبات دائم على المهايئين، ثم تنفيذ S06 لUNIT-015/019 حتى التسليم للمراجعة المستقلة؛ لا دمج ولا كتابة main.",
+  "notes": [
+    "أمر التنفيذ الوحيد هو 00-S06-EXECUTION-PROMPT-2026-10-29.md المنشور في 13197ac0043ab7684a0f64a469a038e11ad434eb؛ GitHub هو مصدر الحقيقة التشغيلي.",
+    "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
+    "إصلاحا S05-MR-001/S05-MR-002 بcommits موسومة مستقلة قبل أي كود S06، ولا يعاد كتابة تاريخ S05 الأصلي.",
+    "بطاقة الفهم (المشكلة/النطاق/غير الأهداف/الثوابت/الفشل المتوقع/القبول/حد الاستعادة) مثبتة داخل DOC-015.phase_understanding.",
+    "ترقية المخطط/التصدير مسموحة فقط بما يوجبه العقد الحي صراحةً مع كامل أدلة التوافق في الشريحة نفسها؛ خط الأساس الحي 40/32."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S06-EXECUTION-PROMPT-2026-10-29.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-29",
+      "actor": "zai-s06-execution",
+      "reason": "مطالبة S06 المأذونة على components/integration-20261027 / PR #383 من رأس نشر الأمر 13197ac0 (لا تداخل مع WS-230 المنتهي إلى IN_REVIEW)."
+    }
+  ],
+  "migration_baseline": true
+}

@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 5 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -39,4 +39,5 @@ python3 scripts/operations-control/validate.py
 | WS-227 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-011 | إذن انتقال المالك من S02 إلى S03 مسجل (2026-10-28) بناء على إعادة تحقق المرحلة A عند 015c2d6c؛ S02 تبقى REVIEW_REQUIRED حتى مراجعة Manus المستقلة وقبول المالك؛ التنفيذ الانتقالي في WS-228؛ لا merge ولا cleanup. |
 | WS-228 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-012 | تسليم S03 قائم (النتيجة: 08-S03-RESULT-2026-10-28.md؛ المرشح النهائي 9de4f0a5)؛ علاج عيب التزامن المؤكد يُنفذ في مسار DOC-013/WS-229 المأذون بنفس الأمر؛ يبقى المطلوب: مراجعة Manus المستقلة وقبول المالك الصريح قبل أي دمج. |
 | WS-229 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-013 | مراجعة Manus المستقلة وقبول المالك لS04 على المرشح النهائي 9d7d2aee؛ التحقق البعيد مسجل في تعليق PR #383. S05 أُذن بقرار مالك مستقل (00-S05-EXECUTION-PROMPT-2026-10-29.md في 1663f245) وينفذ على الفرع/PR نفسيهما مع الأمرين المحوّلين CF-001/CF-002؛ لا دمج ولا كتابة main قبل قرار المالك. |
-| WS-230 | IN_REVIEW | `components/integration-20261027` | 383 | DOC-014 | مراجعة Manus المستقلة وقبول المالك لS05 على المرشح النهائي bee05336؛ التحقق البعيد مسجل في تعليق PR #383؛ لا دمج ولا كتابة main ولا S06 قبل قرار المالك. |
+| WS-230 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-014 | مراجعة Manus المستقلة وقبول المالك لS05 على المرشح النهائي bee05336 (يتضمن الآن إصلاحَي العقد S05-MR-001/S05-MR-002 المسلَّمين أعلى الفرع نفسه بcommits موسومة مستقلة — ما زالا رهن المراجعة المستقلة كجزء من ملف S05)؛ لا دمج ولا كتابة main. |
+| WS-231 | IN_PROGRESS | `components/integration-20261027` | 383 | DOC-015 | إصلاح S05-MR-001 ثم S05-MR-002 بإثبات دائم على المهايئين، ثم تنفيذ S06 لUNIT-015/019 حتى التسليم للمراجعة المستقلة؛ لا دمج ولا كتابة main. |

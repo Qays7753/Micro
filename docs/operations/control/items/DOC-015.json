@@ -1,0 +1,108 @@
+{
+  "id": "DOC-015",
+  "title": "S06 execution — المصروف والمتكرر والفاتورة المشتركة (UNIT-015/UNIT-019) مع إصلاحَي عقد S05 (S05-MR-001/S05-MR-002)",
+  "type": "FEATURE",
+  "status": "IN_PROGRESS",
+  "priority": "P0",
+  "stage": "micro-component-execution-s06-20261029",
+  "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق أمر 00-S06-EXECUTION-PROMPT-2026-10-29.md المنشور في 13197ac0043ab7684a0f64a469a038e11ad434eb: (١) إصلاح جذري لعيبَي عقد S05 المؤكدين — S05-MR-001 (قبول مراجع أطراف مكسورة customerPartyId/supplierPartyId عند الاستيراد/الاستعادة: فرض الثابت المرجعي في مسار التحقق المشترك قبل المعاينة مع إثبات عدم تغيّر المخزن الهدف بعد الرفض على المهايئين) وS05-MR-002 (رفض شراء مورد مسدد كاملًا بلا مورد في validSupplierPurchase: مواءمة الحارس مع سياسة المجال الحية وSDF-010 — null/null مسموحان للمسدد كاملًا حصرًا، والاستحقاق يبقى موجبًا لتعريف جهة)؛ (٢) تنفيذ S06 كاملًا لUNIT-015 وUNIT-019 في حدود عقودهما الحية: فاتورة مشتركة بسؤال المدفوع فعلًا وحصة المشروع ومن تحمل الباقي بمعاينة واحدة (CONS-DEC04/SDF-064: دفع المشروع 60 وحصته 30 ← نقد −60 ومصروف 30 وسحب شخصي 30 بنية واحدة؛ دفع 30 فقط ← لا سحب إضافي)، خيار «يتكرر» داخل نموذج المصروف (ORG-011/D07: مصروف واحد + إعداد تكرار واحد بقصد مترابط بنتيجة جزئية صادقة واستئناف الناقص وحده)، وربط مصروف يدوي قائم بدورة باختيار صريح دون إعادة تسجيل (D06/SDF-063)، مع تغطية السلوك المطلوبة (SDF-062/063/064 + حالات UNIT-015/019 المحددة) على المهايئين معًا. بطاقة الفهم قبل أول سطر كود S06 — مشكلة المستخدم: صاحب المشروع يسجل الوقائع المالية الحقيقية بكاتب مالي واحد: مصروف مدفوع/مستحق وتسويته دون مضاعفة، وفاتورة مشتركة يسأل عنها النظام: قدّش دُفع فعلًا من صندوق المشروع؟ شو حصة المشروع؟ من تحمل الباقي؟ — فيسجل النقد والمصروف والسحب الشخصي بمعاينة واحدة صادقة. ويريد تذكيرًا شهريًا للمصروف المتكرر من داخل نموذج المصروف نفسه (لا محررًا مستقلًا مضادًا)، ويربط مصروفًا سجله يدويًا بدورة تذكير دون إعادة تسجيله. | النطاق: S05-MR-001: الثابت المرجعي للأطراف عند الاستيراد/الاستعادة (customerPartyId على البيع المباشر وsupplierPartyId على شراء المورد يجب أن يحلا لطرف محفوظ داخل عائلة counterparties المستوردة؛ null يبقى صحيحًا حيث يسمح عقد المصدر؛ الأرشيف طرفًا صالحًا؛ لا اشتقاق طرف من اسم/هاتف/مبلغ) في مسار التحقق المشترك قبل المعاينة.؛ S05-MR-002: مواءمة validSupplierPurchase ومسار النقل مع سياسة المجال وSDF-010: supplierName=null وsupplierPartyId=null صحيحان للشراء المسدد كاملًا حصرًا؛ الاستحقاق القائم يوجب تعريف جهة؛ إثبات export→prepareImport→restore وcreateVerifiedExport للحالة الصحيحة على المهايئين.؛ UNIT-015/S06: فرع الفاتورة المشتركة المدفوعة الكاملة (CONS-DEC04): سؤال المدفوع فعلًا + حصة المشروع + من تحمل الباقي، بمعاينة واحدة ونية واحدة (مصروف + سحب شخصي للفارق المؤكد شخصيًا بمفتاح مشتق)، وبدون سحب عند دفع الحصة فقط.؛ UNIT-019/S06: خيار «يتكرر» داخل محرر المصروف (إعداد مختصر: كل شهر + التذكير القادم) بمنسق قصد D07 (مصروف واحد + إعداد تكرار واحد؛ نتيجة جزئية صادقة واستئناف الناقص وحده؛ أول تذكير هو القادم لا دورة حالية تكرر الواقعة)، وربط مصروف قائم بدورة (D06) باختيار صريح بلا حدث جديد، مع الحفاظ على كل عقد ٤١ القائم (لا تسجيل تلقائي، لا دين من التأخر، مفاتيح حتمية، عكس عبر عقد ٢٣).؛ التغطية السلوكية والتكامل: اختبارات مركزة دائمة للحالتين والعائلات المتأثرة على Memory وIndexedDB معًا، مع بقاء رفض مراجع الأطراف المكسورة ساريًا بعد أي تغيير نقل لاحق. | خارج النطاق (non-goals): لا S07 (مشتريات/مخزون) ولا S08 (أصول) ولا S11 (بيع مباشر) ولا S12 (اتفاق/تنفيذ طلب) ولا S15 (مالية/كشف/سجل/ميزانيات) — قراءاتها فقط بقدر ما يثبت عقد هذه المرحلة.؛ لا مصروف آلي من مرور الموعد ولا دين من التأخر ولا دفع تلقائي ولا backfill بعد الإيقاف ولا كتابة مالية من فتح تذكير/قائمة.؛ لا ledger مصاريف ثانٍ ولا كاتب موازٍ ولا إعادة هيكلة/نقل ملفات/طبقة features/تقسيم ملفات ضخمة.؛ لا مصروف جزئي مدفوع جديد بلا عقد مركب (يبقى مدفوع/مستحق كما هما).؛ لا تفعيل تكرار غير شهري ولا سحب/توزيع تلقائي للمصروف المشترك على طلبات/منتجات ولا سياسة 503 جديدة.؛ لا cloud sync ولا push ولا تعدد مستخدمين ولا LocalPreferences لمعنى مالي. | الثوابت: JOD بوحدة صغرى صحيحة آمنة عبر مساعدات التقريب القائمة؛ لا سياسة فاصلة عائمة.؛ المصروف المدفوع ينقص الكاش ويرفع مصروف التشغيل مرة واحدة؛ المستحق يرفع الذمة والمصروف دون كاش؛ تسديد المستحق ينقص الكاش والذمة دون مصروف ثانٍ.؛ السحب الشخصي وحقن المالك والقروض والشراء والمخزون والأصل والعربون وتحصيل العميل تحفظ معاني مصادرها ولا يعاد تصنيفها مصروف تشغيل.؛ المصروف المشترك يسجل حصة المشروع فقط في هذا العقد؛ فرع CONS-DEC04 يسجل الفارق المدفوع فوق الحصة سحبًا شخصيًا مؤكدًا بنية واحدة ومفتاح مشتق — لا افتراض نظام ولا دين مختلق للباقي.؛ التذكير ليس حدثًا ماليًا ولا ذمة ولا حركة نقد؛ dueOn/occurredOn/confirmedAt متمايزة وbusinessTime بتوقيت Asia/Amman وحده.؛ مفتاح العملية المتكرر الحتمي {seriesId}:{periodKey}:{occurrenceSlot} يمنع التكرار؛ نفس المفتاح بنفس الحمولة يعيد النتيجة، وبحمولة مختلفة idempotency_conflict بلا استبدال.؛ recorded/reused/record_failed/result_unknown نتائج متمايزة؛ المجهول لا يعاد تقديمه بمفتاح جديد أعمى.؛ نجاح الحدث وفشل نسبة الكاش اللاحقة نتيجة جزئية صادقة؛ إعادة المحاولة للمشتق وحده بمفتاحه ولا يعاد تسجيل الحدث أبدًا.؛ التخطي/التأجيل بلا حدث ولا صفر؛ الإلغاء/الأرشفة لا تحذف تاريخًا ماليًا؛ تعديل المستقبل مراجعة خلف جديدة لا تعيد كتابة المقَرَّر.؛ سحب شخصي/استثمار/أمانة لا تصنف مصروفًا؛ estimated/incomplete/needs_review لا تتحول صفرًا أو معلومة. | الفشل المتوقع: مدخلات غير صالحة: مبلغ فارغ/صفر/غير آمن، وصف فارغ، تاريخ محلي غير صالح، نسبة بدقة أعلى من منزلتين أو خارج 1–100، حصة محسوبة صفر، مصدر صرف غير مختار مع محافظ متعددة، التزام غير موجود/معكوس/فوق المتبقي.؛ تكرار/تزامن: ضغط مزدوج، نافذتان، إعادة تحميل أثناء حفظ، نفس المفتاح بحمولة مختلفة.؛ مآل مجهول/جزئي: حدث حفظ ونسبة المحفظة فشلت؛ إعداد التكرار فشل بعد ثبوت المصروف (والعكس بحسب D07).؛ أشهر قصيرة 28/29/30/31 بسياسات last_valid_day/skip/ask، وعبور سنة كبيسة.؛ استيراد: مرجع طرف مكسور (MR-001) وشراء مسدد بلا مورد (MR-002 سابقًا) وملفات ناقصة/معدلة — ترفض قبل أي كتابة تدميرية. | حد الاستعادة (rollback boundary): آخر رأس آمن للعودة هو رأس نشر أمر التنفيذ 13197ac0043ab7684a0f64a469a038e11ad434eb (فرع/PR لم يتغيرا دونه)؛ كل مرحلة (إصلاح MR-001، إصلاح MR-002، مرشح S06) بcommits موسومة مستقلة قابلة للعزل للمراجعة. رجوع الكود لا يخفض المخطط/التصدير ولا يستبدل بيانات بصمت؛ أي رجوع يتطلب خطة بيانات متوافقة تسبق الكتابة المؤثرة. لا يعاد كتابة تاريخ S05/S04/S03 أبدًا.",
+  "finding_classification": "DEEPENS_EXISTING",
+  "finding_state": "CONFIRMED",
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "المالك أذن صراحةً بالتنفيذ المتصل بأمر 00-S06-EXECUTION-PROMPT-2026-10-29.md المنشور في 13197ac0043ab7684a0f64a469a038e11ad434eb: إصلاح S05-MR-001 وS05-MR-002 من جذرهما أولًا بإثبات انحدار دائم على Memory وIndexedDB، ثم الاستمرار تلقائيًا إلى تنفيذ S06 الكامل لUNIT-015 وUNIT-019 دون انتظار مراجعة أو تأكيد بينهما، مع حظر كتابة main والدمج وrebase والforce-push وحذف الفروع وإنشاء فرع/PR ثانٍ.",
+  "tests_required": [
+    "python3 scripts/operations-control/validate.py",
+    "python3 scripts/operations-control/generate_tracker.py",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "node scripts/check-doc-index-coverage.mjs",
+    "node scripts/check-current-state-size.mjs",
+    "node scripts/check-agent-document-contract.mjs",
+    "git diff --check",
+    "pnpm check (السلسلة الكاملة) على المرشح النهائي بالضبط",
+    "خمس مراجعات قرائية متسلسلة على مرشح S06 النهائي بالضبط",
+    "اختبارات مركزة دائمة لعيبي S05 على Memory وIndexedDB معًا (prepareImport.rejection + counterparties + transferFamilyValidators + دورة كاملة)"
+  ],
+  "layers": [
+    "application",
+    "storage",
+    "domain",
+    "ui-runtime",
+    "documentation",
+    "governance"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S06-EXECUTION-PROMPT-2026-10-29.md",
+    "discovered_at_sha": "13197ac0043ab7684a0f64a469a038e11ad434eb",
+    "evidence": [
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-015-تسجيل-العمليات-المالية.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-019-تكرار-المصروف.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+      "docs/contracts/05-financial-p0-policies.md",
+      "docs/contracts/06-financial-event-prototype-contract.md",
+      "docs/contracts/08-expense-classification-prototype-contract.md",
+      "docs/contracts/41-recurring-expense-reminders-contract.md",
+      "docs/implementation/micro-component-execution/10-S05-RESULT-2026-10-29.md",
+      "https://github.com/Qays7753/Micro/pull/383"
+    ]
+  },
+  "acceptance": [
+    "S05-MR-001 (قبل أي كود S06): مرجع طرف مكسور يرفض قبل المعاينة ولا يغيّر المخزن الهدف؛ الرابط النشط والأرشيف وnull الصحيح يبقون — Memory وIndexedDB باختبارات دائمة تغطي الحالات الست المطلوبة.",
+    "S05-MR-002 (بعد MR-001 بcommit منفصل): المسدد كاملًا بلا مورد يجتاز التصدير الموثق والدورة الكاملة على المهايئين؛ غير المسدد بلا تعريف يرفض بالأسبقية الصحيحة؛ الحمولتان معًا خضراوتان بعد الإصلاحين.",
+    "SDF-062: المنصرف المؤهل 10 (لا 3 ولا 110) مع نفس المعرفة والنطاق عند قارئ الفترة 013.",
+    "SDF-063: نافذتان ← حدث واحد + reused؛ الربط لا يعيد المصروف/الدفع؛ تعديل السلسلة للمستقبل غير المعالج حصرًا.",
+    "SDF-064: 60/30 ← نقد −60 ومصروف 30 وسحب 30 بنية واحدة؛ دفع 30 ← لا سحب إضافي.",
+    "UNIT-019: يتكرر داخل المصروف (مصروف + إعداد واحد بقصد مترابط ونتيجة جزئية صادقة واستئناف الناقص)؛ تذكير فقط بلا مالية؛ ربط موجود D06 بلا حدث جديد؛ الحالات والأشهر القصيرة بعقد ٤١ كما هي."
+  ],
+  "areas": [
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/application/recurring/",
+    "apps/prototype-web/client/src/application/financial-records/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/pages/",
+    "apps/prototype-web/client/src/components/finance/",
+    "src/domain/financial-event/",
+    "src/domain/recurring-expense/",
+    "src/domain/shared/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S06-EXECUTION-PROMPT-2026-10-29.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-015-تسجيل-العمليات-المالية.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-019-تكرار-المصروف.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/06-financial-event-prototype-contract.md",
+    "docs/contracts/08-expense-classification-prototype-contract.md",
+    "docs/contracts/41-recurring-expense-reminders-contract.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S06-EXECUTION-PROMPT-2026-10-29.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "dependencies": [
+    "DOC-014"
+  ],
+  "related_items": [
+    "DOC-014"
+  ],
+  "updated_at": "2026-10-29",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-29",
+      "actor": "zai-s06-execution",
+      "reason": "بدأ التنفيذ المتصل المأذون: إصلاحا S05-MR-001/S05-MR-002 من الجذر ثم S06 كاملًا لUNIT-015/019 على components/integration-20261027 / PR #383 من رأس نشر الأمر 13197ac0."
+    }
+  ],
+  "migration_baseline": true,
+  "next_action": "تنفيذ إصلاح S05-MR-001 أولًا (الثابت المرجعي للأطراف عند الاستيراد) ثم S05-MR-002 (المسدد كاملًا بلا مورد) ثم S06؛ لا دمج ولا كتابة main."
+}
