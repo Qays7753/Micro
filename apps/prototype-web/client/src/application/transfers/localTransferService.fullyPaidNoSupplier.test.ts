@@ -119,7 +119,10 @@ const adapters: ReadonlyArray<{ readonly label: string; readonly make: StoreFact
   },
 ];
 
-async function commitPurchase(store: PrototypeLocalStore, purchase: ReturnType<typeof fullyPaidNoSupplierPurchase>) {
+async function commitPurchase(
+  store: PrototypeLocalStore,
+  purchase: ReturnType<typeof fullyPaidNoSupplierPurchase>,
+) {
   const committed = await store.commitSupplierPurchase({
     kind: "create",
     purchase,
@@ -146,8 +149,8 @@ for (const adapter of adapters) {
       const verified = await service.createVerifiedExport();
       if (!verified.ok) throw new Error(verified.message);
       expect(verified.value.file.version).toBe(localExportVersion);
-      expect(verified.value.file.data.supplierPurchases).toHaveLength(1);
-      expect(verified.value.file.data.supplierPurchases[0]?.supplierName).toBe(null);
+      expect(verified.value.file.data.supplierPurchases ?? []).toHaveLength(1);
+      expect(verified.value.file.data.supplierPurchases?.[0]?.supplierName).toBe(null);
 
       const target = await adapter.make();
       const targetService = new LocalTransferService(target, () => NOW);
@@ -168,7 +171,7 @@ for (const adapter of adapters) {
       /* إعادة التصدير من الهدف تحمل القيمة كما هي — لا ترقية صامتة لمورد ولا غسل. */
       const reExport = await targetService.createVerifiedExport();
       if (!reExport.ok) throw new Error(reExport.message);
-      expect(reExport.value.file.data.supplierPurchases[0]?.supplierName).toBe(null);
+      expect(reExport.value.file.data.supplierPurchases?.[0]?.supplierName).toBe(null);
     });
 
     it("createVerifiedExport ينجح للمخزن الذي فيه شراء مسدد بلا مورد — بلا تخفيض تحقق", async () => {
@@ -181,9 +184,7 @@ for (const adapter of adapters) {
       /* التحقق لم يُخفَّض: نفس الملف يُعاد تحضيره فينجح، والملف المكسور لا يزال يُرفض. */
       const rePrepared = service.prepareImport(JSON.stringify(verified.value.file));
       expect(rePrepared.ok).toBe(true);
-      const brokenFile = currentPairFile([
-        { ...fullyPaidNoSupplierPurchase(), note: "" },
-      ]);
+      const brokenFile = currentPairFile([{ ...fullyPaidNoSupplierPurchase(), note: "" }]);
       expect(service.prepareImport(JSON.stringify(brokenFile)).ok).toBe(false);
     });
 
@@ -255,7 +256,7 @@ for (const adapter of adapters) {
       const service = new LocalTransferService(source, () => NOW);
       const verified = await service.createVerifiedExport();
       if (!verified.ok) throw new Error(verified.message);
-      const record = verified.value.file.data.supplierPurchases[0] as Record<string, unknown>;
+      const record = (verified.value.file.data.supplierPurchases ?? [])[0] as Record<string, unknown>;
       expect(record.id).toBe("purchase-paid-nosupplier");
       expect(record.supplierName).toBe(null);
       expect(record.totalMinor).toBe(4_500);

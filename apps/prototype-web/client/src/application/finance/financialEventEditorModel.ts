@@ -18,7 +18,11 @@ import type {
   OperatingExpenseContext,
   SharedProjectShareBasis,
 } from "@micro-domain/financial-event/index.js";
-import { isValidLocalDate } from "@micro-domain/shared/index.js";
+import {
+  calculateSharedProjectShareMinor,
+  sharedBillOwnerPartMinor,
+} from "@micro-domain/financial-event/index.js";
+import { isValidLocalDate, localDatePlusMonthsClamped } from "@micro-domain/shared/index.js";
 import { percentToBpsExact } from "@/application/input";
 import { todayInAmman } from "@/application/time";
 
@@ -130,11 +134,18 @@ export function derivePrimaryAmountProblem(input: PrimaryAmountInput): PrimaryAm
   return input.validAmount && input.amountMinor > 0 ? null : "amount_invalid";
 }
 
-/** غرض المصروف المشترك كما يُرسل مع الحدث — نفس اشتقاق الصفحة حرفيًا. */
+/** غرض المصروف المشترك كما يُرسل مع الحدث — نفس اشتقاق الصفحة حرفيًا.
+ * S06 (CONS-DEC04 / SDF-064): المدفوع فعليًا يمر مع نية الحصة لأنماطها
+ * المعلومة (fixed/percentage/estimate) — الحصة المؤجلة لا مدفوع لها. */
 export type SharedExpenseIntent =
-  | { mode: "percentage"; sharedTotalAmountMinor: number; sharedPercentageBps: number }
+  | {
+      mode: "percentage";
+      sharedTotalAmountMinor: number;
+      sharedPercentageBps: number;
+      paidAmountMinor?: number;
+    }
   | { mode: "defer"; sharedTotalAmountMinor: number }
-  | { mode: "fixed" | "estimate"; amountMinor: number };
+  | { mode: "fixed" | "estimate"; amountMinor: number; paidAmountMinor?: number };
 
 export function deriveSharedExpenseIntent(input: {
   isShared: boolean;
@@ -142,6 +153,7 @@ export function deriveSharedExpenseIntent(input: {
   sharedPercentageBps: number | null;
   sharedTotalAmountMinor: number;
   amountMinor: number;
+  paidAmountMinor?: number | null;
 }): SharedExpenseIntent | undefined {
   if (!input.isShared) return undefined;
   if (input.sharedMode === "percentage") {
@@ -151,12 +163,87 @@ export function deriveSharedExpenseIntent(input: {
           mode: "percentage" as const,
           sharedTotalAmountMinor: input.sharedTotalAmountMinor,
           sharedPercentageBps: input.sharedPercentageBps,
+          ...(input.paidAmountMinor != null ? { paidAmountMinor: input.paidAmountMinor } : {}),
         };
   }
   if (input.sharedMode === "defer") {
     return { mode: "defer" as const, sharedTotalAmountMinor: input.amountMinor };
   }
-  return { mode: input.sharedMode, amountMinor: input.amountMinor };
+  return {
+    mode: input.sharedMode,
+    amountMinor: input.amountMinor,
+    ...(input.paidAmountMinor != null ? { paidAmountMinor: input.paidAmountMinor } : {}),
+  };
+}
+
+/* S06 (CONS-DEC04 / SDF-064): بوابة المدفوع فعليًا — أكواد مشاكل والنص
+ * عند الصفحة؛ الحصة المرجعية تُحسب هنا لا في الواجهة (لا حساب مال
+ * في TSX). */
+export type SharedPaidProblem = "paid_invalid" | "paid_below_share" | null;
+
+/** معاينة الحصة المرجعية للمدفوع — من النواة الكنسية نفسها (نسبة) أو
+ * المبلغ المدخل (ثابتة/تقديرية)؛ null حين لا تكتمل مدخلات النسبة بعد
+ * (النسبة الفارغة/الصفرية أثناء الكتابة ليست 0.01% فتُقاوم القسمة). */
+export function deriveSharedShareMinorPreview(input: {
+  isShared: boolean;
+  sharedMode: SharedMode;
+  amountMinor: number;
+  sharedTotalAmountMinor: number;
+  sharedPercentageBps: number | null;
+}): number | null {
+  if (!input.isShared) return null;
+  if (input.sharedMode === "percentage")
+    return input.sharedPercentageBps === null ||
+      input.sharedPercentageBps < 1 ||
+      input.sharedTotalAmountMinor <= 0
+      ? null
+      : calculateSharedProjectShareMinor(input.sharedTotalAmountMinor, input.sharedPercentageBps);
+  if (input.sharedMode === "defer") return null;
+  return input.amountMinor;
+}
+
+/** الفارق الشخصي فوق الحصة (CONS-DEC04 / SDF-064) — من دالة المجال النقي
+ * نفسها التي يستعملها التوسيع الكنوني؛ 0 حين لا ينطبق الفرع. */
+export function deriveOwnerPartMinor(input: {
+  paidAmountMinor: number;
+  shareAmountMinor: number | null;
+  applies: boolean;
+}): number {
+  return input.applies ? sharedBillOwnerPartMinor(input.paidAmountMinor, input.shareAmountMinor) : 0;
+}
+
+export function deriveSharedPaidProblem(input: {
+  paidAmountMinor: number;
+  validPaid: boolean;
+  shareAmountMinor: number | null;
+}): SharedPaidProblem {
+  if (input.paidAmountMinor <= 0) return null;
+  if (!input.validPaid) return "paid_invalid";
+  if (input.shareAmountMinor !== null && input.paidAmountMinor < input.shareAmountMinor)
+    return "paid_below_share";
+  return null;
+}
+
+/* S06 (UNIT-019 / ORG-011 — خيار «يتكرر» داخل المصروف): التذكير القادم
+ * الافتراضي هو الشهر القادم باليوم نفسه مثبتًا على آخر يوم صالح (سياسة
+ * المصدر الافتراضية للجديد)؛ أول تذكير جديد هو القادم لا دورة حالية
+ * تكرر الواقعة المسجلة للتو. */
+export function defaultNextReminderDate(today: string): string {
+  return localDatePlusMonthsClamped(today, 1) ?? today;
+}
+
+/** بوابة التذكير القادم — التاريخ صالح ويفترض في فترة لاحقة للفترة الحالية. */
+export type RecurrenceProblem = "recurrence_date_invalid" | "recurrence_not_future_period" | null;
+
+export function deriveRecurrenceProblem(input: {
+  enabled: boolean;
+  nextDate: string;
+  today: string;
+}): RecurrenceProblem {
+  if (!input.enabled) return null;
+  if (!isValidLocalDate(input.nextDate)) return "recurrence_date_invalid";
+  if (input.nextDate.slice(0, 7) <= input.today.slice(0, 7)) return "recurrence_not_future_period";
+  return null;
 }
 
 /* المجموعة ١ (مسودة محفوظة — TR-11): مدخلات فقط لا سجلات؛ تُسترجع بفعل صريح
@@ -165,6 +252,12 @@ export type EditorDraft = {
   amountMinor: number;
   sharedTotalAmountMinor: number;
   sharedPercentage: number;
+  /* S06: المدفوع فعليًا للفاتورة المشتركة وتأكيد تحمل المالك الفارق
+   * وخيار «يتكرر» والتذكير القادم — مدخلات مسودة كإخواتها. */
+  sharedPaidAmountMinor: number;
+  ownerPartConfirmed: boolean;
+  recurrenceEnabled: boolean;
+  recurrenceNextDate: string;
   date: string;
   note: string;
   counterparty: string;
@@ -208,6 +301,15 @@ export function coerceEditorDraft(value: unknown): EditorDraft | null {
     amountMinor,
     sharedTotalAmountMinor: safeDraftAmount(draft.sharedTotalAmountMinor),
     sharedPercentage: safeDraftAmount(draft.sharedPercentage),
+    sharedPaidAmountMinor: safeDraftAmount(draft.sharedPaidAmountMinor),
+    ownerPartConfirmed: draft.ownerPartConfirmed === true,
+    recurrenceEnabled: draft.recurrenceEnabled === true,
+    /* S06: تاريخ التذكير القادم المشوّه يعود للفراغ لا لقيمة قرار صامتة —
+     * الإكراه الآمن نفسه (R2/M-04) بلا افتراض تاريخ. */
+    recurrenceNextDate:
+      typeof draft.recurrenceNextDate === "string" && isValidLocalDate(draft.recurrenceNextDate)
+        ? draft.recurrenceNextDate
+        : "",
     date,
     note,
     counterparty: safeDraftString(draft.counterparty),

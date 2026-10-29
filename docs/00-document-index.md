@@ -313,6 +313,7 @@
 | `docs/operations/control/items/DOC-013.json` | سجل Control لإعادة تحقق S04 وعلاجها وتنفيذ S04 |
 | `docs/operations/control/workstreams/WS-229.json` | Workstream تنفيذ إعادة التحقق وS04 على فرع التكامل |
 | `docs/implementation/micro-component-execution/00-S05-EXECUTION-PROMPT-2026-10-29.md` | أمر S05 الكنسي لـZAI: مراجعة خفيفة لـS04 ثم تنفيذ العملاء والموردين UNIT-037 على نفس الفرع وPR؛ لا main ولا merge |
+| `docs/implementation/micro-component-execution/00-S06-EXECUTION-PROMPT-2026-10-29.md` | أمر S06 الكنسي لـZAI: إصلاحا عقد S05 المؤكدان (S05-MR-001/S05-MR-002) من الجذر ثم تنفيذ S06 الكامل للمصروف والمتكرر UNIT-015/UNIT-019 على نفس الفرع وPR؛ لا main ولا merge |
 
 ### تغطية ملفات الحزمة الأصلية
 

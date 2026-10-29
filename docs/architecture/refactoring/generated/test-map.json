@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "3dc51f946c70b53de44825233e806ad6bacd5085",
+  "head": "14d825df112f65b4028354b55faa8250cc67c54a",
   "pages": {
     "total": 60,
     "map": {
@@ -189,6 +189,7 @@
         "evidence": [
           "DeepScreens.w43.dom.test.tsx",
           "pages/FinancialEventEditor.guided.test.tsx",
+          "pages/FinancialEventEditor.s06.dom.test.tsx",
           "pages/FinancialEventEditor.ui.test.tsx",
           "pages/OwnerJourneysExe009.dom.test.tsx"
         ]
@@ -849,6 +850,7 @@
         "curated": [
           "apps/prototype-web/client/src/RecurringExpenseEditor.dom.test.tsx",
           "apps/prototype-web/client/src/RecurringExpenseSurfaces.dom.test.tsx",
+          "apps/prototype-web/client/src/application/recurring/recurringExpenseService.s06.test.ts",
           "apps/prototype-web/client/src/application/recurring/recurringExpenseService.test.ts",
           "apps/prototype-web/client/src/application/transfers/localTransferService.recurringExpense.test.ts",
           "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.recurringExpense.test.ts",

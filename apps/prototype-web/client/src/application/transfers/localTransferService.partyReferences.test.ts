@@ -301,8 +301,8 @@ for (const adapter of adapters) {
       /* إعادة التصدير الموثق تحمل المرجع كما هو — لا غسل ولا فقد. */
       const reExport = await service.createVerifiedExport();
       if (!reExport.ok) throw new Error(reExport.message);
-      expect(reExport.value.file.data.directSales[0]?.customerPartyId).toBe("party-1");
-      expect(reExport.value.file.data.supplierPurchases[0]?.supplierPartyId).toBe("party-1");
+      expect(reExport.value.file.data.directSales?.[0]?.customerPartyId).toBe("party-1");
+      expect(reExport.value.file.data.supplierPurchases?.[0]?.supplierPartyId).toBe("party-1");
       expect(reExport.value.file.data.counterparties).toHaveLength(1);
     });
 

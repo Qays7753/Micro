@@ -45,7 +45,13 @@ describe("expandExpenseRecordIntent (pure helper, STR-032)", () => {
       amountMinor: 1250,
       expenseContext: projectContext,
     });
-    expect(result).toEqual({ ok: true, amountMinor: 1250, expenseContext: projectContext });
+    expect(result).toEqual({
+      ok: true,
+      amountMinor: 1250,
+      expenseContext: projectContext,
+      paidAmountMinor: null,
+      ownerPartMinor: 0,
+    });
   });
 
   it("refuses an undefined amount when nothing expands it", () => {
@@ -156,5 +162,117 @@ describe("expandExpenseRecordIntent (pure helper, STR-032)", () => {
       expenseContext: sharedContext,
     });
     expect(result).toEqual({ ok: false, message: "حدد كيف عرفت حصة المشروع من المصروف المشترك قبل الحفظ." });
+  });
+});
+
+describe("expandExpenseRecordIntent — الفرع الشخصي للفاتورة المشتركة (S06 / CONS-DEC04 / SDF-064)", () => {
+  it("فاتورة 60 حصة 30 مدفوعة من المشروع كاملة ← الحصة مصروفًا والفارق 30 جزءًا شخصيًا مؤكدًا", () => {
+    const result = expandExpenseRecordIntent({
+      type: "operating_expense_cash",
+      amountMinor: 3_000,
+      expenseContext: sharedContext,
+      sharedExpense: { mode: "fixed", amountMinor: 3_000, paidAmountMinor: 6_000 },
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      amountMinor: 3_000,
+      paidAmountMinor: 6_000,
+      ownerPartMinor: 3_000,
+      expenseContext: {
+        sharedProjectShare: { basis: "agreed_fixed_share", paidAmountMinor: 6_000 },
+      },
+    });
+  });
+
+  it("دفع المشروع حصته فقط ← لا جزء شخصي ولا حقل مدفوع (السلوك القائم محفوظ)", () => {
+    const result = expandExpenseRecordIntent({
+      type: "operating_expense_cash",
+      amountMinor: 3_000,
+      expenseContext: sharedContext,
+      sharedExpense: { mode: "fixed", amountMinor: 3_000, paidAmountMinor: 3_000 },
+    });
+    expect(result).toMatchObject({ ok: true, amountMinor: 3_000, paidAmountMinor: 3_000, ownerPartMinor: 0 });
+    const absent = expandExpenseRecordIntent({
+      type: "operating_expense_cash",
+      amountMinor: 3_000,
+      expenseContext: sharedContext,
+      sharedExpense: { mode: "fixed", amountMinor: 3_000 },
+    });
+    expect(absent).toMatchObject({ ok: true, paidAmountMinor: null, ownerPartMinor: 0 });
+  });
+
+  it("نسبة 50% من إجمالي 60 مدفوعة كاملة ← الحصة 30 والجزء الشخصي 30", () => {
+    const result = expandExpenseRecordIntent({
+      type: "operating_expense_cash",
+      expenseContext: sharedContext,
+      sharedExpense: {
+        mode: "percentage",
+        sharedTotalAmountMinor: 6_000,
+        sharedPercentageBps: 5_000,
+        paidAmountMinor: 6_000,
+      },
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      amountMinor: 3_000,
+      paidAmountMinor: 6_000,
+      ownerPartMinor: 3_000,
+      expenseContext: {
+        sharedProjectShare: { basis: "agreed_percentage", totalAmountMinor: 6_000, paidAmountMinor: 6_000 },
+      },
+    });
+  });
+
+  it("المدفوع الأقل من الحصة يُرفض — لا دفع جزئي بلا عقد التزام وسداد مترابطين", () => {
+    const result = expandExpenseRecordIntent({
+      type: "operating_expense_cash",
+      amountMinor: 3_000,
+      expenseContext: sharedContext,
+      sharedExpense: { mode: "fixed", amountMinor: 3_000, paidAmountMinor: 2_000 },
+    });
+    expect(result).toEqual({
+      ok: false,
+      message: "المدفوع فعليًا لا يمكن أن يقل عن حصة المشروع — إن لم يُدفع كاملها فسجّل المصروف مستحقًا.",
+    });
+  });
+
+  it("المدفوع الفعلي للمصروف النقدي وحده — المستحق يُرفض", () => {
+    const result = expandExpenseRecordIntent({
+      type: "operating_expense_payable",
+      amountMinor: 3_000,
+      expenseContext: sharedContext,
+      sharedExpense: { mode: "fixed", amountMinor: 3_000, paidAmountMinor: 6_000 },
+    });
+    expect(result).toEqual({
+      ok: false,
+      message: "«المدفوع فعليًا» يسأل للمصروف النقدي المشترك وحده — غير المدفوع يسجّل ذمة بلا دفع الآن.",
+    });
+  });
+
+  it("الحصة المؤجلة لا تقبل مدفوعًا فعليًا", () => {
+    const result = expandExpenseRecordIntent({
+      type: "operating_expense_cash",
+      expenseContext: sharedContext,
+      sharedExpense: { mode: "defer", sharedTotalAmountMinor: 6_000, paidAmountMinor: 6_000 },
+    } as ExpenseRecordIntentInput);
+    expect(result).toEqual({
+      ok: false,
+      message: "لا يُسجل مدفوع فعلي مع حصة مؤجلة — حدد حصة المشروع أولًا ثم سجّل ما دُفع.",
+    });
+  });
+
+  it("مدفوع غير صحيح (صفر/كسري/سالب) يُرفض برسالة آمنة", () => {
+    for (const bad of [0, -5, 3.5]) {
+      const result = expandExpenseRecordIntent({
+        type: "operating_expense_cash",
+        amountMinor: 3_000,
+        expenseContext: sharedContext,
+        sharedExpense: { mode: "fixed", amountMinor: 3_000, paidAmountMinor: bad },
+      });
+      expect(result).toEqual({
+        ok: false,
+        message: "أدخل المدفوع فعليًا مبلغًا صحيحًا موجبًا بالأرقام 0–9.",
+      });
+    }
   });
 });

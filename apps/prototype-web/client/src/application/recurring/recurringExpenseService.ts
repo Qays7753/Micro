@@ -781,6 +781,185 @@ export class RecurringExpenseService {
 
   /* ─── تحذير الإدخال اليدوي المتزامن (عقد ٤١ §٨) ─── */
 
+  /* S06 (UNIT-019 P3.1 / ORG-011 — منسق القصد D07): إعداد التكرار من داخل
+   * نموذج المصروف بعد ثبوت المصروف نفسه — مصروف واحد + إعداد تكرار واحد
+   * بقصد مترابط. معرّف السلسلة حتمي مشتق من نية الحفظ فالاستئناف بعد فشل
+   * جزئي يستكمل الناقص وحده: لا شيء = إنشاء+تفعيل؛ مسودة قائمة = تفعيل
+   * فقط؛ مفعلة = إعادة استخدام صادقة بلا كتابة. أول تذكير جديد هو القادم
+   * حصرًا (فترة المرساة لاحقة للفترة الحالية) فلا تُفتح دورة حالية ثانية
+   * لنفس الواقعة المسجلة للتو (B4 — «المصروف الأول»). */
+  async setupFromExpense(input: {
+    seriesId: string;
+    title: string;
+    nextReminderDate: string;
+    suggestedAmountMinor: number;
+    suggestedWalletId: string | null;
+    categoryLabel: string | null;
+  }): Promise<RecurringExpenseServiceResult<{ series: RecurringExpenseSeries; reused: boolean }>> {
+    const seriesId = input.seriesId.trim();
+    if (!seriesId) return validationFailure("معرّف سلسلة التكرار مطلوب لاستئناف الإعداد.");
+    const today = this.today();
+    if (input.nextReminderDate.slice(0, 7) <= today.slice(0, 7))
+      return validationFailure(
+        "التذكير القادم يجب أن يكون في شهر لاحق — مصروف هذه الفترة سُجل للتو؛ أول تذكير جديد هو القادم.",
+      );
+    const existingSeries = await this.store.getRecurringExpenseSeries(seriesId);
+    if (!existingSeries.ok) return storageFailure(existingSeries.message);
+    if (existingSeries.value) {
+      const series = existingSeries.value;
+      if (series.status === "active") return { ok: true, value: { series, reused: true } };
+      if (series.status === "draft") {
+        const activated = await this.activate(seriesId);
+        if (!activated.ok) return activated;
+        return { ok: true, value: { series: activated.value, reused: false } };
+      }
+      return validationFailure("سلسلة بهذا المعرف موجودة بحالة لا تقبل الإعداد — راجع إعداد التكرار.");
+    }
+    try {
+      const draft = createRecurringExpenseDraftSeries({
+        id: seriesId,
+        title: input.title,
+        createdAt: this.now(),
+        rule: {
+          frequency: "monthly",
+          interval: 1,
+          anchorDate: input.nextReminderDate,
+          dueDay: Number(input.nextReminderDate.slice(8, 10)),
+          monthEndPolicy: "last_valid_day",
+          timezone: "Asia/Amman",
+          amountMode: "fixed_suggested",
+          suggestedAmountMinor: input.suggestedAmountMinor,
+          suggestedWalletId: input.suggestedWalletId,
+          categoryLabel: input.categoryLabel,
+          changeReason: null,
+          effectiveFromPeriod: input.nextReminderDate.slice(0, 7),
+        },
+      });
+      const committed = await this.store.commitRecurringExpenseDraft(draft.series, draft.revision);
+      if (!committed.ok)
+        return {
+          ok: false,
+          code: committed.code === "storage_stale" ? "storage_stale" : "storage_error",
+          message: committed.message,
+        };
+      const activated = await this.activate(seriesId);
+      if (!activated.ok) return activated;
+      return { ok: true, value: { series: activated.value, reused: false } };
+    } catch (error) {
+      return validationFailure(errorMessageOf(error, "بيانات إعداد التكرار غير صالحة."));
+    }
+  }
+
+  /* S06 (UNIT-019 B4 — عقد الربط الموجود D06): ربط مصروف يدوي قائم بدورة
+   * غير معالجة باختيار صريح — لا حدث جديد ولا تعديل مفتاح قديم ولا دلتا
+   * مالية؛ الحرس الحي: مصروف تشغيل قائم غير معكوس، وحصرية ربط الحدث بدورة
+   * واحدة، والفترة بلا نتيجة غير محسومة (recording بلا محاولة قائمة قد
+   * تكون كتبت حدثًا فلا يُربط غيره فوقها). القرار يمر بالانتقالات القانونية
+   * نفسها (محاولة ثم تسجيل معاد استخدامه) ويُلتزم ذرة واحدة بلا كتابة حدث. */
+  async linkExistingExpense(
+    occurrenceId: string,
+    eventId: string,
+  ): Promise<RecurringExpenseServiceResult<RecurringConfirmOutcome>> {
+    const existing = await this.store.getRecurringExpenseOccurrence(occurrenceId);
+    if (!existing.ok) return storageFailure(existing.message);
+    const occurrence = existing.value;
+    if (!occurrence) return validationFailure(RECURRING_PERIOD_NOT_FOUND_MESSAGE);
+    if (occurrence.status === "recorded" && occurrence.recordedFinancialEventId)
+      return validationFailure("مصروف هذه الدورة مسجل مسبقًا — افتح المصروف أو راجع سجل الفترة.");
+    if (occurrence.status === "recording")
+      return validationFailure(
+        "نتيجة تسجيل هذه الدورة غير محسومة بعد — تحقق من التسجيل أو أنهِ قرارها صراحة قبل الربط.",
+      );
+    if (
+      occurrence.status !== "planned" &&
+      occurrence.status !== "snoozed" &&
+      occurrence.status !== "record_failed"
+    )
+      return validationFailure("هذه الدورة لا تقبل الربط بحالتها الحالية.");
+    const events = await this.store.listFinancialEvents();
+    if (!events.ok) return storageFailure(events.message);
+    const event = events.value.find(candidate => candidate.id === eventId);
+    if (!event) return validationFailure("لم يُعثر على المصروف المختار؛ لم يتغير أي شيء.");
+    if (event.type !== "operating_expense_cash" && event.type !== "operating_expense_payable")
+      return validationFailure("الربط لمصروف تشغيل قائم — لا تسديد ولا سواها من الأنواع.");
+    if (event.correctionType === "reverse" || reversedEventIds(events.value).has(event.id))
+      return validationFailure("هذا المصروف معكوس — اختر مصروفًا قائمًا غير معكوس.");
+    const occurrences = await this.store.listRecurringExpenseOccurrences();
+    if (!occurrences.ok) return storageFailure(occurrences.message);
+    const exclusive = occurrences.value.find(
+      candidate => candidate.recordedFinancialEventId === eventId && candidate.id !== occurrence.id,
+    );
+    if (exclusive)
+      return validationFailure("هذا المصروف مرتبط بدورة أخرى — الحدث الواحد دورة واحدة؛ اختر مصروفًا آخر.");
+    try {
+      /* الانتقالات القانونية نفسها (عقد ٤١ §٦): محاولة ثم تسجيل بإعادة
+       * استخدام صادقة — سجل الأفعال يحفظ الأصل بلا كتابة مالية إطلاقًا. */
+      const attempted = markRecurringExpenseConfirmAttempted(occurrence, this.now());
+      const recorded = markRecurringExpenseRecorded(attempted, {
+        eventId: event.id,
+        amountMinor: event.amountMinor,
+        walletId: null,
+        occurredOn: event.occurredOn,
+        reused: true,
+        at: this.now(),
+      });
+      const committed = await this.store.commitRecurringExpenseOccurrenceDecision(occurrence, recorded);
+      if (!committed.ok)
+        return {
+          ok: false,
+          code: committed.code === "storage_stale" ? "storage_stale" : "storage_error",
+          message: committed.message,
+        };
+      return {
+        ok: true,
+        value: {
+          status: "reused",
+          occurrence: committed.value.occurrence,
+          event,
+          attributionNote: null,
+        },
+      };
+    } catch (error) {
+      return validationFailure(errorMessageOf(error, "الربط غير قانوني بهذه الحالة."));
+    }
+  }
+
+  /** مرشحات الربط (D06): مصاريف تشغيل الفترة نفسها القائمة غير المعكوسة
+   * وغير المرتبطة بدورة أخرى — ترشيح عرض صريح لا مطابقة آلية ولا حظر. */
+  async listLinkableExpenses(
+    occurrenceId: string,
+  ): Promise<RecurringExpenseServiceResult<readonly FinancialEvent[]>> {
+    const existing = await this.store.getRecurringExpenseOccurrence(occurrenceId);
+    if (!existing.ok) return storageFailure(existing.message);
+    const occurrence = existing.value;
+    if (!occurrence) return validationFailure(RECURRING_PERIOD_NOT_FOUND_MESSAGE);
+    const [events, occurrences] = await Promise.all([
+      this.store.listFinancialEvents(),
+      this.store.listRecurringExpenseOccurrences(),
+    ]);
+    if (!events.ok) return storageFailure(events.message);
+    if (!occurrences.ok) return storageFailure(occurrences.message);
+    const reversedIds = reversedEventIds(events.value);
+    const linkedIds = new Set(
+      occurrences.value
+        .map(candidate => candidate.recordedFinancialEventId)
+        .filter((id): id is string => !!id),
+    );
+    return {
+      ok: true,
+      value: events.value
+        .filter(
+          event =>
+            (event.type === "operating_expense_cash" || event.type === "operating_expense_payable") &&
+            event.correctionType !== "reverse" &&
+            !reversedIds.has(event.id) &&
+            !linkedIds.has(event.id) &&
+            event.occurredOn.slice(0, 7) === occurrence.periodKey,
+        )
+        .sort((left, right) => (left.occurredOn < right.occurredOn ? 1 : -1)),
+    };
+  }
+
   /** مصروف يدوي في فترة تذكير غير معالجة: تحذير ظاهر لا حظر صامت. */
   async findUnhandledOccurrenceForDate(
     occurredOn: string,

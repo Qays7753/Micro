@@ -449,3 +449,72 @@ export async function recordFinancialEvent(
     return validationFailure(errorMessageOf(error, "بيانات الحدث المالي غير صالحة."));
   }
 }
+
+/* S06 (CONS-DEC04 المعتمدة / SDF-064 — عقدا ٠٦/٠٨ والدومين الحي): الفاتورة
+ * المشتركة التي دفعها المشروع فوق حصته — نية واحدة بمعاينة واحدة تنتج
+ * حدثين عبر الكاتب الكنوني نفسه: مصروف التشغيل بحصة المشروع (amountMinor =
+ * الحصة مع سياق الحصة وpaidAmountMinor)، وسحب شخصي على المالك بالفارق
+ * المؤكد شخصيًا (paidAmountMinor − الحصة) بمفتاح مشتق حتمي
+ * `${مفتاح النية}:owner-part` فلا انفصام عند الإعادة ولا تكرار عند السباق.
+ * دفع المشروع حصته فقط لا يضيف سحبًا ولا دينًا (يُستخدم record العادي حينها).
+ * فشل السحب بعد ثبوت المصروف نتيجة جزئية صادقة: المصروف باقٍ والفارق يُعاد
+ * بمفتاحه نفسه — لا يُعاد تسجيل المصروف أبدًا ولا يُعلن فشل كامل كاذب. */
+export type SharedBillRecordOutcome = {
+  expense: FinancialEvent;
+  ownerPart: FinancialEvent | null;
+  ownerPartFailure: string | null;
+};
+
+export async function recordSharedBillExpense(
+  store: ProjectFinancialEventWritesStore,
+  now: Clock,
+  input: FinancialRecordInput,
+): Promise<FinanceResult<SharedBillRecordOutcome>> {
+  if (input.type !== "operating_expense_cash")
+    return validationFailure(
+      "فرع الفاتورة المشتركة للمصروف النقدي وحده — غير المدفوع يسجّل ذمة بلا دفع الآن.",
+    );
+  /* التوسيع النقي نفسه: تحقق الحصة والمدفوع والفارق قبل أي كتابة. */
+  const expanded = expandExpenseRecordIntent({
+    type: "operating_expense_cash",
+    amountMinor: input.amountMinor,
+    expenseContext: input.expenseContext ?? null,
+    sharedExpense: input.sharedExpense,
+  });
+  if (!expanded.ok) return validationFailure(expanded.message);
+  if (expanded.ownerPartMinor <= 0)
+    return validationFailure(
+      "فرع الفاتورة المشتركة حين يدفع المشروع فوق حصته — دفع الحصة وحدها يسجل بالمصروف العادي.",
+    );
+  const expense = await recordFinancialEvent(store, now, input);
+  if (!expense.ok) return expense;
+  /* الفارق الشخصي: سحب مالك بالمفتاح المشتق — الإعادة بنفس النية تعيد
+   * الحدثين القائمين (reused) ولا تضاعف الأثر. */
+  const ownerPart = await recordFinancialEvent(store, now, {
+    type: "owner_withdrawal_cash",
+    amountMinor: expanded.ownerPartMinor,
+    occurredOn: input.occurredOn,
+    note: `الجزء الشخصي من فاتورة مشتركة: ${input.note}`,
+    counterparty: null,
+    relatedEventId: null,
+    idempotencyKey: `${input.idempotencyKey}:owner-part`,
+    sourceWalletId: input.sourceWalletId ?? null,
+  });
+  if (!ownerPart.ok)
+    return {
+      ok: true,
+      value: {
+        expense: expense.value,
+        ownerPart: null,
+        ownerPartFailure: ownerPart.message,
+      },
+    };
+  return {
+    ok: true,
+    value: {
+      expense: expense.value,
+      ownerPart: ownerPart.value,
+      ownerPartFailure: null,
+    },
+  };
+}

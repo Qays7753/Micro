@@ -13,6 +13,7 @@ import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import type { RecurringExpenseDetailReading } from "@/application/finance";
+import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type {
   RecurringExpenseOccurrenceReading,
   RecurringExpenseRuleRevision,
@@ -34,6 +35,8 @@ type PageState =
 export type InlineDecision =
   | { kind: "snooze"; occurrenceId: string }
   | { kind: "skip"; occurrenceId: string }
+  /* S06 (UNIT-019 B4 — D06): اختيار مصروف مسجل قائم وربطه بالدورة. */
+  | { kind: "link"; occurrenceId: string }
   | { kind: "cancel-series" }
   | null;
 
@@ -485,6 +488,21 @@ function OccurrenceRow({
               >
                 خطِّ هذه الفترة
               </Button>
+              {reading.displayState !== "result_unknown" ? (
+                <Button
+                  action="secondary"
+                  disabled={busy}
+                  onClick={() =>
+                    setDecision(
+                      decision?.kind === "link" && decision.occurrenceId === occurrence.id
+                        ? null
+                        : { kind: "link", occurrenceId: occurrence.id },
+                    )
+                  }
+                >
+                  اربط مصروفًا مسجلًا
+                </Button>
+              ) : null}
               {reading.displayState === "result_unknown" ? (
                 <Button action="outline" disabled={busy} onClick={onCheckResult}>
                   تحقق من النتيجة
@@ -564,6 +582,15 @@ function OccurrenceRow({
           </Button>
         </div>
       ) : null}
+      {decision?.kind === "link" && decision.occurrenceId === occurrence.id ? (
+        <LinkExistingPanel
+          occurrenceId={occurrence.id}
+          service={recurring}
+          busy={busy}
+          onSeriesAction={onSeriesAction}
+          onClose={() => setDecision(null)}
+        />
+      ) : null}
       {confirmingId === occurrence.id && latest ? (
         <RecurringConfirmPanel
           seriesTitle={seriesTitle}
@@ -579,5 +606,69 @@ function OccurrenceRow({
         />
       ) : null}
     </article>
+  );
+}
+
+/* S06 (UNIT-019 B4 — عقد الربط الموجود D06): اختيار مصروف تشغيل قائم من
+ * فترة الدورة نفسها وربطه بها — لا حدث جديد ولا إعادة تسجيل ولا تغيير
+ * مفتاح؛ الترشيح عرض صريح والحرس الحي عند الخدمة. */
+function LinkExistingPanel({
+  occurrenceId,
+  service,
+  busy,
+  onSeriesAction,
+  onClose,
+}: {
+  occurrenceId: string;
+  service: NonNullable<ReturnType<typeof usePrototypeServices>["recurringExpenses"]>;
+  busy: boolean;
+  onSeriesAction: (action: () => Promise<{ ok: boolean; message?: string }>) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [candidates, setCandidates] = useState<readonly FinancialEvent[] | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    service
+      .listLinkableExpenses(occurrenceId)
+      .then(result => {
+        if (!active) return;
+        if (result.ok) setCandidates(result.value);
+        else setFailed(result.message);
+      })
+      .catch(() => {
+        if (active) setFailed("تعذر تحميل المصروفات القابلة للربط.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [service, occurrenceId]);
+  return (
+    <div className="micro-cancel-panel" role="region" aria-label="ربط مصروف مسجل بهذه الفترة">
+      <p>
+        الربط يقرّ هذه الفترة بمصروف سجلته يدويًا — لا يُنشئ حدثًا جديدًا ولا يكرر المال، ويُحفظ قرارًا موثقًا
+        بالربط نفسه.
+      </p>
+      {failed ? <p className="micro-field-error">{failed}</p> : null}
+      {candidates === null && !failed ? <p role="status">يُقرأ السجل…</p> : null}
+      {candidates?.length === 0 ? (
+        <p role="status">لا مصروف تشغيل قائم في فترة هذه الدورة يمكن ربطه — سجّل المصروف أولًا أو راجعه.</p>
+      ) : null}
+      {(candidates ?? []).map(event => (
+        <div className="micro-form-actions" key={event.id}>
+          <Button
+            action="save"
+            disabled={busy}
+            onClick={() => onSeriesAction(() => service.linkExistingExpense(occurrenceId, event.id))}
+          >
+            اربط: {event.note} · <MoneyValue minor={event.amountMinor} className="micro-inline-number" /> ·{" "}
+            <LocalDateValue value={event.occurredOn} />
+          </Button>
+        </div>
+      ))}
+      <Button action="secondary" block disabled={busy} onClick={onClose}>
+        إغلاق
+      </Button>
+    </div>
   );
 }

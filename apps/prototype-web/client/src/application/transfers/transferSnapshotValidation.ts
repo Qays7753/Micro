@@ -528,8 +528,7 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     /* S05-MR-001: ثابت المرجعية للمورد المرتبط بالشراء — مثل البيع تمامًا:
      * معرف غير فارغ بلا طرف محفوظ يحمله الملف = مرجع مكسور يُرفض قبل
      * المعاينة، ولا كتابة على بيانات الجهاز الهدف. */
-    if (purchase.supplierPartyId != null && !counterpartyIds.has(purchase.supplierPartyId))
-      return false;
+    if (purchase.supplierPartyId != null && !counterpartyIds.has(purchase.supplierPartyId)) return false;
     purchaseIds.add(purchase.id);
     purchaseKeys.add(purchase.idempotencyKey);
   }

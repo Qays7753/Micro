@@ -3764,6 +3764,253 @@
         "trigger": "S05 (DOC-014 / UNIT-037): bundle-budget lazy split of homeControlCenter on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-014"
       }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-1",
+      "date": "2026-10-29",
+      "path": "apps/prototype-web/client/src/application/finance/financialEventEditorModel.ts",
+      "from": {
+        "nbLoc": 209,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 304,
+        "band": "NORMAL"
+      },
+      "reason": "S06 (DOC-015 / CONS-DEC04 + ORG-011): بوابة المدفوع فعليًا والفارق الشخصي ومعاينة الحصة ومنسق خيار «يتكرر» (التذكير القادم وبوابته) عند بيت نموذج المحرر.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the S05 contract fixes then UNIT-015/UNIT-019 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+        "trigger": "S06 (DOC-015): apps/prototype-web/client/src/application/finance/financialEventEditorModel.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-2",
+      "date": "2026-10-29",
+      "path": "apps/prototype-web/client/src/application/finance/projectFinancialEventWrites.ts",
+      "from": {
+        "nbLoc": 443,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 510,
+        "band": "WATCH"
+      },
+      "reason": "S06 (DOC-015 / CONS-DEC04 / SDF-064): الكاتب المنسق للفاتورة المشتركة فوق الحصة (recordSharedBillExpense) — حدثان بنية واحدة عبر الكاتب الكنوني نفسه ونتيجة جزئية صادقة.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the S05 contract fixes then UNIT-015/UNIT-019 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+        "trigger": "S06 (DOC-015): apps/prototype-web/client/src/application/finance/projectFinancialEventWrites.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-3",
+      "date": "2026-10-29",
+      "path": "apps/prototype-web/client/src/application/finance/projectFinancialService.ts",
+      "from": {
+        "nbLoc": 152,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 160,
+        "band": "NORMAL"
+      },
+      "reason": "S06 (DOC-015): تعريض recordSharedBill من بيت المالية — تعميم واحد لا خدمة موازية.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the S05 contract fixes then UNIT-015/UNIT-019 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+        "trigger": "S06 (DOC-015): apps/prototype-web/client/src/application/finance/projectFinancialService.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-4",
+      "date": "2026-10-29",
+      "path": "apps/prototype-web/client/src/application/financial-records/expenseRecordIntent.ts",
+      "from": {
+        "nbLoc": 108,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 188,
+        "band": "NORMAL"
+      },
+      "reason": "S06 (DOC-015 / CONS-DEC04): توسيع نية المصروف بالمدفوع فعليًا والفارق الشخصي المؤكد بتحقق الحصة/النمط/الدقة — نفس وحدة المعاينة والحفظ.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the S05 contract fixes then UNIT-015/UNIT-019 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+        "trigger": "S06 (DOC-015): apps/prototype-web/client/src/application/financial-records/expenseRecordIntent.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-5",
+      "date": "2026-10-29",
+      "path": "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts",
+      "from": {
+        "nbLoc": 1730,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1814,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S06 (DOC-015 / إصلاحا S05-MR-001/S05-MR-002): شكل رابط الطرف على البيع والشراء (isDirectSale/validSupplierPurchase) والمورد الاختياري للمسدد كاملًا بشروط سياسة المجال الحية.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the S05 contract fixes then UNIT-015/UNIT-019 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+        "trigger": "S06 (DOC-015): apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-6",
+      "date": "2026-10-29",
+      "path": "apps/prototype-web/client/src/components/presentation/EventEffectPreview.tsx",
+      "from": {
+        "nbLoc": 150,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 166,
+        "band": "NORMAL"
+      },
+      "reason": "S06 (DOC-015 / SDF-064): معاينة أثر الفاتورة المشتركة فوق الحصة — نقد المدفوع ومصروف الحصة وسحب المالك بالفارق بمعاينة واحدة من التوسيع نفسه.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the S05 contract fixes then UNIT-015/UNIT-019 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+        "trigger": "S06 (DOC-015): apps/prototype-web/client/src/components/presentation/EventEffectPreview.tsx on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-7",
+      "date": "2026-10-29",
+      "path": "apps/prototype-web/client/src/pages/RecurringExpenseDetail.tsx",
+      "from": {
+        "nbLoc": 564,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 654,
+        "band": "WATCH"
+      },
+      "reason": "S06 (DOC-015 / UNIT-019 B4-D06): فعل «اربط مصروفًا مسجلًا» بلوحة مرشحات الفترة القائمة — قرار صريح بلا حدث جديد ولا حظر.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the S05 contract fixes then UNIT-015/UNIT-019 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+        "trigger": "S06 (DOC-015): apps/prototype-web/client/src/pages/RecurringExpenseDetail.tsx on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-8",
+      "date": "2026-10-29",
+      "path": "src/domain/financial-event/index.ts",
+      "from": {
+        "nbLoc": 10,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 11,
+        "band": "NORMAL"
+      },
+      "reason": "S06 (DOC-015): تصدير دالة المجال النقية sharedBillOwnerPartMinor.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the S05 contract fixes then UNIT-015/UNIT-019 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+        "trigger": "S06 (DOC-015): src/domain/financial-event/index.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-9",
+      "date": "2026-10-29",
+      "path": "src/domain/financial-event/policies.ts",
+      "from": {
+        "nbLoc": 521,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 539,
+        "band": "WATCH"
+      },
+      "reason": "S06 (DOC-015 / CONS-DEC04 / SDF-064): دالة المجال النقية للفارق الشخصي فوق الحصة + مدفوع الفاتورة المشتركة في تطبيع الحصة (اختياري موجب أو null).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the S05 contract fixes then UNIT-015/UNIT-019 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+        "trigger": "S06 (DOC-015): src/domain/financial-event/policies.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-10",
+      "date": "2026-10-29",
+      "path": "src/domain/financial-event/types.ts",
+      "from": {
+        "nbLoc": 148,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 155,
+        "band": "NORMAL"
+      },
+      "reason": "S06 (DOC-015 / CONS-DEC04): حقل سياق المدفوع فعليًا (paidAmountMinor) على حصة المصروف المشترك — اختياري، null = الحصة فقط.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the S05 contract fixes then UNIT-015/UNIT-019 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
+        "trigger": "S06 (DOC-015): src/domain/financial-event/types.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-11",
+      "date": "2026-10-29",
+      "path": "apps/prototype-web/client/src/pages/FinancialEventEditor.tsx",
+      "from": {
+        "nbLoc": 1194,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1574,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S06 (DOC-015 / UNIT-015 CONS-DEC04 + UNIT-019 ORG-011/D07): سؤال الفاتورة المشتركة (المدفوع فعليًا + تأكيد تحمّل المالك للفارق) وخيار «يتكرر» (التذكير القادم) بنتيجة جزئية صادقة واستئناف الناقص وحده (أعد محاولة ضبط التذكير/تسجيل الجزء الشخصي) داخل صفحة المحرر القائمة. التصعيد إلى SPLIT_NOW مؤجل بعلة موثقة: أمر S06 يمنع صراحة تقسيم الملفات الضخمة وموجة إعادة الهيكلة (سطرًا بحرفيه)؛ التغيير أصغر تعديل محلي آمن في بيته القائم، والتقسيم الهيكلي قرار مالك مستقل يسجل عند بوابة هيكلية لاحقة (DEFER بأمر التنفيذ نفسه).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates UNIT-015/UNIT-019 on the same branch/PR and explicitly forbids file splits and structural refactoring within this stage. Same-PR re-anchor per the documented protocol; structural split deferred with evidence.",
+        "trigger": "S06 (DOC-015): apps/prototype-web/client/src/pages/FinancialEventEditor.tsx on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-12",
+      "date": "2026-10-29",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts",
+      "from": {
+        "nbLoc": 1192,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1254,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S06 (DOC-015 / إصلاح S05-MR-001 المؤكد): بناء طقم معرفات الأطراف المحفوظة قبل فحص عائلتَي البيع والشراء وتطبيق الثابت المرجعي (customerPartyId/supplierPartyId يجب أن يحلا لطرف داخل الملف) — إصلاح جذر عقد بيانات، لا توسعة ميزة. التصعيد إلى SPLIT_NOW مؤجل بعلة موثقة: أمر S06 يمنع التقسيم الهيكلي في نطاقه؛ التغيير أصغر تعديل محلي آمن، والتقسيم قرار مالك لاحق (DEFER بأمر التنفيذ نفسه).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the S05-MR-001 root fix on the same branch/PR and explicitly forbids structural refactoring within this stage. Same-PR re-anchor; structural split deferred with evidence.",
+        "trigger": "S06 (DOC-015): apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-13",
+      "date": "2026-10-29",
+      "path": "apps/prototype-web/client/src/application/recurring/recurringExpenseService.ts",
+      "from": {
+        "nbLoc": 770,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 946,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S06 (DOC-015 / UNIT-019 ORG-011/D07 وB4/D06): منسق إعداد التكرار من المصروف (setupFromExpense بمعرّف حتمي قابل للاستئناف وأول تذكير قادم حصرًا) وعقد الربط الموجود (linkExistingExpense بحرس صلاحية وحصرية وعكس وتعارض) ومرشحات الربط — عند بيت الخدمة القائم لا خدمة موازية. التصعيد مؤجل بعلة موثقة: أمر S06 يمنع التقسيم الهيكلي؛ أصغر تعديل محلي آمن (DEFER بأمر التنفيذ نفسه).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates UNIT-019 D06/D07 on the same branch/PR and explicitly forbids structural refactoring within this stage. Same-PR re-anchor; structural split deferred with evidence.",
+        "trigger": "S06 (DOC-015): apps/prototype-web/client/src/application/recurring/recurringExpenseService.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
     }
   ]
 }
