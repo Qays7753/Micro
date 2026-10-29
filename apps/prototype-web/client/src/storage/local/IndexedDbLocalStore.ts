@@ -79,6 +79,7 @@ import {
   validateRecurringExpenseKeyEventCollision,
   validateRecurringExpenseMaterialization,
   validateRecurringExpenseOccurrenceDecision,
+  validateRecurringExpenseOccurrenceLinkExclusivity,
   validateRecurringExpenseOccurrenceRecordCommit,
   validateRecurringExpenseSeriesChange,
 } from "./recurringExpenseCommitGuard";
@@ -4543,6 +4544,84 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     }
   }
   /* قرار فترة مفرد (تأجيل/تخطٍ/علامة محاولة/فشل معروف) — محروس داخل الحد. */
+  /* S06 (UNIT-019 B4/D06 — R2-F01): قرار الربط — العهدة وحصرية الحدث داخل
+   * معاملة واحدة؛ جرد الفترات كله يُقرأ في المعاملة نفسها قبل الكتابة
+   * فلا يمر ربط مزدوج حتى مع سباق نافذتين. */
+  async commitRecurringExpenseOccurrenceLink(
+    base: RecurringExpenseOccurrence,
+    next: RecurringExpenseOccurrence,
+  ): Promise<StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([recurringExpenseOccurrenceStore], "readwrite");
+        const occurrences = transaction.objectStore(recurringExpenseOccurrenceStore);
+        let pending: StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>) =>
+          resolve(result);
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const allRequest = occurrences.getAll();
+        allRequest.onerror = () => {
+          pending = failure(allRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        allRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const all = (allRequest.result ?? []) as RecurringExpenseOccurrence[];
+          const stored = all.find(candidate => candidate.id === next.id);
+          const guard = validateRecurringExpenseOccurrenceDecision(stored, base, next);
+          if (!guard.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: guard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          if (guard.reused) {
+            pending = { ok: true, value: { occurrence: stored ?? next, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          /* الحصرية داخل المعاملة: الحدث الواحد دورة واحدة — ربط مزدوج
+           * متزامن يُحبط كاملًا بلا أي كتابة. */
+          const exclusive = validateRecurringExpenseOccurrenceLinkExclusivity(all, next);
+          if (!exclusive.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: exclusive.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          occurrences.put(next);
+        });
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { occurrence: next, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   async commitRecurringExpenseOccurrenceDecision(
     base: RecurringExpenseOccurrence,
     next: RecurringExpenseOccurrence,

@@ -891,6 +891,12 @@ export class RecurringExpenseService {
     );
     if (exclusive)
       return validationFailure("هذا المصروف مرتبط بدورة أخرى — الحدث الواحد دورة واحدة؛ اختر مصروفًا آخر.");
+    /* R2-F04 (مراجعة S06 القرائية ٢): حدود عمق دفاعية — الربط لمصروف فترة
+     * الدورة نفسها؛ الترشيح في الواجهة عرض، والحرس الحي هنا. */
+    if (event.occurredOn.slice(0, 7) !== occurrence.periodKey)
+      return validationFailure(
+        "الربط لمصروف من فترة أخرى — اختر مصروف فترة هذه الدورة أو سجّل مصروفها منها.",
+      );
     try {
       /* الانتقالات القانونية نفسها (عقد ٤١ §٦): محاولة ثم تسجيل بإعادة
        * استخدام صادقة — سجل الأفعال يحفظ الأصل بلا كتابة مالية إطلاقًا. */
@@ -903,7 +909,9 @@ export class RecurringExpenseService {
         reused: true,
         at: this.now(),
       });
-      const committed = await this.store.commitRecurringExpenseOccurrenceDecision(occurrence, recorded);
+      /* R2-F01: الالتزام بقرار الربط المحروس — الحصرية داخل حد الكتابة
+       * نفسه، فلا يمر ربط مزدوج متزامن أبدًا (فحص الخدمة ودود أول فقط). */
+      const committed = await this.store.commitRecurringExpenseOccurrenceLink(occurrence, recorded);
       if (!committed.ok)
         return {
           ok: false,

@@ -14,6 +14,7 @@ import {
   validateRecurringExpenseKeyEventCollision,
   validateRecurringExpenseMaterialization,
   validateRecurringExpenseOccurrenceDecision,
+  validateRecurringExpenseOccurrenceLinkExclusivity,
   validateRecurringExpenseOccurrenceRecordCommit,
   validateRecurringExpenseSeriesChange,
 } from "./recurringExpenseCommitGuard";
@@ -2287,6 +2288,25 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       }
     }
     return { ok: true, value: { created, skipped } };
+  }
+  /* S06 (UNIT-019 B4/D06 — R2-F01): قرار الربط — العهدة وحصرية الحدث داخل
+   * حد الكتابة نفسه (الحدث الواحد دورة واحدة)؛ لا ربط مزدوج حتى مع سباق
+   * نافذتين. */
+  async commitRecurringExpenseOccurrenceLink(
+    base: RecurringExpenseOccurrence,
+    next: RecurringExpenseOccurrence,
+  ): Promise<StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>> {
+    const stored = this.recurringExpenseOccurrences.get(next.id);
+    const guard = validateRecurringExpenseOccurrenceDecision(stored, base, next);
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
+    if (guard.reused) return { ok: true, value: { occurrence: clone(stored ?? next), reused: true } };
+    const exclusive = validateRecurringExpenseOccurrenceLinkExclusivity(
+      Array.from(this.recurringExpenseOccurrences.values()),
+      next,
+    );
+    if (!exclusive.ok) return { ok: false, code: STORAGE_STALE, message: exclusive.message };
+    this.recurringExpenseOccurrences.set(next.id, clone(next));
+    return { ok: true, value: { occurrence: clone(next), reused: false } };
   }
   /* قرار فترة مفرد — محروس. */
   async commitRecurringExpenseOccurrenceDecision(

@@ -1107,6 +1107,12 @@ export interface PrototypeLocalStore {
     occurrences: readonly RecurringExpenseOccurrence[],
   ): Promise<StorageResult<{ created: number; skipped: number }>>;
   /* قرار فترة واحد (تأجيل/تخطٍ/علامة محاولة/فشل معروف): محروس بنفس القاعدة. */
+  /* S06 (UNIT-019 B4/D06 — R2-F01): قرار الربط بمصروف قائم — نفس عهدة قرار
+   * الفترة المفرد زائد حصرية الحدث/الفترة داخل حد الكتابة نفسه. */
+  commitRecurringExpenseOccurrenceLink(
+    base: RecurringExpenseOccurrence,
+    next: RecurringExpenseOccurrence,
+  ): Promise<StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>>;
   commitRecurringExpenseOccurrenceDecision(
     base: RecurringExpenseOccurrence,
     next: RecurringExpenseOccurrence,

@@ -237,12 +237,25 @@ export function isDirectSale(value: unknown): value is DirectSale {
     ) ||
     /* S05-MR-001 (أمر S06 — إصلاح عقد S05 المؤكد): رابط الطرف المحفوظ على
      * البيع المباشر شكلًا — غائب أو null أو معرّف نصي غير فارغ؛ الملف الذي
-     * يضع نوعًا آخر في هذا الحقل معطوب قبل فحص المرجعية أصلًا. */
+     * يضع نوعًا آخر في هذا الحقل معطوب قبل فحص المرجعية أصلًا.
+     * R2-F03 (مراجعة S06 القرائية ٢): الرابط يحمل لقطة تسميته معه دائمًا
+     * (العقد المشترك §5.1 — PartyRef) — مرآة حارس المجال
+     * assertPartyLinkCarriesSnapshot كما في جانب المورد تمامًا. */
     !(
       value.customerPartyId === undefined ||
       value.customerPartyId === null ||
       (isString(value.customerPartyId) && value.customerPartyId.trim().length > 0)
     ) ||
+    (value.customerPartyId !== undefined &&
+      value.customerPartyId !== null &&
+      isString(value.customerPartyId) &&
+      value.customerPartyId.trim().length > 0 &&
+      !(
+        value.customerName !== undefined &&
+        value.customerName !== null &&
+        isString(value.customerName) &&
+        value.customerName.trim().length > 0
+      )) ||
     /* P-002 (دورة التدقيق النهائي): مرجع الكتالوج اختياري — null أو معرّف نصي
      * غير فارغ؛ تناظرًا مع تحقق الطلبات والمسودات فلا يُقبل ملف معطوب يضع
      * نوعًا آخر في هذا الحقل. المرجع المعلّق مقبول (حذف المرجع لاحقًا قانوني). */

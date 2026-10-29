@@ -243,9 +243,9 @@ async function runCapabilityScenario(store: RecurringExpenseStore) {
 }
 
 describe("Wave C — قدرة المصروف المتكرر (ADR-015 مجموعة 1): العضوية", () => {
-  it("قائمة الطرق هي نطاق المجموعة بالضبط: 10 أسماء فريدة", () => {
-    expect(recurringExpenseStoreMethods).toHaveLength(10);
-    expect(new Set(recurringExpenseStoreMethods).size).toBe(10);
+  it("قائمة الطرق هي نطاق المجموعة بالضبط: 11 اسمًا فريدًا", () => {
+    expect(recurringExpenseStoreMethods).toHaveLength(11);
+    expect(new Set(recurringExpenseStoreMethods).size).toBe(11);
   });
 
   for (const [label, makeStore] of [

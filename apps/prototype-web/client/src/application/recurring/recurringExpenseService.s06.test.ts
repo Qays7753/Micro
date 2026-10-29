@@ -1,6 +1,10 @@
 import "fake-indexeddb/auto";
 import { afterEach, describe, expect, it } from "vitest";
-import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
+import { createFinancialEvent, createFinancialReversal } from "@micro-domain/financial-event/index.js";
+import {
+  markRecurringExpenseConfirmAttempted,
+  markRecurringExpenseRecorded,
+} from "@micro-domain/recurring-expense/index.js";
 import type { RecurringExpenseOccurrence } from "@micro-domain/recurring-expense/index.js";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { IndexedDbLocalStore } from "@/storage/local/IndexedDbLocalStore";
@@ -354,6 +358,133 @@ for (const adapter of adapters) {
         const blocked = await service.linkExistingExpense(octoberAfter.id, settlement.id);
         expect(blocked.ok).toBe(false);
       }
+    });
+
+    it("R2-F01: الحصرية داخل حد الكتابة — ربط متزامن لنافذتين بالحدث نفسه يمر واحد ويُحبط الآخر", async () => {
+      const store = await adapter.make();
+      const service = new RecurringExpenseService(store, () => OCTOBER);
+      const seriesId = await seedSeriesWithCurrentOccurrence(service);
+      const occurrences = await occurrencesOf(store);
+      const october = occurrences.find(o => o.periodKey === "2026-10");
+      const november = occurrences.find(o => o.periodKey === "2026-11");
+      if (!october || !november) throw new Error("فترات ناقصة");
+      /* حد حد الكتابة نفسه (المخزن): فترتان تطلبان الحدث ذاته في معاملتين
+       * متزامنتين — حارس الحصرية داخل المعاملة هو الحكم. */
+      const linkOctober = markRecurringExpenseRecorded(
+        markRecurringExpenseConfirmAttempted(october, OCTOBER),
+        {
+          eventId: "event-race-link",
+          amountMinor: 12_000,
+          walletId: null,
+          occurredOn: "2026-10-05",
+          reused: true,
+          at: OCTOBER,
+        },
+      );
+      const linkNovember = markRecurringExpenseRecorded(
+        markRecurringExpenseConfirmAttempted(november, OCTOBER),
+        {
+          eventId: "event-race-link",
+          amountMinor: 12_000,
+          walletId: null,
+          occurredOn: "2026-10-05",
+          reused: true,
+          at: OCTOBER,
+        },
+      );
+      const raced = await Promise.all([
+        store.commitRecurringExpenseOccurrenceLink(october, linkOctober),
+        store.commitRecurringExpenseOccurrenceLink(november, linkNovember),
+      ]);
+      const succeeded = raced.filter(result => result.ok);
+      const rejected = raced.filter(result => !result.ok);
+      /* الحدث الواحد دورة واحدة — بالضبط: نجاح واحد ورفض حصري واحد. */
+      expect(succeeded).toHaveLength(1);
+      expect(rejected).toHaveLength(1);
+      if (rejected[0] && !rejected[0].ok) expect(rejected[0].message).toContain("مرتبط بدورة أخرى");
+      const after = await occurrencesOf(store);
+      const holders = after.filter(occurrence => occurrence.recordedFinancialEventId === "event-race-link");
+      expect(holders).toHaveLength(1);
+      /* حرس الخدمة يظل ودودًا أولًا: الربط التسلسلي للحدث المربوط يُرفض قبل الحد. */
+      const serviceLevel = await service.linkExistingExpense(november.id, "event-race-link");
+      expect(serviceLevel.ok).toBe(false);
+    });
+
+    it("R2-F02: الحدث المعكوس (حيًّا أو بتراجع موثق) يُرفض ربطه بلا كتابة", async () => {
+      const store = await adapter.make();
+      const service = new RecurringExpenseService(store, () => OCTOBER);
+      const seriesId = await seedSeriesWithCurrentOccurrence(service);
+      const original = createFinancialEvent({
+        id: "event-reversible",
+        type: "operating_expense_cash",
+        amountMinor: 12_000,
+        occurredOn: "2026-10-05",
+        recordedAt: OCTOBER,
+        idempotencyKey: "reversible-key",
+        note: "مصروف سيعكس",
+        counterparty: null,
+        relatedEventId: null,
+        expenseContext: {
+          relationship: "project",
+          behavior: "fixed",
+          purpose: "period",
+          knowledge: "known",
+        },
+      });
+      const savedOriginal = await store.saveFinancialEvent(original);
+      if (!savedOriginal.ok) throw new Error(savedOriginal.message);
+      const reversal = createFinancialReversal({
+        id: "event-reversal",
+        sourceEvent: original,
+        occurredOn: "2026-10-06",
+        recordedAt: OCTOBER,
+        idempotencyKey: "reversal-key",
+        reason: "خطأ في التسجيل",
+      });
+      const savedReversal = await store.saveFinancialEvent(reversal);
+      if (!savedReversal.ok) throw new Error(savedReversal.message);
+      const occurrences = await occurrencesOf(store);
+      const october = occurrences.find(o => o.periodKey === "2026-10");
+      if (!october) throw new Error("لا فترة أكتوبر");
+      const before = (await occurrencesOf(store)).map(o => [o.id, o.status]);
+      const link = await service.linkExistingExpense(october.id, original.id);
+      expect(link.ok).toBe(false);
+      if (!link.ok) expect(link.message).toContain("معكوس");
+      const after = (await occurrencesOf(store)).map(o => [o.id, o.status]);
+      expect(after).toEqual(before);
+    });
+
+    it("R2-F04: مصروف من فترة أخرى يُرفض ربطه — الحرس الحي عند الخدمة", async () => {
+      const store = await adapter.make();
+      const service = new RecurringExpenseService(store, () => OCTOBER);
+      const seriesId = await seedSeriesWithCurrentOccurrence(service);
+      const outOfPeriod = createFinancialEvent({
+        id: "event-out-of-period-link",
+        type: "operating_expense_cash",
+        amountMinor: 5_000,
+        occurredOn: "2026-08-05",
+        recordedAt: OCTOBER,
+        idempotencyKey: "out-of-period-link-key",
+        note: "مصروف أغسطس",
+        counterparty: null,
+        relatedEventId: null,
+        expenseContext: {
+          relationship: "project",
+          behavior: "variable",
+          purpose: "project_general",
+          knowledge: "known",
+        },
+      });
+      const saved = await store.saveFinancialEvent(outOfPeriod);
+      if (!saved.ok) throw new Error(saved.message);
+      const occurrences = await occurrencesOf(store);
+      const october = occurrences.find(o => o.periodKey === "2026-10");
+      if (!october) throw new Error("لا فترة أكتوبر");
+      const link = await service.linkExistingExpense(october.id, outOfPeriod.id);
+      expect(link.ok).toBe(false);
+      if (!link.ok) expect(link.message).toContain("فترة أخرى");
+      const after = await occurrencesOf(store);
+      expect(after.find(o => o.periodKey === "2026-10")?.status).toBe("planned");
     });
 
     it("مرشحات الربط: مصاريف فترة الدورة القائمة غير المرتبطة وحدها", async () => {

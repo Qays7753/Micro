@@ -358,6 +358,23 @@ for (const adapter of adapters) {
       expect(preparedAbsent.ok).toBe(true);
     });
 
+    it("R2-F03: رابط طرف بلا لقطة تسميته على البيع مكسور — يُرفض عند الباب (مرآة جانب المورد)", async () => {
+      const target = await adapter.make();
+      const service = new LocalTransferService(target, () => NOW);
+      const party = activeParty();
+      const linkWithoutName = currentPairFile({
+        parties: [party],
+        sale: { ...directSale("party-1"), customerName: null },
+      });
+      expect(service.prepareImport(JSON.stringify(linkWithoutName)).ok).toBe(false);
+      /* السليم (رابط + لقطة تسمية) يمر كما كان. */
+      const healthy = currentPairFile({
+        parties: [party],
+        sale: directSale("party-1"),
+      });
+      expect(service.prepareImport(JSON.stringify(healthy)).ok).toBe(true);
+    });
+
     it("شكل الرابط المكسور نفسه يُرفض: معرف غير نصي أو نص فارغ على البيع والشراء", async () => {
       const target = await adapter.make();
       const service = new LocalTransferService(target, () => NOW);
