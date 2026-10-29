@@ -198,6 +198,17 @@ describe("S07 — باب النقل مع بنود الشراء (عقد ٤٤)", (
       (await prepare(currentPairFile({ lines: [lineWith({ valueMinor: 7_000, costKnowledge: "unknown" })] })))
         .ok,
     ).toBe(false);
+    /* R2-F04: مجموع قيم البنود المعلومة فوق إجمالي الشراء — مرآة ثابت حد
+     * الكتابة عند باب النقل أيضًا؛ الملف الدخيل يُرفض قبل المعاينة. */
+    expect(
+      (
+        await prepare(
+          currentPairFile({
+            lines: [lineWith({ valueMinor: 20_000 }), lineWith({ lineId: "pl-2", valueMinor: 15_000 })],
+          }),
+        )
+      ).ok,
+    ).toBe(false);
     expect(
       (await prepare(currentPairFile({ lines: [lineWith({ treatment: "tracked_material" })] }))).ok,
     ).toBe(false);

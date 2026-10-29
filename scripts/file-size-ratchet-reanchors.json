@@ -4344,7 +4344,7 @@
         "band": "SPLIT_CANDIDATE"
       },
       "to": {
-        "nbLoc": 1789,
+        "nbLoc": 1792,
         "band": "SPLIT_NOW"
       },
       "reason": "S06-MR-001: محرر الحدث المالي يبطل تأكيد جزء المالك تلقائيًا عند تغيّر الحصة/المدفوع ويعيد طلبه بالقيم الجديدة (+53 فوق قيمة إرساء S06 1727) ثم R1-F03: حارس صريح بلا إكراه نوع عند نية الإعادة؛ تصعيد الشريحة إلى SPLIT_NOW مُرسى بصدق والتقسيم مؤجل لموجات الهيكلة بقرار المالك.",
@@ -4458,12 +4458,12 @@
         "band": "WATCH"
       },
       "to": {
-        "nbLoc": 503,
+        "nbLoc": 506,
         "band": "WATCH"
       },
-      "reason": "UNIT-027: خدمة الشراء تفحص تطابق المعالجة مع حالة تتبع المادة الحية داخل حد الكتابة نفسه وتوثق beforeLines في المراجعة وترفض التعديل فوق استلام قائم (SDF-071) وتحرس حدود البنود.",
+      "reason": "UNIT-027: خدمة الشراء تفحص تطابق المعالجة مع حالة تتبع المادة الحية داخل حد الكتابة وتوثق beforeLines وترفض التعديل فوق استلام قائم (SDF-071 متناظرًا بعد R2-F01: حذف البنود كلية فوق إيصالات قائمة تغيير بنود يُرفض كغيره).",
       "authorization": {
-        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) — R2 read-only-reviewer corrections on the same PR; same-PR re-anchor per R8-1/R11.",
         "trigger": "S07 delivery (DOC-016): S07 line validation inside the write boundary on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-016"
       }
@@ -4477,12 +4477,12 @@
         "band": "SPLIT_NOW"
       },
       "to": {
-        "nbLoc": 1882,
+        "nbLoc": 1895,
         "band": "SPLIT_NOW"
       },
-      "reason": "UNIT-027 (عقد ٤٤/SDF-044): مدققو بنود صارمون + مراجع عابرة للعائلات (هوية البند تحل داخل شرائه؛ مادة البند تحل داخل العائلة؛ مرجع بند مكسور في حركة استلام يُرفض قبل المعاينة) — داخل الملف المقسم أصلًا بقرار هيكلي سابق؛ لا تقسيم جديد خلال S07.",
+      "reason": "UNIT-027 (عقد ٤٤/SDF-044): مدققو بنود صارمون + مراجع عابرة للعائلات + مرآة ثابت مجموع القيم المعلومة ≤ الإجمالي (R2-F04) — داخل الملف المقسم أصلًا بقرار هيكلي سابق؛ لا تقسيم جديد خلال S07.",
       "authorization": {
-        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) — R2 read-only-reviewer corrections on the same PR; same-PR re-anchor per R8-1/R11.",
         "trigger": "S07 delivery (DOC-016): S07 strict line validators + cross-family references on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-016"
       }
@@ -4572,12 +4572,12 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 364,
+        "nbLoc": 368,
         "band": "NORMAL"
       },
-      "reason": "UNIT-027: حارس الالتزام يقارن البنود حقولًا ثابتة في هوية الرأس وbeforeLines في المراجعة — ذرّية الالتزام القائمة تتوسع للبنود.",
+      "reason": "UNIT-027 + R2-F02: حارس الالتزام يقارن البنود في هوية الرأس وbeforeLines في المراجعة الجديدة وفي المراجعات التاريخية (sameRevision) — أذرع CAS كاملة للبنود.",
       "authorization": {
-        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) — R2 read-only-reviewer corrections on the same PR; same-PR re-anchor per R8-1/R11.",
         "trigger": "S07 delivery (DOC-016): S07 commit-guard line fields on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-016"
       }

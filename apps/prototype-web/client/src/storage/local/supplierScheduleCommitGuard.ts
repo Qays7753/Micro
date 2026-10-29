@@ -59,7 +59,11 @@ const sameRevision = (a: SupplierPurchaseRevision, b: SupplierPurchaseRevision) 
   a.beforePurchasedOn === b.beforePurchasedOn &&
   a.beforeDueOn === b.beforeDueOn &&
   (a.beforeMaterialId ?? null) === (b.beforeMaterialId ?? null) &&
-  (a.beforeExpectedQuantityMilli ?? null) === (b.beforeExpectedQuantityMilli ?? null);
+  (a.beforeExpectedQuantityMilli ?? null) === (b.beforeExpectedQuantityMilli ?? null) &&
+  /* S07 (UNIT-027 / R2-F02): لقطة البنود «قبل التعديل» ذراع CAS كاملة —
+   * إعادة كتابة مراجعة تاريخية بقيم beforeLines مختلفة لا تمر فوق
+   * الحارس (تعميق دفاعي؛ الإلحاق عند المجال غير قابل للتغيير أصلًا). */
+  linesIdentical(a.beforeLines ?? null, b.beforeLines ?? null);
 
 /* المدفوع الفعلي واشتقاقات الحالة — نفس معيّنات النطاق، تُفحص هنا داخل المعاملة
  * فلا يمر سجل معطوب الاشتقاق حتى لو تطابقت العلاقة الهيكلية. */

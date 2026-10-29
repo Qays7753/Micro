@@ -943,7 +943,10 @@ export default function FinancialEventEditor() {
       const frozenConfirmation = ownerPartConfirmedFor;
       if (frozenConfirmation === null) {
         setSaving(false);
-        setMessage({ text: "تعذر تجهيز إعادة محاولة الجزء الشخصي — أعد التأكيد ثم أعد المحاولة.", tone: "error" });
+        setMessage({
+          text: "تعذر تجهيز إعادة محاولة الجزء الشخصي — أعد التأكيد ثم أعد المحاولة.",
+          tone: "error",
+        });
         return false;
       }
       setSavedNote({

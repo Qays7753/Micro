@@ -1039,6 +1039,19 @@ export function validSupplierPurchase(value: unknown): boolean {
         value.lines.every(validSupplierPurchaseLine) &&
         new Set(value.lines.map((line: { lineId: unknown }) => (isRecord(line) ? line.lineId : null)))
           .size === value.lines.length)
+    ) ||
+    /* S07 (UNIT-027 / R2-F04): مجموع قيم البنود المعلومة لا يتجاوز إجمالي
+     * الشراء — مرآة ثابت حد الكتابة الكنوني («الأجزاء لا تكرر فوق الكل»)
+     * فلا يعبر ملف دخيل بفترة اعتراف تتجاوز قيمة الفاتورة نفسها. */
+    !(
+      value.lines === undefined ||
+      value.lines === null ||
+      (isMoney(value.totalMinor) &&
+        (value.lines as { costKnowledge?: unknown; valueMinor?: unknown }[]).reduce<number>(
+          (sum, line) =>
+            line.costKnowledge === "known" && isMoney(line.valueMinor) ? sum + line.valueMinor : sum,
+          0,
+        ) <= value.totalMinor)
     )
   )
     return false;

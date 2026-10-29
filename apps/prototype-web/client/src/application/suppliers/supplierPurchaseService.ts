@@ -413,12 +413,15 @@ export class SupplierPurchaseService {
     /* S07 (UNIT-027 / SDF-071): البنود بعد التعديل تفحص توابعها — إيصالات
      * قائمة مقيدة ببند حي تجعل تغيير البنود/إزالتها غير مؤهل؛ يُراجع
      * الاستلام عند مالكه أولًا (عكس موثق) ثم يُعدّل. تطابق المعالجة مع
-     * حالة تتبع المادة الحية كالإنشاء تمامًا. */
+     * حالة تتبع المادة الحية كالإنشاء تمامًا. R2-F01: الفحص متناظر —
+     * حذف البنود كلية (lines = null/undefined) فوق إيصالات قائمة هو تغيير
+     * بنود كأي تغيير آخر، لا مسارًا يتجاوز الحارس (الحد يحمي حتى مع
+     * تجاوز الواجهة). */
     const currentLines = existing.value.lines ?? null;
     const nextLines = input.lines ?? null;
-    if (activeReceipts.length > 0 && nextLines !== null) {
+    if (activeReceipts.length > 0) {
       const currentLineList = currentLines ?? [];
-      const nextLineList = nextLines;
+      const nextLineList = nextLines ?? [];
       const linesChanged =
         currentLineList.length !== nextLineList.length ||
         !nextLineList.every((line, index) => {

@@ -196,7 +196,9 @@ describe("S07 — بنود الفاتورة في محرر الشراء (UNIT-027
     const { recordPurchase } = renderEditor({ materials: [legacyTrackedMaterial] });
     await fillBasics();
     await userEvent.setup().type(screen.getByLabelText(/اسم المورد/), "مؤسسة السكر");
-    fireEvent.change(screen.getByLabelText(/المادة المشتراة/), { target: { value: "material-legacy-tracked" } });
+    fireEvent.change(screen.getByLabelText(/المادة المشتراة/), {
+      target: { value: "material-legacy-tracked" },
+    });
     fireEvent.change(screen.getByLabelText(/الكمية المتوقعة/), { target: { value: "2" } });
     recordPurchase.mockResolvedValueOnce({
       ok: true,

@@ -558,6 +558,77 @@ for (const adapter of adapters) {
       if (!edit.ok) expect(edit.message).toContain("إيصالات استلام قائمة");
     });
 
+    /* R2-F01 (انحدار دائم على المهايئين): حذف البنود كلية فوق إيصالات قائمة
+     * هو تغيير بنود — الحارس متناظر ولا يُتجاوز بحذف الحقل (null/undefined)
+     * حتى مع تجاوز الواجهة؛ لا كتابة جزئية والسجل لا يُمس. */
+    it("حذف البنود كلية (null) فوق استلام قائم يُرفض كتغيير بنود — لا كتابة جزئية (R2-F01/SDF-071)", async () => {
+      const store = await adapter.make();
+      const material = await seedTrackedMaterial(store, "s7-r2f01");
+      const suppliers = new SupplierPurchaseService(store, () => NOW);
+      const inventory = new InventoryMaterialService(store, () => NOW);
+      const purchase = await suppliers.recordPurchase({
+        supplierPartyId: null,
+        note: "قماش",
+        supplierName: "مؤسسة النسيج",
+        purchasedOn: "2026-10-10",
+        dueOn: null,
+        totalMinor: 20_000,
+        initialPaidMinor: 0,
+        idempotencyKey: "s7-r2f01-1",
+        materialId: material.id,
+        expectedQuantityMilli: 4_000,
+        lines: [
+          {
+            lineId: "pl-1",
+            materialId: material.id,
+            expectedQuantityMilli: 4_000,
+            valueMinor: 20_000,
+            costKnowledge: "known",
+            treatment: "tracked_material",
+          },
+        ],
+      });
+      if (!purchase.ok) throw new Error(purchase.message);
+      const receipt = await inventory.receivePurchase({
+        materialId: material.id,
+        purchaseId: purchase.value.id,
+        purchaseLineId: "pl-1",
+        quantityMilli: 1_000,
+        valueMinor: 5_000,
+        occurredOn: "2026-10-11",
+        note: "استلام قائم",
+        operationKey: "s7-r2f01-receipt",
+      });
+      if (!receipt.ok) throw new Error(receipt.message);
+      for (const [label, lines] of [
+        ["null", null],
+        ["undefined", undefined],
+      ] as const) {
+        const edit = await suppliers.editPurchase({
+          purchaseId: purchase.value.id,
+          supplierName: "مؤسسة النسيج",
+          supplierPartyId: null,
+          note: "حذف البنود كلية",
+          purchasedOn: "2026-10-10",
+          dueOn: null,
+          totalMinor: 20_000,
+          initialPaidMinor: 0,
+          reason: "محاولة حذف البنود",
+          idempotencyKey: `s7-r2f01-drop-${label}`,
+          materialId: material.id,
+          expectedQuantityMilli: 4_000,
+          lines,
+        });
+        expect(edit.ok, `lines=${label}`).toBe(false);
+        if (!edit.ok) expect(edit.message).toContain("إيصالات استلام قائمة");
+      }
+      /* السجل لم يُمس: البنود باقية كما وُثّقت. */
+      const list = await suppliers.list();
+      if (!list.ok) throw new Error(list.message);
+      const stored = list.value.find(item => item.id === purchase.value.id);
+      expect(stored?.lines?.map(line => line.lineId)).toEqual(["pl-1"]);
+    });
+
     it("ترحيل شراء إرثي أحادي البند وله دفعتان: نفس الهوية والدفعات بلا حدث جديد (SDF-044)", async () => {
       const store = await adapter.make();
       const suppliers = new SupplierPurchaseService(store, () => NOW);
