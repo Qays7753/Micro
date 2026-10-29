@@ -4011,6 +4011,196 @@
         "trigger": "S06 (DOC-015): apps/prototype-web/client/src/application/recurring/recurringExpenseService.ts on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-015"
       }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-14",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/finance/financialEventEditorModel.ts",
+      "from": {
+        "nbLoc": 209,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 314,
+        "band": "NORMAL"
+      },
+      "reason": "R3-F01 (مراجعة S06 القرائية ٣): مرجع افتراضي التذكير داخل المصروف defaultNextReminderDateForExpense — الأحدث بين تاريخ الحدث واليوم الحقيقي المثبت على آخر يوم صالح، مواءمةً مع بوابة الخدمة الكنسية التي تقارن باليوم الحقيقي وحده. أصغر تعديل محلي عند بيت القرار النقي القائم.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the five sequential read-only reviewers and root correction of every confirmed in-scope finding on the same branch/PR, and explicitly forbids structural refactoring within this stage. Same-PR re-anchor for the correction growth; structural splits stay deferred with evidence.",
+        "trigger": "S06 corrections (DOC-015): apps/prototype-web/client/src/application/finance/financialEventEditorModel.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-15",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/recurring/recurringExpenseService.ts",
+      "from": {
+        "nbLoc": 770,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 954,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R2 (مراجعة S06 القرائية ٢): حرس العكس والفترة في linkExistingExpense ووترشح مرشحات الربط (listLinkableExpenses) القائمة غير المعكوسة بفترة الدورة نفسها. التصعيد مؤجل بعلة موثقة: أمر S06 يمنع التقسيم الهيكلي؛ أصغر تعديل محلي آمن (DEFER بأمر التنفيذ نفسه).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the five sequential read-only reviewers and root correction of every confirmed in-scope finding on the same branch/PR, and explicitly forbids structural refactoring within this stage. Same-PR re-anchor for the correction growth; structural splits stay deferred with evidence.",
+        "trigger": "S06 corrections (DOC-015): apps/prototype-web/client/src/application/recurring/recurringExpenseService.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-16",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts",
+      "from": {
+        "nbLoc": 1730,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1836,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "R1-F03: باب المدفوع الفعلي في مدقق الاستيراد/الاستعادة (paidAmountMinor موجب اختياري لا يقل عن الحصة) + R2: مرآة اللقطة لجانب البيع — تحقق مرجعي متماثل على عائلة المصدر. ضمن شريحة SPLIT_NOW القائمة أصلًا.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the five sequential read-only reviewers and root correction of every confirmed in-scope finding on the same branch/PR, and explicitly forbids structural refactoring within this stage. Same-PR re-anchor for the correction growth; structural splits stay deferred with evidence.",
+        "trigger": "S06 corrections (DOC-015): apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-17",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/FinancialEventEditor.tsx",
+      "from": {
+        "nbLoc": 1194,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1725,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "R1-F01: نية الفاتورة المجمّدة عند إعادة الجزء الشخصي (ownerPartRetryIntent) + R3: صدق بانر النتيجة الجزئية (F02/F06)، محفظة النية عند الإعادة (F03)، عهدة الاستئناف (F04)، والزر الأساسي بعد حفظ ثبت (F07). التصعيد إلى SPLIT_NOW مؤجل بعلة موثقة: أمر S06 يمنع التقسيم الهيكلي في هذه المرحلة (DEFER بأمر التنفيذ نفسه).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the five sequential read-only reviewers and root correction of every confirmed in-scope finding on the same branch/PR, and explicitly forbids structural refactoring within this stage. Same-PR re-anchor for the correction growth; structural splits stay deferred with evidence.",
+        "trigger": "S06 corrections (DOC-015): apps/prototype-web/client/src/pages/FinancialEventEditor.tsx on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-18",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/RecurringExpenseDetail.tsx",
+      "from": {
+        "nbLoc": 564,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 660,
+        "band": "WATCH"
+      },
+      "reason": "R3-F05: قناة الخطأ الصوتية للوحة «اربط مصروفًا مسجلًا» — فشل قراءة المرشحات يُعلن role=alert كقنوات الخطأ الشقيقة، لا فقرة صامتة.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the five sequential read-only reviewers and root correction of every confirmed in-scope finding on the same branch/PR, and explicitly forbids structural refactoring within this stage. Same-PR re-anchor for the correction growth; structural splits stay deferred with evidence.",
+        "trigger": "S06 corrections (DOC-015): apps/prototype-web/client/src/pages/RecurringExpenseDetail.tsx on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-19",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+      "from": {
+        "nbLoc": 4391,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 4947,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "R2-F01: commitRecurringExpenseOccurrenceLink — الالتزام المحروس بقرار الربط مع حصرية الحدث/الدورة داخل معاملة readwrite نفسها (getAll ثم التحقق ثم put) على محول IndexedDB. ضمن شريحة SPLIT_NOW القائمة أصلًا.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the five sequential read-only reviewers and root correction of every confirmed in-scope finding on the same branch/PR, and explicitly forbids structural refactoring within this stage. Same-PR re-anchor for the correction growth; structural splits stay deferred with evidence.",
+        "trigger": "S06 corrections (DOC-015): apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-20",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+      "from": {
+        "nbLoc": 2087,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 2414,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "R2-F01: commitRecurringExpenseOccurrenceLink على محول الذاكرة — الحصرية داخل حد الكتابة نفسه مساويةً لمحول IndexedDB (تكافؤ المحولين).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the five sequential read-only reviewers and root correction of every confirmed in-scope finding on the same branch/PR, and explicitly forbids structural refactoring within this stage. Same-PR re-anchor for the correction growth; structural splits stay deferred with evidence.",
+        "trigger": "S06 corrections (DOC-015): apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-21",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/capabilities/recurringExpenseStore.ts",
+      "from": {
+        "nbLoc": 46,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 47,
+        "band": "NORMAL"
+      },
+      "reason": "R2-F01: قائمة أساليب قدرة التكرار 10 ← 11 — إضافة الالتزام المحروس commitRecurringExpenseOccurrenceLink إلى السطح المعلن مع تثبيت العد.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the five sequential read-only reviewers and root correction of every confirmed in-scope finding on the same branch/PR, and explicitly forbids structural refactoring within this stage. Same-PR re-anchor for the correction growth; structural splits stay deferred with evidence.",
+        "trigger": "S06 corrections (DOC-015): apps/prototype-web/client/src/storage/local/capabilities/recurringExpenseStore.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-22",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/recurringExpenseCommitGuard.ts",
+      "from": {
+        "nbLoc": 154,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 173,
+        "band": "NORMAL"
+      },
+      "reason": "R2-F01: تكوين حارس التزام التكرار بحارس الحصرية validateRecurringExpenseOccurrenceLinkExclusivity — الحدث الواحد دورة واحدة داخل حد الكتابة لا قبله.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the five sequential read-only reviewers and root correction of every confirmed in-scope finding on the same branch/PR, and explicitly forbids structural refactoring within this stage. Same-PR re-anchor for the correction growth; structural splits stay deferred with evidence.",
+        "trigger": "S06 corrections (DOC-015): apps/prototype-web/client/src/storage/local/recurringExpenseCommitGuard.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-23",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1150,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "R2-F01: توسيع سطح منفذ التخزين المحلي بالالتزام المحروس commitRecurringExpenseOccurrenceLink (الإرساء 143 ← 144 موثق في portSurfaceEvidence) فوق القيمة المغطاة بتسجيلات S05.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) mandates the five sequential read-only reviewers and root correction of every confirmed in-scope finding on the same branch/PR, and explicitly forbids structural refactoring within this stage. Same-PR re-anchor for the correction growth; structural splits stay deferred with evidence.",
+        "trigger": "S06 corrections (DOC-015): apps/prototype-web/client/src/storage/local/types.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
     }
   ]
 }

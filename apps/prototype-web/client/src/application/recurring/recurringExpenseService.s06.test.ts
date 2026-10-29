@@ -334,7 +334,12 @@ for (const adapter of adapters) {
       /* حدث غير موجود. */
       const missing = await service.linkExistingExpense(october.id, "event-ghost");
       expect(missing.ok).toBe(false);
-      /* فترة نتيجتها غير محسومة (recording) لا تربط فوقها. */
+      /* فترة نتيجتها غير محسومة (recording) لا تربط فوقها — الحالتان حتميتان
+       * لا احتماليتان (R4-F03): تأكيد ناجح يجعل الفترة recorded فتُرفض
+       * برسالة «مسجل مسبقًا»، وقرار محاولة مثبّت في المخزن يتركها recording
+       * فتُرفض برسالة «غير محسومة» — بلا شرطية تسقط التأكيد كله. */
+      const november = occurrences.find(o => o.periodKey === "2026-11");
+      if (!november) throw new Error("لا فترة نوفمبر");
       const inFlight = await service.confirm(october.id, {
         type: "operating_expense_cash",
         amountMinor: 12_000,
@@ -348,16 +353,22 @@ for (const adapter of adapters) {
           knowledge: "known",
         },
       });
-      /* المحاولة قد تنجح أو تُعلق — المهم أن الفترة صارت غير قابلة للربط
-       * فوقها؛ نجاح التأكيد يجعلها recorded فتُرفض برسالة «مسجل مسبقًا»،
-       * وفشلها يتركها record_failed فتقبل — نحسم بالحالة الفعلية. */
-      const afterAttempt = await occurrencesOf(store);
-      const octoberAfter = afterAttempt.find(o => o.periodKey === "2026-10");
-      if (!octoberAfter) throw new Error("لا فترة أكتوبر بعد المحاولة");
-      if (octoberAfter.status === "recorded" || octoberAfter.status === "recording") {
-        const blocked = await service.linkExistingExpense(octoberAfter.id, settlement.id);
-        expect(blocked.ok).toBe(false);
-      }
+      expect(inFlight.ok).toBe(true);
+      const blockedRecorded = await service.linkExistingExpense(october.id, payableSource.id);
+      expect(blockedRecorded.ok).toBe(false);
+      if (!blockedRecorded.ok) expect(blockedRecorded.message).toContain("مسجل مسبقًا");
+      const attemptedNovember = markRecurringExpenseConfirmAttempted(november, OCTOBER);
+      const committedAttempt = await store.commitRecurringExpenseOccurrenceDecision(
+        november,
+        attemptedNovember,
+      );
+      if (!committedAttempt.ok) throw new Error(committedAttempt.message);
+      const blockedUndecided = await service.linkExistingExpense(
+        attemptedNovember.id,
+        payableSource.id,
+      );
+      expect(blockedUndecided.ok).toBe(false);
+      if (!blockedUndecided.ok) expect(blockedUndecided.message).toContain("غير محسومة");
     });
 
     it("R2-F01: الحصرية داخل حد الكتابة — ربط متزامن لنافذتين بالحدث نفسه يمر واحد ويُحبط الآخر", async () => {

@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "14d825df112f65b4028354b55faa8250cc67c54a",
+  "head": "cd967fc053e0bcf80fd258143f7a40e93481d518",
   "pages": {
     "total": 60,
     "map": {
@@ -357,6 +357,7 @@
       "pages/RecurringExpenseDetail.tsx": {
         "kind": "direct",
         "evidence": [
+          "RecurringExpenseDetail.s06.dom.test.tsx",
           "RecurringExpenseSurfaces.dom.test.tsx"
         ]
       },
@@ -848,6 +849,7 @@
       "41-recurring-expense-reminders-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/RecurringExpenseDetail.s06.dom.test.tsx",
           "apps/prototype-web/client/src/RecurringExpenseEditor.dom.test.tsx",
           "apps/prototype-web/client/src/RecurringExpenseSurfaces.dom.test.tsx",
           "apps/prototype-web/client/src/application/recurring/recurringExpenseService.s06.test.ts",
