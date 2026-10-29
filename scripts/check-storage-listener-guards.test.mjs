@@ -54,8 +54,12 @@ describe("check-storage-listener-guards (R9-GA-F7.1 static guard)", () => {
      * موثقة نفس-الـPR لا تعديلًا صامتًا.
      * S04 (لاحق، DOC-013): 85 -> 84 — نواة قرار التزام الرصد المشتركة
      * وحّدت قراءة القيود داخل commitCashObservation فصار مستمع واحد بدل
-     * اثنين (نفس الحارس)؛ إعادة إرساء موثقة نفس-الـPR. */
-    expect(stdout).toMatch(/86 onsuccess listeners/);
+     * اثنين (نفس الحارس)؛ إعادة إرساء موثقة نفس-الـPR.
+     * S06 (DOC-015، 2026-10-30): 86 -> 87 — مستمع onsuccess جديد واحد في
+     * commitRecurringExpenseOccurrenceLink (IndexedDbLocalStore — قراءة
+     * الحصرية داخل معاملة readwrite نفسها) مغلّف بguardedSuccessListener
+     * الحارس نفسه (R2-F01)؛ إعادة إرساء موثقة نفس-الـPR لا تعديلًا صامتًا. */
+    expect(stdout).toMatch(/87 onsuccess listeners/);
   });
 
   it("fails on an unguarded write-queueing onsuccess listener (the F7 family recurrence)", () => {
