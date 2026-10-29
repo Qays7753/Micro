@@ -181,11 +181,11 @@ describe("S07 — بنود الفاتورة في محرر الشراء (UNIT-027
     fireEvent.change(screen.getByLabelText(/الكمية المتوقعة/), { target: { value: "4" } });
     /* تفعيل وضع البنود: البند الأول (المادة المتتبعة) بقيمة، وبند إضافي. */
     fireEvent.click(screen.getByText("فاتورة بعدة مواد — أضف بندًا"));
-    fireEvent.change(screen.getByLabelText("قيمة بند المادة الأولى بالدينار الأردني"), {
+    fireEvent.change(screen.getByLabelText("قيمة بند المادة الأولى (د.أ)"), {
       target: { value: "20" },
     });
     fireEvent.click(screen.getByText("بلا ربط مادة — مواد فترة"));
-    fireEvent.change(screen.getByLabelText("قيمة البند رقم 2 بالدينار الأردني"), { target: { value: "8" } });
+    fireEvent.change(screen.getByLabelText("قيمة البند 2 (د.أ)"), { target: { value: "8" } });
     /* مجموع معلوم 28 من إجمالي 30 — والباقي غير الموزّع ليس تكلفة. */
     await waitFor(() => expect(screen.getByText(/مجموع قيم البنود المعلومة/)).toBeTruthy());
     recordPurchase.mockResolvedValueOnce({
@@ -215,10 +215,10 @@ describe("S07 — بنود الفاتورة في محرر الشراء (UNIT-027
     await fillBasics();
     await userEvent.setup().type(screen.getByLabelText(/اسم المورد/), "مؤسسة النسيج");
     fireEvent.click(screen.getByText("فاتورة بعدة مواد — أضف بندًا"));
-    fireEvent.change(screen.getByLabelText("قيمة بند المادة الأولى بالدينار الأردني"), {
+    fireEvent.change(screen.getByLabelText("قيمة بند المادة الأولى (د.أ)"), {
       target: { value: "25" },
     });
-    fireEvent.change(screen.getByLabelText("قيمة البند رقم 2 بالدينار الأردني"), { target: { value: "8" } });
+    fireEvent.change(screen.getByLabelText("قيمة البند 2 (د.أ)"), { target: { value: "8" } });
     await userEvent.setup().click(screen.getByRole("button", { name: "حفظ شراء المواد" }));
     await waitFor(() =>
       expect(screen.getByText(/مجموع قيم البنود المعلومة يتجاوز إجمالي الشراء/)).toBeTruthy(),
@@ -232,11 +232,11 @@ describe("S07 — بنود الفاتورة في محرر الشراء (UNIT-027
     await userEvent.setup().type(screen.getByLabelText(/اسم المورد/), "مؤسسة النسيج");
     fireEvent.click(screen.getByText("فاتورة بعدة مواد — أضف بندًا"));
     /* البند الأول بقيمة معلومة 10 ثم إلغاء «معروفة» — يبقى مجهولًا بلا قيمة. */
-    fireEvent.change(screen.getByLabelText("قيمة بند المادة الأولى بالدينار الأردني"), {
+    fireEvent.change(screen.getByLabelText("قيمة بند المادة الأولى (د.أ)"), {
       target: { value: "10" },
     });
     fireEvent.click(screen.getByText("قيمة بند المادة الأولى معروفة"));
-    fireEvent.change(screen.getByLabelText("قيمة البند رقم 2 بالدينار الأردني"), { target: { value: "7" } });
+    fireEvent.change(screen.getByLabelText("قيمة البند 2 (د.أ)"), { target: { value: "7" } });
     recordPurchase.mockResolvedValueOnce({
       ok: true,
       value: { id: "purchase-3", status: "unpaid", lines: null } as unknown as SupplierPurchase,

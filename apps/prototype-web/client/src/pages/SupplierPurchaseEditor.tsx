@@ -1036,26 +1036,17 @@ export default function SupplierPurchaseEditor() {
                فواتير مكررة لكل مادة؛ البند الأول هو ربط المادة أعلاه بقيمته،
                والبنود الإضافية لفاتورة متعددة المواد. بلا بنود إضافية تُسجّل
                الفاتورة بندًا واحدًا يغطي قيمتها الكاملة (المسار البسيط). */}
-              <section className="micro-field" aria-label="بنود الفاتورة">
-                <span>
-                  بنود الفاتورة{" "}
-                  <small>
-                    اختيارية لفاتورة بعدة مواد؛ تكلفة بند المادة المتتبَّعة تُعرف عند استعمالها، وبلا متابعة
-                    تُحمل مرة على فترة الشراء.
-                  </small>
-                </span>
+              <section className="micro-field" data-section="purchase-lines">
+                <span>بنود الفاتورة</span>
                 {extraLines.length > 0 ? (
                   <>
                     <label className="micro-field">
-                      <span>
-                        قيمة بند المادة الأولى (د.أ) <small>جزء هذه المادة من الفاتورة</small>
-                      </span>
+                      <span>قيمة بند المادة الأولى (د.أ)</span>
                       <EnglishNumberInput
                         value={firstLineValueMinor}
                         kind="money"
                         onNumericChange={setFirstLineValueMinor}
                         onTextValidityChange={setFirstLineValueValid}
-                        aria-label="قيمة بند المادة الأولى بالدينار الأردني"
                       />
                     </label>
                     <label className="micro-checkbox">
@@ -1069,65 +1060,67 @@ export default function SupplierPurchaseEditor() {
                   </>
                 ) : null}
                 {extraLines.map((line, index) => (
-                  <section
-                    key={`purchase-line-${index + 2}`}
-                    className="micro-field"
-                    aria-label={`بند الفاتورة رقم ${index + 2}`}
-                  >
+                  <section key={`purchase-line-${index + 2}`} className="micro-field">
                     <span>بند رقم {index + 2}</span>
-                    <select
-                      value={line.materialId}
-                      onChange={event => {
-                        const nextMaterialId = event.target.value;
-                        setExtraLines(current =>
-                          current.map((item, itemIndex) =>
-                            itemIndex === index ? { ...item, materialId: nextMaterialId } : item,
-                          ),
-                        );
-                      }}
-                      aria-label={`مادة البند رقم ${index + 2}`}
-                    >
-                      <option value="">بلا ربط مادة — مواد فترة</option>
-                      {materialOptions.map(material => (
-                        <option key={material.id} value={material.id}>
-                          {material.name}
-                          {material.tracking?.status === "untracked" ? " (للتكلفة فقط)" : ""}
-                        </option>
-                      ))}
-                    </select>
-                    <EnglishQuantityInput
-                      valueMilli={line.expectedQuantityMilli}
-                      onMilliChange={milli => {
-                        setExtraLines(current =>
-                          current.map((item, itemIndex) =>
-                            itemIndex === index ? { ...item, expectedQuantityMilli: milli } : item,
-                          ),
-                        );
-                      }}
-                      onTextValidityChange={valid => {
-                        setExtraLineQuantitiesValid(current =>
-                          current.map((item, itemIndex) => (itemIndex === index ? valid : item)),
-                        );
-                      }}
-                      aria-label={`الكمية المتوقعة للبند رقم ${index + 2}`}
-                    />
-                    <EnglishNumberInput
-                      value={line.valueMinor}
-                      kind="money"
-                      onNumericChange={minor => {
-                        setExtraLines(current =>
-                          current.map((item, itemIndex) =>
-                            itemIndex === index ? { ...item, valueMinor: minor } : item,
-                          ),
-                        );
-                      }}
-                      onTextValidityChange={valid => {
-                        setExtraLineValuesValid(current =>
-                          current.map((item, itemIndex) => (itemIndex === index ? valid : item)),
-                        );
-                      }}
-                      aria-label={`قيمة البند رقم ${index + 2} بالدينار الأردني`}
-                    />
+                    <label className="micro-field">
+                      <span>مادة البند {index + 2}</span>
+                      <select
+                        value={line.materialId}
+                        onChange={event => {
+                          const nextMaterialId = event.target.value;
+                          setExtraLines(current =>
+                            current.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, materialId: nextMaterialId } : item,
+                            ),
+                          );
+                        }}
+                      >
+                        <option value="">بلا ربط مادة — مواد فترة</option>
+                        {materialOptions.map(material => (
+                          <option key={material.id} value={material.id}>
+                            {material.name}
+                            {material.tracking?.status === "untracked" ? " (للتكلفة فقط)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="micro-field">
+                      <span>الكمية المتوقعة للبند {index + 2}</span>
+                      <EnglishQuantityInput
+                        valueMilli={line.expectedQuantityMilli}
+                        onMilliChange={milli => {
+                          setExtraLines(current =>
+                            current.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, expectedQuantityMilli: milli } : item,
+                            ),
+                          );
+                        }}
+                        onTextValidityChange={valid => {
+                          setExtraLineQuantitiesValid(current =>
+                            current.map((item, itemIndex) => (itemIndex === index ? valid : item)),
+                          );
+                        }}
+                      />
+                    </label>
+                    <label className="micro-field">
+                      <span>قيمة البند {index + 2} (د.أ)</span>
+                      <EnglishNumberInput
+                        value={line.valueMinor}
+                        kind="money"
+                        onNumericChange={minor => {
+                          setExtraLines(current =>
+                            current.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, valueMinor: minor } : item,
+                            ),
+                          );
+                        }}
+                        onTextValidityChange={valid => {
+                          setExtraLineValuesValid(current =>
+                            current.map((item, itemIndex) => (itemIndex === index ? valid : item)),
+                          );
+                        }}
+                      />
+                    </label>
                     <label className="micro-checkbox">
                       <input
                         type="checkbox"
@@ -1361,26 +1354,17 @@ export default function SupplierPurchaseEditor() {
                  فواتير مكررة لكل مادة؛ البند الأول هو ربط المادة أعلاه بقيمته،
                  والبنود الإضافية لفاتورة متعددة المواد. بلا بنود إضافية تُسجّل
                  الفاتورة بندًا واحدًا يغطي قيمتها الكاملة (المسار البسيط). */}
-                <section className="micro-field" aria-label="بنود الفاتورة">
-                  <span>
-                    بنود الفاتورة{" "}
-                    <small>
-                      اختيارية لفاتورة بعدة مواد؛ تكلفة بند المادة المتتبَّعة تُعرف عند استعمالها، وبلا متابعة
-                      تُحمل مرة على فترة الشراء.
-                    </small>
-                  </span>
+                <section className="micro-field" data-section="purchase-lines">
+                  <span>بنود الفاتورة</span>
                   {extraLines.length > 0 ? (
                     <>
                       <label className="micro-field">
-                        <span>
-                          قيمة بند المادة الأولى (د.أ) <small>جزء هذه المادة من الفاتورة</small>
-                        </span>
+                        <span>قيمة بند المادة الأولى (د.أ)</span>
                         <EnglishNumberInput
                           value={firstLineValueMinor}
                           kind="money"
                           onNumericChange={setFirstLineValueMinor}
                           onTextValidityChange={setFirstLineValueValid}
-                          aria-label="قيمة بند المادة الأولى بالدينار الأردني"
                         />
                       </label>
                       <label className="micro-checkbox">
@@ -1394,65 +1378,67 @@ export default function SupplierPurchaseEditor() {
                     </>
                   ) : null}
                   {extraLines.map((line, index) => (
-                    <section
-                      key={`purchase-line-${index + 2}`}
-                      className="micro-field"
-                      aria-label={`بند الفاتورة رقم ${index + 2}`}
-                    >
+                    <section key={`purchase-line-${index + 2}`} className="micro-field">
                       <span>بند رقم {index + 2}</span>
-                      <select
-                        value={line.materialId}
-                        onChange={event => {
-                          const nextMaterialId = event.target.value;
-                          setExtraLines(current =>
-                            current.map((item, itemIndex) =>
-                              itemIndex === index ? { ...item, materialId: nextMaterialId } : item,
-                            ),
-                          );
-                        }}
-                        aria-label={`مادة البند رقم ${index + 2}`}
-                      >
-                        <option value="">بلا ربط مادة — مواد فترة</option>
-                        {materialOptions.map(material => (
-                          <option key={material.id} value={material.id}>
-                            {material.name}
-                            {material.tracking?.status === "untracked" ? " (للتكلفة فقط)" : ""}
-                          </option>
-                        ))}
-                      </select>
-                      <EnglishQuantityInput
-                        valueMilli={line.expectedQuantityMilli}
-                        onMilliChange={milli => {
-                          setExtraLines(current =>
-                            current.map((item, itemIndex) =>
-                              itemIndex === index ? { ...item, expectedQuantityMilli: milli } : item,
-                            ),
-                          );
-                        }}
-                        onTextValidityChange={valid => {
-                          setExtraLineQuantitiesValid(current =>
-                            current.map((item, itemIndex) => (itemIndex === index ? valid : item)),
-                          );
-                        }}
-                        aria-label={`الكمية المتوقعة للبند رقم ${index + 2}`}
-                      />
-                      <EnglishNumberInput
-                        value={line.valueMinor}
-                        kind="money"
-                        onNumericChange={minor => {
-                          setExtraLines(current =>
-                            current.map((item, itemIndex) =>
-                              itemIndex === index ? { ...item, valueMinor: minor } : item,
-                            ),
-                          );
-                        }}
-                        onTextValidityChange={valid => {
-                          setExtraLineValuesValid(current =>
-                            current.map((item, itemIndex) => (itemIndex === index ? valid : item)),
-                          );
-                        }}
-                        aria-label={`قيمة البند رقم ${index + 2} بالدينار الأردني`}
-                      />
+                      <label className="micro-field">
+                        <span>مادة البند {index + 2}</span>
+                        <select
+                          value={line.materialId}
+                          onChange={event => {
+                            const nextMaterialId = event.target.value;
+                            setExtraLines(current =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index ? { ...item, materialId: nextMaterialId } : item,
+                              ),
+                            );
+                          }}
+                        >
+                          <option value="">بلا ربط مادة — مواد فترة</option>
+                          {materialOptions.map(material => (
+                            <option key={material.id} value={material.id}>
+                              {material.name}
+                              {material.tracking?.status === "untracked" ? " (للتكلفة فقط)" : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="micro-field">
+                        <span>الكمية المتوقعة للبند {index + 2}</span>
+                        <EnglishQuantityInput
+                          valueMilli={line.expectedQuantityMilli}
+                          onMilliChange={milli => {
+                            setExtraLines(current =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index ? { ...item, expectedQuantityMilli: milli } : item,
+                              ),
+                            );
+                          }}
+                          onTextValidityChange={valid => {
+                            setExtraLineQuantitiesValid(current =>
+                              current.map((item, itemIndex) => (itemIndex === index ? valid : item)),
+                            );
+                          }}
+                        />
+                      </label>
+                      <label className="micro-field">
+                        <span>قيمة البند {index + 2} (د.أ)</span>
+                        <EnglishNumberInput
+                          value={line.valueMinor}
+                          kind="money"
+                          onNumericChange={minor => {
+                            setExtraLines(current =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index ? { ...item, valueMinor: minor } : item,
+                              ),
+                            );
+                          }}
+                          onTextValidityChange={valid => {
+                            setExtraLineValuesValid(current =>
+                              current.map((item, itemIndex) => (itemIndex === index ? valid : item)),
+                            );
+                          }}
+                        />
+                      </label>
                       <label className="micro-checkbox">
                         <input
                           type="checkbox"
