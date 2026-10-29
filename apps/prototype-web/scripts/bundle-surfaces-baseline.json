@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "030da6afe80a01d3ee66621986f42efdb4cc0308",
+        "head": "bee053363d2c7e9ae2d92f8f0695508525414a5a",
         "date": "2026-10-29",
-        "method": "S05 final-candidate local re-anchor (2026-10-29, code candidate 030da6af + the review fix for the party-save-only retry, UNIT-037 B3 / SDF-041, PR #383): entry 626,753 raw / 152,597 gzip — margin 2,703 under the owner 155,300 ceiling; no ceiling raised. Lazy surfaces carry the retry affordance: lazy 1,263,614 -> 1,264,011 raw / 381,350 -> 381,472 gzipNorm; precache 2,717,171 -> 2,727,568; initial companions and swRuntime unchanged; counts 107/2/74/162/2 unchanged. Measured by the definitive local vite build on the final candidate tree (root 960 + prototype 2,852 tests and the full guards chain green on the same tree). Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol (R8-1/R11). The anchored head remains the code candidate 030da6af; the review fix is a same-PR correction on the same branch.",
+        "method": "S05 final-candidate local re-anchor (2026-10-29, final code candidate bee05336 (implementation 030da6af + the review fix for the party-save-only retry), UNIT-037 B3 / SDF-041, PR #383): entry 626,753 raw / 152,597 gzip — margin 2,703 under the owner 155,300 ceiling; no ceiling raised. Lazy surfaces carry the retry affordance: lazy 1,263,614 -> 1,264,011 raw / 381,350 -> 381,472 gzipNorm; precache 2,717,171 -> 2,727,568; initial companions and swRuntime unchanged; counts 107/2/74/162/2 unchanged. Measured by the definitive local vite build on the final candidate tree (root 960 + prototype 2,852 tests and the full guards chain green on the same tree). Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol (R8-1/R11). ",
         "initialRawTotal": 224976,
         "initialGzipNormTotal": 70766,
         "lazyRawTotal": 1264011,
