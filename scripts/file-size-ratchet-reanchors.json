@@ -4201,6 +4201,25 @@
         "trigger": "S06 corrections (DOC-015): apps/prototype-web/client/src/storage/local/types.ts on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-015"
       }
+    },
+    {
+      "id": "S06-EXPENSE-RECURRING-20261029-24",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/FinancialEventEditor.tsx",
+      "from": {
+        "nbLoc": 1194,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1727,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "إكمال تنسيق prettier لملفات تصحيحات R3/R4 التي لم تُنسّق عند التزامها (بوابة format:check من السلسلة الكاملة) — إعادة تدفق أسطر محايدة سلوكيًا فوق قيمة الإرساء -17 (1725 ← 1727)؛ لا تغيير منطق.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) requires the canonical full pnpm check to pass on the final tree; the prettier completion is the format:check gate's own requirement, not a logic change. Same-PR re-anchor per R8-1/R11.",
+        "trigger": "S06 delivery formatting completion (DOC-015): apps/prototype-web/client/src/pages/FinancialEventEditor.tsx on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-015"
+      }
     }
   ]
 }

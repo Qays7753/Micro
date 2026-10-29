@@ -345,8 +345,7 @@ describe("S06-R3 — تصحيحات مراجعة الواجهة الثالثة",
   it("R3-F01: مصروف مؤرّخ سابقًا — الافتراضي شهر لاحق حقيقي، والبوابة ترفض الشهر الحالي، والاستئناف يقبل التاريخ المصحح", async () => {
     const today = todayInAmman();
     const [year, month] = today.split("-").map(Number);
-    const previousPeriod =
-      month === 1 ? `${year - 1}-12` : `${year}-${String(month - 1).padStart(2, "0")}`;
+    const previousPeriod = month === 1 ? `${year - 1}-12` : `${year}-${String(month - 1).padStart(2, "0")}`;
     const corrected = localDatePlusMonthsClamped(today, 2) ?? today;
     const { record, setupFromExpense } = renderEditor({});
     fireEvent.change(screen.getByLabelText(/تاريخ الحدث/), { target: { value: `${previousPeriod}-15` } });
@@ -361,9 +360,7 @@ describe("S06-R3 — تصحيحات مراجعة الواجهة الثالثة",
     /* بوابة المحرر باليوم الحقيقي لا بتاريخ الحدث: تذكير الشهر الحالي يُرفض قبل أي كتابة. */
     fireEvent.change(reminder, { target: { value: today } });
     await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
-    await waitFor(() =>
-      expect(screen.getByText(/التذكير القادم يجب أن يكون في شهر لاحق/)).toBeTruthy(),
-    );
+    await waitFor(() => expect(screen.getByText(/التذكير القادم يجب أن يكون في شهر لاحق/)).toBeTruthy());
     expect(record).not.toHaveBeenCalled();
     /* الاستئناف يقرأ التاريخ من الحقل الحي — لا جمود على تاريخ رفضته الخدمة. */
     fireEvent.change(reminder, { target: { value: corrected } });
@@ -371,7 +368,8 @@ describe("S06-R3 — تصحيحات مراجعة الواجهة الثالثة",
     setupFromExpense.mockResolvedValueOnce({
       ok: false,
       code: "validation_failed",
-      message: "التذكير القادم يجب أن يكون في شهر لاحق — مصروف هذه الفترة سُجل للتو؛ أول تذكير جديد هو القادم.",
+      message:
+        "التذكير القادم يجب أن يكون في شهر لاحق — مصروف هذه الفترة سُجل للتو؛ أول تذكير جديد هو القادم.",
     });
     await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
     await waitFor(() => expect(record).toHaveBeenCalledOnce());
@@ -526,7 +524,9 @@ describe("S06-R3 — تصحيحات مراجعة الواجهة الثالثة",
     await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
     const banner = await screen.findByText(/نسبته للمحفظة لم تتم/);
     expect(banner.textContent).toContain("رصيد الدرج لا يكفي الحصة.");
-    expect(banner.textContent).toContain("تغطية الجزء الشخصي من المحفظة: الرصيد المتبقي لا يكفي الجزء الشخصي.");
+    expect(banner.textContent).toContain(
+      "تغطية الجزء الشخصي من المحفظة: الرصيد المتبقي لا يكفي الجزء الشخصي.",
+    );
     expect(banner.textContent).toContain("الكاش غير الموزع");
   });
 

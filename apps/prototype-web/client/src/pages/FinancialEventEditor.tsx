@@ -249,8 +249,8 @@ export default function FinancialEventEditor() {
       sourceWalletId: string | null;
     };
     /* R1-F02: فشل نسبة الحصة السابق لا يُبتلع بنجاح الجزء الشخصي، وفشل
-   * نسبة الجزء الشخصي السابق كذلك (R3-F06) — تُحمل الملاحظتان وتُؤلّف
-   * عند العرض لا تُسقط. */
+     * نسبة الجزء الشخصي السابق كذلك (R3-F06) — تُحمل الملاحظتان وتُؤلّف
+     * عند العرض لا تُسقط. */
     attributionNote?: string | null;
     ownerAttributionNote?: string | null;
   } | null>(null);
@@ -808,9 +808,9 @@ export default function FinancialEventEditor() {
     clearDraft();
     let attributionFailed: string | null = null;
     /* R3-F06: كل فشل نسبة يُجمع بجواره لا يُبتلع — فشل تغطية الحصة وفشل
-   * تغطية الجزء الشخصي قاعدتان مستقلتان وقد تقعان معًا (المحفظة نفسها
-   * لا تكفي أحدهما أو كليهما)، فصيغة «الأول فقط» كانت تُسقط الحقيقة
-   * الثانية عن المستخدم. */
+     * تغطية الجزء الشخصي قاعدتان مستقلتان وقد تقعان معًا (المحفظة نفسها
+     * لا تكفي أحدهما أو كليهما)، فصيغة «الأول فقط» كانت تُسقط الحقيقة
+     * الثانية عن المستخدم. */
     let ownerAttributionFailed: string | null = null;
     /* المجموعة ١ (وجهة الصرف): تغطية المحفظة المختارة بعد التسجيل — نفس توقيع
      * ورقة الإضافة (مفتاح مشتق من مفتاح السجل) فلا تخصيص مزدوج عند الإعادة.
@@ -933,9 +933,9 @@ export default function FinancialEventEditor() {
     }
     if (failedAttributions.length > 0) {
       /* R3-F02: الإطار الكامل للنسبة الفاشلة داخل الرسالة نفسها — البانر
-         * يعرض الرسالة وحدها فلا يُضاف معنى فوق معناها؛ صيغة «نسبته للمحفظة
-         * لم تتم» محفوظة لحالة فشل الحصة وحدها (عقد المجموعة ١)، والجزء
-         * الشخصي يُفصح باسمه حين يفشل وحده أو معها (R3-F06). */
+       * يعرض الرسالة وحدها فلا يُضاف معنى فوق معناها؛ صيغة «نسبته للمحفظة
+       * لم تتم» محفوظة لحالة فشل الحصة وحدها (عقد المجموعة ١)، والجزء
+       * الشخصي يُفصح باسمه حين يفشل وحده أو معها (R3-F06). */
       const attributionFraming =
         attributionFailed && ownerAttributionFailed
           ? `نسبته للمحفظة لم تتم: ${attributionFailed}، كما تعذرت تغطية الجزء الشخصي من المحفظة: ${ownerAttributionFailed}`
@@ -952,7 +952,7 @@ export default function FinancialEventEditor() {
     }
     if (setupFailed) {
       /* R3-F07: المصروف محفوظ والصفحة قائمة بعد نتيجة جزئية — العودة
-         * هي الفعل الأساسي لا حفظ جديد. */
+       * هي الفعل الأساسي لا حفظ جديد. */
       setSavedStandingType(selectedType);
       return true;
     }
@@ -1022,7 +1022,9 @@ export default function FinancialEventEditor() {
          * نسبة الجزء الشخصي كذلك (R3-F06). */
         const remainingNotes = [
           savedNote.attributionNote ? `نسبة الحصة للمحفظة: ${savedNote.attributionNote}` : null,
-          savedNote.ownerAttributionNote ? `تغطية الجزء الشخصي من المحفظة: ${savedNote.ownerAttributionNote}` : null,
+          savedNote.ownerAttributionNote
+            ? `تغطية الجزء الشخصي من المحفظة: ${savedNote.ownerAttributionNote}`
+            : null,
         ].filter((part): part is string => part !== null);
         if (remainingNotes.length > 0) {
           setSavedNote({
@@ -1454,8 +1456,8 @@ export default function FinancialEventEditor() {
            * الاستئناف فيُصلح من هنا لا يُجمّد على الفاشل (R3-F01). */
           <div className="micro-draft-banner" role="status">
             <p>
-              حُفظ المصروف، ولم يُحفظ التذكير: {seriesSetupFailure.message} — عدّل تاريخ «التذكير القادم» أعلاه
-              إن لزم ثم استأنف الضبط من هنا، ولن يُسجّل المصروف مرة أخرى.
+              حُفظ المصروف، ولم يُحفظ التذكير: {seriesSetupFailure.message} — عدّل تاريخ «التذكير القادم»
+              أعلاه إن لزم ثم استأنف الضبط من هنا، ولن يُسجّل المصروف مرة أخرى.
             </p>
             <div className="micro-form-actions">
               <Button action="save" onClick={() => void retrySeriesSetup()} disabled={saving}>

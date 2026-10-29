@@ -363,10 +363,7 @@ for (const adapter of adapters) {
         attemptedNovember,
       );
       if (!committedAttempt.ok) throw new Error(committedAttempt.message);
-      const blockedUndecided = await service.linkExistingExpense(
-        attemptedNovember.id,
-        payableSource.id,
-      );
+      const blockedUndecided = await service.linkExistingExpense(attemptedNovember.id, payableSource.id);
       expect(blockedUndecided.ok).toBe(false);
       if (!blockedUndecided.ok) expect(blockedUndecided.message).toContain("غير محسومة");
     });
