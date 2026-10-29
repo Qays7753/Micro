@@ -4,6 +4,8 @@ import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { IndexedDbLocalStore } from "@/storage/local/IndexedDbLocalStore";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import { ProjectFinancialService } from "./projectFinancialService";
+import { LocalTransferService } from "@/application/transfers/localTransferService";
+import { syncSha256Hex } from "@/lib/syncSha256";
 import { ExpenseBudgetService } from "@/application/budgets/expenseBudgetService";
 import { summarizeFinancialEvents } from "@micro-domain/financial-event/index.js";
 import type { OperatingExpenseContext } from "@micro-domain/financial-event/index.js";
@@ -252,6 +254,57 @@ for (const adapter of adapters) {
     });
   });
 }
+
+describe("S06 (R1-F03) — باب النقل يتحقق من شكل المدفوع فعليًا (CONS-DEC04)", () => {
+  it("حدث فاتورة مشتركة بمدفوع فعليًا يعبر الدورة الكاملة كما هو، والمعطوب يُرفض قبل المعاينة", async () => {
+    const source = new MemoryLocalStore();
+    const service = new ProjectFinancialService(source, () => NOW);
+    const bill = await service.recordSharedBill({
+      type: "operating_expense_cash",
+      amountMinor: 3_000,
+      occurredOn: "2026-10-20",
+      note: "فاتورة البيت والمحل",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: sharedContext,
+      sharedExpense: { mode: "fixed", amountMinor: 3_000, paidAmountMinor: 6_000 },
+      idempotencyKey: "wire-paid",
+    });
+    if (!bill.ok) throw new Error(bill.message);
+    const verified = await new LocalTransferService(source, () => NOW).createVerifiedExport();
+    if (!verified.ok) throw new Error(verified.message);
+    const file = verified.value.file as unknown as Record<string, unknown>;
+
+    /* القيمة الصحيحة تعبر التصدير الموثق والاستيراد كما هي. */
+    const target = new MemoryLocalStore();
+    const targetService = new LocalTransferService(target, () => NOW);
+    const restored = await targetService.prepareRestore(JSON.stringify(file));
+    expect(restored.ok).toBe(true);
+    if (!restored.ok) throw new Error(restored.message);
+    const applied = await targetService.confirmImport(restored.value);
+    if (!applied.ok) throw new Error(applied.message);
+    const events = await target.listFinancialEvents();
+    if (!events.ok) throw new Error(events.message);
+    const expense = events.value.find(event => event.type === "operating_expense_cash");
+    expect(expense?.expenseContext?.sharedProjectShare?.paidAmountMinor).toBe(6_000);
+    const withdrawal = events.value.find(event => event.type === "owner_withdrawal_cash");
+    expect(withdrawal?.amountMinor).toBe(3_000);
+
+    /* القيمة المعطوبة (نص/سالب/كسري) تُرفض عند الباب قبل أي معاينة أو كتابة. */
+    for (const bad of ["ستون", -6_000, 6.5]) {
+      const tampered = JSON.parse(JSON.stringify(file)) as {
+        data: {
+          financialEvents: { expenseContext?: { sharedProjectShare?: { paidAmountMinor?: unknown } } }[];
+        };
+        integrity: { digest: string };
+      };
+      tampered.data.financialEvents[0]!.expenseContext!.sharedProjectShare!.paidAmountMinor = bad;
+      tampered.integrity.digest = syncSha256Hex(JSON.stringify(tampered.data));
+      const prepared = targetService.prepareImport(JSON.stringify(tampered));
+      expect(prepared.ok).toBe(false);
+    }
+  });
+});
 
 describe("SDF-062 — المنصرف المؤهل عند الميزانية وقارئ الفترة (Memory)", () => {
   it("ميزانية مع مصروف 10 سُدد منه 3 وأصل 100 ← المنصرف المؤهل 10 لا 3 ولا 110", async () => {

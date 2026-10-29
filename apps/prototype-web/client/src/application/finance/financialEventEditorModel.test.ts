@@ -5,10 +5,15 @@ import { describe, expect, it } from "vitest";
 import {
   basisFromMode,
   coerceEditorDraft,
+  defaultNextReminderDate,
   deriveExpenseContext,
+  deriveOwnerPartMinor,
   derivePrimaryAmountProblem,
+  deriveRecurrenceProblem,
   deriveSharedExpenseIntent,
+  deriveSharedPaidProblem,
   deriveSharedPercentageBps,
+  deriveSharedShareMinorPreview,
   knowledgeFromBasis,
 } from "./financialEventEditorModel";
 
@@ -196,5 +201,128 @@ describe("R7/P03 — الإكراه الدفاعي للمسودة (TR-11/AV-09/M
     expect(deriveSharedPercentageBps(true, "percentage", 12.5)).toBe(1250);
     expect(deriveSharedPercentageBps(true, "fixed", 12.5)).toBeNull();
     expect(deriveSharedPercentageBps(false, "percentage", 12.5)).toBeNull();
+  });
+});
+
+describe("S06 — مشتقات الفاتورة المشتركة وخيار التكرار (CONS-DEC04 / ORG-011)", () => {
+  it("معاينة الحصة: من المبلغ للنمطين المعروفين، ومن النواة للنسبة، وnull للمؤجلة/الناقصة", () => {
+    expect(
+      deriveSharedShareMinorPreview({
+        isShared: true,
+        sharedMode: "fixed",
+        amountMinor: 3_000,
+        sharedTotalAmountMinor: 0,
+        sharedPercentageBps: null,
+      }),
+    ).toBe(3_000);
+    expect(
+      deriveSharedShareMinorPreview({
+        isShared: true,
+        sharedMode: "estimate",
+        amountMinor: 2_500,
+        sharedTotalAmountMinor: 0,
+        sharedPercentageBps: null,
+      }),
+    ).toBe(2_500);
+    expect(
+      deriveSharedShareMinorPreview({
+        isShared: true,
+        sharedMode: "percentage",
+        amountMinor: 0,
+        sharedTotalAmountMinor: 10_000,
+        sharedPercentageBps: 5_000,
+      }),
+    ).toBe(5_000);
+    /* النسبة الفارغة/الصفرية أثناء الكتابة ليست 0.01% — لا قسمة على مدخلات ناقصة. */
+    expect(
+      deriveSharedShareMinorPreview({
+        isShared: true,
+        sharedMode: "percentage",
+        amountMinor: 0,
+        sharedTotalAmountMinor: 10_000,
+        sharedPercentageBps: 0,
+      }),
+    ).toBeNull();
+    expect(
+      deriveSharedShareMinorPreview({
+        isShared: true,
+        sharedMode: "defer",
+        amountMinor: 6_000,
+        sharedTotalAmountMinor: 0,
+        sharedPercentageBps: null,
+      }),
+    ).toBeNull();
+  });
+
+  it("الفارق الشخصي من دالة المجال: فوق الحصة فقط وحيث ينطبق الفرع، وصفر دون ذلك", () => {
+    expect(deriveOwnerPartMinor({ paidAmountMinor: 6_000, shareAmountMinor: 3_000, applies: true })).toBe(
+      3_000,
+    );
+    expect(deriveOwnerPartMinor({ paidAmountMinor: 3_000, shareAmountMinor: 3_000, applies: true })).toBe(0);
+    expect(deriveOwnerPartMinor({ paidAmountMinor: 6_000, shareAmountMinor: 3_000, applies: false })).toBe(0);
+    expect(deriveOwnerPartMinor({ paidAmountMinor: 6_000, shareAmountMinor: null, applies: true })).toBe(0);
+  });
+
+  it("بوابة المدفوع: غير صحيح أو أقل من الحصة، وغائبة/مكتملة تمر", () => {
+    expect(
+      deriveSharedPaidProblem({ paidAmountMinor: 0, validPaid: true, shareAmountMinor: 3_000 }),
+    ).toBeNull();
+    /* نص غير صالح بعد قيمة مكتوبة: الرفض بالصلاحية لا بالقيمة. */
+    expect(
+      deriveSharedPaidProblem({ paidAmountMinor: 3_000, validPaid: false, shareAmountMinor: 3_000 }),
+    ).toBe("paid_invalid");
+    /* القيمة غير الموجبة تعني «غير مدخلة» — بوابة الغياب لا بوابة الرفض. */
+    expect(
+      deriveSharedPaidProblem({ paidAmountMinor: -5, validPaid: true, shareAmountMinor: 3_000 }),
+    ).toBeNull();
+    expect(
+      deriveSharedPaidProblem({ paidAmountMinor: 2_000, validPaid: true, shareAmountMinor: 3_000 }),
+    ).toBe("paid_below_share");
+    expect(
+      deriveSharedPaidProblem({ paidAmountMinor: 6_000, validPaid: true, shareAmountMinor: 3_000 }),
+    ).toBeNull();
+  });
+
+  it("نية الحصة تحمل المدفوع للأنماط المعلومة دون المؤجلة", () => {
+    const withPaid = deriveSharedExpenseIntent({
+      isShared: true,
+      sharedMode: "fixed",
+      sharedPercentageBps: null,
+      sharedTotalAmountMinor: 0,
+      amountMinor: 3_000,
+      paidAmountMinor: 6_000,
+    });
+    expect(withPaid).toMatchObject({ mode: "fixed", amountMinor: 3_000, paidAmountMinor: 6_000 });
+    const deferred = deriveSharedExpenseIntent({
+      isShared: true,
+      sharedMode: "defer",
+      sharedPercentageBps: null,
+      sharedTotalAmountMinor: 6_000,
+      amountMinor: 6_000,
+      paidAmountMinor: 6_000,
+    });
+    expect(deferred).toEqual({ mode: "defer", sharedTotalAmountMinor: 6_000 });
+  });
+
+  it("التذكير القادم الافتراضي: الشهر القادم باليوم نفسه مثبتًا على آخر يوم صالح", () => {
+    expect(defaultNextReminderDate("2026-10-15")).toBe("2026-11-15");
+    expect(defaultNextReminderDate("2026-01-31")).toBe("2026-02-28");
+    expect(defaultNextReminderDate("2024-01-30")).toBe("2024-02-29");
+  });
+
+  it("بوابة التكرار: تاريخ صالح في فترة لاحقة حصرًا", () => {
+    expect(deriveRecurrenceProblem({ enabled: false, nextDate: "", today: "2026-10-15" })).toBeNull();
+    expect(
+      deriveRecurrenceProblem({ enabled: true, nextDate: "2026-11-15", today: "2026-10-15" }),
+    ).toBeNull();
+    expect(deriveRecurrenceProblem({ enabled: true, nextDate: "2026-13-40", today: "2026-10-15" })).toBe(
+      "recurrence_date_invalid",
+    );
+    expect(deriveRecurrenceProblem({ enabled: true, nextDate: "2026-10-25", today: "2026-10-15" })).toBe(
+      "recurrence_not_future_period",
+    );
+    expect(deriveRecurrenceProblem({ enabled: true, nextDate: "2026-09-25", today: "2026-10-15" })).toBe(
+      "recurrence_not_future_period",
+    );
   });
 });

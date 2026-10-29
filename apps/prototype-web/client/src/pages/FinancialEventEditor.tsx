@@ -229,6 +229,21 @@ export default function FinancialEventEditor() {
     /* S06 (CONS-DEC04): إعادة محاولة الجزء الشخصي وحدها بعد فشله —
      * بالمفتاح المشتق نفسه فلا يتكرر المصروف المحفوظ أبدًا. */
     ownerPartRetryMinor?: number;
+    /* R1-F01 (مراجعة S06 القرائية ١): نية الفاتورة الفاشلة مجمّدة لحظة
+     * الفشل — الإعادة تعيد النية نفسها لا قيم نموذج حية قد تعدّلت بعدها. */
+    ownerPartRetryIntent?: {
+      type: GuidedFinancialEventType;
+      amountMinor?: number;
+      occurredOn: string;
+      note: string;
+      counterparty: string | null;
+      expenseContext: OperatingExpenseContext | null;
+      sharedExpense: NonNullable<typeof sharedExpenseIntent>;
+      idempotencyKey: string;
+      sourceWalletId: string | null;
+    };
+    /* R1-F02: فشل نسبة الحصة يبقى ظاهرًا مع فشل الجزء الشخصي ولا يُبتلع. */
+    attributionNote?: string | null;
   } | null>(null);
   const savedRef = useRef(false);
   /* المجموعة ٥: المسح يجي فقط بعد وسخ حقيقي ثم عودة إلى
@@ -867,8 +882,23 @@ export default function FinancialEventEditor() {
     if (ownerPartFailure) {
       setSavedNote({
         eventId: result.value.id,
-        message: `حُفظ مصروف الحصة (${formatMoneyMinor(result.value.amountMinor)} د.أ)، ولم يكتمل تسجيل الجزء الشخصي (${formatMoneyMinor(ownerPartMinor)} د.أ سحبًا على المالك): ${ownerPartFailure} — أعد المحاولة من هنا، فلن يتكرر المصروف.`,
+        message: `حُفظ مصروف الحصة (${formatMoneyMinor(result.value.amountMinor)} د.أ)، ولم يكتمل تسجيل الجزء الشخصي (${formatMoneyMinor(ownerPartMinor)} د.أ سحبًا على المالك): ${ownerPartFailure} — أعد المحاولة من هنا، فلن يتكرر المصروف.${
+          attributionFailed ? ` كما تعذرت نسبة الحصة للمحفظة: ${attributionFailed}` : ""
+        }`,
         ownerPartRetryMinor: ownerPartMinor,
+        /* R1-F01: النية الفاشلة مجمّدة كما هي — الإعادة لا تقرأ النموذج الحي. */
+        ownerPartRetryIntent: {
+          type: selectedType,
+          ...(sharedMode === "percentage" && isShared ? {} : { amountMinor }),
+          occurredOn: date,
+          note,
+          counterparty: counterparty || null,
+          expenseContext,
+          sharedExpense: sharedExpense as NonNullable<typeof sharedExpense>,
+          idempotencyKey: idempotencyKey.current,
+          sourceWalletId: walletId && walletId !== UNSET_EXPENSE_SOURCE ? walletId : null,
+        },
+        attributionNote: attributionFailed,
       });
       return true;
     }
@@ -893,20 +923,23 @@ export default function FinancialEventEditor() {
   /* S06 (CONS-DEC04): إعادة محاولة السحب الشخصي الناقص وحده — نفس نية
    * الحفظ ومفتاحها المشتق؛ المصروف المحفوظ يُعاد استخدامه لا تكراره. */
   async function retryOwnerPart(): Promise<void> {
-    if (!type || !savedNote?.ownerPartRetryMinor) return;
+    if (!type || !savedNote?.ownerPartRetryMinor || !savedNote.ownerPartRetryIntent) return;
+    /* R1-F01: الإعادة بالنية المجمّدة لحظة الفشل — تعديل النموذج بعدها لا
+     * يغيّر مبلغ السحب ولا يفكك زوج النية الواحدة. */
+    const intent = savedNote.ownerPartRetryIntent;
     setSaving(true);
     try {
       const bill = await projectFinance.recordSharedBill({
-        type,
-        ...(sharedMode === "percentage" && isShared ? {} : { amountMinor }),
-        occurredOn: date,
-        note,
-        counterparty: counterparty || null,
+        type: intent.type,
+        ...(intent.amountMinor !== undefined ? { amountMinor: intent.amountMinor } : {}),
+        occurredOn: intent.occurredOn,
+        note: intent.note,
+        counterparty: intent.counterparty,
         relatedEventId: null,
-        expenseContext,
-        sharedExpense: sharedExpenseIntent,
-        idempotencyKey: idempotencyKey.current,
-        sourceWalletId: walletId && walletId !== UNSET_EXPENSE_SOURCE ? walletId : null,
+        expenseContext: intent.expenseContext,
+        sharedExpense: intent.sharedExpense,
+        idempotencyKey: intent.idempotencyKey,
+        sourceWalletId: intent.sourceWalletId,
       });
       if (bill.ok && !bill.value.ownerPartFailure) {
         if (bill.value.ownerPart && walletId && walletId !== UNSET_EXPENSE_SOURCE) {
@@ -921,12 +954,22 @@ export default function FinancialEventEditor() {
           if (!ownerAttribution.ok) {
             setSavedNote({
               eventId: bill.value.expense.id,
-              message: ownerAttribution.message ?? "تعذرت تغطية الجزء الشخصي بعد حفظه.",
+              message: `حُفظ الجزء الشخصي، وتعذرت تغطيته من المحفظة: ${ownerAttribution.message ?? "المال محفوظ في الكاش غير الموزع."}`,
+              attributionNote: savedNote.attributionNote ?? null,
             });
             return;
           }
         }
-        setSavedNote(null);
+        /* R1-F02: فشل نسبة الحصة السابق لا يُبتلع بنجاح الجزء الشخصي. */
+        if (savedNote.attributionNote) {
+          setSavedNote({
+            eventId: bill.value.expense.id,
+            message: `حُفظ الجزء الشخصي سحبًا على المالك بنية الحفظ نفسها. كما تعذرت نسبة الحصة للمحفظة: ${savedNote.attributionNote}`,
+            attributionNote: savedNote.attributionNote,
+          });
+        } else {
+          setSavedNote(null);
+        }
         notifyDataChanged();
         setMessage({ text: "حُفظ الجزء الشخصي سحبًا على المالك بنية الحفظ نفسها.", tone: "success" });
       } else if (bill.ok) {
@@ -934,12 +977,16 @@ export default function FinancialEventEditor() {
           eventId: bill.value.expense.id,
           message: `لم يكتمل تسجيل الجزء الشخصي: ${bill.value.ownerPartFailure}`,
           ownerPartRetryMinor: savedNote.ownerPartRetryMinor,
+          ownerPartRetryIntent: intent,
+          attributionNote: savedNote.attributionNote ?? null,
         });
       } else {
         setSavedNote({
           eventId: savedNote.eventId,
           message: `لم يكتمل تسجيل الجزء الشخصي: ${bill.message}`,
           ownerPartRetryMinor: savedNote.ownerPartRetryMinor,
+          ownerPartRetryIntent: intent,
+          attributionNote: savedNote.attributionNote ?? null,
         });
       }
     } finally {

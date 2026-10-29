@@ -160,6 +160,51 @@ describe("S06 — الفاتورة المشتركة فوق الحصة في ال�
     expect(payload.sharedExpense?.paidAmountMinor).toBe(6_000);
   });
 
+  it("إعادة الجزء الشخصي تعيد النية المجمّدة لحظة الفشل — تعديل النموذج بعدها لا يغير السحب (R1-F01)", async () => {
+    const { recordSharedBill } = renderEditor({});
+    await openSharedFixedForm();
+    await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "30");
+    await userEvent.setup().type(screen.getByLabelText("المدفوع فعليًا من صندوق المشروع"), "60");
+    fireEvent.click(screen.getByText(/الفارق 30.00 د.أ فوق حصة المشروع على المالك/));
+    await userEvent
+      .setup()
+      .type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "فاتورة كبيرة");
+    /* الفشل الجزئي: المصروف حفظ والسحب فشل. */
+    recordSharedBill.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        expense: { ...baseEvent },
+        ownerPart: null,
+        ownerPartFailure: "رصيد المحفظة لا يغطي السحب.",
+      },
+    });
+    await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
+    await waitFor(() => expect(screen.getByText(/لم يكتمل تسجيل الجزء الشخصي/)).toBeTruthy());
+    /* المستخدم عدّل حقل المدفوع بعد الفشل — الإعادة لا تقرأ النموذج الحي. */
+    const paidField = screen.getByLabelText("المدفوع فعليًا من صندوق المشروع") as HTMLInputElement;
+    fireEvent.change(paidField, { target: { value: "90" } });
+    recordSharedBill.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        expense: { ...baseEvent },
+        ownerPart: {
+          ...baseEvent,
+          id: "event-owner-part",
+          type: "owner_withdrawal_cash",
+          amountMinor: 3_000,
+        },
+        ownerPartFailure: null,
+      },
+    });
+    await userEvent.setup().click(screen.getByRole("button", { name: "أعد محاولة تسجيل الجزء الشخصي" }));
+    await waitFor(() => expect(recordSharedBill).toHaveBeenCalledTimes(2));
+    const retryPayload = recordSharedBill.mock.calls[1]?.[0] as {
+      sharedExpense?: { paidAmountMinor?: number };
+    };
+    /* النية المجمّدة: المدفوع 60 لا 90 — زوج النية الواحدة لا يُفكك. */
+    expect(retryPayload.sharedExpense?.paidAmountMinor).toBe(6_000);
+  });
+
   it("المدفوع أقل من الحصة يُرفض قبل أي كتابة — لا دفع جزئي بلا عقد", async () => {
     const { record, recordSharedBill } = renderEditor({});
     await openSharedFixedForm();

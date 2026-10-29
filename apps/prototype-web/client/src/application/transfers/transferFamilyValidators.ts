@@ -404,7 +404,16 @@ export const isSharedProjectShare = (value: unknown, knowledge: unknown) => {
     ) ||
     !isOptionalNonNegativeMoney(value.totalAmountMinor) ||
     !isPercentageBps(value.percentageBps) ||
-    !isOptionalNonNegativeMoney(value.calculatedShareMinor)
+    !isOptionalNonNegativeMoney(value.calculatedShareMinor) ||
+    /* S06 (CONS-DEC04 / SDF-064 — R1-F03 مراجعة S06 القرائية ١): المدفوع
+     * فعليًا سياق اختياري — غائب/null أو موجب صحيح آمن حصرًا (مرآة حارس
+     * المجال normalizeSharedProjectShare)؛ القيمة المعطوبة تُرفض عند باب
+     * الاستيراد قبل أي معاينة لا تمر صامتة. */
+    !(
+      value.paidAmountMinor === undefined ||
+      value.paidAmountMinor === null ||
+      (isMoney(value.paidAmountMinor) && value.paidAmountMinor > 0)
+    )
   )
     return false;
   if (value.basis === "agreed_percentage")
