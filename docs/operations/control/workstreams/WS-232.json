@@ -1,0 +1,60 @@
+{
+  "id": "WS-232",
+  "title": "S07 — المشتريات والمواد والمخزون الاختياري (UNIT-027/UNIT-028) + الإصلاح الجذري لـS06-MR-001",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-016"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "489474cab98ddf77f1c3f57ed5f22d84eabde5be",
+  "areas": [
+    "apps/prototype-web/client/src/application/suppliers/",
+    "apps/prototype-web/client/src/application/inventory/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/application/financial-records/",
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/pages/",
+    "src/domain/supplier-purchase/",
+    "src/domain/inventory-material/",
+    "src/domain/financial-event/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S07-EXECUTION-PROMPT-2026-10-29.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-027-المشتريات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-028-المواد-والمخزون.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-10-30",
+  "updated_at": "2026-10-30",
+  "next_action": "إصلاح S06-MR-001 من الجذر بإثبات دائم، ثم تنفيذ S07 الكامل لUNIT-027/UNIT-028، ثم المراجعات الخمس والتوثيق والسلسلة الكاملة والدفع والتحقق البعيد؛ التسليم بصدق REVIEW_REQUIRED — لا دمج ولا كتابة main.",
+  "notes": [
+    "أمر التنفيذ الوحيد هو 00-S07-EXECUTION-PROMPT-2026-10-29.md المنشور في 489474cab98ddf77f1c3f57ed5f22d84eabde5be؛ GitHub هو مصدر الحقيقة التشغيلي.",
+    "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
+    "إصلاح S06-MR-001 بcommit موسوم مستقل قبل أي كود S07، ولا يُعاد كتابة تاريخ S06/S05؛ يُسجل «مسلّمًا وبانتظار المراجعة المستقلة» لا مقبولًا.",
+    "بطاقة الفهم (المشكلة/النطاق/غير الأهداف/الثوابت/الفشل/القبول/حد الاستعادة) مثبتة داخل DOC-016.summary.",
+    "خط الأساس الحي للمخطط/التصدير 40/32؛ أي حقل دائم جديد اختياري متوافق رجعيًا (نمط S06) وإلا فيلزم الإثبات الكامل في الشريحة نفسها؛ لا إعادة تصنيف رجعية للمشتريات التاريخية (حد D02 الصريح)."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S07-EXECUTION-PROMPT-2026-10-29.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-30",
+      "actor": "zai-s07-execution",
+      "reason": "مطالبة S07 المأذونة على components/integration-20261027 / PR #383 من رأس نشر الأمر 489474ca (لا تداخل مع WS-231 المنتهي إلى IN_REVIEW)."
+    }
+  ],
+  "migration_baseline": true
+}
