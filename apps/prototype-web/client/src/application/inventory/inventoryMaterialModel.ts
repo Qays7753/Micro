@@ -14,6 +14,7 @@ import {
   type WasteContext,
 } from "@micro-domain/inventory-material/index.js";
 import type { CatalogItem, CatalogTemplate } from "@micro-domain/catalog/index.js";
+import type { SupplierPurchaseLine } from "@micro-domain/supplier-purchase/index.js";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { STORAGE_ERROR } from "@/application/resultCodes";
 
@@ -81,6 +82,10 @@ export type InventoryReferences = {
     totalMinor: number;
     materialId: string | null;
     expectedQuantityMilli: number | null;
+    /* S07 (UNIT-027): بنود الشراء الحية للاستلام المقيّد ببند — الغياب
+     * (إرث بلا بنود) = null كما في الكيان الكنوني؛ النوع هو نوع البند
+     * الكنوني نفسه لا نسخة موازية. */
+    lines: readonly SupplierPurchaseLine[] | null;
   }[];
   orders: readonly { id: string; itemName: string; customerName: string }[];
   /* المجموعة ٣ (عقد D6): المبيعات المباشرة النشطة — مرجع استهلاك صريح كالطلب. */

@@ -38,7 +38,7 @@ const trackedMaterial: Material = {
   unit: "meter",
   createdAt: "2026-10-01T09:00:00.000Z",
   createdOperationKey: "material-open-1",
-  tracking: { status: "tracked", trackedSince: "2026-10-01" },
+  tracking: { status: "tracked", decidedOn: "2026-10-01", reason: null },
   opening: null,
 };
 

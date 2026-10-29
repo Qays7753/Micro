@@ -976,7 +976,7 @@ export function validSupplierPurchaseLine(value: unknown): boolean {
     return false;
   if (value.costKnowledge !== "known" && value.costKnowledge !== "unknown") return false;
   if (value.costKnowledge === "known") {
-    if (!isMoney(value.valueMinor) || (value.valueMinor as number) <= 0) return false;
+    if (!isMoney(value.valueMinor) || value.valueMinor <= 0) return false;
   } else if (!(value.valueMinor === undefined || value.valueMinor === null)) return false;
   if (value.treatment === "tracked_material" && (value.materialId === undefined || value.materialId === null))
     return false;

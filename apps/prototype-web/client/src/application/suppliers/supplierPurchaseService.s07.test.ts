@@ -278,7 +278,6 @@ for (const adapter of adapters) {
       const material = await seedTrackedMaterial(store, "s7-mixed");
       const service = new SupplierPurchaseService(store, () => NOW);
       const result = await service.recordPurchase({
-        supplierName: null,
         supplierPartyId: null,
         note: "فاتورة بندىن",
         supplierName: "مؤسسة النسيج",
@@ -313,7 +312,6 @@ for (const adapter of adapters) {
       expect(result.value.status).toBe("unpaid");
       /* القيم المعلومة لا تتجاوز الإجمالي؛ والتجاوز يُرفض قبل أي كتابة. */
       const over = await service.recordPurchase({
-        supplierName: null,
         supplierPartyId: null,
         note: "بنود فوق الإجمالي",
         supplierName: "مؤسسة النسيج",
@@ -353,7 +351,6 @@ for (const adapter of adapters) {
       const suppliers = new SupplierPurchaseService(store, () => NOW);
       const inventory = new InventoryMaterialService(store, () => NOW);
       const purchase = await suppliers.recordPurchase({
-        supplierName: null,
         supplierPartyId: null,
         note: "قماش للستائر",
         supplierName: "مؤسسة النسيج",
@@ -477,7 +474,6 @@ for (const adapter of adapters) {
       if (!periodPurchase.ok) throw new Error(periodPurchase.message);
       const retracked = await inventory.retrackMaterial({
         materialId: untrackedMaterial.value.material.id,
-        note: "تفعيل المتابعة لاحقًا",
         operationKey: "material-s7-period-retrack",
       });
       if (!retracked.ok) throw new Error(retracked.message);
@@ -501,7 +497,6 @@ for (const adapter of adapters) {
       const suppliers = new SupplierPurchaseService(store, () => NOW);
       const inventory = new InventoryMaterialService(store, () => NOW);
       const purchase = await suppliers.recordPurchase({
-        supplierName: null,
         supplierPartyId: null,
         note: "قماش",
         supplierName: "مؤسسة النسيج",
@@ -604,7 +599,9 @@ for (const adapter of adapters) {
       if (!confirmed.ok) throw new Error(confirmed.message);
       const reExported = await targetTransfers.createExport();
       if (!reExported.ok) throw new Error(reExported.message);
-      const roundTripped = reExported.value.data.supplierPurchases.find(p => p.id === created.value.id);
+      const exportedPurchases = reExported.value.data.supplierPurchases;
+      if (!exportedPurchases) throw new Error("عائلة المشتريات غائبة عن التصدير");
+      const roundTripped = exportedPurchases.find(p => p.id === created.value.id);
       if (!roundTripped) throw new Error("الشراء لم يعبر الدورة");
       /* الهوية والدفعات والتواريخ كما هي؛ لا شراء أو دفع أو استلام جديد. */
       expect(roundTripped.payments.length).toBe(2);
@@ -618,7 +615,7 @@ for (const adapter of adapters) {
       expect(roundTripped.expectedQuantityMilli).toBe(3_000);
       /* الإرث بلا بنود يبقى بلا بنود (لا يُخترع بند من فراغ ولا يُعاد تصنيفه). */
       expect(roundTripped.lines ?? null).toBeNull();
-      expect(reExported.value.data.supplierPurchases.filter(p => p.id !== created.value.id)).toHaveLength(0);
+      expect(exportedPurchases.filter(p => p.id !== created.value.id)).toHaveLength(0);
       const events = await target.listFinancialEvents();
       if (!events.ok) throw new Error(events.message);
       expect(events.value.filter(event => event.correctionType === null)).toHaveLength(0);

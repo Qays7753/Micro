@@ -848,13 +848,13 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 201,
+        "nbLoc": 206,
         "band": "NORMAL"
       },
-      "reason": "R10A-F-004: the third local CapabilityId re-declaration is deleted (import from the preferences door) and the two `as CapabilityId[]` unsound casts become explicit .filter(isKnownCapabilityId) narrowing; identical rendered behavior for known ids.",
+      "reason": "S07: حارس الخدمة الكسولة (نمط transfers/loans) — الأعداد تبقى غير محملة حتى جاهزية خدمة المشتريات وتُعاد القراءة فور اكتمالها.",
       "authorization": {
-        "ownerReview": "R10-B3 five-reviewer wave gate (RV1-RV5 on the wave head) + owner review of PR #356; owner merge authorization remains separate and explicit",
-        "trigger": "Owner-approved R10-B3 wave (canonical prompt section 7, Wave B3): source-of-truth, ID, message-identity, and module-boundary root fixes; no financial meaning, schema, export, rejection-semantics, or visual-UI change",
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 on components/integration-20261027 / PR #383; the documented lazy-service precedent (transfers/loans/cashCount/partyDirectory) moves the purchases service out of the entry chunk so the owner gzip ceiling 155,300 is met without raising it. Same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07 delivery (DOC-016): nullable purchases-service prop guard on components/integration-20261027 / PR #383.",
         "ocRef": "ARCH-007"
       }
     },
@@ -3052,13 +3052,13 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 450,
+        "nbLoc": 476,
         "band": "WATCH"
       },
-      "reason": "S05 (DOC-014): تهيئة خدمة دليل الأطراف الكسولة (نمط loans/transfers الموثق نفسه: حالة + تأثير + دمج) — النمو الموثق داخل الشريط بعلم؛ ميزانية حزمة الدخول محروسة. وتشمل القيمة النهائية تقسيم مركز التحكم الكسول (نمط count/partyDirectory نفسه: type+import() فوق المخزن الوحيد).",
+      "reason": "S05 lazy partyDirectory ثم S07: خدمة المشتريات تُحمّل ديناميكيًا بعد الإقلاع (سابقة transfers/loans/count/partyDirectory نفسها) — وحدة الشراء والدومين المرافق يخرجان من كومة الإقلاع ليبقى الدخول تحت سقف gzip المالك 155,300 بلا رفع (151,657 بهامش 3,643)؛ مركز التحكم يُبنى فوقها فور جاهزيتها؛ تصعيد الشريحة إلى WATCH مُرسى بصدق.",
       "authorization": {
-        "ownerReview": "Owner-authorized S05 execution (00-S05-EXECUTION-PROMPT-2026-10-29.md published at 1663f2452b3769684f8faf0fe1671a410f79f116) mandates UNIT-037 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
-        "trigger": "S05 (DOC-014 / UNIT-037): apps/prototype-web/client/src/app/PrototypeServicesContext.tsx on components/integration-20261027 / PR #383.",
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 on components/integration-20261027 / PR #383; the documented lazy-service precedent (transfers/loans/cashCount/partyDirectory) moves the purchases service out of the entry chunk so the owner gzip ceiling 155,300 is met without raising it. Same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07 delivery (DOC-016): lazy purchases service wiring (budget-fit cause fix) on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-014"
       }
     },
@@ -3489,13 +3489,13 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 228,
+        "nbLoc": 232,
         "band": "NORMAL"
       },
-      "reason": "S05 (DOC-014): عرض لقطة تسمية المورد من مصدره (supplierDisplayLabelOf) بدل الاسم الحر.",
+      "reason": "S05 ثم S07: حارس الخدمة الكسولة في تأثير قراءة الموردين — null = «جارٍ التجهيز» على حالة التحميل الصادقة وتُعاد القراءة فور جاهزيتها (نمط transfers/loans).",
       "authorization": {
-        "ownerReview": "Owner-authorized S05 execution (00-S05-EXECUTION-PROMPT-2026-10-29.md published at 1663f2452b3769684f8faf0fe1671a410f79f116) mandates UNIT-037 on the same branch/PR. Same-PR re-anchor per the documented protocol.",
-        "trigger": "S05 (DOC-014 / UNIT-037): apps/prototype-web/client/src/pages/Suppliers.tsx on components/integration-20261027 / PR #383.",
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 on components/integration-20261027 / PR #383; the documented lazy-service precedent (transfers/loans/cashCount/partyDirectory) moves the purchases service out of the entry chunk so the owner gzip ceiling 155,300 is met without raising it. Same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07 delivery (DOC-016): nullable purchases-service guard in Suppliers on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-014"
       }
     },
@@ -4219,6 +4219,519 @@
         "ownerReview": "Owner-authorized S06 execution (00-S06-EXECUTION-PROMPT-2026-10-29.md published at 13197ac0043ab7684a0f64a469a038e11ad434eb) requires the canonical full pnpm check to pass on the final tree; the prettier completion is the format:check gate's own requirement, not a logic change. Same-PR re-anchor per R8-1/R11.",
         "trigger": "S06 delivery formatting completion (DOC-015): apps/prototype-web/client/src/pages/FinancialEventEditor.tsx on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-015"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-01",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/finance/financialEventEditorModel.ts",
+      "from": {
+        "nbLoc": 209,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 342,
+        "band": "NORMAL"
+      },
+      "reason": "S06-MR-001: نموذج محرر الحدث المالي يحمل الزوج الكنوني (الحصة+المدفوع) لحظة تأكيد «من تحمّل الباقي» ويبطل التأكيد تلقائيًا عند تغيّر أي مدخل يغيّر قيمته — الربط بقيمة حتمية من الاشتقاق الكنوني لا حساب ثانٍ في React.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) mandates the confirmed S06 review finding S06-MR-001 be fixed at its root before any S07 code; the write boundary must reject a changed unconfirmed owner part even when the UI is bypassed. Same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07 delivery (DOC-016): S06-MR-001 shared-bill owner-part confirmation binding (editor model) on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-02",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/finance/projectFinancialEventWrites.ts",
+      "from": {
+        "nbLoc": 443,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 539,
+        "band": "WATCH"
+      },
+      "reason": "S06-MR-001: حد الكتابة الكنوني recordSharedBillExpense يرفض القيمة المتغيرة غير المؤكدة (غياب/تقادم الزوج) قبل أي كتابة حتى مع تجاوز الواجهة، مع حفظ الإيدمبوتنسي وأسبقية الرفض.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) mandates the confirmed S06 review finding S06-MR-001 be fixed at its root before any S07 code; the write boundary must reject a changed unconfirmed owner part even when the UI is bypassed. Same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07 delivery (DOC-016): S06-MR-001 write-boundary rejection of changed unconfirmed owner part on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-03",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/finance/projectFinancialTypes.ts",
+      "from": {
+        "nbLoc": 288,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 301,
+        "band": "NORMAL"
+      },
+      "reason": "زوج تأكيد الفاتورة المشتركة (S06-MR-001: +7 أسطر أنواع) ثم أنواع اعتراف بنود الفترة لS07 (UNIT-028: +7 أسطر معرفة الاعتراف عند القارئ) — نوعان اختياريان بلا ترقية مخطط.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07/S06-MR-001 shared types growth (both phases) on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-04",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/financial-records/expenseRecordIntent.ts",
+      "from": {
+        "nbLoc": 108,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 217,
+        "band": "NORMAL"
+      },
+      "reason": "S06-MR-001: النية الكنسية expandExpenseRecordIntent تصدّر الزوج (الحصة+المدفوع) المشتق من الاشتقاق الكنوني نفسه ليستهلكه حد الكتابة والواجهة معًا — مصدر واحد للحقيقة لا حساب ثانٍ.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) mandates the confirmed S06 review finding S06-MR-001 be fixed at its root before any S07 code; the write boundary must reject a changed unconfirmed owner part even when the UI is bypassed. Same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07 delivery (DOC-016): S06-MR-001 canonical intent pair export on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-05",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/financial-records/index.ts",
+      "from": {
+        "nbLoc": 30,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 38,
+        "band": "NORMAL"
+      },
+      "reason": "S06-MR-001: رمزا الباب العام لوحدة السجلات المالية (زوج التأكيد واشتقاقه) بأساس موثق بنفس الشريحة — توسعة باب قائم لا باب جديد.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) mandates the confirmed S06 review finding S06-MR-001 be fixed at its root before any S07 code; the write boundary must reject a changed unconfirmed owner part even when the UI is bypassed. Same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07 delivery (DOC-016): S06-MR-001 door symbols for the confirmation pair on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-06",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/recurring/recurringExpenseService.ts",
+      "from": {
+        "nbLoc": 770,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 963,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S06-MR-001: مسار تأكيد دورة المصروف المتكرر يرفض نية «المدفوع فوق الحصة» (ازدواج/تجاوز) عند كاتبه الكنوني (+9 أسطر فقط فوق قيمة إرساء S06)؛ التصعيد إلى SPLIT_CANDIDATE مُرسى بصدق والتقسيم مؤجل لموجات الهيكلة بقرار المالك — بوابة ما بعد Group-6 تمنع التقسيم خلال S07.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) mandates the confirmed S06 review finding S06-MR-001 be fixed at its root before any S07 code; the write boundary must reject a changed unconfirmed owner part even when the UI is bypassed. Same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07 delivery (DOC-016): S06-MR-001 recurring-cycle confirmation rejection on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-07",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/FinancialEventEditor.tsx",
+      "from": {
+        "nbLoc": 1194,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1780,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S06-MR-001: محرر الحدث المالي يبطل تأكيد جزء المالك تلقائيًا عند تغيّر الحصة/المدفوع ويعيد طلبه بالقيم الجديدة (+53 فوق قيمة إرساء S06 1727)؛ تصعيد الشريحة إلى SPLIT_NOW مُرسى بصدق والتقسيم مؤجل لموجات الهيكلة بقرار المالك (البند الهيكلي يمنع التقسيم خلال S07).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) mandates the confirmed S06 review finding S06-MR-001 be fixed at its root before any S07 code; the write boundary must reject a changed unconfirmed owner part even when the UI is bypassed. Same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07 delivery (DOC-016): S06-MR-001 UI auto-invalidation on value change on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-08",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/finance/projectFinancialPeriodReads.ts",
+      "from": {
+        "nbLoc": 422,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 479,
+        "band": "WATCH"
+      },
+      "reason": "UNIT-028 (D02/SDF-031): اعتراف تكلفة مواد الفترة عند قارئ الفترة الكنوني نفسه — قراءة مشتقة من بنود period_material بتاريخ الشراء بلا حدث مالي ثانٍ؛ مجهولة القيمة تبقى مجهولة وتمنع رقم نتيجة نهائيًا كاذبًا؛ والإرث بلا بنود لا يُعاد تصنيفه رجعيًا.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 period-material recognition at the canonical period reader on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-09",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/inventory/inventoryMaterialModel.ts",
+      "from": {
+        "nbLoc": 258,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 283,
+        "band": "NORMAL"
+      },
+      "reason": "UNIT-027: نموذج مرجع حركة المادة يحمل بنود الشراء الحية للاستلام المقيّد ببند (النوع الكنوني نفسه لا نسخة موازية) + وعي نموذج الحركة بالبند.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 movement model line awareness on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-10",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/inventory/inventoryMaterialReads.ts",
+      "from": {
+        "nbLoc": 324,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 357,
+        "band": "NORMAL"
+      },
+      "reason": "UNIT-027: قراءات المادة تكشف بنود الشراء المؤهلة للاستلام بحدودها الحية للمحرر وتحمل البنود في المراجع (تضييق بلا إكراهات as-number على عائلة Minor).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 line-aware material reads on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-11",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/inventory/inventoryMaterialWrites.ts",
+      "from": {
+        "nbLoc": 276,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 314,
+        "band": "NORMAL"
+      },
+      "reason": "UNIT-027: الاستلام مقيد ببند حي — البند المرجع واجب حين توجد بنود، ومادته عقد ملزم، وحدوده من البند لا من الرأس وحده؛ بند الفترة لا يستلم فوق تكلفة قائمة؛ والإرث بلا بنود بمسار الرأس القائم.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 receivePurchase bound to a live purchase line on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-12",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/suppliers/supplierPurchaseEditorModel.ts",
+      "from": {
+        "nbLoc": 106,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 162,
+        "band": "NORMAL"
+      },
+      "reason": "UNIT-027: نموذج محرر الشراء يحمل البنود الاختيية (بند أول من ربط المادة وبنود إضافية بقيمها ومعرفتها ومجموع صادق).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 purchase editor lines model on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-13",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/suppliers/supplierPurchaseService.ts",
+      "from": {
+        "nbLoc": 410,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 503,
+        "band": "WATCH"
+      },
+      "reason": "UNIT-027: خدمة الشراء تفحص تطابق المعالجة مع حالة تتبع المادة الحية داخل حد الكتابة نفسه وتوثق beforeLines في المراجعة وترفض التعديل فوق استلام قائم (SDF-071) وتحرس حدود البنود.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 line validation inside the write boundary on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-14",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts",
+      "from": {
+        "nbLoc": 1730,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1882,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "UNIT-027 (عقد ٤٤/SDF-044): مدققو بنود صارمون + مراجع عابرة للعائلات (هوية البند تحل داخل شرائه؛ مادة البند تحل داخل العائلة؛ مرجع بند مكسور في حركة استلام يُرفض قبل المعاينة) — داخل الملف المقسم أصلًا بقرار هيكلي سابق؛ لا تقسيم جديد خلال S07.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 strict line validators + cross-family references on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-15",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotMigrations.ts",
+      "from": {
+        "nbLoc": 346,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 379,
+        "band": "NORMAL"
+      },
+      "reason": "UNIT-027: ترحيل التوافق رجعيًا — movement.purchaseLineId اختياري يطبّع الغياب إلى null بنمط العائلة القائمة (saleId/materialId) بلا ترقية مخطط (40/32 كما هي).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 purchaseLineId migration default on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-16",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts",
+      "from": {
+        "nbLoc": 1192,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1276,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "UNIT-027: شكل بنود الشراء يُصدَّق قبل المعاينة وأي كتابة في الهدف (شكل صارم + مراجع محلية)؛ تصعيد الشريحة إلى SPLIT_NOW مُرسى بصدق والتقسيم مؤجل لموجات الهيكلة بقرار المالك — البند الهيكلي يمنع التقسيم خلال S07.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 purchase-line shape validation before preview on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-17",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/InventoryMovementEditor.tsx",
+      "from": {
+        "nbLoc": 954,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1011,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "UNIT-027: محرر حركة المخزون يتيح اختيار بند الشراء المؤهل ويملأ من حدوده الحية (بلا زر مضلل لغير المتتبع).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 movement editor line selection/prefill on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-18",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/SupplierPurchaseEditor.tsx",
+      "from": {
+        "nbLoc": 1176,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1778,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "UNIT-027: قسم البنود في محرر الشراء (بند أول من ربط المادة بقيمته، بنود إضافية بقيمها ومعرفتها ومجموع صادق، رحلات RTL) ثم تغليف عناصر البنود بملصقات <label> (a11y) بإصلاح السبب داخل سقف كثافة النص 83=83، ثم حراس الخدمة الكسولة الصادقين (نمط transfers/loans)؛ تصعيد الشريحة مُرسى بصدق والتقسيم مؤجل لموجات الهيكلة بقرار المالك.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 purchase editor lines section + a11y label wrapping on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-19",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/supplierScheduleCommitGuard.ts",
+      "from": {
+        "nbLoc": 336,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 364,
+        "band": "NORMAL"
+      },
+      "reason": "UNIT-027: حارس الالتزام يقارن البنود حقولًا ثابتة في هوية الرأس وbeforeLines في المراجعة — ذرّية الالتزام القائمة تتوسع للبنود.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 commit-guard line fields on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-20",
+      "date": "2026-10-30",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 386,
+        "band": "NORMAL"
+      },
+      "reason": "S06-MR-001/S07: أساس أسطح الأبواب يتوسع بالرمزين الجديدين لوحدة السجلات المالية (زوج التأكيد) بإرساء موثق بنفس الشريحة — باب قائم لا باب جديد.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07/S06-MR-001 door-surface baseline re-anchor on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-21",
+      "date": "2026-10-30",
+      "path": "scripts/application-house-edges-census.json",
+      "from": {
+        "nbLoc": 891,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 907,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S07: إعادة إرساء موثقة لجرد أزواج البيوت — حافة ملف واحدة (نموذج المحرر → وحدة النية الكنسية، قيمة) وسقف زوج finance→financial-records 1→2 بنفس الشريحة.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 house-edges census documented re-anchor on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-22",
+      "date": "2026-10-30",
+      "path": "src/domain/inventory-material/policies.ts",
+      "from": {
+        "nbLoc": 334,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 344,
+        "band": "NORMAL"
+      },
+      "reason": "UNIT-028: سياسة حركة المادة النقية تقبل المرجع الاختياري لبند الشراء بهوية مستقرة (purchaseLineId) بلا سياسة مالية جديدة.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 movement line-reference policy on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-23",
+      "date": "2026-10-30",
+      "path": "src/domain/inventory-material/types.ts",
+      "from": {
+        "nbLoc": 127,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 138,
+        "band": "NORMAL"
+      },
+      "reason": "UNIT-028: نوع حركة المادة يحمل purchaseLineId? الاختياري المتوافق رجعيًا (نمط S06 بلا ترقية).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 movement type purchaseLineId on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-24",
+      "date": "2026-10-30",
+      "path": "src/domain/supplier-purchase/policies.ts",
+      "from": {
+        "nbLoc": 281,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 434,
+        "band": "WATCH"
+      },
+      "reason": "UNIT-027: سياسة بنود الشراء النقية (هوية ثابتة، قيمة معلومة موجبة ≤الإجمالي، مجهولة=null، متتبعة توجب مادة) بترتيب رفض محفوظ، مفككة على مساعِدات لأسباب سقف التعقيد 35 (إصلاح السبب لا رفع السقف)؛ تصعيد الشريحة إلى WATCH مُرسى بصدق.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 purchase-line pure policy + lint-baseline helper decomposition on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-25",
+      "date": "2026-10-30",
+      "path": "src/domain/supplier-purchase/types.ts",
+      "from": {
+        "nbLoc": 115,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 162,
+        "band": "NORMAL"
+      },
+      "reason": "UNIT-027: نوع SupplierPurchaseLine (lineId/material/quantity/value/knowledge/treatment) وlines?/beforeLines? الاختيارية على الشراء والمراجعة — متوافقة رجعيًا.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 (purchase lines with declared recognition treatment and period-material recognition at the canonical period reader) on components/integration-20261027 / PR #383. Same-PR re-anchor per R8-1/R11; the post-Group-6 structural gate forbids splitting during S07, so band escalation is anchored honestly with the split deferred to the structure waves by owner decision.",
+        "trigger": "S07 delivery (DOC-016): S07 SupplierPurchaseLine type on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-26",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/finance/statementMarkdownService.ts",
+      "from": {
+        "nbLoc": 231,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 240,
+        "band": "NORMAL"
+      },
+      "reason": "UNIT-028 (D02/SDF-031): تكلفة مواد الفترة بند صريح في معادلة كشف الفترة — التحلل يجمع إلى النتيجة المسجلة نفسها بعد دخول المكوّن الجديد في القارئ الكنوني؛ أقل تكامل مطلوب بسطح مجاور (المستهلك المباشر للنتيجة الكنونية) مع اختبار انحدار.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-028 period-material recognition at the canonical period reader; the statement equation is the direct consumer of the canonical result and must decompose it truthfully (same-PR re-anchor per R8-1/R11).",
+        "trigger": "S07 delivery (DOC-016): statement equation period-material term on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-PURCHASES-MATERIALS-20261030-27",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/Foundation.tsx",
+      "from": {
+        "nbLoc": 328,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 332,
+        "band": "NORMAL"
+      },
+      "reason": "S07: حارس الخدمة الكسولة في تأثير قراءة الأساس (نمط transfers/loans) — null = «جارٍ التجهيز» على حالة التحميل الصادقة وتُعاد القراءة فور جاهزية خدمة المشتريات.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S07 execution (00-S07-EXECUTION-PROMPT-2026-10-29.md published at 489474cab98ddf77f1c3f57ed5f22d84eabde5be) implements UNIT-027/UNIT-028 on components/integration-20261027 / PR #383; the documented lazy-service precedent (transfers/loans/cashCount/partyDirectory) moves the purchases service out of the entry chunk so the owner gzip ceiling 155,300 is met without raising it. Same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07 delivery (DOC-016): nullable purchases-service guard in Foundation on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
       }
     }
   ]

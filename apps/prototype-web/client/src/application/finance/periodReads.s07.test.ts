@@ -81,7 +81,7 @@ for (const adapter of adapters) {
         quantity: 1,
         revenueMinor: 25_000,
         collectedMinor: 25_000,
-        collectionStatus: "paid",
+        collectionStatus: "collected_in_full",
         catalogItemId: null,
         customerName: null,
         costMinor: 2_000,

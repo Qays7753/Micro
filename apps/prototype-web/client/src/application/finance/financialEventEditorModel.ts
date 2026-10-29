@@ -311,19 +311,21 @@ const safeDraftEnum = <T extends string>(value: unknown, allowed: readonly T[], 
  * مزعومة؛ كائن التأكيد إما زوج صحيح آمن مجمّدًا أو غائبًا. */
 function safeDraftOwnerPartConfirmation(value: unknown): SharedBillOwnerPartConfirmation | null {
   if (typeof value !== "object" || value === null) return null;
-  const pair = value as { shareAmountMinor?: unknown; paidAmountMinor?: unknown };
+  const pair = value as Record<string, unknown>;
+  const shareAmountMinor = pair.shareAmountMinor;
+  const paidAmountMinor = pair.paidAmountMinor;
   if (
-    typeof pair.shareAmountMinor !== "number" ||
-    !Number.isSafeInteger(pair.shareAmountMinor) ||
-    pair.shareAmountMinor <= 0
+    typeof shareAmountMinor !== "number" ||
+    !Number.isSafeInteger(shareAmountMinor) ||
+    shareAmountMinor <= 0
   )
     return null;
   if (
-    pair.paidAmountMinor !== null &&
-    (typeof pair.paidAmountMinor !== "number" || !Number.isSafeInteger(pair.paidAmountMinor))
+    paidAmountMinor !== null &&
+    (typeof paidAmountMinor !== "number" || !Number.isSafeInteger(paidAmountMinor))
   )
     return null;
-  return sharedBillOwnerPartConfirmationOf(pair.shareAmountMinor, pair.paidAmountMinor ?? null);
+  return sharedBillOwnerPartConfirmationOf(shareAmountMinor, paidAmountMinor ?? null);
 }
 
 export function coerceEditorDraft(value: unknown): EditorDraft | null {

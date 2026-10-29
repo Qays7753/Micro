@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "cd967fc053e0bcf80fd258143f7a40e93481d518",
+  "head": "a5995de7949c8a470dc0a5790c713201640ad7ba",
   "pages": {
     "total": 60,
     "map": {
@@ -420,6 +420,7 @@
           "G3Hardening.dom.test.tsx",
           "PurchasingBridgeExe011.dom.test.tsx",
           "group2InventorySurfaces.test.tsx",
+          "pages/SupplierPurchaseEditor.s07.dom.test.tsx",
           "pages/SupplierPurchaseEditor.ui.test.tsx"
         ]
       },
@@ -541,6 +542,7 @@
       "09-supplier-purchase-prototype-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/pages/SupplierPurchaseEditor.s07.dom.test.tsx",
           "apps/prototype-web/client/src/pages/SupplierPurchaseEditor.ui.test.tsx",
           "tests/domain/supplier-purchase-corrections.test.ts",
           "tests/domain/supplier-purchase-preview-derivations.test.ts"

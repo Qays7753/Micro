@@ -7,10 +7,10 @@
     "authority": "OD-10 Option A (owner-approved 2026-10-13, R11 owner decision package) + R11 W0 census (128 edges / 80 value / 48 type) + RV1/R11-RV1 independent reproductions"
   },
   "totals": {
-    "edges": 130,
-    "value": 81,
+    "edges": 131,
+    "value": 82,
     "type": 49,
-    "governedEdges": 63,
+    "governedEdges": 64,
     "governedPairs": 42
   },
   "edges": [
@@ -663,6 +663,11 @@
       "key": "application/transfers/replacementProtectionProtocol.ts -> application/time/clock.ts",
       "kind": "type",
       "exemptTarget": true
+    },
+    {
+      "key": "application/finance/financialEventEditorModel.ts -> application/financial-records/expenseRecordIntent.ts",
+      "kind": "value",
+      "exemptTarget": false
     }
   ],
   "pairCaps": {
@@ -731,7 +736,7 @@
       "type": 1
     },
     "finance->financial-records": {
-      "value": 1,
+      "value": 2,
       "type": 4
     },
     "finance->fulfillment": {
@@ -896,6 +901,7 @@
     "House-level SCC baselines are recorded as the LIVE state at 5ef4ce08: 2 value cycles ({finance,financial-analysis} and {preferences,time}) and 1 type cycle ({collections,finance,financial-analysis,fulfillment,recurring}). Any NEW cycle fails; a RESOLVED cycle also fails until the census is re-anchored in the same PR (nothing changes silently).",
     "The two dual-kind pairs (application/finance/index.ts -> application/recurring/recurringExpenseService.ts and application/fulfillment/fulfillmentService.ts -> application/scheduling/scheduleService.ts) classify TYPE under the type-dominant rule.",
     "The two R10-B growth edges recorded with provenance: fulfillment/deliveryReviewService.ts -> application/inventory/materialUnitLabels.ts and suppliers/supplierPurchaseEditorModel.ts -> application/finance/paymentSourcePolicy.ts (both from documented R10-B3 work, now inside the census).",
-    "2026-10-27 (S02/SH-02/SH-03/SH-04): حافتا القفل المتقاعد (localLockService وpinOperations -> time/clock) حُذفتا مع وحدتيهما بقرار إلغاء ٠٤٢؛ وحافة بروتوكول حماية الاستبدال الجديد (replacementProtectionProtocol -> time/clock) أُضيفت — هدف معفى ورقي (OD-10) والوصول مسموح بتصميم."
+    "2026-10-27 (S02/SH-02/SH-03/SH-04): حافتا القفل المتقاعد (localLockService وpinOperations -> time/clock) حُذفتا مع وحدتيهما بقرار إلغاء ٠٤٢؛ وحافة بروتوكول حماية الاستبدال الجديد (replacementProtectionProtocol -> time/clock) أُضيفت — هدف معفى ورقي (OD-10) والوصول مسموح بتصميم.",
+    "S07 (DOC-016 / S06-MR-001): إعادة إرساء موثقة — زوج تأكيد جزء الفاتورة المشتركة من وحدة النية الكنسية إلى نموذج المحرر (قيمة) ضمن حد الكتابة؛ حافة ملف واحدة وسقف زوج 1→2 بنفس الشريحة."
   ]
 }

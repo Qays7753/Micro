@@ -70,7 +70,7 @@ function materialRecord(id: string): Record<string, unknown> {
     unit: "meter",
     createdAt: NOW,
     createdOperationKey: `material-${id}-open`,
-    tracking: { status: "tracked", trackedSince: "2026-10-01" },
+    tracking: { status: "tracked", decidedOn: "2026-10-01", reason: null },
     opening: null,
   };
 }
@@ -121,16 +121,15 @@ type LinesFileInput = {
   readonly lines?: readonly Record<string, unknown>[] | null;
   readonly purchaseOverrides?: Partial<Record<string, unknown>>;
   readonly movements?: readonly Record<string, unknown>[];
-  readonly materials?: readonly Record<string>[];
+  readonly materials?: readonly Record<string, unknown>[];
 };
 
 /** ملف 40/32 كامل العدادات والبصمة — يصل إلى validateSnapshot فعلًا. */
 function currentPairFile(input: LinesFileInput = {}): Record<string, unknown> {
   const data = baseData();
-  data.supplierPurchases = [purchaseWithLines(input.lines ?? null)];
-  if (input.purchaseOverrides) {
-    Object.assign(data.supplierPurchases[0] as Record<string, unknown>, input.purchaseOverrides);
-  }
+  const purchase = purchaseWithLines(input.lines ?? null);
+  if (input.purchaseOverrides) Object.assign(purchase, input.purchaseOverrides);
+  data.supplierPurchases = [purchase];
   if (input.materials) data.materials = [...input.materials];
   if (input.movements) data.inventoryMovements = [...input.movements];
   const counts = exportCountsOf(data as Parameters<typeof exportCountsOf>[0]);
@@ -165,7 +164,9 @@ describe("S07 — باب النقل مع بنود الشراء (عقد ٤٤)", (
     if (!confirmed.ok) throw new Error(confirmed.message);
     const reExported = await new LocalTransferService(source, () => NOW).createExport();
     if (!reExported.ok) throw new Error(reExported.message);
-    const roundTripped = reExported.value.data.supplierPurchases.find(p => p.id === "purchase-lines-1");
+    const exportedPurchases = reExported.value.data.supplierPurchases;
+    if (!exportedPurchases) throw new Error("عائلة المشتريات غائبة عن التصدير");
+    const roundTripped = exportedPurchases.find(p => p.id === "purchase-lines-1");
     if (!roundTripped) throw new Error("لم يعبر الدورة");
     expect(roundTripped.lines?.map(line => line.lineId)).toEqual(["pl-1", "pl-2"]);
     expect(roundTripped.lines?.[0]?.valueMinor).toBe(10_000);
@@ -253,11 +254,15 @@ describe("S07 — باب النقل مع بنود الشراء (عقد ٤٤)", (
     const file = currentPairFile({ lines: null });
     const prepared = await prepare(file);
     if (!prepared.ok) throw new Error(prepared.message);
-    const confirmed = await new LocalTransferService(new MemoryLocalStore(), () => NOW).confirmImport(
-      prepared.value,
-    );
+    const target = new LocalTransferService(new MemoryLocalStore(), () => NOW);
+    const confirmed = await target.confirmImport(prepared.value);
     if (!confirmed.ok) throw new Error(confirmed.message);
-    const restored = confirmed.value;
-    expect(restored.supplierPurchases[0]?.lines ?? null).toBeNull();
+    const reExported = await target.createExport();
+    if (!reExported.ok) throw new Error(reExported.message);
+    const exportedPurchases = reExported.value.data.supplierPurchases;
+    if (!exportedPurchases) throw new Error("عائلة المشتريات غائبة عن التصدير");
+    const restored = exportedPurchases.find(p => p.id === "purchase-lines-1");
+    if (!restored) throw new Error("لم يعبر الدورة");
+    expect(restored.lines ?? null).toBeNull();
   });
 });

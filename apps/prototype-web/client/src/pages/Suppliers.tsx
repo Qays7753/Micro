@@ -48,6 +48,10 @@ export default function Suppliers() {
   const [retryCount, setRetryCount] = useState(0);
   useEffect(() => {
     let active = true;
+    /* S07 (سابقة transfers/loans): الخدمة تُحمّل ديناميكيًا بعد الإقلاع —
+     * null يعني «جارٍ التجهيز» فيبقى الواجهة على حالة التحميل الصادقة
+     * وتُعاد القراءة فور اكتماله (dependency على الخدمة نفسها). */
+    if (!supplierPurchases) return undefined;
     Promise.all([
       supplierPurchases.list(),
       supplierPurchases.readSummary(),

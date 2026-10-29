@@ -182,6 +182,9 @@ export default function SupplierPurchaseEditor() {
   const payableRemains = initialPaidMinor < totalMinor;
   useEffect(() => {
     if (isNew || !id) return;
+    /* S07 (سابقة transfers/loans): الخدمة كسولة — null = «جارٍ التجهيز»
+     * فيبقى محرر الشراء على حالة التحميل الصادقة وتُعاد القراءة فور جاهزيتها. */
+    if (!supplierPurchases) return;
     supplierPurchases.list().then(result => {
       if (result.ok) {
         const found = result.value.find(item => item.id === id) ?? null;
@@ -343,6 +346,9 @@ export default function SupplierPurchaseEditor() {
    * القيم القديمة تلقائيًا؛ الحفظ الثاني قرار واعٍ بعد المراجعة. */
   async function reloadCurrentPurchase(): Promise<void> {
     if (!id || isNew) return;
+    /* S07: الخدمة الكسولة غير جاهزة بعد — لا شيء لإعادة قراءته (الرحلة
+     * الأصلية لم تكتمل بعد أصلًا). */
+    if (!supplierPurchases) return;
     const result = await supplierPurchases.list();
     if (!result.ok) {
       setFeedback({ tone: "error", text: result.message, source: "payment" });
@@ -386,6 +392,16 @@ export default function SupplierPurchaseEditor() {
   }
 
   async function savePurchase(): Promise<boolean> {
+    /* S07: الخدمة الكسولة غير جاهزة بعد (شراء جديد يعرض النموذج فورًا) —
+     * إعلان صادق لا فشلًا صامتًا؛ التحميل يكتمل خلال لحظات. */
+    if (!supplierPurchases) {
+      setFeedback({
+        tone: "error",
+        text: "جارٍ تجهيز خدمة المشتريات — أعد المحاولة بعد لحظات.",
+        source: "purchase",
+      });
+      return false;
+    }
     /* R7/P04: بوابة التحقق كودًا عند صاحبها التطبيقي — النص هنا. */
     const problem = validatePurchaseSubmission({
       validMoney,
@@ -512,6 +528,8 @@ export default function SupplierPurchaseEditor() {
     return true;
   }
   async function savePayment(): Promise<boolean> {
+    /* S07: حارس الخدمة الكسولة (نمط transfers/loans) — لا حفظ فوق null. */
+    if (!supplierPurchases) return false;
     /* R7/P04: بوابة الدفعة كودًا عند صاحبها التطبيقي — النص هنا. */
     const problem = validatePaymentSubmission({
       validMoney,
@@ -570,6 +588,8 @@ export default function SupplierPurchaseEditor() {
 
   /* المجموعة ٢ (§10.4): التعديل الموثق — مراجعة + سبب + حفظ يمر بالخدمة. */
   async function saveEdit(): Promise<boolean> {
+    /* S07: حارس الخدمة الكسولة (نمط transfers/loans) — لا حفظ فوق null. */
+    if (!supplierPurchases) return false;
     /* R7/P04: بوابة التعديل كودًا عند صاحبها التطبيقي. */
     if (
       !purchase ||
@@ -644,6 +664,8 @@ export default function SupplierPurchaseEditor() {
 
   async function savePaymentReversal(): Promise<boolean> {
     if (!purchase || !reversalTarget) return false;
+    /* S07: حارس الخدمة الكسولة (نمط transfers/loans) — لا تراجع فوق null. */
+    if (!supplierPurchases) return false;
     setSaving(true);
     setFeedback(null);
     const result = await supplierPurchases.reversePayment({

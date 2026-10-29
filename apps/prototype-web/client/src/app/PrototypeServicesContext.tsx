@@ -40,7 +40,7 @@ import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpServi
 import type { HomeControlCenterService } from "@/application/home/homeControlCenterService";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { ScheduleRecurrenceService } from "@/application/scheduling/recurrenceService";
-import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
+import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import { CashContinuityService } from "@/application/cash";
 import { InventoryMaterialService } from "@/application/inventory";
 import { CatalogService } from "@/application/catalog/catalogService";
@@ -109,7 +109,13 @@ type PrototypeServices = {
   ownerEntitlement: OwnerEntitlementService;
   recurringWork: RecurringWorkService;
   g5: FinancialAnalysisService;
-  supplierPurchases: SupplierPurchaseService;
+  /* S07 (DOC-016 / UNIT-027، سابقة transfers/loans/cashCount/partyDirectory
+   * نفسها): خدمة المشتريات تُحمّل ديناميكيًا بعد الإقلاع — وحدة الشراء
+   * والدومين المرافق لها يخرجان من كومة الإقلاع (سقف gzip المحروس بقرار
+   * مالك ADR-017 لا يُرفع)؛ null يعني «جارٍ التجهيز» ومستهلكوها الكنونيون
+   * (الموردون ومحرر الشراء والأساس والقدرات ومركز التحكم) يعيدون القراءة
+   * عند اكتماله. */
+  supplierPurchases: SupplierPurchaseService | null;
   cashContinuity: CashContinuityService;
   inventory: InventoryMaterialService;
   catalog: CatalogService;
@@ -263,12 +269,31 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
   const [homeControlCenterService, setHomeControlCenterService] = useState<HomeControlCenterService | null>(
     null,
   );
+  /* S07 (DOC-016 / UNIT-027، ميزانية الحزمة — نمط transfers/loans/count/
+   * partyDirectory نفسه): خدمة المشتريات تُحمّل ديناميكيًا بعد الإقلاع فوق
+   * المخزن الوحيد؛ تُبنى مرة ولا تُعاد عند تحديث dataVersion. وحدة الشراء
+   * والدومين المرافق يخرجان من كومة الإقلاع (سقف gzip المحروس لا يُرفع). */
+  const [supplierPurchasesService, setSupplierPurchasesService] = useState<SupplierPurchaseService | null>(
+    null,
+  );
+  useEffect(() => {
+    let active = true;
+    void import("@/application/suppliers/supplierPurchaseService").then(module => {
+      if (!active) return;
+      setSupplierPurchasesService(new module.SupplierPurchaseService(singletonStore));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   useEffect(() => {
     let active = true;
     /* S05 (ميزانية الحزمة — نمط count/partyDirectory نفسه): مركز التحكم
      * يُحمَّل ديناميكيًا بعد الإقلاع فوق المخزن الوحيد والخدمات المفردة
      * نفسها؛ مستهلكه الوحيد صفحة الرئيسية الكسولة، فلا تدفع حزمة الدخول
-     * ثمنه (سقف gzip محروس — لا رفع). */
+     * ثمنه (سقف gzip محروس — لا رفع). S07: يُبنى فوق خدمة المشتريات
+     * الخاملة فور جاهزيتها — لا فوق null. */
+    if (!supplierPurchasesService) return undefined;
     void import("@/application/home/homeControlCenterService").then(module => {
       if (!active) return;
       setHomeControlCenterService(
@@ -276,7 +301,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
           singletonStore,
           singletonServices.dailyFollowUp,
           singletonServices.projectFinance,
-          singletonServices.supplierPurchases,
+          supplierPurchasesService,
           singletonServices.inventory,
           singletonServices.agreementContext,
           singletonServices.activity,
@@ -286,7 +311,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     return () => {
       active = false;
     };
-  }, []);
+  }, [supplierPurchasesService]);
   useEffect(() => {
     let active = true;
     void Promise.all([
@@ -332,6 +357,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       loans: loanService,
       cashCount: cashCountService,
       partyDirectory: partyDirectoryService,
+      supplierPurchases: supplierPurchasesService,
       homeControlCenter: homeControlCenterService,
       dataVersion,
       notifyDataChanged,
@@ -342,6 +368,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       loanService,
       cashCountService,
       partyDirectoryService,
+      supplierPurchasesService,
       homeControlCenterService,
       dataVersion,
       notifyDataChanged,
@@ -366,6 +393,7 @@ function createServices(): Omit<
   | "loans"
   | "cashCount"
   | "partyDirectory"
+  | "supplierPurchases"
   | "homeControlCenter"
 > {
   const store = singletonStore;
@@ -379,7 +407,6 @@ function createServices(): Omit<
   const recurrences = new ScheduleRecurrenceService(store);
   const agreementContext = new AgreementContextService(store);
   const dailyFollowUp = new DailyFollowUpService(store);
-  const supplierPurchases = new SupplierPurchaseService(store);
   const inventory = new InventoryMaterialService(store);
   const recurringWork = new RecurringWorkService(store);
   const directSales = new DirectSaleService(store);
@@ -412,7 +439,6 @@ function createServices(): Omit<
     ownerEntitlement,
     recurringWork,
     g5,
-    supplierPurchases,
     cashContinuity,
     inventory,
     catalog: new CatalogService(store),

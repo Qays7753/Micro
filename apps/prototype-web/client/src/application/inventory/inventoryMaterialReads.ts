@@ -229,6 +229,7 @@ export async function readReferences(
         totalMinor: purchase.totalMinor,
         materialId: purchase.materialId ?? null,
         expectedQuantityMilli: purchase.expectedQuantityMilli ?? null,
+        lines: purchase.lines ?? null,
       })),
       orders: orders.value.map(stored => ({
         id: stored.id,
@@ -290,7 +291,6 @@ export async function readPurchaseReceiptStatus(
       (sum, movement) => sum + movement.quantityDeltaMilli,
       0,
     );
-    const lineValueKnown = line.costKnowledge === "known" && typeof line.valueMinor === "number";
     return {
       lineId: line.lineId,
       materialId: line.materialId ?? null,
@@ -299,7 +299,10 @@ export async function readPurchaseReceiptStatus(
       valueMinor: line.valueMinor ?? null,
       costKnowledge: line.costKnowledge,
       receivedValueMinor: lineReceivedValueMinor,
-      remainingValueMinor: lineValueKnown ? (line.valueMinor as number) - lineReceivedValueMinor : null,
+      remainingValueMinor:
+        line.costKnowledge === "known" && typeof line.valueMinor === "number"
+          ? line.valueMinor - lineReceivedValueMinor
+          : null,
       receivedQuantityMilli: lineReceivedQuantityMilli,
       remainingQuantityMilli:
         (line.expectedQuantityMilli ?? null) !== null

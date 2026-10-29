@@ -157,7 +157,55 @@ const assertMaterialLink = (input: { materialId?: string | null; expectedQuantit
  * الشراء (الأجزاء لا تكرر فوق الكل)، ومجهولة القيمة null لا صفرًا معلومًا
  * (SDF-036)، وtracked_material يوجب مادة (لا تتبع بلا مادة). تطابق
  * معالجة البند مع حالة تتبع المادة الحية فحص تطبيقي عند الخدمة (المجال
- * النقي لا يملك قائمة المواد)؛ هنا شكل البند وتحدوده الذاتية. */
+ * النقي لا يملك قائمة المواد)؛ هنا شكل البند وتحدوده الذاتية. الفحوص
+ * مفككة على مساعِدات بترتيب الرفض نفسه (أسبقية الرفض محفوظة حرفيًا). */
+const assertPurchaseLineIdentity = (
+  line: SupplierPurchaseLine,
+  isDuplicateLineId: (lineId: string) => boolean,
+): void => {
+  if (!line.lineId?.trim()) throw new Error("لكل بند شراء هوية ثابتة غير فارغة.");
+  if (isDuplicateLineId(line.lineId)) throw new Error("هوية بند الشراء مكررة داخل الشراء الواحد.");
+};
+
+const assertPurchaseLineTreatment = (line: SupplierPurchaseLine): void => {
+  if (line.treatment !== "period_material" && line.treatment !== "tracked_material")
+    throw new Error("معالجة بند الشراء غير صالحة.");
+};
+
+const assertPurchaseLineMaterialQuantity = (line: SupplierPurchaseLine): void => {
+  if (line.materialId !== undefined && line.materialId !== null && !line.materialId.trim())
+    throw new Error("اربط بند الشراء بمادة موجودة أو اتركه بلا مادة.");
+  if (
+    line.expectedQuantityMilli !== undefined &&
+    line.expectedQuantityMilli !== null &&
+    (!Number.isInteger(line.expectedQuantityMilli) || line.expectedQuantityMilli <= 0)
+  )
+    throw new Error("كمية بند الشراء رقم صحيح موجب بوحدة المادة، أو اتركها فارغة.");
+  if (line.treatment === "tracked_material" && (line.materialId === undefined || line.materialId === null))
+    throw new Error("بند المواد المتتبعة يوجب مادة مرتبطة — لا تتبع بلا مادة.");
+};
+
+/* معرفة التكلفة: المعلومة تُعاد قيمتها لمجموع البنود؛ والمجهولة مساهمتها
+ * صفر بلا قيمة معلنة (null لا صفرًا موسومًا معلومًا — SDF-036). */
+const assertPurchaseLineValue = (line: SupplierPurchaseLine): number => {
+  if (line.costKnowledge === "known") {
+    if (
+      line.valueMinor === undefined ||
+      line.valueMinor === null ||
+      !Number.isInteger(line.valueMinor) ||
+      line.valueMinor <= 0
+    )
+      throw new Error("قيمة بند الشراء المعلومة رقم صحيح موجب بالدينار، أو اتركها مجهولة.");
+    return line.valueMinor;
+  }
+  if (line.costKnowledge === "unknown") {
+    if (line.valueMinor !== undefined && line.valueMinor !== null)
+      throw new Error("قيمة بند الشراء المجهولة تسجل بلا قيمة معلنة — لا صفرًا موسومًا معلومًا.");
+    return 0;
+  }
+  throw new Error("معرفة تكلفة بند الشراء غير صالحة.");
+};
+
 const assertPurchaseLines = (
   lines: readonly SupplierPurchaseLine[] | null | undefined,
   totalMinor: number,
@@ -166,36 +214,11 @@ const assertPurchaseLines = (
   const lineIds = new Set<string>();
   let knownValueSum = 0;
   for (const line of lines) {
-    if (!line.lineId?.trim()) throw new Error("لكل بند شراء هوية ثابتة غير فارغة.");
-    if (lineIds.has(line.lineId)) throw new Error("هوية بند الشراء مكررة داخل الشراء الواحد.");
+    assertPurchaseLineIdentity(line, lineId => lineIds.has(lineId));
+    assertPurchaseLineTreatment(line);
+    assertPurchaseLineMaterialQuantity(line);
+    knownValueSum += assertPurchaseLineValue(line);
     lineIds.add(line.lineId);
-    if (line.treatment !== "period_material" && line.treatment !== "tracked_material")
-      throw new Error("معالجة بند الشراء غير صالحة.");
-    if (line.materialId !== undefined && line.materialId !== null && !line.materialId.trim())
-      throw new Error("اربط بند الشراء بمادة موجودة أو اتركه بلا مادة.");
-    if (
-      line.expectedQuantityMilli !== undefined &&
-      line.expectedQuantityMilli !== null &&
-      (!Number.isInteger(line.expectedQuantityMilli) || line.expectedQuantityMilli <= 0)
-    )
-      throw new Error("كمية بند الشراء رقم صحيح موجب بوحدة المادة، أو اتركها فارغة.");
-    if (line.treatment === "tracked_material" && (line.materialId === undefined || line.materialId === null))
-      throw new Error("بند المواد المتتبعة يوجب مادة مرتبطة — لا تتبع بلا مادة.");
-    if (line.costKnowledge === "known") {
-      if (
-        line.valueMinor === undefined ||
-        line.valueMinor === null ||
-        !Number.isInteger(line.valueMinor) ||
-        line.valueMinor <= 0
-      )
-        throw new Error("قيمة بند الشراء المعلومة رقم صحيح موجب بالدينار، أو اتركها مجهولة.");
-      knownValueSum += line.valueMinor;
-    } else if (line.costKnowledge === "unknown") {
-      if (line.valueMinor !== undefined && line.valueMinor !== null)
-        throw new Error("قيمة بند الشراء المجهولة تسجل بلا قيمة معلنة — لا صفرًا موسومًا معلومًا.");
-    } else {
-      throw new Error("معرفة تكلفة بند الشراء غير صالحة.");
-    }
   }
   if (knownValueSum > totalMinor)
     throw new Error("مجموع قيم البنود المعلومة يتجاوز إجمالي الشراء — الأجزاء لا تكرر فوق الكل.");

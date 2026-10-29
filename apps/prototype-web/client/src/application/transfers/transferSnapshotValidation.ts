@@ -536,7 +536,7 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
      * فوقها validSupplierPurchase (هوية نصية غير فارغة لكل بند). */
     purchaseLineIdsByPurchase.set(
       purchase.id,
-      new Set((purchase.lines ?? []).map(line => String(line.lineId))),
+      new Set((purchase.lines ?? []).map((line: { lineId?: unknown }) => String(line.lineId))),
     );
     purchaseIds.add(purchase.id);
     purchaseKeys.add(purchase.idempotencyKey);
