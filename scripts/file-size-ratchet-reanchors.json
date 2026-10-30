@@ -5170,6 +5170,25 @@
         "trigger": "S08 UNIT-034 delivery (DOC-017): asset port type shapes on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-017"
       }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-13",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 130,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 130,
+        "band": "NORMAL"
+      },
+      "reason": "S08 (UNIT-034): إعادة إرساء سطح الحزمة المحلي عند المرشّح abfc1092 — نص البروفنسنس (القياسات والأسبقيات) هو الإثبات نفسه.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the exact-head gate verification; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): bundle-surfaces local re-anchor at the code candidate on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
     }
   ]
 }
