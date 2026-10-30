@@ -378,6 +378,49 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
         draft.sourceEstimateId === null ||
         isString(draft.sourceEstimateId)
       ) ||
+      /* S09 (UNIT-007/029 — أمر ad133bae القسم ٢): حقول المسودة الجديدة اختيارية —
+       * الغياب/null = السلوك القائم (متوافق رجعيًا)؛ والمرجع الموسوم إن وُجد
+       * فشكله كامل، والسعر المقترح مبلغ غير سالب (0 الصريح صحيح)، والمجموعات
+       * قائمة صحيحة الشكل إن وُجدت. المرجعية العائلية تُفحص عند حدودها أدناه. */
+      !(
+        draft.offeringRef === undefined ||
+        draft.offeringRef === null ||
+        (isRecord(draft.offeringRef) &&
+          isString(draft.offeringRef.catalogItemId) &&
+          draft.offeringRef.catalogItemId.trim().length > 0 &&
+          (draft.offeringRef.templateId === null || isString(draft.offeringRef.templateId)) &&
+          (draft.offeringRef.revision === null ||
+            (Number.isSafeInteger(draft.offeringRef.revision) &&
+              (draft.offeringRef.revision as number) >= 1)) &&
+          isString(draft.offeringRef.nameSnapshot) &&
+          draft.offeringRef.nameSnapshot.trim().length > 0 &&
+          isString(draft.offeringRef.takenAt) &&
+          draft.offeringRef.takenAt.trim().length > 0)
+      ) ||
+      !(
+        draft.suggestedPriceMinor === undefined ||
+        draft.suggestedPriceMinor === null ||
+        (isMoney(draft.suggestedPriceMinor) && draft.suggestedPriceMinor >= 0)
+      ) ||
+      !(
+        draft.groups === undefined ||
+        draft.groups === null ||
+        (Array.isArray(draft.groups) &&
+          draft.groups.every(
+            group =>
+              isRecord(group) &&
+              isString(group.id) &&
+              group.id.trim().length > 0 &&
+              isString(group.label) &&
+              group.label.trim().length > 0 &&
+              Number.isSafeInteger(group.repeatQuantity) &&
+              (group.repeatQuantity as number) >= 1 &&
+              (group.offeringType === "product" || group.offeringType === "service") &&
+              (group.offeringRef === null ||
+                (isRecord(group.offeringRef) && isString(group.offeringRef.catalogItemId))) &&
+              (group.note === null || group.note === undefined || isString(group.note)),
+          ))
+      ) ||
       !isDate(draft.createdAt) ||
       !isDate(draft.updatedAt)
     )
@@ -732,6 +775,17 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
   }
   for (const draft of data.drafts) {
     if (isString(draft.catalogItemId) && !catalogIds.has(draft.catalogItemId)) return false;
+    /* S09 (UNIT-029 — نمط S05-MR-001 نفسه): مرجع العرض المحفوظ غير الفارغ يجب
+     * أن يحلّ لعرض موجود داخل عائلة catalog في الملف نفسه — الملف الذي يهرّب
+     * مرجعًا معلقًا يُرفض قبل أي معاينة. */
+    if (isRecord(draft.offeringRef) && isString(draft.offeringRef.catalogItemId)) {
+      if (!catalogIds.has(draft.offeringRef.catalogItemId)) return false;
+    }
+    for (const group of Array.isArray(draft.groups) ? draft.groups : []) {
+      if (isRecord(group) && isRecord(group.offeringRef) && isString(group.offeringRef.catalogItemId)) {
+        if (!catalogIds.has(group.offeringRef.catalogItemId)) return false;
+      }
+    }
   }
   const unitIds = new Set<string>();
   const unitKeys = new Set<string>();
@@ -778,6 +832,18 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       return false;
     templateIds.add(template.id);
     templateKeys.add(template.createdOperationKey);
+  }
+  /* S09 (UNIT-029): مرجع القالب في المرجع الموسوم إن وُجد غير فارغ يجب أن يحلّ
+   * لقالب موجود في الملف نفسه — لا «الأحدث وقت القراءة» ولا مرجع معلق. */
+  for (const draft of data.drafts) {
+    if (isRecord(draft.offeringRef) && isString(draft.offeringRef.templateId)) {
+      if (!templateIds.has(draft.offeringRef.templateId)) return false;
+    }
+    for (const group of Array.isArray(draft.groups) ? draft.groups : []) {
+      if (isRecord(group) && isRecord(group.offeringRef) && isString(group.offeringRef.templateId)) {
+        if (!templateIds.has(group.offeringRef.templateId)) return false;
+      }
+    }
   }
   for (const template of data.catalogTemplates) {
     if (template.active && activeTemplateItems.has(template.catalogItemId)) return false;

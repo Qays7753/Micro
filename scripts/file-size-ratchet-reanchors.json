@@ -5322,6 +5322,158 @@
         "trigger": "S08-MR-001 review fix (DOC-017): asset acquisition-party cross-family referential invariant on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-017"
       }
+    },
+    {
+      "id": "S09-DRAFT-COST-20261030-01",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/cost/costService.ts",
+      "from": {
+        "nbLoc": 99,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 203,
+        "band": "NORMAL"
+      },
+      "reason": "S09 (UNIT-007/008/029 + SH-13 — أمر التنفيذ المتصل ad133bae القسم ٢): عقد البيانات المشترك وتوسيع أساس المجموعات إلى النواة الواحدة (المجموعات والمرجع الموسوم والسعر المقترح وأساس المجموعات على اللقطات) مع تحقق الحدود وترحيل الغياب null — لا محرك ثانٍ ولا مخزن جديد؛ 40/32 بلا ترقية (حقول اختيارية متوافقة رجعيًا بنمط S06-S08).",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3, Part 2); same-PR re-anchor per R8-1/R11.",
+        "trigger": "S09 slice delivery (DOC-018): apps/prototype-web/client/src/application/cost/costService.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-DRAFT-COST-20261030-02",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/drafts/draftService.ts",
+      "from": {
+        "nbLoc": 116,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 195,
+        "band": "NORMAL"
+      },
+      "reason": "S09 (UNIT-007/008/029 + SH-13 — أمر التنفيذ المتصل ad133bae القسم ٢): عقد البيانات المشترك وتوسيع أساس المجموعات إلى النواة الواحدة (المجموعات والمرجع الموسوم والسعر المقترح وأساس المجموعات على اللقطات) مع تحقق الحدود وترحيل الغياب null — لا محرك ثانٍ ولا مخزن جديد؛ 40/32 بلا ترقية (حقول اختيارية متوافقة رجعيًا بنمط S06-S08).",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3, Part 2); same-PR re-anchor per R8-1/R11.",
+        "trigger": "S09 slice delivery (DOC-018): apps/prototype-web/client/src/application/drafts/draftService.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-DRAFT-COST-20261030-03",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts",
+      "from": {
+        "nbLoc": 1730,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1944,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S09 (UNIT-007/008/029 + SH-13 — أمر التنفيذ المتصل ad133bae القسم ٢): عقد البيانات المشترك وتوسيع أساس المجموعات إلى النواة الواحدة (المجموعات والمرجع الموسوم والسعر المقترح وأساس المجموعات على اللقطات) مع تحقق الحدود وترحيل الغياب null — لا محرك ثانٍ ولا مخزن جديد؛ 40/32 بلا ترقية (حقول اختيارية متوافقة رجعيًا بنمط S06-S08).",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3, Part 2); same-PR re-anchor per R8-1/R11.",
+        "trigger": "S09 slice delivery (DOC-018): apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-DRAFT-COST-20261030-04",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts",
+      "from": {
+        "nbLoc": 1192,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1349,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S09 (UNIT-007/008/029 + SH-13 — أمر التنفيذ المتصل ad133bae القسم ٢): عقد البيانات المشترك وتوسيع أساس المجموعات إلى النواة الواحدة (المجموعات والمرجع الموسوم والسعر المقترح وأساس المجموعات على اللقطات) مع تحقق الحدود وترحيل الغياب null — لا محرك ثانٍ ولا مخزن جديد؛ 40/32 بلا ترقية (حقول اختيارية متوافقة رجعيًا بنمط S06-S08).",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3, Part 2); same-PR re-anchor per R8-1/R11.",
+        "trigger": "S09 slice delivery (DOC-018): apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-DRAFT-COST-20261030-05",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1237,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S09 (UNIT-007/008/029 + SH-13 — أمر التنفيذ المتصل ad133bae القسم ٢): عقد البيانات المشترك وتوسيع أساس المجموعات إلى النواة الواحدة (المجموعات والمرجع الموسوم والسعر المقترح وأساس المجموعات على اللقطات) مع تحقق الحدود وترحيل الغياب null — لا محرك ثانٍ ولا مخزن جديد؛ 40/32 بلا ترقية (حقول اختيارية متوافقة رجعيًا بنمط S06-S08).",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3, Part 2); same-PR re-anchor per R8-1/R11.",
+        "trigger": "S09 slice delivery (DOC-018): apps/prototype-web/client/src/storage/local/types.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-DRAFT-COST-20261030-06",
+      "date": "2026-10-30",
+      "path": "src/domain/craft-order/index.ts",
+      "from": {
+        "nbLoc": 52,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 62,
+        "band": "NORMAL"
+      },
+      "reason": "S09 (UNIT-007/008/029 + SH-13 — أمر التنفيذ المتصل ad133bae القسم ٢): عقد البيانات المشترك وتوسيع أساس المجموعات إلى النواة الواحدة (المجموعات والمرجع الموسوم والسعر المقترح وأساس المجموعات على اللقطات) مع تحقق الحدود وترحيل الغياب null — لا محرك ثانٍ ولا مخزن جديد؛ 40/32 بلا ترقية (حقول اختيارية متوافقة رجعيًا بنمط S06-S08).",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3, Part 2); same-PR re-anchor per R8-1/R11.",
+        "trigger": "S09 slice delivery (DOC-018): src/domain/craft-order/index.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-DRAFT-COST-20261030-07",
+      "date": "2026-10-30",
+      "path": "src/domain/craft-order/policies.ts",
+      "from": {
+        "nbLoc": 1413,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1464,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S09 (UNIT-007/008/029 + SH-13 — أمر التنفيذ المتصل ad133bae القسم ٢): عقد البيانات المشترك وتوسيع أساس المجموعات إلى النواة الواحدة (المجموعات والمرجع الموسوم والسعر المقترح وأساس المجموعات على اللقطات) مع تحقق الحدود وترحيل الغياب null — لا محرك ثانٍ ولا مخزن جديد؛ 40/32 بلا ترقية (حقول اختيارية متوافقة رجعيًا بنمط S06-S08).",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3, Part 2); same-PR re-anchor per R8-1/R11.",
+        "trigger": "S09 slice delivery (DOC-018): src/domain/craft-order/policies.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-DRAFT-COST-20261030-08",
+      "date": "2026-10-30",
+      "path": "src/domain/craft-order/types.ts",
+      "from": {
+        "nbLoc": 275,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 302,
+        "band": "NORMAL"
+      },
+      "reason": "S09 (UNIT-007/008/029 + SH-13 — أمر التنفيذ المتصل ad133bae القسم ٢): عقد البيانات المشترك وتوسيع أساس المجموعات إلى النواة الواحدة (المجموعات والمرجع الموسوم والسعر المقترح وأساس المجموعات على اللقطات) مع تحقق الحدود وترحيل الغياب null — لا محرك ثانٍ ولا مخزن جديد؛ 40/32 بلا ترقية (حقول اختيارية متوافقة رجعيًا بنمط S06-S08).",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3, Part 2); same-PR re-anchor per R8-1/R11.",
+        "trigger": "S09 slice delivery (DOC-018): src/domain/craft-order/types.ts on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
     }
   ]
 }

@@ -1552,6 +1552,22 @@ export function validShortCashDeclaration(value: unknown): boolean {
   );
 }
 
+/* S09 (UNIT-008/SH-13 — أمر ad133bae القسم ٢): أساس المجموعات على لقطة
+ * التكلفة — اختياري؛ الغياب/null = لقطة غير مجمعة (متوافق رجعيًا). */
+export function validDraftCostGroupBasis(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  const group = value as Record<string, unknown>;
+  return (
+    isString(group.groupId) &&
+    (group.groupId as string).trim().length > 0 &&
+    isString(group.label) &&
+    (group.label as string).trim().length > 0 &&
+    Number.isSafeInteger(group.repeatQuantity) &&
+    (group.repeatQuantity as number) >= 1 &&
+    Array.isArray(group.unitMaterialItems)
+  );
+}
+
 export function validDraftCostSnapshot(value: unknown): boolean {
   if (
     !isRecord(value) ||
@@ -1573,6 +1589,14 @@ export function validDraftCostSnapshot(value: unknown): boolean {
       isTimeMinutes(value.time.minutes) &&
       isOptionalMoney(value.time.hourlyRateMinor) &&
       (value.time.confidence === "known" || value.time.confidence === "estimated"))
+  ))
+    return false;
+  /* S09 (UNIT-008/SH-13): أساس المجموعات اختياري — الغياب/null = لقطة غير
+   * مجمعة (متوافق رجعيًا)؛ وإن وُجد فقائمة صحيحة الشكل فقط. */
+  if (!(
+    value.groupBasis === undefined ||
+    value.groupBasis === null ||
+    (Array.isArray(value.groupBasis) && value.groupBasis.every(validDraftCostGroupBasis))
   ))
     return false;
   return value.materialItems.every(
