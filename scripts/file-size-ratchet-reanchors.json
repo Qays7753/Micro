@@ -4923,6 +4923,25 @@
         "trigger": "S07-MR-001 delivery (DOC-016): three-environment surfaces re-anchor with provenance on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-016"
       }
+    },
+    {
+      "id": "S07-MR-001-INVENTORY-CAS-20261030-10",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/capabilities/inventoryMaterialStore.ts",
+      "from": {
+        "nbLoc": 39,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 40,
+        "band": "NORMAL"
+      },
+      "reason": "R1-MR-F01: تحديث مؤرخ لتعليق بنيوي متقادم في ملف القدرة (وصف «منطق داخل-المحوّل لا ملف» للحقبة الأقدم) إلى النمط القائم للحراس النقية المشتركة — إحالة توثيقية بلا أي تغيير سلوك.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 1 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) — R1 read-only-reviewer correction on the S07-MR-001 repair candidate; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07-MR-001 R1 corrections (DOC-016): dated structural-note update in the capability doc on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
     }
   ]
 }
