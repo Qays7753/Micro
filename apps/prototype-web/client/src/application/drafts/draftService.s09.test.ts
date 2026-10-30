@@ -337,9 +337,45 @@ describe.each(stores)("S09 draft fields + grouped cost + transfer ($label)", ({ 
     if (!applied.ok) throw new Error(applied.message);
     const reread = await new DraftService(target, () => NOW).list();
     expect(reread.ok && reread.value[0]?.offeringRef).toEqual(validRef);
-    expect(reread.ok && reread.value[0]?.groups).toHaveLength(2);
+    /* R4-F07 (تصحيح مراجعة S09): المجموعات نفسها تُقارن عمقًا لا طولًا فقط —
+     * الاستعادة تحفظ هوية كل مجموعة وتكرارها ونوعها ومرجعها وملاحظتها. */
+    expect(reread.ok && reread.value[0]?.groups).toEqual([
+      {
+        id: "g1",
+        label: "صندوق",
+        repeatQuantity: 10,
+        offeringType: "product",
+        offeringRef: validRef,
+        note: null,
+      },
+      {
+        id: "g2",
+        label: "ثانية",
+        repeatQuantity: 3,
+        offeringType: "service",
+        offeringRef: null,
+        note: null,
+      },
+    ]);
     expect(reread.ok && reread.value[0]?.suggestedPriceMinor).toBe(25000);
-    expect(reread.ok && reread.value[0]?.costSnapshots[0]?.groupBasis).toHaveLength(2);
+    expect(reread.ok && reread.value[0]?.costSnapshots[0]?.groupBasis).toEqual([
+      {
+        groupId: "g1",
+        label: "صندوق",
+        repeatQuantity: 10,
+        unitMaterialItems: [
+          { name: "شوكولاتة", quantity: 0.2, unit: "قطعة", unitPriceMinor: 150, confidence: "known" },
+        ],
+      },
+      {
+        groupId: "g2",
+        label: "ثانية",
+        repeatQuantity: 3,
+        unitMaterialItems: [
+          { name: "خدمة", quantity: 1, unit: "مرة", unitPriceMinor: 400, confidence: "known" },
+        ],
+      },
+    ]);
     expect(seeded).toBeTruthy();
     /* المرجع المعلق يُرفض قبل المعاينة وقبل أي كتابة هدف (نمط S05-MR-001). */
     const before = await target.readSnapshot();
@@ -357,6 +393,23 @@ describe.each(stores)("S09 draft fields + grouped cost + transfer ($label)", ({ 
     const after = await target.readSnapshot();
     if (!after.ok) throw new Error(after.message);
     expect(after.value).toEqual(JSON.parse(JSON.stringify(before.value)));
+    /* R4-F03 (تصحيح مراجعة S09): مرجع مجموعة موسوم ناقص الشكل (قالب غير نصي)
+     * يُرفض عند حد الشكل قبل المعاينة وقبل أي كتابة هدف — لا يدخل ملف مصنوع
+     * مرجعًا يخالف عقد DraftOfferingRef عند المجموعة. */
+    const malformedGroup = JSON.parse(JSON.stringify(exported.value.file)) as Record<string, unknown>;
+    const malformedData = malformedGroup.data as Record<string, unknown>;
+    const malformedDrafts = malformedData.drafts as Record<string, unknown>[];
+    (malformedDrafts[0]!.groups as Record<string, unknown>[])[0]!.offeringRef = {
+      ...validRef,
+      templateId: 42,
+    };
+    malformedGroup.integrity = { algorithm: "sha256", digest: syncSha256Hex(JSON.stringify(malformedData)) };
+    malformedGroup.counts = exportCountsOf(malformedData as Parameters<typeof exportCountsOf>[0]);
+    expect(targetService.prepareImport(JSON.stringify(malformedGroup)).ok).toBe(false);
+    expect((await targetService.prepareRestore(JSON.stringify(malformedGroup))).ok).toBe(false);
+    const afterMalformed = await target.readSnapshot();
+    if (!afterMalformed.ok) throw new Error(afterMalformed.message);
+    expect(afterMalformed.value).toEqual(JSON.parse(JSON.stringify(before.value)));
     /* والغياب التام للحقول الجديدة (ملف ما قبل S09) يبقى مقبولًا كما كان. */
     const legacy = JSON.parse(JSON.stringify(exported.value.file)) as Record<string, unknown>;
     const legacyData = legacy.data as Record<string, unknown>;

@@ -49,13 +49,17 @@
             "wasteMinor": 100,
             "safetyBufferMinor": 250,
             "quantity": 4,
-            "createdAt": "2026-08-22T09:30:00.000Z"
+            "createdAt": "2026-08-22T09:30:00.000Z",
+            "groupBasis": null
           }
         ],
         "activeCostSnapshotId": "draft-cost-817-1",
         "linkedOrderId": null,
         "createdAt": "2026-08-22T09:30:00.000Z",
-        "updatedAt": "2026-08-22T09:30:00.000Z"
+        "updatedAt": "2026-08-22T09:30:00.000Z",
+        "offeringRef": null,
+        "groups": null,
+        "suggestedPriceMinor": null
       }
     ],
     "orders": [
@@ -373,7 +377,7 @@
   },
   "integrity": {
     "algorithm": "sha256",
-    "digest": "975678f3cdb894b483aac5f2a0928534f4253c5919093fb7bb63fc27b16f178a"
+    "digest": "e277eb8e04182952d51dc0b6cc5f531e8e3ee74e4e77b4b2bd0b820a015a19b3"
   },
   "counts": {
     "orders": 1,

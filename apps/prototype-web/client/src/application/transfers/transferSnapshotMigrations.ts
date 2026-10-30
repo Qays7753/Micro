@@ -16,7 +16,25 @@ export function migrateTransferSnapshot(
     ownerProfile: raw.ownerProfile ?? null,
     drafts: Array.isArray(raw.drafts)
       ? raw.drafts.map(draft =>
-          isRecord(draft) ? { ...draft, catalogItemId: draft.catalogItemId ?? null } : draft,
+          isRecord(draft)
+            ? {
+                ...draft,
+                catalogItemId: draft.catalogItemId ?? null,
+                /* S09 (UNIT-007/029 — أمر ad133bae القسم ٢): الحقول الاختيارية
+                 * الجديدة — الغياب يُطبّع null بنمط العائلة (متوافق رجعيًا)؛
+                 * والقيم الرديئة تُترك للمُدقق يرفضها لا تُخترع قيمًا مكانها. */
+                offeringRef: draft.offeringRef ?? null,
+                groups: draft.groups ?? null,
+                suggestedPriceMinor: draft.suggestedPriceMinor ?? null,
+                /* S09 (UNIT-008/SH-13): أساس المجموعات على لقطات التكلفة —
+                 * الغياب يُطبّع null بنمط العائلة. */
+                costSnapshots: Array.isArray(draft.costSnapshots)
+                  ? draft.costSnapshots.map(snapshot =>
+                      isRecord(snapshot) ? { ...snapshot, groupBasis: snapshot.groupBasis ?? null } : snapshot,
+                    )
+                  : draft.costSnapshots,
+              }
+            : draft,
         )
       : [],
     orders: Array.isArray(raw.orders)

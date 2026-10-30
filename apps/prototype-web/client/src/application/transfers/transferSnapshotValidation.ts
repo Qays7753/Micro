@@ -416,8 +416,24 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
               Number.isSafeInteger(group.repeatQuantity) &&
               (group.repeatQuantity as number) >= 1 &&
               (group.offeringType === "product" || group.offeringType === "service") &&
+              /* R4-F03 (تصحيح مراجعة S09): مرجع المجموعة الموسوم يخضع للشكل
+               * الكامل نفسه كمرجع المسودة — قالب غير نصي أو مراجعة غير صالحة
+               * أو لقطة اسم/لحظة أخذ فارغة تُرفض قبل المعاينة والكتابة، فلا
+               * يدخل ملف مصنوع مرجعًا يخالف عقد DraftOfferingRef عند المجموعة. */
               (group.offeringRef === null ||
-                (isRecord(group.offeringRef) && isString(group.offeringRef.catalogItemId))) &&
+                group.offeringRef === undefined ||
+                (isRecord(group.offeringRef) &&
+                  isString(group.offeringRef.catalogItemId) &&
+                  group.offeringRef.catalogItemId.trim().length > 0 &&
+                  (group.offeringRef.templateId === null ||
+                    isString(group.offeringRef.templateId)) &&
+                  (group.offeringRef.revision === null ||
+                    (Number.isSafeInteger(group.offeringRef.revision) &&
+                      (group.offeringRef.revision as number) >= 1)) &&
+                  isString(group.offeringRef.nameSnapshot) &&
+                  group.offeringRef.nameSnapshot.trim().length > 0 &&
+                  isString(group.offeringRef.takenAt) &&
+                  group.offeringRef.takenAt.trim().length > 0)) &&
               (group.note === null || group.note === undefined || isString(group.note)),
           ))
       ) ||
