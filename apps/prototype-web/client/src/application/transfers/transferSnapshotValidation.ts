@@ -1173,6 +1173,15 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     if (!eventIds.has(asset.acquisitionEventId)) return false;
     if (asset.disposal && !eventIds.has(asset.disposal.eventId)) return false;
     if (asset.writeOff && !eventIds.has(asset.writeOff.eventId)) return false;
+    /* S08-MR-001 (أمر الإصلاح 2026-10-30 — أمر التنفيذ المتصل S08→S09
+     * المنشور في ad133bae، القسم ١): الثابت المرجعي لطرف الاقتناء المحفوظ
+     * على الأصل — المرجع غير الفارغ يجب أن يحلّ لطرف محفوظ داخل عائلة
+     * counterparties في الملف نفسه (نمط S05-MR-001 نفسه للبيع/الشراء)؛
+     * null/الغياب يبقيان صحيحين حيث يسمح عقد الأصل، والطرف المؤرشف حاضرًا
+     * في العائلة هوية مرجعية صالحة؛ لا اشتقاق طرف من لقطة التسمية/الاسم/
+     * الهاتف ولا دمج بالاسم أبدًا — الرفض في prepareImport قبل المعاينة
+     * وفي prepareRestore قبل أي كتابة هدف. */
+    if (asset.acquisitionParty != null && !counterpartyIds.has(asset.acquisitionParty.partyId)) return false;
   }
   const loanIds = new Set<string>();
   for (const loan of data.loans ?? []) {

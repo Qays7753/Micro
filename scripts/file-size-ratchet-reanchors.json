@@ -5303,6 +5303,25 @@
         "trigger": "S08 UNIT-034 delivery (DOC-017): post-push cloud surfaces re-anchor at head 70c59fdd on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-017"
       }
+    },
+    {
+      "id": "S08MR-REVIEW-FIX-20261030-01",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts",
+      "from": {
+        "nbLoc": 1192,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1285,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S08-MR-001 (أمر الإصلاح المتصل S08→S09 — القسم ١): الثابت المرجعي لطرف الاقتناء المحفوظ داخل حلقة الأصول في حد التحقق القانوني الواحد — المرجع غير الفارغ يجب أن يحلّ لعائلة counterparties في الملف نفسه (امتداد نمط S05-MR-001 للبيع/الشراء)؛ لا مدقق ثانٍ ولا مصدر حقيقة موازٍ؛ الحفظ 40/32 والسلك كما هما.",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3, Part 1; finding definitions from 00-S08-REVIEW-FIX-PROMPT-2026-10-30.md at 2602a03d) mandates fixing S08-MR-001 at the canonical snapshot-validation boundary before S09; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08-MR-001 review fix (DOC-017): asset acquisition-party cross-family referential invariant on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
     }
   ]
 }
