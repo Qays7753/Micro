@@ -5189,6 +5189,101 @@
         "trigger": "S08 UNIT-034 delivery (DOC-017): bundle-surfaces local re-anchor at the code candidate on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-017"
       }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-05",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/AssetDetail.tsx",
+      "from": {
+        "nbLoc": 526,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 626,
+        "band": "WATCH"
+      },
+      "reason": "S08 (UNIT-034): سطح التفاصيل — بطاقة المدفوع/المتبقي المشتقة من الأحداث، تسديد من مصدر الالتزام بلا تجاوز، تصحيح الاقتناء ومراجعة العقد والتخلص/الشطب، مع فصل القيمة الدفترية عن السداد.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): asset detail payment/disposal surfaces on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-06",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/AssetEditor.tsx",
+      "from": {
+        "nbLoc": 357,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 437,
+        "band": "WATCH"
+      },
+      "reason": "S08 (UNIT-034): مسار الدفع الجزئي المعتمد في المحرر — حقل «المدفوع الآن» بمسار الذمم فقط مع تحديد نطاقه، طرف محفوظ اختياري من قائمته الحية، ومعاينة أثر صادقة قبل الحفظ.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): asset editor partial-payment path on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-14",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+      "from": {
+        "nbLoc": 360,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 495,
+        "band": "WATCH"
+      },
+      "reason": "S08 (UNIT-034): خدمة الأصول تُحمّل ديناميكيًا بعد الإقلاع (نمط purchases/loans نفسه) — حالة كسولة + نقل النوع إلى null الصادق؛ الوحدة تخرج من كومة الإقلاع (ميزانية الحزمة).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): lazy assets service wiring on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-15",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/finance/financeState.ts",
+      "from": {
+        "nbLoc": 270,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 273,
+        "band": "NORMAL"
+      },
+      "reason": "S08 (UNIT-034): كتلة الأصول في المالية تقبل null (الخدمة الكسولة) — كتلة معطوبة صادقة تُعاد قراءتها فور جاهزيتها ككتلة القروض نفسها.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): finance asset block null handling on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-18",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/Assets.tsx",
+      "from": {
+        "nbLoc": 160,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 164,
+        "band": "NORMAL"
+      },
+      "reason": "S08 (UNIT-034): حارس الخدمة الكسولة في القائمة — إعادة القراءة فور جاهزية الخدمة (dependency عليها).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): assets list lazy null guard on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
     }
   ]
 }
