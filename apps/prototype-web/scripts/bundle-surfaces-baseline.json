@@ -16,14 +16,14 @@
  "environments": {
   "local": {
    "anchored": {
-    "head": "e6b67d7caa3cbddc450b9a24e37d1dbaba8db2d3",
+    "head": "6496596c44c04fa41c8626a51f594054aec0e1bb",
     "date": "2026-10-30",
-    "method": "S09 UNIT-007/008/029 + SH-13 local re-anchor (2026-10-30, on PR #383 — the owner-authorized continuous S08->S09 execution order ad133bae Part 2 with the resume amendment ef028e4e): the S09 draft/cost/catalog-reuse slice grows the lazy surfaces with the draft+cost+catalog service and domain chunks (lazy 1,341,601/401,962 -> 1,359,975/406,419) and the PWA precache carries the grown chunks (2,795,419 -> 2,820,109); entry 623,252/152,540 reported only — check-bundle-budget PASSED under the untouched owner ceilings 650,000/155,300 (no ceiling raised, no tolerance changed); counts unchanged 111/2/76/166/2 and swRuntime 26,746 unchanged; initial companions 224,976/70,766 unchanged. Measured by the definitive local vite build on this exact tree. Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol (R8-1/R11). Cloud records follow the documented post-push measurement protocol on the exact pushed head.",
+    "method": "S09 UNIT-007/008/029 + SH-13 local re-anchor (2026-10-30, on PR #383 — the owner-authorized continuous S08->S09 execution order ad133bae Part 2 with the resume amendment ef028e4e, including the five-review correction round): the S09 draft/cost/catalog-reuse slice plus the R4/R5 review fixes grow the lazy surfaces (lazy 1,341,601/401,962 -> 1,361,100/406,621) and the PWA precache carries the grown chunks (2,795,419 -> 2,821,234); entry within the untouched owner ceilings 650,000/155,300 (check-bundle-budget PASS — no ceiling raised, no tolerance changed); counts unchanged 111/2/76/166/2 and swRuntime unchanged; initial companions 224,976/70,766 unchanged. Measured by the definitive local vite build on this exact tree. Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol (R8-1/R11). Cloud records follow the documented post-push measurement protocol on the exact pushed head.",
     "initialRawTotal": 224976,
     "initialGzipNormTotal": 70766,
-    "lazyRawTotal": 1359975,
-    "lazyGzipNormTotal": 406419,
-    "precacheBytesTotal": 2820109,
+    "lazyRawTotal": 1361100,
+    "lazyGzipNormTotal": 406621,
+    "precacheBytesTotal": 2821234,
     "swRuntimeRawTotal": 26746
    },
    "toolchain": {
@@ -38,9 +38,9 @@
    "measurements": {
     "initialRawTotal": 224976,
     "initialGzipNormTotal": 70766,
-    "lazyRawTotal": 1359975,
-    "lazyGzipNormTotal": 406419,
-    "precacheBytesTotal": 2820109,
+    "lazyRawTotal": 1361100,
+    "lazyGzipNormTotal": 406621,
+    "precacheBytesTotal": 2821234,
     "swRuntimeRawTotal": 26746
    },
    "counts": {

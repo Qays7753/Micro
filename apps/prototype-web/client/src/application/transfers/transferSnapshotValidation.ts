@@ -425,8 +425,7 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
                 (isRecord(group.offeringRef) &&
                   isString(group.offeringRef.catalogItemId) &&
                   group.offeringRef.catalogItemId.trim().length > 0 &&
-                  (group.offeringRef.templateId === null ||
-                    isString(group.offeringRef.templateId)) &&
+                  (group.offeringRef.templateId === null || isString(group.offeringRef.templateId)) &&
                   (group.offeringRef.revision === null ||
                     (Number.isSafeInteger(group.offeringRef.revision) &&
                       (group.offeringRef.revision as number) >= 1)) &&

@@ -5617,13 +5617,70 @@
         "band": "SPLIT_CANDIDATE"
       },
       "to": {
-        "nbLoc": 878,
+        "nbLoc": 880,
         "band": "SPLIT_CANDIDATE"
       },
-      "reason": "S09 (أمر ad133bae القسم ٢): قيدا CAPS بتاريخ ومصدر موثق لسطحي DraftEditor (49→71) وCostEditor (60→71) — تسميات مفروضة من مواصفات المرحلة (مجموعات/سعر مقترح/استعادة/حفظ للاستخدام مرة أخرى) بالإجراء المؤرخ نفسه الذي استخدمته كل زيادة سابقة؛ الراتشة تبقى مقيّدة بالقياس الفعلي.",
+      "reason": "S09 (أمر ad133bae القسم ٢ + تصحيح R5-F05): قيود CAPS بتاريخ ومصدر موثق لسطحي DraftEditor (49→71) وCostEditor (60→71→76 بعد تحول نص إشعار مراجعة الكمية إلى JSX بأرقام معزولة) — تسميات مفروضة من مواصفات المرحلة بالإجراء المؤرخ نفسه؛ الراتشة تبقى مقيّدة بالقياس الفعلي.",
       "authorization": {
         "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3 with the resume amendment ef028e4e, Part 2); same-PR re-anchor per R8-1/R11.",
         "trigger": "S09 slice delivery (DOC-018): dated cap provenance entries on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-REVIEW-FIX-20261030-01",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotMigrations.ts",
+      "from": {
+        "nbLoc": 346,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 412,
+        "band": "WATCH"
+      },
+      "reason": "S09 (أمر ad133bae القسم ٢ + تصحيح R4-F04): تطبيع حقول S09 الغائبة إلى null عند ترحيل الاستيراد بنمط العائلة نفسه (offeringRef/groups/suggestedPriceMinor وأساس المجموعات على لقطات التكلفة) كما سابقة حقلي S08 — القيم الرديئة تبقى للمُدقق يرفضها.",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3 with the resume amendment ef028e4e, Part 2 + the S09 five-review correction round); same-PR re-anchor per R8-1/R11.",
+        "trigger": "S09 review-fix delivery (DOC-018): family-pattern migration normalization on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-REVIEW-FIX-20261030-02",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts",
+      "from": {
+        "nbLoc": 1192,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1367,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S09 (أمر ad133bae القسم ٢ + تصحيح R4-F03): بوابة الشكل الكامل لمرجع المجموعة الموسوم عند حد عائلة المسودات (قالب/مراجعة/لقطة اسم/لحظة أخذ كما مرجع المسودة) — القيد يغطي النمو الكامل من أساس main (1192) عبر شريحة نقطة التحقق (1351) إلى الشجرة النهائية بعد التصحيح (1367).",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3 with the resume amendment ef028e4e, Part 2 + the S09 five-review correction round); same-PR re-anchor per R8-1/R11.",
+        "trigger": "S09 review-fix delivery (DOC-018): full group-ref shape gate on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-REVIEW-FIX-20261030-03",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/CostEditor.tsx",
+      "from": {
+        "nbLoc": 637,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 1055,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S09 (أمر ad133bae القسم ٢ + تصحيح R5-F02/F05): علامات aria-invalid الفورية لكل حقول الأرقام العلوية مع ربط aria-describedby بمنطقة الخطأ، وإشعار مراجعة الكمية بأرقام معزولة bdi — فوق مسار التكلفة المجمعة المشمول بقيد S09-REUSE-UI-20261030-03 (637→1003)؛ القيد يغطي النمو الكامل من أساس main.",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3 with the resume amendment ef028e4e, Part 2 + the S09 five-review correction round); same-PR re-anchor per R8-1/R11.",
+        "trigger": "S09 review-fix delivery (DOC-018): immediate field markers + bidi-isolated notice numbers on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-018"
       }
     }

@@ -233,11 +233,12 @@ describe("CostEditor S09 grouped journeys", () => {
     if (!updated.ok) throw new Error("update failed");
     renderEditor(store);
     await screen.findByText(/صندوق شوكولاتة مخصص/i);
-    expect(
-      await screen.findByText(
-        /كمية الطلب المشتقة من المجموعات صارت 14 بينما آخر نسخة تكلفة حُفظت على كمية 12/i,
-      ),
-    ).toBeTruthy();
+    /* R5-F05: أرقام الإشعار داخل bdi معزولة — نص الإشعار يحمل الرقمين
+     * معًا (14 الحالية و12 المحفوظة) داخل عنصر الإشعار نفسه. */
+    const notice = await screen.findByText(/كمية الطلب المشتقة من المجموعات صارت/i);
+    expect(notice.textContent).toContain("14");
+    expect(notice.textContent).toContain("12");
+    expect(notice.textContent).toContain("لم تُغيَّر");
     /* النسخة القديمة لم تُغيَّر — تاريخها كما حُفظ. */
     const list = await store.listDrafts();
     if (!list.ok || !list.value[0]) throw new Error("draft should exist");

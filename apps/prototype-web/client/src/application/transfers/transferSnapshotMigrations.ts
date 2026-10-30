@@ -30,7 +30,9 @@ export function migrateTransferSnapshot(
                  * الغياب يُطبّع null بنمط العائلة. */
                 costSnapshots: Array.isArray(draft.costSnapshots)
                   ? draft.costSnapshots.map(snapshot =>
-                      isRecord(snapshot) ? { ...snapshot, groupBasis: snapshot.groupBasis ?? null } : snapshot,
+                      isRecord(snapshot)
+                        ? { ...snapshot, groupBasis: snapshot.groupBasis ?? null }
+                        : snapshot,
                     )
                   : draft.costSnapshots,
               }

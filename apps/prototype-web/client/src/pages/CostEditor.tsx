@@ -447,6 +447,8 @@ export default function CostEditor() {
   }, [formDraft.state.phase]);
   /* S09 (U008-AC12): تغيّرت كمية المسودة بعد آخر نسخة تكلفة — النسخة القديمة
    * تُعرض للمقارنة والمراجعة ولا تُعاد توزيعها صامتة. */
+  /* R5-F05: الأرقام داخل الإشعار تُعرض بعزل ثنائي الاتجاه (bdi) ككل رقم في
+   * السطح — لا انقلاب أرقام في سياق RTL أبدًا. */
   const quantityReviewNotice = useMemo(() => {
     if (!draft) return null;
     const record = draft.costSnapshots.find(snapshot => snapshot.id === draft.activeCostSnapshotId);
@@ -454,10 +456,21 @@ export default function CostEditor() {
     if (isGroupedDraft) {
       const currentDerived = (draft.groups ?? []).reduce((total, group) => total + group.repeatQuantity, 0);
       if (currentDerived === record.quantity) return null;
-      return `كمية الطلب المشتقة من المجموعات صارت ${currentDerived} بينما آخر نسخة تكلفة حُفظت على كمية ${record.quantity} — راجع أساس الوحدة لكل مجموعة قبل الاتفاق؛ النسخة القديمة لم تُغيَّر.`;
+      return (
+        <>
+          كمية الطلب المشتقة من المجموعات صارت <bdi dir="ltr">{currentDerived}</bdi> بينما آخر نسخة تكلفة
+          حُفظت على كمية <bdi dir="ltr">{record.quantity}</bdi> — راجع أساس الوحدة لكل مجموعة قبل الاتفاق؛
+          النسخة القديمة لم تُغيَّر.
+        </>
+      );
     }
     if (draft.quantity === record.quantity) return null;
-    return `كمية الطلب صارت ${draft.quantity} بينما آخر نسخة تكلفة حُفظت على كمية ${record.quantity} — راجع التكلفة قبل الاتفاق؛ النسخة القديمة لم تُغيَّر.`;
+    return (
+      <>
+        كمية الطلب صارت <bdi dir="ltr">{draft.quantity}</bdi> بينما آخر نسخة تكلفة حُفظت على كمية{" "}
+        <bdi dir="ltr">{record.quantity}</bdi> — راجع التكلفة قبل الاتفاق؛ النسخة القديمة لم تُغيَّر.
+      </>
+    );
   }, [draft, isGroupedDraft]);
 
   function setValidity(key: string, isValid: boolean) {
@@ -888,6 +901,8 @@ export default function CostEditor() {
                 min="0"
                 allowEmpty
                 aria-label="دقائق الوقت بالأرقام 0–9"
+                aria-invalid={numericValidity["time-minutes"] === false}
+                aria-describedby={numericValidity["time-minutes"] === false ? "cost-form-error" : undefined}
                 onNumericChange={minutes =>
                   setTime(
                     currentTime
@@ -909,6 +924,8 @@ export default function CostEditor() {
                 min="0"
                 allowEmpty
                 aria-label="سعر الساعة بالأرقام 0–9"
+                aria-invalid={numericValidity["time-rate"] === false}
+                aria-describedby={numericValidity["time-rate"] === false ? "cost-form-error" : undefined}
                 onNumericChange={hourlyRateMinor =>
                   setTime(
                     currentTime
@@ -985,6 +1002,8 @@ export default function CostEditor() {
                       kind="money"
                       min="0"
                       aria-label={`${label} بالأرقام 0–9`}
+                      aria-invalid={numericValidity[field] === false}
+                      aria-describedby={numericValidity[field] === false ? "cost-form-error" : undefined}
                       onNumericChange={value => setOptionalCost(field, value)}
                       onTextValidityChange={isValid => setValidity(field, isValid)}
                     />
@@ -1011,7 +1030,7 @@ export default function CostEditor() {
           </p>
         ) : null}
       </section>
-      {feedback ? <FeedbackNote kind={feedback.kind} word={feedback.word} /> : null}
+      {feedback ? <FeedbackNote id="cost-form-error" kind={feedback.kind} word={feedback.word} /> : null}
       {preview?.ok && preview.snapshot.knowledgeState === "incomplete" ? (
         <p className="micro-cost-save-guidance">
           يمكنك حفظ ما تعرفه الآن كمسودة ناقصة. أضف دقائق العمل وسعر الساعة لاحقًا لتكتمل قراءة التكلفة؛ لا

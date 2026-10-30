@@ -317,9 +317,11 @@ CAPS: dict[str, int] = {
     # لا نثرًا حرًا — أساس وحدة كل مجموعة (ورقة المواد لكل مجموعة بهويتها
     # وأزرارها الشريفة) ومستويات نطاق الطلب مرة واحدة وشريط استعادة مدخلات
     # التكلفة (U008-AC09 — مكوّن FormDraftRestoreBanner المشترك: 15 تسمية).
-    # القيمة = القياس الفعلي بعد تقليم كل ما ليس مفروضًا؛ القيمة الجديدة
-    # مقيّدة بالراتشة نفسها.
-    "CostEditor": 71,
+    # CostEditor 71 -> 76 (2026-10-30, تصحيح جولة المراجعة الخمس R5-F05):
+    # نص إشعار مراجعة تغيّر الكمية (U008-AC12) صار JSX بأرقام معزولة bdi —
+    # فأجزاؤه الساكنة تدخل القياس كما كل نص JSX (كانت قالبًا محرفًا خارج
+    # القياس). القيمة = القياس الفعلي؛ القيمة الجديدة مقيّدة بالراتشة نفسها.
+    "CostEditor": 76,
     # AgreementEditor 55 → 59 (2026-09-02, Group 4 final integration fix G4-6):
     # customer name field (label + required note + placeholder + its validation
     # message) — the agreement step is the point where the name becomes required

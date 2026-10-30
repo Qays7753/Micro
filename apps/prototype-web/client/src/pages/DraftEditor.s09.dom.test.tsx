@@ -138,9 +138,11 @@ describe("DraftEditor S09 journeys", () => {
     const quantity = screen.getByLabelText(/الكمية بالأرقام/i);
     await userEvent.clear(quantity);
     await userEvent.type(quantity, "3x5");
-    /* النص غير الصالح يبقى خامًا أمام المستخدم ويحمل علامة الخطأ، والالتزام
-     * محجوز (الزر معطّل والعلامة الميدانية ظاهرة) — لا مسودة بقيمة مكسورة. */
+    /* النص غير الصالح يبقى خامًا أمام المستخدم مع العلامة الميدانية الفورية
+     * (aria-invalid) فورًا بلا انتظار محاولة حفظ، والالتزام محجوز (الزر
+     * معطّل) — لا مسودة بقيمة مكسورة أبدًا. */
     expect((quantity as HTMLInputElement).value).toBe("3x5");
+    expect(quantity.getAttribute("aria-invalid")).toBe("true");
     const saveButton = screen.getByRole("button", { name: /حفظ مسودة/i });
     expect((saveButton as HTMLButtonElement).disabled).toBe(true);
     /* السجل المُنشأ من الوصف يحمل آخر كمية صالحة فقط — النص المكسور «3x5»
@@ -161,6 +163,7 @@ describe("DraftEditor S09 journeys", () => {
     expect((screen.getByLabelText(/وصف القطعة/i) as HTMLInputElement).value).toBe("مسودة كمية مكسورة");
     const blockedAgain = screen.getByRole("button", { name: /حفظ مسودة/i });
     expect((blockedAgain as HTMLButtonElement).disabled).toBe(true);
+    expect(restored.getAttribute("aria-invalid")).toBe("true");
   });
 
   it("U029-AC31/D03: choosing a saved offering stamps a versioned snapshot with the active template revision — not latest-at-read", async () => {

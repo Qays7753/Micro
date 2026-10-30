@@ -767,8 +767,8 @@ export default function DraftEditor() {
             kind="integer"
             min="1"
             aria-label="الكمية بالأرقام 0–9"
-            aria-invalid={hasFormError && !isQuantityValid}
-            aria-describedby={hasFormError ? "draft-form-error" : undefined}
+            aria-invalid={!isQuantityValid}
+            aria-describedby={hasFormError && !isQuantityValid ? "draft-form-error" : undefined}
             initialRawText={quantityRawText}
             onNumericChange={quantity => setDraft(current => (current ? { ...current, quantity } : current))}
             onTextValidityChange={setIsQuantityValid}
@@ -782,8 +782,8 @@ export default function DraftEditor() {
             value={draft.suggestedPriceMinor ?? null}
             kind="money"
             allowEmpty
-            aria-invalid={hasFormError && !isSuggestedPriceValid}
-            aria-describedby={hasFormError ? "draft-form-error" : undefined}
+            aria-invalid={!isSuggestedPriceValid}
+            aria-describedby={hasFormError && !isSuggestedPriceValid ? "draft-form-error" : undefined}
             initialRawText={suggestedPriceRawText}
             onNumericChange={minor =>
               setDraft(current => (current ? { ...current, suggestedPriceMinor: minor } : current))
