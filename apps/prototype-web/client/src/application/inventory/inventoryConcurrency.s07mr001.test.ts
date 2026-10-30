@@ -173,7 +173,6 @@ describe.each(adapters)("S07-MR-001 inventory write-boundary CAS ($label)", ({ m
     const lines: readonly SupplierPurchaseLine[] = [
       {
         lineId: "line-1",
-        label: "قماش",
         materialId: material.id,
         expectedQuantityMilli: 5000,
         valueMinor: 2000,

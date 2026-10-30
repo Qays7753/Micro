@@ -183,7 +183,6 @@ describe("S07-MR-001 inventoryCommitGuard — fingerprints", () => {
           lines: [
             {
               lineId: "line-1",
-              label: "بند",
               materialId: "material-1",
               expectedQuantityMilli: null,
               valueMinor: 3000,
