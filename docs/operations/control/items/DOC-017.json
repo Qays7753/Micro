@@ -1,0 +1,84 @@
+{
+  "id": "DOC-017",
+  "title": "S08 execution — الأصول والمعدات (UNIT-034) مع إتمام إصلاح S07-MR-001 المأمور أولًا",
+  "type": "FEATURE",
+  "status": "IN_PROGRESS",
+  "priority": "P0",
+  "stage": "micro-component-execution-s08-20261030",
+  "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق أمر 00-S08-EXECUTION-PROMPT-2026-10-30.md المنشور في 73c1a344fbe7f8220bcecb764787f5df71622637: (القسم ١ — اكتمل) إصلاح S07-MR-001 الجذري (CAS حدود المخزون داخل حد الكتابة على المهايئين — 30ff930d بانحدار دائم حقيقي 16+7 على المسار الحقيقي) ومصالحة البوابات البعيدة على الرأس النهائي (CI 40985398002 وCloudflare ناجحان على الرأس نفسه؛ إرساءات السحاب الموثقة بنفس الPR)؛ (القسم ٢ — هذا البند) تنفيذ S08 لUNIT-034 الأصول والمعدات في حدود العقد الحية: اقتناء نقدي/ذمم والحالة المعتمدة للدفع الجزئي (أصل 100 دفع 40 ← نقد −40 وحق 60 وأصل 100 بلا مصروف — SDF-066؛CONS-DEC03/04/05 معتمدة)، مرجع طرف محفوظ اختياري بهوية مستقرة ولقطة اسم تاريخية (نمط S05)، سداد المتبقي من مصدر الالتزام نفسه داخل الحد الحي بلا تجاوز، إهلاك اختياري صريح بعقد ٤٣ كما هو (مقترح قراءة/تسجيل صريح/متبقية/مراجعات موثقة)، تخلص وشطب يحفظان التاريخ، كل كتابة حساسة تتحقق الحالة الحية داخل حد الكتابة على المهايئين، وتوافق التصدير/الوارد/الاستعادة الكامل للحقول الجديدة. | بطاقة الفهم (المشكلة/النطاق/غير الأهداف/الثوابت/الفشل/القبول/حد الاستعادة): مشكلة المستخدم: صاحب المشروع يشتري معدة تستخدم أشهرًا أو سنوات — قد يدفع ثمنها كاملًا الآن أو جزئيًا (والباقي حقًا مؤجلًا لمموله) — ويريد قيمة مسجلة صادقة تبين المدفوع والمتبقي، وإهلاكًا اختياريًا بمعطيات معلنة لا افتراضية، وتخلصًا/شطبًا يحفظ التاريخ. وسؤال القرار: كيف نثبت الأصل ونقدِه وحقّه وسداده وإهلاكه وتخلصه مرة واحدة لكل أثر بلا مصروف مزدوج ولا دين موازٍ ولا عمر مختلق؟ | النطاق: توسيع الاقتناء القائم (assetService/commitAssetRecord) بالدفع الجزئي عبر حدثين ذريين (asset_purchase_cash للجزء المدفوع + asset_purchase_payable للمتبقي — مفردات الأحداث القائمة حرفيًا بلا نوع جديد)؛ مرجع الطرف اختياريًا على السجل بلقطة اسم؛ سداد المتبقي بحدث payable_settlement_cash مرتبط بحدث الاقتناء الذممي مع حد الحق الحي داخل المعاملة (امتداد فحص MIC-4 لمصدر أصول حي)؛ حارس CAS لسجلات الأصل (إنشاء/مراجعة/تخلص/شطب/تصحيح) بنمط الحراس الشقيقة؛ قراءة المدفوع/المتبقي مشتقة من الأحداث؛ توافق النقل والذهبيات؛ واجهة المحرر والتفصيل والقائمة بحالاتها. | خارج النطاق: مسار الأصل الإرثي/الافتتاحي D01 (محجوب حتى عقد 002 — عرض حده بصدق بلا تسجيل)، القروض بديلًا للذمم، الإهلاك الضريبي/إعادة التقييم/المكونات، الأتمتة الشهرية، توزيع الإهلاك آليًا على الطلبات، أي مخزن/عائلة مالية موازية، تغيير أرقام المخطط/التصدير (40/32 كما هما — الحقول الجديدة اختيارية متوافقة رجعيًا بنمط S06/S07)، وتوسيع UI خارج الأسطح القائمة. | الثوابت: القبض ليس ربحًا؛ شراء الأصل ليس مصروفًا؛ الإهلاك غير نقدي وبند مستقل؛ المقترح ليس تسجيلًا؛ المجهول يبقى مجهولًا (لا عمر ولا متبقية ولا تاريخ مختلق)؛ الدفع لا يتجاوز الحق الحي؛ كل تصحيح موثق بلا محو تاريخ؛ وحدة minor الصحيحة بتقريب أرضي وتواريخ محلية محقونة. | حالات الفشل: نافذتا اقتناء/سداد متزامنتان (لا تكرار ولا تجاوز)، إعادة إرسال بمفتاح متطابق/مختلف، إلغاء/رجوع/تحديث أثناء الحفظ، فشل قراءة صادق بلا أصفار بديلة، أصل مؤرشف لا يُصحح اقتناؤه. | معيار القبول: SDF-062 (الميزانية لا تدخل الأصل في المنصرف) وSDF-066 (الجديد 100/40/60 والقديم لا يولد شيئًا) على المهايئين + مصفوفة U034-AC الداخلة في النطاق + توافق النقل الكامل. | حد الاستعادة: رأس نشر أمر S08 73c1a344 (الإصلاحات فوقه قابلة للعزل بالتزام واحد لكل مرحلة)؛ رجوع الكود لا يخفض المخطط/التصدير.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": null,
+  "classification": "COMPONENT_EXECUTION",
+  "gate_classification": "PRE_PILOT_COMPONENT",
+  "owner": "Owner (acceptance) / Manus (independent review) / ZAI (single implementation writer)",
+  "owner_decision": "Owner-authorized continuous execution (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637); stage acceptance and merge remain owner-gated",
+  "tests_required": [
+    "Dual-adapter real-path regressions for partial-payment acquisition, bounded settlement, and asset-record CAS (memory + IndexedDB)",
+    "SDF-062 and SDF-066 acceptance journeys on both adapters",
+    "Transfer export/import/restore round-trips with the new optional fields and settlement links",
+    "AssetEditor/AssetDetail/Assets DOM journeys for the required states (RTL/mobile/a11y)",
+    "Full pnpm check on the stable candidate"
+  ],
+  "layers": [
+    "domain",
+    "application",
+    "storage",
+    "transfer",
+    "ui",
+    "tests",
+    "documentation"
+  ],
+  "source": "docs/implementation/micro-component-execution/00-S08-EXECUTION-PROMPT-2026-10-30.md",
+  "acceptance": [
+    "SDF-062: ميزانية مع مصروف 10 سدد منه 3 وأصل 100 — المنصرف المؤهل 10 لا 3 ولا 110",
+    "SDF-066: أصل جديد 100 دفع 40 — نقد −40 وحق 60 وأصل 100؛ والقديم الناقص الوثائق لا يولد شراء اليوم أو عمرًا مختلقًا",
+    "U034-AC03/AC04/AC05/AC06/AC08/AC09/AC10/AC12/AC13/AC17/AC19/AC20/AC23 ضمن نطاق الشريحة",
+    "S07-MR-001 إصلاح جذري مكتمل وموثق قبل أي كود S08"
+  ],
+  "areas": [
+    "src/domain/asset/",
+    "apps/prototype-web/client/src/application/assets/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/pages/Assets.tsx",
+    "apps/prototype-web/client/src/pages/AssetEditor.tsx",
+    "apps/prototype-web/client/src/pages/AssetDetail.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S08-EXECUTION-PROMPT-2026-10-30.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-034-الأصول-والمعدات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/06-financial-event-prototype-contract.md",
+    "docs/contracts/29-group4-deep-finance-contract.md",
+    "docs/contracts/43-asset-depreciation-prototype-contract.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S08-EXECUTION-PROMPT-2026-10-30.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "dependencies": [
+    "DOC-014",
+    "DOC-016"
+  ],
+  "related_items": [
+    "DOC-016"
+  ],
+  "migration_baseline": "localSchemaVersion=40 / localExportVersion=32 preserved (new fields optional and backward-compatible per the S06/S07 pattern); no store additions",
+  "next_action": "تنفيذ S08 المتصل لUNIT-034 فوق الفرع/PR نفسيهما بعد اكتمال بوابة انتقال S07 الخضراء؛ S07/S08 تبقيان REVIEW_REQUIRED.",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-30",
+      "actor": "zai-s08-execution",
+      "reason": "مطالبة S08 المأذونة من رأس نشر الأمر 73c1a344 بعد اكتمال القسم ١ (إصلاح S07-MR-001 الجذري 30ff930d + مصالحة البوابات البعيدة على الرأس النهائي — CI وCloudflare ناجحان) — لا تداخل مع WS-232 المنتهي إلى IN_REVIEW."
+    }
+  ],
+  "updated_at": "2026-10-30"
+}

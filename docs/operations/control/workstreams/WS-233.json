@@ -1,0 +1,57 @@
+{
+  "id": "WS-233",
+  "title": "S08 — الأصول والمعدات (UNIT-034) + إتمام إصلاح S07-MR-001",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-017"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "73c1a344fbe7f8220bcecb764787f5df71622637",
+  "areas": [
+    "src/domain/asset/",
+    "apps/prototype-web/client/src/application/assets/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/pages/Assets.tsx",
+    "apps/prototype-web/client/src/pages/AssetEditor.tsx",
+    "apps/prototype-web/client/src/pages/AssetDetail.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S08-EXECUTION-PROMPT-2026-10-30.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-034-الأصول-والمعدات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/29-group4-deep-finance-contract.md",
+    "docs/contracts/43-asset-depreciation-prototype-contract.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-10-30",
+  "updated_at": "2026-10-30",
+  "next_action": "تنفيذ S08 المتصل (UNIT-034) على components/integration-20261027 / PR #383؛ لا كتابة main ولا merge؛ S07/S08 رهن المراجعة المستقلة وقبول المالك.",
+  "notes": [
+    "أمر التنفيذ الوحيد هو 00-S08-EXECUTION-PROMPT-2026-10-30.md المنشور في 73c1a344fbe7f8220bcecb764787f5df71622637؛ GitHub هو مصدر الحقيقة التشغيلي.",
+    "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
+    "بطاقة الفهم (المشكلة/النطاق/غير الأهداف/الثوابت/الفشل/القبول/حد الاستعادة) مثبتة داخل DOC-017.summary.",
+    "خط الأساس الحي للمخطط/التصدير 40/32 يُحفظ — الحقول الجديدة اختيارية متوافقة رجعيًا (نمط S06/S07)؛ لا مسار افتتاح/إرث (D01 محجوب بعقد 002) ولا نوع حدث جديد.",
+    "بوابة انتقال S07 خضراء على الرأس d5df9344 (CI 40985398002 + Cloudflare ناجحان على الرأس نفسه)؛ إصلاح S07-MR-001 موثق في 12-S07-RESULT §1-ب/§4-ب."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S08-EXECUTION-PROMPT-2026-10-30.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-30",
+      "actor": "zai-s08-execution",
+      "reason": "مطالبة S08 المأذونة على components/integration-20261027 / PR #383 من رأس نشر الأمر 73c1a344 بعد اكتمال بوابة انتقال S07 (إصلاح S07-MR-001 + بوابات بعيد خضراء على الرأس النهائي d5df9344)."
+    }
+  ],
+  "migration_baseline": "localSchemaVersion=40 / localExportVersion=32 preserved; optional-field additions only (S06/S07 pattern); no new stores; settlement uses the existing payable_settlement_cash event type"
+}
