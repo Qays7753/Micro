@@ -141,7 +141,7 @@
 | `13-S08-RESULT-2026-10-30.md` | نتيجة تنفيذ S08 ومصفوفة القبول وسجل ملاحظات المراجعات الخمس الكامل | `DELIVERED_FOR_REVIEW` |
 | `DOC-017.json` / `WS-233.json` | Control وWorkstream لتنفيذ S08 | `IN_REVIEW` بعد التسليم |
 | `00-S08-REVIEW-FIX-PROMPT-2026-10-30.md` | مسودة أمر تصحيح S08 لملاحظتي Manus: إحكام مرجع طرف اقتناء الأصل وإثبات دورة النقل للحقول الجديدة؛ نفس الفرع وPR، دون إعادة تنفيذ S08 أو بدء S09 | `DRAFT_FOR_OWNER_REVIEW` |
-| `00-S09-EXECUTION-PROMPT-2026-10-30.md` | أمر ZAI الموحد: إصلاح S08-MR-001/002 ثم تنفيذ S09 الكامل لـUNIT-007/008/029 على نفس الفرع وPR دون توقف أو موافقة وسيطة؛ لا main ولا merge | `OWNER_AUTHORIZED — READY_FOR_ZAI; NOT_STARTED; ACCEPTANCE_REVIEW_REQUIRED` |
+| `00-S09-EXECUTION-PROMPT-2026-10-30.md` | أمر ZAI الموحد: في المحادثة نفسها، تقرير preflight موجز عن العمل المرفوع والمحلي والبيئة والوقت المتوقع، ثم إصلاح S08-MR-001/002 وتنفيذ S09 لـUNIT-007/008/029 دون توقف أو موافقة وسيطة؛ تنظيف المؤقتات الآمنة فقط؛ لا main ولا merge | `OWNER_AUTHORIZED — READY_FOR_ZAI; NOT_STARTED; ACCEPTANCE_REVIEW_REQUIRED` |
 
 
 

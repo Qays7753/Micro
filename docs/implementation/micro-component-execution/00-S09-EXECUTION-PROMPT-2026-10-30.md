@@ -2,6 +2,10 @@
 
 ## 1. Mission, authority, and continuous-execution rule
 
+### First response in this same ZAI conversation — answer, then continue immediately
+
+Continue in this existing ZAI conversation/session. Do not ask the owner to start a new chat, do not reclone/restart unnecessarily, and do not wait for a reply to this first status note. Before implementation, send one brief preflight update answering all of the following from live evidence: (a) does the prior final report correspond to work fully pushed, and what are the actual local branch/HEAD, remote branch HEAD, ahead/behind count, uncommitted/untracked changes, and stashes; (b) are there any local-only commits/files that must be preserved or reconciled; (c) what is the available environment capacity (free disk, memory/pressure, active relevant processes, and repository/workspace size) and is there safe, demonstrably disposable residue from this task; (d) what is your evidence-based estimate for the remaining end-to-end time, with a realistic range, assumptions, and confidence; and (e) what measurable factors explain the observed slowness (for example, required source reads, serial review agents, full checks, remote CI/deployment latency, or constrained environment resources). Distinguish measured causes from hypotheses; do not guess or promise an exact duration. Keep this initial report short, then continue execution immediately without asking the owner to authorize the already-approved S08-fix → S09 sequence. Do not spend time trying to diagnose unrelated system folders or processes.
+
 This is one owner-authorized, continuous execution assignment with two strictly ordered parts:
 
 1. **First:** correct the two confirmed S08 review findings `S08-MR-001` and `S08-MR-002` from their root causes, without reimplementing S08.
@@ -19,13 +23,17 @@ Stop only for a real, evidenced blocker that cannot be resolved within already a
 - Only branch: `components/integration-20261027`
 - Only PR: [PR #383](https://github.com/Qays7753/Micro/pull/383), which must remain **Draft** and open.
 - `main` is read-only. Last verified program base: `3584aa1d08cea3e0a00623b719fed7f991ce187f`.
-- Live integration head when this prompt was prepared: `2602a03d7fe1bd68442d003f68644f8f658cf7d7`. This is the prompt-publication base, not the expected execution head: fetch the branch after publication and use the actual live head if it descends safely from it.
+- Live integration head before the first publication of this prompt: `2602a03d7fe1bd68442d003f68644f8f658cf7d7`; the first prompt publication was `2f5aac023657c35063eb61c3b344838707bea27d`. This amendment has a newer documentation-only publication head: fetch the branch and use the actual live head if it descends safely from `2f5aac023657c35063eb61c3b344838707bea27d`.
 - At preparation, PR #383 was open/Draft and both GitHub Actions and Cloudflare Pages were successful on `2602a03d7fe1bd68442d003f68644f8f658cf7d7`. Re-verify live; never attribute a check to another SHA.
 - Current S08 result: `docs/implementation/micro-component-execution/13-S08-RESULT-2026-10-30.md`.
 - Existing S08 review-correction draft, useful as evidence but **not** as the governing stop instruction for this combined assignment: `docs/implementation/micro-component-execution/00-S08-REVIEW-FIX-PROMPT-2026-10-30.md`. This prompt supersedes its instruction to stop before S09; retain its two finding definitions and technical evidence.
 - S08 Control: `DOC-017` / `WS-233`; keep the same records and follow their legal state lifecycle. S09 Control should use `DOC-018` / `WS-234` if those IDs remain available after live validation; otherwise use the next valid IDs from the repository's Control rules and record the actual IDs. Do not create duplicate claims.
 
 Before changing anything, verify the live refs, PR state/base/head, ancestry, status/checks, local branch, working tree, local and remote commits, unpushed/uncommitted files, stashes/reflog where available, and whether another writer is active. Preserve all local work. If there is unrelated local work or unsafe drift, do not overwrite or mix it; save a safe checkpoint and report the exact blocker. Never use `reset --hard`, `git clean`, destructive checkout, rebase, force-push, history rewrite, or blind mass moves.
+
+### Environment inspection and safe cleanup
+
+Inspect only the ZAI execution workspace you are authorized to access. Report repository/workspace size, available disk, memory pressure, and relevant active processes. If an environment limit is actually affecting progress, state the measured evidence and practical impact. Identify leftover artifacts from this or earlier task runs, but remove only items that are demonstrably disposable (for example, this task's own temporary probe/build output that no active process or uncommitted work references). Preserve every repository clone with uncommitted/unpushed work, all source/test files, Git metadata/stashes/reflog, credentials/configuration, browser profiles, and user or unrelated project data. Do not delete caches or dependencies merely because they are large if they would needlessly slow the required checks. No broad recursive deletion, `git clean`, or cleanup of GitHub content is allowed. If ownership or disposability is uncertain, leave it untouched and report it.
 
 All code, documentation, records, and commits in this assignment stay on the single integration branch and PR. No `main` write, merge, second branch, second PR, branch deletion/cleanup, or PR closure. Use the secure credential field/channel only. Never include, print, paste, commit, log, or report access tokens or private credentials. Do not change CI policy, security exceptions, warning/bundle ceilings, test tolerances, or guards to make a check pass.
 
