@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "5d71572bccd3c853d5641869cf2a844e227f2ef6",
+  "head": "8e9a73c7714c006ea264af8497bb1fa80cb8bc68",
   "pages": {
     "total": 60,
     "map": {
@@ -108,7 +108,8 @@
         "kind": "direct",
         "evidence": [
           "U01.dom.test.tsx",
-          "group2InventorySurfaces.test.tsx"
+          "group2InventorySurfaces.test.tsx",
+          "pages/CostEditor.s09.dom.test.tsx"
         ]
       },
       "pages/DeliveryReview.tsx": {
@@ -131,7 +132,8 @@
         "kind": "direct",
         "evidence": [
           "U004.dom.test.tsx",
-          "U06.dom.test.tsx"
+          "U06.dom.test.tsx",
+          "pages/DraftEditor.s09.dom.test.tsx"
         ]
       },
       "pages/EstimateDetail.tsx": {
@@ -491,6 +493,7 @@
           "tests/domain/craft-order-delivery-terms.test.ts",
           "tests/domain/craft-order-deposit-derivations.test.ts",
           "tests/domain/craft-order-g3.test.ts",
+          "tests/domain/craft-order-groups.test.ts",
           "tests/domain/craft-order-review-lock.test.ts",
           "tests/domain/craft-order.test.ts"
         ]
@@ -745,7 +748,9 @@
           "apps/prototype-web/client/src/application/loans/ammanBusinessDateBoundary.test.ts",
           "apps/prototype-web/client/src/application/loans/loanService.test.ts",
           "apps/prototype-web/client/src/application/loans/receivedLoanService.test.ts",
+          "apps/prototype-web/client/src/application/transfers/localTransferService.assetPartyIntegrity.s08mr001.test.ts",
           "apps/prototype-web/client/src/application/transfers/localTransferService.assetResidual.test.ts",
+          "apps/prototype-web/client/src/application/transfers/localTransferService.assetS08FieldsRoundTrip.s08mr002.test.ts",
           "apps/prototype-web/client/src/application/transfers/localTransferService.receivedLoan.test.ts",
           "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.receivedLoan.test.ts",
           "apps/prototype-web/client/src/storage/local/adapterConformance.receivedLoan.test.ts",
@@ -797,14 +802,17 @@
         "curated": [
           "apps/prototype-web/client/src/IntegrityReadable.w43.dom.test.tsx",
           "apps/prototype-web/client/src/ToolsIntegrity.ui.test.tsx",
-          "apps/prototype-web/client/src/application/finance/integrityCheckService.test.ts"
+          "apps/prototype-web/client/src/application/finance/integrityCheckService.test.ts",
+          "apps/prototype-web/client/src/application/transfers/localTransferService.assetPartyIntegrity.s08mr001.test.ts"
         ]
       },
       "36-form-drafts-local-boundary-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/application/drafts/draftService.s09.test.ts",
           "apps/prototype-web/client/src/application/drafts/draftService.test.ts",
-          "apps/prototype-web/client/src/application/drafts/formDraftService.test.ts"
+          "apps/prototype-web/client/src/application/drafts/formDraftService.test.ts",
+          "apps/prototype-web/client/src/pages/DraftEditor.s09.dom.test.tsx"
         ]
       },
       "37-local-app-lock-contract.md": {
@@ -884,7 +892,9 @@
           "apps/prototype-web/client/src/G4Assets.dom.test.tsx",
           "apps/prototype-web/client/src/application/assets/assetService.s08.test.ts",
           "apps/prototype-web/client/src/application/assets/assetService.test.ts",
+          "apps/prototype-web/client/src/application/transfers/localTransferService.assetPartyIntegrity.s08mr001.test.ts",
           "apps/prototype-web/client/src/application/transfers/localTransferService.assetResidual.test.ts",
+          "apps/prototype-web/client/src/application/transfers/localTransferService.assetS08FieldsRoundTrip.s08mr002.test.ts",
           "apps/prototype-web/client/src/storage/local/capabilities/assetCapability.contract.test.ts",
           "tests/domain/asset.test.ts",
           "tests/domain/assetResidual.test.ts"
@@ -909,6 +919,7 @@
       "tests/domain/craft-order-delivery-terms.test.ts",
       "tests/domain/craft-order-deposit-derivations.test.ts",
       "tests/domain/craft-order-g3.test.ts",
+      "tests/domain/craft-order-groups.test.ts",
       "tests/domain/craft-order-review-lock.test.ts",
       "tests/domain/craft-order.test.ts",
       "tests/domain/craftOrderPolicyCharacterization.mutation.test.ts",

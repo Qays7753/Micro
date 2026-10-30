@@ -5474,6 +5474,158 @@
         "trigger": "S09 slice delivery (DOC-018): src/domain/craft-order/types.ts on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-018"
       }
+    },
+    {
+      "id": "S09-REUSE-UI-20261030-01",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/catalog/catalogService.ts",
+      "from": {
+        "nbLoc": 431,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 486,
+        "band": "WATCH"
+      },
+      "reason": "S09 (UNIT-029 — أمر ad133bae القسم ٢): «حفظ لاستخدامه مرة أخرى» عند حد الخدمة القائم — حفظ صريح اختياري بالهوية الدنيا (اسم + نوع) بمفتاح تشغيلي ثابت (نقر متكرر/نتيجة مجهولة = نية واحدة)، وإعادة التعريف النشط الموجود بالنوع والاسم نفسيهما كما هو بلا تعريف ثانٍ، والأرشيف لا يحجب حفظًا جديدًا. لا أثر مالي ولا مخزون ولا مسار إنشاء واعٍ مُغيَّر.",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3 with the resume amendment ef028e4e, Part 2); same-PR re-anchor per R8-1/R11 — the S09 prompt explicitly forbids structural file splits in this stage.",
+        "trigger": "S09 slice delivery (DOC-018): explicit save-for-reuse on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-REUSE-UI-20261030-02",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/components/forms/EnglishNumberInput.tsx",
+      "from": {
+        "nbLoc": 107,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 130,
+        "band": "NORMAL"
+      },
+      "reason": "S09 (UNIT-007 — أمر ad133bae القسم ٢): خاصيتان اختياريتان إضافيتان فقط (onTextChange لالتقاط النص الخام بما فيه غير الصالح، وinitialRawText لحقنه مرة عند التركيب بإعادة التركيب بمفتاح) لاستعادة نص الكمية/السعر كما كتبه المستخدم بعد التحديث (U007-AC03) — لا تغيير لسلوك أي مستهلك قائم.",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3 with the resume amendment ef028e4e, Part 2); same-PR re-anchor per R8-1/R11 — the S09 prompt explicitly forbids structural file splits in this stage.",
+        "trigger": "S09 slice delivery (DOC-018): raw-text recovery support on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-REUSE-UI-20261030-03",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/CostEditor.tsx",
+      "from": {
+        "nbLoc": 637,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 1036,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S09 (UNIT-008/SH-13 — أمر ad133bae القسم ٢): مسار التكلفة المجمّعة في السطح القائم — أساس الوحدة الواحدة لكل مجموعة (ورقة المواد لكل مجموعة بهويتها)، والمستويات على نطاق الطلب مرة واحدة، والمعاينة/الحفظ عبر previewGrouped/saveGroupedSnapshot (النواة الواحدة بعد التوسيع لا حساب في الواجهة)، واستعادة أساس المجموعات من اللقطة المحفوظة، ومراجعة تغيّر الكمية الصريحة (U008-AC12)، ومسودة نموذج عابرة (order_cost) لمدخلات التكلفة (U008-AC09). المسار المسطح القائم محفوظ كما هو؛ تقسيم الملف ممنوع في هذه المرحلة بأمر التنفيذ نفسه.",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3 with the resume amendment ef028e4e, Part 2); same-PR re-anchor per R8-1/R11 — the S09 prompt explicitly forbids structural file splits in this stage.",
+        "trigger": "S09 slice delivery (DOC-018): grouped cost editor + recovery on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-REUSE-UI-20261030-04",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/DraftEditor.tsx",
+      "from": {
+        "nbLoc": 525,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 1012,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S09 (UNIT-007/029 — أمر ad133bae القسم ٢): مجموعات الطلب بهوية ثابتة وتكرار معروض مشتقًا، وختم المرجع المحفوظ كلقطة موسومة مستقلة (بمراجعة القالب النشط وقت الاختيار لا «الأحدث وقت القراءة»)، والسعر المقترح الحر (CONS-DEC07: 0 الصريح صحيح والفراغ بلا اقتراح)، و«حفظ لاستخدامه مرة أخرى» الصريح بعد الحفظ، ومسودة نموذج عابرة (order_draft) تستعيد النص الخام غير الصالح نفسه (U007-AC03)، وبوابة الإدخال الحقيقي للإنشاء الأول (الكمية الافتراضية وحدها والمجموعة الفارغة وحدها لا تنشئان). السلوك القائم محفوظ؛ تقسيم الملف ممنوع في هذه المرحلة بأمر التنفيذ نفسه.",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3 with the resume amendment ef028e4e, Part 2); same-PR re-anchor per R8-1/R11 — the S09 prompt explicitly forbids structural file splits in this stage.",
+        "trigger": "S09 slice delivery (DOC-018): draft groups/offering-ref/suggested-price/reuse/recovery on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-REUSE-UI-20261030-05",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1249,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S09 (UNIT-007/008 — أمر ad133bae القسم ٢): نوعا مسودة النموذج الجديدان (order_draft وorder_cost) داخل اتحاد FormDraftKind القائم بتعليقهما الموثق — قيم النماذج العابرة قبل أي التزام؛ العائلة كلها خارج التصدير كما هي (لا تغيير مخطط/تصدير — 40/32 كما هما). القيد يغطي النمو الكامل من أساس main (876) عبر شريحة عقد البيانات (1237) إلى شجرة هذه الشريحة (1241).",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3 with the resume amendment ef028e4e, Part 2); same-PR re-anchor per R8-1/R11 — the S09 prompt explicitly forbids structural file splits in this stage.",
+        "trigger": "S09 slice delivery (DOC-018): form-draft kinds for the draft/cost editors on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-REUSE-UI-20261030-06",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts",
+      "from": {
+        "nbLoc": 1192,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1351,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "تصحيح قياس شفاف لا نمو كود: الملف نفسه لم يتغير في هذه الشريحة إطلاقًا (بصمة e4208661 مطابقة)، لكن قيد الإرساء السابق (S09-DRAFT-COST-20261030-04) سُجل بقيمة to أقل من القياس الفعلي للشجرة الملتزمة بسطرين (1349 بدل 1351) فانكشف الانجراف عند أول تشغيل كامل للراتشة بعد أن فشل CI عند بوابات أبكر. القيد يغطي النمو الكامل من أساس main (1192) إلى القياس الصادق للملف ذاته (1351)؛ لا سطر كود جديد أُضيف في هذه الشريحة ولا حد أُرخي.",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3 with the resume amendment ef028e4e, Part 2); same-PR re-anchor per R8-1/R11 — the S09 prompt explicitly forbids structural file splits in this stage.",
+        "trigger": "S09 ledger correction (DOC-018): honest re-measurement of the unchanged transfer validator on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-REUSE-UI-20261030-07",
+      "date": "2026-10-30",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 387,
+        "band": "NORMAL"
+      },
+      "reason": "S09 (أمر ad133bae القسم ٢): توسيع باب التكلفة المقصود بالنوع GroupedCostEditorInput (مدخل المسار المجمّع للنواة الواحدة) — «توسيع الباب تعديل مقصود» يسجل في الأساس بنفس الـPR وفق عقد الحارس نفسه.",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3 with the resume amendment ef028e4e, Part 2); same-PR re-anchor per R8-1/R11.",
+        "trigger": "S09 slice delivery (DOC-018): cost door surface widening on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
+    },
+    {
+      "id": "S09-REUSE-UI-20261030-08",
+      "date": "2026-10-30",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 878,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S09 (أمر ad133bae القسم ٢): قيدا CAPS بتاريخ ومصدر موثق لسطحي DraftEditor (49→71) وCostEditor (60→71) — تسميات مفروضة من مواصفات المرحلة (مجموعات/سعر مقترح/استعادة/حفظ للاستخدام مرة أخرى) بالإجراء المؤرخ نفسه الذي استخدمته كل زيادة سابقة؛ الراتشة تبقى مقيّدة بالقياس الفعلي.",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S08->S09 execution order (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3 with the resume amendment ef028e4e, Part 2); same-PR re-anchor per R8-1/R11.",
+        "trigger": "S09 slice delivery (DOC-018): dated cap provenance entries on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-018"
+      }
     }
   ]
 }

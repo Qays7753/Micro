@@ -101,9 +101,21 @@ export const localExportVersion = 32;
 export const localSecurityId = "local-security";
 /* المجموعة ٥ (التحصين الكامل — حدود المسودة): نوعان جديدان يدخلان الحد نفسه —
  * مسودة محرر الحدث المالي (مهاجرة من مفتاح localStorage القديم لكل نوع) ومسودة
- * الإعداد (مهاجرة من مفتاحها القديم). كلاهما عابر بلا أثر مالي كما إخوتهما. */
+ * الإعداد (مهاجرة من مفتاحها القديم). كلاهما عابر بلا أثر مالي كما إخوتهما.
+ * S09 (UNIT-007/008 — أمر ad133bae القسم ٢): نوعان جديدان لسطحي المرحلة —
+ * مسودة نموذج محرر المسودة (raw النص والكمية غير الصالحة قبل أي التزام) ومسودة
+ * نموذج محرر التكلفة (مدخلات التكلفة قبل حفظ النسخة). كلاهما عابر بلا أثر مالي،
+ * خارج التصدير كما كل العائلة، وقراءته لا تنشئ مسودة طلب ولا نسخة تكلفة. */
 export type FormDraftKind =
-  "asset" | "loan" | "supplier_purchase" | "direct_sale" | "inventory_movement" | "finance_event" | "setup";
+  | "asset"
+  | "loan"
+  | "supplier_purchase"
+  | "direct_sale"
+  | "inventory_movement"
+  | "finance_event"
+  | "setup"
+  | "order_draft"
+  | "order_cost";
 export type FormDraftEnvelope = {
   /** `${formKind}:${scopeId ?? "new"}` — مسودة واحدة لكل شاشة لكل نطاق. */
   id: string;

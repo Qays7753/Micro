@@ -54,7 +54,46 @@ function groupedInput(): GroupedCostBasisInput {
   };
 }
 
-describe("expandGroupedCostBasis — S09/SH-13 (SDF-034 + SDF-002)", () => {
+/* نفس المدخل كما لو أدخله المستخدم كاملًا مباشرة — لإثبات التكافؤ مع النواة الواحدة. */
+function directWholeOrderInput() {
+  return {
+    currency: "JOD" as const,
+    materialItems: [
+      unitItem("شوكولاتة فاخرة", 2, 150),
+      unitItem("شوكولاتة عادية", 1, 250),
+      unitItem("كيس مكسرات", 1.5, 400),
+    ],
+    time: { minutes: 30, hourlyRateMinor: 600, confidence: "known" as const },
+    packagingMinor: 200,
+    deliveryMinor: 300,
+    wasteMinor: 100,
+    safetyBufferMinor: 50,
+    quantity: 13,
+    createdAt: CREATED_AT,
+    source: "draft" as const,
+  };
+}
+
+function singleGroupInput(
+  id: string,
+  label: string,
+  repeatQuantity: number,
+  unitMaterialItems: readonly MaterialCostItem[],
+  deliveryMinor = 0,
+): GroupedCostBasisInput {
+  return {
+    currency: "JOD",
+    groups: [{ id, label, repeatQuantity, unitMaterialItems }],
+    time: null,
+    packagingMinor: 0,
+    deliveryMinor,
+    wasteMinor: 0,
+    safetyBufferMinor: 0,
+    createdAt: CREATED_AT,
+  };
+}
+
+describe("expandGroupedCostBasis — S09/SH-13 (SDF-034 + SDF-002): expansion semantics", () => {
   it("multiplies each group's unit basis by its repeat exactly once and derives the order quantity", () => {
     const expanded = expandGroupedCostBasis(groupedInput());
     /* المجموعة الأولى ×10 مرة واحدة: 0.2→2 و0.1→1؛ والثانية ×3: 0.5→1.5. */
@@ -73,22 +112,7 @@ describe("expandGroupedCostBasis — S09/SH-13 (SDF-034 + SDF-002)", () => {
 
   it("is exactly equivalent to entering the whole-order basis directly (one kernel, no second engine)", () => {
     const fromGroups = expandGroupedCostBasis(groupedInput());
-    const direct = {
-      currency: "JOD" as const,
-      materialItems: [
-        unitItem("شوكولاتة فاخرة", 2, 150),
-        unitItem("شوكولاتة عادية", 1, 250),
-        unitItem("كيس مكسرات", 1.5, 400),
-      ],
-      time: { minutes: 30, hourlyRateMinor: 600, confidence: "known" as const },
-      packagingMinor: 200,
-      deliveryMinor: 300,
-      wasteMinor: 100,
-      safetyBufferMinor: 50,
-      quantity: 13,
-      createdAt: CREATED_AT,
-      source: "draft" as const,
-    };
+    const direct = directWholeOrderInput();
     expect(fromGroups).toEqual(direct);
     /* والنواة الواحدة تعطي اللقطة نفسها من المدخلين — لا محرك ثانٍ. */
     expect(calculateCostSnapshot("cost-equivalence", fromGroups)).toEqual(
@@ -111,46 +135,18 @@ describe("expandGroupedCostBasis — S09/SH-13 (SDF-034 + SDF-002)", () => {
     /* 0.333 وحدة بسعر 1001: تقريب الوحدة الواحدة 333 minor؛ ×3 بعد التقريب 999.
      * التوسيع الصادق يضرب أولًا: 0.999 → 999 ملي × 1001 = 999999 → 1000 minor
      * بتقريب واحد على مستوى الطلب كله — كما لو أدخل المستخدم كمية الطلب مباشرة. */
-    const input: GroupedCostBasisInput = {
-      currency: "JOD",
-      groups: [
-        {
-          id: "group-rounding",
-          label: "مجموعة التقريب",
-          repeatQuantity: 3,
-          unitMaterialItems: [unitItem("مادة الاختبار", 0.333, 1001)],
-        },
-      ],
-      time: null,
-      packagingMinor: 0,
-      deliveryMinor: 0,
-      wasteMinor: 0,
-      safetyBufferMinor: 0,
-      createdAt: CREATED_AT,
-    };
+    const input = singleGroupInput("group-rounding", "مجموعة التقريب", 3, [
+      unitItem("مادة الاختبار", 0.333, 1001),
+    ]);
     const snapshot = calculateCostSnapshot("cost-rounding", expandGroupedCostBasis(input));
     expect(snapshot.materialCostMinor).toBe(1000);
     expect(snapshot.materialCostMinor).not.toBe(999);
   });
+});
 
+describe("expandGroupedCostBasis — S09/SH-13: honest states and rejections", () => {
   it("SDF-002: a total of 10.00 for 3 units stays 1000 minor — display rounding never recomputes it", () => {
-    const input: GroupedCostBasisInput = {
-      currency: "JOD",
-      groups: [
-        {
-          id: "group-ten",
-          label: "مجموعة العشرة",
-          repeatQuantity: 3,
-          unitMaterialItems: [unitItem("قطعة العمل", 1, 300)],
-        },
-      ],
-      time: null,
-      packagingMinor: 0,
-      deliveryMinor: 100,
-      wasteMinor: 0,
-      safetyBufferMinor: 0,
-      createdAt: CREATED_AT,
-    };
+    const input = singleGroupInput("group-ten", "مجموعة العشرة", 3, [unitItem("قطعة العمل", 1, 300)], 100);
     const snapshot = calculateCostSnapshot("cost-sdf002", expandGroupedCostBasis(input));
     /* الإجمالي 1000 minor لكمية 3 يبقى 1000؛ وحدة العرض 334 ولا يعاد حسابه 334×3=1002. */
     expect(snapshot.plannedCostMinor).toBe(1000);
@@ -159,16 +155,7 @@ describe("expandGroupedCostBasis — S09/SH-13 (SDF-034 + SDF-002)", () => {
   });
 
   it("keeps unknown cost honest — a group with no components stays incomplete, never zero-cost", () => {
-    const input: GroupedCostBasisInput = {
-      currency: "JOD",
-      groups: [{ id: "group-empty", label: "مجموعة بلا مكونات", repeatQuantity: 2, unitMaterialItems: [] }],
-      time: null,
-      packagingMinor: 0,
-      deliveryMinor: 0,
-      wasteMinor: 0,
-      safetyBufferMinor: 0,
-      createdAt: CREATED_AT,
-    };
+    const input = singleGroupInput("group-empty", "مجموعة بلا مكونات", 2, []);
     const snapshot = calculateCostSnapshot("cost-unknown", expandGroupedCostBasis(input));
     expect(snapshot.knowledgeState).toBe("incomplete");
     expect(snapshot.knowledgeGaps?.some(gap => gap.id === "no_cost_components" && gap.mandatory)).toBe(true);

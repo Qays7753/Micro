@@ -22,6 +22,14 @@ type EnglishNumberInputProps = Omit<
   allowEmpty?: boolean;
   onEmptyChange?: () => void;
   clearDefaultZeroOnFocus?: boolean;
+  /* S09 (UNIT-007 — أمر ad133bae القسم ٢): التقاط النص الخام نفسه عند كل
+   * تغيير (بما فيه غير الصالح) لمسودة النموذج — استعادة النص غير الصالح
+   * بعد التحديث دون إخفاء الكمية القديمة (U007-AC03). اختياري إضافي؛ لا
+   * يغيّر سلوك أي مستهلك قائم. */
+  onTextChange?: (text: string, isValid: boolean) => void;
+  /* S09: نص خام يُحقن مرة عند التركيب فقط (نمط إعادة التركيب بمفتاح) —
+   * لاستعادة نص الكمية/السعر كما كتبه المستخدم ولو كان غير صالح. */
+  initialRawText?: string | null;
 };
 
 export function EnglishNumberInput({
@@ -32,6 +40,8 @@ export function EnglishNumberInput({
   allowEmpty = false,
   onEmptyChange,
   clearDefaultZeroOnFocus = true,
+  onTextChange,
+  initialRawText = null,
   className,
   onFocus,
   onBlur,
@@ -39,7 +49,17 @@ export function EnglishNumberInput({
 }: EnglishNumberInputProps) {
   const latestCommitted = useRef<number | null>(value);
   const hasUserEdited = useRef(false);
-  const [text, setText] = useState(() => formatEnglishNumericValue(value, kind));
+  /* S09: نص خام مُستعاد يبدأ حياة المكوّن كما لو كتبه المستخدم — قيمته
+   * المحلولة إن صحّت تلتزم كما تلتزم كتابة المستخدم، ونصه يظل كما هو. */
+  const [text, setText] = useState(() => {
+    if (initialRawText !== null && initialRawText !== undefined) {
+      const parsed = parseEnglishNumericText(initialRawText, kind);
+      if (parsed !== null) latestCommitted.current = parsed;
+      hasUserEdited.current = true;
+      return initialRawText;
+    }
+    return formatEnglishNumericValue(value, kind);
+  });
   const inputMode = kind === "integer" || kind === "signedInteger" ? "numeric" : "decimal";
   const pattern = kind === "signedInteger" ? "-?[0-9]*" : kind === "integer" ? "[0-9]*" : "[0-9]*[.]?[0-9]*";
 
@@ -81,6 +101,7 @@ export function EnglishNumberInput({
           setText("");
           latestCommitted.current = null;
           onTextValidityChange?.(true);
+          onTextChange?.("", true);
           onEmptyChange?.();
           return;
         }
@@ -88,12 +109,14 @@ export function EnglishNumberInput({
           hasUserEdited.current = true;
           setText(next);
           onTextValidityChange?.(false);
+          onTextChange?.(next, false);
           return;
         }
         hasUserEdited.current = true;
         setText(next);
         const parsed = parseEnglishNumericText(next, kind);
         onTextValidityChange?.(parsed !== null);
+        onTextChange?.(next, parsed !== null);
         if (parsed !== null) {
           latestCommitted.current = parsed;
           onNumericChange(parsed);
