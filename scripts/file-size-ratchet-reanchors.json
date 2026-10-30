@@ -4904,6 +4904,25 @@
         "trigger": "S07-MR-001 correction (DOC-016): inventory write-boundary CAS guard on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-016"
       }
+    },
+    {
+      "id": "S07-MR-001-INVENTORY-CAS-20261030-09",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 108,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 130,
+        "band": "NORMAL"
+      },
+      "reason": "S07-MR-001: سجلات الإرساء الثلاثة (محلي 30ff930d ثم السحابيان على رأس الدفع a62451d3) تحمل البروفنسنس الكامل للبروتوكول الموثق — أطوال method هي نص الإثبات نفسه.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 1 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the S07-MR-001 correction with exact-head remote gate reconciliation; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07-MR-001 delivery (DOC-016): three-environment surfaces re-anchor with provenance on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
     }
   ]
 }
