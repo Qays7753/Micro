@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 6 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 7 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -41,4 +41,4 @@ python3 scripts/operations-control/validate.py
 | WS-229 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-013 | مراجعة Manus المستقلة وقبول المالك لS04 على المرشح النهائي 9d7d2aee؛ التحقق البعيد مسجل في تعليق PR #383. S05 أُذن بقرار مالك مستقل (00-S05-EXECUTION-PROMPT-2026-10-29.md في 1663f245) وينفذ على الفرع/PR نفسيهما مع الأمرين المحوّلين CF-001/CF-002؛ لا دمج ولا كتابة main قبل قرار المالك. |
 | WS-230 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-014 | مراجعة Manus المستقلة وقبول المالك لS05 على المرشح النهائي bee05336 (يتضمن الآن إصلاحَي العقد S05-MR-001/S05-MR-002 المسلَّمين أعلى الفرع نفسه بcommits موسومة مستقلة — ما زالا رهن المراجعة المستقلة كجزء من ملف S05)؛ لا دمج ولا كتابة main. |
 | WS-231 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-015 | مراجعة Manus المستقلة وقبول المالك على PR #383 (المرشح الكودي 0a728d14 وسجلات التوثيق فوقه وملحق S06-MR-001 11a-S06-ADDENDUM-2026-10-30.md لإصلاح 18a7128a)؛ لا دمج ولا كتابة main. |
-| WS-232 | IN_PROGRESS | `components/integration-20261027` | 383 | DOC-016 | إصلاح S07-MR-001 الجذري المأمور بأمر S08 (القسم ١) ثم مصالحة أسطح الحزمة والتحقق البعيد على الرأس النهائي ثم بوابة انتقال S08 على components/integration-20261027 / PR #383؛ لا كتابة main ولا merge؛ رهن المراجعة المستقلة وقبول المالك. |
+| WS-232 | IN_REVIEW | `components/integration-20261027` | 383 | DOC-016 | التحقق البعيد على الرأس النهائي المدفوع (Actions/Cloudflare) وإعادة إرساء أسطح السحاب من القيم المقاسة فعليًا وفق بروتوكول R8-1/R11 ثم بوابة انتقال S08 — كل ذلك على components/integration-20261027 / PR #383؛ لا كتابة main ولا merge؛ رهن المراجعة المستقلة وقبول المالك. |
