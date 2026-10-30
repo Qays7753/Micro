@@ -298,3 +298,32 @@ export interface OrderResultBreakdown {
   resultMinor: MoneyMinor | null;
   incompleteReasons: readonly string[];
 }
+
+/* S09 (UNIT-007/008 + SH-13 — أمر التنفيذ المتصل ad133bae القسم ٢): أساس
+ * التكلفة المجمعة — أساس الوحدة الواحدة من كل مجموعة (مكونات صندوق واحد
+ * مثلًا)؛ التوسيع (expandGroupedCostBasis) يضربه في تكرار المجموعة مرة
+ * واحدة فقط إلى مدخل قياسي للنواة الواحدة calculateCostSnapshot، والوقت
+ * والتغليف والهدر والتوصيل على نطاق الطلب كما في العقد القائم (F11/F12)،
+ * وإضافة التسعير لكل وحدة تمر كما دخلت. لا محرك ثانٍ ولا دمج دفاتر. */
+export interface GroupedCostGroup {
+  id: string;
+  label: string;
+  /** عدد مرات تكرار هذه المجموعة في الطلب — صحيح آمن ≥ 1. */
+  repeatQuantity: number;
+  /** مكونات الوحدة الواحدة من هذه المجموعة — أساس الهوية الواحدة لا الطلب كله. */
+  unitMaterialItems: readonly MaterialCostItem[];
+}
+
+export interface GroupedCostBasisInput {
+  currency: Currency;
+  groups: readonly GroupedCostGroup[];
+  /* F11: وقت العمل لكل الطلب كما في العقد القائم. */
+  time: TimeCost | null;
+  /* F12: التغليف والهدر لكل الطلب؛ والتوصيل على نطاق الطلب مرة واحدة (SDF-034). */
+  packagingMinor: MoneyMinor;
+  deliveryMinor: MoneyMinor;
+  wasteMinor: MoneyMinor;
+  /* F13: إضافة تسعير لكل وحدة — ليست تكلفة ولا ربحًا مؤكدًا؛ تمر كما دخلت. */
+  safetyBufferMinor: MoneyMinor;
+  createdAt: string;
+}

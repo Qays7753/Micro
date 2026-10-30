@@ -10,6 +10,7 @@ export {
 } from "./depositDerivations.js";
 export {
   calculateCostSnapshot,
+  expandGroupedCostBasis,
   cancelOrder,
   DELIVERY_RESPONSIBILITY_AR,
   hasDeliveredEvent,

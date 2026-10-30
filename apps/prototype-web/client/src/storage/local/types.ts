@@ -383,6 +383,41 @@ export type DraftCostSnapshot = {
   safetyBufferMinor: number;
   quantity: number;
   createdAt: string;
+  /* S09 (UNIT-008/SH-13 — أمر ad133bae القسم ٢): أساس المجموعات الموثق مع
+   * اللقطة — أساس الوحدة الواحدة لكل مجموعة كما دخلته المستخدمة؛ التوسيع
+   * (expandGroupedCostBasis ثم النواة الواحدة) ضربه في التكرار مرة واحدة
+   * في المدخل المسطح أعلاه. حقل اختياري — الغياب = لقطة غير مجمعة (متوافق
+   * رجعيًا بنمط S06/S07/S08). */
+  groupBasis?: readonly DraftCostGroupBasis[] | null;
+};
+export type DraftCostGroupBasis = {
+  groupId: string;
+  label: string;
+  repeatQuantity: number;
+  /* مكونات الوحدة الواحدة من هذه المجموعة — كما دخلت قبل التوسيع. */
+  unitMaterialItems: readonly DraftCostMaterial[];
+};
+/* S09 (UNIT-029 — أمر ad133bae القسم ٢): مرجع العرض المحفوظ كلقطة موسومة
+ * مستقلة — المعرف + مراجعة القالب (إن اختير قالب) + لقطة الاسم + لحظة الأخذ؛
+ * تعديل/أرشفة المصدر لاحقًا لا يغير لقطة تاريخية، ولا «الأحدث وقت القراءة»
+ * أبدًا (B1-D03/U029-R25). */
+export type DraftOfferingRef = {
+  catalogItemId: string;
+  templateId: string | null;
+  revision: number | null;
+  nameSnapshot: string;
+  takenAt: string;
+};
+/* S09 (UNIT-007 — أمر ad133bae القسم ٢): مجموعات المسودة — هوية ثابتة
+ * لكل مجموعة بتسميتها وتكرارها ونوع عرضها ومرجعها الموسوم؛ لا تُبنى من
+   * الكتالوج إجبارًا ولا تُنشئ عرضًا تلقائيًا. حقول اختيارية متوافقة رجعيًا. */
+export type DraftGroup = {
+  id: string;
+  label: string;
+  repeatQuantity: number;
+  offeringType: "product" | "service";
+  offeringRef: DraftOfferingRef | null;
+  note: string | null;
 };
 export type OrderDraft = {
   id: string;
@@ -400,6 +435,13 @@ export type OrderDraft = {
   /* U-004: مرجع التقدير الذي بدأت منه المسودة — أثر سجل فقط: التقدير لا يتغير،
    * ومحرر التكلفة يعرض بنوده كاقتراحات قابلة للتعديل. حقل اختياري؛ القديم بلاه يُقرأ فارغًا. */
   sourceEstimateId?: string | null;
+  /* S09 (UNIT-029): مرجع العرض المحفوظ كلقطة موسومة مستقلة — اختياري؛ الغياب/null = مسودة بلا مرجع (كما كان). */
+  offeringRef?: DraftOfferingRef | null;
+  /* S09 (UNIT-007): مجموعات المسودة — اختيارية؛ الغياب/null = مسودة غير مجمعة (كما كان). */
+  groups?: readonly DraftGroup[] | null;
+  /* S09 (CONS-DEC07): سعر مقترح اختياري يدخله المستخدم — ليس اتفاقًا ولا سعر بيع
+   * فعليًا ولا حدًا أدنى؛ حرية السعر كما اعتمدها المالك. الغياب/null = بلا اقتراح. */
+  suggestedPriceMinor?: number | null;
   createdAt: string;
   updatedAt: string;
 };
