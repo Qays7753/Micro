@@ -695,6 +695,7 @@ describe("Group 2 supplier bridge card and estimate suggestions (SA-5 F6)", () =
         drafts,
         costs,
         inventory,
+        formDrafts: new FormDraftService(store),
         dataVersion: version,
         notifyDataChanged: () => setVersion(current => current + 1),
       };

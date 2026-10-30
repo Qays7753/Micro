@@ -5,6 +5,8 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { FormDraftService } from "@/application/drafts/formDraftService";
+import { createFormDraftHarness } from "@/application/drafts/formDraftTestHarness";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import DraftEditor from "@/pages/DraftEditor";
 import NewDraft from "@/pages/NewDraft";
@@ -64,7 +66,9 @@ describe("intent choice opens the editor without creating a record (U-06, §٥-�
   beforeEach(() => {
     create.mockReset();
     wouterMocks.navigate.mockReset();
+    const formDrafts = new FormDraftService(createFormDraftHarness().store);
     mockedUsePrototypeServices.mockReturnValue({
+      formDrafts,
       drafts: { create },
       catalog: { list: vi.fn().mockResolvedValue({ ok: true, items: [] }) },
       notifyDataChanged: vi.fn(),
@@ -115,7 +119,9 @@ describe("the empty intent editor creates the draft only on first real input (U-
     create.mockReset();
     save.mockReset();
     wouterMocks.navigate.mockReset();
+    const formDrafts = new FormDraftService(createFormDraftHarness().store);
     mockedUsePrototypeServices.mockReturnValue({
+      formDrafts,
       drafts: { create, save },
       catalog: { list: vi.fn().mockResolvedValue({ ok: true, items: [] }) },
       notifyDataChanged: vi.fn(),
@@ -151,6 +157,11 @@ describe("the empty intent editor creates the draft only on first real input (U-
       quantity: 1,
       /* U-004: رابط التقدير المصدر يمر مع الإنشاء — فارغ عند البدء اليدوي. */
       sourceEstimateId: null,
+      /* S09 (UNIT-007/029): حقول المرحلة الاختيارية تمر عند الإنشاء بقيمها
+       * الأولية الصادقة — لا مجموعات ولا مرجعًا موسومًا ولا سعرًا مقترحًا. */
+      groups: null,
+      offeringRef: null,
+      suggestedPriceMinor: null,
     });
   });
 
@@ -211,7 +222,9 @@ describe("delete-draft vocabulary (Z2.6 — §3.4)", () => {
     get.mockReset();
     save.mockReset();
     wouterMocks.navigate.mockReset();
+    const formDrafts = new FormDraftService(createFormDraftHarness().store);
     mockedUsePrototypeServices.mockReturnValue({
+      formDrafts,
       drafts: { get, save },
       catalog: { list: vi.fn().mockResolvedValue({ ok: true, items: [] }) },
       notifyDataChanged: vi.fn(),

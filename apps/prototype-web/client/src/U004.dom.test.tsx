@@ -16,6 +16,7 @@ import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import Tools from "@/pages/Tools";
 import DraftEditor from "@/pages/DraftEditor";
+import { FormDraftService } from "@/application/drafts/formDraftService";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -80,6 +81,7 @@ describe("U-004 estimate-to-draft bridge", () => {
           costEstimates,
           drafts,
           catalog,
+          formDrafts: new FormDraftService(store),
           inventory: { readActivation: () => Promise.resolve({ ok: true, value: { activatedOn: null } }) },
           schedules: new ScheduleService(store, () => NOW),
           supplierPurchases: new SupplierPurchaseService(store, () => NOW),
@@ -104,12 +106,16 @@ describe("U-004 estimate-to-draft bridge", () => {
         <DraftEditor />
       </UnsavedChangesProvider>,
     );
-    await waitFor(() => expect(screen.getByDisplayValue("كيكة مناسبة صغيرة")).toBeTruthy());
+    await waitFor(() => expect(screen.getByPlaceholderText("مثال: صندوق خشبي مخصص")).toBeTruthy());
     expect(screen.getByText(/القيم المنسوخة مقترحات قابلة للتعديل/)).toBeTruthy();
-    /* القيم كلها قابلة للتعديل: حقل الاسم والكمية والملاحظات حقول إدخال فعلية. */
-    const nameField = screen.getByDisplayValue("كيكة مناسبة صغيرة") as HTMLInputElement;
+    /* القيم كلها قابلة للتعديل: حقل الاسم والكمية والملاحظات حقول إدخال فعلية.
+     * S09: حقل وصف القطعة يُستعلم بوسمه الفريد — قسم «حفظ لاستخدامه مرة أخرى»
+     * يعرض بعد الحفظ اسم العرض مبدئيًا من الوصف نفسه (U029-R02) فيتطابق
+     * عرض القيمتين بلا التباس. */
+    const nameField = screen.getByPlaceholderText("مثال: صندوق خشبي مخصص") as HTMLInputElement;
+    expect((nameField as HTMLInputElement).value).toBe("كيكة مناسبة صغيرة");
     fireEvent.change(nameField, { target: { value: "كيكة معدلة" } });
-    await waitFor(() => expect(screen.getByDisplayValue("كيكة معدلة")).toBeTruthy());
+    await waitFor(() => expect((nameField as HTMLInputElement).value).toBe("كيكة معدلة"));
     /* حفظ التعديل يثبّته في المسودة نفسها — لا مسودة ثانية. */
     fireEvent.click(screen.getByText("حفظ مسودة"));
     await waitFor(() => expect(screen.getByText("تم حفظ المسودة على هذا الجهاز.")).toBeTruthy());
@@ -143,6 +149,7 @@ describe("U-004 estimate-to-draft bridge", () => {
           costEstimates,
           drafts,
           catalog,
+          formDrafts: new FormDraftService(store),
           dataVersion: 0,
           notifyDataChanged: vi.fn(),
         }) as unknown as ReturnType<typeof usePrototypeServices>,
