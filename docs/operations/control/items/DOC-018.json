@@ -1,0 +1,92 @@
+{
+  "id": "DOC-018",
+  "title": "S09 execution — بناء الطلب وتكلفته والمنتج القابل لإعادة الاستخدام (UNIT-007/008/029 + SH-13)",
+  "type": "FEATURE",
+  "status": "IN_PROGRESS",
+  "priority": "P0",
+  "stage": "micro-component-execution-s09-20261030",
+  "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق أمر التنفيذ المتصل S08→S09 المنشور في ad133bae8b0e58effc295aa6b00210c8daad41c3 (القسم ٢): تنفيذ S09 كاملة لUNIT-007 (مسودة الطلب) وUNIT-008 (التكلفة) وUNIT-029 (المنتجات والخدمات) والجزء المشترك SH-13 في حدود العقود الحية، فوق البيوت القائمة بلا إعادة هيكلة. | بطاقة الفهم (المشكلة/النطاق/غير الأهداف/الثوابت/الفشل/القبول/حد الاستعادة): مشكلة المستخدم: صاحب مشروع يركّب طلبًا من مجموعات (صندوق هدايا بمكوناته يتكرر 10، ومجموعة ثانية مختلفة)، ويريد معرفة تكلفته بدرجة معرفتها المعلنة لا بصفر مفترض، وسعرًا مقترحًا حرًا بلا إجبار، وحفظ منتج/خدمة صالحًا لإعادة الاستخدام بفعل صريح واحد منفصل عن حفظ الطلب والتكلفة — وكل ذلك قبل أي أثر مالي. | النطاق: نموذج مجموعات المسودة (هوية المجموعة/تسميتها/تكرارها/نوعها product|service) مع أساس تكلفة الوحدة الواحدة لكل مجموعة يُضرب في تكرارها مرة واحدة فقط، والتوصيل على نطاق الطلب مرة واحدة، عبر نواة الحساب النقية الواحدة القائمة (calculateCostSnapshot) بلا محرك ثانٍ؛ مرجع منتج/خدمة محفوظ اختياري كلقطة موسومة مستقلة (معرف + مراجعة قالب + لقطة اسم + لحظة الأخذ — لا «الأحدث وقت القراءة»)؛ سعر مقترح اختياري يدخله المستخدم (حرية المالك المعتمدة CONS-DEC07 — لا حد أدنى ولا نسبة ربح إجبارية؛ الاقتراح ليس اتفاقًا)؛ زر صريح اختياري «حفظ لاستخدامه مرة أخرى» بعد حفظ بيانات الطلب بمفتاح حتمية من هوية المسودة (لا تكرار بالإعادة؛ فشله لا يبطل المسودة؛ لا حفظ تلقائي للكتالوج من مسودة/حساب/تقدير/استخدام مرجع)؛ استعادة المدخلات وسياق العودة والهوية عبر مسارات الحفظ/التحديث/إعادة التحميل/الرجوع بأحراس CAS والارتباط القائمة. | خارج النطاق: أي أثر مالي (لا اتفاق/عربون/إيراد/نقد/مصروف/ذمم/استهلاك/حركة مخزون من مسودة أو حساب أو حفظ كتالوج أو استخدام مرجع — ملك S12+)؛ وضعا الإدخال الإجمالي/المجهول المقترحان في UNIT-008 v2 (غير معتمدين قبل تهيئة الكاتب والقارئ — يُسجلان BLOCKED_BY_CONTRACT بصدق ويبقى الوضع التفصيلي القائم)؛ D06/D07 وتفاصيل أرضية السعر وسلوك ما دونها (غير معتمدة — لا تُنفذ ضمنيًا)؛ لا أداة سادسة ولا صفحة حاسبة موازية؛ لا تحويل workMode إلى نوع عرض ولا إعادة تصنيف سجلات تاريخية؛ لا دمج بالاسم للهوية؛ لا مخزن جديد (توسيع العائلات القائمة اختياريًا متوافقًا رجعيًا بنمط S06/S07/S08 — المخطط/التصدير 40/32 بلا ترقية)؛ لا إعادة هيكلة بنيوية ولا نقل ملفات. | الثوابت: المجهول ليس صفرًا ولا يسمح بربح نهائي؛ وضع إدخال فعلي واحد لكل نطاق ولا جمع إجمالي مع تفصيله أبدًا؛ تكرار المجموعة يضرب مرة واحدة (مكونات الوحدة × تكرارها مرة، والتوصيل على الطلب مرة)؛ الإجمالي 1000 minor لكمية 3 يبقى 1000 (تقريب عرض الوحدة لا يعيد حسابه 1002)؛ القيمة الدفترية بالوحدة الصغرى الآمنة والتقريب الأرضي للمواد وceil لوحدة التكلفة كما في النواة القائمة؛ السعر حر بلا حد أدنى وهامش البيع ليس علاوة التكلفة؛ لقطة المرجع الموسومة لا يغيرها تعديل/أرشفة المصدر لاحقًا؛ النواة واحدة مشتركة مع أدوات 031 بلا دمج الدفاتر. | حالات الفشل: حفظان متزامنان (CAS صادق بلا كتابة جزئية)، إعادة إرسال بمفتاح متطابق/مختلف (إعادة استخدام صادقة/تعارض)، مآل مجهول، نافذة ثانية وجيل بيانات، مسودة محذوفة أو مرتبطة بطلب (حرس الالتزام)، كتالوج متعذر (لا قائمة فارغة كاذبة ولا مسح قيمة مختارة). | معيار القبول: الحالات المملوكة للمرحلة (SDF-002 وSDF-034 بالدليل الدائم؛ وSDF-032/SDF-029/SDF-035/SDF-050/SDF-052/SDF-059/SDF-065/SDF-072 إما بدليل مباشر حيث يستدعيها نطاق الشريحة أو باستبعاد صادق بسبب بمصدره) + مصفوفات U007/U008/U029-AC الداخلة في النطاق + دورة نقل كاملة للحقول الجديدة على المهايئين + السلسلة الكاملة مرة واحدة على الحالة الكودية النهائية المجمعة + التحقق البعيد على الرأس النهائي المدفوع. | حد الاستعادة: رأس نشر الأمر ad133bae؛ كل شريحة عزلة مستقل قابل للرجوع فوقه؛ رجوع الكود لا يخفض المخطط/التصدير ولا يعيد كتابة تاريخًا مسلّمًا.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "CONFIRMED",
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "Owner-authorized continuous execution (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3): Part 1 (S08-MR-001/002, delivered in 6b3cb946) then Part 2 (S09) without intermediate approval; stage acceptance and merge remain owner-gated",
+  "tests_required": [
+    "Domain tests for the grouped basis expansion (multiply-once, delivery once, kernel reuse) and snapshot semantics",
+    "Dual-adapter regressions for draft persistence: groups, versioned offering refs, suggested price, CAS/linked guards",
+    "Cost snapshot append/revision semantics on grouped drafts (one kernel, honest knowledge states)",
+    "Explicit save-for-reuse idempotency and independence (no auto-save from draft/cost/estimate)",
+    "Transfer round-trips for the new optional fields on both adapters with legacy compatibility on 40/32",
+    "DOM journeys for the draft/cost/catalog surfaces (RTL/mobile/a11y states)",
+    "Full pnpm check once on the stable final candidate"
+  ],
+  "layers": [
+    "domain",
+    "application",
+    "storage",
+    "transfer",
+    "ui",
+    "tests",
+    "documentation"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S09-EXECUTION-PROMPT-2026-10-30.md",
+    "discovered_at_sha": "ad133bae8b0e58effc295aa6b00210c8daad41c3",
+    "evidence": [
+      "docs/implementation/micro-component-execution/13a-S08-REVIEW-FIX-ADDENDUM-2026-10-30.md",
+      "https://github.com/Qays7753/Micro/pull/383"
+    ]
+  },
+  "acceptance": [
+    "SDF-002: إجمالي 10 دينار لكمية 3 يبقى 1000 minor؛ تقريب عرض الوحدة لا يعيد حسابه",
+    "SDF-034: مكونات الوحدة تضرب تكرارها مرة واحدة، والتوصيل على الطلب مرة",
+    "الاستبعاد الصادق الموثق لبقية حالات SDF المرتبطة حيث لا يستدعيها نطاق الشريحة"
+  ],
+  "areas": [
+    "src/domain/craft-order/",
+    "apps/prototype-web/client/src/application/drafts/",
+    "apps/prototype-web/client/src/application/cost/",
+    "apps/prototype-web/client/src/application/catalog/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/pages/NewDraft.tsx",
+    "apps/prototype-web/client/src/pages/DraftEditor.tsx",
+    "apps/prototype-web/client/src/pages/CostEditor.tsx",
+    "apps/prototype-web/client/src/pages/Catalog.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S09-EXECUTION-PROMPT-2026-10-30.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-007-مسودة-الطلب.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-008-التكلفة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-029-المنتجات-والخدمات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/02-Consistency-Review-and-Decisions-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S09-EXECUTION-PROMPT-2026-10-30.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "dependencies": [
+    "DOC-017"
+  ],
+  "related_items": [
+    "DOC-017"
+  ],
+  "migration_baseline": true,
+  "next_action": "تنفيذ شرائح S09 بترتيب أمر ad133bae §6 (العقد/النواة ← ثبات المسودة ← لقطات التكلفة ← العرض المحفوظ ← النقل/الترحيل ← التحقق النهائي والمراجعات الخمس) على components/integration-20261027 / PR #383؛ رهن المراجعة المستقلة وقبول المالك؛ لا كتابة main ولا merge.",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-30",
+      "actor": "zai-s09-execution-part2",
+      "reason": "مطالبة S09 المأذونة بأمر التنفيذ المتصل ad133bae (القسم ٢) بعد اكتمال القسم ١ (إصلاح S08-MR-001/002 في 6b3cb946 واختباراته المركزة 165/165)؛ بطاقة الفهم مثبتة داخل summary أعلاه قبل أي سطر كود منتج لS09."
+    }
+  ],
+  "updated_at": "2026-10-30"
+}

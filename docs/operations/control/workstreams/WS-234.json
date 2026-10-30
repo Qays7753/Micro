@@ -1,0 +1,59 @@
+{
+  "id": "WS-234",
+  "title": "S09 — بناء الطلب وتكلفته والمنتج القابل لإعادة الاستخدام",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-018"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "ad133bae8b0e58effc295aa6b00210c8daad41c3",
+  "areas": [
+    "src/domain/craft-order/",
+    "apps/prototype-web/client/src/application/drafts/",
+    "apps/prototype-web/client/src/application/cost/",
+    "apps/prototype-web/client/src/application/catalog/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/pages/NewDraft.tsx",
+    "apps/prototype-web/client/src/pages/DraftEditor.tsx",
+    "apps/prototype-web/client/src/pages/CostEditor.tsx",
+    "apps/prototype-web/client/src/pages/Catalog.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S09-EXECUTION-PROMPT-2026-10-30.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-007-مسودة-الطلب.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-008-التكلفة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-029-المنتجات-والخدمات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/02-Consistency-Review-and-Decisions-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-10-30",
+  "updated_at": "2026-10-30",
+  "next_action": "تنفيذ شرائح S09 بترتيب أمر ad133bae §6 (العقد/النواة ← ثبات المسودة ← لقطات التكلفة ← العرض المحفوظ ← النقل/الترحيل ← التحقق النهائي والمراجعات الخمس) على components/integration-20261027 / PR #383؛ رهن المراجعة المستقلة وقبول المالك؛ لا كتابة main ولا merge.",
+  "notes": [
+    "أمر التنفيذ الوحيد هو 00-S09-EXECUTION-PROMPT-2026-10-30.md المنشور في ad133bae؛ GitHub هو مصدر الحقيقة التشغيلي.",
+    "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
+    "بطاقة الفهم مثبتة داخل DOC-018.summary؛ المخطط/التصدير 40/32 يُحفظ — الحقول الجديدة اختيارية متوافقة رجعيًا (نمط S06/S07/S08).",
+    "القسم ١ من الأمر (إصلاح S08-MR-001/002) مكتمل ومدفوع في c55c8584 (المرشح الكودي 6b3cb946)."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S09-EXECUTION-PROMPT-2026-10-30.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-30",
+      "actor": "zai-s09-execution-part2",
+      "reason": "مطالبة S09 المأذونة بأمر ad133bae القسم ٢ بعد اكتمال القسم ١ ودفعه."
+    }
+  ],
+  "migration_baseline": true
+}
