@@ -53,5 +53,5 @@
       "reason": "مطالبة S08 المأذونة على components/integration-20261027 / PR #383 من رأس نشر الأمر 73c1a344 بعد اكتمال بوابة انتقال S07 (إصلاح S07-MR-001 + بوابات بعيد خضراء على الرأس النهائي d5df9344)."
     }
   ],
-  "migration_baseline": "localSchemaVersion=40 / localExportVersion=32 preserved; optional-field additions only (S06/S07 pattern); no new stores; settlement uses the existing payable_settlement_cash event type"
+  "migration_baseline": true
 }
