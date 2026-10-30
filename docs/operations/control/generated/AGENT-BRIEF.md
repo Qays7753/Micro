@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 7 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 8 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -42,4 +42,4 @@ python3 scripts/operations-control/validate.py
 | WS-230 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-014 | مراجعة Manus المستقلة وقبول المالك لS05 على المرشح النهائي bee05336 (يتضمن الآن إصلاحَي العقد S05-MR-001/S05-MR-002 المسلَّمين أعلى الفرع نفسه بcommits موسومة مستقلة — ما زالا رهن المراجعة المستقلة كجزء من ملف S05)؛ لا دمج ولا كتابة main. |
 | WS-231 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-015 | مراجعة Manus المستقلة وقبول المالك على PR #383 (المرشح الكودي 0a728d14 وسجلات التوثيق فوقه وملحق S06-MR-001 11a-S06-ADDENDUM-2026-10-30.md لإصلاح 18a7128a)؛ لا دمج ولا كتابة main. |
 | WS-232 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-016 | مراجعة Manus المستقلة وقرار المالك على PR #383 (سجل S07 الكامل مع إصلاح S07-MR-001 في 12-S07-RESULT §1-ب/§4-ب)؛ لا دمج ولا كتابة main. |
-| WS-233 | IN_PROGRESS | `components/integration-20261027` | 383 | DOC-017 | تنفيذ S08 المتصل (UNIT-034) على components/integration-20261027 / PR #383؛ لا كتابة main ولا merge؛ S07/S08 رهن المراجعة المستقلة وقبول المالك. |
+| WS-233 | IN_REVIEW | `components/integration-20261027` | 383 | DOC-017 | التحقق البعيد على الرأس النهائي المدفوع (Actions/Cloudflare) وإعادة إرساء أسطح السحاب من القيم المقاسة فعليًا وفق بروتوكول R8-1/R11 — كل ذلك على components/integration-20261027 / PR #383؛ لا كتابة main ولا merge؛ رهن المراجعة المستقلة وقبول المالك؛ لا S09 قبل إغلاق بوابات المراجعة والقبول. |
