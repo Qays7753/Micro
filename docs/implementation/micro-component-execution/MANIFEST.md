@@ -140,7 +140,7 @@
 | `00-S08-EXECUTION-PROMPT-2026-10-30.md` | أمر ZAI الكنوني: إتمام إصلاح S07-MR-001 الجذري (القسم ١) ثم تنفيذ S08 الكامل للأصول والمعدات UNIT-034؛ نفس الفرع وPR؛ لا main ولا merge | `EXECUTED 2026-10-30` (البوابة أُغلقت بأمر المالك المنشور نفسه) |
 | `13-S08-RESULT-2026-10-30.md` | نتيجة تنفيذ S08 ومصفوفة القبول وسجل ملاحظات المراجعات الخمس الكامل | `DELIVERED_FOR_REVIEW` |
 | `13a-S08-REVIEW-FIX-ADDENDUM-2026-10-30.md` | ملحق S08: الملاحظتان المؤكدتان S08-MR-001/S08-MR-002 وإصلاحهما الجذري في `6b3cb946` (بإعادة فتح Control `e9ff964b` بالمسار القانوني) بأمر التنفيذ المتصل ad133bae وانحدارهما الدائم (14/14 × ست تشغيلات متتابعة على زوجي الاقتران) وتصحيح ادعاء دورة النقل في نتيجة S08 بتاريخه | `DELIVERED_FOR_REVIEW` (بأمر ad133bae المتصل) |
-| `DOC-017.json` / `WS-233.json` | Control وWorkstream لتنفيذ S08 | `IN_REVIEW` بعد التسليم |
+| `DOC-017.json` / `WS-233.json` | Control وWorkstream لتنفيذ S08 — صُحّح المسار القانوني (إقحام REOPENED الناقص لإعادة فتح e9ff964b) وسجّل DOC-018 في بوابة PRE-PILOT | `DOC-017: IN_REVIEW` / `WS-233: REVIEW_REQUIRED` (تعاقب المراحل — سابقة WS-232؛ رهن المراجعة المستقلة) |
 | `00-S08-REVIEW-FIX-PROMPT-2026-10-30.md` | مسودة أمر تصحيح S08 لملاحظتي Manus: إحكام مرجع طرف اقتناء الأصل وإثبات دورة النقل للحقول الجديدة؛ نفس الفرع وPR، دون إعادة تنفيذ S08 أو بدء S09 | `DRAFT_FOR_OWNER_REVIEW` |
 | `00-S09-EXECUTION-PROMPT-2026-10-30.md` | أمر ZAI الموحد: استئناف من `e42086613c12433d40dfc54c19af0ccef90fdfad`، معالجة إخفاقات Control وGitHub/Cloudflare، ثم إكمال بقية S09 دون إعادة العمل أو موافقة وسيطة؛ لا S10 أو main أو merge | `OWNER_AUTHORIZED — PARTIAL; RESUME_REQUIRED; REVIEW_REQUIRED; CURRENT_HEAD_GATE_FAILURE` |
 

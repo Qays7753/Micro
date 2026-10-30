@@ -2,13 +2,14 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 8 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
+BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 8 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
 | DEVICE-001 | BLOCKED | FIX_BEFORE_PILOT | NOT_APPLICABLE | P1 | stage-7 | QA على أجهزة فعلية وWebKit وPWA | Product owner / Manus coordination | device, accessibility, pwa | UX-001, REL-001 |
 | LEGAL-001 | BLOCKED | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-8 | مراجعة أردنية مالية وقانونية | Product owner / Manus coordination | legal, product-scope | FIN-007 |
 | PILOT-001 | BLOCKED | RELEASE_GATE | RELEASE_GATE | P1 | stage-10 | قرار بدء Pilot | Product owner / Manus coordination | release, pilot | AUDIT-001, CLEAN-001, CTRL-001, CTRL-002, DEVICE-001, DOC-011, DOC-012, DOC-013, FIN-001, FIN-002, FIN-003, FIN-004, FIN-005, FIN-006, FIN-007, FIN-008, FIN-009, G-001, G-002, G-003, G-004, G-005, G-006, HARD-009, HARD-010, HARD-011, LEGAL-001, OPS-001, OPS-002, OPS-003, OPS-004, OPS-005, OPS-006, OPS-007, OPS-008, OPS-009, REL-001, REM-001, REM-002, REM-003, REM-004, REM-005, REM-006, REM-007, UAT-001, UX-001 |
+| DOC-018 | IN_PROGRESS | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P0 | micro-component-execution-s09-20261030 | S09 execution — بناء الطلب وتكلفته والمنتج القابل لإعادة الاستخدام (UNIT-007/008/029 + SH-13) | Micro owner (Qays7753) | domain, application, storage, transfer, ui, tests, documentation | DOC-017 |
 | UX-001 | IN_PROGRESS | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P1 | stage-5 | إعادة تصميم UI وUX جذرية | Product owner / Manus coordination | ui/ux, presentation | CLEAN-001 |
 | DOC-011 | IN_REVIEW | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P0 | micro-component-execution-s02-20261027 | S02 حماية الكتابة والاستعادة وإزالة قفل PIN — أمر التنفيذ الجاهز | Micro owner (Qays7753) | application, storage, domain, ui-runtime, documentation, governance | DOC-010 |
 | DOC-012 | IN_REVIEW | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P0 | micro-component-execution-s03-20261028 | S03 بداية المشروع وبياناته وإعداداته الأساسية — تنفيذ UNIT-001/UNIT-038/UNIT-039 | Micro owner (Qays7753) | application, storage, domain, ui-runtime, documentation, governance | DOC-011 |
