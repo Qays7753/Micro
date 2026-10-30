@@ -1018,19 +1018,42 @@ export interface PrototypeLocalStore {
     record: AssetRecord,
     event: FinancialEvent | null,
   ): Promise<StorageResult<{ record: AssetRecord; event: FinancialEvent | null; reused: boolean }>>;
-  /* تصحيح اقتناء أصل: التراجع والبديل والسجل المحدّث في معاملة واحدة. */
-  commitAssetAcquisitionCorrection(
+  /* S08 (UNIT-034): الاقتناء الذري متعدد الأحداث — السجل وأحداث اقتنائه
+   * (نقدي كامل، أو ذمم كاملة، أو جزئيًا: حدث نقدي بالمدفوع + حدث ذمم
+   * بالمتبقي) في معاملة واحدة؛ إعادة الإرسال إعادة استخدام بالمفاتيح
+   * لا تكرارًا، وحارس العلاقة داخل الحد كما هو موثق عند الحارس النقي. */
+  commitAssetAcquisition(
     record: AssetRecord,
-    reversal: FinancialEvent,
-    replacement: FinancialEvent,
+    events: readonly FinancialEvent[],
   ): Promise<
     StorageResult<{
       record: AssetRecord;
-      reversal: FinancialEvent;
-      replacement: FinancialEvent;
+      events: readonly FinancialEvent[];
       reused: boolean;
     }>
   >;
+  /* تصحيح اقتناء أصل: التراجعات والبدائل والسجل المحدّث في معاملة واحدة.
+   * S08: صيغة المصفوفات — تصحيح الاقتناء الجزئي يعكس حدثيه ويستبدلهما
+   * (حتى حدثين من كل نوع) في المعاملة نفسها. */
+  commitAssetAcquisitionCorrection(
+    record: AssetRecord,
+    reversals: readonly FinancialEvent[],
+    replacements: readonly FinancialEvent[],
+  ): Promise<
+    StorageResult<{
+      record: AssetRecord;
+      reversals: readonly FinancialEvent[];
+      replacements: readonly FinancialEvent[];
+      reused: boolean;
+    }>
+  >;
+  /* S08 (UNIT-034 / SDF-066): تسديد ذممة اقتناء أصل داخل حد الكتابة —
+   * المصدر الحي (حدث asset_purchase_payable فعال) والمبلغ داخل المتبقي
+   * الحي المحسوب من الأحداث داخل المعاملة نفسها؛ إعادة المفتاح المتطابق
+   * إعادة استخدام صادقة والمختلف تعارض بلا استبدال؛ حدث واحد أو لا شيء. */
+  commitAssetPayableSettlement(
+    settlement: FinancialEvent,
+  ): Promise<StorageResult<{ settlement: FinancialEvent; reused: boolean }>>;
   /* المجموعة ٤ (عقد ٢٩ — القروض): قراءة سجل القروض. */
   listLoans(): Promise<StorageResult<readonly LoanRecord[]>>;
   getLoan(id: string): Promise<StorageResult<LoanRecord | null>>;

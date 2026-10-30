@@ -120,7 +120,7 @@ describe("R2 regression — Amman business date at the evening boundary (M-05, 2
     });
     expect(corrected.ok).toBe(true);
     if (!corrected.ok) return;
-    expect(corrected.value.reversal.occurredOn).toBe("2026-10-08");
+    expect(corrected.value.reversals[0]!.occurredOn).toBe("2026-10-08");
   });
 
   it("received-loan correction before 21:00Z keeps the same Amman day (FH-6b)", async () => {
@@ -168,7 +168,7 @@ describe("R2 regression — Amman business date at the evening boundary (M-05, 2
     });
     expect(corrected.ok).toBe(true);
     if (!corrected.ok) return;
-    expect(corrected.value.reversal.occurredOn).toBe("2026-10-07");
+    expect(corrected.value.reversals[0]!.occurredOn).toBe("2026-10-07");
   });
 
   it("retained-deposit classification after 21:00Z carries the NEXT Amman day", async () => {

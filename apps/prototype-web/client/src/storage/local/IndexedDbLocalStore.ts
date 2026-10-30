@@ -95,6 +95,13 @@ import {
   type InventoryCommitDecision,
   type InventoryCommitExpectation,
 } from "./inventoryCommitGuard";
+/* S08 (UNIT-034): حارس التزام سجلات الأصول وأحداثها النقي — القرار
+ * داخل حد الكتابة في المهايئين معًا. */
+import {
+  validateAssetEventsCommit,
+  validateAssetPayableSettlementCommit,
+  validateAssetRecordCommit,
+} from "./assetCommitGuard";
 import {
   committedReversalMovements,
   storedReversalMovementsFor,
@@ -3548,62 +3555,11 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         };
         assetRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existing = assetRequest.result as AssetRecord | undefined;
-          const eventCheck = event ? events.get(event.id) : null;
-          const proceed = () => {
-            if (event) {
-              const request = eventCheck!;
-              request.onsuccess = guardedSuccessListener(failFromListener, () => {
-                if (request.result) {
-                  pending = {
-                    ok: true,
-                    value: {
-                      record: existing ?? record,
-                      event: request.result as FinancialEvent,
-                      reused: true,
-                    },
-                  };
-                  try {
-                    transaction.abort();
-                  } catch {
-                    if (pending) finish(pending);
-                  }
-                  return;
-                }
-                assets.put(record);
-                events.put(event);
-              });
-              request.onerror = () => {
-                pending = failure(request.error, database);
-                try {
-                  transaction.abort();
-                } catch {
-                  if (pending) finish(pending);
-                }
-              };
-              return;
-            }
-            /* مراجعة عقد بلا حدث: المراجعة نفسها محفوظة → إعادة استخدام. */
-            if (
-              existing &&
-              existing.contractRevisions.length >= record.contractRevisions.length &&
-              record.contractRevisions.length > 0
-            ) {
-              pending = { ok: true, value: { record: existing, event: null, reused: true } };
-              try {
-                transaction.abort();
-              } catch {
-                if (pending) finish(pending);
-              }
-              return;
-            }
-            assets.put(record);
-          };
-          if (existing && existing.operationKey !== record.operationKey) {
-            pending = {
-              ok: false,
-              code: STORAGE_ERROR,
-              message: "سجل أصل مختلف يحمل هذا المعرف؛ لم يتغير شيء.",
-            };
+          /* S08: حارس العلاقة النقي داخل المعاملة — إعادة تشغيل صادقة أو
+           * «عملية مجال واحدة بالضبط» أو رفض storage_stale بلا كتابة. */
+          const recordGuard = validateAssetRecordCommit(existing, record);
+          if (!recordGuard.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: recordGuard.message };
             try {
               transaction.abort();
             } catch {
@@ -3611,7 +3567,61 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             }
             return;
           }
-          proceed();
+          /* إعادة استخدام السجل لا تلغي ذراع الحدث — تسجيل إهلاك فوق السجل
+           * نفسه سجلٌ مُعاد وحدثٌ جديد؛ الحدث يُفحص وحده ويُكتب إن كان جديدًا. */
+          if (recordGuard.reused && !event) {
+            pending = { ok: true, value: { record: existing ?? record, event: null, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          if (!event) {
+            assets.put(record);
+            return;
+          }
+          /* حدث واحد: الحتمية بالمفتاح داخل الحد — المخزّن يُعاد كما هو. */
+          const eventScan = events.getAll();
+          eventScan.onerror = () => {
+            pending = failure(eventScan.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          eventScan.onsuccess = guardedSuccessListener(failFromListener, () => {
+            const eventsGuard = validateAssetEventsCommit(eventScan.result as FinancialEvent[], [event]);
+            if (!eventsGuard.ok) {
+              pending = { ok: false, code: STORAGE_STALE, message: eventsGuard.message };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            if (eventsGuard.reused) {
+              pending = {
+                ok: true,
+                value: {
+                  record: existing ?? record,
+                  event: eventsGuard.storedEvents[0] ?? event,
+                  reused: true,
+                },
+              };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            if (!recordGuard.reused) assets.put(record);
+            events.put(event);
+          });
         });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
@@ -3623,16 +3633,16 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       return failure(error);
     }
   }
-  /* تصحيح اقتناء أصل: التراجع والبديل والسجل في معاملة واحدة. */
-  async commitAssetAcquisitionCorrection(
+  /* S08 (UNIT-034): الاقتناء الذري متعدد الأحداث — السجل وأحداثه معًا أو
+   * لا شيء؛ الحتمية بالمفاتيح داخل الحد (المخزّن يُعاد كما هو) والسجل
+   * يحرسه علاقة الحارس النقي نفسها. */
+  async commitAssetAcquisition(
     record: AssetRecord,
-    reversal: FinancialEvent,
-    replacement: FinancialEvent,
+    events: readonly FinancialEvent[],
   ): Promise<
     StorageResult<{
       record: AssetRecord;
-      reversal: FinancialEvent;
-      replacement: FinancialEvent;
+      events: readonly FinancialEvent[];
       reused: boolean;
     }>
   > {
@@ -3641,23 +3651,15 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       return await new Promise(resolve => {
         const transaction = database.transaction([assetStore, financialEventStore], "readwrite");
         const assets = transaction.objectStore(assetStore);
-        const events = transaction.objectStore(financialEventStore);
+        const eventsStore = transaction.objectStore(financialEventStore);
         let pending: StorageResult<{
           record: AssetRecord;
-          reversal: FinancialEvent;
-          replacement: FinancialEvent;
+          events: readonly FinancialEvent[];
           reused: boolean;
         }> | null = null;
         const finish = (
-          result: StorageResult<{
-            record: AssetRecord;
-            reversal: FinancialEvent;
-            replacement: FinancialEvent;
-            reused: boolean;
-          }>,
-        ) => {
-          resolve(result);
-        };
+          result: StorageResult<{ record: AssetRecord; events: readonly FinancialEvent[]; reused: boolean }>,
+        ) => resolve(result);
         const failFromListener = (error: unknown) => {
           pending = failure(error, database);
           try {
@@ -3666,54 +3668,256 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        const reversalRequest = events.get(reversal.id);
-        reversalRequest.onerror = () => {
-          pending = failure(reversalRequest.error, database);
+        const assetRequest = assets.get(record.id);
+        assetRequest.onerror = () => {
+          pending = failure(assetRequest.error, database);
           try {
             transaction.abort();
           } catch {
             if (pending) finish(pending);
           }
         };
-        reversalRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
-          if (reversalRequest.result) {
-            const replacementRequest = events.get(replacement.id);
-            replacementRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+        assetRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const existing = assetRequest.result as AssetRecord | undefined;
+          const recordGuard = validateAssetRecordCommit(existing, record);
+          if (!recordGuard.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: recordGuard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          const eventScan = eventsStore.getAll();
+          eventScan.onerror = () => {
+            pending = failure(eventScan.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          eventScan.onsuccess = guardedSuccessListener(failFromListener, () => {
+            const eventsGuard = validateAssetEventsCommit(eventScan.result as FinancialEvent[], events);
+            if (!eventsGuard.ok) {
+              pending = { ok: false, code: STORAGE_STALE, message: eventsGuard.message };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            if (recordGuard.reused && eventsGuard.reused) {
               pending = {
                 ok: true,
-                value: {
-                  record,
-                  reversal: reversalRequest.result as FinancialEvent,
-                  replacement: (replacementRequest.result as FinancialEvent | undefined) ?? replacement,
-                  reused: true,
-                },
+                value: { record: existing ?? record, events: eventsGuard.storedEvents, reused: true },
               };
               try {
                 transaction.abort();
               } catch {
                 if (pending) finish(pending);
               }
+              return;
+            }
+            if (!recordGuard.reused) assets.put(record);
+            /* الكتابة للأحداث الجديدة فقط — العضوية في الحقيقة الحية المقروءة. */
+            const liveEventIds = new Set((eventScan.result as FinancialEvent[]).map(event => event.id));
+            events.forEach(event => {
+              if (!liveEventIds.has(event.id)) eventsStore.put(event);
             });
-            replacementRequest.onerror = () => {
-              pending = failure(replacementRequest.error, database);
-              try {
-                transaction.abort();
-              } catch {
-                if (pending) finish(pending);
-              }
+          });
+        });
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { record, events, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* تصحيح اقتناء أصل: التراجعات والبدائل والسجل في معاملة واحدة — صيغة
+   * المصفوفات (S08): الاقتناء الجزئي يعكس حدثيه ويستبدلهما معًا. */
+  async commitAssetAcquisitionCorrection(
+    record: AssetRecord,
+    reversals: readonly FinancialEvent[],
+    replacements: readonly FinancialEvent[],
+  ): Promise<
+    StorageResult<{
+      record: AssetRecord;
+      reversals: readonly FinancialEvent[];
+      replacements: readonly FinancialEvent[];
+      reused: boolean;
+    }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([assetStore, financialEventStore], "readwrite");
+        const assets = transaction.objectStore(assetStore);
+        const eventsStore = transaction.objectStore(financialEventStore);
+        let pending: StorageResult<{
+          record: AssetRecord;
+          reversals: readonly FinancialEvent[];
+          replacements: readonly FinancialEvent[];
+          reused: boolean;
+        }> | null = null;
+        const finish = (
+          result: StorageResult<{
+            record: AssetRecord;
+            reversals: readonly FinancialEvent[];
+            replacements: readonly FinancialEvent[];
+            reused: boolean;
+          }>,
+        ) => resolve(result);
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const eventScan = eventsStore.getAll();
+        eventScan.onerror = () => {
+          pending = failure(eventScan.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        eventScan.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const liveEvents = eventScan.result as FinancialEvent[];
+          const reversalGuard = validateAssetEventsCommit(liveEvents, reversals);
+          if (!reversalGuard.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: reversalGuard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          const replacementGuard = validateAssetEventsCommit(
+            [
+              ...liveEvents,
+              ...reversals.filter(
+                reversal => !reversalGuard.storedEvents.some(stored => stored.id === reversal.id),
+              ),
+            ],
+            replacements,
+          );
+          if (!replacementGuard.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: replacementGuard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          const reused = reversalGuard.reused || replacementGuard.reused;
+          if (reversalGuard.reused && replacementGuard.reused) {
+            pending = {
+              ok: true,
+              value: {
+                record,
+                reversals: reversalGuard.storedEvents,
+                replacements: replacementGuard.storedEvents,
+                reused: true,
+              },
             };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
             return;
           }
           assets.put(record);
-          events.put(reversal);
-          events.put(replacement);
+          const liveIds = new Set((eventScan.result as FinancialEvent[]).map(event => event.id));
+          reversals.forEach(reversal => {
+            if (!liveIds.has(reversal.id)) eventsStore.put(reversal);
+          });
+          replacements.forEach(replacement => {
+            if (!liveIds.has(replacement.id)) eventsStore.put(replacement);
+          });
         });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
         transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () =>
-          finish({ ok: true, value: { record, reversal, replacement, reused: false } });
+          finish({ ok: true, value: { record, reversals, replacements, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* S08 (UNIT-034 / SDF-066): تسديد ذممة اقتناء أصل — المصدر الحي والمبلغ
+   * داخل المتبقي الحي، كله داخل المعاملة نفسها؛ حدث واحد أو لا شيء. */
+  async commitAssetPayableSettlement(
+    settlement: FinancialEvent,
+  ): Promise<StorageResult<{ settlement: FinancialEvent; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([financialEventStore], "readwrite");
+        const eventsStore = transaction.objectStore(financialEventStore);
+        let pending: StorageResult<{ settlement: FinancialEvent; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ settlement: FinancialEvent; reused: boolean }>) =>
+          resolve(result);
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const eventScan = eventsStore.getAll();
+        eventScan.onerror = () => {
+          pending = failure(eventScan.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        eventScan.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const guard = validateAssetPayableSettlementCommit(
+            eventScan.result as FinancialEvent[],
+            settlement,
+          );
+          if (!guard.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: guard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          if (guard.reused) {
+            pending = { ok: true, value: { settlement: guard.stored, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          eventsStore.put(settlement);
+        });
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { settlement, reused: false } });
       });
     } catch (error) {
       return failure(error);

@@ -31,6 +31,12 @@ import { decideCounterpartyCommit, type CounterpartyWriteCommit } from "./counte
 /* S07-MR-001 (أمر S08 — القسم ١): قرار التزام المخزون النقي — مالك واحد
  * للمهايئين (CAS داخل الحد + حتمية داخل الحد). */
 import { decideInventoryCommit, type InventoryCommitExpectation } from "./inventoryCommitGuard";
+/* S08 (UNIT-034): حارس التزام سجلات الأصول وأحداثها النقي. */
+import {
+  validateAssetEventsCommit,
+  validateAssetPayableSettlementCommit,
+  validateAssetRecordCommit,
+} from "./assetCommitGuard";
 import {
   validateScheduleUpdate,
   validateSupplierPurchaseCommit,
@@ -1934,76 +1940,145 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     const record = this.assets.get(id);
     return { ok: true, value: record ? clone(record) : null };
   }
+  /* S08 (UNIT-034): حارس العلاقة النقي داخل الخطوة المتزامنة — إعادة
+   * تشغيل صادقة أو «عملية مجال واحدة بالضبط» أو رفض بلا كتابة (لا
+   * آخر-كاتب-يفوز فوق سجل له أحداث مالية). */
   async commitAssetRecord(
     record: AssetRecord,
     event: FinancialEvent | null,
   ): Promise<StorageResult<{ record: AssetRecord; event: FinancialEvent | null; reused: boolean }>> {
     const existing = this.assets.get(record.id);
-    if (existing && existing.operationKey !== record.operationKey) {
-      return {
-        ok: false,
-        code: STORAGE_ERROR,
-        message: "سجل أصل مختلف يحمل هذا المعرف؛ لم يتغير شيء.",
-      };
-    }
-    if (event && this.financialEvents.has(event.id)) {
+    const recordGuard = validateAssetRecordCommit(existing, record);
+    if (!recordGuard.ok) return { ok: false, code: STORAGE_STALE, message: recordGuard.message };
+    /* إعادة استخدام السجل لا تلغي ذراع الحدث — تسجيل إهلاك فوق السجل نفسه
+     * سجلٌ مُعاد وحدثٌ جديد؛ الحدث يُفحص وحده ويُكتب إن كان جديدًا. */
+    if (recordGuard.reused && !event)
       return {
         ok: true,
-        value: {
-          record: existing ? clone(existing) : clone(record),
-          event: clone(this.financialEvents.get(event.id)!),
-          reused: true,
-        },
+        value: { record: existing ? clone(existing) : clone(record), event: null, reused: true },
       };
-    }
-    if (
-      !event &&
-      existing &&
-      record.contractRevisions.length > 0 &&
-      existing.contractRevisions.length >= record.contractRevisions.length
-    ) {
-      return { ok: true, value: { record: clone(existing), event: null, reused: true } };
+    if (event) {
+      const eventsGuard = validateAssetEventsCommit(Array.from(this.financialEvents.values()), [event]);
+      if (!eventsGuard.ok) return { ok: false, code: STORAGE_STALE, message: eventsGuard.message };
+      if (eventsGuard.reused)
+        return {
+          ok: true,
+          value: {
+            record: existing ? clone(existing) : clone(record),
+            event: clone(eventsGuard.storedEvents[0] ?? event),
+            reused: true,
+          },
+        };
+      if (!recordGuard.reused) this.assets.set(record.id, clone(record));
+      this.financialEvents.set(event.id, clone(event));
+      return { ok: true, value: { record: clone(record), event: clone(event), reused: false } };
     }
     this.assets.set(record.id, clone(record));
-    if (event) this.financialEvents.set(event.id, clone(event));
-    return { ok: true, value: { record: clone(record), event: event ? clone(event) : null, reused: false } };
+    return { ok: true, value: { record: clone(record), event: null, reused: false } };
   }
-  async commitAssetAcquisitionCorrection(
+  /* S08 (UNIT-034): الاقتناء الذري متعدد الأحداث — السجل وأحداثه معًا أو
+   * لا شيء؛ الحتمية بالمفاتيح داخل الخطوة المتزامنة. */
+  async commitAssetAcquisition(
     record: AssetRecord,
-    reversal: FinancialEvent,
-    replacement: FinancialEvent,
+    events: readonly FinancialEvent[],
   ): Promise<
     StorageResult<{
       record: AssetRecord;
-      reversal: FinancialEvent;
-      replacement: FinancialEvent;
+      events: readonly FinancialEvent[];
       reused: boolean;
     }>
   > {
-    if (this.financialEvents.has(reversal.id)) {
-      const storedReplacement = this.financialEvents.get(replacement.id) ?? replacement;
+    const existing = this.assets.get(record.id);
+    const recordGuard = validateAssetRecordCommit(existing, record);
+    if (!recordGuard.ok) return { ok: false, code: STORAGE_STALE, message: recordGuard.message };
+    const eventsGuard = validateAssetEventsCommit(Array.from(this.financialEvents.values()), events);
+    if (!eventsGuard.ok) return { ok: false, code: STORAGE_STALE, message: eventsGuard.message };
+    if (recordGuard.reused && eventsGuard.reused)
       return {
         ok: true,
         value: {
-          record: clone(record),
-          reversal: clone(this.financialEvents.get(reversal.id)!),
-          replacement: clone(storedReplacement),
+          record: clone(existing ?? record),
+          events: eventsGuard.storedEvents.map(clone),
           reused: true,
         },
       };
-    }
-    this.assets.set(record.id, clone(record));
-    this.financialEvents.set(reversal.id, clone(reversal));
-    this.financialEvents.set(replacement.id, clone(replacement));
+    if (!recordGuard.reused) this.assets.set(record.id, clone(record));
+    /* الكتابة للأحداث الجديدة فقط — العضوية تُفحص في الحقيقة الحية لا في
+     * نتيجة القرار (النتيجة تحمل الوارد للجديد والمخزّن لإعادة الاستخدام). */
+    const liveEventIds = new Set(Array.from(this.financialEvents.values(), event => event.id));
+    events.forEach(event => {
+      if (!liveEventIds.has(event.id)) this.financialEvents.set(event.id, clone(event));
+    });
     return {
       ok: true,
       value: {
         record: clone(record),
-        reversal: clone(reversal),
-        replacement: clone(replacement),
-        reused: false,
+        events: eventsGuard.storedEvents.map(clone),
+        reused: eventsGuard.reused,
       },
     };
+  }
+  /* تصحيح اقتناء أصل — صيغة المصفوفات (S08): الاقتناء الجزئي يعكس
+   * حدثيه ويستبدلهما معًا في الخطوة المتزامنة الواحدة. */
+  async commitAssetAcquisitionCorrection(
+    record: AssetRecord,
+    reversals: readonly FinancialEvent[],
+    replacements: readonly FinancialEvent[],
+  ): Promise<
+    StorageResult<{
+      record: AssetRecord;
+      reversals: readonly FinancialEvent[];
+      replacements: readonly FinancialEvent[];
+      reused: boolean;
+    }>
+  > {
+    const liveEvents = Array.from(this.financialEvents.values());
+    const reversalGuard = validateAssetEventsCommit(liveEvents, reversals);
+    if (!reversalGuard.ok) return { ok: false, code: STORAGE_STALE, message: reversalGuard.message };
+    const augmentedLive = [
+      ...liveEvents,
+      ...reversals.filter(reversal => !reversalGuard.storedEvents.some(stored => stored.id === reversal.id)),
+    ];
+    const replacementGuard = validateAssetEventsCommit(augmentedLive, replacements);
+    if (!replacementGuard.ok) return { ok: false, code: STORAGE_STALE, message: replacementGuard.message };
+    if (reversalGuard.reused && replacementGuard.reused)
+      return {
+        ok: true,
+        value: {
+          record: clone(record),
+          reversals: reversalGuard.storedEvents.map(clone),
+          replacements: replacementGuard.storedEvents.map(clone),
+          reused: true,
+        },
+      };
+    this.assets.set(record.id, clone(record));
+    const liveIds = new Set(Array.from(this.financialEvents.values(), event => event.id));
+    reversals.forEach(reversal => {
+      if (!liveIds.has(reversal.id)) this.financialEvents.set(reversal.id, clone(reversal));
+    });
+    replacements.forEach(replacement => {
+      if (!liveIds.has(replacement.id)) this.financialEvents.set(replacement.id, clone(replacement));
+    });
+    return {
+      ok: true,
+      value: {
+        record: clone(record),
+        reversals: reversalGuard.storedEvents.map(clone),
+        replacements: replacementGuard.storedEvents.map(clone),
+        reused: reversalGuard.reused || replacementGuard.reused,
+      },
+    };
+  }
+  /* S08 (UNIT-034 / SDF-066): تسديد ذممة اقتناء أصل داخل الخطوة المتزامنة —
+   * المصدر الحي والمبلغ داخل المتبقي الحي؛ حدث واحد أو لا شيء. */
+  async commitAssetPayableSettlement(
+    settlement: FinancialEvent,
+  ): Promise<StorageResult<{ settlement: FinancialEvent; reused: boolean }>> {
+    const guard = validateAssetPayableSettlementCommit(Array.from(this.financialEvents.values()), settlement);
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
+    if (guard.reused) return { ok: true, value: { settlement: clone(guard.stored), reused: true } };
+    this.financialEvents.set(settlement.id, clone(settlement));
+    return { ok: true, value: { settlement: clone(settlement), reused: false } };
   }
   async listLoans(): Promise<StorageResult<readonly LoanRecord[]>> {
     return {

@@ -259,6 +259,19 @@ export function migrateTransferSnapshot(
                 depreciationStartOn: asset.depreciationStartOn ?? null,
                 disposal: asset.disposal ?? null,
                 writeOff: asset.writeOff ?? null,
+                /* S08 (UNIT-034): الحقلان الاختياريان الجديدان — الغياب
+                 * يُطبّع null بنمط العائلة (متوافق رجعيًا). */
+                acquisitionParty:
+                  asset.acquisitionParty && typeof asset.acquisitionParty === "object"
+                    ? {
+                        partyId: String((asset.acquisitionParty as Record<string, unknown>).partyId ?? ""),
+                        labelSnapshot: String(
+                          (asset.acquisitionParty as Record<string, unknown>).labelSnapshot ?? "",
+                        ),
+                      }
+                    : null,
+                paidAtCreationMinor:
+                  typeof asset.paidAtCreationMinor === "number" ? asset.paidAtCreationMinor : null,
                 contractRevisions: Array.isArray(asset.contractRevisions) ? asset.contractRevisions : [],
               }
             : asset,

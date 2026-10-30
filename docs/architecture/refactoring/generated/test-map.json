@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "a5995de7949c8a470dc0a5790c713201640ad7ba",
+  "head": "5d71572bccd3c853d5641869cf2a844e227f2ef6",
   "pages": {
     "total": 60,
     "map": {
@@ -13,12 +13,14 @@
       "pages/AssetDetail.tsx": {
         "kind": "direct",
         "evidence": [
+          "Assets.s08.dom.test.tsx",
           "G4Assets.dom.test.tsx"
         ]
       },
       "pages/AssetEditor.tsx": {
         "kind": "direct",
         "evidence": [
+          "Assets.s08.dom.test.tsx",
           "G4Assets.dom.test.tsx"
         ]
       },
@@ -738,6 +740,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/G4Loans.dom.test.tsx",
+          "apps/prototype-web/client/src/application/assets/assetService.s08.test.ts",
           "apps/prototype-web/client/src/application/assets/assetService.test.ts",
           "apps/prototype-web/client/src/application/loans/ammanBusinessDateBoundary.test.ts",
           "apps/prototype-web/client/src/application/loans/loanService.test.ts",
@@ -877,7 +880,9 @@
       "43-asset-depreciation-prototype-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/Assets.s08.dom.test.tsx",
           "apps/prototype-web/client/src/G4Assets.dom.test.tsx",
+          "apps/prototype-web/client/src/application/assets/assetService.s08.test.ts",
           "apps/prototype-web/client/src/application/assets/assetService.test.ts",
           "apps/prototype-web/client/src/application/transfers/localTransferService.assetResidual.test.ts",
           "apps/prototype-web/client/src/storage/local/capabilities/assetCapability.contract.test.ts",

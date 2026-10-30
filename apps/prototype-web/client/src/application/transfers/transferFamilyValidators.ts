@@ -722,6 +722,24 @@ export function validAssetRecord(value: unknown): boolean {
       value.note === undefined ||
       (isString(value.note) && (value.note as string).trim().length <= 500)
     ) ||
+    /* S08 (UNIT-034): طرف الاقتناء المحفوظ والمدفوع لحظة الإنشاء — حقنان
+     * اختياريان؛ الغياب/null = السلوك القائم (متوافق رجعيًا بنمط S06/S07). */
+    !(
+      value.acquisitionParty === null ||
+      value.acquisitionParty === undefined ||
+      (isRecord(value.acquisitionParty) &&
+        isString((value.acquisitionParty as Record<string, unknown>).partyId) &&
+        ((value.acquisitionParty as Record<string, unknown>).partyId as string).trim().length > 0 &&
+        isString((value.acquisitionParty as Record<string, unknown>).labelSnapshot) &&
+        ((value.acquisitionParty as Record<string, unknown>).labelSnapshot as string).trim().length > 0)
+    ) ||
+    !(
+      value.paidAtCreationMinor === null ||
+      value.paidAtCreationMinor === undefined ||
+      (isMoney(value.paidAtCreationMinor) &&
+        value.paidAtCreationMinor > 0 &&
+        value.paidAtCreationMinor < value.acquisitionAmountMinor)
+    ) ||
     !(value.status === "active" || value.status === "disposed" || value.status === "written_off") ||
     !isString(value.acquisitionEventId) ||
     value.acquisitionEventId.trim().length === 0 ||

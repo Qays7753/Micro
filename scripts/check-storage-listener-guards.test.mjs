@@ -58,8 +58,12 @@ describe("check-storage-listener-guards (R9-GA-F7.1 static guard)", () => {
      * S06 (DOC-015، 2026-10-30): 86 -> 87 — مستمع onsuccess جديد واحد في
      * commitRecurringExpenseOccurrenceLink (IndexedDbLocalStore — قراءة
      * الحصرية داخل معاملة readwrite نفسها) مغلّف بguardedSuccessListener
-     * الحارس نفسه (R2-F01)؛ إعادة إرساء موثقة نفس-الـPR لا تعديلًا صامتًا. */
-    expect(stdout).toMatch(/87 onsuccess listeners/);
+     * الحارس نفسه (R2-F01)؛ إعادة إرساء موثقة نفس-الـPR لا تعديلًا صامتًا.
+     * S08 (DOC-017، 2026-10-30): 87 -> 89 — منافذ أحداث الأصول في
+     * IndexedDbLocalStore (مسح الأحداث وقراءة السجل داخل معاملة الكتابة
+     * نفسها) كلها بguardedSuccessListener الحارس نفسه؛ إعادة إرساء موثقة
+     * نفس-الـPR لا تعديلًا صامتًا. */
+    expect(stdout).toMatch(/89 onsuccess listeners/);
   });
 
   it("fails on an unguarded write-queueing onsuccess listener (the F7 family recurrence)", () => {

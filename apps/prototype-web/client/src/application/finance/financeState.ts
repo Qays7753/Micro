@@ -136,7 +136,7 @@ export type FinanceOverviewDeps = {
   fulfillment: FulfillmentService;
   correctionHistory: CorrectionHistoryService;
   inventory: InventoryMaterialService;
-  assets: AssetService;
+  assets: AssetService | null;
   loans: LoanService | null;
   retainedDeposits: RetainedDepositService;
 };
@@ -206,9 +206,12 @@ export async function readFinanceOverview(
     /* المجموعة ٢ (عقد ٢٨): هدر الفترة — قراءة مشتقة بأساس occurredOn نفسه. */
     safeBlock(inventory.readPeriodWaste(from, to)),
     /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة؛
-     * القروض عبر الخدمة المحمّلة خاملًا (FIN-001 WS-178) — null لحظة
-     * التجهيز = كتلة معطوبة صادقة تُعاد قراءتها فور جاهزيتها (G-005). */
-    safeBlock(assets.overview()),
+     * القروض والأصول عبر الخدمات المحمّلة خاملًا (FIN-001 WS-178 ثم
+     * S08/DOC-017) — null لحظة التجهيز = كتلة معطوبة صادقة تُعاد
+     * قراءتها فور جاهزيتها (G-005). */
+    assets
+      ? safeBlock(assets.overview())
+      : Promise.resolve({ value: null as AssetOverviewRead | null, failed: true }),
     loans
       ? safeBlock(loans.overview())
       : Promise.resolve({ value: null as LoanOverviewRead | null, failed: true }),

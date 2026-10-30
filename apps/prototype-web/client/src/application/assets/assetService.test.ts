@@ -35,7 +35,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     const { service, created, store } = await seededAsset();
     expect(created.ok).toBe(true);
     if (!created.ok) return;
-    expect(created.value.asset.acquisitionEventId).toBe(created.value.event?.id);
+    expect(created.value.asset.acquisitionEventId).toBe(created.value.events[0]?.id);
     const events = await store.listFinancialEvents();
     assertOk(events);
     const acquisition = events.value.find(event => event.type === "asset_purchase_cash");
@@ -265,7 +265,7 @@ describe("asset service (المجموعة ٤ — عقد ٢٩)", () => {
     expect(acquisitions).toHaveLength(3);
     expect(correction.value.asset.acquisitionAmountMinor).toBe(65000);
     expect(correction.value.asset.acquisitionKind).toBe("payable");
-    expect(correction.value.asset.acquisitionEventId).toBe(correction.value.replacement.id);
+    expect(correction.value.asset.acquisitionEventId).toBe(correction.value.replacements[0]!.id);
   });
 
   it("keeps unknown life explicit: no schedule, no invented depreciation", async () => {
@@ -478,7 +478,7 @@ describe("asset service insecure-context ids (R10-B3 — F-012 + NF-006)", () =>
     expect(created.ok).toBe(true);
     if (!created.ok) return;
     expect(created.value.asset.id).toMatch(/^asset-\d+-[0-9a-z]+$/);
-    expect(created.value.event?.id).toMatch(/^event-\d+-[0-9a-z]+$/);
+    expect(created.value.events[0]?.id).toMatch(/^event-\d+-[0-9a-z]+$/);
     const events = await store.listFinancialEvents();
     expect(events.ok && events.value).toHaveLength(1);
   });

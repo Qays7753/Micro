@@ -83,7 +83,7 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
  * EXE-014/D-034 — FIN-001 WS-178 Wave 6: تحرير كومة الإقلاع من الوحدة)
  * فتُوفَّر عند اكتمال التحميل الخامل مثل transfers/recurringExpenses؛
  * خدمة القروض المستلمة لا تُسجّل هنا أبدًا — تُحمّل من صفحاتها وحدها. */
-import { AssetService } from "@/application/assets/assetService";
+import type { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
 import { RetainedDepositService } from "@/application/financial-records/retainedDepositService";
 /* المجموعة ٥ (عقد ٣٠): القارئ الموحّد للنشاط. */
@@ -165,7 +165,9 @@ type PrototypeServices = {
   /* المجموعة ٤ (عقد ٢٩): الأصول والإهلاك وتصنيف العربون المحتفظ به — كتابة
    * الأحداث المالية من هنا فقط لا من أي صفحة. القروض الصادرة عبر التحميل
    * الخامل: null يعني «جارٍ التجهيز» (نمط transfers) لا فشلًا صامتًا. */
-  assets: AssetService;
+  /* S08 (DOC-017 / UNIT-034، سابقة purchases/loans نفسها): الخدمة كسولة —
+   * null = «جارٍ التجهيز» حتى يكتمل تحميلها بعد الإقلاع. */
+  assets: AssetService | null;
   loans: LoanService | null;
   /* S04 (DOC-013 / UNIT-025، سابقة EXE-014/D-034 نفسها): خدمة العدّ والمطابقة
    * عبر التحميل الخامل — مسار العدّ لا يحتاجه الإقلاع وميزانية الحزمة محروسة
@@ -286,6 +288,21 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       active = false;
     };
   }, []);
+  /* S08 (DOC-017 / UNIT-034، ميزانية الحزمة — نمط purchases/loans/count/
+   * partyDirectory نفسه): خدمة الأصول تُحمّل ديناميكيًا بعد الإقلاع فوق
+   * المخزن الوحيد؛ تُبنى مرة ولا تُعاد عند تحديث dataVersion. وحدة الأصول
+   * والدومين المرافق يخرجان من كومة الإقلاع (سقف gzip المحروس لا يُرفع). */
+  const [assetService, setAssetService] = useState<AssetService | null>(null);
+  useEffect(() => {
+    let active = true;
+    void import("@/application/assets/assetService").then(module => {
+      if (!active) return;
+      setAssetService(new module.AssetService(singletonStore));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   useEffect(() => {
     let active = true;
     /* S05 (ميزانية الحزمة — نمط count/partyDirectory نفسه): مركز التحكم
@@ -358,6 +375,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       cashCount: cashCountService,
       partyDirectory: partyDirectoryService,
       supplierPurchases: supplierPurchasesService,
+      assets: assetService,
       homeControlCenter: homeControlCenterService,
       dataVersion,
       notifyDataChanged,
@@ -369,6 +387,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       cashCountService,
       partyDirectoryService,
       supplierPurchasesService,
+      assetService,
       homeControlCenterService,
       dataVersion,
       notifyDataChanged,
@@ -394,6 +413,7 @@ function createServices(): Omit<
   | "cashCount"
   | "partyDirectory"
   | "supplierPurchases"
+  | "assets"
   | "homeControlCenter"
 > {
   const store = singletonStore;
@@ -460,7 +480,6 @@ function createServices(): Omit<
     profitToCashBridge,
     activity,
     integrityCheck: new IntegrityCheckService(store, projectFinance, statement, cashContinuity),
-    assets: new AssetService(store),
     retainedDeposits: new RetainedDepositService(store),
   };
 }

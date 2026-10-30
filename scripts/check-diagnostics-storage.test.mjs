@@ -76,7 +76,11 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
      * المخزون النقي — بصمات CAS داخل حد الكتابة وحتمية داخل الحد؛ لا وصول
      * لتخزين المتصفح) فنما العدّ 373→374؛ بروتوكول الراتشة نفسه (تحديث
      * بنفس الـPR مع السبب الموثق — أمر S08 القسم ١ المنشور في 73c1a344). */
-    expect(stdout).toMatch(/374 ملف إنتاج/);
+    /* S08 (DOC-017، 2026-10-30): +assetCommitGuard.ts (حارس التزام أحداث/سجلات
+     * الأصول النقي — بصمات CAS داخل حد الكتابة وحتمية داخل الحد؛ لا وصول
+     * لتخزين المتصفح) فنما العدّ 374→375؛ بروتوكول الراتشة نفسه (تحديث
+     * بنفس الـPR مع السبب الموثق — أمر S08 المنشور في 73c1a344). */
+    expect(stdout).toMatch(/375 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

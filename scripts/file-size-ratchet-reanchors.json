@@ -4942,6 +4942,234 @@
         "trigger": "S07-MR-001 R1 corrections (DOC-016): dated structural-note update in the capability doc on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-016"
       }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-02",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/finance/integrityCheckCoreFinance.ts",
+      "from": {
+        "nbLoc": 430,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 436,
+        "band": "WATCH"
+      },
+      "reason": "S08 (UNIT-034): التزام اقتناء الأصل بالذمم (asset_purchase_payable) مصدر تسديد صالح في فحص سلامة المالية — قيد أخيه من مصروفات الذمم بنفس القيد والأثر؛ لا كاتب ثانٍ ولا تصنيف مالي مزيف.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): payable settlement-source integrity on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-05",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/AssetDetail.tsx",
+      "from": {
+        "nbLoc": 526,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 615,
+        "band": "WATCH"
+      },
+      "reason": "S08 (UNIT-034): سطح التفاصيل — بطاقة المدفوع/المتبقي المشتقة من الأحداث، تسديد من مصدر الالتزام بلا تجاوز، تصحيح الاقتناء ومراجعة العقد والتخلص/الشطب، مع فصل القيمة الدفترية عن السداد.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): asset detail payment/disposal surfaces on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-06",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/pages/AssetEditor.tsx",
+      "from": {
+        "nbLoc": 357,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 431,
+        "band": "WATCH"
+      },
+      "reason": "S08 (UNIT-034): مسار الدفع الجزئي المعتمد في المحرر — حقل «المدفوع الآن» بمسار الذمم فقط مع تحديد نطاقه، طرف محفوظ اختياري من قائمته الحية، ومعاينة أثر صادقة قبل الحفظ.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): asset editor partial-payment path on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-09",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/capabilities/assetStore.ts",
+      "from": {
+        "nbLoc": 35,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 39,
+        "band": "NORMAL"
+      },
+      "reason": "S08 (UNIT-034): منفذ القدرة يمرر توقع الحارس ونتيجة reused لمنافذ أحداث الأصول — غياب التوقع يحفظ عقد البذر/المطابقة منخفض المستوى حرفيًا.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): asset capability port pass-through on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-11",
+      "date": "2026-10-30",
+      "path": "src/domain/asset/policies.ts",
+      "from": {
+        "nbLoc": 349,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 438,
+        "band": "WATCH"
+      },
+      "reason": "S08 (UNIT-034): حراس مدخلات الإنشاء للحقول الجديدة — طرف الاقتناء والمدفوع لحظة الإنشاء داخل حدود عقد الشراء الجزئي المعتمد، ومساعد نافذة بداية الاستخدام المستقل فوق سقف التعقيد ذاته.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): asset domain input guards on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-12",
+      "date": "2026-10-30",
+      "path": "src/domain/asset/types.ts",
+      "from": {
+        "nbLoc": 118,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 147,
+        "band": "NORMAL"
+      },
+      "reason": "S08 (UNIT-034): الحقول الاختيارية الجديدة في CreateAssetRecordInput (acquisitionParty/paidAtCreationMinor) وأنواع حالة السداد المشتقة للقراءة.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): asset domain input/reading types on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-01",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/assets/assetService.ts",
+      "from": {
+        "nbLoc": 501,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 697,
+        "band": "WATCH"
+      },
+      "reason": "S08 (UNIT-034): تنسيق الاقتناء الكامل — الدفعة الأولى لمسار الدفع الجزئي المعتمد (paidAtCreationMinor)، طرف محفوظ بلقطة اسم تاريخية، سداد المتبقي من مصدر الالتزام نفسه (payPayable)، وتصحيح الاقتناء والتخلص/الشطب وعكس الإهلاك عبر الكُتّاب الكنونيين مع اشتقاق المدفوع/المتبقي من الأحداث لا من حقول قابلة للتحرير.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): asset acquisition/payment orchestration on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-03",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts",
+      "from": {
+        "nbLoc": 1730,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1919,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S08 (UNIT-034): الحقلان الاختياريان الجديدان في مدقق عائلة الأصول — طرف الاقتناء (كائن partyId + labelSnapshot) والمدفوع لحظة الإنشاء؛ الغياب/null = السلوك القائم (متوافق رجعيًا بنمط S06/S07).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): asset family validator fields on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-04",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotMigrations.ts",
+      "from": {
+        "nbLoc": 346,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 392,
+        "band": "NORMAL"
+      },
+      "reason": "S08 (UNIT-034): ترحيل لقطات الأصول يطبّع الحقلين الاختياريين الجديدين (الغياب = null) بنمط العائلة — متوافق رجعيًا مع كل السجلات المدعومة بلا ترقية سلكية.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): asset snapshot migration normalization on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-07",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+      "from": {
+        "nbLoc": 4391,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 5276,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S08 (UNIT-034): منافذ أحداث/سجلات الأصول في IndexedDB داخل حدود الكتابة الذرية — سداد المتبقي وتصحيح الاقتناء والتخلص/الشطب وعكس الإهلاك تستهلك قرار الحارس النقي وحده.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): IndexedDB asset ports on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-08",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+      "from": {
+        "nbLoc": 2087,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 2556,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S08 (UNIT-034): تكافؤ المهايئ الذاكري لمنافذ الأصول نفسها — نفس قرارات الحارس النقي في خطوة متزامنة واحدة بلا كتابة جزئية.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): Memory adapter asset parity on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
+    },
+    {
+      "id": "S08-UNIT034-ASSETS-20261030-10",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1195,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S08 (UNIT-034): أنواع منافذ أحداث الأصول وسجلاتها — الحمولات والنتائج والتوقعات (Expectation/reused) لكلا المهايئين مع حفظ الأشكال القائمة بلا كسر.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 2 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the UNIT-034 Assets and Equipment capability end to end on the single integration branch; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S08 UNIT-034 delivery (DOC-017): asset port type shapes on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-017"
+      }
     }
   ]
 }

@@ -1034,8 +1034,8 @@ async function assetsLoansDeposits(store: PrototypeLocalStore): Promise<void> {
   if (!corrected.ok) return;
   const correctionReplay = await store.commitAssetAcquisitionCorrection(
     corrected.value.asset,
-    corrected.value.reversal,
-    corrected.value.replacement,
+    corrected.value.reversals,
+    corrected.value.replacements,
   );
   expect(correctionReplay.ok).toBe(true);
   if (correctionReplay.ok) expect(correctionReplay.value.reused).toBe(true);
