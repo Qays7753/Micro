@@ -20,7 +20,11 @@ import { STORAGE_ERROR } from "@/application/resultCodes";
 
 export type InventoryResult<T> =
   | { ok: true; value: T; reused?: boolean }
-  | { ok: false; code: "validation_error" | "storage_error"; message: string };
+  | { ok: false; code: "validation_error" | "storage_error" | "storage_stale"; message: string };
+/* S07-MR-001 (أمر S08 — القسم ١): حارس التزام المخزون داخل الحد يرفض
+ * التعارض بـstorage_stale (أعد المحاولة بعد إعادة القراءة) والفشل التخزيني
+ * الحقيقي يبقى storage_error — نفس تصنيف رقعة المجموعة ٢ لزوج خدمات
+ * الجدولة/المشتريات (storageFailureCode). */
 /* المجموعة ٢ (عقد ٢٨): القراءة المشتقة للمادة — المعرفة (كمية/تكلفة) وحقول النقص
  * والانتظار تُشتق من الحركات والسجلات، لا تُخزن. */
 export type InventoryMaterialOverview = Material & {
@@ -258,6 +262,15 @@ export const writeStorageFailure = <T>(): InventoryResult<T> => ({
   ok: false,
   code: STORAGE_ERROR,
   message: "تعذر حفظ حركة المادة محليًا. لم يتم تأكيد نجاح العملية.",
+});
+/* S07-MR-001 (أمر S08 — القسم ١): فشل الالتزام المحروس يصل مصنفًا — تعارض
+ * الحالة الحية داخل الحد (storage_stale) يظهر برسالة المتجر الصادقة
+ * (أعد المحاولة) والفشل التخزيني الحقيقي يبقى storage_error — نفس نمط
+ * رقعة المجموعة ٢ (storageFailureCode) بلا تكرار حرفيات. */
+export const inventoryCommitFailure = <T>(failed: { code: string; message: string }): InventoryResult<T> => ({
+  ok: false,
+  code: failed.code === "storage_stale" ? "storage_stale" : STORAGE_ERROR,
+  message: failed.message,
 });
 /* المجموعة ٩ (STR-029): تاريخ الأعمال من وحدة وقت الأعمال الكنسية —
  * كانت نسخة محلية بلا حارس مدخل؛ متغيّر الرمي لمدخلات موثوقة الإنشاء. */

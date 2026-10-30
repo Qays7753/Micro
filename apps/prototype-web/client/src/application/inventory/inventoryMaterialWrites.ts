@@ -28,6 +28,7 @@ export type InventoryMaterialWritesStore = Pick<
   Pick<PrototypeLocalStore, "getOrder" | "listDirectSales" | "listFinancialEvents" | "listSupplierPurchases">;
 import {
   id,
+  inventoryCommitFailure,
   materialById,
   movementByOperationKey,
   reversedMovementIdsOf,
@@ -38,6 +39,16 @@ import {
   type ReceivePurchaseInput,
   type ReverseInventoryInput,
 } from "./inventoryMaterialModel";
+/* S07-MR-001 (أمر S08 — القسم ١): بصمات الحالة المتوقعة تُبنى من قراءة
+ * الخدمة نفسها حرفيًا (لا حساب ثانٍ) وتُمرر لحد الكتابة حيث يقارنها
+ * المهايئ بالحقيقة الحية داخل المعاملة. */
+import {
+  inventoryMaterialsFingerprint,
+  inventoryFinancialEventsFingerprint,
+  inventoryMovementsFingerprint,
+  inventoryPurchasesFingerprint,
+  type InventoryCommitExpectation,
+} from "@/storage/local/inventoryCommitGuard";
 
 export async function receivePurchase(
   store: InventoryMaterialWritesStore,
@@ -131,8 +142,20 @@ export async function receivePurchase(
       purchaseLineId: input.purchaseLineId?.trim() || null,
       costKnowledge: input.costKnowledge === "unknown" ? "unknown" : "known",
     });
-    const saved = await store.commitInventory(null, [movement]);
-    return saved.ok ? { ok: true, value: movement } : writeStorageFailure();
+    /* S07-MR-001: بصمة الحالة التي بُنيت عليها حدود الاستلام (حركات/مواد/
+     * مشتريات) — تُقارن داخل حد الكتابة فلا يمر استلام فوق واقع تغيّر. */
+    const expectation: InventoryCommitExpectation = {
+      movementsFingerprint: inventoryMovementsFingerprint(movements.value),
+      materialsFingerprint: inventoryMaterialsFingerprint(materials.value),
+      purchasesFingerprint: inventoryPurchasesFingerprint(purchases.value),
+    };
+    const saved = await store.commitInventory(null, [movement], expectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: saved.value.movements[0] ?? movement,
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات استلام الشراء غير صالحة."));
   }
@@ -189,8 +212,18 @@ export async function consumeMaterial(
       saleId: input.saleId ?? null,
       costKnowledge: value === 0 ? "unknown" : "known",
     });
-    const saved = await store.commitInventory(null, [movement]);
-    return saved.ok ? { ok: true, value: movement } : writeStorageFailure();
+    /* S07-MR-001: بصمة الحالة التي بُني عليها عدم السلبية ومعرفة التكلفة. */
+    const expectation: InventoryCommitExpectation = {
+      movementsFingerprint: inventoryMovementsFingerprint(movements.value),
+      materialsFingerprint: inventoryMaterialsFingerprint(materials.value),
+    };
+    const saved = await store.commitInventory(null, [movement], expectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: saved.value.movements[0] ?? movement,
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات استهلاك المادة غير صالحة."));
   }
@@ -247,8 +280,18 @@ export async function adjustMaterial(
       costKnowledge,
     });
     assertInventoryRemainsNonNegative(input.materialId, [...movements.value, movement]);
-    const saved = await store.commitInventory(null, [movement]);
-    return saved.ok ? { ok: true, value: movement } : writeStorageFailure();
+    /* S07-MR-001: بصمة الحالة التي بُني عليها الرصيد وعدم السلبية. */
+    const expectation: InventoryCommitExpectation = {
+      movementsFingerprint: inventoryMovementsFingerprint(movements.value),
+      materialsFingerprint: inventoryMaterialsFingerprint(materials.value),
+    };
+    const saved = await store.commitInventory(null, [movement], expectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: saved.value.movements[0] ?? movement,
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات ضبط المادة غير صالحة."));
   }
@@ -305,14 +348,32 @@ export async function reverseMovement(
           idempotencyKey: `${input.operationKey}:loss-reversal`,
           reason: input.reason,
         });
-        const saved = await store.commitInventoryWithEvents(null, [reversal], [lossReversal]);
-        return saved.ok
-          ? { ok: true, value: saved.value.movements[0] ?? reversal, reused: saved.value.reused }
-          : writeStorageFailure();
+        /* S07-MR-001: بصمة الأحداث التي بُني عليها قرار شكل العكس — ظهور
+         * الخسارة بعد القراءة يُسقط العكس المبسّط داخل الحد. */
+        const expectation: InventoryCommitExpectation = {
+          movementsFingerprint: inventoryMovementsFingerprint(movements),
+          eventsFingerprint: inventoryFinancialEventsFingerprint(eventsResult.value),
+        };
+        const saved = await store.commitInventoryWithEvents(null, [reversal], [lossReversal], expectation);
+        if (!saved.ok) return inventoryCommitFailure(saved);
+        return {
+          ok: true,
+          value: saved.value.movements[0] ?? reversal,
+          reused: saved.value.reused,
+        };
       }
     }
-    const saved = await store.commitInventory(null, [reversal]);
-    return saved.ok ? { ok: true, value: reversal } : writeStorageFailure();
+    /* S07-MR-001: بصمة الحركات التي بُني عليها فحص «معكوس سابقًا» والرصيد. */
+    const plainExpectation: InventoryCommitExpectation = {
+      movementsFingerprint: inventoryMovementsFingerprint(movements),
+    };
+    const saved = await store.commitInventory(null, [reversal], plainExpectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: saved.value.movements[0] ?? reversal,
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات التراجع عن المادة غير صالحة."));
   }

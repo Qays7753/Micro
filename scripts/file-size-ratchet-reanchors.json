@@ -4752,6 +4752,158 @@
         "trigger": "S07 R1 corrections (DOC-016): drift anchor for the purchase-line treatment on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-016"
       }
+    },
+    {
+      "id": "S07-MR-001-INVENTORY-CAS-20261030-01",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/inventory/inventoryMaterialWrites.ts",
+      "from": {
+        "nbLoc": 276,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 375,
+        "band": "NORMAL"
+      },
+      "reason": "S07-MR-001: بصمات الحالة المتوقعة تُبنى من قراءة الخدمة نفسها وتُمرر لحد الكتابة في مسارات الاستلام/الاستهلاك/الضبط/التراجع، وفشل الالتزام يصل مصنفًا (storage_stale) وقيم إعادة الاستخدام تُعاد من المخزّن — أقل تغيير مطلوب داخل بيوت المخزون القائمة بلا ملفات جديدة للمسارات.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 1 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the S07-MR-001 inventory CAS/root fix: every inventory read-then-write path must validate live state inside the atomic write boundary in both MemoryLocalStore and IndexedDbLocalStore with permanent regression evidence; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07-MR-001 correction (DOC-016): inventory write-boundary CAS guard on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-MR-001-INVENTORY-CAS-20261030-02",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/inventory/inventoryMaterialModel.ts",
+      "from": {
+        "nbLoc": 258,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 296,
+        "band": "NORMAL"
+      },
+      "reason": "S07-MR-001: معين فشل الالتزام الموحد (inventoryCommitFailure) يصنف تعارض الحالة الحية داخل الحد بstorage_stale برسالة المتجر الصادقة، والفشل التخزيني الحقيقي يبقى storage_error — نمط رقعة المجموعة ٢ نفسه بلا تكرار حرفيات.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 1 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the S07-MR-001 inventory CAS/root fix: every inventory read-then-write path must validate live state inside the atomic write boundary in both MemoryLocalStore and IndexedDbLocalStore with permanent regression evidence; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07-MR-001 correction (DOC-016): inventory write-boundary CAS guard on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-MR-001-INVENTORY-CAS-20261030-03",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/inventory/inventoryMaterialLifecycle.ts",
+      "from": {
+        "nbLoc": 246,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 286,
+        "band": "NORMAL"
+      },
+      "reason": "S07-MR-001: مسارات دورة حياة المادة (فتح/إيقاف/إعادة تفعيل/تأكيد رصيد) تمرر بصمة المواد/الحركات التي قرأتها وبنت عليها قرارها — كاتب متزامن فوق السجل نفسه يُسقط داخل الحد بلا آخر-كاتب-يفوز صامت.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 1 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the S07-MR-001 inventory CAS/root fix: every inventory read-then-write path must validate live state inside the atomic write boundary in both MemoryLocalStore and IndexedDbLocalStore with permanent regression evidence; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07-MR-001 correction (DOC-016): inventory write-boundary CAS guard on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-MR-001-INVENTORY-CAS-20261030-04",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/inventory/inventoryMaterialShortages.ts",
+      "from": {
+        "nbLoc": 167,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 209,
+        "band": "NORMAL"
+      },
+      "reason": "S07-MR-001: مسارات النقص (تسجيل/استهلاك مع نقص/حل) تمرر بصمات الحركات والمواد والنواقص — حلّان متزامنان أو نقصان متزامنان لا يمران، والسجل يبقى أحادي القيد.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 1 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the S07-MR-001 inventory CAS/root fix: every inventory read-then-write path must validate live state inside the atomic write boundary in both MemoryLocalStore and IndexedDbLocalStore with permanent regression evidence; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07-MR-001 correction (DOC-016): inventory write-boundary CAS guard on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-MR-001-INVENTORY-CAS-20261030-05",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/application/inventory/inventoryMaterialWaste.ts",
+      "from": {
+        "nbLoc": 166,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 200,
+        "band": "NORMAL"
+      },
+      "reason": "S07-MR-001: مسارا الهدر وإخراج المتبقي يمرران بصمة الحالة التي بُني عليها الرصيد وقيمة الهدر — هدران متزامنان بأثر الربح يلتزم أحدهما فقط (حركة + حدث خسارة واحد).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 1 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the S07-MR-001 inventory CAS/root fix: every inventory read-then-write path must validate live state inside the atomic write boundary in both MemoryLocalStore and IndexedDbLocalStore with permanent regression evidence; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07-MR-001 correction (DOC-016): inventory write-boundary CAS guard on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-MR-001-INVENTORY-CAS-20261030-06",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+      "from": {
+        "nbLoc": 4391,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 5076,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S07-MR-001: التزام المخزون المحروس في IndexedDB — القراءة الحية والمقارنة وكل الكتابات داخل معاملة readwrite واحدة (المتاجر المطلوبة تُفتح بحسب بصمات التوقع) والرفض يُجهض المعاملة كاملة؛ المهايئ يستهلك قرار الحارس النقي وحده.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 1 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the S07-MR-001 inventory CAS/root fix: every inventory read-then-write path must validate live state inside the atomic write boundary in both MemoryLocalStore and IndexedDbLocalStore with permanent regression evidence; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07-MR-001 correction (DOC-016): inventory write-boundary CAS guard on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-MR-001-INVENTORY-CAS-20261030-07",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+      "from": {
+        "nbLoc": 2087,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 2488,
+        "band": "NORMAL"
+      },
+      "reason": "S07-MR-001: تكافؤ المهايئ الذاكري — قرار الحارس النقي نفسه في خطوة متزامنة واحدة (قراءة+قرار+كتابة بلا كتابة جزئية) عبر حقل instance-level كي لا يتغير سطح النموذج المحروس (P-01/P-02).",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 1 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the S07-MR-001 inventory CAS/root fix: every inventory read-then-write path must validate live state inside the atomic write boundary in both MemoryLocalStore and IndexedDbLocalStore with permanent regression evidence; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07-MR-001 correction (DOC-016): inventory write-boundary CAS guard on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
+    },
+    {
+      "id": "S07-MR-001-INVENTORY-CAS-20261030-08",
+      "date": "2026-10-30",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1172,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S07-MR-001: منافذ التزام المخزون الثلاثة تكتسب المعامل الاختياري expectation (InventoryCommitExpectation) وقيمة reused المضافة في النتيجة — غياب التوقع يحفظ عقد البذر/المطابقة منخفض المستوى حرفيًا.",
+      "authorization": {
+        "ownerReview": "Owner-authorized S08 prompt Part 1 (00-S08-EXECUTION-PROMPT-2026-10-30.md published at 73c1a344fbe7f8220bcecb764787f5df71622637) mandates the S07-MR-001 inventory CAS/root fix: every inventory read-then-write path must validate live state inside the atomic write boundary in both MemoryLocalStore and IndexedDbLocalStore with permanent regression evidence; same-PR re-anchor per R8-1/R11.",
+        "trigger": "S07-MR-001 correction (DOC-016): inventory write-boundary CAS guard on components/integration-20261027 / PR #383.",
+        "ocRef": "DOC-016"
+      }
     }
   ]
 }

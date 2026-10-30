@@ -72,7 +72,11 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
     /* S05 (DOC-014، 2026-10-29): +counterpartyCommitGuard.ts (حد كتابة الأطراف
      * عند التخزين — لا وصول لتخزين المتصفح) فنما العدّ 372→373؛ بروتوكول
      * الراتشة نفسه (تحديث بنفس الـPR مع السبب الموثق). */
-    expect(stdout).toMatch(/373 ملف إنتاج/);
+    /* S07-MR-001 (DOC-016، 2026-10-30): +inventoryCommitGuard.ts (حارس التزام
+     * المخزون النقي — بصمات CAS داخل حد الكتابة وحتمية داخل الحد؛ لا وصول
+     * لتخزين المتصفح) فنما العدّ 373→374؛ بروتوكول الراتشة نفسه (تحديث
+     * بنفس الـPR مع السبب الموثق — أمر S08 القسم ١ المنشور في 73c1a344). */
+    expect(stdout).toMatch(/374 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

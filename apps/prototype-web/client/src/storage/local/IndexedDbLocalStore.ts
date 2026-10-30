@@ -87,6 +87,14 @@ import { validateExpenseBudgetRevisionPair, validateExpenseBudgetSave } from "./
 import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
 import { decideCashObservationCommit, findTransferCoverageShortfall } from "./cashContinuityCommitGuard";
 import { decideCounterpartyCommit, type CounterpartyWriteCommit } from "./counterpartyCommitGuard";
+/* S07-MR-001 (أمر S08 — القسم ١): قرار التزام المخزون النقي — القراءة الحية
+ * والمقارنة وكل الكتابات داخل معاملة readwrite واحدة هنا. */
+import {
+  decideInventoryCommit,
+  type InventoryCommitApplyResult,
+  type InventoryCommitDecision,
+  type InventoryCommitExpectation,
+} from "./inventoryCommitGuard";
 import {
   committedReversalMovements,
   storedReversalMovementsFor,
@@ -2399,25 +2407,177 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         right.occurredOn.localeCompare(left.occurredOn) || right.recordedAt.localeCompare(left.recordedAt),
     );
   }
+  /* S07-MR-001 (أمر S08 — القسم ١): التزام المخزون المحروس في IndexedDB —
+   * القراءة الحية والمقارنة وكل الكتابات داخل معاملة readwrite واحدة:
+   * المتاجر المطلوبة تُفتح من البداية بحسب ما يمسّه الالتزام (الأحداث/النقص
+   * دائمًا لأنواعها، والمواد/النواقص/المشتريات عند حضور بصماتها في التوقع)،
+   * والقرار من الحارس النقي وحده، والرفض يُجهض المعاملة كاملة بلا أي كتابة،
+   * وإعادة الاستخدام تُكمل بلا كتابات جديدة. بلا توقع وبلا أحداث: مسار
+   * الكتابة المباشر القائم نفسه (البذر منخفض المستوى). المعين حقل
+   * instance-level فلا يتغير سطح النموذج المحروس (P-01/P-02). */
+  private readonly commitInventoryGuarded = async (commit: {
+    material: Material | null;
+    movements: readonly InventoryMovement[];
+    events: readonly FinancialEvent[];
+    shortage: InventoryShortage | null;
+    expectation: InventoryCommitExpectation | null | undefined;
+  }): Promise<StorageResult<InventoryCommitApplyResult>> => {
+    const { material, movements, events, shortage, expectation } = commit;
+    const needsEvents = events.length > 0 || expectation?.eventsFingerprint !== undefined;
+    const needsShortageStore = shortage !== null || expectation?.shortagesFingerprint !== undefined;
+    const needsMaterials = material !== null || expectation?.materialsFingerprint !== undefined;
+    const needsPurchases = expectation?.purchasesFingerprint !== undefined;
+    return (async () => {
+      try {
+        const database = await connection();
+        return await new Promise<StorageResult<InventoryCommitApplyResult>>(resolve => {
+          const storeNames = [materialStore, inventoryMovementStore];
+          if (needsEvents) storeNames.push(financialEventStore);
+          if (needsShortageStore) storeNames.push(inventoryShortageStore);
+          if (needsPurchases) storeNames.push(supplierPurchaseStore);
+          const transaction = database.transaction(storeNames, "readwrite");
+          const movementStoreRef = transaction.objectStore(inventoryMovementStore);
+          let pending: StorageResult<InventoryCommitApplyResult> | null = null;
+          /* نتيجة التطبيق الناجح تُلتقط هنا ثم يعيدها oncomplete — قيمها من
+           * القرار نفسه (إعادة الاستخدام تعيد المخزّن كما هو). */
+          let applied: Extract<InventoryCommitDecision, { kind: "apply" }> | null = null;
+          const finish = (result: StorageResult<InventoryCommitApplyResult>) => resolve(result);
+          const rejectFromDecision = (decision: Extract<InventoryCommitDecision, { kind: "reject" }>) => {
+            pending = { ok: false, code: decision.code, message: decision.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          const failFromListener = (error: unknown) => {
+            pending = failure(error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          /* القراءات الحية داخل المعاملة نفسها — بالترتيب: الحركات أولًا
+           * (ذراع CAS الأساسي)، ثم ما تطلبه البصمات الحاضرة، ثم الأحداث. */
+          const movementScan = movementStoreRef.getAll();
+          movementScan.onerror = () => {
+            pending = failure(movementScan.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          movementScan.onsuccess = guardedSuccessListener(failFromListener, () => {
+            const liveMovements = movementScan.result as InventoryMovement[];
+            const readAll = <T>(storeName: string) =>
+              new Promise<T[] | null>(resolveRead => {
+                const request = transaction.objectStore(storeName).getAll();
+                request.onerror = () => {
+                  pending = failure(request.error, database);
+                  try {
+                    transaction.abort();
+                  } catch {
+                    if (pending) finish(pending);
+                  }
+                  resolveRead(null);
+                };
+                request.onsuccess = guardedSuccessListener(failFromListener, () =>
+                  resolveRead(request.result as T[]),
+                );
+              });
+            (async () => {
+              const liveMaterials = needsMaterials ? await readAll<Material>(materialStore) : null;
+              if (liveMaterials === null && needsMaterials) return;
+              const liveShortages = needsShortageStore
+                ? await readAll<InventoryShortage>(inventoryShortageStore)
+                : null;
+              if (liveShortages === null && needsShortageStore) return;
+              const livePurchases = needsPurchases
+                ? await readAll<SupplierPurchase>(supplierPurchaseStore)
+                : null;
+              if (livePurchases === null && needsPurchases) return;
+              const liveEvents = needsEvents ? await readAll<FinancialEvent>(financialEventStore) : null;
+              if (liveEvents === null && needsEvents) return;
+              const decision = decideInventoryCommit({
+                expectation,
+                liveMovements,
+                liveMaterials,
+                liveShortages,
+                livePurchases,
+                liveEvents,
+                material,
+                movements,
+                events,
+                shortage,
+              });
+              if (decision.kind === "reject") {
+                rejectFromDecision(decision);
+                return;
+              }
+              applied = decision;
+              if (decision.material) transaction.objectStore(materialStore).put(decision.material);
+              decision.newMovements.forEach(movement => movementStoreRef.put(movement));
+              decision.newEvents.forEach(event => transaction.objectStore(financialEventStore).put(event));
+              if (decision.newShortage)
+                transaction.objectStore(inventoryShortageStore).put(decision.newShortage);
+            })().catch(error => failFromListener(error));
+          });
+          transaction.onerror = () => {
+            if (!pending) pending = failure(transaction.error, database);
+          };
+          transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+          transaction.oncomplete = () => {
+            const appliedDecision = applied;
+            if (!appliedDecision) {
+              finish(pending ?? failure(transaction.error, database));
+              return;
+            }
+            finish({
+              ok: true,
+              value: {
+                material: appliedDecision.material,
+                movements: appliedDecision.resultMovements,
+                events: appliedDecision.resultEvents,
+                shortage: appliedDecision.resultShortage,
+                reused: appliedDecision.reused,
+              },
+            });
+          };
+        });
+      } catch (error) {
+        return failure(error);
+      }
+    })();
+  };
   async commitInventory(
     material: Material | null,
     movements: readonly InventoryMovement[],
-  ): Promise<StorageResult<{ material: Material | null; movements: readonly InventoryMovement[] }>> {
-    try {
-      const database = await connection();
-      return await new Promise(resolve => {
-        const transaction = database.transaction([materialStore, inventoryMovementStore], "readwrite");
-        if (material) transaction.objectStore(materialStore).put(material);
-        movements.forEach(movement => transaction.objectStore(inventoryMovementStore).put(movement));
-        transaction.onerror = () => resolve(failure(transaction.error, database));
-        transaction.onabort = () => resolve(failure(transaction.error, database));
-        transaction.oncomplete = () => {
-          resolve({ ok: true, value: { material, movements } });
-        };
-      });
-    } catch (error) {
-      return failure(error);
-    }
+    expectation?: InventoryCommitExpectation | null,
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      reused: boolean;
+    }>
+  > {
+    const result = await this.commitInventoryGuarded({
+      material,
+      movements,
+      events: [],
+      shortage: null,
+      expectation,
+    });
+    if (!result.ok) return result;
+    return {
+      ok: true,
+      value: {
+        material: result.value.material,
+        movements: result.value.movements,
+        reused: result.value.reused,
+      },
+    };
   }
   listInventoryShortages() {
     return listAll<InventoryShortage>(
@@ -2432,41 +2592,43 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     material: Material | null,
     movements: readonly InventoryMovement[],
     shortage: InventoryShortage | null,
+    expectation?: InventoryCommitExpectation | null,
   ): Promise<
     StorageResult<{
       material: Material | null;
       movements: readonly InventoryMovement[];
       shortage: InventoryShortage | null;
+      reused: boolean;
     }>
   > {
-    try {
-      const database = await connection();
-      return await new Promise(resolve => {
-        const transaction = database.transaction(
-          [materialStore, inventoryMovementStore, inventoryShortageStore],
-          "readwrite",
-        );
-        if (material) transaction.objectStore(materialStore).put(material);
-        movements.forEach(movement => transaction.objectStore(inventoryMovementStore).put(movement));
-        if (shortage) transaction.objectStore(inventoryShortageStore).put(shortage);
-        transaction.onerror = () => resolve(failure(transaction.error, database));
-        transaction.onabort = () => resolve(failure(transaction.error, database));
-        transaction.oncomplete = () => {
-          resolve({ ok: true, value: { material, movements, shortage } });
-        };
-      });
-    } catch (error) {
-      return failure(error);
-    }
+    const result = await this.commitInventoryGuarded({
+      material,
+      movements,
+      events: [],
+      shortage,
+      expectation,
+    });
+    if (!result.ok) return result;
+    return {
+      ok: true,
+      value: {
+        material: result.value.material,
+        movements: result.value.movements,
+        shortage: result.value.shortage,
+        reused: result.value.reused,
+      },
+    };
   }
   /* عقد الإغلاق العميق (العقد ١ — الهدر): حركة مخزون وحدث مالي في معاملة
    * واحدة ذرّية — الحركة وحدث خسارة الهدر غير النقدية معًا أو لا شيء،
    * والتراجع يعكس الاثنين معًا. الحتمية داخل المعاملة بمفتاحي العملية،
-   * والمخزّن سلفًا يُعاد كما هو (reused). */
+   * والمخزّن سلفًا يُعاد كما هو (reused). S07-MR-001: القرار كله عند
+   * الحارس النقي داخل المعاملة نفسها. */
   async commitInventoryWithEvents(
     material: Material | null,
     movements: readonly InventoryMovement[],
     events: readonly FinancialEvent[],
+    expectation?: InventoryCommitExpectation | null,
   ): Promise<
     StorageResult<{
       material: Material | null;
@@ -2475,60 +2637,23 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       reused: boolean;
     }>
   > {
-    try {
-      const database = await connection();
-      return await new Promise(resolve => {
-        const transaction = database.transaction(
-          [materialStore, inventoryMovementStore, financialEventStore],
-          "readwrite",
-        );
-        const movementStore = transaction.objectStore(inventoryMovementStore);
-        const eventStore = transaction.objectStore(financialEventStore);
-        let reused = false;
-        let resultMovements: readonly InventoryMovement[] = movements;
-        let resultEvents: readonly FinancialEvent[] = events;
-        const failFromListener = (error: unknown) => {
-          resolve(failure(error, database));
-          try {
-            transaction.abort();
-          } catch {
-            /* المعاملة انتهت فعلًا — لا شيء يُحبَط. */
-          }
-        };
-        const movementScan = movementStore.getAll();
-        movementScan.onerror = () => resolve(failure(movementScan.error, database));
-        movementScan.onsuccess = guardedSuccessListener(failFromListener, () => {
-          const storedMovements = movementScan.result as InventoryMovement[];
-          const movementByKey = new Map(
-            storedMovements.map(movement => [movement.operationKey, movement] as const),
-          );
-          resultMovements = movements.map(movement => movementByKey.get(movement.operationKey) ?? movement);
-          const newMovements = movements.filter(movement => !movementByKey.has(movement.operationKey));
-          const eventScan = eventStore.getAll();
-          eventScan.onerror = () => resolve(failure(eventScan.error, database));
-          eventScan.onsuccess = guardedSuccessListener(failFromListener, () => {
-            const storedEvents = eventScan.result as FinancialEvent[];
-            const eventByKey = new Map(storedEvents.map(event => [event.idempotencyKey, event] as const));
-            resultEvents = events.map(event => eventByKey.get(event.idempotencyKey) ?? event);
-            const newEvents = events.filter(event => !eventByKey.has(event.idempotencyKey));
-            reused = newMovements.length < movements.length || newEvents.length < events.length;
-            if (material) transaction.objectStore(materialStore).put(material);
-            newMovements.forEach(movement => movementStore.put(movement));
-            newEvents.forEach(event => eventStore.put(event));
-          });
-        });
-        transaction.onerror = () => resolve(failure(transaction.error, database));
-        transaction.onabort = () => resolve(failure(transaction.error, database));
-        transaction.oncomplete = () => {
-          resolve({
-            ok: true,
-            value: { material, movements: resultMovements, events: resultEvents, reused },
-          });
-        };
-      });
-    } catch (error) {
-      return failure(error);
-    }
+    const result = await this.commitInventoryGuarded({
+      material,
+      movements,
+      events,
+      shortage: null,
+      expectation,
+    });
+    if (!result.ok) return result;
+    return {
+      ok: true,
+      value: {
+        material: result.value.material,
+        movements: result.value.movements,
+        events: result.value.events,
+        reused: result.value.reused,
+      },
+    };
   }
   listCatalogItems() {
     return listAll<CatalogItem>(

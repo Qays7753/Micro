@@ -319,6 +319,7 @@
 | `docs/implementation/micro-component-execution/00-S07-EXECUTION-PROMPT-2026-10-29.md` | أمر S07 الكنسي لـZAI: إثبات/إصلاح ملاحظة مراجعة S06 المؤكدة (S06-MR-001) من الجذر ثم تنفيذ S07 الكامل للمشتريات والمواد UNIT-027/UNIT-028 على نفس الفرع وPR؛ لا main ولا merge |
 | `docs/implementation/micro-component-execution/11a-S06-ADDENDUM-2026-10-30.md` | ملحق نتيجة S06: الملاحظة المؤكدة S06-MR-001 وسلوكها قبل الإصلاح وإصلاحها الجذري وانحدارها الدائم على المهايئين والموقف الصادق |
 | `docs/implementation/micro-component-execution/12-S07-RESULT-2026-10-30.md` | نتيجة تنفيذ S07 (المشتريات والمواد والمخزون الاختياري) ومصفوفة القبول وسجل ملاحظات المراجعات الخمس الكامل — تسليم للمراجعة |
+| `docs/implementation/micro-component-execution/00-S08-EXECUTION-PROMPT-2026-10-30.md` | أمر S08 الكنسي لـZAI: إتمام إصلاح S07-MR-001 الجذري (CAS حدود المخزون داخل حد الكتابة) ومصالحة البوابات البعيدة على الرأس النهائي ثم تنفيذ S08 المتصل للأصول والمعدات UNIT-034 على نفس الفرع وPR؛ لا main ولا merge |
 
 ### تغطية ملفات الحزمة الأصلية
 

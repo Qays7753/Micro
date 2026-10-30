@@ -34,6 +34,10 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
 import type { ReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
+/* S07-MR-001 (أمر S08 — القسم ١): عقد الحالة المتوقعة لكتابة المخزون —
+ * يُعرَّف عند حارس الالتزام النقي ويُستورَد نوعًا فقط هنا (المهايئان
+ * والخدمات تستهلكانه؛ المنفذ لا يعيد تعريفه). */
+import type { InventoryCommitExpectation } from "./inventoryCommitGuard.js";
 import type {
   RecurringExpenseOccurrence,
   RecurringExpenseRuleRevision,
@@ -795,33 +799,51 @@ export interface PrototypeLocalStore {
   listInventoryMovements(): Promise<StorageResult<readonly InventoryMovement[]>>;
   getInventoryActivation(): Promise<StorageResult<InventoryActivation | null>>;
   saveInventoryActivation(activation: InventoryActivation): Promise<StorageResult<InventoryActivation>>;
+  /* S07-MR-001 (أمر S08 — القسم ١): كل كتابة مخزون حساسة تتحقق الحالة الحية
+   * داخل حد الكتابة نفسه — الخدمة تُمرر بصمات الحالة التي قرأتها وبنت عليها
+   * حراسها (InventoryCommitExpectation)، والمهايئان يقارنانها بالحقيقة الحية
+   * داخل المعاملة (IndexedDB) أو الخطوة المتزامنة (الذاكرة) ويرفضان
+   * بـstorage_stale بلا أي كتابة جزئية عند أي انحراف، مع حتمية داخل الحد
+   * (المفتاح المتطابق ماليًا يُعاد كما هو، والمختلف تعارض بلا استبدال).
+   * غياب التوقع = مسار البذر/المطابقة منخفض المستوى بسلوكه القائم نفسه. */
   commitInventory(
     material: Material | null,
     movements: readonly InventoryMovement[],
-  ): Promise<StorageResult<{ material: Material | null; movements: readonly InventoryMovement[] }>>;
+    expectation?: InventoryCommitExpectation | null,
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      reused: boolean;
+    }>
+  >;
   /* المجموعة ٢ (عقد ٢٨): قراءة سجلات نقص المخزون — مرتبطة زمنيًا كالحركات. */
   listInventoryShortages(): Promise<StorageResult<readonly InventoryShortage[]>>;
   /* المجموعة ٢ (عقد ٢٨ / D-027): كتابة ذرّية واحدة للمادة وحركاتها وسجل النقص —
-   * كل شيء أو لا شيء؛ لا حالة بينية (استهلاك جزئي + نقص معًا مثلًا). */
+   * كل شيء أو لا شيء؛ لا حالة بينية (استهلاك جزئي + نقص معًا مثلًا). الحارس
+   * S07-MR-001 يعمل هنا بالعقد نفسه (بصمات + حتمية داخل الحد). */
   commitInventoryWithShortage(
     material: Material | null,
     movements: readonly InventoryMovement[],
     shortage: InventoryShortage | null,
+    expectation?: InventoryCommitExpectation | null,
   ): Promise<
     StorageResult<{
       material: Material | null;
       movements: readonly InventoryMovement[];
       shortage: InventoryShortage | null;
+      reused: boolean;
     }>
   >;
   /** عقد الإغلاق العميق (العقد ١ — الهدر): حركة مخزون مع حدث مالي واحد في
    * معاملة ذرّية — هدرٌ يؤثر على النتيجة يسجّل حركته وحدث خسارته غير النقدية
    * معًا أو لا شيء؛ والتراجع عنه يعكس الاثنين معًا. الحتمية داخل المعاملة:
-   * الحركة بمفتاحها والحدث بمفتاحه. */
+   * الحركة بمفتاحها والحدث بمفتاحه. حارس S07-MR-001 يعمل هنا بالعقد نفسه. */
   commitInventoryWithEvents(
     material: Material | null,
     movements: readonly InventoryMovement[],
     events: readonly FinancialEvent[],
+    expectation?: InventoryCommitExpectation | null,
   ): Promise<
     StorageResult<{
       material: Material | null;

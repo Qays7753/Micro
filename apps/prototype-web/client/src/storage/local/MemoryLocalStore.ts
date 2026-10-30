@@ -28,6 +28,9 @@ import {
 import { orderRecordIdentical, validateOrderCommit } from "./orderCommitGuard";
 import { resolveSupplierPaymentAttribution } from "./supplierAttributionCommitGuard";
 import { decideCounterpartyCommit, type CounterpartyWriteCommit } from "./counterpartyCommitGuard";
+/* S07-MR-001 (أمر S08 — القسم ١): قرار التزام المخزون النقي — مالك واحد
+ * للمهايئين (CAS داخل الحد + حتمية داخل الحد). */
+import { decideInventoryCommit, type InventoryCommitExpectation } from "./inventoryCommitGuard";
 import {
   validateScheduleUpdate,
   validateSupplierPurchaseCommit,
@@ -1192,15 +1195,68 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.inventoryActivation = clone(activation);
     return { ok: true, value: clone(activation) };
   }
+  /* S07-MR-001 (أمر S08 — القسم ١): التزام المخزون في الذاكرة يطبق قرار
+   * الحارس النقي في خطوة متزامنة واحدة — لا كتابة جزئية أبدًا: الرفض
+   * يعود بلا أي كتابة، وإعادة الاستخدام تعيد المخزّن كما هو. المعين حقل
+   * instance-level (نمط حقول هذا الملف) فلا يتغير سطح النموذج المحروس
+   * (P-01/P-02) ولا يُلمس دبوس السطح. */
+  private readonly inventoryCommitDecision = (input: {
+    expectation: InventoryCommitExpectation | null | undefined;
+    material: Material | null;
+    movements: readonly InventoryMovement[];
+    events: readonly FinancialEvent[];
+    shortage: InventoryShortage | null;
+  }) =>
+    decideInventoryCommit({
+      expectation: input.expectation,
+      liveMovements: Array.from(this.inventoryMovements.values()),
+      liveMaterials:
+        input.expectation?.materialsFingerprint !== undefined ? Array.from(this.materials.values()) : null,
+      liveShortages:
+        input.expectation?.shortagesFingerprint !== undefined
+          ? Array.from(this.inventoryShortages.values())
+          : null,
+      livePurchases:
+        input.expectation?.purchasesFingerprint !== undefined
+          ? Array.from(this.supplierPurchases.values())
+          : null,
+      liveEvents:
+        input.events.length > 0 || input.expectation?.eventsFingerprint !== undefined
+          ? Array.from(this.financialEvents.values())
+          : null,
+      material: input.material,
+      movements: input.movements,
+      events: input.events,
+      shortage: input.shortage,
+    });
   async commitInventory(
     material: Material | null,
     movements: readonly InventoryMovement[],
-  ): Promise<StorageResult<{ material: Material | null; movements: readonly InventoryMovement[] }>> {
-    if (material) this.materials.set(material.id, clone(material));
-    movements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
+    expectation?: InventoryCommitExpectation | null,
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      reused: boolean;
+    }>
+  > {
+    const decision = this.inventoryCommitDecision({
+      expectation,
+      material,
+      movements,
+      events: [],
+      shortage: null,
+    });
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.material) this.materials.set(decision.material.id, clone(decision.material));
+    decision.newMovements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
     return {
       ok: true,
-      value: { material: material ? clone(material) : null, movements: movements.map(clone) },
+      value: {
+        material: decision.material ? clone(decision.material) : null,
+        movements: decision.resultMovements.map(clone),
+        reused: decision.reused,
+      },
     };
   }
   async listInventoryShortages(): Promise<StorageResult<readonly InventoryShortage[]>> {
@@ -1215,31 +1271,45 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     material: Material | null,
     movements: readonly InventoryMovement[],
     shortage: InventoryShortage | null,
+    expectation?: InventoryCommitExpectation | null,
   ): Promise<
     StorageResult<{
       material: Material | null;
       movements: readonly InventoryMovement[];
       shortage: InventoryShortage | null;
+      reused: boolean;
     }>
   > {
-    if (material) this.materials.set(material.id, clone(material));
-    movements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
-    if (shortage) this.inventoryShortages.set(shortage.id, clone(shortage));
+    const decision = this.inventoryCommitDecision({
+      expectation,
+      material,
+      movements,
+      events: [],
+      shortage,
+    });
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.material) this.materials.set(decision.material.id, clone(decision.material));
+    decision.newMovements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
+    if (decision.newShortage)
+      this.inventoryShortages.set(decision.newShortage.id, clone(decision.newShortage));
     return {
       ok: true,
       value: {
-        material: material ? clone(material) : null,
-        movements: movements.map(clone),
-        shortage: shortage ? clone(shortage) : null,
+        material: decision.material ? clone(decision.material) : null,
+        movements: decision.resultMovements.map(clone),
+        shortage: decision.resultShortage ? clone(decision.resultShortage) : null,
+        reused: decision.reused,
       },
     };
   }
   /* عقد الإغلاق العميق (العقد ١): محاكاة الذاكرة لنفس عقد محوّل IndexedDB —
-   * حركة + حدث مالي بمعاملة واحدة منطقيًا، والحتمية بمفتاحي العملية. */
+   * حركة + حدث مالي بمعاملة واحدة منطقيًا، والحتمية بمفتاحي العملية.
+   * S07-MR-001: القرار كله عند الحارس النقي — المهايئان متكافئان بنيويًا. */
   async commitInventoryWithEvents(
     material: Material | null,
     movements: readonly InventoryMovement[],
     events: readonly FinancialEvent[],
+    expectation?: InventoryCommitExpectation | null,
   ): Promise<
     StorageResult<{
       material: Material | null;
@@ -1248,27 +1318,24 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       reused: boolean;
     }>
   > {
-    const movementByKey = new Map(
-      Array.from(this.inventoryMovements.values()).map(
-        movement => [movement.operationKey, movement] as const,
-      ),
-    );
-    const eventByKey = new Map(
-      Array.from(this.financialEvents.values()).map(event => [event.idempotencyKey, event] as const),
-    );
-    const newMovements = movements.filter(movement => !movementByKey.has(movement.operationKey));
-    const newEvents = events.filter(event => !eventByKey.has(event.idempotencyKey));
-    const reused = newMovements.length < movements.length || newEvents.length < events.length;
-    if (material) this.materials.set(material.id, clone(material));
-    newMovements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
-    newEvents.forEach(event => this.financialEvents.set(event.id, clone(event)));
+    const decision = this.inventoryCommitDecision({
+      expectation,
+      material,
+      movements,
+      events,
+      shortage: null,
+    });
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.material) this.materials.set(decision.material.id, clone(decision.material));
+    decision.newMovements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
+    decision.newEvents.forEach(event => this.financialEvents.set(event.id, clone(event)));
     return {
       ok: true,
       value: {
-        material: material ? clone(material) : null,
-        movements: movements.map(movement => movementByKey.get(movement.operationKey) ?? movement).map(clone),
-        events: events.map(event => eventByKey.get(event.idempotencyKey) ?? event).map(clone),
-        reused,
+        material: decision.material ? clone(decision.material) : null,
+        movements: decision.resultMovements.map(clone),
+        events: decision.resultEvents.map(clone),
+        reused: decision.reused,
       },
     };
   }

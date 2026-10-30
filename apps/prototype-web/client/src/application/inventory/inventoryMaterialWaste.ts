@@ -26,6 +26,7 @@ export type InventoryMaterialWasteStore = Pick<
   Pick<PrototypeLocalStore, "getOrder" | "getCatalogItem" | "getCatalogTemplate">;
 import {
   id,
+  inventoryCommitFailure,
   materialById,
   movementByOperationKey,
   writeStorageFailure,
@@ -33,6 +34,11 @@ import {
   type InventoryResult,
   type WasteMaterialInput,
 } from "./inventoryMaterialModel";
+import {
+  inventoryMaterialsFingerprint,
+  inventoryMovementsFingerprint,
+  type InventoryCommitExpectation,
+} from "@/storage/local/inventoryCommitGuard";
 
 export async function wasteMaterial(
   store: InventoryMaterialWasteStore,
@@ -81,8 +87,18 @@ export async function extractRemainder(
       wasteContext: { kind: "general_project" },
       costKnowledge: costUnknown ? "unknown" : "known",
     });
-    const saved = await store.commitInventory(null, [movement]);
-    return saved.ok ? { ok: true, value: movement } : writeStorageFailure();
+    /* S07-MR-001: بصمة الحالة التي بُني عليها المتبقي ومعرفته. */
+    const expectation: InventoryCommitExpectation = {
+      movementsFingerprint: inventoryMovementsFingerprint(movements.value),
+      materialsFingerprint: inventoryMaterialsFingerprint(materials.value),
+    };
+    const saved = await store.commitInventory(null, [movement], expectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: saved.value.movements[0] ?? movement,
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات إخراج الفاقد غير صالحة."));
   }
@@ -157,13 +173,31 @@ async function outbound(
         note: `خسارة هدر بلا خروج نقد — ${input.reason.trim()}`,
         counterparty: null,
       });
-      const saved = await store.commitInventoryWithEvents(null, [movement], [lossEvent]);
-      return saved.ok
-        ? { ok: true, value: saved.value.movements[0] ?? movement, reused: saved.value.reused }
-        : writeStorageFailure();
+      /* S07-MR-001: بصمة الحالة التي بُني عليها الرصيد وقيمة الهدر. */
+      const expectation: InventoryCommitExpectation = {
+        movementsFingerprint: inventoryMovementsFingerprint(movements.value),
+        materialsFingerprint: inventoryMaterialsFingerprint(materials.value),
+      };
+      const saved = await store.commitInventoryWithEvents(null, [movement], [lossEvent], expectation);
+      if (!saved.ok) return inventoryCommitFailure(saved);
+      return {
+        ok: true,
+        value: saved.value.movements[0] ?? movement,
+        reused: saved.value.reused,
+      };
     }
-    const saved = await store.commitInventory(null, [movement]);
-    return saved.ok ? { ok: true, value: movement } : writeStorageFailure();
+    /* S07-MR-001: بصمة الحالة التي بُني عليها الرصيد وقيمة الهدر. */
+    const expectation: InventoryCommitExpectation = {
+      movementsFingerprint: inventoryMovementsFingerprint(movements.value),
+      materialsFingerprint: inventoryMaterialsFingerprint(materials.value),
+    };
+    const saved = await store.commitInventory(null, [movement], expectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: saved.value.movements[0] ?? movement,
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات هدر المادة غير صالحة."));
   }
