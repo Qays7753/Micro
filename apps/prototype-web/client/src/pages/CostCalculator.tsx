@@ -266,22 +266,15 @@ export default function CostCalculator() {
     ],
   );
 
-  const preview = useMemo<PlanningCalculationResult | null>(
-    () => {
-      /* الخدمة كسولة (نمط assets/loans): null = «جارٍ التجهيز» — تُعلن بصدق
-       * أسفلها ولا تُعرض نتيجة مزيفة. */
-      if (!planningCalculations) return null;
-      const outcome = planningCalculations.previewPlanning(planningInput);
-      return outcome.ok ? outcome.value : null;
-    },
-    // المعاينة الحية نقية — تجدد مع كل تغيير مدخل.
+  /* R1-N2: حساب واحد لكل تغيير مدخل — النتيجة والخطأ من مخرج واحد لا
+   * استدعاءين. الخدمة كسولة (نمط assets/loans): null = «جارٍ التجهيز» —
+   * تُعلن بصدق أسفلها ولا تُعرض نتيجة مزيفة. */
+  const previewOutcome = useMemo(
+    () => (planningCalculations ? planningCalculations.previewPlanning(planningInput) : null),
     [planningCalculations, planningInput],
   );
-  const previewError = useMemo(() => {
-    if (!planningCalculations) return null;
-    const outcome = planningCalculations.previewPlanning(planningInput);
-    return outcome.ok ? null : outcome.message;
-  }, [planningCalculations, planningInput]);
+  const preview: PlanningCalculationResult | null = previewOutcome?.ok ? previewOutcome.value : null;
+  const previewError = previewOutcome && !previewOutcome.ok ? previewOutcome.message : null;
 
   const isDirty = useFormDirty(
     [

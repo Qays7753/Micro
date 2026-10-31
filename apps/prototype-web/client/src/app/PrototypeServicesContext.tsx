@@ -412,6 +412,10 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       partyDirectoryService,
       supplierPurchasesService,
       assetService,
+      /* R1-F2 (مراجعة S10): الخدمة الكسولة داخل الاعتماديات — بدونه يظل
+       * قيمة السياق مخزنة مؤقتًا عند null بعد اكتمال التحميل الديناميكي
+       * فلا ترى الحاسبة خدمتها أبدًا (كل الخدمات الكسولة السابقة هنا). */
+      planningCalculationService,
       homeControlCenterService,
       dataVersion,
       notifyDataChanged,

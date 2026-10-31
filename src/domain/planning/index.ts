@@ -6,6 +6,8 @@
  */
 export {
   calculatePlanningResult,
+  calculatePlanningProjection,
+  isBlankPlanningGroup,
   suggestSellingPrice,
   calculateHourValue,
   calculateSalesQuantity,

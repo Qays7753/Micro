@@ -87,7 +87,14 @@ function validateGroupShape(group: PlanningGroup): void {
   if (group.sellingPriceMinor !== null) assertMinor(group.sellingPriceMinor, "سعر بيع الوحدة");
 }
 
-/** تكلفة مجموعة واحدة الدقيقة — التفصيل يضرب قبل التقريب لكل بند، والإجمالي أصله المحفوظ. */
+/** تكلفة مجموعة واحدة الدقيقة — التفصيل يضرب قبل التقريب لكل بند، والإجمالي أصله المحفوظ.
+ *
+ * R1-N1 (مراجعة S10): هذا التفصيل *عرضي* لمجموعة واحدة (groupResults) —
+ * البدائيّات المشتركة quantityMilliExact/roundHalfUp (من ../shared) هي مالكة
+ * التقريب نفسه الذي تستخدمه النواة (materialItemCostMinor في craft-order)،
+ * فالتقريب لا يمكن أن يتباعد؛ والفارق المقصود أن النواة ترفض البند غير
+ * الصالح وهنا يُستبعد «غير المحدد بعد» بمعرفة ناقصة. المجاميع الكلية
+ * (productsCostMinor وكل ما يُحفظ) من لقطة النواة وحدها لا من هنا. */
 function groupCostMinorOf(group: PlanningGroup): number {
   if (group.costMode === "total") {
     /* الإجمالي المعروف هو المصدر نفسه — لا يعاد بناؤه من حصة وحدة معروضة. */
@@ -281,23 +288,30 @@ function planningTotalsOf(
   return { productsSelling, expectedTotal, pricingCost, expectedProfit, marginPercentCenti };
 }
 
-/**
- * T01 — حساب التخطيط الكامل عبر النواة الواحدة.
- *
- * المجاميع: T = (SP − الخصم) + الإيرادات الإضافية؛
- * CT = plannedCost(النواة: مواد+وقت+تغليف+توصيل+هدر) + العمولة + المصاريف الإضافية؛
- * G = T − CT؛ الهامش = G÷T من سعر البيع (percentCenti؛ null عند T غير المحدد أو ≤0).
- */
 /** المجموعات الفعالة: الفارغة تمامًا «لم تُدخل بعد» فتُتخطى بمعرفة ناقصة
  * صادقة (B6: «أدخل التكلفة لحساب الربح») لا خطأ تحقق؛ التحقق الكامل يلزم
- * المجموعة ذات المحتوى فقط. */
-function activePlanningGroups(groups: readonly PlanningGroup[]): readonly PlanningGroup[] {
-  const isEmptyGroup = (group: PlanningGroup) =>
+ * المجموعة ذات المحتوى فقط.
+ *
+ * R1-F1 (مراجعة S10): تعريف «المجموعة الفارغة» الواحد مصدره هنا حصرًا —
+ * * بنية صغرى* يقبلها النوعان (المجال والتخزين) فتستهلكه الواجهة عند حد
+ * الحفظ بلا نسخة ثانية: ما يُعرض حسابه = ما يُحفظ = ما يقبل بوابة الاستيراد
+ * (التسمية غير الفارغة والتكرار ≥1 لكل مجموعة محفوظة). */
+export function isBlankPlanningGroup(group: {
+  label: string;
+  totalCostMinor: number | null;
+  sellingPriceMinor: number | null;
+  unitComponents: readonly { name: string }[];
+}): boolean {
+  return (
     !group.label.trim() &&
     !(group.totalCostMinor !== null && group.totalCostMinor > 0) &&
     !group.sellingPriceMinor &&
-    group.unitComponents.every(component => !component.name.trim());
-  const active = groups.filter(group => !isEmptyGroup(group));
+    group.unitComponents.every(component => !component.name.trim())
+  );
+}
+
+function activePlanningGroups(groups: readonly PlanningGroup[]): readonly PlanningGroup[] {
+  const active = groups.filter(group => !isBlankPlanningGroup(group));
   const seenGroupIds = new Set<string>();
   for (const group of active) {
     validateGroupShape(group);
@@ -352,10 +366,21 @@ function planningKernelSnapshot(
   }
 }
 
-export function calculatePlanningResult(
+/**
+ * T01 — حساب التخطيط الكامل عبر النواة الواحدة.
+ *
+ * المجاميع: T = (SP − الخصم) + الإيرادات الإضافية؛
+ * CT = plannedCost(النواة: مواد+وقت+تغليف+توصيل+هدر) + العمولة + المصاريف الإضافية؛
+ * G = T − CT؛ الهامش = G÷T من سعر البيع (percentCenti؛ null عند T غير المحدد أو ≤0).
+ */
+/** إسقاط T01 الكامل بمرور واحد — النتيجة التخطيطية ولقطة النواة المسطحة
+ * من المجموعات الفعالة والتوسيع نفسهما (R1-F1: الإسقاط المسطح للمحفوظ
+ * مشتق هنا لا يعاد توسيعه عند التطبيق — مصدر واحد للتوسيع والكمية:
+ * ما عُرض حسابه هو ما يُحفظ حرفيًا). */
+export function calculatePlanningProjection(
   id: string,
   input: PlanningCalculationInput,
-): PlanningCalculationResult {
+): { result: PlanningCalculationResult; kernelSnapshot: CostSnapshot } {
   if (!id.trim()) throw new Error("أكمل معرّف الحساب قبل التنفيذ.");
   if (input.groups.length === 0) {
     throw new Error("أضف مجموعة واحدة على الأقل قبل الحساب.");
@@ -388,24 +413,34 @@ export function calculatePlanningResult(
     );
 
   return {
-    productsCostMinor: snapshot.materialCostMinor,
-    productsSellingMinor: productsSelling,
-    sellingTotalMinor: sellingTotal,
-    discountMinor,
-    commissionMinor,
-    extrasRevenueMinor,
-    extrasExpenseMinor,
-    deliveryMinor: input.deliveryMinor,
-    expectedTotalMinor: expectedTotal,
-    pricingCostMinor: pricingCost,
-    expectedProfitMinor: expectedProfit,
-    marginPercentCenti,
-    unitCostMinor: snapshot.unitCostMinor,
-    knowledgeState: snapshot.knowledgeState,
-    knowledgeGaps: snapshot.knowledgeGaps ?? [],
-    excludedComponentNames,
-    groupResults,
+    result: {
+      productsCostMinor: snapshot.materialCostMinor,
+      productsSellingMinor: productsSelling,
+      sellingTotalMinor: sellingTotal,
+      discountMinor,
+      commissionMinor,
+      extrasRevenueMinor,
+      extrasExpenseMinor,
+      deliveryMinor: input.deliveryMinor,
+      expectedTotalMinor: expectedTotal,
+      pricingCostMinor: pricingCost,
+      expectedProfitMinor: expectedProfit,
+      marginPercentCenti,
+      unitCostMinor: snapshot.unitCostMinor,
+      knowledgeState: snapshot.knowledgeState,
+      knowledgeGaps: snapshot.knowledgeGaps ?? [],
+      excludedComponentNames,
+      groupResults,
+    },
+    kernelSnapshot: snapshot,
   };
+}
+
+export function calculatePlanningResult(
+  id: string,
+  input: PlanningCalculationInput,
+): PlanningCalculationResult {
+  return calculatePlanningProjection(id, input).result;
 }
 
 function sumExtras(rows: readonly { amountMinor: number }[]): number {

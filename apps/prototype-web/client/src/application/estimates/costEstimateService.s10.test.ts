@@ -10,6 +10,7 @@
 import { describe, expect, it } from "vitest";
 import { CostEstimateService } from "./costEstimateService";
 import { PlanningCalculationLifecycleService } from "./planningCalculationLifecycle";
+import { LocalTransferService } from "@/application/transfers/localTransferService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 
@@ -273,5 +274,57 @@ describe("S10 planning calculations (T01) through the single kernel", () => {
     expect(saved.value.planning?.savedResult.expectedTotalMinor).toBe(9500);
     expect(saved.value.planning?.savedResult.pricingCostMinor).toBe(7975);
     expect(saved.value.planning?.savedResult.expectedProfitMinor).toBe(1525);
+  });
+
+  it("R1-F1: سطر مجموعة فارغ في المحرر لا يفسد الإسقاط المحفوظ ولا يقفل النقل — مصدر التوسيع واحد", async () => {
+    const store = new MemoryLocalStore();
+    const planning = new PlanningCalculationLifecycleService(store, now);
+    /* مجموعة فعالة واحدة (تكرار 2، مكوّن 5 د.أ) + سطر مجموعة فارغ تمامًا
+     * («أضف منتجًا آخر» بلا إدخال) — سيناريو المراجعة R1 حرفيًا. */
+    const input = planningInput({
+      groups: [
+        ...planningInput().groups,
+        {
+          groupId: "g-blank",
+          label: "",
+          offeringType: "product" as const,
+          repeatQuantity: 1,
+          costMode: "details" as const,
+          unitComponents: [
+            { name: "", quantity: 1, unit: "قطعة", unitPriceMinor: 0, confidence: "known" as const },
+          ],
+          totalCostMinor: null,
+          sellingPriceMinor: null,
+        },
+      ],
+    });
+    const preview = planning.previewPlanning(input);
+    if (!preview.ok) throw new Error(preview.message);
+    const saved = await planning.savePlanning(input, "op-blank-row");
+    if (!saved.ok) throw new Error(saved.message);
+    /* الفارغة لا تُحفظ — المجموعات المحفوظة الفعالة وحدها. */
+    expect(saved.value.planning?.groups).toHaveLength(1);
+    expect(saved.value.planning?.groups[0]?.groupId).toBe("g-1");
+    /* الإسقاط المسطح = نتيجة المعاينة نفسها (كمية 10 لا 11 — سطر «أضف
+     * منتجًا آخر» الفارغ لا يدخل الكمية ولا يكسر تكلفة الوحدة) — ما عُرض
+     * هو ما حُفظ من مرور النواة الواحد. */
+    expect(saved.value.quantity).toBe(10);
+    expect(saved.value.unitCostMinor).toBe(preview.value.unitCostMinor);
+    expect(saved.value.plannedCostMinor).toBe(preview.value.productsCostMinor);
+    expect(saved.value.planning?.savedResult.sellingTotalMinor).toBe(preview.value.sellingTotalMinor);
+    /* والسجل يقبل بوابة النقل: التصدير والاستعادة على هدف نظيف ينجحان. */
+    const transfer = new LocalTransferService(store, now);
+    const exported = await transfer.createExport();
+    if (!exported.ok) throw new Error(exported.message);
+    const target = new MemoryLocalStore();
+    const targetTransfer = new LocalTransferService(target, now);
+    const restored = await targetTransfer.prepareRestore(JSON.stringify(exported.value));
+    if (!restored.ok) throw new Error(restored.message);
+    const confirmed = await targetTransfer.confirmImport(restored.value);
+    if (!confirmed.ok) throw new Error(confirmed.message);
+    const roundTripped = await new CostEstimateService(target, now).list();
+    if (!roundTripped.ok) throw new Error(roundTripped.message);
+    expect(roundTripped.value).toHaveLength(1);
+    expect(roundTripped.value[0]?.planning?.groups).toHaveLength(1);
   });
 });

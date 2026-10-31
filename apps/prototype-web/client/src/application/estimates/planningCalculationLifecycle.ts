@@ -9,8 +9,8 @@
  * بعد الإقلاع من جذر التركيب؛ لا تدخل كومة الإقلاع (سقف gzip المحروس
  * لا يُرفع). جذر التركيب يستورد التنفيذ مباشرةً — الاستثناء الموثق نفسه.
  */
-import { calculateCostSnapshot } from "@micro-domain/craft-order/index.js";
-import { calculatePlanningResult } from "@micro-domain/planning/index.js";
+import type { CostSnapshot } from "@micro-domain/craft-order/index.js";
+import { calculatePlanningProjection, isBlankPlanningGroup } from "@micro-domain/planning/index.js";
 import type { PlanningCalculationResult } from "@micro-domain/planning/index.js";
 import type { CostEstimate, DraftCostTime } from "@/storage/local/types";
 import type {
@@ -23,7 +23,7 @@ import type { CostEstimateStore } from "@/storage/local/capabilities/costEstimat
 import type { CostEstimateResult } from "./costEstimateService";
 import { errorMessageOf, storageFailure, validationFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
-import { isValidTimestamp, localDateInAmman } from "@micro-domain/shared/index.js";
+import { isValidTimestamp } from "@micro-domain/shared/index.js";
 
 /** S10: مدخل حساب التخطيط T01 كما تدخله الحاسبة (بنية التخزين مباشرة). */
 export type PlanningSaveInput = {
@@ -97,7 +97,7 @@ function planningRecordFrom(
   base: CostEstimate | null,
   input: PlanningSaveInput,
   planningResult: PlanningCalculationResult,
-  kernelSnapshot: ReturnType<typeof calculateCostSnapshot>,
+  kernelSnapshot: CostSnapshot,
   operationKey: string | null,
   timestamp: string,
 ): CostEstimate {
@@ -130,16 +130,22 @@ function planningRecordFrom(
     planning: {
       inputSchemaVersion: PLANNING_INPUT_SCHEMA_VERSION,
       calculationVersion: PLANNING_CALCULATION_VERSION,
-      groups: input.groups.map(group => ({
-        groupId: group.groupId,
-        label: group.label,
-        offeringType: group.offeringType,
-        repeatQuantity: group.repeatQuantity,
-        costMode: group.costMode,
-        unitComponents: group.unitComponents.map(component => ({ ...component })),
-        totalCostMinor: group.totalCostMinor,
-        sellingPriceMinor: group.sellingPriceMinor,
-      })),
+      /* R1-F1: سطور المحرر الفارغة «لم تُدخل بعد» لا تُحفظ — تعريف الفارغة
+       * مصدره المجال (isBlankPlanningGroup) فيتطابق ما يُحفظ مع ما يُحسب
+       * (المجال يحسب الفعالة فقط) ومع ما تقبل بوابة استيراد/استعادة النقل
+       * حرفيًا. */
+      groups: input.groups
+        .filter(group => !isBlankPlanningGroup(group))
+        .map(group => ({
+          groupId: group.groupId,
+          label: group.label,
+          offeringType: group.offeringType,
+          repeatQuantity: group.repeatQuantity,
+          costMode: group.costMode,
+          unitComponents: group.unitComponents.map(component => ({ ...component })),
+          totalCostMinor: group.totalCostMinor,
+          sellingPriceMinor: group.sellingPriceMinor,
+        })),
       time: input.time ? { ...input.time } : null,
       packagingMinor: input.packagingMinor,
       wasteMinor: input.wasteMinor,
@@ -162,66 +168,18 @@ function planningRecordFrom(
   };
 }
 
-/** S10: توسيع حساب التخطيط إلى مدخل النواة المسطح — نفس منطق التوسيع في
- * المجال (المجموعات تفصيل/إجمالي) فينتج الإسقاط القديم القابل للقراءة
- * بكل القارئات القائمة؛ لا محرك ثانٍ. */
-function kernelSnapshotOfPlanning(
-  domainGroups: ReturnType<typeof toDomainPlanningInput>["groups"],
-  input: PlanningSaveInput,
-  timestamp: string,
-): ReturnType<typeof calculateCostSnapshot> {
-  return calculateCostSnapshot("planning-projection", {
-    currency: "JOD",
-    materialItems: domainGroups.flatMap(group =>
-      group.costMode === "total"
-        ? group.totalCostMinor && group.totalCostMinor > 0
-          ? [
-              {
-                name: group.label,
-                quantity: 1,
-                unit: "الكمية الكاملة",
-                unitPriceMinor: group.totalCostMinor,
-                priceDate: localDateInAmman(timestamp),
-                source: "user_input" as const,
-                confidence: "known" as const,
-              },
-            ]
-          : []
-        : group.unitComponents
-            .filter(component => component.name.trim() && component.unitPriceMinor > 0)
-            .map(component => ({
-              name: component.name,
-              quantity: component.quantity * group.repeatQuantity,
-              unit: component.unit,
-              unitPriceMinor: component.unitPriceMinor,
-              priceDate: localDateInAmman(timestamp),
-              source: "user_input" as const,
-              confidence: component.confidence,
-            })),
-    ),
-    time: input.time ? { ...input.time } : null,
-    packagingMinor: input.packagingMinor,
-    deliveryMinor: input.deliveryMinor,
-    wasteMinor: input.wasteMinor,
-    safetyBufferMinor: 0,
-    quantity: domainGroups.reduce((total, group) => total + group.repeatQuantity, 0),
-    createdAt: timestamp,
-    source: "draft",
-  });
-}
-
-/** S10: الحساب المزدوج المصدر الواحد — النتيجة التخطيطية من المجال
- * والإسقاط المسطح من النواة نفسها؛ الخطأ واحد برسالة المجال العربية. */
+/** S10/R1-F1: الحساب بمرور واحد من المصدر الواحد — النتيجة التخطيطية
+ * والإسقاط المسطح للنواة معًا من calculatePlanningProjection: المجموعات
+ * الفعالة والتوسيع والكمية المشتقة يعرفها المجال وحده (لا نسخة توسيع
+ * عند التطبيق) فيتطابق ما عُرض في المعاينة مع ما يُحفظ حرفيًا؛ الخطأ
+ * واحد برسالة المجال العربية. */
 function computePlanningPair(
   input: PlanningSaveInput,
   timestamp: string,
   resultId: string,
-): { planningResult: PlanningCalculationResult; kernelSnapshot: ReturnType<typeof calculateCostSnapshot> } {
-  const domainInput = toDomainPlanningInput(input, timestamp);
-  return {
-    planningResult: calculatePlanningResult(resultId, domainInput),
-    kernelSnapshot: kernelSnapshotOfPlanning(domainInput.groups, input, timestamp),
-  };
+): { planningResult: PlanningCalculationResult; kernelSnapshot: CostSnapshot } {
+  const projection = calculatePlanningProjection(resultId, toDomainPlanningInput(input, timestamp));
+  return { planningResult: projection.result, kernelSnapshot: projection.kernelSnapshot };
 }
 
 export class PlanningCalculationLifecycleService {
@@ -237,7 +195,8 @@ export class PlanningCalculationLifecycleService {
     try {
       return {
         ok: true,
-        value: calculatePlanningResult("planning-preview", toDomainPlanningInput(input, createdAt)),
+        value: calculatePlanningProjection("planning-preview", toDomainPlanningInput(input, createdAt))
+          .result,
       };
     } catch (error) {
       return validationFailure(errorMessageOf(error, "مدخلات الحساب غير صالحة."));
