@@ -82,14 +82,15 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
      * الأصول النقي — بصمات CAS داخل حد الكتابة وحتمية داخل الحد؛ لا وصول
      * لتخزين المتصفح) فنما العدّ 374→375؛ بروتوكول الراتشة نفسه (تحديث
      * بنفس الـPR مع السبب الموثق — أمر S08 المنشور في 73c1a344). */
-    /* S10 (DOC-019، 2026-10-31 — أمر b56967d8): +12 ملف إنتاج مزروعًا في
+    /* S10 (DOC-019، 2026-10-31 — أمر b56967d8): +13 ملف إنتاج مزروعًا في
      * client/src — بيت أدوات التخطيط التطبيقي (planning/index.ts،
      * planningToolsService.ts) ومكوناته الثلاثة (LegacyEstimateEditor،
      * PlanningGroupEditor، SavedCalculations) وصفحات T02–T05 الأربع
      * (HourValue، SalesQuantity، InvoiceShare، IdeaReview) ونوعا التخزين
      * (planningCalculationTypes.ts، costItemTypes.ts) وكعب اختبار الحد
      * (planningCalculatorTestHarness.ts — نمط formDraftTestHarness؛ لا
-     * وصول لتخزين المتصفح) فنما العدّ 375→388 (منها planningCalculationLifecycle.ts — دورة الحفظ الكسولة المنفصلة لميزانية الدخول)؛ بروتوكول الراتشة نفسه
+     * وصول لتخزين المتصفح) وplanningCalculationLifecycle.ts (دورة الحفظ
+     * الكسولة المنفصلة لميزانية الدخول) فنما العدّ 375→388؛ بروتوكول الراتشة نفسه
      * (تحديث بنفس الـPR مع السبب الموثق)؛ التسجيل يبقى موضعًا واحدًا
      * بالضبط (مهايئ التشخيص). */
     expect(stdout).toMatch(/388 ملف إنتاج/);
