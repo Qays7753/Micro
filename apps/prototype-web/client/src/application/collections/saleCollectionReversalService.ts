@@ -315,8 +315,27 @@ export class SaleCollectionReversalService {
         operationKey: `${input.operationKey}:unattribute`,
         reversesEntryId: matched.id,
       });
+      /* S11 (UNIT-026 sale-slice — أمر b33a8877 §6): العكس حركة سالبة مؤرخة
+       * داخل أصل البيع نفسه — سجل القبض المؤرخ يظل صادقًا بعد العكس (المجموع
+       * المحروس والتفصيل المؤرخ يسيران معًا دائمًا)؛ المفتاح نفسه للمراجعة
+       * والحركة لأنهما واقعة عكس واحدة. */
+      const withReversalMovement: DirectSale = {
+        ...corrected,
+        collections: [
+          ...(corrected.collections ?? []),
+          {
+            id: `${sale.id}:reverse:${input.operationKey}`,
+            amountMinor: -amountMinor,
+            occurredOn: localDateInAmman(timestamp),
+            operationKey: revisionKey,
+            recordedAt: timestamp,
+            note: `عكس تحصيل: ${input.reason.trim()}`,
+            allocationEntryId: allocationReversal.id,
+          },
+        ],
+      };
       const committed = await this.store.commitDirectSaleCollectionReversal(
-        corrected,
+        withReversalMovement,
         allocationReversal,
         revisionKey,
       );

@@ -65,6 +65,8 @@ export const DIRECT_SALE_COLLECTION_STATUSES = {
   collected_in_full: true,
   partial_debt: true,
   partial_needs_review: true,
+  /* S11 (UNIT-005/PD-02): مرتجع كامل — الحالة الجديدة داخل الاتحاد الحاكم. */
+  returned_full: true,
 } satisfies Record<DirectSaleCollectionStatus, true>;
 
 export const CASH_WALLET_KINDS = {

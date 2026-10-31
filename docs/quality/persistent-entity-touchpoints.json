@@ -99,7 +99,8 @@
         "indexeddb"
       ],
       "adapterTests": [
-        "apps/prototype-web/client/src/application/catalog/catalogService.test.ts"
+        "apps/prototype-web/client/src/application/catalog/catalogService.test.ts",
+        "apps/prototype-web/client/src/application/direct-sales/directSaleSlice.s11.test.ts"
       ],
       "transferTests": [
         "apps/prototype-web/client/src/application/transfers/localTransferService.directSaleRoundTrip.test.ts"

@@ -6310,6 +6310,348 @@
         "trigger": "S10-MR-001 root fix growth measured on the live tree",
         "ocRef": "DOC-019"
       }
+    },
+    {
+      "id": "S11-COLLECTIONS-COORDINATOR-20261031-01",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/application/collections/collectionService.ts",
+      "from": {
+        "nbLoc": 240,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 242,
+        "band": "NORMAL"
+      },
+      "reason": "S11 (DOC-020 / UNIT-004/005/026 sale-slice + SH-15 — أمر b33a8877): فرع البيع المباشر في المنسق يفوّض لمالك المصدر الذرّي (collectPayment) بدل التعديل فوق المصدر بيده.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-REVERSAL-DATED-MOVEMENT-20261031-02",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/application/collections/saleCollectionReversalService.ts",
+      "from": {
+        "nbLoc": 346,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 365,
+        "band": "NORMAL"
+      },
+      "reason": "S11 (DOC-020 / UNIT-004/005/026 sale-slice + SH-15 — أمر b33a8877): العكس الموثق يضيف حركة سالبة مؤرخة داخل الأصل فبقى سجل القبض المؤرخ صادقًا بعد العكس (المجموع والتفصيل متطابقان).",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-SALE-SERVICE-ATOMIC-20261031-03",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/application/direct-sales/directSaleService.ts",
+      "from": {
+        "nbLoc": 255,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 570,
+        "band": "WATCH"
+      },
+      "reason": "S11 (DOC-020 / UNIT-004/005/026 sale-slice + SH-15 — أمر b33a8877): مالك المصدر يملك الإنشاء والتحصيل والمرتجع ورد الدفع داخل حد كتابة واحد (commitDirectSaleWrite) مع تخصيص المحفظة المرتبط بسطر الحركة؛ عابر الشريط إلى WATCH بتوثيق نفس-الـPR.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-FINANCE-REFUND-CASH-20261031-04",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/application/finance/projectFinancialReads.ts",
+      "from": {
+        "nbLoc": 230,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 235,
+        "band": "NORMAL"
+      },
+      "reason": "S11 (DOC-020 / UNIT-004/005/026 sale-slice + SH-15 — أمر b33a8877): قراءة الكاش تخصم المُرَدّ فعليًا من نقد البيع المباشر — المصدر الواحد يملك دخول نقده وخروجه معًا.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-DRIFT-ANCHORS-RETURNED-20261031-05",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/application/transfers/domainTransferDriftAnchors.ts",
+      "from": {
+        "nbLoc": 97,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 108,
+        "band": "NORMAL"
+      },
+      "reason": "S11 (DOC-020 / UNIT-004/005/026 sale-slice + SH-15 — أمر b33a8877): مراسي الانجراف تعرف الحالة الرابعة returned_full وحركات البيع المؤرخة داخل الاتحاد الحاكم.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-TRANSFER-VALIDATORS-20261031-06",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts",
+      "from": {
+        "nbLoc": 1730,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 2191,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S11 (DOC-020 / UNIT-004/005/026 sale-slice + SH-15 — أمر b33a8877): مدقق عائلة البيع المباشر يفحص الحقول الدائمة الجديدة (خطوط القبض المؤرخة والمرتجع الكامل ومدفوع الرد) بتماسك متقاطع: الحالة والرد والمجاميع والمفاتيح كيان واحد صادق.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-EDITOR-RETURN-REFUND-20261031-07",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx",
+      "from": {
+        "nbLoc": 999,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 1333,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S11 (DOC-020 / UNIT-004/005/026 sale-slice + SH-15 — أمر b33a8877): محرر البيع يضيف فعل المرتجع الكامل PD-02 ودفع الرد المؤرخ خلف إفصاح مطوي، ويوصل نية المحفظة بالإنشاء الذرّي؛ عابر الشريط إلى SPLIT_NOW بتوثيق نفس-الـPR (لا تقسيم بنيوي — بوابة ما بعد المجموعة ٦).",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-IDB-SALE-COMMIT-20261031-08",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+      "from": {
+        "nbLoc": 4391,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 5483,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S11 (DOC-020 / UNIT-004/005/026 sale-slice + SH-15 — أمر b33a8877): commitDirectSaleWrite في محوّل IndexedDB — معاملة readwrite واحدة على مخزني البيع والكاش بفحص النسخة والمتبقي الحيين داخل الحد.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-MEMORY-SALE-COMMIT-20261031-09",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+      "from": {
+        "nbLoc": 2087,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 2628,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S11 (DOC-020 / UNIT-004/005/026 sale-slice + SH-15 — أمر b33a8877): commitDirectSaleWrite في محوّل الذاكرة — نفس عقد محوّل IndexedDB حرفيًا في خطوة متزامنة واحدة عبر نواة القرار المشتركة.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-SALE-CAPABILITY-20261031-10",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/storage/local/capabilities/directSaleStore.ts",
+      "from": {
+        "nbLoc": 34,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 35,
+        "band": "NORMAL"
+      },
+      "reason": "S11 (DOC-020 / UNIT-004/005/026 sale-slice + SH-15 — أمر b33a8877): عضوية قدرة البيع المباشر تمتد بالتزام الكتابة المحروس (4 طرق).",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-TYPES-SALE-COMMIT-20261031-11",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 1276,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S11 (DOC-020 / UNIT-004/005/026 sale-slice + SH-15 — أمر b33a8877): منفذ التخزين يعرف التزام كتابة البيع المحروس (base/next/مفاتيح/سطر كاش)؛ عابر الشريط إلى SPLIT_NOW بتوثيق نفس-الـPR.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-DOMAIN-SALE-POLICIES-20261031-12",
+      "date": "2026-10-31",
+      "path": "src/domain/direct-sale/policies.ts",
+      "from": {
+        "nbLoc": 182,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 417,
+        "band": "WATCH"
+      },
+      "reason": "S11 (DOC-020 / UNIT-004/005/026 sale-slice + SH-15 — أمر b33a8877): دوال النطاق الجديدة: التحصيل المؤرخ والمرتجع الكامل PD-02 ودفع الرد ومعيّن حق الرد القائم؛ عابر الشريط إلى WATCH بتوثيق نفس-الـPR.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-DOMAIN-SALE-TYPES-20261031-13",
+      "date": "2026-10-31",
+      "path": "src/domain/direct-sale/types.ts",
+      "from": {
+        "nbLoc": 77,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 169,
+        "band": "NORMAL"
+      },
+      "reason": "S11 (DOC-020 / UNIT-004/005/026 sale-slice + SH-15 — أمر b33a8877): أنواع سطر القبض المؤرخ والمرتجع الكامل ودفع الرد داخل عائلة البيع القائمة (حقول اختيارية متوافقة رجعيًا).",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-SERVICES-CONTEXT-SALE-MOVEMENTS-20261031-14",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+      "from": {
+        "nbLoc": 360,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 546,
+        "band": "WATCH"
+      },
+      "reason": "S11 (DOC-020): تسجيل خدمة حركات البيع الكسولة (نمط planning/cashCount نفسه: حالة + تأثير + دمج + الاعتمادية R1-F2) — النمو الموثق رفع الشريط إلى WATCH بعلم؛ ميزانية حزمة الدخول محروسة (D-034/ADR-017) وحركات البيع خارج كومة الإقلاع.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-COLLECTIONS-COORDINATOR-20261031-15",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/application/collections/collectionService.ts",
+      "from": {
+        "nbLoc": 240,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 253,
+        "band": "NORMAL"
+      },
+      "reason": "S11 (DOC-020): منسق التحصيل يوجه دفعة البيع إلى مالك الحركات داخل حد كتابته (استيراد ديناميكي موثق في جرد R9 بسقف الزوج 0→1 قيمة) — إعادة إرساء القيمة النهائية المقاسة فوق الإرساء الأول (242).",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-R9-CENSUS-20261031-16",
+      "date": "2026-10-31",
+      "path": "scripts/application-house-edges-census.json",
+      "from": {
+        "nbLoc": 891,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 921,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S11 (DOC-020): جرد أزواج البيوت R9 يسجل حافتي حركات البيع (تنسيق التحصيل قيمةً وسقف الزوج collections->direct-sales 0→1؛ وحافة النواة الورقية المعفاة time/clock) — النمو مرئي موثق لا صامت.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-R6-BASELINE-20261031-17",
+      "date": "2026-10-31",
+      "path": "scripts/ui-application-import-baseline.json",
+      "from": {
+        "nbLoc": 72,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 75,
+        "band": "NORMAL"
+      },
+      "reason": "S11 (DOC-020): أساس R6 يسجل الاستيراد الكسول الموثق لخدمة حركات البيع في جذر التركيب (نمط S04/S10 نفسه) — إضافة موثقة بنفس الشريحة.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-DOMAIN-SALE-BARREL-20261031-18",
+      "date": "2026-10-31",
+      "path": "src/domain/direct-sale/index.ts",
+      "from": {
+        "nbLoc": 2,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 3,
+        "band": "NORMAL"
+      },
+      "reason": "S11 (DOC-020): برميل وحدة البيع يصدّر بيت الحركات (movements.js) — التحصيل المؤرخ والمرتجع الكامل ودفع الرد عبر السطح العام نفسه.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
     }
   ]
 }

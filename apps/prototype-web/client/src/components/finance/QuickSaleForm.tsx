@@ -136,6 +136,10 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
         occurredOn: saleDate,
         note: saleOnCredit ? "بيع آجل من ورقة الإضافة" : "بيع مباشر من ورقة الإضافة",
         idempotencyKey: saleKeyRef.current,
+        /* S11 (UNIT-005 §6 — الذرية): البيع والقبض الابتدائي وتخصيص المحفظة
+         * المختار التزام واحد داخل حد الكتابة — لا نافذة تخصيص لاحقة ولا
+         * نجاح جزئي؛ الغياب = غير موزع صريح. */
+        wallet: saleWalletId ? { walletId: saleWalletId } : null,
       });
     } finally {
       saveInFlightRef.current = false;
@@ -164,21 +168,10 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
       });
       return;
     }
-    /* ٥.٢: نسبة المقبوض للمحفظة المختارة إن حُددت — تحصيلًا لا دينًا. */
-    const attributedMinor = saleOnCredit ? saleCollectedMinor : saleAmountMinor;
-    let attributionNote: string | null = null;
-    if (saleWalletId && attributedMinor > 0)
-      attributionNote = (
-        await attributeToWallet(
-          projectFinance,
-          saleWalletId,
-          attributedMinor,
-          "توزيع قبض بيع من ورقة الإضافة",
-          result.value.id,
-          "sale",
-          `${saleKeyRef.current}:attribute`,
-        )
-      ).message;
+    /* S11 (UNIT-005 §6 — الذرية): تخصيص المحفظة المختار كُتب مع البيع في حد
+     * كتابة واحد (commitDirectSaleWrite) — لا مسار تخصيص لاحق هنا ولا نجاح
+     * جزئي؛ الإيصال والنقد يُقرآن من المحفوظ وحده. */
+    const attributionNote: string | null = null;
     /* FIN-004 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الإشعار بعد اكتمال الكتابتين
      * (البيع ثم نسبة المحفظة) — لا حالة وسيطة تُقرأ تحت الورقة. */
     notifyDataChanged();

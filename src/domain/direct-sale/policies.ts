@@ -1,16 +1,21 @@
 import { JOD, fieldLabelAr, isValidLocalDate, isValidTimestamp } from "../shared/index.js";
 import type {
+  CollectDirectSalePaymentInput,
   CreateDirectSaleInput,
   DirectSale,
+  DirectSaleCollectionEntry,
   DirectSaleCollectionStatus,
+  DirectSaleFullReturnInput,
+  DirectSaleRefundPaymentEntry,
   DirectSaleRevision,
+  PayDirectSaleRefundInput,
   UpdateDirectSaleInput,
 } from "./types.js";
 
-function assertText(value: string, field: string) {
+export function assertText(value: string, field: string) {
   if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 }
-function assertPositiveInteger(value: number, field: string) {
+export function assertPositiveInteger(value: number, field: string) {
   if (!Number.isSafeInteger(value) || value <= 0)
     throw new Error(`أدخل ${fieldLabelAr(field)} رقمًا صحيحًا موجبًا.`);
 }
@@ -23,7 +28,7 @@ function assertNonNegativeInteger(value: number, field: string) {
 /* R2 (M-02/X1، 2026-10-08): صلاحية التاريخ المحلي من النواة الكنسية — كانت
  * نسخة حرفية لخوارزمية Date.UTC (ترفض السنوات 0000–0099 صدفةً وتكرر
  * الملكية)؛ الرسالة كما هي تمامًا. */
-function assertLocalDate(value: string) {
+export function assertLocalDate(value: string) {
   if (!isValidLocalDate(value)) throw new Error("أدخل تاريخ البيع تاريخًا محليًا صحيحًا.");
 }
 
@@ -95,8 +100,11 @@ function resolveCollection(
 }
 
 /* المجموعة ٥ (S4-09): المتبقي على بيع مباشر — معيّن واحد في المجال تشترك فيه
- * ورقة التحصيل ومحرر البيع بدل حسابين قد يتباعدان. */
+ * ورقة التحصيل ومحرر البيع بدل حسابين قد يتباعدان.
+ * S11 (UNIT-005/PD-02): المرتجع الكامل يلغي الحق المتبقي — لا متبقي حي
+ * بعده أبدًا (يقرأه كل القارئين من المعيّن الواحد هذا). */
 export function directSaleOutstandingMinor(sale: DirectSale): number {
+  if (sale.return) return 0;
   return Math.max(sale.revenueMinor - sale.collectedMinor, 0);
 }
 
@@ -115,6 +123,24 @@ function buildSaleRecord(input: CreateDirectSaleInput): DirectSale {
   /* R2 (M-02/X1): فحص الطابع من النواة — سلوك متكافل، مالك واحد. */
   if (!isValidTimestamp(input.recordedAt)) throw new Error("أدخل وقت التسجيل وقتًا صحيحًا.");
   const collection = resolveCollection(input.revenueMinor, input.collectedMinor, input.collectionStatus);
+  /* S11 (UNIT-026 sale-slice): القبض الابتدائي عند التسجيل سطر مؤرخ بهوية
+   * ومفتاح حتميين (إعادة المحاولة لا تكتب سطرًا ثانيًا) — تاريخه تاريخ
+   * البيع نفسه لأنه جزء من واقعة التسجيل؛ القبض اللاحق بتاريخه المستقل
+   * (SDF-012). صفر القبض لا ينشئ سطرًا (لا حركة بلا مال). */
+  const initialCollections: DirectSaleCollectionEntry[] =
+    collection.collectedMinor > 0
+      ? [
+          {
+            id: `${input.id.trim()}:initial`,
+            amountMinor: collection.collectedMinor,
+            occurredOn: input.occurredOn,
+            operationKey: `${input.idempotencyKey.trim()}:initial`,
+            recordedAt: input.recordedAt,
+            note: null,
+            allocationEntryId: null,
+          },
+        ]
+      : [];
   return Object.freeze({
     id: input.id.trim(),
     itemName: input.itemName.trim(),
@@ -138,6 +164,10 @@ function buildSaleRecord(input: CreateDirectSaleInput): DirectSale {
     cancelledAt: null,
     cancellationReason: null,
     revisions: [],
+    ...(initialCollections.length > 0 ? { collections: initialCollections } : {}),
+    return: null,
+    refundPayments: [],
+    refundedMinor: 0,
   });
 }
 
@@ -162,7 +192,7 @@ function assertRevision(revision: DirectSaleRevision) {
   if (revision.kind === "cancel") assertText(revision.reason ?? "", "cancellationReason");
 }
 
-function revisionList(
+export function revisionList(
   source: DirectSale,
   revision: DirectSaleRevision,
   beforeRevenueMinor?: number | null,
@@ -189,6 +219,10 @@ export function updateDirectSale(
   revision: DirectSaleRevision,
 ): DirectSale {
   if (source.status === "cancelled") throw new Error("لا يمكن تعديل بيع مباشر ملغى.");
+  /* S11 (UNIT-005/PD-02): المرتجع الكامل حالة مالية نهائية — الأصل وتاريخه
+   * محفوظان للقراءة؛ تصحيح بياناته وصفه ليس مأذونًا بعده ولا اختراع سياسة
+   * عكس مرتجع (لا سياسة معتمدة لذلك). */
+  if (source.return) throw new Error("لا يمكن تعديل بيع مُرتجع كاملًا — سجله محفوظ بتاريخه.");
   if (revision.kind !== "edit") throw new Error("تعديل البيع المباشر يحتاج تصحيحًا من نوع التعديل.");
   if ((source.revisions ?? []).some(candidate => candidate.kind === "cancel"))
     throw new Error("لا يمكن تعديل بيع مباشر يحمل إلغاءً سابقًا.");
@@ -221,6 +255,14 @@ export function updateDirectSale(
   const before = input.revenueMinor !== source.revenueMinor ? source.revenueMinor : undefined;
   return Object.freeze({
     ...updated,
+    /* S11 (UNIT-026 sale-slice): خطوط القبض المؤرخة وحق الرد ومدفوعاته
+     * محفوظة من الأصل حرفيًا — التصحيح الوصفي لا يمحو التاريخ المالي
+     * المؤرخ؛ والمجموع collectedMinor يبقى الإجمالي المحروس وحيد القراءة
+     * (exactOptionalPropertyTypes: الحضور الشرطي لا الإسناد الصريح لغير المعرف). */
+    ...(source.collections !== undefined ? { collections: source.collections } : {}),
+    ...(source.refundPayments !== undefined ? { refundPayments: source.refundPayments } : {}),
+    ...(source.refundedMinor !== undefined ? { refundedMinor: source.refundedMinor } : {}),
+    return: source.return ?? null,
     revisions: revisionList(source, revision, before),
   });
 }
@@ -232,6 +274,8 @@ export function applyPriceCut(
   revision: { idempotencyKey: string; createdAt: string; reason: string | null },
 ): DirectSale {
   if (source.status === "cancelled") throw new Error("لا يمكن تخفيض سعر بيع مباشر ملغى.");
+  /* S11 (PD-02): المرتجع ليس تخفيض سعر متنكرًا — بيع مُرتجع لا يُخفّض. */
+  if (source.return) throw new Error("لا يمكن تخفيض سعر بيع مُرتجع كاملًا.");
   if ((source.revisions ?? []).some(candidate => candidate.kind === "cancel"))
     throw new Error("لا يمكن تخفيض سعر بيع مباشر يحمل إلغاءً سابقًا.");
   if (source.collectedMinor >= source.revenueMinor)
@@ -255,6 +299,9 @@ export function applyPriceCut(
 
 export function cancelDirectSale(source: DirectSale, revision: DirectSaleRevision): DirectSale {
   if (source.status === "cancelled") throw new Error("تم إلغاء هذا البيع المباشر مسبقًا.");
+  /* S11 (PD-02): إلغاء التسجيل لخطأ الإدخال فعل مستقل عن المرتجع — بيع
+   * مُرتجع كاملًا حدث فعلًا ورُدّ ماله؛ إلغاؤه يمحو أساس المرتجع فممنوع. */
+  if (source.return) throw new Error("لا يمكن إلغاء تسجيل بيع مُرتجع كاملًا — استعمل أفعال المرتجع.");
   if (revision.kind !== "cancel") throw new Error("إلغاء البيع المباشر يحتاج تصحيحًا من نوع الإلغاء.");
   if ((source.revisions ?? []).some(candidate => candidate.kind === "cancel"))
     throw new Error("تم إلغاء هذا البيع المباشر مسبقًا.");

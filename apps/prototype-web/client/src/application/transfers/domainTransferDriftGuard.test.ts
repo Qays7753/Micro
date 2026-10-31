@@ -62,7 +62,11 @@ const GUARDS: ReadonlyArray<[string, (value: unknown) => boolean, readonly strin
   [
     "DirectSaleCollectionStatus",
     (value: unknown) =>
-      value === "collected_in_full" || value === "partial_debt" || value === "partial_needs_review",
+      value === "collected_in_full" ||
+      value === "partial_debt" ||
+      value === "partial_needs_review" ||
+      /* S11 (UNIT-005/PD-02): الحالة الرابعة — مرتجع كامل يلغي الحق المتبقي. */
+      value === "returned_full",
     Object.keys(DIRECT_SALE_COLLECTION_STATUSES),
   ],
   ["CashWalletKind", isCashWalletKind, Object.keys(CASH_WALLET_KINDS)],

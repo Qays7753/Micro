@@ -581,8 +581,12 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
      * تأكيد جزء المالك من وحدة النية الكنسية؛ سقف الزوج finance→financial-records
      * 1→2) — الجرد 130/81/49 صار 131/82/49؛ إعادة إرساء موثقة نفس-الـPR
      * (راجع تقرير S07). */
-    expect(result.stats.houseEdges).toBe(132);
-    expect(result.stats.houseEdgesValue).toBe(83);
+    /* S11 (2026-10-31، DOC-020 / WS-236): +2 value edges (منسق التحصيل ->
+     * مالك حركات البيع directSaleMovements بسقف الزوج collections→direct-sales
+     * 0→1 قيمة؛ وdirectSaleMovements -> time/clock هدف معفى OD-10) — الجرد
+     * 132/83/49 صار 134/85/49؛ إعادة إرساء موثقة نفس-الـPR (راجع تقرير S11). */
+    expect(result.stats.houseEdges).toBe(134);
+    expect(result.stats.houseEdgesValue).toBe(85);
     expect(result.stats.houseEdgesType).toBe(49);
   });
 

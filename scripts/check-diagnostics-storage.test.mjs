@@ -92,8 +92,19 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
      * وصول لتخزين المتصفح) وplanningCalculationLifecycle.ts (دورة الحفظ
      * الكسولة المنفصلة لميزانية الدخول) فنما العدّ 375→388؛ بروتوكول الراتشة نفسه
      * (تحديث بنفس الـPR مع السبب الموثق)؛ التسجيل يبقى موضعًا واحدًا
-     * بالضبط (مهايئ التشخيص). */
-    expect(stdout).toMatch(/388 ملف إنتاج/);
+     * بالضبط (مهايئ التشخيص).
+     * S10-MR-001 (أمر S11 عند b33a8877، 2026-10-31): 388→389 — نواة قرار
+     * التزام حساب التخطيط المشتركة costEstimateCommitGuard.ts (نقي بلا
+     * وصول تخزين)؛ نفس البروتوكول.
+     * S11 (DOC-020، 2026-10-31): 389→390 — نواة قرار التزام كتابة البيع
+     * المشتركة directSaleCommitGuard.ts (نقية بلا وصول تخزين)؛ نفس
+     * البروتوكول ولا موضع تسجيل جديد.
+     * S11 (DOC-020، 2026-10-31 — إكمال): 390→391 — خدمة التطبيق الكسولة
+     * directSaleMovements.ts (client/src؛ نقية بلا وصول تخزين)؛ نواة
+     * المجال movements.ts تحت src/domain خارج نطاق مسح client/src لهذا
+     * الحارس (تغطيها حراس المجال الأخرى)؛ نفس البروتوكول ولا موضع
+     * تسجيل جديد. */
+    expect(stdout).toMatch(/391 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

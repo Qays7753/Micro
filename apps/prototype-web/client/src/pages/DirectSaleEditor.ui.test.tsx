@@ -259,15 +259,16 @@ describe("DirectSaleEditor", () => {
   /* Z2.3 (§3.4 — Partial Success): البيع سُجل وقُبضه محفوظ، لكن نسبة المحفظة
    * فشلت — شاشة النتيجة تفصل المنجز عن الناقص بصراحة (مع السبب)، ولا تعرض
    * أي مسار إعادة تسجيل للبيع؛ الفعل التالي فتح السجل المسجل فقط. */
-  it("shows the attribution-failure partial success on the done screen and never re-records the sale", async () => {
+  it("S11 الذرية: فشل وجهة القبض يمنع البيع كله — لا نتيجة جزئية ولا إعادة تسجيل", async () => {
     wouterMocks.location = "/direct-sales/new";
-    const recorded: DirectSale = { ...sale, id: "sale-partial" };
-    const record = vi.fn().mockResolvedValue({ ok: true, value: recorded });
-    const distributeUnallocated = vi.fn().mockResolvedValue({
+    /* S11 (UNIT-005 §6): البيع والقبض الابتدائي وتخصيص المحفظة المختار
+     * التزام واحد — وجهة غير صالحة تُرفض قبل أي كتابة بلا نجاح جزئي. */
+    const record = vi.fn().mockResolvedValue({
       ok: false,
-      code: "storage_error",
-      message: "تعذر تخصيص القبض للمحفظة الآن.",
+      code: "validation_error",
+      message: "اختر محفظة موجودة لقبض البيع — أو اتركه غير موزع.",
     });
+    const distributeUnallocated = vi.fn();
     const notifyDataChanged = vi.fn();
     mockedUsePrototypeServices.mockReturnValue({
       /* كعب خدمة المسودة — قراءة فارغة وحفظ ناجح؛ الصفحة تُختبر لا المخزن. */
@@ -307,29 +308,20 @@ describe("DirectSaleEditor", () => {
 
     await screen.findByRole("heading", { name: "تسجيل بيع مباشر" });
     fireEvent.change(screen.getByLabelText("السعر المتفق عليه"), { target: { value: "12.00" } });
-    /* وجهة القبض تُقرأ عند الإنشاء — الدرج معيَّن مسبقًا فيُجرَّب التخصيص. */
+    /* وجهة القبض تُقرأ عند الإنشاء — الدرج معيَّن مسبقًا فيمر مع البيع. */
     await waitFor(() => expect(screen.getByLabelText("وجهة القبض")).toBeTruthy());
     fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
 
-    /* الجزء المنجز ظاهر: البيع سُجل بسعره وقبضه. */
-    await screen.findByRole("heading", { name: "سُجّل البيع" });
-    /* الجزء الناقص ظاهر بسببه: النسبة للمحفظة لم تتم — لا سطر محايد يطمسها. */
-    const partial = await screen.findByText(/نسبته للمحفظة لم تتم/);
-    expect(partial.textContent).toContain("تعذر تخصيص القبض للمحفظة الآن.");
-    expect(partial.getAttribute("role")).toBe("status");
-    /* لا إعادة تسجيل للبيع أبدًا: نداء سجل واحد، ونسبة واحدة بمفتاحها المشتق،
-     * ولا زر حفظ في شاشة النتيجة أصلًا. */
+    /* لا شاشة نتيجة أصلًا: الرفض عند الحقل بمدخلات المستخدم كما هي. */
+    const failure = await screen.findByText(/اختر محفظة موجودة لقبض البيع/);
+    expect(failure.getAttribute("role")).toBe("alert");
+    expect(screen.queryByRole("heading", { name: "سُجّل البيع" })).toBeNull();
+    expect(screen.getByRole("button", { name: "حفظ البيع المباشر" })).toBeTruthy();
+    /* لا إعادة تسجيل ولا نية تخصيص مستقلة — نداء واحد والنموذج محفوظ. */
     expect(record).toHaveBeenCalledTimes(1);
-    expect(distributeUnallocated).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(distributeUnallocated).mock.calls[0][0]).toMatchObject({
-      operationKey: expect.stringMatching(/:attribute$/),
-      sourceRefId: "sale-partial",
-    });
-    expect(screen.queryByRole("button", { name: "حفظ البيع المباشر" })).toBeNull();
-    /* فعل تالٍ واحد متاح: فتح السجل المسجل (مسار المتابعة لا إعادة الكتابة). */
-    expect(screen.getByRole("button", { name: "افتح السجل" })).toBeTruthy();
-    /* FIN-004: إشعار واحد بعد اكتمال كل الكتابات (البيع ثم محاولة النسبة). */
-    expect(notifyDataChanged).toHaveBeenCalledOnce();
+    expect(record.mock.calls[0][0]).toMatchObject({ wallet: { walletId: "drawer-partial" } });
+    expect(distributeUnallocated).not.toHaveBeenCalled();
+    expect(notifyDataChanged).not.toHaveBeenCalled();
   });
 
   /* S05 (DOC-014 / UNIT-037 B3 + SDF-041): فشل حفظ الطرف الاختياري نتيجة

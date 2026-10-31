@@ -18,7 +18,10 @@ import { useFormDraft } from "@/components/forms/useFormDraft";
 import { SaleCollectionReversalSection } from "@/components/direct-sales/SaleCollectionReversalSection";
 import { formatLocalDate, formatMoneyMinor, localDateInAmman } from "@/presentation/formatters";
 import type { DirectSaleCollectionStatus, DirectSale } from "@micro-domain/direct-sale/index.js";
-import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
+import {
+  directSaleOutstandingMinor,
+  directSaleRefundOutstandingMinor,
+} from "@micro-domain/direct-sale/index.js";
 import type { CatalogItem } from "@micro-domain/catalog/index.js";
 /* R7/R6-F17-P07 (2026-10-10): قرار المحرر النقي (بوابة التحقق/قرار الفرق
  * X-06/تعيين المرجع من الوصلة/خريطة السجل المحمّل) من بيته التطبيقي —
@@ -38,6 +41,8 @@ const collectionStatusLabel: Record<DirectSaleCollectionStatus, string> = {
   collected_in_full: "مقبوض كامل",
   partial_debt: "الفرق دَين على العميل",
   partial_needs_review: "الفرق يحتاج مراجعة",
+  /* S11 (UNIT-005/PD-02): الحق المتبقي أُلغي بالمرتجع — وصف صادق للحالة. */
+  returned_full: "مُرتجع كاملًا — الحق أُلغي",
 };
 
 type SaleDone = {
@@ -58,6 +63,9 @@ export default function DirectSaleEditor() {
   const returnPath = useReturnPath();
   const {
     directSales,
+    /* S11: حركات البيع (المرتجع الكامل ودفع الرد) تُحمَّل كسولًا فوق
+     * المخزن نفسه بعد الإقلاع — مثل خدمات النقل والأطراف. */
+    saleMovements,
     catalog,
     projectFinance,
     cashContinuity,
@@ -136,6 +144,20 @@ export default function DirectSaleEditor() {
   );
   const cancellationIdempotencyKey = useRef(
     `direct-sale-cancellation-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
+  );
+  /* S11 (UNIT-005/PD-02 + UNIT-026 sale-slice): حالة فعل المرتجع الكامل ودفع
+   * الرد — نية واحدة لكل فعل (مفتاح ثابت عند الإعادة) وتاريخ أعمال حقيقي. */
+  const [returnOpen, setReturnOpen] = useState(false);
+  const [returnReason, setReturnReason] = useState("");
+  const [returnDate, setReturnDate] = useState(todayInAmman());
+  const [refundAmountMinor, setRefundAmountMinor] = useState(0);
+  const [refundDate, setRefundDate] = useState(todayInAmman());
+  const [refundWalletId, setRefundWalletId] = useState("");
+  const returnIdempotencyKey = useRef(
+    `direct-sale-return-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
+  );
+  const refundIdempotencyKey = useRef(
+    `direct-sale-refund-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
   );
 
   useEffect(() => {
@@ -429,6 +451,10 @@ export default function DirectSaleEditor() {
             note,
             idempotencyKey: idempotencyKey.current,
             priceCut: priceCutChosen,
+            /* S11 (UNIT-005 §6 — الذرية): البيع والقبض الابتدائي والحق المشتق
+             * وتخصيص المحفظة المختار والتزام واحد داخل حد الكتابة الواحد —
+             * لا نجاح جزئي ولا نافذة تخصيص لاحقة؛ الغياب = غير موزع صريح. */
+            wallet: saleWalletId ? { walletId: saleWalletId } : null,
           });
     } finally {
       saveInFlightRef.current = false;
@@ -451,31 +477,16 @@ export default function DirectSaleEditor() {
       navigate(returnPath);
       return true;
     }
-    /* المجموعة ٣ (Scope D): تخصيص صريح بعد التسجيل — نفس مسار المجموعة ٢
-     * (distributeUnallocated) بمفتاح عملية مشتق من مفتاح الإرسال نفسه؛
-     * إعادة المحاولة أو الضغط المكرر لا يكرر التخصيص. */
+    /* S11 (UNIT-005 §6 — الذرية): البيع وتخصيص المحفظة المختار كُتبا معًا في
+     * حد واحد (commitDirectSaleWrite) — لا نافذة تخصيص لاحقة ولا نجاح جزئي:
+     * التخصيص المكتوب يُقرأ من سطر القبض الابتدائي القائم نفسه. */
     let walletName: string | null = null;
     let attributedMinor = 0;
     let attributionFailure: string | null = null;
-    if (saleWalletId && resolvedCollected > 0) {
-      const attribution = await projectFinance.distributeUnallocated({
-        walletId: saleWalletId,
-        deltaMinor: resolvedCollected,
-        note: "توزيع قبض بيع من محرر البيع",
-        operationKey: `${idempotencyKey.current}:attribute`,
-        sourceRefId: result.value.id,
-        sourceRefKind: "sale",
-      });
-      if (attribution.ok) {
-        walletName = wallets.find(wallet => wallet.id === saleWalletId)?.name ?? null;
-        attributedMinor = resolvedCollected;
-      } else {
-        /* البيع سُجل والقبض محفوظ — الفشل في النسبة لا يفقد المال؛ السبب
-         * يُحمل إلى شاشة النتيجة فيُعرض نجاحًا جزئيًا صريحًا (Z2.3) لا يبقى
-         * محجوبًا في حالة رسالة لا يقرؤها أحد هناك. عقد الخدمة يضمن رسالة
-         * سبب غير فارغة عند الفشل. */
-        attributionFailure = attribution.message;
-      }
+    const initialEntry = result.value.collections?.find(entry => entry.id === `${result.value.id}:initial`);
+    if (initialEntry?.allocationEntryId) {
+      walletName = wallets.find(wallet => wallet.id === saleWalletId)?.name ?? null;
+      attributedMinor = initialEntry.amountMinor;
     }
     /* S05 (DOC-014 / UNIT-037 B3 + SDF-041): حفظ الطرف الاختياري منفصل عن
      * التزام البيع تمامًا — البيع نجح وأُعلن، والحفظ أمر مستقل بمفتاح مشتق
@@ -555,6 +566,72 @@ export default function DirectSaleEditor() {
     }
     navigate(returnPath);
     return true;
+  }
+
+  /* S11 (UNIT-005/PD-02 — أمر b33a8877 §6): المرتجع الكامل — يلغي الحق
+   * المتبقي ويثبت رد المقبوض فعليًا فقط؛ الأصل والتاريخ محفوظان ولا نقص
+   * نقد قبل دفع رد فعلي. */
+  async function submitFullReturn() {
+    if (!saleMovements) {
+      setMessage("جارٍ تجهيز خدمة الحفظ — لحظة ثم أعد المحاولة.");
+      return;
+    }
+    if (!saleId || !returnReason.trim()) {
+      setMessage("اكتب سبب المرتجع قبل تأكيده.");
+      return;
+    }
+    setMessage(null);
+    setSaving(true);
+    const result = await saleMovements.fullReturn(saleId, {
+      occurredOn: returnDate,
+      reason: returnReason,
+      operationKey: returnIdempotencyKey.current,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      if (result.code === "conflict") {
+        preserveFormRef.current = true;
+        setReloadToken(token => token + 1);
+      }
+      return;
+    }
+    notifyDataChanged();
+    setReturnOpen(false);
+    setMessage("سُجّل المرتجع الكامل — أُلغي المتبقي وثبت حق الرد بالمقبوض.");
+  }
+
+  /* S11 (UNIT-026 sale-slice / SDF-054): دفع رد فعلي مؤرخ — لا يتجاوز حق
+   * الرد القائم ولا يُدفع مرتين؛ الصرف من محفظة مختارة أو من غير الموزع. */
+  async function submitRefundPayment() {
+    if (!saleMovements) {
+      setMessage("جارٍ تجهيز خدمة الحفظ — لحظة ثم أعد المحاولة.");
+      return;
+    }
+    if (!saleId) return;
+    if (!Number.isInteger(refundAmountMinor) || refundAmountMinor <= 0) {
+      setMessage("أدخل مبلغ دفع الرد بالأرقام 0–9.");
+      return;
+    }
+    setMessage(null);
+    setSaving(true);
+    const result = await saleMovements.payRefund(saleId, {
+      amountMinor: refundAmountMinor,
+      occurredOn: refundDate,
+      operationKey: refundIdempotencyKey.current,
+      walletId: refundWalletId || null,
+    });
+    setSaving(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      if (result.code === "conflict") {
+        preserveFormRef.current = true;
+        setReloadToken(token => token + 1);
+      }
+      return;
+    }
+    notifyDataChanged();
+    setMessage("سُجّل دفع الرد بتاريخه.");
   }
 
   if (editing && loadingSale)
@@ -1161,6 +1238,116 @@ export default function DirectSaleEditor() {
               </div>
             </>
           )}
+        </section>
+      ) : null}
+      {/* S11 (UNIT-005/PD-02 — أمر b33a8877 §6): المرتجع الكامل فعل مستقل عن
+          الإلغاء وعن تخفيض السعر — يُبقي البيع الأصل وتاريخه، ويلغي الحق
+          المتبقي، ويثبت رد المقبوض فعليًا فقط؛ لا نقص نقد قبل دفع رد فعلي
+          ولا إرجاع مخزون تلقائي. المحتوى خلف إفصاح مطوي (نمط نظام التصميم
+          §10.1: غير محسوب في السكون، وسقف كثافة النص المحروس لا يُرفع). */}
+      {editing && savedSale?.status !== "cancelled" && !savedSale?.return ? (
+        <section className="micro-danger-zone" aria-labelledby="direct-sale-return-title">
+          <details className="micro-inline-disclosure">
+            <summary id="direct-sale-return-title">المرتجع الكامل</summary>
+            <p>
+              سيبقى البيع الأصل وتاريخه محفوظين، ويُلغى المتبقي غير المقبوض، ويثبت حق رد المقبوض فعليًا — لا
+              يخرج نقد حتى تسجل دفع الرد.
+            </p>
+            <label className="micro-field">
+              <span>التاريخ</span>
+              <input type="date" value={returnDate} onChange={event => setReturnDate(event.target.value)} />
+            </label>
+            <label className="micro-field">
+              <span>سبب المرتجع</span>
+              <textarea
+                value={returnReason}
+                onChange={event => setReturnReason(event.target.value)}
+                placeholder="مثال: أُرجع كاملًا"
+              />
+            </label>
+            <div className="micro-form-actions">
+              <Button
+                action="destructive"
+
+                disabled={saving}
+                onClick={() => {
+                  void submitFullReturn();
+                }}
+              >
+                تأكيد المرتجع الكامل
+              </Button>
+              <Button
+                action="secondary"
+
+                disabled={saving}
+                onClick={() => setReturnOpen(false)}
+              >
+                إبقاء البيع
+              </Button>
+            </div>
+          </details>
+        </section>
+      ) : null}
+      {/* S11 (UNIT-026 sale-slice / SDF-054): دفع رد فعلي مؤرخ على بيع مُرتجع —
+          ضمن حق الرد القائم، ولا يُدفع مرتين؛ الصرف من محفظة مختارة أو من
+          غير الموزع، والكاش ينقص بقدره من مصدره الواحد. */}
+      {editing && savedSale?.return ? (
+        <section className="micro-form-card" aria-labelledby="direct-sale-refund-title">
+          <details className="micro-inline-disclosure" open>
+            <summary id="direct-sale-refund-title">المرتجع الكامل</summary>
+            <p role="status">
+              الحق القائم{" "}
+              <bdi dir="ltr">{formatMoneyMinor(directSaleRefundOutstandingMinor(savedSale))} د.أ</bdi> من أصل{" "}
+              <bdi dir="ltr">{formatMoneyMinor(savedSale.return.refundDueMinor)} د.أ</bdi> مقبوض — سُجّل
+              المرتجع بتاريخ <bdi dir="ltr">{savedSale.return.occurredOn}</bdi>.
+            </p>
+            {directSaleRefundOutstandingMinor(savedSale) > 0 ? (
+              <>
+                <label className="micro-field">
+                  <span>مبلغ دفع الرد — د.أ</span>
+                  <EnglishNumberInput
+                    value={refundAmountMinor}
+                    kind="money"
+                    onNumericChange={setRefundAmountMinor}
+                    aria-label="مبلغ دفع الرد"
+                  />
+                </label>
+                <label className="micro-field">
+                  <span>التاريخ</span>
+                  <input
+                    type="date"
+                    value={refundDate}
+                    onChange={event => setRefundDate(event.target.value)}
+                  />
+                </label>
+                <label className="micro-field">
+                  <span>من أي محفظة؟ (اختياري)</span>
+                  <select value={refundWalletId} onChange={event => setRefundWalletId(event.target.value)}>
+                    <option value="">غير موزع</option>
+                    {wallets.map(wallet => (
+                      <option key={wallet.id} value={wallet.id}>
+                        {wallet.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="micro-form-actions">
+                  <Button
+                    action="save"
+
+                    disabled={saving}
+                    onClick={() => {
+                      void submitRefundPayment();
+                    }}
+                  >
+                    سجّل دفع الرد
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <p role="status">لا دفع رد قائمًا على هذا البيع.</p>
+            )}
+          </details>
         </section>
       ) : null}
     </section>

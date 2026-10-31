@@ -90,6 +90,9 @@ import { decideCounterpartyCommit, type CounterpartyWriteCommit } from "./counte
 /* S10-MR-001 (أمر S11 — القسم ٥): قرار التزام إنشاء حساب التخطيط النقي —
  * مالك واحد للمهايئين (العهدة بالمفتاح والتعارض الصادق داخل الحد). */
 import { decideCostEstimateCreate, findCostEstimateByOperationKey } from "./costEstimateCommitGuard";
+/* S11 (UNIT-005/026 sale-slice — أمر b33a8877 §6): قرار التزام كتابة البيع
+ * المباشر النقي — مالك واحد للمهايئين (النسخة والمتبقي الحيان داخل الحد). */
+import { decideDirectSaleWrite, findCashEntryByOperationKey } from "./directSaleCommitGuard";
 /* S07-MR-001 (أمر S08 — القسم ١): قرار التزام المخزون النقي — القراءة الحية
  * والمقارنة وكل الكتابات داخل معاملة readwrite واحدة هنا. */
 import {
@@ -1357,6 +1360,103 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         transaction.oncomplete = () => {
           resolve({ ok: true, value: { sale, cashEntry: allocationReversal, reused: false } });
         };
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* S11 (UNIT-005/026 sale-slice — أمر b33a8877 §6): التزام كتابة البيع داخل
+   * معاملة readwrite واحدة على مخزني البيع وقيد الكاش — القراءة الحية
+   * (بالمعرّف، وبفهرس idempotencyKey عند الإنشاء) والقرار والكتابة داخل
+   * الحد نفسه عبر نواة القرار المشتركة decideDirectSaleWrite: فحص النسخة
+   * والمتبقي الحيين يمنع نافذتي تحصيل للمتبقي نفسه (واحدة تنجح والأخرى
+   * تُحبَط بلا كتابة)، وعهدة المفتاح إعادة استخدام بأثر الكاش المطابق،
+   * وحمولة مختلفة بالمفتاح نفسه تعارض صادق؛ والبيع مع سطر قيمة النقد
+   * المختار (تخصيص القبض/صرف الرد المرتبط بسطر الحركة القائم) يُكتبان
+   * معًا أو لا شيء. */
+  async commitDirectSaleWrite(
+    base: DirectSale | null,
+    next: DirectSale,
+    idempotencyKeys: readonly string[],
+    cashEntry: CashContinuityEntry | null,
+  ): Promise<StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([directSaleStore, cashContinuityEntryStore], "readwrite");
+        const sales = transaction.objectStore(directSaleStore);
+        const cashEntries = transaction.objectStore(cashContinuityEntryStore);
+        type WriteOutcome = StorageResult<{
+          sale: DirectSale;
+          cashEntry: CashContinuityEntry | null;
+          reused: boolean;
+        }>;
+        let pending: WriteOutcome | null = null;
+        const finish = resolve as (result: WriteOutcome) => void;
+        /* كل مسار رفض واحد: ثبّت النتيجة ثم أحبط المعاملة إحباطًا محرسًا —
+         * فإما onabort يسلّمها أو المعاملة انتهت فعلًا فيُسلَّم مباشرة. */
+        const rejectWith = (result: WriteOutcome) => {
+          pending = result;
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const failFromListener = (error: unknown) => rejectWith(failure(error, database));
+        /* إعادة الاستخدام بأثر الكاش المطابق: يُقرأ الدفتر داخل الحد نفسه. */
+        const reuseWithCash = (sale: DirectSale) => {
+          if (!cashEntry) {
+            rejectWith({ ok: true, value: { sale, cashEntry: null, reused: true } });
+            return;
+          }
+          const cashRequest = cashEntries.getAll();
+          cashRequest.onerror = () => rejectWith(failure(cashRequest.error, database));
+          cashRequest.onsuccess = guardedSuccessListener(failFromListener, () =>
+            rejectWith({
+              ok: true,
+              value: {
+                sale,
+                cashEntry: findCashEntryByOperationKey(
+                  cashRequest.result as CashContinuityEntry[],
+                  cashEntry.operationKey,
+                ),
+                reused: true,
+              },
+            }),
+          );
+        };
+        const settleDecision = (liveById: DirectSale | null, liveByIdempotencyKey: DirectSale | null) => {
+          const decision = decideDirectSaleWrite(base, next, idempotencyKeys, liveById, liveByIdempotencyKey);
+          if (decision.kind === "reject") {
+            rejectWith({ ok: false, code: decision.code, message: decision.message });
+            return;
+          }
+          if (decision.kind === "reuse") {
+            reuseWithCash(decision.sale);
+            return;
+          }
+          if (cashEntry) cashEntries.put(cashEntry);
+          sales.put(next);
+        };
+        const byIdRequest = sales.get(next.id);
+        byIdRequest.onerror = () => rejectWith(failure(byIdRequest.error, database));
+        byIdRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const liveById = (byIdRequest.result as DirectSale | undefined) ?? null;
+          if (base !== null) {
+            settleDecision(liveById, null);
+            return;
+          }
+          /* الإنشاء: البحث بمفتاح التسجيل عبر فهرسه القائم داخل الحد نفسه. */
+          const byKeyRequest = sales.index("idempotencyKey").get(next.idempotencyKey);
+          byKeyRequest.onerror = () => rejectWith(failure(byKeyRequest.error, database));
+          byKeyRequest.onsuccess = guardedSuccessListener(failFromListener, () =>
+            settleDecision(liveById, (byKeyRequest.result as DirectSale | undefined) ?? null),
+          );
+        });
+        transaction.onerror = () => resolve(pending ?? failure(transaction.error, database));
+        transaction.onabort = () => resolve(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => resolve({ ok: true, value: { sale: next, cashEntry, reused: false } });
       });
     } catch (error) {
       return failure(error);

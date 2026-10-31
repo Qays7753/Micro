@@ -104,9 +104,9 @@ async function runCapabilityScenario(store: DirectSaleStore) {
   expect(afterReversal.ok && afterReversal.value[0]?.collectedMinor).toBe(0);
 }
 describe("R3 — قدرة البيع المباشر (بطاقة R3-SC-04): العضوية", () => {
-  it("قائمة الطرق هي نطاق المجموعة بالضبط: 3 أسماء فريدة", () => {
-    expect(directSaleStoreMethods).toHaveLength(3);
-    expect(new Set(directSaleStoreMethods).size).toBe(3);
+  it("قائمة الطرق هي نطاق المجموعة بالضبط: 4 أسماء فريدة (S11 أضافت التزام الكتابة المحروس)", () => {
+    expect(directSaleStoreMethods).toHaveLength(4);
+    expect(new Set(directSaleStoreMethods).size).toBe(4);
   });
 
   describe.each([

@@ -209,6 +209,53 @@ export const isDirectSaleRevision = (value: unknown): boolean =>
     value.beforeRevenueMinor === null ||
     isSafeMoney(value.beforeRevenueMinor));
 
+/* S11 (UNIT-026 sale-slice): سطر حركة مؤرخ (قبض/رد) — هوية ومفتاح نية
+ * وتاريخ أعمال حقيقي ومبلغ آمن صحيح موجبًا للقبض وسالبًا للعكس الموثق
+ * (مرآة شكل دالة النطاق). */
+export const isDirectSaleMovementEntry = (value: unknown): boolean =>
+  isRecord(value) &&
+  isString(value.id) &&
+  value.id.trim().length > 0 &&
+  isSignedMoney(value.amountMinor) &&
+  value.amountMinor !== 0 &&
+  isString(value.occurredOn) &&
+  isLocalDate(value.occurredOn) &&
+  isString(value.operationKey) &&
+  value.operationKey.trim().length > 0 &&
+  isDate(value.recordedAt) &&
+  (value.note === null || value.note === undefined || isString(value.note)) &&
+  (value.allocationEntryId === null ||
+    value.allocationEntryId === undefined ||
+    (isString(value.allocationEntryId) && value.allocationEntryId.trim().length > 0));
+
+/* S11 (UNIT-005/PD-02): المرتجع الكامل — تاريخ وحق رد لا يتجاوز المقبوض
+ * ومفتاح نية وسبب موثق غير فارغ. */
+type DirectSaleFullReturnShape = {
+  occurredOn: string;
+  refundDueMinor: number;
+  operationKey: string;
+  recordedAt: string;
+  reason: string;
+};
+export const isDirectSaleFullReturn = (value: unknown): value is DirectSaleFullReturnShape =>
+  isRecord(value) &&
+  isString(value.occurredOn) &&
+  isLocalDate(value.occurredOn) &&
+  isSafeMoney(value.refundDueMinor) &&
+  value.refundDueMinor >= 0 &&
+  isString(value.operationKey) &&
+  value.operationKey.trim().length > 0 &&
+  isDate(value.recordedAt) &&
+  isString(value.reason) &&
+  value.reason.trim().length > 0;
+
+/** S11: قائمة حركات صالحة للنطاق — معاون تضييق للفحوص المتقاطعة. */
+function isDirectSaleMovementEntryList(
+  value: unknown,
+): value is { amountMinor: number; operationKey: string }[] {
+  return Array.isArray(value) && value.every(isDirectSaleMovementEntry);
+}
+
 export function isDirectSale(value: unknown): value is DirectSale {
   if (
     !isRecord(value) ||
@@ -227,7 +274,9 @@ export function isDirectSale(value: unknown): value is DirectSale {
       value.collectionStatus === undefined ||
       value.collectionStatus === "collected_in_full" ||
       value.collectionStatus === "partial_debt" ||
-      value.collectionStatus === "partial_needs_review"
+      value.collectionStatus === "partial_needs_review" ||
+      /* S11 (UNIT-005/PD-02): الحالة الرابعة — مرتجع كامل يلغي الحق المتبقي. */
+      value.collectionStatus === "returned_full"
     ) ||
     /* D-001: الزبون حقل مستقل اختياري — null أو اسم غير فارغ. */
     !(
@@ -283,6 +332,25 @@ export function isDirectSale(value: unknown): value is DirectSale {
     !(
       value.revisions === undefined ||
       (Array.isArray(value.revisions) && value.revisions.every(isDirectSaleRevision))
+    ) ||
+    /* S11 (UNIT-026 sale-slice — أمر b33a8877): خطوط القبض المؤرخة ومدفوعات
+     * الرد والمرتجع الكامل — حقول اختيارية متوافقة رجعيًا داخل العائلة
+     * القائمة؛ الغياب قانوني (الإرث المجمل بلا تواريخ مؤلفة) والوجود
+     * يُفحص شكلًا صادقًا (هوية/تاريخ أعمال/مفتاح/مبالغ آمنة/سقوف العقد). */
+    !(
+      value.collections === undefined ||
+      (Array.isArray(value.collections) && value.collections.every(isDirectSaleMovementEntry))
+    ) ||
+    !(value.return === undefined || value.return === null || isDirectSaleFullReturn(value.return)) ||
+    !(
+      value.refundPayments === undefined ||
+      (Array.isArray(value.refundPayments) && value.refundPayments.every(isDirectSaleMovementEntry))
+    ) ||
+    !(
+      value.refundedMinor === undefined ||
+      (isSafeMoney(value.refundedMinor) &&
+        value.refundedMinor >= 0 &&
+        value.refundedMinor <= value.collectedMinor)
     )
   )
     return false;
@@ -319,6 +387,37 @@ export function isDirectSale(value: unknown): value is DirectSale {
     revisionKeys.add(revision.idempotencyKey);
   }
   if (status === "active" && revisions.some(revision => revision.kind === "cancel")) return false;
+  /* S11 (UNIT-005/026 sale-slice): تماسك الحالات المتقاطعة — المرتجع والحالة
+   * والرد وخطوط الحركة ومفاتيحها كيان واحد صادق لا حقول متنافرة. */
+  const fullReturn = value.return;
+  const hasFullReturn = isDirectSaleFullReturn(fullReturn);
+  if ((value.collectionStatus === "returned_full") !== hasFullReturn) return false;
+  if (hasFullReturn) {
+    if (fullReturn.refundDueMinor > value.collectedMinor) return false;
+    if (status !== "active") return false;
+  }
+  const refundPayments: { amountMinor: number; operationKey: string }[] = isDirectSaleMovementEntryList(
+    value.refundPayments,
+  )
+    ? value.refundPayments
+    : [];
+  if (refundPayments.length > 0 && !hasFullReturn) return false;
+  const refundedMinor = value.refundedMinor ?? 0;
+  if (refundedMinor !== refundPayments.reduce((sum, entry) => sum + entry.amountMinor, 0)) return false;
+  if (hasFullReturn && refundedMinor > fullReturn.refundDueMinor) return false;
+  const movementKeys = new Set<string>();
+  const collections: { amountMinor: number; operationKey: string }[] = isDirectSaleMovementEntryList(
+    value.collections,
+  )
+    ? value.collections
+    : [];
+  for (const entry of [...collections, ...refundPayments]) {
+    if (movementKeys.has(entry.operationKey) || entry.operationKey === value.idempotencyKey) return false;
+    movementKeys.add(entry.operationKey);
+  }
+  if (hasFullReturn && movementKeys.has(fullReturn.operationKey)) return false;
+  if (hasFullReturn && revisions.some(revision => revision.idempotencyKey === fullReturn.operationKey))
+    return false;
   return value.profitMinor === (value.costMinor === null ? null : value.revenueMinor - value.costMinor);
 }
 export const isCorrectionType = (value: unknown) =>

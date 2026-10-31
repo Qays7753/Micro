@@ -62,8 +62,15 @@ describe("check-storage-listener-guards (R9-GA-F7.1 static guard)", () => {
      * S08 (DOC-017، 2026-10-30): 87 -> 89 — منافذ أحداث الأصول في
      * IndexedDbLocalStore (مسح الأحداث وقراءة السجل داخل معاملة الكتابة
      * نفسها) كلها بguardedSuccessListener الحارس نفسه؛ إعادة إرساء موثقة
-     * نفس-الـPR لا تعديلًا صامتًا. */
-    expect(stdout).toMatch(/89 onsuccess listeners/);
+     * نفس-الـPR لا تعديلًا صامتًا.
+     * S10-MR-001 (أمر S11 عند b33a8877، 2026-10-31): 89 -> 90 — مستمع
+     * getAll في commitCostEstimateCreate (IndexedDbLocalStore) مغلّف
+     * بguardedSuccessListener الحارس نفسه؛ نفس البروتوكول.
+     * S11 (DOC-020، 2026-10-31): 90 -> 93 — مستمعات commitDirectSaleWrite
+     * في IndexedDbLocalStore (قراءة السجل بالمعرّف، والبحث بمفتاح التسجيل
+     * عند الإنشاء، ومطابقة أثر الكاش عند إعادة الاستخدام) كلها بguardedSuccessListener
+     * الحارس نفسه؛ إعادة إرساء موثقة نفس-الـPR لا تعديلًا صامتًا. */
+    expect(stdout).toMatch(/93 onsuccess listeners/);
   });
 
   it("fails on an unguarded write-queueing onsuccess listener (the F7 family recurrence)", () => {

@@ -112,10 +112,19 @@ describe("SaleCollectionReversalService — عكس تحصيل البيع الم�
     expect(reversalRevision).toBeDefined();
     expect(reversalRevision!.reason).toContain("عكس تحصيل");
     expect(reversalRevision!.reason).toContain("القبض سُجل على البيع الخطأ");
-    /* الأصل باقٍ: مراجعة التحصيل الأصلية لم تُحذف. */
-    expect(
-      (result.value.sale.revisions ?? []).some(revision => revision.idempotencyKey === "exe010-sheet-key"),
-    ).toBe(true);
+    /* S11 (UNIT-026 sale-slice): الأصل باقٍ — سطر القبض المؤرخ بمفتاح الورقة
+     * لم يُحذف، والعكس حركة سالبة مؤرخة بجانبه فالمجموع والتفصيل متطابقان. */
+    const originalEntry = (result.value.sale.collections ?? []).find(
+      entry => entry.operationKey === "exe010-sheet-key",
+    );
+    expect(originalEntry).toBeDefined();
+    expect(originalEntry!.amountMinor).toBe(3000);
+    const reversalEntry = (result.value.sale.collections ?? []).find(
+      entry => entry.operationKey === "sale-collect-reverse:exe010-reverse-a",
+    );
+    expect(reversalEntry).toBeDefined();
+    expect(reversalEntry!.amountMinor).toBe(-3000);
+    expect((result.value.sale.collections ?? []).reduce((sum, entry) => sum + entry.amountMinor, 0)).toBe(0);
     /* المحفظة: قيد عكس مرآة مرتبط بالأصل. */
     const entries = await store.listCashContinuityEntries();
     if (!entries.ok) throw new Error(entries.message);

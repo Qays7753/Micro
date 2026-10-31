@@ -230,12 +230,21 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
     expect(sale.collectedMinor).toBe(5000);
     expect(sale.collectionStatus).toBe("collected_in_full");
     expect(sale.customerName).toBe("ريم");
-    expect(sale.revisions?.length).toBe(1);
-    /* وصل المصدر محفوظ في حركة التخصيص — دفتر المحفظة يصل للسجل. */
+    /* S11 (UNIT-026 sale-slice): التحصيل سطر قبض مؤرخ داخل الأصل — ليس
+     * مراجعة تعديل؛ هويته ومفتاح نية الورقة عليه. */
+    expect(sale.revisions?.length ?? 0).toBe(0);
+    /* سطران مؤرخان: القبض الابتدائي عند التسجيل + قبضة التحصيل بمفتاحها. */
+    expect(sale.collections?.length).toBe(2);
+    expect(sale.collections?.[0]?.operationKey).toBe("sale-2-key:initial");
+    expect(sale.collections?.[1]?.amountMinor).toBe(3000);
+    expect(sale.collections?.[1]?.operationKey).toBe("collect-sale-1");
+    /* وصل المصدر محفوظ في حركة التخصيص — دفتر المحفظة يصل للسجل وترتبط
+     * التخصيص بسطر القبض القائم نفسه لا بقبض آخر. */
     const entries = okValue(await store.listCashContinuityEntries())!;
     const allocation = entries.find(entry => entry.type === "allocation");
     expect(allocation?.sourceRefId).toBe("sale-2");
     expect(allocation?.sourceRefKind).toBe("sale");
+    expect(allocation?.sourceRefLineId).toBe(sale.collections?.[1]?.id);
   });
 
   it("وجهة «غير موزع» صريحة: لا تخصيص وبقاء الكاش غير موزع", async () => {
@@ -306,11 +315,14 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
       walletId: null,
       idempotencyKey: "collect-dup-sale",
     });
+    /* S11 (UNIT-026 sale-slice): إعادة الإرسال بمفتاح الورقة نفسه إعادة
+     * استخدام صادقة عند حد مالك المصدر — لا سطر ثانٍ ولا فشل مضلل. */
     expect(saleSecond.ok).toBe(true);
     const sale = okValue(await store.listDirectSales())!.find(item => item.id === "sale-3")!;
-    /* قبض واحد فقط: 1000 أساس + 1000 بوابة واحدة. */
+    /* قبض واحد فقط: 1000 أساس + 1000 بوابة واحدة — سطر التحصيل واحد بمفتاح واحد. */
     expect(sale.collectedMinor).toBe(2000);
-    expect(sale.revisions?.length).toBe(1);
+    expect(sale.collections?.length).toBe(2);
+    expect(sale.collections?.filter(entry => entry.operationKey === "collect-dup-sale")).toHaveLength(1);
   });
 
   it("انقطاع الكتابة المحلية لا يُعلن نجاحًا — رسالة الفشل كما هي", async () => {
@@ -394,8 +406,10 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
       idempotencyKey: "expense-hole-1",
     });
     if (!expense.ok) throw new Error(expense.message);
-    /* تحصيل 3000 إلى الدرج: القبض يهبط في غير الموزع (−500 + 3000 = 2500)
-     * والنسبة (3000) أكبر منه فتُرفض — لكن التحصيل نفسه سُجل بالفعل. */
+    /* تحصيل 3000 إلى الدرج: S11 (UNIT-026 sale-slice) — التخصيص يُكتب مع
+     * سطر القبض في حد مالك المصدر الواحد، ومقداره هو قبضة نفسها فيغطيه
+     * نقدُها الجديد؛ الفجوة القديمة (−500 من المصروف السابق للقبضة) تبقى
+     * ظاهرة في غير الموزع ولا تُخفى ولا تُدفع على القبضة الجديدة. */
     const result = await collections.collect({
       sourceKind: "direct_sale",
       sourceId: "sale-hole",
@@ -406,18 +420,17 @@ describe("CollectionService — ورقة التحصيل (المجموعة ٢ §6
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error(result.message);
     expect(result.value.remainingAfterMinor).toBe(0);
-    expect(result.value.attributedToWalletMinor).toBe(0);
-    expect(result.value.walletName).toBeNull();
-    expect(result.value.attributionNotice).toContain("غير الموزع");
+    expect(result.value.attributedToWalletMinor).toBe(3000);
+    expect(result.value.walletName).toBe("درج المحل");
     const sale = okValue(await store.listDirectSales())!.find(item => item.id === "sale-hole")!;
     expect(sale.collectedMinor).toBe(5000);
     expect(sale.collectionStatus).toBe("collected_in_full");
     /* الحكم الحاسم: الكاش المسجل = القبض − المصروف (لا فقدان ولا اختراع)،
-     * والمحفظة لم تتغير — الفرق يوصف من غير الموزع لا يختفي. */
+     * والمحفظة حملت قبضة البيع نفسها، والفجوة القديمة ظاهرة في غير الموزع. */
     const after = await projectFinance.readPosition();
     if (!after.ok) throw new Error(after.message);
     expect(after.value.recordedCashMinor).toBe(before.value.recordedCashMinor - 2500 + 3000);
-    expect(after.value.walletCashMinor).toBe(before.value.walletCashMinor);
-    expect(after.value.unallocatedCashMinor).toBe(before.value.unallocatedCashMinor - 2500 + 3000);
+    expect(after.value.walletCashMinor).toBe(before.value.walletCashMinor + 3000);
+    expect(after.value.unallocatedCashMinor).toBe(before.value.unallocatedCashMinor - 2500);
   });
 });

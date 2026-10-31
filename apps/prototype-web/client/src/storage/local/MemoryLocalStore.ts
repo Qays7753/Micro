@@ -31,6 +31,9 @@ import { decideCounterpartyCommit, type CounterpartyWriteCommit } from "./counte
 /* S10-MR-001 (أمر S11 — القسم ٥): قرار التزام إنشاء حساب التخطيط النقي —
  * مالك واحد للمهايئين (العهدة بالمفتاح والتعارض الصادق داخل الحد). */
 import { decideCostEstimateCreate, findCostEstimateByOperationKey } from "./costEstimateCommitGuard";
+/* S11 (UNIT-005/026 sale-slice — أمر b33a8877 §6): قرار التزام كتابة البيع
+ * المباشر النقي — مالك واحد للمهايئين (النسخة والمتبقي الحيان داخل الحد). */
+import { decideDirectSaleWrite, findCashEntryByOperationKey } from "./directSaleCommitGuard";
 /* S07-MR-001 (أمر S08 — القسم ١): قرار التزام المخزون النقي — مالك واحد
  * للمهايئين (CAS داخل الحد + حتمية داخل الحد). */
 import { decideInventoryCommit, type InventoryCommitExpectation } from "./inventoryCommitGuard";
@@ -731,6 +734,46 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         cashEntry: allocationReversal ? clone(allocationReversal) : null,
         reused: false,
       },
+    };
+  }
+  /* S11 (UNIT-005/026 sale-slice — أمر b33a8877 §6): التزام كتابة البيع في
+   * خطوة متزامنة واحدة (لا فجوة تزامن في بنية الذاكرة أحادية الخيط) —
+   * الإنشاء والتحصيل والمرتجع ورد الدفع والتصحيح/الإلغاء كلها عبر نواة
+   * القرار المشتركة مع محوّل IndexedDB حرفيًا: فحص الهوية والنسخة والمتبقي
+   * الحيين ثم الكتابة أو الرفض الصادق؛ والبيع مع سطر قيمة النقد المختار
+   * (تخصيص القبض/صرف الرد) يُكتبان معًا أو لا شيء. */
+  async commitDirectSaleWrite(
+    base: DirectSale | null,
+    next: DirectSale,
+    idempotencyKeys: readonly string[],
+    cashEntry: CashContinuityEntry | null,
+  ): Promise<StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>> {
+    const liveById = this.directSales.get(next.id) ?? null;
+    const liveByIdempotencyKey =
+      base === null
+        ? (Array.from(this.directSales.values()).find(sale => sale.idempotencyKey === next.idempotencyKey) ??
+          null)
+        : null;
+    const decision = decideDirectSaleWrite(base, next, idempotencyKeys, liveById, liveByIdempotencyKey);
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.kind === "reuse") {
+      const matchingCash = cashEntry
+        ? findCashEntryByOperationKey(Array.from(this.cashContinuityEntries.values()), cashEntry.operationKey)
+        : null;
+      return {
+        ok: true,
+        value: {
+          sale: clone(decision.sale),
+          cashEntry: matchingCash ? clone(matchingCash) : null,
+          reused: true,
+        },
+      };
+    }
+    this.directSales.set(next.id, clone(next));
+    if (cashEntry) this.cashContinuityEntries.set(cashEntry.id, clone(cashEntry));
+    return {
+      ok: true,
+      value: { sale: clone(next), cashEntry: cashEntry ? clone(cashEntry) : null, reused: false },
     };
   }
   async listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>> {

@@ -50,9 +50,12 @@ beforeEach(() => {
     if (result.ok) orderLog.push("allocation-committed");
     return result;
   };
-  const originalSaveSale = store.saveDirectSale.bind(store);
-  store.saveDirectSale = async (...args: Parameters<typeof originalSaveSale>) => {
-    const result = await originalSaveSale(...args);
+  /* S11 (UNIT-005/026 sale-slice): البيع وسطر قيمة النقد المختار التزام
+   * واحد محروس (commitDirectSaleWrite) — التخصيص داخل الحد نفسه لا خطوة
+   * لاحقة، فالترتيب الحاسم: الالتزام الواحد ثم إشعار واحد. */
+  const originalCommitSale = store.commitDirectSaleWrite.bind(store);
+  store.commitDirectSaleWrite = async (...args: Parameters<typeof originalCommitSale>) => {
+    const result = await originalCommitSale(...args);
     if (result.ok) orderLog.push("sale-committed");
     return result;
   };
@@ -143,7 +146,9 @@ describe("Quick forms notify after committed state (FIN-004)", () => {
     orderLog = [];
     await user.click(screen.getByRole("button", { name: "سجّل البيع" }));
     await waitForReceipt(submitted);
-    expect(orderLog).toEqual(["sale-committed", "allocation-committed", "notify"]);
+    /* S11: التزام واحد (البيع + تخصيص قبضه) ثم إشعار واحد — لا خطوة
+     * تخصيص مستقلة بينهما أبدًا. */
+    expect(orderLog).toEqual(["sale-committed", "notify"]);
     expect(notifyCount).toBe(1);
     const position = await projectFinance.readPosition();
     if (!position.ok) throw new Error(position.message);

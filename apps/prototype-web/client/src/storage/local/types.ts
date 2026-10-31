@@ -755,6 +755,20 @@ export interface PrototypeLocalStore {
     allocationReversal: CashContinuityEntry | null,
     revisionKey: string,
   ): Promise<StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>>;
+  /* S11 (UNIT-005/026 sale-slice — أمر b33a8877 §6): التزام كتابة البيع
+   * المباشر المحروس — الإنشاء (base=null) أو التحصيل/المرتجع/رد الدفع/
+   * التصحيح/الإلغاء (base!=null) داخل حد كتابة واحد عبر نواة القرار
+   * المشتركة decideDirectSaleWrite: فحص الهوية والنسخة والمتبقي الحيين داخل
+   * الحد نفسه (نافذتا تحصيل للمتبقي نفسه تنجح واحدة وتراجع الأخرى)، وعهدة
+   * المفتاح إعادة استخدام صادقة بأثر الكاش المطابق، وحمولة مختلفة بالمفتاح
+   * نفسه تعارض بلا كتابة؛ والبيع مع سطر قيمة النقد المختار (تخصيص القبض/
+   * صرف الرد المرتبط بسطر الحركة القائم) يُكتبان معًا أو لا شيء. */
+  commitDirectSaleWrite(
+    base: DirectSale | null,
+    next: DirectSale,
+    idempotencyKeys: readonly string[],
+    cashEntry: CashContinuityEntry | null,
+  ): Promise<StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>>;
   listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>>;
   getSchedule(id: string): Promise<StorageResult<ScheduleEntry | null>>;
   saveSchedule(schedule: ScheduleEntry): Promise<StorageResult<ScheduleEntry>>;

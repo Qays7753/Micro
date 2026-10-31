@@ -50,6 +50,10 @@ import { FinancialAnalysisService } from "@/application/financial-analysis/finan
 import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { CostEstimateService } from "@/application/estimates/costEstimateService";
 import type { PlanningCalculationLifecycleService } from "@/application/estimates/planningCalculationLifecycle";
+/* S11 (DOC-020 — ميزانية الحزمة، نمط planning نفسه): حركات البيع المالية
+ * (التحصيل المؤرخ والمرتجع الكامل ودفع الرد) تُحمَّل كسولًا فوق المخزن
+ * الوحيد؛ مستهلكها المباشر صفحة المحرر الكسولة وورقة التحصيل. */
+import type { DirectSaleMovementsService } from "@/application/direct-sales/directSaleMovements";
 import type { PartyDirectoryService } from "@/application/parties/partyLedgerService";
 /* المجموعة ٢: التحصيل ودفتر المحفظة والكشف — خدمات مالية جديدة فوق المخزن نفسه. */
 import { CollectionService } from "@/application/collections/collectionService";
@@ -139,6 +143,7 @@ type PrototypeServices = {
    * (نمط transfers/loans/cashCount) لا فشلًا صامتًا — مستهلكها الوحيد
    * (الحاسبة الكسولة) يعلن ذلك بصدق ويعيد المحاولة عند اكتماله. */
   planningCalculations: PlanningCalculationLifecycleService | null;
+  saleMovements: DirectSaleMovementsService | null;
   /* S05 (DOC-014 / UNIT-037، سابقة S04/cashCount نفسها): دليل الأطراف
    * المحفوظة عبر التحميل الخامل — مسار الأطراف لا يحتاجه الإقلاع وميزانية
    * الحزمة محروسة بسقف مالك؛ null يعني «جارٍ التجهيز» (نمط transfers/loans/
@@ -326,6 +331,18 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       active = false;
     };
   }, []);
+  /* S11: حركات البيع المالية كسولة فوق المخزن الوحيد — نمط planning نفسه. */
+  const [saleMovementsService, setSaleMovementsService] = useState<DirectSaleMovementsService | null>(null);
+  useEffect(() => {
+    let active = true;
+    void import("@/application/direct-sales/directSaleMovements").then(module => {
+      if (!active) return;
+      setSaleMovementsService(new module.DirectSaleMovementsService(singletonStore));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   useEffect(() => {
     let active = true;
     /* S05 (ميزانية الحزمة — نمط count/partyDirectory نفسه): مركز التحكم
@@ -400,6 +417,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       supplierPurchases: supplierPurchasesService,
       assets: assetService,
       planningCalculations: planningCalculationService,
+      saleMovements: saleMovementsService,
       homeControlCenter: homeControlCenterService,
       dataVersion,
       notifyDataChanged,
@@ -416,6 +434,9 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
        * قيمة السياق مخزنة مؤقتًا عند null بعد اكتمال التحميل الديناميكي
        * فلا ترى الحاسبة خدمتها أبدًا (كل الخدمات الكسولة السابقة هنا). */
       planningCalculationService,
+      /* S11 (نمط R1-F2 نفسه): حركات البيع الكسولة داخل الاعتماديات —
+       * بدونها يبقى محرر البيع يرى null بعد اكتمال الاستيراد الديناميكي. */
+      saleMovementsService,
       homeControlCenterService,
       dataVersion,
       notifyDataChanged,
@@ -444,6 +465,7 @@ function createServices(): Omit<
   | "assets"
   | "homeControlCenter"
   | "planningCalculations"
+  | "saleMovements"
 > {
   const store = singletonStore;
   const costs = new CostService(store);

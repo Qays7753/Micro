@@ -7,10 +7,10 @@
     "authority": "OD-10 Option A (owner-approved 2026-10-13, R11 owner decision package) + R11 W0 census (128 edges / 80 value / 48 type) + RV1/R11-RV1 independent reproductions"
   },
   "totals": {
-    "edges": 132,
-    "value": 83,
+    "edges": 134,
+    "value": 85,
     "type": 49,
-    "governedEdges": 64,
+    "governedEdges": 65,
     "governedPairs": 42
   },
   "edges": [
@@ -673,6 +673,14 @@
       "key": "application/transfers/replacementProtectionProtocol.ts -> application/time/clock.ts",
       "kind": "type",
       "exemptTarget": true
+    },
+    {
+      "key": "application/collections/collectionService.ts -> application/direct-sales/directSaleMovements.ts",
+      "kind": "value"
+    },
+    {
+      "key": "application/direct-sales/directSaleMovements.ts -> application/time/clock.ts",
+      "kind": "value"
     }
   ],
   "pairCaps": {
@@ -713,7 +721,7 @@
       "type": 3
     },
     "collections->direct-sales": {
-      "value": 0,
+      "value": 1,
       "type": 1
     },
     "collections->fulfillment": {
@@ -907,6 +915,7 @@
     "The two dual-kind pairs (application/finance/index.ts -> application/recurring/recurringExpenseService.ts and application/fulfillment/fulfillmentService.ts -> application/scheduling/scheduleService.ts) classify TYPE under the type-dominant rule.",
     "The two R10-B growth edges recorded with provenance: fulfillment/deliveryReviewService.ts -> application/inventory/materialUnitLabels.ts and suppliers/supplierPurchaseEditorModel.ts -> application/finance/paymentSourcePolicy.ts (both from documented R10-B3 work, now inside the census).",
     "2026-10-27 (S02/SH-02/SH-03/SH-04): حافتا القفل المتقاعد (localLockService وpinOperations -> time/clock) حُذفتا مع وحدتيهما بقرار إلغاء ٠٤٢؛ وحافة بروتوكول حماية الاستبدال الجديد (replacementProtectionProtocol -> time/clock) أُضيفت — هدف معفى ورقي (OD-10) والوصول مسموح بتصميم.",
-    "S07 (DOC-016 / S06-MR-001): إعادة إرساء موثقة — زوج تأكيد جزء الفاتورة المشتركة من وحدة النية الكنسية إلى نموذج المحرر (قيمة) ضمن حد الكتابة؛ حافة ملف واحدة وسقف زوج 1→2 بنفس الشريحة."
+    "S07 (DOC-016 / S06-MR-001): إعادة إرساء موثقة — زوج تأكيد جزء الفاتورة المشتركة من وحدة النية الكنسية إلى نموذج المحرر (قيمة) ضمن حد الكتابة؛ حافة ملف واحدة وسقف زوج 1→2 بنفس الشريحة.",
+    "S11 (DOC-020 / WS-236، 2026-10-31): إرساء موثق بنفس الشريحة — خدمة حركات البيع المالية (directSaleMovements) بيت مستقل يُحمَّل كسولًا (نمط planning/cashCount نفسه): حافة تنسيق التحصيل من منسق المجموعات إلى مالك الحركات (قيمة — استيراد ديناميكي داخل حد الكتابة) وسقف الزوج collections->direct-sales 0→1 قيمة؛ وحافة نواة الوقت الورقية المعفاة (directSaleMovements -> time/clock). الوصول مسموح بتصميم والنمو موثق لا صامت."
   ]
 }
