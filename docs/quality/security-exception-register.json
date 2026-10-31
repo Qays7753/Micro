@@ -113,6 +113,106 @@
         "ci_run_url": "https://github.com/Qays7753/Micro/actions/runs/40601874825",
         "result_record": "docs/implementation/micro-component-execution/07-S02-RESULT-2026-10-27.md"
       }
+    },
+    {
+      "advisory_id": "GHSA-g3hv-75wg-m249",
+      "package": "minimatch",
+      "vulnerable_versions": "<11.0.1",
+      "patched_versions_upstream": ">=11.0.1 (upstream 11.0.1/11.0.3 exist; no resolvable chain in this repository reaches them — npm registry verified live 2026-10-31)",
+      "severity": "moderate (as reported by pnpm audit)",
+      "title": "minimatch has potential denial of service via globparts amplification",
+      "dependency_chain": [
+        "eslint@9.39.5 — root package.json devDependencies (\"eslint\": \"^9.39.1\"), resolved 9.39.5 in pnpm-lock.yaml (newest 9.x) -> minimatch@3.1.5 direct, and via @eslint/config-array@0.21.2 and @eslint/eslintrc@3.3.6 -> minimatch@3.1.5",
+        "typescript-eslint@8.68.0 — root devDependencies (\"typescript-eslint\": \"^8.46.0\") -> @typescript-eslint/eslint-plugin/parser/type-utils/utils@8.68.0 -> eslint@9.39.5 -> minimatch@3.1.5, and @typescript-eslint/typescript-estree@8.68.0 -> minimatch@10.2.6",
+        "vite-plugin-pwa@1.3.0 — apps/prototype-web/package.json devDependency -> workbox-build@7.4.1 -> glob@11.1.0 -> minimatch@10.2.6",
+        "vite-plugin-pwa@1.3.0 -> workbox-build@7.4.1 -> @trickfilm400/rollup-plugin-off-main-thread@3.0.0-pre1 -> ejs@3.1.10 -> jake@10.9.4 -> filelist@1.0.6 -> minimatch@5.1.9"
+      ],
+      "classification": "development-only",
+      "classification_evidence": "pnpm audit --prod (2026-10-31): zero production advisories. Every chain above resolves exclusively through devDependencies — the eslint/typescript-eslint lint tooling and the vite-plugin-pwa/workbox-build PWA build tooling. The production PWA bundle is built by Vite from application-reachable modules only and never contains devDependencies (apps/prototype-web dependencies are clsx, lucide-react, react, react-dom, tailwind-merge, vaul, wouter).",
+      "exploitability_assessment": "Not exploitable in this repository's actual usage. The vulnerable code path (pattern amplification in glob-parts matching) is reached only when the lint/build tools match hostile glob patterns; in this repository every glob/ignore input is a fixed repository-authored string (eslint and typescript-eslint configuration globs, workbox-build's own build-output globs). No user input, no network input, and no untrusted content reaches these development pipelines. The exception does not claim the upstream defect is harmless; it records the bounded current exposure while no resolvable patched release exists.",
+      "affected_surfaces": [
+        "Development toolchain only: the eslint/typescript-eslint passes inside pnpm lint and the CI 'Verify domain and prototype' step",
+        "The PWA build toolchain (workbox-build glob handling) on developer machines and CI runners",
+        "The dependency-audit step when pnpm reports this advisory at the configured audit level"
+      ],
+      "unaffected_surfaces": [
+        "Deployed PWA runtime and Cloudflare Pages application bundle",
+        "Application domain logic, financial calculations, storage, backup/restore, and security boundaries at runtime",
+        "Schema 40, Export 32, import wire format, migrations, and historical data",
+        "End users and authoritative application data"
+      ],
+      "remediation_attempts_verified": [
+        "No in-range upgrade removes the chain (npm registry verified live 2026-10-31): eslint ^9.39.1 resolves at most 9.39.5 (newest 9.x) which depends on minimatch ^3.1.5; typescript-eslint ^8.46.0 resolves at most 8.72.1 whose @typescript-eslint/typescript-estree still depends on minimatch ^10.2.2 (<11.0.1); vite-plugin-pwa is pinned 1.3.0 and workbox-build@7.4.1 (the latest workbox-build release) depends on glob ^11.0.1 which itself depends on minimatch ^10.2.6; filelist@1.0.6 (via jake/ejs in the same workbox chain) depends on minimatch ^5.0.1.",
+        "Out-of-range majors do not fix it either: eslint 10.14.0 (latest overall) still depends on minimatch ^10.2.6 (<11.0.1); vite-plugin-pwa 2.0.0 still depends on workbox-build ^7.4.1 -> glob ^11. No release of any direct dependency currently resolves minimatch >=11.0.1.",
+        "No dependency override, audit-level reduction, guard weakening, or unreviewed fork is authorized; each would change security/CI policy rather than remediate safely."
+      ],
+      "monitoring_method": "Every CI audit run evaluates this entry through scripts/ci-audit-check.mjs and prints an explicit OWNER_ACCEPTED notice when matched. If the advisory disappears from the live report, the checker emits a stale-entry warning and the entry must be removed in the same lockfile-update PR. Reopen immediately on any patched release that becomes resolvable, a dependency-chain change, a new advisory affecting the chain, or movement of the affected operation onto untrusted input.",
+      "owner": "Micro owner — explicitly accepted the bounded OWNER_ACCEPTED exception on 2026-10-31 (S10 execution order section 1); acceptance is limited to GHSA-g3hv-75wg-m249 and the documented development-only chains.",
+      "status": "OWNER_ACCEPTED",
+      "accepted_at": "2026-10-31",
+      "review_date": "2027-01-29 (90-day periodic review)",
+      "reopening_trigger": "Immediately upon a patched minimatch release becoming resolvable through any direct dependency, a dependency-chain change, a new advisory affecting this chain, or any change that makes the affected operation consume untrusted input; review also occurs on the 90-day date.",
+      "removal_condition": "Remove this entry in the same PR that updates the lockfile once the live audit no longer matches the vulnerable range through a resolvable upgrade; a stale-entry warning is required evidence.",
+      "rollback_boundary": "This is a data-only exception. Reverting or removing this entry restores fail-closed blocking for the advisory without code rollback. No application, dependency, CI-policy, schema, export, import, or financial change is part of this decision.",
+      "recorded_at": "2026-10-31",
+      "evidence": {
+        "live_audit_command": "pnpm audit --json",
+        "live_audit_exit_code": 1,
+        "live_audit_output_summary": "GHSA-g3hv-75wg-m249, moderate, minimatch <11.0.1 (installed 3.1.5, 5.1.9, 10.2.6 — all dev-only chains), DoS via globparts amplification; patched >=11.0.1 unreachable through every direct dependency",
+        "advisory_url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+        "observed_on_sha": "b56967d8e7d699a21f7fe83161561d2d146dbc23",
+        "ci_run_url": "https://github.com/Qays7753/Micro/actions/runs/41151475202",
+        "result_record": "docs/implementation/micro-component-execution/14-S09-RESULT-2026-10-30.md"
+      }
+    },
+    {
+      "advisory_id": "GHSA-3g3m-2fjr-6pw4",
+      "package": "glob",
+      "vulnerable_versions": ">=9.0.0 <=14.0.1",
+      "patched_versions_upstream": ">=14.0.2 (upstream 14.0.2/14.0.3 exist; no resolvable chain in this repository reaches them — npm registry verified live 2026-10-31)",
+      "severity": "moderate (as reported by pnpm audit)",
+      "title": "Glob: AbortSignal cancellation bypass allows post-timeout filesystem traversal",
+      "dependency_chain": [
+        "vite-plugin-pwa@1.3.0 — apps/prototype-web/package.json devDependency (pinned \"vite-plugin-pwa\": \"1.3.0\")",
+        "vite-plugin-pwa@1.3.0 -> workbox-build@7.4.1",
+        "workbox-build@7.4.1 -> glob@11.1.0"
+      ],
+      "classification": "development-only",
+      "classification_evidence": "pnpm audit --prod (2026-10-31): zero production advisories. The only affected chain resolves through the vite-plugin-pwa PWA build tooling, a devDependency of apps/prototype-web; glob never enters the deployed application bundle. The exact package and lockfile versions are recorded in pnpm-lock.yaml and the S09 result record (section 6).",
+      "exploitability_assessment": "Not exploitable in this repository's actual usage. The vulnerable code path (filesystem traversal continuing after an AbortSignal timeout) requires an attacker-controlled abort signal and hostile traversal target inside a glob call; in this repository glob is invoked only by workbox-build during the local/CI PWA build over the build's own output directory with repository-authored patterns. No user input, no network input, and no untrusted content reaches the build pipeline. The exception does not claim the upstream defect is harmless; it records the bounded current exposure while no resolvable patched release exists.",
+      "affected_surfaces": [
+        "The PWA build toolchain (workbox-build glob handling) on developer machines and CI runners",
+        "The dependency-audit step when pnpm reports this advisory at the configured audit level"
+      ],
+      "unaffected_surfaces": [
+        "Deployed PWA runtime and Cloudflare Pages application bundle",
+        "Application domain logic, financial calculations, storage, backup/restore, and security boundaries at runtime",
+        "Schema 40, Export 32, import wire format, migrations, and historical data",
+        "End users and authoritative application data"
+      ],
+      "remediation_attempts_verified": [
+        "No in-range upgrade removes the chain (npm registry verified live 2026-10-31): vite-plugin-pwa is pinned 1.3.0 and workbox-build@7.4.1 is the latest workbox-build release, depending on glob ^11.0.1 (11.1.0 installed, vulnerable range >=9.0.0 <=14.0.1).",
+        "The out-of-range major does not fix it either: vite-plugin-pwa 2.0.0 (latest) still depends on workbox-build ^7.4.1 -> glob ^11. No release of any direct dependency currently resolves glob >=14.0.2.",
+        "No dependency override, audit-level reduction, guard weakening, or unreviewed fork is authorized; each would change security/CI policy rather than remediate safely."
+      ],
+      "monitoring_method": "Every CI audit run evaluates this entry through scripts/ci-audit-check.mjs and prints an explicit OWNER_ACCEPTED notice when matched. If the advisory disappears from the live report, the checker emits a stale-entry warning and the entry must be removed in the same lockfile-update PR. Reopen immediately on any patched release that becomes resolvable, a dependency-chain change, a new advisory affecting the chain, or movement of the affected operation onto untrusted input.",
+      "owner": "Micro owner — explicitly accepted the bounded OWNER_ACCEPTED exception on 2026-10-31 (S10 execution order section 1); acceptance is limited to GHSA-3g3m-2fjr-6pw4 and the documented development-only chain.",
+      "status": "OWNER_ACCEPTED",
+      "accepted_at": "2026-10-31",
+      "review_date": "2027-01-29 (90-day periodic review)",
+      "reopening_trigger": "Immediately upon a patched glob release becoming resolvable through any direct dependency, a dependency-chain change, a new advisory affecting this chain, or any change that makes the affected operation consume untrusted input; review also occurs on the 90-day date.",
+      "removal_condition": "Remove this entry in the same PR that updates the lockfile once the live audit no longer matches the vulnerable range through a resolvable upgrade; a stale-entry warning is required evidence.",
+      "rollback_boundary": "This is a data-only exception. Reverting or removing this entry restores fail-closed blocking for the advisory without code rollback. No application, dependency, CI-policy, schema, export, import, or financial change is part of this decision.",
+      "recorded_at": "2026-10-31",
+      "evidence": {
+        "live_audit_command": "pnpm audit --json",
+        "live_audit_exit_code": 1,
+        "live_audit_output_summary": "GHSA-3g3m-2fjr-6pw4, moderate, glob >=9.0.0 <=14.0.1 (installed 11.1.0 via vite-plugin-pwa 1.3.0 -> workbox-build 7.4.1, dev-only), AbortSignal cancellation bypass; patched >=14.0.2 unreachable through every direct dependency",
+        "advisory_url": "https://github.com/advisories/GHSA-3g3m-2fjr-6pw4",
+        "observed_on_sha": "b56967d8e7d699a21f7fe83161561d2d146dbc23",
+        "ci_run_url": "https://github.com/Qays7753/Micro/actions/runs/41151475202",
+        "result_record": "docs/implementation/micro-component-execution/14-S09-RESULT-2026-10-30.md"
+      }
     }
   ]
 }
