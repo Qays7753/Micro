@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 9 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 10 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -44,4 +44,4 @@ python3 scripts/operations-control/validate.py
 | WS-232 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-016 | مراجعة Manus المستقلة وقرار المالك على PR #383 (سجل S07 الكامل مع إصلاح S07-MR-001 في 12-S07-RESULT §1-ب/§4-ب)؛ لا دمج ولا كتابة main. |
 | WS-233 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-017 | مراجعة Manus المستقلة وقرار المالك على PR #383 (سجل S08 الكامل مع إصلاحي S08-MR-001/002 في 13-S08-RESULT و13a-S08-REVIEW-FIX-ADDENDUM-2026-10-30)؛ لا دمج ولا كتابة main؛ المتابعة التنفيذية الجارية الآن على مطالبة S09 النشطة WS-234/DOC-018 وحدها. |
 | WS-234 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-018 | مراجعة Manus المستقلة وقبول المالك على PR #383 لسجل S09 الكامل (14-S09-RESULT-2026-10-30.md) — البوابتان مفتوحتان ولم تصدرا؛ REVIEW_REQUIRED هنا تحرير ملكية مناطق للعمل المتسلسل لا قبول. إذن المالك المستمر بتاريخ 2026-10-31 (أمر تنفيذ S10 المنشور في 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8e7d699a21f7fe83161561d2d146dbc23): تسجيل استثناءَي S09 الأمنيين المأذونَين تحديدًا (GHSA-g3hv-75wg-m249 minimatch وGHSA-3g3m-2fjr-6pw4 glob) ثم التنفيذ المتصل لS10 (UNIT-030/031/032 + SH-14) على الفرع/PR نفسيهما بلا موافقات وسطية؛ الإذن لا يعني قبول S08/S09 ولا الدمج — مراجعة Manus المستقلة وقبول المالك بوابتا القبول والدمج لكل من S08 وS09 كما هما. |
-| WS-235 | IN_PROGRESS | `components/integration-20261027` | 383 | DOC-019 | تنفيذ S10 المتصل فوق الفرع/PR نفسيهما وفق أمر b56967d8: القسم ١ منجز (7adfac55)؛ القسم ٢ يجري الآن — المجال النقي ثم التخزين/النقل ثم الأسطح والاختبارات والمراجعات الخمس والسلسلة الكاملة والتحقق البعيد على الرأس النهائي بعينه. |
+| WS-235 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-019 | مراجعة Manus المستقلة وقبول المالك على PR #383 لسجل S10 الكامل (15-S10-RESULT-2026-10-31.md) — البوابتان مفتوحتان كما هما ولم تصدرا؛ REVIEW_REQUIRED هنا تحرير ملكية مناطق للعمل التسلسلي اللاحق لا قبول؛ أي مرحلة لاحقة (S11+) بأمر المالك وحده. |

@@ -272,7 +272,7 @@
 
 ### S10 — الأدوات المستقلة ومحفوظات الحاسبة
 
-**الحالة:** PLANNED_REVIEW؛ لا فرع مرحلة ولا أمر منشور.
+**الحالة:** منفذة ومسلّمة للمراجعة (أمر `00-S10-EXECUTION-PROMPT-2026-10-31.md` المنشور في `b56967d8`؛ DOC-019/WS-235 صارا IN_REVIEW/REVIEW_REQUIRED بالمسار القانوني؛ النتيجة `15-S10-RESULT-2026-10-31.md`؛ المرشح الكودي النهائي `c73dacb2` بإرساء الأسطح `3c69c6db` بعد المراجعات الخمس وتصحيحاتها المعاد قراءتها).
 
 **المواصفات:** [UNIT-030](02-SPECIFICATIONS/03-New-Design/UNIT-030-نقل-وظائف-أدواتي.md)، [UNIT-031](02-SPECIFICATIONS/03-New-Design/UNIT-031-التكلفة-والتسعير.md)، [UNIT-032](02-SPECIFICATIONS/03-New-Design/UNIT-032-التقديرات-المحفوظة.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 

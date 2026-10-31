@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "003adb0b5818c90b2cf8f9bc8f286c6c355a7679",
+  "head": "3c69c6db9144a5d373a31cde55a7346e60ed732e",
   "pages": {
     "total": 64,
     "map": {
@@ -140,7 +140,8 @@
       "pages/EstimateDetail.tsx": {
         "kind": "direct",
         "evidence": [
-          "G3.dom.test.tsx"
+          "G3.dom.test.tsx",
+          "pages/EstimateDetail.s10.dom.test.tsx"
         ]
       },
       "pages/Finance.tsx": {
