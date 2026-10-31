@@ -4,7 +4,7 @@
  * أدواتي أدوات مستقلة فقط:
  * - لا قسم «حالة الوحدات» (F03) — الإعدادات بيت التهيئة والقدرات الوحيد.
  * - لا بطاقة نسخ احتياطي (T4) — بيتها الإعدادات.
- * - لا شارات/قراءات دفتر الناس والموردين (T5) — الحالة تُقرأ من بيتها.
+ * - لا شارات/قراءات العملاء والموردين والموردين بالمشتريات (T5) — الحالة تُقرأ من بيتها.
  * - لا صف «السوق والتوصيل» الميت (T6) — تمثيل السوق مقعده والنقل لوحة الترويسة.
  * - تبقى الحاسبة والتقديرات والجسر والشرح الصادق المطلوب حرفيًا. */
 import React from "react";
@@ -45,31 +45,26 @@ describe("P-4.2-2 — تنظيف «أدواتي» (F03/T4/T5/T6)", () => {
     vi.clearAllMocks();
   });
 
-  it("السطح: أدوات مستقلة فقط — لا حالة وحدات ولا نسخ ولا شارات مالية ولا صف سوق ميت", async () => {
-    mockedUsePrototypeServices.mockImplementation(
-      () =>
-        ({
-          costEstimates,
-          dataVersion: 0,
-          notifyDataChanged: vi.fn(),
-        }) as unknown as ReturnType<typeof usePrototypeServices>,
-    );
+  it("السطح: أدوات تخطيط خمس فقط — لا حالة وحدات ولا نسخ ولا شارات مالية ولا صف سوق ميت", async () => {
+    /* S10 (UNIT-030 — أمر b56967d8): الوجهة صارت أدوات المشروع الخمس فقط
+     * (T01–T05) — قائمة التقديرات المستقلة أُلغيت بقرار UNIT-032 (المحفوظات
+     * داخل الحاسبة) والوعد الصادق صار صيغة التخطيط. */
     render(<Tools />);
-    await waitFor(() => expect(screen.queryByText("جارٍ قراءة أدواتك المحلية…")).not.toBeTruthy());
+    await screen.findByRole("heading", { name: "احسب قبل أن تلتزم" });
 
-    /* الشرح الصادق المطلوب حرفيًا بقرار P-4.2-2. */
-    expect(screen.getByText(/أدوات مستقلة للحساب والتقدير، لا تغيّر سجلات مشروعك/)).toBeTruthy();
+    /* الشرح الصادق بصيغة S10: أدوات تخطيط مستقلة لا تغيّر السجلات. */
+    expect(screen.getByText(/أدوات تخطيط مستقلة — لا تغيّر سجلات مشروعك/)).toBeTruthy();
 
-    /* الباقي: الحاسبة + التقديرات. */
-    expect(screen.getByRole("heading", { name: "احسب قبل أن تلتزم" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /افتح الحاسبة/ })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "تقديراتي المحفوظة" })).toBeTruthy();
+    /* الخمسة فقط: الحاسبة + قيمة الساعة + كمية البيع + نصيب الفاتورة + فحص الفكرة. */
+    expect(screen.getAllByTestId(/tool-entry-/)).toHaveLength(5);
+    expect(screen.getAllByRole("button", { name: /افتح الأداة/ })).toHaveLength(5);
+    expect(screen.queryByRole("heading", { name: "تقديراتي المحفوظة" })).toBeNull();
 
     /* المحذوف بقرار المالك — لا يعود أبدًا إلى هذا السطح. */
     expect(screen.queryByRole("heading", { name: "حالة الوحدات" })).toBeNull();
     expect(screen.queryByText("النسخ الاحتياطي والبيانات")).toBeNull();
     expect(screen.queryByText("الموردون والمشتريات")).toBeNull();
-    expect(screen.queryByText("دفتر الناس")).toBeNull();
+    expect(screen.queryByText("العملاء والموردون")).toBeNull();
     expect(screen.queryByText("السوق والتوصيل")).toBeNull();
     expect(screen.queryByText("فحص سلامة مالي")).toBeNull();
     expect(screen.queryByText("منتجاتي وخدماتي")).toBeNull();

@@ -29,6 +29,7 @@ export type InventoryMaterialLifecycleStore = Pick<
 import {
   ammanLocalDate,
   id,
+  inventoryCommitFailure,
   materialById,
   movementByOperationKey,
   writeStorageFailure,
@@ -38,6 +39,11 @@ import {
   type RetrackMaterialInput,
   type UntrackMaterialInput,
 } from "./inventoryMaterialModel";
+import {
+  inventoryMaterialsFingerprint,
+  inventoryMovementsFingerprint,
+  type InventoryCommitExpectation,
+} from "@/storage/local/inventoryCommitGuard";
 
 export async function openMaterial(
   store: InventoryMaterialLifecycleStore,
@@ -113,8 +119,20 @@ export async function openMaterial(
             costKnowledge: costKnown ? "known" : "unknown",
           })
         : null;
-    const saved = await store.commitInventory(material, opening ? [opening] : []);
-    return saved.ok ? { ok: true, value: { material, opening } } : writeStorageFailure();
+    const saved = await store.commitInventory(material, opening ? [opening] : [], {
+      /* S07-MR-001: بصمة المواد (مفتاح الإنشاء) والحركات (مفتاح حركة البداية). */
+      materialsFingerprint: inventoryMaterialsFingerprint(materials.value),
+      movementsFingerprint: inventoryMovementsFingerprint(movements.value),
+    });
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: {
+        material: saved.value.material ?? material,
+        opening: saved.value.movements[0] ?? opening,
+      },
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات المادة غير صالحة."));
   }
@@ -140,8 +158,13 @@ export async function untrackMaterial(
       reason: input.reason?.trim() || null,
     },
   };
-  const saved = await store.commitInventory(updated, []);
-  return saved.ok ? { ok: true, value: updated } : writeStorageFailure();
+  /* S07-MR-001: بصمة سجل المادة كما قُرئ — تغيّر متزامن على السجل نفسه
+   * يُسقط الكتابة داخل الحد (لا آخر-كاتب-يفوز صامتًا). */
+  const saved = await store.commitInventory(updated, [], {
+    materialsFingerprint: inventoryMaterialsFingerprint(materialsResult.value),
+  });
+  if (!saved.ok) return inventoryCommitFailure(saved);
+  return { ok: true, value: saved.value.material ?? updated, reused: saved.value.reused };
 }
 
 /* المجموعة ٢ (عقد ٢٨): إعادة التفعيل — الرصيد المحفوظ يعود «غير محدد بعد» حتى
@@ -168,8 +191,12 @@ export async function retrackMaterial(
       sourceNote: null,
     },
   };
-  const saved = await store.commitInventory(updated, []);
-  return saved.ok ? { ok: true, value: updated } : writeStorageFailure();
+  /* S07-MR-001: بصمة سجل المادة كما قُرئ — نفس ذراع CAS للسجل. */
+  const saved = await store.commitInventory(updated, [], {
+    materialsFingerprint: inventoryMaterialsFingerprint(materialsResult.value),
+  });
+  if (!saved.ok) return inventoryCommitFailure(saved);
+  return { ok: true, value: saved.value.material ?? updated, reused: saved.value.reused };
 }
 
 /* المجموعة ٢ (عقد ٢٨): تأكيد رصيد — الفرق عن الحركات المحفوظة يُسجَّل بحركة
@@ -243,8 +270,21 @@ export async function confirmMaterialOpening(
       material.id,
       movement ? [...movements.value, movement] : movements.value,
     );
-    const saved = await store.commitInventory(updated, movement ? [movement] : []);
-    return saved.ok ? { ok: true, value: { material: updated, movement } } : writeStorageFailure();
+    /* S07-MR-001: بصمة المادة والحركات التي بُني عليها الرصيد المؤكد. */
+    const expectation: InventoryCommitExpectation = {
+      materialsFingerprint: inventoryMaterialsFingerprint(materials.value),
+      movementsFingerprint: inventoryMovementsFingerprint(movements.value),
+    };
+    const saved = await store.commitInventory(updated, movement ? [movement] : [], expectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: {
+        material: saved.value.material ?? updated,
+        movement: saved.value.movements[0] ?? movement,
+      },
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات تأكيد الرصيد غير صالحة."));
   }

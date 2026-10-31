@@ -1,0 +1,78 @@
+{
+  "id": "WS-234",
+  "title": "S09 — بناء الطلب وتكلفته والمنتج القابل لإعادة الاستخدام",
+  "status": "REVIEW_REQUIRED",
+  "items": [
+    "DOC-018"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "ad133bae8b0e58effc295aa6b00210c8daad41c3",
+  "areas": [
+    "src/domain/craft-order/",
+    "apps/prototype-web/client/src/application/drafts/",
+    "apps/prototype-web/client/src/application/cost/",
+    "apps/prototype-web/client/src/application/catalog/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/pages/NewDraft.tsx",
+    "apps/prototype-web/client/src/pages/DraftEditor.tsx",
+    "apps/prototype-web/client/src/pages/CostEditor.tsx",
+    "apps/prototype-web/client/src/pages/Catalog.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S09-EXECUTION-PROMPT-2026-10-30.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-007-مسودة-الطلب.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-008-التكلفة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-029-المنتجات-والخدمات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/02-Consistency-Review-and-Decisions-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-10-30",
+  "updated_at": "2026-10-31",
+  "next_action": "مراجعة Manus المستقلة وقبول المالك على PR #383 لسجل S09 الكامل (14-S09-RESULT-2026-10-30.md) — البوابتان مفتوحتان ولم تصدرا؛ REVIEW_REQUIRED هنا تحرير ملكية مناطق للعمل المتسلسل لا قبول. إذن المالك المستمر بتاريخ 2026-10-31 (أمر تنفيذ S10 المنشور في 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8e7d699a21f7fe83161561d2d146dbc23): تسجيل استثناءَي S09 الأمنيين المأذونَين تحديدًا (GHSA-g3hv-75wg-m249 minimatch وGHSA-3g3m-2fjr-6pw4 glob) ثم التنفيذ المتصل لS10 (UNIT-030/031/032 + SH-14) على الفرع/PR نفسيهما بلا موافقات وسطية؛ الإذن لا يعني قبول S08/S09 ولا الدمج — مراجعة Manus المستقلة وقبول المالك بوابتا القبول والدمج لكل من S08 وS09 كما هما.",
+  "notes": [
+    "أمر التنفيذ الوحيد هو 00-S09-EXECUTION-PROMPT-2026-10-30.md المنشور في ad133bae؛ GitHub هو مصدر الحقيقة التشغيلي.",
+    "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
+    "بطاقة الفهم مثبتة داخل DOC-018.summary؛ المخطط/التصدير 40/32 يُحفظ — الحقول الجديدة اختيارية متوافقة رجعيًا (نمط S06/S07/S08).",
+    "القسم ١ من الأمر (إصلاح S08-MR-001/002) مكتمل ومدفوع في c55c8584 (المرشح الكودي 6b3cb946).",
+    "تحرير 2026-10-31 (أمر S10 §5): سُجلا استثناءَي الأمن المأذونان في 7adfac55؛ تحرير المطالبة إلى REVIEW_REQUIRED تحرير ملكية فقط — سجل S09 وأدلته ونتيجته غير معاد كتابته، والقبول محجوب بالمراجعة المستقلة وقرار المالك."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S09-EXECUTION-PROMPT-2026-10-30.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/14-S09-RESULT-2026-10-30.md",
+    "apps/prototype-web/client/src/application/drafts/draftService.s09.test.ts",
+    "apps/prototype-web/client/src/application/catalog/catalogService.s09.test.ts",
+    "apps/prototype-web/client/src/pages/DraftEditor.s09.dom.test.tsx",
+    "apps/prototype-web/client/src/pages/CostEditor.s09.dom.test.tsx",
+    "tests/domain/craft-order-groups.test.ts"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-30",
+      "actor": "zai-s09-execution-part2",
+      "reason": "مطالبة S09 المأذونة بأمر ad133bae القسم ٢ بعد اكتمال القسم ١ ودفعه."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-30",
+      "actor": "zai-s09-execution-part2",
+      "reason": "اكتمل تنفيذ S09 المتصل لUNIT-007/008/029 + SH-13 على components/integration-20261027 / PR #383 بأمر التنفيذ المتصل ad133bae (القسم ٢) مع تعديل الاستئناف ef028e4e: (١) عقد البيانات المشترك والمجموعات بتكرار واحد عبر expandGroupedCostBasis إلى النواة الواحدة (01bd03b4 — لا محرك ثانٍ)؛ (٢) توصيل الخدمات وتحقق النقل والترحيل للحقول الجديدة على 40/32 بلا ترقية (e4208661)؛ (٣) مصالحة Control القانونية للمسار المكسور (8e9a73c7)؛ (٤) حفظ العرض الصريح للاستخدام مرة أخرى + واجهتا المسودة/التكلفة المجمعة + مسودة النموذج للسطحين + رحلات DOM (e6b67d7c)؛ (٥) إرساء الأسطح المحلي وتحديث تجهيزات اختبارات الأسطح القائمة (0c741792 — السلسلة الكاملة pnpm check خروج 0)؛ (٦) تصحيحات المراجعة الخمس المؤكدة (6496596c + e163e90e — بوابة شكل مرجع المجموعة الكاملة والتطبيع العائلي للترحيل والعلامات الميدانية الفورية وأرقام bdi). المراجعات الخمس القرائية مكتملة: R1/R2/R3 نظافة بملاحظات موثقة، وR4 وR5 بملاحظات مؤكدة عولجت من الجذر وأعيدت قراءتها إلى PASS. السلسلة الكاملة pnpm check خروج 0 على الشجرة النهائية e163e90e (جذري 967/967 وتطبيق 3,096/3,096 وlint 35 بالضبط والميزانية والأسطح المحلية PASS والControl صالح). S09 تسليم للمراجعة لا قبولًا ذاتيًا — رهن المراجعة المستقلة وقبول المالك؛ الاستمرار إلى أي مرحلة لاحقة بأمر المالك وحده."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-10-31",
+      "actor": "zai-s10-execution",
+      "reason": "تحرير المطالبة للعمل المتسلسل المأذون فقط (سابقة WS-231/WS-232/WS-233): المالك أذن في 2026-10-31 بالاستمرار المباشر إلى S10 (أمر 00-S10-EXECUTION-PROMPT-2026-10-31.md المنشور في b56967d8) فصار بقاء المطالبة IN_REVIEW يحجب تداخل مناطقها مع مطالبة S10 الحية (application/cost وstorage/local وcraft-order). هذه حالة «مراجعة مطلوبة» لا قبول ولا إغلاق: عمل S09 المسلَّم كامل كما هو في 14-S09-RESULT وسجل الالتزامات، ومراجعة Manus المستقلة وقبول المالك بوابتا القبول والدمج اللاحقتان لم تصدرا، والفعل التالي المحفوظ عليهما."
+    }
+  ],
+  "migration_baseline": true
+}

@@ -104,7 +104,7 @@ describe("NAV-001 — approved five-seat navigation", () => {
 
   it("home hosts the quick-recording row and the sale sheet opens in place over it", async () => {
     const profiles = new ProfileService(store);
-    const saved = await profiles.save("مشروع-NAV");
+    const saved = await profiles.create("مشروع-NAV");
     if (!saved.ok) throw new Error(saved.message);
     render(<Harness page={<Home />} />);
     const row = await screen.findByTestId("home-quick-actions");
@@ -119,7 +119,7 @@ describe("NAV-001 — approved five-seat navigation", () => {
 
   it("the expense quick action opens the expense form with the approved wallet rules", async () => {
     const profiles = new ProfileService(store);
-    await profiles.save("مشروع-NAV2");
+    await profiles.create("مشروع-NAV2");
     render(<Harness page={<Home />} />);
     await screen.findByTestId("home-quick-actions");
     fireEvent.click(screen.getByText("سجّل مصروفًا"));
@@ -131,7 +131,7 @@ describe("NAV-001 — approved five-seat navigation", () => {
 
   it("SET-002: the setup success banner appears once after first setup and disappears without the flag", async () => {
     const profiles = new ProfileService(store);
-    await profiles.save("مشروع-NAV3");
+    await profiles.create("مشروع-NAV3");
     wouterMocks.search = "?setup=1";
     render(<Harness page={<Home />} />);
     const banner = await screen.findByTestId("setup-success-banner");
@@ -144,6 +144,23 @@ describe("NAV-001 — approved five-seat navigation", () => {
     render(<Harness page={<Home />} />);
     await waitFor(() => expect(screen.getByText("مشروع-NAV3")).toBeTruthy());
     expect(screen.queryByTestId("setup-success-banner")).toBeNull();
+  });
+
+  it("S03 (UNIT-001 P3.1): the setup banner offers the honest post-save choice — start foundation data at 002 or reach the task, nothing mandatory", async () => {
+    const profiles = new ProfileService(store);
+    await profiles.create("مشروع-NAV4");
+    wouterMocks.search = "?setup=1";
+    render(<Harness page={<Home />} />);
+    const banner = await screen.findByTestId("setup-success-banner");
+    /* النص المعتمد باقٍ كفتحة اللافتة، والاختيار بعده — لا إلزام مالي. */
+    expect(banner.textContent).toContain("تم إعداد مشروعك.");
+    expect(banner.textContent).toContain("لا شيء إلزامي");
+    const foundationEntry = screen.getByRole("button", { name: "ابدأ تسجيل بيانات مشروعك الأساسية" });
+    fireEvent.click(foundationEntry);
+    await waitFor(() =>
+      expect(wouterMocks.navigate).toHaveBeenCalledWith(expect.stringContaining("/foundation")),
+    );
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(expect.stringContaining("returnTo=%2F"));
   });
 
   it("السوق renders an honest قريبًa badge with no records or financial effects", async () => {

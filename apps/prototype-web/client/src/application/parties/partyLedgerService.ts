@@ -1,246 +1,327 @@
 /**
- * Lightweight Party Ledger (PA-010 + owner principle 5.3): name-level aggregation over existing
- * records — no CRM entity, no new stores. Reads orders, direct sales, purchases, and payables,
- * groups them by trimmed party name, and reports both directions with movement detail.
+ * S05 (DOC-014 / UNIT-037 P3.1/P3.4 + العقد المشترك §5.1/§11): دليل الأطراف
+ * المحفوظة — هوية اختيارية صريحة وحساب قراءة مصدريّ، لا دفتر أرصدة قابل
+ * للتحرير ولا تجميع بالاسم أبدًا.
+ *
+ * ما يملكه هذا البيت (P3.4: صاحب النية هنا؛ لا خدمة موازية لمجرد نقل زر):
+ *  - حفظ طرف صريح باختيار المستخدم (تسمية + هاتف/ملاحظة اختياريان)؛
+ *  - إعادة التسمية والأرشفة/الإظهار — الهوية ثابتة واللقطات عند مصادرها؛
+ *  - قراءة الحساب: «لك عنده» من ديون البيع المباشر المرتبطة بمعرف الطرف
+ *    المؤكد، و«عليك له» من ذمم مشتريات الموردين المرتبطة بمعرفه — بمعرفة
+ *    صادقة لحدود التغطية (UNIT-037 B2/U037-F10): لا نطرح مجهولًا ولا فشل
+ *    قراءة من المجموع، ولا نعد بكل تعاملات الشخص.
+ *
+ * ما لا يفعله هذا البيت (حدود موثقة — UNIT-037 B-DUP/A4/B2):
+ *  - لا تجميع بالاسم: العملية باسم نصي بلا ربط مؤكد ليست حساب شخص محفوظ
+ *    (SDF-009)؛ تبقى في مصدرها والمتابعة ولا تُنسخ هنا.
+ *  - لا قبض/دفع من هنا: التحصيل من مصدره (026) والسداد من شرائه (027)؛
+ *    نتيجة مصدر واحد إلى صفر لا تصفّر حساب الطرف كله (U037-ACD04).
+ *  - لا مخزون أرصدة: الرصيد مشتق من المصادر المرتبطة وقت القراءة فقط.
+ *  - لا دمج ولا تخمين: طرفان بالتسمية نفسها هويتان مستقلتان؛ لا فهرس
+ *    تسمية ولا مطابقة بالهاتف.
  */
 import { localDateInAmman } from "@micro-domain/shared/index.js";
-import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
-import { activeSettlementsMinor, reversedEventIds } from "@micro-domain/financial-event/index.js";
-import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
-import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
-
-/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات دفتر الأطراف الأربع بالضبط. */
-export type PartyLedgerServiceStore = Pick<
-  PrototypeLocalStore,
-  "listOrders" | "listDirectSales" | "listFinancialEvents" | "listSupplierPurchases"
->;
+import {
+  createSavedParty,
+  isPartyActive,
+  renameSavedParty,
+  setSavedPartyArchive,
+  type SavedParty,
+} from "@micro-domain/party/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
-import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
+import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
+import type { PrototypeLocalStore } from "@/storage/local/types";
+import { STORAGE_ERROR, errorMessageOf, storageFailure, validationFailure } from "@/application/resultCodes";
+import { systemClock, type Clock } from "@/application/time/clock";
 
-export type PartyLedgerResult<T> =
-  { ok: true; value: T } | { ok: false; code: "storage_error"; message: string };
+/** R3+S05 (عدسة الخدمة): قراءة الأطراف والمصادرين القابلين للربط حصرًا. */
+export type PartyDirectoryServiceStore = Pick<
+  PrototypeLocalStore,
+  | "listCounterparties"
+  | "getCounterparty"
+  | "commitCounterpartyWrite"
+  | "listDirectSales"
+  | "listSupplierPurchases"
+>;
 
-export type PartyMovementKind =
-  | "order_debt"
-  | "order_collection"
-  | "direct_sale_debt"
-  | "direct_sale_collected"
-  | "purchase_payable"
-  | "purchase_payment"
-  | "payable_event"
-  | "settlement";
+export type PartyDirectoryResult<T> =
+  | { ok: true; value: T }
+  | {
+      ok: false;
+      code: "validation_error" | "storage_error" | "storage_stale" | "not_found";
+      message: string;
+    };
+
+export type PartyMovementKind = "sale_debt" | "purchase_payable";
 
 export type PartyMovement = {
   id: string;
   kind: PartyMovementKind;
+  /** لقطة اسم المصدر كما سُجلت وقت الحفظ — لا التسمية الحالية للطرف. */
   label: string;
   occurredOn: string;
-  /** موجب = لك عند الطرف؛ سالب = عليك للطرف. */
+  /** موجب = لك عند الطرف (دين بيع)؛ سالب = عليك للطرف (ذمة شراء). */
   amountMinor: number;
   href: string;
 };
 
-export type PartyEntry = {
-  name: string;
-  /** لك عند الطرف (دين/تحصيل) — المتبقي الحالي. */
+export type PartyAccountEntry = {
+  party: SavedParty;
+  /** لك عنده — من ديون البيع المباشر المرتبطة بمعرفه المؤكد فقط. */
   receivableMinor: number;
-  /** عليك للطرف (ذمم دائنة) — المتبقي الحالي. */
+  /** عليك له — من ذمم مشتريات الموردين المرتبطة بمعرفه المؤكد فقط. */
   payableMinor: number;
   movements: readonly PartyMovement[];
-  /* FIN-002 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): التكرار عبر سجلين مختلفين
-   * فأكثر شارة على الجهة — لا شرط إخفاء. كل اسم حقيقي يظهر من أول حركة. */
-  repeated: boolean;
 };
 
-type MutablePartyEntry = Omit<PartyEntry, "movements" | "repeated"> & { movements: PartyMovement[] };
-
-export type PartyLedgerOverview = {
-  parties: readonly PartyEntry[];
+export type PartyDirectoryOverview = {
+  /** الأطراف النشطة — تقترح للاستعمال الجديد. */
+  parties: readonly PartyAccountEntry[];
+  /** الأطراف المؤرشفة — تُقرأ ولا تقترح (لا تُحذف ولا تُحجب مصادرها). */
+  archivedParties: readonly PartyAccountEntry[];
+  /* S05 (F-049، 2026-10-29): إجمالا «لك عند المحفوظين» و«عليك للمحفوظين»
+   * يشتقان في الخدمة نفسها التي تحسب الحسابات — لا مرايا حساب في الواجهة
+   * (F-049: النمو بصمت ممنوع؛ الاشتقاق الكنوني هنا). */
   totalReceivableMinor: number;
   totalPayableMinor: number;
-  receivablePartyCount: number;
-  payablePartyCount: number;
 };
 
-const normalizeName = (name: string) => name.trim().replace(/\s+/g, " ");
+export type SavePartyInput = {
+  label: string;
+  phone?: string | null;
+  note?: string | null;
+  /** مفتاح حتمية المستخدم — إعادة الإرسال بعد فشل لا تنشئ طرفًا ثانيًا. */
+  operationKey: string;
+};
 
-/* عدد السجلات المختلفة التي ربطت بهذا الاسم (طلب/بيع/شراء/حدث) — حركةتان
- * من الطلب نفسه سجل واحد لا سجلان. FIN-002: صار مصدر شارة «متكرر» فقط. */
-function distinctSourceCount(entry: Pick<PartyEntry, "movements">): number {
-  const sourceIds = new Set(entry.movements.map(movement => movement.id.split(":").pop() ?? movement.id));
-  return sourceIds.size;
-}
+export type RenamePartyInput = {
+  partyId: string;
+  label: string;
+  /** النسخة التي قرأها المستخدم — CAS صادق عند حد الكتابة. */
+  expectedUpdatedAt: string;
+  operationKey: string;
+};
 
-export class PartyLedgerService {
-  constructor(private readonly store: PartyLedgerServiceStore) {}
+export type SetPartyArchiveInput = {
+  partyId: string;
+  archived: boolean;
+  expectedUpdatedAt: string;
+  operationKey: string;
+};
 
-  async read(): Promise<PartyLedgerResult<PartyLedgerOverview>> {
-    const [orders, sales, purchases, events] = await Promise.all([
-      this.store.listOrders(),
+const createId = () =>
+  globalThis.crypto?.randomUUID?.() ?? `party-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+export class PartyDirectoryService {
+  constructor(
+    private readonly store: PartyDirectoryServiceStore,
+    private readonly now: Clock = systemClock,
+  ) {}
+
+  /** قراءة الدليل: الأطراف المحفوظة وحساباتها من المصادر المرتبطة بمعرفها
+   * المؤكد حصرًا — تعذر قراءة مصدر يُعلن فشلًا صادقًا لا مجموعًا ناقصًا. */
+  async read(): Promise<PartyDirectoryResult<PartyDirectoryOverview>> {
+    const [partiesResult, salesResult, purchasesResult] = await Promise.all([
+      this.store.listCounterparties(),
       this.store.listDirectSales(),
       this.store.listSupplierPurchases(),
-      this.store.listFinancialEvents(),
     ]);
-    if (!orders.ok || !sales.ok || !purchases.ok || !events.ok)
-      return storageFailure("تعذر قراءة سجلات الأطراف المحلية.");
+    if (!partiesResult.ok || !salesResult.ok || !purchasesResult.ok)
+      return storageFailure("تعذر قراءة الأطراف المحفوظة المحلية.");
 
-    const parties = new Map<string, MutablePartyEntry>();
-    const party = (name: string): MutablePartyEntry => {
-      const key = normalizeName(name);
-      if (!key) throw new Error("اسم الطرف فارغ.");
-      let entry = parties.get(key);
-      if (!entry) {
-        entry = { name: key, receivableMinor: 0, payableMinor: 0, movements: [] };
-        parties.set(key, entry);
-      }
-      return entry;
-    };
-
-    /* ١) الطلبات الحرفية: الدين المسجل والتحصيلات باسم العميل. */
-    for (const stored of orders.value as readonly StoredCraftOrder[]) {
-      const customerName = stored.order.customerName;
-      if (!customerName?.trim()) continue;
-      const entry = party(customerName);
-      if (isRegisteredCustomerDebt(stored.order)) {
-        entry.receivableMinor += stored.order.receivableMinor;
-        entry.movements.push({
-          id: `order-debt:${stored.id}`,
-          kind: "order_debt",
-          label: `دين طلب: ${stored.order.itemName || "طلب"}`,
-          occurredOn: localDateInAmman(stored.updatedAt),
-          amountMinor: stored.order.receivableMinor,
-          href: `/orders/${stored.id}`,
-        });
-      }
-      if (stored.order.collectedMinor > 0) {
-        entry.movements.push({
-          id: `order-collected:${stored.id}`,
-          kind: "order_collection",
-          label: `تحصيلات طلب: ${stored.order.itemName || "طلب"}`,
-          occurredOn: localDateInAmman(stored.updatedAt),
-          amountMinor: stored.order.collectedMinor,
-          href: `/orders/${stored.id}`,
-        });
-      }
+    const active: PartyAccountEntry[] = [];
+    const archived: PartyAccountEntry[] = [];
+    for (const party of partiesResult.value) {
+      const entry = this.accountOf(party, salesResult.value, purchasesResult.value);
+      (isPartyActive(party) ? active : archived).push(entry);
     }
-
-    /* ٢) البيع المباشر: الديون المعلنة والقبض المحصل — D-001: الزبون حقل مستقل
-     * (customerName)، والملاحظة القديمة مصدر احتياطي للسجلات التي سبق الحقل فقط. */
-    for (const sale of sales.value as readonly DirectSale[]) {
-      if ((sale.status ?? "active") !== "active") continue;
-      const name = sale.customerName?.trim() || (sale.note?.trim() ? extractPartyFromNote(sale.note) : null);
-      if (!name) continue;
-      const entry = party(name);
-      if (sale.collectionStatus === "partial_debt") {
-        entry.receivableMinor += sale.revenueMinor - sale.collectedMinor;
-        entry.movements.push({
-          id: `sale-debt:${sale.id}`,
-          kind: "direct_sale_debt",
-          label: `دين بيع مباشر: ${sale.itemName || "بيع"}`,
-          occurredOn: sale.occurredOn,
-          amountMinor: sale.revenueMinor - sale.collectedMinor,
-          href: `/direct-sales/${sale.id}`,
-        });
-      }
+    const byRecency = (left: PartyAccountEntry, right: PartyAccountEntry) =>
+      right.party.updatedAt.localeCompare(left.party.updatedAt);
+    /* S05 (F-049): الإجمالان من الحسابات المشتقة نفسها — لا حساب مرآة في الواجهة. */
+    let totalReceivableMinor = 0;
+    let totalPayableMinor = 0;
+    for (const entry of active) {
+      totalReceivableMinor += entry.receivableMinor;
+      totalPayableMinor += entry.payableMinor;
     }
-
-    /* ٣) مشتريات الموردين: الذمم والدفعات باسم المورد. */
-    for (const purchase of purchases.value) {
-      const entry = party(purchase.supplierName);
-      entry.payableMinor += purchase.payableMinor;
-      if (purchase.payableMinor > 0)
-        entry.movements.push({
-          id: `purchase-payable:${purchase.id}`,
-          kind: "purchase_payable",
-          label: `ذمة شراء: ${purchase.note || "مواد"}`,
-          occurredOn: purchase.purchasedOn,
-          amountMinor: -purchase.payableMinor,
-          href: `/suppliers/purchase/${purchase.id}`,
-        });
-      /* S2-08: الدفع الأولي يُلتمس بمعرفه لا بترتيب المصفوفة، وpaidMinor صار صافي
-       * التراجعات بعد إصلاح S2-01 — فلا تتضخم «دفعات سُددت» بعد تراجع موثق. */
-      const initialPayment = purchase.payments.find(payment => payment.id === `${purchase.id}:initial`);
-      const paidAfterInitial = Math.max(0, purchase.paidMinor - (initialPayment?.amountMinor ?? 0));
-      if (paidAfterInitial > 0)
-        entry.movements.push({
-          id: `purchase-paid:${purchase.id}`,
-          kind: "purchase_payment",
-          label: `دفعات سُددت: ${purchase.note || "مواد"}`,
-          occurredOn: purchase.updatedAt,
-          amountMinor: paidAfterInitial,
-          href: `/suppliers/purchase/${purchase.id}`,
-        });
-    }
-
-    /* ٤) أحداث الذمم: التزامات الموظفين/الجهات باسم الجهة (counterparty). */
-    const reversedIds = reversedEventIds(events.value as readonly FinancialEvent[]);
-    for (const event of events.value as readonly FinancialEvent[]) {
-      if (!event.counterparty?.trim()) continue;
-      if (event.correctionType === "reverse" || reversedIds.has(event.id)) continue;
-      const entry = party(event.counterparty);
-      if (event.type === "operating_expense_payable" && event.payableDeltaMinor > 0) {
-        const remaining = event.amountMinor - activeSettlementsMinor(events.value, event.id);
-        if (remaining > 0) {
-          entry.payableMinor += remaining;
-          entry.movements.push({
-            id: `payable:${event.id}`,
-            kind: "payable_event",
-            label: `التزام: ${event.note}`,
-            occurredOn: event.occurredOn,
-            amountMinor: -remaining,
-            href: "/finance",
-          });
-        }
-      }
-    }
-
-    const list: readonly PartyEntry[] = Array.from(parties.values())
-      .map(entry => ({
-        ...entry,
-        movements: entry.movements.slice().sort((a, b) => b.occurredOn.localeCompare(a.occurredOn)),
-      }))
-      .filter(entry => entry.movements.length > 0 || entry.receivableMinor !== 0 || entry.payableMinor !== 0)
-      .sort(
-        (a, b) =>
-          Math.abs(b.receivableMinor) +
-          Math.abs(b.payableMinor) -
-          (Math.abs(a.receivableMinor) + Math.abs(a.payableMinor)),
-      )
-      .map(entry => ({ ...entry, repeated: distinctSourceCount(entry) >= 2 }));
-
-    /* FIN-002 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الدفتر يعرض كل اسم حقيقي من
-     * أول حركة مسجلة — التكرار شارة على الجهة لا شرط دخول؛ والمجاميع تُحسب
-     * من كامل المجتمع المرئي فتطابق «لي عند العملاء» في مالي للديون المسماة. */
     return {
       ok: true,
       value: {
-        parties: list,
-        totalReceivableMinor: list.reduce((sum, entry) => sum + entry.receivableMinor, 0),
-        totalPayableMinor: list.reduce((sum, entry) => sum + entry.payableMinor, 0),
-        receivablePartyCount: list.filter(entry => entry.receivableMinor > 0).length,
-        payablePartyCount: list.filter(entry => entry.payableMinor > 0).length,
+        parties: active.sort(byRecency),
+        archivedParties: archived.sort(byRecency),
+        totalReceivableMinor,
+        totalPayableMinor,
       },
     };
   }
+
+  /** مقترحات التسمية لسياق الطلب/الاتفاق (3D-03): تسميات الأطراف النشطة
+   * المحفوظة — لا أسماء تاريخية مجمّعة بالاسم؛ اختيار المحفوظ صريح. */
+  async suggestLabels(): Promise<PartyDirectoryResult<readonly string[]>> {
+    const suggestions = await this.suggestParties();
+    if (!suggestions.ok) return suggestions;
+    return { ok: true, value: suggestions.value.map(party => party.label) };
+  }
+
+  /** خيارات اختيار الطرف المحفوظ للمحررات (005/027 — A2): الأطراف النشطة
+   * بمعرفها وتسميتها الحالية — اختيار أحدها يثبّت لقطة التسمية على المصدر
+   * ويربطه بمعرفه؛ لا يورث سعرًا ولا موعدًا ولا مبلغًا من عملية سابقة. */
+  async suggestParties(): Promise<PartyDirectoryResult<readonly { id: string; label: string }[]>> {
+    const parties = await this.store.listCounterparties();
+    if (!parties.ok) return storageFailure("تعذر قراءة الأطراف المحفوظة المحلية.");
+    return {
+      ok: true,
+      value: parties.value.filter(isPartyActive).map(party => ({ id: party.id, label: party.label })),
+    };
+  }
+
+  /** حفظ طرف صريح — اختيار المستخدم وحده؛ فشله لا يعيد عملية أعمال نجحت
+   * (SDF-041: البيع عند صاحبه، والحفظ هنا أمر مستقل بمفتاحه). */
+  async save(input: SavePartyInput): Promise<PartyDirectoryResult<{ party: SavedParty; reused: boolean }>> {
+    let party: SavedParty;
+    try {
+      party = createSavedParty({
+        id: createId(),
+        label: input.label,
+        phone: input.phone ?? null,
+        note: input.note ?? null,
+        operationKey: input.operationKey,
+        recordedAt: this.now(),
+      });
+    } catch (error) {
+      return validationFailure(errorMessageOf(error, "بيانات الطرف غير صالحة."));
+    }
+    const committed = await this.store.commitCounterpartyWrite({
+      kind: "create",
+      baseUpdatedAt: null,
+      next: party,
+      operationKey: party.operationKey,
+    });
+    if (!committed.ok)
+      return {
+        ok: false,
+        code: committed.code === "storage_stale" ? "storage_stale" : STORAGE_ERROR,
+        message: committed.message,
+      };
+    return { ok: true, value: committed.value };
+  }
+
+  async rename(
+    input: RenamePartyInput,
+  ): Promise<PartyDirectoryResult<{ party: SavedParty; reused: boolean }>> {
+    const live = await this.store.getCounterparty(input.partyId);
+    if (!live.ok) return storageFailure("تعذر قراءة الطرف قبل التعديل.");
+    if (!live.value) return validationFailure("هذا الطرف لم يعد موجودًا؛ راجع القائمة ثم أعد المحاولة.");
+    let next: SavedParty;
+    try {
+      next = renameSavedParty(live.value, {
+        label: input.label,
+        operationKey: input.operationKey,
+        recordedAt: this.now(),
+      });
+    } catch (error) {
+      return validationFailure(errorMessageOf(error, "بيانات تعديل الطرف غير صالحة."));
+    }
+    return this.commitUpdate("rename", input.expectedUpdatedAt, next, input.operationKey);
+  }
+
+  async setArchived(
+    input: SetPartyArchiveInput,
+  ): Promise<PartyDirectoryResult<{ party: SavedParty; reused: boolean }>> {
+    const live = await this.store.getCounterparty(input.partyId);
+    if (!live.ok) return storageFailure("تعذر قراءة الطرف قبل الأرشفة.");
+    if (!live.value) return validationFailure("هذا الطرف لم يعد موجودًا؛ راجع القائمة ثم أعد المحاولة.");
+    const next = setSavedPartyArchive(live.value, {
+      archived: input.archived,
+      operationKey: input.operationKey,
+      recordedAt: this.now(),
+    });
+    return this.commitUpdate("archive", input.expectedUpdatedAt, next, input.operationKey);
+  }
+
+  private async commitUpdate(
+    kind: "rename" | "archive",
+    expectedUpdatedAt: string,
+    next: SavedParty,
+    operationKey: string,
+  ): Promise<PartyDirectoryResult<{ party: SavedParty; reused: boolean }>> {
+    /* CAS حي داخل حد الكتابة: نسخة المستخدم لا نسخة القراءة — نافذتان
+     * لا تسحق إحداهما الأخرى (U037-AC22). */
+    const committed = await this.store.commitCounterpartyWrite({
+      kind,
+      baseUpdatedAt: expectedUpdatedAt,
+      next,
+      operationKey,
+    });
+    if (!committed.ok)
+      return {
+        ok: false,
+        code: committed.code === "storage_stale" ? "storage_stale" : STORAGE_ERROR,
+        message: committed.message,
+      };
+    return { ok: true, value: committed.value };
+  }
+
+  /** حساب الطرف من مصادريه المرتبطين بمعرفه — لا مسار آخر: الطلب (007/009
+   * لا يحمل ربط طرف بعد — ملك S09/S12) والتزامات المصروف (015) والقروض
+   * (035/036 ملغاة/مؤجلة) تبقى عند أصحابها بلا دفتر منافس هنا. */
+  private accountOf(
+    party: SavedParty,
+    sales: readonly DirectSale[],
+    purchases: readonly SupplierPurchase[],
+  ): PartyAccountEntry {
+    const movements: PartyMovement[] = [];
+    let receivableMinor = 0;
+    let payableMinor = 0;
+    /* ديون البيع المباشر المرتبطة صراحة بمعرف الطرف — النشطة فقط؛ الملغى
+     * دينه منقوض بالأثر ولا يُعرض حقًا قائمًا. */
+    for (const sale of sales) {
+      if ((sale.customerPartyId ?? null) !== party.id) continue;
+      if ((sale.status ?? "active") !== "active") continue;
+      if (sale.collectionStatus !== "partial_debt") continue;
+      const outstanding = sale.revenueMinor - sale.collectedMinor;
+      if (outstanding <= 0) continue;
+      receivableMinor += outstanding;
+      movements.push({
+        id: `sale-debt:${sale.id}`,
+        kind: "sale_debt",
+        label: `دين بيع مباشر: ${sale.itemName || "بيع"}`,
+        occurredOn: sale.occurredOn,
+        amountMinor: outstanding,
+        href: `/direct-sales/${sale.id}`,
+      });
+    }
+    /* ذمم مشتريات الموردين المرتبطة بمعرفه — المدفوع الفعلي عند مصدره. */
+    for (const purchase of purchases) {
+      if ((purchase.supplierPartyId ?? null) !== party.id) continue;
+      if (purchase.payableMinor <= 0) continue;
+      payableMinor += purchase.payableMinor;
+      movements.push({
+        id: `purchase-payable:${purchase.id}`,
+        kind: "purchase_payable",
+        label: `ذمة شراء: ${purchase.note || "مواد"}`,
+        occurredOn: purchase.purchasedOn,
+        amountMinor: -purchase.payableMinor,
+        href: `/suppliers/purchase/${purchase.id}`,
+      });
+    }
+    movements.sort((left, right) => right.occurredOn.localeCompare(left.occurredOn));
+    return { party, receivableMinor, payableMinor, movements };
+  }
 }
 
-/* استخراج اسم الطرف من ملاحظة البيع المباشر بصيغة «عميل: اسم» أو «لـ اسم» — للسجلات
- * القديمة فقط (قبل حقل customerName): الاسم ينتهي عند شرطة الوصف « — ...» إن وجدت،
- * فلا يظهر الوصف جزءًا من اسم الشخص. لا يُعاد كتابة أي سجل مخزّن. */
-function extractPartyFromNote(note: string): string | null {
-  const nameBeforeDescriptor = (raw: string): string | null => {
-    const beforeDash = raw.split("—")[0]?.trim();
-    return beforeDash || null;
-  };
-  const colonMatch = note.match(/^(?:عميل|لـ|للعميل)\s*:\s*(.+)$/u);
-  if (colonMatch?.[1]) {
-    const name = nameBeforeDescriptor(colonMatch[1]);
-    if (name) return name;
-  }
-  const prefixed = note.match(/^(?:لـ|للعميل)\s+(.+)$/u);
-  if (prefixed?.[1]) {
-    const name = nameBeforeDescriptor(prefixed[1]);
-    if (name) return name;
-  }
-  return null;
-}
+/* S05 (DOC-014 / UNIT-037 A3): لقطة اسم العملية للأدلة السياقية — تُقرأ من
+ * المصدر كما سُجلت (customerName/supplierName)، لا من دليل الأطراف. يُستخدم
+ * داخل صفحات المصدر لعرض «لمن سُجل هذا المبلغ» بصدق تاريخي. */
+export const salePartySnapshotOf = (sale: DirectSale): string | null => sale.customerName?.trim() || null;
+export const purchasePartySnapshotOf = (purchase: SupplierPurchase): string | null =>
+  purchase.supplierName?.trim() || null;
+
+/** S05 (DOC-014 / UNIT-037 AC02): عرض اسم المورد في الأسطح — الشراء المدفوع
+ * كاملًا قد يكون بلا مورد؛ الغياب يُعرض بصدق لا باسم «غير مسجل» مفترض.
+ * يقبل أي قيمة تحمل لقطة اسم المورد (السجل الكامل أو قارئه المصغّر). */
+export const supplierDisplayLabelOf = (purchase: { supplierName?: string | null }): string =>
+  purchase.supplierName?.trim() || "بلا مورد مسجل";
+
+/* توحيد عرض التاريخ للقراءة — من النواة المشتركة. */
+export { localDateInAmman };

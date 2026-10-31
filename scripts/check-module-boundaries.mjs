@@ -62,8 +62,8 @@
  *      ImportEqualsDeclaration أُضيف إلى المجمّع فلا إفلات بتغيير إملاء.
  *  R9) راتشة أزواج بيوت التطبيق الداخلية (R11 W1A-1 / D-07 — R10B-NF-005،
  *      قرار OD-10 الخيار A، 2026-10-13): جرد كامل مسجل بملف
- *      `scripts/application-house-edges-census.json` — 129 حافة فريدة
- *      (80 قيمة + 48 نوعًا؛ التصنيف مهيمن-النوع: أي موقع نوعي واحد يجعل
+ *      `scripts/application-house-edges-census.json` — 130 حافة فريدة
+ *      (81 قيمة + 49 نوعًا؛ التصنيف مهيمن-النوع: أي موقع نوعي واحد يجعل
  *      الحافة نوعية) بين بيوت التطبيق (الأبواب وملفات الجذر مستثناة
  *      أهدافًا ومصادر — مشتركة بالتعريف). الإعفاءات الورقية المعتمدة:
  *      time/clock.ts وformatting/formatters.ts وidentity/buildIdentity.ts
@@ -251,6 +251,10 @@ export function collectAllImports(repoRoot, files) {
  * projectFinancialService.ts إلى بيته الشقيق projectFinancialInsights.ts — حافة
  * operatingBreakEven الموثقة D-034 نفسها (خارج حزمة الدخول عمدًا) انتقلت معها. */
 export const DEEP_DOMAIN_IMPORT_BASELINE = [
+  /* S04 (DOC-013، 2026-10-28): سياسة رصد الأرصدة تُحمَّل مع خدمة العدّ
+   * الديناميكية خارج حزمة الدخول — نفس علة D-034 الموثقة أعلاه؛ إرساء
+   * الحافة في نفس الـPR وفق البروتوكول. */
+  "apps/prototype-web/client/src/application/cash/cashCountService.ts -> @micro-domain/cash-continuity/observationPolicy.js",
   "apps/prototype-web/client/src/application/finance/integrityCheckSettlementBasis.ts -> @micro-domain/craft-order/settlementInvariant.js",
   "apps/prototype-web/client/src/application/finance/projectFinancialInsights.ts -> @micro-domain/financial-analysis/operatingBreakEven.js",
   "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts -> @micro-domain/financial-analysis/operatingBreakEven.js",
@@ -330,18 +334,28 @@ export const UI_TO_STORAGE_TYPE_BASELINE = [
   "apps/prototype-web/client/src/components/order/AgreementContextPanel.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/components/settings/SettingsOperatingModeSection.tsx -> @/storage/local/types",
+  /* S03/DOC-012 (2026-10-28، نفس-الـPR): +1 موثقة — قسم بيانات المشروع
+   * يستورد نوع ActivityProfile الكنوني وحده (نفس نمط قسمَي الإعدادات
+   * القائمين)؛ الصف المقابل في سجل الملكية §5. */
+  "apps/prototype-web/client/src/components/settings/SettingsProjectDataSection.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/AgreementEditor.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/CostCalculator.tsx -> @/storage/local/types",
+  /* S10 (UNIT-030/031/032 — أمر b56967d8/DOC-019، نفس-الـPR): +4 موثقة —
+   * أسطح التخطيط تستورد الأنواع وحدها (القيم عبر الخدمات): محرر المجموعة
+   * والمحفوظات والحاسبة من أنواع حساب T01 المحفوظة، ومحرر التوافق يستورد
+   * نوع CostEstimate الكنوني وحده. */
+  "apps/prototype-web/client/src/components/planning/LegacyEstimateEditor.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/components/planning/PlanningGroupEditor.tsx -> @/storage/local/planningCalculationTypes",
+  "apps/prototype-web/client/src/components/planning/SavedCalculations.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/CostCalculator.tsx -> @/storage/local/planningCalculationTypes",
   "apps/prototype-web/client/src/pages/CostEditor.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/DraftEditor.tsx -> @/storage/local/types",
-  "apps/prototype-web/client/src/pages/EstimateDetail.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/Finance.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/NewDraft.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/OrderDetail.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/Orders.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/ScheduleEditor.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/Settings.tsx -> @/storage/local/types",
-  "apps/prototype-web/client/src/pages/Tools.tsx -> @/storage/local/types",
 ];
 
 /** R8 — المجموعة التاريخية الـ17 (إحصاء RV1/R10-A: صفحات/مكوّنات فقط، بلا
@@ -842,7 +856,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض، ${stats.domainCrossArea} حافة عميقة عابرة لمناطق المجال، ${stats.uiToStorage} حافة واجهة→تخزين (resolution-based)، ${stats.uiToApplicationDeep} استيرادًا عميقًا واجهة→دواخل بيوت التطبيق (راتشة R6/STR-615)، ${stats.componentToPage} حافة مكوّن→صفحة (الصنف الممنوع — R8-F-019)؛ ${stats.uiToStorageType} حافة نوعية واجهة→تخزين (راتشة R8/D-01 على أساس 19 مفتاحًا)؛ ${stats.houseEdges} حافة أزواج بيوت تطبيق منها ${stats.houseEdgesValue} قيمة و${stats.houseEdgesType} نوعًا (راتشة R9/D-07 على جرد 129/80/49 مع إعفاءات OD-10 الورقية)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617 + الخطوة ٦/STR-615 + R8/R8-F-019)`,
+    `module-boundaries: PASS — ${stats.files} ملف إنتاج؛ الأساس المقبول: ${stats.deepDomain} استيرادًا عميقًا داخل المجال، ${stats.uiToDomain} حافة واجهة→مجال، ${stats.appToPresentation} حافة تطبيق→عرض، ${stats.domainCrossArea} حافة عميقة عابرة لمناطق المجال، ${stats.uiToStorage} حافة واجهة→تخزين (resolution-based)، ${stats.uiToApplicationDeep} استيرادًا عميقًا واجهة→دواخل بيوت التطبيق (راتشة R6/STR-615)، ${stats.componentToPage} حافة مكوّن→صفحة (الصنف الممنوع — R8-F-019)؛ ${stats.uiToStorageType} حافة نوعية واجهة→تخزين (راتشة R8/D-01 على أساس 19 مفتاحًا)؛ ${stats.houseEdges} حافة أزواج بيوت تطبيق منها ${stats.houseEdgesValue} قيمة و${stats.houseEdgesType} نوعًا (راتشة R9/D-07 على جرد 130/81/49 مع إعفاءات OD-10 الورقية)؛ صفر زيادة صامتة (ratchet — Wave 4E/RC-9 + Wave H/STR-617 + الخطوة ٦/STR-615 + R8/R8-F-019)`,
   );
 }
 

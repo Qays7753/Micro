@@ -71,7 +71,7 @@ describe("Wave 4.3 — P-4.3-3 (D9): readable integrity offenders", () => {
   it("the service enriches offender ids into readable summaries without changing check logic", async () => {
     const store = new MemoryLocalStore();
     const services = buildRealServices(store);
-    await new ProfileService(store, now).save("مشغل سلامة مقروءة");
+    await new ProfileService(store, now).create("مشغل سلامة مقروءة");
     const target = await seedCorruptedEvent(store, services);
     const report = await services.integrityCheck.run();
     const mic4 = report.checks.find(check => check.id === "MIC-4");
@@ -92,7 +92,7 @@ describe("Wave 4.3 — P-4.3-3 (D9): readable integrity offenders", () => {
   it("the surface renders offender rows by operation name, date, and amount — not raw ids", async () => {
     const store = new MemoryLocalStore();
     const services = buildRealServices(store);
-    await new ProfileService(store, now).save("مشغل سلامة مقروءة");
+    await new ProfileService(store, now).create("مشغل سلامة مقروءة");
     const target = await seedCorruptedEvent(store, services);
     mockedUsePrototypeServices.mockReturnValue({
       ...services,

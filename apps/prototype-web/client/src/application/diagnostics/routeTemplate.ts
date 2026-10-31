@@ -22,7 +22,7 @@
  * قبل :type، وrecurring/new قبل recurring/:id) كي لا يبتلعه.
  */
 const ROUTE_GROUPS =
-  "assets:new,:id cash:count,distribute,transfer,entry/:id/reverse,wallet/new,wallet/:id,wallet/:id/adjust,wallet/:id/opening-later catalog collect direct-sales:new,:id finance:activity,g5/declaration,more,new/owner_withdrawal_cash,new/:type,owner-entitlement,recurring,recurring/new,recurring/:id,recurring/:id/edit,statement,upcoming,withdraw foundation inventory:material/new,material/:id/confirm,movement/:id/reverse,movement/:type loans:new,:id,received/new,received/:id market orders:new,draft/:id,draft/:id/agreement,draft/:id/cost,:id,:id/deliver parties profile review schedule::id settings setup share:preview suppliers:purchase/:id,purchase/:id/payment tools:calculator,estimate/:id,integrity";
+  "assets:new,:id cash:count,distribute,transfer,entry/:id/reverse,wallet/new,wallet/:id,wallet/:id/adjust,wallet/:id/opening-later catalog collect direct-sales:new,:id finance:activity,g5/declaration,more,new/owner_withdrawal_cash,new/:type,owner-entitlement,recurring,recurring/new,recurring/:id,recurring/:id/edit,statement,upcoming,withdraw foundation inventory:material/new,material/:id/confirm,movement/:id/reverse,movement/:type loans:new,:id,received/new,received/:id market orders:new,draft/:id,draft/:id/agreement,draft/:id/cost,:id,:id/deliver parties profile review schedule::id settings setup share:preview suppliers:purchase/:id,purchase/:id/payment tools:calculator,estimate/:id,hour-value,idea-review,integrity,invoice-share,sales-quantity";
 
 const ROUTE_TEMPLATES: string[] = ["/"];
 for (const group of ROUTE_GROUPS.split(" ")) {

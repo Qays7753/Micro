@@ -159,7 +159,7 @@ describe("G-004 — capability disablement hides every creation entry", () => {
     preferences = new PreferenceService(store, () => NOW);
     /* الرئيسية تحتاج ملفًا محفوظًا (نمط Set003 نفسه). */
     const profiles = new ProfileService(store);
-    const savedProfile = await profiles.save("مشروع-G004");
+    const savedProfile = await profiles.create("مشروع-G004");
     if (!savedProfile.ok) throw new Error(savedProfile.message);
   });
   afterEach(() => cleanup());

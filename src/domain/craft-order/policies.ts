@@ -6,6 +6,7 @@ import type {
   DeliveryConsumptionNoteInput,
   DeliveryResponsibility,
   DepositSettlementDecision,
+  GroupedCostBasisInput,
   KnowledgeGap,
   KnowledgeState,
   MaterialCostItem,
@@ -309,6 +310,55 @@ export function calculateCostSnapshot(id: string, input: CostSnapshotInput): Cos
     input: cloneCostSnapshotInput(input),
     createdAt: input.createdAt,
   });
+}
+
+/* S09 (UNIT-007/008 + SH-13 — أمر التنفيذ المتصل ad133bae القسم ٢): توسيع
+ * أساس المجموعات إلى مدخل قياسي للنواة الواحدة القائمة — أساس الوحدة
+ * الواحدة من كل مجموعة (مكوناتها) يُضرب في تكرار المجموعة مرة واحدة فقط
+ * (SDF-034: مكونات الوحدة × تكرارها مرة، لا مرتين)، والوقت/التغليف/الهدر
+ * والتوصيل على نطاق الطلب كما في العقد القائم (F11/F12: الوقت والتغليف
+ * والهدر والتوصيل «لكل الطلب»؛ التوصيل مرة واحدة)، وإضافة التسعير لكل
+ * وحدة تمر كما دخلت. الضرب على الكمية قبل تقريب النواة لكل بند (تقريب
+ * واحد للبند على مستوى الطلب كله — لا تقريب لكل وحدة ثم ضربه)، وكمية
+ * الطلب = مجموع تكرارات المجموعات مشتقة لا مُدخلة. لا محرك ثانٍ ولا دمج
+ * دفاتر (ACD015/DUP-015)؛ الناتج يمر بالنواة الواحدة calculateCostSnapshot. */
+export function expandGroupedCostBasis(input: GroupedCostBasisInput): CostSnapshotInput {
+  if (input.groups.length === 0) {
+    throw new Error("أضف مجموعة واحدة على الأقل قبل حساب التكلفة المجمعة.");
+  }
+  const materialItems: MaterialCostItem[] = [];
+  let quantity = 0;
+  for (const group of input.groups) {
+    if (!group.id.trim()) throw new Error("أكمل هوية المجموعة قبل الحساب.");
+    if (!group.label.trim()) throw new Error("أدخل اسمًا للمجموعة قبل الحساب.");
+    if (!Number.isSafeInteger(group.repeatQuantity) || group.repeatQuantity < 1) {
+      throw new Error("أدخل تكرار المجموعة رقمًا صحيحًا 1 أو أكثر.");
+    }
+    const repeat = group.repeatQuantity;
+    quantity += repeat;
+    for (const item of group.unitMaterialItems) {
+      if (!Number.isFinite(item.quantity) || item.quantity <= 0) {
+        throw new Error(`أدخل كمية المادة ${item.name} رقمًا أكبر من صفر.`);
+      }
+      const expanded = item.quantity * repeat;
+      if (!Number.isFinite(expanded) || expanded <= 0) {
+        throw new Error(`كمية المادة ${item.name} بعد التكرار تتجاوز الدقة الآمنة؛ قلّل الكمية أو التكرار.`);
+      }
+      materialItems.push({ ...item, quantity: expanded });
+    }
+  }
+  return {
+    currency: input.currency,
+    materialItems,
+    time: input.time,
+    packagingMinor: input.packagingMinor,
+    deliveryMinor: input.deliveryMinor,
+    wasteMinor: input.wasteMinor,
+    safetyBufferMinor: input.safetyBufferMinor,
+    quantity,
+    createdAt: input.createdAt,
+    source: "draft",
+  };
 }
 
 function eventExists(order: CraftOrder, idempotencyKey: string, eventType: OrderEventType): boolean {
@@ -880,7 +930,7 @@ export function collectRegisteredDebt(
  * (إصلاح تكاملي — مجموعة ٤): المتبقي الذي يفتحه تصحيح السعر على طلب مسوّى
  * (settled — أو مسدَّد دينه بالسجل الموثق، كما يفتحه التراجع عن قبضة) دينٌ
  * مسجل قابل للتحصيل من كل المداخل — حالة «partially_paid» على طلب مسوّى كانت
- * عمياء: لا الرئيسية ولا دفتر الناس ولا ورقة التحصيل تعرضها فيصبح المبلغ بلا
+ * عمياء: لا الرئيسية ولا دليل العملاء والموردين ولا ورقة التحصيل تعرضها فيصبح المبلغ بلا
  * أي مدخل. (تصحيح مؤرخ — قرار المالك D-08 بتاريخ 2026-09-29: «تمت التسوية»
  * هي التسمية الكنونية للحالة settled؛ «مغلق» ليست اسمًا لحالة مالية.) */
 const settlementAfterPriceRevision = (order: CraftOrder, receivableMinor: number): SettlementStatus =>

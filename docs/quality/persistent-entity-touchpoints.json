@@ -482,10 +482,12 @@
         "indexeddb"
       ],
       "adapterTests": [
-        "apps/prototype-web/client/src/application/estimates/costEstimateService.test.ts"
+        "apps/prototype-web/client/src/application/estimates/costEstimateService.test.ts",
+        "apps/prototype-web/client/src/application/estimates/costEstimateService.s10.test.ts"
       ],
       "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
+        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts",
+        "apps/prototype-web/client/src/application/transfers/localTransferService.planningFields.s10.test.ts"
       ],
       "notExportedReason": null,
       "docs": "current-state.md §23 (التقديرات — لا أثر مالي)"
@@ -566,11 +568,28 @@
         "indexeddb"
       ],
       "adapterTests": [
-        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts"
+        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.group2.test.ts",
+        "apps/prototype-web/client/src/application/security/retireLocalLockRecord.test.ts",
+        "apps/prototype-web/client/src/LockRetirement.dom.test.tsx"
       ],
       "transferTests": [],
-      "notExportedReason": "سجل الأمن المحلي (G5 §35): لا يُصدَّر أبدًا ولا يدخل ملف النقل — غيابه من الملف سلوك مقصود ومحروس.",
-      "docs": "current-state.md §35 (سجل الأمن المحلي خارج التصدير)"
+      "notExportedReason": "سجل الأمن المحلي (G5 §35) — متقاعد بقرار المالك المعتمد (S02-B/SH-04 — UNIT-042، إلغاء 2026-10-24): لا يُصدَّر أبدًا ولا يدخل ملف النقل؛ المخزن تاريخ مجمّد في المخطط ٣٨ فبقي بلا حذف (حذفه يرفع إصدار القاعدة المحروس)، والسجل نفسه يُنظَّف مرة عند الإقلاع (retireLocalLockRecord) — لا كاتب له في مسارات المنتج بعد اليوم، والكتابة بقاء للترحيل/التقاعد والاختبارات فقط.",
+      "docs": "docs/implementation/micro-component-execution/03-S02-RESULT-2026-10-27.md (S02-B تقاعد سجل القفل)"
+    },
+    {
+      "store": "restore-protection",
+      "snapshotField": null,
+      "domainType": "RestoreProtectionState",
+      "adapters": [
+        "memory",
+        "indexeddb"
+      ],
+      "adapterTests": [
+        "apps/prototype-web/client/src/application/transfers/localTransferService.restoreProtection.test.ts"
+      ],
+      "transferTests": [],
+      "notExportedReason": "سجلات حماية الاستبدال (S02-A/SH-02/SH-03): الجيل وعلامة النية والإيصال ونسختا الرجوع — قاعدة IndexedDB منفصلة (micro-prototype-restore) خارج القاعدة المستبدلة كما يفرض العقد المشترك §16.3؛ محلية لا تُصدَّر أبدًا فلا يعيدها ملف قديم (الجيل محلي)، والمحتوى ليس بيانات أعمال بل أدلة حماية الاستبدال.",
+      "docs": "docs/implementation/micro-component-execution/03-S02-RESULT-2026-10-27.md (S02-A حماية الاستبدال)"
     },
     {
       "store": "recurring-expense-series",
@@ -640,6 +659,42 @@
       ],
       "notExportedReason": null,
       "docs": "docs/contracts/42-optional-expense-budgets-goals-contract.md (FIN-002 — الميزانيات الاختيارية وأهداف المصروف؛ مخزن محروس واحد بنمط D-037)"
+    },
+    {
+      "store": "balance-observations",
+      "snapshotField": "balanceObservations",
+      "domainType": "CashObservation",
+      "adapters": [
+        "memory",
+        "indexeddb"
+      ],
+      "adapterTests": [
+        "apps/prototype-web/client/src/application/cash/cashObservation.s04.test.ts",
+        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.balanceObservation.test.ts"
+      ],
+      "transferTests": [
+        "apps/prototype-web/client/src/application/cash/cashObservation.s04.test.ts"
+      ],
+      "notExportedReason": null,
+      "docs": "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md §6.1 (DOC-013/UNIT-025 — رصد أرصدة النقد: قياس الموجود بنطاقه وقطعه ومعرفته؛ مخزن محروس بنمط D-037)"
+    },
+    {
+      "store": "counterparties",
+      "snapshotField": "counterparties",
+      "domainType": "SavedParty",
+      "adapters": [
+        "memory",
+        "indexeddb"
+      ],
+      "adapterTests": [
+        "apps/prototype-web/client/src/application/parties/partyDirectory.s05.test.ts",
+        "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.counterparty.test.ts"
+      ],
+      "transferTests": [
+        "apps/prototype-web/client/src/application/transfers/localTransferService.counterparties.test.ts"
+      ],
+      "notExportedReason": null,
+      "docs": "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md §5.1 (DOC-014/UNIT-037 — هوية طرف محفوظ اختيارية بلا رصيد ولا دور مقفول؛ مخزن محروس بنمط D-037)"
     }
   ],
   "localOnlyRecords": [

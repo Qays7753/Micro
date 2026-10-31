@@ -16,6 +16,7 @@ import {
   localDateInAmman as ammanDate,
 } from "@micro-domain/shared/index.js";
 import { isCostBackedConsumption, type InventoryMovement } from "@micro-domain/inventory-material/index.js";
+import type { SupplierPurchase, SupplierPurchaseLine } from "@micro-domain/supplier-purchase/index.js";
 /* F-008 (W2-D): المعين الكنوني الخفيف لكلفة توصيل المشروع — لا سحب تحلل
  * الطلب الكامل إلى حزبة الدخول (الدخول يحتاج الكلفة فقط). */
 import { projectDeliveryCostMinor as orderDeliveryCostMinor } from "@micro-domain/craft-order/index.js";
@@ -24,7 +25,8 @@ import { lastEffectiveDeliveryEvent } from "@/application/fulfillment/deliveryAt
 import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 
-/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات الفترة الست بالضبط. */
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات الفترة الست بالضبط.
+ * S07 (UNIT-028/D02): + عائلة مشتريات الموردين — قراءة الاعتراف فقط. */
 export type ProjectFinancialPeriodReadsStore = Pick<
   PrototypeLocalStore,
   | "listOrders"
@@ -33,6 +35,7 @@ export type ProjectFinancialPeriodReadsStore = Pick<
   | "listMaterials"
   | "listInventoryMovements"
   | "getInventoryActivation"
+  | "listSupplierPurchases"
 >;
 import type { CogsStatus, FinanceResult, RecordedPeriodResult } from "./projectFinancialTypes";
 
@@ -141,27 +144,64 @@ function derivePeriodCogs(
   };
 }
 
+/* S07 (UNIT-028 / D02 المعتمد / SDF-031): اعتراف تكلفة مواد الفترة من
+ * مشتريات الموردين — قراءة مشتقة عند قارئ الفترة الكنوني نفسه، بلا حدث
+ * مالي ثانٍ فوق دفع الشراء وبلا كاتب موازٍ. البنود المعلنة period_material
+ * بقيمة معلومة تُحمل مرة على فترة تاريخ الشراء (purchasedOn)؛ والمجهولة
+ * القيمة تبقى مجهولة (لا صفرًا ولا مجانية) وتمنع رقم نتيجة نهائيًا كاذبًا
+ * كنمط تكلفة البيع المباشر المجهولة نفسه. البنود tracked_material والإرث
+ * بلا بنود لا يُعترف عند الشراء أبدًا — المتتبعة تكلفتها عند الاستعمال/الهدر
+ * المؤهل عبر حركات المخزون، ولا يُعاد تصنيف الماضي رجعيًا (حد D02). */
+function deriveUntrackedMaterialPurchaseCost(
+  purchases: readonly SupplierPurchase[],
+  inPeriod: (date: string) => boolean,
+): { knownCostMinor: number; unknownValueCount: number } {
+  let knownCostMinor = 0;
+  let unknownValueCount = 0;
+  for (const purchase of purchases) {
+    if (!inPeriod(purchase.purchasedOn)) continue;
+    for (const line of purchase.lines ?? []) {
+      if (line.treatment !== "period_material") continue;
+      if (line.costKnowledge === "known" && typeof line.valueMinor === "number") {
+        knownCostMinor += line.valueMinor;
+      } else {
+        unknownValueCount += 1;
+      }
+    }
+  }
+  return { knownCostMinor, unknownValueCount };
+}
+
 export async function readRecordedPeriodResult(
   store: ProjectFinancialPeriodReadsStore,
   from: string,
   to: string,
 ): Promise<FinanceResult<RecordedPeriodResult>> {
-  const [ordersResult, eventsResult, movementsResult, activationResult, materialsResult, directSalesResult] =
-    await Promise.all([
-      store.listOrders(),
-      store.listFinancialEvents(),
-      store.listInventoryMovements(),
-      store.getInventoryActivation(),
-      store.listMaterials(),
-      store.listDirectSales(),
-    ]);
+  const [
+    ordersResult,
+    eventsResult,
+    movementsResult,
+    activationResult,
+    materialsResult,
+    directSalesResult,
+    purchasesResult,
+  ] = await Promise.all([
+    store.listOrders(),
+    store.listFinancialEvents(),
+    store.listInventoryMovements(),
+    store.getInventoryActivation(),
+    store.listMaterials(),
+    store.listDirectSales(),
+    store.listSupplierPurchases(),
+  ]);
   if (
     !ordersResult.ok ||
     !eventsResult.ok ||
     !movementsResult.ok ||
     !activationResult.ok ||
     !materialsResult.ok ||
-    !directSalesResult.ok
+    !directSalesResult.ok ||
+    !purchasesResult.ok
   )
     return storageFailure("تعذر قراءة نتيجة الفترة المحلية.");
   /* القرار ٩/١٠: تاريخ بدء إدارة المخزون — المعلن صراحة أو أقدم دليل للموجود القائم. */
@@ -205,6 +245,10 @@ export async function readRecordedPeriodResult(
         directSaleRevenueMinor: 0,
         directSaleCostKnownMinor: 0,
         directSaleCostUnknownCount: 0,
+        /* S07 (UNIT-028/D02): اعتراف مواد الفترة — الحيّد الصفري للفترة غير
+         * الصالحة كما كل البنود. */
+        untrackedMaterialPurchaseCostMinor: 0,
+        untrackedMaterialPurchaseCostUnknownCount: 0,
         assetDepreciationMinor: 0,
         assetWriteOffLossMinor: 0,
         assetDisposalResultMinor: 0,
@@ -342,6 +386,12 @@ export async function readRecordedPeriodResult(
     (total, { order }) => total + (orderDeliveryCostMinor(order) ?? 0),
     0,
   );
+  /* S07 (UNIT-028/D02/SDF-031): اعتراف مواد الفترة من بنود period_material —
+   * مرة على فترة تاريخ الشراء (purchasedOn)؛ والمجهولة القيمة تُعلن بلا رقم
+   * نهائي كاذب (نمط تكلفة البيع المباشر المجهولة نفسه). */
+  const untrackedMaterialPurchase = deriveUntrackedMaterialPurchaseCost(purchasesResult.value, inPeriod);
+  const untrackedMaterialPurchaseCostMinor = untrackedMaterialPurchase.knownCostMinor;
+  const untrackedMaterialPurchaseCostUnknownCount = untrackedMaterialPurchase.unknownValueCount;
   const reasons: string[] = [];
   if (excludedOrderCount > 0) reasons.push("طلبات مستبعدة");
   if (directSaleCostUnknownCount > 0) reasons.push("بيع مباشر بتكلفة غير معروفة");
@@ -351,6 +401,9 @@ export async function readRecordedPeriodResult(
   if (legacyUnclassifiedExpenseCount > 0) reasons.push("مصروفات غير مصنفة");
   /* F-019 (W2-D): الخسارة غير النقدية معلنة باسمها — بند مستقل في المعادلة. */
   if (nonCashLossMinor > 0) reasons.push("خسارة غير نقدية");
+  /* S07 (UNIT-028/D02): مواد فترة بقيمة غير معروفة — النتيجة الكاملة غير
+   * متاحة؛ المعروض يبقى بمعناه لا ربحًا متوهّمًا. */
+  if (untrackedMaterialPurchaseCostUnknownCount > 0) reasons.push("مواد فترة بقيمة غير معروفة");
   /* F-008 (W2-D — ثم قرار المالك D-03 بتاريخ 2026-09-29): إعلان الحقل التفسيري — الكلفة
    * مرئية والنتيجة لا تُخفض؛ الخصم الموثق الوحيد مسار التسجيل اليدوي للمصروف. */
   if (projectDeliveryCostMinor > 0) reasons.push("كلفة توصيل معلنة");
@@ -390,6 +443,8 @@ export async function readRecordedPeriodResult(
       directSaleRevenueMinor,
       directSaleCostKnownMinor,
       directSaleCostUnknownCount,
+      untrackedMaterialPurchaseCostMinor,
+      untrackedMaterialPurchaseCostUnknownCount,
       assetDepreciationMinor,
       assetWriteOffLossMinor,
       assetDisposalResultMinor,
@@ -398,18 +453,21 @@ export async function readRecordedPeriodResult(
       projectDeliveryCostMinor,
       orderReceivableMinor,
       directSaleUncollectedMinor,
-      /* F-005 + المجموعة ٤ + F-019: النتيجة تتضمن إيراد البيع المباشر وتكلفته
-       * المعروفة، وتخصم الإهلاك المسجّل وخسارة الشطب والخسارة غير النقدية
+      /* F-005 + المجموعة ٤ + F-019 + S07 (UNIT-028/D02): النتيجة تتضمن إيراد
+       * البيع المباشر وتكلفته المعروفة، وتخصم تكلفة مواد الفترة المعروفة مرة
+       * على فترة شرائها، والإهلاك المسجّل وخسارة الشطب والخسارة غير النقدية
        * باسمها، وتضيف نتيجة التخلص وإيراد عربون محتفظ مصنَّف — كلها بنود
-       * صريحة بلا اختراع كاش. وأي بيع بتكلفة مجهولة يمنع عرض رقم نهائي —
-       * «غير متاح» لا ربحًا متوهّمًا. */
+       * صريحة بلا اختراع كاش. وأي بيع بتكلفة مجهولة أو بند مواد فترة بقيمة
+       * غير معروفة يمنع عرض رقم نهائي — «غير متاح» لا ربحًا متوهَّمًا ولا
+       * صفرًا معلومًا. */
       resultMinor:
-        directSaleCostUnknownCount > 0
+        directSaleCostUnknownCount > 0 || untrackedMaterialPurchaseCostUnknownCount > 0
           ? null
           : recognizedRevenueMinor +
             directSaleRevenueMinor -
             cogs.effectiveDirectCostMinor -
             directSaleCostKnownMinor -
+            untrackedMaterialPurchaseCostMinor -
             recordedOperatingExpenseMinor -
             nonCashLossMinor -
             assetDepreciationMinor -

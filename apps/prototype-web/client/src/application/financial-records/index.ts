@@ -29,6 +29,14 @@ export { deriveExpenseCategorySuggestions, normalizeCategoryLabelInput } from ".
 
 export { expandExpenseRecordIntent } from "./expenseRecordIntent";
 export type { SharedExpenseRecordInput } from "./expenseRecordIntent";
+/* S07 (S06-MR-001): تأكيد «من تحمّل الباقي» المرتبط بقيمة الزوج الكنوني —
+ * مستهلك حي واحد هو محرر المصروف (العرض) وحد الكتابة (الاستيراد الداخلي
+ * المباشر من ملف الوحدة كما هو معتمد للبيت التطبيقي). */
+export {
+  matchesSharedBillOwnerPartConfirmation,
+  sharedBillOwnerPartConfirmationOf,
+} from "./expenseRecordIntent";
+export type { SharedBillOwnerPartConfirmation } from "./expenseRecordIntent";
 
 export { RetainedDepositService } from "./retainedDepositService";
 export type { RetainedDepositRow } from "./retainedDepositService";

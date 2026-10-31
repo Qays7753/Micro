@@ -15,6 +15,7 @@ import {
   Lightbulb,
   MoreHorizontal,
   Package,
+  Wrench,
   Receipt,
   Scale,
   ShieldCheck,
@@ -232,6 +233,10 @@ export default function Home() {
   const search = useSearch();
   const setupDone = new URLSearchParams((search ?? "").replace(/^\?/, "")).get("setup") === "1";
   useEffect(() => {
+    /* S05 (ميزانية الحزمة — نمط العدّ/دليل الأطراف): المركز يُحمَّل ديناميكيًا
+     * بعد الإقلاع؛ حتى جاهزيته تبقى الصفحة في حالة تجهيزها الصادقة (role=status)
+     * ولا يُدّعى فشل قراءة — غياب الخدمة ليس خطأ القراءة. */
+    if (!homeControlCenter) return;
     let active = true;
     /* S5-08 (المجموعة ٦ — البند ٦): تحديث خلفي لا وميض تحميل — القراءة السابقة
      * تبقى معروضة حتى تصل الجديدة (stale-while-revalidate)؛ حالة التحميل الكاملة
@@ -296,8 +301,10 @@ export default function Home() {
     .filter(fact => fact.state === "not_initialized")
     .map(fact => fact.label)
     .join("، ");
-  /* Z1.3: العنقود الثانوي — مراجع أقل تكرارًا؛ يظهر فقط حين فيه محتوى. */
-  const secondaryHasContent = !disabledCapabilities.includes("catalog") || moreActions.length > 0;
+  /* Z1.3: العنقود الثانوي — مراجع أقل تكرارًا؛ يظهر فقط حين فيه محتوى.
+   * S10 (UNIT-030): مدخل «أدوات المشروع» حاضر دائمًا (أداة تخطيط ليست قدرة
+   * قابلة للتعطيل — لا توقفها disabledCapabilities) فالعنقود فيه محتوى دائمًا. */
+  const secondaryHasContent = true;
   return (
     <section className="micro-page micro-home-control-center">
       <div className="micro-page-heading micro-home-heading">
@@ -327,11 +334,20 @@ export default function Home() {
       ) : null}
       {/* SET-002 + UNIT-001 V2 (R06/T08): نجاح واضح بعد الإعداد الأول — نص
           المواصفة المعتمد وحده؛ اسم المشروع يظهر في ترويسة الرئيسية من مصدرها،
-          لا يتكرر داخل اللافتة. */}
+          لا يتكرر داخل اللافتة.
+          S03 (UNIT-001 P3.1): بعد الحفظ اختيار بداية صادق لا إلزام — إما بدء
+          تسجيل البيانات الأساسية لدى 002 (صفحة الأساس) أو الوصول المباشر
+          للمهمة من الأفعال أدناه؛ لا شيء مالي إلزامي من الإعداد أبدًا. */}
       {setupDone ? (
         <section className="micro-note-card" role="status" data-testid="setup-success-banner">
           <ShieldCheck aria-hidden="true" />
-          <p>تم إعداد مشروعك.</p>
+          <p>
+            تم إعداد مشروعك.{" "}
+            <button className="micro-text-action" type="button" onClick={() => openFromHome("/foundation")}>
+              ابدأ تسجيل بيانات مشروعك الأساسية
+            </button>{" "}
+            أو ابدأ مهمتك من الأفعال أدناه — لا شيء إلزامي.
+          </p>
         </section>
       ) : null}
       {model.truthLine ? (
@@ -486,7 +502,7 @@ export default function Home() {
               <li>
                 {model.awaySection.overdueDebtCount} دين فات موعد متابعته —{" "}
                 <button className="micro-text-action" type="button" onClick={() => openFromHome("/parties")}>
-                  راجع دفتر الناس
+                  راجع العملاء والموردين
                 </button>
               </li>
             ) : null}
@@ -560,6 +576,17 @@ export default function Home() {
                 <Package aria-hidden="true" /> منتجاتي وخدماتي
               </button>
             ) : null}
+            {/* S10 (UNIT-030 — أمر b56967d8): مدخل ثانوي لأدوات المشروع من الرئيسية
+                دون إعادة تصميم تنقل (الهجرة النهائية ملك S16) — الأدوات الخمس
+                وجهة تخطيط مستقلة بلا أي أثر أعمال. */}
+            <button
+              className="micro-quick-action"
+              type="button"
+              data-testid="home-tools-entry"
+              onClick={() => openFromHome("/tools")}
+            >
+              <Wrench aria-hidden="true" /> أدوات المشروع
+            </button>
             {moreActions.length > 0 ? (
               <button
                 className="micro-quick-action"

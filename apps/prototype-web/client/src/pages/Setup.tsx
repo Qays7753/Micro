@@ -31,18 +31,30 @@ type ProfileReadFailure = Parameters<typeof storageRecoveryCopy>[0];
  * UNIT-001 V2 (DUP-023): قيم المسودة اسم فقط — أي حقول تراثية (walletName/
  * openingChoice/openingMinor) في مسودات الأجيال السابقة لا تُقرأ ولا تُطبق
  * ولا تُحوَّل إلى مال أبدًا. */
+/* S03 (UNIT-001 P3.2): تفضيل ما يقدمه المشروع ينضم لقيم المسودة — اختيار
+ * اختياري محايد مستقل يُسترد مع الاسم بالعرض الصريح نفسه؛ لا قيم مالية. */
+type OfferingChoice = "products" | "services" | "both";
 type SetupDraft = {
   activityName: string;
+  offeringPreference: OfferingChoice | null;
   savedAt: string;
 };
+/* S03: القيم الكنونية للتفضيل — نفس معجم مالك التخزين (038)، لا قائمة
+ * محلية منافسة ولا قيمة رابعة مبتكرة. */
+const SETUP_OFFERING_CHOICES: readonly OfferingChoice[] = ["products", "services", "both"];
+const isOfferingChoice = (value: unknown): value is OfferingChoice =>
+  typeof value === "string" && (SETUP_OFFERING_CHOICES as readonly string[]).includes(value);
 /* الإكراه الدفاعي نفسه (قواعد U-003): كل قيم المسودة المقروءة من الحد الموحّد
  * تمر من هنا قبل عرضها — الاسم نص أو لا عرض؛ لا مسار تراثي موازٍ. */
 function coerceSetupDraft(raw: unknown): SetupDraft | null {
   if (typeof raw !== "object" || raw === null) return null;
   const candidate = raw as Partial<SetupDraft>;
   if (typeof candidate.activityName !== "string") return null;
+  /* S03: التفضيل من المعجم المغلق أو محايد — أي قيمة أخرى تُكره بصدق إلى
+   * المحايد فلا تُطبق قيمة مجهولة أبدًا. */
   return {
     activityName: candidate.activityName,
+    offeringPreference: isOfferingChoice(candidate.offeringPreference) ? candidate.offeringPreference : null,
     savedAt: typeof candidate.savedAt === "string" ? candidate.savedAt : new Date().toISOString(),
   };
 }
@@ -51,11 +63,19 @@ const hasRealSetupInput = (draft: Pick<SetupDraft, "activityName">): boolean =>
 
 export default function Setup() {
   const [, navigate] = useLocation();
-  const { profiles, notifyDataChanged, formDrafts } = usePrototypeServices();
+  const { profiles, preferences, notifyDataChanged, formDrafts } = usePrototypeServices();
   const [activityName, setActivityName] = useState("");
   const [nameError, setNameError] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  /* S03 (UNIT-001 P3.1/P3.2): تفضيل ما يقدمه المشروع — سؤال البداية الاختياري
+   * المحايد ("" = لم يُحدد بعد)؛ مستقل تمامًا عن workMode (طريقة مواد/وقت في
+   * الإعدادات) ولا يُخلط بنوع النشاط ولا يعيد تصنيف أي سجل تاريخي. */
+  const [offering, setOffering] = useState<OfferingChoice | "">("");
+  /* S03 (UNIT-001 P3.2 — حرس الفصل الصادق): نجاح الهوية مع فشل حفظ التفضيل
+   * الاختياري يُعلن جزئيًا كما هو — لا إعادة إنشاء للهوية ولا ابتلاع للفشل
+   * ولا نجاح صامت؛ إعادة المحاولة تخص التفضيل وحده، والمتابعة قرار المالك. */
+  const [preferenceSaveFailed, setPreferenceSaveFailed] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   /* R02/B4: حارس وجود الهوية — القراءة عند الفتح تفصل «لا ملف» (تعرض الشاشة)
    * عن «فشل القراءة» (استرداد) عن «ملف قائم» (يفتح المشروع؛ لا هوية ثانية
@@ -156,8 +176,11 @@ export default function Setup() {
      * والعرض قائم — القرار الصريح وحده يحرك السجل. */
     if (!draftReadSettled) return;
     if (offerPending) return;
+    /* S03: التفضيل يُحفظ مع الاسم في المسودة نفسها — لكن المسودة لا تُنشأ
+     * إلا بمدخل حقيقي (الاسم)؛ تفضيل بلا اسم ليس إعدادًا معلقًا. */
     const values = {
       activityName,
+      offeringPreference: offering === "" ? null : offering,
       savedAt: new Date().toISOString(),
     } satisfies SetupDraft;
     const real = hasRealSetupInput(values);
@@ -193,7 +216,7 @@ export default function Setup() {
         setDraftSaveFailed(true);
       }
     });
-  }, [activityName, offerPending, draftReadSettled, formDrafts]);
+  }, [activityName, offering, offerPending, draftReadSettled, formDrafts]);
   /* إدخال جديد قبل حل عرض الاستعادة: الإدخال الجديد هو الأساس — يُخفى العرض
    * وتُدار المسودة بقيم المستخدم (نفس دلالة محرر الأحداث). */
   useEffect(() => {
@@ -240,6 +263,34 @@ export default function Setup() {
    * التركيز؛ أثناء التنفيذ يُعلن التقدم ويُمنع الإرسال المتكرر والانتقال
    * لفعل استعادة يغيّر البيانات؛ النجاح المثبت وحده يفتح الرئيسية ويمسح
    * المسودة؛ الفشل يبقي الاسم ويعيد المحاولة بعد التحقق من الملف القائم. */
+  /* S03: الختام الموحد للنجاح — يُستدعى بعد إثبات الهوية (والتفضيل إن اختير
+   * ونجح)؛ لا إعادة إنشاء ولا ازدواج إشعار. */
+  function finishSubmit() {
+    notifyDataChanged();
+    setIsSaving(false);
+    setPreferenceSaveFailed(false);
+    consumeInfoSentinel();
+    navigate("/?setup=1", { replace: true });
+  }
+
+  /* S03 (UNIT-001 P3.2): إعادة محاولة التفضيل وحده بعد نجاح الهوية — لا
+   * يمس الهوية أبدًا؛ الفشل يبقى جزئيًا معلنًا. */
+  async function retryPreferenceSave() {
+    if (isSaving) return;
+    if (offering === "") {
+      finishSubmit();
+      return;
+    }
+    setIsSaving(true);
+    const result = await preferences.saveOfferingPreference(offering);
+    if (result.ok) {
+      finishSubmit();
+      return;
+    }
+    setIsSaving(false);
+    setPreferenceSaveFailed(true);
+  }
+
   async function submit() {
     if (isSaving) return;
     if (!activityName.trim()) {
@@ -250,6 +301,7 @@ export default function Setup() {
     }
     setNameError(false);
     setSaveFailed(false);
+    setPreferenceSaveFailed(false);
     setIsSaving(true);
     /* R07: التحقق من الملف قبل أي إنشاء جديد — الملف الذي ثبت حفظه يُستخدم
      * ولا يُنشأ بديل؛ تعذر القراءة ينتقل للاسترداد دون كتابة بديلة. */
@@ -263,6 +315,14 @@ export default function Setup() {
     if (check.value) {
       /* R02: هوية قائمة — يفتح المشروع القائم؛ لا هوية ثانية ولا تعديل. */
       setIsSaving(false);
+      /* S03-R3-F05: بعد النتيجة الجزئية المعلنة (هوية نجحت/تفضيل تعذّر)،
+       * الزر الأساسي «احفظ وابدأ» يعني إعادة محاولة التفضيل وحده — نفس
+       * القرار الأول المعلن — لا متابعة صامتة تتخطى التفضيل بلا قرار:
+       * الزر الذي يحمل لفظ الحفظ لا يتخطى ما تعذّر حفظه بصمت. */
+      if (preferenceSaveFailed) {
+        await retryPreferenceSave();
+        return;
+      }
       consumeInfoSentinel();
       enqueueDraftWrite(async () => {
         const removed = await formDrafts.discard("setup", null);
@@ -278,16 +338,25 @@ export default function Setup() {
       setSaveFailed(true);
       return;
     }
-    /* R06: نجاح مثبت → الرئيسية مباشرة مع T08 على الرئيسية؛ لا شاشة إيصال
-     * ولا إعداد نقدي؛ المسودة تمسح بعد إثبات النجاح فقط. */
-    notifyDataChanged();
-    setIsSaving(false);
-    consumeInfoSentinel();
+    /* S03 (UNIT-001 P3.2): الهوية نجحت مثبتةً — تُمسح مسودة الاسم الآن لا
+     * بعد التفضيل؛ ثم يُحفظ التفضيل الاختياري إن اختير من مصدره الواحد.
+     * فشل التفضيل لا يعيد إنشاء الهوية ولا يبتلع النجاح: يُعلن جزئيًا
+     * والقرار (إعادة المحاولة/المتابعة) بيد المالك. */
     enqueueDraftWrite(async () => {
       const removed = await formDrafts.discard("setup", null);
       if (removed.ok) draftExpectedUpdatedAt.current = null;
     });
-    navigate("/?setup=1", { replace: true });
+    if (offering !== "") {
+      const preference = await preferences.saveOfferingPreference(offering);
+      if (!preference.ok) {
+        setIsSaving(false);
+        setPreferenceSaveFailed(true);
+        return;
+      }
+    }
+    /* R06: نجاح مثبت → الرئيسية مباشرة مع T08 على الرئيسية؛ لا شاشة إيصال
+     * ولا إعداد نقدي؛ المسودة تمسح بعد إثبات النجاح فقط. */
+    finishSubmit();
   }
 
   /* R11/DUP-005: مدخل الاستعادة يفوّض لمالك 044 القائم (الإعدادات ← البيانات
@@ -340,6 +409,9 @@ export default function Setup() {
             type="button"
             onClick={() => {
               setActivityName(draftOffer.activityName);
+              /* S03: استعادة التفضيل مع الاسم — نفس العرض الصريح، أو محايد إن
+               * غاب من مسودة قديمة. */
+              setOffering(draftOffer.offeringPreference ?? "");
               setDraftOffer(null);
               setNameError(false);
             }}
@@ -406,6 +478,66 @@ export default function Setup() {
         {saveFailed ? (
           <p className="micro-field-error" role="alert" data-testid="setup-save-failed">
             تعذر حفظ مشروعك. أعد المحاولة.
+          </p>
+        ) : null}
+        {/* S03 (UNIT-001 P3.1/P3.2): سؤال البداية الاختياري المحايد — ما يقدمه
+            المشروع غالبًا. الافتراضي الصادق «لم أحدد بعد» (محايد لا يفترض
+            منتجات)، ولا يمس نوع النشاط أو طريقة العمل (workMode) ولا أي سجل
+            أو رقم مالي؛ التعديل لاحقًا من الإعدادات (038) بيد المالك. */}
+        <fieldset className="micro-field" data-testid="setup-offering-question">
+          <legend>ما يقدّمه مشروعك غالبًا؟</legend>
+          <p className="micro-local-truth" id="setup-offering-help">
+            اختياري — لا يحدد نوع نشاطك ولا يغيّر أي سجل. عدّله لاحقًا من الإعدادات.
+          </p>
+          {(
+            [
+              { value: "", label: "لم أحدد بعد", hint: "محايد — لا يُفترض شيء عن مشروعك." },
+              { value: "products", label: "منتجات", hint: "تبيع أشياء تصنعها أو تجلبها." },
+              { value: "services", label: "خدمات", hint: "تنجز عملًا أو خدمة للعميل." },
+              { value: "both", label: "منتجات وخدمات معًا", hint: "تقدم النوعين معًا." },
+            ] as Array<{ value: OfferingChoice | ""; label: string; hint: string }>
+          ).map(option => (
+            <label key={option.value || "unselected"} className="micro-radio-choice">
+              <input
+                type="radio"
+                name="setup-offering"
+                value={option.value}
+                checked={offering === option.value}
+                onChange={() => setOffering(option.value)}
+                /* S03-R3-F03: التعطيل أثناء الحفظ مثل محرر الإعدادات — لا
+                 * اختيار يُغيّر العرض أثناء رحلة الحفظ فيخالف ما حُفظ، ولا
+                 * إعادة إدراج مسودة أُنشئت من أثر التغيير بعد المسح. */
+                disabled={isSaving}
+                aria-describedby="setup-offering-help"
+              />
+              <span>
+                <b>{option.label}</b>
+                <small>{option.hint}</small>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+        {/* S03 (UNIT-001 P3.2): النجاح الجزئي الصادق — الهوية أُنشئت باسمها
+            والتفضيل الاختياري تعذر حفظه؛ لا إعادة إنشاء ولا ابتلاع للفشل،
+            والقرار بيد المالك: إعادة محاولة التفضيل وحده أو المتابعة دونه.
+            S03-R3-F02: القناة الصادقة — النتيجة المزدوجة تعلن في قناة
+            الخطأ الحازمة (role=alert + حبر الخطأ) لا في حبر النجاح المهذّب:
+            نصف الرسالة فشل يحتاج فعل المالك، وسابقة «أُعيد التعيين لكن
+            تعذر مسح المسودات» الكنونية تعلن كذلك. */}
+        {preferenceSaveFailed ? (
+          <p className="micro-field-error" role="alert" data-testid="setup-preference-partial">
+            أُنشئ مشروعك باسمه، لكن تعذّر حفظ تفضيل «ما يقدّمه مشروعك» على هذا الجهاز.{" "}
+            <button
+              className="micro-text-action"
+              type="button"
+              disabled={isSaving}
+              onClick={() => void retryPreferenceSave()}
+            >
+              أعد محاولة حفظ التفضيل
+            </button>{" "}
+            <button className="micro-text-action" type="button" disabled={isSaving} onClick={finishSubmit}>
+              تابع إلى مشروعك دون التفضيل
+            </button>
           </p>
         ) : null}
         <div className="micro-form-actions">

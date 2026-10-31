@@ -13,7 +13,7 @@ const now = () => "2026-09-16T09:00:00.000Z";
 async function seedProfile(store: MemoryLocalStore) {
   const result = await new (await import("@/application/profile/profileService")).ProfileService(store, () =>
     now(),
-  ).save("مشغل اختبار FIN-001");
+  ).create("مشغل اختبار FIN-001");
   if (!result.ok) throw new Error(result.message);
 }
 

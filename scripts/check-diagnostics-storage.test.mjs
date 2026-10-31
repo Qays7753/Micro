@@ -19,7 +19,9 @@ import { ROOT } from "./check-runtime-cycles.mjs";
 
 function tempRepo() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "diag-storage-guard-"));
-  fs.mkdirSync(path.join(dir, "apps", "prototype-web", "client", "src", "application", "demo"), { recursive: true });
+  fs.mkdirSync(path.join(dir, "apps", "prototype-web", "client", "src", "application", "demo"), {
+    recursive: true,
+  });
   fs.mkdirSync(path.dirname(path.join(dir, REGISTERED_DIAGNOSTICS_ADAPTER)), { recursive: true });
   return dir;
 }
@@ -56,8 +58,42 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
      * المفاتيح المسموحة وحمولة الرفض — لا وصول لتخزين المتصفح) فنما عدّ
      * الملفات المزروعة 369→370؛ والتسجيل يبقى موضعًا واحدًا بالضبط (مهايئ
      * التشخيص). تحديث العدّ المتوقع هنا هو بروتوكول الراتشة نفسه (تحديث
-     * بنفس الـPR مع السبب الموثق). */
-    expect(stdout).toMatch(/370 ملف إنتاج/);
+     * بنفس الـPR مع السبب الموثق).
+     * S02 (2026-10-27): وحدات القفل السبع حُذفت مع تقاعد ٠٤٢ وأُضيفت وحدات
+     * حماية الاستبدال الأربع (البروتوكول، التطبيع/البصمة المنفصلان، محرك
+     * قاعدة الحماية، تقاعد السجل) — العدّ المزروع صار 368؛ والتسجيل يبقى
+     * موضعًا واحدًا بالضبط (مهايئ التشخيص).
+     * S03 (2026-10-28): قسما الإعدادات الجديدان (بيانات المشروع — دمج
+     * 038/039، وما يقدّمه مشروعك — 038) أُضيفا كملفي إنتاج مزروعين فصار
+     * العدّ 370؛ التسجيل يبقى موضعًا واحدًا بالضبط (مهايئ التشخيص).
+     * S04 (DOC-013، 2026-10-28): سجل رصد الأرصدة (cashObservation) أُضيف
+     * كملف إنتاج مزروع فصار العدّ 371؛ التسجيل يبقى موضعًا واحدًا
+     * بالضبط (مهايئ التشخيص).
+     * S04 (لاحق، DOC-013): خدمة العدّ المستقلة (cashCountService) أُضيفت
+     * كملف إنتاج مزروع فصار العدّ 372؛ والتسجيل يبقى موضعًا واحدًا بالضبط. */
+    /* S05 (DOC-014، 2026-10-29): +counterpartyCommitGuard.ts (حد كتابة الأطراف
+     * عند التخزين — لا وصول لتخزين المتصفح) فنما العدّ 372→373؛ بروتوكول
+     * الراتشة نفسه (تحديث بنفس الـPR مع السبب الموثق). */
+    /* S07-MR-001 (DOC-016، 2026-10-30): +inventoryCommitGuard.ts (حارس التزام
+     * المخزون النقي — بصمات CAS داخل حد الكتابة وحتمية داخل الحد؛ لا وصول
+     * لتخزين المتصفح) فنما العدّ 373→374؛ بروتوكول الراتشة نفسه (تحديث
+     * بنفس الـPR مع السبب الموثق — أمر S08 القسم ١ المنشور في 73c1a344). */
+    /* S08 (DOC-017، 2026-10-30): +assetCommitGuard.ts (حارس التزام أحداث/سجلات
+     * الأصول النقي — بصمات CAS داخل حد الكتابة وحتمية داخل الحد؛ لا وصول
+     * لتخزين المتصفح) فنما العدّ 374→375؛ بروتوكول الراتشة نفسه (تحديث
+     * بنفس الـPR مع السبب الموثق — أمر S08 المنشور في 73c1a344). */
+    /* S10 (DOC-019، 2026-10-31 — أمر b56967d8): +13 ملف إنتاج مزروعًا في
+     * client/src — بيت أدوات التخطيط التطبيقي (planning/index.ts،
+     * planningToolsService.ts) ومكوناته الثلاثة (LegacyEstimateEditor،
+     * PlanningGroupEditor، SavedCalculations) وصفحات T02–T05 الأربع
+     * (HourValue، SalesQuantity، InvoiceShare، IdeaReview) ونوعا التخزين
+     * (planningCalculationTypes.ts، costItemTypes.ts) وكعب اختبار الحد
+     * (planningCalculatorTestHarness.ts — نمط formDraftTestHarness؛ لا
+     * وصول لتخزين المتصفح) وplanningCalculationLifecycle.ts (دورة الحفظ
+     * الكسولة المنفصلة لميزانية الدخول) فنما العدّ 375→388؛ بروتوكول الراتشة نفسه
+     * (تحديث بنفس الـPR مع السبب الموثق)؛ التسجيل يبقى موضعًا واحدًا
+     * بالضبط (مهايئ التشخيص). */
+    expect(stdout).toMatch(/388 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);
@@ -84,7 +120,9 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
     const { ok, violations } = checkDiagnosticsStorage(dir);
     expect(ok).toBe(false);
     expect(
-      violations.some(v => v.rule === "unregistered-web-storage-access" && v.key.includes("legacyFormDraftMigration.ts:2")),
+      violations.some(
+        v => v.rule === "unregistered-web-storage-access" && v.key.includes("legacyFormDraftMigration.ts:2"),
+      ),
     ).toBe(true);
     fs.rmSync(dir, { recursive: true, force: true });
   });
@@ -117,12 +155,7 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
     writeClientFile(
       dir,
       "application/demo/sessionLeak.ts",
-      [
-        "export function bad() {",
-        "  return sessionStorage.getItem('x');",
-        "}",
-        "",
-      ].join("\n"),
+      ["export function bad() {", "  return sessionStorage.getItem('x');", "}", ""].join("\n"),
     );
     const { ok, violations } = checkDiagnosticsStorage(dir);
     expect(ok).toBe(false);
@@ -136,12 +169,7 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
     writeClientFile(
       dir,
       "components/Demo.tsx",
-      [
-        "export function Demo() {",
-        "  return window.localStorage;",
-        "}",
-        "",
-      ].join("\n"),
+      ["export function Demo() {", "  return window.localStorage;", "}", ""].join("\n"),
     );
     const { ok, violations } = checkDiagnosticsStorage(dir);
     expect(ok).toBe(false);
@@ -155,16 +183,13 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
     writeClientFile(
       dir,
       "lib/computed.ts",
-      [
-        "export function bad() {",
-        "  return globalThis['localStorage'];",
-        "}",
-        "",
-      ].join("\n"),
+      ["export function bad() {", "  return globalThis['localStorage'];", "}", ""].join("\n"),
     );
     const { ok, violations } = checkDiagnosticsStorage(dir);
     expect(ok).toBe(false);
-    expect(violations.some(v => v.key.includes("lib/computed.ts:2") && v.key.includes("computed literal access"))).toBe(true);
+    expect(
+      violations.some(v => v.key.includes("lib/computed.ts:2") && v.key.includes("computed literal access")),
+    ).toBe(true);
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
@@ -174,17 +199,15 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
     writeClientFile(
       dir,
       "application/demo/destructure.ts",
-      [
-        "export function bad() {",
-        "  const { localStorage: ls } = globalThis;",
-        "  return ls;",
-        "}",
-        "",
-      ].join("\n"),
+      ["export function bad() {", "  const { localStorage: ls } = globalThis;", "  return ls;", "}", ""].join(
+        "\n",
+      ),
     );
     const { ok, violations } = checkDiagnosticsStorage(dir);
     expect(ok).toBe(false);
-    expect(violations.some(v => v.key.includes("destructure.ts:2") && v.key.includes("object binding pattern"))).toBe(true);
+    expect(
+      violations.some(v => v.key.includes("destructure.ts:2") && v.key.includes("object binding pattern")),
+    ).toBe(true);
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
@@ -194,13 +217,7 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
     writeClientFile(
       dir,
       "application/demo/alias.ts",
-      [
-        "export function bad() {",
-        "  const ls = localStorage;",
-        "  return ls;",
-        "}",
-        "",
-      ].join("\n"),
+      ["export function bad() {", "  const ls = localStorage;", "  return ls;", "}", ""].join("\n"),
     );
     const { ok, violations } = checkDiagnosticsStorage(dir);
     expect(ok).toBe(false);
@@ -214,12 +231,9 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
     writeClientFile(
       dir,
       "pwa/optional.ts",
-      [
-        "export function bad() {",
-        "  return globalThis?.localStorage?.getItem?.('x') ?? null;",
-        "}",
-        "",
-      ].join("\n"),
+      ["export function bad() {", "  return globalThis?.localStorage?.getItem?.('x') ?? null;", "}", ""].join(
+        "\n",
+      ),
     );
     const { ok, violations } = checkDiagnosticsStorage(dir);
     expect(ok).toBe(false);
@@ -250,11 +264,7 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
 
     const dir = tempRepo();
     withRegisteredTree(dir);
-    writeClientFile(
-      dir,
-      "storage/diagnostics/impostor.ts",
-      "export const ls = globalThis.localStorage;\n",
-    );
+    writeClientFile(dir, "storage/diagnostics/impostor.ts", "export const ls = globalThis.localStorage;\n");
     const { ok, violations } = checkDiagnosticsStorage(dir);
     expect(ok).toBe(false);
     expect(violations.some(v => v.key.includes("storage/diagnostics/impostor.ts"))).toBe(true);
@@ -293,7 +303,9 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
     );
     const { ok, violations } = checkDiagnosticsStorage(dir);
     expect(ok).toBe(false);
-    expect(violations.some(v => v.rule === "diagnostics-adapter-routed-through-local-storage-port")).toBe(true);
+    expect(violations.some(v => v.rule === "diagnostics-adapter-routed-through-local-storage-port")).toBe(
+      true,
+    );
     fs.rmSync(dir, { recursive: true, force: true });
   });
 });

@@ -2,47 +2,125 @@ import { describe, expect, it } from "vitest";
 import { ProfileService } from "./profileService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 
-describe("ProfileService", () => {
-  it("rejects an empty local activity name before writing", async () => {
+/* S03 (UNIT-039 A1/B2 — عقد §17 «نافذتان تعدلان المصدر»): rename هو حد
+ * كتابة الاسم الوحيد بعد تقاعد save غير المحروس — نجاح مثبت، أو تعارض
+ * نسخة صادق يعيد الحالة الحالية بلا كتابة، أو فشل تخزين بلا أثر. */
+describe("ProfileService.rename — guarded identity rename (S03/عقد §17)", () => {
+  it("rejects an empty name before any read or write (validation honest, no storage touch)", async () => {
     const store = new MemoryLocalStore();
-    const service = new ProfileService(store, () => "2026-08-22T00:00:00.000Z");
-    await expect(service.save("   ")).resolves.toMatchObject({
+    const service = new ProfileService(store, () => "2026-10-28T00:00:00.000Z");
+    await expect(service.rename("   ", "2026-10-28T00:00:00.000Z")).resolves.toMatchObject({
       ok: false,
       code: "validation_error",
-      message: "اسم النشاط: اكتب اسم النشاط أو اسمك أولًا، ثم أعد المحاولة.",
+      message: "اسم المشروع: اكتب اسم مشروعك، أو ألغِ التعديل.",
     });
     await expect(store.getProfile()).resolves.toMatchObject({ ok: true, value: null });
   });
 
-  it("creates the minimal local custom-craft profile and preserves its first timestamp", async () => {
+  it("renames the existing identity with the trimmed name — same id and createdAt, new updatedAt", async () => {
     const store = new MemoryLocalStore();
-    let timestamp = "2026-08-22T00:00:00.000Z";
+    let timestamp = "2026-10-27T00:00:00.000Z";
     const service = new ProfileService(store, () => timestamp);
-    const first = await service.save("مشغل ليان");
-    timestamp = "2026-08-22T01:00:00.000Z";
-    const second = await service.save("مشغل ليان للحرف");
-    expect(first).toMatchObject({
+    const created = await service.create("مشغل ليان");
+    if (!created.ok) throw new Error(created.message);
+    timestamp = "2026-10-28T01:00:00.000Z";
+    const renamed = await service.rename("  مشغل ليان للحرف  ", created.profile.updatedAt);
+    expect(renamed).toMatchObject({
       ok: true,
+      outcome: "renamed",
       profile: {
-        activityName: "مشغل ليان",
-        currency: "JOD",
-        activityType: "custom_craft",
-        createdAt: "2026-08-22T00:00:00.000Z",
-      },
-    });
-    expect(second).toMatchObject({
-      ok: true,
-      profile: {
+        id: "local-profile",
         activityName: "مشغل ليان للحرف",
-        createdAt: "2026-08-22T00:00:00.000Z",
-        updatedAt: "2026-08-22T01:00:00.000Z",
+        createdAt: created.profile.createdAt,
+        updatedAt: "2026-10-28T01:00:00.000Z",
       },
     });
+    const stored = await store.getProfile();
+    expect(stored).toMatchObject({
+      ok: true,
+      value: { activityName: "مشغل ليان للحرف", createdAt: created.profile.createdAt },
+    });
+  });
+
+  it("a stale expected version is an honest conflict — the newer saved name survives untouched", async () => {
+    const store = new MemoryLocalStore();
+    let timestamp = "2026-10-28T00:00:00.000Z";
+    const service = new ProfileService(store, () => timestamp);
+    const created = await service.create("الاسم الأصلي");
+    if (!created.ok) throw new Error(created.message);
+    /* نافذة أخرى تعدّل الاسم أولًا (بعد فتح محررنا) — محررنا يحمل النسخة القديمة. */
+    const staleExpected = created.profile.updatedAt;
+    timestamp = "2026-10-28T02:00:00.000Z";
+    const otherWindow = await service.rename("اسم أحدث من نافذة أخرى", staleExpected);
+    if (!otherWindow.ok || otherWindow.outcome !== "renamed") throw new Error("setup rename failed");
+    timestamp = "2026-10-28T03:00:00.000Z";
+    const stale = await service.rename("اسم محررنا القديم", staleExpected);
+    expect(stale).toMatchObject({
+      ok: true,
+      outcome: "conflict",
+      profile: { activityName: "اسم أحدث من نافذة أخرى" },
+    });
+    const stored = await store.getProfile();
+    expect(stored).toMatchObject({
+      ok: true,
+      value: { activityName: "اسم أحدث من نافذة أخرى", updatedAt: "2026-10-28T02:00:00.000Z" },
+    });
+  });
+
+  it("a missing profile file is an honest conflict with null — never a creation from the rename path", async () => {
+    const store = new MemoryLocalStore();
+    const service = new ProfileService(store, () => "2026-10-28T00:00:00.000Z");
+    const result = await service.rename("أي اسم", "2026-10-28T00:00:00.000Z");
+    expect(result).toMatchObject({
+      ok: true,
+      outcome: "conflict",
+      profile: null,
+    });
+    await expect(store.getProfile()).resolves.toMatchObject({ ok: true, value: null });
+  });
+
+  it("a storage write failure is reported honestly — no partial rename and retry keeps the same expected version", async () => {
+    const store = new MemoryLocalStore();
+    const service = new ProfileService(store, () => "2026-10-28T00:00:00.000Z");
+    const created = await service.create("الاسم القائم");
+    if (!created.ok) throw new Error(created.message);
+    const original = store.commitProfileRename.bind(store);
+    store.commitProfileRename = (async () => ({
+      ok: false,
+      code: "storage_error",
+      message: "write failed",
+    })) as never;
+    await expect(service.rename("اسم جديد", created.profile.updatedAt)).resolves.toMatchObject({
+      ok: false,
+      code: "storage_error",
+      message: "لم يتم حفظ اسم المشروع على هذا الجهاز. تحقق من مساحة التخزين ثم أعد المحاولة.",
+    });
+    store.commitProfileRename = original;
+    /* الفشل بلا كتابة: النسخة المتوقعة نفسها تبقى صالحة لإعادة المحاولة. */
+    const retry = await service.rename("اسم جديد", created.profile.updatedAt);
+    expect(retry).toMatchObject({ ok: true, outcome: "renamed", profile: { activityName: "اسم جديد" } });
+  });
+
+  it("a profile read failure is an honest storage error — never treated as a rename or a conflict", async () => {
+    const store = new MemoryLocalStore();
+    const service = new ProfileService(store, () => "2026-10-28T00:00:00.000Z");
+    const original = store.getProfile.bind(store);
+    store.getProfile = (async () => ({
+      ok: false,
+      code: "storage_error",
+      message: "read failed",
+    })) as never;
+    await expect(service.rename("اسم", "2026-10-28T00:00:00.000Z")).resolves.toMatchObject({
+      ok: false,
+      code: "storage_error",
+      message: "تعذر قراءة التأسيس المحلي. حاول مرة أخرى.",
+    });
+    store.getProfile = original;
   });
 });
 
 /* UNIT-001 V2 (DUP-002/R02/R07): الإنشاء وحده — create() مسار idempotent
- * لا يعدّل هوية قائمة أبدًا؛ التعديل ملك 039 عبر save. */
+ * لا يعدّل هوية قائمة أبدًا؛ التعديل ملك 039 عبر rename المحروس (S03). */
 describe("ProfileService.create — UNIT-001 single-identity create path", () => {
   it("creates once when absent and reports created=true with the trimmed name", async () => {
     const store = new MemoryLocalStore();

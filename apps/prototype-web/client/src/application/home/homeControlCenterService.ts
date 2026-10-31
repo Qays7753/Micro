@@ -157,7 +157,7 @@ export class HomeControlCenterService {
       owner_capital: action("road-owner-capital", "سجّله", "/finance/new/owner_investment_cash", ""),
     };
     /* Wave 4.4 — P-4.4-1 (تماثل D8): كل حقيقة معروفة تفتح مصدرها الحقيقي القائم
-     * — الكاش محافظه، واللي عند العملاء دفتر الناس، وعليّ للموردين سطح «شو
+     * — الكاش محافظه، واللي عند العملاء دليل «العملاء والموردين»، وعليّ للموردين سطح «شو
      * عليّ؟» في المالية؛ لا وجهة وهمية ولا مصدر مختلق. */
     const factSources: Record<"cash" | "receivables" | "payables" | "unallocated", string> = {
       cash: "/cash",

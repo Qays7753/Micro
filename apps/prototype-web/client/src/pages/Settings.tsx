@@ -12,26 +12,22 @@ import {
   RotateCcw,
   Save,
   Shield,
-  ShieldAlert,
   Upload,
 } from "lucide-react";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { LockSettingsCard } from "@/components/security/LockSettingsCard";
-import { DataActionPinGate } from "@/components/security/DataActionPinGate";
-import { useOverlayFocusContract } from "@/components/security/overlayFocusContract";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
 import type { OperatingModeValue } from "@/application/time";
-import type { PreparedImport, TransferSummary } from "@/application/transfers";
+import type { BoundRestoreIntent, TransferSummary } from "@/application/transfers";
 import type { GuidedOpeningImportPreview } from "@/application/transfers";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { useTheme } from "@/contexts/ThemeContext";
 import type { BrowserPersistenceReading } from "@/application/preferences";
-import type { OperatingWorkMode, LocalExportFile } from "@/storage/local/types";
+import type { OperatingWorkMode } from "@/storage/local/types";
 import { localDiagnostics } from "@/application/diagnostics";
 
 import { SettingsDataProtectionSection } from "@/components/settings/SettingsDataProtectionSection";
@@ -42,6 +38,19 @@ import {
 } from "@/components/settings/SettingsOperatingModeSection";
 import { SettingsAppearanceSection } from "@/components/settings/SettingsAppearanceSection";
 import { SettingsCapabilitiesSection } from "@/components/settings/SettingsCapabilitiesSection";
+/* S03 (UNIT-038/UNIT-039): قسما «ما يقدّمه مشروعك» (تفضيل العرض من مصدره
+ * الواحد) و«بيانات المشروع» (محرر الاسم المحروس داخل الإعدادات بعد قرار
+ * دمج 038/039). */
+import {
+  SettingsUsagePreferencesSection,
+  type OfferingSelection,
+  type OfferingState,
+} from "@/components/settings/SettingsUsagePreferencesSection";
+import {
+  SettingsProjectDataSection,
+  type ProjectDataState,
+} from "@/components/settings/SettingsProjectDataSection";
+import type { OfferingPreference } from "@/application/preferences";
 
 import { Button, type FeedbackKind } from "@/components/primitives";
 export default function SettingsPage() {
@@ -55,6 +64,7 @@ export default function SettingsPage() {
     transfers,
     guidedOpeningImport,
     preferences,
+    profiles,
     agreements,
     inventory,
     supplierPurchases,
@@ -62,64 +72,12 @@ export default function SettingsPage() {
     dataVersion,
     notifyDataChanged,
     integrityCheck,
-    localLock,
     formDrafts,
   } = usePrototypeServices();
-  /* المجموعة ٦ (تدقيق A1 — SP-01/DP-04): مسار الاسترداد معفى من الغطاء لكن
-   * إجراءات مغادرة البيانات (تصدير/استيراد/تصفير) تتطلب إثبات رمز القفل مرة
-   * واحدة في الجلسة — الجهاز المقفل لا يُصدّر أرقامه ولا يُمسح بلا الرمز. */
-  const lockVerifiedRef = useRef(false);
-  const pendingGatedActionRef = useRef<(() => void | Promise<void>) | null>(null);
-  const [gatedAction, setGatedAction] = useState<null | { title: string; description: string }>(null);
-  const runWhenUnlocked = async (action: () => void | Promise<void>, title: string, description: string) => {
-    if (lockVerifiedRef.current) {
-      await action();
-      return;
-    }
-    const status = await localLock.status();
-    /* فشل القراءة لا يحبس المالك عن بياناته — تخفي صادق كما في كل البوابات. */
-    if (!status.ok || !status.value.enabled) {
-      await action();
-      return;
-    }
-    pendingGatedActionRef.current = action;
-    setGatedAction({ title, description });
-  };
-  /* المجموعة ٥ (التحصين الكامل): الاستبدال التدميري (استيراد كامل أو
-   * تأكيد إدخال البداية) لا يمر بلا حماية أبدًا — قفل مفعّل = بوابة
-   * الرمز القائمة؛ ولا قفل = حجب صريح حتى إتمام خطوة تفعيل الحماية
-   * (غياب القفل ليس تحقًا ولا يُعد تفويضًا صامتًا)؛ وفشل قراءة سجل
-   * القفل = إقفال صادق مصرح بلا تغيير أي بيانات. المعاينة وحدها قراءة خالصة
-   * قبل هذه البوابة. */
-  const [protectionBlocked, setProtectionBlocked] = useState<null | {
-    title: string;
-    message: string;
-  }>(null);
-  const runWhenProtected = async (action: () => void | Promise<void>, title: string, gateMessage: string) => {
-    if (lockVerifiedRef.current) {
-      await action();
-      return;
-    }
-    const status = await localLock.status();
-    if (!status.ok) {
-      setProtectionBlocked({
-        title,
-        message:
-          "لم نستطع قراءة إعداد القفل قبل إجراء يستبدل بياناتك؛ لم يتغير أي شيء. أعد المحاولة؛ فإن تكرر فافتح فحص السلامة من الأدوات.",
-      });
-      return;
-    }
-    if (!status.value.enabled) {
-      setProtectionBlocked({
-        title,
-        message:
-          "هذا الإجراء يستبدل بيانات هذا الجهاز ويحتاج حماية بالرمز أولاً — فعّل «قفل التطبيق المحلي» من قسم «احمِ بياناتك» أعلى هذه الصفحة ثم أعد المحاولة. المعاينة التي رأيتها لم تغيّر شيئًا.",
-      });
-      return;
-    }
-    pendingGatedActionRef.current = action;
-    setGatedAction({ title, description: gateMessage });
-  };
+  /* S02-B (SH-04 — UNIT-042، إلغاء المالك المعتمد): بوابة الرمز حُذفت كاملة
+   * — لا طلب PIN للتصدير/الاستيراد/التصفير ولا فعل معلق ينتظر رمزًا. حماية
+   * البيانات مستقلة عن القفل وتبقى كما هي: المعاينة المراجعة والتأكيد
+   * الصريح والنسخة الرجوع الدائمة (S02-A) والتحقق من الملف وحراس المال. */
   /* المجموعة ٥ (التحصين الكامل — نسخ تشخيص محلي خصوصي): أثر
    * النسخ يظهر في موضعه دون فتح طبقة أخرى. */
   const [diagnosticCopyResult, setDiagnosticCopyResult] = useState<null | {
@@ -156,10 +114,10 @@ export default function SettingsPage() {
     overall: "PASS" | "WARN" | "UNAVAILABLE" | "FAIL";
     note: string;
   } | null>(null);
-  /* EXE-014 (DATA-001 / AUD-NEW-09): نسخة ما قبل الاستبدال القابلة
-   * للاسترجاع — تُنشأ داخل confirmImport قبل أي كتابة وتُعرض للتنزيل
-   * بعد الاستعادة حتى لا تضيع بغلقة الصفحة. */
-  const [restoreBackup, setRestoreBackup] = useState<LocalExportFile | null>(null);
+  /* S02-A (SH-03): حالة النسخة السابقة الدائمة — من قاعدة الحماية عبر
+   * readRestoreStatus لا من ذاكرة الصفحة، فتصمد بعد الإغلاق وإعادة
+   * التحميل، وتحسم أي نية استبدال معلقة أولًا بصدق. */
+  const [rollbackStatus, setRollbackStatus] = useState<{ createdAt: string } | null>(null);
   const guidedCardRef = useRef<HTMLDivElement>(null);
   /* Wave 4.2 — P-4.2-3 (T2): القسم الموحد «البيانات والنسخ الاحتياطي» —
    * الطبقتان القديمتان دُمجتا في قسم واحد مفتوح افتراضيًا؛ الوصلة العميقة
@@ -210,13 +168,22 @@ export default function SettingsPage() {
         if (prepared.ok) setCurrentSummary(prepared.value.summary);
       }
     });
+    /* S02-A: النسخة السابقة الدائمة تُقرأ من قاعدة الحماية — بعد أي إعادة
+     * تحميل تظل ظاهرة، وأي نية معلقة تُحسم أولًا بصدق. */
+    void transfers.readRestoreStatus().then(value => {
+      if (active && value.ok) {
+        setRollbackStatus(
+          value.value.rollbackCreatedAt ? { createdAt: value.value.rollbackCreatedAt } : null,
+        );
+      }
+    });
     return () => {
       active = false;
     };
   }, [preferences, transfers, dataVersion]);
   const inputRef = useRef<HTMLInputElement>(null);
   const guidedInputRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<PreparedImport | null>(null);
+  const [preview, setPreview] = useState<BoundRestoreIntent | null>(null);
   const [guidedPreview, setGuidedPreview] = useState<GuidedOpeningImportPreview | null>(null);
   /* S3-11: الإشعار يُعرض داخل القسم الذي أنتجه — لا في أسفل صفحة بطول ٨٤١ سطرًا. */
   const [notice, setNotice] = useState<{
@@ -268,6 +235,155 @@ export default function SettingsPage() {
     };
   }, [actualTime, dataVersion]);
 
+  /* ── S03 (UNIT-039 P3.1/P3.2 — عقد §17): بيانات المشروع — الحالة المستقلة
+   * (تحميل/غياب/تعذر/جاهز) من مصدر الهوية الواحد، وأساس النسخة المتوقع من
+   * قراءة المحرر نفسه لحد التعديل المحروس (CAS)؛ إعادة القراءة مع كل دورة
+   * بيانات (dataVersion) بعد الاستعادة أو التعديل من نافذة أخرى. ── */
+  const [projectData, setProjectData] = useState<ProjectDataState>({ phase: "loading" });
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editingName, setEditingName] = useState("");
+  const [expectedProfileUpdatedAt, setExpectedProfileUpdatedAt] = useState<string | null>(null);
+  const [nameError, setNameError] = useState(false);
+  const [renameConflict, setRenameConflict] = useState<{
+    message: string;
+    currentName: string | null;
+  } | null>(null);
+  const [renameFailed, setRenameFailed] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const projectNameInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    let active = true;
+    setProjectData(current => (current.phase === "ready" ? current : { phase: "loading" }));
+    profiles.load().then(result => {
+      if (!active) return;
+      if (!result.ok) {
+        setProjectData({ phase: "error", message: result.message });
+        return;
+      }
+      if (result.value === null) {
+        setProjectData({ phase: "absent" });
+        return;
+      }
+      setProjectData({ phase: "ready", profile: result.value });
+    });
+    return () => {
+      active = false;
+    };
+    /* dataVersion: إعادة القراءة بعد أي تغيير بيانات موثّق (استعادة/تعديل) —
+     * حالة المحرر المفتوح لا تُطمس من تحديث خلفي (stale-while-revalidate). */
+  }, [profiles, dataVersion]);
+
+  function beginRename() {
+    if (projectData.phase !== "ready") return;
+    setEditingName(projectData.profile.activityName);
+    setExpectedProfileUpdatedAt(projectData.profile.updatedAt);
+    setNameError(false);
+    setRenameConflict(null);
+    setRenameFailed(false);
+    setIsEditingName(true);
+  }
+
+  function cancelRename() {
+    setIsEditingName(false);
+    setNameError(false);
+    setRenameConflict(null);
+    setRenameFailed(false);
+  }
+
+  async function saveRename() {
+    if (projectData.phase !== "ready" || expectedProfileUpdatedAt === null) return;
+    if (!editingName.trim()) {
+      setRenameConflict(null);
+      setRenameFailed(false);
+      setNameError(true);
+      projectNameInputRef.current?.focus();
+      return;
+    }
+    setIsRenaming(true);
+    setNameError(false);
+    setRenameFailed(false);
+    const result = await profiles.rename(editingName, expectedProfileUpdatedAt);
+    setIsRenaming(false);
+    if (!result.ok) {
+      if (result.code === "validation_error") {
+        setNameError(true);
+        projectNameInputRef.current?.focus();
+      } else {
+        setRenameFailed(true);
+      }
+      return;
+    }
+    if (result.outcome === "conflict") {
+      /* عقد §17: الخاسر يتراجع بوعي — الحالة الحالية تُعرض كما هي وأساس
+       * النسخة يُحدّث إليها؛ نص المالك يقرر: إعادة الحفظ بوعي أو الإلغاء. */
+      setRenameConflict({
+        message: result.message,
+        currentName: result.profile ? result.profile.activityName : null,
+      });
+      if (result.profile) {
+        setProjectData({ phase: "ready", profile: result.profile });
+        setExpectedProfileUpdatedAt(result.profile.updatedAt);
+      } else {
+        setProjectData({ phase: "absent" });
+        setExpectedProfileUpdatedAt(null);
+        setIsEditingName(false);
+      }
+      return;
+    }
+    setProjectData({ phase: "ready", profile: result.profile });
+    setExpectedProfileUpdatedAt(result.profile.updatedAt);
+    setRenameConflict(null);
+    setRenameFailed(false);
+    setIsEditingName(false);
+    notifyDataChanged();
+  }
+
+  /* S03 (UNIT-039 P3.1): الغياب حالة صادقة مستقلة — مدخل واحد للإعداد لا
+   * مشروع ثانٍ من الإعدادات. */
+  function openSetup() {
+    navigate(withReturnTo("/setup", "/settings"));
+  }
+
+  /* ── S03 (UNIT-038 P3.2): تفضيل ما يقدّمه المشروع — قراءة المصدر الواحد
+   * وحفظ الحقل المتغير وحده عبر بوابة الدمج (لا يُسقط غيره). ── */
+  const [offeringState, setOfferingState] = useState<OfferingState>({ phase: "loading" });
+  const [selectedOffering, setSelectedOffering] = useState<OfferingSelection>("");
+  const [isSavingOffering, setIsSavingOffering] = useState(false);
+  const [offeringNotice, setOfferingNotice] = useState<{ kind: FeedbackKind; text: string } | null>(null);
+  useEffect(() => {
+    let active = true;
+    preferences.readOfferingPreference().then(result => {
+      if (!active) return;
+      if (!result.ok) {
+        setOfferingState({ phase: "error", message: result.message });
+        return;
+      }
+      setOfferingState({ phase: "ready", value: result.offering });
+      setSelectedOffering(result.offering ?? "");
+    });
+    return () => {
+      active = false;
+    };
+  }, [preferences, dataVersion]);
+
+  async function saveOffering() {
+    setIsSavingOffering(true);
+    setOfferingNotice(null);
+    const value: OfferingPreference = selectedOffering === "" ? null : selectedOffering;
+    const result = await preferences.saveOfferingPreference(value);
+    setIsSavingOffering(false);
+    if (!result.ok) {
+      setOfferingNotice({ kind: "error", text: result.message });
+      return;
+    }
+    setOfferingState({ phase: "ready", value: result.offering });
+    notifyDataChanged();
+    setOfferingNotice({
+      kind: "completion",
+      text: "تم حفظ تفضيل ما يقدّمه مشروعك على هذا الجهاز فقط — لا يغيّر أي سجل أو رقم.",
+    });
+  }
+
   async function saveOperatingMode() {
     setNotice(null);
     setIsSavingOperatingMode(true);
@@ -286,11 +402,7 @@ export default function SettingsPage() {
   }
 
   async function exportLocal() {
-    await runWhenUnlocked(
-      performExportLocal,
-      "تصدير بياناتك يحتاج رمز القفل",
-      "التصدير يُنشئ ملفًا فيه كل أرقامك — تأكيد الرمز مرة واحدة في هذه الجلسة يفتح الإجراء، ويبقى الرمز في هذا الجهاز.",
-    );
+    await performExportLocal();
   }
 
   async function performExportLocal() {
@@ -328,11 +440,7 @@ export default function SettingsPage() {
 
   /* ٥.٧: بوابة «ابدأ من جديد» — لا تصفير قبل نسخة مُتحقق منها، ولا استمرار إن فشل التصدير. */
   async function startResetFlow() {
-    await runWhenUnlocked(
-      performResetFlow,
-      "البدء من جديد يحتاج رمز القفل",
-      "المسار يمسح كل بيانات هذا الجهاز بعد نسخة احتياطية إلزامية — تأكيد الرمز يفتح البوابة.",
-    );
+    await performResetFlow();
   }
 
   async function performResetFlow() {
@@ -367,11 +475,7 @@ export default function SettingsPage() {
   }
 
   async function confirmReset() {
-    await runWhenUnlocked(
-      performReset,
-      "المسح النهائي يحتاج رمز القفل",
-      "آخر خطوة قبل مسح كل بيانات هذا الجهاز — أدخل رمز القفل للتأكيد النهائي.",
-    );
+    await performReset();
   }
 
   async function performReset() {
@@ -424,7 +528,10 @@ export default function SettingsPage() {
         setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
         return;
       }
-      const prepared = transfers.prepareImport(await file.text());
+      /* S02-A (SH-02): المعاينة مربوطة بالمراجعة — الجيل وبصمة الحالة الحية
+       * لحظة العرض؛ التأكيد لا يقبل إلا أمرًا مربوطًا، وتغيّر البيانات بعده
+       * يعيد المراجعة ولا يستبدل عملًا أحدث. */
+      const prepared = await transfers.prepareRestore(await file.text());
       if (!prepared.ok) {
         setStorageNotice("error", prepared.message);
         return;
@@ -441,13 +548,9 @@ export default function SettingsPage() {
 
   async function confirmImport() {
     if (!preview) return;
-    /* المجموعة ٥ (التحصين الكامل): الاستبدال النهائي محمي دومًا —
-     * رمز إن وجد، وإلا خطوة تفعيل الحماية قبل أي كتابة. */
-    await runWhenProtected(
-      performImport,
-      "استبدال بياناتك يحتاج رمز القفل",
-      "الاستيراد يستبدل كل بيانات هذا الجهاز بملف النسخة التي راجعتها — أدخل رمز القفل للتأكيد.",
-    );
+    /* S02-B: التأكيد الصريح بعد المراجعة + حماية ٠٤٤ التقنية (النسخة
+     * الرجوع الدائمة والسياج) — بلا رمز أبدًا (قرار إلغاء ٠٤٢ المعتمد). */
+    await performImport();
   }
 
   async function performImport() {
@@ -466,18 +569,23 @@ export default function SettingsPage() {
     }
     setPreview(null);
     notifyDataChanged();
-    /* EXE-014 (DATA-001 / AUD-NEW-09): نسخة ما قبل الاستبدال جاهزة للتنزيل —
-     * الاستعادة الكاملة لا تحدث بلا طريق رجوع محفوظ بيد المالك. */
-    setRestoreBackup(result.value.backup);
-    /* المجموعة ٥ (التحصين الكامل): المسودات العابرة لا تُمسح صامتًا ولا تُستبدل —
-     * السياسة المختارة: الإبقاء مع إفصاح صادق
-     * عن حالتها المستقلة عن الملف. */
-    const drafts = await formDrafts.list();
+    /* S02-A (SH-03): النسخة السابقة الدائمة جاهزة — من قاعدة الحماية لا من
+     * حالة الصفحة، فطريق الرجوع محفوظ بيد المالك حتى بعد إعادة التحميل. */
+    if (transfers) {
+      void transfers.readRestoreStatus().then(value => {
+        if (value.ok) {
+          setRollbackStatus(
+            value.value.rollbackCreatedAt ? { createdAt: value.value.rollbackCreatedAt } : null,
+          );
+        }
+      });
+    }
+    /* S02-A (عقد ٠٤٤ B6): المسودات العابرة عُزلت مع اللقطة القديمة داخل نسخة
+     * الرجوع الدائمة — لا تبقى فوق بيانات استُبدلت ولا تضيع بصمت؛ تُسترد
+     * مع اللقطة القديمة عند الاسترجاع. */
     setStorageNotice(
       "completion",
-      drafts.ok && drafts.value.length > 0
-        ? `تم استبدال البيانات المحلية بالملف الذي راجعته؛ وأُبقيت ${drafts.value.length} مسودة نموذج غير مُسلّمة محليًا كما هي (مستقلة عن الملف) — تُعرض عند فتح نماذجها ويمكن تجاهلها هناك، ونسخة ما قبل الاستبدال جاهزة للتنزيل أدناه.`
-        : "تم استبدال البيانات المحلية بالملف الذي راجعته؛ نسخة ما قبل الاستبدال جاهزة للتنزيل أدناه.",
+      "تم استبدال البيانات المحلية بالملف الذي راجعته؛ نسخة بياناتك السابقة محفوظة أدناه (تنزيل أو استرجاع كامل بمراجعة وتأكيد) — ومعها المسودات غير المُسلّمة معزولة كما كانت.",
     );
     /* المجموعة ٥ (عقد ٣٩): فحص سلامة بعد الاستعادة مباشرة — قراءة جديدة فوق
      * البيانات المستعادة، بلا إصلاح تلقائي؛ النتيجة إجمالية مع رابط للتفاصيل. */
@@ -496,18 +604,45 @@ export default function SettingsPage() {
     if (!result.value.profile) navigate("/setup");
   }
 
-  /* EXE-014 (DATA-001): تنزيل نسخة ما قبل الاستبدال — نفس آلية التصدير
-   * المتحقق منه (Blob + رابط مؤجل الإبطال)؛ النسخة محفوظة في الحالة فلا
-   * تضيع بالتنقل قبل التنزيل. */
-  function downloadRestoreBackup() {
-    if (!restoreBackup) return;
-    const blob = new Blob([JSON.stringify(restoreBackup, null, 2)], { type: "application/json" });
+  /* S02-A (SH-03): تنزيل النسخة السابقة الدائمة — من قاعدة الحماية نفسها،
+   * فتُنزَّل حتى بعد إعادة التحميل (نفس آلية التصدير: Blob + رابط مؤجل الإبطال). */
+  async function downloadRestoreBackup() {
+    if (!transfers) {
+      setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
+      return;
+    }
+    const rollback = await transfers.readActiveRollback();
+    if (!rollback.ok || rollback.value === null) {
+      setStorageNotice("error", "لا توجد نسخة سابقة محفوظة على هذا الجهاز — لا ما يُنزَّل.");
+      return;
+    }
+    const blob = new Blob([JSON.stringify(rollback.value.file, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `micro-backup-before-restore-${businessDateFromTimestamp(restoreBackup.exportedAt)}.json`;
+    link.download = `micro-backup-before-restore-${businessDateFromTimestamp(rollback.value.file.exportedAt)}.json`;
     link.click();
     globalThis.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  }
+
+  /* S02-A (عقد ٠٤٤ B4.4): استرجاع البيانات السابقة — نفس خدمة الاستعادة
+   * نفسها: معاينة وأثر وتأكيد، وحماية كاملة للبيانات الحالية التي سيستبدلها
+   * الرجوع أيضًا؛ لا استرجاع من مجرد نقرة إشعار. */
+  async function startRollbackRestore() {
+    if (!transfers) {
+      setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
+      return;
+    }
+    setNotice(null);
+    setIsWorking(true);
+    const prepared = await transfers.prepareRollbackRestore();
+    setIsWorking(false);
+    if (!prepared.ok) {
+      setStorageNotice("error", prepared.message);
+      return;
+    }
+    setPreview(prepared.value);
+    setGuidedAttention(true);
   }
 
   async function chooseGuidedOpeningImport(event: ChangeEvent<HTMLInputElement>) {
@@ -536,16 +671,9 @@ export default function SettingsPage() {
 
   async function confirmGuidedOpeningImport() {
     if (!guidedPreview) return;
-    /* المجموعة ٥ (التحصين الكامل): تأكيد إدخال البداية فعل
-     * استبدال/كتابة حساس — المعاينة قراءة خالصة ثم
-     * نفس قاعدة الحماية الصريحة للاستيراد الكامل بلا استثناء. */
-    const guidedProtection = {
-      /* عنوان البوابة نفسه من حوار الرمز القائم — الوصف المختص يحمل تخصيص الإجراء. */
-      title: "تأكيد رمز القفل",
-      message:
-        "إدخال الموقف الافتتاحي يكتب على بيانات هذا الجهاز مرة واحدة آمنة التكرار — أدخل رمز القفل للتأكيد.",
-    };
-    await runWhenProtected(performGuidedOpeningImport, guidedProtection.title, guidedProtection.message);
+    /* S02-B: نفس قاعدة الاستعادة الكاملة بلا رمز — تأكيد صريح بعد معاينة
+     * وحماية تقنية داخل حد الكتابة (بروتوكول S02-A). */
+    await performGuidedOpeningImport();
   }
 
   async function performGuidedOpeningImport() {
@@ -563,7 +691,6 @@ export default function SettingsPage() {
       return;
     }
     setGuidedPreview(null);
-    setRestoreBackup(null);
     notifyDataChanged();
     setStorageNotice(
       "completion",
@@ -607,12 +734,14 @@ export default function SettingsPage() {
         nextAction="حذف التطبيق أو بيانات المتصفح لا يضمن الاحتفاظ بها؛ صدّر نسخة محلية قبل الحذف أو تغيير الهاتف."
         tone="warning"
       />
-      {/* المجموعة ١ (Scope G): مدخل ملف المالك من الإعدادات — سطر هادئ لا CTA منافس. */}
+      {/* المجموعة ١ (Scope G): مدخل ملف المالك من الإعدادات — سطر هادئ لا CTA
+          منافس. S03 (دمج 038/039): محرر اسم المشروع صار في قسم «بيانات المشروع»
+          أدناه؛ هذا المدخل لهوية المالك وحدها. */}
       <section className="micro-settings-profile-entry">
         <CircleUserRound aria-hidden="true" />
         <div>
-          <b>ملفك وملف مشروعك</b>
-          <small>هوية المالك ومعلومات المشروع — محفوظة على هذا الجهاز فقط.</small>
+          <b>ملف المالك</b>
+          <small>هوية المالك المحلية — محفوظة على هذا الجهاز فقط.</small>
         </div>
         <button
           className="micro-text-action"
@@ -623,6 +752,34 @@ export default function SettingsPage() {
           <ChevronLeft aria-hidden="true" />
         </button>
       </section>
+      {/* S03 (UNIT-039 — دمج المحرر داخل 038): بيانات المشروع — تعديل الاسم
+          المحروس بحد كتابة واحد مع تعارض معلن؛ الغياب حالة صادقة مستقلة. */}
+      <SettingsProjectDataSection
+        projectData={projectData}
+        isEditingName={isEditingName}
+        editingName={editingName}
+        setEditingName={setEditingName}
+        nameError={nameError}
+        clearNameError={() => setNameError(false)}
+        renameConflict={renameConflict}
+        renameFailed={renameFailed}
+        isRenaming={isRenaming}
+        beginRename={beginRename}
+        saveRename={saveRename}
+        cancelRename={cancelRename}
+        openSetup={openSetup}
+        nameInputRef={projectNameInputRef}
+      />
+      {/* S03 (UNIT-038 P3.2): تفضيل ما يقدّمه مشروعك — نفس سؤال البداية من
+          المصدر الواحد؛ حفظ الحقل المتغير وحده دون مساس ببقية التفضيلات. */}
+      <SettingsUsagePreferencesSection
+        offeringState={offeringState}
+        selectedOffering={selectedOffering}
+        setSelectedOffering={setSelectedOffering}
+        isSavingOffering={isSavingOffering}
+        offeringNotice={offeringNotice}
+        saveOffering={saveOffering}
+      />
       <SettingsDataProtectionSection
         dataSectionOpen={dataSectionOpen}
         onToggleDataSection={setDataSectionOpen}
@@ -640,8 +797,9 @@ export default function SettingsPage() {
         guidedPreview={guidedPreview}
         setGuidedPreview={setGuidedPreview}
         restoreCheck={restoreCheck}
-        restoreBackup={restoreBackup}
-        downloadRestoreBackup={downloadRestoreBackup}
+        rollbackStatus={rollbackStatus}
+        downloadRestoreBackup={() => void downloadRestoreBackup()}
+        startRollbackRestore={startRollbackRestore}
         preview={preview}
         setPreview={setPreview}
         isWorking={isWorking}
@@ -687,70 +845,6 @@ export default function SettingsPage() {
       />
 
       <SettingsAppearanceSection theme={theme} toggleTheme={toggleTheme} />
-      {protectionBlocked ? (
-        <ProtectionBlockedOverlay
-          title={protectionBlocked.title}
-          message={protectionBlocked.message}
-          onAcknowledge={() => setProtectionBlocked(null)}
-        />
-      ) : null}
-      {gatedAction ? (
-        <DataActionPinGate
-          actionTitle={gatedAction.title}
-          actionDescription={gatedAction.description}
-          onVerified={() => {
-            setGatedAction(null);
-            lockVerifiedRef.current = true;
-            const action = pendingGatedActionRef.current;
-            pendingGatedActionRef.current = null;
-            void action?.();
-          }}
-          onCancel={() => {
-            setGatedAction(null);
-            pendingGatedActionRef.current = null;
-          }}
-        />
-      ) : null}
     </section>
-  );
-}
-
-/* R11 W4 / D-14 (OD-A11Y — 2026-10-15): غطاء الحجب التدميري — مكوّن مالك
- * لعقد التركيز (يُركّب مع الغطاء فيعمل المساعد عند الفتح فعلًا): ستار +
- * focus-in + احتواء Tab + Escape=حسنًا + استعادة لمُشغّل الفتح. دلالات
- * وتركيز فقط — لا تغيير بصري ولا منطق حماية (نفس النمط الذهبي
- * AppLockGate/UnsavedChangesGuard). */
-function ProtectionBlockedOverlay({
-  title,
-  message,
-  onAcknowledge,
-}: {
-  title: string;
-  message: string;
-  onAcknowledge: () => void;
-}) {
-  const overlayRef = useRef<HTMLDivElement | null>(null);
-  useOverlayFocusContract(overlayRef, onAcknowledge);
-  return (
-    <>
-      <div aria-hidden="true" className="micro-lock-veil" />
-      <div
-        ref={overlayRef}
-        tabIndex={-1}
-        className="micro-lock-overlay"
-        role="alertdialog"
-        aria-modal="true"
-        aria-label={title}
-      >
-        <ShieldAlert aria-hidden="true" className="micro-lock-icon" />
-        <h1>{title}</h1>
-        <p>{message}</p>
-        <div className="micro-lock-form">
-          <Button action="secondary" onClick={onAcknowledge}>
-            حسنًا
-          </Button>
-        </div>
-      </div>
-    </>
   );
 }

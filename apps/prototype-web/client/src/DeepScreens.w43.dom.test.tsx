@@ -106,7 +106,7 @@ describe("Wave 4.3 — P-4.3-6: documented deep-screen fixes", () => {
   });
 
   it("GAP-4.3-09: the loans summary uses the correct Arabic loans plural, never the assets one", async () => {
-    const profile = await new ProfileService(store, () => NOW).save("مشغل قروض");
+    const profile = await new ProfileService(store, () => NOW).create("مشغل قروض");
     if (!profile.ok) throw new Error(profile.message);
     /* قرضان قائمان — الجمع الصحيح «قرضين» لا «أصلين». */
     for (const [id, name] of [

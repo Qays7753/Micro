@@ -352,25 +352,42 @@ describe("R7 component->page regression class (R8-F-019)", () => {
 });
 
 describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD Option A)", () => {
-  it("the full baseline is exactly 19 keys and the historical 17 is a strict subset", () => {
-    expect(UI_TO_STORAGE_TYPE_BASELINE).toHaveLength(19);
-    expect(new Set(UI_TO_STORAGE_TYPE_BASELINE).size).toBe(19);
+  it("the full baseline is exactly 22 keys and the historical 17 is a strict subset modulo the two documented retirements", () => {
+    expect(UI_TO_STORAGE_TYPE_BASELINE).toHaveLength(22);
+    expect(new Set(UI_TO_STORAGE_TYPE_BASELINE).size).toBe(22);
     expect(UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17).toHaveLength(17);
+    /* S10 (UNIT-030/031/032 — أمر b56967d8/DOC-019، نفس-الـPR): مفتاحان
+     * تاريخيان تُقاعدا بتوثيق — EstimateDetail.tsx وTools.tsx لم يعودا
+     * يستوردان أنواع التخزين إطلاقًا على الشجرة الحية (صفر استيراد storage)،
+     * فبقاؤهما في الأساس خرق نظافة المفاتيح المتقدمة؛ التقاعدهما تضييق
+     * لا توسيع (الحافة صارت ممنوعة لا مسموحة). */
+    const RETIRED_HISTORICAL_2 = [
+      "apps/prototype-web/client/src/pages/EstimateDetail.tsx -> @/storage/local/types",
+      "apps/prototype-web/client/src/pages/Tools.tsx -> @/storage/local/types",
+    ];
     for (const key of UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17) {
-      expect(UI_TO_STORAGE_TYPE_BASELINE).toContain(key);
+      const stillPresent = UI_TO_STORAGE_TYPE_BASELINE.includes(key);
+      const retired = RETIRED_HISTORICAL_2.includes(key);
+      expect(stillPresent || retired).toBe(true);
     }
-    /* مفتاحا app-shell الموثقان هما الفرق المسموح بين الأساسين. */
+    /* مفتاحا app-shell الموثقان + مفتاح S03 الموثق (نفس-الـPR، DOC-012)
+     * + مفاتيح S10 الأربعة الموثقة (DOC-019) هم الفرق المسموح بين الأساسين. */
     const diff = UI_TO_STORAGE_TYPE_BASELINE.filter(k => !UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17.includes(k));
     expect(diff).toEqual([
       "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> @/storage/local/types",
       "apps/prototype-web/client/src/app/StartupGate.tsx -> @/storage/local/types",
+      "apps/prototype-web/client/src/components/settings/SettingsProjectDataSection.tsx -> @/storage/local/types",
+      "apps/prototype-web/client/src/components/planning/LegacyEstimateEditor.tsx -> @/storage/local/types",
+      "apps/prototype-web/client/src/components/planning/PlanningGroupEditor.tsx -> @/storage/local/planningCalculationTypes",
+      "apps/prototype-web/client/src/components/planning/SavedCalculations.tsx -> @/storage/local/types",
+      "apps/prototype-web/client/src/pages/CostCalculator.tsx -> @/storage/local/planningCalculationTypes",
     ]);
   });
 
-  it("the live repository passes at the baseline: 19 type edges, zero violations", () => {
+  it("the live repository passes at the baseline: 22 type edges, zero violations", () => {
     const result = checkModuleBoundaries(REPO_ROOT);
     expect(result.ok).toBe(true);
-    expect(result.stats.uiToStorageType).toBe(19);
+    expect(result.stats.uiToStorageType).toBe(22);
   });
 
   it("growth: a new type-only UI->storage edge is rejected", () => {
@@ -470,7 +487,7 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
     write(root, "apps/prototype-web/client/src/pages/Unrelated.tsx", "export const u = 1;\n");
     const result = checkModuleBoundaries(root);
     const stale = result.violations.filter(v => v.rule === "R8-baseline-stale");
-    expect(stale).toHaveLength(19);
+    expect(stale).toHaveLength(22);
     /* على المستودع الحي: صفر مفاتيح متقدمة (يثبته اختبار المستودع الحي أعلاه). */
   });
 
@@ -546,14 +563,26 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
 
   const r9Only = result => result.violations.filter(v => v.rule.startsWith("R9"));
 
-  it("the live repository passes on the recorded census: 129 edges (80 value + 49 type)", () => {
+  it("the live repository passes on the recorded census: 131 edges (82 value + 49 type)", () => {
     /* R11 Lock Remediation (2026-10-15): +1 type edge — pinOperations.ts (الوحدة
      * الكسولة لعمليات الرمز) -> application/time/clock.ts (هدف معفى OD-10؛
-     * صف الجرد مضاف في نفس الـPR — نمو مرئي لا صامت). */
+     * صف الجرد مضاف في نفس الـPR — نمو مرئي لا صامت).
+     * S02 (2026-10-27، SH-02/SH-03/SH-04): -2 value edge (تقاعد القفل حذف
+     * localLockService وpinOperations) و+1 type edge (بروتوكول حماية الاستبدال
+     * الجديد -> time/clock هدف معفى OD-10) — الجرد 129/80/49 صار 128/79/49؛
+     * إعادة إرساء موثقة نفس-الـPR (راجع تقرير S02). */
     const result = checkModuleBoundaries(REPO_ROOT);
     expect(result.ok).toBe(true);
-    expect(result.stats.houseEdges).toBe(129);
-    expect(result.stats.houseEdgesValue).toBe(80);
+    /* S05 (2026-10-29، DOC-014 / UNIT-037): +1 value edge (partyLedgerService ->
+     * time/clock هدف معفى OD-10؛ صف الجرد مضاف في نفس الـPR) — الجرد 129/80/49
+     * صار 130/81/49؛ إعادة إرساء موثقة نفس-الـPR (راجع تقرير S05). */
+    /* S07 (2026-10-30، DOC-016 / S06-MR-001): +1 value edge
+     * (financialEventEditorModel -> financial-records/expenseRecordIntent — زوج
+     * تأكيد جزء المالك من وحدة النية الكنسية؛ سقف الزوج finance→financial-records
+     * 1→2) — الجرد 130/81/49 صار 131/82/49؛ إعادة إرساء موثقة نفس-الـPR
+     * (راجع تقرير S07). */
+    expect(result.stats.houseEdges).toBe(132);
+    expect(result.stats.houseEdgesValue).toBe(83);
     expect(result.stats.houseEdgesType).toBe(49);
   });
 

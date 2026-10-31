@@ -67,6 +67,8 @@ import {
   validInventoryShortage,
   validLoanRecord,
   validReceivedLoanRecord,
+  validBalanceObservation,
+  validSavedParty,
   validMaterial,
   validMeasurementUnit,
   validShortCashDeclaration,
@@ -123,7 +125,16 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       !Array.isArray(data.expenseBudgets)) ||
     /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة اختيارية في الملفات
      * القديمة — المصفوفة إن وُجدت. */
-    (data.receivedLoans !== undefined && data.receivedLoans !== null && !Array.isArray(data.receivedLoans))
+    (data.receivedLoans !== undefined && data.receivedLoans !== null && !Array.isArray(data.receivedLoans)) ||
+    /* S04 (DOC-013 / UNIT-025): عائلة رصد الأرصدة اختيارية في الملفات القديمة
+     * (30/38 وأقدم) — المصفوفة إن وُجدت؛ الغياب = قائمة فارغة بلا اختراع قياس. */
+    (data.balanceObservations !== undefined &&
+      data.balanceObservations !== null &&
+      !Array.isArray(data.balanceObservations)) ||
+    /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة اختيارية في الملفات
+     * القديمة (31/39 وأقدم) — المصفوفة إن وُجدت؛ الغياب = قائمة فارغة بلا
+     * اختراع هوية. */
+    (data.counterparties !== undefined && data.counterparties !== null && !Array.isArray(data.counterparties))
   )
     return false;
   if (
@@ -161,6 +172,16 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       !(
         data.preferences.backupReminderEnabled === undefined ||
         typeof data.preferences.backupReminderEnabled === "boolean"
+      ) ||
+      /* S03 (UNIT-038 P3.2/UNIT-001 P3.2): تفضيل ما يقدمه المشروع — غائب أو
+       * null (محايد) أو من المعجم المغلق حصرًا؛ أي قيمة أخرى ترفض الملف
+       * بلا استيراد أفضل-جهد. الحقل اختياري فالملفات القديمة بلاه مقبولة. */
+      !(
+        data.preferences.offeringPreference === undefined ||
+        data.preferences.offeringPreference === null ||
+        data.preferences.offeringPreference === "products" ||
+        data.preferences.offeringPreference === "services" ||
+        data.preferences.offeringPreference === "both"
       ) ||
       !isDate(data.preferences.updatedAt))
   )
@@ -266,6 +287,21 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     if (orderIds.has(stored.id)) return false;
     orderIds.add(stored.id);
   }
+  /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة — هوية فريدة وشكل
+   * سليم؛ لا فحص تسمية إطلاقًا (طرفان بالتسمية نفسها هويتان مستقلتان —
+   * لا دمج بالاسم أبدًا)؛ الملف المكسور أو المدموج يدويًا يُرفض قبل أي
+   * معاينة.
+   * S05-MR-001 (أمر S06 — إصلاح عقد S05 المؤكد): بناء طقم معرفات العائلة
+   * يسبق فحص البيع/الشراء — المرجع المصدري غير الفارغ (customerPartyId على
+   * البيع المباشر، supplierPartyId على شراء المورد) يجب أن يحلّ لطرف محفوظ
+   * داخل الملف نفسه؛ المرجع المكسور يُرفض قبل المعاينة ولا يُشتق طرف من
+   * اسم/هاتف/مبلغ/تسمية أبدًا. null/الغياب يبقيان صحيحين حيث يسمح عقد
+   * المصدر، والطرف المؤرشف حاضرًا في العائلة هوية مرجعية صالحة. */
+  const counterpartyIds = new Set<string>();
+  for (const party of data.counterparties ?? []) {
+    if (!validSavedParty(party) || counterpartyIds.has(party.id)) return false;
+    counterpartyIds.add(party.id);
+  }
   const directSaleIds = new Set<string>();
   const directSaleKeys = new Set<string>();
   const directSaleRevisionKeys = new Set<string>();
@@ -283,6 +319,9 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       )
     )
       return false;
+    /* S05-MR-001: ثابت المرجعية للطرف المرتبط بالبيع — يُفحص بعد صحة الشكل
+     * (isDirectSale يضبط شكل الحقل) وقبل أي معاينة. */
+    if (sale.customerPartyId != null && !counterpartyIds.has(sale.customerPartyId)) return false;
     directSaleIds.add(sale.id);
     directSaleKeys.add(sale.idempotencyKey);
     for (const revision of sale.revisions ?? []) directSaleRevisionKeys.add(revision.idempotencyKey);
@@ -338,6 +377,64 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
         draft.sourceEstimateId === undefined ||
         draft.sourceEstimateId === null ||
         isString(draft.sourceEstimateId)
+      ) ||
+      /* S09 (UNIT-007/029 — أمر ad133bae القسم ٢): حقول المسودة الجديدة اختيارية —
+       * الغياب/null = السلوك القائم (متوافق رجعيًا)؛ والمرجع الموسوم إن وُجد
+       * فشكله كامل، والسعر المقترح مبلغ غير سالب (0 الصريح صحيح)، والمجموعات
+       * قائمة صحيحة الشكل إن وُجدت. المرجعية العائلية تُفحص عند حدودها أدناه. */
+      !(
+        draft.offeringRef === undefined ||
+        draft.offeringRef === null ||
+        (isRecord(draft.offeringRef) &&
+          isString(draft.offeringRef.catalogItemId) &&
+          draft.offeringRef.catalogItemId.trim().length > 0 &&
+          (draft.offeringRef.templateId === null || isString(draft.offeringRef.templateId)) &&
+          (draft.offeringRef.revision === null ||
+            (Number.isSafeInteger(draft.offeringRef.revision) &&
+              (draft.offeringRef.revision as number) >= 1)) &&
+          isString(draft.offeringRef.nameSnapshot) &&
+          draft.offeringRef.nameSnapshot.trim().length > 0 &&
+          isString(draft.offeringRef.takenAt) &&
+          draft.offeringRef.takenAt.trim().length > 0)
+      ) ||
+      !(
+        draft.suggestedPriceMinor === undefined ||
+        draft.suggestedPriceMinor === null ||
+        (isMoney(draft.suggestedPriceMinor) && draft.suggestedPriceMinor >= 0)
+      ) ||
+      !(
+        draft.groups === undefined ||
+        draft.groups === null ||
+        (Array.isArray(draft.groups) &&
+          draft.groups.every(
+            group =>
+              isRecord(group) &&
+              isString(group.id) &&
+              group.id.trim().length > 0 &&
+              isString(group.label) &&
+              group.label.trim().length > 0 &&
+              Number.isSafeInteger(group.repeatQuantity) &&
+              (group.repeatQuantity as number) >= 1 &&
+              (group.offeringType === "product" || group.offeringType === "service") &&
+              /* R4-F03 (تصحيح مراجعة S09): مرجع المجموعة الموسوم يخضع للشكل
+               * الكامل نفسه كمرجع المسودة — قالب غير نصي أو مراجعة غير صالحة
+               * أو لقطة اسم/لحظة أخذ فارغة تُرفض قبل المعاينة والكتابة، فلا
+               * يدخل ملف مصنوع مرجعًا يخالف عقد DraftOfferingRef عند المجموعة. */
+              (group.offeringRef === null ||
+                group.offeringRef === undefined ||
+                (isRecord(group.offeringRef) &&
+                  isString(group.offeringRef.catalogItemId) &&
+                  group.offeringRef.catalogItemId.trim().length > 0 &&
+                  (group.offeringRef.templateId === null || isString(group.offeringRef.templateId)) &&
+                  (group.offeringRef.revision === null ||
+                    (Number.isSafeInteger(group.offeringRef.revision) &&
+                      (group.offeringRef.revision as number) >= 1)) &&
+                  isString(group.offeringRef.nameSnapshot) &&
+                  group.offeringRef.nameSnapshot.trim().length > 0 &&
+                  isString(group.offeringRef.takenAt) &&
+                  group.offeringRef.takenAt.trim().length > 0)) &&
+              (group.note === null || group.note === undefined || isString(group.note)),
+          ))
       ) ||
       !isDate(draft.createdAt) ||
       !isDate(draft.updatedAt)
@@ -479,6 +576,8 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     return false;
   const purchaseIds = new Set<string>();
   const purchaseKeys = new Set<string>();
+  /* S07 (UNIT-027): خريطة هويات بنود الشراء لمطابقة مراجع استلام البنود. */
+  const purchaseLineIdsByPurchase = new Map<string, Set<string>>();
   for (const purchase of data.supplierPurchases ?? []) {
     if (
       !validSupplierPurchase(purchase) ||
@@ -486,6 +585,17 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       purchaseKeys.has(purchase.idempotencyKey)
     )
       return false;
+    /* S05-MR-001: ثابت المرجعية للمورد المرتبط بالشراء — مثل البيع تمامًا:
+     * معرف غير فارغ بلا طرف محفوظ يحمله الملف = مرجع مكسور يُرفض قبل
+     * المعاينة، ولا كتابة على بيانات الجهاز الهدف. */
+    if (purchase.supplierPartyId != null && !counterpartyIds.has(purchase.supplierPartyId)) return false;
+    /* S07 (UNIT-027): هويات بنود الشراء للمطابقة العابرة مع حركات الاستلام —
+     * خريطة بمعرّف الشراء؛ الغياب (إرث بلا بنود) = مجموعة فارغة. الصلاحية
+     * فوقها validSupplierPurchase (هوية نصية غير فارغة لكل بند). */
+    purchaseLineIdsByPurchase.set(
+      purchase.id,
+      new Set((purchase.lines ?? []).map((line: { lineId?: unknown }) => String(line.lineId))),
+    );
     purchaseIds.add(purchase.id);
     purchaseKeys.add(purchase.idempotencyKey);
   }
@@ -587,6 +697,14 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     )
       return false;
     if (movement.purchaseId !== null && !purchaseIds.has(movement.purchaseId)) return false;
+    /* S07 (UNIT-027): مرجع بند الشراء عند الاستلام — إن وُجد فيجب أن يحلّ إلى
+     * بند قائم داخل الشراء المشار إليه نفسه؛ لا مرجع بند مكسور يعبر. */
+    if (
+      movement.purchaseLineId !== null &&
+      movement.purchaseLineId !== undefined &&
+      !purchaseLineIdsByPurchase.get(movement.purchaseId ?? "")?.has(movement.purchaseLineId)
+    )
+      return false;
     if (movement.orderId !== null && !orderIds.has(movement.orderId)) return false;
     if (movement.type === "reversal") {
       if (reversedInventoryIds.has(movement.reversesMovementId)) return false;
@@ -640,7 +758,9 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     shortageIds.add(shortage.id);
     shortageKeys.add(shortage.operationKey);
   }
-  /* المجموعة ٢ (عقد ٢٨): ربط الشراء بمادة — إن وُجد فالمادة موجودة فعلًا. */
+  /* المجموعة ٢ (عقد ٢٨): ربط الشراء بمادة — إن وُجد فالمادة موجودة فعلًا.
+   * S07 (UNIT-027): وبنود الشراء — مادة كل بند مرتبط إن وُجدت فالمادة
+   * موجودة فعلًا؛ مرجع بند مكسور داخل الملف يُرفض قبل المعاينة. */
   for (const purchase of data.supplierPurchases ?? []) {
     if (
       purchase.materialId !== null &&
@@ -648,6 +768,10 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       !materialIds.has(purchase.materialId)
     )
       return false;
+    for (const line of purchase.lines ?? []) {
+      if (line.materialId !== null && line.materialId !== undefined && !materialIds.has(line.materialId))
+        return false;
+    }
   }
   const catalogIds = new Set<string>();
   const catalogKeys = new Set<string>();
@@ -666,6 +790,17 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
   }
   for (const draft of data.drafts) {
     if (isString(draft.catalogItemId) && !catalogIds.has(draft.catalogItemId)) return false;
+    /* S09 (UNIT-029 — نمط S05-MR-001 نفسه): مرجع العرض المحفوظ غير الفارغ يجب
+     * أن يحلّ لعرض موجود داخل عائلة catalog في الملف نفسه — الملف الذي يهرّب
+     * مرجعًا معلقًا يُرفض قبل أي معاينة. */
+    if (isRecord(draft.offeringRef) && isString(draft.offeringRef.catalogItemId)) {
+      if (!catalogIds.has(draft.offeringRef.catalogItemId)) return false;
+    }
+    for (const group of Array.isArray(draft.groups) ? draft.groups : []) {
+      if (isRecord(group) && isRecord(group.offeringRef) && isString(group.offeringRef.catalogItemId)) {
+        if (!catalogIds.has(group.offeringRef.catalogItemId)) return false;
+      }
+    }
   }
   const unitIds = new Set<string>();
   const unitKeys = new Set<string>();
@@ -712,6 +847,18 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       return false;
     templateIds.add(template.id);
     templateKeys.add(template.createdOperationKey);
+  }
+  /* S09 (UNIT-029): مرجع القالب في المرجع الموسوم إن وُجد غير فارغ يجب أن يحلّ
+   * لقالب موجود في الملف نفسه — لا «الأحدث وقت القراءة» ولا مرجع معلق. */
+  for (const draft of data.drafts) {
+    if (isRecord(draft.offeringRef) && isString(draft.offeringRef.templateId)) {
+      if (!templateIds.has(draft.offeringRef.templateId)) return false;
+    }
+    for (const group of Array.isArray(draft.groups) ? draft.groups : []) {
+      if (isRecord(group) && isRecord(group.offeringRef) && isString(group.offeringRef.templateId)) {
+        if (!templateIds.has(group.offeringRef.templateId)) return false;
+      }
+    }
   }
   for (const template of data.catalogTemplates) {
     if (template.active && activeTemplateItems.has(template.catalogItemId)) return false;
@@ -1107,6 +1254,15 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     if (!eventIds.has(asset.acquisitionEventId)) return false;
     if (asset.disposal && !eventIds.has(asset.disposal.eventId)) return false;
     if (asset.writeOff && !eventIds.has(asset.writeOff.eventId)) return false;
+    /* S08-MR-001 (أمر الإصلاح 2026-10-30 — أمر التنفيذ المتصل S08→S09
+     * المنشور في ad133bae، القسم ١): الثابت المرجعي لطرف الاقتناء المحفوظ
+     * على الأصل — المرجع غير الفارغ يجب أن يحلّ لطرف محفوظ داخل عائلة
+     * counterparties في الملف نفسه (نمط S05-MR-001 نفسه للبيع/الشراء)؛
+     * null/الغياب يبقيان صحيحين حيث يسمح عقد الأصل، والطرف المؤرشف حاضرًا
+     * في العائلة هوية مرجعية صالحة؛ لا اشتقاق طرف من لقطة التسمية/الاسم/
+     * الهاتف ولا دمج بالاسم أبدًا — الرفض في prepareImport قبل المعاينة
+     * وفي prepareRestore قبل أي كتابة هدف. */
+    if (asset.acquisitionParty != null && !counterpartyIds.has(asset.acquisitionParty.partyId)) return false;
   }
   const loanIds = new Set<string>();
   for (const loan of data.loans ?? []) {
@@ -1131,6 +1287,19 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       if (repayment.reversal && !eventIds.has(repayment.reversal.reversalEventId)) return false;
     }
   }
+  /* S04 (DOC-013 / UNIT-025): رصد أرصدة النقد — هوية فريدة وشكل سليم
+   * ونطاق صادق: رصد المحفظة يشير لمحفظة موجودة فعلًا في اللقطة (سجل بلا
+   * محفظته ملف مكسور يُرفض)؛ ورصد إجمالي المشروع بلا محفظة. القياس
+   * يُستورد كما هو — لا فرق مقابل صفر ولا إعادة تسوية عند الاستعادة. */
+  const observationIds = new Set<string>();
+  for (const observation of data.balanceObservations ?? []) {
+    if (!validBalanceObservation(observation) || observationIds.has(observation.id)) return false;
+    observationIds.add(observation.id);
+    if (observation.scopeKind === "wallet" && !walletIds.has(observation.walletId as string)) return false;
+  }
+  /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة فُحصت وبُني طقم
+   * معرفاتها قبل البيع/الشراء (S05-MR-001) — المرجعية تُفحص عند عائلاتها
+   * المحملة للمرجع لا هنا. */
   /* OPS-003 (عقد ٤١): عائلة المصروف المتكرر — هوية فريدة وترابط صادق:
    * المراجعة والفترة تشيران لسلسلة موجودة، والفترة المقَرَّرة تربط حدثًا
    * قائمًا فعلًا؛ الملف المكسور أو المدموج يدويًا يُرفض قبل أي معاينة. */

@@ -3,7 +3,9 @@
  * Values are frozen history: no rename, no store removed; additions only via a
  * guarded schema upgrade (35 → 36 added the recurring-expense stores, D-037;
  * 36 → 37 added the expense-budgets store, FIN-002 / contract 42;
- * 37 → 38 added the received-loans store, FIN-001 / WS-178 Wave 6).
+ * 37 → 38 added the received-loans store, FIN-001 / WS-178 Wave 6;
+ * 38 → 39 added the balance-observations store, S04 / DOC-013;
+ * 39 → 40 added the counterparties store, S05 / DOC-014 / UNIT-037).
  */
 export const databaseName = "micro-prototype-local";
 export const profileStore = "activity-profile";
@@ -67,3 +69,24 @@ export const expenseBudgetStore = "expense-budgets";
  * updatedAt للتصفح الزمني؛ لا فهارس فريدة — حارس الالتزام داخل حد الكتابة
  * (AV-02 نفسه) يكفي الحتمية. */
 export const receivedLoanStore = "received-loans";
+/* S04 (DOC-013 / UNIT-025 P3.2 + العقد المشترك §6.1/§8 — نمط D-037): رصد
+ * أرصدة النقد — القياس الدائم للموجود (نطاق/قطع/معرفة) بلا أي أثر مالي.
+ * المُنشئ محروس في الترقية ٣٨→٣٩: القديم يفتح ويجده فارغًا بلا ترحيل
+ * بيانات ولا تعديل سجل قائم؛ فهارس walletId وobservedOn للتصفح (المحفظة
+ * ثم الزمن) وoperationKey للعهدة؛ لا فهارس فريدة — حارس الالتزام داخل حد
+ * الكتابة يكفي الحتمية. */
+export const balanceObservationStore = "balance-observations";
+/* S05 (DOC-014 / UNIT-037 P3.2 + العقد المشترك §5.1/§8 — نمط D-037): هوية
+ * الطرف المحفوظ اختياريًا (عميل/مورد) — سجل تعريف لا رصيد ولا حدث مالي:
+ * الأرصدة تقرأ من مصادرها المرتبطة بمعرف الطرف. المُنشئ محروس في الترقية
+ * 39→40: القديم يفتح ويجده فارغًا بلا ترحيل بيانات ولا تعديل سجل قائم؛
+ * فهرس updatedAt للتصفح وoperationKey للعهدة؛ لا فهارس فريدة ولا فهرس
+ * تسمية — طرفان بالتسمية نفسها هويتان مستقلتان (لا دمج بالاسم أبدًا)،
+ * وحارس الالتزام داخل حد الكتابة يكفي الحتمية. */
+export const counterpartyStore = "counterparties";
+/* S05 (DOC-014 / UNIT-037 B4): تعارض الكتابة على الطرف من نافذتين — الرسالة
+ * الكنونية الموحدة للحد المحروس (نمط RECURRENCE_STALE_MESSAGE). */
+export const COUNTERPARTY_STALE_MESSAGE =
+  "بيانات هذا الطرف تغيّرت من نافذة أخرى بعد فتحك لها — لم يُحفظ شيء؛ أعد المحاولة.";
+export const COUNTERPARTY_CONFLICT_MESSAGE =
+  "هذا الطرف حُفظ من مسار آخر لحظة حفظك — لم يُكتب شيء فوقه؛ راجع القائمة ثم أعد المحاولة.";

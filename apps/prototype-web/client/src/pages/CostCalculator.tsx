@@ -1,634 +1,955 @@
 /**
- * المجموعة ٣ (Scope A — §7): حاسبة التكلفة كأداة تفكير مستقلة بمسار عميق كامل.
- * تعمل بلا طلب وبلا مسودة وبلا مخزون وبلا حدث مالي؛ الحفظ والتعديل يكتبان تقديرًا
- * فقط، وبدء المسودة يبقى جسرًا معلنًا (U-004) بقيم مقترحة قابلة للتعديل.
- * التعديل يفتح بـ ?estimate=<id> من صفحة التقدير — الأصل لا يتغير حتى الحفظ.
+ * S10 (UNIT-031/032 T01 — أمر b56967d8): حاسبة التكلفة والتسعير — أداة
+ * التخطيط الأولى. مجموعات منتج/خدمة بكمية تكرار وطريقة تكلفة واحدة نشطة
+ * (تفصيل مكونات الوحدة أو إجمالي الكمية كاملة) وسعر بيع حر يكتبه
+ * المستخدم، فتظهر النتيجة المتوقعة وهامشها من سعر البيع — كلها عبر النواة
+ * الواحدة (SH-13) بلا محرك ثانٍ ولا أي أثر أعمال (لا بيع ولا مصروف ولا
+ * طلب ولا مخزون ولا حفظ كتالوج). الحفظ صريح اختياري داخل الحاسبة
+ * (UNIT-032): «حفظ الحساب» ثم «حساباتي المحفوظة» عند وجود محفوظ؛ فتح
+ * الحساب القديم يعيد مدخلاته بمعرفته ولا يعيد تسعيره بأسعار اليوم.
+ * التقديرات القديمة (ما قبل S10) تفتح في محررها التوافقي بنطاقها الأصلي
+ * بلا إعادة تفسير.
  */
-import { ArrowRight, Calculator, PackageOpen, Save, Trash2 } from "lucide-react";
+import { ArrowRight, Calculator, Plus, Save } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { withReturnTo } from "@/app/navigationContract";
+import { appendQueryParams } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
-import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
-import type { CostEstimateInput } from "@/application/estimates";
+import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
+import {
+  emptyPlanningGroup,
+  PlanningGroupEditor,
+  toPersistGroup,
+  type EditablePlanningGroup,
+} from "@/components/planning/PlanningGroupEditor";
+import { LegacyEstimateEditor } from "@/components/planning/LegacyEstimateEditor";
+import { SavedCalculations } from "@/components/planning/SavedCalculations";
+import { suggestPlanningPrice } from "@/application/planning";
+import { formatMoneyMinor } from "@/presentation/formatters";
+import type { PlanningCalculationResult } from "@micro-domain/planning/index.js";
 import type { CostEstimate } from "@/storage/local/types";
-import { readMaterialSuggestions, type MaterialSuggestion } from "@/application/inventory";
+import type { PlanningPersistExtraRow } from "@/storage/local/planningCalculationTypes";
 
 import { Button } from "@/components/primitives";
-type EditableMaterial = {
-  uiId: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  unitPriceMinor: number;
-  /* المجموعة ٣ (عقد D2): هوية المادة من المخزون إن اختيرت — هوية ربط فقط. */
-  materialId?: string | null;
-};
 
-type CalculatorState = { phase: "loading" } | { phase: "ready" };
+type ExtraRowState = { uiId: string; amountMinor: number; description: string };
 
-const knowledgeLabel: Record<string, string> = {
-  known: "معروفة",
-  estimated: "تقديرية",
-  partial: "جزئية",
-  incomplete: "ناقصة",
-  stale: "متقادمة",
-  variable: "متغيرة",
-};
-
-/* معرّف التقدير المطلوب تعديله يُقرأ دفاعيًا من البحث (useSearch — المسار الحقيقي بلا
- * استعلام)؛ غير الصالح يُهمل بهدوء. */
+/* معرّف الحساب المطلوب فتحه يُقرأ دفاعيًا من البحث؛ غير الصالح يُهمل بهدوء. */
 function estimateIdFromSearch(search: string): string | null {
   const value = new URLSearchParams(search).get("estimate");
   return value && /^[A-Za-z0-9_-]{1,64}$/.test(value) ? value : null;
 }
 
-function emptyMaterial(index: number): EditableMaterial {
-  return {
-    uiId: `m-${index}-${Date.now()}`,
-    name: "",
-    quantity: 1,
-    unit: "قطعة",
-    unitPriceMinor: 0,
-  };
-}
-
-function materialInputsOf(materials: readonly EditableMaterial[]): CostEstimateInput["materialItems"] {
-  return materials
-    .filter(material => material.name.trim() && material.unitPriceMinor > 0)
-    .map(material => ({
-      name: material.name.trim(),
-      quantity: material.quantity,
-      unit: material.unit.trim() || "قطعة",
-      unitPriceMinor: material.unitPriceMinor,
-      confidence: "known" as const,
-      /* المجموعة ٣ (عقد D2): الهوية تُحفظ مع التقدير — بلا رقم حي ولا أثر مخزون. */
-      materialId: material.materialId ?? null,
+function extraRowsOf(rows: readonly ExtraRowState[]): PlanningPersistExtraRow[] {
+  return rows
+    .filter(row => row.amountMinor > 0)
+    .map(row => ({
+      rowId: row.uiId,
+      amountMinor: row.amountMinor,
+      description: row.description.trim() || null,
     }));
 }
 
-function timeInputOf(timeKnown: boolean, minutes: number, rateMinor: number) {
-  return timeKnown && minutes > 0 && rateMinor > 0
-    ? { minutes, hourlyRateMinor: rateMinor, confidence: "known" as const }
-    : null;
-}
-
-function fillFormFromEstimate(estimate: CostEstimate): {
-  title: string;
-  materials: EditableMaterial[];
-  timeKnown: boolean;
-  timeMinutes: number;
-  timeRateMinor: number;
-  quantity: number;
-  safetyBufferMinor: number;
-  packagingMinor: number;
-  deliveryMinor: number;
-  wasteMinor: number;
-} {
-  return {
-    title: estimate.title,
-    materials: estimate.materialItems.map((item, index) => ({
-      uiId: `m-${index}-${Date.now()}`,
-      name: item.name,
-      quantity: item.quantity,
-      unit: item.unit,
-      unitPriceMinor: item.unitPriceMinor,
-    })),
-    timeKnown: estimate.time !== null,
-    timeMinutes: estimate.time?.minutes ?? 0,
-    timeRateMinor: estimate.time?.hourlyRateMinor ?? 0,
-    quantity: estimate.quantity,
-    safetyBufferMinor: estimate.safetyBufferMinor,
-    packagingMinor: estimate.packagingMinor,
-    deliveryMinor: estimate.deliveryMinor,
-    wasteMinor: estimate.wasteMinor,
-  };
+function emptyExtraRow(index: number): ExtraRowState {
+  return { uiId: `x-${index}-${Date.now()}`, amountMinor: 0, description: "" };
 }
 
 export default function CostCalculator() {
-  const [location, navigate] = useLocation();
-  /* المجموعة ٣ (§7): الحاسبة مسار عميق — الرجوع للمصدر (?from) أو أدواتي بديلًا. */
+  const [, navigate] = useLocation();
   const returnPath = useReturnPath();
-  const { dataVersion, costEstimates, inventory, notifyDataChanged } = usePrototypeServices();
-  const { disabled: disabledCapabilities } = useDisabledCapabilities();
-  /* G-004: الطلبات متوقفة عن الإدخال — مدخل بدء المسودة من التقدير يختفي. */
-  const ordersEntryEnabled = !disabledCapabilities.includes("orders");
-  /* المجموعة ٣ (عقد D5): مقترحات مواد الحاسبة — نفس دليل محرر التكلفة المشترك:
-   * تعبئة أرقام مقترحة فقط؛ لا حركة مخزون ولا حدث نقدي من التقدير أبدًا. */
-  const [materialSuggestions, setMaterialSuggestions] = useState<readonly MaterialSuggestion[]>([]);
+  const search = useSearch();
+  const requestedEstimateId = estimateIdFromSearch(search);
+  const { costEstimates, planningCalculations, dataVersion, notifyDataChanged, inventory } =
+    usePrototypeServices();
+
+  /* قائمة الحسابات المحفوظة — تُقرأ من بيتها عبر الخدمة حصرًا. */
+  const [savedEstimates, setSavedEstimates] = useState<readonly CostEstimate[]>([]);
+  const [listPhase, setListPhase] = useState<"loading" | "error" | "ready">("loading");
+  const [reloadToken, setReloadToken] = useState(0);
   useEffect(() => {
     let active = true;
-    void readMaterialSuggestions(inventory).then(suggestions => {
-      if (active && suggestions) setMaterialSuggestions(suggestions);
+    setListPhase("loading");
+    void costEstimates.list().then(result => {
+      if (!active) return;
+      if (!result.ok) setListPhase("error");
+      else {
+        setSavedEstimates(result.value);
+        setListPhase("ready");
+      }
     });
     return () => {
       active = false;
     };
-  }, [inventory, dataVersion]);
-  /* و٥-ب (مجموعة ٣): معامل التقدير يُقرأ من useSearch — المسار الحقيقي بلا استعلام. */
-  const search = useSearch();
-  const requestedEstimateId = estimateIdFromSearch(search);
-  const [state, setState] = useState<CalculatorState>(
-    requestedEstimateId ? { phase: "loading" } : { phase: "ready" },
-  );
-  const [editingId, setEditingId] = useState<string | null>(requestedEstimateId);
-  const [estimateMissing, setEstimateMissing] = useState(false);
+  }, [costEstimates, dataVersion, reloadToken]);
+
+  /* فتح محفوظ: حساب تخطيط يعيد مدخلاته في المحرر نفسه؛ وتقدير قديم يفتح
+   * في محرره التوافقي بنطاقه — بلا إعادة تفسير ولا إعادة تسعير. */
+  const [openedLegacy, setOpenedLegacy] = useState<CostEstimate | null>(null);
+  /* R3-F2: جسر قذارة المحرر التوافقي — الحارس واحد للصفحة فيغطي المحررين. */
+  const [legacyGuard, setLegacyGuard] = useState<{
+    isDirty: boolean;
+    save: () => Promise<boolean>;
+  } | null>(null);
+  const [openPhase, setOpenPhase] = useState<"idle" | "loading" | "missing">("idle");
+  useEffect(() => {
+    if (!requestedEstimateId) {
+      setOpenedLegacy(null);
+      setOpenPhase("idle");
+      return;
+    }
+    let active = true;
+    setOpenPhase("loading");
+    void costEstimates.get(requestedEstimateId).then(result => {
+      if (!active) return;
+      if (!result.ok) {
+        setOpenPhase("missing");
+        return;
+      }
+      if (!result.value) {
+        setOpenPhase("missing");
+        return;
+      }
+      const record = result.value;
+      if (record.planning) {
+        /* حساب تخطيط: يعاد ملء المحرر التخطيطي بمدخلاته كما حُفظت. */
+        setTitle(record.title);
+        setGroups(
+          record.planning.groups.map((group, index) => ({
+            uiId: group.groupId || `g-${index}-${Date.now()}`,
+            label: group.label,
+            offeringType: group.offeringType,
+            repeatQuantity: group.repeatQuantity,
+            costMode: group.costMode,
+            components: group.unitComponents.map((component, componentIndex) => ({
+              uiId: `${group.groupId}-c${componentIndex}`,
+              name: component.name,
+              quantity: component.quantity,
+              unit: component.unit,
+              unitPriceMinor: component.unitPriceMinor,
+              materialId: component.materialId ?? null,
+            })),
+            totalCostMinor: group.totalCostMinor,
+            sellingPriceMinor: group.sellingPriceMinor,
+          })),
+        );
+        setTimeKnown(record.planning.time !== null);
+        setTimeMinutes(record.planning.time?.minutes ?? 0);
+        setTimeRateMinor(record.planning.time?.hourlyRateMinor ?? 0);
+        setTimeConfidence(record.planning.time?.confidence === "estimated" ? "estimated" : "known");
+        setPackagingMinor(record.planning.packagingMinor);
+        setWasteMinor(record.planning.wasteMinor);
+        setDeliveryMinor(record.planning.deliveryMinor);
+        setOtherRevenues(
+          record.planning.otherRevenues.map((row, index) => ({
+            uiId: row.rowId || `r-${index}`,
+            amountMinor: row.amountMinor,
+            description: row.description ?? "",
+          })),
+        );
+        setOtherExpenses(
+          record.planning.otherExpenses.map((row, index) => ({
+            uiId: row.rowId || `e-${index}`,
+            amountMinor: row.amountMinor,
+            description: row.description ?? "",
+          })),
+        );
+        setDiscount(
+          record.planning.discount
+            ? {
+                enabled: true,
+                mode: record.planning.discount.mode,
+                value:
+                  record.planning.discount.mode === "amount"
+                    ? record.planning.discount.amountMinor
+                    : record.planning.discount.percentCenti,
+              }
+            : { enabled: false, mode: "amount", value: 0 },
+        );
+        setCommission(
+          record.planning.commission
+            ? {
+                enabled: true,
+                mode: record.planning.commission.mode,
+                value:
+                  record.planning.commission.mode === "amount"
+                    ? record.planning.commission.amountMinor
+                    : record.planning.commission.percentCenti,
+                basis:
+                  record.planning.commission.mode === "percent"
+                    ? record.planning.commission.basis
+                    : "products_after_discount",
+              }
+            : { enabled: false, mode: "amount", value: 0, basis: "products_after_discount" },
+        );
+        setEditingId(record.id);
+        setOpenedLegacy(null);
+        setOpenPhase("idle");
+        setLoadedToken(token => token + 1);
+        return;
+      }
+      setOpenedLegacy(record);
+      setOpenPhase("idle");
+    });
+    return () => {
+      active = false;
+    };
+  }, [costEstimates, requestedEstimateId]);
+
+  /* حالة المحرر التخطيطي. */
   const [title, setTitle] = useState("");
-  const [materials, setMaterials] = useState<EditableMaterial[]>([emptyMaterial(1)]);
+  const [groups, setGroups] = useState<EditablePlanningGroup[]>([emptyPlanningGroup(1)]);
   const [timeKnown, setTimeKnown] = useState(false);
   const [timeMinutes, setTimeMinutes] = useState(0);
   const [timeRateMinor, setTimeRateMinor] = useState(0);
-  const [quantity, setQuantity] = useState(1);
-  const [safetyBufferMinor, setSafetyBufferMinor] = useState(0);
+  /* R2-F6: لغة المعرفة نفسها التي يقدمها محرر التكلفة — مؤكد/تقديري. */
+  const [timeConfidence, setTimeConfidence] = useState<"known" | "estimated">("known");
   const [packagingMinor, setPackagingMinor] = useState(0);
-  const [deliveryMinor, setDeliveryMinor] = useState(0);
   const [wasteMinor, setWasteMinor] = useState(0);
+  const [deliveryMinor, setDeliveryMinor] = useState(0);
+  const [otherRevenues, setOtherRevenues] = useState<ExtraRowState[]>([]);
+  const [otherExpenses, setOtherExpenses] = useState<ExtraRowState[]>([]);
+  const [discount, setDiscount] = useState<{ enabled: boolean; mode: "amount" | "percent"; value: number }>({
+    enabled: false,
+    mode: "amount",
+    value: 0,
+  });
+  const [commission, setCommission] = useState<{
+    enabled: boolean;
+    mode: "amount" | "percent";
+    value: number;
+    basis: "products_after_discount" | "order_total";
+  }>({ enabled: false, mode: "amount", value: 0, basis: "products_after_discount" });
   const [showOptional, setShowOptional] = useState(false);
-  /* R9-GA-F3.6b (استمرار R9 الجذري): نبرة الرسالة في الحالة لا بقراءة
-   * بادئة النص — العنصر الواحد كان يخلط النجاح مع الخطأ بصفة إعلان
-   * واحدة (status) فيُخفى الخطأ الفعلي. الفصل الكنوني: خطأ ⇒
-   * micro-field-error + alert، نجاح ⇒ micro-save-note + status. */
   const [message, setMessage] = useState<{ text: string; tone: "error" | "success" } | null>(null);
-  /* بعد الحفظ: المسار يرتبط بالمعرّف نفسه — التعديل اللاحق يحدّث ولا يكرر تقديرًا. */
-  const [savedId, setSavedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [loadedToken, setLoadedToken] = useState(0);
+  /* مفتاح نية الحفظ: الضغط المتكرر/إعادة المحاولة بعد فشل = حساب واحد. */
+  const saveOperationKey = useRef<string | null>(null);
 
-  /* وضع التعديل: يُحمّل التقدير مرة واحدة — الأصل لا يتغير حتى يقرر المالك الحفظ. */
-  useEffect(() => {
-    if (!requestedEstimateId) return;
-    let active = true;
-    void costEstimates.get(requestedEstimateId).then(result => {
-      if (!active) return;
-      if (!result.ok || !result.value) {
-        setEstimateMissing(true);
-        setState({ phase: "ready" });
-        return;
-      }
-      const form = fillFormFromEstimate(result.value);
-      setTitle(form.title);
-      setMaterials(form.materials.length ? form.materials : [emptyMaterial(1)]);
-      setTimeKnown(form.timeKnown);
-      setTimeMinutes(form.timeMinutes);
-      setTimeRateMinor(form.timeRateMinor);
-      setQuantity(form.quantity);
-      setSafetyBufferMinor(form.safetyBufferMinor);
-      setPackagingMinor(form.packagingMinor);
-      setDeliveryMinor(form.deliveryMinor);
-      setWasteMinor(form.wasteMinor);
-      setLoadedToken(token => token + 1);
-      setState({ phase: "ready" });
-    });
-    return () => {
-      active = false;
-    };
-  }, [costEstimates, requestedEstimateId, dataVersion]);
-
-  const input = useMemo<CostEstimateInput>(
+  const planningInput = useMemo(
     () => ({
       title,
-      materialItems: materialInputsOf(materials),
-      time: timeInputOf(timeKnown, timeMinutes, timeRateMinor),
+      groups: groups.map(toPersistGroup),
+      time:
+        timeKnown && timeMinutes > 0 && timeRateMinor > 0
+          ? { minutes: timeMinutes, hourlyRateMinor: timeRateMinor, confidence: timeConfidence }
+          : null,
       packagingMinor,
-      deliveryMinor,
       wasteMinor,
-      safetyBufferMinor,
-      /* المجموعة ١١ (11-0): الإدخال عدد صحيح بعقد kind="integer" — لا حاجة
-       * لتقريب صفحة؛ حد القطعة الواحدة ≥ 1 يبقى كما هو. */
-      quantity: Math.max(1, quantity),
-      note: null,
+      deliveryMinor,
+      otherRevenues: extraRowsOf(otherRevenues),
+      otherExpenses: extraRowsOf(otherExpenses),
+      discount: discount.enabled
+        ? discount.mode === "amount"
+          ? ({ mode: "amount", amountMinor: discount.value } as const)
+          : /* R2-F4: الحقل يحمل percentCenti مباشرة (kind="percentage") —
+             * لا تحويل تقريبي عند بناء المدخل؛ الدقة أصلية بالبناء. */
+            ({ mode: "percent", percentCenti: discount.value } as const)
+        : null,
+      commission: commission.enabled
+        ? commission.mode === "amount"
+          ? ({ mode: "amount", amountMinor: commission.value } as const)
+          : ({ mode: "percent", percentCenti: commission.value, basis: commission.basis } as const)
+        : null,
     }),
     [
       title,
-      materials,
+      groups,
       timeKnown,
+      timeConfidence,
       timeMinutes,
       timeRateMinor,
       packagingMinor,
-      deliveryMinor,
       wasteMinor,
-      safetyBufferMinor,
-      quantity,
+      deliveryMinor,
+      otherRevenues,
+      otherExpenses,
+      discount,
+      commission,
     ],
   );
 
-  const preview = useMemo(() => costEstimates.preview(input), [costEstimates, input]);
-
-  /* §7.2: الشك معلن لا صفر مضلل — مادة بلا سعر ووقت غير مُدخل يبقيان «غير محدد بعد». */
-  const namedMaterialWithoutPrice = materials.some(
-    material => material.name.trim() && material.unitPriceMinor <= 0,
+  /* R1-N2: حساب واحد لكل تغيير مدخل — النتيجة والخطأ من مخرج واحد لا
+   * استدعاءين. الخدمة كسولة (نمط assets/loans): null = «جارٍ التجهيز» —
+   * تُعلن بصدق أسفلها ولا تُعرض نتيجة مزيفة. */
+  const previewOutcome = useMemo(
+    () => (planningCalculations ? planningCalculations.previewPlanning(planningInput) : null),
+    [planningCalculations, planningInput],
   );
-  const canShowPrice = preview.ok && !["incomplete", "partial"].includes(preview.value.knowledgeState);
+  const preview: PlanningCalculationResult | null = previewOutcome?.ok ? previewOutcome.value : null;
+  const previewError = previewOutcome && !previewOutcome.ok ? previewOutcome.message : null;
 
   const isDirty = useFormDirty(
     [
       title,
-      materials,
+      groups,
       timeKnown,
+      timeConfidence,
       timeMinutes,
       timeRateMinor,
-      quantity,
-      safetyBufferMinor,
       packagingMinor,
-      deliveryMinor,
       wasteMinor,
+      deliveryMinor,
+      otherRevenues,
+      otherExpenses,
+      discount,
+      commission,
     ],
     loadedToken,
   );
   const requestNavigation = useUnsavedChangesGuard({
-    isDirty,
-    onSave: () => save(),
+    isDirty: isDirty || (legacyGuard?.isDirty ?? false),
+    onSave: () => (openedLegacy && legacyGuard ? legacyGuard.save() : save(false)),
   });
 
-  async function save(): Promise<boolean> {
-    if (!preview.ok) {
-      setMessage({ text: preview.message, tone: "error" });
+  /* مساعدة اقتراح السعر — اقتراح صريح بأساس معلن، لا توليد تلقائي. */
+  const [aimKind, setAimKind] = useState<"amount" | "margin" | "markup">("amount");
+  const [aimValue, setAimValue] = useState(0);
+  /* R5: الاقتراح بنية معزولة الأرقام (نمط bdi المستخدم في كل النتائج)
+   * لا جملة نصية واحدة بأرقام مكشوفة؛ وكل أرقامه لقطة لحظة الاقتراح
+   * (تكلفة الوحدة ضمنها) لا قراءة حية تتغير بتعديل المدخلات بعده. */
+  const [suggestion, setSuggestion] = useState<
+    | {
+        kind: "amount" | "margin" | "markup";
+        basis: number;
+        unitCostMinor: number | null;
+        priceMinor: number | null;
+      }
+    | { kind: "error"; message: string }
+    | null
+  >(null);
+
+  function suggestPrice() {
+    if (!preview) {
+      setSuggestion(null);
+      return;
+    }
+    const unitCost = preview.unitCostMinor;
+    const aim =
+      aimKind === "amount"
+        ? ({ kind: "amount", amountMinor: aimValue } as const)
+        : aimKind === "margin"
+          ? ({ kind: "margin", marginPercentCenti: Math.round(aimValue * 100) } as const)
+          : ({ kind: "markup", markupPercentCenti: Math.round(aimValue * 100) } as const);
+    const outcome = suggestPlanningPrice(unitCost, aim);
+    setSuggestion(
+      outcome.ok
+        ? { kind: aimKind, basis: aimValue, unitCostMinor: unitCost, priceMinor: outcome.value }
+        : { kind: "error", message: outcome.message },
+    );
+  }
+
+  async function save(asCopy: boolean): Promise<boolean> {
+    if (!planningCalculations) {
+      setMessage({ text: "جارٍ تجهيز خدمة الحفظ — لحظة ثم أعد المحاولة.", tone: "error" });
+      return false;
+    }
+    if (!preview) {
+      setMessage({ text: previewError ?? "مدخلات الحساب غير صالحة.", tone: "error" });
       return false;
     }
     setSaving(true);
     setMessage(null);
-    const result = editingId ? await costEstimates.update(editingId, input) : await costEstimates.save(input);
+    let outcome;
+    if (editingId && !asCopy) {
+      outcome = await planningCalculations.updatePlanning(editingId, planningInput);
+    } else {
+      /* حفظ جديد أو نسخة صريحة: مفتاح نية جديد لكل نسخة، ونفس المفتاح للإعادة. */
+      if (asCopy || saveOperationKey.current === null) {
+        saveOperationKey.current = `planning-save-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      }
+      outcome = await planningCalculations.savePlanning(planningInput, saveOperationKey.current);
+    }
     setSaving(false);
-    if (!result.ok) {
-      setMessage({ text: result.message, tone: "error" });
+    if (!outcome.ok) {
+      setMessage({ text: outcome.message, tone: "error" });
       return false;
     }
     notifyDataChanged();
-    setEditingId(result.value.id);
-    setSavedId(result.value.id);
+    setEditingId(outcome.value.id);
     setLoadedToken(token => token + 1);
     setMessage({
       tone: "success",
-      text: editingId
-        ? "حُفظ تعديل التقدير كما هو — بلا أي حركة مالية أو مخزون."
-        : "حُفظ التقدير لمراجعته لاحقًا — لم تُنشأ أي حركة مالية ولا مخزون.",
+      text: asCopy
+        ? "حُفظت نسخة جديدة بهوية مستقلة — الأصل باقٍ كما هو."
+        : editingId && !asCopy
+          ? "حُفظ تعديل الحساب نفسه — بلا أي حركة مالية أو مخزون."
+          : "تم حفظ الحساب لمراجعته لاحقًا — لم تُنشأ أي حركة مالية ولا مخزون.",
     });
+    void refreshList();
     return true;
   }
 
-  if (state.phase === "loading")
-    return (
-      <div className="micro-route-loading" role="status">
-        جارٍ فتح التقدير…
-      </div>
-    );
+  async function refreshList() {
+    const result = await costEstimates.list();
+    if (result.ok) setSavedEstimates(result.value);
+  }
+
+  async function removeEstimate(id: string): Promise<string | null> {
+    const result = await costEstimates.remove(id);
+    if (!result.ok) return result.message;
+    notifyDataChanged();
+    if (editingId === id) {
+      setEditingId(null);
+      saveOperationKey.current = null;
+    }
+    void refreshList();
+    return null;
+  }
+
+  function openEstimate(estimate: CostEstimate) {
+    /* الرابط داخل الحاسبة نفسها: هوية صالحة ورجوع موثوق للسياق الحالي —
+     * R5: الدمج بعقد التنقل الموحد (returnTo لا يُسقط عند وجود استعلام
+     * في مسار الرجوع نفسه). */
+    const withReturn = appendQueryParams(`/tools/calculator?estimate=${encodeURIComponent(estimate.id)}`, {
+      returnTo: returnPath,
+    });
+    /* R3-Q1: فتح حساب آخر أثناء تعديلات غير محفوظة (التخطيطية أو
+     * التوافقية) يمر بحارس التغييرات نفسه (تأكيد التجاهل) لا يبتلع
+     * التعديلات بصمت؛ النظيف يتنقل فورًا ويرفع رمز إعادة التحميل. */
+    if (isDirty || (legacyGuard?.isDirty ?? false)) {
+      requestNavigation(withReturn);
+      return;
+    }
+    navigate(withReturn);
+    setReloadToken(token => token + 1);
+  }
+
+  const knowledgeLabel: Record<string, string> = {
+    known: "معروفة",
+    estimated: "تقديرية",
+    partial: "جزئية",
+    incomplete: "ناقصة",
+    stale: "متقادمة",
+    variable: "متغيرة",
+  };
 
   return (
     <section className="micro-page micro-tools-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
-        <ArrowRight aria-hidden="true" /> أدواتي
+        <ArrowRight aria-hidden="true" /> أدوات المشروع
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">أداة مستقلة</span>
-        <h1>حاسبة التكلفة والسعر</h1>
-        <p>احسب قبل أن تلتزم — بلا طلب وبلا مخزون وبلا تسجيل منتج، والنتيجة تقديرية دومًا.</p>
+        <span className="micro-overline">أداة تخطيط مستقلة</span>
+        <h1>حاسبة التكلفة والتسعير</h1>
+        <p>احسب تكلفة منتج افتراضي وجرّب سعره — النتيجة متوقعة بحدود ما أدخلته، بلا أي تسجيل.</p>
       </div>
 
       <section className="micro-decision-card" aria-label="قاعدة الأداة">
         <span>قاعدة هذه الأداة</span>
         <strong>هذا حساب تقديري. ما انحفظت أي حركة مالية ولا مخزون.</strong>
-        <p>الحاسبة لا تمس الكاش ولا الأرصدة ولا التقارير. قرار التسجيل يبقى فعلًا منفصلًا ومقصودًا.</p>
+        <p>سعر البيع حر بلا حد أدنى؛ الربح المتوقع هنا ليس ربحًا محققًا ولا وعدًا.</p>
       </section>
 
-      {estimateMissing ? (
+      {listPhase === "error" ? (
+        <div className="micro-storage-error" role="alert">
+          <strong>تعذر قراءة حساباتك المحفوظة.</strong>
+          <p>لم يتغير أي شيء. أعد المحاولة.</p>
+          <Button action="save" onClick={() => setReloadToken(token => token + 1)}>
+            إعادة المحاولة
+          </Button>
+        </div>
+      ) : null}
+      {openPhase === "missing" ? (
         <p className="micro-save-note" role="status">
-          لم نجد التقدير المطلوب تعديله (قد حُذف)؛ فُتحت الحاسبة فارغة ولم يتغير شيء.
+          لم نجد الحساب المطلوب فتحه (قد حُذف)؛ فُتحت الحاسبة فارغة ولم يتغير شيء.
+        </p>
+      ) : null}
+      {openPhase === "loading" ? (
+        <p className="micro-route-loading" role="status">
+          جارٍ فتح الحساب…
         </p>
       ) : null}
 
-      <section className="micro-form-card" aria-label="حاسبة التكلفة">
-        <div className="micro-section-title">
-          <Calculator aria-hidden="true" />
-          <div>
-            <span className="micro-overline">{editingId ? "تعديل تقدير محفوظ" : "تقدير جديد"}</span>
-            <h2>{editingId ? "عدّل تقديرك" : "احسب تكلفة وسعر حماية"}</h2>
-          </div>
-        </div>
-        <label className="micro-field">
-          <span>
-            عنوان التقدير <small>اختياري</small>
-          </span>
-          <input
-            value={title}
-            onChange={event => setTitle(event.target.value)}
-            placeholder="مثال: كيكة مناسبة صغيرة"
-          />
-        </label>
-        {materialSuggestions.length > 0 ? (
-          <div className="micro-suggest-group" data-testid="calculator-material-suggestions">
-            <small className="micro-suggest-group-label">مقترحات من موادك — السعر من آخر استلام</small>
-            <div className="micro-suggest-chip-row">
-              {materialSuggestions.map(suggestion => (
-                <button
-                  key={suggestion.materialId}
-                  className="micro-suggest-chip"
-                  type="button"
-                  onClick={() => {
-                    setMaterials(current => {
-                      const emptyIndex = current.findIndex(item => !item.name.trim());
-                      const filled: EditableMaterial = {
-                        uiId: emptyIndex >= 0 ? current[emptyIndex]!.uiId : `m-${Date.now()}`,
-                        name: suggestion.name,
-                        quantity: 1,
-                        unit: suggestion.unit,
-                        unitPriceMinor: suggestion.unitPriceMinor ?? 0,
-                        materialId: suggestion.materialId,
-                      };
-                      if (emptyIndex >= 0)
-                        return current.map((item, index) => (index === emptyIndex ? filled : item));
-                      return [...current, filled];
-                    });
-                  }}
-                >
-                  {suggestion.name}
-                  {suggestion.unitPriceMinor !== null ? " · بآخر سعر استلام" : " · بلا سعر بعد"}
-                </button>
-              ))}
+      {openedLegacy ? (
+        <LegacyEstimateEditor
+          /* R3-F2: مفتاح لكل سجل — فتح سجل قديم آخر يعيد التركيب بحالته
+           * لا بحالة السجل السابق. */
+          key={openedLegacy.id}
+          estimate={openedLegacy}
+          service={costEstimates}
+          inventory={inventory}
+          onSaved={() => {
+            void refreshList();
+          }}
+          onGuardStateChange={setLegacyGuard}
+        />
+      ) : (
+        <section className="micro-form-card" aria-label="حاسبة التكلفة والتسعير">
+          <div className="micro-section-title">
+            <Calculator aria-hidden="true" />
+            <div>
+              <span className="micro-overline">{editingId ? "تعديل حساب محفوظ" : "حساب جديد"}</span>
+              <h2>{editingId ? "عدّل حسابك" : "ما الذي ستبيعه؟"}</h2>
             </div>
           </div>
-        ) : null}
-        {materials.map((material, index) => (
-          <div className="micro-field-grid" key={material.uiId}>
-            <label className="micro-field">
-              <span>المادة {index + 1}</span>
-              <input
-                value={material.name}
-                onChange={event =>
-                  setMaterials(current =>
-                    current.map(item =>
-                      item.uiId === material.uiId ? { ...item, name: event.target.value } : item,
-                    ),
-                  )
-                }
-                placeholder="مثال: دقيق"
-              />
-            </label>
-            <label className="micro-field">
-              <span>الكمية</span>
-              <EnglishNumberInput
-                value={material.quantity}
-                kind="decimal"
-                onNumericChange={value =>
-                  setMaterials(current =>
-                    current.map(item => (item.uiId === material.uiId ? { ...item, quantity: value } : item)),
-                  )
-                }
-                aria-label={`كمية المادة ${index + 1}`}
-              />
-            </label>
-            <label className="micro-field">
-              <span>الوحدة</span>
-              <input
-                value={material.unit}
-                onChange={event =>
-                  setMaterials(current =>
-                    current.map(item =>
-                      item.uiId === material.uiId ? { ...item, unit: event.target.value } : item,
-                    ),
-                  )
-                }
-                placeholder="كيلو / لتر / قطعة"
-              />
-            </label>
-            <label className="micro-field">
-              <span>سعر الوحدة (د.أ)</span>
-              <EnglishNumberInput
-                value={material.unitPriceMinor}
-                kind="money"
-                onNumericChange={value =>
-                  setMaterials(current =>
-                    current.map(item =>
-                      item.uiId === material.uiId ? { ...item, unitPriceMinor: value } : item,
-                    ),
-                  )
-                }
-                aria-label={`سعر وحدة المادة ${index + 1}`}
-              />
-            </label>
-            {materials.length > 1 ? (
-              <button
-                className="micro-text-action micro-delete-row"
-                type="button"
-                onClick={() => setMaterials(current => current.filter(item => item.uiId !== material.uiId))}
-              >
-                <Trash2 aria-hidden="true" /> احذف المادة
-              </button>
-            ) : null}
-          </div>
-        ))}
-        <button
-          className="micro-text-action"
-          type="button"
-          onClick={() => setMaterials(current => [...current, emptyMaterial(current.length + 1)])}
-        >
-          <PackageOpen aria-hidden="true" /> أضف مادة أخرى
-        </button>
-        <label className="micro-field">
-          <span>هل تحسب وقت عمل؟</span>
-          <select
-            value={timeKnown ? "known" : "unknown"}
-            onChange={event => setTimeKnown(event.target.value === "known")}
-          >
-            <option value="unknown">بلا وقت الآن</option>
-            <option value="known">نعم — أضف أجر الوقت</option>
-          </select>
-        </label>
-        {timeKnown ? (
-          <div className="micro-field-grid">
-            <label className="micro-field">
-              <span>الدقائق</span>
-              <EnglishNumberInput
-                value={timeMinutes}
-                kind="integer"
-                onNumericChange={setTimeMinutes}
-                aria-label="دقائق العمل"
-              />
-            </label>
-            <label className="micro-field">
-              <span>أجر الساعة (د.أ)</span>
-              <EnglishNumberInput
-                value={timeRateMinor}
-                kind="money"
-                onNumericChange={setTimeRateMinor}
-                aria-label="أجر الساعة"
-              />
-            </label>
-          </div>
-        ) : null}
-        <div className="micro-field-grid">
           <label className="micro-field">
-            <span>عدد القطع الناتجة</span>
-            <EnglishNumberInput
-              value={quantity}
-              kind="integer"
-              onNumericChange={setQuantity}
-              aria-label="عدد القطع"
+            <span>
+              عنوان الحساب <small>اختياري</small>
+            </span>
+            <input
+              value={title}
+              onChange={event => setTitle(event.target.value)}
+              placeholder="مثال: صناديق المناسبة"
             />
           </label>
-        </div>
-        <details
-          className="micro-decision-layer"
-          open={showOptional}
-          onToggle={event => setShowOptional((event.target as HTMLDetailsElement).open)}
-        >
-          <summary className="micro-decision-layer-summary">
-            <span>
-              <b>بنود أخرى وحماية السعر</b>
-              <small>تغليف وتوصيل وهدر وهامش حماية — اختيارية كلها.</small>
-            </span>
-            <strong>{showOptional ? "أخفِ التفاصيل" : "افتح التفاصيل"}</strong>
-          </summary>
-          <div className="micro-field-grid">
+          {groups.map((group, index) => (
+            <PlanningGroupEditor
+              key={group.uiId}
+              group={group}
+              index={index}
+              onChange={next =>
+                setGroups(current => current.map(item => (item.uiId === group.uiId ? next : item)))
+              }
+              onRemove={() => setGroups(current => current.filter(item => item.uiId !== group.uiId))}
+            />
+          ))}
+          <button
+            className="micro-text-action"
+            type="button"
+            onClick={() => setGroups(current => [...current, emptyPlanningGroup(current.length + 1)])}
+          >
+            <Plus aria-hidden="true" /> أضف منتجًا أو خدمة أخرى
+          </button>
+
+          <label className="micro-field">
+            <span>هل تحسب وقت عملك في التسعير؟</span>
+            <select
+              value={timeKnown ? "known" : "unknown"}
+              onChange={event => setTimeKnown(event.target.value === "known")}
+            >
+              <option value="unknown">بلا وقت الآن</option>
+              <option value="known">نعم — أضف أجر الوقت</option>
+            </select>
+          </label>
+          {timeKnown ? (
+            <div className="micro-field-grid">
+              <label className="micro-field">
+                <span>الدقائق</span>
+                <EnglishNumberInput
+                  value={timeMinutes}
+                  kind="integer"
+                  onNumericChange={setTimeMinutes}
+                  aria-label="دقائق العمل"
+                />
+              </label>
+              <label className="micro-field">
+                <span>أجر الساعة (د.أ)</span>
+                <EnglishNumberInput
+                  value={timeRateMinor}
+                  kind="money"
+                  onNumericChange={setTimeRateMinor}
+                  aria-label="أجر الساعة"
+                />
+              </label>
+              <label className="micro-field">
+                <span>حالة الرقم</span>
+                <select
+                  value={timeConfidence}
+                  onChange={event => setTimeConfidence(event.target.value as "known" | "estimated")}
+                >
+                  <option value="known">مؤكد</option>
+                  <option value="estimated">تقديري</option>
+                </select>
+              </label>
+              <p className="micro-home-quiet">وقتك هنا تقدير تسعيري — لا يُدفع منه أجر ولا يُسجل مصروف.</p>
+            </div>
+          ) : null}
+
+          <details
+            className="micro-decision-layer"
+            open={showOptional}
+            onToggle={event => setShowOptional((event.target as HTMLDetailsElement).open)}
+          >
+            <summary className="micro-decision-layer-summary">
+              <span>
+                <b>توصيل المشروع وإيرادات ومصاريف أخرى</b>
+                <small>اختيارية كلها — مرة واحدة للحساب كله.</small>
+              </span>
+              <strong>{showOptional ? "أخفِ التفاصيل" : "افتح التفاصيل"}</strong>
+            </summary>
             <label className="micro-field">
-              <span>تغليف (د.أ)</span>
-              <EnglishNumberInput
-                value={packagingMinor}
-                kind="money"
-                onNumericChange={setPackagingMinor}
-                aria-label="تكلفة التغليف"
-              />
-            </label>
-            <label className="micro-field">
-              <span>توصيل (د.أ)</span>
+              <span>تكلفة توصيل على المشروع (د.أ)</span>
               <EnglishNumberInput
                 value={deliveryMinor}
                 kind="money"
                 onNumericChange={setDeliveryMinor}
-                aria-label="تكلفة التوصيل"
+                aria-label="تكلفة التوصيل على المشروع"
               />
+              <small>مرة واحدة للحساب كله — لا رسوم توصيل على الزبون هنا.</small>
             </label>
-            <label className="micro-field">
-              <span>هدر متوقع (د.أ)</span>
-              <EnglishNumberInput
-                value={wasteMinor}
-                kind="money"
-                onNumericChange={setWasteMinor}
-                aria-label="الهدر المتوقع"
-              />
-            </label>
-            <label className="micro-field">
-              <span>هامش حماية السعر (د.أ)</span>
-              <EnglishNumberInput
-                value={safetyBufferMinor}
-                kind="money"
-                onNumericChange={setSafetyBufferMinor}
-                aria-label="هامش حماية السعر"
-              />
-            </label>
-          </div>
-        </details>
-        {preview.ok ? (
-          <section className="micro-cost-result" data-knowledge={preview.value.knowledgeState}>
-            <span className="micro-overline">سعر الحماية للقطعة</span>
-            <strong>{canShowPrice ? <MoneyValue minor={preview.value.priceFloorMinor} /> : "—"}</strong>
-            <p>
-              تكلفة القطعة المتوقعة: <MoneyValue minor={preview.value.unitCostMinor} /> · الإجمالي المتوقع:{" "}
-              <MoneyValue minor={preview.value.plannedCostMinor} /> · حالة المعرفة:{" "}
-              {knowledgeLabel[preview.value.knowledgeState] ?? preview.value.knowledgeState}
-            </p>
-            {namedMaterialWithoutPrice ? (
-              <p className="micro-cost-disclaimer">
-                مستثنى من الحساب (مسماة بلا سعر — «غير محدد بعد» لا صفر):{" "}
-                {materials
-                  .filter(material => material.name.trim() && material.unitPriceMinor <= 0)
-                  .map(material => material.name.trim())
-                  .join("، ")}
-                .
-              </p>
-            ) : null}
-            {!timeKnown ? (
-              <p className="micro-cost-disclaimer">وقت العمل غير مُدخل — النتيجة بلا أجر وقتك.</p>
-            ) : null}
-            <p className="micro-cost-disclaimer">هذا حساب تقديري. ما انحفظت أي حركة مالية ولا مخزون.</p>
-          </section>
-        ) : (
-          <p className="micro-field-error" role="alert">
-            {preview.message}
-          </p>
-        )}
-        {message ? (
-          <p
-            className={message.tone === "error" ? "micro-field-error" : "micro-save-note"}
-            role={message.tone === "error" ? "alert" : "status"}
-          >
-            {message.text}
-          </p>
-        ) : null}
-        <Button
-          action="save"
-
-          disabled={saving || !preview.ok}
-          onClick={() => void save()}
-        >
-          <Save aria-hidden="true" />
-          {saving
-            ? "جارٍ الحفظ…"
-            : editingId
-              ? "احفظ التعديلات على هذا التقدير"
-              : "احفظ التقدير لمراجعته لاحقًا"}
-        </Button>
-      </section>
-
-      {savedId ? (
-        <section className="micro-form-card" aria-label="الخطوة التالية بعد الحفظ">
-          <div className="micro-section-title">
-            <Calculator aria-hidden="true" />
-            <div>
-              <span className="micro-overline">محفوظ — بلا أثر مالي</span>
-              <h2>شو بدك تعمل بالتقدير؟</h2>
+            <div className="micro-field-grid">
+              <label className="micro-field">
+                <span>تغليف (د.أ)</span>
+                <EnglishNumberInput
+                  value={packagingMinor}
+                  kind="money"
+                  onNumericChange={setPackagingMinor}
+                  aria-label="تكلفة التغليف"
+                />
+              </label>
+              <label className="micro-field">
+                <span>هدر متوقع (د.أ)</span>
+                <EnglishNumberInput
+                  value={wasteMinor}
+                  kind="money"
+                  onNumericChange={setWasteMinor}
+                  aria-label="الهدر المتوقع"
+                />
+              </label>
             </div>
-          </div>
-          <div className="micro-form-actions">
-            <Button
-              action="secondary"
-
-              onClick={() =>
-                navigate(withReturnTo(`/tools/estimate/${encodeURIComponent(savedId)}`, "/tools"))
-              }
+            <p className="micro-home-quiet">إيرادات أخرى (مرة للحساب):</p>
+            {otherRevenues.map(row => (
+              <div className="micro-field-grid" key={row.uiId}>
+                <label className="micro-field">
+                  <span>المبلغ (د.أ)</span>
+                  <EnglishNumberInput
+                    value={row.amountMinor}
+                    kind="money"
+                    onNumericChange={value =>
+                      setOtherRevenues(current =>
+                        current.map(item =>
+                          item.uiId === row.uiId ? { ...item, amountMinor: value } : item,
+                        ),
+                      )
+                    }
+                    aria-label="مبلغ الإيراد الآخر"
+                  />
+                </label>
+                <label className="micro-field">
+                  <span>الوصف (اختياري)</span>
+                  <input
+                    value={row.description}
+                    onChange={event =>
+                      setOtherRevenues(current =>
+                        current.map(item =>
+                          item.uiId === row.uiId ? { ...item, description: event.target.value } : item,
+                        ),
+                      )
+                    }
+                  />
+                </label>
+              </div>
+            ))}
+            <button
+              className="micro-text-action"
+              type="button"
+              onClick={() => setOtherRevenues(current => [...current, emptyExtraRow(current.length + 1)])}
             >
-              افتح التقدير
-            </Button>
-            {ordersEntryEnabled ? (
-              <Button
-                action="secondary"
-                onClick={() =>
-                  navigate(
-                    withReturnTo(
-                      `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(savedId)}`,
-                      /* رحلة §12: بدء مسودة من الحاسبة يعود إلى التقدير نفسه عند الرجوع. */
-                      `/tools/estimate/${encodeURIComponent(savedId)}`,
-                    ),
-                  )
+              <Plus aria-hidden="true" /> أضف إيرادًا آخر
+            </button>
+            <p className="micro-home-quiet">مصاريف أخرى (مرة للحساب):</p>
+            {otherExpenses.map(row => (
+              <div className="micro-field-grid" key={row.uiId}>
+                <label className="micro-field">
+                  <span>المبلغ (د.أ)</span>
+                  <EnglishNumberInput
+                    value={row.amountMinor}
+                    kind="money"
+                    onNumericChange={value =>
+                      setOtherExpenses(current =>
+                        current.map(item =>
+                          item.uiId === row.uiId ? { ...item, amountMinor: value } : item,
+                        ),
+                      )
+                    }
+                    aria-label="مبلغ المصروف الآخر"
+                  />
+                </label>
+                <label className="micro-field">
+                  <span>الوصف (اختياري)</span>
+                  <input
+                    value={row.description}
+                    onChange={event =>
+                      setOtherExpenses(current =>
+                        current.map(item =>
+                          item.uiId === row.uiId ? { ...item, description: event.target.value } : item,
+                        ),
+                      )
+                    }
+                  />
+                </label>
+              </div>
+            ))}
+            <button
+              className="micro-text-action"
+              type="button"
+              onClick={() => setOtherExpenses(current => [...current, emptyExtraRow(current.length + 1)])}
+            >
+              <Plus aria-hidden="true" /> أضف مصروفًا آخر
+            </button>
+          </details>
+
+          <details className="micro-decision-layer">
+            <summary className="micro-decision-layer-summary">
+              <span>
+                <b>تجربة السعر: خصم وعملولة</b>
+                <small>اختيارية — بأساس معلن لا صامت.</small>
+              </span>
+              <strong>افتح التجربة</strong>
+            </summary>
+            <label className="micro-field">
+              <span>هل تريد تجربة خصم؟</span>
+              <select
+                value={discount.enabled ? "yes" : "no"}
+                onChange={event =>
+                  setDiscount(current => ({ ...current, enabled: event.target.value === "yes" }))
                 }
               >
-                ابدأ مسودة من هذا التقدير
+                <option value="no">بلا خصم</option>
+                <option value="yes">نعم — خصم واحد</option>
+              </select>
+            </label>
+            {discount.enabled ? (
+              <div className="micro-field-grid">
+                <label className="micro-field">
+                  <span>طريقة الخصم</span>
+                  <select
+                    value={discount.mode}
+                    onChange={event =>
+                      setDiscount(current => ({
+                        ...current,
+                        mode: event.target.value === "percent" ? "percent" : "amount",
+                      }))
+                    }
+                  >
+                    <option value="amount">مبلغ ثابت</option>
+                    <option value="percent">نسبة من قيمة المنتجات</option>
+                  </select>
+                </label>
+                <label className="micro-field">
+                  <span>{discount.mode === "amount" ? "مبلغ الخصم (د.أ)" : "نسبة الخصم (٪)"}</span>
+                  <EnglishNumberInput
+                    value={discount.value}
+                    kind={discount.mode === "amount" ? "money" : "percentage"}
+                    onNumericChange={value => setDiscount(current => ({ ...current, value: value ?? 0 }))}
+                    aria-label="قيمة الخصم"
+                  />
+                </label>
+                <p className="micro-home-quiet">الخصم على قيمة المنتجات قبل الإيرادات الإضافية.</p>
+              </div>
+            ) : null}
+            <label className="micro-field">
+              <span>هل تريد احتساب عمولة؟</span>
+              <select
+                value={commission.enabled ? "yes" : "no"}
+                onChange={event =>
+                  setCommission(current => ({ ...current, enabled: event.target.value === "yes" }))
+                }
+              >
+                <option value="no">بلا عمولة</option>
+                <option value="yes">نعم — عمولة بأساس معلن</option>
+              </select>
+            </label>
+            {commission.enabled ? (
+              <div className="micro-field-grid">
+                <label className="micro-field">
+                  <span>طريقة العمولة</span>
+                  <select
+                    value={commission.mode}
+                    onChange={event =>
+                      setCommission(current => ({
+                        ...current,
+                        mode: event.target.value === "percent" ? "percent" : "amount",
+                      }))
+                    }
+                  >
+                    <option value="amount">مبلغ ثابت</option>
+                    <option value="percent">نسبة بأساس معلن</option>
+                  </select>
+                </label>
+                <label className="micro-field">
+                  <span>{commission.mode === "amount" ? "مبلغ العمولة (د.أ)" : "نسبة العمولة (٪)"}</span>
+                  <EnglishNumberInput
+                    value={commission.value}
+                    kind={commission.mode === "amount" ? "money" : "percentage"}
+                    onNumericChange={value => setCommission(current => ({ ...current, value: value ?? 0 }))}
+                    aria-label="قيمة العمولة"
+                  />
+                </label>
+                {commission.mode === "percent" ? (
+                  <label className="micro-field">
+                    <span>أساس العمولة</span>
+                    <select
+                      value={commission.basis}
+                      onChange={event =>
+                        setCommission(current => ({
+                          ...current,
+                          basis:
+                            event.target.value === "order_total" ? "order_total" : "products_after_discount",
+                        }))
+                      }
+                    >
+                      <option value="products_after_discount">قيمة المنتجات بعد الخصم</option>
+                      <option value="order_total">إجمالي الحساب المتوقع</option>
+                    </select>
+                  </label>
+                ) : null}
+                <p className="micro-home-quiet">
+                  تُحتسب العمولة تكلفة مرة واحدة ولا تتكرر ضمن المصاريف الأخرى.
+                </p>
+              </div>
+            ) : null}
+          </details>
+
+          <details className="micro-decision-layer">
+            <summary className="micro-decision-layer-summary">
+              <span>
+                <b>ساعدني في تحديد السعر</b>
+                <small>اقتراح اختياري بأساس معلن — السعر قرارك.</small>
+              </span>
+              <strong>افتح المساعدة</strong>
+            </summary>
+            <label className="micro-field">
+              <span>أساس الاقتراح</span>
+              <select
+                value={aimKind}
+                onChange={event => setAimKind(event.target.value as "amount" | "margin" | "markup")}
+              >
+                <option value="amount">مبلغ فوق التكلفة</option>
+                <option value="margin">هامش من سعر البيع</option>
+                <option value="markup">زيادة على التكلفة</option>
+              </select>
+            </label>
+            <label className="micro-field">
+              <span>
+                {aimKind === "amount"
+                  ? "المبلغ فوق التكلفة (د.أ)"
+                  : aimKind === "margin"
+                    ? "الهامش من سعر البيع (٪)"
+                    : "الزيادة على التكلفة (٪)"}
+              </span>
+              <EnglishNumberInput
+                value={aimValue}
+                kind={aimKind === "amount" ? "money" : "decimal"}
+                onNumericChange={setAimValue}
+                aria-label="قيمة هدف التسعير"
+              />
+            </label>
+            <button className="micro-text-action" type="button" onClick={suggestPrice}>
+              احسب السعر المقترح
+            </button>
+            {suggestion ? (
+              <p className="micro-save-note" role="status">
+                {suggestion.kind === "error" ? (
+                  suggestion.message
+                ) : (
+                  <>
+                    {suggestion.kind === "amount" ? (
+                      <>
+                        تكلفة الوحدة <bdi dir="ltr">{formatMoneyMinor(suggestion.unitCostMinor) ?? "—"}</bdi>{" "}
+                        + مبلغ <bdi dir="ltr">{formatMoneyMinor(suggestion.basis) ?? "—"}</bdi> ⇒ سعر مقترح{" "}
+                        <bdi dir="ltr">{formatMoneyMinor(suggestion.priceMinor) ?? "—"}</bdi> د.أ
+                      </>
+                    ) : suggestion.kind === "margin" ? (
+                      <>
+                        هامش <bdi dir="ltr">{suggestion.basis}</bdi>٪ من سعر البيع ⇒ سعر مقترح{" "}
+                        <bdi dir="ltr">{formatMoneyMinor(suggestion.priceMinor) ?? "—"}</bdi> د.أ (التكلفة ÷
+                        (1 − الهامش))
+                      </>
+                    ) : (
+                      <>
+                        زيادة <bdi dir="ltr">{suggestion.basis}</bdi>٪ على التكلفة ⇒ سعر مقترح{" "}
+                        <bdi dir="ltr">{formatMoneyMinor(suggestion.priceMinor) ?? "—"}</bdi> د.أ (التكلفة ×
+                        (1 + الزيادة))
+                      </>
+                    )}
+                  </>
+                )}
+              </p>
+            ) : null}
+            <p className="micro-home-quiet">
+              هامش الربح نسبة من سعر البيع (الربح ÷ البيع)، والزيادة نسبة من التكلفة — مقامان مختلفان لا
+              يخلطان.
+            </p>
+          </details>
+
+          {!planningCalculations ? (
+            <p className="micro-route-loading" role="status">
+              جارٍ تجهيز الحاسبة…
+            </p>
+          ) : preview ? (
+            <section className="micro-cost-result" data-knowledge={preview.knowledgeState} aria-live="polite">
+              <span className="micro-overline">النتيجة المتوقعة</span>
+              {preview.expectedProfitMinor !== null ? (
+                <strong>
+                  ربح متوقع <MoneyValue minor={preview.expectedProfitMinor} />
+                  {preview.marginPercentCenti !== null ? (
+                    <>
+                      {" "}
+                      · هامش <bdi dir="ltr">{preview.marginPercentCenti / 100}</bdi>٪ من سعر البيع
+                    </>
+                  ) : null}
+                </strong>
+              ) : (
+                <strong>أدخل أسعار البيع لرؤية الربح المتوقع</strong>
+              )}
+              <p>
+                إجمالي متوقع:{" "}
+                {preview.expectedTotalMinor !== null ? (
+                  <MoneyValue minor={preview.expectedTotalMinor} />
+                ) : (
+                  "—"
+                )}{" "}
+                · تكلفة التسعير: <MoneyValue minor={preview.pricingCostMinor} /> · تكلفة الوحدة:{" "}
+                <MoneyValue minor={preview.unitCostMinor} /> · حالة المعرفة:{" "}
+                {knowledgeLabel[preview.knowledgeState] ?? preview.knowledgeState}
+              </p>
+              {preview.excludedComponentNames.length > 0 ? (
+                <p className="micro-cost-disclaimer">
+                  مستثنى من الحساب (مسماة بلا سعر — «غير محدد بعد» لا صفر):{" "}
+                  {preview.excludedComponentNames.join("، ")}.
+                </p>
+              ) : null}
+              {!timeKnown ? (
+                <p className="micro-cost-disclaimer">وقت عملك غير مُدخل — النتيجة بلا أجر وقتك.</p>
+              ) : null}
+              {preview.expectedProfitMinor !== null && preview.expectedProfitMinor < 0 ? (
+                <p className="micro-cost-disclaimer">بهذا السعر هناك خسارة متوقعة — الرقم صادق والقرار لك.</p>
+              ) : null}
+              <p className="micro-cost-disclaimer">
+                هذا حساب تقديري بحسب التكاليف المدرجة — لا بيع ولا مصروف ولا طلب.
+              </p>
+            </section>
+          ) : (
+            <p className="micro-field-error" role="alert">
+              {previewError}
+            </p>
+          )}
+          {message ? (
+            <p
+              className={message.tone === "error" ? "micro-field-error" : "micro-save-note"}
+              role={message.tone === "error" ? "alert" : "status"}
+            >
+              {message.text}
+            </p>
+          ) : null}
+          <div className="micro-form-actions">
+            <Button action="save" disabled={saving || !preview} onClick={() => void save(false)}>
+              <Save aria-hidden="true" />{" "}
+              {saving ? "جارٍ الحفظ…" : editingId ? "احفظ التعديلات" : "احفظ الحساب"}
+            </Button>
+            {editingId ? (
+              <Button action="secondary" disabled={saving || !preview} onClick={() => void save(true)}>
+                احفظ نسخة جديدة
               </Button>
             ) : null}
           </div>
-          <p className="micro-home-quiet">
-            يمكن المتابعة بالحساب والتعديل — الحفظ التالي يحدّث التقدير نفسه ولا يكرره.
-          </p>
         </section>
+      )}
+
+      {listPhase === "ready" ? (
+        <SavedCalculations estimates={savedEstimates} onOpen={openEstimate} onDelete={removeEstimate} />
       ) : null}
 
-      {editingId ? (
-        <button
-          className="micro-text-action"
-          type="button"
-          onClick={() =>
-            navigate(withReturnTo(`/tools/estimate/${encodeURIComponent(editingId)}`, returnPath))
-          }
-        >
-          <ArrowRight aria-hidden="true" /> عرض صفحة التقدير
-        </button>
-      ) : null}
-
-      <p className="micro-local-truth">حسابك يبقى على هذا الجهاز — الحاسبة لا تكتب أي سجل مالي أو مخزون.</p>
+      <p className="micro-local-truth">
+        حسابك يبقى على هذا الجهاز — الحاسبة لا تكتب أي سجل مالي أو مخزون أو طلب.
+      </p>
     </section>
   );
 }

@@ -1,0 +1,78 @@
+{
+  "id": "WS-229",
+  "title": "إعادة تحقق S03 وعلاج تزامن التفضيلات + تنفيذ S04 — النقد ومال المالك والقياس والتخصيص (UNIT-020/022/023/024/025)",
+  "status": "REVIEW_REQUIRED",
+  "items": [
+    "DOC-013"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "3e7e4dfcd8592b4adbf904ea140f669d38b16ce4",
+  "areas": [
+    "apps/prototype-web/client/src/application/preferences/",
+    "apps/prototype-web/client/src/application/cash/",
+    "apps/prototype-web/client/src/application/owner-money/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/pages/",
+    "src/domain/cash-continuity/",
+    "src/domain/owner-entitlement/",
+    "docs/operations/control/items/DOC-013.json",
+    "docs/operations/control/workstreams/WS-229.json",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-020-مال-المالك.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-022-إدارة-النقد.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-023-التحويل-بين-أماكن-النقد.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-024-تحديد-مكان-النقد.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-025-مطابقة-رصيد-الصندوق.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md"
+  ],
+  "agent": "ZAI sole product-code writer using one sequential writer and five sequential read-only reviewers; Manus remains the independent reviewer for stage acceptance; no ChatGPT gate",
+  "pr": 383,
+  "started_at": "2026-10-28",
+  "updated_at": "2026-10-29",
+  "next_action": "مراجعة Manus المستقلة وقبول المالك لS04 على المرشح النهائي 9d7d2aee؛ التحقق البعيد مسجل في تعليق PR #383. S05 أُذن بقرار مالك مستقل (00-S05-EXECUTION-PROMPT-2026-10-29.md في 1663f245) وينفذ على الفرع/PR نفسيهما مع الأمرين المحوّلين CF-001/CF-002؛ لا دمج ولا كتابة main قبل قرار المالك.",
+  "notes": [
+    "أمر التنفيذ الوحيد هو 00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md المنشور في 3e7e4dfcd8592b4adbf904ea140f669d38b16ce4؛ GitHub هو مصدر الحقيقة التشغيلي.",
+    "لا كتابة على main ولا merge ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ ولا بدء S05 (تحديث مؤرخ 2026-10-29: أُذن S05 بقرار مالك مستقل لاحقًا — 00-S05-EXECUTION-PROMPT-2026-10-29.md في 1663f245 — على الفرع/PR نفسيهما).",
+    "تغيير المخطط 38/التصدير 30 مسموح فقط بما يتطلبه عقد S04 الحي صراحةً مع كامل أدلة التوافق والترحيل في النطاق نفسه (مثل عائلة رصد النقد إن تطلبها العقد)؛ لا قفز إلى إصدارات بلا امتداد فعلي.",
+    "القرارات غير المعتمدة (U024-D02 التوسع النمطي، U025-D03 سياق المطابقة المنظم، تغطية الحركات بالرصد) لا تُنفذ ولا يُخترع لها معنى؛ تُنفذ الأجزاء المعتمدة ويُعزل القرار غير المحسوم مع توثيق أثره.",
+    "الاعتماديات: S02 (محمي الاستبدال) وS03 (الهوية والتفضيلات) مسلّمتان للمراجعة؛ S04 يبني فوقهما."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md",
+    "docs/implementation/micro-component-execution/08-S03-RESULT-2026-10-28.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/09-S04-RESULT-2026-10-28.md",
+    "docs/implementation/micro-component-execution/00-S05-EXECUTION-PROMPT-2026-10-29.md"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-28",
+      "actor": "zai-s03reval-s04-execution",
+      "reason": "بدأ مسار التنفيذ المتصل المأذون (إعادة تحقق S04 لعلاج S03 ثم S04) على components/integration-20261027 / PR #383 من رأس النشر 3e7e4dfc."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-28",
+      "actor": "zai-s03reval-s04-execution",
+      "reason": "تسليم مسار التنفيذ المتصل للمراجعة: علاج جذر تزامن S03 ثم S04 كاملة على المرشح النهائي 9d7d2aee بسلسلة خضراء ومراجعات خمس معالجة؛ سجل النتيجة 09-S04-RESULT-2026-10-28.md."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-10-29",
+      "actor": "zai-s05-execution",
+      "reason": "S04 سُلّم للمراجعة المستقلة (سجل نتيجته 09-S04-RESULT-2026-10-28.md والتحقق البعيد على الرأس eab7b6a9)؛ نقل Workstream السابق من IN_REVIEW إلى REVIEW_REQUIRED عند بدء المرحلة المأذونة التالية هو بروتوكول Control نفسه (سابقة WS-227 عند بدء S04) — يخرج من مجموعة «النشط» فلا يتعارض مع مطالبة S05 المرخصة WS-230 على الفرع/PR نفسيهما؛ القبول والدمج محجوبان بالمراجعة المستقلة وقرار المالك، ولا يُدّعى قبول ولا دمج ولا تحقق على main."
+    }
+  ],
+  "migration_baseline": true
+}

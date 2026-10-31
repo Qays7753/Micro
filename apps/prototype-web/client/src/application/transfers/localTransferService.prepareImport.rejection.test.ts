@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { LocalTransferService } from "./localTransferService";
-import { localExportFormat, localSchemaVersion, type PrototypeLocalStore } from "@/storage/local/types";
+import {
+  localExportFormat,
+  localExportVersion,
+  localSchemaVersion,
+  type PrototypeLocalStore,
+} from "@/storage/local/types";
 import { exportCountsOf } from "./transferCounters";
 import { syncSha256Hex } from "@/lib/syncSha256";
 
@@ -22,7 +27,7 @@ function envelope(data: unknown): string {
    * createExport — نفس آلية minimalFileForPair في اختبارات الأزواج. */
   return JSON.stringify({
     format: localExportFormat,
-    version: 30,
+    version: localExportVersion,
     schemaVersion: localSchemaVersion,
     exportedAt: "2026-10-07T10:00:00.000Z",
     data,
@@ -145,6 +150,93 @@ describe("R2 regression — prepareImport structured rejection (M-03, 2026-10-08
           events: [],
         },
       ],
+    };
+    const prepared = service.prepareImport(envelope(poisoned));
+    expect(prepared.ok).toBe(false);
+    if (!prepared.ok) expect(prepared.code).toBe("validation_error");
+  });
+});
+
+/*
+ * S04 (DOC-013 / UNIT-025، 2026-10-28): رفض ملفات رصد الأرصدة المكسورة.
+ * القياس يسافر في ملف النقل كما هو — لا فرق مقابل صفر ولا إعادة تسوية عند
+ * الاستعادة؛ لكن الشكل الكسور يُرفض قبل أي معاينة: هوية مكررة، شكل سليم،
+ * ونطاق صادق (رصد محفظة يشير لمحفظة موجودة فعلًا في اللقطة نفسها).
+ */
+describe("S04 — balance observations import validation (DOC-013)", () => {
+  const walletObs = {
+    id: "wallet-obs-1",
+    name: "درج الرصد",
+    kind: "cash_drawer",
+    createdAt: "2026-10-03T10:00:00.000Z",
+    createdOperationKey: "wallet-obs-1-open",
+  };
+  const honestObservation = {
+    id: "obs-1",
+    scopeKind: "wallet",
+    walletId: "wallet-obs-1",
+    countedMinor: 8800,
+    knowledge: "known",
+    cutoff: "2026-10-03T10:00:00.000Z",
+    observedOn: "2026-10-03",
+    recordedAt: "2026-10-03T10:00:00.000Z",
+    operationKey: "obs-1-key",
+    note: "رصد صادق",
+  };
+
+  it("accepts an honest wallet-scope observation (control) and a project-total observation with no wallet", () => {
+    const service = new LocalTransferService(store);
+    const honest = {
+      ...emptySnapshot,
+      cashWallets: [walletObs],
+      balanceObservations: [
+        honestObservation,
+        {
+          ...honestObservation,
+          id: "obs-2",
+          scopeKind: "project_total",
+          walletId: null,
+          operationKey: "obs-2-key",
+        },
+      ],
+    };
+    const prepared = service.prepareImport(envelope(honest));
+    expect(prepared.ok).toBe(true);
+  });
+
+  it("rejects a corrupted observation shape (empty operationKey — a measurement without custody)", () => {
+    const service = new LocalTransferService(store);
+    const poisoned = {
+      ...emptySnapshot,
+      cashWallets: [walletObs],
+      balanceObservations: [{ ...honestObservation, operationKey: "  " }],
+    };
+    const prepared = service.prepareImport(envelope(poisoned));
+    expect(prepared.ok).toBe(false);
+    if (!prepared.ok) {
+      expect(prepared.code).toBe("validation_error");
+      expect(prepared.message).toContain("بقيت بيانات هذا الجهاز دون تغيير");
+    }
+  });
+
+  it("rejects a wallet-scope observation whose wallet does not exist in the snapshot", () => {
+    const service = new LocalTransferService(store);
+    const poisoned = {
+      ...emptySnapshot,
+      cashWallets: [walletObs],
+      balanceObservations: [{ ...honestObservation, walletId: "wallet-that-is-not-there" }],
+    };
+    const prepared = service.prepareImport(envelope(poisoned));
+    expect(prepared.ok).toBe(false);
+    if (!prepared.ok) expect(prepared.code).toBe("validation_error");
+  });
+
+  it("rejects a duplicate observation id (hand-merged file)", () => {
+    const service = new LocalTransferService(store);
+    const poisoned = {
+      ...emptySnapshot,
+      cashWallets: [walletObs],
+      balanceObservations: [honestObservation, { ...honestObservation, operationKey: "obs-1-key-b" }],
     };
     const prepared = service.prepareImport(envelope(poisoned));
     expect(prepared.ok).toBe(false);

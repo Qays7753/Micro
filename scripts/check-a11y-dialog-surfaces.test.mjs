@@ -42,11 +42,15 @@ describe("check-a11y-dialog-surfaces (R11 W4-0 interaction-model census guard)",
     const stdout = runCli(ROOT);
     expect(stdout).toContain("PASS");
     /* UNIT-001 (r11-unit001-20261018): حوار معلومات الإعداد في Setup صُنف في
-     * نفس الـPR — السجل صار 8 أسطح (7 ملفات بتصريح حي). */
-    expect(stdout).toMatch(/8 سطحًا حواريًا مصنفًا/);
+     * نفس الـPR — السجل صار 8 أسطح (7 ملفات بتصريح حي).
+     * S02-B (SH-04 — UNIT-042، إلغاء المالك 2026-10-24): أسطح القفل الثلاثة
+     * (AppLockGate وDataActionPinGate وprotectionBlocked في الإعدادات) حُذفت
+     * مع مكوّناتها — السجل صار 5 أسطح (4 ملفات بتصريح حي)؛ إعادة إرساء
+     * موثقة نفس-الـPR (راجع تقرير S02). */
+    expect(stdout).toMatch(/5 سطحًا حواريًا مصنفًا/);
     const { ok, stats } = checkA11yDialogSurfaces(ROOT);
     expect(ok).toBe(true);
-    expect(stats.classified).toBe(8);
+    expect(stats.classified).toBe(5);
   });
 
   it("extracts string and expression dialog declarations from JSX", () => {

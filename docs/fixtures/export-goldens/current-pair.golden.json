@@ -1,7 +1,7 @@
 {
   "format": "micro-prototype-local-export",
-  "version": 30,
-  "schemaVersion": 38,
+  "version": 32,
+  "schemaVersion": 40,
   "exportedAt": "2026-10-03T10:00:00.000Z",
   "data": {
     "profile": {
@@ -49,13 +49,17 @@
             "wasteMinor": 100,
             "safetyBufferMinor": 250,
             "quantity": 4,
-            "createdAt": "2026-08-22T09:30:00.000Z"
+            "createdAt": "2026-08-22T09:30:00.000Z",
+            "groupBasis": null
           }
         ],
         "activeCostSnapshotId": "draft-cost-817-1",
         "linkedOrderId": null,
         "createdAt": "2026-08-22T09:30:00.000Z",
-        "updatedAt": "2026-08-22T09:30:00.000Z"
+        "updatedAt": "2026-08-22T09:30:00.000Z",
+        "offeringRef": null,
+        "groups": null,
+        "suggestedPriceMinor": null
       }
     ],
     "orders": [
@@ -275,7 +279,8 @@
         "createdAt": "2026-08-21T10:00:00.000Z",
         "updatedAt": "2026-08-21T10:00:00.000Z",
         "materialId": null,
-        "expectedQuantityMilli": null
+        "expectedQuantityMilli": null,
+        "lines": null
       }
     ],
     "cashWallets": [
@@ -302,6 +307,8 @@
         "reversesEntryId": null
       }
     ],
+    "balanceObservations": [],
+    "counterparties": [],
     "materials": [
       {
         "id": "material-817-1",
@@ -330,7 +337,8 @@
         "reversesMovementId": null,
         "wasteContext": null,
         "costKnowledge": "known",
-        "saleId": null
+        "saleId": null,
+        "purchaseLineId": null
       }
     ],
     "inventoryShortages": [],
@@ -369,7 +377,7 @@
   },
   "integrity": {
     "algorithm": "sha256",
-    "digest": "e955c3beab0ddba124f3bf16c7f31e56af21f0383034bc6b20135c524b8cc020"
+    "digest": "e277eb8e04182952d51dc0b6cc5f531e8e3ee74e4e77b4b2bd0b820a015a19b3"
   },
   "counts": {
     "orders": 1,
@@ -388,6 +396,8 @@
     "recurringExpenseOccurrences": 0,
     "expenseBudgets": 0,
     "receivedLoans": 0,
+    "balanceObservations": 0,
+    "counterparties": 0,
     "schedules": 1,
     "drafts": 1,
     "ownerEntitlementPolicies": 0,

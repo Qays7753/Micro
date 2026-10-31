@@ -100,7 +100,7 @@ describe("LocalTransferService", () => {
     const target = new MemoryLocalStore();
     await target.saveProfile({ ...profile, activityName: "بيانات قديمة" });
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(`import should validate: ${preview.message}`);
     expect(await target.getProfile()).toMatchObject({ ok: true, value: { activityName: "بيانات قديمة" } });
     await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
@@ -192,7 +192,7 @@ describe("LocalTransferService", () => {
     if (!exported.ok) throw new Error("direct-sale export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(`direct-sale import should validate: ${preview.message}`);
     expect(preview.value.summary.directSales).toBe(2);
     await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
@@ -306,7 +306,7 @@ describe("LocalTransferService", () => {
     if (!exported.ok) throw new Error("export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(`import should validate: ${preview.message}`);
     await transfers.confirmImport(preview.value);
     await expect(target.listFinancialEvents()).resolves.toMatchObject({
@@ -344,7 +344,7 @@ describe("LocalTransferService", () => {
     if (!exported.ok) throw new Error("reversal export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(`reversal import should validate: ${preview.message}`);
     await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
       ok: true,
@@ -508,7 +508,7 @@ describe("LocalTransferService", () => {
     const exported = await new LocalTransferService(source).createExport();
     if (!exported.ok) throw new Error("G3 export should succeed");
     const transfers = new LocalTransferService(new MemoryLocalStore());
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(`G3 import should validate: ${preview.message}`);
     expect(preview.value.file.data.financialEvents).toMatchObject([
       {
@@ -593,7 +593,7 @@ describe("LocalTransferService", () => {
     if (!exported.ok) throw new Error("export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error("catalog export should validate");
     await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
       ok: true,
@@ -635,7 +635,7 @@ describe("LocalTransferService", () => {
     if (!exported.ok) throw new Error("export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error("defaults export should validate");
     await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
       ok: true,
@@ -674,7 +674,7 @@ describe("LocalTransferService", () => {
     if (!exported.ok) throw new Error("export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(`import should validate: ${preview.message}`);
     await transfers.confirmImport(preview.value);
     await expect(target.listSupplierPurchases()).resolves.toMatchObject({
@@ -746,7 +746,7 @@ describe("LocalTransferService", () => {
     if (!exported.ok) throw new Error("export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(`import should validate: ${preview.message}`);
     await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
       ok: true,
@@ -881,7 +881,7 @@ describe("LocalTransferService", () => {
     if (!exported.ok) throw new Error("export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(`import should validate: ${preview.message}`);
     await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
       ok: true,
@@ -1102,7 +1102,7 @@ describe("LocalTransferService", () => {
     if (!exported.ok) throw new Error("export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error("G5 import should validate");
     await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
       ok: true,
@@ -1223,7 +1223,7 @@ describe("LocalTransferService", () => {
     if (!exported.ok) throw new Error("G4-B export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(`G4-B import should validate: ${preview.message}`);
     expect(preview.value.summary).toMatchObject({ allocationPolicies: 1, inventoryMovements: 2 });
     await transfers.confirmImport(preview.value);
@@ -1387,7 +1387,7 @@ describe("LocalTransferService", () => {
     if (!exported.ok) throw new Error("actual-time export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(`actual-time import should validate: ${preview.message}`);
     expect(preview.value.summary).toMatchObject({ actualTimeRecords: 2 });
     await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
@@ -1640,7 +1640,7 @@ describe("LocalTransferService G6-B recurrence migration", () => {
     if (!exported.ok) throw new Error("recurrence export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(`recurrence import should validate: ${preview.message}`);
     expect(preview.value.summary).toMatchObject({ recurrences: 1, schedules: 2 });
     await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
@@ -1736,7 +1736,7 @@ describe("LocalTransferService G7-A agreement context", () => {
     if (!exported.ok) throw new Error("context export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(`context import should validate: ${preview.message}`);
     expect(preview.value.summary).toMatchObject({ orders: 1, recurrences: 0, schedules: 0 });
     await expect(transfers.confirmImport(preview.value)).resolves.toMatchObject({
@@ -1787,7 +1787,7 @@ describe("inventory activation export and migration (decision 9)", () => {
     expect(exported.value.data.inventoryActivation).toMatchObject({ activatedOn: "2026-08-20" });
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error("activation import should validate");
     await transfers.confirmImport(preview.value);
     await expect(target.getInventoryActivation()).resolves.toMatchObject({
@@ -1864,12 +1864,12 @@ describe("owner profile export and migration (group 1 owner profile foundation)"
     const verified = await transfers.createVerifiedExport();
     expect(verified.ok).toBe(true);
     const roundTrip = new LocalTransferService(new MemoryLocalStore());
-    const preview = roundTrip.prepareImport(JSON.stringify(exported.value));
+    const preview = await roundTrip.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error("owner import should validate");
     await roundTrip.confirmImport(preview.value);
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target);
-    const targetPreview = targetTransfers.prepareImport(JSON.stringify(exported.value));
+    const targetPreview = await targetTransfers.prepareRestore(JSON.stringify(exported.value));
     if (!targetPreview.ok) throw new Error("target import should validate");
     await targetTransfers.confirmImport(targetPreview.value);
     await expect(target.getOwnerProfile()).resolves.toMatchObject({
@@ -1975,7 +1975,7 @@ it("round-trips a verified export containing a documented payment reversal (S2-0
   expect(verified).toMatchObject({ ok: true });
   const target = new MemoryLocalStore();
   const transfers = new LocalTransferService(target);
-  const preview = transfers.prepareImport(JSON.stringify(verified.value.file));
+  const preview = await transfers.prepareRestore(JSON.stringify(verified.value.file));
   if (!preview.ok) throw new Error(`import should validate: ${preview.message}`);
   await transfers.confirmImport(preview.value);
   await expect(target.listSupplierPurchases()).resolves.toMatchObject({
@@ -2004,7 +2004,7 @@ it("accepts the historical v18/27 export pair (S5-05)", async () => {
     schemaVersion: 27,
   };
   const transfers = new LocalTransferService(new MemoryLocalStore());
-  const preview = transfers.prepareImport(JSON.stringify(asV18));
+  const preview = await transfers.prepareRestore(JSON.stringify(asV18));
   expect(preview).toMatchObject({ ok: true });
   const fakePair = {
     ...exported.value,
@@ -2046,7 +2046,7 @@ describe("Group 6 — allocation source line survives export/import round trip",
     if (!exported.ok) return;
     const target = new MemoryLocalStore();
     const serialized = JSON.stringify(exported.value.file);
-    const preview = new LocalTransferService(target).prepareImport(serialized);
+    const preview = await new LocalTransferService(target).prepareRestore(serialized);
     expect(preview.ok).toBe(true);
     if (!preview.ok) return;
     const imported = await new LocalTransferService(target).confirmImport(preview.value);

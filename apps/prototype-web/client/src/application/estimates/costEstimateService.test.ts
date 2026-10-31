@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CostEstimateService } from "./costEstimateService";
-import { PartyLedgerService } from "@/application/parties/partyLedgerService";
+import { PartyDirectoryService } from "@/application/parties/partyLedgerService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 
@@ -113,9 +113,22 @@ describe("standalone cost estimates", () => {
   });
 });
 
-/* دفتر الناس (مبدأ المالك ٥.٣): تجميع بالاسم من السجلات القائمة — بلا كيان CRM جديد. */
-describe("lightweight party ledger", () => {
-  it("aggregates supplier payables and payable events by name with movement detail", async () => {
+/* S05 (DOC-014 / UNIT-037): تقاعد قراءة التجميع بالاسم — دفتر الناس القديم
+ * صار «العملاء والموردون»: دليل هويات محفوظة وحساب من المصادر المرتبطة
+ * بمعرف الطرف المؤكد حصرًا (SDF-009 يمنع دمج الاسم المتشابه؛ B-DUP يمنع
+ * قائمة ديون مجهولة منافسة). الحدود الموثقة: التزامات المصروف باسم جهة
+ * تبقى عند مصدرها (UNIT-015) ولا تدخل حساب طرف هنا. */
+describe("party directory (S05) — saved identities only, source-anchored accounts", () => {
+  it("returns an honest empty directory for a fresh project", async () => {
+    const store = new MemoryLocalStore();
+    const directory = new PartyDirectoryService(store, now);
+    const reading = await directory.read();
+    if (!reading.ok) throw new Error(reading.message);
+    expect(reading.value.parties).toHaveLength(0);
+    expect(reading.value.archivedParties).toHaveLength(0);
+  });
+
+  it("payable-event counterparties and note-named sales never enter a saved party account", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     await finance.record({
@@ -125,7 +138,7 @@ describe("lightweight party ledger", () => {
       note: "فاتورة كهرباء",
       counterparty: "شركة الكهرباء",
       relatedEventId: null,
-      idempotencyKey: "payable-ledger-1",
+      idempotencyKey: "payable-boundary-1",
       expenseContext: {
         relationship: "project",
         behavior: "fixed",
@@ -134,53 +147,37 @@ describe("lightweight party ledger", () => {
         sharedProjectShare: null,
       },
     });
-    const ledger = new PartyLedgerService(store);
-    const reading = await ledger.read();
-    if (!reading.ok) throw new Error(reading.message);
-    const party = reading.value.parties.find(entry => entry.name === "شركة الكهرباء");
-    expect(party).toBeDefined();
-    expect(party?.payableMinor).toBe(12000);
-    expect(party?.receivableMinor).toBe(0);
-    expect(party?.movements).toHaveLength(1);
-    expect(party?.movements[0]?.href).toBe("/finance");
-    expect(reading.value.totalPayableMinor).toBe(12000);
-  });
-
-  it("aggregates direct-sale credit debts by the customer named in the note", async () => {
-    const store = new MemoryLocalStore();
-    const finance = new ProjectFinancialService(store, now);
     const sale = await import("@micro-domain/direct-sale/index.js").then(module =>
       module.createDirectSale({
-        id: "sale-ledger-1",
+        id: "sale-boundary-1",
         itemName: "بيعة سريعة",
         quantity: 1,
         revenueMinor: 10000,
         collectedMinor: 4000,
         collectionStatus: "partial_debt",
+        catalogItemId: null,
+        customerName: "خالد",
+        customerPartyId: null,
         costMinor: null,
         occurredOn: "2026-08-26",
-        note: "عميل: خالد",
-        idempotencyKey: "sale-ledger-1",
+        note: "بيع آجل",
+        idempotencyKey: "sale-boundary-1",
         recordedAt: now(),
       }),
     );
     const saved = await store.saveDirectSale(sale);
     if (!saved.ok) throw new Error(saved.message);
-    const ledger = new PartyLedgerService(store);
-    const reading = await ledger.read();
+    const directory = new PartyDirectoryService(store, now);
+    const savedParty = await directory.save({ label: "خالد", phone: null, note: null, operationKey: "op-1" });
+    if (!savedParty.ok) throw new Error(savedParty.message);
+    const reading = await directory.read();
     if (!reading.ok) throw new Error(reading.message);
-    const khaled = reading.value.parties.find(entry => entry.name === "خالد");
-    expect(khaled?.receivableMinor).toBe(6000);
-    expect(reading.value.totalReceivableMinor).toBe(6000);
-  });
-
-  it("returns an honest empty ledger for a fresh project", async () => {
-    const store = new MemoryLocalStore();
-    const ledger = new PartyLedgerService(store);
-    const reading = await ledger.read();
-    if (!reading.ok) throw new Error(reading.message);
-    expect(reading.value.parties).toHaveLength(0);
-    expect(reading.value.totalReceivableMinor).toBe(0);
-    expect(reading.value.totalPayableMinor).toBe(0);
+    const khaled = reading.value.parties.find(entry => entry.party.label === "خالد");
+    /* الاسم المشترك لا يستولي على السجل غير المرتبط (SDF-028) والتزام
+     * المصروف باسم الجهة لا يدخل حساب الطرف (حد UNIT-015 الموثق). */
+    expect(khaled?.receivableMinor).toBe(0);
+    expect(khaled?.payableMinor).toBe(0);
+    expect(khaled?.movements).toHaveLength(0);
+    expect(reading.value.parties).toHaveLength(1);
   });
 });

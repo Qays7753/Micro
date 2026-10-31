@@ -18,6 +18,7 @@ import {
   formatQuantityMilli,
 } from "@/application/formatting/formatters";
 import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
+import { supplierDisplayLabelOf } from "../parties";
 
 /* Wave C (ADR-015 مجموعة 6 — 2026-10-04): النوع الضيق للقارئ — قراءة حركات
  * المالك وحدها من قدرة الاستحقاق (عرضية مصرح بها) زائد قراءات الأصول
@@ -356,7 +357,7 @@ export class CorrectionHistoryService {
           occurredOn: reversal.occurredOn,
           amountEffectMinor: reversal.amountMinor,
           reason: reversal.reason,
-          originalLabel: `دفعة ${payment ? formatMoneyWithUnit(payment.amountMinor) : formatMoneyWithUnit(reversal.amountMinor)} لـ${purchase.supplierName}`,
+          originalLabel: `دفعة ${payment ? formatMoneyWithUnit(payment.amountMinor) : formatMoneyWithUnit(reversal.amountMinor)} لـ${supplierDisplayLabelOf(purchase)}`,
           replacementLabel: `استُعيد المتبقي للمورد — المتبقي الآن ${formatMoneyWithUnit(purchase.payableMinor)}`,
           deepLink: `/suppliers/purchase/${encodeURIComponent(purchase.id)}`,
         });

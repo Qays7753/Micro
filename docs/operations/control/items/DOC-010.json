@@ -1,0 +1,114 @@
+{
+  "id": "DOC-010",
+  "title": "برنامج تنفيذ مكونات Micro — نشر الحزمة وS01 التوثيقية",
+  "type": "GOVERNANCE",
+  "status": "IN_REVIEW",
+  "priority": "P1",
+  "stage": "micro-component-execution-s01-20261027",
+  "summary": "نشر حزمة تنفيذ المكونات ذات 45 مواصفة وتثبيت سلطة النسخ والتبعيات وملكية المراحل وفرع التكامل الواحد ضمن S01؛ مراجعتا ChatGPT وManus PASS على الرأس المحدد؛ قبول المالك فقط هو البوابة المتبقية؛ لا تنفيذ كود ولا انتقال إلى S02.",
+  "finding_classification": "NEW_FINDING",
+  "finding_state": "CONFIRMED",
+  "classification": "GOVERNANCE",
+  "gate_classification": "EXTERNAL_REVIEW_REQUIRED",
+  "root_cause": "الحزمة كانت خارج GitHub، ونسخ UNIT-001/002 السابقة والجديدة وخطة المراحل لم تكن مرتبطة بسجل S01 واحد يميز مصدر التنفيذ عن التاريخ ويثبت نقطة الاستئناف.",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "اعتمد المالك قبول S01 على فرع التكامل components/integration-20261027 استنادًا إلى PASS ChatGPT المنسوب إليه وPASS Manus المستقل على الرأس المراجع 3b1b24b508edb68996fa0ac33418a96ee05957ad؛ هذا ليس VERIFIED على main ولا إذن دمج.",
+  "tests_required": [
+    "python3 scripts/operations-control/generate_tracker.py",
+    "python3 scripts/operations-control/validate.py",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "node scripts/check-doc-index-coverage.mjs",
+    "node scripts/check-current-state-size.mjs",
+    "node scripts/check-agent-document-contract.mjs",
+    "git diff --check"
+  ],
+  "layers": [
+    "documentation",
+    "governance",
+    "operations-control"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S01-APPROVED-TASK-2026-10-27.md",
+    "discovered_at_sha": "3584aa1d08cea3e0a00623b719fed7f991ce187f",
+    "evidence": [
+      "docs/implementation/micro-component-execution/MANIFEST.md",
+      "docs/implementation/micro-component-execution/BASELINE-RECONCILIATION.md",
+      "docs/implementation/micro-component-execution/DEPENDENCIES-AND-TRACEABILITY.md"
+    ]
+  },
+  "acceptance": [
+    "حزمة التنفيذ الأصلية منشورة كاملة ومميزة عن ملفات S01 الإضافية، مع بصمات ZIP والنسخة الناتجة.",
+    "Authority Matrix تفصل UNIT-001 V3 عن V9 وUNIT-002 V5 عن V11 وتثبت أن الجديد غير منفذ.",
+    "خريطة S01..S18 توثق مالك كل عقدة وتبقي S02–S18 PLANNED_REVIEW دون أمر READY.",
+    "DOC-010/WS-226 في IN_REVIEW، وPR واحد Draft على فرع التكامل، ولا كتابة على main.",
+    "Generated views صحيحة ومولدة من JSON المصدر، وحراس الفهرس والحجم وعقد الوثائق يمرون.",
+    "لا تغيير في كود المنتج أو الاختبارات أو Schema 38 أو Export 30 أو Import wire format أو القرارات المالية أو سياسة CI.",
+    "حالة مراجعة S01 قبل دفعة التصحيح: GPT-001 وGPT-003 وGPT-005 مغلقة؛ GPT-002 وGPT-004 جزئيتان. هذه الدفعة تعالج الجزئيتين فقط على PR #383 ولا تعيد فتح البنود المغلقة.",
+    "تسليم تصحيح S01-GPT-002 وS01-GPT-004 عند الرأس 1ab46931689daacaa766eacba6fb439d9ac04894؛ GitHub CI وCloudflare Pages ناجحان على الرأس نفسه، وGPT-001 و003 و005 مغلقة ولا تعاد.",
+    "حكم ChatGPT (منسوب إليه كما بلّغه المالك): PASS على الرأس المحدد 3b1b24b508edb68996fa0ac33418a96ee05957ad؛ جميع S01-GPT-001..005 مغلقة؛ مرآة Drive محدثة إلى V4. هذا attribution محفوظ، وليس مصدر تنفيذ بديلًا عن GitHub.",
+    "حكم Manus المستقل: PASS على الرأس نفسه 3b1b24b508edb68996fa0ac33418a96ee05957ad; لا critical/major/minor blocker ضمن نطاق S01. CI وCloudflare وControl والفهرس والحجم والعقد والبصمات ناجحة؛ لا منتج ولا مالية ولا Schema/Export/Import.",
+    "اعتماد المالك الصريح لـS01 على فرع التكامل؛ S02 له Control مستقل DOC-011/WS-227؛ يبقى الدمج إلى main بوابة البرنامج النهائية بعد S18."
+  ],
+  "areas": [
+    "docs/implementation/micro-component-execution",
+    "docs/operations/control/items/DOC-010.json",
+    "docs/operations/control/workstreams/WS-226.json",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+    "docs/00-document-index.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-PROGRAM.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/03-S01-RESULT-2026-10-27.md",
+    "docs/implementation/micro-component-execution/04-S01-AUTHORITY-MATRIX-2026-10-27.md",
+    "docs/implementation/micro-component-execution/05-S01-RESUME-INSTRUCTIONS-2026-10-27.md",
+    "docs/implementation/micro-component-execution/06-S01-PACKAGE-RECONCILIATION-2026-10-27.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "https://github.com/Qays7753/Micro/actions/runs/40558258212",
+    "https://github.com/Qays7753/Micro/actions/runs/40558258212/job/122380026027",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/3cdfb790-a16a-4623-afc7-e23b20348738",
+    "https://github.com/Qays7753/Micro/actions/runs/40559451084",
+    "https://github.com/Qays7753/Micro/actions/runs/40559451084/job/122384216787",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/43676bbb-a56b-4649-b656-5d5cb1de5217"
+  ],
+  "dependencies": [
+    "DOC-007"
+  ],
+  "related_items": [
+    "DOC-007",
+    "DOC-008",
+    "DOC-009"
+  ],
+  "updated_at": "2026-10-27",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-27",
+      "actor": "owner-approved-s01",
+      "reason": "اعتمد المالك تنفيذ S01 التوثيقية على فرع التكامل الواحد؛ لا ZAI ولا كود منتج."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-27",
+      "actor": "manus-s01-executor",
+      "reason": "بدأ Manus التحقق والنشر التوثيقي من origin/main عند الرأس الحي الكامل؛ لا كتابة على main."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-27",
+      "actor": "manus-s01-delivery",
+      "reason": "اكتمل نطاق S01 التوثيقي وسُلّم على PR Draft للمراجعة؛ لا يعني ذلك قبول المرحلة أو الانتقال إلى S02."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "S01 مقبولة على فرع التكامل؛ S02 READY في DOC-011/WS-227. لا حاجة لإعادة فتح S01؛ يبقى الدمج إلى main بوابة البرنامج بعد S18."
+}

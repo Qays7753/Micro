@@ -42,14 +42,14 @@ describe("schema 33 export round-trip with product-sale links", () => {
     const service = new LocalTransferService(store, now);
     const exported = await service.createExport();
     if (!exported.ok) throw new Error(exported.message);
-    expect(exported.value.version).toBe(30);
-    expect(exported.value.schemaVersion).toBe(38);
+    expect(exported.value.version).toBe(32);
+    expect(exported.value.schemaVersion).toBe(40);
     const text = JSON.stringify(exported.value);
 
     /* الاستيراد في جهاز جديد: الهوية تعبر حرفيًا لا تُخترع ولا تُفقد. */
     const target = new MemoryLocalStore();
     const targetService = new LocalTransferService(target, now);
-    const preview = await targetService.prepareImport(text);
+    const preview = await targetService.prepareRestore(text);
     if (!preview.ok) throw new Error(preview.message);
     const confirmed = await targetService.confirmImport(preview.value);
     if (!confirmed.ok) throw new Error(confirmed.message);
@@ -78,7 +78,7 @@ describe("schema 33 export round-trip with product-sale links", () => {
     for (const estimate of legacy.data.costEstimates ?? []) {
       for (const item of estimate.materialItems ?? []) delete item.materialId;
     }
-    const legacyPreview = await new LocalTransferService(new MemoryLocalStore(), now).prepareImport(
+    const legacyPreview = await new LocalTransferService(new MemoryLocalStore(), now).prepareRestore(
       JSON.stringify(legacy),
     );
     expect(legacyPreview.ok).toBe(true);

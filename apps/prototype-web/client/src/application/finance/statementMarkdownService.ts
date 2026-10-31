@@ -49,6 +49,15 @@ export function statementResultDecomposition(result: RecordedPeriodResult): read
       label: "تكلفة بيع مباشر معروفة",
       signedMinor: -result.directSaleCostKnownMinor,
     },
+    /* S07 (UNIT-028/D02/SDF-031): تكلفة مواد الفترة المعترف بها من بنود
+     * period_material على فترة تاريخ الشراء — بند صريح في معادلة الكشف
+     * يتطابق مع القارئ الكنوني (خصم مرة واحدة) ولا يختفي داخل «مصاريف
+     * تشغيلية»؛ المجهولة القيمة تمنع رقم النتيجة أصلًا (reasons معلنة). */
+    {
+      id: "untrackedMaterialPurchaseCost",
+      label: "تكلفة مواد فترة",
+      signedMinor: -result.untrackedMaterialPurchaseCostMinor,
+    },
     {
       id: "recordedOperatingExpense",
       label: "مصاريف تشغيلية",

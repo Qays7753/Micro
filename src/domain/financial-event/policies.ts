@@ -131,6 +131,11 @@ function normalizeSharedProjectShare(
   if (allocation === "unallocated")
     assertUnallocatedShare(value.basis, totalAmountMinor, percentageBps, calculatedShareMinor);
   else assertAllocatedShare(value.basis, totalAmountMinor, percentageBps, calculatedShareMinor);
+  /* S06 (CONS-DEC04 / SDF-064): المدفوع فعليًا سياق صادق اختياري — موجب
+   * آمن أو null؛ يمر كما قُرر بلا اشتقاق ولا تغيير (الدلتا للنوع وحده). */
+  const paidAmountMinor = value.paidAmountMinor ?? null;
+  if (paidAmountMinor !== null && (!Number.isSafeInteger(paidAmountMinor) || paidAmountMinor <= 0))
+    throw new Error("المدفوع فعليًا من الفاتورة المشتركة يجب أن يكون مبلغًا صحيحًا موجبًا.");
   return Object.freeze({
     basis: value.basis,
     note: value.note?.trim() || null,
@@ -138,8 +143,22 @@ function normalizeSharedProjectShare(
     totalAmountMinor,
     percentageBps,
     calculatedShareMinor,
+    paidAmountMinor,
   });
 }
+/* S06 (CONS-DEC04 المعتمدة / SDF-064): الفارق الشخصي فوق الحصة — الطرح
+ * الوحيد المعتمد للفاتورة المشتركة يعيش في المجال النقي، والمستهلكون
+ * (التوسيع الكنوني ونموذج العرض) يستدعونه فلا سطر حساب مال خارج بيته.
+ * 0 حين لا ينطبق الفرع أو نقصت المدخلات — لا رقم متوهَّم. */
+export function sharedBillOwnerPartMinor(
+  paidAmountMinor: number | null,
+  shareAmountMinor: number | null,
+): number {
+  if (paidAmountMinor === null || shareAmountMinor === null) return 0;
+  if (paidAmountMinor <= 0 || shareAmountMinor <= 0) return 0;
+  return paidAmountMinor > shareAmountMinor ? paidAmountMinor - shareAmountMinor : 0;
+}
+
 /* المجموعة ١ (تصنيفي للمصاريف): تطبيع وسم التصنيف — قصّ الطرفين، دمج الفراغات
  * الداخلية، الفارغ يصبح null. الحد ٨٠ حرفًا يقاس على القيمة بعد التطبيع (نفس
  * قاعدة فحص الاستيراد)؛ الرفض صريح برسالة عربية، لا قصًّا صامتًا. */

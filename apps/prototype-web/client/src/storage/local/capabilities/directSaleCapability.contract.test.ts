@@ -75,7 +75,9 @@ async function runCapabilityScenario(store: DirectSaleStore) {
       collectedMinor: 0,
       collectionStatus: "partial_debt",
       catalogItemId: sale.catalogItemId,
-      customerName: sale.customerName ?? undefined,
+      /* S05 (DOC-014 / UNIT-037 A1): العكس يدخل بيعًا في دين جديد — تعريف
+       * بسيط إلزامي فوق الأصل النقي (لا هاتف ولا ملف دائم). */
+      customerName: "زبون المحل — عكس تحصيل",
       costMinor: sale.costMinor,
       occurredOn: sale.occurredOn,
       note: sale.note,

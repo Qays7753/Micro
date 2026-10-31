@@ -14,10 +14,17 @@
  */
 import type { FormDraftEnvelope, FormDraftKind, PrototypeLocalStore } from "@/storage/local/types";
 
-/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — مسودات النماذج الخمس بالضبط (عائلة KEEP R3-SC-17). */
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — مسودات النماذج الخمس بالضبط (عائلة KEEP R3-SC-17)
+ * + قراءة الجيل المحلي (S02-A/SH-03): المسودة تُختم بجيل بيانات جهازها فلا
+ * تُعرض للاستئناف فوق بيانات استُبدلت (سياج النافذة الثانية — SDF-050). */
 export type FormDraftServiceStore = Pick<
   PrototypeLocalStore,
-  "getFormDraft" | "saveFormDraft" | "deleteFormDraft" | "listFormDrafts" | "clearFormDrafts"
+  | "getFormDraft"
+  | "saveFormDraft"
+  | "deleteFormDraft"
+  | "listFormDrafts"
+  | "clearFormDrafts"
+  | "getDataGeneration"
 >;
 import { CONFLICT, STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
@@ -73,6 +80,12 @@ export class FormDraftService {
     if (envelope === null) return { ok: true, value: null };
     /* إصدار شكل مختلف = مسودة من جيل آخر: تُعرض كغير موجودة (تُتجاهل بلا انفجار). */
     if (envelope.valuesVersion !== FORM_VALUES_VERSION) return { ok: true, value: null };
+    /* S02-A (SH-03 — عقد ٠٤٤ B6/§16): مسودة جيل قديم لا تُعرض للاستئناف فوق
+     * بيانات استُبدلت — الغياب (سجلات ما قبل S02) يعامل كالجيل ٠ فتبقى مسودات
+     * المالك الحالية حية حتى أول استبدال حقيقي. */
+    const generation = await this.store.getDataGeneration();
+    if (!generation.ok) return storageFailure(generation.message);
+    if ((envelope.generation ?? 0) !== generation.value) return { ok: true, value: null };
     return { ok: true, value: envelope };
   }
 
@@ -93,6 +106,9 @@ export class FormDraftService {
     const id = formDraftId(formKind, scopeId);
     const existing = await this.store.getFormDraft(id);
     if (!existing.ok) return storageFailure(existing.message);
+    /* S02-A: ختم الجيل الحي لحظة الحفظ — المسودة تنتمي لبيانات جهازها. */
+    const generation = await this.store.getDataGeneration();
+    if (!generation.ok) return storageFailure(generation.message);
     const current = existing.value;
     if (
       current !== null &&
@@ -112,6 +128,7 @@ export class FormDraftService {
       formKind,
       scopeId,
       valuesVersion: FORM_VALUES_VERSION,
+      generation: generation.value,
       values,
       createdAt: current?.createdAt ?? timestamp,
       updatedAt: timestamp,

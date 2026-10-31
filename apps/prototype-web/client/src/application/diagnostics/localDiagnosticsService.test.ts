@@ -51,7 +51,8 @@ describe("local diagnostics ring buffer (group 5 — bounded, private, local-onl
     expect(entries[0]).toEqual({
       errorId,
       appVersion: "test-identity",
-      schemaVersion: 38,
+      /* S05 (DOC-014): المخطط 40. */
+      schemaVersion: 40,
       routeTemplate: "/orders/:id",
       operation: "errorBoundary",
       errorCode: "render_crash",
@@ -117,7 +118,8 @@ describe("local diagnostics ring buffer (group 5 — bounded, private, local-onl
         {
           errorId: "MIC-0000000000",
           appVersion: "x",
-          schemaVersion: 38,
+          /* S05 (DOC-014): المخطط 40. */
+          schemaVersion: 40,
           routeTemplate: "/",
           operation: "o",
           errorCode: "unknown_error",

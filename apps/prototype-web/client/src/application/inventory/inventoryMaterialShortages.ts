@@ -26,6 +26,7 @@ export type InventoryMaterialShortagesStore = Pick<
 >;
 import {
   id,
+  inventoryCommitFailure,
   materialById,
   movementByOperationKey,
   shortageByOperationKey,
@@ -35,6 +36,12 @@ import {
   type RecordShortageInput,
   type ResolveShortageInput,
 } from "./inventoryMaterialModel";
+import {
+  inventoryMaterialsFingerprint,
+  inventoryMovementsFingerprint,
+  inventoryShortagesFingerprint,
+  type InventoryCommitExpectation,
+} from "@/storage/local/inventoryCommitGuard";
 
 /* المجموعة ٢ (عقد ٢٨ / D-027): تسجيل نقص صريح — بديل الرصيد السالب الموثّق.
  * طلب الكمية أكبر من المتاح يُوثَّق نقصًا، والمتاح يبقى كما هو حتى يقرر المالك. */
@@ -71,8 +78,19 @@ export async function recordShortage(
       orderId: input.orderId,
       operationKey: input.operationKey,
     });
-    const saved = await store.commitInventoryWithShortage(null, [], shortage);
-    return saved.ok ? { ok: true, value: shortage } : writeStorageFailure();
+    /* S07-MR-001: بصمة الحالة التي بُني عليها المتاح وقرار «النقص لا استهلاك». */
+    const expectation: InventoryCommitExpectation = {
+      movementsFingerprint: inventoryMovementsFingerprint(movements.value),
+      materialsFingerprint: inventoryMaterialsFingerprint(materials.value),
+      shortagesFingerprint: inventoryShortagesFingerprint(shortages.value),
+    };
+    const saved = await store.commitInventoryWithShortage(null, [], shortage, expectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: saved.value.shortage ?? shortage,
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات سجل النقص غير صالحة."));
   }
@@ -133,8 +151,22 @@ export async function consumeWithShortage(
       orderId: input.orderId,
       operationKey: `${input.operationKey}:shortage`,
     });
-    const saved = await store.commitInventoryWithShortage(null, [movement], shortage);
-    return saved.ok ? { ok: true, value: { movement, shortage } } : writeStorageFailure();
+    /* S07-MR-001: بصمة الحالة التي بُني عليها المتاح ومسار النقص الذرّي. */
+    const expectation: InventoryCommitExpectation = {
+      movementsFingerprint: inventoryMovementsFingerprint(movements.value),
+      materialsFingerprint: inventoryMaterialsFingerprint(materials.value),
+      shortagesFingerprint: inventoryShortagesFingerprint(shortages.value),
+    };
+    const saved = await store.commitInventoryWithShortage(null, [movement], shortage, expectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: {
+        movement: saved.value.movements[0] ?? movement,
+        shortage: saved.value.shortage ?? shortage,
+      },
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات استهلاك المادة مع النقص غير صالحة."));
   }
@@ -157,8 +189,18 @@ export async function resolveShortage(
       resolvedOn: input.resolvedOn,
       resolutionNote: input.resolutionNote,
     });
-    const saved = await store.commitInventoryWithShortage(null, [], resolved);
-    return saved.ok ? { ok: true, value: resolved } : writeStorageFailure();
+    /* S07-MR-001: بصمة النواقص التي بُني عليها قرار الحل — حل متزامن أو تغيّر
+     * بعد القراءة يُسقط الكتابة داخل الحد. */
+    const expectation: InventoryCommitExpectation = {
+      shortagesFingerprint: inventoryShortagesFingerprint(shortagesResult.value),
+    };
+    const saved = await store.commitInventoryWithShortage(null, [], resolved, expectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: saved.value.shortage ?? resolved,
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات حل النقص غير صالحة."));
   }

@@ -2,7 +2,10 @@
 
 /* المجموعة ٤ (عقد ٢٩ — اختبارات سطوح الأصول): رحلة تسجيل الأصل تسأل سؤال
  * الاستخدام الطويل وتعرض أثرها قبل الحفظ؛ القائمة تعرض الدفتري المشتق؛
- * لا مصروف تشغيلي ولا إهلاك خفي — والكاش يظهر في الأحداث فقط مرة. */
+ * لا مصروف تشغيلي ولا إهلاك خفي — والكاش يظهر في الأحداث فقط مرة.
+ * S08 (DOC-017، 2026-10-30): استعلامات الحقول تتبع أسماءها الظاهرة بعد
+ * إزالة aria-label المكرر (قيمة الشراء (د.أ)، القيمة الصحيحة، والمتبقية
+ * عبر التسمية الأصلية) — نفس السطوح بلا تغيير سلوك. */
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -83,7 +86,7 @@ describe("G4 assets surfaces (المجموعة ٤ — عقد ٢٩)", () => {
     fireEvent.change(await screen.findByPlaceholderText("مثال: معدات، أثاث، كهربائيات"), {
       target: { value: "كهربائيات" },
     });
-    const amount = await screen.findByLabelText("قيمة الشراء");
+    const amount = await screen.findByLabelText("قيمة الشراء (د.أ)");
     fireEvent.change(amount, { target: { value: "600" } });
     fireEvent.blur(amount);
     fireEvent.click(await screen.findByRole("button", { name: "نعم، عمره طويل" }));
@@ -112,7 +115,7 @@ describe("G4 assets surfaces (المجموعة ٤ — عقد ٢٩)", () => {
     fireEvent.change(await screen.findByPlaceholderText("مثال: ثلاجة عرض للمحل"), {
       target: { value: "ماكينة" },
     });
-    const amount = await screen.findByLabelText("قيمة الشراء");
+    const amount = await screen.findByLabelText("قيمة الشراء (د.أ)");
     fireEvent.change(amount, { target: { value: "100" } });
     fireEvent.blur(amount);
     fireEvent.click(await screen.findByRole("button", { name: "نعم، عمره طويل" }));
@@ -191,7 +194,7 @@ describe("G4 assets surfaces (المجموعة ٤ — عقد ٢٩)", () => {
     expect(await screen.findByText("ثلاجة عرض")).toBeTruthy();
     /* سطح تصحيح الاقتناء (تصحيح مراجعة 4-c): زر نصي يفتح النموذج المتدرّج. */
     fireEvent.click(await screen.findByRole("button", { name: /صحّح قيمة أو طريقة الاقتناء/ }));
-    const corrected = await screen.findByLabelText("قيمة الشراء الصحيحة");
+    const corrected = await screen.findByLabelText("قيمة الشراء الصحيحة (د.أ)");
     fireEvent.change(corrected, { target: { value: "480" } });
     fireEvent.blur(corrected);
     fireEvent.change(await screen.findByLabelText("طريقة الدفع الصحيحة"), {
@@ -241,7 +244,7 @@ describe("G4 assets surfaces (المجموعة ٤ — عقد ٢٩)", () => {
     fireEvent.change(await screen.findByPlaceholderText("مثال: ثلاجة عرض للمحل"), {
       target: { value: "ثلاجة عرض" },
     });
-    const amount = await screen.findByLabelText("قيمة الشراء");
+    const amount = await screen.findByLabelText("قيمة الشراء (د.أ)");
     fireEvent.change(amount, { target: { value: "100" } });
     fireEvent.blur(amount);
     fireEvent.click(await screen.findByRole("button", { name: /احفظ الأصل/ }));
@@ -264,15 +267,15 @@ describe("G4 assets residual field (contract 43, WS-179)", () => {
     wouterMocks.location = "/assets/new";
     render(<Harness page={<AssetEditor />} />);
     /* قبل اختيار الاستخدام الطويل: لا حقل متبقية. */
-    expect(screen.queryByLabelText("القيمة المتبقية نهاية العمر")).toBeNull();
+    expect(screen.queryByLabelText(/القيمة المتبقية نهاية العمر/)).toBeNull();
     fireEvent.change(await screen.findByPlaceholderText("مثال: ثلاجة عرض للمحل"), {
       target: { value: "مكيف صناعي" },
     });
-    const amount = await screen.findByLabelText("قيمة الشراء");
+    const amount = await screen.findByLabelText("قيمة الشراء (د.أ)");
     fireEvent.change(amount, { target: { value: "480" } });
     fireEvent.blur(amount);
     fireEvent.click(await screen.findByRole("button", { name: "نعم، عمره طويل" }));
-    const residual = await screen.findByLabelText("القيمة المتبقية نهاية العمر");
+    const residual = await screen.findByLabelText(/القيمة المتبقية نهاية العمر/);
     fireEvent.change(residual, { target: { value: "60" } });
     fireEvent.blur(residual);
     fireEvent.change(await screen.findByPlaceholderText("مثال: 24"), { target: { value: "24" } });
@@ -295,12 +298,12 @@ describe("G4 assets residual field (contract 43, WS-179)", () => {
     fireEvent.change(await screen.findByPlaceholderText("مثال: ثلاجة عرض للمحل"), {
       target: { value: "مكيف" },
     });
-    const amount = await screen.findByLabelText("قيمة الشراء");
+    const amount = await screen.findByLabelText("قيمة الشراء (د.أ)");
     fireEvent.change(amount, { target: { value: "480" } });
     fireEvent.blur(amount);
     fireEvent.click(await screen.findByRole("button", { name: "نعم، عمره طويل" }));
     fireEvent.change(await screen.findByPlaceholderText("مثال: 24"), { target: { value: "24" } });
-    const residual = await screen.findByLabelText("القيمة المتبقية نهاية العمر");
+    const residual = await screen.findByLabelText(/القيمة المتبقية نهاية العمر/);
     fireEvent.change(residual, { target: { value: "480" } });
     fireEvent.blur(residual);
     fireEvent.click(await screen.findByRole("button", { name: /احفظ الأصل/ }));

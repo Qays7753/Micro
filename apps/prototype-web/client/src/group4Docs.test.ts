@@ -40,11 +40,13 @@ describe("documentation consistency — Group 4 bundle budget implemented on the
     expect(section34).toContain("المجموعتان ٥ و٦ لم تبدآ");
   });
 
-  it("schema and export versions match the code constants (38/30 after FIN-001 WS-178; the 35/27 statement stays as Group 4 history) — build tooling touches no store", () => {
+  it("schema and export versions match the code constants (40/32 after DOC-014 S05; the 35/27 statement stays as Group 4 history) — build tooling touches no store", () => {
     const section34 = currentState.split("## §34.")[1] ?? "";
     expect(section34).toContain("٣٥/٢٧ بلا تغيير");
-    expect(String(localSchemaVersion)).toBe("38");
-    expect(String(localExportVersion)).toBe("30");
+    /* S05 (DOC-014، 2026-10-29): ٤٠/٣٢ — عائلة الأطراف المحفوظة بأمر S05
+     * المأذون (نمط D-037 نفسه). */
+    expect(String(localSchemaVersion)).toBe("40");
+    expect(String(localExportVersion)).toBe("32");
   });
 
   it("todo marks Group 4 done on the branch and pending merge — not merged", () => {

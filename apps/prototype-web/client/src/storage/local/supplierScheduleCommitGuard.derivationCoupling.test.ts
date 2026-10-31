@@ -3,6 +3,7 @@ import { validateSupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
 import {
   createSupplierPurchase,
   recordSupplierPurchasePayment,
+  updateSupplierPurchase,
 } from "@micro-domain/supplier-purchase/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 
@@ -120,6 +121,185 @@ describe("supplier commit guard — derivation coupling (R2-MF-05 negative coupl
       kind: "revision",
       purchase: corrupted,
       idempotencyKey: "sp-coupling-rev-key",
+    });
+    expect(result.ok).toBe(false);
+  });
+});
+
+/* S07 (UNIT-027 / R2-F02+R2-F05): أذرع CAS للبنود بالاسم — دفعة تُبدّل البنود
+ * فوق الرأس، ومراجعة beforeLines لا تطابق المخزن، ومراجعة تاريخية يُعاد
+ * كتابتها بقيم beforeLines مختلفة؛ الثلاثة تُرفض داخل المعاملة. */
+describe("supplier commit guard — purchase-lines CAS arms (S07 R2-F02/R2-F05)", () => {
+  const TS2 = "2026-10-08T09:00:00.000Z";
+
+  function linesPurchase(): SupplierPurchase {
+    return createSupplierPurchase({
+      id: "sp-lines-cas",
+      supplierName: "مورد البنود",
+      note: "اختبار أذرع البنود",
+      purchasedOn: "2026-10-01",
+      totalMinor: 20_000,
+      initialPaidMinor: 0,
+      recordedAt: TS2,
+      idempotencyKey: "sp-lines-cas-create",
+      lines: [
+        {
+          lineId: "pl-cas-1",
+          materialId: null,
+          expectedQuantityMilli: null,
+          valueMinor: 20_000,
+          costKnowledge: "known",
+          treatment: "period_material",
+        },
+      ],
+    });
+  }
+
+  it("rejects a payment commit that silently rewrites the purchase lines (header identity arm)", () => {
+    const stored = linesPurchase();
+    const paid = recordSupplierPurchasePayment(stored, {
+      id: "sp-lines-cas:pay-1",
+      amountMinor: 5_000,
+      occurredOn: "2026-10-02",
+      recordedAt: TS2,
+      idempotencyKey: "sp-lines-cas-pay-1",
+      note: "دفعة مع تعديل بنود متزامن",
+    });
+    /* تلاعب: نفس الدفعة الصحيحة لكن قيمة البند تغيّرت فوق الرأس. */
+    const tampered: SupplierPurchase = {
+      ...paid,
+      lines: [
+        {
+          lineId: "pl-cas-1",
+          materialId: null,
+          expectedQuantityMilli: null,
+          valueMinor: 19_000,
+          costKnowledge: "known",
+          treatment: "period_material",
+        },
+      ],
+    };
+    const result = validateSupplierPurchaseCommit(stored, {
+      kind: "payment",
+      purchase: tampered,
+      idempotencyKey: "sp-lines-cas-pay-1",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.message).toContain("تغيّر من مسار آخر");
+  });
+
+  it("rejects a revision whose beforeLines disagree with the stored lines (stale edit arm)", () => {
+    const stored = linesPurchase();
+    const edited = updateSupplierPurchase(stored, {
+      supplierName: "مورد البنود",
+      supplierPartyId: null,
+      note: "تعديل الإجمالي",
+      purchasedOn: "2026-10-01",
+      dueOn: null,
+      totalMinor: 25_000,
+      initialPaidMinor: 0,
+      recordedAt: TS2,
+      idempotencyKey: "sp-lines-cas-edit-1",
+      reason: "تصحيح الإجمالي",
+      materialId: null,
+      expectedQuantityMilli: null,
+      lines: [
+        {
+          lineId: "pl-cas-1",
+          materialId: null,
+          expectedQuantityMilli: null,
+          valueMinor: 25_000,
+          costKnowledge: "known",
+          treatment: "period_material",
+        },
+      ],
+    });
+    /* تلاعب: المراجعة الجديدة تدّعي قيم «قبل» مختلفة عن المخزن. */
+    const forgedBefore: SupplierPurchase = {
+      ...edited,
+      revisions: edited.revisions?.map(revision =>
+        revision.idempotencyKey === "sp-lines-cas-edit-1"
+          ? {
+              ...revision,
+              beforeLines: [
+                {
+                  lineId: "pl-cas-1",
+                  materialId: null,
+                  expectedQuantityMilli: null,
+                  valueMinor: 1_000,
+                  costKnowledge: "known",
+                  treatment: "period_material",
+                },
+              ],
+            }
+          : revision,
+      ),
+    };
+    const result = validateSupplierPurchaseCommit(stored, {
+      kind: "revision",
+      purchase: forgedBefore,
+      idempotencyKey: "sp-lines-cas-edit-1",
+    });
+    expect(result.ok).toBe(false);
+  });
+
+  it("rejects a commit that rewrites a prior revision's beforeLines snapshot (R2-F02 sameRevision arm)", () => {
+    const stored = linesPurchase();
+    const firstEdit = updateSupplierPurchase(stored, {
+      supplierName: "مورد البنود",
+      supplierPartyId: null,
+      note: "تعديل أول",
+      purchasedOn: "2026-10-01",
+      dueOn: null,
+      totalMinor: 22_000,
+      initialPaidMinor: 0,
+      recordedAt: TS2,
+      idempotencyKey: "sp-lines-cas-edit-1",
+      reason: "تصحيح أول",
+      materialId: null,
+      expectedQuantityMilli: null,
+      lines: null,
+    });
+    const secondEdit = updateSupplierPurchase(firstEdit, {
+      supplierName: "مورد البنود",
+      supplierPartyId: null,
+      note: "تعديل ثانٍ",
+      purchasedOn: "2026-10-01",
+      dueOn: null,
+      totalMinor: 23_000,
+      initialPaidMinor: 0,
+      recordedAt: TS2,
+      idempotencyKey: "sp-lines-cas-edit-2",
+      reason: "تصحيح ثانٍ",
+      materialId: null,
+      expectedQuantityMilli: null,
+      lines: null,
+    });
+    /* تلاعب: المراجعة التاريخية الأولى يُعاد كتابة لقطة beforeLines فيها. */
+    const tamperedHistory: SupplierPurchase = {
+      ...secondEdit,
+      revisions: secondEdit.revisions?.map(revision =>
+        revision.idempotencyKey === "sp-lines-cas-edit-1"
+          ? {
+              ...revision,
+              beforeLines: [
+                {
+                  lineId: "pl-cas-1",
+                  materialId: null,
+                  expectedQuantityMilli: null,
+                  valueMinor: 999_999,
+                  costKnowledge: "known",
+                  treatment: "period_material",
+                },
+              ],
+            }
+          : revision,
+      ),
+    };
+    const result = validateSupplierPurchaseCommit(firstEdit, {
+      kind: "revision",
+      purchase: tamperedHistory,
+      idempotencyKey: "sp-lines-cas-edit-2",
     });
     expect(result.ok).toBe(false);
   });

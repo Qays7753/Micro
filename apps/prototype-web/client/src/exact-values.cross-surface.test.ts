@@ -233,8 +233,10 @@ describe("storage round trip keeps the same exact value from receipt to display"
 });
 
 describe("schema and export versions stay at the approved contracts", () => {
-  it("keeps localSchemaVersion 38 and localExportVersion 30 unchanged by the exact-value policy (FIN-001 WS-178)", () => {
-    expect(localSchemaVersion).toBe(38);
-    expect(localExportVersion).toBe(30);
+  it("keeps localSchemaVersion 40 and localExportVersion 32 (S05/DOC-014 counterparties; exact-value policy intact)", () => {
+    /* S04 (DOC-013 / UNIT-025): 39/31 — عائلة رصد الأرصدة بأمر S04 مع كامل
+     * أدلة التوافق/الترحيل؛ سياسة القيم الدقيقة نفسها لم تتغير. */
+    expect(localSchemaVersion).toBe(40);
+    expect(localExportVersion).toBe(32);
   });
 });

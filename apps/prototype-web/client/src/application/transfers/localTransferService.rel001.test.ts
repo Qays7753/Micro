@@ -65,7 +65,7 @@ describe("REL-001 resilience gap-fill (WS-181 — Wave 9)", () => {
     expect(JSON.stringify(afterReject.value)).toBe(JSON.stringify(before.value));
 
     /* إعادة المحاولة بالملف الصحيح: استيراد نظيف بلا بقايا من الرفض. */
-    const retried = await service.prepareImport(JSON.stringify(goodFile));
+    const retried = await service.prepareRestore(JSON.stringify(goodFile));
     expect(retried.ok).toBe(true);
     if (!retried.ok) throw new Error(retried.message);
     const applied = await service.confirmImport(retried.value);
@@ -84,7 +84,7 @@ describe("REL-001 resilience gap-fill (WS-181 — Wave 9)", () => {
     const target = new MemoryLocalStore();
     const service = new LocalTransferService(target, () => NOW);
     for (let round = 1; round <= 2; round += 1) {
-      const prepared = await service.prepareImport(JSON.stringify(goodFile));
+      const prepared = await service.prepareRestore(JSON.stringify(goodFile));
       expect(prepared.ok).toBe(true);
       if (!prepared.ok) throw new Error(prepared.message);
       const applied = await service.confirmImport(prepared.value);

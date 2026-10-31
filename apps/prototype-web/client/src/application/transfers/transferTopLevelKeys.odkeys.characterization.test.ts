@@ -4,7 +4,7 @@
  *
  * يثبت هذا الملف (اختباريًا فقط — لا تغيير إنتاجي):
  *  1) اشتقاق مجموعة المفاتيح المسموحة من سجل العائلات الـ31 الكنوني زائد
- *     المفاتيح غير العائلية التي يصدرها المصدّر نفسه (35 مفتاحًا) لا من
+ *     المفاتيح غير العائلية التي يصدرها المصدّر نفسه (36 مفتاحًا) لا من
  *     قائمة يدوية عامة.
  *  2) كامل جسد مصدّر الزوج الحالي (ذهبيا 30/38 + تصدير حي فوق المهايئين)
  *     لا ينتج أي مفتاح خارج المجموعة المسموحة — شرط W2-2 الأول.
@@ -32,7 +32,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { syncSha256Hex } from "@/lib/syncSha256";
 import { IndexedDbLocalStore } from "@/storage/local/IndexedDbLocalStore";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
-import type { LocalStoreSnapshot } from "@/storage/local/types";
+import { localExportVersion, localSchemaVersion, type LocalStoreSnapshot } from "@/storage/local/types";
 import { LocalTransferService } from "./localTransferService";
 import { TRANSFER_ARRAY_FAMILY_ROLES } from "./transferArrayFamilyRoles";
 import { file817 } from "./historical817.fixture";
@@ -102,14 +102,15 @@ function restamp(file: ExportFileShape): ExportFileShape {
 }
 
 describe("OD-KEYS — allowed-set derivation from the registry plus exporter-emitted non-family keys", () => {
-  it("the exporter emits exactly four non-family top-level data keys (35 allowed total)", () => {
+  it("the exporter emits exactly four non-family top-level data keys (37 allowed total)", () => {
     expect(deriveNonFamilyEmittedKeys(exporterCorpus)).toEqual([
       "inventoryActivation",
       "ownerProfile",
       "preferences",
       "profile",
     ]);
-    expect(allowedDataKeys.size).toBe(35);
+    /* S05 (DOC-014): 33 عائلة + 4 غير عائلية (32 ← 33). */
+    expect(allowedDataKeys.size).toBe(37);
   });
 
   it("the complete Current exporter corpus produces no key outside the allowed set (W2-2 precondition 1)", async () => {
@@ -161,7 +162,7 @@ describe("OD-KEYS — Current-pair behavior after W2b activation: an unknown top
     (base.data as Record<string, unknown>)[ROGUE_KEY] = { not: "a micro family" };
     const tampered = restamp(base);
 
-    const prepared = transfers.prepareImport(JSON.stringify(tampered));
+    const prepared = await transfers.prepareRestore(JSON.stringify(tampered));
     expect(prepared.ok).toBe(false);
     if (prepared.ok) throw new Error("must be rejected");
     expect(prepared.code).toBe("validation_error");
@@ -190,7 +191,7 @@ describe("OD-KEYS — Current-pair behavior after W2b activation: an unknown top
       (base.data as Record<string, unknown>)[ROGUE_KEY] = [1, 2, 3];
       const tampered = restamp(base);
 
-      const prepared = transfers.prepareImport(JSON.stringify(tampered));
+      const prepared = await transfers.prepareRestore(JSON.stringify(tampered));
       expect(prepared.ok).toBe(false);
       if (prepared.ok) throw new Error("must be rejected");
       expect("value" in prepared).toBe(false);
@@ -207,15 +208,15 @@ describe("OD-KEYS — Current-pair behavior after W2b activation: an unknown top
 });
 
 describe("OD-KEYS — legacy pair (8/17) behavior characterization: unchanged", () => {
-  it("a legacy file with an unknown top-level data key is accepted exactly as before", () => {
+  it("a legacy file with an unknown top-level data key is accepted exactly as before", async () => {
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     const legacy = clone(file817 as unknown as ExportFileShape);
     (legacy.data as Record<string, unknown>)[ROGUE_KEY] = "legacy extra";
 
-    const prepared = transfers.prepareImport(JSON.stringify(legacy));
+    const prepared = await transfers.prepareRestore(JSON.stringify(legacy));
     if (!prepared.ok) throw new Error(prepared.message);
-    expect(prepared.value.file.version).toBe(30);
-    expect(prepared.value.file.schemaVersion).toBe(38);
+    expect(prepared.value.file.version).toBe(localExportVersion);
+    expect(prepared.value.file.schemaVersion).toBe(localSchemaVersion);
   });
 
   it("legacy unknown keys are likewise dropped at persistence (Memory)", async () => {
@@ -223,7 +224,7 @@ describe("OD-KEYS — legacy pair (8/17) behavior characterization: unchanged", 
     const transfers = new LocalTransferService(store, NOW);
     const legacy = clone(file817 as unknown as ExportFileShape);
     (legacy.data as Record<string, unknown>)[ROGUE_KEY] = "legacy extra";
-    const prepared = transfers.prepareImport(JSON.stringify(legacy));
+    const prepared = await transfers.prepareRestore(JSON.stringify(legacy));
     if (!prepared.ok) throw new Error(prepared.message);
     const confirmed = await transfers.confirmImport(prepared.value);
     if (!confirmed.ok) throw new Error(confirmed.message);
@@ -242,7 +243,7 @@ describe("OD-KEYS — counts-block unknown key on the Current pair (existing MED
     const tampered = restamp(exported.value as unknown as ExportFileShape);
     (tampered.counts as Record<string, number>).rogueExtraCount = 7;
 
-    const prepared = transfers.prepareImport(JSON.stringify(tampered));
+    const prepared = await transfers.prepareRestore(JSON.stringify(tampered));
     expect(prepared.ok).toBe(false);
     expect((prepared as { ok: false; message: string }).message).toBe(
       "عدادات الملف لا تطابق بياناته بعد الترحيل — يبدو أن الملف تغيّر أو نقص بعد إنشائه؛ لا يعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",
@@ -254,7 +255,7 @@ describe("OD-KEYS — first-rejection precedence matrix with an unknown data key
   /** كل حالة: ملف حالٍ يحمل المفتاح المجهول + عطلًا قائمًا واحدًا —
    * الرفض يجب أن يظل برسالة العطل الأصلي نفسها (المفتاح المجهول لا
    * يشارك في الرفض ولا يقدم عليه). */
-  it("bad format wins first (unknown key present)", () => {
+  it("bad format wins first (unknown key present)", async () => {
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     const file = restamp({
       format: "not-micro",
@@ -263,14 +264,14 @@ describe("OD-KEYS — first-rejection precedence matrix with an unknown data key
       exportedAt: NOW(),
       data: { [ROGUE_KEY]: 1 },
     });
-    const prepared = transfers.prepareImport(JSON.stringify(file));
+    const prepared = await transfers.prepareRestore(JSON.stringify(file));
     expect(prepared.ok).toBe(false);
     expect((prepared as { ok: false; message: string }).message).toBe(
       "هذا ليس ملف تصدير Micro المحلي. بقيت بيانات هذا الجهاز دون تغيير.",
     );
   });
 
-  it("unsupported version wins before any data inspection (unknown key present)", () => {
+  it("unsupported version wins before any data inspection (unknown key present)", async () => {
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     const file = restamp({
       format: "micro-prototype-local-export",
@@ -279,14 +280,14 @@ describe("OD-KEYS — first-rejection precedence matrix with an unknown data key
       exportedAt: NOW(),
       data: { [ROGUE_KEY]: 1 },
     });
-    const prepared = transfers.prepareImport(JSON.stringify(file));
+    const prepared = await transfers.prepareRestore(JSON.stringify(file));
     expect(prepared.ok).toBe(false);
     expect((prepared as { ok: false; message: string }).message).toBe(
       "إصدار الملف غير مدعوم في هذا الإصدار من التطبيق؛ بقيت بيانات هذا الجهاز دون تغيير.",
     );
   });
 
-  it("missing exportedAt wins at the structure gate (unknown key present)", () => {
+  it("missing exportedAt wins at the structure gate (unknown key present)", async () => {
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     const file = {
       format: "micro-prototype-local-export",
@@ -294,7 +295,7 @@ describe("OD-KEYS — first-rejection precedence matrix with an unknown data key
       schemaVersion: 38,
       data: { [ROGUE_KEY]: 1 },
     };
-    const prepared = transfers.prepareImport(JSON.stringify(file));
+    const prepared = await transfers.prepareRestore(JSON.stringify(file));
     expect(prepared.ok).toBe(false);
     expect((prepared as { ok: false; message: string }).message).toBe(
       "الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.",
@@ -310,7 +311,7 @@ describe("OD-KEYS — first-rejection precedence matrix with an unknown data key
     (tampered.data as Record<string, unknown>)[ROGUE_KEY] = { evil: true };
     /* بصمة متعبة عن قصد — لا إعادة ختم */
 
-    const prepared = transfers.prepareImport(JSON.stringify(tampered));
+    const prepared = await transfers.prepareRestore(JSON.stringify(tampered));
     expect(prepared.ok).toBe(false);
     expect((prepared as { ok: false; message: string }).message).toBe(
       "تُغيّر الملف بعد إنشائه فبصمة التكامل لا تطابقه؛ لا تعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",
@@ -326,7 +327,7 @@ describe("OD-KEYS — first-rejection precedence matrix with an unknown data key
     (base.data as Record<string, unknown>).materials = { not: "an array" };
     const tampered = restamp(base);
 
-    const prepared = transfers.prepareImport(JSON.stringify(tampered));
+    const prepared = await transfers.prepareRestore(JSON.stringify(tampered));
     expect(prepared.ok).toBe(false);
     expect((prepared as { ok: false; message: string }).message).toBe(
       "بنية الملف غير سليمة — قيمة عائلة «المواد» ليست مصفوفة كما تقتضي بنية Micro؛ لا يعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",
@@ -342,7 +343,7 @@ describe("OD-KEYS — first-rejection precedence matrix with an unknown data key
     (base.data as Record<string, unknown>).drafts = [{ id: 42, definitelyNot: "a valid draft" }];
     const tampered = restamp(base);
 
-    const prepared = transfers.prepareImport(JSON.stringify(tampered));
+    const prepared = await transfers.prepareRestore(JSON.stringify(tampered));
     expect(prepared.ok).toBe(false);
     expect((prepared as { ok: false; message: string }).message).toBe(
       "الملف ناقص أو لا يطابق بنية Micro المطلوبة. بقيت بيانات هذا الجهاز دون تغيير.",
@@ -362,7 +363,7 @@ describe("OD-KEYS — first-rejection precedence matrix with an unknown data key
     (tampered.counts as Record<string, number>).financialEvents =
       (tampered.counts as Record<string, number>).financialEvents + 1;
 
-    const prepared = transfers.prepareImport(JSON.stringify(tampered));
+    const prepared = await transfers.prepareRestore(JSON.stringify(tampered));
     expect(prepared.ok).toBe(false);
     expect((prepared as { ok: false; message: string }).message).toBe(
       "عدادات الملف لا تطابق بياناته بعد الترحيل — يبدو أن الملف تغيّر أو نقص بعد إنشائه؛ لا يعتمد عليه. بقيت بيانات هذا الجهاز دون تغيير.",

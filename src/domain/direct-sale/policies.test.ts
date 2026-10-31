@@ -12,13 +12,16 @@ const input = {
   idempotencyKey: "sale-op-1",
 };
 
-/* معاونو الاختبار: بيع جزفي بمتبقٍ وقرار معلن، وطلب تعديل يحفظ حقول الأصل. */
+/* معاونو الاختبار: بيع جزفي بمتبقٍ وقرار معلن، وطلب تعديل يحفظ حقول الأصل.
+ * S05 (DOC-014 / UNIT-037 A1/SDF-010): المتبقي الجديد يحتاج تعريفًا بسيطًا —
+ * كل بيع جزفي في هذه الاختبارات يحمل اسمًا تعريفيًا للدين. */
 const partialSale = (overrides: Record<string, unknown> = {}) =>
   createDirectSale({
     ...input,
     costMinor: null,
     collectedMinor: 300,
     collectionStatus: "partial_debt",
+    customerName: "خالد — جار المحل",
     ...overrides,
   });
 const editOf = (
@@ -240,6 +243,7 @@ describe("direct sale price cut and edit trail (X-06)", () => {
       costMinor: null,
       collectedMinor: 300,
       collectionStatus: "partial_debt",
+      customerName: "خالد — جار المحل",
     });
     const cut = applyPriceCut(partial, {
       idempotencyKey: "cut-op-3",

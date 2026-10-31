@@ -165,6 +165,15 @@ export function createInventoryMovement(input: CreateInventoryMovementInput): In
   }
   if (type === "purchase_receipt" && !input.purchaseId)
     throw new Error("استلام الشراء يحتاج مرجع شراء مواد.");
+  /* S07 (UNIT-027): مرجع البند عند الاستلام — إن أُعطي فلا يكون فارغًا؛
+   * وتطابقه مع الشراء/المادة فحص تطبيقي عند الخدمة داخل حد الكتابة. */
+  if (
+    type === "purchase_receipt" &&
+    input.purchaseLineId !== undefined &&
+    input.purchaseLineId !== null &&
+    !input.purchaseLineId.trim()
+  )
+    throw new Error("مرجع بند الشراء فارغ — اربطه ببند قائم أو اتركه بلا بند.");
   /* المجموعة ٢ (عقد ٢٨): الاستهلاك لطلب محدد أو بيان صريح لعمل المشروع —
    * الاستهلاك بلا مرجع ولا بيان حركة مجهولة تُرفض. المجموعة ٣ (عقد D6):
    * البيع المباشر مرجع صريح كذلك — استهلاك مرتبط ببيع لا يحتاج بيانًا إضافيًا. */
@@ -190,6 +199,7 @@ export function createInventoryMovement(input: CreateInventoryMovementInput): In
     reason: input.reason?.trim() || null,
     operationKey: nonEmpty(input.operationKey, "مفتاح العملية"),
     purchaseId: input.purchaseId ?? null,
+    purchaseLineId: input.purchaseLineId?.trim() || null,
     orderId: input.orderId ?? null,
     saleId: input.saleId?.trim() || null,
     reversesMovementId: input.reversesMovementId ?? null,

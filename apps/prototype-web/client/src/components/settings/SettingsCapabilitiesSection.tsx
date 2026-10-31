@@ -32,7 +32,8 @@ type SectionProps = {
   preferences: PreferenceService;
   agreements: AgreementService;
   inventory: InventoryMaterialService;
-  supplierPurchases: SupplierPurchaseService;
+  /* S07 (سابقة transfers/loans): خدمة المشتريات كسولة — null = «جارٍ التجهيز». */
+  supplierPurchases: SupplierPurchaseService | null;
   catalog: CatalogService;
   dataVersion: number;
   notifyDataChanged: () => void;
@@ -56,6 +57,10 @@ export function SettingsCapabilitiesSection({
 
   useEffect(() => {
     let active = true;
+    /* S07 (سابقة transfers/loans): الخدمة الكسولة غير جاهزة بعد — الأعداد
+     * تبقى غير محملة (عد 0 مع «قيد التجهيز» لا رقمًا كاذبًا) وتُعاد القراءة
+     * فور جاهزيتها (dependency على الخدمة نفسها). */
+    if (!supplierPurchases) return undefined;
     void (async () => {
       const preference = await preferences.readDisabledCapabilities();
       if (active && preference.ok) setDisabled(preference.disabled.filter(isKnownCapabilityId));

@@ -113,13 +113,13 @@ describe("schema 32 export round-trip with selective inventory", () => {
     expect(verified.value.file.schemaVersion).toBe(localSchemaVersion);
     /* المجموعة ٣ (عقد D3): زوج الإصدار انتقل إلى ٢٥/٣٣ مع حقول ربط المنتج
      * بالبيع — السلوك المدقق نفسه يبقى على الزوج الحي. */
-    expect(verified.value.file.version).toBe(30);
-    expect(verified.value.file.schemaVersion).toBe(38);
+    expect(verified.value.file.version).toBe(32);
+    expect(verified.value.file.schemaVersion).toBe(40);
     expect(verified.value.summary).toMatchObject({ materials: 3, inventoryShortages: 1 });
 
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);
-    const prepared = targetTransfers.prepareImport(JSON.stringify(verified.value.file));
+    const prepared = await targetTransfers.prepareRestore(JSON.stringify(verified.value.file));
     if (!prepared.ok) throw new Error(prepared.message);
     const confirmed = await targetTransfers.confirmImport(prepared.value);
     if (!confirmed.ok) throw new Error(confirmed.message);
@@ -207,7 +207,7 @@ describe("schema 32 export round-trip with selective inventory", () => {
       delete movement.costKnowledge;
     }
     delete legacyFile.data.inventoryShortages;
-    const prepared = new LocalTransferService(new MemoryLocalStore(), now).prepareImport(
+    const prepared = await new LocalTransferService(new MemoryLocalStore(), now).prepareRestore(
       JSON.stringify(legacyFile),
     );
     if (!prepared.ok) throw new Error(prepared.message);

@@ -38,7 +38,7 @@
 | 12C-1 | **تمييز أرقام العقود المتشابهة ١٨–٢٣ (بلا إعادة ترقيم أبدًا)**: كل رقم من ١٨ إلى ٢٣ يحمله ملفان من سلسلتين مختلفتين — (١) سلسلة النموذج المحلي: `18-derived-monthly-order-schedule-g6-a-contract.md` (G6-A)، `19-bounded-local-schedule-recurrence-g6-b-contract.md` (G6-B)، `20-agreement-source-follow-up-g7-a-contract.md` (G7-A)، `21-guided-opening-import-prototype-contract.md` (G8.2)، `22-bounded-operating-capacity-pilot-contract.md` (G9.1)، `23-general-financial-event-correction-boundary-proposal-v1.md` (C1)؛ و(٢) سلسلة توسعة الشبكة E-00: `18-network-identity-workspace-access-contract.md` (N-01/N-02)، `19-services-notification-manage-boundary-contract.md` (N-03/N-04)، `20-market-need-response-listing-moderation-contract.md` (M-01/M-02)، `21-delivery-request-quote-status-privacy-contract.md` (D-01/D-02)، `22-network-moderation-consent-audit-contract.md` (A-01)، `23-network-data-lifecycle-recovery-contract.md` (N-05). أي إشارة إلى «عقد ١٨…٢٣» يجب أن تسمّي السلسلة والملف صراحة. الأرقام ٢٤/٢٥ لسلسلة الشبكة وحدها، و٢٦–٢٩ لسلسلة النموذج وحدها. قرار عدم إعادة الترقيم: حفظ الروابط التاريخية القائمة؛ الإعادة ترقيم كسر مرجعي بلا مكسب سلوكي (قرار المالك D3 على تقرير المسح الهيكلي 2026-09-12). | CURRENT / DISAMBIGUATION | منع الغموض المرجعي لأرقام العقود المتشابهة قبل أي استشهاد |
 | 12C-2 | `docs/contracts/30-unified-activity-reader-contract.md` إلى `39-export-envelope-integrity-contract.md` | CURRENT / PROTOTYPE | عقود المجموعة ٥ من برنامج النقل (سُدّدت ملفاتها في المجموعة ٨ من برنامج المعالجة الرباعية 2026-09-12 بقرار المالك D2): ٣٠ القارئ الموحّد للنشاط، ٣١ عمق النتيجة (البنود غير النقدية)، ٣٢ تقرير الفترة المحلي Markdown، ٣٣ المشاركة اليدوية، ٣٤ سجل التصحيحات، ٣٥ فحوص الاستمرارية MIC-14..16، ٣٦ مسودات النماذج، ٣٧ القفل المحلي، ٣٨ تحديث PWA الودود للنماذج، ٣٩ مظروف النسخ v27 وتكامل ملف النقل |
 | 12C-3 | `docs/contracts/40-technical-ownership-map-contract.md` | CURRENT / PROTOTYPE | خريطة الملكية التقنية وحدود الوحدات (الموجة الثالثة — EXE-017): مالك كل خدمة وكتابة وسياسة (فحص السلامة وسياسات التوزيع للمالية، النسخ والاستعادة للإعدادات/البيانات، الكتالوج مستهلك)، عقد أهلية «أدواتي»، أسطح التوافق المؤقتة للموجة الرابعة وBacklogها — يحرسها `ownershipBoundaries.exe017.test.ts` |
-| 12C-4 | `docs/contracts/41-recurring-expense-reminders-contract.md` | CURRENT / PROTOTYPE | عقد تذكير المصروف المتكرر المحلي (OPS-003 / قرار D-037): المفاهيم الأربعة المنفصلة (سلسلة/مراجعة مجمدة/فترة بقراراتها/حدث مالي بالكاتب الكنوني فقط)، تقويم الفترة والأشهر القصيرة، مفتاح الحتمية بالخانة، حالات القراءة المشتقة (انتباه/مجهول/معكوس)، المخازن ٣٦/٢٨ حين القرار (اليوم 38/30 — تصحيح مؤرخ 2026-09-29 F-033/W4-B)، ومفردات الواجهة الإلزامية الأربع |
+| 12C-4 | `docs/contracts/41-recurring-expense-reminders-contract.md` | CURRENT / PROTOTYPE | عقد تذكير المصروف المتكرر المحلي (OPS-003 / قرار D-037): المفاهيم الأربعة المنفصلة (سلسلة/مراجعة مجمدة/فترة بقراراتها/حدث مالي بالكاتب الكنوني فقط)، تقويم الفترة والأشهر القصيرة، مفتاح الحتمية بالخانة، حالات القراءة المشتقة (انتباه/مجهول/معكوس)، المخازن ٣٦/٢٨ حين القرار (اليوم 40/32 — تصحيح مؤرخ 2026-10-29 DOC-014/S05)، ومفردات الواجهة الإلزامية الأربع |
 | 12C-5 | `docs/contracts/42-optional-expense-budgets-goals-contract.md` | CURRENT / PROTOTYPE | عقد ميزانيات وأهداف المصروف الاختيارية (FIN-002 / قرار المالك D-037): خطة لا حدث مالي، مفاهيم مفصولة، تقويم شهري YYYY-MM بتوقيت عمّان، عدم تداخل النطاقات، حالات مشتقة (ضمن/متجاوز/مراجعة)، مخازن 37/29 حين القرار |
 | 12C-6 | `docs/contracts/43-asset-depreciation-prototype-contract.md` | CURRENT / PROTOTYPE | عقد إهلاك الأصول الاسمي للنموذج (FIN-008): مصروف غير نقدي معلن لا يلمس الكاش؛ نماذج الإهلاك الإضافية (ضريبة/إعادة تقييم/مجموعات) خارج النطاق بقرار موثق |
 | 12D | `docs/expansion/ROLE-ACCESS-MATRIX.md` و`E00-SCENARIOS-AND-ACCEPTANCE.md` و`E00-EXECUTION-PROTOCOL.md` و`E00-REVIEW-CHECKLIST.md` | CURRENT / EXPANSION E-00 | مصفوفة الوصول وسيناريوهات القبول وبروتوكول وChecklist التوثيق قبل تجربة البيت أو التفعيل |
@@ -64,7 +64,7 @@
 | 19A | `docs/product/activity-profiles-and-hybrid-projects-v1.md` | CURRENT / PRODUCT ARCHITECTURE | حدود النواة والـProfiles والأنشطة المختلطة |
 | 19B | `docs/product/owner-decisions-v1.md` | CURRENT / SCOPED REGISTER | قرارات مالك برنامج إعادة التوزيع 2026-08 (١..٢٤ +٢٣-ب)؛ حاكمة داخل نطاقها ومتاحة من `02-decision-log.md`، ولا تعلو على العقود في معنى المال |
 | 19C | `docs/product/settled-findings-v1.md` | CURRENT / SCOPED REGISTER | توافق القراءات الأربع ومعايير قبول برنامج إعادة التوزيع |
-| 19D | `docs/product/code-facts-v1.md` | CURRENT — أرقامه لقطة مؤرخة (الزوج الحي 38/30 بتصحيح مؤرخ) | حقائق ما بُني فعلًا في حقبة إعادة التوزيع |
+| 19D | `docs/product/code-facts-v1.md` | CURRENT — أرقامه لقطة مؤرخة (الزوج الحي 39/31 بتصحيح مؤرخ 2026-10-28) | حقائق ما بُني فعلًا في حقبة إعادة التوزيع |
 | 19E | `docs/product/capability-redistribution-v1.md` | CURRENT / PROGRAM RECORD — منفذ عبر موجات 4.1–4.4 | فهم «لماذا صارت كل شاشة في مكانها»؛ ليس خطة عمل حالية |
 | 19F | `docs/product/placement-principles-v1.md` | CURRENT / SUPPORTING | مبادئ مواضع العناصر المستمدة من إعادة التوزيع |
 | 20A | `docs/product/mobile-ui-ux-reference-v1.md` | CURRENT / CANONICAL / PHONE-FIRST | مرجع الشكل والتفاعل والحالات والصدق المالي على الهاتف، قبل بناء الواجهة — **§6.1 و§6.2 و§6.4 مُلغات** بقرار إعادة التوزيع (`capability-redistribution-v1.md`) |
@@ -110,7 +110,7 @@
 | 34 | `docs/operations/archive/decision-18-accounting.md` | HISTORICAL / SCOPED RECORD | محاسبة حالة القرار ١٨ وحدود F-014/F-015 المؤجلة (أُرشف 2026-10-02) |
 | 35 | `docs/operations/archive/agent-handoff-2026-08-29.md` · `agent-handoff-2026-08-30.md` · `agent-handoff-2026-08-30-peeling-and-design-system.md` | HISTORICAL / SESSION RECORDS | سجلات تسليم وكيل مؤرخة؛ لا سلطة حالية (أُرشفت 2026-10-02) |
 | 36 | `docs/operations/archive/implementation-report-ar.md` | HISTORICAL / EXECUTION REPORT | تقرير التنفيذ العربي لحقبة إعادة التدفق (2026-08-31؛ أُرشف 2026-10-02) |
-| 37 | `docs/implementation-traceability.md` | CURRENT — صفوف المجموعات لقطات تاريخية صادقة (تصحيح مؤرخ 2026-10-01 للزوج الحي 38/30 في الترويسة) | تتبع ما نُفذ بحقبة المجموعات ١–٤ |
+| 37 | `docs/implementation-traceability.md` | CURRENT — صفوف المجموعات لقطات تاريخية صادقة (تصحيح مؤرخ 2026-10-28 للزوج الحي 39/31 في الترويسة) | تتبع ما نُفذ بحقبة المجموعات ١–٤ |
 | 38 | `docs/reference/independent-flow-redesign.md` | HISTORICAL / DESIGN EXERCISE | مرجع تصميم إعادة التدفق المالي والتشغيلي؛ يُقرأ عند تفسير قرارات التدفق فقط |
 | 39 | `docs/inventory/` — الملفات السبعة الحية: `00-summary.md` · `01-inventory-master.md` · `03-gap-ranking.md` · `05-unreachable.md` · `06-foundational-setup.md` · `07-duplicates.md` · `08-dependencies.md` (دُمج README في 00-summary وأُرشيف 09 ودُمج 02-by-tier في 01، تحديثات مؤرخة 2026-10-02؛ أسماء الملفات صريحة بتوسيع G2/STR-619 — 2026-10-04) | CONTEXT PACK — جرد قدرات ما قبل إعادة التوزيع (F-001..F-083) | قياس مرجعي لا وثيقة تصميم؛ معرّفات F تستهلكها owner-decisions وsettled-findings |
 | 40 | `docs/product-audit/` (3 مصادر `.md`): `financial-system-approved-repairs-source.md` · `financial-system-current-state-analysis-source.md` · `financial-system-deep-ux-product-analysis-source.md` | CONTEXT PACK — سلسلة تدقيق 2026-08-31/09-01 (PA-001..PA-0026) | أصل معرّفات المكتشفات. *(تحديث مؤرخ 2026-10-02 — OD-07: حُذفت مرايا `.docx` الثلاث بقرار مالك بعد إثبات علاقة المرآة من ترويسات المصادر المحفوظة نفسها وتوافق الإصدار الواحد `ddf44f2`؛ الأصل في تاريخ git.)* |
@@ -286,6 +286,136 @@
 | `docs/architecture/components/unit002-20261019/UNIT-002-ZAI-AUTHORIZATION-REVIEW-PROMPT-2026-10-19.md` | عقد مراجعة واعتماد ZAI قراءة-فقط قبل أي تنفيذ UNIT-002 |
 | `docs/operations/control/items/DOC-009.json` | سجل Control لمواصفة ومراجعة اعتماد UNIT-002 |
 | `docs/operations/control/workstreams/WS-225.json` | Workstream مراجعة UNIT-002 على فرع التكامل؛ لا Claim تنفيذ نشط |
+
+## برنامج تنفيذ مكونات Micro — S01–S04
+| الملف | الدور |
+|---|---|
+| `docs/implementation/micro-component-execution/00-S01-APPROVED-TASK-2026-10-27.md` | تكليف S01 المعتمد وحدود الكتابة والتوقف؛ لا أمر ZAI |
+| `docs/implementation/micro-component-execution/03-S01-RESULT-2026-10-27.md` | نتيجة تسليم S01 للمراجعة، والحدود وما لم يتغير |
+| `docs/implementation/micro-component-execution/04-S01-AUTHORITY-MATRIX-2026-10-27.md` | مصفوفة السلطة بين النسخ السابقة والجديدة والحالة التنفيذية |
+| `docs/implementation/micro-component-execution/05-S01-RESUME-INSTRUCTIONS-2026-10-27.md` | عقد الاستئناف ونقطة التوقف الآمنة |
+| `docs/implementation/micro-component-execution/06-S01-PACKAGE-RECONCILIATION-2026-10-27.md` | مصالحة بصمة ZIP وعدد ملفات الحزمة والإضافات |
+| `docs/operations/control/items/DOC-010.json` | سجل Control لـS01 |
+| `docs/operations/control/workstreams/WS-226.json` | Workstream S01 على فرع التكامل |
+| `docs/implementation/micro-component-execution/00-S02-TASK-DRAFT-2026-10-27.md` | مسودة تكليف S02 للمراجعة؛ ليست أمر تنفيذ ولا جزءًا من حزمة ZIP الأصلية |
+| `docs/implementation/micro-component-execution/00-S02-EXECUTION-PROMPT-2026-10-27.md` | أمر S02 الوحيد الجاهز لـZAI؛ GitHub canonical؛ لا ChatGPT gate |
+| `docs/implementation/micro-component-execution/S02-DRIVE-GITHUB-RECONCILIATION-2026-10-27.md` | دليل provenance لمطابقة أحدث UNIT-042/044؛ ليس مصدر تنفيذ بديلًا |
+| `docs/implementation/micro-component-execution/07-S02-RESULT-2026-10-27.md` | نتيجة تنفيذ S02 ومصفوفة SDF والمراجعات الخمس وحد التراجع — تسليم للمراجعة |
+| `docs/operations/control/items/DOC-011.json` | سجل Control لـS02 |
+| `docs/operations/control/workstreams/WS-227.json` | Workstream تنفيذ S02 على فرع التكامل |
+| `docs/implementation/micro-component-execution/00-S03-EXECUTION-PROMPT-2026-10-28.md` | أمر ZAI الأساسي لـS03؛ GitHub canonical؛ تنفيذ مشروط بإغلاق بوابة S02 |
+| `docs/implementation/micro-component-execution/08-S03-RESULT-2026-10-28.md` | نتيجة تنفيذ S03 ومصفوفة القبول العشرة والمراجعات الخمس وحد التراجع — تسليم للمراجعة |
+| `docs/operations/control/items/DOC-012.json` | سجل Control لـS03 |
+| `docs/operations/control/workstreams/WS-228.json` | Workstream تنفيذ S03 على فرع التكامل |
+| `docs/implementation/micro-component-execution/00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28.md` | أمر ZAI الكنسي لإعادة تحقق وإصلاح تزامن S03 ثم تنفيذ S04 على الفرع وPR نفسيهما؛ لا دمج أو كتابة على main |
+| `docs/implementation/micro-component-execution/09-S04-RESULT-2026-10-28.md` | نتيجة إعادة تحقق S04 وعلاج عيب التزامن وتنفيذ S04 ومصفوفة القبول والمراجعات الخمس — تسليم للمراجعة |
+| `docs/implementation/micro-component-execution/10-S05-RESULT-2026-10-29.md` | نتيجة تنفيذ S05 (العملاء والموردون) ومصفوفة القبول والمراجعات الخمس ومعالجة CF-001/CF-002 — تسليم للمراجعة |
+| `docs/operations/control/items/DOC-013.json` | سجل Control لإعادة تحقق S04 وعلاجها وتنفيذ S04 |
+| `docs/operations/control/workstreams/WS-229.json` | Workstream تنفيذ إعادة التحقق وS04 على فرع التكامل |
+| `docs/implementation/micro-component-execution/00-S05-EXECUTION-PROMPT-2026-10-29.md` | أمر S05 الكنسي لـZAI: مراجعة خفيفة لـS04 ثم تنفيذ العملاء والموردين UNIT-037 على نفس الفرع وPR؛ لا main ولا merge |
+| `docs/implementation/micro-component-execution/00-S06-EXECUTION-PROMPT-2026-10-29.md` | أمر S06 الكنسي لـZAI: إصلاحا عقد S05 المؤكدان (S05-MR-001/S05-MR-002) من الجذر ثم تنفيذ S06 الكامل للمصروف والمتكرر UNIT-015/UNIT-019 على نفس الفرع وPR؛ لا main ولا merge |
+| `docs/implementation/micro-component-execution/10a-S05-ADDENDUM-2026-10-30.md` | ملحق نتيجة S05: الملاحظتان المؤكدتان S05-MR-001/S05-MR-002 وسلوكهما قبل الإصلاح وإصلاحاهما الجذريان وانحداراتهما الدائمة على المهايئين والموقف الصادق وحدود توسع ادعاءات النتيجة الأصلية |
+| `docs/implementation/micro-component-execution/11-S06-RESULT-2026-10-29.md` | نتيجة تنفيذ S06 (المصروف والمتكرر والفاتورة المشتركة) ومصفوفة القبول والمراجعات الخمس — تسليم للمراجعة |
+| `docs/implementation/micro-component-execution/00-S07-EXECUTION-PROMPT-2026-10-29.md` | أمر S07 الكنسي لـZAI: إثبات/إصلاح ملاحظة مراجعة S06 المؤكدة (S06-MR-001) من الجذر ثم تنفيذ S07 الكامل للمشتريات والمواد UNIT-027/UNIT-028 على نفس الفرع وPR؛ لا main ولا merge |
+| `docs/implementation/micro-component-execution/11a-S06-ADDENDUM-2026-10-30.md` | ملحق نتيجة S06: الملاحظة المؤكدة S06-MR-001 وسلوكها قبل الإصلاح وإصلاحها الجذري وانحدارها الدائم على المهايئين والموقف الصادق |
+| `docs/implementation/micro-component-execution/12-S07-RESULT-2026-10-30.md` | نتيجة تنفيذ S07 (المشتريات والمواد والمخزون الاختياري) ومصفوفة القبول وسجل ملاحظات المراجعات الخمس الكامل — تسليم للمراجعة |
+| `docs/implementation/micro-component-execution/13-S08-RESULT-2026-10-30.md` | نتيجة تنفيذ S08 (الأصول والمعدات) ومصفوفة القبول وسجل ملاحظات المراجعات الخمس الكامل — تسليم للمراجعة |
+| `docs/implementation/micro-component-execution/13a-S08-REVIEW-FIX-ADDENDUM-2026-10-30.md` | ملحق نتيجة S08: الملاحظتان المؤكدتان S08-MR-001/S08-MR-002 وسلوكهما قبل الإصلاح وإصلاحاهما الجذريان (سطر الثابت الواحد عند حد التحقق القانوني + الدليل الدائم على المسار الحقيقي) وانحداراهما الدائمان وتصحيح ادعاء دورة النقل بتاريخه |
+| `docs/implementation/micro-component-execution/00-S08-EXECUTION-PROMPT-2026-10-30.md` | أمر S08 الكنسي لـZAI: إتمام إصلاح S07-MR-001 الجذري (CAS حدود المخزون داخل حد الكتابة) ومصالحة البوابات البعيدة على الرأس النهائي ثم تنفيذ S08 المتصل للأصول والمعدات UNIT-034 على نفس الفرع وPR؛ لا main ولا merge |
+| `docs/implementation/micro-component-execution/00-S08-REVIEW-FIX-PROMPT-2026-10-30.md` | أمر تصحيح مستقل لملاحظتي Manus على S08: التحقق من مرجع طرف اقتناء الأصل داخل بيانات الاستيراد وإثبات دورة التصدير والاستعادة للحقول الجديدة؛ لا إعادة تنفيذ S08 أو بدء S09 |
+| `docs/implementation/micro-component-execution/00-S09-EXECUTION-PROMPT-2026-10-30.md` | أمر ZAI الموحد: استئناف من checkpoint `e4208661` دون إعادة العمل، إصلاح كل إخفاقات Control وGitHub/Cloudflare المثبتة، ثم إكمال S09 بالكامل دون توقف أو موافقة وسيطة؛ لا S10 ولا main ولا merge |
+| `docs/implementation/micro-component-execution/14-S09-RESULT-2026-10-30.md` | نتيجة S09 لمسودة الطلب والتكلفة والمنتج القابل لإعادة الاستخدام (UNIT-007/008/029 + SH-13): التنفيذ الكامل عبر النواة الواحدة ومصفوفة القبول بالدليل الدائم ومصالحة Control القانونية والمراجعات الخمس وتصحيحاتها والسلسلة الكاملة والتحقق البعيد |
+| `docs/implementation/micro-component-execution/00-S10-EXECUTION-PROMPT-2026-10-31.md` | أمر ZAI الكنسي: تسجيل الاستثناءين الأمنيين اللذين أجازهما المالك صراحةً إن بقيا مبررين بعد إعادة التحقق، ثم تنفيذ S10 كاملة (UNIT-030/031/032 + SH-14) على فرع التكامل وPR نفسيهما دون موافقة وسيطة؛ لا main ولا merge |
+| `docs/implementation/micro-component-execution/15-S10-RESULT-2026-10-31.md` | نتيجة S10 للأدوات المستقلة ومحفوظات الحاسبة (UNIT-030/031/032 + SH-14): الأدوات الخمس فوق النواة الواحدة وحفظ T01 الاختياري داخل الحاسبة على 40/32 بلا ترقية، ومصفوفة القبول بالدليل الدائم، والمراجعات الخمس وتصحيحاتها المعاد قراءتها، وإرساء الأسطح الموثق من قياس فعلي، والسلسلة الكاملة خروج 0 |
+
+### تغطية ملفات الحزمة الأصلية
+
+الحزمة التالية مسجلة كحزمة تنفيذ واحدة؛ القائمة تحفظ التغطية الفردية للحارس ولا تنشئ مصدر مواصفة منافسًا:
+
+- `docs/implementation/micro-component-execution/00-PROGRAM.md`
+- `docs/implementation/micro-component-execution/00-S01-APPROVED-TASK-2026-10-27.md`
+- `docs/implementation/micro-component-execution/01-STAGES.md`
+- `docs/implementation/micro-component-execution/02-PROGRESS-AND-HANDOFF.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/00-START-HERE-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/01-Standards/01-Component-Criteria-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/01-Standards/02-System-Data-and-Financial-Readiness-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/02-Current-System/02-Current-Components-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/02-Current-System/03-As-Is-Audit-2026-10-27-fd5d7ce/01-Component-Data-and-Financial-Map-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/02-Current-System/03-As-Is-Audit-2026-10-27-fd5d7ce/02-Repository-Structure-and-Implementation-Map-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/00-COMPONENTS-INDEX-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/01-OWNERSHIP-AND-DUPLICATION-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/02-STRUCTURE-DECISIONS-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-001-إعداد-المشروع.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-002-استكمال-بيانات-المشروع.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-003-مشروعي-الآن.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-004-التسجيل-السريع.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-005-البيع-المباشر.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-006-العمل.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-007-مسودة-الطلب.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-008-التكلفة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-009-الاتفاق-والعربون.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-010-تفاصيل-الطلب.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-011-مراجعة-التسليم.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-012-المواعيد-والمتابعات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-013-المالية-وملخص-الفترة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-013B-ميزانيات-المصروف-الاختيارية.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-014-أدوات-وسجلات-المالية.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-015-تسجيل-العمليات-المالية.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-016-كشف-الفترة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-017-سجل-العمليات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-018-المتابعة-المالية.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-019-تكرار-المصروف.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-020-مال-المالك.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-021-التوقعات-النقدية-المؤجلة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-022-إدارة-النقد.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-023-التحويل-بين-أماكن-النقد.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-024-تحديد-مكان-النقد.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-025-مطابقة-رصيد-الصندوق.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-026-تسجيل-دفعة-على-مستحق.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-027-المشتريات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-028-المواد-والمخزون.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-029-المنتجات-والخدمات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-030-نقل-وظائف-أدواتي.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-031-التكلفة-والتسعير.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-032-التقديرات-المحفوظة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-033-فحص-البيانات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-034-الأصول-والمعدات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-035-القروض-التي-أعطاها-المشروع.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-036-القروض-التي-أخذها-المشروع.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-037-العملاء-والموردون.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-038-الإعدادات.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-039-بيانات-المشروع-والمالك.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-040-المشاركة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-041-السوق.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-042-قفل-التطبيق.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-043-الخدمات-القادمة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-044-النسخ-الاحتياطي-والاستعادة.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/00-System-Navigation-Master-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/00-JOURNEYS-INDEX-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/01-First-Use-and-First-Task-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/02-Customer-Order-Lifecycle-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/03-Direct-Sale-and-Collection-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/04-Purchases-Payments-and-Optional-Stock-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/05-Expenses-and-Recurring-Commitments-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/06-Cash-and-Owner-Money-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/07-Optional-Capabilities-and-Planning-Tools-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/08-Settings-Maintenance-Backup-and-Restore-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/09-Future-Services-Entries-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/10-Account-Completion-and-Return-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/02-Consistency-Review-and-Decisions-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/01-Current-vs-Approved-Components-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md`
+- `docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/04-Staged-Execution-and-Review-Protocol-AR.md`
+- `docs/implementation/micro-component-execution/03-S01-RESULT-2026-10-27.md`
+- `docs/implementation/micro-component-execution/04-S01-AUTHORITY-MATRIX-2026-10-27.md`
+- `docs/implementation/micro-component-execution/05-S01-RESUME-INSTRUCTIONS-2026-10-27.md`
+- `docs/implementation/micro-component-execution/06-S01-PACKAGE-RECONCILIATION-2026-10-27.md`
+- `docs/implementation/micro-component-execution/07-S02-RESULT-2026-10-27.md`
+- `docs/implementation/micro-component-execution/00-S03-EXECUTION-PROMPT-2026-10-28.md`
+- `docs/implementation/micro-component-execution/BASELINE-RECONCILIATION.md`
+- `docs/implementation/micro-component-execution/DEPENDENCIES-AND-TRACEABILITY.md`
+- `docs/implementation/micro-component-execution/MANIFEST.md`
 
 ## مخازن الأدلة — غير سلطوية وخارج القراءة الافتراضية
 

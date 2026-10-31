@@ -73,6 +73,12 @@ export const TRANSFER_ARRAY_FAMILY_ROLES = {
   recurringExpenseOccurrences: { historicalClass: "optional", counted: true, label: "فترات المصروف المتكرر" },
   expenseBudgets: { historicalClass: "optional", counted: true, label: "الميزانيات" },
   receivedLoans: { historicalClass: "optional", counted: true, label: "القروض المستلمة" },
+  /* S04 (DOC-013 / UNIT-025): رصد الأرصدة — اختيارية-عند-الغياب كعائلات D-037؛
+   * الموجود المعطوب يُرفض؛ القياس يُنقل كما هو بلا إعادة تسوية. */
+  balanceObservations: { historicalClass: "optional", counted: true, label: "رصد أرصدة النقد" },
+  /* S05 (DOC-014 / UNIT-037): الأطراف المحفوظة — اختيارية-عند-الغياب كعائلات
+   * D-037؛ الموجود المعطوب يُرفض؛ الهوية تُنقل كما هي بلا دمج ولا اختراع. */
+  counterparties: { historicalClass: "optional", counted: true, label: "الأطراف المحفوظة" },
   /* — R10-B2/RC-1: عائلات مال المالك الأربع — كانت الفجوة الوحيدة الكاملة
    * (لا عدّ ولا بوابة)؛ صارت معدودة (نطاق OD-8 الأدنى). حضورها على الحالي
    * تفرضه سياسة العصر الموحدة أدناه؛ الموروث يبقى اختياري-عند-الغياب كما

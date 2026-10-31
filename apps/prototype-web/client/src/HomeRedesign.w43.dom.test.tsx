@@ -145,7 +145,7 @@ describe("Wave 4.3 — P-4.3-2 + Z1: My Project Now daily decision surface", () 
 
   it("renders the numbers section with a clear اليوم / هذا الشهر split above the standing facts", async () => {
     const profiles = new ProfileService(store, () => NOW);
-    await profiles.save("مشروع-أرقام");
+    await profiles.create("مشروع-أرقام");
     const sale = await new DirectSaleService(store, () => NOW).record({
       itemName: "كوب",
       quantity: 1,
@@ -173,7 +173,7 @@ describe("Wave 4.3 — P-4.3-2 + Z1: My Project Now daily decision surface", () 
 
   it("keeps the incomplete result honest — no invented number for unknown cost", async () => {
     const profiles = new ProfileService(store, () => NOW);
-    await profiles.save("مشروع-ناقص");
+    await profiles.create("مشروع-ناقص");
     const sale = await new DirectSaleService(store, () => NOW).record({
       itemName: "كوب بلا تكلفة",
       quantity: 1,
@@ -194,7 +194,7 @@ describe("Wave 4.3 — P-4.3-2 + Z1: My Project Now daily decision surface", () 
 
   it("fixed actions are exactly sale, expense, and order — collection is contextual, not a fourth fixed action", async () => {
     const profiles = new ProfileService(store, () => NOW);
-    await profiles.save("مشروع-إجراءات");
+    await profiles.create("مشروع-إجراءات");
     render(<Harness page={<Home />} />);
     const row = await screen.findByTestId("home-quick-actions");
     const buttons = row.querySelectorAll("button");
@@ -210,7 +210,7 @@ describe("Wave 4.3 — P-4.3-2 + Z1: My Project Now daily decision surface", () 
 
   it("منتجاتي وخدماتي and المزيد live in the lighter secondary cluster, outside the fixed actions", async () => {
     const profiles = new ProfileService(store, () => NOW);
-    await profiles.save("مشروع-كتالوج");
+    await profiles.create("مشروع-كتالوج");
     render(<Harness page={<Home />} />);
     const fixed = await screen.findByTestId("home-quick-actions");
     const secondary = await screen.findByTestId("home-secondary-actions");
@@ -230,7 +230,7 @@ describe("Wave 4.3 — P-4.3-2 + Z1: My Project Now daily decision surface", () 
 
   it("منتجاتي وخدماتي opens the one official surface with return context", async () => {
     const profiles = new ProfileService(store, () => NOW);
-    await profiles.save("مشروع-كتالوج");
+    await profiles.create("مشروع-كتالوج");
     render(<Harness page={<Home />} />);
     await screen.findByTestId("home-secondary-actions");
     fireEvent.click(screen.getByRole("button", { name: "منتجاتي وخدماتي" }));
@@ -239,7 +239,7 @@ describe("Wave 4.3 — P-4.3-2 + Z1: My Project Now daily decision surface", () 
 
   it("a quiet day (no priority) keeps the sale button as the one primary fixed action", async () => {
     const profiles = new ProfileService(store, () => NOW);
-    await profiles.save("مشروع-هادئ");
+    await profiles.create("مشروع-هادئ");
     render(<Harness page={<Home />} />);
     const fixed = await screen.findByTestId("home-quick-actions");
     const primaries = fixed.querySelectorAll(".micro-quick-action-primary");
@@ -249,7 +249,7 @@ describe("Wave 4.3 — P-4.3-2 + Z1: My Project Now daily decision surface", () 
 
   it("an attention day shows one priority with exactly one primary CTA — and demotes the sale button", async () => {
     const profiles = new ProfileService(store, () => NOW);
-    await profiles.save("مشروع-انتباه");
+    await profiles.create("مشروع-انتباه");
     await seedDebtOrder("w43-debt-order");
     render(<Harness page={<Home />} />);
     const dailyStatus = await screen.findByTestId("home-daily-status");
@@ -276,7 +276,7 @@ describe("Wave 4.3 — P-4.3-2 + Z1: My Project Now daily decision surface", () 
 
   it("state, today, and fixed actions precede the numbers; finance and activity follow them", async () => {
     const profiles = new ProfileService(store, () => NOW);
-    await profiles.save("مشروع-ترتيب");
+    await profiles.create("مشروع-ترتيب");
     /* دينان (أولوية + بند متبقٍ في «اليوم») وبيع مباشر (سجل نشاط) —
      * كل الأقسام حاضرة لترتيب DOM الكامل. */
     await seedDebtOrder("w43-order-a");
@@ -313,7 +313,7 @@ describe("Wave 4.3 — P-4.3-2 + Z1: My Project Now daily decision surface", () 
 
   it("insights keep only the month-over-month sales comparison with one logical action", async () => {
     const profiles = new ProfileService(store, () => NOW);
-    await profiles.save("مشروع-ملحوظات");
+    await profiles.create("مشروع-ملحوظات");
     const previousMonth = await new DirectSaleService(store, () => NOW).record({
       itemName: "كوب أغسطس",
       quantity: 1,
@@ -350,7 +350,7 @@ describe("Wave 4.3 — P-4.3-2 + Z1: My Project Now daily decision surface", () 
 
   it("insights section is absent when the data has nothing to say", async () => {
     const profiles = new ProfileService(store, () => NOW);
-    await profiles.save("مشروع-هادئ");
+    await profiles.create("مشروع-هادئ");
     render(<Harness page={<Home />} />);
     await screen.findByTestId("home-numbers");
     expect(screen.queryByTestId("home-insight")).toBeNull();

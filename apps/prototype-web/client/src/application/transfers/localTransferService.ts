@@ -23,12 +23,22 @@ import {
   localOwnerProfileId,
   localProfileId,
   localSchemaVersion,
+  type FormDraftEnvelope,
   type LocalExportCounts,
   type LocalExportFile,
   type LocalStoreSnapshot,
   type PrototypeLocalStore,
+  type ReplacementCommandType,
+  type RestoreRollbackRecord,
 } from "@/storage/local/types";
 import { syncSha256Hex } from "@/lib/syncSha256";
+import { canonicalSnapshotDigest } from "@/storage/local/snapshotCanonicalization";
+import {
+  runProtectedReplacement,
+  resolvePendingReplacementIntent,
+  type ReplacementFailureCode,
+  type VerifiedBackupBuilder,
+} from "./replacementProtectionProtocol";
 import { isDate, isRecord, normalizeImportedCategoryLabel } from "./transferFamilyValidators";
 import { isCurrentPair, isReleasedLegacyPair, verifyTransferIntegrity } from "./transferEnvelope";
 import { exportCountsOf, verifyTransferCounts } from "./transferCounters";
@@ -82,6 +92,9 @@ export type TransferSummary = {
   expenseBudgets: number;
   /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة في ملخص النقل. */
   receivedLoans: number;
+  balanceObservations: number;
+  /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة في ملخص النقل. */
+  counterparties: number;
   snapshots: number;
   events: number;
   exportedAt: string;
@@ -99,7 +112,24 @@ export type TransferPreview = { file: LocalExportFile; summary: TransferSummary 
 declare const preparedImportBrand: unique symbol;
 export type PreparedImport = TransferPreview & { readonly [preparedImportBrand]: "minted-by-prepareImport" };
 export type TransferResult<T> =
-  { ok: true; value: T } | { ok: false; code: "validation_error" | "storage_error"; message: string };
+  | { ok: true; value: T }
+  | { ok: false; code: "validation_error" | "storage_error" | ReplacementFailureCode; message: string };
+/* S02-A (SH-02 — عقد ٠٤٤ §16 والسجل المشترك §14): سياق نية الاستبدال المربوط
+ * بالمراجعة — الجيل وبصمة الحالة الحية لحظة عرض المعاينة، وبصمة الحمولة
+ * المُراجَعة نفسها؛ تغيّر أي منها قبل التأكيد يعيد المراجعة (stale_context)
+ * ولا يستبدل عملًا أحدث أبدًا. `restoreFormDrafts` لمسار استرجاع النسخة
+ * السابقة وحده: المسودات المعزولة تُعاد مع اللقطة القديمة داخل الحد. */
+export type RestoreIntentContext = {
+  commandType: ReplacementCommandType;
+  expectedGeneration: number;
+  expectedSnapshotDigest: string;
+  payloadDigest: string;
+  restoreFormDrafts?: readonly FormDraftEnvelope[];
+};
+/* الأمر المُراجَع المربوط — يُسكّ حصريًا داخل prepareRestore/prepareRollbackRestore
+ * (بصمة السكّ نفسها تُنسخ بالبسط فلا حاجة لموضع سكّ جديد): confirmImport لا
+ * يقبل سواه، فلا تأكيد بلا ربط مراجعة حي — فشل ترجمة لا فحص زمن تشغيل. */
+export type BoundRestoreIntent = PreparedImport & { intent: RestoreIntentContext };
 /* EXE-014 (DATA-001 / AUD-NEW-09): نتيجة الاستعادة الكاملة — الملخص نفسه
  * مع نسخة ما قبل الاستبدال القابلة للاسترجاع، مُنشأة بآلية التصدير المتحقق
  * نفسها قبل أي كتابة؛ تعذّرها يمنع التأكيد فلا يُوهم المستخدم بنجاح آمن. */
@@ -145,6 +175,8 @@ function summary(file: LocalExportFile): TransferSummary {
     recurringExpenseOccurrences: file.data.recurringExpenseOccurrences?.length ?? 0,
     expenseBudgets: file.data.expenseBudgets?.length ?? 0,
     receivedLoans: file.data.receivedLoans?.length ?? 0,
+    balanceObservations: file.data.balanceObservations?.length ?? 0,
+    counterparties: file.data.counterparties?.length ?? 0,
     snapshots,
     events,
     exportedAt: file.exportedAt,
@@ -262,21 +294,141 @@ export class LocalTransferService {
     return { ok: true, value: { file, summary: summary(file) } as PreparedImport };
   }
 
-  async confirmImport(preview: PreparedImport): Promise<TransferResult<RestoreResult>> {
-    /* EXE-014 (DATA-001): نسخة قابلة للاسترجاع قبل الاستبدال — ملف مُتحقق
-     * منه دورة كاملة للبيانات الحالية؛ إن تعذر إنشاؤها أو التحقق منها يُمنع
-     * التأكيد ولا يُمس أي شيء، فلا استبدال بلا طريق رجوع. */
-    const backup = await this.createVerifiedExport();
-    if (!backup.ok)
+  async confirmImport(preview: BoundRestoreIntent): Promise<TransferResult<RestoreResult>> {
+    /* S02-A (SH-03): الاستبدال المحروس — النسخة الرجوع الدائمة المُتحقق منها
+     * تُنشأ داخل البروتوكول قبل أي كتابة (لا قيمة في الذاكرة بعد اليوم)،
+     * والنية والسياج والجيل والمآل والإيصال كلها داخل الحد نفسه. تعذّر
+     * الحماية يمنع التأكيد ولا يُوهم المستخدم بنجاح آمن. */
+    const outcome = await runProtectedReplacement(
+      this.store,
+      this.now,
+      {
+        commandType: preview.intent.commandType,
+        payload: preview.file.data,
+        payloadDigest: preview.intent.payloadDigest,
+        summaryJson: JSON.stringify(preview.summary),
+        binding: {
+          kind: "prepared",
+          expectedGeneration: preview.intent.expectedGeneration,
+          expectedSnapshotDigest: preview.intent.expectedSnapshotDigest,
+        },
+        ...(preview.intent.restoreFormDrafts !== undefined
+          ? { restoreFormDrafts: preview.intent.restoreFormDrafts }
+          : {}),
+      },
+      LocalTransferService.verifiedBackupBuilder(this),
+    );
+    if (outcome.status === "replayed") {
+      /* نفس الأمر والحمولة بعد إيصال ملتزم (أو نية حُسمت التزامًا) — نتيجة
+       * الأصل تعاد بلا أثر ثانٍ (SDF-037/042). */
+      let originalSummary: TransferSummary;
+      try {
+        originalSummary = JSON.parse(outcome.summaryJson) as TransferSummary;
+      } catch {
+        return {
+          ok: false,
+          code: "storage_error",
+          message: "تعذر قراءة نتيجة الأمر الأصلية من سجل الحماية — لم يُكتب شيء؛ أعد المحاولة.",
+        };
+      }
+      return { ok: true, value: { ...originalSummary, backup: outcome.backup } };
+    }
+    if (outcome.status === "committed") {
+      return { ok: true, value: { ...preview.summary, backup: outcome.backup } };
+    }
+    return { ok: false, code: outcome.code, message: outcome.message };
+  }
+
+  /* S02-A: تجهيز استعادة مربوط بالمراجعة — المعاينة تُربط بالجيل وبصمة الحالة
+   * الحية لحظة عرضها؛ التأكيد لا يقبل إلا أمرًا مربوطًا، وتغيّر البيانات
+   * بعده يعيد المراجعة. أي نية قائمة من محاولة منهارة تُحسم هنا أولًا. */
+  async prepareRestore(text: string): Promise<TransferResult<BoundRestoreIntent>> {
+    const prepared = this.prepareImport(text);
+    if (!prepared.ok) return prepared;
+    return this.bindRestoreIntent(prepared.value, "restore");
+  }
+
+  /* S02-A (عقد ٠٤٤ B4.4): تجهيز استرجاع النسخة السابقة الدائمة — من قاعدة
+   * الحماية نفسها لا من حالة واجهة، فيصمد بعد الإغلاق وإعادة التحميل؛
+   * معاينته وتأكيده وحماية الحالي الذي سيُستبدل بنفس خدمة الاستعادة. */
+  async prepareRollbackRestore(): Promise<TransferResult<BoundRestoreIntent>> {
+    const protection = await this.store.readRestoreProtection();
+    if (!protection.ok) return storageFailure(protection.message);
+    if (protection.value.intent !== null) {
+      const resolution = await resolvePendingReplacementIntent(this.store, this.now, protection.value);
+      if (resolution.status === "error")
+        return { ok: false, code: resolution.code, message: resolution.message };
+      if (resolution.status === "unresolved")
+        return { ok: false, code: "outcome_unknown", message: resolution.message };
+    }
+    const afterResolution = await this.store.readRestoreProtection();
+    if (!afterResolution.ok) return storageFailure(afterResolution.message);
+    const rollback = afterResolution.value.activeRollback;
+    if (rollback === null)
       return {
         ok: false,
-        code: STORAGE_ERROR,
-        message:
-          "تعذر إنشاء نسخة احتياطية قابلة للاسترجاع قبل الاستبدال — لم يُمس أي شيء. صدّر بياناتك يدويًا أولًا ثم أعد المحاولة.",
+        code: "validation_error",
+        message: "لا توجد نسخة سابقة محفوظة على هذا الجهاز بعد — لا ما يُسترجع.",
       };
-    const replacement = await this.store.replaceSnapshot(preview.file.data);
-    if (!replacement.ok) return storageFailure("تعذر استبدال البيانات المحلية. لم يتم تأكيد نجاح الاستيراد.");
-    return { ok: true, value: { ...preview.summary, backup: backup.value.file } };
+    const prepared = this.prepareImport(JSON.stringify(rollback.file));
+    if (!prepared.ok) return prepared;
+    return this.bindRestoreIntent(prepared.value, "rollback-restore", rollback.drafts);
+  }
+
+  private async bindRestoreIntent(
+    prepared: PreparedImport,
+    commandType: ReplacementCommandType,
+    restoreFormDrafts?: readonly FormDraftEnvelope[],
+  ): Promise<TransferResult<BoundRestoreIntent>> {
+    const live = await this.store.readSnapshot();
+    if (!live.ok) return storageFailure(live.message);
+    const protection = await this.store.readRestoreProtection();
+    if (!protection.ok) return storageFailure(protection.message);
+    return {
+      ok: true,
+      value: {
+        ...prepared,
+        intent: {
+          commandType,
+          expectedGeneration: protection.value.generation,
+          expectedSnapshotDigest: canonicalSnapshotDigest(live.value),
+          payloadDigest: canonicalSnapshotDigest(prepared.file.data),
+          ...(restoreFormDrafts !== undefined ? { restoreFormDrafts } : {}),
+        },
+      },
+    };
+  }
+
+  /* S02-A: حالة حماية الاستبدال للواجهة — النسخة السابقة الدائمة (تُقرأ من
+   * القاعدة فتصمد بعد إعادة التحميل) وأي نية غير محسومة تُعرض بصدق. */
+  async readRestoreStatus(): Promise<
+    TransferResult<{ generation: number; rollbackCreatedAt: string | null; unresolvedIntent: boolean }>
+  > {
+    let protection = await this.store.readRestoreProtection();
+    if (!protection.ok) return storageFailure(protection.message);
+    if (protection.value.intent !== null) {
+      const resolution = await resolvePendingReplacementIntent(this.store, this.now, protection.value);
+      if (resolution.status === "error")
+        return { ok: false, code: resolution.code, message: resolution.message };
+      protection = await this.store.readRestoreProtection();
+      if (!protection.ok) return storageFailure(protection.message);
+    }
+    return {
+      ok: true,
+      value: {
+        generation: protection.value.generation,
+        rollbackCreatedAt: protection.value.activeRollback?.createdAt ?? null,
+        unresolvedIntent: protection.value.intent !== null,
+      },
+    };
+  }
+
+  /* S02-A: النسخة السابقة الدائمة نفسها (ملف + مسودات معزولة) — للتنزيل
+   * اليدوي من الواجهة؛ قراءة خالصة بلا أي أثر. */
+  async readActiveRollback(): Promise<TransferResult<RestoreRollbackRecord | null>> {
+    const protection = await this.store.readRestoreProtection();
+    if (!protection.ok) return storageFailure(protection.message);
+    return { ok: true, value: protection.value.activeRollback };
   }
 
   /** نسخة مُتحقق منها (P-01): يُعاد تحليل الملف دورة كاملة قبل إعلان جهوزيته. */
@@ -339,14 +491,49 @@ export class LocalTransferService {
       /* FIN-001 (WS-178 — Wave 6): لا قروض مستلمة في اللقطة الفارغة — «ابدأ
        * من جديد» لا يخترع التزامًا ولا تاريخًا. */
       receivedLoans: [],
+      balanceObservations: [],
+      /* S05 (DOC-014 / UNIT-037): لا أطراف محفوظة في اللقطة الفارغة —
+       * «ابدأ من جديد» لا يخترع هوية. */
+      counterparties: [],
     };
   }
 
-  /** «ابدأ من جديد»: استبدال ذرّي بلقطة فارغة — لا يمس أي بيانات قبل نجاح المعاملة. */
+  /** «ابدأ من جديد»: استبدال ذرّي محروس بلقطة فارغة — النسخة الرجوع الدائمة
+   * والنية والسياج والجيل كلها داخل حد البروتوكول نفسه؛ لا يمس أي بيانات
+   * قبل نجاح المعاملة، ومسودات النماذج تُمسح في الحد ذاته لا بعده. */
   async resetAll(): Promise<TransferResult<null>> {
-    const replacement = await this.store.replaceSnapshot(LocalTransferService.emptySnapshot());
-    if (!replacement.ok) return storageFailure("تعذر بدء مشروع جديد؛ بياناتك الحالية كما هي دون تغيير.");
+    const empty = LocalTransferService.emptySnapshot();
+    const outcome = await runProtectedReplacement(
+      this.store,
+      this.now,
+      {
+        commandType: "reset",
+        payload: empty,
+        payloadDigest: canonicalSnapshotDigest(empty),
+        summaryJson: JSON.stringify({ commandType: "reset" }),
+        binding: { kind: "at-call" },
+      },
+      LocalTransferService.verifiedBackupBuilder(this),
+    );
+    if (outcome.status === "blocked") {
+      /* رسالة التصفير الصادقة الخاصة به — المآل نفسه من البروتوكول. */
+      const message =
+        outcome.code === "storage_error"
+          ? "تعذر بدء مشروع جديد؛ بياناتك الحالية كما هي دون تغيير."
+          : outcome.message;
+      return { ok: false, code: outcome.code, message };
+    }
     return { ok: true, value: null };
+  }
+
+  /* S02-A: باني النسخة الرجوع المُتحقق منها — التحقق الدائري الكامل من أدوات
+   * الخدمة نفسها؛ يُمرَّر للبروتوكول (وللإدخال الافتتاحي من جذر التركيب). */
+  static verifiedBackupBuilder(service: LocalTransferService): VerifiedBackupBuilder {
+    return async () => {
+      const verified = await service.createVerifiedExport();
+      if (!verified.ok) return { ok: false, code: verified.code, message: verified.message };
+      return { ok: true, file: verified.value.file };
+    };
   }
 }
 

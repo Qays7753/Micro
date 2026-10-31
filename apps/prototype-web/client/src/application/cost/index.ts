@@ -10,4 +10,4 @@
  * الديناميكي للباب (مدخل الشظية يحتاج جدول تصدير حاضرًا في زمن التشغيل).
  */
 
-export type { CostEditorInput, CostService } from "./costService";
+export type { CostEditorInput, CostService, GroupedCostEditorInput } from "./costService";

@@ -162,8 +162,8 @@ describe("export envelope v28 (OPS-003 — عقد ٤١ / عقد ٣٩)", () => {
     const service = new LocalTransferService(store, () => NOW);
     const exported = await service.createVerifiedExport();
     if (!exported.ok) throw new Error(exported.message);
-    expect(exported.value.file.version).toBe(30);
-    expect(exported.value.file.schemaVersion).toBe(38);
+    expect(exported.value.file.version).toBe(32);
+    expect(exported.value.file.schemaVersion).toBe(40);
     expect(exported.value.file.data.recurringExpenseSeries).toHaveLength(1);
     expect(exported.value.file.data.recurringExpenseRevisions).toHaveLength(1);
     expect(exported.value.file.data.recurringExpenseOccurrences).toHaveLength(2);
@@ -174,7 +174,7 @@ describe("export envelope v28 (OPS-003 — عقد ٤١ / عقد ٣٩)", () => {
 
     const target = new MemoryLocalStore();
     const targetService = new LocalTransferService(target, () => NOW);
-    const restored = await targetService.prepareImport(JSON.stringify(exported.value.file));
+    const restored = await targetService.prepareRestore(JSON.stringify(exported.value.file));
     expect(restored.ok).toBe(true);
     if (!restored.ok) throw new Error(restored.message);
     expect(restored.value.file.version).toBe(localExportVersion);

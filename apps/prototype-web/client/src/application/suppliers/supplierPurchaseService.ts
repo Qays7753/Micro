@@ -5,7 +5,9 @@ import {
   reverseSupplierPurchasePayment,
   updateSupplierPurchase,
   type SupplierPurchase,
+  type SupplierPurchaseLine,
 } from "@micro-domain/supplier-purchase/index.js";
+import { materialIsTracked } from "@micro-domain/inventory-material/index.js";
 import {
   createCashContinuityEntry,
   summarizeCashContinuity,
@@ -17,7 +19,10 @@ import type { SupplierPurchaseStore } from "@/storage/local/capabilities/supplie
 /** R3 (R3-SC-03): عدسة الخدمة — قدرة مشتريات المورّد حصرًا مع القنوات
  * المستخدمة بالضبط (السيولة النقدية للقراءة، وحركات المخزون للربط). */
 export type SupplierPurchaseServiceStore = SupplierPurchaseStore &
-  Pick<PrototypeLocalStore, "listCashWallets" | "listCashContinuityEntries" | "listInventoryMovements">;
+  Pick<
+    PrototypeLocalStore,
+    "listCashWallets" | "listCashContinuityEntries" | "listInventoryMovements" | "listMaterials"
+  >;
 import { storageFailureCode } from "@/storage/local/types";
 import type { SupplierPurchaseCommit } from "@/storage/local/supplierScheduleCommitGuard";
 import {
@@ -31,7 +36,9 @@ import { systemClock, type Clock } from "@/application/time/clock";
 import { formatMoneyWithUnit } from "@/application/formatting/formatters";
 
 export type SupplierPurchaseInput = {
-  supplierName: string;
+  /* S05 (DOC-014 / UNIT-037 AC02): null = شراء مدفوع كاملًا بلا مورد مسجل. */
+  supplierName: string | null;
+  supplierPartyId?: string | null;
   note: string;
   purchasedOn: string;
   dueOn: string | null;
@@ -42,6 +49,9 @@ export type SupplierPurchaseInput = {
    * والكمية المتوقعة والقيمة المتبقية. null = غير معروف (لا صفر). */
   materialId?: string | null;
   expectedQuantityMilli?: number | null;
+  /* S07 (UNIT-027 D01): بنود اختيارية بمعالجة معلنة — الغياب = شراء بلا بنود
+   * (المسار القائم)؛ والتطابق مع حالة تتبع المادة الحية شرط عند الكتابة. */
+  lines?: readonly SupplierPurchaseLine[] | null;
   /* FIN-003 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): محفظة مصدر الدفعة الأولية —
    * تُتحقق وتُخصم مرة واحدة قبل إعلان النجاح؛ غيابها = الكاش غير الموزع. */
   initialPaymentWalletId?: string | null;
@@ -58,7 +68,9 @@ export type SupplierPurchasePaymentInput = {
 /* المجموعة ٢ (§10.4): تعديل موثق لسجل الشراء — يعرض الأثر قبل التنفيذ من الواجهة. */
 export type SupplierPurchaseEditInput = {
   purchaseId: string;
-  supplierName: string;
+  /* S05 (DOC-014 / UNIT-037): null = بلا مورد مسجل (مسموح ما دام مسددًا كاملًا). */
+  supplierName: string | null;
+  supplierPartyId?: string | null;
   note: string;
   purchasedOn: string;
   dueOn: string | null;
@@ -69,6 +81,9 @@ export type SupplierPurchaseEditInput = {
   /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة — جزء التعديل الموثق. */
   materialId: string | null;
   expectedQuantityMilli: number | null;
+  /* S07 (UNIT-027): البنود بعد التعديل — استبدال معلن؛ الإرث بلا بنود يبقى
+   * بلا بنود إن لم تُعط. */
+  lines?: readonly SupplierPurchaseLine[] | null;
 };
 export type SupplierPaymentReversalInput = {
   purchaseId: string;
@@ -131,6 +146,40 @@ export class SupplierPurchaseService {
     return { ok: true, value: { walletBalanceMinor } };
   }
 
+  /* S07 (UNIT-027): فحص تطابق بنود الشراء مع حالة تتبع المادة الحية داخل حد
+   * الكتابة — بند tracked_material يوجب مادة قائمة متتبعة فعلاً (وإلا لا
+   * جسر استلام فوقه أبدًا)، وبند period_material بمادة متتبعة ازدواج اعتراف
+   * (فترة عند الشراء + عند الاستعمال) فيُرفض، وبند بمادة غير موجودة يُرفض
+   * كربط الرأس نفسه. بلا بنود = لا فحص (المسار القائم). */
+  private async validatePurchaseLinesAgainstMaterials(
+    lines: readonly SupplierPurchaseLine[] | null,
+  ): Promise<SupplierPurchaseResult<never> | { ok: true; value: null }> {
+    if (lines === null || lines === undefined || lines.length === 0) return { ok: true, value: null };
+    const materialsResult = await this.store.listMaterials();
+    if (!materialsResult.ok) return storageFailure("تعذر قراءة المواد قبل حفظ الشراء.");
+    const materials = materialsResult.value;
+    for (const line of lines) {
+      const materialId = line.materialId ?? null;
+      if (materialId === null) {
+        if (line.treatment === "tracked_material")
+          return validationFailure("بند المواد المتتبعة يوجب مادة مرتبطة — لا تتبع بلا مادة.");
+        continue;
+      }
+      const material = materials.find(candidate => candidate.id === materialId);
+      if (!material) return validationFailure("اربط بند الشراء بمادة موجودة أو اتركه بلا مادة.");
+      const tracked = materialIsTracked(material);
+      if (line.treatment === "tracked_material" && !tracked)
+        return validationFailure(
+          "المادة غير متتبَّعة — سجّل بندها مواد فترة، أو فعّل متابعة المادة أولًا ثم اربطه متتبعًا.",
+        );
+      if (line.treatment === "period_material" && tracked)
+        return validationFailure(
+          "المادة متتبَّعة — تكلفة بندها تُعرف عند الاستعمال لا عند الشراء؛ سجّله بند مواد متتبعة أو أوقف متابعة المادة أولًا.",
+        );
+    }
+    return { ok: true, value: null };
+  }
+
   /* FIN-003: نسبة دفعة مورد لمحفظتها — تُبنى قبل الالتزام وتُكتب معه في
    * معاملة واحدة (G-002): تخصيص واحد سالب يغطي من رصيد المحفظة ويرجع أثرها
    * إلى «غير الموزع» فلا يصبح سالبًا مرتين، بمفتاح حتمية مشتق (الإعادة لا
@@ -179,7 +228,7 @@ export class SupplierPurchaseService {
         supplierPayablesMinor,
         recordedCashPaidMinor,
         truth:
-          "شراء المواد هنا يغيّر الكاش أو ذمة المورد فقط. لا يصبح مصروفًا أو تكلفة بيع حتى تضيف Micro المخزون والاستهلاك.",
+          "شراء المواد يغيّر الكاش أو ذمة المورد فقط؛ وتكلفته تُعرف من بنوده: مواد الفترة بلا متابعة تُحمل مرة على فترة الشراء، والمتتبعة عند استعمالها.",
       },
     };
   }
@@ -194,9 +243,17 @@ export class SupplierPurchaseService {
           ? await this.validateWalletCoverage(initialPaymentWalletId, input.initialPaidMinor)
           : null;
       if (walletGuard && !walletGuard.ok) return walletGuard;
+      /* S07 (UNIT-027): تطابق معالجة البنود مع حالة تتبع المادة الحية داخل
+       * حد الكتابة نفسه — بند متتبع يوجب مادة متتبعة قائمة (وإلا لا جسر
+       * استلام فوقه)، وبند فترة بمادة متتبعة يعترف الفترة ويستعمل معًا
+       * (ازدواج) فلا يقبل؛ وبند فترة بمادة غير موجودة يُرفض كربط الرأس
+       * نفسه. الشكل الذاتي للبند تحرسه السياسة النقية (assertPurchaseLines). */
+      const linesGuard = await this.validatePurchaseLinesAgainstMaterials(input.lines ?? null);
+      if (!linesGuard.ok) return linesGuard;
       const purchase = createSupplierPurchase({
         id: id(),
         supplierName: input.supplierName,
+        supplierPartyId: input.supplierPartyId ?? null,
         note: input.note,
         purchasedOn: input.purchasedOn,
         dueOn: input.dueOn,
@@ -207,6 +264,9 @@ export class SupplierPurchaseService {
         /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة — اختياري، null = غير معروف. */
         materialId: input.materialId ?? null,
         expectedQuantityMilli: input.expectedQuantityMilli ?? null,
+        /* S07 (UNIT-027): البنود كما دخلت بعد فحص التطابق أعلاه — التطبيع
+         * والحدود الذاتية عند السياسة النقية. */
+        lines: input.lines ?? null,
         /* FIN-003: مصدر الدفعة الأولية يُحفظ على الدفعة نفسها. */
         initialPaymentWalletId,
       });
@@ -350,9 +410,43 @@ export class SupplierPurchaseService {
           "الكمية المتوقعة الجديدة أقل من الكمية المستلمة الموثقة — راجع إيصالات الاستلام أولًا.",
         );
     }
+    /* S07 (UNIT-027 / SDF-071): البنود بعد التعديل تفحص توابعها — إيصالات
+     * قائمة مقيدة ببند حي تجعل تغيير البنود/إزالتها غير مؤهل؛ يُراجع
+     * الاستلام عند مالكه أولًا (عكس موثق) ثم يُعدّل. تطابق المعالجة مع
+     * حالة تتبع المادة الحية كالإنشاء تمامًا. R2-F01: الفحص متناظر —
+     * حذف البنود كلية (lines = null/undefined) فوق إيصالات قائمة هو تغيير
+     * بنود كأي تغيير آخر، لا مسارًا يتجاوز الحارس (الحد يحمي حتى مع
+     * تجاوز الواجهة). */
+    const currentLines = existing.value.lines ?? null;
+    const nextLines = input.lines ?? null;
+    if (activeReceipts.length > 0) {
+      const currentLineList = currentLines ?? [];
+      const nextLineList = nextLines ?? [];
+      const linesChanged =
+        currentLineList.length !== nextLineList.length ||
+        !nextLineList.every((line, index) => {
+          const before = currentLineList[index];
+          return (
+            before !== undefined &&
+            before.lineId === line.lineId &&
+            (before.materialId ?? null) === (line.materialId ?? null) &&
+            (before.expectedQuantityMilli ?? null) === (line.expectedQuantityMilli ?? null) &&
+            (before.valueMinor ?? null) === (line.valueMinor ?? null) &&
+            before.costKnowledge === line.costKnowledge &&
+            before.treatment === line.treatment
+          );
+        });
+      if (linesChanged)
+        return validationFailure(
+          "لا يمكن تغيير بنود الشراء مع إيصالات استلام قائمة عليها — راجع إيصالات الاستلام أولًا.",
+        );
+    }
+    const linesGuard = await this.validatePurchaseLinesAgainstMaterials(nextLines);
+    if (!linesGuard.ok) return linesGuard;
     try {
       const updated = updateSupplierPurchase(existing.value, {
         supplierName: input.supplierName,
+        supplierPartyId: input.supplierPartyId ?? null,
         note: input.note,
         purchasedOn: input.purchasedOn,
         dueOn: input.dueOn,
@@ -363,6 +457,9 @@ export class SupplierPurchaseService {
         reason: input.reason,
         materialId: input.materialId,
         expectedQuantityMilli: input.expectedQuantityMilli,
+        /* S07 (UNIT-027): البنود بعد التعديل — استبدال معلن بقيم «قبل»
+         * موثقة في المراجعة (beforeLines). */
+        lines: input.lines ?? null,
       });
       /* المجموعة ٢ (التحصين الكامل — HIGH-001): مراجعة واحدة بالضبط داخل
        * معاملة واحدة — قيم «قبل التصحيح» تُطابق الحالة الحية داخلها، فتعديل

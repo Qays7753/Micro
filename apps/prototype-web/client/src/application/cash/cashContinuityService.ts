@@ -2,6 +2,7 @@ import {
   createCashContinuityEntry,
   createCashWallet,
   summarizeCashContinuity,
+  TRANSFER_COVERAGE_MESSAGE,
   type CashContinuityEntry,
   type CashWallet,
   type CashWalletKind,
@@ -9,7 +10,9 @@ import {
 } from "@micro-domain/cash-continuity/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 
-/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قناة السيولة النقدية الثلاثة بالضبط (عائلة KEEP R3-SC-19). */
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قناة السيولة النقدية الثلاثة
+ * بالضبط (عائلة KEEP R3-SC-19). رصد الأرصدة والتزامه انتقلا إلى عدسة خدمة
+ * العدّ المستقلة (S04/DOC-013 — cashCountService.ts) فلا يمران من هنا. */
 export type CashContinuityServiceStore = Pick<
   PrototypeLocalStore,
   "listCashWallets" | "listCashContinuityEntries" | "commitCashContinuity"
@@ -256,6 +259,19 @@ export class CashContinuityService {
       return validationFailure("اختر محافظتين موجودتين للتحويل.");
     if (input.fromWalletId === input.toWalletId)
       return validationFailure("لا يمكن التحويل إلى المحفظة نفسها.");
+    /* S04 (DOC-013 / UNIT-023 D01 — CONS-DEC03): فحص التغطية قبل الالتزام
+     * لمصدر معروف الافتتاح — الرصيد المسجل لا يغطي المبلغ فلا يُكتب شيء
+     * برسالة هادئة تدعو لمراجعة الحركات أو اختيار المصدر الصحيح؛ والمصدر
+     * مجهول الافتتاح جائز (تحويل مؤكد فعليًا) — المجهول ليس صفرًا ولا
+     * سقفًا وهميًا. الحارس داخل حد الكتابة (المحوّلان) يمنع سباق النافذتين.
+     */
+    const fromWallet = wallets.value.find(wallet => wallet.id === input.fromWalletId);
+    if (fromWallet && fromWallet.openingStatus !== "unknown") {
+      const sourceBalance = summarizeCashContinuity(
+        entries.value.filter(entry => entry.walletId === input.fromWalletId),
+      );
+      if (sourceBalance < input.amountMinor) return validationFailure(TRANSFER_COVERAGE_MESSAGE);
+    }
     try {
       const transferId = id("transfer");
       const out = createCashContinuityEntry({
@@ -281,7 +297,14 @@ export class CashContinuityService {
         transferId,
       });
       const saved = await this.store.commitCashContinuity(null, [out, into]);
-      return saved.ok ? { ok: true, value: [out, into] } : storageFailure();
+      /* S04 (UNIT-023 D01): حارس التغطية داخل الحد يرفض بـstorage_stale —
+       * الرسالة الصادقة للمالك (الرصيد لا يغطي) تصل كما هي لا تُابتلع في
+       * فشل تخزين عام؛ سباق النافذتين يُرى تعارض تغطية لا عطلًا غامضًا. */
+      if (!saved.ok)
+        return saved.code === "storage_stale"
+          ? validationFailure(saved.message)
+          : storageFailure<readonly CashContinuityEntry[]>();
+      return { ok: true, value: [out, into] };
     } catch (error) {
       return validationFailure(errorMessageOf(error, "بيانات التحويل غير صالحة."));
     }
@@ -327,4 +350,19 @@ export class CashContinuityService {
       return validationFailure(errorMessageOf(error, "بيانات التراجع عن الكاش غير صالحة."));
     }
   }
+
+  /* S04 (DOC-013 / UNIT-025 P3.1/P3.2 + العقد المشترك §6 + SDF-015/016):
+   * العدّ والمطابقة — قياس الموجود أولًا، والفرق من مرجع معروف فقط،
+   * والمطابقة فعل صريح. المصفوفة الكاملة:
+   *  - مرجع مجهول (رصيد افتتاح غير معروف): يُحفظ الرصد قياسًا دائمًا بلا
+   *    فرق مقابل صفر وبلا تسوية وبلا تمويل مالك (SDF-015)؛ طلب تسوية على
+   *    مرجع مجهول يُرفض بصدق («الرصيد المسجل غير مكتمل») بلا أي كتابة.
+   *  - مرجع معروف وفرق صفري: تطابق — لا يُكتب شيء البتة: لا قيد صفري ولا
+   *    رصد (R09/AC08)؛ عودة صادقة تُنهي الفحص لا تدّعي حفظًا.
+   *  - مرجع معروف وفرق غير صفري مع مطابقة صريحة: الرصد والتسوية
+   *    (cash_adjustment بسببه) يُكتبان معًا في حد واحد بمعنيين مرتبطين —
+   *    قياس 90 وتسوية نقص 10، لا نقص 20 ولا تمويل سالب (SDF-016)؛ والمرجع
+   *    الحي داخل حد الكتابة يمنع تسوية مزدوجة من نافذتين.
+   *  - بلا مطابقة: معاينة فقط — لا كتابة؛ القرار بيد المالك.
+   * القياس لا يُنشئ نقدًا ولا يمحو حركة ولا يعيد تفسير تسوية قديمة. */
 }

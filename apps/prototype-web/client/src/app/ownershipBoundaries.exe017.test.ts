@@ -101,8 +101,18 @@ describe("EXE-017 — حدود الملكية التقنية (خريطة الم�
       /\.(?:save|create|record|commit|update|delete|remove|reverse|deactivate|collect|distribute|confirm|reset|edit|restore)\w*\s*\(/g;
     for (const relative of toolsPages) {
       const content = readRepoFile(`../${relative}`);
-      /* كتاب التقديرات نفسه مباح — الأداة تملك مخزنها. */
-      const withoutEstimateWriters = content.replace(/costEstimates\.\w+\s*\(/g, "allowed(");
+      /* كتاب التقديرات نفسه مباح — الأداة تملك مخزنها. S10 (DOC-019):
+       * دورة حساب T01 المحفوظ تمر بخدمتها الكسولة planningCalculations —
+       * كتابها الوحيد مخزن التقديرات المستقل نفسه (PlanningCalculation-
+       * LifecycleService فوق CostEstimateStore حصرًا)، فتُعفى كالكاتب
+       * الأصلي نفسه؛ أي كاتب آخر يبقى ممنوعًا. */
+      const withoutEstimateWriters = content
+        .replace(/costEstimates\.\w+\s*\(/g, "allowed(")
+        .replace(/planningCalculations\.\w+\s*\(/g, "allowed(")
+        /* R3-F2: جسر حارس المحرر التوافقي — legacyGuard.save هو حفظ المحرر
+         * نفسه (service.update فوق مخزن التقديرات المستقل حصرًا) مارًّا
+         * بحارس التغييرات؛ لا كاتبًا جديدًا. */
+        .replace(/legacyGuard\.save\s*\(/g, "allowed(");
       const violations = withoutEstimateWriters.match(writerPattern) ?? [];
       expect(
         violations,
@@ -117,10 +127,20 @@ describe("EXE-017 — حدود الملكية التقنية (خريطة الم�
      * النسخ وصف السوق الميت وقسم حالة الوحدات كله. صفحة ToolsIntegrity
      * (مسار التوافق /tools/integrity — قرار F05) تستهلك فحص المالية وحده. */
     const allowedServicesByPage: Record<string, readonly string[]> = {
-      "pages/Tools.tsx": ["costEstimates", "dataVersion", "notifyDataChanged"],
       "pages/ToolsIntegrity.tsx": ["integrityCheck"],
-      "pages/CostCalculator.tsx": ["dataVersion", "costEstimates", "inventory", "notifyDataChanged"],
-      "pages/EstimateDetail.tsx": ["dataVersion", "costEstimates", "notifyDataChanged"],
+      /* S10 (DOC-019 — أمر b56967d8): +planningCalculations — دورة حساب T01
+       * المحفوظ الكسولة (نفس مخزن التقديرات المستقل؛ سابقة assets/loans)،
+       * لا قارئ سجل مالي جديد. */
+      "pages/CostCalculator.tsx": [
+        "dataVersion",
+        "costEstimates",
+        "inventory",
+        "notifyDataChanged",
+        "planningCalculations",
+      ],
+      /* S10 (UNIT-030/032 — أمر b56967d8): Tools صارت وجهة أدوات خمسة ساكنة
+       * (بلا سياق خدمات — خمسة مداخل صرف) وEstimateDetail صارت إحالة إلى
+       * الحاسبة؛ خرجا من قائمة التوافق. */
     };
     for (const [relative, allowed] of Object.entries(allowedServicesByPage)) {
       const content = readRepoFile(`../${relative}`);

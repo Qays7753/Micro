@@ -50,7 +50,7 @@ describe("G4-A catalog transfer boundary", () => {
     if (!exported.ok) throw new Error("export should succeed");
     const target = new MemoryLocalStore();
     const transfers = new LocalTransferService(target);
-    const preview = transfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await transfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(preview.message);
     expect(preview.value.summary).toMatchObject({
       catalogItems: 1,

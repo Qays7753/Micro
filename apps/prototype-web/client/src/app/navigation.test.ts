@@ -26,7 +26,7 @@ describe("Prototype navigation contract", () => {
     expect(getNavigationLabel("/finance")).toBe("المالية");
     expect(getNavigationLabel("/tools")).toBe("أدواتي");
     expect(getNavigationLabel("/market")).toBe("السوق");
-    expect(getNavigationLabel("/parties")).toBe("دفتر الناس");
+    expect(getNavigationLabel("/parties")).toBe("العملاء والموردون");
     expect(getNavigationLabel("/cash")).toBe("محافظ الكاش");
     expect(getNavigationLabel("/settings")).toBe("الإعدادات");
     /* N-06 (Wave 4.2): الاسم الموحد للكتالوج — «منتجاتي وخدماتي» لا «الكتالوج». */

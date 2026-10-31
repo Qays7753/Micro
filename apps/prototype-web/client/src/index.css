@@ -599,6 +599,14 @@ textarea:disabled,
 .micro-setting-row:last-child {
   border-bottom: 0;
 }
+/* S02-A (عقد ٠٤٤ B4.4): أزرار النسخة السابقة الدائمة — تنزيل واسترجاع جنبًا
+ * إلى جنب بلا تمدد على حساب النص (استثناء مقصود من قاعدة تمدد أبناء الصف). */
+.micro-setting-row .micro-setting-row-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
 .micro-setting-row > div {
   flex: 1;
   min-width: 0;
@@ -4267,6 +4275,33 @@ button.micro-month-cell:active {
   outline-offset: 2px;
 }
 /* S3-01: تأكيد حذف التقدير داخل صف القائمة — خطوة ثانية تسمّي الكائن. */
+/* S10 (R5): حد بصري لمجموعات الحاسبة المتعددة على الهاتف — إطار ونفس
+ * بتصميم النظام (المتغيرات وحدها لا ألوان صلبة). */
+.micro-planning-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+/* S10 (R5): قوائم مراجعة الفكرة (T05) بعهد النظام — بلا تعداد المتصفح
+ * الافتراضي وبمسافة داخلية موحدة. */
+.micro-idea-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.micro-idea-review-list li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
 .micro-estimate-delete-confirm {
   display: flex;
   flex-wrap: wrap;
@@ -5986,7 +6021,8 @@ button.micro-month-cell:active {
 
 /* ============ «أدواتي» والتدفقات الجديدة (موجة إعادة التدفق المالي) ============ */
 
-/* دفتر الناس: مدخل طرف قابل للفتح مع حركاته. */
+/* العملاء والموردون (S05/DOC-014 — UNIT-037): بطاقة طرف محفوظ وحسابه
+ * من مصادره المرتبطة — نفس لغة الواجهة القائمة بلا أي إعادة تصميم. */
 .micro-party-entry {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
@@ -6070,6 +6106,54 @@ button.micro-month-cell:active {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-text-primary);
+}
+/* S05 (DOC-014 / UNIT-037): نموذج حفظ طرف صريح داخل الدليل. */
+.micro-party-add-form {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  padding: var(--space-4);
+}
+/* قسم الأطراف المؤرشفة — تُقرأ ولا تقترح. */
+.micro-party-archived {
+  display: grid;
+  gap: var(--space-3);
+}
+.micro-party-archived h2 {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+.micro-party-archived .micro-party-entry {
+  opacity: 0.85;
+}
+/* حساب فارغ صادق — الحفظ لا يستحدث دينًا. */
+.micro-party-empty-account {
+  padding: var(--space-3) var(--space-4);
+}
+.micro-party-empty-account small {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+/* أفعال الهوية داخل البطاقة — تعديل/أرشفة بلا رصيد يُحرَّر. */
+.micro-party-identity-actions {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+.micro-party-identity-actions small {
+  color: var(--color-text-secondary);
+  font-size: 0.6875rem;
+  line-height: 1.6;
+}
+/* تعريف صاحب المبلغ في محرر البيع/الشراء (A1/A2) — محفوظ أو اسم للعملية. */
+.micro-party-identity {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
 }
 
 /* شريط توزيع الكاش غير الموزع في مالي/المحافظ. */
@@ -6756,67 +6840,6 @@ button.micro-month-cell:active {
   color: var(--color-text-secondary);
   font-size: 0.6875rem;
   margin: var(--space-1) 0 0;
-}
-
-/* المجموعة ٥ (عقد ٣٧): غطاء القفل — حجاب ثابت كامل الشاشة فوق كل شيء
- * (طبقة القوة ٦٠ أعلى التنقل والأوراق، دون الطبقات النظامية)؛ النماذج تبقى
- * محمّلة تحته فلا يُفقد شيء غير محفوظ. */
-.micro-lock-veil {
-  position: fixed;
-  inset: 0;
-  background: var(--color-surface);
-  /* المجموعة ٦ (تدقيق A1 — SP-05): غطاء معتم تمامًا — ٠.٩٦ كانت تكشف
-   * وميض المحتوى تحته للناظر عن قرب والوعد «حماية من النظرة العابرة». */
-  opacity: 1;
-  z-index: 60;
-}
-.micro-lock-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  text-align: center;
-}
-.micro-lock-overlay h1 {
-  font-size: 1.25rem;
-  margin: 0;
-}
-.micro-lock-overlay > p {
-  max-width: 34ch;
-  color: var(--color-text-secondary);
-  font-size: 0.8125rem;
-  margin: 0;
-}
-.micro-lock-icon {
-  width: 28px;
-  height: 28px;
-  color: var(--color-accent-text);
-}
-.micro-lock-form {
-  display: grid;
-  gap: var(--space-3);
-  width: min(320px, 100%);
-  text-align: start;
-}
-.micro-lock-form input {
-  text-align: center;
-  letter-spacing: 0.3em;
-}
-
-/* المجموعة ٥ (عقد ٣٧): نموذج إدارة القفل داخل الإعدادات. */
-.micro-lock-admin {
-  display: grid;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-  max-width: 340px;
-}
-.micro-lock-admin input {
-  text-align: center;
-  letter-spacing: 0.3em;
 }
 
 /* المجموعة ٥ (عقد ٣٣): معاينة المشاركة — منطقة نص واسعة بحدود واضحة. */

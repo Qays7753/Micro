@@ -90,7 +90,7 @@ async function openWallet(name: string, openingMinor: number) {
 
 async function seedProfile() {
   const { ProfileService } = await import("@/application/profile/profileService");
-  const saved = await new ProfileService(store, () => NOW).save("مشغل اختبار FIN-004");
+  const saved = await new ProfileService(store, () => NOW).create("مشغل اختبار FIN-004");
   if (!saved.ok) throw new Error(saved.message);
 }
 

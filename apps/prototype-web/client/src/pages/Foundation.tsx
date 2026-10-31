@@ -38,6 +38,10 @@ export default function Foundation() {
   const [retryCount, setRetryCount] = useState(0);
   useEffect(() => {
     let active = true;
+    /* S07 (سابقة transfers/loans): خدمة المشتريات كسولة — null = «جارٍ
+     * التجهيز» فيبقى الأساس على حالة التحميل الصادقة وتُعاد القراءة فور
+     * جاهزيتها (dependency على الخدمة نفسها). */
+    if (!supplierPurchases) return undefined;
     Promise.all([
       cashContinuity.overview(),
       ownerEntitlement.readOverview(),

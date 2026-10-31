@@ -69,7 +69,7 @@ describe("Wave 4.4 — P-4.4-5: أسماء الوصول وربط الحقول", 
   afterEach(cleanup);
 
   it("كل زر في سطح القروض له اسم وصول — لا زر أيقوني صامت", async () => {
-    const profile = await new ProfileService(store, () => NOW).save("مالك");
+    const profile = await new ProfileService(store, () => NOW).create("مالك");
     if (!profile.ok) throw new Error(profile.message);
     const loans = new LoanService(store, () => NOW);
     for (const [id, name, date] of [

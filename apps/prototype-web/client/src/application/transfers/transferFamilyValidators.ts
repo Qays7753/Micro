@@ -235,6 +235,27 @@ export function isDirectSale(value: unknown): value is DirectSale {
       value.customerName === null ||
       (isString(value.customerName) && value.customerName.trim().length > 0)
     ) ||
+    /* S05-MR-001 (أمر S06 — إصلاح عقد S05 المؤكد): رابط الطرف المحفوظ على
+     * البيع المباشر شكلًا — غائب أو null أو معرّف نصي غير فارغ؛ الملف الذي
+     * يضع نوعًا آخر في هذا الحقل معطوب قبل فحص المرجعية أصلًا.
+     * R2-F03 (مراجعة S06 القرائية ٢): الرابط يحمل لقطة تسميته معه دائمًا
+     * (العقد المشترك §5.1 — PartyRef) — مرآة حارس المجال
+     * assertPartyLinkCarriesSnapshot كما في جانب المورد تمامًا. */
+    !(
+      value.customerPartyId === undefined ||
+      value.customerPartyId === null ||
+      (isString(value.customerPartyId) && value.customerPartyId.trim().length > 0)
+    ) ||
+    (value.customerPartyId !== undefined &&
+      value.customerPartyId !== null &&
+      isString(value.customerPartyId) &&
+      value.customerPartyId.trim().length > 0 &&
+      !(
+        value.customerName !== undefined &&
+        value.customerName !== null &&
+        isString(value.customerName) &&
+        value.customerName.trim().length > 0
+      )) ||
     /* P-002 (دورة التدقيق النهائي): مرجع الكتالوج اختياري — null أو معرّف نصي
      * غير فارغ؛ تناظرًا مع تحقق الطلبات والمسودات فلا يُقبل ملف معطوب يضع
      * نوعًا آخر في هذا الحقل. المرجع المعلّق مقبول (حذف المرجع لاحقًا قانوني). */
@@ -396,7 +417,16 @@ export const isSharedProjectShare = (value: unknown, knowledge: unknown) => {
     ) ||
     !isOptionalNonNegativeMoney(value.totalAmountMinor) ||
     !isPercentageBps(value.percentageBps) ||
-    !isOptionalNonNegativeMoney(value.calculatedShareMinor)
+    !isOptionalNonNegativeMoney(value.calculatedShareMinor) ||
+    /* S06 (CONS-DEC04 / SDF-064 — R1-F03 مراجعة S06 القرائية ١): المدفوع
+     * فعليًا سياق اختياري — غائب/null أو موجب صحيح آمن حصرًا (مرآة حارس
+     * المجال normalizeSharedProjectShare)؛ القيمة المعطوبة تُرفض عند باب
+     * الاستيراد قبل أي معاينة لا تمر صامتة. */
+    !(
+      value.paidAmountMinor === undefined ||
+      value.paidAmountMinor === null ||
+      (isMoney(value.paidAmountMinor) && value.paidAmountMinor > 0)
+    )
   )
     return false;
   if (value.basis === "agreed_percentage")
@@ -692,6 +722,24 @@ export function validAssetRecord(value: unknown): boolean {
       value.note === undefined ||
       (isString(value.note) && (value.note as string).trim().length <= 500)
     ) ||
+    /* S08 (UNIT-034): طرف الاقتناء المحفوظ والمدفوع لحظة الإنشاء — حقنان
+     * اختياريان؛ الغياب/null = السلوك القائم (متوافق رجعيًا بنمط S06/S07). */
+    !(
+      value.acquisitionParty === null ||
+      value.acquisitionParty === undefined ||
+      (isRecord(value.acquisitionParty) &&
+        isString((value.acquisitionParty as Record<string, unknown>).partyId) &&
+        ((value.acquisitionParty as Record<string, unknown>).partyId as string).trim().length > 0 &&
+        isString((value.acquisitionParty as Record<string, unknown>).labelSnapshot) &&
+        ((value.acquisitionParty as Record<string, unknown>).labelSnapshot as string).trim().length > 0)
+    ) ||
+    !(
+      value.paidAtCreationMinor === null ||
+      value.paidAtCreationMinor === undefined ||
+      (isMoney(value.paidAtCreationMinor) &&
+        value.paidAtCreationMinor > 0 &&
+        value.paidAtCreationMinor < value.acquisitionAmountMinor)
+    ) ||
     !(value.status === "active" || value.status === "disposed" || value.status === "written_off") ||
     !isString(value.acquisitionEventId) ||
     value.acquisitionEventId.trim().length === 0 ||
@@ -822,6 +870,35 @@ export function validLoanRecord(value: unknown): boolean {
     )
   );
 }
+/* S04 (DOC-013 / UNIT-025): شكل سجل رصد أرصدة النقد — قياس الموجود: هوية
+ * فريدة ونطاق صادق (محفظة بمعرّفها أو إجمالي المشروع بلا محفظة، لا
+ * يجتمعان) ومبلغ مستوى صحيح آمن (الصفر المقصود صادق) ومعرفة معلومة أو
+ * تقديرية وقطع ISO وتاريخ محلي ووقت تسجيل ومفتاح عهدة وملاحظة؛ الرصد
+ * ليس حركة نقدية فلا يُربط بحدث مالي ولا يُعاد تفسيره تسوية عند الاستيراد. */
+export function validBalanceObservation(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isString(value.id) &&
+    value.id.trim().length > 0 &&
+    (value.scopeKind === "wallet" || value.scopeKind === "project_total") &&
+    (value.scopeKind === "wallet"
+      ? isString(value.walletId) && value.walletId.trim().length > 0
+      : value.walletId === null || value.walletId === undefined) &&
+    isMoney(value.countedMinor) &&
+    Number.isSafeInteger(value.countedMinor) &&
+    (value.knowledge === "known" || value.knowledge === "estimated") &&
+    isString(value.cutoff) &&
+    isDate(value.cutoff) &&
+    isString(value.observedOn) &&
+    isLocalDate(value.observedOn) &&
+    isString(value.recordedAt) &&
+    isDate(value.recordedAt) &&
+    isString(value.operationKey) &&
+    value.operationKey.trim().length > 0 &&
+    isString(value.note)
+  );
+}
+
 /* FIN-001 (WS-178 — Wave 6): شكل سجل القرض المستلم — العقد (المُقرض ونوعه
  * الصريح الذي اختاره المستخدم) والأصل وتاريخ القبض وتاريخ الاستحقاق الاختياري
  * (وسم عرض فقط لا مصروف ولا تنبيه) والمحفظة المعلوماتية والدفعات وتراجعها
@@ -895,12 +972,48 @@ export function validReceivedLoanRecord(value: unknown): boolean {
     )
   );
 }
+/* S07 (UNIT-027): شكل بند شراء واحد عند الاستيراد — هوية نصية غير فارغة،
+ * معالجة معلنة، مادة غائبة أو نصية، كمية غائبة أو موجبة آمنة، معرفة تكلفة
+ * من المحتوى، ومعرفة معلومة ⇐ قيمة موجبة آمنة، ومجهولة ⇐ بلا قيمة معلنة،
+ * وtracked_material يوجب مادة. */
+export function validSupplierPurchaseLine(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (!isString(value.lineId) || !value.lineId.trim()) return false;
+  if (value.treatment !== "period_material" && value.treatment !== "tracked_material") return false;
+  if (!(
+    value.materialId === undefined ||
+    value.materialId === null ||
+    (isString(value.materialId) && value.materialId.trim().length > 0)
+  ))
+    return false;
+  if (!(
+    value.expectedQuantityMilli === undefined ||
+    value.expectedQuantityMilli === null ||
+    (isMoney(value.expectedQuantityMilli) && (value.expectedQuantityMilli as number) > 0)
+  ))
+    return false;
+  if (value.costKnowledge !== "known" && value.costKnowledge !== "unknown") return false;
+  if (value.costKnowledge === "known") {
+    if (!isMoney(value.valueMinor) || value.valueMinor <= 0) return false;
+  } else if (!(value.valueMinor === undefined || value.valueMinor === null)) return false;
+  if (value.treatment === "tracked_material" && (value.materialId === undefined || value.materialId === null))
+    return false;
+  return true;
+}
+
 export function validSupplierPurchase(value: unknown): boolean {
   if (
     !isRecord(value) ||
     !isString(value.id) ||
-    !isString(value.supplierName) ||
-    !value.supplierName.trim() ||
+    /* S05-MR-002 (أمر S06 — إصلاح عقد S05 المؤكد / SDF-010): المورد
+     * اختياري في الشراء المسدد كاملًا — null تعني «بلا مورد مسجل» بصدق
+     * كما في سياسة المجال الحية (createSupplierPurchase/assertSupplierIdentityForPayable)
+     * وعقد UNIT-037/SDF-010؛ النص الفارغ/الفراغات ليس اسمًا ولا null فيُرفض.
+     * شرط التعريف عند وجود استحقاق قائم يُفحص بعد حساب المدفوع الفعلي أدناه. */
+    !(
+      value.supplierName === null ||
+      (isString(value.supplierName) && value.supplierName.trim().length > 0)
+    ) ||
     !isString(value.note) ||
     !value.note.trim() ||
     !isString(value.purchasedOn) ||
@@ -915,6 +1028,14 @@ export function validSupplierPurchase(value: unknown): boolean {
     !isDate(value.createdAt) ||
     !isDate(value.updatedAt) ||
     !Array.isArray(value.payments) ||
+    /* S05-MR-001 (أمر S06 — إصلاح عقد S05 المؤكد): رابط المورد المحفوظ شكلًا
+     * — غائب أو null أو معرّف نصي غير فارغ؛ فحص المرجعية نفسه عند عائلة
+     * اللقطة (validateSnapshot). */
+    !(
+      value.supplierPartyId === undefined ||
+      value.supplierPartyId === null ||
+      (isString(value.supplierPartyId) && value.supplierPartyId.trim().length > 0)
+    ) ||
     /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة اختياري — الشكل فقط. */
     !(
       value.materialId === undefined ||
@@ -925,6 +1046,36 @@ export function validSupplierPurchase(value: unknown): boolean {
       value.expectedQuantityMilli === undefined ||
       value.expectedQuantityMilli === null ||
       (isMoney(value.expectedQuantityMilli) && value.expectedQuantityMilli > 0)
+    ) ||
+    /* S07 (UNIT-027): بنود الشراء — غياب/فراغ = بلا بنود؛ وإلا فكل بند
+     * بالشكل الصارم وهويات فريدة داخل الشراء الواحد. */
+    !(
+      value.lines === undefined ||
+      value.lines === null ||
+      (Array.isArray(value.lines) &&
+        value.lines.length > 0 &&
+        value.lines.every(validSupplierPurchaseLine) &&
+        new Set(value.lines.map((line: { lineId: unknown }) => (isRecord(line) ? line.lineId : null)))
+          .size === value.lines.length)
+    ) ||
+    /* S07 (UNIT-027 / R2-F04): مجموع قيم البنود المعلومة لا يتجاوز إجمالي
+     * الشراء — مرآة ثابت حد الكتابة الكنوني («الأجزاء لا تكرر فوق الكل»)
+     * فلا يعبر ملف دخيل بفترة اعتراف تتجاوز قيمة الفاتورة نفسها.
+     * R4-F01: تضييق بلا إكراه نوع على عائلة Minor — Array.isArray مع
+     * isRecord/isMoney (نمط الملف نفسه)، وقيمة غير مصفوفة تُرفض لا تُلقي
+     * استثناء داخل المدقق. */
+    !(
+      value.lines === undefined ||
+      value.lines === null ||
+      (Array.isArray(value.lines) &&
+        isMoney(value.totalMinor) &&
+        value.lines.reduce<number>(
+          (sum, line) =>
+            isRecord(line) && line.costKnowledge === "known" && isMoney(line.valueMinor)
+              ? sum + line.valueMinor
+              : sum,
+          0,
+        ) <= value.totalMinor)
     )
   )
     return false;
@@ -991,6 +1142,14 @@ export function validSupplierPurchase(value: unknown): boolean {
   const effectivePaid = totalPaid - totalReversed;
   const status =
     effectivePaid === 0 ? "unpaid" : effectivePaid === value.totalMinor ? "paid" : "partially_paid";
+  /* S05-MR-002 (تكملة): استحقاق قائم (مدفوع فعلي < الإجمالي) يوجب تعريف جهة
+   * — اسم غير فارغ أو رابط مورد محفوظ — مطابقة لرسالة حارس المجال نفسها؛
+   * والربط المحفوظ يحمل لقطة اسمه معه دائمًا (العقد المشترك §5.1 — PartyRef)
+   * رابط بلا لقطة اسم شكل مكسور فيُرفض مسددًا كان أم مستحقًا. لا تُقبل
+   * بيانات مورد فارغة اعتباطًا لمستحق، ولا يُضعف أي تحقق آخر. */
+  const hasSupplierName = isString(value.supplierName) && value.supplierName.trim().length > 0;
+  const hasSupplierLink = isString(value.supplierPartyId) && value.supplierPartyId.trim().length > 0;
+  const hasSupplierIdentity = hasSupplierName || hasSupplierLink;
   return (
     Number.isInteger(totalPaid) &&
     Number.isInteger(totalReversed) &&
@@ -998,7 +1157,9 @@ export function validSupplierPurchase(value: unknown): boolean {
     effectivePaid <= value.totalMinor &&
     value.paidMinor === effectivePaid &&
     value.payableMinor === value.totalMinor - effectivePaid &&
-    value.status === status
+    value.status === status &&
+    (effectivePaid === value.totalMinor || hasSupplierIdentity) &&
+    (!hasSupplierLink || hasSupplierName)
   );
 }
 export const isCashWalletKind = (value: unknown) =>
@@ -1120,6 +1281,13 @@ export function validInventoryMovement(value: unknown): boolean {
     !isString(value.operationKey) ||
     !value.operationKey.trim() ||
     !(value.purchaseId === null || isString(value.purchaseId)) ||
+    /* S07 (UNIT-027): مرجع بند الشراء عند الاستلام — غائب أو null أو نص غير
+     * فارغ؛ مرجع بند مكسور داخل الملف يرفضه فحص العائلة عند اللقطة. */
+    !(
+      value.purchaseLineId === undefined ||
+      value.purchaseLineId === null ||
+      (isString(value.purchaseLineId) && value.purchaseLineId.trim().length > 0)
+    ) ||
     !(value.orderId === null || isString(value.orderId)) ||
     /* المجموعة ٣ (عقد D6): ربط البيع المباشر — null أو نص (اختياري). */
     !(value.saleId === undefined || value.saleId === null || isString(value.saleId)) ||
@@ -1384,6 +1552,22 @@ export function validShortCashDeclaration(value: unknown): boolean {
   );
 }
 
+/* S09 (UNIT-008/SH-13 — أمر ad133bae القسم ٢): أساس المجموعات على لقطة
+ * التكلفة — اختياري؛ الغياب/null = لقطة غير مجمعة (متوافق رجعيًا). */
+export function validDraftCostGroupBasis(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  const group = value as Record<string, unknown>;
+  return (
+    isString(group.groupId) &&
+    (group.groupId as string).trim().length > 0 &&
+    isString(group.label) &&
+    (group.label as string).trim().length > 0 &&
+    Number.isSafeInteger(group.repeatQuantity) &&
+    (group.repeatQuantity as number) >= 1 &&
+    Array.isArray(group.unitMaterialItems)
+  );
+}
+
 export function validDraftCostSnapshot(value: unknown): boolean {
   if (
     !isRecord(value) ||
@@ -1405,6 +1589,14 @@ export function validDraftCostSnapshot(value: unknown): boolean {
       isTimeMinutes(value.time.minutes) &&
       isOptionalMoney(value.time.hourlyRateMinor) &&
       (value.time.confidence === "known" || value.time.confidence === "estimated"))
+  ))
+    return false;
+  /* S09 (UNIT-008/SH-13): أساس المجموعات اختياري — الغياب/null = لقطة غير
+   * مجمعة (متوافق رجعيًا)؛ وإن وُجد فقائمة صحيحة الشكل فقط. */
+  if (!(
+    value.groupBasis === undefined ||
+    value.groupBasis === null ||
+    (Array.isArray(value.groupBasis) && value.groupBasis.every(validDraftCostGroupBasis))
   ))
     return false;
   return value.materialItems.every(
@@ -1452,6 +1644,22 @@ export function validCostEstimate(value: unknown): boolean {
       (value.time.confidence === "known" || value.time.confidence === "estimated"))
   ))
     return false;
+  /* S10 (UNIT-032/SH-14): حساب T01 المحفوظ — حقل اختياري متوافق رجعيًا
+   * (نمط S06/S09 المدروس): الغياب/null = تقدير قديم يقبل كما هو؛ والوجود
+   * باب محروس يفحص شكله كاملًا قبل أي كتابة هدف (رفض ما قبل المعاينة). */
+  if (!(
+    value.planning === undefined ||
+    value.planning === null ||
+    validPlanningCalculationFields(value.planning)
+  ))
+    return false;
+  /* S10: مفتاح نية الحفظ — اختياري (null/نص) للتوافق الرجعي. */
+  if (!(
+    value.createdOperationKey === undefined ||
+    value.createdOperationKey === null ||
+    isString(value.createdOperationKey)
+  ))
+    return false;
   return value.materialItems.every(
     item =>
       isRecord(item) &&
@@ -1462,6 +1670,148 @@ export function validCostEstimate(value: unknown): boolean {
       (item.confidence === "known" || item.confidence === "estimated") &&
       /* المجموعة ٣ (عقد D2): هوية المادة في بند التكلفة — اختيارية null أو نص. */
       (item.materialId === undefined || item.materialId === null || isString(item.materialId)),
+  );
+}
+
+/* S10 (UNIT-032/SH-14): بوابة شكل حساب التخطيط المحفوظ — المفتاح نفسه لكل
+ * الحقول قبل أي معاينة أو كتابة؛ الملف المُلاعب بحقل ناقص الشكل يُرفض كاملًا. */
+export function validPlanningCalculationFields(value: unknown): boolean {
+  if (
+    !isRecord(value) ||
+    !isMoney(value.inputSchemaVersion) ||
+    !isMoney(value.calculationVersion) ||
+    !Array.isArray(value.groups) ||
+    value.groups.length === 0 ||
+    !isMoney(value.packagingMinor) ||
+    !isMoney(value.wasteMinor) ||
+    !isMoney(value.deliveryMinor) ||
+    !Array.isArray(value.otherRevenues) ||
+    !Array.isArray(value.otherExpenses)
+  )
+    return false;
+  if (!(
+    value.time === null ||
+    value.time === undefined ||
+    (isRecord(value.time) &&
+      isTimeMinutes(value.time.minutes) &&
+      isOptionalMoney(value.time.hourlyRateMinor) &&
+      (value.time.confidence === "known" || value.time.confidence === "estimated"))
+  ))
+    return false;
+  const seenGroupIds = new Set<string>();
+  for (const group of value.groups) {
+    if (
+      !isRecord(group) ||
+      !isString(group.groupId) ||
+      group.groupId.trim().length === 0 ||
+      seenGroupIds.has(group.groupId) ||
+      !isString(group.label) ||
+      group.label.trim().length === 0 ||
+      (group.offeringType !== "product" && group.offeringType !== "service") ||
+      !(
+        typeof group.repeatQuantity === "number" &&
+        Number.isSafeInteger(group.repeatQuantity) &&
+        group.repeatQuantity >= 1
+      ) ||
+      (group.costMode !== "details" && group.costMode !== "total") ||
+      !Array.isArray(group.unitComponents) ||
+      !(
+        group.totalCostMinor === null ||
+        group.totalCostMinor === undefined ||
+        isMoney(group.totalCostMinor)
+      ) ||
+      !(
+        group.sellingPriceMinor === null ||
+        group.sellingPriceMinor === undefined ||
+        isMoney(group.sellingPriceMinor)
+      )
+    )
+      return false;
+    seenGroupIds.add(group.groupId);
+    if (
+      !group.unitComponents.every(
+        (item: unknown) =>
+          isRecord(item) &&
+          isString(item.name) &&
+          isString(item.unit) &&
+          isPositiveQuantity(item.quantity) &&
+          isMoney(item.unitPriceMinor) &&
+          (item.confidence === "known" || item.confidence === "estimated") &&
+          (item.materialId === undefined || item.materialId === null || isString(item.materialId)),
+      )
+    )
+      return false;
+  }
+  if (!validPlanningExtraRows(value.otherRevenues) || !validPlanningExtraRows(value.otherExpenses))
+    return false;
+  if (!(value.discount === null || value.discount === undefined || validPlanningDiscount(value.discount)))
+    return false;
+  if (!(
+    value.commission === null ||
+    value.commission === undefined ||
+    validPlanningCommission(value.commission)
+  ))
+    return false;
+  return validPlanningSavedResult(value.savedResult);
+}
+
+function validPlanningExtraRows(rows: unknown): boolean {
+  const seenRowIds = new Set<string>();
+  for (const row of rows as unknown[]) {
+    if (
+      !isRecord(row) ||
+      !isString(row.rowId) ||
+      row.rowId.trim().length === 0 ||
+      seenRowIds.has(row.rowId) ||
+      !isMoney(row.amountMinor) ||
+      !(row.description === null || row.description === undefined || isString(row.description))
+    )
+      return false;
+    seenRowIds.add(row.rowId);
+  }
+  return true;
+}
+
+function validPlanningDiscount(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (value.mode === "amount") return isMoney(value.amountMinor);
+  if (value.mode === "percent") return isMoney(value.percentCenti);
+  return false;
+}
+
+function validPlanningCommission(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (value.mode === "amount") return isMoney(value.amountMinor);
+  if (value.mode === "percent")
+    return (
+      isMoney(value.percentCenti) &&
+      (value.basis === "products_after_discount" || value.basis === "order_total")
+    );
+  return false;
+}
+
+function validPlanningSavedResult(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isMoney(value.productsCostMinor) &&
+    (value.sellingTotalMinor === null ||
+      value.sellingTotalMinor === undefined ||
+      isMoney(value.sellingTotalMinor)) &&
+    (value.expectedTotalMinor === null ||
+      value.expectedTotalMinor === undefined ||
+      isMoney(value.expectedTotalMinor)) &&
+    isMoney(value.pricingCostMinor) &&
+    /* R2-F1 (مراجعة S10): الربح المتوقع والهامش قد يكونان سالبين بصدق —
+     * «سعر البيع حر بلا حد أدنى» ينتج خسارة متوقعة وهامشًا سالبًا (مثال
+     * U031-AC23) وهي حالة عقدية مشروعة؛ رفضها بقفل النسخ الاحتياطي كله
+     * خطأ. isSignedMoney بسابقة profitMinor للدورة (X-06 نفسها). */
+    (value.expectedProfitMinor === null ||
+      value.expectedProfitMinor === undefined ||
+      isSignedMoney(value.expectedProfitMinor)) &&
+    (value.marginPercentCenti === null ||
+      value.marginPercentCenti === undefined ||
+      isSignedMoney(value.marginPercentCenti)) &&
+    isKnownState(value.knowledgeState)
   );
 }
 
@@ -1742,4 +2092,28 @@ export function validExpenseBudgetRecord(value: unknown): boolean {
   )
     return false;
   return true;
+}
+
+/* S05 (DOC-014 / UNIT-037): شكل سجل الطرف المحفوظ — هوية تعريفية بلا أي
+ * مبلغ: معرّف ثابت وتسمية غير فارغة وهاتف/ملاحظة اختياريان (null أو نص)
+ * وحالة أرشفة (null أو طابع) ومفتاح عملية وطابعا إنشاء/تعديل. لا فحص
+ * تفرّد تسمية هنا ولا في أي مكان: طرفان بالتسمية نفسها هويتان مستقلتان
+ * (لا دمج بالاسم أبدًا — SDF-009)، وتفرّد المعرف يفحصه سياق العائلة. */
+export function validSavedParty(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isString(value.id) &&
+    value.id.trim().length > 0 &&
+    isString(value.label) &&
+    value.label.trim().length > 0 &&
+    (value.phone === null ||
+      value.phone === undefined ||
+      (isString(value.phone) && value.phone.trim().length > 0)) &&
+    (value.note === null || value.note === undefined || isString(value.note)) &&
+    (value.archivedAt === null || value.archivedAt === undefined || isDate(value.archivedAt)) &&
+    isString(value.operationKey) &&
+    value.operationKey.trim().length > 0 &&
+    isDate(value.createdAt) &&
+    isDate(value.updatedAt)
+  );
 }

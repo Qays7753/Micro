@@ -5,7 +5,11 @@
 import type { CraftOrder } from "@micro-domain/craft-order/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
-import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
+import type {
+  CashContinuityEntry,
+  CashObservation,
+  CashWallet,
+} from "@micro-domain/cash-continuity/index.js";
 import type {
   InventoryMovement,
   InventoryShortage,
@@ -30,13 +34,19 @@ import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
 import type { ReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
+/* S07-MR-001 (أمر S08 — القسم ١): عقد الحالة المتوقعة لكتابة المخزون —
+ * يُعرَّف عند حارس الالتزام النقي ويُستورَد نوعًا فقط هنا (المهايئان
+ * والخدمات تستهلكانه؛ المنفذ لا يعيد تعريفه). */
+import type { InventoryCommitExpectation } from "./inventoryCommitGuard.js";
 import type {
   RecurringExpenseOccurrence,
   RecurringExpenseRuleRevision,
   RecurringExpenseSeries,
 } from "@micro-domain/recurring-expense/index.js";
 import type { ExpenseBudgetRecord } from "@micro-domain/budget/index.js";
+import type { SavedParty } from "@micro-domain/party/index.js";
 import type { SupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
+import type { CounterpartyWriteCommit } from "./counterpartyCommitGuard";
 
 /* المجموعة ٥ (الاستمرارية): المخطط ٣٥ أضاف مخزني `form-drafts` و`local-security`
  * بمُنشئ محروس — لا حقول جديدة على أي سجل قائم ولا ترحيل بيانات؛ القديم يفتح
@@ -51,8 +61,18 @@ import type { SupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
  * FIN-001 (WS-178 — Wave 6 / نمط D-037): المخطط ٣٨ يضيف مخزن `received-loans`
  * واحدًا لسجلات القروض المستلمة (الحقيقة المالية في أحداثها داخل
  * financial-events) بالمُنشئ المحروس نفسه — لا حقول جديدة على سجل قائم
- * ولا ترحيل بيانات؛ القديم يفتح ويجده فارغًا. */
-export const localSchemaVersion = 38;
+ * ولا ترحيل بيانات؛ القديم يفتح ويجده فارغًا.
+ * S04 (DOC-013 / UNIT-025 + العقد المشترك §8 — نمط D-037): المخطط ٣٩ يضيف
+ * مخزن `balance-observations` واحدًا لرصد أرصدة النقد (قياس الموجود بنطاقه
+ * وقطعه ومعرفته — ليس حركة نقدية ولا افتتاحًا ولا تمويلًا) بالمُنشئ
+ * المحروس نفسه — لا حقول جديدة على سجل قائم ولا ترحيل بيانات؛ القديم
+ * يفتح ويجده فارغًا.
+ * S05 (DOC-014 / UNIT-037 P3.2 + العقد المشترك §5.1/§8 — نمط D-037): المخطط ٤٠
+ * يضيف مخزن `counterparties` واحدًا لهويات الأطراف المحفوظة اختياريًا (عميل/
+ * مورد — تعريف بلا رصيد ولا حدث مالي؛ الأرصدة تقرأ من المصادر المرتبطة
+ * بمعرف الطرف) بالمُنشئ المحروس نفسه — لا حقول جديدة على سجل قائم ولا
+ * ترحيل بيانات؛ القديم يفتح ويجده فارغًا. */
+export const localSchemaVersion = 40;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
@@ -67,14 +87,35 @@ export const localExportFormat = "micro-prototype-local-export";
  * الغياب يعني قائمة فارغة.
  * FIN-001 (WS-178 — Wave 6): النسخة ٣٠ تضيف عائلة القروض المستلمة إلى لقطة
  * التصدير وعداداتها؛ ملف ٢٩/٣٧ يبقى زوجًا موروثًا مقبولًا في الاستيراد بلا
- * اختراع قروض مستلمة — الغياب يعني قائمة فارغة بلا اختراع تاريخ. */
-export const localExportVersion = 30;
+ * اختراع قروض مستلمة — الغياب يعني قائمة فارغة بلا اختراع تاريخ.
+ * S04 (DOC-013 / UNIT-025): النسخة ٣١ تضيف عائلة رصد أرصدة النقد إلى لقطة
+ * التصدير وعداداتها — القياس بيانات حقيقية تُنقل مع اللقطة (نطاقها وقطعها
+ * ومعرفتها محفوظة) ولا تُعاد تسويته عند الاستعادة؛ ملف ٣٠/٣٨ يبقى زوجًا
+ * موروثًا مقبولًا في الاستيراد — الغياب يعني قائمة فارغة بلا اختراع قياس.
+ * S05 (DOC-014 / UNIT-037): النسخة ٣٢ تضيف عائلة الأطراف المحفوظة إلى لقطة
+ * التصدير وعداداتها — هوية الطرف (معرّفه الثابت وتسميته الحالية وهاتفه
+ * وملاحظته وحالة أرشيفته) بيانات حقيقية تُنقل مع اللقطة بلا دمج ولا
+ * اختراع أطراف؛ ملف ٣١/٣٩ يبقى زوجًا موروثًا مقبولًا في الاستيراد —
+ * الغياب يعني قائمة فارغة بلا اختراع هوية. */
+export const localExportVersion = 32;
 export const localSecurityId = "local-security";
 /* المجموعة ٥ (التحصين الكامل — حدود المسودة): نوعان جديدان يدخلان الحد نفسه —
  * مسودة محرر الحدث المالي (مهاجرة من مفتاح localStorage القديم لكل نوع) ومسودة
- * الإعداد (مهاجرة من مفتاحها القديم). كلاهما عابر بلا أثر مالي كما إخوتهما. */
+ * الإعداد (مهاجرة من مفتاحها القديم). كلاهما عابر بلا أثر مالي كما إخوتهما.
+ * S09 (UNIT-007/008 — أمر ad133bae القسم ٢): نوعان جديدان لسطحي المرحلة —
+ * مسودة نموذج محرر المسودة (raw النص والكمية غير الصالحة قبل أي التزام) ومسودة
+ * نموذج محرر التكلفة (مدخلات التكلفة قبل حفظ النسخة). كلاهما عابر بلا أثر مالي،
+ * خارج التصدير كما كل العائلة، وقراءته لا تنشئ مسودة طلب ولا نسخة تكلفة. */
 export type FormDraftKind =
-  "asset" | "loan" | "supplier_purchase" | "direct_sale" | "inventory_movement" | "finance_event" | "setup";
+  | "asset"
+  | "loan"
+  | "supplier_purchase"
+  | "direct_sale"
+  | "inventory_movement"
+  | "finance_event"
+  | "setup"
+  | "order_draft"
+  | "order_cost";
 export type FormDraftEnvelope = {
   /** `${formKind}:${scopeId ?? "new"}` — مسودة واحدة لكل شاشة لكل نطاق. */
   id: string;
@@ -82,6 +123,12 @@ export type FormDraftEnvelope = {
   scopeId: string | null;
   /** إصدار شكل القيم لكل نوع — تغيّره يعني تجاهل المسودة القديمة بلا انفجار. */
   valuesVersion: number;
+  /* S02-A (SH-03 — عقد ٠٤٤/§16): جيل البيانات المحلي الذي حُفظت ضده المسودة —
+   * الغياب (سجلات ما قبل S02) يعامل كالجيل ٠ فتبقى مسودات المالك الحالية
+   * قابلة للاستئناف حتى أول استبدال حقيقي. أي استبدال يصك جيلًا أعلى فتصير
+   * المسودة من جيل قديم: لا تُعرض للاستئناف فوق بيانات لم تُنشأ لها (سياج
+   * النافذة الثانية — SDF-050). */
+  generation?: number;
   values: unknown;
   createdAt: string;
   updatedAt: string;
@@ -106,6 +153,92 @@ export type LocalSecurityRecord = {
   lastFailedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+/* S02-A (SH-02/SH-03 — عقد ٠٤٤ §16 والسجل المشترك §14): سجلات حماية الاستبدال
+ * الدائمة — تعيش في قاعدة بيانات IndexedDB **منفصلة** (micro-prototype-restore)
+ * خارج قاعدة البيانات التي يستبدلها الاسترداد حرفيًا كما يفرض العقد («نسخة
+ * رجوع دائمة قابلة للوصول خارج قاعدة البيانات التي ستستبدل»)، فلا يمسها
+ * مخزن لقطة ولا يمكن للاستبدال إتلافها؛ ولا تُصدَّر أبدًا فلا يعيدها ملف
+ * قديم (الجيل محلي لا يصدر). المفتاح المحروس ٣٨/٣٠ لا يتغير: هذه قاعدة
+ * مستقلة بإصدارها الخاص ١ لا علاقة له بمخطط التصدير. */
+export type RestoreRollbackRecord = {
+  id: "rollback-active" | "rollback-pending";
+  /** ملف نسخة مُتحقق منه دورة كاملة للبيانات قبل الاستبدال — ليس قيمة في
+   * الذاكرة ولا رابط تنزيل؛ يصمد للإغلاق وإعادة التحميل والانهيار. */
+  file: LocalExportFile;
+  /** مسودات النماذج العابرة الموجودة قبل الاستبدال — تُعزل مع اللقطة
+   * القديمة وتُسترد معها (عقد ٠٤٤ B6)؛ تبقى مميزة عن مسودات الأعمال
+   * المحفوظة داخل الملف نفسه. */
+  drafts: readonly FormDraftEnvelope[];
+  /** بصمة الحالة المحمية وقت إنشاء السجل (كنونية — snapshotCanonicalization). */
+  snapshotDigest: string;
+  /** الجيل الذي كانت عليه البيانات عند إنشاء النسخة. */
+  generation: number;
+  createdAt: string;
+};
+export type ReplacementCommandType = "restore" | "reset" | "guided-opening" | "rollback-restore";
+/** نية استبدال قائمة لم يُحسم مآلها — تُكتب قبل أي كتابة مدمرة، ويُحسم
+ * مآلها عند أول قراءة تالية بمقارنة بصمة الحالة الحية بالبصمتين (SDF-051)؛
+ * وجودها يمنع بدء نية استبدال أخرى حتى الحسم (سياج النية الواحدة). */
+export type ReplacementIntentRecord = {
+  id: "replacement-marker";
+  commandId: string;
+  commandType: ReplacementCommandType;
+  fromGeneration: number;
+  toGeneration: number;
+  /** بصمة الحالة قبل الاستبدال وبعده — تطابق القراءة الحية مع الأولى =
+   * القديم كامل، مع الثانية = الجديد كامل، ولا هذا ولا ذاك = مآل غير
+   * محسوم يمنع نية جديدة حتى الحسم. */
+  beforeDigest: string;
+  afterDigest: string;
+  /** بصمة حمولة الأمر المُقدَّمة — ربط التأكيد بالملف المُراجَع نفسه. */
+  payloadDigest: string;
+  /** ملخص نتيجة الأمر مسلسلًا — يُحفظ مع النية كي يكمل الحسمُ إيصالَ الأمر
+   * المنهار بعد التزامه دون فقد نتيجته الأصلية (SDF-037/051). */
+  summaryJson: string;
+  startedAt: string;
+};
+/** إيصال آخر استبدال ملتزم — نتيجة الأمر الأصلية تُعاد حرفيًا عند إعادة
+ * نفس المفتاح والحمولة بلا أثر ثانٍ (SDF-037)؛ لا يُحذف بمحاولة فاشلة
+ * ولا بنية لاحقة — يستبدله فقط التزام ناجح أحدث. */
+export type ReplacementReceiptRecord = {
+  id: "replacement-receipt";
+  commandId: string;
+  commandType: ReplacementCommandType;
+  payloadDigest: string;
+  /** ملخص نتيجة الأمر الأصلي مسلسلًا (يملؤه صاحب العقد في طبقة التطبيق) —
+   * التخزين يحفظه كسلسلة معتمة بلا تفسير؛ ليس حدثًا ماليًا أبدًا. */
+  summaryJson: string;
+  /** الجيل الذي صُكّ مع الالتزام (toGeneration). */
+  generation: number;
+  committedAt: string;
+};
+export type DataGenerationRecord = {
+  id: "data-generation";
+  /** جيل البيانات المحلي — يبدأ صفرًا ويرتفع واحدًا مع كل استبدال ملتزم
+   * داخل حد الكتابة نفسه؛ محلي لا يُصدَّر ولا يستعيده ملف قديم. */
+  generation: number;
+  updatedAt: string;
+};
+export type RestoreProtectionState = {
+  generation: number;
+  intent: ReplacementIntentRecord | null;
+  receipt: ReplacementReceiptRecord | null;
+  activeRollback: RestoreRollbackRecord | null;
+  pendingRollback: RestoreRollbackRecord | null;
+};
+/** سياج الاستبدال داخل حد الكتابة — البصمة المرجوة تُقارن داخل معاملة
+ * الاستبدال نفسها بعد قراءة كل المخازن وقبل أي مسح (ضمان مخزني لا طبقة
+ * واجهة)، والقائمة الاختيارية تعيد مسودات النماذج المعزولة مع اللقطة
+ * القديمة في الحد نفسه (مسار استرجاع النسخة السابقة وحده يمررها).
+ * digestOf تُمرَّر من صاحب البروتوكول (شظية النقل الكسولة) كي لا يدخل
+ * جهاز البصمة الكنونية كومة إقلاع المحوّل — السياج يعمل داخل المعاملة
+ * فلا يصلح استيراد كسول هناك. */
+export type ReplacementGuard = {
+  expectedSnapshotDigest: string;
+  digestOf: (snapshot: LocalStoreSnapshot) => string;
+  restoreFormDrafts?: readonly FormDraftEnvelope[];
 };
 export type LocalExportIntegrity = {
   algorithm: "sha256";
@@ -134,6 +267,10 @@ export type LocalExportCounts = {
   expenseBudgets: number;
   /* FIN-001 (WS-178 — Wave 6): عائلة القروض المستلمة داخل العدادات الصارمة. */
   receivedLoans: number;
+  /* S04 (DOC-013 / UNIT-025): عائلة رصد أرصدة النقد داخل العدادات الصارمة. */
+  balanceObservations: number;
+  /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة داخل العدادات الصارمة. */
+  counterparties: number;
   /* R10-B2/RC-1 (R10A-F-009): عائلات مال المالك الأربع داخل العدادات
    * الصارمة — مفاتيح إضافية داخل المفتاح counts نفسه والإصدار يبقى ٣٠
    * (الأزواج الموروثة بلا كتل عدادات لا يمسها التغيير؛ السجل الكنوني:
@@ -173,6 +310,9 @@ export type InventoryActivation = {
   operationKey: string;
 };
 
+import type { PlanningCalculationFields } from "./planningCalculationTypes";
+import type { CostEstimateKnowledge, DraftCostMaterial, DraftCostTime } from "./costItemTypes";
+
 export type ActivityProfile = {
   id: typeof localProfileId;
   activityName: string;
@@ -181,6 +321,11 @@ export type ActivityProfile = {
   createdAt: string;
   updatedAt: string;
 };
+/* S03 (UNIT-039 B2/عقد §17): نتيجة حد تعديل الاسم — اتحاد مميّز صادق:
+ * renamed ⟹ الملف المُعاد هو المسمّى الجديد (موجود دائمًا)، وconflict ⟹
+ * الملف الحالي كما هو (أو null إن غاب الملف) بلا أي كتابة. */
+export type ProfileRenameCommitOutcome =
+  { profile: ActivityProfile; outcome: "renamed" } | { profile: ActivityProfile | null; outcome: "conflict" };
 export type OperatingWorkMode = "material_focused" | "time_focused" | "mixed";
 export type LocalPreferences = {
   id: typeof localPreferencesId;
@@ -204,24 +349,32 @@ export type LocalPreferences = {
    * الفراغ = لا سياسة معلنة = لا تنبيه أبدًا؛ لا يُخترع حد افتراضيًا ولا يُفترض
    * طلب مستقبلي. حقل اختياري ينتقل مع السجل كما disabledCapabilities. */
   lowStockThresholdsMilli?: Record<string, number> | null;
+  /* S03 (UNIT-038 P3.2/UNIT-001 P3.2 — عقد §5.1/§15.1): تفضيل ما يقدمه المشروع
+   * — منتجات/خدمات/كلاهما، اختيار صريح من المصدر الواحد (038) يستخدمه سؤال
+   * البداية في 001 ومحرر الإعدادات. الغياب أو null = محايد: لا يُفترض منتجات
+   * ولا يخفي خدمات. مستقل تمامًا عن workMode (طريقة مواد/وقت) ولا يُعاد تفسيره
+   * أبدًا، ولا يعيد تصنيف أي سجل تاريخي. حقل اختياري داخل السجل القائم ينتقل
+   * معه في اللقطة (بخلاف جيل البيانات المحلي المستثنى صراحة). */
+  offeringPreference?: "products" | "services" | "both" | null;
   updatedAt: string;
 };
+/* S03 revalidation (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28 §A2):
+ * الحقول القابلة للتحقيق فقط — الهوية وطابع التحديث يملكهما حد الكتابة
+ * (commitPreferencesUpdate). */
+export type LocalPreferencesPatch = Partial<Omit<LocalPreferences, "id" | "updatedAt">>;
+/* S03 revalidation: نتيجة حد كتابة التفضيلات — اتحاد مميّز صادق (نمط
+ * ProfileRenameCommitOutcome): updated/created ⟹ السجل المكتوب حاضرًا
+ * دائمًا، وconflict ⟹ السجل الحي كما هو (أو null إن غاب) بلا أي كتابة —
+ * الغياب عند توقع نسخة قائمة تعارض لا إنشاء. */
+export type PreferencesCommitOutcome =
+  | { outcome: "updated"; preferences: LocalPreferences }
+  | { outcome: "created"; preferences: LocalPreferences }
+  | { outcome: "conflict"; live: LocalPreferences | null };
 export type DraftIntent = "customer_order" | "planned_design";
-export type DraftCostMaterial = {
-  name: string;
-  quantity: number;
-  unit: string;
-  unitPriceMinor: number;
-  confidence: "known" | "estimated";
-  /* المجموعة ٣ (عقد D2/D3): هوية المادة المرتبطة إن اختيرت من المخزون — هوية
-   * فقط؛ الأرقام تُدخل وتُجمَّد كما هي. غياب الحقل = بند حر. */
-  materialId?: string | null;
-};
-export type DraftCostTime = {
-  minutes: number | null;
-  hourlyRateMinor: number | null;
-  confidence: "known" | "estimated";
-};
+/* S10 (أمر b56967d8): بنود التكلفة المشتركة صارت في ملفها الورقي
+ * costItemTypes.ts لكسر دورة الأنواع مع أنواع حساب T01 — بيتها القانوني
+ * يعاد تصديره هنا فلا يتغير أي مستهلك. */
+export type { DraftCostMaterial, DraftCostTime } from "./costItemTypes";
 export type DraftCostSnapshot = {
   id: string;
   revision: number;
@@ -234,6 +387,41 @@ export type DraftCostSnapshot = {
   safetyBufferMinor: number;
   quantity: number;
   createdAt: string;
+  /* S09 (UNIT-008/SH-13 — أمر ad133bae القسم ٢): أساس المجموعات الموثق مع
+   * اللقطة — أساس الوحدة الواحدة لكل مجموعة كما دخلته المستخدمة؛ التوسيع
+   * (expandGroupedCostBasis ثم النواة الواحدة) ضربه في التكرار مرة واحدة
+   * في المدخل المسطح أعلاه. حقل اختياري — الغياب = لقطة غير مجمعة (متوافق
+   * رجعيًا بنمط S06/S07/S08). */
+  groupBasis?: readonly DraftCostGroupBasis[] | null;
+};
+export type DraftCostGroupBasis = {
+  groupId: string;
+  label: string;
+  repeatQuantity: number;
+  /* مكونات الوحدة الواحدة من هذه المجموعة — كما دخلت قبل التوسيع. */
+  unitMaterialItems: readonly DraftCostMaterial[];
+};
+/* S09 (UNIT-029 — أمر ad133bae القسم ٢): مرجع العرض المحفوظ كلقطة موسومة
+ * مستقلة — المعرف + مراجعة القالب (إن اختير قالب) + لقطة الاسم + لحظة الأخذ؛
+ * تعديل/أرشفة المصدر لاحقًا لا يغير لقطة تاريخية، ولا «الأحدث وقت القراءة»
+ * أبدًا (B1-D03/U029-R25). */
+export type DraftOfferingRef = {
+  catalogItemId: string;
+  templateId: string | null;
+  revision: number | null;
+  nameSnapshot: string;
+  takenAt: string;
+};
+/* S09 (UNIT-007 — أمر ad133bae القسم ٢): مجموعات المسودة — هوية ثابتة
+ * لكل مجموعة بتسميتها وتكرارها ونوع عرضها ومرجعها الموسوم؛ لا تُبنى من
+ * الكتالوج إجبارًا ولا تُنشئ عرضًا تلقائيًا. حقول اختيارية متوافقة رجعيًا. */
+export type DraftGroup = {
+  id: string;
+  label: string;
+  repeatQuantity: number;
+  offeringType: "product" | "service";
+  offeringRef: DraftOfferingRef | null;
+  note: string | null;
 };
 export type OrderDraft = {
   id: string;
@@ -251,6 +439,13 @@ export type OrderDraft = {
   /* U-004: مرجع التقدير الذي بدأت منه المسودة — أثر سجل فقط: التقدير لا يتغير،
    * ومحرر التكلفة يعرض بنوده كاقتراحات قابلة للتعديل. حقل اختياري؛ القديم بلاه يُقرأ فارغًا. */
   sourceEstimateId?: string | null;
+  /* S09 (UNIT-029): مرجع العرض المحفوظ كلقطة موسومة مستقلة — اختياري؛ الغياب/null = مسودة بلا مرجع (كما كان). */
+  offeringRef?: DraftOfferingRef | null;
+  /* S09 (UNIT-007): مجموعات المسودة — اختيارية؛ الغياب/null = مسودة غير مجمعة (كما كان). */
+  groups?: readonly DraftGroup[] | null;
+  /* S09 (CONS-DEC07): سعر مقترح اختياري يدخله المستخدم — ليس اتفاقًا ولا سعر بيع
+   * فعليًا ولا حدًا أدنى؛ حرية السعر كما اعتمدها المالك. الغياب/null = بلا اقتراح. */
+  suggestedPriceMinor?: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -326,7 +521,7 @@ export type ScheduleRecurrence = {
 
 /* تقدير تكلفة مستقل (PA-006 ومبدأ «أدواتي»): حساب تفكير قبل الالتزام — لا يُنشئ
  * أي حدث مالي ولا حركة مخزون ولا طلبًا. يُحفظ للمراجعة اللاحقة فقط ويوسم دائمًا «تقديري». */
-type CostEstimateKnowledge = "known" | "estimated" | "partial" | "incomplete" | "stale" | "variable";
+export type { CostEstimateKnowledge } from "./costItemTypes";
 export type CostEstimate = {
   id: string;
   title: string;
@@ -347,6 +542,18 @@ export type CostEstimate = {
   note: string | null;
   createdAt: string;
   updatedAt: string;
+  /* S10 (UNIT-032/SH-14 — أمر b56967d8): حساب T01 المحفوظ داخل الحاسبة —
+   * حقل اختياري متوافق رجعيًا (نمط S06/S09): غيابه/null = تقدير قديم
+   * بنموذج ما قبل S10 يفتح في الحاسبة بنطاقه الأصلي دون إعادة تفسير،
+   * ووجوده = حساب تخطيط T01 مصدره مدخلات التخطيط (المجموعات/الأسعار/
+   * الإضافات) ونتيجته التاريخية لحظة الحفظ. الحقول القديمة أعلاه تبقى
+   * الإسقاط المسطح المشتق بالنواة الواحدة عند حفظ حساب تخطيط جديد فلا
+   * ينكسر أي قارئ قائم. لا يخزن الحساب أي أثر بيع/مصروف/طلب/مخزون. */
+  planning?: PlanningCalculationFields | null;
+  /* S10 (UNIT-032): مفتاح نية الحفظ — نفس الأمر (الضغط المتكرر/إعادة
+   * المحاولة) لا ينشئ حسابًا ثانيًا (نمط createdOperationKey في الكتالوج
+   * S09). غيابه = سجل قديم قبل S10. */
+  createdOperationKey?: string | null;
 };
 
 export type LocalStoreSnapshot = {
@@ -387,6 +594,16 @@ export type LocalStoreSnapshot = {
    * أحداثها داخل financialEvents؛ الاقتراض التزام مستقل لا إيراد ولا رأس
    * مال. الغياب في التصدير القديم = قائمة فارغة بلا اختراع تاريخ. */
   receivedLoans?: readonly ReceivedLoanRecord[];
+  /* S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1): رصد أرصدة النقد — قياس
+   * الموجود بنطاقه وقطعه ومعرفته؛ ليس حركة نقدية ولا افتتاحًا ولا تمويلًا
+   * ولا يُعاد تفسيره تسويةً عند النقل. الغياب في التصدير القديم = قائمة
+   * فارغة بلا اختراع قياس. */
+  balanceObservations?: readonly CashObservation[];
+  /* S05 (DOC-014 / UNIT-037 + العقد المشترك §5.1): الأطراف المحفوظة — هوية
+   * تعريفية اختيارية بلا أي أثر مالي (الرصيد يُشتق من المصادر المرتبطة
+   * بمعرف الطرف وقت القراءة). الغياب في التصدير القديم = قائمة فارغة بلا
+   * اختراع هوية ولا ربط تاريخي بالتخمين. */
+  counterparties?: readonly SavedParty[];
   /* OPS-003 (عقد ٤١): سلاسل المصروف المتكرر ومراجعاتها وفتراتها — ثلاث مجموعات
    * جديدة فوق أحداثها داخل financialEvents؛ الفترة تحمل رابط الحدث
    * (recordedFinancialEventId) باتجاه واحد. الغياب في التصدير القديم = قائمة
@@ -413,7 +630,18 @@ export type LocalExportFile = {
   appVersion?: string;
 };
 export type StorageFailureCode =
-  "storage_unavailable" | "storage_error" | "storage_upgrade_failed" | "storage_blocked" | "storage_stale";
+  | "storage_unavailable"
+  | "storage_error"
+  | "storage_upgrade_failed"
+  | "storage_blocked"
+  | "storage_stale"
+  /* S02-A (SH-03): سياج الاستبدال داخل حد الكتابة — الحالة الحية داخل معاملة
+   * الاستبدال خالفت البصمة المرجوة (كاتب آخر سبق المعاملة) فأُحبطت المعاملة
+   * بلا أي كتابة؛ ليس قدم إصدار (storage_stale) بل تعارض سياق الاستبدال. */
+  | "replacement_context_stale"
+  /* S02-A (SH-02): نية استبدال قائمة لم تُحسم بعد — لا تبدأ نية ثانية فوقها
+   * (سياج النية الواحدة داخل معاملة البدء نفسها؛ سباق نوافذ لا يعبر أبدًا). */
+  | "replacement_intent_busy";
 export type StorageFailure = { ok: false; code: StorageFailureCode; message: string };
 type StorageSuccess<T> = { ok: true; value: T };
 export type StorageResult<T> = StorageSuccess<T> | StorageFailure;
@@ -445,11 +673,35 @@ export interface PrototypeLocalStore {
   commitProfileCreate(
     profile: ActivityProfile,
   ): Promise<StorageResult<{ profile: ActivityProfile; reused: boolean }>>;
+  /* S03 (UNIT-039 B2/عقد §17 «نافذتان تعدلان المصدر»): تعديل اسم الهوية
+   * القائمة كتابة محروسة عند حد الكتابة — فحص حي للنسخة داخل المعاملة نفسها
+   * (CAS على updatedAt المخزن مقابل المتوقع): تطابقت النسخة تُكتب التسمية
+   * الجديدة بنفس المعرف وcreatedAt، واختلفت (أو غاب الملف) تُعاد الحالة
+   * الحالية كتعارض صادق بلا كتابة — لا lost update ولا سحق للاسم الأحدث،
+   * ولا إنشاء ملف من مسار التعديل أبدًا. النتيجة مميّزة النوع: renamed
+   * ⟹ الملف المُعاد موجود دائمًا، وconflict ⟹ قد يغيب (null). */
+  commitProfileRename(
+    profile: ActivityProfile,
+    expectedUpdatedAt: string,
+  ): Promise<StorageResult<ProfileRenameCommitOutcome>>;
   /** ملف المالك (المجموعة ١): هوية محلية مستقلة — سجل واحد بمعرّف ثابت. */
   getOwnerProfile(): Promise<StorageResult<OwnerProfile | null>>;
   saveOwnerProfile(profile: OwnerProfile): Promise<StorageResult<OwnerProfile>>;
   getPreferences(): Promise<StorageResult<LocalPreferences | null>>;
   savePreferences(preferences: LocalPreferences): Promise<StorageResult<LocalPreferences>>;
+  /* S03 revalidation (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28 §A2):
+   * كتابة التفضيلات المحروسة عند حد الكتابة — القراءة والدمج والكتابة
+   * معًا (معاملة IndexedDB واحدة / خطوة متزامنة واحدة في الذاكرة)، فالرقعة
+   * تُطبَّق فوق السجل الحي داخل الحد لا فوق لقطة المتصل: كاتبان متزامنان
+   * على حقول مختلفة لا يفقد أحدهما تحديثه أبدًا (العيب المُثبت في بوابة
+   * read-merge-full-write المتقاعدة كمصدر حقيقة). expectedUpdatedAt=null
+   * لا توقع نسخة (مساركتّاب الحقول)؛ وقيمة نصية فحص CAS حي: الغياب أو
+   * اختلاف الطابع تعارض صادق بلا كتابة (نمط commitProfileRename). */
+  commitPreferencesUpdate(
+    patch: LocalPreferencesPatch,
+    expectedUpdatedAt: string | null,
+    timestamp: string,
+  ): Promise<StorageResult<PreferencesCommitOutcome>>;
   listDrafts(): Promise<StorageResult<readonly OrderDraft[]>>;
   getDraft(id: string): Promise<StorageResult<OrderDraft | null>>;
   saveDraft(draft: OrderDraft): Promise<StorageResult<OrderDraft>>;
@@ -570,37 +822,86 @@ export interface PrototypeLocalStore {
     wallet: CashWallet | null,
     entries: readonly CashContinuityEntry[],
   ): Promise<StorageResult<{ wallet: CashWallet | null; entries: readonly CashContinuityEntry[] }>>;
+  /* S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§14): رصد أرصدة النقد —
+   * القياس وتسويته المرتبطة (إن وُجدت) يُكتبان معًا أو لا يُكتب شيء: الرصد
+   * بحد ذاته لا يُنشئ نقدًا ولا يمحو حركة؛ والتسوية (cash_adjustment) تحمل
+   * الفرق عن مرجع معروف فقط. الحتمية داخل الحد: مفتاح الرصد المكرر يُعاد
+   * استخدامه، وقيد التسوية يخضع لفلترة مفاتيح القيود نفسها؛ وعند وجود
+   * تسوية يجب أن يطابق رصيد المحفظة الحي داخل المعاملة المرجع المتوقع
+   * (expectedReferenceMinor) وإلا حُبطت المعاملة كاملة بلا أي كتابة — لا
+   * تسوية مزدوجة من نافذتين ولا قياس يُبتلع (نمط base/next المحروس). */
+  listBalanceObservations(): Promise<StorageResult<readonly CashObservation[]>>;
+  commitCashObservation(
+    observation: CashObservation,
+    settlement: CashContinuityEntry | null,
+    expectedReferenceMinor: number | null,
+  ): Promise<
+    StorageResult<{
+      observation: CashObservation;
+      settlement: CashContinuityEntry | null;
+      reused: boolean;
+    }>
+  >;
+  /* S05 (DOC-014 / UNIT-037 + العقد المشترك §14): كتابة الطرف المحفوظ المحروسة
+   * عند حد الكتابة — القراءة والفحص والكتابة في معاملة واحدة (IndexedDB) أو
+   * خطوة متزامنة واحدة (الذاكرة): إعادة الأمر نفسه (operationKey) إعادة
+   * استخدام صادقة بلا كتابة ثانية؛ والإنشاء فوق سجل قائم بمفتاح مختلف
+   * تعارض صادق؛ والتعديل (تسمية/أرشفة) CAS حي على updatedAt — الأساس الذي
+   * قرأته الخدمة يطابق الحي داخل الحد وإلا حُبط بلا كتابة. */
+  listCounterparties(): Promise<StorageResult<readonly SavedParty[]>>;
+  getCounterparty(id: string): Promise<StorageResult<SavedParty | null>>;
+  commitCounterpartyWrite(
+    commit: CounterpartyWriteCommit,
+  ): Promise<StorageResult<{ party: SavedParty; reused: boolean }>>;
   listMaterials(): Promise<StorageResult<readonly Material[]>>;
   listInventoryMovements(): Promise<StorageResult<readonly InventoryMovement[]>>;
   getInventoryActivation(): Promise<StorageResult<InventoryActivation | null>>;
   saveInventoryActivation(activation: InventoryActivation): Promise<StorageResult<InventoryActivation>>;
+  /* S07-MR-001 (أمر S08 — القسم ١): كل كتابة مخزون حساسة تتحقق الحالة الحية
+   * داخل حد الكتابة نفسه — الخدمة تُمرر بصمات الحالة التي قرأتها وبنت عليها
+   * حراسها (InventoryCommitExpectation)، والمهايئان يقارنانها بالحقيقة الحية
+   * داخل المعاملة (IndexedDB) أو الخطوة المتزامنة (الذاكرة) ويرفضان
+   * بـstorage_stale بلا أي كتابة جزئية عند أي انحراف، مع حتمية داخل الحد
+   * (المفتاح المتطابق ماليًا يُعاد كما هو، والمختلف تعارض بلا استبدال).
+   * غياب التوقع = مسار البذر/المطابقة منخفض المستوى بسلوكه القائم نفسه. */
   commitInventory(
     material: Material | null,
     movements: readonly InventoryMovement[],
-  ): Promise<StorageResult<{ material: Material | null; movements: readonly InventoryMovement[] }>>;
+    expectation?: InventoryCommitExpectation | null,
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      reused: boolean;
+    }>
+  >;
   /* المجموعة ٢ (عقد ٢٨): قراءة سجلات نقص المخزون — مرتبطة زمنيًا كالحركات. */
   listInventoryShortages(): Promise<StorageResult<readonly InventoryShortage[]>>;
   /* المجموعة ٢ (عقد ٢٨ / D-027): كتابة ذرّية واحدة للمادة وحركاتها وسجل النقص —
-   * كل شيء أو لا شيء؛ لا حالة بينية (استهلاك جزئي + نقص معًا مثلًا). */
+   * كل شيء أو لا شيء؛ لا حالة بينية (استهلاك جزئي + نقص معًا مثلًا). الحارس
+   * S07-MR-001 يعمل هنا بالعقد نفسه (بصمات + حتمية داخل الحد). */
   commitInventoryWithShortage(
     material: Material | null,
     movements: readonly InventoryMovement[],
     shortage: InventoryShortage | null,
+    expectation?: InventoryCommitExpectation | null,
   ): Promise<
     StorageResult<{
       material: Material | null;
       movements: readonly InventoryMovement[];
       shortage: InventoryShortage | null;
+      reused: boolean;
     }>
   >;
   /** عقد الإغلاق العميق (العقد ١ — الهدر): حركة مخزون مع حدث مالي واحد في
    * معاملة ذرّية — هدرٌ يؤثر على النتيجة يسجّل حركته وحدث خسارته غير النقدية
    * معًا أو لا شيء؛ والتراجع عنه يعكس الاثنين معًا. الحتمية داخل المعاملة:
-   * الحركة بمفتاحها والحدث بمفتاحه. */
+   * الحركة بمفتاحها والحدث بمفتاحه. حارس S07-MR-001 يعمل هنا بالعقد نفسه. */
   commitInventoryWithEvents(
     material: Material | null,
     movements: readonly InventoryMovement[],
     events: readonly FinancialEvent[],
+    expectation?: InventoryCommitExpectation | null,
   ): Promise<
     StorageResult<{
       material: Material | null;
@@ -715,7 +1016,16 @@ export interface PrototypeLocalStore {
     }>
   >;
   readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>>;
-  replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>>;
+  /* S02-A (SH-03 — عقد ٠٤٤ §16.5): الاستبدال حد واحد يشمل مخازن اللقطة كلها
+   * **ومسح مسودات النماذج العابرة في المعاملة نفسها** (كانت تُمسك خارج الحد
+   * فتبقى فوق بيانات استُبدلت)؛ والسياج الاختياري يقارن بصمة الحالة الحية
+   * داخل المعاملة قبل أي مسح فلا يستبدل كاتب آخر سبقه أبدًا (ضمان مخزني).
+   * قائمة الاسترداد الاختيارية تعيد مسودات معزولة مع اللقطة في الحد نفسه
+   * (مسار استرجاع النسخة السابقة وحده). */
+  replaceSnapshot(
+    snapshot: LocalStoreSnapshot,
+    guard?: ReplacementGuard,
+  ): Promise<StorageResult<LocalStoreSnapshot>>;
   /* المجموعة ٥ (عقد المسودة النصية): مسودات النماذج الطويلة — مخزن مستقل خارج
    * اللقطة؛ لا حدث مالي ولا مخزون ولا تغيير رصيد يحدث عبر هذه المسارات أبدًا.
    * الاستعادة عرضٌ صريح يقبله المستخدم؛ التعارض مع سجل نهائي يرفض التطبيق الصامت. */
@@ -733,6 +1043,29 @@ export interface PrototypeLocalStore {
   saveLocalSecurity(security: LocalSecurityRecord): Promise<StorageResult<LocalSecurityRecord>>;
   /** تعطيل القفل يحذف سجل الأمان نهائيًا — لا أثر يبقى في الجهاز. */
   deleteLocalSecurity(): Promise<StorageResult<null>>;
+  /* S02-A (SH-02/SH-03): حماية الاستبدال الدائمة — قاعدة منفصلة خارج نطاق
+   * الاستبدال؛ القراءات الأربعة في حد قراءة واحد، والعمليات الثلاث ذرّية
+   * داخل قاعدة الحماية نفسها (لا نية بلا نسخة رجوع معلقة، ولا ترقية نسخة
+   * نشطة إلا مع التزام الاستبدال وصك الجيل معًا). */
+  getDataGeneration(): Promise<StorageResult<number>>;
+  readRestoreProtection(): Promise<StorageResult<RestoreProtectionState>>;
+  /** بدء نية استبدال: النسخة الرجوع المعلقة + النية في معاملة واحدة، ويرفض
+   * (replacement_intent_busy) إن وُجدت نية قائمة لم تُحسم — لا نيتان متزامنتان
+   * أبدًا مهما تعددت النوافذ. */
+  beginReplacementIntent(
+    pending: RestoreRollbackRecord,
+    intent: ReplacementIntentRecord,
+  ): Promise<StorageResult<null>>;
+  /** التزام الاستبدال: ترقية النسخة المعلقة إلى نشطة + صك الجيل + كتابة
+   * الإيصال + حذف النية — معاملة واحدة، لا نصف ترقية أبدًا. */
+  commitReplacementIntent(
+    generation: number,
+    receipt: ReplacementReceiptRecord,
+    resolvedAt: string,
+  ): Promise<StorageResult<null>>;
+  /** إحباط نية: حذف المعلقة + حذف النية معًا — الإيصال والنسخة النشطة
+   * والجيل لا يُمسّان أبدًا بمحاولة فاشلة (عقد ٠٤٤ B4.3). */
+  abortReplacementIntent(): Promise<StorageResult<null>>;
   /* المجموعة ٤ (عقد ٢٩ — الأصول): قراءة سجل الأصول. */
   listAssets(): Promise<StorageResult<readonly AssetRecord[]>>;
   getAsset(id: string): Promise<StorageResult<AssetRecord | null>>;
@@ -743,19 +1076,42 @@ export interface PrototypeLocalStore {
     record: AssetRecord,
     event: FinancialEvent | null,
   ): Promise<StorageResult<{ record: AssetRecord; event: FinancialEvent | null; reused: boolean }>>;
-  /* تصحيح اقتناء أصل: التراجع والبديل والسجل المحدّث في معاملة واحدة. */
-  commitAssetAcquisitionCorrection(
+  /* S08 (UNIT-034): الاقتناء الذري متعدد الأحداث — السجل وأحداث اقتنائه
+   * (نقدي كامل، أو ذمم كاملة، أو جزئيًا: حدث نقدي بالمدفوع + حدث ذمم
+   * بالمتبقي) في معاملة واحدة؛ إعادة الإرسال إعادة استخدام بالمفاتيح
+   * لا تكرارًا، وحارس العلاقة داخل الحد كما هو موثق عند الحارس النقي. */
+  commitAssetAcquisition(
     record: AssetRecord,
-    reversal: FinancialEvent,
-    replacement: FinancialEvent,
+    events: readonly FinancialEvent[],
   ): Promise<
     StorageResult<{
       record: AssetRecord;
-      reversal: FinancialEvent;
-      replacement: FinancialEvent;
+      events: readonly FinancialEvent[];
       reused: boolean;
     }>
   >;
+  /* تصحيح اقتناء أصل: التراجعات والبدائل والسجل المحدّث في معاملة واحدة.
+   * S08: صيغة المصفوفات — تصحيح الاقتناء الجزئي يعكس حدثيه ويستبدلهما
+   * (حتى حدثين من كل نوع) في المعاملة نفسها. */
+  commitAssetAcquisitionCorrection(
+    record: AssetRecord,
+    reversals: readonly FinancialEvent[],
+    replacements: readonly FinancialEvent[],
+  ): Promise<
+    StorageResult<{
+      record: AssetRecord;
+      reversals: readonly FinancialEvent[];
+      replacements: readonly FinancialEvent[];
+      reused: boolean;
+    }>
+  >;
+  /* S08 (UNIT-034 / SDF-066): تسديد ذممة اقتناء أصل داخل حد الكتابة —
+   * المصدر الحي (حدث asset_purchase_payable فعال) والمبلغ داخل المتبقي
+   * الحي المحسوب من الأحداث داخل المعاملة نفسها؛ إعادة المفتاح المتطابق
+   * إعادة استخدام صادقة والمختلف تعارض بلا استبدال؛ حدث واحد أو لا شيء. */
+  commitAssetPayableSettlement(
+    settlement: FinancialEvent,
+  ): Promise<StorageResult<{ settlement: FinancialEvent; reused: boolean }>>;
   /* المجموعة ٤ (عقد ٢٩ — القروض): قراءة سجل القروض. */
   listLoans(): Promise<StorageResult<readonly LoanRecord[]>>;
   getLoan(id: string): Promise<StorageResult<LoanRecord | null>>;
@@ -854,6 +1210,12 @@ export interface PrototypeLocalStore {
     occurrences: readonly RecurringExpenseOccurrence[],
   ): Promise<StorageResult<{ created: number; skipped: number }>>;
   /* قرار فترة واحد (تأجيل/تخطٍ/علامة محاولة/فشل معروف): محروس بنفس القاعدة. */
+  /* S06 (UNIT-019 B4/D06 — R2-F01): قرار الربط بمصروف قائم — نفس عهدة قرار
+   * الفترة المفرد زائد حصرية الحدث/الفترة داخل حد الكتابة نفسه. */
+  commitRecurringExpenseOccurrenceLink(
+    base: RecurringExpenseOccurrence,
+    next: RecurringExpenseOccurrence,
+  ): Promise<StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>>;
   commitRecurringExpenseOccurrenceDecision(
     base: RecurringExpenseOccurrence,
     next: RecurringExpenseOccurrence,

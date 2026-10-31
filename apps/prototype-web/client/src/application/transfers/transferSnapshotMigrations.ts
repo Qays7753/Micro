@@ -16,7 +16,27 @@ export function migrateTransferSnapshot(
     ownerProfile: raw.ownerProfile ?? null,
     drafts: Array.isArray(raw.drafts)
       ? raw.drafts.map(draft =>
-          isRecord(draft) ? { ...draft, catalogItemId: draft.catalogItemId ?? null } : draft,
+          isRecord(draft)
+            ? {
+                ...draft,
+                catalogItemId: draft.catalogItemId ?? null,
+                /* S09 (UNIT-007/029 — أمر ad133bae القسم ٢): الحقول الاختيارية
+                 * الجديدة — الغياب يُطبّع null بنمط العائلة (متوافق رجعيًا)؛
+                 * والقيم الرديئة تُترك للمُدقق يرفضها لا تُخترع قيمًا مكانها. */
+                offeringRef: draft.offeringRef ?? null,
+                groups: draft.groups ?? null,
+                suggestedPriceMinor: draft.suggestedPriceMinor ?? null,
+                /* S09 (UNIT-008/SH-13): أساس المجموعات على لقطات التكلفة —
+                 * الغياب يُطبّع null بنمط العائلة. */
+                costSnapshots: Array.isArray(draft.costSnapshots)
+                  ? draft.costSnapshots.map(snapshot =>
+                      isRecord(snapshot)
+                        ? { ...snapshot, groupBasis: snapshot.groupBasis ?? null }
+                        : snapshot,
+                    )
+                  : draft.costSnapshots,
+              }
+            : draft,
         )
       : [],
     orders: Array.isArray(raw.orders)
@@ -102,10 +122,19 @@ export function migrateTransferSnapshot(
                             ...revision,
                             beforeMaterialId: revision.beforeMaterialId ?? null,
                             beforeExpectedQuantityMilli: revision.beforeExpectedQuantityMilli ?? null,
+                            /* S07 (UNIT-027): لقطة البنود قبل التعديل — الغياب =
+                             * بلا بنود (لا يُخترع سجل قبل). */
+                            beforeLines: revision.beforeLines ?? null,
                           }
                         : revision,
                     )
                   : purchase.revisions,
+                /* S07 (UNIT-027 / SDF-044): البنود — غياب = null (المسار
+                 * القائم). لا يُشتق بند من فراغ أبدًا: الشراء الإرثي أحادي
+                 * البند يبقى بربط رأسه نفسه (هويته) ودفعاته وتواريخه ولقطاته
+                 * كما هي — لا شراء أو دفع أو استلام جديد ولا إعادة تصنيف
+                 * رجعية؛ القارئ يعامله بمسار الرأس المتوافق نفسه. */
+                lines: purchase.lines ?? null,
               }
             : purchase,
         )
@@ -132,6 +161,9 @@ export function migrateTransferSnapshot(
                 costKnowledge: movement.costKnowledge ?? "known",
                 /* المجموعة ٣ (عقد D6): ربط البيع المباشر — غياب = null (لا مرجع مفترض). */
                 saleId: movement.saleId ?? null,
+                /* S07 (UNIT-027): بند الشراء المستلم عليه — غياب = null (مسار
+                 * الرأس القائم للإرث بلا بنود). */
+                purchaseLineId: movement.purchaseLineId ?? null,
               }
             : movement,
         )
@@ -247,6 +279,19 @@ export function migrateTransferSnapshot(
                 depreciationStartOn: asset.depreciationStartOn ?? null,
                 disposal: asset.disposal ?? null,
                 writeOff: asset.writeOff ?? null,
+                /* S08 (UNIT-034): الحقلان الاختياريان الجديدان — الغياب
+                 * يُطبّع null بنمط العائلة (متوافق رجعيًا). */
+                acquisitionParty:
+                  asset.acquisitionParty && typeof asset.acquisitionParty === "object"
+                    ? {
+                        partyId: String((asset.acquisitionParty as Record<string, unknown>).partyId ?? ""),
+                        labelSnapshot: String(
+                          (asset.acquisitionParty as Record<string, unknown>).labelSnapshot ?? "",
+                        ),
+                      }
+                    : null,
+                paidAtCreationMinor:
+                  typeof asset.paidAtCreationMinor === "number" ? asset.paidAtCreationMinor : null,
                 contractRevisions: Array.isArray(asset.contractRevisions) ? asset.contractRevisions : [],
               }
             : asset,
@@ -292,6 +337,27 @@ export function migrateTransferSnapshot(
                 corrections: Array.isArray(loan.corrections) ? loan.corrections : [],
               }
             : loan,
+        )
+      : [],
+    /* S04 (DOC-013 / UNIT-025): عائلة رصد الأرصدة — الغياب في ملف قديم =
+     * قائمة فارغة بلا اختراع قياس؛ walletId يسوى null لنطاق إجمالي المشروع. */
+    balanceObservations: Array.isArray(raw.balanceObservations)
+      ? raw.balanceObservations.map((observation: Record<string, unknown>) =>
+          isRecord(observation) ? { ...observation, walletId: observation.walletId ?? null } : observation,
+        )
+      : [],
+    /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة — الغياب في ملف قديم =
+     * قائمة فارغة بلا اختراع هوية؛ الحقول الاختيارية تسوّى null صادقة. */
+    counterparties: Array.isArray(raw.counterparties)
+      ? raw.counterparties.map((party: Record<string, unknown>) =>
+          isRecord(party)
+            ? {
+                ...party,
+                phone: party.phone ?? null,
+                note: party.note ?? null,
+                archivedAt: party.archivedAt ?? null,
+              }
+            : party,
         )
       : [],
     /* OPS-003 (عقد ٤١): عائلات المصروف المتكرر — الغياب في ملف قديم = قائمة

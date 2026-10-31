@@ -113,7 +113,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
         return;
       }
       if (!saleCustomer.trim()) {
-        setFormError("اكتب اسم الزبون ليتجمع دينه في دفتر الناس.");
+        setFormError("اكتب اسم الزبون ليتُتبَّع دينه في «لي عند العملاء».");
         return;
       }
     }
@@ -193,7 +193,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
       detail: saleOnCredit
         ? `دين مسجل على «${saleCustomer.trim()}»: ${formatMoneyMinor(
             saleAmountMinor - saleCollectedMinor,
-          )} د.أ — يظهر في دفتر الناس ولي عند العملاء.`
+          )} د.أ — يظهر في «لي عند العملاء».`
         : null,
       attributionNote,
     });
@@ -294,7 +294,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
               onChange={event => setSaleCustomer(event.target.value)}
               placeholder="مثال: خالد"
             />
-            <small>يتجمع دينه في «دفتر الناس» باسمه هذا.</small>
+            <small>يُتبَّع دينه باسمه هذا في «لي عند العملاء».</small>
           </label>
           <label className="micro-field">
             <span>المبلغ المحصل الآن (د.أ)</span>

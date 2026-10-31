@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "3b9dc7a58060a28e74ed864dfd9840e8c29e73ee",
+  "head": "3c69c6db9144a5d373a31cde55a7346e60ed732e",
   "pages": {
-    "total": 60,
+    "total": 64,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -13,12 +13,14 @@
       "pages/AssetDetail.tsx": {
         "kind": "direct",
         "evidence": [
+          "Assets.s08.dom.test.tsx",
           "G4Assets.dom.test.tsx"
         ]
       },
       "pages/AssetEditor.tsx": {
         "kind": "direct",
         "evidence": [
+          "Assets.s08.dom.test.tsx",
           "G4Assets.dom.test.tsx"
         ]
       },
@@ -99,14 +101,16 @@
         "kind": "direct",
         "evidence": [
           "G3.dom.test.tsx",
-          "G3Delivery.dom.test.tsx"
+          "G3Delivery.dom.test.tsx",
+          "pages/CostCalculator.s10.dom.test.tsx"
         ]
       },
       "pages/CostEditor.tsx": {
         "kind": "direct",
         "evidence": [
           "U01.dom.test.tsx",
-          "group2InventorySurfaces.test.tsx"
+          "group2InventorySurfaces.test.tsx",
+          "pages/CostEditor.s09.dom.test.tsx"
         ]
       },
       "pages/DeliveryReview.tsx": {
@@ -129,13 +133,15 @@
         "kind": "direct",
         "evidence": [
           "U004.dom.test.tsx",
-          "U06.dom.test.tsx"
+          "U06.dom.test.tsx",
+          "pages/DraftEditor.s09.dom.test.tsx"
         ]
       },
       "pages/EstimateDetail.tsx": {
         "kind": "direct",
         "evidence": [
-          "G3.dom.test.tsx"
+          "G3.dom.test.tsx",
+          "pages/EstimateDetail.s10.dom.test.tsx"
         ]
       },
       "pages/Finance.tsx": {
@@ -189,6 +195,7 @@
         "evidence": [
           "DeepScreens.w43.dom.test.tsx",
           "pages/FinancialEventEditor.guided.test.tsx",
+          "pages/FinancialEventEditor.s06.dom.test.tsx",
           "pages/FinancialEventEditor.ui.test.tsx",
           "pages/OwnerJourneysExe009.dom.test.tsx"
         ]
@@ -218,6 +225,18 @@
           "pages/Setup.v3Gates.test.tsx"
         ]
       },
+      "pages/HourValue.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/PlanningTools.s10.dom.test.tsx"
+        ]
+      },
+      "pages/IdeaReview.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/PlanningTools.s10.dom.test.tsx"
+        ]
+      },
       "pages/InventoryMaterials.tsx": {
         "kind": "direct",
         "evidence": [
@@ -241,6 +260,12 @@
         "evidence": [
           "InventoryReversalEditor.dom.test.tsx",
           "SmokeOnlyPagesJourneys.dom.test.tsx"
+        ]
+      },
+      "pages/InvoiceShare.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/PlanningTools.s10.dom.test.tsx"
         ]
       },
       "pages/LoanDetail.tsx": {
@@ -356,6 +381,7 @@
       "pages/RecurringExpenseDetail.tsx": {
         "kind": "direct",
         "evidence": [
+          "RecurringExpenseDetail.s06.dom.test.tsx",
           "RecurringExpenseSurfaces.dom.test.tsx"
         ]
       },
@@ -364,6 +390,12 @@
         "evidence": [
           "RecurringExpenseEditor.dom.test.tsx",
           "RecurringExpenseSurfaces.dom.test.tsx"
+        ]
+      },
+      "pages/SalesQuantity.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/PlanningTools.s10.dom.test.tsx"
         ]
       },
       "pages/Schedule.tsx": {
@@ -383,9 +415,9 @@
       "pages/Settings.tsx": {
         "kind": "direct",
         "evidence": [
-          "OverlayFocusContract.w4.dom.test.tsx",
+          "LockRetirement.dom.test.tsx",
           "Set003SettingsSection.dom.test.tsx",
-          "Settings.lockGate.dom.test.tsx",
+          "Settings.s03.dom.test.tsx",
           "SettingsDataBackupSection.w42.dom.test.tsx",
           "U11.dom.test.tsx",
           "pages/Setup.v3Gates.test.tsx"
@@ -418,6 +450,7 @@
           "G3Hardening.dom.test.tsx",
           "PurchasingBridgeExe011.dom.test.tsx",
           "group2InventorySurfaces.test.tsx",
+          "pages/SupplierPurchaseEditor.s07.dom.test.tsx",
           "pages/SupplierPurchaseEditor.ui.test.tsx"
         ]
       },
@@ -433,7 +466,8 @@
         "evidence": [
           "G3.dom.test.tsx",
           "ToolsCleanup.w42.dom.test.tsx",
-          "U004.dom.test.tsx"
+          "U004.dom.test.tsx",
+          "pages/PlanningTools.s10.dom.test.tsx"
         ]
       },
       "pages/ToolsIntegrity.tsx": {
@@ -486,6 +520,7 @@
           "tests/domain/craft-order-delivery-terms.test.ts",
           "tests/domain/craft-order-deposit-derivations.test.ts",
           "tests/domain/craft-order-g3.test.ts",
+          "tests/domain/craft-order-groups.test.ts",
           "tests/domain/craft-order-review-lock.test.ts",
           "tests/domain/craft-order.test.ts"
         ]
@@ -495,6 +530,7 @@
         "curated": [
           "apps/prototype-web/client/src/application/cost/costService.priceDate.test.ts",
           "apps/prototype-web/client/src/application/cost/costService.test.ts",
+          "apps/prototype-web/client/src/application/estimates/costEstimateService.s10.test.ts",
           "apps/prototype-web/client/src/application/estimates/costEstimateService.test.ts",
           "apps/prototype-web/client/src/storage/local/capabilities/costEstimateCapability.contract.test.ts"
         ]
@@ -539,6 +575,7 @@
       "09-supplier-purchase-prototype-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/pages/SupplierPurchaseEditor.s07.dom.test.tsx",
           "apps/prototype-web/client/src/pages/SupplierPurchaseEditor.ui.test.tsx",
           "tests/domain/supplier-purchase-corrections.test.ts",
           "tests/domain/supplier-purchase-preview-derivations.test.ts"
@@ -734,11 +771,14 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/G4Loans.dom.test.tsx",
+          "apps/prototype-web/client/src/application/assets/assetService.s08.test.ts",
           "apps/prototype-web/client/src/application/assets/assetService.test.ts",
           "apps/prototype-web/client/src/application/loans/ammanBusinessDateBoundary.test.ts",
           "apps/prototype-web/client/src/application/loans/loanService.test.ts",
           "apps/prototype-web/client/src/application/loans/receivedLoanService.test.ts",
+          "apps/prototype-web/client/src/application/transfers/localTransferService.assetPartyIntegrity.s08mr001.test.ts",
           "apps/prototype-web/client/src/application/transfers/localTransferService.assetResidual.test.ts",
+          "apps/prototype-web/client/src/application/transfers/localTransferService.assetS08FieldsRoundTrip.s08mr002.test.ts",
           "apps/prototype-web/client/src/application/transfers/localTransferService.receivedLoan.test.ts",
           "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.receivedLoan.test.ts",
           "apps/prototype-web/client/src/storage/local/adapterConformance.receivedLoan.test.ts",
@@ -790,22 +830,23 @@
         "curated": [
           "apps/prototype-web/client/src/IntegrityReadable.w43.dom.test.tsx",
           "apps/prototype-web/client/src/ToolsIntegrity.ui.test.tsx",
-          "apps/prototype-web/client/src/application/finance/integrityCheckService.test.ts"
+          "apps/prototype-web/client/src/application/finance/integrityCheckService.test.ts",
+          "apps/prototype-web/client/src/application/transfers/localTransferService.assetPartyIntegrity.s08mr001.test.ts"
         ]
       },
       "36-form-drafts-local-boundary-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/application/drafts/draftService.s09.test.ts",
           "apps/prototype-web/client/src/application/drafts/draftService.test.ts",
-          "apps/prototype-web/client/src/application/drafts/formDraftService.test.ts"
+          "apps/prototype-web/client/src/application/drafts/formDraftService.test.ts",
+          "apps/prototype-web/client/src/pages/DraftEditor.s09.dom.test.tsx"
         ]
       },
       "37-local-app-lock-contract.md": {
         "citations": [],
         "curated": [
-          "apps/prototype-web/client/src/Settings.lockGate.dom.test.tsx",
-          "apps/prototype-web/client/src/application/security/localLockService.idleCharacterization.test.ts",
-          "apps/prototype-web/client/src/application/security/localLockService.test.ts",
+          "apps/prototype-web/client/src/application/security/retireLocalLockRecord.test.ts",
           "scripts/security/braces-elimination/braces-elimination.parity.test.mjs",
           "scripts/security/braces-elimination/capture-baseline.mjs",
           "scripts/security/braces-elimination/harness-lib.mjs",
@@ -849,8 +890,10 @@
       "41-recurring-expense-reminders-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/RecurringExpenseDetail.s06.dom.test.tsx",
           "apps/prototype-web/client/src/RecurringExpenseEditor.dom.test.tsx",
           "apps/prototype-web/client/src/RecurringExpenseSurfaces.dom.test.tsx",
+          "apps/prototype-web/client/src/application/recurring/recurringExpenseService.s06.test.ts",
           "apps/prototype-web/client/src/application/recurring/recurringExpenseService.test.ts",
           "apps/prototype-web/client/src/application/transfers/localTransferService.recurringExpense.test.ts",
           "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.recurringExpense.test.ts",
@@ -873,9 +916,13 @@
       "43-asset-depreciation-prototype-contract.md": {
         "citations": [],
         "curated": [
+          "apps/prototype-web/client/src/Assets.s08.dom.test.tsx",
           "apps/prototype-web/client/src/G4Assets.dom.test.tsx",
+          "apps/prototype-web/client/src/application/assets/assetService.s08.test.ts",
           "apps/prototype-web/client/src/application/assets/assetService.test.ts",
+          "apps/prototype-web/client/src/application/transfers/localTransferService.assetPartyIntegrity.s08mr001.test.ts",
           "apps/prototype-web/client/src/application/transfers/localTransferService.assetResidual.test.ts",
+          "apps/prototype-web/client/src/application/transfers/localTransferService.assetS08FieldsRoundTrip.s08mr002.test.ts",
           "apps/prototype-web/client/src/storage/local/capabilities/assetCapability.contract.test.ts",
           "tests/domain/asset.test.ts",
           "tests/domain/assetResidual.test.ts"
@@ -900,6 +947,7 @@
       "tests/domain/craft-order-delivery-terms.test.ts",
       "tests/domain/craft-order-deposit-derivations.test.ts",
       "tests/domain/craft-order-g3.test.ts",
+      "tests/domain/craft-order-groups.test.ts",
       "tests/domain/craft-order-review-lock.test.ts",
       "tests/domain/craft-order.test.ts",
       "tests/domain/craftOrderPolicyCharacterization.mutation.test.ts",
@@ -914,6 +962,7 @@
       "tests/domain/moneyMessageCharacterization.test.ts",
       "tests/domain/operatingBreakEven.test.ts",
       "tests/domain/owner-safe-withdrawal.test.ts",
+      "tests/domain/planning.test.ts",
       "tests/domain/public-surface.test.ts",
       "tests/domain/quantity-characterization.test.ts",
       "tests/domain/receivedLoan.test.ts",
@@ -929,7 +978,8 @@
       "tests/owner-entitlement.test.ts"
     ],
     "src/domain/ (colocated)": [
-      "src/domain/direct-sale/policies.test.ts"
+      "src/domain/direct-sale/policies.test.ts",
+      "src/domain/party/policies.test.ts"
     ]
   }
 }

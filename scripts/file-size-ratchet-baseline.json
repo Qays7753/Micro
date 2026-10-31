@@ -9,7 +9,9 @@
     "seed_rule": "seed equals the live tree census at the moment of the R8-2 slice commit (parent commit recorded in head); every value is the exact nbLOC measured on that tree; the R8-2 commit carries this baseline",
     "historical_growth_evidence": "the legitimate documented within-band growth community recorded by R6-W1 (R6-SCAN-F-006 register section 7 dispositions: fulfillmentService +16, statementService +21, homeControlCenterService +7, activityService +11, assetService +15, correctionHistoryService +29, catalogService +6, periodComparisonService +11, owner-entitlement/policies +8, transferSnapshotValidation, craft-order/policies; and R6-SCAN-F-005 transferFamilyValidators 1718->1730 nbLOC / 76500->77703 bytes from dated R2 commits b890f9a2/388dac65/a476ed7a) is represented by these seeded current values with its dated register evidence — not reopened as defects, and not silently copied: this note is the binding record",
     "guard_growth_evidence": "scripts/check-file-size-ratchet.mjs itself grew 190->391 nbLOC and apps/prototype-web/scripts/check-bundle-surfaces.mjs 135->457 nbLOC within this R8 PR - both measured and documented same-PR (register section 7 dated notes: the R8-1 note for the surfaces guard, the R8-2 report for the ratchet guard)",
-    "future_reanchors": "any future value increase requires a re-anchor ledger entry (scripts/file-size-ratchet-reanchors.json) with from/to values chained to this baseline and an owner-review reference; the drift audit compares against the merge-base baseline so a same-PR baseline edit cannot conceal growth"
+    "future_reanchors": "any future value increase requires a re-anchor ledger entry (scripts/file-size-ratchet-reanchors.json) with from/to values chained to this baseline and an owner-review reference; the drift audit compares against the merge-base baseline so a same-PR baseline edit cannot conceal growth",
+    "s10": "S10 (DOC-019 — أمر b56967d8، 2026-10-31): انضم src/domain/planning/policies.ts إلى الجرد عند 457 nbLOC (WATCH) بإرساء موثق S10-PLANNING-TOOLS-20261031-12 — ملف سياسات عائلة التخطيط الجديد بيتًا واحدًا كنمط إخوته.",
+    "s10_policies": "S10 (DOC-019): policies.ts عند 561 nbLOC (WATCH) بعد تجزئة التعقيد — الإرساء S10-PLANNING-TOOLS-20261031-12."
   },
   "measurements": {
     "apps/prototype-web/client/src/App.tsx": {
@@ -832,6 +834,10 @@
       "nbLoc": 390,
       "band": "NORMAL"
     },
+    "apps/prototype-web/client/src/components/planning/LegacyEstimateEditor.tsx": {
+      "nbLoc": 410,
+      "band": "WATCH"
+    },
     "apps/prototype-web/client/src/components/presentation/ActualTimePanel.tsx": {
       "nbLoc": 426,
       "band": "WATCH"
@@ -1496,6 +1502,10 @@
       "nbLoc": 354,
       "band": "NORMAL"
     },
+    "scripts/application-house-edges-census.json": {
+      "nbLoc": 891,
+      "band": "SPLIT_CANDIDATE"
+    },
     "scripts/check-acceptance-value-anchors.mjs": {
       "nbLoc": 363,
       "band": "NORMAL"
@@ -1532,9 +1542,17 @@
       "nbLoc": 164,
       "band": "NORMAL"
     },
+    "scripts/check-lint-warning-baseline.mjs": {
+      "nbLoc": 152,
+      "band": "NORMAL"
+    },
     "scripts/check-module-boundaries.mjs": {
       "nbLoc": 822,
       "band": "SPLIT_CANDIDATE"
+    },
+    "scripts/check-money-minor-casts.mjs": {
+      "nbLoc": 222,
+      "band": "NORMAL"
     },
     "scripts/check-registry-coverage.mjs": {
       "nbLoc": 82,
@@ -1690,6 +1708,10 @@
     },
     "scripts/security/braces-elimination/hostile-input-evidence-original-stack.txt": {
       "nbLoc": 27,
+      "band": "NORMAL"
+    },
+    "scripts/security/scan-git-history-secrets.mjs": {
+      "nbLoc": 303,
       "band": "NORMAL"
     },
     "scripts/text-density-count.py": {
@@ -1888,6 +1910,10 @@
       "nbLoc": 47,
       "band": "NORMAL"
     },
+    "src/domain/planning/policies.ts": {
+      "nbLoc": 561,
+      "band": "WATCH"
+    },
     "src/domain/received-loan/index.ts": {
       "nbLoc": 2,
       "band": "NORMAL"
@@ -1958,22 +1984,6 @@
     },
     "tools/micromatch-shim/lib/braces-free.js": {
       "nbLoc": 317,
-      "band": "NORMAL"
-    },
-    "scripts/security/scan-git-history-secrets.mjs": {
-      "nbLoc": 303,
-      "band": "NORMAL"
-    },
-    "scripts/check-lint-warning-baseline.mjs": {
-      "nbLoc": 152,
-      "band": "NORMAL"
-    },
-    "scripts/application-house-edges-census.json": {
-      "nbLoc": 891,
-      "band": "SPLIT_CANDIDATE"
-    },
-    "scripts/check-money-minor-casts.mjs": {
-      "nbLoc": 222,
       "band": "NORMAL"
     }
   }

@@ -1,7 +1,12 @@
 /** Browser persistence adapter. React never imports this module and financial policy lives above it. */
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
-import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
+import { TRANSFER_COVERAGE_MESSAGE } from "@micro-domain/cash-continuity/index.js";
+import type {
+  CashContinuityEntry,
+  CashObservation,
+  CashWallet,
+} from "@micro-domain/cash-continuity/index.js";
 import type {
   InventoryMovement,
   InventoryShortage,
@@ -22,6 +27,7 @@ import type {
   OwnerMovement,
 } from "@micro-domain/owner-entitlement/index.js";
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
+import type { SavedParty } from "@micro-domain/party/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
@@ -41,12 +47,20 @@ import {
   type FormDraftEnvelope,
   type InventoryActivation,
   type LocalPreferences,
+  type LocalPreferencesPatch,
   type LocalSecurityRecord,
   type LocalStoreSnapshot,
   type OrderDraft,
   type OwnerProfile,
+  type PreferencesCommitOutcome,
   type PrototypeLocalStore,
+  type ProfileRenameCommitOutcome,
   type RecurringExpenseOccurrenceChange,
+  type ReplacementGuard,
+  type ReplacementIntentRecord,
+  type ReplacementReceiptRecord,
+  type RestoreProtectionState,
+  type RestoreRollbackRecord,
   type ScheduleEntry,
   type ScheduleRecurrence,
   type StorageFailure,
@@ -54,6 +68,9 @@ import {
   type StorageResult,
   type StoredCraftOrder,
 } from "./types";
+/* S03 revalidation (§A2): منطق التزامن المحروس المشترك لسجل التفضيلات —
+ * المصدر الواحد للمحوّلين (نمط financialEventCorrectionMessages). */
+import { decidePreferencesCommit } from "./preferencesCommit";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
 import { findReceivedLoanEventByKey, validateReceivedLoanCommitRelation } from "./receivedLoanCommitGuard";
 import {
@@ -62,11 +79,29 @@ import {
   validateRecurringExpenseKeyEventCollision,
   validateRecurringExpenseMaterialization,
   validateRecurringExpenseOccurrenceDecision,
+  validateRecurringExpenseOccurrenceLinkExclusivity,
   validateRecurringExpenseOccurrenceRecordCommit,
   validateRecurringExpenseSeriesChange,
 } from "./recurringExpenseCommitGuard";
 import { validateExpenseBudgetRevisionPair, validateExpenseBudgetSave } from "./expenseBudgetCommitGuard";
 import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
+import { decideCashObservationCommit, findTransferCoverageShortfall } from "./cashContinuityCommitGuard";
+import { decideCounterpartyCommit, type CounterpartyWriteCommit } from "./counterpartyCommitGuard";
+/* S07-MR-001 (أمر S08 — القسم ١): قرار التزام المخزون النقي — القراءة الحية
+ * والمقارنة وكل الكتابات داخل معاملة readwrite واحدة هنا. */
+import {
+  decideInventoryCommit,
+  type InventoryCommitApplyResult,
+  type InventoryCommitDecision,
+  type InventoryCommitExpectation,
+} from "./inventoryCommitGuard";
+/* S08 (UNIT-034): حارس التزام سجلات الأصول وأحداثها النقي — القرار
+ * داخل حد الكتابة في المهايئين معًا. */
+import {
+  validateAssetEventsCommit,
+  validateAssetPayableSettlementCommit,
+  validateAssetRecordCommit,
+} from "./assetCommitGuard";
 import {
   committedReversalMovements,
   storedReversalMovementsFor,
@@ -103,6 +138,8 @@ import {
   catalogTemplateStore,
   cashContinuityEntryStore,
   cashWalletStore,
+  balanceObservationStore,
+  counterpartyStore,
   costEstimateStore,
   directConversionStore,
   directSaleStore,
@@ -137,7 +174,17 @@ import {
 import { connection, failure } from "./indexedDbLifecycle";
 import { deleteOne, listAll, readOne, writeOne, writeOneIdempotent } from "./indexedDbPrimitives";
 import { readIndexedDbSnapshot, replaceIndexedDbSnapshot } from "./indexedDbSnapshot";
-
+/* S02-A (SH-02/SH-03): محرك قاعدة حماية الاستبدال المنفصلة يُحمَّل كسولًا —
+ * عمليات الحماية كلها تُستدعى من بروتوكول الاستبدال (شظية النقل الكسولة)
+ * فلا reason لدخوله كومة إقلاع المحوّل؛ الاستيراد الكسول داخل الأساليب
+ * غير المتزامنة آمن تمامًا (لا معاملة قيد التنفيذ هنا — لكل عملية معاملتها
+ * الخاصة في قاعدة الحماية المنفصلة). */
+type RestoreProtectionEngine = typeof import("./restoreProtectionStore");
+let protectionEngine: Promise<RestoreProtectionEngine> | null = null;
+function loadProtectionEngine(): Promise<RestoreProtectionEngine> {
+  protectionEngine ??= import("./restoreProtectionStore");
+  return protectionEngine;
+}
 /* R9-GA-F7 (استمرار R9 — تحصين مسارات الكتابة داخل مستمعات النجاح): كل طلب
  * كتابة (put/add/delete) يُرتَّب داخل مستمع onsuccess كان يعتمد نجاحه على
  * معالجة المحرك لاستثناء يرميه المستمع نفسه (DataCloneError مثلًا): المواصفة
@@ -228,6 +275,66 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       return failure(error);
     }
   }
+  /* S03 (UNIT-039 B2/عقد §17): تعديل اسم الهوية داخل معاملة واحدة بفحص حي
+   * للنسخة — القراءة والمقارنة والكتابة معًا (نفس بنية commitProfileCreate
+   * والمستمعات المحروسة): تطابق updatedAt المتوقع يضع التسمية الجديدة بنفس
+   * المعرف وcreatedAt، واختلافه (نافذة أخرى سبقت) أو غياب الملف يُحبط
+   * المعاملة ويعيد الحالة الحالية كتعارض صادق — لا lost update ولا كتابة
+   * فوق اسم أحدث ولا إنشاء ملف من مسار التعديل. */
+  async commitProfileRename(
+    profile: ActivityProfile,
+    expectedUpdatedAt: string,
+  ): Promise<StorageResult<ProfileRenameCommitOutcome>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([profileStore], "readwrite");
+        const profiles = transaction.objectStore(profileStore);
+        type RenameOutcome = StorageResult<ProfileRenameCommitOutcome>;
+        let pending: RenameOutcome | null = null;
+        const finish = (result: RenameOutcome) => {
+          resolve(result);
+        };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const storedRequest = profiles.get("local-profile");
+        storedRequest.onerror = () => {
+          pending = failure(storedRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        storedRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const stored = storedRequest.result as ActivityProfile | undefined;
+          if (!stored || stored.updatedAt !== expectedUpdatedAt) {
+            pending = { ok: true, value: { profile: stored ?? null, outcome: "conflict" } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          profiles.put(profile);
+        });
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { profile, outcome: "renamed" } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   getOwnerProfile() {
     return readOne<OwnerProfile>(ownerProfileStore, localOwnerProfileId);
   }
@@ -239,6 +346,77 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   savePreferences(preferences: LocalPreferences) {
     return writeOne(preferencesStore, preferences);
+  }
+  /* S03 revalidation (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28 §A2):
+   * كتابة التفضيلات داخل معاملة واحدة — القراءة الحية والدمج والكتابة
+   * معًا (نفس بنية commitProfileRename والمستمعات المحروسة): الرقعة
+   * تُطبَّق فوق السجل الحي داخل المعاملة نفسها فلا يبني أي كاتب سجله من
+   * لقطة متقادمة (العيب المُثبت: read-merge-full-write خارج الحد كان يسمح
+   * لكاتب متزامن بسحق تحديث كاتب آخر بصمت). فحص CAS الحي عند تمرير طابع
+   * متوقع: الغياب أو الاختلاف يُحبط المعاملة ويعيد الحالة الحية كتعارض
+   * صادق بلا كتابة. المنطق المشترك من preferencesCommit.ts — المصدر
+   * الواحد للمحوّلين فتتحقق المطابقة بالبناء. */
+  async commitPreferencesUpdate(
+    patch: LocalPreferencesPatch,
+    expectedUpdatedAt: string | null,
+    timestamp: string,
+  ): Promise<StorageResult<PreferencesCommitOutcome>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([preferencesStore], "readwrite");
+        const preferences = transaction.objectStore(preferencesStore);
+        type CommitOutcome = StorageResult<PreferencesCommitOutcome>;
+        let pending: CommitOutcome | null = null;
+        /* السجل المكتوب عند النجاح — يُلتقط من القرار داخل مستمع القراءة
+         * ويُعاد عند اكتمال المعاملة (storedRequest.result يظل نتيجة
+         * القراءة القديمة لا المكتوب). */
+        let written: { outcome: "updated" | "created"; preferences: LocalPreferences } | null = null;
+        const finish = (result: CommitOutcome) => {
+          resolve(result);
+        };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const storedRequest = preferences.get("local-preferences");
+        storedRequest.onerror = () => {
+          pending = failure(storedRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        storedRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const stored = storedRequest.result as LocalPreferences | undefined;
+          const decision = decidePreferencesCommit(stored ?? null, patch, expectedUpdatedAt, timestamp);
+          if (decision.outcome === "conflict") {
+            pending = { ok: true, value: { outcome: "conflict", live: decision.live ?? null } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          written = { outcome: decision.outcome, preferences: decision.write };
+          preferences.put(decision.write);
+        });
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () =>
+          finish(written ? { ok: true, value: written } : failure(transaction.error, database));
+      });
+    } catch (error) {
+      return failure(error);
+    }
   }
   /* المجموعة ٥: مسودات النماذج وسجل القفل — عمليات سجل واحد كالتفضيلات؛
    * لا مس لهما داخل readSnapshot/replaceSnapshot فتبقى عند الاستعادة. */
@@ -1967,18 +2145,14 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         const scanRequest = entriesStore.getAll();
         scanRequest.onerror = () => resolve(failure(scanRequest.error, database));
         scanRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
-          const existingKeys = new Set(
-            (scanRequest.result as CashContinuityEntry[]).map(entry => entry.operationKey),
-          );
+          const existingEntries = scanRequest.result as CashContinuityEntry[];
+          const existingKeys = new Set(existingEntries.map(entry => entry.operationKey));
           const newEntries = entries.filter(entry => !existingKeys.has(entry.operationKey));
           /* EXE-008 (CASH-001): عمق دفاعي داخل المعاملة — قيد افتتاح ثانٍ
            * لمحفظة لها افتتاح مسجل يُرفض بالكامل ولا يُكتب شيء (بما فيه تحديث
            * المحفظة). إعادة الإرسال بالمفتاح نفسه تتخطاها فلترة المفتاح أعلاه
            * فلا يصل الحرس إلا لافتتاح فعلي جديد بمفتاح مختلف. */
-          const secondOpening = findSecondWalletOpening(
-            scanRequest.result as CashContinuityEntry[],
-            newEntries,
-          );
+          const secondOpening = findSecondWalletOpening(existingEntries, newEntries);
           if (secondOpening) {
             rejection = { ok: false, code: STORAGE_STALE, message: SECOND_WALLET_OPENING_MESSAGE };
             try {
@@ -1988,10 +2162,48 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             }
             return;
           }
-          newEntries.forEach(entry => entriesStore.put(entry));
-          if (wallet && (newEntries.length > 0 || entries.length === 0)) {
-            transaction.objectStore(cashWalletStore).put(wallet);
+          const writeBatch = () => {
+            newEntries.forEach(entry => entriesStore.put(entry));
+            if (wallet && (newEntries.length > 0 || entries.length === 0)) {
+              transaction.objectStore(cashWalletStore).put(wallet);
+            }
+          };
+          /* S04 (DOC-013 / UNIT-023 D01): حارس تغطية التحويل داخل المعاملة —
+           * يُقرأ سجل المحافظ الحي فقط عندما تحمل الدفعة أرجل تحويل فعلية،
+           * فيُرفض ما ينزل بمصدر معروف الافتتاح تحت الصفر بلا أي كتابة. */
+          const hasTransferLegs = newEntries.some(
+            entry => entry.type === "transfer_out" || entry.type === "transfer_in",
+          );
+          if (!hasTransferLegs) {
+            writeBatch();
+            return;
           }
+          const walletsRequest = transaction.objectStore(cashWalletStore).getAll();
+          walletsRequest.onerror = () => {
+            rejection = failure(walletsRequest.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              resolve(rejection);
+            }
+          };
+          walletsRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+            const shortfall = findTransferCoverageShortfall(
+              walletsRequest.result as CashWallet[],
+              existingEntries,
+              newEntries,
+            );
+            if (shortfall) {
+              rejection = { ok: false, code: STORAGE_STALE, message: TRANSFER_COVERAGE_MESSAGE };
+              try {
+                transaction.abort();
+              } catch {
+                resolve(rejection);
+              }
+              return;
+            }
+            writeBatch();
+          });
         });
         transaction.onerror = () => resolve(failure(transaction.error, database));
         transaction.onabort = () => resolve(rejection ?? failure(transaction.error, database));
@@ -2003,8 +2215,191 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       return failure(error);
     }
   }
+  /* S04 (DOC-013 / UNIT-025): رصد أرصدة النقد — القراءة بترتيب زمني تنازلي
+   * (الأحدث أولًا)؛ الرصد قياس لا حركة فلا يمس القيود إطلاقًا. */
+  listBalanceObservations() {
+    return listAll<CashObservation>(
+      balanceObservationStore,
+      (left, right) =>
+        right.observedOn.localeCompare(left.observedOn) || right.cutoff.localeCompare(left.cutoff),
+    );
+  }
+  /* S04 (DOC-013 / UNIT-025 + العقد المشترك §14): الرصد وتسويته المرتبطة في
+   * معاملة واحدة على [رصد الأرصدة، قيود الاستمرارية] — يُكتبان معًا أو لا
+   * يُكتب شيء: فشل أي جزء يحبط المعاملة كاملة فلا رصد بلا تسويته ولا تسوية
+   * بلا رصدها (SDF-016: القياس والتسوية معنيان مرتبطان لا حركتان). الحتمية
+   * داخل الحد: مفتاح الرصد الموجود مسبقًا يُعاد بلا كتابة ثانية (reused)،
+   * وقيد التسوية يخضع لفلترة مفاتيح القيود القائمة داخل المعاملة نفسها؛
+   * وعند وجود تسوية يُطابق رصيد محفظة التسوية الحي (مجموع قيودها) المرجع
+   * المتوقع وإلا حُبطت المعاملة بلا أي كتابة — نافذتان تعدّان المحفظة
+   * نفسها لا تُنتجان تسوية مزدوجة (تعارض صادق لا فرقًا مبتلعًا). */
+  async commitCashObservation(
+    observation: CashObservation,
+    settlement: CashContinuityEntry | null,
+    expectedReferenceMinor: number | null,
+  ): Promise<
+    StorageResult<{ observation: CashObservation; settlement: CashContinuityEntry | null; reused: boolean }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction(
+          [balanceObservationStore, cashContinuityEntryStore],
+          "readwrite",
+        );
+        const observationsStore = transaction.objectStore(balanceObservationStore);
+        const entriesStore = transaction.objectStore(cashContinuityEntryStore);
+        type ObservationCommit = {
+          observation: CashObservation;
+          settlement: CashContinuityEntry | null;
+          reused: boolean;
+        };
+        let rejection: StorageFailure | null = null;
+        let outcome: ObservationCommit | null = null;
+        /* التسوية الموحدة للمخرج: نتيجة إن حُسمت، وإلا الرفض المثبت، وإلا فشل
+         * المعاملة — onabort وoncomplete والمسارات كلها تمر من هنا (لا
+         * تتقاطع النتيجة والرفض أبدًا فأسبقية الفحص بلا أثر). */
+        const resolveOutcome = () =>
+          resolve(
+            outcome ? { ok: true, value: outcome } : (rejection ?? failure(transaction.error, database)),
+          );
+        const abortWith = (fallback: () => void) => {
+          try {
+            transaction.abort();
+          } catch {
+            fallback();
+          }
+        };
+        const failFromListener = (error: unknown) => {
+          const failed = failure(error, database);
+          rejection = failed;
+          abortWith(() => resolve(failed));
+        };
+        /* القرار الكامل (عهدة/نصف حالة/مرجع حي) من النواة المشتركة نفسها
+         * التي يستهلكها محوّل الذاكرة — التطابق الدلالي بنيويّ لا بالترجمة.
+         * المخازنان يُقرآن داخل المعاملة الواحدة فالقرار فوق حالة ذرّية. */
+        const observationsRequest = observationsStore.getAll();
+        observationsRequest.onerror = () => resolve(failure(observationsRequest.error, database));
+        observationsRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const entriesRequest = entriesStore.getAll();
+          entriesRequest.onerror = () => resolve(failure(entriesRequest.error, database));
+          entriesRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+            const decision = decideCashObservationCommit(
+              observationsRequest.result as CashObservation[],
+              entriesRequest.result as CashContinuityEntry[],
+              observation,
+              settlement,
+              expectedReferenceMinor,
+            );
+            if (decision.kind === "reject") {
+              const rejected: StorageFailure = {
+                ok: false,
+                code: decision.code,
+                message: decision.message,
+              };
+              rejection = rejected;
+              abortWith(() => resolve(rejected));
+              return;
+            }
+            if (decision.kind === "reuse") {
+              outcome = { observation: decision.observation, settlement: decision.settlement, reused: true };
+              abortWith(resolveOutcome);
+              return;
+            }
+            observationsStore.put(observation);
+            if (settlement) entriesStore.put(settlement);
+            outcome = { observation, settlement, reused: false };
+          });
+        });
+        transaction.onerror = () => resolve(failure(transaction.error, database));
+        transaction.onabort = resolveOutcome;
+        transaction.oncomplete = resolveOutcome;
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   listMaterials() {
     return listAll<Material>(materialStore, (left, right) => left.createdAt.localeCompare(right.createdAt));
+  }
+  /* S05 (DOC-014 / UNIT-037): قراءة الأطراف المحفوظة — الأحدث تعديلًا
+   * أولًا؛ سجل تعريفي لا يمس أي مصدر مالي. */
+  listCounterparties() {
+    return listAll<SavedParty>(counterpartyStore, (left, right) =>
+      right.updatedAt.localeCompare(left.updatedAt),
+    );
+  }
+  getCounterparty(id: string) {
+    return readOne<SavedParty>(counterpartyStore, id);
+  }
+  /* S05 (DOC-014 / UNIT-037 + العقد المشترك §14): كتابة الطرف المحروس داخل
+   * معاملة واحدة على مخزن الأطراف — السجل الحي بمعرفه وسجل مفتاح العملية
+   * يُقرآن داخل الحد نفسه، والقرار من النواة المشتركة: عهدة المفتاح إعادة
+   * استخدام (بلا طرف ثانٍ)، والتعارض حبوط صادق بلا أي كتابة. */
+  async commitCounterpartyWrite(
+    commit: CounterpartyWriteCommit,
+  ): Promise<StorageResult<{ party: SavedParty; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([counterpartyStore], "readwrite");
+        const store = transaction.objectStore(counterpartyStore);
+        let rejection: StorageFailure | null = null;
+        let outcome: { party: SavedParty; reused: boolean } | null = null;
+        const resolveOutcome = () =>
+          resolve(
+            outcome ? { ok: true, value: outcome } : (rejection ?? failure(transaction.error, database)),
+          );
+        const abortWith = (fallback: () => void) => {
+          try {
+            transaction.abort();
+          } catch {
+            fallback();
+          }
+        };
+        const failFromListener = (error: unknown) => {
+          const failed = failure(error, database);
+          rejection = failed;
+          abortWith(() => resolve(failed));
+        };
+        const liveRequest = store.get(commit.next.id);
+        const keyRequest = store.index("operationKey").get(commit.operationKey);
+        liveRequest.onerror = () => resolve(failure(liveRequest.error, database));
+        keyRequest.onerror = () => resolve(failure(keyRequest.error, database));
+        /* القراءتان معًا قبل القرار — العدّاد لا يسمح بالحسم قبل اكتمالهما
+         * (نمط fenceThenWrite نفسه؛ الجرس محروس عند موضع الإسناد نفسه). */
+        let readsPending = 2;
+        const onBothRead = () => {
+          readsPending -= 1;
+          if (readsPending > 0 || outcome || rejection) return;
+          const decision = decideCounterpartyCommit(
+            (liveRequest.result as SavedParty | undefined) ?? null,
+            (keyRequest.result as SavedParty | undefined) ?? null,
+            commit,
+          );
+          if (decision.kind === "reject") {
+            const rejected: StorageFailure = { ok: false, code: decision.code, message: decision.message };
+            rejection = rejected;
+            abortWith(() => resolve(rejected));
+            return;
+          }
+          if (decision.kind === "reuse") {
+            outcome = { party: decision.party, reused: true };
+            abortWith(resolveOutcome);
+            return;
+          }
+          store.put(commit.next);
+          outcome = { party: commit.next, reused: false };
+        };
+        liveRequest.onsuccess = guardedSuccessListener(failFromListener, onBothRead);
+        keyRequest.onsuccess = guardedSuccessListener(failFromListener, onBothRead);
+        transaction.onerror = () => resolve(failure(transaction.error, database));
+        transaction.onabort = resolveOutcome;
+        transaction.oncomplete = resolveOutcome;
+      });
+    } catch (error) {
+      return failure(error);
+    }
   }
   getInventoryActivation() {
     return readOne<InventoryActivation>(inventoryActivationStore, localInventoryActivationId);
@@ -2019,25 +2414,177 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         right.occurredOn.localeCompare(left.occurredOn) || right.recordedAt.localeCompare(left.recordedAt),
     );
   }
+  /* S07-MR-001 (أمر S08 — القسم ١): التزام المخزون المحروس في IndexedDB —
+   * القراءة الحية والمقارنة وكل الكتابات داخل معاملة readwrite واحدة:
+   * المتاجر المطلوبة تُفتح من البداية بحسب ما يمسّه الالتزام (الأحداث/النقص
+   * دائمًا لأنواعها، والمواد/النواقص/المشتريات عند حضور بصماتها في التوقع)،
+   * والقرار من الحارس النقي وحده، والرفض يُجهض المعاملة كاملة بلا أي كتابة،
+   * وإعادة الاستخدام تُكمل بلا كتابات جديدة. بلا توقع وبلا أحداث: مسار
+   * الكتابة المباشر القائم نفسه (البذر منخفض المستوى). المعين حقل
+   * instance-level فلا يتغير سطح النموذج المحروس (P-01/P-02). */
+  private readonly commitInventoryGuarded = async (commit: {
+    material: Material | null;
+    movements: readonly InventoryMovement[];
+    events: readonly FinancialEvent[];
+    shortage: InventoryShortage | null;
+    expectation: InventoryCommitExpectation | null | undefined;
+  }): Promise<StorageResult<InventoryCommitApplyResult>> => {
+    const { material, movements, events, shortage, expectation } = commit;
+    const needsEvents = events.length > 0 || expectation?.eventsFingerprint !== undefined;
+    const needsShortageStore = shortage !== null || expectation?.shortagesFingerprint !== undefined;
+    const needsMaterials = material !== null || expectation?.materialsFingerprint !== undefined;
+    const needsPurchases = expectation?.purchasesFingerprint !== undefined;
+    return (async () => {
+      try {
+        const database = await connection();
+        return await new Promise<StorageResult<InventoryCommitApplyResult>>(resolve => {
+          const storeNames = [materialStore, inventoryMovementStore];
+          if (needsEvents) storeNames.push(financialEventStore);
+          if (needsShortageStore) storeNames.push(inventoryShortageStore);
+          if (needsPurchases) storeNames.push(supplierPurchaseStore);
+          const transaction = database.transaction(storeNames, "readwrite");
+          const movementStoreRef = transaction.objectStore(inventoryMovementStore);
+          let pending: StorageResult<InventoryCommitApplyResult> | null = null;
+          /* نتيجة التطبيق الناجح تُلتقط هنا ثم يعيدها oncomplete — قيمها من
+           * القرار نفسه (إعادة الاستخدام تعيد المخزّن كما هو). */
+          let applied: Extract<InventoryCommitDecision, { kind: "apply" }> | null = null;
+          const finish = (result: StorageResult<InventoryCommitApplyResult>) => resolve(result);
+          const rejectFromDecision = (decision: Extract<InventoryCommitDecision, { kind: "reject" }>) => {
+            pending = { ok: false, code: decision.code, message: decision.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          const failFromListener = (error: unknown) => {
+            pending = failure(error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          /* القراءات الحية داخل المعاملة نفسها — بالترتيب: الحركات أولًا
+           * (ذراع CAS الأساسي)، ثم ما تطلبه البصمات الحاضرة، ثم الأحداث. */
+          const movementScan = movementStoreRef.getAll();
+          movementScan.onerror = () => {
+            pending = failure(movementScan.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          movementScan.onsuccess = guardedSuccessListener(failFromListener, () => {
+            const liveMovements = movementScan.result as InventoryMovement[];
+            const readAll = <T>(storeName: string) =>
+              new Promise<T[] | null>(resolveRead => {
+                const request = transaction.objectStore(storeName).getAll();
+                request.onerror = () => {
+                  pending = failure(request.error, database);
+                  try {
+                    transaction.abort();
+                  } catch {
+                    if (pending) finish(pending);
+                  }
+                  resolveRead(null);
+                };
+                request.onsuccess = guardedSuccessListener(failFromListener, () =>
+                  resolveRead(request.result as T[]),
+                );
+              });
+            (async () => {
+              const liveMaterials = needsMaterials ? await readAll<Material>(materialStore) : null;
+              if (liveMaterials === null && needsMaterials) return;
+              const liveShortages = needsShortageStore
+                ? await readAll<InventoryShortage>(inventoryShortageStore)
+                : null;
+              if (liveShortages === null && needsShortageStore) return;
+              const livePurchases = needsPurchases
+                ? await readAll<SupplierPurchase>(supplierPurchaseStore)
+                : null;
+              if (livePurchases === null && needsPurchases) return;
+              const liveEvents = needsEvents ? await readAll<FinancialEvent>(financialEventStore) : null;
+              if (liveEvents === null && needsEvents) return;
+              const decision = decideInventoryCommit({
+                expectation,
+                liveMovements,
+                liveMaterials,
+                liveShortages,
+                livePurchases,
+                liveEvents,
+                material,
+                movements,
+                events,
+                shortage,
+              });
+              if (decision.kind === "reject") {
+                rejectFromDecision(decision);
+                return;
+              }
+              applied = decision;
+              if (decision.material) transaction.objectStore(materialStore).put(decision.material);
+              decision.newMovements.forEach(movement => movementStoreRef.put(movement));
+              decision.newEvents.forEach(event => transaction.objectStore(financialEventStore).put(event));
+              if (decision.newShortage)
+                transaction.objectStore(inventoryShortageStore).put(decision.newShortage);
+            })().catch(error => failFromListener(error));
+          });
+          transaction.onerror = () => {
+            if (!pending) pending = failure(transaction.error, database);
+          };
+          transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+          transaction.oncomplete = () => {
+            const appliedDecision = applied;
+            if (!appliedDecision) {
+              finish(pending ?? failure(transaction.error, database));
+              return;
+            }
+            finish({
+              ok: true,
+              value: {
+                material: appliedDecision.material,
+                movements: appliedDecision.resultMovements,
+                events: appliedDecision.resultEvents,
+                shortage: appliedDecision.resultShortage,
+                reused: appliedDecision.reused,
+              },
+            });
+          };
+        });
+      } catch (error) {
+        return failure(error);
+      }
+    })();
+  };
   async commitInventory(
     material: Material | null,
     movements: readonly InventoryMovement[],
-  ): Promise<StorageResult<{ material: Material | null; movements: readonly InventoryMovement[] }>> {
-    try {
-      const database = await connection();
-      return await new Promise(resolve => {
-        const transaction = database.transaction([materialStore, inventoryMovementStore], "readwrite");
-        if (material) transaction.objectStore(materialStore).put(material);
-        movements.forEach(movement => transaction.objectStore(inventoryMovementStore).put(movement));
-        transaction.onerror = () => resolve(failure(transaction.error, database));
-        transaction.onabort = () => resolve(failure(transaction.error, database));
-        transaction.oncomplete = () => {
-          resolve({ ok: true, value: { material, movements } });
-        };
-      });
-    } catch (error) {
-      return failure(error);
-    }
+    expectation?: InventoryCommitExpectation | null,
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      reused: boolean;
+    }>
+  > {
+    const result = await this.commitInventoryGuarded({
+      material,
+      movements,
+      events: [],
+      shortage: null,
+      expectation,
+    });
+    if (!result.ok) return result;
+    return {
+      ok: true,
+      value: {
+        material: result.value.material,
+        movements: result.value.movements,
+        reused: result.value.reused,
+      },
+    };
   }
   listInventoryShortages() {
     return listAll<InventoryShortage>(
@@ -2052,41 +2599,43 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     material: Material | null,
     movements: readonly InventoryMovement[],
     shortage: InventoryShortage | null,
+    expectation?: InventoryCommitExpectation | null,
   ): Promise<
     StorageResult<{
       material: Material | null;
       movements: readonly InventoryMovement[];
       shortage: InventoryShortage | null;
+      reused: boolean;
     }>
   > {
-    try {
-      const database = await connection();
-      return await new Promise(resolve => {
-        const transaction = database.transaction(
-          [materialStore, inventoryMovementStore, inventoryShortageStore],
-          "readwrite",
-        );
-        if (material) transaction.objectStore(materialStore).put(material);
-        movements.forEach(movement => transaction.objectStore(inventoryMovementStore).put(movement));
-        if (shortage) transaction.objectStore(inventoryShortageStore).put(shortage);
-        transaction.onerror = () => resolve(failure(transaction.error, database));
-        transaction.onabort = () => resolve(failure(transaction.error, database));
-        transaction.oncomplete = () => {
-          resolve({ ok: true, value: { material, movements, shortage } });
-        };
-      });
-    } catch (error) {
-      return failure(error);
-    }
+    const result = await this.commitInventoryGuarded({
+      material,
+      movements,
+      events: [],
+      shortage,
+      expectation,
+    });
+    if (!result.ok) return result;
+    return {
+      ok: true,
+      value: {
+        material: result.value.material,
+        movements: result.value.movements,
+        shortage: result.value.shortage,
+        reused: result.value.reused,
+      },
+    };
   }
   /* عقد الإغلاق العميق (العقد ١ — الهدر): حركة مخزون وحدث مالي في معاملة
    * واحدة ذرّية — الحركة وحدث خسارة الهدر غير النقدية معًا أو لا شيء،
    * والتراجع يعكس الاثنين معًا. الحتمية داخل المعاملة بمفتاحي العملية،
-   * والمخزّن سلفًا يُعاد كما هو (reused). */
+   * والمخزّن سلفًا يُعاد كما هو (reused). S07-MR-001: القرار كله عند
+   * الحارس النقي داخل المعاملة نفسها. */
   async commitInventoryWithEvents(
     material: Material | null,
     movements: readonly InventoryMovement[],
     events: readonly FinancialEvent[],
+    expectation?: InventoryCommitExpectation | null,
   ): Promise<
     StorageResult<{
       material: Material | null;
@@ -2095,60 +2644,23 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       reused: boolean;
     }>
   > {
-    try {
-      const database = await connection();
-      return await new Promise(resolve => {
-        const transaction = database.transaction(
-          [materialStore, inventoryMovementStore, financialEventStore],
-          "readwrite",
-        );
-        const movementStore = transaction.objectStore(inventoryMovementStore);
-        const eventStore = transaction.objectStore(financialEventStore);
-        let reused = false;
-        let resultMovements: readonly InventoryMovement[] = movements;
-        let resultEvents: readonly FinancialEvent[] = events;
-        const failFromListener = (error: unknown) => {
-          resolve(failure(error, database));
-          try {
-            transaction.abort();
-          } catch {
-            /* المعاملة انتهت فعلًا — لا شيء يُحبَط. */
-          }
-        };
-        const movementScan = movementStore.getAll();
-        movementScan.onerror = () => resolve(failure(movementScan.error, database));
-        movementScan.onsuccess = guardedSuccessListener(failFromListener, () => {
-          const storedMovements = movementScan.result as InventoryMovement[];
-          const movementByKey = new Map(
-            storedMovements.map(movement => [movement.operationKey, movement] as const),
-          );
-          resultMovements = movements.map(movement => movementByKey.get(movement.operationKey) ?? movement);
-          const newMovements = movements.filter(movement => !movementByKey.has(movement.operationKey));
-          const eventScan = eventStore.getAll();
-          eventScan.onerror = () => resolve(failure(eventScan.error, database));
-          eventScan.onsuccess = guardedSuccessListener(failFromListener, () => {
-            const storedEvents = eventScan.result as FinancialEvent[];
-            const eventByKey = new Map(storedEvents.map(event => [event.idempotencyKey, event] as const));
-            resultEvents = events.map(event => eventByKey.get(event.idempotencyKey) ?? event);
-            const newEvents = events.filter(event => !eventByKey.has(event.idempotencyKey));
-            reused = newMovements.length < movements.length || newEvents.length < events.length;
-            if (material) transaction.objectStore(materialStore).put(material);
-            newMovements.forEach(movement => movementStore.put(movement));
-            newEvents.forEach(event => eventStore.put(event));
-          });
-        });
-        transaction.onerror = () => resolve(failure(transaction.error, database));
-        transaction.onabort = () => resolve(failure(transaction.error, database));
-        transaction.oncomplete = () => {
-          resolve({
-            ok: true,
-            value: { material, movements: resultMovements, events: resultEvents, reused },
-          });
-        };
-      });
-    } catch (error) {
-      return failure(error);
-    }
+    const result = await this.commitInventoryGuarded({
+      material,
+      movements,
+      events,
+      shortage: null,
+      expectation,
+    });
+    if (!result.ok) return result;
+    return {
+      ok: true,
+      value: {
+        material: result.value.material,
+        movements: result.value.movements,
+        events: result.value.events,
+        reused: result.value.reused,
+      },
+    };
   }
   listCatalogItems() {
     return listAll<CatalogItem>(
@@ -2955,8 +3467,41 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   async readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>> {
     return readIndexedDbSnapshot();
   }
-  async replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>> {
-    return replaceIndexedDbSnapshot(snapshot);
+  /* S02-A (SH-03): الاستبدال المحروس — السياج والمسودات داخل الحد (indexedDbSnapshot). */
+  async replaceSnapshot(
+    snapshot: LocalStoreSnapshot,
+    guard?: ReplacementGuard,
+  ): Promise<StorageResult<LocalStoreSnapshot>> {
+    return replaceIndexedDbSnapshot(snapshot, guard);
+  }
+  /* S02-A (SH-02/SH-03): حماية الاستبدال الدائمة — تفويض إلى قاعدة الحماية
+   * المنفصلة (restoreProtectionStore) خارج قاعدة البيانات المستبدلة. */
+  async getDataGeneration(): Promise<StorageResult<number>> {
+    const engine = await loadProtectionEngine();
+    return engine.readDataGeneration();
+  }
+  async readRestoreProtection(): Promise<StorageResult<RestoreProtectionState>> {
+    const engine = await loadProtectionEngine();
+    return engine.readRestoreProtectionState();
+  }
+  async beginReplacementIntent(
+    pending: RestoreRollbackRecord,
+    intent: ReplacementIntentRecord,
+  ): Promise<StorageResult<null>> {
+    const engine = await loadProtectionEngine();
+    return engine.beginReplacementIntent(pending, intent);
+  }
+  async commitReplacementIntent(
+    generation: number,
+    receipt: ReplacementReceiptRecord,
+    resolvedAt: string,
+  ): Promise<StorageResult<null>> {
+    const engine = await loadProtectionEngine();
+    return engine.commitReplacementIntent(generation, receipt, resolvedAt);
+  }
+  async abortReplacementIntent(): Promise<StorageResult<null>> {
+    const engine = await loadProtectionEngine();
+    return engine.abortReplacementIntent();
   }
   /* المجموعة ٤ (عقد ٢٩ — الأصول): قراءة سجل الأصول. */
   listAssets() {
@@ -3010,62 +3555,11 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         };
         assetRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existing = assetRequest.result as AssetRecord | undefined;
-          const eventCheck = event ? events.get(event.id) : null;
-          const proceed = () => {
-            if (event) {
-              const request = eventCheck!;
-              request.onsuccess = guardedSuccessListener(failFromListener, () => {
-                if (request.result) {
-                  pending = {
-                    ok: true,
-                    value: {
-                      record: existing ?? record,
-                      event: request.result as FinancialEvent,
-                      reused: true,
-                    },
-                  };
-                  try {
-                    transaction.abort();
-                  } catch {
-                    if (pending) finish(pending);
-                  }
-                  return;
-                }
-                assets.put(record);
-                events.put(event);
-              });
-              request.onerror = () => {
-                pending = failure(request.error, database);
-                try {
-                  transaction.abort();
-                } catch {
-                  if (pending) finish(pending);
-                }
-              };
-              return;
-            }
-            /* مراجعة عقد بلا حدث: المراجعة نفسها محفوظة → إعادة استخدام. */
-            if (
-              existing &&
-              existing.contractRevisions.length >= record.contractRevisions.length &&
-              record.contractRevisions.length > 0
-            ) {
-              pending = { ok: true, value: { record: existing, event: null, reused: true } };
-              try {
-                transaction.abort();
-              } catch {
-                if (pending) finish(pending);
-              }
-              return;
-            }
-            assets.put(record);
-          };
-          if (existing && existing.operationKey !== record.operationKey) {
-            pending = {
-              ok: false,
-              code: STORAGE_ERROR,
-              message: "سجل أصل مختلف يحمل هذا المعرف؛ لم يتغير شيء.",
-            };
+          /* S08: حارس العلاقة النقي داخل المعاملة — إعادة تشغيل صادقة أو
+           * «عملية مجال واحدة بالضبط» أو رفض storage_stale بلا كتابة. */
+          const recordGuard = validateAssetRecordCommit(existing, record);
+          if (!recordGuard.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: recordGuard.message };
             try {
               transaction.abort();
             } catch {
@@ -3073,7 +3567,61 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             }
             return;
           }
-          proceed();
+          /* إعادة استخدام السجل لا تلغي ذراع الحدث — تسجيل إهلاك فوق السجل
+           * نفسه سجلٌ مُعاد وحدثٌ جديد؛ الحدث يُفحص وحده ويُكتب إن كان جديدًا. */
+          if (recordGuard.reused && !event) {
+            pending = { ok: true, value: { record: existing ?? record, event: null, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          if (!event) {
+            assets.put(record);
+            return;
+          }
+          /* حدث واحد: الحتمية بالمفتاح داخل الحد — المخزّن يُعاد كما هو. */
+          const eventScan = events.getAll();
+          eventScan.onerror = () => {
+            pending = failure(eventScan.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          eventScan.onsuccess = guardedSuccessListener(failFromListener, () => {
+            const eventsGuard = validateAssetEventsCommit(eventScan.result as FinancialEvent[], [event]);
+            if (!eventsGuard.ok) {
+              pending = { ok: false, code: STORAGE_STALE, message: eventsGuard.message };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            if (eventsGuard.reused) {
+              pending = {
+                ok: true,
+                value: {
+                  record: existing ?? record,
+                  event: eventsGuard.storedEvents[0] ?? event,
+                  reused: true,
+                },
+              };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            if (!recordGuard.reused) assets.put(record);
+            events.put(event);
+          });
         });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
@@ -3085,16 +3633,16 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       return failure(error);
     }
   }
-  /* تصحيح اقتناء أصل: التراجع والبديل والسجل في معاملة واحدة. */
-  async commitAssetAcquisitionCorrection(
+  /* S08 (UNIT-034): الاقتناء الذري متعدد الأحداث — السجل وأحداثه معًا أو
+   * لا شيء؛ الحتمية بالمفاتيح داخل الحد (المخزّن يُعاد كما هو) والسجل
+   * يحرسه علاقة الحارس النقي نفسها. */
+  async commitAssetAcquisition(
     record: AssetRecord,
-    reversal: FinancialEvent,
-    replacement: FinancialEvent,
+    events: readonly FinancialEvent[],
   ): Promise<
     StorageResult<{
       record: AssetRecord;
-      reversal: FinancialEvent;
-      replacement: FinancialEvent;
+      events: readonly FinancialEvent[];
       reused: boolean;
     }>
   > {
@@ -3103,23 +3651,15 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       return await new Promise(resolve => {
         const transaction = database.transaction([assetStore, financialEventStore], "readwrite");
         const assets = transaction.objectStore(assetStore);
-        const events = transaction.objectStore(financialEventStore);
+        const eventsStore = transaction.objectStore(financialEventStore);
         let pending: StorageResult<{
           record: AssetRecord;
-          reversal: FinancialEvent;
-          replacement: FinancialEvent;
+          events: readonly FinancialEvent[];
           reused: boolean;
         }> | null = null;
         const finish = (
-          result: StorageResult<{
-            record: AssetRecord;
-            reversal: FinancialEvent;
-            replacement: FinancialEvent;
-            reused: boolean;
-          }>,
-        ) => {
-          resolve(result);
-        };
+          result: StorageResult<{ record: AssetRecord; events: readonly FinancialEvent[]; reused: boolean }>,
+        ) => resolve(result);
         const failFromListener = (error: unknown) => {
           pending = failure(error, database);
           try {
@@ -3128,54 +3668,256 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
             if (pending) finish(pending);
           }
         };
-        const reversalRequest = events.get(reversal.id);
-        reversalRequest.onerror = () => {
-          pending = failure(reversalRequest.error, database);
+        const assetRequest = assets.get(record.id);
+        assetRequest.onerror = () => {
+          pending = failure(assetRequest.error, database);
           try {
             transaction.abort();
           } catch {
             if (pending) finish(pending);
           }
         };
-        reversalRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
-          if (reversalRequest.result) {
-            const replacementRequest = events.get(replacement.id);
-            replacementRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+        assetRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const existing = assetRequest.result as AssetRecord | undefined;
+          const recordGuard = validateAssetRecordCommit(existing, record);
+          if (!recordGuard.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: recordGuard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          const eventScan = eventsStore.getAll();
+          eventScan.onerror = () => {
+            pending = failure(eventScan.error, database);
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+          };
+          eventScan.onsuccess = guardedSuccessListener(failFromListener, () => {
+            const eventsGuard = validateAssetEventsCommit(eventScan.result as FinancialEvent[], events);
+            if (!eventsGuard.ok) {
+              pending = { ok: false, code: STORAGE_STALE, message: eventsGuard.message };
+              try {
+                transaction.abort();
+              } catch {
+                if (pending) finish(pending);
+              }
+              return;
+            }
+            if (recordGuard.reused && eventsGuard.reused) {
               pending = {
                 ok: true,
-                value: {
-                  record,
-                  reversal: reversalRequest.result as FinancialEvent,
-                  replacement: (replacementRequest.result as FinancialEvent | undefined) ?? replacement,
-                  reused: true,
-                },
+                value: { record: existing ?? record, events: eventsGuard.storedEvents, reused: true },
               };
               try {
                 transaction.abort();
               } catch {
                 if (pending) finish(pending);
               }
+              return;
+            }
+            if (!recordGuard.reused) assets.put(record);
+            /* الكتابة للأحداث الجديدة فقط — العضوية في الحقيقة الحية المقروءة. */
+            const liveEventIds = new Set((eventScan.result as FinancialEvent[]).map(event => event.id));
+            events.forEach(event => {
+              if (!liveEventIds.has(event.id)) eventsStore.put(event);
             });
-            replacementRequest.onerror = () => {
-              pending = failure(replacementRequest.error, database);
-              try {
-                transaction.abort();
-              } catch {
-                if (pending) finish(pending);
-              }
+          });
+        });
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { record, events, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* تصحيح اقتناء أصل: التراجعات والبدائل والسجل في معاملة واحدة — صيغة
+   * المصفوفات (S08): الاقتناء الجزئي يعكس حدثيه ويستبدلهما معًا. */
+  async commitAssetAcquisitionCorrection(
+    record: AssetRecord,
+    reversals: readonly FinancialEvent[],
+    replacements: readonly FinancialEvent[],
+  ): Promise<
+    StorageResult<{
+      record: AssetRecord;
+      reversals: readonly FinancialEvent[];
+      replacements: readonly FinancialEvent[];
+      reused: boolean;
+    }>
+  > {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([assetStore, financialEventStore], "readwrite");
+        const assets = transaction.objectStore(assetStore);
+        const eventsStore = transaction.objectStore(financialEventStore);
+        let pending: StorageResult<{
+          record: AssetRecord;
+          reversals: readonly FinancialEvent[];
+          replacements: readonly FinancialEvent[];
+          reused: boolean;
+        }> | null = null;
+        const finish = (
+          result: StorageResult<{
+            record: AssetRecord;
+            reversals: readonly FinancialEvent[];
+            replacements: readonly FinancialEvent[];
+            reused: boolean;
+          }>,
+        ) => resolve(result);
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const eventScan = eventsStore.getAll();
+        eventScan.onerror = () => {
+          pending = failure(eventScan.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        eventScan.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const liveEvents = eventScan.result as FinancialEvent[];
+          const reversalGuard = validateAssetEventsCommit(liveEvents, reversals);
+          if (!reversalGuard.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: reversalGuard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          const replacementGuard = validateAssetEventsCommit(
+            [
+              ...liveEvents,
+              ...reversals.filter(
+                reversal => !reversalGuard.storedEvents.some(stored => stored.id === reversal.id),
+              ),
+            ],
+            replacements,
+          );
+          if (!replacementGuard.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: replacementGuard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          const reused = reversalGuard.reused || replacementGuard.reused;
+          if (reversalGuard.reused && replacementGuard.reused) {
+            pending = {
+              ok: true,
+              value: {
+                record,
+                reversals: reversalGuard.storedEvents,
+                replacements: replacementGuard.storedEvents,
+                reused: true,
+              },
             };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
             return;
           }
           assets.put(record);
-          events.put(reversal);
-          events.put(replacement);
+          const liveIds = new Set((eventScan.result as FinancialEvent[]).map(event => event.id));
+          reversals.forEach(reversal => {
+            if (!liveIds.has(reversal.id)) eventsStore.put(reversal);
+          });
+          replacements.forEach(replacement => {
+            if (!liveIds.has(replacement.id)) eventsStore.put(replacement);
+          });
         });
         transaction.onerror = () => {
           if (!pending) pending = failure(transaction.error, database);
         };
         transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
         transaction.oncomplete = () =>
-          finish({ ok: true, value: { record, reversal, replacement, reused: false } });
+          finish({ ok: true, value: { record, reversals, replacements, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
+  /* S08 (UNIT-034 / SDF-066): تسديد ذممة اقتناء أصل — المصدر الحي والمبلغ
+   * داخل المتبقي الحي، كله داخل المعاملة نفسها؛ حدث واحد أو لا شيء. */
+  async commitAssetPayableSettlement(
+    settlement: FinancialEvent,
+  ): Promise<StorageResult<{ settlement: FinancialEvent; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([financialEventStore], "readwrite");
+        const eventsStore = transaction.objectStore(financialEventStore);
+        let pending: StorageResult<{ settlement: FinancialEvent; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ settlement: FinancialEvent; reused: boolean }>) =>
+          resolve(result);
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const eventScan = eventsStore.getAll();
+        eventScan.onerror = () => {
+          pending = failure(eventScan.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        eventScan.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const guard = validateAssetPayableSettlementCommit(
+            eventScan.result as FinancialEvent[],
+            settlement,
+          );
+          if (!guard.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: guard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          if (guard.reused) {
+            pending = { ok: true, value: { settlement: guard.stored, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          eventsStore.put(settlement);
+        });
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { settlement, reused: false } });
       });
     } catch (error) {
       return failure(error);
@@ -4131,6 +4873,84 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     }
   }
   /* قرار فترة مفرد (تأجيل/تخطٍ/علامة محاولة/فشل معروف) — محروس داخل الحد. */
+  /* S06 (UNIT-019 B4/D06 — R2-F01): قرار الربط — العهدة وحصرية الحدث داخل
+   * معاملة واحدة؛ جرد الفترات كله يُقرأ في المعاملة نفسها قبل الكتابة
+   * فلا يمر ربط مزدوج حتى مع سباق نافذتين. */
+  async commitRecurringExpenseOccurrenceLink(
+    base: RecurringExpenseOccurrence,
+    next: RecurringExpenseOccurrence,
+  ): Promise<StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([recurringExpenseOccurrenceStore], "readwrite");
+        const occurrences = transaction.objectStore(recurringExpenseOccurrenceStore);
+        let pending: StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>) =>
+          resolve(result);
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const allRequest = occurrences.getAll();
+        allRequest.onerror = () => {
+          pending = failure(allRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        allRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const all = (allRequest.result ?? []) as RecurringExpenseOccurrence[];
+          const stored = all.find(candidate => candidate.id === next.id);
+          const guard = validateRecurringExpenseOccurrenceDecision(stored, base, next);
+          if (!guard.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: guard.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          if (guard.reused) {
+            pending = { ok: true, value: { occurrence: stored ?? next, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          /* الحصرية داخل المعاملة: الحدث الواحد دورة واحدة — ربط مزدوج
+           * متزامن يُحبط كاملًا بلا أي كتابة. */
+          const exclusive = validateRecurringExpenseOccurrenceLinkExclusivity(all, next);
+          if (!exclusive.ok) {
+            pending = { ok: false, code: STORAGE_STALE, message: exclusive.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          occurrences.put(next);
+        });
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { occurrence: next, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
+  }
   async commitRecurringExpenseOccurrenceDecision(
     base: RecurringExpenseOccurrence,
     next: RecurringExpenseOccurrence,

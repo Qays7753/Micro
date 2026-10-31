@@ -38,6 +38,7 @@ import type {
 import type { SOURCE_REF_KINDS } from "@micro-domain/cash-continuity/index.js";
 import type { OperatingBreakEvenResult } from "@micro-domain/financial-analysis/index.js";
 import type { SharedExpenseRecordInput } from "@/application/financial-records/expenseRecordIntent";
+import type { SharedBillOwnerPartConfirmation } from "@/application/financial-records/expenseRecordIntent";
 
 /** مركز المشروع المالي المسجل — قراءة القارئ الكنوني (عقد ٤٠). */
 export type ProjectFinancialPosition = {
@@ -141,6 +142,12 @@ export type RecordedPeriodResult = {
   directSaleRevenueMinor: number;
   directSaleCostKnownMinor: number;
   directSaleCostUnknownCount: number;
+  /* S07 (UNIT-028 / D02 المعتمد / SDF-031): تكلفة مواد الفترة المعترف بها
+   * من بنود period_material على فترة تاريخ الشراء — قراءة مشتقة عند هذا
+   * القارئ الكنوني نفسه (لا حدث مالي ثانٍ)؛ والمجهولة القيمة تُعلن بعدّها
+   * وتمنع رقم نتيجة نهائيًا كاذبًا (لا صفرًا ولا مجانية). */
+  untrackedMaterialPurchaseCostMinor: number;
+  untrackedMaterialPurchaseCostUnknownCount: number;
   /* المجموعة ٤ (عقد ٢٩): الإهلاك المسجّل — بند مستقل غير نقدي يخفض النتيجة
    * ولا يدخل بند المصروفات التشغيلية أبدًا. */
   assetDepreciationMinor: number;
@@ -256,6 +263,12 @@ export type FinancialRecordInput = {
   depositContext?: DepositEventContext | null;
   idempotencyKey: string;
   sharedExpense?: SharedExpenseRecordInput;
+  /* S07 (S06-MR-001): تأكيد تحمّل المالك للباقي المرتبط بقيمة الزوج الكنوني
+   * (الحصة + المدفوع) لحظة التأكيد — يستهلكه كاتب الفاتورة المشتركة فقط
+   * (recordSharedBill) ويطابقه بالقيمة المشتقة الحالية عند الحد قبل أي
+   * كتابة؛ غيابه أو تقادمه (تغير الحصة/المدفوع) يُرفض. المسارات الأخرى
+   * تتجاهله (مثل sourceWalletId التوافقي). */
+  ownerPartConfirmation?: SharedBillOwnerPartConfirmation | null;
 };
 export type FinancialReversalInput = {
   sourceEventId: string;

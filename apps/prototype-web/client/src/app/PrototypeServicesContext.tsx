@@ -13,7 +13,6 @@ import { DraftService } from "@/application/drafts/draftService";
 /* المجموعة ٥ (عقد ٣٦): مسودات النماذج الطويلة — خارج اللقطة، بلا أثر مالي. */
 import { FormDraftService } from "@/application/drafts/formDraftService";
 /* المجموعة ٥ (عقد ٣٧): القفل المحلي — بصمة الرمز فقط، خارج اللقطة. */
-import { LocalLockService } from "@/application/security/localLockService";
 import { CostService } from "@/application/cost/costService";
 import { AgreementService } from "@/application/agreements/agreementService";
 import { AgreementContextService } from "@/application/agreements/agreementContextService";
@@ -24,6 +23,9 @@ import { DeliveryReviewService } from "@/application/fulfillment/deliveryReviewS
  * النوع هنا فقط (import type) فلا يسحب الوحدة إلى حزمة الدخول. */
 import type { LocalTransferService } from "@/application/transfers/localTransferService";
 import type { GuidedOpeningImportService } from "@/application/transfers/guidedOpeningImportService";
+/* S04 (DOC-013): النوع هنا فقط (import type) فلا يسحب الوحدة إلى حزمة الدخول —
+ * التحميل ديناميكي أدناه (نمط transfers/loans نفسه). */
+import type { CashCountService } from "@/application/cash/cashCountService";
 import { PreferenceService } from "@/application/preferences/preferenceService";
 import { ProfileService } from "@/application/profile/profileService";
 import { OwnerProfileService } from "@/application/owner/ownerProfileService";
@@ -32,10 +34,13 @@ import { ProjectFinancialService } from "@/application/finance";
 import { CorrectionHistoryService } from "@/application/financial-records/correctionHistoryService";
 import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
 import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
-import { HomeControlCenterService } from "@/application/home/homeControlCenterService";
+/* S05 (DOC-014 / UNIT-037، ميزانية الحزمة — نمط الخدمات الكسولة نفسه):
+ * النوع هنا فقط (import type) فلا يسحب الوحدة إلى حزمة الدخول —
+ * التحميل ديناميكي أدناه (نمط transfers/loans/count/partyDirectory نفسه). */
+import type { HomeControlCenterService } from "@/application/home/homeControlCenterService";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { ScheduleRecurrenceService } from "@/application/scheduling/recurrenceService";
-import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
+import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import { CashContinuityService } from "@/application/cash";
 import { InventoryMaterialService } from "@/application/inventory";
 import { CatalogService } from "@/application/catalog/catalogService";
@@ -44,7 +49,8 @@ import { RecurringWorkService } from "@/application/finance";
 import { FinancialAnalysisService } from "@/application/financial-analysis/financialAnalysisService";
 import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { CostEstimateService } from "@/application/estimates/costEstimateService";
-import { PartyLedgerService } from "@/application/parties/partyLedgerService";
+import type { PlanningCalculationLifecycleService } from "@/application/estimates/planningCalculationLifecycle";
+import type { PartyDirectoryService } from "@/application/parties/partyLedgerService";
 /* المجموعة ٢: التحصيل ودفتر المحفظة والكشف — خدمات مالية جديدة فوق المخزن نفسه. */
 import { CollectionService } from "@/application/collections/collectionService";
 /* المجموعة ٦ (البند ١ — S2-04أ): التراجع المزدوج عن القبضة وتخصيصها المطابق. */
@@ -78,7 +84,7 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
  * EXE-014/D-034 — FIN-001 WS-178 Wave 6: تحرير كومة الإقلاع من الوحدة)
  * فتُوفَّر عند اكتمال التحميل الخامل مثل transfers/recurringExpenses؛
  * خدمة القروض المستلمة لا تُسجّل هنا أبدًا — تُحمّل من صفحاتها وحدها. */
-import { AssetService } from "@/application/assets/assetService";
+import type { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
 import { RetainedDepositService } from "@/application/financial-records/retainedDepositService";
 /* المجموعة ٥ (عقد ٣٠): القارئ الموحّد للنشاط. */
@@ -93,8 +99,6 @@ type PrototypeServices = {
   drafts: DraftService;
   /* المجموعة ٥ (عقد ٣٦): مسودات النماذج الطويلة. */
   formDrafts: FormDraftService;
-  /* المجموعة ٥ (عقد ٣٧): القفل المحلي. */
-  localLock: LocalLockService;
   directSales: DirectSaleService;
   costs: CostService;
   agreements: AgreementService;
@@ -106,12 +110,18 @@ type PrototypeServices = {
   ownerEntitlement: OwnerEntitlementService;
   recurringWork: RecurringWorkService;
   g5: FinancialAnalysisService;
-  supplierPurchases: SupplierPurchaseService;
+  /* S07 (DOC-016 / UNIT-027، سابقة transfers/loans/cashCount/partyDirectory
+   * نفسها): خدمة المشتريات تُحمّل ديناميكيًا بعد الإقلاع — وحدة الشراء
+   * والدومين المرافق لها يخرجان من كومة الإقلاع (سقف gzip المحروس بقرار
+   * مالك ADR-017 لا يُرفع)؛ null يعني «جارٍ التجهيز» ومستهلكوها الكنونيون
+   * (الموردون ومحرر الشراء والأساس والقدرات ومركز التحكم) يعيدون القراءة
+   * عند اكتماله. */
+  supplierPurchases: SupplierPurchaseService | null;
   cashContinuity: CashContinuityService;
   inventory: InventoryMaterialService;
   catalog: CatalogService;
   dailyFollowUp: DailyFollowUpService;
-  homeControlCenter: HomeControlCenterService;
+  homeControlCenter: HomeControlCenterService | null;
   schedules: ScheduleService;
   recurrences: ScheduleRecurrenceService;
   fulfillment: FulfillmentService;
@@ -123,7 +133,18 @@ type PrototypeServices = {
   transfers: LocalTransferService | null;
   guidedOpeningImport: GuidedOpeningImportService | null;
   costEstimates: CostEstimateService;
-  partyLedger: PartyLedgerService;
+  /* S10 (DOC-019 / UNIT-031/032، سابقة purchases/assets/loans نفسها): دورة
+   * حساب T01 المحفوظ كسولة — التحميل الديناميكي يخرج دومين التخطيط من كومة
+   * الإقلاع (سقف gzip المحروس ADR-017 لا يُرفع)؛ null يعني «جارٍ التجهيز»
+   * (نمط transfers/loans/cashCount) لا فشلًا صامتًا — مستهلكها الوحيد
+   * (الحاسبة الكسولة) يعلن ذلك بصدق ويعيد المحاولة عند اكتماله. */
+  planningCalculations: PlanningCalculationLifecycleService | null;
+  /* S05 (DOC-014 / UNIT-037، سابقة S04/cashCount نفسها): دليل الأطراف
+   * المحفوظة عبر التحميل الخامل — مسار الأطراف لا يحتاجه الإقلاع وميزانية
+   * الحزمة محروسة بسقف مالك؛ null يعني «جارٍ التجهيز» (نمط transfers/loans/
+   * cashCount) لا فشلًا صامتًا — مستهلكوه الكنونيون (دليل الأطراف ومحررا
+   * البيع/الشراء وورقة الطلب) يعيدون القراءة عند اكتماله. */
+  partyDirectory: PartyDirectoryService | null;
   /* المجموعة ٢ (Scope B): ورقة التحصيل — المصدر الواحد لتحصيل الذمم. */
   collections: CollectionService;
   /* Stage 2 — OPS-001: قراءة التقادم ومواعيد الاستحقاق — لا كتابة إطلاقًا. */
@@ -151,8 +172,14 @@ type PrototypeServices = {
   /* المجموعة ٤ (عقد ٢٩): الأصول والإهلاك وتصنيف العربون المحتفظ به — كتابة
    * الأحداث المالية من هنا فقط لا من أي صفحة. القروض الصادرة عبر التحميل
    * الخامل: null يعني «جارٍ التجهيز» (نمط transfers) لا فشلًا صامتًا. */
-  assets: AssetService;
+  /* S08 (DOC-017 / UNIT-034، سابقة purchases/loans نفسها): الخدمة كسولة —
+   * null = «جارٍ التجهيز» حتى يكتمل تحميلها بعد الإقلاع. */
+  assets: AssetService | null;
   loans: LoanService | null;
+  /* S04 (DOC-013 / UNIT-025، سابقة EXE-014/D-034 نفسها): خدمة العدّ والمطابقة
+   * عبر التحميل الخامل — مسار العدّ لا يحتاجه الإقلاع وميزانية الحزمة محروسة
+   * بسقف مالك؛ null يعني «جارٍ التجهيز» (نمط transfers/loans) لا فشلًا صامتًا. */
+  cashCount: CashCountService | null;
   retainedDeposits: RetainedDepositService;
   dataVersion: number;
   notifyDataChanged: () => void;
@@ -175,6 +202,16 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       channel.close();
       channelRef.current = null;
     };
+  }, []);
+  /* S02-B (SH-04 — UNIT-042): تقاعد سجل القفل المحلي مرة واحدة عند أول تركيب —
+   * بيئة فُعِّل فيها القفل سابقًا تفتح دون غطاء (البوابة حُذفت مع مكوّنها)
+   * وتُنظَّف مادة PIN بمعروف؛ فشل التنظيف حادثة تشخيصية آمنة لا يحبس
+   * المستخدم ولا يمحو بياناته ولا يوقف الإقلاع. التحميل كسول كخدمات الإقلاع
+   * كلها (بروتوكول FIN-001/OPS-003 للميزانية: لا ينام في كومة الإقلاع). */
+  useEffect(() => {
+    void import("@/application/security").then(module => {
+      void module.retireLocalLockRecord(singletonStore);
+    });
   }, []);
   const notifyDataChanged = useCallback(() => {
     setDataVersion(version => version + 1);
@@ -208,6 +245,113 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       active = false;
     };
   }, []);
+  /* S04 (DOC-013 / UNIT-025، السابقة نفسها): خدمة العدّ والمطابقة تُحمَّل
+   * ديناميكيًا بعد الإقلاع — مسار العدّ لا يحتاجه الإقلاع، وميزانية الحزمة
+   * (سقف gzip المحروس بقرار مالك ADR-017) لا تتسع لتكديسه في حزمة الدخول؛
+   * تُبنى فوق المخزن الوحيد فور جاهزيتها ولا يُعاد بناؤها عند dataVersion. */
+  const [cashCountService, setCashCountService] = useState<CashCountService | null>(null);
+  useEffect(() => {
+    let active = true;
+    void import("@/application/cash/cashCountService").then(module => {
+      if (!active) return;
+      setCashCountService(new module.CashCountService(singletonStore));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  /* S05 (DOC-014 / UNIT-037، السابقة نفسها): دليل الأطراف المحفوظة يُحمَّل
+   * ديناميكيًا بعد الإقلاع — يُبنى فوق المخزن الوحيد فور جاهزيته ولا يُعاد
+   * عند تحديث dataVersion؛ تقاعد قراءة التجميع بالاسم (partyLedger السابق)
+   * موثق في سجل نتيجة S05. */
+  const [partyDirectoryService, setPartyDirectoryService] = useState<PartyDirectoryService | null>(null);
+  useEffect(() => {
+    let active = true;
+    void import("@/application/parties/partyLedgerService").then(module => {
+      if (!active) return;
+      setPartyDirectoryService(new module.PartyDirectoryService(singletonStore));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  const [homeControlCenterService, setHomeControlCenterService] = useState<HomeControlCenterService | null>(
+    null,
+  );
+  /* S07 (DOC-016 / UNIT-027، ميزانية الحزمة — نمط transfers/loans/count/
+   * partyDirectory نفسه): خدمة المشتريات تُحمّل ديناميكيًا بعد الإقلاع فوق
+   * المخزن الوحيد؛ تُبنى مرة ولا تُعاد عند تحديث dataVersion. وحدة الشراء
+   * والدومين المرافق يخرجان من كومة الإقلاع (سقف gzip المحروس لا يُرفع). */
+  const [supplierPurchasesService, setSupplierPurchasesService] = useState<SupplierPurchaseService | null>(
+    null,
+  );
+  useEffect(() => {
+    let active = true;
+    void import("@/application/suppliers/supplierPurchaseService").then(module => {
+      if (!active) return;
+      setSupplierPurchasesService(new module.SupplierPurchaseService(singletonStore));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  /* S08 (DOC-017 / UNIT-034، ميزانية الحزمة — نمط purchases/loans/count/
+   * partyDirectory نفسه): خدمة الأصول تُحمّل ديناميكيًا بعد الإقلاع فوق
+   * المخزن الوحيد؛ تُبنى مرة ولا تُعاد عند تحديث dataVersion. وحدة الأصول
+   * والدومين المرافق يخرجان من كومة الإقلاع (سقف gzip المحروس لا يُرفع). */
+  const [assetService, setAssetService] = useState<AssetService | null>(null);
+  useEffect(() => {
+    let active = true;
+    void import("@/application/assets/assetService").then(module => {
+      if (!active) return;
+      setAssetService(new module.AssetService(singletonStore));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  /* S10 (DOC-019 / UNIT-031/032 — ميزانية الحزمة، نمط assets/loans/count
+   * نفسه): دورة حساب T01 المحفوظ تُحمّل ديناميكيًا بعد الإقلاع فوق المخزن
+   * الوحيد؛ تُبنى مرة ولا تُعاد عند تحديث dataVersion. دومين التخطيط
+   * وحفظ الحاسبة يخرجان من كومة الإقلاع (سقف gzip المحروس لا يُرفع). */
+  const [planningCalculationService, setPlanningCalculationService] =
+    useState<PlanningCalculationLifecycleService | null>(null);
+  useEffect(() => {
+    let active = true;
+    void import("@/application/estimates/planningCalculationLifecycle").then(module => {
+      if (!active) return;
+      setPlanningCalculationService(new module.PlanningCalculationLifecycleService(singletonStore));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
+    let active = true;
+    /* S05 (ميزانية الحزمة — نمط count/partyDirectory نفسه): مركز التحكم
+     * يُحمَّل ديناميكيًا بعد الإقلاع فوق المخزن الوحيد والخدمات المفردة
+     * نفسها؛ مستهلكه الوحيد صفحة الرئيسية الكسولة، فلا تدفع حزمة الدخول
+     * ثمنه (سقف gzip محروس — لا رفع). S07: يُبنى فوق خدمة المشتريات
+     * الخاملة فور جاهزيتها — لا فوق null. */
+    if (!supplierPurchasesService) return undefined;
+    void import("@/application/home/homeControlCenterService").then(module => {
+      if (!active) return;
+      setHomeControlCenterService(
+        new module.HomeControlCenterService(
+          singletonStore,
+          singletonServices.dailyFollowUp,
+          singletonServices.projectFinance,
+          supplierPurchasesService,
+          singletonServices.inventory,
+          singletonServices.agreementContext,
+          singletonServices.activity,
+        ),
+      );
+    });
+    return () => {
+      active = false;
+    };
+  }, [supplierPurchasesService]);
   useEffect(() => {
     let active = true;
     void Promise.all([
@@ -216,9 +360,16 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       import("@/application/recurring/recurringExpenseService"),
     ]).then(([transferModule, guidedModule, recurringModule]) => {
       if (!active) return;
+      /* S02-A (SH-03): الإدخال الافتتاحي يركب بروتوكول الاستبدال المحروس —
+       * باني النسخة الرجوع المُتحقق منها من خدمة النقل نفسها (جذر التركيب
+       * يوصلهما فوق المخزن الوحيد). */
+      const transfers = new transferModule.LocalTransferService(singletonStore);
       setTransferServices({
-        transfers: new transferModule.LocalTransferService(singletonStore),
-        guidedOpeningImport: new guidedModule.GuidedOpeningImportService(singletonStore),
+        transfers,
+        guidedOpeningImport: new guidedModule.GuidedOpeningImportService(
+          singletonStore,
+          transferModule.LocalTransferService.verifiedBackupBuilder(transfers),
+        ),
       });
       setRecurringExpenseService(
         new recurringModule.RecurringExpenseService(
@@ -244,10 +395,31 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       ...(transferServices ?? { transfers: null, guidedOpeningImport: null }),
       recurringExpenses: recurringExpenseService,
       loans: loanService,
+      cashCount: cashCountService,
+      partyDirectory: partyDirectoryService,
+      supplierPurchases: supplierPurchasesService,
+      assets: assetService,
+      planningCalculations: planningCalculationService,
+      homeControlCenter: homeControlCenterService,
       dataVersion,
       notifyDataChanged,
     }),
-    [transferServices, recurringExpenseService, loanService, dataVersion, notifyDataChanged],
+    [
+      transferServices,
+      recurringExpenseService,
+      loanService,
+      cashCountService,
+      partyDirectoryService,
+      supplierPurchasesService,
+      assetService,
+      /* R1-F2 (مراجعة S10): الخدمة الكسولة داخل الاعتماديات — بدونه يظل
+       * قيمة السياق مخزنة مؤقتًا عند null بعد اكتمال التحميل الديناميكي
+       * فلا ترى الحاسبة خدمتها أبدًا (كل الخدمات الكسولة السابقة هنا). */
+      planningCalculationService,
+      homeControlCenterService,
+      dataVersion,
+      notifyDataChanged,
+    ],
   );
   return <PrototypeServicesContext.Provider value={services}>{children}</PrototypeServicesContext.Provider>;
 }
@@ -266,6 +438,12 @@ function createServices(): Omit<
   | "transferServices"
   | "recurringExpenses"
   | "loans"
+  | "cashCount"
+  | "partyDirectory"
+  | "supplierPurchases"
+  | "assets"
+  | "homeControlCenter"
+  | "planningCalculations"
 > {
   const store = singletonStore;
   const costs = new CostService(store);
@@ -278,7 +456,6 @@ function createServices(): Omit<
   const recurrences = new ScheduleRecurrenceService(store);
   const agreementContext = new AgreementContextService(store);
   const dailyFollowUp = new DailyFollowUpService(store);
-  const supplierPurchases = new SupplierPurchaseService(store);
   const inventory = new InventoryMaterialService(store);
   const recurringWork = new RecurringWorkService(store);
   const directSales = new DirectSaleService(store);
@@ -301,7 +478,6 @@ function createServices(): Omit<
     actualTime: new ActualTimeService(store),
     drafts: new DraftService(store),
     formDrafts: new FormDraftService(store),
-    localLock: new LocalLockService(store),
     directSales: directSales,
     costs,
     agreements: new AgreementService(store, costs),
@@ -312,26 +488,15 @@ function createServices(): Omit<
     ownerEntitlement,
     recurringWork,
     g5,
-    supplierPurchases,
     cashContinuity,
     inventory,
     catalog: new CatalogService(store),
     dailyFollowUp,
-    homeControlCenter: new HomeControlCenterService(
-      store,
-      dailyFollowUp,
-      projectFinance,
-      supplierPurchases,
-      inventory,
-      agreementContext,
-      activity,
-    ),
     schedules,
     recurrences,
     fulfillment: fulfillment,
     deliveryReview,
     costEstimates: new CostEstimateService(store),
-    partyLedger: new PartyLedgerService(store),
     collections,
     dueDates,
     upcoming,
@@ -344,7 +509,6 @@ function createServices(): Omit<
     profitToCashBridge,
     activity,
     integrityCheck: new IntegrityCheckService(store, projectFinance, statement, cashContinuity),
-    assets: new AssetService(store),
     retainedDeposits: new RetainedDepositService(store),
   };
 }

@@ -12,13 +12,13 @@ import React from "react";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { LocalLockService } from "@/application/security/localLockService";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { StatementService } from "@/application/finance/statementService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { PreferenceService } from "@/application/preferences/preferenceService";
+import { ProfileService } from "@/application/profile/profileService";
 import { AgreementService } from "@/application/agreements/agreementService";
 import { CostService } from "@/application/cost/costService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
@@ -47,7 +47,6 @@ describe("P-4.2-3 — القسم الموحد «البيانات والنسخ ا
     );
     const settingsStore = new MemoryLocalStore();
     mockedUsePrototypeServices.mockReturnValue({
-      localLock: new LocalLockService(new MemoryLocalStore()),
       integrityCheck: new IntegrityCheckService(
         new MemoryLocalStore(),
         new ProjectFinancialService(new MemoryLocalStore()),
@@ -55,6 +54,7 @@ describe("P-4.2-3 — القسم الموحد «البيانات والنسخ ا
         new CashContinuityService(new MemoryLocalStore()),
       ),
       preferences: new PreferenceService(settingsStore),
+      profiles: new ProfileService(settingsStore),
       agreements: new AgreementService(settingsStore, new CostService(settingsStore)),
       inventory: new InventoryMaterialService(settingsStore),
       supplierPurchases: new SupplierPurchaseService(settingsStore),
@@ -69,9 +69,17 @@ describe("P-4.2-3 — القسم الموحد «البيانات والنسخ ا
       transfers: {
         createExport: vi.fn(async () => ({ ok: false })),
         prepareImport: vi.fn(),
+        prepareRestore: vi.fn(),
         confirmImport: vi.fn(),
         createVerifiedExport: vi.fn(async () => ({ ok: false })),
         resetAll: vi.fn(async () => ({ ok: false })),
+        /* S02-A: واجهة حماية الاستبدال الدائمة في مضاعف الاختبار. */
+        readRestoreStatus: vi.fn(async () => ({
+          ok: true,
+          value: { generation: 0, rollbackCreatedAt: null, unresolvedIntent: false },
+        })),
+        readActiveRollback: vi.fn(async () => ({ ok: true, value: null })),
+        prepareRollbackRestore: vi.fn(async () => ({ ok: false })),
       },
       guidedOpeningImport: { prepare: vi.fn(), confirm: vi.fn() },
       dataVersion: 0,

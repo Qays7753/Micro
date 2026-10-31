@@ -98,3 +98,35 @@ export type CreateCashEntryInput = {
   /** اختياري للتخصيص فقط (المجموعة ٦): حدث القبضة المصدر الذي أُنشئ منه الكاش. */
   sourceRefLineId?: string | null;
 };
+/* S04 (UNIT-025 P3.2/P3.1 + العقد المشترك §6.1 + CONS-DEC03): رصد النقد —
+ * قياس دائم للموجود لحظة القطع، لا حركة نقدية ولا افتتاح ولا تمويل. النطاق
+ * محفظة بعينها أو إجمالي المشروع، ولا يُجمع نطاقان متداخلان أبدًا (رصد مشروع
+ * 200 ورصد محفظة 80 لا يصيران 280 — SDF-020). المجهول ليس صفرًا: رصد 90 مع
+ * رصيد دفتر مجهول يُحفظ قياسًا بلا فرق مقابل صفر وبلا تمويل مالك (SDF-015). */
+export const cashObservationScopeKinds = ["wallet", "project_total"] as const;
+export type CashObservationScopeKind = (typeof cashObservationScopeKinds)[number];
+export type CashObservationKnowledge = "known" | "estimated";
+export type CashObservation = {
+  id: string;
+  /** نطاق الرصد: محفظة بعينها أو إجمالي المشروع — لا يُجمع مع نطاق آخر متداخل. */
+  scopeKind: CashObservationScopeKind;
+  /** معرّف المحفظة عند نطاق المحفظة فقط؛ null عند نطاق إجمالي المشروع. */
+  walletId: string | null;
+  /** المبلغ الموجود فعليًا وقت الرصد — قياس مستوى لا دلتا؛ الصفر المقصود صادق لا فراغ. */
+  countedMinor: number;
+  /** معرفة القيمة: معروفة أو تقديرية — التقدير لا يُعرض يقينًا. */
+  knowledge: CashObservationKnowledge;
+  /** لحظة القطع (ISO) — متى عُدّ/فُحص النقد فعليًا. */
+  cutoff: string;
+  /** تاريخ الرصد المحلي (أمّان) — مستقل عن وقت التسجيل. */
+  observedOn: string;
+  /** وقت التسجيل — تقني؛ لا يُستعمل تاريخًا للعملية. */
+  recordedAt: string;
+  /** مفتاح حتمية الأمر — الإرسال نفسه يعيد الرصد نفسه لا نسخة ثانية. */
+  operationKey: string;
+  note: string;
+};
+export type CreateCashObservationInput = CashObservation & {
+  /** نوع المحفظة المرصودة وقت الإنشاء — للتحقق فقط (قاعدة الصندوق غير السالب) ولا يُخزن. */
+  walletKind?: CashWalletKind | null;
+};

@@ -297,7 +297,14 @@ CAPS: dict[str, int] = {
     # DraftEditor 47 -> 49 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "DraftEditor": 49,
+    # DraftEditor 49 -> 71 (2026-10-30, S09 UNIT-007/029 — أمر التنفيذ المتصل
+    # ad133bae القسم ٢ المأذون من المالك): تسميات مفروضة من مواصفات المرحلة
+    # لا نثرًا حرًا — مجموعات الطلب (اسم المجموعة/التكرار/نوع العرض/المرجع
+    # المحفوظ/ملاحظة/إزالة/أضف) والسعر المقترح (CONS-DEC07) وشريط استعادة
+    # مسودة النموذج (U007-AC03 — مكوّن FormDraftRestoreBanner المشترك: 15
+    # تسمية) وحفظ لاستخدامه مرة أخرى (U029-AC01/AC32). القيمة = القياس
+    # الفعلي بعد تقليم كل ما ليس مفروضًا؛ القيمة الجديدة مقيّدة بالراتشة نفسها.
+    "DraftEditor": 71,
     # CostEditor 53 → 54 (2026-09-01, repair cycle U-004): source-estimate proposal
     # notice — one mandated bridge label.
     # CostEditor 54 → 58 (2026-09-06, Group 2, عقد ٢٨): material suggestion chips
@@ -305,7 +312,16 @@ CAPS: dict[str, int] = {
     # CostEditor 58 -> 60 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "CostEditor": 60,
+    # CostEditor 60 -> 71 (2026-10-30, S09 UNIT-008/SH-13 — أمر التنفيذ المتصل
+    # ad133bae القسم ٢ المأذون من المالك): تسميات مفروضة من مواصفات المرحلة
+    # لا نثرًا حرًا — أساس وحدة كل مجموعة (ورقة المواد لكل مجموعة بهويتها
+    # وأزرارها الشريفة) ومستويات نطاق الطلب مرة واحدة وشريط استعادة مدخلات
+    # التكلفة (U008-AC09 — مكوّن FormDraftRestoreBanner المشترك: 15 تسمية).
+    # CostEditor 71 -> 76 (2026-10-30, تصحيح جولة المراجعة الخمس R5-F05):
+    # نص إشعار مراجعة تغيّر الكمية (U008-AC12) صار JSX بأرقام معزولة bdi —
+    # فأجزاؤه الساكنة تدخل القياس كما كل نص JSX (كانت قالبًا محرفًا خارج
+    # القياس). القيمة = القياس الفعلي؛ القيمة الجديدة مقيّدة بالراتشة نفسها.
+    "CostEditor": 76,
     # AgreementEditor 55 → 59 (2026-09-02, Group 4 final integration fix G4-6):
     # customer name field (label + required note + placeholder + its validation
     # message) — the agreement step is the point where the name becomes required
@@ -661,7 +677,25 @@ CAPS: dict[str, int] = {
     # next-actions (open estimate / start draft), dirty guard, local-truth line.
     # CostCalculator 56 → 59 (2026-09-04, Group 3 D5/§5.1): inventory suggestion
     # chips with receipt-confidence + excluded-items honesty (named, unpriced).
-    "CostCalculator": 59,
+    # CostCalculator 59 → 66 (2026-10-31, S10 UNIT-031/032 — أمر b56967d8/DOC-019,
+    # owner-approved execution order): حاسبة التخطيط T01 — المجموعات بوضعي التكلفة
+    # (تفصيل/إجمالي للكمية كاملة) وسعر البيع الحر ونتيجته وهامشه، والخصم/العمولة
+    # بأساس معلن، ومساعدة اقتراح السعر بأساسها، والإيرادات/المصاريف الأخرى،
+    # و«حساباتي المحفوظة» داخل الحاسبة مع حذفها الموثق. تسميات مفروضة من عقد
+    # 031/032 لا نثرًا حرًا؛ القيمة = القياس الفعلي يومها.
+    "CostCalculator": 66,
+    # S10 (UNIT-030 — أمر b56967d8/DOC-019، 2026-10-31): صفحات أدوات التخطيط
+    # T02–T05 — سقوف صريحة عند قياس يومها الأول بالضبط (لا الافتراضي 30):
+    # T02 قيمة ساعة العمل (المدخلات، الفترات، النتيجة بأساسها المعلن) = 22؛
+    # T03 كمية المبيعات اللازمة (المساهمة الموجبة، الفترة، التقريب لأعلى
+    # وعدم القابلية للحقيقة عند مقام مجهول) = 29؛
+    # T04 حصة المشروع من فاتورة (الأساس الصريح وحده، لا نسبة مخترعة) = 26؛
+    # T05 مراجعة أولية للفكرة (مدخلات ناقصة وخطوات تحقق تالية، لا حكم
+    # ذكاء اصطناعي) = 18. أي نمو لاحق يمر بإرساء موثق بنفس الـPR.
+    "HourValue": 22,
+    "SalesQuantity": 29,
+    "InvoiceShare": 26,
+    "IdeaReview": 18,
     # DeliveryReview (new 2026-09-04, Group 3 D5): the full pre-commitment delivery
     # surface — measured from day one per the Profile/CostCalculator precedent.
     # DeliveryReview 48 → 51 (2026-09-16, product-journey package ORD-002, owner-approved):
@@ -817,6 +851,12 @@ PAGES = [
     "Profile",
     # المجموعة ٣ (Scope A/B): الحاسبة وصفحة التقدير وأدواتي بعد إعادة الهيكلة.
     "CostCalculator",
+    # S10 (UNIT-030 — أمر b56967d8/DOC-019، 2026-10-31): أدوات التخطيط T02–T05
+    # — تقاس من يومها الأول (سابقة Profile/CostCalculator).
+    "HourValue",
+    "SalesQuantity",
+    "InvoiceShare",
+    "IdeaReview",
     # المجموعة ٣ (عقد D5): مراجعة التسليم — تقاس من يومها الأول.
     "DeliveryReview",
     "EstimateDetail",

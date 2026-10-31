@@ -1,21 +1,30 @@
 import { fieldLabelAr, isValidLocalDate, isValidTimestamp } from "../shared/index.js";
-import { SOURCE_REF_KINDS, cashContinuityEntryTypes, cashWalletKinds } from "./types.js";
+import {
+  SOURCE_REF_KINDS,
+  cashContinuityEntryTypes,
+  cashObservationScopeKinds,
+  cashWalletKinds,
+} from "./types.js";
 import type {
   CashContinuityEntry,
   CashContinuityEntryType,
+  CashObservation,
+  CashObservationKnowledge,
+  CashObservationScopeKind,
   CashWallet,
   CreateCashEntryInput,
+  CreateCashObservationInput,
   CreateCashWalletInput,
 } from "./types.js";
-const assertNonBlank = (value: string, field: string) => {
+export const assertNonBlank = (value: string, field: string) => {
   if (!value.trim()) throw new Error(`أكمل ${fieldLabelAr(field)} قبل الحفظ.`);
 };
 /* R2 (M-04/D3، 2026-10-08): صلاحية التاريخ المحلي من النواة الكنسية — كانت
  * regex+NaN فقط فتقبل تواريخ الدوران (2023-02-29)؛ الرسالة كما هي. */
-const assertDate = (value: string, field: string) => {
+export const assertDate = (value: string, field: string) => {
   if (!isValidLocalDate(value)) throw new Error(`أدخل ${fieldLabelAr(field)} تاريخًا محليًا صحيحًا.`);
 };
-const assertIso = (value: string, field: string) => {
+export const assertIso = (value: string, field: string) => {
   if (!isValidTimestamp(value)) throw new Error(`أدخل ${fieldLabelAr(field)} وقتًا صحيحًا.`);
 };
 
@@ -119,6 +128,12 @@ export function createCashContinuityEntry(input: CreateCashEntryInput): CashCont
     ...(sourceRefId && sourceRefLineId ? { sourceRefLineId } : {}),
   });
 }
+
+/* S04 (DOC-013 / UNIT-023 D01 — CONS-DEC03): رسالة رفض التغطية الموحدة —
+ * يستهلكها حارس التخزين داخل حد الكتابة وفحص الخدمة قبل الالتزام معًا
+ * (رسالة واحدة لمعنى واحد: لا يغطي، لم يُسجَّل شيء، راجع أو اختر المصدر). */
+export const TRANSFER_COVERAGE_MESSAGE =
+  "الرصيد المسجل لهذا المكان لا يغطي التحويل — لم يُسجَّل شيء؛ راجع حركاته أو اختر المصدر الصحيح.";
 
 export function summarizeCashContinuity(entries: readonly CashContinuityEntry[]) {
   return entries.reduce((total, entry) => total + entry.cashDeltaMinor, 0);

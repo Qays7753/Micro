@@ -11,6 +11,11 @@ export type DirectSale = {
   /* D-001: هوية زبون البيع الآجل حقل مستقل صادق — لا تُستخرج من نص الملاحظة.
    * اختياري كسجلات ما قبل الحقل؛ غيابه يعني «بدون زبون مسجل». */
   customerName?: string | null;
+  /* S05 (DOC-014 / UNIT-037 P3.2 + العقد المشترك §5.1 — PartyRef): ربط صريح
+   * بطرف محفوظ إن اختاره المستخدم — اختياري: غيابه (أو null) يعني تعريفًا
+   * نصيًا على المصدر أو بيعًا بلا طرف؛ لا يُستنتج من الاسم أبدًا ولا يُنشأ
+   * تلقائيًا. لقطة الاسم تبقى customerName كما سُجلت وقت الحفظ. */
+  customerPartyId?: string | null;
   /* X-06 (و٤): حالة الفرق بين المتفق والمقبوض — «partial_debt» يظهر الفرق في «لي عند
    * العملاء»، و«partial_needs_review» فرق لم يُقرَّر بعد. الحقل إضافي اختياري:
    * السجلات القديمة بلا حقوله تُقرأ قبضًا كاملًا (collected === revenue دائمًا عندها) —
@@ -57,6 +62,9 @@ export type CreateDirectSaleInput = {
   catalogItemId?: string | null | undefined;
   /** D-001: اسم الزبون للدين — اختياري؛ الفراغ الصريح يعني بلا زبون. */
   customerName?: string | null | undefined;
+  /* S05 (DOC-014 / UNIT-037): ربط طرف محفوظ اختياري — لقطة الاسم تبقى مع
+   * المصدر (customerName) ولا تُحدّث بتعديل الطرف لاحقًا. */
+  customerPartyId?: string | null | undefined;
   costMinor: MoneyMinor | null;
   occurredOn: string;
   recordedAt: string;
@@ -75,6 +83,8 @@ export type UpdateDirectSaleInput = {
   catalogItemId?: string | null | undefined;
   /** D-001: undefined يُبقي زبون الأصل؛ null الصريح يمحو الزبون. */
   customerName?: string | null | undefined;
+  /* S05 (DOC-014 / UNIT-037): undefined يُبقي ربط الأصل؛ null الصريح يفك الربط. */
+  customerPartyId?: string | null | undefined;
   costMinor: MoneyMinor | null;
   occurredOn: string;
   note: string;

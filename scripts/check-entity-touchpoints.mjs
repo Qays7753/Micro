@@ -38,6 +38,11 @@ export const DEFAULTS = {
   storeSourcePaths: [
     "apps/prototype-web/client/src/storage/local/indexedDbStores.ts",
     "apps/prototype-web/client/src/storage/local/indexedDbMigrations.ts",
+    /* S02-A (SH-02/SH-03، 2026-10-27): قاعدة حماية الاستبدال المنفصلة — مخزن
+     * دائم جديد خارج القاعدة المستبدلة؛ إضافته هنا تُوسّع تغطية الحارس لا
+     * تخففها: غيابه عن المانيفست يفشل الفحص الآن كما يشترط AGENTS §10.8
+     * (تسجيل الكيان الدائم الجديد داخل نفس الشريحة). */
+    "apps/prototype-web/client/src/storage/local/restoreProtectionStore.ts",
   ],
   typesSourcePath: "apps/prototype-web/client/src/storage/local/types.ts",
 };

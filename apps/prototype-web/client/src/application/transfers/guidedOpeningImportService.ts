@@ -17,6 +17,8 @@ import {
   type PrototypeLocalStore,
 } from "@/storage/local/types";
 import { snapshotSystemIsEmpty } from "@/storage/local/influentialSnapshotFamilies";
+import { canonicalSnapshotDigest } from "@/storage/local/snapshotCanonicalization";
+import { runProtectedReplacement, type VerifiedBackupBuilder } from "./replacementProtectionProtocol";
 import { systemClock, type Clock } from "@/application/time/clock";
 import { errorMessageOf } from "@/application/resultCodes";
 import { isValidLocalDate } from "@micro-domain/shared/index.js";
@@ -204,8 +206,13 @@ function parseFile(text: string, now: string): GuidedOpeningImportResult<GuidedO
 const emptySnapshot = (snapshot: LocalStoreSnapshot): boolean => snapshotSystemIsEmpty(snapshot);
 
 export class GuidedOpeningImportService {
+  /* S02-A (SH-03): الإدخال الافتتاحي كاتب استبدال ثالث — يركب البروتوكول
+   * المحروس نفسه (نسخة رجوع دائمة للفراغ ومسوده قبل الكتابة، ونية، وسياج
+   * داخل المعاملة، وجيل)؛ باني النسخة المُتحقق منها يُمرَّر من جذر التركيب
+   * لأن التحقق الدائري الكامل من أدوات خدمة النقل. */
   constructor(
     private readonly store: PrototypeLocalStore,
+    private readonly buildVerifiedBackup: VerifiedBackupBuilder,
     private readonly now: Clock = systemClock,
   ) {}
 
@@ -366,10 +373,30 @@ export class GuidedOpeningImportService {
         "non_empty_store",
         "تغيرت الحالة المحلية منذ المعاينة. لم يُكتب شيء؛ صدّر البيانات أو أعد المعاينة على جهاز فارغ.",
       );
-    const saved = await this.store.replaceSnapshot(preview.snapshot);
-    return saved.ok
-      ? { ok: true, value: preview.summary }
-      : fail("storage_error", "تعذر حفظ الاستيراد الافتتاحي كوحدة واحدة. بقيت بيانات هذا الجهاز دون تغيير.");
+    /* S02-A: الاستبدال داخل البروتوكول المحروس — ربط لحظة النداء (شرط الفراغ
+     * أعلاه هو المعاينة الحية)، والسياج داخل المعاملة هو الحارس النهائي:
+     * كاتب سبق المعاملة يُحبط كاملًا بلا أي كتابة (كانت فجوة تزامن بين فحص
+     * الفراغ والاستبدال قبل S02). */
+    const outcome = await runProtectedReplacement(
+      this.store,
+      this.now,
+      {
+        commandType: "guided-opening",
+        payload: preview.snapshot,
+        payloadDigest: canonicalSnapshotDigest(preview.snapshot),
+        summaryJson: JSON.stringify({ importId: preview.file.importId }),
+        binding: { kind: "at-call" },
+      },
+      this.buildVerifiedBackup,
+    );
+    if (outcome.status === "blocked")
+      return fail(
+        outcome.code === "storage_error" ? "storage_error" : "non_empty_store",
+        outcome.code === "storage_error"
+          ? "تعذر حفظ الاستيراد الافتتاحي كوحدة واحدة. بقيت بيانات هذا الجهاز دون تغيير."
+          : outcome.message,
+      );
+    return { ok: true, value: preview.summary };
   }
 
   private summary(file: GuidedOpeningImportFile): GuidedOpeningImportSummary {

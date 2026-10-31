@@ -71,6 +71,10 @@ const FROZEN_SURFACE: Readonly<Record<string, number>> = {
   "pages/WalletLedger.tsx": 1,
   "components/finance/AllocationReviewCard.tsx": 1,
   "components/finance/CorrectionsLayer.tsx": 1,
+  /* S08 (DOC-017، 2026-10-30): +1 — معاينة أثر الحفظ في محرر الأصل
+   * (المتبقي المؤجل = قيمة الشراء − المدفوع الآن) عرضًا قبل أي كتابة؛
+   * توثيق نفس-الـPR ببروتوكول التجميد (F-049) لا نموًا صامتًا. */
+  "pages/AssetEditor.tsx": 1,
 };
 
 describe("W5-A — تجميد سطح حساب المال في الواجهة (عائلة F-049 لا تنمو بصمت)", () => {

@@ -6,8 +6,13 @@ import {
 } from "@/storage/local/persistentStorage";
 import type { LocalPreferences, PrototypeLocalStore } from "@/storage/local/types";
 
-/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — زوج التفضيلات فقط. */
-export type PreferenceServiceStore = Pick<PrototypeLocalStore, "getPreferences" | "savePreferences">;
+/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — زوج التفضيلات فقط، والكتابة
+ * عبر حد الالتزام المحروس (S03 revalidation: لا read-merge-full-write
+ * خارج حد الكتابة بعد اليوم). */
+export type PreferenceServiceStore = Pick<
+  PrototypeLocalStore,
+  "getPreferences" | "savePreferences" | "commitPreferencesUpdate"
+>;
 import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
 import {
   STORAGE_ERROR,
@@ -18,6 +23,20 @@ import {
 import { systemClock, type Clock } from "@/application/time/clock";
 
 export type ThemePreference = LocalPreferences["theme"];
+
+/* S03 (UNIT-038 P3.2/UNIT-001 P3.2): تفضيل ما يقدمه المشروع — منتجات أو
+ * خدمات أو كلاهما، أو محايد (null) عند عدم الاختيار. مصدر واحد يملكه 038:
+ * سؤال البداية في 001 ومحرر الإعدادات يكتبان ويقرآن من هنا حصرًا؛ مستقل
+ * تمامًا عن workMode (طريقة مواد/وقت) ولا يعيد تصنيف أي سجل تاريخي. */
+export type OfferingPreference = NonNullable<LocalPreferences["offeringPreference"]> | null;
+export const OFFERING_PREFERENCE_VALUES: readonly NonNullable<OfferingPreference>[] = [
+  "products",
+  "services",
+  "both",
+];
+export function isOfferingPreference(value: unknown): value is OfferingPreference {
+  return value === null || OFFERING_PREFERENCE_VALUES.includes(value as NonNullable<OfferingPreference>);
+}
 
 /* R10-B3/R10A-F-004 (2026-10-11): الإعلان الكنوني الوحيد لمعرّفات القدرات
  * — كانت معاد تعريفه في app/useDisabledCapabilities.ts و
@@ -41,6 +60,9 @@ export type BackupReminderResult =
 /* SET-003: قراءة/حفظ قائمة القدرات المتوقفة عن الإدخال. */
 export type DisabledCapabilitiesResult =
   { ok: true; disabled: readonly string[] } | { ok: false; code: "storage_error"; message: string };
+/* S03 (UNIT-038 P3.2): قراءة/حفظ تفضيل ما يقدمه المشروع من المصدر الواحد. */
+export type OfferingPreferenceResult =
+  { ok: true; offering: OfferingPreference } | { ok: false; code: "storage_error"; message: string };
 /* Stage 2 — OPS-002: قراءة/حفظ حدود تنبيه انخفاض المخزون لكل مادة (بالملي).
  * سياسة تنبيه قراءة-فقط لا معنى ماليًا؛ الغياب = لا سياسة = لا تنبيه. */
 export type LowStockThresholdsResult =
@@ -48,7 +70,7 @@ export type LowStockThresholdsResult =
   | { ok: false; code: "storage_error"; message: string };
 export type LowStockThresholdSaveResult =
   | { ok: true; thresholds: ReadonlyMap<string, number> }
-  | { ok: false; code: "validation_error" | "storage_error"; message: string };
+  | { ok: false; code: "validation_error" | "storage_error" | "storage_stale"; message: string };
 
 export class PreferenceService {
   constructor(
@@ -146,6 +168,24 @@ export class PreferenceService {
       ? { ok: true, disabled: result.value.disabledCapabilities ?? [] }
       : storageFailure("تعذر حفظ تفضيلات القدرات.");
   }
+  /* ── S03 (UNIT-038 P3.2/UNIT-001 P3.2): تفضيل ما يقدمه المشروع — المصدر
+   * الواحد لسؤال البداية في 001 وقسم تفضيلات الاستخدام في 038. الغياب محايد
+   * (لا يُفترض منتجات)، والحفظ جزئي عبر بوابة الدمج فلا يُسقط أي حقل آخر. ── */
+
+  async readOfferingPreference(): Promise<OfferingPreferenceResult> {
+    const result = await this.store.getPreferences();
+    return result.ok
+      ? { ok: true, offering: result.value?.offeringPreference ?? null }
+      : storageFailure("تعذر قراءة تفضيل ما يقدمه مشروعك.");
+  }
+
+  async saveOfferingPreference(offering: OfferingPreference): Promise<OfferingPreferenceResult> {
+    /* EXE-002: merge — لا يُمسّ غير حقل تفضيل العرض هذا. */
+    const result = await updateLocalPreferences(this.store, { offeringPreference: offering }, this.now);
+    return result.ok
+      ? { ok: true, offering: result.value.offeringPreference ?? null }
+      : storageFailure("تعذر حفظ التفضيل. حاول مرة أخرى.");
+  }
   async readLowStockThresholds(): Promise<LowStockThresholdsResult> {
     const result = await this.store.getPreferences();
     return result.ok
@@ -159,20 +199,31 @@ export class PreferenceService {
     /* تحقق الحدود نفسها التي يفرضها الدومين على أي كمية معلنة — لا مسار ثانٍ. */
     if (thresholdMilli !== null && (!Number.isSafeInteger(thresholdMilli) || thresholdMilli <= 0))
       return validationFailure("أدخل حدًا موجبًا صحيحًا بوحدة المادة، أو أزل الحد.");
-    const current = await this.readLowStockThresholds();
-    if (!current.ok) return storageFailure(current.message);
-    const next = new Map(current.thresholds);
+    /* S03 revalidation (§A2): قراءة الخريطة وطابع النسخة في خطوة واحدة ثم
+     * الالتزام بفحص CAS على الطابع المقروء — نافذة القراءة-الكتابة داخل
+     * هذا الاستدعاء نفسه محروسة: كاتب متزامن على الخريطة نفسها بين قراءتنا
+     * والتزامنا يعاد تعارضًا صادقًا (storage_stale) لا سحقًا صامتًا لحدّه.
+     * المتصل يعرض الرسالة ويعيد المحاولة بقرار صريح — لا حلقة إعادة هنا. */
+    const record = await this.store.getPreferences();
+    if (!record.ok) return storageFailure("تعذر قراءة حدود التنبيه المحلية.");
+    const current = record.value?.lowStockThresholdsMilli ?? {};
+    const next = new Map(Object.entries(current));
     if (thresholdMilli === null) next.delete(materialId);
     else next.set(materialId, thresholdMilli);
-    /* EXE-002: merge — لا يُسقط أي كاتب آخر حقولًا قائمة. */
+    /* بوابة الدمج: لا يُسقط أي كاتب آخر حقولًا قائمة، والطابع المتوقع يحمي
+     * الخريطة نفسها من السحق الصامت. */
     const result = await updateLocalPreferences(
       this.store,
       { lowStockThresholdsMilli: Object.fromEntries(next) },
       this.now,
+      record.value?.updatedAt ?? null,
     );
-    return result.ok
-      ? { ok: true, thresholds: new Map(Object.entries(result.value.lowStockThresholdsMilli ?? {})) }
-      : storageFailure("تعذر حفظ حد التنبيه.");
+    if (!result.ok) {
+      return result.code === "storage_stale"
+        ? { ok: false, code: "storage_stale", message: result.message }
+        : storageFailure("تعذر حفظ حد التنبيه.");
+    }
+    return { ok: true, thresholds: new Map(Object.entries(result.value.lowStockThresholdsMilli ?? {})) };
   }
 }
 

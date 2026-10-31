@@ -34,19 +34,24 @@ import {
  * بوابات التحقق/خريطة السجل/فحص المادة المتتبَّعة EXE-011) من بيته التطبيقي. */
 import {
   UNSET_PAYMENT_SOURCE,
+  derivePurchaseLines,
   isLinkedMaterialTracked,
   paymentWalletPayload,
   resolveDefaultPaymentSource,
+  sumKnownLineValuesMinor,
   supplierPurchaseToFormValues,
   validatePaymentSubmission,
   validatePurchaseEditSubmission,
   validatePurchaseSubmission,
+  type PurchaseLineDraft,
 } from "@/application/suppliers/supplierPurchaseEditorModel";
 import type { Material } from "@micro-domain/inventory-material/index.js";
+import type { SupplierPurchaseLine } from "@micro-domain/supplier-purchase/index.js";
 import type { PurchaseReceiptStatus } from "@/application/inventory";
 
 import { Button } from "@/components/primitives";
 import { todayInAmman } from "@/application/time";
+import { supplierDisplayLabelOf } from "@/application/parties";
 
 type EditorMode = "new" | "payment" | "edit";
 
@@ -62,8 +67,15 @@ export default function SupplierPurchaseEditor() {
   const mode: EditorMode = isNew ? "new" : /\/payment\/?$/u.test(location) ? "payment" : "edit";
   /* المجموعة ١ (Scope A): الرجوع يعود للمصدر (?from) مع بديل قانوني موثّق. */
   const returnPath = useReturnPath();
-  const { supplierPurchases, inventory, notifyDataChanged, dataVersion, formDrafts, cashContinuity } =
-    usePrototypeServices();
+  const {
+    supplierPurchases,
+    inventory,
+    notifyDataChanged,
+    dataVersion,
+    formDrafts,
+    cashContinuity,
+    partyDirectory,
+  } = usePrototypeServices();
   /* G-004: المخزون متوقف عن الإدخال — وصلتا استلام المواد في المخزون تختفيان؛
    * الشراء والدفعات والذمم القائمة كما هي (وعد الإعدادات). */
   const { disabled: disabledCapabilities } = useDisabledCapabilities();
@@ -72,6 +84,12 @@ export default function SupplierPurchaseEditor() {
   const [loading, setLoading] = useState(!isNew);
   const [loadedToken, setLoadedToken] = useState(0);
   const [supplierName, setSupplierName] = useState("");
+  /* S05 (DOC-014 / UNIT-037 A1/A2): المورد اختياري في المدفوع كاملًا —
+   * تعريف بسيط أو اختيار محفوظ صريح عند بقاء استحقاق، و«حفظه لإعادة
+   * الاستخدام» خيار غير محدد مسبقًا. */
+  const [supplierPartyId, setSupplierPartyId] = useState<string | null>(null);
+  const [saveForReuse, setSaveForReuse] = useState(false);
+  const [partyOptions, setPartyOptions] = useState<readonly { id: string; label: string }[]>([]);
   const [note, setNote] = useState("");
   const [purchasedOn, setPurchasedOn] = useState(() => todayInAmman());
   const [dueOn, setDueOn] = useState("");
@@ -94,6 +112,17 @@ export default function SupplierPurchaseEditor() {
   const [materialId, setMaterialId] = useState("");
   const [expectedQuantityMilli, setExpectedQuantityMilli] = useState(0);
   const [quantityValid, setQuantityValid] = useState(true);
+  /* S07 (UNIT-027 D01): بنود الفاتورة — البند الأول هو ربط المادة الحالي
+   * بقيمته ومعرفته، والبنود الإضافية لفاتورة متعددة المواد؛ بلا بنود
+   * إضافية يبقى المسار البسيط (بند ضمني واحد يغطي الفاتورة بقيمتها الكاملة
+   * — تكلفة مواد الفترة عند عدم التتبع وفق D02، وعند الاستعمال للمتتبعة). */
+  const [extraLines, setExtraLines] = useState<readonly PurchaseLineDraft[]>([]);
+  const [firstLineValueMinor, setFirstLineValueMinor] = useState(0);
+  const [firstLineCostKnown, setFirstLineCostKnown] = useState(true);
+  const [firstLineValueValid, setFirstLineValueValid] = useState(true);
+  /* S07: صلاحية نص مستقلة لكل حقل بند — صحة حقل لا تغطي نص حقل آخر. */
+  const [extraLineValuesValid, setExtraLineValuesValid] = useState<readonly boolean[]>([]);
+  const [extraLineQuantitiesValid, setExtraLineQuantitiesValid] = useState<readonly boolean[]>([]);
   const [materialOptions, setMaterialOptions] = useState<readonly Material[]>([]);
   const [receiptStatus, setReceiptStatus] = useState<PurchaseReceiptStatus | null>(null);
   /* وضع التعديل: خطوتان — تعبئة ثم معاينة الأثر قبل الحفظ (المجموعة ٢ §10.2). */
@@ -135,8 +164,27 @@ export default function SupplierPurchaseEditor() {
     setPaymentWalletId(resolveDefaultPaymentSource(walletOptions));
   }, [walletOptions]);
 
+  /* S05 (DOC-014 / UNIT-037 A2): خيارات الموردين المحفوظين للمختار — تُحمّل
+   * عند جاهزية الخدمة الكسولة؛ الفشل يبقي القائمة فارغة بصدق. */
+  useEffect(() => {
+    if (!partyDirectory || mode === "payment") return;
+    let active = true;
+    void partyDirectory.suggestParties().then(result => {
+      if (!active || !result.ok) return;
+      setPartyOptions(result.value);
+    });
+    return () => {
+      active = false;
+    };
+  }, [partyDirectory, mode, dataVersion]);
+  /* S05 (DOC-014 / UNIT-037 A1): هل يبقى استحقاق بعد هذه العملية؟ المدفوع
+   * الآن مقابل الإجمالي في النموذج الحي. */
+  const payableRemains = initialPaidMinor < totalMinor;
   useEffect(() => {
     if (isNew || !id) return;
+    /* S07 (سابقة transfers/loans): الخدمة كسولة — null = «جارٍ التجهيز»
+     * فيبقى محرر الشراء على حالة التحميل الصادقة وتُعاد القراءة فور جاهزيتها. */
+    if (!supplierPurchases) return;
     supplierPurchases.list().then(result => {
       if (result.ok) {
         const found = result.value.find(item => item.id === id) ?? null;
@@ -145,6 +193,7 @@ export default function SupplierPurchaseEditor() {
           /* R7/P04: خريطة السجل المحمّل عند صاحبها التطبيقي. */
           const values = supplierPurchaseToFormValues(found);
           setSupplierName(values.supplierName);
+          setSupplierPartyId(found.supplierPartyId ?? null);
           setNote(values.note);
           setPurchasedOn(values.purchasedOn);
           setDueOn(values.dueOn);
@@ -152,6 +201,19 @@ export default function SupplierPurchaseEditor() {
           setInitialPaidMinor(values.initialPaidMinor);
           setMaterialId(values.materialId);
           setExpectedQuantityMilli(values.expectedQuantityMilli);
+          /* S07 (UNIT-027): بنود السجل القائم تعبّئ نموذج البنود — قيمة
+           * البند الأول ومعرفته والبنود الأخرى كما سُجلت. */
+          const loadedLines = found.lines ?? [];
+          setFirstLineValueMinor(loadedLines[0]?.valueMinor ?? 0);
+          setFirstLineCostKnown((loadedLines[0]?.costKnowledge ?? "unknown") !== "unknown");
+          setExtraLines(
+            loadedLines.slice(1).map(line => ({
+              materialId: line.materialId ?? "",
+              expectedQuantityMilli: line.expectedQuantityMilli ?? 0,
+              valueMinor: line.valueMinor ?? 0,
+              costKnown: (line.costKnowledge ?? "unknown") !== "unknown",
+            })),
+          );
         }
       }
       setLoading(false);
@@ -178,7 +240,11 @@ export default function SupplierPurchaseEditor() {
   }, [mode, id, inventory, dataVersion]);
 
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
-   * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة. */
+   * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة.
+   * R3-F02: حقول البنود داخل الحارس — توقيع مشتق واحد (سلسلة) يمثل قيمة
+   * البند الأول ومعرفته والبنود الإضافية؛ تعديل البنود وحده يلوّث النموذج
+   * فلا يخرج الرجوع صامتًا فوق تحرير غير محفوظ. */
+  const linesSignature = JSON.stringify([firstLineValueMinor, firstLineCostKnown, extraLines]);
   const isDirty = useFormDirty(
     [
       supplierName,
@@ -190,6 +256,7 @@ export default function SupplierPurchaseEditor() {
       paymentMinor,
       materialId,
       expectedQuantityMilli,
+      linesSignature,
       loadedToken,
     ],
     loadedToken,
@@ -202,6 +269,8 @@ export default function SupplierPurchaseEditor() {
    * سجل قائم لا مسودة له (تعارضه مع السجل النهائي يمنع الاستعادة الصامتة). */
   const purchaseDraft = useFormDraft(formDrafts, "supplier_purchase", isNew ? "new" : null, {
     supplierName: "",
+    supplierPartyId: "",
+    saveForReuse: false,
     note: "",
     purchasedOn: todayInAmman(),
     dueOn: "",
@@ -209,12 +278,19 @@ export default function SupplierPurchaseEditor() {
     initialPaidMinor: 0,
     materialId: "",
     expectedQuantityMilli: 0,
+    /* R3-F02: البنود داخل المسودة — البنود الإضافية سلسلة JSON مسطحة
+     * (المسودة نصية) والبند الأول بقيمتيه البسيطتين. */
+    firstLineValueMinor: 0,
+    firstLineCostKnown: true,
+    extraLinesJson: "[]",
   });
   const restoredFromOffer = useRef(false);
   useEffect(() => {
     if (!isNew || !isDirty || purchaseDraft.state.phase === "restore-offer") return;
     purchaseDraft.onValuesChanged({
       supplierName,
+      supplierPartyId: supplierPartyId ?? "",
+      saveForReuse,
       note,
       purchasedOn,
       dueOn,
@@ -222,9 +298,14 @@ export default function SupplierPurchaseEditor() {
       initialPaidMinor,
       materialId,
       expectedQuantityMilli,
+      firstLineValueMinor,
+      firstLineCostKnown,
+      extraLinesJson: JSON.stringify(extraLines),
     });
   }, [
     supplierName,
+    supplierPartyId,
+    saveForReuse,
     note,
     purchasedOn,
     dueOn,
@@ -232,6 +313,9 @@ export default function SupplierPurchaseEditor() {
     initialPaidMinor,
     materialId,
     expectedQuantityMilli,
+    firstLineValueMinor,
+    firstLineCostKnown,
+    extraLines,
     isDirty,
     isNew,
     purchaseDraft.state.phase,
@@ -241,6 +325,8 @@ export default function SupplierPurchaseEditor() {
       restoredFromOffer.current = false;
       const saved = purchaseDraft.state.values;
       setSupplierName(String(saved.supplierName ?? ""));
+      setSupplierPartyId(String(saved.supplierPartyId ?? "") || null);
+      setSaveForReuse(saved.saveForReuse === true);
       setNote(String(saved.note ?? ""));
       setPurchasedOn(String(saved.purchasedOn ?? todayInAmman()));
       setDueOn(String(saved.dueOn ?? ""));
@@ -248,6 +334,16 @@ export default function SupplierPurchaseEditor() {
       setInitialPaidMinor(Number(saved.initialPaidMinor ?? 0));
       setMaterialId(String(saved.materialId ?? ""));
       setExpectedQuantityMilli(Number(saved.expectedQuantityMilli ?? 0));
+      /* R3-F02: استعادة البنود — البنود الإضافية تُقرأ من سلسلتها بتحليل
+       * آمن؛ المسودة التالفة لا تُسقط النموذج بل تُترك البنود كما هي. */
+      setFirstLineValueMinor(Number(saved.firstLineValueMinor ?? 0));
+      setFirstLineCostKnown(saved.firstLineCostKnown !== false);
+      try {
+        const restoredLines = JSON.parse(String(saved.extraLinesJson ?? "[]"));
+        if (Array.isArray(restoredLines)) setExtraLines(restoredLines as readonly PurchaseLineDraft[]);
+      } catch {
+        /* مسودة تالفة — لا استعادة للبنود، ولا إسقاط للنموذج. */
+      }
     }
     if (purchaseDraft.state.phase === "restore-offer") restoredFromOffer.current = true;
   }, [purchaseDraft.state.phase]);
@@ -276,6 +372,9 @@ export default function SupplierPurchaseEditor() {
    * القيم القديمة تلقائيًا؛ الحفظ الثاني قرار واعٍ بعد المراجعة. */
   async function reloadCurrentPurchase(): Promise<void> {
     if (!id || isNew) return;
+    /* S07: الخدمة الكسولة غير جاهزة بعد — لا شيء لإعادة قراءته (الرحلة
+     * الأصلية لم تكتمل بعد أصلًا). */
+    if (!supplierPurchases) return;
     const result = await supplierPurchases.list();
     if (!result.ok) {
       setFeedback({ tone: "error", text: result.message, source: "payment" });
@@ -287,7 +386,48 @@ export default function SupplierPurchaseEditor() {
     if (found) setFeedback({ tone: "info", text: STALE_RELOADED_NOTE, source: "payment" });
   }
 
+  /* S07 (UNIT-027 D01): اشتقاق بنود الحفظ من النموذج الحي — البند الأول هو
+   * ربط المادة أعلاه؛ بلا بنود إضافية يغطي بند ضمني واحد الفاتورة كاملة
+   * بقيمتها (مسار A1 البسيط)؛ والبنود الإضافية بقيمها ومعرفتها. المعالجة
+   * تتبع حالة تتبع المادة الحية (متتبعة → عند الاستعمال؛ بلا مادة/غير
+   * متتبعة → تكلفة فترة الشراء وفق D02)، والخدمة تطابقها عند حد الكتابة. */
+  function deriveLinesForSave():
+    { ok: true; lines: readonly SupplierPurchaseLine[] } | { ok: false; problem: "lines_exceed_total" } {
+    const firstDraft: PurchaseLineDraft =
+      extraLines.length > 0
+        ? {
+            materialId,
+            expectedQuantityMilli,
+            valueMinor: firstLineValueMinor,
+            costKnown: firstLineCostKnown,
+          }
+        : { materialId, expectedQuantityMilli, valueMinor: totalMinor, costKnown: true };
+    const trackedLineIndexes = new Set<number>();
+    if (isLinkedMaterialTracked(materialOptions, materialId)) trackedLineIndexes.add(0);
+    extraLines.forEach((line, index) => {
+      if (line.materialId && isLinkedMaterialTracked(materialOptions, line.materialId))
+        trackedLineIndexes.add(index + 1);
+    });
+    return derivePurchaseLines({
+      firstLine: firstDraft,
+      extraLines,
+      totalMinor,
+      trackedLineIndexes,
+      existingLineIds: (purchase?.lines ?? []).map(line => line.lineId),
+    });
+  }
+
   async function savePurchase(): Promise<boolean> {
+    /* S07: الخدمة الكسولة غير جاهزة بعد (شراء جديد يعرض النموذج فورًا) —
+     * إعلان صادق لا فشلًا صامتًا؛ التحميل يكتمل خلال لحظات. */
+    if (!supplierPurchases) {
+      setFeedback({
+        tone: "error",
+        text: "جارٍ تجهيز خدمة المشتريات — أعد المحاولة بعد لحظات.",
+        source: "purchase",
+      });
+      return false;
+    }
     /* R7/P04: بوابة التحقق كودًا عند صاحبها التطبيقي — النص هنا. */
     const problem = validatePurchaseSubmission({
       validMoney,
@@ -316,10 +456,32 @@ export default function SupplierPurchaseEditor() {
       });
       return false;
     }
+    /* S07 (UNIT-027): بوابة البنود — صلاحية نص كل حقل مستقلة، ومجموع القيم
+     * المعلومة لا يتجاوز الإجمالي. */
+    if (
+      !firstLineValueValid ||
+      extraLineValuesValid.some(valid => !valid) ||
+      extraLineQuantitiesValid.some(valid => !valid)
+    ) {
+      setFeedback({ tone: "error", text: "صحّح حقول البنود بالأرقام 0–9 قبل الحفظ.", source: "purchase" });
+      return false;
+    }
+    const linesForSave = deriveLinesForSave();
+    if (!linesForSave.ok) {
+      setFeedback({
+        tone: "error",
+        text: "مجموع قيم البنود المعلومة يتجاوز إجمالي الشراء — راجع قيم البنود أو الإجمالي.",
+        source: "purchase",
+      });
+      return false;
+    }
     setSaving(true);
     setFeedback(null);
     const result = await supplierPurchases.recordPurchase({
-      supplierName,
+      /* S05 (DOC-014 / UNIT-037 AC02): المورد اختياري في المدفوع كاملًا —
+       * الفراغ يُقرأ «بلا مورد مسجل» بصدق. */
+      supplierName: supplierName.trim() || null,
+      supplierPartyId,
       note,
       purchasedOn,
       dueOn: dueOn || null,
@@ -331,6 +493,8 @@ export default function SupplierPurchaseEditor() {
       expectedQuantityMilli: expectedQuantityMilli > 0 ? expectedQuantityMilli : null,
       /* FIN-003: مصدر الدفعة الأولية كما اختاره المالك (R7/P04: عند صاحبها). */
       initialPaymentWalletId: initialPaidMinor > 0 ? paymentWalletPayload(paymentWalletId) : null,
+      /* S07 (UNIT-027 D01): البنود المشتقة من النموذج — معالجة معلنة لكل بند. */
+      lines: linesForSave.lines,
     });
     setSaving(false);
     if (!result.ok) {
@@ -352,14 +516,46 @@ export default function SupplierPurchaseEditor() {
             source: "purchase",
           },
     );
+    /* S05 (DOC-014 / UNIT-037 B3 + SDF-041): حفظ المورد الاختياري منفصل عن
+     * التزام الشراء — الشراء نجح، والحفظ أمر مستقل بمفتاح مشتق من مفتاح
+     * الإرسال؛ فشله يُعرض نتيجة جزئية صادقة ولا يُعاد الشراء أبدًا. */
+    /* S05 (DOC-014 / UNIT-037 B3 + SDF-041): إعادة الضغط على الحفظ بعد فشل
+     * الحفظ الاختياري تعيد محاولة الحفظ وحده — الشراء إعادة استخدام صادقة
+     * بمفتاحه (لا أثر ثانٍ) والحفظ بالمفتاح المشتق نفسه (لا مورد ثانٍ)؛
+     * لا يُعاد الشراء ولا يُتراجع أبدًا. */
+    if (saveForReuse && !supplierPartyId && supplierName.trim() && partyDirectory) {
+      const partySaved = await partyDirectory.save({
+        label: supplierName,
+        phone: null,
+        note: null,
+        operationKey: `${idempotencyKey.current}:party-save`,
+      });
+      if (!partySaved.ok)
+        setFeedback({
+          tone: "info",
+          text: `تم حفظ الشراء؛ لم يُحفظ المورد في القائمة — ${partySaved.message} أعد الضغط على الحفظ لإعادة محاولة حفظه وحده.`,
+          source: "purchase",
+        });
+      else notifyDataChanged();
+    }
     if (result.attributionNote) {
       setFeedback({ tone: "info", text: result.attributionNote, source: "purchase" });
     }
     /* EXE-011 (PUR-001 / AUD-NEW-08): حفظ شراء مرتبط بمادة متتبَّعة يعرض
      * استمرارًا واضحًا إلى الاستلام — الشراء نفسه لا يضيف مخزونًا، والجسر
      * هو الرحلة الصريحة. المادة غير المتتبَّعة تبقى على مسارها المعلن
-     * (تفعيل المتابعة أولًا) فلا نعرض زر استلام مضللًا. */
-    if (!result.reused && result.value.materialId && isLinkedMaterialTracked(materialOptions, materialId)) {
+     * (تفعيل المتابعة أولًا) فلا نعرض زر استلام مضللًا.
+     * R3-F03: المعيّن واعٍ بالبنود — فاتورة برأس بلا مادة (أو بمادة غير
+     * متتبعة) وببند متتبع فيها جديرة بالاستلام كرأس متتبع تمامًا؛ لا خروج
+     * صامت يخفي الرحلة عن بند متتبع حُفظ للتو. */
+    const savedHasTrackedLine = (result.value.lines ?? []).some(
+      line => line.treatment === "tracked_material",
+    );
+    if (
+      !result.reused &&
+      (savedHasTrackedLine ||
+        (result.value.materialId && isLinkedMaterialTracked(materialOptions, materialId)))
+    ) {
       setReceiptContinuation({ purchaseId: result.value.id });
       return true;
     }
@@ -368,6 +564,8 @@ export default function SupplierPurchaseEditor() {
     return true;
   }
   async function savePayment(): Promise<boolean> {
+    /* S07: حارس الخدمة الكسولة (نمط transfers/loans) — لا حفظ فوق null. */
+    if (!supplierPurchases) return false;
     /* R7/P04: بوابة الدفعة كودًا عند صاحبها التطبيقي — النص هنا. */
     const problem = validatePaymentSubmission({
       validMoney,
@@ -426,6 +624,8 @@ export default function SupplierPurchaseEditor() {
 
   /* المجموعة ٢ (§10.4): التعديل الموثق — مراجعة + سبب + حفظ يمر بالخدمة. */
   async function saveEdit(): Promise<boolean> {
+    /* S07: حارس الخدمة الكسولة (نمط transfers/loans) — لا حفظ فوق null. */
+    if (!supplierPurchases) return false;
     /* R7/P04: بوابة التعديل كودًا عند صاحبها التطبيقي. */
     if (
       !purchase ||
@@ -434,11 +634,35 @@ export default function SupplierPurchaseEditor() {
       setFeedback({ tone: "error", text: "أدخل إجماليًا صالحًا بالأرقام 0–9.", source: "edit" });
       return false;
     }
+    /* S07 (UNIT-027): بنود التعديل — شراء ببنود يعيد اشتقاقها بهوية بنوده
+     * القائمة؛ والإرث بلا بنود يبقى بلا بنود (لا إعادة تصنيف رجعية). */
+    const editHasLines = (purchase?.lines ?? []).length > 0;
+    const linesForEdit = editHasLines ? deriveLinesForSave() : ({ ok: true, lines: null } as const);
+    if (
+      editHasLines &&
+      (!firstLineValueValid ||
+        extraLineValuesValid.some(valid => !valid) ||
+        extraLineQuantitiesValid.some(valid => !valid))
+    ) {
+      setFeedback({ tone: "error", text: "صحّح حقول البنود بالأرقام 0–9 قبل الحفظ.", source: "edit" });
+      return false;
+    }
+    if (!linesForEdit.ok) {
+      setFeedback({
+        tone: "error",
+        text: "مجموع قيم البنود المعلومة يتجاوز الإجمالي الجديد — راجع قيم البنود أو الإجمالي.",
+        source: "edit",
+      });
+      return false;
+    }
     setSaving(true);
     setFeedback(null);
     const result = await supplierPurchases.editPurchase({
       purchaseId: purchase.id,
-      supplierName,
+      /* S05 (DOC-014 / UNIT-037): المدفوع كامله قد يُخلى المورد؛ والاستحقاق
+       * القائم يوجب التعريف (بوابة المجال تحرس العقد نفسه). */
+      supplierName: supplierName.trim() || null,
+      supplierPartyId,
       note,
       purchasedOn,
       dueOn: dueOn || null,
@@ -449,6 +673,8 @@ export default function SupplierPurchaseEditor() {
       /* المجموعة ٢ (عقد ٢٨): ربط المادة والكمية المتوقعة — جزء المراجعة الموثقة. */
       materialId: materialId || null,
       expectedQuantityMilli: expectedQuantityMilli > 0 ? expectedQuantityMilli : null,
+      /* S07 (UNIT-027): البنود بعد التعديل — استبدال معلن بقيم «قبل» موثقة. */
+      lines: linesForEdit.lines,
     });
     setSaving(false);
     if (!result.ok) {
@@ -474,6 +700,8 @@ export default function SupplierPurchaseEditor() {
 
   async function savePaymentReversal(): Promise<boolean> {
     if (!purchase || !reversalTarget) return false;
+    /* S07: حارس الخدمة الكسولة (نمط transfers/loans) — لا تراجع فوق null. */
+    if (!supplierPurchases) return false;
     setSaving(true);
     setFeedback(null);
     const result = await supplierPurchases.reversePayment({
@@ -570,9 +798,9 @@ export default function SupplierPurchaseEditor() {
         </span>
         <h1>
           {paymentMode
-            ? `دفعة إلى ${purchase?.supplierName ?? ""}`
+            ? `دفعة إلى ${supplierDisplayLabelOf(purchase ?? { supplierName: null })}`
             : mode === "edit"
-              ? `شراء من ${purchase?.supplierName ?? ""}`
+              ? `شراء من ${supplierDisplayLabelOf(purchase ?? { supplierName: null })}`
               : "سجّل شراء مواد"}
         </h1>
         <p>
@@ -580,7 +808,7 @@ export default function SupplierPurchaseEditor() {
             ? "الدفع يخفض ما بقي لهذا الشراء ولا يسجل مصروفًا مرة ثانية."
             : mode === "edit"
               ? "عدّل الشراء بتصحيح موثق يُعرض أثره قبل الحفظ؛ والدفعة الأولية تُصحح هنا لا بتراجع منفصل."
-              : "سجّل واقع الشراء والدفع المتفق عليه. لن تحوله Micro إلى تكلفة بيع أو مخزون حتى المرحلة التالية."}
+              : "سجّل واقع الشراء والدفع المتفق عليه؛ وتكلفته تُعرف من بنوده: مواد الفترة بلا متابعة على فترة الشراء، والمتتبعة عند استعمالها."}
         </p>
       </div>
       {staleConflict ? (
@@ -679,6 +907,11 @@ export default function SupplierPurchaseEditor() {
                 ) : null}
               </div>
               {receiptStatus.remainingValueMinor > 0 ? (
+                /* R3-F03: الجسر واعٍ بالبنود — بند متتبع في الفاتورة يجعل
+                 * الاستلام متاحًا ولو كان الرأس بلا مادة أو بمادة غير متتبعة؛
+                 * نص «فعّل المتابعة أولًا» لا يظهر إلا حين لا يوجد بند
+                 * متتبع أصلًا (المادة غير المتتبعة مسارها المعلن). */
+                (purchase.lines ?? []).every(line => line.treatment !== "tracked_material") &&
                 materialOptions.find(material => material.id === (purchase.materialId ?? materialId))
                   ?.tracking?.status === "untracked" ? (
                   <small>للاستلام لاحقًا: فعّل متابعة المادة أولًا.</small>
@@ -753,7 +986,7 @@ export default function SupplierPurchaseEditor() {
           {reversalPreview ? (
             <CorrectionPreview
               action="تراجع موثق عن دفعة مورد"
-              originalLabel={`دفعة ${formatMoneyMinor(reversalPreview.payment.amountMinor)} د.أ لـ${purchase.supplierName}`}
+              originalLabel={`دفعة ${formatMoneyMinor(reversalPreview.payment.amountMinor)} د.أ لـ${supplierDisplayLabelOf(purchase)}`}
               originalDetail={reversalPreview.payment.note}
               intro="الدفعة الأصلية تبقى في السجل وعلاقة التدقيق صريحة؛ التراجع يستعيد المتبقي للمورد ويرد أثر الكاش المدفوع."
               dimensions={[
@@ -808,14 +1041,24 @@ export default function SupplierPurchaseEditor() {
           ) : null}
           {editing ? (
             <section className="micro-form-card" aria-label="تعديل الشراء">
-              <label className="micro-field">
-                <span>اسم المورد</span>
-                <input
-                  value={supplierName}
-                  onChange={event => setSupplierName(event.target.value)}
-                  placeholder="مثال: مورد الخشب"
-                />
-              </label>
+              <SupplierIdentityFields
+                payableRemains={payableRemains}
+                supplierName={supplierName}
+                onSupplierNameChange={value => {
+                  setSupplierName(value);
+                  setSupplierPartyId(null);
+                }}
+                supplierPartyId={supplierPartyId}
+                onSupplierPartySelect={(partyId, label) => {
+                  setSupplierPartyId(partyId);
+                  setSupplierName(label);
+                  setSaveForReuse(false);
+                }}
+                partyOptions={partyOptions}
+                saveForReuse={saveForReuse}
+                onSaveForReuseChange={setSaveForReuse}
+                showSaveForReuse={false}
+              />
               <label className="micro-field">
                 <span>ماذا اشتريت؟</span>
                 <textarea value={note} onChange={event => setNote(event.target.value)} />
@@ -852,6 +1095,159 @@ export default function SupplierPurchaseEditor() {
                   />
                 </label>
               ) : null}
+              {/* S07 (UNIT-027 D01): بنود الفاتورة — رأس واحد بغرض واحد لا
+               فواتير مكررة لكل مادة؛ البند الأول هو ربط المادة أعلاه بقيمته،
+               والبنود الإضافية لفاتورة متعددة المواد. بلا بنود إضافية تُسجّل
+               الفاتورة بندًا واحدًا يغطي قيمتها الكاملة (المسار البسيط). */}
+              <section className="micro-field" data-section="purchase-lines">
+                <span>بنود الفاتورة</span>
+                {extraLines.length > 0 ? (
+                  <>
+                    <label className="micro-field">
+                      <span>قيمة بند المادة الأولى (د.أ)</span>
+                      <EnglishNumberInput
+                        value={firstLineValueMinor}
+                        kind="money"
+                        onNumericChange={setFirstLineValueMinor}
+                        onTextValidityChange={setFirstLineValueValid}
+                      />
+                    </label>
+                    <label className="micro-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={firstLineCostKnown}
+                        onChange={event => setFirstLineCostKnown(event.target.checked)}
+                      />
+                      <span>قيمة بند المادة الأولى معروفة</span>
+                    </label>
+                  </>
+                ) : null}
+                {extraLines.map((line, index) => (
+                  <section key={`purchase-line-${index + 2}`} className="micro-field">
+                    <span>بند رقم {index + 2}</span>
+                    <label className="micro-field">
+                      <span>مادة البند {index + 2}</span>
+                      <select
+                        value={line.materialId}
+                        onChange={event => {
+                          const nextMaterialId = event.target.value;
+                          setExtraLines(current =>
+                            current.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, materialId: nextMaterialId } : item,
+                            ),
+                          );
+                        }}
+                      >
+                        <option value="">بلا ربط مادة — مواد فترة</option>
+                        {materialOptions.map(material => (
+                          <option key={material.id} value={material.id}>
+                            {material.name}
+                            {material.tracking?.status === "untracked" ? " (للتكلفة فقط)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="micro-field">
+                      <span>الكمية المتوقعة للبند {index + 2}</span>
+                      <EnglishQuantityInput
+                        valueMilli={line.expectedQuantityMilli}
+                        onMilliChange={milli => {
+                          setExtraLines(current =>
+                            current.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, expectedQuantityMilli: milli } : item,
+                            ),
+                          );
+                        }}
+                        onTextValidityChange={valid => {
+                          setExtraLineQuantitiesValid(current =>
+                            current.map((item, itemIndex) => (itemIndex === index ? valid : item)),
+                          );
+                        }}
+                      />
+                    </label>
+                    <label className="micro-field">
+                      <span>قيمة البند {index + 2} (د.أ)</span>
+                      <EnglishNumberInput
+                        value={line.valueMinor}
+                        kind="money"
+                        onNumericChange={minor => {
+                          setExtraLines(current =>
+                            current.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, valueMinor: minor } : item,
+                            ),
+                          );
+                        }}
+                        onTextValidityChange={valid => {
+                          setExtraLineValuesValid(current =>
+                            current.map((item, itemIndex) => (itemIndex === index ? valid : item)),
+                          );
+                        }}
+                      />
+                    </label>
+                    <label className="micro-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={line.costKnown}
+                        onChange={event => {
+                          const costKnown = event.target.checked;
+                          setExtraLines(current =>
+                            current.map((item, itemIndex) =>
+                              itemIndex === index ? { ...item, costKnown } : item,
+                            ),
+                          );
+                        }}
+                      />
+                      <span>قيمة البند معروفة</span>
+                    </label>
+                    <Button
+                      action="secondary"
+                      onClick={() => {
+                        setExtraLines(current => current.filter((_, itemIndex) => itemIndex !== index));
+                        setExtraLineValuesValid(current =>
+                          current.filter((_, itemIndex) => itemIndex !== index),
+                        );
+                        setExtraLineQuantitiesValid(current =>
+                          current.filter((_, itemIndex) => itemIndex !== index),
+                        );
+                      }}
+                    >
+                      إزالة البند {index + 2}
+                    </Button>
+                  </section>
+                ))}
+                {extraLines.length > 0 ? (
+                  <p>
+                    مجموع قيم البنود المعلومة:{" "}
+                    {formatMoneyMinor(
+                      sumKnownLineValuesMinor([
+                        {
+                          materialId,
+                          expectedQuantityMilli,
+                          valueMinor: firstLineValueMinor,
+                          costKnown: firstLineCostKnown,
+                        },
+                        ...extraLines,
+                      ]),
+                    )}{" "}
+                    د.أ من إجمالي {formatMoneyMinor(totalMinor)} د.أ — ما لم يُوزّع على البنود ليس تكلفة معترف
+                    بها.
+                  </p>
+                ) : (
+                  <Button
+                    action="secondary"
+                    onClick={() => {
+                      setExtraLines(current => [
+                        ...current,
+                        { materialId: "", expectedQuantityMilli: 0, valueMinor: 0, costKnown: true },
+                      ]);
+                      setExtraLineValuesValid(current => [...current, true]);
+                      setExtraLineQuantitiesValid(current => [...current, true]);
+                    }}
+                  >
+                    فاتورة بعدة مواد — أضف بندًا
+                  </Button>
+                )}
+              </section>
               <LocalDateField
                 label="تاريخ الشراء"
                 value={purchasedOn}
@@ -888,7 +1284,7 @@ export default function SupplierPurchaseEditor() {
               {editPreview ? (
                 <CorrectionPreview
                   action="تعديل موثق لسجل الشراء"
-                  originalLabel={`شراء من ${purchase.supplierName} · ${formatMoneyMinor(purchase.totalMinor)} د.أ`}
+                  originalLabel={`شراء من ${supplierDisplayLabelOf(purchase)} · ${formatMoneyMinor(purchase.totalMinor)} د.أ`}
                   originalDetail={`دفع أولي ${formatMoneyMinor(
                     purchase.payments.find(payment => payment.id === `${purchase.id}:initial`)?.amountMinor ??
                       0,
@@ -950,20 +1346,33 @@ export default function SupplierPurchaseEditor() {
             <section className="micro-decision-card">
               <span>حد الحقيقة</span>
               <strong>شراء المواد لا يساوي مصروف بيع</strong>
-              <p>سيظهر أثره في الكاش أو ما عليك للمورد فقط، إلى أن نبني المخزون والاستهلاك.</p>
+              <p>
+                الدفع يغيّر الكاش وما عليك للمورد فقط؛ وتكلفة بنوده تُعرف من معالجتها: مواد الفترة على فترة
+                الشراء، والمتتبعة عند استعمالها.
+              </p>
             </section>
           )}
           <section className="micro-form-card">
             {isNew ? (
               <>
-                <label className="micro-field">
-                  <span>اسم المورد</span>
-                  <input
-                    value={supplierName}
-                    onChange={event => setSupplierName(event.target.value)}
-                    placeholder="مثال: مورد الخشب"
-                  />
-                </label>
+                <SupplierIdentityFields
+                  payableRemains={payableRemains}
+                  supplierName={supplierName}
+                  onSupplierNameChange={value => {
+                    setSupplierName(value);
+                    setSupplierPartyId(null);
+                  }}
+                  supplierPartyId={supplierPartyId}
+                  onSupplierPartySelect={(partyId, label) => {
+                    setSupplierPartyId(partyId);
+                    setSupplierName(label);
+                    setSaveForReuse(false);
+                  }}
+                  partyOptions={partyOptions}
+                  saveForReuse={saveForReuse}
+                  onSaveForReuseChange={setSaveForReuse}
+                  showSaveForReuse
+                />
                 <label className="micro-field">
                   <span>ماذا اشتريت؟</span>
                   <textarea
@@ -1004,6 +1413,159 @@ export default function SupplierPurchaseEditor() {
                     />
                   </label>
                 ) : null}
+                {/* S07 (UNIT-027 D01): بنود الفاتورة — رأس واحد بغرض واحد لا
+                 فواتير مكررة لكل مادة؛ البند الأول هو ربط المادة أعلاه بقيمته،
+                 والبنود الإضافية لفاتورة متعددة المواد. بلا بنود إضافية تُسجّل
+                 الفاتورة بندًا واحدًا يغطي قيمتها الكاملة (المسار البسيط). */}
+                <section className="micro-field" data-section="purchase-lines">
+                  <span>بنود الفاتورة</span>
+                  {extraLines.length > 0 ? (
+                    <>
+                      <label className="micro-field">
+                        <span>قيمة بند المادة الأولى (د.أ)</span>
+                        <EnglishNumberInput
+                          value={firstLineValueMinor}
+                          kind="money"
+                          onNumericChange={setFirstLineValueMinor}
+                          onTextValidityChange={setFirstLineValueValid}
+                        />
+                      </label>
+                      <label className="micro-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={firstLineCostKnown}
+                          onChange={event => setFirstLineCostKnown(event.target.checked)}
+                        />
+                        <span>قيمة بند المادة الأولى معروفة</span>
+                      </label>
+                    </>
+                  ) : null}
+                  {extraLines.map((line, index) => (
+                    <section key={`purchase-line-${index + 2}`} className="micro-field">
+                      <span>بند رقم {index + 2}</span>
+                      <label className="micro-field">
+                        <span>مادة البند {index + 2}</span>
+                        <select
+                          value={line.materialId}
+                          onChange={event => {
+                            const nextMaterialId = event.target.value;
+                            setExtraLines(current =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index ? { ...item, materialId: nextMaterialId } : item,
+                              ),
+                            );
+                          }}
+                        >
+                          <option value="">بلا ربط مادة — مواد فترة</option>
+                          {materialOptions.map(material => (
+                            <option key={material.id} value={material.id}>
+                              {material.name}
+                              {material.tracking?.status === "untracked" ? " (للتكلفة فقط)" : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="micro-field">
+                        <span>الكمية المتوقعة للبند {index + 2}</span>
+                        <EnglishQuantityInput
+                          valueMilli={line.expectedQuantityMilli}
+                          onMilliChange={milli => {
+                            setExtraLines(current =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index ? { ...item, expectedQuantityMilli: milli } : item,
+                              ),
+                            );
+                          }}
+                          onTextValidityChange={valid => {
+                            setExtraLineQuantitiesValid(current =>
+                              current.map((item, itemIndex) => (itemIndex === index ? valid : item)),
+                            );
+                          }}
+                        />
+                      </label>
+                      <label className="micro-field">
+                        <span>قيمة البند {index + 2} (د.أ)</span>
+                        <EnglishNumberInput
+                          value={line.valueMinor}
+                          kind="money"
+                          onNumericChange={minor => {
+                            setExtraLines(current =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index ? { ...item, valueMinor: minor } : item,
+                              ),
+                            );
+                          }}
+                          onTextValidityChange={valid => {
+                            setExtraLineValuesValid(current =>
+                              current.map((item, itemIndex) => (itemIndex === index ? valid : item)),
+                            );
+                          }}
+                        />
+                      </label>
+                      <label className="micro-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={line.costKnown}
+                          onChange={event => {
+                            const costKnown = event.target.checked;
+                            setExtraLines(current =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index ? { ...item, costKnown } : item,
+                              ),
+                            );
+                          }}
+                        />
+                        <span>قيمة البند معروفة</span>
+                      </label>
+                      <Button
+                        action="secondary"
+                        onClick={() => {
+                          setExtraLines(current => current.filter((_, itemIndex) => itemIndex !== index));
+                          setExtraLineValuesValid(current =>
+                            current.filter((_, itemIndex) => itemIndex !== index),
+                          );
+                          setExtraLineQuantitiesValid(current =>
+                            current.filter((_, itemIndex) => itemIndex !== index),
+                          );
+                        }}
+                      >
+                        إزالة البند {index + 2}
+                      </Button>
+                    </section>
+                  ))}
+                  {extraLines.length > 0 ? (
+                    <p>
+                      مجموع قيم البنود المعلومة:{" "}
+                      {formatMoneyMinor(
+                        sumKnownLineValuesMinor([
+                          {
+                            materialId,
+                            expectedQuantityMilli,
+                            valueMinor: firstLineValueMinor,
+                            costKnown: firstLineCostKnown,
+                          },
+                          ...extraLines,
+                        ]),
+                      )}{" "}
+                      د.أ من إجمالي {formatMoneyMinor(totalMinor)} د.أ — ما لم يُوزّع على البنود ليس تكلفة
+                      معترف بها.
+                    </p>
+                  ) : (
+                    <Button
+                      action="secondary"
+                      onClick={() => {
+                        setExtraLines(current => [
+                          ...current,
+                          { materialId: "", expectedQuantityMilli: 0, valueMinor: 0, costKnown: true },
+                        ]);
+                        setExtraLineValuesValid(current => [...current, true]);
+                        setExtraLineQuantitiesValid(current => [...current, true]);
+                      }}
+                    >
+                      فاتورة بعدة مواد — أضف بندًا
+                    </Button>
+                  )}
+                </section>
                 <LocalDateField
                   label="تاريخ الشراء"
                   value={purchasedOn}
@@ -1200,6 +1762,87 @@ export default function SupplierPurchaseEditor() {
           </section>
         </>
       )}
+    </section>
+  );
+}
+
+/* S05 (DOC-014 / UNIT-037 A1/A2): حقول هوية المورد — اختيار محفوظ صريح أو
+ * تعريف نصي لهذه العملية؛ المورد اختياري في المدفوع كاملًا، والحفظ للقائمة
+ * خيار غير محدد مسبقًا، ولا يُطلب هاتف أبدًا (U037-ACD02/AC28).
+ *
+ * سقف كثافة النص ٣٠/٨٣ (عقد ٢٨) محفوظ بلا رفع: سؤال الحالة (لِمَن المبلغ؟)
+ * واختيارية المدفوع كاملًا يمران في قناة السطر الرمادي الساكن (placeholder)
+ * التي تحل محل حقل «مثال: مورد الخشب» المتقادم — صافي سلسلة ساكنة واحدة
+ * فوق الأساس؛ التسميات الثابتة («اسم المورد» المثبتة بفحص المفردات،
+ * و«مورد محفوظ») على نمط الصفحة نفسها قبل S05. */
+function SupplierIdentityFields({
+  payableRemains,
+  supplierName,
+  onSupplierNameChange,
+  supplierPartyId,
+  onSupplierPartySelect,
+  partyOptions,
+  saveForReuse,
+  onSaveForReuseChange,
+  showSaveForReuse,
+}: {
+  payableRemains: boolean;
+  supplierName: string;
+  onSupplierNameChange: (value: string) => void;
+  supplierPartyId: string | null;
+  onSupplierPartySelect: (partyId: string | null, label: string) => void;
+  partyOptions: readonly { id: string; label: string }[];
+  saveForReuse: boolean;
+  onSaveForReuseChange: (value: boolean) => void;
+  showSaveForReuse: boolean;
+}) {
+  return (
+    <section className="micro-party-identity">
+      {partyOptions.length > 0 ? (
+        <label className="micro-field">
+          <span>مورد محفوظ</span>
+          <select
+            value={supplierPartyId ?? ""}
+            onChange={event => {
+              const selected = event.target.value || null;
+              const party = partyOptions.find(option => option.id === selected);
+              /* اختيار المحفوظ يثبّت لقطة تسميته على المصدر — لا يورث شيئًا. */
+              onSupplierPartySelect(selected, party?.label ?? "");
+            }}
+          >
+            <option value="">— بلا اختيار —</option>
+            {partyOptions.map(option => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+      <label className="micro-field">
+        <span>اسم المورد</span>
+        <input
+          value={supplierName}
+          onChange={event => onSupplierNameChange(event.target.value)}
+          placeholder={payableRemains ? "لِمَن المبلغ؟ — اسم أو وصف" : undefined}
+        />
+      </label>
+      {showSaveForReuse && !supplierPartyId && supplierName.trim() ? (
+        <label className="micro-confirm-warning">
+          <input
+            type="checkbox"
+            checked={saveForReuse}
+            onChange={event => onSaveForReuseChange(event.target.checked)}
+          />
+          <span>حفظه لإعادة الاستخدام في قائمة العملاء والموردين</span>
+        </label>
+      ) : null}
+      {payableRemains && !supplierName.trim() ? (
+        <p className="micro-field-error" role="alert">
+          اكتب اسمًا أو وصفًا يعرّف جهة المبلغ المستحق، أو اختر موردًا محفوظًا — الاستحقاق بلا تعريف يضيع من
+          المتابعة.
+        </p>
+      ) : null}
     </section>
   );
 }

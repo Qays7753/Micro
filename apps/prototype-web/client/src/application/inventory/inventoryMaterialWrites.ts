@@ -28,6 +28,7 @@ export type InventoryMaterialWritesStore = Pick<
   Pick<PrototypeLocalStore, "getOrder" | "listDirectSales" | "listFinancialEvents" | "listSupplierPurchases">;
 import {
   id,
+  inventoryCommitFailure,
   materialById,
   movementByOperationKey,
   reversedMovementIdsOf,
@@ -38,6 +39,16 @@ import {
   type ReceivePurchaseInput,
   type ReverseInventoryInput,
 } from "./inventoryMaterialModel";
+/* S07-MR-001 (أمر S08 — القسم ١): بصمات الحالة المتوقعة تُبنى من قراءة
+ * الخدمة نفسها حرفيًا (لا حساب ثانٍ) وتُمرر لحد الكتابة حيث يقارنها
+ * المهايئ بالحقيقة الحية داخل المعاملة. */
+import {
+  inventoryMaterialsFingerprint,
+  inventoryFinancialEventsFingerprint,
+  inventoryMovementsFingerprint,
+  inventoryPurchasesFingerprint,
+  type InventoryCommitExpectation,
+} from "@/storage/local/inventoryCommitGuard";
 
 export async function receivePurchase(
   store: InventoryMaterialWritesStore,
@@ -59,9 +70,6 @@ export async function receivePurchase(
     return validationFailure("المادة غير متتبَّعة — فعّل متابعتها أولًا ثم استلم الشراء.");
   const purchase = purchases.value.find(candidate => candidate.id === input.purchaseId);
   if (!purchase) return validationFailure("اختر شراء مواد موجودًا لاستلامه.");
-  /* المجموعة ٢ (عقد ٢٨): الشراء المرتبط بمادة تُستلم عليها — الربط عقد، لا اقتراح. */
-  if (purchase.materialId && purchase.materialId !== input.materialId)
-    return validationFailure("هذا الشراء مرتبط بمادة أخرى — استلمه على مادته أو عدّل ربط الشراء.");
   const reversedMovementIds = reversedMovementIdsOf(movements.value);
   const activeReceipts = movements.value.filter(
     movement =>
@@ -72,9 +80,49 @@ export async function receivePurchase(
   const receivedValue = activeReceipts.reduce((sum, movement) => sum + movement.valueDeltaMinor, 0);
   if (receivedValue + input.valueMinor > purchase.totalMinor)
     return validationFailure("قيمة الاستلام تتجاوز إجمالي شراء المواد المرجعي.");
+  /* S07 (UNIT-027 D01): الاستلام المقيّد ببند — حين يكون للشراء بنود، يوجب
+   * البند المستلم عليه: مرجعه صريح، ومادته عقد ملزم (لا اقتراح)، ومعالجته
+   * tracked_material (بند period_material محمّل تكلفته على فترة الشراء — لا
+   * يستلم مخزونًا فوق تكلفة قائمة بلا تصحيح اعتراف موثق)، وحدود الكمية/
+   * القيمة من البند نفسه لا من الرأس وحده. الشراء بلا بنود = مسار الرأس
+   * القائم نفسه (متوافق رجعيًا بلا سلوك جديد مفترض). */
+  const purchaseLines = purchase.lines ?? [];
+  if (purchaseLines.length > 0) {
+    const lineId = input.purchaseLineId?.trim() || null;
+    if (!lineId) return validationFailure("هذا الشراء ببنود — اختر البند الذي تستلم عليه.");
+    const line = purchaseLines.find(candidate => candidate.lineId === lineId);
+    if (!line) return validationFailure("اختر بندًا قائمًا من بنود هذا الشراء.");
+    if (line.materialId !== input.materialId)
+      return validationFailure("هذا البند مرتبط بمادة أخرى — استلمه على مادته أو عدّل ربط الشراء.");
+    if (line.treatment !== "tracked_material")
+      return validationFailure(
+        "هذا البند محمّل تكلفته على فترة الشراء — لا يستلم مخزونًا فوق تكلفة قائمة؛ راجع تصحيح الاعتراف أولاً.",
+      );
+    const lineReceipts = activeReceipts.filter(movement => movement.purchaseLineId === line.lineId);
+    const lineReceivedValue = lineReceipts.reduce((sum, movement) => sum + movement.valueDeltaMinor, 0);
+    if (line.costKnowledge === "known" && typeof line.valueMinor === "number") {
+      if (lineReceivedValue + input.valueMinor > line.valueMinor)
+        return validationFailure("قيمة الاستلام تتجاوز قيمة البند المعلومة لهذا الشراء.");
+    }
+    if (line.expectedQuantityMilli !== null && line.expectedQuantityMilli !== undefined) {
+      const lineReceivedQuantity = lineReceipts.reduce(
+        (sum, movement) => sum + movement.quantityDeltaMilli,
+        0,
+      );
+      if (lineReceivedQuantity + input.quantityMilli > line.expectedQuantityMilli)
+        return validationFailure("الكمية المستلمة تتجاوز الكمية المتوقعة لهذا البند.");
+    }
+  } else if (purchase.materialId && purchase.materialId !== input.materialId) {
+    /* المجموعة ٢ (عقد ٢٨): الشراء المرتبط بمادة تُستلم عليها — الربط عقد، لا اقتراح. */
+    return validationFailure("هذا الشراء مرتبط بمادة أخرى — استلمه على مادته أو عدّل ربط الشراء.");
+  }
   /* المجموعة ٢ (عقد ٢٨): حد الكمية المتوقعة — الاستلام الجزئي المتعمد مسموح،
    * والتجاوز فوق المتوقع يُرفض بصدق (وحدة المادة واحدة لأن الربط ملزم أعلاه). */
-  if (purchase.expectedQuantityMilli !== null && purchase.expectedQuantityMilli !== undefined) {
+  if (
+    purchaseLines.length === 0 &&
+    purchase.expectedQuantityMilli !== null &&
+    purchase.expectedQuantityMilli !== undefined
+  ) {
     const receivedQuantity = activeReceipts.reduce((sum, movement) => sum + movement.quantityDeltaMilli, 0);
     if (receivedQuantity + input.quantityMilli > purchase.expectedQuantityMilli)
       return validationFailure("الكمية المستلمة تتجاوز الكمية المتوقعة لهذا الشراء.");
@@ -91,10 +139,23 @@ export async function receivePurchase(
       note: input.note,
       operationKey: input.operationKey,
       purchaseId: input.purchaseId,
+      purchaseLineId: input.purchaseLineId?.trim() || null,
       costKnowledge: input.costKnowledge === "unknown" ? "unknown" : "known",
     });
-    const saved = await store.commitInventory(null, [movement]);
-    return saved.ok ? { ok: true, value: movement } : writeStorageFailure();
+    /* S07-MR-001: بصمة الحالة التي بُنيت عليها حدود الاستلام (حركات/مواد/
+     * مشتريات) — تُقارن داخل حد الكتابة فلا يمر استلام فوق واقع تغيّر. */
+    const expectation: InventoryCommitExpectation = {
+      movementsFingerprint: inventoryMovementsFingerprint(movements.value),
+      materialsFingerprint: inventoryMaterialsFingerprint(materials.value),
+      purchasesFingerprint: inventoryPurchasesFingerprint(purchases.value),
+    };
+    const saved = await store.commitInventory(null, [movement], expectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: saved.value.movements[0] ?? movement,
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات استلام الشراء غير صالحة."));
   }
@@ -151,8 +212,18 @@ export async function consumeMaterial(
       saleId: input.saleId ?? null,
       costKnowledge: value === 0 ? "unknown" : "known",
     });
-    const saved = await store.commitInventory(null, [movement]);
-    return saved.ok ? { ok: true, value: movement } : writeStorageFailure();
+    /* S07-MR-001: بصمة الحالة التي بُني عليها عدم السلبية ومعرفة التكلفة. */
+    const expectation: InventoryCommitExpectation = {
+      movementsFingerprint: inventoryMovementsFingerprint(movements.value),
+      materialsFingerprint: inventoryMaterialsFingerprint(materials.value),
+    };
+    const saved = await store.commitInventory(null, [movement], expectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: saved.value.movements[0] ?? movement,
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات استهلاك المادة غير صالحة."));
   }
@@ -209,8 +280,18 @@ export async function adjustMaterial(
       costKnowledge,
     });
     assertInventoryRemainsNonNegative(input.materialId, [...movements.value, movement]);
-    const saved = await store.commitInventory(null, [movement]);
-    return saved.ok ? { ok: true, value: movement } : writeStorageFailure();
+    /* S07-MR-001: بصمة الحالة التي بُني عليها الرصيد وعدم السلبية. */
+    const expectation: InventoryCommitExpectation = {
+      movementsFingerprint: inventoryMovementsFingerprint(movements.value),
+      materialsFingerprint: inventoryMaterialsFingerprint(materials.value),
+    };
+    const saved = await store.commitInventory(null, [movement], expectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: saved.value.movements[0] ?? movement,
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات ضبط المادة غير صالحة."));
   }
@@ -267,14 +348,32 @@ export async function reverseMovement(
           idempotencyKey: `${input.operationKey}:loss-reversal`,
           reason: input.reason,
         });
-        const saved = await store.commitInventoryWithEvents(null, [reversal], [lossReversal]);
-        return saved.ok
-          ? { ok: true, value: saved.value.movements[0] ?? reversal, reused: saved.value.reused }
-          : writeStorageFailure();
+        /* S07-MR-001: بصمة الأحداث التي بُني عليها قرار شكل العكس — ظهور
+         * الخسارة بعد القراءة يُسقط العكس المبسّط داخل الحد. */
+        const expectation: InventoryCommitExpectation = {
+          movementsFingerprint: inventoryMovementsFingerprint(movements),
+          eventsFingerprint: inventoryFinancialEventsFingerprint(eventsResult.value),
+        };
+        const saved = await store.commitInventoryWithEvents(null, [reversal], [lossReversal], expectation);
+        if (!saved.ok) return inventoryCommitFailure(saved);
+        return {
+          ok: true,
+          value: saved.value.movements[0] ?? reversal,
+          reused: saved.value.reused,
+        };
       }
     }
-    const saved = await store.commitInventory(null, [reversal]);
-    return saved.ok ? { ok: true, value: reversal } : writeStorageFailure();
+    /* S07-MR-001: بصمة الحركات التي بُني عليها فحص «معكوس سابقًا» والرصيد. */
+    const plainExpectation: InventoryCommitExpectation = {
+      movementsFingerprint: inventoryMovementsFingerprint(movements),
+    };
+    const saved = await store.commitInventory(null, [reversal], plainExpectation);
+    if (!saved.ok) return inventoryCommitFailure(saved);
+    return {
+      ok: true,
+      value: saved.value.movements[0] ?? reversal,
+      reused: saved.value.reused,
+    };
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات التراجع عن المادة غير صالحة."));
   }

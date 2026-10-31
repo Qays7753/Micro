@@ -386,9 +386,9 @@ export default function Finance() {
               label="لي عند العملاء"
               value={position.customerReceivablesMinor}
               state={position.evidence.customerReceivables}
-              helper="دين مسجل بعد التسليم — افتح دفتر الناس"
+              helper="دين مسجل بعد التسليم — افتح العملاء والموردين"
               icon={HandCoins}
-              openLabel="افتح دفتر الناس"
+              openLabel="افتح العملاء والموردين"
               onOpen={() => navigate(withReturnTo("/parties", "/finance"))}
             />
             {/* NAV-002 (قرار المالك ٢٠٢٦-٠٩-١٦): النتيجة المتاحة في المستوى
@@ -542,7 +542,7 @@ export default function Finance() {
                   </button>
                 </p>
               ) : null}
-              {/* التدفقات ١٤/٢٠ + D-002: دفتر الناس وعدّ الصناديق والموردون من مسارات
+              {/* التدفقات ١٤/٢٠ + D-002: العملاء والموردون وعدّ الصناديق والموردون من مسارات
               مالي الدائمة — نوايا قراءة تجد مكانها الطبيعي هنا بلا مقعد خامس. */}
               {/* المجموعة ٢ (§8.1): روابط الوضع إلى مصادره — دفتر المحفظة والكشف من هنا. */}
               <p className="micro-fact-road-line">
@@ -551,7 +551,7 @@ export default function Finance() {
                   type="button"
                   onClick={() => navigate(withReturnTo("/parties", "/finance"))}
                 >
-                  افتح دفتر الناس — مين عليه إلَي وعليّ لمين
+                  افتح العملاء والموردين — من تتعامل معه عند الحاجة
                 </button>{" "}
                 ·{" "}
                 <button

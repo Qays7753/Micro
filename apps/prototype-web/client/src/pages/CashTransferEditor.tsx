@@ -39,8 +39,15 @@ export default function CashTransferEditor() {
         return;
       }
       setWallets(result.value.wallets);
-      setFromWalletId(result.value.wallets[0]?.id ?? "");
-      setToWalletId(result.value.wallets[1]?.id ?? "");
+      /* S04 (DOC-013 / UNIT-023 R02/R03 — C1-01): لا اختيار تلقائي لأول
+       * مكانين — المصدر والوجهة قرار صريح من المالك؛ إعادة القراءة تحفظ
+       * الاختيارات القائمة الصالحة ولا تعيدها لترتيب القائمة. */
+      setFromWalletId(current =>
+        current && result.value.wallets.some(wallet => wallet.id === current) ? current : "",
+      );
+      setToWalletId(current =>
+        current && result.value.wallets.some(wallet => wallet.id === current) ? current : "",
+      );
       setLoading(false);
     });
   }, [cashContinuity, dataVersion]);
@@ -50,6 +57,16 @@ export default function CashTransferEditor() {
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
 
   async function save(): Promise<boolean> {
+    /* S04 (DOC-013 / UNIT-023 R01/R02): المصدر والوجهة قرار صريح — لا قيمة
+     * افتراضية من ترتيب القائمة ولا تحويل بلا طرفين مختلفين محددين. */
+    if (!fromWalletId || !toWalletId) {
+      setMessage("اختر مكانين مختلفين للتحويل.");
+      return false;
+    }
+    if (fromWalletId === toWalletId) {
+      setMessage("اختر مكانين مختلفين للتحويل.");
+      return false;
+    }
     if (!validAmount || amountMinor <= 0 || !note.trim()) {
       setMessage("أدخل مبلغ التحويل وبيانًا قصيرًا بالأرقام 0–9.");
       return false;
@@ -136,10 +153,14 @@ export default function CashTransferEditor() {
         <label className="micro-field">
           <span>من محفظة</span>
           <select value={fromWalletId} onChange={event => setFromWalletId(event.target.value)}>
+            <option value="">من محفظة</option>
             {wallets.map(wallet => (
               /* (إصلاح تكاملي — مجموعة ٤): نص خالص داخل option — bdi داخل option تعشيش مرفوض. */
               <option key={wallet.id} value={wallet.id}>
-                {wallet.name} · {formatMoneyMinor(wallet.balanceMinor)} د.أ
+                {wallet.name} ·{" "}
+                {wallet.openingUnknown
+                  ? "رصيد البداية غير معروف"
+                  : `${formatMoneyMinor(wallet.balanceMinor)} د.أ`}
               </option>
             ))}
           </select>
@@ -147,9 +168,13 @@ export default function CashTransferEditor() {
         <label className="micro-field">
           <span>إلى محفظة</span>
           <select value={toWalletId} onChange={event => setToWalletId(event.target.value)}>
+            <option value="">إلى محفظة</option>
             {wallets.map(wallet => (
               <option key={wallet.id} value={wallet.id}>
-                {wallet.name} · {formatMoneyMinor(wallet.balanceMinor)} د.أ
+                {wallet.name} ·{" "}
+                {wallet.openingUnknown
+                  ? "رصيد البداية غير معروف"
+                  : `${formatMoneyMinor(wallet.balanceMinor)} د.أ`}
               </option>
             ))}
           </select>

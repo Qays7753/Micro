@@ -19,6 +19,7 @@ import type {
 import type { DirectSaleCollectionStatus } from "@micro-domain/direct-sale/index.js";
 import type { CashWalletKind, CashContinuityEntryType } from "@micro-domain/cash-continuity/index.js";
 import type { FinancialEventType } from "@micro-domain/financial-event/index.js";
+import type { SupplierPurchaseLineTreatment } from "@micro-domain/supplier-purchase/index.js";
 
 export const KNOWLEDGE_STATES = {
   known: true,
@@ -103,3 +104,12 @@ export const FINANCIAL_EVENT_TYPES = {
   deposit_retained_revenue: true,
   deposit_retained_owner: true,
 } satisfies Record<FinancialEventType, true>;
+
+/* S07 (R1-F02 — UNIT-027 D01): معالجة بند الشراء معلنة في مدقق النقل
+ * (validSupplierPurchaseLine) — المرسى يفرض اكتمال المفاتيح نوعيًا فأي
+ * قيمة جديدة في اتحاد المجال دون تحديث المدقق تكسر الأنواع، لا أن ترفض
+ * التطبيق تصديراته المشروعة بصمت (نمط Wave 3B نفسه). */
+export const SUPPLIER_PURCHASE_LINE_TREATMENTS = {
+  period_material: true,
+  tracked_material: true,
+} satisfies Record<SupplierPurchaseLineTreatment, true>;

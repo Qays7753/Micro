@@ -43,6 +43,8 @@ import {
   shortCashDeclarationStore,
   supplierPurchaseStore,
   receivedLoanStore,
+  counterpartyStore,
+  balanceObservationStore,
 } from "./indexedDbStores";
 import { STORAGE_UPGRADE_FAILED } from "./resultCodes";
 
@@ -295,6 +297,28 @@ export function applySchemaUpgrade(request: IDBOpenDBRequest, event: IDBVersionC
   if (!database.objectStoreNames.contains(receivedLoanStore)) {
     const receivedLoans = database.createObjectStore(receivedLoanStore, { keyPath: "id" });
     receivedLoans.createIndex("updatedAt", "updatedAt");
+  }
+  /* S04 (DOC-013 / UNIT-025 + العقد المشترك §8 — نمط D-037 — الترقية ٣٨→٣٩):
+   * مخزن رصد أرصدة النقد بمُنشئ محروس — لا ترحيل بيانات ولا تعديل سجل قائم؛
+   * القاعدة القديمة تفتح وتجده فارغًا. فهارس walletId وobservedOn وoperationKey
+   * للتصفح والعهدة؛ لا فهارس فريدة — حارس الالتزام داخل حد الكتابة
+   * (commitCashObservation) يكفي الحتمية. */
+  if (!database.objectStoreNames.contains(balanceObservationStore)) {
+    const observations = database.createObjectStore(balanceObservationStore, { keyPath: "id" });
+    observations.createIndex("walletId", "walletId");
+    observations.createIndex("observedOn", "observedOn");
+    observations.createIndex("operationKey", "operationKey");
+  }
+  /* S05 (DOC-014 / UNIT-037 + العقد المشترك §8 — نمط D-037 — الترقية 39→40):
+   * مخزن الأطراف المحفوظة بمُنشئ محروس — لا ترحيل بيانات ولا تعديل سجل
+   * قائم؛ القاعدة القديمة تفتح وتجده فارغًا. فهارس updatedAt وoperationKey
+   * للتصفح والعهدة؛ لا فهارس فريدة ولا فهرس تسمية — التسمية ليست هوية
+   * (طرفان بالاسم نفسه مستقلان)، وحارس الالتزام داخل حد الكتابة
+   * (commitCounterpartyWrite) يكفي الحتمية. */
+  if (!database.objectStoreNames.contains(counterpartyStore)) {
+    const counterparties = database.createObjectStore(counterpartyStore, { keyPath: "id" });
+    counterparties.createIndex("updatedAt", "updatedAt");
+    counterparties.createIndex("operationKey", "operationKey");
   }
   const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
   if (policyStore && !policyStore.indexNames.contains("seriesId"))

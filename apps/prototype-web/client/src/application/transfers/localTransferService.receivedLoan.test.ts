@@ -215,8 +215,8 @@ describe("export envelope v30 (FIN-001 — WS-178 / عقد ٣٩)", () => {
     const service = new LocalTransferService(store, () => NOW);
     const exported = await service.createVerifiedExport();
     if (!exported.ok) throw new Error(exported.message);
-    expect(exported.value.file.version).toBe(30);
-    expect(exported.value.file.schemaVersion).toBe(38);
+    expect(exported.value.file.version).toBe(32);
+    expect(exported.value.file.schemaVersion).toBe(40);
     expect(exported.value.file.version).toBe(localExportVersion);
     expect(exported.value.file.schemaVersion).toBe(localSchemaVersion);
     expect(exported.value.file.data.receivedLoans).toHaveLength(2);
@@ -225,7 +225,7 @@ describe("export envelope v30 (FIN-001 — WS-178 / عقد ٣٩)", () => {
 
     const target = new MemoryLocalStore();
     const targetService = new LocalTransferService(target, () => NOW);
-    const restored = await targetService.prepareImport(JSON.stringify(exported.value.file));
+    const restored = await targetService.prepareRestore(JSON.stringify(exported.value.file));
     expect(restored.ok).toBe(true);
     if (!restored.ok) throw new Error(restored.message);
     const applied = await targetService.confirmImport(restored.value);
@@ -258,7 +258,7 @@ describe("export envelope v30 (FIN-001 — WS-178 / عقد ٣٩)", () => {
   it("accepts a legacy 29/37 file and seeds empty received loans (migration v37→v38 never invents borrowing)", async () => {
     const target = new MemoryLocalStore();
     const service = new LocalTransferService(target, () => NOW);
-    const prepared = service.prepareImport(JSON.stringify(legacy2937File()));
+    const prepared = await service.prepareRestore(JSON.stringify(legacy2937File()));
     expect(prepared.ok).toBe(true);
     if (!prepared.ok) throw new Error(prepared.message);
     expect(prepared.value.file.version).toBe(localExportVersion);

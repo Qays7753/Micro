@@ -26,6 +26,10 @@ export const assetStoreMethods = [
   "listAssets",
   "getAsset",
   "commitAssetRecord",
+  /* S08 (UNIT-034): الاقتناء الذري متعدد الأحداث (الجزئي المعتمد) وتسديد
+   * ذممة الاقتناء داخل الحد — والتصحيح بصيغة المصفوفات. */
+  "commitAssetAcquisition",
+  "commitAssetPayableSettlement",
   "commitAssetAcquisitionCorrection",
 ] as const;
 
