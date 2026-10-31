@@ -277,6 +277,22 @@ describe("S10 T01 — المعرفة الصادقة والمدخلات النا�
     expect(result.excludedComponentNames).toEqual(["شريط ساتان"]);
   });
 
+  it("R2-F3: مجموعة موسومة بوضع الإجمالي بلا إجمالي مُدخل تستبعد بصدق — لا صفرًا صامتًا", () => {
+    const priced = detailsGroup();
+    const unpricedTotal = detailsGroup({
+      id: "g-total-unpriced",
+      label: "تغليف فخم",
+      costMode: "total",
+      unitComponents: [],
+      totalCostMinor: null,
+    });
+    const result = calculatePlanningResult("planning-total-unpriced", baseInput([priced, unpricedTotal]));
+    /* تكلفة المجموعة المسعّرة وحدها تدخل؛ و«تغليف فخم» علامته في قناة
+     * الاستبعاد نفسها (إجمالي غير محدد بعد) لا صفر يعلم المعرفة «مؤكد». */
+    expect(result.productsCostMinor).toBe(7000);
+    expect(result.excludedComponentNames).toEqual(["تغليف فخم (إجمالي غير محدد بعد)"]);
+  });
+
   it("لا مجموعات ⇒ خطأ صريح؛ ومجموعات بلا أي تكلفة معلومة ⇒ معرفة ناقصة صادقة", () => {
     expect(() => calculatePlanningResult("planning-12", baseInput([]))).toThrow("مجموعة واحدة على الأقل");
     const empty = calculatePlanningResult(
