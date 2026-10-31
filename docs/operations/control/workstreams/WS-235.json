@@ -1,0 +1,59 @@
+{
+  "id": "WS-235",
+  "title": "S10 execution workstream — الأدوات المستقلة ومحفوظات الحاسبة (UNIT-030/031/032 + SH-14)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-019"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "b56967d8e7d699a21f7fe83161561d2d146dbc23",
+  "areas": [
+    "src/domain/planning-tools/",
+    "apps/prototype-web/client/src/application/planning/",
+    "apps/prototype-web/client/src/application/estimates/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/pages/Tools.tsx",
+    "apps/prototype-web/client/src/pages/CostCalculator.tsx",
+    "apps/prototype-web/client/src/pages/EstimateDetail.tsx",
+    "apps/prototype-web/client/src/pages/Home.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S10-EXECUTION-PROMPT-2026-10-31.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-030-نقل-وظائف-أدواتي.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-031-التكلفة-والتسعير.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-032-التقديرات-المحفوظة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/02-Consistency-Review-and-Decisions-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-10-31",
+  "updated_at": "2026-10-31",
+  "next_action": "تنفيذ S10 المتصل فوق الفرع/PR نفسيهما وفق أمر b56967d8: القسم ١ منجز (7adfac55)؛ القسم ٢ يجري الآن — المجال النقي ثم التخزين/النقل ثم الأسطح والاختبارات والمراجعات الخمس والسلسلة الكاملة والتحقق البعيد على الرأس النهائي بعينه.",
+  "notes": [
+    "أمر التنفيذ الوحيد هو 00-S10-EXECUTION-PROMPT-2026-10-31.md المنشور في b56967d8؛ GitHub هو مصدر الحقيقة التشغيلي.",
+    "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
+    "بطاقة الفهم مثبتة داخل DOC-019.summary؛ المخطط/التصدير 40/32 يُحفظ — الحقول الجديدة لعائلة cost-estimates اختيارية متوافقة رجعيًا (نمط S06/S09).",
+    "ملكية مفردة: S10 يملك SH-14 (cost-estimates + حفظ T01 الاختياري) ويستهلك نواة SH-13/S09 عبر سطحها العام — لا محرك حساب ثانٍ ولا إعادة بناء لملفات S09.",
+    "استثناءا الأمن المأذونان سُجلا في 7adfac55 (سجلات محضة) قبل أي كود منتج بأمر القسم ١."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S10-EXECUTION-PROMPT-2026-10-31.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/15-S10-RESULT-2026-10-31.md"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-31",
+      "actor": "zai-s10-execution",
+      "reason": "مطالبة S10 المأذونة بأمر b56967d8 (القسم ٢) بعد اكتمال القسم ١ (سجلات الأمن 7adfac55)."
+    }
+  ],
+  "migration_baseline": true
+}

@@ -1,0 +1,91 @@
+{
+  "id": "DOC-019",
+  "title": "S10 execution — الأدوات المستقلة ومحفوظات الحاسبة (UNIT-030/031/032 + SH-14)",
+  "type": "FEATURE",
+  "status": "IN_PROGRESS",
+  "priority": "P0",
+  "stage": "micro-component-execution-s10-20261031",
+  "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق أمر تنفيذ S10 المنشور في b56967d8e7d699a21f7fe83161561d2d146dbc23 (القسم ١ استثناءا الأمن المأذونان سُجلا في 7adfac55؛ القسم ٢ هو هذه المطالبة). | بطاقة الفهم (المشكلة/النطاق/غير الأهداف/الثوابت/الفشل/القبول/حد الاستعادة): مشكلة المستخدم: صاحب مشروع يريد أدوات تخطيط بسيطة قبل الالتزام — يحسب تكلفة وسعر منتج افتراضي ويرى الربح المتوقع وهامشه، وقيمة ساعة عمله، وكم وحدة يلزمه بيعها لتغطية مصاريف فترة أو لهدف، ونصيب مشروعه التقديري من فاتورة مشتركة، ومراجعة أولية منظمة لفكرته — كلها بلا أي أثر مالي أو مخزوني أو طلبي. | النطاق: خمس أدوات فقط (T01 التكلفة والتسعير بنواة S09/SH-13 عبر سطحها العام، T02 قيمة ساعة العمل، T03 كمية البيع المطلوبة بتقريب الأعلى، T04 نصيب المشروع من فاتورة بأساس صريح، T05 فحص فكرة أولي بثلاثة أقسام)؛ T01 يدمج UNIT-032 (حفظ الحساب/حساباتي المحفوظة داخل الحاسبة فقط — لا صفحة مستقلة)؛ SH-14 = عائلة cost-estimates مع الحفظ الاختياري لحسابات T01؛ مقصد أدوات المشروع بأدواته الخمس فقط ومدخل ثانوي من الرئيسية دون إعادة تصميم تنقل (الهجرة النهائية لS16)؛ تحويل الروابط القديمة المؤهلة إلى T01 بهوية صالحة ورجوع موثوق. | غير الأهداف: لا أداة سادسة ولا تبويب سادس، لا جسر مالي تلقائي (إزالة مداخل الجسور القديمة من التجربة الجديدة مع حفظ السجلات)، لا حفظ لT02–T05، لا تعديل دلالات نواة S09 أو ملفاتها إلا بفشل مميز مثبت يتطلب حداً متوافقًا أدنى، لا إعادة هيكلة بنيوية أو نقل ملفات، لا تعديل سياسات مالية أو سقوف الحراس أو سجل استثناءات إضافي. | الثوابت: المجاميع الدقيقة بوحدات minor الآمنة (إجمالي 10.00 لكمية 3 يبقى 1000 minor — تقريب عرض الوحدة لا يعاد ضربه إلى 10.02)؛ وضع تكلفة نشط واحد لكل نطاق؛ تكرار المجموعة مرة واحدة؛ التوصيل على المشروع مرة للحساب؛ هامش سعر البيع ≠ زيادة على التكلفة (تكلفة 9: هامش 25% ⇒ 12، زيادة 25% ⇒ 11.25)؛ سعر المستخدم حر (لا حد أدنى ربح ولا نسبة إجبارية ولا منع بيع تحت التكلفة)؛ المجهول ≠ الصفر؛ المقام 0 أو المساهمة غير الموجبة غير قابلة للحساب بصدق لا صفر ولا نسبة ملفقة؛ T02 لا تنشئ أجرًا ولا التزامًا؛ T03 تغطية/هدف بتقريب أعلى للوحدة غير القابلة للتجزئة؛ T04 ناتج تقديري بأساسه الظاهر لا مصروف؛ T05 مراجعة أولية بلا درجة جدوى ولا توصية قرض ولا حكم AI؛ الحفظ صريح اختياري بهوية ثابتة ونسخة مدخلات/حساب محفوظة ولا يعاد تسعير المحفوظ التاريخي بأسعار اليوم؛ الفتح/الحذف لا يمسان طلبًا أو منتجًا أو أي سجل آخر. | حالات الفشل المتوقعة: مدخلات ناقصة/سالبة/غير عددية برسالة عند الحقل وحفظ بقية المدخلات؛ فشل حفظ/فتح/حذف صريح بلا أثر جزئي؛ تعارض نافذتين بلا سحق صامت؛ رابط قديم لمقدر محذوف برسالة صادقة وحاسبة فارغة؛ استعادة صريحة لا تلقائية. | معيار القبول: مصفوفة ACD/SDF كاملة (U030-ACD01..08، U031-ACD01..12، U032-ACD01..06، SDF-002/059/065) بدليل دائم أو سبب عدم إثارة دقيق؛ نفس مدخلات التكلفة الصالحة عبر مسار الطلب (UNIT-008) وT01 تعطي نفس الحساب من النواة الواحدة؛ السلسلة الكاملة pnpm check خروج 0 على الشجرة النهائية؛ خمس مراجعات قرائية متسلسلة على الفرق النهائي؛ تحقق GitHub Actions وCloudflare Pages على الرأس النهائي المدفوع بعينه. | حد الاستعادة: آخر رأس آمن هو رأس تسليم S09 الموثق 474a1d35 (فوقه 7adfac55 سجلات أمن محضة) — الرجوع يترك سجل S09 وأدلته كما هي ولا يخفض المخطط 40/التصدير 32 ولا يمحو بيانات؛ أثر الرجوع إزالة ملفات S10 الجديدة فقط.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "CONFIRMED",
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "Owner-authorized continuous execution (00-S10-EXECUTION-PROMPT-2026-10-31.md published at b56967d8e7d699a21f7fe83161561d2d146dbc23, dated 2026-10-31): Part 1 — record exactly the two owner-authorized advisory exceptions (GHSA-g3hv-75wg-m249 minimatch, GHSA-3g3m-2fjr-6pw4 glob) after live revalidation (delivered records-only in 7adfac55); Part 2 — execute S10 (UNIT-030/031/032 + SH-14) to completion in the same ZAI conversation on the same branch/PR without intermediate owner gates, with five sequential read-only reviews at the end as internal quality work. The authorization explicitly does NOT accept S08 or S09 (both remain pending independent review and owner acceptance), does not broaden the exception scope, and does not permit main writes, merge, rebase, force-push, branch cleanup, or a second PR.",
+  "tests_required": [
+    "Domain tests for the planning-tools family: T01 exact aggregates (owner 10-box example 70/100/30/30%; comprehensive example 105/75/30/28.57%; second-product example 129/91/38/29.46%), SDF-002 exact-total preservation (1000 minor for qty 3), margin-vs-markup (9 -> 12 vs 11.25), T=0 honest no-ratio, multiply-once and delivery-once through the single SH-13 kernel",
+    "Domain tests for T02/T03/T04/T05: 300/(20x5)=3; zero/invalid time inputs honest non-computable; 10/6/200 -> 50 and target 100 -> 75; 50.1 -> 51 upward rounding; price<=cost non-computable; fixed 0 with positive contribution; 80x25% -> 20; part 2/8 of 80 -> 20; 0/100/>100 and total 0; missing-basis exit without fabricated values; T05 three sections with empty-answers invitation and no scoring",
+    "Application tests for the saved-T01 lifecycle: save/open/update/explicit-copy/delete with stable identity, input+calculation version preserved, no repricing of historical records on open, legacy estimate opening with scope/version check, idempotent retry (no duplicate per command), failure keeps inputs, zero business/financial/inventory/order side effects",
+    "Storage/transfer tests: dual-adapter (Memory/IndexedDB) parity for the optional planning fields, full export->import round trip, malformed/newer input rejected before any target write, legacy records without the new fields still accepted, golden transfer files regenerated with the documented command",
+    "UI DOM tests: five tools with no sixth entry or tab, T01 planning journey (groups, total-vs-details single active mode, selling price -> expected profit/margin, extras, delivery once, save/saved-calculations list, delete with confirmation, cancel keeps inputs, honest error/empty states), old route redirect to the calculator with valid identity and return path, RTL Arabic-first with 0-9 numeric entry via the lawful input component, field markers, bdi-isolated numbers"
+  ],
+  "layers": [
+    "domain",
+    "application",
+    "storage",
+    "transfer",
+    "ui",
+    "tests",
+    "documentation"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S10-EXECUTION-PROMPT-2026-10-31.md",
+    "discovered_at_sha": "b56967d8e7d699a21f7fe83161561d2d146dbc23",
+    "evidence": [
+      "docs/implementation/micro-component-execution/00-S10-EXECUTION-PROMPT-2026-10-31.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-030-نقل-وظائف-أدواتي.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-031-التكلفة-والتسعير.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-032-التقديرات-المحفوظة.md"
+    ]
+  },
+  "acceptance": [
+    "SDF-002: إجمالي 10 دينار لكمية 3 يبقى 1000 minor؛ تقريب عرض الوحدة لا يعيد حسابه",
+    "SDF-059: الأدوات الخمس وفتح حساب محفوظ — لا أداة سادسة ولا بيع/مصروف/طلب من الحساب؛ 032 داخل الحاسبة دون صفحة مستقلة",
+    "SDF-065: جهد المالك للتسعير لا يخلق استحقاقًا (جزء التسعير)؛ القصد الصريح يحكم",
+    "U030-ACD01..08 وU031-ACD01..12 وU032-ACD01..06 بدليل دائم أو سبب عدم إثارة دقيق لكل معرف"
+  ],
+  "areas": [
+    "src/domain/planning-tools/",
+    "apps/prototype-web/client/src/application/planning/",
+    "apps/prototype-web/client/src/application/estimates/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/pages/Tools.tsx",
+    "apps/prototype-web/client/src/pages/CostCalculator.tsx",
+    "apps/prototype-web/client/src/pages/EstimateDetail.tsx",
+    "apps/prototype-web/client/src/pages/Home.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S10-EXECUTION-PROMPT-2026-10-31.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-030-نقل-وظائف-أدواتي.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-031-التكلفة-والتسعير.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-032-التقديرات-المحفوظة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/02-Consistency-Review-and-Decisions-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S10-EXECUTION-PROMPT-2026-10-31.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "dependencies": [
+    "DOC-018"
+  ],
+  "related_items": [
+    "DOC-018"
+  ],
+  "migration_baseline": true,
+  "next_action": "تنفيذ S10 المتصل (UNIT-030/031/032 + SH-14) على components/integration-20261027 / PR #383 بأمر 00-S10-EXECUTION-PROMPT-2026-10-31.md المنشور في b56967d8: نمذجة المجال النقية للأدوات الخمس باستهلاك نواة S09 عبر سطحها العام، ثم خدمة الحفظ داخل الحاسبة، ثم الأسطح والاختبارات والدليل، ثم المراجعات الخمس القرائية المتسلسلة، ثم السلسلة الكاملة والتحقق البعيد المزدوج على الرأس النهائي بعينه.",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-31",
+      "actor": "zai-s10-execution",
+      "reason": "مطالبة S10 المأذونة بأمر تنفيذ S10 المنشور في b56967d8 (القسم ٢) بعد اكتمال القسم ١ (تسجيل استثناءَي الأمن المأذونَين تحديدًا في 7adfac55 بلا أي كود منتج)؛ بطاقة الفهم مثبتة داخل summary أعلاه قبل أي سطر كود منتج لS10."
+    }
+  ],
+  "updated_at": "2026-10-31"
+}
