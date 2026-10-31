@@ -14,7 +14,6 @@
  * أصلًا لأن الكاش كله في غير الموزع.
  */
 import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
-import { reverseDirectSaleCollection } from "@micro-domain/direct-sale/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { DirectSaleStore } from "@/storage/local/capabilities/directSaleStore";
@@ -291,10 +290,13 @@ export class SaleCollectionReversalService {
         operationKey: `${input.operationKey}:unattribute`,
         reversesEntryId: matched.id,
       });
-      /* S11 (UNIT-026 sale-slice — تصحيح المراجعة R1): العكس كله داخل دالة
-       * نطاق واحدة (reverseDirectSaleCollection) — المجموع المحروس ينقص
-       * والحركة السالبة المؤرخة تُكتب معه دائمًا في نداء واحد بمفتاح
-       * الواقعة نفسه؛ لا تركيب حالة مجال بيد طبقة التطبيق. */
+      /* S11 (UNIT-026 sale-slice — تصحيحا المراجعتين R1 ثم ميزانية الدخول):
+       * العكس كله داخل دالة نطاق واحدة (reverseDirectSaleCollection) —
+       * المجموع المحروس ينقص والحركة السالبة المؤرخة تُكتب معه دائمًا في
+       * نداء واحد بمفتاح الواقعة نفسه؛ لا تركيب حالة مجال بيد طبقة
+       * التطبيق. بيت حركات البيع يُحمَّل كسولًا (نمط تفويض المنسق نفسه —
+       * لا يدخل كومة الإقلاع وسقف gzip المحروس لا يُرفع). */
+      const { reverseDirectSaleCollection } = await import("@micro-domain/direct-sale/index.js");
       const withReversalMovement: DirectSale = reverseDirectSaleCollection(sale, {
         amountMinor,
         occurredOn: localDateInAmman(timestamp),
