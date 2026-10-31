@@ -1,0 +1,58 @@
+{
+  "id": "WS-236",
+  "title": "S11 execution workstream — البيع المباشر والتسجيل السريع والتحصيل منه (UNIT-004/005/026 sale-slice + SH-15)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-020"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "3e3b9597",
+  "areas": [
+    "src/domain/direct-sale/",
+    "apps/prototype-web/client/src/application/direct-sales/",
+    "apps/prototype-web/client/src/application/collections/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/components/finance/QuickSaleForm.tsx",
+    "apps/prototype-web/client/src/components/finance/QuickExpenseForm.tsx",
+    "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx",
+    "apps/prototype-web/client/src/pages/Collect.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S11-EXECUTION-PROMPT-2026-10-31.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-004-التسجيل-السريع.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-005-البيع-المباشر.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-026-تسجيل-دفعة-على-مستحق.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-10-31",
+  "updated_at": "2026-10-31",
+  "next_action": "تنفيذ شريحة S11 المملوكة (بيع 005 + تحصيل 026 sale-slice + تسجيل سريع 004 + مرتجع PD-02 + SH-15) على components/integration-20261027 / PR #383 فوق 3e3b9597؛ السلسلة الكاملة والمراجعات الخمس والبوابتان البعيدتان على الشجرة النهائية المستقرة بعينها.",
+  "notes": [
+    "أمر التنفيذ الوحيد هو 00-S11-EXECUTION-PROMPT-2026-10-31.md المنشور في b33a8877؛ GitHub هو مصدر الحقيقة التشغيلي.",
+    "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
+    "fix-first أُنجز أولًا: S10-MR-001 في 930560dc + ملحق 15a وسجلات Control في 3e3b9597؛ DOC-019 بقيت IN_REVIEW وWS-235 بقيت REVIEW_REQUIRED.",
+    "S11 لا تبني محول الطلب (S12) ولا الحق الافتتاحي (S14) ولا دفتر قبض عام؛ direct-sales يبقى الأصل الوحيد.",
+    "المخطط/التصدير 40/32: لا ترقية إن لم يتطلب السلك الدائم تغييرًا؛ الحقول الجديدة اختيارية متوافقة رجعيًا داخل عائلة قائمة (نمط S05/S06/S10) مع دورة كاملة على المهايئين."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S11-EXECUTION-PROMPT-2026-10-31.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/15a-S10-REVIEW-ADDENDUM-2026-10-31.md"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-31",
+      "reason": "مطالبة عمل S11 المأذونة بأمر b33a8877 فوق رأس سجلات الإصلاح 3e3b9597 على الفرع/PR نفسيهما."
+    }
+  ],
+  "migration_baseline": true
+}
