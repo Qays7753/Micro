@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 8 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 9 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -43,4 +43,4 @@ python3 scripts/operations-control/validate.py
 | WS-231 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-015 | مراجعة Manus المستقلة وقبول المالك على PR #383 (المرشح الكودي 0a728d14 وسجلات التوثيق فوقه وملحق S06-MR-001 11a-S06-ADDENDUM-2026-10-30.md لإصلاح 18a7128a)؛ لا دمج ولا كتابة main. |
 | WS-232 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-016 | مراجعة Manus المستقلة وقرار المالك على PR #383 (سجل S07 الكامل مع إصلاح S07-MR-001 في 12-S07-RESULT §1-ب/§4-ب)؛ لا دمج ولا كتابة main. |
 | WS-233 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-017 | مراجعة Manus المستقلة وقرار المالك على PR #383 (سجل S08 الكامل مع إصلاحي S08-MR-001/002 في 13-S08-RESULT و13a-S08-REVIEW-FIX-ADDENDUM-2026-10-30)؛ لا دمج ولا كتابة main؛ المتابعة التنفيذية الجارية الآن على مطالبة S09 النشطة WS-234/DOC-018 وحدها. |
-| WS-234 | IN_PROGRESS | `components/integration-20261027` | 383 | DOC-018 | تنفيذ شرائح S09 بترتيب أمر ad133bae §6 (العقد/النواة ← ثبات المسودة ← لقطات التكلفة ← العرض المحفوظ ← النقل/الترحيل ← التحقق النهائي والمراجعات الخمس) على components/integration-20261027 / PR #383؛ رهن المراجعة المستقلة وقبول المالك؛ لا كتابة main ولا merge. |
+| WS-234 | IN_REVIEW | `components/integration-20261027` | 383 | DOC-018 | المراجعة المستقلة (Manus) وقرار المالك على PR #383 (سجل S09 الكامل في 14-S09-RESULT-2026-10-30.md)؛ أسطح الحزمة السحابية الثلاثة المتقادمة على الرأس المدفوع e163e90e (تشغيل CI 41147278557 ونشر Pages 1f359101 — كل بوابات أخرى خضراء على الرأس نفسه) عولجت بإعادة الإرساء الموثقة نفس-الـPR بالقياس الفعلي (github-actions) والاشتقاق المثبت لفئة البيئة (cloudflare-pages) بعد تحقيق النمو المقيس وعزوه بالكامل لكود S09 المراجَع، والتشغيلات النهائية على رأس PR النهائي تتحقق من الاثنين ودليلها الكامل بالروابط الدقيقة يوثق في تعليق مراجعة PR #383 وسجل النتيجة §6؛ لا دمج ولا كتابة main ولا S10 قبل قرار المالك الصريح. |
