@@ -88,6 +88,11 @@ export default function CostCalculator() {
   /* فتح محفوظ: حساب تخطيط يعيد مدخلاته في المحرر نفسه؛ وتقدير قديم يفتح
    * في محرره التوافقي بنطاقه — بلا إعادة تفسير ولا إعادة تسعير. */
   const [openedLegacy, setOpenedLegacy] = useState<CostEstimate | null>(null);
+  /* R3-F2: جسر قذارة المحرر التوافقي — الحارس واحد للصفحة فيغطي المحررين. */
+  const [legacyGuard, setLegacyGuard] = useState<{
+    isDirty: boolean;
+    save: () => Promise<boolean>;
+  } | null>(null);
   const [openPhase, setOpenPhase] = useState<"idle" | "loading" | "missing">("idle");
   useEffect(() => {
     if (!requestedEstimateId) {
@@ -297,8 +302,8 @@ export default function CostCalculator() {
     loadedToken,
   );
   const requestNavigation = useUnsavedChangesGuard({
-    isDirty,
-    onSave: () => save(false),
+    isDirty: isDirty || (legacyGuard?.isDirty ?? false),
+    onSave: () => (openedLegacy && legacyGuard ? legacyGuard.save() : save(false)),
   });
 
   /* مساعدة اقتراح السعر — اقتراح صريح بأساس معلن، لا توليد تلقائي. */
@@ -394,6 +399,13 @@ export default function CostCalculator() {
     const withReturn = returnPath.includes("?")
       ? target
       : `${target}&returnTo=${encodeURIComponent(returnPath)}`;
+    /* R3-Q1: فتح حساب آخر أثناء تعديلات غير محفوظة (التخطيطية أو
+     * التوافقية) يمر بحارس التغييرات نفسه (تأكيد التجاهل) لا يبتلع
+     * التعديلات بصمت؛ النظيف يتنقل فورًا ويرفع رمز إعادة التحميل. */
+    if (isDirty || (legacyGuard?.isDirty ?? false)) {
+      requestNavigation(withReturn);
+      return;
+    }
     navigate(withReturn);
     setReloadToken(token => token + 1);
   }
@@ -446,12 +458,16 @@ export default function CostCalculator() {
 
       {openedLegacy ? (
         <LegacyEstimateEditor
+          /* R3-F2: مفتاح لكل سجل — فتح سجل قديم آخر يعيد التركيب بحالته
+           * لا بحالة السجل السابق. */
+          key={openedLegacy.id}
           estimate={openedLegacy}
           service={costEstimates}
           inventory={inventory}
           onSaved={() => {
             void refreshList();
           }}
+          onGuardStateChange={setLegacyGuard}
         />
       ) : (
         <section className="micro-form-card" aria-label="حاسبة التكلفة والتسعير">

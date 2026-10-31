@@ -108,7 +108,11 @@ describe("EXE-017 — حدود الملكية التقنية (خريطة الم�
        * الأصلي نفسه؛ أي كاتب آخر يبقى ممنوعًا. */
       const withoutEstimateWriters = content
         .replace(/costEstimates\.\w+\s*\(/g, "allowed(")
-        .replace(/planningCalculations\.\w+\s*\(/g, "allowed(");
+        .replace(/planningCalculations\.\w+\s*\(/g, "allowed(")
+        /* R3-F2: جسر حارس المحرر التوافقي — legacyGuard.save هو حفظ المحرر
+         * نفسه (service.update فوق مخزن التقديرات المستقل حصرًا) مارًّا
+         * بحارس التغييرات؛ لا كاتبًا جديدًا. */
+        .replace(/legacyGuard\.save\s*\(/g, "allowed(");
       const violations = withoutEstimateWriters.match(writerPattern) ?? [];
       expect(
         violations,

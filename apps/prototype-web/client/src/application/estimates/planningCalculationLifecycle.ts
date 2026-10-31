@@ -215,6 +215,13 @@ export class PlanningCalculationLifecycleService {
   ): Promise<CostEstimateResult<CostEstimate>> {
     const timestamp = this.now();
     if (!isValidTimestamp(timestamp)) return validationFailure("وقت الحساب غير صالح — أعد المحاولة.");
+    /* R3-F1: حفظ حساب بلا أي مجموعة فعالة (كل السطور فارغة) يُرفض عند حد
+     * الخدمة — المعاينة الصادقة بالنقص تبقى مشروعة، لكن السجل المحفوظ يجب
+     * أن يطابق بوابة النقل حرفيًا (مجموعة واحدة على الأقل) فلا يستطيع
+     * التطبيق إنتاج نسخة احتياطية ترفضها بوابته نفسها. */
+    if (input.groups.filter(group => !isBlankPlanningGroup(group)).length === 0) {
+      return validationFailure("أضف مجموعة واحدة على الأقل قبل الحفظ — السطر الفارغ لا يُحفظ.");
+    }
     let pair: ReturnType<typeof computePlanningPair>;
     try {
       pair = computePlanningPair(input, timestamp, "planning-save");
@@ -247,6 +254,10 @@ export class PlanningCalculationLifecycleService {
     if (!current.value) return validationFailure("الحساب غير موجود — قد حُذف؛ احفظه كحساب جديد.");
     const timestamp = this.now();
     if (!isValidTimestamp(timestamp)) return validationFailure("وقت الحساب غير صالح — أعد المحاولة.");
+    /* R3-F1: حد الخدمة نفسه للتحديث — لا سجل بلا مجموعة فعالة. */
+    if (input.groups.filter(group => !isBlankPlanningGroup(group)).length === 0) {
+      return validationFailure("أضف مجموعة واحدة على الأقل قبل الحفظ — السطر الفارغ لا يُحفظ.");
+    }
     let pair: ReturnType<typeof computePlanningPair>;
     try {
       pair = computePlanningPair(input, timestamp, "planning-update");

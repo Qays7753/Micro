@@ -6,10 +6,11 @@
  * والحفظ يحدث السجل نفسه بهويته. حساب سابق؛ يُراجع ولا يعاد تسعيره.
  */
 import { PackageOpen, Save, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { readMaterialSuggestions, type MaterialSuggestion } from "@/application/inventory";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
+import { useFormDirty } from "@/components/forms/useFormDirty";
 import { Button } from "@/components/primitives";
 import type { CostEstimate, DraftCostMaterial } from "@/storage/local/types";
 import type { CostEstimateService } from "@/application/estimates";
@@ -34,11 +35,19 @@ function materialFrom(item: DraftCostMaterial, index: number): EditableMaterial 
   };
 }
 
+/** R3-F2: جسر حالة القذارة والحفظ إلى حارس الصفحة الواحد — المحرر
+ * التوافقي يشارك حارس التغييرات غير المحفوظة نفسه (تأكيد قبل الخروج). */
+export type LegacyEditorGuardState = {
+  isDirty: boolean;
+  save: () => Promise<boolean>;
+};
+
 export function LegacyEstimateEditor({
   estimate,
   service,
   inventory,
   onSaved,
+  onGuardStateChange,
 }: {
   estimate: CostEstimate;
   service: CostEstimateService;
@@ -46,6 +55,7 @@ export function LegacyEstimateEditor({
    * فقط من قارئ القراءة؛ لا حركة مخزون ولا حدث نقدي من التقدير أبدًا. */
   inventory: { overview: () => Promise<{ ok: boolean; value?: unknown }> } | null;
   onSaved: () => void;
+  onGuardStateChange: (state: LegacyEditorGuardState | null) => void;
 }) {
   const [title, setTitle] = useState(estimate.title);
   const [materials, setMaterials] = useState<EditableMaterial[]>(
@@ -71,6 +81,21 @@ export function LegacyEstimateEditor({
 
   void reloadToken;
 
+  /* R3-F2: تعديلات المحرر التوافقي محروسة كتعديلات الحاسبة نفسها — الرجوع
+   * أو فتح حساب آخر يمر بتأكيد لا بابتلاع صامت. */
+  const isDirty = useFormDirty([
+    title,
+    materials,
+    timeKnown,
+    timeMinutes,
+    timeRateMinor,
+    quantity,
+    packagingMinor,
+    deliveryMinor,
+    wasteMinor,
+    safetyBufferMinor,
+  ]);
+
   /* عقد D5: المقترحات من آخر استلام — تعبئة مقترحة بلا أي أثر. */
   const [materialSuggestions, setMaterialSuggestions] = useState<readonly MaterialSuggestion[]>([]);
   useEffect(() => {
@@ -84,7 +109,7 @@ export function LegacyEstimateEditor({
     };
   }, [inventory]);
 
-  async function save() {
+  async function save(): Promise<boolean> {
     setSaving(true);
     setMessage(null);
     const result = await service.update(estimate.id, {
@@ -113,11 +138,21 @@ export function LegacyEstimateEditor({
     setSaving(false);
     if (!result.ok) {
       setMessage({ text: result.message, tone: "error" });
-      return;
+      return false;
     }
     setMessage({ text: "حُفظ تعديل الحساب السابق كما هو — بلا أي حركة مالية أو مخزون.", tone: "success" });
     onSaved();
+    return true;
   }
+
+  /* R3-F2: الجسر يُحدَّث عند انتقال القذارة فقط (لا مع كل رسم وإلا دارت
+   * حلقة التحديث)؛ والحفظ يُقرأ دائمًا من أحدث إغلاق عبر المرجع. */
+  const saveRef = useRef(save);
+  saveRef.current = save;
+  useEffect(() => {
+    onGuardStateChange({ isDirty, save: () => saveRef.current() });
+    return () => onGuardStateChange(null);
+  }, [isDirty, onGuardStateChange]);
 
   const preview = service.preview({
     title,

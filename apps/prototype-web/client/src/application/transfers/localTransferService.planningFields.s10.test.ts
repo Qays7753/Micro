@@ -138,9 +138,16 @@ describe("S10 planning fields transfer round-trip", () => {
 
     const target = new MemoryLocalStore();
     const targetService = new LocalTransferService(target, now);
+    /* R3-N2: الدليل حرفي — لقطة كاملة للهدف قبل الرفض وبعده تُقارن
+     * بالمساواة العميقة (لا تكفي قائمة التقديرات وحدها لدعوى «بلا كتابة»). */
+    const targetBefore = await targetService.createExport();
+    if (!targetBefore.ok) throw new Error(targetBefore.message);
     const outcome = await targetService.prepareRestore(JSON.stringify(file));
     expect(outcome.ok).toBe(false);
     if (outcome.ok) return;
+    const targetAfter = await targetService.createExport();
+    if (!targetAfter.ok) throw new Error(targetAfter.message);
+    expect(targetAfter.value.data).toEqual(targetBefore.value.data);
     /* الرفض قبل أي كتابة: الهدف فارغ تمامًا. */
     const targetEstimates = await new CostEstimateService(target, now).list();
     if (!targetEstimates.ok) throw new Error(targetEstimates.message);

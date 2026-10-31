@@ -65,6 +65,69 @@ async function runCapabilityScenario(store: CostEstimateStore) {
   const missing = await store.getCostEstimate("estimate-cap-none");
   expect(missing.ok && missing.value).toBeNull();
 
+  /* ١ب) S10/R3-N1: سجل حساب تخطيط محفوظ — حقول planning تعبر المهايئ
+   * حرفيًا (توازن الذاكرة/IndexedDB على مستوى القدرة نفسها). */
+  const planningRecord = Object.freeze({
+    ...estimateFixture("estimate-cap-planning"),
+    planning: {
+      inputSchemaVersion: 1,
+      calculationVersion: 1,
+      groups: [
+        {
+          groupId: "g-1",
+          label: "صندوق هدايا",
+          offeringType: "product" as const,
+          repeatQuantity: 10,
+          costMode: "details" as const,
+          unitComponents: [
+            {
+              name: "شوكولاتة",
+              quantity: 2,
+              unit: "حبة",
+              unitPriceMinor: 50,
+              confidence: "known" as const,
+            },
+          ],
+          totalCostMinor: null,
+          sellingPriceMinor: 1_000,
+        },
+      ],
+      time: null,
+      packagingMinor: 0,
+      wasteMinor: 0,
+      deliveryMinor: 300,
+      otherRevenues: [],
+      otherExpenses: [],
+      discount: null,
+      commission: null,
+      savedResult: {
+        productsCostMinor: 1_000,
+        sellingTotalMinor: 10_000,
+        expectedTotalMinor: 10_300,
+        pricingCostMinor: 1_300,
+        expectedProfitMinor: 9_000,
+        marginPercentCenti: 8_700,
+        knowledgeState: "known",
+      },
+    },
+    createdOperationKey: "op-cap-planning",
+  });
+  const savedPlanning = await store.saveCostEstimate(planningRecord);
+  expect(savedPlanning.ok).toBe(true);
+  const rereadPlanning = await store.getCostEstimate("estimate-cap-planning");
+  expect(rereadPlanning.ok && rereadPlanning.value?.planning).toEqual(planningRecord.planning);
+  expect(rereadPlanning.ok && rereadPlanning.value?.createdOperationKey).toBe("op-cap-planning");
+  /* الاستبدال الحتمي بالمعرّف يحفظ الحقول التخطيطية كما يحفظ القديمة. */
+  const replacedPlanning = Object.freeze({
+    ...planningRecord,
+    planning: { ...planningRecord.planning, deliveryMinor: 500 },
+  });
+  await store.saveCostEstimate(replacedPlanning);
+  const rereadReplaced = await store.getCostEstimate("estimate-cap-planning");
+  expect(rereadReplaced.ok && rereadReplaced.value?.planning?.deliveryMinor).toBe(500);
+  const removedPlanning = await store.deleteCostEstimate("estimate-cap-planning");
+  expect(removedPlanning.ok).toBe(true);
+
   /* ٢) الحذف الحر: بلا أثر على أي رصيد؛ والحذف مرة أخرى يبقى ok
    *    (idempotent بالحذف لا يرمي). */
   const removed = await store.deleteCostEstimate("estimate-cap-1");

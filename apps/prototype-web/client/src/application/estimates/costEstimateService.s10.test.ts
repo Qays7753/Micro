@@ -328,4 +328,47 @@ describe("S10 planning calculations (T01) through the single kernel", () => {
     expect(roundTripped.value).toHaveLength(1);
     expect(roundTripped.value[0]?.planning?.groups).toHaveLength(1);
   });
+
+  it("R3-F1: حفظ حساب بلا أي مجموعة فعالة يُرفض عند حد الخدمة — لا سجل يقفل النقل بنفسه", async () => {
+    const store = new MemoryLocalStore();
+    const planning = new PlanningCalculationLifecycleService(store, now);
+    const allBlank = planningInput({
+      groups: [
+        {
+          groupId: "g-empty",
+          label: "",
+          offeringType: "product" as const,
+          repeatQuantity: 1,
+          costMode: "details" as const,
+          unitComponents: [],
+          totalCostMinor: null,
+          sellingPriceMinor: null,
+        },
+      ],
+    });
+    /* المعاينة بالفراغ الكامل مشروعة (معرفة ناقصة صادقة لا صفر مضلل) —
+     * الحفظ هو المرفوض عند حد الخدمة. */
+    const preview = planning.previewPlanning(allBlank);
+    expect(preview.ok).toBe(true);
+    const refused = await planning.savePlanning(allBlank, "op-all-blank");
+    expect(refused.ok).toBe(false);
+    if (refused.ok) return;
+    expect(refused.message).toContain("أضف مجموعة واحدة على الأقل");
+    /* ولا سجل إطلاقًا — النقل يبقى سليمًا. */
+    const list = await new CostEstimateService(store, now).list();
+    if (!list.ok) throw new Error(list.message);
+    expect(list.value).toHaveLength(0);
+    const transfer = new LocalTransferService(store, now);
+    const exported = await transfer.createExport();
+    if (!exported.ok) throw new Error(exported.message);
+    const target = new MemoryLocalStore();
+    const targetTransfer = new LocalTransferService(target, now);
+    const restored = await targetTransfer.prepareRestore(JSON.stringify(exported.value));
+    expect(restored.ok).toBe(true);
+    /* والتحديث بالفراغ مرفوض بنفس الحد. */
+    const someSaved = await planning.savePlanning(planningInput(), "op-real");
+    if (!someSaved.ok) throw new Error(someSaved.message);
+    const refusedUpdate = await planning.updatePlanning(someSaved.value.id, allBlank);
+    expect(refusedUpdate.ok).toBe(false);
+  });
 });
