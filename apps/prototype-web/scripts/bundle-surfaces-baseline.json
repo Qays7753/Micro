@@ -53,15 +53,15 @@
     },
     "cloudflare-pages": {
       "anchored": {
-        "head": "e163e90e9074e727db9e78e2614317178e5aebac",
-        "date": "2026-10-30",
-        "method": "S09 post-push cloud re-anchor (2026-10-30, head e163e90e on PR #383): cloudflare-pages by the proven derivation (R8-1/R11 — the provider is not exposed by the environment; the derivation is the CI-measured values on the same environment class, established across the S05–S08 heads): lazy 1,361,100 raw / 406,621 gzipNorm; precache 2,821,324 (local 2,821,234 + 90); swRuntime 26,746; initial companions byte-identical 224,976/70,766; counts 111/2/76/166/2. Entry 623,252/152,519 reported only — the owner ceilings are untouched and check-bundle-budget PASSED. The first Pages deployment on this head (1f359101-52c7-484e-ab9f-b9cb344d495f) failed the same pre-re-anchor records as the protocol predicts (the Build-failed check-run on e163e90e); the final PR-head runs verify both, and any deviation is re-anchored from the live values in the same PR.",
-        "initialRawTotal": 224976,
-        "initialGzipNormTotal": 70766,
-        "lazyRawTotal": 1361100,
-        "lazyGzipNormTotal": 406621,
-        "precacheBytesTotal": 2821324,
-        "swRuntimeRawTotal": 26746
+        "head": "f6f13701a30a5030380d7ee0dd0481b6c4965935",
+        "date": "2026-10-31",
+        "method": "S10 post-push cloud re-anchor (2026-10-31, head f6f13701a30a5030380d7ee0dd0481b6c4965935 on PR #383): cloudflare-pages by the proven derivation (R8-1/R11 — the provider is not exposed by the environment; the derivation is the CI-measured values at the same head): the Pages build on the same head (deployment 101bd3d8-7432-4811-9c2a-f9ef94da29f8, check-run failure) failed on the same stale S09-era records through the same build chain that runs this guard after the budget check. The environment class is proven identical for every guarded measurement: lazy/initial/swRuntime are environment-invariant (byte-identical across local node 24.22.1 and CI node 22.23.3), and precache carries the same documented identity fingerprint (+90 — CF_PAGES_COMMIT_SHA is a 40-hex SHA exactly like GITHUB_SHA), so the values are the CI-measured 225,110/70,784 initial, 1,421,080/423,282 lazy, 2,883,275 precache, 27,140 swRuntime, counts 118/2/81/173/2. The growth is the reviewed S10 five-tool lazy closure fully attributed in the local record's provenance (c73dacb2/3c69c6db). No ceiling, tolerance, count, or guard code changed. The next Pages deployment on the exact final head verifies this record directly in the real cloud environment.",
+        "initialRawTotal": 225110,
+        "initialGzipNormTotal": 70784,
+        "lazyRawTotal": 1421080,
+        "lazyGzipNormTotal": 423282,
+        "precacheBytesTotal": 2883275,
+        "swRuntimeRawTotal": 27140
       },
       "toolchain": {
         "node": "not-exposed-by-provider",
@@ -73,32 +73,32 @@
         "identityMode": "env"
       },
       "measurements": {
-        "initialRawTotal": 224976,
-        "initialGzipNormTotal": 70766,
-        "lazyRawTotal": 1361100,
-        "lazyGzipNormTotal": 406621,
-        "precacheBytesTotal": 2821324,
-        "swRuntimeRawTotal": 26746
+        "initialRawTotal": 225110,
+        "initialGzipNormTotal": 70784,
+        "lazyRawTotal": 1421080,
+        "lazyGzipNormTotal": 423282,
+        "precacheBytesTotal": 2883275,
+        "swRuntimeRawTotal": 27140
       },
       "counts": {
-        "lazyJsCount": 111,
+        "lazyJsCount": 118,
         "initialJsCount": 2,
-        "dynamicRootsCount": 76,
-        "precacheEntryCount": 166,
+        "dynamicRootsCount": 81,
+        "precacheEntryCount": 173,
         "swRuntimeFileCount": 2
       }
     },
     "github-actions": {
       "anchored": {
-        "head": "e163e90e9074e727db9e78e2614317178e5aebac",
-        "date": "2026-10-30",
-        "method": "S09 post-push cloud re-anchor (2026-10-30): github-actions re-anchored on CI run 41147278557's directly measured values at the pushed head e163e90e (the S09 UNIT-007/008/029 + SH-13 delivery on PR #383 after the five-review correction round; the S08 UNIT-034 anchor it replaces remains recorded in the provenance history). The run printed them in its failure line exactly as the documented protocol predicts (both cloud records were still at the pre-S08 S08 UNIT-034 anchor 70c59fdd), with every earlier gate green on the same head (root 967/967, prototype 3,096/3,096, lint exactly 35, Control valid, budget PASS) and the failure isolated to the three stale cloud records: lazy 1,361,100/406,621 byte-identical to the same-tree local anchor (the entry chunk assets/index-Dyi6alIt.js carries the identical content hash locally and in CI); precache 2,821,324 = local 2,821,234 + the documented +90 identity footprint; swRuntime 26,746; initial companions byte-identical (224,976/70,766); counts 111/2/76/166/2. Entry 623,252/152,519 reported only — check-bundle-budget owns the ceilings and PASSED (margin 2,781 under the untouched owner 155,300 gzip ceiling). The measured growth was investigated before re-anchoring: +19,499 lazy raw / +4,659 lazy gzipNorm / +25,815 precache (= lazy +19,499 + entry +6,316) is fully attributed to the reviewed S09/S08-MR production modules (the DraftEditor/CostEditor chunks 25,911+20,343 bytes, the draft/cost/catalog services, the transfer validators/migrations, and the shared data contract) with counts unchanged — no new chunks, no new dependencies, no reduction available without dropping required behavior. No tolerance, ceiling, or guard code changed. The final PR-head runs verify both cloud records.",
-        "initialRawTotal": 224976,
-        "initialGzipNormTotal": 70766,
-        "lazyRawTotal": 1361100,
-        "lazyGzipNormTotal": 406621,
-        "precacheBytesTotal": 2821324,
-        "swRuntimeRawTotal": 26746
+        "head": "f6f13701a30a5030380d7ee0dd0481b6c4965935",
+        "date": "2026-10-31",
+        "method": "S10 post-push cloud re-anchor (2026-10-31): github-actions re-anchored on CI run 41228705783's directly measured values at the pushed head f6f13701a30a5030380d7ee0dd0481b6c4965935 (the S10 UNIT-030/031/032 + SH-14 delivery on PR #383 — the owner-authorized continuous execution order 00-S10-EXECUTION-PROMPT-2026-10-31.md at b56967d8/DOC-019). The run was green through every earlier gate — the dependency-audit step passes with the two owner-accepted advisory exceptions recorded in 7adfac55 (GHSA-g3hv-75wg-m249 minimatch, GHSA-3g3m-2fjr-6pw4 glob; ci-audit-check PASS, 0 blocking findings, 3 documented exceptions printed, never silent), root 1001/1001 (82 files), app 3135/3135 (402 files), lint exactly 35, budget PASS 624,648/152,910 — and failed only at check-bundle-surfaces against the S09-era cloud records, exactly as the documented post-push protocol predicts: lazy 1,361,100/406,621 -> 1,421,080/423,282; initial companions 224,976/70,766 -> 225,110/70,784; precache 2,821,324 -> 2,883,275 (the local anchor 2,883,185 + the documented identity fingerprint +90); swRuntime 26,746 -> 27,140; counts 111/2/76/166/2 -> 118/2/81/173/2 (+7 lazy files — the four tool pages + the planning house + the split lifecycle service + the estimate redirect; +5 dynamic roots; +7 precache entries). The growth was investigated and fully attributed to the reviewed S10 production modules (the local record's provenance at c73dacb2/3c69c6db carries the same bytes: lazy/initial/swRuntime byte-identical across the local node 24.22.1 and CI node 22.23.3 toolchains, and the entry chunk index-BXvZBCSv.js carries the same content hash on both). No ceiling, tolerance, count, or guard code changed; the entry budget stayed green on the same head (2,390-byte gzip margin under the untouched owner ceilings 650,000/155,300). Sanctioned by the guard's documented same-PR re-anchor-with-provenance protocol (R8-1/R11).",
+        "initialRawTotal": 225110,
+        "initialGzipNormTotal": 70784,
+        "lazyRawTotal": 1421080,
+        "lazyGzipNormTotal": 423282,
+        "precacheBytesTotal": 2883275,
+        "swRuntimeRawTotal": 27140
       },
       "toolchain": {
         "node": "22.23.3",
@@ -111,18 +111,18 @@
         "gzipNormalization": "hash-names+identity"
       },
       "measurements": {
-        "initialRawTotal": 224976,
-        "initialGzipNormTotal": 70766,
-        "lazyRawTotal": 1361100,
-        "lazyGzipNormTotal": 406621,
-        "precacheBytesTotal": 2821324,
-        "swRuntimeRawTotal": 26746
+        "initialRawTotal": 225110,
+        "initialGzipNormTotal": 70784,
+        "lazyRawTotal": 1421080,
+        "lazyGzipNormTotal": 423282,
+        "precacheBytesTotal": 2883275,
+        "swRuntimeRawTotal": 27140
       },
       "counts": {
-        "lazyJsCount": 111,
+        "lazyJsCount": 118,
         "initialJsCount": 2,
-        "dynamicRootsCount": 76,
-        "precacheEntryCount": 166,
+        "dynamicRootsCount": 81,
+        "precacheEntryCount": 173,
         "swRuntimeFileCount": 2
       }
     }
