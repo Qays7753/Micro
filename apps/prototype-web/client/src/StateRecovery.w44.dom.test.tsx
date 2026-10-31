@@ -146,7 +146,6 @@ describe("Wave 4.4 — P-4.4-4: مصفوفة الحالات — فحص مصدر 
     "CashWallets",
     "Collect",
     "DeliveryReview",
-    "EstimateDetail",
     "Finance",
     "FinanceActivity",
     "Foundation",
@@ -162,9 +161,12 @@ describe("Wave 4.4 — P-4.4-4: مصفوفة الحالات — فحص مصدر 
     "ScheduleEditor",
     "Statement",
     "Suppliers",
-    "Tools",
     "ToolsIntegrity",
     "WalletLedger",
+    /* S10 (UNIT-030/032 — أمر b56967d8): Tools صارت وجهة أدوات ساكنة بلا
+     * قراءة بيانات (المحفوظات داخل الحاسبة) وEstimateDetail صارت إحالة —
+     * خرجا من مصفوفة القراءة؛ الحاسبة نفسها (CostCalculator) تحمل شاشة
+     * خطأ قراءتها وفعل تعافيها في اختباراتها الخاصة. */
   ];
 
   it("كل صفحة تعرض خطأ قراءة تقدم فعل تعافٍ في مكانه (إعادة محاولة/إعادة تحميل/عودة)", () => {

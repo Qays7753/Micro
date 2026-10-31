@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "8e9a73c7714c006ea264af8497bb1fa80cb8bc68",
+  "head": "003adb0b5818c90b2cf8f9bc8f286c6c355a7679",
   "pages": {
-    "total": 60,
+    "total": 64,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -101,7 +101,8 @@
         "kind": "direct",
         "evidence": [
           "G3.dom.test.tsx",
-          "G3Delivery.dom.test.tsx"
+          "G3Delivery.dom.test.tsx",
+          "pages/CostCalculator.s10.dom.test.tsx"
         ]
       },
       "pages/CostEditor.tsx": {
@@ -223,6 +224,18 @@
           "pages/Setup.v3Gates.test.tsx"
         ]
       },
+      "pages/HourValue.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/PlanningTools.s10.dom.test.tsx"
+        ]
+      },
+      "pages/IdeaReview.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/PlanningTools.s10.dom.test.tsx"
+        ]
+      },
       "pages/InventoryMaterials.tsx": {
         "kind": "direct",
         "evidence": [
@@ -246,6 +259,12 @@
         "evidence": [
           "InventoryReversalEditor.dom.test.tsx",
           "SmokeOnlyPagesJourneys.dom.test.tsx"
+        ]
+      },
+      "pages/InvoiceShare.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/PlanningTools.s10.dom.test.tsx"
         ]
       },
       "pages/LoanDetail.tsx": {
@@ -372,6 +391,12 @@
           "RecurringExpenseSurfaces.dom.test.tsx"
         ]
       },
+      "pages/SalesQuantity.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "pages/PlanningTools.s10.dom.test.tsx"
+        ]
+      },
       "pages/Schedule.tsx": {
         "kind": "direct",
         "evidence": [
@@ -440,7 +465,8 @@
         "evidence": [
           "G3.dom.test.tsx",
           "ToolsCleanup.w42.dom.test.tsx",
-          "U004.dom.test.tsx"
+          "U004.dom.test.tsx",
+          "pages/PlanningTools.s10.dom.test.tsx"
         ]
       },
       "pages/ToolsIntegrity.tsx": {
@@ -503,6 +529,7 @@
         "curated": [
           "apps/prototype-web/client/src/application/cost/costService.priceDate.test.ts",
           "apps/prototype-web/client/src/application/cost/costService.test.ts",
+          "apps/prototype-web/client/src/application/estimates/costEstimateService.s10.test.ts",
           "apps/prototype-web/client/src/application/estimates/costEstimateService.test.ts",
           "apps/prototype-web/client/src/storage/local/capabilities/costEstimateCapability.contract.test.ts"
         ]
@@ -934,6 +961,7 @@
       "tests/domain/moneyMessageCharacterization.test.ts",
       "tests/domain/operatingBreakEven.test.ts",
       "tests/domain/owner-safe-withdrawal.test.ts",
+      "tests/domain/planning.test.ts",
       "tests/domain/public-surface.test.ts",
       "tests/domain/quantity-characterization.test.ts",
       "tests/domain/receivedLoan.test.ts",

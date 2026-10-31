@@ -10,7 +10,7 @@
 
 ---
 
-## 1. خريطة ملكية مفاهيم المجال (19 منطقة + صف توزيعات مكمّل = 20 صفًا)
+## 1. خريطة ملكية مفاهيم المجال (20 منطقة + صف توزيعات مكمّل = 21 صفًا)
 
 الأعمدة: المفهوم | المصدر السلطوي (سلوكًا) | مالك التنفيذ | مستهلكون رئيسيون | مالك التخزين | مستهلك التصدير/الاستيراد | اختبارات | توثيق | حالة
 
@@ -27,6 +27,7 @@
 | budget | عقد 42 + `src/domain/budget/` | domain/budget | finance budgets | storage (expenseBudgets) | `expenseBudget` family | `tests/domain/budget.test.ts` | عقد 42 | PRESERVE |
 | cash-continuity | عقد 03 + `src/domain/cash-continuity/` | domain/cash-continuity | cash services؛ finance reads | storage (cashWallets/cashContinuity) | ضمن snapshot | `tests/domain/cash-continuity.test.ts` | عقد 03 | PRESERVE |
 | catalog | عقد 15 + `src/domain/catalog/` | domain/catalog | catalog pages؛ craft-order costing | storage (catalog*) | `catalog` family | `tests/domain/catalog.test.ts` | عقد 15 | PRESERVE |
+| planning | عقد UNIT-030/031 (أمر S10 — b56967d8/DOC-019) + `src/domain/planning/` | domain/planning | planning pages (T02–T05)؛ estimates (T01 معاينة/حفظ) | — (نقي بلا تخزين؛ المدخلات المحفوظة ضمن costEstimates) | ضمن عائلة costEstimates | `tests/domain/planning.test.ts` | عقد 030/031 | PRESERVE — تأسيس S10: يستهلك نواة SH-13 من craft-order بسطحها العام لا محرك ثانٍ |
 | inventory-material | عقد 06 + `src/domain/inventory-material/` | domain/inventory-material | inventory pages؛ integrity؛ transfers | storage (materials/movements) | ضمن snapshot | `tests/domain/inventory-material.test.ts` | عقد 06 | PRESERVE |
 | supplier-purchase | عقد 07 + `src/domain/supplier-purchase/` | domain/supplier-purchase | suppliers pages؛ finance؛ transfers | storage (supplierPurchases) | `supplierPurchase` family | `tests/domain/supplier-purchase*.test.ts` | عقد 07 | PRESERVE |
 | direct-sale | عقد 09 + `src/domain/direct-sale/` | domain/direct-sale | direct-sale pages؛ collections؛ finance | storage (directSales) | `directSale` family | `tests/domain/*.test.ts` colocated + root | عقد 09 | PRESERVE |
@@ -126,6 +127,7 @@
 | direct-sales/ | البيع المباشر | 1 | 1 | — |
 | drafts/ | المسودات (عقد 36) | 4 | 3 | — |
 | estimates/ | التقديرات (عقد 03) | 1 | 1 | — |
+| planning/ | أدوات التخطيط (عقد UNIT-030 — S10/DOC-019، أمر b56967d8): بيت نقيم لدوال الحسابات الخمس بلا أي تخزين — حفظ T01 في بيت التقديرات؛ بابه مسجل في حارس الأسطح | 2 | `PlanningTools.s10.dom.test.tsx` (عبر الصفحات) + `tests/domain/planning.test.ts` | جسم القراءة: الملفان في READ_LIKE_CORPUS_BASELINE |
 | financial-pulse/ | **صف فردي أعلاه (STR-619)** | 1 | 1 | — |
 | follow-up/ | G7-A متابعة | 1 | 1 | — |
 | formatting/ | **نواة التنسيق — حد ملكية صريح (W2، 2026-10-05):** البيت الكنوني الوحيد لتنسيق العرض المشترك (ADR-011 §2 + قرار المالك 3)؛ يملك تحويل القيم المخزنة إلى نص عرض فقط، ويحرم قواعد العمل والمصطلحات المجالية؛ المجال لا يستورده أبدًا؛ الواجهة تمر حصرًا عبر شيمة `presentation/formatters.ts` الموثقة (تُزال بترحيل مستهلكيها في مسار UI)؛ توسيع سطح التصدير مراجَع (PC-3) | 1 | 0 مجاورًا | التغطية في `presentation/formatters.test.ts` + `businessTime.characterization.test.ts` (سبب موثق: أدوات عرض يستهلكها العرض فيُختبر هناك) + حد الملكية الموثق في رأس الملف نفسه |

@@ -677,7 +677,25 @@ CAPS: dict[str, int] = {
     # next-actions (open estimate / start draft), dirty guard, local-truth line.
     # CostCalculator 56 → 59 (2026-09-04, Group 3 D5/§5.1): inventory suggestion
     # chips with receipt-confidence + excluded-items honesty (named, unpriced).
-    "CostCalculator": 59,
+    # CostCalculator 59 → 66 (2026-10-31, S10 UNIT-031/032 — أمر b56967d8/DOC-019,
+    # owner-approved execution order): حاسبة التخطيط T01 — المجموعات بوضعي التكلفة
+    # (تفصيل/إجمالي للكمية كاملة) وسعر البيع الحر ونتيجته وهامشه، والخصم/العمولة
+    # بأساس معلن، ومساعدة اقتراح السعر بأساسها، والإيرادات/المصاريف الأخرى،
+    # و«حساباتي المحفوظة» داخل الحاسبة مع حذفها الموثق. تسميات مفروضة من عقد
+    # 031/032 لا نثرًا حرًا؛ القيمة = القياس الفعلي يومها.
+    "CostCalculator": 66,
+    # S10 (UNIT-030 — أمر b56967d8/DOC-019، 2026-10-31): صفحات أدوات التخطيط
+    # T02–T05 — سقوف صريحة عند قياس يومها الأول بالضبط (لا الافتراضي 30):
+    # T02 قيمة ساعة العمل (المدخلات، الفترات، النتيجة بأساسها المعلن) = 22؛
+    # T03 كمية المبيعات اللازمة (المساهمة الموجبة، الفترة، التقريب لأعلى
+    # وعدم القابلية للحقيقة عند مقام مجهول) = 29؛
+    # T04 حصة المشروع من فاتورة (الأساس الصريح وحده، لا نسبة مخترعة) = 26؛
+    # T05 مراجعة أولية للفكرة (مدخلات ناقصة وخطوات تحقق تالية، لا حكم
+    # ذكاء اصطناعي) = 18. أي نمو لاحق يمر بإرساء موثق بنفس الـPR.
+    "HourValue": 22,
+    "SalesQuantity": 29,
+    "InvoiceShare": 26,
+    "IdeaReview": 18,
     # DeliveryReview (new 2026-09-04, Group 3 D5): the full pre-commitment delivery
     # surface — measured from day one per the Profile/CostCalculator precedent.
     # DeliveryReview 48 → 51 (2026-09-16, product-journey package ORD-002, owner-approved):
@@ -833,6 +851,12 @@ PAGES = [
     "Profile",
     # المجموعة ٣ (Scope A/B): الحاسبة وصفحة التقدير وأدواتي بعد إعادة الهيكلة.
     "CostCalculator",
+    # S10 (UNIT-030 — أمر b56967d8/DOC-019، 2026-10-31): أدوات التخطيط T02–T05
+    # — تقاس من يومها الأول (سابقة Profile/CostCalculator).
+    "HourValue",
+    "SalesQuantity",
+    "InvoiceShare",
+    "IdeaReview",
     # المجموعة ٣ (عقد D5): مراجعة التسليم — تقاس من يومها الأول.
     "DeliveryReview",
     "EstimateDetail",

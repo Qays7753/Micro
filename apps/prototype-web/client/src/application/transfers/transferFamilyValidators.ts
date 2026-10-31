@@ -1644,6 +1644,22 @@ export function validCostEstimate(value: unknown): boolean {
       (value.time.confidence === "known" || value.time.confidence === "estimated"))
   ))
     return false;
+  /* S10 (UNIT-032/SH-14): حساب T01 المحفوظ — حقل اختياري متوافق رجعيًا
+   * (نمط S06/S09 المدروس): الغياب/null = تقدير قديم يقبل كما هو؛ والوجود
+   * باب محروس يفحص شكله كاملًا قبل أي كتابة هدف (رفض ما قبل المعاينة). */
+  if (!(
+    value.planning === undefined ||
+    value.planning === null ||
+    validPlanningCalculationFields(value.planning)
+  ))
+    return false;
+  /* S10: مفتاح نية الحفظ — اختياري (null/نص) للتوافق الرجعي. */
+  if (!(
+    value.createdOperationKey === undefined ||
+    value.createdOperationKey === null ||
+    isString(value.createdOperationKey)
+  ))
+    return false;
   return value.materialItems.every(
     item =>
       isRecord(item) &&
@@ -1654,6 +1670,144 @@ export function validCostEstimate(value: unknown): boolean {
       (item.confidence === "known" || item.confidence === "estimated") &&
       /* المجموعة ٣ (عقد D2): هوية المادة في بند التكلفة — اختيارية null أو نص. */
       (item.materialId === undefined || item.materialId === null || isString(item.materialId)),
+  );
+}
+
+/* S10 (UNIT-032/SH-14): بوابة شكل حساب التخطيط المحفوظ — المفتاح نفسه لكل
+ * الحقول قبل أي معاينة أو كتابة؛ الملف المُلاعب بحقل ناقص الشكل يُرفض كاملًا. */
+export function validPlanningCalculationFields(value: unknown): boolean {
+  if (
+    !isRecord(value) ||
+    !isMoney(value.inputSchemaVersion) ||
+    !isMoney(value.calculationVersion) ||
+    !Array.isArray(value.groups) ||
+    value.groups.length === 0 ||
+    !isMoney(value.packagingMinor) ||
+    !isMoney(value.wasteMinor) ||
+    !isMoney(value.deliveryMinor) ||
+    !Array.isArray(value.otherRevenues) ||
+    !Array.isArray(value.otherExpenses)
+  )
+    return false;
+  if (!(
+    value.time === null ||
+    value.time === undefined ||
+    (isRecord(value.time) &&
+      isTimeMinutes(value.time.minutes) &&
+      isOptionalMoney(value.time.hourlyRateMinor) &&
+      (value.time.confidence === "known" || value.time.confidence === "estimated"))
+  ))
+    return false;
+  const seenGroupIds = new Set<string>();
+  for (const group of value.groups) {
+    if (
+      !isRecord(group) ||
+      !isString(group.groupId) ||
+      group.groupId.trim().length === 0 ||
+      seenGroupIds.has(group.groupId) ||
+      !isString(group.label) ||
+      group.label.trim().length === 0 ||
+      (group.offeringType !== "product" && group.offeringType !== "service") ||
+      !(
+        typeof group.repeatQuantity === "number" &&
+        Number.isSafeInteger(group.repeatQuantity) &&
+        group.repeatQuantity >= 1
+      ) ||
+      (group.costMode !== "details" && group.costMode !== "total") ||
+      !Array.isArray(group.unitComponents) ||
+      !(
+        group.totalCostMinor === null ||
+        group.totalCostMinor === undefined ||
+        isMoney(group.totalCostMinor)
+      ) ||
+      !(
+        group.sellingPriceMinor === null ||
+        group.sellingPriceMinor === undefined ||
+        isMoney(group.sellingPriceMinor)
+      )
+    )
+      return false;
+    seenGroupIds.add(group.groupId);
+    if (
+      !group.unitComponents.every(
+        (item: unknown) =>
+          isRecord(item) &&
+          isString(item.name) &&
+          isString(item.unit) &&
+          isPositiveQuantity(item.quantity) &&
+          isMoney(item.unitPriceMinor) &&
+          (item.confidence === "known" || item.confidence === "estimated") &&
+          (item.materialId === undefined || item.materialId === null || isString(item.materialId)),
+      )
+    )
+      return false;
+  }
+  if (!validPlanningExtraRows(value.otherRevenues) || !validPlanningExtraRows(value.otherExpenses))
+    return false;
+  if (!(value.discount === null || value.discount === undefined || validPlanningDiscount(value.discount)))
+    return false;
+  if (!(
+    value.commission === null ||
+    value.commission === undefined ||
+    validPlanningCommission(value.commission)
+  ))
+    return false;
+  return validPlanningSavedResult(value.savedResult);
+}
+
+function validPlanningExtraRows(rows: unknown): boolean {
+  const seenRowIds = new Set<string>();
+  for (const row of rows as unknown[]) {
+    if (
+      !isRecord(row) ||
+      !isString(row.rowId) ||
+      row.rowId.trim().length === 0 ||
+      seenRowIds.has(row.rowId) ||
+      !isMoney(row.amountMinor) ||
+      !(row.description === null || row.description === undefined || isString(row.description))
+    )
+      return false;
+    seenRowIds.add(row.rowId);
+  }
+  return true;
+}
+
+function validPlanningDiscount(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (value.mode === "amount") return isMoney(value.amountMinor);
+  if (value.mode === "percent") return isMoney(value.percentCenti);
+  return false;
+}
+
+function validPlanningCommission(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (value.mode === "amount") return isMoney(value.amountMinor);
+  if (value.mode === "percent")
+    return (
+      isMoney(value.percentCenti) &&
+      (value.basis === "products_after_discount" || value.basis === "order_total")
+    );
+  return false;
+}
+
+function validPlanningSavedResult(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isMoney(value.productsCostMinor) &&
+    (value.sellingTotalMinor === null ||
+      value.sellingTotalMinor === undefined ||
+      isMoney(value.sellingTotalMinor)) &&
+    (value.expectedTotalMinor === null ||
+      value.expectedTotalMinor === undefined ||
+      isMoney(value.expectedTotalMinor)) &&
+    isMoney(value.pricingCostMinor) &&
+    (value.expectedProfitMinor === null ||
+      value.expectedProfitMinor === undefined ||
+      isMoney(value.expectedProfitMinor)) &&
+    (value.marginPercentCenti === null ||
+      value.marginPercentCenti === undefined ||
+      isMoney(value.marginPercentCenti)) &&
+    isKnownState(value.knowledgeState)
   );
 }
 

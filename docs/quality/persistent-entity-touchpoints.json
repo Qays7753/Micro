@@ -482,10 +482,12 @@
         "indexeddb"
       ],
       "adapterTests": [
-        "apps/prototype-web/client/src/application/estimates/costEstimateService.test.ts"
+        "apps/prototype-web/client/src/application/estimates/costEstimateService.test.ts",
+        "apps/prototype-web/client/src/application/estimates/costEstimateService.s10.test.ts"
       ],
       "transferTests": [
-        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts"
+        "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts",
+        "apps/prototype-web/client/src/application/transfers/localTransferService.planningFields.s10.test.ts"
       ],
       "notExportedReason": null,
       "docs": "current-state.md §23 (التقديرات — لا أثر مالي)"

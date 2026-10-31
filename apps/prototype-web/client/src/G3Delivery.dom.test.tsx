@@ -237,12 +237,28 @@ describe("G3 delivery surfaces — review before commitment", () => {
       note: "افتتاح",
       operationKey: "g3-calculator-open",
     });
-    wouterMocks.location = "/tools/calculator?from=%2Ftools";
+    /* S10 (UNIT-031/032): وضع التخطيط الجديد بلا قراءة تلقائية للمخزون
+     * (عقد 031 A1)؛ المقترحات محفوظة في محرر التقدير القديم التوافقي فقط
+     * (عقد D5 كما كان) — تفتح بسجل قديم فتظهر المقترحات there. */
+    const estimates = new CostEstimateService(store, () => NOW);
+    const legacy = await estimates.save({
+      title: "تقدير قديم",
+      materialItems: [],
+      time: null,
+      packagingMinor: 0,
+      deliveryMinor: 0,
+      wasteMinor: 0,
+      safetyBufferMinor: 0,
+      quantity: 1,
+      note: null,
+    });
+    if (!legacy.ok) throw new Error(legacy.message);
+    wouterMocks.location = `/tools/calculator?estimate=${legacy.value.id}&from=%2Ftools`;
     mockedUsePrototypeServices.mockImplementation(
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
     );
     render(<Harness page={<CostCalculator />} />);
-    await screen.findByRole("heading", { name: "حاسبة التكلفة والسعر" });
+    await screen.findByText(/حساب سابق بنموذج ما قبل/);
     const chip = await screen.findByRole("button", { name: /خشب زان/ });
     fireEvent.click(chip);
     /* الاقتراح عبّأ البند بلا فتح لوحة مفاتيح ولا حركة مخزون. */

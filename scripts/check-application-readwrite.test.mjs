@@ -136,19 +136,23 @@ describe("application read/write guard (R5/S3 — readers never write)", () => {
 });
 
 describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-019, OD-GUARD Option A)", () => {
-  it("the live repository passes at the baseline: 62 corpus files, zero violations", () => {
+  it("the live repository passes at the baseline: 65 corpus files, zero violations", () => {
     /* R11 Lock Remediation (2026-10-15): +1 — security/localLockBackoff.ts
      * (وحدة الوقفة المشتركة قارئة فقط؛ مصنفة في الجسم بتصنيف موثق في نفس
      * الـPR وفق D-04/R10A-F-019).
      * S02-B (SH-04 — UNIT-042، 2026-10-27): -1 — وحدة الوقفة حُذفت مع تقاعد
      * القفل بقرار المالك المعتمد (إلغاء ٠٤٢)؛ إعادة الإرساء الموثقة نفس-الـPR
-     * (64 ← 63) لا تعديل صامت. */
+     * (64 ← 63) لا تعديل صامت.
+     * S10 (UNIT-030 — أمر b56967d8/DOC-019، نفس-الـPR): +3 — بيت أدوات
+     * التخطيط النقي (planning/index.ts وplanningToolsService.ts — دوال حساب
+     * بلا تخزين) + كعب اختبار الحد planningCalculatorTestHarness.ts (نمط
+     * formDraftTestHarness؛ اختبارات فقط لا يدخل بناء الإنتاج)؛ 65 ← 62. */
     const result = checkApplicationReadWrite(REPO_ROOT);
     expect(result.ok).toBe(true);
-    expect(result.stats.readLikeCorpus).toBe(62);
-    expect(result.stats.readLikeBaseline).toBe(62);
-    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(62);
-    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(62);
+    expect(result.stats.readLikeCorpus).toBe(65);
+    expect(result.stats.readLikeBaseline).toBe(65);
+    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(65);
+    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(65);
   });
 
   it("growth: a new read-like file outside the governed corpus fails", () => {

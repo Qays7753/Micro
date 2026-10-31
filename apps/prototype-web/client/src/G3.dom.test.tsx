@@ -4,10 +4,11 @@
  * التقدير بلا أثر مالي، السعر الفعلي بيد المالك، إغلاق واقعي بعد البيع،
  * تخصيص صريح بلا تكرار، ورجوع محفوظ لكل مسار جديد. */
 import React from "react";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { CostEstimateService } from "@/application/estimates/costEstimateService";
+import { PlanningCalculationLifecycleService } from "@/application/estimates/planningCalculationLifecycle";
 import { DraftService } from "@/application/drafts/draftService";
 import { CatalogService } from "@/application/catalog/catalogService";
 import { RecurringWorkService } from "@/application/finance/recurringWorkService";
@@ -49,6 +50,11 @@ const wouterMocks = vi.hoisted(() => ({
 vi.mock("wouter", () => ({
   useLocation: () => [wouterMocks.location, wouterMocks.navigate],
   useParams: () => wouterMocks.params,
+  /* S10: صفحة التقدير القديمة صارت إحالة (Redirect) إلى الحاسبة. */
+  Redirect: ({ to }: { to: string }) => {
+    void to;
+    return null;
+  },
   /* و٥-ب: المحاكاة أمينة لواقع wouter — الاستعلام جزء من useSearch لا من المسار. */
   useSearch: () => {
     const query = wouterMocks.location.split("?")[1] ?? "";
@@ -61,6 +67,7 @@ const NOW = "2026-09-02T10:00:00.000Z";
 
 let store: MemoryLocalStore;
 let costEstimates: CostEstimateService;
+let planningCalculations: PlanningCalculationLifecycleService;
 let drafts: DraftService;
 let catalog: CatalogService;
 let costs: CostService;
@@ -73,6 +80,9 @@ function G3Harness({ page }: { page: React.ReactNode }) {
   contextRef.current = {
     formDrafts: new FormDraftService(store),
     costEstimates,
+    /* S10 (DOC-019): دورة حساب T01 المحفوظ — الخدمة الكسولة نفسها التي
+     * يوفرها جذر التركيب بعد الإقلاع (نمط assets/loans) فوق المخزن نفسه. */
+    planningCalculations,
     drafts,
     catalog,
     costs,
@@ -116,6 +126,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
   beforeEach(() => {
     store = new MemoryLocalStore();
     costEstimates = new CostEstimateService(store, () => NOW);
+    planningCalculations = new PlanningCalculationLifecycleService(store, () => NOW);
     drafts = new DraftService(store, () => NOW);
     catalog = new CatalogService(store, () => NOW);
     costs = new CostService(store, () => NOW);
@@ -131,43 +142,42 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     vi.clearAllMocks();
   });
 
-  it("calculator: live result with honest unknowns, save with zero financial effect, then next actions", async () => {
+  it("calculator: live result with honest unknowns, save with zero financial effect, then saved-calculations in place", async () => {
+    /* S10 (UNIT-031/032): الحاسبة صارت أداة التخطيط T01 — مجموعة بمكونات
+     * وحدة وسعر بيع حر؛ الجسر القديم إلى المسودة أزيل مدخله من التجربة
+     * الجديدة (U030-ACD06) والمحفوظات داخل الحاسبة لا في صفحة مستقلة. */
     wouterMocks.location = "/tools/calculator?returnTo=%2Ftools";
     mockedUsePrototypeServices.mockImplementation(
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
     );
     render(<G3Harness page={<CostCalculator />} />);
-    await screen.findByRole("heading", { name: "حاسبة التكلفة والسعر" });
+    await screen.findByRole("heading", { name: "حاسبة التكلفة والتسعير" });
     /* §7.3: القاعدة معلنة قبل أي رقم — في البطاقة وفي سطر النتيجة معًا. */
     expect(screen.getAllByText("هذا حساب تقديري. ما انحفظت أي حركة مالية ولا مخزون.").length).toBeGreaterThan(
       0,
     );
     /* §7.2: المجهول معلن — وقت العمل غير مُدخل لا يصير صفرًا. */
-    expect(screen.getByText("وقت العمل غير مُدخل — النتيجة بلا أجر وقتك.")).toBeTruthy();
+    expect(screen.getByText("وقت عملك غير مُدخل — النتيجة بلا أجر وقتك.")).toBeTruthy();
 
-    fireEvent.change(screen.getByPlaceholderText("مثال: كيكة مناسبة صغيرة"), {
+    fireEvent.change(screen.getByPlaceholderText("مثال: صناديق المناسبة"), {
       target: { value: "كيكة اختبار" },
     });
-    fireEvent.change(screen.getByPlaceholderText("مثال: دقيق"), { target: { value: "دقيق" } });
-    fireEvent.change(screen.getByLabelText("سعر وحدة المادة 1"), { target: { value: "5.00" } });
-    /* النتيجة الحية تتحدث أثناء الكتابة. */
-    await waitFor(() => expect(screen.getAllByText("5.00").length).toBeGreaterThan(0));
+    fireEvent.change(screen.getByLabelText("اسم المنتج أو الخدمة 1"), { target: { value: "كيكة" } });
+    fireEvent.change(screen.getByLabelText("المكوّن 1"), { target: { value: "دقيق" } });
+    fireEvent.change(screen.getByLabelText("سعر وحدة المكوّن 1 للمجموعة 1"), { target: { value: "5.00" } });
+    fireEvent.change(screen.getByLabelText("سعر بيع الوحدة للمجموعة 1"), { target: { value: "9.00" } });
+    /* النتيجة الحية تتحدث أثناء الكتابة: تكلفة 5 وبيع 9 ⇒ ربح متوقع 4.00. */
+    await waitFor(() => expect(screen.getByText(/ربح متوقع/).textContent).toContain("4.00"));
 
-    fireEvent.click(screen.getByRole("button", { name: "احفظ التقدير لمراجعته لاحقًا" }));
-    await waitFor(() => expect(screen.getByText(/حُفظ التقدير لمراجعته لاحقًا/)).toBeTruthy());
+    fireEvent.click(screen.getByRole("button", { name: "احفظ الحساب" }));
+    await waitFor(() => expect(screen.getByText(/تم حفظ الحساب/)).toBeTruthy());
     const list = await costEstimates.list();
     if (!list.ok) throw new Error(list.message);
     expect(list.value).toHaveLength(1);
-    /* §7.5: بعد الحفظ — فتح التقدير أو بدء مسودة، لا «أنشئ بيعًا» تلقائيًا. */
-    expect(screen.getByRole("button", { name: "افتح التقدير" })).toBeTruthy();
-    const bridgeButton = screen.getByRole("button", { name: "ابدأ مسودة من هذا التقدير" });
-    expect(bridgeButton).toBeTruthy();
-    /* رحلة §12: بدء المسودة من الحاسبة يعود إلى التقدير نفسه عند الرجوع. */
-    const estimateId = list.value[0]!.id;
-    fireEvent.click(bridgeButton);
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/orders/draft/new?intent=planned_design&estimate=${estimateId}&returnTo=%2Ftools%2Festimate%2F${estimateId}`,
-    );
+    /* §7.5 (S10): بعد الحفظ — «حساباتي المحفوظة» داخل الحاسبة، ولا جسر
+     * مسودة ولا «أنشئ بيعًا» من أداة التخطيط أبدًا. */
+    await screen.findByText("حساباتي المحفوظة");
+    expect(screen.queryByRole("button", { name: "ابدأ مسودة من هذا التقدير" })).toBeNull();
 
     /* الحكم الحاسم: لا حدث مالي ولا حركة كاش ولا مخزون. */
     const events = await store.listFinancialEvents();
@@ -179,7 +189,10 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     expect(movements.value).toHaveLength(0);
   });
 
-  it("estimate detail: inputs/result/qualifier, start-draft bridge preserves the estimate as referrer, edit link keeps context", async () => {
+  it("old estimate link redirects into the calculator with a valid identity — no standalone page, no draft bridge", async () => {
+    /* S10 (UNIT-032 A2/AC12): الرابط القديم /tools/estimate/:id يفتح الحساب
+     * نفسه داخل الحاسبة برجوع سليم — صفحة التقدير المستقلة أُلغيت بقرار
+     * المالك وجسر المسودة أزيل مدخله (U030-ACD06). */
     const saved = await costEstimates.save(estimateInput);
     if (!saved.ok) throw new Error(saved.message);
     wouterMocks.location = `/tools/estimate/${saved.value.id}?returnTo=%2Ftools`;
@@ -187,41 +200,33 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     mockedUsePrototypeServices.mockImplementation(
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
     );
-    render(<G3Harness page={<EstimateDetail />} />);
-    await screen.findByRole("heading", { name: "كيكة مناسبة صغيرة" });
-    /* المدخلات تظهر كما حُفظت. */
-    expect(screen.getByText("دقيق")).toBeTruthy();
-    /* §8.1: المؤهل الصريح — أداة تفكير بلا أثر مالي. */
-    expect(
-      screen.getByText("هذا التقدير أداة تفكير — لا حدث مالي ولا مخزون ولا التزام مرتبط به."),
-    ).toBeTruthy();
-
-    fireEvent.click(screen.getByRole("button", { name: "ابدأ مسودة من هذا التقدير" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/orders/draft/new?intent=planned_design&estimate=${saved.value.id}&returnTo=%2Ftools%2Festimate%2F${saved.value.id}`,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "عدّل التقدير" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/tools/calculator?estimate=${saved.value.id}&returnTo=%2Ftools%2Festimate%2F${saved.value.id}`,
-    );
+    const { container } = render(<G3Harness page={<EstimateDetail />} />);
+    /* الإحالة تفتح الحاسبة بنفس الهوية — سلوك التوجيه موثق في اختبار
+     * الاستعادة أدناه؛ هنا يثبت أن الصفحة لم تعد وجهة عرض مستقلة. */
+    expect(container.querySelector(".micro-estimate-detail-page")).toBeNull();
+    /* لا جسر مسودة إطلاقًا من أدوات التخطيط. */
+    expect(screen.queryByRole("button", { name: "ابدأ مسودة من هذا التقدير" })).toBeNull();
   });
 
-  it("calculator edit mode (?estimate=) loads the original and updates it in place — no duplicate", async () => {
+  it("calculator edit mode (?estimate=) loads the original in its own scope and updates it in place — no duplicate", async () => {
+    /* S10 (UNIT-032 B1/AC11): التقدير القديم يفتح في محرره التوافقي بنطاقه
+     * الأصلي (مواد الدفعة وعدد القطع) بلا إعادة تفسير، والتحديث يحدث السجل
+     * نفسه بهويته. */
     const saved = await costEstimates.save(estimateInput);
     if (!saved.ok) throw new Error(saved.message);
-    wouterMocks.location = `/tools/calculator?estimate=${saved.value.id}&returnTo=%2Ftools%2Festimate%2F${saved.value.id}`;
+    wouterMocks.location = `/tools/calculator?estimate=${saved.value.id}&returnTo=%2Ftools`;
     mockedUsePrototypeServices.mockImplementation(
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
     );
     render(<G3Harness page={<CostCalculator />} />);
+    await screen.findByText(/حساب سابق بنموذج ما قبل/);
     await screen.findByDisplayValue("كيكة مناسبة صغيرة");
     await screen.findByDisplayValue("دقيق");
     expect((screen.getByLabelText("سعر وحدة المادة 1") as HTMLInputElement).value).toBe("1.50");
 
     fireEvent.change(screen.getByLabelText("سعر وحدة المادة 1"), { target: { value: "20.00" } });
-    fireEvent.click(screen.getByRole("button", { name: "احفظ التعديلات على هذا التقدير" }));
-    await waitFor(() => expect(screen.getByText(/حُفظ تعديل التقدير/)).toBeTruthy());
+    fireEvent.click(screen.getByRole("button", { name: "احفظ التعديلات على هذا الحساب" }));
+    await waitFor(() => expect(screen.getByText(/حُفظ تعديل الحساب السابق/)).toBeTruthy());
 
     const list = await costEstimates.list();
     if (!list.ok) throw new Error(list.message);
@@ -234,19 +239,24 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     expect(events.value).toHaveLength(0);
   });
 
-  it("tools list: the estimate row opens its detail page with tools as referrer", async () => {
-    const saved = await costEstimates.save(estimateInput);
-    if (!saved.ok) throw new Error(saved.message);
+  it("tools list: five planning tools only — the calculator opens its deep path with tools as referrer", async () => {
+    /* S10 (UNIT-030 — SDF-059): الوجهة خمسة مداخل فقط لا سادس، وقائمة
+     * التقديرات المستقلة أُلغيت (المحفوظات داخل الحاسبة)، وكل أداة تفتح
+     * مسارها العميق وتحفظ أدوات المشروع مصدرًا. */
+    void (await costEstimates.save(estimateInput));
     wouterMocks.location = "/tools";
     mockedUsePrototypeServices.mockImplementation(
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
     );
     render(<G3Harness page={<Tools />} />);
-    await screen.findByText("تقديراتي المحفوظة");
-    fireEvent.click(screen.getByRole("button", { name: "كيكة مناسبة صغيرة" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(`/tools/estimate/${saved.value.id}?returnTo=%2Ftools`);
-    /* بطاقة الحاسبة تفتح المسار العميق وتحفظ أدواتي مصدرًا. */
-    fireEvent.click(screen.getByRole("button", { name: /افتح الحاسبة/ }));
+    await screen.findByText("احسب قبل أن تلتزم");
+    expect(screen.getAllByTestId(/tool-entry-/)).toHaveLength(5);
+    /* لا قائمة تقديرات مستقلة في الوجهة. */
+    expect(screen.queryByText("تقديراتي المحفوظة")).toBeNull();
+    /* بطاقة الحاسبة تفتح المسار العميق وتحفظ أدوات المشروع مصدرًا. */
+    fireEvent.click(
+      within(screen.getByTestId("tool-entry-t01")).getByRole("button", { name: /افتح الأداة/ }),
+    );
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/tools/calculator?returnTo=%2Ftools");
   });
 
@@ -429,6 +439,7 @@ describe("OrderDetail mid-journey deposit panel (عقد الإغلاق العم�
   beforeEach(() => {
     store = new MemoryLocalStore();
     costEstimates = new CostEstimateService(store, () => NOW);
+    planningCalculations = new PlanningCalculationLifecycleService(store, () => NOW);
     drafts = new DraftService(store, () => NOW);
     catalog = new CatalogService(store, () => NOW);
     costs = new CostService(store, () => NOW);

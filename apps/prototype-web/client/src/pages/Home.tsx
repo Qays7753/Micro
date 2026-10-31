@@ -15,6 +15,7 @@ import {
   Lightbulb,
   MoreHorizontal,
   Package,
+  Wrench,
   Receipt,
   Scale,
   ShieldCheck,
@@ -300,8 +301,10 @@ export default function Home() {
     .filter(fact => fact.state === "not_initialized")
     .map(fact => fact.label)
     .join("، ");
-  /* Z1.3: العنقود الثانوي — مراجع أقل تكرارًا؛ يظهر فقط حين فيه محتوى. */
-  const secondaryHasContent = !disabledCapabilities.includes("catalog") || moreActions.length > 0;
+  /* Z1.3: العنقود الثانوي — مراجع أقل تكرارًا؛ يظهر فقط حين فيه محتوى.
+   * S10 (UNIT-030): مدخل «أدوات المشروع» حاضر دائمًا (أداة تخطيط ليست قدرة
+   * قابلة للتعطيل — لا توقفها disabledCapabilities) فالعنقود فيه محتوى دائمًا. */
+  const secondaryHasContent = true;
   return (
     <section className="micro-page micro-home-control-center">
       <div className="micro-page-heading micro-home-heading">
@@ -573,6 +576,17 @@ export default function Home() {
                 <Package aria-hidden="true" /> منتجاتي وخدماتي
               </button>
             ) : null}
+            {/* S10 (UNIT-030 — أمر b56967d8): مدخل ثانوي لأدوات المشروع من الرئيسية
+                دون إعادة تصميم تنقل (الهجرة النهائية ملك S16) — الأدوات الخمس
+                وجهة تخطيط مستقلة بلا أي أثر أعمال. */}
+            <button
+              className="micro-quick-action"
+              type="button"
+              data-testid="home-tools-entry"
+              onClick={() => openFromHome("/tools")}
+            >
+              <Wrench aria-hidden="true" /> أدوات المشروع
+            </button>
             {moreActions.length > 0 ? (
               <button
                 className="micro-quick-action"

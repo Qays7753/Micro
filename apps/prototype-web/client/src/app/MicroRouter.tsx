@@ -56,14 +56,19 @@ const MaterialEditor = lazy(() => import("@/pages/MaterialEditor"));
 const InventoryMovementEditor = lazy(() => import("@/pages/InventoryMovementEditor"));
 const InventoryReversalEditor = lazy(() => import("@/pages/InventoryReversalEditor"));
 const Catalog = lazy(() => import("@/pages/Catalog"));
-/* «أدواتي» (مبدأ المالك ٥.٤): وجهة مستقلة للحاسبة والتقديرات وحالة الوحدات. */
+/* «أدواتي» → S10 (UNIT-030): وجهة أدوات المشروع الخمس. */
 const Tools = lazy(() => import("@/pages/Tools"));
 /* NAV-001: السوق — المقعد الخامس، إعلان «قريبًا» صادق بلا أي أثر مالي. */
 const Market = lazy(() => import("@/pages/Market"));
-/* المجموعة ٣ (Scope A): الحاسبة مسار عميق كامل — أداة تفكير بلا أثر مالي. */
+/* S10 (UNIT-031/032): حاسبة التخطيط T01 — أداة تفكير بلا أثر مالي ومحفوظاتها داخلها. */
 const CostCalculator = lazy(() => import("@/pages/CostCalculator"));
-/* المجموعة ٣ (Scope B): صفحة التقدير المحفوظ — قراءة وأفعال لا محرر ثانٍ. */
+/* S10 (UNIT-032): الرابط القديم للتفصيل صار إحالة إلى الحاسبة — لا صفحة مستقلة. */
 const EstimateDetail = lazy(() => import("@/pages/EstimateDetail"));
+/* S10 (UNIT-030): أدوات التخطيط T02–T05 — نقية بلا حفظ. */
+const HourValue = lazy(() => import("@/pages/HourValue"));
+const SalesQuantity = lazy(() => import("@/pages/SalesQuantity"));
+const InvoiceShare = lazy(() => import("@/pages/InvoiceShare"));
+const IdeaReview = lazy(() => import("@/pages/IdeaReview"));
 /* المجموعة ١ (فحص سلامة مالي): قارئ سطح تحت أدواتي — يبقى شريط التنقل. */
 const ToolsIntegrity = lazy(() => import("@/pages/ToolsIntegrity"));
 const Parties = lazy(() => import("@/pages/Parties"));
@@ -194,12 +199,19 @@ export function MicroRouter() {
             </Route>
             <Route path="/inventory" component={InventoryMaterials} />
             <Route path="/catalog" component={Catalog} />
+            {/* S10 (UNIT-030): أدوات المشروع — خمس أدوات فقط، لا أداة سادسة (الهجرة النهائية للتنقل ملك S16). */}
             <Route path="/tools" component={Tools} />
             {/* NAV-001: السوق — سطح يبقي التنقل السفلي؛ إعلان توسعة لا وظيفة. */}
             <Route path="/market" component={Market} />
-            {/* المجموعة ٣ (Scope A/B): حاسبة عميقة + تفصيل تقدير — يخفيان التنقل كإخوتهما المحررات. */}
+            {/* S10 (UNIT-031/032): حاسبة التخطيط T01 بعمق كامل مع محفوظاتها داخلها؛
+                والرابط القديم /tools/estimate/:id صار إحالة إليها (لا صفحة مستقلة). */}
             <Route path="/tools/calculator" component={CostCalculator} />
             <Route path="/tools/estimate/:id" component={EstimateDetail} />
+            {/* S10 (UNIT-030): أدوات التخطيط T02–T05 — مسارات عميقة كاملة بلا حفظ. */}
+            <Route path="/tools/hour-value" component={HourValue} />
+            <Route path="/tools/sales-quantity" component={SalesQuantity} />
+            <Route path="/tools/invoice-share" component={InvoiceShare} />
+            <Route path="/tools/idea-review" component={IdeaReview} />
             {/* المجموعة ١ (فحص سلامة مالي): مسار سطح — قارئ يبقي التنقل السفلي. */}
             <Route path="/tools/integrity" component={ToolsIntegrity} />
             {/* المجموعة ٤ (عقد ٢٩): محررا الأصل والقرض قبل المسارات الأكثر تحديدًا */}

@@ -88,12 +88,13 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
   const ERROR_ONLY_FILES: readonly (readonly [string, number])[] = [
     ["InventoryMovementEditor.tsx", 1],
     ["DirectSaleEditor.tsx", 0],
-    ["EstimateDetail.tsx", 0],
     ["MaterialEditor.tsx", 0],
-    ["Tools.tsx", 0],
     ["ToolsIntegrity.tsx", 0],
     ["CashAdjustmentEditor.tsx", 0],
     ["CostCalculator.tsx", 0],
+    /* S10 (UNIT-030/032 — أمر b56967d8): Tools صارت وجهة أدوات خمسة ساكنة
+     * (لا رسائل خطأ) وEstimateDetail صارت إحالة إلى الحاسبة — خرجا من
+     * القائمة لأنهما لم يعودا يحملان أي سطح رسالة خطأ. */
   ];
   const ERROR_ONLY_COMPONENTS: readonly (readonly [string, number])[] = [
     ["finance/CorrectionsLayer.tsx", 0],

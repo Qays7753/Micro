@@ -7,8 +7,8 @@
     "authority": "OD-10 Option A (owner-approved 2026-10-13, R11 owner decision package) + R11 W0 census (128 edges / 80 value / 48 type) + RV1/R11-RV1 independent reproductions"
   },
   "totals": {
-    "edges": 131,
-    "value": 82,
+    "edges": 132,
+    "value": 83,
     "type": 49,
     "governedEdges": 64,
     "governedPairs": 42
@@ -190,6 +190,11 @@
       "exemptTarget": true
     },
     {
+      "key": "application/estimates/planningCalculationLifecycle.ts -> application/time/clock.ts",
+      "kind": "value",
+      "exemptTarget": true
+    },
+    {
       "key": "application/finance/dueDateAging.ts -> application/agreements/followUpDate.ts",
       "kind": "value",
       "exemptTarget": false
@@ -252,6 +257,11 @@
     {
       "key": "application/finance/financeState.ts -> application/owner-money/ownerEntitlementService.ts",
       "kind": "type",
+      "exemptTarget": false
+    },
+    {
+      "key": "application/finance/financialEventEditorModel.ts -> application/financial-records/expenseRecordIntent.ts",
+      "kind": "value",
       "exemptTarget": false
     },
     {
@@ -663,11 +673,6 @@
       "key": "application/transfers/replacementProtectionProtocol.ts -> application/time/clock.ts",
       "kind": "type",
       "exemptTarget": true
-    },
-    {
-      "key": "application/finance/financialEventEditorModel.ts -> application/financial-records/expenseRecordIntent.ts",
-      "kind": "value",
-      "exemptTarget": false
     }
   ],
   "pairCaps": {

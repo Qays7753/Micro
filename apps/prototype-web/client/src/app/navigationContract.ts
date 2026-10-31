@@ -181,6 +181,11 @@ export const canonicalReturnFallbacks: Readonly<Record<string, string>> = {
   "/loans/new": "/loans",
   /* المجموعة ٣ (Scope C — §9.3): الحاسبة وصفحة التقدير — البديل القانوني أدواتي (بيتهما). */
   "/tools/calculator": "/tools",
+  /* S10 (UNIT-030): أدوات التخطيط T02–T05 — بديلها الكنوني مقعد أدوات المشروع. */
+  "/tools/hour-value": "/tools",
+  "/tools/sales-quantity": "/tools",
+  "/tools/invoice-share": "/tools",
+  "/tools/idea-review": "/tools",
   /* Wave 4.2 — P-4.2-4 (F05): المدخل المرئي لفحص السلامة صار «المالية ←
    * المزيد ← سلامة الحسابات» — المسار التقني /tools/integrity يبقى للتوافق،
    * وبديله الكنوني انتقل إلى سطح «المزيد» (تحديث موثق واحد مع عقد ٢٦ §2.2). */

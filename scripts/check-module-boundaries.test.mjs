@@ -352,27 +352,42 @@ describe("R7 component->page regression class (R8-F-019)", () => {
 });
 
 describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD Option A)", () => {
-  it("the full baseline is exactly 20 keys and the historical 17 is a strict subset", () => {
-    expect(UI_TO_STORAGE_TYPE_BASELINE).toHaveLength(20);
-    expect(new Set(UI_TO_STORAGE_TYPE_BASELINE).size).toBe(20);
+  it("the full baseline is exactly 22 keys and the historical 17 is a strict subset modulo the two documented retirements", () => {
+    expect(UI_TO_STORAGE_TYPE_BASELINE).toHaveLength(22);
+    expect(new Set(UI_TO_STORAGE_TYPE_BASELINE).size).toBe(22);
     expect(UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17).toHaveLength(17);
+    /* S10 (UNIT-030/031/032 — أمر b56967d8/DOC-019، نفس-الـPR): مفتاحان
+     * تاريخيان تُقاعدا بتوثيق — EstimateDetail.tsx وTools.tsx لم يعودا
+     * يستوردان أنواع التخزين إطلاقًا على الشجرة الحية (صفر استيراد storage)،
+     * فبقاؤهما في الأساس خرق نظافة المفاتيح المتقدمة؛ التقاعدهما تضييق
+     * لا توسيع (الحافة صارت ممنوعة لا مسموحة). */
+    const RETIRED_HISTORICAL_2 = [
+      "apps/prototype-web/client/src/pages/EstimateDetail.tsx -> @/storage/local/types",
+      "apps/prototype-web/client/src/pages/Tools.tsx -> @/storage/local/types",
+    ];
     for (const key of UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17) {
-      expect(UI_TO_STORAGE_TYPE_BASELINE).toContain(key);
+      const stillPresent = UI_TO_STORAGE_TYPE_BASELINE.includes(key);
+      const retired = RETIRED_HISTORICAL_2.includes(key);
+      expect(stillPresent || retired).toBe(true);
     }
     /* مفتاحا app-shell الموثقان + مفتاح S03 الموثق (نفس-الـPR، DOC-012)
-     * هما الفرق المسموح بين الأساسين. */
+     * + مفاتيح S10 الأربعة الموثقة (DOC-019) هم الفرق المسموح بين الأساسين. */
     const diff = UI_TO_STORAGE_TYPE_BASELINE.filter(k => !UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17.includes(k));
     expect(diff).toEqual([
       "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> @/storage/local/types",
       "apps/prototype-web/client/src/app/StartupGate.tsx -> @/storage/local/types",
       "apps/prototype-web/client/src/components/settings/SettingsProjectDataSection.tsx -> @/storage/local/types",
+      "apps/prototype-web/client/src/components/planning/LegacyEstimateEditor.tsx -> @/storage/local/types",
+      "apps/prototype-web/client/src/components/planning/PlanningGroupEditor.tsx -> @/storage/local/planningCalculationTypes",
+      "apps/prototype-web/client/src/components/planning/SavedCalculations.tsx -> @/storage/local/types",
+      "apps/prototype-web/client/src/pages/CostCalculator.tsx -> @/storage/local/planningCalculationTypes",
     ]);
   });
 
-  it("the live repository passes at the baseline: 20 type edges, zero violations", () => {
+  it("the live repository passes at the baseline: 22 type edges, zero violations", () => {
     const result = checkModuleBoundaries(REPO_ROOT);
     expect(result.ok).toBe(true);
-    expect(result.stats.uiToStorageType).toBe(20);
+    expect(result.stats.uiToStorageType).toBe(22);
   });
 
   it("growth: a new type-only UI->storage edge is rejected", () => {
@@ -472,7 +487,7 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
     write(root, "apps/prototype-web/client/src/pages/Unrelated.tsx", "export const u = 1;\n");
     const result = checkModuleBoundaries(root);
     const stale = result.violations.filter(v => v.rule === "R8-baseline-stale");
-    expect(stale).toHaveLength(20);
+    expect(stale).toHaveLength(22);
     /* على المستودع الحي: صفر مفاتيح متقدمة (يثبته اختبار المستودع الحي أعلاه). */
   });
 
@@ -566,8 +581,8 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
      * تأكيد جزء المالك من وحدة النية الكنسية؛ سقف الزوج finance→financial-records
      * 1→2) — الجرد 130/81/49 صار 131/82/49؛ إعادة إرساء موثقة نفس-الـPR
      * (راجع تقرير S07). */
-    expect(result.stats.houseEdges).toBe(131);
-    expect(result.stats.houseEdgesValue).toBe(82);
+    expect(result.stats.houseEdges).toBe(132);
+    expect(result.stats.houseEdgesValue).toBe(83);
     expect(result.stats.houseEdgesType).toBe(49);
   });
 

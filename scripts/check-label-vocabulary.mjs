@@ -136,6 +136,13 @@ export const PINNED_LABEL_LITERALS = {
   "components/finance/AllocationReviewCard.tsx": {
     "إجمالي المصروف المشترك": "owner-gated display — تسمية حقل الإجمالي؛ R2/STR-106",
   },
+  /* S10 (UNIT-031/032 — أمر b56967d8/DOC-019): محرر التقدير الموروث — تسمية
+   * حقل كمية البند (jsx-text) وaria-label أجر الساعة (string-literal)، بنمط
+   * MaterialSheet/CatalogTemplatesSection نفسه؛ تصنيف موثق في نفس الـPR. */
+  "components/planning/LegacyEstimateEditor.tsx": {
+    "الكمية": "owner-gated display — تسمية حقل الكمية؛ R2/STR-106",
+    "أجر الساعة": "owner-gated display — aria-label لحقل أجر الساعة؛ R2/STR-106",
+  },
   "components/owner/OwnerLedgerFormsSection.tsx": {
     "السبب": "owner-gated display — تسمية حقل السبب؛ R2/STR-106",
     "تاريخ الحركة": "owner-gated display — تسمية حقل تاريخ الحركة؛ R2/STR-106",
@@ -156,7 +163,9 @@ export const PINNED_LABEL_LITERALS = {
     "المحفظة": "owner-gated display — عرض المحفظة؛ R2/STR-106",
   },
   "pages/CostCalculator.tsx": {
-    "الكمية": "owner-gated display — تسمية حقل الكمية؛ R2/STR-106",
+    /* S10 (UNIT-031/032 — أمر b56967d8/DOC-019): «الكمية» غادرت الصفحة مع
+     * محرر المجموعات/الميراث (تسميتها الآن في LegacyEstimateEditor أدناه) —
+     * إزالة التثبيت المتقادم بنفس الـPR وفق بروتوكول النظافة. */
     "أجر الساعة": "owner-gated display — تسمية حقل أجر الساعة؛ R2/STR-106",
   },
   "pages/DirectSaleEditor.tsx": {

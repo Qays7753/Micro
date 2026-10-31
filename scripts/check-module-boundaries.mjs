@@ -340,16 +340,22 @@ export const UI_TO_STORAGE_TYPE_BASELINE = [
   "apps/prototype-web/client/src/components/settings/SettingsProjectDataSection.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/AgreementEditor.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/CostCalculator.tsx -> @/storage/local/types",
+  /* S10 (UNIT-030/031/032 — أمر b56967d8/DOC-019، نفس-الـPR): +4 موثقة —
+   * أسطح التخطيط تستورد الأنواع وحدها (القيم عبر الخدمات): محرر المجموعة
+   * والمحفوظات والحاسبة من أنواع حساب T01 المحفوظة، ومحرر التوافق يستورد
+   * نوع CostEstimate الكنوني وحده. */
+  "apps/prototype-web/client/src/components/planning/LegacyEstimateEditor.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/components/planning/PlanningGroupEditor.tsx -> @/storage/local/planningCalculationTypes",
+  "apps/prototype-web/client/src/components/planning/SavedCalculations.tsx -> @/storage/local/types",
+  "apps/prototype-web/client/src/pages/CostCalculator.tsx -> @/storage/local/planningCalculationTypes",
   "apps/prototype-web/client/src/pages/CostEditor.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/DraftEditor.tsx -> @/storage/local/types",
-  "apps/prototype-web/client/src/pages/EstimateDetail.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/Finance.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/NewDraft.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/OrderDetail.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/Orders.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/ScheduleEditor.tsx -> @/storage/local/types",
   "apps/prototype-web/client/src/pages/Settings.tsx -> @/storage/local/types",
-  "apps/prototype-web/client/src/pages/Tools.tsx -> @/storage/local/types",
 ];
 
 /** R8 — المجموعة التاريخية الـ17 (إحصاء RV1/R10-A: صفحات/مكوّنات فقط، بلا

@@ -49,6 +49,7 @@ import { RecurringWorkService } from "@/application/finance";
 import { FinancialAnalysisService } from "@/application/financial-analysis/financialAnalysisService";
 import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { CostEstimateService } from "@/application/estimates/costEstimateService";
+import type { PlanningCalculationLifecycleService } from "@/application/estimates/planningCalculationLifecycle";
 import type { PartyDirectoryService } from "@/application/parties/partyLedgerService";
 /* المجموعة ٢: التحصيل ودفتر المحفظة والكشف — خدمات مالية جديدة فوق المخزن نفسه. */
 import { CollectionService } from "@/application/collections/collectionService";
@@ -132,6 +133,12 @@ type PrototypeServices = {
   transfers: LocalTransferService | null;
   guidedOpeningImport: GuidedOpeningImportService | null;
   costEstimates: CostEstimateService;
+  /* S10 (DOC-019 / UNIT-031/032، سابقة purchases/assets/loans نفسها): دورة
+   * حساب T01 المحفوظ كسولة — التحميل الديناميكي يخرج دومين التخطيط من كومة
+   * الإقلاع (سقف gzip المحروس ADR-017 لا يُرفع)؛ null يعني «جارٍ التجهيز»
+   * (نمط transfers/loans/cashCount) لا فشلًا صامتًا — مستهلكها الوحيد
+   * (الحاسبة الكسولة) يعلن ذلك بصدق ويعيد المحاولة عند اكتماله. */
+  planningCalculations: PlanningCalculationLifecycleService | null;
   /* S05 (DOC-014 / UNIT-037، سابقة S04/cashCount نفسها): دليل الأطراف
    * المحفوظة عبر التحميل الخامل — مسار الأطراف لا يحتاجه الإقلاع وميزانية
    * الحزمة محروسة بسقف مالك؛ null يعني «جارٍ التجهيز» (نمط transfers/loans/
@@ -303,6 +310,22 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       active = false;
     };
   }, []);
+  /* S10 (DOC-019 / UNIT-031/032 — ميزانية الحزمة، نمط assets/loans/count
+   * نفسه): دورة حساب T01 المحفوظ تُحمّل ديناميكيًا بعد الإقلاع فوق المخزن
+   * الوحيد؛ تُبنى مرة ولا تُعاد عند تحديث dataVersion. دومين التخطيط
+   * وحفظ الحاسبة يخرجان من كومة الإقلاع (سقف gzip المحروس لا يُرفع). */
+  const [planningCalculationService, setPlanningCalculationService] =
+    useState<PlanningCalculationLifecycleService | null>(null);
+  useEffect(() => {
+    let active = true;
+    void import("@/application/estimates/planningCalculationLifecycle").then(module => {
+      if (!active) return;
+      setPlanningCalculationService(new module.PlanningCalculationLifecycleService(singletonStore));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
   useEffect(() => {
     let active = true;
     /* S05 (ميزانية الحزمة — نمط count/partyDirectory نفسه): مركز التحكم
@@ -376,6 +399,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       partyDirectory: partyDirectoryService,
       supplierPurchases: supplierPurchasesService,
       assets: assetService,
+      planningCalculations: planningCalculationService,
       homeControlCenter: homeControlCenterService,
       dataVersion,
       notifyDataChanged,
@@ -415,6 +439,7 @@ function createServices(): Omit<
   | "supplierPurchases"
   | "assets"
   | "homeControlCenter"
+  | "planningCalculations"
 > {
   const store = singletonStore;
   const costs = new CostService(store);

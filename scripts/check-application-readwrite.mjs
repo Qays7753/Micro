@@ -147,8 +147,16 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "inventory/materialSuggestions.ts",
   "inventory/materialUnitLabels.ts",
   "loans/index.ts",
+  /* S10 (UNIT-030 — أمر b56967d8، DOC-019): بيت أدوات التخطيط النقي — دوال
+   * حساب بلا أي تخزين (حفظ T01 في بيت التقديرات)؛ انضم للجسم بفحص
+   * الخاصية نفسه: صفر أفعال كتابة نصيًا وتشغيليًا. */
+  "planning/index.ts",
+  "planning/planningToolsService.ts",
   /* S05 (DOC-014 / UNIT-037، 2026-10-29): أُخرج parties/partyLedgerService.ts من جسم القراءة —
    * صار كاتبًا محروسًا (save/rename/archive عند حد commitCounterpartyWrite) لا قارئًا. */
+  /* S10: كعب اختبار الحد لحاسبة التخطيط (نمط formDraftTestHarness) — يستورد
+   * المخزن وينشئ الخدمة للاختبارات وحدها؛ لا يدخل بناء الإنتاج. */
+  "estimates/planningCalculatorTestHarness.ts",
   "parties/index.ts",
   "preferences/index.ts",
   "resultCodes.ts",

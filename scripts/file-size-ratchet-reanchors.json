@@ -5683,6 +5683,538 @@
         "trigger": "S09 review-fix delivery (DOC-018): immediate field markers + bidi-isolated notice numbers on components/integration-20261027 / PR #383.",
         "ocRef": "DOC-018"
       }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-11",
+      "date": "2026-10-31",
+      "path": "src/domain/planning/types.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 185,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. أنواع حسابات الأدوات الخمس النقية.",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-12",
+      "date": "2026-10-31",
+      "path": "src/domain/planning/policies.ts",
+      "from": {
+        "nbLoc": 457,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 561,
+        "band": "WATCH"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. حسابات T01 عبر النواة الواحدة + T02–T05 النقية — ملف جديد يدخل WATCH مباشرة بإرساء موثق (نمط العائلة: policies.ts بيت قواعد العائلة كإخوته). — القيمة النهائية بعد التنسيق وإصلاحات اللينط (التجزئة التعاونية للوظائف لخفض التعقيد إلى حد اللينط (35 تحذيرًا بالضبط)).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-13",
+      "date": "2026-10-31",
+      "path": "src/domain/planning/index.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 37,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. الباب العام لعائلة المجال.",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-14",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/application/planning/planningToolsService.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 93,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. بيت أدوات التخطيط النقي بلا تخزين.",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-15",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/application/planning/index.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 15,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. باب البيت (مسجل في حارس الأسطح).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-16",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/storage/local/planningCalculationTypes.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 54,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. أنواع حساب T01 المحفوظ — بيت أنواع مستقل داخل التخزين (راتشة الحجم).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-17",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/components/planning/PlanningGroupEditor.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 251,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. محرر مجموعة التخطيط (تفصيل/إجمالي وسعر حر).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-18",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/components/planning/LegacyEstimateEditor.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 330,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. محرر التوافق لتقديرات ما قبل S10 بنطاقها الأصلي (بمقترحات عقد D5 كما كانت).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-19",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/components/planning/SavedCalculations.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 100,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. قائمة «حساباتي المحفوظة» داخل الحاسبة (UNIT-032).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-20",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/pages/HourValue.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 143,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. أداة T02 — قيمة ساعة العمل.",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-21",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/pages/SalesQuantity.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 201,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. أداة T03 — كمية البيع المطلوبة.",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-22",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/pages/InvoiceShare.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 221,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. أداة T04 — نصيب المشروع من فاتورة مشتركة.",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-23",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/pages/IdeaReview.tsx",
+      "from": {
+        "nbLoc": 0,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 114,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. أداة T05 — فحص الفكرة الأولي.",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-01",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+      "from": {
+        "nbLoc": 253,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 265,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. أربعة مسارات عميقة جديدة لأدوات T02–T05 بتعليقاتها.",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-02",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/app/navigationContract.ts",
+      "from": {
+        "nbLoc": 202,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 207,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. البديل الكنوني للرجوع لمسارات T02–T05 الأربعة (مقعد أدوات المشروع).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-03",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/app/routeClassifier.ts",
+      "from": {
+        "nbLoc": 80,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 88,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. تصنيف مسارات T02–T05 عمقًا محروسًا كالحاسبة. (سلسلة الإرساء من قيمة الأساس 80 عبر سقف المرحلة السابقة إلى القيمة الحية).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-04",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/application/estimates/costEstimateService.ts",
+      "from": {
+        "nbLoc": 147,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 418,
+        "band": "WATCH"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. دورة حساب T01 المحفوظ (معاينة/حفظ بمفتاح نية/تحديث/إسقاط النواة) — تصعيد الشريط NORMAL→WATCH بمسؤولية موسعة في البيت نفسه. — القيمة النهائية بعد التنسيق وإصلاحات اللينط (بعد تنسيق Prettier النهائي).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-05",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts",
+      "from": {
+        "nbLoc": 1730,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 2091,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. بوابة شكل حساب التخطيط المحفوظ الكاملة (المجموعات/الإضافات/الخصم/العمولة/النتيجة التاريخية) — الباب المحروس بنمط S06/S09. — القيمة النهائية بعد التنسيق وإصلاحات اللينط (بعد تنسيق Prettier النهائي).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-06",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/pages/CostCalculator.tsx",
+      "from": {
+        "nbLoc": 609,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 869,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. حاسبة التخطيط T01: المجموعات بوضعي التكلفة وسعر البيع والخصم/العمولة ومساعدة الاقتراح والمحفوظات داخلها. — القيمة النهائية بعد التنسيق وإصلاحات اللينط (تصعيد إلى SPLIT_CANDIDATE بعد التنسيق — سابقة CostEditor 1036/DraftEditor 1012 في S09؛ مرشح تقسيم لاحق موثق لا تقسيم الآن (البند ٨ من أمر S10: لا تقسيم بنيوي)). — القيمة النهائية بعد فصل دورة الحفظ إلى الخدمة الكسولة (عرض «جارٍ التجهيز» الصادق وحارس null) وتنسيق Prettier النهائي.",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-07",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/pages/Home.tsx",
+      "from": {
+        "nbLoc": 732,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 759,
+        "band": "WATCH"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. مدخل ثانوي واحد «أدوات المشروع» في عنقود المراجع الثانوية — بلا إعادة تصميم تنقل. (سلسلة الإرساء من قيمة الأساس 732 عبر سقف المرحلة السابقة إلى القيمة الحية).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-08",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1262,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. حقل planning الاختياري ومفتاح نية الحفظ وتصدير CostEstimateKnowledge — الأنواع التخطيطية كاملة في ملفها النقي planningCalculationTypes.ts. (سلسلة الإرساء من قيمة الأساس 876 عبر سقف المرحلة السابقة إلى القيمة الحية).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-09",
+      "date": "2026-10-31",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 402,
+        "band": "WATCH"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. تسجيل باب application/planning الجديد بأسطاره السبعة القيمية والنوعية. (سلسلة الإرساء من قيمة الأساس 354 عبر سقف المرحلة السابقة إلى القيمة الحية).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-10",
+      "date": "2026-10-31",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 315,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 325,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس — محرك التخطيط النقي المستهلك لنواة SH-13 بسطحها العام، وحساب T01 بحفظه الاختياري داخل الحاسبة (UNIT-032)، والحقول الاختيارية المتوافقة رجعيًا على عائلة cost-estimates بترقية مخطط 40/32 (نمط S06-S09). لا محرك حساب ثانٍ ولا إعادة هيكلة بنيوية. التحاق ملفي بيت التخطيط النقي بجسم القراءة (الراتشة العضوية D-04). (سلسلة الإرساء من قيمة الأساس 315 عبر سقف المرحلة السابقة إلى القيمة الحية). — القيمة النهائية بعد تسجيل كعب الاختبار في الجسم (65 مدخلًا).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-24",
+      "date": "2026-10-31",
+      "path": "scripts/check-module-boundaries.mjs",
+      "from": {
+        "nbLoc": 822,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 836,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس وحساب T01 بحفظه داخل الحاسبة. أساس R8 المحدث بحواف أنواع التخطيط الأربع الموثقة وحذف المفتاحين الميتين.",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-25",
+      "date": "2026-10-31",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 904,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S10 (UNIT-030/031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): أدوات المشروع الخمس وحساب T01 بحفظه داخل الحاسبة. رفع CostCalculator الموثق 59→66 (قياس يومه الفعلي) وأسقف T02–T05 الصريحة عند قياس يومها الأول بالضبط (22/29/26/18 — لا الافتراضي 30؛ نمو لاحق يمر بإرساء موثق) بدلًا من تركها على الافتراضي.",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-26",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+      "from": {
+        "nbLoc": 360,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 520,
+        "band": "WATCH"
+      },
+      "reason": "S10 (UNIT-031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): توصيل دورة حساب T01 المحفوظ عبر التحميل الخامل (نمط assets/loans/cashCount الموثق — بروتوكول FIN-001/OPS-003): إعلان الخدمة الكسولة في النوع وحالتها وتحميلها الديناميكي فوق المخزن الوحيد بعد الإقلاع — دومين التخطيط يخرج من كومة الإقلاع وسقف gzip المحروس (155,300) لا يُرفع؛ الدخول بقي تحته (152,904).",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-28",
+      "date": "2026-10-31",
+      "path": "scripts/application-house-edges-census.json",
+      "from": {
+        "nbLoc": 891,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 912,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S10 (UNIT-031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): صف الحافة الموثق نفس-الـPR لخدمة دورة حساب T01 المنفصلة (planningCalculationLifecycle) — حافة R6 لجذر التركيز (نمط assets/loans الموثق) وحافة جرد R9 إلى منفذ الساعة المعفى الورقي (نمط assetService نفسه)؛ نمو مرئي لا صامت.",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10-PLANNING-TOOLS-20261031-29",
+      "date": "2026-10-31",
+      "path": "scripts/ui-application-import-baseline.json",
+      "from": {
+        "nbLoc": 72,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 74,
+        "band": "NORMAL"
+      },
+      "reason": "S10 (UNIT-031/032 + SH-14 — أمر التنفيذ b56967d8/DOC-019): صف الحافة الموثق نفس-الـPR لخدمة دورة حساب T01 المنفصلة (planningCalculationLifecycle) — حافة R6 لجذر التركيز (نمط assets/loans الموثق) وحافة جرد R9 إلى منفذ الساعة المعفى الورقي (نمط assetService نفسه)؛ نمو مرئي لا صامت.",
+      "authorization": {
+        "ownerReview": "S10 PR review (DOC-019/WS-235 — أمر تنفيذ 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8) — هذه القيود جزء من فرق S10 في نفس الـPR",
+        "trigger": "S10 implementation growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
     }
   ]
 }

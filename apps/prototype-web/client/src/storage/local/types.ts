@@ -310,6 +310,9 @@ export type InventoryActivation = {
   operationKey: string;
 };
 
+import type { PlanningCalculationFields } from "./planningCalculationTypes";
+import type { CostEstimateKnowledge, DraftCostMaterial, DraftCostTime } from "./costItemTypes";
+
 export type ActivityProfile = {
   id: typeof localProfileId;
   activityName: string;
@@ -368,21 +371,10 @@ export type PreferencesCommitOutcome =
   | { outcome: "created"; preferences: LocalPreferences }
   | { outcome: "conflict"; live: LocalPreferences | null };
 export type DraftIntent = "customer_order" | "planned_design";
-export type DraftCostMaterial = {
-  name: string;
-  quantity: number;
-  unit: string;
-  unitPriceMinor: number;
-  confidence: "known" | "estimated";
-  /* المجموعة ٣ (عقد D2/D3): هوية المادة المرتبطة إن اختيرت من المخزون — هوية
-   * فقط؛ الأرقام تُدخل وتُجمَّد كما هي. غياب الحقل = بند حر. */
-  materialId?: string | null;
-};
-export type DraftCostTime = {
-  minutes: number | null;
-  hourlyRateMinor: number | null;
-  confidence: "known" | "estimated";
-};
+/* S10 (أمر b56967d8): بنود التكلفة المشتركة صارت في ملفها الورقي
+ * costItemTypes.ts لكسر دورة الأنواع مع أنواع حساب T01 — بيتها القانوني
+ * يعاد تصديره هنا فلا يتغير أي مستهلك. */
+export type { DraftCostMaterial, DraftCostTime } from "./costItemTypes";
 export type DraftCostSnapshot = {
   id: string;
   revision: number;
@@ -529,7 +521,7 @@ export type ScheduleRecurrence = {
 
 /* تقدير تكلفة مستقل (PA-006 ومبدأ «أدواتي»): حساب تفكير قبل الالتزام — لا يُنشئ
  * أي حدث مالي ولا حركة مخزون ولا طلبًا. يُحفظ للمراجعة اللاحقة فقط ويوسم دائمًا «تقديري». */
-type CostEstimateKnowledge = "known" | "estimated" | "partial" | "incomplete" | "stale" | "variable";
+export type { CostEstimateKnowledge } from "./costItemTypes";
 export type CostEstimate = {
   id: string;
   title: string;
@@ -550,6 +542,18 @@ export type CostEstimate = {
   note: string | null;
   createdAt: string;
   updatedAt: string;
+  /* S10 (UNIT-032/SH-14 — أمر b56967d8): حساب T01 المحفوظ داخل الحاسبة —
+   * حقل اختياري متوافق رجعيًا (نمط S06/S09): غيابه/null = تقدير قديم
+   * بنموذج ما قبل S10 يفتح في الحاسبة بنطاقه الأصلي دون إعادة تفسير،
+   * ووجوده = حساب تخطيط T01 مصدره مدخلات التخطيط (المجموعات/الأسعار/
+   * الإضافات) ونتيجته التاريخية لحظة الحفظ. الحقول القديمة أعلاه تبقى
+   * الإسقاط المسطح المشتق بالنواة الواحدة عند حفظ حساب تخطيط جديد فلا
+   * ينكسر أي قارئ قائم. لا يخزن الحساب أي أثر بيع/مصروف/طلب/مخزون. */
+  planning?: PlanningCalculationFields | null;
+  /* S10 (UNIT-032): مفتاح نية الحفظ — نفس الأمر (الضغط المتكرر/إعادة
+   * المحاولة) لا ينشئ حسابًا ثانيًا (نمط createdOperationKey في الكتالوج
+   * S09). غيابه = سجل قديم قبل S10. */
+  createdOperationKey?: string | null;
 };
 
 export type LocalStoreSnapshot = {

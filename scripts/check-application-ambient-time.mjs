@@ -101,6 +101,9 @@ export const APPROVED_ID_FALLBACK_SITES = [
   { file: "application/direct-sales/directSaleService.ts", shape: "nullish" },
   { file: "application/drafts/draftService.ts", shape: "ternary" },
   { file: "application/estimates/costEstimateService.ts", shape: "nullish" },
+  /* S10 (DOC-019، 2026-10-31): مساعد المعرف نفسه انتقل مع دورة حساب T01 المحفوظ إلى
+   * الخدمة الكسولة planningCalculationLifecycle (فصل ميزانية الحزمة) — إرساء بنفس الـPR. */
+  { file: "application/estimates/planningCalculationLifecycle.ts", shape: "nullish" },
   { file: "application/finance/projectFinancialEventWrites.ts", shape: "nullish" },
   { file: "application/finance/recurringWorkService.ts", shape: "nullish" },
   { file: "application/financial-analysis/financialAnalysisService.ts", shape: "nullish" },

@@ -11,7 +11,8 @@
     "S02-B": "إعادة إرساء باب الأمن: تقاعد القفل (UNIT-042) — المقيم الوحيد تقاعد سجل القفل القديم.",
     "S02-A": "إعادة إرساء باب النقل: نوعا الأمر المربوط بالمراجعة (BoundRestoreIntent/RestoreIntentContext) — بروتوكول حماية الاستبدال SH-02/SH-03.",
     "s03-offering-preference-door": "2026-10-28 (S03/DOC-012 — UNIT-038 P3.2 + UNIT-001 P3.2): preferences door +type OfferingPreference +value isOfferingPreference — the canonical offering-preference declaration owned by the preferences service (single source for the 001 setup question and the 038 usage-preferences editor); UI consumers import through the door instead of re-declaring; same-PR documented widening per PC-3.",
-    "S05": "2026-10-29 (S05 / DOC-014 / UNIT-037): parties door re-anchored to the saved-party directory surface — +3 values (purchasePartySnapshotOf/salePartySnapshotOf/supplierDisplayLabelOf) and +10 types (directory service/result/store, account entry, movement kinds, save/rename/archive inputs) after retiring the name-aggregation reader (PartyLedgerOverview/PartyLedgerService removed); same-PR documented widening+shrink per PC-3."
+    "S05": "2026-10-29 (S05 / DOC-014 / UNIT-037): parties door re-anchored to the saved-party directory surface — +3 values (purchasePartySnapshotOf/salePartySnapshotOf/supplierDisplayLabelOf) and +10 types (directory service/result/store, account entry, movement kinds, save/rename/archive inputs) after retiring the name-aggregation reader (PartyLedgerOverview/PartyLedgerService removed); same-PR documented widening+shrink per PC-3.",
+    "s10": "S10 (UNIT-030 — أمر b56967d8): باب جديد application/planning — دوال حساب أدوات التخطيط الخمس النقية (T01 معاينة/اقتراح + T02–T05) بلا تخزين؛ حفظ T01 في بيت التقديرات. دخل القائمة مع تأسيس البيت في نفس الشريحة."
   },
   "doors": {
     "activity": {
@@ -378,6 +379,20 @@
         "RestoreResult",
         "TransferPreview",
         "TransferSummary"
+      ]
+    },
+    "planning": {
+      "value": [
+        "previewPlanningCalculation",
+        "suggestPlanningPrice",
+        "computeHourValue",
+        "computeSalesQuantity",
+        "computeInvoiceShare",
+        "computeIdeaReview",
+        "IDEA_REVIEW_QUESTIONS"
+      ],
+      "type": [
+        "PlanningToolsResult"
       ]
     }
   },
