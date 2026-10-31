@@ -133,6 +133,7 @@ export default function CostCalculator() {
         setTimeKnown(record.planning.time !== null);
         setTimeMinutes(record.planning.time?.minutes ?? 0);
         setTimeRateMinor(record.planning.time?.hourlyRateMinor ?? 0);
+        setTimeConfidence(record.planning.time?.confidence === "estimated" ? "estimated" : "known");
         setPackagingMinor(record.planning.packagingMinor);
         setWasteMinor(record.planning.wasteMinor);
         setDeliveryMinor(record.planning.deliveryMinor);
@@ -158,7 +159,7 @@ export default function CostCalculator() {
                 value:
                   record.planning.discount.mode === "amount"
                     ? record.planning.discount.amountMinor
-                    : record.planning.discount.percentCenti / 100,
+                    : record.planning.discount.percentCenti,
               }
             : { enabled: false, mode: "amount", value: 0 },
         );
@@ -170,7 +171,7 @@ export default function CostCalculator() {
                 value:
                   record.planning.commission.mode === "amount"
                     ? record.planning.commission.amountMinor
-                    : record.planning.commission.percentCenti / 100,
+                    : record.planning.commission.percentCenti,
                 basis:
                   record.planning.commission.mode === "percent"
                     ? record.planning.commission.basis
@@ -198,6 +199,8 @@ export default function CostCalculator() {
   const [timeKnown, setTimeKnown] = useState(false);
   const [timeMinutes, setTimeMinutes] = useState(0);
   const [timeRateMinor, setTimeRateMinor] = useState(0);
+  /* R2-F6: لغة المعرفة نفسها التي يقدمها محرر التكلفة — مؤكد/تقديري. */
+  const [timeConfidence, setTimeConfidence] = useState<"known" | "estimated">("known");
   const [packagingMinor, setPackagingMinor] = useState(0);
   const [wasteMinor, setWasteMinor] = useState(0);
   const [deliveryMinor, setDeliveryMinor] = useState(0);
@@ -228,7 +231,7 @@ export default function CostCalculator() {
       groups: groups.map(toPersistGroup),
       time:
         timeKnown && timeMinutes > 0 && timeRateMinor > 0
-          ? { minutes: timeMinutes, hourlyRateMinor: timeRateMinor, confidence: "known" as const }
+          ? { minutes: timeMinutes, hourlyRateMinor: timeRateMinor, confidence: timeConfidence }
           : null,
       packagingMinor,
       wasteMinor,
@@ -238,22 +241,21 @@ export default function CostCalculator() {
       discount: discount.enabled
         ? discount.mode === "amount"
           ? ({ mode: "amount", amountMinor: discount.value } as const)
-          : ({ mode: "percent", percentCenti: Math.round(discount.value * 100) } as const)
+          : /* R2-F4: الحقل يحمل percentCenti مباشرة (kind="percentage") —
+             * لا تحويل تقريبي عند بناء المدخل؛ الدقة أصلية بالبناء. */
+            ({ mode: "percent", percentCenti: discount.value } as const)
         : null,
       commission: commission.enabled
         ? commission.mode === "amount"
           ? ({ mode: "amount", amountMinor: commission.value } as const)
-          : ({
-              mode: "percent",
-              percentCenti: Math.round(commission.value * 100),
-              basis: commission.basis,
-            } as const)
+          : ({ mode: "percent", percentCenti: commission.value, basis: commission.basis } as const)
         : null,
     }),
     [
       title,
       groups,
       timeKnown,
+      timeConfidence,
       timeMinutes,
       timeRateMinor,
       packagingMinor,
@@ -281,6 +283,7 @@ export default function CostCalculator() {
       title,
       groups,
       timeKnown,
+      timeConfidence,
       timeMinutes,
       timeRateMinor,
       packagingMinor,
@@ -518,6 +521,16 @@ export default function CostCalculator() {
                   aria-label="أجر الساعة"
                 />
               </label>
+              <label className="micro-field">
+                <span>حالة الرقم</span>
+                <select
+                  value={timeConfidence}
+                  onChange={event => setTimeConfidence(event.target.value as "known" | "estimated")}
+                >
+                  <option value="known">مؤكد</option>
+                  <option value="estimated">تقديري</option>
+                </select>
+              </label>
               <p className="micro-home-quiet">وقتك هنا تقدير تسعيري — لا يُدفع منه أجر ولا يُسجل مصروف.</p>
             </div>
           ) : null}
@@ -687,8 +700,8 @@ export default function CostCalculator() {
                   <span>{discount.mode === "amount" ? "مبلغ الخصم (د.أ)" : "نسبة الخصم (٪)"}</span>
                   <EnglishNumberInput
                     value={discount.value}
-                    kind={discount.mode === "amount" ? "money" : "decimal"}
-                    onNumericChange={value => setDiscount(current => ({ ...current, value }))}
+                    kind={discount.mode === "amount" ? "money" : "percentage"}
+                    onNumericChange={value => setDiscount(current => ({ ...current, value: value ?? 0 }))}
                     aria-label="قيمة الخصم"
                   />
                 </label>
@@ -728,8 +741,8 @@ export default function CostCalculator() {
                   <span>{commission.mode === "amount" ? "مبلغ العمولة (د.أ)" : "نسبة العمولة (٪)"}</span>
                   <EnglishNumberInput
                     value={commission.value}
-                    kind={commission.mode === "amount" ? "money" : "decimal"}
-                    onNumericChange={value => setCommission(current => ({ ...current, value }))}
+                    kind={commission.mode === "amount" ? "money" : "percentage"}
+                    onNumericChange={value => setCommission(current => ({ ...current, value: value ?? 0 }))}
                     aria-label="قيمة العمولة"
                   />
                 </label>

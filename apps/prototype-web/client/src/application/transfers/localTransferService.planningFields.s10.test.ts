@@ -182,4 +182,43 @@ describe("S10 planning fields transfer round-trip", () => {
     const outcome = await targetService.prepareRestore(JSON.stringify(file));
     expect(outcome.ok).toBe(false);
   });
+
+  it("R2-F1: حساب بخسارة متوقعة صادقة (ربح وهامش سالبان) يعبر التصدير والاستعادة — لا قفل نسخة احتياطية", async () => {
+    /* «سعر البيع حر بلا حد أدنى»: بيع 1000+200=1200 على تكلفة
+     * 2600+2000 وقت+100+300 = 5000 ⇒ ربح −3800 وهامش سالب — حالة عقدية
+     * مشروعة (U031-AC23) لا تُرفض بوابة النقل. */
+    const store = new MemoryLocalStore();
+    const planning = new PlanningCalculationLifecycleService(store, now);
+    const saved = await planning.savePlanning(
+      {
+        ...planningInput,
+        groups: [
+          { ...planningInput.groups[0]!, sellingPriceMinor: 100 },
+          { ...planningInput.groups[1]!, sellingPriceMinor: 100 },
+        ],
+        discount: null,
+        commission: null,
+        otherRevenues: [],
+        otherExpenses: [],
+      },
+      "op-honest-loss",
+    );
+    if (!saved.ok) throw new Error(saved.message);
+    expect(saved.value.planning?.savedResult.expectedProfitMinor ?? 0).toBeLessThan(0);
+    expect(saved.value.planning?.savedResult.marginPercentCenti ?? 0).toBeLessThan(0);
+
+    const service = new LocalTransferService(store, now);
+    const exported = await service.createExport();
+    if (!exported.ok) throw new Error(exported.message);
+    const target = new MemoryLocalStore();
+    const targetService = new LocalTransferService(target, now);
+    const restored = await targetService.prepareRestore(JSON.stringify(exported.value));
+    if (!restored.ok) throw new Error(restored.message);
+    const confirmed = await targetService.confirmImport(restored.value);
+    if (!confirmed.ok) throw new Error(confirmed.message);
+    const roundTripped = await new CostEstimateService(target, now).list();
+    if (!roundTripped.ok) throw new Error(roundTripped.message);
+    expect(roundTripped.value[0]?.planning?.savedResult.expectedProfitMinor).toBeLessThan(0);
+    expect(roundTripped.value[0]?.planning?.savedResult.marginPercentCenti).toBeLessThan(0);
+  });
 });

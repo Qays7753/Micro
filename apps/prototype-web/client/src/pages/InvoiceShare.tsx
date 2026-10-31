@@ -39,11 +39,12 @@ export default function InvoiceShare() {
         setResult(null);
         return;
       }
-      /* الإدخال نسبة مئوية عادية؛ تُحوَّل إلى مقياس percentCenti الداخلي. */
+      /* R2-F4: الحقل يحمل percentCenti مباشرة (kind="percentage") — لا
+       * تحويل تقريبي؛ الدقة أصلية بالبناء. */
       const outcome = computeInvoiceShare({
         method: "percent",
         billTotalMinor,
-        percentCenti: Math.round(percentValue * 100),
+        percentCenti: percentValue,
       });
       if (!outcome.ok) {
         setError(outcome.message);
@@ -133,7 +134,7 @@ export default function InvoiceShare() {
             <span>نسبة المشروع من الفاتورة (٪)</span>
             <EnglishNumberInput
               value={percentValue}
-              kind="decimal"
+              kind="percentage"
               allowEmpty
               onEmptyChange={() => setPercentValue(null)}
               onNumericChange={setPercentValue}

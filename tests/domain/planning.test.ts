@@ -307,13 +307,15 @@ describe("S10 T01 — المعرفة الصادقة والمدخلات النا�
 
 describe("S10 T02 — قيمة ساعة العمل", () => {
   it("300 ÷ (20×5) = 3 د.أ للساعة (U030-AC03)", () => {
+    /* R2-F5: مقياس النقود الكنوني 1/100 — 300 د.أ = 30000 minor،
+     * والنتيجة 3.00 د.أ = 300 minor. */
     const result = calculateHourValue({
-      monthlyCompensationMinor: 300000,
+      monthlyCompensationMinor: 30000,
       workDaysPerMonth: 20,
       productiveHoursPerDay: 5,
     });
     expect(result.monthlyHours).toBe(100);
-    expect(result.hourValueMinor).toBe(3000);
+    expect(result.hourValueMinor).toBe(300);
   });
 
   it("المقابل 0 يعطي 0 مع بقاء الحساب صالحًا — لا مجهولًا", () => {
@@ -351,14 +353,15 @@ describe("S10 T02 — قيمة ساعة العمل", () => {
 
 describe("S10 T02 — حالات حدود قيمة الساعة", () => {
   it("ساعات كسرية مدعومة بدقة أجزاء الألف: 300 على (15×4.5=67.5) ⇒ 4.44", () => {
+    /* R2-F5: 300 د.أ = 30000 minor على مقياس 1/100 الكنوني؛
+     * 30000×1000/67500 = 444.4 ⇒ 444 minor = 4.44 د.أ (نصف-لأعلى). */
     const result = calculateHourValue({
-      monthlyCompensationMinor: 300000,
+      monthlyCompensationMinor: 30000,
       workDaysPerMonth: 15,
       productiveHoursPerDay: 4.5,
     });
     expect(result.monthlyHours).toBe(67.5);
-    /* 300000×1000/67500 = 4444.4 ⇒ 4444 minor = 4.44 */
-    expect(result.hourValueMinor).toBe(4444);
+    expect(result.hourValueMinor).toBe(444);
   });
 });
 

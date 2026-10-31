@@ -279,8 +279,9 @@ describe("S10 planning calculations (T01) through the single kernel", () => {
   it("R1-F1: سطر مجموعة فارغ في المحرر لا يفسد الإسقاط المحفوظ ولا يقفل النقل — مصدر التوسيع واحد", async () => {
     const store = new MemoryLocalStore();
     const planning = new PlanningCalculationLifecycleService(store, now);
-    /* مجموعة فعالة واحدة (تكرار 2، مكوّن 5 د.أ) + سطر مجموعة فارغ تمامًا
-     * («أضف منتجًا آخر» بلا إدخال) — سيناريو المراجعة R1 حرفيًا. */
+    /* مجموعة الفixture الفعالة الوحيدة (تكرار 10، مكونات 200/50×2/300/100
+     * = 700 minor للوحدة) + سطر مجموعة فارغ تمامًا («أضف منتجًا آخر» بلا
+     * إدخال) — سيناريو المراجعة R1 حرفيًا. */
     const input = planningInput({
       groups: [
         ...planningInput().groups,

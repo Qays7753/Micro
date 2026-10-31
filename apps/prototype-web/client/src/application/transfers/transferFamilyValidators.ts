@@ -1801,12 +1801,16 @@ function validPlanningSavedResult(value: unknown): boolean {
       value.expectedTotalMinor === undefined ||
       isMoney(value.expectedTotalMinor)) &&
     isMoney(value.pricingCostMinor) &&
+    /* R2-F1 (مراجعة S10): الربح المتوقع والهامش قد يكونان سالبين بصدق —
+     * «سعر البيع حر بلا حد أدنى» ينتج خسارة متوقعة وهامشًا سالبًا (مثال
+     * U031-AC23) وهي حالة عقدية مشروعة؛ رفضها بقفل النسخ الاحتياطي كله
+     * خطأ. isSignedMoney بسابقة profitMinor للدورة (X-06 نفسها). */
     (value.expectedProfitMinor === null ||
       value.expectedProfitMinor === undefined ||
-      isMoney(value.expectedProfitMinor)) &&
+      isSignedMoney(value.expectedProfitMinor)) &&
     (value.marginPercentCenti === null ||
       value.marginPercentCenti === undefined ||
-      isMoney(value.marginPercentCenti)) &&
+      isSignedMoney(value.marginPercentCenti)) &&
     isKnownState(value.knowledgeState)
   );
 }

@@ -134,7 +134,7 @@ function expandPlanningGroups(
   for (const group of activeGroups) {
     derivedQuantity += group.repeatQuantity;
     if (group.costMode === "total") {
-      pushTotalModeItem(group, priceDate, materialItems);
+      pushTotalModeItem(group, priceDate, materialItems, excludedComponentNames);
       continue;
     }
     pushExpandedComponents(group, priceDate, materialItems, excludedComponentNames);
@@ -144,8 +144,19 @@ function expandPlanningGroups(
 }
 
 /** وضع الإجمالي: بند واحد كمية 1 بسعر الإجمالي الدقيق — الأصل نفسه (SDF-002). */
-function pushTotalModeItem(group: PlanningGroup, priceDate: string, materialItems: MaterialCostItem[]): void {
-  if (group.totalCostMinor === null || group.totalCostMinor <= 0) return;
+function pushTotalModeItem(
+  group: PlanningGroup,
+  priceDate: string,
+  materialItems: MaterialCostItem[],
+  excludedComponentNames: string[],
+): void {
+  /* R2-F3: مجموعة موسومة بوضع الإجمالي بلا إجمالي مُدخل = تكلفتها كلها
+   * «غير محدد بعد» — تستبعد بقناة الصدق نفسها (لا صفرًا صامتًا يعلم
+   * knowledgeState «مؤكد») مثل المكوّن المسمى بلا سعر حرفيًا. */
+  if (group.totalCostMinor === null || group.totalCostMinor <= 0) {
+    excludedComponentNames.push(`${group.label.trim()} (إجمالي غير محدد بعد)`);
+    return;
+  }
   materialItems.push({
     name: group.label.trim(),
     quantity: 1,
@@ -208,7 +219,10 @@ function discountMinorOf(
     return discount.amountMinor;
   }
   assertPercentCenti(discount.percentCenti, "الخصم");
-  return roundHalfUp(sellingTotal * discount.percentCenti, 10000) ?? 0;
+  /* R2-F2: فيض الدقة يُغلق بصدق لا صفرًا صامتًا (سياسة القيم الدقيقة). */
+  const discountMinor = roundHalfUp(sellingTotal * discount.percentCenti, 10000);
+  if (discountMinor === null) throw new Error("نسبة الخصم على هذه القيمة تتجاوز الدقة الآمنة؛ قلّل القيمة.");
+  return discountMinor;
 }
 
 /** عمولة اختيارية بأساس صريح يختاره المستخدم — تكلفة مرة واحدة. */
@@ -233,7 +247,11 @@ function commissionMinorOf(
   if (basis === null) {
     throw new Error("أدخل أسعار البيع قبل تجربة العمولة — لا عمولة بلا أساس معلن.");
   }
-  return roundHalfUp(basis * commission.percentCenti, 10000) ?? 0;
+  /* R2-F2: فيض الدقة يُغلق بصدق لا صفرًا صامتًا. */
+  const commissionMinor = roundHalfUp(basis * commission.percentCenti, 10000);
+  if (commissionMinor === null)
+    throw new Error("نسبة العمولة على هذا الأساس تتجاوز الدقة الآمنة؛ قلّل القيمة.");
+  return commissionMinor;
 }
 
 /** نتائج المجموعات وقيمة البيع الكاملة — السعر غير المحدد يبقيها null لا صفرًا. */
@@ -553,7 +571,10 @@ export function calculateInvoiceShare(input: InvoiceShareInput): InvoiceShareRes
   assertMinor(input.billTotalMinor, "قيمة الفاتورة");
   if (input.method === "percent") {
     assertPercentCenti(input.percentCenti, "نسبة المشروع");
-    const shareMinor = roundHalfUp(input.billTotalMinor * input.percentCenti, 10000) ?? 0;
+    /* R2-F2: فيض الدقة يُغلق بصدق لا صفرًا صامتًا. */
+    const percentShare = roundHalfUp(input.billTotalMinor * input.percentCenti, 10000);
+    if (percentShare === null) throw new Error("النسبة على هذه الفاتورة تتجاوز الدقة الآمنة؛ قلّل القيمة.");
+    const shareMinor = percentShare;
     return {
       shareMinor,
       remainingMinor: input.billTotalMinor - shareMinor,
@@ -568,7 +589,11 @@ export function calculateInvoiceShare(input: InvoiceShareInput): InvoiceShareRes
   if (projectUsageMilli === null || projectUsageMilli < 0 || projectUsageMilli > totalUsageMilli) {
     throw new Error("أدخل استخدام المشروع بين صفر وإجمالي الاستخدام وبالوحدة نفسها.");
   }
-  const shareMinor = roundHalfUp(input.billTotalMinor * projectUsageMilli, totalUsageMilli) ?? 0;
+  /* R2-F2: فيض الدقة يُغلق بصدق لا صفرًا صامتًا. */
+  const usageShare = roundHalfUp(input.billTotalMinor * projectUsageMilli, totalUsageMilli);
+  if (usageShare === null)
+    throw new Error("حصة الاستخدام على هذه الفاتورة تتجاوز الدقة الآمنة؛ قلّل القيمة.");
+  const shareMinor = usageShare;
   return {
     shareMinor,
     remainingMinor: input.billTotalMinor - shareMinor,
