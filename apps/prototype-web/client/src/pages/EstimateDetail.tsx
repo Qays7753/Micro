@@ -15,9 +15,12 @@ export default function EstimateDetail() {
   /* المسار الشكلي /tools/estimate/:id — المعرّف من مقطع المسار الأخير. */
   const segments = location.split("/").filter(Boolean);
   const estimateId = segments[segments.length - 1];
+  const query = new URLSearchParams(search);
   const target = appendQueryParams(`/tools/calculator?estimate=${encodeURIComponent(estimateId)}`, {
-    /* الرجوع يُحفظ كما دخل إن كان مسارًا داخليًا آمنًا (يقرأه عقد التنقل). */
-    returnTo: new URLSearchParams(search).get("returnTo"),
+    /* الرجوع يُحفظ كما دخل إن كان مسارًا داخليًا آمنًا (يقرأه عقد التنقل)؛
+     * R5: الوصلة التراثية ?from= تُكرم كبديل عند غياب returnTo فلا يفقد
+     * مرجع القارئ القديم وجهته الأصلية. */
+    returnTo: query.get("returnTo") ?? query.get("from"),
   });
   return <Redirect to={target} />;
 }

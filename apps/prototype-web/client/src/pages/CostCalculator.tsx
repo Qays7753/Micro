@@ -14,6 +14,7 @@ import { ArrowRight, Calculator, Plus, Save } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
+import { appendQueryParams } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
@@ -309,7 +310,19 @@ export default function CostCalculator() {
   /* مساعدة اقتراح السعر — اقتراح صريح بأساس معلن، لا توليد تلقائي. */
   const [aimKind, setAimKind] = useState<"amount" | "margin" | "markup">("amount");
   const [aimValue, setAimValue] = useState(0);
-  const [suggestion, setSuggestion] = useState<string | null>(null);
+  /* R5: الاقتراح بنية معزولة الأرقام (نمط bdi المستخدم في كل النتائج)
+   * لا جملة نصية واحدة بأرقام مكشوفة؛ وكل أرقامه لقطة لحظة الاقتراح
+   * (تكلفة الوحدة ضمنها) لا قراءة حية تتغير بتعديل المدخلات بعده. */
+  const [suggestion, setSuggestion] = useState<
+    | {
+        kind: "amount" | "margin" | "markup";
+        basis: number;
+        unitCostMinor: number | null;
+        priceMinor: number | null;
+      }
+    | { kind: "error"; message: string }
+    | null
+  >(null);
 
   function suggestPrice() {
     if (!preview) {
@@ -326,12 +339,8 @@ export default function CostCalculator() {
     const outcome = suggestPlanningPrice(unitCost, aim);
     setSuggestion(
       outcome.ok
-        ? aimKind === "amount"
-          ? `تكلفة الوحدة ${formatMoneyMinor(unitCost) ?? "—"} + مبلغ ${formatMoneyMinor(aimValue) ?? "—"} ⇒ سعر مقترح ${formatMoneyMinor(outcome.value) ?? "—"} د.أ`
-          : aimKind === "margin"
-            ? `هامش ${aimValue}٪ من سعر البيع ⇒ سعر مقترح ${formatMoneyMinor(outcome.value) ?? "—"} د.أ (التكلفة ÷ (1 − الهامش))`
-            : `زيادة ${aimValue}٪ على التكلفة ⇒ سعر مقترح ${formatMoneyMinor(outcome.value) ?? "—"} د.أ (التكلفة × (1 + الزيادة))`
-        : outcome.message,
+        ? { kind: aimKind, basis: aimValue, unitCostMinor: unitCost, priceMinor: outcome.value }
+        : { kind: "error", message: outcome.message },
     );
   }
 
@@ -394,11 +403,12 @@ export default function CostCalculator() {
   }
 
   function openEstimate(estimate: CostEstimate) {
-    /* الرابط داخل الحاسبة نفسها: هوية صالحة ورجوع موثوق للسياق الحالي. */
-    const target = `/tools/calculator?estimate=${encodeURIComponent(estimate.id)}`;
-    const withReturn = returnPath.includes("?")
-      ? target
-      : `${target}&returnTo=${encodeURIComponent(returnPath)}`;
+    /* الرابط داخل الحاسبة نفسها: هوية صالحة ورجوع موثوق للسياق الحالي —
+     * R5: الدمج بعقد التنقل الموحد (returnTo لا يُسقط عند وجود استعلام
+     * في مسار الرجوع نفسه). */
+    const withReturn = appendQueryParams(`/tools/calculator?estimate=${encodeURIComponent(estimate.id)}`, {
+      returnTo: returnPath,
+    });
     /* R3-Q1: فتح حساب آخر أثناء تعديلات غير محفوظة (التخطيطية أو
      * التوافقية) يمر بحارس التغييرات نفسه (تأكيد التجاهل) لا يبتلع
      * التعديلات بصمت؛ النظيف يتنقل فورًا ويرفع رمز إعادة التحميل. */
@@ -826,7 +836,31 @@ export default function CostCalculator() {
             </button>
             {suggestion ? (
               <p className="micro-save-note" role="status">
-                {suggestion}
+                {suggestion.kind === "error" ? (
+                  suggestion.message
+                ) : (
+                  <>
+                    {suggestion.kind === "amount" ? (
+                      <>
+                        تكلفة الوحدة <bdi dir="ltr">{formatMoneyMinor(suggestion.unitCostMinor) ?? "—"}</bdi>{" "}
+                        + مبلغ <bdi dir="ltr">{formatMoneyMinor(suggestion.basis) ?? "—"}</bdi> ⇒ سعر مقترح{" "}
+                        <bdi dir="ltr">{formatMoneyMinor(suggestion.priceMinor) ?? "—"}</bdi> د.أ
+                      </>
+                    ) : suggestion.kind === "margin" ? (
+                      <>
+                        هامش <bdi dir="ltr">{suggestion.basis}</bdi>٪ من سعر البيع ⇒ سعر مقترح{" "}
+                        <bdi dir="ltr">{formatMoneyMinor(suggestion.priceMinor) ?? "—"}</bdi> د.أ (التكلفة ÷
+                        (1 − الهامش))
+                      </>
+                    ) : (
+                      <>
+                        زيادة <bdi dir="ltr">{suggestion.basis}</bdi>٪ على التكلفة ⇒ سعر مقترح{" "}
+                        <bdi dir="ltr">{formatMoneyMinor(suggestion.priceMinor) ?? "—"}</bdi> د.أ (التكلفة ×
+                        (1 + الزيادة))
+                      </>
+                    )}
+                  </>
+                )}
               </p>
             ) : null}
             <p className="micro-home-quiet">

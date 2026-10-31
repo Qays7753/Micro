@@ -271,4 +271,56 @@ describe("S10 T01 planning calculator DOM journeys", () => {
     expect(markupSuggestion.textContent).toContain("11.25");
     expect(markupSuggestion.textContent).toContain("زيادة 25");
   });
+
+  it("R5: اقتراح «مبلغ فوق التكلفة» لقطة لحظته — تعديل المدخلات بعده لا يغيّر أرقامه المعروضة", async () => {
+    const harness = createPlanningCalculatorHarness(() => NOW);
+    renderCalculator(harness);
+    await typeInto("اسم المنتج أو الخدمة 1", "خدمة تنظيم");
+    await typeInto("المكوّن 1", "جهد");
+    await typeInto("سعر وحدة المكوّن 1 للمجموعة 1", "9");
+
+    /* أساس المبلغ: تكلفة 9 + مبلغ 3 ⇒ سعر مقترح 12. */
+    fireEvent.click(screen.getByText("ساعدني في تحديد السعر"));
+    const basisSelect = await screen.findByLabelText("أساس الاقتراح");
+    await userEvent.selectOptions(basisSelect, "amount");
+    await typeInto("قيمة هدف التسعير", "3");
+    await userEvent.click(screen.getByRole("button", { name: "احسب السعر المقترح" }));
+    const suggestion = await screen.findByText(/سعر مقترح/);
+    expect(suggestion.textContent).toContain("9.00");
+    expect(suggestion.textContent).toContain("3.00");
+    expect(suggestion.textContent).toContain("12.00");
+
+    /* تعديل سعر المكون بعد الاقتراح — الرسالة لقطة لحظة حسابها: تبقى
+     * تكلفة 9 لا تتبع القراءة الحية 5 (وإلا لصارت 5+3=8≠12 تناقضًا). */
+    await typeInto("سعر وحدة المكوّن 1 للمجموعة 1", "5");
+    const frozenSuggestion = screen.getByText(/سعر مقترح/);
+    expect(frozenSuggestion.textContent).toContain("9.00");
+    expect(frozenSuggestion.textContent).toContain("12.00");
+    expect(frozenSuggestion.textContent).not.toContain("5.00");
+  });
+
+  it("R5: الخدمة الكسولة بعد الإقلاع — حالة «جارٍ تجهيز الحاسبة» الصادقة والحفظ معطل", async () => {
+    /* الخدمة null (نمط assets/loans قبل اكتمال التحميل الديناميكي) — لا
+     * نتيجة مزيفة ولا حفظ؛ إعلان تجهيز صادق ثم استئناف طبيعي عند جاهزيتها. */
+    const harness = createPlanningCalculatorHarness(() => NOW);
+    mockedUsePrototypeServices.mockReturnValue({
+      costEstimates: harness.costEstimates,
+      planningCalculations: null,
+      dataVersion: 0,
+      notifyDataChanged: vi.fn(),
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    render(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <CostCalculator />
+      </UnsavedChangesProvider>,
+    );
+    await screen.findByRole("heading", { name: "حاسبة التكلفة والتسعير" });
+    expect(await screen.findByText("جارٍ تجهيز الحاسبة…")).toBeTruthy();
+    /* زر الحفظ حاضر لكنه معطل — لا حفظ فوق خدمة لم تجهز بعد. */
+    const saveButton = screen.getByRole("button", { name: /احفظ الحساب/ });
+    expect((saveButton as HTMLButtonElement).disabled).toBe(true);
+    /* المخزن لم يُمس — صفر تقديرات. */
+    const list = await harness.costEstimates.list();
+    expect(list.ok && list.value).toHaveLength(0);
+  });
 });

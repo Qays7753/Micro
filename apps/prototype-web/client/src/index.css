@@ -4275,6 +4275,33 @@ button.micro-month-cell:active {
   outline-offset: 2px;
 }
 /* S3-01: تأكيد حذف التقدير داخل صف القائمة — خطوة ثانية تسمّي الكائن. */
+/* S10 (R5): حد بصري لمجموعات الحاسبة المتعددة على الهاتف — إطار ونفس
+ * بتصميم النظام (المتغيرات وحدها لا ألوان صلبة). */
+.micro-planning-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+/* S10 (R5): قوائم مراجعة الفكرة (T05) بعهد النظام — بلا تعداد المتصفح
+ * الافتراضي وبمسافة داخلية موحدة. */
+.micro-idea-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.micro-idea-review-list li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
 .micro-estimate-delete-confirm {
   display: flex;
   flex-wrap: wrap;
