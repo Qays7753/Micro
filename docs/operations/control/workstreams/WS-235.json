@@ -40,12 +40,14 @@
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
     "بطاقة الفهم مثبتة داخل DOC-019.summary؛ المخطط/التصدير 40/32 يُحفظ — الحقول الجديدة لعائلة cost-estimates اختيارية متوافقة رجعيًا (نمط S06/S09).",
     "ملكية مفردة: S10 يملك SH-14 (cost-estimates + حفظ T01 الاختياري) ويستهلك نواة SH-13/S09 عبر سطحها العام — لا محرك حساب ثانٍ ولا إعادة بناء لملفات S09.",
-    "استثناءا الأمن المأذونان سُجلا في 7adfac55 (سجلات محضة) قبل أي كود منتج بأمر القسم ١."
+    "استثناءا الأمن المأذونان سُجلا في 7adfac55 (سجلات محضة) قبل أي كود منتج بأمر القسم ١.",
+    "S10-MR-001 (أمر S11 §5 عند b33a8877 — fix first): عولج سباق حتمية مفتاح نية حفظ حساب T01 من جذره عند حد الكتابة (commitCostEstimateCreate بنواة قرار مشتركة على المهايئين — التزام 930560dc بانحدار تزامن دائم؛ التوثيق في 15a-S10-REVIEW-ADDENDUM-2026-10-31.md). الحالة بقيت REVIEW_REQUIRED عمدًا وفق أمر §5.5 — تسجيل إصلاح ملاحظة مراجعة لا قبول؛ السلسلة الكاملة والتحقق البعيد على الشجرة النهائية المجمعة (الإصلاح + S11) عند استقرارها."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S10-EXECUTION-PROMPT-2026-10-31.md",
     "https://github.com/Qays7753/Micro/pull/383",
-    "docs/implementation/micro-component-execution/15-S10-RESULT-2026-10-31.md"
+    "docs/implementation/micro-component-execution/15-S10-RESULT-2026-10-31.md",
+    "docs/implementation/micro-component-execution/15a-S10-REVIEW-ADDENDUM-2026-10-31.md"
   ],
   "status_history": [
     {

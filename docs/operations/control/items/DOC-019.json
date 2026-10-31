@@ -77,7 +77,10 @@
     "apps/prototype-web/client/src/pages/EstimateDetail.s10.dom.test.tsx",
     "apps/prototype-web/client/src/application/estimates/costEstimateService.s10.test.ts",
     "apps/prototype-web/client/src/application/transfers/localTransferService.planningFields.s10.test.ts",
-    "apps/prototype-web/client/src/storage/local/capabilities/costEstimateCapability.contract.test.ts"
+    "apps/prototype-web/client/src/storage/local/capabilities/costEstimateCapability.contract.test.ts",
+    "docs/implementation/micro-component-execution/15a-S10-REVIEW-ADDENDUM-2026-10-31.md",
+    "apps/prototype-web/client/src/application/estimates/planningSaveIdempotency.s10mr001.test.ts",
+    "apps/prototype-web/client/src/storage/local/costEstimateCommitGuard.ts"
   ],
   "dependencies": [
     "DOC-018"
@@ -86,7 +89,7 @@
     "DOC-018"
   ],
   "migration_baseline": true,
-  "next_action": "مراجعة Manus المستقلة وقبول المالك على PR #383 لسجل S10 الكامل (15-S10-RESULT-2026-10-31.md) — البوابتان مفتوحتان كما هما ولم تصدرا؛ إذن المالك لا يعني قبول S08/S09 ولا قبول S10 ذاته؛ القبول والدمج والمراحل اللاحقة (S11+) بأمر المالك وحده.",
+  "next_action": "مراجعة Manus المستقلة وقبول المالك على PR #383 لسجل S10 الكامل (15-S10-RESULT-2026-10-31.md + ملحق إصلاح ملاحظة المراجعة S10-MR-001 في 15a-S10-REVIEW-ADDENDUM-2026-10-31.md — الإصلاح الجذري عند حد الكتابة في 930560dc بانحدار تزامن دائم على المهايئين) — البوابتان مفتوحتان كما هما ولم تصدرا؛ إذن المالك بالتنفيذ المتصل لا يعني قبول S08/S09 ولا قبول S10 ذاته؛ القبول والدمج بأمر المالك وحده.",
   "status_history": [
     {
       "status": "IN_PROGRESS",
