@@ -973,6 +973,16 @@ export interface PrototypeLocalStore {
   listCostEstimates(): Promise<StorageResult<readonly CostEstimate[]>>;
   getCostEstimate(id: string): Promise<StorageResult<CostEstimate | null>>;
   saveCostEstimate(estimate: CostEstimate): Promise<StorageResult<CostEstimate>>;
+  /* S10-MR-001 (أمر S11 — القسم ٥): التزام إنشاء حساب التخطيط المحروس
+   * بمفتاح النية — البحث بالمفتاح والقرار والكتابة داخل حد كتابة واحد
+   * (معاملة readwrite واحدة على مخزن التقديرات في IndexedDB، وخطوة
+   * متزامنة واحدة في الذاكرة) عبر نواة القرار المشتركة
+   * decideCostEstimateCreate: نداءان متزامنان بمفتاح النية نفسه لا
+   * ينشئان حسابين — الأول يُكتب والثاني يعيد المحفوظ نفسه (reused)،
+   * ومدخلات مختلفة بمفتاح مقيم تُرفض بـ storage_stale بلا أي كتابة. */
+  commitCostEstimateCreate(
+    estimate: CostEstimate,
+  ): Promise<StorageResult<{ estimate: CostEstimate; reused: boolean }>>;
   /** حذف تقدير حر: أداة تفكير لا سجل مالي — يحذف بلا أثر على أي رصيد. */
   deleteCostEstimate(id: string): Promise<StorageResult<null>>;
   commitOrderFromDraft(

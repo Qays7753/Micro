@@ -58,8 +58,17 @@
  *     حية ومقارنة داخل الحد نفسه) نقلت العدّ من 144 إلى 146؛ القياس
  *     قبل/بعد على المصدر نفسه؛ التصعيد مرغوب وموثق في سجل نتيجة S08،
  *     لا نمو صامت، وبلا أي رفع سقف أو توسيع تسامح.
+ *     S10-MR-001 (أمر S11 — القسم ٥، b33a8877، 2026-10-31): إعادة إرساء
+ *     موثقة نفس-الـPR — إضافة commitCostEstimateCreate وحدها (التزام إنشاء
+ *     حساب التخطيط T01 المحروس بمفتاح النية عند حد كتابة واحد في
+ *     المحوّلين: عهدة بالمفتاح وتعارض صادق لمدخلات مختلفة — علاج جذر سباق
+ *     التزامن المكتشف مستقلًا) نقلت العدّ من 146 إلى 147؛ القياس قبل/بعد
+ *     على المصدر نفسه: AST أعطى 146 عند رأس نشر أمر S11 b33a8877 و147
+ *     على شجرة الإصلاح بفارق commitCostEstimateCreate فقط بلا أي حذف؛
+ *     التصعيد مرغوب وموثق في ملحق مراجعة S10 (15a)، لا نمو صامت، وبلا
+ *     أي رفع سقف أو توسيع تسامح.
  *  2) محوّلا التخزين (IndexedDbLocalStore وMemoryLocalStore) يعرضان على
- *     نماذجهما بالضبط الأسماء الـ146 ذاتها — مطابقة السطح التنفيذية
+ *     نماذجهما بالضبط الأسماء الـ147 ذاتها — مطابقة السطح التنفيذية
  *     للعقد الكتابي (P-01/P-02 conformance).
  *  3) ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 40 و
  *     localExportVersion = 32 (محروسان بقرار مالك وdiff مزدوج — AGENTS §10).
@@ -81,7 +90,7 @@ import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 
 const TYPES_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "types.ts");
 
-/** الجرد المثبت للـ146 طريقة (مرتب حرفيًا؛ إعادة الإرساء تتطلب توثيقًا بنفس الـPR).
+/** الجرد المثبت للـ147 طريقة (مرتب حرفيًا؛ إعادة الإرساء تتطلب توثيقًا بنفس الـPR).
  * U001-IR-002 (2026-10-18): commitProfileCreate أُضيف بإعادة إرساء موثقة
  * نفس-الـPR (مراجعة مستقلة — إنشاء ملف الهوية ذرّيًا عند حد الكتابة).
  * S03 (UNIT-039 B2/عقد §17، 2026-10-28): commitProfileRename أُضيف بإعادة
@@ -103,6 +112,7 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "commitCashContinuity",
   "commitCashObservation",
   "commitCatalogTemplateRevision",
+  "commitCostEstimateCreate",
   "commitCounterpartyWrite",
   "commitDepositClassification",
   "commitDepositClassificationCorrection",
@@ -281,17 +291,17 @@ function publicMethodNames(prototype: object): string[] {
 }
 
 describe("P-04 — أدلة سطح منفذ التخزين المحلي (OD-PRESERVE؛ بلا تقسيم أو نقل)", () => {
-  it("واجهة PrototypeLocalStore تحمل بالضبط 146 طريقة — والقائمة المثبتة مطابقة عضويًا في الاتجاهين", () => {
+  it("واجهة PrototypeLocalStore تحمل بالضبط 147 طريقة — والقائمة المثبتة مطابقة عضويًا في الاتجاهين", () => {
     const live = extractInterfaceMethodNames();
-    expect(live).toHaveLength(146);
+    expect(live).toHaveLength(147);
     expect(live).toEqual([...PINNED_PORT_METHODS]);
   });
 
-  it("P-01: نموذج IndexedDbLocalStore يعرض بالضبط الأسماء الـ146 ذاتها (مطابقة السطح التنفيذية)", () => {
+  it("P-01: نموذج IndexedDbLocalStore يعرض بالضبط الأسماء الـ147 ذاتها (مطابقة السطح التنفيذية)", () => {
     expect(publicMethodNames(IndexedDbLocalStore.prototype)).toEqual([...PINNED_PORT_METHODS]);
   });
 
-  it("P-02: نموذج MemoryLocalStore يعرض الأسماء الـ146 ذاتها + مساعد TS-private واحد موثق فقط", () => {
+  it("P-02: نموذج MemoryLocalStore يعرض الأسماء الـ147 ذاتها + مساعد TS-private واحد موثق فقط", () => {
     /* حدّ موثق: `private` في TypeScript زمن ترجمة لا زمن تشغيل — المساعد
      * يظهر على النموذج؛ نثبّته بالاسم فأي مساعد جديد (خاص أو عام) يفشل
      * الاختبار حتى توثيقه هنا — لا سطح خفي خلف العقد. */

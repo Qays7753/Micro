@@ -87,6 +87,9 @@ import { validateExpenseBudgetRevisionPair, validateExpenseBudgetSave } from "./
 import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
 import { decideCashObservationCommit, findTransferCoverageShortfall } from "./cashContinuityCommitGuard";
 import { decideCounterpartyCommit, type CounterpartyWriteCommit } from "./counterpartyCommitGuard";
+/* S10-MR-001 (أمر S11 — القسم ٥): قرار التزام إنشاء حساب التخطيط النقي —
+ * مالك واحد للمهايئين (العهدة بالمفتاح والتعارض الصادق داخل الحد). */
+import { decideCostEstimateCreate, findCostEstimateByOperationKey } from "./costEstimateCommitGuard";
 /* S07-MR-001 (أمر S08 — القسم ١): قرار التزام المخزون النقي — القراءة الحية
  * والمقارنة وكل الكتابات داخل معاملة readwrite واحدة هنا. */
 import {
@@ -2843,6 +2846,82 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
   }
   saveCostEstimate(estimate: CostEstimate) {
     return writeOne(costEstimateStore, estimate);
+  }
+  /* S10-MR-001 (أمر S11 — القسم ٥): التزام إنشاء حساب التخطيط داخل معاملة
+   * readwrite واحدة على مخزن التقديرات — البحث بمفتاح النية والقرار
+   * والكتابة داخل الحد نفسه (نمط commitProfileCreate/commitCounterpartyWrite
+   * بقراءة getAll كاملة بدل فهرس: لمخزن التقديرات فهرس updatedAt وحده ولا
+   * فهرس operationKey، ولا ترقية مخطط لهذا الإصلاح): النداء المتزامن
+   * الثاني بمفتاح النية نفسه يجد سجل الأول داخل المعاملة فيعيده كما هو
+   * (reused) بلا كتابة، ومدخلات مختلفة بمفتاح مقيم تُحبَط المعاملة
+   * بـ storage_stale بلا أي كتابة — لا حسابان بمفتاح نية واحد أبدًا. */
+  async commitCostEstimateCreate(
+    estimate: CostEstimate,
+  ): Promise<StorageResult<{ estimate: CostEstimate; reused: boolean }>> {
+    try {
+      const database = await connection();
+      return await new Promise(resolve => {
+        const transaction = database.transaction([costEstimateStore], "readwrite");
+        const store = transaction.objectStore(costEstimateStore);
+        let pending: StorageResult<{ estimate: CostEstimate; reused: boolean }> | null = null;
+        const finish = (result: StorageResult<{ estimate: CostEstimate; reused: boolean }>) => {
+          resolve(result);
+        };
+        const failFromListener = (error: unknown) => {
+          pending = failure(error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        const readRequest = store.getAll();
+        readRequest.onerror = () => {
+          pending = failure(readRequest.error, database);
+          try {
+            transaction.abort();
+          } catch {
+            if (pending) finish(pending);
+          }
+        };
+        readRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const liveByOperationKey =
+            estimate.createdOperationKey == null
+              ? null
+              : findCostEstimateByOperationKey(
+                  (readRequest.result as CostEstimate[]) ?? [],
+                  estimate.createdOperationKey,
+                );
+          const decision = decideCostEstimateCreate(liveByOperationKey, estimate);
+          if (decision.kind === "reject") {
+            pending = { ok: false, code: decision.code, message: decision.message };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          if (decision.kind === "reuse") {
+            pending = { ok: true, value: { estimate: decision.estimate, reused: true } };
+            try {
+              transaction.abort();
+            } catch {
+              if (pending) finish(pending);
+            }
+            return;
+          }
+          store.put(estimate);
+        });
+        transaction.onerror = () => {
+          if (!pending) pending = failure(transaction.error, database);
+        };
+        transaction.onabort = () => finish(pending ?? failure(transaction.error, database));
+        transaction.oncomplete = () => finish({ ok: true, value: { estimate, reused: false } });
+      });
+    } catch (error) {
+      return failure(error);
+    }
   }
   deleteCostEstimate(id: string) {
     return deleteOne(costEstimateStore, id);

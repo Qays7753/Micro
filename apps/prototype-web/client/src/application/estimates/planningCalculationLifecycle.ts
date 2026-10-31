@@ -21,7 +21,7 @@ import type {
 } from "@/storage/local/planningCalculationTypes";
 import type { CostEstimateStore } from "@/storage/local/capabilities/costEstimateStore";
 import type { CostEstimateResult } from "./costEstimateService";
-import { errorMessageOf, storageFailure, validationFailure } from "@/application/resultCodes";
+import { errorMessageOf, storageFailure, validationFailure, STORAGE_STALE } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 import { isValidTimestamp } from "@micro-domain/shared/index.js";
 
@@ -208,6 +208,12 @@ export class PlanningCalculationLifecycleService {
    * مفتاح النية نفسه (الضغط المتكرر/إعادة المحاولة) يعيد الحساب المحفوظ
    * نفسه بلا نسخة ثانية (نمط createdOperationKey في الكتالوج S09).
    * صفر أثر أعمال: لا بيع ولا مصروف ولا طلب ولا مخزون.
+   *
+   * S10-MR-001 (أمر S11 — القسم ٥): العهدة تُحسم داخل حد كتابة المخزن
+   * الواحد (commitCostEstimateCreate) لا بقراءة-ثم-كتابة عند التطبيق —
+   * نداءان متزامنان بمفتاح النية نفسه لا ينشئان حسابين، ومدخلات مختلفة
+   * بمفتاح مقيم تُرفض صادقًا برسالة صريحة بلا كتابة ثانية ولا إرجاع سجل
+   * قديم كأنه حفظ للمدخلات الجديدة.
    */
   async savePlanning(
     input: PlanningSaveInput,
@@ -229,16 +235,19 @@ export class PlanningCalculationLifecycleService {
       return validationFailure(errorMessageOf(error, "مدخلات الحساب غير صالحة."));
     }
     const { planningResult, kernelSnapshot } = pair;
-    /* النية نفسها = النتيجة نفسها بلا كتابة ثانية — إثبات الهوية من السجل. */
-    if (operationKey !== null) {
-      const existing = await this.store.listCostEstimates();
-      if (!existing.ok) return storageFailure("تعذر قراءة الحسابات المحفوظة.");
-      const sameIntent = existing.value.find(estimate => estimate.createdOperationKey === operationKey);
-      if (sameIntent) return { ok: true, value: sameIntent, reused: true };
-    }
     const record = planningRecordFrom(null, input, planningResult, kernelSnapshot, operationKey, timestamp);
-    const saved = await this.store.saveCostEstimate(record);
-    return saved.ok ? { ok: true, value: saved.value } : storageFailure("تعذر حفظ الحساب.");
+    /* الحد الذريّ الواحد: العهدة والتعارض والكتابة معًا داخل المخزن —
+     * تعارض النية المقيمة (storage_stale من نواة القرار المشتركة) يصل
+     * فشلًا صريحًا بعقد النتيجة القائم: تُصان المدخلات ولا يُنشأ حساب
+     * ثانٍ للتحايل على نتيجة غير محسومة. */
+    const committed = await this.store.commitCostEstimateCreate(record);
+    if (!committed.ok) {
+      if (committed.code === STORAGE_STALE) return validationFailure(committed.message);
+      return storageFailure("تعذر حفظ الحساب.");
+    }
+    return committed.value.reused
+      ? { ok: true, value: committed.value.estimate, reused: true }
+      : { ok: true, value: committed.value.estimate };
   }
 
   /**

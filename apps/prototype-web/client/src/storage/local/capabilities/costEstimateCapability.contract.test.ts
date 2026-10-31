@@ -128,6 +128,46 @@ async function runCapabilityScenario(store: CostEstimateStore) {
   const removedPlanning = await store.deleteCostEstimate("estimate-cap-planning");
   expect(removedPlanning.ok).toBe(true);
 
+  /* ٢ب) S10-MR-001 (أمر S11 — القسم ٥): التزام الإنشاء المحروس بمفتاح
+   * النية عبر عدسة القدرة نفسها — النداءان المتزامنان بالمفتاح الواحد
+   * داخل المهايئين لا ينشئان سجلين، والمدخلات المختلفة تُرفض بلا كتابة. */
+  const concurrent = await Promise.all([
+    store.commitCostEstimateCreate({
+      ...estimateFixture("estimate-cap-commit-a"),
+      createdOperationKey: "op-cap-commit",
+    }),
+    store.commitCostEstimateCreate({
+      ...estimateFixture("estimate-cap-commit-b"),
+      createdOperationKey: "op-cap-commit",
+    }),
+  ]);
+  const first = concurrent[0];
+  const second = concurrent[1];
+  if (!first.ok || !second.ok) throw new Error("commit failed");
+  expect(first.value.estimate.id).toBe(second.value.estimate.id);
+  expect([first.value.reused, second.value.reused].filter(Boolean)).toHaveLength(1);
+  const committedList = await store.listCostEstimates();
+  const committedIds = committedList.ok
+    ? committedList.value.map(estimate => estimate.createdOperationKey)
+    : [];
+  expect(committedIds.filter(key => key === "op-cap-commit")).toHaveLength(1);
+  /* مدخلات مختلفة بمفتاح مقيم: تعارض صادق بلا أي كتابة. */
+  const clash = await store.commitCostEstimateCreate({
+    ...estimateFixture("estimate-cap-commit-c"),
+    title: "مدخلات مختلفة",
+    createdOperationKey: "op-cap-commit",
+  });
+  expect(clash.ok).toBe(false);
+  const afterClash = await store.listCostEstimates();
+  expect(
+    afterClash.ok
+      ? afterClash.value.filter(estimate => estimate.createdOperationKey === "op-cap-commit")
+      : [],
+  ).toHaveLength(1);
+  /* نظافة السيناريو: سجل جناح الالتزام يُحذف كالقديم — حذف حر بلا أثر. */
+  const removedCommit = await store.deleteCostEstimate(first.value.estimate.id);
+  expect(removedCommit.ok).toBe(true);
+
   /* ٢) الحذف الحر: بلا أثر على أي رصيد؛ والحذف مرة أخرى يبقى ok
    *    (idempotent بالحذف لا يرمي). */
   const removed = await store.deleteCostEstimate("estimate-cap-1");
@@ -173,9 +213,9 @@ describe("R4-A5/HAF-1 — قدرة تقديرات الطلب: عمق العدس�
   });
 });
 describe("R3 — قدرة تقديرات الطلب (بطاقة R3-SC-06): العضوية", () => {
-  it("قائمة الطرق هي نطاق المجموعة بالضبط: 4 أسماء فريدة", () => {
-    expect(costEstimateStoreMethods).toHaveLength(4);
-    expect(new Set(costEstimateStoreMethods).size).toBe(4);
+  it("قائمة الطرق هي نطاق المجموعة بالضبط: 5 أسماء فريدة", () => {
+    expect(costEstimateStoreMethods).toHaveLength(5);
+    expect(new Set(costEstimateStoreMethods).size).toBe(5);
   });
 
   describe.each([

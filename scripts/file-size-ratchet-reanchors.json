@@ -6253,6 +6253,63 @@
         "trigger": "S10 implementation growth measured on the live tree",
         "ocRef": "DOC-019"
       }
+    },
+    {
+      "id": "S10MR001-IDB-COST-ESTIMATE-COMMIT-20261031-01",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+      "from": {
+        "nbLoc": 4391,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 5355,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S10-MR-001 (أمر S11 — القسم ٥ عند b33a8877): commitCostEstimateCreate في محوّل IndexedDB — التزام إنشاء حساب التخطيط T01 داخل معاملة readwrite واحدة (getAll داخل الحد بلا فهرس ولا ترقية مخطط) عبر نواة القرار المشتركة costEstimateCommitGuard: عهدة مفتاح النية وتعارض المدخلات المختلفة داخل حد الكتابة.",
+      "authorization": {
+        "ownerReview": "S10-MR-001 fix-first review (00-S11-EXECUTION-PROMPT-2026-10-31.md §5 at b33a8877 — owner-directed connected repair) — جزء من فرق الإصلاح في نفس الـPR",
+        "trigger": "S10-MR-001 root fix growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10MR001-MEMORY-COST-ESTIMATE-COMMIT-20261031-02",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+      "from": {
+        "nbLoc": 2087,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 2582,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S10-MR-001 (أمر S11 — القسم ٥ عند b33a8877): commitCostEstimateCreate في محوّل الذاكرة — نفس عقد محوّل IndexedDB حرفيًا في خطوة متزامنة واحدة عبر نواة القرار المشتركة costEstimateCommitGuard (تكافؤ المهايئين بنيويًا).",
+      "authorization": {
+        "ownerReview": "S10-MR-001 fix-first review (00-S11-EXECUTION-PROMPT-2026-10-31.md §5 at b33a8877 — owner-directed connected repair) — جزء من فرق الإصلاح في نفس الـPR",
+        "trigger": "S10-MR-001 root fix growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
+    },
+    {
+      "id": "S10MR001-CAPSTORE-MEMBERSHIP-20261031-03",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/storage/local/capabilities/costEstimateStore.ts",
+      "from": {
+        "nbLoc": 35,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 39,
+        "band": "NORMAL"
+      },
+      "reason": "S10-MR-001 (أمر S11 — القسم ٥ عند b33a8877): إضافة commitCostEstimateCreate إلى عضوية قدرة تقديرات الطلب (5 طرق) — العرض المشتق من الواجهة التوافقية نفسها (Pick) فالانحراف يكسر فحص الأنواع.",
+      "authorization": {
+        "ownerReview": "S10-MR-001 fix-first review (00-S11-EXECUTION-PROMPT-2026-10-31.md §5 at b33a8877 — owner-directed connected repair) — جزء من فرق الإصلاح في نفس الـPR",
+        "trigger": "S10-MR-001 root fix growth measured on the live tree",
+        "ocRef": "DOC-019"
+      }
     }
   ]
 }

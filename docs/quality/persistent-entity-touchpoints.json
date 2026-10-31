@@ -483,7 +483,8 @@
       ],
       "adapterTests": [
         "apps/prototype-web/client/src/application/estimates/costEstimateService.test.ts",
-        "apps/prototype-web/client/src/application/estimates/costEstimateService.s10.test.ts"
+        "apps/prototype-web/client/src/application/estimates/costEstimateService.s10.test.ts",
+        "apps/prototype-web/client/src/application/estimates/planningSaveIdempotency.s10mr001.test.ts"
       ],
       "transferTests": [
         "apps/prototype-web/client/src/application/transfers/localTransferService.test.ts",

@@ -28,6 +28,9 @@ import {
 import { orderRecordIdentical, validateOrderCommit } from "./orderCommitGuard";
 import { resolveSupplierPaymentAttribution } from "./supplierAttributionCommitGuard";
 import { decideCounterpartyCommit, type CounterpartyWriteCommit } from "./counterpartyCommitGuard";
+/* S10-MR-001 (أمر S11 — القسم ٥): قرار التزام إنشاء حساب التخطيط النقي —
+ * مالك واحد للمهايئين (العهدة بالمفتاح والتعارض الصادق داخل الحد). */
+import { decideCostEstimateCreate, findCostEstimateByOperationKey } from "./costEstimateCommitGuard";
 /* S07-MR-001 (أمر S08 — القسم ١): قرار التزام المخزون النقي — مالك واحد
  * للمهايئين (CAS داخل الحد + حتمية داخل الحد). */
 import { decideInventoryCommit, type InventoryCommitExpectation } from "./inventoryCommitGuard";
@@ -1921,6 +1924,29 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   async saveCostEstimate(estimate: CostEstimate): Promise<StorageResult<CostEstimate>> {
     this.costEstimates.set(estimate.id, clone(estimate));
     return { ok: true, value: clone(estimate) };
+  }
+  /* S10-MR-001 (أمر S11 — القسم ٥): التزام إنشاء حساب التخطيط في خطوة
+   * متزامنة واحدة (لا فجوة تزامن في بنية الذاكرة أحادية الخيط) — البحث
+   * بمفتاح النية والقرار والكتابة معًا عبر نواة القرار المشتركة مع محوّل
+   * IndexedDB حرفيًا: نداءان متزامنان بمفتاح النية نفسه لا ينشئان حسابين
+   * (الأول يُكتب والثاني يعيد المحفوظ نفسه reused)، ومدخلات مختلفة بمفتاح
+   * مقيم تُرفض بـ storage_stale بلا أي كتابة، وبلا مفتاح كتابة مباشرة. */
+  async commitCostEstimateCreate(
+    estimate: CostEstimate,
+  ): Promise<StorageResult<{ estimate: CostEstimate; reused: boolean }>> {
+    const liveByOperationKey =
+      estimate.createdOperationKey == null
+        ? null
+        : findCostEstimateByOperationKey(
+            Array.from(this.costEstimates.values()),
+            estimate.createdOperationKey,
+          );
+    const decision = decideCostEstimateCreate(liveByOperationKey, estimate);
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.kind === "reuse")
+      return { ok: true, value: { estimate: clone(decision.estimate), reused: true } };
+    this.costEstimates.set(estimate.id, clone(estimate));
+    return { ok: true, value: { estimate: clone(estimate), reused: false } };
   }
   async deleteCostEstimate(id: string): Promise<StorageResult<null>> {
     this.costEstimates.delete(id);
