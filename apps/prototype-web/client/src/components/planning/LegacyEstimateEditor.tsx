@@ -82,19 +82,24 @@ export function LegacyEstimateEditor({
   void reloadToken;
 
   /* R3-F2: تعديلات المحرر التوافقي محروسة كتعديلات الحاسبة نفسها — الرجوع
-   * أو فتح حساب آخر يمر بتأكيد لا بابتلاع صامت. */
-  const isDirty = useFormDirty([
-    title,
-    materials,
-    timeKnown,
-    timeMinutes,
-    timeRateMinor,
-    quantity,
-    packagingMinor,
-    deliveryMinor,
-    wasteMinor,
-    safetyBufferMinor,
-  ]);
+   * أو فتح حساب آخر يمر بتأكيد لا بابتلاع صامت؛ والخط الأساس يُعاد ضبطه
+   * بعد الحفظ الناجح داخل المحرر (نمط loadedToken في الحاسبة). */
+  const [savedToken, setSavedToken] = useState(0);
+  const isDirty = useFormDirty(
+    [
+      title,
+      materials,
+      timeKnown,
+      timeMinutes,
+      timeRateMinor,
+      quantity,
+      packagingMinor,
+      deliveryMinor,
+      wasteMinor,
+      safetyBufferMinor,
+    ],
+    savedToken,
+  );
 
   /* عقد D5: المقترحات من آخر استلام — تعبئة مقترحة بلا أي أثر. */
   const [materialSuggestions, setMaterialSuggestions] = useState<readonly MaterialSuggestion[]>([]);
@@ -141,6 +146,7 @@ export function LegacyEstimateEditor({
       return false;
     }
     setMessage({ text: "حُفظ تعديل الحساب السابق كما هو — بلا أي حركة مالية أو مخزون.", tone: "success" });
+    setSavedToken(token => token + 1);
     onSaved();
     return true;
   }

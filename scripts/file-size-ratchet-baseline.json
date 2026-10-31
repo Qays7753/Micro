@@ -835,7 +835,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/components/planning/LegacyEstimateEditor.tsx": {
-      "nbLoc": 404,
+      "nbLoc": 410,
       "band": "WATCH"
     },
     "apps/prototype-web/client/src/components/presentation/ActualTimePanel.tsx": {

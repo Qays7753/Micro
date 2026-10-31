@@ -107,7 +107,7 @@ async function runCapabilityScenario(store: CostEstimateStore) {
         pricingCostMinor: 1_300,
         expectedProfitMinor: 9_000,
         marginPercentCenti: 8_700,
-        knowledgeState: "known",
+        knowledgeState: "known" as const,
       },
     },
     createdOperationKey: "op-cap-planning",
