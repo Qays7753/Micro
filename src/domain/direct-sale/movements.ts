@@ -9,16 +9,19 @@ import { isValidTimestamp } from "../shared/index.js";
 import type {
   CollectDirectSalePaymentInput,
   DirectSale,
+  DirectSaleCollectionStatus,
   DirectSaleCollectionEntry,
   DirectSaleFullReturnInput,
   DirectSaleRefundPaymentEntry,
   PayDirectSaleRefundInput,
+  ReverseDirectSaleCollectionInput,
 } from "./types.js";
 import {
   assertLocalDate,
   assertPositiveInteger,
   assertText,
   directSaleOutstandingMinor,
+  revisionList,
 } from "./policies.js";
 
 /* S11 (UNIT-026 sale-slice / SDF-054): حق الرد القائم — ما ثبت رده دون ما
@@ -124,6 +127,65 @@ export function payDirectSaleRefund(sale: DirectSale, input: PayDirectSaleRefund
     ...sale,
     refundedMinor,
     refundPayments: [...(sale.refundPayments ?? []), entry],
+  });
+}
+
+/* S11 (تصحيح المراجعة R2-003): الحالة الصادقة بعد العكس — العكس يتراجع عن
+ * القبض لا عن قرار الفرق: بيع مراجعةٍ يبقى في مراجعته (الفرق غير المحسوم
+ * لا يصير دينًا مؤكدًا بصمت بفعل العكس)، وما عداه يُشتق من المجموع. */
+function collectionStatusAfterReversal(sale: DirectSale, collectedAfter: number): DirectSaleCollectionStatus {
+  if (sale.collectionStatus === "partial_needs_review") return "partial_needs_review";
+  return collectedAfter >= sale.revenueMinor ? "collected_in_full" : "partial_debt";
+}
+
+/* S11 (UNIT-026 sale-slice — تصحيح المراجعة R1): عكس تحصيل مؤرخ موثق —
+ * دالة نطاق واحدة تمسك النصفين معًا دائمًا: المجموع المحروس (collectedMinor
+ * ينقص) والتفصيل المؤرخ (سطر سالب بهوية ومفتاح) داخل نداء واحد؛ المفتاح
+ * نفسه للمراجعة والحركة لأنهما واقعة عكس واحدة، وعهدة المفتاح تمنع أي
+ * استخدام لاحق له. لا يعكس بيعًا ملغى أو مُرتجعًا ولا يعكس أكثر من
+ * المقبوض الفعلي. */
+export function reverseDirectSaleCollection(
+  sale: DirectSale,
+  input: ReverseDirectSaleCollectionInput,
+): DirectSale {
+  if ((sale.status ?? "active") === "cancelled")
+    throw new Error("بيع مباشر ملغى لا يُعكس تحصيله — استعمل أفعال الإلغاء.");
+  if (sale.return) throw new Error("بيع مُرتجع كاملًا لا يُعكس تحصيله — حقه أُلغي بالمرتجع.");
+  assertPositiveInteger(input.amountMinor, "amountMinor");
+  assertText(input.operationKey, "operationKey");
+  if (!isValidTimestamp(input.recordedAt)) throw new Error("أدخل وقت الحركة وقتًا صحيحًا.");
+  assertLocalDate(input.occurredOn);
+  if (input.amountMinor > sale.collectedMinor)
+    throw new Error("عكس التحصيل يتجاوز المقبوض الفعلي على هذا البيع — لا يكون المقبوض سالبًا.");
+  assertMovementKeyUnused(sale, input.operationKey);
+  const collectedAfter = sale.collectedMinor - input.amountMinor;
+  const statusAfter = collectionStatusAfterReversal(sale, collectedAfter);
+  /* واقعة العكس تُبنى مباشرة في هذه الدالة الواحدة (لا تمر بـupdateDirectSale
+   * كي لا يُكتب سطر تسوية إضافي فوق السطر السالب — الحركة واحدة)؛ المراجعة
+   * الموثقة عبر revisionList بحراسها، والمجموع والسطر يسيران معًا هنا حصرًا. */
+  const corrected = revisionList(sale, {
+    kind: "edit",
+    idempotencyKey: input.operationKey,
+    createdAt: input.recordedAt,
+    reason: input.reason,
+  });
+  /* السطر السالب المؤرخ بنفس مفتاح الواقعة — المراجعة والحركة واقعة عكس
+   * واحدة بعهدة مفتاح واحدة. */
+  const entry: DirectSaleCollectionEntry = Object.freeze({
+    id: `${sale.id}:reverse:${input.operationKey}`,
+    amountMinor: -input.amountMinor,
+    occurredOn: input.occurredOn,
+    operationKey: input.operationKey,
+    recordedAt: input.recordedAt,
+    note: input.note?.trim() || null,
+    allocationEntryId: input.allocationEntryId?.trim() || null,
+  });
+  return Object.freeze({
+    ...sale,
+    collectedMinor: collectedAfter,
+    collectionStatus: statusAfter,
+    collections: [...(sale.collections ?? []), entry],
+    revisions: corrected,
   });
 }
 

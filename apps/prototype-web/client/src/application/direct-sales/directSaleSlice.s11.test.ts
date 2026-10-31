@@ -18,6 +18,7 @@
  * ودورة النقل الكاملة للحقول الجديدة على زوجي الاقتران المتقاطع.
  */
 import "fake-indexeddb/auto";
+import { createHash } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
 import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { DirectSaleMovementsService } from "@/application/direct-sales/directSaleMovements";
@@ -30,7 +31,7 @@ import { IndexedDbLocalStore } from "@/storage/local/IndexedDbLocalStore";
 import type { ProjectFinancialServiceStore } from "@/application/finance/projectFinancialService";
 import type { FulfillmentServiceStore } from "@/application/fulfillment/fulfillmentService";
 import type { CollectionServiceStore } from "@/application/collections/collectionService";
-import { createCashWallet } from "@micro-domain/cash-continuity/index.js";
+import { createCashContinuityEntry, createCashWallet } from "@micro-domain/cash-continuity/index.js";
 import { directSaleOutstandingMinor } from "@micro-domain/direct-sale/index.js";
 import type { DirectSaleServiceStore } from "@/application/direct-sales/directSaleService";
 import { okValue } from "@/testing/resultAssertions";
@@ -256,6 +257,142 @@ describe("S11 — أمثلة الأمر المالية الخمسة على ما�
         if (label === "IndexedDB") await clearDatabase();
       }
     });
+
+    it(`${label}: تغيّر الحمولة بالمفتاح نفسه تعارض صادق — والمطابقة إعادة استخدام (تصحيح R3-001/SDF-037/038)`, async () => {
+      if (label === "IndexedDB") await clearDatabase();
+      try {
+        const store = makeStore();
+        const { directSales, movements } = makeStack(store);
+        const sale = await recordSale_15_5_6(directSales);
+
+        /* قبضة 10 ثم إعادة المفتاح نفسه بمبلغ مختلف: تعارض صادق لا عودة
+         * صامتة لسجل قديم — ولا كتابة إطلاقًا. */
+        const first = await movements.collectPayment(sale.id, {
+          amountMinor: 1000,
+          occurredOn: "2026-10-01",
+          operationKey: "r3-payload-op",
+        });
+        if (!first.ok) throw new Error(first.message);
+        const changedAmount = await movements.collectPayment(sale.id, {
+          amountMinor: 400,
+          occurredOn: "2026-10-01",
+          operationKey: "r3-payload-op",
+        });
+        expect(changedAmount.ok).toBe(false);
+        if (changedAmount.ok) throw new Error("unreachable");
+        expect(changedAmount.message).toContain("بحمولة مختلفة");
+        const changedDate = await movements.collectPayment(sale.id, {
+          amountMinor: 1000,
+          occurredOn: "2026-10-02",
+          operationKey: "r3-payload-op",
+        });
+        expect(changedDate.ok).toBe(false);
+        /* الحمولة المطابقة بالمفتاح نفسه: إعادة استخدام صادقة للمحفوظ. */
+        const replay = await movements.collectPayment(sale.id, {
+          amountMinor: 1000,
+          occurredOn: "2026-10-01",
+          operationKey: "r3-payload-op",
+        });
+        if (!replay.ok) throw new Error(replay.message);
+        expect(replay.value.reused).toBe(true);
+        expect(replay.value.sale.collectedMinor).toBe(1500);
+
+        /* المرتجع: إعادة المفتاح بتاريخ مختلف تعارض؛ وبالسبب المختلف تعارض؛
+         * وبالحمولة المطابقة إعادة استخدام. */
+        await movements.fullReturn(sale.id, {
+          occurredOn: "2026-10-05",
+          reason: "أرجعت الزبونة الصندوق كاملًا",
+          operationKey: "r3-return-op",
+        });
+        const changedReturnDate = await movements.fullReturn(sale.id, {
+          occurredOn: "2026-10-06",
+          reason: "أرجعت الزبونة الصندوق كاملًا",
+          operationKey: "r3-return-op",
+        });
+        expect(changedReturnDate.ok).toBe(false);
+        const changedReturnReason = await movements.fullReturn(sale.id, {
+          occurredOn: "2026-10-05",
+          reason: "سبب آخر مختلف",
+          operationKey: "r3-return-op",
+        });
+        expect(changedReturnReason.ok).toBe(false);
+        const replayReturn = await movements.fullReturn(sale.id, {
+          occurredOn: "2026-10-05",
+          reason: "أرجعت الزبونة الصندوق كاملًا",
+          operationKey: "r3-return-op",
+        });
+        if (!replayReturn.ok) throw new Error(replayReturn.message);
+        expect(replayReturn.value.reused).toBe(true);
+
+        /* دفع الرد: الحمولة المتغيرة تعارض والمطابقة إعادة استخدام. */
+        await movements.payRefund(sale.id, {
+          amountMinor: 200,
+          occurredOn: "2026-10-07",
+          operationKey: "r3-refund-op",
+        });
+        const changedRefund = await movements.payRefund(sale.id, {
+          amountMinor: 300,
+          occurredOn: "2026-10-07",
+          operationKey: "r3-refund-op",
+        });
+        expect(changedRefund.ok).toBe(false);
+        const replayRefund = await movements.payRefund(sale.id, {
+          amountMinor: 200,
+          occurredOn: "2026-10-07",
+          operationKey: "r3-refund-op",
+        });
+        if (!replayRefund.ok) throw new Error(replayRefund.message);
+        expect(replayRefund.value.reused).toBe(true);
+        expect(replayRefund.value.sale.refundedMinor).toBe(200);
+      } finally {
+        if (label === "IndexedDB") await clearDatabase();
+      }
+    });
+
+    it(`${label}: إنشاء متزامن بمفتاح واحد: سجل واحد وسطر كاش واحد (تصحيح R3-002b)`, async () => {
+      if (label === "IndexedDB") await clearDatabase();
+      try {
+        const store = makeStore();
+        const { directSales } = makeStack(store);
+        const serviceB = new DirectSaleService(store, now);
+        const [a, b] = await Promise.all([
+          directSales.record({
+            itemName: "بيع متزامن",
+            quantity: 1,
+            revenueMinor: 900,
+            collectedMinor: 900,
+            costMinor: null,
+            occurredOn: "2026-10-01",
+            note: "نقدي",
+            idempotencyKey: "r3-race-create-op",
+          }),
+          serviceB.record({
+            itemName: "بيع متزامن",
+            quantity: 1,
+            revenueMinor: 900,
+            collectedMinor: 900,
+            costMinor: null,
+            occurredOn: "2026-10-01",
+            note: "نقدي",
+            idempotencyKey: "r3-race-create-op",
+          }),
+        ]);
+        /* واحدة التزام والثانية إعادة استخدام صادقة للسجل نفسه. */
+        const outcomes = [a, b];
+        const committed = outcomes.filter(outcome => outcome.ok && !outcome.reused);
+        const reusedOutcomes = outcomes.filter(outcome => outcome.ok && outcome.reused);
+        expect(committed).toHaveLength(1);
+        expect(reusedOutcomes).toHaveLength(1);
+        expect(committed[0].ok && committed[0].value.id).toBe(
+          reusedOutcomes[0].ok ? reusedOutcomes[0].value.id : null,
+        );
+        const list = await directSales.list();
+        if (!list.ok) throw new Error(list.message);
+        expect(list.value.filter(s => s.idempotencyKey === "r3-race-create-op")).toHaveLength(1);
+      } finally {
+        if (label === "IndexedDB") await clearDatabase();
+      }
+    });
   }
 
   it("الذاكرة: مثال ٤ — الإرث المجمل القديم لا تؤلف تواريخه (SDF-014)", async () => {
@@ -386,6 +523,379 @@ describe("S11 — أمثلة الأمر المالية الخمسة على ما�
     const salesAfter = await directSales.list();
     if (!salesAfter.ok) throw new Error(salesAfter.message);
     expect(salesAfter.value.some(sale => sale.idempotencyKey === "s11-atomic-fail")).toBe(false);
+  });
+
+  it("الذاكرة: ملف تالف في حقول S11 يُرفض قبل المعاينة بلا أي كتابة في الهدف (تصحيح R4-002)", async () => {
+    const source = new MemoryLocalStore() as unknown as SaleSliceTestStore;
+    const { directSales, movements } = makeStack(source);
+    const sale = await recordSale_15_5_6(directSales);
+    const returned = await movements.fullReturn(sale.id, {
+      occurredOn: "2026-10-05",
+      reason: "أرجعت الزبونة الصندوق كاملًا",
+      operationKey: "corrupt-return-op",
+    });
+    if (!returned.ok) throw new Error(returned.message);
+
+    const transferSource = new LocalTransferService(
+      source as unknown as ConstructorParameters<typeof LocalTransferService>[0],
+      now,
+    );
+    const exported = await transferSource.createExport();
+    if (!exported.ok) throw new Error(exported.message);
+    /* تلف مادي: مجموع المردود لا يطابق مدفوعات الرد — المدقق يرفض قبل
+     * المعاينة، والهدف لا يُكتب فيه شيء إطلاقًا. */
+    const corrupted = JSON.parse(JSON.stringify(exported.value));
+    const saleRecord = (corrupted.data?.directSales ?? []).find(
+      (record: { id?: string }) => record?.id === sale.id,
+    );
+    expect(saleRecord).toBeTruthy();
+    saleRecord.refundedMinor = 999;
+    /* تجديد بصمة التكامل كي يمتحن الفحصُ مدققَ العائلة نفسه لا بصمة
+     * الملف — كأن الملف أُنشئ هكذا من مصدر فاسد. */
+    corrupted.integrity = {
+      ...corrupted.integrity,
+      digest: createHash("sha256").update(JSON.stringify(corrupted.data)).digest("hex"),
+    };
+
+    const cleanTarget = new MemoryLocalStore() as unknown as SaleSliceTestStore;
+    const transferTarget = new LocalTransferService(
+      cleanTarget as unknown as ConstructorParameters<typeof LocalTransferService>[0],
+      now,
+    );
+    const prepared = await transferTarget.prepareRestore(JSON.stringify(corrupted));
+    expect(prepared.ok).toBe(false);
+    const afterAttempt = await new DirectSaleService(cleanTarget, now).list();
+    if (!afterAttempt.ok) throw new Error(afterAttempt.message);
+    expect(afterAttempt.value).toHaveLength(0);
+  });
+
+  it("الذاكرة → IndexedDB: السطر السالب (تصحيح المقبض والعكس) يعبر دورة النقل كاملة (تصحيح R2-F2)", async () => {
+    await clearDatabase();
+    try {
+      const source = new MemoryLocalStore() as unknown as SaleSliceTestStore;
+      const { directSales } = makeStack(source);
+      const sale = await recordSale_15_5_6(directSales);
+      /* تصحيح المقبض 5→3: دلتا سالبة −2 كسطر تسوية مؤرخ بمفتاح المراجعة. */
+      const corrected = await directSales.update(sale.id, {
+        itemName: sale.itemName,
+        quantity: sale.quantity,
+        revenueMinor: sale.revenueMinor,
+        collectedMinor: 300,
+        collectionStatus: "partial_debt",
+        costMinor: sale.costMinor,
+        occurredOn: sale.occurredOn,
+        note: sale.note ?? "",
+        idempotencyKey: "s11-adjust-transfer-op",
+        revisionReason: "صححت المقبوض",
+      });
+      if (!corrected.ok) throw new Error(corrected.message);
+      expect(corrected.value.collections?.some(line => (line.id ?? "").includes(":adjust:"))).toBe(true);
+      const adjustLine = corrected.value.collections?.find(line => (line.id ?? "").includes(":adjust:"));
+      expect(adjustLine?.amountMinor).toBe(-200);
+
+      const transferSource = new LocalTransferService(
+        source as unknown as ConstructorParameters<typeof LocalTransferService>[0],
+        now,
+      );
+      const exported = await transferSource.createExport();
+      if (!exported.ok) throw new Error(exported.message);
+
+      const target = new IndexedDbLocalStore() as unknown as SaleSliceTestStore;
+      const transferTarget = new LocalTransferService(
+        target as unknown as ConstructorParameters<typeof LocalTransferService>[0],
+        now,
+      );
+      const restored = await transferTarget.prepareRestore(JSON.stringify(exported.value));
+      if (!restored.ok) throw new Error(restored.message);
+      const confirmed = await transferTarget.confirmImport(restored.value);
+      if (!confirmed.ok) throw new Error(confirmed.message);
+
+      const targetSales = new DirectSaleService(target, now);
+      const roundTripped = okValue(await targetSales.get(sale.id));
+      if (!roundTripped) throw new Error("missing round-tripped sale");
+      /* السطر السالب عبر حرفيًا والمدقق قبله: المجموع 3 والدلتا −2 بمفتاحها. */
+      const roundAdjust = roundTripped.collections?.find(line => (line.id ?? "").includes(":adjust:"));
+      expect(roundAdjust?.amountMinor).toBe(-200);
+      expect(roundAdjust?.operationKey).toBe(adjustLine?.operationKey);
+      expect(roundTripped.collectedMinor).toBe(300);
+      /* مجموع الخطوط = المجموع المحروس بعد التصحيح (5 ابتدائي − 2 تسوية). */
+      const sum = (roundTripped.collections ?? []).reduce((total, line) => total + line.amountMinor, 0);
+      expect(sum).toBe(roundTripped.collectedMinor);
+    } finally {
+      await clearDatabase();
+    }
+  });
+
+  it("الذاكرة: صرف الرد من محفظة — سطر إنفاق سالب واحد بالنقد مرة واحدة والإعادة إعادة استخدام (تصحيح R2-004)", async () => {
+    const store = new MemoryLocalStore() as unknown as SaleSliceTestStore;
+    const { projectFinance, directSales, movements } = makeStack(store);
+    /* محفظة برصيد افتتاحي 50 د.أ. */
+    const wallet = createCashWallet({
+      id: "drawer-refund",
+      name: "درج المحل",
+      kind: "cash_drawer",
+      createdAt: NOW,
+      createdOperationKey: "drawer-refund-open",
+    });
+    const opening = createCashContinuityEntry({
+      id: "drawer-refund-opening",
+      walletId: wallet.id,
+      type: "opening_balance",
+      occurredOn: "2026-09-01",
+      recordedAt: NOW,
+      cashDeltaMinor: 5000,
+      note: "رصيد بداية",
+      operationKey: "drawer-refund-open-key",
+    });
+    const committed = await (
+      store as unknown as { commitCashContinuity: typeof store.commitCashContinuity }
+    ).commitCashContinuity(wallet, [opening]);
+    if (!committed.ok) throw new Error(committed.message);
+
+    /* بيع 15/قبض 5 إلى المحفظة نفسها ثم مرتجع كامل ثم دفع رد 3 منها من المحفظة. */
+    const sale = await directSales.record({
+      itemName: "صندوق محفظة",
+      quantity: 1,
+      revenueMinor: 1500,
+      collectedMinor: 500,
+      collectionStatus: "partial_debt",
+      customerName: "ليان — جارة المحل",
+      costMinor: null,
+      occurredOn: "2026-09-15",
+      note: "بيع بمحفظة",
+      idempotencyKey: "s11-wallet-sale",
+      wallet: { walletId: wallet.id },
+    });
+    if (!sale.ok) throw new Error(sale.message);
+    expect(sale.value.collections?.[0]?.allocationEntryId).toBeTruthy();
+    const returned = await movements.fullReturn(sale.value.id, {
+      occurredOn: "2026-10-05",
+      reason: "أرجعت الزبونة الصندوق كاملًا",
+      operationKey: "s11-wallet-return",
+    });
+    if (!returned.ok) throw new Error(returned.message);
+
+    const before = await projectFinance.readPosition();
+    if (!before.ok) throw new Error(before.message);
+    const paid = await movements.payRefund(sale.value.id, {
+      amountMinor: 300,
+      occurredOn: "2026-10-07",
+      operationKey: "s11-wallet-refund",
+      walletId: wallet.id,
+    });
+    if (!paid.ok) throw new Error(paid.message);
+    /* سطر الإنفاق السالب واحد مرتبط بسطر الدفع نفسه. */
+    expect(paid.value.cashEntry?.cashDeltaMinor).toBe(-300);
+    expect(paid.value.cashEntry?.walletId).toBe(wallet.id);
+    expect(paid.value.cashEntry?.sourceRefLineId).toBe(paid.value.sale.refundPayments?.[0]?.id);
+    expect(paid.value.sale.refundPayments?.[0]?.allocationEntryId).toBe(paid.value.cashEntry?.id);
+    expect(paid.value.sale.refundedMinor).toBe(300);
+    /* النقد نقص 3 مرة واحدة بالضبط (الافتتاحي 50 + القبض 5 − الرد 3 = 52). */
+    const after = await projectFinance.readPosition();
+    if (!after.ok) throw new Error(after.message);
+    expect(after.value.recordedCashMinor - before.value.recordedCashMinor).toBe(-300);
+
+    /* إعادة نية الدفع نفسها: إعادة استخدام صادقة بأثر الكاش المطابق — لا إنفاق ثانٍ. */
+    const replay = await movements.payRefund(sale.value.id, {
+      amountMinor: 300,
+      occurredOn: "2026-10-07",
+      operationKey: "s11-wallet-refund",
+      walletId: wallet.id,
+    });
+    if (!replay.ok) throw new Error(replay.message);
+    expect(replay.value.reused).toBe(true);
+    expect(replay.value.cashEntry?.id).toBe(paid.value.cashEntry?.id);
+    const afterReplay = await projectFinance.readPosition();
+    if (!afterReplay.ok) throw new Error(afterReplay.message);
+    expect(afterReplay.value.recordedCashMinor).toBe(after.value.recordedCashMinor);
+
+    /* زيادة على حق الرد القائم مرفوضة — لا سمح بصرف أكثر مما قُبض. */
+    const over = await movements.payRefund(sale.value.id, {
+      amountMinor: 300,
+      occurredOn: "2026-10-08",
+      operationKey: "s11-wallet-refund-2",
+      walletId: wallet.id,
+    });
+    expect(over.ok).toBe(false);
+  });
+
+  it("الذاكرة: فشل حد الكتابة لا يكتب شيئًا وإعادة المحاولة بالمفتاح نفسه تلتزم أو تعيد — لا نتيجة مجهولة (تصحيح R3-002c)", async () => {
+    const realStore = new MemoryLocalStore() as unknown as SaleSliceTestStore;
+    /* غلاف يفشل نداء الالتزام الأول بعد تسليحه — محاكاة فشل الحد الصادق
+     * (يسلَّح بعد تسجيل البيع كي يفشل التزام القبضة لا التزام البيع). */
+    let failFirstCommit = false;
+    const failingStore = new Proxy(realStore, {
+      get(target, prop, receiver) {
+        if (prop === "commitDirectSaleWrite") {
+          return (...args: Parameters<SaleSliceTestStore["commitDirectSaleWrite"]>) => {
+            if (failFirstCommit) {
+              failFirstCommit = false;
+              return Promise.resolve({ ok: false, code: "storage_error", message: "تعذر الحفظ محليًا الآن" });
+            }
+            return (target as SaleSliceTestStore).commitDirectSaleWrite(...args);
+          };
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+    }) as SaleSliceTestStore;
+    const { directSales, movements } = makeStack(failingStore);
+    /* محفظة موجودة كي يعبر فحص الوجهة ويصل الفشل إلى حد الكتابة نفسه. */
+    const wallet = createCashWallet({
+      id: "drawer-r3-recovery",
+      name: "درج الاسترداد",
+      kind: "cash_drawer",
+      createdAt: NOW,
+      createdOperationKey: "drawer-r3-recovery-open",
+    });
+    const walletOpening = createCashContinuityEntry({
+      id: "drawer-r3-recovery-opening",
+      walletId: wallet.id,
+      type: "opening_balance",
+      occurredOn: "2026-09-01",
+      recordedAt: NOW,
+      cashDeltaMinor: 5000,
+      note: "رصيد",
+      operationKey: "drawer-r3-recovery-open-key",
+    });
+    const opened = await realStore.commitCashContinuity(wallet, [walletOpening]);
+    if (!opened.ok) throw new Error(opened.message);
+
+    const sale = await recordSale_15_5_6(directSales);
+    failFirstCommit = true; /* سلِّح الفشل لالتزام القبضة القادم وحده. */
+    /* النية تفشل عند الحد بمحفظة مختارة: فشل تخزين صادق — لا نتيجة مجهولة
+     * ولا أثر (لا سطر قبض ولا سطر كاش نصفيا). */
+    const failed = await movements.collectPayment(sale.id, {
+      amountMinor: 1000,
+      occurredOn: "2026-10-01",
+      operationKey: "r3-recovery-op",
+      walletId: wallet.id,
+    });
+    expect(failed.ok).toBe(false);
+    if (failed.ok) throw new Error("unreachable");
+    expect(failed.code).toBe("storage_error");
+    const afterFailure = await new DirectSaleService(realStore, now).get(sale.id);
+    if (!afterFailure.ok) throw new Error(afterFailure.message);
+    if (!afterFailure.value) throw new Error("missing sale after failure");
+    expect(afterFailure.value.collectedMinor).toBe(500);
+    expect(
+      (afterFailure.value.collections ?? []).some(entry => entry.operationKey === "r3-recovery-op"),
+    ).toBe(false);
+    const entriesAfterFailure = await realStore.listCashContinuityEntries();
+    if (!entriesAfterFailure.ok) throw new Error(entriesAfterFailure.message);
+    expect(
+      entriesAfterFailure.value.filter(entry => entry.sourceRefLineId === `${sale.id}:col:r3-recovery-op`),
+    ).toHaveLength(0);
+
+    /* إعادة المحاولة بالمفتاح نفسه بعد الفشل: التزام نظيف (لم يُكتب شيء
+     * قبلًا) ثم إعادتها إعادة استخدام صادقة — استرداد النتيجة بالقصد نفسه. */
+    const recovered = await movements.collectPayment(sale.id, {
+      amountMinor: 1000,
+      occurredOn: "2026-10-01",
+      operationKey: "r3-recovery-op",
+    });
+    if (!recovered.ok) throw new Error(recovered.message);
+    expect(recovered.value.reused).toBe(false);
+    expect(recovered.value.sale.collectedMinor).toBe(1500);
+    const replay = await movements.collectPayment(sale.id, {
+      amountMinor: 1000,
+      occurredOn: "2026-10-01",
+      operationKey: "r3-recovery-op",
+    });
+    if (!replay.ok) throw new Error(replay.message);
+    expect(replay.value.reused).toBe(true);
+    expect(replay.value.sale.collectedMinor).toBe(1500);
+    /* سطر قبض واحد بالمفتاح لا اثنان — لا كتابة مزدوجة أبدًا. */
+    expect(
+      (replay.value.sale.collections ?? []).filter(entry => entry.operationKey === "r3-recovery-op"),
+    ).toHaveLength(1);
+  });
+
+  it("المهايئان معًا: عكسان متزامنان للتخصيص نفسه — واحد ينجح والآخر يُرفض بلا أثر جزئي (تصحيح R3-002d)", async () => {
+    for (const [label, makeStore] of adapters) {
+      if (label === "IndexedDB") await clearDatabase();
+      try {
+        const store = makeStore();
+        const { directSales } = makeStack(store);
+        /* محفظة وقبض موزع قابل للعكس. */
+        const wallet = createCashWallet({
+          id: "drawer-r3d",
+          name: "درج العكس",
+          kind: "cash_drawer",
+          createdAt: NOW,
+          createdOperationKey: "drawer-r3d-open",
+        });
+        const opening = createCashContinuityEntry({
+          id: "drawer-r3d-opening",
+          walletId: wallet.id,
+          type: "opening_balance",
+          occurredOn: "2026-09-01",
+          recordedAt: NOW,
+          cashDeltaMinor: 5000,
+          note: "رصيد",
+          operationKey: "drawer-r3d-open-key",
+        });
+        const opened = await (store as unknown as SaleSliceTestStore).commitCashContinuity(wallet, [opening]);
+        if (!opened.ok) throw new Error(opened.message);
+
+        const sale = await directSales.record({
+          itemName: "بيع عكس متزامن",
+          quantity: 1,
+          revenueMinor: 1500,
+          collectedMinor: 500,
+          collectionStatus: "partial_debt",
+          customerName: "ليان — جارة المحل",
+          costMinor: null,
+          occurredOn: "2026-09-15",
+          note: "بيع",
+          idempotencyKey: "r3d-sale-op",
+          wallet: { walletId: wallet.id },
+        });
+        if (!sale.ok) throw new Error(sale.message);
+        const allocationEntryId = sale.value.collections?.[0]?.allocationEntryId ?? null;
+        expect(allocationEntryId).toBeTruthy();
+
+        const { SaleCollectionReversalService } =
+          await import("@/application/collections/saleCollectionReversalService");
+        const { projectFinance } = makeStack(store);
+        const reversalA = new SaleCollectionReversalService(store, projectFinance, now);
+        const reversalB = new SaleCollectionReversalService(store, projectFinance, now);
+        const [a, b] = await Promise.all([
+          reversalA.reverse({
+            saleId: sale.value.id,
+            allocationEntryId: allocationEntryId!,
+            operationKey: "r3d-reverse-op",
+            reason: "خطأ في المبلغ",
+          }),
+          reversalB.reverse({
+            saleId: sale.value.id,
+            allocationEntryId: allocationEntryId!,
+            operationKey: "r3d-reverse-op-2",
+            reason: "خطأ في المبلغ",
+          }),
+        ]);
+        const outcomes = [a, b];
+        const winners = outcomes.filter(outcome => outcome.ok);
+        const losers = outcomes.filter(outcome => !outcome.ok);
+        expect(winners).toHaveLength(1);
+        expect(losers).toHaveLength(1);
+        /* لا أثر جزئي: المقبوض رجع إلى ما قبل القبضة الموزعة (0) بسطر سالب
+         * واحد فقط، وقيد عكس كاش واحد للتخصيص. */
+        const live = await new DirectSaleService(store, now).get(sale.value.id);
+        if (!live.ok) throw new Error(live.message);
+        if (!live.value) throw new Error("missing sale after double reversal");
+        expect(live.value.collectedMinor).toBe(0);
+        const negatives = (live.value.collections ?? []).filter(entry => entry.amountMinor < 0);
+        expect(negatives).toHaveLength(1);
+        const entries = await (store as unknown as SaleSliceTestStore).listCashContinuityEntries();
+        if (!entries.ok) throw new Error(entries.message);
+        const reversals = entries.value.filter(
+          entry => entry.type === "reversal" && entry.reversesEntryId === allocationEntryId,
+        );
+        expect(reversals).toHaveLength(1);
+      } finally {
+        if (label === "IndexedDB") await clearDatabase();
+      }
+    }
   });
 
   it("الذاكرة → IndexedDB: دورة النقل الكاملة للحقول الجديدة (تصدير→وارد→استعادة→تأكيد)", async () => {

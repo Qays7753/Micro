@@ -324,6 +324,316 @@ describe("DirectSaleEditor", () => {
     expect(notifyDataChanged).not.toHaveBeenCalled();
   });
 
+  /* S11 (UNIT-005/PD-02 — تصحيح المراجعة R2-004): مسار المرتجع الكامل —
+   * السبب إلزامي، والفعل يمر بمالك الحركات (نية واحدة بمفتاح ثابت)، ولا
+   * يُدفع رد بمجرد إعلان المرتجع. */
+  it("S11 المرتجع الكامل: السبب إلزامي والفعل بمالك الحركات بمفتاح نية واحد", async () => {
+    const fullReturn = vi.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        sale: {
+          ...sale,
+          collectionStatus: "returned_full" as const,
+          return: {
+            occurredOn: "2026-10-05",
+            refundDueMinor: 1200,
+            operationKey: "return-key",
+            recordedAt: "2026-10-05T09:00:00.000Z",
+            reason: "أُرجع كاملًا",
+          },
+        },
+        cashEntry: null,
+        reused: false,
+      },
+    });
+    const notifyDataChanged = vi.fn();
+    mockedUsePrototypeServices.mockReturnValue({
+      formDrafts: {
+        read: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-09-04T12:00:00.000Z" } }),
+        discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
+      catalog: { list: vi.fn().mockResolvedValue({ ok: true, items: [] }) },
+      directSales: { get: vi.fn().mockResolvedValue({ ok: true, value: sale }) },
+      cashContinuity: { overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }) },
+      saleCollectionReversal: {
+        listReversibleCollections: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        preview: vi.fn(),
+        reverse: vi.fn(),
+      },
+      projectFinance: { distributeUnallocated: vi.fn() },
+      saleMovements: { fullReturn, payRefund: vi.fn() },
+      notifyDataChanged,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(
+      <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+        <DirectSaleEditor />
+      </UnsavedChangesProvider>,
+    );
+
+    await screen.findByRole("heading", { name: "تصحيح بيع مباشر" });
+    /* إفصاح المرتجع الكامل يُفتح، والضغط بلا سبب يُخبر بصدق ولا يستدعي شيئًا. */
+    fireEvent.click(screen.getByText("المرتجع الكامل"));
+    fireEvent.click(screen.getByRole("button", { name: "تأكيد المرتجع الكامل" }));
+    expect(await screen.findByText("اكتب سبب المرتجع قبل تأكيده.")).toBeTruthy();
+    expect(fullReturn).not.toHaveBeenCalled();
+
+    /* بالسبب يُنفَّذ الفعل بمالك الحركات: تاريخ وسبب ومفتاح نية واحد. */
+    fireEvent.change(screen.getByPlaceholderText("مثال: أُرجع كاملًا"), {
+      target: { value: "أرجعت الزبونة الصندوق كاملًا" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "تأكيد المرتجع الكامل" }));
+
+    await waitFor(() => expect(fullReturn).toHaveBeenCalledTimes(1));
+    expect(fullReturn).toHaveBeenCalledWith(
+      "sale-1",
+      expect.objectContaining({ reason: "أرجعت الزبونة الصندوق كاملًا" }),
+    );
+    expect((fullReturn.mock.calls[0] as [string, { operationKey: string }])[1].operationKey).toMatch(
+      /direct-sale-return-ui-/,
+    );
+    expect(notifyDataChanged).toHaveBeenCalledOnce();
+    /* تصحيح المراجعة R5-007: نجاح المرتجع يغلق الإفصاح ويبقى النص خارجه —
+     * مرئيًا معلنًا في المتصفح الحقيقي (المطوي لا يعرض ولا يُعلن). */
+    const success = await screen.findByText(/سُجّل المرتجع الكامل/);
+    expect(success.closest("details")).toBeNull();
+    const disclosure = screen.getByText("المرتجع الكامل").closest("details");
+    expect(disclosure?.open).toBe(false);
+  });
+
+  /* S11 (تصحيح المراجعة R5-001): زر «إبقاء البيع» يغلق الإفصاح فعلًا —
+   * لا زرًا صامتًا بجوار فعل مدمّر. */
+  it("S11 المرتجع الكامل: زر الإبقاء يغلق الإفصاح والسبب محفوظ", async () => {
+    mockedUsePrototypeServices.mockReturnValue({
+      formDrafts: {
+        read: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-09-04T12:00:00.000Z" } }),
+        discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
+      catalog: { list: vi.fn().mockResolvedValue({ ok: true, items: [] }) },
+      directSales: { get: vi.fn().mockResolvedValue({ ok: true, value: sale }) },
+      cashContinuity: { overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }) },
+      saleCollectionReversal: {
+        listReversibleCollections: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        preview: vi.fn(),
+        reverse: vi.fn(),
+      },
+      projectFinance: { distributeUnallocated: vi.fn() },
+      saleMovements: { fullReturn: vi.fn(), payRefund: vi.fn() },
+      notifyDataChanged: vi.fn(),
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(
+      <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+        <DirectSaleEditor />
+      </UnsavedChangesProvider>,
+    );
+
+    await screen.findByRole("heading", { name: "تصحيح بيع مباشر" });
+    fireEvent.click(screen.getByText("المرتجع الكامل"));
+    const summary = screen.getByText("المرتجع الكامل").closest("details");
+    expect(summary?.open).toBe(true);
+    fireEvent.change(screen.getByPlaceholderText("مثال: أُرجع كاملًا"), {
+      target: { value: "أرجعت الزبونة الصندوق" },
+    });
+    /* زر الإبقاء يغلق الإفصاح فعلًا والسبب محفوظ (لا فقدان مدخل). */
+    fireEvent.click(screen.getByRole("button", { name: "إبقاء البيع" }));
+    expect(summary?.open).toBe(false);
+    fireEvent.click(screen.getByText("المرتجع الكامل"));
+    expect((screen.getByPlaceholderText("مثال: أُرجع كاملًا") as HTMLTextAreaElement).value).toBe(
+      "أرجعت الزبونة الصندوق",
+    );
+  });
+
+  /* تصحيح المراجعة R5-007: الإبقاء يمسح التغذية الراجعة القديمة — لا يبقى
+   * نص خطأ أو نجاح مثبت تحت إفصاح مغلق. */
+  it("S11 المرتجع الكامل: الإبقاء يمسح التغذية الراجعة القديمة", async () => {
+    mockedUsePrototypeServices.mockReturnValue({
+      formDrafts: {
+        read: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-09-04T12:00:00.000Z" } }),
+        discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
+      catalog: { list: vi.fn().mockResolvedValue({ ok: true, items: [] }) },
+      directSales: { get: vi.fn().mockResolvedValue({ ok: true, value: sale }) },
+      cashContinuity: { overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }) },
+      saleCollectionReversal: {
+        listReversibleCollections: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        preview: vi.fn(),
+        reverse: vi.fn(),
+      },
+      projectFinance: { distributeUnallocated: vi.fn() },
+      saleMovements: { fullReturn: vi.fn(), payRefund: vi.fn() },
+      notifyDataChanged: vi.fn(),
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(
+      <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+        <DirectSaleEditor />
+      </UnsavedChangesProvider>,
+    );
+
+    await screen.findByRole("heading", { name: "تصحيح بيع مباشر" });
+    fireEvent.click(screen.getByText("المرتجع الكامل"));
+    /* خطأ تحقق يظهر خارج الإفصاح ثم الإبقاء يمسحه. */
+    fireEvent.click(screen.getByRole("button", { name: "تأكيد المرتجع الكامل" }));
+    expect(await screen.findByText("اكتب سبب المرتجع قبل تأكيده.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "إبقاء البيع" }));
+    expect(screen.queryByText("اكتب سبب المرتجع قبل تأكيده.")).toBeNull();
+  });
+
+  /* S11 (تصحيح المراجعة R5-003): نص غير صالح في مبلغ الرد يمنع الدفع — لا
+   * يُدفع رصيد نموذج قديم والشاشة تعرض نصًا آخر. */
+  it("S11 دفع الرد: نص غير صالح في المبلغ يمنع الدفع بلا استدعاء", async () => {
+    const returnedSale: DirectSale = {
+      ...sale,
+      collectionStatus: "returned_full",
+      return: {
+        occurredOn: "2026-10-05",
+        refundDueMinor: 1200,
+        operationKey: "return-key-1",
+        recordedAt: "2026-10-05T09:00:00.000Z",
+        reason: "أرجعت الزبونة الصندوق كاملًا",
+      },
+      refundPayments: [],
+      refundedMinor: 0,
+    };
+    const payRefund = vi.fn();
+    mockedUsePrototypeServices.mockReturnValue({
+      formDrafts: {
+        read: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-09-04T12:00:00.000Z" } }),
+        discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
+      catalog: { list: vi.fn().mockResolvedValue({ ok: true, items: [] }) },
+      directSales: { get: vi.fn().mockResolvedValue({ ok: true, value: returnedSale }) },
+      cashContinuity: { overview: vi.fn().mockResolvedValue({ ok: true, value: { wallets: [] } }) },
+      saleCollectionReversal: {
+        listReversibleCollections: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        preview: vi.fn(),
+        reverse: vi.fn(),
+      },
+      projectFinance: { distributeUnallocated: vi.fn() },
+      saleMovements: { fullReturn: vi.fn(), payRefund },
+      notifyDataChanged: vi.fn(),
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(
+      <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+        <DirectSaleEditor />
+      </UnsavedChangesProvider>,
+    );
+
+    await screen.findByRole("heading", { name: "تصحيح بيع مباشر" });
+    /* رقم صالح ثم نص غير صالح فوقه: البوابة تمنع الدفع ولا يستدعي المالك. */
+    fireEvent.change(screen.getByLabelText("مبلغ دفع الرد"), { target: { value: "3.00" } });
+    fireEvent.change(screen.getByLabelText("مبلغ دفع الرد"), { target: { value: "ثلاثة" } });
+    fireEvent.click(screen.getByRole("button", { name: "سجّل دفع الرد" }));
+    expect(await screen.findByText("أدخل مبلغ دفع الرد بالأرقام 0–9.")).toBeTruthy();
+    expect(payRefund).not.toHaveBeenCalled();
+  });
+
+  /* S11 (UNIT-026 sale-slice / SDF-054 — تصحيح المراجعة R2-004): دفع رد فعلي
+   * مؤرخ على بيع مُرتجع — الحق القائم معروض بالمقبوض فقط، والدفع بمالك
+   * الحركات بمفتاح واحد، والصرف من محفظة مختارة. */
+  it("S11 دفع الرد: الحق القائم بالمقبوض فقط والدفع المؤرخ بمفتاح واحد ومحفظة", async () => {
+    const returnedSale: DirectSale = {
+      ...sale,
+      collectionStatus: "returned_full",
+      return: {
+        occurredOn: "2026-10-05",
+        refundDueMinor: 1200,
+        operationKey: "return-key-1",
+        recordedAt: "2026-10-05T09:00:00.000Z",
+        reason: "أرجعت الزبونة الصندوق كاملًا",
+      },
+      refundPayments: [],
+      refundedMinor: 0,
+    };
+    const payRefund = vi.fn().mockResolvedValue({
+      ok: true,
+      value: {
+        sale: {
+          ...returnedSale,
+          refundedMinor: 300,
+          refundPayments: [
+            {
+              id: "sale-1:refund:op",
+              amountMinor: 300,
+              occurredOn: "2026-10-07",
+              operationKey: "refund-key",
+              recordedAt: "2026-10-07T09:00:00.000Z",
+              note: null,
+              allocationEntryId: "cash-1",
+            },
+          ],
+        },
+        cashEntry: { id: "cash-1", walletId: "drawer-1", cashDeltaMinor: -300 },
+        reused: false,
+      },
+    });
+    const notifyDataChanged = vi.fn();
+    mockedUsePrototypeServices.mockReturnValue({
+      formDrafts: {
+        read: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-09-04T12:00:00.000Z" } }),
+        discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+      },
+      catalog: { list: vi.fn().mockResolvedValue({ ok: true, items: [] }) },
+      directSales: { get: vi.fn().mockResolvedValue({ ok: true, value: returnedSale }) },
+      cashContinuity: {
+        overview: vi.fn().mockResolvedValue({
+          ok: true,
+          value: { wallets: [{ id: "drawer-1", name: "درج النقد", kind: "cash_drawer" }] },
+        }),
+      },
+      saleCollectionReversal: {
+        listReversibleCollections: vi.fn().mockResolvedValue({ ok: true, value: [] }),
+        preview: vi.fn(),
+        reverse: vi.fn(),
+      },
+      projectFinance: { distributeUnallocated: vi.fn() },
+      saleMovements: { fullReturn: vi.fn(), payRefund },
+      notifyDataChanged,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+
+    render(
+      <UnsavedChangesProvider navigate={wouterMocks.navigate}>
+        <DirectSaleEditor />
+      </UnsavedChangesProvider>,
+    );
+
+    await screen.findByRole("heading", { name: "تصحيح بيع مباشر" });
+    /* الحق القائم بالمقبوض فقط (12.00 من أصل 12.00 مقبوض) — لا بالإيراد مرتين. */
+    const standing = await screen.findByText(/الحق القائم/);
+    expect(standing.textContent).toContain("12.00");
+    expect(standing.textContent).toContain("مقبوض");
+
+    /* مبلغ غير مدخل يُخبر بصدق. */
+    fireEvent.click(screen.getByRole("button", { name: "سجّل دفع الرد" }));
+    expect(await screen.findByText("أدخل مبلغ دفع الرد بالأرقام 0–9.")).toBeTruthy();
+    expect(payRefund).not.toHaveBeenCalled();
+
+    /* المبلغ والتاريخ والمحفظة تمر بمالك الحركات بمفتاح نية واحد. */
+    fireEvent.change(screen.getByLabelText("مبلغ دفع الرد"), { target: { value: "3.00" } });
+    /* خيارات المحفظة تُحمَّل من نظرة الكاش — انتظر ظهور الدرج قبل الاختيار. */
+    await waitFor(() => expect(screen.getByRole("option", { name: "درج النقد" })).toBeTruthy());
+    fireEvent.change(screen.getByLabelText("من أي محفظة؟ (اختياري)"), { target: { value: "drawer-1" } });
+    fireEvent.click(screen.getByRole("button", { name: "سجّل دفع الرد" }));
+
+    await waitFor(() => expect(payRefund).toHaveBeenCalledTimes(1));
+    expect(payRefund).toHaveBeenCalledWith(
+      "sale-1",
+      expect.objectContaining({ amountMinor: 300, walletId: "drawer-1" }),
+    );
+    expect((payRefund.mock.calls[0] as [string, { operationKey: string }])[1].operationKey).toMatch(
+      /direct-sale-refund-ui-/,
+    );
+    expect(await screen.findByText("سُجّل دفع الرد بتاريخه.")).toBeTruthy();
+    expect(notifyDataChanged).toHaveBeenCalledOnce();
+  });
+
   /* S05 (DOC-014 / UNIT-037 B3 + SDF-041): فشل حفظ الطرف الاختياري نتيجة
    * جزئية صادقة، وإعادة المحاولة على شاشة النتيجة تحفظ الطرف وحده — لا
    * يُعاد البيع ولا يُتراجع ولا يتكرر، والمفتاح المشتق نفسه لا ينشئ طرفًا

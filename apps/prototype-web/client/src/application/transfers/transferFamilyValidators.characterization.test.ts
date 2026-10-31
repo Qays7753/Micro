@@ -276,6 +276,142 @@ describe("compound guards", () => {
     expect(isDirectSale({ ...sale, currency: "USD" })).toBe(false);
     expect(isDirectSale(null)).toBe(false);
   });
+
+  /* S11 (تصحيح المراجعة R4-002): مصفوفة رفض الحقول الجديدة — الحارس يقبل
+   * الشكلين (قديم بلا حقول وبجديد الحقول) ويرفض الفاسد منها بلا استثناء؛
+   * انحدار دائم لبوابة التوافق. */
+  it("isDirectSale accepts the S11 optional fields and rejects their corrupt shapes", () => {
+    const sale = {
+      id: "ds-1",
+      itemName: "شمع",
+      quantity: 2,
+      currency: "JOD",
+      revenueMinor: 1000,
+      collectedMinor: 1000,
+      collectionStatus: "collected_in_full",
+      catalogItemId: null,
+      customerName: null,
+      costMinor: null,
+      profitMinor: null,
+      note: "بيع نقدي",
+      occurredOn: "2026-09-01",
+      recordedAt: "2026-09-01T09:00:00.000Z",
+      idempotencyKey: "ds-key-1",
+      status: "active",
+      corrections: [],
+      revisions: [],
+    };
+    const movement = {
+      id: "ds-1:col:op-1",
+      amountMinor: 400,
+      occurredOn: "2026-10-01",
+      operationKey: "op-1",
+      recordedAt: "2026-10-01T09:00:00.000Z",
+      note: null,
+      allocationEntryId: null,
+    };
+    const s11Sale = {
+      ...sale,
+      collectionStatus: "partial_debt",
+      collectedMinor: 600,
+      collections: [movement],
+      return: null,
+      refundPayments: [],
+      refundedMinor: 0,
+    };
+    /* الشكل الجديد الكامل مقبول، والقديم بلا الحقول مقبول (توافق خلفي). */
+    expect(isDirectSale(s11Sale)).toBe(true);
+    expect(isDirectSale(sale)).toBe(true);
+    /* سطر حركة بمبلغ صفر أو غير صحيح مرفوض. */
+    expect(isDirectSale({ ...s11Sale, collections: [{ ...movement, amountMinor: 0 }] })).toBe(false);
+    expect(isDirectSale({ ...s11Sale, collections: [{ ...movement, amountMinor: 1.5 }] })).toBe(false);
+    /* مفتاح حركة مكرر داخل الخطوط أو مع مفتاح السجل مرفوض. */
+    expect(
+      isDirectSale({
+        ...s11Sale,
+        collections: [movement, { ...movement, id: "ds-1:col:op-2", amountMinor: 100 }],
+      }),
+    ).toBe(false);
+    expect(isDirectSale({ ...s11Sale, collections: [{ ...movement, operationKey: "ds-key-1" }] })).toBe(
+      false,
+    );
+    /* مرتجع بحالة غير مرتجعة، أو مرتجع بلا سجل مرتجع، أو حق رد يتجاوز المقبوض — مرفوضة. */
+    expect(isDirectSale({ ...s11Sale, collectionStatus: "returned_full" })).toBe(false);
+    expect(isDirectSale({ ...s11Sale, collectionStatus: "returned_full", return: null })).toBe(false);
+    expect(
+      isDirectSale({
+        ...s11Sale,
+        collectionStatus: "returned_full",
+        return: {
+          occurredOn: "2026-10-05",
+          refundDueMinor: 600,
+          operationKey: "ret-op-1",
+          recordedAt: "2026-10-05T09:00:00.000Z",
+          reason: "مرتجع",
+        },
+      }),
+    ).toBe(true);
+    expect(
+      isDirectSale({
+        ...s11Sale,
+        collectionStatus: "returned_full",
+        collectedMinor: 600,
+        return: {
+          occurredOn: "2026-10-05",
+          refundDueMinor: 601,
+          operationKey: "ret-op-1",
+          recordedAt: "2026-10-05T09:00:00.000Z",
+          reason: "مرتجع",
+        },
+      }),
+    ).toBe(false);
+    /* دفع رد بلا مرتجع مرفوض، والمجموع المردود لا يطابق مدفوعات الرد مرفوض. */
+    expect(
+      isDirectSale({
+        ...s11Sale,
+        refundPayments: [
+          {
+            id: "ds-1:refund:ref-1",
+            amountMinor: 100,
+            occurredOn: "2026-10-07",
+            operationKey: "ref-1",
+            recordedAt: "2026-10-07T09:00:00.000Z",
+            note: null,
+            allocationEntryId: null,
+          },
+        ],
+        refundedMinor: 100,
+      }),
+    ).toBe(false);
+    const returned = {
+      ...s11Sale,
+      collectionStatus: "returned_full",
+      return: {
+        occurredOn: "2026-10-05",
+        refundDueMinor: 600,
+        operationKey: "ret-op-1",
+        recordedAt: "2026-10-05T09:00:00.000Z",
+        reason: "مرتجع",
+      },
+    };
+    expect(
+      isDirectSale({
+        ...returned,
+        refundPayments: [
+          {
+            id: "ds-1:refund:ref-1",
+            amountMinor: 100,
+            occurredOn: "2026-10-07",
+            operationKey: "ref-1",
+            recordedAt: "2026-10-07T09:00:00.000Z",
+            note: null,
+            allocationEntryId: null,
+          },
+        ],
+        refundedMinor: 200,
+      }),
+    ).toBe(false);
+  });
 });
 
 describe("validateSnapshot — direct structural validation", () => {

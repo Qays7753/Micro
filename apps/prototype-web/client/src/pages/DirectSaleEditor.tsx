@@ -146,13 +146,23 @@ export default function DirectSaleEditor() {
     `direct-sale-cancellation-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
   );
   /* S11 (UNIT-005/PD-02 + UNIT-026 sale-slice): حالة فعل المرتجع الكامل ودفع
-   * الرد — نية واحدة لكل فعل (مفتاح ثابت عند الإعادة) وتاريخ أعمال حقيقي. */
+   * الرد — نية واحدة لكل فعل (مفتاح ثابت عند الإعادة) وتاريخ أعمال حقيقي.
+   * تصحيح المراجعات R5-001/002/003: الإفصاح محروس بحالة حية (زر الإبقاء
+   * يغلقه فعلًا)، والتغذية الراجعة محلية للقسم (النجاح status لا قناة
+   * الخطأ)، وصلاحية نص مبلغ الرد محروسة كبقية الحقول المالية. */
   const [returnOpen, setReturnOpen] = useState(false);
   const [returnReason, setReturnReason] = useState("");
   const [returnDate, setReturnDate] = useState(todayInAmman());
+  const [returnFeedback, setReturnFeedback] = useState<{ kind: "error" | "status"; text: string } | null>(
+    null,
+  );
   const [refundAmountMinor, setRefundAmountMinor] = useState(0);
+  const [validRefund, setValidRefund] = useState(true);
   const [refundDate, setRefundDate] = useState(todayInAmman());
   const [refundWalletId, setRefundWalletId] = useState("");
+  const [refundFeedback, setRefundFeedback] = useState<{ kind: "error" | "status"; text: string } | null>(
+    null,
+  );
   const returnIdempotencyKey = useRef(
     `direct-sale-return-ui-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
   );
@@ -199,23 +209,28 @@ export default function DirectSaleEditor() {
       .catch(() => setReferences([]));
   }, [catalog, dataVersion]);
 
-  /* المجموعة ٣ (Scope D): محافظ القبض تُقرأ عند الإنشاء فقط — التعديل لا يحرك الكاش. */
+  /* المجموعة ٣ (Scope D): محافظ القبض تُقرأ عند الإنشاء فقط — التعديل لا يحرك
+   * الكاش. استثناء S11 (تصحيح المراجعة R2-004): قسم دفع الرد على بيع مُرتجع
+   * يظهر في وضع التعديل ويحتاج المحافظ (خيار الصرف) — فتُقرأ المحافظ هناك
+   * أيضًا دون مساس بقرار الدرج الافتراضي (خاص بالإنشاء وحده). */
   useEffect(() => {
-    if (editing) return;
+    if (editing && !savedSale?.return) return;
     let active = true;
     cashContinuity
       .overview()
       .then(result => {
         if (!active || !result.ok) return;
         setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
-        const drawer = result.value.wallets.find(wallet => wallet.kind === "cash_drawer");
-        setSaleWalletId(current => current || drawer?.id || "");
+        if (!editing) {
+          const drawer = result.value.wallets.find(wallet => wallet.kind === "cash_drawer");
+          setSaleWalletId(current => current || drawer?.id || "");
+        }
       })
       .catch(() => setWallets([]));
     return () => {
       active = false;
     };
-  }, [cashContinuity, editing, dataVersion]);
+  }, [cashContinuity, editing, savedSale?.return, dataVersion]);
 
   /* S05 (DOC-014 / UNIT-037 A2): خيارات الأطراف المحفوظة النشطة للمختار —
    * تُحمّل عند جاهزية الخدمة الكسولة؛ الفشل يبقي القائمة فارغة بصدق (لا
@@ -573,14 +588,14 @@ export default function DirectSaleEditor() {
    * نقد قبل دفع رد فعلي. */
   async function submitFullReturn() {
     if (!saleMovements) {
-      setMessage("جارٍ تجهيز خدمة الحفظ — لحظة ثم أعد المحاولة.");
+      setReturnFeedback({ kind: "error", text: "جارٍ تجهيز خدمة الحفظ — لحظة ثم أعد المحاولة." });
       return;
     }
     if (!saleId || !returnReason.trim()) {
-      setMessage("اكتب سبب المرتجع قبل تأكيده.");
+      setReturnFeedback({ kind: "error", text: "اكتب سبب المرتجع قبل تأكيده." });
       return;
     }
-    setMessage(null);
+    setReturnFeedback(null);
     setSaving(true);
     const result = await saleMovements.fullReturn(saleId, {
       occurredOn: returnDate,
@@ -589,7 +604,7 @@ export default function DirectSaleEditor() {
     });
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setReturnFeedback({ kind: "error", text: result.message });
       if (result.code === "conflict") {
         preserveFormRef.current = true;
         setReloadToken(token => token + 1);
@@ -598,22 +613,25 @@ export default function DirectSaleEditor() {
     }
     notifyDataChanged();
     setReturnOpen(false);
-    setMessage("سُجّل المرتجع الكامل — أُلغي المتبقي وثبت حق الرد بالمقبوض.");
+    setReturnFeedback({
+      kind: "status",
+      text: "سُجّل المرتجع الكامل — أُلغي المتبقي وثبت حق الرد بالمقبوض.",
+    });
   }
 
   /* S11 (UNIT-026 sale-slice / SDF-054): دفع رد فعلي مؤرخ — لا يتجاوز حق
    * الرد القائم ولا يُدفع مرتين؛ الصرف من محفظة مختارة أو من غير الموزع. */
   async function submitRefundPayment() {
     if (!saleMovements) {
-      setMessage("جارٍ تجهيز خدمة الحفظ — لحظة ثم أعد المحاولة.");
+      setRefundFeedback({ kind: "error", text: "جارٍ تجهيز خدمة الحفظ — لحظة ثم أعد المحاولة." });
       return;
     }
     if (!saleId) return;
-    if (!Number.isInteger(refundAmountMinor) || refundAmountMinor <= 0) {
-      setMessage("أدخل مبلغ دفع الرد بالأرقام 0–9.");
+    if (!validRefund || !Number.isInteger(refundAmountMinor) || refundAmountMinor <= 0) {
+      setRefundFeedback({ kind: "error", text: "أدخل مبلغ دفع الرد بالأرقام 0–9." });
       return;
     }
-    setMessage(null);
+    setRefundFeedback(null);
     setSaving(true);
     const result = await saleMovements.payRefund(saleId, {
       amountMinor: refundAmountMinor,
@@ -623,7 +641,7 @@ export default function DirectSaleEditor() {
     });
     setSaving(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setRefundFeedback({ kind: "error", text: result.message });
       if (result.code === "conflict") {
         preserveFormRef.current = true;
         setReloadToken(token => token + 1);
@@ -631,7 +649,7 @@ export default function DirectSaleEditor() {
       return;
     }
     notifyDataChanged();
-    setMessage("سُجّل دفع الرد بتاريخه.");
+    setRefundFeedback({ kind: "status", text: "سُجّل دفع الرد بتاريخه." });
   }
 
   if (editing && loadingSale)
@@ -1105,7 +1123,10 @@ export default function DirectSaleEditor() {
           {savedSale?.collectionStatus ? (
             <p className="micro-save-note" role="status">
               حالة القبض الحالية: {collectionStatusLabel[savedSale.collectionStatus]}
+              {/* تصحيح المراجعة R5-006: المرتجع الكامل ألغى حقه — لا لاحقة
+                  «الفرق» بعده (حق الرد القائم يعرضه قسم دفع الرد وحده). */}
               {savedSale.collectionStatus !== "collected_in_full" &&
+              savedSale.collectionStatus !== "returned_full" &&
               savedSale.revenueMinor > savedSale.collectedMinor
                 ? ` — الفرق ${formatMoneyMinor(savedSale.revenueMinor - savedSale.collectedMinor)} د.أ.`
                 : ""}
@@ -1247,21 +1268,44 @@ export default function DirectSaleEditor() {
           §10.1: غير محسوب في السكون، وسقف كثافة النص المحروس لا يُرفع). */}
       {editing && savedSale?.status !== "cancelled" && !savedSale?.return ? (
         <section className="micro-danger-zone" aria-labelledby="direct-sale-return-title">
-          <details className="micro-inline-disclosure">
-            <summary id="direct-sale-return-title">المرتجع الكامل</summary>
+          {/* تصحيح المراجعة R5-001: إفصاح محروس بحالة حية — زر «إبقاء البيع"
+              يغلقه فعلًا (لا زرًا صامتًا) وحالة النجاح تغلقه بعد التنفيذ. */}
+          <details
+            className="micro-inline-disclosure"
+            open={returnOpen}
+            onToggle={event => setReturnOpen(event.currentTarget.open)}
+          >
+            <summary
+              id="direct-sale-return-title"
+              onClick={event => {
+                /* الإفصاح محروس بالحالة وحدها (preventDefault) — النقر الأصلي
+                 * يقلب الخاصية خلاف واجهة React فينزع التزامن؛ الحالة مصدر
+                 * الحقيقة وزر الإبقاء يغلق فعلًا. */
+                event.preventDefault();
+                setReturnOpen(open => !open);
+              }}
+            >
+              المرتجع الكامل
+            </summary>
             <p>
               سيبقى البيع الأصل وتاريخه محفوظين، ويُلغى المتبقي غير المقبوض، ويثبت حق رد المقبوض فعليًا — لا
               يخرج نقد حتى تسجل دفع الرد.
             </p>
-            <label className="micro-field">
-              <span>التاريخ</span>
-              <input type="date" value={returnDate} onChange={event => setReturnDate(event.target.value)} />
-            </label>
+            <LocalDateField
+              label="تاريخ المرتجع"
+              value={returnDate}
+              onChange={event => setReturnDate(event.target.value)}
+            />
             <label className="micro-field">
               <span>سبب المرتجع</span>
               <textarea
                 value={returnReason}
-                onChange={event => setReturnReason(event.target.value)}
+                onChange={event => {
+                  setReturnReason(event.target.value);
+                  /* تصحيح المراجعة R5-008: تحرير السبب يمسح خطأ التحقق القديم
+                   * (نمط ورقة التحصيل) — لا يبقى خطأ مثبت تحت مدخل متغير. */
+                  setReturnFeedback(null);
+                }}
                 placeholder="مثال: أُرجع كاملًا"
               />
             </label>
@@ -1280,12 +1324,28 @@ export default function DirectSaleEditor() {
                 action="secondary"
 
                 disabled={saving}
-                onClick={() => setReturnOpen(false)}
+                onClick={() => {
+                  /* تصحيح المراجعة R5-007: الإبقاء يغلق الإفصاح ويمسح التغذية
+                   * الراجعة فلا يبقى نص قديم تحت إفصاح مغلق. */
+                  setReturnOpen(false);
+                  setReturnFeedback(null);
+                }}
               >
                 إبقاء البيع
               </Button>
             </div>
           </details>
+          {/* تصحيح المراجعة R5-007: التغذية الراجعة خارج الإفصاح المطوي —
+              نجاح المرتجع يغلق الإفصاح ويبقى النص مرئيًا معلنًا (المحتوى
+              المطوي لا يعرض ولا يُعلن في المتصفح الحقيقي). */}
+          {returnFeedback ? (
+            <p
+              className={returnFeedback.kind === "error" ? "micro-field-error" : "micro-save-note"}
+              role={returnFeedback.kind === "error" ? "alert" : "status"}
+            >
+              {returnFeedback.text}
+            </p>
+          ) : null}
         </section>
       ) : null}
       {/* S11 (UNIT-026 sale-slice / SDF-054): دفع رد فعلي مؤرخ على بيع مُرتجع —
@@ -1296,10 +1356,9 @@ export default function DirectSaleEditor() {
           <details className="micro-inline-disclosure" open>
             <summary id="direct-sale-refund-title">المرتجع الكامل</summary>
             <p role="status">
-              الحق القائم{" "}
-              <bdi dir="ltr">{formatMoneyMinor(directSaleRefundOutstandingMinor(savedSale))} د.أ</bdi> من أصل{" "}
-              <bdi dir="ltr">{formatMoneyMinor(savedSale.return.refundDueMinor)} د.أ</bdi> مقبوض — سُجّل
-              المرتجع بتاريخ <bdi dir="ltr">{savedSale.return.occurredOn}</bdi>.
+              الحق القائم <bdi dir="ltr">{formatMoneyMinor(directSaleRefundOutstandingMinor(savedSale))}</bdi>{" "}
+              د.أ من أصل <bdi dir="ltr">{formatMoneyMinor(savedSale.return.refundDueMinor)}</bdi> د.أ مقبوض —
+              سُجّل المرتجع بتاريخ <bdi dir="ltr">{formatLocalDate(savedSale.return.occurredOn)}</bdi>.
             </p>
             {directSaleRefundOutstandingMinor(savedSale) > 0 ? (
               <>
@@ -1308,18 +1367,20 @@ export default function DirectSaleEditor() {
                   <EnglishNumberInput
                     value={refundAmountMinor}
                     kind="money"
-                    onNumericChange={setRefundAmountMinor}
+                    onNumericChange={value => {
+                      setRefundAmountMinor(value);
+                      /* تصحيح المراجعة R5-008: تحرير المبلغ يمسح الخطأ القديم. */
+                      setRefundFeedback(null);
+                    }}
+                    onTextValidityChange={setValidRefund}
                     aria-label="مبلغ دفع الرد"
                   />
                 </label>
-                <label className="micro-field">
-                  <span>التاريخ</span>
-                  <input
-                    type="date"
-                    value={refundDate}
-                    onChange={event => setRefundDate(event.target.value)}
-                  />
-                </label>
+                <LocalDateField
+                  label="تاريخ دفع الرد"
+                  value={refundDate}
+                  onChange={event => setRefundDate(event.target.value)}
+                />
                 <label className="micro-field">
                   <span>من أي محفظة؟ (اختياري)</span>
                   <select value={refundWalletId} onChange={event => setRefundWalletId(event.target.value)}>
@@ -1343,6 +1404,16 @@ export default function DirectSaleEditor() {
                     سجّل دفع الرد
                   </Button>
                 </div>
+                {/* تصحيح المراجعة R5-002: تغذية راجعة محلية للقسم — الخطأ alert
+                    والنجاح status بجوار زر الفعل لا في قناة الخطأ البعيدة. */}
+                {refundFeedback ? (
+                  <p
+                    className={refundFeedback.kind === "error" ? "micro-field-error" : "micro-save-note"}
+                    role={refundFeedback.kind === "error" ? "alert" : "status"}
+                  >
+                    {refundFeedback.text}
+                  </p>
+                ) : null}
               </>
             ) : (
               <p role="status">لا دفع رد قائمًا على هذا البيع.</p>

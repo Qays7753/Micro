@@ -19,6 +19,7 @@ import {
   createDirectSale,
   directSaleOutstandingMinor,
   payDirectSaleRefund,
+  reverseDirectSaleCollection,
   updateDirectSale,
 } from "./index.js";
 
@@ -352,5 +353,210 @@ describe("S11 — مثال ٥: المعرفة والهويات والتعديل 
     expect(other.id).not.toBe(collected.id);
     expect(other.collectedMinor).toBe(500);
     expect(collected.collectedMinor).toBe(1500);
+  });
+});
+
+/** R2: بيع قديم (ما قبل S11) — قبض مجمل بلا خطوط مؤرخة. */
+function legacyAggregateSale() {
+  const sale = createDirectSale({
+    ...CREATE,
+    id: "legacy-1",
+    idempotencyKey: "legacy-key",
+    revenueMinor: 8000,
+    collectedMinor: 3000,
+    collectionStatus: "partial_debt",
+    customerName: "زبون قديم",
+    occurredOn: "2026-06-05",
+  });
+  return { ...sale, collections: undefined } as unknown as ReturnType<typeof sale_15_5_6>;
+}
+
+/** R2: مدخل تعديل كامل من قالب البيع نفسه مع تجاوزات موضعية فقط. */
+function editInputFor(
+  sale: ReturnType<typeof sale_15_5_6>,
+  overrides: Partial<{ itemName: string; collectedMinor: number; occurredOn: string }> = {},
+) {
+  return {
+    itemName: overrides.itemName ?? sale.itemName,
+    quantity: sale.quantity,
+    revenueMinor: sale.revenueMinor,
+    collectedMinor: overrides.collectedMinor ?? sale.collectedMinor,
+    collectionStatus: sale.collectionStatus,
+    catalogItemId: sale.catalogItemId,
+    customerName: sale.customerName ?? undefined,
+    costMinor: sale.costMinor,
+    occurredOn: overrides.occurredOn ?? sale.occurredOn,
+    note: sale.note ?? "",
+  };
+}
+
+/** R2: مراجعة تعديل موثقة بمفتاح ووقت وسبب. */
+function editRevision(idempotencyKey: string, createdAt: string, reason: string) {
+  return { kind: "edit" as const, idempotencyKey, createdAt, reason };
+}
+
+/* S11 (تصحيح المراجعة R1 — انحدار دائم): عكس التحصيل دالة نطاق واحدة تمسك
+ * المجموع المحروس والسطر السالب المؤرخ معًا — لا تركيب حالة مجال بيد طبقة
+ * التطبيق أبدًا (عقد الأنواع: collectedMinor وحركاته يعدلان معًا داخل دالة
+ * نطاق واحدة حصرًا). */
+describe("S11 (R1) — عكس التحصيل: المجموع والتفصيل داخل دالة واحدة وعهدة المفتاح", () => {
+  const reversalInput = (operationKey: string, amountMinor = 400, occurredOn = "2026-10-03") => ({
+    amountMinor,
+    occurredOn,
+    operationKey,
+    recordedAt: `${occurredOn}T09:00:00.000Z`,
+    reason: "عكس تحصيل: خطأ في المبلغ",
+    note: "عكس تحصيل: خطأ في المبلغ",
+  });
+
+  it("ينقص المجموع المحروس ويكتب السطر السالب المؤرخ بمفتاح الواقعة نفسه في نداء واحد", () => {
+    const sale = collectDirectSalePayment(sale_15_5_6(), collectInput("collect-then-reverse"));
+    const reversed = reverseDirectSaleCollection(sale, reversalInput("sale-collect-reverse:op-1"));
+    /* المجموع المحروس: 1500 - 400 = 1100، والحق يعود حيًا 400. */
+    expect(reversed.collectedMinor).toBe(1100);
+    expect(directSaleOutstandingMinor(reversed)).toBe(400);
+    expect(reversed.collectionStatus).toBe("partial_debt");
+    /* التفصيل المؤرخ: سطر القبض الابتدائي ثم المحصل ثم السالب بتاريخه ومفتاحه. */
+    expect(reversed.collections).toHaveLength(3);
+    const negative = reversed.collections?.[2];
+    expect(negative?.amountMinor).toBe(-400);
+    expect(negative?.occurredOn).toBe("2026-10-03");
+    expect(negative?.operationKey).toBe("sale-collect-reverse:op-1");
+    expect(negative?.allocationEntryId).toBeNull();
+    /* المراجعة الموثقة بنفس مفتاح الواقعة — واقعة عكس واحدة. */
+    expect(reversed.revisions?.[0]?.idempotencyKey).toBe("sale-collect-reverse:op-1");
+    expect(reversed.revisions).toHaveLength(1);
+  });
+
+  it("عهدة المفتاح: مفتاح مستخدم (قبض/مراجعة/إنشاء) يُرفض — لا عكس فوق واقعة قائمة", () => {
+    const sale = collectDirectSalePayment(sale_15_5_6(), collectInput("occupied-key"));
+    expect(() => reverseDirectSaleCollection(sale, reversalInput("occupied-key"))).toThrow();
+    expect(() => reverseDirectSaleCollection(sale, reversalInput("sale-s11-op"))).toThrow();
+  });
+
+  it("العكس فوق المقبوض الفعلي أو على بيع ملغى/مُرتجع يُرفض — لا مقبوض سالب ولا عكس بعد الإغلاق", () => {
+    const sale = sale_15_5_6(); /* المقبوض 500 فقط. */
+    expect(() => reverseDirectSaleCollection(sale, reversalInput("too-much", 600))).toThrow();
+    const cancelled = cancelDirectSale(sale, {
+      kind: "cancel",
+      idempotencyKey: "cancel-op",
+      createdAt: "2026-10-02T09:00:00.000Z",
+      reason: "إلغاء",
+    });
+    expect(() => reverseDirectSaleCollection(cancelled, reversalInput("after-cancel", 100))).toThrow();
+    const returned = applyFullReturn(collectDirectSalePayment(sale, collectInput("before-return")), {
+      occurredOn: "2026-10-05",
+      operationKey: "return-op",
+      recordedAt: "2026-10-05T09:00:00.000Z",
+      reason: "مرتجع كامل",
+    });
+    expect(() => reverseDirectSaleCollection(returned, reversalInput("after-return", 100))).toThrow();
+  });
+});
+
+/* S11 (تصحيح المراجعة R2 — انحدار دائم): الإرث المجمل لا تُؤلف تواريخه
+ * (المثال ٤/SDF-014) — التعديل والعكس على بيع قديم بلا خطوط مؤرخة لا
+ * يصطنعان سطر :initial أبدًا. */
+describe("S11 (R2) — الإرث المجمل القديم لا تُؤلف تواريخه (المثال ٤/SDF-014)", () => {
+  it("تعديل وصفي أو مالي أو تاريخي للمجمل القديم لا يصطنع سطرًا مؤرخًا", () => {
+    const legacy = legacyAggregateSale();
+    expect(legacy.collections).toBeUndefined();
+    const edited = updateDirectSale(
+      legacy,
+      editInputFor(legacy, { itemName: "قطعة قديمة معدلة الوصف", collectedMinor: 2500 }),
+      editRevision("legacy-edit-1", "2026-10-20T09:00:00.000Z", "تصحيح وصف"),
+    );
+    /* لا سطر مؤرخ إطلاقًا — الإجمالي المجمل بقي مجملًا ودرجته كما هي. */
+    expect(edited.collections).toBeUndefined();
+    expect(edited.collectedMinor).toBe(2500);
+    /* وحتى لو تغير تاريخ البيع لا يُعاد تأريخ قبض مجمل. */
+    const reDated = updateDirectSale(
+      legacy,
+      editInputFor(legacy, { occurredOn: "2026-07-01" }),
+      editRevision("legacy-edit-2", "2026-10-20T09:00:00.000Z", "تصحيح تاريخ"),
+    );
+    expect(reDated.collections).toBeUndefined();
+    expect(reDated.occurredOn).toBe("2026-07-01");
+  });
+
+  it("عكس تحصيل على بيع مجمل قديم: السطر السالب وحده مؤرخ والمجموع المجمل يبقى مجملًا", () => {
+    const reversed = reverseDirectSaleCollection(legacyAggregateSale(), {
+      amountMinor: 1000,
+      occurredOn: "2026-10-03",
+      operationKey: "legacy-reverse-1",
+      recordedAt: "2026-10-03T09:00:00.000Z",
+      reason: "عكس تحصيل: خطأ",
+      note: "عكس تحصيل: خطأ",
+    });
+    expect(reversed.collectedMinor).toBe(2000);
+    /* الحركة السالبة وحدها مؤرخة — لا سطر موجب مصطنع للإجمالي القديم. */
+    expect(reversed.collections).toHaveLength(1);
+    expect(reversed.collections?.[0]?.amountMinor).toBe(-1000);
+    expect(reversed.collections?.[0]?.occurredOn).toBe("2026-10-03");
+    expect(reversed.revisions?.[0]?.idempotencyKey).toBe("legacy-reverse-1");
+  });
+});
+
+/* S11 (تصحيح المراجعة R2 — تكملة): دلتا تعديل المقبض على بيع مؤرخ حركة
+ * مؤرخة بتاريخ التصحيح (المجموع والتفصيل معًا)؛ وعهدة المفتاح عبر البيوت؛
+ * وقرار الفرق لا يُحسم بالعكس. */
+describe("S11 (R2) — الدلتا المؤرخة وعهدة المفتاح وقرار الفرق", () => {
+  it("تعديل المقبض يكتب دلتا مؤرخة بتاريخ التصحيح — المجموع والتفصيل معًا", () => {
+    const sale = sale_15_5_6(); /* سطر ابتدائي +500 بتاريخ البيع. */
+    expect(sale.collections).toHaveLength(1);
+    const edited = updateDirectSale(
+      sale,
+      editInputFor(sale, { collectedMinor: 300 }),
+      editRevision("collected-fix-1", "2026-10-20T22:30:00.000Z", "صححت المقبوض"),
+    );
+    expect(edited.collectedMinor).toBe(300);
+    /* الدلتا −200 سطر مؤرخ بتاريخ التصحيح (تاريخ عمّان المحلي: 22:30Z =
+     * اليوم التالي في عمّان) بمفتاح المراجعة نفسه — النواة مصدر التاريخ. */
+    expect(edited.collections).toHaveLength(2);
+    const delta = edited.collections?.[1];
+    expect(delta?.amountMinor).toBe(-200);
+    expect(delta?.operationKey).toBe("collected-fix-1");
+    expect(delta?.occurredOn).toBe("2026-10-21");
+    /* مجموع الخطوط = المجموع المحروس بالضبط. */
+    const sum = (edited.collections ?? []).reduce((total, line) => total + line.amountMinor, 0);
+    expect(sum).toBe(edited.collectedMinor);
+    /* تعديل بلا تغيير المقبض لا يكتب سطرًا (لا حركة بلا مال). */
+    const noDelta = updateDirectSale(
+      edited,
+      editInputFor(edited, { itemName: "صندوق هدايا فاخر" }),
+      editRevision("desc-fix-1", "2026-10-21T09:00:00.000Z", "تصحيح وصف"),
+    );
+    expect(noDelta.collections).toHaveLength(2);
+  });
+
+  it("مفتاح تعديل مستخدم لحركة قائمة يُرفض — عهدة المفتاح عبر البيوت كلها", () => {
+    const sale = sale_15_5_6();
+    expect(() =>
+      updateDirectSale(
+        sale,
+        editInputFor(sale, { collectedMinor: 700 }),
+        editRevision("sale-s11-op:initial", "2026-10-20T09:00:00.000Z", "تكرار مفتاح"),
+      ),
+    ).toThrow();
+  });
+
+  it("العكس على بيع مراجعةٍ يبقي الفرق في مراجعته — لا دين مؤكد بصمت", () => {
+    const review = createDirectSale({
+      ...CREATE,
+      collectedMinor: 500,
+      collectionStatus: "partial_needs_review",
+      customerName: "زبون بلا تعريف",
+    });
+    expect(review.collectionStatus).toBe("partial_needs_review");
+    const reversed = reverseDirectSaleCollection(review, {
+      amountMinor: 200,
+      occurredOn: "2026-10-03",
+      operationKey: "review-reverse-1",
+      recordedAt: "2026-10-03T09:00:00.000Z",
+      reason: "عكس تحصيل: خطأ",
+      note: "عكس تحصيل: خطأ",
+    });
+    expect(reversed.collectedMinor).toBe(300);
+    expect(reversed.collectionStatus).toBe("partial_needs_review");
   });
 });

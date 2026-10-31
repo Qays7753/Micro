@@ -255,6 +255,13 @@ export default function Collect() {
           <strong>
             <MoneyValue minor={outcome.collectedMinor} /> د.أ
           </strong>
+          {/* S11 (تصحيح المراجعة R3-RR-001): نية نفّذت سابقًا أُعيد عرضها —
+              إعادة استخدام صادقة لا قبضة جديدة؛ يُعلن ذلك بلا ادعاء كتابة ثانية. */}
+          {outcome.reused ? (
+            <p className="micro-local-truth">
+              هذه النية نفّذت سابقًا وأُعيد عرض نتيجتها كما هي — لم يُسجَّل قبض جديد.
+            </p>
+          ) : null}
           <p>
             {outcome.remainingAfterMinor > 0
               ? `الباقي على ${state.personName}: ${formatMoneyWithUnit(outcome.remainingAfterMinor)} — الديون مستمرة لا تتغير قيمتها.`

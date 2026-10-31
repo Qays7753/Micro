@@ -4,7 +4,7 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { REUSED_RECORD_PROTECTION_NOTE, REUSED_RECORD_RECEIPT_TITLE } from "@/app/resultFeedback";
 import { formatMoneyMinor } from "@/presentation/formatters";
-import { attributeToWallet, cashNow } from "./quickFormHelpers";
+import { cashNow } from "./quickFormHelpers";
 import type {
   QuickActionFormHandle,
   QuickActionReceipt,

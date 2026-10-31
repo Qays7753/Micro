@@ -177,3 +177,16 @@ export type PayDirectSaleRefundInput = {
   note?: string | null;
   allocationEntryId?: string | null;
 };
+
+/* S11 (UNIT-026 sale-slice — تصحيح R1 للمراجعة): عكس تحصيل مؤرخ موثق داخل
+ * دالة نطاق واحدة — المجموع المحروس والتفصيل المؤرخ يسيران معًا دائمًا
+ * (المفتاح نفسه للمراجعة والحركة السالبة لأنهما واقعة عكس واحدة). */
+export type ReverseDirectSaleCollectionInput = {
+  amountMinor: MoneyMinor;
+  occurredOn: string;
+  operationKey: string;
+  recordedAt: string;
+  reason: string;
+  note?: string | null;
+  allocationEntryId?: string | null;
+};

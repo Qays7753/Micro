@@ -1,4 +1,4 @@
-import { JOD, fieldLabelAr, isValidLocalDate, isValidTimestamp } from "../shared/index.js";
+import { JOD, fieldLabelAr, isValidLocalDate, isValidTimestamp, localDateInAmman } from "../shared/index.js";
 import type {
   CollectDirectSalePaymentInput,
   CreateDirectSaleInput,
@@ -213,6 +213,38 @@ export function revisionList(
   return revisions;
 }
 
+/* S11 (تصحيح المراجعة R2-002 — عهدة المفتاح عبر البيوت كلها): هل مفتاح
+ * المراجعة مستخدم سلفًا لحركة على هذا البيع (إنشاء/قبض/رد)؟ — فحص مستقل
+ * صغير، والمرتجع مستحيل هنا (مرفوض عند رأس updateDirectSale). */
+function isKeyUsedBySaleMovement(source: DirectSale, revision: DirectSaleRevision): boolean {
+  const key = revision.idempotencyKey.trim();
+  return (
+    source.idempotencyKey === key ||
+    (source.collections ?? []).some(entry => entry.operationKey === key) ||
+    (source.refundPayments ?? []).some(entry => entry.operationKey === key)
+  );
+}
+
+/* S11 (تصحيح المراجعة R2-002): سطر تسوية مؤرخ لدلتا تعديل المقبض على بيع
+ * ذي خطوط — بتاريخ التصحيح (تاريخ عمّان المحلي للمراجعة) وبمفتاحها —
+ * المجموع المحروس والتفصيل المؤرخ يسيران معًا داخل الدالة الواحدة. */
+function collectedAdjustingLine(
+  source: DirectSale,
+  revision: DirectSaleRevision,
+  collectedDelta: number,
+): DirectSaleCollectionEntry {
+  const key = revision.idempotencyKey.trim();
+  return {
+    id: `${source.id}:adjust:${key}`,
+    amountMinor: collectedDelta,
+    occurredOn: localDateInAmman(revision.createdAt),
+    operationKey: key,
+    recordedAt: revision.createdAt,
+    note: "تصحيح المقبوض",
+    allocationEntryId: null,
+  };
+}
+
 export function updateDirectSale(
   source: DirectSale,
   input: UpdateDirectSaleInput,
@@ -253,17 +285,51 @@ export function updateDirectSale(
   assertPartyLinkCarriesSnapshot(updated);
   /* X-06: الأصل يبقى في السجل — كل تعديل يغيّر السعر المتفق يحمل سعره الأصلي معه. */
   const before = input.revenueMinor !== source.revenueMinor ? source.revenueMinor : undefined;
+  /* S11 (تصحيح المراجعة R2-001 — المثال ٤/SDF-014): الإرث المجمل بلا خطوط
+   * مؤرخة يبقى مجملًا — بانٍ الإنشاء يصطنع سطر :initial للقبض الابتدائي
+   * (سلوك الإنشاء الصحيح) فتُنزَع صياغته هنا عن مسار التعديل؛ لا تُؤلف
+   * تواريخ قبض لم يسجلها أحد أبدًا. */
+  const { collections: _synthesizedInitialLine, ...rebuilt } = updated;
+  /* S11 (تصحيح المراجعة R2-002 — عقد الأنواع §القبض المؤرخ): بيع بخطوط
+   * مؤرخة + تعديل يغير المقبوض — دلتا التعديل حركة مؤرخة بتاريخ التصحيح
+   * داخل الدالة نفسها (نمط العكس نفسه): المجموع المحروس والتفصيل المؤرخ
+   * يسيران معًا دائمًا؛ والمفتاح نفسه للمراجعة والحركة لأنهما واقعة تصحيح
+   * واحدة، وعهدة المفتاح تمنع تكراره فوق حركة قائمة. */
+  const sourceCollections = source.collections;
+  const collectedDelta = input.collectedMinor - source.collectedMinor;
+  if (collectedDelta !== 0 && sourceCollections !== undefined && isKeyUsedBySaleMovement(source, revision))
+    throw new Error("مفتاح التصحيح مستخدم سابقًا لحركة على هذا البيع — استعمل مفتاحًا جديدًا.");
+  const adjustingLine: DirectSaleCollectionEntry | null =
+    sourceCollections !== undefined && collectedDelta !== 0
+      ? collectedAdjustingLine(source, revision, collectedDelta)
+      : null;
+  return preserveSaleHistory(rebuilt, source, adjustingLine, sourceCollections, before, revision);
+}
+
+/* S11 (UNIT-026 sale-slice + تصحيحا R2-001/002): تركيب نتيجة التعديل فوق
+ * تاريخ البيع المالي — خطوط القبض المؤرخة محفوظة من الأصل حرفيًا (التصحيح
+ * الوصفي لا يمحو التاريخ المالي المؤرخ؛ وغيابها = الإرث المجمل يبقى
+ * غيابًا — لا تواريخ مؤلفة)، ودلتا المقبض حركة تسوية مؤرخة فوق الخطوط
+ * القائمة، وحق الرد ومدفوعاته كما هما، والمجموع collectedMinor يبقى
+ * الإجمالي المحروس وحيد القراءة (exactOptionalPropertyTypes: الحضور الشرطي
+ * لا الإسناد الصريح لغير المعرف). */
+function preserveSaleHistory(
+  rebuilt: Omit<DirectSale, "collections">,
+  source: DirectSale,
+  adjustingLine: DirectSaleCollectionEntry | null,
+  sourceCollections: readonly DirectSaleCollectionEntry[] | undefined,
+  beforeRevenueMinor: number | undefined,
+  revision: DirectSaleRevision,
+): DirectSale {
   return Object.freeze({
-    ...updated,
-    /* S11 (UNIT-026 sale-slice): خطوط القبض المؤرخة وحق الرد ومدفوعاته
-     * محفوظة من الأصل حرفيًا — التصحيح الوصفي لا يمحو التاريخ المالي
-     * المؤرخ؛ والمجموع collectedMinor يبقى الإجمالي المحروس وحيد القراءة
-     * (exactOptionalPropertyTypes: الحضور الشرطي لا الإسناد الصريح لغير المعرف). */
-    ...(source.collections !== undefined ? { collections: source.collections } : {}),
+    ...rebuilt,
+    ...(sourceCollections !== undefined
+      ? { collections: adjustingLine ? [...sourceCollections, adjustingLine] : sourceCollections }
+      : {}),
     ...(source.refundPayments !== undefined ? { refundPayments: source.refundPayments } : {}),
     ...(source.refundedMinor !== undefined ? { refundedMinor: source.refundedMinor } : {}),
     return: source.return ?? null,
-    revisions: revisionList(source, revision, before),
+    revisions: revisionList(source, revision, beforeRevenueMinor),
   });
 }
 

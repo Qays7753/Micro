@@ -7,18 +7,15 @@
  * التحصيل ليس إيرادًا ولا يُنشئ حدثًا ماليًا مستقلًا — الكاش والمتبقي فقط.
  */
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 
-/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءة الطلبات والمبيعات والمحافظ بالضبط. */
+/** R3 (بطاقة R3-SC-01/11) + S11 (تصحيح المراجعة R1): عدسة الخدمة — قراءة
+ * الطلبات والمبيعات والمحافظ بالضبط، مع التزام كتابة البيع الواحد الذي
+ * تمرره إلى مالك الحركات عند التفويض؛ لا حفظ مباشر ولا عكس ولا دفتر
+ * كاش بيد المنسق. */
 export type CollectionServiceStore = Pick<
   PrototypeLocalStore,
-  | "listOrders"
-  | "listDirectSales"
-  | "listCashWallets"
-  | "listCashContinuityEntries"
-  | "commitCashContinuity"
-  | "saveDirectSale"
-  | "commitDirectSaleCollectionReversal"
-  | "commitDirectSaleWrite"
+  "listOrders" | "listDirectSales" | "listCashWallets" | "commitDirectSaleWrite"
 >;
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
@@ -175,6 +172,9 @@ export class CollectionService {
 
     let remainingAfterMinor: number;
     let reused = false;
+    /* S11 (تصحيح المراجعة R3-003): أثر الكاش المحفوظ من حد مالك المصدر —
+     * مصدر عرض التخصيص الوحيد لبيع المباشر (فارغ = غير موزع أو مسار الطلبات). */
+    let collectedCashEntry: CashContinuityEntry | null = null;
     if (input.sourceKind === "order") {
       const result = await this.fulfillment.collectFromSheet(
         input.sourceId,
@@ -206,6 +206,9 @@ export class CollectionService {
         return validationFailure(collected.message);
       }
       reused = collected.value.reused;
+      /* تصحيح المراجعة R3-003: أثر الكاش المحفوظ هو مصدر عرض التخصيص —
+       * عند إعادة الاستخدام تُعرض المحفظة الأصلية التي قُبض فيها فعلًا. */
+      collectedCashEntry = collected.value.cashEntry;
       remainingAfterMinor = directSaleOutstandingMinor(collected.value.sale);
     }
 
@@ -214,14 +217,18 @@ export class CollectionService {
     let walletName: string | null = null;
     let attributionNotice: string | null = null;
     if (input.walletId && input.sourceKind === "direct_sale") {
-      /* S11 (UNIT-026 sale-slice): تخصيص البيع المباشر كُتب مع سطر القبض داخل
-       * حد مالك المصدر الواحد (collectPayment) — لا تخصيص ثانٍ هنا أبدًا؛
-       * الاسم للعرض فقط. */
-      attributedToWalletMinor = input.amountMinor;
+      /* S11 (UNIT-026 sale-slice + تصحيح المراجعة R3-003): تخصيص البيع
+       * المباشر كُتب مع سطر القبض داخل حد مالك المصدر الواحد — والحقيقة
+       * المحفوظة هي مصدر العرض وحده: أثر الكاش القائم من نتيجة الالتزام
+       * (لا المدخل) — فعند إعادة الاستخدام تُعرض المحفظة الأصلية التي قُبض
+       * فيها فعلًا، وتُبلغ إعادة الاستخدام لا تُمرر كمقبض جديد. */
+      attributedToWalletMinor = collectedCashEntry?.cashDeltaMinor ?? 0;
+      const persistedWalletId = collectedCashEntry?.walletId ?? null;
       const wallets = await this.store.listCashWallets();
-      walletName = wallets.ok
-        ? (wallets.value.find(wallet => wallet.id === input.walletId)?.name ?? null)
-        : null;
+      walletName =
+        wallets.ok && persistedWalletId
+          ? (wallets.value.find(wallet => wallet.id === persistedWalletId)?.name ?? null)
+          : null;
     } else if (input.walletId) {
       const attribution = await this.projectFinance.distributeUnallocated({
         walletId: input.walletId,

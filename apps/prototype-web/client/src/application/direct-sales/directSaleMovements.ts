@@ -14,7 +14,6 @@ import {
 import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
-import type { DirectSaleStore } from "@/storage/local/capabilities/directSaleStore";
 import type {
   DirectSaleCollectInput,
   DirectSaleFullReturnServiceInput,
@@ -31,9 +30,13 @@ import {
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
 
-/** عدسة المخزن الكافية لحركات البيع (نفس عدسة الخدمة الأم). */
-export type DirectSaleMovementsStore = DirectSaleStore &
-  Pick<PrototypeLocalStore, "listCashContinuityEntries" | "commitCashContinuity" | "listCashWallets">;
+/** S11 (تصحيح المراجعة R1 — مبدأ القدرة «ما يحتاجه المستهلك لا أكثر»):
+ * عدسة حركات البيع الضيقة بالضبط — قراءة الأصل، والالتزام المحروس الواحد،
+ * وفحص المحافظ؛ لا حفظ مباشر ولا عكس ولا دفتر كاش بيد الخدمة. */
+export type DirectSaleMovementsStore = Pick<
+  PrototypeLocalStore,
+  "listDirectSales" | "commitDirectSaleWrite" | "listCashWallets"
+>;
 
 /** S11: نتيجة الالتزام الذرّي — البيع وأثر الكاش المكتوب معه (أو المعاد). */
 export type DirectSaleCommitOutcome = {
@@ -122,8 +125,11 @@ export class DirectSaleMovementsService {
     }
     const timestamp = this.now();
     const entryId = `${base.id}:col:${input.operationKey}`;
-    /* إعادة نية التحصيل نفسها: القبضة نفّذت فعلًا — الالتزام يعيد المحفوظ
-     * وأثر الكاش المطابق (إعادة استخدام صادقة) بلا كتابة ثانية. */
+    /* إعادة نية التحصيل نفسها: القبضة نفّذت فعلًا — نية الإعادة تصل حد
+     * الكتابة كاملة (الحمولة الجديدة في سطر الظل) فيقرر الحارس الموحد:
+     * حمولة مطابقة = إعادة استخدام صادقة للمحفوظ وأثر الكاش المطابق؛
+     * حمولة مختلفة بالمفتاح نفسه = تعارض صادق بلا كتابة ولا عودة صامتة
+     * لسجل قديم (تصحيح المراجعة R3-001 — SDF-037/038). */
     const existingMovement = (base.collections ?? []).some(
       entry => entry.operationKey === input.operationKey,
     );
@@ -141,10 +147,26 @@ export class DirectSaleMovementsService {
         saleId: base.id,
         spend: false,
       });
-    if (existingMovement)
+    if (existingMovement) {
+      /* سطر الظل يحل محل السطر القائم في نسخة النية (لا يُكتب أبدًا في
+       * مسار إعادة الاستخدام) فترى مقارنة الحارس الحمولة الجديدة فعلًا. */
+      const retryShadow: DirectSale = {
+        ...base,
+        collections: (base.collections ?? []).map(entry =>
+          entry.operationKey === input.operationKey
+            ? {
+                ...entry,
+                amountMinor: input.amountMinor,
+                occurredOn: input.occurredOn,
+                note: input.note?.trim() || null,
+              }
+            : entry,
+        ),
+      };
       return this.settleCommit(
-        await this.store.commitDirectSaleWrite(base, base, [input.operationKey], cashEntry),
+        await this.store.commitDirectSaleWrite(base, retryShadow, [input.operationKey], cashEntry),
       );
+    }
     let next: DirectSale;
     try {
       next = collectDirectSalePayment(base, {
@@ -179,11 +201,24 @@ export class DirectSaleMovementsService {
     const base = await this.loadBase(saleId);
     if (base === null) return notFoundFailure("بيع مباشر غير موجود؛ لم يتغير شيء.");
     if ("readFailed" in base) return storageFailure("تعذر قراءة سجل البيع؛ لم يتغير شيء.");
-    /* إعادة نية المرتجع نفسها: نفّذ فعلًا — إعادة استخدام صادقة بلا كتابة. */
-    if (base.return?.operationKey === input.operationKey)
+    /* إعادة نية المرتجع نفسها: نفّذ فعلًا — النية تصل الحد كاملة (تاريخ وسبب
+     * المراجعة في ظل المرتجع) فيقرر الحارس: مطابقة = إعادة استخدام صادقة؛
+     * اختلاف التاريخ أو السبب = تعارض صادق بلا كتابة (تصحيح R3-001). */
+    if (base.return?.operationKey === input.operationKey) {
+      const retryShadow: DirectSale = {
+        ...base,
+        return: {
+          occurredOn: input.occurredOn,
+          refundDueMinor: base.return.refundDueMinor,
+          operationKey: input.operationKey,
+          recordedAt: base.return.recordedAt,
+          reason: input.reason.trim(),
+        },
+      };
       return this.settleCommit(
-        await this.store.commitDirectSaleWrite(base, base, [input.operationKey], null),
+        await this.store.commitDirectSaleWrite(base, retryShadow, [input.operationKey], null),
       );
+    }
     let next: DirectSale;
     try {
       next = applyFullReturn(base, {
@@ -214,7 +249,8 @@ export class DirectSaleMovementsService {
     }
     const timestamp = this.now();
     const entryId = `${base.id}:refund:${input.operationKey}`;
-    /* إعادة نية الدفع نفسها: نفّذ فعلًا — إعادة استخدام صادقة بلا كتابة. */
+    /* إعادة نية الدفع نفسها: نفّذ فعلًا — النية تصل الحد كاملة (الحمولة
+     * الجديدة في سطر الظل) فيقرر الحارس الموحد (تصحيح R3-001). */
     const existingMovement = (base.refundPayments ?? []).some(
       entry => entry.operationKey === input.operationKey,
     );
@@ -232,10 +268,26 @@ export class DirectSaleMovementsService {
         saleId: base.id,
         spend: true,
       });
-    if (existingMovement)
+    if (existingMovement) {
+      /* سطر الظل يحل محل السطر القائم في نسخة النية (لا يُكتب أبدًا في
+       * مسار إعادة الاستخدام) فترى مقارنة الحارس الحمولة الجديدة فعلًا. */
+      const retryShadow: DirectSale = {
+        ...base,
+        refundPayments: (base.refundPayments ?? []).map(entry =>
+          entry.operationKey === input.operationKey
+            ? {
+                ...entry,
+                amountMinor: input.amountMinor,
+                occurredOn: input.occurredOn,
+                note: input.note?.trim() || null,
+              }
+            : entry,
+        ),
+      };
       return this.settleCommit(
-        await this.store.commitDirectSaleWrite(base, base, [input.operationKey], cashEntry),
+        await this.store.commitDirectSaleWrite(base, retryShadow, [input.operationKey], cashEntry),
       );
+    }
     let next: DirectSale;
     try {
       next = payDirectSaleRefund(base, {

@@ -6652,6 +6652,101 @@
         "trigger": "S11 sale-slice implementation growth measured on the live tree",
         "ocRef": "DOC-020"
       }
+    },
+    {
+      "id": "S11-DOMAIN-SALE-TYPES-20261031-19",
+      "date": "2026-10-31",
+      "path": "src/domain/direct-sale/types.ts",
+      "from": {
+        "nbLoc": 77,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 181,
+        "band": "NORMAL"
+      },
+      "reason": "S11 (DOC-020 — تصحيحا المراجعتين R1/R2): عقد عكس التحصيل الموثق (ReverseDirectSaleCollectionInput) فوق حقول الحركات المؤرخة — القيمة النهائية المقاسة فوق الإرساء الأول (169).",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-COLLECTIONS-COORDINATOR-20261031-20",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/application/collections/collectionService.ts",
+      "from": {
+        "nbLoc": 240,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 260,
+        "band": "NORMAL"
+      },
+      "reason": "S11 (DOC-020 — تصحيح المراجعة R3-003): عرض تخصيص بيع المباشر من الحقيقة المحفوظة (أثر الكاش القائم من حد المالك) لا من المدخل — إعادة الإرساء النهائية المقاسة (260) فوق إرساءَي الشريحة (242 ثم 253).",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-TRANSFER-VALIDATORS-20261031-21",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts",
+      "from": {
+        "nbLoc": 1730,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 2192,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S11 (DOC-020 — تصحيح المراجعة R2-F1): توثيق المدقق يشمل سطر تسوية تصحيح المقبض السالب (:adjust:) إلى جانب العكس الموثق — سطر تعليق واحد فوق الإرساء الأول (2191).",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-COLLECT-PAGE-REUSED-20261031-22",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/pages/Collect.tsx",
+      "from": {
+        "nbLoc": 491,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 498,
+        "band": "WATCH"
+      },
+      "reason": "S11 (DOC-020 — تصحيح المراجعة R3-RR-001): بطاقة نتيجة التحصيل تعلن إعادة الاستخدام الصادقة للنية المنفذة سابقًا (لا قبضة جديدة ولا ادعاء كتابة ثانية) — الحقيقة المحفوظة مصدر العرض.",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-EDITOR-RETURN-REFUND-20261031-23",
+      "date": "2026-10-31",
+      "path": "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx",
+      "from": {
+        "nbLoc": 999,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1397,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S11 (DOC-020 — تصحيحات المراجعات R2-004/R5-001..006): مسار المرتجع الكامل ودفع الرد بمحفظة (إفصاح محروس بحالة حية وتغذية راجعة محلية status/alert وصلاحية نص المبلغ وLocalDateField ووحدة العملة خارج العزل الاتجاهي) — إعادة الإرساء النهائية المقاسة فوق إرساء الشريحة الأول (1333). (تصحيح R5-007: التغذية الراجعة خارج الإفصاح المطوي — القيمة النهائية المقاسة 1397.)",
+      "authorization": {
+        "ownerReview": "S11 execution review (00-S11-EXECUTION-PROMPT-2026-10-31.md at b33a8877 §6/§9 — owner-directed connected execution) — جزء من فرق S11 في نفس الـPR",
+        "trigger": "S11 sale-slice implementation growth measured on the live tree",
+        "ocRef": "DOC-020"
+      }
     }
   ]
 }

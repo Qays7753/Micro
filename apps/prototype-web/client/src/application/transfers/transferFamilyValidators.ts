@@ -209,9 +209,10 @@ export const isDirectSaleRevision = (value: unknown): boolean =>
     value.beforeRevenueMinor === null ||
     isSafeMoney(value.beforeRevenueMinor));
 
-/* S11 (UNIT-026 sale-slice): سطر حركة مؤرخ (قبض/رد) — هوية ومفتاح نية
- * وتاريخ أعمال حقيقي ومبلغ آمن صحيح موجبًا للقبض وسالبًا للعكس الموثق
- * (مرآة شكل دالة النطاق). */
+/* S11 (UNIT-026 sale-slice + تصحيحا المراجعتين R1/R2): سطر حركة مؤرخ
+ * (قبض/رد) — هوية ومفتاح نية وتاريخ أعمال حقيقي ومبلغ آمن صحيح موجبًا
+ * للقبض وسالبًا للعكس الموثق وللتسوية المؤرخة لدلتا تصحيح المقبض
+ * (:adjust: — موجبة أو سالبة بحسب الدلتا)؛ (مرآة شكل دالة النطاق). */
 export const isDirectSaleMovementEntry = (value: unknown): boolean =>
   isRecord(value) &&
   isString(value.id) &&

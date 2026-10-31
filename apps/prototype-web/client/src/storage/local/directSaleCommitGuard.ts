@@ -97,6 +97,16 @@ export function decideDirectSaleWrite(
         )
           return { kind: "reject", code: STORAGE_STALE, message: DIRECT_SALE_INTENT_CONFLICT_MESSAGE };
       }
+      /* S11 (تصحيح المراجعة R3-001): حمولة المرتجع الكامل بالمفتاح نفسه —
+       * التاريخ والسبب الموثق جوهر الواقعة؛ اختلافهما تعارض صادق لا عودة
+       * صامتة لسجل قديم (نمط SDF-037/038 نفسه). */
+      if (liveHasReturn && next.return?.operationKey === key) {
+        if (
+          liveById.return?.occurredOn !== next.return.occurredOn ||
+          liveById.return?.reason !== next.return.reason
+        )
+          return { kind: "reject", code: STORAGE_STALE, message: DIRECT_SALE_INTENT_CONFLICT_MESSAGE };
+      }
       return { kind: "reuse", sale: liveById };
     }
   }
