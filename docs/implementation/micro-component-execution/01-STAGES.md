@@ -1,7 +1,7 @@
 # Micro — جدول مراحل التنفيذ وبطاقاتها
 
 **النسخة:** V1 · **التاريخ:** 2026-10-27 — عمّان.
-**الحالة:** S01 مقبولة على فرع التكامل؛ S02 أمرها `READY_FOR_ZAI` منشور؛ S03–S18 `PLANNED_REVIEW` بلا أوامر تنفيذ.
+**الحالة:** S01 مقبولة على فرع التكامل؛ S02 أمرها `READY_FOR_ZAI` منشور؛ S03–S11 منفذة ومسلّمة للمراجعة؛ S12 منفذة ومسلّمة للمراجعة (أمر 2e645802؛ DOC-021/WS-237 IN_REVIEW/REVIEW_REQUIRED)؛ S13–S18 `PLANNED_REVIEW` بلا أوامر تنفيذ.
 
 **الاقتراح:** 18 مرحلة S01..S18: تجهيز توثيقي، و16 شريحة تطوير، وقبول تكامل نهائي. العدد مبني على فصل الكتّاب والعقود والقراء، ويحتاج مراجعة Manus؛ لا يساوي 45 مكونًا ولا المجموعات السبع. S01 `ACCEPTED_ON_INTEGRATION`، وS02 `READY_FOR_ZAI`؛ S03–S18 `PLANNED_REVIEW` بلا أوامر تنفيذ.
 
@@ -324,7 +324,7 @@
 
 ### S12 — اتفاق الطلب وتنفيذه وتسليمه وتسويته
 
-**الحالة:** PLANNED_REVIEW؛ لا فرع مرحلة ولا أمر منشور.
+**الحالة:** EXECUTED_DELIVERED_LOCAL_CHAIN_GREEN (أمر 2e645802 المنشور 2026-11-01؛ DOC-021/WS-237 في IN_REVIEW/REVIEW_REQUIRED عند التسليم — لا يعني التنفيذ قبولًا). النتيجة: `17-S12-RESULT-2026-11-01.md`.
 
 **المواصفات:** [UNIT-009](02-SPECIFICATIONS/03-New-Design/UNIT-009-الاتفاق-والعربون.md)، [UNIT-010](02-SPECIFICATIONS/03-New-Design/UNIT-010-تفاصيل-الطلب.md)، [UNIT-011](02-SPECIFICATIONS/03-New-Design/UNIT-011-مراجعة-التسليم.md)، [UNIT-026](02-SPECIFICATIONS/03-New-Design/UNIT-026-تسجيل-دفعة-على-مستحق.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
