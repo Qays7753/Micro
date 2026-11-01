@@ -1,7 +1,7 @@
 {
   "id": "WS-237",
   "title": "S12 execution workstream — اتفاق الطلب وتنفيذه وتسليمه وتسويته (UNIT-009/010/011 + UNIT-026 order adapter + SH-16)",
-  "status": "IN_PROGRESS",
+  "status": "REVIEW_REQUIRED",
   "items": [
     "DOC-021"
   ],
@@ -37,7 +37,7 @@
   "pr": 383,
   "started_at": "2026-11-01",
   "updated_at": "2026-11-02",
-  "next_action": "إصلاح موجدات S12 الأربع ومصالحة السجلات بإثبات وانحدارات دائمة ثم العودة إلى REVIEW_REQUIRED صادقة.",
+  "next_action": "مراجعة مستقلة وقبول مالك لسجل S12 الكامل بمُلحقيه؛ لا merge ولا كتابة على main.",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S12-EXECUTION-PROMPT-2026-11-01.md المنشور في 2e6458021d1d146b54d7d2655291bf2404ddc8d7؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
@@ -75,6 +75,12 @@
       "changed_at": "2026-11-02",
       "actor": "zai-s13-execution",
       "reason": "تنفيذ التصحيحات المأذونة (أمر 2158b0fc §5) على الفرع نفسه وPR #383؛ لا موافقة وسيطة."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "تصحيحات S12 المأذونة مكتملة بانحداراتها (الملحق 17a)؛ مطالبة S12 تعود لحالة مراجعة صادقة — لا قبول ذاتيًا."
     }
   ],
   "migration_baseline": true
