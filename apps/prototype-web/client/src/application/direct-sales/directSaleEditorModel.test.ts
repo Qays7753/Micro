@@ -35,6 +35,9 @@ const validBase = {
   difference: 0,
   differenceChoice: null,
   undecidedDifference: false,
+  customerName: "",
+  customerPartyId: null,
+  existingConfirmedDebt: false,
 };
 
 describe("R7/P07 — بوابة التحقق قبل الإرسال", () => {
@@ -47,6 +50,7 @@ describe("R7/P07 — بوابة التحقق قبل الإرسال", () => {
         collectedEmpty: false,
         partialCollectedMinor: 4000,
         difference: 1000,
+        customerName: "ليان",
       }),
     ).toBeNull();
     expect(validateDirectSaleSubmission({ ...validBase, paymentMode: "none", difference: 5000 })).toBeNull();
@@ -123,7 +127,8 @@ describe("R7/P07 — بوابة التحقق قبل الإرسال", () => {
   });
 
   it("S11-MR-001: الدين من الوضع الصريح لا يسأل قرارًا ثانيًا؛ والفرق المعلق القديم يسأله", () => {
-    /* جزء/لم أستلم مع فرق وبلا قرار حالة مختلفة = دين صريح من الوضع — يمر. */
+    /* جزء/لم أستلم مع فرق وبلا قرار حالة مختلفة = دين صريح من الوضع — يمر
+     * بتعريفه البسيط (S11-LR-001: بوابة التعريف قبل الخدمة، لا سؤال فرق ثانٍ). */
     expect(
       validateDirectSaleSubmission({
         ...validBase,
@@ -132,6 +137,7 @@ describe("R7/P07 — بوابة التحقق قبل الإرسال", () => {
         partialCollectedMinor: 4000,
         difference: 1000,
         differenceChoice: null,
+        customerName: "ليان",
       }),
     ).toBeNull();
     expect(
@@ -227,6 +233,21 @@ describe("S11-MR-001 — هجرة مسودة ما قبل الأوضاع (collect
     expect(paymentModeFromDraft({ collectedEmpty: false, collectedMinor: 5000, revenueMinor: 5000 })).toEqual(
       { mode: "full", undecidedDifference: false },
     );
+  });
+
+  it("S11-LR-002: القبض فوق الإجمالي لا يُهاجر «كاملًا» — يُستعاد جزئيًا بقيمته الخام", () => {
+    /* الإجمالي 12.00 وقُبض 13.00 في مسودة قديمة: القيمة الخام تبقى ظاهرة
+     * في وضع الجزء (قيمة غير صالحة تمنع الحفظ) — لا قص ولا استبدال ولا
+     * تفسير «كامل» صامت لقيمة لم يُدخل معناها كذلك (أمر 2158b0fc §4). */
+    expect(paymentModeFromDraft({ collectedEmpty: false, collectedMinor: 1300, revenueMinor: 1200 })).toEqual(
+      { mode: "partial", undecidedDifference: true },
+    );
+    /* الإجمالي غير الموجب مع قبض موجب: القيمة لا تختفي خلف «الكامل» —
+     * تبقى بوضع الجزء ويمنع الحفظَ مبلغُ الإجمالي غير الصالح نفسه. */
+    expect(paymentModeFromDraft({ collectedEmpty: false, collectedMinor: 500, revenueMinor: 0 })).toEqual({
+      mode: "partial",
+      undecidedDifference: true,
+    });
   });
 
   it("مسودة قديمة بصفر صريح مع إجمالي = «لم أستلم» بفرق غير محسوم", () => {
@@ -445,5 +466,85 @@ describe("R7/P07 — خريطة السجل المحمّل إلى قيم النم
       collectionStatus: "partial_debt",
     } as unknown as DirectSale;
     expect(directSaleToFormValues(nonePaid).paymentMode).toBe("none");
+  });
+});
+
+describe("S11-LR-001 (أمر 2158b0fc §4) — بوابة تعريف الدين المؤكد قبل الخدمة", () => {
+  const debtIntent = {
+    ...validBase,
+    paymentMode: "partial" as const,
+    collectedEmpty: false,
+    partialCollectedMinor: 4000,
+    difference: 1000,
+  };
+
+  it("نية الدين المؤكد بلا تعريف = رفض البوابة قبل استدعاء الخدمة", () => {
+    expect(validateDirectSaleSubmission(debtIntent)).toBe("debt_identity_required");
+  });
+
+  it("التعريف البسيط يكفي: اسم/وصف أو طرف محفوظ (لا هاتف ولا ملف إلزامي)", () => {
+    expect(validateDirectSaleSubmission({ ...debtIntent, customerName: "ليان — جارة المحل" })).toBeNull();
+    expect(validateDirectSaleSubmission({ ...debtIntent, customerPartyId: "party-7" })).toBeNull();
+  });
+
+  it("غير الدين لا يُطالب بتعريف: كامل/لم أستلم/تخفيض/مراجعة", () => {
+    expect(validateDirectSaleSubmission({ ...validBase })).toBeNull();
+    expect(validateDirectSaleSubmission({ ...validBase, paymentMode: "none", difference: 5000 })).toBeNull();
+    expect(validateDirectSaleSubmission({ ...debtIntent, differenceChoice: "price_cut" })).toBeNull();
+    expect(validateDirectSaleSubmission({ ...debtIntent, differenceChoice: "needs_review" })).toBeNull();
+  });
+
+  it("المسودة القديمة بفرق غير محسوم: يُسأل المعنى أولًا، وبعد اختيار الدين يُطالب التعريف", () => {
+    const undecided = { ...debtIntent, undecidedDifference: true };
+    expect(validateDirectSaleSubmission(undecided)).toBe("difference_choice_required");
+    expect(validateDirectSaleSubmission({ ...undecided, differenceChoice: "remaining_debt" })).toBe(
+      "debt_identity_required",
+    );
+    expect(
+      validateDirectSaleSubmission({
+        ...undecided,
+        differenceChoice: "remaining_debt",
+        customerName: "ليان",
+      }),
+    ).toBeNull();
+  });
+
+  it("دين قائم مؤكد سابقًا (سجل قديم مجهول الاسم) لا يُطالب بتعريف رجعي", () => {
+    expect(validateDirectSaleSubmission({ ...debtIntent, existingConfirmedDebt: true })).toBeNull();
+  });
+});
+
+describe("S11-LR-002 (أمر 2158b0fc §4) — القيمة الخام فوق الإجمالي تمنع الحفظ بلا استدعاء", () => {
+  it("المسودة المستعادة 12.00/13.00: بوابة الحفظ ترفض collected_exceeds_price لا دينًا ولا كاملًا", () => {
+    const restored = paymentModeFromDraft({
+      collectedEmpty: false,
+      collectedMinor: 1300,
+      revenueMinor: 1200,
+    });
+    expect(restored).toEqual({ mode: "partial", undecidedDifference: true });
+    expect(
+      validateDirectSaleSubmission({
+        ...validBase,
+        paymentMode: "partial",
+        collectedEmpty: false,
+        partialCollectedMinor: restored.mode === "partial" ? 1300 : 0,
+        revenueMinor: 1200,
+        difference: -100,
+        customerName: "ليان",
+      }),
+    ).toBe("collected_exceeds_price");
+  });
+
+  it("المعاينة لا تعرض «قُبض كاملًا» من قيمة فوق الإجمالي — لا معاينة من نية غير قابلة للحفظ", () => {
+    expect(
+      directSalePreviewParts({
+        valid: true,
+        paymentMode: "partial",
+        revenueMinor: 1200,
+        resolvedCollectedMinor: 1300,
+        difference: -100,
+        effectiveChoice: "remaining_debt",
+      }).kind,
+    ).toBe("unavailable");
   });
 });

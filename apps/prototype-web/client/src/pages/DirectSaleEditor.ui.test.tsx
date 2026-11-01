@@ -259,20 +259,12 @@ describe("DirectSaleEditor", () => {
 
   it("S11-MR-001: الدين صريح من الوضع — لا سؤال فرق ثانٍ، والتعريف مطلوب للدين (D03)", async () => {
     wouterMocks.location = "/direct-sales/new";
-    /* الحفظ بلا تعريف يرفضه حد D03 في المصدر — الكعب يحاكي رفض المجال بصدق. */
-    const partyDefinitionRequired = {
-      ok: false,
-      code: "validation_error",
-      message:
-        "اكتب اسمًا أو وصفًا يعرّف صاحب المبلغ المتبقي، أو اختر عميلًا محفوظًا — المتبقي بلا تعريف يضيع من المتابعة.",
-    };
-    const record = vi
-      .fn()
-      .mockResolvedValueOnce(partyDefinitionRequired)
-      .mockResolvedValueOnce({
-        ok: true,
-        value: { ...sale, id: "sale-debt", collections: [] },
-      });
+    /* S11-LR-001: البوابة تمنع النداءة أصلًا — الكعب الناجح وحده يُستهلك
+     * بعد التعريف (رفض المجال يثبته اختبار حد الكتابة s11lr على المهايئين). */
+    const record = vi.fn().mockResolvedValue({
+      ok: true,
+      value: { ...sale, id: "sale-debt", collections: [] },
+    });
     mockedUsePrototypeServices.mockReturnValue(
       baseServices({
         directSales: { record },
@@ -290,25 +282,27 @@ describe("DirectSaleEditor", () => {
     expect(screen.getByLabelText("على مَن المبلغ؟ — اسم أو وصف")).toBeTruthy();
     expect(screen.getByText(/المتبقي بلا تعريف يضيع من المتابعة/).getAttribute("role")).toBe("alert");
 
-    /* حفظ بلا تعريف: رفض المصدر ظاهر — لا شاشة نتيجة ولا دين بلا متبوع. */
+    /* S11-LR-001 (أمر 2158b0fc §4): حفظ بلا تعريف تمنعه بوابة الواجهة قبل
+     * استدعاء الخدمة — لا كتابة إطلاقًا ولا شاشة نتيجة ولا دين بلا متبوع،
+     * وحارس المجال يبقى خط الدفاع الثاني. */
     fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
-    const rejection = await screen.findByText(/المتبقي بلا تعريف يضيع من المتابعة/);
-    expect(rejection.getAttribute("role")).toBe("alert");
-    expect(record).toHaveBeenCalledTimes(1);
-    expect(record.mock.calls[0][0]).toMatchObject({
-      revenueMinor: 1200,
-      collectedMinor: 500,
-      collectionStatus: "partial_debt",
-      customerName: null,
-    });
+    expect(await screen.findByText(/حدّد صاحب المبلغ المتبقي قبل الحفظ/)).toBeTruthy();
+    expect(record).not.toHaveBeenCalled();
     expect(screen.queryByRole("heading", { name: "سُجّل البيع" })).toBeNull();
+    /* القيمة باقية بعد الرفض — لا تفريغ صامت للمدخلات. */
+    expect((screen.getByLabelText("المقبوض الآن — د.أ") as HTMLInputElement).value).toBe("5.00");
 
     /* بالتعريف يمر البيع بالوضع نفسه — ولا لوحة قرار فرق ظهرت في الرحلة كلها. */
     fireEvent.change(screen.getByLabelText("على مَن المبلغ؟ — اسم أو وصف"), { target: { value: "ليان" } });
     fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
     await screen.findByRole("heading", { name: "سُجّل البيع" });
-    expect(record).toHaveBeenCalledTimes(2);
-    expect(record.mock.calls[1][0]).toMatchObject({ customerName: "ليان", collectionStatus: "partial_debt" });
+    expect(record).toHaveBeenCalledTimes(1);
+    expect(record.mock.calls[0][0]).toMatchObject({
+      revenueMinor: 1200,
+      collectedMinor: 500,
+      collectionStatus: "partial_debt",
+      customerName: "ليان",
+    });
     expect(screen.queryByText(/النظام لا يقرّر عنك/)).toBeNull();
   });
 
@@ -1257,6 +1251,190 @@ describe("DirectSaleEditor", () => {
    * جزئية صادقة، وإعادة المحاولة على شاشة النتيجة تحفظ الطرف وحده — لا
    * يُعاد البيع ولا يُتراجع ولا يتكرر، والمفتاح المشتق نفسه لا ينشئ طرفًا
    * ثانيًا. (مسار S11-MR-001 الجديد: وضع الدفع الجزئي الصريح بلا سؤال فرق.) */
+  /* S11-LR-002 (أمر 2158b0fc §4): مسودة قديمة بقبض فوق الإجمالي — القيمة
+   * الخام تُستعاد ظاهرة في وضع الجزء وتمنع الحفظ بصدق؛ لا هجرة صامتة إلى
+   * «كامل» ولا قص ولا استبدال بالإجمالي، والتصحيح الصريح وحده يعبر. */
+  it("S11-LR-002: مسودة قديمة 12.00/13.00 — القيمة الخام ظاهرة والحفظ محجوب بلا استدعاء", async () => {
+    wouterMocks.location = "/direct-sales/new";
+    const record = vi.fn().mockResolvedValue({
+      ok: true,
+      value: { ...sale, id: "sale-overtotal", collections: [] },
+    });
+    mockedUsePrototypeServices.mockReturnValue(
+      baseServices({
+        directSales: { record },
+        formDrafts: {
+          read: vi.fn().mockResolvedValue({
+            ok: true,
+            value: {
+              values: {
+                itemName: "صندوق حلويات",
+                quantity: 1,
+                revenueMinor: 1200,
+                /* شكل ما قبل الأوضاع: قُبض 13.00 فوق إجمالي 12.00. */
+                collectedEmpty: false,
+                collectedMinor: 1300,
+                costKnown: false,
+                costMinor: 0,
+                customerName: "ليان",
+                customerPartyId: "",
+                saveForReuse: false,
+                catalogItemId: "",
+                occurredOn: "2026-10-20",
+                note: "",
+              },
+              updatedAt: "2026-10-20T10:00:00.000Z",
+            },
+          }),
+          save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-10-20T10:00:00.000Z" } }),
+          discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        },
+      }),
+    );
+
+    renderEditor();
+    await screen.findByText("استرجع المسودة");
+    fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
+
+    /* الاستعادة الصادقة: وضع الجزء، والقيمة الخام 13.00 كما سُجلت — لا
+     * «كامل 12.00» يحجب القيمة غير الصالحة. */
+    await waitFor(() =>
+      expect(
+        (screen.getByRole("radio", { name: /استلمت جزءًا والباقي دَين/ }) as HTMLInputElement).checked,
+      ).toBe(true),
+    );
+    expect((screen.getByLabelText("المقبوض الآن — د.أ") as HTMLInputElement).value).toBe("13.00");
+
+    /* الحفظ محجوب برسالة القبض الفائض الصادقة — ولا استدعاء خدمة إطلاقًا. */
+    fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
+    expect(await screen.findByText(/المقبوض لا يتجاوز السعر المتفق عليه/)).toBeTruthy();
+    expect(record).not.toHaveBeenCalled();
+    /* القيمة الخام باقية بعد الرفض — لا إعادة تعيين ولا قص. */
+    expect((screen.getByLabelText("المقبوض الآن — د.أ") as HTMLInputElement).value).toBe("13.00");
+
+    /* التصحيح الصريح وحده يعبر: المبلغ 7.00 ثم قرار الفرق صريحًا (الوضع
+     * الجزئي بدين) فيُحفظ بالمبلغ المصحح — لا بالخام ولا بالإجمالي. */
+    fireEvent.change(screen.getByLabelText("المقبوض الآن — د.أ"), { target: { value: "7.00" } });
+    fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
+    expect(await screen.findByText(/اختر معناه في «حالة مختلفة؟» قبل الحفظ/)).toBeTruthy();
+    expect(record).not.toHaveBeenCalled();
+    /* القرار الصريح للمسودة المهاجرة: إعادة النقر على الراديو المحدد لا
+     * يولّد حدثًا — التبديل إلى وضع صريح ثم العودة إليه هو المسار الواقعي،
+     * فيصير الدين صريحًا والمبلغ المصحح باقيًا كما راجعه المالك. */
+    fireEvent.click(screen.getByRole("radio", { name: /لم أستلم والمبلغ دَين/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /استلمت جزءًا والباقي دَين/ }));
+    fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
+    await screen.findByRole("heading", { name: "سُجّل البيع" });
+    expect(record).toHaveBeenCalledTimes(1);
+    expect(record.mock.calls[0][0]).toMatchObject({
+      revenueMinor: 1200,
+      collectedMinor: 700,
+      collectionStatus: "partial_debt",
+      customerName: "ليان",
+    });
+  });
+
+  it("S11-LR-002: اختيار «الكامل» بقرار صريح بعد القيمة الفائضة يحفظ بالإجمالي المعلن", async () => {
+    wouterMocks.location = "/direct-sales/new";
+    const record = vi.fn().mockResolvedValue({
+      ok: true,
+      value: { ...sale, id: "sale-overtotal-full", collections: [] },
+    });
+    mockedUsePrototypeServices.mockReturnValue(
+      baseServices({
+        directSales: { record },
+        formDrafts: {
+          read: vi.fn().mockResolvedValue({
+            ok: true,
+            value: {
+              values: {
+                itemName: "صندوق حلويات",
+                quantity: 1,
+                revenueMinor: 1200,
+                collectedEmpty: false,
+                collectedMinor: 1300,
+                costKnown: false,
+                costMinor: 0,
+                customerName: "ليان",
+                customerPartyId: "",
+                saveForReuse: false,
+                catalogItemId: "",
+                occurredOn: "2026-10-20",
+                note: "",
+              },
+              updatedAt: "2026-10-20T10:00:00.000Z",
+            },
+          }),
+          save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-10-20T10:00:00.000Z" } }),
+          discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        },
+      }),
+    );
+
+    renderEditor();
+    await screen.findByText("استرجع المسودة");
+    fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
+    await waitFor(() =>
+      expect(
+        (screen.getByRole("radio", { name: /استلمت جزءًا والباقي دَين/ }) as HTMLInputElement).checked,
+      ).toBe(true),
+    );
+
+    /* قرار الوضع الصريح يغيّر النية — الهجرة نفسها لا تفعل؛ الكامل المختار
+     * يحفظ 12.00 كاملًا بمعناه المعلن لا بتفسير صامت للقيمة الفائضة. */
+    fireEvent.click(screen.getByRole("radio", { name: /استلمت كامل المبلغ/ }));
+    expect(screen.queryByLabelText("المقبوض الآن — د.أ")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
+    await screen.findByRole("heading", { name: "سُجّل البيع" });
+    expect(record).toHaveBeenCalledTimes(1);
+    expect(record.mock.calls[0][0]).toMatchObject({
+      revenueMinor: 1200,
+      collectedMinor: 1200,
+      collectionStatus: "collected_in_full",
+    });
+  });
+
+  /* S11-LR-001 (§4.1.3): الدين القائم القديم المجهول الاسم لا يُطالب بتعريف
+   * رجعي — تصحيح غير مالي يمر، والقيمة والتاريخ محفوظان كما كانا. */
+  it("S11-LR-001: تعديل دين قديم مجهول الاسم يمر بلا تعريف رجعي مفروض", async () => {
+    const legacyUnnamedDebt: DirectSale = {
+      ...sale,
+      revenueMinor: 1200,
+      collectedMinor: 500,
+      collectionStatus: "partial_debt",
+      customerName: null,
+      customerPartyId: null,
+    };
+    const update = vi.fn().mockResolvedValue({ ok: true, value: legacyUnnamedDebt });
+    mockedUsePrototypeServices.mockReturnValue(
+      baseServices({
+        directSales: { get: vi.fn().mockResolvedValue({ ok: true, value: legacyUnnamedDebt }), update },
+      }),
+    );
+
+    renderEditor();
+    await screen.findByRole("heading", { name: "تصحيح بيع مباشر" });
+    await waitFor(() =>
+      expect(
+        (screen.getByRole("radio", { name: /استلمت جزءًا والباقي دَين/ }) as HTMLInputElement).checked,
+      ).toBe(true),
+    );
+    expect((screen.getByLabelText("المقبوض الآن — د.أ") as HTMLInputElement).value).toBe("5.00");
+    /* لا خطأ تعريف مفروض على دين قائم لم يُستحدث في هذا التعديل. */
+    expect(screen.queryByText(/المتبقي بلا تعريف يضيع من المتابعة/)).toBeNull();
+
+    /* تصحيح الوصف غير المالي يمر بالوضع نفسه دون تعريف. */
+    fireEvent.change(screen.getByLabelText("بيان مختصر"), { target: { value: "تصحيح وصف" } });
+    fireEvent.click(screen.getByRole("button", { name: "حفظ تصحيح البيع" }));
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
+    expect(update.mock.calls[0][1]).toMatchObject({
+      revenueMinor: 1200,
+      collectedMinor: 500,
+      collectionStatus: "partial_debt",
+      customerName: null,
+    });
+  });
+
   it("shows the party-save partial failure and the retry button saves the party alone without re-recording the sale", async () => {
     wouterMocks.location = "/direct-sales/new";
     const recorded: DirectSale = { ...sale, id: "sale-party-retry" };

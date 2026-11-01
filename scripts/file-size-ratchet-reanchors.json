@@ -7355,6 +7355,44 @@
         "trigger": "R4's second-reread numeral blind spot fixed on the live tree",
         "ocRef": "DOC-021"
       }
+    },
+    {
+      "id": "S13-S11-FIXES-20261102-388",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/direct-sales/directSaleEditorModel.ts",
+      "from": {
+        "nbLoc": 184,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 346,
+        "band": "NORMAL"
+      },
+      "reason": "S11-LR-001/LR-002 (أمر 2158b0fc §4): بوابة تمهيدية لهوية الدين المؤكد قبل استدعاء الخدمة (مدخلات التعريف + debt_identity_required بمرآة قاعدة دلتا المجال)، وهجرة المسودة القديمة بقبض فوق الإجمالي إلى وضع الجزء بقيمتها الخام — المساواة فقط تهاجر «كاملًا».",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §4 — fix the confirmed S11 findings with regression evidence and truthful records; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S11-LR-001/LR-002 fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S13-S11-FIXES-20261102-389",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx",
+      "from": {
+        "nbLoc": 999,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1627,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S11-LR-001/LR-002 (أمر 2158b0fc §4): توصيل بوابة تعريف الدين المؤكد عند الحفظ (existingConfirmedDebt من السجل المحمّل + معالجة debt_identity_required بلا استدعاء خدمة + خطأ الحقل يطابق البوابة لا أوسع منها)، والقيمة الخام فوق الإجمالي تُستعاد ظاهرة في وضع الجزء فتمنع الحفظ بصدق — بلا تقسيم بنيوي (بوابة ما بعد المجموعة ٦).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §4 — fix the confirmed S11 findings with regression evidence and truthful records; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S11-LR-001/LR-002 fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-020"
+      }
     }
   ]
 }

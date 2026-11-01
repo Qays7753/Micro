@@ -330,6 +330,10 @@ export default function DirectSaleEditor() {
   const difference = revenueMinor - resolvedCollected;
   const effectiveChoice = effectiveDifferenceChoice(paymentMode, differenceChoice);
   const debtIntent = difference > 0 && effectiveChoice === "remaining_debt";
+  /* S11-LR-001: السجل المحمّل دين مؤكد قائم؟ — مرآة قاعدة دلتا المجال:
+   * التعريف يُطالب به الدين المستحدث فقط، والقديم المجهول يبقى بلا تعريف
+   * رجعي مفروض (UNIT-037 B2/AC14). */
+  const existingConfirmedDebt = savedSale?.collectionStatus === "partial_debt";
   /* س3 «حالة مختلفة؟»: تظهر عند وجود فرق فقط — ولا تُعاد على من اختار الدين
    * صراحة في الدفع؛ قرار فعال أو فرق معلّق يفتحها. */
   useEffect(() => {
@@ -501,6 +505,9 @@ export default function DirectSaleEditor() {
       difference,
       differenceChoice,
       undecidedDifference,
+      customerName,
+      customerPartyId,
+      existingConfirmedDebt,
     });
     if (problem === "missing_required_fields") {
       setMessage("أدخل المبلغ والكمية بالأرقام 0–9 قبل الحفظ — المبلغ هو الحقل الإلزامي الوحيد.");
@@ -521,6 +528,13 @@ export default function DirectSaleEditor() {
     if (problem === "difference_choice_required") {
       setMessage("قرار الفرق من مسودتك السابقة ما زال معلقًا — اختر معناه في «حالة مختلفة؟» قبل الحفظ.");
       setDifferentCaseOpen(true);
+      return false;
+    }
+    /* S11-LR-001: بوابة تمهيدية — تعريف الدين المؤكد قبل الخدمة؛ الخطأ
+     * الصادق ظاهر عند حقل «على مَن المبلغ؟» نفسه ولا تُستدعى الخدمة أصلًا
+     * (حارس المجال يبقى خط الدفاع الثاني بنفس القاعدة). */
+    if (problem === "debt_identity_required") {
+      setMessage("حدّد صاحب المبلغ المتبقي قبل الحفظ — اكتب اسمًا أو وصفًا، أو اختر عميلًا محفوظًا.");
       return false;
     }
     /* R7/P07: قرار الفرق X-06 عند صاحبه التطبيقي — الوضع الصريح هو الدين ما
@@ -1205,7 +1219,7 @@ export default function DirectSaleEditor() {
                 <span>حفظه لإعادة الاستخدام في قائمة العملاء والموردين</span>
               </label>
             ) : null}
-            {debtIntent && !customerName.trim() && !customerPartyId ? (
+            {debtIntent && !existingConfirmedDebt && !customerName.trim() && !customerPartyId ? (
               <p className="micro-field-error" role="alert">
                 اكتب اسمًا أو وصفًا يعرّف صاحب المبلغ المتبقي، أو اختر عميلًا محفوظًا — المتبقي بلا تعريف يضيع
                 من المتابعة.

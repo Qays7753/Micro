@@ -74,7 +74,14 @@ export function paymentModeFromDraft(saved: Record<string, unknown>): PaymentMod
       mode: Number.isFinite(revenueMinor) && revenueMinor > 0 ? "none" : "full",
       undecidedDifference: Number.isFinite(revenueMinor) && revenueMinor > 0,
     };
-  if (Number.isFinite(revenueMinor) && collectedMinor >= revenueMinor)
+  /* S11-LR-002 (أمر 2158b0fc §4): المساواة فقط تهاجر إلى «كامل» — القيمة
+   * الأعلى من الإجمالي تُستعاد بوضع الجزء بقيمتها الخام كاملة: قيمة غير
+   * صالحة ظاهرة تمنع الحفظ (collected_exceeds_price) حتى يصحح المالك
+   * المبلغ أو يختار وضع دفع آخر بقرار صريح؛ لا قص ولا استبدال بالإجمالي
+   * ولا «كامل» لقيمة لم يُدخل معناها كذلك. */
+  if (Number.isFinite(revenueMinor) && collectedMinor > revenueMinor)
+    return { mode: "partial", undecidedDifference: true };
+  if (Number.isFinite(revenueMinor) && collectedMinor === revenueMinor)
     return { mode: "full", undecidedDifference: false };
   return { mode: "partial", undecidedDifference: true };
 }
@@ -91,7 +98,8 @@ export type DirectSaleSubmissionProblem =
   | "collected_exceeds_price"
   | "partial_amount_required"
   | "partial_amount_equals_total"
-  | "difference_choice_required";
+  | "difference_choice_required"
+  | "debt_identity_required";
 
 export type DirectSaleSubmissionInput = {
   note: string;
@@ -115,6 +123,14 @@ export type DirectSaleSubmissionInput = {
   differenceChoice: DifferenceChoice | null;
   /* مسودة قديمة الاستعادة بفرق غير محسوم — قرار المعنى مطلوب قبل الحفظ. */
   undecidedDifference: boolean;
+  /* S11-LR-001 (أمر 2158b0fc §4): بوابة تمهيدية لهوية الدين المؤكد — نفس
+   * القاعدة المعتمدة عند المجال (اسم/وصف أو طرف محفوظ) تُمنع بها نداءات
+   * الخدمة بلا تعريف؛ حارس المجال عند حد الكتابة يبقى خط الدفاع الثاني.
+   * دين قائم مؤكد سابقًا (سجل قديم مجهول الاسم) لا يُطالب بتعريف رجعي —
+   * مرآة قاعدة الدلتا (assertDebtDefinitionOnEdit) لا أوسع منها. */
+  customerName: string;
+  customerPartyId: string | null;
+  existingConfirmedDebt: boolean;
 };
 
 export function validateDirectSaleSubmission(
@@ -151,6 +167,19 @@ export function validateDirectSaleSubmission(
    * من اختيار الدفع فلا يُسأل عنه ثانيةً). */
   if (input.undecidedDifference && input.difference > 0 && input.differenceChoice === null) {
     return "difference_choice_required";
+  }
+  /* S11-LR-001: نية الدين المؤكد (وضع الجزء بفرق موجب ومعناه الدين صريحًا
+   * أو افتراضًا) بلا تعريف بسيط — ترفض عند البوابة قبل استدعاء الخدمة،
+   * والملكية لا تصبح إلزامية: التعريف شرط الدين وحده. */
+  if (
+    input.paymentMode === "partial" &&
+    input.difference > 0 &&
+    (input.differenceChoice ?? "remaining_debt") === "remaining_debt" &&
+    !input.existingConfirmedDebt &&
+    !input.customerName.trim() &&
+    !(input.customerPartyId ?? "").trim()
+  ) {
+    return "debt_identity_required";
   }
   return null;
 }
