@@ -1,0 +1,51 @@
+{
+  "id": "WS-238",
+  "title": "S13 execution workstream — إدارة الطلبات والتقويم والمتابعة الموحدة (UNIT-006/012/018 + SH-17)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-022"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "eb1b1db4",
+  "areas": [
+    "apps/prototype-web/client/src/pages/Orders.tsx",
+    "apps/prototype-web/client/src/pages/Schedule.tsx",
+    "apps/prototype-web/client/src/pages/FinanceUpcoming.tsx",
+    "apps/prototype-web/client/src/application/scheduling/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/application/collections/",
+    "apps/prototype-web/client/src/components/followup/",
+    "src/domain/craft-order/",
+    "src/domain/recurring-expense/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S13-EXECUTION-PROMPT-2026-11-01.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-006-العمل.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-012-المواعيد-والمتابعات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-018-المتابعة-المالية.md"
+  ],
+  "agent": "zai-s13-execution",
+  "pr": 383,
+  "started_at": "2026-11-02",
+  "updated_at": "2026-11-02",
+  "next_action": "التنفيذ المتصل الكامل لأمر 2158b0fc §6 ثم الاختبارات المركزية وpnpm check الكامل والمراجعات الخمس والبوابات البعيدة على الرأس النهائي الدقيق.",
+  "notes": [
+    "بوابة ما بعد المجموعة ٦: لا حركة هيكلية من مسح S11 (كل الموجات NOT_EXECUTED)؛ النمط الكسول القائم محفوظ.",
+    "المخطط/التصدير: لا ترقية متوقعة (40/33 كما هي)؛ إن تطلب عقد معتمد تغييرًا فدورة التوافق كاملة في نفس التنفيذ.",
+    "SDF-063: تُوسم NOT_TRIGGERED_BY_S13 ما لم يعبر تنفيذُها فعلًا حد كاتب الدورات (التأكيد عند الكاتب لا من العرض)."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S13-EXECUTION-PROMPT-2026-11-01.md"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "مطالبة S13 المأذونة بأمر 2158b0fc (القسم ٦) بعد اكتمال fix-first — التنفيذ المتصل يبدأ فورًا بلا موافقة وسيطة."
+    }
+  ],
+  "migration_baseline": true
+}
