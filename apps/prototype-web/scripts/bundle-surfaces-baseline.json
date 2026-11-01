@@ -16,7 +16,7 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "TO_BE_COMMITTED",
+        "head": "d6e4c6141473ae288fe671a88d016eb410d30671",
         "date": "2026-11-01",
         "method": "S12 review-fixes tree re-anchor (2026-11-01, on PR #383 — the owner-directed connected execution 00-S12-EXECUTION-PROMPT-2026-11-01.md at 2e645802/DOC-021 §10): the five reviews' confirmed findings fixed at root with durable regressions. Entry heap PROTECTED and PASSING its own budget 630,357/650,000 raw and 154,532/155,300 gzip (768 bytes of margin — the D-034/ADR-017 ceiling untouched), lazy 1,447,663/431,010 (+405 raw / +100 gzipNorm over the code-head anchor 7a027392-era from the review fixes), precache 2,915,898 (+1,133), swRuntime 27,306 (unchanged), counts 121/2/84/176/2. No ceiling, tolerance, or guard raised — same-PR documented provenance per the protocol."
       },
