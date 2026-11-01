@@ -69,8 +69,13 @@ describe("check-storage-listener-guards (R9-GA-F7.1 static guard)", () => {
      * S11 (DOC-020، 2026-10-31): 90 -> 93 — مستمعات commitDirectSaleWrite
      * في IndexedDbLocalStore (قراءة السجل بالمعرّف، والبحث بمفتاح التسجيل
      * عند الإنشاء، ومطابقة أثر الكاش عند إعادة الاستخدام) كلها بguardedSuccessListener
-     * الحارس نفسه؛ إعادة إرساء موثقة نفس-الـPR لا تعديلًا صامتًا. */
-    expect(stdout).toMatch(/93 onsuccess listeners/);
+     * الحارس نفسه؛ إعادة إرساء موثقة نفس-الـPR لا تعديلًا صامتًا.
+     * S12 (DOC-021 — تصحيح R3-F01، 2026-11-01): 93 -> 96 — مستمعات
+     * commitOrderFromDraft في IndexedDbLocalStore (فحص الوجود داخل حد
+     * الكتابة: قراءة الطلب، وقراءة المسودة المرتبطة عند إعادة الاستخدام،
+     * وقراءة الجدول عند وجوده) كلها بguardedSuccessListener الحارس نفسه
+     * (نمط failFromListener القائم)؛ إعادة إرساء موثقة نفس-الـPR. */
+    expect(stdout).toMatch(/96 onsuccess listeners/);
   });
 
   it("fails on an unguarded write-queueing onsuccess listener (the F7 family recurrence)", () => {

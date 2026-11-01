@@ -7184,6 +7184,158 @@
         "trigger": "S12 entry-budget root fix measured on the live tree (the lazy split + consumer guards)",
         "ocRef": "DOC-021"
       }
+    },
+    {
+      "id": "S12-REVIEW-FIXES-20261101-379",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/application/agreements/agreementPresentation.ts",
+      "from": {
+        "nbLoc": 106,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 137,
+        "band": "NORMAL"
+      },
+      "reason": "S12 (تصحيح R5-F01): الخريطة ثلاثية الحالة لموعد التسليم — المجهول الصريح بحالته الحقيقة بفاصل النقطة المعتمد، والسعر الغائب وحده بتسمية الدومين (رسم OD-LABEL).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §10 — every confirmed in-scope review finding fixed at root with a durable regression in the same connected execution; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "Five-review fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-REVIEW-FIXES-20261101-380",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/application/agreements/agreementService.ts",
+      "from": {
+        "nbLoc": 247,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 318,
+        "band": "NORMAL"
+      },
+      "reason": "S12 (تصحيحا R3-F01/R3-F04): حد كتابة الإنشاء يفحص الوجود داخل المعاملة ويعيد الاستخدام بصدق — العلم reused يُمرر من حد الكتابة ومن مسار المسودة المرتبطة.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §10 — every confirmed in-scope review finding fixed at root with a durable regression in the same connected execution; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "Five-review fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-REVIEW-FIXES-20261101-381",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/application/direct-sales/directSaleEditorModel.ts",
+      "from": {
+        "nbLoc": 184,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 317,
+        "band": "NORMAL"
+      },
+      "reason": "S12 (تصحيح R5-F02): القبض الجزئي الذي يوازي أو يتجاوز السعر لا يُعرض منه معاينة — unavailable؛ لا «قُبض كاملًا» برقم لم يدخله المستخدم.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §10 — every confirmed in-scope review finding fixed at root with a durable regression in the same connected execution; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "Five-review fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-REVIEW-FIXES-20261101-382",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/pages/AgreementEditor.tsx",
+      "from": {
+        "nbLoc": 652,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 742,
+        "band": "WATCH"
+      },
+      "reason": "S12 (تصحيحات R5-F01/R5-F03): المجهول الصريح يمر null لخريطة العرض؛ ومعاينة الملخص تختفي كليًا عند عربون يتجاوز السعر (بوابة النية القابلة للحفظ) — سقف كثافة النص 65/65 محفوظ بالمقايضة لا بالرفع.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §10 — every confirmed in-scope review finding fixed at root with a durable regression in the same connected execution; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "Five-review fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-REVIEW-FIXES-20261101-383",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/pages/OrderDetail.tsx",
+      "from": {
+        "nbLoc": 1814,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1835,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S12 (تصحيح R5-F04): «لا يوجد توصيل» يخفي حقول الكلفة في تعديل الشروط القائمة ويعرض بيانها الصادق — لا قيمة تُدخل ثم تُطرح بصمت عند الحفظ.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §10 — every confirmed in-scope review finding fixed at root with a durable regression in the same connected execution; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "Five-review fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-REVIEW-FIXES-20261101-384",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+      "from": {
+        "nbLoc": 4391,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 5521,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S12 (تصحيح R3-F01): فحص الوجود داخل معاملة الإنشاء (get قبل أي put) بمستمعات guardedSuccessListener وفق نمط R9-GA-F7.1 — الإنشاءان المتزامنان من المسودة نفسها: الأول يكتب والثاني يعيد الاستخدام بلا كتابة ولا جدول يتيم.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §10 — every confirmed in-scope review finding fixed at root with a durable regression in the same connected execution; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "Five-review fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-REVIEW-FIXES-20261101-385",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+      "from": {
+        "nbLoc": 2087,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 2656,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S12 (تصحيح R3-F01): فحص الوجود داخل حد كتابة الإنشاء — السجل القائم يُعاد بصدق (reused) بلا أي كتابة فوقه.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §10 — every confirmed in-scope review finding fixed at root with a durable regression in the same connected execution; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "Five-review fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-REVIEW-FIXES-20261101-386",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1302,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S12 (تصحيح R3-F01): توسيع توقيع commitOrderFromDraft بالعلم reused (عقد القدرة يوثق الدلالة)؛ ترقية الشريط نمو ملف أنواع المخازن المتراكم — تقسيمه بنيويًا مؤجل لموجات المسح الهيكلي المعلقة على قرار المالك؛ القيمة المرساة هي القيمة الحية.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §10 — every confirmed in-scope review finding fixed at root with a durable regression in the same connected execution; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "Five-review fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-021"
+      }
     }
   ]
 }

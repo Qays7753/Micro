@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "d85d71d878eac17e557f7efc882c58e222c75b9f",
+        "head": "TO_BE_COMMITTED",
         "date": "2026-11-01",
-        "method": "S12 final code tree re-anchor (2026-11-01, d85d71d878eac17e557f7efc882c58e222c75b9f on PR #383 — the owner-directed connected execution 00-S12-EXECUTION-PROMPT-2026-11-01.md at 2e645802/DOC-021): the order wire 33/40 plus the new agreement creation model. Entry heap PROTECTED and PASSING its own budget 629,629/650,000 raw and 154,332/155,300 gzip (968 bytes of margin — the D-034/ADR-017 ceiling untouched; the S12 growth had pushed the entry to 155,529, fixed at root by moving the agreement service to the post-boot lazy layer per the S11-established pattern, EXE-014/S07/S10 family), lazy 1,447,258/430,910 (+10,177 raw / +3,681 gzipNorm over the S11 anchor 020e1e8b from the S12 product growth and the split), precache 2,914,765 (+7,698), swRuntime 27,306 (+58), counts 121/2/84/176/2 (dynamic roots +1 for the agreement-service dynamic import). No ceiling, tolerance, or guard raised — same-PR documented provenance per the protocol."
+        "method": "S12 review-fixes tree re-anchor (2026-11-01, on PR #383 — the owner-directed connected execution 00-S12-EXECUTION-PROMPT-2026-11-01.md at 2e645802/DOC-021 §10): the five reviews' confirmed findings fixed at root with durable regressions. Entry heap PROTECTED and PASSING its own budget 630,357/650,000 raw and 154,532/155,300 gzip (768 bytes of margin — the D-034/ADR-017 ceiling untouched), lazy 1,447,663/431,010 (+405 raw / +100 gzipNorm over the code-head anchor 7a027392-era from the review fixes), precache 2,915,898 (+1,133), swRuntime 27,306 (unchanged), counts 121/2/84/176/2. No ceiling, tolerance, or guard raised — same-PR documented provenance per the protocol."
       },
       "toolchain": {
         "node": "24.22.1",
@@ -32,9 +32,9 @@
       "measurements": {
         "initialRawTotal": 225105,
         "initialGzipNormTotal": 70782,
-        "lazyRawTotal": 1447258,
-        "lazyGzipNormTotal": 430910,
-        "precacheBytesTotal": 2914765,
+        "lazyRawTotal": 1447663,
+        "lazyGzipNormTotal": 431010,
+        "precacheBytesTotal": 2915898,
         "swRuntimeRawTotal": 27306
       },
       "counts": {

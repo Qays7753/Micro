@@ -32,7 +32,7 @@ const hasDate = (value: string | null | undefined) => Boolean(value?.trim());
  * المجهول الصريح على طلب محفوظ يُعرض بحالته الحقيقية «— الموعد لم يُحدد
  * بعد» لا «ناقصًا» ولا بموعد اليوم (اعتماد UNIT-010: يعرض الطلب المؤكد
  * بلا موعد بحالته الحقيقية). */
-const unknownDateNote = " — الموعد لم يُحدد بعد";
+const unknownDateNote = " · الموعد لم يُحدد بعد";
 const withUnknownNote = (presentation: AgreementPresentation, unknown: boolean): AgreementPresentation =>
   unknown ? { ...presentation, label: `${presentation.label}${unknownDateNote}` } : presentation;
 
@@ -66,10 +66,12 @@ export function getAgreementPresentation(input: AgreementPresentationInput): Agr
      * المجهول ليس نقصًا فلا يُدرج في قائمة النقص أبدًا. */
     if (!hasAgreedPrice) return incompleteAgreement(hasAgreedPrice, hasDeliveryDate || unknownDate);
     if (!hasDeliveryDate && !unknownDate) return incompleteAgreement(hasAgreedPrice, false);
+    /* حالة المراجعة للمجهول الصريح كحالة الموعد المعلوم — بيان الموعد
+     * المجهول يظهر من حقل التاريخ نفسه في المحرر؛ لا سلسلة جديدة هنا. */
     return {
       kind: "review",
       label: "اتفاق قيد المراجعة",
-      nextAction: unknownDate ? "راجع السعر — والموعد لم يُحدد بعد" : "راجع السعر والموعد",
+      nextAction: "راجع السعر والموعد",
     };
   }
 

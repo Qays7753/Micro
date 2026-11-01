@@ -317,11 +317,10 @@ describe("S12 (UNIT-009 — أمر 2e645802): محرر الاتفاق — الم
     fireEvent.change(price, { target: { value: "50.00" } });
     const deposit = screen.getByLabelText("العربون بالأرقام 0–9");
     fireEvent.change(deposit, { target: { value: "60.00" } });
-    /* المعاينة من النية القابلة للحفظ فقط — لا متبقٍ سالبًا ولا رقمًا من نية يرفضها الحد. */
-    expect(
-      screen.getByText("العربون يتجاوز قيمة الطلب — لا يمكن الحفظ بهذه القيم؛ عدّل أحد الحقلين."),
-    ).toBeTruthy();
-    expect(screen.queryByText(/المتبقي -10/)).toBeNull();
+    /* المعاينة من النية القابلة للحفظ فقط — تختفي كلها حتى يصحح المدخل،
+     * ولا متبقٍ سالبًا ولا رقمًا من نية يرفضها الحد (نمط البيع المباشر نفسه). */
+    expect(screen.queryByText(/قيمة الطلب المسجلة/)).toBeNull();
+    expect(screen.queryByText(/المتبقي/)).toBeNull();
     /* الحفظ يُرفض عند الحد بقاعدته — إعلان صادق لا صمت؛ بوابة الموعد عند
      * المحرر تمر أولًا (المجهول الصريح المختار) فيصل الطلب إلى الحد المُنكّر. */
     fireEvent.click(screen.getByRole("checkbox", { name: "لم يُحدد بعد" }));

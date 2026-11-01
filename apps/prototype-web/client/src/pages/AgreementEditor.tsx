@@ -706,16 +706,17 @@ export default function AgreementEditor() {
         {/* S12 (UNIT-009 A2/س8 + B4): ملخص قصير ملاصق للفعل — قيمة الطلب
             المسجلة والمستلم مقدمًا والمتبقي من المدخلات الفعّالة الصحيحة؛
             لا فقرة تعليم ولا رقم من نص فاسد، والمجهول معلن بصدق. */}
-        {agreementPriceIsReady(priceMinor) && isPriceValid && (depositMinor === null || isDepositValid) ? (
+        {agreementPriceIsReady(priceMinor) &&
+        isPriceValid &&
+        (depositMinor === null || isDepositValid) &&
+        /* S12 (تصحيح R5-F03): المعاينة من النية الفعالة القابلة للحفظ فقط —
+         * العربون الذي يتجاوز السعر نية يرفضها حد الخدمة (كما يرفض القبضُ
+         * المتجاوز في البيع المباشر معاينتَه)، فلا يعرض متبقيًا سالبًا أبدًا
+         * (UNIT-009 B4: لا سالب مقبول آليًا) ولا رقمًا من نية غير صالحة —
+         * المعاينة تختفي حتى يصحح المدخل، والرفض يعلنه حد الخدمة عند الحفظ. */
+        (depositMinor === null || priceMinor === null || depositMinor <= priceMinor) ? (
           <p className="micro-save-preview">
             {(() => {
-              /* S12 (تصحيح R5-F03): المعاينة من النية الفعالة القابلة للحفظ فقط —
-               * العربون الذي يتجاوز السعر نية يرفضها حد الخدمة، فلا يعرض متبقيًا
-               * سالبًا أبدًا (UNIT-009 B4: لا سالب مقبول آليًا) ولا رقمًا من نية
-               * غير صالحة. */
-              if (depositMinor !== null && priceMinor !== null && depositMinor > priceMinor) {
-                return "العربون يتجاوز قيمة الطلب — لا يمكن الحفظ بهذه القيم؛ عدّل أحد الحقلين.";
-              }
               const summary = agreementSummaryParts({ priceMinor, depositMinor });
               return `قيمة الطلب المسجلة ${formatMoneyMinor(summary.recordedValueMinor)} د.أ · المستلم مقدمًا ${formatMoneyMinor(
                 summary.receivedAdvanceMinor,

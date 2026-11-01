@@ -58,15 +58,15 @@ describe("getAgreementPresentation", () => {
       }),
     ).toMatchObject({
       kind: "saved",
-      label: "اتفاق محفوظ — الموعد لم يُحدد بعد",
+      label: "اتفاق محفوظ · الموعد لم يُحدد بعد",
       nextAction: "ابدأ التنفيذ",
     });
     expect(
       getAgreementPresentation({ status: "in_progress", agreedPriceMinor: 1200, deliveryDate: null }),
-    ).toMatchObject({ kind: "execution", label: "قيد التنفيذ — الموعد لم يُحدد بعد" });
+    ).toMatchObject({ kind: "execution", label: "قيد التنفيذ · الموعد لم يُحدد بعد" });
     expect(
       getAgreementPresentation({ status: "ready", agreedPriceMinor: 1200, deliveryDate: null }),
-    ).toMatchObject({ kind: "execution", label: "جاهز للتسليم — الموعد لم يُحدد بعد" });
+    ).toMatchObject({ kind: "execution", label: "جاهز للتسليم · الموعد لم يُحدد بعد" });
   });
 
   it("draft with an explicitly-unknown date: review, not an incomplete-agreement prompt", () => {
@@ -82,7 +82,7 @@ describe("getAgreementPresentation", () => {
     ).toMatchObject({
       kind: "review",
       label: "اتفاق قيد المراجعة",
-      nextAction: "راجع السعر — والموعد لم يُحدد بعد",
+      nextAction: "راجع السعر والموعد",
     });
     /* الفراغ (لم يُدخل بعد) يبقى ناقصًا كما كان — المجهول الصريح مختلف عنه. */
     expect(
