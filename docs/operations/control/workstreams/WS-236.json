@@ -1,7 +1,7 @@
 {
   "id": "WS-236",
   "title": "S11 execution workstream — البيع المباشر والتسجيل السريع والتحصيل منه (UNIT-004/005/026 sale-slice + SH-15)",
-  "status": "REVIEW_REQUIRED",
+  "status": "IN_PROGRESS",
   "items": [
     "DOC-020"
   ],
@@ -33,8 +33,8 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-10-31",
-  "updated_at": "2026-11-01",
-  "next_action": "مراجعة Manus المستقلة وقبول المالك على PR #383 بعد تصحيح المراجعة (S11-MR-001/S11-MR-002 في eb23311e + الملحق 16a)؛ لا merge.",
+  "updated_at": "2026-11-02",
+  "next_action": "إصلاح S11-LR-001/LR-002 بإثبات وانحدارات دائمة ثم العودة إلى REVIEW_REQUIRED صادقة.",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S11-EXECUTION-PROMPT-2026-10-31.md المنشور في b33a8877؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
@@ -77,6 +77,18 @@
       "changed_at": "2026-11-01",
       "actor": "zai-s12-execution",
       "reason": "التصحيح الجذري أُنجز في eb23311e بالانحدارات الدائمة والملحق 16a — التيار يعود لحالة المراجعة المعلقة بصدق (لا ادعاء قبول)."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "أمر المالك المتصل 2158b0fc (§3): موجدتا مراجعة ac4429ef المستقلة الجديدتان S11-LR-001/S11-LR-002 تستوجبان فتح المطالبة قانونيًا قبل التصحيح."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "تنفيذ التصحيح/التحصيص المأذون (أمر 2158b0fc §4) على الفرع نفسه وPR #383؛ لا موافقة وسيطة."
     }
   ],
   "migration_baseline": true
