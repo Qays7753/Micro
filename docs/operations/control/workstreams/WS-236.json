@@ -1,7 +1,7 @@
 {
   "id": "WS-236",
   "title": "S11 execution workstream — البيع المباشر والتسجيل السريع والتحصيل منه (UNIT-004/005/026 sale-slice + SH-15)",
-  "status": "IN_PROGRESS",
+  "status": "REVIEW_REQUIRED",
   "items": [
     "DOC-020"
   ],
@@ -34,7 +34,7 @@
   "pr": 383,
   "started_at": "2026-10-31",
   "updated_at": "2026-11-02",
-  "next_action": "إصلاح S11-LR-001/LR-002 بإثبات وانحدارات دائمة ثم العودة إلى REVIEW_REQUIRED صادقة.",
+  "next_action": "مراجعة مستقلة وقبول مالك لسجل S11 الكامل بمُلحقيه؛ لا merge ولا كتابة على main.",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S11-EXECUTION-PROMPT-2026-10-31.md المنشور في b33a8877؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
@@ -89,6 +89,12 @@
       "changed_at": "2026-11-02",
       "actor": "zai-s13-execution",
       "reason": "تنفيذ التصحيح/التحصيص المأذون (أمر 2158b0fc §4) على الفرع نفسه وPR #383؛ لا موافقة وسيطة."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "تصحيح S11-LR-001/LR-002 مكتمل بانحداراته (2de3e94e + الملحق 16b)؛ مطالبة S11 تعود لحالة مراجعة صادقة — لا قبول ذاتيًا."
     }
   ],
   "migration_baseline": true
