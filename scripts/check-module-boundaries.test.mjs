@@ -563,7 +563,7 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
 
   const r9Only = result => result.violations.filter(v => v.rule.startsWith("R9"));
 
-  it("the live repository passes on the recorded census: 131 edges (82 value + 49 type)", () => {
+  it("the live repository passes on the recorded census: 135 edges (86 value + 49 type)", () => {
     /* R11 Lock Remediation (2026-10-15): +1 type edge — pinOperations.ts (الوحدة
      * الكسولة لعمليات الرمز) -> application/time/clock.ts (هدف معفى OD-10؛
      * صف الجرد مضاف في نفس الـPR — نمو مرئي لا صامت).
@@ -585,8 +585,13 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
      * مالك حركات البيع directSaleMovements بسقف الزوج collections→direct-sales
      * 0→1 قيمة؛ وdirectSaleMovements -> time/clock هدف معفى OD-10) — الجرد
      * 132/83/49 صار 134/85/49؛ إعادة إرساء موثقة نفس-الـPR (راجع تقرير S11). */
-    expect(result.stats.houseEdges).toBe(134);
-    expect(result.stats.houseEdgesValue).toBe(85);
+    /* S13 (DOC-022 / WS-238 — أمر 2158b0fc، نفس-الـPR): +1 value edge
+     * (unifiedFollowUpService -> time/clock هدف معفى OD-10 — منفذ systemClock
+     * الموثق؛ صف الجرد مضاف في نفس الـPR) — الجرد 134/85/49 صار 135/86/49؛
+     * لا زوج بيوت جديد: القارئ الموحد يستقبل الجدولة بنيويًا بعدسة
+     * activeDeliveryLens تركبها الصفحة من باب البيت (راجع تقرير S13). */
+    expect(result.stats.houseEdges).toBe(135);
+    expect(result.stats.houseEdgesValue).toBe(86);
     expect(result.stats.houseEdgesType).toBe(49);
   });
 

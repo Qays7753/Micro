@@ -104,7 +104,15 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
      * المجال movements.ts تحت src/domain خارج نطاق مسح client/src لهذا
      * الحارس (تغطيها حراس المجال الأخرى)؛ نفس البروتوكول ولا موضع
      * تسجيل جديد. */
-    expect(stdout).toMatch(/391 ملف إنتاج/);
+    /* S12 fix-first (أمر 2158b0fc §5، 52885e78): 391→392 — حارس نية إنشاء
+     * الاتفاق الكنوني (storage/local/agreementCreationIntentGuard.ts — طبقة
+     * تخزين نقية بلا وصول تخزين متصفح؛ إصلاح S12-FIN-001)؛ تحديث الدبوس
+     * نفس-الـPR مع بقية تثبيتات شريحة S13.
+     * S13 (DOC-022 / WS-238 — أمر 2158b0fc §6، 1f3fdaf8): 392→396 — الملفات
+     * الإنتاجية الجديدة لشريحة S13 (scheduleReads وscheduleReadsTestHarness
+     * وscheduleProposal وunifiedFollowUpService — كلها نقية بلا وصول تخزين
+     * متصفح)؛ نفس البروتوكول ولا موضع تسجيل جديد. */
+    expect(stdout).toMatch(/396 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

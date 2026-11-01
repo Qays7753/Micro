@@ -102,6 +102,10 @@
       "nbLoc": 128,
       "band": "NORMAL"
     },
+    "apps/prototype-web/client/src/application/agreements/scheduleProposal.ts": {
+      "nbLoc": 44,
+      "band": "NORMAL"
+    },
     "apps/prototype-web/client/src/application/assets/assetService.ts": {
       "nbLoc": 501,
       "band": "WATCH"
@@ -374,6 +378,10 @@
       "nbLoc": 12,
       "band": "NORMAL"
     },
+    "apps/prototype-web/client/src/application/follow-up/unifiedFollowUpService.ts": {
+      "nbLoc": 459,
+      "band": "WATCH"
+    },
     "apps/prototype-web/client/src/application/formatting/formatters.ts": {
       "nbLoc": 227,
       "band": "NORMAL"
@@ -552,6 +560,14 @@
     },
     "apps/prototype-web/client/src/application/scheduling/recurrenceService.ts": {
       "nbLoc": 300,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/scheduling/scheduleReads.ts": {
+      "nbLoc": 181,
+      "band": "NORMAL"
+    },
+    "apps/prototype-web/client/src/application/scheduling/scheduleReadsTestHarness.ts": {
+      "nbLoc": 9,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/application/scheduling/scheduleService.ts": {

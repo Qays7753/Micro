@@ -7697,6 +7697,25 @@
         "trigger": "S13 stage-mandated label caps measured on the live tree",
         "ocRef": "DOC-022"
       }
+    },
+    {
+      "id": "S13-UNIFIED-READER-20261102-406",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/follow-up/unifiedFollowUpService.ts",
+      "from": {
+        "nbLoc": 0,
+        "band": "NEW"
+      },
+      "to": {
+        "nbLoc": 459,
+        "band": "WATCH"
+      },
+      "reason": "S13 (UNIT-018 + 012 — أمر 2158b0fc §6): القارئ الموحد للمتابعة «012/018» — ملف جديد يدخل شريط المراجعة من يومه: مصادر معزولة الحالة (تسليم/متابعة عميل/تحصيل/دفعة مورد/سداد مصروف/مراجعة تكرار) بإسقاط واحد وتصفية وتجميع قبل حد العرض — قارئ خالص فوق عدسات بنيوية لا كاتب؛ القيمة = القياس الفعلي والراتشة تُقيد القيمة الجديدة.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §6 — implement the complete S13 scope UNIT-006/012/018 + SH-17 on the same branch/PR; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 unified follow-up reader measured on the live tree (approved reader design per UNIT-018 B3/B5)",
+        "ocRef": "DOC-022"
+      }
     }
   ]
 }

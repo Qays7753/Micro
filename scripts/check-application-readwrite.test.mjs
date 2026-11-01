@@ -136,7 +136,7 @@ describe("application read/write guard (R5/S3 — readers never write)", () => {
 });
 
 describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-019, OD-GUARD Option A)", () => {
-  it("the live repository passes at the baseline: 65 corpus files, zero violations", () => {
+  it("the live repository passes at the baseline: 68 corpus files, zero violations", () => {
     /* R11 Lock Remediation (2026-10-15): +1 — security/localLockBackoff.ts
      * (وحدة الوقفة المشتركة قارئة فقط؛ مصنفة في الجسم بتصنيف موثق في نفس
      * الـPR وفق D-04/R10A-F-019).
@@ -149,10 +149,15 @@ describe("read-like corpus membership + property (R11 W1A-1 / D-04 — R10A-F-01
      * formDraftTestHarness؛ اختبارات فقط لا يدخل بناء الإنتاج)؛ 65 ← 62. */
     const result = checkApplicationReadWrite(REPO_ROOT);
     expect(result.ok).toBe(true);
-    expect(result.stats.readLikeCorpus).toBe(65);
-    expect(result.stats.readLikeBaseline).toBe(65);
-    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(65);
-    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(65);
+    /* S13 (DOC-022 / WS-238 — أمر 2158b0fc، نفس-الـPR): +3 — قارئ المتابعة
+     * الموحد (follow-up/unifiedFollowUpService.ts — عدسات بنيوية بلا كتابة)،
+     * والقراءة النقية لمجتمع المواعيد (scheduling/scheduleReads.ts)، وعدنته
+     * الاختبارية (scheduling/scheduleReadsTestHarness.ts — نمط
+     * formDraftTestHarness)؛ 65 ← 68 بتصنيف موثق نفس-الـPR (راجع تقرير S13). */
+    expect(result.stats.readLikeCorpus).toBe(68);
+    expect(result.stats.readLikeBaseline).toBe(68);
+    expect(READ_LIKE_CORPUS_BASELINE).toHaveLength(68);
+    expect(new Set(READ_LIKE_CORPUS_BASELINE).size).toBe(68);
   });
 
   it("growth: a new read-like file outside the governed corpus fails", () => {
