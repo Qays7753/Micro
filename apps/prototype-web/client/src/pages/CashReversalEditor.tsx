@@ -69,6 +69,12 @@ export default function CashReversalEditor() {
         if (active) setSourceWarning(null);
         return;
       }
+      /* S12 (DOC-021 — أمر 2e645802 §9): خدمة الاتفاق الكسولة — null =
+       * «جارٍ التجهيز»؛ تُعاد القراءة عند اكتماله (agreements في الاعتماديات). */
+      if (!agreements) {
+        if (active) setSourceWarning(null);
+        return;
+      }
       const orderResult = await agreements.get(entry.sourceRefId);
       if (!active) return;
       if (!orderResult.ok || !orderResult.stored) {

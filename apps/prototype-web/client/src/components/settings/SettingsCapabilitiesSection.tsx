@@ -30,7 +30,10 @@ import { isKnownCapabilityId } from "@/application/preferences";
 
 type SectionProps = {
   preferences: PreferenceService;
-  agreements: AgreementService;
+  /* S12 (DOC-021 — أمر 2e645802 §9، سابقة supplierPurchases نفسها): خدمة
+   * الاتفاق كسولة — null = «جارٍ التجهيز» (أعداد القبول تبقى غير محملة
+   * بلا رقم كاذب وتُعاد القراءة فور جاهزيتها). */
+  agreements: AgreementService | null;
   inventory: InventoryMaterialService;
   /* S07 (سابقة transfers/loans): خدمة المشتريات كسولة — null = «جارٍ التجهيز». */
   supplierPurchases: SupplierPurchaseService | null;
@@ -57,10 +60,10 @@ export function SettingsCapabilitiesSection({
 
   useEffect(() => {
     let active = true;
-    /* S07 (سابقة transfers/loans): الخدمة الكسولة غير جاهزة بعد — الأعداد
-     * تبقى غير محملة (عد 0 مع «قيد التجهيز» لا رقمًا كاذبًا) وتُعاد القراءة
-     * فور جاهزيتها (dependency على الخدمة نفسها). */
-    if (!supplierPurchases) return undefined;
+    /* S07 (سابقة transfers/loans) + S12 (DOC-021): الخدمتان الكسولتان غير
+     * جاهزتين بعد — الأعداد تبقى غير محملة (عد 0 مع «قيد التجهيز» لا رقمًا
+     * كاذبًا) وتُعاد القراءة فور جاهزيتهما (dependency على الخدمتين). */
+    if (!supplierPurchases || !agreements) return undefined;
     void (async () => {
       const preference = await preferences.readDisabledCapabilities();
       if (active && preference.ok) setDisabled(preference.disabled.filter(isKnownCapabilityId));

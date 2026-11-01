@@ -14,7 +14,11 @@ import { DraftService } from "@/application/drafts/draftService";
 import { FormDraftService } from "@/application/drafts/formDraftService";
 /* المجموعة ٥ (عقد ٣٧): القفل المحلي — بصمة الرمز فقط، خارج اللقطة. */
 import { CostService } from "@/application/cost/costService";
-import { AgreementService } from "@/application/agreements/agreementService";
+/* S12 (DOC-021 — أمر 2e645802 §9، سابقة EXE-014/S07/S10 نفسها): خدمة الاتفاق
+ * تُحمّل عند الحاجة فقط — وحدة الإنشاء الجديدة (الموعد المجهول والتكلفة المجهولة
+ * ونموذج شروط النقل الجديد) لا تدخل كومة الإقلاع (سقف gzip المحروس D-034/ADR-017
+ * لا يُرفع). النوع هنا فقط (import type) فلا يسحب الوحدة إلى حزمة الدخول. */
+import type { AgreementService } from "@/application/agreements/agreementService";
 import { AgreementContextService } from "@/application/agreements/agreementContextService";
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { DeliveryReviewService } from "@/application/fulfillment/deliveryReviewService";
@@ -105,7 +109,11 @@ type PrototypeServices = {
   formDrafts: FormDraftService;
   directSales: DirectSaleService;
   costs: CostService;
-  agreements: AgreementService;
+  /* S12 (DOC-021 — أمر 2e645802 §9، سابقة supplierPurchases/EXE-014 نفسها): خدمة
+   * الاتفاق تُحمّل ديناميكيًا بعد الإقلاع — null تعني «جارٍ التجهيز» ومستهلكوها
+   * الكنونيون (محرر الاتفاق وتفاصيل الطلب والتحصيل وعكس التخصيص والإعدادات)
+   * يعيدون القراءة عند اكتماله. */
+  agreements: AgreementService | null;
   agreementContext: AgreementContextService;
   financialPulse: FinancialPulseService;
   projectFinance: ProjectFinancialService;
@@ -245,6 +253,23 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
     void import("@/application/loans/loanService").then(module => {
       if (!active) return;
       setLoanService(new module.LoanService(singletonStore));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  /* S12 (DOC-021 — أمر 2e645802 §9، سابقة loans/S04 نفسها): خدمة الاتفاق
+   * تُحمّل ديناميكيًا بعد الإقلاع — وحدة الإنشاء الجديدة (الموعد المجهول
+   * والتكلفة المجهولة ونموذج شروط النقل الجديد) تخرج من كومة الإقلاع
+   * (سقف gzip المحروس D-034/ADR-017 لا يُرفع)؛ تُبنى فوق المخزن الوحيد
+   * وخدمة التكلفة المفردة فور جاهزيتها ولا تُعاد عند dataVersion؛ null
+   * تعني «جارٍ التجهيز». */
+  const [agreementService, setAgreementService] = useState<AgreementService | null>(null);
+  useEffect(() => {
+    let active = true;
+    void import("@/application/agreements/agreementService").then(module => {
+      if (!active) return;
+      setAgreementService(new module.AgreementService(singletonStore, singletonServices.costs));
     });
     return () => {
       active = false;
@@ -412,6 +437,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       ...(transferServices ?? { transfers: null, guidedOpeningImport: null }),
       recurringExpenses: recurringExpenseService,
       loans: loanService,
+      agreements: agreementService,
       cashCount: cashCountService,
       partyDirectory: partyDirectoryService,
       supplierPurchases: supplierPurchasesService,
@@ -437,7 +463,9 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       /* S11 (نمط R1-F2 نفسه): حركات البيع الكسولة داخل الاعتماديات —
        * بدونها يبقى محرر البيع يرى null بعد اكتمال الاستيراد الديناميكي. */
       saleMovementsService,
-      homeControlCenterService,
+      /* S12 (نمط R1-F2 نفسه): خدمة الاتفاق الكسولة داخل الاعتماديات —
+       * بدونها يظل محرر الاتفاق يرى null بعد اكتمال التحميل الديناميكي. */
+      agreementService,
       dataVersion,
       notifyDataChanged,
     ],
@@ -466,6 +494,7 @@ function createServices(): Omit<
   | "homeControlCenter"
   | "planningCalculations"
   | "saleMovements"
+  | "agreements"
 > {
   const store = singletonStore;
   const costs = new CostService(store);
@@ -502,7 +531,6 @@ function createServices(): Omit<
     formDrafts: new FormDraftService(store),
     directSales: directSales,
     costs,
-    agreements: new AgreementService(store, costs),
     agreementContext,
     financialPulse: new FinancialPulseService(store),
     projectFinance,

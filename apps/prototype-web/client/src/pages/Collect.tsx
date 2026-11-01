@@ -189,7 +189,10 @@ export default function Collect() {
      * نفسه (الحدث القائم الأحدث) — لا من الحقول المؤقتة؛ البيع المباشر بلا
      * نوع مسودة زبون في العقد فلا زر له هنا (صدق لا حجب). */
     let shareDraft: ShareDraft | null = null;
-    if (source.kind === "order") {
+    /* S12 (DOC-021 — أمر 2e645802 §9): خدمة الاتفاق الكسولة — مسودة المشاركة
+     * تُبنى عند توفرها فقط (نجاح القبضة قائم بذاته ولا يتأخر عليها)؛
+     * null = «جارٍ التجهيز». */
+    if (source.kind === "order" && agreements) {
       const orderRead = await agreements.get(source.id);
       if (orderRead.ok && orderRead.stored) {
         const standing = standingCollectionEvent(orderRead.stored);
