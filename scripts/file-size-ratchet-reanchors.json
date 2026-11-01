@@ -6804,6 +6804,386 @@
         "trigger": "S11 direct-sale UI correction measured on the live tree (pure editor decisions moved to their application home per the R7 pattern)",
         "ocRef": "DOC-020"
       }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-01",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/application/agreements/agreementPrice.ts",
+      "from": {
+        "nbLoc": 19,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 38,
+        "band": "NORMAL"
+      },
+      "reason": "S12 (UNIT-009 A2/س8+B4 — أمر 2e645802 §6): أجزاء ملخص الاتفاق الملاصق للفعل (القيمة المسجلة/المستلم مقدمًا/المتبقي) في بيتها التطبيقي — اشتقاق المتبقي مالٌ فيحسب عند صاحبه التطبيقي لا في الواجهة (عائلة F-049 المجمدة).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-02",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/application/agreements/agreementService.ts",
+      "from": {
+        "nbLoc": 247,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 313,
+        "band": "NORMAL"
+      },
+      "reason": "S12 (UNIT-009 P3.1/P3.3 + A2/س4 — أمر 2e645802 §6): الموعد المجهول الصريح (J002-DEC02: null بلا جدول زائف ولا تاريخ صوري)، والتكلفة المجهولة الصريحة (J002-DEC01: مرجع مجهول موثق بعلم no_cost_components الإلزامي لا تكلفة 0)، ونموذج شروط النقل عند الإنشاء (لا يوجد توصيل أو على المشروع — لا رسوم زبون ولا تقاسم)، وسقف العربون بالسعر وحده، والجدول يُكتب عند وجود الموعد فقط. القيمة تشمل تنسيق prettier النهائي للشجرة.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-03",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/application/agreements/index.ts",
+      "from": {
+        "nbLoc": 20,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 21,
+        "band": "NORMAL"
+      },
+      "reason": "S12 (UNIT-009 — أمر 2e645802): تصدير agreementSummaryParts عبر باب الاتفاقيات — توسيع موثق نفس-الـPR في حارس أسطح الأبواب.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-04",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/application/fulfillment/fulfillmentService.ts",
+      "from": {
+        "nbLoc": 756,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 764,
+        "band": "WATCH"
+      },
+      "reason": "S12 (UNIT-009 A3 — أمر 2e645802 §6): «لا يوجد توصيل» قيمة قانونية عند تعديل شروط طلب قائم أيضًا — بلا أي مبلغ؛ بقية قيم ORD-003 تبقى لتعديل السجلات القائمة كما كانت.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-05",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/application/scheduling/scheduleService.ts",
+      "from": {
+        "nbLoc": 495,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 505,
+        "band": "WATCH"
+      },
+      "reason": "S12 (UNIT-009 — J002-DEC02 — أمر 2e645802 §6): طلب موعده مجهول (null) لا يُسدَّد له موعد افتراضي — غياب الموعد لا يكتب جدولًا؛ يُنشأ موعده حين يحدده المالك لاحقًا من صاحبه (012).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-11",
+      "date": "2026-11-01",
+      "path": "src/domain/craft-order/deliveryTermsValidation.ts",
+      "from": {
+        "nbLoc": 81,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 106,
+        "band": "NORMAL"
+      },
+      "reason": "S12 (UNIT-009 A3 — أمر 2e645802 §6): «لا يوجد توصيل» قيمة قانونية جديدة + القاعدة الرابعة للعلاقات (none لا يحمل أي مبلغ إطلاقًا) — القاعدة المشتركة الواحدة noneCarriesNoAmounts تُستهلك من مدقق العلاقات ومن بنّاء الشروط في policies.js معًا (لا نسختين)؛ القيمة تشمل التنسيق النهائي.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-365",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/application/transfers/transferEnvelope.ts",
+      "from": {
+        "nbLoc": 71,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 74,
+        "band": "NORMAL"
+      },
+      "reason": "S12 (UNIT-009 — أمر 2e645802 §8): الزوج 32/40 كما صدر فعلًا في S11 صار زوجًا موروثًا مقبولًا في الاستيراد؛ الزوج الحي صار 33/40.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-366",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts",
+      "from": {
+        "nbLoc": 1192,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1369,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S12 (UNIT-009 — J002-DEC02 — أمر 2e645802 §8): قاعدة واحدة صغيرة — موعد التسليم قد يكون null صراحة (مجهول بلا تاريخ صوري؛ الزوج الموروث 32/40 لا يحمل null أصلًا فبقي مقبولًا كما كان). ترقية الشريط إلى SPLIT_NOW مسار ملف قائم نموه المتراكم من المراحل السابقة؛ تقسيمه بنيويًا مؤجل لموجات المسح الهيكلي المعلق على قرار المالك (بلا معالجة هيكلية في S12 بأمر 2e645802 §1) — القيمة المرساة هي القيمة الحية لا قرار تقسيم.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-367",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/pages/AgreementEditor.tsx",
+      "from": {
+        "nbLoc": 652,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 726,
+        "band": "WATCH"
+      },
+      "reason": "S12 (UNIT-009 A2/س4+س6+س7 + B3-F04/B3-F17 — أمر 2e645802 §6): نموذج الإنشاء الجديد — «لم يُحدد بعد» الصريح (لا تاريخ اليوم ولا جدولًا زائفًا)، و«التكلفة غير معروفة الآن» عند غياب مرجع صالح، وقسم النقل الجديد (لا توصيل/على المشروع/بدون شروط)، والمعاينة الملاصقة للحفظ بأجزائها المالية من صاحبها التطبيقي. القيمة تشمل تنسيق prettier النهائي للشجرة.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-368",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/pages/OrderDetail.tsx",
+      "from": {
+        "nbLoc": 1814,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1821,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S12 (UNIT-009 A3 — أمر 2e645802 §6): خيار «لا يوجد توصيل» الصريح في تعديل شروط الطلب القائم — الأجرة والحصص تُصفَّر معه عمدًا والكلفة تخص توصيل المشروع وحده.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-369",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1291,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S12 (UNIT-009 A3/P3.1 — أمر 2e645802 §8): توسيع نوع واحد — StoredCraftOrder.deliveryDate: string | null (المجهول الصريح بلا جدول زائف)، وتوثيق زوج 33/40 (تغيير سلك بلا مخازن ولا فهارس ولا ترحيل بيانات). ترقية الشريط SPLIT_NOW مسار ملف أنواع المخازن الأربعين نموه المتراكم من المراحل السابقة؛ تقسيمه بنيويًا مؤجل لموجات المسح الهيكلي المعلق على قرار المالك — القيمة المرساة هي القيمة الحية.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-370",
+      "date": "2026-11-01",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 404,
+        "band": "WATCH"
+      },
+      "reason": "S12 (UNIT-009 — أمر 2e645802): توسيع باب الاتفاقيات الموثق نفس-الـPR — +value agreementSummaryParts في الأساس المسجل مع ملاحظة مؤرخة؛ لا صمتًا ولا تخفيفًا (حارس الأسطح نفسه يثبت المطابقة).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-371",
+      "date": "2026-11-01",
+      "path": "src/domain/craft-order/policies.ts",
+      "from": {
+        "nbLoc": 1413,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1476,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S12 (UNIT-009 A3 — أمر 2e645802 §6): «لا يوجد توصيل» في مسؤولية النقل (DELIVERY_RESPONSIBILITY_AR) + كلفة النقل التي يتحملها المشروع عندها صفر + رفض أي مبلغ معها في buildDeliveryTerms.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ORDER-AGREEMENT-20261101-372",
+      "date": "2026-11-01",
+      "path": "src/domain/craft-order/types.ts",
+      "from": {
+        "nbLoc": 275,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 305,
+        "band": "NORMAL"
+      },
+      "reason": "S12 (UNIT-009 A3/P3.1 — أمر 2e645802 §6): «none» في اتحاد مسؤولية النقل — اختيار صريح مختلف عن عدم تسجيل الشروط (null) ولا يحمل أي مبلغ.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §5–§8 — S12 scope UNIT-009/010/011 plus the UNIT-026 order adapter under SH-16; the export-version change 32→33 is justified against the owner-approved J002-DEC01/02 decisions and UNIT-009 A3, with the full backward-compatible import/export/restore path completed and tested in the same connected execution). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 order-agreement/delivery/wire work measured on the live tree (the same-PR candidate)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ENTRY-CEILING-20261101-373",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+      "from": {
+        "nbLoc": 360,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 574,
+        "band": "WATCH"
+      },
+      "reason": "S12 (DOC-021 — أمر 2e645802 §9): خدمة الاتفاق تُحمّل ديناميكيًا بعد الإقلاع (نمط loans/S07/S10 نفسه) — النوع فقط في السطح والاستيراد داخل التأثير؛ سقف gzip المحروس D-034/ADR-017 لا يُرفع.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §9 — preserve bundle ceilings 650,000/155,300 (D-034/ADR-017) with no raise: the S12 growth pushed the entry to 155,529 gzip (229 over), fixed at root by moving the agreement service to the post-boot lazy layer per the S11-established pattern (EXE-014/S07/S10 same family), entry now 154,332 gzip with 968 of margin; all 3,219 app tests green on the split tree). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 entry-budget root fix measured on the live tree (the lazy split + consumer guards)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ENTRY-CEILING-20261101-374",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/components/settings/SettingsCapabilitiesSection.tsx",
+      "from": {
+        "nbLoc": 197,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 209,
+        "band": "NORMAL"
+      },
+      "reason": "S12 (DOC-021 — أمر 2e645802 §9): خدمة الاتفاق الكسولة في قسم القدرات — null = «جارٍ التجهيز»؛ الأعداد تبقى غير محملة (عد 0 مع قيد التجهيز لا رقمًا كاذبًا) وتُعاد القراءة فور جاهزيتها.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §9 — preserve bundle ceilings 650,000/155,300 (D-034/ADR-017) with no raise: the S12 growth pushed the entry to 155,529 gzip (229 over), fixed at root by moving the agreement service to the post-boot lazy layer per the S11-established pattern (EXE-014/S07/S10 same family), entry now 154,332 gzip with 968 of margin; all 3,219 app tests green on the split tree). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 entry-budget root fix measured on the live tree (the lazy split + consumer guards)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ENTRY-CEILING-20261101-375",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/pages/AgreementEditor.tsx",
+      "from": {
+        "nbLoc": 652,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 732,
+        "band": "WATCH"
+      },
+      "reason": "S12 (UNIT-009 A2/س4+س6+س7 + B3-F04/B3-F17 — أمر 2e645802 §6): نموذج الإنشاء الجديد — «لم يُحدد بعد» الصريح و«التكلفة غير معروفة الآن» وقسم النقل الجديد والمعاينة الملاصقة للحفظ؛ وحارس الخدمة الكسولة عند الحفظ (null = «جارٍ التجهيز» بلا فشل صامت).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §9 — preserve bundle ceilings 650,000/155,300 (D-034/ADR-017) with no raise: the S12 growth pushed the entry to 155,529 gzip (229 over), fixed at root by moving the agreement service to the post-boot lazy layer per the S11-established pattern (EXE-014/S07/S10 same family), entry now 154,332 gzip with 968 of margin; all 3,219 app tests green on the split tree). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 entry-budget root fix measured on the live tree (the lazy split + consumer guards)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ENTRY-CEILING-20261101-376",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/pages/CashReversalEditor.tsx",
+      "from": {
+        "nbLoc": 220,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 226,
+        "band": "NORMAL"
+      },
+      "reason": "S12 (DOC-021 — أمر 2e645802 §9): حارس الخدمة الكسولة في وصلة التراجع للطلب — null = «جارٍ التجهيز» وتُعاد القراءة عند اكتماله (agreements في الاعتماديات).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §9 — preserve bundle ceilings 650,000/155,300 (D-034/ADR-017) with no raise: the S12 growth pushed the entry to 155,529 gzip (229 over), fixed at root by moving the agreement service to the post-boot lazy layer per the S11-established pattern (EXE-014/S07/S10 same family), entry now 154,332 gzip with 968 of margin; all 3,219 app tests green on the split tree). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 entry-budget root fix measured on the live tree (the lazy split + consumer guards)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ENTRY-CEILING-20261101-377",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/pages/Collect.tsx",
+      "from": {
+        "nbLoc": 491,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 501,
+        "band": "WATCH"
+      },
+      "reason": "S12 (DOC-021 — أمر 2e645802 §9): مسودة المشاركة تُبنى عند توفر خدمة الاتفاق فقط (نجاح القبضة قائم بذاته)؛ null = «جارٍ التجهيز».",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §9 — preserve bundle ceilings 650,000/155,300 (D-034/ADR-017) with no raise: the S12 growth pushed the entry to 155,529 gzip (229 over), fixed at root by moving the agreement service to the post-boot lazy layer per the S11-established pattern (EXE-014/S07/S10 same family), entry now 154,332 gzip with 968 of margin; all 3,219 app tests green on the split tree). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 entry-budget root fix measured on the live tree (the lazy split + consumer guards)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S12-ENTRY-CEILING-20261101-378",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/pages/OrderDetail.tsx",
+      "from": {
+        "nbLoc": 1814,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1827,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S12 (UNIT-009 A3 — أمر 2e645802 §6/§9): خيار «لا يوجد توصيل» الصريح في تعديل شروط الطلب القائم + حارس الخدمة الكسولة في قراءة التفاصيل وزر بدء التنفيذ (يبقى على حالة التحميل الصادقة ويُعاد عند اكتماله).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §9 — preserve bundle ceilings 650,000/155,300 (D-034/ADR-017) with no raise: the S12 growth pushed the entry to 155,529 gzip (229 over), fixed at root by moving the agreement service to the post-boot lazy layer per the S11-established pattern (EXE-014/S07/S10 same family), entry now 154,332 gzip with 968 of margin; all 3,219 app tests green on the split tree). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12 entry-budget root fix measured on the live tree (the lazy split + consumer guards)",
+        "ocRef": "DOC-021"
+      }
     }
   ]
 }

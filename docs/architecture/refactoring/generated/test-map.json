@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "020e1e8bb513ae9420dfe5bc6d10b8cb0a1d539d",
+  "head": "d85d71d878eac17e557f7efc882c58e222c75b9f",
   "pages": {
     "total": 64,
     "map": {
@@ -686,9 +686,11 @@
           "apps/prototype-web/client/src/AgreementLabel.odlabel.dom.test.tsx",
           "apps/prototype-web/client/src/application/agreements/agreementContextService.test.ts",
           "apps/prototype-web/client/src/application/agreements/agreementPrice.test.ts",
+          "apps/prototype-web/client/src/application/agreements/agreementService.s12.test.ts",
           "apps/prototype-web/client/src/application/agreements/agreementService.test.ts",
           "apps/prototype-web/client/src/application/agreements/followUpDate.test.ts",
           "apps/prototype-web/client/src/application/agreements/orderDetailViewModel.test.ts",
+          "apps/prototype-web/client/src/application/agreements/s12SharedAcceptance.test.ts",
           "apps/prototype-web/client/src/presentation/orderAgreementPresentation.test.ts"
         ]
       },
