@@ -86,7 +86,7 @@ async function seededExport(): Promise<{ service: LocalTransferService; file: Re
 }
 
 describe("R10-B2/RC-1 — current-pair raw-array gate (re-sealed laundering closed)", () => {
-  it("new exports carry the 4 owner count keys (additive; pair stays 30/38)", async () => {
+  it("new exports carry the 4 owner count keys (additive; the file carries the live pair — dated correction 2026-11-01 DOC-021/S12; was 30/38 when written, 40/33 today)", async () => {
     const { file } = await seededExport();
     expect(file.version).toBe(localExportVersion);
     expect(file.schemaVersion).toBe(localSchemaVersion);

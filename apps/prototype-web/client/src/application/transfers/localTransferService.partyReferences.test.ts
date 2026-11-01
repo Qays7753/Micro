@@ -106,7 +106,7 @@ function supplierPurchase(partyId: string | null | undefined): Record<string, un
   };
 }
 
-/** لقحة بيانات كاملة الأسر الأساسية على الزوج الحالي 40/32. */
+/** لقحة بيانات كاملة الأسر الأساسية على الزوج الحالي 33/40 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 32/40). */
 function baseData(): Record<string, unknown> {
   return {
     profile: null,
@@ -154,7 +154,7 @@ type PartyFileInput = {
   readonly purchase?: Record<string, unknown>;
 };
 
-/** ملف 40/32 كامل العدادات والبصمة — يصل إلى validateSnapshot فعلًا لا يُرفض عند العدادات. */
+/** ملف 33/40 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 32/40) كامل العدادات والبصمة — يصل إلى validateSnapshot فعلًا لا يُرفض عند العدادات. */
 function currentPairFile({ parties, sale, purchase }: PartyFileInput): Record<string, unknown> {
   const data = baseData();
   data.counterparties = [...parties];

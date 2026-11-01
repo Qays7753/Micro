@@ -110,7 +110,7 @@ describe("W2b — derivation parity of the production allowed set", () => {
   });
 });
 
-describe("W2b — Current pair (38/30) unknown top-level data keys are rejected with the exact owner payload", () => {
+describe("W2b — the live pair (40/33 today; dated correction 2026-11-01 DOC-021/S12; was 38/30 when written): unknown top-level data keys are rejected with the exact owner payload", () => {
   it("one unknown key is rejected with validation_error and the verbatim Arabic message", async () => {
     const { transfers, exported } = await liveExport(() => new MemoryLocalStore());
     const base = clone(exported);

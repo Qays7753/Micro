@@ -30,7 +30,7 @@ function lineWith(overrides: Partial<Record<string, unknown>>): Record<string, u
   return { ...baseLine, ...overrides };
 }
 
-/** شراء 40/32 بصيغة النقل الكاملة (دفعات ومراجعات وتراجعات). */
+/** شراء 33/40 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 32/40) بصيغة النقل الكاملة (دفعات ومراجعات وتراجعات). */
 function purchaseWithLines(lines: readonly Record<string, unknown>[] | null): Record<string, unknown> {
   return {
     id: "purchase-lines-1",
@@ -77,7 +77,7 @@ function materialRecord(id: string): Record<string, unknown> {
   };
 }
 
-/** لقحة بيانات كاملة الأسر الأساسية على الزوج الحالي 40/32. */
+/** لقحة بيانات كاملة الأسر الأساسية على الزوج الحالي 33/40 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 32/40). */
 function baseData(): Record<string, unknown> {
   return {
     profile: null,
@@ -126,7 +126,7 @@ type LinesFileInput = {
   readonly materials?: readonly Record<string, unknown>[];
 };
 
-/** ملف 40/32 كامل العدادات والبصمة — يصل إلى validateSnapshot فعلًا. */
+/** ملف 33/40 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 32/40) كامل العدادات والبصمة — يصل إلى validateSnapshot فعلًا. */
 function currentPairFile(input: LinesFileInput = {}): Record<string, unknown> {
   const data = baseData();
   const purchase = purchaseWithLines(input.lines ?? null);

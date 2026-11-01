@@ -614,7 +614,7 @@ describe("S05 — حدود التعديل على المصدر (UNIT-037 AC06/AC1
 });
 
 describe("S05 — زوج المخطط/التصدير الحي (DOC-014)", () => {
-  it("the live pair is 40/32 — the counterparty family carries it", () => {
+  it("the live pair is 40/33 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 40/32) — the counterparty family carried it to 40/32, the S12 wire carried it to 40/33", () => {
     expect(localSchemaVersion).toBe(40);
     expect(localExportVersion).toBe(33);
   });
