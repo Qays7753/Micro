@@ -1,0 +1,63 @@
+{
+  "id": "WS-237",
+  "title": "S12 execution workstream — اتفاق الطلب وتنفيذه وتسليمه وتسويته (UNIT-009/010/011 + UNIT-026 order adapter + SH-16)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-021"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "c7f6c034eb12002e5662f4775717466834df7f4f",
+  "areas": [
+    "src/domain/craft-order/",
+    "src/domain/cash-continuity/",
+    "src/domain/inventory-material/",
+    "src/domain/financial-analysis/",
+    "apps/prototype-web/client/src/application/agreements/",
+    "apps/prototype-web/client/src/application/fulfillment/",
+    "apps/prototype-web/client/src/application/collections/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/pages/AgreementEditor.tsx",
+    "apps/prototype-web/client/src/pages/OrderDetail.tsx",
+    "apps/prototype-web/client/src/pages/DeliveryReview.tsx",
+    "apps/prototype-web/client/src/pages/Collect.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S12-EXECUTION-PROMPT-2026-11-01.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-009-الاتفاق-والعربون.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-010-تفاصيل-الطلب.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-011-مراجعة-التسليم.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-026-تسجيل-دفعة-على-مستحق.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-11-01",
+  "updated_at": "2026-11-01",
+  "next_action": "تنفيذ نطاق S12 الكامل (UNIT-009 اتفاق وعربون؛ UNIT-010 تفاصيل وتنسيق؛ UNIT-011 تسليم ذري؛ UNIT-026 محول الطلب) بالمراجعات الخمس والبوابتين البعيدتين على الرأس النهائي؛ لا merge.",
+  "notes": [
+    "أمر التنفيذ الوحيد هو 00-S12-EXECUTION-PROMPT-2026-11-01.md المنشور في 2e6458021d1d146b54d7d2655291bf2404ddc8d7؛ GitHub هو مصدر الحقيقة التشغيلي.",
+    "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
+    "تصحيح S11-MR-001/MR-002 أُنجز أولًا (eb23311e + الملحق 16a) وDOC-020 عادت IN_REVIEW بتحولات قانونية.",
+    "ملكية UNIT-026 هنا محول الطلب وحده: لا إعادة بناء قدرة التحصيل المشتركة ولا محول البيع المباشر (S11).",
+    "بوابة ما بعد المجموعة ٦: لا حركة هيكلية من مسح S11 (كل الموجات NOT_EXECUTED)؛ النمط الكسول القائم محفوظ.",
+    "المخطط/التصدير: لا ترقية إن لم يتطلب السلك الدائم تغييرًا؛ أي تغيير مبرر يستوفي دورة التوافق كاملة في نفس التنفيذ."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S12-EXECUTION-PROMPT-2026-11-01.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/16a-S11-REVIEW-ADDENDUM-2026-11-01.md"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "مطالبة S12 المأذونة بأمر 2e645802 بعد اكتمال تصحيح مراجعة S11 — التنفيذ المتصل يبدأ فورًا بلا موافقة وسيطة."
+    }
+  ],
+  "migration_baseline": true
+}
