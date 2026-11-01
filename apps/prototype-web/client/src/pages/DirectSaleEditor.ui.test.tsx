@@ -948,12 +948,10 @@ describe("DirectSaleEditor", () => {
   /* S11 §5 (ملاحظة المالك — تغطية حالة خدمة الحركات الفارغة/التعارض):
    * الخدمة الكسولة غير الجاهزة والتعارض كلاهما ظاهر بصدق بلا انفجار. */
   it("S11 حركات البيع: الخدمة غير الجاهزة تُخبر بصدق، والتعارض يعيد القراءة ويحفظ المدخلات", async () => {
-    const get = vi
-      .fn()
-      .mockResolvedValue({
-        ok: true,
-        value: { ...sale, collectedMinor: 500, collectionStatus: "partial_debt", customerName: "ليان" },
-      });
+    const get = vi.fn().mockResolvedValue({
+      ok: true,
+      value: { ...sale, collectedMinor: 500, collectionStatus: "partial_debt", customerName: "ليان" },
+    });
     const notifyDataChanged = vi.fn();
     /* (أ) الخدمة الكسولة لم تجهز بعد — لا استدعاء ولا انفجار. */
     mockedUsePrototypeServices.mockReturnValue(

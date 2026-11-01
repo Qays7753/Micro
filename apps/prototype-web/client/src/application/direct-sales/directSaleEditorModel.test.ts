@@ -49,9 +49,7 @@ describe("R7/P07 — بوابة التحقق قبل الإرسال", () => {
         difference: 1000,
       }),
     ).toBeNull();
-    expect(
-      validateDirectSaleSubmission({ ...validBase, paymentMode: "none", difference: 5000 }),
-    ).toBeNull();
+    expect(validateDirectSaleSubmission({ ...validBase, paymentMode: "none", difference: 5000 })).toBeNull();
   });
 
   it("المبلغ الفارغ أو المدخلات غير الصالحة = missing_required_fields", () => {
@@ -210,9 +208,10 @@ describe("S11-MR-001 — هجرة مسودة ما قبل الأوضاع (collect
   });
 
   it("الحقلة القديمة = الكامل (معناها الأصلي محفوظ)", () => {
-    expect(
-      paymentModeFromDraft({ collectedEmpty: true, collectedMinor: 0, revenueMinor: 5000 }),
-    ).toEqual({ mode: "full", undecidedDifference: false });
+    expect(paymentModeFromDraft({ collectedEmpty: true, collectedMinor: 0, revenueMinor: 5000 })).toEqual({
+      mode: "full",
+      undecidedDifference: false,
+    });
     /* غياب الحقل كليًا كالحقلة نفسها — لا فراغ يُفسَّر دينًا. */
     expect(paymentModeFromDraft({ revenueMinor: 5000 })).toEqual({
       mode: "full",
@@ -221,19 +220,20 @@ describe("S11-MR-001 — هجرة مسودة ما قبل الأوضاع (collect
   });
 
   it("مسودة قديمة بقبض جزئي موجب = جزء بفرق غير محسوم (لا يُمنح دينًا بصمت)", () => {
-    expect(
-      paymentModeFromDraft({ collectedEmpty: false, collectedMinor: 2000, revenueMinor: 5000 }),
-    ).toEqual({ mode: "partial", undecidedDifference: true });
+    expect(paymentModeFromDraft({ collectedEmpty: false, collectedMinor: 2000, revenueMinor: 5000 })).toEqual(
+      { mode: "partial", undecidedDifference: true },
+    );
     /* القبض المساوي للإجمالي = كامل محسوم. */
-    expect(
-      paymentModeFromDraft({ collectedEmpty: false, collectedMinor: 5000, revenueMinor: 5000 }),
-    ).toEqual({ mode: "full", undecidedDifference: false });
+    expect(paymentModeFromDraft({ collectedEmpty: false, collectedMinor: 5000, revenueMinor: 5000 })).toEqual(
+      { mode: "full", undecidedDifference: false },
+    );
   });
 
   it("مسودة قديمة بصفر صريح مع إجمالي = «لم أستلم» بفرق غير محسوم", () => {
-    expect(
-      paymentModeFromDraft({ collectedEmpty: false, collectedMinor: 0, revenueMinor: 5000 }),
-    ).toEqual({ mode: "none", undecidedDifference: true });
+    expect(paymentModeFromDraft({ collectedEmpty: false, collectedMinor: 0, revenueMinor: 5000 })).toEqual({
+      mode: "none",
+      undecidedDifference: true,
+    });
     /* صفر بلا إجمالي = لا شيء أُدخل أصلًا — الكامل الافتراضي. */
     expect(paymentModeFromDraft({ collectedEmpty: false, collectedMinor: 0, revenueMinor: 0 })).toEqual({
       mode: "full",
@@ -258,7 +258,15 @@ describe("S11-MR-001 — أجزاء المعاينة الملاصقة للحفظ
   });
 
   it("الكامل: البيع = المقبوض = الإجمالي؛ والدين: الأرقام الثلاثة من النية الفعّالة", () => {
-    expect(directSalePreviewParts({ ...base, paymentMode: "full", difference: 0, resolvedCollectedMinor: 15000, effectiveChoice: null })).toEqual({
+    expect(
+      directSalePreviewParts({
+        ...base,
+        paymentMode: "full",
+        difference: 0,
+        resolvedCollectedMinor: 15000,
+        effectiveChoice: null,
+      }),
+    ).toEqual({
       kind: "full",
       saleMinor: 15000,
     });
