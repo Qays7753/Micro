@@ -116,6 +116,7 @@ import type {
 import { canonicalSnapshotDigest } from "./snapshotCanonicalization";
 import { normalizeSnapshotForReplacement } from "./snapshotNormalization";
 import { STORAGE_ERROR, STORAGE_STALE } from "./resultCodes";
+import { decideAgreementCreationCommit } from "./agreementCreationIntentGuard";
 /* R10-B3/R10A-F-011 (2026-10-12): الحرفية صارت مصدرًا واحدًا — كانت نسخة
  * خاصة مطابقة هنا والمعرّف المُصدّر في indexedDbStores.ts هو الكنوني
  * (نفس نمط SECOND_WALLET_OPENING_MESSAGE في حارس مشترك)؛ الاستيراد هنا
@@ -582,40 +583,56 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         code: STORAGE_STALE,
         message: "سجل الطلب تغيّر من مسار آخر بعد فتحك له — لم يُسجَّل شيء؛ أعد المحاولة.",
       };
-    if (!alreadyDelivered) this.orders.set(order.id, clone(order));
-    const movementKeys = new Set(Array.from(this.inventoryMovements.values()).map(m => m.operationKey));
-    movements
-      .filter(movement => !movementKeys.has(movement.operationKey))
-      .forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
-    const shortageKeys = new Set(Array.from(this.inventoryShortages.values()).map(s => s.operationKey));
-    shortages
-      .filter(shortage => !shortageKeys.has(shortage.operationKey))
-      .forEach(shortage => this.inventoryShortages.set(shortage.id, clone(shortage)));
-    let attributedEntry: CashContinuityEntry | null = null;
-    if (cashEntry) {
-      const cashKeyTaken = Array.from(this.cashContinuityEntries.values()).some(
-        entry => entry.operationKey === cashEntry.operationKey,
-      );
-      if (!cashKeyTaken) {
-        this.cashContinuityEntries.set(cashEntry.id, clone(cashEntry));
+    /* S12-ATOMIC-001 (أمر 2158b0fc §5 — إصلاح جذري لحد الكتابة): الاستنساخ
+     * الكامل للحزمة كلها قبل أي تغيير — أي فشل استنساخ (مهما كان مصدره)
+     * يُرجَع فشلًا صادقًا قبل أول set فلا تبقى كتابة نصفية أبدًا: الطلب
+     * وحركاته ونقصه وقبضه ومحفظته تُكتب معًا أو لا يُكتب شيء. */
+    try {
+      const orderClone = alreadyDelivered ? clone(existing) : clone(order);
+      const movementKeys = new Set(Array.from(this.inventoryMovements.values()).map(m => m.operationKey));
+      const movementClones = movements
+        .filter(movement => !movementKeys.has(movement.operationKey))
+        .map(movement => clone(movement));
+      const shortageKeys = new Set(Array.from(this.inventoryShortages.values()).map(s => s.operationKey));
+      const shortageClones = shortages
+        .filter(shortage => !shortageKeys.has(shortage.operationKey))
+        .map(shortage => clone(shortage));
+      let attributedEntry: CashContinuityEntry | null = null;
+      let cashEntryClone: CashContinuityEntry | null = null;
+      if (cashEntry) {
+        const cashKeyTaken = Array.from(this.cashContinuityEntries.values()).some(
+          entry => entry.operationKey === cashEntry.operationKey,
+        );
+        cashEntryClone = clone(cashEntry);
         attributedEntry = clone(cashEntry);
-      } else {
-        attributedEntry = clone(cashEntry);
+        if (cashKeyTaken) cashEntryClone = null;
       }
-      if (wallet) this.cashWallets.set(wallet.id, clone(wallet));
-    } else if (wallet) {
-      this.cashWallets.set(wallet.id, clone(wallet));
+      const walletClone = wallet ? clone(wallet) : null;
+      /* الالتزام الفعلي — قيم مستنسخة سلفًا فلا يفشل هنا شيء. */
+      if (!alreadyDelivered) this.orders.set(order.id, orderClone);
+      movementClones.forEach(movement => this.inventoryMovements.set(movement.id, movement));
+      shortageClones.forEach(shortage => this.inventoryShortages.set(shortage.id, shortage));
+      if (cashEntryClone) this.cashContinuityEntries.set(cashEntryClone.id, cashEntryClone);
+      if (walletClone) this.cashWallets.set(walletClone.id, walletClone);
+      return {
+        ok: true,
+        value: {
+          order: clone(alreadyDelivered ? existing : order),
+          movements: movements.map(clone),
+          shortages: shortages.map(clone),
+          cashEntry: attributedEntry,
+          reused: alreadyDelivered,
+        },
+      };
+    } catch (error) {
+      /* فشل ما قبل التغيير (استنساخ الحزمة) أو أي رمي غير متوقع: فشل تخزين
+       * صادق — قبل أول set فلا كتابة نصفية أبدًا. */
+      return {
+        ok: false,
+        code: STORAGE_ERROR,
+        message: error instanceof Error ? error.message : "تعذر تسجيل التسليم محليًا.",
+      };
     }
-    return {
-      ok: true,
-      value: {
-        order: clone(alreadyDelivered ? existing : order),
-        movements: movements.map(clone),
-        shortages: shortages.map(clone),
-        cashEntry: attributedEntry,
-        reused: alreadyDelivered,
-      },
-    };
   }
   /* المجموعة ٣ (عقد D4) + رقعة إغلاق المجموعة ٣ (D-031، مراجعة مستقلة):
    * عكس التسليم ذرّيًا في الذاكرة — لا كتابة عمياء فوق السجل الحي. الحارس
@@ -1793,9 +1810,14 @@ export class MemoryLocalStore implements PrototypeLocalStore {
      * الكتابة — إنشاءان متزامنان من المسودة نفسها (المعرّف الحتمي
      * `order-${draft.id}` واحد) لا يطمر أحدهما الآخر: الثاني يرى السجل القائم
      * ويعيد الاستخدام بصدق (reused مع السجل نفسه وبلا أي كتابة)؛ ولا جدول
-     * يتيمًا أبدًا (لا يُمسّ أي شيء عند إعادة الاستخدام). */
+     * يتيمًا أبدًا (لا يُمسّ أي شيء عند إعادة الاستخدام).
+     * S12-FIN-001 (أمر 2158b0fc §5): إعادة الاستخدام مشروطة بتطابق نية
+     * الإنشاء الكنونية — المفتاح نفسه بحمولة مختلفة تعارض صريح بلا كتابة
+     * ولا أثر جانبي (الجدول المرتبط بالسجل القائم لا بالحمولة المتعارضة). */
     const existing = this.orders.get(order.id);
     if (existing) {
+      const decision = decideAgreementCreationCommit(order, existing);
+      if (decision.kind === "conflict") return { ok: false, code: decision.code, message: decision.message };
       const liveDraft = this.drafts.get(draft.id) ?? draft;
       const liveSchedule = schedule ? (this.schedules.get(schedule.id) ?? null) : null;
       return {

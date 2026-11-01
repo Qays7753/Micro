@@ -90,7 +90,7 @@ describe("S12 (تصحيح R3-F01) — حد كتابة الإنشاء: إنشاء
         expect(snapshot.ok && snapshot.value?.orders).toHaveLength(1);
       });
 
-      it("تاريخ/null: لا جدول يتيمًا — سجل الفائز وحاله فقط، والثاني يعيد الاستخدام", async () => {
+      it("S12-FIN-001: تاريخ معلوم/مجهول متعارضان — الفائز يكتب والثاني تعارض صريح بلا كتابة ولا جدول يتيم", async () => {
         const store = makeStore();
         const draft = await unlinkedDraft(store, true);
         const agreements = new AgreementService(store, new CostService(store, () => NOW), () => NOW);
@@ -109,16 +109,22 @@ describe("S12 (تصحيح R3-F01) — حد كتابة الإنشاء: إنشاء
           }),
         ]);
         if (!first.ok) throw new Error(first.message);
-        if (!second.ok) throw new Error(second.message);
-        expect(second.reused).toBe(true);
-        expect(second.stored).toEqual(first.stored);
+        /* الحمولة المتغيرة (معلوم ↔ مجهول) تعارض صريح — لا إعادة استخدام
+         * كاذبة تحجب الموعد الذي كتبه الفائز الأول (أمر 2158b0fc §5). */
+        expect(second.ok).toBe(false);
+        if (second.ok) throw new Error("unreachable");
+        expect(second.code).toBe("storage_stale");
+        expect(second.message).toContain("بحمولة مختلفة");
+        /* السجل القائم وحده: موعده كما كتبه الفائز، وجدوله واحد لا يتيم. */
+        const snapshot = await store.readSnapshot();
+        expect(snapshot.ok && snapshot.value?.orders).toHaveLength(1);
+        const persisted = snapshot.ok ? snapshot.value?.orders[0] : undefined;
+        expect(persisted?.deliveryDate).toBe(first.stored.deliveryDate);
         const schedules = await store.listSchedules();
         const orderSchedules = schedules.ok
           ? schedules.value.filter(entry => entry.orderId === first.stored.id)
           : [];
         expect(orderSchedules).toHaveLength(first.stored.deliveryDate === null ? 0 : 1);
-        const snapshot = await store.readSnapshot();
-        expect(snapshot.ok && snapshot.value?.orders).toHaveLength(1);
       });
 
       it("تكلفة مجهولة/تكلفة مجهولة: الثاني يعيد الاستخدام — لا طمر لمرجع مجهول", async () => {
@@ -233,4 +239,197 @@ describe("S12 (تصحيح R3-F02-ب) — طلب الموعد المجهول يُ
     const schedules = await reopened.listSchedules();
     expect(schedules.ok && schedules.value).toHaveLength(0);
   });
+});
+
+/* S12-FIN-001 (أمر S13 2158b0fc §5 — موجدة المراجعة المستقلة عند ac4429ef):
+ * المفتاح نفسه يقبل حمولة اتفاق متغيرة — المقارنة الكنونية لكل حقل إنشاء
+ * فعال عند المهايئين معًا وقبل المسار السريع: النية نفسها إعادة استخدام
+ * بلا كتابة ثانية، والحمولة المتغيرة تعارضًا صريحًا بلا كتابة ولا أثر
+ * جدول/قبض/مصروف جانبي ولا تغيير للسجل القائم. */
+describe("S12-FIN-001 — المفتاح نفسه بحمولة مختلفة: تعارض صريح عند الحد (المهايئان معًا)", () => {
+  const baseInput = {
+    agreedPriceMinor: 5000,
+    deliveryDate: "2026-11-20" as string | null,
+    depositMinor: 0,
+    agreementSource: null as string | null,
+  };
+
+  for (const [label, makeStore] of ADAPTERS) {
+    describe(label, () => {
+      it("إعادة المحاولة المتسلسلة بالحمولة نفسها: إعادة استخدام صادقة بلا كتابة ثانية", async () => {
+        const store = makeStore();
+        const draft = await unlinkedDraft(store, true);
+        const agreements = new AgreementService(store, new CostService(store, () => NOW), () => NOW);
+        const first = await agreements.createFromDraft(draft, baseInput);
+        if (!first.ok) throw new Error(first.message);
+        /* المحاولة الثانية بعد النجاح (مسودة مرتبطة الآن) — المسار السريع
+         * يقارن نية الإنشاء: نفس الحمولة تعيد السجل القائم كما هو. */
+        const second = await agreements.createFromDraft(
+          { ...draft, linkedOrderId: first.stored.id },
+          baseInput,
+        );
+        if (!second.ok) throw new Error(second.message);
+        expect(second.reused).toBe(true);
+        expect(second.stored).toEqual(first.stored);
+        const snapshot = await store.readSnapshot();
+        expect(snapshot.ok && snapshot.value?.orders).toHaveLength(1);
+      });
+
+      const changedPayloads: ReadonlyArray<readonly [string, typeof baseInput]> = [
+        ["السعر المتغير", { ...baseInput, agreedPriceMinor: 6000 }],
+        ["العربون المتغير", { ...baseInput, depositMinor: 1000 }],
+        ["الموعد معلوم/مجهول", { ...baseInput, deliveryDate: null }],
+        ["مصدر الاتفاق المتغير", { ...baseInput, agreementSource: "conversation" }],
+      ];
+      for (const [caseLabel, changed] of changedPayloads) {
+        it(`المسار السريع (مسودة مرتبطة) بحمولة ${caseLabel}: تعارض صريح بلا كتابة ولا تغيير للقائم`, async () => {
+          const store = makeStore();
+          const draft = await unlinkedDraft(store, true);
+          const agreements = new AgreementService(store, new CostService(store, () => NOW), () => NOW);
+          const first = await agreements.createFromDraft(draft, baseInput);
+          if (!first.ok) throw new Error(first.message);
+          const before = await store.readSnapshot();
+          const rejected = await agreements.createFromDraft(
+            { ...draft, linkedOrderId: first.stored.id },
+            changed,
+          );
+          expect(rejected.ok).toBe(false);
+          if (rejected.ok) throw new Error("unreachable");
+          expect(rejected.code).toBe("storage_stale");
+          expect(rejected.message).toContain("بحمولة مختلفة");
+          /* لا كتابة إطلاقًا: اللقطة بالبايت كما كانت (لا طمس للسجل القائم
+           * ولا جدول يتيم ولا نقد مزدوج ولا مسودة معدلة). */
+          const after = await store.readSnapshot();
+          expect(after.ok && JSON.stringify(after.value)).toBe(before.ok ? JSON.stringify(before.value) : "");
+        });
+      }
+
+      it("المسار السريع: التكلفة المعروفة/المجهولة المتغيرة تعارض صريح", async () => {
+        const store = makeStore();
+        const draft = await unlinkedDraft(store, true);
+        const agreements = new AgreementService(store, new CostService(store, () => NOW), () => NOW);
+        const first = await agreements.createFromDraft(draft, baseInput);
+        if (!first.ok) throw new Error(first.message);
+        /* المجهول الصريح مع نسخة قائمة يرفضه التحقق قبل المقارنة — الرفض
+         * الصادق ليس تعارضًا؛ التعارض يثبت بالاتجاه المعاكس: مسودة بلا نسخة
+         * أنشأت مجهولًا ثم أعيدت المحاولة بمرجع معروف. */
+        const bare = await unlinkedDraft(store, false);
+        const unknownFirst = await agreements.createFromDraft(bare, {
+          ...baseInput,
+          costUnknown: true,
+        });
+        if (!unknownFirst.ok) throw new Error(unknownFirst.message);
+        const costs = new CostService(store, () => NOW);
+        const withSnapshot = await costs.saveSnapshot(bare, costInput);
+        if (!withSnapshot.ok) throw new Error(withSnapshot.ok ? "" : withSnapshot.message);
+        const rejected = await agreements.createFromDraft(
+          { ...withSnapshot.draft, linkedOrderId: unknownFirst.stored.id },
+          { ...baseInput },
+        );
+        expect(rejected.ok).toBe(false);
+        if (rejected.ok) throw new Error("unreachable");
+        expect(rejected.code).toBe("storage_stale");
+        expect(rejected.message).toContain("بحمولة مختلفة");
+        /* مرجع المجهول المحفوظ لم يُطمس — السجل القائم كما كتبه فائزه. */
+        const read = await store.getOrder(unknownFirst.stored.id);
+        expect(read.ok && read.value?.order.costSnapshots[0]?.id).toContain("unknown-cost");
+      });
+
+      it("المسار السريع: شروط النقل المتغيرة تعارض صريح", async () => {
+        const store = makeStore();
+        const draft = await unlinkedDraft(store, true);
+        const agreements = new AgreementService(store, new CostService(store, () => NOW), () => NOW);
+        const first = await agreements.createFromDraft(draft, {
+          ...baseInput,
+          deliveryTerms: {
+            responsibility: "none",
+            feeIncludedInPrice: false,
+            costIncludedInProductCost: false,
+            feeChargedMinor: null,
+            costPaidMinor: null,
+            projectShareMinor: null,
+            customerShareMinor: null,
+          },
+        });
+        if (!first.ok) throw new Error(first.message);
+        const rejected = await agreements.createFromDraft(
+          { ...draft, linkedOrderId: first.stored.id },
+          {
+            ...baseInput,
+            deliveryTerms: {
+              responsibility: "project_pays",
+              feeIncludedInPrice: false,
+              costIncludedInProductCost: true,
+              feeChargedMinor: null,
+              costPaidMinor: 700,
+              projectShareMinor: null,
+              customerShareMinor: null,
+            },
+          },
+        );
+        expect(rejected.ok).toBe(false);
+        if (rejected.ok) throw new Error("unreachable");
+        expect(rejected.code).toBe("storage_stale");
+        /* شروط الفائز الأول باقية كما سُجلت. */
+        const read = await store.getOrder(first.stored.id);
+        expect(read.ok && read.value?.order.deliveryTerms?.responsibility).toBe("none");
+      });
+
+      it("إنشاءان متزامنان بحمولتين مختلفتين: فائز واحد وتعارض صريح للثاني بلا كتابة", async () => {
+        const store = makeStore();
+        const draft = await unlinkedDraft(store, true);
+        const agreements = new AgreementService(store, new CostService(store, () => NOW), () => NOW);
+        const results = await Promise.all([
+          agreements.createFromDraft(draft, { ...baseInput, agreedPriceMinor: 5000 }),
+          agreements.createFromDraft(draft, { ...baseInput, agreedPriceMinor: 7000 }),
+        ]);
+        const winners = results.filter(result => result.ok);
+        const losers = results.filter(result => !result.ok);
+        expect(winners).toHaveLength(1);
+        expect(losers).toHaveLength(1);
+        for (const loser of losers) {
+          expect(loser.code).toBe("storage_stale");
+          expect(loser.message).toContain("بحمولة مختلفة");
+        }
+        /* سجل واحد بالسعر الذي كتبه الفائز — لا طمس ولا دمج. */
+        const snapshot = await store.readSnapshot();
+        expect(snapshot.ok && snapshot.value?.orders).toHaveLength(1);
+        const persisted = snapshot.ok ? snapshot.value?.orders[0] : undefined;
+        expect(winners[0]?.ok ? persisted?.order.agreedPriceMinor : null).toBe(
+          winners[0]?.ok ? winners[0].stored.order.agreedPriceMinor : null,
+        );
+        /* لا نقد مزدوج: القبض في السجل القائم هو عربون الفائز وحده. */
+        const cashEntries = await store.listCashContinuityEntries();
+        expect(cashEntries.ok && cashEntries.value).toHaveLength(0);
+      });
+
+      it("إعادة المحاولة بعد تطور السجل (تعديل سعر لاحق) بالنية نفسها: إعادة استخدام لا تعارض", async () => {
+        const store = makeStore();
+        const draft = await unlinkedDraft(store, true);
+        const agreements = new AgreementService(store, new CostService(store, () => NOW), () => NOW);
+        const first = await agreements.createFromDraft(draft, baseInput);
+        if (!first.ok) throw new Error(first.message);
+        /* تطور مشروع لاحق: تعديل سعر فوق السجل القائم بنيته الخاصة. */
+        const { reviseAgreedPrice } = await import("@micro-domain/craft-order/index.js");
+        const revised = reviseAgreedPrice(first.stored.order, {
+          newPriceMinor: 8000,
+          reason: "اتفاق لاحق",
+          idempotencyKey: `${first.stored.id}:price-later`,
+          createdAt: NOW,
+        });
+        const saved = await store.saveOrder({ ...first.stored, order: revised, updatedAt: NOW });
+        if (!saved.ok) throw new Error(saved.message);
+        /* إعادة محاولة الإنشاء بالحمولة الأصلية نفسها — السعر عند الإنشاء
+         * يُستخرج من سلسلة التعديل فتبقى النية متطابقة: إعادة استخدام صادقة
+         * للسجل الحي المتطور (حفظ دلالة outcome_unknown وإعادة المحاولة). */
+        const retry = await agreements.createFromDraft(
+          { ...draft, linkedOrderId: first.stored.id },
+          baseInput,
+        );
+        if (!retry.ok) throw new Error(retry.message);
+        expect(retry.reused).toBe(true);
+        expect(retry.stored.order.agreedPriceMinor).toBe(8000);
+      });
+    });
+  }
 });

@@ -20,6 +20,7 @@ import {
   ORDER_READ_FAILED_MESSAGE,
   ORDER_UNAVAILABLE_MESSAGE,
   STORAGE_ERROR,
+  STORAGE_STALE,
   VALIDATION_ERROR,
   errorMessageOf,
   storageFailure,
@@ -27,6 +28,7 @@ import {
 import { systemClock, type Clock } from "@/application/time/clock";
 import { isValidLocalDate, JOD } from "@micro-domain/shared/index.js";
 import { AGREEMENT_SOURCE_ACCEPTANCE } from "@/application/transfers/transferCompatibilityValues";
+import { decideAgreementCreationCommit } from "@/storage/local/agreementCreationIntentGuard";
 
 /* S12 (UNIT-009 P3.1/P3.3 + العقد المشترك OrderExtras — أمر 2e645802): نموذج
  * الإنشاء الجديد لشروط النقل — «لا يوجد توصيل» صريحًا أو توصيل يتحمله
@@ -108,10 +110,44 @@ export class AgreementService {
           code: "inconsistent_state",
           message: "توجد إشارة لاتفاق محلي غير متاح. لا تنشئ اتفاقًا جديدًا قبل المراجعة.",
         };
-      /* S12 (DOC-021 — تصحيح R3-F04): مسودة مرتبطة بالفعل = إعادة استخدام
-       * موثّقة للسجل القائم نفسه — نفس دلالة startExecution. */
+      /* S12 (DOC-021 — تصحيح R3-F04) + S12-FIN-001 (أمر 2158b0fc §5): مسودة
+       * مرتبطة = إعادة استخدام موثّقة للسجل القائم نفسه **بعد** مقارنة نية
+       * الإنشاء الكنونية — الحمولة نفسها تعيد السجل القائم كما هو بلا كتابة
+       * ثانية (حفظ دلالة إعادة المحاولة وoutcome_unknown)، والحمولة المتغيرة
+       * بالمفتاح نفسه تعارضًا صريحًا بلا كتابة ولا أثر جدول/قبض جانبي. */
+      const built = this.buildAgreementRecord(draft, input);
+      if (!built.ok) return built;
+      const decision = decideAgreementCreationCommit(built.stored, current.value);
+      if (decision.kind === "conflict")
+        return { ok: false, code: "storage_stale", message: decision.message };
       return { ok: true, stored: current.value, reused: true };
     }
+    const built = this.buildAgreementRecord(draft, input);
+    if (!built.ok) return built;
+    const commit = await this.store.commitOrderFromDraft(
+      built.stored,
+      built.linkedDraft,
+      built.schedule ?? undefined,
+    );
+    /* S12 (DOC-021 — أمر 2e645802 §6، تصحيح R3-F01): حد الكتابة يعيد
+     * الاستخدام بصدق (reused) عند إنشاء متزامن/مكرر من المسودة نفسها —
+     * لا يطمر آخر-كاتب-يفوز؛ يمرر العلم كما هو.
+     * S12-FIN-001: تعارض الحمولة عند الحد يصل بصدق برسالته وكوده — لا
+     * يُطمس في خطأ تخزين عام. */
+    if (commit.ok) return { ok: true, stored: commit.value.order, reused: commit.value.reused };
+    if (commit.code === STORAGE_STALE) return { ok: false, code: "storage_stale", message: commit.message };
+    return storageFailure("تعذر حفظ الاتفاق محليًا — بياناتك كما هي؛ أعد المحاولة.");
+  }
+
+  /** بناء سجل الإنشاء من المسودة والمدخلات — مسار واحد للإنشاء والمسار
+   * السريع معًا (S12-FIN-001: مقارنة النية تُبنى من البناء نفسه لا من
+   * إسقاط موازٍ قد ينحرف عنه)؛ التحقق والبناء خالصان بلا أي كتابة. */
+  private buildAgreementRecord(
+    draft: OrderDraft,
+    input: AgreementInput,
+  ):
+    | { ok: true; stored: StoredCraftOrder; linkedDraft: OrderDraft; schedule: ScheduleEntry | null }
+    | Extract<AgreementResult, { ok: false }> {
     /* Conflict B: الجهة اختيارية — الطلب النقدي لا يُحجب؛ الاسم الفارغ يعني
      * «زبون بلا اسم» ويمكن تسميته لاحقًا من صفحة الطلب (تعبئة باتجاه واحد). */
     if (!agreementSourceIsValid(input.agreementSource))
@@ -274,13 +310,7 @@ export class AgreementService {
               createdAt: timestamp,
               updatedAt: timestamp,
             };
-      const commit = await this.store.commitOrderFromDraft(stored, linkedDraft, schedule ?? undefined);
-      /* S12 (DOC-021 — أمر 2e645802 §6، تصحيح R3-F01): حد الكتابة يعيد
-       * الاستخدام بصدق (reused) عند إنشاء متزامن/مكرر من المسودة نفسها —
-       * لا يطمر آخر-كاتب-يفوز؛ يمرر العلم كما هو. */
-      return commit.ok
-        ? { ok: true, stored: commit.value.order, reused: commit.value.reused }
-        : storageFailure("تعذر حفظ الاتفاق محليًا — بياناتك كما هي؛ أعد المحاولة.");
+      return { ok: true, stored, linkedDraft, schedule };
     } catch (error) {
       return validation(errorMessageOf(error, "تعذر بناء الاتفاق."));
     }

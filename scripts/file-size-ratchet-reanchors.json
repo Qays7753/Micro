@@ -7393,6 +7393,82 @@
         "trigger": "S11-LR-001/LR-002 fix batch measured on the live tree (root fixes with durable regressions)",
         "ocRef": "DOC-020"
       }
+    },
+    {
+      "id": "S13-S12-FIXES-20261102-390",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/agreements/agreementService.ts",
+      "from": {
+        "nbLoc": 247,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 347,
+        "band": "NORMAL"
+      },
+      "reason": "S12-FIN-001 (أمر 2158b0fc §5): المسار السريع للمسودة المرتبطة يقارن نية الإنشاء الكنونية قبل إعادة الاستخدام، وبناء السجل يُستخرج مسارًا واحدًا مشتركًا للإنشاء والمقارنة معًا — المفتاح نفسه بحمولة مختلفة تعارضًا صريحًا بلا كتابة.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §5 — correct the four confirmed S12 correctness/coverage findings and reconcile the records; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12-FIN-001/ATOMIC-001/TRANSFER-001 fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S13-S12-FIXES-20261102-391",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotMigrations.ts",
+      "from": {
+        "nbLoc": 346,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 419,
+        "band": "WATCH"
+      },
+      "reason": "S12-TRANSFER-001 (أمر 2158b0fc §5): الحقل الحاضر المشوه في followUpEvents يُحفظ كما هو ليرفضه مُدقق اللقطة — التطبيع الفارغ عند الغياب الحقيقي (undefined) فقط؛ لا محو بيانات حاضرة بصمت.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §5 — correct the four confirmed S12 correctness/coverage findings and reconcile the records; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12-FIN-001/ATOMIC-001/TRANSFER-001 fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S13-S12-FIXES-20261102-392",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+      "from": {
+        "nbLoc": 4391,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 5536,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S12-FIN-001 (أمر 2158b0fc §5): فحص نية الإنشاء داخل معاملة الإنشاء نفسها — السجل القائم بنفس المفتاح يُقارن قبل أي put؛ حمولة مختلفة تُحبِط المعاملة بلا كتابة ولا جدول يتيم.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §5 — correct the four confirmed S12 correctness/coverage findings and reconcile the records; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12-FIN-001/ATOMIC-001/TRANSFER-001 fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-021"
+      }
+    },
+    {
+      "id": "S13-S12-FIXES-20261102-393",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+      "from": {
+        "nbLoc": 2087,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 2678,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S12-FIN-001 + S12-ATOMIC-001 (أمر 2158b0fc §5): فحص نية الإنشاء داخل حد الكتابة، وإصلاح جذري لذرية التسليم — استنساخ حزمة التسليم كلها قبل أول تعديل مع فشل صادق بلا كتابة نصفية.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §5 — correct the four confirmed S12 correctness/coverage findings and reconcile the records; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12-FIN-001/ATOMIC-001/TRANSFER-001 fix batch measured on the live tree (root fixes with durable regressions)",
+        "ocRef": "DOC-021"
+      }
     }
   ]
 }

@@ -71,6 +71,7 @@ import {
 /* S03 revalidation (§A2): منطق التزامن المحروس المشترك لسجل التفضيلات —
  * المصدر الواحد للمحوّلين (نمط financialEventCorrectionMessages). */
 import { decidePreferencesCommit } from "./preferencesCommit";
+import { decideAgreementCreationCommit } from "./agreementCreationIntentGuard";
 import { findLoanEventByKey, validateLoanCommitRelation } from "./loanCommitGuard";
 import { findReceivedLoanEventByKey, validateReceivedLoanCommitRelation } from "./receivedLoanCommitGuard";
 import {
@@ -3686,6 +3687,20 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
         orderRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
           const existing = orderRequest.result as StoredCraftOrder | undefined;
           if (existing) {
+            /* S12-FIN-001 (أمر 2158b0fc §5): إعادة الاستخدام داخل الحد مشروطة
+             * بتطابق نية الإنشاء الكنونية — حمولة مختلفة بالمفتاح نفسه تعارض
+             * صريح بلا كتابة ولا جدول يتيم ولا أثر جانبي. */
+            const decision = decideAgreementCreationCommit(order, existing);
+            if (decision.kind === "conflict") {
+              settled = true;
+              resolve({ ok: false, code: decision.code, message: decision.message });
+              try {
+                transaction.abort();
+              } catch {
+                /* settled بالفعل */
+              }
+              return;
+            }
             reuse(existing);
             return;
           }

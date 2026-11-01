@@ -48,7 +48,14 @@ export function migrateTransferSnapshot(
                 followUpSummary: order.followUpSummary ?? null,
                 followUpDate: order.followUpDate ?? null,
                 followUpReason: order.followUpReason ?? null,
-                followUpEvents: Array.isArray(order.followUpEvents) ? order.followUpEvents : [],
+                /* S12-TRANSFER-001 (أمر 2158b0fc §5): الحقل الاختياري يُطبَّع
+                 * فارغًا عند غيابه الحقيقي (undefined) فقط — القيمة الحاضرة
+                 * المشوهة (نص/كائن/null) تبقى كما هي ليرفضها مُدقق اللقطة
+                 * قبل المعاينة والكتابة؛ محو بيانات حاضرة بصمت ممنوع. */
+                followUpEvents:
+                  order.followUpEvents === undefined
+                    ? []
+                    : (order.followUpEvents as LocalStoreSnapshot["orders"][number]["followUpEvents"]),
               }
             : order,
         )
