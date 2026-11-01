@@ -19,7 +19,15 @@
     "Transfer/export tests: sale records with collection entries and return fields round-trip on both adapters with legacy aggregate collections preserved and no fabricated dates",
     "UI DOM tests: sale/paid/remaining labels, states (empty/loading/error/saving/saved/conflict/unknown), return path, RTL Arabic-first 0-9 entry, repeated taps, form preservation through expansion/cancellation/retry/failure"
   ],
-  "layers": ["domain", "application", "storage", "transfer", "ui", "tests", "documentation"],
+  "layers": [
+    "domain",
+    "application",
+    "storage",
+    "transfer",
+    "ui",
+    "tests",
+    "documentation"
+  ],
   "source": {
     "report": "docs/implementation/micro-component-execution/00-S11-EXECUTION-PROMPT-2026-10-31.md",
     "discovered_at_sha": "b33a887725b92dd9c122d3c8d1af775d6aa08475",
@@ -73,12 +81,18 @@
     "apps/prototype-web/client/src/application/direct-sales/directSaleMovements.ts",
     "apps/prototype-web/client/src/storage/local/directSaleCommitGuard.ts",
     "apps/prototype-web/client/src/pages/DirectSaleEditor.ui.test.tsx",
-    "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.characterization.test.ts"
+    "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.characterization.test.ts",
+    "docs/implementation/micro-component-execution/16a-S11-REVIEW-ADDENDUM-2026-11-01.md",
+    "https://github.com/Qays7753/Micro/pull/383"
   ],
-  "dependencies": ["DOC-019"],
-  "related_items": ["DOC-019"],
+  "dependencies": [
+    "DOC-019"
+  ],
+  "related_items": [
+    "DOC-019"
+  ],
   "migration_baseline": true,
-  "next_action": "مراجعة Manus المستقلة وقبول المالك على PR #383 لسجل S11 الكامل (16-S11-RESULT-2026-10-31.md — المرشح الكودي النهائي 020e1e8b فوق المرشح الأول 8e18e804 بتصحيحات المراجعات الخمس المعاد قراءتها؛ pnpm check خروج 0 على الشجرة النهائية: جذري 1021/1021 وتطبيق 3166/3166 وlint 35 بالضبط والميزانية 632,534/154,831 تحت السقفين والأسطح المحلية PASS بإرساء موثق؛ ومسح الهيكل القراءة فقط مسلّمًا بموجاته الخمس المقترحة كلها NOT_EXECUTED بانتظار قرار المالك OD-SCAN-1..4) — البوابتان البعيدتان على الرأس النهائي المدفوع يوثقان بالروابط في تعليق مراجعة PR #383؛ إذن المالك بالتنفيذ المتصل لا يعني قبول S08/S09/S10 ولا قبول S11 ذاته؛ القبول والدمج بأمر المالك وحده.",
+  "next_action": "مراجعة Manus المستقلة وقبول المالك على PR #383 لسجل S11 الكامل بعد تصحيح واجهتي المراجعة (S11-MR-001/S11-MR-002 في eb23311e + الملحق 16a)؛ لا merge ولا كتابة على main.",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -91,7 +105,25 @@
       "changed_at": "2026-10-31",
       "actor": "zai-s11-execution",
       "reason": "اكتمل تنفيذ S11 المتصل لUNIT-004/005/026 sale-slice + SH-15 على components/integration-20261027 / PR #383 بأمر b33a8877: (١) إصلاح S10-MR-001 الجذري أُغلق أولًا (930560dc + الملحق 15a في 3e3b9597) بانحدار تزامن دائم على المهايئين؛ (٢) شريحة البيع كاملة: حركات مؤرخة ومرتجع PD-02 ورد مؤرخ داخل حد كتابة محروس واحد (commitDirectSaleWrite بنواة قرار مشتركة) بتكافؤ المهايئين ودورة نقل كاملة بلا ترقية 40/32؛ (٣) خمس مراجعات قرائية متسلسلة بتصحيحاتها الجذرية المعاد قراءتها كلها PASS (R1 ملكية/طبقات، R2 صحة مالية — منها إغلاق عيب تأليف تواريخ الإرث المجمل، R3 تزامن/حتمية — منها إغلاق عودة السجل القديم الصامتة عند تغير الحمولة، R4 نقل/توافق/أدلة، R5 RTL/وصول/هاتف — منها إغلاق إخفاء رسالة النجاح داخل الإفصاح المطوي)؛ (٤) مسح الهيكل القراءة فقط الكنوني الثالث مسلّمًا قبل أي حركة هيكلية (17c9fd57) بكل توصياته NOT_EXECUTED ببوابة مالك؛ (٥) pnpm check خروج 0 على الشجرة النهائية 020e1e8b. S11 تبقى رهن المراجعة المستقلة وقبول المالك."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "أمر المالك المتصل 00-S12-EXECUTION-PROMPT-2026-11-01.md (منشور في 2e645802 §4): مراجعة S11 المستقلة على الرأس 21d5a2d9 وجدت فجوتي واجهة/مواصفة — S11-MR-001 (مسار نموذج البيع لا يتبع ترتيب A2 الصريح: الإجمالي أولًا ونية الدفع الثلاثية والمعاينة) وS11-MR-002 (العميل الاختياري محجوب للبيع المدفوع كاملًا)؛ يُفتح البند قانونيًا للتصحيح."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "تنفيذ التصحيح المأذون (أمر 2e645802 §4): إعادة بناء مسار إنشاء البيع على ترتيب A2 الصريح وإتاحة العميل الاختياري للدفع الكامل، بهجرة مسودات متوافقة وانحدارات دائمة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "أُغلق التصحيح من جذوره في eb23311e: مسار A2 الصريح الكامل (وضع الدفع الثلاثي، حالة مختلفة؟ للفردين غير الافتراضيين، وجهة القبض عند قبض موجب بحالات قراءة مستقلة، معاينة ملاصقة للحفظ، تفاصيل إضافية مطوية) وإتاحة العميل الاختياري للدفع الكامل (MR-002)، وهجرة مسودات ما قبل الأوضاع بقرارها المعلق دون إسناد دين بصمت، وملاحظتا §5 (تسميات جارٍ وحالات خدمة الحركات) أُغلقت داخل الشريحة، بانحدارات دائمة (26 اختبار واجهة + 23 عقد نموذج)؛ الملحق 16a يوثق الدليل — يبقى S11 رهن المراجعة المستقلة وقبول المالك."
     }
   ],
-  "updated_at": "2026-10-31"
+  "updated_at": "2026-11-01"
 }

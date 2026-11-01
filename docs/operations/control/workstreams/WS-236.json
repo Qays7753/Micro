@@ -2,7 +2,9 @@
   "id": "WS-236",
   "title": "S11 execution workstream — البيع المباشر والتسجيل السريع والتحصيل منه (UNIT-004/005/026 sale-slice + SH-15)",
   "status": "REVIEW_REQUIRED",
-  "items": ["DOC-020"],
+  "items": [
+    "DOC-020"
+  ],
   "branch": "components/integration-20261027",
   "base_sha": "3e3b9597",
   "areas": [
@@ -31,8 +33,8 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-10-31",
-  "updated_at": "2026-10-31",
-  "next_action": "مراجعة Manus المستقلة وقبول المالك على PR #383 (رأس الكود النهائي 020e1e8b؛ رأس السجلات فوقه؛ لا merge).",
+  "updated_at": "2026-11-01",
+  "next_action": "مراجعة Manus المستقلة وقبول المالك على PR #383 بعد تصحيح المراجعة (S11-MR-001/S11-MR-002 في eb23311e + الملحق 16a)؛ لا merge.",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S11-EXECUTION-PROMPT-2026-10-31.md المنشور في b33a8877؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
@@ -57,6 +59,24 @@
       "changed_at": "2026-10-31",
       "actor": "zai-s11-execution",
       "reason": "اكتمل تنفيذ شريحة S11 المملوكة (بيع 005 + تحصيل 026 sale-slice + تسجيل سريع 004 + مرتجع PD-02 + SH-15) بالمراجعات الخمس وتصحيحاتها والسلسلة الكاملة خروج 0 على 020e1e8b؛ رهن المراجعة المستقلة وقبول المالك — لا يعني التنفيذ قبولًا."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "أمر 2e645802 §4: فجوتا مراجعة S11 المؤكدتان (S11-MR-001 مسار النموذج، S11-MR-002 العميل الاختياري) تُصلحان بانحدار دائم قبل S12 — فتح قانوني للتيار."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "تنفيذ تصحيح المراجعة (S11-MR-001/MR-002) داخل نطاق التيار نفسه على الفرع/PR القائمين."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "التصحيح الجذري أُنجز في eb23311e بالانحدارات الدائمة والملحق 16a — التيار يعود لحالة المراجعة المعلقة بصدق (لا ادعاء قبول)."
     }
   ],
   "migration_baseline": true
