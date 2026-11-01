@@ -171,7 +171,10 @@ export const PINNED_LABEL_LITERALS = {
   "pages/DirectSaleEditor.tsx": {
     "المحفظة": "variant — اسم شائع كبديل عرض لاسم محفظة غائب (walletName ?? «المحفظة»)، لا تسمية حقل walletId؛ يسجل ولا يوحد",
     "الكمية": "owner-gated display — تسمية حقل الكمية؛ R2/STR-106",
-    "السعر المتفق عليه": "owner-gated display — تسمية حقل السعر؛ R2/STR-106",
+    /* S11-MR-001 (UNIT-005 A2/س1 — أمر 2e645802): «السعر المتفق عليه» غادرت
+     * الصفحة مع إعادة ترتيب A2 (الحقل الأول صار «إجمالي البيع — د.أ») —
+     * إزالة التثبيت المتقادم بنفس الـPR وفق بروتوكول النظافة (سابقة
+     * CostCalculator في S10). */
   },
   "pages/DraftEditor.tsx": {
     "الكمية": "owner-gated display — تسمية حقل الكمية؛ R2/STR-106",

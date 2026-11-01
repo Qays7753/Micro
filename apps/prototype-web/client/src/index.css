@@ -6156,6 +6156,34 @@ button.micro-month-cell:active {
   padding: var(--space-3);
 }
 
+/* S11-MR-001 (UNIT-005 A2/س2): مجموعة وضع الدفع — ثلاث نيات صريحة
+   (كامل/جزء ودين/لم يُستلم ودين) بلا حدود ثقيلة؛ النمط نفسه لا هوية جديدة. */
+.micro-payment-mode {
+  display: grid;
+  gap: var(--space-2);
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+}
+.micro-payment-mode legend {
+  padding: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+/* S11-MR-001 (A2/س8): معاينة قصيرة ملاصقة للحفظ — سطر واحد صادق من
+   النية الفعّالة، لا فقرة تعليم. */
+.micro-save-preview {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  padding: var(--space-2) var(--space-3);
+}
+
 /* شريط توزيع الكاش غير الموزع في مالي/المحافظ. */
 .micro-unallocated-strip {
   display: flex;

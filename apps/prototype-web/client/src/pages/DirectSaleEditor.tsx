@@ -27,11 +27,16 @@ import type { CatalogItem } from "@micro-domain/catalog/index.js";
  * X-06/تعيين المرجع من الوصلة/خريطة السجل المحمّل) من بيته التطبيقي —
  * استيراد عميق موثق بأساس (لا باب لبيت direct-sales بعد). */
 import {
+  directSalePreviewParts,
   directSaleToFormValues,
+  effectiveDifferenceChoice,
+  paymentModeFromDraft,
   proposeProductParam,
+  resolveCollectedForMode,
   resolveDifferenceOutcome,
   validateDirectSaleSubmission,
   type DifferenceChoice,
+  type PaymentMode,
 } from "@/application/direct-sales/directSaleEditorModel";
 
 import { Button, FeedbackNote } from "@/components/primitives";
@@ -87,10 +92,18 @@ export default function DirectSaleEditor() {
   const [validQuantity, setValidQuantity] = useState(true);
   const [revenueMinor, setRevenueMinor] = useState(0);
   const [validRevenue, setValidRevenue] = useState(true);
-  /* X-06: المقبوض الآن — فارغ يعني قبضًا كاملًا. */
+  /* S11-MR-001 (UNIT-005 A2/س2 + B3-F02): وضع الدفع الصريح — الكامل مقترح
+   * ظاهرًا؛ الجزء يكشف المبلغ، و«لم أستلم» صفرٌ صريح باختيار المالك؛
+   * الفراغ لم يعد يُفسّر قبضًا كاملًا ولا صفرًا (المعنى يأتي من الوضع). */
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>("full");
+  /* X-06: مبلغ الجزء — يُفحص عند حفظ الوضع الجزئي وحده. */
   const [collectedMinor, setCollectedMinor] = useState(0);
   const [collectedEmpty, setCollectedEmpty] = useState(true);
   const [validCollected, setValidCollected] = useState(true);
+  /* S11-MR-001: مسودة ما قبل الأوضاع استُعادت بفرق لم يُحسم باتفاق صريح —
+   * قرار معناه يظل مطلوبًا قبل الحفظ (لا يُمنح دينًا بصمت). */
+  const [undecidedDifference, setUndecidedDifference] = useState(false);
+  const [differentCaseOpen, setDifferentCaseOpen] = useState(false);
   const [costKnown, setCostKnown] = useState(false);
   const [costMinor, setCostMinor] = useState(0);
   const [validCost, setValidCost] = useState(true);
@@ -130,6 +143,12 @@ export default function DirectSaleEditor() {
    * يوجد، وغير الموزع خيار معلن؛ النسبة تتم بعد نجاح التسجيل بمسار المجموعة ٢ نفسه. */
   const [wallets, setWallets] = useState<readonly { id: string; name: string }[]>([]);
   const [saleWalletId, setSaleWalletId] = useState("");
+  /* S11-MR-001 (B3-F08 + B5 «فشل قراءة المحافظ»): حالة قراءة المحافظ مستقلة
+   * — التحميل والفشل والجاهزية ظاهرة بصدق؛ الفشل ليس «لا محافظ»، والقبض
+   * لا يختفي، وإعادة القراءة فعل صريح. */
+  const [walletsLoading, setWalletsLoading] = useState(false);
+  const [walletsReadFailed, setWalletsReadFailed] = useState(false);
+  const [walletsRetryToken, setWalletsRetryToken] = useState(0);
   const [productNotice, setProductNotice] = useState<string | null>(null);
   const appliedProductRef = useRef(false);
   /* U-005 (دورة التدقيق النهائي): لقطة القيم الأولية تُلتقط بعد تحميل السجل
@@ -216,21 +235,33 @@ export default function DirectSaleEditor() {
   useEffect(() => {
     if (editing && !savedSale?.return) return;
     let active = true;
+    setWalletsLoading(true);
+    setWalletsReadFailed(false);
     cashContinuity
       .overview()
       .then(result => {
-        if (!active || !result.ok) return;
+        if (!active) return;
+        setWalletsLoading(false);
+        if (!result.ok) {
+          /* B5: الفشل ليس «لا محافظ» — القبض باقٍ والوجهة قابلة لإعادة القراءة. */
+          setWalletsReadFailed(true);
+          return;
+        }
         setWallets(result.value.wallets.map(wallet => ({ id: wallet.id, name: wallet.name })));
         if (!editing) {
           const drawer = result.value.wallets.find(wallet => wallet.kind === "cash_drawer");
           setSaleWalletId(current => current || drawer?.id || "");
         }
       })
-      .catch(() => setWallets([]));
+      .catch(() => {
+        if (!active) return;
+        setWalletsLoading(false);
+        setWalletsReadFailed(true);
+      });
     return () => {
       active = false;
     };
-  }, [cashContinuity, editing, savedSale?.return, dataVersion]);
+  }, [cashContinuity, editing, savedSale?.return, dataVersion, walletsRetryToken]);
 
   /* S05 (DOC-014 / UNIT-037 A2): خيارات الأطراف المحفوظة النشطة للمختار —
    * تُحمّل عند جاهزية الخدمة الكسولة؛ الفشل يبقي القائمة فارغة بصدق (لا
@@ -273,6 +304,8 @@ export default function DirectSaleEditor() {
       setItemName(values.itemName);
       setQuantity(values.quantity);
       setRevenueMinor(values.revenueMinor);
+      /* S11-MR-001: وضع السجل القائم من محفوظه — لا افتراض إنشائي عليه. */
+      setPaymentMode(values.paymentMode);
       setCollectedEmpty(values.collectedEmpty);
       setCollectedMinor(values.collectedMinor);
       setCostKnown(values.costKnown);
@@ -291,9 +324,18 @@ export default function DirectSaleEditor() {
     };
   }, [directSales, saleId, reloadToken, dataVersion]);
 
-  /* المقبوض المحسوب: فارغ = السعر المتفق (قبض كامل). */
-  const resolvedCollected = collectedEmpty ? revenueMinor : collectedMinor;
+  /* S11-MR-001: المقبوض الفعّال من وضع الدفع الصريح — الكامل = الإجمالي،
+   * والجزء = المُدخل، و«لم أستلم» صفرٌ صريح؛ لا فراغ يُفسّر مالًا. */
+  const resolvedCollected = resolveCollectedForMode(paymentMode, revenueMinor, collectedMinor);
   const difference = revenueMinor - resolvedCollected;
+  const effectiveChoice = effectiveDifferenceChoice(paymentMode, differenceChoice);
+  const debtIntent = difference > 0 && effectiveChoice === "remaining_debt";
+  /* س3 «حالة مختلفة؟»: تظهر عند وجود فرق فقط — ولا تُعاد على من اختار الدين
+   * صراحة في الدفع؛ قرار فعال أو فرق معلّق يفتحها. */
+  useEffect(() => {
+    if (undecidedDifference || differenceChoice === "price_cut" || differenceChoice === "needs_review")
+      setDifferentCaseOpen(true);
+  }, [undecidedDifference, differenceChoice]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — زر الرجوع والمتصفح
    * كلاهما يمران بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ». */
   const isDirty = useFormDirty(
@@ -301,6 +343,7 @@ export default function DirectSaleEditor() {
       itemName,
       quantity,
       revenueMinor,
+      paymentMode,
       collectedEmpty,
       collectedMinor,
       costKnown,
@@ -315,13 +358,35 @@ export default function DirectSaleEditor() {
   );
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
   /* المجموعة ٥ (عقد ٣٦): مسودة للبيع جديد فقط — التعديل فوق سجل قائم بلا
-   * مسودة (تعارضه مع النهائي يمنع الاستعادة الصامتة). */
-  const saleDraft = useFormDraft(formDrafts, "direct_sale", editing ? null : "new", {
+   * مسودة (تعارضه مع النهائي يمنع الاستعادة الصامتة). شكل القيم موسوم
+   * صراحةً (وضع الدفع/قرار الفرق اتحادين لا حرفيين) فلا يستنتج الاستدعاء
+   * النوع الحرفي ويضيّق ما يُكتب لاحقًا في onValuesChanged. */
+  const directSaleDraftDefaults: {
+    itemName: string;
+    quantity: number;
+    revenueMinor: number;
+    paymentMode: PaymentMode;
+    collectedEmpty: boolean;
+    collectedMinor: number;
+    differenceChoice: DifferenceChoice | null;
+    differenceUndecided: boolean;
+    costKnown: boolean;
+    costMinor: number;
+    customerName: string;
+    customerPartyId: string;
+    saveForReuse: boolean;
+    catalogItemId: string;
+    occurredOn: string;
+    note: string;
+  } = {
     itemName: "",
     quantity: 1,
     revenueMinor: 0,
+    paymentMode: "full",
     collectedEmpty: true,
     collectedMinor: 0,
+    differenceChoice: null,
+    differenceUndecided: false,
     costKnown: false,
     costMinor: 0,
     customerName: "",
@@ -330,7 +395,8 @@ export default function DirectSaleEditor() {
     catalogItemId: "",
     occurredOn: todayInAmman(),
     note: "",
-  });
+  };
+  const saleDraft = useFormDraft(formDrafts, "direct_sale", editing ? null : "new", directSaleDraftDefaults);
   const restoredFromOffer = useRef(false);
   useEffect(() => {
     if (editing || !isDirty || saleDraft.state.phase === "restore-offer") return;
@@ -338,8 +404,14 @@ export default function DirectSaleEditor() {
       itemName,
       quantity,
       revenueMinor,
-      collectedEmpty,
-      collectedMinor,
+      paymentMode,
+      /* S11-MR-001: الشكل متوافق مع الأمام والخلف — collectedEmpty/Minor
+       * يُكتبان بمعنى الوضع الحالي فتقرأه أي نسخة، والوضع والقرار المعلق
+       * للنسخة الجديدة. */
+      collectedEmpty: paymentMode === "partial" ? collectedEmpty : paymentMode === "full",
+      collectedMinor: paymentMode === "partial" ? collectedMinor : 0,
+      differenceChoice,
+      differenceUndecided: undecidedDifference,
       costKnown,
       costMinor,
       customerName,
@@ -353,6 +425,7 @@ export default function DirectSaleEditor() {
     itemName,
     quantity,
     revenueMinor,
+    paymentMode,
     collectedEmpty,
     collectedMinor,
     costKnown,
@@ -363,6 +436,8 @@ export default function DirectSaleEditor() {
     catalogItemId,
     occurredOn,
     note,
+    differenceChoice,
+    undecidedDifference,
     isDirty,
     editing,
     saleDraft.state.phase,
@@ -370,12 +445,25 @@ export default function DirectSaleEditor() {
   useEffect(() => {
     if (saleDraft.state.phase === "drafting" && restoredFromOffer.current) {
       restoredFromOffer.current = false;
-      const saved = saleDraft.state.values;
+      /* S11-MR-001: هجرة شكل المسودة — القديمة تُترجم بمعناها الأصلي
+       * (collectedEmpty) ولا يُسند معنى دين جديد بصمت؛ القراءة شكلٌ حر
+       * (المخزن قد يحمل مسودة نسخة أقدم من شكل اليوم). */
+      const saved = saleDraft.state.values as unknown as Record<string, unknown>;
+      const migrated = paymentModeFromDraft(saved);
+      setPaymentMode(migrated.mode);
+      setUndecidedDifference(migrated.undecidedDifference);
       setItemName(String(saved.itemName ?? ""));
       setQuantity(Number(saved.quantity ?? 1));
       setRevenueMinor(Number(saved.revenueMinor ?? 0));
       setCollectedEmpty(saved.collectedEmpty !== false);
       setCollectedMinor(Number(saved.collectedMinor ?? 0));
+      setDifferenceChoice(
+        saved.differenceChoice === "price_cut" ||
+          saved.differenceChoice === "remaining_debt" ||
+          saved.differenceChoice === "needs_review"
+          ? saved.differenceChoice
+          : null,
+      );
       setCostKnown(saved.costKnown === true);
       setCostMinor(Number(saved.costMinor ?? 0));
       setCustomerName(String(saved.customerName ?? ""));
@@ -383,7 +471,9 @@ export default function DirectSaleEditor() {
       setSaveForReuse(saved.saveForReuse === true);
       setCatalogItemId(String(saved.catalogItemId ?? ""));
       setOccurredOn(String(saved.occurredOn ?? todayInAmman()));
-      setNote(String(saved.note ?? ""));
+      /* B3-F13: البيان تقني لا يُحرر في الإنشاء — الفراغ المستعاد يأخذ
+       * الافتراض الصادق لا أن يحجب الحفظ برسالة حقل محذوف من الشاشة. */
+      setNote(String(saved.note ?? "") || "بيع مباشر");
     }
     if (saleDraft.state.phase === "restore-offer") restoredFromOffer.current = true;
   }, [saleDraft.state.phase]);
@@ -401,13 +491,16 @@ export default function DirectSaleEditor() {
       quantity,
       validRevenue,
       revenueMinor,
+      paymentMode,
       validCollected,
-      resolvedCollected,
+      collectedEmpty,
+      partialCollectedMinor: collectedMinor,
       costKnown,
       validCost,
       costMinor,
       difference,
       differenceChoice,
+      undecidedDifference,
     });
     if (problem === "missing_required_fields") {
       setMessage("أدخل المبلغ والكمية بالأرقام 0–9 قبل الحفظ — المبلغ هو الحقل الإلزامي الوحيد.");
@@ -417,14 +510,24 @@ export default function DirectSaleEditor() {
       setMessage("المقبوض لا يتجاوز السعر المتفق عليه — سجّل فرقك قرارًا في التسعير لا في القبض.");
       return false;
     }
-    if (problem === "difference_choice_required") {
-      setMessage("at_difference_prompt");
+    if (problem === "partial_amount_required") {
+      setMessage("أدخل مبلغ ما قُبض الآن — أو اختر «لم أستلم والمبلغ دَين» إن لم يُقبض شيء.");
       return false;
     }
-    /* R7/P07: قرار الفرق X-06 عند صاحبه التطبيقي. */
+    if (problem === "partial_amount_equals_total") {
+      setMessage("المقبوض يساوي إجمالي البيع — اختر «استلمت كامل المبلغ».");
+      return false;
+    }
+    if (problem === "difference_choice_required") {
+      setMessage("قرار الفرق من مسودتك السابقة ما زال معلقًا — اختر معناه في «حالة مختلفة؟» قبل الحفظ.");
+      setDifferentCaseOpen(true);
+      return false;
+    }
+    /* R7/P07: قرار الفرق X-06 عند صاحبه التطبيقي — الوضع الصريح هو الدين ما
+     * لم تختر حالة مختلفة (تخفيض/مراجعة). */
     const { collectionStatus: status, priceCut: priceCutChosen } = resolveDifferenceOutcome(
       difference,
-      differenceChoice,
+      effectiveChoice,
     );
     /* و٦: رقم المراجعة الذي فُتح عليه السجل — يحرس من طمس تعديل أحدث من نافذة أخرى. */
     const openedRevisionCount = savedSale?.revisions?.length ?? 0;
@@ -468,8 +571,9 @@ export default function DirectSaleEditor() {
             priceCut: priceCutChosen,
             /* S11 (UNIT-005 §6 — الذرية): البيع والقبض الابتدائي والحق المشتق
              * وتخصيص المحفظة المختار والتزام واحد داخل حد الكتابة الواحد —
-             * لا نجاح جزئي ولا نافذة تخصيص لاحقة؛ الغياب = غير موزع صريح. */
-            wallet: saleWalletId ? { walletId: saleWalletId } : null,
+             * لا نجاح جزئي ولا نافذة تخصيص لاحقة؛ الغياب = غير موزع صريح،
+             * ولا نية محفظة عند قبض صفري (لا تخصيص بلا مال). */
+            wallet: !editing && resolvedCollected > 0 && saleWalletId ? { walletId: saleWalletId } : null,
           });
     } finally {
       saveInFlightRef.current = false;
@@ -767,7 +871,52 @@ export default function DirectSaleEditor() {
     );
   }
 
-  const showDifferencePrompt = message === "at_difference_prompt" && difference > 0;
+  /* S11-MR-001 (A2/س2): تبديل وضع الدفع نية واجهة صرفة — لا كتابة مالية هنا
+   * ولا مساس بمفتاح العملية؛ التخفيض إلى صفر منطقة D05 غير المعتمدة فلا
+   * يبقى قرار تخفيض فوق وضع «لم أستلم»، والمراجعة تبقى صالحة في كل فرق. */
+  function selectPaymentMode(mode: PaymentMode) {
+    setPaymentMode(mode);
+    if (mode === "none") setDifferenceChoice(choice => (choice === "price_cut" ? null : choice));
+  }
+
+  /* S11-MR-001 (A2/س8): معاينة ملاصقة للحفظ من النية الفعّالة الصحيحة — تُشتق
+   * من الوضع والقرار والمبالغ التي سيُبنى بها أمر الحفظ نفسه، ولا تُعرض عند
+   * مدخل غير صالح (لا رقم من نص فاسد ولا معاينة متقادمة). */
+  const previewText = (() => {
+    const parts = directSalePreviewParts({
+      valid: validRevenue && (paymentMode !== "partial" || (validCollected && !collectedEmpty)),
+      paymentMode,
+      revenueMinor,
+      resolvedCollectedMinor: resolvedCollected,
+      difference,
+      effectiveChoice,
+    });
+    if (parts.kind === "unavailable") return null;
+    if (parts.kind === "price_cut")
+      return `البيع يصير ${formatMoneyMinor(parts.effectiveSaleMinor)} · المقبوض ${formatMoneyMinor(
+        parts.effectiveSaleMinor,
+      )} · لا دين`;
+    const who = customerName.trim() ? ` على ${customerName.trim()}` : "";
+    if (parts.kind === "review")
+      return parts.none
+        ? `البيع ${formatMoneyMinor(parts.saleMinor)} · لم يُقبض · فرق ${formatMoneyMinor(
+            parts.pendingMinor,
+          )} يحتاج مراجعة`
+        : `البيع ${formatMoneyMinor(parts.saleMinor)} · المقبوض ${formatMoneyMinor(
+            parts.collectedMinor,
+          )} · فرق ${formatMoneyMinor(parts.pendingMinor)} يحتاج مراجعة`;
+    if (parts.kind === "debt")
+      return parts.none
+        ? `البيع ${formatMoneyMinor(parts.saleMinor)} · لم يُقبض · دين ${formatMoneyMinor(
+            parts.debtMinor,
+          )}${who}`
+        : `البيع ${formatMoneyMinor(parts.saleMinor)} · المقبوض ${formatMoneyMinor(
+            parts.collectedMinor,
+          )} · دين ${formatMoneyMinor(parts.debtMinor)}${who}`;
+    return `البيع ${formatMoneyMinor(parts.saleMinor)} · المقبوض ${formatMoneyMinor(
+      parts.saleMinor,
+    )} · قُبض كاملًا`;
+  })();
 
   return (
     <section className="micro-page micro-finance-page">
@@ -854,67 +1003,244 @@ export default function DirectSaleEditor() {
       />
       <section className="micro-form-card">
         <fieldset disabled={savedSale?.status === "cancelled"} style={{ border: 0, padding: 0, margin: 0 }}>
+          {/* S11-MR-001 (UNIT-005 A2/س1 + B3-F01): إجمالي البيع أولًا — حقل
+              المال الوحيد المقدَّم؛ اسمه ثابت ولا يتحول إلى «المقبوض». */}
           <label className="micro-field">
-            <span>
-              ما الذي بعته؟ <small>اختياري</small>
-            </span>
-            <input
-              value={itemName}
-              onChange={event => setItemName(event.target.value)}
-              placeholder="مثال: كوب جاهز"
-            />
-          </label>
-          <label className="micro-field">
-            <span>الكمية</span>
-            <EnglishNumberInput
-              value={quantity}
-              kind="integer"
-              onNumericChange={setQuantity}
-              onTextValidityChange={setValidQuantity}
-              aria-label="الكمية"
-            />
-            {/* بند ٢٥ (قرارات المالك) + المجموعة ٦ (البند ٤ — S3-12، §10.2 قاعدة ١):
-              دلالة الكمية وراء إفصاح مسمّى 44px — الشرح يُصل عند طلبه لا يثقل الوجه. */}
-            <details className="micro-inline-disclosure">
-              <summary>معنى الكمية</summary>
-              <p>
-                عدد القطع في هذا البيع — للتوثيق. السعر الذي تدخله أدناه هو إجمالي البيع كاملًا، لا سعر القطعة
-                الواحدة.
-              </p>
-            </details>
-          </label>
-          <label className="micro-field">
-            <span>السعر المتفق عليه بالدينار الأردني</span>
+            <span>إجمالي البيع — د.أ</span>
             <EnglishNumberInput
               value={revenueMinor}
               kind="money"
               onNumericChange={setRevenueMinor}
               onTextValidityChange={setValidRevenue}
-              aria-label="السعر المتفق عليه"
             />
           </label>
-          <label className="micro-field">
-            <span>
-              ما قبضت الآن بالدينار الأردني <small>اتركه فارغًا إذا قبضت كامل السعر</small>
-            </span>
-            <EnglishNumberInput
-              value={collectedMinor}
-              kind="money"
-              onNumericChange={value => {
-                setCollectedMinor(value);
-                setCollectedEmpty(false);
-              }}
-              onTextValidityChange={setValidCollected}
-              allowEmpty
-              onEmptyChange={() => setCollectedEmpty(true)}
-              aria-label="ما قبضت الآن"
-            />
-            {validCollected && difference > 0 ? (
-              <small>
-                الفرق: {formatMoneyMinor(difference)} د.أ — عند الحفظ يسألك النظام عن قرارك ولا يقرّر عنك.
-              </small>
+          {/* S11-MR-001 (A2/س2 + B3-F02): الدفع نية صريحة — الكامل مقترح ظاهرًا؛
+              الجزء يكشف المبلغ والباقي دَين صريح من الخيار فيجهز تعريفه دون سؤال
+              فرق ثانٍ؛ و«لم أستلم» صفرٌ معلوم باختيار المالك لا بتفسير فراغ. */}
+          <fieldset className="micro-payment-mode">
+            <legend>الدفع</legend>
+            <label className="micro-radio-choice">
+              <input
+                type="radio"
+                name="payment-mode"
+                checked={paymentMode === "full"}
+                onChange={() => selectPaymentMode("full")}
+              />
+              <span>
+                <b>استلمت كامل المبلغ</b>
+              </span>
+            </label>
+            <label className="micro-radio-choice">
+              <input
+                type="radio"
+                name="payment-mode"
+                checked={paymentMode === "partial"}
+                onChange={() => selectPaymentMode("partial")}
+              />
+              <span>
+                <b>استلمت جزءًا والباقي دَين</b>
+              </span>
+            </label>
+            {paymentMode === "partial" ? (
+              <label className="micro-field">
+                <span>المقبوض الآن — د.أ</span>
+                <EnglishNumberInput
+                  value={collectedMinor}
+                  kind="money"
+                  onNumericChange={value => {
+                    setCollectedMinor(value);
+                    setCollectedEmpty(false);
+                  }}
+                  onTextValidityChange={setValidCollected}
+                  allowEmpty
+                  onEmptyChange={() => setCollectedEmpty(true)}
+                />
+              </label>
             ) : null}
-          </label>
+            <label className="micro-radio-choice">
+              <input
+                type="radio"
+                name="payment-mode"
+                checked={paymentMode === "none"}
+                onChange={() => selectPaymentMode("none")}
+              />
+              <span>
+                <b>لم أستلم والمبلغ دَين</b>
+              </span>
+            </label>
+          </fieldset>
+          {/* S11-MR-001 (A2/س3 «عند الحاجة فقط»): حالة مختلفة؟ — لا تُعاد على
+              من اختار الدين صراحة في الدفع؛ التخفيض بمعاينة السعر الفعلي، ولا
+              تحويل مراجعة إلى دين تلقائيًا. */}
+          {difference > 0 ? (
+            <details
+              className="micro-inline-disclosure"
+              open={differentCaseOpen}
+              onToggle={event => setDifferentCaseOpen(event.currentTarget.open)}
+            >
+              <summary>حالة مختلفة؟</summary>
+              {undecidedDifference ? (
+                <p className="micro-field-hint" role="status">
+                  قرار الفرق من مسودتك السابقة ما زال معلقًا — اختر ما حدث فعلًا قبل الحفظ.
+                </p>
+              ) : null}
+              {resolvedCollected > 0 ? (
+                <label className="micro-radio-choice">
+                  <input
+                    type="radio"
+                    name="difference-choice"
+                    checked={differenceChoice === "price_cut"}
+                    onChange={() => {
+                      setDifferenceChoice("price_cut");
+                      setUndecidedDifference(false);
+                    }}
+                  />
+                  <span>
+                    <b>خفّضتُ السعر فعلًا</b>
+                    <small>
+                      البيع يصير {formatMoneyMinor(resolvedCollected)} د.أ — لا دَين ولا تتبّع، ويسجَّل
+                      تخفيضًا موثَّقًا يحفظ السعر الأصلي.
+                    </small>
+                  </span>
+                </label>
+              ) : null}
+              <label className="micro-radio-choice">
+                <input
+                  type="radio"
+                  name="difference-choice"
+                  checked={differenceChoice === "needs_review"}
+                  onChange={() => {
+                    setDifferenceChoice("needs_review");
+                    setUndecidedDifference(false);
+                  }}
+                />
+                <span>
+                  <b>الفرق يحتاج مراجعة</b>
+                  <small>لم يُقرَّر بعد — خيار صالح لا خطأ، والفرق يبقى معلَّقًا على البيع حتى تحسمه.</small>
+                </span>
+              </label>
+              {differenceChoice !== null ? (
+                <button
+                  type="button"
+                  className="micro-text-action"
+                  onClick={() => {
+                    setDifferenceChoice(null);
+                    setUndecidedDifference(false);
+                    setDifferentCaseOpen(false);
+                  }}
+                >
+                  ألغِ الحالة الخاصة — الباقي دَين كما اخترت في الدفع
+                </button>
+              ) : null}
+            </details>
+          ) : null}
+          {/* S11-MR-002 (UNIT-005 A2/س2 «فيجهز تعريفه» + B3-F05): تعريف صاحب
+              المتبقي متاح دائمًا — اختيار محفوظ صريح أو اسم لهذه العملية؛ عند
+              الدفع الكامل يبقى «إضافة عميل — اختياري» متاحًا حتى بلا دين ولا
+              اسم مُدخل سابقًا (وحدة واحدة ثابتة: لا قفز تركيز بين موضعين). */}
+          <section className="micro-party-identity">
+            {partyOptions.length > 0 ? (
+              <label className="micro-field">
+                <span>
+                  عميل محفوظ{" "}
+                  <small>
+                    {debtIntent
+                      ? "اختر من حفظته أو اكتب اسمًا جديدًا أدناه"
+                      : "اختياري — اتركه فارغًا لبيع نقدي"}
+                  </small>
+                </span>
+                <select
+                  value={customerPartyId ?? ""}
+                  onChange={event => {
+                    const selected = event.target.value;
+                    const party = partyOptions.find(option => option.id === selected);
+                    setCustomerPartyId(selected || null);
+                    /* اختيار المحفوظ يثبّت لقطة تسميته على المصدر — لا يورث
+                     * سعرًا ولا موعدًا ولا مبلغًا من عملية سابقة (A2). */
+                    if (party) {
+                      setCustomerName(party.label);
+                      setSaveForReuse(false);
+                    } else {
+                      setCustomerName("");
+                    }
+                  }}
+                  aria-label="عميل محفوظ"
+                >
+                  <option value="">— بلا اختيار —</option>
+                  {partyOptions.map(option => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            <label className="micro-field">
+              <span>{debtIntent ? "على مَن المبلغ؟ — اسم أو وصف" : "إضافة عميل — اختياري"}</span>
+              <input
+                value={customerName}
+                onChange={event => {
+                  setCustomerName(event.target.value);
+                  /* كتابة اسم جديدة تعريف على هذه العملية — تفك أي ربط سابق. */
+                  setCustomerPartyId(null);
+                }}
+                aria-label={debtIntent ? "على مَن المبلغ؟ — اسم أو وصف" : "إضافة عميل — اختياري"}
+              />
+            </label>
+            {!editing && !customerPartyId && customerName.trim() ? (
+              <label className="micro-confirm-warning">
+                <input
+                  type="checkbox"
+                  checked={saveForReuse}
+                  onChange={event => setSaveForReuse(event.target.checked)}
+                />
+                <span>حفظه لإعادة الاستخدام في قائمة العملاء والموردين</span>
+              </label>
+            ) : null}
+            {debtIntent && !customerName.trim() && !customerPartyId ? (
+              <p className="micro-field-error" role="alert">
+                اكتب اسمًا أو وصفًا يعرّف صاحب المبلغ المتبقي، أو اختر عميلًا محفوظًا — المتبقي بلا تعريف يضيع
+                من المتابعة.
+              </p>
+            ) : null}
+          </section>
+          {/* S11-MR-001 (A2/س4 «عند قبض>0» + B3-F08): وجهة القبض تظهر عند تسجيل
+              قبض موجب فعلي فقط — الدرج افتراضيًا حين يوجد وغير الموزع خيار
+              معلن؛ حالات القراءة مستقلة والفشل ليس «لا محافظ». */}
+          {!editing && resolvedCollected > 0 ? (
+            <div>
+              <label className="micro-field">
+                <span>
+                  وجهة القبض <small>الدرج افتراضيًا حين يوجد — غير الموزع خيار صريح</small>
+                </span>
+                <select
+                  value={saleWalletId}
+                  onChange={event => setSaleWalletId(event.target.value)}
+                  aria-label="وجهة القبض"
+                >
+                  <option value="">غير موزع — يبقى هنا حتى توزّعه بقرار</option>
+                  {wallets.map(wallet => (
+                    <option key={wallet.id} value={wallet.id}>
+                      {wallet.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {walletsLoading ? <p className="micro-field-hint">جارٍ قراءة المحافظ…</p> : null}
+              {walletsReadFailed ? (
+                <p className="micro-field-error" role="alert">
+                  تعذّرت قراءة المحافظ — قبض البيع لن يضيع؛ اختر «غير موزع» أو{" "}
+                  <button
+                    type="button"
+                    className="micro-text-action"
+                    onClick={() => setWalletsRetryToken(token => token + 1)}
+                  >
+                    أعد قراءة المحافظ
+                  </button>
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           <label className="micro-field">
             <span>هل تعرف تكلفة ما بيع؟</span>
             <select
@@ -941,14 +1267,48 @@ export default function DirectSaleEditor() {
               />
             </label>
           ) : null}
-          {/* المجموعة ٦ (البند ٤ — S3-12): الربط الاختياري خلف إفصاح 44px — يُفتح
-            تلقائيًا عند التعبئة المسبقة من الكتالوج (?product=) لتبقى الحالة معلنة،
-            ويبقى إشعار المرجع (productNotice) خارج الإفصاح بلا إخفاء. */}
+          <LocalDateField
+            label="تاريخ البيع"
+            value={occurredOn}
+            onChange={event => setOccurredOn(event.target.value)}
+          />
+          {/* S11-MR-001 (A2/س7): تفاصيل إضافية مطوية — وصف البيع ومنتج أو خدمة
+              وكمية للتوثيق؛ لا حقل بيان ثانٍ في الإنشاء (B3-F13)، والجزء المعني
+              ينفتح عند حمل رابط منتج (?product=). */}
           <details
             className="micro-inline-disclosure"
             open={Boolean(catalogItemId) && !editing ? true : undefined}
           >
-            <summary>ربط مرجع (اختياري)</summary>
+            <summary>تفاصيل إضافية</summary>
+            <label className="micro-field">
+              <span>
+                ما الذي بعته؟ <small>اختياري</small>
+              </span>
+              <input
+                value={itemName}
+                onChange={event => setItemName(event.target.value)}
+                placeholder="مثال: كوب جاهز"
+              />
+            </label>
+            <label className="micro-field">
+              <span>الكمية</span>
+              <EnglishNumberInput
+                value={quantity}
+                kind="integer"
+                onNumericChange={setQuantity}
+                onTextValidityChange={setValidQuantity}
+                aria-label="الكمية"
+              />
+              {/* بند ٢٥ (قرارات المالك) + المجموعة ٦ (البند ٤ — S3-12، §10.2 قاعدة ١):
+                دلالة الكمية وراء إفصاح مسمّى 44px — الشرح يُصل عند طلبه لا يثقل الوجه. */}
+              <details className="micro-inline-disclosure">
+                <summary>معنى الكمية</summary>
+                <p>
+                  عدد القطع في هذا البيع — للتوثيق. السعر الذي تدخله أعلاه هو إجمالي البيع كاملًا، لا سعر
+                  القطعة الواحدة.
+                </p>
+              </details>
+            </label>
             <label className="micro-field">
               <span>
                 ربط مرجع <small>اختياري — من «منتجاتي وخدماتي»</small>
@@ -1016,110 +1376,14 @@ export default function DirectSaleEditor() {
             ) : null}
           </details>
           {productNotice ? <FeedbackNote kind="advisory" word={productNotice} /> : null}
-          {/* D-001 + S05 (DOC-014 / UNIT-037 A1/A2): تعريف صاحب المتبقي —
-              اختيار محفوظ صريح أو اسم لهذه العملية؛ والحفظ للقائمة خيار غير
-              محدد مسبقًا لا شرطًا. يظهر عند وجود دين أو اسم مسجل، وفي
-              المدفوع كاملًا يبقى «إضافة عميل — اختياري» متاحًا بالاسم نفسه. */}
-          {difference > 0 || customerName.trim() !== "" ? (
-            <section className="micro-party-identity">
-              {partyOptions.length > 0 ? (
-                <label className="micro-field">
-                  <span>
-                    عميل محفوظ{" "}
-                    <small>
-                      {difference > 0
-                        ? "اختر من حفظته أو اكتب اسمًا جديدًا أدناه"
-                        : "اختياري — اتركه فارغًا لبيع نقدي"}
-                    </small>
-                  </span>
-                  <select
-                    value={customerPartyId ?? ""}
-                    onChange={event => {
-                      const selected = event.target.value;
-                      const party = partyOptions.find(option => option.id === selected);
-                      setCustomerPartyId(selected || null);
-                      /* اختيار المحفوظ يثبّت لقطة تسميته على المصدر — لا يورث
-                       * سعرًا ولا موعدًا ولا مبلغًا من عملية سابقة (A2). */
-                      if (party) {
-                        setCustomerName(party.label);
-                        setSaveForReuse(false);
-                      } else {
-                        setCustomerName("");
-                      }
-                    }}
-                    aria-label="عميل محفوظ"
-                  >
-                    <option value="">— بلا اختيار —</option>
-                    {partyOptions.map(option => (
-                      <option key={option.id} value={option.id}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
-              <label className="micro-field">
-                <span>{difference > 0 ? "على مَن المبلغ؟ — اسم أو وصف" : "إضافة عميل — اختياري"}</span>
-                <input
-                  value={customerName}
-                  onChange={event => {
-                    setCustomerName(event.target.value);
-                    /* كتابة اسم جديدة تعريف على هذه العملية — تفك أي ربط سابق. */
-                    setCustomerPartyId(null);
-                  }}
-                  aria-label={difference > 0 ? "على مَن المبلغ؟ — اسم أو وصف" : "إضافة عميل — اختياري"}
-                />
-              </label>
-              {!editing && !customerPartyId && customerName.trim() ? (
-                <label className="micro-confirm-warning">
-                  <input
-                    type="checkbox"
-                    checked={saveForReuse}
-                    onChange={event => setSaveForReuse(event.target.checked)}
-                  />
-                  <span>حفظه لإعادة الاستخدام في قائمة العملاء والموردين</span>
-                </label>
-              ) : null}
-              {difference > 0 &&
-              !customerName.trim() &&
-              resolveDifferenceOutcome(difference, differenceChoice).collectionStatus === "partial_debt" ? (
-                <p className="micro-field-error" role="alert">
-                  اكتب اسمًا أو وصفًا يعرّف صاحب المبلغ المتبقي، أو اختر عميلًا محفوظًا — المتبقي بلا تعريف
-                  يضيع من المتابعة.
-                </p>
-              ) : null}
-            </section>
-          ) : null}
-          {/* المجموعة ٣ (Scope D — §10.1): وجهة القبض الصريحة عند الإنشاء — الدرج افتراضيًا
-            حين يوجد وغير الموزع خيار معلن؛ لا تخصيص صامت ولا محفظة تُختار نيابةً عن المالك. */}
-          {!editing && wallets.length > 0 ? (
+          {/* B3-F13: لا حقل بيان ثانٍ في الإنشاء — البيان في التعديل فوق السجل
+              القائم فقط (الملاحظة التاريخية المختلفة تظهر وتصحح ولا تُسحق). */}
+          {editing ? (
             <label className="micro-field">
-              <span>
-                وجهة القبض <small>الدرج افتراضيًا حين يوجد — غير الموزع خيار صريح</small>
-              </span>
-              <select
-                value={saleWalletId}
-                onChange={event => setSaleWalletId(event.target.value)}
-                aria-label="وجهة القبض"
-              >
-                <option value="">غير موزع — يبقى هنا حتى توزّعه بقرار</option>
-                {wallets.map(wallet => (
-                  <option key={wallet.id} value={wallet.id}>
-                    {wallet.name}
-                  </option>
-                ))}
-              </select>
+              <span>بيان مختصر</span>
+              <textarea value={note} onChange={event => setNote(event.target.value)} />
             </label>
           ) : null}
-          <LocalDateField
-            label="تاريخ البيع"
-            value={occurredOn}
-            onChange={event => setOccurredOn(event.target.value)}
-          />
-          <label className="micro-field">
-            <span>بيان مختصر</span>
-            <textarea value={note} onChange={event => setNote(event.target.value)} />
-          </label>
           {savedSale?.collectionStatus ? (
             <p className="micro-save-note" role="status">
               حالة القبض الحالية: {collectionStatusLabel[savedSale.collectionStatus]}
@@ -1132,83 +1396,27 @@ export default function DirectSaleEditor() {
                 : ""}
             </p>
           ) : null}
-          {message && !showDifferencePrompt ? (
+          {message ? (
             <p className="micro-field-error" role="alert">
               {message}
             </p>
           ) : null}
-          {/* X-06 (و٤): «اتفقتَ على ١٠ وقبضتَ ٨ — الفرق ٢ دينار» — ثلاثة خيارات، والثالث صالح. */}
-          {showDifferencePrompt ? (
-            <section className="micro-difference-panel" aria-label="قرار الفرق بين المتفق والمقبوض">
-              <strong>
-                اتفقتَ على {formatMoneyMinor(revenueMinor)} وقبضتَ {formatMoneyMinor(resolvedCollected)} —
-                الفرق {formatMoneyMinor(difference)} د.أ.
-              </strong>
-              <p>النظام لا يقرّر عنك — اختر ما حدث فعلًا:</p>
-              <label className="micro-radio-choice">
-                <input
-                  type="radio"
-                  name="difference-choice"
-                  checked={differenceChoice === "price_cut"}
-                  onChange={() => setDifferenceChoice("price_cut")}
-                />
-                <span>
-                  <b>خفّضتُ السعر</b>
-                  <small>
-                    البيع يصير {formatMoneyMinor(resolvedCollected)} د.أ — لا دَين ولا تتبّع، ويسجَّل تخفيضًا
-                    موثَّقًا يحفظ السعر الأصلي.
-                  </small>
-                </span>
-              </label>
-              <label className="micro-radio-choice">
-                <input
-                  type="radio"
-                  name="difference-choice"
-                  checked={differenceChoice === "remaining_debt"}
-                  onChange={() => setDifferenceChoice("remaining_debt")}
-                />
-                <span>
-                  <b>الباقي عليه</b>
-                  <small>الـ{formatMoneyMinor(difference)} د.أ تظهر في «لي عند العملاء» حتى تحصّلها.</small>
-                </span>
-              </label>
-              <label className="micro-radio-choice">
-                <input
-                  type="radio"
-                  name="difference-choice"
-                  checked={differenceChoice === "needs_review"}
-                  onChange={() => setDifferenceChoice("needs_review")}
-                />
-                <span>
-                  <b>يحتاج مراجعة</b>
-                  <small>لم يُقرَّر بعد — خيار صالح لا خطأ، والفرق يبقى معلَّقًا على البيع حتى تحسمه.</small>
-                </span>
-              </label>
-              <Button
-                action="save"
+          {/* S11-MR-001 (A2/س8): معاينة قصيرة ملاصقة للحفظ — من النية الفعّالة
+              الصحيحة نفسها التي سيُحفظ بها الأمر («البيع15.00 · المقبوض5.00 ·
+              دين10.00 على ليان»)؛ لا فقرة تعليم ولا رقم من مدخل غير صالح. */}
+          {previewText ? <p className="micro-save-preview">{previewText}</p> : null}
+          <div className="micro-form-actions micro-sticky-save">
+            <Button
+              action="save"
+              block
 
-                disabled={saving || differenceChoice === null}
-                onClick={() => {
-                  void save();
-                }}
-              >
-                {saving ? "جارٍ الحفظ…" : "أكمل الحفظ بالقرار المختار"}
-              </Button>
-            </section>
-          ) : (
-            <div className="micro-form-actions micro-sticky-save">
-              <Button
-                action="save"
-                block
-
-                disabled={saving}
-                onClick={save}
-              >
-                <Save aria-hidden="true" />
-                {saving ? "جارٍ الحفظ…" : editing ? "حفظ تصحيح البيع" : "حفظ البيع المباشر"}
-              </Button>
-            </div>
-          )}
+              disabled={saving}
+              onClick={save}
+            >
+              <Save aria-hidden="true" />
+              {saving ? "جارٍ الحفظ…" : editing ? "حفظ تصحيح البيع" : "حفظ البيع المباشر"}
+            </Button>
+          </div>
         </fieldset>
       </section>
       {editing && savedSale?.status !== "cancelled" ? (
@@ -1318,7 +1526,7 @@ export default function DirectSaleEditor() {
                   void submitFullReturn();
                 }}
               >
-                تأكيد المرتجع الكامل
+                {saving ? "جارٍ تسجيل المرتجع…" : "تأكيد المرتجع الكامل"}
               </Button>
               <Button
                 action="secondary"
@@ -1401,7 +1609,7 @@ export default function DirectSaleEditor() {
                       void submitRefundPayment();
                     }}
                   >
-                    سجّل دفع الرد
+                    {saving ? "جارٍ تسجيل دفع الرد…" : "سجّل دفع الرد"}
                   </Button>
                 </div>
                 {/* تصحيح المراجعة R5-002: تغذية راجعة محلية للقسم — الخطأ alert

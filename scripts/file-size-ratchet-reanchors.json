@@ -6747,6 +6747,63 @@
         "trigger": "S11 sale-slice implementation growth measured on the live tree",
         "ocRef": "DOC-020"
       }
+    },
+    {
+      "id": "S11-A2-FLOW-CORRECTION-20261101-01",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx",
+      "from": {
+        "nbLoc": 999,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1615,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S11-MR-001/MR-002 (UNIT-005 A2/B3-F02..F08 — أمر 00-S12-EXECUTION-PROMPT §4 عند 2e645802): إعادة بناء مسار إنشاء البيع على ترتيب A2 — إجمالي البيع أولًا ثم وضع الدفع الصريح الثلاثي (كامل/جزء ودين/لم يُستلم ودين) وإفصاح «حالة مختلفة؟» للفردين غير الافتراضيين، ووجهة القبض عند قبض موجب بحالات قراءة مستقلة، وعميل اختياري متاح للدفع الكامل (MR-002)، ومعاينة ملاصقة للحفظ، وتفاصيل إضافية مطوية — بلا تقسيم بنيوي (بوابة ما بعد المجموعة ٦/S11 scan).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §4 — fix S11-MR-001 and S11-MR-002 with durable regression coverage on the same branch/PR). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S11 direct-sale UI correction measured on the live tree after the A2 flow rewrite",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-A2-FLOW-CORRECTION-20261101-02",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/index.css",
+      "from": {
+        "nbLoc": 6778,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 6830,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S11-MR-001 (UNIT-005 A2/س2+س8 — أمر 00-S12-EXECUTION-PROMPT §4 عند 2e645802): نمطان بالرموز القائمة فقط — مجموعة وضع الدفع الصريح (micro-payment-mode/legend) وسطر المعاينة الملاصق للحفظ (micro-save-preview)؛ لا هوية بصرية جديدة ولا تعديل رموز عامة (البند ٩: مكونات ورموز Micro الحالية حصرًا).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §4 — fix S11-MR-001 with current Micro components/tokens only). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S11 direct-sale UI correction measured on the live tree (two small token-only style blocks)",
+        "ocRef": "DOC-020"
+      }
+    },
+    {
+      "id": "S11-A2-FLOW-CORRECTION-20261101-03",
+      "date": "2026-11-01",
+      "path": "apps/prototype-web/client/src/application/direct-sales/directSaleEditorModel.ts",
+      "from": {
+        "nbLoc": 184,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 314,
+        "band": "NORMAL"
+      },
+      "reason": "S11-MR-001 (UNIT-005 A2/B3 — أمر 00-S12-EXECUTION-PROMPT §4 عند 2e645802): قرارات المحرر النقية لوضع الدفع الصريح في بيته التطبيقي (نمط R7 نفسه) — اشتقاق المقبوض من الوضع، القرار الفعّال، هجرة مسودة ما قبل الأوضاع بمعناها (collectedEmpty)، أجزاء المعاينة، وبوابة التحقق المحدثة؛ NORMAL داخل الشريط بإرساء موثق.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §4 — fix S11-MR-001 with durable regression coverage). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S11 direct-sale UI correction measured on the live tree (pure editor decisions moved to their application home per the R7 pattern)",
+        "ocRef": "DOC-020"
+      }
     }
   ]
 }

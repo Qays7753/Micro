@@ -199,7 +199,7 @@ export function SaleCollectionReversalSection({
           </p>
         ) : null}
         <Button action="save" disabled={busy} onClick={() => void reverse()}>
-          <Undo2 aria-hidden="true" /> اعكس التحصيل
+          <Undo2 aria-hidden="true" /> {busy ? "جارٍ عكس التحصيل…" : "اعكس التحصيل"}
         </Button>
       </section>
     </details>

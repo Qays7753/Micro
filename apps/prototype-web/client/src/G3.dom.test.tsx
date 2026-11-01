@@ -314,7 +314,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     );
     expect((screen.getByPlaceholderText("مثال: كوب جاهز") as HTMLInputElement).value).toBe("صابون غار");
     await waitFor(() =>
-      expect((screen.getByLabelText("السعر المتفق عليه") as HTMLInputElement).value).toBe("7.00"),
+      expect((screen.getByLabelText("إجمالي البيع — د.أ") as HTMLInputElement).value).toBe("7.00"),
     );
     expect(screen.getByText(/سعر مقترح من المرجع/)).toBeTruthy();
     /* وجهة القبض: الدرج افتراضيًا حين يوجد. */
@@ -323,7 +323,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     );
 
     /* §10.3: تجاوز السعر — السعر الفعلي هو المرجع النهائي. */
-    fireEvent.change(screen.getByLabelText("السعر المتفق عليه"), { target: { value: "9.50" } });
+    fireEvent.change(screen.getByLabelText("إجمالي البيع — د.أ"), { target: { value: "9.50" } });
     fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
 
     /* §10.4: إغلاق واقعي — ما بيع والسعر الفعلي وأثر الكاش. */
@@ -374,7 +374,7 @@ describe("G3 — Group 3 surfaces: calculator, estimates, product-to-sale", () =
     await screen.findByRole("heading", { name: "تسجيل بيع مباشر" });
     await waitFor(() => expect(screen.getByText(/هذا المرجع موقوف/)).toBeTruthy());
     expect((screen.getByLabelText("ربط مرجع") as HTMLSelectElement).value).toBe("");
-    expect((screen.getByLabelText("السعر المتفق عليه") as HTMLInputElement).value).toBe("0.00");
+    expect((screen.getByLabelText("إجمالي البيع — د.أ") as HTMLInputElement).value).toBe("0.00");
   });
 
   it("order detail: source estimate link and real correction-event labels in the order log", async () => {
