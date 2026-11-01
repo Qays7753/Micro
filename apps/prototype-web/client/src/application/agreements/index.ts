@@ -16,6 +16,7 @@ export type { AgreementContextService, AgreementSourceValue } from "./agreementC
 
 export {
   agreementPriceIsReady,
+  agreementSummaryParts,
   applyProtectionPriceAsStart,
   protectionPriceIsReadyForAgreement,
   startAgreementPrice,

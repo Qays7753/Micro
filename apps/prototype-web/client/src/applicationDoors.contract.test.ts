@@ -47,6 +47,10 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
   activity: [],
   agreements: [
     "agreementPriceIsReady",
+    /* S12 (DOC-021 / UNIT-009 A2/س8+B4 — أمر 2e645802): +agreementSummaryParts —
+     * أجزاء ملخص الاتفاق الملاصق للفعل من بيتها التطبيقي؛ توسيع موثق نفس-الـPR
+     * (يطابق حارس أسطح الأبواب وملاحظته المؤرخة). */
+    "agreementSummaryParts",
     "applyProtectionPriceAsStart",
     "classifyFollowUpDate",
     "protectionPriceIsReadyForAgreement",

@@ -233,6 +233,10 @@ export default function OrderDetail() {
 
   useEffect(() => {
     let active = true;
+    /* S12 (DOC-021 — أمر 2e645802 §9): خدمة الاتفاق الكسولة — تبقى الصفحة
+     * على حالة التحميل الصادقة وتُعاد القراءة عند اكتماله (agreements
+     * في الاعتماديات). */
+    if (!agreements) return;
     /* R1: فصل صادق — فشل القراءة خطأ (إعادة محاولة)، والسجل الغائب
      * بعد قراءة ناجحة هو «غير موجود» (عودة)؛ لا يُخلط الاثنان أبدًا.
      * R7/P01: القراءة الرئيسية عند صاحبها التطبيقي. */
@@ -409,8 +413,11 @@ export default function OrderDetail() {
     }
     setIsActing(true);
     try {
+      /* S12 (UNIT-009 A3): «لا يوجد توصيل» لا يحمل أي مبلغ إطلاقًا — الأجرة
+       * والحصص تُصفَّر معه عمدًا، والكلفة تخص توصيل المشروع وحده. */
+      const noneDelivery = termsResponsibility === "none";
       const feeApplies = termsResponsibility === "customer_pays_project" || termsResponsibility === "shared";
-      const costApplies = termsResponsibility !== "customer_pays_courier";
+      const costApplies = !noneDelivery && termsResponsibility !== "customer_pays_courier";
       const result = await fulfillment.applyDeliveryTerms(
         state.stored.id,
         {
@@ -645,13 +652,15 @@ export default function OrderDetail() {
         action="save"
         block
 
-        disabled={isActing}
+        disabled={isActing || !agreements}
         onClick={() => {
+          /* S12 (DOC-021): خدمة الاتفاق الكسولة — الزر معلّق بصدق حتى جاهزيتها. */
+          if (!agreements) return;
           void run(() => agreements.startExecution(stored.id));
         }}
       >
         <Play aria-hidden="true" />
-        {isActing ? "جارٍ بدء التنفيذ…" : "ابدأ التنفيذ"}
+        {!agreements ? "جارٍ تجهيز خدمة الاتفاق…" : isActing ? "جارٍ بدء التنفيذ…" : "ابدأ التنفيذ"}
       </Button>
     ) : order.status === "in_progress" ? (
       <Button
@@ -1687,6 +1696,9 @@ export default function OrderDetail() {
                       aria-label="تعديل مسؤولية كلفة النقل والتوصيل"
                       onChange={event => setTermsResponsibility(event.target.value as DeliveryResponsibility)}
                     >
+                      {/* S12 (UNIT-009 A3): «لا يوجد توصيل» صريحًا — بلا أي مبلغ؛
+                          مختلف عن عدم تسجيل الشروط، ولا يُستنتج من إغلاق القسم. */}
+                      <option value="none">لا يوجد توصيل</option>
                       <option value="project_pays">المشروع يدفع للناقل</option>
                       <option value="customer_pays_project">الزبون يدفع للمشروع</option>
                       <option value="customer_pays_courier">الزبون يدفع للناقل مباشرة</option>

@@ -88,7 +88,9 @@ export type DeliveryReview = {
   itemName: string;
   customerName: string;
   quantity: number;
-  deliveryDate: string;
+  /* S12 (UNIT-009 — J002-DEC02): موعد التسليم قد يكون مجهولًا صراحة —
+   * null = «لم يُحدد بعد»؛ لا تاريخ صوري في المعاينة. */
+  deliveryDate: string | null;
   money: {
     agreedPriceMinor: number;
     collectedMinor: number;
