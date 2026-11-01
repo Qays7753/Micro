@@ -31,8 +31,12 @@
         "agreementSummaryParts",
         "applyProtectionPriceAsStart",
         "classifyFollowUpDate",
+        "clearScheduleProposal",
+        "consumeScheduleProposal",
         "protectionPriceIsReadyForAgreement",
-        "startAgreementPrice"
+        "readScheduleProposal",
+        "startAgreementPrice",
+        "storeScheduleProposal"
       ],
       "type": [
         "AgreementContextService",
@@ -204,10 +208,25 @@
       ]
     },
     "follow-up": {
-      "value": [],
+      "value": [
+        "UnifiedFollowUpService",
+        "projectFollowUp"
+      ],
       "type": [
         "DailyFollowUp",
-        "DailyFollowUpService"
+        "DailyFollowUpService",
+        "FollowUpFilter",
+        "FollowUpGroup",
+        "FollowUpProjection",
+        "FollowUpSourceKey",
+        "FollowUpSourceState",
+        "FollowUpTask",
+        "FollowUpTaskKind",
+        "PayablesAgingReader",
+        "ReceivablesReader",
+        "SettleablePayablesReader",
+        "UnifiedFollowUpReading",
+        "UnifiedFollowUpResult"
       ]
     },
     "fulfillment": {
@@ -323,15 +342,29 @@
     },
     "scheduling": {
       "value": [
-        "buildCapacityDecisionViewModel"
+        "activeDeliveryLens",
+        "activeEntries",
+        "bucketOfDate",
+        "buildCapacityDecisionViewModel",
+        "compareEntries",
+        "entriesForDate",
+        "readScheduleCommunity",
+        "windowOf"
       ],
       "type": [
+        "ActiveDeliveryRow",
+        "DerivedScheduleStatus",
         "MonthOverview",
         "RecurrenceView",
+        "ScheduleCommunity",
+        "ScheduleCommunityEntry",
         "ScheduleDay",
         "ScheduleOverview",
+        "ScheduleReadResult",
+        "ScheduleReadStore",
         "ScheduleRecurrenceService",
         "ScheduleService",
+        "ScheduleWindow",
         "ScheduledOrder"
       ]
     },

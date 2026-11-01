@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "dee34f51f11aa4094f046c8942e7f377749b9a99",
+  "head": "afc7f6dc997556aa4cc8fbfa982ce6fe0a2685f1",
   "pages": {
     "total": 64,
     "map": {
@@ -560,6 +560,7 @@
         "curated": [
           "apps/prototype-web/client/src/application/scheduling/capacityDecisionService.test.ts",
           "apps/prototype-web/client/src/application/scheduling/capacityDecisionViewModel.test.ts",
+          "apps/prototype-web/client/src/application/scheduling/scheduleReads.test.ts",
           "apps/prototype-web/client/src/application/scheduling/scheduleService.test.ts",
           "apps/prototype-web/client/src/application/scheduling/scheduleViewModel.test.ts"
         ]
@@ -692,6 +693,7 @@
           "apps/prototype-web/client/src/application/agreements/followUpDate.test.ts",
           "apps/prototype-web/client/src/application/agreements/orderDetailViewModel.test.ts",
           "apps/prototype-web/client/src/application/agreements/s12SharedAcceptance.test.ts",
+          "apps/prototype-web/client/src/application/agreements/scheduleProposal.test.ts",
           "apps/prototype-web/client/src/presentation/orderAgreementPresentation.test.ts"
         ]
       },

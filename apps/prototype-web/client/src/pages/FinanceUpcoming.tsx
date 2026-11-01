@@ -1,269 +1,374 @@
 /**
- * Stage 2 — OPS-005/OPS-006 (tracker): سطح «القادم والاستحقاقات» — قراءة
- * موحّدة لما يقترب موعده وما تأخر: طلبات مجدولة ومدفوعات موردين وتحصيلات
- * والتزامات، بمعنى ومصدر معلنين لكل نوع تاريخ، وتقادم مبسط (متأخر/حالي/بلا
- * تاريخ) بلا شرائح 30/60/90. قراءة فقط: الفتح لا يكتب سجلًا واحدًا، وفشل أي
- * كتلة يعزل نفسه ببطاقة صادقة وإعادة محاولة (نمط G-005) والأسطح السليمة
- * تبقى حية؛ المجهول يبقى «بلا تاريخ مخزّن» صراحةً — غياب التاريخ ليس غياب
- * الدين، ولا يتحول إلى تاريخ اليوم أو صفر أبدًا.
+ * S13 (DOC-022 / UNIT-018 + UNIT-012 — أمر 2158b0fc §6): «المتابعة» الموحدة
+ * — واجهة واحدة تجمع مواعيد العمل (من قراءة 012 النقية) والاستحقاقات
+ * المالية من أصحابها (تحصيل 005/010، دفعة مورد 027، سداد مصروف 015،
+ * مراجعة دورة 019). قراءة خالصة: الفتح والتصفية والرجوع لا يكتبان مالًا
+ * ولا موعدًا ولا دورة (U018-R01/R02، SDF-013)؛ كل مصدر بحالته المستقلة
+ * ففشله يعزل نفسه ولا يخفي السليم (U018-R17/R18)؛ التصفية والترتيب على
+ * المجتمع كله قبل حد العرض مع عدد صادق (U018-R16)؛ بلا موعد ≠ متأخر،
+ * والتاريخ التالف حالة إصلاح معلنة لا تاريخ اليوم (U018-R06/F06).
  */
-import { ArrowRight, CalendarClock } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { BellRing, ChevronLeft, SlidersHorizontal } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import { withReturnTo } from "@/app/navigationContract";
-import { useReturnPath } from "@/app/useReturnNavigation";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import type { UpcomingBlockResult, UpcomingEntry, UpcomingOverview } from "@/application/finance";
-import { financialEventLabel } from "@/presentation/financialEventLabels";
-import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
+import { Button, EmptyState, StatusChip } from "@/components/primitives";
+import { LocalDateValue, MoneyValue, TimeValue } from "@/components/presentation/DisplayValue";
+import { formatLocalDate } from "@/presentation/formatters";
+import {
+  projectFollowUp,
+  type FollowUpFilter,
+  type FollowUpGroup,
+  type FollowUpSourceKey,
+  type FollowUpTask,
+  type UnifiedFollowUpResult,
+} from "@/application/follow-up";
 
-import { Button } from "@/components/primitives";
-
-type PageState = { phase: "loading" } | { phase: "ready"; overview: UpcomingOverview };
-
-/* Stage 2 — OPS-005: تسمية حالة الموعد الصادقة — الحالي والمستحق اليوم
- * والمتأخر من المصدر المعلن لكل نوع تاريخ؛ لا اختراع تاريخ ولا صفر. */
-const DUE_STATE_LABELS: Record<"overdue" | "today" | "upcoming", string> = {
+const GROUP_LABELS: Record<FollowUpGroup, string> = {
   overdue: "متأخر",
-  today: "مستحق اليوم",
-  upcoming: "قادم",
-};
-const dueStateLabel = (state: string): string | null =>
-  state in DUE_STATE_LABELS ? DUE_STATE_LABELS[state as "overdue" | "today" | "upcoming"] : null;
-
-/* Stage 2 — OPS-005: رسائل فشل الكتل — نصوص لحظة الفشل بنمط message: الكنوني
- * (معيار G-005/CorrectionsLayer) لا تُعرض إلا عند تعذر قراءة كتلتها. */
-const BLOCK_FAILURE_MESSAGES: Record<
-  "orders" | "payables" | "receivables" | "obligations",
-  { message: string }
-> = {
-  orders: { message: "تعذّرت قراءة الطلبات المجدولة — هذا الجزء وحده." },
-  payables: { message: "تعذّرت قراءة مدفوعات الموردين — هذا الجزء وحده." },
-  receivables: { message: "تعذّرت قراءة ذمم التحصيل — هذا الجزء وحده." },
-  obligations: { message: "تعذّرت قراءة الالتزامات المستحقة — هذا الجزء وحده." },
+  today: "اليوم",
+  upcoming: "القادم",
+  undated: "لم يُحدد موعدها",
+  invalid: "الموعد يحتاج تصحيحًا",
 };
 
-type UpcomingBlockKey = keyof typeof BLOCK_FAILURE_MESSAGES;
+const SOURCE_LABELS: Record<FollowUpSourceKey, string> = {
+  schedules: "مواعيد التسليم",
+  customerFollowUps: "متابعة العملاء",
+  receivables: "مستحقات التحصيل",
+  supplierPayables: "استحقاقات الموردين",
+  expensePayables: "مصاريف مستحقة",
+  recurringReviews: "دورات المصروف المتكرر",
+};
+
+const TASK_ACTION_LABELS: Partial<Record<FollowUpTask["taskKind"], string>> = {
+  delivery: "مراجعة التسليم",
+  customer_followup: "متابعة العميل",
+  receivable: "فتح مصدر التحصيل",
+  supplier_payable: "تسجيل دفعة",
+  expense_payable: "سداد المصروف",
+  recurring_review: "مراجعة المصروف المتكرر",
+};
+
+const TASK_TYPE_LABELS: Partial<Record<FollowUpTask["taskKind"], string>> = {
+  delivery: "تسليم طلب",
+  customer_followup: "متابعة عميل",
+  receivable: "تحصيل من عميل",
+  supplier_payable: "دفعة لمورد",
+  expense_payable: "سداد مصروف",
+  recurring_review: "مراجعة مصروف متكرر",
+};
+
+const PAGE_SIZE = 20;
+
+type FilterDraft = FollowUpFilter & { fromText: string; toText: string };
+const DEFAULT_FILTER: FilterDraft = { taskKind: "all", period: null, fromText: "", toText: "" };
 
 export default function FinanceUpcoming() {
-  const [, navigate] = useLocation();
-  const returnPath = useReturnPath();
-  const { upcoming, dataVersion } = usePrototypeServices();
-  const [state, setState] = useState<PageState>({ phase: "loading" });
-  const [retryCount, setRetryCount] = useState(0);
+  const [location, navigate] = useLocation();
+  const { collections, dueDates, projectFinance, dataVersion } = usePrototypeServices();
+  const [reading, setReading] = useState<UnifiedFollowUpResult | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
+  /* SDF-061: ختم الجيل — استجابة الجيل القديم تُهمل ولا تُخلط مع الأحدث. */
+  const generationRef = useRef(0);
+  const [applied, setApplied] = useState<FilterDraft>(DEFAULT_FILTER);
+  const [draft, setDraft] = useState<FilterDraft>(DEFAULT_FILTER);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [shownCount, setShownCount] = useState(PAGE_SIZE);
+
   useEffect(() => {
+    const generation = generationRef.current + 1;
+    generationRef.current = generation;
     let active = true;
-    upcoming.readOverview().then(overview => {
-      if (!active) return;
-      setState({ phase: "ready", overview });
-    });
+    /* الخدمة تُحمّل عند أول فتح (نمط الخدمات الكسولة) — لا تدخل كومة الإقلاع.
+     * عدسة التسليمات النشطة تُركّب هنا من باب الجدولة (STR-615/OD-10) —
+     * القارئ الموحد يستقبلها بنيويًا فلا زوج بيوت بين المتابعة والجدولة. */
+    Promise.all([import("@/application/follow-up"), import("@/application/scheduling")])
+      .then(([followUp, scheduling]) => {
+        const service = new followUp.UnifiedFollowUpService(
+          scheduling.activeDeliveryLens(getPrototypeLocalStore()),
+          getPrototypeLocalStore(),
+          collections,
+          dueDates,
+          projectFinance,
+          getPrototypeLocalStore(),
+        );
+        return service.read();
+      })
+      .then(result => {
+        if (!active || generation !== generationRef.current) return;
+        if (result.ok) {
+          setReading(result);
+          setLoadError(null);
+        } else {
+          setLoadError(result.message);
+        }
+      })
+      .catch((error: unknown) => {
+        if (!active || generation !== generationRef.current) return;
+        setLoadError(error instanceof Error ? error.message : "تعذرت قراءة المتابعة.");
+      });
     return () => {
       active = false;
     };
-  }, [dataVersion, upcoming, retryCount]);
-  if (state.phase === "loading")
+  }, [collections, dueDates, projectFinance, dataVersion, reloadToken]);
+
+  const open = (href: string) => navigate(withReturnTo(href, location));
+
+  const appliedFilter: FollowUpFilter = useMemo(() => {
+    if (applied.period === null) return { taskKind: applied.taskKind, period: null };
+    return { taskKind: applied.taskKind, period: applied.period };
+  }, [applied]);
+
+  const projection = useMemo(
+    () => (reading && reading.ok ? projectFollowUp(reading.value, appliedFilter) : null),
+    [reading, appliedFilter],
+  );
+
+  if (loadError !== null && reading === null)
+    return (
+      <section className="micro-page micro-not-found">
+        <h1>تعذر تحميل المتابعة</h1>
+        <p role="alert">{loadError} لم يتم تغيير شيء؛ أعد المحاولة.</p>
+        <Button action="save" onClick={() => setReloadToken(token => token + 1)}>
+          إعادة المحاولة
+        </Button>
+      </section>
+    );
+  if (reading === null || projection === null)
     return (
       <div className="micro-route-loading" role="status">
-        جارٍ قراءة القادم والاستحقاقات…
+        جارٍ تحميل المتابعة…
       </div>
     );
-  const { overview } = state;
-  const openSource = (href: string) => navigate(withReturnTo(href, "/finance/upcoming"));
-  const retry = () => setRetryCount(count => count + 1);
+
+  const today = reading.ok ? reading.value.asOf : "";
+  const visibleGroups = projection.groups.filter(group => group.tasks.length > 0);
+  const totalShown = visibleGroups.reduce((sum, group) => sum + group.tasks.length, 0);
+
+  const applyFilter = () => {
+    const from = draft.fromText.trim();
+    const to = draft.toText.trim();
+    const fromValid = from === "" || /^\d{4}-\d{2}-\d{2}$/.test(from);
+    const toValid = to === "" || /^\d{4}-\d{2}-\d{2}$/.test(to);
+    if (!fromValid || !toValid || (from !== "" && to !== "" && from > to)) {
+      setDraft(current => ({ ...current }));
+      return;
+    }
+    const period =
+      from === "" && to === ""
+        ? null
+        : { from: from === "" ? "0000-01-01" : from, to: to === "" ? "9999-12-31" : to };
+    setApplied({ ...draft, period });
+    setShownCount(PAGE_SIZE);
+    setFilterOpen(false);
+  };
+
   return (
-    <section className="micro-page micro-finance-more-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "المالية" : "رجوع"}
-      </button>
+    <section className="micro-page">
       <div className="micro-page-heading">
-        <span className="micro-overline">ما يقترب وما تأخر</span>
-        <h1>القادم والاستحقاقات</h1>
-        <p>كل موعد بمعناه ومصدره — طلبات ومدفوعات وتحصيلات والتزامات، بلا كتابة أي سجل.</p>
+        <span className="micro-overline">قراءة موحدة · بلا أثر مالي</span>
+        <h1>المتابعة</h1>
+        <p>المواعيد والمبالغ التي تحتاج إجراء — كلٌّ من سجله، والفعل عند صاحبه.</p>
       </div>
+      <p className="micro-scope-line" role="status">
+        اليوم: <LocalDateValue value={today} /> · {projection.readyTaskCount} مهمة مقروءة
+        {totalShown > shownCount ? ` (يُعرض ${shownCount})` : ""}
+      </p>
 
-      {/* OPS-006: التقادم المبسط — متأخر/حالي/بلا تاريخ، بلا شرائح 30/60/90. */}
-      <section className="micro-decision-card" aria-label="تقادم مبسط">
-        <CalendarClock aria-hidden="true" />
-        <div>
-          <span>تقادم مبسط</span>
-          <strong>ما يستحق وما تأخر</strong>
-          <div className="micro-supplier-totals">
-            <p>
-              ما عليك للموردين:{" "}
-              {overview.aging.payables ? (
-                <>
-                  متأخر{" "}
-                  <MoneyValue minor={overview.aging.payables.overdueMinor} className="micro-inline-number" />{" "}
-                  · لم يحن{" "}
-                  <MoneyValue minor={overview.aging.payables.currentMinor} className="micro-inline-number" />{" "}
-                  · بلا تاريخ{" "}
-                  <MoneyValue minor={overview.aging.payables.unknownMinor} className="micro-inline-number" />
-                </>
-              ) : (
-                "غير متاح"
-              )}
+      {/* فشل مصدر معزول — السليم يبقى ظاهرًا وإعادة المحاولة للمصدر المتعذر وحده */}
+      {projection.errorSources.length > 0 ? (
+        <section className="micro-source-errors" aria-label="مصادر تعذرت قراءتها">
+          {projection.errorSources.map(source => (
+            <p key={source.key} className="micro-field-error" role="alert">
+              تعذرت قراءة {SOURCE_LABELS[source.key]} — {source.message}
             </p>
-            <p>
-              ما لك عند الناس:{" "}
-              {overview.aging.receivables ? (
-                <>
-                  <MoneyValue minor={overview.aging.receivables.totalMinor} className="micro-inline-number" />{" "}
-                  — بلا تاريخ استحقاق مخزّن
-                </>
-              ) : (
-                "غير متاح"
-              )}
-            </p>
-            <p>
-              التزامات مصاريف مستحقة:{" "}
-              {overview.aging.obligations ? (
-                <>
-                  <MoneyValue minor={overview.aging.obligations.totalMinor} className="micro-inline-number" />{" "}
-                  — بلا تاريخ استحقاق مخزّن
-                </>
-              ) : (
-                "غير متاح"
-              )}
-            </p>
-          </div>
-          <p>تصنيف مبسط بلا شرائح 30/60/90 — التقادم المتقدم مؤجل بدليله.</p>
-        </div>
-      </section>
-
-      <UpcomingBlock
-        blockKey="orders"
-        title="طلبات قادمة ومتأخرة"
-        result={overview.orders}
-        empty="لا توجد طلبات مجدولة قادمة."
-        retry={retry}
-        renderEntry={entry => <OrderRow entry={entry} openSource={openSource} />}
-      />
-      <UpcomingBlock
-        blockKey="payables"
-        title="مدفوعات قادمة للموردين"
-        result={overview.payables}
-        empty="لا توجد مدفوعات مفتوحة."
-        retry={retry}
-        renderEntry={entry => <DatedMoneyRow entry={entry} openSource={openSource} />}
-      />
-      <UpcomingBlock
-        blockKey="receivables"
-        title="تحصيلات عند الناس"
-        result={overview.receivables}
-        empty="لا توجد ذمم تحصيل."
-        retry={retry}
-        renderEntry={entry => <DatedMoneyRow entry={entry} openSource={openSource} />}
-      />
-      <UpcomingBlock
-        blockKey="obligations"
-        title="التزامات مصاريف مستحقة"
-        result={overview.obligations}
-        empty="لا توجد التزامات مستحقة."
-        retry={retry}
-        renderEntry={entry => <DatedMoneyRow entry={entry} openSource={openSource} />}
-      />
-
-      <div className="micro-offline-truth" role="note">
-        هذه الصفحة قراءة فقط — فتحها لا يكتب أي سجل مالي، وكل رقم يفتح مصدره الأصلي.
-      </div>
-    </section>
-  );
-}
-
-function UpcomingBlock({
-  blockKey,
-  title,
-  result,
-  empty,
-  retry,
-  renderEntry,
-}: {
-  blockKey: UpcomingBlockKey;
-  title: string;
-  result: UpcomingBlockResult;
-  empty: string;
-  retry: () => void;
-  renderEntry: (entry: UpcomingEntry) => ReactNode;
-}) {
-  return (
-    <section className="micro-supplier-list" aria-label={title}>
-      <div className="micro-finance-event-heading">
-        <span className="micro-overline">{title}</span>
-      </div>
-      {result.ok ? (
-        result.entries.length ? (
-          result.entries.map(entry => (
-            <article key={`${entry.kind}-${entry.id}`}>{renderEntry(entry)}</article>
-          ))
-        ) : (
-          <p>{empty}</p>
-        )
-      ) : (
-        /* G-005: فشل الكتلة يعزل نفسه — بطاقة صادقة وإعادة محاولة، والبقية حية. */
-        <div className="micro-cancel-panel" role="alert">
-          <p>{BLOCK_FAILURE_MESSAGES[blockKey].message}</p>
-          <Button action="save" onClick={retry}>
-            إعادة المحاولة
+          ))}
+          <Button action="secondary" onClick={() => setReloadToken(token => token + 1)}>
+            أعد قراءة المتابعة
           </Button>
-        </div>
-      )}
-    </section>
-  );
-}
+        </section>
+      ) : null}
 
-function OrderRow({ entry, openSource }: { entry: UpcomingEntry; openSource: (href: string) => void }) {
-  const label = dueStateLabel(entry.dateState);
-  return (
-    <div className="micro-supplier-balance">
-      <div>
-        <strong dir="auto">{entry.title}</strong>
-        {entry.note ? <small dir="auto">{entry.note}</small> : null}
-      </div>
-      <div>
-        <small>
-          الموعد المجدول: <LocalDateValue value={entry.dueOn} />
-          {label ? ` · ${label}` : null}
-        </small>
-        <Button action="secondary" onClick={() => openSource(entry.sourceHref)}>
-          افتح الطلب
+      <div className="micro-orders-search">
+        <Button action="secondary" onClick={() => setFilterOpen(openState => !openState)}>
+          <SlidersHorizontal aria-hidden="true" /> تصفية
         </Button>
       </div>
-    </div>
+      {filterOpen ? (
+        <section className="micro-form-card" aria-label="لوحة تصفية المتابعة">
+          <fieldset>
+            <legend>نوع المهمة</legend>
+            {(
+              [
+                ["all", "الكل"],
+                ["delivery", "عمل ومواعيد"],
+                ["receivable", "تحصيل"],
+                ["supplier_payable", "دفعة مورد"],
+                ["expense_payable", "سداد مصروف"],
+                ["recurring_review", "مراجعة مصروف متكرر"],
+              ] as const
+            ).map(([value, label]) => (
+              <label className="micro-radio-choice" key={value}>
+                <input
+                  type="radio"
+                  name="followup-kind"
+                  checked={draft.taskKind === value}
+                  onChange={() => setDraft(current => ({ ...current, taskKind: value }))}
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </fieldset>
+          <fieldset>
+            <legend>الفترة (على موعد المهمة)</legend>
+            <label className="micro-field">
+              <span>من (YYYY-MM-DD)</span>
+              <input
+                type="date"
+                value={draft.fromText}
+                onChange={event => setDraft(current => ({ ...current, fromText: event.target.value }))}
+              />
+            </label>
+            <label className="micro-field">
+              <span>إلى (YYYY-MM-DD)</span>
+              <input
+                type="date"
+                value={draft.toText}
+                onChange={event => setDraft(current => ({ ...current, toText: event.target.value }))}
+              />
+            </label>
+            <p className="micro-field-hint">بلا موعد لا يدخل فترة مخصصة — مدخله المستقل يبقى ظاهرًا.</p>
+          </fieldset>
+          <div className="micro-form-actions">
+            <Button action="save" onClick={applyFilter}>
+              تطبيق
+            </Button>
+            <Button
+              action="secondary"
+              onClick={() => {
+                setApplied(DEFAULT_FILTER);
+                setDraft(DEFAULT_FILTER);
+                setShownCount(PAGE_SIZE);
+                setFilterOpen(false);
+              }}
+            >
+              إعادة ضبط
+            </Button>
+            <Button
+              action="quiet"
+              onClick={() => {
+                setDraft(applied);
+                setFilterOpen(false);
+              }}
+            >
+              إلغاء
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
+      {visibleGroups.length === 0 ? (
+        <EmptyState
+          aria-labelledby="followup-empty-title"
+          symbol={<BellRing />}
+          state={<StatusChip state="no-data">لا مهام تطابق</StatusChip>}
+          title={<h2 id="followup-empty-title">لا مهام متابعة بهذه التصفية</h2>}
+          description={
+            projection.readyTaskCount === 0
+              ? "لا توجد مهام متابعة مسجلة — هذه قراءة سجلاتك لا تدقيقًا لكل واقع مشروعك."
+              : "عدّل التصفية أو امسحها — المهام المسجلة ما زالت عند مصادرها."
+          }
+        />
+      ) : (
+        <>
+          {(() => {
+            /* حد العرض تدريجي على المجموعات بالترتيب — العدد الكلي صادق فوقه. */
+            let budget = shownCount;
+            return visibleGroups.map(group => {
+              const shown = group.tasks.slice(0, Math.max(0, budget));
+              budget -= shown.length;
+              return (
+                <section
+                  className="micro-draft-list"
+                  aria-labelledby={`group-${group.group}`}
+                  key={group.group}
+                >
+                  <h2 id={`group-${group.group}`}>
+                    {GROUP_LABELS[group.group]} ({group.tasks.length})
+                  </h2>
+                  {shown.map(task => (
+                    <FollowUpRow key={task.itemKey} task={task} onOpen={open} />
+                  ))}
+                </section>
+              );
+            });
+          })()}
+          {totalShown > shownCount ? (
+            <Button action="secondary" onClick={() => setShownCount(count => count + PAGE_SIZE)}>
+              عرض المزيد ({totalShown - shownCount} متبقية)
+            </Button>
+          ) : null}
+        </>
+      )}
+
+      <details className="micro-inline-disclosure">
+        <summary>حول المتابعة</summary>
+        <p>
+          تجمع المتابعة المواعيد والمبالغ التي تحتاج إجراء من سجلاتها. التذكير لا يسجل دفعًا أو مصروفًا، وما
+          لم يحدد موعده لا يعد متأخرًا، والفعل يفتح صاحبه ولا يكتب من هنا.
+        </p>
+      </details>
+    </section>
   );
 }
 
-function DatedMoneyRow({ entry, openSource }: { entry: UpcomingEntry; openSource: (href: string) => void }) {
-  const label = dueStateLabel(entry.dateState);
-  const kindLabel = entry.kind === "expense_payable" ? financialEventLabel.operating_expense_payable : null;
-  /* التسمية الكنونية لنوع الالتزام تظهر دائمًا (بيتها الوحيد في
-   * financialEventLabels) — والملاحظة المصدر عنوان الصف حين وجدت. */
-  const showKindLabel = entry.kind === "expense_payable" && entry.title.trim() !== "";
+/* ─── صف المهمة (U018-A2): نوع وفعل واضحان ثم الاسم والموعد ثم مبلغ بدوره ─── */
+
+function FollowUpRow({ task, onOpen }: { task: FollowUpTask; onOpen: (href: string) => void }) {
+  const typeLabel = TASK_TYPE_LABELS[task.taskKind] ?? "مهمة متابعة";
+  const actionLabel = TASK_ACTION_LABELS[task.taskKind] ?? "فتح المصدر";
   return (
-    <div className="micro-supplier-balance">
-      <div>
-        <strong dir="auto">{entry.title || kindLabel}</strong>
-        {showKindLabel && kindLabel ? <small>{kindLabel}</small> : null}
-        {entry.note ? <small dir="auto">{entry.note}</small> : null}
-        {entry.qualifier ? <small dir="auto">{entry.qualifier}</small> : null}
-      </div>
-      <div>
-        <b className="micro-supplier-payable">
-          المتبقي (د.أ): <MoneyValue minor={entry.amountMinor} className="micro-inline-number" />
-        </b>
+    <button className="micro-draft-row" type="button" onClick={() => onOpen(task.sourceHref)}>
+      <span className="micro-draft-symbol">
+        <BellRing aria-hidden="true" />
+      </span>
+      <span>
+        <strong dir="auto">
+          {typeLabel} — {task.title}
+          {task.party ? ` · ${task.party}` : ""}
+        </strong>
         <small>
-          {entry.dateKind === "supplier_due" ? (
-            <>
-              الاستحقاق: <LocalDateValue value={entry.dueOn} />
-              {label ? ` · ${label}` : null}
-            </>
+          {task.dueOn === null ? (
+            task.dateState === "invalid" ? (
+              "الموعد يحتاج تصحيحًا"
+            ) : (
+              "لم يحدد موعدها"
+            )
           ) : (
-            "بلا تاريخ استحقاق مخزّن"
+            <>
+              <LocalDateValue value={task.dueOn} />
+              {task.scheduledTime ? (
+                <>
+                  {" "}
+                  · <TimeValue value={task.scheduledTime} />
+                </>
+              ) : null}
+            </>
           )}
         </small>
-        <Button action="secondary" onClick={() => openSource(entry.sourceHref)}>
-          افتح السجل
-        </Button>
-      </div>
-    </div>
+        {task.amountMinor !== null && task.amountRole !== null ? (
+          <small>
+            {task.amountRole}
+            {task.amountProposed ? " (مقترح — ليس دينًا)" : ""}:{" "}
+            <MoneyValue minor={task.amountMinor} className="micro-inline-number" />
+          </small>
+        ) : null}
+        <small className="micro-row-next-action">الخطوة التالية: {actionLabel} — من مصدره.</small>
+      </span>
+      <ChevronLeft aria-hidden="true" />
+    </button>
   );
 }

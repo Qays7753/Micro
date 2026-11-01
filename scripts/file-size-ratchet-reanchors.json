@@ -7469,6 +7469,234 @@
         "trigger": "S12-FIN-001/ATOMIC-001/TRANSFER-001 fix batch measured on the live tree (root fixes with durable regressions)",
         "ocRef": "DOC-021"
       }
+    },
+    {
+      "id": "S13-ORDERS-DESTINATION-20261102-394",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/Orders.tsx",
+      "from": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 757,
+        "band": "WATCH"
+      },
+      "reason": "S13 (UNIT-006/ORD-A..F + SH-17): وجهة «الطلبات» معاد بناؤها — قائمة افتراضية بنطاقات حالية/سابق/كل وبحث ولوحة تصفية قبل حد العرض، وتقويم شهر/أسبوع/يوم من قراءة المواعيد النقية بقائمة يوم ومدخل طلبات بلا موعد وطلب جديد يحمل اليوم المختار اقتراحًا؛ البيع المباشر أزيل من الوجهة إلى المالية (ORD-D01) — بلا تقسيم بنيوي (بوابة ما بعد المجموعة ٦).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §6 — implement the complete S13 scope UNIT-006/012/018 + SH-17 on the same branch/PR; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 implementation slice measured on the live tree (approved screen/flow redesign per UNIT-006/012/018)",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S13-UNIFIED-FOLLOWUP-20261102-395",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/FinanceUpcoming.tsx",
+      "from": {
+        "nbLoc": 257,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 353,
+        "band": "NORMAL"
+      },
+      "reason": "S13 (UNIT-018/A1..B8): سطح «المتابعة» الموحدة — مجموعات متأخر/اليوم/قادم/لم يحدد موعدها بعدد صادق، ولوحة تصفية نوع وفترة، وعزل مصادر فاشلة بإعلان باسمها وإعادة محاولة واعية، والفعل يفتح صاحبه — قراءة خالصة بلا كتابة. (395a: القيمة 351→353 بعد إصلاح حدود الوحدات — تركيب العدسة من باب الجدولة بدل الاستيراد العميق، بروتوكول OD-10/STR-615.)",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §6 — implement the complete S13 scope UNIT-006/012/018 + SH-17 on the same branch/PR; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 implementation slice measured on the live tree (approved screen/flow redesign per UNIT-006/012/018)",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S13-CALC-PROPOSAL-20261102-396",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/DraftEditor.tsx",
+      "from": {
+        "nbLoc": 525,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 1032,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S13 (CAL-C — أمر 2158b0fc §6): اقتراح موعد التقويم يصل محرر المسودة اقتراحًا ظاهرًا قابلًا للإزالة وينتقل بهوية المسودة لمراجعته عند خطوة الاتفاق مرة واحدة — لا حفظ من الفتح ولا حقل خفي؛ عابر الشريط إلى SPLIT_CANDIDET بتوثيق نفس-الـPR (لا تقسيم بنيوي — بوابة ما بعد المجموعة ٦).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §6 — implement the complete S13 scope UNIT-006/012/018 + SH-17 on the same branch/PR; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 implementation slice measured on the live tree (approved screen/flow redesign per UNIT-006/012/018)",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S13-CALC-PROPOSAL-20261102-397",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/AgreementEditor.tsx",
+      "from": {
+        "nbLoc": 652,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 763,
+        "band": "WATCH"
+      },
+      "reason": "S13 (CAL-C): استهلاك اقتراح موعد التقويم مرة واحدة عند أول تحميل للاتفاق — قيمة مبدئية ظاهرة قابلة للتعديل والإزالة («لم يُحدد بعد» الصريح)؛ لا حقل خفي ولا كتابة من الفتح.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §6 — implement the complete S13 scope UNIT-006/012/018 + SH-17 on the same branch/PR; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 implementation slice measured on the live tree (approved screen/flow redesign per UNIT-006/012/018)",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S13-SCHEDULE-LINK-20261102-398",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/Schedule.tsx",
+      "from": {
+        "nbLoc": 996,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1010,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S13 (UNIT-012/018 — DUP-017): وصلة صادقة من صفحة تحرير المواعيد إلى قراءة المتابعة الموحدة (الوجهة الواحدة للمواعيد والاستحقاقات) — لا قائمة قراءة ثانية دائمة.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §6 — implement the complete S13 scope UNIT-006/012/018 + SH-17 on the same branch/PR; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 implementation slice measured on the live tree (approved screen/flow redesign per UNIT-006/012/018)",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S13-AGREEMENTS-DOOR-20261102-399",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/agreements/index.ts",
+      "from": {
+        "nbLoc": 20,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 31,
+        "band": "NORMAL"
+      },
+      "reason": "S13 (CAL-C — أمر 2158b0fc §6): توسيع مقصود موثق لباب البيت (PC-3) — تصدير حالة جلسة اقتراح موعد التقويم الأربع (تسجيل/قراءة/استهلاك/إزالة) لمحرري المسودة والاتفاق عبر الباب بدل الاستيراد العميق (STR-615/حارس ARCH-010).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §6 — implement the complete S13 scope UNIT-006/012/018 + SH-17 on the same branch/PR; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 CAL-C session-proposal door surface measured on the live tree",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S13-FOLLOWUP-DOOR-20261102-400",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/follow-up/index.ts",
+      "from": {
+        "nbLoc": 12,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 29,
+        "band": "NORMAL"
+      },
+      "reason": "S13 (UNIT-018 — أمر 2158b0fc §6): توسيع مقصود موثق لباب البيت (PC-3) — تصدير قارئ المتابعة الموحدة وأنواعه (الخدمة والإسقاط والتصفية وحالات المصادر) لسطح «المتابعة» عبر الباب (STR-615).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §6 — implement the complete S13 scope UNIT-006/012/018 + SH-17 on the same branch/PR; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 unified follow-up reader door surface measured on the live tree",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S13-SCHEDULING-DOOR-20261102-401",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/scheduling/index.ts",
+      "from": {
+        "nbLoc": 20,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 41,
+        "band": "NORMAL"
+      },
+      "reason": "S13 (UNIT-006/012/018 — أمر 2158b0fc §6): توسيع مقصود موثق لباب البيت (PC-3) — تصدير القراءة النقية لمجتمع المواعيد (القارئ والنوافذ والترتيب والتصنيف) وعدنة التسليمات النشطة (activeDeliveryLens) لوجهة الطلبات والمتابعة عبر الباب (STR-615/OD-10).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §6 — implement the complete S13 scope UNIT-006/012/018 + SH-17 on the same branch/PR; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 schedule-community read door surface measured on the live tree",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S13-DOOR-BASELINE-20261102-402",
+      "date": "2026-11-02",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 437,
+        "band": "WATCH"
+      },
+      "reason": "S13 (DOC-022 — أمر 2158b0fc §6): تسجيل التوسيعات الثلاثة المقصودة للأبواب (اتفاقات/متابعة/جدولة) في أساس أسطح الأبواب نفس-الـPR — النمو مرئي موثق لا صامت (PC-3/R5-S2)؛ عبور الشريط إلى WATCH بتوثيق نفس-الـPR بلا تقسيم (بوابة ما بعد المجموعة ٦).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §6 — implement the complete S13 scope UNIT-006/012/018 + SH-17 on the same branch/PR; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 door-surface baseline registration measured on the live tree",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S13-CENSUS-EDGE-20261102-403",
+      "date": "2026-11-02",
+      "path": "scripts/application-house-edges-census.json",
+      "from": {
+        "nbLoc": 891,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 927,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S13 (DOC-022 — أمر 2158b0fc §6): حافة معفاة واحدة جديدة ظاهرة (follow-up/unifiedFollowUpService → time/clock — منفذ systemClock الموثق بنمط المواقع الـ53) + ملاحظة التوثيق؛ النمو مرئي لا صامت (OD-10).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §6 — implement the complete S13 scope UNIT-006/012/018 + SH-17 on the same branch/PR; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 exempt-target census edge added visibly in the same PR",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S13-READWRITE-CORPUS-20261102-404",
+      "date": "2026-11-02",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 315,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 333,
+        "band": "NORMAL"
+      },
+      "reason": "S13 (DOC-022 — أمر 2158b0fc §6): التحاق الملفات الثلاثة القرائية الجديدة بجسم القراءة المحروس بتصنيف موثق نفس-الـPR (unifiedFollowUpService وscheduleReads وعدنته الاختبارية) — القارئ لا يكتب (D-04).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §6 — implement the complete S13 scope UNIT-006/012/018 + SH-17 on the same branch/PR; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 read-corpus membership registration measured on the live tree",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S13-TEXT-DENSITY-CAPS-20261102-405",
+      "date": "2026-11-02",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 916,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S13 (DOC-022 — أمر 2158b0fc §6): رفع راتشة كثافة النص لسطحين مفروضين من مواصفات المرحلة — DraftEditor 71→72 (إفصاح اقتراح موعد التقويم CAL-AC05/06) وFinanceUpcoming 51→57 (تسميات مجموعات المتابعة الموحدة ولوحة التصفية وأدوار المبالغ A1..B7)؛ القيم = القياس الفعلي والراتشة تبقى.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §6 — implement the complete S13 scope UNIT-006/012/018 + SH-17 on the same branch/PR; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 stage-mandated label caps measured on the live tree",
+        "ocRef": "DOC-022"
+      }
     }
   ]
 }

@@ -7,6 +7,7 @@
  * اختياري بعد الحفظ، ومسودة نموذج عابرة تستعيد النص الخام نفسه ولو كان غير
  * صالح (U007-AC03) دون أي أثر مالي. */
 import { useEffect, useRef, useState } from "react";
+import { clearScheduleProposal, storeScheduleProposal } from "@/application/agreements";
 import { ArrowRight, BookOpen, Plus, Save, Trash2 } from "lucide-react";
 import { useLocation, useParams, useSearch } from "wouter";
 import { useReturnPath, useReferrerLinks } from "@/app/useReturnNavigation";
@@ -137,6 +138,13 @@ function estimateIdFromSearch(search: string): string | null {
   const value = new URLSearchParams(search).get("estimate");
   return value && value.trim() ? value : null;
 }
+/* S13 (CAL-C — أمر 2158b0fc §6): اقتراح موعد التقويم — يوم مختار من تقويم
+ * الطلبات يصل مع نية الإنشاء اقتراحًا ظاهرًا قابلًا للإزالة؛ لا يُحفظ من
+ * الفتح ولا يحجز يومًا، وينتقل لمراجعته عند خطوة الاتفاق مرة واحدة. */
+function proposalFromSearch(search: string): string | null {
+  const value = new URLSearchParams(search).get("propose");
+  return value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
+}
 const estimateKnowledgeLabel: Record<CostEstimate["knowledgeState"], string> = {
   known: "معروفة",
   estimated: "تقديرية",
@@ -219,6 +227,16 @@ export default function DraftEditor() {
   const isNewDraft = params.id === "new";
   const intent = intentFromSearch(search);
   const estimateId = estimateIdFromSearch(search);
+  /* S13 (CAL-C): اقتراح موعد التقويم — يُخزن لحظة الفتح بحالة جلسة محدودة
+   * بمفتاح المسودة (يُستهلك عند خطوة الاتفاق مرة) ويظهر هنا اقتراحًا
+   * قابلًا للإزالة؛ الفتح وحده لا يحفظ مسودة ولا موعدًا ولا يحجز يومًا. */
+  const [calendarProposal, setCalendarProposal] = useState<string | null>(() => proposalFromSearch(search));
+  useEffect(() => {
+    const proposed = proposalFromSearch(search);
+    if (proposed === null || isNewDraft) return;
+    /* تعذر حالة الجلسة يعدي بصمت داخل الوحدة — يضيع الاقتراح فقط بلا أثر مالي. */
+    storeScheduleProposal(params.id, proposed);
+  }, [search, isNewDraft, params.id]);
   const [state, setState] = useState<EditorState>("loading");
   const [draft, setDraft] = useState<OrderDraft | null>(null);
   const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
@@ -494,6 +512,9 @@ export default function DraftEditor() {
 
   async function save(andContinue: boolean): Promise<boolean> {
     if (!draft) return false;
+    /* S13 (CAL-C): الاقتراح ينتقل بهوية المسودة المحفوظة — يظهر عند خطوة
+     * الاتفاق للمراجعة مرة واحدة؛ إزالته هنا تسقطه كليًا (قرار صريح). */
+    if (calendarProposal !== null) storeScheduleProposal(draft.id, calendarProposal);
     if (andContinue && !draft.itemName.trim()) {
       setFeedback({
         kind: "error",
@@ -672,6 +693,24 @@ export default function DraftEditor() {
       </div>
       {/* U-004: إشعار الجسر من التقدير — اقتراحات معلنة لا أسعار مؤكدة. */}
       {estimateNotice ? <FeedbackNote kind="advisory" word={estimateNotice} /> : null}
+      {/* S13 (CAL-C): اقتراح موعد التقويم ظاهر قابل للإزالة — لا حقل خفي
+          ولا حفظ من الفتح ولا حجز يوم؛ مراجعته عند خطوة الاتفاق. */}
+      {calendarProposal ? (
+        <p className="micro-save-note" role="status">
+          موعد تسليم مقترح من اليوم المختار في التقويم: {calendarProposal} — سيظهر عند خطوة الاتفاق للمراجعة،
+          ويمكنك تغييره أو إزالته هناك.{" "}
+          <button
+            type="button"
+            className="micro-text-action"
+            onClick={() => {
+              setCalendarProposal(null);
+              clearScheduleProposal(params.id);
+            }}
+          >
+            أزل الاقتراح
+          </button>
+        </p>
+      ) : null}
       {/* S09: عرض استعادة مسودة النموذج صريح — استرجع أو تجاهل، لا تطبيق صامت. */}
       {formDraft.state.phase === "restore-offer" ? (
         <FormDraftRestoreBanner

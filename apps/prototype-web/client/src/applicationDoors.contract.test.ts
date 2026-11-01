@@ -55,6 +55,13 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
     "classifyFollowUpDate",
     "protectionPriceIsReadyForAgreement",
     "startAgreementPrice",
+    /* S13 (CAL-C — أمر 2158b0fc §6): حالة جلسة اقتراح موعد التقويم بين
+     * خطوات الطلب — القيم الأربع عبر الباب (توسيع مقصود PC-3 بنفس الـPR
+     * يطابق حارس أسطح الأبواب وأساسه المحدث). */
+    "clearScheduleProposal",
+    "consumeScheduleProposal",
+    "readScheduleProposal",
+    "storeScheduleProposal",
   ],
   assets: [],
   catalog: [],
@@ -68,7 +75,9 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
   ],
   estimates: [],
   "financial-pulse": [],
-  "follow-up": [],
+  /* S13 (DOC-022 / UNIT-018 — أمر 2158b0fc §6): قارئ المتابعة الموحدة
+   * «012/018» عبر الباب (توسيع مقصود PC-3 بنفس الـPR). */
+  "follow-up": ["UnifiedFollowUpService", "projectFollowUp"],
   fulfillment: [],
   home: [],
   input: [
@@ -96,7 +105,19 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
    * حارس ترشيح تفضيل العرض عبر الباب لمستهلكي الواجهة (السؤال في 001
    * والمحرر في 038)؛ النوع OfferingPreference مسجل في سطح الأنواع أدناه. */
   preferences: ["isKnownCapabilityId", "isOfferingPreference"],
-  scheduling: ["buildCapacityDecisionViewModel"],
+  /* S13 (DOC-022 / UNIT-006+012+018 — أمر 2158b0fc §6): القراءة النقية
+   * لمجتمع المواعيد وعدنة التسليمات النشطة عبر الباب (توسيع مقصود PC-3
+   * بنفس الـPR). */
+  scheduling: [
+    "activeDeliveryLens",
+    "activeEntries",
+    "bucketOfDate",
+    "buildCapacityDecisionViewModel",
+    "compareEntries",
+    "entriesForDate",
+    "readScheduleCommunity",
+    "windowOf",
+  ],
   /* S02-B (SH-04 — UNIT-042): باب الأمن بعد تقاعد القفل — المقيم الوحيد
    * هو تقاعد السجل القديم؛ لا خدمة قفل ولا خياراتها بعد اليوم. */
   security: ["retireLocalLockRecord"],

@@ -126,6 +126,9 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "financial-pulse/financialPulseService.ts",
   "financial-pulse/index.ts",
   "follow-up/dailyFollowUpService.ts",
+  /* S13 (DOC-022 / UNIT-018 — أمر 2158b0fc §6): القارئ الموحد للمتابعة
+   * «012/018» — قراءة خالصة فوق أصحاب المصادر بعدسات بنيوية؛ لا فعل كتابة. */
+  "follow-up/unifiedFollowUpService.ts",
   "follow-up/index.ts",
   "formatting/formatters.ts",
   "fulfillment/deliveryAttribution.ts",
@@ -163,6 +166,11 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "scheduling/capacityDecisionService.ts",
   "scheduling/capacityDecisionViewModel.ts",
   "scheduling/index.ts",
+  /* S13 (DOC-022 / UNIT-006+012 — أمر 2158b0fc §6): القراءة النقية لمجتمع
+   * المواعيد (قائمة/تقويم/متابعة) وعدنة التسليمات النشطة — قراءة فقط؛
+   * والعدنة الاختبارية فوقها بنمط drafts/formDraftTestHarness. */
+  "scheduling/scheduleReads.ts",
+  "scheduling/scheduleReadsTestHarness.ts",
   "scheduling/scheduleViewModel.ts",
   "security/index.ts",
   "share/index.ts",

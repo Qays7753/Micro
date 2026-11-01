@@ -1,15 +1,23 @@
 /** @vitest-environment jsdom */
-
+/**
+ * S13 (DOC-022 / UNIT-006 — أمر 2158b0fc §6): وجهة «الطلبات» — قائمة
+ * افتراضية وتقويم بديل من المصادر نفسها: لا بيع مباشر هنا (ORD-D01)،
+ * والمسودة غير المرتبطة تظهر مرة، والبحث والتصفية على المجتمع المقروء،
+ * والسابق بمدخل واضح حتى في فراغ الحالية، والتقويم شهر/أسبوع/يوم بقائمة
+ * يوم و«طلبات بلا موعد» وطلبًا جديدًا يحمل اليوم المختار اقتراحًا (CAL-C)
+ * — وكل التفاعلات عرض لا كتابة (SDF-013).
+ */
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import Orders from "@/pages/Orders";
+import { createScheduleReadsHarness } from "@/application/scheduling/scheduleReadsTestHarness";
 import type { OrderDraft, StoredCraftOrder } from "@/storage/local/types";
-import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
+  getPrototypeLocalStore: vi.fn(),
 }));
 
 const wouterMocks = { navigate: vi.fn() };
@@ -20,557 +28,283 @@ vi.mock("wouter", () => ({
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+const mockedGetStore = vi.mocked(getPrototypeLocalStore);
 
-const emptyFollowUp = {
-  kind: "empty" as const,
-  title: "لا توجد طلبات بعد",
-  truth: "لم تحفظ طلبًا أو مسودة محلية حتى الآن.",
-  nextAction: "ابدأ بطلب واحد من عميل تعرف قصته.",
-  href: "/orders/new",
-  actionLabel: "بدء طلب",
-};
-
-function savedOrder(id: string): StoredCraftOrder {
+function savedOrder(
+  id: string,
+  options: { status?: string; deliveryDate?: string | null; customer?: string } = {},
+): StoredCraftOrder {
   return {
     id,
     catalogItemId: null,
-    deliveryDate: "2026-08-30",
+    deliveryDate: options.deliveryDate === undefined ? "2026-11-20" : options.deliveryDate,
     agreementSource: null,
+    followUpSummary: null,
+    followUpDate: null,
+    followUpReason: null,
+    followUpEvents: [],
     createdAt: "2026-08-29T08:00:00.000Z",
     updatedAt: "2026-08-29T08:00:00.000Z",
     order: {
       id,
-      itemName: "طاولة اختبار",
-      customerName: "عميل اختبار",
+      itemName: `طلب ${id}`,
+      customerName: options.customer ?? "عميل اختبار",
       specifications: "مواصفة اختبار",
       quantity: 1,
       agreedPriceMinor: 10000,
-      status: "provisional_agreement",
+      status: (options.status ?? "provisional_agreement") as never,
       settlementStatus: "unpaid",
       receivableMinor: 10000,
       collectedMinor: 0,
       nextAction: "راجع السعر",
     },
-  } as StoredCraftOrder;
+  } as unknown as StoredCraftOrder;
 }
 
-function savedSale(id: string): DirectSale {
+function unlinkedDraft(id: string): OrderDraft {
   return {
     id,
-    itemName: "كوب جاهز",
-    quantity: 2,
-    currency: "JOD",
-    revenueMinor: 1200,
-    collectedMinor: 1200,
-    costMinor: null,
-    profitMinor: null,
-    occurredOn: "2026-08-29",
-    recordedAt: "2026-08-29T09:00:00.000Z",
-    note: "بيع مباشر",
-    idempotencyKey: "sale-ui-1",
-  };
+    intent: "customer_order",
+    customerName: "",
+    itemName: "مسودة اختبار",
+    specifications: "",
+    quantity: 1,
+    catalogItemId: null,
+    costSnapshots: [],
+    activeCostSnapshotId: null,
+    linkedOrderId: null,
+    createdAt: "2026-08-28T08:00:00.000Z",
+    updatedAt: "2026-08-28T08:00:00.000Z",
+  } as unknown as OrderDraft;
 }
 
-describe("Work destination", () => {
+function makeStore(
+  orders: readonly StoredCraftOrder[],
+  schedules: Array<{ id: string; orderId: string; date: string }> = [],
+) {
+  /* الصفحات لا تستورد طبقة التخزين (حدود المجموعة ٦) — العدة التطبيقية تبني المخزن. */
+  const store = createScheduleReadsHarness().store;
+  for (const order of orders) void store.saveOrder(order);
+  for (const schedule of schedules)
+    void store.saveSchedule({
+      id: schedule.id,
+      orderId: schedule.orderId,
+      kind: "delivery",
+      scheduledFor: schedule.date,
+      scheduledTime: null,
+      durationMinutes: null,
+      status: "scheduled",
+      postponeReason: null,
+      events: [],
+      recurrenceId: null,
+      recurrenceIndex: null,
+      createdAt: "2026-08-29T08:00:00.000Z",
+      updatedAt: "2026-08-29T08:00:00.000Z",
+    } as never);
+  return store;
+}
+
+function mockServices(orders: readonly StoredCraftOrder[], drafts: readonly OrderDraft[] = []) {
+  mockedUsePrototypeServices.mockReturnValue({
+    dailyFollowUp: {
+      read: vi.fn().mockResolvedValue({ ok: true, followUp: null, drafts, orders }),
+    },
+    dataVersion: 0,
+  } as unknown as ReturnType<typeof usePrototypeServices>);
+  mockedGetStore.mockReturnValue(makeStore(orders) as never);
+}
+
+describe("S13 — وجهة الطلبات (UNIT-006)", () => {
   afterEach(() => cleanup());
 
   beforeEach(() => {
     wouterMocks.navigate.mockReset();
-    mockedUsePrototypeServices.mockReturnValue({
-      dailyFollowUp: {
-        read: vi.fn().mockResolvedValue({
-          ok: true,
-          drafts: [],
-          orders: [],
-          followUp: emptyFollowUp,
-        }),
-      },
-      directSales: {
-        list: vi.fn().mockResolvedValue({ ok: true, value: [] }),
-      },
-      schedules: {
-        overview: vi.fn().mockResolvedValue({
-          ok: true,
-          value: {
-            overdue: [],
-            today: [],
-            upcoming: [],
-            week: [],
-            dailyCapacityMinutes: null,
-            completedOrClosed: 0,
-          },
-        }),
-      },
-      dataVersion: 0,
-    } as unknown as ReturnType<typeof usePrototypeServices>);
   });
 
-  it("keeps direct sales visible without showing an empty orders section", async () => {
+  it("القائمة الافتراضية: عنوان الطلبات وزر طلب جديد — ولا قسم بيع مباشر هنا (ORD-D01)", async () => {
+    mockServices([savedOrder("order-1")], []);
     render(<Orders />);
-
-    await waitFor(() => expect(screen.getByRole("heading", { name: "العمل" })).toBeTruthy());
-    expect(screen.getByRole("heading", { name: "مبيعاتي" })).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "طلباتي" })).toBeNull();
-    expect(screen.queryByText("لا توجد طلبات بعد")).toBeNull();
+    await screen.findByRole("heading", { name: "الطلبات" });
+    expect(screen.getByRole("button", { name: /طلب جديد/ })).toBeTruthy();
+    /* البيع المباشر عند المالية — لا قائمة مبيعات داخل وجهة الطلبات. */
+    expect(screen.queryByText("مبيعاتي")).toBeNull();
+    expect(screen.getByText("طلب order-1")).toBeTruthy();
   });
 
-  it("adds the saved orders section after the first order without changing the destination", async () => {
-    const read = vi
-      .fn()
-      .mockResolvedValueOnce({ ok: true, drafts: [], orders: [], followUp: emptyFollowUp })
-      .mockResolvedValueOnce({
-        ok: true,
-        drafts: [],
-        orders: [savedOrder("order-1")],
-        followUp: {
-          ...emptyFollowUp,
-          kind: "active_order" as const,
-          title: "طاولة اختبار",
-          truth: "طلب محفوظ.",
-          nextAction: "راجع السعر",
-          href: "/orders/order-1",
-          actionLabel: "فتح الطلب",
+  it("المسودة غير المرتبطة تظهر مرة بوصف مسودة — ومدخلها محررها", async () => {
+    mockServices([savedOrder("order-1")], [unlinkedDraft("draft-1")]);
+    render(<Orders />);
+    await screen.findByText("مسودة اختبار");
+    expect(screen.getAllByText(/مسودة اختبار/)).toHaveLength(1);
+    fireEvent.click(screen.getByText("مسودة اختبار"));
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(expect.stringContaining("/orders/draft/draft-1"));
+  });
+
+  it("السابق بمدخل واضح حتى مع وجود حالية — والفراغ الصادق لا ينفي السابق", async () => {
+    mockServices([savedOrder("order-past", { status: "delivered" })], []);
+    render(<Orders />);
+    await screen.findByText(/الطلبات السابقة/);
+    /* الحالية فارغة: الفراغ يقال بصدق مع مدخل السابق ظاهرًا. */
+    expect(screen.getByText(/لا طلبات حالية/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /الطلبات السابقة/ }));
+    await screen.findByText("طلب order-past");
+  });
+
+  it("SDF-061: استجابة الجيل القديم تُهمل — لا خلط بين أجيال القراءة", async () => {
+    /* قراءة المتابعة اليومية مضبوطة يدويًا: الأولى (القديمة) تبقى معلقة
+     * بينما تكتمل الثانية (الأحدث) قبلها ثم تُفتح الأولى متأخرة. */
+    const staleRead = new Promise<{
+      ok: true;
+      followUp: null;
+      drafts: [];
+      orders: readonly StoredCraftOrder[];
+    }>(resolve => {
+      releaseStale = () =>
+        resolve({ ok: true, followUp: null, drafts: [], orders: [savedOrder("order-stale")] });
+    });
+    let releaseStale: () => void = () => undefined;
+    let dataVersion = 0;
+    const readCalls: Array<unknown> = [];
+    /* هوية الخدمة ثابتة عبر الرسم — dataVersion وحده يتغير عبر getter —
+     * فلا تتغير اعتماديات الأثر إلا بالجيل، لا بكل رسم (وإلا دارت حلقة). */
+    const stableServices = {
+      dailyFollowUp: {
+        read: () => {
+          readCalls.push(null);
+          /* النداء الأول (الجيل القديم) يعلق؛ الثاني (الأحدث) يكتمل فورًا. */
+          if (readCalls.length === 1) return staleRead;
+          return Promise.resolve({
+            ok: true,
+            followUp: null,
+            drafts: [],
+            orders: [savedOrder("order-stale"), savedOrder("order-fresh")],
+          });
         },
-      });
-    mockedUsePrototypeServices.mockReturnValue({
-      dailyFollowUp: { read },
-      directSales: {
-        list: vi.fn().mockResolvedValue({ ok: true, value: [] }),
       },
-      schedules: {
-        overview: vi.fn().mockResolvedValue({
-          ok: true,
-          value: {
-            overdue: [],
-            today: [],
-            upcoming: [],
-            week: [],
-            dailyCapacityMinutes: null,
-            completedOrClosed: 0,
-          },
-        }),
+      get dataVersion() {
+        return dataVersion;
       },
-      dataVersion: 0,
-    } as unknown as ReturnType<typeof usePrototypeServices>);
-
-    const view = render(<Orders key="inside-out" />);
-    await waitFor(() => expect(screen.queryByRole("heading", { name: "طلباتي" })).toBeNull());
-    expect(screen.getByRole("heading", { name: "مبيعاتي" })).toBeTruthy();
-
-    view.rerender(<Orders key="hybrid" />);
-    await waitFor(() => expect(screen.getByRole("heading", { name: "طلباتي" })).toBeTruthy());
-    expect(screen.getByRole("heading", { name: "العمل" })).toBeTruthy();
-    expect(screen.getByText("طاولة اختبار")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "مبيعاتي" })).toBeTruthy();
+    };
+    mockedUsePrototypeServices.mockImplementation(
+      () => stableServices as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    mockedGetStore.mockReturnValue(makeStore([]) as never);
+    const view = render(<Orders />);
+    await waitFor(() => expect(readCalls.length).toBe(1));
+    dataVersion = 1;
+    view.rerender(<Orders />);
+    /* الجيل الأحدث يكتمل أولًا ويُعرض: الطلبان معًا. */
+    await screen.findByText("طلب order-fresh");
+    expect(screen.getByText("طلب order-stale")).toBeTruthy();
+    expect(await screen.findByText(/2 طلبًا مقروءًا/)).toBeTruthy();
+    /* الجيل القديم يُفتح الآن متأخرة — استجابته تُهمل ولا تستبدل الأحدث. */
+    releaseStale();
+    await waitFor(() => expect(screen.getByText("طلب order-fresh")).toBeTruthy());
+    expect(screen.getByText(/2 طلبًا مقروءًا/)).toBeTruthy();
+    expect(screen.queryByText(/1 طلبًا مقروءًا/)).toBeNull();
   });
 
-  it("shows a cost-unknown direct sale beside orders with a compact row (profit deferred to the detail screen)", async () => {
-    mockedUsePrototypeServices.mockReturnValue({
-      dailyFollowUp: {
-        read: vi.fn().mockResolvedValue({
-          ok: true,
-          drafts: [],
-          orders: [savedOrder("order-hybrid")],
-          followUp: { ...emptyFollowUp, kind: "active_order", truth: "طلب محفوظ." },
-        }),
-      },
-      directSales: {
-        list: vi.fn().mockResolvedValue({ ok: true, value: [savedSale("sale-hybrid")] }),
-      },
-      schedules: {
-        overview: vi.fn().mockResolvedValue({
-          ok: true,
-          value: {
-            overdue: [],
-            today: [],
-            upcoming: [],
-            week: [],
-            dailyCapacityMinutes: null,
-            completedOrClosed: 0,
-          },
-        }),
-      },
-      dataVersion: 0,
-    } as unknown as ReturnType<typeof usePrototypeServices>);
-
+  it("البحث يصفّي على النطاق المعلن — ولا يوسع النطاق بصمت", async () => {
+    mockServices([savedOrder("order-a"), savedOrder("order-b", { customer: "ليان" })], []);
     render(<Orders />);
-
-    await waitFor(() => expect(screen.getByText("كوب جاهز")).toBeTruthy());
-    expect(screen.getByText("طاولة اختبار")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "مبيعاتي" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "طلباتي" })).toBeTruthy();
-    /* المجموعة ١ (§8.2): الربح ومراجعات السعر خلف شاشة التفصيل — الصف مختصر. */
-    expect(screen.queryByText(/الربح/)).toBeNull();
-    expect(screen.queryByText(/خـفّض السعر/)).toBeNull();
+    await screen.findByText("طلب order-a");
+    fireEvent.change(screen.getByLabelText("ابحث في الطلبات"), { target: { value: "ليان" } });
+    await waitFor(() => expect(screen.queryByText("طلب order-a")).toBeNull());
+    expect(screen.getByText("طلب order-b")).toBeTruthy();
   });
 
-  it("opens a saved direct sale from My Sales", async () => {
+  it("لوحة التصفية: تطبيق النطاق «بلا موعد» يفلتر قبل العرض — وإعادة الضبط تعلن", async () => {
+    mockServices([savedOrder("order-dated"), savedOrder("order-undated", { deliveryDate: null })], []);
+    render(<Orders />);
+    await screen.findByText("طلب order-dated");
+    fireEvent.click(screen.getByRole("button", { name: /تصفية/ }));
+    fireEvent.click(screen.getByRole("radio", { name: "بلا موعد" }));
+    fireEvent.click(screen.getByRole("button", { name: "تطبيق" }));
+    await waitFor(() => expect(screen.queryByText("طلب order-dated")).toBeNull());
+    expect(screen.getByText("طلب order-undated")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /تصفية/ }));
+    fireEvent.click(screen.getByRole("button", { name: "إعادة ضبط" }));
+    await screen.findByText("طلب order-dated");
+  });
+
+  it("فتح صف أو تبديل عرض لا يكتب شيئًا — التصفية والعرض قراءة فقط (SDF-013)", async () => {
+    mockServices([savedOrder("order-1")], []);
+    render(<Orders />);
+    await screen.findByText("طلب order-1");
+    fireEvent.click(screen.getByRole("radio", { name: /التقويم/ }));
+    await screen.findByRole("grid");
+    fireEvent.click(screen.getByRole("radio", { name: /قائمة الطلبات/ }));
+    await screen.findByText("طلب order-1");
+    /* لا مسار كتابة في الصفحة أصلًا — الاستدعاء الوحيد للتنقل فقط. */
+    expect(wouterMocks.navigate).not.toHaveBeenCalled();
+  });
+
+  it("التقويم: شهر/أسبوع/يوم من المصدر نفسه وقائمة يوم بلا 00:00 ومدخل طلبات بلا موعد", async () => {
+    const orders = [
+      savedOrder("order-cal", { deliveryDate: "2026-11-20" }),
+      savedOrder("order-none", { deliveryDate: null }),
+    ];
     mockedUsePrototypeServices.mockReturnValue({
       dailyFollowUp: {
-        read: vi.fn().mockResolvedValue({ ok: true, drafts: [], orders: [], followUp: emptyFollowUp }),
-      },
-      directSales: {
-        list: vi.fn().mockResolvedValue({ ok: true, value: [savedSale("sale-open")] }),
-      },
-      schedules: {
-        overview: vi.fn().mockResolvedValue({
-          ok: true,
-          value: {
-            overdue: [],
-            today: [],
-            upcoming: [],
-            week: [],
-            dailyCapacityMinutes: null,
-            completedOrClosed: 0,
-          },
-        }),
+        read: vi.fn().mockResolvedValue({ ok: true, followUp: null, drafts: [], orders }),
       },
       dataVersion: 0,
     } as unknown as ReturnType<typeof usePrototypeServices>);
-
+    const store = makeStore(orders, [{ id: "schedule-cal", orderId: "order-cal", date: "2026-11-20" }]);
+    mockedGetStore.mockReturnValue(store as never);
     render(<Orders />);
-
-    const sale = await screen.findByRole("button", { name: "فتح بيع كوب جاهز" });
-    fireEvent.click(sale);
-    /* المجموعة ١ (Scope A): الرابط يحفظ مصدره — الرجوع من المحرر يعود إلى «العمل». */
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/direct-sales/sale-open?returnTo=%2Forders");
+    await screen.findByText("طلب order-cal");
+    fireEvent.click(screen.getByRole("radio", { name: /التقويم/ }));
+    await screen.findByRole("grid");
+    /* اختيار اليوم يعرض مواعيده — بلا وقت محدد لا 00:00. */
+    const day2020 = screen.getByRole("gridcell", { name: /20\/11\/2026/ });
+    fireEvent.click(day2020);
+    await screen.findByText("طلب order-cal");
+    expect(screen.getByText(/دون وقت محدد/)).toBeTruthy();
+    /* طلبات بلا موعد مدخل واضح بعدد صادق. */
+    expect(screen.getByText("طلبات بلا موعد")).toBeTruthy();
+    expect(screen.getByText(/1 طلبًا مؤكدًا لم يُحدد له موعد/)).toBeTruthy();
+    /* الأسبوع واليوم بدائل عرض من المجتمع نفسه. */
+    fireEvent.click(screen.getByRole("radio", { name: "أسبوع" }));
+    await screen.findAllByRole("listitem");
+    fireEvent.click(screen.getByRole("radio", { name: "يوم" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "التالي" })).toBeTruthy());
   });
 
-  it("keeps the appointments section permanent with an honest empty state (F-070)", async () => {
+  it("طلب جديد من يوم مختار يحمل الاقتراح ظاهرًا — لا حفظ من الفتح (CAL-C)", async () => {
+    const orders = [savedOrder("order-cal", { deliveryDate: "2026-11-20" })];
     mockedUsePrototypeServices.mockReturnValue({
       dailyFollowUp: {
-        read: vi.fn().mockResolvedValue({
-          ok: true,
-          drafts: [],
-          orders: [savedOrder("order-schedule")],
-          followUp: { ...emptyFollowUp, kind: "active_order", truth: "طلب محفوظ." },
-        }),
-      },
-      directSales: {
-        list: vi.fn().mockResolvedValue({ ok: true, value: [] }),
-      },
-      schedules: {
-        overview: vi.fn().mockResolvedValue({
-          ok: true,
-          value: {
-            overdue: [],
-            today: [],
-            upcoming: [],
-            week: [],
-            dailyCapacityMinutes: null,
-            completedOrClosed: 0,
-          },
-        }),
+        read: vi.fn().mockResolvedValue({ ok: true, followUp: null, drafts: [], orders }),
       },
       dataVersion: 0,
     } as unknown as ReturnType<typeof usePrototypeServices>);
-
-    render(<Orders />);
-
-    expect(await screen.findByRole("heading", { name: "المواعيد" })).toBeTruthy();
-    expect(screen.getByText(/لا مواعيد بعد/)).toBeTruthy();
-    expect(screen.getByRole("button", { name: /افتح جدول المواعيد/ })).toBeTruthy();
-  });
-
-  it("lists an upcoming appointment with its own road into the editor (F-070)", async () => {
-    mockedUsePrototypeServices.mockReturnValue({
-      dailyFollowUp: {
-        read: vi.fn().mockResolvedValue({
-          ok: true,
-          drafts: [],
-          orders: [],
-          followUp: emptyFollowUp,
-        }),
-      },
-      directSales: {
-        list: vi.fn().mockResolvedValue({ ok: true, value: [] }),
-      },
-      schedules: {
-        overview: vi.fn().mockResolvedValue({
-          ok: true,
-          value: {
-            overdue: [],
-            today: [],
-            upcoming: [
-              {
-                schedule: {
-                  id: "schedule-1",
-                  scheduledFor: "2026-09-01",
-                  scheduledTime: "16:00",
-                  status: "scheduled",
-                },
-                order: savedOrder("order-schedule"),
-                bucket: "upcoming" as const,
-              },
-            ],
-            week: [],
-            dailyCapacityMinutes: null,
-            completedOrClosed: 0,
-          },
-        }),
-      },
-      dataVersion: 0,
-    } as unknown as ReturnType<typeof usePrototypeServices>);
-
-    render(<Orders />);
-
-    const appointment = await screen.findByRole("button", { name: /طاولة اختبار/ });
-    fireEvent.click(appointment);
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/schedule/schedule-1?returnTo=%2Forders");
-  });
-
-  /* المجموعة ١ (§8.1): «الأولوية الآن» دائمًا حتى بلا سجلات — بصدق لا بفبركة. */
-  it("renders the priority block even with no orders, sales, or drafts", async () => {
-    render(<Orders />);
-    expect(await screen.findByText("الأولوية الآن")).toBeTruthy();
-    expect(screen.getByText(/لا شيء مستعجل الآن/)).toBeTruthy();
-  });
-
-  it("offers the direct-sale secondary CTA and the first-sale empty action", async () => {
-    render(<Orders />);
-    const cta = await screen.findByRole("button", { name: /تسجيل بيع مباشر/ });
-    fireEvent.click(cta);
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/direct-sales/new?returnTo=%2Forders");
-    const firstSale = screen.getByRole("button", { name: /سجّل أول بيع/ });
-    expect(firstSale).toBeTruthy();
-  });
-
-  /* ── Z2.0 — عقود وضوح قائمة العمل (§3.3/§6): المرحلة والمؤهل المرحلي
-   * والفعل التالي في كل صف قابل للفعل؛ المسلّم يتأهل بلحظة التسليم لا
-   * بموعد مستحق مضى؛ صفوف التحصيل تعلن المتبقي؛ ومسودة تسمّي ناقصها
-   * الملموس (وصف/تكلفة/اتفاق) لا عبارة عامة. ── */
-
-  function workOrder(
-    id: string,
-    overrides: {
-      status?: string;
-      settlementStatus?: string;
-      receivableMinor?: number;
-      collectedMinor?: number;
-      nextAction?: string;
-      itemName?: string;
-      deliveredAt?: string | null;
-    },
-  ): StoredCraftOrder {
-    return {
-      id,
-      catalogItemId: null,
-      deliveryDate: "2026-08-30",
-      agreementSource: null,
-      createdAt: "2026-08-29T08:00:00.000Z",
-      updatedAt: "2026-08-29T08:00:00.000Z",
-      order: {
-        ...(savedOrder(id).order as object),
-        itemName: overrides.itemName ?? "طاولة اختبار",
-        status: overrides.status ?? "provisional_agreement",
-        settlementStatus: overrides.settlementStatus ?? "unpaid",
-        receivableMinor: overrides.receivableMinor ?? 10000,
-        collectedMinor: overrides.collectedMinor ?? 0,
-        nextAction: overrides.nextAction ?? "راجع السعر",
-        events: overrides.deliveredAt
-          ? [
-              {
-                id: `${id}:delivered`,
-                type: "status_changed",
-                toStatus: "delivered",
-                createdAt: overrides.deliveredAt,
-              },
-            ]
-          : [],
-      },
-    } as StoredCraftOrder;
-  }
-
-  function workingDraft(
-    id: string,
-    overrides: { itemName?: string; specifications?: string; hasCost?: boolean },
-  ): OrderDraft {
-    return {
-      id,
-      intent: "customer_order",
-      customerName: "سارة",
-      orderName: null,
-      itemName: overrides.itemName ?? "رف خشبي",
-      catalogItemId: null,
-      specifications: overrides.specifications ?? "مقاس كبير",
-      quantity: 1,
-      costSnapshots: overrides.hasCost ? ([{}] as unknown as OrderDraft["costSnapshots"]) : [],
-      activeCostSnapshotId: overrides.hasCost ? `${id}-cost` : null,
-      linkedOrderId: null,
-      createdAt: "2026-08-29T08:00:00.000Z",
-      updatedAt: "2026-08-29T08:00:00.000Z",
-    } as OrderDraft;
-  }
-
-  function mockWorkState(orders: readonly StoredCraftOrder[], drafts: readonly OrderDraft[]) {
-    mockedUsePrototypeServices.mockReturnValue({
-      dailyFollowUp: {
-        read: vi.fn().mockResolvedValue({
-          ok: true,
-          drafts,
-          orders,
-          followUp: {
-            kind: "active_order",
-            title: "طلب محفوظ",
-            truth: "طلب محفوظ.",
-            nextAction: "راجع السعر",
-            href: "/orders/order-1",
-            actionLabel: "فتح الطلب",
-          },
-        }),
-      },
-      directSales: {
-        list: vi.fn().mockResolvedValue({ ok: true, value: [] }),
-      },
-      schedules: {
-        overview: vi.fn().mockResolvedValue({
-          ok: true,
-          value: {
-            overdue: [],
-            today: [],
-            upcoming: [],
-            week: [],
-            dailyCapacityMinutes: null,
-            completedOrClosed: 0,
-          },
-        }),
-      },
-      dataVersion: 0,
-    } as unknown as ReturnType<typeof usePrototypeServices>);
-  }
-
-  const groupRow = async (groupTitle: string, itemName: string) => {
-    const heading = await screen.findByText(groupTitle);
-    const group = heading.parentElement;
-    expect(group).toBeTruthy();
-    const row = group?.querySelector("button.micro-draft-row");
-    expect(row).toBeTruthy();
-    expect(row?.textContent).toContain(itemName);
-    return row?.textContent ?? "";
-  };
-
-  it("Z2.0: every actionable group row exposes a non-empty stage label and next action", async () => {
-    mockWorkState(
-      [
-        workOrder("order-exec", {
-          status: "in_progress",
-          itemName: "مجسم جبس",
-          nextAction: "سجّل الجاهزية أو سبب التأجيل",
-        }),
-        workOrder("order-wait", {
-          status: "provisional_agreement",
-          itemName: "إطار صور",
-          nextAction: "أكد السعر والموعد",
-        }),
-        workOrder("order-debt", {
-          status: "delivered",
-          settlementStatus: "debt",
-          receivableMinor: 4000,
-          collectedMinor: 6000,
-          itemName: "لوحة زيتية",
-          nextAction: "تابع تحصيل الدين",
-        }),
-        workOrder("order-done", {
-          status: "settled",
-          settlementStatus: "paid",
-          receivableMinor: 0,
-          collectedMinor: 10000,
-          itemName: "خاتم فضة",
-          nextAction: "راجع النتيجة والخطوة التالية",
-        }),
-      ],
-      [],
+    mockedGetStore.mockReturnValue(
+      makeStore(orders, [{ id: "schedule-cal", orderId: "order-cal", date: "2026-11-20" }]) as never,
     );
     render(<Orders />);
-
-    const executingRow = await groupRow("يحتاج تنفيذًا الآن", "مجسم جبس");
-    expect(executingRow).toContain("قيد التنفيذ");
-    expect(executingRow).toMatch(/الخطوة التالية: ?\S/);
-
-    const waitingRow = await groupRow("ينتظر العميل", "إطار صور");
-    expect(waitingRow).toContain("اتفاق محفوظ");
-    expect(waitingRow).toMatch(/الخطوة التالية: ?\S/);
-
-    const collectionRow = await groupRow("ينتظر تحصيلًا", "لوحة زيتية");
-    expect(collectionRow).toContain("تم التسليم");
-    expect(collectionRow).toMatch(/الخطوة التالية: ?\S/);
-    expect(collectionRow).toContain("تابع تحصيل الدين");
-
-    const deliveredRow = await groupRow("تم تسليمه", "خاتم فضة");
-    expect(deliveredRow).toContain("مغلق");
-    expect(deliveredRow).toMatch(/الخطوة التالية: ?\S/);
-    expect(deliveredRow).toContain("راجع النتيجة والخطوة التالية");
+    await screen.findByText("طلب order-cal");
+    fireEvent.click(screen.getByRole("radio", { name: /التقويم/ }));
+    await screen.findByRole("grid");
+    fireEvent.click(screen.getByRole("gridcell", { name: /20\/11\/2026/ }));
+    /* زران باسم «طلب جديد» (رأس الصفحة وزر التقويم) — زر التقويم هو حامل
+     * الاقتراح؛ كلاهما قراءة، والاقتراح في وصلة زر التقويم وحده. */
+    const calendarNewOrder = screen
+      .getAllByRole("button", { name: /طلب جديد/ })
+      .find(button => button.closest("section[aria-labelledby='calendar-day-title']") !== null);
+    expect(calendarNewOrder).toBeTruthy();
+    fireEvent.click(calendarNewOrder!);
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(expect.stringContaining("propose=2026-11-20"));
   });
 
-  it("Z2.0: delivered rows qualify with the delivery moment, never a stale due date", async () => {
-    mockWorkState(
-      [
-        workOrder("order-done", {
-          status: "settled",
-          settlementStatus: "paid",
-          receivableMinor: 0,
-          collectedMinor: 10000,
-          itemName: "خاتم فضة",
-          nextAction: "راجع النتيجة والخطوة التالية",
-          deliveredAt: "2026-09-01T12:00:00.000Z",
-        }),
-      ],
-      [],
-    );
+  it("فشل القراءة: رسالة المنطقة وإعادة محاولة — لا فراغ شامل كاذب", async () => {
+    mockedUsePrototypeServices.mockReturnValue({
+      dailyFollowUp: { read: vi.fn().mockResolvedValue({ ok: false, message: "تعذر القراءة." }) },
+      dataVersion: 0,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
     render(<Orders />);
-
-    const deliveredRow = await groupRow("تم تسليمه", "خاتم فضة");
-    expect(deliveredRow).toContain("سُلّم في");
-    expect(deliveredRow).not.toContain("موعد التسليم");
-  });
-
-  it("Z2.0: awaiting-collection rows keep the remaining-amount line beside the delivery moment", async () => {
-    mockWorkState(
-      [
-        workOrder("order-debt", {
-          status: "delivered",
-          settlementStatus: "debt",
-          receivableMinor: 4000,
-          collectedMinor: 6000,
-          itemName: "لوحة زيتية",
-          nextAction: "تابع تحصيل الدين",
-          deliveredAt: "2026-09-01T12:00:00.000Z",
-        }),
-      ],
-      [],
-    );
-    render(<Orders />);
-
-    const collectionRow = await groupRow("ينتظر تحصيلًا", "لوحة زيتية");
-    expect(collectionRow).toContain("دين مسجل (د.أ):");
-    expect(collectionRow).toContain("سُلّم في");
-    expect(collectionRow).not.toContain("موعد التسليم");
-  });
-
-  it("Z2.0: draft rows name their concrete missing step, not the generic prompt alone", async () => {
-    mockWorkState(
-      [],
-      [
-        workingDraft("draft-no-name", { itemName: "", hasCost: false }),
-        workingDraft("draft-no-cost", { itemName: "رف خشبي", hasCost: false }),
-        workingDraft("draft-ready", { itemName: "صندوق خشبي", hasCost: true }),
-      ],
-    );
-    render(<Orders />);
-
-    const noNameRow = await screen.findByRole("button", { name: /مسودة تحتاج وصفًا/ });
-    expect(noNameRow.textContent).toMatch(/الخطوة التالية: ?\S/);
-    expect(noNameRow.textContent).toContain("وصف القطعة");
-    expect(noNameRow.textContent).not.toContain("أكمل ما تعرفه الآن");
-
-    const noCostRow = screen.getByRole("button", { name: /رف خشبي/ });
-    expect(noCostRow.textContent).toMatch(/الخطوة التالية: ?\S/);
-    expect(noCostRow.textContent).toContain("التكلفة");
-    expect(noCostRow.textContent).not.toContain("أكمل ما تعرفه الآن");
-
-    const readyRow = screen.getByRole("button", { name: /صندوق خشبي/ });
-    expect(readyRow.textContent).toMatch(/الخطوة التالية: ?\S/);
-    expect(readyRow.textContent).toContain("الاتفاق");
-    expect(readyRow.textContent).not.toContain("أكمل ما تعرفه الآن");
+    await screen.findByRole("heading", { name: "تعذر تحميل الطلبات" });
+    expect(screen.getByRole("alert").textContent).toContain("تعذر القراءة.");
+    expect(screen.getByRole("button", { name: "إعادة المحاولة" })).toBeTruthy();
   });
 });

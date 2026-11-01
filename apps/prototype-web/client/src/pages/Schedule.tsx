@@ -70,7 +70,7 @@ const monthDayNumber = (date: string) => formatLocalDate(date)?.slice(0, 2) ?? "
 const monthFirstDayOffset = (month: string) => localDateWeekdayIndex(`${month}-01`) ?? 0;
 
 export default function Schedule() {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   /* S1-10: الرجوع للمصدر (?from) مع بديل قانوني ثابت (عقد ٢٦ §٢.٢). */
   const returnPath = useReturnPath();
   const search = useSearch();
@@ -186,6 +186,20 @@ export default function Schedule() {
         <span className="micro-overline">التنظيم التشغيلي</span>
         <h1>المواعيد</h1>
       </div>
+      {/* S13 (UNIT-012/018 — أمر 2158b0fc §6): قراءة المتابعة الموحدة وجهة
+          واحدة للمواعيد والاستحقاقات — هذه الصفحة بيت تحرير الموعد وسعته
+          وتكراره؛ القارئ المشترك عند «المتابعة» لا قائمة ثانية دائمة. */}
+      <p className="micro-save-note" role="status">
+        هذه صفحة تحرير المواعيد وسعتها وتكرارها — قراءة المتابعة الموحدة (مواعيد واستحقاقات معًا) في مكان
+        واحد:{" "}
+        <button
+          type="button"
+          className="micro-text-action"
+          onClick={() => navigate(withReturnTo("/finance/upcoming", location))}
+        >
+          افتح المتابعة
+        </button>
+      </p>
       {decisionDay ? (
         <CapacityDecisionSurface
           day={decisionDay}

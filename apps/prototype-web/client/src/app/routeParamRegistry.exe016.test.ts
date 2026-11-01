@@ -38,6 +38,8 @@ const DOCUMENTED_PARAMS: Readonly<Record<string, string>> = {
   setup: "لافتة نجاح الإعداد الأول لمرة واحدة",
   created: "لافتة نجاح إنشاء الاتفاق لمرة واحدة",
   destinationWalletId: "المحفظة المقصودة في توزيع الكاش (EXE-016)",
+  propose:
+    "S13 (CAL-C — أمر 2158b0fc §6): موعد التسليم المقترح من اليوم المختار في تقويم الطلبات — يصل محرر المسودة اقتراحًا ظاهرًا قابلًا للتعديل/الإزالة ويُستهلك عند خطوة الاتفاق مرة واحدة؛ لا حفظ من الفتح ولا حجز يوم",
 };
 
 const PRODUCTION_DIRS = ["../pages", "../app", "../components", "../application"];

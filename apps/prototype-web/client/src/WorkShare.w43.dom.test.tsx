@@ -11,7 +11,7 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { DraftService } from "@/application/drafts/draftService";
@@ -30,6 +30,7 @@ import Orders from "@/pages/Orders";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
+  getPrototypeLocalStore: vi.fn(),
 }));
 
 const wouterMocks = vi.hoisted(() => ({
@@ -248,16 +249,19 @@ describe("Wave 4.3 — P-4.3-4: Work, orders, and sharing", () => {
     });
     wouterMocks.location = "/orders";
     wouterMocks.search = "";
+    vi.mocked(getPrototypeLocalStore).mockReturnValue(store);
     renderWithProviders(<Orders />);
-    /* المجموعات بترتيب العمل؛ الخطوة التالية في كل صف؛ الملغاة مطوية مرئية. */
-    const executingGroup = await screen.findByText("يحتاج تنفيذًا الآن");
-    expect(executingGroup.parentElement?.textContent).toContain("مجسم جبس");
-    expect(executingGroup.parentElement?.textContent).toContain("الخطوة التالية:");
-    const awaitingGroup = screen.getByText("ينتظر تحصيلًا");
-    expect(awaitingGroup.parentElement?.textContent).toContain("إطار صور");
-    const cancelledGroup = document.querySelector(".micro-orders-cancelled") as HTMLDetailsElement | null;
-    expect(cancelledGroup).toBeTruthy();
-    expect(cancelledGroup?.textContent).toContain("طلب ملغى");
-    expect(cancelledGroup?.textContent).toContain("تبقى في السجل للتدقيق");
+    /* S13 (UNIT-006/ORD-D02 — أمر 2158b0fc §6): الحالية أولًا والسابق بمدخل
+     * واضح؛ المنتهي تشغيليًا (دينه باقٍ) والملغى عند السابق — دينه لا يختفي
+     * ولا يسمى محصلًا، والخطوة التالية في صف الحالي. */
+    const executingRow = await screen.findByText("مجسم جبس");
+    expect(executingRow.closest("button")?.textContent).toContain("الخطوة التالية:");
+    /* مدخل السابق بعدد صادق يشمل الدين والملغى معًا. */
+    const pastEntry = await screen.findByText(/الطلبات السابقة/);
+    expect(pastEntry.closest("button")?.textContent).toContain("2");
+    fireEvent.click(pastEntry.closest("button")!);
+    const debtRow = await screen.findByText("إطار صور");
+    expect(debtRow.closest("button")?.textContent).toContain("المتبقي");
+    expect(await screen.findByText("طلب ملغى")).toBeTruthy();
   });
 });

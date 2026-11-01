@@ -1,66 +1,43 @@
 /** @vitest-environment jsdom */
-/* Stage 2 — OPS-005/006 (tracker): سطح «القادم والاستحقاقات» — قراءة موحدة
- * بمعنى ومصدر لكل نوع تاريخ؛ المجهول يبقى «بلا تاريخ استحقاق مخزّن»
- * والمبالغ ظاهرة (غياب التاريخ ليس غياب الدين)، والفتح لا يكتب سجلًا،
- * وفشل أي كتلة يعزل نفسه ببطاقة صادقة وإعادة محاولة والبقية حية. */
+/**
+ * S13 (DOC-022 / UNIT-018 — أمر 2158b0fc §6): سطح «المتابعة» الموحدة —
+ * المجموعات متأخر/اليوم/قادم/لم يحدد موعدها بعدد صادق، والفعل يفتح صاحبه
+ * ولا يكتب من هنا (SDF-013)، وفشل مصدر يعزل نفسه بإعلان باسمه والسليم
+ * باقيًا، والدورة غير المؤكدة تذكيرًا موسومًا «مقترحًا» لا دينًا.
+ */
 import React from "react";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
-import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
-import { DueDatesService } from "@/application/finance/dueDatesService";
-import { UpcomingService } from "@/application/finance/upcomingService";
-import { CollectionService } from "@/application/collections/collectionService";
-import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
-import { DirectSaleService } from "@/application/direct-sales/directSaleService";
-import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
-import { ScheduleService } from "@/application/scheduling/scheduleService";
-import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
-import type { StorageResult } from "@/storage/local/types";
-import {
-  calculateCostSnapshot,
-  collectDeposit,
-  createCraftOrder,
-  registerDebt,
-  transitionOrder,
-} from "@micro-domain/craft-order/index.js";
-import { createDirectSale } from "@micro-domain/direct-sale/index.js";
+import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import FinanceUpcoming from "@/pages/FinanceUpcoming";
+import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
+import type { StoredCraftOrder } from "@/storage/local/types";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
+  getPrototypeLocalStore: vi.fn(),
 }));
 
-const wouterMocks = vi.hoisted(() => ({ navigate: vi.fn(), location: "/finance/upcoming" }));
+const wouterMocks = { navigate: vi.fn() };
+
 vi.mock("wouter", () => ({
-  useLocation: () => [wouterMocks.location, wouterMocks.navigate],
   useSearch: () => "",
-  useParams: () => ({}),
+  useLocation: () => ["/finance/upcoming", wouterMocks.navigate],
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
-const NOW = "2026-09-16T09:00:00.000Z";
+const mockedGetStore = vi.mocked(getPrototypeLocalStore);
 
-function buildServices(store: MemoryLocalStore) {
-  const projectFinance = new ProjectFinancialService(store, () => NOW);
-  const fulfillment = new FulfillmentService(store, () => NOW);
-  const directSales = new DirectSaleService(store, () => NOW);
-  const collections = new CollectionService(store, fulfillment, directSales, projectFinance, () => NOW);
-  const schedules = new ScheduleService(store, () => NOW);
-  const dueDates = new DueDatesService(store, collections, () => NOW);
-  const upcoming = new UpcomingService(dueDates, collections, schedules, projectFinance);
-  return {
-    upcoming,
-    dataVersion: 0,
-    notifyDataChanged: () => undefined,
-  } as unknown as ReturnType<typeof usePrototypeServices>;
-}
+const NOW = "2026-11-02T09:00:00.000Z";
 
-function orderFor(id: string, deliveryDate: string) {
+function makeStoredOrder(
+  id: string,
+  options: { status?: string; deliveryDate?: string | null; receivableMinor?: number } = {},
+): StoredCraftOrder {
   const cost = calculateCostSnapshot(`${id}-cost`, {
-    currency: "JOD",
     source: "draft",
+    currency: "JOD",
     materialItems: [],
     time: { minutes: 60, hourlyRateMinor: 500, confidence: "known" },
     packagingMinor: 0,
@@ -68,214 +45,254 @@ function orderFor(id: string, deliveryDate: string) {
     wasteMinor: 0,
     safetyBufferMinor: 0,
     quantity: 1,
-    createdAt: "2026-08-20T09:00:00.000Z",
+    createdAt: NOW,
     freshnessDays: null,
   });
-  return createCraftOrder({
+  const order = createCraftOrder({
     id,
-    customerName: "ريم",
-    itemName: "شال مطرز",
+    customerName: "سارة",
+    itemName: `طلب ${id}`,
     specifications: "اختبار",
     quantity: 1,
-    agreedPriceMinor: 9000,
+    agreedPriceMinor: 2000,
     costSnapshot: cost,
-    createdAt: "2026-08-20T09:00:00.000Z",
+    createdAt: NOW,
   });
-}
-
-async function seedDraftOrder(store: MemoryLocalStore, id: string, deliveryDate: string) {
-  const saved = await store.saveOrder({
+  const receivableMinor = options.receivableMinor ?? 0;
+  return {
     id,
-    order: orderFor(id, deliveryDate),
-    catalogItemId: null,
-    deliveryDate,
-    agreementSource: "walk_in",
-    createdAt: "2026-08-20T09:00:00.000Z",
-    updatedAt: "2026-09-01T09:00:00.000Z",
-  });
-  if (!saved.ok) throw new Error("order should save");
-}
-
-async function seedPurchase(store: MemoryLocalStore, key: string, name: string, dueOn: string | null) {
-  const result = await new SupplierPurchaseService(store, () => NOW).recordPurchase({
-    supplierName: name,
-    note: "اختبار سطح قادم",
-    purchasedOn: "2026-09-01",
-    dueOn,
-    totalMinor: 20000,
-    initialPaidMinor: 0,
-    idempotencyKey: key,
-  });
-  if (!result.ok) throw new Error(result.message);
-}
-
-async function seedReceivableDebt(store: MemoryLocalStore) {
-  let order = orderFor("order-debt-dom", "2026-08-25");
-  order = collectDeposit(order, 2000, "order-debt-dom-deposit", "2026-08-20T10:00:00.000Z");
-  for (const [to, stamp] of [
-    ["provisional_agreement", "2026-08-20T11:00:00.000Z"],
-    ["confirmed", "2026-08-21T09:00:00.000Z"],
-    ["in_progress", "2026-08-22T09:00:00.000Z"],
-    ["ready", "2026-08-23T09:00:00.000Z"],
-    ["delivered", "2026-08-25T09:00:00.000Z"],
-  ] as const)
-    order = transitionOrder(order, { to, idempotencyKey: `order-debt-dom-${to}`, createdAt: stamp });
-  const orderWithDebt = registerDebt(order, "order-debt-dom-register", NOW);
-  const saved = await store.saveOrder({
-    id: "order-debt-dom",
-    order: orderWithDebt,
-    catalogItemId: null,
-    deliveryDate: "2026-08-25",
-    agreementSource: "walk_in",
-    createdAt: "2026-08-20T09:00:00.000Z",
-    updatedAt: "2026-08-25T09:00:00.000Z",
-  });
-  if (!saved.ok) throw new Error("order should save");
-  await store.saveDirectSale(
-    createDirectSale({
-      id: "sale-upcoming-dom",
-      itemName: "كعكة",
-      quantity: 1,
-      revenueMinor: 1200,
-      collectedMinor: 400,
-      collectionStatus: "partial_debt",
-      catalogItemId: null,
-      customerName: "سما",
-      costMinor: 300,
-      occurredOn: "2026-09-01",
-      recordedAt: NOW,
-      note: "بيع آجل",
-      idempotencyKey: "sale-upcoming-dom-key",
-    }),
-  );
-}
-
-async function seedObligation(store: MemoryLocalStore) {
-  const result = await new ProjectFinancialService(store, () => NOW).record({
-    type: "operating_expense_payable",
-    amountMinor: 15000,
-    occurredOn: "2026-09-12",
-    note: "كهرباء الورشة",
-    counterparty: null,
-    relatedEventId: null,
-    expenseContext: {
-      relationship: "project",
-      behavior: "fixed",
-      purpose: "project_general",
-      knowledge: "known",
-      sharedProjectShare: null,
-      categoryLabel: "كهرباء",
+    order: {
+      ...order,
+      status: (options.status ?? "in_progress") as never,
+      settlementStatus: receivableMinor > 0 ? ("debt" as never) : order.settlementStatus,
+      receivableMinor,
     },
-    idempotencyKey: "upcoming-dom-obligation",
-  });
-  if (!result.ok) throw new Error(result.message);
+    catalogItemId: null,
+    deliveryDate: options.deliveryDate ?? null,
+    agreementSource: null,
+    followUpSummary: null,
+    followUpDate: null,
+    followUpReason: null,
+    followUpEvents: [],
+    createdAt: NOW,
+    updatedAt: NOW,
+  } as unknown as StoredCraftOrder;
 }
 
-class FailingSupplierReads extends MemoryLocalStore {
-  async listSupplierPurchases(): Promise<StorageResult<readonly SupplierPurchase[]>> {
-    return { ok: false, code: "storage_error", message: "فشل قراءة مفتعل" };
-  }
+/** خدمات مصدر حقيقية فوق مخزن حقيقي — القراءة عبر القارئ الحي نفسه. */
+async function realStoreServices(
+  orders: readonly StoredCraftOrder[],
+  schedules: Array<{ id: string; orderId: string; date: string; time?: string | null }> = [],
+) {
+  const store = new MemoryLocalStore();
+  for (const order of orders) void store.saveOrder(order);
+  for (const schedule of schedules)
+    void store.saveSchedule({
+      id: schedule.id,
+      orderId: schedule.orderId,
+      kind: "delivery",
+      scheduledFor: schedule.date,
+      scheduledTime: schedule.time ?? null,
+      durationMinutes: null,
+      status: "scheduled",
+      postponeReason: null,
+      events: [],
+      recurrenceId: null,
+      recurrenceIndex: null,
+      createdAt: NOW,
+      updatedAt: NOW,
+    } as never);
+  const { CollectionService } = await import("@/application/collections/collectionService");
+  const { DueDatesService } = await import("@/application/finance/dueDatesService");
+  const { ProjectFinancialService } = await import("@/application/finance/projectFinancialService");
+  const { FulfillmentService } = await import("@/application/fulfillment/fulfillmentService");
+  const { DirectSaleService } = await import("@/application/direct-sales/directSaleService");
+  const projectFinance = new ProjectFinancialService(store, () => NOW);
+  const directSales = new DirectSaleService(store, () => NOW);
+  const fulfillment = new FulfillmentService(store, () => NOW);
+  const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
+  const dueDates = new DueDatesService(store, collections, () => NOW);
+  return { store, collections, dueDates, projectFinance };
 }
 
-let store: MemoryLocalStore;
+async function mockPage(services: Awaited<ReturnType<typeof realStoreServices>>) {
+  mockedUsePrototypeServices.mockReturnValue({
+    collections: services.collections,
+    dueDates: services.dueDates,
+    projectFinance: services.projectFinance,
+    dataVersion: 0,
+  } as unknown as ReturnType<typeof usePrototypeServices>);
+  mockedGetStore.mockReturnValue(services.store as never);
+}
 
-beforeEach(() => {
-  store = new MemoryLocalStore();
-  wouterMocks.navigate.mockReset();
-  mockedUsePrototypeServices.mockReturnValue(buildServices(store));
-});
+describe("S13 — سطح المتابعة الموحدة (UNIT-018)", () => {
+  afterEach(() => cleanup());
 
-afterEach(() => {
-  cleanup();
-  vi.clearAllMocks();
-});
-
-describe("Stage 2 — OPS-005/006: سطح القادم والاستحقاقات", () => {
-  it("يعرض أربع كتل بمعنى ومصدر لكل موعد — والمجهول مبقى مبالغه ظاهرة", async () => {
-    await seedPurchase(store, "dom-up-overdue", "مورد الأقمشة", "2026-09-10");
-    await seedPurchase(store, "dom-up-current", "مورد الخيوط", "2026-09-20");
-    await seedDraftOrder(store, "order-upcoming-dom", "2026-09-20");
-    await seedReceivableDebt(store);
-    await seedObligation(store);
-
-    render(<FinanceUpcoming />);
-
-    /* الطلبات: الموعد المجدول وحالته — لا مبلغ نقدي على موعد تنفيذ. */
-    const ordersSection = await screen.findByLabelText("طلبات قادمة ومتأخرة");
-    expect(within(ordersSection).getByText("شال مطرز")).toBeTruthy();
-    const orderRow = within(ordersSection).getByText("شال مطرز").closest("article");
-    expect(orderRow?.textContent).toContain("الموعد المجدول");
-    expect(orderRow?.textContent).toContain("20/09/2026");
-    expect(orderRow?.textContent).toContain("قادم");
-    expect(orderRow?.textContent).not.toContain("المتبقي");
-
-    /* مدفوعات الموردين: الاستحقاق المخزن + التصنيف الصادق. */
-    const payablesSection = screen.getByLabelText("مدفوعات قادمة للموردين");
-    expect(within(payablesSection).getByText("مورد الأقمشة")).toBeTruthy();
-    const overdueRow = within(payablesSection).getByText("مورد الأقمشة").closest("article");
-    expect(overdueRow?.textContent).toContain("الاستحقاق");
-    expect(overdueRow?.textContent).toContain("10/09/2026");
-    expect(overdueRow?.textContent).toContain("متأخر");
-    expect(overdueRow?.textContent).toContain("200.00");
-
-    /* ذمم التحصيل: بلا تاريخ مخزّن — والمبلغ ظاهر (غياب التاريخ ليس غياب الدين). */
-    const receivablesSection = screen.getByLabelText("تحصيلات عند الناس");
-    const receivableRow = within(receivablesSection).getByText("سما").closest("article");
-    expect(receivableRow?.textContent).toContain("بلا تاريخ استحقاق مخزّن");
-    expect(receivableRow?.textContent).toContain("8.00");
-    expect(receivableRow?.textContent).not.toContain("16/09/2026");
-
-    /* الالتزامات: التسمية الكنونية + المتبقي. */
-    const obligationsSection = screen.getByLabelText("التزامات مصاريف مستحقة");
-    const obligationRow = within(obligationsSection).getByText("كهرباء الورشة").closest("article");
-    expect(obligationRow?.textContent).toContain("مصروف مستحق");
-    expect(obligationRow?.textContent).toContain("150.00");
-    expect(obligationRow?.textContent).toContain("بلا تاريخ استحقاق مخزّن");
-
-    /* التقادم المبسط: من إجماليات OPS-001 — بلا شرائح 30/60/90. */
-    const agingCard = screen.getByLabelText("تقادم مبسط");
-    expect(agingCard.textContent).toContain("ما عليك للموردين");
-    expect(agingCard.textContent).toContain("متأخر");
-    expect(agingCard.textContent).toContain("لم يحن");
-    expect(agingCard.textContent).toContain("بلا شرائح 30/60/90");
+  beforeEach(() => {
+    wouterMocks.navigate.mockReset();
   });
 
-  it("فتح السطح لا يكتب أي سجل — مطابقة اللقطة قبل/بعد", async () => {
-    await seedPurchase(store, "dom-up-no-write", "مورد القراءة", "2026-09-10");
-    await seedObligation(store);
-    const before = await store.readSnapshot();
+  it("المجموعات الأربع بعدد صادق — والفعل يفتح مصدره بلا كتابة (SDF-013)", async () => {
+    const services = await realStoreServices(
+      [
+        makeStoredOrder("order-overdue", { deliveryDate: "2026-11-01" }),
+        makeStoredOrder("order-today", { deliveryDate: "2026-11-02" }),
+        makeStoredOrder("order-upcoming", { deliveryDate: "2026-11-20" }),
+        makeStoredOrder("order-debt", {
+          status: "delivered",
+          deliveryDate: "2026-10-20",
+          receivableMinor: 1000,
+        }),
+      ],
+      [
+        { id: "schedule-overdue", orderId: "order-overdue", date: "2026-11-01" },
+        { id: "schedule-today", orderId: "order-today", date: "2026-11-02", time: "14:00" },
+        { id: "schedule-upcoming", orderId: "order-upcoming", date: "2026-11-20" },
+      ],
+    );
+    await mockPage(services);
+    const before = await services.store.readSnapshot();
     render(<FinanceUpcoming />);
-    await screen.findByText("مورد القراءة");
-    const after = await store.readSnapshot();
-    expect(after.ok && before.ok ? after.value : after).toEqual(before.ok ? before.value : before);
+    await screen.findByRole("heading", { name: "المتابعة" });
+    expect(await screen.findByText("متأخر (1)")).toBeTruthy();
+    expect(screen.getByText("اليوم (1)")).toBeTruthy();
+    expect(screen.getByText("القادم (1)")).toBeTruthy();
+    expect(screen.getByText("لم يُحدد موعدها (1)")).toBeTruthy();
+    /* فتح صف التحصيل يفتح مصدره — لا كتابة من العرض أبدًا. */
+    const receivableRow = screen.getByText(/تحصيل من عميل — طلب order-debt/);
+    fireEvent.click(receivableRow.closest("button")!);
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(expect.stringContaining("/orders/order-debt"));
+    const after = await services.store.readSnapshot();
+    expect(after.ok && JSON.stringify(after.value)).toBe(before.ok ? JSON.stringify(before.value) : "");
   });
 
-  it("فشل كتلة المدفوعات يعزل نفسه — بطاقة صادقة وإعادة محاولة والبقية حية", async () => {
-    const failing = new FailingSupplierReads();
-    await seedDraftOrder(failing, "order-upcoming-fail", "2026-09-20");
-    await seedReceivableDebt(failing);
-    await seedObligation(failing);
-    /* الجدول يجلب مواعيده المشتقة مرة أولى (سلوكه القائم الحتمي — ليست كتابة
-     * مالية)؛ بعد ذلك يبقى فتح السطح بلا أي كتابة كما يشهد القياس أدناه. */
-    const materialized = await new ScheduleService(failing, () => NOW).overview();
-    expect(materialized.ok).toBe(true);
-    mockedUsePrototypeServices.mockReturnValue(buildServices(failing));
-    const before = await failing.readSnapshot();
-
+  it("بلا موعد لا يسمى متأخرًا — والوقت المعلوم يظهر وبلا وقت لا يصير 00:00", async () => {
+    const services = await realStoreServices(
+      [
+        makeStoredOrder("order-today", { deliveryDate: "2026-11-02" }),
+        /* دين بلا تاريخ استحقاق مخزن — «لم يحدد موعدها» لا «متأخر». */
+        makeStoredOrder("order-debt", {
+          status: "delivered",
+          deliveryDate: "2026-10-20",
+          receivableMinor: 800,
+        }),
+      ],
+      [{ id: "schedule-today", orderId: "order-today", date: "2026-11-02", time: "14:00" }],
+    );
+    await mockPage(services);
     render(<FinanceUpcoming />);
+    await screen.findByText("اليوم (1)");
+    /* الوقت بفترة عربية (٢:٠٠ م) — المعروض عرض فقط والتخزين 24 ساعة. */
+    expect(screen.getByText(/2:00 م/)).toBeTruthy();
+    expect(screen.queryByText("00:00")).toBeNull();
+    /* التحصيل بلا تاريخ مخزن — «لم يحدد موعدها» لا «متأخر». */
+    expect(screen.getByText(/لم يحدد موعدها/)).toBeTruthy();
+  });
 
-    /* الكتلة المتعثرة: بطاقة خطأ صادقة + إعادة محاولة. */
-    expect(await screen.findByText("تعذّرت قراءة مدفوعات الموردين — هذا الجزء وحده.")).toBeTruthy();
-    expect(screen.getByText("إعادة المحاولة")).toBeTruthy();
-    /* الكتل السليمة تبقى حية. */
-    expect(within(screen.getByLabelText("طلبات قادمة ومتأخرة")).getByText("شال مطرز")).toBeTruthy();
-    expect(within(screen.getByLabelText("تحصيلات عند الناس")).getByText("سما")).toBeTruthy();
-    expect(within(screen.getByLabelText("التزامات مصاريف مستحقة")).getByText("كهرباء الورشة")).toBeTruthy();
-    /* تقادم المدفوعات يعلن «غير متاح» لا صفرًا كاذبًا. */
-    const agingCard = screen.getByLabelText("تقادم مبسط");
-    expect(agingCard.textContent).toContain("غير متاح");
-    /* ولا كتابة رغم الفشل. */
-    const after = await failing.readSnapshot();
-    expect(after.ok && before.ok ? after.value : after).toEqual(before.ok ? before.value : before);
+  it("فشل مصدر يعزل نفسه — إعلان باسمه والسليم باقيًا وإعادة المحاولة فعل واعٍ", async () => {
+    const services = await realStoreServices(
+      [makeStoredOrder("order-today", { deliveryDate: "2026-11-02" })],
+      [{ id: "schedule-today", orderId: "order-today", date: "2026-11-02" }],
+    );
+    /* الخدمة المتعذرة: قراءة الاستحقاقات تفشل وحدها — لا Promise.all ينسف البقية. */
+    const failingDueDates = {
+      readPayablesAging: vi.fn().mockResolvedValue({ ok: false, message: "قاعدة المورد مقفلة" }),
+    };
+    mockedUsePrototypeServices.mockReturnValue({
+      collections: services.collections,
+      dueDates: failingDueDates,
+      projectFinance: services.projectFinance,
+      dataVersion: 0,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    mockedGetStore.mockReturnValue(services.store as never);
+    render(<FinanceUpcoming />);
+    await screen.findByRole("heading", { name: "المتابعة" });
+    expect(await screen.findByText(/تعذرت قراءة استحقاقات الموردين/)).toBeTruthy();
+    expect(screen.getByText("اليوم (1)")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /أعد قراءة المتابعة/ })).toBeTruthy();
+  });
+
+  it("SDF-061: استجابة الجيل القديم تُهمل — لا خلط بين أجيال القراءة", async () => {
+    const services = await realStoreServices(
+      [makeStoredOrder("order-today", { deliveryDate: "2026-11-02" })],
+      [{ id: "schedule-today", orderId: "order-today", date: "2026-11-02" }],
+    );
+    /* بوابة مواعيد مضبوطة يدويًا: كل قراءة تقف عند بوابتها — الأولى (القديمة)
+     * تبقى معلقة بينما تكتمل الثانية (الأحدث) قبلها ثم تُفتح الأولى متأخرة. */
+    const gates: Array<() => void> = [];
+    const liveListSchedules = services.store.listSchedules.bind(services.store);
+    (services.store as unknown as { listSchedules: () => Promise<unknown> }).listSchedules = async () => {
+      await new Promise<void>(resolve => gates.push(resolve));
+      return liveListSchedules();
+    };
+    let dataVersion = 0;
+    /* هوية الخدمات ثابتة عبر الرسم — dataVersion وحده يتغير عبر getter —
+     * فلا تتغير اعتماديات الأثر إلا بالجيل، لا بكل رسم (وإلا دارت حلقة). */
+    const stableServices = {
+      collections: services.collections,
+      dueDates: services.dueDates,
+      projectFinance: services.projectFinance,
+      get dataVersion() {
+        return dataVersion;
+      },
+    };
+    mockedUsePrototypeServices.mockImplementation(
+      () => stableServices as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    mockedGetStore.mockReturnValue(services.store as never);
+    const view = render(<FinanceUpcoming />);
+    /* الجيل الأول معلق عند بوابته وقرأ الطلبات قبل الإضافة. */
+    await waitFor(() => expect(gates.length).toBe(1));
+    await services.store.saveOrder(makeStoredOrder("order-added", { deliveryDate: null }));
+    await services.store.saveSchedule({
+      id: "schedule-added",
+      orderId: "order-added",
+      kind: "delivery",
+      scheduledFor: "2026-11-02",
+      scheduledTime: null,
+      durationMinutes: null,
+      status: "scheduled",
+      postponeReason: null,
+      events: [],
+      recurrenceId: null,
+      recurrenceIndex: null,
+      createdAt: NOW,
+      updatedAt: NOW,
+    } as never);
+    dataVersion = 1;
+    view.rerender(<FinanceUpcoming />);
+    await waitFor(() => expect(gates.length).toBe(2));
+    /* الجيل الأحدث يكتمل أولًا ويُعرض: موعدان اليوم. */
+    gates[1]!();
+    await screen.findByText("اليوم (2)");
+    /* الجيل القديم يُفتح الآن متأخرة — استجابته تُهمل ولا تُخلط بالأحدث. */
+    gates[0]!();
+    await waitFor(() => expect(screen.getByText("اليوم (2)")).toBeTruthy());
+    expect(screen.queryByText("اليوم (1)")).toBeNull();
+  });
+
+  it("تصفية النوع تعمل على المجتمع كله — وإعادة الضبط تعيد الكل", async () => {
+    const services = await realStoreServices(
+      [
+        makeStoredOrder("order-today", { deliveryDate: "2026-11-02" }),
+        makeStoredOrder("order-debt", {
+          status: "delivered",
+          deliveryDate: "2026-10-20",
+          receivableMinor: 1000,
+        }),
+      ],
+      [{ id: "schedule-today", orderId: "order-today", date: "2026-11-02" }],
+    );
+    await mockPage(services);
+    render(<FinanceUpcoming />);
+    await screen.findByText("اليوم (1)");
+    fireEvent.click(screen.getByRole("button", { name: /تصفية/ }));
+    fireEvent.click(screen.getByRole("radio", { name: "تحصيل" }));
+    fireEvent.click(screen.getByRole("button", { name: "تطبيق" }));
+    await waitFor(() => expect(screen.queryByText("اليوم (1)")).toBeNull());
+    expect(screen.getByText("لم يُحدد موعدها (1)")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /تصفية/ }));
+    fireEvent.click(screen.getByRole("button", { name: "إعادة ضبط" }));
+    await screen.findByText("اليوم (1)");
   });
 });

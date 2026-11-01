@@ -1,5 +1,6 @@
 /* مبدأ Micro: يثبت الاتفاق ما يعرفه المالك الآن، ويبقي بدء التنفيذ والتحصيل أفعالًا منفصلة. */
 import { ArrowRight, CircleAlert, Save } from "lucide-react";
+import { consumeScheduleProposal } from "@/application/agreements";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
@@ -170,9 +171,14 @@ export default function AgreementEditor() {
         navigate(`/orders/${loaded.linkedOrderId}`);
         return;
       }
+      /* S13 (CAL-C — أمر 2158b0fc §6): اقتراح موعد التقويم يظهر هنا للمراجعة
+       * مرة واحدة — يوم مختار من تقويم الطلبات يصل اقتراحًا معلوم المصدر
+       * قابلًا للتعديل أو الإزالة («لم يُحدد بعد» الصريح)؛ لا حفظ من الفتح
+       * ولا حقل خفي — حالة عرض جلسة بمفتاح آمن محدود، تُستهلك مرة. */
+      const proposedDeliveryDate = consumeScheduleProposal(params.id!);
       const loadedValues = {
         priceMinor: startAgreementPrice(),
-        deliveryDate: "",
+        deliveryDate: proposedDeliveryDate ?? "",
         deliveryDateUnknown: false,
         depositMinor: null,
         source: "" as const,

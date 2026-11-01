@@ -23,3 +23,14 @@ export {
 } from "./agreementPrice";
 
 export { classifyFollowUpDate } from "./followUpDate";
+
+/* S13 (CAL-C — أمر 2158b0fc §6، PC-3 توسيع مقصود بنفس الـPR): حالة جلسة
+ * اقتراح موعد التقويم بين خطوات الطلب — ذاكرة داخلية بمفتاح المسودة بلا
+ * مخازن المتصفح (حارس ARCH-010) ولا كتابة مالية؛ محررا المسودة والاتفاق
+ * يستهلكانها من الباب هذا. */
+export {
+  clearScheduleProposal,
+  consumeScheduleProposal,
+  readScheduleProposal,
+  storeScheduleProposal,
+} from "./scheduleProposal";
