@@ -13,7 +13,7 @@
 
 The owner authorizes this single connected execution on the existing ZAI conversation, integration branch, and Draft PR:
 
-1. Correct the two independently confirmed S11 findings below, with permanent regressions and truthful Control/report updates.
+1. Fix the confirmed legacy-draft over-collection defect and characterize the S11 debt-identity note against the existing domain guard; make only a bounded UI preflight improvement if needed, with regression evidence and truthful Control/report updates.
 2. Correct the four independently confirmed S12 correctness/coverage findings below and reconcile the two baseline-history records without rewriting historical approvals or measurements.
 3. Proceed directly, without an intermediate owner-review or approval pause, to implement the complete S13 scope: UNIT-006, UNIT-012, UNIT-018, and SH-17.
 4. Run the required focused tests, final `pnpm check`, repository guards, five sequential read-only reviews, and exact-final-head GitHub Actions/Cloudflare verification; repair every confirmed in-scope defect and rerun affected gates before delivery.
@@ -58,24 +58,24 @@ Use Operations Control JSON as the source of truth. Never edit generated tracker
 4. After every source JSON change run `python3 scripts/operations-control/generate_tracker.py`, `python3 scripts/operations-control/validate.py`, and `python3 scripts/operations-control/generate_tracker.py --check`. Refresh Excel metadata only if the canonical procedure requires it. Do not claim a generated view was manually edited.
 5. Preserve the prior S11/S12 result files and their historical test SHAs. Append ordered review addenda (use `16b-S11-REVIEW-ADDENDUM-2026-11-01.md` and `17a-S12-REVIEW-ADDENDUM-2026-11-01.md` only if these names are still unused; otherwise use the next unused ordered names). Do not overwrite historical results to make them appear to have covered this review.
 
-## 4. Fix first — S11 findings from the independent review at `ac4429ef`
+## 4. Fix or close by evidence — S11 findings from the independent review at `ac4429ef`
 
 The previous `S11-MR-001` and `S11-MR-002` have already been corrected and must not be reopened or duplicated. These are **new findings** from a separate focused read-only review of `ac4429ef`.
 
-### `S11-LR-001 — NEW_CONFIRMED_DEBT_WITHOUT_SIMPLE_IDENTITY`
+### `S11-LR-001 — DEBT_IDENTITY_SAVE_PATH_CHARACTERIZATION`
 
-**Evidence:** `DirectSaleEditor.tsx` displays an error for a confirmed debt with no identity, but the save validation path shown at `DirectSaleEditor.tsx:481-577` does not pass or validate `customerName` / `customerPartyId`; the writer call can therefore still be reached. The domain/application save path must be traced again at execution start.
+**Corrected evidence:** the UI/model validator at `DirectSaleEditor.tsx:487-504` does not preflight `customerName` / `customerPartyId`, and the page displays an inline identity error. However, source tracing after the static review found that `directSaleService.ts:146-177` calls `createDirectSale` before `commitDirectSaleWrite` at `:208`; `createDirectSale` checks identity for `partial_debt` at `src/domain/direct-sale/policies.ts:174-184` and the edit path uses `assertDebtDefinitionOnEdit`. The service converts the domain rejection into a validation failure. Therefore, the prior reviewer’s statement that the write call can be reached did **not** establish a persisted-data or financial-integrity defect: a domain guard appears to reject before the storage commit. Verify this against the live execution-start head and characterize it with a focused test before classifying it.
 
 **Authoritative intent:** UNIT-037 and SDF-010 require a simple identity for a new receivable while keeping the saved customer/party profile optional. UNIT-005 B3 U005-F05 and U005-AC09 refer to the unresolved D03 detail; do not claim D03 itself grants approval for phone, mandatory saved-party creation, or broader identity policy. Use the already approved simple local identity direction only.
 
-**Required root correction:**
+**Required characterization and bounded response:**
 
-1. For a newly created or explicitly newly introduced `partial_debt`, require a non-empty simple local identity on the source (trimmed `customerName` or an explicitly selected valid `customerPartyId`) before any writer call. Add the validation at the actual application/domain command boundary as well as the UI boundary where appropriate; an inline warning alone is insufficient.
-2. A simple name/description on the sale is sufficient. Do **not** require a saved permanent party, phone number, additional profile, or automatic party creation. Do not merge by name.
-3. Apply the guard only to a new confirmed receivable or a transition that newly creates one. Keep legacy unnamed debt visible and preserve its amount/history; do not block a non-financial correction merely because an old record is unnamed. A `partial_needs_review`, full-payment, or other non-confirmed-debt case must not acquire a name requirement through this fix.
-4. Add model and DOM/service regression tests proving the exact confirmed-debt case is rejected before any writer call, and tests proving the allowed non-debt, review, saved-party, and legacy-read/correction cases remain intact.
+1. On the live head, prove with a focused application/domain test that a newly created `partial_debt` without a simple identity, and an edit that newly introduces debt without one, fail before `commitDirectSaleWrite`; assert no sale, collection, wallet allocation, or other financial write on the supported adapters. If the existing domain guard provides this proof, classify this review note as `ALREADY_PROTECTED_AT_DOMAIN_BOUNDARY` and do **not** duplicate it or change the debt rule.
+2. The remaining possible issue is earlier UI feedback: consider a small model/UI preflight that prevents invoking the application service when the user has no identity and the current intent is confirmed debt. Add it only if it reuses the approved rule, preserves the existing domain guard as defense in depth, and improves the truthful inline error; it must not make a saved party, phone, or profile mandatory.
+3. Preserve existing unnamed legacy debt and its amount/history. Do not block a non-financial correction solely because an old debt is unnamed. A `partial_needs_review`, full-payment, or other non-confirmed-debt case must not acquire the confirmed-debt identity rule through this note.
+4. Add/retain regression coverage for the boundary, plus UI coverage only if a preflight is added. Distinguish “service validation was reached” from “storage write was reached” in both test names and the addendum.
 
-If execution-time source evidence disproves the finding because a genuine service/domain boundary already rejects the case, verify that boundary with a focused characterization test and record it as already protected; do not duplicate guards unnecessarily.
+Do not block this connected sequence on S11-LR-001 if the focused test proves the current storage boundary is already safe; record the finding’s corrected classification honestly and continue. A genuine missing guard or an actual write must be fixed before continuing.
 
 ### `S11-LR-002 — LEGACY_DRAFT_OVER_COLLECTION_SILENTLY_BECOMES_FULL`
 
