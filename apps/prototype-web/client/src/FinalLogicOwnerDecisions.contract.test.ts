@@ -223,6 +223,6 @@ describe("REM-006 — حدود التنفيذ: لا مخطط ولا تصدير �
      * المحفوظة (counterparties) بأمر S05 المأذون مع كامل أدلة التوافق/
      * الترحيل في النطاق نفسه (نمط D-037 نفسه). */
     expect(localSchemaVersion).toBe(40);
-    expect(localExportVersion).toBe(32);
+    expect(localExportVersion).toBe(33);
   });
 });

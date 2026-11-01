@@ -208,7 +208,7 @@ describe("commitPreferencesUpdate — guarded atomic preference patch at the wri
       /* المخطط والتصدير: زوج S05 الحي 40/32 (DOC-014 — عائلة الأطراف
        * المحفوظة)؛ كتابة التفضيلات نفسها لم تمس المخطط ولا صيغة الاستيراد قط. */
       expect(localSchemaVersion).toBe(40);
-      expect(localExportVersion).toBe(32);
+      expect(localExportVersion).toBe(33);
     }
   });
 });

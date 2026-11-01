@@ -42,7 +42,7 @@ describe("schema 33 export round-trip with product-sale links", () => {
     const service = new LocalTransferService(store, now);
     const exported = await service.createExport();
     if (!exported.ok) throw new Error(exported.message);
-    expect(exported.value.version).toBe(32);
+    expect(exported.value.version).toBe(33);
     expect(exported.value.schemaVersion).toBe(40);
     const text = JSON.stringify(exported.value);
 

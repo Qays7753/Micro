@@ -127,7 +127,7 @@ function currentPairFile(parties: unknown): Record<string, unknown> {
   return file;
 }
 
-describe("export envelope v32 (S05 — DOC-014 / UNIT-037)", () => {
+describe("export envelope v33 (S05 — DOC-014 / UNIT-037)؛ v32 عند إصدار S05 — تصحيح مؤرخ 2026-11-01 DOC-021/S12", () => {
   it("round-trips the counterparty family verbatim through a verified export — same-label identities stay distinct", async () => {
     const store = await seedStore();
     const sourceSnapshot = await store.readSnapshot();
@@ -135,7 +135,7 @@ describe("export envelope v32 (S05 — DOC-014 / UNIT-037)", () => {
     const service = new LocalTransferService(store, () => NOW);
     const exported = await service.createVerifiedExport();
     if (!exported.ok) throw new Error(exported.message);
-    expect(exported.value.file.version).toBe(32);
+    expect(exported.value.file.version).toBe(33);
     expect(exported.value.file.schemaVersion).toBe(40);
     expect(exported.value.file.version).toBe(localExportVersion);
     expect(exported.value.file.schemaVersion).toBe(localSchemaVersion);

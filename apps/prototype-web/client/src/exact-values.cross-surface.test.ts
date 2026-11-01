@@ -237,6 +237,6 @@ describe("schema and export versions stay at the approved contracts", () => {
     /* S04 (DOC-013 / UNIT-025): 39/31 — عائلة رصد الأرصدة بأمر S04 مع كامل
      * أدلة التوافق/الترحيل؛ سياسة القيم الدقيقة نفسها لم تتغير. */
     expect(localSchemaVersion).toBe(40);
-    expect(localExportVersion).toBe(32);
+    expect(localExportVersion).toBe(33);
   });
 });

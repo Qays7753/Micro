@@ -207,9 +207,11 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
       isString(stored.id) &&
       isDate(stored.createdAt) &&
       isDate(stored.updatedAt) &&
-      /* R2 (M-04/D5، 2026-10-08): موعد التسليم حقل تاريخ محلي (XFER-NEW-3). */
-      isString(stored.deliveryDate) &&
-      isLocalDate(stored.deliveryDate) &&
+      /* R2 (M-04/D5، 2026-10-08): موعد التسليم حقل تاريخ محلي (XFER-NEW-3).
+       * S12 (DOC-021 / UNIT-009 A2/س4 — J002-DEC02، أمر 2e645802 §8): المجهول
+       * الصريح null = «لم يُحدد بعد» — لا تاريخ صوري ولا فراغ نصي؛ الزوج
+       * الموروث ٣٢/٤٠ لا يحمل null أصلًا فبقي مقبولًا كما كان. */
+      (stored.deliveryDate === null || (isString(stored.deliveryDate) && isLocalDate(stored.deliveryDate))) &&
       (stored.catalogItemId === null || isString(stored.catalogItemId)) &&
       isAgreementSource(stored.agreementSource) &&
       isFollowUpSummary(stored.followUpSummary) &&

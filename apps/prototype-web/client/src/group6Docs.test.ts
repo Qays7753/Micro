@@ -114,7 +114,7 @@ describe("governance consistency — Group 6 prevention implemented on the remed
     /* S05 (DOC-014، 2026-10-29): ٤٠/٣٢ — عائلة الأطراف المحفوظة بأمر S05
      * المأذون مع كامل أدلة التوافق/الترحيل في النطاق نفسه (نمط D-037). */
     expect(localSchemaVersion).toBe(40);
-    expect(localExportVersion).toBe(32);
+    expect(localExportVersion).toBe(33);
     expect(RAW_BYTE_LIMIT).toBe(650_000);
     expect(GZIP_BYTE_LIMIT).toBe(155_300);
     const lintScript = rootPackageJson.scripts?.lint ?? "";

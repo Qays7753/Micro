@@ -8,7 +8,7 @@ const now = () => "2026-10-31T09:00:00.000Z";
 
 /* S10 (UNIT-032/SH-14 — أمر b56967d8): دورة النقل لحقول حساب T01 المحفوظ —
  * الحقل الاختياري يعبر تصديرًا وواردًا واستعادة حرفيًا على المهايئين
- * (40/32 بلا ترقية — نمط S06/S09)، والملف القديم بلا الحقل يبقى مقبولًا،
+ * (40/33 بلا ترقية مخطط — نمط S06/S09)، والملف القديم بلا الحقل يبقى مقبولًا،
  * والملف المُلاعب بحقل تخطيط ناقص الشكل يُرفض قبل أي كتابة هدف والهدف
  * لا يُمس (رفض ما قبل المعاينة). */
 
@@ -49,7 +49,7 @@ const planningInput = {
 };
 
 describe("S10 planning fields transfer round-trip", () => {
-  it("الحقول التخطيطية تعبر تصديرًا وواردًا واستعادة حرفيًا — بلا ترقية مخطط (40/32)", async () => {
+  it("الحقول التخطيطية تعبر تصديرًا وواردًا واستعادة حرفيًا — بلا ترقية مخطط (40/33)", async () => {
     const store = new MemoryLocalStore();
     const planning = new PlanningCalculationLifecycleService(store, now);
     const saved = await planning.savePlanning(planningInput, "op-transfer");
@@ -58,7 +58,7 @@ describe("S10 planning fields transfer round-trip", () => {
     const service = new LocalTransferService(store, now);
     const exported = await service.createExport();
     if (!exported.ok) throw new Error(exported.message);
-    expect(exported.value.version).toBe(32);
+    expect(exported.value.version).toBe(33);
     expect(exported.value.schemaVersion).toBe(40);
     const text = JSON.stringify(exported.value);
 

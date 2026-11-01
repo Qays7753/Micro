@@ -17,9 +17,12 @@ export type ResultStatus = "final" | "estimated" | "incomplete" | "review_requir
 /* ORD-003: مسؤولية النقل والتوصيل — خيار صريح واحد لكل طلب يحدد من يدفع
  * أجرة التوصيل ومن يدفع كلفة الناقل، مع أعلام احتواء تمنع الاحتساب المزدوج.
  * غياب الشروط كليًا (null أو حقل غير موجود) = لا شروط نقل مسجلة — سلوك
- * رجعي مطابق للطلبات القديمة تمامًا. */
+ * رجعي مطابق للطلبات القديمة تمامًا.
+ * S12 (UNIT-009 A3/P3.1 — أمر 2e645802): «لا يوجد توصيل» (none) اختيار
+ * صريح في النموذج الجديد مختلف عن عدم تسجيل الشروط (null)، ولا يحمل أي
+ * مبلغ — لا أجرة ولا كلفة ولا حصص؛ توصيل المشروع وحده يحمل كلفة. */
 export type DeliveryResponsibility =
-  "project_pays" | "customer_pays_project" | "customer_pays_courier" | "shared";
+  "none" | "project_pays" | "customer_pays_project" | "customer_pays_courier" | "shared";
 
 export interface OrderDeliveryTerms {
   responsibility: DeliveryResponsibility;

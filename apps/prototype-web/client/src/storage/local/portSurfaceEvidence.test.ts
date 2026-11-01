@@ -78,7 +78,7 @@
  *     نماذجهما بالضبط الأسماء الـ148 ذاتها — مطابقة السطح التنفيذية
  *     للعقد الكتابي (P-01/P-02 conformance).
  *  3) ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 40 و
- *     localExportVersion = 32 (محروسان بقرار مالك وdiff مزدوج — AGENTS §10).
+ *     localExportVersion = 33 (كان 32 — تصحيح مؤرخ 2026-11-01 DOC-021/S12) (محروسان بقرار مالك وdiff مزدوج — AGENTS §10).
  *  4) حدّ الذاكرة الموثق (P-02): كل نسخة MemoryLocalStore حالة مستقلة
  *     بلا أي استمرارية — أدلة اختبارية صريحة لحدود السطح الذاكي.
  *
@@ -319,10 +319,10 @@ describe("P-04 — أدلة سطح منفذ التخزين المحلي (OD-PRES
     );
   });
 
-  it("ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 40 وlocalExportVersion = 32", () => {
-    /* S05 (DOC-014 / UNIT-037 — عائلة الأطراف المحفوظة): الزوج الحي 40/32. */
+  it("ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 40 وlocalExportVersion = 33 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 32)", () => {
+    /* S05 (DOC-014 / UNIT-037 — عائلة الأطراف المحفوظة): الزوج الحي 40/33 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 40/32). */
     expect(localSchemaVersion).toBe(40);
-    expect(localExportVersion).toBe(32);
+    expect(localExportVersion).toBe(33);
   });
 
   it("P-02 (حدّ موثق): كل نسخة MemoryLocalStore حالة مستقلة بلا استمرارية — النسخة الجديدة تبدأ فارغة", async () => {

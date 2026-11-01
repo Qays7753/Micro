@@ -38,6 +38,7 @@ import {
   quantityMilliExact,
   roundHalfUp,
 } from "../shared/index.js";
+import { noneCarriesNoAmounts } from "./deliveryTermsValidation.js";
 
 /* F-050 (Group 1 — الميثاق الرئيسي 2026-09-28) — توثيق التصميم المزدوج
  * المتعمد لانتقالات الحالة، لا عيبًا يُصلح بصمت: هذا الجدول هو خريطة
@@ -76,8 +77,10 @@ const ORDER_STATUS_AR: Record<OrderStatus, string> = {
 };
 
 /* ORD-003: أسماء عربية معتمدة لمسؤولية النقل والتوصيل — مصطلح واحد لكل
- * خيار في كل الأسطح (عقد المصطلحات). */
+ * خيار في كل الأسطح (عقد المصطلحات). S12 (UNIT-009 A3): «لا يوجد توصيل»
+ * خيار صريح في النموذج الجديد. */
 export const DELIVERY_RESPONSIBILITY_AR: Record<DeliveryResponsibility, string> = {
+  none: "لا يوجد توصيل",
   project_pays: "المشروع يدفع للناقل",
   customer_pays_project: "الزبون يدفع للمشروع",
   customer_pays_courier: "الزبون يدفع للناقل مباشرة",
@@ -473,10 +476,12 @@ function billableDeliveryFeeMinor(order: CraftOrder): MoneyMinor | null {
 
 /* كلفة النقل التي تحملها المشروع — تدخل في النتيجة مرة واحدة، فقط عندما
  * لم تكن محتواة أصلًا داخل تكلفة المنتج. الزبون يدفع للناقل مباشرة
- * = معلومة سياقية فقط: لا كاش مشروع ولا إيرادًا ولا مصروفًا ولا تكلفة. */
+ * = معلومة سياقية فقط: لا كاش مشروع ولا إيرادًا ولا مصروفًا ولا تكلفة.
+ * S12 (UNIT-009 A3): «لا يوجد توصيل» بلا أي كلفة توصيل على الطلب. */
 export function projectDeliveryCostMinor(order: CraftOrder): MoneyMinor | null {
   const terms = order.deliveryTerms ?? null;
   if (!terms) return 0;
+  if (terms.responsibility === "none") return 0;
   if (terms.responsibility === "customer_pays_courier") return 0;
   if (terms.costIncludedInProductCost) return 0;
   return terms.costPaidMinor;
@@ -533,6 +538,12 @@ function buildDeliveryTerms(input: RecordDeliveryTermsInput): OrderDeliveryTerms
     throw new Error(
       "أجرة التوصيل عبر المشروع تُسجَّل فقط عندما يدفع الزبون للمشروع أو عند التكلفة المشتركة.",
     );
+  }
+  /* S12 (UNIT-009 A3): «لا يوجد توصيل» اختيار صريح بلا أي مبلغ — لا أجرة
+   * ولا كلفة ولا حصص؛ هو مختلف عن عدم تسجيل الشروط (null)؛ القاعدة
+   * المشتركة الواحدة مع مدقق العلاقات (لا نسختين). */
+  if (noneCarriesNoAmounts(input)) {
+    throw new Error("«لا يوجد توصيل» لا يحمل أي مبلغ — لا أجرة ولا كلفة ولا حصص.");
   }
   if (
     input.responsibility === "customer_pays_courier" &&

@@ -72,7 +72,7 @@ describe("schema 34 export round-trip (المجموعة ٤ — عقد ٢٩)", ()
     const verified = await transfers.createVerifiedExport();
     expect(verified.ok).toBe(true);
     if (!verified.ok) return;
-    expect(verified.value.file.version).toBe(32);
+    expect(verified.value.file.version).toBe(33);
     expect(verified.value.file.schemaVersion).toBe(40);
     expect(verified.value.summary.assets).toBe(1);
     expect(verified.value.summary.loans).toBe(1);
@@ -98,7 +98,7 @@ describe("schema 34 export round-trip (المجموعة ٤ — عقد ٢٩)", ()
     if (!prepared.ok) return;
     expect(prepared.value.file.data.assets).toEqual([]);
     expect(prepared.value.file.data.loans).toEqual([]);
-    expect(prepared.value.file.version).toBe(32);
+    expect(prepared.value.file.version).toBe(33);
     expect(prepared.value.file.schemaVersion).toBe(40);
   });
 

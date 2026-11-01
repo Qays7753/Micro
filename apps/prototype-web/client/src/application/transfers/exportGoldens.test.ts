@@ -286,7 +286,7 @@ const LEGACY_PAIRS = [...RELEASED_LEGACY_EXPORT_PAIRS]
   .sort((a, b) => b[0] - a[0]);
 
 describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
-  it("current-pair golden (32/40): deterministic migration-derived export matches the frozen golden byte-for-byte", async () => {
+  it("current-pair golden (33/40): deterministic migration-derived export matches the frozen golden byte-for-byte", async () => {
     const live = await currentGoldenViaMigration();
     const name = "current-pair.golden.json";
     if (GENERATE) {
@@ -340,8 +340,8 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
     expect(golden.counts?.financialEvents).toBeGreaterThan(0);
   });
 
-  it("every released legacy pair has a frozen minimal golden that still imports to 32/40", async () => {
-    expect(LEGACY_PAIRS.length).toBe(26);
+  it("every released legacy pair has a frozen minimal golden that still imports to 33/40", async () => {
+    expect(LEGACY_PAIRS.length).toBe(27);
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     for (const [version, schemaVersion] of LEGACY_PAIRS) {
       const name = `legacy-minimal-${version}-${schemaVersion}.golden.json`;
@@ -381,7 +381,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
           file: "current-pair.golden.json",
           sha256: "",
           kind: "current-pair",
-          description: "32/40 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة",
+          description: "33/40 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة",
           byteStable: true,
         },
         {
@@ -389,7 +389,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
           sha256: "",
           kind: "current-pair-supplement",
           description:
-            "32/40 غني بالعائلات الجديدة عبر الخدمات (بما فيها الأطراف المحفوظة) — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة)",
+            "33/40 غني بالعائلات الجديدة عبر الخدمات (بما فيها الأطراف المحفوظة) — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة)",
           byteStable: false,
         },
         ...LEGACY_PAIRS.map(([v, s]): GoldenManifestEntry => ({
@@ -417,7 +417,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
       writeGolden(manifestName, JSON.stringify(manifest, null, 2));
     }
     const manifest = JSON.parse(readGolden(manifestName)) as GoldenManifest;
-    expect(manifest.files.length).toBe(29);
+    expect(manifest.files.length).toBe(30);
     for (const entry of manifest.files) {
       const actual = sha256Of(readGolden(entry.file));
       expect(actual, `${entry.file} خُعدل يدويًا أو انحرف عن الأصل`).toBe(entry.sha256);

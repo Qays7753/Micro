@@ -13,6 +13,7 @@ import {
 import { isRecord } from "./transferFamilyValidators";
 
 export const RELEASED_LEGACY_EXPORT_PAIRS: ReadonlySet<string> = new Set([
+  "32/40", // S12 (DOC-021 / UNIT-009 — أمر 2e645802 §8) — زوج S11 كما صدر فعلًا (قبل موعد التسليم المجهول null ومسؤولية «لا يوجد توصيل»)
   "31/39", // S05 (DOC-014 / UNIT-037) — زوج S04 كما صدر فعلًا (بلا عائلة الأطراف المحفوظة قبل 32/40)
   "30/38", // S04 (DOC-013 / UNIT-025) كما صدر فعلًا — بلا عائلة رصد الأرصدة (قبل 31/39)
   "29/37", // FIN-001 (WS-178 — Wave 6) كما صدر فعلًا — بلا عائلة القروض المستلمة

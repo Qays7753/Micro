@@ -211,7 +211,7 @@ for (const pair of pairs) {
       const sourceService = new LocalTransferService(source, () => NOW);
       const exported = await sourceService.createVerifiedExport();
       if (!exported.ok) throw new Error(exported.message);
-      /* الزوج الحي 40/32 كما هو — لا ترقية سلكية لأجل الإصلاح. */
+      /* الزوج الحي 40/32 كما هو — لا ترقية سلكية لأجل الإصلاح. (تصحيح مؤرخ 2026-11-01 DOC-021/S12: الزوج الحي اليوم 40/33 بتغيير سلك سجل الطلب لا لأجل هذا الإصلاح.) */
       expect(exported.value.file.version).toBe(localExportVersion);
       expect(exported.value.file.schemaVersion).toBe(localSchemaVersion);
       const exportedPartial = exported.value.file.data.assets?.find(

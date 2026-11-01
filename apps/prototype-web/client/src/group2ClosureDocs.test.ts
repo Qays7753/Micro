@@ -36,7 +36,7 @@ describe("documentation consistency — Group 2 implemented on the remediation b
     expect(currentState).toContain("**٣٥ / ٢٧ بلا تغيير**");
     /* S05 (DOC-014، 2026-10-29): ٤٠/٣٢ — عائلة الأطراف المحفوظة. */
     expect(String(localSchemaVersion)).toBe("40");
-    expect(String(localExportVersion)).toBe("32");
+    expect(String(localExportVersion)).toBe("33");
   });
 
   it("todo marks Group 2 done on the branch and pending merge — not merged", () => {

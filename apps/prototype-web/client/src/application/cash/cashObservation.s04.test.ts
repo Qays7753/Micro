@@ -284,7 +284,7 @@ describe("S04 cash count — SDF-001/015/016/020 at the service/storage boundary
     /* S05 (DOC-014، 2026-10-29): ٤٠/٣٢ — عائلة الأطراف المحفوظة؛ رصد
      * الأرصدة (عائلة S04) ينتقل معها بلا ترحيل بيانات. */
     expect(localSchemaVersion).toBe(40);
-    expect(localExportVersion).toBe(32);
+    expect(localExportVersion).toBe(33);
     for (const { store } of adapters()) {
       const cash = new CashContinuityService(store, now);
       const count = new CashCountService(store, now);

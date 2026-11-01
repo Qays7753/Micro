@@ -8,6 +8,11 @@ import type { MoneyMinor } from "../shared/index.js";
  * يفرضها buildDeliveryTerms عند الكتابة — لا قاعدة جديدة تُخترع هنا. */
 
 export const DELIVERY_RESPONSIBILITIES: readonly string[] = [
+  /* S12 (UNIT-009 A3 — أمر 2e645802): «لا يوجد توصيل» قيمة قانونية جديدة
+   * في النموذج الجديد — بلا أي مبلغ؛ القيم الأربع القديمة تُقرأ بتوافق
+   * رجعي كما سُجلت (حقول رسوم الزبون/التقاسم لم تعد تُعرض في الإنشاء
+   * الجديد لكن سجلها القديم محفوظ ويُقرأ بسياسته). */
+  "none",
   "project_pays",
   "customer_pays_project",
   "customer_pays_courier",
@@ -60,7 +65,27 @@ function isValidDeliveryTermsShape(terms: Record<string, unknown>): boolean {
 /** هل العلاقات المتقاطعة بين المسؤولية والمبالغ سليمة — عقد buildDeliveryTerms؟
  * ١) الأجرة عبر المشروع تُسجَّل فقط عند customer_pays_project/shared.
  * ٢) الدفع المباشر للناقل معلومة سياقية: لا كلفة ولا حصص على المشروع.
- * ٣) الحصص المشتركة تُسجَّل فقط عند shared. */
+ * ٣) الحصص المشتركة تُسجَّل فقط عند shared.
+ * ٤) S12 (UNIT-009 A3): «لا يوجد توصيل» (none) لا يحمل أي مبلغ إطلاقًا. */
+/* S12 (UNIT-009 A3 — أمر 2e645802 §6): القاعدة المشتركة الواحدة لـ«لا يوجد
+ * توصيل» — تُستهلك من مدقق العلاقات هنا ومن بنّاء الشروط في policies.js
+ * معًا (لا نسختين للقاعدة نفسها)؛ بلا تغيير سلوك — نفس الشرط الحرفي. */
+export function noneCarriesNoAmounts(terms: {
+  responsibility?: unknown;
+  feeChargedMinor?: unknown;
+  costPaidMinor?: unknown;
+  projectShareMinor?: unknown;
+  customerShareMinor?: unknown;
+}): boolean {
+  return (
+    terms.responsibility === "none" &&
+    (terms.feeChargedMinor !== null ||
+      terms.costPaidMinor !== null ||
+      terms.projectShareMinor !== null ||
+      terms.customerShareMinor !== null)
+  );
+}
+
 function hasValidDeliveryTermsRelations(terms: Record<string, unknown>): boolean {
   const responsibility = terms.responsibility as string;
   const feeAppliesToProject = responsibility === "customer_pays_project" || responsibility === "shared";
@@ -72,6 +97,7 @@ function hasValidDeliveryTermsRelations(terms: Record<string, unknown>): boolean
     return false;
   if (responsibility !== "shared" && (terms.projectShareMinor !== null || terms.customerShareMinor !== null))
     return false;
+  if (noneCarriesNoAmounts(terms)) return false;
   return true;
 }
 

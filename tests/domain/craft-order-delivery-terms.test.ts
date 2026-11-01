@@ -384,3 +384,66 @@ describe("ORD-003 — delivery responsibility and order result", () => {
     expect(() => collectRemaining(delivered2, 501, "ord003-over", NOW)).toThrow(/لا يمكن أن يتجاوز/);
   });
 });
+
+describe("S12 (UNIT-009 A3 — أمر 2e645802): «لا يوجد توصيل» خيار صريح بلا أي مبلغ", () => {
+  const noneTerms = {
+    responsibility: "none" as const,
+    feeIncludedInPrice: false,
+    costIncludedInProductCost: false,
+    feeChargedMinor: null,
+    costPaidMinor: null,
+    projectShareMinor: null,
+    customerShareMinor: null,
+    idempotencyKey: "s12-none-terms",
+    createdAt: NOW,
+  };
+
+  it("يُسجَّل كخيار صريح مختلف عن عدم تسجيل الشروط، ولا يحمل أي مبلغ", () => {
+    const order = recordDeliveryTerms(knownCostOrder(800), noneTerms);
+    expect(order.deliveryTerms?.responsibility).toBe("none");
+    /* القيمة القابلة للتحصيل هي السعر وحده، ونتيجة الطلب بلا أي كلفة توصيل. */
+    expect(orderValueMinor(order)).toBe(800);
+    expect(orderResultBreakdown(order).projectDeliveryCostMinor).toBe(0);
+    expect(orderResultBreakdown(order).billableDeliveryFeeMinor).toBe(0);
+    expect(orderResultBreakdown(order).incompleteReasons).toHaveLength(0);
+    const event = order.events.find(candidate => candidate.type === "delivery_terms_recorded");
+    expect(event?.note).toContain("لا يوجد توصيل");
+    expect(event?.amountMinor).toBeUndefined();
+  });
+
+  it("أي مبلغ مع «لا يوجد توصيل» مرفوض — لا أجرة ولا كلفة ولا حصص", () => {
+    expect(() =>
+      recordDeliveryTerms(knownCostOrder(800), {
+        ...noneTerms,
+        costPaidMinor: 3,
+        idempotencyKey: "s12-none-cost",
+      }),
+    ).toThrow(/لا يحمل أي مبلغ/);
+    expect(() =>
+      recordDeliveryTerms(knownCostOrder(800), {
+        ...noneTerms,
+        feeChargedMinor: 3,
+        idempotencyKey: "s12-none-fee",
+      }),
+    ).toThrow(/أجرة التوصيل عبر المشروع تُسجَّل فقط|لا يحمل أي مبلغ/);
+    expect(() =>
+      recordDeliveryTerms(knownCostOrder(800), {
+        ...noneTerms,
+        projectShareMinor: 3,
+        idempotencyKey: "s12-none-share",
+      }),
+    ).toThrow(/أجرة التوصيل عبر المشروع تُسجَّل فقط|لا يحمل أي مبلغ/);
+  });
+
+  it("التسليم على طلب «لا يوجد توصيل» يعرف إيراد السعر وتكلفة المرجع بلا كلفة نقل", () => {
+    const order = recordDeliveryTerms(knownCostOrder(800), noneTerms);
+    const withDeposit = collectDeposit(order, 200, "s12-none-dep", NOW);
+    const delivered = transitionOrder(toReady(withDeposit), {
+      to: "delivered",
+      idempotencyKey: "s12-none-deliver",
+      createdAt: NOW,
+    });
+    expect(delivered.recognizedRevenueMinor).toBe(800);
+    expect(delivered.resultStatus).toBe("final");
+  });
+});
