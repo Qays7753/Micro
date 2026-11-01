@@ -53,7 +53,51 @@ describe("R7/P07 — بوابة التحقق قبل الإرسال", () => {
         customerName: "ليان",
       }),
     ).toBeNull();
-    expect(validateDirectSaleSubmission({ ...validBase, paymentMode: "none", difference: 5000 })).toBeNull();
+    /* S13-R1-F01: «لم أستلم والمبلغ دَين» دين مؤكد أيضًا — يعبر البوابة
+     * بتعريفه فقط (تعريف الدين شرط الدين في الوضعين). */
+    expect(
+      validateDirectSaleSubmission({
+        ...validBase,
+        paymentMode: "none",
+        difference: 5000,
+        customerName: "ليان",
+      }),
+    ).toBeNull();
+  });
+
+  it("S13-R1-F01: وضع «none» بفرق موجب دين مؤكد — بلا تعريف يرفض قبل الخدمة، وبمعنى آخر أو دين قائم أو فرق غير محسوم لا يطالَب", () => {
+    /* البوابة نفسها لوضع «لم أستلم والمبلغ دَين»: لا نداء خدمة بلا تعريف. */
+    expect(validateDirectSaleSubmission({ ...validBase, paymentMode: "none", difference: 5000 })).toBe(
+      "debt_identity_required",
+    );
+    /* اختيار صريح مختلف (خفّضتُ السعر) ليس دينًا مؤكدًا — لا تعريف يُطلب. */
+    expect(
+      validateDirectSaleSubmission({
+        ...validBase,
+        paymentMode: "none",
+        difference: 5000,
+        differenceChoice: "price_cut",
+      }),
+    ).toBeNull();
+    /* دين قائم مؤكد سابقًا (سجل قديم مجهول الاسم) لا يُطالب بتعريف رجعي. */
+    expect(
+      validateDirectSaleSubmission({
+        ...validBase,
+        paymentMode: "none",
+        difference: 5000,
+        existingConfirmedDebt: true,
+      }),
+    ).toBeNull();
+    /* مسودة قديمة بفرق غير محسوم (X-06): قرار المعنى أولًا — لا دين قبل قراره. */
+    expect(
+      validateDirectSaleSubmission({
+        ...validBase,
+        paymentMode: "none",
+        difference: 5000,
+        undecidedDifference: true,
+        differenceChoice: null,
+      }),
+    ).toBe("difference_choice_required");
   });
 
   it("المبلغ الفارغ أو المدخلات غير الصالحة = missing_required_fields", () => {
@@ -140,12 +184,15 @@ describe("R7/P07 — بوابة التحقق قبل الإرسال", () => {
         customerName: "ليان",
       }),
     ).toBeNull();
+    /* S13-R1-F01: «لم أستلم والمبلغ دَين» دين مؤكد كالجزء — لا سؤال فرق
+     * ثانٍ، وتعريفه البسيط شرطه عند البوابة نفسها. */
     expect(
       validateDirectSaleSubmission({
         ...validBase,
         paymentMode: "none",
         difference: 5000,
         differenceChoice: null,
+        customerName: "ليان",
       }),
     ).toBeNull();
     /* مسودة قديمة الاستعادة بفرق لم يُحسم باتفاق صريح — النظام ينبّه ولا يقرّر. */
@@ -182,6 +229,7 @@ describe("R7/P07 — بوابة التحقق قبل الإرسال", () => {
         collectedEmpty: false,
         partialCollectedMinor: 0,
         difference: 5000,
+        customerName: "ليان",
       }),
     ).toBeNull();
   });
@@ -487,9 +535,22 @@ describe("S11-LR-001 (أمر 2158b0fc §4) — بوابة تعريف الدين 
     expect(validateDirectSaleSubmission({ ...debtIntent, customerPartyId: "party-7" })).toBeNull();
   });
 
-  it("غير الدين لا يُطالب بتعريف: كامل/لم أستلم/تخفيض/مراجعة", () => {
+  it("غير الدين لا يُطالب بتعريف: كامل/تخفيض/مراجعة — و«لم أستلم» دين مؤكد يُطالب (S13-R1-F01)", () => {
     expect(validateDirectSaleSubmission({ ...validBase })).toBeNull();
-    expect(validateDirectSaleSubmission({ ...validBase, paymentMode: "none", difference: 5000 })).toBeNull();
+    /* تصحيح S13-R1-F01 (مراجعة S13 الأولى): «لم أستلم والمبلغ دَين» ليست
+     * «غير دين» — فرقها الموجب دين مؤكد بمعنى الوضع الصريح، فالبوابة نفسها
+     * تطالبه بتعريفه؛ اختيار صريح مختلف يحوّله عن الدين. */
+    expect(validateDirectSaleSubmission({ ...validBase, paymentMode: "none", difference: 5000 })).toBe(
+      "debt_identity_required",
+    );
+    expect(
+      validateDirectSaleSubmission({
+        ...validBase,
+        paymentMode: "none",
+        difference: 5000,
+        customerName: "ليان",
+      }),
+    ).toBeNull();
     expect(validateDirectSaleSubmission({ ...debtIntent, differenceChoice: "price_cut" })).toBeNull();
     expect(validateDirectSaleSubmission({ ...debtIntent, differenceChoice: "needs_review" })).toBeNull();
   });

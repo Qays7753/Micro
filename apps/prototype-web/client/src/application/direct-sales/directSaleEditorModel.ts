@@ -168,11 +168,14 @@ export function validateDirectSaleSubmission(
   if (input.undecidedDifference && input.difference > 0 && input.differenceChoice === null) {
     return "difference_choice_required";
   }
-  /* S11-LR-001: نية الدين المؤكد (وضع الجزء بفرق موجب ومعناه الدين صريحًا
-   * أو افتراضًا) بلا تعريف بسيط — ترفض عند البوابة قبل استدعاء الخدمة،
-   * والملكية لا تصبح إلزامية: التعريف شرط الدين وحده. */
+  /* S11-LR-001 (تصحيح S13-R1-F01 — مراجعة S13 الأولى): نية الدين المؤكد
+   * بلا تعريف بسيط — وضع الجزء بفرق موجب، ووضع «لم أستلم والمبلغ دَين»
+   * (none) بفرقه الموجب الكامل — كلاهما دين مؤكد بمعناه الصريح أو الافتراضي
+   * (effectiveDifferenceChoice)، فترفض عند البوابة قبل استدعاء الخدمة؛
+   * والملكية لا تصبح إلزامية: التعريف شرط الدين وحده، واختيار صريح مختلف
+   * (تخفيض/مراجعة) أو فرق غير محسوم (X-06 أعلاه) ليس دينًا مؤكدًا. */
   if (
-    input.paymentMode === "partial" &&
+    (input.paymentMode === "partial" || input.paymentMode === "none") &&
     input.difference > 0 &&
     (input.differenceChoice ?? "remaining_debt") === "remaining_debt" &&
     !input.existingConfirmedDebt &&

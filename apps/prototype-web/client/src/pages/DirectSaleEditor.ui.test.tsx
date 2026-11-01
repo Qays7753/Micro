@@ -405,6 +405,52 @@ describe("DirectSaleEditor", () => {
     });
   });
 
+  /* S13-R1-F01 (مراجعة S13 الأولى): «لم أستلم والمبلغ دَين» دين مؤكد
+   * كالجزء — البوابة نفسها تمنع نداء الخدمة بلا تعريف، لا خط الدفاع الثاني
+   * وحده؛ وبالتعريف يمر البيع بوضعه الصريح. */
+  it("S13-R1-F01: «لم أستلم والمبلغ دَين» بلا تعريف — البوابة تمنع الخدمة قبل استدعائها", async () => {
+    wouterMocks.location = "/direct-sales/new";
+    const record = vi.fn().mockResolvedValue({
+      ok: true,
+      value: { ...sale, id: "sale-none-gate", collections: [] },
+    });
+    mockedUsePrototypeServices.mockReturnValue(
+      baseServices({
+        directSales: { record },
+        partyDirectory: { save: vi.fn(), suggestParties: vi.fn().mockResolvedValue({ ok: true, value: [] }) },
+      }),
+    );
+
+    renderEditor();
+    await screen.findByRole("heading", { name: "تسجيل بيع مباشر" });
+    fireEvent.change(screen.getByLabelText("إجمالي البيع — د.أ"), { target: { value: "12.00" } });
+    fireEvent.click(screen.getByRole("radio", { name: /لم أستلم والمبلغ دَين/ }));
+
+    /* نية الدين ظاهرة عند وضع «لم أستلم» — تعريف صاحب المتبقي مطلوب. */
+    expect(screen.getByLabelText("على مَن المبلغ؟ — اسم أو وصف")).toBeTruthy();
+    expect(screen.getByText(/المتبقي بلا تعريف يضيع من المتابعة/).getAttribute("role")).toBe("alert");
+
+    /* حفظ بلا تعريف: بوابة الواجهة ترفض قبل الخدمة — لا كتابة إطلاقًا. */
+    fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
+    expect(await screen.findByText(/حدّد صاحب المبلغ المتبقي قبل الحفظ/)).toBeTruthy();
+    expect(record).not.toHaveBeenCalled();
+    expect(screen.queryByRole("heading", { name: "سُجّل البيع" })).toBeNull();
+    /* القيمة باقية بعد الرفض — لا تفريغ صامت للمدخلات. */
+    expect((screen.getByLabelText("إجمالي البيع — د.أ") as HTMLInputElement).value).toBe("12.00");
+
+    /* بالتعريف يمر البيع دَينًا صريحًا بصفر مقبوض — الوضع نفسه لا يتغير. */
+    fireEvent.change(screen.getByLabelText("على مَن المبلغ؟ — اسم أو وصف"), { target: { value: "ليان" } });
+    fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
+    await screen.findByRole("heading", { name: "سُجّل البيع" });
+    expect(record).toHaveBeenCalledTimes(1);
+    expect(record.mock.calls[0][0]).toMatchObject({
+      revenueMinor: 1200,
+      collectedMinor: 0,
+      collectionStatus: "partial_debt",
+      customerName: "ليان",
+    });
+  });
+
   /* S11-MR-002: العميل الاختياري متاح للبيع المدفوع كاملًا حتى بلا فرق ولا
    * اسم مُدخل سابقًا — دون إنشاء طرف دائم ولا استنتاج هوية من تشابه اسم. */
   it("S11-MR-002: «إضافة عميل — اختياري» متاح للدفع الكامل ويمرر الاسم دون بطاقة إجبارية", async () => {
