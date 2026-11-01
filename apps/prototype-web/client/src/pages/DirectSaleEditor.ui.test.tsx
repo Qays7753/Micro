@@ -469,6 +469,17 @@ describe("DirectSaleEditor", () => {
     fireEvent.click(screen.getByRole("radio", { name: /استلمت جزءًا والباقي دَين/ }));
     fireEvent.change(screen.getByLabelText("المقبوض الآن — د.أ"), { target: { value: "5.00" } });
     expect(screen.getByText(/البيع 12.00 · المقبوض 5.00 · دين 7.00/)).toBeTruthy();
+
+    /* S12 (DOC-021 — تصحيح R5-F02): القبض الجزئي الذي يوازي أو يتجاوز السعر
+     * نية يرفضها حد الحفظ — لا معاينة منها أبدًا: لا «قُبض كاملًا» برقم لم
+     * يدخله المستخدم ولا «دين» بمتبقٍ سالب؛ المعاينة تختفي حتى يصحح المدخل. */
+    fireEvent.change(screen.getByLabelText("المقبوض الآن — د.أ"), { target: { value: "13.00" } });
+    expect(screen.queryByText(/قُبض كاملًا/)).toBeNull();
+    expect(screen.queryByText(/دين/)).toBeNull();
+    fireEvent.change(screen.getByLabelText("المقبوض الآن — د.أ"), { target: { value: "12.00" } });
+    expect(screen.queryByText(/قُبض كاملًا/)).toBeNull();
+    fireEvent.change(screen.getByLabelText("المقبوض الآن — د.أ"), { target: { value: "5.00" } });
+    expect(screen.getByText(/البيع 12.00 · المقبوض 5.00 · دين 7.00/)).toBeTruthy();
     fireEvent.change(screen.getByLabelText("على مَن المبلغ؟ — اسم أو وصف"), { target: { value: "ليان" } });
     expect(screen.getByText(/البيع 12.00 · المقبوض 5.00 · دين 7.00 على ليان/)).toBeTruthy();
 
@@ -549,6 +560,77 @@ describe("DirectSaleEditor", () => {
     });
   });
 
+  it("S12 (تصحيح R5-F05): اختيار وضع دفع صريح يحمل دينًا يفك تعليق المسودة المهاجرة — لا سؤال دين ثانٍ", async () => {
+    wouterMocks.location = "/direct-sales/new";
+    const record = vi.fn().mockResolvedValue({
+      ok: true,
+      value: { ...sale, id: "sale-legacy-debt", collections: [] },
+    });
+    mockedUsePrototypeServices.mockReturnValue(
+      baseServices({
+        directSales: { record },
+        formDrafts: {
+          read: vi.fn().mockResolvedValue({
+            ok: true,
+            value: {
+              values: {
+                itemName: "صندوق حلويات",
+                quantity: 1,
+                revenueMinor: 1200,
+                /* شكل ما قبل الأوضاع: جمع 500 والفرق لم يُقرر. */
+                collectedEmpty: false,
+                collectedMinor: 500,
+                costKnown: false,
+                costMinor: 0,
+                customerName: "ليان",
+                customerPartyId: "",
+                saveForReuse: false,
+                catalogItemId: "",
+                occurredOn: "2026-10-20",
+                note: "",
+              },
+              updatedAt: "2026-10-20T10:00:00.000Z",
+            },
+          }),
+          save: vi.fn().mockResolvedValue({ ok: true, value: { updatedAt: "2026-10-20T10:00:00.000Z" } }),
+          discard: vi.fn().mockResolvedValue({ ok: true, value: null }),
+        },
+      }),
+    );
+
+    renderEditor();
+    await screen.findByText("استرجع المسودة");
+    fireEvent.click(screen.getByRole("button", { name: "استرجع المسودة" }));
+    await waitFor(() =>
+      expect(
+        (screen.getByRole("radio", { name: /استلمت جزءًا والباقي دَين/ }) as HTMLInputElement).checked,
+      ).toBe(true),
+    );
+    await waitFor(() => expect(screen.getByText(/حالة مختلفة؟/).closest("details")?.open).toBe(true));
+    expect(screen.getByText(/ما زال معلقًا/)).toBeTruthy();
+    /* الحفظ محجوب قبل القرار الصريح — لا دين بصمت. */
+    fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
+    expect(await screen.findByText(/اختر معناه في «حالة مختلفة؟» قبل الحفظ/)).toBeTruthy();
+    expect(record).not.toHaveBeenCalled();
+
+    /* اختيار وضع دفع صريح آخر يحمل دينًا («لم أستلم والمبلغ دَين») هو نفسه
+     * قرار الفرق (R5-F05) — يرفع التعليق فورًا بلا سؤال دين ثانٍ. إعادة
+     * النقر على الراديو المحدد أصلًا لا يولّد حدث تغيير في المتصفح الحقيقي،
+     * فالتبديل إلى وضع صريح آخر هو المسار الواقعي، ويحفظ دينًا صادقًا:
+     * القبض 0 صريح والدين 12.00 كاملًا. */
+    fireEvent.click(screen.getByRole("radio", { name: /لم أستلم والمبلغ دَين/ }));
+    await waitFor(() => expect(screen.queryByText(/ما زال معلقًا — اختر ما حدث فعلًا/)).toBeNull());
+    fireEvent.change(screen.getByLabelText("على مَن المبلغ؟ — اسم أو وصف"), { target: { value: "ليان" } });
+    fireEvent.click(screen.getByRole("button", { name: "حفظ البيع المباشر" }));
+    await waitFor(() => expect(record).toHaveBeenCalledTimes(1));
+    expect(record.mock.calls[0][0]).toMatchObject({
+      revenueMinor: 1200,
+      collectedMinor: 0,
+      priceCut: false,
+      customerName: "ليان",
+    });
+  });
+
   it("S11-MR-001: مسودة بنمط اليوم تُستعاد بوضعها «لم أستلم» بلا سؤال قرار", async () => {
     wouterMocks.location = "/direct-sales/new";
     const record = vi.fn().mockResolvedValue({
@@ -622,7 +704,7 @@ describe("DirectSaleEditor", () => {
     fireEvent.change(screen.getByLabelText("المقبوض الآن — د.أ"), { target: { value: "5.00" } });
     fireEvent.click(screen.getByRole("radio", { name: /خفّضتُ السعر فعلًا/ }));
     fireEvent.click(screen.getByRole("radio", { name: /الفرق يحتاج مراجعة/ }));
-    fireEvent.click(screen.getByText("ألغِ الحالة الخاصة — الباقي دَين كما اخترت في الدفع"));
+    fireEvent.click(screen.getByText("ألغِ الحالة الخاصة — الباقي دَين كما في الدفع"));
     fireEvent.click(screen.getByRole("radio", { name: /لم أستلم والمبلغ دَين/ }));
     fireEvent.click(screen.getByRole("radio", { name: /استلمت كامل المبلغ/ }));
     /* فتح تفاصيل إضافية وتغيير الوصف والكمية — كلها واجهة صرفة. */

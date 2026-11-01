@@ -1018,7 +1018,18 @@ export interface PrototypeLocalStore {
     order: StoredCraftOrder,
     draft: OrderDraft,
     schedule?: ScheduleEntry,
-  ): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>>;
+  ): Promise<
+    StorageResult<{
+      order: StoredCraftOrder;
+      draft: OrderDraft;
+      schedule: ScheduleEntry | null;
+      /* S12 (DOC-021 — أمر 2e645802 §6، تصحيح R3-F01): فحص الوجود داخل
+       * حد الكتابة نفسه — إن وُجد الطلب بالمعرف الحتمي فمسار إعادة الاستخدام
+       * (reused = true مع السجل القائم نفسه، بلا أي كتابة فوقه)، لا طمر
+       * آخر-كاتب-يفوز لإنشاءين متزامنين من المسودة نفسها. */
+      reused: boolean;
+    }>
+  >;
   /* المجموعة ٣ (عقد D4): معاملة تسليم ذرّية واحدة — الطلب المسلّم وحركات
    * استهلاك المواد وسجلات النقص وتخصيص الكاش المقبوض عند التسليم تُكتب معًا
    * أو لا يُكتب شيء؛ فحص الهوية داخل المعاملة يمنع تكرار التسليم والحركات

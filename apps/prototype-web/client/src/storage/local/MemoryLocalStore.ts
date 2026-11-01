@@ -1781,13 +1781,44 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     order: StoredCraftOrder,
     draft: OrderDraft,
     schedule?: ScheduleEntry,
-  ): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>> {
+  ): Promise<
+    StorageResult<{
+      order: StoredCraftOrder;
+      draft: OrderDraft;
+      schedule: ScheduleEntry | null;
+      reused: boolean;
+    }>
+  > {
+    /* S12 (DOC-021 — أمر 2e645802 §6، تصحيح R3-F01): فحص الوجود داخل حد
+     * الكتابة — إنشاءان متزامنان من المسودة نفسها (المعرّف الحتمي
+     * `order-${draft.id}` واحد) لا يطمر أحدهما الآخر: الثاني يرى السجل القائم
+     * ويعيد الاستخدام بصدق (reused مع السجل نفسه وبلا أي كتابة)؛ ولا جدول
+     * يتيمًا أبدًا (لا يُمسّ أي شيء عند إعادة الاستخدام). */
+    const existing = this.orders.get(order.id);
+    if (existing) {
+      const liveDraft = this.drafts.get(draft.id) ?? draft;
+      const liveSchedule = schedule ? (this.schedules.get(schedule.id) ?? null) : null;
+      return {
+        ok: true,
+        value: {
+          order: clone(existing),
+          draft: clone(liveDraft),
+          schedule: liveSchedule ? clone(liveSchedule) : null,
+          reused: true,
+        },
+      };
+    }
     this.orders.set(order.id, clone(order));
     this.drafts.set(draft.id, clone(draft));
     if (schedule) this.schedules.set(schedule.id, clone(schedule));
     return {
       ok: true,
-      value: { order: clone(order), draft: clone(draft), schedule: schedule ? clone(schedule) : null },
+      value: {
+        order: clone(order),
+        draft: clone(draft),
+        schedule: schedule ? clone(schedule) : null,
+        reused: false,
+      },
     };
   }
   async readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>> {

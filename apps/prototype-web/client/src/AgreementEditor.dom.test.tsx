@@ -300,4 +300,73 @@ describe("S12 (UNIT-009 — أمر 2e645802): محرر الاتفاق — الم
     const options = Array.from(select.querySelectorAll("option")).map(option => option.value);
     expect(options).toEqual(["", "none", "project_pays"]);
   });
+  it("تصحيح R5-F03: عربون يتجاوز السعر — لا متبقٍ سالبًا في المعاينة، وصدق يعلن الرفض", async () => {
+    const draftId = await seedReadyDraft();
+    mockedUsePrototypeServices.mockReturnValue({
+      ...services(),
+      agreements: {
+        createFromDraft: vi.fn().mockResolvedValue({
+          ok: false,
+          message: "لا يمكن أن يتجاوز العربون قيمة الطلب المتفق عليها.",
+        }),
+      },
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    wouterMocks.params = { id: draftId };
+    render(<Harness />);
+    const price = await screen.findByLabelText("السعر المتفق عليه بالأرقام 0–9");
+    fireEvent.change(price, { target: { value: "50.00" } });
+    const deposit = screen.getByLabelText("العربون بالأرقام 0–9");
+    fireEvent.change(deposit, { target: { value: "60.00" } });
+    /* المعاينة من النية القابلة للحفظ فقط — لا متبقٍ سالبًا ولا رقمًا من نية يرفضها الحد. */
+    expect(
+      screen.getByText("العربون يتجاوز قيمة الطلب — لا يمكن الحفظ بهذه القيم؛ عدّل أحد الحقلين."),
+    ).toBeTruthy();
+    expect(screen.queryByText(/المتبقي -10/)).toBeNull();
+    /* الحفظ يُرفض عند الحد بقاعدته — إعلان صادق لا صمت؛ بوابة الموعد عند
+     * المحرر تمر أولًا (المجهول الصريح المختار) فيصل الطلب إلى الحد المُنكّر. */
+    fireEvent.click(screen.getByRole("checkbox", { name: "لم يُحدد بعد" }));
+    fireEvent.click(screen.getByRole("button", { name: /تسجيل الاتفاق/ }));
+    const error = await screen.findByRole("alert");
+    expect(error.textContent).toContain("لا يمكن أن يتجاوز العربون");
+  });
+
+  it("تصحيح R5-F01: المجهول الصريح في المسودة — العنوان «قيد المراجعة» لا «ناقصًا»", async () => {
+    const draftId = await seedReadyDraft();
+    mockedUsePrototypeServices.mockReturnValue(
+      savingServices() as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    wouterMocks.params = { id: draftId };
+    render(<Harness />);
+    const price = await screen.findByLabelText("السعر المتفق عليه بالأرقام 0–9");
+    /* بلا سعر وبلا تاريخ: لا يوجد اتفاق بعد (فرع none كما كان). */
+    expect(screen.getByText("لا يوجد اتفاق")).toBeTruthy();
+    fireEvent.change(price, { target: { value: "50.00" } });
+    /* سعر بلا تاريخ (الفراغ = لم يُدخل بعد): ناقص كما كان — المجهول لم يُصرح به. */
+    expect(screen.getByText("اتفاق ناقص")).toBeTruthy();
+    /* المجهول الصريح: مراجعة لا نقصًا — «لم يُحدد بعد» مختلف عن الفراغ. */
+    fireEvent.click(screen.getByRole("checkbox", { name: "لم يُحدد بعد" }));
+    expect(screen.getByText("اتفاق قيد المراجعة")).toBeTruthy();
+    expect(screen.queryByText("اتفاق ناقص")).toBeNull();
+  });
+
+  it("تصحيح R3-F02-د: تبديل المجهول والتكلفة المجهولة وطي القسم — لا كتابة مالية", async () => {
+    const draftId = await seedDraftWithoutCost();
+    const base = services();
+    const saveSpy = vi.spyOn(base.drafts, "save");
+    mockedUsePrototypeServices.mockReturnValue(base as unknown as ReturnType<typeof usePrototypeServices>);
+    wouterMocks.params = { id: draftId };
+    render(<Harness />);
+    const price = await screen.findByLabelText("السعر المتفق عليه بالأرقام 0–9");
+    fireEvent.change(price, { target: { value: "50.00" } });
+    /* تبديل الموعد المجهول واختيار التكلفة المجهولة وطي قسم التوصيل وفتحه:
+     * كلها نية واجهة صرفة — لا كتابة اتفاق ولا مسودة مالية حتى الحفظ الصريح. */
+    fireEvent.click(screen.getByRole("checkbox", { name: "لم يُحدد بعد" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /التكلفة غير معروفة الآن/ }));
+    fireEvent.click(screen.getByText("النقل والتوصيل ومسؤولية كلفته"));
+    fireEvent.click(screen.getByText("النقل والتوصيل ومسؤولية كلفته"));
+    const agreementsService = mockedUsePrototypeServices().agreements;
+    if (!agreementsService) throw new Error("agreements service missing in test fixture");
+    expect(agreementsService.createFromDraft).not.toHaveBeenCalled();
+    expect(saveSpy).not.toHaveBeenCalled();
+  });
 });

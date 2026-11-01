@@ -216,7 +216,9 @@ export default function AgreementEditor() {
   const agreementPresentation = getAgreementPresentation({
     status: "draft",
     agreedPriceMinor: priceMinor,
-    deliveryDate,
+    /* S12 (DOC-021 — J002-DEC02، تصحيح R5-F01): التمرير الثلاثي الصادق —
+     * المجهول الصريح يمر null فلا يوصف بالنقص، والفراغ يبقى «لم يُدخل بعد». */
+    deliveryDate: deliveryDateUnknown ? null : deliveryDate,
   });
   const currentValues = {
     priceMinor,
@@ -707,6 +709,13 @@ export default function AgreementEditor() {
         {agreementPriceIsReady(priceMinor) && isPriceValid && (depositMinor === null || isDepositValid) ? (
           <p className="micro-save-preview">
             {(() => {
+              /* S12 (تصحيح R5-F03): المعاينة من النية الفعالة القابلة للحفظ فقط —
+               * العربون الذي يتجاوز السعر نية يرفضها حد الخدمة، فلا يعرض متبقيًا
+               * سالبًا أبدًا (UNIT-009 B4: لا سالب مقبول آليًا) ولا رقمًا من نية
+               * غير صالحة. */
+              if (depositMinor !== null && priceMinor !== null && depositMinor > priceMinor) {
+                return "العربون يتجاوز قيمة الطلب — لا يمكن الحفظ بهذه القيم؛ عدّل أحد الحقلين.";
+              }
               const summary = agreementSummaryParts({ priceMinor, depositMinor });
               return `قيمة الطلب المسجلة ${formatMoneyMinor(summary.recordedValueMinor)} د.أ · المستلم مقدمًا ${formatMoneyMinor(
                 summary.receivedAdvanceMinor,

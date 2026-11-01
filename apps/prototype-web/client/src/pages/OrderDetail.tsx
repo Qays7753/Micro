@@ -1735,7 +1735,10 @@ export default function OrderDetail() {
                       </label>
                     </>
                   ) : null}
-                  {termsResponsibility !== "customer_pays_courier" ? (
+                  {/* S12 (DOC-021 — UNIT-009 A3، تصحيح R5-F04): «لا يوجد توصيل» بلا
+                      أي مبلغ — حقول الكلفة لا تُعرض تحته أصلًا فلا يُدخل قيمة
+                      تُطرح بصمت عند الحفظ؛ الكلفة تخص توصيل المشروع وحده. */}
+                  {termsResponsibility !== "customer_pays_courier" && termsResponsibility !== "none" ? (
                     <>
                       <label className="micro-field">
                         <span>كلفة النقل التي دفعها المشروع (د.أ)</span>
@@ -1759,6 +1762,11 @@ export default function OrderDetail() {
                         <span>الكلفة محتواة أصلًا داخل تكلفة المنتج — لا تُطرح مرة ثانية.</span>
                       </label>
                     </>
+                  ) : null}
+                  {termsResponsibility === "none" ? (
+                    <p className="micro-field-hint">
+                      «لا يوجد توصيل» بلا أي مبلغ — لا أجرة ولا كلفة توصيل تدخل قيمة الطلب أو نتيجته.
+                    </p>
                   ) : null}
                   {termsResponsibility === "shared" ? (
                     <div className="micro-shared-costs">

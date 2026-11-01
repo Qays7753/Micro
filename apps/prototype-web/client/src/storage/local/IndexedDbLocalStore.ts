@@ -3624,19 +3624,85 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     order: StoredCraftOrder,
     draft: OrderDraft,
     schedule?: ScheduleEntry,
-  ): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>> {
+  ): Promise<
+    StorageResult<{
+      order: StoredCraftOrder;
+      draft: OrderDraft;
+      schedule: ScheduleEntry | null;
+      reused: boolean;
+    }>
+  > {
     try {
       const database = await connection();
       return await new Promise(resolve => {
         const stores = schedule ? [orderStore, draftStore, scheduleStore] : [orderStore, draftStore];
         const transaction = database.transaction(stores, "readwrite");
-        transaction.objectStore(orderStore).put(order);
-        transaction.objectStore(draftStore).put(draft);
-        if (schedule) transaction.objectStore(scheduleStore).put(schedule);
-        transaction.onabort = () => resolve(failure(transaction.error, database));
-        transaction.onerror = () => resolve(failure(transaction.error, database));
+        /* S12 (DOC-021 — أمر 2e645802 §6، تصحيح R3-F01): فحص الوجود داخل حد
+         * الكتابة نفسه — معاملات readwrite على المتاجر نفسها تسلسلها
+         * IndexedDB بترتيب إنشائها، فقراءة الطلب قبل أي put داخل المعاملة
+         * الواحدة تجعل الإنشاءين المتزامنين من المسودة نفسها آمنين: الأول
+         * يكتب، والثاني يرى السجل القائم ويعيد الاستخدام بصدق (reused مع
+         * السجل نفسه وبلا أي كتابة) — لا طمر آخر-كاتب-يفوز ولا جدول يتيمًا. */
+        let settled = false;
+        /* R9-GA-F7.1 (نمط failFromListener القائم): أي رمي متزامن من جسم
+         * مستمع يُثبّت النتيجة بالفشل أولًا ثم يُحبِط المعاملة — فإما onabort
+         * يسلّم الفشل، وإما المعاملة انتهت فيُسلَّم مباشرة؛ لا كتابة فوقه. */
+        const failFromListener = (error: unknown) => {
+          settled = true;
+          resolve(failure(error, database));
+          try {
+            transaction.abort();
+          } catch {
+            /* settled بالفعل — لا شيء فوق الفشل */
+          }
+        };
+        const reuse = (existing: StoredCraftOrder) => {
+          const draftRequest = transaction.objectStore(draftStore).get(draft.id);
+          draftRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+            const liveDraft = (draftRequest.result as OrderDraft | undefined) ?? draft;
+            const finish = (liveSchedule: ScheduleEntry | null) => {
+              settled = true;
+              resolve({
+                ok: true,
+                value: { order: existing, draft: liveDraft, schedule: liveSchedule, reused: true },
+              });
+            };
+            if (schedule) {
+              const scheduleRequest = transaction.objectStore(scheduleStore).get(schedule.id);
+              scheduleRequest.onsuccess = guardedSuccessListener(failFromListener, () =>
+                finish((scheduleRequest.result as ScheduleEntry | undefined) ?? null),
+              );
+              scheduleRequest.onerror = () => finish(null);
+            } else {
+              finish(null);
+            }
+          });
+          draftRequest.onerror = () => {
+            settled = true;
+            resolve({ ok: true, value: { order: existing, draft, schedule: null, reused: true } });
+          };
+        };
+        const orderRequest = transaction.objectStore(orderStore).get(order.id);
+        orderRequest.onsuccess = guardedSuccessListener(failFromListener, () => {
+          const existing = orderRequest.result as StoredCraftOrder | undefined;
+          if (existing) {
+            reuse(existing);
+            return;
+          }
+          transaction.objectStore(orderStore).put(order);
+          transaction.objectStore(draftStore).put(draft);
+          if (schedule) transaction.objectStore(scheduleStore).put(schedule);
+        });
+        orderRequest.onerror = () => resolve(failure(orderRequest.error, database));
+        transaction.onabort = () => {
+          if (!settled) resolve(failure(transaction.error, database));
+        };
+        transaction.onerror = () => {
+          if (!settled) resolve(failure(transaction.error, database));
+        };
         transaction.oncomplete = () => {
-          resolve({ ok: true, value: { order, draft, schedule: schedule ?? null } });
+          if (settled) return;
+          resolve({ ok: true, value: { order, draft, schedule: schedule ?? null, reused: false } });
         };
       });
     } catch (error) {

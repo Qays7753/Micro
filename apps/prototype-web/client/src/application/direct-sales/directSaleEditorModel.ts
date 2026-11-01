@@ -196,6 +196,13 @@ export function directSalePreviewParts(input: {
   effectiveChoice: DifferenceChoice | null;
 }): DirectSalePreviewParts {
   if (!input.valid || input.revenueMinor <= 0) return { kind: "unavailable" };
+  /* S12 (DOC-021 — تصحيح R5-F02): القبض الجزئي الذي يوازي أو يتجاوز السعر
+   * نية يرفضها حد الحفظ (collected_exceeds_price وpartial_amount_equals_total)
+   * — لا تُعرض «قُبض كاملًا» برقم لم يدخله المستخدم ولا معاينة من نية غير
+   * قابلة للحفظ؛ المعاينة من النية الفعالة الصحيحة فقط. */
+  if (input.paymentMode === "partial" && input.resolvedCollectedMinor >= input.revenueMinor) {
+    return { kind: "unavailable" };
+  }
   if (input.difference > 0 && input.effectiveChoice === "price_cut")
     return { kind: "price_cut", effectiveSaleMinor: input.resolvedCollectedMinor };
   if (input.difference > 0 && input.effectiveChoice === "needs_review")

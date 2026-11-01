@@ -108,7 +108,9 @@ export class AgreementService {
           code: "inconsistent_state",
           message: "توجد إشارة لاتفاق محلي غير متاح. لا تنشئ اتفاقًا جديدًا قبل المراجعة.",
         };
-      return { ok: true, stored: current.value };
+      /* S12 (DOC-021 — تصحيح R3-F04): مسودة مرتبطة بالفعل = إعادة استخدام
+       * موثّقة للسجل القائم نفسه — نفس دلالة startExecution. */
+      return { ok: true, stored: current.value, reused: true };
     }
     /* Conflict B: الجهة اختيارية — الطلب النقدي لا يُحجب؛ الاسم الفارغ يعني
      * «زبون بلا اسم» ويمكن تسميته لاحقًا من صفحة الطلب (تعبئة باتجاه واحد). */
@@ -273,8 +275,11 @@ export class AgreementService {
               updatedAt: timestamp,
             };
       const commit = await this.store.commitOrderFromDraft(stored, linkedDraft, schedule ?? undefined);
+      /* S12 (DOC-021 — أمر 2e645802 §6، تصحيح R3-F01): حد الكتابة يعيد
+       * الاستخدام بصدق (reused) عند إنشاء متزامن/مكرر من المسودة نفسها —
+       * لا يطمر آخر-كاتب-يفوز؛ يمرر العلم كما هو. */
       return commit.ok
-        ? { ok: true, stored: commit.value.order }
+        ? { ok: true, stored: commit.value.order, reused: commit.value.reused }
         : storageFailure("تعذر حفظ الاتفاق محليًا — بياناتك كما هي؛ أعد المحاولة.");
     } catch (error) {
       return validation(errorMessageOf(error, "تعذر بناء الاتفاق."));

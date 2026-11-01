@@ -34,7 +34,7 @@ describe("documentation consistency — Group 3 implemented on the remediation b
     expect(section32).toContain("لم يُخترع نظام تشخيصات");
   });
 
-  it("schema and export versions match the code constants (40/32 after DOC-014 S05; the 35/27 statement stays as Group 3 history)", () => {
+  it("schema and export versions match the code constants (40/33 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 40/32 بعد DOC-014 S05); the 35/27 statement stays as Group 3 history)", () => {
     const section32 = currentState.split("## §32.")[1] ?? "";
     expect(section32).toContain("٣٥ / ٢٧ بلا تغيير");
     /* S05 (DOC-014، 2026-10-29): ٤٠/٣٢ — عائلة الأطراف المحفوظة بأمر S05

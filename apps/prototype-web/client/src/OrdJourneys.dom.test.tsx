@@ -402,4 +402,40 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     expect(saved.value.order.recognizedRevenueMinor).toBe(5000);
     expect(saved.value.order.recognizedCostMinor).toBe(400);
   });
+
+  it("S12 (تصحيح R5-F04): «لا يوجد توصيل» في تعديل شروط طلب قائم — لا حقول كلفة تُعرض فلا تُدخل قيمة تُطرح بصمت", async () => {
+    const stored = await agreedOrder();
+    wouterMocks.params = { id: stored.id };
+    render(<Harness page={<OrderDetail />} />);
+    await screen.findByText("رف خشبي");
+    fireEvent.click(screen.getByText("تسجيل شروط النقل والتوصيل"));
+    /* تحت «لا يوجد توصيل»: لا حقل كلفة نقل ولا احتواء الكلفة — بلا أي مبلغ
+     * أصلًا (UNIT-009 A3)، وبيان صادق مكان الحقول. */
+    fireEvent.change(screen.getByLabelText("تعديل مسؤولية كلفة النقل والتوصيل"), {
+      target: { value: "none" },
+    });
+    expect(screen.queryByLabelText("تعديل كلفة النقل المدفوعة من المشروع")).toBeNull();
+    expect(
+      screen.getByText("«لا يوجد توصيل» بلا أي مبلغ — لا أجرة ولا كلفة توصيل تدخل قيمة الطلب أو نتيجته."),
+    ).toBeTruthy();
+    /* تحت «على المشروع»: حقل الكلفة ظاهر كما كان — الكلفة تخص توصيل المشروع وحده. */
+    fireEvent.change(screen.getByLabelText("تعديل مسؤولية كلفة النقل والتوصيل"), {
+      target: { value: "project_pays" },
+    });
+    expect(screen.getByLabelText("تعديل كلفة النقل المدفوعة من المشروع")).toBeTruthy();
+    /* والحفظ تحت «لا يوجد توصيل» يمر بأي مبلغ صفر — القاعدة المشتركة الواحدة. */
+    fireEvent.change(screen.getByLabelText("تعديل مسؤولية كلفة النقل والتوصيل"), {
+      target: { value: "none" },
+    });
+    fireEvent.click(screen.getByText("حفظ شروط النقل"));
+    await waitFor(() => {
+      const panel = screen.getByTestId("delivery-terms-panel");
+      expect(panel.textContent).toContain("لا يوجد توصيل");
+    });
+    const saved = await store.getOrder(stored.id);
+    if (!saved.ok || !saved.value) throw new Error("order should exist");
+    expect(saved.value.order.deliveryTerms?.responsibility).toBe("none");
+    expect(saved.value.order.deliveryTerms?.costPaidMinor).toBeNull();
+    expect(saved.value.order.deliveryTerms?.feeChargedMinor).toBeNull();
+  });
 });

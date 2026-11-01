@@ -877,6 +877,11 @@ export default function DirectSaleEditor() {
   function selectPaymentMode(mode: PaymentMode) {
     setPaymentMode(mode);
     if (mode === "none") setDifferenceChoice(choice => (choice === "price_cut" ? null : choice));
+    /* S12 (DOC-021 — تصحيح R5-F05): اختيار وضع دفع صريح يحمل دينًا (جزئي
+     * أو «لم أستلم والمبلغ دين») هو نفسه قرار الفرق الصريح — يرفع تعليق
+     * المسودة المهاجرة فورًا فلا يبقى سؤال دين ثانٍ بعدها (A2/س2: لا سؤال
+     * زائد بعد نية صريحة)؛ والمراجعة تبقى صالحة في كل فرق كما كانت. */
+    if (mode === "partial" || mode === "none") setUndecidedDifference(false);
   }
 
   /* S11-MR-001 (A2/س8): معاينة ملاصقة للحفظ من النية الفعّالة الصحيحة — تُشتق
@@ -1129,7 +1134,10 @@ export default function DirectSaleEditor() {
                     setDifferentCaseOpen(false);
                   }}
                 >
-                  ألغِ الحالة الخاصة — الباقي دَين كما اخترت في الدفع
+                  {/* S12 (DOC-021 — تصحيح R5-F05): صياغة صادقة للمسودة
+                      المهاجرة أيضًا — دين الوضع الصريح أو المستنتج من الدفع،
+                      لا ادعاء اختيار لم يحدث بعد الترحيل. */}
+                  ألغِ الحالة الخاصة — الباقي دَين كما في الدفع
                 </button>
               ) : null}
             </details>

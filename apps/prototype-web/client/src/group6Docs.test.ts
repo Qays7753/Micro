@@ -110,8 +110,8 @@ describe("governance consistency — Group 6 prevention implemented on the remed
     expect(section36).toContain("AGENTS.md");
   });
 
-  it("schema/export versions stay 40/32 (S05/DOC-014 counterparties; 39/31 was S04 owner-approved) and the limits stay pinned between code and docs (no silent raise; gzip 155,300 per ADR-017 dated 2026-10-04)", () => {
-    /* S05 (DOC-014، 2026-10-29): ٤٠/٣٢ — عائلة الأطراف المحفوظة بأمر S05
+  it("schema/export versions stay 40/33 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 40/32 بعد DOC-014 S05؛ وكان 39/31 زوج S04 بأمر مالك) and the limits stay pinned between code and docs (no silent raise; gzip 155,300 per ADR-017 dated 2026-10-04)", () => {
+    /* S05 (DOC-014، 2026-10-29): ٤٠/٣٣ اليوم (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان ٤٠/٣٢) — عائلة الأطراف المحفوظة بأمر S05
      * المأذون مع كامل أدلة التوافق/الترحيل في النطاق نفسه (نمط D-037). */
     expect(localSchemaVersion).toBe(40);
     expect(localExportVersion).toBe(33);
