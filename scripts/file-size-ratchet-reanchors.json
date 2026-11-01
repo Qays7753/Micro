@@ -7716,6 +7716,25 @@
         "trigger": "S13 unified follow-up reader measured on the live tree (approved reader design per UNIT-018 B3/B5)",
         "ocRef": "DOC-022"
       }
+    },
+    {
+      "id": "S13-R1-F01-REVIEW-FIX-20261102-407",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/direct-sales/directSaleEditorModel.ts",
+      "from": {
+        "nbLoc": 184,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 349,
+        "band": "NORMAL"
+      },
+      "reason": "S13-R1-F01 (تصحيح المراجعة الأولى لأمر 2158b0fc §9): بوابة تعريف الدين المؤكد تشمل وضعَي الدين (الجزء و«لم أستلم والمبلغ دَين») — تصحيح موثق مؤرخ في ملحق 16b §6؛ +3 أسطر تعليق وشرط الوضع الثاني، لا منطق جديد خارج القاعدة المعتمدة. (الإرساء متسلسل من أساس 184 عبر إرساء 388 السابق 184→346 ثم هذا التصحيح 346→349.)",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §9 — repair every confirmed in-scope finding and rerun affected gates; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 review-1 remediation measured on the live tree",
+        "ocRef": "DOC-022"
+      }
     }
   ]
 }
