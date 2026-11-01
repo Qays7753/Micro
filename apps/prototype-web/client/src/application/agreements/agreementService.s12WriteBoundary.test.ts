@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { AgreementService } from "@/application/agreements/agreementService";
 import { CostService, type CostEditorInput } from "@/application/cost/costService";
 import { DraftService } from "@/application/drafts/draftService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { IndexedDbLocalStore } from "@/storage/local/IndexedDbLocalStore";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
@@ -333,6 +334,98 @@ describe("S12-FIN-001 — المفتاح نفسه بحمولة مختلفة: ت�
         /* مرجع المجهول المحفوظ لم يُطمس — السجل القائم كما كتبه فائزه. */
         const read = await store.getOrder(unknownFirst.stored.id);
         expect(read.ok && read.value?.order.costSnapshots[0]?.id).toContain("unknown-cost");
+      });
+
+      it("S13-R2-F01: العلم المالي وحده المتغير (costIncludedInProductCost) تعارض صريح — لا طمر صامت", async () => {
+        const store = makeStore();
+        const draft = await unlinkedDraft(store, true);
+        const agreements = new AgreementService(store, new CostService(store, () => NOW), () => NOW);
+        /* نفس المسؤولية ونفس المبلغ — والفرق الوحيد احتساب كلفة النقل داخل
+         * تكلفة المنتج: نية إنشاء مختلفة ماليًا (مشروعDeliveryCostMinor
+         * صفر مقابل المبلغ) فتعارض لا إعادة استخدام تخطف القصد الجديد. */
+        const termsBase = {
+          responsibility: "project_pays" as const,
+          feeIncludedInPrice: false,
+          feeChargedMinor: null,
+          costPaidMinor: 700,
+          projectShareMinor: null,
+          customerShareMinor: null,
+        };
+        const first = await agreements.createFromDraft(draft, {
+          ...baseInput,
+          deliveryTerms: { ...termsBase, costIncludedInProductCost: false },
+        });
+        if (!first.ok) throw new Error(first.message);
+        const rejected = await agreements.createFromDraft(
+          { ...draft, linkedOrderId: first.stored.id },
+          { ...baseInput, deliveryTerms: { ...termsBase, costIncludedInProductCost: true } },
+        );
+        expect(rejected.ok).toBe(false);
+        if (rejected.ok) throw new Error("unreachable");
+        expect(rejected.code).toBe("storage_stale");
+        expect(rejected.message).toContain("حمولة مختلفة");
+        /* علم الفائز الأول باقٍ كما سُجّل — لا كتابة ولا استبدال. */
+        const read = await store.getOrder(first.stored.id);
+        expect(read.ok && read.value?.order.deliveryTerms?.costIncludedInProductCost).toBe(false);
+      });
+
+      it("S13-R2-F01: إعادة المحاولة بعد تعديل شروط صريح لاحق — قيمة علم الإنشاء غير قابلة للاسترجاع فلا تميز", async () => {
+        const store = makeStore();
+        const draft = await unlinkedDraft(store, true);
+        const agreements = new AgreementService(store, new CostService(store, () => NOW), () => NOW);
+        const fulfillment = new FulfillmentService(store, () => NOW);
+        const first = await agreements.createFromDraft(draft, {
+          ...baseInput,
+          deliveryTerms: {
+            responsibility: "project_pays",
+            feeIncludedInPrice: false,
+            costIncludedInProductCost: false,
+            feeChargedMinor: null,
+            costPaidMinor: 700,
+            projectShareMinor: null,
+            customerShareMinor: null,
+          },
+        });
+        if (!first.ok) throw new Error(first.message);
+        /* تعديل شروط صريح لاحق يغير العلم — الحقيقة الحية للتعديل لا للإنشاء. */
+        const revised = await fulfillment.applyDeliveryTerms(
+          first.stored.id,
+          {
+            responsibility: "project_pays",
+            feeIncludedInPrice: false,
+            costIncludedInProductCost: true,
+            feeChargedMinor: null,
+            costPaidMinor: 700,
+            projectShareMinor: null,
+            customerShareMinor: null,
+          },
+          `${first.stored.id}:terms-revision-r2`,
+        );
+        if (!revised.ok) throw new Error(revised.message);
+        /* إعادة إرسال الإنشاء الأصلي (العلم كما كان عند الإنشاء): إعادة
+         * استخدام صادقة — التعديل الصريح هو الحقيقة، وقيمة الإنشاء غير
+         * قابلة للاسترجاع بلا شكل سلك جديد (حد موثق في عقد الحارس). */
+        const retried = await agreements.createFromDraft(
+          { ...draft, linkedOrderId: first.stored.id },
+          {
+            ...baseInput,
+            deliveryTerms: {
+              responsibility: "project_pays",
+              feeIncludedInPrice: false,
+              costIncludedInProductCost: false,
+              feeChargedMinor: null,
+              costPaidMinor: 700,
+              projectShareMinor: null,
+              customerShareMinor: null,
+            },
+          },
+        );
+        expect(retried.ok).toBe(true);
+        if (!retried.ok) throw new Error(retried.message);
+        expect(retried.reused).toBe(true);
+        /* الحقيقة الحية باقية على التعديل الصريح. */
+        const read = await store.getOrder(first.stored.id);
+        expect(read.ok && read.value?.order.deliveryTerms?.costIncludedInProductCost).toBe(true);
       });
 
       it("المسار السريع: شروط النقل المتغيرة تعارض صريح", async () => {

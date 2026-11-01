@@ -19,8 +19,15 @@
  *    + بصمة المحتوى دون createdAt؛ مرجع التكلفة المجهولة حتمي والمعروف
  *    بمعرف نسخته المحفوظة)؛
  *  - شروط النقل الابتدائية: حدثها الحتمي `${id}:initial-delivery-terms`
- *    (المسؤولية بنصها والمبلغ) — التعديلات اللاحقة بمفاتيحها الخاصة لا
- *    تمس نية الإنشاء؛
+ *    (المسؤولية بنصها والمبلغ) وعلمانها الماليان الفعّالان
+ *    (costIncludedInProductCost وfeeIncludedInPrice) من الشروط الحية
+ *    ما دام حدث الشروط الابتدائية آخر أحداث الشروط — S13-R2-F01
+ *    (تصحيح المراجعة الثانية): العلم مُصرَّح ماليًا عند الإنشاء (يصفر كلفة
+ *    توصيل المشروع أو يبقيها) فنيّته جزء من المقارنة الكنونية؛ التعديلات
+ *    اللاحقة بمفاتيحها الخاصة لا تمس نية الإنشاء، وبعد أول تعديل شروط
+ *    صريح تصبح قيمة العلمين عند الإنشاء غير قابلة للاسترجاع (الحدث لا
+ *    يحملهما والتعديل لا يحمل سابقه) فلا يميز المقارنة — حد موثق لا
+ *    تساهل: استرجاعهما يستلزم شكلًا جديدًا على السلك بقرار مالك؛
  *  - مستبعد عمدًا (بيانات كتابة/تطور لاحق لا نية): createdAt/updatedAt،
  *    الحالة والأحداث اللاحقة، العربونات/التحصيلات اللاحقة، المتابعات.
  *
@@ -50,7 +57,14 @@ export type AgreementCreationIntent = {
   costSnapshotId: string;
   costSnapshotFingerprint: string;
   initialDepositMinor: number;
-  initialDeliveryTerms: { responsibilityNote: string | null; amountMinor: number | null } | null;
+  initialDeliveryTerms: {
+    responsibilityNote: string | null;
+    amountMinor: number | null;
+    /* العلمان الفعّالان عند الإنشاء — null = بعد تعديل شروط صريح (قيمة
+     * الإنشاء غير قابلة للاسترجاع) فلا يميزا المقارنة. */
+    costIncludedInProductCost: boolean | null;
+    feeIncludedInPrice: boolean | null;
+  } | null;
 };
 
 /** بصمة كنونية لقيمة JSON بمفاتيح مرتبة — تسقط كل createdAt أينما ورد
@@ -78,9 +92,17 @@ export function agreementCreationIntentOf(stored: StoredCraftOrder): AgreementCr
   const creationAgreedPriceMinor = firstPriceRevision?.fromPriceMinor ?? order.agreedPriceMinor;
   /* العربون الابتدائي ونيته الحتمية. */
   const initialDeposit = order.events.find(event => event.idempotencyKey === `${order.id}:initial-deposit`);
-  /* شروط النقل الابتدائية وحدثها الحتمي (التعديلات اللاحقة مفاتيحها أخرى). */
+  /* شروط النقل الابتدائية وحدثها الحتمي (التعديلات اللاحقة مفاتيحها أخرى).
+   * S13-R2-F01: علماء الشروط الفعّالان مقروءان من الشروط الحية ما دام
+   * الحدث الابتدائي آخر أحداث الشروط؛ بعد تعديل صريح تصبح القيمة الحية
+   * للتعديل لا للإنشاء فلا تُقارن (null موثق في العقد أعلاه). */
   const initialTerms = order.events.find(
     event => event.idempotencyKey === `${order.id}:initial-delivery-terms`,
+  );
+  const termsRevisedAfterCreation = order.events.some(
+    event =>
+      event.type === "delivery_terms_recorded" &&
+      event.idempotencyKey !== `${order.id}:initial-delivery-terms`,
   );
   /* لقطة تكلفة الإنشاء: أول لقطة مجمدة عند الإنشاء (المراجعات تُلحق لا تستبدل). */
   const creationSnapshot = order.costSnapshots[0] ?? order.costSnapshot;
@@ -98,9 +120,25 @@ export function agreementCreationIntentOf(stored: StoredCraftOrder): AgreementCr
     costSnapshotFingerprint: canonicalFingerprint(creationSnapshot),
     initialDepositMinor: initialDeposit?.amountMinor ?? 0,
     initialDeliveryTerms: initialTerms
-      ? { responsibilityNote: initialTerms.note ?? null, amountMinor: initialTerms.amountMinor ?? null }
+      ? {
+          responsibilityNote: initialTerms.note ?? null,
+          amountMinor: initialTerms.amountMinor ?? null,
+          costIncludedInProductCost: termsRevisedAfterCreation
+            ? null
+            : (order.deliveryTerms?.costIncludedInProductCost ?? null),
+          feeIncludedInPrice: termsRevisedAfterCreation
+            ? null
+            : (order.deliveryTerms?.feeIncludedInPrice ?? null),
+        }
       : null,
   };
+}
+
+/** علم شروط ابتدائي: قيمتان معلومتان تُقارنان؛ وnull في أي جهة (بعد تعديل
+ * صريح — قيمة الإنشاء غير قابلة للاسترجاع) لا يميز المقارنة (موثق أعلاه). */
+function termsFlagMatches(left: boolean | null | undefined, right: boolean | null | undefined): boolean {
+  if (left === null || left === undefined || right === null || right === undefined) return true;
+  return left === right;
 }
 
 /** مطابقة نيتَي إنشاء — كل الحقول الفعالة بالقيمة (null/undefined متكافئان). */
@@ -124,7 +162,15 @@ export function sameAgreementCreationIntent(
     left.initialDepositMinor === right.initialDepositMinor &&
     norm(left.initialDeliveryTerms?.responsibilityNote) ===
       norm(right.initialDeliveryTerms?.responsibilityNote) &&
-    norm(left.initialDeliveryTerms?.amountMinor) === norm(right.initialDeliveryTerms?.amountMinor)
+    norm(left.initialDeliveryTerms?.amountMinor) === norm(right.initialDeliveryTerms?.amountMinor) &&
+    termsFlagMatches(
+      left.initialDeliveryTerms?.costIncludedInProductCost,
+      right.initialDeliveryTerms?.costIncludedInProductCost,
+    ) &&
+    termsFlagMatches(
+      left.initialDeliveryTerms?.feeIncludedInPrice,
+      right.initialDeliveryTerms?.feeIncludedInPrice,
+    )
   );
 }
 
