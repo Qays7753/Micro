@@ -1,10 +1,8 @@
 {
   "id": "WS-236",
   "title": "S11 execution workstream — البيع المباشر والتسجيل السريع والتحصيل منه (UNIT-004/005/026 sale-slice + SH-15)",
-  "status": "IN_PROGRESS",
-  "items": [
-    "DOC-020"
-  ],
+  "status": "REVIEW_REQUIRED",
+  "items": ["DOC-020"],
   "branch": "components/integration-20261027",
   "base_sha": "3e3b9597",
   "areas": [
@@ -34,7 +32,7 @@
   "pr": 383,
   "started_at": "2026-10-31",
   "updated_at": "2026-10-31",
-  "next_action": "تنفيذ شريحة S11 المملوكة (بيع 005 + تحصيل 026 sale-slice + تسجيل سريع 004 + مرتجع PD-02 + SH-15) على components/integration-20261027 / PR #383 فوق 3e3b9597؛ السلسلة الكاملة والمراجعات الخمس والبوابتان البعيدتان على الشجرة النهائية المستقرة بعينها.",
+  "next_action": "مراجعة Manus المستقلة وقبول المالك على PR #383 (رأس الكود النهائي 020e1e8b؛ رأس السجلات فوقه؛ لا merge).",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S11-EXECUTION-PROMPT-2026-10-31.md المنشور في b33a8877؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
@@ -51,7 +49,14 @@
     {
       "status": "IN_PROGRESS",
       "changed_at": "2026-10-31",
-      "reason": "مطالبة عمل S11 المأذونة بأمر b33a8877 فوق رأس سجلات الإصلاح 3e3b9597 على الفرع/PR نفسيهما."
+      "reason": "مطالبة عمل S11 المأذونة بأمر b33a8877 فوق رأس سجلات الإصلاح 3e3b9597 على الفرع/PR نفسيهما.",
+      "actor": "zai-s11-execution"
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-10-31",
+      "actor": "zai-s11-execution",
+      "reason": "اكتمل تنفيذ شريحة S11 المملوكة (بيع 005 + تحصيل 026 sale-slice + تسجيل سريع 004 + مرتجع PD-02 + SH-15) بالمراجعات الخمس وتصحيحاتها والسلسلة الكاملة خروج 0 على 020e1e8b؛ رهن المراجعة المستقلة وقبول المالك — لا يعني التنفيذ قبولًا."
     }
   ],
   "migration_baseline": true

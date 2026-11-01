@@ -2,7 +2,7 @@
   "id": "DOC-020",
   "title": "S11 execution — البيع المباشر والتسجيل السريع والتحصيل منه (UNIT-004/005/026 sale-slice + SH-15)",
   "type": "FEATURE",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P0",
   "stage": "micro-component-execution-s11-20261031",
   "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق أمر تنفيذ S11 المنشور في b33a887725b92dd9c122d3c8d1af775d6aa08475 (بعد إصلاح S10-MR-001 الجذري أولًا في 930560dc بملحقه 15a في 3e3b9597). | بطاقة الفهم: مشكلة المستخدم: صاحب مشروع باع الآن أو سابقًا ويريد تسجيل البيع وما قُبض فعليًا بتاريخه وما بقي حقًا حيًّا، ثم تحصيل المتبقي لاحقًا من مصدر البيع نفسه دون إيراد جديد، وتسجيلًا سريعًا يفوض لأصحاب الأوامر أنفسهم، ومرتجعًا كاملًا وفق PD-02 يلغي الحق ويثبت رد المقبوض دون دفع تلقائي. النطاق: سجل بيع واحد مملوك للمصدر يفرق الإيراد المتفق عن القبض المؤرخ الفعلي عن الحق الحي، وخطوط قبض بهوية وتاريخ ومفتاح داخل أصل البيع (القديم المجمل يبقى مجملًا بلا تواريخ مؤلفة)، والتزام التحصيل عند حد كتابة واحد يفحص النسخة والمتبقي الحيين ويربط مكان النقد بسطر القبض القائم لا بقبض آخر، والتسجيل السريع مسار إلى المالكين أنفسهم (بيع 005/مصروف S06) بلا كاتب ثانٍ، والمرتجع الكامل PD-02 فعل مستقل يصون الأصل والتاريخ. غير الأهداف: لا محول طلب (S12) ولا حق افتتاحي (S14) ولا دفتر قبض عام ولا مرتجع جزئي معقد ولا إعادة تصميم مالية S15 ولا تعديل سياسة مصروف S06 ولا خصم ثانٍ لمادة الفترة ولا إعادة هيكلة بنيوية (بوابة ما بعد المجموعة ٦). الثوابت: القبض ليس ربحًا؛ التحصيل لا يولد إيرادًا؛ التكلفة المجهولة ليست صفرًا؛ المال أعداد صحيحة minor آمنة؛ التواريخ تواريخ أعمال حقيقية بمنطقة عمّان؛ المتبقي مشتق محروس؛ الحق لا يكون سالبًا؛ النية الواحدة لا تكتب مرتين؛ النتيجة المجاهلة تُسترد بالقصد نفسه؛ الحد الذري ينجح كله أو لا يكتب شيئًا. حالات الفشل: تزامن تحصيلين للمتبقي نفسه (واحد ينجح والآخر تعارض بلا حق سالب ولا قبض مزدوج)، إعادة مفتاح نية بحمولة مختلفة (تعارض صادق بلا أثر)، فشل حد التخزين (فشل صادق بلا أثر جزئي)، بيع ملغى/مُرتجع لا يُحصّل، مدخلات غير صالحة (رفض عند حد الخدمة برسالة المجال). معيار القبول: أمثلة الأمر المالية الخمسة من إثبات دائم (15/5/6 ثم 10؛ تزامن محاولتي قبض؛ مرتجع كامل بعد 5/10؛ فصل شهر البيع عن شهر القبض والإجمالي القديم محفوظ؛ مجهول≠صفر وأسماء متشابهة هويات مستقلة ولا فعل اختياري يكتب مالًا ثانيًا) + خريطة قبول ACD/SDF المطلوبة بأمر S11 §7 + تكافؤ المهايئين + دورة النقل + سلسلة pnpm check الكاملة على الشجرة المستقرة + خمس مراجعات قرائية متسلسلة + البوابتان البعيدتان على الرأس النهائي بعينه. حد الاستعادة: رأس سجلات الإصلاح 3e3b9597 (إصلاح S10-MR-001 + ملحقه)؛ التزامات S11 فوقه قابلة للعزل، ورجوع الكود لا يخفض المخطط/التصدير ولا يعيد كتابة تاريخ مسلّم.",
@@ -19,15 +19,7 @@
     "Transfer/export tests: sale records with collection entries and return fields round-trip on both adapters with legacy aggregate collections preserved and no fabricated dates",
     "UI DOM tests: sale/paid/remaining labels, states (empty/loading/error/saving/saved/conflict/unknown), return path, RTL Arabic-first 0-9 entry, repeated taps, form preservation through expansion/cancellation/retry/failure"
   ],
-  "layers": [
-    "domain",
-    "application",
-    "storage",
-    "transfer",
-    "ui",
-    "tests",
-    "documentation"
-  ],
+  "layers": ["domain", "application", "storage", "transfer", "ui", "tests", "documentation"],
   "source": {
     "report": "docs/implementation/micro-component-execution/00-S11-EXECUTION-PROMPT-2026-10-31.md",
     "discovered_at_sha": "b33a887725b92dd9c122d3c8d1af775d6aa08475",
@@ -73,22 +65,32 @@
   "evidence": [
     "docs/implementation/micro-component-execution/00-S11-EXECUTION-PROMPT-2026-10-31.md",
     "https://github.com/Qays7753/Micro/pull/383",
-    "docs/implementation/micro-component-execution/15a-S10-REVIEW-ADDENDUM-2026-10-31.md"
+    "docs/implementation/micro-component-execution/15a-S10-REVIEW-ADDENDUM-2026-10-31.md",
+    "docs/implementation/micro-component-execution/16-S11-RESULT-2026-10-31.md",
+    "docs/architecture/refactoring/s11-structure-scan-20261031/S11-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-10-31.md",
+    "src/domain/direct-sale/s11SaleSlice.test.ts",
+    "apps/prototype-web/client/src/application/direct-sales/directSaleSlice.s11.test.ts",
+    "apps/prototype-web/client/src/application/direct-sales/directSaleMovements.ts",
+    "apps/prototype-web/client/src/storage/local/directSaleCommitGuard.ts",
+    "apps/prototype-web/client/src/pages/DirectSaleEditor.ui.test.tsx",
+    "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.characterization.test.ts"
   ],
-  "dependencies": [
-    "DOC-019"
-  ],
-  "related_items": [
-    "DOC-019"
-  ],
+  "dependencies": ["DOC-019"],
+  "related_items": ["DOC-019"],
   "migration_baseline": true,
-  "next_action": "تنفيذ شريحة S11 المملوكة (بيع 005 + تحصيل 026 sale-slice + تسجيل سريع 004 + مرتجع PD-02 + SH-15) على components/integration-20261027 / PR #383 فوق 3e3b9597؛ السلسلة الكاملة والمراجعات الخمس والبوابتان البعيدتان على الشجرة النهائية المستقرة بعينها.",
+  "next_action": "مراجعة Manus المستقلة وقبول المالك على PR #383 لسجل S11 الكامل (16-S11-RESULT-2026-10-31.md — المرشح الكودي النهائي 020e1e8b فوق المرشح الأول 8e18e804 بتصحيحات المراجعات الخمس المعاد قراءتها؛ pnpm check خروج 0 على الشجرة النهائية: جذري 1021/1021 وتطبيق 3166/3166 وlint 35 بالضبط والميزانية 632,534/154,831 تحت السقفين والأسطح المحلية PASS بإرساء موثق؛ ومسح الهيكل القراءة فقط مسلّمًا بموجاته الخمس المقترحة كلها NOT_EXECUTED بانتظار قرار المالك OD-SCAN-1..4) — البوابتان البعيدتان على الرأس النهائي المدفوع يوثقان بالروابط في تعليق مراجعة PR #383؛ إذن المالك بالتنفيذ المتصل لا يعني قبول S08/S09/S10 ولا قبول S11 ذاته؛ القبول والدمج بأمر المالك وحده.",
   "status_history": [
     {
       "status": "IN_PROGRESS",
       "changed_at": "2026-10-31",
       "actor": "zai-s11-execution",
       "reason": "مطالبة S11 المأذونة بأمر b33a8877 (القسم ٦) بعد اكتمال fix-first (إصلاح S10-MR-001 الجذري 930560dc + الملحق 15a والسجلات 3e3b9597)؛ DOC-020/WS-236 أول استخدام قانوني للمعرفين."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-31",
+      "actor": "zai-s11-execution",
+      "reason": "اكتمل تنفيذ S11 المتصل لUNIT-004/005/026 sale-slice + SH-15 على components/integration-20261027 / PR #383 بأمر b33a8877: (١) إصلاح S10-MR-001 الجذري أُغلق أولًا (930560dc + الملحق 15a في 3e3b9597) بانحدار تزامن دائم على المهايئين؛ (٢) شريحة البيع كاملة: حركات مؤرخة ومرتجع PD-02 ورد مؤرخ داخل حد كتابة محروس واحد (commitDirectSaleWrite بنواة قرار مشتركة) بتكافؤ المهايئين ودورة نقل كاملة بلا ترقية 40/32؛ (٣) خمس مراجعات قرائية متسلسلة بتصحيحاتها الجذرية المعاد قراءتها كلها PASS (R1 ملكية/طبقات، R2 صحة مالية — منها إغلاق عيب تأليف تواريخ الإرث المجمل، R3 تزامن/حتمية — منها إغلاق عودة السجل القديم الصامتة عند تغير الحمولة، R4 نقل/توافق/أدلة، R5 RTL/وصول/هاتف — منها إغلاق إخفاء رسالة النجاح داخل الإفصاح المطوي)؛ (٤) مسح الهيكل القراءة فقط الكنوني الثالث مسلّمًا قبل أي حركة هيكلية (17c9fd57) بكل توصياته NOT_EXECUTED ببوابة مالك؛ (٥) pnpm check خروج 0 على الشجرة النهائية 020e1e8b. S11 تبقى رهن المراجعة المستقلة وقبول المالك."
     }
   ],
   "updated_at": "2026-10-31"

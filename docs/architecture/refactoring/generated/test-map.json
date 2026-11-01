@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "3c69c6db9144a5d373a31cde55a7346e60ed732e",
+  "head": "020e1e8bb513ae9420dfe5bc6d10b8cb0a1d539d",
   "pages": {
     "total": 64,
     "map": {
@@ -979,6 +979,7 @@
     ],
     "src/domain/ (colocated)": [
       "src/domain/direct-sale/policies.test.ts",
+      "src/domain/direct-sale/s11SaleSlice.test.ts",
       "src/domain/party/policies.test.ts"
     ]
   }
