@@ -7336,6 +7336,25 @@
         "trigger": "Five-review fix batch measured on the live tree (root fixes with durable regressions)",
         "ocRef": "DOC-021"
       }
+    },
+    {
+      "id": "S12-REVIEW-FIXES-20261101-87",
+      "date": "2026-11-01",
+      "path": "scripts/check-doc-index-coverage.mjs",
+      "from": {
+        "nbLoc": 148,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 176,
+        "band": "NORMAL"
+      },
+      "reason": "S12 (DOC-021 — إصلاح R4-REREAD-F02، الجولة الثانية): دبوس الزوج الحي في حارس فهرس الوثائق يتبع الثوابت الحية من مصدر الكود (fail-closed: قراءة الثابت تعذر = دبوس مفقود) بدل الرقم الحرفي المتقادم 40/32 — الحارس يقرأ localSchemaVersion/localExportVersion من مصدر types.ts.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S12-EXECUTION-PROMPT-2026-11-01.md published at 2e6458021d1d146b54d7d2655291bf2404ddc8d7 §10 — every confirmed in-scope review finding fixed at root; no guard weakened: the pin got STRICTER). Same-PR re-anchor per the documented protocol.",
+        "trigger": "R4's second-reread numeral blind spot fixed on the live tree",
+        "ocRef": "DOC-021"
+      }
     }
   ]
 }
