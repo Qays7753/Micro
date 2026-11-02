@@ -1,0 +1,62 @@
+{
+  "id": "WS-240",
+  "title": "S15 — المالية والكشف والسجل والميزانيات وإيقاف القدرات الملغاة (UNIT-013/013B/016/017/021/035/036/040)",
+  "status": "IN_PROGRESS",
+  "items": [
+    "DOC-024"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "75af0773",
+  "areas": [
+    "apps/prototype-web/client/src/pages/Finance.tsx",
+    "apps/prototype-web/client/src/pages/Loans.tsx",
+    "apps/prototype-web/client/src/pages/LoanEditor.tsx",
+    "apps/prototype-web/client/src/pages/ReceivedLoanEditor.tsx",
+    "apps/prototype-web/client/src/pages/Collect.tsx",
+    "apps/prototype-web/client/src/pages/OrderDetail.tsx",
+    "apps/prototype-web/client/src/application/loans/",
+    "apps/prototype-web/client/src/application/share/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/application/budgets/",
+    "apps/prototype-web/client/src/app/MicroRouter.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-013-المالية-وملخص-الفترة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-013B-ميزانيات-المصروف-الاختيارية.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-016-كشف-الفترة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-017-سجل-العمليات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-021-التوقعات-النقدية-المؤجلة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-035-القروض-التي-أعطاها-المشروع.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-036-القروض-التي-أخذها-المشروع.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-040-المشاركة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-11-03",
+  "updated_at": "2026-11-03",
+  "next_action": "تنفيذ S15 وفق الأمر الموحد §5: SH-20 (إيقاف الإنشاء عند الحد للإقراض/الاقتراض/المشاركة/التوقعات مع حفظ التاريخ) ثم SH-19 (المدخل الموحد وتوحيد القراءة) فحالات SDF الخمس بأدلة دائمة؛ السقفان ثابتان 650,000/155,300.",
+  "notes": [
+    "أمر S15 مضمّن في الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 (لا أمر منفصل).",
+    "قاعدة تسليم S14 للمراجعة موثقة عند 75af0773 وبوابتاها البعيدتان PASS (run 41548068879 / Pages 125628657923)."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-03",
+      "actor": "zai-s15-execution",
+      "reason": "بدء تنفيذ §5 من الأمر الموحد فوق رأس سجلات تسليم S14 75af0773 على components/integration-20261027 / PR #383، بعد التحقق من خلو التداخل (صفر مطالبات نشطة)."
+    }
+  ],
+  "migration_baseline": true
+}

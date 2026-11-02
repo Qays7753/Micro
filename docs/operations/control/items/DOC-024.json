@@ -1,0 +1,99 @@
+{
+  "id": "DOC-024",
+  "title": "S15 execution — المالية والكشف والسجل والميزانيات وإيقاف القدرات الملغاة (UNIT-013/013B/016/017/021/035/036/040 + SH-19/SH-20)",
+  "type": "FEATURE",
+  "status": "IN_PROGRESS",
+  "priority": "P0",
+  "stage": "micro-component-execution-s15-20261103",
+  "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 بعد تسليم S14 للمراجعة قانونيًا (DOC-023/WS-239 IN_REVIEW/REVIEW_REQUIRED عند 75af0773). | بطاقة الفهم: مشكلة المستخدم: صاحب المشروع يريد فهم وضعه المالي وتسجيل ما حدث والوصول لسجله — قراءة متسقة واحدة للنتيجة والمعرفة والنطاق عبر المالية والكشف والسجل، وميزانيات خططًا لا مالًا، والقدرات الملغاة (الإقراض/الاقتراض/المشاركة/التوقعات المتقدمة) مقطوعة الإنشاء بلا بديل مع حفظ التاريخ. النطاق: UNIT-013 صفحة المالية المدخل الواحد بلا تبويبات داخلية (الآن + نتيجة الفترة + أفعال تسجيل ثلاثة + لوحة وظائف)؛ UNIT-013B ميزانيات المصروف خططًا شهرية بلا حجب مصروف؛ UNIT-016 كشف الفترة وتنزيله؛ UNIT-017 سجل العمليات الموحد قراءةً؛ UNIT-021/035/036/040 إيقاف الإنشاء عند الحد بلا بديل مع حفظ التاريخ. غير الأهداف: لا دفتر مالي ثانٍ ولا كاتب موازٍ ولا مصدر أرصدة مستقل؛ لا سحب آمن ولا توقع نقدي متقدم؛ لا WhatsApp أو رسالة مشاركة بديلة؛ لا إعادة تفعيل بصمت ولا حذف تاريخ؛ لا موجة هيكلية؛ السقفان ثابتان 650,000/155,300 (هامش gzip متاح ~8,313). الثوابت: القبض ليس ربحًا؛ الجزء المعلوم ليس نتيجة كاملة؛ الميزانية ليست مصروفًا؛ المنصرف المؤهل من مصنف المصروف الموحد؛ القراء لا يكتبون. حالات الفشل: فشل مصدر يعزل ولا ينسف الصفحة؛ الجيل/الفترة تتغير أثناء التحميل فلا خلط أجيال (SDF-061)؛ رابط إنشاء قديم يرفض بصدق بلا إنشاء؛ النسخ القديمة تحفظ التاريخ بمعناه (SDF-045). معيار القبول: SDF-006/045/058/061/062 بأدلة دائمة مع تأشير غير المشغل بسببه + حالات UNIT القابلة للتطبيق؛ pnpm check كاملة على الشجرة النهائية؛ خمس مراجعات قرائية متسلسلة؛ البوابتان البعيدتان على الرأس النهائي بعينه. حد الاستعادة: رأس سجلات تسليم S14 75af0773.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "CONFIRMED",
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 يفوض بدء S15 مباشرة بعد بوابات S15 بلا موافقة وسيطة؛ السقفان ثابتان؛ لا موجة هيكلية؛ لا قبول ذاتي ولا merge.",
+  "tests_required": [
+    "حالات SDF الخمس المملوكة بأدلة دائمة (006/045/058/061/062)",
+    "رفض روابط إنشاء الإقراض/الاقتراض القديمة بصدق مع حفظ التاريخ",
+    "زوال أزرار ومسارات المشاركة مع بقاء تنزيل الكشف ونسخ/استعادة 044",
+    "توحيد النتيجة والمعرفة والنطاق عبر المالية والكشف (نفس الفترة = نفس الأرقام)",
+    "الميزانية خطة: مصروف 10 سدد منه 3 وأصل 100 → المنصرف 10 (SDF-062)",
+    "تغير الجيل/الفترة أثناء التحميل يهمل القديم ويعيد القراءة (SDF-061)"
+  ],
+  "layers": [
+    "domain",
+    "application",
+    "ui"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
+    "discovered_at_sha": "ade8566badec0763e7ae27687a4f39b9f6fb3567",
+    "evidence": [
+      "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
+      "https://github.com/Qays7753/Micro/pull/383",
+      "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md"
+    ]
+  },
+  "acceptance": [
+    "قراء النتيجة والمعرفة والنطاق متسقة عبر المالية والكشف والسجل — لا مصدر أرصدة مستقل",
+    "الميزانية خطة لا مصروف ولا دفع ولا كاش؛ المنصرف المؤهل من مصنف المصروف الموحد",
+    "إنشاء الإقراض والاقتراض والمشاركة والتوقعات المتقدمة مقطوع عند الحد بلا بديل؛ التاريخ محفوظ بمعناه",
+    "تنزيل تقرير الكشف ونسخ/استعادة 044 باقيان يعملان",
+    "القراء لا يكتبون؛ الإجراء يرجع لصاحب المصدر؛ الحالات الصادقة (تحميل/فراغ/جزء/خطأ/إعادة محاولة) بلا إجمالي جزئي مختلق",
+    "السقفان ثابتان 650,000/155,300؛ أي فرق تخزين دائم يوثق أثره كاملًا في الشريحة نفسها"
+  ],
+  "areas": [
+    "apps/prototype-web/client/src/pages/Finance.tsx",
+    "apps/prototype-web/client/src/pages/Loans.tsx",
+    "apps/prototype-web/client/src/pages/LoanEditor.tsx",
+    "apps/prototype-web/client/src/pages/ReceivedLoanEditor.tsx",
+    "apps/prototype-web/client/src/pages/Collect.tsx",
+    "apps/prototype-web/client/src/pages/OrderDetail.tsx",
+    "apps/prototype-web/client/src/application/loans/",
+    "apps/prototype-web/client/src/application/share/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/application/budgets/",
+    "apps/prototype-web/client/src/app/MicroRouter.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-013-المالية-وملخص-الفترة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-013B-ميزانيات-المصروف-الاختيارية.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-016-كشف-الفترة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-017-سجل-العمليات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-021-التوقعات-النقدية-المؤجلة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-035-القروض-التي-أعطاها-المشروع.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-036-القروض-التي-أخذها-المشروع.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-040-المشاركة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md"
+  ],
+  "dependencies": [
+    "DOC-020",
+    "DOC-021",
+    "DOC-022",
+    "DOC-023"
+  ],
+  "related_items": [
+    "DOC-023"
+  ],
+  "migration_baseline": true,
+  "next_action": "تنفيذ S15: إيقاف القدرات الملغاة عند الحد (SH-20) أولًا، ثم بناء المدخل الموحد للمالية (UNIT-013) وتوحيد القراءة (SH-19)، فحالات SDF الخمس بأدلة، فالمراجعات الخمس والسلسلة الكاملة والبوابتين البعيدتين على الرأس النهائي.",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-03",
+      "actor": "zai-s15-execution",
+      "reason": "الأمر الموحد §5: بعد تسليم S14 للمراجعة قانونيًا (بوابتا Actions/Cloudflare PASS على 75af0773) يبدأ ZAI مطالبة S15 فورًا بلا موافقة وسيطة؛ DOC-024/WS-240 أنشئتا قبل أول سطر كود منتج والتحقق من خلو التداخل (صفر مطالبات نشطة عند الإنشاء)."
+    }
+  ],
+  "updated_at": "2026-11-03"
+}
