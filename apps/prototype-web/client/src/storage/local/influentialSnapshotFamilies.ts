@@ -50,6 +50,17 @@ export const INFLUENTIAL_SNAPSHOT_FAMILIES = {
     label: "الأطراف المحفوظة",
     count: snapshot => snapshot.counterparties?.length ?? 0,
   },
+  /* S14 (DOC-023 / UNIT-002 — أمر ba2ce7b4 §5): عائلتا المنسق — الملخص
+   * تاريخ مالي حقيقي فيمنع الاستيراد الافتتاحي فوقه، والإيصال دليل عهدة
+   * قائمة فيمنع بذر قاعدة «فارغة» فوق نوايا ملتزمة. */
+  periodSummaries: {
+    label: "ملخصات الفترة",
+    count: snapshot => snapshot.periodSummaries?.length ?? 0,
+  },
+  commandReceipts: {
+    label: "إيصالات الأوامر",
+    count: snapshot => snapshot.commandReceipts?.length ?? 0,
+  },
   materials: { label: "المواد", count: snapshot => snapshot.materials?.length ?? 0 },
   inventoryMovements: { label: "حركات المخزون", count: snapshot => snapshot.inventoryMovements?.length ?? 0 },
   inventoryShortages: { label: "سجلات النقص", count: snapshot => snapshot.inventoryShortages?.length ?? 0 },

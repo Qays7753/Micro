@@ -367,6 +367,31 @@ export function migrateTransferSnapshot(
             : party,
         )
       : [],
+    /* S14 (DOC-023 / UNIT-002 — أمر ba2ce7b4 §5): عائلتا المنسق — الغياب في
+     * ملف قديم = قائمة فارغة بلا اختراع ملخص ولا إيصال؛ والحقول الاختيارية
+     * تسوّى null صادقة. الإيصال المستعاد دليل تاريخي لا يعيد تنفيذ أثر. */
+    periodSummaries: Array.isArray(raw.periodSummaries)
+      ? raw.periodSummaries.map((summary: Record<string, unknown>) =>
+          isRecord(summary)
+            ? {
+                ...summary,
+                supersedesRef: summary.supersedesRef ?? null,
+                supersedesReason: summary.supersedesReason ?? null,
+              }
+            : summary,
+        )
+      : [],
+    commandReceipts: Array.isArray(raw.commandReceipts)
+      ? raw.commandReceipts.map((receipt: Record<string, unknown>) =>
+          isRecord(receipt)
+            ? {
+                ...receipt,
+                failureCode: receipt.failureCode ?? null,
+                failureMessage: receipt.failureMessage ?? null,
+              }
+            : receipt,
+        )
+      : [],
     /* OPS-003 (عقد ٤١): عائلات المصروف المتكرر — الغياب في ملف قديم = قائمة
      * فارغة بلا اختراع تاريخ؛ والحقول الاخيارية تُسوّى بصمت صفرًا صادقًا. */
     recurringExpenseSeries: Array.isArray(raw.recurringExpenseSeries)

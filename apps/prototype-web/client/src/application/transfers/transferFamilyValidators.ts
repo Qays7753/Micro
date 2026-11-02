@@ -2217,3 +2217,131 @@ export function validSavedParty(value: unknown): boolean {
     isDate(value.updatedAt)
   );
 }
+
+/* S14 (DOC-023 / UNIT-002 + العقد المشترك §7.1 — أمر ba2ce7b4 §5): شكل
+ * ملخص الفترة التاريخي — نوع معروف وصاحب معنى ومدة صالحة معكوسة مرفوضة
+ * وأبعاد بحالات معرفة صادقة (entered بمبلغ آمن غير سالب ومعرفة، أو
+ * none/unknown/skipped/not_applicable بسبب صالح — لا مبلغ معها أبدًا)
+ * وروابط تغطية بمرجع وبعد ومبلغ موجب؛ لا فحص تفرد هنا (سياق العائلة). */
+const PERIOD_SUMMARY_KINDS = new Set([
+  "direct_sales",
+  "purchases",
+  "expenses",
+  "owner_transfer",
+  "opening_commercial_right",
+]);
+const SUMMARY_DIMENSIONS = new Set(["revenue", "received", "paid", "cost", "quantity", "remainingClaim"]);
+
+function validDimensionValue(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  if (value.state === "entered")
+    return (
+      typeof value.amountMinor === "number" &&
+      Number.isSafeInteger(value.amountMinor) &&
+      value.amountMinor >= 0 &&
+      (value.knowledge === "known" || value.knowledge === "estimated")
+    );
+  if (value.state === "none" || value.state === "unknown" || value.state === "skipped")
+    /* حالات المعرفة غير الرقمية لا تحمل مبلغًا أبدًا — المبلغ معها شكل
+     * كاذب يكسر اتحاد العقد الصادق (§3.2) فيُرفض. */
+    return value.amountMinor === undefined;
+  if (value.state === "not_applicable")
+    return typeof value.reason === "string" && value.reason.trim().length > 0;
+  return false;
+}
+
+export function validPeriodSummary(value: unknown): boolean {
+  if (
+    !isRecord(value) ||
+    !isString(value.id) ||
+    value.id.trim().length === 0 ||
+    !isString(value.kind) ||
+    !PERIOD_SUMMARY_KINDS.has(value.kind) ||
+    !isString(value.ownerDomain) ||
+    value.ownerDomain.trim().length === 0 ||
+    !isString(value.from) ||
+    !isString(value.to) ||
+    value.from > value.to ||
+    value.currency !== "JOD" ||
+    typeof value.revision !== "number" ||
+    !Number.isSafeInteger(value.revision) ||
+    value.revision < 1 ||
+    !isDate(value.recordedAt) ||
+    !isString(value.operationKey) ||
+    value.operationKey.trim().length === 0
+  )
+    return false;
+  if (value.coverageMode !== "unrecorded_only" && value.coverageMode !== "completion_batch") return false;
+  if (value.supersedesRef !== null && value.supersedesRef !== undefined && !isString(value.supersedesRef))
+    return false;
+  if (
+    value.supersedesReason !== null &&
+    value.supersedesReason !== undefined &&
+    !isString(value.supersedesReason)
+  )
+    return false;
+  if (!isRecord(value.dimensions)) return false;
+  for (const dimension of Object.keys(value.dimensions)) {
+    if (!SUMMARY_DIMENSIONS.has(dimension)) return false;
+    if (!validDimensionValue((value.dimensions as Record<string, unknown>)[dimension])) return false;
+  }
+  if (!Array.isArray(value.coverageLinks)) return false;
+  for (const link of value.coverageLinks) {
+    if (
+      !isRecord(link) ||
+      !isString(link.detailRef) ||
+      link.detailRef.trim().length === 0 ||
+      !isString(link.dimension) ||
+      !SUMMARY_DIMENSIONS.has(link.dimension) ||
+      typeof link.amountMinor !== "number" ||
+      !Number.isSafeInteger(link.amountMinor) ||
+      link.amountMinor <= 0 ||
+      typeof link.revision !== "number" ||
+      !Number.isSafeInteger(link.revision) ||
+      link.revision < 1
+    )
+      return false;
+  }
+  return true;
+}
+
+/* S14 (DOC-023 / العقد المشترك §14.1): شكل إيصال الأمر — مفتاح السجل هو
+ * معرف الأمر، والنتيجة confirmed بلا فشل أو failed بكود وبلا مراجع ناتجة،
+ * والمراجع بصيغة family:id — لا أرصدة ولا أحداث مالية في الإيصال أبدًا. */
+export function validCommandReceipt(value: unknown): boolean {
+  if (
+    !isRecord(value) ||
+    !isString(value.id) ||
+    value.id.trim().length === 0 ||
+    !isString(value.commandId) ||
+    value.commandId !== value.id ||
+    !isString(value.commandType) ||
+    value.commandType.trim().length === 0 ||
+    !isString(value.generation) ||
+    value.generation.trim().length === 0 ||
+    typeof value.payloadVersion !== "number" ||
+    !Number.isSafeInteger(value.payloadVersion) ||
+    value.payloadVersion < 1 ||
+    !isString(value.payloadDigest) ||
+    value.payloadDigest.trim().length === 0 ||
+    !isDate(value.recordedAt)
+  )
+    return false;
+  if (value.outcome === "confirmed") {
+    if (value.failureCode != null || value.failureMessage != null) return false;
+  } else if (value.outcome === "failed") {
+    if (typeof value.failureCode !== "string" || value.failureCode.trim().length === 0) return false;
+    if (
+      value.failureMessage !== null &&
+      value.failureMessage !== undefined &&
+      !isString(value.failureMessage)
+    )
+      return false;
+  } else return false;
+  if (!Array.isArray(value.resultRefs)) return false;
+  for (const ref of value.resultRefs) {
+    if (typeof ref !== "string" || !/^[a-z_]+:[^:\s]+$/.test(ref)) return false;
+  }
+  if (value.outcome === "failed" && value.resultRefs.length > 0) return false;
+  return true;
+}

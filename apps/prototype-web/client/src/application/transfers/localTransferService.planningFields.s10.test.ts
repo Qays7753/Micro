@@ -58,8 +58,8 @@ describe("S10 planning fields transfer round-trip", () => {
     const service = new LocalTransferService(store, now);
     const exported = await service.createExport();
     if (!exported.ok) throw new Error(exported.message);
-    expect(exported.value.version).toBe(33);
-    expect(exported.value.schemaVersion).toBe(40);
+    expect(exported.value.version).toBe(34);
+    expect(exported.value.schemaVersion).toBe(41);
     const text = JSON.stringify(exported.value);
 
     const target = new MemoryLocalStore();

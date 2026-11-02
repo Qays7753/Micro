@@ -69,6 +69,8 @@ import {
   validReceivedLoanRecord,
   validBalanceObservation,
   validSavedParty,
+  validPeriodSummary,
+  validCommandReceipt,
   validMaterial,
   validMeasurementUnit,
   validShortCashDeclaration,
@@ -134,7 +136,17 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
     /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة اختيارية في الملفات
      * القديمة (31/39 وأقدم) — المصفوفة إن وُجدت؛ الغياب = قائمة فارغة بلا
      * اختراع هوية. */
-    (data.counterparties !== undefined && data.counterparties !== null && !Array.isArray(data.counterparties))
+    (data.counterparties !== undefined &&
+      data.counterparties !== null &&
+      !Array.isArray(data.counterparties)) ||
+    /* S14 (DOC-023 / UNIT-002): عائلتا المنسق اختياريتان في الملفات القديمة
+     * (33/40 وأقدم) — المصفوفة إن وُجدت؛ الغياب = قائمة فارغة بلا اختراع. */
+    (data.periodSummaries !== undefined &&
+      data.periodSummaries !== null &&
+      !Array.isArray(data.periodSummaries)) ||
+    (data.commandReceipts !== undefined &&
+      data.commandReceipts !== null &&
+      !Array.isArray(data.commandReceipts))
   )
     return false;
   if (
@@ -303,6 +315,27 @@ export function validateSnapshot(data: unknown): data is LocalStoreSnapshot {
   for (const party of data.counterparties ?? []) {
     if (!validSavedParty(party) || counterpartyIds.has(party.id)) return false;
     counterpartyIds.add(party.id);
+  }
+  /* S14 (DOC-023 / UNIT-002 — أمر ba2ce7b4 §5): عائلتا المنسق — الملخص
+   * شكل سليم بمعرف ومفتاح عهدة فريدين داخل الملف (تفرد المفتاح يمنع
+   * التكرار عند الدمج اليدوي)، والإيصال معرفُه هو أمرُه وفريد؛ الغياب في
+   * الأزواج الموروثة = قائمة فارغة بلا اختراع. */
+  const summaryIds = new Set<string>();
+  const summaryOperationKeys = new Set<string>();
+  for (const summary of data.periodSummaries ?? []) {
+    if (
+      !validPeriodSummary(summary) ||
+      summaryIds.has(summary.id) ||
+      summaryOperationKeys.has(summary.operationKey)
+    )
+      return false;
+    summaryIds.add(summary.id);
+    summaryOperationKeys.add(summary.operationKey);
+  }
+  const commandIds = new Set<string>();
+  for (const receipt of data.commandReceipts ?? []) {
+    if (!validCommandReceipt(receipt) || commandIds.has(receipt.commandId)) return false;
+    commandIds.add(receipt.commandId);
   }
   const directSaleIds = new Set<string>();
   const directSaleKeys = new Set<string>();

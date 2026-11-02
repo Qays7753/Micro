@@ -47,6 +47,9 @@ import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
 import type { ReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
 import type { SavedParty } from "@micro-domain/party/index.js";
+/* S14 (DOC-023 / UNIT-002): سجلا المنسق داخل اللقطة — تاريخ حقيقي ودليل
+ * استرداد؛ لا دفتر مال موازٍ ولا أحداث مالية ثانية. */
+import type { CommandReceipt, PeriodSummary } from "@micro-domain/shared/index.js";
 import type {
   RecurringExpenseOccurrence,
   RecurringExpenseRuleRevision,
@@ -80,6 +83,8 @@ import {
   cashContinuityEntryStore,
   balanceObservationStore,
   counterpartyStore,
+  periodSummaryStore,
+  commandReceiptStore,
   cashWalletStore,
   costEstimateStore,
   directConversionStore,
@@ -153,6 +158,10 @@ const SNAPSHOT_STORES = [
   recurringExpenseRevisionStore,
   recurringExpenseOccurrenceStore,
   expenseBudgetStore,
+  /* S14 (DOC-023 / UNIT-002): عائلتا المنسق داخل معاملة اللقطة — القراءة
+   * والاستبدال معًا (القائمة مشتقة أدناه إلى REPLACEMENT_STORES). */
+  periodSummaryStore,
+  commandReceiptStore,
 ] as const;
 
 /** S02-A: معاملات الاستبدال تشمل مخزن المسودات العابرة في الحد نفسه —
@@ -209,6 +218,11 @@ function issueSnapshotReadRequests(transaction: IDBTransaction) {
     recurringExpenseOccurrences: transaction.objectStore(recurringExpenseOccurrenceStore).getAll(),
     /* FIN-002 (عقد ٤٢): عائلة الميزانيات جزء من اللقطة — إسقاطها يفقد الخطة عند التصدير. */
     expenseBudgets: transaction.objectStore(expenseBudgetStore).getAll(),
+    /* S14 (DOC-023 / UNIT-002): عائلتا ملخصات الفترة وإيصالات الأوامر جزء
+     * من اللقطة — الملخص تاريخ حقيقي بأبعاده وتغطيته، والإيصال دليل
+     * استرداد لا يعيد تنفيذ أثرًا عند الاستعادة. */
+    periodSummaries: transaction.objectStore(periodSummaryStore).getAll(),
+    commandReceipts: transaction.objectStore(commandReceiptStore).getAll(),
   };
 }
 
@@ -252,6 +266,8 @@ function snapshotFromRequests(requests: ReturnType<typeof issueSnapshotReadReque
     recurringExpenseRevisions: requests.recurringExpenseRevisions.result as RecurringExpenseRuleRevision[],
     recurringExpenseOccurrences: requests.recurringExpenseOccurrences.result as RecurringExpenseOccurrence[],
     expenseBudgets: requests.expenseBudgets.result as ExpenseBudgetRecord[],
+    periodSummaries: requests.periodSummaries.result as PeriodSummary[],
+    commandReceipts: requests.commandReceipts.result as CommandReceipt[],
   };
 }
 
@@ -450,6 +466,12 @@ export async function replaceIndexedDbSnapshot(
           /* S05 (DOC-014 / UNIT-037): كتابة الأطراف المحفوظة — الغياب في ملف
            * قديم = لا كتابة طرف (قائمة فارغة) بلا اختراع هوية. */
           normalized.counterparties?.forEach(party => counterparties.put(party));
+          const periodSummaries = transaction.objectStore(periodSummaryStore);
+          periodSummaries.clear();
+          normalized.periodSummaries?.forEach(summary => periodSummaries.put(summary));
+          const commandReceipts = transaction.objectStore(commandReceiptStore);
+          commandReceipts.clear();
+          normalized.commandReceipts?.forEach(receipt => commandReceipts.put(receipt));
           normalized.recurringExpenseSeries?.forEach(series => recurringSeries.put(series));
           normalized.recurringExpenseRevisions?.forEach(revision => recurringRevisions.put(revision));
           normalized.recurringExpenseOccurrences?.forEach(occurrence => recurringOccurrences.put(occurrence));

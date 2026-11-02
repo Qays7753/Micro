@@ -100,13 +100,14 @@ async function liveExport(makeStore: () => MemoryLocalStore | IndexedDbLocalStor
 }
 
 describe("W2b — derivation parity of the production allowed set", () => {
-  it("the production allowed set equals the canonical empty-snapshot keys exactly (37 = 33 families + 4 non-family)", () => {
+  it("the production allowed set equals the canonical empty-snapshot keys exactly (39 = 35 families + 4 non-family)", () => {
     /* S05 (DOC-014): عائلة counterparties (32 ← 33 عائلة). */
-    expect(ALLOWED_TOP_LEVEL_DATA_KEYS.size).toBe(37);
+    /* S14 (DOC-023): عائلتا المنسق (33 ← 35 عائلة؛ 37 ← 39 مفتاحًا). */
+    expect(ALLOWED_TOP_LEVEL_DATA_KEYS.size).toBe(39);
     expect([...ALLOWED_TOP_LEVEL_DATA_KEYS].sort()).toEqual(
       Object.keys(LocalTransferService.emptySnapshot()).sort(),
     );
-    expect(Object.keys(TRANSFER_ARRAY_FAMILY_ROLES)).toHaveLength(33);
+    expect(Object.keys(TRANSFER_ARRAY_FAMILY_ROLES)).toHaveLength(35);
   });
 });
 

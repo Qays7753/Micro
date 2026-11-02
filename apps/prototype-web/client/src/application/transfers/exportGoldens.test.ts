@@ -2,7 +2,7 @@
  * Wave 3A (ARCH-002 / WS-212 — STR-401 + STR-405 من المسح المقبول): أصول تكافؤ مادية على القرص.
  *
  * الغرض: تجميد ملفات تصدير حقيقية بوصفها oracles دائمة:
- *  - الزوج الحالي 33/40 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 32/40) مُشتق حتميًا من عهدة 8/17 الأمينة عبر مسار الترحيل والاستعادة
+ *  - الزوج الحالي 34/41 (تصحيح مؤرخ 2026-11-02 DOC-023/S14؛ كان 33/40) مُشتق حتميًا من عهدة 8/17 الأمينة عبر مسار الترحيل والاستعادة
  *    والتصدير الفعلي (يقارن مقارنة عميقة كاملة في كل تشغيل — أقوى حارس بايتات هنا)؛
  *  - ملف مكمّل غني بالعائلات الجديدة (مصروف متكرر/ميزانية/قرض مستلم/بيع مباشر/أصل/قرض...)
  *    مجمّد من مسار الخدمات الحقيقية (تجميد القيم؛ المطابقة قبولًا وعدادات ودورة كاملة)؛
@@ -89,7 +89,7 @@ function minimalLegacyFileFor(version: number, schemaVersion: number): LocalExpo
   } as unknown as LocalExportFile;
 }
 
-/** الزوج الحالي 33/40 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 32/40) مُشتق حتميًا: 8/17 الأمينة → ترحيل → استعادة → تصدير. */
+/** الزوج الحالي 34/41 (تصحيح مؤرخ 2026-11-02 DOC-023/S14؛ كان 33/40) مُشتق حتميًا: 8/17 الأمينة → ترحيل → استعادة → تصدير. */
 async function currentGoldenViaMigration(): Promise<LocalExportFile> {
   const target = new MemoryLocalStore();
   const targetTransfers = new LocalTransferService(target, NOW);
@@ -286,7 +286,7 @@ const LEGACY_PAIRS = [...RELEASED_LEGACY_EXPORT_PAIRS]
   .sort((a, b) => b[0] - a[0]);
 
 describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
-  it("current-pair golden (33/40): deterministic migration-derived export matches the frozen golden byte-for-byte", async () => {
+  it("current-pair golden (34/41): deterministic migration-derived export matches the frozen golden byte-for-byte", async () => {
     const live = await currentGoldenViaMigration();
     const name = "current-pair.golden.json";
     if (GENERATE) {
@@ -340,8 +340,10 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
     expect(golden.counts?.financialEvents).toBeGreaterThan(0);
   });
 
-  it("every released legacy pair has a frozen minimal golden that still imports to 33/40", async () => {
-    expect(LEGACY_PAIRS.length).toBe(27);
+  it("every released legacy pair has a frozen minimal golden that still imports to 34/41", async () => {
+    /* S14 (DOC-023 — أمر ba2ce7b4 §5): 33/40 صار زوجًا موروثًا (27 ← 28)
+     * مع عائلتي ملخصات الفترة وإيصالات الأوامر في 34/41. */
+    expect(LEGACY_PAIRS.length).toBe(28);
     const transfers = new LocalTransferService(new MemoryLocalStore(), NOW);
     for (const [version, schemaVersion] of LEGACY_PAIRS) {
       const name = `legacy-minimal-${version}-${schemaVersion}.golden.json`;
@@ -381,7 +383,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
           file: "current-pair.golden.json",
           sha256: "",
           kind: "current-pair",
-          description: "33/40 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة",
+          description: "34/41 مشتق من 8/17 عبر الترحيل والاستعادة والتصدير — مقارنة عميقة كاملة",
           byteStable: true,
         },
         {
@@ -389,7 +391,7 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
           sha256: "",
           kind: "current-pair-supplement",
           description:
-            "33/40 غني بالعائلات الجديدة عبر الخدمات (بما فيها الأطراف المحفوظة) — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة)",
+            "34/41 غني بالعائلات الجديدة عبر الخدمات (بما فيها الأطراف المحفوظة وملخصات الفترة وإيصالات الأوامر) — تجميد قبول وعدادات ودورة (المعرفات مولدة ومجمّدة)",
           byteStable: false,
         },
         ...LEGACY_PAIRS.map(([v, s]): GoldenManifestEntry => ({
@@ -417,7 +419,8 @@ describe("Wave 3A — export/import golden artifacts (STR-401)", () => {
       writeGolden(manifestName, JSON.stringify(manifest, null, 2));
     }
     const manifest = JSON.parse(readGolden(manifestName)) as GoldenManifest;
-    expect(manifest.files.length).toBe(30);
+    /* S14 (DOC-023): ذهبي 33/40 الموروث الجديد (30 ← 31 ملفًا). */
+    expect(manifest.files.length).toBe(31);
     for (const entry of manifest.files) {
       const actual = sha256Of(readGolden(entry.file));
       expect(actual, `${entry.file} خُعدل يدويًا أو انحرف عن الأصل`).toBe(entry.sha256);

@@ -7963,6 +7963,272 @@
         "trigger": "S14 domain core measured on the live tree",
         "ocRef": "DOC-023"
       }
+    },
+    {
+      "id": "S14-STORE-LOCALTRANSFER-20261102-419",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+      "from": {
+        "nbLoc": 306,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 529,
+        "band": "WATCH"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints. + اللقطة الفارغة تحمل العائلتين",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-STORE-COUNTERS-20261102-420",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/transfers/transferCounters.ts",
+      "from": {
+        "nbLoc": 62,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 75,
+        "band": "NORMAL"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-STORE-ENVELOPE-20261102-421",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/transfers/transferEnvelope.ts",
+      "from": {
+        "nbLoc": 71,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 75,
+        "band": "NORMAL"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints. + الزوج الموروث 33/40",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-STORE-VALIDATORS-20261102-422",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.ts",
+      "from": {
+        "nbLoc": 1730,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 2316,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints. + مدققا validPeriodSummary/validCommandReceipt",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-STORE-MIGRATIONS-20261102-423",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotMigrations.ts",
+      "from": {
+        "nbLoc": 346,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 444,
+        "band": "WATCH"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints. + تسوية العائلتين الغائبتين",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-STORE-VALIDATION-20261102-424",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/transfers/transferSnapshotValidation.ts",
+      "from": {
+        "nbLoc": 1192,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 1401,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints. + بوابة البنية وفحص العائلتين",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-STORE-IDB-20261102-425",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+      "from": {
+        "nbLoc": 4391,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 5750,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints. + المنافذ الأربعة والمعاملة المنسقة",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-STORE-MEMORY-20261102-426",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+      "from": {
+        "nbLoc": 2087,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 2859,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints. + الخرائط والمنافذ ودفتر التراجع المنسق",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-STORE-IDBMIG-20261102-427",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/indexedDbMigrations.ts",
+      "from": {
+        "nbLoc": 561,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 600,
+        "band": "WATCH"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints. + المُنشئان المحرسان",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-STORE-IDBSNAP-20261102-428",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts",
+      "from": {
+        "nbLoc": 451,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 514,
+        "band": "WATCH"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints. + قراءة/استبدال العائلتين",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-STORE-IDBSTORES-20261102-429",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/indexedDbStores.ts",
+      "from": {
+        "nbLoc": 68,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 104,
+        "band": "NORMAL"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints. + ثابتا المخزنين",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-STORE-INFLUENTIAL-20261102-430",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/influentialSnapshotFamilies.ts",
+      "from": {
+        "nbLoc": 130,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 153,
+        "band": "NORMAL"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints. + العائلتان في بوابة الفراغ",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-STORE-TYPES-20261102-431",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 1362,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints. + الثوابت 41/34 وحقول اللقطة والمنافذ الأربعة وAccountCompletionCommit",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-SHARED-DOOR-20261102-432",
+      "date": "2026-11-02",
+      "path": "src/domain/shared/index.ts",
+      "from": {
+        "nbLoc": 22,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 51,
+        "band": "NORMAL"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5 — نمط D-037): عائلتا ملخصات الفترة وإيصالات الأوامر — مخزنان محرسان بالترقية 40→41 وتصدير 34 مع المهايئين واللقطات والوارد/التصدير وtouchpoints. + تصدير إيصال الأمر (فوق إرساء S14-PERIOD-SUMMARY-EXPORT إلى 40)",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the D-037-pattern storage delta: period-summaries + command-receipts stores, schema 40->41 / export 33->34, both adapters, snapshots, transfer validation/migration, touchpoints; no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
+        "ocRef": "DOC-023"
+      }
     }
   ]
 }

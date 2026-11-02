@@ -35,8 +35,8 @@ describe("documentation consistency — Group 2 implemented on the remediation b
   it("schema and export versions match the code constants (40/33 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 40/32 بعد DOC-014 S05); the 35/27 statement stays as Group 2 history)", () => {
     expect(currentState).toContain("**٣٥ / ٢٧ بلا تغيير**");
     /* S05 (DOC-014، 2026-10-29): ٤٠/٣٢ — عائلة الأطراف المحفوظة. */
-    expect(String(localSchemaVersion)).toBe("40");
-    expect(String(localExportVersion)).toBe("33");
+    expect(String(localSchemaVersion)).toBe("41");
+    expect(String(localExportVersion)).toBe("34");
   });
 
   it("todo marks Group 2 done on the branch and pending merge — not merged", () => {

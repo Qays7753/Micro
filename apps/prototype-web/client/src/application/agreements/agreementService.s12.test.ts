@@ -264,8 +264,9 @@ describe("S12 UNIT-009 §8 — دورة النقل للزوج 33/40 مع بقا�
     if (!exported.ok) throw new Error(exported.message);
     expect(exported.value.version).toBe(localExportVersion);
     expect(exported.value.schemaVersion).toBe(localSchemaVersion);
-    expect(localExportVersion).toBe(33);
-    expect(localSchemaVersion).toBe(40);
+    /* S14 (DOC-023): 41/34 بعد عائلتي المنسق. */
+    expect(localExportVersion).toBe(34);
+    expect(localSchemaVersion).toBe(41);
 
     /* الاستعادة تحفظ الشكل الجديد حرفيًا: مجهول يبقى مجهولًا وnone تبقى none. */
     const target = new MemoryLocalStore();
@@ -283,6 +284,9 @@ describe("S12 UNIT-009 §8 — دورة النقل للزوج 33/40 مع بقا�
 
   it("الزوج الموروث 32/40 مسجل مقبولًا في قائمة الاستيراد", () => {
     expect(RELEASED_LEGACY_EXPORT_PAIRS.has("32/40")).toBe(true);
-    expect(RELEASED_LEGACY_EXPORT_PAIRS.has("33/40")).toBe(false);
+    /* S14 (DOC-023 — أمر ba2ce7b4 §5): 33/40 صار زوجًا موروثًا مقبولًا
+     * مع عائلتي المنسق في 34/41. */
+    expect(RELEASED_LEGACY_EXPORT_PAIRS.has("33/40")).toBe(true);
+    expect(RELEASED_LEGACY_EXPORT_PAIRS.has("34/41")).toBe(false);
   });
 });

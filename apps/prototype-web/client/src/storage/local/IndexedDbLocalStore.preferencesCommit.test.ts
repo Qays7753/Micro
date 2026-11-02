@@ -207,8 +207,10 @@ describe("commitPreferencesUpdate — guarded atomic preference patch at the wri
       if (ownerMovements.ok) expect(ownerMovements.value).toHaveLength(0);
       /* المخطط والتصدير: زوج S05 الحي 40/32 عند إصداره (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 40/33 — تغيير سلك سجل الطلب؛ DOC-014 — عائلة الأطراف
        * المحفوظة)؛ كتابة التفضيلات نفسها لم تمس المخطط ولا صيغة الاستيراد قط. */
-      expect(localSchemaVersion).toBe(40);
-      expect(localExportVersion).toBe(33);
+      /* S14 (DOC-023 — أمر ba2ce7b4 §5): مخطط 41/تصدير 34 بعد عائلتي
+       * المنسق — كتابة التفضيلات نفسها لا تمس أي عائلة أخرى. */
+      expect(localSchemaVersion).toBe(41);
+      expect(localExportVersion).toBe(34);
     }
   });
 });

@@ -38,3 +38,14 @@ export {
   type PeriodSummaryKind,
   type SummaryDimension,
 } from "./periodSummary.js";
+/* S14 (DOC-023 / العقد المشترك §14.1 — أمر ba2ce7b4 §5): إيصال الأمر —
+ * استرداد النتيجة والحتمية عبر معاملة متعددة المصادر؛ نتيجة ومراجع لا
+ * رصيد ولا أحداث مالية ثانية. */
+export {
+  createCommandReceipt,
+  decideCommandReceipt,
+  type CommandEnvelopeDigestInput,
+  type CommandOutcomeKind,
+  type CommandReceipt,
+  type CommandReceiptDecision,
+} from "./commandReceipt.js";

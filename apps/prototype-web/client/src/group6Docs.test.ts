@@ -113,8 +113,8 @@ describe("governance consistency — Group 6 prevention implemented on the remed
   it("schema/export versions stay 40/33 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 40/32 بعد DOC-014 S05؛ وكان 39/31 زوج S04 بأمر مالك) and the limits stay pinned between code and docs (no silent raise; gzip 155,300 per ADR-017 dated 2026-10-04)", () => {
     /* S05 (DOC-014، 2026-10-29): ٤٠/٣٣ اليوم (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان ٤٠/٣٢) — عائلة الأطراف المحفوظة بأمر S05
      * المأذون مع كامل أدلة التوافق/الترحيل في النطاق نفسه (نمط D-037). */
-    expect(localSchemaVersion).toBe(40);
-    expect(localExportVersion).toBe(33);
+    expect(localSchemaVersion).toBe(41);
+    expect(localExportVersion).toBe(34);
     expect(RAW_BYTE_LIMIT).toBe(650_000);
     expect(GZIP_BYTE_LIMIT).toBe(155_300);
     const lintScript = rootPackageJson.scripts?.lint ?? "";
@@ -160,7 +160,8 @@ describe("governance consistency — Group 6 prevention implemented on the remed
 
   it("the persistent-entity manifest exists, covers all 40 stores (S05 added counterparties), and states its honest limits", () => {
     /* S05 (DOC-014، 2026-10-29): المخزن الأربعون counterparties (39/31 صار 40/32). */
-    expect(manifest.objectStores).toHaveLength(40);
+    /* S14 (DOC-023): عائلتا المنسق (40 ← 42 مخزنًا). */
+    expect(manifest.objectStores).toHaveLength(42);
     const notExported = manifest.objectStores.filter(entry => entry.snapshotField === null);
     /* S02-A (SH-02/SH-03): مخزن حماية الاستبدال المنفصل انضم للمستثنى من
      * التصدير — أدلة حماية محلية لا تغادر الجهاز أبدًا. */

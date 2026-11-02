@@ -1,5 +1,14 @@
 /** Test adapter only. It mirrors the LocalStore port without making browser APIs part of application tests. */
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
+/* S14 (DOC-023 / العقد المشترك §7.1/§14.1 — أمر ba2ce7b4 §5): ملخص الفترة
+ * وإيصال الأمر وقرار الحتمية — سجلان تاريخيان للمنسق، والقرار النقي يعيش
+ * في حد الكتابة نفسه على المهايئين. */
+import {
+  createCommandReceipt,
+  decideCommandReceipt,
+  type CommandReceipt,
+  type PeriodSummary,
+} from "@micro-domain/shared/index.js";
 import {
   committedReversalMovements,
   storedReversalMovementsFor,
@@ -157,6 +166,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   /* S05 (DOC-014 / UNIT-037): الأطراف المحفوظة في الذاكرة — تطابق المتصفح
    * اختبارًا وسلوكًا؛ هوية تعريفية داخل اللقطة كإخوتها. */
   private counterparties = new Map<string, SavedParty>();
+  /* S14 (DOC-023 / UNIT-002): ملخصات الفترة وإيصالات الأوامر في الذاكرة —
+   * تطابق المتصفح اختبارًا وسلوكًا؛ سجلان تاريخيان داخل اللقطة كإخوتهما. */
+  private periodSummaries = new Map<string, PeriodSummary>();
+  private commandReceipts = new Map<string, CommandReceipt>();
   private materials = new Map<string, Material>();
   private inventoryMovements = new Map<string, InventoryMovement>();
   /* المجموعة ٢ (عقد ٢٨): سجلات النقص في الذاكرة أيضًا — تطابق المتصفح اختبارًا وسلوكًا. */
@@ -1232,6 +1245,151 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       },
     };
   }
+  /* ─── S14 (DOC-023 / UNIT-002 + العقد المشترك §14.1 — أمر ba2ce7b4 §5) ─── */
+
+  /** ملخصات الفترة — الأحدث تسجيلًا أولًا (نمط قراءة الأطراف). */
+  async listPeriodSummaries(): Promise<StorageResult<readonly PeriodSummary[]>> {
+    const summaries = Array.from(this.periodSummaries.values()).sort(
+      (left, right) => right.recordedAt.localeCompare(left.recordedAt) || left.id.localeCompare(right.id),
+    );
+    return { ok: true, value: summaries.map(clone) };
+  }
+
+  /** إيصالات الأوامر — الأحدث تسجيلًا أولًا. */
+  async listCommandReceipts(): Promise<StorageResult<readonly CommandReceipt[]>> {
+    const receipts = Array.from(this.commandReceipts.values()).sort(
+      (left, right) => right.recordedAt.localeCompare(left.recordedAt) || left.id.localeCompare(right.id),
+    );
+    return { ok: true, value: receipts.map(clone) };
+  }
+
+  async getCommandReceipt(commandId: string): Promise<StorageResult<CommandReceipt | null>> {
+    const existing = this.commandReceipts.get(commandId);
+    return { ok: true, value: existing ? clone(existing) : null };
+  }
+
+  /**
+   * الالتزام المنسق — القراءة والقرار والكتابة خطوة متزامنة واحدة مع دفتر
+   * تراجع بنيوي (نمط S12-ATOMIC-001): الملخصات وقياس النقد والإيصال معًا
+   * أو لا شيء (SDF-030). الحتمية داخل الحد: نفس commandId بنفس البصمة
+   * والجيل يعيد نتيجة الأصل (reused)، وبحمولة مختلفة تعارض بلا كتابة.
+   */
+  async commitAccountCompletion(commit: import("./types").AccountCompletionCommit): Promise<
+    StorageResult<{
+      summaries: readonly PeriodSummary[];
+      cashObservation: import("@micro-domain/cash-continuity/index.js").CashObservation | null;
+      receipt: CommandReceipt;
+      reused: boolean;
+    }>
+  > {
+    const undoJournal: Array<() => void> = [];
+    const journalSet = <K, V>(map: Map<K, V>, key: K, value: V) => {
+      const previous = map.get(key);
+      undoJournal.push(previous === undefined ? () => map.delete(key) : () => map.set(key, previous));
+      map.set(key, value);
+      this.onCoordinatedWrite();
+    };
+    try {
+      /* الحتمية أولًا — الإيصال القائم يحسم قبل أي فحص آخر. */
+      const existingReceipt = this.commandReceipts.get(commit.command.commandId);
+      const decision = decideCommandReceipt(commit.command, existingReceipt);
+      if (decision.kind === "reuse")
+        return {
+          ok: true,
+          value: {
+            summaries: decision.receipt.resultRefs
+              .filter(ref => ref.startsWith("period_summary:"))
+              .map(ref => this.periodSummaries.get(ref.slice("period_summary:".length)))
+              .filter((summary): summary is PeriodSummary => summary !== undefined)
+              .map(clone),
+            cashObservation: null,
+            receipt: clone(decision.receipt),
+            reused: true,
+          },
+        };
+      if (decision.kind === "idempotency_conflict")
+        return {
+          ok: false,
+          code: STORAGE_STALE,
+          message:
+            "أمر الاستكمال نفسه سبق التزامه بحمولة مختلفة — لم يُكتب شيء؛ أعد المحاولة بقصد جديد أو راجع النتيجة المحفوظة.",
+        };
+      /* عهدة القياس الحية داخل الحد — نفس قرار S04 (الرفض الصادق بلا كتابة). */
+      let observationToStore: import("@micro-domain/cash-continuity/index.js").CashObservation | null = null;
+      if (commit.cashObservation) {
+        const observationDecision = decideCashObservationCommit(
+          Array.from(this.balanceObservations.values()),
+          Array.from(this.cashContinuityEntries.values()),
+          commit.cashObservation,
+          null,
+          null,
+        );
+        if (observationDecision.kind === "reject")
+          return { ok: false, code: observationDecision.code, message: observationDecision.message };
+        if (observationDecision.kind === "reuse") observationToStore = null;
+        else observationToStore = commit.cashObservation;
+      }
+      /* عهدة الملخصات داخل الحد: مفتاح العملية الموجود بمحتوى مختلف تعارض
+       * صادق؛ بمحتوى مطابق يُعاد كما هو (إكمال نصف مكتمل بمفاتيح حتمية). */
+      const summariesToStore: PeriodSummary[] = [];
+      for (const summary of commit.summaries) {
+        const byKey = Array.from(this.periodSummaries.values()).find(
+          candidate => candidate.operationKey === summary.operationKey,
+        );
+        if (byKey && byKey.id !== summary.id)
+          return {
+            ok: false,
+            code: STORAGE_STALE,
+            message: `ملخص الفترة «${summary.id}» يحمل مفتاح عهدة مستعملًا لسجل آخر — لم يُكتب شيء؛ أعد المحاولة.`,
+          };
+        if (byKey && JSON.stringify(byKey) !== JSON.stringify(summary)) continue; // نفس المفتاح بنفس المحتوى — لا كتابة ثانية
+        if (!byKey) summariesToStore.push(summary);
+      }
+      /* الإيصال يكتب مع بياناته — لا إيصال نجاح قبل أثره (العقد §14.1). */
+      const resultRefs = [
+        ...summariesToStore.map(summary => `period_summary:${summary.id}`),
+        ...(observationToStore ? [`cash_observation:${observationToStore.id}`] : []),
+      ];
+      const receipt = createCommandReceipt({
+        ...commit.command,
+        outcome: "confirmed",
+        resultRefs,
+        recordedAt: commit.recordedAt,
+      });
+      summariesToStore.forEach(summary => journalSet(this.periodSummaries, summary.id, summary));
+      if (observationToStore)
+        journalSet(
+          this.balanceObservations as Map<
+            string,
+            import("@micro-domain/cash-continuity/index.js").CashObservation
+          >,
+          observationToStore.id,
+          observationToStore,
+        );
+      journalSet(this.commandReceipts, receipt.id, receipt);
+      return {
+        ok: true,
+        value: {
+          summaries: summariesToStore.map(clone),
+          cashObservation: observationToStore ? clone(observationToStore) : null,
+          receipt: clone(receipt),
+          reused: false,
+        },
+      };
+    } catch (error) {
+      for (const step of undoJournal.reverse()) step();
+      return {
+        ok: false,
+        code: STORAGE_ERROR,
+        message: error instanceof Error ? error.message : "تعذر حفظ استكمال الحسابات محليًا.",
+      };
+    }
+  }
+
+  /** S14 (أمر ba2ce7b4 §5): خيط داخلي ضيق لإثبات ذرّية الحزمة المنسقة —
+   * يُستدعى بعد كل كتابة مجندلة؛ protected لا public ولا مفتاح تشغيل. */
+  protected onCoordinatedWrite(): void {}
+
   /* S05 (DOC-014 / UNIT-037): الأطراف المحفوظة في الذاكرة — نفس عقد محوّل
    * IndexedDB: الأحدث تعديلًا أولًا، وسجل تعريفي لا يمس أي مصدر مالي. */
   async listCounterparties(): Promise<StorageResult<readonly SavedParty[]>> {
@@ -1885,6 +2043,8 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         cashContinuityEntries: Array.from(this.cashContinuityEntries.values()).map(clone),
         balanceObservations: Array.from(this.balanceObservations.values()).map(clone),
         counterparties: Array.from(this.counterparties.values()).map(clone),
+        periodSummaries: Array.from(this.periodSummaries.values()).map(clone),
+        commandReceipts: Array.from(this.commandReceipts.values()).map(clone),
         materials: Array.from(this.materials.values()).map(clone),
         inventoryMovements: Array.from(this.inventoryMovements.values()).map(clone),
         inventoryShortages: Array.from(this.inventoryShortages.values()).map(clone),
@@ -1942,6 +2102,8 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       cashContinuityEntries: snapshot.cashContinuityEntries ?? [],
       balanceObservations: snapshot.balanceObservations ?? [],
       counterparties: snapshot.counterparties ?? [],
+      periodSummaries: snapshot.periodSummaries ?? [],
+      commandReceipts: snapshot.commandReceipts ?? [],
       materials: snapshot.materials ?? [],
       inventoryMovements: snapshot.inventoryMovements ?? [],
       inventoryShortages: snapshot.inventoryShortages ?? [],
@@ -1982,6 +2144,8 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       (safe.balanceObservations ?? []).map(observation => [observation.id, observation]),
     );
     this.counterparties = new Map((safe.counterparties ?? []).map(party => [party.id, party]));
+    this.periodSummaries = new Map((safe.periodSummaries ?? []).map(summary => [summary.id, summary]));
+    this.commandReceipts = new Map((safe.commandReceipts ?? []).map(receipt => [receipt.id, receipt]));
     this.materials = new Map(safe.materials.map(material => [material.id, material]));
     this.inventoryMovements = new Map(safe.inventoryMovements.map(movement => [movement.id, movement]));
     this.inventoryShortages = new Map(

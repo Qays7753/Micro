@@ -116,6 +116,10 @@ function baseData(): Record<string, unknown> {
     expenseBudgets: [],
     balanceObservations: [],
     counterparties: [],
+    /* S14 (DOC-023 / UNIT-002 — أمر ba2ce7b4 §5): عائلتا المنسق على الزوج
+     * الحالي 34/41 — حضورهما فارغتين في كل ملف يدوي كما يصدر Micro فعلًا. */
+    periodSummaries: [],
+    commandReceipts: [],
   };
 }
 

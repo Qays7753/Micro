@@ -45,6 +45,8 @@ import {
   receivedLoanStore,
   counterpartyStore,
   balanceObservationStore,
+  periodSummaryStore,
+  commandReceiptStore,
 } from "./indexedDbStores";
 import { STORAGE_UPGRADE_FAILED } from "./resultCodes";
 
@@ -319,6 +321,19 @@ export function applySchemaUpgrade(request: IDBOpenDBRequest, event: IDBVersionC
     const counterparties = database.createObjectStore(counterpartyStore, { keyPath: "id" });
     counterparties.createIndex("updatedAt", "updatedAt");
     counterparties.createIndex("operationKey", "operationKey");
+  }
+  /* S14 (DOC-023 / UNIT-002 + العقد المشترك §7.1/§8/§14.1 — نمط D-037 — الترقية
+   * 40→41): مخزنا ملخصات الفترة وإيصالات الأوامر بمُنشئ محروس — لا ترحيل
+   * بيانات ولا تعديل سجل قائم؛ القاعدة القديمة تفتح وتجدهما فارغين. */
+  if (!database.objectStoreNames.contains(periodSummaryStore)) {
+    const summaries = database.createObjectStore(periodSummaryStore, { keyPath: "id" });
+    summaries.createIndex("kind", "kind");
+    summaries.createIndex("from", "from");
+    summaries.createIndex("operationKey", "operationKey");
+  }
+  if (!database.objectStoreNames.contains(commandReceiptStore)) {
+    const receipts = database.createObjectStore(commandReceiptStore, { keyPath: "id" });
+    receipts.createIndex("commandType", "commandType");
   }
   const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
   if (policyStore && !policyStore.indexNames.contains("seriesId"))

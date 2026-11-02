@@ -136,7 +136,7 @@ describe("ErrorBoundary fallback — safe, private, focused recovery", () => {
     expect(entry.errorId as string).toMatch(/^MIC-[0-9a-f]{10}$/);
     expect(entry.appVersion).toBe("micro-local-dev");
     /* S05 (DOC-014): المخطط 40 — بند ربط حرفي محدث (عائلة الأطراف المحفوظة). */
-    expect(entry.schemaVersion).toBe(40);
+    expect(entry.schemaVersion).toBe(41);
     expect(entry.routeTemplate).toBe("/");
     expect(entry.operation).toBe("errorBoundary");
     expect(entry.errorCode).toBe("render_crash");

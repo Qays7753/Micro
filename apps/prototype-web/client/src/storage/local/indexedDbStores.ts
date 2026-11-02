@@ -86,6 +86,19 @@ export const balanceObservationStore = "balance-observations";
 export const counterpartyStore = "counterparties";
 /* S05 (DOC-014 / UNIT-037 B4): تعارض الكتابة على الطرف من نافذتين — الرسالة
  * الكنونية الموحدة للحد المحروس (نمط RECURRENCE_STALE_MESSAGE). */
+/* S14 (DOC-023 / UNIT-002 + العقد المشترك §7.1/§8/§14.1 — نمط D-037 — الترقية
+ * 40→41): ملخصات الفترة — سجلات تاريخية ذو نوع بأبعاد معرفة مستقلة وتغطية،
+ * يملك المعنى صاحبه عبر ownerDomain (002 منسق لا مالك محتوى). المُنشئ محروس
+ * في الترقية: القديم يفتح ويجده فارغًا بلا ترحيل بيانات ولا تعديل سجل قائم؛
+ * فهارس kind وfrom وoperationKey للتصفح والعهدة؛ لا فهارس فريدة — حارس
+ * الالتزام داخل حد الكتابة (commitAccountCompletion) يكفي الحتمية. */
+export const periodSummaryStore = "period-summaries";
+/* S14 (DOC-023 / العقد المشترك §14.1 — نمط D-037): إيصالات الأوامر — استرداد
+ * النتيجة والحتمية عبر المعاملة المنسقة متعددة المصادر؛ commandId وحيد داخل
+ * المشروع/الجيل (مفتاح السجل)، ولا يُحذف دوريًا بما يعيد قبول قصد قديم.
+ * المُنشئ محروس بالترقية نفسها؛ فهرس commandType للتصفح؛ لا فهرس فريد ثانٍ —
+ * المفتاح نفسه هو الهوية. */
+export const commandReceiptStore = "command-receipts";
 export const COUNTERPARTY_STALE_MESSAGE =
   "بيانات هذا الطرف تغيّرت من نافذة أخرى بعد فتحك لها — لم يُحفظ شيء؛ أعد المحاولة.";
 export const COUNTERPARTY_CONFLICT_MESSAGE =

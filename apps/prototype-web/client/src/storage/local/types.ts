@@ -45,6 +45,14 @@ import type {
 } from "@micro-domain/recurring-expense/index.js";
 import type { ExpenseBudgetRecord } from "@micro-domain/budget/index.js";
 import type { SavedParty } from "@micro-domain/party/index.js";
+/* S14 (DOC-023 / UNIT-002 + العقد المشترك §7.1/§14.1 — أمر ba2ce7b4 §5):
+ * ملخص الفترة وإيصال الأمر — سجلان تاريخيان للمنسق الاختياري فوق أصحاب
+ * المصادر؛ لا دفتر مال موازٍ ولا أحداث مالية ثانية. */
+import type {
+  CommandEnvelopeDigestInput,
+  CommandReceipt,
+  PeriodSummary,
+} from "@micro-domain/shared/index.js";
 import type { SupplierPurchaseCommit } from "./supplierScheduleCommitGuard";
 import type { CounterpartyWriteCommit } from "./counterpartyCommitGuard";
 
@@ -77,7 +85,13 @@ import type { CounterpartyWriteCommit } from "./counterpartyCommitGuard";
  * مجهولًا صراحة (deliveryDate = null — «لم يُحدد بعد» بلا جدول زائف)، ومسؤولية
  * النقل قد تكون «none» (لا يوجد توصيل — بلا أي مبلغ). القراء القدامى يرفضون
  * الملف الجديد بصدق؛ كل الأزواج الموروثة تُقبل كما كانت. */
-export const localSchemaVersion = 40;
+/* S14 (DOC-023 / UNIT-002 + العقد المشترك §7.1/§8/§14.1 — أمر ba2ce7b4 §5 —
+ * نمط D-037): المخطط ٤١ يضيف مخزنين بمُنشئ محروس — `period-summaries` (ملخصات
+ * الفترة التاريخية ذو نوع: أبعاد معرفة مستقلة وتغطية وownerDomain لصاحب
+ * المعنى) و`command-receipts` (إيصالات الأوامر: استرداد نتيجة المعاملة المنسقة
+ * متعددة المصادر) — لا حقول جديدة على سجل قائم ولا ترحيل بيانات؛ القاعدة
+ * القديمة تفتح وتجدهما فارغين، وكل الأزواج الموروثة تُقبل كما كانت. */
+export const localSchemaVersion = 41;
 export const localProfileId = "local-profile";
 export const localPreferencesId = "local-preferences";
 export const localExportFormat = "micro-prototype-local-export";
@@ -108,7 +122,13 @@ export const localExportFormat = "micro-prototype-local-export";
  * «none» (لا يوجد توصيل — اختيار صريح مختلف عن عدم التسجيل). لا عائلات
  * جديدة ولا حقول مضافة — القديم كله يُقرأ كما كان؛ ملف ٣٢/٤٠ يبقى زوجًا
  * موروثًا مقبولًا في الاستيراد، وملف ٣٣/٤٠ يرفضه القارئ الأقدم بصدق. */
-export const localExportVersion = 33;
+/* S14 (DOC-023 / UNIT-002 — أمر ba2ce7b4 §5): النسخة ٣٤ تضيف عائلتي ملخصات
+ * الفترة وإيصالات الأوامر إلى لقطة التصدير وعداداتها — الملخص تاريخ حقيقي
+ * بأبعاده وتغطيته ومعرفته يُنقل كما هو، والإيصال دليل استرداد لا يعيد تنفيذ
+ * أثرًا عند الاستعادة (فحص الجيل الحي يسبق استرداد النتيجة)؛ ملف ٣٣/٤٠ يبقى
+ * زوجًا موروثًا مقبولًا في الاستيراد — الغياب يعني قائمة فارغة بلا اختراع
+ * ملخص ولا إيصال. */
+export const localExportVersion = 34;
 export const localSecurityId = "local-security";
 /* المجموعة ٥ (التحصين الكامل — حدود المسودة): نوعان جديدان يدخلان الحد نفسه —
  * مسودة محرر الحدث المالي (مهاجرة من مفتاح localStorage القديم لكل نوع) ومسودة
@@ -282,6 +302,10 @@ export type LocalExportCounts = {
   balanceObservations: number;
   /* S05 (DOC-014 / UNIT-037): عائلة الأطراف المحفوظة داخل العدادات الصارمة. */
   counterparties: number;
+  /* S14 (DOC-023 / UNIT-002): عائلتا ملخصات الفترة وإيصالات الأوامر داخل
+   * العدادات الصارمة. */
+  periodSummaries: number;
+  commandReceipts: number;
   /* R10-B2/RC-1 (R10A-F-009): عائلات مال المالك الأربع داخل العدادات
    * الصارمة — مفاتيح إضافية داخل المفتاح counts نفسه والإصدار يبقى ٣٠
    * (الأزواج الموروثة بلا كتل عدادات لا يمسها التغيير؛ السجل الكنوني:
@@ -631,6 +655,13 @@ export type LocalStoreSnapshot = {
    * والتوثيق بالإغلاق داخل السجل نفسه بروابط للأمام فقط. الغياب في التصدير
    * القديم = قائمة فارغة بلا اختراع تاريخ. */
   expenseBudgets?: readonly ExpenseBudgetRecord[];
+  /* S14 (DOC-023 / UNIT-002 + العقد المشترك §7.1/§14.1): ملخصات الفترة —
+   * سجلات تاريخية ذو نوع بأبعاد معرفة مستقلة وتغطية يملك معناها صاحبها؛
+   * لا دفتر 002 موازٍ ولا عملية وهمية بتاريخ اليوم. والإيصالات — دليل
+   * استرداد نتيجة المعاملة المنسقة؛ الاستعادة لا تعيد تنفيذ أثر مالي.
+   * الغياب في التصدير القديم = قائمة فارغة بلا اختراع. */
+  periodSummaries?: readonly PeriodSummary[];
+  commandReceipts?: readonly CommandReceipt[];
 };
 export type LocalExportFile = {
   format: typeof localExportFormat;
@@ -675,6 +706,16 @@ export const storageFailureCode = (code: StorageFailureCode): "storage_error" | 
 export type RecurringExpenseOccurrenceChange = {
   base: RecurringExpenseOccurrence;
   next: RecurringExpenseOccurrence;
+};
+
+/* S14 (DOC-023 / العقد المشترك §14.1): مظروف الالتزام المنسق — القصد
+ * بمعرفه وبصمة حمولته وجيله، والملخصات بتغطيتها المطبقة، وقياس النقد
+ * الحالي إن اختير (عبر عهدة decideCashObservationCommit الحية داخل الحد). */
+export type AccountCompletionCommit = {
+  command: CommandEnvelopeDigestInput;
+  summaries: readonly PeriodSummary[];
+  cashObservation: CashObservation | null;
+  recordedAt: string;
 };
 
 export interface PrototypeLocalStore {
@@ -882,6 +923,26 @@ export interface PrototypeLocalStore {
   commitCounterpartyWrite(
     commit: CounterpartyWriteCommit,
   ): Promise<StorageResult<{ party: SavedParty; reused: boolean }>>;
+  /* S14 (DOC-023 / UNIT-002 + العقد المشترك §14.1/§7.2 — أمر ba2ce7b4 §5):
+   * الالتزام المنسق لاستكمال الحسابات — ملخصات الفترة (بعد تطبيق تغطيتها)
+   * وقياس النقد الحالي إن اختير وإيصال الأمر في حد كتابة واحد على
+   * المهايئين: القراءة والقرار والكتابة في معاملة واحدة (IndexedDB) أو
+   * خطوة متزامنة واحدة (الذاكرة) بدفتر تراجع. الحتمية داخل الحد: نفس
+   * commandId بنفس بصمة الحمولة والجيل يعيد نتيجة الأصل بلا أثر ثانٍ،
+   * وبحمولة مختلفة idempotency_conflict بلا كتابة؛ ومفتاح عهدة القياس
+   * والملخصات يُفحص داخل الحد نفسه. الفشل في أي مكوّن يُرجع الكل — لا
+   * نجاح جزئي مستتر (SDF-030). */
+  listPeriodSummaries(): Promise<StorageResult<readonly PeriodSummary[]>>;
+  listCommandReceipts(): Promise<StorageResult<readonly CommandReceipt[]>>;
+  getCommandReceipt(commandId: string): Promise<StorageResult<CommandReceipt | null>>;
+  commitAccountCompletion(commit: AccountCompletionCommit): Promise<
+    StorageResult<{
+      summaries: readonly PeriodSummary[];
+      cashObservation: CashObservation | null;
+      receipt: CommandReceipt;
+      reused: boolean;
+    }>
+  >;
   listMaterials(): Promise<StorageResult<readonly Material[]>>;
   listInventoryMovements(): Promise<StorageResult<readonly InventoryMovement[]>>;
   getInventoryActivation(): Promise<StorageResult<InventoryActivation | null>>;

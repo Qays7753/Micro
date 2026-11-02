@@ -495,6 +495,10 @@ export class LocalTransferService {
       /* S05 (DOC-014 / UNIT-037): لا أطراف محفوظة في اللقطة الفارغة —
        * «ابدأ من جديد» لا يخترع هوية. */
       counterparties: [],
+      /* S14 (DOC-023 / UNIT-002): لا ملخصات ولا إيصالات في اللقطة الفارغة —
+       * «ابدأ من جديد» لا يخترع تاريخًا ولا عهدة قصد. */
+      periodSummaries: [],
+      commandReceipts: [],
     };
   }
 

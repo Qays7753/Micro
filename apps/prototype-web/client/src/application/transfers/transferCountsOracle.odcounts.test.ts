@@ -97,10 +97,11 @@ function richSeed(): LocalStoreSnapshot {
 }
 
 describe("OD-COUNTS meta-tests — registry == oracle (السجل يطابق العدّاد)", () => {
-  it("the exporter corpus itself yields exactly the 33 registry families (derived == registered)", () => {
+  it("the exporter corpus itself yields exactly the 35 registry families (derived == registered)", () => {
     const registryKeys = Object.keys(TRANSFER_ARRAY_FAMILY_ROLES).sort();
-    /* S05 (DOC-014): عائلة counterparties انضم للسجل (32 ← 33). */
-    expect(registryKeys).toHaveLength(33);
+    /* S05 (DOC-014): عائلة counterparties انضم للسجل (32 ← 33)؛ S14
+     * (DOC-023): عائلتا periodSummaries وcommandReceipts (33 ← 35). */
+    expect(registryKeys).toHaveLength(35);
     expect(arrayKeysOfExportedData(currentPair.data as unknown as Record<string, unknown>)).toEqual(
       registryKeys,
     );
@@ -109,10 +110,11 @@ describe("OD-COUNTS meta-tests — registry == oracle (السجل يطابق ا�
     );
   });
 
-  it("the counted set (24) matches the exporter's counts keys exactly", () => {
+  it("the counted set (26) matches the exporter's counts keys exactly", () => {
     const counted = [...countedArrayFamilyKeys()].sort();
-    /* S05 (DOC-014): عائلة counterparties انضم للعدادات الصارمة (23 ← 24). */
-    expect(counted).toHaveLength(24);
+    /* S05 (DOC-014): عائلة counterparties انضم للعدادات الصارمة (23 ← 24)؛
+     * S14 (DOC-023): عائلتا المنسق (24 ← 26). */
+    expect(counted).toHaveLength(26);
     expect(Object.keys(supplement.counts).sort()).toEqual(counted);
     expect(Object.keys(exportCountsOf(supplement.data)).sort()).toEqual(counted);
   });

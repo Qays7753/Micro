@@ -45,8 +45,8 @@ describe("documentation consistency — Group 4 bundle budget implemented on the
     expect(section34).toContain("٣٥/٢٧ بلا تغيير");
     /* S05 (DOC-014، 2026-10-29): ٤٠/٣٢ — عائلة الأطراف المحفوظة بأمر S05
      * المأذون (نمط D-037 نفسه). */
-    expect(String(localSchemaVersion)).toBe("40");
-    expect(String(localExportVersion)).toBe("33");
+    expect(String(localSchemaVersion)).toBe("41");
+    expect(String(localExportVersion)).toBe("34");
   });
 
   it("todo marks Group 4 done on the branch and pending merge — not merged", () => {

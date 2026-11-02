@@ -75,7 +75,7 @@
  *     commitDirectSaleWrite فقط بلا أي حذف؛ التصعيد مرغوب وموثق في سجل
  *     نتيجة S11، لا نمو صامت، وبلا أي رفع سقف أو توسيع تسامح.
  *  2) محوّلا التخزين (IndexedDbLocalStore وMemoryLocalStore) يعرضان على
- *     نماذجهما بالضبط الأسماء الـ148 ذاتها — مطابقة السطح التنفيذية
+ *     نماذجهما بالضبط الأسماء الـ152 ذاتها — مطابقة السطح التنفيذية
  *     للعقد الكتابي (P-01/P-02 conformance).
  *  3) ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 40 و
  *     localExportVersion = 33 (كان 32 — تصحيح مؤرخ 2026-11-01 DOC-021/S12) (محروسان بقرار مالك وdiff مزدوج — AGENTS §10).
@@ -97,7 +97,7 @@ import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 
 const TYPES_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "types.ts");
 
-/** الجرد المثبت للـ148 طريقة (مرتب حرفيًا؛ إعادة الإرساء تتطلب توثيقًا بنفس الـPR).
+/** الجرد المثبت للـ152 طريقة (مرتب حرفيًا؛ إعادة الإرساء تتطلب توثيقًا بنفس الـPR).
  * U001-IR-002 (2026-10-18): commitProfileCreate أُضيف بإعادة إرساء موثقة
  * نفس-الـPR (مراجعة مستقلة — إنشاء ملف الهوية ذرّيًا عند حد الكتابة).
  * S03 (UNIT-039 B2/عقد §17، 2026-10-28): commitProfileRename أُضيف بإعادة
@@ -106,11 +106,16 @@ const TYPES_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "t
  * إرساء موثقة نفس-الـPR (كتابة التفضيلات: دمج الرقعة فوق الحي داخل الحد
  * مع فحص CAS اختياري — علاج جذر عيب التزامن المُثبت §A1).
  * S08 (DOC-017، 2026-10-30): commitAssetAcquisition وcommitAssetPayableSettlement
- * أُضيفا بإعادة إرساء موثقة نفس-الـPR (منافذ أحداث الأصول عند حد الكتابة). */
+ * أُضيفا بإعادة إرساء موثقة نفس-الـPR (منافذ أحداث الأصول عند حد الكتابة).
+ * S14 (DOC-023 — أمر ba2ce7b4 §5، 2026-11-02): listPeriodSummaries و
+ * listCommandReceipts وgetCommandReceipt وcommitAccountCompletion أُضيفت
+ * بإعادة إرساء موثقة نفس-الـPR (منافذ الاستكمال المنسق عند حد الكتابة —
+ * 148 ← 152). */
 export const PINNED_PORT_METHODS: readonly string[] = [
   "abortReplacementIntent",
   "beginReplacementIntent",
   "clearFormDrafts",
+  "commitAccountCompletion",
   "commitAllocationPolicySuccessor",
   "commitAssetAcquisition",
   "commitAssetAcquisitionCorrection",
@@ -168,6 +173,7 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "getAsset",
   "getCatalogItem",
   "getCatalogTemplate",
+  "getCommandReceipt",
   "getCostEstimate",
   "getCounterparty",
   "getDataGeneration",
@@ -201,6 +207,7 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "listCashWallets",
   "listCatalogItems",
   "listCatalogTemplates",
+  "listCommandReceipts",
   "listCostEstimates",
   "listCounterparties",
   "listDirectConversions",
@@ -219,6 +226,7 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "listOwnerEntitlementPolicies",
   "listOwnerEntitlementRecords",
   "listOwnerMovements",
+  "listPeriodSummaries",
   "listReceivedLoans",
   "listRecurrences",
   "listRecurringExpenseOccurrences",
@@ -299,17 +307,17 @@ function publicMethodNames(prototype: object): string[] {
 }
 
 describe("P-04 — أدلة سطح منفذ التخزين المحلي (OD-PRESERVE؛ بلا تقسيم أو نقل)", () => {
-  it("واجهة PrototypeLocalStore تحمل بالضبط 148 طريقة — والقائمة المثبتة مطابقة عضويًا في الاتجاهين", () => {
+  it("واجهة PrototypeLocalStore تحمل بالضبط 152 طريقة — والقائمة المثبتة مطابقة عضويًا في الاتجاهين", () => {
     const live = extractInterfaceMethodNames();
-    expect(live).toHaveLength(148);
+    expect(live).toHaveLength(152);
     expect(live).toEqual([...PINNED_PORT_METHODS]);
   });
 
-  it("P-01: نموذج IndexedDbLocalStore يعرض بالضبط الأسماء الـ148 ذاتها (مطابقة السطح التنفيذية)", () => {
+  it("P-01: نموذج IndexedDbLocalStore يعرض بالضبط الأسماء الـ152 ذاتها (مطابقة السطح التنفيذية)", () => {
     expect(publicMethodNames(IndexedDbLocalStore.prototype)).toEqual([...PINNED_PORT_METHODS]);
   });
 
-  it("P-02: نموذج MemoryLocalStore يعرض الأسماء الـ148 ذاتها + مساعدَا TS-private/protected موثقان فقط", () => {
+  it("P-02: نموذج MemoryLocalStore يعرض الأسماء الـ152 ذاتها + مساعدَا TS-private/protected موثقان فقط", () => {
     /* حدّ موثق: `private`/`protected` في TypeScript زمن ترجمة لا زمن تشغيل —
      * المساعد يظهر على النموذج؛ نثبته بالاسم فأي مساعد جديد (خاص أو عام)
      * يفشل الاختبار حتى توثيقه هنا — لا سطح خفي خلف العقد.
@@ -319,16 +327,29 @@ describe("P-04 — أدلة سطح منفذ التخزين المحلي (OD-PRES
      * الداخلي الضيق الذي يتيح لاختبار الذرّية حقن فشل حتمي بعد بدء كتابة
      * فعلية لا قبلها ويثبت تدحرج دفتر التراجع) نقلت المساعدات الموثقة من
      * واحدة إلى اثنتين؛ التصعيد مرغوب وموثق هنا وفي ملحق 17b، لا نمو صامت. */
-    const documentedPrivateHelpers = ["checkRecurrenceSchedule", "onDeliveryBundleWrite"];
+    /* S14 (DOC-023 — أمر ba2ce7b4 §5): إعادة إرساء موثقة نفس-الـPR — إضافة
+     * onCoordinatedWrite وحدها (protected، no-op إنتاجيًا، تُستدعى بعد كل
+     * كتابة مجندلة في حزمة الاستكمال المنسقة — خيط إثبات الذرّية الداخلي
+     * الضيق على نمط S12-ATOMIC-001) رفعت المساعدات الموثقة من اثنتين إلى
+     * ثلاث؛ وأربع طرق منفذ عام جديدة دخلت القائمة المثبتة (152 = 148 +
+     * listPeriodSummaries/listCommandReceipts/getCommandReceipt/
+     * commitAccountCompletion). */
+    const documentedPrivateHelpers = [
+      "checkRecurrenceSchedule",
+      "onDeliveryBundleWrite",
+      "onCoordinatedWrite",
+    ];
     expect(publicMethodNames(MemoryLocalStore.prototype)).toEqual(
       [...PINNED_PORT_METHODS, ...documentedPrivateHelpers].sort(),
     );
   });
 
-  it("ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 40 وlocalExportVersion = 33 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 32)", () => {
-    /* S05 (DOC-014 / UNIT-037 — عائلة الأطراف المحفوظة): الزوج الحي 40/33 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 40/32). */
-    expect(localSchemaVersion).toBe(40);
-    expect(localExportVersion).toBe(33);
+  it("ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 41 وlocalExportVersion = 34 (تصحيح مؤرخ 2026-11-02 DOC-023/S14؛ كان 40/33)", () => {
+    /* S14 (DOC-023 / UNIT-002 — عائلتا المنسق): الزوج الحي 41/34 (تصحيح مؤرخ
+     * 2026-11-02 DOC-023/S14؛ كان 40/33 — مخزنا period-summaries و
+     * command-receipts بنمط D-037 بلا ترحيل بيانات). */
+    expect(localSchemaVersion).toBe(41);
+    expect(localExportVersion).toBe(34);
   });
 
   it("P-02 (حدّ موثق): كل نسخة MemoryLocalStore حالة مستقلة بلا استمرارية — النسخة الجديدة تبدأ فارغة", async () => {

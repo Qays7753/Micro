@@ -135,8 +135,8 @@ describe("export envelope v33 (S05 — DOC-014 / UNIT-037)؛ v32 عند إصدا
     const service = new LocalTransferService(store, () => NOW);
     const exported = await service.createVerifiedExport();
     if (!exported.ok) throw new Error(exported.message);
-    expect(exported.value.file.version).toBe(33);
-    expect(exported.value.file.schemaVersion).toBe(40);
+    expect(exported.value.file.version).toBe(34);
+    expect(exported.value.file.schemaVersion).toBe(41);
     expect(exported.value.file.version).toBe(localExportVersion);
     expect(exported.value.file.schemaVersion).toBe(localSchemaVersion);
     expect(exported.value.file.data.counterparties).toHaveLength(2);
