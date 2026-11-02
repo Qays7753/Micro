@@ -7783,10 +7783,10 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 409,
+        "nbLoc": 411,
         "band": "WATCH"
       },
-      "reason": "S13-R5-F02/F03 (تصحيح المراجعة الخامسة، متسلسل من إرساء 395): سياق التصفية في الوصل (kind/since/until — ACD032) والفترة غير الصالحة معلنة لا صامتة؛ عبور الشريط إلى WATCH بتوثيق نفس-الـPR — لا تقسيم بنيوي (بوابة ما بعد المجموعة ٦).",
+      "reason": "S13-R5-F02/F03 (تصحيح المراجعة الخامسة، متسلسل من إرساء 395): سياق التصفية في الوصل (kind/since/until — ACD032) والفترة غير الصالحة معلنة لا صامتة؛ عبور الشريط إلى WATCH بتوثيق نفس-الـPR — لا تقسيم بنيوي (بوابة ما بعد المجموعة ٦). (411 بعد تنسيق Prettier النهائي.)",
       "authorization": {
         "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §9 — repair every confirmed in-scope finding and rerun affected gates; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
         "trigger": "S13 review-5 remediation measured on the live tree",

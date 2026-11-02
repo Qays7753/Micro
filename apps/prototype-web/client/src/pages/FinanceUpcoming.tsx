@@ -83,7 +83,9 @@ function filterFromSearch(search: string): FilterDraft {
   const kind = params.get("kind");
   const since = params.get("since");
   const until = params.get("until");
-  const taskKind = (TASK_KINDS as readonly string[]).includes(kind ?? "") ? (kind as FilterDraft["taskKind"]) : "all";
+  const taskKind = (TASK_KINDS as readonly string[]).includes(kind ?? "")
+    ? (kind as FilterDraft["taskKind"])
+    : "all";
   if (since === null && until === null) {
     return { taskKind, period: null, fromText: "", toText: "" };
   }

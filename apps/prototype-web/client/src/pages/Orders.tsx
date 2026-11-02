@@ -229,7 +229,6 @@ export default function Orders() {
     )}`;
     /* بلا تغيير فعلي لا نكتب الوصل — الوصول الأول النظيف يبقى كما هو. */
     if (next !== `/orders${search}`) navigate(next, { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, applied, calendarMode, anchorDate, selectedDate]);
 
   const open = (href: string) => navigate(withReturnTo(href, location));
