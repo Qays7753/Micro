@@ -1,7 +1,7 @@
 {
   "id": "WS-237",
   "title": "S12 execution workstream — اتفاق الطلب وتنفيذه وتسليمه وتسويته (UNIT-009/010/011 + UNIT-026 order adapter + SH-16)",
-  "status": "IN_PROGRESS",
+  "status": "REVIEW_REQUIRED",
   "items": [
     "DOC-021"
   ],
@@ -37,7 +37,7 @@
   "pr": 383,
   "started_at": "2026-11-01",
   "updated_at": "2026-11-02",
-  "next_action": "تصحيح S12 المحدود بأمر ba2ce7b4 §3 ثم العودة إلى REVIEW_REQUIRED؛ لا merge ولا كتابة على main.",
+  "next_action": "تصحيحات S13 السبعة المأذونة بأمر ba2ce7b4 §4 على components/integration-20261027 / PR #383 ثم العودة إلى حالة مراجعة صادقة؛ لا merge ولا كتابة على main.",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S12-EXECUTION-PROMPT-2026-11-01.md المنشور في 2e6458021d1d146b54d7d2655291bf2404ddc8d7؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
@@ -93,6 +93,12 @@
       "changed_at": "2026-11-02",
       "actor": "zai-s14-execution",
       "reason": "بدء تصحيح S12 المأذون بأمر ba2ce7b4 §3 على components/integration-20261027 / PR #383 ثم العودة إلى حالة مراجعة صادقة؛ لا merge ولا كتابة على main."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s14-execution",
+      "reason": "اكتمال تصحيح S12 المحدود (S12-ATOMIC-001 ما بعد بدء الكتابة + إغلافا شهادة الاختبار) عند 6dbbc425 بالملحق 17b؛ العودة إلى رهن المراجعة المستقلة وقبول المالك."
     }
   ],
   "migration_baseline": true
