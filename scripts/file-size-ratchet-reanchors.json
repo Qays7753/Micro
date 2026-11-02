@@ -7944,6 +7944,25 @@
         "trigger": "S13-MR-001..007 review-fix batch measured on the live tree",
         "ocRef": "DOC-022"
       }
+    },
+    {
+      "id": "S14-PERIOD-SUMMARY-EXPORT-20261102-418",
+      "date": "2026-11-02",
+      "path": "src/domain/shared/index.ts",
+      "from": {
+        "nbLoc": 22,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 40,
+        "band": "NORMAL"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5): باب العائلة المشتركة يصدّر نموذج ملخص الفترة وتغطيته (UNIT-002/العقد §7.1) — أنواع وقيَم نقية في بيتها القائم لا عائلة جديدة.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S14 domain core measured on the live tree",
+        "ocRef": "DOC-023"
+      }
     }
   ]
 }
