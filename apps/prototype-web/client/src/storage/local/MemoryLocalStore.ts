@@ -587,6 +587,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
      * الكامل للحزمة كلها قبل أي تغيير — أي فشل استنساخ (مهما كان مصدره)
      * يُرجَع فشلًا صادقًا قبل أول set فلا تبقى كتابة نصفية أبدًا: الطلب
      * وحركاته ونقصه وقبضه ومحفظته تُكتب معًا أو لا يُكتب شيء. */
+    /* S12-ATOMIC-001 (أمر ba2ce7b4 §3 — الإثبات بعد بدء الكتابة): دفتر
+     * التراجع يُعلّن قبل الحد كي يراه مسار الفشل أيًا كان موضع الرمي — كل
+     * كتابة مجندلة تُسبق بمدخل يُرجع القيمة السابقة أو يمحو المفتاح المضاف. */
+    const undoJournal: Array<() => void> = [];
     try {
       const orderClone = alreadyDelivered ? clone(existing) : clone(order);
       const movementKeys = new Set(Array.from(this.inventoryMovements.values()).map(m => m.operationKey));
@@ -608,12 +612,24 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         if (cashKeyTaken) cashEntryClone = null;
       }
       const walletClone = wallet ? clone(wallet) : null;
-      /* الالتزام الفعلي — قيم مستنسخة سلفًا فلا يفشل هنا شيء. */
-      if (!alreadyDelivered) this.orders.set(order.id, orderClone);
-      movementClones.forEach(movement => this.inventoryMovements.set(movement.id, movement));
-      shortageClones.forEach(shortage => this.inventoryShortages.set(shortage.id, shortage));
-      if (cashEntryClone) this.cashContinuityEntries.set(cashEntryClone.id, cashEntryClone);
-      if (walletClone) this.cashWallets.set(walletClone.id, walletClone);
+      /* الالتزام الفعلي — قيم مستنسخة سلفًا. S12-ATOMIC-001 (أمر ba2ce7b4 §3 —
+       * الإثبات بعد بدء الكتابة): كل كتابة عبر دفتر التراجع — أي رمي بعد
+       * أول set فعلي (مهما كان مصدره) يُنفّذ التراجع بالعكس فيعود كل مخزن
+       * إلى حالته قبل الحزمة ثم يُرجَع فشل تخزين صادق؛ الضمان بنيوي داخل حد
+       * الكتابة، لا اعتمادًا على «القيم المستنسخة لا ترمي» فقط. */
+      const journalSet = <K, V>(map: Map<K, V>, key: K, value: V) => {
+        const previous = map.get(key);
+        undoJournal.push(
+          previous === undefined ? () => map.delete(key) : () => map.set(key, previous),
+        );
+        map.set(key, value);
+        this.onDeliveryBundleWrite();
+      };
+      if (!alreadyDelivered) journalSet(this.orders, order.id, orderClone);
+      movementClones.forEach(movement => journalSet(this.inventoryMovements, movement.id, movement));
+      shortageClones.forEach(shortage => journalSet(this.inventoryShortages, shortage.id, shortage));
+      if (cashEntryClone) journalSet(this.cashContinuityEntries, cashEntryClone.id, cashEntryClone);
+      if (walletClone) journalSet(this.cashWallets, walletClone.id, walletClone);
       return {
         ok: true,
         value: {
@@ -625,8 +641,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         },
       };
     } catch (error) {
-      /* فشل ما قبل التغيير (استنساخ الحزمة) أو أي رمي غير متوقع: فشل تخزين
-       * صادق — قبل أول set فلا كتابة نصفية أبدًا. */
+      /* فشل ما قبل التغيير (استنساخ الحزمة) أو أي رمي بعد بدء الكتابة: يُنفّذ
+       * دفتر التراجع بالعكس فلا تبقى كتابة نصفية من هذه الحزمة أبدًا، ثم فشل
+       * تخزين صادق (S12-ATOMIC-001 — أمر ba2ce7b4 §3). */
+      for (const step of undoJournal.reverse()) step();
       return {
         ok: false,
         code: STORAGE_ERROR,
@@ -634,6 +652,14 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       };
     }
   }
+
+  /** S12-ATOMIC-001 (أمر ba2ce7b4 §3): خيط داخلي ضيق لإثبات الذرّية — يُستدعى
+   * بعد كل كتابة مجندلة في حزمة تسليم التسليم (بعد أول set فعلي فصاعدًا).
+   * لا يفعل شيئًا في الإنتاج أبدًا: ليس مفتاح تشغيل عامًا ولا جزءًا من
+   * السطح العام للمخزن (protected لا public)؛ يتيح لاختبار الانحدار أن يحقن
+   * فشلًا حتميًا في عمق تسلسل الكتابة نفسه — بعد بدء كتابة فعلية لا قبلها —
+   * فيثبت أن دفتر التراجع يُرجع كل المخازن كما كانت. */
+  protected onDeliveryBundleWrite(): void {}
   /* المجموعة ٣ (عقد D4) + رقعة إغلاق المجموعة ٣ (D-031، مراجعة مستقلة):
    * عكس التسليم ذرّيًا في الذاكرة — لا كتابة عمياء فوق السجل الحي. الحارس
    * يقرأ الحالة الحية داخل حد الكتابة نفسه: إعادة التشغيل بالمفتاح نفسه

@@ -7811,6 +7811,25 @@
         "trigger": "S13 review-5 remediation measured on the live tree",
         "ocRef": "DOC-022"
       }
+    },
+    {
+      "id": "S14-S12-POSTWRITE-20261102-401",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+      "from": {
+        "nbLoc": 2087,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 2703,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S12-ATOMIC-001 (أمر ba2ce7b4 §3 — الإثبات بعد بدء الكتابة): دفتر تراجع بنيوي حول كتابات حزمة تسليم التسليم — كل كتابة مجندلة تسبق بمدخل يرجع القيمة السابقة أو يمحو المفتاح المضاف، وأي رمي بعد أول set فعلي ينفذ التراجع بالعكس؛ مع الخيط الداخلي الضيق onDeliveryBundleWrite (protected لا public، no-op في الإنتاج) بعد كل كتابة مجندلة — أعمق نقطة يقدر اختبار الذرية الوصول إليها بصدق بعد بدء كتابة فعلية. السلسلة فوق إرساء S13-S12-FIXES-20261102-393 نفسه (2087 -> 2678): from يساوي قيمة الأساس عند قاعدة الدمج حرفيًا كما يتحقق مدقق الانجراف.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §3 — prove/fix Memory post-write atomicity with deterministic fault injection after an actual mutation has started; keep the production API free of a public test-only feature switch). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S12-ATOMIC-001 post-write rollback journal + narrow internal seam measured on the live tree (25 nbLOC over the prior 2678 anchor)",
+        "ocRef": "DOC-021"
+      }
     }
   ]
 }

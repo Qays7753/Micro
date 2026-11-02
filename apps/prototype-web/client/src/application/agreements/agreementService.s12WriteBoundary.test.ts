@@ -369,6 +369,44 @@ describe("S12-FIN-001 — المفتاح نفسه بحمولة مختلفة: ت�
         expect(read.ok && read.value?.order.deliveryTerms?.costIncludedInProductCost).toBe(false);
       });
 
+      it("S12-FIN-001 (أمر ba2ce7b4 §3): العلم المالي المقابل وحده المتغير (feeIncludedInPrice) تعارض صريح — لا كتابة إطلاقًا", async () => {
+        const store = makeStore();
+        const draft = await unlinkedDraft(store, true);
+        const agreements = new AgreementService(store, new CostService(store, () => NOW), () => NOW);
+        /* الانحدار المقابل للعلم الآخر: نفس المسؤولية ونفس المبلغ — والفرق
+         * الوحيد احتساب أجر التوصيل داخل السعر المتفق: نية إنشاء مختلفة
+         * ماليًا (من يتحمل الأجر داخل السعر) فتعارض صادق (المفتاح نفسه
+         * بحمولة مختلفة) لا إعادة استخدام تخطف القصد الجديد. */
+        const termsBase = {
+          responsibility: "project_pays" as const,
+          costIncludedInProductCost: false,
+          feeChargedMinor: 300,
+          costPaidMinor: 700,
+          projectShareMinor: null,
+          customerShareMinor: null,
+        };
+        const first = await agreements.createFromDraft(draft, {
+          ...baseInput,
+          deliveryTerms: { ...termsBase, feeIncludedInPrice: false },
+        });
+        if (!first.ok) throw new Error(first.message);
+        const before = await store.readSnapshot();
+        const rejected = await agreements.createFromDraft(
+          { ...draft, linkedOrderId: first.stored.id },
+          { ...baseInput, deliveryTerms: { ...termsBase, feeIncludedInPrice: true } },
+        );
+        expect(rejected.ok).toBe(false);
+        if (rejected.ok) throw new Error("unreachable");
+        expect(rejected.code).toBe("storage_stale");
+        expect(rejected.message).toContain("حمولة مختلفة");
+        /* لا كتابة إطلاقًا: اللقطة الكاملة بالبايت كما كانت — علم الفائز
+         * الأول باقٍ كما سُجّل ولا جدول يتيم ولا مسودة معدلة. */
+        const after = await store.readSnapshot();
+        expect(after.ok && JSON.stringify(after.value)).toBe(before.ok ? JSON.stringify(before.value) : "");
+        const read = await store.getOrder(first.stored.id);
+        expect(read.ok && read.value?.order.deliveryTerms?.feeIncludedInPrice).toBe(false);
+      });
+
       it("S13-R2-F01: إعادة المحاولة بعد تعديل شروط صريح لاحق — قيمة علم الإنشاء غير قابلة للاسترجاع فلا تميز", async () => {
         const store = makeStore();
         const draft = await unlinkedDraft(store, true);

@@ -309,11 +309,17 @@ describe("P-04 — أدلة سطح منفذ التخزين المحلي (OD-PRES
     expect(publicMethodNames(IndexedDbLocalStore.prototype)).toEqual([...PINNED_PORT_METHODS]);
   });
 
-  it("P-02: نموذج MemoryLocalStore يعرض الأسماء الـ148 ذاتها + مساعد TS-private واحد موثق فقط", () => {
-    /* حدّ موثق: `private` في TypeScript زمن ترجمة لا زمن تشغيل — المساعد
-     * يظهر على النموذج؛ نثبّته بالاسم فأي مساعد جديد (خاص أو عام) يفشل
-     * الاختبار حتى توثيقه هنا — لا سطح خفي خلف العقد. */
-    const documentedPrivateHelpers = ["checkRecurrenceSchedule"];
+  it("P-02: نموذج MemoryLocalStore يعرض الأسماء الـ148 ذاتها + مساعدَا TS-private/protected موثقان فقط", () => {
+    /* حدّ موثق: `private`/`protected` في TypeScript زمن ترجمة لا زمن تشغيل —
+     * المساعد يظهر على النموذج؛ نثبته بالاسم فأي مساعد جديد (خاص أو عام)
+     * يفشل الاختبار حتى توثيقه هنا — لا سطح خفي خلف العقد.
+     * S12-ATOMIC-001 (أمر ba2ce7b4 §3، 2026-11-02): إعادة إرساء موثقة
+     * نفس-الـPR — إضافة onDeliveryBundleWrite وحدها (protected، no-op في
+     * الإنتاج، تُستدعى بعد كل كتابة مجندلة في حزمة تسليم التسليم — الخيط
+     * الداخلي الضيق الذي يتيح لاختبار الذرّية حقن فشل حتمي بعد بدء كتابة
+     * فعلية لا قبلها ويثبت تدحرج دفتر التراجع) نقلت المساعدات الموثقة من
+     * واحدة إلى اثنتين؛ التصعيد مرغوب وموثق هنا وفي ملحق 17b، لا نمو صامت. */
+    const documentedPrivateHelpers = ["checkRecurrenceSchedule", "onDeliveryBundleWrite"];
     expect(publicMethodNames(MemoryLocalStore.prototype)).toEqual(
       [...PINNED_PORT_METHODS, ...documentedPrivateHelpers].sort(),
     );

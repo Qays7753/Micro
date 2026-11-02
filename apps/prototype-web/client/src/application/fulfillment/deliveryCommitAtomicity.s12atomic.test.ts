@@ -12,6 +12,15 @@
  * وحركات المواد والنقص والمراجع المشتقة كلها: إما لا شيء مكتوب، أو فشل
  * صادق — لا نصف نجاح ولا مآل يتيم. حقن الفشل اختباري بحت (محفظة تحمل
  * خاصية غير قابلة للاستنساخ) — لا مفتاح فشل إنتاجي إطلاقًا.
+ *
+ * S12-ATOMIC-001 (أمر S14 ba2ce7b4 §3 — الإثبات بعد بدء كتابة فعلية على
+ * الذاكرة): المراجعة القرائية المستقلة عند efca90d6 وجدت أن المحفظة
+ * المسمومة تُثبت فشل الاستنساخ قبل أول set لا التراجع بعد بدء كتابة —
+ * الإصلاح الجذري هنا: دفتر تراجع بنيوي حول كتابات الحزمة، وخيط داخلي ضيق
+ * (onDeliveryBundleWrite — protected لا public) يُستدعى بعد كل كتابة
+ * مجندلة؛ الاختبار يحقن فشلًا حتميًا بعد كتابة فعلية أولى وثالثة (طلب
+ * + حركتا مواد) ويثبت مساواة لقطة المخزن الكاملة قبل/بعد بالبايت/السجل —
+ * بلا كتابة نصفية وبلا مفتاح فشل إنتاجي (الحقن subclass اختباري بحت).
  */
 import "fake-indexeddb/auto";
 import { afterEach, describe, expect, it } from "vitest";
@@ -233,4 +242,99 @@ describe("S12-ATOMIC-001 — فشل حزمة التسليم بعد بدئها ع
     const after = await atomicitySnapshot(store, orderId);
     expect(after).toEqual(before);
   });
+});
+
+/* ─── S12-ATOMIC-001 (أمر S14 ba2ce7b4 §3): الحقن بعد بدء كتابة فعلية ─── */
+
+/** غلاف اختباري بحت: يفوّض كل شيء للمهايئ الحقيقي ويرمي حتميًا بعد الكتابة
+ * الفعلية رقم `throwAfterWrites` في حزمة التسليم — عبر الخيط الداخلي الضيق
+ * (protected onDeliveryBundleWrite) الذي يستدعيه الإنتاج بلا أثر؛ لا مفتاح
+ * فشل عام ولا تغيير سلوك خارج هذه الشريحة الاختبارية. */
+class FaultAfterWritesStore extends MemoryLocalStore {
+  private writes = 0;
+  constructor(private readonly throwAfterWrites: number) {
+    super();
+  }
+  protected onDeliveryBundleWrite(): void {
+    this.writes += 1;
+    if (this.writes >= this.throwAfterWrites)
+      throw new Error(`حقن فشل اختباري بعد كتابة فعلية رقم ${this.writes}`);
+  }
+}
+
+describe("S12-ATOMIC-001 (أمر ba2ce7b4) — فشل بعد بدء كتابة فعلية على الذاكرة يتدحرج كله", () => {
+  for (const [label, throwAfter] of [
+    ["بعد الكتابة الأولى (سجل الطلب)", 1],
+    ["بعد الكتابة الثالثة (الطلب + حركتا مواد)", 3],
+  ] as const) {
+    it(`الذاكرة: حقن حتمي ${label} — مساواة لقطة المخزن الكاملة قبل/بعد`, async () => {
+      const store = new FaultAfterWritesStore(throwAfter);
+      const { orderId, trackedMaterialId, walletId } = await readyOrder(store, 15_000, 5_000);
+      /* لقطة كاملة للمخزن كله — كل العائلات والسجلات والمفاتيح والقيم، لا
+       * عدسة الطلب وحدها: أي بقايا كتابة نصفية في أي مخزن تُكشف حتمًا. */
+      const beforeSnapshot = await store.readSnapshot();
+      if (!beforeSnapshot.ok) throw new Error("before snapshot failed");
+      const review = new DeliveryReviewService(store, () => NOW);
+
+      const failed = await review.commitDelivery(orderId, {
+        rows: [{ materialId: trackedMaterialId, quantityMilli: 2_000, action: "consume" }],
+        finalPriceMinor: null,
+        priceRevisionReason: null,
+        collectNow: walletId ? { amountMinor: 10_000, walletId } : null,
+        operationKey: `sdf040-atomic-postwrite-${throwAfter}`,
+      });
+
+      /* فشل صادق بعد بدء الكتابة — لا نصف نجاح ولا مآل يتيم. */
+      expect(failed.ok).toBe(false);
+      if (failed.ok) throw new Error("unreachable");
+      expect(failed.code).toBe("storage_error");
+      expect(failed.message).toContain("حقن فشل اختباري بعد كتابة فعلية");
+
+      /* لقطة المخزن الكاملة بعد الفشل مطابقة بالبايت/السجل: السجلات القائمة
+       * ومفاتيح العمليات والقيم المالية والمادية كلها كما كانت. */
+      const afterSnapshot = await store.readSnapshot();
+      if (!afterSnapshot.ok) throw new Error("after snapshot failed");
+      expect(afterSnapshot.value).toEqual(beforeSnapshot.value);
+      /* عدسة الطلب نفسها أيضًا: الحالة والإيراد والقبض والمتبقي والأحداث. */
+      const after = await atomicitySnapshot(store, orderId);
+      expect(after.status).toBe("ready");
+      expect(after.recognizedRevenueMinor).toBe(0);
+      expect(after.movements).toBe(0);
+      expect(after.cashEntries).toBe(0);
+    });
+
+    it(`الذاكرة: المحاولة نفسها بعد الحقن تعمل بعد إزالة الحقن — الحد ليس معطوبًا`, async () => {
+      /* المحفظة والقيد يظهران بعد نجاح لاحق أن الحقن لم يترك الحد في حالة
+       * غريبة: نفس المخزن يكتب الحزمة كاملة عند زوال سبب الفشل. */
+      const store = new FaultAfterWritesStore(throwAfter);
+      const { orderId, trackedMaterialId, walletId } = await readyOrder(store, 15_000, 5_000);
+      const review = new DeliveryReviewService(store, () => NOW);
+      const failed = await review.commitDelivery(orderId, {
+        rows: [{ materialId: trackedMaterialId, quantityMilli: 2_000, action: "consume" }],
+        finalPriceMinor: null,
+        priceRevisionReason: null,
+        collectNow: walletId ? { amountMinor: 10_000, walletId } : null,
+        operationKey: `sdf040-atomic-postwrite-recover-${throwAfter}`,
+      });
+      expect(failed.ok).toBe(false);
+      /* إزالة الحقن: مهايئ نظيف فوق نفس البيانات يكتب الحزمة كاملة. */
+      const failedState = await store.readSnapshot();
+      if (!failedState.ok || !failedState.value) throw new Error("failed-state snapshot missing");
+      const clean = new MemoryLocalStore();
+      await clean.replaceSnapshot(failedState.value);
+      const cleanReview = new DeliveryReviewService(clean, () => NOW);
+      const delivered = await cleanReview.commitDelivery(orderId, {
+        rows: [{ materialId: trackedMaterialId, quantityMilli: 2_000, action: "consume" }],
+        finalPriceMinor: null,
+        priceRevisionReason: null,
+        collectNow: walletId ? { amountMinor: 10_000, walletId } : null,
+        operationKey: `sdf040-atomic-postwrite-recovered-${throwAfter}`,
+      });
+      expect(delivered.ok).toBe(true);
+      if (!delivered.ok) throw new Error(delivered.message);
+      /* عربون 5,000 + قبض تسليم 10,000 = السعر 15,000 كاملًا — القاعدة
+       * الكنونية: التسليم بلا متبقٍ ينقل الطلب إلى settled لا delivered. */
+      expect(delivered.value.stored.order.status).toBe("settled");
+    });
+  }
 });
