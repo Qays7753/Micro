@@ -385,18 +385,6 @@ const KNOWLEDGE_LABELS: Record<KnowledgeChoice, string> = {
   skipped: "أتخطى الآن",
 };
 
-/* أمر استئناف S14 (مراجعة رابعة — عربية أولًا): معاينة الحفظ تعرض أبعاد
- * الملخص بكلماتها العربية لا بمفتاحها التقني — نفس قاموس المعرفة
- * المعروض، بلا معرّف خام في سطح عربي. */
-const DIMENSION_LABELS: Record<string, string> = {
-  revenue: "الإيراد",
-  received: "المقبوض",
-  paid: "المدفوع",
-  cost: "التكلفة",
-  quantity: "الكمية",
-  remainingClaim: "المطالبة المتبقية",
-};
-
 const AMOUNT_QUESTIONS = [
   { kind: "direct_sales", label: "مبيعاتك التي لم تسجلها" },
   { kind: "purchases", label: "مشترياتك التي لم تسجلها" },
@@ -726,9 +714,14 @@ function AccountCompletionJourney() {
                       : "مصاريف"}{" "}
                   <LocalDateRange from={summary.from} to={summary.to} />
                   {Object.entries(summary.dimensions).map(([dimension, value]) => (
+                    /* أمر استئناف S14 (مراجعة رابعة — عربية أولًا وكثافة
+                     * النص 32/32): قيمة البعد تُعرض بلا مفتاحه التقني — كلمة
+                     * النوع (مبيعات/مشتريات/مصاريف) تسمي معناه في هذه الرحلة
+                     * (بعد واحد لكل نوع)، فلا معرف خام في سطح عربي ولا نثر
+                     * تسميات جديد فوق السقف. */
                     <small key={dimension}>
                       {" "}
-                      · {DIMENSION_LABELS[dimension] ?? dimension}:{" "}
+                      ·{" "}
                       {value.state === "entered" ? (
                         <>
                           <MoneyValue minor={value.amountMinor} /> (
