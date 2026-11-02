@@ -376,7 +376,7 @@
 
 ### S14 — بدء التسجيل من الماضي والعودة بعد الانقطاع
 
-**الحالة:** IN_PROGRESS — OWNER_DECISION_REQUIRED. التنفيذ المحلي عند `6af8f2db` يقيس gzip `155,688` مقابل السقف الثابت `155,300` (زيادة 388 بايت)؛ الرأس المنشور `e4c17f296ca170f306dc13c2cb1f11d3d7f960e0` يفشل في بوابة bundle budget. لا ترفع السقف ولا تبدأ تغييرًا بنيويًا قبل قرار المالك؛ لا يتغير فرع التكامل أو PR #383.
+**الحالة:** S14 IN_PROGRESS — استئناف موجّه من المالك تحت سقفي 650,000 خام / 155,300 gzip. بعد اجتياز بوابات S14 والتسليم للمراجعة يبدأ ZAI تنفيذ S15 مباشرة بتفويض المالك، دون موافقة وسيطة؛ هذا لا يقبل S14/S15 ولا يجيز تغيير السقوف أو موجة هيكلية غير معتمدة. S12 وS13 مقبولتان على فرع التكامل ولا تعاد مراجعتهما.
 
 **المواصفات:** [UNIT-002](02-SPECIFICATIONS/03-New-Design/UNIT-002-استكمال-بيانات-المشروع.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -402,7 +402,7 @@
 
 ### S15 — المالية والكشف والسجل والميزانيات وإيقاف القدرات الملغاة
 
-**الحالة:** PLANNED_REVIEW؛ لا فرع مرحلة ولا أمر منشور.
+**الحالة:** OWNER-AUTHORIZED CONTINUATION — غير مبدوءة حتى اجتياز S14 بواباتها وتسليمها للمراجعة؛ يبدأ ZAI S15 مباشرة وفق أمر الاستئناف الموحد `00-S14-RESUME-PROMPT-2026-11-03.md`، دون انتظار موافقة وسيطة. لا قبول ذاتي ولا تغيير مالي/بنيوي خارج التفويض.
 
 **المواصفات:** [UNIT-013](02-SPECIFICATIONS/03-New-Design/UNIT-013-المالية-وملخص-الفترة.md)، [UNIT-013B](02-SPECIFICATIONS/03-New-Design/UNIT-013B-ميزانيات-المصروف-الاختيارية.md)، [UNIT-016](02-SPECIFICATIONS/03-New-Design/UNIT-016-كشف-الفترة.md)، [UNIT-017](02-SPECIFICATIONS/03-New-Design/UNIT-017-سجل-العمليات.md)، [UNIT-021](02-SPECIFICATIONS/03-New-Design/UNIT-021-التوقعات-النقدية-المؤجلة.md)، [UNIT-035](02-SPECIFICATIONS/03-New-Design/UNIT-035-القروض-التي-أعطاها-المشروع.md)، [UNIT-036](02-SPECIFICATIONS/03-New-Design/UNIT-036-القروض-التي-أخذها-المشروع.md)، [UNIT-040](02-SPECIFICATIONS/03-New-Design/UNIT-040-المشاركة.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
