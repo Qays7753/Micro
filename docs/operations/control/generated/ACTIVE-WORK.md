@@ -18,3 +18,4 @@
 | WS-236 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-020 | مراجعة مستقلة وقبول مالك لسجل S11 الكامل بمُلحقيه؛ لا merge ولا كتابة على main. |
 | WS-237 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-021 | تصحيحات S13 السبعة المأذونة بأمر ba2ce7b4 §4 على components/integration-20261027 / PR #383 ثم العودة إلى حالة مراجعة صادقة؛ لا merge ولا كتابة على main. |
 | WS-238 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-022 | فتح ادعاء S14 (DOC-023/WS-239) وتنفيذ UNIT-002/ACC-01/JRN-010/SH-18 المأذون بأمر ba2ce7b4 §5 على components/integration-20261027 / PR #383 ثم التسليم للمراجعة؛ لا merge ولا كتابة على main. |
+| WS-239 | IN_PROGRESS | `components/integration-20261027` | 383 | DOC-023 | تنفيذ UNIT-002/ACC-01/JRN-010/SH-18 بأمر ba2ce7b4 §5 على الفرع/PR نفسيهما؛ ثم التسليم للمراجعة بلا دمج وبلا كتابة على main. |
