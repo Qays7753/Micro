@@ -110,9 +110,9 @@ const MALFORMED: ReadonlyArray<readonly [string, unknown]> = [
 /** S12-TRANSFER-001 (أمر ba2ce7b4 §3): هدف غير فارغ مزروع — طلب قائم بمعرف
  * مختلف عن ملف التصدير وبيع مباشر قائم، عبر حدود الكتابة الحقيقية للمهايئ
  * نفسه (لا بذر لقطة خام)؛ يثبت أن الرفض لا يمس السجلات القائمة أصلًا. */
-async function seededTarget<
-  T extends import("@/storage/local/types").PrototypeLocalStore,
->(store: T): Promise<T> {
+async function seededTarget<T extends import("@/storage/local/types").PrototypeLocalStore>(
+  store: T,
+): Promise<T> {
   const cost = calculateCostSnapshot("s12t-target-cost", {
     source: "draft",
     currency: "JOD",
@@ -211,10 +211,7 @@ describe("S12-TRANSFER-001 — الأحداث الحاضرة المشوهة لا
       const before = await target.readSnapshot();
       if (!before.ok) throw new Error("before read failed");
       /* البيانات المزروعة قائمة فعلًا قبل المحاولة — اللقطة ليست فارغة. */
-      if (
-        (before.value.orders ?? []).length !== 1 ||
-        (before.value.directSales ?? []).length !== 1
-      )
+      if ((before.value.orders ?? []).length !== 1 || (before.value.directSales ?? []).length !== 1)
         throw new Error("seeded target must carry an order and a direct sale");
       const transfers = new LocalTransferService(target, now);
 
@@ -240,10 +237,7 @@ describe("S12-TRANSFER-001 — الأحداث الحاضرة المشوهة لا
     const seeded = await seededTarget(target);
     const before = await seeded.readSnapshot();
     if (!before.ok) throw new Error("before read failed");
-    if (
-      (before.value.orders ?? []).length !== 1 ||
-      (before.value.directSales ?? []).length !== 1
-    )
+    if ((before.value.orders ?? []).length !== 1 || (before.value.directSales ?? []).length !== 1)
       throw new Error("seeded IndexedDB target must carry an order and a direct sale");
     const transfers = new LocalTransferService(seeded, now);
 

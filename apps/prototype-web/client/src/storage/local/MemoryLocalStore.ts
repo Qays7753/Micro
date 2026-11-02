@@ -619,9 +619,7 @@ export class MemoryLocalStore implements PrototypeLocalStore {
        * الكتابة، لا اعتمادًا على «القيم المستنسخة لا ترمي» فقط. */
       const journalSet = <K, V>(map: Map<K, V>, key: K, value: V) => {
         const previous = map.get(key);
-        undoJournal.push(
-          previous === undefined ? () => map.delete(key) : () => map.set(key, previous),
-        );
+        undoJournal.push(previous === undefined ? () => map.delete(key) : () => map.set(key, previous));
         map.set(key, value);
         this.onDeliveryBundleWrite();
       };
