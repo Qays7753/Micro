@@ -1,7 +1,7 @@
 # Micro — جدول مراحل التنفيذ وبطاقاتها
 
 **النسخة:** V1 · **التاريخ:** 2026-10-27 — عمّان.
-**الحالة:** S01 مقبولة على فرع التكامل؛ S02 أمرها `READY_FOR_ZAI` منشور؛ S03–S11 منفذة ومسلّمة للمراجعة؛ S12 منفذة ومسلّمة للمراجعة (أمر 2e645802؛ DOC-021/WS-237 IN_REVIEW/REVIEW_REQUIRED)؛ S13–S18 `PLANNED_REVIEW` بلا أوامر تنفيذ.
+**الحالة:** S01 مقبولة على فرع التكامل؛ S02 أمرها `READY_FOR_ZAI` منشور؛ S03–S11 منفذة ومسلّمة للمراجعة؛ S12 منفذة ومسلّمة للمراجعة (أمر 2e645802؛ DOC-021/WS-237 IN_REVIEW/REVIEW_REQUIRED)؛ S13 منفذة ومسلّمة للمراجعة (أمر 2158b0fc بعد fix-first كامل بمُلحقَي 16b/17a؛ DOC-022/WS-238 IN_REVIEW/REVIEW_REQUIRED)؛ S14–S18 `PLANNED_REVIEW` بلا أوامر تنفيذ.
 
 **الاقتراح:** 18 مرحلة S01..S18: تجهيز توثيقي، و16 شريحة تطوير، وقبول تكامل نهائي. العدد مبني على فصل الكتّاب والعقود والقراء، ويحتاج مراجعة Manus؛ لا يساوي 45 مكونًا ولا المجموعات السبع. S01 `ACCEPTED_ON_INTEGRATION`، وS02 `READY_FOR_ZAI`؛ S03–S18 `PLANNED_REVIEW` بلا أوامر تنفيذ.
 
@@ -350,7 +350,7 @@
 
 ### S13 — إدارة الطلبات والتقويم والمتابعة الموحدة
 
-**الحالة:** أمر التنفيذ `00-S13-EXECUTION-PROMPT-2026-11-01.md` منشور بتوجيه المالك؛ التنفيذ لم يبدأ بعد، وS11/S12 ما زالتا رهن المراجعة والقبول.
+**الحالة:** EXECUTED_DELIVERED_LOCAL_CHAIN_GREEN (أمر 2158b0fc المتصل المنشور 2026-11-01، المنفذ 2026-11-02: fix-first كامل بمُلحقَي 16b/17a ثم UNIT-006/012/018 + SH-17؛ DOC-022/WS-238 في IN_REVIEW/REVIEW_REQUIRED عند التسليم — لا يعني التنفيذ قبولًا). النتيجة: `18-S13-RESULT-2026-11-01.md`.
 
 **المواصفات:** [UNIT-006](02-SPECIFICATIONS/03-New-Design/UNIT-006-العمل.md)، [UNIT-012](02-SPECIFICATIONS/03-New-Design/UNIT-012-المواعيد-والمتابعات.md)، [UNIT-018](02-SPECIFICATIONS/03-New-Design/UNIT-018-المتابعة-المالية.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 

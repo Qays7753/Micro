@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 12 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 13 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -47,4 +47,4 @@ python3 scripts/operations-control/validate.py
 | WS-235 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-019 | مراجعة Manus المستقلة وقبول المالك على PR #383 لسجل S10 الكامل (15-S10-RESULT-2026-10-31.md) — البوابتان مفتوحتان كما هما ولم تصدرا؛ REVIEW_REQUIRED هنا تحرير ملكية مناطق للعمل التسلسلي اللاحق لا قبول؛ أي مرحلة لاحقة (S11+) بأمر المالك وحده. |
 | WS-236 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-020 | مراجعة مستقلة وقبول مالك لسجل S11 الكامل بمُلحقيه؛ لا merge ولا كتابة على main. |
 | WS-237 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-021 | مراجعة مستقلة وقبول مالك لسجل S12 الكامل بمُلحقيه؛ لا merge ولا كتابة على main. |
-| WS-238 | IN_PROGRESS | `components/integration-20261027` | 383 | DOC-022 | التنفيذ المتصل الكامل لأمر 2158b0fc §6 ثم الاختبارات المركزية وpnpm check الكامل والمراجعات الخمس والبوابات البعيدة على الرأس النهائي الدقيق. |
+| WS-238 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-022 | مراجعة Manus المستقلة وقبول المالك لسجل S13 (النتيجة 18) — ثم أمر S14 عند نشره؛ لا merge ولا كتابة على main. |
