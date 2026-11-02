@@ -60,7 +60,7 @@ function receipt(resultRefs: readonly string[]): CommandReceipt {
   return createCommandReceipt({
     commandId: "cmd-transfer-1",
     commandType: "account-completion",
-    generation: "gen-transfer",
+    generation: "0",
     payloadVersion: 1,
     payloadDigest: "digest-transfer-1",
     outcome: "confirmed",
@@ -75,7 +75,7 @@ async function seededStore() {
     command: {
       commandId: "cmd-transfer-1",
       commandType: "account-completion",
-      generation: "gen-transfer",
+      generation: "0",
       payloadVersion: 1,
       payloadDigest: "digest-transfer-1",
     },
@@ -124,7 +124,7 @@ describe("S14 — نقل ملخصات الفترة وإيصالات الأوام
       command: {
         commandId: "cmd-transfer-1",
         commandType: "account-completion",
-        generation: "gen-transfer",
+        generation: "0",
         payloadVersion: 1,
         payloadDigest: "digest-transfer-1",
       },

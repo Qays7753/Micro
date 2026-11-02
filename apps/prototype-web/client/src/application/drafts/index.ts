@@ -16,4 +16,8 @@
  * (الأنواع وحدها تبقى) — إرساء الأساس الموثق بنفس الـPR.
  */
 
-export type { FormDraftService, FormDraftValues } from "./formDraftService";
+export type { FormDraftValues } from "./formDraftService";
+/* S14 (DOC-023 — أمر ba2ce7b4 §5): القيمة (الصنف) نفسها عبر الباب — كعب
+ * اختبار حد الاستكمال يبني الخدمة الحقيقية فوق مخزن حقيقي (نمط الجسر
+ * القانوني)، والصفحة تركبها من مفسر الخدمات كالمعتاد. */
+export { FormDraftService } from "./formDraftService";
