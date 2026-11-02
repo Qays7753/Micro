@@ -210,7 +210,7 @@ describe("S13 — سطح المتابعة الموحدة (UNIT-018)", () => {
     await screen.findByRole("heading", { name: "المتابعة" });
     expect(await screen.findByText(/تعذرت قراءة استحقاقات الموردين/)).toBeTruthy();
     expect(screen.getByText("اليوم (1)")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /أعد قراءة المتابعة/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /أعد قراءة المصادر المتعذرة وحدها/ })).toBeTruthy();
   });
 
   it("S13-R5-F01: حالة التحميل معلنة — لا فراغ صامت", async () => {
@@ -228,13 +228,13 @@ describe("S13 — سطح المتابعة الموحدة (UNIT-018)", () => {
     expect(screen.getByRole("status").textContent).toContain("جارٍ تحميل المتابعة");
   });
 
-  it("S13-R5-F01: فشل السطح الكامل معلن مع إعادة محاولة — لا فراغ ناجح كاذب", async () => {
+  it("S13-MR-002: مصدر يرفض وعده لا ينسف الصفحة — عزل باسمه والسليم باقٍ وإعادة محاولة للمتعذر وحده", async () => {
     const services = await realStoreServices(
       [makeStoredOrder("order-today", { deliveryDate: "2026-11-02" })],
-      [],
+      [{ id: "schedule-today", orderId: "order-today", date: "2026-11-02" }],
     );
-    /* مصدر يرمي (لا يعيد فشلًا) — الوعد الكامل يُرفض فتعلن الصفحة الخطأ
-     * الحقيقي للسطح كله، لا فراغًا ناجحًا. */
+    /* مصدر يرفض وعده (لا يعيد فشلًا) — عقد MR-002: لا صفحة خطأ شاملة؛
+     * الخطأ الحقيقي يُعلن باسم مصدره والسليم يبقى مقروءًا. */
     mockedUsePrototypeServices.mockReturnValue({
       collections: {
         listReceivableSources: () => Promise.reject(new Error("انقطع الاتصال بالمخزن")),
@@ -245,12 +245,13 @@ describe("S13 — سطح المتابعة الموحدة (UNIT-018)", () => {
     } as unknown as ReturnType<typeof usePrototypeServices>);
     mockedGetStore.mockReturnValue(services.store as never);
     render(<FinanceUpcoming />);
-    expect(await screen.findByRole("heading", { name: "تعذر تحميل المتابعة" })).toBeTruthy();
-    const alert = screen.getByRole("alert");
+    expect(await screen.findByRole("heading", { name: "المتابعة" })).toBeTruthy();
+    const alert = await screen.findByRole("alert");
     expect(alert.textContent).toContain("انقطع الاتصال بالمخزن");
-    expect(screen.getByRole("button", { name: /إعادة المحاولة/ })).toBeTruthy();
+    /* السليم باقٍ: مواعيد اليوم ظاهرة مع زر إعادة قراءة المتعذر وحده. */
+    expect(await screen.findByText("اليوم (1)")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /أعد قراءة المصادر المتعذرة وحدها/ })).toBeTruthy();
   });
-
   it("S13-R5-F01: تصفية بلا نتائج — الحالة الفارغة الصادقة مع عدّ جاهز", async () => {
     const services = await realStoreServices(
       [makeStoredOrder("order-today", { deliveryDate: "2026-11-02" })],
@@ -399,5 +400,110 @@ describe("S13 — سطح المتابعة الموحدة (UNIT-018)", () => {
     fireEvent.click(screen.getByRole("button", { name: /تصفية/ }));
     fireEvent.click(screen.getByRole("button", { name: "إعادة ضبط" }));
     await screen.findByText("اليوم (1)");
+  });
+
+  /* ─── S13-MR-003 (أمر ba2ce7b4 §4): التاريخ التقويمي الحقيقي للفترة ─── */
+
+  it("S13-MR-003: وصلة عميقة بيوم مستحيل (2026-13-45) — الفترة لا تُطبق وتُعلن بصدق والوصل لا يُمحى", async () => {
+    const services = await realStoreServices(
+      [makeStoredOrder("order-today", { deliveryDate: "2026-11-02" })],
+      [{ id: "schedule-today", orderId: "order-today", date: "2026-11-02" }],
+    );
+    await mockPage(services);
+    wouterMocks.search = "?since=2026-13-45&until=2026-11-30";
+    render(<FinanceUpcoming />);
+    /* الإعلان الصادق عن الفترة غير الصالحة — لا إسقاط نتيجة فارغة صامت. */
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain("الفترة المخصصة غير صالحة");
+    /* الفترة لم تُطبق: مهام اليوم ظاهرة (لو طُبقت لَخفيت). */
+    expect(await screen.findByText("اليوم (1)")).toBeTruthy();
+    /* حقل التاريخ لا يستطيع حمل يوم مستحيل أصلًا (تنقية type=date) — القيمة
+     * الخام محفوظة في حالة المسودة للتصحيح، والوصل لم يُمحى (لا تنقل). */
+    expect(wouterMocks.navigate).not.toHaveBeenCalled();
+  });
+
+  it("S13-MR-003: وصلة عميقة معكوسة (من بعد إلى) — لا تُطبق وتُعلن، والحد الواحد الناقص مشروعة", async () => {
+    const services = await realStoreServices(
+      [makeStoredOrder("order-today", { deliveryDate: "2026-11-02" })],
+      [{ id: "schedule-today", orderId: "order-today", date: "2026-11-02" }],
+    );
+    await mockPage(services);
+    /* المعكوسة: منذ 2026-11-30 إلى 2026-11-01 — مرفوضة معلنة. */
+    wouterMocks.search = "?since=2026-11-30&until=2026-11-01";
+    render(<FinanceUpcoming />);
+    const reversed = await screen.findByRole("alert");
+    expect(reversed.textContent).toContain("الفترة المخصصة غير صالحة");
+    expect(await screen.findByText("اليوم (1)")).toBeTruthy();
+    /* القيم الخام (تواريخ صالحة معكوسة الترتيب) باقية في الحقول للتصحيح. */
+    fireEvent.click(screen.getByRole("button", { name: /تصفية/ }));
+    expect((screen.getByLabelText("من (YYYY-MM-DD)") as HTMLInputElement).value).toBe("2026-11-30");
+    expect((screen.getByLabelText("إلى (YYYY-MM-DD)") as HTMLInputElement).value).toBe("2026-11-01");
+    cleanup();
+    /* والحد الواحد (من فقط) فترة مشروعة مفتوحة الطرف — تُطبق بلا إعلان. */
+    const services2 = await realStoreServices(
+      [makeStoredOrder("order-today", { deliveryDate: "2026-11-02" })],
+      [{ id: "schedule-today", orderId: "order-today", date: "2026-11-02" }],
+    );
+    await mockPage(services2);
+    wouterMocks.search = "?since=2026-11-01";
+    render(<FinanceUpcoming />);
+    expect(await screen.findByText("اليوم (1)")).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("S13-MR-003: يوم الكبيسة الصحيح (2028-02-29) فترة صالحة تُطبق — والمستحيل (2027-02-29) مرفوض", async () => {
+    const services = await realStoreServices(
+      [makeStoredOrder("order-today", { deliveryDate: "2026-11-02" })],
+      [{ id: "schedule-today", orderId: "order-today", date: "2026-11-02" }],
+    );
+    await mockPage(services);
+    /* 2028 كبيسة: 29 فبراير يوم حقيقي — الفترة تُطبق (النافذة أوسع من
+     * كل المهام فلا يخفى شيء ولا إعلان خطأ). */
+    wouterMocks.search = "?since=2028-02-29&until=2028-02-29";
+    render(<FinanceUpcoming />);
+    await screen.findByRole("heading", { name: "المتابعة" });
+    await waitFor(() => {
+      expect(screen.queryByRole("alert")).toBeNull();
+    });
+    cleanup();
+    /* 2027 غير كبيسة: 29 فبراير يوم غير موجود — مرفوض معلن. */
+    const services2 = await realStoreServices(
+      [makeStoredOrder("order-today", { deliveryDate: "2026-11-02" })],
+      [{ id: "schedule-today", orderId: "order-today", date: "2026-11-02" }],
+    );
+    await mockPage(services2);
+    wouterMocks.search = "?since=2027-02-29&until=2027-03-01";
+    render(<FinanceUpcoming />);
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain("الفترة المخصصة غير صالحة");
+  });
+
+  it("S13-MR-003: قيمة يدوية مستحيلة تُرفض — والفترة السابقة باقية كما هي", async () => {
+    const services = await realStoreServices(
+      [makeStoredOrder("order-today", { deliveryDate: "2026-11-02" })],
+      [{ id: "schedule-today", orderId: "order-today", date: "2026-11-02" }],
+    );
+    await mockPage(services);
+    render(<FinanceUpcoming />);
+    await screen.findByText("اليوم (1)");
+    fireEvent.click(screen.getByRole("button", { name: /تصفية/ }));
+    /* حقل التاريخ نفسه يمنع اليوم المستحيل (تنقية المتصفح لقيمة type=date
+     * — 2026-13-45 تصحح إلى فراغ)؛ فالمدخل اليدوي المستحيل الوحيد الممكن
+     * هو الفترة المعكوسة — وهي عين ما يُرفض هنا بتحقق التقويم الحقيقي. */
+    fireEvent.change(screen.getByLabelText("من (YYYY-MM-DD)"), { target: { value: "2026-11-30" } });
+    fireEvent.change(screen.getByLabelText("إلى (YYYY-MM-DD)"), { target: { value: "2026-11-01" } });
+    fireEvent.click(screen.getByRole("button", { name: "تطبيق" }));
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(screen.getByRole("alert").textContent).toContain("الفترة المخصصة غير صالحة");
+    /* التصفية السابقة باقية — الرفض لا يطبق شيئًا. */
+    expect(screen.getByText("اليوم (1)")).toBeTruthy();
+    /* ثم يوم صحيح يدويًا يُطبق — الإصلاح ممكن من نفس الحقول. */
+    fireEvent.change(screen.getByLabelText("من (YYYY-MM-DD)"), { target: { value: "2026-11-01" } });
+    fireEvent.change(screen.getByLabelText("إلى (YYYY-MM-DD)"), { target: { value: "2026-11-02" } });
+    fireEvent.click(screen.getByRole("button", { name: "تطبيق" }));
+    await waitFor(() => {
+      expect(screen.queryByRole("alert")).toBeNull();
+    });
+    expect(screen.getByText("اليوم (1)")).toBeTruthy();
   });
 });

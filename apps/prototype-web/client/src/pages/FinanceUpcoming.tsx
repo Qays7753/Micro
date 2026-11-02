@@ -15,7 +15,7 @@ import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeSer
 import { withReturnTo } from "@/app/navigationContract";
 import { Button, EmptyState, StatusChip } from "@/components/primitives";
 import { LocalDateValue, MoneyValue, TimeValue } from "@/components/presentation/DisplayValue";
-import { formatLocalDate } from "@/presentation/formatters";
+import { formatLocalDate, isValidLocalDate } from "@/presentation/formatters";
 import {
   projectFollowUp,
   type FollowUpFilter,
@@ -78,7 +78,15 @@ const TASK_KINDS = [
   "recurring_review",
 ] as const;
 
-function filterFromSearch(search: string): FilterDraft {
+/* S13-MR-003 (أمر ba2ce7b4 §4): التاريخ الحقيقي لا الشكل فقط — سياسة
+ * التاريخ المحلي الكنونية (isValidLocalDate) هي صاحبة القرار عند حد الوصل
+ * وعند التطبيق معًا؛ اليوم المستحيل (13/45) و29 لسنة غير كبيسة والفترة
+ * المعكوسة حالات غير صالحة تُعلن بحقل صريح ولا تُطبق صمتًا — بلا إسقاط
+ * نتيجة فارغة ولا محو للوصل/السياق (القيم الخام تبقى في الحقول للتصحيح). */
+const INVALID_PERIOD_MESSAGE =
+  "الفترة المخصصة غير صالحة — «من» قبل «إلى» وبتاريخ صحيح (يوم تقويمي حقيقي)، أو اتركهما فارغين للكل.";
+
+function filterFromSearch(search: string): { filter: FilterDraft; invalidPeriod: string | null } {
   const params = new URLSearchParams(search);
   const kind = params.get("kind");
   const since = params.get("since");
@@ -86,14 +94,24 @@ function filterFromSearch(search: string): FilterDraft {
   const taskKind = (TASK_KINDS as readonly string[]).includes(kind ?? "")
     ? (kind as FilterDraft["taskKind"])
     : "all";
+  const raw = { taskKind, fromText: since ?? "", toText: until ?? "" };
   if (since === null && until === null) {
-    return { taskKind, period: null, fromText: "", toText: "" };
+    return { filter: { ...raw, period: null }, invalidPeriod: null };
+  }
+  const sinceValid = since === null || isValidLocalDate(since);
+  const untilValid = until === null || isValidLocalDate(until);
+  const orderValid = since === null || until === null || since <= until;
+  if (!sinceValid || !untilValid || !orderValid) {
+    /* الفترة غير الصالحة لا تُطبق — النوع يُطبق والقيم الخام تبقى ظاهرة
+     * للتصحيح والوصل لا يُمحى. */
+    return { filter: { ...raw, period: null }, invalidPeriod: INVALID_PERIOD_MESSAGE };
   }
   return {
-    taskKind,
-    period: { from: since ?? "0000-01-01", to: until ?? "9999-12-31" },
-    fromText: since ?? "",
-    toText: until ?? "",
+    filter: {
+      ...raw,
+      period: { from: since ?? "0000-01-01", to: until ?? "9999-12-31" },
+    },
+    invalidPeriod: null,
   };
 }
 
@@ -118,13 +136,21 @@ export default function FinanceUpcoming() {
   const generationRef = useRef(0);
   const search = useSearch();
   /* ACD032: السياق من الوصل أولًا — الرجوع وإعادة التحميل بالتصفية نفسها. */
-  const [applied, setApplied] = useState<FilterDraft>(() => filterFromSearch(search));
-  const [draft, setDraft] = useState<FilterDraft>(() => filterFromSearch(search));
+  const [applied, setApplied] = useState<FilterDraft>(() => filterFromSearch(search).filter);
+  const [draft, setDraft] = useState<FilterDraft>(() => filterFromSearch(search).filter);
   const [filterOpen, setFilterOpen] = useState(false);
   const [shownCount, setShownCount] = useState(PAGE_SIZE);
   /* S13-R5-F03 (تصحيح المراجعة الخامسة): الفترة غير الصالحة تُعلن — لا
-   * تعطيل صامت لزر التطبيق؛ السبب ظاهر للقارئ والمستمع معًا. */
-  const [periodError, setPeriodError] = useState<string | null>(null);
+   * تعطيل صامت لزر التطبيق؛ السبب ظاهر للقارئ والمستمع معًا.
+   * S13-MR-003: إعلان الوصلة العميقة غير الصالحة يبدأ من التحميل الأول —
+   * الفترة لا تُطبق والقيم الخام تبقى في الحقول والوصل لا يُمحى. */
+  const [periodError, setPeriodError] = useState<string | null>(() => filterFromSearch(search).invalidPeriod);
+  /* S13-MR-002: إعادة محاولة المصادر المتعذرة وحدها — token مستقل فلا
+   * يعيد قراءة السليم من جديد؛ القراءة الحية عبر مرجع لا عبر تبعية الأثر
+   * فلا تُعاد المحاولة إلى ما لا نهاية. */
+  const [retrySourcesToken, setRetrySourcesToken] = useState(0);
+  const readingRef = useRef<UnifiedFollowUpResult | null>(null);
+  readingRef.current = reading;
   const syncUrl = (filter: FilterDraft) => {
     navigate(`/finance/upcoming${searchOfFilter(filter)}`, { replace: true });
   };
@@ -146,9 +172,13 @@ export default function FinanceUpcoming() {
           projectFinance,
           getPrototypeLocalStore(),
         );
+        /* S13-MR-002: إعادة المحاولة تقرأ المصادر المتعذرة وحدها — السليم
+         * من القراءة الحية يبقى ولا يُستدعى قارئه ثانية. */
+        const current = readingRef.current;
+        if (retrySourcesToken > 0 && current !== null && current.ok) return service.retry(current.value);
         return service.read();
       })
-      .then(result => {
+      .then((result: UnifiedFollowUpResult) => {
         if (!active || generation !== generationRef.current) return;
         if (result.ok) {
           setReading(result);
@@ -164,7 +194,7 @@ export default function FinanceUpcoming() {
     return () => {
       active = false;
     };
-  }, [collections, dueDates, projectFinance, dataVersion, reloadToken]);
+  }, [collections, dueDates, projectFinance, dataVersion, reloadToken, retrySourcesToken]);
 
   const open = (href: string) => navigate(withReturnTo(href, location));
 
@@ -202,10 +232,12 @@ export default function FinanceUpcoming() {
   const applyFilter = () => {
     const from = draft.fromText.trim();
     const to = draft.toText.trim();
-    const fromValid = from === "" || /^\d{4}-\d{2}-\d{2}$/.test(from);
-    const toValid = to === "" || /^\d{4}-\d{2}-\d{2}$/.test(to);
+    /* S13-MR-003: اليوم التقويمي الحقيقي لا الشكل — صاحب القرار الكنوني
+     * (isValidLocalDate): 2026-13-45 شكلًا سليم لكنه يوم مستحيل فلا يُطبق. */
+    const fromValid = from === "" || isValidLocalDate(from);
+    const toValid = to === "" || isValidLocalDate(to);
     if (!fromValid || !toValid || (from !== "" && to !== "" && from > to)) {
-      setPeriodError("الفترة المخصصة غير صالحة — «من» قبل «إلى» وبتاريخ صحيح، أو اتركهما فارغين للكل.");
+      setPeriodError(INVALID_PERIOD_MESSAGE);
       return;
     }
     const period =
@@ -240,10 +272,18 @@ export default function FinanceUpcoming() {
               تعذرت قراءة {SOURCE_LABELS[source.key]} — {source.message}
             </p>
           ))}
-          <Button action="secondary" onClick={() => setReloadToken(token => token + 1)}>
-            أعد قراءة المتابعة
+          <Button action="secondary" onClick={() => setRetrySourcesToken(token => token + 1)}>
+            أعد قراءة المصادر المتعذرة وحدها
           </Button>
         </section>
+      ) : null}
+
+      {/* S13-MR-003: الفترة غير الصالحة معلنة دائمًا عند وجودها — من الوصلة
+       * العميقة أو من إدخال يدوي مرفوض؛ لا تُخفى داخل لوحة مغلقة. */}
+      {periodError ? (
+        <p className="micro-field-error" role="alert">
+          {periodError}
+        </p>
       ) : null}
 
       <div className="micro-orders-search">
@@ -295,11 +335,6 @@ export default function FinanceUpcoming() {
               />
             </label>
             <p className="micro-field-hint">بلا موعد لا يدخل فترة مخصصة — مدخله المستقل يبقى ظاهرًا.</p>
-            {periodError ? (
-              <p className="micro-field-error" role="alert">
-                {periodError}
-              </p>
-            ) : null}
           </fieldset>
           <div className="micro-form-actions">
             <Button action="save" onClick={applyFilter}>

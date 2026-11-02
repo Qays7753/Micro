@@ -3678,6 +3678,28 @@ button.micro-finance-position-link:focus-visible {
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
 }
+/* S13-MR-006 (أمر ba2ce7b4 §4): شبكة تقويم الطلبات بصفوف أسابيع سليمة —
+ * الخارج عمود مرن (صف رؤية + صفوف أسابيع) وكل صف شبكة سبعة أعمدة؛
+ * الحشو خلايا عرض بلا محتوى. مخصصة لتقويم الطلبات وحده فلا تمس شبكة
+ * صفحة الجدولة المسطحة المستقلة. */
+.micro-orders-month {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.micro-month-header-row,
+.micro-month-week-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+.micro-month-weekday {
+  color: var(--color-text-secondary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-align: center;
+  min-width: 0;
+}
 .micro-month-weekdays {
   color: var(--color-text-secondary);
   font-size: 0.6875rem;

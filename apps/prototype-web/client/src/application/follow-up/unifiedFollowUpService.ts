@@ -89,6 +89,23 @@ export type UnifiedFollowUpResult =
  * تصل عبر عدستها البنيوية أعلاه لا عبر تعدية بيوت. */
 export type UnifiedFollowUpStore = Pick<PrototypeLocalStore, "listOrders">;
 
+/** S13-MR-002 (أمر ba2ce7b4 §4): قراءة مصدر معزولة — النتيجة {ok:false}
+ * والرمي المتزامن والوعد المرفوض كلها حالة خطأ للمصدر وحده لا تُسقط
+ * البقية ولا تستبدل السليم بصفحة خطأ شاملة. */
+function isolateSource(read: () => Promise<FollowUpSourceState>): Promise<FollowUpSourceState> {
+  try {
+    return read().catch((error: unknown) => ({
+      state: "error" as const,
+      message: error instanceof Error ? error.message : "تعذرت قراءة هذا المصدر.",
+    }));
+  } catch (error) {
+    return Promise.resolve({
+      state: "error" as const,
+      message: error instanceof Error ? error.message : "تعذرت قراءة هذا المصدر.",
+    });
+  }
+}
+
 /** عدسات القراءة البنيوية فوق أصحاب المصادر — لا أزواج بيوت جديدة. */
 
 /** صف تسليم نشط كما يستقبله هذا القارئ — حقول محايدة يشبعها باب الجدولة. */
@@ -139,11 +156,14 @@ export class UnifiedFollowUpService {
     private readonly now: Clock = systemClock,
   ) {}
 
-  /** القراءة الموحدة — كل مصدر مستقل؛ فشله يعزل نفسه ولا يمس البقية. */
-  async read(): Promise<UnifiedFollowUpResult> {
-    const asOf = localDateInAmman(this.now());
-    const [schedules, customerFollowUps, receivables, supplierPayables, expensePayables, recurring] =
-      await Promise.all([
+  /** المصادر الست بقراءاتها المعزولة — كل مصدر برميه ونتيجته وحده. */
+  private readSources(
+    keys: readonly FollowUpSourceKey[],
+    asOf: UnifiedToday,
+  ): Promise<Record<FollowUpSourceKey, FollowUpSourceState>> {
+    const wanted = new Set<FollowUpSourceKey>(keys);
+    const lazy = {
+      schedules: () =>
         this.deliveries.listActiveDeliveries().then(result =>
           result.ok
             ? ({
@@ -152,6 +172,7 @@ export class UnifiedFollowUpService {
               } as FollowUpSourceState)
             : ({ state: "error", message: result.message } as FollowUpSourceState),
         ),
+      customerFollowUps: () =>
         this.store
           .listOrders()
           .then(result =>
@@ -159,6 +180,7 @@ export class UnifiedFollowUpService {
               ? ({ state: "ready", tasks: followUpTasks(result.value, asOf) } as FollowUpSourceState)
               : ({ state: "error", message: result.message } as FollowUpSourceState),
           ),
+      receivables: () =>
         this.collections
           .listReceivableSources()
           .then(result =>
@@ -166,6 +188,7 @@ export class UnifiedFollowUpService {
               ? ({ state: "ready", tasks: result.value.map(receivableTask) } as FollowUpSourceState)
               : ({ state: "error", message: result.message } as FollowUpSourceState),
           ),
+      supplierPayables: () =>
         this.dueDates.readPayablesAging().then(result =>
           result.ok
             ? ({
@@ -174,6 +197,7 @@ export class UnifiedFollowUpService {
               } as FollowUpSourceState)
             : ({ state: "error", message: result.message } as FollowUpSourceState),
         ),
+      expensePayables: () =>
         this.projectFinance.listSettleablePayables().then(result =>
           result.ok
             ? ({
@@ -184,23 +208,69 @@ export class UnifiedFollowUpService {
               } as FollowUpSourceState)
             : ({ state: "error", message: result.message } as FollowUpSourceState),
         ),
-        readRecurringReviews(this.recurringStore, asOf),
-      ]);
-    return {
-      ok: true,
-      value: {
-        asOf,
-        sources: {
-          schedules,
-          customerFollowUps,
-          receivables,
-          supplierPayables,
-          expensePayables,
-          recurringReviews: recurring,
-        },
-      },
-    };
+      recurringReviews: () => readRecurringReviews(this.recurringStore, asOf),
+    } as const;
+    const settled = {} as Record<FollowUpSourceKey, FollowUpSourceState>;
+    const reads: Array<Promise<void>> = [];
+    for (const key of Object.keys(lazy) as FollowUpSourceKey[]) {
+      if (!wanted.has(key)) continue;
+      reads.push(
+        isolateSource(lazy[key]).then(state => {
+          settled[key] = state;
+        }),
+      );
+    }
+    return Promise.all(reads).then(() => settled);
   }
+
+  /** القراءة الموحدة — كل مصدر مستقل؛ فشله (نتيجةً أو رميًا أو رفضًا) يعزل
+   * نفسه ولا يمس البقية (S13-MR-002 — أمر ba2ce7b4 §4). */
+  async read(): Promise<UnifiedFollowUpResult> {
+    const asOf = localDateInAmman(this.now());
+    const sources = await this.readSources(
+      [
+        "schedules",
+        "customerFollowUps",
+        "receivables",
+        "supplierPayables",
+        "expensePayables",
+        "recurringReviews",
+      ],
+      asOf,
+    );
+    return { ok: true, value: { asOf, sources } };
+  }
+
+  /** S13-MR-002 (أمر ba2ce7b4 §4): إعادة قراءة المصادر المتعذرة وحدها —
+   * السليم من القراءة السابقة يبقى كما هو ولا يُستدعى قارئه ثانية؛ تصنيف
+   * المهام السليمة يُعاد اشتقاقه على يوم المرجع الجديد فلا تختلط الأيام. */
+  async retry(previous: UnifiedFollowUpReading): Promise<UnifiedFollowUpResult> {
+    const asOf = localDateInAmman(this.now());
+    const sources: Record<FollowUpSourceKey, FollowUpSourceState> = { ...previous.sources };
+    const failed = (Object.keys(sources) as FollowUpSourceKey[]).filter(
+      key => sources[key].state === "error",
+    );
+    if (failed.length > 0) {
+      const fresh = await this.readSources(failed, asOf);
+      for (const key of failed) sources[key] = fresh[key];
+    }
+    for (const key of Object.keys(sources) as FollowUpSourceKey[]) {
+      const source = sources[key];
+      if (source.state !== "ready") continue;
+      sources[key] = {
+        state: "ready",
+        tasks: source.tasks.map(task => ({ ...task, dateState: rebucket(task, asOf) })),
+      };
+    }
+    return { ok: true, value: { asOf, sources } };
+  }
+}
+
+/** إعادة تصنيف مهمة سليمة على يوم مرجع جديد — اشتقاق خالص لا يعيد القراءة. */
+function rebucket(task: FollowUpTask, today: UnifiedToday): FollowUpTask["dateState"] {
+  if (task.dueOn === null) return "none";
+  if (!isValidLocalDate(task.dueOn)) return "invalid";
+  return bucketOf(task.dueOn, today);
 }
 
 /* ─── إسقاطات المصادر — قراءة فقط، بلا أي كتابة ─── */
@@ -306,7 +376,7 @@ function supplierPayableTask(row: PayableRowLike, today: UnifiedToday): FollowUp
           ? bucketOf(row.dueOn, today)
           : row.dueState,
     scheduledTime: null,
-    sourceHref: `/suppliers/purchase/${row.purchaseId}`,
+    sourceHref: `/suppliers/purchase/${row.purchaseId}/payment`,
     sourceKind: "supplier_purchase",
     sourceId: row.purchaseId,
     occurrenceId: null,

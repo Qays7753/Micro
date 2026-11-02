@@ -162,4 +162,58 @@ describe("S13 — القراءة النقية لمجتمع المواعيد (sch
     expect(bucketOfDate("2026-11-02", "2026-11-02")).toBe("today");
     expect(bucketOfDate("2026-11-03", "2026-11-02")).toBe("upcoming");
   });
+
+  /* ─── S13-MR-004 (أمر ba2ce7b4 §4): الحالات الخمس للمواعيد بصدق ─── */
+
+  it("S13-MR-004: الموعد الملغى لا يحجب حاجة الجدولة — طلب حي ليس له إلا موعد ملغى يظهر «يحتاج جدولة»", async () => {
+    const store = new MemoryLocalStore();
+    await store.saveOrder(makeOrder("order-cancelled-schedule", "in_progress", "2026-11-10"));
+    await store.saveSchedule(
+      makeSchedule("schedule-cancelled", "order-cancelled-schedule", "2026-11-10", null, "cancelled"),
+    );
+    const result = await readScheduleCommunity(store);
+    if (!result.ok) throw new Error("read failed");
+    /* الملغى يُحسب في المغلق/الملغى قراءةً تاريخية — لا في النشط. */
+    expect(result.value.entries).toHaveLength(0);
+    expect(result.value.completedOrClosedCount).toBe(1);
+    /* والطلب الحي بموعد معلوم يظهر «يحتاج جدولة» — لا حجب بموعد ميت. */
+    expect(result.value.datedUnscheduled.map(order => order.id)).toEqual(["order-cancelled-schedule"]);
+  });
+
+  it("S13-MR-004: الموعد المكتمل لطلب حي لا يحجب حاجة الجدولة أيضًا — والمكتمل لطلب مغلق يبقى تاريخيًا", async () => {
+    const store = new MemoryLocalStore();
+    /* طلب حي (غير مسلّم) بموعد مخزن مكتمل — الجدولة ما زالت مطلوبة. */
+    await store.saveOrder(makeOrder("order-live-done-schedule", "in_progress", "2026-11-11"));
+    await store.saveSchedule(
+      makeSchedule("schedule-done-live", "order-live-done-schedule", "2026-11-11", null, "completed"),
+    );
+    /* طلب مسلّم بموعد نشط مخزن — الاشتقاق القرائي يغلقه تاريخيًا لا يعرضه. */
+    await store.saveOrder(makeOrder("order-delivered", "delivered", "2026-11-12"));
+    await store.saveSchedule(makeSchedule("schedule-delivered", "order-delivered", "2026-11-12", null));
+    const result = await readScheduleCommunity(store);
+    if (!result.ok) throw new Error("read failed");
+    expect(result.value.entries).toHaveLength(0);
+    expect(result.value.datedUnscheduled.map(order => order.id)).toEqual(["order-live-done-schedule"]);
+    expect(result.value.completedOrClosedCount).toBe(2);
+  });
+
+  it("S13-MR-004: الموعد النشط بقيمة غير صالحة يبقى في المجتمع ويُعلن في مدخله المستقل — لا يختفي ولا يُعرض يومًا", async () => {
+    const store = new MemoryLocalStore();
+    await store.saveOrder(makeOrder("order-bad-date", "in_progress", "2026-11-10"));
+    await store.saveSchedule(makeSchedule("schedule-bad-date", "order-bad-date", "2026-13-45", null));
+    const result = await readScheduleCommunity(store);
+    if (!result.ok) throw new Error("read failed");
+    /* النشط لطلب حي يبقى في المجتمع — لا يُطمس. */
+    expect(result.value.entries.map(entry => entry.schedule.id)).toEqual(["schedule-bad-date"]);
+    /* ويُعلن باسمه في مدخل الإصلاح المستقل مع قيمته الخام. */
+    expect(result.value.invalidScheduleEntries.map(entry => entry.schedule.id)).toEqual([
+      "schedule-bad-date",
+    ]);
+    expect(result.value.invalidScheduleEntries[0]!.schedule.scheduledFor).toBe("2026-13-45");
+    /* ولا يدخل نوافذ الأيام الصالحة أبدًا — لا يُعرض «—» في أي يوم. */
+    const window = windowOf(result.value, "2026-11-01", "month");
+    expect(Array.from(window.byDate.values()).every(list => list.length === 0)).toBe(true);
+    /* والطلب نفسه لا يُعد «يحتاج جدولة» — له موعد نشط (فاسد القيمة، موجود السجل). */
+    expect(result.value.datedUnscheduled).toHaveLength(0);
+  });
 });

@@ -38,6 +38,10 @@ export type ScheduleCommunity = {
    * حقيقة رابعة مستقلة لا تُخلط بلا موعد (له قيمة) ولا بموعد معلوم
    * (قيمته فاسدة)؛ تُعرض باسمها وتصحيحها عند مالكها. */
   invalidDateOrders: readonly StoredCraftOrder[];
+  /** S13-MR-004 (أمر ba2ce7b4 §4): مواعيد نشطة بقيمة scheduledFor غير
+   * صالحة — لا تختفي من التقويم ولا تُعرض «—»؛ حالة إصلاح معلنة باسمها
+   * ومدخلها عند مالكها (الطلب/جدولته)، مميزة عن الملغى والمكتمل والغائب. */
+  invalidScheduleEntries: readonly ScheduleCommunityEntry[];
   orders: readonly StoredCraftOrder[];
 };
 
@@ -57,6 +61,7 @@ export async function readScheduleCommunity(store: ScheduleReadStore): Promise<S
   const orders = ordersResult.value;
   const byId = new Map(orders.map(order => [order.id, order]));
   const entries: ScheduleCommunityEntry[] = [];
+  const invalidScheduleEntries: ScheduleCommunityEntry[] = [];
   let completedOrClosedCount = 0;
   for (const schedule of schedulesResult.value) {
     const order = byId.get(schedule.orderId);
@@ -71,16 +76,19 @@ export async function readScheduleCommunity(store: ScheduleReadStore): Promise<S
       continue;
     }
     entries.push({ schedule, order, derivedStatus });
+    /* S13-MR-004: الموعد النشط بقيمة غير صالحة حقيقة معلنة — يبقى في
+     * المجتمع (نشط لطلب حي) ويُعرض في مدخله المستقل، لا يختفي من التقويم. */
+    if (!isValidLocalDate(schedule.scheduledFor))
+      invalidScheduleEntries.push({ schedule, order, derivedStatus });
   }
   /* الطلبات الحية بلا موعد مخزن: المعلن موعده (صالحًا) يظهر «تحتاج جدولة»
    * (إصلاح صريح عند 012)؛ والمجهول موعده (null) مدخله الواضح؛ وذي الموعد
    * غير الصالح حقيقة رابعة مستقلة (S13-R4-F02) — لا تاريخ اليوم ولا
-   * 00:00 ولا خلط الفاسد بالغياب. */
-  const scheduledOrderIds = new Set(
-    entries
-      .map(entry => entry.schedule.orderId)
-      .concat(schedulesResult.value.map(schedule => schedule.orderId)),
-  );
+   * 00:00 ولا خلط الفاسد بالغياب.
+   * S13-MR-004 (أمر ba2ce7b4 §4): المواعيد المُلغاة/المكتملة لا تحجب حاجة
+   * الجدولة — «له موعد» يعني موعدًا نشطًا لطلب حي فقط؛ طلب حي ليس له إلا
+   * موعد ملغى/مكتمل يظهر «تحتاج جدولة» بصدق. */
+  const scheduledOrderIds = new Set(entries.map(entry => entry.schedule.orderId));
   const datedUnscheduled: StoredCraftOrder[] = [];
   const noDateOrders: StoredCraftOrder[] = [];
   const invalidDateOrders: StoredCraftOrder[] = [];
@@ -93,7 +101,15 @@ export async function readScheduleCommunity(store: ScheduleReadStore): Promise<S
   }
   return {
     ok: true,
-    value: { entries, completedOrClosedCount, datedUnscheduled, noDateOrders, invalidDateOrders, orders },
+    value: {
+      entries,
+      completedOrClosedCount,
+      datedUnscheduled,
+      noDateOrders,
+      invalidDateOrders,
+      invalidScheduleEntries,
+      orders,
+    },
   };
 }
 

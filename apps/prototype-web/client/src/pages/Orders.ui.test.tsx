@@ -408,14 +408,212 @@ describe("S13 — وجهة الطلبات (UNIT-006)", () => {
     expect(screen.getByText(/قيمة موعد غير صالحة/)).toBeTruthy();
   });
 
-  it("فشل القراءة: رسالة المنطقة وإعادة محاولة — لا فراغ شامل كاذب", async () => {
+  it("فشل قراءة الطلبات معلن بإعادة محاولة — التقويم السليم لا يُخفى (S13-MR-001)", async () => {
     mockedUsePrototypeServices.mockReturnValue({
       dailyFollowUp: { read: vi.fn().mockResolvedValue({ ok: false, message: "تعذر القراءة." }) },
       dataVersion: 0,
     } as unknown as ReturnType<typeof usePrototypeServices>);
+    mockedGetStore.mockReturnValue(makeStore([]) as never);
     render(<Orders />);
-    await screen.findByRole("heading", { name: "تعذر تحميل الطلبات" });
-    expect(screen.getByRole("alert").textContent).toContain("تعذر القراءة.");
-    expect(screen.getByRole("button", { name: "إعادة المحاولة" })).toBeTruthy();
+    /* الصفحة تُعرض والفشل معلن باسمه مع إعادة محاولة خاصة به — لا صفحة
+     * خطأ شاملة تخفي التقويم السليم (عقد MR-001). */
+    await screen.findByRole("heading", { name: "الطلبات" });
+    expect((await screen.findByRole("alert")).textContent).toContain("تعذر القراءة.");
+    expect(screen.getByRole("button", { name: /أعد قراءة الطلبات/ })).toBeTruthy();
+  });
+
+  /* ─── S13-MR-001 (أمر ba2ce7b4 §4): عزل قراءتي القائمة والتقويم ─── */
+
+  it("S13-MR-001: فشل قراءة المواعيد وحدها — القائمة السليمة باقية والتقويم يعلن حقيقته وإعادة المحاولة لمصدره", async () => {
+    const orders = [savedOrder("order-healthy")];
+    const realStore = makeStore(orders, []);
+    const dailyRead = vi.fn().mockResolvedValue({ ok: true, followUp: null, drafts: [], orders });
+    const listSchedules = vi.fn().mockRejectedValue(new Error("تعثر قراءة المواعيد المخزنة"));
+    const failingSchedulesStore = new Proxy(realStore, {
+      get(target, prop: string) {
+        if (prop === "listSchedules") return listSchedules;
+        const value = Reflect.get(target, prop, target) as unknown;
+        return typeof value === "function" ? (value as CallableFunction).bind(target) : value;
+      },
+    });
+    mockedUsePrototypeServices.mockReturnValue({
+      dailyFollowUp: { read: dailyRead },
+      dataVersion: 0,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    mockedGetStore.mockReturnValue(failingSchedulesStore as never);
+    /* عرض التقويم مباشرة — الفشل في وجهته لا في القائمة. */
+    wouterMocks.search = "?listing=calendar";
+    render(<Orders />);
+    /* القائمة السليمة متاحة: تبديل العرض يعمل والفشل معزول في التقويم. */
+    await screen.findByRole("alert");
+    expect(screen.getByRole("alert").textContent).toContain("تعثر قراءة المواعيد المخزنة");
+    expect(screen.getByRole("alert").textContent).toContain("القائمة السليمة متاحة");
+    /* إعادة المحاولة تعيد المصدر المتعذر وحده — قراءة الطلبات لم تُستدع ثانية. */
+    const readsBefore = dailyRead.mock.calls.length;
+    const schedulesReadsBefore = listSchedules.mock.calls.length;
+    fireEvent.click(screen.getByRole("button", { name: /أعد قراءة مواعيد التقويم/ }));
+    await waitFor(() => {
+      expect(listSchedules.mock.calls.length).toBe(schedulesReadsBefore + 1);
+    });
+    expect(dailyRead.mock.calls.length).toBe(readsBefore);
+    /* التبديل إلى القائمة يظهر الطلب السليم — لا فراغًا مضللًا. */
+    fireEvent.click(screen.getByRole("radio", { name: /قائمة الطلبات/ }));
+    await screen.findByText("طلب order-healthy");
+  });
+
+  it("S13-MR-001: فشل قراءة الطلبات وحدها — القائمة تعلن حقيقتها والتقويم السليم يعمل", async () => {
+    const dailyRead = vi.fn().mockRejectedValue(new Error("تعثر قراءة الطلبات المخزنة"));
+    mockedUsePrototypeServices.mockReturnValue({
+      dailyFollowUp: { read: dailyRead },
+      dataVersion: 0,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    mockedGetStore.mockReturnValue(
+      makeStore(
+        [savedOrder("order-calendar", { deliveryDate: "2026-11-15" })],
+        [{ id: "schedule-15", orderId: "order-calendar", date: "2026-11-15" }],
+      ) as never,
+    );
+    /* عرض التقويم — يعمل من مصدر المواعيد رغم فشل قراءة الطلبات. */
+    wouterMocks.search = "?listing=calendar&canchor=2026-11-15&cday=2026-11-15";
+    render(<Orders />);
+    /* التقويم السليم يعرض موعد يومه — لا صفحة خطأ شاملة. */
+    await screen.findByText(/مواعيد 15\/11\/2026/);
+    expect(await screen.findByText("طلب order-calendar")).toBeTruthy();
+    /* والقائمة تعلن حقيقتها عند التبديل إليها — لا فراغ صامت. */
+    fireEvent.click(screen.getByRole("radio", { name: /قائمة الطلبات/ }));
+    await screen.findByRole("alert");
+    expect(screen.getByRole("alert").textContent).toContain("تعثر قراءة الطلبات المخزنة");
+    expect(screen.getByRole("button", { name: /أعد قراءة الطلبات/ })).toBeTruthy();
+  });
+
+  /* ─── S13-MR-004 (أمر ba2ce7b4 §4): الموعد النشط الفاسد ظاهر في التقويم ─── */
+
+  it("S13-MR-004: موعد نشط بقيمة غير صالحة يظهر في مدخل إصلاح مستقل — لا يختفي من التقويم", async () => {
+    mockServices([savedOrder("order-bad-schedule", { deliveryDate: "2026-11-15" })], []);
+    mockedGetStore.mockReturnValue(
+      makeStore(
+        [savedOrder("order-bad-schedule", { deliveryDate: "2026-11-15" })],
+        [{ id: "schedule-bad", orderId: "order-bad-schedule", date: "2026-13-45" }],
+      ) as never,
+    );
+    wouterMocks.search = "?listing=calendar";
+    render(<Orders />);
+    const section = await screen.findByLabelText("مواعيد نشطة تحتاج تصحيحًا");
+    expect(section.textContent).toContain("طلب order-bad-schedule");
+    expect(section.textContent).toContain("2026-13-45");
+    /* مدخل الإصلاح يفتح مصدره — الطلب نفسه. */
+    fireEvent.click(screen.getByRole("button", { name: /موعد نشط بقيمة غير صالحة/ }));
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(expect.stringContaining("/orders/order-bad-schedule"));
+  });
+
+  /* ─── S13-MR-006 (أمر ba2ce7b4 §4): دلالات شبكة التقويم الشهري الحقيقية ─── */
+
+  it("S13-MR-006: بنية الشبكة سليمة — صفوف أسابيع ومسار تجوال واحد وإعلان المختار بصدق", async () => {
+    mockServices([savedOrder("order-grid", { deliveryDate: "2026-11-15" })], []);
+    mockedGetStore.mockReturnValue(
+      makeStore(
+        [savedOrder("order-grid", { deliveryDate: "2026-11-15" })],
+        [{ id: "schedule-grid", orderId: "order-grid", date: "2026-11-15" }],
+      ) as never,
+    );
+    wouterMocks.search = "?listing=calendar&cmode=month&canchor=2026-11-15&cday=2026-11-15";
+    render(<Orders />);
+    const grid = await screen.findByRole("grid");
+    /* صفوف الشبكة: صف الرؤوس + صفوف الأسابيع — لا خلايا يتيمة مباشرة. */
+    const rows = grid.querySelectorAll('[role="row"]');
+    expect(rows.length).toBeGreaterThanOrEqual(5);
+    expect(grid.querySelectorAll('[role="columnheader"]').length).toBe(7);
+    const dayButtons = Array.from(grid.querySelectorAll<HTMLButtonElement>('[role="gridcell"]'));
+    expect(dayButtons.length).toBe(30);
+    /* مسار تجوال واحد — يوم واحد فقط في مسار التاب. */
+    const tabbables = dayButtons.filter(button => button.tabIndex === 0);
+    expect(tabbables.length).toBe(1);
+    /* اليوم المختار معلن اختيارًا (aria-selected) لا ضغطًا. */
+    const selected = dayButtons.find(button => button.getAttribute("data-date") === "2026-11-15");
+    expect(selected?.getAttribute("aria-selected")).toBe("true");
+    expect(selected?.getAttribute("aria-pressed")).toBeNull();
+  });
+
+  it("S13-MR-006: الأسهم بلغة RTL — اليسار اليوم التالي واليمين السابق، والصعود/الهبوط أسبوعيًا، وHome/End طرفا الأسبوع", async () => {
+    mockServices([savedOrder("order-grid", { deliveryDate: "2026-11-11" })], []);
+    mockedGetStore.mockReturnValue(
+      makeStore(
+        [savedOrder("order-grid", { deliveryDate: "2026-11-11" })],
+        [{ id: "schedule-grid", orderId: "order-grid", date: "2026-11-11" }],
+      ) as never,
+    );
+    wouterMocks.search = "?listing=calendar&cmode=month&canchor=2026-11-15&cday=2026-11-11";
+    const { container } = render(<Orders />);
+    const grid = await screen.findByRole("grid");
+    const buttonOf = (date: string) => grid.querySelector<HTMLButtonElement>(`[data-date="${date}"]`)!;
+    /* التركيز الأولي على المختار (مسار التاب الوحيد). */
+    expect(buttonOf("2026-11-11").tabIndex).toBe(0);
+    /* RTL: السهم الأيسر = اليوم التالي. */
+    fireEvent.keyDown(grid, { key: "ArrowLeft" });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(buttonOf("2026-11-12"));
+    });
+    /* RTL: السهم الأيمن = اليوم السابق (من 12 إلى 11). */
+    fireEvent.keyDown(grid, { key: "ArrowRight" });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(buttonOf("2026-11-11"));
+    });
+    /* الصعود أسبوعًا (−7) والهبوط أسبوعًا (+7). */
+    fireEvent.keyDown(grid, { key: "ArrowDown" });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(buttonOf("2026-11-18"));
+    });
+    fireEvent.keyDown(grid, { key: "ArrowUp" });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(buttonOf("2026-11-11"));
+    });
+    /* Home/End: طَرَفا الأسبوع (الأحد..السبت) — 2026-11-11 أربعاء. */
+    fireEvent.keyDown(grid, { key: "Home" });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(buttonOf("2026-11-08"));
+    });
+    fireEvent.keyDown(grid, { key: "End" });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(buttonOf("2026-11-14"));
+    });
+    /* مسار التاب الوحيد انتقل مع التركيز — لا مساران. */
+    const tabbables = Array.from(grid.querySelectorAll<HTMLButtonElement>('[role="gridcell"]')).filter(
+      button => button.tabIndex === 0,
+    );
+    expect(tabbables.length).toBe(1);
+    expect(tabbables[0]).toBe(buttonOf("2026-11-14"));
+    expect(container).toBeTruthy();
+  });
+
+  it("S13-MR-006: عبور حد الشهر ينقل الشهر والتركيز معًا — والانتقال بين شهر/أسبوع/يوم يحفظ العمل", async () => {
+    mockServices([savedOrder("order-boundary", { deliveryDate: "2026-11-30" })], []);
+    mockedGetStore.mockReturnValue(
+      makeStore(
+        [savedOrder("order-boundary", { deliveryDate: "2026-11-30" })],
+        [{ id: "schedule-boundary", orderId: "order-boundary", date: "2026-11-30" }],
+      ) as never,
+    );
+    wouterMocks.search = "?listing=calendar&cmode=month&canchor=2026-11-15&cday=2026-11-30";
+    render(<Orders />);
+    const grid = await screen.findByRole("grid");
+    const buttonOf = (date: string) => grid.querySelector<HTMLButtonElement>(`[data-date="${date}"]`)!;
+    expect(buttonOf("2026-11-30").tabIndex).toBe(0);
+    /* RTL: السهم الأيسر من آخر يوم في الشهر = أول يوم في الشهر التالي. */
+    fireEvent.keyDown(grid, { key: "ArrowLeft" });
+    await waitFor(() => {
+      expect(screen.getByText("12/2026")).toBeTruthy();
+    });
+    /* التركيز انتقل إلى اليوم الأول من ديسمبر في الشبكة الجديدة. */
+    const decemberGrid = screen.getByRole("grid");
+    const decemberFirst = decemberGrid.querySelector<HTMLButtonElement>('[data-date="2026-12-01"]');
+    await waitFor(() => {
+      expect(document.activeElement).toBe(decemberFirst);
+    });
+    /* الانتقال إلى الأسبوع ثم اليوم — العرض يعمل والموعد ظاهر. */
+    fireEvent.click(screen.getByRole("radio", { name: "أسبوع" }));
+    await screen.findByRole("list");
+    fireEvent.click(screen.getByRole("radio", { name: "يوم" }));
+    /* وضع اليوم يعرض اليوم المختار (لم يتغير بالأسهم — الأسهم تحرك التركيز) */
+    expect(await screen.findByText(/مواعيد 30\/11\/2026/)).toBeTruthy();
   });
 });

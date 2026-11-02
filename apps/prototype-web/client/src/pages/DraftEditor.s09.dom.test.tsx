@@ -246,4 +246,74 @@ describe("DraftEditor S09 journeys", () => {
     expect(screen.getByRole("button", { name: /فتح الطلب/i })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /حفظ مسودة/i })).toBeNull();
   });
+
+  /* ─── S13-MR-005 (أمر ba2ce7b4 §4): التحقق عند حد الوصلة العميقة لاقتراح CAL-C ─── */
+
+  it("S13-MR-005: اقتراح بيوم مستحيل (2026-13-45) — يُتجاهل بإعلان صادق ولا يُعرض موعدًا ولا يُنشأ شيء", async () => {
+    const store = createFormDraftHarness().store;
+    const sessionSetItem = vi.spyOn(window.sessionStorage, "setItem");
+    const localSetItem = vi.spyOn(window.localStorage, "setItem");
+    routeState.search = "?intent=customer_order&propose=2026-13-45";
+    renderEditor(store);
+    /* الإعلان الصادق عن القيمة غير الصالحة — لا اقتراح معروضًا كموعد. */
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain("2026-13-45");
+    expect(alert.textContent).toContain("تُجاهل بلا إنشاء");
+    expect(screen.queryByText(/موعد تسليم مقترح من اليوم المختار/)).toBeNull();
+    /* صفر نداءات لمخازن المتصفح — الاقتراح حالة داخلية لا تخزين متصفح. */
+    expect(sessionSetItem).not.toHaveBeenCalled();
+    expect(localSetItem).not.toHaveBeenCalled();
+    sessionSetItem.mockRestore();
+    localSetItem.mockRestore();
+  });
+
+  it("S13-MR-005: الاقتراح الصالح يظهر كما هو — والغياب التام لا يظهر شيئًا أبدًا", async () => {
+    const store = createFormDraftHarness().store;
+    routeState.search = "?intent=customer_order&propose=2026-11-20";
+    renderEditor(store);
+    expect(await screen.findByText(/موعد تسليم مقترح من اليوم المختار/)).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toContain("2026-11-20");
+    expect(screen.queryByRole("alert")).toBeNull();
+    cleanup();
+    /* الغياب التام: لا إعلان ولا اقتراح. */
+    const store2 = createFormDraftHarness().store;
+    routeState.search = "?intent=customer_order";
+    renderEditor(store2);
+    expect(await screen.findByText("طلب من عميل")).toBeTruthy();
+    expect(screen.queryByText(/موعد تسليم مقترح من اليوم المختار/)).toBeNull();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("S13-MR-005: الإعلان يتبع الوصل الحي — قيمة قديمة (stale) لا تبقى فوق وصلة جديدة", async () => {
+    const store = createFormDraftHarness().store;
+    /* الخدمات تُضبط صراحة كما في renderEditor — الاختبار مستقل بذاته. */
+    mockedUsePrototypeServices.mockReturnValue({
+      formDrafts: new FormDraftService(store, () => NOW),
+      drafts: new DraftService(store, () => NOW),
+      catalog: new CatalogService(store, () => NOW),
+      costs: new CostService(store, () => NOW),
+      costEstimates: { get: vi.fn().mockResolvedValue({ ok: true, value: null }) },
+      dataVersion: 0,
+      notifyDataChanged: vi.fn(),
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    routeState.search = "?intent=customer_order&propose=2026-13-45";
+    const { rerender } = render(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <DraftEditor />
+      </UnsavedChangesProvider>,
+    );
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    /* الوصل تغير إلى قيمة صالحة — الإعلان يزول والاقتراح الصالح يظهر. */
+    routeState.search = "?intent=customer_order&propose=2026-11-25";
+    rerender(
+      <UnsavedChangesProvider navigate={() => undefined}>
+        <DraftEditor />
+      </UnsavedChangesProvider>,
+    );
+    await waitFor(() => {
+      expect(screen.queryByRole("alert")).toBeNull();
+    });
+    expect(await screen.findByText(/موعد تسليم مقترح من اليوم المختار/)).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toContain("2026-11-25");
+  });
 });

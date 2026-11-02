@@ -17,7 +17,7 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { FormDraftRestoreBanner } from "@/components/forms/FormDraftRestoreBanner";
 import { useFormDraft } from "@/components/forms/useFormDraft";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
-import { formatMoneyMinor } from "@/presentation/formatters";
+import { formatMoneyMinor, isValidLocalDate } from "@/presentation/formatters";
 import type {
   CostEstimate,
   DraftGroup,
@@ -141,9 +141,20 @@ function estimateIdFromSearch(search: string): string | null {
 /* S13 (CAL-C — أمر 2158b0fc §6): اقتراح موعد التقويم — يوم مختار من تقويم
  * الطلبات يصل مع نية الإنشاء اقتراحًا ظاهرًا قابلًا للإزالة؛ لا يُحفظ من
  * الفتح ولا يحجز يومًا، وينتقل لمراجعته عند خطوة الاتفاق مرة واحدة. */
+/* S13-MR-005 (أمر ba2ce7b4 §4): التحقق عند حد الوصلة العميقة بسياسة التاريخ
+ * المحلي الكنونية — اليوم المستحيل (2026-13-45) ليس موعدًا صالحًا فيُتجاهل
+ * باقتراح معلن صادق، لا يُعرض موعدًا صالحًا ثم يفشل صمتًا عند تخزينه. */
 function proposalFromSearch(search: string): string | null {
   const value = new URLSearchParams(search).get("propose");
-  return value && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
+  return value && isValidLocalDate(value) ? value : null;
+}
+
+/** القيمة المشوهة الشكل عند حد الوصل — تُعلن بصدق (تُجاهل بلا إنشاء) لا
+ * تُعرض موعدًا؛ الفارق بينها وبين الغياب التام هو عقد الإعلان نفسه. */
+function invalidProposalFromSearch(search: string): string | null {
+  const value = new URLSearchParams(search).get("propose");
+  if (value === null || value.trim() === "") return null;
+  return isValidLocalDate(value) ? null : value;
 }
 const estimateKnowledgeLabel: Record<CostEstimate["knowledgeState"], string> = {
   known: "معروفة",
@@ -231,8 +242,17 @@ export default function DraftEditor() {
    * بمفتاح المسودة (يُستهلك عند خطوة الاتفاق مرة) ويظهر هنا اقتراحًا
    * قابلًا للإزالة؛ الفتح وحده لا يحفظ مسودة ولا موعدًا ولا يحجز يومًا. */
   const [calendarProposal, setCalendarProposal] = useState<string | null>(() => proposalFromSearch(search));
+  /* S13-MR-005: الوصلة العميقة غير الصالحة تُعلن مرة عند الفتح — الاقتراح
+   * تُجاهل (لا موعد يُعرض ولا يُنشأ ولا مساحة متصفح تُمس) والوصل باقٍ. */
+  const [invalidProposalNotice, setInvalidProposalNotice] = useState<string | null>(() =>
+    invalidProposalFromSearch(search),
+  );
   useEffect(() => {
     const proposed = proposalFromSearch(search);
+    /* S13-MR-005: الإعلان والاقتراح الظاهر يتبعان الوصل الحي معًا — لا يبقى
+     * إشعار قديم فوق وصلة جديدة (stale) والقيم لا تختلفق عن بعضها أبدًا. */
+    setInvalidProposalNotice(invalidProposalFromSearch(search));
+    setCalendarProposal(proposed);
     if (proposed === null || isNewDraft) return;
     /* تعذر حالة الجلسة يعدي بصمت داخل الوحدة — يضيع الاقتراح فقط بلا أثر مالي. */
     storeScheduleProposal(params.id, proposed);
@@ -695,6 +715,12 @@ export default function DraftEditor() {
       {estimateNotice ? <FeedbackNote kind="advisory" word={estimateNotice} /> : null}
       {/* S13 (CAL-C): اقتراح موعد التقويم ظاهر قابل للإزالة — لا حقل خفي
           ولا حفظ من الفتح ولا حجز يوم؛ مراجعته عند خطوة الاتفاق. */}
+      {invalidProposalNotice !== null ? (
+        <p className="micro-field-error" role="alert">
+          وصلة «موعد مقترح» تحمل تاريخًا غير صالح ({invalidProposalNotice}) — تُجاهل بلا إنشاء؛ اختر الموعد
+          يدويًا عند خطوة الاتفاق.
+        </p>
+      ) : null}
       {calendarProposal ? (
         <p className="micro-save-note" role="status">
           موعد تسليم مقترح من اليوم المختار في التقويم: {calendarProposal} — سيظهر عند خطوة الاتفاق للمراجعة،

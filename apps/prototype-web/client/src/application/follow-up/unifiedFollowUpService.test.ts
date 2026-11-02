@@ -431,4 +431,141 @@ describe("S13 — قارئ المتابعة الموحدة (UNIT-018/012)", () =
     expect(byKey.get("schedule:schedule-overdue:delivery")!.scheduledTime).toBeNull();
     expect(byKey.get("schedule:schedule-today:delivery")!.scheduledTime).toBe("14:00");
   });
+
+  /* ─── S13-MR-002 (أمر ba2ce7b4 §4): الرمي والرفض يعزلان مصدرهما ─── */
+
+  it("S13-MR-002: رمي متزامن (كائن خطأ) من مصدر لا يرفض القراءة — السليم باقٍ والخطأ باسم مصدره", async () => {
+    const store = await seededStore();
+    /* عدسة ترمي رميًا متزامنًا عند الاستدعاء — لا وعد مرفوض ولا نتيجة فشل. */
+    const throwingDeliveries = {
+      listActiveDeliveries: vi.fn(() => {
+        throw new Error("انفجار عدسة التسليمات المتزامن");
+      }),
+    };
+    const service = new UnifiedFollowUpService(
+      throwingDeliveries as never,
+      store,
+      stubServices().collections,
+      stubServices().dueDates,
+      stubServices().projectFinance,
+      recurringLens([]) as never,
+      now,
+    );
+    const reading = await service.read();
+    if (!reading.ok) throw new Error("read must not reject on a thrown source");
+    expect(reading.value.sources.schedules.state).toBe("error");
+    if (reading.value.sources.schedules.state !== "error") throw new Error("unreachable");
+    expect(reading.value.sources.schedules.message).toContain("انفجار عدسة التسليمات المتزامن");
+    /* السليم كله باقٍ: التحصيل والدورة والمصروف — بأعدادها الحقيقية. */
+    const projection = projectFollowUp(reading.value, { taskKind: "all", period: null });
+    expect(projection.errorSources.map(source => source.key)).toEqual(["schedules"]);
+    const keys = projection.groups.flatMap(group => group.tasks).map(task => task.itemKey);
+    expect(keys).toContain("order:order-debt:receivable");
+    expect(keys).toContain("financial_event:event-1:expense_payable");
+    expect(keys).not.toContain("schedule:schedule-today:delivery");
+  });
+
+  it("S13-MR-002: وعد مرفوض من مصدر آخر يعزل نفسه — لا صفحة خطأ شاملة ولا فقد للسليم", async () => {
+    const store = await seededStore();
+    const rejectingCollections = {
+      listReceivableSources: vi.fn(() => Promise.reject(new Error("رفض وعد التحصيل"))),
+    };
+    const service = new UnifiedFollowUpService(
+      activeDeliveryLens(store),
+      store,
+      rejectingCollections as never,
+      stubServices().dueDates,
+      stubServices().projectFinance,
+      recurringLens([]) as never,
+      now,
+    );
+    const reading = await service.read();
+    if (!reading.ok) throw new Error("read must not reject on a rejected source");
+    expect(reading.value.sources.receivables.state).toBe("error");
+    if (reading.value.sources.receivables.state !== "error") throw new Error("unreachable");
+    expect(reading.value.sources.receivables.message).toContain("رفض وعد التحصيل");
+    const projection = projectFollowUp(reading.value, { taskKind: "all", period: null });
+    expect(projection.errorSources.map(source => source.key)).toEqual(["receivables"]);
+    const keys = projection.groups.flatMap(group => group.tasks).map(task => task.itemKey);
+    expect(keys).toContain("schedule:schedule-today:delivery");
+    expect(keys).toContain("supplier_purchase:purchase-1:payable");
+  });
+
+  it("S13-MR-002: إعادة المحاولة تعيد المصادر المتعذرة وحدها — عدادات الاستدعاء تثبت أن السليم لم يُستدع ثانية", async () => {
+    const store = await seededStore();
+    const failingThenOk = {
+      readPayablesAging: vi
+        .fn()
+        .mockRejectedValueOnce(new Error("تعثر مؤقت للاستحقاقات"))
+        .mockResolvedValue({
+          ok: true as const,
+          value: {
+            rows: [
+              {
+                purchaseId: "purchase-1",
+                supplierName: "مورد الخشب",
+                payableMinor: 3000,
+                dueOn: "2026-11-01",
+                dueState: "overdue" as const,
+              },
+            ],
+            totals: null,
+          },
+        }),
+    };
+    const collections = stubServices().collections;
+    const collectionsCalls = vi.mocked(
+      (collections as unknown as { listReceivableSources: ReturnType<typeof vi.fn> }).listReceivableSources,
+    );
+    const service = new UnifiedFollowUpService(
+      activeDeliveryLens(store),
+      store,
+      collections,
+      failingThenOk as never,
+      stubServices().projectFinance,
+      recurringLens([]) as never,
+      now,
+    );
+    const first = await service.read();
+    if (!first.ok) throw new Error("read failed");
+    expect(first.value.sources.supplierPayables.state).toBe("error");
+    const callsBeforeRetry = collectionsCalls.mock.calls.length;
+
+    const retried = await service.retry(first.value);
+    if (!retried.ok) throw new Error("retry failed");
+    /* المصدر المتعذر قُرئ ثانية ونجح هذه المرة — والسليم لم يُستدع ثانية. */
+    expect(failingThenOk.readPayablesAging).toHaveBeenCalledTimes(2);
+    expect(collectionsCalls.mock.calls.length).toBe(callsBeforeRetry);
+    expect(retried.value.sources.supplierPayables.state).toBe("ready");
+    if (retried.value.sources.supplierPayables.state !== "ready") throw new Error("unreachable");
+    expect(retried.value.sources.supplierPayables.tasks.map(task => task.itemKey)).toEqual([
+      "supplier_purchase:purchase-1:payable",
+    ]);
+    expect(retried.value.sources.receivables.state).toBe("ready");
+    /* لا مصدر خطأ متبقٍ في الإسقاط. */
+    const projection = projectFollowUp(retried.value, { taskKind: "all", period: null });
+    expect(projection.errorSources).toHaveLength(0);
+  });
+
+  it("S13-MR-007 (أمر ba2ce7b4 §4): فعل دفعة المورد يفتح مسار الدفعة المسجل للمشتريات — لا المسار العام", async () => {
+    const store = await seededStore();
+    const service = new UnifiedFollowUpService(
+      activeDeliveryLens(store),
+      store,
+      stubServices().collections,
+      stubServices().dueDates,
+      stubServices().projectFinance,
+      recurringLens([]) as never,
+      now,
+    );
+    const reading = await service.read();
+    if (!reading.ok) throw new Error("read failed");
+    const source = reading.value.sources.supplierPayables;
+    if (source.state !== "ready") throw new Error("supplierPayables should be ready");
+    const task = source.tasks.find(candidate => candidate.taskKind === "supplier_payable");
+    if (!task) throw new Error("supplier payable task missing");
+    /* المسار المسجل للدفعة على الشراء الصحيح — يفتح صاحب الفعل بلا كتابة. */
+    expect(task.sourceHref).toBe("/suppliers/purchase/purchase-1/payment");
+    expect(task.sourceId).toBe("purchase-1");
+  });
 });

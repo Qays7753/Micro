@@ -19,7 +19,7 @@ import {
   Search,
   SlidersHorizontal,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { useLocation, useSearch } from "wouter";
 import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
@@ -151,17 +151,21 @@ function filterOrders(
 
 const DISPLAY_CAP = 30;
 
-/* ─── حالة الصفحة ─── */
+/* ─── حالة الصفحة ───
+ * S13-MR-001 (أمر ba2ce7b4 §4): قراءتان مستقلتان بحالتين مستقلتين —
+ * فشل قراءة المواعيد/مجتمع التقويم لا يخفي الطلبات والمسودات المقروءة،
+ * وفشل قراءة الطلبات لا يخفي التقويم؛ كل سطح يعلن حقيقته وإعادة المحاولة
+ * تعيد قراءة مصدره المتعذر وحده دون المساس بالسليم. */
 
-type OrdersPageState =
+type OrdersReadState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
-  | {
-      phase: "ready";
-      orders: readonly StoredCraftOrder[];
-      drafts: readonly OrderDraft[];
-      community: ScheduleCommunity;
-    };
+  | { phase: "ready"; orders: readonly StoredCraftOrder[]; drafts: readonly OrderDraft[] };
+
+type CommunityReadState =
+  | { phase: "loading" }
+  | { phase: "error"; message: string }
+  | { phase: "ready"; community: ScheduleCommunity };
 
 const weekdayLabels = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
@@ -169,10 +173,13 @@ export default function Orders() {
   const [location, navigate] = useLocation();
   const { dailyFollowUp, dataVersion } = usePrototypeServices();
   const { disabled: disabledCapabilities } = useDisabledCapabilities();
-  const [state, setState] = useState<OrdersPageState>({ phase: "loading" });
+  const [state, setState] = useState<OrdersReadState>({ phase: "loading" });
+  const [communityState, setCommunityState] = useState<CommunityReadState>({ phase: "loading" });
   const [reloadToken, setReloadToken] = useState(0);
+  const [communityRetryToken, setCommunityRetryToken] = useState(0);
   /* SDF-061: جيل القراءة — استجابة جيل قديم لا تُخلط مع أحدث أبدًا. */
   const readGeneration = useRef(0);
+  const communityGeneration = useRef(0);
 
   /* عرض القائمة/التقويم وسياقهما — ACD032: السياق يُستعاد من الوصل أولًا
    * (الرجوع/التحميل بالقائمة واليوم والفلتر نفسها) ثم يُعاد كتابته في
@@ -188,28 +195,21 @@ export default function Orders() {
   const [anchorDate, setAnchorDate] = useState(initialContext.anchorDate);
   const [selectedDate, setSelectedDate] = useState<string | null>(initialContext.selectedDate);
 
+  /* S13-MR-001: قراءة الطلبات/المسودات وحدها — فشلها لا يمس التقويم. */
   useEffect(() => {
     const generation = readGeneration.current + 1;
     readGeneration.current = generation;
     setState(current => (current.phase === "ready" ? current : { phase: "loading" }));
-    Promise.all([dailyFollowUp.read(), readScheduleCommunity(getPrototypeLocalStore())])
-      .then(([result, community]) => {
+    dailyFollowUp
+      .read()
+      .then(result => {
         /* الجيل القديم يُهمل بلا خلط — تُعاد قراءته بالختم المتسق نفسه. */
         if (generation !== readGeneration.current) return;
         if (!result.ok) {
           setState({ phase: "error", message: result.message });
           return;
         }
-        if (!community.ok) {
-          setState({ phase: "error", message: community.message });
-          return;
-        }
-        setState({
-          phase: "ready",
-          orders: result.orders,
-          drafts: result.drafts,
-          community: community.value,
-        });
+        setState({ phase: "ready", orders: result.orders, drafts: result.drafts });
       })
       .catch((error: unknown) => {
         if (generation !== readGeneration.current) return;
@@ -219,6 +219,30 @@ export default function Orders() {
         });
       });
   }, [dailyFollowUp, dataVersion, reloadToken]);
+
+  /* S13-MR-001: قراءة مجتمع المواعيد وحدها — فشلها لا يخفي الطلبات،
+   * وإعادة محاولتها تعيد مصدرها وحده دون قراءة الطلبات مرة أخرى. */
+  useEffect(() => {
+    const generation = communityGeneration.current + 1;
+    communityGeneration.current = generation;
+    setCommunityState(current => (current.phase === "ready" ? current : { phase: "loading" }));
+    readScheduleCommunity(getPrototypeLocalStore())
+      .then(result => {
+        if (generation !== communityGeneration.current) return;
+        if (!result.ok) {
+          setCommunityState({ phase: "error", message: result.message });
+          return;
+        }
+        setCommunityState({ phase: "ready", community: result.value });
+      })
+      .catch((error: unknown) => {
+        if (generation !== communityGeneration.current) return;
+        setCommunityState({
+          phase: "error",
+          message: error instanceof Error ? error.message : "تعذر تحميل مواعيد التقويم.",
+        });
+      });
+  }, [dataVersion, communityRetryToken]);
 
   /* ACD032: كل تغيير مطبق يُكتب في الوصل (replace — بلا تكديس تاريخ)؛
    * الرجوع من أي صف يفتح الوجهة بالقائمة/اليوم/الفلتر نفسها. */
@@ -249,25 +273,17 @@ export default function Orders() {
     setShownCount(DISPLAY_CAP);
   };
 
-  if (state.phase === "loading")
+  if (state.phase === "loading" && communityState.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
         جارٍ تحميل الطلبات المحلية…
       </div>
     );
-  if (state.phase === "error")
-    return (
-      <section className="micro-page micro-not-found">
-        <h1>تعذر تحميل الطلبات</h1>
-        <p role="alert">{state.message} لم يتم تغيير شيء؛ أعد المحاولة.</p>
-        <Button action="save" onClick={() => setReloadToken(token => token + 1)}>
-          إعادة المحاولة
-        </Button>
-      </section>
-    );
 
-  const filteredOrders = filterOrders(state.orders, applied);
-  const pastCount = ordersInScope(state.orders, "past").length;
+  const ordersReady = state.phase === "ready" ? state.orders : [];
+  const draftsReady = state.phase === "ready" ? state.drafts : [];
+  const filteredOrders = filterOrders(ordersReady, applied);
+  const pastCount = ordersInScope(ordersReady, "past").length;
   const scopeTitle =
     applied.scope === "current"
       ? "الطلبات الحالية"
@@ -332,234 +348,250 @@ export default function Orders() {
       </fieldset>
 
       {view === "list" ? (
-        <>
-          {/* A2-3: البحث وزر التصفية — نطاق النتائج ظاهر دائمًا */}
-          <div className="micro-orders-search">
-            <label className="micro-field">
-              <span>ابحث في الطلبات</span>
-              <input
-                type="search"
-                value={applied.query}
-                onChange={event => {
-                  setApplied(current => ({ ...current, query: event.target.value }));
-                  setDraft(current => ({ ...current, query: event.target.value }));
-                  setShownCount(DISPLAY_CAP);
-                }}
-                placeholder="اسم القطعة أو العميل المسجل"
-              />
-            </label>
-            <Button action="secondary" onClick={() => setFilterOpen(openState => !openState)}>
-              <SlidersHorizontal aria-hidden="true" /> تصفية
-            </Button>
-          </div>
-          {filterOpen ? (
-            <section className="micro-form-card" aria-label="لوحة تصفية الطلبات">
-              <fieldset>
-                <legend>النطاق</legend>
-                {(
-                  [
-                    ["current", "الحالية"],
-                    ["past", "السابقة"],
-                    ["all", "كل الطلبات"],
-                  ] as const
-                ).map(([value, label]) => (
-                  <label className="micro-radio-choice" key={value}>
-                    <input
-                      type="radio"
-                      name="orders-scope"
-                      checked={draft.scope === value}
-                      onChange={() => setDraft(current => ({ ...current, scope: value }))}
-                    />
-                    <span>{label}</span>
-                  </label>
-                ))}
-              </fieldset>
-              <fieldset>
-                <legend>الموعد</legend>
-                {(
-                  [
-                    ["all", "الكل"],
-                    ["dated", "له موعد معلن"],
-                    ["undated", "بلا موعد"],
-                  ] as const
-                ).map(([value, label]) => (
-                  <label className="micro-radio-choice" key={value}>
-                    <input
-                      type="radio"
-                      name="orders-date"
-                      checked={draft.datePresence === value}
-                      onChange={() => setDraft(current => ({ ...current, datePresence: value }))}
-                    />
-                    <span>{label}</span>
-                  </label>
-                ))}
-              </fieldset>
-              <fieldset>
-                <legend>الترتيب</legend>
-                {(
-                  [
-                    ["recent", "الأحدث تعديلًا"],
-                    ["byDate", "بالموعد المعلن"],
-                  ] as const
-                ).map(([value, label]) => (
-                  <label className="micro-radio-choice" key={value}>
-                    <input
-                      type="radio"
-                      name="orders-ordering"
-                      checked={draft.ordering === value}
-                      onChange={() => setDraft(current => ({ ...current, ordering: value }))}
-                    />
-                    <span>{label}</span>
-                  </label>
-                ))}
-              </fieldset>
-              <div className="micro-form-actions">
-                <Button action="save" onClick={applyFilter}>
-                  تطبيق
-                </Button>
-                <Button action="secondary" onClick={resetFilter}>
-                  إعادة ضبط
-                </Button>
-                <Button
-                  action="quiet"
-                  onClick={() => {
-                    setDraft(applied);
-                    setFilterOpen(false);
+        /* S13-MR-001: فشل قراءة الطلبات لا يُعرض فراغًا مضللًا — القائمة
+         * تعلن حقيقتها هي (الإشعار أسفل التبديل) والتقويم السليم متاح. */
+        state.phase === "error" ? null : (
+          <>
+            {/* A2-3: البحث وزر التصفية — نطاق النتائج ظاهر دائمًا */}
+            <div className="micro-orders-search">
+              <label className="micro-field">
+                <span>ابحث في الطلبات</span>
+                <input
+                  type="search"
+                  value={applied.query}
+                  onChange={event => {
+                    setApplied(current => ({ ...current, query: event.target.value }));
+                    setDraft(current => ({ ...current, query: event.target.value }));
+                    setShownCount(DISPLAY_CAP);
                   }}
-                >
-                  إلغاء
-                </Button>
-              </div>
-            </section>
-          ) : null}
-
-          {/* وصف النطاق ثابت فوق النتائج + عدد صادق (قراءة كاملة هنا) */}
-          <p className="micro-scope-line" role="status">
-            {scopeTitle} — {scopeHint} · {filteredOrders.length} طلبًا مقروءًا
-            {filteredOrders.length > shownCount ? ` (يُعرض ${shownCount})` : ""}
-          </p>
-
-          {filteredOrders.length === 0 ? (
-            state.orders.length === 0 ? (
-              <EmptyState
-                aria-labelledby="orders-empty-title"
-                symbol={<ClipboardPlus />}
-                state={<StatusChip state="no-data">لا توجد طلبات محفوظة</StatusChip>}
-                title={<h2 id="orders-empty-title">لا طلبات بعد — ابدأ أول طلب</h2>}
-                description={<>«طلب جديد» يفتح مسودة الطلب مباشرة؛ العميل والمنتج المحفوظان اختياريان.</>}
-                action={
-                  <Button
-                    action="create"
-                    onClick={() => open("/orders/draft/new?intent=customer_order")}
-                    disabled={disabledCapabilities.includes("orders")}
-                  >
-                    طلب جديد
+                  placeholder="اسم القطعة أو العميل المسجل"
+                />
+              </label>
+              <Button action="secondary" onClick={() => setFilterOpen(openState => !openState)}>
+                <SlidersHorizontal aria-hidden="true" /> تصفية
+              </Button>
+            </div>
+            {filterOpen ? (
+              <section className="micro-form-card" aria-label="لوحة تصفية الطلبات">
+                <fieldset>
+                  <legend>النطاق</legend>
+                  {(
+                    [
+                      ["current", "الحالية"],
+                      ["past", "السابقة"],
+                      ["all", "كل الطلبات"],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <label className="micro-radio-choice" key={value}>
+                      <input
+                        type="radio"
+                        name="orders-scope"
+                        checked={draft.scope === value}
+                        onChange={() => setDraft(current => ({ ...current, scope: value }))}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </fieldset>
+                <fieldset>
+                  <legend>الموعد</legend>
+                  {(
+                    [
+                      ["all", "الكل"],
+                      ["dated", "له موعد معلن"],
+                      ["undated", "بلا موعد"],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <label className="micro-radio-choice" key={value}>
+                      <input
+                        type="radio"
+                        name="orders-date"
+                        checked={draft.datePresence === value}
+                        onChange={() => setDraft(current => ({ ...current, datePresence: value }))}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </fieldset>
+                <fieldset>
+                  <legend>الترتيب</legend>
+                  {(
+                    [
+                      ["recent", "الأحدث تعديلًا"],
+                      ["byDate", "بالموعد المعلن"],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <label className="micro-radio-choice" key={value}>
+                      <input
+                        type="radio"
+                        name="orders-ordering"
+                        checked={draft.ordering === value}
+                        onChange={() => setDraft(current => ({ ...current, ordering: value }))}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </fieldset>
+                <div className="micro-form-actions">
+                  <Button action="save" onClick={applyFilter}>
+                    تطبيق
                   </Button>
-                }
-              />
-            ) : applied.query.trim() !== "" || applied.datePresence !== "all" ? (
-              <section className="micro-empty-inline">
-                <p>لا نتائج تطابق البحث أو التصفية في هذا النطاق.</p>
-                <Button
-                  action="quiet"
-                  onClick={() => {
-                    if (pastCount > 0 && applied.scope === "current") {
+                  <Button action="secondary" onClick={resetFilter}>
+                    إعادة ضبط
+                  </Button>
+                  <Button
+                    action="quiet"
+                    onClick={() => {
+                      setDraft(applied);
+                      setFilterOpen(false);
+                    }}
+                  >
+                    إلغاء
+                  </Button>
+                </div>
+              </section>
+            ) : null}
+
+            {/* وصف النطاق ثابت فوق النتائج + عدد صادق (قراءة كاملة هنا) */}
+            <p className="micro-scope-line" role="status">
+              {scopeTitle} — {scopeHint} · {filteredOrders.length} طلبًا مقروءًا
+              {filteredOrders.length > shownCount ? ` (يُعرض ${shownCount})` : ""}
+            </p>
+
+            {filteredOrders.length === 0 ? (
+              ordersReady.length === 0 ? (
+                <EmptyState
+                  aria-labelledby="orders-empty-title"
+                  symbol={<ClipboardPlus />}
+                  state={<StatusChip state="no-data">لا توجد طلبات محفوظة</StatusChip>}
+                  title={<h2 id="orders-empty-title">لا طلبات بعد — ابدأ أول طلب</h2>}
+                  description={<>«طلب جديد» يفتح مسودة الطلب مباشرة؛ العميل والمنتج المحفوظان اختياريان.</>}
+                  action={
+                    <Button
+                      action="create"
+                      onClick={() => open("/orders/draft/new?intent=customer_order")}
+                      disabled={disabledCapabilities.includes("orders")}
+                    >
+                      طلب جديد
+                    </Button>
+                  }
+                />
+              ) : applied.query.trim() !== "" || applied.datePresence !== "all" ? (
+                <section className="micro-empty-inline">
+                  <p>لا نتائج تطابق البحث أو التصفية في هذا النطاق.</p>
+                  <Button
+                    action="quiet"
+                    onClick={() => {
+                      if (pastCount > 0 && applied.scope === "current") {
+                        setApplied(current => ({ ...current, scope: "past" }));
+                        setDraft(current => ({ ...current, scope: "past" }));
+                      } else resetFilter();
+                    }}
+                  >
+                    {pastCount > 0 && applied.scope === "current"
+                      ? `ابحث في الطلبات السابقة (${pastCount}) — يُحفظ نص البحث`
+                      : "إعادة ضبط التصفية"}
+                  </Button>
+                </section>
+              ) : applied.scope === "current" && pastCount > 0 ? (
+                <section className="micro-empty-inline">
+                  <p>لا طلبات حالية — هذا لا يعني عدم وجود طلبات سابقة أو مستحقات.</p>
+                  <Button
+                    action="quiet"
+                    onClick={() => {
                       setApplied(current => ({ ...current, scope: "past" }));
                       setDraft(current => ({ ...current, scope: "past" }));
-                    } else resetFilter();
-                  }}
-                >
-                  {pastCount > 0 && applied.scope === "current"
-                    ? `ابحث في الطلبات السابقة (${pastCount}) — يُحفظ نص البحث`
-                    : "إعادة ضبط التصفية"}
-                </Button>
-              </section>
-            ) : applied.scope === "current" && pastCount > 0 ? (
-              <section className="micro-empty-inline">
-                <p>لا طلبات حالية — هذا لا يعني عدم وجود طلبات سابقة أو مستحقات.</p>
-                <Button
-                  action="quiet"
-                  onClick={() => {
-                    setApplied(current => ({ ...current, scope: "past" }));
-                    setDraft(current => ({ ...current, scope: "past" }));
-                  }}
-                >
-                  الطلبات السابقة ({pastCount})
-                </Button>
-              </section>
+                    }}
+                  >
+                    الطلبات السابقة ({pastCount})
+                  </Button>
+                </section>
+              ) : (
+                <p className="micro-empty-inline">لا طلبات في هذا النطاق.</p>
+              )
             ) : (
-              <p className="micro-empty-inline">لا طلبات في هذا النطاق.</p>
-            )
-          ) : (
-            <div className="micro-draft-list" aria-label="قائمة الطلبات">
-              {filteredOrders.slice(0, shownCount).map(stored => (
-                <OrderRow key={stored.id} stored={stored} onOpen={open} />
-              ))}
-              {/* A2-4/ORD-A3: مدخل السابق ظاهر حتى في فراغ الحالية */}
-              {applied.scope === "current" && pastCount > 0 ? (
-                <button
-                  className="micro-draft-row"
-                  type="button"
-                  onClick={() => {
-                    setApplied(current => ({ ...current, scope: "past" }));
-                    setDraft(current => ({ ...current, scope: "past" }));
-                  }}
-                >
-                  <span className="micro-draft-symbol">
-                    <CalendarDays aria-hidden="true" />
-                  </span>
-                  <span>
-                    <strong>الطلبات السابقة</strong>
-                    <small>{pastCount} طلبًا منتهيًا أو ملغى — دينها وتصحيحها باقيان عند مصدرها.</small>
-                  </span>
-                  <ChevronLeft aria-hidden="true" />
-                </button>
-              ) : null}
-              {filteredOrders.length > shownCount ? (
-                <Button action="secondary" onClick={() => setShownCount(count => count + DISPLAY_CAP)}>
-                  عرض المزيد ({filteredOrders.length - shownCount} متبقية)
-                </Button>
-              ) : null}
-            </div>
-          )}
-
-          {/* A2-5/A3: المسودة غير المرتبطة تظهر مرة بوصف «مسودة» ومدخل إكمال 007 */}
-          {applied.scope !== "past" && state.drafts.length > 0 ? (
-            <section className="micro-draft-list" aria-labelledby="orders-drafts-title">
-              <div className="micro-section-title">
-                <ClipboardPlus aria-hidden="true" />
-                <div>
-                  <span className="micro-overline">لم تتحول إلى اتفاق بعد</span>
-                  <h2 id="orders-drafts-title">مسودات قيد الإكمال</h2>
-                </div>
+              <div className="micro-draft-list" aria-label="قائمة الطلبات">
+                {filteredOrders.slice(0, shownCount).map(stored => (
+                  <OrderRow key={stored.id} stored={stored} onOpen={open} />
+                ))}
+                {/* A2-4/ORD-A3: مدخل السابق ظاهر حتى في فراغ الحالية */}
+                {applied.scope === "current" && pastCount > 0 ? (
+                  <button
+                    className="micro-draft-row"
+                    type="button"
+                    onClick={() => {
+                      setApplied(current => ({ ...current, scope: "past" }));
+                      setDraft(current => ({ ...current, scope: "past" }));
+                    }}
+                  >
+                    <span className="micro-draft-symbol">
+                      <CalendarDays aria-hidden="true" />
+                    </span>
+                    <span>
+                      <strong>الطلبات السابقة</strong>
+                      <small>{pastCount} طلبًا منتهيًا أو ملغى — دينها وتصحيحها باقيان عند مصدرها.</small>
+                    </span>
+                    <ChevronLeft aria-hidden="true" />
+                  </button>
+                ) : null}
+                {filteredOrders.length > shownCount ? (
+                  <Button action="secondary" onClick={() => setShownCount(count => count + DISPLAY_CAP)}>
+                    عرض المزيد ({filteredOrders.length - shownCount} متبقية)
+                  </Button>
+                ) : null}
               </div>
-              {state.drafts.map(draftRow => (
-                <button
-                  className="micro-draft-row"
-                  type="button"
-                  key={draftRow.id}
-                  onClick={() => open(`/orders/draft/${draftRow.id}`)}
-                >
-                  <span className="micro-draft-symbol">
-                    <ClipboardPlus aria-hidden="true" />
-                  </span>
-                  <span>
-                    <strong dir="auto">{draftRow.itemName || "مسودة تحتاج وصفًا"}</strong>
-                    <small>
-                      {draftRow.intent === "customer_order" ? "طلب من عميل" : "تصميم مخطط"} · مسودة — لا موعد
-                      ولا مال منها
-                    </small>
-                    <small className="micro-row-next-action">الخطوة التالية: أكمل المسودة من محررها.</small>
-                  </span>
-                  <ChevronLeft aria-hidden="true" />
-                </button>
-              ))}
-            </section>
-          ) : null}
-        </>
-      ) : (
+            )}
+
+            {/* A2-5/A3: المسودة غير المرتبطة تظهر مرة بوصف «مسودة» ومدخل إكمال 007 */}
+            {applied.scope !== "past" && draftsReady.length > 0 ? (
+              <section className="micro-draft-list" aria-labelledby="orders-drafts-title">
+                <div className="micro-section-title">
+                  <ClipboardPlus aria-hidden="true" />
+                  <div>
+                    <span className="micro-overline">لم تتحول إلى اتفاق بعد</span>
+                    <h2 id="orders-drafts-title">مسودات قيد الإكمال</h2>
+                  </div>
+                </div>
+                {draftsReady.map(draftRow => (
+                  <button
+                    className="micro-draft-row"
+                    type="button"
+                    key={draftRow.id}
+                    onClick={() => open(`/orders/draft/${draftRow.id}`)}
+                  >
+                    <span className="micro-draft-symbol">
+                      <ClipboardPlus aria-hidden="true" />
+                    </span>
+                    <span>
+                      <strong dir="auto">{draftRow.itemName || "مسودة تحتاج وصفًا"}</strong>
+                      <small>
+                        {draftRow.intent === "customer_order" ? "طلب من عميل" : "تصميم مخطط"} · مسودة — لا
+                        موعد ولا مال منها
+                      </small>
+                      <small className="micro-row-next-action">الخطوة التالية: أكمل المسودة من محررها.</small>
+                    </span>
+                    <ChevronLeft aria-hidden="true" />
+                  </button>
+                ))}
+              </section>
+            ) : null}
+          </>
+        )
+      ) : communityState.phase === "error" ? (
+        /* S13-MR-001: فشل قراءة المواعيد معزول — الطلبات والمسودات السليمة
+         * تظل مقروءة في القائمة، والتقويم يعلن حقيقته هو وإعادة المحاولة
+         * تعيد مصدره وحده (لا تعيد قراءة الطلبات السليمة). */
+        <section className="micro-source-errors" aria-label="تعذر تحميل مواعيد التقويم">
+          <p className="micro-field-error" role="alert">
+            {communityState.message} — التقويم تعذر وحده؛ القائمة السليمة متاحة من عرض «قائمة الطلبات».
+          </p>
+          <Button action="secondary" onClick={() => setCommunityRetryToken(token => token + 1)}>
+            أعد قراءة مواعيد التقويم
+          </Button>
+        </section>
+      ) : communityState.phase === "ready" ? (
         <OrdersCalendar
-          community={state.community}
+          community={communityState.community}
           mode={calendarMode}
           anchorDate={anchorDate}
           selectedDate={selectedDate}
@@ -569,7 +601,25 @@ export default function Orders() {
           onOpen={open}
           ordersEntryEnabled={!disabledCapabilities.includes("orders")}
         />
+      ) : (
+        <div className="micro-route-loading" role="status">
+          جارٍ تحميل مواعيد التقويم…
+        </div>
       )}
+
+      {/* S13-MR-001: فشل قراءة الطلبات معزول — التقويم السليم يبقى متاحًا
+       * والقائمة تعلن حقيقتها وإعادة محاولتها خاصة بها. */}
+      {state.phase === "error" ? (
+        <section className="micro-source-errors" aria-label="تعذر تحميل الطلبات">
+          <p className="micro-field-error" role="alert">
+            {state.message} — الطلبات تعذرت وحدها؛{" "}
+            {communityState.phase === "ready" ? " التقويم السليم متاح من عرض «التقويم»." : ""}
+          </p>
+          <Button action="secondary" onClick={() => setReloadToken(token => token + 1)}>
+            أعد قراءة الطلبات
+          </Button>
+        </section>
+      ) : null}
 
       {/* A2-6: مدخلان ثانويان إلى المرجعين نفسيهما — لا CRM ولا كتالوج مستقل */}
       <div className="micro-form-actions micro-contextual-actions">
@@ -660,6 +710,57 @@ function OrdersCalendar({
   const effectiveSelected = selectedDate ?? today;
   const window = useMemo(() => windowOf(community, anchorDate, mode), [community, anchorDate, mode]);
   const dayEntries = useMemo(() => window.byDate.get(effectiveSelected) ?? [], [window, effectiveSelected]);
+  /* S13-MR-006 (أمر ba2ce7b4 §4): دلالات شبكة حقيقية — رصف أسبوعي بأدوار
+   * صفوف، ومسار تجوال واحد (roving tabindex)، وأسهم بلغة الاتجاه RTL
+   * (اليسار = اليوم التالي)، وHome/End لطرفَي الأسبوع، وعبور حد الشهر
+   * ينقل المرصوف نفسه إلى الشهر المجاور؛ الإعلان بالتاريخ المختار
+   * (aria-selected) لا بالضغط. */
+  const [focusedDate, setFocusedDate] = useState<string | null>(null);
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const monthDates = mode === "month" ? window.dates : [];
+  const rovingDate =
+    focusedDate !== null && monthDates.includes(focusedDate)
+      ? focusedDate
+      : monthDates.includes(effectiveSelected)
+        ? effectiveSelected
+        : monthDates.includes(today)
+          ? today
+          : (monthDates[0] ?? null);
+  /* الأسهم تحرك التركيز فقط — الاختيار فعل صريح (Enter/Space/نقر) كما كان. */
+  const moveGridFocus = (from: string, days: number) => {
+    const next = localDatePlusDays(from, days);
+    if (next === null) return;
+    if (!monthDates.includes(next)) onAnchor(next);
+    setFocusedDate(next);
+  };
+  const handleGridKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const from = focusedDate ?? rovingDate;
+    if (from === null) return;
+    const weekday = localDateWeekdayIndex(from) ?? 0;
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      moveGridFocus(from, 1);
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      moveGridFocus(from, -1);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      moveGridFocus(from, -7);
+    } else if (event.key === "ArrowDown") {
+      event.preventDefault();
+      moveGridFocus(from, 7);
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      moveGridFocus(from, -weekday);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      moveGridFocus(from, 6 - weekday);
+    }
+  };
+  useEffect(() => {
+    if (focusedDate === null || mode !== "month") return;
+    gridRef.current?.querySelector<HTMLButtonElement>(`[data-date="${focusedDate}"]`)?.focus();
+  }, [focusedDate, mode, anchorDate]);
   const monthTitle =
     mode === "month"
       ? formatMonthLabel(anchorDate.slice(0, 7))
@@ -729,38 +830,58 @@ function OrdersCalendar({
       </fieldset>
 
       {mode === "month" ? (
-        <div className="micro-month-grid" role="grid" aria-label={`تقويم ${monthTitle}`}>
-          {weekdayLabels.map(label => (
-            <span className="micro-month-weekday" key={label} role="columnheader">
-              {label}
-            </span>
+        <div
+          className="micro-month-grid micro-orders-month"
+          role="grid"
+          aria-label={`تقويم ${monthTitle}`}
+          ref={gridRef}
+          onKeyDown={handleGridKeyDown}
+        >
+          <div role="row" className="micro-month-header-row">
+            {weekdayLabels.map(label => (
+              <span className="micro-month-weekday" key={label} role="columnheader">
+                {label}
+              </span>
+            ))}
+          </div>
+          {monthWeekRows(window.dates).map((row, rowIndex) => (
+            <div role="row" className="micro-month-week-row" key={`week-${rowIndex}`}>
+              {row.map((date, dayIndex) =>
+                date === null ? (
+                  <span key={`pad-${rowIndex}-${dayIndex}`} role="presentation" />
+                ) : (
+                  (() => {
+                    const entries = window.byDate.get(date) ?? [];
+                    const isToday = date === today;
+                    const isSelected = date === effectiveSelected;
+                    return (
+                      <button
+                        type="button"
+                        role="gridcell"
+                        key={date}
+                        data-date={date}
+                        className="micro-month-day"
+                        data-today={isToday || undefined}
+                        data-selected={isSelected || undefined}
+                        aria-label={`${formatLocalDate(date) ?? date} — ${entries.length} موعدًا`}
+                        aria-selected={isSelected}
+                        tabIndex={date === rovingDate ? 0 : -1}
+                        onClick={() => {
+                          setFocusedDate(date);
+                          onSelect(date);
+                        }}
+                      >
+                        <span className="micro-month-day-number">{date.slice(8, 10)}</span>
+                        {entries.length > 0 ? (
+                          <span className="micro-month-day-count">{entries.length}</span>
+                        ) : null}
+                      </button>
+                    );
+                  })()
+                ),
+              )}
+            </div>
           ))}
-          {Array.from({ length: localDateWeekdayIndex(window.dates[0] ?? anchorDate) ?? 0 }).map(
-            (_, index) => (
-              <span key={`pad-${index}`} />
-            ),
-          )}
-          {window.dates.map(date => {
-            const entries = window.byDate.get(date) ?? [];
-            const isToday = date === today;
-            const isSelected = date === effectiveSelected;
-            return (
-              <button
-                type="button"
-                role="gridcell"
-                key={date}
-                className="micro-month-day"
-                data-today={isToday || undefined}
-                data-selected={isSelected || undefined}
-                aria-label={`${formatLocalDate(date) ?? date} — ${entries.length} موعدًا`}
-                aria-pressed={isSelected}
-                onClick={() => onSelect(date)}
-              >
-                <span className="micro-month-day-number">{date.slice(8, 10)}</span>
-                {entries.length > 0 ? <span className="micro-month-day-count">{entries.length}</span> : null}
-              </button>
-            );
-          })}
         </div>
       ) : (
         <div className="micro-week-strip" role="list">
@@ -857,6 +978,36 @@ function OrdersCalendar({
             <ChevronLeft aria-hidden="true" />
           </button>
         ) : null}
+        {/* S13-MR-004 (أمر ba2ce7b4 §4): الموعد النشط بقيمة غير صالحة حالة
+            إصلاح معلنة — لا يختفي من التقويم ولا يُعرض «—»؛ الميعاد نفسه
+            نشط لطلب حي فمدخله المستقل يفتح مصدره لتصحيحه عند مالكه. */}
+        {community.invalidScheduleEntries.length > 0 ? (
+          <section aria-label="مواعيد نشطة تحتاج تصحيحًا">
+            {community.invalidScheduleEntries.map(entry => (
+              <button
+                className="micro-draft-row"
+                type="button"
+                key={entry.schedule.id}
+                onClick={() => onOpen(`/orders/${entry.order.id}`)}
+              >
+                <span className="micro-draft-symbol">
+                  <CircleAlert aria-hidden="true" />
+                </span>
+                <span>
+                  <strong dir="auto">{entry.order.order.itemName || "موعد تسليم"}</strong>
+                  <small>
+                    موعد نشط بقيمة غير صالحة ({entry.schedule.scheduledFor}) — لا يظهر في أي يوم؛ صحّحه من
+                    الطلب.
+                  </small>
+                  <small className="micro-row-next-action">
+                    الخطوة التالية: افتح الطلب وصحّح موعده عند مالكه — القيمة كما هي لم تُمحَ.
+                  </small>
+                </span>
+                <ChevronLeft aria-hidden="true" />
+              </button>
+            ))}
+          </section>
+        ) : null}
         {ordersEntryEnabled ? (
           /* CAL-C: اليوم المختار يصل اقتراحًا ظاهرًا قابلًا للتعديل/الإزالة —
            * لا حفظ من الفتح ولا حقل خفي ولا حجز يوم. */
@@ -880,4 +1031,18 @@ function OrdersCalendar({
  * (مالك حساب التاريخ) — لا كائن Date خام ولا حساب UTC هنا. */
 function shiftMonth(anchor: string, offset: number): string {
   return localDatePlusMonthsClamped(anchor, offset) ?? anchor;
+}
+
+/* S13-MR-006 (أمر ba2ce7b4 §4): رصف أسابيع الشهر في صفوف شبكة سليمة —
+ * الأيام في صفوف من 7 مع حشو البداية (أيام الأسبوع قبل أول يوم) والنهاية
+ * (بعد آخر يوم) خلايا عرض بلا دور؛ الصف الأول يبدأ عند فهرس يوم أول الشهر
+ * من الأحد (المالك الكنوني: localDateWeekdayIndex). */
+function monthWeekRows(dates: readonly string[]): Array<Array<string | null>> {
+  if (dates.length === 0) return [];
+  const leading = localDateWeekdayIndex(dates[0]!) ?? 0;
+  const cells: Array<string | null> = [...Array.from({ length: leading }, (): null => null), ...dates];
+  while (cells.length % 7 !== 0) cells.push(null);
+  const rows: Array<Array<string | null>> = [];
+  for (let index = 0; index < cells.length; index += 7) rows.push(cells.slice(index, index + 7));
+  return rows;
 }

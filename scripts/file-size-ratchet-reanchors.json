@@ -7830,6 +7830,120 @@
         "trigger": "S12-ATOMIC-001 post-write rollback journal + narrow internal seam measured on the live tree (25 nbLOC over the prior 2678 anchor)",
         "ocRef": "DOC-021"
       }
+    },
+    {
+      "id": "S14-MR002-ISOLATION-20261102-412",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/follow-up/unifiedFollowUpService.ts",
+      "from": {
+        "nbLoc": 459,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 525,
+        "band": "WATCH"
+      },
+      "reason": "S13-MR-002: عزل كل مصدر برميه المتزامن ووعده المرفوض (isolateSource) وقراءة انتقائية بالمصادر (readSources) وإعادة محاولة المتعذر وحده (retry) مع إعادة تصنيف المهام السليمة على يوم المرجع الجديد. (السلسلة فوق إرساء S13-UNIFIED-READER-20261102-406؛ from يساوي قيمة الأساس الحي 459 كما يتحقق مدقق الانجراف).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §4 — fix the seven confirmed S13 findings at their roots with durable failing-first regressions; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S13-MR-001..007 review-fix batch measured on the live tree",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S14-MR004-INVALID-SCHEDULE-20261102-413",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/scheduling/scheduleReads.ts",
+      "from": {
+        "nbLoc": 181,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 206,
+        "band": "NORMAL"
+      },
+      "reason": "S13-MR-004: جدول المواعيد النشطة المعدّل (الموقوف/الملغى لا يحجب حاجة الجدولة) وقائمة invalidScheduleEntries للمواعيد النشطة بقيم غير صالحة.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §4 — fix the seven confirmed S13 findings at their roots with durable failing-first regressions; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S13-MR-001..007 review-fix batch measured on the live tree",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S14-MR006-GRID-ROWS-20261102-414",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/index.css",
+      "from": {
+        "nbLoc": 6778,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 6852,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S13-MR-006: صفوف أسابيع شبكة تقويم الطلبات (رأس + صفوف) بمقاسات مطابقة للشبكة القائمة — خارج عمود مرن وحشو عرض بلا محتوى.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §4 — fix the seven confirmed S13 findings at their roots with durable failing-first regressions; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S13-MR-001..007 review-fix batch measured on the live tree",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S14-MR005-PROPOSAL-VALIDATION-20261102-415",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/DraftEditor.tsx",
+      "from": {
+        "nbLoc": 525,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1043,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S13-MR-005: التحقق من اقتراح CAL-C عند حد الوصلة العميقة بسياسة التاريخ الكنونية مع إعلان صادق عن القيمة غير الصالحة ومزامنة الاقتراح الظاهر مع الوصل الحي.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §4 — fix the seven confirmed S13 findings at their roots with durable failing-first regressions; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S13-MR-001..007 review-fix batch measured on the live tree",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S14-MR003-REAL-DATE-FILTER-20261102-416",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/FinanceUpcoming.tsx",
+      "from": {
+        "nbLoc": 257,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 444,
+        "band": "WATCH"
+      },
+      "reason": "S13-MR-003 + MR-002: التحقق التقويمي الحقيقي لفترة التصفية عند حد الوصل وعند التطبيق مع إعلان دائم خارج اللوحة، وإعادة قراءة المصادر المتعذرة وحدها.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §4 — fix the seven confirmed S13 findings at their roots with durable failing-first regressions; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S13-MR-001..007 review-fix batch measured on the live tree",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S14-MR001-ISOLATED-READS-20261102-417",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/Orders.tsx",
+      "from": {
+        "nbLoc": 439,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1007,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S13-MR-001 + MR-004 + MR-006: عزل قراءتي القائمة والتقويم بحالتين مستقلتين وإعادة محاولة لكل مصدر، ومدخل إصلاح المواعيد النشطة الفاسدة، وشبكة شهرية بصفوف وأسهم RTL ومسار تجوال واحد وعبور حد الشهر.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §4 — fix the seven confirmed S13 findings at their roots with durable failing-first regressions; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S13-MR-001..007 review-fix batch measured on the live tree",
+        "ocRef": "DOC-022"
+      }
     }
   ]
 }
