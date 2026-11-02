@@ -8419,6 +8419,44 @@
         "trigger": "S14 budget work measured on the live tree",
         "ocRef": "DOC-023"
       }
+    },
+    {
+      "id": "S14-A3-SETTINGS-INTEGRITY-LAZY-20261103",
+      "date": "2026-11-03",
+      "path": "apps/prototype-web/client/src/pages/Settings.tsx",
+      "from": {
+        "nbLoc": 704,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 837,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S14 resume order A3 (00-S14-RESUME-PROMPT-2026-11-03.md): the post-replacement integrity check moved from the eager boot context to on-demand construction at its two Settings call sites (lazy-services precedent) — the integrity-check family (~92KB source) left the startup heap, bringing the entry under the fixed 650,000/155,300 ceilings without raising them. Same owners (singleton store + projectFinance/cashContinuity + locally built StatementService), no behavior change; covers and supersedes the S03 anchor (819) on the same from-base.",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S14 execution under fixed bundle ceilings (00-S14-RESUME-PROMPT-2026-11-03.md §1.1/§4 A3 — evidence-supported entry-reachability optimization within existing homes; S12/S13 acceptance at f21bec24 unchanged)",
+        "trigger": "S14 resume execution on components/integration-20261027 / PR #383",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-A3-TOOLS-INTEGRITY-LAZY-20261103",
+      "date": "2026-11-03",
+      "path": "apps/prototype-web/client/src/pages/ToolsIntegrity.tsx",
+      "from": {
+        "nbLoc": 300,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 339,
+        "band": "NORMAL"
+      },
+      "reason": "S14 resume order A3 (00-S14-RESUME-PROMPT-2026-11-03.md): the integrity-check surface builds its service on first open (lazy-services precedent — FinanceUpcoming/loans/assets) with an honest announced loading state for the registered-count paragraph and a ready-gated run button; the check family left the startup heap. Same service, same store, same owners — no behavior change.",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S14 execution under fixed bundle ceilings (00-S14-RESUME-PROMPT-2026-11-03.md §1.1/§4 A3 — evidence-supported entry-reachability optimization within existing homes; S12/S13 acceptance at f21bec24 unchanged)",
+        "trigger": "S14 resume execution on components/integration-20261027 / PR #383",
+        "ocRef": "DOC-023"
+      }
     }
   ]
 }

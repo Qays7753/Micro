@@ -35,7 +35,7 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import { QuickRecordingProvider } from "@/app/quickRecording";
 import { ProfileService } from "@/application/profile/profileService";
 import { FormDraftService } from "@/application/drafts/formDraftService";
@@ -66,6 +66,7 @@ import Home from "@/pages/Home";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
+  getPrototypeLocalStore: vi.fn(),
 }));
 
 /* S02-A (SH-03): باني النسخة الرجوع المُتحقق منها للاختبار — من
@@ -89,6 +90,7 @@ vi.mock("wouter", () => ({
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+const mockedGetStore = vi.mocked(getPrototypeLocalStore);
 
 /* خدمات حقيقية فوق مخزن حقيقي — الهوية والمسودة والسجلات المالية تُقرأ من
  * المخزن نفسه بعد كل فعل؛ لا تخدم نقدية في السياق أصلًا (سلبي DUP-001). */
@@ -113,18 +115,17 @@ const RESTORED_NAME = "مشروع الاستعادة من النسخة";
 function buildDeviceServices(store: PrototypeLocalStore) {
   const projectFinance = new ProjectFinancialService(store);
   const statement = new StatementService(store, projectFinance);
+  /* أمر استئناف S14 (2026-11-03 — A3): الإعدادات تبني فحص السلامة بعد
+   * الاستبدال عند الحاجة فوق المخزن الأحادي ومالكَي المصدر — فيُوفرهما
+   * جهاز الاختبار كما يوفرهما جذر التركيب الحقيقي. */
+  const cashContinuity = new CashContinuityService(store);
   return {
     profiles: new ProfileService(store, clock),
     notifyDataChanged: vi.fn(),
     formDrafts: new FormDraftService(store, clock),
     transfers: new LocalTransferService(store, clock),
     guidedOpeningImport: new GuidedOpeningImportService(store, testBackupBuilder(store), clock),
-    integrityCheck: new IntegrityCheckService(
-      store,
-      projectFinance,
-      statement,
-      new CashContinuityService(store),
-    ),
+    integrityCheck: new IntegrityCheckService(store, projectFinance, statement, cashContinuity),
     preferences: new PreferenceService(store),
     agreements: new AgreementService(store, new CostService(store)),
     inventory: new InventoryMaterialService(store),
@@ -132,6 +133,7 @@ function buildDeviceServices(store: PrototypeLocalStore) {
     catalog: new CatalogService(store),
     actualTime: new ActualTimeService(store),
     projectFinance,
+    cashContinuity,
     homeControlCenter: new HomeControlCenterService(
       store,
       new DailyFollowUpService(store),
@@ -371,6 +373,9 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
     /* جهاز الاختبار: مخزن فارغ بلا هوية + خدمات حقيقية واحدة فوقه. */
     const store = createFormDraftHarness(clock).store;
     const services = buildDeviceServices(store);
+    /* أمر استئناف S14 (2026-11-03 — A3): صفحة الإعدادات تبني فحص ما بعد
+     * الاستبدال فوق المخزن الأحادي — جهاز الاختبار يوجه المخزن نفسه. */
+    mockedGetStore.mockReturnValue(store as never);
     const createSpy = vi.spyOn(services.profiles, "create");
     /* S03: التعديل حدُّ محروس واحد (rename) — لا مسار save أصلًا بعد تقاعده. */
     const renameSpy = vi.spyOn(services.profiles, "rename");
@@ -481,6 +486,9 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
   it("Q01 real rejection: a non-Micro file is rejected by the real 044 boundary — no partial write, no confirm boundary reached, Setup context preserved (Q01/ORG-AC03)", async () => {
     const store = createFormDraftHarness(clock).store;
     const services = buildDeviceServices(store);
+    /* أمر استئناف S14 (2026-11-03 — A3): صفحة الإعدادات تبني فحص ما بعد
+     * الاستبدال فوق المخزن الأحادي — جهاز الاختبار يوجه المخزن نفسه. */
+    mockedGetStore.mockReturnValue(store as never);
     const createSpy = vi.spyOn(services.profiles, "create");
     const replaceSnapshotSpy = vi.spyOn(store, "replaceSnapshot");
     mockedUsePrototypeServices.mockReturnValue(services);

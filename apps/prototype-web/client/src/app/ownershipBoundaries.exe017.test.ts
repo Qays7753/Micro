@@ -125,9 +125,15 @@ describe("EXE-017 — حدود الملكية التقنية (خريطة الم�
     /* قائمة التوافق بعد P-4.2-2 (F03/T4/T5/T6): أدواتي أدوات مستقلة فقط —
      * حُذفت قراءات partyLedger/supplierPurchases (شارات الوحدات) وبطاقة
      * النسخ وصف السوق الميت وقسم حالة الوحدات كله. صفحة ToolsIntegrity
-     * (مسار التوافق /tools/integrity — قرار F05) تستهلك فحص المالية وحده. */
+     * (مسار التوافق /tools/integrity — قرار F05) تستهلك فحص المالية وحده.
+     *
+     * تحديث مؤرخ 2026-11-03 (أمر استئناف S14 — A3): صفحة ToolsIntegrity تبني
+     * فحص المالية نفسه عند أول فتح (نمط الخدمات الكسولة — خارج كومة الإقلاع)
+     * فتستهلك مالكَي المصدر القائمين projectFinance وcashContinuity اللذين
+     * كان السياق يمررهما لخدمة الفحص سابقًا — لا قارئ سجل جديد ولا قراءة
+     * خارج خدمة الفحص المقيمة في بيت المالية (اختبار الإقامة أدناه). */
     const allowedServicesByPage: Record<string, readonly string[]> = {
-      "pages/ToolsIntegrity.tsx": ["integrityCheck"],
+      "pages/ToolsIntegrity.tsx": ["projectFinance", "cashContinuity"],
       /* S10 (DOC-019 — أمر b56967d8): +planningCalculations — دورة حساب T01
        * المحفوظ الكسولة (نفس مخزن التقديرات المستقل؛ سابقة assets/loans)،
        * لا قارئ سجل مالي جديد. */

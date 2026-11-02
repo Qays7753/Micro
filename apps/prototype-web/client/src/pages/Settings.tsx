@@ -18,7 +18,7 @@ import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { withReturnTo } from "@/app/navigationContract";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { getPrototypeLocalStore, usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
 import type { OperatingModeValue } from "@/application/time";
 import type { BoundRestoreIntent, TransferSummary } from "@/application/transfers";
@@ -71,7 +71,11 @@ export default function SettingsPage() {
     catalog,
     dataVersion,
     notifyDataChanged,
-    integrityCheck,
+    /* أمر استئناف S14 (2026-11-03 — A3): مالكات فحص السلامة بعد الاستبدال —
+     * الخدمة نفسها غادرت كومة الإقلاع وتُبنى عند الحاجة من سطحيها (نمط
+     * الخدمات الكسولة)، وهذان المصدران القائمان هما مدخلها الكنوني. */
+    projectFinance,
+    cashContinuity,
     formDrafts,
   } = usePrototypeServices();
   /* S02-B (SH-04 — UNIT-042، إلغاء المالك المعتمد): بوابة الرمز حُذفت كاملة
@@ -84,6 +88,21 @@ export default function SettingsPage() {
     kind: FeedbackKind;
     message: string;
   }>(null);
+  /* أمر استئناف S14 (2026-11-03 — A3): فحص السلامة بعد الاستبدال يُبنى عند
+   * الحاجة فوق المخزن الأحادي والمالكين القائمين نفسهم الذين كانت الخدمة
+   * تُبنى عليهم في السياق — لا مصدر ثانٍ ولا سلوك جديد؛ فقط لحظة البناء
+   * صارت عند أول حاجة فعلية فلا تدخل عائلة الفحوص كومة الإقلاع. */
+  async function runIntegrityCheckAfterReplacement() {
+    const finance = await import("@/application/finance");
+    const store = getPrototypeLocalStore();
+    return new finance.IntegrityCheckService(
+      store,
+      projectFinance,
+      new finance.StatementService(store, projectFinance),
+      cashContinuity,
+    ).run();
+  }
+
   async function copyDiagnosticReport() {
     setDiagnosticCopyResult(null);
     const clipboard = navigator.clipboard;
@@ -589,7 +608,7 @@ export default function SettingsPage() {
     );
     /* المجموعة ٥ (عقد ٣٩): فحص سلامة بعد الاستعادة مباشرة — قراءة جديدة فوق
      * البيانات المستعادة، بلا إصلاح تلقائي؛ النتيجة إجمالية مع رابط للتفاصيل. */
-    const check = await integrityCheck.run();
+    const check = await runIntegrityCheckAfterReplacement();
     setRestoreCheck({
       overall: check.overall,
       note:
@@ -701,7 +720,7 @@ export default function SettingsPage() {
     /* EXE-014 (DATA-001): فحص سلامة بعد الاستيراد الافتتاحي أيضًا — نفس
      * قاعدة الاستعادة الكاملة: قراءة جديدة فوق ما كُتب، بلا إصلاح تلقائي،
      * والنتيجة ظاهرة برابط التفاصيل. */
-    const check = await integrityCheck.run();
+    const check = await runIntegrityCheckAfterReplacement();
     setRestoreCheck({
       overall: check.overall,
       note:

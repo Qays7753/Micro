@@ -184,8 +184,11 @@ describe("Wave 4.4 — P-4.4-4: مصفوفة الحالات — فحص مصدر 
         source.includes("setReloadToken") ||
         source.includes('setState({ phase: "loading" })') ||
         /* ToolsIntegrity: زر «افحص الآن» الدائم تحت رسالة الخطأ هو إعادة
-         * المحاولة نفسها — إعادة تشغيل الفحص قراءة جديدة. */
-        (page === "ToolsIntegrity" && source.includes('disabled={state.phase === "running"}'));
+         * المحاولة نفسها — إعادة تشغيل الفحص قراءة جديدة. (تحديث مؤرخ
+         * 2026-11-03 — أمر استئناف S14 A3: الزر يتعطل أثناء التشغيل أو
+         * تجهيز الخدمة الكسولة — نفس فعل التعافي بشرط جاهزية أصدق.) */
+        (page === "ToolsIntegrity" &&
+          source.includes('disabled={state.phase === "running" || service === null}'));
       expect.soft(hasRecovery, `${page}: لا فعل تعافٍ في شاشة الخطأ`).toBe(true);
     }
   });

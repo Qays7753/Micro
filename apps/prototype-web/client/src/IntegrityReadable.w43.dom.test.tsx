@@ -8,7 +8,7 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { StatementService } from "@/application/finance/statementService";
@@ -20,9 +20,11 @@ import ToolsIntegrity from "@/pages/ToolsIntegrity";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
+  getPrototypeLocalStore: vi.fn(),
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+const mockedGetStore = vi.mocked(getPrototypeLocalStore);
 const now = () => "2026-09-03T09:00:00.000Z";
 
 function buildRealServices(store: MemoryLocalStore) {
@@ -65,8 +67,16 @@ async function seedCorruptedEvent(store: MemoryLocalStore, services: ReturnType<
 }
 
 describe("Wave 4.3 — P-4.3-3 (D9): readable integrity offenders", () => {
-  beforeEach(() => vi.clearAllMocks());
-  afterEach(() => cleanup());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    /* أمر استئناف S14 (2026-11-03 — A3): الصفحة تبني الفحص كسولًا بساعة
+     * النظام — تُثبَّت Date على لحظة الاختبار فيصير التقرير حتميًا. */
+    vi.useFakeTimers({ now: new Date(now()), toFake: ["Date"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    cleanup();
+  });
 
   it("the service enriches offender ids into readable summaries without changing check logic", async () => {
     const store = new MemoryLocalStore();
@@ -100,7 +110,9 @@ describe("Wave 4.3 — P-4.3-3 (D9): readable integrity offenders", () => {
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
+    mockedGetStore.mockReturnValue(store as never);
     render(<ToolsIntegrity />);
+    await screen.findByText(/أرقامك كما هي/);
     fireEvent.click(screen.getByRole("button", { name: /افحص الآن/ }));
     const offender = await screen.findByTestId("integrity-offender-summary");
     /* اسم العملية من خريطة العرض القائمة + التاريخ (نسق العرض المحلي) + المبلغ — لا معرّف خام. */

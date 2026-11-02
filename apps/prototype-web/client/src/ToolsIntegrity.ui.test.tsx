@@ -5,7 +5,7 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { StatementService } from "@/application/finance/statementService";
@@ -16,9 +16,11 @@ import ToolsIntegrity from "@/pages/ToolsIntegrity";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
+  getPrototypeLocalStore: vi.fn(),
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+const mockedGetStore = vi.mocked(getPrototypeLocalStore);
 
 const now = () => "2026-09-03T09:00:00.000Z";
 
@@ -30,9 +32,31 @@ function buildRealServices(store: MemoryLocalStore) {
   return { projectFinance, statement, cashContinuity, integrityCheck };
 }
 
+/* أمر استئناف S14 (2026-11-03 — A3): الصفحة تبني فحص السلامة عند أول فتح
+ * بساعة النظام الافتراضية (نمط الخدمات الكسولة)؛ يُثبَّت مُنشئ Date على
+ * لحظة الاختبار نفسها (toFake: ["Date"] وحدها فتبقى مؤقتات الانتظار حقيقية)
+ * فيصبح تقرير الصفحة حتميًا ومطابقًا لخدمات الاختبار ذات التاريخ المثبت. */
+function freezeAtTestNow() {
+  vi.useFakeTimers({ now: new Date(now()), toFake: ["Date"] });
+}
+
+async function renderReadyPage(store: MemoryLocalStore, services: ReturnType<typeof buildRealServices>) {
+  mockedGetStore.mockReturnValue(store as never);
+  render(<ToolsIntegrity />);
+  /* الخدمة تُحمّل كسولًا — الجاهزية تُثبت بظهور عدّ الفحوص المسجل (TOOL-001). */
+  await screen.findByText(/أرقامك كما هي/);
+  return services;
+}
+
 describe("ToolsIntegrity page (فحص سلامة مالي)", () => {
-  beforeEach(() => vi.clearAllMocks());
-  afterEach(() => cleanup());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    freezeAtTestNow();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    cleanup();
+  });
 
   it("idle state promises read-only, run renders the verdict and check cards, and the store is untouched", async () => {
     const store = new MemoryLocalStore();
@@ -52,7 +76,7 @@ describe("ToolsIntegrity page (فحص سلامة مالي)", () => {
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
-    render(<ToolsIntegrity />);
+    await renderReadyPage(store, services);
 
     /* الحالة الابتدائية: الوعد المعلن + لم يُجرَ الفحص بعد. */
     expect(screen.getByText("يقرأ أرقامك ولا يغيّر شيئًا.")).toBeTruthy();
@@ -113,7 +137,7 @@ describe("ToolsIntegrity page (فحص سلامة مالي)", () => {
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
-    render(<ToolsIntegrity />);
+    await renderReadyPage(store, services);
     fireEvent.click(screen.getByRole("button", { name: /افحص الآن/ }));
     expect(await screen.findByText(/يوجد خلل يحتاج تصحيحًا موثقًا/)).toBeTruthy();
     expect(screen.getAllByText("خلل").length).toBeGreaterThan(0);

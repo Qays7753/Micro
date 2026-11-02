@@ -12,7 +12,7 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
@@ -24,6 +24,7 @@ import { canonicalReturnFor } from "@/app/navigationContract";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
+  getPrototypeLocalStore: vi.fn(),
 }));
 
 const wouterMocks = vi.hoisted(() => ({ navigate: vi.fn(), location: "/finance/more" }));
@@ -38,6 +39,7 @@ vi.mock("wouter", () => ({
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+const mockedGetStore = vi.mocked(getPrototypeLocalStore);
 
 function renderAt(location: string) {
   wouterMocks.location = location;
@@ -47,13 +49,13 @@ function renderAt(location: string) {
 
 describe("P-4.2-4 — سطح «المالية ← المزيد» وREV-003", () => {
   beforeEach(() => {
+    /* أمر استئناف S14 (2026-11-03 — A3): فحص السلامة غادر السياق المتيقظ —
+     * الصفحة تبنيه كسولًا فوق مخزن الاختبار والمالكين القائمين نفسهم. */
+    const integrityStore = new MemoryLocalStore();
+    mockedGetStore.mockReturnValue(integrityStore as never);
     mockedUsePrototypeServices.mockReturnValue({
-      integrityCheck: new IntegrityCheckService(
-        new MemoryLocalStore(),
-        new ProjectFinancialService(new MemoryLocalStore()),
-        new StatementService(new MemoryLocalStore(), new ProjectFinancialService(new MemoryLocalStore())),
-        new CashContinuityService(new MemoryLocalStore()),
-      ),
+      projectFinance: new ProjectFinancialService(integrityStore),
+      cashContinuity: new CashContinuityService(integrityStore),
     } as unknown as ReturnType<typeof usePrototypeServices>);
   });
 

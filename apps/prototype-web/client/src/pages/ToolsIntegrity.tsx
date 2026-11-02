@@ -7,11 +7,11 @@
  * يشير والتصحيح مساره الموثق في أسطحه الأصلية.
  */
 import { AlertTriangle, ArrowRight, CheckCircle2, CircleSlash, OctagonX, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { getPrototypeLocalStore, usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { financialEventLabel } from "@/presentation/financialEventLabels";
 import {
@@ -25,6 +25,7 @@ import type {
   IntegrityCheckResult,
   IntegrityOffenderSummary,
   IntegrityCheckStatus,
+  IntegrityCheckService,
 } from "@/application/finance";
 
 import { Button } from "@/components/primitives";
@@ -57,15 +58,48 @@ function countStatusTotals(checks: readonly IntegrityCheckResult[]) {
 export default function ToolsIntegrity() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
-  const { integrityCheck } = usePrototypeServices();
+  const { projectFinance, cashContinuity } = usePrototypeServices();
   const [state, setState] = useState<State>({ phase: "idle" });
+  /* أمر استئناف S14 (2026-11-03 — A3، منع الوصول غير اللازم لكومة الإقلاع):
+   * عائلة فحوص السلامة تُحمّل عند أول فتح (نمط الخدمات الكسولة — سابقة
+   * المتابعة/القروض/الأصول) فلا تدخل كومة الإقلاع؛ الخدمة تُبنى فوق المخزن
+   * الأحادي والمالكين القائمين (النتيجة المسجلة والكشف) بلا مصدر ثانٍ.
+   * التحميل حالة معلنة صادقة — لا زر معطّل بصمت ولا عدّ مختلق قبل الجاهزية. */
+  const [service, setService] = useState<IntegrityCheckService | null>(null);
+  const [serviceError, setServiceError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    import("@/application/finance")
+      .then(finance => {
+        if (!active) return;
+        const store = getPrototypeLocalStore();
+        setService(
+          new finance.IntegrityCheckService(
+            store,
+            projectFinance,
+            new finance.StatementService(store, projectFinance),
+            cashContinuity,
+          ),
+        );
+        setServiceError(null);
+      })
+      .catch(() => {
+        if (!active) return;
+        setServiceError("تعذّر تجهيز الفحص — أعد المحاولة.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [projectFinance, cashContinuity]);
 
   async function runCheck() {
+    if (service === null) return;
     setState({ phase: "running" });
     try {
       /* الخدمة تُرجع تقريرًا دائمًا (أعطال القراءة تظهر كفحوص خلل لا كاستثناء) —
        * الالتزام بالحماية هنا للأخطاء غير المتوقعة فقط. */
-      const report = await integrityCheck.run();
+      const report = await service.run();
       setState({ phase: "done", report });
     } catch (error) {
       setState({
@@ -96,16 +130,22 @@ export default function ToolsIntegrity() {
       <div className="micro-page-heading">
         <span className="micro-overline">أداة قراءة</span>
         <h1>سلامة الحسابات</h1>
-        <p>
-          {`${formatArabicPlural(integrityCheck.registeredCheckCount(), {
-            zero: "لا فحوص مسجلة بعد",
-            one: "فحص واحد يقرأ",
-            two: "فحصان يقرآن",
-            few: "فحوص تقرأ",
-            many: "فحصًا يقرأ",
-            other: "فحصًا يقرأ",
-          })} أرقامك كما هي — النتيجة والكاش والأحداث والأمانات والمخزون والأصول والقروض والعربون.`}
-        </p>
+        {/* TOOL-001: العدّ مشتق من سجل الخدمة نفسه — يظهر عند جاهزيتها؛ قبله
+         * حالة تجهيز معلنة لا عدّ مختلقًا ولا زرًّا يوهم الجاهزية. */}
+        {service === null ? (
+          <p role="status">{serviceError === null ? "تُجهَّز قائمة الفحوص…" : serviceError}</p>
+        ) : (
+          <p>
+            {`${formatArabicPlural(service.registeredCheckCount(), {
+              zero: "لا فحوص مسجلة بعد",
+              one: "فحص واحد يقرأ",
+              two: "فحصان يقرآن",
+              few: "فحوص تقرأ",
+              many: "فحصًا يقرأ",
+              other: "فحصًا يقرأ",
+            })} أرقامك كما هي — النتيجة والكاش والأحداث والأمانات والمخزون والأصول والقروض والعربون.`}
+          </p>
+        )}
       </div>
       <section className="micro-decision-card" aria-label="وعد الفحص">
         <ShieldCheck aria-hidden="true" />
@@ -164,7 +204,7 @@ export default function ToolsIntegrity() {
             <Button
               action="save"
 
-              disabled={state.phase === "running"}
+              disabled={state.phase === "running" || service === null}
               onClick={() => void runCheck()}
             >
               <ShieldCheck aria-hidden="true" />

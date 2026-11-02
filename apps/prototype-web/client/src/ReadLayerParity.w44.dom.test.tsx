@@ -15,7 +15,7 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
@@ -42,6 +42,7 @@ import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
+  getPrototypeLocalStore: vi.fn(),
 }));
 
 const wouterMocks = vi.hoisted(() => ({
@@ -56,6 +57,7 @@ vi.mock("wouter", () => ({
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+const mockedGetStore = vi.mocked(getPrototypeLocalStore);
 const NOW = "2026-09-16T09:00:00.000Z";
 const now = () => NOW;
 
@@ -64,9 +66,14 @@ let store: MemoryLocalStore;
 beforeEach(() => {
   store = new MemoryLocalStore();
   wouterMocks.navigate.mockReset();
+  /* أمر استئناف S14 (2026-11-03 — A3): صفحة فحص السلامة تبني الخدمة كسولًا
+   * بساعة النظام — تُثبَّت Date على لحظة الاختبار فيصير التقرير حتميًا. */
+  vi.useFakeTimers({ now: new Date(NOW), toFake: ["Date"] });
+  mockedGetStore.mockReturnValue(store as never);
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   cleanup();
   vi.clearAllMocks();
 });
@@ -393,6 +400,7 @@ describe("Wave 4.4 — P-4.4-1: integrity dead identifiers button removed after 
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
     render(<ToolsIntegrity />);
+    await screen.findByText(/أرقامك كما هي/);
     fireEvent.click(screen.getByRole("button", { name: /افحص الآن/ }));
     await screen.findByTestId("integrity-offender-summary");
     /* الزر الميت أُزيل — المعرّفات الخام الاحتياطية (إن بقيت) تظهر داخل التفصيل بلا زر. */

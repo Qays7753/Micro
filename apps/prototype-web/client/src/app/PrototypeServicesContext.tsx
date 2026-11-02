@@ -74,8 +74,6 @@ import { PeriodComparisonService } from "@/application/finance";
 import { ProfitToCashBridgeService } from "@/application/finance";
 export type { PeriodComparisonReading } from "@/application/finance";
 export type { ProfitToCashBridgeReading } from "@/application/finance";
-/* المجموعة ١ (فحص سلامة مالي): خدمة قراءة فقط فوق القارئ الكنسي والكشف والمحافظ. */
-import { IntegrityCheckService } from "@/application/finance";
 /* Stage 2 — OPS-001 (tracker): مواعيد الاستحقاق والتقادم الأساسي — قراءة فقط. */
 import { DueDatesService } from "@/application/finance";
 /* Stage 2 — OPS-005/006 (tracker): القارئ الموحد للقادم والمتأخر — قراءة فقط. */
@@ -180,8 +178,11 @@ type PrototypeServices = {
   profitToCashBridge: ProfitToCashBridgeService;
   /* المجموعة ٥ (عقد ٣٠): القارئ الموحّد — «آخر ما حدث» في الرئيس ومالي. */
   activity: ActivityService;
-  /* المجموعة ١ (فحص سلامة مالي): قراءة فقط — «يقرأ أرقامك ولا يغيّر شيئًا». */
-  integrityCheck: IntegrityCheckService;
+  /* المجموعة ١ (فحص سلامة مالي — أمر استئناف S14 2026-11-03 A3): الخدمة
+   * غادرت كومة الإقلاع — عائلة فحوص السلامة (~92KB مصدرًا) تُحمّل عند أول
+   * فتح من سطحيها (الإعدادات بعد الاستعادة/الإدخال الافتتاحي وصفحة فحص
+   * السلامة) بنمط الخدمات الكسولة نفسه (سابقة المتابعة/القروض/الأصول)،
+   * فلا تصل لتجميد الإقلاع طريق إليها. */
   /* المجموعة ٤ (عقد ٢٩): الأصول والإهلاك وتصنيف العربون المحتفظ به — كتابة
    * الأحداث المالية من هنا فقط لا من أي صفحة. القروض الصادرة عبر التحميل
    * الخامل: null يعني «جارٍ التجهيز» (نمط transfers) لا فشلًا صامتًا. */
@@ -558,7 +559,6 @@ function createServices(): Omit<
     periodComparison,
     profitToCashBridge,
     activity,
-    integrityCheck: new IntegrityCheckService(store, projectFinance, statement, cashContinuity),
     retainedDeposits: new RetainedDepositService(store),
   };
 }
