@@ -36,20 +36,22 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-11-01",
-  "updated_at": "2026-11-02",
-  "next_action": "تصحيحات S13 السبعة المأذونة بأمر ba2ce7b4 §4 على components/integration-20261027 / PR #383 ثم العودة إلى حالة مراجعة صادقة؛ لا merge ولا كتابة على main.",
+  "updated_at": "2026-11-03",
+  "next_action": "S12 مقبولة على فرع التكامل؛ لا إجراء إضافي دون دليل جديد. استمرار S14 مستقل ومشروط بحسم عائق gzip؛ لا merge ولا كتابة على main.",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S12-EXECUTION-PROMPT-2026-11-01.md المنشور في 2e6458021d1d146b54d7d2655291bf2404ddc8d7؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
     "تصحيح S11-MR-001/MR-002 أُنجز أولًا (eb23311e + الملحق 16a) وDOC-020 عادت IN_REVIEW بتحولات قانونية.",
     "ملكية UNIT-026 هنا محول الطلب وحده: لا إعادة بناء قدرة التحصيل المشتركة ولا محول البيع المباشر (S11).",
     "بوابة ما بعد المجموعة ٦: لا حركة هيكلية من مسح S11 (كل الموجات NOT_EXECUTED)؛ النمط الكسول القائم محفوظ.",
-    "المخطط/التصدير: لا ترقية إن لم يتطلب السلك الدائم تغييرًا؛ أي تغيير مبرر يستوفي دورة التوافق كاملة في نفس التنفيذ."
+    "المخطط/التصدير: لا ترقية إن لم يتطلب السلك الدائم تغييرًا؛ أي تغيير مبرر يستوفي دورة التوافق كاملة في نفس التنفيذ.",
+    "S12 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-02؛ المراجعة الخفيفة السابقة PASS حسب تأكيد المالك، والتصحيح 6dbbc425bc34b9ec39e2034782089cd67855e6fd موثق في docs/implementation/micro-component-execution/17b-S12-REVIEW-ADDENDUM-2026-11-02.md (ff45da900154f80491b9b5b79114695fca18e2e4). تبقى حالة Workstream REVIEW_REQUIRED لتحرير الملكية؛ لا تعني VERIFIED على main ولا دمجًا."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S12-EXECUTION-PROMPT-2026-11-01.md",
     "https://github.com/Qays7753/Micro/pull/383",
-    "docs/implementation/micro-component-execution/16a-S11-REVIEW-ADDENDUM-2026-11-01.md"
+    "docs/implementation/micro-component-execution/16a-S11-REVIEW-ADDENDUM-2026-11-01.md",
+    "docs/implementation/micro-component-execution/17b-S12-REVIEW-ADDENDUM-2026-11-02.md"
   ],
   "status_history": [
     {

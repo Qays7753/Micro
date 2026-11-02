@@ -324,7 +324,7 @@
 
 ### S12 — اتفاق الطلب وتنفيذه وتسليمه وتسويته
 
-**الحالة:** EXECUTED_DELIVERED_LOCAL_CHAIN_GREEN (أمر 2e645802 المنشور 2026-11-01؛ DOC-021/WS-237 في IN_REVIEW/REVIEW_REQUIRED عند التسليم — لا يعني التنفيذ قبولًا). النتيجة: `17-S12-RESULT-2026-11-01.md`.
+**الحالة:** ACCEPTED_ON_INTEGRATION (قبول المالك 2026-11-02 بعد مراجعة Manus الخفيفة السابقة؛ تصحيح الذرية عند `6dbbc425` وملحق `17b-S12-REVIEW-ADDENDUM-2026-11-02.md`). تبقى DOC-021/WS-237 بحالتي IN_REVIEW/REVIEW_REQUIRED وفق نموذج Control؛ ليس VERIFIED على main ولا دمجًا. النتيجة: `17-S12-RESULT-2026-11-01.md`.
 
 **المواصفات:** [UNIT-009](02-SPECIFICATIONS/03-New-Design/UNIT-009-الاتفاق-والعربون.md)، [UNIT-010](02-SPECIFICATIONS/03-New-Design/UNIT-010-تفاصيل-الطلب.md)، [UNIT-011](02-SPECIFICATIONS/03-New-Design/UNIT-011-مراجعة-التسليم.md)، [UNIT-026](02-SPECIFICATIONS/03-New-Design/UNIT-026-تسجيل-دفعة-على-مستحق.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -350,7 +350,7 @@
 
 ### S13 — إدارة الطلبات والتقويم والمتابعة الموحدة
 
-**الحالة:** EXECUTED_DELIVERED_LOCAL_CHAIN_GREEN (أمر 2158b0fc المتصل المنشور 2026-11-01، المنفذ 2026-11-02: fix-first كامل بمُلحقَي 16b/17a ثم UNIT-006/012/018 + SH-17؛ DOC-022/WS-238 في IN_REVIEW/REVIEW_REQUIRED عند التسليم — لا يعني التنفيذ قبولًا). النتيجة: `18-S13-RESULT-2026-11-01.md`.
+**الحالة:** ACCEPTED_ON_INTEGRATION (قبول المالك 2026-11-02 بعد مراجعة Manus الخفيفة السابقة؛ التصحيحات السبعة عند `3c3ea798` وملحق `18a-S13-REVIEW-ADDENDUM-2026-11-02.md`). تبقى DOC-022/WS-238 بحالتي IN_REVIEW/REVIEW_REQUIRED وفق نموذج Control؛ ليس VERIFIED على main ولا دمجًا. النتيجة: `18-S13-RESULT-2026-11-01.md`.
 
 **المواصفات:** [UNIT-006](02-SPECIFICATIONS/03-New-Design/UNIT-006-العمل.md)، [UNIT-012](02-SPECIFICATIONS/03-New-Design/UNIT-012-المواعيد-والمتابعات.md)، [UNIT-018](02-SPECIFICATIONS/03-New-Design/UNIT-018-المتابعة-المالية.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -376,7 +376,7 @@
 
 ### S14 — بدء التسجيل من الماضي والعودة بعد الانقطاع
 
-**الحالة:** PLANNED_REVIEW؛ أمر S14 الكنسي منشور في `00-S14-EXECUTION-PROMPT-2026-11-02.md`، والتنفيذ لم يبدأ بعد. لا ينشأ فرع مرحلة؛ العمل يبقى على فرع التكامل الوحيد.
+**الحالة:** IN_PROGRESS — OWNER_DECISION_REQUIRED. التنفيذ المحلي عند `6af8f2db` يقيس gzip `155,688` مقابل السقف الثابت `155,300` (زيادة 388 بايت)؛ الرأس المنشور `e4c17f296ca170f306dc13c2cb1f11d3d7f960e0` يفشل في بوابة bundle budget. لا ترفع السقف ولا تبدأ تغييرًا بنيويًا قبل قرار المالك؛ لا يتغير فرع التكامل أو PR #383.
 
 **المواصفات:** [UNIT-002](02-SPECIFICATIONS/03-New-Design/UNIT-002-استكمال-بيانات-المشروع.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
