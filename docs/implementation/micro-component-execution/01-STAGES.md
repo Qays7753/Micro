@@ -376,7 +376,7 @@
 
 ### S14 — بدء التسجيل من الماضي والعودة بعد الانقطاع
 
-**الحالة:** PLANNED_REVIEW؛ لا فرع مرحلة ولا أمر منشور.
+**الحالة:** PLANNED_REVIEW؛ أمر S14 الكنسي منشور في `00-S14-EXECUTION-PROMPT-2026-11-02.md`، والتنفيذ لم يبدأ بعد. لا ينشأ فرع مرحلة؛ العمل يبقى على فرع التكامل الوحيد.
 
 **المواصفات:** [UNIT-002](02-SPECIFICATIONS/03-New-Design/UNIT-002-استكمال-بيانات-المشروع.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
