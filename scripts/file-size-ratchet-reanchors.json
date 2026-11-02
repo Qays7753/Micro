@@ -7735,6 +7735,44 @@
         "trigger": "S13 review-1 remediation measured on the live tree",
         "ocRef": "DOC-022"
       }
+    },
+    {
+      "id": "S13-R4-F01-REVIEW-FIX-20261102-408",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/Orders.tsx",
+      "from": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 782,
+        "band": "WATCH"
+      },
+      "reason": "S13-R4-F01/F02 (تصحيح المراجعة الرابعة لأمر 2158b0fc §9، متسلسل من إرساء 394): إزاحة الشهر بالمساعد الكنوني بدل كائن Date الخام، ومدخل «طلبات بموعد يحتاج تصحيحًا» الصادق في التقويم واستثناء الفاسد من تصفية «له موعد معلن» — الحقيقة الرابعة معلنة لا مخلوطة.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §9 — repair every confirmed in-scope finding and rerun affected gates; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 review-4 remediation measured on the live tree",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S13-R4-F02-REVIEW-FIX-20261102-409",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/scheduling/scheduleReads.ts",
+      "from": {
+        "nbLoc": 181,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 190,
+        "band": "NORMAL"
+      },
+      "reason": "S13-R4-F02 (تصحيح المراجعة الرابعة، متسلسل من إرساء 401): الحقيقة الرابعة المستقلة — دلو invalidDateOrders في مجتمع القراءة؛ الفاسد لا يُخلط بلا موعد ولا بموعد معلوم.",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §9 — repair every confirmed in-scope finding and rerun affected gates; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 review-4 remediation measured on the live tree",
+        "ocRef": "DOC-022"
+      }
     }
   ]
 }
