@@ -34,6 +34,10 @@ export type ScheduleCommunity = {
   datedUnscheduled: readonly StoredCraftOrder[];
   /** طلبات حية بلا موعد معلن — مدخلها الواضح في القائمة والتقويم. */
   noDateOrders: readonly StoredCraftOrder[];
+  /** S13-R4-F02 (تصحيح المراجعة الرابعة): طلبات حية بموعد غير صالح —
+   * حقيقة رابعة مستقلة لا تُخلط بلا موعد (له قيمة) ولا بموعد معلوم
+   * (قيمته فاسدة)؛ تُعرض باسمها وتصحيحها عند مالكها. */
+  invalidDateOrders: readonly StoredCraftOrder[];
   orders: readonly StoredCraftOrder[];
 };
 
@@ -68,9 +72,10 @@ export async function readScheduleCommunity(store: ScheduleReadStore): Promise<S
     }
     entries.push({ schedule, order, derivedStatus });
   }
-  /* الطلبات الحية بلا موعد مخزن: المعلن موعده يظهر «تحتاج جدولة» (إصلاح
-   * صريح عند 012)؛ والمجهول موعده (null) مدخله الواضح — لا تاريخ اليوم
-   * ولا 00:00 ولا تصنيف الفشل كغياب. */
+  /* الطلبات الحية بلا موعد مخزن: المعلن موعده (صالحًا) يظهر «تحتاج جدولة»
+   * (إصلاح صريح عند 012)؛ والمجهول موعده (null) مدخله الواضح؛ وذي الموعد
+   * غير الصالح حقيقة رابعة مستقلة (S13-R4-F02) — لا تاريخ اليوم ولا
+   * 00:00 ولا خلط الفاسد بالغياب. */
   const scheduledOrderIds = new Set(
     entries
       .map(entry => entry.schedule.orderId)
@@ -78,14 +83,18 @@ export async function readScheduleCommunity(store: ScheduleReadStore): Promise<S
   );
   const datedUnscheduled: StoredCraftOrder[] = [];
   const noDateOrders: StoredCraftOrder[] = [];
+  const invalidDateOrders: StoredCraftOrder[] = [];
   for (const order of orders) {
     if (!orderLive(order)) continue;
     if (scheduledOrderIds.has(order.id)) continue;
     if (order.deliveryDate === null) noDateOrders.push(order);
     else if (isValidLocalDate(order.deliveryDate)) datedUnscheduled.push(order);
-    else noDateOrders.push(order);
+    else invalidDateOrders.push(order);
   }
-  return { ok: true, value: { entries, completedOrClosedCount, datedUnscheduled, noDateOrders, orders } };
+  return {
+    ok: true,
+    value: { entries, completedOrClosedCount, datedUnscheduled, noDateOrders, invalidDateOrders, orders },
+  };
 }
 
 /** موعد قراءة صالح للعرض النشط — الحالة المشتقة نشطة والطلب حي. */

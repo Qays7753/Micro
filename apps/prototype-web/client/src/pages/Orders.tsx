@@ -10,7 +10,15 @@
  * لا وقت 00:00 لموعد بلا وقت، ولا تاريخ اليوم للمجهول، و«بلا موعد»
  * والتاريخ التالف وفشل القراءة ثلاث حقائق مختلفة (ORD-A4/ORD-D2).
  */
-import { CalendarDays, ChevronLeft, ClipboardPlus, Plus, Search, SlidersHorizontal } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronLeft,
+  CircleAlert,
+  ClipboardPlus,
+  Plus,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
@@ -21,7 +29,7 @@ import { LocalDateValue, MoneyValue, TimeValue } from "@/components/presentation
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
 import { formatLocalDate, formatMonthLabel, localDateWeekdayIndex } from "@/presentation/formatters";
 import { todayInAmman } from "@/application/time";
-import { localDatePlusDays } from "@/presentation/formatters";
+import { isValidLocalDate, localDatePlusDays, localDatePlusMonthsClamped } from "@/presentation/formatters";
 import type { OrderDraft, StoredCraftOrder } from "@/storage/local/types";
 import {
   readScheduleCommunity,
@@ -68,7 +76,9 @@ function filterOrders(
   const query = filter.query.trim();
   const scoped = ordersInScope(orders, filter.scope);
   const filtered = scoped.filter(order => {
-    if (filter.datePresence === "dated" && order.deliveryDate === null) return false;
+    /* S13-R4-F02: «له موعد معلن» = تاريخ صالح فقط — الفاسد حقيقة ثالثة
+     * لا تدخل «معلن» ولا «بلا موعد»؛ تظهر في «الكل» وتصحح عند مالكها. */
+    if (filter.datePresence === "dated" && !isValidLocalDate(order.deliveryDate ?? "")) return false;
     if (filter.datePresence === "undated" && order.deliveryDate !== null) return false;
     if (query === "") return true;
     const haystack = `${order.order.itemName} ${order.order.customerName ?? ""}`.trim();
@@ -762,6 +772,23 @@ function OrdersCalendar({
           </span>
           <ChevronLeft aria-hidden="true" />
         </button>
+        {/* S13-R4-F02: الموعد غير الصالح حقيقة مستقلة — تُعلن باسمها لا
+            تُخفى في «بلا موعد» ولا تُعد «معلنًا»؛ تصحيحها عند مالكها. */}
+        {community.invalidDateOrders.length > 0 ? (
+          <button className="micro-draft-row" type="button" onClick={() => onOpen("/orders")}>
+            <span className="micro-draft-symbol">
+              <CircleAlert aria-hidden="true" />
+            </span>
+            <span>
+              <strong>طلبات بموعد يحتاج تصحيحًا</strong>
+              <small>
+                {community.invalidDateOrders.length} طلبًا بقيمة موعد غير صالحة — القيمة محفوظة كما هي
+                وتصحيحها من الطلب نفسه.
+              </small>
+            </span>
+            <ChevronLeft aria-hidden="true" />
+          </button>
+        ) : null}
         {ordersEntryEnabled ? (
           /* CAL-C: اليوم المختار يصل اقتراحًا ظاهرًا قابلًا للتعديل/الإزالة —
            * لا حفظ من الفتح ولا حقل خفي ولا حجز يوم. */
@@ -781,10 +808,8 @@ function OrdersCalendar({
   );
 }
 
+/* S13-R4-F01 (تصحيح المراجعة الرابعة): إزاحة الشهر بالمساعد الكنوني
+ * (مالك حساب التاريخ) — لا كائن Date خام ولا حساب UTC هنا. */
 function shiftMonth(anchor: string, offset: number): string {
-  const base = new Date(`${anchor}-15T00:00:00Z`);
-  base.setUTCMonth(base.getUTCMonth() + offset);
-  const year = base.getUTCFullYear();
-  const month = String(base.getUTCMonth() + 1).padStart(2, "0");
-  return `${year}-${month}-15`;
+  return localDatePlusMonthsClamped(anchor, offset) ?? anchor;
 }

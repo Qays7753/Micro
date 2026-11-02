@@ -297,6 +297,29 @@ describe("S13 — وجهة الطلبات (UNIT-006)", () => {
     expect(wouterMocks.navigate).toHaveBeenCalledWith(expect.stringContaining("propose=2026-11-20"));
   });
 
+  it("S13-R4-F02: الموعد غير الصالح حقيقة معلنة — مدخل خاص في التقويم ولا يدخل «له موعد معلن»", async () => {
+    mockServices([
+      savedOrder("order-valid", { deliveryDate: "2026-11-20" }),
+      savedOrder("order-invalid", { deliveryDate: "2026-13-45" }),
+    ]);
+    render(<Orders />);
+    await screen.findByText("طلب order-valid");
+    /* القائمة تعرض الصفين — القيمة الفاسدة لا تُستبدل بتاريخ ولا تخفى. */
+    expect(screen.getByText("طلب order-invalid")).toBeTruthy();
+    /* التصفية «له موعد معلن» ت排除 الفاسد — المعلن صالح فقط. */
+    fireEvent.click(screen.getByRole("button", { name: /تصفية/ }));
+    fireEvent.click(screen.getByRole("radio", { name: "له موعد معلن" }));
+    fireEvent.click(screen.getByRole("button", { name: "تطبيق" }));
+    await waitFor(() => expect(screen.queryByText("طلب order-invalid")).toBeNull());
+    expect(screen.getByText("طلب order-valid")).toBeTruthy();
+    /* التقويم: مدخل صريح باسم الحقيقة — لا يُخلط بمدخل «بلا موعد». */
+    fireEvent.click(screen.getByRole("button", { name: /تصفية/ }));
+    fireEvent.click(screen.getByRole("button", { name: /إعادة ضبط/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /التقويم/ }));
+    await screen.findByText(/طلبات بموعد يحتاج تصحيحًا/);
+    expect(screen.getByText(/قيمة موعد غير صالحة/)).toBeTruthy();
+  });
+
   it("فشل القراءة: رسالة المنطقة وإعادة محاولة — لا فراغ شامل كاذب", async () => {
     mockedUsePrototypeServices.mockReturnValue({
       dailyFollowUp: { read: vi.fn().mockResolvedValue({ ok: false, message: "تعذر القراءة." }) },

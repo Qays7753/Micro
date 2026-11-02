@@ -122,6 +122,21 @@ describe("S13 — القراءة النقية لمجتمع المواعيد (sch
     expect(result.value.datedUnscheduled.map(order => order.id)).toEqual(["order-dated"]);
   });
 
+  it("S13-R4-F02: الموعد غير الصالح حقيقة رابعة — لا يُخلط بلا موعد ولا بموعد معلوم", async () => {
+    const store = new MemoryLocalStore();
+    await store.saveOrder(makeOrder("order-nodate", "in_progress", null));
+    await store.saveOrder(makeOrder("order-dated", "in_progress", "2026-11-15"));
+    /* قيمة فاسدة (شهر 13) — الكاتب يرفضها والاستيراد يرفضها قبل الكتابة؛
+     * هذا التصنيف القرائي صدق العرض عند وجودها مهما كان مصدرها. */
+    await store.saveOrder(makeOrder("order-invalid", "in_progress", "2026-13-45"));
+    const result = await readScheduleCommunity(store);
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.message);
+    expect(result.value.noDateOrders.map(order => order.id)).toEqual(["order-nodate"]);
+    expect(result.value.datedUnscheduled.map(order => order.id)).toEqual(["order-dated"]);
+    expect(result.value.invalidDateOrders.map(order => order.id)).toEqual(["order-invalid"]);
+  });
+
   it("نوافذ شهر/أسبوع/يوم من المجتمع نفسه — وقت بلا ساعة يبقى بلا 00:00", async () => {
     const store = new MemoryLocalStore();
     await store.saveOrder(makeOrder("order-c", "in_progress", "2026-11-10"));
