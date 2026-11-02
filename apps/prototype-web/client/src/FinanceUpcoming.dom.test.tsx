@@ -126,9 +126,20 @@ async function mockPage(services: Awaited<ReturnType<typeof realStoreServices>>)
 }
 
 describe("S13 — سطح المتابعة الموحدة (UNIT-018)", () => {
-  afterEach(() => cleanup());
+  afterEach(() => {
+    vi.useRealTimers();
+    cleanup();
+  });
 
   beforeEach(() => {
+    /* حتمية الزمن المحيط (جذر فشل CI على f21bec24 — 12 اختبارًا): الصفحة
+     * تبني القارئ الموحد بساعة النظام الافتراضية (systemClock هو الحد
+     * المسمى الوحيد للزمن المحيط — STR-618/R2-M11)، والاختبار يزرع مواعيده
+     * حول NOW ثابتة؛ فما إن يتقدم تاريخ عمّان الحقيقي يومًا واحدًا حتى
+     * تنجرف دلاء اليوم/متأخر ويصبح «اليوم (1)» متأخرًا. يُثبَّت مُنشئ Date
+     * على NOW (toFake: ["Date"] وحدها) فتبقى مؤقتات انتظار RTL حقيقية
+     * وتصير كل التوكيدات مستقلة عن تاريخ تشغيل الاختبار. */
+    vi.useFakeTimers({ now: new Date(NOW), toFake: ["Date"] });
     wouterMocks.navigate.mockReset();
     wouterMocks.search = "";
   });
@@ -476,6 +487,27 @@ describe("S13 — سطح المتابعة الموحدة (UNIT-018)", () => {
     render(<FinanceUpcoming />);
     const alert = await screen.findByRole("alert");
     expect(alert.textContent).toContain("الفترة المخصصة غير صالحة");
+  });
+
+  /* ─── حتمية الزمن المحيط (أمر استئناف S14 2026-11-03 — A2): تغطية ───
+   * ─── دائمة لعقد الساعة المحيطة للسطح نفسه                      ─── */
+
+  it("دلو اليوم مشتق من ساعة النظام المحيطة — تقدم اليوم الحقيقي يعيد التصنيف بعدد صادق", async () => {
+    const services = await realStoreServices(
+      [makeStoredOrder("order-day", { deliveryDate: "2026-11-02" })],
+      [{ id: "schedule-day", orderId: "order-day", date: "2026-11-02" }],
+    );
+    await mockPage(services);
+    render(<FinanceUpcoming />);
+    expect(await screen.findByText("اليوم (1)")).toBeTruthy();
+    cleanup();
+    /* تقدّم اليوم الحقيقي يومًا واحدًا (NOW → NOW+يوم): الموعد نفسه لم يعد
+     * اليوم — يصبح متأخرًا بعدد صادق ولا يبقى دلو اليوم الفارغ معلنًا.
+     * هذا يثبت أن التصنيف يقرأ الساعة المحيطة لا تاريخًا مثبتًا. */
+    vi.setSystemTime(new Date("2026-11-03T09:00:00.000Z"));
+    render(<FinanceUpcoming />);
+    expect(await screen.findByText("متأخر (1)")).toBeTruthy();
+    expect(screen.queryByText("اليوم (1)")).toBeNull();
   });
 
   it("S13-MR-003: قيمة يدوية مستحيلة تُرفض — والفترة السابقة باقية كما هي", async () => {
