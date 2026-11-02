@@ -8381,6 +8381,44 @@
         "trigger": "S14 door surfaces measured on the live tree",
         "ocRef": "DOC-023"
       }
+    },
+    {
+      "id": "S14-FOUNDATION-D035-20261102-441",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/Foundation.tsx",
+      "from": {
+        "nbLoc": 328,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 785,
+        "band": "WATCH"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5): (رحلة الاستكمال في بيتها)",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the entry-budget root work: lazy coordinator/boundary, single import site, helper relocation). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S14 budget work measured on the live tree",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-LIFECYCLE-HELPER-20261102-442",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+      "from": {
+        "nbLoc": 112,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 123,
+        "band": "NORMAL"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5): (guardedSuccessListener انتقل إليها مصدَّرًا — نفس الجسم حرفيًا)",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the entry-budget root work: lazy coordinator/boundary, single import site, helper relocation). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S14 budget work measured on the live tree",
+        "ocRef": "DOC-023"
+      }
     }
   ]
 }

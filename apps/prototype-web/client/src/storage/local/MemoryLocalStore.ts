@@ -1,14 +1,9 @@
 /** Test adapter only. It mirrors the LocalStore port without making browser APIs part of application tests. */
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 /* S14 (DOC-023 / العقد المشترك §7.1/§14.1 — أمر ba2ce7b4 §5): ملخص الفترة
- * وإيصال الأمر وقرار الحتمية — سجلان تاريخيان للمنسق، والقرار النقي يعيش
- * في حد الكتابة نفسه على المهايئين. */
-import {
-  createCommandReceipt,
-  decideCommandReceipt,
-  type CommandReceipt,
-  type PeriodSummary,
-} from "@micro-domain/shared/index.js";
+ * وإيصال الأمر — سجلان تاريخيان للمنسق. الأنواع فقط ثابتة هنا؛ قرار
+ * الالتزام ونماذج المجال يحمَّلان كسولًا من وحدة الحد (D-034). */
+import type { CommandReceipt, PeriodSummary } from "@micro-domain/shared/index.js";
 import {
   committedReversalMovements,
   storedReversalMovementsFor,
@@ -1275,125 +1270,31 @@ export class MemoryLocalStore implements PrototypeLocalStore {
    * والجيل يعيد نتيجة الأصل (reused)، وبحمولة مختلفة تعارض بلا كتابة.
    */
   async commitAccountCompletion(commit: import("./types").AccountCompletionCommit): Promise<
-    StorageResult<{
+    import("./types").StorageResult<{
       summaries: readonly PeriodSummary[];
       cashObservation: import("@micro-domain/cash-continuity/index.js").CashObservation | null;
       receipt: CommandReceipt;
       reused: boolean;
     }>
   > {
-    const undoJournal: Array<() => void> = [];
-    const journalSet = <K, V>(map: Map<K, V>, key: K, value: V) => {
-      const previous = map.get(key);
-      undoJournal.push(previous === undefined ? () => map.delete(key) : () => map.set(key, previous));
-      map.set(key, value);
-      this.onCoordinatedWrite();
-    };
-    try {
-      /* فحص الجيل الحي يسبق كل شيء (العقد §14.1 — SDF-050): أمر بُني على جيل
-       * قديم لا يُنفذ فوق بيانات استُبدلت — رفض بلا كتابة مهما بقيت هوية
-       * المشروع نفسها. */
-      if (commit.command.generation !== String(this.dataGeneration))
-        return {
-          ok: false,
-          code: STORAGE_STALE,
-          message:
-            "غيّرت بيانات هذا الجهاز بعد بناء أمر الاستكمال (استبدال أو استعادة) — لم يُكتب شيء؛ أعد بناء الإجابات من الوضع الحالي.",
-        };
-      /* الحتمية أولًا — الإيصال القائم يحسم قبل أي فحص آخر. */
-      const existingReceipt = this.commandReceipts.get(commit.command.commandId);
-      const decision = decideCommandReceipt(commit.command, existingReceipt);
-      if (decision.kind === "reuse")
-        return {
-          ok: true,
-          value: {
-            summaries: decision.receipt.resultRefs
-              .filter(ref => ref.startsWith("period_summary:"))
-              .map(ref => this.periodSummaries.get(ref.slice("period_summary:".length)))
-              .filter((summary): summary is PeriodSummary => summary !== undefined)
-              .map(clone),
-            cashObservation: null,
-            receipt: clone(decision.receipt),
-            reused: true,
-          },
-        };
-      if (decision.kind === "idempotency_conflict")
-        return {
-          ok: false,
-          code: STORAGE_STALE,
-          message:
-            "أمر الاستكمال نفسه سبق التزامه بحمولة مختلفة — لم يُكتب شيء؛ أعد المحاولة بقصد جديد أو راجع النتيجة المحفوظة.",
-        };
-      /* عهدة القياس الحية داخل الحد — نفس قرار S04 (الرفض الصادق بلا كتابة). */
-      let observationToStore: import("@micro-domain/cash-continuity/index.js").CashObservation | null = null;
-      if (commit.cashObservation) {
-        const observationDecision = decideCashObservationCommit(
-          Array.from(this.balanceObservations.values()),
-          Array.from(this.cashContinuityEntries.values()),
-          commit.cashObservation,
-          null,
-          null,
-        );
-        if (observationDecision.kind === "reject")
-          return { ok: false, code: observationDecision.code, message: observationDecision.message };
-        if (observationDecision.kind === "reuse") observationToStore = null;
-        else observationToStore = commit.cashObservation;
-      }
-      /* عهدة الملخصات داخل الحد: مفتاح العملية الموجود بمحتوى مختلف تعارض
-       * صادق؛ بمحتوى مطابق يُعاد كما هو (إكمال نصف مكتمل بمفاتيح حتمية). */
-      const summariesToStore: PeriodSummary[] = [];
-      for (const summary of commit.summaries) {
-        const byKey = Array.from(this.periodSummaries.values()).find(
-          candidate => candidate.operationKey === summary.operationKey,
-        );
-        if (byKey && byKey.id !== summary.id)
-          return {
-            ok: false,
-            code: STORAGE_STALE,
-            message: `ملخص الفترة «${summary.id}» يحمل مفتاح عهدة مستعملًا لسجل آخر — لم يُكتب شيء؛ أعد المحاولة.`,
-          };
-        if (byKey && JSON.stringify(byKey) !== JSON.stringify(summary)) continue; // نفس المفتاح بنفس المحتوى — لا كتابة ثانية
-        if (!byKey) summariesToStore.push(summary);
-      }
-      /* الإيصال يكتب مع بياناته — لا إيصال نجاح قبل أثره (العقد §14.1). */
-      const resultRefs = [
-        ...summariesToStore.map(summary => `period_summary:${summary.id}`),
-        ...(observationToStore ? [`cash_observation:${observationToStore.id}`] : []),
-      ];
-      const receipt = createCommandReceipt({
-        ...commit.command,
-        outcome: "confirmed",
-        resultRefs,
-        recordedAt: commit.recordedAt,
-      });
-      summariesToStore.forEach(summary => journalSet(this.periodSummaries, summary.id, summary));
-      if (observationToStore)
-        journalSet(
-          this.balanceObservations as Map<
-            string,
-            import("@micro-domain/cash-continuity/index.js").CashObservation
-          >,
-          observationToStore.id,
-          observationToStore,
-        );
-      journalSet(this.commandReceipts, receipt.id, receipt);
-      return {
-        ok: true,
-        value: {
-          summaries: summariesToStore.map(clone),
-          cashObservation: observationToStore ? clone(observationToStore) : null,
-          receipt: clone(receipt),
-          reused: false,
-        },
-      };
-    } catch (error) {
-      for (const step of undoJournal.reverse()) step();
-      return {
-        ok: false,
-        code: STORAGE_ERROR,
-        message: error instanceof Error ? error.message : "تعذر حفظ استكمال الحسابات محليًا.",
-      };
-    }
+    /* S14 (D-034 — نمط حماية كومة الإقلاع): التزام الحزمة المنسقة بجمله
+     * يُحمَّل كسولًا من وحدة الحد — الملخصات والقياس والإيصال معًا أو لا
+     * شيء (SDF-030) بدفتر التراجع البنيوي، والحتمية وفحص الجيل داخل الحد.
+     * القرارات الحية (الخرائط والجيل) تُمرر كما هي — الحد نفسه لا يتغير. */
+    const { commitAccountCompletionInMemory } = await import("./accountCompletionBoundary");
+    return commitAccountCompletionInMemory(
+      {
+        periodSummaries: this.periodSummaries,
+        commandReceipts: this.commandReceipts,
+        balanceObservations: this.balanceObservations,
+        cashContinuityEntries: this.cashContinuityEntries,
+        dataGeneration: this.dataGeneration,
+        onCoordinatedWrite: () => this.onCoordinatedWrite(),
+        decideCashObservationCommit,
+        clone,
+      },
+      commit,
+    );
   }
 
   /** S14 (أمر ba2ce7b4 §5): خيط داخلي ضيق لإثبات ذرّية الحزمة المنسقة —

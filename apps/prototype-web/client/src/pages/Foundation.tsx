@@ -20,11 +20,10 @@ import type { OwnerEntitlementOverview } from "@/application/owner-money";
 import type { SupplierPurchaseSummary } from "@/application/suppliers";
 import type { InventoryOverview } from "@/application/inventory";
 import { IntegerValue, MoneyValue } from "@/components/presentation/DisplayValue";
-import {
-  AccountCompletionService,
-  type AccountCompletionInput,
-  type AccountCompletionPreview,
-} from "@/application/transfers";
+/* S14 (D-034/ADR-017 — نمط الخدمات الكسولة d85d71d8/S12 نفسه): منسق
+ * الاستكمال ونماذج مجاله (ملخص الفترة وإيصال الأمر) يحملان عند أول فعل
+ * في الرحلة لا في كومة الإقلاع — الأنواع وحدها ثابتة (تمحى وقت الترجمة). */
+import type { AccountCompletionInput, AccountCompletionPreview } from "@/application/transfers";
 import { parseEnglishNumericText } from "@/application/input";
 import { isValidLocalDate } from "@/presentation/formatters";
 
@@ -489,7 +488,8 @@ function AccountCompletionJourney() {
       setError("رصد النقد الحالي: أدخل المبلغ بالأرقام 0–9 أو اتركه فارغًا.");
       return;
     }
-    const service = new AccountCompletionService(getPrototypeLocalStore());
+    const { AccountCompletionService: Coordinator } = await import("@/application/transfers");
+    const service = new Coordinator(getPrototypeLocalStore());
     const plan = await service.buildPlan(
       {
         from,
@@ -511,7 +511,8 @@ function AccountCompletionJourney() {
 
   const commitPreview = async (preview: AccountCompletionPreview) => {
     setState({ phase: "committing" });
-    const service = new AccountCompletionService(getPrototypeLocalStore());
+    const { AccountCompletionService: Coordinator } = await import("@/application/transfers");
+    const service = new Coordinator(getPrototypeLocalStore());
     const rebuilt = await service.buildPlan(
       {
         from: preview.summaries[0]?.from ?? fromText,

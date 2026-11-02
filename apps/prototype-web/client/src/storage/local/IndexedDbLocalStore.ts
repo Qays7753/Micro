@@ -1,13 +1,9 @@
 /** Browser persistence adapter. React never imports this module and financial policy lives above it. */
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 /* S14 (DOC-023 / العقد المشترك §7.1/§14.1): ملخص الفترة وإيصال الأمر —
- * سجلان تاريخيان للمنسق؛ القرار النقي يعيش داخل حد الكتابة. */
-import {
-  createCommandReceipt,
-  decideCommandReceipt,
-  type CommandReceipt,
-  type PeriodSummary,
-} from "@micro-domain/shared/index.js";
+ * سجلان تاريخيان للمنسق. الأنواع فقط ثابتة؛ القرار ونماذج المجال كسولًا
+ * من وحدة الحد (D-034 — حماية كومة الإقلاع). */
+import type { CommandReceipt, PeriodSummary } from "@micro-domain/shared/index.js";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import { TRANSFER_COVERAGE_MESSAGE } from "@micro-domain/cash-continuity/index.js";
 import type {
@@ -188,7 +184,7 @@ import {
   supplierPurchaseStore,
   receivedLoanStore,
 } from "./indexedDbStores";
-import { connection, failure } from "./indexedDbLifecycle";
+import { connection, failure, guardedSuccessListener } from "./indexedDbLifecycle";
 import { deleteOne, listAll, readOne, writeOne, writeOneIdempotent } from "./indexedDbPrimitives";
 import { readIndexedDbSnapshot, replaceIndexedDbSnapshot } from "./indexedDbSnapshot";
 /* S02-A (SH-02/SH-03): محرك قاعدة حماية الاستبدال المنفصلة يُحمَّل كسولًا —
@@ -214,20 +210,15 @@ function loadProtectionEngine(): Promise<RestoreProtectionEngine> {
  * الفشل الأصلي، وإما المعاملة انتهت فعلًا فيُسلَّم الفشل مباشرة) — نفس نمط
  * معالجات onerror القائمة ونمط R9-GA-F1 في replaceIndexedDbSnapshot؛ لا
  * تغيير في ترتيب الطلبات ولا في بصمة أي معاملة ولا في أكواد/رسائل الفشل. */
-function guardedSuccessListener(onThrow: (error: unknown) => void, listener: () => void): () => void {
-  return () => {
-    try {
-      listener();
-    } catch (error) {
-      onThrow(error);
-    }
-  };
-}
 
 /* المجموعة ١٠ (المرحلة 10-ب): دورة الحياة والترحيلات والبدائيات فُكّكت إلى
  * وحدات داخلية خلف الواجهة نفسها — أسماء المخازن وسجلاتها ورقم المخطط 35
  * وبصمة كل معاملة كما هي؛ منافس الاختبار تُعاد تصديرها من هنا بلا تغيير. */
 export { __cachedConnectionForTesting, __openDatabaseForTesting } from "./indexedDbLifecycle";
+
+/* S14 (D-034): وحدة حد الاستكمال تُحمَّل كسولًا — موقع استيراد واحد لكل
+ * المنافذ الأربعة (كل بايت في كومة الإقلاع محسوب). */
+const s14Boundary = () => import("./accountCompletionBoundary");
 
 export class IndexedDbLocalStore implements PrototypeLocalStore {
   getProfile() {
@@ -2518,33 +2509,21 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
 
   /* ─── S14 (DOC-023 / UNIT-002 + العقد المشترك §14.1 — أمر ba2ce7b4 §5) ─── */
 
-  /** ملخصات الفترة — الأحدث تسجيلًا أولًا (نمط قراءة الأطراف). */
+  /* S14 (DOC-023 — أمر ba2ce7b4 §5): منافذ الاستكمال الأربعة — وكلاء رقيقة
+   * فوق وحدة الحد الكسولة (D-034: كل بايت في كومة الإقلاع محسوب؛ القراءة
+   * والقرار والكتابة كلها في القطاع الكسول). */
   listPeriodSummaries() {
-    return listAll<PeriodSummary>(
-      periodSummaryStore,
-      (left, right) => right.recordedAt.localeCompare(left.recordedAt) || left.id.localeCompare(right.id),
-    );
+    return s14Boundary().then(m => m.listPeriodSummariesInIndexedDb(periodSummaryStore));
   }
 
-  /** إيصالات الأوامر — الأحدث تسجيلًا أولًا. */
   listCommandReceipts() {
-    return listAll<CommandReceipt>(
-      commandReceiptStore,
-      (left, right) => right.recordedAt.localeCompare(left.recordedAt) || left.id.localeCompare(right.id),
-    );
+    return s14Boundary().then(m => m.listCommandReceiptsInIndexedDb(commandReceiptStore));
   }
 
   getCommandReceipt(commandId: string) {
-    return readOne<CommandReceipt>(commandReceiptStore, commandId);
+    return s14Boundary().then(m => m.getCommandReceiptInIndexedDb(commandReceiptStore, commandId));
   }
 
-  /**
-   * الالتزام المنسق — الملخصات وقياس النقد والإيصال في معاملة readwrite
-   * واحدة: كل القراءات (الإيصال القائم + عهدة القياس + عهدات الملخصات)
-   * داخل المعاملة قبل القرار، وكل الكتابات مصطففة بعدها — أي فشل أو رفض
-   * يُحبِط المعاملة فتتدحرج كلها (SDF-030)؛ نفس commandId بنفس البصمة
-   * والجيل يعيد نتيجة الأصل، وبحمولة مختلفة تعارض بلا كتابة.
-   */
   async commitAccountCompletion(commit: import("./types").AccountCompletionCommit): Promise<
     StorageResult<{
       summaries: readonly PeriodSummary[];
@@ -2553,188 +2532,10 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
       reused: boolean;
     }>
   > {
-    try {
-      /* فحص الجيل الحي يسبق كل شيء (العقد §14.1 — SDF-050): أمر بُني على جيل
-       * قديم لا يُنفذ فوق بيانات استُبدلت — رفض بلا كتابة. */
-      const liveGeneration = await this.getDataGeneration();
-      if (!liveGeneration.ok) return { ok: false, code: "storage_error", message: liveGeneration.message };
-      if (commit.command.generation !== String(liveGeneration.value))
-        return {
-          ok: false,
-          code: "storage_stale",
-          message:
-            "غيّرت بيانات هذا الجهاز بعد بناء أمر الاستكمال (استبدال أو استعادة) — لم يُكتب شيء؛ أعد بناء الإجابات من الوضع الحالي.",
-        };
-      const database = await connection();
-      return await new Promise(resolve => {
-        const transaction = database.transaction(
-          [periodSummaryStore, commandReceiptStore, balanceObservationStore, cashContinuityEntryStore],
-          "readwrite",
-        );
-        const summariesStore = transaction.objectStore(periodSummaryStore);
-        const receiptsStore = transaction.objectStore(commandReceiptStore);
-        const observationsStore = transaction.objectStore(balanceObservationStore);
-        const entriesStore = transaction.objectStore(cashContinuityEntryStore);
-        let rejection: StorageFailure | null = null;
-        let outcome: {
-          summaries: readonly PeriodSummary[];
-          cashObservation: CashObservation | null;
-          receipt: CommandReceipt;
-          reused: boolean;
-        } | null = null;
-        const resolveOutcome = () =>
-          resolve(
-            outcome ? { ok: true, value: outcome } : (rejection ?? failure(transaction.error, database)),
-          );
-        const abortWith = (fallback: () => void) => {
-          try {
-            transaction.abort();
-          } catch {
-            fallback();
-          }
-        };
-        const failFromListener = (error: unknown) => {
-          const failed = failure(error, database);
-          rejection = failed;
-          abortWith(() => resolve(failed));
-        };
-        /* 1 + (1 إن وُجد قياس) + N قراءات عهدة الملخصات — كلها داخل المعاملة. */
-        const receiptRequest = receiptsStore.get(commit.command.commandId);
-        const observationRequest = commit.cashObservation
-          ? observationsStore.index("operationKey").get(commit.cashObservation.operationKey)
-          : null;
-        const summaryRequests = commit.summaries.map(summary =>
-          summariesStore.index("operationKey").get(summary.operationKey),
-        );
-        const readsTotal = 1 + (observationRequest ? 1 : 0) + summaryRequests.length;
-        let readsPending = readsTotal;
-        const onAllRead = () => {
-          readsPending -= 1;
-          if (readsPending > 0 || outcome || rejection) return;
-          /* الحتمية أولًا — الإيصال القائم يحسم قبل أي فحص آخر. */
-          const existingReceipt = receiptRequest.result as CommandReceipt | undefined;
-          const decision = decideCommandReceipt(commit.command, existingReceipt);
-          if (decision.kind === "reuse") {
-            /* إعادة النتيجة الأصلية بلا أي كتابة — المراجع تُقرأ من معاملتها
-             * الجديدة صادقة (السجلات الناتجة قائمة فوقها). */
-            const storedSummaries = decision.receipt.resultRefs
-              .filter(ref => ref.startsWith("period_summary:"))
-              .map(ref => summariesStore.get(ref.slice("period_summary:".length)));
-            let summariesPending = storedSummaries.length;
-            const collected: PeriodSummary[] = [];
-            if (summariesPending === 0) {
-              outcome = {
-                summaries: [],
-                cashObservation: null,
-                receipt: decision.receipt,
-                reused: true,
-              };
-              abortWith(resolveOutcome);
-              return;
-            }
-            for (const request of storedSummaries) {
-              request.onsuccess = guardedSuccessListener(failFromListener, () => {
-                const summary = request.result as PeriodSummary | undefined;
-                if (summary) collected.push(summary);
-                summariesPending -= 1;
-                if (summariesPending === 0) {
-                  outcome = {
-                    summaries: collected,
-                    cashObservation: null,
-                    receipt: decision.receipt,
-                    reused: true,
-                  };
-                  abortWith(resolveOutcome);
-                }
-              });
-            }
-            return;
-          }
-          if (decision.kind === "idempotency_conflict") {
-            rejection = {
-              ok: false,
-              code: "storage_stale",
-              message:
-                "أمر الاستكمال نفسه سبق التزامه بحمولة مختلفة — لم يُكتب شيء؛ أعد المحاولة بقصد جديد أو راجع النتيجة المحفوظة.",
-            };
-            abortWith(() => resolve(rejection!));
-            return;
-          }
-          /* عهدة القياس الحية داخل المعاملة — نفس قرار S04. */
-          let observationToStore: CashObservation | null = null;
-          if (commit.cashObservation) {
-            const observationDecision = decideCashObservationCommit(
-              (observationRequest!.result as CashObservation | undefined)
-                ? [observationRequest!.result as CashObservation]
-                : [],
-              [],
-              commit.cashObservation,
-              null,
-              null,
-            );
-            if (observationDecision.kind === "reject") {
-              rejection = { ok: false, code: observationDecision.code, message: observationDecision.message };
-              abortWith(() => resolve(rejection!));
-              return;
-            }
-            if (observationDecision.kind === "commit") observationToStore = commit.cashObservation;
-          }
-          /* عهدات الملخصات: المفتاح المستعمل لسجل مختلف تعارض؛ المطابق يُعاد. */
-          const summariesToStore: PeriodSummary[] = [];
-          for (let index = 0; index < commit.summaries.length; index += 1) {
-            const summary = commit.summaries[index]!;
-            const byKey = summaryRequests[index]!.result as PeriodSummary | undefined;
-            if (byKey && byKey.id !== summary.id) {
-              rejection = {
-                ok: false,
-                code: "storage_stale",
-                message: `ملخص الفترة «${summary.id}» يحمل مفتاح عهدة مستعملًا لسجل آخر — لم يُكتب شيء؛ أعد المحاولة.`,
-              };
-              abortWith(() => resolve(rejection!));
-              return;
-            }
-            if (!byKey) summariesToStore.push(summary);
-          }
-          /* الإيصال يكتب مع بياناته — كل الكتابات مصطففة داخل المعاملة. */
-          const resultRefs = [
-            ...summariesToStore.map(summary => `period_summary:${summary.id}`),
-            ...(observationToStore ? [`cash_observation:${observationToStore.id}`] : []),
-          ];
-          const receipt = createCommandReceipt({
-            ...commit.command,
-            outcome: "confirmed",
-            resultRefs,
-            recordedAt: commit.recordedAt,
-          });
-          void entriesStore;
-          summariesToStore.forEach(summary => summariesStore.put(summary));
-          if (observationToStore) observationsStore.put(observationToStore);
-          receiptsStore.put(receipt);
-          outcome = {
-            summaries: summariesToStore,
-            cashObservation: observationToStore,
-            receipt,
-            reused: false,
-          };
-        };
-        receiptRequest.onerror = () => resolve(failure(receiptRequest.error, database));
-        receiptRequest.onsuccess = guardedSuccessListener(failFromListener, onAllRead);
-        if (observationRequest) {
-          observationRequest.onerror = () => resolve(failure(observationRequest.error, database));
-          observationRequest.onsuccess = guardedSuccessListener(failFromListener, onAllRead);
-        }
-        for (const request of summaryRequests) {
-          request.onerror = () => resolve(failure(request.error, database));
-          request.onsuccess = guardedSuccessListener(failFromListener, onAllRead);
-        }
-        transaction.onerror = () => resolve(failure(transaction.error, database));
-        transaction.onabort = resolveOutcome;
-        transaction.oncomplete = resolveOutcome;
-      });
-    } catch (error) {
-      return failure(error);
-    }
+    const boundary = await s14Boundary();
+    return boundary.commitAccountCompletionInIndexedDb(commit, () => this.getDataGeneration());
   }
+
   getInventoryActivation() {
     return readOne<InventoryActivation>(inventoryActivationStore, localInventoryActivationId);
   }

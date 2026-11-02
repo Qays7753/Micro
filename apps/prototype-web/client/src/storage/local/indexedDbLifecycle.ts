@@ -117,3 +117,15 @@ export function __openDatabaseForTesting(): Promise<IDBDatabase> {
 export function __cachedConnectionForTesting(): Promise<IDBDatabase> | null {
   return cachedConnection;
 }
+
+/* R11 W1b (F-7): مستمع onsuccess المحصّن — التقط أي رمي متزامن من جسم
+ * المستمع قبل وصوله إلى المحرك (من IndexedDbLocalStore — نفس الجسم حرفيًا). */
+export function guardedSuccessListener(onThrow: (error: unknown) => void, listener: () => void): () => void {
+  return () => {
+    try {
+      listener();
+    } catch (error) {
+      onThrow(error);
+    }
+  };
+}
