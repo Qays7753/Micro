@@ -7773,6 +7773,44 @@
         "trigger": "S13 review-4 remediation measured on the live tree",
         "ocRef": "DOC-022"
       }
+    },
+    {
+      "id": "S13-R5-F02-URL-CONTEXT-20261102-410",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/FinanceUpcoming.tsx",
+      "from": {
+        "nbLoc": 257,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 409,
+        "band": "WATCH"
+      },
+      "reason": "S13-R5-F02/F03 (تصحيح المراجعة الخامسة، متسلسل من إرساء 395): سياق التصفية في الوصل (kind/since/until — ACD032) والفترة غير الصالحة معلنة لا صامتة؛ عبور الشريط إلى WATCH بتوثيق نفس-الـPR — لا تقسيم بنيوي (بوابة ما بعد المجموعة ٦).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §9 — repair every confirmed in-scope finding and rerun affected gates; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 review-5 remediation measured on the live tree",
+        "ocRef": "DOC-022"
+      }
+    },
+    {
+      "id": "S13-R5-F02-URL-CONTEXT-20261102-411",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/Orders.tsx",
+      "from": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 847,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S13-R5-F01/F02 (تصحيح المراجعة الخامسة، متسلسل من إرساء 408): سياق العرض في الوصل (listing/scope/dates/sort/q/cmode/cday/canchor — ACD032/ORD-D2) وحالات الفراغ الصادقة؛ عبور الشريط إلى SPLIT_CANDIDATE بتوثيق نفس-الـPR — لا تقسيم بنيوي (بوابة ما بعد المجموعة ٦؛ موجات مسح S11 كلها NOT_EXECUTED).",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S13-EXECUTION-PROMPT-2026-11-01.md published at 2158b0fc02893c3438423dbfef435b9f0a280612 §9 — repair every confirmed in-scope finding and rerun affected gates; no guard weakened and no ceiling raised). Same-PR re-anchor per the documented protocol.",
+        "trigger": "S13 review-5 remediation measured on the live tree",
+        "ocRef": "DOC-022"
+      }
     }
   ]
 }

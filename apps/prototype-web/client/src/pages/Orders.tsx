@@ -20,7 +20,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
 import { withReturnTo } from "@/app/navigationContract";
@@ -68,6 +68,59 @@ const DEFAULT_FILTER: OrdersFilter = {
   ordering: "recent",
   query: "",
 };
+
+/* S13 (UNIT-006 ORD-D2 / U018-ACD032 — أمر 2158b0fc §6.7، تصحيح المراجعة
+ * الخامسة S13-R5-F02): URL والرجوع يحفظان السياق — القائمة/اليوم/الفلتر
+ * المطبقة تُحمل في وصل الصفحة، فيفتح الرجوع الوجهة كما تركها، وإعادة
+ * التحميل تصل السياق نفسه؛ القراءة ذاتها لا تتأثر (معاملات عرض فقط). */
+type ViewContext = {
+  view: "list" | "calendar";
+  filter: OrdersFilter;
+  calendarMode: "month" | "week" | "day";
+  anchorDate: string;
+  selectedDate: string | null;
+};
+
+function viewContextFromSearch(search: string, today: string): ViewContext {
+  const params = new URLSearchParams(search);
+  const scope = params.get("scope");
+  const dates = params.get("dates");
+  const sort = params.get("sort");
+  const q = params.get("q");
+  const listing = params.get("listing");
+  const cmode = params.get("cmode");
+  const cday = params.get("cday");
+  const canchor = params.get("canchor");
+  return {
+    view: listing === "calendar" ? "calendar" : "list",
+    filter: {
+      scope: scope === "past" || scope === "all" ? scope : "current",
+      datePresence: dates === "dated" || dates === "undated" ? dates : "all",
+      ordering: sort === "byDate" ? "byDate" : "recent",
+      query: q ?? "",
+    },
+    calendarMode: cmode === "week" || cmode === "day" ? cmode : "month",
+    anchorDate: isValidLocalDate(canchor ?? "") ? canchor! : today,
+    selectedDate: isValidLocalDate(cday ?? "") ? cday : null,
+  };
+}
+
+function searchOfViewContext(context: ViewContext, today: string): string {
+  const params = new URLSearchParams();
+  if (context.view === "calendar") params.set("listing", "calendar");
+  if (context.filter.scope !== "current") params.set("scope", context.filter.scope);
+  if (context.filter.datePresence !== "all") params.set("dates", context.filter.datePresence);
+  if (context.filter.ordering !== "recent") params.set("sort", context.filter.ordering);
+  if (context.filter.query.trim() !== "") params.set("q", context.filter.query.trim());
+  if (context.view === "calendar") {
+    if (context.calendarMode !== "month") params.set("cmode", context.calendarMode);
+    if (context.selectedDate !== null) params.set("cday", context.selectedDate);
+    /* مرساة اليوم الافتراضية لا تُكتب — الوصل النظيف للسياق الافتراضي. */
+    if (context.anchorDate !== "" && context.anchorDate !== today) params.set("canchor", context.anchorDate);
+  }
+  const query = params.toString();
+  return query === "" ? "" : `?${query}`;
+}
 
 function filterOrders(
   orders: readonly StoredCraftOrder[],
@@ -121,15 +174,19 @@ export default function Orders() {
   /* SDF-061: جيل القراءة — استجابة جيل قديم لا تُخلط مع أحدث أبدًا. */
   const readGeneration = useRef(0);
 
-  /* عرض القائمة/التقويم وسياقهما — يُحفظ عند التبديل والرجوع داخل الجلسة. */
-  const [view, setView] = useState<"list" | "calendar">("list");
-  const [applied, setApplied] = useState<OrdersFilter>(DEFAULT_FILTER);
-  const [draft, setDraft] = useState<OrdersFilter>(DEFAULT_FILTER);
+  /* عرض القائمة/التقويم وسياقهما — ACD032: السياق يُستعاد من الوصل أولًا
+   * (الرجوع/التحميل بالقائمة واليوم والفلتر نفسها) ثم يُعاد كتابته في
+   * الوصل عند كل تغيير مطبق (replace — بلا تكديس تاريخ). */
+  const search = useSearch();
+  const initialContext = useMemo(() => viewContextFromSearch(search, todayInAmman()), [search]);
+  const [view, setView] = useState<"list" | "calendar">(initialContext.view);
+  const [applied, setApplied] = useState<OrdersFilter>(initialContext.filter);
+  const [draft, setDraft] = useState<OrdersFilter>(initialContext.filter);
   const [filterOpen, setFilterOpen] = useState(false);
   const [shownCount, setShownCount] = useState(DISPLAY_CAP);
-  const [calendarMode, setCalendarMode] = useState<"month" | "week" | "day">("month");
-  const [anchorDate, setAnchorDate] = useState(() => todayInAmman());
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [calendarMode, setCalendarMode] = useState<"month" | "week" | "day">(initialContext.calendarMode);
+  const [anchorDate, setAnchorDate] = useState(initialContext.anchorDate);
+  const [selectedDate, setSelectedDate] = useState<string | null>(initialContext.selectedDate);
 
   useEffect(() => {
     const generation = readGeneration.current + 1;
@@ -162,6 +219,18 @@ export default function Orders() {
         });
       });
   }, [dailyFollowUp, dataVersion, reloadToken]);
+
+  /* ACD032: كل تغيير مطبق يُكتب في الوصل (replace — بلا تكديس تاريخ)؛
+   * الرجوع من أي صف يفتح الوجهة بالقائمة/اليوم/الفلتر نفسها. */
+  useEffect(() => {
+    const next = `/orders${searchOfViewContext(
+      { view, filter: applied, calendarMode, anchorDate, selectedDate },
+      todayInAmman(),
+    )}`;
+    /* بلا تغيير فعلي لا نكتب الوصل — الوصول الأول النظيف يبقى كما هو. */
+    if (next !== `/orders${search}`) navigate(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, applied, calendarMode, anchorDate, selectedDate]);
 
   const open = (href: string) => navigate(withReturnTo(href, location));
   const applyFilter = () => {

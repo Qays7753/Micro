@@ -10,7 +10,7 @@
  */
 import { BellRing, ChevronLeft, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import { withReturnTo } from "@/app/navigationContract";
 import { Button, EmptyState, StatusChip } from "@/components/primitives";
@@ -65,6 +65,47 @@ const PAGE_SIZE = 20;
 type FilterDraft = FollowUpFilter & { fromText: string; toText: string };
 const DEFAULT_FILTER: FilterDraft = { taskKind: "all", period: null, fromText: "", toText: "" };
 
+/* S13 (U018-ACD032/A4 — أمر 2158b0fc §6.7، تصحيح المراجعة الخامسة S13-R5-F02):
+ * URL والرجوع يحفظان السياق — التصفية المطبقة تُحمل في وصل الصفحة
+ * (kind/since/until — لا from/to المتقاعدان)، فيفتح الرجوع القائمة
+ * بمرشحاتها، وإعادة التحميل تصل السياق نفسه؛ القراءة ذاتها لا تتأثر. */
+const TASK_KINDS = [
+  "all",
+  "delivery",
+  "receivable",
+  "supplier_payable",
+  "expense_payable",
+  "recurring_review",
+] as const;
+
+function filterFromSearch(search: string): FilterDraft {
+  const params = new URLSearchParams(search);
+  const kind = params.get("kind");
+  const since = params.get("since");
+  const until = params.get("until");
+  const taskKind = (TASK_KINDS as readonly string[]).includes(kind ?? "") ? (kind as FilterDraft["taskKind"]) : "all";
+  if (since === null && until === null) {
+    return { taskKind, period: null, fromText: "", toText: "" };
+  }
+  return {
+    taskKind,
+    period: { from: since ?? "0000-01-01", to: until ?? "9999-12-31" },
+    fromText: since ?? "",
+    toText: until ?? "",
+  };
+}
+
+function searchOfFilter(filter: FilterDraft): string {
+  const params = new URLSearchParams();
+  if (filter.taskKind !== "all") params.set("kind", filter.taskKind);
+  if (filter.period !== null) {
+    if (filter.period.from !== "0000-01-01") params.set("since", filter.period.from);
+    if (filter.period.to !== "9999-12-31") params.set("until", filter.period.to);
+  }
+  const query = params.toString();
+  return query === "" ? "" : `?${query}`;
+}
+
 export default function FinanceUpcoming() {
   const [location, navigate] = useLocation();
   const { collections, dueDates, projectFinance, dataVersion } = usePrototypeServices();
@@ -73,10 +114,18 @@ export default function FinanceUpcoming() {
   const [reloadToken, setReloadToken] = useState(0);
   /* SDF-061: ختم الجيل — استجابة الجيل القديم تُهمل ولا تُخلط مع الأحدث. */
   const generationRef = useRef(0);
-  const [applied, setApplied] = useState<FilterDraft>(DEFAULT_FILTER);
-  const [draft, setDraft] = useState<FilterDraft>(DEFAULT_FILTER);
+  const search = useSearch();
+  /* ACD032: السياق من الوصل أولًا — الرجوع وإعادة التحميل بالتصفية نفسها. */
+  const [applied, setApplied] = useState<FilterDraft>(() => filterFromSearch(search));
+  const [draft, setDraft] = useState<FilterDraft>(() => filterFromSearch(search));
   const [filterOpen, setFilterOpen] = useState(false);
   const [shownCount, setShownCount] = useState(PAGE_SIZE);
+  /* S13-R5-F03 (تصحيح المراجعة الخامسة): الفترة غير الصالحة تُعلن — لا
+   * تعطيل صامت لزر التطبيق؛ السبب ظاهر للقارئ والمستمع معًا. */
+  const [periodError, setPeriodError] = useState<string | null>(null);
+  const syncUrl = (filter: FilterDraft) => {
+    navigate(`/finance/upcoming${searchOfFilter(filter)}`, { replace: true });
+  };
 
   useEffect(() => {
     const generation = generationRef.current + 1;
@@ -154,16 +203,19 @@ export default function FinanceUpcoming() {
     const fromValid = from === "" || /^\d{4}-\d{2}-\d{2}$/.test(from);
     const toValid = to === "" || /^\d{4}-\d{2}-\d{2}$/.test(to);
     if (!fromValid || !toValid || (from !== "" && to !== "" && from > to)) {
-      setDraft(current => ({ ...current }));
+      setPeriodError("الفترة المخصصة غير صالحة — «من» قبل «إلى» وبتاريخ صحيح، أو اتركهما فارغين للكل.");
       return;
     }
     const period =
       from === "" && to === ""
         ? null
         : { from: from === "" ? "0000-01-01" : from, to: to === "" ? "9999-12-31" : to };
-    setApplied({ ...draft, period });
+    const next = { ...draft, period };
+    setApplied(next);
+    setPeriodError(null);
     setShownCount(PAGE_SIZE);
     setFilterOpen(false);
+    syncUrl(next);
   };
 
   return (
@@ -241,6 +293,11 @@ export default function FinanceUpcoming() {
               />
             </label>
             <p className="micro-field-hint">بلا موعد لا يدخل فترة مخصصة — مدخله المستقل يبقى ظاهرًا.</p>
+            {periodError ? (
+              <p className="micro-field-error" role="alert">
+                {periodError}
+              </p>
+            ) : null}
           </fieldset>
           <div className="micro-form-actions">
             <Button action="save" onClick={applyFilter}>
@@ -251,8 +308,10 @@ export default function FinanceUpcoming() {
               onClick={() => {
                 setApplied(DEFAULT_FILTER);
                 setDraft(DEFAULT_FILTER);
+                setPeriodError(null);
                 setShownCount(PAGE_SIZE);
                 setFilterOpen(false);
+                syncUrl(DEFAULT_FILTER);
               }}
             >
               إعادة ضبط

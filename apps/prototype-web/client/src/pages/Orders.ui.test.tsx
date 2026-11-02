@@ -20,10 +20,10 @@ vi.mock("@/app/PrototypeServicesContext", () => ({
   getPrototypeLocalStore: vi.fn(),
 }));
 
-const wouterMocks = { navigate: vi.fn() };
+const wouterMocks = { navigate: vi.fn(), search: "" };
 
 vi.mock("wouter", () => ({
-  useSearch: () => "",
+  useSearch: () => wouterMocks.search,
   useLocation: () => ["/orders", wouterMocks.navigate],
 }));
 
@@ -119,6 +119,7 @@ describe("S13 — وجهة الطلبات (UNIT-006)", () => {
 
   beforeEach(() => {
     wouterMocks.navigate.mockReset();
+    wouterMocks.search = "";
   });
 
   it("القائمة الافتراضية: عنوان الطلبات وزر طلب جديد — ولا قسم بيع مباشر هنا (ORD-D01)", async () => {
@@ -148,6 +149,86 @@ describe("S13 — وجهة الطلبات (UNIT-006)", () => {
     expect(screen.getByText(/لا طلبات حالية/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /الطلبات السابقة/ }));
     await screen.findByText("طلب order-past");
+  });
+
+  it("S13-R5-F01: حالة التحميل معلنة — لا فراغ صامت", async () => {
+    mockedUsePrototypeServices.mockReturnValue({
+      dailyFollowUp: {
+        read: () => new Promise<never>(() => undefined),
+      },
+      dataVersion: 0,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    mockedGetStore.mockReturnValue(makeStore([]) as never);
+    render(<Orders />);
+    expect(screen.getByRole("status").textContent).toContain("جارٍ تحميل الطلبات");
+  });
+
+  it("S13-R5-F01: الفراغ الصادق الكامل — لا طلبات ولا مسودات مع مدخل البدء", async () => {
+    mockServices([], []);
+    render(<Orders />);
+    expect(await screen.findByRole("heading", { name: "لا طلبات بعد — ابدأ أول طلب" })).toBeTruthy();
+    expect(screen.getByText(/«طلب جديد» يفتح مسودة الطلب مباشرة/)).toBeTruthy();
+    /* زرا الطلب جديد (الترويسة والفراغ) معًا — مدخل البدء ظاهر دائمًا. */
+    expect((await screen.findAllByRole("button", { name: /طلب جديد/ })).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("S13-R5-F01: بحث بلا نتائج في الحالية — تلميح الانتقال للسابق يحفظ البحث", async () => {
+    mockServices([savedOrder("order-past", { status: "delivered", customer: "ليان" })], []);
+    render(<Orders />);
+    /* الحالية فارغة والسابق فيه طلب — مدخل السابق ظاهر. */
+    const pastEntry = await screen.findByText(/الطلبات السابقة/);
+    expect(pastEntry.closest("button")?.textContent).toContain("1");
+    /* بحث لا يطابق شيئًا في الحالية الفارغة — التلميح يقترح السابق. */
+    fireEvent.change(screen.getByLabelText("ابحث في الطلبات"), { target: { value: "ليان" } });
+    const hint = await screen.findByRole("button", { name: /ابحث في الطلبات السابقة/ });
+    fireEvent.click(hint);
+    /* النطاق تحول للسابق والبحث باقٍ — الطلب ظهر. */
+    expect(await screen.findByText("طلب order-past")).toBeTruthy();
+  });
+
+  it("S13-R5-F01: يوم تقويم بلا مواعيد — الفراغ الصادق لا ينفي وجود الطلبات", async () => {
+    const orders = [savedOrder("order-cal", { deliveryDate: "2026-11-20" })];
+    mockedUsePrototypeServices.mockReturnValue({
+      dailyFollowUp: {
+        read: vi.fn().mockResolvedValue({ ok: true, followUp: null, drafts: [], orders }),
+      },
+      dataVersion: 0,
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    mockedGetStore.mockReturnValue(
+      makeStore(orders, [{ id: "s-cal", orderId: "order-cal", date: "2026-11-20" }]) as never,
+    );
+    render(<Orders />);
+    await screen.findByText("طلب order-cal");
+    fireEvent.click(screen.getByRole("radio", { name: /التقويم/ }));
+    await screen.findByRole("grid");
+    /* اختر أول يوم في الشبكة (رأس الشهر بلا مواعيد) — الفراغ الصادق مع
+     * بقاء مدخل بلا موعد. */
+    fireEvent.click(screen.getAllByRole("gridcell")[0]!);
+    await screen.findByText("لا مواعيد في هذا اليوم — لا يعني خلو المشروع من الطلبات.");
+    expect(screen.getByText(/طلبات بلا موعد/)).toBeTruthy();
+  });
+
+  it("S13-R5-F02 (ACD032): سياق العرض يُكتب في الوصل ويُستعاد منه — التقويم والنطاق", async () => {
+    mockServices([savedOrder("order-a"), savedOrder("order-past", { status: "delivered" })], []);
+    render(<Orders />);
+    await screen.findByText("طلب order-a");
+    /* التبديل للتقويم يكتب السياق في الوصل (replace). */
+    fireEvent.click(screen.getByRole("radio", { name: /التقويم/ }));
+    await screen.findByRole("grid");
+    await waitFor(() =>
+      expect(wouterMocks.navigate).toHaveBeenCalledWith("/orders?listing=calendar", { replace: true }),
+    );
+    /* الفتح من وصل يحمل السياق يعيد النطاق نفسه في القائمة (ACD032). */
+    wouterMocks.search = "?scope=past";
+    cleanup();
+    render(<Orders />);
+    await screen.findByText("طلب order-past");
+    expect(screen.queryByText("طلب order-a")).toBeNull();
+    /* ووصل التقويم يعيد عرض التقويم نفسه. */
+    wouterMocks.search = "?listing=calendar";
+    cleanup();
+    render(<Orders />);
+    await screen.findByRole("grid");
   });
 
   it("SDF-061: استجابة الجيل القديم تُهمل — لا خلط بين أجيال القراءة", async () => {
@@ -235,8 +316,15 @@ describe("S13 — وجهة الطلبات (UNIT-006)", () => {
     await screen.findByRole("grid");
     fireEvent.click(screen.getByRole("radio", { name: /قائمة الطلبات/ }));
     await screen.findByText("طلب order-1");
-    /* لا مسار كتابة في الصفحة أصلًا — الاستدعاء الوحيد للتنقل فقط. */
-    expect(wouterMocks.navigate).not.toHaveBeenCalled();
+    /* لا مسار كتابة في الصفحة أصلًا — التنقل الوحيد هو كتابة سياق العرض في
+     * الوصل (ACD032: replace بلا تكديس تاريخ)، لا كتابة تخزين ولا فتح صف:
+     * كل الاستدعاءات بـ replace:true على وصل الطلبات نفسه. */
+    const calls = wouterMocks.navigate.mock.calls as unknown as Array<[string, { replace?: boolean }]>;
+    expect(calls.length).toBeGreaterThan(0);
+    for (const [href, options] of calls) {
+      expect(href.startsWith("/orders")).toBe(true);
+      expect(options?.replace).toBe(true);
+    }
   });
 
   it("التقويم: شهر/أسبوع/يوم من المصدر نفسه وقائمة يوم بلا 00:00 ومدخل طلبات بلا موعد", async () => {
