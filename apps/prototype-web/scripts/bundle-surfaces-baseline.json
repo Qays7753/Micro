@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "1430c86f",
+        "head": "5800f5e3",
         "date": "2026-11-02",
-        "method": "S13 review-fixes final re-anchor (2026-11-02, on PR #383 — the owner-directed connected execution 00-S13-EXECUTION-PROMPT-2026-11-01.md at 2158b0fc/DOC-022 §9): the five reviews' confirmed findings fixed at root (identity preflight covering both confirmed-debt modes; the creation-intent financial flags; the fourth-truth invalid-date bucket + canonical month arithmetic; URL view context per ACD032/ORD-D2 + announced invalid period + full state-branch coverage). Entry heap PROTECTED and PASSING 633,144/650,000 raw and 155,268/155,300 gzip (32 bytes of margin — the D-034/ADR-017 ceilings untouched); initial companions 224,856/70,757 unchanged; lazy 1,466,385 -> 1,469,192 raw and 437,780 -> 438,589 gzipNorm; precache 2,936,661 -> 2,939,985; swRuntime 27,533 unchanged; counts 125/2/85/180/2 unchanged. No ceiling, tolerance, or guard code changed — same-PR documented provenance per the protocol. Cloud records follow the documented post-push measurement protocol."
+        "method": "S14-order S13-review-fixes local re-anchor (2026-11-02, on PR #383 — the owner-directed connected execution 00-S14-EXECUTION-PROMPT-2026-11-02.md at ba2ce7b4 §4): the seven confirmed S13 findings fixed at their roots grow the lazy orders/finance surfaces — isolated orders/schedule reads with per-source retry, thrown/rejected source isolation in the unified reader with retry, canonical period validation, the invalid-active schedule repair affordance, CAL-C deep-link validation with the always-visible notice, the true month-grid semantics (week rows, roving tabindex, RTL arrows, Home/End, month-boundary crossing), and the registered supplier payment route. Entry heap PROTECTED and PASSING 633,144/650,000 raw and 155,254/155,300 gzip (the D-034/ADR-017 ceilings untouched); initial companions 224,856/70,757 unchanged; lazy 1,469,192 -> 1,474,103 raw and 438,589 -> 439,903 gzipNorm; precache 2,939,985 -> 2,945,192; swRuntime 27,533 unchanged; counts 125/2/85/180/2 unchanged. No ceiling, tolerance, or guard code changed — same-PR documented provenance per the protocol. Cloud records follow the documented post-push measurement protocol."
       },
       "toolchain": {
         "node": "24.22.1",
@@ -32,9 +32,9 @@
       "measurements": {
         "initialRawTotal": 224856,
         "initialGzipNormTotal": 70757,
-        "lazyRawTotal": 1469192,
-        "lazyGzipNormTotal": 438589,
-        "precacheBytesTotal": 2939985,
+        "lazyRawTotal": 1474103,
+        "lazyGzipNormTotal": 439903,
+        "precacheBytesTotal": 2945192,
         "swRuntimeRawTotal": 27533
       },
       "counts": {

@@ -179,7 +179,6 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
     const sites: readonly [string, string][] = [
       ["Collect.tsx", "تعذر فتح ورقة التحصيل"],
       ["Finance.tsx", "تعذر قراءة الوضع المالي"],
-      ["Orders.tsx", "تعذر تحميل الطلبات"],
       ["Parties.tsx", "تعذر قراءة العملاء والموردين"],
       ["Statement.tsx", "تعذر قراءة الكشف"],
       ["WalletLedger.tsx", "دفتر محفظة غير متاح"],
@@ -195,6 +194,22 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
         .soft(window.includes('role="alert"'), `${file}: read-error paragraph lacks role=alert`)
         .toBe(true);
     }
+    /* S13-MR-001 (أمر ba2ce7b4 §4): وجهة الطلبات لم تعد تخفي السليم خلف
+     * خطأ صفحة شاملة — الفشل معزول بإشارتَي قراءة صادقتين لكل مصدر، كلتاهما
+     * تعلن رسالتها بـrole=alert داخل قسسمها الموسوم باسمه. */
+    const orders = readFileSync(resolve(CLIENT_SRC, "pages", "Orders.tsx"), "utf8");
+    const ordersOrdersError = orders.indexOf('aria-label="تعذر تحميل الطلبات"');
+    expect.soft(ordersOrdersError, "Orders.tsx: orders read-error section not found").toBeGreaterThan(-1);
+    const ordersWindow = orders.slice(ordersOrdersError, ordersOrdersError + 700);
+    expect
+      .soft(ordersWindow.includes('role="alert"'), "Orders.tsx: orders read-error lacks role=alert")
+      .toBe(true);
+    const ordersCalendarError = orders.indexOf('aria-label="تعذر تحميل مواعيد التقويم"');
+    expect.soft(ordersCalendarError, "Orders.tsx: calendar read-error section not found").toBeGreaterThan(-1);
+    const calendarWindow = orders.slice(ordersCalendarError, ordersCalendarError + 700);
+    expect
+      .soft(calendarWindow.includes('role="alert"'), "Orders.tsx: calendar read-error lacks role=alert")
+      .toBe(true);
   });
 
   /* R10-B4/F-017: الجرد يغطي الآن قناتي الإعلان الأوليتين أيضًا — InlineError
