@@ -37,7 +37,7 @@ export type SummaryDimension = (typeof summaryDimensions)[number];
 /** الأبعاد المنطبقة لكل نوع — لا بعد بلا معنى لنوعه. */
 export const dimensionsOfKind: Readonly<Record<PeriodSummaryKind, readonly SummaryDimension[]>> = {
   direct_sales: ["revenue", "received", "cost", "remainingClaim"],
-  purchases: ["paid", "cost", "remainingClaim"],
+  purchases: ["paid", "cost", "quantity", "remainingClaim"],
   expenses: ["paid"],
   owner_transfer: ["revenue", "paid"],
   opening_commercial_right: ["remainingClaim"],

@@ -1290,6 +1290,16 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       this.onCoordinatedWrite();
     };
     try {
+      /* فحص الجيل الحي يسبق كل شيء (العقد §14.1 — SDF-050): أمر بُني على جيل
+       * قديم لا يُنفذ فوق بيانات استُبدلت — رفض بلا كتابة مهما بقيت هوية
+       * المشروع نفسها. */
+      if (commit.command.generation !== String(this.dataGeneration))
+        return {
+          ok: false,
+          code: STORAGE_STALE,
+          message:
+            "غيّرت بيانات هذا الجهاز بعد بناء أمر الاستكمال (استبدال أو استعادة) — لم يُكتب شيء؛ أعد بناء الإجابات من الوضع الحالي.",
+        };
       /* الحتمية أولًا — الإيصال القائم يحسم قبل أي فحص آخر. */
       const existingReceipt = this.commandReceipts.get(commit.command.commandId);
       const decision = decideCommandReceipt(commit.command, existingReceipt);

@@ -7,8 +7,8 @@
     "authority": "OD-10 Option A (owner-approved 2026-10-13, R11 owner decision package) + R11 W0 census (128 edges / 80 value / 48 type) + RV1/R11-RV1 independent reproductions"
   },
   "totals": {
-    "edges": 135,
-    "value": 86,
+    "edges": 136,
+    "value": 87,
     "type": 49,
     "governedEdges": 65,
     "governedPairs": 42
@@ -666,6 +666,11 @@
       "key": "application/time/actualTimeService.ts -> application/preferences/updateLocalPreferences.ts",
       "kind": "value",
       "exemptTarget": false
+    },
+    {
+      "key": "application/transfers/accountCompletionService.ts -> application/time/clock.ts",
+      "kind": "value",
+      "exemptTarget": true
     },
     {
       "key": "application/transfers/guidedOpeningImportService.ts -> application/time/clock.ts",

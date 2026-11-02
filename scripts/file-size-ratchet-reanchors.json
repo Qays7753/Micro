@@ -8229,6 +8229,120 @@
         "trigger": "S14 storage delta measured on the live tree (schema 41 / export 34)",
         "ocRef": "DOC-023"
       }
+    },
+    {
+      "id": "S14-COORD-DOOR-20261102-433",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/application/transfers/index.ts",
+      "from": {
+        "nbLoc": 13,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 34,
+        "band": "NORMAL"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5): منسق الاستكمال — الخدمة والرحلة وبوابة الجيل الحي. + تصدير المنسق وكعب اختبار الحد من الباب",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the coordinator service + Foundation journey + generation gate). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 coordinator/journey measured on the live tree",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-JOURNEY-UI-20261102-434",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/pages/Foundation.tsx",
+      "from": {
+        "nbLoc": 328,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 784,
+        "band": "WATCH"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5): منسق الاستكمال — الخدمة والرحلة وبوابة الجيل الحي. + رحلة الاستكمال في بيتها القائم (خريطة P3.4)",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the coordinator service + Foundation journey + generation gate). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 coordinator/journey measured on the live tree",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-IDB-GENGATE-20261102-435",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+      "from": {
+        "nbLoc": 4391,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 5761,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5): منسق الاستكمال — الخدمة والرحلة وبوابة الجيل الحي. + بوابة الجيل الحي قبل المعاملة المنسقة (SDF-050)",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the coordinator service + Foundation journey + generation gate). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 coordinator/journey measured on the live tree",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-MEM-GENGATE-20261102-436",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/MemoryLocalStore.ts",
+      "from": {
+        "nbLoc": 2087,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 2869,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5): منسق الاستكمال — الخدمة والرحلة وبوابة الجيل الحي. + بوابة الجيل الحي داخل الحد (SDF-050)",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the coordinator service + Foundation journey + generation gate). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 coordinator/journey measured on the live tree",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-TYPES-KIND-20261102-437",
+      "date": "2026-11-02",
+      "path": "apps/prototype-web/client/src/storage/local/types.ts",
+      "from": {
+        "nbLoc": 876,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 1366,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5): منسق الاستكمال — الخدمة والرحلة وبوابة الجيل الحي. + نوع مسودة account_completion",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the coordinator service + Foundation journey + generation gate). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 coordinator/journey measured on the live tree",
+        "ocRef": "DOC-023"
+      }
+    },
+    {
+      "id": "S14-CENSUS-ROW-20261102-438",
+      "date": "2026-11-02",
+      "path": "scripts/application-house-edges-census.json",
+      "from": {
+        "nbLoc": 891,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 932,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S14 (أمر ba2ce7b4 §5): منسق الاستكمال — الخدمة والرحلة وبوابة الجيل الحي. + صف حافة المنسق→الوقت (نمو مرئي لا صامت)",
+      "authorization": {
+        "ownerReview": "Owner-directed connected execution (00-S14-EXECUTION-PROMPT-2026-11-02.md published at ba2ce7b431cab20f0e8d8005d1048d54def1b84a §5 — the coordinator service + Foundation journey + generation gate). Same-PR re-anchor per the documented protocol; from = the merge-base baseline value as the drift audit requires.",
+        "trigger": "S14 coordinator/journey measured on the live tree",
+        "ocRef": "DOC-023"
+      }
     }
   ]
 }

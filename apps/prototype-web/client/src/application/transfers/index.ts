@@ -21,3 +21,16 @@ export type {
 } from "./localTransferService";
 
 export type { GuidedOpeningImportPreview, GuidedOpeningImportService } from "./guidedOpeningImportService";
+/* S14 (DOC-023 / UNIT-002 — أمر ba2ce7b4 §5): منسق استكمال الحسابات —
+ * بناء الخطة والمعاينة بلا مال، والالتزام المنسق بتفويض حد الكتابة المحروس. */
+export { AccountCompletionService } from "./accountCompletionService";
+/* S14: كعب اختبار الحد — يستورده الاختبار وحده (نمط الجسر القانوني). */
+export { createAccountCompletionHarness } from "./accountCompletionTestHarness";
+export type {
+  AccountCompletionInput,
+  AccountCompletionPlan,
+  AccountCompletionPreview,
+  AccountCompletionServiceResult,
+  CompletionAnswer,
+  SummaryAnswer,
+} from "./accountCompletionService";

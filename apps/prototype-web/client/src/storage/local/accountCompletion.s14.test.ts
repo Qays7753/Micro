@@ -34,6 +34,8 @@ function clearDatabase(): Promise<void> {
 afterEach(clearDatabase);
 
 const NOW = "2026-11-02T09:00:00.000Z";
+/* جيل المخزن الحي الابتدائي (0 قبل أي استبدال) — نفس عقد الحماية. */
+const LIVE_GENERATION = "0";
 
 function salesSummary(id: string, operationKey: string, revenueMinor: number): PeriodSummary {
   return createPeriodSummary(
@@ -76,11 +78,13 @@ function completionCommand(
   summaries: readonly PeriodSummary[],
   observation: CashObservation | null,
 ): AccountCompletionCommit {
+  /* الجيل الحي للمخزن وقت البناء — فحص الجيل داخل الحد (SDF-050) يرفض
+   * أي أمر بُني على جيل آخر؛ الاختبارات تمرر الجيل الحي الحقيقي. */
   return {
     command: {
       commandId,
       commandType: "account-completion",
-      generation: "gen-1",
+      generation: LIVE_GENERATION,
       payloadVersion: 1,
       payloadDigest: digest,
     },

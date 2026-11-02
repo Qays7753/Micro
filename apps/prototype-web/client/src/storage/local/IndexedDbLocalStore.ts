@@ -2554,6 +2554,17 @@ export class IndexedDbLocalStore implements PrototypeLocalStore {
     }>
   > {
     try {
+      /* فحص الجيل الحي يسبق كل شيء (العقد §14.1 — SDF-050): أمر بُني على جيل
+       * قديم لا يُنفذ فوق بيانات استُبدلت — رفض بلا كتابة. */
+      const liveGeneration = await this.getDataGeneration();
+      if (!liveGeneration.ok) return { ok: false, code: "storage_error", message: liveGeneration.message };
+      if (commit.command.generation !== String(liveGeneration.value))
+        return {
+          ok: false,
+          code: "storage_stale",
+          message:
+            "غيّرت بيانات هذا الجهاز بعد بناء أمر الاستكمال (استبدال أو استعادة) — لم يُكتب شيء؛ أعد بناء الإجابات من الوضع الحالي.",
+        };
       const database = await connection();
       return await new Promise(resolve => {
         const transaction = database.transaction(

@@ -146,7 +146,11 @@ export type FormDraftKind =
   | "finance_event"
   | "setup"
   | "order_draft"
-  | "order_cost";
+  | "order_cost"
+  /* S14 (DOC-023 / UNIT-002 — أمر ba2ce7b4 §5): مسودة رحلة استكمال الحسابات
+   * — عابرة بلا أثر مالي كبقية العائلة (خارج التصدير)، ومحفوظة بجيلها
+   * الحي فلا تُستأنف فوق بيانات استُبدلت (SDF-029/050). */
+  | "account_completion";
 export type FormDraftEnvelope = {
   /** `${formKind}:${scopeId ?? "new"}` — مسودة واحدة لكل شاشة لكل نطاق. */
   id: string;
