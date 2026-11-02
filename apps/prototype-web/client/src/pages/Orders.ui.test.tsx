@@ -306,7 +306,7 @@ describe("S13 — وجهة الطلبات (UNIT-006)", () => {
     await screen.findByText("طلب order-valid");
     /* القائمة تعرض الصفين — القيمة الفاسدة لا تُستبدل بتاريخ ولا تخفى. */
     expect(screen.getByText("طلب order-invalid")).toBeTruthy();
-    /* التصفية «له موعد معلن» ت排除 الفاسد — المعلن صالح فقط. */
+    /* التصفية «له موعد معلن» تستبعد الفاسد — المعلن صالح فقط. */
     fireEvent.click(screen.getByRole("button", { name: /تصفية/ }));
     fireEvent.click(screen.getByRole("radio", { name: "له موعد معلن" }));
     fireEvent.click(screen.getByRole("button", { name: "تطبيق" }));
