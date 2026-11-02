@@ -112,7 +112,8 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
      * الإنتاجية الجديدة لشريحة S13 (scheduleReads وscheduleReadsTestHarness
      * وscheduleProposal وunifiedFollowUpService — كلها نقية بلا وصول تخزين
      * متصفح)؛ نفس البروتوكول ولا موضع تسجيل جديد. */
-    expect(stdout).toMatch(/396 ملف إنتاج/);
+    /* S14 (DOC-023): ملفان جديدان (المنسق وكعب اختباره) — 396 ← 398. */
+    expect(stdout).toMatch(/398 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

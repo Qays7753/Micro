@@ -387,9 +387,9 @@ const KNOWLEDGE_LABELS: Record<KnowledgeChoice, string> = {
 };
 
 const AMOUNT_QUESTIONS = [
-  { kind: "direct_sales", label: "مبيعاتك التي لم تسجلها", hint: "دون تفاصيلها إن شئت لاحقًا" },
-  { kind: "purchases", label: "مشترياتك التي لم تسجلها", hint: "ما اشتريته لمشروعك في الفترة" },
-  { kind: "expenses", label: "مصاريف مشروعك التي لم تسجلها", hint: "دون المشتريات التي أدخلتها" },
+  { kind: "direct_sales", label: "مبيعاتك التي لم تسجلها" },
+  { kind: "purchases", label: "مشترياتك التي لم تسجلها" },
+  { kind: "expenses", label: "مصاريف مشروعك التي لم تسجلها" },
 ] as const;
 
 function dimensionValueOf(draft: SummaryDraft, kind: string) {
@@ -581,7 +581,6 @@ function AccountCompletionJourney() {
         <div className="micro-section-title">
           <ClipboardList aria-hidden="true" />
           <div>
-            <span className="micro-overline">منسق اختياري · بلا دفتر موازٍ</span>
             <h2>استكمال الحسابات</h2>
           </div>
         </div>
@@ -625,9 +624,7 @@ function AccountCompletionJourney() {
                 return (
                   <div key={question.kind} className="micro-foundation-question">
                     <label className="micro-field">
-                      <span>
-                        كم بلغت {question.label}؟ <small>{question.hint}</small>
-                      </span>
+                      <span>كم بلغت {question.label}؟</span>
                       <input
                         type="text"
                         inputMode="decimal"

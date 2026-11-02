@@ -114,9 +114,10 @@
       "type": []
     },
     "drafts": {
-      "value": [],
+      "value": [
+        "FormDraftService"
+      ],
       "type": [
-        "FormDraftService",
         "FormDraftValues"
       ]
     },
@@ -403,15 +404,24 @@
       ]
     },
     "transfers": {
-      "value": [],
+      "value": [
+        "AccountCompletionService",
+        "createAccountCompletionHarness"
+      ],
       "type": [
+        "AccountCompletionInput",
+        "AccountCompletionPlan",
+        "AccountCompletionPreview",
+        "AccountCompletionServiceResult",
         "BoundRestoreIntent",
+        "CompletionAnswer",
         "GuidedOpeningImportPreview",
         "GuidedOpeningImportService",
         "LocalTransferService",
         "PreparedImport",
         "RestoreIntentContext",
         "RestoreResult",
+        "SummaryAnswer",
         "TransferPreview",
         "TransferSummary"
       ]

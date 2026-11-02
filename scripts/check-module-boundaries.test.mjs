@@ -276,7 +276,11 @@ describe("R7 component->page regression class (R8-F-019)", () => {
 
   function treeWith(edgeLine) {
     const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/pages/Finance.tsx", "export function Finance() { return 1; }\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/Finance.tsx",
+      "export function Finance() { return 1; }\n",
+    );
     write(root, "apps/prototype-web/client/src/components/finance/Section.tsx", edgeLine);
     /* حواف قانونية غير ذات صلة تبقى بلا أثر. */
     write(
@@ -284,7 +288,11 @@ describe("R7 component->page regression class (R8-F-019)", () => {
       "apps/prototype-web/client/src/components/presentation/DisplayValue.tsx",
       'import { MoneyValue } from "@/components/presentation/DisplayValueInner";\nexport const V = 1;\n',
     );
-    write(root, "apps/prototype-web/client/src/components/presentation/DisplayValueInner.ts", "export const MoneyValue = 1;\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/components/presentation/DisplayValueInner.ts",
+      "export const MoneyValue = 1;\n",
+    );
     return root;
   }
 
@@ -292,11 +300,15 @@ describe("R7 component->page regression class (R8-F-019)", () => {
     const root = treeWith('import { Finance } from "@/pages/Finance";\nexport const S = Finance;\n');
     const result = checkModuleBoundaries(root);
     expect(result.ok).toBe(false);
-    expect(result.violations.some(v => v.rule === "R7-component-to-page" && v.key.includes("pages/Finance.tsx"))).toBe(true);
+    expect(
+      result.violations.some(v => v.rule === "R7-component-to-page" && v.key.includes("pages/Finance.tsx")),
+    ).toBe(true);
   });
 
   it("a component -> page TYPE import is rejected (the exact former Finance-cycle form, STR-204c)", () => {
-    const root = treeWith('import type { FinanceState } from "@/pages/Finance";\nexport type X = FinanceState;\n');
+    const root = treeWith(
+      'import type { FinanceState } from "@/pages/Finance";\nexport type X = FinanceState;\n',
+    );
     const result = checkModuleBoundaries(root);
     expect(result.violations.some(v => v.rule === "R7-component-to-page")).toBe(true);
   });
@@ -308,9 +320,13 @@ describe("R7 component->page regression class (R8-F-019)", () => {
   });
 
   it("a component -> page RELATIVE import is rejected after resolution", () => {
-    const root = treeWith('import type { FinanceState } from "../../pages/Finance";\nexport type X = FinanceState;\n');
+    const root = treeWith(
+      'import type { FinanceState } from "../../pages/Finance";\nexport type X = FinanceState;\n',
+    );
     const result = checkModuleBoundaries(root);
-    expect(result.violations.some(v => v.rule === "R7-component-to-page" && v.key.includes("pages/Finance.tsx"))).toBe(true);
+    expect(
+      result.violations.some(v => v.rule === "R7-component-to-page" && v.key.includes("pages/Finance.tsx")),
+    ).toBe(true);
   });
 
   it("a component -> page import-type position and re-export forms are rejected", () => {
@@ -324,14 +340,26 @@ describe("R7 component->page regression class (R8-F-019)", () => {
 
   it("the LEGAL page -> component direction passes, and unrelated legal UI imports are unaffected", () => {
     const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/pages/Finance.tsx", 'import { Section } from "@/components/finance/Section";\nexport function Finance() { return Section; }\n');
-    write(root, "apps/prototype-web/client/src/components/finance/Section.tsx", "export const Section = 1;\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/pages/Finance.tsx",
+      'import { Section } from "@/components/finance/Section";\nexport function Finance() { return Section; }\n',
+    );
+    write(
+      root,
+      "apps/prototype-web/client/src/components/finance/Section.tsx",
+      "export const Section = 1;\n",
+    );
     write(
       root,
       "apps/prototype-web/client/src/components/finance/Helper.ts",
       'import { formatMoney } from "@/presentation/formatters";\nexport const f = formatMoney;\n',
     );
-    write(root, "apps/prototype-web/client/src/presentation/formatters.ts", "export const formatMoney = 1;\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/presentation/formatters.ts",
+      "export const formatMoney = 1;\n",
+    );
     const result = checkModuleBoundaries(root);
     /* (R11 W1A-1 / D-01 — 2026-10-14): الشجرة التركيبية لا تحمل ملفات أساس R8 الـ19 الحية، فيُتوقع من نظافة الأساس
      * أن تفشل هنا بأسباب غير متعلق بهدف هذا الاختبار (الاتجاه القانوني صفحة→مكوّن) —
@@ -372,7 +400,9 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
     }
     /* مفتاحا app-shell الموثقان + مفتاح S03 الموثق (نفس-الـPR، DOC-012)
      * + مفاتيح S10 الأربعة الموثقة (DOC-019) هم الفرق المسموح بين الأساسين. */
-    const diff = UI_TO_STORAGE_TYPE_BASELINE.filter(k => !UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17.includes(k));
+    const diff = UI_TO_STORAGE_TYPE_BASELINE.filter(
+      k => !UI_TO_STORAGE_TYPE_BASELINE_HISTORICAL_17.includes(k),
+    );
     expect(diff).toEqual([
       "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx -> @/storage/local/types",
       "apps/prototype-web/client/src/app/StartupGate.tsx -> @/storage/local/types",
@@ -392,7 +422,11 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
 
   it("growth: a new type-only UI->storage edge is rejected", () => {
     const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/storage/local/types.ts", "export type StoredThing = { a: number };\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/storage/local/types.ts",
+      "export type StoredThing = { a: number };\n",
+    );
     write(
       root,
       "apps/prototype-web/client/src/pages/NewPage.tsx",
@@ -421,7 +455,11 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
 
   it("all-type specifier lists are type edges; export type re-exports are type edges", () => {
     const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/storage/local/types.ts", "export type T1 = { a: number };\nexport const someValue = 1;\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/storage/local/types.ts",
+      "export type T1 = { a: number };\nexport const someValue = 1;\n",
+    );
     write(
       root,
       "apps/prototype-web/client/src/pages/AllType.tsx",
@@ -440,7 +478,11 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
 
   it("spelling cannot bypass: a relative path resolving to storage still counts", () => {
     const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/storage/local/types.ts", "export type StoredThing = { a: number };\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/storage/local/types.ts",
+      "export type StoredThing = { a: number };\n",
+    );
     write(
       root,
       "apps/prototype-web/client/src/pages/Relative.tsx",
@@ -453,7 +495,11 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
 
   it('type-position import("...") nodes into storage are type edges', () => {
     const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/storage/local/types.ts", "export type StoredThing = { a: number };\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/storage/local/types.ts",
+      "export type StoredThing = { a: number };\n",
+    );
     write(
       root,
       "apps/prototype-web/client/src/pages/DynamicType.ts",
@@ -466,7 +512,11 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
 
   it("import-equals require() spelling is collected (no import-spelling escape)", () => {
     const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/storage/local/types.ts", "export type StoredThing = { a: number };\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/storage/local/types.ts",
+      "export type StoredThing = { a: number };\n",
+    );
     write(
       root,
       "apps/prototype-web/client/src/pages/Equals.ts",
@@ -493,7 +543,11 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
 
   it("swap is caught from both sides: a new key arrives AND the replaced key goes stale", () => {
     const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/storage/local/types.ts", "export type StoredThing = { a: number };\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/storage/local/types.ts",
+      "export type StoredThing = { a: number };\n",
+    );
     write(
       root,
       "apps/prototype-web/client/src/pages/Finance.tsx",
@@ -502,8 +556,17 @@ describe("R8 (R11 W1A-1 / D-01 — UI->storage type-only edge ratchet, OD-GUARD 
     /* الملف مسجل في الأساس بالمحدد المستعار؛ الحافة الحية صارت بالمحدد النسبي —
      * مفتاح جديد (نمو) + المفتاح المسجل غادر (قِدم) في آن واحد: التبديل مرئي من الجهتين. */
     const result = checkModuleBoundaries(root);
-    expect(result.violations.some(v => v.rule === "R8-ui-to-storage-type" && v.key.includes("pages/Finance.tsx") && v.key.includes("../storage/local/types"))).toBe(true);
-    expect(result.violations.some(v => v.rule === "R8-baseline-stale" && v.key.includes("pages/Finance.tsx"))).toBe(true);
+    expect(
+      result.violations.some(
+        v =>
+          v.rule === "R8-ui-to-storage-type" &&
+          v.key.includes("pages/Finance.tsx") &&
+          v.key.includes("../storage/local/types"),
+      ),
+    ).toBe(true);
+    expect(
+      result.violations.some(v => v.rule === "R8-baseline-stale" && v.key.includes("pages/Finance.tsx")),
+    ).toBe(true);
   });
 });
 
@@ -513,13 +576,21 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
   function houseTree() {
     const root = makeTempDir();
     /* الورقة المعفاة + بيتا ميزات + حواف حاكمة ومعفاة. */
-    write(root, "apps/prototype-web/client/src/application/time/clock.ts", 'export const systemClock = (): string => "2026-01-01T00:00:00.000Z";\n');
+    write(
+      root,
+      "apps/prototype-web/client/src/application/time/clock.ts",
+      'export const systemClock = (): string => "2026-01-01T00:00:00.000Z";\n',
+    );
     write(
       root,
       "apps/prototype-web/client/src/application/finance/serviceA.ts",
       'import { systemClock } from "@/application/time/clock";\nexport const a = systemClock;\n',
     );
-    write(root, "apps/prototype-web/client/src/application/parties/types.ts", "export type Thing = { id: string };\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/application/parties/types.ts",
+      "export type Thing = { id: string };\n",
+    );
     write(
       root,
       "apps/prototype-web/client/src/application/inventory/reads.ts",
@@ -541,7 +612,12 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
     }
     const census = {
       schema: "micro-application-house-edges-census/1",
-      provenance: { base_sha: "synthetic-fixture", measured_at: "2026-10-14", method: "test fixture", authority: "test" },
+      provenance: {
+        base_sha: "synthetic-fixture",
+        measured_at: "2026-10-14",
+        method: "test fixture",
+        authority: "test",
+      },
       totals: {
         edges: edges.length,
         value: edges.filter(e => e.kind === "value").length,
@@ -550,7 +626,11 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
         governedPairs: Object.keys(pairCaps).length,
         exemptTargetEdges: edges.filter(e => exemptSet.has(e.key.split(" -> ")[1])).length,
       },
-      edges: edges.map(e => ({ key: e.key, kind: e.kind, exemptTarget: exemptSet.has(e.key.split(" -> ")[1]) })),
+      edges: edges.map(e => ({
+        key: e.key,
+        kind: e.kind,
+        exemptTarget: exemptSet.has(e.key.split(" -> ")[1]),
+      })),
       pairCaps,
       exemptModules,
       sccBaselines: sccOverride ?? { value: houseSccs(edges, "value"), type: houseSccs(edges, "type") },
@@ -563,7 +643,7 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
 
   const r9Only = result => result.violations.filter(v => v.rule.startsWith("R9"));
 
-  it("the live repository passes on the recorded census: 135 edges (86 value + 49 type)", () => {
+  it("the live repository passes on the recorded census: 136 edges (87 value + 49 type)", () => {
     /* R11 Lock Remediation (2026-10-15): +1 type edge — pinOperations.ts (الوحدة
      * الكسولة لعمليات الرمز) -> application/time/clock.ts (هدف معفى OD-10؛
      * صف الجرد مضاف في نفس الـPR — نمو مرئي لا صامت).
@@ -590,8 +670,9 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
      * الموثق؛ صف الجرد مضاف في نفس الـPR) — الجرد 134/85/49 صار 135/86/49؛
      * لا زوج بيوت جديد: القارئ الموحد يستقبل الجدولة بنيويًا بعدسة
      * activeDeliveryLens تركبها الصفحة من باب البيت (راجع تقرير S13). */
-    expect(result.stats.houseEdges).toBe(135);
-    expect(result.stats.houseEdgesValue).toBe(86);
+    /* S14 (DOC-023): صف حافة المنسق→الوقت — 135/86/49 صار 136/87/49. */
+    expect(result.stats.houseEdges).toBe(136);
+    expect(result.stats.houseEdgesValue).toBe(87);
     expect(result.stats.houseEdgesType).toBe(49);
   });
 
@@ -603,7 +684,9 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
 
   it("fail-closed: an unknown census schema version is rejected", () => {
     const root = houseTree();
-    writeCensusFor(root, { exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }] });
+    writeCensusFor(root, {
+      exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }],
+    });
     const censusPath = path.join(root, "scripts", "application-house-edges-census.json");
     const census = JSON.parse(fs.readFileSync(censusPath, "utf8"));
     census.schema = "micro-application-house-edges-census/999";
@@ -614,58 +697,86 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
 
   it("a tree matching its census passes (and internal consistency is verified)", () => {
     const root = houseTree();
-    writeCensusFor(root, { exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }] });
+    writeCensusFor(root, {
+      exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }],
+    });
     const result = checkModuleBoundaries(root);
     expect(r9Only(result)).toEqual([]);
   });
 
   it("new pair: an edge forming an unregistered house pair fails", () => {
     const root = houseTree();
-    writeCensusFor(root, { exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }] });
-    write(root, "apps/prototype-web/client/src/application/catalog/imports.ts", 'import type { Thing } from "@/application/inventory/reads";\nexport type U = Thing;\n');
+    writeCensusFor(root, {
+      exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }],
+    });
+    write(
+      root,
+      "apps/prototype-web/client/src/application/catalog/imports.ts",
+      'import type { Thing } from "@/application/inventory/reads";\nexport type U = Thing;\n',
+    );
     const result = checkModuleBoundaries(root);
     expect(result.violations.some(v => v.rule === "R9-new-pair" && v.key.includes("catalog"))).toBe(true);
   });
 
   it("cap growth: a second edge inside a registered pair fails (value/type separate)", () => {
     const root = houseTree();
-    writeCensusFor(root, { exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }] });
+    writeCensusFor(root, {
+      exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }],
+    });
     /* inventory->parties مسجل بقيمة نوعية 1؛ حافة قيمة ثانية في الزوج نفسه = تجاوز سقف النوع/القيمة. */
     write(
       root,
       "apps/prototype-web/client/src/application/inventory/secondValue.ts",
       'import { nothing } from "@/application/parties/types";\nexport const v = nothing;\n',
     );
-    write(root, "apps/prototype-web/client/src/application/parties/types.ts", "export type Thing = { id: string };\nexport const nothing = 1;\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/application/parties/types.ts",
+      "export type Thing = { id: string };\nexport const nothing = 1;\n",
+    );
     const result = checkModuleBoundaries(root);
     expect(result.violations.some(v => v.rule === "R9-cap-growth")).toBe(true);
   });
 
   it("stale edge: a census edge that left the tree fails (same-PR hygiene)", () => {
     const root = houseTree();
-    writeCensusFor(root, { exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }] });
+    writeCensusFor(root, {
+      exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }],
+    });
     /* هجرة الاستيراد إلى الباب: الحافة المسجلة تغادر. */
     write(
       root,
       "apps/prototype-web/client/src/application/inventory/reads.ts",
       'import type { Thing } from "@/application/parties";\nexport type T = Thing;\n',
     );
-    write(root, "apps/prototype-web/client/src/application/parties/index.ts", 'export type { Thing } from "./types.js";\n');
+    write(
+      root,
+      "apps/prototype-web/client/src/application/parties/index.ts",
+      'export type { Thing } from "./types.js";\n',
+    );
     const result = checkModuleBoundaries(root);
-    expect(result.violations.some(v => v.rule === "R9-stale-edge" && v.key.includes("inventory/reads.ts"))).toBe(true);
+    expect(
+      result.violations.some(v => v.rule === "R9-stale-edge" && v.key.includes("inventory/reads.ts")),
+    ).toBe(true);
   });
 
   it("census drift: a new edge onto an exempt leaf is bookkeeping, not a pair violation", () => {
     const root = houseTree();
-    writeCensusFor(root, { exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }] });
+    writeCensusFor(root, {
+      exemptModules: [{ path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" }],
+    });
     write(
       root,
       "apps/prototype-web/client/src/application/inventory/alsoClock.ts",
       'import { systemClock } from "@/application/time/clock";\nexport const b = systemClock;\n',
     );
     const result = checkModuleBoundaries(root);
-    expect(result.violations.some(v => v.rule === "R9-census-drift" && v.key.includes("alsoClock.ts"))).toBe(true);
-    expect(result.violations.some(v => v.rule === "R9-new-pair" && v.key.includes("alsoClock.ts"))).toBe(false);
+    expect(result.violations.some(v => v.rule === "R9-census-drift" && v.key.includes("alsoClock.ts"))).toBe(
+      true,
+    );
+    expect(result.violations.some(v => v.rule === "R9-new-pair" && v.key.includes("alsoClock.ts"))).toBe(
+      false,
+    );
   });
 
   it("exemption invariants: mutable state / import drift / outgoing edge each revoke loudly", () => {
@@ -673,31 +784,70 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
     /* 1) حالة قابلة للتغيير */
     const root1 = houseTree();
     writeCensusFor(root1, { exemptModules: [exemptEntry] });
-    write(root1, "apps/prototype-web/client/src/application/time/clock.ts", 'export const systemClock = (): string => "x";\nlet hidden = 0;\nexport const leak = () => hidden;\n');
-    expect(checkModuleBoundaries(root1).violations.some(v => v.rule === "R9-exemption-violation" && v.key.includes("MUTABLE_MODULE_STATE"))).toBe(true);
+    write(
+      root1,
+      "apps/prototype-web/client/src/application/time/clock.ts",
+      'export const systemClock = (): string => "x";\nlet hidden = 0;\nexport const leak = () => hidden;\n',
+    );
+    expect(
+      checkModuleBoundaries(root1).violations.some(
+        v => v.rule === "R9-exemption-violation" && v.key.includes("MUTABLE_MODULE_STATE"),
+      ),
+    ).toBe(true);
     /* 2) انحراف قائمة الاستيراد */
     const root2 = houseTree();
     writeCensusFor(root2, { exemptModules: [exemptEntry] });
-    write(root2, "apps/prototype-web/client/src/application/time/clock.ts", 'import { localDateInAmman } from "@micro-domain/shared/index.js";\nexport const systemClock = (): string => "x";\n');
-    expect(checkModuleBoundaries(root2).violations.some(v => v.rule === "R9-exemption-violation" && v.key.includes("IMPORT_ALLOWLIST_DRIFT"))).toBe(true);
+    write(
+      root2,
+      "apps/prototype-web/client/src/application/time/clock.ts",
+      'import { localDateInAmman } from "@micro-domain/shared/index.js";\nexport const systemClock = (): string => "x";\n',
+    );
+    expect(
+      checkModuleBoundaries(root2).violations.some(
+        v => v.rule === "R9-exemption-violation" && v.key.includes("IMPORT_ALLOWLIST_DRIFT"),
+      ),
+    ).toBe(true);
     /* 3) حافة خارجة من الورقة المعفاة */
     const root3 = houseTree();
     writeCensusFor(root3, { exemptModules: [exemptEntry] });
-    write(root3, "apps/prototype-web/client/src/application/time/clock.ts", 'import { helper } from "@/application/parties/types";\nexport const systemClock = (): string => "x";\n');
-    expect(checkModuleBoundaries(root3).violations.some(v => v.rule === "R9-exemption-violation" && v.key.includes("OUTGOING_CROSS_HOUSE"))).toBe(true);
+    write(
+      root3,
+      "apps/prototype-web/client/src/application/time/clock.ts",
+      'import { helper } from "@/application/parties/types";\nexport const systemClock = (): string => "x";\n',
+    );
+    expect(
+      checkModuleBoundaries(root3).violations.some(
+        v => v.rule === "R9-exemption-violation" && v.key.includes("OUTGOING_CROSS_HOUSE"),
+      ),
+    ).toBe(true);
   });
 
   it("new value cycle between houses fails; a resolved recorded cycle also fails until re-anchored", () => {
     const exemptEntry = { path: EXEMPT_LEAF, role: "leaf", importAllowlist: [], notes: "" };
     /* دورة قيمة حقيقية جديدة: a->b وb->a */
     const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/application/alpha/mod.ts", 'import { betaFn } from "@/application/beta/mod";\nexport const alphaFn = () => betaFn;\n');
-    write(root, "apps/prototype-web/client/src/application/beta/mod.ts", 'import { alphaFn } from "@/application/alpha/mod";\nexport const betaFn = () => alphaFn;\n');
+    write(
+      root,
+      "apps/prototype-web/client/src/application/alpha/mod.ts",
+      'import { betaFn } from "@/application/beta/mod";\nexport const alphaFn = () => betaFn;\n',
+    );
+    write(
+      root,
+      "apps/prototype-web/client/src/application/beta/mod.ts",
+      'import { alphaFn } from "@/application/alpha/mod";\nexport const betaFn = () => alphaFn;\n',
+    );
     /* الجرد بلا دورة مسجلة -> الدورة الحية جديدة. */
     writeCensusFor(root, { exemptModules: [exemptEntry], sccOverride: { value: [], type: [] } });
-    expect(checkModuleBoundaries(root).violations.some(v => v.rule === "R9-new-value-cycle" && v.key.includes("alpha"))).toBe(true);
+    expect(
+      checkModuleBoundaries(root).violations.some(
+        v => v.rule === "R9-new-value-cycle" && v.key.includes("alpha"),
+      ),
+    ).toBe(true);
     /* والعكس: جرد يسجل دورة غير موجودة حيًا -> محلولة (إعادة إرساء مطلوبة). */
-    writeCensusFor(root, { exemptModules: [exemptEntry], sccOverride: { value: [["alpha", "beta"]], type: [] } });
+    writeCensusFor(root, {
+      exemptModules: [exemptEntry],
+      sccOverride: { value: [["alpha", "beta"]], type: [] },
+    });
     const before = collectHouseEdges(collectAllImports(root)).length;
     write(root, "apps/prototype-web/client/src/application/beta/mod.ts", "export const betaFn = () => 1;\n");
     expect(collectHouseEdges(collectAllImports(root)).length).toBe(before - 1);
@@ -706,7 +856,11 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
 
   it("type-dominant classification: a pair with one type site and one value site is TYPE", () => {
     const root = makeTempDir();
-    write(root, "apps/prototype-web/client/src/application/parties/types.ts", "export type Thing = { id: string };\nexport const thingValue = 1;\n");
+    write(
+      root,
+      "apps/prototype-web/client/src/application/parties/types.ts",
+      "export type Thing = { id: string };\nexport const thingValue = 1;\n",
+    );
     write(
       root,
       "apps/prototype-web/client/src/application/inventory/dual.ts",

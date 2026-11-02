@@ -70,8 +70,12 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
   diagnostics: ["localDiagnostics", "routeTemplateFor"],
   drafts: [
     /* R11 ARCH-012 (2026-10-15): قيم مهايئ المفاتيح التراثية الخمس أزيلت
-     * مع تقاعد الترحيل (قرار مالك موثق — r11-arch012-20261015)؛ سطح قيم
-     * الباب صار فارغًا والأنواع وحدها تبقى — تقليص مقصود موثق بنفس الـPR. */
+     * مع تقاعد الترحيل (قرار مالك موثق — r11-arch012-20261015)؛ الأنواع
+     * وحدها تبقى — تقليص مقصود موثق بنفس الـPR.
+     * S14 (DOC-023 — أمر ba2ce7b4 §5، 2026-11-02): صنف FormDraftService
+     * نفسه صار قيمة عبر الباب — كعب اختبار حد الاستكمال يبني الخدمة
+     * الحقيقية فوق مخزن حقيقي (نمط الجسر القانوني). */
+    "FormDraftService",
   ],
   estimates: [],
   "financial-pulse": [],
@@ -126,7 +130,11 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
   /* R2 (M-11/D13، 2026-10-08): أول قيمة في باب الوقت — حد «اليوم»
    * المسماى الوحيد (توسيع مقصود PC-3). */
   time: ["todayInAmman"],
-  transfers: [],
+  transfers: [
+    /* S14 (DOC-023 — أمر ba2ce7b4 §5): منسق الاستكمال وكعب اختبار حده. */
+    "AccountCompletionService",
+    "createAccountCompletionHarness",
+  ],
   /* أبواب Wave B/W4 بعد فصل الأنواع (الخطوة ٦): */
   budgets: ["ExpenseBudgetService"],
   /* R2 (M-10/D11، 2026-10-08): بانيا نص سجل تسوية العدّ انتقلا من العرض —
