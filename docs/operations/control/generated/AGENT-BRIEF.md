@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 13 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 14 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -48,4 +48,4 @@ python3 scripts/operations-control/validate.py
 | WS-236 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-020 | مراجعة مستقلة وقبول مالك لسجل S11 الكامل بمُلحقيه؛ لا merge ولا كتابة على main. |
 | WS-237 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-021 | S12 مقبولة على فرع التكامل؛ لا إجراء إضافي دون دليل جديد. استمرار S14 مستقل ومشروط بحسم عائق gzip؛ لا merge ولا كتابة على main. |
 | WS-238 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-022 | S13 مقبولة على فرع التكامل؛ لا إجراء إضافي دون دليل جديد. استمرار S14 مستقل ومشروط بحسم عائق gzip؛ لا merge ولا كتابة على main. |
-| WS-239 | IN_PROGRESS | `components/integration-20261027` | 383 | DOC-023 | استئناف S14 وفق 00-S14-RESUME-PROMPT-2026-11-03.md؛ السقوف ثابتة 650,000/155,300، لا إعادة مراجعة S12/S13 المقبولتين، ولا موجة هيكلية غير معتمدة. شخّص وأصلح فشل CI وCloudflare على الرأس الحي، أكمل S14 واجتز البوابات exact-head وسلّمها للمراجعة؛ بعدها يبدأ ZAI S15 مباشرة دون موافقة وسيطة، بعد الانتقال القانوني والتحقق من عدم تداخل Control. |
+| WS-239 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-023 | مراجعة Manus/المالك المستقلة لنتيجة S14؛ لا يعني التسليم قبولًا. بعده مباشرة يبدأ ZAI مطالبة S15 (DOC-024/WS-240) بلا موافقة وسيطة بتفويض الأمر الموحد، بعد التحقق من عدم تداخل Control. |
