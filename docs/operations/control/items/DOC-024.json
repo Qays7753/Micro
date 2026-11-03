@@ -11,7 +11,7 @@
   "classification": "FIX_BEFORE_PILOT",
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 يفوض بدء S15 مباشرة بعد بوابات S15 بلا موافقة وسيطة؛ السقفان ثابتان؛ لا موجة هيكلية؛ لا قبول ذاتي ولا merge.\nتوجيه المالك 2026-11-03: أصلح S15-MR-001 من جذره مع regression DOM، ثم أعد S15 للمراجعة القانونية وانتقل مباشرة إلى S16 وفق الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md دون وقفة موافقة وسيطة؛ هذا ليس قبولًا لـS15 ولا S16 ولا إذن دمج.",
+  "owner_decision": "الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 يفوض بدء S15 مباشرة بعد بوابات S15 بلا موافقة وسيطة؛ السقفان ثابتان؛ لا موجة هيكلية؛ لا قبول ذاتي ولا merge.\nتوجيه المالك 2026-11-03: أصلح S15-MR-001 من جذره مع regression DOM، ثم أعد S15 للمراجعة القانونية وانتقل مباشرة إلى S16 وفق الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md دون وقفة موافقة وسيطة؛ هذا ليس قبولًا لـS15 ولا S16 ولا إذن دمج.\nاعتمد المالك قبول S15 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-04، بعد إصلاح S15-MR-001 عند c788b09f وإعادة التسليم الموثقة في 20-S15-RESULT-2026-11-03.md §10 والملحق 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. الإصلاح يضيف رجوع الهاتف/المتصفح للوحة عبر sentinel محدود بدورة الحياة مع اختبار أحمر/أخضر؛ التحقق jsdom فقط، بلا جهاز فعلي. القبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج.",
   "tests_required": [
     "حالات SDF الخمس المملوكة بأدلة دائمة (006/045/058/061/062)",
     "رفض روابط إنشاء الإقراض/الاقتراض القديمة بصدق مع حفظ التاريخ",
@@ -82,7 +82,8 @@
     "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md",
     "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md",
     "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
-    "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md"
+    "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md"
   ],
   "dependencies": [
     "DOC-020",
@@ -94,7 +95,7 @@
     "DOC-023"
   ],
   "migration_baseline": true,
-  "next_action": "مراجعة المالك المستقلة لإعادة تسليم S15 المصححة عند c788b09f (إصلاح S15-MR-001 الجذري بأحمر/أخضر موثق)؛ لا قبول ذاتي ولا merge. بعدها — بتوجيه المالك المتصل نفسه — يبدأ S16 بإنشاء DOC-025/WS-241 قانونيًا وفق الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md §4.",
+  "next_action": "S15 وS16 مقبولتان من المالك على فرع التكامل عند رأس التسليم 7fef8cf1fa9795e137a72c9a19ccdc38c247ba83؛ لا إعادة فتح دون دليل جديد. التفويض الحالي هو تنفيذ S17 ثم S18 مباشرة وفق 00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md؛ لا merge ولا كتابة على main.",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -127,6 +128,6 @@
       "reason": "إعادة تسليم الإصلاح للمراجعة المستقلة (لا قبولًا ذاتيًا): الالتزام c788b09f يملك اللوحةَ sentinel تاريخي واحد محدود بدورة الحياة على نمط Setup.tsx — الفتح يدفع entry واحدًا لنفس الصفحة، وBack الهاتف/المتصفح يغلق اللوحة وحدها (لا تغيير مسار/فترة/مال والتركيز يعود للمشغل)، وكل إغلاق غير-Back يستهلكه idempotent، والمغادرة تنظفه. أحمر أولًا على 8c0361b9: 4 فاشل | 7 ناجح (expected false to be true عند الفتح؛ back 0 مرات عند الإغلاق غير-Back والمغادرة؛ الحوار يبقى بعد popstate)؛ أخضر: 11/11 و119/119 عبر 21 ملف مالية و88/88 popstate-مجاورة؛ jsdom فقط بلا جهاز فعلي. الأدلة في 20a-S15-REVIEW-ADDENDUM-2026-11-03.md و§10 من 20-S15-RESULT-2026-11-03.md."
     }
   ],
-  "updated_at": "2026-11-03",
+  "updated_at": "2026-11-04",
   "root_cause": "FinanceFunctionsBoard documented Escape and close-button behavior but neither the board nor Finance.tsx owned a popstate/history sentinel for the open board. The DOM regression test covered Escape/close/focus only; the S15 result overstated phone-Back support. ROOT-REPAIRED at c788b09f: board-owned lifecycle-safe same-page history sentinel (Setup.tsx pattern) with idempotent consumption on every exit path and unmount cleanup; red/green regression recorded in 20a-S15-REVIEW-ADDENDUM-2026-11-03.md."
 }

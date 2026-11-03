@@ -224,3 +224,13 @@
 | `20a-S15-REVIEW-ADDENDUM-2026-11-03.md` | دليل الملاحظة المؤكدة S15-MR-001؛ الإصلاح الجذري أُنجز وأعيد التسليم للمراجعة. | `REPAIRED — REDELIVERED_FOR_INDEPENDENT_REVIEW`. |
 | `00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md` | أمر متصل لـZAI: إصلاح S15-MR-001 ثم S16 (UNIT-003/014/041/043 + SH-21) بلا توقف موافقة وسيط. | `EXECUTED 2026-11-03 (كلا الجزأين سُلّما للمراجعة؛ لا قبول ذاتي)`. |
 | `21-S16-RESULT-2026-11-03.md` | نتيجة تسليم S16 (UNIT-003/014/041/043 + SH-21) وأدلتها الكاملة؛ سلمت للمراجعة المستقلة — لا قبول. | `EXECUTED 2026-11-03 (delivered for review; DOC-025/WS-241 IN_REVIEW/REVIEW_REQUIRED)`. |
+
+## Additions after S16 — 2026-11-04
+
+هذه إضافة تشغيلية بعد الحزمة المجمدة؛ لا تغير ZIP الأصلي أو بصماته. اعتمد المالك S15 وS16 على فرع التكامل عند رأس `7fef8cf1fa9795e137a72c9a19ccdc38c247ba83`؛ بقي `main` عند `3584aa1d08cea3e0a00623b719fed7f991ce187f` بلا merge. الأمر التالي الوحيد المنشور يربط S17 ثم S18، ولا يبدأ الدمج.
+
+| الملف | الدور | الحالة |
+|---|---|---|
+| `20-S15-RESULT-2026-11-03.md` + `20a-S15-REVIEW-ADDENDUM-2026-11-03.md` | تسليم S15 وإصلاح S15-MR-001 عند `c788b09f` بأحمر/أخضر؛ لا اختبار جهاز فعلي. | `OWNER ACCEPTED ON INTEGRATION (2026-11-04); not VERIFIED on main; no merge` |
+| `21-S16-RESULT-2026-11-03.md` | تسليم S16؛ المرشح الكودي `9dc4b194`، والبوابتان البعيدتان ناجحتان على رأس التسليم `7fef8cf1`. | `OWNER ACCEPTED ON INTEGRATION (2026-11-04); not VERIFIED on main; no merge` |
+| `00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md` | أمر مستقل لـZAI: S17 (UNIT-033/044 + SH-22) ثم S18 نهائيًا على الفرع وPR نفسيهما؛ لا موجات هيكلية أو كتابة main أو دمج؛ تسليم Merge Readiness Manifest للمالك. | `OWNER AUTHORIZED — NOT STARTED AT PUBLICATION` |

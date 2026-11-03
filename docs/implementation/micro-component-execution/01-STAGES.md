@@ -1,7 +1,7 @@
 # Micro — جدول مراحل التنفيذ وبطاقاتها
 
 **النسخة:** V1 · **التاريخ:** 2026-10-27 — عمّان.
-**الحالة (2026-11-03):** S01 وS10 وS12 وS13 وS14 مقبولة على فرع التكامل فقط؛ S02–S09 وS11 حسب Control؛ S15 (المصححة بإصلاح S15-MR-001) وS16 كلتاهما في IN_REVIEW/REVIEW_REQUIRED رهن مراجعة المالك — لا قبول؛ S17/S18 لم تبدآ. لا `VERIFIED` على main ولا merge.
+**الحالة (2026-11-04):** S01 وS10 وS12–S16 مقبولة على فرع التكامل فقط؛ S02–S09 وS11 حسب Control. S17→S18 مأذونتان بتكليف متصل واحد ولم تبدآ وقت نشره. لا `VERIFIED` على main ولا merge.
 
 **الاقتراح:** 18 مرحلة S01..S18: تجهيز توثيقي، و16 شريحة تطوير، وقبول تكامل نهائي. العدد مبني على فصل الكتّاب والعقود والقراء؛ لا يساوي 45 مكونًا ولا المجموعات السبع. الحالات التنفيذية الفعلية لكل مرحلة في بطاقتها وOperations Control أدناه؛ هذا الاقتراح لا يمنح تفويضًا مستقلًا.
 
@@ -402,7 +402,7 @@
 
 ### S15 — المالية والكشف والسجل والميزانيات وإيقاف القدرات الملغاة
 
-**الحالة:** `IN_REVIEW` بعد الإصلاح الجذري لملاحظة S15-MR-001؛ لا قبول. الالتزام المرجعي `c788b09f` (فوق الانتقال القانوني `11edf9f3`): اللوحة تملك sentinel تاريخي واحدًا محدودًا بدورة الحياة على نمط Setup.tsx — أحمر أولًا 4 فاشل | 7 ناجح ثم أخضر 11/11 و119/119 و88/88 (jsdom فقط). التقرير `20-S15-RESULT-2026-11-03.md` §10 يصححه الملحق `20a-S15-REVIEW-ADDENDUM-2026-11-03.md`. DOC-024/WS-240 في IN_REVIEW/REVIEW_REQUIRED؛ لا قبول ذاتي ولا merge.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` بقرار المالك 2026-11-04، استنادًا إلى الإصلاح الجذري S15-MR-001 عند `c788b09f`؛ اختبار أحمر أولًا 4 فاشل ثم أخضر 11/11 و119/119 و88/88 (jsdom فقط). التقرير `20-S15-RESULT-2026-11-03.md` §10 والملحق `20a-S15-REVIEW-ADDENDUM-2026-11-03.md`. قبول فرع التكامل فقط؛ لا `VERIFIED` على main ولا merge.
 
 **المواصفات:** [UNIT-013](02-SPECIFICATIONS/03-New-Design/UNIT-013-المالية-وملخص-الفترة.md)، [UNIT-013B](02-SPECIFICATIONS/03-New-Design/UNIT-013B-ميزانيات-المصروف-الاختيارية.md)، [UNIT-016](02-SPECIFICATIONS/03-New-Design/UNIT-016-كشف-الفترة.md)، [UNIT-017](02-SPECIFICATIONS/03-New-Design/UNIT-017-سجل-العمليات.md)، [UNIT-021](02-SPECIFICATIONS/03-New-Design/UNIT-021-التوقعات-النقدية-المؤجلة.md)، [UNIT-035](02-SPECIFICATIONS/03-New-Design/UNIT-035-القروض-التي-أعطاها-المشروع.md)، [UNIT-036](02-SPECIFICATIONS/03-New-Design/UNIT-036-القروض-التي-أخذها-المشروع.md)، [UNIT-040](02-SPECIFICATIONS/03-New-Design/UNIT-040-المشاركة.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -428,7 +428,7 @@
 
 ### S16 — الرئيسية والتنقل والوصول للخدمات
 
-**الحالة:** `IN_REVIEW` (مسلّمة للمراجعة؛ لا قبول). المرشح الكودي `9dc4b194` فوق رأس إصلاح S15-MR-001 `c788b09f`: الشريط الخماسي الجديد والرئيسية على ترتيب HOME-A والنطاق المحمول إلى كشف 016 و`/delivery` الصادقة؛ pnpm check كاملة خروج 0 (1019 جذريًا + 3329 تطبيقيًا)؛ الميزانية 597,402/145,649 تحت السقفين؛ مراجعات قرائية خمس بموجدة واحدة (إغلاق Escape للوحات الرئيسية لا يعيد التركيز) صُححت من الجذر وأعيدت قراءتها. التقرير `21-S16-RESULT-2026-11-03.md`. DOC-025/WS-241 في IN_REVIEW/REVIEW_REQUIRED؛ لا قبول ذاتي ولا merge.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` بقرار المالك 2026-11-04 عند رأس التسليم `7fef8cf1` (المرشح الكودي `9dc4b194`)؛ التقرير `21-S16-RESULT-2026-11-03.md` يوثق السلسلة الكاملة والميزانية 597,402/145,649 والمراجعات الخمس وبوابتي Actions/Cloudflare على الرأس الدقيق. قبول فرع التكامل فقط؛ لا `VERIFIED` على main ولا merge.
 
 **المواصفات:** [UNIT-003](02-SPECIFICATIONS/03-New-Design/UNIT-003-مشروعي-الآن.md)، [UNIT-014](02-SPECIFICATIONS/03-New-Design/UNIT-014-أدوات-وسجلات-المالية.md)، [UNIT-041](02-SPECIFICATIONS/03-New-Design/UNIT-041-السوق.md)، [UNIT-043](02-SPECIFICATIONS/03-New-Design/UNIT-043-الخدمات-القادمة.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -454,7 +454,7 @@
 
 ### S17 — فحص البيانات وتجربة النسخ النهائية
 
-**الحالة:** PLANNED_REVIEW؛ لا فرع مرحلة ولا أمر منشور.
+**الحالة:** `OWNER_AUTHORIZED_CONNECTED_EXECUTION`؛ الأمر `00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md` منشور. S17 لم تبدأ وقت النشر؛ DOC-026/WS-242 ينشئهما ZAI قانونيًا بعد إعادة التحقق.
 
 **المواصفات:** [UNIT-033](02-SPECIFICATIONS/03-New-Design/UNIT-033-فحص-البيانات.md)، [UNIT-044](02-SPECIFICATIONS/03-New-Design/UNIT-044-النسخ-الاحتياطي-والاستعادة.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -480,7 +480,7 @@
 
 ### S18 — القبول المتكامل وتجهيز الدمج النهائي
 
-**الحالة:** PLANNED_REVIEW؛ لا فرع مرحلة ولا أمر منشور.
+**الحالة:** `AUTHORIZED_AFTER_S17` ضمن الأمر المتصل؛ لا تبدأ قبل إعادة تسليم S17 قانونيًا. DOC/WS خاصتان بها ينشآن عند انتقال S17→S18 وفق Control.
 
 **المواصفات:** توثيق أو قبول برنامج؛ لا مكون منتج جديد، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 

@@ -39,12 +39,13 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-11-03",
-  "updated_at": "2026-11-03",
-  "next_action": "مراجعة المالك المستقلة لإعادة تسليم S15 المصححة عند c788b09f؛ لا قبول ذاتي ولا merge. بعدها — بتوجيه المالك المتصل نفسه — يبدأ S16 بإنشاء DOC-025/WS-241 قانونيًا وفق الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md §4.",
+  "updated_at": "2026-11-04",
+  "next_action": "S15 وS16 مقبولتان من المالك على فرع التكامل عند رأس التسليم 7fef8cf1fa9795e137a72c9a19ccdc38c247ba83؛ لا إعادة فتح دون دليل جديد. التفويض الحالي هو تنفيذ S17 ثم S18 مباشرة وفق 00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md؛ لا merge ولا كتابة على main.",
   "notes": [
     "أمر S15 مضمّن في الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 (لا أمر منفصل).",
     "قاعدة تسليم S14 للمراجعة موثقة عند 75af0773 وبوابتاها البعيدتان PASS (run 41548068879 / Pages 125628657923).",
-    "S15-MR-001 confirmed at live head 37f81d9a0d089621ec14a99f0c26b457bcf6fb0e on 2026-11-03: FinanceFunctionsBoard and Finance.tsx lack board-owned popstate/history behavior although 20-S15-RESULT claimed phone Back support; existing DOM test covers Escape/close/focus only. Finding and root-fix acceptance are in 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. Owner-authorized connected fix-then-S16 execution is specified in docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md; no S15/S16 acceptance or merge."
+    "Historical delivery note (2026-11-03): S15-MR-001 was confirmed at live head 37f81d9a0d089621ec14a99f0c26b457bcf6fb0e: FinanceFunctionsBoard and Finance.tsx lacked board-owned popstate/history although the S15 result claimed phone Back support; the DOM test covered Escape/close/focus only. The finding and root-fix criteria are in 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. At that time, S15/S16 had not yet been owner-accepted. This historical delivery state was superseded by the explicit owner acceptance recorded on 2026-11-04; no merge.",
+    "اعتمد المالك قبول S15 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-04، بعد إصلاح S15-MR-001 عند c788b09f وإعادة التسليم الموثقة في 20-S15-RESULT-2026-11-03.md §10 والملحق 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. الإصلاح يضيف رجوع الهاتف/المتصفح للوحة عبر sentinel محدود بدورة الحياة مع اختبار أحمر/أخضر؛ التحقق jsdom فقط، بلا جهاز فعلي. القبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج. تبقى حالة Workstream REVIEW_REQUIRED وفق نمط تحرير الملكية؛ لا تعني VERIFIED على main ولا دمجًا."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
@@ -52,7 +53,8 @@
     "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md",
     "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md",
     "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
-    "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md"
+    "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md"
   ],
   "status_history": [
     {

@@ -1,7 +1,7 @@
 # حالة Micro الحية
 
 **الحالة:** `CURRENT / UPDATE WITH EVERY MERGED SLICE`
-**آخر تحديث:** 3 نوفمبر 2026 (**main `3584aa1d`؛ PR #383 Draft؛ S01/S10/S12/S13/S14 مقبولة على التكامل فقط؛ S15 أُصلحت جذريًا (S15-MR-001 عند `c788b09f`) وS16 نُفذت (`9dc4b194`) — كلتاهما IN_REVIEW رهن مراجعة المالك؛ لا merge.**)
+**آخر تحديث:** 4 نوفمبر 2026 (**main `3584aa1d`؛ S15/S16 مقبولتان على فرع التكامل عند `7fef8cf1`؛ تفويض متصل لـS17 ثم S18؛ PR #383 ما زال Draft؛ لا merge ولا main write.**)
 **التاريخ:** كل سجل الشرائح والموجات المؤرخ (§9–§138 وفقرات المتابعة قبل 2026-10-01) في [`current-state-log.md`](current-state-log.md) — append-only ولا يُحمَّل مع هذا الملف.
 
 **قاعدة العمل:** العربية، RTL، phone-first، والأرقام المالية ASCII/LTR.
@@ -14,7 +14,7 @@
 
 | الحقل | الحقيقة الحالية |
 |---|---|
-| `main` | `3584aa1d08cea3e0a00623b719fed7f991ce187f` ولم يتغير؛ PR #383 Draft فوقه. على فرع التكامل: S01/S10/S12/S13/S14 مقبولة؛ S02–S09/S11 حسب Control؛ S15 (المصححة `c788b09f`) وS16 (`9dc4b194`) في IN_REVIEW/REVIEW_REQUIRED؛ لا merge ولا main write. |
+| `main` | `3584aa1d08cea3e0a00623b719fed7f991ce187f` لم يتغير؛ PR #383 Draft. على التكامل: S01/S10/S12/S13/S14/S15/S16 مقبولة حسب Control؛ S02–S09/S11 حسب Control؛ S17 ثم S18 مأذونتان بأمر واحد ولم تبدآ عند نشره؛ لا merge ولا main write. |
 | طريق التنفيذ | React → Application Service → Domain → `PrototypeLocalStore` → IndexedDB. لا وصول مباشر من UI إلى IndexedDB. |
 | قاعدة التسليم | برنامج المكونات: فرع تكامل واحد من `origin/main` → commits مراحل واضحة → PR Draft واحد → مراجعتان ثم قبول المالك؛ الدمج بعد S18 فقط. |
 | نمط المنتج | Web-first، local-first، بلا Auth أو Sync أو Cloud أو حسابات مستخدمين أو بيانات حقيقة خارج الجهاز. |
