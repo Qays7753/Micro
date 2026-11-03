@@ -81,6 +81,18 @@ export const CLASSIFIED_DIALOG_SURFACES = [
       "conformant UNIT-013 — focus-in on open (close button) + Escape + close button; focus restored to the opener by the page on close; no trap by design (OD-A11Y non-modal)",
   },
   {
+    /* UNIT-003 (S16 — HOME-A2): لوحات الرئيسية الأربع (عرض الكل، اختيار
+     * الفترة، معلومات الرئيسية !، اسأل Micro الثانوي) — غير مودالة بقرار
+     * OD-A11Y: Escape يغلقها، والإغلاق الصريح يعيد التركيز لمشغّله، ولا فخ
+     * تركيز لغير المودال؛ مصنفة بنفس الـPR الذي أدخلها (قاعدة الحارس). */
+    file: "pages/Home.tsx",
+    role: "dialog",
+    ariaModal: false,
+    model: "NON_MODAL",
+    focusContract:
+      "conformant UNIT-003/S16 — Escape closes the open layer; explicit close restores focus to its trigger; no trap by design (OD-A11Y non-modal)",
+  },
+  {
     file: "components/layout/QuickActionSheet.tsx",
     role: "alertdialog",
     ariaModal: null,

@@ -292,7 +292,7 @@ export default function FinanceActivity() {
             symbol={<Activity />}
             state={<StatusChip state="no-data">لا نشاط مسجّل بعد</StatusChip>}
             title={<>لم يُسجَّل أي نشاط حتى الآن.</>}
-            description={<>أول تسجيل من أزرار «سجّل بسرعة» في مشروعي الآن يظهر هنا مع أثره الكامل.</>}
+            description={<>أول تسجيل من أزرار «سجّل بسرعة» في الرئيسية يظهر هنا مع أثره الكامل.</>}
           />
         ) : (
           <EmptyState

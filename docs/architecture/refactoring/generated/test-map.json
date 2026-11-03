@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "d7edfb16d668911f2f310402604d7ffad62427ca",
+  "head": "100a71c1e9fbc5d86be4c2734673d8930e5ee967",
   "pages": {
-    "total": 62,
+    "total": 63,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -113,6 +113,12 @@
           "pages/CostEditor.s09.dom.test.tsx"
         ]
       },
+      "pages/Delivery.tsx": {
+        "kind": "direct",
+        "evidence": [
+          "Home.unit003.s16.dom.test.tsx"
+        ]
+      },
       "pages/DeliveryReview.tsx": {
         "kind": "direct",
         "evidence": [
@@ -213,7 +219,7 @@
         "evidence": [
           "G004CapabilityGuard.dom.test.tsx",
           "Home.dom.test.tsx",
-          "HomeRedesign.w43.dom.test.tsx",
+          "Home.unit003.s16.dom.test.tsx",
           "Nav001.dom.test.tsx",
           "ReadLayerParity.w44.dom.test.tsx",
           "Set003Capabilities.dom.test.tsx",

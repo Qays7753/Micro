@@ -96,7 +96,7 @@ export default function Foundation() {
           </Button>
         </div>
         <Button action="secondary" onClick={() => navigate("/")}>
-          مشروعي الآن
+          الرئيسية
         </Button>
       </section>
     );
@@ -106,7 +106,7 @@ export default function Foundation() {
       <div className="micro-page-heading">
         <span className="micro-overline">خطوة التأسيس · اختيارية بالكامل</span>
         <h1>شو عندك هلق؟</h1>
-        <p>سجل ما تعرفه الآن فقط. ما تخطّاه يظهر لاحقًا في «مشروعي الآن» كطريق، لا كصفر.</p>
+        <p>سجل ما تعرفه الآن فقط. ما تخطّاه يظهر لاحقًا في «الرئيسية» كطريق، لا كصفر.</p>
       </div>
       <section className="micro-foundation-truth" aria-label="سطر الحقيقة">
         <span className="micro-overline">سطر الحقيقة</span>
@@ -139,7 +139,7 @@ export default function Foundation() {
             </div>
             <div>
               <dt>ما الذي يتأثر؟</dt>
-              <dd>بطاقة الكاش في «مشروعي الآن» وقسم «المالية» ودفتر المحفظة.</dd>
+              <dd>بطاقة الكاش في «الرئيسية» وقسم «المالية» ودفتر المحفظة.</dd>
             </div>
             <div>
               <dt>الأثر المالي</dt>
@@ -341,7 +341,7 @@ export default function Foundation() {
         </button>
       </section>
       <section className="micro-foundation-exit" aria-label="الخروج من صفحة الأساس">
-        <p>التخطي فعل واعٍ: كل ما تركته فارغًا يظهر في «مشروعي الآن» كطريق «سجّله»، ولا يتحول إلى صفر.</p>
+        <p>التخطي فعل واعٍ: كل ما تركته فارغًا يظهر في «الرئيسية» كطريق «سجّله»، ولا يتحول إلى صفر.</p>
         <div className="micro-foundation-actions">
           <Button action="secondary" onClick={() => navigate("/")}>
             تخطَّ وأكمل لاحقًا

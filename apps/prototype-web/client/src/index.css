@@ -1915,11 +1915,6 @@ textarea:disabled,
   height: 19px;
   color: var(--color-accent-text);
 }
-.micro-home-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
 .micro-finance-page {
   gap: var(--space-5);
 }
@@ -2722,24 +2717,8 @@ button.micro-finance-position-link:focus-visible {
  * يلتفان عموديًا في المقاسات الضيقة؛ لا بطاقات ثقيلة حول كل رقم. */
 .micro-home-numbers {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: var(--space-2);
-}
-.micro-home-numbers-period {
-  display: grid;
-  gap: var(--space-2);
-  min-width: 0;
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-}
-.micro-home-numbers-period > h3 {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1.35;
 }
 .micro-home-number {
   display: flex;
@@ -2772,50 +2751,6 @@ button.micro-finance-position-link:focus-visible {
 }
 /* P-4.3-2 (D6): Insights — صفوف خفيفة بلا بطاقات ثقيلة؛ أيقونة واحدة وسطر
  * وفعل نصي واحد لكل ملحوظة. */
-.micro-home-insights-list {
-  display: grid;
-  gap: var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.micro-home-insight {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-control);
-  background: var(--color-bg-well);
-}
-.micro-home-insight > svg {
-  flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
-  color: var(--color-accent-text);
-}
-.micro-home-insight > div {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-.micro-home-insight p {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  line-height: 1.5;
-}
-.micro-home-insight small {
-  color: var(--color-text-secondary);
-  font-size: 0.75rem;
-  line-height: 1.5;
-}
-.micro-home-insight > .micro-text-action {
-  flex: 0 0 auto;
-}
 .micro-setup-intro {
   display: grid;
   gap: 8px;
@@ -4557,6 +4492,45 @@ button.micro-month-cell:active {
 }
 
 /* H01-B: decision-led local control center */
+/* SH-21/S16 (UNIT-003 — HOME-A2): الرئيسية الجديدة — صف إجراءات يدوي
+ * بسحب وزر «عرض الكل» ثابت خارجه، ومتابعتك، ولمحة مالية بفترة واحدة. */
+.micro-home-quick-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.micro-quick-actions-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.micro-quick-action-all {
+  flex: 0 0 auto;
+  min-width: 72px;
+}
+.micro-home-heading-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+.micro-home-glimpse-section {
+  display: grid;
+  gap: var(--space-3);
+}
+.micro-home-number small.micro-home-number-note {
+  display: block;
+  color: var(--color-text-secondary);
+  font-size: 0.6875rem;
+}
+.micro-home-secondary-line {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+}
+.micro-home-period-picker {
+  max-width: 360px;
+  margin-inline: auto;
+}
+
 .micro-home-control-center {
   display: grid;
   /* NAV-001/MOB-001: الصف القابل للتمرير (أزرار التسجيل السريع) يساهم
@@ -4588,44 +4562,18 @@ button.micro-month-cell:active {
   color: var(--color-text-secondary);
   font-size: 0.8125rem;
 }
-.micro-home-facts-section,
-.micro-home-finance-section,
-.micro-home-catalog-section,
-.micro-home-attention-section,
-.micro-home-optional-section,
-.micro-home-recent-section {
-  display: grid;
-  gap: var(--space-3);
-}
-.micro-home-finance-unit {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-inline-start: 3px solid var(--color-accent-primary);
-  border-radius: var(--radius-control);
-  padding: var(--space-3);
-  background: var(--color-surface);
-}
-.micro-home-finance-unit p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 0.75rem;
-}
-.micro-home-finance-unit .micro-prim-button {
-  flex: 0 0 auto;
-}
 /* قسم «اليوم» (F-078): أولوية صباحية — المتابعات والمواعيد والديون من شاشة واحدة. */
-.micro-home-today-section {
+/* HOME-A2-3 (S16 — UNIT-003): متابعتك — مختصر واحد حتى 3 مهام؛ وسم
+ * «قادم» للموعد المستقبلي المحجوز لا يوصف بالعاجل. */
+.micro-home-followup-section {
   display: grid;
   gap: var(--space-3);
 }
-.micro-home-today-list {
+.micro-home-followup-list {
   display: grid;
   gap: var(--space-2);
 }
-.micro-home-today-item {
+.micro-home-followup-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4635,47 +4583,43 @@ button.micro-month-cell:active {
   padding: var(--space-3);
   background: var(--color-surface);
 }
-.micro-home-today-item[data-kind="due_amount"] {
-  border-inline-start-color: var(--color-warning-text);
+.micro-home-followup-item[data-upcoming="true"] {
+  border-inline-start-color: var(--color-border);
 }
-.micro-home-today-item > div {
+.micro-home-followup-item > div {
   display: grid;
   gap: var(--space-1);
   min-width: 0;
 }
-.micro-home-today-item strong {
+.micro-home-followup-item strong {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   font-size: 0.875rem;
 }
-.micro-home-today-item strong svg {
+.micro-home-followup-soon {
   flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-  color: var(--color-accent-text);
+  font-size: 0.6875rem;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0 var(--space-2);
 }
-.micro-home-today-item p {
+.micro-home-followup-item p {
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 0.75rem;
 }
-.micro-home-today-item small {
+.micro-home-followup-amount {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+.micro-home-followup-item small {
   color: var(--color-text-secondary);
   font-size: 0.6875rem;
 }
-.micro-home-today-item .micro-text-action {
+.micro-home-followup-item .micro-text-action {
   flex: 0 0 auto;
-}
-/* §2.7: سطر الحقيقة كطريق — «غير مسجل — سجّله (نقرة)». */
-.micro-home-fact .micro-fact-road {
-  font-size: 0.9375rem;
-  line-height: 1.6;
-  text-align: start;
-}
-.micro-fact-road-line {
-  color: var(--color-text-secondary);
-  font-size: 0.75rem;
 }
 /* القرار ١٩: لوحة الإلغاء وتسوية العربون — سبب اختياري بثلاثة أزرار، وعربون بثلاثة خيارات. */
 /* X-06 (و٤): لوحة قرار الفرق بين المتفق والمقبوض — ثلاثة خيارات والثالث صالح. */
@@ -5046,27 +4990,7 @@ button.micro-month-cell:active {
   width: 15px;
   height: 15px;
 }
-/* كتلة «الأهم الآن»: بند واحد مرفوع بلون تمييز هادئ — لا عدّاد ولا إنذار. */
-.micro-home-priority {
-  display: grid;
-  gap: var(--space-2);
-  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 42%, var(--color-border));
-  border-radius: var(--radius-card);
-  padding: var(--space-3);
-  background: var(--color-surface);
-}
-.micro-home-priority .micro-home-today-item {
-  border: 0;
-  padding: 0;
-  background: transparent;
-}
 /* مؤهل الأمانة داخل بطاقة الكاش: حقيقة مالية ظاهرة بلا لون إنذار. */
-.micro-home-fact-qualifier {
-  color: var(--color-text-secondary);
-  font-size: 0.6875rem;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-}
 /* سطر المكان/العمل بلا اتصال — بديل نص النطاق القديم. */
 .micro-home-locality {
   display: flex;

@@ -131,9 +131,7 @@ describe("Wave 4.3 — P-4.3-1: open top area and logo menu", () => {
     for (const label of labels) {
       expect(label).not.toMatch(/المظهر|الليلي|داكن|فاتح/);
     }
-    expect(labels).toEqual(
-      expect.arrayContaining(["قائمة Micro", "النقل والتوصيل — قريبًا", "اسأل Micro — قريبًا"]),
-    );
-    expect(labels).toHaveLength(3);
+    expect(labels).toEqual(expect.arrayContaining(["قائمة Micro", "اسأل Micro — قريبًا"]));
+    expect(labels).toHaveLength(2);
   });
 });

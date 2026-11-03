@@ -3,10 +3,36 @@ import { ProjectFinancialService } from "./projectFinancialService";
 import { HomeControlCenterService } from "@/application/home/homeControlCenterService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { CollectionService } from "@/application/collections/collectionService";
+import { DirectSaleService } from "@/application/direct-sales/directSaleService";
+import { DueDatesService } from "@/application/finance/dueDatesService";
+import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
+import { UnifiedFollowUpService } from "@/application/follow-up/unifiedFollowUpService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { activeDeliveryLens } from "@/application/scheduling";
 
 /* FIN-001 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): القيم غير المسجلة لا تُعرض صفرًا
  * مؤكدًا — حالة الدليل تُحسب مع القيمة في readPosition نفسها، والرئيسية
  * ومالي تقرآنها من المصدر الواحد. الصفر الموثق (محسوب فوق سجلات) يبقى 0.00. */
+
+/* S16 (UNIT-003): قارئ الرئيسية في الاختبار فوق المصادر الكنونية نفسها. */
+function buildHomeService(store: MemoryLocalStore, now: () => string) {
+  const projectFinance = new ProjectFinancialService(store, now);
+  const directSales = new DirectSaleService(store, now);
+  const fulfillment = new FulfillmentService(store, now);
+  const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
+  const dueDates = new DueDatesService(store, collections, now);
+  const unified = new UnifiedFollowUpService(
+    activeDeliveryLens(store),
+    store,
+    collections,
+    dueDates,
+    projectFinance,
+    store,
+    now,
+  );
+  return new HomeControlCenterService(store, new DailyFollowUpService(store), projectFinance, unified, now);
+}
 
 const now = () => "2026-09-16T09:00:00.000Z";
 
@@ -157,29 +183,16 @@ describe("ProjectFinancialService evidence states (FIN-001)", () => {
       await import("@/application/agreements/agreementContextService")
     ).AgreementContextService(store);
     const activity = new (await import("@/application/activity/activityService")).ActivityService(store);
-    const home = new HomeControlCenterService(
-      store,
-      dailyFollowUp,
-      finance,
-      supplierPurchases,
-      inventory,
-      agreementContext,
-      activity,
-      () => now(),
-    );
+    const home = buildHomeService(store, () => now());
 
     const emptyPosition = await finance.readPosition();
     if (!emptyPosition.ok) throw new Error(emptyPosition.message);
     const emptyHome = await home.read();
     if (!emptyHome.ok) throw new Error(emptyHome.message);
-    const emptyStates = Object.fromEntries(emptyHome.value.facts.map(fact => [fact.id, fact.state]));
-    expect(emptyStates.cash).toBe(
+    expect(emptyHome.value.glimpse.cashNow.state).toBe(
       emptyPosition.value.evidence.cash === "recorded" ? "known" : "not_initialized",
     );
-    expect(emptyStates.cash).toBe("not_initialized");
-    expect(emptyStates.receivables).toBe("not_initialized");
-    expect(emptyStates.payables).toBe("not_initialized");
-    expect(emptyStates.owner_capital).toBe("not_initialized");
+    expect(emptyHome.value.glimpse.cashNow.state).toBe("not_initialized");
 
     const invested = await finance.record({
       type: "owner_investment_cash",
@@ -194,13 +207,10 @@ describe("ProjectFinancialService evidence states (FIN-001)", () => {
     const position = await finance.readPosition();
     const homeResult = await home.read();
     if (!position.ok || !homeResult.ok) throw new Error("reads should succeed");
-    const states = Object.fromEntries(homeResult.value.facts.map(fact => [fact.id, fact.state]));
-    /* نفس الدليل، نفس المعنى: مسجل في الشاشتين معًا. */
+    /* نفس الدليل، نفس المعنى: مسجل في القراءتين معًا. */
     expect(position.value.evidence.cash).toBe("recorded");
-    expect(states.cash).toBe("known");
+    expect(homeResult.value.glimpse.cashNow.state).toBe("known");
     expect(position.value.evidence.ownerCapital).toBe("recorded");
-    expect(states.owner_capital).toBe("known");
     expect(position.value.evidence.customerReceivables).toBe("not_recorded");
-    expect(states.receivables).toBe("not_initialized");
   });
 });

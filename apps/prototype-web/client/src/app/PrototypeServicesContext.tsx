@@ -377,17 +377,28 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
      * ثمنه (سقف gzip محروس — لا رفع). S07: يُبنى فوق خدمة المشتريات
      * الخاملة فور جاهزيتها — لا فوق null. */
     if (!supplierPurchasesService) return undefined;
-    void import("@/application/home/homeControlCenterService").then(module => {
+    /* S16 (UNIT-003 — SH-21): القارئ الموحد للمتابعة (S13) يُركّب هنا مع
+     * مركز التحكم — نفس عدساته البنيوية القائمة (عدسة التسليمات من باب
+     * الجدولة)؛ لا قارئ ثانٍ ولا زوج بيوت جديد. */
+    void Promise.all([
+      import("@/application/home/homeControlCenterService"),
+      import("@/application/follow-up"),
+      import("@/application/scheduling"),
+    ]).then(([home, followUp, scheduling]) => {
       if (!active) return;
       setHomeControlCenterService(
-        new module.HomeControlCenterService(
+        new home.HomeControlCenterService(
           singletonStore,
           singletonServices.dailyFollowUp,
           singletonServices.projectFinance,
-          supplierPurchasesService,
-          singletonServices.inventory,
-          singletonServices.agreementContext,
-          singletonServices.activity,
+          new followUp.UnifiedFollowUpService(
+            scheduling.activeDeliveryLens(getPrototypeLocalStore()),
+            getPrototypeLocalStore(),
+            singletonServices.collections,
+            singletonServices.dueDates,
+            singletonServices.projectFinance,
+            getPrototypeLocalStore(),
+          ),
         ),
       );
     });

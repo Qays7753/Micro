@@ -12,8 +12,10 @@
 
 export type {
   HomeControlCenterViewModel,
-  HomeFinancialFact,
-  HomeInsight,
-  HomePeriodNumber,
-  HomeTodayItem,
+  HomeFollowUpBrief,
+  HomeFollowUpRow,
+  HomeFinancialGlimpse,
+  HomeGlimpseNumber,
+  HomeGlimpsePeriodNumbers,
+  HomeGlimpsePeriodKind,
 } from "./homeControlCenterModel";

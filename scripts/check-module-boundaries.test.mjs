@@ -643,7 +643,7 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
 
   const r9Only = result => result.violations.filter(v => v.rule.startsWith("R9"));
 
-  it("the live repository passes on the recorded census: 129 edges (84 value + 45 type)", () => {
+  it("the live repository passes on the recorded census: 124 edges (82 value + 42 type) — S16 re-anchor 129/84/45 -> 124/82/42", () => {
     /* R11 Lock Remediation (2026-10-15): +1 type edge — pinOperations.ts (الوحدة
      * الكسولة لعمليات الرمز) -> application/time/clock.ts (هدف معفى OD-10؛
      * صف الجرد مضاف في نفس الـPR — نمو مرئي لا صامت).
@@ -680,10 +680,14 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
      * يعد يستورد assetService/retainedDepositService/fulfillmentService/
      * loanService (كلها أنواع لا قيم)؛ الجرد 133/84/49 صار 129/84/45 مع
      * إعادة اشتقاق الأغلف والتوتيلات من القائمة نفسها؛ تضييق لا توسيع
-     * (راجع تقرير S15). */
-    expect(result.stats.houseEdges).toBe(129);
-    expect(result.stats.houseEdgesValue).toBe(84);
-    expect(result.stats.houseEdgesType).toBe(45);
+     * (راجع تقرير S15).
+     * S16 (DOC-025, 2026-11-03 — UNIT-003): الجرد 129/84/45 صار 124/82/42 —
+     * قارئ الرئيسية حذف حوافه عديمة المستهلك (activity ×2، agreements،
+     * formatting، inventory، suppliers) وكسب حافة القارئ الموحد للمتابعة
+     * (type)؛ تضييق لا توسيع (راجع تقرير S16). */
+    expect(result.stats.houseEdges).toBe(124);
+    expect(result.stats.houseEdgesValue).toBe(82);
+    expect(result.stats.houseEdgesType).toBe(42);
   });
 
   it("fail-closed: a missing census file is a violation, never a pass", () => {

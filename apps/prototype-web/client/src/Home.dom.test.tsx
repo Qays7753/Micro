@@ -26,6 +26,12 @@ import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpServi
 import { HomeControlCenterService } from "@/application/home/homeControlCenterService";
 import { ProfileService } from "@/application/profile/profileService";
 import Home from "@/pages/Home";
+import { CollectionService } from "@/application/collections/collectionService";
+import { DirectSaleService } from "@/application/direct-sales/directSaleService";
+import { DueDatesService } from "@/application/finance/dueDatesService";
+import { UnifiedFollowUpService } from "@/application/follow-up/unifiedFollowUpService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { activeDeliveryLens } from "@/application/scheduling";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -43,22 +49,33 @@ vi.mock("wouter", () => ({
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+/* S16 (UNIT-003): قارئ الرئيسية في الاختبارات فوق المصادر الكنونية نفسها —
+ * القارئ الموحد للمتابعة (S13) بعدساته القائمة؛ لا قارئ ثانٍ. */
+function buildHomeService(store: MemoryLocalStore, now: () => string) {
+  const projectFinance = new ProjectFinancialService(store, now);
+  const directSales = new DirectSaleService(store, now);
+  const fulfillment = new FulfillmentService(store, now);
+  const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
+  const dueDates = new DueDatesService(store, collections, now);
+  const unified = new UnifiedFollowUpService(
+    activeDeliveryLens(store),
+    store,
+    collections,
+    dueDates,
+    projectFinance,
+    store,
+    now,
+  );
+  return new HomeControlCenterService(store, new DailyFollowUpService(store), projectFinance, unified, now);
+}
+
 const NOW = "2026-09-12T09:00:00.000Z";
 
 let store: MemoryLocalStore;
 let dataVersion = 0;
 
 function buildHomeControlCenter() {
-  return new HomeControlCenterService(
-    store,
-    new DailyFollowUpService(store),
-    new ProjectFinancialService(store, () => NOW),
-    new SupplierPurchaseService(store, () => NOW),
-    new InventoryMaterialService(store, () => NOW),
-    new AgreementContextService(store, () => NOW),
-    new ActivityService(store),
-    () => NOW,
-  );
+  return buildHomeService(store, () => NOW);
 }
 
 beforeEach(() => {
@@ -102,22 +119,23 @@ describe("Home journeys (Group 11-E)", () => {
     renderHome();
     expect(await screen.findByRole("heading", readyHeading)).toBeTruthy();
     expect(screen.queryByText("تعذر تحميل مشروعك")).not.toBeTruthy();
-    /* Z1 §3.1: منطقة حالة اليوم معلنة دائمًا في الجهوزية — دور واحد واضح. */
-    const dailyStatus = screen.getByTestId("home-daily-status");
-    expect(dailyStatus.getAttribute("role")).toBe("status");
-    /* بلا بيانات: يوم مفتوح بلا أرقام مختلقة (§7.1 — ما لا تسجله لا يُخترع له رقم). */
-    expect(screen.getByText("يومك مفتوح")).toBeTruthy();
-    expect(dailyStatus.textContent).toContain("يومك مفتوح");
+    /* HOME-A2-3 (S16): متابعتك بلا مهام ضمن قراءة مكتملة — الحالة الصادقة
+     * لا «يومك مفتوح» ولا «كل شيء ممتاز» (HOME-R03: مختصر واحد بدل الحالتين
+     * المتداخلتين؛ بلا بيانات لا تُخترع أرقام). */
+    expect(screen.getByText("لا توجد متابعات في السجلات المقروءة")).toBeTruthy();
   });
 
   it("offers the fixed recording actions on the empty day — the day is open, not blocked", async () => {
     await seedProfile();
     renderHome();
     expect(await screen.findByRole("heading", readyHeading)).toBeTruthy();
+    /* ACCESS-01/H (S16): الخمسة إلى أصحابها — بيع/مصروف/طلب جديد/شراء/أدوات
+     * المشروع؛ الصف يدوي و«عرض الكل» ثابت خارجه. */
     const fixedActions = screen.getByTestId("home-quick-actions");
-    expect(fixedActions.textContent).toContain("سجّل بيعًا");
-    expect(fixedActions.textContent).toContain("سجّل مصروفًا");
-    expect(fixedActions.textContent).toContain("طلب من عميل");
+    for (const label of ["بيع", "مصروف", "طلب جديد", "شراء", "أدوات المشروع"]) {
+      expect(fixedActions.textContent).toContain(label);
+    }
+    expect(screen.getByRole("button", { name: "عرض الكل" })).toBeTruthy();
   });
 
   it("keeps the opening cash wallet balance exact through the home read model", async () => {
@@ -145,10 +163,10 @@ describe("Home journeys (Group 11-E)", () => {
     await seedProfile();
     renderHome();
     expect(await screen.findByRole("heading", readyHeading)).toBeTruthy();
-    /* وحدة «مالي» الدائمة (القرار ٧): زر «صفحة الأساس» باسم مستقر لا لبس فيه —
-     * الرحلة تحترم عقد التنقل ٢٦: المصدر الرئيسية يُحفظ في ?from. */
-    fireEvent.click(screen.getByRole("button", { name: "صفحة الأساس" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(withReturnTo("/foundation", "/"));
+    /* HOME-A2-4 (S16): رابط «عرض المالية» يفتح 013 — الرحلة تحترم عقد
+     * التنقل ٢٦: المصدر الرئيسية يُحفظ في ?from. */
+    fireEvent.click(screen.getByRole("button", { name: "عرض المالية" }));
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(withReturnTo("/finance", "/"));
   });
 
   it("shows the first-boot loading state until the read resolves, then the ready surface", async () => {

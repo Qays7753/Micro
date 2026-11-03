@@ -3,20 +3,22 @@
  * the official semantic design system rather than a generic admin dashboard.
  */
 import type { LucideIcon } from "lucide-react";
-import { ClipboardList, House, Store, WalletCards, Wrench } from "lucide-react";
+import { ClipboardList, House, Store, Truck, WalletCards } from "lucide-react";
 
 export type NavigationItem = { href: string; label: string; icon: LucideIcon };
 
-/* NAV-001 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الشريط السفلي خمسة مقاعد ثابتة
- * بهذا الترتيب: مشروعي الآن | العمل | المالية | أدواتي | السوق.
- * زر «سجّل» المركزي أُزيل بعد نقل كل أفعاله إلى أزرار التسجيل السريع في
- * «مشروعي الآن» (بيع/مصروف في الورقة نفسها، وطلب/تقدير/تحصيل مساراتها).
- * السوق مقعد معلن «قريبًا» — إعلان مرسوم صادق لا وظيفة وهمية. */
+/* SH-21 (تنفيذ S16 بالأمر الموحد §4 — NAV-01 V15 §1): الشريط السفلي خمسة
+ * مقاعد ثابتة بهذا الترتيب من اليمين إلى اليسار على الهاتف العربي:
+ * المالية، الطلبات، الرئيسية، التوصيل، السوق. الرئيسية وجهة الفتح الوسطى
+ * (HOME-R01: تسمية موحدة «الرئيسية»؛ «مشروعي الآن» اسم الملف التاريخي لا
+ * اسمًا ثانيًا في الشريط). التوصيل وجهة Micro Delivery المستقبلية بإعلان
+ * صادق «قريبًا»؛ لا مقعد سادس للإعدادات أو الأدوات أو اسأل Micro (بيت
+ * الأدوات مدخل الرئيسية، وبيت الإعدادات الترويسة/الرئيسية). */
 export const primaryNavigation: readonly NavigationItem[] = [
-  { href: "/", label: "مشروعي الآن", icon: House },
-  { href: "/orders", label: "العمل", icon: ClipboardList },
   { href: "/finance", label: "المالية", icon: WalletCards },
-  { href: "/tools", label: "أدواتي", icon: Wrench },
+  { href: "/orders", label: "الطلبات", icon: ClipboardList },
+  { href: "/", label: "الرئيسية", icon: House },
+  { href: "/delivery", label: "التوصيل", icon: Truck },
   { href: "/market", label: "السوق", icon: Store },
 ];
 

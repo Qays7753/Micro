@@ -112,7 +112,7 @@ describe("EXE-016 — عقود الروابط العميقة على التطبي
     navigateTo("/nope-not-a-route");
     await mountApp();
     expect(await screen.findByRole("heading", { name: "هذه الصفحة ليست جزءًا من هذا الإصدار" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "العودة إلى مشروعي الآن" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "العودة إلى الرئيسية" })).toBeTruthy();
   });
 
   it("الرابط القديم الواضح /review يمر عبر توافقه المحدود إلى مالي", async () => {

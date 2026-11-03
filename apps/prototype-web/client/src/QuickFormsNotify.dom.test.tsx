@@ -17,12 +17,39 @@ import { DirectSaleService } from "@/application/direct-sales/directSaleService"
 import { QuickExpenseForm } from "@/components/finance/QuickExpenseForm";
 import { QuickSaleForm } from "@/components/finance/QuickSaleForm";
 import type { QuickActionReceipt } from "@/components/finance/quickActionFormTypes";
+import { CollectionService } from "@/application/collections/collectionService";
+import { DueDatesService } from "@/application/finance/dueDatesService";
+import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
+import { UnifiedFollowUpService } from "@/application/follow-up/unifiedFollowUpService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { HomeControlCenterService } from "@/application/home/homeControlCenterService";
+import { activeDeliveryLens } from "@/application/scheduling";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+/* S16 (UNIT-003): قارئ الرئيسية في الاختبارات فوق المصادر الكنونية نفسها —
+ * القارئ الموحد للمتابعة (S13) بعدساته القائمة؛ لا قارئ ثانٍ. */
+function buildHomeService(store: MemoryLocalStore, now: () => string) {
+  const projectFinance = new ProjectFinancialService(store, now);
+  const directSales = new DirectSaleService(store, now);
+  const fulfillment = new FulfillmentService(store, now);
+  const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
+  const dueDates = new DueDatesService(store, collections, now);
+  const unified = new UnifiedFollowUpService(
+    activeDeliveryLens(store),
+    store,
+    collections,
+    dueDates,
+    projectFinance,
+    store,
+    now,
+  );
+  return new HomeControlCenterService(store, new DailyFollowUpService(store), projectFinance, unified, now);
+}
+
 const NOW = "2026-09-16T09:00:00.000Z";
 
 let store: MemoryLocalStore;
@@ -181,13 +208,11 @@ describe("Quick forms notify after committed state (FIN-004)", () => {
     const home = await readHome();
     const position = await projectFinance.readPosition();
     if (!position.ok) throw new Error(position.message);
-    const cashFact = home.facts.find(fact => fact.id === "cash");
-    expect(cashFact?.state).toBe("known");
-    expect(cashFact?.valueMinor).toBe(position.value.recordedCashMinor);
-    expect(cashFact?.valueMinor).toBe(9700);
-    const unallocatedFact = home.facts.find(fact => fact.id === "unallocated");
-    expect(unallocatedFact).toBeUndefined();
-    expect(home.facts.some(fact => fact.qualifier?.includes("فرق سالب"))).toBe(false);
+    const cashNow = home.glimpse.cashNow;
+    expect(cashNow.state).toBe("known");
+    expect(cashNow.valueMinor).toBe(position.value.recordedCashMinor);
+    expect(cashNow.valueMinor).toBe(9700);
+    expect(cashNow.qualifier?.includes("فرق سالب") ?? false).toBe(false);
   });
 
   /* Z2.3 (§3.4 — Reused + FIN-004): «مُعاد استعماله» يعني لا كتابة جديدة —
@@ -237,16 +262,7 @@ async function readHome() {
   const { InventoryMaterialService } = await import("@/application/inventory/inventoryMaterialService");
   const { AgreementContextService } = await import("@/application/agreements/agreementContextService");
   const { ActivityService } = await import("@/application/activity/activityService");
-  const home = new HomeControlCenterService(
-    store,
-    new DailyFollowUpService(store),
-    projectFinance,
-    new SupplierPurchaseService(store, () => NOW),
-    new InventoryMaterialService(store, () => NOW),
-    new AgreementContextService(store),
-    new ActivityService(store),
-    () => NOW,
-  );
+  const home = buildHomeService(store, () => NOW);
   const result = await home.read();
   if (!result.ok) throw new Error(result.message);
   return result.value;

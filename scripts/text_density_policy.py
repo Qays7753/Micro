@@ -390,6 +390,8 @@ CAPS: dict[str, int] = {
     # fifth bottom-nav seat — honest قريبًا badge + future supplier-marketplace
     # description; no suppliers, no purchase action, no records or effects.
     "Market": 13,
+    # UNIT-043 (S16 — أول قياس): صفحة التوصيل إعلان قريبًا بنمط السوق نفسه.
+    "Delivery": 13,
     # MaterialEditor first measurement (2026-09-06, Group 2, عقد ٢٨): guided journey
     # (tracking question + opening-state question + cost question + effect preview)
     # — create + confirm-opening modes. Decision record D-029.
@@ -851,6 +853,8 @@ PAGES = [
     "InventoryMaterials",
     # المجموعة ٢ (عقد ٢٨): محررات المخزون تدخل القياس أول مرة (يوم القياس الأول).
     "Market",
+    # UNIT-043 (S16): صفحة التوصيل — إعلان «قريبًا» صادق؛ تقاس من يومها الأول.
+    "Delivery",
     "MaterialEditor",
     "InventoryMovementEditor",
     "SupplierPurchaseEditor",

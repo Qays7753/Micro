@@ -242,7 +242,7 @@ export default function Finance() {
           </Button>
         </div>
         <Button action="secondary" onClick={() => navigate("/")}>
-          مشروعي الآن
+          الرئيسية
         </Button>
       </section>
     );
@@ -264,7 +264,7 @@ export default function Finance() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "الرئيسية" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">الصورة العامة · المبالغ (د.أ)</span>

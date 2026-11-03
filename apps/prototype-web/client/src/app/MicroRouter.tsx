@@ -62,6 +62,8 @@ const Catalog = lazy(() => import("@/pages/Catalog"));
 const Tools = lazy(() => import("@/pages/Tools"));
 /* NAV-001: السوق — المقعد الخامس، إعلان «قريبًا» صادق بلا أي أثر مالي. */
 const Market = lazy(() => import("@/pages/Market"));
+/* UNIT-043 (S16): التوصيل — المقعد الرابع؛ إعلان صادق لا حجز ولا تسعير ولا تتبع. */
+const Delivery = lazy(() => import("@/pages/Delivery"));
 /* S10 (UNIT-031/032): حاسبة التخطيط T01 — أداة تفكير بلا أثر مالي ومحفوظاتها داخلها. */
 const CostCalculator = lazy(() => import("@/pages/CostCalculator"));
 /* S10 (UNIT-032): الرابط القديم للتفصيل صار إحالة إلى الحاسبة — لا صفحة مستقلة. */
@@ -206,6 +208,7 @@ export function MicroRouter() {
             <Route path="/tools" component={Tools} />
             {/* NAV-001: السوق — سطح يبقي التنقل السفلي؛ إعلان توسعة لا وظيفة. */}
             <Route path="/market" component={Market} />
+            <Route path="/delivery" component={Delivery} />
             {/* S10 (UNIT-031/032): حاسبة التخطيط T01 بعمق كامل مع محفوظاتها داخلها؛
                 والرابط القديم /tools/estimate/:id صار إحالة إليها (لا صفحة مستقلة). */}
             <Route path="/tools/calculator" component={CostCalculator} />

@@ -63,6 +63,12 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 import Setup from "@/pages/Setup";
 import Settings from "@/pages/Settings";
 import Home from "@/pages/Home";
+import { CollectionService } from "@/application/collections/collectionService";
+import { DirectSaleService } from "@/application/direct-sales/directSaleService";
+import { DueDatesService } from "@/application/finance/dueDatesService";
+import { UnifiedFollowUpService } from "@/application/follow-up/unifiedFollowUpService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { activeDeliveryLens } from "@/application/scheduling";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -134,16 +140,7 @@ function buildDeviceServices(store: PrototypeLocalStore) {
     actualTime: new ActualTimeService(store),
     projectFinance,
     cashContinuity,
-    homeControlCenter: new HomeControlCenterService(
-      store,
-      new DailyFollowUpService(store),
-      new ProjectFinancialService(store, clock),
-      new SupplierPurchaseService(store, clock),
-      new InventoryMaterialService(store, clock),
-      new AgreementContextService(store, clock),
-      new ActivityService(store),
-      clock,
-    ),
+    homeControlCenter: buildHomeService(store, clock),
     dataVersion: 0,
   } as unknown as ReturnType<typeof usePrototypeServices>;
 }
@@ -207,6 +204,25 @@ afterEach(() => {
 });
 
 /* ── U001-ORG-AC01: إتمام الاسم وحده يفتح المشروع بلا أثر مالي ── */
+/* S16 (UNIT-003): قارئ الرئيسية في الاختبار فوق المصادر الكنونية نفسها. */
+function buildHomeService(store: PrototypeLocalStore, now: () => string) {
+  const projectFinance = new ProjectFinancialService(store, now);
+  const directSales = new DirectSaleService(store, now);
+  const fulfillment = new FulfillmentService(store, now);
+  const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
+  const dueDates = new DueDatesService(store, collections, now);
+  const unified = new UnifiedFollowUpService(
+    activeDeliveryLens(store),
+    store,
+    collections,
+    dueDates,
+    projectFinance,
+    store,
+    now,
+  );
+  return new HomeControlCenterService(store, new DailyFollowUpService(store), projectFinance, unified, now);
+}
+
 describe("UNIT-001 V3 ORG-AC01 — name completion opens the project, no financial effect, no optional-field requirement", () => {
   it("completing the name alone opens Home with exactly one identity and zero financial records (ORG-AC01)", async () => {
     const { services, store } = setupServices();

@@ -32,6 +32,7 @@ import { downloadTextFile } from "@/lib/textDelivery";
 import {
   formatLocalDate,
   formatLocalDateLong,
+  isValidLocalDate,
   localDatePlusDays,
   localDateWeekdayIndex,
   formatMoneyWithUnit,
@@ -152,6 +153,18 @@ function StatementLineRow({
   );
 }
 
+/* S16 (HOME-X04): قراءة نطاق محمول صالح من الوصلة — since/until بتاريخين
+ * محليين (YYYY-MM-DD) وfrom ≤ to؛ أي نقص يُهمل بهدوء. */
+function carriedRangeFromSearch(search: string | null): { from: string; to: string } | null {
+  const params = new URLSearchParams((search ?? "").replace(/^\?/, ""));
+  const since = params.get("since");
+  const until = params.get("until");
+  if (since === null || until === null) return null;
+  if (!isValidLocalDate(since) || !isValidLocalDate(until)) return null;
+  if (since > until) return null;
+  return { from: since, to: until };
+}
+
 export default function Statement() {
   const [, navigate] = useLocation();
   const search = useSearch();
@@ -161,9 +174,14 @@ export default function Statement() {
   const [reportNotice, setReportNotice] = useState<string | null>(null);
   const today = todayInAmman();
   const thisWeek = weekBounds(today);
-  const [range, setRange] = useState<QuickRange>("this_week");
-  const [from, setFrom] = useState(thisWeek.from);
-  const [to, setTo] = useState(thisWeek.to);
+  /* S16 (HOME-X04/3D-C1): النطاق المحمول في الوصلة (since/until بتاريخين
+   * محليين صالحين) يطبَّق عند الفتح — رقم الرئيسية يفتح تفسيره بكشف 016
+   * بالنطاق نفسه؛ ما لا يصالح يُهمل بهدوء على قالب الأسبوع القائم (لا
+   * انفجار ولا نطاق مختلق). */
+  const carried = carriedRangeFromSearch(search);
+  const [range, setRange] = useState<QuickRange>(carried ? "custom" : "this_week");
+  const [from, setFrom] = useState(carried?.from ?? thisWeek.from);
+  const [to, setTo] = useState(carried?.to ?? thisWeek.to);
   const [state, setState] = useState<State>({ phase: "loading" });
   const [retryCount, setRetryCount] = useState(0);
   /* FIN-007: مفتاح «قارن مع الفترة السابقة» — يفعّل المقارنة فوق النطاق المعروض. */

@@ -156,7 +156,7 @@ export function SettingsProjectDataSection({
                     aria-describedby={nameError ? "project-name-error" : "project-name-help"}
                   />
                   <small id="project-name-help">
-                    الاسم الذي يظهر في «مشروعي الآن» وفي السجلات؛ هوية مشروعك ومراجعه لا تتغير.
+                    الاسم الذي يظهر في «الرئيسية» وفي السجلات؛ هوية مشروعك ومراجعه لا تتغير.
                   </small>
                 </label>
                 {nameError ? (

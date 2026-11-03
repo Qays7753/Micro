@@ -122,7 +122,8 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
      * واحدًا) — لا موضع تسجيل جديد ولا استثناء إضافي؛ نفس البروتوكول.
      * (ملكات المجال owner-safe-withdrawal الثلاث خارج نطاق عدّ هذا الحارس
      * — تقاعدها محسوس في حراس المجال.) */
-    expect(stdout).toMatch(/393 ملف إنتاج/);
+    /* S16 (UNIT-043): صفحة التوصيل + وحدة حالة الخدمات — 393 -> 395. */
+    expect(stdout).toMatch(/395 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

@@ -51,10 +51,11 @@ describe("check-a11y-dialog-surfaces (R11 W4-0 interaction-model census guard)",
      * «وظائف المالية» (FinanceFunctionsBoard — dialog غير مودال: focus-in
      * على زر الإغلاق + Escape + استعادة التركيز لزر الفتح عند onClose) —
      * السجل صار 6 أسطح (5 ملفات بتصريح حي)؛ تصنيف موثق نفس-الـPR. */
-    expect(stdout).toMatch(/6 سطحًا حواريًا مصنفًا/);
+    /* S16 (UNIT-003): لوحات الرئيسية الأربع مصنفة — 6 -> 7 أسطح (ملف Home جديد في السجل). */
+    expect(stdout).toMatch(/7 سطحًا حواريًا مصنفًا/);
     const { ok, stats } = checkA11yDialogSurfaces(ROOT);
     expect(ok).toBe(true);
-    expect(stats.classified).toBe(6);
+    expect(stats.classified).toBe(7);
   });
 
   it("extracts string and expression dialog declarations from JSX", () => {

@@ -43,6 +43,11 @@ import { createFinancialEvent, type FinancialEvent } from "@micro-domain/financi
 import ToolsIntegrity from "@/pages/ToolsIntegrity";
 import Home from "@/pages/Home";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
+import { CollectionService } from "@/application/collections/collectionService";
+import { DueDatesService } from "@/application/finance/dueDatesService";
+import { UnifiedFollowUpService } from "@/application/follow-up/unifiedFollowUpService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { activeDeliveryLens } from "@/application/scheduling";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -62,6 +67,26 @@ vi.mock("wouter", () => ({
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
 const mockedGetStore = vi.mocked(getPrototypeLocalStore);
+/* S16 (UNIT-003): قارئ الرئيسية في الاختبارات فوق المصادر الكنونية نفسها —
+ * القارئ الموحد للمتابعة (S13) بعدساته القائمة؛ لا قارئ ثانٍ. */
+function buildHomeService(store: MemoryLocalStore, now: () => string) {
+  const projectFinance = new ProjectFinancialService(store, now);
+  const directSales = new DirectSaleService(store, now);
+  const fulfillment = new FulfillmentService(store, now);
+  const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
+  const dueDates = new DueDatesService(store, collections, now);
+  const unified = new UnifiedFollowUpService(
+    activeDeliveryLens(store),
+    store,
+    collections,
+    dueDates,
+    projectFinance,
+    store,
+    now,
+  );
+  return new HomeControlCenterService(store, new DailyFollowUpService(store), projectFinance, unified, now);
+}
+
 const NOW = "2026-09-16T09:00:00.000Z";
 const now = () => NOW;
 
@@ -256,16 +281,7 @@ describe("Wave 4.4 — P-4.4-1: home fact cards open their real sources (D8 pari
   function homeServices() {
     const finance = new ProjectFinancialService(store, now);
     const suppliers = new SupplierPurchaseService(store, now);
-    return new HomeControlCenterService(
-      store,
-      new DailyFollowUpService(store),
-      finance,
-      suppliers,
-      new InventoryMaterialService(store, now),
-      new AgreementContextService(store, now),
-      new ActivityService(store),
-      now,
-    );
+    return buildHomeService(store, now);
   }
 
   /* طلب قائم يجعل «لي عند العملاء» معروفة (دليل تسجيل) دون مس الأرقام الأخرى. */
@@ -310,32 +326,23 @@ describe("Wave 4.4 — P-4.4-1: home fact cards open their real sources (D8 pari
     await seedOpenOrder();
     const result = await homeServices().read();
     if (!result.ok) throw new Error(result.message);
-    const facts = result.value.facts;
-    const cash = facts.find(fact => fact.id === "cash");
-    const receivables = facts.find(fact => fact.id === "receivables");
-    const payables = facts.find(fact => fact.id === "payables");
-    const ownerCapital = facts.find(fact => fact.id === "owner_capital");
-    /* D8: الكاش → المحافظ، لي عند العملاء → دليل «العملاء والموردين»، عليّ للموردين → «شو عليّ؟»،
-     * مال المالك → الدفتر الموحد — كلها أسطح قائمة حقيقية لا وجهات وهمية. */
-    expect(cash?.state).toBe("known");
-    expect(cash?.source).toBe("/cash");
-    expect(receivables?.state).toBe("known");
-    expect(receivables?.source).toBe("/parties");
-    expect(payables?.state).toBe("known");
-    expect(payables?.source).toBe("/finance");
-    /* مال المالك: المصدر فقط عند كونه معروفًا — لا وجهة وهمية للمجهول. */
-    expect(ownerCapital?.source).toBe(ownerCapital?.state === "known" ? "/finance/owner-entitlement" : null);
+    const cashNow = result.value.glimpse.cashNow;
+    /* D8 (S16): النقد الآن من قراءة الوضع نفسها ويفتح محافظه القائمة — لا
+     * وجهة وهمية؛ بقية الحقائق عند أصحابها (المالية/الأطراف). */
+    expect(cashNow.state).toBe("known");
+    expect(cashNow.sourceHref).toBe("/cash");
+    const positionRead = await new ProjectFinancialService(store, now).readPosition();
+    if (!positionRead.ok) throw new Error(positionRead.message);
+    expect(cashNow.valueMinor).toBe(positionRead.value.recordedCashMinor);
   });
 
   it("unrecorded facts keep their honest road and no invented source", async () => {
     await seedProfile();
     const result = await homeServices().read();
     if (!result.ok) throw new Error(result.message);
-    for (const fact of result.value.facts) {
-      expect(fact.state).toBe("not_initialized");
-      expect(fact.source).toBeNull();
-      expect(fact.road?.href).toBeTruthy();
-    }
+    const cashNow = result.value.glimpse.cashNow;
+    expect(cashNow.state).toBe("not_initialized");
+    expect(cashNow.valueMinor).toBeNull();
   });
 
   it("the Home surface renders known facts as buttons that navigate to their sources", async () => {
@@ -364,15 +371,17 @@ describe("Wave 4.4 — P-4.4-1: home fact cards open their real sources (D8 pari
         </UnsavedChangesProvider>
       </QuickRecordingProvider>,
     );
-    const cashButton = await screen.findByRole("button", { name: "افتح الكاش المسجل" });
+    /* S16 (HOME-A2-4): أزرار اللمحة — النقد الآن يفتح 022 والمبيعات المسجلة
+     * تفتح كشف 016 بالنطاق نفسه؛ لي عند العملاء وعليّ للموردين عند أصحابهما
+     * في المالية والأطراف (HOME-R07). */
+    const cashButton = await screen.findByRole("button", { name: "افتح النقد المسجل الآن" });
     fireEvent.click(cashButton);
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/cash?returnTo=%2F");
-    const receivablesButton = screen.getByRole("button", { name: "افتح لي عند العملاء" });
-    fireEvent.click(receivablesButton);
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/parties?returnTo=%2F");
-    const payablesButton = screen.getByRole("button", { name: "افتح عليّ للموردين" });
-    fireEvent.click(payablesButton);
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/finance?returnTo=%2F");
+    const salesButton = screen.getByRole("button", { name: "افتح المبيعات المسجلة بالنطاق نفسه" });
+    fireEvent.click(salesButton);
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(
+      "/finance/statement?since=2026-09-01&until=2026-09-16&returnTo=%2F",
+    );
   });
 });
 
@@ -460,8 +469,10 @@ describe("Wave 4.4 — P-4.4-1: soon panels match the logo-menu Escape and focus
 
   it("opening a soon panel moves focus into it; Escape closes and returns focus to its trigger", async () => {
     renderHeader();
-    const transportTrigger = screen.getByRole("button", { name: "النقل والتوصيل — قريبًا" });
-    fireEvent.click(transportTrigger);
+    /* S16 (UNIT-043): لوحة الترويسة لاسأل Micro وحده — مدخل النقل والتوصيل
+     * انتقل إلى مقعده في الشريط (/delivery) والبديل جاهز قبل الإزالة. */
+    const assistantTrigger = screen.getByRole("button", { name: "اسأل Micro — قريبًا" });
+    fireEvent.click(assistantTrigger);
     const panel = await screen.findByTestId("soon-panel");
     expect(panel.getAttribute("role")).toBe("dialog");
     /* التركيز يدخل اللوحة عند فتحها. */
@@ -469,7 +480,7 @@ describe("Wave 4.4 — P-4.4-1: soon panels match the logo-menu Escape and focus
     /* Escape يغلق ويعيد التركيز إلى المشغّل نفسه — كسلوك قائمة الشعار. */
     fireEvent.keyDown(document, { key: "Escape" });
     await waitFor(() => expect(screen.queryByTestId("soon-panel")).toBeNull());
-    expect(document.activeElement).toBe(transportTrigger);
+    expect(document.activeElement).toBe(assistantTrigger);
   });
 
   it("the assistant panel behaves the same, and Tab stays trapped inside the dialog", async () => {

@@ -51,7 +51,7 @@ export function CapabilityCreateGate({
             <ArrowRight aria-hidden="true" /> فعّلها من الإعدادات
           </Button>
           <Button action="secondary" onClick={() => navigate("/")}>
-            مشروعي الآن
+            الرئيسية
           </Button>
         </div>
       </section>

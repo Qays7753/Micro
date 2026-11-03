@@ -21,6 +21,12 @@ import { ActivityService } from "@/application/activity/activityService";
 import { AgreementContextService } from "@/application/agreements/agreementContextService";
 import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
 import Home from "@/pages/Home";
+import { CollectionService } from "@/application/collections/collectionService";
+import { DirectSaleService } from "@/application/direct-sales/directSaleService";
+import { DueDatesService } from "@/application/finance/dueDatesService";
+import { UnifiedFollowUpService } from "@/application/follow-up/unifiedFollowUpService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { activeDeliveryLens } from "@/application/scheduling";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -38,6 +44,26 @@ vi.mock("wouter", () => ({
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+/* S16 (UNIT-003): قارئ الرئيسية في الاختبارات فوق المصادر الكنونية نفسها —
+ * القارئ الموحد للمتابعة (S13) بعدساته القائمة؛ لا قارئ ثانٍ. */
+function buildHomeService(store: MemoryLocalStore, now: () => string) {
+  const projectFinance = new ProjectFinancialService(store, now);
+  const directSales = new DirectSaleService(store, now);
+  const fulfillment = new FulfillmentService(store, now);
+  const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
+  const dueDates = new DueDatesService(store, collections, now);
+  const unified = new UnifiedFollowUpService(
+    activeDeliveryLens(store),
+    store,
+    collections,
+    dueDates,
+    projectFinance,
+    store,
+    now,
+  );
+  return new HomeControlCenterService(store, new DailyFollowUpService(store), projectFinance, unified, now);
+}
+
 const NOW = "2026-09-16T09:00:00.000Z";
 let store: MemoryLocalStore;
 let preferences: PreferenceService;
@@ -46,16 +72,7 @@ const contextRef: { current: Record<string, unknown> } = { current: {} };
 function Harness({ page }: { page: React.ReactNode }) {
   const [version, setVersion] = React.useState(0);
   contextRef.current = {
-    homeControlCenter: new HomeControlCenterService(
-      store,
-      new DailyFollowUpService(store),
-      new ProjectFinancialService(store, () => NOW),
-      new SupplierPurchaseService(store, () => NOW),
-      new InventoryMaterialService(store, () => NOW),
-      new AgreementContextService(store, () => NOW),
-      new ActivityService(store),
-      () => NOW,
-    ),
+    homeControlCenter: buildHomeService(store, () => NOW),
     projectFinance: new ProjectFinancialService(store, () => NOW),
     cashContinuity: new CashContinuityService(store, () => NOW),
     preferences,
@@ -91,11 +108,12 @@ describe("SET-003 — layered capability behavior", () => {
      * التحديث موثق مع القرار المرئي المعتمد؛ القدرة نفسها ما زالت مفعلة. */
     render(<Harness page={<Home />} />);
     const row = await screen.findByTestId("home-quick-actions");
-    expect(row.textContent).toContain("طلب من عميل");
-    expect(row.textContent).toContain("سجّل بيعًا");
-    fireEvent.click(screen.getByRole("button", { name: /المزيد/ }));
-    const more = await screen.findByTestId("home-quick-actions-more");
-    expect(more.textContent).toContain("مسودة تصميم");
+    /* S16 (ACCESS-01/H): الخمسة — بيع/مصروف/طلب جديد/شراء/أدوات المشروع؛
+     * «المزيد» و«مسودة تصميم» غادرا الرئيسية (بيتهما الطلبات). */
+    for (const label of ["بيع", "مصروف", "طلب جديد", "شراء", "أدوات المشروع"]) {
+      expect(row.textContent).toContain(label);
+    }
+    expect(screen.queryByRole("button", { name: /المزيد/ })).toBeNull();
   });
 
   it("disabling orders hides the order/estimate quick actions but never the sale/expense core", async () => {
@@ -103,11 +121,11 @@ describe("SET-003 — layered capability behavior", () => {
     if (!result.ok) throw new Error(result.message);
     render(<Harness page={<Home />} />);
     const row = await screen.findByTestId("home-quick-actions");
-    expect(row.textContent).not.toContain("طلب من عميل");
-    expect(row.textContent).not.toContain("مسودة تصميم");
-    /* الأساس دائمًا مفعّل. */
-    expect(row.textContent).toContain("سجّل بيعًا");
-    expect(row.textContent).toContain("سجّل مصروفًا");
+    expect(row.textContent).not.toContain("طلب جديد");
+    /* الأساس دائمًا مفعّل، والشراء يخضع لقدرة الموردين. */
+    expect(row.textContent).toContain("بيع");
+    expect(row.textContent).toContain("مصروف");
+    expect(row.textContent).toContain("أدوات المشروع");
   });
 
   it("the preference survives reopen and survives an unrelated theme save (O-001 no-field-loss)", async () => {
@@ -139,9 +157,9 @@ describe("SET-003 — layered capability behavior", () => {
     const disabled = await preferences.saveDisabledCapabilities(["orders"]);
     if (!disabled.ok) throw new Error(disabled.message);
     render(<Harness page={<Home />} />);
-    /* الوقائع (لي عند العملاء/الكاش) تبقى ظاهرة — الإيقاف لا يخفي التزامًا. */
-    /* Wave 4.3 — P-4.3-2: قسم الحقائق صار «أرقامك» بتقسيم اليوم/الشهر ثم الوضع القائم. */
-    await waitFor(() => expect(screen.getByText("أرقامك")).toBeTruthy());
+    /* S16 (HOME-B3): الوقائع تبقى ظاهرة في المالية — الإيقاف لا يخفي التزامًا؛
+     * لمحة الرئيسية تبقى ظاهرة بغض النظر عن القدرة. */
+    await waitFor(() => expect(screen.getByRole("heading", { level: 2, name: "لمحة مالية" })).toBeTruthy());
     const orders = await store.listOrders();
     if (!orders.ok) throw new Error(orders.message);
     /* لا حذف أبدًا — القدرة لا تمس السجلات. */
