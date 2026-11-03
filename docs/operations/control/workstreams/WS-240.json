@@ -1,7 +1,7 @@
 {
   "id": "WS-240",
   "title": "S15 — المالية والكشف والسجل والميزانيات وإيقاف القدرات الملغاة (UNIT-013/013B/016/017/021/035/036/040)",
-  "status": "IN_PROGRESS",
+  "status": "REVIEW_REQUIRED",
   "items": [
     "DOC-024"
   ],
@@ -40,7 +40,7 @@
   "pr": 383,
   "started_at": "2026-11-03",
   "updated_at": "2026-11-03",
-  "next_action": "تنفيذ S15 وفق الأمر الموحد §5: SH-20 (إيقاف الإنشاء عند الحد للإقراض/الاقتراض/المشاركة/التوقعات مع حفظ التاريخ) ثم SH-19 (المدخل الموحد وتوحيد القراءة) فحالات SDF الخمس بأدلة دائمة؛ السقفان ثابتان 650,000/155,300.",
+  "next_action": "مراجعة المالك المستقلة؛ بوابتا Actions/Cloudflare على الرأس النهائي في تعليق PR #383.",
   "notes": [
     "أمر S15 مضمّن في الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 (لا أمر منفصل).",
     "قاعدة تسليم S14 للمراجعة موثقة عند 75af0773 وبوابتاها البعيدتان PASS (run 41548068879 / Pages 125628657923)."
@@ -48,7 +48,8 @@
   "evidence": [
     "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
     "https://github.com/Qays7753/Micro/pull/383",
-    "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md"
+    "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md"
   ],
   "status_history": [
     {
@@ -56,6 +57,12 @@
       "changed_at": "2026-11-03",
       "actor": "zai-s15-execution",
       "reason": "بدء تنفيذ §5 من الأمر الموحد فوق رأس سجلات تسليم S14 75af0773 على components/integration-20261027 / PR #383، بعد التحقق من خلو التداخل (صفر مطالبات نشطة)."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-03",
+      "actor": "zai-s15-execution",
+      "reason": "تسليم S15 للمراجعة مع DOC-024 → IN_REVIEW (الانتقال القانوني نفسه؛ لا قبولًا ذاتيًا): المرشح الكودي 8de508b6 وسجل الأسطح c97213ec؛ السلسلة الكاملة خروج 0 والحالات الخمس بأدلة."
     }
   ],
   "migration_baseline": true

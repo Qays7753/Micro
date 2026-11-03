@@ -402,7 +402,7 @@
 
 ### S15 — المالية والكشف والسجل والميزانيات وإيقاف القدرات الملغاة
 
-**الحالة:** OWNER-AUTHORIZED CONTINUATION — غير مبدوءة حتى اجتياز S14 بواباتها وتسليمها للمراجعة؛ يبدأ ZAI S15 مباشرة وفق أمر الاستئناف الموحد `00-S14-RESUME-PROMPT-2026-11-03.md`، دون انتظار موافقة وسيطة. لا قبول ذاتي ولا تغيير مالي/بنيوي خارج التفويض.
+**الحالة:** EXECUTED_DELIVERED_FOR_REVIEW — منفذة بالكامل ومسلّمة للمراجعة (لا قبولًا ذاتيًا) وفق أمر الاستئناف الموحد `00-S14-RESUME-PROMPT-2026-11-03.md` §5؛ DOC-024/WS-240 IN_REVIEW/REVIEW_REQUIRED؛ المرشح الكودي `8de508b6` وسجل الأسطح `c97213ec` فوق رأس تسليم S14 `75af0773`؛ النتيجة `20-S15-RESULT-2026-11-03.md`؛ pnpm check خروج 0 invocation واحدة (83/1,019 جذريًا + 413/3,342 تطبيقيًا) والميزانية 597,390/145,596 تحت السقفين الثابتين 650,000/155,300؛ بوابتا Actions/Cloudflare على الرأس النهائي تُثبتان في تعليق PR #383؛ حالات SDF الخمس (006/045/058/061/062) بأدلة دائمة.
 
 **المواصفات:** [UNIT-013](02-SPECIFICATIONS/03-New-Design/UNIT-013-المالية-وملخص-الفترة.md)، [UNIT-013B](02-SPECIFICATIONS/03-New-Design/UNIT-013B-ميزانيات-المصروف-الاختيارية.md)، [UNIT-016](02-SPECIFICATIONS/03-New-Design/UNIT-016-كشف-الفترة.md)، [UNIT-017](02-SPECIFICATIONS/03-New-Design/UNIT-017-سجل-العمليات.md)، [UNIT-021](02-SPECIFICATIONS/03-New-Design/UNIT-021-التوقعات-النقدية-المؤجلة.md)، [UNIT-035](02-SPECIFICATIONS/03-New-Design/UNIT-035-القروض-التي-أعطاها-المشروع.md)، [UNIT-036](02-SPECIFICATIONS/03-New-Design/UNIT-036-القروض-التي-أخذها-المشروع.md)، [UNIT-040](02-SPECIFICATIONS/03-New-Design/UNIT-040-المشاركة.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
