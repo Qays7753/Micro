@@ -62,6 +62,29 @@ function deliveredOrder(id: string, price = 5000) {
   };
 }
 
+/* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): إنشاء التصريحات مؤجل عند حد
+ * الخدمة — الاختبارات تزرع السجل التاريخي مباشرة عند حد المخزن (نفس شكل
+ * السجل المحفوظ) لا عبر مسار الإنشاء المؤجل؛ التصريحات هنا بيانات موروثة
+ * للقراءة والتصحيح الموثق. */
+type SeededDeclaration = Parameters<MemoryLocalStore["saveShortCashDeclaration"]>[0];
+function legacyDeclaration(overrides: Partial<SeededDeclaration> & { id: string }): SeededDeclaration {
+  return {
+    kind: "declaration",
+    direction: "collection",
+    amountMinor: 2_500,
+    dueOn: "2026-08-20",
+    source: "عميلة — موعد قديم",
+    knowledge: "known",
+    note: "إعلان تاريخي",
+    relatedOrderId: null,
+    relatedEventId: null,
+    idempotencyKey: `seed-${overrides.id}`,
+    reversalOfId: null,
+    createdAt: "2026-08-01T09:00:00.000Z",
+    ...overrides,
+  };
+}
+
 describe("G5 Application service", () => {
   it("maps final orders and fixed expenses into a break-even reading and uses a dated collection declaration", async () => {
     const store = new MemoryLocalStore();
@@ -80,21 +103,17 @@ describe("G5 Application service", () => {
       expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
       idempotencyKey: "g5-fixed",
     });
-    const declaration = await g5.createDeclaration({
-      direction: "collection",
-      amountMinor: stored.order.receivableMinor,
-      dueOn: "2026-08-20",
-      source: "عميلة — اتفاق تحصيل",
-      knowledge: "known",
-      note: "موعد معلن من العميلة",
-      relatedOrderId: stored.id,
-      relatedEventId: null,
-      idempotencyKey: "g5-collection",
-    });
-    expect(declaration).toMatchObject({
-      ok: true,
-      value: { kind: "declaration", relatedOrderId: stored.id },
-    });
+    /* UNIT-021: الإنشاء مؤجل — التصريح التاريخي يُزرع عند حد المخزن. */
+    const seeded = await store.saveShortCashDeclaration(
+      legacyDeclaration({
+        id: "g5-collection-seed",
+        amountMinor: stored.order.receivableMinor,
+        source: "عميلة — اتفاق تحصيل",
+        note: "موعد معلن من العميلة",
+        relatedOrderId: stored.id,
+      }),
+    );
+    expect(seeded).toMatchObject({ ok: true });
     const decision = await g5.readDecision("2026-08-01", "2026-08-31");
     expect(decision).toMatchObject({
       ok: true,
@@ -123,35 +142,31 @@ describe("G5 Application service", () => {
     const stored = deliveredOrder("g5-reversal-order");
     stored.order = registerDebt(stored.order, "g5-reversal-debt", "2026-08-06T09:00:00.000Z");
     await store.saveOrder(stored);
-    const input = {
-      direction: "collection" as const,
-      amountMinor: stored.order.receivableMinor,
-      dueOn: "2026-08-20",
-      source: "عميلة — موعد قديم",
-      knowledge: "known" as const,
-      note: "إعلان أولي",
-      relatedOrderId: stored.id,
-      relatedEventId: null,
-      idempotencyKey: "same-declaration",
-    };
-    const first = await g5.createDeclaration(input);
-    const retry = await g5.createDeclaration(input);
-    if (!first.ok || !retry.ok) throw new Error("declaration should save");
-    expect(retry).toMatchObject({ ok: true, reused: true, value: { id: first.value.id } });
-    const emptyReason = await g5.reverseDeclaration(first.value.id, "   ", "reverse-empty-reason");
+    /* UNIT-021: الإنشاء مؤجل — السجل التاريخي يُزرع عند حد المخزن، وعقد
+     * التراجع الموثق (لا الإنشاء) هو ما يختبر هنا كما تبقى القدرة. */
+    const seeded = await store.saveShortCashDeclaration(
+      legacyDeclaration({
+        id: "g5-reversal-seed",
+        amountMinor: stored.order.receivableMinor,
+        relatedOrderId: stored.id,
+      }),
+    );
+    expect(seeded).toMatchObject({ ok: true });
+    const declarationId = "g5-reversal-seed";
+    const emptyReason = await g5.reverseDeclaration(declarationId, "   ", "reverse-empty-reason");
     expect(emptyReason).toMatchObject({ ok: false, code: "validation_error" });
     await expect(g5.listDeclarations()).resolves.toMatchObject({
       ok: true,
-      value: [{ kind: "declaration", id: first.value.id }],
+      value: [{ kind: "declaration", id: declarationId }],
     });
     const userReason = "العميلة أكدت موعد تحصيل مختلفًا";
-    const reversed = await g5.reverseDeclaration(first.value.id, userReason, "reverse-declaration");
+    const reversed = await g5.reverseDeclaration(declarationId, userReason, "reverse-declaration");
     expect(reversed).toMatchObject({
       ok: true,
-      value: { kind: "reversal", reversalOfId: first.value.id, note: userReason },
+      value: { kind: "reversal", reversalOfId: declarationId, note: userReason },
     });
     const secondReverse = await g5.reverseDeclaration(
-      first.value.id,
+      declarationId,
       "محاولة عكس ثانية",
       "reverse-declaration-2",
     );
@@ -176,33 +191,38 @@ describe("G5 Application service", () => {
     });
   });
 
-  it("rejects active linked collection declarations that exceed one order receivable", async () => {
+  it("UNIT-021: creation is deferred at the legal boundary — refusal with no write, history readable (SDF-045 G5 leg)", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     const g5 = new FinancialAnalysisService(store, finance, now);
     const stored = deliveredOrder("g5-over-allocation-order", 5000);
     stored.order = registerDebt(stored.order, "g5-over-debt", "2026-08-06T09:00:00.000Z");
     await store.saveOrder(stored);
-    const input = {
-      direction: "collection" as const,
-      amountMinor: 3000,
-      dueOn: "2026-08-20",
-      source: "إعلان أول",
-      knowledge: "known" as const,
-      note: "تحصيل معلن أول",
-      relatedOrderId: stored.id,
-      relatedEventId: null,
-      idempotencyKey: "g5-over-allocation-first",
-    };
-    const first = await g5.createDeclaration(input);
-    const second = await g5.createDeclaration({
-      ...input,
-      source: "إعلان ثان",
-      note: "تحصيل معلن ثان",
-      idempotencyKey: "g5-over-allocation-second",
-    });
-    expect(first).toMatchObject({ ok: true, value: { amountMinor: 3000, relatedOrderId: stored.id } });
-    expect(second).toMatchObject({ ok: false, code: "validation_error" });
+    /* سجل تاريخي مزروع عند حد المخزن — الإنشاء المؤجل لا يمسه. */
+    await store.saveShortCashDeclaration(
+      legacyDeclaration({
+        id: "g5-legacy-linked",
+        amountMinor: 3000,
+        relatedOrderId: stored.id,
+      }),
+    );
+    /* رفض صادق قبل أي كتابة مهما اختلفت المدخلات — لا مسار التفاف. */
+    for (const attempt of ["first", "second", "third"]) {
+      const refused = await g5.createDeclaration({
+        direction: "collection",
+        amountMinor: 3000,
+        dueOn: "2026-08-20",
+        source: `إعلان ${attempt}`,
+        knowledge: "known",
+        note: "تحصيل معلن",
+        relatedOrderId: stored.id,
+        relatedEventId: null,
+        idempotencyKey: `g5-refused-${attempt}`,
+      });
+      expect(refused).toMatchObject({ ok: false, code: "validation_error" });
+      if (!refused.ok) expect(refused.message).toContain("مؤجل");
+    }
+    /* السجل التاريخي المزروع وحده — لا كتابة جديدة ولا تغيير للطلب. */
     const declarations = await g5.listDeclarations();
     expect(declarations).toMatchObject({
       ok: true,
@@ -323,32 +343,24 @@ describe("G5 Application service", () => {
     });
   });
 
-  it("offers only outstanding linkable sources and makes reversal retry idempotent", async () => {
+  it("UNIT-021: reversal retry stays idempotent on a seeded legacy declaration", async () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     const g5 = new FinancialAnalysisService(store, finance, now);
     const stored = deliveredOrder("g5-link-options");
     stored.order = registerDebt(stored.order, "g5-link-debt", "2026-08-06T09:00:00.000Z");
     await store.saveOrder(stored);
-    const options = await g5.listLinkOptions();
-    expect(options).toMatchObject({
-      ok: true,
-      value: { orders: [{ id: stored.id, amountMinor: stored.order.receivableMinor }], payableEvents: [] },
-    });
-    const created = await g5.createDeclaration({
-      direction: "collection",
-      amountMinor: stored.order.receivableMinor,
-      dueOn: "2026-08-20",
-      source: "عميلة",
-      knowledge: "known",
-      note: "موعد معلن",
-      relatedOrderId: stored.id,
-      relatedEventId: null,
-      idempotencyKey: "g5-link-declaration",
-    });
-    if (!created.ok) throw new Error("declaration should save");
-    const first = await g5.reverseDeclaration(created.value.id, "تغير الموعد", "g5-link-reversal");
-    const retry = await g5.reverseDeclaration(created.value.id, "تغير الموعد", "g5-link-reversal");
+    /* UNIT-021: خيارات الربط أزيلت مع مدخل الإنشاء المؤجل — السجل الموروث
+     * يُزرع عند حد المخزن وعقد التراجع المكرر يثبت فوقه كما هو. */
+    await store.saveShortCashDeclaration(
+      legacyDeclaration({
+        id: "g5-link-seed",
+        amountMinor: stored.order.receivableMinor,
+        relatedOrderId: stored.id,
+      }),
+    );
+    const first = await g5.reverseDeclaration("g5-link-seed", "تغير الموعد", "g5-link-reversal");
+    const retry = await g5.reverseDeclaration("g5-link-seed", "تغير الموعد", "g5-link-reversal");
     expect(first).toMatchObject({ ok: true, value: { kind: "reversal" } });
     expect(retry).toMatchObject({ ok: true, reused: true, value: { kind: "reversal" } });
   });
@@ -384,13 +396,19 @@ describe("G5 payable link options after a settlement reversal (A-01)", () => {
       idempotencyKey: "a01-g5-reverse",
     });
     const g5 = new FinancialAnalysisService(store, finance, now);
-    const options = await g5.listLinkOptions();
-    expect(options).toMatchObject({
-      ok: true,
-      value: {
-        payableEvents: [{ id: payable.ok ? payable.value.id : "", amountMinor: 10000 }],
-      },
-    });
+    /* UNIT-021: خيارات الربط أزيلت مع مدخل الإنشاء المؤجل — الالتزام
+     * الكامل بعد عكس التسوية الخاطئة يُقرأ من قرار الفترة نفسه
+     * (declaredCommitments) بلا سطح ربط بلا مستهلك. */
+    const decision = await g5.readDecision("2026-08-01", "2026-08-31");
+    expect(decision).toMatchObject({ ok: true });
+    /* الالتزام الكامل (10000) بعد عكس التسوية الخاطئة يبقى في قراءة الكاش
+     * القصير — وعدُ الحد الأدنى الصادق: قيمته الكاملة لم تختفِ بالتسوية المعكوسة. */
+    if (decision.ok) {
+      const cash = decision.value.shortCash;
+      const commitmentTotal =
+        cash.declaredCommitmentsMinor + (cash.undatedPayablesMinor ?? 0);
+      expect(commitmentTotal).toBe(10000);
+    }
   });
 });
 
@@ -571,198 +589,62 @@ describe("G5 short-cash receivables count only registered debt (A-05)", () => {
   });
 });
 
-/* ─── استمرار R9 (R9-GA-F3.4): عقد إعادة استخدام createDeclaration على
- * محرك IndexedDB الحقيقي (fake-indexeddb) — الهوية من المُستدعي والمطابقة
- * نصية داخل النوع؛ نفس مدخلات g5-ui الجديدة تُعاد بصدق، واختلاف knowledge
- * وحده يُنشئ سجلًا ثانيًا. ─── */
-describe("FinancialAnalysisService.createDeclaration idempotency on IndexedDB (R9 continuation)", () => {
-  it("an identical retry reuses the stored declaration and a knowledge-only difference persists a second one", async () => {
-    await import("fake-indexeddb/auto");
-    const { IndexedDbLocalStore } = await import("@/storage/local/IndexedDbLocalStore");
-    const store = new IndexedDbLocalStore();
-    const projectFinance = new ProjectFinancialService(store, now);
-    const service = new FinancialAnalysisService(store, projectFinance);
-    const base = {
-      direction: "collection" as const,
-      amountMinor: 2_500,
-      dueOn: "2026-08-10",
-      source: "مصدر على IndexedDB",
-      note: "ملاحظة على IndexedDB",
-      relatedOrderId: null,
-      relatedEventId: null,
-      idempotencyKey:
-        'g5-ui:["collection","2026-08-10",2500,"مصدر على IndexedDB","ملاحظة على IndexedDB","known",null,null]',
-    };
-    const first = await service.createDeclaration({ ...base, knowledge: "known" });
-    expect(first.ok).toBe(true);
-    const retry = await service.createDeclaration({ ...base, knowledge: "known" });
-    expect(retry.ok).toBe(true);
-    expect(retry.ok && retry.reused).toBe(true);
-    const differing = await service.createDeclaration({
-      ...base,
-      knowledge: "estimated",
-      idempotencyKey:
-        'g5-ui:["collection","2026-08-10",2500,"مصدر على IndexedDB","ملاحظة على IndexedDB","estimated",null,null]',
-    });
-    expect(differing.ok).toBe(true);
-    expect(differing.ok && differing.reused).toBeUndefined();
-    const declarations = await service.listDeclarations();
-    expect(declarations.ok).toBe(true);
-    expect(declarations.ok && declarations.value).toHaveLength(2);
-    expect(declarations.ok && declarations.value.filter(item => item.knowledge === "known")).toHaveLength(1);
-    expect(declarations.ok && declarations.value.filter(item => item.knowledge === "estimated")).toHaveLength(
-      1,
-    );
-    await new Promise<void>(resolve => {
-      const request = indexedDB.deleteDatabase("micro-prototype-local");
-      request.onsuccess = () => resolve();
-      request.onerror = () => resolve();
-    });
-  });
-});
-
-describe("FinancialAnalysisService.createDeclaration legacy-key semantic bridge (R9-GA-G5.1)", () => {
-  /* نسق المفتاح القديم (قبل إصلاح F3.4): بصل «:» وإسقاط knowledge —
-   * سجل مبذور بهذا النسق يحاكي قاعدة تطوير موجودة قبل الإصلاح. */
-  const legacyKey = (source: string, note: string) =>
-    `g5-ui:collection:2026-08-10:2500:${source}:${note}:none`;
-  const base = {
+/* ─── UNIT-021 (تنفيذ S15 بالأمر الموحد §5): الإنشاء مؤجل عند حد الخدمة على
+ * المحركين معًا — الرفض الصادق بلا كتابة، والسجل التاريخي المزروع عند حد
+ * المخزن يبقى مقروءًا وقابلًا للتراجع الموثق؛ عقدا idempotency الإنشاء
+ * والجسر الدلالي تقاعدا مع مسارهما (لا إنشاء فلا إعادة استخدام له). ─── */
+describe("FinancialAnalysisService.createDeclaration deferred (UNIT-021)", () => {
+  const refusalInput = {
     direction: "collection" as const,
     amountMinor: 2_500,
     dueOn: "2026-08-10",
+    source: "مصدر جديد",
     knowledge: "known" as const,
+    note: "ملاحظة جديدة",
     relatedOrderId: null,
     relatedEventId: null,
+    idempotencyKey: 'g5-ui:["collection","2026-08-10",2500,"مصدر جديد","ملاحظة جديدة","known",null,null]',
   };
 
-  it("an identical retry across the key-format boundary reuses the stored record (no semantic duplicate)", async () => {
+  it("repeated refusals never write on Memory — the message names the deferral honestly", async () => {
     const store = new MemoryLocalStore();
     const service = new FinancialAnalysisService(store, new ProjectFinancialService(store, now));
-    /* بذر سجل بالنسق القديم مباشرة عبر المهايئ — كما خُزِّن قبل الإصلاح. */
-    const seeded = await store.saveShortCashDeclaration({
-      id: "legacy-decl-1",
-      kind: "declaration",
-      direction: "collection",
-      amountMinor: 2_500,
-      dueOn: "2026-08-10",
-      source: "مصدر النسق القديم",
-      knowledge: "known",
-      note: "ملاحظة النسق القديم",
-      relatedOrderId: null,
-      relatedEventId: null,
-      idempotencyKey: legacyKey("مصدر النسق القديم", "ملاحظة النسق القديم"),
-      reversalOfId: null,
-      createdAt: now(),
-    });
-    expect(seeded.ok).toBe(true);
-    const retry = await service.createDeclaration({
-      ...base,
-      source: "مصدر النسق القديم",
-      note: "ملاحظة النسق القديم",
-      idempotencyKey:
-        'g5-ui:["collection","2026-08-10",2500,"مصدر النسق القديم","ملاحظة النسق القديم","known",null,null]',
-    });
-    expect(retry.ok).toBe(true);
-    expect(retry.ok && retry.reused).toBe(true);
-    expect(retry.ok && retry.value.id).toBe("legacy-decl-1");
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const refused = await service.createDeclaration({ ...refusalInput, amountMinor: refusalInput.amountMinor + attempt });
+      expect(refused.ok).toBe(false);
+      if (!refused.ok) {
+        expect(refused.code).toBe("validation_error");
+        expect(refused.message).toContain("مؤجل");
+      }
+    }
+    const declarations = await service.listDeclarations();
+    expect(declarations.ok && declarations.value).toHaveLength(0);
+  });
+
+  it("the seeded legacy record stays readable and reversible while creation is refused (history preserved)", async () => {
+    const store = new MemoryLocalStore();
+    const service = new FinancialAnalysisService(store, new ProjectFinancialService(store, now));
+    await store.saveShortCashDeclaration(
+      legacyDeclaration({ id: "legacy-history-kept", idempotencyKey: "g5-ui:collection:2026-08-10:2500:قديم:قديم:none" }),
+    );
+    const refused = await service.createDeclaration(refusalInput);
+    expect(refused.ok).toBe(false);
     const declarations = await service.listDeclarations();
     expect(declarations.ok && declarations.value).toHaveLength(1);
+    expect(declarations.ok && declarations.value[0]!.id).toBe("legacy-history-kept");
+    const reversed = await service.reverseDeclaration("legacy-history-kept", "موعد قديم انتهى", "reverse-history");
+    expect(reversed).toMatchObject({ ok: true, value: { kind: "reversal" } });
   });
 
-  it("a knowledge-only difference does not reuse the legacy record (the semantic field is part of the identity)", async () => {
-    const store = new MemoryLocalStore();
-    const service = new FinancialAnalysisService(store, new ProjectFinancialService(store, now));
-    await store.saveShortCashDeclaration({
-      id: "legacy-decl-2",
-      kind: "declaration",
-      direction: "collection",
-      amountMinor: 2_500,
-      dueOn: "2026-08-10",
-      source: "مصدر النسق القديم",
-      knowledge: "known",
-      note: "ملاحظة النسق القديم",
-      relatedOrderId: null,
-      relatedEventId: null,
-      idempotencyKey: legacyKey("مصدر النسق القديم", "ملاحظة النسق القديم"),
-      reversalOfId: null,
-      createdAt: now(),
-    });
-    const differing = await service.createDeclaration({
-      ...base,
-      knowledge: "needs_review",
-      source: "مصدر النسق القديم",
-      note: "ملاحظة النسق القديم",
-      idempotencyKey:
-        'g5-ui:["collection","2026-08-10",2500,"مصدر النسق القديم","ملاحظة النسق القديم","needs_review",null,null]',
-    });
-    expect(differing.ok).toBe(true);
-    expect(differing.ok && differing.reused).toBeUndefined();
-    const declarations = await service.listDeclarations();
-    expect(declarations.ok && declarations.value).toHaveLength(2);
-  });
-
-  it("a legacy colon-collision input cannot falsely reuse the wrong semantic record (field comparison, not key matching)", async () => {
-    const store = new MemoryLocalStore();
-    const service = new FinancialAnalysisService(store, new ProjectFinancialService(store, now));
-    /* تحت النسق القديم كانت المفاتيح تتطابق لهذا الزوج — الجسر الدلالي
-     * يقارن الحقول فلا يعيد إلا التطابق التام. */
-    await store.saveShortCashDeclaration({
-      id: "legacy-decl-3",
-      kind: "declaration",
-      direction: "collection",
-      amountMinor: 2_500,
-      dueOn: "2026-08-10",
-      source: "أ",
-      knowledge: "known",
-      note: "ب:ج",
-      relatedOrderId: null,
-      relatedEventId: null,
-      idempotencyKey: legacyKey("أ", "ب:ج"),
-      reversalOfId: null,
-      createdAt: now(),
-    });
-    const colliding = await service.createDeclaration({
-      ...base,
-      source: "أ:ب",
-      note: "ج",
-      idempotencyKey: 'g5-ui:["collection","2026-08-10",2500,"أ:ب","ج","known",null,null]',
-    });
-    expect(colliding.ok).toBe(true);
-    expect(colliding.ok && colliding.reused).toBeUndefined();
-    const declarations = await service.listDeclarations();
-    expect(declarations.ok && declarations.value).toHaveLength(2);
-  });
-
-  it("adapter parity: the semantic bridge behaves identically on the IndexedDB adapter", async () => {
+  it("adapter parity: the refusal writes nothing on the real IndexedDB engine either", async () => {
     await import("fake-indexeddb/auto");
     const { IndexedDbLocalStore } = await import("@/storage/local/IndexedDbLocalStore");
     const store = new IndexedDbLocalStore();
     const service = new FinancialAnalysisService(store, new ProjectFinancialService(store, now));
-    await store.saveShortCashDeclaration({
-      id: "legacy-decl-4",
-      kind: "declaration",
-      direction: "collection",
-      amountMinor: 2_500,
-      dueOn: "2026-08-10",
-      source: "مصدر على المحرك الحقيقي",
-      knowledge: "known",
-      note: "ملاحظة على المحرك الحقيقي",
-      relatedOrderId: null,
-      relatedEventId: null,
-      idempotencyKey: legacyKey("مصدر على المحرك الحقيقي", "ملاحظة على المحرك الحقيقي"),
-      reversalOfId: null,
-      createdAt: now(),
-    });
-    const retry = await service.createDeclaration({
-      ...base,
-      source: "مصدر على المحرك الحقيقي",
-      note: "ملاحظة على المحرك الحقيقي",
-      idempotencyKey:
-        'g5-ui:["collection","2026-08-10",2500,"مصدر على المحرك الحقيقي","ملاحظة على المحرك الحقيقي","known",null,null]',
-    });
-    expect(retry.ok).toBe(true);
-    expect(retry.ok && retry.reused).toBe(true);
-    expect(retry.ok && retry.value.id).toBe("legacy-decl-4");
+    const refused = await service.createDeclaration(refusalInput);
+    expect(refused.ok).toBe(false);
+    const declarations = await service.listDeclarations();
+    expect(declarations.ok && declarations.value).toHaveLength(0);
     await new Promise<void>(resolve => {
       const request = indexedDB.deleteDatabase("micro-prototype-local");
       request.onsuccess = () => resolve();

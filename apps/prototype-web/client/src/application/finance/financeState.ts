@@ -31,12 +31,7 @@ import type {
   RecordedPeriodResult,
 } from "./projectFinancialService";
 import type { ProfitToCashBridgeReading, ProfitToCashBridgeService } from "./profitToCashBridgeService";
-import type { ShortCashHorizonDays } from "./shortCashHorizon";
-import type {
-  FinancialAnalysisService,
-  G5Decision,
-  ShortCashHorizonReading,
-} from "../financial-analysis/financialAnalysisService";
+import type { FinancialAnalysisService, G5Decision } from "../financial-analysis/financialAnalysisService";
 import type { FinancialPulseService, LocalFinancialPulse } from "../financial-pulse/financialPulseService";
 import type {
   CorrectionDigest,
@@ -99,13 +94,6 @@ export type FinanceState =
  * مثل إخواتها (فشلها = بطاقة إعادة محاولة لا صفر كاذب)، فوق نطاق الأشهر نفسه. */
 export type BridgeState =
   { phase: "loading" } | { phase: "error" } | { phase: "ready"; reading: ProfitToCashBridgeReading };
-/* FIN-005 (WS-175 — Wave 3): حالة قراءة أفق الكاش القصير — كتلة مستقلة
- * عن نطاق أشهر الصفحة (الأفق مثبّت على اليوم المحلي للساعة القابلة للحقن)،
- * وإعادة القراءة عند تبديل الأفق أو تغيّر البيانات فقط؛ فشلها بطاقة
- * إعادة محاولة معزولة كإخواتها (نمط G-005). */
-export type CashHorizonState =
-  { phase: "loading" } | { phase: "error" } | { phase: "ready"; reading: ShortCashHorizonReading };
-
 /* G-005: قارئ كتلة آمن — ok:false والرفض (rejected Promise) كلاهما فشل الكتلة
  * لا فشل الصفحة ولا رفضًا غير معالج؛ المجموعة الأساسية وحدها تحجب الصفحة. */
 type BlockRead<T> = { ok: true; value: T } | { ok: false };
@@ -269,13 +257,6 @@ export async function readProfitToCashBridge(
   return read.failed || read.value === null ? { phase: "error" } : { phase: "ready", reading: read.value };
 }
 
-/** FIN-005 (WS-175 — Wave 3): قراءة أفق الكاش القصير — كتلة مستقلة عن
- * نطاق أشهر الصفحة (الأفق مثبّت على اليوم المحلي من ساعة الخدمة القابلة
- * للحقن). بلا كتابة إطلاقًا (عقد 17 §7): توقع معلن لا قبض ولا دفع. */
-export async function readShortCashHorizonBlock(
-  deps: { g5: FinancialAnalysisService },
-  horizonDays: ShortCashHorizonDays,
-): Promise<CashHorizonState> {
-  const read = await safeBlock(deps.g5.readShortCashHorizon(horizonDays));
-  return read.failed || read.value === null ? { phase: "error" } : { phase: "ready", reading: read.value };
-}
+/* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): كتلة قراءة أفق الكاش القصير أزيلت
+ * مع القدرة المؤجلة — قراءات التوقع خارج تحميل المالية الأساسي بلا بديل
+ * يوحي بوجودها. */

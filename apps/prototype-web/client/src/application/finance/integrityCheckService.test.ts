@@ -571,18 +571,41 @@ describe("integrity checks MIC-10..13 (المجموعة ٤ — عقد ٢٩)", ()
 
   it("MIC-11 fails when a repayment event disagrees with the loan record", async () => {
     const { store, services } = await cleanStore();
-    const created = await services.loans.create({
-      borrowerName: "أحمد",
-      principalMinor: 15000,
-      loanDate: "2026-07-01",
+    /* UNIT-035 (تنفيذ S15): الإنشاء ملغى — القرض التاريخي يُزرع عند حد
+     * المخزن (مسار توافق النقل) ثم تُسجَّل الدفعة بصيانة التاريخ. */
+    const { createLoanRecord } = await import("@micro-domain/loan/index.js");
+    const event = createFinancialEvent({
+      id: "event-mic11-loan",
+      type: "loan_outgoing_cash" as never,
+      amountMinor: 15000,
+      occurredOn: "2026-07-01",
+      recordedAt: "2026-07-01T09:00:00.000Z",
+      idempotencyKey: "mic11-loan:create",
+      note: "قرض تاريخي للاختبار",
+      counterparty: "أحمد",
+      loanContext: { loanId: "mic11-loan", borrower: "أحمد" },
     });
-    if (!created.ok) throw new Error(created.message);
-    await services.loans.recordRepayment(created.value.loan.id, { amountMinor: 5000, date: "2026-08-01" });
+    const seeded = await store.commitLoanRecord(
+      createLoanRecord({
+        id: "mic11-loan",
+        borrowerName: "أحمد",
+        principalMinor: 15000,
+        loanDate: "2026-07-01",
+        purposeNote: null,
+        sourceWalletId: null,
+        principalEventId: event.id,
+        operationKey: "mic11-loan:create",
+        createdAt: "2026-07-01T09:00:00.000Z",
+      }),
+      event,
+    );
+    if (!seeded.ok) throw new Error(seeded.message);
+    await services.loans.recordRepayment("mic11-loan", { amountMinor: 5000, date: "2026-08-01" });
     const snapshot = await store.readSnapshot();
     if (!snapshot.ok) throw new Error(snapshot.message);
     /* عبث بالمبلغ المخزن في الدفعة — الفحص يلتقط عدم التطابق. */
     const tamperedLoans = (snapshot.value.loans ?? []).map(loan =>
-      loan.id === created.value.loan.id
+      loan.id === "mic11-loan"
         ? { ...loan, repayments: [{ ...loan.repayments[0]!, amountMinor: 4000 }] }
         : loan,
     );

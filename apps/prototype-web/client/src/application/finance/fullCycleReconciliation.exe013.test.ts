@@ -23,6 +23,7 @@ import { StatementService } from "@/application/finance/statementService";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
 import { LoanService } from "@/application/loans/loanService";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { AssetService } from "@/application/assets/assetService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { RetainedDepositService } from "@/application/financial-records/retainedDepositService";
@@ -235,15 +236,37 @@ async function walkAndAssert(store: PrototypeLocalStore): Promise<void> {
   if (!draw.ok) throw new Error(draw.message);
   expect(draw.value.cashEntry.cashDeltaMinor).toBe(-1500);
 
-  /* ٨ — قرض خارج 20.00 + سداد 8.00 */
-  const loan = await loans.create({
-    borrowerName: "سليم",
-    principalMinor: 2000,
-    loanDate: "2026-09-08",
-    purposeNote: "قرض سلسلة التسوية",
+  /* ٨ — قرض خارج 20.00 + سداد 8.00 (UNIT-035: القرض التاريخي يُزرع عند حد
+   * المخزن — مسار توافق النقل نفسه؛ الإنشاء ملغى والصيانة قائمة). */
+  const { createLoanRecord } = await import("@micro-domain/loan/index.js");
+  const cycleLoanId = "cycle-loan-8";
+  const cycleLoanEvent = createFinancialEvent({
+    id: "event-cycle-loan-8",
+    type: "loan_outgoing_cash" as never,
+    amountMinor: 2000,
+    occurredOn: "2026-09-08",
+    recordedAt: "2026-09-08T09:00:00.000Z",
+    idempotencyKey: "cycle-loan-8:create",
+    note: "قرض سلسلة التسوية",
+    counterparty: "سليم",
+    loanContext: { loanId: cycleLoanId, borrower: "سليم" },
   });
-  if (!loan.ok) throw new Error(loan.message);
-  const repayment = await loans.recordRepayment(loan.value.loan.id, {
+  const cycleLoanSeed = await store.commitLoanRecord(
+    createLoanRecord({
+      id: cycleLoanId,
+      borrowerName: "سليم",
+      principalMinor: 2000,
+      loanDate: "2026-09-08",
+      purposeNote: "قرض سلسلة التسوية",
+      sourceWalletId: null,
+      principalEventId: cycleLoanEvent.id,
+      operationKey: "cycle-loan-8:create",
+      createdAt: "2026-09-08T09:00:00.000Z",
+    }),
+    cycleLoanEvent,
+  );
+  if (!cycleLoanSeed.ok) throw new Error(cycleLoanSeed.message);
+  const repayment = await loans.recordRepayment(cycleLoanId, {
     amountMinor: 800,
     date: "2026-09-14",
     note: "دفعة سداد",
@@ -408,14 +431,36 @@ describe("EXE-013 family guard vs legal family paths (AUD-NEW-15)", () => {
     const store = new MemoryLocalStore();
     const finance = new ProjectFinancialService(store, now);
     const loans = new LoanService(store, now);
-    const created = await loans.create({
-      borrowerName: "سليم",
-      principalMinor: 5000,
-      loanDate: "2026-09-01",
-      purposeNote: "قرض حرس العائلة",
+    /* UNIT-035 (تنفيذ S15): الإنشاء ملغى — القرض التاريخي يُزرع عند حد المخزن. */
+    const { createLoanRecord } = await import("@micro-domain/loan/index.js");
+    const guardLoanId = "guard-family-loan";
+    const guardLoanEvent = createFinancialEvent({
+      id: "event-guard-family-loan",
+      type: "loan_outgoing_cash" as never,
+      amountMinor: 5000,
+      occurredOn: "2026-09-01",
+      recordedAt: "2026-09-01T09:00:00.000Z",
+      idempotencyKey: "guard-family-loan:create",
+      note: "قرض حرس العائلة",
+      counterparty: "سليم",
+      loanContext: { loanId: guardLoanId, borrower: "سليم" },
     });
-    if (!created.ok) throw new Error(created.message);
-    const repayment = await loans.recordRepayment(created.value.loan.id, {
+    const seededLoan = await store.commitLoanRecord(
+      createLoanRecord({
+        id: guardLoanId,
+        borrowerName: "سليم",
+        principalMinor: 5000,
+        loanDate: "2026-09-01",
+        purposeNote: "قرض حرس العائلة",
+        sourceWalletId: null,
+        principalEventId: guardLoanEvent.id,
+        operationKey: "guard-family-loan:create",
+        createdAt: "2026-09-01T09:00:00.000Z",
+      }),
+      guardLoanEvent,
+    );
+    if (!seededLoan.ok) throw new Error(seededLoan.message);
+    const repayment = await loans.recordRepayment(guardLoanId, {
       amountMinor: 2000,
       date: "2026-09-10",
       note: "سداد أول",
@@ -426,7 +471,7 @@ describe("EXE-013 family guard vs legal family paths (AUD-NEW-15)", () => {
     const events = await store.listFinancialEvents();
     if (!events.ok) throw new Error(events.message);
     const repaymentEvent = events.value.find(
-      event => event.type === "loan_repayment_cash" && event.loanContext?.loanId === created.value.loan.id,
+      event => event.type === "loan_repayment_cash" && event.loanContext?.loanId === guardLoanId,
     );
     if (!repaymentEvent) throw new Error("repayment event should exist");
     /* المسار العام مرفوض ويوجه لصفحة القرض. */
@@ -440,11 +485,11 @@ describe("EXE-013 family guard vs legal family paths (AUD-NEW-15)", () => {
     if (refused.ok) return;
     expect(refused.message).toContain("صفحة القرض");
     /* المسار القانوني داخل عائلة القرض يعمل كما هو. */
-    const legal = await loans.reverseRepayment(created.value.loan.id, repaymentId, "سُجّل سدادان بالخطأ");
+    const legal = await loans.reverseRepayment(guardLoanId, repaymentId, "سُجّل سدادان بالخطأ");
     if (!legal.ok) throw new Error(legal.message);
     const overview = await loans.overview();
     if (!overview.ok) throw new Error(overview.message);
-    const loanRow = overview.value.rows.find(row => row.loan.id === created.value.loan.id);
+    const loanRow = overview.value.rows.find(row => row.loan.id === guardLoanId);
     expect(loanRow?.reading.outstandingMinor).toBe(5000);
   });
 });

@@ -100,7 +100,11 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
       createdAt: "2026-08-01T09:00:00.000Z",
       updatedAt: "2026-08-05T09:00:00.000Z",
     });
-    const declared = await g5.createDeclaration({
+    /* UNIT-021 (تنفيذ S15): الإنشاء مؤجل — سجل التصريح التاريخي يُزرع عند
+     * حد المخزن؛ سجل المتوقعات المسجلة في طبقة المؤشرات يقرأ التاريخ كما هو. */
+    const seededDeclaration = await store.saveShortCashDeclaration({
+      id: "u07-declaration-1",
+      kind: "declaration",
       direction: "collection",
       amountMinor: 1500,
       dueOn: "2026-09-01",
@@ -110,8 +114,10 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
       relatedOrderId: null,
       relatedEventId: null,
       idempotencyKey: "u07-declaration-1",
+      reversalOfId: null,
+      createdAt: now(),
     });
-    if (!declared.ok) throw new Error(declared.message);
+    if (!seededDeclaration.ok) throw new Error(seededDeclaration.message);
 
     mockedUsePrototypeServices.mockReturnValue({
       projectFinance,

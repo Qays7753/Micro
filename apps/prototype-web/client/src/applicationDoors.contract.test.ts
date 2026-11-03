@@ -156,9 +156,8 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
     "StatementMarkdownService",
     "StatementService",
     "UpcomingService",
-    "DEFAULT_SHORT_CASH_HORIZON_DAYS",
-    "SHORT_CASH_HORIZON_DAYS",
-    "SHORT_CASH_HORIZON_LABELS_AR",
+    /* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): صادرات أفق الكاش القصير
+     * الثلاث غادرت الباب مع القدرة المؤجلة (انكماش موثق نفس-الـPR). */
     "isPeriodActive",
     "previousEqualPeriod",
     "resolvePeriodPreset",

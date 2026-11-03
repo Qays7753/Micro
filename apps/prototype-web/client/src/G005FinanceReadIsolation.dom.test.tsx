@@ -99,9 +99,8 @@ function buildServices() {
       ...realG5,
       readDecision: (from: string, to: string) => failing("g5", () => realG5.readDecision(from, to)),
       listDeclarations: () => failing("g5", () => realG5.listDeclarations()),
-      /* FIN-005 (WS-175 — Wave 3): قرار الكاش صار فوق أفق مستقل — نفس عائلة
-       * فشل كتلة g5 (بطاقة إعادة محاولة معزولة لا تحجب بطاقات المركز). */
-      readShortCashHorizon: (days: 7 | 30 | 90) => failing("g5", () => realG5.readShortCashHorizon(days)),
+      /* UNIT-021 (تنفيذ S15): قراءة أفق الكاش القصير أزيلت مع القدرة المؤجلة
+       * — فشل كتلة g5 يعزل قراءة الهامش وسجل التصريحات كالمعتاد. */
     },
     financialPulse: new FinancialPulseService(store),
     fulfillment: {
@@ -225,14 +224,23 @@ describe("G-005 — Finance read-failure isolation", () => {
     });
   });
 
-  it("g5 block failing: cash decision fallback without false numbers", async () => {
+  it("g5 block failing: margin/declarations fallback without false numbers (UNIT-021 — cash card gone)", async () => {
     await seedWallet();
     failureMode = { g5: "ok_false" };
     render(<Harness />);
-    const blockErrors = await screen.findAllByTestId("finance-block-error");
+    /* UNIT-021 (تنفيذ S15): بطاقة قرار الكاش التوقعية أزيلت من وضع «الوضع
+     * الآن»، ففشل كتلة g5 يعزل قراءة الهامش وسجل التصريحات في موضعهما
+     * الطبيعي داخل «ملخص الفترة» — بطاقة إعادة محاولة هناك لا أرقام كاذبة،
+     * وبطاقات المركز في «الوضع الآن» حية كما هي. */
     await waitFor(() => {
       expect(screen.getAllByText("100.00").length).toBeGreaterThan(0);
     });
+    fireEvent.click(screen.getByRole("tab", { name: /ملخص الفترة/ }));
+    const blockErrors = await screen.findAllByTestId("finance-block-error");
+    expect(blockErrors.length).toBeGreaterThan(0);
+    /* بطاقة قرار الكاش التوقعية غائبة أصلًا — لا أرقام توقع كاذبة تُعرض. */
+    expect(screen.queryByText("الكاش المتوقع")).toBeNull();
+    expect(screen.queryByText(/سحب آمن/)).toBeNull();
   });
 
   it("events block failing: events fallback replaces the layer, not an empty list", async () => {

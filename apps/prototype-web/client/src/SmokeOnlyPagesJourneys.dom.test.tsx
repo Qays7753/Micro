@@ -143,27 +143,19 @@ describe("W7 journeys — pages that were render-smoke only", () => {
     expect(reversal).toBeDefined();
   });
 
-  it("G5DeclarationEditor: recording an expected collection creates the declaration", async () => {
+  it("G5DeclarationEditor (UNIT-021): the legacy deep link refuses honestly — no form, no write", async () => {
     render(<Harness page={<G5DeclarationEditor />} />);
-    fireEvent.change(screen.getByLabelText("مبلغ السجل المتوقع"), { target: { value: "40" } });
-    fireEvent.change(screen.getByPlaceholderText("مثال: رسالة العميلة أو فاتورة المورد"), {
-      target: { value: "وعدت العميلة بالتحصيل" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("ما الذي يجعلك تتوقع هذا القبض أو الدفع؟"), {
-      target: { value: "ملاحظة رحلة الاختبار" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /حفظ المتوقع/ }));
-    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalled());
-    expect(bumpVersion).toHaveBeenCalled();
+    expect(await screen.findByRole("heading", { name: "تسجيل توقع نقدي مؤجل" })).toBeTruthy();
+    expect(screen.getByText("لا يُسجل توقع قبض أو دفع جديد في هذا الإطلاق.")).toBeTruthy();
+    /* لا نموذج إدخال أصلًا — لا مبلغ ولا مصدر ولا زر حفظ. */
+    expect(screen.queryByLabelText("مبلغ السجل المتوقع")).toBeNull();
+    expect(screen.queryByRole("button", { name: /حفظ المتوقع/ })).toBeNull();
     const projectFinance = new ProjectFinancialService(store, () => NOW);
     const g5 = new FinancialAnalysisService(store, projectFinance);
     const declarations = await g5.listDeclarations();
     if (!declarations.ok) throw new Error(declarations.message);
-    const found = declarations.value.find(
-      declaration => declaration.kind === "declaration" && declaration.source === "وعدت العميلة بالتحصيل",
-    );
-    expect(found).toBeDefined();
-    expect(found!.amountMinor).toBe(4000);
+    expect(declarations.value).toHaveLength(0);
+    expect(bumpVersion).not.toHaveBeenCalled();
   });
 
   it("InventoryReversalEditor: reversing a material opening movement archives it", async () => {

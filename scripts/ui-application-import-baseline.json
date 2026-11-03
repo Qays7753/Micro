@@ -45,7 +45,6 @@
     "apps/prototype-web/client/src/pages/Finance.tsx -> apps/prototype-web/client/src/application/finance/financeState.ts",
     "apps/prototype-web/client/src/pages/Finance.tsx -> apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts",
     "apps/prototype-web/client/src/pages/FinancialEventEditor.tsx -> apps/prototype-web/client/src/application/finance/financialEventEditorModel.ts",
-    "apps/prototype-web/client/src/pages/G5DeclarationEditor.tsx -> apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.ts",
     "apps/prototype-web/client/src/pages/InventoryMaterials.tsx -> apps/prototype-web/client/src/application/inventory/inventoryMaterialsViewModel.ts",
     "apps/prototype-web/client/src/pages/InventoryMovementEditor.tsx -> apps/prototype-web/client/src/application/inventory/inventoryMovementEditorModel.ts",
     "apps/prototype-web/client/src/pages/OrderDetail.tsx -> apps/prototype-web/client/src/application/agreements/orderDetailViewModel.ts",
@@ -70,6 +69,7 @@
     "r7-p11-statement-view-model": "2026-10-10 (R7/R6-F17-P11): the statement lazy route consumes the extracted statement query, comparison side-B resolution, and week bounds from the finance house; the markdown renderer is injected as an explicit parameter (review amendment 6).",
     "r7-5-shim-removal": "2026-10-10 (R7/R7-5): removed the four frozen-shim keys (3x application/g5/g5Service for G5DecisionPanel/Finance/G5DeclarationEditor + PrototypeServicesContext -> finance/recurringExpenseService) — every consumer migrated to the canonical owners (financial-analysis, recurring) and the shims deleted with zero-consumer proof; see the R7-5 evidence report.",
     "r7-5-swap-keys": "2026-10-10 (R7/R7-5, amendment 10): the four documented swap keys for the shim-removal migrations — PSC's dynamic recurring-expense load now points at the canonical recurring home, and the three g5 type-only sites (G5DecisionPanel/Finance/G5DeclarationEditor) now point at the canonical financial-analysis module (doorless interior; path-based rule keys type imports too). Net key count unchanged by the swap.",
-    "s02-b-lock-retirement": "2026-10-27 (S02-B/SH-04 — UNIT-042، إلغاء المالك المعتمد): صف القفل العميق (PrototypeServicesContext -> application/security/localLockService.ts) حُذف مع تقاعد القفل؛ تقاعد السجل القديم يُحمَّل كسولًا عبر باب البيت @/application/security (STR-615) فلا صف تعويضي."
+    "s02-b-lock-retirement": "2026-10-27 (S02-B/SH-04 — UNIT-042، إلغاء المالك المعتمد): صف القفل العميق (PrototypeServicesContext -> application/security/localLockService.ts) حُذف مع تقاعد القفل؛ تقاعد السجل القديم يُحمَّل كسولًا عبر باب البيت @/application/security (STR-615) فلا صف تعويضي.",
+    "s15-unit021-editor-refusal-surface": "2026-11-03 (S15 / DOC-024 / UNIT-021 — unified order 00-S14-RESUME-PROMPT-2026-11-03.md §5): G5DeclarationEditor became an honest refusal surface for the deferred forecast capability and no longer imports the financial-analysis service — its R6 row is removed in the same PR per the baseline's own rule."
   }
 }

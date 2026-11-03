@@ -20,7 +20,6 @@ import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeSer
 import type { LocalFinancialPulse } from "@/application/financial-pulse";
 import type {
   BridgeState,
-  CashHorizonState,
   FinancialMetricEvidence,
   FinanceBlockId,
   FinanceState,
@@ -34,28 +33,12 @@ import {
   monthBounds,
   readFinanceOverview,
   readProfitToCashBridge,
-  readShortCashHorizonBlock,
 } from "@/application/finance/financeState";
 import type { OwnerEntitlementOverview } from "@/application/owner-money";
-import type {
-  G5Decision,
-  ShortCashHorizonReading,
-} from "@/application/financial-analysis/financialAnalysisService";
-/* FIN-005 (WS-175 — Wave 3): عائلة أفق الكاش القصير — الأنواع والثوابت فقط
- * (النموذج النقي لا يحمّل كومة الصفحة: بلا مخزن ولا React). */
-import {
-  DEFAULT_SHORT_CASH_HORIZON_DAYS,
-  SHORT_CASH_HORIZON_DAYS,
-  SHORT_CASH_HORIZON_LABELS_AR,
-  type ShortCashHorizonDays,
-} from "@/application/finance";
-/* FIN-004 (WS-176 — Wave 4): قراءة السحب الآمن الاستشارية — دالة مجال نقية
- * تُركّب فوق نتيجة أفق FIN-005 نفسه؛ الاحتياطي مُدخل جلسة (لا مخزن — ميثاق
- * التفضيلات يحرم المحتوى المالي، والدوام قرار مالك مؤجل بنص الوثيقة). */
-import {
-  calculateSafeWithdrawal,
-  type SafeWithdrawalReserve,
-} from "@micro-domain/owner-safe-withdrawal/index.js";
+import type { G5Decision } from "@/application/financial-analysis/financialAnalysisService";
+/* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): استيرادا أفق الكاش القصير
+ * والسحب الآمن أزيلا من صفحة المالية مع القدرة المؤجلة — لا قراءة توقع
+ * ولا توصية سحب في النطاق الأساسي ولا بديل يوحي بوجودها. */
 import type { StoredCraftOrder } from "@/storage/local/types";
 /* FIN-002 (WS-174 — Wave 2): أنواع الميزانيات الاختيارية — النوع فقط هنا
  * (import(...) في موضع النوع — سابقة Schedule.tsx) فلا تُسحب وحدة الخدمة
@@ -69,7 +52,6 @@ import {
   MoneyWithUnit,
 } from "@/components/presentation/DisplayValue";
 import G5DecisionPanel from "@/components/finance/G5DecisionPanel";
-import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { EventsLayer } from "@/components/finance/EventsLayer";
 import { CorrectionsLayer } from "@/components/finance/CorrectionsLayer";
 import { RestatementNote } from "@/components/finance/RestatementNote";
@@ -83,7 +65,6 @@ import { FinanceObligationsCard } from "@/components/finance/FinanceObligationsC
 import { FinanceBudgetsSection } from "@/components/finance/ExpenseBudgetsSectionBody";
 import { DepositsLayer } from "@/components/finance/DepositsLayer";
 import { todayInAmman } from "@/application/time";
-import * as G5Display from "@/components/finance/G5DecisionPanel";
 import {
   formatBreakEvenDisplay,
   formatLocalDate,
@@ -124,8 +105,8 @@ const evidenceValue = (state: FinancialMetricEvidence, minor: number) =>
   state === "recorded" ? <MoneyValue minor={minor} /> : unknownValue();
 const validMonth = (month: string) =>
   /^\d{4}-\d{2}$/.test(month) && Number(month.slice(5)) >= 1 && Number(month.slice(5)) <= 12;
-/* §10: مساعدات العرض الخاصة بقراءة G5 انتقلت إلى وحدة الطبقة — الاستيراد بلا نص مكرر. */
-const { displayCashAmount, formatted, shortStatusLabel } = G5Display;
+/* UNIT-021 (تنفيذ S15): مساعدات عرض قراءة الكاش التوقعية أزيلت مع البطاقة
+ * المؤجلة؛ مساعدات الهامش المسجل تبقى في وحدة طبقتها. */
 const cogsStatusLabel = (status: RecordedPeriodResult["cogsStatus"]) =>
   status === "recorded" ? "من الاستهلاك" : status === "partial" ? "جزئي" : "من نسخة التكلفة";
 
@@ -179,18 +160,6 @@ export default function Finance() {
   /* FIN-003: جسر النتيجة إلى الكاش — قراءة مستقلة فوق نطاق الأشهر نفسه؛
    * فشلها بطاقة كتلة معزولة لا يحجب ملخص الفترة (نمط G-005 نفسه). */
   const [bridgeState, setBridgeState] = useState<BridgeState>({ phase: "loading" });
-  /* FIN-005 (WS-175 — Wave 3): أفق الكاش القصير — العائلة المعتمدة ٧/٣٠/٩٠
-   * يومًا والافتراضي ٣٠ (قرار المالك §4.4)؛ حالة القراءة كتلة مستقلة فوق
-   * الأفق المختار لا فوق أشهر الصفحة (الأفق مثبّت على اليوم المحلي). */
-  const [horizonDays, setHorizonDays] = useState<ShortCashHorizonDays>(DEFAULT_SHORT_CASH_HORIZON_DAYS);
-  const [cashHorizonState, setCashHorizonState] = useState<CashHorizonState>({ phase: "loading" });
-  /* FIN-004 (WS-176 — Wave 4): الاحتياطي الصريح للسحب الآمن — حالة جلسة
-   * فقط (لا مخزن ولا تفضيلات: ميثاق التفضيلات يحرم المحتوى المالي): مبلغ
-   * موجب بالوحدة الصغرى أو «غير مُدخل»، مع تعطيل صريح بطلب المالك. لا
-   * نسبة افتراضية ولا قاعدة أشهر مصاريف؛ والدوام بين الجلسات قرار مالك
-   * مؤجل موثق (يتطلب مخزنًا محروسًا 38/30 عند اعتماده). */
-  const [reserveAmountMinor, setReserveAmountMinor] = useState<number | null>(null);
-  const [reserveDisabled, setReserveDisabled] = useState(false);
   /* FIN-002 (WS-174 — Wave 2): الميزانيات الاختيارية — الخدمة تُحمَّل
    * ديناميكيًا عند أول فتح للقسم المطوي فقط (سابقة EXE-014/D-034): الوحدة
    * تُستورد بـimport() لحظتها فلا تدخل كومة الصفحة/الإقلاع، والمخزن من جذر
@@ -272,21 +241,10 @@ export default function Finance() {
       active = false;
     };
   }, [profitToCashBridge, fromMonth, toMonth, dataVersion, retryCount]);
-  /* FIN-005 (WS-175 — Wave 3): قراءة أفق الكاش القصير — كتلة مستقلة عن
-   * نطاق أشهر الصفحة: الأفق مثبّت على اليوم المحلي من ساعة الخدمة القابلة
-   * للحقن، وإعادة القراءة فقط عند تبديل الأفق أو تغيّر البيانات أو إعادة
-   * المحاولة. بلا كتابة إطلاقًا (عقد 17 §7): توقع معلن لا قبض ولا دفع
-   * ولا تغيير كاش أو دين أو أحداث أو مخزن. */
-  useEffect(() => {
-    let active = true;
-    readShortCashHorizonBlock({ g5 }, horizonDays).then(next => {
-      if (!active) return;
-      setCashHorizonState(next);
-    });
-    return () => {
-      active = false;
-    };
-  }, [g5, horizonDays, dataVersion, retryCount]);
+  /* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): قراءة أفق الكاش القصير أزيلت
+   * من تحميل المالية الأساسي بقرار تأجيل التوقعات — لا قراءة توقع في
+   * إقلاع المالية ولا بياناتها تدخل كومة الصفحة؛ متابعة الحقوق المسجلة
+   * الفعلية تبقى في سطحها المخصص (012/018). */
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
@@ -435,34 +393,31 @@ export default function Finance() {
               بمصدرَيه ومسارَي تسديدهما بالكاتب الرسمي القائم؛ يلي بطاقات
               المركز مباشرة في ترتيب القراءة المعتمد. */}
           <FinanceObligationsCard position={position} onNavigate={navigate} />
-          {/* FIN-005 (WS-175 — Wave 3): قرار الكاش صار فوق أفق معتمد
-              ٧/٣٠/٩٠ يومًا مثبّت على اليوم المحلي (الافتراضي ٣٠) — كتلة
-              قراءة مستقلة عن نطاق أشهر الصفحة؛ فشلها بطاقة إعادة محاولة
-              معزولة (نمط G-005) لا يحجب بطاقات المركز. */}
-          {cashHorizonState.phase === "error" ? (
-            <FinanceBlockFallback block="g5" onRetry={retryBlocks} />
-          ) : cashHorizonState.phase === "ready" ? (
-            <CashDecisionSurface
-              reading={cashHorizonState.reading}
-              horizonDays={horizonDays}
-              onHorizonChange={setHorizonDays}
-              unallocatedCashMinor={position.unallocatedCashMinor}
-              cashRecorded={position.evidence.cash === "recorded"}
-              declarationsRecorded={(state.declarations ?? []).some(
-                declaration => declaration.kind !== "reversal",
-              )}
-              /* FIN-004 (WS-176 — Wave 4): مدخلات القراءة الاستشارية للسحب —
-               * الاحتياطي حالة جلسة والقروض سياق معلن من كتلة القروض نفسها. */
-              reserveAmountMinor={reserveAmountMinor}
-              reserveDisabled={reserveDisabled}
-              onReserveAmountChange={setReserveAmountMinor}
-              onReserveDisabledChange={setReserveDisabled}
-              loansOutstandingMinor={state.loansOverview ? state.loansOverview.totals.outstandingMinor : null}
-              onDeclare={() => navigate(withReturnTo("/finance/g5/declaration", "/finance"))}
-              onCoverPayment={() =>
-                navigate(appendQueryParams("/cash/distribute", { mode: "cover", returnTo: "/finance" }))
-              }
-            />
+          {/* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): بطاقة قرار الكاش
+              التوقعية (القبض/الدفع المتوقع القريب والكاش المتوقع والسحب
+              الاستشاري) أزيلت من النطاق الأساسي بقرار التأجيل المعتمد — لا
+              بديل توصية ولا إيحاء بوجودها؛ التزام التغطية الحقيقي أدناه من
+              البيانات المسجلة نفسها. */}
+          {position.unallocatedCashMinor < 0 ? (
+            <div className="micro-finance-unallocated-alert" role="status">
+              <div>
+                <strong>في دفعة تحتاج تغطية</strong>
+                <p>
+                  الكاش غير الموزع الآن{" "}
+                  <MoneyWithUnit minor={position.unallocatedCashMinor} unit="د.أ" /> — سالب لأن دفعًا مسجلًا
+                  تجاوز ما دخل غير موزع. مصدر الفرق ظاهر في المصادر المسجلة، وهو ليس مصروفًا أو ربحًا
+                  جديدًا.
+                </p>
+              </div>
+              <Button
+                action="secondary"
+                onClick={() =>
+                  navigate(appendQueryParams("/cash/distribute", { mode: "cover", returnTo: "/finance" }))
+                }
+              >
+                غطِّ الدفعة من محفظة
+              </Button>
+            </div>
           ) : null}
           {owner === null ? (
             <FinanceBlockFallback block="owner" onRetry={retryBlocks} />
@@ -840,15 +795,13 @@ export default function Finance() {
               </span>
               <strong>افتح التفاصيل</strong>
             </summary>
+            {/* UNIT-021 (تنفيذ S15): لا مدخل تصريح جديد — إنشاء التوقعات
+             * مؤجل بقرار معتمد؛ اللوحة قراءة هامش مسجل وسجل تصريحات
+             * قديمة قابل للتصحيح الموثق فقط. */}
             {decision === null ? (
               <FinanceBlockFallback block="g5" onRetry={retryBlocks} />
             ) : (
-              <G5DecisionPanel
-                decision={decision}
-                g5={g5}
-                onDeclare={() => navigate(withReturnTo("/finance/g5/declaration", "/finance"))}
-                onChanged={notifyDataChanged}
-              />
+              <G5DecisionPanel decision={decision} g5={g5} onChanged={notifyDataChanged} />
             )}
             {/* و٧ (F-079): سجل المتوقعات المسجلة كاملًا — حتى المنقوضة — بلا تصحيح من هنا. */}
             <details className="micro-finance-layer micro-declarations-record">
@@ -1183,204 +1136,10 @@ function OwnerDecisionCard({
   );
 }
 
-function CashDecisionSurface({
-  reading,
-  horizonDays,
-  onHorizonChange,
-  unallocatedCashMinor,
-  cashRecorded,
-  declarationsRecorded,
-  /* FIN-004 (WS-176 — Wave 4): مدخلات القراءة الاستشارية للسحب الآمن. */
-  reserveAmountMinor,
-  reserveDisabled,
-  onReserveAmountChange,
-  onReserveDisabledChange,
-  loansOutstandingMinor,
-  onDeclare,
-  onCoverPayment,
-}: {
-  /* FIN-005 (WS-175 — Wave 3): القراءة فوق أفق معتمد لا نطاق أشهر الصفحة —
-   * `ShortCashHorizonReading` يحمل الأفق (من/إلى شاملين بالتاريخ المحلي)
-   * ونتيجة المحرك نفسها بلا أي تغيير صيغة. */
-  reading: ShortCashHorizonReading;
-  horizonDays: ShortCashHorizonDays;
-  onHorizonChange: (days: ShortCashHorizonDays) => void;
-  unallocatedCashMinor: number;
-  cashRecorded: boolean;
-  declarationsRecorded: boolean;
-  /* FIN-004: الاحتياطي حالة جلسة (number | null) — null يعني غير مُدخل؛
-   * التعطيل صريح بطلب المالك؛ القروض سياق معلن فقط (null عند تعذر الكتلة). */
-  reserveAmountMinor: number | null;
-  reserveDisabled: boolean;
-  onReserveAmountChange: (amountMinor: number | null) => void;
-  onReserveDisabledChange: (disabled: boolean) => void;
-  loansOutstandingMinor: number | null;
-  onDeclare: () => void;
-  onCoverPayment: () => void;
-}) {
-  const cash = reading.shortCash;
-  /* FIN-001: مقاييس قرار الكاش تتبع دليلها — كاش غير مسجل أو متوقعات غير
-   * مسجلة تُعرض «غير مسجل» لا 0.00 مؤكدًا، باتساق مع «الكاش المتوقع». */
-  const declaredValue = (minor: number, status: G5Decision["shortCash"]["status"]) =>
-    !declarationsRecorded ? NOT_RECORDED_LABEL : displayCashAmount(minor, status);
-  /* FIN-004 (WS-176 — Wave 4): قراءة السحب الآمن الاستشارية — تركيب صرف
-   * لدالة المجال النقية فوق نتيجة أفق FIN-005 نفسه (لا مسار ثانٍ ولا قراءة
-   * إضافية): الاحتياطي مُفعّل فقط حين يكون مبلغًا صحيحًا موجبًا؛ غير ذلك
-   * «غير مُدخل» بلا رقم مخترع. التعطيل والتمكين بيد المالك حصرًا. */
-  const reserve: SafeWithdrawalReserve = reserveDisabled
-    ? { mode: "disabled" }
-    : reserveAmountMinor !== null && Number.isInteger(reserveAmountMinor) && reserveAmountMinor > 0
-      ? { mode: "enabled", amountMinor: reserveAmountMinor }
-      : { mode: "unset" };
-  const withdrawal = calculateSafeWithdrawal({
-    horizon: reading.horizon,
-    shortCash: cash,
-    cashRecorded,
-    reserve,
-    loansOutstandingMinor,
-  });
-  return (
-    <section className="micro-cash-decision" aria-labelledby="cash-decision-title">
-      <div className="micro-cash-decision-heading">
-        <span className="micro-overline">
-          قرار الكاش · <LocalDateValue value={cash.from} /> → <LocalDateValue value={cash.to} />
-        </span>
-      </div>
-      {/* FIN-005 (WS-175 — Wave 3): عائلة الأفق المعتمدة ٧/٣٠/٩٠ (الافتراضي ٣٠)
-          — تبديل عرض فقط: يعيد القراءة فوق الأفق الجديد ولا يكتب شيئًا ولا
-          يفرض قيمة (نفس مفاتيح تبديل «الوضع الآن/ملخص الفترة» أعلاه). */}
-      <div className="micro-form-actions" role="group" aria-label="أفق قراءة الكاش">
-        {SHORT_CASH_HORIZON_DAYS.map(days => (
-          <button
-            key={days}
-            className="micro-text-action"
-            type="button"
-            aria-pressed={horizonDays === days}
-            onClick={() => onHorizonChange(days)}
-          >
-            {SHORT_CASH_HORIZON_LABELS_AR[days]}
-          </button>
-        ))}
-      </div>
-      <div className="micro-cash-decision-metrics">
-        <Metric
-          label="الكاش المسجل الآن"
-          value={cashRecorded ? displayCashAmount(cash.recordedCashMinor, cash.status) : NOT_RECORDED_LABEL}
-          negative={cashRecorded && cash.status !== "invalid" && cash.recordedCashMinor < 0}
-        />
-        <Metric label="قبض متوقع قريب" value={declaredValue(cash.declaredCollectionsMinor, cash.status)} />
-        <Metric
-          label="دفع متوقع قريب"
-          value={declaredValue(cash.declaredCommitmentsMinor, cash.status)}
-          negative={
-            declarationsRecorded &&
-            cash.status !== "invalid" &&
-            cash.declaredCommitmentsMinor > cash.declaredCollectionsMinor
-          }
-        />
-        <Metric
-          label="الكاش المتوقع"
-          value={
-            cash.projectedCashMinor === null || cash.status === "invalid"
-              ? "غير متاح"
-              : formatted(cash.projectedCashMinor)
-          }
-          negative={
-            cash.projectedCashMinor !== null && cash.status !== "invalid" && cash.projectedCashMinor < 0
-          }
-        />
-      </div>
-      <div className="micro-cash-decision-footer">
-        <div>
-          <strong>{shortStatusLabel(cash.status)}</strong>
-          <p>{cash.nextAction}</p>
-        </div>
-        <Button action="create" onClick={onDeclare}>
-          أعلن تحصيلًا أو التزامًا قريبًا
-        </Button>
-      </div>
-      {/* FIN-004 (WS-176 — Wave 4): السحب الآمن — قراءة استشارية فقط فوق الأفق
-          نفسه: احتياطي ثابت يُدخله المالك (جلسة) أو تعطيل صريح؛ الفائض =
-          التوقع − الاحتياطي بلا قصّ للسالب؛ القروض إفصاح لا حساب؛ لا زر سحب
-          ولا حجب ولا ضمان — القرار للمالك. */}
-      <div className="micro-cash-decision-footer">
-        <div>
-          <strong>سحب آمن — قراءة استشارية</strong>
-          <p className="micro-local-truth">
-            قراءة استشارية فقط: لا تنفّذ سحبًا ولا تضمن سيولة، والربح ليس كاشًا.
-          </p>
-        </div>
-        <div className="micro-form-actions">
-          <button
-            className="micro-text-action"
-            type="button"
-            aria-pressed={reserveDisabled}
-            onClick={() => onReserveDisabledChange(!reserveDisabled)}
-          >
-            {reserveDisabled ? "فعّل القراءة" : "عطّل القراءة"}
-          </button>
-        </div>
-        <label className="micro-field">
-          <span>
-            احتياطي ثابت <small>د.أ · جلسة فقط</small>
-          </span>
-          <EnglishNumberInput
-            value={reserveAmountMinor}
-            kind="money"
-            onNumericChange={onReserveAmountChange}
-            onEmptyChange={() => onReserveAmountChange(null)}
-            allowEmpty
-          />
-        </label>
-        <div className="micro-cash-decision-metrics">
-          <Metric
-            label="الفائض المتوقع فوق الاحتياطي"
-            value={
-              withdrawal.headroomMinor === null || !cashRecorded
-                ? "غير متاح"
-                : formatted(withdrawal.headroomMinor)
-            }
-            negative={withdrawal.headroomMinor !== null && withdrawal.headroomMinor < 0}
-          />
-          <Metric
-            label="قروض صادرة قائمة"
-            value={
-              loansOutstandingMinor === null
-                ? "غير متاح"
-                : loansOutstandingMinor === 0
-                  ? "—"
-                  : formatted(loansOutstandingMinor)
-            }
-          />
-        </div>
-        <div>
-          {withdrawal.reasons.length > 0 ? (
-            <p className="micro-warning-copy" role="status">
-              {withdrawal.reasons[0]}
-            </p>
-          ) : null}
-          <p className="micro-decision-next">{withdrawal.nextAction}</p>
-        </div>
-      </div>
-      {unallocatedCashMinor < 0 ? (
-        <div className="micro-finance-unallocated-alert" role="status">
-          <div>
-            <strong>في دفعة تحتاج تغطية</strong>
-            <p>
-              الكاش غير الموزع الآن <MoneyWithUnit minor={unallocatedCashMinor} unit="د.أ" /> — سالب لأن دفعًا
-              مسجلًا تجاوز ما دخل غير موزع. مصدر الفرق ظاهر في المصادر المسجلة، وهو ليس مصروفًا أو ربحًا
-              جديدًا.
-            </p>
-          </div>
-          <Button action="secondary" onClick={onCoverPayment}>
-            غطِّ الدفعة من محفظة
-          </Button>
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
+/* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): مكوّن بطاقة قرار الكاش أزيل مع
+ * قراءة الأفق التوقعية والسحب الاستشاري ومدخل التصريح — القدرة مؤجلة
+ * بقرار معتمد ولا بديل يوحي بوجودها؛ تنبيه التغطية الحقيقي صار مستقلًا
+ * فوق البيانات المسجلة نفسها أعلاه. */
 function Metric({ label, value, negative = false }: { label: string; value: string; negative?: boolean }) {
   return (
     <div>

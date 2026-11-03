@@ -14,7 +14,8 @@
     "S05": "2026-10-29 (S05 / DOC-014 / UNIT-037): parties door re-anchored to the saved-party directory surface — +3 values (purchasePartySnapshotOf/salePartySnapshotOf/supplierDisplayLabelOf) and +10 types (directory service/result/store, account entry, movement kinds, save/rename/archive inputs) after retiring the name-aggregation reader (PartyLedgerOverview/PartyLedgerService removed); same-PR documented widening+shrink per PC-3.",
     "s10": "S10 (UNIT-030 — أمر b56967d8): باب جديد application/planning — دوال حساب أدوات التخطيط الخمس النقية (T01 معاينة/اقتراح + T02–T05) بلا تخزين؛ حفظ T01 في بيت التقديرات. دخل القائمة مع تأسيس البيت في نفس الشريحة.",
     "s12": "2026-11-01 (S12 / DOC-021 / UNIT-009 A2-س8+B4 — أمر 2e645802): agreements door +value agreementSummaryParts — أجزاء ملخص الاتفاق الملاصق للفعل (القيمة المسجلة والمستلم مقدمًا والمتبقي) في بيتها التطبيقي agreementPrice.ts؛ اشتقاق المتبقي مالٌ فيحسب عند صاحبه التطبيقي لا في الواجهة (عائلة F-049 المجمدة)؛ المستهلك الواجهة (AgreementEditor) يستورده عبر الباب؛ same-PR documented widening per PC-3.",
-    "s15-unit040-share-door-removal": "2026-11-03 (S15 / DOC-024 / UNIT-040 — unified order 00-S14-RESUME-PROMPT-2026-11-03.md §5): share door removed with the cancelled sharing capability — the message-draft service (collectionShareDraft/customerShareDraft/standingCollectionEvent, type ShareDraft) and its preview surface are gone; no WhatsApp/message/copy substitute. Same-PR documented shrink per PC-3."
+    "s15-unit040-share-door-removal": "2026-11-03 (S15 / DOC-024 / UNIT-040 — unified order 00-S14-RESUME-PROMPT-2026-11-03.md §5): share door removed with the cancelled sharing capability — the message-draft service (collectionShareDraft/customerShareDraft/standingCollectionEvent, type ShareDraft) and its preview surface are gone; no WhatsApp/message/copy substitute. Same-PR documented shrink per PC-3.",
+    "s15-unit021-finance-door-horizon-removal": "2026-11-03 (S15 / DOC-024 / UNIT-021 — unified order 00-S14-RESUME-PROMPT-2026-11-03.md §5): finance door -DEFAULT_SHORT_CASH_HORIZON_DAYS -SHORT_CASH_HORIZON_DAYS -SHORT_CASH_HORIZON_LABELS_AR (values) -ShortCashHorizonDays and -CashHorizonState (types) — the short-cash horizon read family left the door with the deferred forecast capability (no consumer after the finance cash-decision card removal; readers inventoried per P3.1). Same-PR documented shrink per PC-3."
   },
   "doors": {
     "activity": {
@@ -131,7 +132,6 @@
     },
     "finance": {
       "value": [
-        "DEFAULT_SHORT_CASH_HORIZON_DAYS",
         "DueDatesService",
         "IntegrityCheckService",
         "PAYMENT_SOURCE_UNSET",
@@ -140,8 +140,6 @@
         "ProjectFinancialService",
         "RecurringExpenseService",
         "RecurringWorkService",
-        "SHORT_CASH_HORIZON_DAYS",
-        "SHORT_CASH_HORIZON_LABELS_AR",
         "StatementMarkdownService",
         "StatementService",
         "UpcomingService",
@@ -152,7 +150,6 @@
       ],
       "type": [
         "BridgeState",
-        "CashHorizonState",
         "FinanceBlockId",
         "FinanceState",
         "FinancialInsights",
@@ -173,7 +170,6 @@
         "RecurringWorkReading",
         "RecurringWorkReadings",
         "SettleablePayable",
-        "ShortCashHorizonDays",
         "StatementExpenseCategoryGroup",
         "StatementLine",
         "StatementReading",

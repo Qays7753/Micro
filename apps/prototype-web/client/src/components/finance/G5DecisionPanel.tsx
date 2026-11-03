@@ -47,12 +47,12 @@ function Metric({ label, value, negative = false }: { label: string; value: stri
 function G5DecisionPanel({
   decision,
   g5,
-  onDeclare,
   onChanged,
 }: {
   decision: G5Decision;
   g5: import("@/application/financial-analysis/financialAnalysisService").G5Service;
-  onDeclare: () => void;
+  /* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): خاصية مدخل التصريح أزيلت مع
+   * القدرة المؤجلة — اللوحة قراءة وتصحيح موثق للتاريخ القائم فقط. */
   onChanged: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);

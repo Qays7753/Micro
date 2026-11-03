@@ -8,7 +8,6 @@ import {
   monthBounds,
   readFinanceOverview,
   readProfitToCashBridge,
-  readShortCashHorizonBlock,
   type FinanceOverviewDeps,
 } from "./financeState";
 import type { AssetOverviewRead, AssetService } from "../assets/assetService";
@@ -18,11 +17,7 @@ import type {
 } from "../financial-records/correctionHistoryService";
 import type { RetainedDepositRow, RetainedDepositService } from "../financial-records/retainedDepositService";
 import type { DepositOverview, FulfillmentService } from "../fulfillment/fulfillmentService";
-import type {
-  FinancialAnalysisService,
-  G5Decision,
-  ShortCashHorizonReading,
-} from "../financial-analysis/financialAnalysisService";
+import type { FinancialAnalysisService, G5Decision } from "../financial-analysis/financialAnalysisService";
 import type { FinancialPulseService } from "../financial-pulse/financialPulseService";
 import type { InventoryMaterialService } from "../inventory/inventoryMaterialService";
 import type { PeriodWasteReading } from "../inventory/inventoryMaterialModel";
@@ -38,7 +33,6 @@ import type {
   RecordedPeriodResult,
 } from "./projectFinancialService";
 import type { ProfitToCashBridgeReading, ProfitToCashBridgeService } from "./profitToCashBridgeService";
-import type { ShortCashHorizonDays } from "./shortCashHorizon";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { ShortCashDeclaration } from "@micro-domain/financial-analysis/index.js";
 import type { StoredCraftOrder } from "@/storage/local/types";
@@ -262,26 +256,8 @@ describe("R7/P02 — قراءتا الجسر والأفق (كتلتان مستق
     expect(bad).toEqual({ phase: "error" });
   });
 
-  it("الأفق: نفس العقد — قيمة أو بطاقة إعادة محاولة، والرفض ملفوف", async () => {
-    const good = await readShortCashHorizonBlock(
-      {
-        g5: {
-          readShortCashHorizon: async () => ok(sentinel<ShortCashHorizonReading>("horizon")),
-        } as unknown as FinancialAnalysisService,
-      },
-      30 as ShortCashHorizonDays,
-    );
-    expect(good.phase).toBe("ready");
-    const rejected = await readShortCashHorizonBlock(
-      {
-        g5: {
-          readShortCashHorizon: () => Promise.reject(new Error("x")),
-        } as unknown as FinancialAnalysisService,
-      },
-      30 as ShortCashHorizonDays,
-    );
-    expect(rejected).toEqual({ phase: "error" });
-  });
+  /* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): كتلة قراءة أفق الكاش القصير
+   * وعقدها أزيلا مع القدرة المؤجلة — لا قراءة توقع في تحميل المالية. */
 });
 
 describe("R7/P02 — monthBounds (حدود الشهر من النواة الكنسية)", () => {

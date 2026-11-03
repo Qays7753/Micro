@@ -280,7 +280,6 @@ export const UI_TO_DOMAIN_VALUE_BASELINE = [
   "apps/prototype-web/client/src/pages/Catalog.tsx -> @micro-domain/recurring-margin/index.js",
   "apps/prototype-web/client/src/pages/CostEditor.tsx -> @micro-domain/craft-order/index.js",
   "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx -> @micro-domain/direct-sale/index.js",
-  "apps/prototype-web/client/src/pages/Finance.tsx -> @micro-domain/owner-safe-withdrawal/index.js",
   "apps/prototype-web/client/src/pages/InventoryMaterials.tsx -> @micro-domain/shared/index.js",
   "apps/prototype-web/client/src/pages/OrderDetail.tsx -> @micro-domain/craft-order/index.js",
   "apps/prototype-web/client/src/pages/OrderDetail.tsx -> @micro-domain/shared/index.js",

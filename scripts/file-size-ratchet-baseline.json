@@ -1914,18 +1914,6 @@
       "nbLoc": 150,
       "band": "NORMAL"
     },
-    "src/domain/owner-safe-withdrawal/index.ts": {
-      "nbLoc": 2,
-      "band": "NORMAL"
-    },
-    "src/domain/owner-safe-withdrawal/policies.ts": {
-      "nbLoc": 91,
-      "band": "NORMAL"
-    },
-    "src/domain/owner-safe-withdrawal/types.ts": {
-      "nbLoc": 47,
-      "band": "NORMAL"
-    },
     "src/domain/planning/policies.ts": {
       "nbLoc": 561,
       "band": "WATCH"

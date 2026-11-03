@@ -8476,6 +8476,25 @@
         "trigger": "S14 resume execution on components/integration-20261027 / PR #383",
         "ocRef": "DOC-023"
       }
+    },
+    {
+      "id": "S15-UNIT021-ROUTER-SHARE-G5-ROUTE-COMMENTS-20261103",
+      "date": "2026-11-03",
+      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+      "from": {
+        "nbLoc": 253,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 267,
+        "band": "NORMAL"
+      },
+      "reason": "S15 unified order §5 (UNIT-040 + UNIT-021): the /share/preview route line is replaced by a documented removal comment (sharing cancelled with no substitute) and the lazy import block by a deferral note — comment lines only, no new responsibility; the router's registered route set shrank by one.",
+      "authorization": {
+        "ownerReview": "Owner-authorized continuous S15 execution (00-S14-RESUME-PROMPT-2026-11-03.md §5 — cancelled capabilities removed at the route boundary with honest refusals)",
+        "trigger": "S15 execution on components/integration-20261027 / PR #383",
+        "ocRef": "DOC-024"
+      }
     }
   ]
 }

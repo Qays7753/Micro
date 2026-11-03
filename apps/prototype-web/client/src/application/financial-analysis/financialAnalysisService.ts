@@ -26,13 +26,6 @@ import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/type
 import type { ShortCashDeclarationStore } from "@/storage/local/capabilities/shortCashDeclarationStore";
 import type { OrderLifecycleStore } from "@/storage/local/capabilities/orderLifecycleStore";
 import type { ProjectFinancialReader } from "@/application/finance/projectFinancialTypes";
-/* FIN-005 (WS-175 — Wave 3): عائلة أفق الكاش القصير — نموذج نقي يُستخدم
- * من هنا فقط (الخدمة تستمد «اليوم» من ساعتها القابلة للحقن ثم تحل النطاق). */
-import {
-  resolveShortCashHorizon,
-  type ShortCashHorizon,
-  type ShortCashHorizonDays,
-} from "@/application/finance/shortCashHorizon";
 import {
   NOT_FOUND,
   STORAGE_ERROR,
@@ -73,16 +66,6 @@ export type G5Decision = {
   shortCash: ShortCashResult;
   declarations: readonly ShortCashDeclaration[];
 };
-/* FIN-005 (WS-175 — Wave 3): قراءة أفق الكاش القصير وحده — نفس محرك
- * `calculateShortCash` وصيغته بلا أي تغيير، لكن نطاق القراءة أفق معتمد
- * (7/30/90 يومًا) مثبّت على اليوم المحلي عمان من ساعة الخدمة القابلة
- * للحقن، لا نطاق أشهر الصفحة. قراءة فقط: لا كتابة ولا تغيير كاش أو دين. */
-export type ShortCashHorizonReading = {
-  horizon: ShortCashHorizon;
-  shortCash: ShortCashResult;
-};
-export type G5LinkOption = { id: string; label: string; amountMinor: number };
-export type G5LinkOptions = { orders: readonly G5LinkOption[]; payableEvents: readonly G5LinkOption[] };
 export type G5DeclarationInput = {
   direction: "collection" | "commitment";
   amountMinor: number;
@@ -330,35 +313,8 @@ export class FinancialAnalysisService {
     return result.ok ? { ok: true, value: result.value } : storageFailure("تعذر قراءة المتوقعات المحلية.");
   }
 
-  async listLinkOptions(): Promise<G5Result<G5LinkOptions>> {
-    const [orders, events] = await Promise.all([this.store.listOrders(), this.store.listFinancialEvents()]);
-    if (!orders.ok || !events.ok) return storageFailure("تعذر قراءة الأرصدة القابلة للربط.");
-    const reversedIds = reversedEventIds(events.value);
-    const payableEvents = events.value
-      .filter(
-        event =>
-          event.type === "operating_expense_payable" &&
-          event.payableDeltaMinor > 0 &&
-          !reversedIds.has(event.id),
-      )
-      .flatMap(event => {
-        const amountMinor = event.amountMinor - activeSettlementsMinor(events.value, event.id);
-        return amountMinor > 0 ? [{ id: event.id, label: event.note || event.id, amountMinor }] : [];
-      });
-    return {
-      ok: true,
-      value: {
-        orders: orders.value
-          .filter(({ order }) => isRegisteredCustomerDebt(order))
-          .map(({ order }) => ({
-            id: order.id,
-            label: `${order.customerName} · ${order.itemName}`,
-            amountMinor: order.receivableMinor,
-          })),
-        payableEvents,
-      },
-    };
-  }
+  /* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): خيارات ربط التصريح أزيلت مع
+   * مدخل الإنشاء المؤجل — لا قارئ ربط بلا مدخل يستهلكه (جرد القارئين). */
 
   /* REM-007 (المرحلة ب — 2026-09-29): قراءة قرار G5 الكاملة — طبقة التشغيل
    * (نتيجة التشغيل/الحالة/المتبقي/الفائض/مبيعات التعادل/النسبة) وقراءة
@@ -424,77 +380,23 @@ export class FinancialAnalysisService {
     };
   }
 
-  /* FIN-005 (WS-175 — Wave 3): قراءة أفق الكاش القصير المعتمد (7/30/90 يومًا،
-   * الافتراضي 30 عند المستدعي) — «اليوم» من ساعة الخدمة القابلة للحقن
-   * (ISO-8601) ثم `localDateInAmman` (المرجع الكنوني للتاريخ المحلي)، ثم
-   * حلّ النطاق بالوحدة النقية [اليوم، اليوم+N−1] شاملًا. المحرك والصيغة
-   * كما هما بلا تعديل: `calculateShortCash` نفسه ونفس مصادر القراءة
-   * (المركز + الطلبات + الأحداث + المشتريات + المتوقعات) — الأرصدة المؤرخة
-   * وحدها تدخل الرقم، وغير المؤرخة نقص معلن يبقى ظاهرًا. لا كتابة إطلاقًا. */
-  async readShortCashHorizon(horizonDays: ShortCashHorizonDays): Promise<G5Result<ShortCashHorizonReading>> {
-    const horizonResolution = resolveShortCashHorizon(horizonDays, localDateInAmman(this.now()));
-    if (!horizonResolution.ok) return validationFailure(horizonResolution.message);
-    const { from, to } = horizonResolution.value;
-    const [position, orders, events, purchases, declarations] = await Promise.all([
-      this.projectFinance.readPosition(),
-      this.store.listOrders(),
-      this.store.listFinancialEvents(),
-      this.store.listSupplierPurchases(),
-      this.store.listShortCashDeclarations(),
-    ]);
-    if (!position.ok || !orders.ok || !events.ok || !purchases.ok || !declarations.ok)
-      return storageFailure("تعذر قراءة المتوقعات المحلية.");
-    const shortCash = calculateShortCash({
-      from,
-      to,
-      recordedCashMinor: position.value.recordedCashMinor,
-      receivables: receivables(orders.value),
-      payables: payables(events.value, purchases.value),
-      declarations: declarations.value,
-    });
-    return { ok: true, value: { horizon: { horizonDays, from, to }, shortCash } };
-  }
-
-  async createDeclaration(input: G5DeclarationInput): Promise<G5Result<ShortCashDeclaration>> {
-    const declarations = await this.store.listShortCashDeclarations();
-    if (!declarations.ok) return storageFailure("تعذر التحقق من المتوقعات المحلية.");
-    const repeated = declarations.value.find(
-      declaration =>
-        declaration.kind === "declaration" && declaration.idempotencyKey === input.idempotencyKey,
-    );
-    if (repeated) return { ok: true, value: repeated, reused: true };
-    /* R9-GA-G5.1 (استمرار R9 الجذري — توافق النسق القديم): مفتاح الحتمية
-     * غيّر نسقه (تسلسل JSON لكل المدخلات الدلالية الثمانية) فلم تعد
-     * مفاتيح النسق القديم تطابق الجديدة — إعادة محاولة مطابقة تمامًا عبر
-     * الحدود كانت تنشئ سجلًا مكررًا دلاليًا. الجسر الدلالي: بعد خط المفتاح
-     * الحرفي، مقارنة الحقول الدلالية الثمانية المحفوظة (بما فيها المعرفة
-     * knowledge) — تطابق حقلي تام يعني نفس السجل فيُعاد بصدق أيا كان نسق
-     * مفتاحه؛ لا يمكن أن يعيد خطأً (مقارنة حقول لا مفاتيح، فثغرة تصادم
-     * نقطتي النسق القديم لا تصل هنا)، ولا يغيّر المخطط/التصدير/الاستيراد
-     * (كان 38/30 حينها؛ اليوم 40/33 — تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 40/32)، ويعمل بالتساوي على المهايئين. المجال يخزّن القيم
-     * المقصوصة (trim) فتقارن المقصوص بالمقصوص. */
-    const semanticTwin = declarations.value.find(
-      declaration =>
-        declaration.kind === "declaration" &&
-        declaration.direction === input.direction &&
-        declaration.dueOn === input.dueOn &&
-        declaration.amountMinor === input.amountMinor &&
-        declaration.source === input.source.trim() &&
-        declaration.note === input.note.trim() &&
-        declaration.knowledge === input.knowledge &&
-        (declaration.relatedOrderId ?? null) === (input.relatedOrderId?.trim() || null) &&
-        (declaration.relatedEventId ?? null) === (input.relatedEventId?.trim() || null),
-    );
-    if (semanticTwin) return { ok: true, value: semanticTwin, reused: true };
-    const relatedValidation = await this.validateRelation(input, declarations.value);
-    if (!relatedValidation.ok) return relatedValidation;
-    try {
-      const declaration = createShortCashDeclaration({ ...input, id: id(), createdAt: this.now() });
-      const saved = await this.store.saveShortCashDeclaration(declaration);
-      return saved.ok ? { ok: true, value: saved.value } : storageFailure("تعذر حفظ السجل المتوقع محليًا.");
-    } catch (error) {
-      return validationFailure(errorMessageOf(error, "السجل المتوقع غير صالح."));
-    }
+  /* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): قراءة أفق الكاش القصير أزيلت
+   * مع القدرة المؤجلة — لا مستهلك لها بعد إزالة بطاقة قرار الكاش، وبقاؤها
+   * بلا مستدعٍ يخالف جرد القارئين (لا قراءة لمجرد مشاركة الملف)؛ محرك
+   * الحساب نفسه يبقى في المجال تخدمه قراءة القرار المسجلة. */
+  /* UNIT-021 (قرار نطاق معتمد — تنفيذ S15 بالأمر الموحد §5): إنشاء
+   * التوقعات النقدية اليدوية مؤجل خارج الإصدار الأول؛ الحد القانوني يرفض
+   * قبل أي كتابة — لا زر ولا مسار ولا خدمة تلتف على القرار. سجلات
+   * التصريحات القائمة وقراءتها وتصحيحها بتراجع موثق تبقى كما هي. */
+  async createDeclaration(
+    _input: G5DeclarationInput,
+  ): Promise<G5Result<ShortCashDeclaration>> {
+    return {
+      ok: false,
+      code: "validation_error",
+      message:
+        "تسجيل التوقعات النقدية مؤجل خارج هذا الإطلاق — لا يُنشأ توقع جديد؛ سجلاتك القائمة محفوظة وتُصحّح بتراجع موثق من صفحة المالية.",
+    };
   }
 
   async reverseDeclaration(
@@ -534,59 +436,8 @@ export class FinancialAnalysisService {
     }
   }
 
-  private async validateRelation(
-    input: G5DeclarationInput,
-    declarations: readonly ShortCashDeclaration[],
-  ): Promise<G5Result<null>> {
-    if (input.relatedOrderId) {
-      if (input.direction !== "collection") return validationFailure("ربط الطلب مخصص لتحصيلات العملاء فقط.");
-      const order = await this.store.getOrder(input.relatedOrderId);
-      if (!order.ok) return storageFailure("تعذر قراءة الطلب المرتبط.");
-      if (!order.value) return notFoundFailure("الطلب المرتبط غير موجود.");
-      if (!isRegisteredCustomerDebt(order.value.order))
-        return validationFailure("ربط الطلب مخصص لطلب له دين مسجل.");
-      const alreadyDeclared = activeLinkedDeclarationTotal(declarations, input);
-      if (alreadyDeclared + input.amountMinor > order.value.order.receivableMinor)
-        return validationFailure("لا يمكن أن يتجاوز مجموع متوقعات القبض الدين المسجل للطلب.");
-    }
-    if (input.relatedEventId) {
-      if (input.direction !== "commitment") return validationFailure("ربط الحدث مخصص لالتزامات المصروف فقط.");
-      const event = await this.store.getFinancialEvent(input.relatedEventId);
-      if (!event.ok) return storageFailure("تعذر قراءة الحدث المرتبط.");
-      if (!event.value || event.value.type !== "operating_expense_payable")
-        return notFoundFailure("الحدث المرتبط ليس التزام مصروف صالحًا.");
-      const events = await this.store.listFinancialEvents();
-      if (!events.ok) return storageFailure("تعذر التحقق من رصيد الالتزام.");
-      if (event.value.correctionType === "reverse" || reversedEventIds(events.value).has(event.value.id))
-        return validationFailure("لا يمكن ربط توقع بالتزام مالي تم التراجع عنه.");
-      const paid = activeSettlementsMinor(events.value, event.value!.id);
-      const alreadyDeclared = activeLinkedDeclarationTotal(declarations, input);
-      if (alreadyDeclared + input.amountMinor > event.value.amountMinor - paid)
-        return validationFailure("لا يمكن أن يتجاوز مجموع متوقعات الدفع الرصيد المسجل.");
-    }
-    return { ok: true, value: null };
-  }
-}
-
-function activeLinkedDeclarationTotal(
-  declarations: readonly ShortCashDeclaration[],
-  input: G5DeclarationInput,
-): number {
-  const reversedIds = new Set(
-    declarations
-      .filter(declaration => declaration.kind === "reversal" && declaration.reversalOfId)
-      .map(declaration => declaration.reversalOfId),
-  );
-  return declarations
-    .filter(
-      declaration =>
-        declaration.kind === "declaration" &&
-        !reversedIds.has(declaration.id) &&
-        declaration.direction === input.direction &&
-        ((input.relatedOrderId !== null && declaration.relatedOrderId === input.relatedOrderId) ||
-          (input.relatedEventId !== null && declaration.relatedEventId === input.relatedEventId)),
-    )
-    .reduce((sum, declaration) => sum + declaration.amountMinor, 0);
+  /* UNIT-021 (تنفيذ S15): تحقق ربط الإنشاء أزيل مع مساره — لا إنشاء
+   * فلا تحقق ربط له؛ قراءة القرار والسجل والتراجع الموثق كما هي. */
 }
 
 /* توافق Wave 4A: الاسم التاريخي يظل مستوردًا من الواجهة المجمدة حتى مسار UI مستقل. */
