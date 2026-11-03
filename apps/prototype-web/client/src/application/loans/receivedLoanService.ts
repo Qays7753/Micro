@@ -146,43 +146,17 @@ export class ReceivedLoanService {
     return { ok: true, value: { loan, reading: readReceivedLoan(loan), events } };
   }
 
+  /* UNIT-036 (قرار نطاق معتمد — تنفيذ S15 بالأمر الموحد §5): الاقتراض مؤجل
+   * خارج الإطلاق؛ الحد القانوني يرفض قبل أي كتابة — لا قرض بديل باسم عميل
+   * أو طرف خارجي. السجلات القائمة وقراءتها وصيانتها الموثقة تبقى كما هي. */
   async create(
-    input: ReceivedLoanCreateInput,
+    _input: ReceivedLoanCreateInput,
   ): Promise<ReceivedLoanResult<{ loan: ReceivedLoanRecord; event: FinancialEvent }>> {
-    try {
-      const loanId = newId("rloan");
-      const createdAt = this.now();
-      const lenderName = input.lenderName.trim();
-      const event = createFinancialEvent({
-        id: newId("event"),
-        type: "loan_received_cash" as FinancialEventType,
-        amountMinor: input.principalMinor,
-        occurredOn: input.receivedOn,
-        recordedAt: createdAt,
-        idempotencyKey: `${loanId}:principal`,
-        note: input.note?.trim() || `قرض مستلم من ${lenderName}`,
-        counterparty: lenderName,
-        loanContext: { loanId, borrower: lenderName, lender: lenderName },
-      });
-      const loan = createReceivedLoanRecord({
-        id: loanId,
-        lenderName: input.lenderName,
-        lenderType: input.lenderType,
-        principalMinor: input.principalMinor,
-        receivedOn: input.receivedOn,
-        dueOn: input.dueOn ?? null,
-        note: input.note ?? null,
-        walletId: input.walletId ?? null,
-        principalEventId: event.id,
-        operationKey: `${loanId}:create`,
-        createdAt,
-      });
-      const commit = await this.store.commitReceivedLoanRecord(loan, event);
-      if (!commit.ok) return failure("storage_error", commit.message);
-      return { ok: true, value: { loan: commit.value.record, event: commit.value.event } };
-    } catch (error) {
-      return failure("validation_error", errorMessageOf(error, "بيانات القرض المستلم غير صالحة."));
-    }
+    return {
+      ok: false,
+      code: "validation_error",
+      message: "تسجيل الاقتراض مؤجل خارج نطاق الإطلاق — لا يُسجل قرض جديد؛ سجلاتك القائمة محفوظة كما هي.",
+    };
   }
 
   async recordRepayment(

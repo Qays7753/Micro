@@ -21,6 +21,8 @@ import { AgreementService } from "@/application/agreements/agreementService";
 import { CostService } from "@/application/cost/costService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { createReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import CashWalletEditor from "@/pages/CashWalletEditor";
 import CashReversalEditor from "@/pages/CashReversalEditor";
 import G5DeclarationEditor from "@/pages/G5DeclarationEditor";
@@ -203,19 +205,37 @@ describe("W7 journeys — pages that were render-smoke only", () => {
     expect(reversal).toBeDefined();
   });
 
-  it("ReceivedLoanDetail: shows the live derived reading of a created received loan", async () => {
-    const { ReceivedLoanService } = await import("@/application/loans/receivedLoanService");
-    const loans = new ReceivedLoanService(store, () => NOW);
-    const created = await loans.create({
+  it("ReceivedLoanDetail: shows the live derived reading of a legacy received loan", async () => {
+    /* UNIT-036 (تنفيذ S15 بالأمر الموحد §5): الإنشاء مؤجل — السجل الموروث
+     * يُزرع مباشرة عند حد المخزن (مسار توافق النقل نفسه) والقراءة الحية
+     * للسطح فوقه كما فوق أي تاريخ محفوظ. */
+    const event = createFinancialEvent({
+      id: "event-w7-rloan",
+      type: "loan_received_cash" as never,
+      amountMinor: 8000,
+      occurredOn: "2026-09-01",
+      recordedAt: "2026-09-01T09:00:00.000Z",
+      idempotencyKey: "w7-rloan:create",
+      note: "قرض رحلة W7",
+      counterparty: "سارة",
+      loanContext: { loanId: "w7-rloan", borrower: "سارة", lender: "سارة" },
+    });
+    const loan = createReceivedLoanRecord({
+      id: "w7-rloan",
       lenderName: "سارة",
       lenderType: "person",
       principalMinor: 8000,
       receivedOn: "2026-09-01",
       dueOn: null,
       note: null,
+      walletId: null,
+      principalEventId: event.id,
+      operationKey: "w7-rloan:create",
+      createdAt: "2026-09-01T09:00:00.000Z",
     });
-    if (!created.ok) throw new Error(created.message);
-    window.history.replaceState(null, "", `/loans/received/${created.value.loan.id}`);
+    const commit = await store.commitReceivedLoanRecord(loan, event);
+    if (!commit.ok) throw new Error(commit.message);
+    window.history.replaceState(null, "", `/loans/received/${loan.id}`);
     try {
       render(<ReceivedLoanDetail />);
       expect(await screen.findByRole("heading", { name: "سارة" })).toBeTruthy();

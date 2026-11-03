@@ -12,11 +12,12 @@ import {
   loanInstallmentCountLabel,
   loanOutstandingCountLabel,
 } from "@/presentation/g5Plurals";
-import { ArrowRight, HandCoins, Plus, Users } from "lucide-react";
+import { ArrowRight, HandCoins, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
 import { useReturnPath } from "@/app/useReturnNavigation";
+import RepaymentSheet from "@/components/loans/RepaymentSheet";
 import { getPrototypeLocalStore, usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { formatLocalDate } from "@/presentation/formatters";
@@ -26,7 +27,6 @@ import type {
   ReceivedLoanSummaryRow,
   ReceivedLoanService,
 } from "@/application/loans";
-import RepaymentSheet from "@/components/loans/RepaymentSheet";
 
 import { Button, EmptyState } from "@/components/primitives";
 type State =
@@ -41,8 +41,8 @@ export default function Loans() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
   const { loans, dataVersion, notifyDataChanged } = usePrototypeServices();
-  const [state, setState] = useState<State>({ phase: "loading" });
   const [repayTarget, setRepayTarget] = useState<LoanSummaryRow | null>(null);
+  const [state, setState] = useState<State>({ phase: "loading" });
   /* FIN-001 (WS-178 — Wave 6): خدمة القروض المستلمة — النمط الديناميكي نفسه
    * (سابقة EXE-014/D-034)؛ لا تُسجَّل في السياق أبدًا. */
   const [receivedLoad, setReceivedLoad] = useState<ServiceLoad<ReceivedLoanService>>({ phase: "loading" });
@@ -115,7 +115,7 @@ export default function Loans() {
           aria-label="لا قروض بعد"
           symbol={<Users />}
           title={<>لا قروض صادرة بعد.</>}
-          description={<>سجّل قرضًا حين تعطي أحدًا مالًا واعدًا بإرجاعه.</>}
+          description={<>إنشاء الإقراض ملغى من نطاق المنتج؛ ما سُجل سابقًا يبقى محفوظًا كما هو.</>}
         />
       ) : (
         <>
@@ -132,15 +132,9 @@ export default function Loans() {
           </ul>
         </>
       )}
-      <div className="micro-form-actions">
-        <Button
-          action="create"
-
-          onClick={() => navigate(withReturnTo("/loans/new", "/loans"))}
-        >
-          <Plus aria-hidden="true" /> سجّل قرضًا
-        </Button>
-      </div>
+      {/* FIN-001 (WS-178 — Wave 6): القسم المستقل للقروض المستلمة — التزام
+       * يسدَّد لا دخل؛ تاريخ الاستحقاق عرض فقط بلا مصروف ولا تنبيه. */}
+      <ReceivedLoansSection load={receivedLoad} dataVersion={dataVersion} />
       {loans && repayTarget ? (
         <RepaymentSheet
           service={loans}
@@ -153,9 +147,6 @@ export default function Loans() {
           }}
         />
       ) : null}
-      {/* FIN-001 (WS-178 — Wave 6): القسم المستقل للقروض المستلمة — التزام
-       * يسدَّد لا دخل؛ تاريخ الاستحقاق عرض فقط بلا مصروف ولا تنبيه. */}
-      <ReceivedLoansSection load={receivedLoad} dataVersion={dataVersion} />
     </section>
   );
 }
@@ -284,7 +275,7 @@ function ReceivedLoansSection({
           aria-label="لا قروض مستلمة بعد"
           symbol={<Users />}
           title={<>لا قروض مستلمة بعد.</>}
-          description={<>سجّل قرضًا أخذته حين يدخل مال غيرك جيبك واعدًا بإرجاعه.</>}
+          description={<>الاقتراض مؤجل خارج نطاق الإطلاق؛ ما سُجل سابقًا يبقى محفوظًا كما هو.</>}
         />
       ) : (
         <>
@@ -311,11 +302,6 @@ function ReceivedLoansSection({
           </ul>
         </>
       )}
-      <div className="micro-form-actions">
-        <Button action="create" onClick={() => navigate(withReturnTo("/loans/received/new", "/loans"))}>
-          <Plus aria-hidden="true" /> سجّل قرضًا أخذته
-        </Button>
-      </div>
     </section>
   );
 }
