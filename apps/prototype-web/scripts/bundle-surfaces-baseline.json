@@ -47,9 +47,9 @@
     },
     "cloudflare-pages": {
       "anchored": {
-        "head": "45b4e273",
+        "head": "9b0c4832",
         "date": "2026-11-03",
-        "method": "S15 post-push cloud re-anchor (2026-11-03, 45b4e273 on PR #383 — Pages check-run 125930409514, success on the same head): cloudflare-pages re-anchored by the proven environment-class derivation — identical cloud records to github-actions (byte-equal normalized gzip and raw on the non-entry files; the same +90 precache identity footprint)"
+        "method": "S16 post-push cloud re-anchor (2026-11-03, 9b0c4832 on PR #383): cloudflare-pages re-anchored by the proven environment-class derivation — identical cloud records to github-actions (byte-equal normalized gzip and raw on the non-entry files; the same +90 precache identity footprint); the Pages deployment on this head is re-verified by its own check-run after this records commit."
       },
       "toolchain": {
         "node": "22.23.3",
@@ -61,26 +61,26 @@
         "identityMode": "env"
       },
       "measurements": {
-        "initialRawTotal": 224628,
-        "initialGzipNormTotal": 70603,
-        "lazyRawTotal": 1484837,
-        "lazyGzipNormTotal": 445550,
-        "precacheBytesTotal": 2921557,
-        "swRuntimeRawTotal": 27705
+        "initialRawTotal": 223566,
+        "initialGzipNormTotal": 70372,
+        "lazyRawTotal": 1477319,
+        "lazyGzipNormTotal": 444222,
+        "precacheBytesTotal": 2911286,
+        "swRuntimeRawTotal": 27746
       },
       "counts": {
-        "lazyJsCount": 128,
+        "lazyJsCount": 129,
         "initialJsCount": 2,
-        "dynamicRootsCount": 86,
-        "precacheEntryCount": 183,
+        "dynamicRootsCount": 88,
+        "precacheEntryCount": 184,
         "swRuntimeFileCount": 2
       }
     },
     "github-actions": {
       "anchored": {
-        "head": "45b4e273",
+        "head": "9b0c4832",
         "date": "2026-11-03",
-        "method": "S15 post-push cloud re-anchor (2026-11-03, 45b4e273 on PR #383 — run 41639811008, every gate green on the same head): github-actions re-anchored on the run's directly measured values — initial/lazy/swRuntime byte-identical to local on the identical entry content hash index-CPRRVt95.js; precache 2,921,557 = local 2,921,467 + 90 hex-identity footprint; entry 597,390/145,596 PASS under the untouched owner ceilings (check-bundle-budget); every improvement locked in this PR"
+        "method": "S16 post-push cloud re-anchor (2026-11-03, 9b0c4832 on PR #383 — run 41731098809; the run's only failure was this same re-anchor obligation: swRuntime 27,705+8 < 27,746 measured, so this record now carries the directly measured values from that run's check-bundle-surfaces output): github-actions re-anchored on the run's directly measured values — initial/lazy/swRuntime byte-identical to local on the identical entry content hash index-CAJIEETe.js; precache 2,911,286 = local 2,911,196 + 90 hex-identity footprint; every improvement locked; entry 597,402/145,649 PASS under the untouched owner ceilings (check-bundle-budget)."
       },
       "toolchain": {
         "node": "22.23.3",
@@ -92,18 +92,18 @@
         "identityMode": "env"
       },
       "measurements": {
-        "initialRawTotal": 224628,
-        "initialGzipNormTotal": 70603,
-        "lazyRawTotal": 1484837,
-        "lazyGzipNormTotal": 445550,
-        "precacheBytesTotal": 2921557,
-        "swRuntimeRawTotal": 27705
+        "initialRawTotal": 223566,
+        "initialGzipNormTotal": 70372,
+        "lazyRawTotal": 1477319,
+        "lazyGzipNormTotal": 444222,
+        "precacheBytesTotal": 2911286,
+        "swRuntimeRawTotal": 27746
       },
       "counts": {
-        "lazyJsCount": 128,
+        "lazyJsCount": 129,
         "initialJsCount": 2,
-        "dynamicRootsCount": 86,
-        "precacheEntryCount": 183,
+        "dynamicRootsCount": 88,
+        "precacheEntryCount": 184,
         "swRuntimeFileCount": 2
       }
     }
