@@ -1,6 +1,6 @@
 # S15 review addendum — S15-MR-001 confirmed phone-back gap — 2026-11-03
 
-**Status:** `S15_MR_001_CONFIRMED — FIX_REQUIRED — S15_REOPENED` (finding recorded before repair; this addendum does not claim the finding is fixed or that S15 is accepted).
+**Status:** `S15_MR_001_REPAIRED — ROOT_FIX_DELIVERED — REDELIVERED_FOR_INDEPENDENT_REVIEW` (finding root-repaired with a durable red/green regression and redelivered for independent review; this addendum does not claim S15 acceptance. The pre-repair record below is preserved as history).
 
 **Branch / PR:** `components/integration-20261027` / Draft PR #383. At discovery, the live branch and PR head were `37f81d9a0d089621ec14a99f0c26b457bcf6fb0e`; `main` remained `3584aa1d08cea3e0a00623b719fed7f991ce187f`. The exact head must be rechecked before implementation.
 
@@ -29,4 +29,4 @@ The finding is confirmed and in scope; it is not `PRESERVE`, `DEFER`, or a reaso
 
 **Allowed scope for this fix:** `FinanceFunctionsBoard.tsx`, its owning `Finance.tsx` wiring if needed, the existing DOM test, and the minimum linked result/Control evidence. No financial, period, route contract, schema/export, broad UI, or structural changes are authorized by this finding.
 
-**Review state:** `FIX_REQUIRED` pending ZAI's root repair, regression proof, and re-delivery. No repair SHA is assigned yet.
+**Review state:** `ROOT_FIX_DELIVERED` — repaired at commit `c788b09f` (legal IN_PROGRESS transition `11edf9f3` over `8c0361b9`): the board owns one lifecycle-safe same-page history sentinel on the standing Setup.tsx pattern; phone/browser Back closes only the board (no route/period/money change, focus restored), non-Back closes and unmount consume the entry idempotently. Regression written red first on `8c0361b9`: 4 failed | 7 passed (`expected false to be true` at open; `back` called 0 times on non-Back close and unmount; popstate left the dialog open); green after: 11/11 board file, 119/119 across 21 finance-mounting files, 88/88 popstate-adjacent. jsdom only — no physical-device test; the browser's asynchronous back-pop is emulated explicitly per the documented Setup.ui.test.tsx convention. DOC-024/WS-240 returned legally to IN_REVIEW/REVIEW_REQUIRED at `c788b09f` — re-delivery for independent review, not acceptance.

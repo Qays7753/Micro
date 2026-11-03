@@ -2,7 +2,7 @@
   "id": "DOC-024",
   "title": "S15 execution — المالية والكشف والسجل والميزانيات وإيقاف القدرات الملغاة (UNIT-013/013B/016/017/021/035/036/040 + SH-19/SH-20)",
   "type": "FEATURE",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P0",
   "stage": "micro-component-execution-s15-20261103",
   "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 بعد تسليم S14 للمراجعة قانونيًا (DOC-023/WS-239 IN_REVIEW/REVIEW_REQUIRED عند 75af0773). | بطاقة الفهم: مشكلة المستخدم: صاحب المشروع يريد فهم وضعه المالي وتسجيل ما حدث والوصول لسجله — قراءة متسقة واحدة للنتيجة والمعرفة والنطاق عبر المالية والكشف والسجل، وميزانيات خططًا لا مالًا، والقدرات الملغاة (الإقراض/الاقتراض/المشاركة/التوقعات المتقدمة) مقطوعة الإنشاء بلا بديل مع حفظ التاريخ. النطاق: UNIT-013 صفحة المالية المدخل الواحد بلا تبويبات داخلية (الآن + نتيجة الفترة + أفعال تسجيل ثلاثة + لوحة وظائف)؛ UNIT-013B ميزانيات المصروف خططًا شهرية بلا حجب مصروف؛ UNIT-016 كشف الفترة وتنزيله؛ UNIT-017 سجل العمليات الموحد قراءةً؛ UNIT-021/035/036/040 إيقاف الإنشاء عند الحد بلا بديل مع حفظ التاريخ. غير الأهداف: لا دفتر مالي ثانٍ ولا كاتب موازٍ ولا مصدر أرصدة مستقل؛ لا سحب آمن ولا توقع نقدي متقدم؛ لا WhatsApp أو رسالة مشاركة بديلة؛ لا إعادة تفعيل بصمت ولا حذف تاريخ؛ لا موجة هيكلية؛ السقفان ثابتان 650,000/155,300 (هامش gzip متاح ~8,313). الثوابت: القبض ليس ربحًا؛ الجزء المعلوم ليس نتيجة كاملة؛ الميزانية ليست مصروفًا؛ المنصرف المؤهل من مصنف المصروف الموحد؛ القراء لا يكتبون. حالات الفشل: فشل مصدر يعزل ولا ينسف الصفحة؛ الجيل/الفترة تتغير أثناء التحميل فلا خلط أجيال (SDF-061)؛ رابط إنشاء قديم يرفض بصدق بلا إنشاء؛ النسخ القديمة تحفظ التاريخ بمعناه (SDF-045). معيار القبول: SDF-006/045/058/061/062 بأدلة دائمة مع تأشير غير المشغل بسببه + حالات UNIT القابلة للتطبيق؛ pnpm check كاملة على الشجرة النهائية؛ خمس مراجعات قرائية متسلسلة؛ البوابتان البعيدتان على الرأس النهائي بعينه. حد الاستعادة: رأس سجلات تسليم S14 75af0773. | مراجعة Manus الخفيفة بتاريخ 2026-11-03 أثبتت S15-MR-001: التقرير ادعى دعم زر رجوع الهاتف للوحة وظائف المالية، لكن المكوّن وFinance.tsx لا يملكان popstate/history للوحة والاختبار DOM لا يغطيه؛ مثبتة في 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. فتح قانوني للإصلاح الجذري مع اختبار رجوع الهاتف؛ لا قبول ذاتي.",
@@ -94,7 +94,7 @@
     "DOC-023"
   ],
   "migration_baseline": true,
-  "next_action": "إصلاح S15-MR-001 من الجذر قيد التنفيذ عند الرأس 8c0361b9f05f0d00253f9e00ef517b094fc6b441: اختبار DOM أحمر أولًا يثبت غياب popstate/Back للوحة، ثم سلوك تاريخ مملوك للوحة بحدود دورة الحياة (sentinel واحد، Back يغلق اللوحة وحدها بلا تغيير مسار/فترة/مال، Escape/الزر يبقيان، تنظيف كامل بلا تراكم)، ثم عودة قانونية إلى IN_REVIEW/REVIEW_REQUIRED؛ لا قبول ذاتي. بعدها يبدأ S16 بإنشاء DOC-025/WS-241 قانونيًا.",
+  "next_action": "مراجعة المالك المستقلة لإعادة تسليم S15 المصححة عند c788b09f (إصلاح S15-MR-001 الجذري بأحمر/أخضر موثق)؛ لا قبول ذاتي ولا merge. بعدها — بتوجيه المالك المتصل نفسه — يبدأ S16 بإنشاء DOC-025/WS-241 قانونيًا وفق الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md §4.",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -119,8 +119,14 @@
       "changed_at": "2026-11-03",
       "actor": "zai-s15-review-fix",
       "reason": "بدء الإصلاح الجذري المأذون لـS15-MR-001 وفق الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md عند الرأس الحي 8c0361b9f05f0d00253f9e00ef517b094fc6b441 (بعد fast-forward قانوني من 37f81d9a بلا إعادة كتابة): اختبار DOM أحمر أولًا يثبت الغياب قبل أي تعديل منتج، ثم سلوك تاريخ مملوك للوحة على نمط Setup.tsx القائم بلا تجريد تنقل عام ولا تغيير عقود المسار."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-03",
+      "actor": "zai-s15-review-fix",
+      "reason": "إعادة تسليم الإصلاح للمراجعة المستقلة (لا قبولًا ذاتيًا): الالتزام c788b09f يملك اللوحةَ sentinel تاريخي واحد محدود بدورة الحياة على نمط Setup.tsx — الفتح يدفع entry واحدًا لنفس الصفحة، وBack الهاتف/المتصفح يغلق اللوحة وحدها (لا تغيير مسار/فترة/مال والتركيز يعود للمشغل)، وكل إغلاق غير-Back يستهلكه idempotent، والمغادرة تنظفه. أحمر أولًا على 8c0361b9: 4 فاشل | 7 ناجح (expected false to be true عند الفتح؛ back 0 مرات عند الإغلاق غير-Back والمغادرة؛ الحوار يبقى بعد popstate)؛ أخضر: 11/11 و119/119 عبر 21 ملف مالية و88/88 popstate-مجاورة؛ jsdom فقط بلا جهاز فعلي. الأدلة في 20a-S15-REVIEW-ADDENDUM-2026-11-03.md و§10 من 20-S15-RESULT-2026-11-03.md."
     }
   ],
   "updated_at": "2026-11-03",
-  "root_cause": "FinanceFunctionsBoard documents Escape and close-button behavior but neither the board nor Finance.tsx owns a popstate/history sentinel for the open board. The DOM regression test covers Escape/close/focus only; the S15 result overstates phone-Back support."
+  "root_cause": "FinanceFunctionsBoard documented Escape and close-button behavior but neither the board nor Finance.tsx owned a popstate/history sentinel for the open board. The DOM regression test covered Escape/close/focus only; the S15 result overstated phone-Back support. ROOT-REPAIRED at c788b09f: board-owned lifecycle-safe same-page history sentinel (Setup.tsx pattern) with idempotent consumption on every exit path and unmount cleanup; red/green regression recorded in 20a-S15-REVIEW-ADDENDUM-2026-11-03.md."
 }
