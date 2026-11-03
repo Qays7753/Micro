@@ -5,22 +5,17 @@
  * يعبّئ المتبقي قابلًا للتعديل، يفرض وجهة كاش صريحة (الدرج افتراضيًا حين يوجد)،
  * يمنع التحصيل فوق المتبقي، ويكتب بواقعية: كاش+ / متبقٍ− — لا إيراد ولا ربح.
  */
-import { ArrowRight, HandCoins, Handshake, Landmark, ReceiptText, Share2 } from "lucide-react";
+import { ArrowRight, HandCoins, Handshake, Landmark, ReceiptText } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
-import { withReturnTo } from "@/app/navigationContract";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { useFormDirty } from "@/components/forms/useFormDirty";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { CollectionOutcome, ReceivableSource } from "@/application/collections";
 import { CashContinuityOverview } from "@/application/cash";
-/* Wave 4.3 — P-4.3-4 (F06): مشاركة إشعار القبض بعد النجاح الحقيقي فقط —
- * المسودة من الحدث المحفوظ القائم نفسه عبر عقد المشاركة الموحد (عقد ٣٣). */
-import type { ShareDraft } from "@/application/share";
-import { collectionShareDraft, standingCollectionEvent } from "@/application/share";
 import { formatLocalDate } from "@/presentation/formatters";
 import { formatMoneyWithUnit } from "@/presentation/formatters";
 
@@ -43,8 +38,6 @@ type PageState =
        * الشخص، فلا يُقرأ القبض كأنه بلا مصدر بعد مغادرة النموذج. */
       qualifier: string;
       itemName: string;
-      /* F06: مسودة إشعار القبض من الحدث المحفوظ — أو null فلا زر مشاركة. */
-      shareDraft: ShareDraft | null;
     };
 
 /** تحليل ?source دفاعيًا: order:<id> أو sale:<id> — غير ذلك يُهمل بهدوء (لا انفجار). */
@@ -60,7 +53,7 @@ export default function Collect() {
   const [, navigate] = useLocation();
   const search = useSearch();
   const returnPath = useReturnPath();
-  const { collections, cashContinuity, agreements, dataVersion, notifyDataChanged } = usePrototypeServices();
+  const { collections, cashContinuity, dataVersion, notifyDataChanged } = usePrototypeServices();
   const requested = parseSourceParam(search);
 
   const [state, setState] = useState<PageState>({ phase: "loading" });
@@ -185,21 +178,10 @@ export default function Collect() {
       setMessage(result.message);
       return false;
     }
-    /* F06: مسودة المشاركة تُبنى بعد النجاح المكتمل فقط، ومن السجل المحفوظ
-     * نفسه (الحدث القائم الأحدث) — لا من الحقول المؤقتة؛ البيع المباشر بلا
-     * نوع مسودة زبون في العقد فلا زر له هنا (صدق لا حجب). */
-    let shareDraft: ShareDraft | null = null;
-    /* S12 (DOC-021 — أمر 2e645802 §9): خدمة الاتفاق الكسولة — مسودة المشاركة
-     * تُبنى عند توفرها فقط (نجاح القبضة قائم بذاته ولا يتأخر عليها)؛
-     * null = «جارٍ التجهيز». */
-    if (source.kind === "order" && agreements) {
-      const orderRead = await agreements.get(source.id);
-      if (orderRead.ok && orderRead.stored) {
-        const standing = standingCollectionEvent(orderRead.stored);
-        if (standing) shareDraft = collectionShareDraft(orderRead.stored, standing);
-      }
-    }
-    /* نجاح محلي مكتمل: يُعرض كما هو، والنموذج يُفرّغ فلا يعترض الخروج بعده. */
+    /* نجاح محلي مكتمل: يُعرض كما هو، والنموذج يُفرّغ فلا يعترض الخروج بعده.
+     * UNIT-040 (تنفيذ S15 بالأمر الموحد §5): المشاركة ملغاة بالكامل — لا
+     * مسودة إشعار قبض ولا زر «شارك إشعار القبض» بعد النجاح؛ النجاح نفسه
+     * وسجله المحفوظ هما الحقيقة المعروضة. */
     doneRef.current = true;
     setAmountMinor(0);
     setNote("");
@@ -210,7 +192,6 @@ export default function Collect() {
       personName: source.personName,
       qualifier: source.qualifier,
       itemName: source.itemName,
-      shareDraft,
     });
     return true;
   }
@@ -292,19 +273,9 @@ export default function Collect() {
           >
             <ReceiptText aria-hidden="true" /> افتح السجل
           </Button>
-          {/* F06: «شارك إشعار القبض» يظهر بعد نجاح التحصيل الحقيقي فقط — من
-              الحدث المحفوظ القائم؛ لا زر للتحصيل غير الناجح ولا للملغى. */}
-          {state.shareDraft ? (
-            <Button
-              action="save"
-              data-testid="share-receipt-entry"
-              onClick={() =>
-                navigate(withReturnTo("/share/preview", "/collect"), { state: { draft: state.shareDraft } })
-              }
-            >
-              <Share2 aria-hidden="true" /> شارك إشعار القبض
-            </Button>
-          ) : null}
+          {/* UNIT-040 (تنفيذ S15 بالأمر الموحد §5): لا زر «شارك إشعار القبض» —
+           * المشاركة ملغاة قرارًا معتمدًا بلا بديل رسالة أو نسخ نص؛ السجل
+           * المحفوظ يُقرأ من وجهته. */}
           <Button
             action="secondary"
 

@@ -28,17 +28,13 @@ import CashReversalEditor from "@/pages/CashReversalEditor";
 import G5DeclarationEditor from "@/pages/G5DeclarationEditor";
 import InventoryReversalEditor from "@/pages/InventoryReversalEditor";
 import ReceivedLoanDetail from "@/pages/ReceivedLoanDetail";
-import SharePreview from "@/pages/SharePreview";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
   getPrototypeLocalStore: () => currentStore,
 }));
-vi.mock("@/lib/textDelivery", () => ({
-  canShareText: () => false,
-  copyTextManually: vi.fn(async () => "copied" as const),
-  shareTextManually: vi.fn(async () => "copied" as const),
-}));
+/* UNIT-040 (تنفيذ S15 بالأمر الموحد §5): معيّن المشاركة النصي أزيل مع
+ * القدرة — لا نص مشاركة ولا نسخة حافظة بديلة في هذه الرحلات. */
 
 const wouterMocks = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -247,20 +243,4 @@ describe("W7 journeys — pages that were render-smoke only", () => {
     }
   });
 
-  it("SharePreview: shows the draft body and reports the copy outcome; empty state without a draft", async () => {
-    window.history.replaceState({ draft: { body: "نص مشاركة الرحلة" } }, "", "/share/preview");
-    try {
-      const { rerender } = render(<SharePreview />);
-      const body = screen.getByRole("textbox") as HTMLTextAreaElement;
-      expect(body.value).toContain("نص مشاركة الرحلة");
-      const copyButton = screen.getByRole("button", { name: /انسخ/ });
-      fireEvent.click(copyButton);
-      expect(await screen.findByText("نُسخ النص للحافظة — الصقه حيث شئت.")).toBeTruthy();
-      window.history.replaceState(null, "", "/share/preview");
-      rerender(<SharePreview />);
-      expect(screen.getByText("لا نص للمشاركة")).toBeTruthy();
-    } finally {
-      window.history.replaceState(null, "", "/");
-    }
-  });
 });

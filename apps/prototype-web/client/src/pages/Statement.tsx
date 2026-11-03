@@ -28,7 +28,7 @@ import { StatementMarkdownService } from "@/application/finance";
  * ووسم الفترة الجارية من طبقة التطبيق، لا حساب تواريخ داخل الصفحة. */
 import { isPeriodActive, previousEqualPeriod, resolvePeriodPreset } from "@/application/finance";
 import { categoryCountLabel } from "@/presentation/g5Plurals";
-import { canShareText, downloadTextFile, shareTextManually } from "@/lib/textDelivery";
+import { downloadTextFile } from "@/lib/textDelivery";
 import {
   formatLocalDate,
   formatLocalDateLong,
@@ -255,9 +255,9 @@ export default function Statement() {
    * لا للمالي — السياق محفوظ (EXE-016). */
   const sourceHref = referrerPath(search);
 
-  /* المجموعة ٥ (عقد ٣٢): تقرير محلي — التنزيل متاح دائمًا، والمشاركة تحسين
-   * اختياري عبر نظام المشاركة بالنص وحده؛ التوليد لا يغيّر أي رقم ولا يسجل
-   * حدثًا. */
+  /* المجموعة ٥ (عقد ٣٢) ثم UNIT-040 (تنفيذ S15 بالأمر الموحد §5): تقرير
+   * محلي بالتنزيل وحده — المشاركة ملغاة بلا بديل؛ التوليد لا يغيّر أي رقم
+   * ولا يسجل حدثًا، والملف النصي نسخة قراءة لحظة. */
   const generateReport = async () => {
     setReportNotice(null);
     const rendered = markdownRenderer.render(reading);
@@ -266,17 +266,6 @@ export default function Statement() {
       return;
     }
     downloadTextFile(rendered.value.filename, rendered.value.markdown, "text/markdown");
-    if (canShareText()) {
-      const outcome = await shareTextManually(rendered.value.markdown);
-      setReportNotice(
-        outcome === "shared"
-          ? "التقرير جاهز ونُزّل، وفتح نظام المشاركة بيدك — الإرسال قرارك هناك."
-          : outcome === "copied"
-            ? "التقرير نُزّل ونسخ نصه للحافظة — مشاركته قرارك اليدوي."
-            : "التقرير نُزّل ملفًا نصيًا — نسخة قراءة لحظة، ليست حدثًا ماليًا.",
-      );
-      return;
-    }
     setReportNotice("التقرير نُزّل ملفًا نصيًا — نسخة قراءة لحظة من سجلك، ليست حدثًا ماليًا.");
   };
 

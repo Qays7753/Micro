@@ -31,7 +31,8 @@ import * as parties from "@/application/parties";
 import * as preferences from "@/application/preferences";
 import * as scheduling from "@/application/scheduling";
 import * as security from "@/application/security";
-import * as share from "@/application/share";
+/* UNIT-040 (تنفيذ S15 بالأمر الموحد §5): باب المشاركة أزيل مع القدرة — لا
+ * مسودات مشاركة ولا معاينة؛ الأبواب المتبقية كما هي. */
 import * as suppliers from "@/application/suppliers";
 import * as time from "@/application/time";
 import * as transfers from "@/application/transfers";
@@ -125,7 +126,6 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
   /* S02-B (SH-04 — UNIT-042): باب الأمن بعد تقاعد القفل — المقيم الوحيد
    * هو تقاعد السجل القديم؛ لا خدمة قفل ولا خياراتها بعد اليوم. */
   security: ["retireLocalLockRecord"],
-  share: ["collectionShareDraft", "customerShareDraft", "standingCollectionEvent"],
   suppliers: [],
   /* R2 (M-11/D13، 2026-10-08): أول قيمة في باب الوقت — حد «اليوم»
    * المسماى الوحيد (توسيع مقصود PC-3). */
@@ -209,7 +209,6 @@ const DOORS: Record<string, Record<string, unknown>> = {
   preferences,
   scheduling,
   security,
-  share,
   suppliers,
   time,
   transfers,
@@ -230,8 +229,8 @@ describe("application door surfaces (STR-615 — PC-3 exact-value-surface pin)",
     }
   });
 
-  it("all 29 doors are covered by the pin (no unregistered door)", () => {
-    expect(Object.keys(DOORS)).toHaveLength(29);
-    expect(Object.keys(REGISTERED_VALUE_SURFACE)).toHaveLength(29);
+  it("all 28 doors are covered by the pin (no unregistered door)", () => {
+    expect(Object.keys(DOORS)).toHaveLength(28);
+    expect(Object.keys(REGISTERED_VALUE_SURFACE)).toHaveLength(28);
   });
 });

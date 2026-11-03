@@ -1,6 +1,5 @@
 import { OrderDepositPanels } from "@/components/orders/OrderDepositPanels";
 /* مبدأ Micro: يعرض الطلب حالته الفعلية وفعلًا تاليًا واحدًا، ولا يساوي الحفظ ببدء التنفيذ أو التحصيل. */
-import { Share2 } from "lucide-react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,7 +17,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams, useSearch } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
-import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
@@ -37,7 +35,6 @@ import { ActualTimePanel } from "@/components/presentation/ActualTimePanel";
 import { AgreementContextPanel } from "@/components/order/AgreementContextPanel";
 import { ActualMaterialPanel, type MaterialState } from "@/components/order/ActualMaterialPanel";
 import { OrderEventLog } from "@/components/order/OrderEventLog";
-import { customerShareDraft } from "@/application/share";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { StoredCraftOrder, CostEstimate } from "@/storage/local/types";
@@ -1568,26 +1565,11 @@ export default function OrderDetail() {
           <p>تم التحصيل الكامل وإغلاق الطلب.</p>
         </section>
       ) : null}
-      {/* المجموعة ٥ (عقد ٣٣) + EXE-015 (SHR-001): مشاركة يدوية مع الزبون — نقطة
-       * قرار واحدة (customerShareDraft) تبني النص من السجل المحفوظ وحده:
-       * إشعار القبض من حدث القبض القائم نفسه، وإشعار التسليم بتاريخه الفعلي،
-       * والملغى نصُه إلغاء صادق بلا «جاهز للمتابعة». يُعرض ويُعدّل قبل أن
-       * يغادر الجهاز؛ لا إرسال تلقائي ولا قراءة جهات اتصال. */}
-      <div className="micro-form-actions micro-contextual-actions">
-        <button
-          className="micro-text-action"
-          type="button"
-          onClick={() => {
-            const draft = customerShareDraft(
-              stored,
-              deliveredAtIso ? localDateInAmman(deliveredAtIso) : null,
-            );
-            navigate(withReturnTo("/share/preview", `/orders/${stored.id}`), { state: { draft } });
-          }}
-        >
-          <Share2 aria-hidden="true" /> شارك رسالة مع الزبون
-        </button>
-      </div>
+      {/* UNIT-040 (قرار إلغاء معتمد — تنفيذ S15 بالأمر الموحد §5): المشاركة
+       * ملغاة بالكامل بلا بديل (لا واتساب ولا رسالة ولا نسخ نص) — زر «شارك
+       * رسالة مع الزبون» أزيل من هنا، والطلب نفسه وتاريخه وسجل أحداثه كما
+       * هما؛ ما يبقى للمالك هو قراءة سجله وتنزيل كشفه (016) ونسخته
+       * الاحتياطية (044). */}
       {/* ORD-002: إعادة فتح طلب مسلّم — ملخص استلام قصير بلحظة التسليم
           الأصلية، بلا رسالة النجاح القديمة وبلا معاملة الحالة كخطأ. */}
       {["delivered", "settled"].includes(order.status) && deliveredAtIso ? (

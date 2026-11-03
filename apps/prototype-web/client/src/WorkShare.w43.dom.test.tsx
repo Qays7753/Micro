@@ -151,7 +151,7 @@ describe("Wave 4.3 — P-4.3-4: Work, orders, and sharing", () => {
   });
   afterEach(() => cleanup());
 
-  it("F06: «شارك إشعار القبض» appears only after a successful order collection and opens the preview", async () => {
+  it("F06 → UNIT-040: a successful order collection shows the honest record — no share entry, no preview navigation", async () => {
     await seedProfile();
     const stored = await agreedOrder({ depositMinor: 1000 });
     await deliverWithDebt(stored);
@@ -168,17 +168,19 @@ describe("Wave 4.3 — P-4.3-4: Work, orders, and sharing", () => {
       },
     );
     fireEvent.click(screen.getByRole("button", { name: /سجّل القبض/ }));
-    /* بعد النجاح الحقيقي: زر المشاركة من الحدث المحفوظ القائم. */
-    const shareEntry = await screen.findByTestId("share-receipt-entry");
-    expect(shareEntry.textContent).toContain("شارك إشعار القبض");
-    fireEvent.click(shareEntry);
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(
+    /* UNIT-040 (تنفيذ S15 بالأمر الموحد §5): بعد النجاح الحقيقي أيضًا لا زر
+     * «شارك إشعار القبض» ولا مسودة تذهب لأي معاينة — النجاح المحفوظ نفسه
+     * هو الحقيقة المعروضة؛ لا بديل رسالة أو نسخ نص. */
+    await waitFor(() => expect(screen.getByText(/قبضت من/)).toBeTruthy());
+    expect(screen.queryByTestId("share-receipt-entry")).toBeNull();
+    expect(screen.queryByText(/شارك/)).toBeNull();
+    expect(wouterMocks.navigate).not.toHaveBeenCalledWith(
       "/share/preview?returnTo=%2Fcollect",
-      expect.objectContaining({ state: expect.objectContaining({ draft: expect.anything() }) }),
+      expect.anything(),
     );
   });
 
-  it("F06: a direct-sale collection has no share button — no customer draft kind in the contract", async () => {
+  it("F06 → UNIT-040: a direct-sale collection has no share button — and none appears after success either", async () => {
     await seedProfile();
     const sale = await new DirectSaleService(store, () => NOW).record({
       itemName: "شوكولاتة",
@@ -208,7 +210,7 @@ describe("Wave 4.3 — P-4.3-4: Work, orders, and sharing", () => {
     expect(screen.queryByTestId("share-receipt-entry")).toBeNull();
   });
 
-  it("F06: an unsuccessful collection shows the honest error and never a share entry", async () => {
+  it("F06 → UNIT-040: an unsuccessful collection shows the honest error and never a share entry", async () => {
     await seedProfile();
     const stored = await agreedOrder({ depositMinor: 1000 });
     await deliverWithDebt(stored);

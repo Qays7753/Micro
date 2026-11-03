@@ -93,8 +93,9 @@ const WalletLedger = lazy(() => import("@/pages/WalletLedger"));
 const Statement = lazy(() => import("@/pages/Statement"));
 /* المجموعة ٥ (عقد ٣٠): القارئ الكامل للنشاط — سطح قراءة في بيت مالي. */
 const FinanceActivity = lazy(() => import("@/pages/FinanceActivity"));
-/* المجموعة ٥ (عقد ٣٣): معاينة المشاركة اليدوية — محرر نص عميق يحرس المدخلات. */
-const SharePreview = lazy(() => import("@/pages/SharePreview"));
+/* UNIT-040 (تنفيذ S15 بالأمر الموحد §5): المشاركة ملغاة بالكامل — لا مسار
+ * معاينة مشاركة بعد الآن؛ ما يبقى هو تنزيل الكشف (016) والنسخ الاحتياطي
+ * (044) بأدواتهما الخاصة. */
 
 /* EXE-009 (OWN-002): إحالة المسار الموازي القديم لسحب المالك إلى المدخل
  * الموحد — تحفظ وسم ?from كاملًا فيعيد الخروج بعد الحفظ لمصدره الأصلي. */
@@ -240,7 +241,8 @@ export function MicroRouter() {
             {/* المجموعة ٢ (§9.2): كشف الفترة — قراءة بسيطة تربط كل سطر بمصدره. */}
             <Route path="/finance/statement" component={Statement} />
             <Route path="/finance/activity" component={FinanceActivity} />
-            <Route path="/share/preview" component={SharePreview} />
+            {/* UNIT-040: مسار /share/preview أزيل بقرار الإلغاء — لا معاينة
+             * مشاركة؛ الوصلة القديمة تسقط إلى 404 الصادقة لا إلى بديل مشاركة. */}
             <Route path="/orders" component={Orders} />
             {/* §2.2: المراجعة اندمجت نبضة داخل مالي؛ المسار القديم يقود إليها لا إلى 404. */}
             <Route path="/review">

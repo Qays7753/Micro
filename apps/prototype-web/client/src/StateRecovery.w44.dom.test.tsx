@@ -7,8 +7,8 @@
  *    محاولة في مكانه (زر إعادة/إعادة تحميل/عودة) — فحص مصدر ثابت يدوم.
  * ٣) التحميل لا يعرض أصفارًا: شاشة التحميل نص حالة صريح (role=status)
  *    لا بطاقات حقائق بأصفار.
- * ٤) فشل المشاركة الأصلية يعود إلى مسار التسليم النصي الصادق — لا نجاح
- *    كاذبًا ولا استثناءً غير معالج.
+ * ٤) [UNIT-040 — تنفيذ S15] بند فشل المشاركة الأصلية أزيل مع القدرة
+ *    الملغاة؛ لا مسار تسليم نصي للمشاركة بعد اليوم.
  */
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -19,7 +19,6 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { AssetService } from "@/application/assets/assetService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import Assets from "@/pages/Assets";
-import { canShareText, shareTextManually } from "@/lib/textDelivery";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -212,42 +211,3 @@ describe("Wave 4.4 — P-4.4-4: مصفوفة الحالات — فحص مصدر 
   });
 });
 
-describe("Wave 4.4 — P-4.4-4: فشل المشاركة الأصلية يعود للمسار الصادق", () => {
-  it("غياب navigator.share لا يكسر التسليم النصي — المسار البديل صادق", async () => {
-    const originalShare = navigator.share;
-    Object.defineProperty(navigator, "share", {
-      value: undefined,
-      configurable: true,
-    });
-    try {
-      expect(canShareText()).toBe(false);
-      /* التسليم النصي لا يرمي — يرجع نتيجة قابلة للعرض في كل الأحوال. */
-      const outcome = await shareTextManually("نص تجريبي للمشاركة");
-      expect(["copied", "unsupported"]).toContain(outcome);
-    } finally {
-      Object.defineProperty(navigator, "share", {
-        value: originalShare,
-        configurable: true,
-      });
-    }
-  });
-
-  it("رفض المستخدم للمشاركة الأصلية ليس خطأ — إلغاء واعٍ لا رسالة فشل", async () => {
-    const originalShare = navigator.share;
-    Object.defineProperty(navigator, "share", {
-      value: () => Promise.reject(new DOMException("abort", "AbortError")),
-      configurable: true,
-    });
-    try {
-      expect(canShareText()).toBe(true);
-      const outcome = await shareTextManually("نص تجريبي للمشاركة");
-      /* الإلغاء الواعي ليس فشلًا يُعرض للمالك — مسار هادئ بلا رسالة خطأ */
-      expect(["unsupported", "copied"]).toContain(outcome);
-    } finally {
-      Object.defineProperty(navigator, "share", {
-        value: originalShare,
-        configurable: true,
-      });
-    }
-  });
-});

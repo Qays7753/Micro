@@ -118,7 +118,9 @@ const EDITOR_ROUTES: Readonly<Record<string, string>> = {
    * مالي واعٍ (اختيار النوع الاقتصادي الصريح) كسابقة عائلة القروض. */
   "/loans/received/new": "محرر قرض مستلم",
   "/loans/received/:id": "تفصيل/تحرير قرض مستلم — عمق",
-  "/share/preview": "معاينة المشاركة — محرر نص عميق (عقد ٣٣)",
+  /* UNIT-040 (تنفيذ S15 بالأمر الموحد §5): مسار /share/preview أزيل مع
+   * إلغاء المشاركة — لا معاينة مشاركة ولا بديل رسالة؛ التنزيل (016)
+   * والنسخ الاحتياطي (044) أبقيان بأدواتهما الخاصة. */
 };
 
 /** أسطح القراءة/التنقل — تبقي الشريط السفلي (قاعدة U-005: القارئ سطح). */
@@ -313,8 +315,9 @@ describe("route knowledge synchronization (Group 8, STR-010)", () => {
   });
 
   it("negative proof: the checkers catch drift when fed mutated knowledge (no snapshot duplication)", () => {
-    /* محرر سقط من الجدول — الاكتمال يفشل. */
-    const routerMissingEditor = routerPatterns.filter(pattern => pattern !== "/share/preview");
+    /* محرر سقط من الجدول — الاكتمال يفشل (UNIT-040: استخدمنا محرر المواد
+     * بدل مسار المشاركة المزال). */
+    const routerMissingEditor = routerPatterns.filter(pattern => pattern !== "/inventory/material/new");
     expect(
       checkClassificationAgreement(routerMissingEditor, EDITOR_ROUTES, SURFACE_ROUTES).length,
     ).toBeGreaterThan(0);
