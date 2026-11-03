@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: REOPENED: 1 · BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 14 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 14 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -49,4 +49,4 @@ python3 scripts/operations-control/validate.py
 | WS-237 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-021 | S12 مقبولة على فرع التكامل؛ لا إجراء إضافي دون دليل جديد. استمرار S14 مستقل ومشروط بحسم عائق gzip؛ لا merge ولا كتابة على main. |
 | WS-238 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-022 | S13 مقبولة على فرع التكامل؛ لا إجراء إضافي دون دليل جديد. استمرار S14 مستقل ومشروط بحسم عائق gzip؛ لا merge ولا كتابة على main. |
 | WS-239 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-023 | S14 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-03؛ Workstream REVIEW_REQUIRED يحرر الملكية للمراحل اللاحقة ولا يعني VERIFIED على main. لا إعادة فتح دون دليل جديد؛ لا merge ولا كتابة على main. |
-| WS-240 | REOPENED | `components/integration-20261027` | 383 | DOC-024 | أصلح S15-MR-001 من الجذر واختبر زر Back مع حالات Escape/close/focus/cleanup، ثم أعد DOC-024/WS-240 قانونيًا إلى IN_REVIEW/REVIEW_REQUIRED. بعدها يبدأ S16 مباشرة بتوجيه المالك بلا موافقة وسيطة؛ لا قبول S15/S16 ذاتيًا ولا merge. |
+| WS-240 | IN_PROGRESS | `components/integration-20261027` | 383 | DOC-024 | إصلاح S15-MR-001 قيد التنفيذ عند الرأس 8c0361b9f05f0d00253f9e00ef517b094fc6b441 (أحمر أولًا ثم سلوك تاريخ مملوك للوحة مع Escape/close/focus/cleanup)، ثم إعادة DOC-024/WS-240 قانونيًا إلى IN_REVIEW/REVIEW_REQUIRED. بعدها يبدأ S16 مباشرة بتوجيه المالك بلا موافقة وسيطة؛ لا قبول S15/S16 ذاتيًا ولا merge. |
