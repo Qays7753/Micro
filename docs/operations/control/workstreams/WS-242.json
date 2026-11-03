@@ -1,0 +1,47 @@
+{
+  "id": "WS-242",
+  "title": "S17 — فحص البيانات وتجربة النسخ النهائية (UNIT-033/044 + SH-22)",
+  "status": "CLAIMED",
+  "items": [
+    "DOC-026"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "825296c6c87fd251623ef396d2e564805ff04592",
+  "areas": [
+    "apps/prototype-web/client/src/components/settings/",
+    "apps/prototype-web/client/src/pages/Settings.tsx",
+    "apps/prototype-web/client/src/pages/ToolsIntegrity.tsx",
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/app/MicroRouter.tsx",
+    "apps/prototype-web/client/src/app/navigationContract.ts",
+    "apps/prototype-web/client/src/app/navigation.ts",
+    "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/implementation/micro-component-execution/00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-033-فحص-البيانات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-044-النسخ-الاحتياطي-والاستعادة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/08-Settings-Maintenance-Backup-and-Restore-AR.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-11-04",
+  "updated_at": "2026-11-04",
+  "next_action": "تنفيذ S17 وفق الأمر المتصل: توصيف أحمر لحالات الفجوة ثم بوابة حدود الموارد ومدخل فحص البيانات داخل الإعدادات والاختبارات الدائمة وpnpm check والمراجعات الخمس وتقرير النتيجة؛ ثم الانتقال المباشر إلى S18 بعد إعادة تسليم S17 قانونيًا.",
+  "notes": [
+    "أمر متصل واحد من المالك (2026-11-04): S17 ثم S18 مباشرة بلا وقفة موافقة وسيطة؛ لا قبول ذاتي ولا دمج ولا كتابة main.",
+    "حد الاستعادة: رأس نشر الأمر 825296c6؛ آخر رأس تسليم مقبول 7fef8cf1.",
+    "السقفان ثابتان 650,000/155,300 وزوج المخطط/التصدير 41/34 مع الموروثين 33/40 و32/40."
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-04",
+      "actor": "zai-s17-execution",
+      "reason": "إنشاء مطالبة S17 قانونيًا قبل أول سطر كود منتج، فوق رأس نشر الأمر المتصل 825296c6، بعد فحص آمن كامل (شجرة نظيفة، صفر تداخل مطالبات، Validator سليم)."
+    }
+  ],
+  "migration_baseline": true
+}
