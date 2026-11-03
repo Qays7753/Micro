@@ -11,9 +11,13 @@
  *   الروابط القديمة محفوظة: /finance/more إحالة إلى المالية (تصنيف المسار
  *   يثبته routeKnowledgeSync، والرندر الفعلي للمسار يحرسه R2.renderSmoke).
  * - 013B: مدخل ميزانيات المصروف سياقي إلى قسمها في الصفحة نفسها — لا وجهة.
+ * - S15-MR-001 (إصلاح جذري بعد مراجعة S15): رجوع الهاتف/المتصفح أثناء فتح
+ *   اللوحة يغلقها وحدها — entry تاريخي واحد مملوك للوحة عند الفتح (نمط
+ *   Setup.tsx القائم)، وإغلاق غير-Back (زر/Escape/مدخل) يستهلكه بلا تراكم،
+ *   والمغادرة والتنظيف لا يتركان stale يبتلع رجوعًا لاحقًا.
  */
 import React from "react";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { canonicalReturnFor, withReturnTo } from "@/app/navigationContract";
@@ -231,5 +235,143 @@ describe("UNIT-013 — لوحة وظائف المالية (AF-B) وإلغاء ا
     expect(canonicalReturnFor("/tools/integrity")).toBe("/finance");
     /* وجهة غير صالحة تسقط للبديل العام — لا حلقة (قاعدة §2.1-6). */
     expect(canonicalReturnFor("/finance/more?returnTo=/finance/more")).toBe("/finance");
+  });
+});
+
+/* ── S15-MR-001 (إصلاح جذري): رجوع الهاتف/المتصفح يغلق اللوحة وحدها ──
+ * الأحمر أولًا: تثبت هذه المجموعة الغيابَ قبل أي تعديل منتج (الدليل المرجعي
+ * في 20a-S15-REVIEW-ADDENDUM-2026-11-03.md). نمط الاختبار هو نمط Setup.tsx
+ * القائم: PopStateEvent لرجوع الهاتف، وspy على history.back لأن jsdom لا
+ * ينفّذ أثر back على الحالة (المتصفح الحقيقي يسلّم pop غير المتزامن لتوه —
+ * يحاكيه الاختبار صراحة بعد كل إغلاق غير-Back كما في Setup.ui.test.tsx). */
+describe("S15-MR-001 — رجوع الهاتف/المتصفح يغلق اللوحة وحدها بلا أثر آخر", () => {
+  /** يسلّم pop غير المتزامن الذي كان history.back سيولّده في المتصفح الحقيقي
+   * بعد إغلاق غير-Back — jsdom لا ينفّذ أثر back فيجب إيصاله يدويًا. */
+  function deliverPendingBackPop() {
+    window.dispatchEvent(new PopStateEvent("popstate", { state: null }));
+  }
+
+  it("الفتح يملك entry واحد للوحة وBack يغلقها وحدها — لا تنقل ولا كتابة والفترة محفوظة والتركيز يعود", async () => {
+    await seedProfile();
+    renderFinance();
+    expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
+    const [functionsButton] = screen.getAllByRole("button", { name: /وظائف المالية/ });
+    await openBoard();
+    /* فتح اللوحة يملك entry تاريخي واحدًا لهذه الحالة (نفس الصفحة) — لا أكثر. */
+    expect((history.state as { microFinanceBoard?: boolean } | null)?.microFinanceBoard === true).toBe(true);
+    /* رجوع الهاتف/المتصفح: المتصفح نزع الـentry وسلّم popstate. */
+    window.dispatchEvent(new PopStateEvent("popstate", { state: null }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    /* يغلق اللوحة وحدها: لا تنقل (المسار /finance باقٍ)، لا كتابة بيانات،
+     * والتركيز يعود لمشغّل الفتح (AF-AC07 نفسه على مسار Back). */
+    expect(wouterMocks.navigate).not.toHaveBeenCalled();
+    expect(dataVersion).toBe(0);
+    expect(document.activeElement).toBe(functionsButton);
+    /* الفترة المطبقة لم تتأثر: إعادة الفتح تحمل كشف الفترة النطاق نفسه. */
+    const month = todayInAmman().slice(0, 7);
+    const board = await openBoard();
+    wouterMocks.navigate.mockClear();
+    fireEvent.click(within(board).getByRole("button", { name: /كشف الفترة/ }));
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(
+      withReturnTo(`/finance/statement?from=${month}&to=${month}`, "/finance"),
+    );
+    /* مدخل اللوحة إغلاق غير-Back — يستهلك الـentry (يُثبت في الحالة التالية). */
+    expect(screen.queryByRole("dialog")).toBeNull();
+    deliverPendingBackPop();
+  });
+
+  it("إغلاق غير-Back (زر/Escape) يستهلك الـentry — ورجوع لاحق لا يُبتلع", async () => {
+    /* jsdom لا ينفّذ أثر history.back على الحالة — الاستهلاك يُثبت بنداء
+     * الواجهة نفسها (نمط Setup.ui.test.tsx). */
+    const backSpy = vi.spyOn(history, "back").mockImplementation(() => {});
+    try {
+      await seedProfile();
+      renderFinance();
+      expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
+      /* الإغلاق بزر «إغلاق» يستهلك الـentry تاريخي متزامنًا مع الإغلاق. */
+      await openBoard();
+      fireEvent.click(screen.getByRole("button", { name: /إغلاق/ }));
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(backSpy).toHaveBeenCalledTimes(1);
+      /* المتصفح الحقيقي يسلّم pop غير المتزامن لذلك back — لا أثر مرئيًا. */
+      deliverPendingBackPop();
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(backSpy).toHaveBeenCalledTimes(1);
+      /* رجوع لاحق بعد إغلاق غير-Back لا يُبتلع: فتح جديد ثم Back يغلق وحده. */
+      const [functionsButton] = screen.getAllByRole("button", { name: /وظائف المالية/ });
+      fireEvent.click(functionsButton);
+      await screen.findByRole("dialog", { name: "وظائف المالية" });
+      backSpy.mockClear();
+      window.dispatchEvent(new PopStateEvent("popstate", { state: null }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+      expect(backSpy).not.toHaveBeenCalled();
+      expect(document.activeElement).toBe(functionsButton);
+      /* مسار Escape نفسه: يستهلك الـentry مرة واحدة ويعيد التركيز. */
+      fireEvent.click(functionsButton);
+      await screen.findByRole("dialog", { name: "وظائف المالية" });
+      backSpy.mockClear();
+      fireEvent.keyDown(window, { key: "Escape" });
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(backSpy).toHaveBeenCalledTimes(1);
+      expect(document.activeElement).toBe(functionsButton);
+      deliverPendingBackPop();
+    } finally {
+      backSpy.mockRestore();
+    }
+  });
+
+  it("دورات فتح/إغلاق متكررة لا تتراكم — pushState واحد لكل فتح وback واحد لكل إغلاق غير-Back", async () => {
+    /* spy بلا mockImplementation: السلوك الحقيقي يبقى (history.state يعمل)
+     * والعدّ يثبت عدم التراكم عبر الدورات. */
+    const pushSpy = vi.spyOn(history, "pushState");
+    const backSpy = vi.spyOn(history, "back").mockImplementation(() => {});
+    try {
+      await seedProfile();
+      renderFinance();
+      expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
+      /* دورة ١ و٢: فتح ثم Back. */
+      for (let cycle = 1; cycle <= 2; cycle += 1) {
+        await openBoard();
+        window.dispatchEvent(new PopStateEvent("popstate", { state: null }));
+        await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+        expect(pushSpy).toHaveBeenCalledTimes(cycle);
+        expect((history.state as { microFinanceBoard?: boolean } | null)?.microFinanceBoard === true).toBe(
+          true,
+        );
+      }
+      /* دورة ٣: فتح ثم إغلاق بالزر — الاستهلاك عبر back لا عبر pop. */
+      await openBoard();
+      expect(pushSpy).toHaveBeenCalledTimes(3);
+      fireEvent.click(screen.getByRole("button", { name: /إغلاق/ }));
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(backSpy).toHaveBeenCalledTimes(1);
+      deliverPendingBackPop();
+      /* بعد ثلاث دورات: لا sentinel نشط — فتح رابع يحصل على entry جديد واحد. */
+      await openBoard();
+      expect(pushSpy).toHaveBeenCalledTimes(4);
+      window.dispatchEvent(new PopStateEvent("popstate", { state: null }));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    } finally {
+      pushSpy.mockRestore();
+      backSpy.mockRestore();
+    }
+  });
+
+  it("مغادرة الشاشة واللوحة مفتوحة تستهلك الـentry وتنظف المستمع — لا stale يبتلع رجوعًا لاحقًا", async () => {
+    const backSpy = vi.spyOn(history, "back").mockImplementation(() => {});
+    try {
+      await seedProfile();
+      const view = renderFinance();
+      expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
+      await openBoard();
+      /* التنقل عبر الشاشة (unmount) واللوحة مفتوحة: الـentry يُستهلك لا يُترك. */
+      view.unmount();
+      expect(backSpy).toHaveBeenCalledTimes(1);
+      /* المستمع انطفأ: popstate لاحق بعد المغادرة خامل — لا back إضافي. */
+      window.dispatchEvent(new PopStateEvent("popstate", { state: null }));
+      expect(backSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      backSpy.mockRestore();
+    }
   });
 });

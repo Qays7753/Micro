@@ -51,12 +51,76 @@ export function FinanceFunctionsBoard({
   const [, navigate] = useLocation();
   const closeRef = useRef<HTMLButtonElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  /* S15-MR-001: board-owned single history sentinel (the standing Setup.tsx
+   * pattern). Ref mirrors because the popstate listener installs once for the
+   * component lifetime. */
+  const sentinelArmedRef = useRef(false);
+  const suppressPopRef = useRef(false);
+  const openRef = useRef(false);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    openRef.current = open;
+    onCloseRef.current = onClose;
+  });
+
+  /* Idempotent consumption on every non-Back exit path — one guard per open,
+   * never more; the synchronous back() is what removes the entry in the real
+   * browser. */
+  const consumeBoardSentinel = () => {
+    if (!sentinelArmedRef.current) return;
+    sentinelArmedRef.current = false;
+    suppressPopRef.current = true;
+    history.back();
+  };
+
+  /* Opening owns exactly one same-page history state for this board instance. */
+  useEffect(() => {
+    if (open && !sentinelArmedRef.current) {
+      sentinelArmedRef.current = true;
+      history.pushState({ microFinanceBoard: true }, "");
+    }
+  }, [open]);
+
+  /* A parent-driven close (outside the board) consumes the entry too — no
+   * leftover sentinel swallows a later Back. Idempotent with board paths. */
+  useEffect(() => {
+    if (!open) consumeBoardSentinel();
+  }, [open]);
+
+  /* Phone/browser Back while open: the browser already popped the entry and
+   * delivered popstate — close only the board; no navigation, no touch to the
+   * period or the money. Leaving the screen while open consumes the entry in
+   * the cleanup — no stale entry swallows a later Back on another surface. */
+  useEffect(() => {
+    const onPopState = () => {
+      if (suppressPopRef.current) {
+        suppressPopRef.current = false;
+        return;
+      }
+      if (openRef.current && sentinelArmedRef.current) {
+        sentinelArmedRef.current = false;
+        onCloseRef.current();
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+      if (sentinelArmedRef.current) {
+        sentinelArmedRef.current = false;
+        suppressPopRef.current = true;
+        history.back();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
     closeRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        consumeBoardSentinel();
+        onClose();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -65,6 +129,7 @@ export function FinanceFunctionsBoard({
   if (!open) return null;
 
   const go = (href: string) => {
+    consumeBoardSentinel();
     onClose();
     navigate(withReturnTo(href, "/finance"));
   };
@@ -141,7 +206,15 @@ export function FinanceFunctionsBoard({
     >
       <div className="micro-functions-board-heading">
         <h2>وظائف المالية</h2>
-        <button className="micro-text-action" type="button" ref={closeRef} onClick={onClose}>
+        <button
+          className="micro-text-action"
+          type="button"
+          ref={closeRef}
+          onClick={() => {
+            consumeBoardSentinel();
+            onClose();
+          }}
+        >
           <X aria-hidden="true" /> إغلاق
         </button>
       </div>
@@ -158,6 +231,7 @@ export function FinanceFunctionsBoard({
                   type="button"
                   onClick={() => {
                     if (entry.onOpen) {
+                      consumeBoardSentinel();
                       onClose();
                       entry.onOpen();
                       return;
