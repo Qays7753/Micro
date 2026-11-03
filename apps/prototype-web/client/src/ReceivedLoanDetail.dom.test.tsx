@@ -12,6 +12,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getPrototypeLocalStore, usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+/* UNIT-036 (تنفيذ S15 بالأمر الموحد §5): تسجيل الاقتراض مؤجل — بذرة القرض
+ * المستلم التاريخي بالمصنعين الكنونيين عند حد المخزن (نفس مسار توافق النقل
+ * ونمط receivedLoanService.test.ts) لا عبر خدمة الإنشاء المؤجلة. */
+import { createReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
+import { createFinancialEvent, type FinancialEvent } from "@micro-domain/financial-event/index.js";
 import ReceivedLoanDetail from "@/pages/ReceivedLoanDetail";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
@@ -65,18 +70,35 @@ function Harness() {
 }
 
 async function seedLoan(): Promise<string> {
-  const { ReceivedLoanService } = await import("@/application/loans");
-  const loans = new ReceivedLoanService(getPrototypeLocalStore(), () => NOW);
-  const created = await loans.create({
+  /* UNIT-036: القرض المستلم بيانات موروثة هنا — الصيانة (التصحيح والسداد
+   * والتراجع) تظل عبر مساراتها الحية أسفل هذه البذرة. */
+  const event = createFinancialEvent({
+    id: "rloan-detail-seed-event",
+    type: "loan_received_cash",
+    amountMinor: 8_000,
+    occurredOn: "2026-09-01",
+    recordedAt: NOW,
+    idempotencyKey: "rloan-detail-seed:principal",
+    note: "قرض تاريخي لاختبار التفصيل",
+    counterparty: "سارة",
+    loanContext: { loanId: "rloan-detail-seed", borrower: "سارة", lender: "سارة" },
+  }) as FinancialEvent;
+  const loan = createReceivedLoanRecord({
+    id: "rloan-detail-seed",
     lenderName: "سارة",
     lenderType: "person",
     principalMinor: 8_000,
     receivedOn: "2026-09-01",
     dueOn: null,
     note: null,
+    walletId: null,
+    principalEventId: event.id,
+    operationKey: "rloan-detail-seed:create",
+    createdAt: NOW,
   });
-  if (!created.ok) throw new Error(created.message);
-  return created.value.loan.id;
+  const commit = await getPrototypeLocalStore().commitReceivedLoanRecord(loan, event);
+  if (!commit.ok) throw new Error(commit.message);
+  return loan.id;
 }
 
 describe("ReceivedLoanDetail — direct page-boundary behavior (R9-W3)", () => {

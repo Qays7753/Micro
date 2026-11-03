@@ -189,7 +189,7 @@ export const canonicalReturnFallbacks: Readonly<Record<string, string>> = {
   /* Wave 4.2 — P-4.2-4 (F05): المدخل المرئي لفحص السلامة صار «المالية ←
    * المزيد ← سلامة الحسابات» — المسار التقني /tools/integrity يبقى للتوافق،
    * وبديله الكنوني انتقل إلى سطح «المزيد» (تحديث موثق واحد مع عقد ٢٦ §2.2). */
-  "/tools/integrity": "/finance/more",
+  "/tools/integrity": "/finance",
   /* F01: سطح «المزيد من المالية» — بديله الكنوني المستوى الأول للمالية. */
   "/finance/more": "/finance",
   /* F04 (قرار المالك — Wave 4.2): البديل الكنوني للكتالوج صار الرئيسية —

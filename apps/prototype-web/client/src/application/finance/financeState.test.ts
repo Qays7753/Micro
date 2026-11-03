@@ -2,7 +2,12 @@
  * نفس سلوك التجميع الذي كانت الصفحة تنفذه: عزل الفشل بالكتلة (G-005)، تعيين
  * القيم كما هي، تصنيف الحالات المسجلة (membership لا حسابًا)، وترتيب القراءات
  * نفسه. هذه اختبارات وحدة التجميع (خدمات مزيفة بsentinels) — السلوك الكامل
- * للخدمات الحقيقية تحرسه أجنحتها وأجنحة رحلات الصفحة. */
+ * للخدمات الحقيقية تحرسه أجنحتها وأجنحة رحلات الصفحة.
+ *
+ * UNIT-013 (تنفيذ S15 بالأمر الموحد §5): قراءات العربونات والأصول والقروض
+ * والعربونات المحتفظة غادرت التجميع الأساسي مع طبقاتها (جرد القارئين — لا
+ * قراءة بلا مستهلك)؛ العقد هنا يثبت الحدود الجديدة: لا قراءة من الخدمات
+ * المغادرة داخل readFinanceOverview إطلاقًا. */
 import { describe, expect, it } from "vitest";
 import {
   monthBounds,
@@ -10,18 +15,14 @@ import {
   readProfitToCashBridge,
   type FinanceOverviewDeps,
 } from "./financeState";
-import type { AssetOverviewRead, AssetService } from "../assets/assetService";
 import type {
   CorrectionDigest,
   CorrectionHistoryService,
 } from "../financial-records/correctionHistoryService";
-import type { RetainedDepositRow, RetainedDepositService } from "../financial-records/retainedDepositService";
-import type { DepositOverview, FulfillmentService } from "../fulfillment/fulfillmentService";
 import type { FinancialAnalysisService, G5Decision } from "../financial-analysis/financialAnalysisService";
 import type { FinancialPulseService } from "../financial-pulse/financialPulseService";
 import type { InventoryMaterialService } from "../inventory/inventoryMaterialService";
 import type { PeriodWasteReading } from "../inventory/inventoryMaterialModel";
-import type { LoanOverviewRead, LoanService } from "../loans/loanService";
 import type {
   OwnerEntitlementOverview,
   OwnerEntitlementService,
@@ -48,8 +49,6 @@ function makeDeps(
     readPosition?: () => Promise<{ ok: true; value: ProjectFinancialPosition } | { ok: false }>;
     pulseRead?: () => Promise<unknown>;
     affectingPeriod?: () => Promise<{ ok: true; value: CorrectionDigest } | { ok: false }>;
-    loansOverview?: () => Promise<{ ok: true; value: LoanOverviewRead } | { ok: false }>;
-    loans?: LoanService | null;
     calls?: string[];
   } = {},
 ): FinanceOverviewDeps {
@@ -106,12 +105,6 @@ function makeDeps(
         return ok(sentinel<OwnerEntitlementOverview>("owner"));
       },
     } as unknown as OwnerEntitlementService,
-    fulfillment: {
-      listDepositOverview: async () => {
-        calls.push("listDepositOverview");
-        return ok(sentinel<DepositOverview>("deposits"));
-      },
-    } as unknown as FulfillmentService,
     correctionHistory: {
       affecting: async (from?: string, to?: string) => {
         calls.push(`affecting:${from ?? ""}:${to ?? ""}`);
@@ -125,29 +118,6 @@ function makeDeps(
         return ok(sentinel<PeriodWasteReading>("waste"));
       },
     } as unknown as InventoryMaterialService,
-    assets: {
-      overview: async () => {
-        calls.push("assets.overview");
-        return ok(sentinel<AssetOverviewRead>("assets"));
-      },
-    } as unknown as AssetService,
-    loans:
-      overrides.loans === undefined
-        ? ({
-            overview: async () => {
-              calls.push("loans.overview");
-              return overrides.loansOverview
-                ? overrides.loansOverview()
-                : ok(sentinel<LoanOverviewRead>("loans"));
-            },
-          } as unknown as LoanService)
-        : overrides.loans,
-    retainedDeposits: {
-      listPending: async () => {
-        calls.push("listPending");
-        return ok([sentinel<RetainedDepositRow>("retained")] as readonly RetainedDepositRow[]);
-      },
-    } as unknown as RetainedDepositService,
   };
 }
 
@@ -161,12 +131,8 @@ describe("R7/P02 — readFinanceOverview (تجميع G-005 المستخرج)", (
     expect((state.insights as unknown as { marker: string }).marker).toBe("insights");
     expect((state.decision as unknown as { marker: string }).marker).toBe("decision");
     expect((state.owner as unknown as { marker: string }).marker).toBe("owner");
-    expect((state.deposits as unknown as { marker: string }).marker).toBe("deposits");
-    expect((state.assetsOverview as unknown as { marker: string }).marker).toBe("assets");
-    expect((state.loansOverview as unknown as { marker: string }).marker).toBe("loans");
     expect(state.events).toHaveLength(1);
     expect(state.declarations).toHaveLength(1);
-    expect(state.pendingRetainedDeposits).toHaveLength(1);
     expect(state.failedBlocks).toEqual({});
     /* تصنيف الحالات المسجلة (membership لا حسابًا): طلبان مسجلان (delivered) وثالث عرض. */
     expect(state.ordersRecorded).toBe(true);
@@ -206,12 +172,28 @@ describe("R7/P02 — readFinanceOverview (تجميع G-005 المستخرج)", (
     expect((state.correctionsAllTime as unknown as { marker: string }).marker).toBe("corrections");
   });
 
-  it("القروض غير المجهزة بعد (null) = كتلة معطوبة صادقة تُعاد قراءتها فور جاهزيتها", async () => {
-    const state = await readFinanceOverview(makeDeps({ loans: null }), "2026-09-01", "2026-09-30");
-    expect(state.phase).toBe("ready");
-    if (state.phase !== "ready") return;
-    expect(state.failedBlocks).toEqual({ loans: true });
-    expect(state.loansOverview).toBeNull();
+  it("UNIT-013: التجميع الأساسي لا يقرأ العربونات/الأصول/القروض إطلاقًا (جرد القارئين)", async () => {
+    /* العقود المغادرة لا تملك مقعدًا في النوع أصلًا — البرهان هنا سلوكي:
+     * تجميع ناجح كامل لا يستدعي أي قراءة خارج العائلة المعلنة. لو أُعيد
+     * إدخال قراءة أيتيمة في المستقبل فسيكسر ترتيب الاستدعاءات المثبت أدناه. */
+    const calls: string[] = [];
+    await readFinanceOverview(makeDeps({ calls }), "2026-09-01", "2026-09-30");
+    const allowed = new Set([
+      "pulse.read",
+      "readPosition",
+      "listEvents",
+      "readRecordedPeriodResult",
+      "readFinancialInsights",
+      "readDecision",
+      "listDeclarations",
+      "readOverview",
+      "affecting",
+      "readPeriodWaste",
+    ]);
+    for (const call of calls) {
+      const base = call.startsWith("affecting:") ? "affecting" : call;
+      expect(allowed.has(base), `قراءة خارج العائلة المعلنة: ${call}`).toBe(true);
+    }
   });
 
   it("نفس ترتيب بدء القراءات الذي كانت الصفحة تنفذه (IIFE النبضة ثم Promise.all من اليسار)", async () => {
@@ -226,13 +208,9 @@ describe("R7/P02 — readFinanceOverview (تجميع G-005 المستخرج)", (
       "readDecision",
       "listDeclarations",
       "readOverview",
-      "listDepositOverview",
       "affecting::",
       "affecting:2026-09-01:2026-09-30",
       "readPeriodWaste",
-      "assets.overview",
-      "loans.overview",
-      "listPending",
     ]);
   });
 });

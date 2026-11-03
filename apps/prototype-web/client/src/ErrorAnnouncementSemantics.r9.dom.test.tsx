@@ -97,7 +97,9 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
      * القائمة لأنهما لم يعودا يحملان أي سطح رسالة خطأ. */
   ];
   const ERROR_ONLY_COMPONENTS: readonly (readonly [string, number])[] = [
-    ["finance/CorrectionsLayer.tsx", 0],
+    /* UNIT-013 (تنفيذ S15 بالأمر الموحد §5): CorrectionsLayer غادرت الشجرة
+     * مع خروج طبقة التصحيحات من جذر المالية — قراءة التصحيحات من سجل
+     * العمليات الموحد (017) ومصادرها؛ لا سطح رسالة خطأ يحتاج الحصر هنا. */
     ["direct-sales/SaleCollectionReversalSection.tsx", 0],
   ];
 

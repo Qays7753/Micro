@@ -138,9 +138,7 @@ export class LoanService {
    * ملغى بالكامل؛ الحد القانوني يرفض قبل أي كتابة — لا زر ولا مسار ولا
    * خدمة تلتف على القرار. السجلات القائمة وقراءتها وتسجيل دفعاتها
    * وصيانتها الموثقة تبقى كما هي. */
-  async create(
-    _input: LoanCreateInput,
-  ): Promise<LoanResult<{ loan: LoanRecord; event: FinancialEvent }>> {
+  async create(_input: LoanCreateInput): Promise<LoanResult<{ loan: LoanRecord; event: FinancialEvent }>> {
     return {
       ok: false,
       code: "validation_error",

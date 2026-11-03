@@ -234,5 +234,4 @@ describe("W7 journeys — pages that were render-smoke only", () => {
       window.history.replaceState(null, "", "/");
     }
   });
-
 });

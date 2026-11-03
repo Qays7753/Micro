@@ -405,8 +405,7 @@ describe("G5 payable link options after a settlement reversal (A-01)", () => {
      * القصير — وعدُ الحد الأدنى الصادق: قيمته الكاملة لم تختفِ بالتسوية المعكوسة. */
     if (decision.ok) {
       const cash = decision.value.shortCash;
-      const commitmentTotal =
-        cash.declaredCommitmentsMinor + (cash.undatedPayablesMinor ?? 0);
+      const commitmentTotal = cash.declaredCommitmentsMinor + (cash.undatedPayablesMinor ?? 0);
       expect(commitmentTotal).toBe(10000);
     }
   });
@@ -610,7 +609,10 @@ describe("FinancialAnalysisService.createDeclaration deferred (UNIT-021)", () =>
     const store = new MemoryLocalStore();
     const service = new FinancialAnalysisService(store, new ProjectFinancialService(store, now));
     for (let attempt = 0; attempt < 3; attempt += 1) {
-      const refused = await service.createDeclaration({ ...refusalInput, amountMinor: refusalInput.amountMinor + attempt });
+      const refused = await service.createDeclaration({
+        ...refusalInput,
+        amountMinor: refusalInput.amountMinor + attempt,
+      });
       expect(refused.ok).toBe(false);
       if (!refused.ok) {
         expect(refused.code).toBe("validation_error");
@@ -625,14 +627,21 @@ describe("FinancialAnalysisService.createDeclaration deferred (UNIT-021)", () =>
     const store = new MemoryLocalStore();
     const service = new FinancialAnalysisService(store, new ProjectFinancialService(store, now));
     await store.saveShortCashDeclaration(
-      legacyDeclaration({ id: "legacy-history-kept", idempotencyKey: "g5-ui:collection:2026-08-10:2500:قديم:قديم:none" }),
+      legacyDeclaration({
+        id: "legacy-history-kept",
+        idempotencyKey: "g5-ui:collection:2026-08-10:2500:قديم:قديم:none",
+      }),
     );
     const refused = await service.createDeclaration(refusalInput);
     expect(refused.ok).toBe(false);
     const declarations = await service.listDeclarations();
     expect(declarations.ok && declarations.value).toHaveLength(1);
     expect(declarations.ok && declarations.value[0]!.id).toBe("legacy-history-kept");
-    const reversed = await service.reverseDeclaration("legacy-history-kept", "موعد قديم انتهى", "reverse-history");
+    const reversed = await service.reverseDeclaration(
+      "legacy-history-kept",
+      "موعد قديم انتهى",
+      "reverse-history",
+    );
     expect(reversed).toMatchObject({ ok: true, value: { kind: "reversal" } });
   });
 

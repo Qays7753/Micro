@@ -30,7 +30,9 @@ const Schedule = lazy(() => import("@/pages/Schedule"));
 const ScheduleEditor = lazy(() => import("@/pages/ScheduleEditor"));
 const Finance = lazy(() => import("@/pages/Finance"));
 /* Wave 4.2 — P-4.2-4 (F01): «المالية ← المزيد» — سطح قراءة يبقي الشريط السفلي. */
-const FinanceMore = lazy(() => import("@/pages/FinanceMore"));
+/* UNIT-013 / AF-D (تنفيذ S15 بالأمر الموحد §5): دليل «المزيد» 014 فقد
+ * استقلاله — لوحة وظائف المالية داخل 013 هي الفهرسة الوحيدة؛ المسار
+ * القديم يحوَّل إلى المالية لا إلى فهرس ثانٍ. */
 /* Stage 2 — OPS-005/006: «القادم والاستحقاقات» — قارئ موحد يبقي الشريط السفلي. */
 const FinanceUpcoming = lazy(() => import("@/pages/FinanceUpcoming"));
 /* OPS-003 (عقد ٤١): المصاريف المتكررة — قائمة سطح، وتفصيل سطح، والمحرر عمق. */
@@ -229,7 +231,10 @@ export function MicroRouter() {
             <Route path="/parties" component={Parties} />
             <Route path="/finance" component={Finance} />
             {/* F01: سطح «المزيد» — قارئ منظم لا يكتب شيئًا؛ بديله الكنوني المالية. */}
-            <Route path="/finance/more" component={FinanceMore} />
+            {/* UNIT-013: /finance/more يقود إلى المالية — لا صفحة أكثر. */}
+            <Route path="/finance/more">
+              <Redirect to="/finance" />
+            </Route>
             <Route path="/finance/upcoming" component={FinanceUpcoming} />
             {/* OPS-003 (عقد ٤١): تذكيرات المصروف المتكرر — القائمة والتفصيل سطحان
              * يبقيان التنقل السفلي؛ المحرر عمق كإخوته (يخفي الشريط ويحرس

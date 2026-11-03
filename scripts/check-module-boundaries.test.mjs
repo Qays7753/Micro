@@ -643,7 +643,7 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
 
   const r9Only = result => result.violations.filter(v => v.rule.startsWith("R9"));
 
-  it("the live repository passes on the recorded census: 136 edges (87 value + 49 type)", () => {
+  it("the live repository passes on the recorded census: 129 edges (84 value + 45 type)", () => {
     /* R11 Lock Remediation (2026-10-15): +1 type edge — pinOperations.ts (الوحدة
      * الكسولة لعمليات الرمز) -> application/time/clock.ts (هدف معفى OD-10؛
      * صف الجرد مضاف في نفس الـPR — نمو مرئي لا صامت).
@@ -671,9 +671,19 @@ describe("R9 (R11 W1A-1 / D-07 — OD-10 house-pair ratchet on the full census)"
      * لا زوج بيوت جديد: القارئ الموحد يستقبل الجدولة بنيويًا بعدسة
      * activeDeliveryLens تركبها الصفحة من باب البيت (راجع تقرير S13). */
     /* S14 (DOC-023): صف حافة المنسق→الوقت — 135/86/49 صار 136/87/49. */
-    expect(result.stats.houseEdges).toBe(136);
-    expect(result.stats.houseEdgesValue).toBe(87);
-    expect(result.stats.houseEdgesType).toBe(49);
+    /* S15 (DOC-024 — تنفيذ S15 بالأمر الموحد، نفس-الـPR على الشريحة):
+     * UNIT-021 (d7edfb16): -3 type edges — تقاعد عائلة قراءة أفق الكاش
+     * عديمة المستهلك (readShortCashHorizon) وملكاتها؛ الجرد 136/87/49 صار
+     * 133/84/49 (إعادة إرساء الجرد نفسه لا توقعاته — لذلك بقي هذا الاختبار
+     * متأخرًا فوق رأس S15 المحلي؛ يُدرَك الآن في نفس شريحة S15).
+     * UNIT-013 (هذه الشريحة): -4 type edges — جرد القارئين: financeState لم
+     * يعد يستورد assetService/retainedDepositService/fulfillmentService/
+     * loanService (كلها أنواع لا قيم)؛ الجرد 133/84/49 صار 129/84/45 مع
+     * إعادة اشتقاق الأغلف والتوتيلات من القائمة نفسها؛ تضييق لا توسيع
+     * (راجع تقرير S15). */
+    expect(result.stats.houseEdges).toBe(129);
+    expect(result.stats.houseEdgesValue).toBe(84);
+    expect(result.stats.houseEdgesType).toBe(45);
   });
 
   it("fail-closed: a missing census file is a violation, never a pass", () => {

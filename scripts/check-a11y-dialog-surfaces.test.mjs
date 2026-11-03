@@ -46,11 +46,15 @@ describe("check-a11y-dialog-surfaces (R11 W4-0 interaction-model census guard)",
      * S02-B (SH-04 — UNIT-042، إلغاء المالك 2026-10-24): أسطح القفل الثلاثة
      * (AppLockGate وDataActionPinGate وprotectionBlocked في الإعدادات) حُذفت
      * مع مكوّناتها — السجل صار 5 أسطح (4 ملفات بتصريح حي)؛ إعادة إرساء
-     * موثقة نفس-الـPR (راجع تقرير S02). */
-    expect(stdout).toMatch(/5 سطحًا حواريًا مصنفًا/);
+     * موثقة نفس-الـPR (راجع تقرير S02).
+     * S15 (DOC-024 / UNIT-013 — تنفيذ S15 بالأمر الموحد، نفس-الـPR): لوحة
+     * «وظائف المالية» (FinanceFunctionsBoard — dialog غير مودال: focus-in
+     * على زر الإغلاق + Escape + استعادة التركيز لزر الفتح عند onClose) —
+     * السجل صار 6 أسطح (5 ملفات بتصريح حي)؛ تصنيف موثق نفس-الـPR. */
+    expect(stdout).toMatch(/6 سطحًا حواريًا مصنفًا/);
     const { ok, stats } = checkA11yDialogSurfaces(ROOT);
     expect(ok).toBe(true);
-    expect(stats.classified).toBe(5);
+    expect(stats.classified).toBe(6);
   });
 
   it("extracts string and expression dialog declarations from JSX", () => {

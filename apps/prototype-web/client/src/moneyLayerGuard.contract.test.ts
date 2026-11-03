@@ -70,7 +70,10 @@ const FROZEN_SURFACE: Readonly<Record<string, number>> = {
   "pages/AgreementEditor.tsx": 1,
   "pages/WalletLedger.tsx": 1,
   "components/finance/AllocationReviewCard.tsx": 1,
-  "components/finance/CorrectionsLayer.tsx": 1,
+  /* UNIT-013 (تنفيذ S15 بالأمر الموحد §5): تقلص موثق — CorrectionsLayer
+   * غادرت الشجرة مع خروج طبقة التصحيحات من جذر المالية (وصولها من سجل
+   * العمليات الموحد 017 ومصادرها)؛ سطر الحساب الوحيد الذي كانت تحمله زال
+   * معها بلا بديل في الواجهة (18 → 17 ملفًا). */
   /* S08 (DOC-017، 2026-10-30): +1 — معاينة أثر الحفظ في محرر الأصل
    * (المتبقي المؤجل = قيمة الشراء − المدفوع الآن) عرضًا قبل أي كتابة؛
    * توثيق نفس-الـPR ببروتوكول التجميد (F-049) لا نموًا صامتًا. */

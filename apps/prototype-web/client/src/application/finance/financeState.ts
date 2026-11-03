@@ -37,24 +37,19 @@ import type {
   CorrectionDigest,
   CorrectionHistoryService,
 } from "../financial-records/correctionHistoryService";
-import type { RetainedDepositRow, RetainedDepositService } from "../financial-records/retainedDepositService";
 import type {
   OwnerEntitlementOverview,
   OwnerEntitlementService,
 } from "../owner-money/ownerEntitlementService";
-import type { DepositOverview, FulfillmentService } from "../fulfillment/fulfillmentService";
 import type { InventoryMaterialService } from "../inventory/inventoryMaterialService";
 import type { PeriodWasteReading } from "../inventory/inventoryMaterialModel";
-import type { AssetOverviewRead, AssetService } from "../assets/assetService";
-import type { LoanOverviewRead, LoanService } from "../loans/loanService";
 
 /* G-005 (تدقيق الإدارة المالية المتدرجة 2026-09-19): كتل القراءة المعزولة
  * الفشل — المجموعة الأساسية (المركز + النبضة) وحدها تحجب الصفحة عند فشلها،
  * وكل كتلة متقدمة مستقلة: قيمتها null تعني تعذر قراءتها (لا صفرًا كاذبًا)،
  * وfailedBlocks يحدد المعطوبة لبطاقة خطأ موجزة + إعادة محاولة لكل كتلة،
  * والأسطح السليمة تبقى من مصادرها الحية. */
-export type FinanceBlockId =
-  "events" | "period" | "owner" | "g5" | "deposits" | "assets" | "loans" | "correctionsAllTime" | "bridge";
+export type FinanceBlockId = "events" | "period" | "owner" | "g5" | "correctionsAllTime" | "bridge";
 export type FinanceState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
@@ -71,19 +66,16 @@ export type FinanceState =
       owner: OwnerEntitlementOverview | null;
       pulse: LocalFinancialPulse;
       excludedOrders: readonly StoredCraftOrder[];
-      deposits: DepositOverview | null;
+      /* UNIT-013 (تنفيذ S15 بالأمر الموحد §5): قراءات العربونات والأصول
+       * والقروض والعربونات المحتفظة غادرت تحميل المالية الأساسي مع طبقاتها
+       * (جرد القارئين — لا قراءة بلا مستهلك)؛ وصولها من أسطحها وسجل
+       * العمليات الموحد. */
       /* المجموعة ٦ (البند ٣ — S2-09): خلاصة أثر التصحيحات — كل التاريخ للوضع،
        * وبنطاق الفترة لقراءة الفترة. */
       correctionsAllTime: CorrectionDigest | null;
       correctionsInPeriod: CorrectionDigest | null;
       /* المجموعة ٢ (عقد ٢٨): هدر المخزون داخل الفترة — قراءة مشتقة غير نقدية. */
       periodWaste: PeriodWasteReading | null;
-      /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة.
-       * Wave 4.4 — P-4.4-1: التجميع من خدمة القراءة (rows + totals) لا من
-       * reduce داخل العرض — مصدر واحد للمعادلة (تماثل D7). */
-      assetsOverview: AssetOverviewRead | null;
-      loansOverview: LoanOverviewRead | null;
-      pendingRetainedDeposits: readonly RetainedDepositRow[] | null;
       /* FIN-001: دليل نبضة المراجعة — طلبات مسجلة / نتائج نهائية قائمة. */
       ordersRecorded: boolean;
       finalOrdersRecorded: boolean;
@@ -121,12 +113,8 @@ export type FinanceOverviewDeps = {
   financialPulse: FinancialPulseService;
   g5: FinancialAnalysisService;
   ownerEntitlement: OwnerEntitlementService;
-  fulfillment: FulfillmentService;
   correctionHistory: CorrectionHistoryService;
   inventory: InventoryMaterialService;
-  assets: AssetService | null;
-  loans: LoanService | null;
-  retainedDeposits: RetainedDepositService;
 };
 
 /**
@@ -141,18 +129,7 @@ export async function readFinanceOverview(
   from: string,
   to: string,
 ): Promise<FinanceState> {
-  const {
-    projectFinance,
-    financialPulse,
-    g5,
-    ownerEntitlement,
-    fulfillment,
-    correctionHistory,
-    inventory,
-    assets,
-    loans,
-    retainedDeposits,
-  } = deps;
+  const { projectFinance, financialPulse, g5, ownerEntitlement, correctionHistory, inventory } = deps;
   const pulseSafe = (async () => {
     try {
       const result = await financialPulse.read();
@@ -173,13 +150,9 @@ export async function readFinanceOverview(
     decisionRead,
     declarationsRead,
     ownerRead,
-    depositsRead,
     correctionsAll,
     correctionsPeriod,
     periodWaste,
-    assetsRead,
-    loansRead,
-    pendingRetainedRead,
   ] = await Promise.all([
     safeBlock(projectFinance.listEvents()),
     safeBlock(projectFinance.readRecordedPeriodResult(from, to)),
@@ -188,22 +161,10 @@ export async function readFinanceOverview(
     safeBlock(g5.readDecision(from, to)),
     safeBlock(g5.listDeclarations()),
     safeBlock(ownerEntitlement.readOverview()),
-    safeBlock(fulfillment.listDepositOverview()),
     safeBlock(correctionHistory.affecting()),
     safeBlock(correctionHistory.affecting(from, to)),
     /* المجموعة ٢ (عقد ٢٨): هدر الفترة — قراءة مشتقة بأساس occurredOn نفسه. */
     safeBlock(inventory.readPeriodWaste(from, to)),
-    /* المجموعة ٤ (عقد ٢٩): الأصول والقروض والعربونات المحتفظة — طبقات مستقلة؛
-     * القروض والأصول عبر الخدمات المحمّلة خاملًا (FIN-001 WS-178 ثم
-     * S08/DOC-017) — null لحظة التجهيز = كتلة معطوبة صادقة تُعاد
-     * قراءتها فور جاهزيتها (G-005). */
-    assets
-      ? safeBlock(assets.overview())
-      : Promise.resolve({ value: null as AssetOverviewRead | null, failed: true }),
-    loans
-      ? safeBlock(loans.overview())
-      : Promise.resolve({ value: null as LoanOverviewRead | null, failed: true }),
-    safeBlock(retainedDeposits.listPending()),
   ]);
   const completed = pulseResult.orders.filter(stored =>
     ["delivered", "settled"].includes(stored.order.status),
@@ -215,9 +176,6 @@ export async function readFinanceOverview(
   if (correctionsAll.failed) failedBlocks.correctionsAllTime = true;
   if (ownerRead.failed) failedBlocks.owner = true;
   if (decisionRead.failed || declarationsRead.failed) failedBlocks.g5 = true;
-  if (depositsRead.failed) failedBlocks.deposits = true;
-  if (assetsRead.failed) failedBlocks.assets = true;
-  if (loansRead.failed || pendingRetainedRead.failed) failedBlocks.loans = true;
   return {
     phase: "ready",
     position: positionRead.value!,
@@ -229,14 +187,10 @@ export async function readFinanceOverview(
     owner: ownerRead.value,
     pulse: pulseResult.pulse,
     excludedOrders: completed.filter(stored => stored.order.resultStatus !== "final"),
-    deposits: depositsRead.value,
     /* القيم null تعني تعذر قراءة الكتلة لا صفرًا (عقد FIN-001 نفسه). */
     correctionsAllTime: correctionsAll.value,
     correctionsInPeriod: correctionsPeriod.value,
     periodWaste: periodWaste.value,
-    assetsOverview: assetsRead.value,
-    loansOverview: loansRead.value,
-    pendingRetainedDeposits: pendingRetainedRead.value,
     /* FIN-001: دليل نبضة المراجعة — من الطلبات الفعلية لا من مجموع فارغ. */
     ordersRecorded: pulseResult.orders.length > 0,
     finalOrdersRecorded: pulseResult.orders.some(stored =>

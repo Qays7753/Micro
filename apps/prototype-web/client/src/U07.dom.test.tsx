@@ -152,10 +152,8 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
     render(<Finance />);
     expect(await screen.findByRole("heading", { name: "المالية" })).toBeTruthy();
     await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
-    /* المجموعة ٢ (§8): قراءة الفترة وجهة «الفترة» — تُفتح من مبدّل القراءة. */
-    fireEvent.click(screen.getByText("ملخص الفترة"));
-    /* تثبيت النطاق على آب ٢٠٢٦ — بيانات الاختبار مسجلة فيه؛ النطاق الافتراضي
-     * (الشهر الحقيقي الحالي) يتغير مع تقويم الجهاز فلا يظل الاختبار هشًا. */
+    /* UNIT-013 (تنفيذ S15): لا شريط تبويبات داخلي — قسم نتيجة الفترة على
+     * الصفحة نفسها؛ النطاق يُثبّت على آب ٢٠٢٦ (بيانات الاختبار مسجلة فيه). */
     fireEvent.change(screen.getByLabelText("بداية نطاق نتيجة الفترة"), { target: { value: "2026-08" } });
     fireEvent.change(screen.getByLabelText("نهاية نطاق نتيجة الفترة"), { target: { value: "2026-08" } });
     await waitFor(() => expect(screen.getByText("المؤشرات")).toBeTruthy());
@@ -177,8 +175,7 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
     render(<Finance />);
     expect(await screen.findByRole("heading", { name: "المالية" })).toBeTruthy();
     await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
-    /* المجموعة ٢ (§8): قراءة الفترة وجهة «الفترة» — تُفتح من مبدّل القراءة. */
-    fireEvent.click(screen.getByText("ملخص الفترة"));
+    /* UNIT-013 (تنفيذ S15): قسم نتيجة الفترة على الصفحة نفسها بلا تبويب. */
 
     /* F-079: سجل المتوقعات المسجلة داخل التغطية والتعادل. */
     expect(screen.getByText("سجل المتوقعات المسجلة")).toBeTruthy();
@@ -190,8 +187,7 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
     render(<Finance />);
     expect(await screen.findByRole("heading", { name: "المالية" })).toBeTruthy();
     await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
-    /* المجموعة ٢ (§8): قراءة الفترة وجهة «الفترة» — تُفتح من مبدّل القراءة. */
-    fireEvent.click(screen.getByText("ملخص الفترة"));
+    /* UNIT-013 (تنفيذ S15): قسم نتيجة الفترة على الصفحة نفسها بلا تبويب. */
     /* بلا مصروف ثابت مسجل لا تُخترع وحدة تعادل — العلامة — لا جملة. */
     const breakEvenCell = screen.getByText("وحدات التعادل").closest("div");
     expect(breakEvenCell?.querySelector(".micro-insights-unknown")?.textContent).toBe("—");

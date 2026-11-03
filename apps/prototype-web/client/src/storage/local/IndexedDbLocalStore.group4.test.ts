@@ -11,6 +11,10 @@ import {
   createCraftOrder,
   settleDepositRetain,
 } from "@micro-domain/craft-order/index.js";
+/* UNIT-035 (تنفيذ S15 بالأمر الموحد §5): إنشاء الإقراض ملغى — بذرة القرض
+ * التاريخي بالمصنعين الكنونيين عند حد المخزن (نفس مسار توافق النقل). */
+import { createLoanRecord } from "@micro-domain/loan/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { StoredCraftOrder } from "./types";
 import { assertOk } from "@/testing/resultAssertions";
 
@@ -142,13 +146,35 @@ describe("IndexedDbLocalStore Group 4 atomic commits (المجموعة ٤ — ع
   it("commits a loan with its principal event and a repayment atomically", async () => {
     const store = new IndexedDbLocalStore();
     const service = new LoanService(store, () => NOW);
-    const created = await service.create({
-      borrowerName: "أحمد",
-      principalMinor: 15000,
-      loanDate: "2026-07-01",
+    /* UNIT-035: البذرة عند حد المخزن بالمصنعين الكنونيين — التسديد يبقى
+     * عبر مساره الحي (صيانة التاريخ) فيبقى البرهان ذرّيًا كما هو. */
+    const principalEvent = createFinancialEvent({
+      id: "g4-loan-principal-event",
+      type: "loan_outgoing_cash",
+      amountMinor: 15000,
+      occurredOn: "2026-07-01",
+      recordedAt: NOW,
+      idempotencyKey: "g4-loan:principal",
+      note: "قرض تاريخي",
+      counterparty: "أحمد",
+      loanContext: { loanId: "g4-loan", borrower: "أحمد" },
     });
-    if (!created.ok) return;
-    const loanId = created.value.loan.id;
+    const committed = await store.commitLoanRecord(
+      createLoanRecord({
+        id: "g4-loan",
+        borrowerName: "أحمد",
+        principalMinor: 15000,
+        loanDate: "2026-07-01",
+        purposeNote: null,
+        sourceWalletId: null,
+        principalEventId: principalEvent.id,
+        operationKey: "g4-loan:create",
+        createdAt: NOW,
+      }),
+      principalEvent,
+    );
+    assertOk(committed);
+    const loanId = committed.value.record.id;
     const repaid = await service.recordRepayment(loanId, { amountMinor: 5000, date: "2026-08-01" });
     assertOk(repaid);
     expect(repaid.ok).toBe(true);
@@ -195,14 +221,39 @@ describe("IndexedDbLocalStore Group 4 atomic commits (المجموعة ٤ — ع
   it("readSnapshot and replaceSnapshot carry the new collections", async () => {
     const store = new IndexedDbLocalStore();
     const assets = new AssetService(store, () => NOW);
-    const loans = new LoanService(store, () => NOW);
     await assets.create({
       name: "ثلاجة عرض",
       acquisitionAmountMinor: 60000,
       acquisitionKind: "cash",
       purchaseDate: "2026-06-01",
     });
-    await loans.create({ borrowerName: "أحمد", principalMinor: 15000, loanDate: "2026-07-01" });
+    /* UNIT-035: القرض التاريخي عند حد المخزن — الزوج يظل يسافر في اللقطة. */
+    const snapshotEvent = createFinancialEvent({
+      id: "g4-snapshot-loan-event",
+      type: "loan_outgoing_cash",
+      amountMinor: 15000,
+      occurredOn: "2026-07-01",
+      recordedAt: NOW,
+      idempotencyKey: "g4-snapshot-loan:principal",
+      note: "قرض تاريخي",
+      counterparty: "أحمد",
+      loanContext: { loanId: "g4-snapshot-loan", borrower: "أحمد" },
+    });
+    const snapshotLoan = await store.commitLoanRecord(
+      createLoanRecord({
+        id: "g4-snapshot-loan",
+        borrowerName: "أحمد",
+        principalMinor: 15000,
+        loanDate: "2026-07-01",
+        purposeNote: null,
+        sourceWalletId: null,
+        principalEventId: snapshotEvent.id,
+        operationKey: "g4-snapshot-loan:create",
+        createdAt: NOW,
+      }),
+      snapshotEvent,
+    );
+    assertOk(snapshotLoan);
     const snapshot = await store.readSnapshot();
     expect(snapshot.ok).toBe(true);
     if (!snapshot.ok) return;

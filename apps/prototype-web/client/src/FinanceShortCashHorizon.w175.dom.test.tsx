@@ -1,10 +1,16 @@
 /** @vitest-environment jsdom */
-/* FIN-005 (WS-175 — Wave 3): أفق الكاش القصير على سطح المالية — العائلة
- * المعتمدة ٧/٣٠/٩٠ (الافتراضي ٣٠) مثبتة على اليوم المحلي من ساعة الخدمة
- * القابلة للحقن، والتبديل يعيد القراءة فوق الأفق الجديد بلا أي كتابة
- * (notifyDataChanged لا يُستدعى من القراءة أبدًا — قراءة صرفة فوق المخزن). */
+/* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): التوقعات النقدية المتقدمة مؤجلة —
+ * بطاقة أفق الكاش القصير (FIN-005/WS-175 سابقًا) غادرت النطاق الأساسي مع
+ * قراءتها، ولا يُبنى بديل يوحي بوجودها. هذا الحراس يثبت الغياب الصادق:
+ * - لا مجموعة «أفق قراءة الكاش» ولا مفاتيح ٧/٣٠/٩٠ ولا نقد متوقع ولا
+ *   «دفع متوقع قريب» ولا توصية سحب آمن داخل سطح المالية.
+ * - الحقيقة التاريخية تبقى بمعناها: الالتزام المؤرخ المقروء من مركزه
+ *   (readPosition) لا يفقد قيمته بغياب بطاقة التوقع.
+ * - الزيارة قراءة صرفة: notifyDataChanged لا يُستدعى من العرض أبدًا.
+ * الأفق المؤجل بلا بديل: أي إعادة إدراج مستقبلية لهذه الأسطح تفشل هنا
+ * بالاسم حتى يفوضها المالك صراحة. */
 import React from "react";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
@@ -13,17 +19,8 @@ import { CorrectionHistoryService } from "@/application/financial-records/correc
 import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
 import { G5Service } from "@/application/financial-analysis/financialAnalysisService";
 import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
-import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
-import { ScheduleService } from "@/application/scheduling/scheduleService";
-import { AssetService } from "@/application/assets/assetService";
-import { LoanService } from "@/application/loans/loanService";
-import { RetainedDepositService } from "@/application/financial-records/retainedDepositService";
 import { ProfitToCashBridgeService } from "@/application/finance/profitToCashBridgeService";
-import { CashContinuityService } from "@/application/cash/cashContinuityService";
-import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
-import { AgreementContextService } from "@/application/agreements/agreementContextService";
-import { ActivityService } from "@/application/activity/activityService";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import Finance from "@/pages/Finance";
 
@@ -43,26 +40,26 @@ vi.mock("wouter", () => ({
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
-/* 12:00 بتوقيت عمان → اليوم المحلي 2026-09-23؛ الأفقال:
- * 7 = [2026-09-23, 2026-09-29] · 30 = [2026-09-23, 2026-10-22] · 90 = [2026-09-23, 2026-12-21]. */
 const NOW = "2026-09-23T09:00:00.000Z";
 
-describe("FIN-005 (WS-175 — Wave 3): short-cash horizon on the Finance cash decision", () => {
+describe("UNIT-021 (تنفيذ S15) — أفق الكاش القصير مؤجل بلا بديل", () => {
+  let store: MemoryLocalStore;
+  let projectFinance: ProjectFinancialService;
   let notifyDataChanged: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
-    const store = new MemoryLocalStore();
+    store = new MemoryLocalStore();
     const now = () => NOW;
-    const projectFinance = new ProjectFinancialService(store, now);
+    projectFinance = new ProjectFinancialService(store, now);
     const g5 = new G5Service(store, projectFinance, now);
 
-    /* التزام مؤرخ واحد داخل أفق ٣٠ (2026-10-01) وخارج أفق ٧ — يظهر في
-     * الرقم عند أفق ٣٠ ويختفي من الرقم عند أفق ٧ بلا إخفاء للحقيقة. */
+    /* التزام مؤرخ واحد (2026-10-01) — كان وقود بطاقة التوقع السابقة؛
+     * بقاء معناه يُثبت الآن من مركزه لا من توقع. */
     await store.saveSupplierPurchase(
       createSupplierPurchase({
         id: "w175-commitment",
         supplierName: "مورد",
-        note: "التزام مؤرخ داخل الثلاثين",
+        note: "التزام مؤرخ",
         purchasedOn: "2026-09-01",
         dueOn: "2026-10-01",
         totalMinor: 2500,
@@ -83,11 +80,7 @@ describe("FIN-005 (WS-175 — Wave 3): short-cash horizon on the Finance cash de
       ),
       g5,
       financialPulse: new FinancialPulseService(store),
-      fulfillment: new FulfillmentService(store, now),
       inventory: new InventoryMaterialService(store, now),
-      assets: new AssetService(store, now),
-      loans: new LoanService(store, now),
-      retainedDeposits: new RetainedDepositService(store, now),
       profitToCashBridge: new ProfitToCashBridgeService(store, now),
       dataVersion: 0,
       notifyDataChanged,
@@ -98,58 +91,36 @@ describe("FIN-005 (WS-175 — Wave 3): short-cash horizon on the Finance cash de
     cleanup();
   });
 
-  it("offers the approved family 7/30/90 with 30 pressed by default over the Amman-local window", async () => {
+  it("لا أفق قراءة ولا مفاتيح أيام ولا نقد متوقع ولا سحب آمن داخل المالية", async () => {
     render(<Finance />);
     expect(await screen.findByRole("heading", { name: "المالية" })).toBeTruthy();
     await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
 
-    const group = screen.getByRole("group", { name: "أفق قراءة الكاش" });
-    expect(group).toBeTruthy();
+    /* غياب عائلة الأفق كاملة — لا مجموعة ولا مفاتيح ولا نافذة مؤرخة. */
+    expect(screen.queryByRole("group", { name: "أفق قراءة الكاش" })).toBeNull();
     for (const label of ["٧ أيام", "٣٠ يومًا", "٩٠ يومًا"]) {
-      expect(screen.getByRole("button", { name: label })).toBeTruthy();
+      expect(screen.queryByRole("button", { name: label })).toBeNull();
     }
-    /* الافتراضي المعتمد: ٣٠ يومًا مضغوطًا. */
-    expect(screen.getByRole("button", { name: "٣٠ يومًا" }).getAttribute("aria-pressed")).toBe("true");
-    expect(screen.getByRole("button", { name: "٧ أيام" }).getAttribute("aria-pressed")).toBe("false");
-    /* النافذة الظاهرة: 23/09/2026 → 22/10/2026 (اليوم المحلي من الساعة المحقونة). */
-    expect(screen.getByText("23/09/2026")).toBeTruthy();
-    expect(screen.getByText("22/10/2026")).toBeTruthy();
+    for (const absent of ["دفع متوقع قريب", "النقد المتوقع", "سحب آمن", "احتياطي الجلسة"]) {
+      expect(screen.queryByText(absent), `سطح توقع محجوب ظهر: ${absent}`).toBeNull();
+    }
   });
 
-  it("re-reads over the new horizon when switched — dated evidence moves with the window, honestly", async () => {
+  it("الحقيقة التاريخية تبقى بمعناها من مركزها — والزيارة قراءة صرفة", async () => {
     render(<Finance />);
     expect(await screen.findByRole("heading", { name: "المالية" })).toBeTruthy();
     await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
 
-    /* أفق ٣٠: الالتزام المؤرخ (2026-10-01) داخل النافذة — «دفع متوقع قريب» 25.00. */
-    await waitFor(() => expect(screen.getByText("دفع متوقع قريب")).toBeTruthy());
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: "٣٠ يومًا" }).getAttribute("aria-pressed")).toBe("true"),
-    );
+    /* الالتزام المؤرخ مقروء بقيمته من قراءة المركز — التاريخ لم يُمس. */
+    const position = await projectFinance.readPosition();
+    expect(position.ok && position.value.supplierMaterialPayablesMinor).toBe(2500);
 
-    /* التبديل إلى ٧ أيام: النافذة تنتهي 29/09 قبل الاستحقاق — الالتزام يخرج
-     * من الرقم لكن الحقيقة تبقى: لا إعادة كتابة ولا قيم مختلقة. */
-    fireEvent.click(screen.getByRole("button", { name: "٧ أيام" }));
-    await waitFor(() => expect(screen.getByText("29/09/2026")).toBeTruthy());
-    expect(screen.getByRole("button", { name: "٧ أيام" }).getAttribute("aria-pressed")).toBe("true");
+    /* بطاقات «الآن» الحية باقية بمصادرها — غياب التوقع ليس صفحة فارغة. */
+    expect(
+      screen.getByRole("region", { name: "تفاصيل الوضع المالي المسجل · المبالغ بالدينار الأردني" }),
+    ).toBeTruthy();
 
-    /* القراءة وحدها لا تكتب: notifyDataChanged لم يُستدعَ من أي قراءة أفق. */
+    /* الزيارة كلها لم تكتب شيئًا (قراءة صرفة فوق المخزن). */
     expect(notifyDataChanged).not.toHaveBeenCalled();
-  });
-
-  it("keeps the horizon reading isolated from the page's month range", async () => {
-    render(<Finance />);
-    expect(await screen.findByRole("heading", { name: "المالية" })).toBeTruthy();
-    await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
-
-    /* تغيير نطاق أشهر الصفحة (وجهة الفترة) لا يمس نافذة الأفق: الأفق مثبت
-     * على اليوم المحلي لا على الشهر المعروض. */
-    fireEvent.click(screen.getByText("ملخص الفترة"));
-    fireEvent.change(screen.getByLabelText("بداية نطاق نتيجة الفترة"), { target: { value: "2026-01" } });
-    fireEvent.change(screen.getByLabelText("نهاية نطاق نتيجة الفترة"), { target: { value: "2026-01" } });
-    await waitFor(() => expect(screen.getByText("التغطية والتعادل")).toBeTruthy());
-    fireEvent.click(screen.getByText("الوضع الآن"));
-    await waitFor(() => expect(screen.getByText("23/09/2026")).toBeTruthy());
-    expect(screen.getByText("22/10/2026")).toBeTruthy();
   });
 });

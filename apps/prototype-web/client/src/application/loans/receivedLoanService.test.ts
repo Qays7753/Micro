@@ -31,9 +31,11 @@ async function seededLoan(input?: { principalMinor?: number; dueOn?: string | nu
   return { store, service, created: { ok: true as const, value: { loan, event } } };
 }
 
-async function seedLegacyReceivedLoan(
-  input?: { principalMinor?: number; dueOn?: string | null; store?: MemoryLocalStore },
-) {
+async function seedLegacyReceivedLoan(input?: {
+  principalMinor?: number;
+  dueOn?: string | null;
+  store?: MemoryLocalStore;
+}) {
   const store = input?.store ?? new MemoryLocalStore();
   const service = new ReceivedLoanService(store, now);
   const principalMinor = input?.principalMinor ?? 20000;

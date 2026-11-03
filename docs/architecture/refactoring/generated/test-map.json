@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "f7704b06882a1faf6eb94b9b0161640483629ee3",
+  "head": "d7edfb16d668911f2f310402604d7ffad62427ca",
   "pages": {
-    "total": 64,
+    "total": 62,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -152,9 +152,10 @@
           "FinanceBridge.w173.dom.test.tsx",
           "FinanceBudgets.w174.dom.test.tsx",
           "FinanceEmptyTruth.dom.test.tsx",
+          "FinanceFunctionsBoard.unit013.dom.test.tsx",
           "FinanceJourneys.dom.test.tsx",
           "FinanceObligations.w43.dom.test.tsx",
-          "FinanceSafeWithdrawal.w176.dom.test.tsx",
+          "FinancePeriodStamp.sdf061.dom.test.tsx",
           "FinanceShortCashHorizon.w175.dom.test.tsx",
           "G005FinanceReadIsolation.dom.test.tsx",
           "U001.dom.test.tsx",
@@ -170,12 +171,6 @@
           "G5Activity.dom.test.tsx",
           "R2.financeActivityVoid.test.tsx",
           "pages/FinanceActivity.periodKey.test.ts"
-        ]
-      },
-      "pages/FinanceMore.tsx": {
-        "kind": "direct",
-        "evidence": [
-          "FinanceMore.w42.dom.test.tsx"
         ]
       },
       "pages/FinanceRecurring.tsx": {
@@ -430,12 +425,6 @@
           "pages/Setup.v3Gates.test.tsx"
         ]
       },
-      "pages/SharePreview.tsx": {
-        "kind": "direct",
-        "evidence": [
-          "SmokeOnlyPagesJourneys.dom.test.tsx"
-        ]
-      },
       "pages/Statement.tsx": {
         "kind": "direct",
         "evidence": [
@@ -473,7 +462,6 @@
       "pages/ToolsIntegrity.tsx": {
         "kind": "direct",
         "evidence": [
-          "FinanceMore.w42.dom.test.tsx",
           "IntegrityReadable.w43.dom.test.tsx",
           "ReadLayerParity.w44.dom.test.tsx",
           "ToolsIntegrity.ui.test.tsx"
@@ -503,7 +491,6 @@
           "apps/prototype-web/client/src/application/finance/statementMarkdownService.test.ts",
           "apps/prototype-web/client/src/application/finance/statementService.test.ts",
           "apps/prototype-web/client/src/application/finance/statementViewModel.test.ts",
-          "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.shortCashHorizon.test.ts",
           "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.test.ts",
           "tests/domain/financial-analysis.test.ts"
         ]
@@ -643,8 +630,6 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/finance/operatingBreakEvenModel.test.ts",
-          "apps/prototype-web/client/src/application/finance/shortCashHorizon.test.ts",
-          "apps/prototype-web/client/src/application/financial-analysis/financialAnalysisService.shortCashHorizon.test.ts",
           "apps/prototype-web/client/src/storage/local/capabilities/shortCashDeclarationCapability.contract.test.ts",
           "tests/domain/operatingBreakEven.test.ts"
         ]
@@ -966,7 +951,6 @@
       "tests/domain/localDateValidityBoundaries.characterization.test.ts",
       "tests/domain/moneyMessageCharacterization.test.ts",
       "tests/domain/operatingBreakEven.test.ts",
-      "tests/domain/owner-safe-withdrawal.test.ts",
       "tests/domain/planning.test.ts",
       "tests/domain/public-surface.test.ts",
       "tests/domain/quantity-characterization.test.ts",

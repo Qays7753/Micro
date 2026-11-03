@@ -564,6 +564,20 @@ export default function Statement() {
               ? " هناك تكلفة غير معروفة تمنع رقمًا نهائيًا — لا يُعرض ربح متوهَّم."
               : ""}
           </p>
+          {/* SDF-006 (تنفيذ S15 بالأمر الموحد §5): درجة التقدير تظل موحّدة
+           * عبر المالية والكشف — النتيجة الناقصة (تقديرية) لا تُعرض رقمًا
+           * مؤكدًا؛ نفس حالة القارئ الكنوني وأسبابه تظهر هنا كما في المالية،
+           * وشرط العرض هو الحالة لا فراغ بيانات. */}
+          {reading.result.status !== "recorded_only" ? (
+            <p className="micro-period-status" data-status={reading.result.status} role="status">
+              {reading.result.status === "incomplete" ? "ناقصة" : "غير صالحة"} — لا تُقرأ رقمًا مؤكدًا
+            </p>
+          ) : null}
+          {reading.result.reasons.length > 0 ? (
+            <p className="micro-period-review-note" role="status">
+              أسباب الحالة: {reading.result.reasons.join(" · ")}
+            </p>
+          ) : null}
           <p>
             الملك {formatMoneyWithUnit(reading.blocks.owner.investedMinor)} · سحب{" "}
             {formatMoneyWithUnit(reading.blocks.owner.withdrawnMinor)} — مال المالك لا يدخل النتيجة.

@@ -113,15 +113,15 @@ export default function ToolsIntegrity() {
 
   /* F05: الرجوع ديناميكي حسب مصدر الدخول — اسم وجهة الأصل عند معرفته (عقد ٢٦ §2.1). */
   const backLabel =
-    returnPath === "/finance/more"
-      ? "المزيد من المالية"
-      : returnPath === "/finance"
-        ? "المالية"
-        : returnPath === "/tools"
-          ? "أدواتي"
-          : returnPath === "/settings"
-            ? "الإعدادات"
-            : "رجوع";
+    /* UNIT-013 (تنفيذ S15): /finance/more يقود الآن إلى المالية — لا تسمية
+     * «المزيد» لوجهة لم تعد موجودة. */
+    returnPath === "/finance"
+      ? "المالية"
+      : returnPath === "/tools"
+        ? "أدواتي"
+        : returnPath === "/settings"
+          ? "الإعدادات"
+          : "رجوع";
   return (
     <section className="micro-page micro-integrity-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>

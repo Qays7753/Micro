@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import { LocalTransferService } from "./localTransferService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { AssetService } from "@/application/assets/assetService";
-import { LoanService } from "@/application/loans/loanService";
 import { RetainedDepositService } from "@/application/financial-records/retainedDepositService";
+/* UNIT-035 (تنفيذ S15 بالأمر الموحد §5): إنشاء الإقراض ملغى — بذرة القرض
+ * التاريخي للمسار الكامل بالمصنعين الكنونيين عند حد المخزن. */
+import { createLoanRecord } from "@micro-domain/loan/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import type { LocalExportFile } from "@/storage/local/types";
 
 const NOW = "2026-09-04T08:00:00.000Z";
@@ -51,7 +54,6 @@ describe("schema 34 export round-trip (المجموعة ٤ — عقد ٢٩)", ()
   it("round-trips assets, loans, and retained-deposit classification verbatim through a verified export", async () => {
     const store = new MemoryLocalStore();
     const assets = new AssetService(store, () => NOW);
-    const loans = new LoanService(store, () => NOW);
     const createdAsset = await assets.create({
       name: "ثلاجة عرض",
       acquisitionAmountMinor: 60000,
@@ -61,12 +63,34 @@ describe("schema 34 export round-trip (المجموعة ٤ — عقد ٢٩)", ()
       depreciationStartOn: "2026-06-01",
     });
     expect(createdAsset.ok).toBe(true);
-    const createdLoan = await loans.create({
-      borrowerName: "أحمد",
-      principalMinor: 15000,
-      loanDate: "2026-07-01",
+    /* UNIT-035: القرض التاريخي عند حد المخزن — زوج ٢٩ يظل يقبل القروض
+     * الموروثة ويستعيدها كما هي (التاريخ يحفظ معناه). */
+    const loanEvent = createFinancialEvent({
+      id: "schema34-loan-event",
+      type: "loan_outgoing_cash",
+      amountMinor: 15000,
+      occurredOn: "2026-07-01",
+      recordedAt: NOW,
+      idempotencyKey: "schema34-loan:principal",
+      note: "قرض تاريخي",
+      counterparty: "أحمد",
+      loanContext: { loanId: "schema34-loan", borrower: "أحمد" },
     });
-    expect(createdLoan.ok).toBe(true);
+    const loanCommit = await store.commitLoanRecord(
+      createLoanRecord({
+        id: "schema34-loan",
+        borrowerName: "أحمد",
+        principalMinor: 15000,
+        loanDate: "2026-07-01",
+        purposeNote: null,
+        sourceWalletId: null,
+        principalEventId: loanEvent.id,
+        operationKey: "schema34-loan:create",
+        createdAt: NOW,
+      }),
+      loanEvent,
+    );
+    expect(loanCommit.ok).toBe(true);
 
     const transfers = new LocalTransferService(store, () => NOW);
     const verified = await transfers.createVerifiedExport();

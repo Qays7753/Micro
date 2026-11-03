@@ -126,6 +126,13 @@ function renderFinance() {
 }
 
 describe("Finance journeys (Group 11-E)", () => {
+  /* UNIT-013 (تنفيذ S15 بالأمر الموحد §5): لا شريط تبويبات داخلي — الصفحة
+   * الواحدة تعرض «الآن» ثم «نتيجة الفترة»؛ استعلامات بطاقة الكاش تُحصر
+   * في قسم الوضع المسجل (عنوان السيولة المسجلة المتطابق داخل قسم الفترة). */
+  const positionSection = () =>
+    screen.getByRole("region", {
+      name: "تفاصيل الوضع المالي المسجل · المبالغ بالدينار الأردني",
+    }) as HTMLElement;
   it("keeps the recorded wallet opening exact on the position view", async () => {
     await openWalletWith(152040);
     await seedProfile();
@@ -134,7 +141,7 @@ describe("Finance journeys (Group 11-E)", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
     /* القيمة الدقيقة 1,520.40 د.أ تُعرض كما خُزنت (152,040 قروشًا) بلا تقريب. */
     expect(screen.getAllByText("1,520.40").length).toBeGreaterThan(0);
-    expect(screen.getByText("الكاش المسجل")).toBeTruthy();
+    expect(within(positionSection()).getByText("الكاش المسجل")).toBeTruthy();
     /* سطر الحقيقة: محافظ مسجلة: 1 — التسمية تصف ما تحته. */
     expect(screen.getByText(/محافظ مسجلة: 1/)).toBeTruthy();
     /* القراءة الراجعة من نواة قراءة المركز نفسها: القيمة الصحيحة بالقروش. */
@@ -177,9 +184,8 @@ describe("Finance journeys (Group 11-E)", () => {
     await seedProfile();
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
-    /* قرار القراءة: تبويب «ملخص الفترة» (F02) يفتح عرض الفترة ويحفظه في الرابط. */
-    fireEvent.click(screen.getByRole("tab", { name: "ملخص الفترة" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/finance?view=period", { replace: true });
+    /* UNIT-013 (تنفيذ S15): نتيجة الفترة على الصفحة نفسها بلا تبويب داخلي —
+     * قرار القراءة (F02 سابقًا) صار هيكل الصفحة الدائم. */
     /* طبقة قراءة الفترة المستخرجة (11-D): نتيجة الفترة المسجلة بنطاقها المعلن. */
     expect(await screen.findByRole("heading", { name: "نتيجة الفترة المسجلة" })).toBeTruthy();
     /* نطاق القراءة المعلن (F-005): ما يدخل الفترة وما لا يدخلها معلن صراحة. */

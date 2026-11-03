@@ -47,7 +47,6 @@ function fixedNow() {
 
 const now = fixedNow();
 
-
 describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
   it("UNIT-035: creation is cancelled at the legal boundary — refusal with no write, history readable (SDF-045)", async () => {
     const { store, service } = await seedLegacyLoan();
@@ -73,7 +72,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
 
   it("records partial and full repayments with cash in and loan down, never revenue", async () => {
     const { store, service, loan, event } = await seedLegacyLoan();
-    
+
     const loanId = loan.id;
     const partial = await service.recordRepayment(loanId, {
       amountMinor: 5000,
@@ -99,7 +98,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
 
   it("guards over-repayment with an honest Arabic rejection", async () => {
     const { service, loan, event } = await seedLegacyLoan();
-    
+
     const over = await service.recordRepayment(loan.id, {
       amountMinor: 15001,
       date: "2026-08-01",
@@ -111,7 +110,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
 
   it("reverses a repayment traceably: entry stays, balance restores, cash event negated", async () => {
     const { store, service, loan, event } = await seedLegacyLoan();
-    
+
     const loanId = loan.id;
     const repaid = await service.recordRepayment(loanId, { amountMinor: 5000, date: "2026-08-01" });
     if (!repaid.ok) return;
@@ -136,7 +135,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
 
   it("corrects the loan principal with reversal + replacement and keeps history", async () => {
     const { store, service, loan, event } = await seedLegacyLoan();
-    
+
     const loanId = loan.id;
     const correction = await service.correctLoan(loanId, {
       principalMinor: 20000,
@@ -154,7 +153,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
 
   it("rejects correcting below active repayments", async () => {
     const { service, loan, event } = await seedLegacyLoan();
-    
+
     const loanId = loan.id;
     const repaid = await service.recordRepayment(loanId, { amountMinor: 10000, date: "2026-08-01" });
     expect(repaid.ok).toBe(true);
@@ -167,7 +166,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
 
   it("rejects a no-change correction instead of churning history (تصحيح مراجعة 4-c)", async () => {
     const { store, service, loan, event } = await seedLegacyLoan();
-    
+
     const loanId = loan.id;
     const correction = await service.correctLoan(loanId, {
       principalMinor: loan.principalMinor,
@@ -185,7 +184,7 @@ describe("loan service (المجموعة ٤ — عقد ٢٩)", () => {
 
   it("concurrent repayments never desync the loan record from its events (AV-02)", async () => {
     const { store, service, loan, event } = await seedLegacyLoan();
-    
+
     const loanId = loan.id;
     const [first, second] = await Promise.all([
       service.recordRepayment(loanId, { amountMinor: 3000, date: "2026-08-01", note: "متزامن أول" }),

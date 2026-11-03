@@ -12,6 +12,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+/* UNIT-035 (تنفيذ S15 بالأمر الموحد §5): مصمما القرض الكنونيان لبذرة المخزن. */
+import { createLoanRecord } from "@micro-domain/loan/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { LoanService } from "@/application/loans/loanService";
 import { AssetService } from "@/application/assets/assetService";
@@ -108,19 +111,38 @@ describe("Wave 4.3 — P-4.3-6: documented deep-screen fixes", () => {
   it("GAP-4.3-09: the loans summary uses the correct Arabic loans plural, never the assets one", async () => {
     const profile = await new ProfileService(store, () => NOW).create("مشغل قروض");
     if (!profile.ok) throw new Error(profile.message);
-    /* قرضان قائمان — الجمع الصحيح «قرضين» لا «أصلين». */
+    /* قرضان قائمان — الجمع الصحيح «قرضين» لا «أصلين». UNIT-035: البذرة
+     * عند حد المخزن بالمصنعين الكنونيين (الإنشاء ملغى). */
     for (const [id, name] of [
       ["loan-a", "سامي"],
       ["loan-b", "لمى"],
     ] as const) {
-      const created = await new LoanService(store, () => NOW).create({
-        borrowerName: name,
-        principalMinor: 5000,
-        loanDate: "2026-09-10",
-        purposeNote: null,
-        sourceWalletId: null,
+      const event = createFinancialEvent({
+        id: `event-${id}`,
+        type: "loan_outgoing_cash",
+        amountMinor: 5000,
+        occurredOn: "2026-09-10",
+        recordedAt: NOW,
+        idempotencyKey: `${id}:principal`,
+        note: "قرض تاريخي",
+        counterparty: name,
+        loanContext: { loanId: id, borrower: name },
       });
-      if (!created.ok) throw new Error(created.message);
+      const commit = await store.commitLoanRecord(
+        createLoanRecord({
+          id,
+          borrowerName: name,
+          principalMinor: 5000,
+          loanDate: "2026-09-10",
+          purposeNote: null,
+          sourceWalletId: null,
+          principalEventId: event.id,
+          operationKey: `${id}:create`,
+          createdAt: NOW,
+        }),
+        event,
+      );
+      if (!commit.ok) throw new Error(commit.message);
     }
     wouterMocks.location = "/loans";
     wouterMocks.params = {};

@@ -81,7 +81,7 @@ describe("Finance doorway to the integrity surface (المجموعة ١)", () =>
   });
   afterEach(() => cleanup());
 
-  it("shows the integrity text-action in the truth section and keeps ?from", async () => {
+  it("UNIT-013: no integrity doorway inside Finance — its gates are Settings and the technical route", async () => {
     const store = new MemoryLocalStore();
     const projectFinance = new ProjectFinancialService(store, () => NOW);
     const contextRef: { current: Record<string, unknown> } = { current: {} };
@@ -116,13 +116,19 @@ describe("Finance doorway to the integrity surface (المجموعة ١)", () =>
     }
     render(<FinanceHarness />);
     await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
-    /* Wave 4.2 — P-4.2-4 (F01/F05): باب فحص السلامة انتقل إلى «المزيد من
-     * المالية» — المدخل من المستوى الأول صار سطح «المزيد» نفسه. */
-    const doorway = await screen.findByText(/المزيد من المالية — قراءات وتنظيم أعمق/);
-    fireEvent.click(doorway);
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      expect.stringMatching(/\/finance\/more\?returnTo=%2Ffinance|\/finance\/more\?returnTo=\/finance/),
-    );
+    /* UNIT-013 (تنفيذ S15 بالأمر الموحد §5، AF-AC09): دليل «المزيد» فقد
+     * استقلاله وباب فحص السلامة خرج من المالية — بواباته القائمة: قسم
+     * حماية البيانات في الإعدادات (بوابة موثقة) والمسار التقني. المالية
+     * كلها (صفحةً ولوحةً) لا تعرض مدخلًا لفحص السلامة. */
+    expect(screen.queryByText(/المزيد من المالية/)).toBeNull();
+    expect(screen.queryByText(/سلامة الحسابات/)).toBeNull();
+    const [boardButton] = screen.getAllByRole("button", { name: /وظائف المالية/ });
+    fireEvent.click(boardButton);
+    const board = screen.getByRole("dialog", { name: "وظائف المالية" });
+    expect(board.textContent ?? "").not.toContain("سلامة");
+    expect(board.textContent ?? "").not.toContain("فحص");
+    /* لا تنقل لأي من المسارين من سطح المالية. */
+    expect(wouterMocks.navigate).not.toHaveBeenCalled();
   });
 });
 

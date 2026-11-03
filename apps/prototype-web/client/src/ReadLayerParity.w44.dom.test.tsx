@@ -36,6 +36,10 @@ import { ActivityService } from "@/application/activity/activityService";
 import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { QuickRecordingProvider } from "@/app/quickRecording";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
+/* UNIT-035 (تنفيذ S15): زرع القروض التاريخية عند حد المخزن — نفس نمط
+ * loanService.test.ts (المصنعان الكنونيان + commitLoanRecord). */
+import { createLoanRecord } from "@micro-domain/loan/index.js";
+import { createFinancialEvent, type FinancialEvent } from "@micro-domain/financial-event/index.js";
 import ToolsIntegrity from "@/pages/ToolsIntegrity";
 import Home from "@/pages/Home";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
@@ -109,24 +113,45 @@ async function seedFixtures() {
     note: null,
   });
   if (!secondAsset.ok) throw new Error(secondAsset.message);
+  /* UNIT-035 (تنفيذ S15 بالأمر الموحد §5): إنشاء الإقراض ملغى عند حد الكاتب —
+   * القروض هنا بيانات موروثة للقراءة فتُزرع مباشرة عند حد المخزن (نفس مسار
+   * توافق النقل) لا عبر خدمة الإنشاء الملغاة؛ التسديد يبقى عبر مساره الحي. */
+  const seedLegacyLoan = async (
+    loanId: string,
+    borrowerName: string,
+    principalMinor: number,
+    loanDate: string,
+  ) => {
+    const event = createFinancialEvent({
+      id: `event-${loanId}`,
+      type: "loan_outgoing_cash",
+      amountMinor: principalMinor,
+      occurredOn: loanDate,
+      recordedAt: `${loanDate}T09:00:00.000Z`,
+      idempotencyKey: `${loanId}:principal`,
+      note: "قرض تاريخي لاختبار تكافؤ القراءة",
+      counterparty: borrowerName,
+      loanContext: { loanId, borrower: borrowerName },
+    }) as FinancialEvent;
+    const loan = createLoanRecord({
+      id: loanId,
+      borrowerName,
+      principalMinor,
+      loanDate,
+      purposeNote: null,
+      sourceWalletId: null,
+      principalEventId: event.id,
+      operationKey: `${loanId}:create`,
+      createdAt: `${loanDate}T09:00:00.000Z`,
+    });
+    const commit = await store.commitLoanRecord(loan, event);
+    if (!commit.ok) throw new Error(commit.message);
+    return loanId;
+  };
   const loans = new LoanService(store, now);
-  const firstLoan = await loans.create({
-    borrowerName: "سامي الحداد",
-    principalMinor: 120000,
-    loanDate: "2026-08-10",
-    purposeNote: null,
-    sourceWalletId: null,
-  });
-  if (!firstLoan.ok) throw new Error(firstLoan.message);
-  const secondLoan = await loans.create({
-    borrowerName: "ليلى النجار",
-    principalMinor: 50000,
-    loanDate: "2026-09-01",
-    purposeNote: null,
-    sourceWalletId: null,
-  });
-  if (!secondLoan.ok) throw new Error(secondLoan.message);
-  const repaid = await loans.recordRepayment(secondLoan.value.loan.id, {
+  const firstLoanId = await seedLegacyLoan("w44-parity-loan-1", "سامي الحداد", 120000, "2026-08-10");
+  const secondLoanId = await seedLegacyLoan("w44-parity-loan-2", "ليلى النجار", 50000, "2026-09-01");
+  const repaid = await loans.recordRepayment(secondLoanId, {
     amountMinor: 20000,
     date: "2026-09-08",
     note: null,

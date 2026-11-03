@@ -128,4 +128,68 @@ describe("canonical period result (قراءة الفترة الواحدة)", () 
       reader.value.recognizedRevenueMinor + reader.value.directSaleRevenueMinor,
     );
   });
+
+  /* SDF-006 (UNIT-013/016 — تنفيذ S15 بالأمر الموحد §5): مجموع تقديري في
+   * المالية والكشف يظل بدرجة تقديره ونطاقه الموحدين — بما في ذلك التقرير
+   * (تنزيل 016) والمقارنة — ولا يتحول إلى رقم مؤكد: الحالة «ناقصة»
+   * وأسبابها تصاحب الرقم في كل سطح، والقارئ الكنوني هو مصدرها الواحد. */
+  it("SDF-006: an estimated total keeps its estimation grade and scope on finance, statement, report and comparison — never a confirmed number", async () => {
+    const store = new MemoryLocalStore();
+    const finance = new ProjectFinancialService(store, now);
+    const statement = new StatementService(store, finance);
+    await finance.record({
+      type: "operating_expense_cash",
+      amountMinor: 4000,
+      occurredOn: "2026-09-02",
+      note: "كهرباء مشتركة تقديرية",
+      counterparty: null,
+      relatedEventId: null,
+      expenseContext: {
+        relationship: "shared",
+        behavior: "mixed",
+        purpose: "project_general",
+        knowledge: "estimated",
+        sharedProjectShare: { basis: "owner_estimate", note: "تقدير المالك", allocation: "allocated" },
+        categoryLabel: "كهرباء",
+      },
+      idempotencyKey: "sdf-006-estimated",
+    });
+    const from = "2026-09-01";
+    const to = "2026-09-30";
+    const reader = await finance.readRecordedPeriodResult(from, to);
+    const reading = await statement.read(from, to);
+    const insights = await finance.readFinancialInsights(from, to);
+    if (!reader.ok || !reading.ok || !insights.ok) throw new Error("reads should succeed");
+    /* الدرجة موحّدة من القارئ الواحد: النتيجة ناقصة بسببها التقديري —
+     * لا «مسجلة فقط» (مؤكدة) — والرقم يصاحبه وسمه في كل الأسطح. */
+    expect(reader.value.status).toBe("incomplete");
+    expect(reader.value.reasons).toContain("حصة تقديرية");
+    expect(reader.value.sharedEstimatedExpenseCount).toBe(1);
+    expect(reader.value.resultMinor).not.toBeNull();
+    /* النطاق نفسه على كل سطح — لا انحراف فترة بين قارئ وآخر. */
+    expect(reader.value.from).toBe(from);
+    expect(reader.value.to).toBe(to);
+    expect(reading.value.result).toEqual(reader.value);
+    expect(insights.value.period).toEqual(reader.value);
+    /* التقرير (016): تنزيل الكشف يحمل الحالة والأسباب — لا رقمًا مؤكدًا
+     * يُصدَّر بلا درجته. */
+    const { StatementMarkdownService } = await import("@/application/finance/statementMarkdownService");
+    const report = new StatementMarkdownService().render(reading.value);
+    if (!report.ok) throw new Error(report.message);
+    expect(report.value.markdown).toContain("حالة النتيجة");
+    expect(report.value.markdown).toContain("ناقصة — لا تُقرأ رقمًا مؤكدًا");
+    expect(report.value.markdown).toContain("أسباب الحالة: حصة تقديرية");
+    /* المقارنة: أسوأ الحالتين تحمل الدرجة نفسها وأسبابها لا تنساب —
+     * خط الأساس آب الفارغة مقابل الفترة التقديرية نفسها. */
+    const { PeriodComparisonService } = await import("@/application/finance/periodComparisonService");
+    const comparison = new PeriodComparisonService(store, now);
+    const compared = await comparison.readPeriodComparison(
+      { from, to },
+      { from: "2026-08-01", to: "2026-08-31" },
+    );
+    if (!compared.ok) throw new Error(compared.message);
+    expect(compared.value.status).toBe("incomplete");
+    expect(compared.value.sides.a.reasons).toContain("حصة تقديرية");
+    expect(compared.value.sides.b.reasons).not.toContain("حصة تقديرية");
+  });
 });

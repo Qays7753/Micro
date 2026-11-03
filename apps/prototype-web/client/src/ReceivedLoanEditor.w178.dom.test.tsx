@@ -77,9 +77,7 @@ describe("ReceivedLoanEditor (FIN-001 → UNIT-036 — الاقتراض مؤجل
     /* لا نموذج إدخال أصلًا: لا اسم مُقرض ولا مبلغ ولا نوع اقتصادي ولا زر حفظ. */
     expect(screen.queryByLabelText(/نوع المُقرض/)).toBeNull();
     expect(screen.queryByLabelText("مبلغ القرض")).toBeNull();
-    expect(
-      screen.queryByPlaceholderText("مثال: أحمد، أم خالد، مؤسسة التمويل الأهلية"),
-    ).toBeNull();
+    expect(screen.queryByPlaceholderText("مثال: أحمد، أم خالد، مؤسسة التمويل الأهلية")).toBeNull();
     expect(screen.queryByRole("button", { name: /احفظ القرض المستلم/ })).toBeNull();
     expect(screen.queryByRole("option", { name: "قرض من المالك" })).toBeNull();
   });

@@ -20,10 +20,13 @@ import { CashContinuityService } from "@/application/cash/cashContinuityService"
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
-import { LoanService } from "@/application/loans/loanService";
 import { AssetService } from "@/application/assets/assetService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { createDirectSale } from "@micro-domain/direct-sale/index.js";
+/* UNIT-035 (تنفيذ S15 بالأمر الموحد §5): إنشاء الإقراض ملغى — بذرة القرض
+ * التاريخي تُبنى بالمصنعين الكنونيين عند حد المخزن (نفس مسار توافق النقل). */
+import { createLoanRecord } from "@micro-domain/loan/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import {
   calculateCostSnapshot,
   createCraftOrder,
@@ -43,6 +46,35 @@ function testBackupBuilder(
 
 const NOW = "2026-09-17T09:00:00.000Z";
 const now = () => NOW;
+
+/* UNIT-035: القرض التاريخي يُزرع عند حد المخزن — العائلة مؤثرة للبوابة
+ * والاستعادة سواء أُنشئت بالخدمة الملغاة أو بالمسار الكنوني. */
+async function seedLegacyLoanAtStore(store: PrototypeLocalStore, id: string, amountMinor: number) {
+  const event = createFinancialEvent({
+    id: `event-${id}`,
+    type: "loan_outgoing_cash",
+    amountMinor,
+    occurredOn: "2026-09-10",
+    recordedAt: NOW,
+    idempotencyKey: `${id}:principal`,
+    note: "قرض تاريخي لاختبار النقل",
+    counterparty: "سليم",
+    loanContext: { loanId: id, borrower: "سليم" },
+  });
+  const loan = createLoanRecord({
+    id,
+    borrowerName: "سليم",
+    principalMinor: amountMinor,
+    loanDate: "2026-09-10",
+    purposeNote: "قرض اختبار البوابة",
+    sourceWalletId: null,
+    principalEventId: event.id,
+    operationKey: `${id}:create`,
+    createdAt: NOW,
+  });
+  const commit = await store.commitLoanRecord(loan, event);
+  if (!commit.ok) throw new Error(commit.message);
+}
 
 const openingFile = JSON.stringify({
   format: "micro-guided-opening-import",
@@ -144,14 +176,7 @@ describe("EXE-014 opening-import gate refuses any occupied influential family", 
     [
       "loans",
       async store => {
-        const loans = new LoanService(store, now);
-        const created = await loans.create({
-          borrowerName: "سليم",
-          principalMinor: 2000,
-          loanDate: "2026-09-10",
-          purposeNote: "قرض اختبار البوابة",
-        });
-        if (!created.ok) throw new Error(created.message);
+        await seedLegacyLoanAtStore(store, "exe014-loan-gate", 2000);
       },
     ],
     [
@@ -241,7 +266,7 @@ describe("EXE-014 export → change → restore returns every covered family int
     const finance = new ProjectFinancialService(source, now);
     const suppliers = new SupplierPurchaseService(source, now);
     const owner = new OwnerEntitlementService(source, undefined, now);
-    const loans = new LoanService(source, now);
+    /* UNIT-035: خدمة القروض لم تعد تُستخدم للإنشاء هنا — البذرة عند حد المخزن. */
     const assets = new AssetService(source, now);
     const inventory = new InventoryMaterialService(source, now);
 
@@ -285,13 +310,7 @@ describe("EXE-014 export → change → restore returns every covered family int
       idempotencyKey: "exe014-draw",
     });
     if (!draw.ok) throw new Error(draw.message);
-    const loan = await loans.create({
-      borrowerName: "سليم",
-      principalMinor: 3000,
-      loanDate: "2026-09-08",
-      purposeNote: "قرض",
-    });
-    if (!loan.ok) throw new Error(loan.message);
+    await seedLegacyLoanAtStore(source, "exe014-loan-roundtrip", 3000);
     const asset = await assets.create({
       name: "ماكينة",
       acquisitionAmountMinor: 5000,

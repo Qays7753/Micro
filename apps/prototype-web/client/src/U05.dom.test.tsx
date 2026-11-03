@@ -71,9 +71,8 @@ describe("Finance month-range validation stays inline (U-05)", () => {
     render(<Finance />);
     expect(await screen.findByRole("heading", { name: "المالية" })).toBeTruthy();
     await waitFor(() => expect(screen.queryByText("جارٍ قراءة الوضع المالي المحلي…")).not.toBeTruthy());
-    /* المجموعة ٢ (§8): قراءة الفترة صارت وجهة «الفترة» — تُفتح من مبدّل القراءة. */
-    fireEvent.click(screen.getByText("ملخص الفترة"));
-    // The ready reading is on screen: the period section with its heading.
+    /* UNIT-013 (تنفيذ S15): لا شريط تبويبات داخلي — قسم نتيجة الفترة على
+     * الصفحة نفسها بلا فتح من مبدّل قراءة. */
     expect(await screen.findByRole("heading", { name: "نتيجة الفترة المسجلة" })).toBeTruthy();
 
     const fromInput = screen.getByLabelText("بداية نطاق نتيجة الفترة");

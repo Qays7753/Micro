@@ -388,9 +388,7 @@ export class FinancialAnalysisService {
    * التوقعات النقدية اليدوية مؤجل خارج الإصدار الأول؛ الحد القانوني يرفض
    * قبل أي كتابة — لا زر ولا مسار ولا خدمة تلتف على القرار. سجلات
    * التصريحات القائمة وقراءتها وتصحيحها بتراجع موثق تبقى كما هي. */
-  async createDeclaration(
-    _input: G5DeclarationInput,
-  ): Promise<G5Result<ShortCashDeclaration>> {
+  async createDeclaration(_input: G5DeclarationInput): Promise<G5Result<ShortCashDeclaration>> {
     return {
       ok: false,
       code: "validation_error",

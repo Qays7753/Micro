@@ -2138,6 +2138,90 @@ button.micro-finance-position-link:focus-visible {
   display: grid;
   gap: var(--space-2);
 }
+/* UNIT-013 / AF-B (تنفيذ S15 بالأمر الموحد §5): أفعال التسجيل الثلاثة
+   المتقاربة أعلى المالية — تفتح أصحابها مباشرة (005/015/027). */
+.micro-finance-record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+/* UNIT-013 / AF-B: لوحة وظائف المالية — وصول واحد عند الطلب بست مجموعات
+   و15 مدخلًا؛ تمرير رأسي عند الحاجة ولا سحب أفقي (AF-AC02/AC10). */
+.micro-functions-board {
+  display: grid;
+  gap: var(--space-3);
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  background: var(--color-surface);
+}
+.micro-functions-board-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.micro-functions-board-heading h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+.micro-functions-board-group {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.micro-functions-board-group h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+}
+.micro-functions-board-group ul {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.micro-functions-board-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  text-align: start;
+  cursor: pointer;
+}
+.micro-functions-board-entry:focus-visible {
+  outline: 3px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+.micro-functions-board-entry > span {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.micro-functions-board-entry strong {
+  font-size: 0.9375rem;
+}
+.micro-functions-board-entry small {
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+.micro-functions-board-entry > svg {
+  flex: 0 0 auto;
+  color: var(--color-text-secondary);
+}
 .micro-finance-event-list {
   /* §2: قوائم الصفوف الموحدة داخل حاوية محدودة واحدة 16px بصفوف نصف قطرها 0
      وفواصل 1px — لا بطاقات منفصلة بفجوات متفاوتة (§4 بند ٧) */

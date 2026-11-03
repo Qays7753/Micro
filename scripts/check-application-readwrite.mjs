@@ -173,8 +173,9 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "scheduling/scheduleReadsTestHarness.ts",
   "scheduling/scheduleViewModel.ts",
   "security/index.ts",
-  "share/index.ts",
-  "share/shareMessageService.ts",
+  /* S15 (DOC-024 / UNIT-040 — تنفيذ S15 بالأمر الموحد، نفس-الـPR): تقاعد
+   * عائلة المشاركة كاملة (إلغاء 040 بلا بديل) — ملفا الباب والرسالة
+   * حُذفا من الشجرة الحية فأزيلا من الجسم هنا؛ 68 ← 66 (تضييق موثق). */
   "suppliers/index.ts",
   "suppliers/supplierPurchaseEditorModel.ts",
   "time/clock.ts",

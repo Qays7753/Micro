@@ -113,7 +113,16 @@ describe("check-diagnostics-storage (R11 ARCH-010 dedicated guard)", () => {
      * وscheduleProposal وunifiedFollowUpService — كلها نقية بلا وصول تخزين
      * متصفح)؛ نفس البروتوكول ولا موضع تسجيل جديد. */
     /* S14 (DOC-023): ثلاثة ملفات جديدة (المنسق وكعب اختباره ووحدة الحد) — 396 ← 399. */
-    expect(stdout).toMatch(/399 ملف إنتاج/);
+    /* S15 (DOC-024 — تنفيذ S15 بالأمر الموحد، نفس-الـPR): 399 ← 393 —
+     * صافي ستة ملفات إنتاج (في نطاق هذا الحارس) غادرت الشجرة مع تنفيذ S15:
+     * عائلة المشاركة ببابها (share/index.ts وshareMessageService.ts و
+     * SharePreview.tsx — إلغاء 040 بلا بديل)، وreadShortCashHorizon
+     * (تأجيل 021 بلا مستهلك)، وصفحات المالية المُستبدلة (CorrectionsLayer
+     * وDepositsLayer وFinanceMore.tsx مقابل لوحة الوظائف الجديدة ملفًا
+     * واحدًا) — لا موضع تسجيل جديد ولا استثناء إضافي؛ نفس البروتوكول.
+     * (ملكات المجال owner-safe-withdrawal الثلاث خارج نطاق عدّ هذا الحارس
+     * — تقاعدها محسوس في حراس المجال.) */
+    expect(stdout).toMatch(/393 ملف إنتاج/);
     const { ok, stats } = checkDiagnosticsStorage(ROOT);
     expect(ok).toBe(true);
     expect(stats.registeredEntries).toBe(1);

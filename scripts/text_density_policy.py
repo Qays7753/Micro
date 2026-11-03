@@ -575,7 +575,14 @@ CAPS: dict[str, int] = {
     # package): +1 directory row «المصاريف المتكررة» (title + honest one-line
     # description) linking the recurring-expense control surface — mandated
     # labels only, no data templates behind them.
-    "FinanceMore": 39,
+    # FinanceMore REMOVED (2026-11-03, UNIT-013 تنفيذ S15 بالأمر الموحد §5،
+    # AF-AC09): صفحة «المزيد» فقدت استقلالها — لوحة «وظائف المالية» داخل
+    # 013 هي الفهرسة الوحيدة والمسار القديم صار إحالة إلى المالية؛ السقف
+    # زال مع الشاشة (قياس سطح 013 يغطي اللوحة عبر استيراد المكون). لا رفع
+    # لأي سقف آخر.
+    # SharePreview REMOVED (2026-11-03, UNIT-040 تنفيذ S15 بالأمر الموحد §5):
+    # المشاركة ملغاة — مسار المعاينة وصفحته أزيلا معها؛ لا بديل مشاركة.
+    # السقف زال مع الشاشة؛ تنزيل 016 والنسخ 044 بأسقفهما القائمة.
     # FinanceUpcoming (2026-09-20, Stage 2 OPS-005/006, owner brief — first
     # measurement day): the unified upcoming/overdue reader «القادم والاستحقاقات»
     # — heading + promise, the simple-aging card (payables overdue/current/no-date
@@ -614,7 +621,7 @@ CAPS: dict[str, int] = {
     # message never rendered. Same-PR re-measurement; ratchet ledger entry
     # R9-SYS-A-RECURRINGEXPENSEEDITOR documents the file growth.
     "RecurringExpenseEditor": 34,
-    "SharePreview": 24,
+    # ("SharePreview": 24 — أزيل مع UNIT-040؛ انظر سجل الإزالة أعلاه.)
     # FinancialEventEditor 138 (2026-09-03, Group 1 §5.1–5.6 — first measurement
     # day): the guided expense journey — wallet question, category field + chips,
     # allocation review card, derived effect preview, guidance notes, draft banner
@@ -878,8 +885,8 @@ PAGES = [
     # المجموعة ١ (الإدخال المالي الموجّه): فحص السلامة + المحرر الموجّه + الكشف
     # — تقاس من يومها الأول (سابقة Profile/CostCalculator).
     "ToolsIntegrity",
-    # Wave 4.2 — P-4.2-4 (F01): سطح «المزيد من المالية» — قارئ منظم.
-    "FinanceMore",
+    # Wave 4.2 — P-4.2-4 (F01): سطح «المزيد من المالية» — قارئ منظم؛ أزيلت
+    # من القياس مع فقدان استقلالها (UNIT-013 — انظر سجل الإزالة أعلاه).
     # Stage 2 — OPS-005/006 (2026-09-20): سطح «القادم والاستحقاقات» — قارئ
     # موحد للقادم والمتأخر؛ يُقاس من يومه الأول (سابقة Profile/FinanceMore).
     "FinanceUpcoming",
@@ -888,9 +895,9 @@ PAGES = [
     "FinanceRecurring",
     "RecurringExpenseDetail",
     "RecurringExpenseEditor",
-    # المجموعة ٥ (عقد ٣٠/٣٣): قارئ النشاط الكامل ومعاينة المشاركة — تُقاسان من يومهما الأول.
+    # المجموعة ٥ (عقد ٣٠/٣٣): قارئ النشاط الكامل — يُقاس من يومه الأول؛
+    # معاينة المشاركة أزيلت مع UNIT-040 (انظر سجل الإزالة أعلاه).
     "FinanceActivity",
-    "SharePreview",
     "FinancialEventEditor",
     "Statement",
     # المجموعة ٤ (عقد ٢٩): أسطح الأصول والقروض ومحرراتها — تقاس من يومها الأول
