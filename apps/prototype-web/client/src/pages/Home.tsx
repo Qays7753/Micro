@@ -189,13 +189,19 @@ export default function Home() {
   }, [dataVersion, homeControlCenter, retryCount]);
   useEffect(() => {
     if (!infoOpen && !askMicroOpen && !periodPickerOpen && !allActionsOpen) return;
-    /* Micro Calm: طبقات الرئيسية تُغلق بEscape أيضًا — بلا حصر تركيز إضافي. */
+    /* Micro Calm: طبقات الرئيسية تُغلق بEscape أيضًا — بلا حصر تركيز إضافي؛
+     * وإغلاق Escape يعيد التركيز إلى مشغّل اللوحة المفتوحة كما في لوحة وظائف
+     * المالية ولوحتي الترويسة (OD-A11Y). */
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       setAllActionsOpen(false);
       setPeriodPickerOpen(false);
       setInfoOpen(false);
       setAskMicroOpen(false);
+      if (periodPickerOpen) periodButtonRef.current?.focus();
+      else if (infoOpen) infoButtonRef.current?.focus();
+      else if (askMicroOpen) askMicroButtonRef.current?.focus();
+      else if (allActionsOpen) allActionsButtonRef.current?.focus();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
