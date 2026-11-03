@@ -2,16 +2,16 @@
   "id": "DOC-024",
   "title": "S15 execution — المالية والكشف والسجل والميزانيات وإيقاف القدرات الملغاة (UNIT-013/013B/016/017/021/035/036/040 + SH-19/SH-20)",
   "type": "FEATURE",
-  "status": "IN_REVIEW",
+  "status": "REOPENED",
   "priority": "P0",
   "stage": "micro-component-execution-s15-20261103",
-  "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 بعد تسليم S14 للمراجعة قانونيًا (DOC-023/WS-239 IN_REVIEW/REVIEW_REQUIRED عند 75af0773). | بطاقة الفهم: مشكلة المستخدم: صاحب المشروع يريد فهم وضعه المالي وتسجيل ما حدث والوصول لسجله — قراءة متسقة واحدة للنتيجة والمعرفة والنطاق عبر المالية والكشف والسجل، وميزانيات خططًا لا مالًا، والقدرات الملغاة (الإقراض/الاقتراض/المشاركة/التوقعات المتقدمة) مقطوعة الإنشاء بلا بديل مع حفظ التاريخ. النطاق: UNIT-013 صفحة المالية المدخل الواحد بلا تبويبات داخلية (الآن + نتيجة الفترة + أفعال تسجيل ثلاثة + لوحة وظائف)؛ UNIT-013B ميزانيات المصروف خططًا شهرية بلا حجب مصروف؛ UNIT-016 كشف الفترة وتنزيله؛ UNIT-017 سجل العمليات الموحد قراءةً؛ UNIT-021/035/036/040 إيقاف الإنشاء عند الحد بلا بديل مع حفظ التاريخ. غير الأهداف: لا دفتر مالي ثانٍ ولا كاتب موازٍ ولا مصدر أرصدة مستقل؛ لا سحب آمن ولا توقع نقدي متقدم؛ لا WhatsApp أو رسالة مشاركة بديلة؛ لا إعادة تفعيل بصمت ولا حذف تاريخ؛ لا موجة هيكلية؛ السقفان ثابتان 650,000/155,300 (هامش gzip متاح ~8,313). الثوابت: القبض ليس ربحًا؛ الجزء المعلوم ليس نتيجة كاملة؛ الميزانية ليست مصروفًا؛ المنصرف المؤهل من مصنف المصروف الموحد؛ القراء لا يكتبون. حالات الفشل: فشل مصدر يعزل ولا ينسف الصفحة؛ الجيل/الفترة تتغير أثناء التحميل فلا خلط أجيال (SDF-061)؛ رابط إنشاء قديم يرفض بصدق بلا إنشاء؛ النسخ القديمة تحفظ التاريخ بمعناه (SDF-045). معيار القبول: SDF-006/045/058/061/062 بأدلة دائمة مع تأشير غير المشغل بسببه + حالات UNIT القابلة للتطبيق؛ pnpm check كاملة على الشجرة النهائية؛ خمس مراجعات قرائية متسلسلة؛ البوابتان البعيدتان على الرأس النهائي بعينه. حد الاستعادة: رأس سجلات تسليم S14 75af0773.",
-  "finding_classification": "NOT_APPLICABLE",
+  "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 بعد تسليم S14 للمراجعة قانونيًا (DOC-023/WS-239 IN_REVIEW/REVIEW_REQUIRED عند 75af0773). | بطاقة الفهم: مشكلة المستخدم: صاحب المشروع يريد فهم وضعه المالي وتسجيل ما حدث والوصول لسجله — قراءة متسقة واحدة للنتيجة والمعرفة والنطاق عبر المالية والكشف والسجل، وميزانيات خططًا لا مالًا، والقدرات الملغاة (الإقراض/الاقتراض/المشاركة/التوقعات المتقدمة) مقطوعة الإنشاء بلا بديل مع حفظ التاريخ. النطاق: UNIT-013 صفحة المالية المدخل الواحد بلا تبويبات داخلية (الآن + نتيجة الفترة + أفعال تسجيل ثلاثة + لوحة وظائف)؛ UNIT-013B ميزانيات المصروف خططًا شهرية بلا حجب مصروف؛ UNIT-016 كشف الفترة وتنزيله؛ UNIT-017 سجل العمليات الموحد قراءةً؛ UNIT-021/035/036/040 إيقاف الإنشاء عند الحد بلا بديل مع حفظ التاريخ. غير الأهداف: لا دفتر مالي ثانٍ ولا كاتب موازٍ ولا مصدر أرصدة مستقل؛ لا سحب آمن ولا توقع نقدي متقدم؛ لا WhatsApp أو رسالة مشاركة بديلة؛ لا إعادة تفعيل بصمت ولا حذف تاريخ؛ لا موجة هيكلية؛ السقفان ثابتان 650,000/155,300 (هامش gzip متاح ~8,313). الثوابت: القبض ليس ربحًا؛ الجزء المعلوم ليس نتيجة كاملة؛ الميزانية ليست مصروفًا؛ المنصرف المؤهل من مصنف المصروف الموحد؛ القراء لا يكتبون. حالات الفشل: فشل مصدر يعزل ولا ينسف الصفحة؛ الجيل/الفترة تتغير أثناء التحميل فلا خلط أجيال (SDF-061)؛ رابط إنشاء قديم يرفض بصدق بلا إنشاء؛ النسخ القديمة تحفظ التاريخ بمعناه (SDF-045). معيار القبول: SDF-006/045/058/061/062 بأدلة دائمة مع تأشير غير المشغل بسببه + حالات UNIT القابلة للتطبيق؛ pnpm check كاملة على الشجرة النهائية؛ خمس مراجعات قرائية متسلسلة؛ البوابتان البعيدتان على الرأس النهائي بعينه. حد الاستعادة: رأس سجلات تسليم S14 75af0773. | مراجعة Manus الخفيفة بتاريخ 2026-11-03 أثبتت S15-MR-001: التقرير ادعى دعم زر رجوع الهاتف للوحة وظائف المالية، لكن المكوّن وFinance.tsx لا يملكان popstate/history للوحة والاختبار DOM لا يغطيه؛ مثبتة في 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. فتح قانوني للإصلاح الجذري مع اختبار رجوع الهاتف؛ لا قبول ذاتي.",
+  "finding_classification": "NEW_FINDING",
   "finding_state": "CONFIRMED",
   "classification": "FIX_BEFORE_PILOT",
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 يفوض بدء S15 مباشرة بعد بوابات S15 بلا موافقة وسيطة؛ السقفان ثابتان؛ لا موجة هيكلية؛ لا قبول ذاتي ولا merge.",
+  "owner_decision": "الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 يفوض بدء S15 مباشرة بعد بوابات S15 بلا موافقة وسيطة؛ السقفان ثابتان؛ لا موجة هيكلية؛ لا قبول ذاتي ولا merge.\nتوجيه المالك 2026-11-03: أصلح S15-MR-001 من جذره مع regression DOM، ثم أعد S15 للمراجعة القانونية وانتقل مباشرة إلى S16 وفق الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md دون وقفة موافقة وسيطة؛ هذا ليس قبولًا لـS15 ولا S16 ولا إذن دمج.",
   "tests_required": [
     "حالات SDF الخمس المملوكة بأدلة دائمة (006/045/058/061/062)",
     "رفض روابط إنشاء الإقراض/الاقتراض القديمة بصدق مع حفظ التاريخ",
@@ -26,12 +26,17 @@
     "ui"
   ],
   "source": {
-    "report": "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
-    "discovered_at_sha": "ade8566badec0763e7ae27687a4f39b9f6fb3567",
+    "report": "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
+    "discovered_at_sha": "37f81d9a0d089621ec14a99f0c26b457bcf6fb0e",
     "evidence": [
       "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
       "https://github.com/Qays7753/Micro/pull/383",
-      "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md"
+      "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md",
+      "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md",
+      "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
+      "apps/prototype-web/client/src/components/finance/FinanceFunctionsBoard.tsx",
+      "apps/prototype-web/client/src/pages/Finance.tsx",
+      "apps/prototype-web/client/src/FinanceFunctionsBoard.unit013.dom.test.tsx"
     ]
   },
   "acceptance": [
@@ -75,7 +80,9 @@
     "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
     "https://github.com/Qays7753/Micro/pull/383",
     "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md",
-    "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md"
+    "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
+    "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md"
   ],
   "dependencies": [
     "DOC-020",
@@ -87,7 +94,7 @@
     "DOC-023"
   ],
   "migration_baseline": true,
-  "next_action": "مراجعة المالك المستقلة لتسليم S15؛ لا merge ولا كتابة على main؛ بوابتا Actions/Cloudflare على الرأس النهائي مثبتتان في تعليق PR #383.",
+  "next_action": "إصلاح S15-MR-001 من الجذر مع اختبار DOM أحمر/أخضر يغطي Back والهاتف/التنظيف/التركيز؛ تحديث التقرير ثم العودة قانونيًا إلى IN_REVIEW/REVIEW_REQUIRED؛ لا قبول ذاتي. بعد تحرير مطالبة S15 يبدأ الأمر المأذون S16 بلا موافقة وسيطة.",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -100,7 +107,14 @@
       "changed_at": "2026-11-03",
       "actor": "zai-s15-execution",
       "reason": "تسليم S15 للمراجعة (لا قبولًا ذاتيًا): المرشح الكودي 8de508b6 (UNIT-013/013B/016/017 + SH-19/SH-20 فوق 75af0773) وسجل الأسطح c97213ec؛ pnpm check خروج 0 invocation واحدة (جذري 83/1,019 + تطبيقي 413/3,342)؛ الميزانية 597,390/145,596 تحت السقفين الثابتين 650,000/155,300؛ حالات SDF الخمس (006/045/058/061/062) بأدلة دائمة؛ المراجعات الخمس القرائية PASS بلا موجدة؛ بوابتا Actions/Cloudflare تُثبتان على الرأس النهائي المدفوع في تعليق PR #383."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-03",
+      "actor": "manus-coordination",
+      "reason": "ملاحظة مراجعة مؤكدة S15-MR-001 على رأس التسليم الحي 37f81d9a0d089621ec14a99f0c26b457bcf6fb0e: نتيجة S15 ادعت دعم رجوع الهاتف إلى اللوحة، لكن FinanceFunctionsBoard وFinance.tsx لا يملكان popstate/history للوحة واختبار DOM لا يثبت Back. الفتح لإصلاح جذري محدود واختبار دائم، بناء على توجيه المالك المتصل؛ لا يعني قبولًا أو كتابة main."
     }
   ],
-  "updated_at": "2026-11-03"
+  "updated_at": "2026-11-03",
+  "root_cause": "FinanceFunctionsBoard documents Escape and close-button behavior but neither the board nor Finance.tsx owns a popstate/history sentinel for the open board. The DOM regression test covers Escape/close/focus only; the S15 result overstates phone-Back support."
 }

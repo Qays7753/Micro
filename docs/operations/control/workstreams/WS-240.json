@@ -1,7 +1,7 @@
 {
   "id": "WS-240",
   "title": "S15 — المالية والكشف والسجل والميزانيات وإيقاف القدرات الملغاة (UNIT-013/013B/016/017/021/035/036/040)",
-  "status": "REVIEW_REQUIRED",
+  "status": "REOPENED",
   "items": [
     "DOC-024"
   ],
@@ -40,16 +40,19 @@
   "pr": 383,
   "started_at": "2026-11-03",
   "updated_at": "2026-11-03",
-  "next_action": "مراجعة المالك المستقلة؛ بوابتا Actions/Cloudflare على الرأس النهائي في تعليق PR #383.",
+  "next_action": "أصلح S15-MR-001 من الجذر واختبر زر Back مع حالات Escape/close/focus/cleanup، ثم أعد DOC-024/WS-240 قانونيًا إلى IN_REVIEW/REVIEW_REQUIRED. بعدها يبدأ S16 مباشرة بتوجيه المالك بلا موافقة وسيطة؛ لا قبول S15/S16 ذاتيًا ولا merge.",
   "notes": [
     "أمر S15 مضمّن في الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 (لا أمر منفصل).",
-    "قاعدة تسليم S14 للمراجعة موثقة عند 75af0773 وبوابتاها البعيدتان PASS (run 41548068879 / Pages 125628657923)."
+    "قاعدة تسليم S14 للمراجعة موثقة عند 75af0773 وبوابتاها البعيدتان PASS (run 41548068879 / Pages 125628657923).",
+    "S15-MR-001 confirmed at live head 37f81d9a0d089621ec14a99f0c26b457bcf6fb0e on 2026-11-03: FinanceFunctionsBoard and Finance.tsx lack board-owned popstate/history behavior although 20-S15-RESULT claimed phone Back support; existing DOM test covers Escape/close/focus only. Finding and root-fix acceptance are in 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. Owner-authorized connected fix-then-S16 execution is specified in docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md; no S15/S16 acceptance or merge."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
     "https://github.com/Qays7753/Micro/pull/383",
     "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md",
-    "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md"
+    "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
+    "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md"
   ],
   "status_history": [
     {
@@ -63,6 +66,12 @@
       "changed_at": "2026-11-03",
       "actor": "zai-s15-execution",
       "reason": "تسليم S15 للمراجعة مع DOC-024 → IN_REVIEW (الانتقال القانوني نفسه؛ لا قبولًا ذاتيًا): المرشح الكودي 8de508b6 وسجل الأسطح c97213ec؛ السلسلة الكاملة خروج 0 والحالات الخمس بأدلة."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-03",
+      "actor": "manus-coordination",
+      "reason": "إعادة فتح قانونية لملاحظة S15-MR-001 المؤكدة عند الرأس 37f81d9a0d089621ec14a99f0c26b457bcf6fb0e: ادعاء رجوع الهاتف غير منفذ/غير مثبت في FinanceFunctionsBoard والصفحة الأب. إصلاح جذري محدود ثم تحرير الملكية والعودة للمراجعة؛ أمر المالك يجيز بدء S16 بعد الإصلاح دون وقفة موافقة، لا قبولًا ولا main/merge."
     }
   ],
   "migration_baseline": true
