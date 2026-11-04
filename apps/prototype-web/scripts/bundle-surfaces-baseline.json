@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "9dc4b194",
-        "date": "2026-11-03",
-        "method": "S16 local re-anchor (2026-11-03, PR #383 — owner order 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md §4): UNIT-003 rebuilds the home surface (the W43 control-center sections leave with their consumers; the glimpse/brief/quick-actions replace them) and UNIT-043 adds the /delivery announcement page as one lazy page — every guarded surface improves and is locked in this PR (initial 224,628/70,603 -> 223,566/70,372; lazy 1,484,837/445,550 -> 1,477,234/444,200; precache 2,921,467 -> 2,911,111 local); swRuntime 27,705 -> 27,746 (+41 = the delivery chunk's precache-manifest line in the generated sw.js — re-anchored with provenance, no tolerance change); counts 128/2/86/183/2 -> 129/2/88/184/2 (the delivery page and its dynamic root; every improvement locked); entry 597,402/145,662 PASS under the untouched owner ceilings 650,000/155,300 (check-bundle-budget); the head stamp is dated at the records commit and corrected post-push per the documented protocol. Dated correction (same PR): the review-3 Escape-refocus correction (9dc4b194 over 99d405c7) shifts the Home chunk by +85 raw/+22 gzipNorm — every guarded surface re-measured and locked at the final code tree: lazy 1,477,234/444,200 -> 1,477,319/444,222 and precache 2,911,111 -> 2,911,196 (swRuntime 27,746 and initial 223,566/70,372 unchanged); no tolerance, ceiling, count, or guard code changed; entry 597,402/145,649 PASS under the untouched owner ceilings 650,000/155,300."
+        "head": "1f232c79",
+        "date": "2026-11-04",
+        "method": "S17 local re-anchor (2026-11-04, PR #383 — connected order 00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md §3): UNIT-033 moves the data-check surface into Settings (the standalone ToolsIntegrity lazy page retires; its UI code joins the Settings lazy chunk) and UNIT-044 adds the import resource-limit module reachable through the transfers door — measured growth re-anchored with provenance (initial companions 223,566/70,372 -> 223,841/70,438; lazy raw 1,477,319 -> 1,478,640; precache 2,911,196 -> 2,912,674); every improvement locked (lazyGzipNorm 444,222 -> 443,819; dynamicRootsCount 88 -> 87 — the retired page's dynamic root leaves; counts 129/2/184/2 unchanged); swRuntime unchanged 27,746; entry 597,284/145,624 PASS under the untouched owner ceilings 650,000/155,300 (check-bundle-budget — the entry even improves over S16's 597,402/145,662); no tolerance, ceiling, count, or guard code changed; the cloud environments re-anchor post-push on the directly measured values of the final head's runs per the documented protocol (the S16 precedent)."
       },
       "toolchain": {
         "node": "24.22.2",
@@ -30,17 +30,17 @@
         "identityMode": "null-fallback"
       },
       "measurements": {
-        "initialRawTotal": 223566,
-        "initialGzipNormTotal": 70372,
-        "lazyRawTotal": 1477319,
-        "lazyGzipNormTotal": 444222,
-        "precacheBytesTotal": 2911196,
+        "initialRawTotal": 223841,
+        "initialGzipNormTotal": 70438,
+        "lazyRawTotal": 1478640,
+        "lazyGzipNormTotal": 443819,
+        "precacheBytesTotal": 2912674,
         "swRuntimeRawTotal": 27746
       },
       "counts": {
         "lazyJsCount": 129,
         "initialJsCount": 2,
-        "dynamicRootsCount": 88,
+        "dynamicRootsCount": 87,
         "precacheEntryCount": 184,
         "swRuntimeFileCount": 2
       }
