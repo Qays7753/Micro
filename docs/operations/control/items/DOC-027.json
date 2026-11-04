@@ -1,0 +1,77 @@
+{
+  "id": "DOC-027",
+  "title": "S18 execution — القبول المتكامل وتجهيز الدمج النهائي (توثيق/قبول برنامج)",
+  "type": "QUALITY",
+  "status": "IN_PROGRESS",
+  "priority": "P0",
+  "stage": "micro-component-execution-s18-20261104",
+  "summary": "القبول المتكامل النهائي للبرنامج وفق الأمر المتصل 00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md §4، بعد إعادة تسليم S17 قانونيًا عند المرشح الكودي 1f232c79 وإطلاق مطالبتها (DOC-026/WS-242 IN_REVIEW/REVIEW_REQUIRED؛ صفر مطالبات نشطة عند إنشاء هذه). | بطاقة الفهم: المرحلة تكامل/قبول لا شريحة ميزات: لا وظيفة منتج جديدة تحت اسم الاختبار النهائي، والحفاظ على قرارات S15/S16 المقبولة وسلوك كل مرحلة. النطاق: مصفوفة رحلات قابلة للتدقيق للرحلات العشر المنشورة في فهرس الرحلات (لكل رحلة: شرط البدء والمسار الأساسي وسلوك الرجوع/الإلغاء وحالات التحميل/الخطأ/الفراغ/المآل المجهول وخطر التكرار/الإرسال المزدوج والمالك/العقد وأدلة الاختبار القائمة والفجوات والنتيجة) شاملة الرحلات والحالات المتأثرة باستعادة/جيل S17؛ حل حالة SDF-068 بتعريفها الكنوني وأدلة دائمة لا من الوثائق وحدها؛ تشغيل اختبارات الوحدة والتطبيق وتوافق المهايئات وDOM/الإتاحة والتكامل القائمة وإضافة أصغر اختبار عابر للمراحل فقط عند فجوة حقيقية؛ تدقيق قبول قراءة-فقط للفرع كاملًا ضد سجلات المراحل الـ18 وControls والمهاجرات والمتطلبات (تأكيد بقاء S10/S12/S13/S14/S15/S16 مقبولة على التكامل بلا إعادة مراجعة بلا دليل جديد؛ وتأكيد إعادة تسليم S17 وأن كل ملاحظة إما عولجت بدليل أو تبقى مراجعة للمالك)؛ التحقق النهائي الموثق على مرشح نهائي واحد بعينه (pnpm check كاملة وبوابات المستودع وطزاجة Control وتوليده وفحوص الفهرس والأحجام والعقود وgit diff --check وأسطح/ترحيل الحزمة حسب الانطباق)؛ المراجعتان القرائيتان المتميزتان على نفس SHA (توافق الرحلات/العقود/البيانات؛ وتدقيق UX/الجاهزية للإصدار) — لا يُحتسب تشغيل اختبار مراجعة ولا يحرر المراجعون؛ ثم ملف جاهزية الدمج النهائي للمالك (خط أساس main الدقيق غير المتغير؛ الفرع والـPR والمرشح النهائي الكامل بالـSHA؛ commits وتقارير المراحل؛ جدول حالات المراحل الـ18؛ مصفوفة الرحلات والاختبارات؛ أزواج المخطط/التصدير ومصفوفة المهاجرات؛ سقوف ونتائج الحزمة؛ المراجعات الخمس لS17 والمراجعتان لS18؛ نتائج/روابط Actions وCloudflare على الرأس الدقيق؛ حدود الجهاز الفعلي؛ المخاطر غير المحلولة؛ حد الاستعادة؛ وقرار المالك التالي) — جاهزية أدلة لا إذن دمج. غير الأهداف: لا مكون منتج جديد ولا API جديد؛ لا دمج ولا حذف فروع ولا كتابة main؛ لا ادعاء Android/iOS أو جهاز فعلي أو Pilot من محاكاة المتصفح (jsdom فقط ما لم يتوفر جهاز مأذون ويوثق)؛ لا إضعاف فحص أو تغيير وقائع قبول المراحل أو إعادة هيكلة؛ عيب مؤكد يعود لمرحلته ومالكه بإصلاح محدد والاختبارات المتأثرة والبوابات الواجبة. الثوابت: كل قرارات المال المفتوحة عند أصحابها؛ لا حلقة ولا إعادة تفعيل قدرة ملغاة؛ الزوج 41/34 مع الموروثين؛ السقفان 650,000/155,300. حد الاستعادة: رأس تسليم S17 6016acb8 (شجرة كود 1f232c79).",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "CONFIRMED",
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "الأمر المتصل 00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md §4 يفوض بدء S18 مباشرة بعد إعادة تسليم S17 قانونيًا وإطلاق مطالبتها — بلا وقفة موافقة وسيطة. لا يفوض الأمر ZAI بقبول أي مرحلة ذاتيًا (بما فيها S17 وS18) ولا بالدمج ولا بكتابة main ولا بحذف فروع ولا بادعاء قبول ميداني/Pilot. ملف جاهزية الدمج أدلة فقط؛ الدمج قرار مالك منفصل يليه تحقق main منفصل.",
+  "tests_required": [
+    "SDF-068 بحلها الكنوني وأدلة دائمة (الخطأ والرجوع والإلغاء والفراغ على هاتف RTL: المدخلات حيث أمكن، والإلغاء بلا كتابة، والخطأ قرب حقله، ومساعدة! مسماة وقابلة للتركيز لا تخفي أثرًا مهمًا)",
+    "تشغيل اختبارات الوحدة/التطبيق/توافق المهايئات/DOM-الإتاحة/التكامل القائمة وتوثيق النتائج على المرشح النهائي",
+    "أصغر اختبار عابر للمراحل يضاف فقط عند فجوة حقيقية موثقة",
+    "pnpm check كاملة خروج 0 على المرشح النهائي الواحد",
+    "بوابتا Actions/Cloudflare على الرأس النهائي المدفوع بعينه قبل الإعلان"
+  ],
+  "layers": [
+    "documentation",
+    "testing"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md",
+    "discovered_at_sha": "6016acb877b252f052c0f973e59330719063b93f (رأس تسليم S17؛ شجرة الكود 1f232c79)",
+    "evidence": [
+      "docs/implementation/micro-component-execution/00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md",
+      "docs/implementation/micro-component-execution/22-S17-RESULT-2026-11-04.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/00-JOURNEYS-INDEX-AR.md",
+      "https://github.com/Qays7753/Micro/pull/383"
+    ]
+  },
+  "acceptance": [
+    "مصفوفة الرحلات العشر مكتملة الأعمدة بقيم مدققة من الفرع الفعلي لا من الذاكرة، بما فيها أثر استعادة/جيل S17",
+    "SDF-068 محلولة بأدلة دائمة شغلت فعلًا لا من نصوص الوثائق",
+    "تدقيق القبول القرائي للفرع كاملًا ضد سجلات المراحل الـ18 والControls دون إعادة فتح مرحلة مقبولة بلا دليل جديد",
+    "المراجعتان القرائيتان على نفس SHA النهائي بعينه وتوثيقهما",
+    "ملف جاهزية الدمج يغطي كل البنود الإلزامية بأرقام وروابط دقيقة على الرأس النهائي",
+    "لا وظيفة منتج جديدة ولا إضعاف فحص ولا تغيير وقائع قبول"
+  ],
+  "areas": [
+    "docs/implementation/micro-component-execution/",
+    "docs/operations/control/",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/00-document-index.md",
+    "apps/prototype-web/client/src/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/implementation/micro-component-execution/00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/00-JOURNEYS-INDEX-AR.md"
+  ],
+  "evidence": [],
+  "dependencies": [
+    "DOC-026"
+  ],
+  "related_items": ["DOC-025", "DOC-024", "DOC-023"],
+  "migration_baseline": true,
+  "next_action": "تنفيذ S18: بناء مصفوفة الرحلات العشر من الفرع الحي وحل SDF-068 بأدلة دائمة وتدقيق القبول القرائي للفرع كاملًا ثم المراجعتان على المرشح النهائي وpnpm check كاملة وملف جاهزية الدمج وإعادة المطالبة للمراجعة.",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-04",
+      "actor": "zai-s18-execution",
+      "reason": "بدء S18 المأذونة بالجزء §4 من الأمر المتصل فوق رأس تسليم S17 6016acb8 (شجرة الكود 1f232c79) بعد إعادة تسليم S17 قانونيًا وإطلاق مطالبتها (DOC-026/WS-242 IN_REVIEW/REVIEW_REQUIRED؛ صفر مطالبات نشطة)؛ DOC-027/WS-243 أنشئتا قبل أول سطر من سجلات S18. نوع البند QUALITY (قبول/تدقيق) وفق تصنيف Control القائم لمراحل القبول."
+    }
+  ],
+  "updated_at": "2026-11-04"
+}
