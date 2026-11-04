@@ -1,7 +1,7 @@
 # Micro — جدول مراحل التنفيذ وبطاقاتها
 
 **النسخة:** V1 · **التاريخ:** 2026-10-27 — عمّان.
-**الحالة (2026-11-04):** S01 وS10 وS12–S16 مقبولة على فرع التكامل فقط؛ S02–S09 وS11 حسب Control؛ S17 مُسلّمة للمراجعة عند `1f232c79` وS18 مُسلّمة للمراجعة عند `7b8129f6` (DOC-026/027 IN_REVIEW) مع ملف جاهزية الدمج للمالك؛ الدمج قرار مالك منفصل. لا `VERIFIED` على main ولا merge.
+**الحالة (2026-11-04):** أكد المالك قبول S01–S18 على فرع التكامل فقط (مع حفظ تواريخ القبول السابقة)؛ S17/S18 عند المرشحين `1f232c79`/`7b8129f6` ورأس التسليم `0b16cbe4`. حالات Control تبقى IN_REVIEW/REVIEW_REQUIRED لتحرير الملكية؛ لا `VERIFIED` على main ولا merge. لا يعني القبول اجتياز PRE-PILOT أو جهاز فعلي.
 
 **الاقتراح:** 18 مرحلة S01..S18: تجهيز توثيقي، و16 شريحة تطوير، وقبول تكامل نهائي. العدد مبني على فصل الكتّاب والعقود والقراء؛ لا يساوي 45 مكونًا ولا المجموعات السبع. الحالات التنفيذية الفعلية لكل مرحلة في بطاقتها وOperations Control أدناه؛ هذا الاقتراح لا يمنح تفويضًا مستقلًا.
 
@@ -64,7 +64,7 @@
 
 ### S02 — حماية الكتابة والاستعادة وإزالة القفل
 
-**الحالة:** `READY_FOR_ZAI`؛ أمر التنفيذ النهائي منشور، ولم يبدأ تنفيذ كود S02 بعد.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` بقرار المالك 2026-11-04؛ النتيجة `07-S02-RESULT-2026-10-27.md` والمرشح الكودي `328d986e`. القبول على فرع التكامل فقط؛ لا `VERIFIED` على main ولا merge.
 
 **المواصفات:** [UNIT-042](02-SPECIFICATIONS/03-New-Design/UNIT-042-قفل-التطبيق.md)، [UNIT-044](02-SPECIFICATIONS/03-New-Design/UNIT-044-النسخ-الاحتياطي-والاستعادة.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -90,7 +90,7 @@
 
 ### S03 — بداية المشروع وبياناته وإعداداته الأساسية
 
-**الحالة:** PLANNED_REVIEW؛ لا فرع مرحلة ولا أمر منشور.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` بقرار المالك 2026-11-04؛ النتيجة `08-S03-RESULT-2026-10-28.md` والمرشح الكودي `9de4f0a5 + 2edbd215/26fa9437`. القبول على فرع التكامل فقط؛ لا `VERIFIED` على main ولا merge.
 
 **المواصفات:** [UNIT-001](02-SPECIFICATIONS/03-New-Design/UNIT-001-إعداد-المشروع.md)، [UNIT-038](02-SPECIFICATIONS/03-New-Design/UNIT-038-الإعدادات.md)، [UNIT-039](02-SPECIFICATIONS/03-New-Design/UNIT-039-بيانات-المشروع-والمالك.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -116,7 +116,7 @@
 
 ### S04 — النقد ومال المالك والقياس والتخصيص
 
-**الحالة:** PLANNED_REVIEW؛ لا فرع مرحلة ولا أمر منشور.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` بقرار المالك 2026-11-04؛ النتيجة `09-S04-RESULT-2026-10-28.md` والمرشح الكودي `9d7d2aee`. القبول على فرع التكامل فقط؛ لا `VERIFIED` على main ولا merge.
 
 **المواصفات:** [UNIT-020](02-SPECIFICATIONS/03-New-Design/UNIT-020-مال-المالك.md)، [UNIT-022](02-SPECIFICATIONS/03-New-Design/UNIT-022-إدارة-النقد.md)، [UNIT-023](02-SPECIFICATIONS/03-New-Design/UNIT-023-التحويل-بين-أماكن-النقد.md)، [UNIT-024](02-SPECIFICATIONS/03-New-Design/UNIT-024-تحديد-مكان-النقد.md)، [UNIT-025](02-SPECIFICATIONS/03-New-Design/UNIT-025-مطابقة-رصيد-الصندوق.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -142,7 +142,7 @@
 
 ### S05 — العملاء والموردون عند الحاجة
 
-**الحالة:** PLANNED_REVIEW؛ لا فرع مرحلة ولا أمر منشور.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` بقرار المالك 2026-11-04؛ النتيجة `10-S05-RESULT-2026-10-29.md` والمرشح الكودي `bee05336`. القبول على فرع التكامل فقط؛ لا `VERIFIED` على main ولا merge.
 
 **المواصفات:** [UNIT-037](02-SPECIFICATIONS/03-New-Design/UNIT-037-العملاء-والموردون.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -168,7 +168,7 @@
 
 ### S06 — المصروف والمتكرر والفاتورة المشتركة
 
-**الحالة:** PLANNED_REVIEW؛ لا فرع مرحلة ولا أمر منشور.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` بقرار المالك 2026-11-04؛ النتيجة `11-S06-RESULT-2026-10-29.md` والمرشح الكودي `0a728d14`. القبول على فرع التكامل فقط؛ لا `VERIFIED` على main ولا merge.
 
 **المواصفات:** [UNIT-015](02-SPECIFICATIONS/03-New-Design/UNIT-015-تسجيل-العمليات-المالية.md)، [UNIT-019](02-SPECIFICATIONS/03-New-Design/UNIT-019-تكرار-المصروف.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -194,7 +194,7 @@
 
 ### S07 — المشتريات والمخزون الاختياري
 
-**الحالة:** PLANNED_REVIEW؛ لا فرع مرحلة ولا أمر منشور.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` بقرار المالك 2026-11-04؛ النتيجة `12-S07-RESULT-2026-10-30.md` والمرشح الكودي `30ff930d`. القبول على فرع التكامل فقط؛ لا `VERIFIED` على main ولا merge.
 
 **المواصفات:** [UNIT-027](02-SPECIFICATIONS/03-New-Design/UNIT-027-المشتريات.md)، [UNIT-028](02-SPECIFICATIONS/03-New-Design/UNIT-028-المواد-والمخزون.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -220,7 +220,7 @@
 
 ### S08 — الأصول والمعدات دون تعقيد
 
-**الحالة:** PLANNED_REVIEW؛ لا فرع مرحلة ولا أمر منشور.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` بقرار المالك 2026-11-04؛ النتيجة `13-S08-RESULT-2026-10-30.md` والمرشح الكودي `abfc1092 + 6b3cb946`. القبول على فرع التكامل فقط؛ لا `VERIFIED` على main ولا merge.
 
 **المواصفات:** [UNIT-034](02-SPECIFICATIONS/03-New-Design/UNIT-034-الأصول-والمعدات.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -246,7 +246,7 @@
 
 ### S09 — بناء الطلب وتكلفته والمنتج القابل لإعادة الاستخدام
 
-**الحالة:** منفذة ومسلّمة للمراجعة (2026-10-30، بأمر التنفيذ المتصل `ad133bae` القسم ٢ مع تعديل الاستئناف `ef028e4e`؛ النتيجة `14-S09-RESULT-2026-10-30.md`؛ DOC-018/WS-234 في IN_REVIEW؛ المرشح الكودي النهائي `e163e90e` بعد المراجعات الخمس وتصحيحاتها المؤكدة بالسلسلة الكاملة خضراء على الشجرة النهائية)؛ رهن المراجعة المستقلة وقبول المالك.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` بقرار المالك 2026-11-04؛ النتيجة `14-S09-RESULT-2026-10-30.md` والمرشح الكودي `e163e90e`. القبول على فرع التكامل فقط؛ لا `VERIFIED` على main ولا merge.
 
 **المواصفات:** [UNIT-007](02-SPECIFICATIONS/03-New-Design/UNIT-007-مسودة-الطلب.md)، [UNIT-008](02-SPECIFICATIONS/03-New-Design/UNIT-008-التكلفة.md)، [UNIT-029](02-SPECIFICATIONS/03-New-Design/UNIT-029-المنتجات-والخدمات.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -298,7 +298,7 @@
 
 ### S11 — البيع المباشر والتسجيل السريع والتحصيل منه
 
-**الحالة:** EXECUTED_DELIVERED_LOCAL_CHAIN_GREEN (2026-10-31 — أمر `b33a8877`؛ DOC-020/WS-236 IN_REVIEW/REVIEW_REQUIRED؛ المرشح الكودي `020e1e8b` والمراجعات الخمس مكتملة وتصحيحاتها معاد قراءتها و`pnpm check` خروج 0 والبوابتان البعيدتان على الرأس النهائي المدفوع يوثقان في تعليق مراجعة PR #383؛ مسح الهيكل القراءة فقط مسلّم وكل موجاته NOT_EXECUTED بقرار مالك؛ التفاصيل في `16-S11-RESULT`)؛ رهن المراجعة المستقلة وقبول المالك — لا merge.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` بقرار المالك 2026-11-04؛ النتيجة `16-S11-RESULT-2026-10-31.md` والمرشح الكودي `020e1e8b`. القبول على فرع التكامل فقط؛ لا `VERIFIED` على main ولا merge.
 
 **المواصفات:** [UNIT-004](02-SPECIFICATIONS/03-New-Design/UNIT-004-التسجيل-السريع.md)، [UNIT-005](02-SPECIFICATIONS/03-New-Design/UNIT-005-البيع-المباشر.md)، [UNIT-026](02-SPECIFICATIONS/03-New-Design/UNIT-026-تسجيل-دفعة-على-مستحق.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -454,7 +454,7 @@
 
 ### S17 — فحص البيانات وتجربة النسخ النهائية
 
-**الحالة:** `IN_REVIEW` (مُسلّمة 2026-11-04 عند المرشح الكودي `1f232c79` — النتيجة `22-S17-RESULT-2026-11-04.md`)؛ DOC-026/WS-242 أنشئتا قانونيًا قبل أول سطر كود وأعيدتا للمراجعة؛ بوابتا Actions/Cloudflare على الرأس النهائي المدفوع موثقتان في تعليق PR #383.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` بقرار المالك 2026-11-04؛ النتيجة `22-S17-RESULT-2026-11-04.md` والمرشح الكودي `1f232c79`. القبول على فرع التكامل فقط؛ لا `VERIFIED` على main ولا merge.
 
 **المواصفات:** [UNIT-033](02-SPECIFICATIONS/03-New-Design/UNIT-033-فحص-البيانات.md)، [UNIT-044](02-SPECIFICATIONS/03-New-Design/UNIT-044-النسخ-الاحتياطي-والاستعادة.md)، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 
@@ -480,7 +480,7 @@
 
 ### S18 — القبول المتكامل وتجهيز الدمج النهائي
 
-**الحالة:** `IN_REVIEW` (مُسلّمة 2026-11-04 عند شجرة الكود `7b8129f6` — المصفوفة `23-S18-JOURNEY-MATRIX` وملف جاهزية الدمج `24-S18-MERGE-READINESS-MANIFEST`)؛ DOC-027/WS-243 أنشئتا قانونيًا وأعيدتا للمراجعة؛ بوابتا Actions/Cloudflare على الرأس النهائي المدفوع موثقتان في تعليق PR #383.
+**الحالة:** `ACCEPTED_ON_INTEGRATION` بقرار المالك 2026-11-04؛ النتيجة `23-S18-JOURNEY-MATRIX-2026-11-04.md + 24-S18-MERGE-READINESS-MANIFEST-2026-11-04.md` والمرشح الكودي `7b8129f6`. القبول على فرع التكامل فقط؛ لا `VERIFIED` على main ولا merge.
 
 **المواصفات:** توثيق أو قبول برنامج؛ لا مكون منتج جديد، و[العقد المشترك](02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md)، وفصول P3 وA/B ذات الصلة.
 

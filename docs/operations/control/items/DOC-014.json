@@ -11,7 +11,7 @@
   "classification": "FIX_BEFORE_PILOT",
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "المالك أذن صراحةً بتنفيذ S05 بأمر 00-S05-EXECUTION-PROMPT-2026-10-29.md المنشور في 1663f2452b3769684f8faf0fe1671a410f79f116 على الفرع وPR #383 نفسيهما، مع معالجة الأمرين المحوّلين من مراجعة S04 (CF-001/CF-002) دون إعادة فتح S04، وحظر كتابة main والدمج وإنشاء الفروع/PRs الثانية وبدء S06.",
+  "owner_decision": "المالك أذن صراحةً بتنفيذ S05 بأمر 00-S05-EXECUTION-PROMPT-2026-10-29.md المنشور في 1663f2452b3769684f8faf0fe1671a410f79f116 على الفرع وPR #383 نفسيهما، مع معالجة الأمرين المحوّلين من مراجعة S04 (CF-001/CF-002) دون إعادة فتح S04، وحظر كتابة main والدمج وإنشاء الفروع/PRs الثانية وبدء S06.\nقرار المالك الشامل للمرحلة S05 بتاريخ 2026-11-04: أكد المالك صراحةً قبول تسليم S05 على فرع التكامل components/integration-20261027، استنادًا إلى التقرير 10-S05-RESULT-2026-10-29.md + 10a addendum والمرشح الكودي bee05336. هذا قبول على فرع التكامل فقط؛ لا يعني VERIFIED على main ولا إذن دمج. ولا ينشئ هذا القيد ادعاءً بمراجعة مستقلة من Manus حيث لا يسجلها التاريخ.",
   "tests_required": [
     "python3 scripts/operations-control/validate.py",
     "python3 scripts/operations-control/generate_tracker.py --check",
@@ -89,7 +89,7 @@
   "related_items": [
     "DOC-013"
   ],
-  "updated_at": "2026-10-30",
+  "updated_at": "2026-11-04",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -105,5 +105,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "مراجعة Manus المستقلة وقبول المالك لS05 على المرشح النهائي bee05336؛ التحقق البعيد (Actions/Cloudflare) على الرأس المدفوع يُسجل في تعليق PR #383؛ لا دمج ولا كتابة main ولا S06 قبل قرار المالك. (تحديث مؤرخ 2026-10-30: أُذن S06 — المتصل بإصلاحَي S05-MR-001/S05-MR-002 — بقرار مالك مستقل لاحقًا: 00-S06-EXECUTION-PROMPT-2026-10-29.md المنشور في 13197ac0؛ الإصلاحان سلّما فوق مرشح S05 على الفرع/PR نفسيهما ورهن المراجعة المستقلة وقبول المالك كما هو.)"
+  "next_action": "S05 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا VERIFIED على main ولا merge؛ قرار الدمج منفصل."
 }

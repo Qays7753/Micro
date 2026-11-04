@@ -12,7 +12,7 @@
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
   "root_cause": "كانت S02 ممثلة بمسودة مراجعة وبوابة ChatGPT تاريخية رغم أن المالك قرر تشغيل البرنامج مع Manus وZAI فقط؛ كما كانت أحدث ملفات Drive تحتاج إثبات مصالحة مع نسخ GitHub قبل جعل الأمر جاهزًا.",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "اعتمد المالك تجهيز أمر S02 النهائي وتشغيله لاحقًا على فرع التكامل الواحد؛ لا merge أو main write أو cleanup أو S03 ضمن هذا التفويض.",
+  "owner_decision": "اعتمد المالك تجهيز أمر S02 النهائي وتشغيله لاحقًا على فرع التكامل الواحد؛ لا merge أو main write أو cleanup أو S03 ضمن هذا التفويض.\nقرار المالك الشامل للمرحلة S02 بتاريخ 2026-11-04: أكد المالك صراحةً قبول تسليم S02 على فرع التكامل components/integration-20261027، استنادًا إلى التقرير 07-S02-RESULT-2026-10-27.md والمرشح الكودي 328d986e. هذا قبول على فرع التكامل فقط؛ لا يعني VERIFIED على main ولا إذن دمج. ولا ينشئ هذا القيد ادعاءً بمراجعة مستقلة من Manus حيث لا يسجلها التاريخ.",
   "tests_required": [
     "python3 scripts/operations-control/validate.py",
     "python3 scripts/operations-control/generate_tracker.py --check",
@@ -84,7 +84,7 @@
     "DOC-010",
     "DOC-009"
   ],
-  "updated_at": "2026-10-28",
+  "updated_at": "2026-11-04",
   "status_history": [
     {
       "status": "BACKLOG",
@@ -118,5 +118,5 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "أذن المالك صراحة بالانتقال من S02 إلى S03 (2026-10-28) بناء على إعادة تحقق ZAI المكتملة (المرحلة A عند الرأس 015c2d6c: لا مانع كودي، سلسلة محلية خضراء، وبوابات بعيدة خضراء على الرأس نفسه)؛ الإذن مسجل بأمانة دون اختراع مراجعة Manus أو حالة جديدة — مراجعة Manus المستقلة لـS02 ما زالت غير مسجلة وقبول المرحلة لم يصدر. التنفيذ انتقل إلى S03 تحت DOC-012/WS-228؛ يبقى هذا البند IN_REVIEW حتى مراجعة Manus وقبول المالك الصريح لـS02؛ لا merge ولا cleanup."
+  "next_action": "S02 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا VERIFIED على main ولا merge؛ قرار الدمج منفصل."
 }

@@ -11,7 +11,7 @@
   "classification": "FIX_BEFORE_PILOT",
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "Owner-directed connected execution (00-S11-EXECUTION-PROMPT-2026-10-31.md published at b33a887725b92dd9c122d3c8d1af775d6aa08475, dated 2026-10-31): first resolve the independently confirmed S10 finding S10-MR-001 at its root with a durable concurrent regression (delivered in 930560dc + addendum 15a in 3e3b9597), then proceed directly to S11 (UNIT-004/005/026 sale slice + SH-15) without an intermediate pause or approval. The authorization explicitly does NOT accept S10, S11, S08, or S09, is not permission to merge, and does not permit main writes, rebase, force-push, branch cleanup, or a second branch/PR.",
+  "owner_decision": "Owner-directed connected execution (00-S11-EXECUTION-PROMPT-2026-10-31.md published at b33a887725b92dd9c122d3c8d1af775d6aa08475, dated 2026-10-31): first resolve the independently confirmed S10 finding S10-MR-001 at its root with a durable concurrent regression (delivered in 930560dc + addendum 15a in 3e3b9597), then proceed directly to S11 (UNIT-004/005/026 sale slice + SH-15) without an intermediate pause or approval. The authorization explicitly does NOT accept S10, S11, S08, or S09, is not permission to merge, and does not permit main writes, rebase, force-push, branch cleanup, or a second branch/PR.\nقرار المالك الشامل للمرحلة S11 بتاريخ 2026-11-04: أكد المالك صراحةً قبول تسليم S11 على فرع التكامل components/integration-20261027، استنادًا إلى التقرير 16-S11-RESULT-2026-10-31.md + 16a/16b addenda والمرشح الكودي 020e1e8b. هذا قبول على فرع التكامل فقط؛ لا يعني VERIFIED على main ولا إذن دمج. ولا ينشئ هذا القيد ادعاءً بمراجعة مستقلة من Manus حيث لا يسجلها التاريخ.",
   "tests_required": [
     "Domain tests for dated collection entries and PD-02 full return: entry identity/date/operationKey, collected total and derived status together, outstanding recheck, no second collection after return, refund due equals collected only, original revenue/history preserved, sale month vs collection month separation",
     "Dual-adapter storage commit tests: sale create + initial collection + optional wallet allocation in one boundary; later collection with revision/remaining recheck inside the boundary and allocation referencing the collection entry; full-return commit with no cash movement; same-key retry reuse on both adapters; changed-payload same-key conflict; concurrent collections (two windows) — exactly one succeeds",
@@ -92,7 +92,7 @@
     "DOC-019"
   ],
   "migration_baseline": true,
-  "next_action": "مراجعة Manus المستقلة وقبول المالك على سجل S11 الكامل (بمُلحقيه 16a و16b)؛ ثم فتح DOC-021/WS-237 قانونيًا لتصحيحات S12 المأذونة بأمر 2158b0fc §5.",
+  "next_action": "S11 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا VERIFIED على main ولا merge؛ قرار الدمج منفصل.",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -143,5 +143,5 @@
       "reason": "أُغلق تصحيح موجدتي أمر 2158b0fc §4 من جذورهما في 2de3e94e: S11-LR-001 صُنفت ALREADY_PROTECTED_AT_DOMAIN_BOUNDARY بإثبات دائم عند حد الكتابة على المهايئين (صفر كتابات عند الرفض) مع بوابة تمهيدية محدودة تمنع استدعاء الخدمة، وS11-LR-002 صُححت هجرة المسودة الفائضة (المساواة فقط تهاجر «كاملًا» والقيمة الخام تُستعاد ظاهرة تمنع الحفظ حتى التصحيح الصريح)، بانحدارات دائمة (نموذج 31 + واجهة 30 + حد 8)؛ الملحق 16b يوثق الدليل — يبقى S11 رهن المراجعة المستقلة وقبول المالك."
     }
   ],
-  "updated_at": "2026-11-02"
+  "updated_at": "2026-11-04"
 }

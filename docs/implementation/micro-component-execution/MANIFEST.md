@@ -227,13 +227,13 @@
 
 ## Additions after S16 — 2026-11-04
 
-هذه إضافة تشغيلية بعد الحزمة المجمدة؛ لا تغير ZIP الأصلي أو بصماته. اعتمد المالك S15 وS16 على فرع التكامل عند رأس `7fef8cf1fa9795e137a72c9a19ccdc38c247ba83`؛ وبموجب الأمر المتصل نفسه سُلمت S17 (`1f232c79`) ثم S18 (`7b8129f6`) للمراجعة المستقلة مع ملف جاهزية الدمج النهائي؛ بقي `main` عند `3584aa1d08cea3e0a00623b719fed7f991ce187f` بلا merge، والدمج قرار مالك لاحق يليه تحقق main منفصل.
+هذه إضافة تشغيلية بعد الحزمة المجمدة؛ لا تغير ZIP الأصلي أو بصماته. أكد المالك قبول S01–S18 على فرع التكامل عند رأس التسليم `0b16cbe4e02794689defb22f31747e3abaed4bba`؛ بقي `main` عند `3584aa1d08cea3e0a00623b719fed7f991ce187f` بلا merge، والدمج قرار مالك منفصل يليه تحقق main مستقل.
 
 | الملف | الدور | الحالة |
 |---|---|---|
 | `20-S15-RESULT-2026-11-03.md` + `20a-S15-REVIEW-ADDENDUM-2026-11-03.md` | تسليم S15 وإصلاح S15-MR-001 عند `c788b09f` بأحمر/أخضر؛ لا اختبار جهاز فعلي. | `OWNER ACCEPTED ON INTEGRATION (2026-11-04); not VERIFIED on main; no merge` |
 | `21-S16-RESULT-2026-11-03.md` | تسليم S16؛ المرشح الكودي `9dc4b194`، والبوابتان البعيدتان ناجحتان على رأس التسليم `7fef8cf1`. | `OWNER ACCEPTED ON INTEGRATION (2026-11-04); not VERIFIED on main; no merge` |
-| `00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md` | أمر مستقل لـZAI: S17 (UNIT-033/044 + SH-22) ثم S18 نهائيًا على الفرع وPR نفسيهما؛ لا موجات هيكلية أو كتابة main أو دمج؛ تسليم Merge Readiness Manifest للمالك. | `EXECUTING — S17 DELIVERED 2026-11-04 (1f232c79; DOC-026/WS-242 IN_REVIEW/REVIEW_REQUIRED); S18 IN PROGRESS` |
-| `22-S17-RESULT-2026-11-04.md` | نتيجة تسليم S17 (UNIT-033/044 + SH-22) وأدلتها الكاملة: بوابة حدود موارد الاستيراد (SDF-048 أحمر أولًا) وقسم «فحص البيانات» داخل الإعدادات وتقاعد السطح المستقل وإحالته ومصالحة العائلات الدائمة (SH-22)؛ سلمت للمراجعة المستقلة — لا قبول. | `EXECUTED 2026-11-04 (delivered for review; DOC-026/WS-242 IN_REVIEW/REVIEW_REQUIRED)` |
-| `23-S18-JOURNEY-MATRIX-2026-11-04.md` | مصفوفة الرحلات العشر العابرة للمراحل وتدقيق القبول القرائي للفرع كاملًا (18 مرحلة) وحل SDF-068 بأدلة دائمة. | `EXECUTED 2026-11-04 (delivered for review; DOC-027/WS-243 IN_REVIEW/REVIEW_REQUIRED)` |
-| `24-S18-MERGE-READINESS-MANIFEST-2026-11-04.md` | ملف جاهزية الدمج النهائي للمالك: الخط الأساس والمرشح وجدول المراحل الـ18 والمصفوفة والعقود والسقوف والمراجعات السبع والبوابتين والحدود وقرار المالك التالي — أدلة جاهزية لا إذن دمج. | `EXECUTED 2026-11-04 (delivered for owner review; merge is a separate owner decision)` |
+| `00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md` | أمر مستقل لـZAI: S17 ثم S18 على الفرع وPR نفسيهما؛ التنفيذ مكتمل، والتفاصيل في تقريري النتيجة وملف الجاهزية؛ لا موجات هيكلية أو كتابة main أو دمج. | `EXECUTED + OWNER ACCEPTED S01–S18 ON INTEGRATION (2026-11-04); not VERIFIED on main; no merge` |
+| `22-S17-RESULT-2026-11-04.md` | نتيجة S17 (UNIT-033/044 + SH-22)؛ بوابة موارد الاستيراد، فحص البيانات في الإعدادات، تقاعد السطح المستقل، ومصالحة العائلات؛ صُحح عدد الأزواج إلى 28 موروثًا + الحالي. | `OWNER ACCEPTED ON INTEGRATION (2026-11-04); no VERIFIED on main; no merge` |
+| `23-S18-JOURNEY-MATRIX-2026-11-04.md` | مصفوفة الرحلات العشر وتدقيق المراحل الـ18 وحل SDF-068؛ الأعداد والأزواج محدثة بقرار المالك. | `OWNER ACCEPTED ON INTEGRATION (2026-11-04); no VERIFIED on main; no merge` |
+| `24-S18-MERGE-READINESS-MANIFEST-2026-11-04.md` | ملف جاهزية S18 بعد قرار قبول المالك؛ يصحح مرشحي S15/S16 ويثبت 28 زوجًا موروثًا + الحالي=29؛ أدلة وليس إذن دمج. | `OWNER ACCEPTED S01–S18 ON INTEGRATION (2026-11-04); merge remains separate` |

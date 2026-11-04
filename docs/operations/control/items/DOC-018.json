@@ -11,7 +11,7 @@
   "classification": "FIX_BEFORE_PILOT",
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "Owner-authorized continuous execution (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3): Part 1 (S08-MR-001/002, delivered in 6b3cb946) then Part 2 (S09) without intermediate approval; stage acceptance and merge remain owner-gated",
+  "owner_decision": "Owner-authorized continuous execution (00-S09-EXECUTION-PROMPT-2026-10-30.md published at ad133bae8b0e58effc295aa6b00210c8daad41c3): Part 1 (S08-MR-001/002, delivered in 6b3cb946) then Part 2 (S09) without intermediate approval; stage acceptance and merge remain owner-gated\nقرار المالك الشامل للمرحلة S09 بتاريخ 2026-11-04: أكد المالك صراحةً قبول تسليم S09 على فرع التكامل components/integration-20261027، استنادًا إلى التقرير 14-S09-RESULT-2026-10-30.md والمرشح الكودي e163e90e. هذا قبول على فرع التكامل فقط؛ لا يعني VERIFIED على main ولا إذن دمج. ولا ينشئ هذا القيد ادعاءً بمراجعة مستقلة من Manus حيث لا يسجلها التاريخ.",
   "tests_required": [
     "Domain tests for the grouped basis expansion (multiply-once, delivery once, kernel reuse) and snapshot semantics",
     "Dual-adapter regressions for draft persistence: groups, versioned offering refs, suggested price, CAS/linked guards",
@@ -85,7 +85,7 @@
     "DOC-017"
   ],
   "migration_baseline": true,
-  "next_action": "مراجعة Manus المستقلة وقبول المالك على PR #383 (سجل S09 الكامل في 14-S09-RESULT-2026-10-30.md) — البوابتان مفتوحتان كما هما ولم تصدرا. إذن المالك المستمر بتاريخ 2026-10-31 (أمر تنفيذ S10 المنشور في 00-S10-EXECUTION-PROMPT-2026-10-31.md عند b56967d8e7d699a21f7fe83161561d2d146dbc23): تسجيل استثناءَي S09 الأمنيين المأذونَين تحديدًا (GHSA-g3hv-75wg-m249 minimatch وGHSA-3g3m-2fjr-6pw4 glob) ثم التنفيذ المتصل لS10 (UNIT-030/031/032 + SH-14) على الفرع/PR نفسيهما بلا موافقات وسطية؛ الإذن لا يعني قبول S08/S09 ولا الدمج — مراجعة Manus المستقلة وقبول المالك بوابتا القبول والدمج لكل من S08 وS09 كما هما. استثناءا S10 الأمنيان سُجلا OWNER_ACCEPTED في 7adfac55 بعد إعادة تحقق حية أكدت الحقائق نفسها (الاستشارتان حيّتان، السلاسل تطويرية فقط، لا مسار إصلاح داخل النطاقات)، فتحقق خطوة تدقيق الاعتماديات أخضر بالمسار الموثق نفسه (ci-audit-check PASS بإشعارات معتمدة ثلاثة). لا دمج ولا كتابة main؛ S10 تنفذ الآن بمطالبتها المستقلة DOC-019/WS-235 فوق سجل S09 المسلَّم كما هو.",
+  "next_action": "S09 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا VERIFIED على main ولا merge؛ قرار الدمج منفصل.",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -100,5 +100,5 @@
       "reason": "اكتمل تنفيذ S09 المتصل لUNIT-007/008/029 + SH-13 على components/integration-20261027 / PR #383 بأمر التنفيذ المتصل ad133bae (القسم ٢) مع تعديل الاستئناف ef028e4e: (١) عقد البيانات المشترك والمجموعات بتكرار واحد عبر expandGroupedCostBasis إلى النواة الواحدة (01bd03b4 — لا محرك ثانٍ)؛ (٢) توصيل الخدمات وتحقق النقل والترحيل للحقول الجديدة على 40/32 بلا ترقية (e4208661)؛ (٣) مصالحة Control القانونية للمسار المكسور (8e9a73c7)؛ (٤) حفظ العرض الصريح للاستخدام مرة أخرى + واجهتا المسودة/التكلفة المجمعة + مسودة النموذج للسطحين + رحلات DOM (e6b67d7c)؛ (٥) إرساء الأسطح المحلي وتحديث تجهيزات اختبارات الأسطح القائمة (0c741792 — السلسلة الكاملة pnpm check خروج 0)؛ (٦) تصحيحات المراجعة الخمس المؤكدة (6496596c + e163e90e — بوابة شكل مرجع المجموعة الكاملة والتطبيع العائلي للترحيل والعلامات الميدانية الفورية وأرقام bdi). المراجعات الخمس القرائية مكتملة: R1/R2/R3 نظافة بملاحظات موثقة، وR4 وR5 بملاحظات مؤكدة عولجت من الجذر وأعيدت قراءتها إلى PASS. السلسلة الكاملة pnpm check خروج 0 على الشجرة النهائية e163e90e (جذري 967/967 وتطبيق 3,096/3,096 وlint 35 بالضبط والميزانية والأسطح المحلية PASS والControl صالح). S09 تسليم للمراجعة لا قبولًا ذاتيًا — رهن المراجعة المستقلة وقبول المالك؛ الاستمرار إلى أي مرحلة لاحقة بأمر المالك وحده."
     }
   ],
-  "updated_at": "2026-10-31"
+  "updated_at": "2026-11-04"
 }

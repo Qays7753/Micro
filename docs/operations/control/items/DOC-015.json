@@ -11,7 +11,7 @@
   "classification": "FIX_BEFORE_PILOT",
   "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "المالك أذن صراحةً بالتنفيذ المتصل بأمر 00-S06-EXECUTION-PROMPT-2026-10-29.md المنشور في 13197ac0043ab7684a0f64a469a038e11ad434eb: إصلاح S05-MR-001 وS05-MR-002 من جذرهما أولًا بإثبات انحدار دائم على Memory وIndexedDB، ثم الاستمرار تلقائيًا إلى تنفيذ S06 الكامل لUNIT-015 وUNIT-019 دون انتظار مراجعة أو تأكيد بينهما، مع حظر كتابة main والدمج وrebase والforce-push وحذف الفروع وإنشاء فرع/PR ثانٍ.",
+  "owner_decision": "المالك أذن صراحةً بالتنفيذ المتصل بأمر 00-S06-EXECUTION-PROMPT-2026-10-29.md المنشور في 13197ac0043ab7684a0f64a469a038e11ad434eb: إصلاح S05-MR-001 وS05-MR-002 من جذرهما أولًا بإثبات انحدار دائم على Memory وIndexedDB، ثم الاستمرار تلقائيًا إلى تنفيذ S06 الكامل لUNIT-015 وUNIT-019 دون انتظار مراجعة أو تأكيد بينهما، مع حظر كتابة main والدمج وrebase والforce-push وحذف الفروع وإنشاء فرع/PR ثانٍ.\nقرار المالك الشامل للمرحلة S06 بتاريخ 2026-11-04: أكد المالك صراحةً قبول تسليم S06 على فرع التكامل components/integration-20261027، استنادًا إلى التقرير 11-S06-RESULT-2026-10-29.md + 11a addendum والمرشح الكودي 0a728d14. هذا قبول على فرع التكامل فقط؛ لا يعني VERIFIED على main ولا إذن دمج. ولا ينشئ هذا القيد ادعاءً بمراجعة مستقلة من Manus حيث لا يسجلها التاريخ.",
   "tests_required": [
     "python3 scripts/operations-control/validate.py",
     "python3 scripts/operations-control/generate_tracker.py",
@@ -94,7 +94,7 @@
   "related_items": [
     "DOC-014"
   ],
-  "updated_at": "2026-10-30",
+  "updated_at": "2026-11-04",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -110,5 +110,5 @@
     }
   ],
   "migration_baseline": true,
-  "next_action": "مراجعة Manus المستقلة وقبول المالك لـS06 (ولإصلاحَي S05 المسلّمين ولإصلاح ملاحظة المراجعة المؤكدة S06-MR-001 المسلّم من الجذر في 18a7128a بموجب أمر S07 المنشور 489474ca — الملحق 11a-S06-ADDENDUM-2026-10-30.md يسجله: الانحدار الدائم 12=6×مهايئان + رحلتا DOM) على المرشح الكودي النهائي 0a728d14 وسلسلة S07 فوقه؛ التحقق البعيد يُسجل في تعليق PR؛ لا دمج ولا كتابة main."
+  "next_action": "S06 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا VERIFIED على main ولا merge؛ قرار الدمج منفصل."
 }
