@@ -32,8 +32,10 @@ describe("Prototype navigation contract", () => {
     expect(getNavigationLabel("/settings")).toBe("الإعدادات");
     /* N-06 (Wave 4.2): الاسم الموحد للكتالوج — «منتجاتي وخدماتي» لا «الكتالوج». */
     expect(getNavigationLabel("/catalog")).toBe("منتجاتي وخدماتي");
-    /* N-22 (Wave 4.2 — F05): التسمية السياقية لسطح سلامة الحسابات بموضعه المعتمد. */
-    expect(getNavigationLabel("/tools/integrity")).toBe("سلامة الحسابات");
+    /* S17 (DOC-026 / UNIT-033): التسمية المستقلة تقاعدت مع سطحها — المسار
+     * القديم يسقط إلى تسمية بادئته العامة حتى تحيله الموجّهات إلى الإعدادات
+     * حيث يقيم قسم «فحص البيانات». */
+    expect(getNavigationLabel("/tools/integrity")).toBe("أدواتي");
   });
 
   it("falls back to the product identity for an unknown route", () => {

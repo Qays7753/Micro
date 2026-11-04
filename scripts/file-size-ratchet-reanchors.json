@@ -8742,6 +8742,101 @@
         "trigger": "S16 execution on components/integration-20261027 / PR #383",
         "ocRef": "DOC-025"
       }
+    },
+    {
+      "id": "S17-SDF048-RESOURCE-GATE-20261104-01",
+      "date": "2026-11-04",
+      "path": "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+      "from": {
+        "nbLoc": 306,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 537,
+        "band": "WATCH"
+      },
+      "reason": "S17 (UNIT-044 B3/F — SDF-048): بوابة حدود موارد ملف الاستعادة أول prepareImport — استيراد حد التحقق الآمن (سطر واحد) ورفض النص الأكبر منه برسالة محددة قبل JSON.parse وقبل أي كتابة؛ لا منطق آخر تغير.",
+      "authorization": {
+        "ownerReview": "أمر S17 المتصل 00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md §3 (الملف الأكبر يُرفض قبل أي كتابة) — جزء من فرق S17 في PR #383",
+        "trigger": "UNIT-044 P3.6/H2 (SDF-048) يفرض بوابة حجم قبل أي مسح؛ التنفيذ الأحمر أولًا في localTransferService.s17sdf.test.ts قبل هذا السطر",
+        "ocRef": "DOC-026"
+      }
+    },
+    {
+      "id": "S17-TRANSFERS-DOOR-LIMITS-20261104-02",
+      "date": "2026-11-04",
+      "path": "apps/prototype-web/client/src/application/transfers/index.ts",
+      "from": {
+        "nbLoc": 13,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 42,
+        "band": "NORMAL"
+      },
+      "reason": "S17 (SDF-048): تصدير حدود موارد الاستيراد (IMPORT_FILE_BYTES_LIMIT_MESSAGE وMAX_IMPORT_FILE_UNITS وisWithinImportFileBytes) من باب النقل العام — مستهلك حي واحد هو صفحة الإعدادات قبل قراءة الملف (PC-3: توسيع مقصود بنفس الشريحة).",
+      "authorization": {
+        "ownerReview": "أمر S17 المتصل §3 — جزء من فرق S17 في PR #383",
+        "trigger": "واجهة الإعدادات تستهلك البوابة من باب البيت المملوك للعقد لا باستيراد عميق",
+        "ocRef": "DOC-026"
+      }
+    },
+    {
+      "id": "S17-UNIT033-DATA-CHECK-SETTINGS-20261104-03",
+      "date": "2026-11-04",
+      "path": "apps/prototype-web/client/src/pages/Settings.tsx",
+      "from": {
+        "nbLoc": 704,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 866,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S17 (UNIT-033 — قرار المالك «فحص البيانات» داخل الإعدادات): تركيب قسم فحص البيانات (حالة فتح + مرجع تمرير نظر + استيراد القسم + بوابة حجم الملف قبل file.text في chooseImport + تمرير openDataCheck لقسم الحماية) — المسؤولية الجديدة كلها في ملف القسم المستقل الجديد NORMAL.",
+      "authorization": {
+        "ownerReview": "أمر S17 المتصل §3 (UNIT-033 مدخل يدوي داخل الإعدادات) — جزء من فرق S17 في PR #383",
+        "trigger": "UNIT-033 A2/B-DUP: البيت داخل الإعدادات والسطح المستقل يتقاعد؛ لا تقسيم ملفات في هذه الشريحة (بوابة ما بعد المجموعة ٦)",
+        "ocRef": "DOC-026"
+      }
+    },
+    {
+      "id": "S17-UNIT033-INTEGRITY-ROUTE-RETIRE-20261104-04",
+      "date": "2026-11-04",
+      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+      "from": {
+        "nbLoc": 253,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 277,
+        "band": "NORMAL"
+      },
+      "reason": "S17 (UNIT-033 B-DUP): مسار /tools/integrity يتحول من صفحة إلى إحالة موثقة إلى /settings (نمط /finance/more نفسه) — بديل جاهز في نفس الشريحة وروابط قديمة محفوظة.",
+      "authorization": {
+        "ownerReview": "أمر S17 المتصل §3 — جزء من فرق S17 في PR #383",
+        "trigger": "UNIT-033 B-DUP شرط الإزالة: البديل المسمى والروابط والعودة جاهزة قبل تقاعد القديم",
+        "ocRef": "DOC-026"
+      }
+    },
+    {
+      "id": "S17-DENSITY-SETTINGS-CHECK-20261104-05",
+      "date": "2026-11-04",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 929,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "S17 (DOC-026 / UNIT-033): تقاعد سطح ToolsIntegrity من القياس (صفحته ومساره) ورفع سقف Settings 63→75 لاستقبال نصوص قسم «فحص البيانات» المنقول (صافي +12 بعد الاتحاد) — تحديث سياسة القياس الموثقة بنفس الشريحة مع إعادة توليد الذهبي.",
+      "authorization": {
+        "ownerReview": "أمر S17 المتصل §3 — جزء من فرق S17 في PR #383",
+        "trigger": "UNIT-033 B-DUP: نقل السطح يستوجب نقل قياسه إلى بيته الجديد بسجل مؤرخ",
+        "ocRef": "DOC-026"
+      }
     }
   ]
 }

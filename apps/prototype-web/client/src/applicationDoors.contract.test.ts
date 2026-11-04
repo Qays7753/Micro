@@ -134,6 +134,12 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
     /* S14 (DOC-023 — أمر ba2ce7b4 §5): منسق الاستكمال وكعب اختبار حده. */
     "AccountCompletionService",
     "createAccountCompletionHarness",
+    /* S17 (DOC-026 / UNIT-044 — SDF-048): حدود موارد فحص ملف الاستعادة —
+     * مستهلك حي واحد (الإعدادات قبل قراءة الملف)؛ توسيع مقصود PC-3 بنفس
+     * الشريحة. */
+    "IMPORT_FILE_BYTES_LIMIT_MESSAGE",
+    "MAX_IMPORT_FILE_UNITS",
+    "isWithinImportFileBytes",
   ],
   /* أبواب Wave B/W4 بعد فصل الأنواع (الخطوة ٦): */
   budgets: ["ExpenseBudgetService"],

@@ -89,7 +89,8 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
     ["InventoryMovementEditor.tsx", 1],
     ["DirectSaleEditor.tsx", 0],
     ["MaterialEditor.tsx", 0],
-    ["ToolsIntegrity.tsx", 0],
+    /* S17 (DOC-026 / UNIT-033): سطح ToolsIntegrity تقاعد ونقل ملكية رسالة
+     * الخطأ إلى قسم «فحص البيانات» داخل الإعدادات (كلا موقعيه alert). */
     ["CashAdjustmentEditor.tsx", 0],
     ["CostCalculator.tsx", 0],
     /* S10 (UNIT-030/032 — أمر b56967d8): Tools صارت وجهة أدوات خمسة ساكنة
@@ -101,6 +102,9 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
      * مع خروج طبقة التصحيحات من جذر المالية — قراءة التصحيحات من سجل
      * العمليات الموحد (017) ومصادرها؛ لا سطح رسالة خطأ يحتاج الحصر هنا. */
     ["direct-sales/SaleCollectionReversalSection.tsx", 0],
+    /* S17 (DOC-026 / UNIT-033): قسم «فحص البيانات» داخل الإعدادات — رسالتا
+     * الخطأ (فشل التشغيل/فشل تجهيز الخدمة) تعلنان alert. */
+    ["settings/SettingsDataCheckSection.tsx", 0],
   ];
 
   it("every confirmed error-only message surface announces with role=alert (was status)", () => {

@@ -73,8 +73,6 @@ const HourValue = lazy(() => import("@/pages/HourValue"));
 const SalesQuantity = lazy(() => import("@/pages/SalesQuantity"));
 const InvoiceShare = lazy(() => import("@/pages/InvoiceShare"));
 const IdeaReview = lazy(() => import("@/pages/IdeaReview"));
-/* المجموعة ١ (فحص سلامة مالي): قارئ سطح تحت أدواتي — يبقى شريط التنقل. */
-const ToolsIntegrity = lazy(() => import("@/pages/ToolsIntegrity"));
 const Parties = lazy(() => import("@/pages/Parties"));
 const CashDistribution = lazy(() => import("@/pages/CashDistribution"));
 const CashCount = lazy(() => import("@/pages/CashCount"));
@@ -218,8 +216,12 @@ export function MicroRouter() {
             <Route path="/tools/sales-quantity" component={SalesQuantity} />
             <Route path="/tools/invoice-share" component={InvoiceShare} />
             <Route path="/tools/idea-review" component={IdeaReview} />
-            {/* المجموعة ١ (فحص سلامة مالي): مسار سطح — قارئ يبقي التنقل السفلي. */}
-            <Route path="/tools/integrity" component={ToolsIntegrity} />
+            {/* S17 (DOC-026 / UNIT-033 — قرار المالك المعتمد): فحص البيانات
+                صار قسمًا داخل الإعدادات — المسار المستقل القديم يوجه إليها
+                (لا صفحة مستقلة ولا 404؛ نمط /finance/more نفسه). */}
+            <Route path="/tools/integrity">
+              <Redirect to="/settings" />
+            </Route>
             {/* المجموعة ٤ (عقد ٢٩): محررا الأصل والقرض قبل المسارات الأكثر تحديدًا */}
             <Route path="/assets/new" component={AssetEditor} />
             <Route path="/assets/:id" component={AssetDetail} />

@@ -23,6 +23,9 @@ import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/forma
 import type { OperatingModeValue } from "@/application/time";
 import type { BoundRestoreIntent, TransferSummary } from "@/application/transfers";
 import type { GuidedOpeningImportPreview } from "@/application/transfers";
+/* S17 (DOC-026 / UNIT-044 — SDF-048): بوابة حجم ملف الاستعادة قبل قراءته —
+ * من باب النقل العام (نفس البيت المملوك للعقد). */
+import { IMPORT_FILE_BYTES_LIMIT_MESSAGE, isWithinImportFileBytes } from "@/application/transfers";
 import { DecisionPanel } from "@/components/presentation/DecisionPanel";
 import { DateTimeValue, IntegerValue } from "@/components/presentation/DisplayValue";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -31,6 +34,9 @@ import type { OperatingWorkMode } from "@/storage/local/types";
 import { localDiagnostics } from "@/application/diagnostics";
 
 import { SettingsDataProtectionSection } from "@/components/settings/SettingsDataProtectionSection";
+/* S17 (DOC-026 / UNIT-033): قسم «فحص البيانات» — صيانة قراءة فقط داخل
+ * الإعدادات؛ نفس خدمة الفحص الواحدة (لا خدمة ثانية). */
+import { SettingsDataCheckSection } from "@/components/settings/SettingsDataCheckSection";
 import {
   SettingsOperatingModeSection,
   modeOptions,
@@ -138,6 +144,14 @@ export default function SettingsPage() {
    * التحميل، وتحسم أي نية استبدال معلقة أولًا بصدق. */
   const [rollbackStatus, setRollbackStatus] = useState<{ createdAt: string } | null>(null);
   const guidedCardRef = useRef<HTMLDivElement>(null);
+  /* S17 (DOC-026 / UNIT-033): قسم «فحص البيانات» — مطوي افتراضيًا (صيانة
+   * يدوية لا واجبًا يوميًا)؛ إشعار ما بعد الاستعادة يفتحه ويمرر النظر إليه. */
+  const [dataCheckOpen, setDataCheckOpen] = useState(false);
+  const dataCheckRef = useRef<HTMLDetailsElement>(null);
+  const openDataCheck = () => {
+    setDataCheckOpen(true);
+    dataCheckRef.current?.scrollIntoView({ block: "start" });
+  };
   /* Wave 4.2 — P-4.2-3 (T2): القسم الموحد «البيانات والنسخ الاحتياطي» —
    * الطبقتان القديمتان دُمجتا في قسم واحد مفتوح افتراضيًا؛ الوصلة العميقة
    * ?focus=guided-import وإشعارات التخزين يفتحانه ويُمرّران النظر إلى بطاقة
@@ -543,6 +557,13 @@ export default function SettingsPage() {
     setNotice(null);
     setIsWorking(true);
     try {
+      /* S17 (DOC-026 / UNIT-044 — SDF-048): بوابة حدود الموارد تسبق قراءة
+       * الملف نفسه — الملف الأكبر من حد الفحص الآمن يُرفض قبل أن يُحمّل إلى
+       * الذاكرة، برسالة محددة وبلا أي كتابة. */
+      if (!isWithinImportFileBytes(file.size)) {
+        setStorageNotice("error", IMPORT_FILE_BYTES_LIMIT_MESSAGE);
+        return;
+      }
       if (!transfers) {
         setStorageNotice("error", "جارٍ تجهيز أدوات البيانات بعد الإقلاع — أعد المحاولة بعد لحظة.");
         return;
@@ -835,10 +856,15 @@ export default function SettingsPage() {
         chooseGuidedOpeningImport={chooseGuidedOpeningImport}
         confirmGuidedOpeningImport={confirmGuidedOpeningImport}
         confirmImport={confirmImport}
-        navigate={navigate}
+        openDataCheck={openDataCheck}
         guidedCardRef={guidedCardRef}
         guidedInputRef={guidedInputRef}
       />
+      {/* S17 (DOC-026 / UNIT-033 — قرار المالك): «فحص البيانات» صيانة يدوية
+          داخل الإعدادات — نطاق بسيط بحالات صادقة، قراءة فقط بلا إصلاح آلي؛
+          السطح المستقل السابق (/tools/integrity) تقاعد ووصله القديم يوجه
+          إلى هنا (نفس الشريحة — بديل جاهز وروابط ورجوع محفوظان). */}
+      <SettingsDataCheckSection ref={dataCheckRef} open={dataCheckOpen} onToggle={setDataCheckOpen} />
 
       <SettingsOperatingModeSection
         operatingMode={operatingMode}

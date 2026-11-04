@@ -40,6 +40,10 @@ import {
   type VerifiedBackupBuilder,
 } from "./replacementProtectionProtocol";
 import { isDate, isRecord, normalizeImportedCategoryLabel } from "./transferFamilyValidators";
+/* S17 (DOC-026 / UNIT-044 — SDF-048): بوابة حدود الموارد تسبق قراءة المحتوى
+ * وتحليله — الملف الأكبر من حد التحقق الآمن يُرفض برسالة محددة قبل أي
+ * كتابة وقبل JSON.parse نفسه. */
+import { IMPORT_SIZE_LIMIT_MESSAGE, isWithinImportSizeLimit } from "./transferResourceLimits";
 import { isCurrentPair, isReleasedLegacyPair, verifyTransferIntegrity } from "./transferEnvelope";
 import { exportCountsOf, verifyTransferCounts } from "./transferCounters";
 import { verifyTransferArrayFamilies } from "./transferArrayFamilyRoles";
@@ -218,6 +222,10 @@ export class LocalTransferService {
   }
 
   prepareImport(text: string): TransferResult<PreparedImport> {
+    /* S17 (DOC-026 / UNIT-044 B3/F — SDF-048): الملف الأكبر من حد التحقق
+     * الآمن يُرفض أولًا — قبل JSON.parse وقبل أي كتابة — برسالة محددة،
+     * فلا يستنفد الجهاز ولا يستورد جزئيًا. الحد شامل عند الحافة بالضبط. */
+    if (!isWithinImportSizeLimit(text)) return fail(IMPORT_SIZE_LIMIT_MESSAGE);
     let candidate: unknown;
     try {
       candidate = JSON.parse(text);

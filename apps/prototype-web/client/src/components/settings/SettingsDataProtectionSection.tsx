@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { type RefObject } from "react";
 import { businessDateFromTimestamp, formatLocalDate } from "@/presentation/formatters";
-import { withReturnTo } from "@/app/navigationContract";
 import type { GuidedOpeningImportPreview } from "@/application/transfers";
 import type { BrowserPersistenceReading } from "@/application/preferences";
 import type { BoundRestoreIntent, TransferSummary } from "@/application/transfers";
@@ -75,7 +74,9 @@ export type SettingsDataProtectionSectionProps = {
   chooseGuidedOpeningImport: (event: ChangeEvent<HTMLInputElement>) => Promise<void>;
   confirmGuidedOpeningImport: () => Promise<void>;
   confirmImport: () => Promise<void>;
-  navigate: (target: string) => void;
+  /* S17 (DOC-026 / UNIT-033): التنقل غادر هذا القسم — الفحص داخل الصفحة
+   * نفسها الآن؛ الخاصية تبقى للفحص فقط كي لا يتغير عقد الاستهلاك بلا حاجة. */
+  openDataCheck: () => void;
   guidedCardRef: RefObject<HTMLDivElement | null>;
   guidedInputRef: RefObject<HTMLInputElement | null>;
 };
@@ -116,7 +117,7 @@ export function SettingsDataProtectionSection({
   chooseGuidedOpeningImport,
   confirmGuidedOpeningImport,
   confirmImport,
-  navigate,
+  openDataCheck,
   guidedCardRef,
   guidedInputRef,
 }: SettingsDataProtectionSectionProps) {
@@ -324,12 +325,10 @@ export function SettingsDataProtectionSection({
           <article className="micro-setting-row" data-status={restoreCheck.overall}>
             <div>
               <strong data-status={restoreCheck.overall}>{restoreCheck.note}</strong>
-              <button
-                className="micro-text-action"
-                type="button"
-                onClick={() => navigate(withReturnTo("/tools/integrity", "/settings"))}
-              >
-                افتح فحص السلامة
+              {/* S17 (DOC-026 / UNIT-033): الفحص داخل الإعدادات نفسها — يفتح
+                  القسم ويمرر النظر إليه (المسار المستقل تقاعد). */}
+              <button className="micro-text-action" type="button" onClick={openDataCheck}>
+                افتح فحص البيانات
               </button>
             </div>
           </article>

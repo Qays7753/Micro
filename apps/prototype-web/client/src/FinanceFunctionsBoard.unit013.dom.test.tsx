@@ -231,8 +231,9 @@ describe("UNIT-013 — لوحة وظائف المالية (AF-B) وإلغاء ا
      * في routeKnowledgeSync ورندره الفعلي في R2.renderSmoke)؛ بديله الكنوني
      * هو المالية نفسها. */
     expect(canonicalReturnFor("/finance/more")).toBe("/finance");
-    /* تحديث موثق واحد مع وصول فحص السلامة: بديله الكنوني صار المالية مباشرة. */
-    expect(canonicalReturnFor("/tools/integrity")).toBe("/finance");
+    /* S17 (DOC-026 / UNIT-033): بديل فحص البيانات الكنوني صار الإعدادات —
+     * بيت «فحص البيانات» الجديد داخلها والمسار المستقل يوجه إليها. */
+    expect(canonicalReturnFor("/tools/integrity")).toBe("/settings");
     /* وجهة غير صالحة تسقط للبديل العام — لا حلقة (قاعدة §2.1-6). */
     expect(canonicalReturnFor("/finance/more?returnTo=/finance/more")).toBe("/finance");
   });

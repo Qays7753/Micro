@@ -382,7 +382,10 @@
     "transfers": {
       "value": [
         "AccountCompletionService",
-        "createAccountCompletionHarness"
+        "IMPORT_FILE_BYTES_LIMIT_MESSAGE",
+        "MAX_IMPORT_FILE_UNITS",
+        "createAccountCompletionHarness",
+        "isWithinImportFileBytes"
       ],
       "type": [
         "AccountCompletionInput",

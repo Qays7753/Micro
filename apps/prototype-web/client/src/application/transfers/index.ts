@@ -21,6 +21,14 @@ export type {
 } from "./localTransferService";
 
 export type { GuidedOpeningImportPreview, GuidedOpeningImportService } from "./guidedOpeningImportService";
+/* S17 (DOC-026 / UNIT-044 — SDF-048): حدود موارد فحص ملف الاستعادة — تستهلكها
+ * واجهة الإعدادات قبل قراءة الملف (PC-3: توسيع السطح تعديل مقصود بنفس
+ * الشريحة، بمستهلك حي هو Settings). */
+export {
+  IMPORT_FILE_BYTES_LIMIT_MESSAGE,
+  MAX_IMPORT_FILE_UNITS,
+  isWithinImportFileBytes,
+} from "./transferResourceLimits";
 /* S14 (DOC-023 / UNIT-002 — أمر ba2ce7b4 §5): منسق استكمال الحسابات —
  * بناء الخطة والمعاينة بلا مال، والالتزام المنسق بتفويض حد الكتابة المحروس. */
 export { AccountCompletionService } from "./accountCompletionService";

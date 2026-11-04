@@ -40,7 +40,7 @@ import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-ord
  * loanService.test.ts (المصنعان الكنونيان + commitLoanRecord). */
 import { createLoanRecord } from "@micro-domain/loan/index.js";
 import { createFinancialEvent, type FinancialEvent } from "@micro-domain/financial-event/index.js";
-import ToolsIntegrity from "@/pages/ToolsIntegrity";
+import { SettingsDataCheckSection } from "@/components/settings/SettingsDataCheckSection";
 import Home from "@/pages/Home";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { CollectionService } from "@/application/collections/collectionService";
@@ -433,9 +433,9 @@ describe("Wave 4.4 — P-4.4-1: integrity dead identifiers button removed after 
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
-    render(<ToolsIntegrity />);
+    render(<SettingsDataCheckSection open={true} onToggle={() => {}} />);
     await screen.findByText(/أرقامك كما هي/);
-    fireEvent.click(screen.getByRole("button", { name: /افحص الآن/ }));
+    fireEvent.click(screen.getByRole("button", { name: /بدء الفحص/ }));
     await screen.findByTestId("integrity-offender-summary");
     /* الزر الميت أُزيل — المعرّفات الخام الاحتياطية (إن بقيت) تظهر داخل التفصيل بلا زر. */
     expect(screen.queryByRole("button", { name: "أظهر المعرّفات" })).toBeNull();

@@ -1,8 +1,8 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "100a71c1e9fbc5d86be4c2734673d8930e5ee967",
+  "head": "358ff4f1bcf1ded8fb39cba9a974a72072ff531b",
   "pages": {
-    "total": 63,
+    "total": 62,
     "map": {
       "pages/AgreementEditor.tsx": {
         "kind": "direct",
@@ -465,14 +465,6 @@
           "pages/PlanningTools.s10.dom.test.tsx"
         ]
       },
-      "pages/ToolsIntegrity.tsx": {
-        "kind": "direct",
-        "evidence": [
-          "IntegrityReadable.w43.dom.test.tsx",
-          "ReadLayerParity.w44.dom.test.tsx",
-          "ToolsIntegrity.ui.test.tsx"
-        ]
-      },
       "pages/WalletLedger.tsx": {
         "kind": "direct",
         "evidence": [
@@ -825,7 +817,6 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/IntegrityReadable.w43.dom.test.tsx",
-          "apps/prototype-web/client/src/ToolsIntegrity.ui.test.tsx",
           "apps/prototype-web/client/src/application/finance/integrityCheckService.test.ts",
           "apps/prototype-web/client/src/application/transfers/localTransferService.assetPartyIntegrity.s08mr001.test.ts"
         ]

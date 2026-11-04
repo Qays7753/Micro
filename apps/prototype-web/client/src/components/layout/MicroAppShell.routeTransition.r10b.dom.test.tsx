@@ -162,9 +162,11 @@ describe("R10-B4/OD-12 — centralized route-transition focus and document title
     navigateTo("/orders/abc123/deliver");
     expect(document.title).toBe("مراجعة التسليم");
     expect(document.activeElement).toBe(currentMain());
-    /* الأسبقية: التسمية المحددة قبل العامة — سلامة الحسابات لا أدواتي. */
+    /* S17 (DOC-026 / UNIT-033): تسمية «سلامة الحسابات» المستقلة تقاعدت مع
+     * سطحها — المسار يسقط إلى تسمية بادئته العامة حتى تحيله الموجّهات إلى
+     * الإعدادات حيث يقيم قسم «فحص البيانات» (بيت الفحص الجديد). */
     navigateTo("/tools/integrity");
-    expect(document.title).toBe("سلامة الحسابات");
+    expect(document.title).toBe("أدواتي");
     expect(document.activeElement).toBe(currentMain());
   });
 

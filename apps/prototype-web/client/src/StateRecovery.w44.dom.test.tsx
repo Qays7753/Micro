@@ -160,12 +160,15 @@ describe("Wave 4.4 — P-4.4-4: مصفوفة الحالات — فحص مصدر 
     "ScheduleEditor",
     "Statement",
     "Suppliers",
-    "ToolsIntegrity",
     "WalletLedger",
     /* S10 (UNIT-030/032 — أمر b56967d8): Tools صارت وجهة أدوات ساكنة بلا
      * قراءة بيانات (المحفوظات داخل الحاسبة) وEstimateDetail صارت إحالة —
      * خرجا من مصفوفة القراءة؛ الحاسبة نفسها (CostCalculator) تحمل شاشة
      * خطأ قراءتها وفعل تعافيها في اختباراتها الخاصة. */
+    /* S17 (DOC-026 / UNIT-033): ToolsIntegrity تقاعد مع انتقال فحص البيانات
+     * إلى قسم داخل الإعدادات (SettingsDataCheckSection) — حالاته الصادقة
+     * (فشل قراءة يظهر «غير متاح» كاملًا + إعادة محاولة) محروسة في
+     * SettingsDataCheck.ui.test.tsx الخاص به. */
   ];
 
   it("كل صفحة تعرض خطأ قراءة تقدم فعل تعافٍ في مكانه (إعادة محاولة/إعادة تحميل/عودة)", () => {
@@ -181,13 +184,7 @@ describe("Wave 4.4 — P-4.4-4: مصفوفة الحالات — فحص مصدر 
         source.includes("إعادة المحاولة") ||
         source.includes("window.location.reload()") ||
         source.includes("setReloadToken") ||
-        source.includes('setState({ phase: "loading" })') ||
-        /* ToolsIntegrity: زر «افحص الآن» الدائم تحت رسالة الخطأ هو إعادة
-         * المحاولة نفسها — إعادة تشغيل الفحص قراءة جديدة. (تحديث مؤرخ
-         * 2026-11-03 — أمر استئناف S14 A3: الزر يتعطل أثناء التشغيل أو
-         * تجهيز الخدمة الكسولة — نفس فعل التعافي بشرط جاهزية أصدق.) */
-        (page === "ToolsIntegrity" &&
-          source.includes('disabled={state.phase === "running" || service === null}'));
+        source.includes('setState({ phase: "loading" })');
       expect.soft(hasRecovery, `${page}: لا فعل تعافٍ في شاشة الخطأ`).toBe(true);
     }
   });

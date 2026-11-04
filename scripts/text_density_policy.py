@@ -507,7 +507,13 @@ CAPS: dict[str, int] = {
     # Settings 61 -> 63 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "Settings": 63,
+    # Settings 63 -> 75 (2026-11-04, S17 / DOC-026 — UNIT-033 owner decision):
+    # قسم «فحص البيانات» داخل الإعدادات يحل محل سطح ToolsIntegrity المتقاعد
+    # (89-cap): وعد القراءة والخلاصة الصادقة وحالاتها وكلمات الحالة وعناوين
+    # الفحوص وملخصات المتأثرين وروابط المراجعة. الصافي +12 فقط بعد اتحاد
+    # المفردات مع قائمة الإعدادات القائمة (تسميات الأزرار والحالات تتكرر
+    # ضمن السطح نفسه) — نقل سطح لا نثرًا جديدًا.
+    "Settings": 75,
     # Tools (2026-09-02, Group 3 Scope A/B, owner-approved execution prompt): first
     # measurement day-one — the calculator moved to its own deep route
     # (/tools/calculator) so this surface keeps the entry card, the saved-estimate
@@ -544,16 +550,11 @@ CAPS: dict[str, int] = {
     # supplier payments). One added registry title, no new prose surfaces.
     # ToolsIntegrity 86 -> 88 (2026-09-23, FIN-001 Wave 6): عنوان فحص
     # اتساق القروض المستلمة ووسم النتيجة في تقرير السلامة.
-    # ToolsIntegrity 88 -> 89 (2026-09-28, master remediation charter Group 1,
-    # owner-approved F-004/F-005): the MIC registry grew by one read-only check
-    # (MIC-18 «ثابت أساس التسوية» — settlement-basis invariant: events settle the
-    # recorded collected amount and the recorded remainder matches the collectible-
-    # value basis); its title renders on this reader surface like MIC-8/MIC-10..13
-    # before it, while the derivation and detail vocabulary stay in the domain
-    # module outside the entry bundle (D-034). Net distinct strings: +1 (the new
-    # check id shares the existing MIC-N family; the retained-deposit mirror
-    # removal in the same slice freed its twin).
-    "ToolsIntegrity": 89,
+    # ToolsIntegrity RETIRED (2026-11-04, S17 / DOC-026 — UNIT-033 owner
+    # decision): فحص البيانات moved into Settings as a section
+    # (components/settings/SettingsDataCheckSection.tsx); its strings now count
+    # under the Settings surface below (see the dated Settings bump). The
+    # page and its route are gone; nothing else inherits this cap.
     # المجموعة ٥ (عقد ٣٠/٣٣): القياس الأول ليوم القياس الأول — تُقفل عند قياسها.
     # FinanceActivity 55 -> 57 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
@@ -886,9 +887,10 @@ PAGES = [
     "Tools",
     "Settings",
     "NotFound",
-    # المجموعة ١ (الإدخال المالي الموجّه): فحص السلامة + المحرر الموجّه + الكشف
-    # — تقاس من يومها الأول (سابقة Profile/CostCalculator).
-    "ToolsIntegrity",
+    # المجموعة ١ (الإدخال المالي الموجّه): المحرر الموجّه + الكشف — تقاس من
+    # يومها الأول. فحص السلامة (ToolsIntegrity) أزيل من القياس مع تقاعد
+    # سطحه المستقل (S17 / DOC-026 — UNIT-033): نصوصه تنتقل إلى قياس
+    # Settings حيث يقيم قسم «فحص البيانات» (انظر سجل الإزالة أعلاه).
     # Wave 4.2 — P-4.2-4 (F01): سطح «المزيد من المالية» — قارئ منظم؛ أزيلت
     # من القياس مع فقدان استقلالها (UNIT-013 — انظر سجل الإزالة أعلاه).
     # Stage 2 — OPS-005/006 (2026-09-20): سطح «القادم والاستحقاقات» — قارئ

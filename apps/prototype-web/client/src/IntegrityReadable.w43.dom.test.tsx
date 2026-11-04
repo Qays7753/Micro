@@ -16,7 +16,7 @@ import { CashContinuityService } from "@/application/cash/cashContinuityService"
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { FormDraftService } from "@/application/drafts/formDraftService";
 import { ProfileService } from "@/application/profile/profileService";
-import ToolsIntegrity from "@/pages/ToolsIntegrity";
+import { SettingsDataCheckSection } from "@/components/settings/SettingsDataCheckSection";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -111,9 +111,9 @@ describe("Wave 4.3 — P-4.3-3 (D9): readable integrity offenders", () => {
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
     mockedGetStore.mockReturnValue(store as never);
-    render(<ToolsIntegrity />);
+    render(<SettingsDataCheckSection open={true} onToggle={() => {}} />);
     await screen.findByText(/أرقامك كما هي/);
-    fireEvent.click(screen.getByRole("button", { name: /افحص الآن/ }));
+    fireEvent.click(screen.getByRole("button", { name: /بدء الفحص/ }));
     const offender = await screen.findByTestId("integrity-offender-summary");
     /* اسم العملية من خريطة العرض القائمة + التاريخ (نسق العرض المحلي) + المبلغ — لا معرّف خام. */
     expect(offender.textContent).toContain("مصروف مستحق");
