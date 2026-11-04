@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "358ff4f1bcf1ded8fb39cba9a974a72072ff531b",
+  "head": "7b8129f6cb7237ecd039e6ecd24ef3efcf2139b8",
   "pages": {
     "total": 62,
     "map": {
@@ -131,6 +131,7 @@
         "evidence": [
           "G3.dom.test.tsx",
           "ReversalSurfacesExe010.dom.test.tsx",
+          "Sdf068.crossStage.dom.test.tsx",
           "U005.dom.test.tsx",
           "pages/DirectSaleEditor.ui.test.tsx"
         ]
@@ -417,6 +418,7 @@
         "kind": "direct",
         "evidence": [
           "LockRetirement.dom.test.tsx",
+          "Sdf068.crossStage.dom.test.tsx",
           "Set003SettingsSection.dom.test.tsx",
           "Settings.s03.dom.test.tsx",
           "SettingsDataBackupSection.w42.dom.test.tsx",
