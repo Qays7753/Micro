@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · IN_REVIEW: 16 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 17 · BACKLOG: 2 · REVIEW_REQUIRED: 2 · DEFERRED: 20 · VERIFIED: 66 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -51,4 +51,4 @@ python3 scripts/operations-control/validate.py
 | WS-239 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-023 | S14 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-03؛ Workstream REVIEW_REQUIRED يحرر الملكية للمراحل اللاحقة ولا يعني VERIFIED على main. لا إعادة فتح دون دليل جديد؛ لا merge ولا كتابة على main. |
 | WS-240 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-024 | S15 وS16 مقبولتان من المالك على فرع التكامل عند رأس التسليم 7fef8cf1fa9795e137a72c9a19ccdc38c247ba83؛ لا إعادة فتح دون دليل جديد. التفويض الحالي هو تنفيذ S17 ثم S18 مباشرة وفق 00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md؛ لا merge ولا كتابة على main. |
 | WS-241 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-025 | S15 وS16 مقبولتان من المالك على فرع التكامل عند رأس التسليم 7fef8cf1fa9795e137a72c9a19ccdc38c247ba83؛ لا إعادة فتح دون دليل جديد. التفويض الحالي هو تنفيذ S17 ثم S18 مباشرة وفق 00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md؛ لا merge ولا كتابة على main. |
-| WS-242 | CLAIMED | `components/integration-20261027` | 383 | DOC-026 | تنفيذ S17 وفق الأمر المتصل: توصيف أحمر لحالات الفجوة ثم بوابة حدود الموارد ومدخل فحص البيانات داخل الإعدادات والاختبارات الدائمة وpnpm check والمراجعات الخمس وتقرير النتيجة؛ ثم الانتقال المباشر إلى S18 بعد إعادة تسليم S17 قانونيًا. |
+| WS-242 | REVIEW_REQUIRED | `components/integration-20261027` | 383 | DOC-026 | S17 مُسلَّمة للمراجعة المستقلة عند المرشح الكودي 1f232c79 (النتيجة 22-S17-RESULT-2026-11-04.md)؛ وفق الأمر المتصل ينتقل ZAI مباشرة إلى S18 (DOC-027/WS-243) بلا وقفة موافقة وسيطة؛ لا merge ولا كتابة main. |

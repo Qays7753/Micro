@@ -18,7 +18,7 @@
       "anchored": {
         "head": "1f232c79",
         "date": "2026-11-04",
-        "method": "S17 local re-anchor (2026-11-04, PR #383 — connected order 00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md §3): UNIT-033 moves the data-check surface into Settings (the standalone ToolsIntegrity lazy page retires; its UI code joins the Settings lazy chunk) and UNIT-044 adds the import resource-limit module reachable through the transfers door — measured growth re-anchored with provenance (initial companions 223,566/70,372 -> 223,841/70,438; lazy raw 1,477,319 -> 1,478,640; precache 2,911,196 -> 2,912,674); every improvement locked (lazyGzipNorm 444,222 -> 443,819; dynamicRootsCount 88 -> 87 — the retired page's dynamic root leaves; counts 129/2/184/2 unchanged); swRuntime unchanged 27,746; entry 597,284/145,624 PASS under the untouched owner ceilings 650,000/155,300 (check-bundle-budget — the entry even improves over S16's 597,402/145,662); no tolerance, ceiling, count, or guard code changed; the cloud environments re-anchor post-push on the directly measured values of the final head's runs per the documented protocol (the S16 precedent)."
+        "method": "S17 local re-anchor (2026-11-04, PR #383 — connected order 00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md §3): UNIT-033 moves the data-check surface into Settings (the standalone ToolsIntegrity lazy page retires; its UI code joins the Settings lazy chunk) and UNIT-044 adds the import resource-limit module reachable through the transfers door — measured growth re-anchored with provenance (initial companions 223,566/70,372 -> 223,841/70,438; lazy raw 1,477,319 -> 1,478,640; precache 2,911,196 -> 2,912,674); every improvement locked (lazyGzipNorm 444,222 -> 443,819; dynamicRootsCount 88 -> 87 — the retired page's dynamic root leaves; counts 129/2/184/2 unchanged); swRuntime unchanged 27,746; entry 597,284/145,624 PASS under the untouched owner ceilings 650,000/155,300 (check-bundle-budget — the entry even improves over S16's 597,402/145,662); no tolerance, ceiling, count, or guard code changed; the cloud environments re-anchor post-push on the directly measured values of the final head's runs per the documented protocol (the S16 precedent). Dated correction (same PR): the directly measured swRuntime is 27,754 (+8 over S16's 27,746 = the sw.js precache-manifest line shift from the retired integrity chunk joining the Settings family — anchored exactly, no tolerance consumed)."
       },
       "toolchain": {
         "node": "24.22.2",
@@ -35,7 +35,7 @@
         "lazyRawTotal": 1478640,
         "lazyGzipNormTotal": 443819,
         "precacheBytesTotal": 2912674,
-        "swRuntimeRawTotal": 27746
+        "swRuntimeRawTotal": 27754
       },
       "counts": {
         "lazyJsCount": 129,

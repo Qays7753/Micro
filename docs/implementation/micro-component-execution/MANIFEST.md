@@ -227,10 +227,11 @@
 
 ## Additions after S16 — 2026-11-04
 
-هذه إضافة تشغيلية بعد الحزمة المجمدة؛ لا تغير ZIP الأصلي أو بصماته. اعتمد المالك S15 وS16 على فرع التكامل عند رأس `7fef8cf1fa9795e137a72c9a19ccdc38c247ba83`؛ بقي `main` عند `3584aa1d08cea3e0a00623b719fed7f991ce187f` بلا merge. الأمر التالي الوحيد المنشور يربط S17 ثم S18، ولا يبدأ الدمج.
+هذه إضافة تشغيلية بعد الحزمة المجمدة؛ لا تغير ZIP الأصلي أو بصماته. اعتمد المالك S15 وS16 على فرع التكامل عند رأس `7fef8cf1fa9795e137a72c9a19ccdc38c247ba83`؛ وبموجب الأمر المتصل نفسه سُلمت S17 للمراجعة المستقلة عند المرشح الكودي `1f232c79` (شجرة الإرساء `1e6d17b2`) وباشرت S18 بعدها مباشرة؛ بقي `main` عند `3584aa1d08cea3e0a00623b719fed7f991ce187f` بلا merge، والدمج قرار مالك لاحق.
 
 | الملف | الدور | الحالة |
 |---|---|---|
 | `20-S15-RESULT-2026-11-03.md` + `20a-S15-REVIEW-ADDENDUM-2026-11-03.md` | تسليم S15 وإصلاح S15-MR-001 عند `c788b09f` بأحمر/أخضر؛ لا اختبار جهاز فعلي. | `OWNER ACCEPTED ON INTEGRATION (2026-11-04); not VERIFIED on main; no merge` |
 | `21-S16-RESULT-2026-11-03.md` | تسليم S16؛ المرشح الكودي `9dc4b194`، والبوابتان البعيدتان ناجحتان على رأس التسليم `7fef8cf1`. | `OWNER ACCEPTED ON INTEGRATION (2026-11-04); not VERIFIED on main; no merge` |
-| `00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md` | أمر مستقل لـZAI: S17 (UNIT-033/044 + SH-22) ثم S18 نهائيًا على الفرع وPR نفسيهما؛ لا موجات هيكلية أو كتابة main أو دمج؛ تسليم Merge Readiness Manifest للمالك. | `OWNER AUTHORIZED — NOT STARTED AT PUBLICATION` |
+| `00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md` | أمر مستقل لـZAI: S17 (UNIT-033/044 + SH-22) ثم S18 نهائيًا على الفرع وPR نفسيهما؛ لا موجات هيكلية أو كتابة main أو دمج؛ تسليم Merge Readiness Manifest للمالك. | `EXECUTING — S17 DELIVERED 2026-11-04 (1f232c79; DOC-026/WS-242 IN_REVIEW/REVIEW_REQUIRED); S18 IN PROGRESS` |
+| `22-S17-RESULT-2026-11-04.md` | نتيجة تسليم S17 (UNIT-033/044 + SH-22) وأدلتها الكاملة: بوابة حدود موارد الاستيراد (SDF-048 أحمر أولًا) وقسم «فحص البيانات» داخل الإعدادات وتقاعد السطح المستقل وإحالته ومصالحة العائلات الدائمة (SH-22)؛ سلمت للمراجعة المستقلة — لا قبول. | `EXECUTED 2026-11-04 (delivered for review; DOC-026/WS-242 IN_REVIEW/REVIEW_REQUIRED)` |
