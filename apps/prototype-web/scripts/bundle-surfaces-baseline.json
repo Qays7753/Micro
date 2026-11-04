@@ -47,9 +47,9 @@
     },
     "cloudflare-pages": {
       "anchored": {
-        "head": "9b0c4832",
-        "date": "2026-11-03",
-        "method": "S16 post-push cloud re-anchor (2026-11-03, 9b0c4832 on PR #383): cloudflare-pages re-anchored by the proven environment-class derivation — identical cloud records to github-actions (byte-equal normalized gzip and raw on the non-entry files; the same +90 precache identity footprint); the Pages deployment on this head is re-verified by its own check-run after this records commit."
+        "head": "6016acb8",
+        "date": "2026-11-04",
+        "method": "S17 post-push re-anchor (2026-11-04, PR #383 — connected order §5): by the proven environment-class derivation (S16: identical cloud records for the two env-identity environments on node 22.23.3/zlib 1.3.1) from the directly measured github-actions run 41748081000 values on the S17 delivery head 6016acb8; every improvement locked (lazyGzipNorm 444,222 -> 443,819; dynamicRootsCount 88 -> 87); the Pages deployment re-verifies on its own check-run at the next head per the documented protocol (the S16 precedent)."
       },
       "toolchain": {
         "node": "22.23.3",
@@ -61,26 +61,26 @@
         "identityMode": "env"
       },
       "measurements": {
-        "initialRawTotal": 223566,
-        "initialGzipNormTotal": 70372,
-        "lazyRawTotal": 1477319,
-        "lazyGzipNormTotal": 444222,
-        "precacheBytesTotal": 2911286,
-        "swRuntimeRawTotal": 27746
+        "initialRawTotal": 223841,
+        "initialGzipNormTotal": 70438,
+        "lazyRawTotal": 1478640,
+        "lazyGzipNormTotal": 443819,
+        "precacheBytesTotal": 2912764,
+        "swRuntimeRawTotal": 27754
       },
       "counts": {
         "lazyJsCount": 129,
         "initialJsCount": 2,
-        "dynamicRootsCount": 88,
+        "dynamicRootsCount": 87,
         "precacheEntryCount": 184,
         "swRuntimeFileCount": 2
       }
     },
     "github-actions": {
       "anchored": {
-        "head": "9b0c4832",
-        "date": "2026-11-03",
-        "method": "S16 post-push cloud re-anchor (2026-11-03, 9b0c4832 on PR #383 — run 41731098809; the run's only failure was this same re-anchor obligation: swRuntime 27,705+8 < 27,746 measured, so this record now carries the directly measured values from that run's check-bundle-surfaces output): github-actions re-anchored on the run's directly measured values — initial/lazy/swRuntime byte-identical to local on the identical entry content hash index-CAJIEETe.js; precache 2,911,286 = local 2,911,196 + 90 hex-identity footprint; every improvement locked; entry 597,402/145,649 PASS under the untouched owner ceilings (check-bundle-budget)."
+        "head": "6016acb8",
+        "date": "2026-11-04",
+        "method": "S17 post-push re-anchor (2026-11-04, PR #383 — connected order §5): the directly measured values of Actions run 41748081000 on the S17 delivery head 6016acb8 (its only failure was this same re-anchor obligation — the S16 precedent); every improvement locked (lazyGzipNorm 444,222 -> 443,819; dynamicRootsCount 88 -> 87 as the retired ToolsIntegrity page's dynamic root leaves; entry 597,284/145,624 PASS under the untouched owner ceilings); growth re-anchored with provenance: initial companions 223,566/70,372 -> 223,841/70,438 (the data-check UI joins the Settings lazy chunk and the resource-limit module enters through the transfers door), lazy raw 1,477,319 -> 1,478,640, precache 2,911,286 -> 2,912,764 (+90 identity footprint over the local 2,912,674 as proven in S16), swRuntime 27,746 -> 27,754 (the sw.js precache-manifest line shift from the retired integrity chunk joining the Settings family); no tolerance, ceiling, count, or guard code changed."
       },
       "toolchain": {
         "node": "22.23.3",
@@ -92,17 +92,17 @@
         "identityMode": "env"
       },
       "measurements": {
-        "initialRawTotal": 223566,
-        "initialGzipNormTotal": 70372,
-        "lazyRawTotal": 1477319,
-        "lazyGzipNormTotal": 444222,
-        "precacheBytesTotal": 2911286,
-        "swRuntimeRawTotal": 27746
+        "initialRawTotal": 223841,
+        "initialGzipNormTotal": 70438,
+        "lazyRawTotal": 1478640,
+        "lazyGzipNormTotal": 443819,
+        "precacheBytesTotal": 2912764,
+        "swRuntimeRawTotal": 27754
       },
       "counts": {
         "lazyJsCount": 129,
         "initialJsCount": 2,
-        "dynamicRootsCount": 88,
+        "dynamicRootsCount": 87,
         "precacheEntryCount": 184,
         "swRuntimeFileCount": 2
       }

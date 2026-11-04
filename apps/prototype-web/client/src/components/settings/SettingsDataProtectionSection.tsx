@@ -184,6 +184,38 @@ export function SettingsDataProtectionSection({
           disabled={isWorking}
           onClick={exportLocal}
         />
+        {/* S18 (DOC-027 / SDF-068 — عقد ٠٤٤ B1-5): مساعدة مسماة قابلة للتركيز
+            «عن النسخ الاحتياطي» — native details/summary (اسم ظاهر + تركيز
+            بلوحة المفاتيح)؛ الأثر المهم (الاستبدال وحماية الموجود) يبقى ظاهرًا
+            في موضعه خارج المساعدة ولا يختبئ خلفها. */}
+        <details className="micro-decision-layer">
+          <summary className="micro-decision-layer-summary">
+            <span>
+              <b>عن النسخ الاحتياطي</b>
+              <small>ما الملف، وكيف يختلف عن المزامنة، وخصوصيته.</small>
+            </span>
+            <strong>افتح المساعدة</strong>
+          </summary>
+          <section className="micro-settings-list">
+            <article className="micro-setting-row">
+              <span className="micro-setting-icon">
+                <Shield aria-hidden="true" />
+              </span>
+              <div>
+                <h2>الملف ملكك وبيده أنت</h2>
+                <p>
+                  «حفظ نسخة احتياطية» يجهّز ملفًا واحدًا يُنزَّل إلى جهازك؛ حفظه خارج التطبيق في مكان آمن
+                  مسؤوليتك أنت — تجهيز الملف لا يعني حُفظه. لا توجد مزامنة سحابية ولا نسخ تلقائي على خادم؛
+                  النقل بين الأجهزة يدوي بهذا الملف.
+                </p>
+                <p>
+                  الملف يحتوي بيانات مشروعك؛ احتفظ به لنفسك. استبدال بيانات الجهاز بالاستعادة يمر دائمًا
+                  بمعاينة أثرها وتأكيدها، وتُحفظ نسخة رجوع من بياناتك الحالية قبل أي استبدال.
+                </p>
+              </div>
+            </article>
+          </section>
+        </details>
         {/* ٤ — الاستعادة الآمنة (يستبدل كل شيء — عمق معاينته أدناه مباشرة). */}
         <StorageRow
           icon={Upload}
