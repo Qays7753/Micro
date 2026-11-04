@@ -17,7 +17,7 @@
  *    (سجل الملكية §2) وحارس الكتابة recurringExpenseCommitGuard داخل حد
  *    الكتابة (STR-306 PRESERVE). عقد ٤١ يحكم سلوك التذكيرات.
  *
- * العضوية (10 طرق — مجموعة «Recurring expense» في سجل الملكية §2):
+ * العضوية (11 طرق — مجموعة «Recurring expense» في سجل الملكية §2):
  * القراءات الخمس وسلاسل الإنشاء والتغيير وتلمس الوقائع وقراراتها وتسجيلها.
  *
  * الاستهلاك: مستهلك الإنتاج الوحيد هو application/recurring/recurringExpenseService
@@ -37,6 +37,7 @@ export const recurringExpenseStoreMethods = [
   "commitRecurringExpenseSeriesChange",
   "commitRecurringExpenseOccurrences",
   "commitRecurringExpenseOccurrenceDecision",
+  "commitRecurringExpenseOccurrenceLink",
   "commitRecurringExpenseOccurrenceRecord",
 ] as const;
 

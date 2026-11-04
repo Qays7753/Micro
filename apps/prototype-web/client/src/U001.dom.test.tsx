@@ -149,18 +149,22 @@ describe("U-001 older events stay reachable from the finance record surface", ()
       idempotencyKey: "u001-link-reverse",
     });
     if (!reversal.ok) throw new Error("reversal should save");
-    await openEventsLayer();
-    /* فتح «السجل» (طبقة التصحيحات) وقراءة صف التراجع. */
-    const correctionsSummary = Array.from(document.querySelectorAll("summary")).find(node =>
-      node.textContent?.includes("افتح سجل التصحيحات"),
-    );
-    if (!correctionsSummary) throw new Error("corrections summary should exist");
-    fireEvent.click(correctionsSummary);
-    const sourceButton = await waitFor(() => screen.getByText("افتح السجل المصدر"));
-    fireEvent.click(sourceButton);
-    /* الرابط العميق يقود إلى صف الحدث المصدر نفسه في الطبقة المالية —
-     * (S1-03) يحمل مصدره ?from=/finance فيعود الرجوع إلى مالي. */
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(`/finance?event=${expense.id}&returnTo=%2Ffinance`);
+    /* UNIT-013 (تنفيذ S15): طبقة سجل التصحيحات غادرت جذر المالية — قراءة
+     * التصحيحات من سجل العمليات الموحد (017): صف عائلة التصحيح يحمل
+     * مصدره برابط عميق (?event=) نفسه. */
+    const { ActivityService } = await import("@/application/activity/activityService");
+    const activity = new ActivityService(store);
+    const read = await activity.read({
+      limit: 120,
+      perFamilyLimit: 20,
+      from: null,
+      to: null,
+      families: ["correction"],
+    });
+    if (!read.ok) throw new Error("activity correction read failed");
+    expect(read.value.length).toBeGreaterThan(0);
+    const correctionRow = read.value[0]!;
+    expect(correctionRow.sourceHref).toBe(`/finance?event=${encodeURIComponent(expense.id)}`);
     /* الوصول العميق يفتح «السجل والأثر» كاملًا ويُبرز صف المصدر مركّزًا. */
     wouterMocks.search = `?event=${expense.id}`;
     cleanup();

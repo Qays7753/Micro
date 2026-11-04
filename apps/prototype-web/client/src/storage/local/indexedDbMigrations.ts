@@ -43,6 +43,10 @@ import {
   shortCashDeclarationStore,
   supplierPurchaseStore,
   receivedLoanStore,
+  counterpartyStore,
+  balanceObservationStore,
+  periodSummaryStore,
+  commandReceiptStore,
 } from "./indexedDbStores";
 import { STORAGE_UPGRADE_FAILED } from "./resultCodes";
 
@@ -295,6 +299,41 @@ export function applySchemaUpgrade(request: IDBOpenDBRequest, event: IDBVersionC
   if (!database.objectStoreNames.contains(receivedLoanStore)) {
     const receivedLoans = database.createObjectStore(receivedLoanStore, { keyPath: "id" });
     receivedLoans.createIndex("updatedAt", "updatedAt");
+  }
+  /* S04 (DOC-013 / UNIT-025 + العقد المشترك §8 — نمط D-037 — الترقية ٣٨→٣٩):
+   * مخزن رصد أرصدة النقد بمُنشئ محروس — لا ترحيل بيانات ولا تعديل سجل قائم؛
+   * القاعدة القديمة تفتح وتجده فارغًا. فهارس walletId وobservedOn وoperationKey
+   * للتصفح والعهدة؛ لا فهارس فريدة — حارس الالتزام داخل حد الكتابة
+   * (commitCashObservation) يكفي الحتمية. */
+  if (!database.objectStoreNames.contains(balanceObservationStore)) {
+    const observations = database.createObjectStore(balanceObservationStore, { keyPath: "id" });
+    observations.createIndex("walletId", "walletId");
+    observations.createIndex("observedOn", "observedOn");
+    observations.createIndex("operationKey", "operationKey");
+  }
+  /* S05 (DOC-014 / UNIT-037 + العقد المشترك §8 — نمط D-037 — الترقية 39→40):
+   * مخزن الأطراف المحفوظة بمُنشئ محروس — لا ترحيل بيانات ولا تعديل سجل
+   * قائم؛ القاعدة القديمة تفتح وتجده فارغًا. فهارس updatedAt وoperationKey
+   * للتصفح والعهدة؛ لا فهارس فريدة ولا فهرس تسمية — التسمية ليست هوية
+   * (طرفان بالاسم نفسه مستقلان)، وحارس الالتزام داخل حد الكتابة
+   * (commitCounterpartyWrite) يكفي الحتمية. */
+  if (!database.objectStoreNames.contains(counterpartyStore)) {
+    const counterparties = database.createObjectStore(counterpartyStore, { keyPath: "id" });
+    counterparties.createIndex("updatedAt", "updatedAt");
+    counterparties.createIndex("operationKey", "operationKey");
+  }
+  /* S14 (DOC-023 / UNIT-002 + العقد المشترك §7.1/§8/§14.1 — نمط D-037 — الترقية
+   * 40→41): مخزنا ملخصات الفترة وإيصالات الأوامر بمُنشئ محروس — لا ترحيل
+   * بيانات ولا تعديل سجل قائم؛ القاعدة القديمة تفتح وتجدهما فارغين. */
+  if (!database.objectStoreNames.contains(periodSummaryStore)) {
+    const summaries = database.createObjectStore(periodSummaryStore, { keyPath: "id" });
+    summaries.createIndex("kind", "kind");
+    summaries.createIndex("from", "from");
+    summaries.createIndex("operationKey", "operationKey");
+  }
+  if (!database.objectStoreNames.contains(commandReceiptStore)) {
+    const receipts = database.createObjectStore(commandReceiptStore, { keyPath: "id" });
+    receipts.createIndex("commandType", "commandType");
   }
   const policyStore = request.transaction?.objectStore(ownerEntitlementPolicyStore);
   if (policyStore && !policyStore.indexNames.contains("seriesId"))

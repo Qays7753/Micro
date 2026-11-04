@@ -26,6 +26,7 @@ export const directSaleStoreMethods = [
   "listDirectSales",
   "saveDirectSale",
   "commitDirectSaleCollectionReversal",
+  "commitDirectSaleWrite",
 ] as const;
 
 export type DirectSaleStoreMethod = (typeof directSaleStoreMethods)[number];

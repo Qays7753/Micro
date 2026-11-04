@@ -20,3 +20,32 @@ export {
   roundHalfUp,
   sumSafeIntegers,
 } from "./numeric.js";
+/* S14 (DOC-023 / UNIT-002 + العقد المشترك §3.2/§7.1 — أمر ba2ce7b4 §5):
+ * ملخص الفترة بمعرفة مستقلة وتغطية — سجل ذو نوع يملكه صاحب معناه، بلا
+ * دفتر موازٍ؛ التفصيل يخصم من المتبقي لا يجمع فوق الإجمالي. */
+export {
+  applyCoverageLink,
+  createPeriodSummary,
+  dimensionsOfKind,
+  periodSummaryKinds,
+  remainingOf,
+  type CoverageApplication,
+  type CoverageLink,
+  type CoverageRemaining,
+  type DimensionValue,
+  type PeriodSummary,
+  type PeriodSummaryDraft,
+  type PeriodSummaryKind,
+  type SummaryDimension,
+} from "./periodSummary.js";
+/* S14 (DOC-023 / العقد المشترك §14.1 — أمر ba2ce7b4 §5): إيصال الأمر —
+ * استرداد النتيجة والحتمية عبر معاملة متعددة المصادر؛ نتيجة ومراجع لا
+ * رصيد ولا أحداث مالية ثانية. */
+export {
+  createCommandReceipt,
+  decideCommandReceipt,
+  type CommandEnvelopeDigestInput,
+  type CommandOutcomeKind,
+  type CommandReceipt,
+  type CommandReceiptDecision,
+} from "./commandReceipt.js";

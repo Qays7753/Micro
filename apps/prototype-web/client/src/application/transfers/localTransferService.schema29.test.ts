@@ -45,7 +45,7 @@ describe("schema 29 export round-trip with estimates, amanah, and allocations", 
     /* استيراد في مخزن جديد — معاينة ثم تأكيد. */
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);
-    const prepared = targetTransfers.prepareImport(JSON.stringify(verified.value.file));
+    const prepared = await targetTransfers.prepareRestore(JSON.stringify(verified.value.file));
     if (!prepared.ok) throw new Error(prepared.message);
     expect(prepared.value.summary.costEstimates).toBe(1);
     const confirmed = await targetTransfers.confirmImport(prepared.value);

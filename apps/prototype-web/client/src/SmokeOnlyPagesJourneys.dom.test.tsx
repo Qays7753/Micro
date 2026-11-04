@@ -21,22 +21,20 @@ import { AgreementService } from "@/application/agreements/agreementService";
 import { CostService } from "@/application/cost/costService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { createReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import CashWalletEditor from "@/pages/CashWalletEditor";
 import CashReversalEditor from "@/pages/CashReversalEditor";
 import G5DeclarationEditor from "@/pages/G5DeclarationEditor";
 import InventoryReversalEditor from "@/pages/InventoryReversalEditor";
 import ReceivedLoanDetail from "@/pages/ReceivedLoanDetail";
-import SharePreview from "@/pages/SharePreview";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
   getPrototypeLocalStore: () => currentStore,
 }));
-vi.mock("@/lib/textDelivery", () => ({
-  canShareText: () => false,
-  copyTextManually: vi.fn(async () => "copied" as const),
-  shareTextManually: vi.fn(async () => "copied" as const),
-}));
+/* UNIT-040 (تنفيذ S15 بالأمر الموحد §5): معيّن المشاركة النصي أزيل مع
+ * القدرة — لا نص مشاركة ولا نسخة حافظة بديلة في هذه الرحلات. */
 
 const wouterMocks = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -145,27 +143,19 @@ describe("W7 journeys — pages that were render-smoke only", () => {
     expect(reversal).toBeDefined();
   });
 
-  it("G5DeclarationEditor: recording an expected collection creates the declaration", async () => {
+  it("G5DeclarationEditor (UNIT-021): the legacy deep link refuses honestly — no form, no write", async () => {
     render(<Harness page={<G5DeclarationEditor />} />);
-    fireEvent.change(screen.getByLabelText("مبلغ السجل المتوقع"), { target: { value: "40" } });
-    fireEvent.change(screen.getByPlaceholderText("مثال: رسالة العميلة أو فاتورة المورد"), {
-      target: { value: "وعدت العميلة بالتحصيل" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("ما الذي يجعلك تتوقع هذا القبض أو الدفع؟"), {
-      target: { value: "ملاحظة رحلة الاختبار" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /حفظ المتوقع/ }));
-    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalled());
-    expect(bumpVersion).toHaveBeenCalled();
+    expect(await screen.findByRole("heading", { name: "تسجيل توقع نقدي مؤجل" })).toBeTruthy();
+    expect(screen.getByText("لا يُسجل توقع قبض أو دفع جديد في هذا الإطلاق.")).toBeTruthy();
+    /* لا نموذج إدخال أصلًا — لا مبلغ ولا مصدر ولا زر حفظ. */
+    expect(screen.queryByLabelText("مبلغ السجل المتوقع")).toBeNull();
+    expect(screen.queryByRole("button", { name: /حفظ المتوقع/ })).toBeNull();
     const projectFinance = new ProjectFinancialService(store, () => NOW);
     const g5 = new FinancialAnalysisService(store, projectFinance);
     const declarations = await g5.listDeclarations();
     if (!declarations.ok) throw new Error(declarations.message);
-    const found = declarations.value.find(
-      declaration => declaration.kind === "declaration" && declaration.source === "وعدت العميلة بالتحصيل",
-    );
-    expect(found).toBeDefined();
-    expect(found!.amountMinor).toBe(4000);
+    expect(declarations.value).toHaveLength(0);
+    expect(bumpVersion).not.toHaveBeenCalled();
   });
 
   it("InventoryReversalEditor: reversing a material opening movement archives it", async () => {
@@ -203,42 +193,43 @@ describe("W7 journeys — pages that were render-smoke only", () => {
     expect(reversal).toBeDefined();
   });
 
-  it("ReceivedLoanDetail: shows the live derived reading of a created received loan", async () => {
-    const { ReceivedLoanService } = await import("@/application/loans/receivedLoanService");
-    const loans = new ReceivedLoanService(store, () => NOW);
-    const created = await loans.create({
+  it("ReceivedLoanDetail: shows the live derived reading of a legacy received loan", async () => {
+    /* UNIT-036 (تنفيذ S15 بالأمر الموحد §5): الإنشاء مؤجل — السجل الموروث
+     * يُزرع مباشرة عند حد المخزن (مسار توافق النقل نفسه) والقراءة الحية
+     * للسطح فوقه كما فوق أي تاريخ محفوظ. */
+    const event = createFinancialEvent({
+      id: "event-w7-rloan",
+      type: "loan_received_cash" as never,
+      amountMinor: 8000,
+      occurredOn: "2026-09-01",
+      recordedAt: "2026-09-01T09:00:00.000Z",
+      idempotencyKey: "w7-rloan:create",
+      note: "قرض رحلة W7",
+      counterparty: "سارة",
+      loanContext: { loanId: "w7-rloan", borrower: "سارة", lender: "سارة" },
+    });
+    const loan = createReceivedLoanRecord({
+      id: "w7-rloan",
       lenderName: "سارة",
       lenderType: "person",
       principalMinor: 8000,
       receivedOn: "2026-09-01",
       dueOn: null,
       note: null,
+      walletId: null,
+      principalEventId: event.id,
+      operationKey: "w7-rloan:create",
+      createdAt: "2026-09-01T09:00:00.000Z",
     });
-    if (!created.ok) throw new Error(created.message);
-    window.history.replaceState(null, "", `/loans/received/${created.value.loan.id}`);
+    const commit = await store.commitReceivedLoanRecord(loan, event);
+    if (!commit.ok) throw new Error(commit.message);
+    window.history.replaceState(null, "", `/loans/received/${loan.id}`);
     try {
       render(<ReceivedLoanDetail />);
       expect(await screen.findByRole("heading", { name: "سارة" })).toBeTruthy();
       expect(screen.getByText("قرض مستلم قائم")).toBeTruthy();
       expect(screen.getByText(/قرض مستلم قائم/)).toBeTruthy();
       expect(document.body.textContent ?? "").toMatch(/80(\.00)?/);
-    } finally {
-      window.history.replaceState(null, "", "/");
-    }
-  });
-
-  it("SharePreview: shows the draft body and reports the copy outcome; empty state without a draft", async () => {
-    window.history.replaceState({ draft: { body: "نص مشاركة الرحلة" } }, "", "/share/preview");
-    try {
-      const { rerender } = render(<SharePreview />);
-      const body = screen.getByRole("textbox") as HTMLTextAreaElement;
-      expect(body.value).toContain("نص مشاركة الرحلة");
-      const copyButton = screen.getByRole("button", { name: /انسخ/ });
-      fireEvent.click(copyButton);
-      expect(await screen.findByText("نُسخ النص للحافظة — الصقه حيث شئت.")).toBeTruthy();
-      window.history.replaceState(null, "", "/share/preview");
-      rerender(<SharePreview />);
-      expect(screen.getByText("لا نص للمشاركة")).toBeTruthy();
     } finally {
       window.history.replaceState(null, "", "/");
     }

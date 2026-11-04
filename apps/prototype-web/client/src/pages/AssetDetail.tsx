@@ -17,7 +17,11 @@ import { formatLocalDate, formatMoneyMinor } from "@/presentation/formatters";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 /* عقد ٤٣ (WS-179 — Wave 7): قراءة المتبقية الفعالة (الغياب = ٠). */
 import { residualOf } from "@micro-domain/asset/index.js";
-import type { AssetDepreciationProposal, AssetEventSummary } from "@micro-domain/asset/index.js";
+import type {
+  AssetDepreciationProposal,
+  AssetEventSummary,
+  AssetPaymentStatus,
+} from "@micro-domain/asset/index.js";
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
 
 import { Button } from "@/components/primitives";
@@ -25,6 +29,8 @@ import { todayInAmman } from "@/application/time";
 type Reading = {
   asset: AssetRecord;
   summary: AssetEventSummary;
+  /* S08 (UNIT-034): وضع السداد المشتق — المدفوع النقدي الفعلي والمتبقي الحي. */
+  payments: AssetPaymentStatus;
   proposal: AssetDepreciationProposal;
   events: readonly FinancialEvent[];
 };
@@ -69,6 +75,11 @@ export default function AssetDetail() {
   const [depreciationAsOf, setDepreciationAsOf] = useState(todayInAmman());
   const [acquisitionOpen, setAcquisitionOpen] = useState(false);
   const [correctedAmount, setCorrectedAmount] = useState(0);
+  /* S08: تسديد المتبقي — مبلغ وتاريخ ومفتاح حتمية لكل محاولة حفظ. */
+  const [payAmountMinor, setPayAmountMinor] = useState(0);
+  const [validPayAmount, setValidPayAmount] = useState(true);
+  const [payMessage, setPayMessage] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
   const [validCorrectedAmount, setValidCorrectedAmount] = useState(true);
   const [correctedKind, setCorrectedKind] = useState<"cash" | "payable">("cash");
   const [reversalTargetId, setReversalTargetId] = useState<string | null>(null);
@@ -81,6 +92,9 @@ export default function AssetDetail() {
 
   const load = useCallback(() => {
     if (!assetId) return;
+    /* S08 (DOC-017): الخدمة كسولة — null = «جارٍ التجهيز» فتبقى الصفحة على
+     * حالة التحميل الصادقة وتُعاد القراءة فور جاهزيتها. */
+    if (!assets) return;
     assets.read(assetId).then(result => {
       if (!result.ok) {
         setState({ phase: "error", message: result.message });
@@ -94,6 +108,14 @@ export default function AssetDetail() {
 
   useEffect(load, [load, dataVersion]);
 
+  /* S08 (DOC-017): الخدمة كسولة — null = «جارٍ التجهيز» فنفس حالة التحميل
+   * الصادقة؛ لا سطح أعلاه يُبنى قبل جاهزيتها. */
+  if (!assets)
+    return (
+      <p className="micro-route-loading" role="status">
+        جارٍ قراءة الأصل…
+      </p>
+    );
   if (state.phase === "loading")
     return (
       <p className="micro-route-loading" role="status">
@@ -116,7 +138,7 @@ export default function AssetDetail() {
         </div>
       </section>
     );
-  const { asset, summary, proposal, events } = state.reading;
+  const { asset, summary, payments, proposal, events } = state.reading;
 
   async function run(action: () => Promise<{ ok: boolean; message?: string }>) {
     setBusy(true);
@@ -143,7 +165,9 @@ export default function AssetDetail() {
         <h1>{asset.name}</h1>
         <p>
           اقتناء <MoneyValue minor={asset.acquisitionAmountMinor} /> د.أ{" "}
-          {asset.acquisitionKind === "cash" ? "نقدًا" : "بالذمم"} · {formatLocalDate(asset.purchaseDate)}
+          {asset.acquisitionKind === "cash" ? "نقدًا" : "بالذمم"}
+          {" · "}
+          {formatLocalDate(asset.purchaseDate)}
           {residualOf(asset) > 0 ? (
             <>
               {" "}
@@ -154,7 +178,7 @@ export default function AssetDetail() {
         {asset.note ? <p className="micro-field-hint">ملاحظة الأصل: {asset.note}</p> : null}
       </div>
 
-      <section className="micro-decision-card" aria-label="القيمة الدفترية">
+      <section className="micro-decision-card" aria-label="القيمة الدفترية اليوم">
         <div>
           <span>القيمة الدفترية اليوم</span>
           <strong>
@@ -166,6 +190,86 @@ export default function AssetDetail() {
           </p>
         </div>
       </section>
+
+      {/* S08: المدفوع والمتبقي — قراءة مشتقة من الأحداث لا حقول قابلة
+       * للتحرير؛ الجزئي يظهر جزئيًا والكامل كاملًا. */}
+      {payments.hasPayable || payments.paidCashMinor > 0 ? (
+        <section className="micro-decision-card" aria-label="سداد الاقتناء">
+          <div>
+            <span>سداد الاقتناء</span>
+            <strong>
+              مدفوع نقدًا <MoneyValue minor={payments.paidCashMinor} /> د.أ
+              {payments.hasPayable ? (
+                <>
+                  {" "}
+                  · متبقي حق <MoneyValue minor={payments.remainingPayableMinor} /> د.أ
+                </>
+              ) : null}
+            </strong>
+            <p>
+              {payments.hasPayable
+                ? "السداد من مصدر الالتزام نفسه — يخرج نقدًا ويقفل الحق، ولا يُنشئ مصروفًا جديدًا."
+                : "الاقتناء مسدد بالكامل — القيمة الدفترية فوق مستقلة عن السداد."}
+            </p>
+            {payments.hasPayable && asset.status === "active" ? (
+              <div className="micro-pay-form">
+                <label className="micro-field">
+                  <span>سدد الآن (د.أ)</span>
+                  <EnglishNumberInput
+                    value={payAmountMinor}
+                    kind="money"
+                    onNumericChange={setPayAmountMinor}
+                    onTextValidityChange={setValidPayAmount}
+                  />
+                  <small>
+                    المتبقي الحي {payments.remainingPayableMinor.toLocaleString("en-US")} وحدة صغرى.
+                  </small>
+                </label>
+                <div className="micro-form-actions">
+                  <Button
+                    action="save"
+                    disabled={paying}
+                    onClick={() =>
+                      void (async () => {
+                        if (payAmountMinor <= 0 || !validPayAmount) {
+                          setPayMessage("أدخل مبلغ التسديد بالأرقام 0–9.");
+                          return;
+                        }
+                        setPaying(true);
+                        setPayMessage(null);
+                        try {
+                          const result = await assets.payPayable({
+                            assetId: asset.id,
+                            amountMinor: payAmountMinor,
+                            occurredOn: todayInAmman(),
+                            note: "تسديد من التفاصيل",
+                            operationKey: crypto.randomUUID(),
+                          });
+                          if (!result.ok) {
+                            setPayMessage(result.message);
+                            return;
+                          }
+                          setPayAmountMinor(0);
+                          notifyDataChanged();
+                        } finally {
+                          setPaying(false);
+                        }
+                      })()
+                    }
+                  >
+                    {paying ? "جارٍ التسديد…" : "سجّل التسديد"}
+                  </Button>
+                </div>
+                {payMessage ? (
+                  <p className="micro-field-error" role="alert">
+                    {payMessage}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       {asset.status === "active" ? (
         <section className="micro-decision-card" aria-label="إهلاك هذا الأصل">
@@ -235,7 +339,6 @@ export default function AssetDetail() {
                   kind="money"
                   onNumericChange={setCorrectedAmount}
                   onTextValidityChange={setValidCorrectedAmount}
-                  aria-label="قيمة الشراء الصحيحة"
                 />
               </label>
               <label className="micro-field">
@@ -333,7 +436,6 @@ export default function AssetDetail() {
                   kind="money"
                   onNumericChange={setNewResidual}
                   onTextValidityChange={setValidNewResidual}
-                  aria-label="القيمة المتبقية للمراجعة"
                 />
                 <small>تعديلها مراجعة موثقة — الإهلاك القادم يجري على (القيمة − المتبقية).</small>
               </label>
@@ -388,7 +490,6 @@ export default function AssetDetail() {
                   kind="money"
                   onNumericChange={setProceedsMinor}
                   onTextValidityChange={setValidProceeds}
-                  aria-label="مقابل البيع"
                 />
               </label>
               <label className="micro-field">

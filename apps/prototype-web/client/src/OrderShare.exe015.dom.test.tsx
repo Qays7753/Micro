@@ -1,11 +1,11 @@
 /** @vitest-environment jsdom */
-/* EXE-015 (SHR-001) — عقد المشاركة الموحد من سطح الطلب الحقيقي:
- * زر المشاركة الوحيد يبني نصه من السجل المحفوظ عبر نقطة قرار واحدة:
- * إشعار قبض من حدث القبض القائم نفسه (بمرجع العملية/الحدث)، والملغى نصُه
- * إلغاء صادق بلا «جاهز للمتابعة»، والمعكوس يسقط إلى تذكير الذمة، والنقر
- * المزدوج لا يكرر شيئًا ولا يكتب حرفًا في السجل. */
+/* EXE-015 (SHR-001) ثم UNIT-040 (تنفيذ S15 بالأمر الموحد §5): عقد المشاركة
+ * من سطح الطلب أُلغي بقرار المالك المعتمد — لا زر «شارك رسالة مع الزبون»
+ * ولا مسودة ولا معاينة ولا بديل رسالة أو نسخ نص في أي حالة طلب (قبض قائم،
+ * ملغى، عربون معكوس). السجل المحفوظ نفسه وسجل أحداثه هما الحقيقة المعروضة،
+ * وزيارة السطح لا تكتب حرفًا في المخزن. */
 import React from "react";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { CostEstimateService } from "@/application/estimates/costEstimateService";
@@ -107,17 +107,7 @@ async function agreedOrder(options?: { depositMinor?: number }) {
   return agreed.stored;
 }
 
-/** نقر زر المشاركة واستخراج المسودة التي سافرت إلى /share/preview. */
-async function clickShareAndGetDraft() {
-  const button = await screen.findByText("شارك رسالة مع الزبون");
-  fireEvent.click(button);
-  await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalled());
-  const call = wouterMocks.navigate.mock.calls[wouterMocks.navigate.mock.calls.length - 1];
-  const state = (call[1] as { state: { draft: Record<string, unknown> } }).state;
-  return { url: call[0] as string, draft: state.draft };
-}
-
-describe("EXE-015 — عقد المشاركة الموحد من سطح الطلب", () => {
+describe("EXE-015 → UNIT-040 — إلغاء المشاركة من سطح الطلب", () => {
   beforeEach(() => {
     wouterMocks.navigate.mockClear();
     wouterMocks.params = { id: "order-ord-1" };
@@ -130,44 +120,18 @@ describe("EXE-015 — عقد المشاركة الموحد من سطح الطل�
   });
   afterEach(() => cleanup());
 
-  it("القبض المحفوظ القائم ينتج إشعار قبض من الحدث نفسه — بمرجع العملية والحدث", async () => {
-    const stored = await agreedOrder({ depositMinor: 1000 });
-    const savedOrder = await store.getOrder(stored.id);
-    if (!savedOrder.ok) throw new Error(savedOrder.message);
-    if (!savedOrder.value) throw new Error("order missing after save");
-    const depositEvent = savedOrder.value.order.events.find(event => event.type === "deposit_collected");
-    expect(depositEvent).toBeTruthy();
-
-    wouterMocks.params = { id: stored.id };
-    wouterMocks.location = `/orders/${stored.id}`;
-    render(<Harness page={<OrderDetail />} />);
-    const { url, draft } = await clickShareAndGetDraft();
-
-    expect(url).toContain("/share/preview");
-    /* المصدر محفوظ في الرابط (مرمّزًا كما يليق بمسار داخلي آمن). */
-    expect(decodeURIComponent(url)).toContain(`returnTo=/orders/${stored.id}`);
-    expect(draft.kind).toBe("collection");
-    expect(draft.body).toContain("استلمت منك");
-    expect(draft.body).toContain("10.00 د.أ");
-    /* مرجع الحدث المثبت نفسه — لا أرقام من State مؤقت. */
-    expect(draft.origin).toEqual({ orderId: stored.id, eventId: depositEvent?.id });
-  });
-
-  it("إعادة الإرسال تشير إلى الحدث نفسه — لا مسودة مكررة ولا كتابة في السجل", async () => {
+  it("لا زر مشاركة في أي حالة — القبض القائم يُقرأ من سجله لا من مسودة", async () => {
     const stored = await agreedOrder({ depositMinor: 1000 });
     wouterMocks.params = { id: stored.id };
     wouterMocks.location = `/orders/${stored.id}`;
-    const before = await store.readSnapshot();
     render(<Harness page={<OrderDetail />} />);
-    const first = await clickShareAndGetDraft();
-    wouterMocks.navigate.mockClear();
-    const second = await clickShareAndGetDraft();
-    expect(second.draft).toEqual(first.draft);
-    const after = await store.readSnapshot();
-    expect(after).toEqual(before);
+    await screen.findByRole("heading", { name: "رف خشبي" });
+    /* UNIT-040: لا زر «شارك رسالة مع الزبون» ولا أي فعل مشاركة. */
+    expect(screen.queryByText("شارك رسالة مع الزبون")).toBeNull();
+    expect(screen.queryByText(/شارك/)).toBeNull();
   });
 
-  it("الطلب الملغى لا يعرض ولا يمرر «جاهز للمتابعة» — نص إلغاء صادق", async () => {
+  it("الملغى يبقى نصُه إلغاء صادق — بلا زر مشاركة ولا «جاهز للمتابعة»", async () => {
     const stored = await agreedOrder({ depositMinor: 1000 });
     const cancelled = await fulfillment.cancel(stored.id, "الزبون عدل عن الطلب");
     if (!cancelled.ok) throw new Error(cancelled.message);
@@ -175,13 +139,13 @@ describe("EXE-015 — عقد المشاركة الموحد من سطح الطل�
     wouterMocks.params = { id: stored.id };
     wouterMocks.location = `/orders/${stored.id}`;
     render(<Harness page={<OrderDetail />} />);
-    const { draft } = await clickShareAndGetDraft();
-    expect(draft.body).toContain("أُلغي");
-    expect(draft.body).not.toContain("جاهز للمتابعة");
-    expect(draft.body).not.toContain("استلمت منك");
+    await screen.findByRole("heading", { name: "رف خشبي" });
+    expect(document.body.textContent ?? "").toContain("ملغى");
+    expect(document.body.textContent ?? "").not.toContain("جاهز للمتابعة");
+    expect(screen.queryByText(/شارك/)).toBeNull();
   });
 
-  it("العربون المعكوس لا يبقى تحصيلًا قائمًا قابلًا للمشاركة — يسقط إلى تذكير الذمة", async () => {
+  it("العربون المعكوس يبقى تذكير ذمة في السجل — بلا مسار مشاركة يعيده قبضًا", async () => {
     const stored = await agreedOrder({ depositMinor: 1000 });
     const reversed = await fulfillment.reverseDeposit(stored.id, "سُجل العربون بالخطأ");
     if (!reversed.ok) throw new Error(reversed.message);
@@ -189,9 +153,21 @@ describe("EXE-015 — عقد المشاركة الموحد من سطح الطل�
     wouterMocks.params = { id: stored.id };
     wouterMocks.location = `/orders/${stored.id}`;
     render(<Harness page={<OrderDetail />} />);
-    const { draft } = await clickShareAndGetDraft();
-    expect(draft.kind).toBe("reminder");
-    expect(draft.body).toContain("أتذكر لك");
-    expect(draft.body).not.toContain("استلمت منك");
+    await screen.findByRole("heading", { name: "رف خشبي" });
+    /* السجل المحفوظ نفسه هو مصدر الحقيقة — لا مسودة مشاركة تعيد تفسيره. */
+    expect(screen.queryByText(/شارك/)).toBeNull();
+    expect(wouterMocks.navigate).not.toHaveBeenCalled();
+  });
+
+  it("زيارة السطح بلا مشاركة لا تكتب حرفًا — اللقطة قبل وبعد واحدة", async () => {
+    const stored = await agreedOrder({ depositMinor: 1000 });
+    wouterMocks.params = { id: stored.id };
+    wouterMocks.location = `/orders/${stored.id}`;
+    const before = await store.readSnapshot();
+    render(<Harness page={<OrderDetail />} />);
+    await screen.findByRole("heading", { name: "رف خشبي" });
+    expect(screen.queryByText(/شارك/)).toBeNull();
+    const after = await store.readSnapshot();
+    expect(after).toEqual(before);
   });
 });

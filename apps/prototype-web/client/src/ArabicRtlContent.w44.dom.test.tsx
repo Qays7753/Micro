@@ -38,6 +38,9 @@ import { OwnerProfileService } from "@/application/owner/ownerProfileService";
 import { CashContinuityService as CashContinuityForProfile } from "@/application/cash/cashContinuityService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+/* UNIT-035 (تنفيذ S15): مصمما القرض الكنونيان لبذرة المخزن. */
+import { createLoanRecord } from "@micro-domain/loan/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import OrderDetail from "@/pages/OrderDetail";
 import Loans from "@/pages/Loans";
 import Profile from "@/pages/Profile";
@@ -63,6 +66,37 @@ vi.mock("wouter", () => ({
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
 const NOW = "2026-09-16T10:00:00.000Z";
+
+/* UNIT-035 (تنفيذ S15 بالأمر الموحد §5): إنشاء الإقراض ملغى — بذرة القرض
+ * التاريخي بالمصنعين الكنونيين عند حد المخزن. */
+async function seedLegacyEnglishNameLoan() {
+  const event = createFinancialEvent({
+    id: "event-rtl-loan",
+    type: "loan_outgoing_cash",
+    amountMinor: 10000,
+    occurredOn: "2026-09-16",
+    recordedAt: NOW,
+    idempotencyKey: "rtl-loan:principal",
+    note: "قرض تاريخي",
+    counterparty: "Ahmad Suppliers Ltd",
+    loanContext: { loanId: "rtl-loan", borrower: "Ahmad Suppliers Ltd" },
+  });
+  const commit = await store.commitLoanRecord(
+    createLoanRecord({
+      id: "rtl-loan",
+      borrowerName: "Ahmad Suppliers Ltd",
+      principalMinor: 10000,
+      loanDate: "2026-09-16",
+      purposeNote: null,
+      sourceWalletId: null,
+      principalEventId: event.id,
+      operationKey: "rtl-loan:create",
+      createdAt: NOW,
+    }),
+    event,
+  );
+  if (!commit.ok) throw new Error(commit.message);
+}
 
 let store: MemoryLocalStore;
 let costs: CostService;
@@ -179,15 +213,10 @@ describe("Wave 4.4 — P-4.4-3: الشدّة وعزل Bidi والأسماء ال
   });
 
   it("اسم المقترض الحر داخل strong باتجاه auto — الاسم الإنجليزي يعزل والاسم العربي يبقى", async () => {
-    const profile = await new ProfileService(store, () => NOW).save("مالك");
+    const profile = await new ProfileService(store, () => NOW).create("مالك");
     if (!profile.ok) throw new Error(profile.message);
     const loans = new LoanService(store, () => NOW);
-    const created = await loans.create({
-      borrowerName: "Ahmad Suppliers Ltd",
-      principalMinor: 10000,
-      loanDate: "2026-09-16",
-    });
-    if (!created.ok) throw new Error(created.message);
+    await seedLegacyEnglishNameLoan();
     wouterMocks.location = "/loans";
     render(<Harness page={<Loans />} />);
     const nameStrong = await waitFor(() => {

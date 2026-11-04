@@ -42,13 +42,20 @@ async function feeOrderWithJourney(): Promise<{ store: MemoryLocalStore; orderId
   const withCost = await costs.saveSnapshot(saved.draft, costInput);
   if (!withCost.ok) throw new Error(withCost.message);
   const agreements = new AgreementService(store, costs, now);
-  /* سعر 50 + أجرة عميل عبر المشروع 5 = قيمة قابلة للتحصيل 55. */
+  /* S12 (UNIT-009 P3.3): الإنشاء الجديد بلا أجرة زبون — الأساس الحامل
+   * للأجرة (سعر 50 + أجرة 5 = 55) يُبنى على طلب قائم عبر باب شروط النقل
+   * (تعديل السجلات القائمة يبقى بنموذج ORD-003) فتبقى رحلة الدورة كاملة. */
   const agreed = await agreements.createFromDraft(withCost.draft, {
     agreedPriceMinor: 5000,
     deliveryDate: "2026-10-01",
     depositMinor: 1000,
     agreementSource: null,
-    deliveryTerms: {
+  });
+  if (!agreed.ok) throw new Error(agreed.message);
+  const termsService = new FulfillmentService(store, now);
+  const termsApplied = await termsService.applyDeliveryTerms(
+    agreed.stored.id,
+    {
       responsibility: "customer_pays_project",
       feeIncludedInPrice: false,
       costIncludedInProductCost: false,
@@ -57,8 +64,9 @@ async function feeOrderWithJourney(): Promise<{ store: MemoryLocalStore; orderId
       projectShareMinor: null,
       customerShareMinor: null,
     },
-  });
-  if (!agreed.ok) throw new Error(agreed.message);
+    "f7-initial-delivery-terms",
+  );
+  if (!termsApplied.ok) throw new Error(termsApplied.message);
   const started = await agreements.startExecution(agreed.stored.id);
   if (!started.ok) throw new Error(started.message);
   /* العربون المتفق (1000) يُقبض عند إنشاء الاتفاق نفسه — لا قبض مزدوج هنا. */
@@ -96,7 +104,7 @@ describe("fee order round-trip and layered import validation (F-007)", () => {
 
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);
-    const prepared = targetTransfers.prepareImport(JSON.stringify(verified.value.file));
+    const prepared = await targetTransfers.prepareRestore(JSON.stringify(verified.value.file));
     if (!prepared.ok) throw new Error(prepared.message);
     const confirmed = await targetTransfers.confirmImport(prepared.value);
     if (!confirmed.ok) throw new Error(confirmed.message);
@@ -127,7 +135,7 @@ describe("fee order round-trip and layered import validation (F-007)", () => {
     file.data.orders[0]!.order.deliveryTerms.feeChargedMinor = -300;
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);
-    const prepared = targetTransfers.prepareImport(JSON.stringify(file));
+    const prepared = await targetTransfers.prepareRestore(JSON.stringify(file));
     expect(prepared.ok).toBe(false);
     /* الرفض قبل الكتابة الذرية: الهدف بلا أي بيانات. */
     const orders = await target.listOrders();
@@ -149,7 +157,7 @@ describe("fee order round-trip and layered import validation (F-007)", () => {
     file.data.orders[0]!.order.deliveryTerms.feeChargedMinor = 700;
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);
-    const prepared = targetTransfers.prepareImport(JSON.stringify(file));
+    const prepared = await targetTransfers.prepareRestore(JSON.stringify(file));
     expect(prepared.ok).toBe(false);
     const orders = await target.listOrders();
     if (!orders.ok) throw new Error(orders.message);
@@ -170,7 +178,7 @@ describe("fee order round-trip and layered import validation (F-007)", () => {
     file.data.orders[0]!.order.deliveryTerms.costPaidMinor = 400;
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, now);
-    const prepared = targetTransfers.prepareImport(JSON.stringify(file));
+    const prepared = await targetTransfers.prepareRestore(JSON.stringify(file));
     expect(prepared.ok).toBe(false);
   });
 

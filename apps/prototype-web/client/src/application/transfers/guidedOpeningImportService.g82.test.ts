@@ -8,6 +8,15 @@ import { describe, expect, it } from "vitest";
 import { GuidedOpeningImportService } from "./guidedOpeningImportService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { okValue } from "@/testing/resultAssertions";
+import { LocalTransferService } from "./localTransferService";
+
+/* S02-A (SH-03): باني النسخة الرجوع المُتحقق منها للاختبار — من
+ * خدمة النقل نفسها فوق المخزن نفسه (باني الإنتاج يُمرَّر من جذر التركيب). */
+function testBackupBuilder(
+  store: ConstructorParameters<typeof LocalTransferService>[0],
+): ReturnType<typeof LocalTransferService.verifiedBackupBuilder> {
+  return LocalTransferService.verifiedBackupBuilder(new LocalTransferService(store));
+}
 
 const fixtureUrl = new URL(
   "../../../../../../docs/fixtures/g82-guided-opening-import-fixtures.json",
@@ -44,7 +53,11 @@ describe("guided opening import — the documented g82 fixture scenarios (STR-01
 
   it("scenario `valid`: previews then atomically confirms an opening position, with no write before confirm", async () => {
     const store = new MemoryLocalStore();
-    const service = new GuidedOpeningImportService(store, () => "2026-08-24T10:00:00.000Z");
+    const service = new GuidedOpeningImportService(
+      store,
+      testBackupBuilder(store),
+      () => "2026-08-24T10:00:00.000Z",
+    );
     const preview = await service.prepare(JSON.stringify(fixture.valid));
     expect(preview).toMatchObject({
       ok: true,
@@ -87,7 +100,7 @@ describe("guided opening import — the documented g82 fixture scenarios (STR-01
     ["unsupported", JSON.stringify(fixture.unsupported)],
   ])("scenario `%s` is rejected before any write", async (_name, text) => {
     const store = new MemoryLocalStore();
-    const service = new GuidedOpeningImportService(store);
+    const service = new GuidedOpeningImportService(store, testBackupBuilder(store));
     const result = await service.prepare(text);
     expect(result).toMatchObject({ ok: false, code: "validation_error" });
     expect(await emptyStore()).toEqual(okValue(await store.readSnapshot()));
@@ -107,7 +120,9 @@ describe("guided opening import — the documented g82 fixture scenarios (STR-01
       createdAt: "2026-08-01T00:00:00.000Z",
       updatedAt: "2026-08-01T00:00:00.000Z",
     });
-    const result = await new GuidedOpeningImportService(store).prepare(JSON.stringify(fixture.valid));
+    const result = await new GuidedOpeningImportService(store, testBackupBuilder(store)).prepare(
+      JSON.stringify(fixture.valid),
+    );
     expect(result).toMatchObject({ ok: false, code: "non_empty_store" });
     await expect(store.getProfile()).resolves.toMatchObject({
       ok: true,
@@ -117,7 +132,7 @@ describe("guided opening import — the documented g82 fixture scenarios (STR-01
 
   it("scenario `retry`: the same importId returns the prior result with no duplicate effect", async () => {
     const store = new MemoryLocalStore();
-    const service = new GuidedOpeningImportService(store);
+    const service = new GuidedOpeningImportService(store, testBackupBuilder(store));
     const preview = await service.prepare(JSON.stringify(fixture.valid));
     if (!preview.ok) throw new Error(preview.message);
     await expect(service.confirm(preview.value)).resolves.toMatchObject({ ok: true });

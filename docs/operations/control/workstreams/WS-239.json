@@ -1,0 +1,61 @@
+{
+  "id": "WS-239",
+  "title": "S14 — بدء التسجيل من الماضي والعودة بعد الانقطاع (UNIT-002/ACC-01/JRN-010/SH-18)",
+  "status": "REVIEW_REQUIRED",
+  "items": [
+    "DOC-023"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "a82a541a",
+  "areas": [
+    "src/domain/shared/",
+    "src/domain/direct-sale/",
+    "src/domain/supplier-purchase/",
+    "src/domain/financial-event/",
+    "src/domain/inventory-material/",
+    "src/domain/cash-continuity/",
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/pages/Foundation.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/implementation/micro-component-execution/00-S14-EXECUTION-PROMPT-2026-11-02.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-002-استكمال-بيانات-المشروع.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-11-02",
+  "updated_at": "2026-11-03",
+  "next_action": "S14 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-03؛ Workstream REVIEW_REQUIRED يحرر الملكية للمراحل اللاحقة ولا يعني VERIFIED على main. لا إعادة فتح دون دليل جديد؛ لا merge ولا كتابة على main.",
+  "notes": [
+    "أمر S14 الكنسي منشور في ba2ce7b431cab20f0e8d8005d1048d54def1b84a؛ التنفيذ فوق رأس سجلات S13 a82a541a.",
+    "سوابق هذا الادعاء في الشريحة نفسها: تصحيح S12-ATOMIC-001 بعد بدء الكتابة (6dbbc425) وتصحيحات S13-MR-001..007 (3c3ea798) — كلاهما أُرجع إلى رهن المراجعة.",
+    "تعليمات المالك لاستئناف S14: 00-S14-RESUME-PROMPT-2026-11-03.md",
+    "قرار المالك 2026-11-03: قبول S14 من A إلى Z على فرع التكامل استنادًا إلى مراجعة Manus السابقة؛ لا إعادة مراجعة. المرشح الكودي 0547fa992bd89c99175c988f8efbc21337d7dd1b، رأس التسليم 75af077358cf0ff6b35239529305243a6ffead1b، التقرير 19-S14-RESULT-2026-11-03.md، وActions/Cloudflare نجحا على رأس التسليم. لا VERIFIED على main ولا دمج؛ السقوف 650000/155300 ثابتة."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S14-EXECUTION-PROMPT-2026-11-02.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s14-execution",
+      "reason": "بدء تنفيذ §5 من أمر ba2ce7b4: UNIT-002 منسق الاستكمال الاختياري (ACC-01/JRN-010) وعقد الالتزام المنسق SH-18 على components/integration-20261027 / PR #383 فوق a82a541a."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-03",
+      "actor": "zai-s14-execution",
+      "reason": "تحرير مطالبة S14 للمراجعة المستقلة وفق الأمر الموحد: المرشح الكودي 0547fa99 باجتياز السلسلة الكاملة محليًا والمراجعات الخمس؛ بوابتا Actions/Cloudflare تُثبتان بالروابط الدقيقة على الرأس النهائي المدفوع في تعليق PR #383؛ السقفان الثابتان لم يُمسّا (603,724/146,987 مقابل 650,000/155,300)."
+    }
+  ],
+  "migration_baseline": true
+}

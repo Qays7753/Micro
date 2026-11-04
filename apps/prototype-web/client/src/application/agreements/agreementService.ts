@@ -1,8 +1,11 @@
 /**
  * Financial boundary for Slice 3. The service creates one CraftOrder from one
- * draft only after a saved cost snapshot exists; React never changes money state.
+ * draft only after a saved cost snapshot exists — or, since S12 (UNIT-009 /
+ * J002-DEC01), after the owner explicitly chooses an unknown-cost agreement;
+ * React never changes money state.
  */
 import {
+  calculateCostSnapshot,
   collectDeposit,
   createCraftOrder,
   recordDeliveryTerms,
@@ -17,18 +20,22 @@ import {
   ORDER_READ_FAILED_MESSAGE,
   ORDER_UNAVAILABLE_MESSAGE,
   STORAGE_ERROR,
+  STORAGE_STALE,
   VALIDATION_ERROR,
   errorMessageOf,
   storageFailure,
 } from "@/application/resultCodes";
 import { systemClock, type Clock } from "@/application/time/clock";
-import { isValidLocalDate } from "@micro-domain/shared/index.js";
+import { isValidLocalDate, JOD } from "@micro-domain/shared/index.js";
 import { AGREEMENT_SOURCE_ACCEPTANCE } from "@/application/transfers/transferCompatibilityValues";
+import { decideAgreementCreationCommit } from "@/storage/local/agreementCreationIntentGuard";
 
-/* ORD-003: شروط النقل والتوصيل عند الاتفاق — المسؤولية والأعلام والمبالغ؛
- * المفتاح والوقت تشتقهما الخدمة (حدث موثق في خط زمن الطلب). */
+/* S12 (UNIT-009 P3.1/P3.3 + العقد المشترك OrderExtras — أمر 2e645802): نموذج
+ * الإنشاء الجديد لشروط النقل — «لا يوجد توصيل» صريحًا أو توصيل يتحمله
+ * المشروع وحده مرة على الطلب؛ لا رسوم زبون ولا تقاسم في الإنشاء الجديد
+ * (سجلات القديم ذات المعنى تُقرأ بسياستها ولا تُحذف). */
 export type AgreementDeliveryTerms = {
-  responsibility: "project_pays" | "customer_pays_project" | "customer_pays_courier" | "shared";
+  responsibility: "none" | "project_pays";
   feeIncludedInPrice: boolean;
   costIncludedInProductCost: boolean;
   feeChargedMinor: number | null;
@@ -39,11 +46,18 @@ export type AgreementDeliveryTerms = {
 
 export type AgreementInput = {
   agreedPriceMinor: number;
-  deliveryDate: string;
+  /* S12 (UNIT-009 A2/س4 + B3-F04 — J002-DEC02): موعد التسليم قد يكون مجهولًا
+   * صراحة — null = «لم يُحدد بعد» (لا جدول ولا تاريخ صوري)؛ القيمة النصية
+   * تاريخ محلي صحيح. */
+  deliveryDate: string | null;
   depositMinor: number;
   agreementSource: AgreementSource | "conversation" | "call" | "in_person" | string | null;
   /* ORD-003: اختيارية تمامًا — غيابها = لا شروط نقل مسجلة (سلوك رجدي). */
   deliveryTerms?: AgreementDeliveryTerms | null;
+  /* S12 (UNIT-009 A2/س6 + B3-F17 — J002-DEC01): اختيار صريح «التكلفة غير
+   * معروفة الآن» — يُنشئ عند التحويل مرجع تكلفة مجهولًا موثقًا (نواة
+   * calculateCostSnapshot بعلم no_cost_components الإلزامي) لا تكلفة 0. */
+  costUnknown?: boolean;
 };
 export type AgreementResult =
   | { ok: true; stored: StoredCraftOrder; reused?: boolean }
@@ -96,8 +110,44 @@ export class AgreementService {
           code: "inconsistent_state",
           message: "توجد إشارة لاتفاق محلي غير متاح. لا تنشئ اتفاقًا جديدًا قبل المراجعة.",
         };
-      return { ok: true, stored: current.value };
+      /* S12 (DOC-021 — تصحيح R3-F04) + S12-FIN-001 (أمر 2158b0fc §5): مسودة
+       * مرتبطة = إعادة استخدام موثّقة للسجل القائم نفسه **بعد** مقارنة نية
+       * الإنشاء الكنونية — الحمولة نفسها تعيد السجل القائم كما هو بلا كتابة
+       * ثانية (حفظ دلالة إعادة المحاولة وoutcome_unknown)، والحمولة المتغيرة
+       * بالمفتاح نفسه تعارضًا صريحًا بلا كتابة ولا أثر جدول/قبض جانبي. */
+      const built = this.buildAgreementRecord(draft, input);
+      if (!built.ok) return built;
+      const decision = decideAgreementCreationCommit(built.stored, current.value);
+      if (decision.kind === "conflict")
+        return { ok: false, code: "storage_stale", message: decision.message };
+      return { ok: true, stored: current.value, reused: true };
     }
+    const built = this.buildAgreementRecord(draft, input);
+    if (!built.ok) return built;
+    const commit = await this.store.commitOrderFromDraft(
+      built.stored,
+      built.linkedDraft,
+      built.schedule ?? undefined,
+    );
+    /* S12 (DOC-021 — أمر 2e645802 §6، تصحيح R3-F01): حد الكتابة يعيد
+     * الاستخدام بصدق (reused) عند إنشاء متزامن/مكرر من المسودة نفسها —
+     * لا يطمر آخر-كاتب-يفوز؛ يمرر العلم كما هو.
+     * S12-FIN-001: تعارض الحمولة عند الحد يصل بصدق برسالته وكوده — لا
+     * يُطمس في خطأ تخزين عام. */
+    if (commit.ok) return { ok: true, stored: commit.value.order, reused: commit.value.reused };
+    if (commit.code === STORAGE_STALE) return { ok: false, code: "storage_stale", message: commit.message };
+    return storageFailure("تعذر حفظ الاتفاق محليًا — بياناتك كما هي؛ أعد المحاولة.");
+  }
+
+  /** بناء سجل الإنشاء من المسودة والمدخلات — مسار واحد للإنشاء والمسار
+   * السريع معًا (S12-FIN-001: مقارنة النية تُبنى من البناء نفسه لا من
+   * إسقاط موازٍ قد ينحرف عنه)؛ التحقق والبناء خالصان بلا أي كتابة. */
+  private buildAgreementRecord(
+    draft: OrderDraft,
+    input: AgreementInput,
+  ):
+    | { ok: true; stored: StoredCraftOrder; linkedDraft: OrderDraft; schedule: ScheduleEntry | null }
+    | Extract<AgreementResult, { ok: false }> {
     /* Conflict B: الجهة اختيارية — الطلب النقدي لا يُحجب؛ الاسم الفارغ يعني
      * «زبون بلا اسم» ويمكن تسميته لاحقًا من صفحة الطلب (تعبئة باتجاه واحد). */
     if (!agreementSourceIsValid(input.agreementSource))
@@ -108,30 +158,75 @@ export class AgreementService {
       return validation("أدخل سعرًا متفقًا عليه أكبر من صفر.");
     if (!Number.isInteger(input.depositMinor) || input.depositMinor < 0)
       return validation("العربون يجب أن يكون صفرًا أو مبلغًا صحيحًا.");
-    /* ORD-003: سقف العربون يتبع قيمة الطلب الكاملة — السعر + الأجرة المسجلة
-     * عبر المشروع (غير المحتواة في السعر). الأجرة غير المسجلة لا تُخترع. */
-    const billableFeeMinor =
+    /* S12 (UNIT-009 P3.3 — النموذج الجديد): إنشاء الاتفاق لا يحمل أجرة
+     * زبون أصلًا (لا يوجد توصيل أو توصيل على المشروع) — سقف العربون هو
+     * السعر المتفق عليه وحده بلا أجرة مُخترعة. */
+    if (
       input.deliveryTerms &&
-      (input.deliveryTerms.responsibility === "customer_pays_project" ||
-        input.deliveryTerms.responsibility === "shared") &&
-      !input.deliveryTerms.feeIncludedInPrice
-        ? (input.deliveryTerms.feeChargedMinor ?? 0)
-        : 0;
-    if (input.depositMinor > input.agreedPriceMinor + billableFeeMinor)
+      input.deliveryTerms.responsibility !== "none" &&
+      input.deliveryTerms.responsibility !== "project_pays"
+    )
       return validation(
-        "لا يمكن أن يتجاوز العربون قيمة الطلب المتفق عليها (السعر + أجرة التوصيل المسجلة عبر المشروع إن وجدت).",
+        "شروط النقل في إنشاء الاتفاق الجديد: «لا يوجد توصيل» أو «المشروع يدفع للناقل» فقط — لا رسوم زبون ولا تقاسم.",
       );
-    if (!dateIsValid(input.deliveryDate)) return validation("أدخل موعد تسليم صحيحًا.");
+    if (input.deliveryTerms?.responsibility === "none") {
+      const terms = input.deliveryTerms;
+      if (
+        terms.feeChargedMinor !== null ||
+        terms.costPaidMinor !== null ||
+        terms.projectShareMinor !== null ||
+        terms.customerShareMinor !== null
+      )
+        return validation("«لا يوجد توصيل» لا يحمل أي مبلغ — لا أجرة ولا كلفة ولا حصص.");
+    }
+    if (input.depositMinor > input.agreedPriceMinor)
+      return validation("لا يمكن أن يتجاوز العربون قيمة الطلب المتفق عليها.");
+    /* S12 (UNIT-009 — J002-DEC02): المجهول الصريح مقبول — لا جدول ولا تاريخ
+     * صوري؛ والقيمة النصية إن وجدت تاريخ محلي صحيح. */
+    if (input.deliveryDate !== null && !dateIsValid(input.deliveryDate))
+      return validation("أدخل موعد تسليم صحيحًا — أو اختر «لم يُحدد بعد» صراحةً.");
     const active = draft.costSnapshots.find(snapshot => snapshot.id === draft.activeCostSnapshotId);
-    if (!active)
-      return { ok: false, code: "missing_cost", message: "احفظ نسخة التكلفة أولًا قبل تسجيل الاتفاق." };
-    const cost = this.costs.previewStored(active);
-    if (!cost.ok)
-      return {
-        ok: false,
-        code: "missing_cost",
-        message: "نسخة التكلفة غير صالحة؛ راجع التكلفة قبل تسجيل الاتفاق.",
-      };
+    /* S12 (UNIT-009 — J002-DEC01): الاتفاق بتكلفة غير معروفة صراحة — مرجع
+     * مجهول موثق عند التحويل؛ لا يُقبل المجهول مع مرجع صالح قائم (الصريح
+     * الحقيقي يستعمل مرجعه، والمجهول لا يطمس مرجعًا أفضل بصمت). */
+    let costSnapshot;
+    if (input.costUnknown === true) {
+      if (active)
+        return validation(
+          "لهذه المسودة نسخة تكلفة قائمة — استعملها أو راجعها في التكلفة؛ المجهول الصريح لمن لا مرجع له.",
+        );
+      try {
+        costSnapshot = calculateCostSnapshot(`${draft.id}:unknown-cost`, {
+          currency: JOD,
+          materialItems: [],
+          time: null,
+          packagingMinor: 0,
+          deliveryMinor: 0,
+          wasteMinor: 0,
+          safetyBufferMinor: 0,
+          quantity: draft.quantity,
+          createdAt: this.now(),
+          source: "order_confirmation",
+        });
+      } catch (error) {
+        return validation(errorMessageOf(error, "تعذر بناء مرجع التكلفة المجهول."));
+      }
+    } else {
+      if (!active)
+        return {
+          ok: false,
+          code: "missing_cost",
+          message: "احفظ نسخة التكلفة أولًا قبل تسجيل الاتفاق — أو اختر «التكلفة غير معروفة الآن» صراحةً.",
+        };
+      const cost = this.costs.previewStored(active);
+      if (!cost.ok)
+        return {
+          ok: false,
+          code: "missing_cost",
+          message: "نسخة التكلفة غير صالحة؛ راجع التكلفة — أو اختر «التكلفة غير معروفة الآن» صراحةً.",
+        };
+      costSnapshot = cost.snapshot;
+    }
     const timestamp = this.now();
     const id = `order-${draft.id}`;
     try {
@@ -143,14 +238,17 @@ export class AgreementService {
         specifications: draft.specifications,
         quantity: draft.quantity,
         agreedPriceMinor: input.agreedPriceMinor,
-        costSnapshot: cost.snapshot,
+        costSnapshot,
         createdAt: timestamp,
       });
-      /* ORD-003: شروط النقل تُسجّل قبل القبض — الأجرة المسجلة عبر المشروع
-       * تدخل قيمة الطلب قبل العربون فلا يُخترق سقف القبض. */
+      /* ORD-003/S12: شروط النقل تُسجّل قبل القبض — وفي النموذج الجديد لا أجرة
+       * زبون عند الإنشاء أصلًا فسقف القبض هو السعر وحده. */
       if (input.deliveryTerms) {
         order = recordDeliveryTerms(order, {
           ...input.deliveryTerms,
+          feeChargedMinor: null,
+          projectShareMinor: null,
+          customerShareMinor: null,
           idempotencyKey: `${id}:initial-delivery-terms`,
           createdAt: timestamp,
         });
@@ -177,39 +275,42 @@ export class AgreementService {
         updatedAt: timestamp,
       };
       const linkedDraft: OrderDraft = { ...draft, linkedOrderId: id, updatedAt: timestamp };
-      const schedule: ScheduleEntry = {
-        id: `schedule-${id}`,
-        orderId: id,
-        kind: "delivery",
-        scheduledFor: input.deliveryDate,
-        scheduledTime: null,
-        durationMinutes: null,
-        status: "scheduled",
-        postponeReason: null,
-        events: [
-          {
-            id: `${id}:schedule-created`,
-            type: "created",
-            idempotencyKey: `${id}:schedule-created`,
-            createdAt: timestamp,
-            previousScheduledFor: null,
-            scheduledFor: input.deliveryDate,
-            previousScheduledTime: null,
-            scheduledTime: null,
-            previousDurationMinutes: null,
-            durationMinutes: null,
-            reason: null,
-          },
-        ],
-        recurrenceId: null,
-        recurrenceIndex: null,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      };
-      const commit = await this.store.commitOrderFromDraft(stored, linkedDraft, schedule);
-      return commit.ok
-        ? { ok: true, stored: commit.value.order }
-        : storageFailure("تعذر حفظ الاتفاق محليًا — بياناتك كما هي؛ أعد المحاولة.");
+      /* S12 (UNIT-009 — J002-DEC02): غياب الموعد لا يكتب جدولًا — موعد الطلب
+       * المجهول (null) بلا ScheduleEntry؛ يُنشأ موعده حين يحدده المالك
+       * لاحقًا من صاحبه (012)، وتحديده لا يعيد إنشاء الاتفاق. */
+      const schedule: ScheduleEntry | null =
+        input.deliveryDate === null
+          ? null
+          : {
+              id: `schedule-${id}`,
+              orderId: id,
+              kind: "delivery",
+              scheduledFor: input.deliveryDate,
+              scheduledTime: null,
+              durationMinutes: null,
+              status: "scheduled",
+              postponeReason: null,
+              events: [
+                {
+                  id: `${id}:schedule-created`,
+                  type: "created",
+                  idempotencyKey: `${id}:schedule-created`,
+                  createdAt: timestamp,
+                  previousScheduledFor: null,
+                  scheduledFor: input.deliveryDate,
+                  previousScheduledTime: null,
+                  scheduledTime: null,
+                  previousDurationMinutes: null,
+                  durationMinutes: null,
+                  reason: null,
+                },
+              ],
+              recurrenceId: null,
+              recurrenceIndex: null,
+              createdAt: timestamp,
+              updatedAt: timestamp,
+            };
+      return { ok: true, stored, linkedDraft, schedule };
     } catch (error) {
       return validation(errorMessageOf(error, "تعذر بناء الاتفاق."));
     }

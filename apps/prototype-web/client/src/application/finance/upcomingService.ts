@@ -101,7 +101,7 @@ export class UpcomingService {
           entries: payablesAging.value.rows.map(row => ({
             id: row.purchaseId,
             kind: "supplier_payable" as const,
-            title: row.supplierName,
+            title: row.supplierName ?? "استحقاق مورد",
             note: null,
             qualifier: null,
             amountMinor: row.payableMinor,

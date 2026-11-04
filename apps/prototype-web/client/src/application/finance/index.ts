@@ -44,7 +44,9 @@ export type { ProfitToCashBridgeReading } from "./profitToCashBridgeService";
 /* R7 / R6-F17-P02 (2026-10-10): أنواع نموذج عرض المالية من بيتهما التطبيقي —
  * أنواع فقط عبر الباب (جذر التركيب يستورد الباب استاتيكيًا فلا تدخل قيم
  * كومة الإقلاع؛ الدوال تُستهلك من financeState.ts مباشرة داخل الشظية الكسولة). */
-export type { BridgeState, CashHorizonState, FinanceBlockId, FinanceState } from "./financeState";
+/* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): نوع حالة أفق الكاش القصير غادر
+ * الباب مع القدرة المؤجلة (انكماش موثق نفس-الـPR في أساس الأبواب). */
+export type { BridgeState, FinanceBlockId, FinanceState } from "./financeState";
 
 export { ProjectFinancialService } from "./projectFinancialService";
 export type {
@@ -70,12 +72,8 @@ export type {
   RecurringWorkReadings,
 } from "./recurringWorkService";
 
-export {
-  DEFAULT_SHORT_CASH_HORIZON_DAYS,
-  SHORT_CASH_HORIZON_DAYS,
-  SHORT_CASH_HORIZON_LABELS_AR,
-} from "./shortCashHorizon";
-export type { ShortCashHorizonDays } from "./shortCashHorizon";
+/* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): صادرات أفق الكاش القصير أزيلت من
+ * الباب مع القدرة المؤجلة — لا قراءة توقع عبر الباب ولا بديل يوحي بها. */
 
 export { StatementMarkdownService } from "./statementMarkdownService";
 

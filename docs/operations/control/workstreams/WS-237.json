@@ -1,0 +1,107 @@
+{
+  "id": "WS-237",
+  "title": "S12 execution workstream — اتفاق الطلب وتنفيذه وتسليمه وتسويته (UNIT-009/010/011 + UNIT-026 order adapter + SH-16)",
+  "status": "REVIEW_REQUIRED",
+  "items": [
+    "DOC-021"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "c7f6c034eb12002e5662f4775717466834df7f4f",
+  "areas": [
+    "src/domain/craft-order/",
+    "src/domain/cash-continuity/",
+    "src/domain/inventory-material/",
+    "src/domain/financial-analysis/",
+    "apps/prototype-web/client/src/application/agreements/",
+    "apps/prototype-web/client/src/application/fulfillment/",
+    "apps/prototype-web/client/src/application/collections/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/pages/AgreementEditor.tsx",
+    "apps/prototype-web/client/src/pages/OrderDetail.tsx",
+    "apps/prototype-web/client/src/pages/DeliveryReview.tsx",
+    "apps/prototype-web/client/src/pages/Collect.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S12-EXECUTION-PROMPT-2026-11-01.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-009-الاتفاق-والعربون.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-010-تفاصيل-الطلب.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-011-مراجعة-التسليم.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-026-تسجيل-دفعة-على-مستحق.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-11-01",
+  "updated_at": "2026-11-03",
+  "next_action": "S12 مقبولة على فرع التكامل؛ لا إجراء إضافي دون دليل جديد. استمرار S14 مستقل ومشروط بحسم عائق gzip؛ لا merge ولا كتابة على main.",
+  "notes": [
+    "أمر التنفيذ الوحيد هو 00-S12-EXECUTION-PROMPT-2026-11-01.md المنشور في 2e6458021d1d146b54d7d2655291bf2404ddc8d7؛ GitHub هو مصدر الحقيقة التشغيلي.",
+    "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
+    "تصحيح S11-MR-001/MR-002 أُنجز أولًا (eb23311e + الملحق 16a) وDOC-020 عادت IN_REVIEW بتحولات قانونية.",
+    "ملكية UNIT-026 هنا محول الطلب وحده: لا إعادة بناء قدرة التحصيل المشتركة ولا محول البيع المباشر (S11).",
+    "بوابة ما بعد المجموعة ٦: لا حركة هيكلية من مسح S11 (كل الموجات NOT_EXECUTED)؛ النمط الكسول القائم محفوظ.",
+    "المخطط/التصدير: لا ترقية إن لم يتطلب السلك الدائم تغييرًا؛ أي تغيير مبرر يستوفي دورة التوافق كاملة في نفس التنفيذ.",
+    "S12 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-02؛ المراجعة الخفيفة السابقة PASS حسب تأكيد المالك، والتصحيح 6dbbc425bc34b9ec39e2034782089cd67855e6fd موثق في docs/implementation/micro-component-execution/17b-S12-REVIEW-ADDENDUM-2026-11-02.md (ff45da900154f80491b9b5b79114695fca18e2e4). تبقى حالة Workstream REVIEW_REQUIRED لتحرير الملكية؛ لا تعني VERIFIED على main ولا دمجًا."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S12-EXECUTION-PROMPT-2026-11-01.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/16a-S11-REVIEW-ADDENDUM-2026-11-01.md",
+    "docs/implementation/micro-component-execution/17b-S12-REVIEW-ADDENDUM-2026-11-02.md"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "مطالبة S12 المأذونة بأمر 2e645802 بعد اكتمال تصحيح مراجعة S11 — التنفيذ المتصل يبدأ فورًا بلا موافقة وسيطة."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-delivery",
+      "reason": "تسليم S12 الكامل لأمر 2e645802: النطاق كله (UNIT-009/010/011 + محول UNIT-026 للطلبات) منفذ؛ pnpm check خروج 0 (جذري 1024/1024 وتطبيق 3236/3236)؛ المراجعات الخمس مكتملة وتصحيحاتها المعاد قراءتها (R4 بثلاث جولات)؛ المخطط/التصدير 40/33 بموجب J002-DEC01/02 وUNIT-009 A3 بلا مخازن ولا ترحيل؛ النتيجة 17-S12-RESULT-2026-11-01.md عند dee34f51 — تسليم للمراجعة لا قبول."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "أمر المالك المتصل 2158b0fc (§3): موجدات مراجعة ac4429ef المستقلة الأربع + مصالحة السجلات تستوجب فتح المطالبة قانونيًا قبل التصحيح."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "تنفيذ التصحيحات المأذونة (أمر 2158b0fc §5) على الفرع نفسه وPR #383؛ لا موافقة وسيطة."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "تصحيحات S12 المأذونة مكتملة بانحداراتها (الملحق 17a)؛ مطالبة S12 تعود لحالة مراجعة صادقة — لا قبول ذاتيًا."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s14-execution",
+      "reason": "أمر المالك ba2ce7b4 §3: فتح قانوني لتصحيح S12 المحدود (S12-ATOMIC-001 ما بعد بدء الكتابة على الذاكرة + إغلاقا شهادة الاختبار) فوق الفرع/PR نفسيهما؛ بلا دمج وبلا كتابة على main."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s14-execution",
+      "reason": "بدء تصحيح S12 المأذون بأمر ba2ce7b4 §3 على components/integration-20261027 / PR #383 ثم العودة إلى حالة مراجعة صادقة؛ لا merge ولا كتابة على main."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s14-execution",
+      "reason": "اكتمال تصحيح S12 المحدود (S12-ATOMIC-001 ما بعد بدء الكتابة + إغلافا شهادة الاختبار) عند 6dbbc425 بالملحق 17b؛ العودة إلى رهن المراجعة المستقلة وقبول المالك."
+    }
+  ],
+  "migration_baseline": true
+}

@@ -18,6 +18,7 @@ export type IntegrityCheckOffenderSummariesStore = Pick<
   | "listLoans"
 >;
 import type { IntegrityCheckResult, IntegrityOffenderSummary } from "./integrityCheckModel";
+import { supplierDisplayLabelOf } from "../parties";
 
 /* حل المعرّفات الخام إلى ملخصات مقروءة — قراءات إضافية تحدث فقط حين
  * توجد متأثرون فعلًا؛ الفشل في الإثراء لا يفشل الفحص (المعرّف الخام يبقى). */
@@ -78,7 +79,7 @@ export async function attachOffenderSummaries(
         summaries.set(purchase.id, {
           id: purchase.id,
           kind: "supplier_purchase",
-          name: purchase.supplierName,
+          name: supplierDisplayLabelOf(purchase),
           dateLocal: purchase.purchasedOn,
           amountMinor: purchase.totalMinor,
           href: `/suppliers/purchase/${encodeURIComponent(purchase.id)}`,

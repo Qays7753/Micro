@@ -35,6 +35,10 @@ import {
   createSupplierPurchase,
   recordSupplierPurchasePayment,
 } from "@micro-domain/supplier-purchase/index.js";
+/* UNIT-035 (تنفيذ S15 بالأمر الموحد §5): إنشاء الإقراض ملغى — بذرة القرض
+ * التاريخي للتماثل تُبنى بالمصنعين الكنونيين عند حد المخزن (نفس مسار توافق
+ * النقل) لا عبر خدمة الإنشاء الملغاة. */
+import { createLoanRecord } from "@micro-domain/loan/index.js";
 import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 import { MemoryLocalStore } from "./MemoryLocalStore";
 import type { CatalogTemplate } from "@micro-domain/catalog/index.js";
@@ -1034,26 +1038,46 @@ async function assetsLoansDeposits(store: PrototypeLocalStore): Promise<void> {
   if (!corrected.ok) return;
   const correctionReplay = await store.commitAssetAcquisitionCorrection(
     corrected.value.asset,
-    corrected.value.reversal,
-    corrected.value.replacement,
+    corrected.value.reversals,
+    corrected.value.replacements,
   );
   expect(correctionReplay.ok).toBe(true);
   if (correctionReplay.ok) expect(correctionReplay.value.reused).toBe(true);
 
-  /* 25. commitLoanRecord. */
-  const loanCreated = await loans.create({
+  /* 25. commitLoanRecord — القرض التاريخي يُبنى بالمصنعين الكنونيين مباشرة
+   * (UNIT-035: الإنشاء ملغى عند الخدمة؛ الحد المخزني نفسه هو المتَمَثَّل)،
+   * ثم يُعاد الإلحاق نفسه فيثبت التماثل (reused). */
+  const loanEvent = createFinancialEvent({
+    id: "conformance-loan-event",
+    type: "loan_outgoing_cash",
+    amountMinor: 15000,
+    occurredOn: "2026-07-01",
+    recordedAt: TS,
+    idempotencyKey: "conformance-loan:principal",
+    note: "قرض تاريخي للتماثل",
+    counterparty: "أحمد",
+    loanContext: { loanId: "conformance-loan", borrower: "أحمد" },
+  });
+  const loan = createLoanRecord({
+    id: "conformance-loan",
     borrowerName: "أحمد",
     principalMinor: 15000,
     loanDate: "2026-07-01",
+    purposeNote: null,
+    sourceWalletId: null,
+    principalEventId: loanEvent.id,
+    operationKey: "conformance-loan:create",
+    createdAt: TS,
   });
-  expect(loanCreated.ok).toBe(true);
-  if (!loanCreated.ok) return;
-  const loanReplay = await store.commitLoanRecord(loanCreated.value.loan, loanCreated.value.event);
+  const loanCommit = await store.commitLoanRecord(loan, loanEvent);
+  expect(loanCommit.ok).toBe(true);
+  if (!loanCommit.ok) return;
+  const loanReplay = await store.commitLoanRecord(loanCommit.value.record, loanCommit.value.event);
   expect(loanReplay.ok && loanReplay.value.reused).toBe(true);
   expect(okValue(await store.listLoans())).toHaveLength(1);
 
   /* 26. commitLoanCorrection. */
-  const loanCorrected = await loans.correctLoan(loanCreated.value.loan.id, {
+  const loanCorrected = await loans.correctLoan("conformance-loan", {
     principalMinor: 14000,
     reason: "تصحيح أصل القرض",
   });

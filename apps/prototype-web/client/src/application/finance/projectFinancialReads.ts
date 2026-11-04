@@ -74,9 +74,14 @@ export async function readPosition(
   const orderPulse = summarizeLocalCraftOrders(ordersResult.value);
   const project = summarizeFinancialEvents(eventsResult.value);
   /* §٥-١٣ (المرحلة أ): تحصيل البيع المباشر كاش كأي تحصيل — يدخل الكاش غير الموزع
-   * نظير تحصيلات الطلبات. البيع الملغى لا يُحتسب: نقضُه ينقض قبضه. */
+   * نظير تحصيلات الطلبات. البيع الملغى لا يُحتسب: نقضُه ينقض قبضه.
+   * S11 (UNIT-026 sale-slice): المُرَدّ فعليًا من بيع مُرتجع خرج من الكاش —
+   * المصدر الواحد (البيع) يملك دخول نقده وخروجه معًا. */
   const activeDirectSales = directSalesResult.value.filter(sale => (sale.status ?? "active") === "active");
-  const directSalesCashMinor = activeDirectSales.reduce((sum, sale) => sum + sale.collectedMinor, 0);
+  const directSalesCashMinor = activeDirectSales.reduce(
+    (sum, sale) => sum + sale.collectedMinor - (sale.refundedMinor ?? 0),
+    0,
+  );
   /* X-06 (و٤): ما قرّره المالك دَينًا من فرق البيع المباشر يظهر في «لي عند العملاء» —
    * المال المستحق لا يُخفى. و«يحتاج مراجعة» فرق لم يُقرَّر بعد فلا يدخل الذمم. */
   const directSalesReceivablesMinor = activeDirectSales

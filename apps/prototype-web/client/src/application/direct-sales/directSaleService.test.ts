@@ -260,7 +260,7 @@ describe("DirectSaleService two-tab conflict guard (و٦, §٥-٩)", () => {
   });
 });
 describe("DirectSaleService agreed vs collected (X-06, و٤)", () => {
-  it("records 10-agreed/8-collected with the owner's debt decision and a generic name when left empty", async () => {
+  it("records 10-agreed/8-collected with the owner's debt decision, a generic item name when left empty, and a simple debt definition (S05/DOC-014)", async () => {
     const store = new MemoryLocalStore();
     const service = new DirectSaleService(store, () => "2026-08-30T09:00:00.000Z");
     const result = await service.record({
@@ -269,6 +269,9 @@ describe("DirectSaleService agreed vs collected (X-06, و٤)", () => {
       revenueMinor: 1000,
       collectedMinor: 800,
       collectionStatus: "partial_debt",
+      /* S05 (DOC-014 / UNIT-037 A1/SDF-010): المستحق الجديد يوجب تعريفًا
+       * بسيطًا — اسم نصي للعملية هنا؛ لا هاتف ولا ملف دائم. */
+      customerName: "زبون المتجر — جار المحل",
       costMinor: null,
       occurredOn: "2026-08-30",
       note: "بيع من المحل",

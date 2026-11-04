@@ -1,0 +1,116 @@
+{
+  "id": "DOC-025",
+  "title": "S16 execution — الرئيسية والتنقل ومداخل الخدمات (UNIT-003/014/041/043 + SH-21)",
+  "type": "FEATURE",
+  "status": "IN_REVIEW",
+  "priority": "P0",
+  "stage": "micro-component-execution-s16-20261103",
+  "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md بعد إصلاح S15-MR-001 جذريًا وإعادة S15 للمراجعة قانونيًا (DOC-024/WS-240 IN_REVIEW/REVIEW_REQUIRED عند c788b09f). | بطاقة الفهم: مشكلة المستخدم: صاحب المشروع يفتح التطبيق فيريد أن يبدأ عمله، ويعرف ما يحتاج انتباهه، ويفهم لمحة عن وضعه — الرئيسية وجهة الفتح الوسطى بأفعال سريعة ومتابعة مختصرة ولمحة مالية واحدة، والتنقل خمسة مقاعد ثابتة (المالية، الطلبات، الرئيسية، التوصيل، السوق) من اليمين لليسار، والخدمات المستقبلية (التوصيل/اسأل Micro/السوق) إعلانات صادقة «قريبًا» بلا أفعال وهمية. النطاق: UNIT-003 الرئيسية بترتيب HOME-A (الاسم والتاريخ والإعدادات و!؛ إجراءات سريعة خمسة بسحب يدوي وعرض الكل؛ متابعتك حتى 3 مهام مع عرض المتابعة؛ لمحة مالية بفترة اليوم/هذا الشهر والنقد الآن منفصلًا؛ اسأل Micro ثانويًا)؛ UNIT-014 اكتمال إلغاء الاستقلال (روابط /finance/more القديمة بفترة ورجوع تصل البديل بلا كتابة أو حلقة)؛ UNIT-041 السوق إعلان صادق فقط؛ UNIT-043 التوصيل مقعد شريط بإعلان قائم صادق واسأل Micro ثانويًا؛ SH-21 التنقل والرجوع ومداخل المصادر. غير الأهداف: لا قارئ مالي ثانٍ ولا كاتب في الرئيسية (تفويض لأصحابه)؛ لا موعد إطلاق مختلق ولا حجز توصيل ولا سلة/دفع في السوق ولا قدرة AI؛ لا مقعد سادس للأدوات أو الإعدادات؛ لا موجة هيكلية؛ السقفان ثابتان 650,000/155,300. الثوابت: القراء لا يكتبون؛ القبض ليس ربحًا؛ النقد الآن منفصل عن فترة الأداء؛ لا أصفار افتراضية ولا نتيجة مجهولة بصفر؛ فشل مصدر يعزل ولا ينسف الصفحة. حالات الفشل: فشل مصدر متابعة يفقد المختصر اكتماله بلا فراغ مضلل؛ تغيير الفترة لا يغير النقد الآن؛ الرجوع يحفظ سياقه ولا يكرر كتابة. معيار القبول: حالات UNIT القابلة للتطبيق (HOME-AC/3D-AC ذات الصلة) وSDF-006/060/061 بأدلة دائمة؛ pnpm check كاملة على الشجرة النهائية؛ خمس مراجعات قرائية متسلسلة؛ البوابتان البعيدتان على الرأس النهائي بعينه. حد الاستعادة: رأس إصلاح S15-MR-001 c788b09f.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "CONFIRMED",
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md §4 يفوض بدء S16 مباشرة بعد إصلاح S15-MR-001 وإعادة S15 للمراجعة القانونية بلا موافقة وسيطة؛ السقفان ثابتان؛ لا موجة هيكلية؛ لا قبول ذاتي ولا merge ولا كتابة main.\nاعتمد المالك قبول S16 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-04، استنادًا إلى تسليم S16 في 21-S16-RESULT-2026-11-03.md، المرشح الكودي 9dc4b194، وتحقق Actions وCloudflare Pages الناجحين على رأس التسليم 7fef8cf1fa9795e137a72c9a19ccdc38c247ba83. القبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج.",
+  "tests_required": [
+    "ترتيب HOME-A2 الكامل وأسماء الأقسام (متابعتك/لمحة مالية) بلا كتل ملغاة (أثناء غيابك/آخر التسجيلات/خيارات المشروع)",
+    "الشريط الخماسي الجديد: المالية، الطلبات، الرئيسية، التوصيل، السوق — بلا مقعد سادس، وتسمية الرئيسية الموحدة HOME-R01",
+    "أفعال الرئيسية الخمسة (بيع/مصروف/طلب جديد/شراء/أدوات المشروع) تفتح أصحابها بReturnTo، وعرض الكل بديلًا كاملًا",
+    "متابعتك: حتى 3 مهام بقاعدة HOME-A4/3D-C2، عرض المتابعة يفتح القائمة الكاملة، فشل مصدر يعلن جزئية القراءة بلا فراغ مضلل",
+    "لمحة مالية: فترة اليوم/الشهر بتطبيق وإلغاء، المبيعات/النتيجة يفتحان كشف 016 بالنطاق نفسه، النقد الآن منفصل يفتح 022، عرض المالية يفتح 013",
+    "النقد الآن لا يتغير بتغيير الفترة، ولا أصفار افتراضية أثناء التحميل، والنتيجة الناقصة وصف صادق",
+    "زر ! يفتح معلومات قصيرة (معنى المبيعات مقابل المقبوض، حدود النتيجة والنقد، محلية البيانات، حالة آخر نسخة متحققة ومدخل النسخ عبر الإعدادات)",
+    "UNIT-043: التوصيل مقعد بإعلان قائم صادق — لا حجز ولا تسعير ولا تتبع؛ اسأل Micro ثانويًا بلا محادثة أو إرسال بيانات؛ السوق بلا سلة أو دفع",
+    "UNIT-041/SDF-060: حالة صادقة ووصول معلن بلا أثر مالي من الفتح",
+    "UNIT-014: روابط /finance/more القديمة بفترة ورجوع تصل البديل بلا كتابة أو حلقة",
+    "SDF-061: تغير الجيل أثناء تحميل الملخص يهمل القديم ويعيد القراءة"
+  ],
+  "layers": [
+    "application",
+    "ui"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md",
+    "discovered_at_sha": "7b80ac7b (رأس إعادة تسليم إصلاح S15-MR-001؛ الشجرة النهائية تُثبت عند التسليم)",
+    "evidence": [
+      "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md",
+      "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md",
+      "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
+      "https://github.com/Qays7753/Micro/pull/383"
+    ]
+  },
+  "acceptance": [
+    "الرئيسية والتنقل وفق عقود UNIT وNAV الرسمية فقط — لا يعتمد وجود صفحة سابقة اكتمالًا",
+    "لا قارئ مالي ثانٍ ولا كاتب جديد؛ الرئيسية تستهلك القارئ الكنوني والخدمات القائمة (القارئ الموحد للمتابعة من S13)",
+    "التنقل أو تحريك مدخل لا ينشئ سجلًا أو رصيدًا أو حجزًا أو حدثًا ماليًا",
+    "الخدمات المستقبلية إعلانات صادقة «قريبًا» بلا موعد إطلاق ولا فعل وهمي",
+    "البديل جاهز قبل إزالة أي مدخل قديم؛ الروابط العميقة والرجوع محفوظان",
+    "السقفان ثابتان 650,000/155,300 وأي إرساء تخييق لا توسيع مع إثبات"
+  ],
+  "areas": [
+    "apps/prototype-web/client/src/pages/Home.tsx",
+    "apps/prototype-web/client/src/application/home/",
+    "apps/prototype-web/client/src/application/follow-up/",
+    "apps/prototype-web/client/src/app/navigation.ts",
+    "apps/prototype-web/client/src/app/MicroRouter.tsx",
+    "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+    "apps/prototype-web/client/src/app/futureServices.ts",
+    "apps/prototype-web/client/src/components/layout/AppHeader.tsx",
+    "apps/prototype-web/client/src/components/layout/BottomNav.tsx",
+    "apps/prototype-web/client/src/pages/Delivery.tsx",
+    "apps/prototype-web/client/src/pages/Market.tsx",
+    "apps/prototype-web/client/src/pages/Finance.tsx",
+    "apps/prototype-web/client/src/pages/Schedule.tsx",
+    "apps/prototype-web/client/src/pages/Settings.tsx",
+    "apps/prototype-web/client/src/pages/NotFound.tsx",
+    "apps/prototype-web/client/src/pages/Foundation.tsx",
+    "apps/prototype-web/client/src/pages/FinanceActivity.tsx",
+    "apps/prototype-web/client/src/components/settings/",
+    "apps/prototype-web/client/src/app/CapabilityRouteGate.tsx",
+    "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts",
+    "apps/prototype-web/client/src/index.css"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-003-مشروعي-الآن.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-014-أدوات-وسجلات-المالية.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-041-السوق.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-043-الخدمات-القادمة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/00-System-Navigation-Master-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md"
+  ],
+  "dependencies": [
+    "DOC-024"
+  ],
+  "related_items": [
+    "DOC-024"
+  ],
+  "migration_baseline": true,
+  "next_action": "S16 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا عمل مرحلي إضافي مفوض؛ لا VERIFIED على main ولا merge.",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-03",
+      "actor": "zai-s16-execution",
+      "reason": "بدء S16 المأذون وفق الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md §4 فوق رأس إصلاح S15-MR-001 c788b09f (مع سجلات إعادة التسليم 7b80ac7b) بعد التحقق من خلو التداخل (صفر مطالبات نشطة)؛ DOC-025/WS-241 أنشئتا قبل أول سطر كود منتج من S16."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-03",
+      "actor": "zai-s16-execution",
+      "reason": "تسليم S16 للمراجعة (لا قبولًا ذاتيًا): المرشح الكودي 9dc4b194 (التنفيذ 99d405c7 + تصويب المراجعة الثالثة) فوق رأس إصلاح S15-MR-001 c788b09f؛ pnpm check كاملة خروج 0 (جذري 1019/1019 + تطبيقي 3329/3329 بعد تشغيل نظيف لسباق radix المعروف خارج النطاق)؛ الميزانية 597,402/145,649 تحت السقفين الثابتين 650,000/155,300؛ الأسطح بإرساء موثق مقفل التحسينات (swRuntime +41 بإثبات)؛ الكثافة Home 55/78 وDelivery 8/13؛ جرد البيوت 129/84/45→124/82/42؛ راتشة 7 إرساءات ocRef DOC-025؛ 41/34 بلا تغيير؛ مراجعات قرائية خمس بموجدة واحدة (Escape للوحات الرئيسية) صُححت من الجذر؛ بوابتا Actions/Cloudflare تُثبتان على الرأس النهائي المدفوع في تعليق PR #383."
+    }
+  ],
+  "updated_at": "2026-11-04"
+}

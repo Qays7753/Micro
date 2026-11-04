@@ -11,7 +11,7 @@ import type { ActualTimeStore } from "@/storage/local/capabilities/actualTimeSto
 /** R3 (R3-SC-10): عدسة الخدمة — قدرة الوقت الفعلي حصرًا مع قراءة
  * التفضيلات والطلب المستخدمتين بالضبط. */
 export type ActualTimeServiceStore = ActualTimeStore &
-  Pick<PrototypeLocalStore, "getPreferences" | "savePreferences" | "getOrder">;
+  Pick<PrototypeLocalStore, "getPreferences" | "savePreferences" | "commitPreferencesUpdate" | "getOrder">;
 import { updateLocalPreferences } from "@/application/preferences/updateLocalPreferences";
 import {
   NOT_FOUND,

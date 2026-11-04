@@ -4,6 +4,8 @@ import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { summarizeFinancialEvents } from "@micro-domain/financial-event/index.js";
 import { assertOk } from "@/testing/resultAssertions";
+import { createReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
+import { createFinancialEvent, type FinancialEvent } from "@micro-domain/financial-event/index.js";
 
 /* FIN-001 (WS-178 — Wave 6): مرآة loanService.test.ts (MemoryLocalStore + ساعة
  * ثابتة) — «المقترض ليس دخلًا»: قبض القرض كاش والتزام (loanPayable)، وسداد
@@ -21,75 +23,104 @@ function fixedNow() {
 
 const now = fixedNow();
 
+/* UNIT-036 (تنفيذ S15 بالأمر الموحد §5): الاقتراض مؤجل — الاختبارات تزرع
+ * قرضًا مستلمًا تاريخيًا مباشرة عند حد المخزن (مسار توافق النقل) لا عبر
+ * خدمة الإنشاء المؤجلة؛ البيانات هنا موروثة للقراءة والصيانة. */
 async function seededLoan(input?: { principalMinor?: number; dueOn?: string | null }) {
-  const store = new MemoryLocalStore();
+  const { store, service, loan, event } = await seedLegacyReceivedLoan(input);
+  return { store, service, created: { ok: true as const, value: { loan, event } } };
+}
+
+async function seedLegacyReceivedLoan(input?: {
+  principalMinor?: number;
+  dueOn?: string | null;
+  store?: MemoryLocalStore;
+}) {
+  const store = input?.store ?? new MemoryLocalStore();
   const service = new ReceivedLoanService(store, now);
-  const created = await service.create({
+  const principalMinor = input?.principalMinor ?? 20000;
+  const event = createFinancialEvent({
+    id: "event-seed-rloan-1",
+    type: "loan_received_cash",
+    amountMinor: principalMinor,
+    occurredOn: "2026-07-01",
+    recordedAt: "2026-08-01T09:00:00.000Z",
+    idempotencyKey: "seed-rloan-1:principal",
+    note: "قرض تاريخي للاختبار",
+    counterparty: "سامي",
+    loanContext: { loanId: "seed-rloan-1", borrower: "سامي", lender: "سامي" },
+  }) as FinancialEvent;
+  const loan = createReceivedLoanRecord({
+    id: "seed-rloan-1",
     lenderName: "سامي",
     lenderType: "person",
-    principalMinor: input?.principalMinor ?? 20000,
+    principalMinor,
     receivedOn: "2026-07-01",
     dueOn: input?.dueOn ?? null,
     note: "قرض من معرفة",
     walletId: null,
+    principalEventId: event.id,
+    operationKey: "seed-rloan-1:create",
+    createdAt: "2026-08-01T09:00:00.000Z",
   });
-  return { store, service, created };
+  const commit = await store.commitReceivedLoanRecord(loan, event);
+  assertOk(commit);
+  return { store, service, loan, event };
 }
 
 describe("received loan service (FIN-001 — WS-178 Wave 6)", () => {
-  it("creates a received loan: cash up and loan payable up — no revenue, no capital, no expense", async () => {
-    const { service, created, store } = await seededLoan();
-    expect(created.ok).toBe(true);
-    if (!created.ok) return;
-    expect(created.value.event.type).toBe("loan_received_cash");
-    expect(created.value.event.cashDeltaMinor).toBe(20000);
-    expect(created.value.event.loanPayableDeltaMinor).toBe(20000);
-    expect(created.value.event.revenueDeltaMinor ?? 0).toBe(0);
-    expect(created.value.event.operatingExpenseDeltaMinor).toBe(0);
-    expect(created.value.event.ownerCapitalDeltaMinor).toBe(0);
-    expect(created.value.event.loanDeltaMinor ?? 0).toBe(0);
-    expect(created.value.event.loanContext?.lender).toBe("سامي");
-    const overview = await service.overview();
-    expect(overview.ok && overview.value.totals.borrowedLoansOutstandingMinor).toBe(20000);
-    expect(overview.ok && overview.value.totals.borrowedPrincipalMinor).toBe(20000);
-    expect(overview.ok && overview.value.totals.openCount).toBe(1);
+  it("UNIT-036: borrowing creation is deferred at the legal boundary — refusal with no write, history readable (SDF-045)", async () => {
+    const { store, service } = await seedLegacyReceivedLoan();
+    const refused = await service.create({
+      lenderName: "جهة جديدة",
+      lenderType: "person",
+      principalMinor: 9000,
+      receivedOn: "2026-09-01",
+      dueOn: null,
+      note: null,
+      walletId: null,
+    });
+    expect(refused.ok).toBe(false);
+    if (refused.ok) return;
+    expect(refused.message).toContain("مؤجل");
     const events = await store.listFinancialEvents();
     assertOk(events);
     expect(events.value).toHaveLength(1);
+    const overview = await service.overview();
+    expect(overview.ok && overview.value.rows[0]!.reading.outstandingMinor).toBe(20000);
   });
 
-  it("keeps two independent received loans with independent outstanding balances", async () => {
-    const store = new MemoryLocalStore();
-    const service = new ReceivedLoanService(store, now);
-    const first = await service.create({
-      lenderName: "سامي",
-      lenderType: "person",
-      principalMinor: 20000,
-      receivedOn: "2026-07-01",
-    });
-    const second = await service.create({
+  it("keeps two independent legacy received loans with independent outstanding balances (store-seeded)", async () => {
+    const { store, service } = await seedLegacyReceivedLoan();
+    const event = createFinancialEvent({
+      id: "event-seed-rloan-2",
+      type: "loan_received_cash",
+      amountMinor: 5000,
+      occurredOn: "2026-07-02",
+      recordedAt: "2026-08-01T09:00:00.000Z",
+      idempotencyKey: "seed-rloan-2:principal",
+      note: "قرض تاريخي ثانٍ",
+      counterparty: "المؤسسة التجارية",
+      loanContext: { loanId: "seed-rloan-2", borrower: "المؤسسة التجارية", lender: "المؤسسة التجارية" },
+    }) as FinancialEvent;
+    const loan = createReceivedLoanRecord({
+      id: "seed-rloan-2",
       lenderName: "المؤسسة التجارية",
       lenderType: "institution",
-      principalMinor: 50000,
+      principalMinor: 5000,
       receivedOn: "2026-07-02",
+      dueOn: null,
+      note: null,
+      walletId: null,
+      principalEventId: event.id,
+      operationKey: "seed-rloan-2:create",
+      createdAt: "2026-08-01T09:00:00.000Z",
     });
-    expect(first.ok && second.ok).toBe(true);
-    if (!first.ok || !second.ok) return;
-    /* سداد على الأول لا يمس الثاني — استقلال كامل. */
-    const repaid = await service.recordRepayment(first.value.loan.id, {
-      amountMinor: 5000,
-      date: "2026-08-01",
-    });
-    expect(repaid.ok).toBe(true);
+    assertOk(await store.commitReceivedLoanRecord(loan, event));
     const overview = await service.overview();
-    if (!overview.ok) return;
-    expect(overview.value.rows).toHaveLength(2);
-    const byLender = new Map(overview.value.rows.map(row => [row.loan.lenderName, row.reading]));
-    expect(byLender.get("سامي")!.outstandingMinor).toBe(15000);
-    expect(byLender.get("المؤسسة التجارية")!.outstandingMinor).toBe(50000);
-    expect(overview.value.totals.borrowedLoansOutstandingMinor).toBe(65000);
-    const read = await service.read(second.value.loan.id);
-    expect(read.ok && read.value.loan.repayments).toHaveLength(0);
+    expect(overview.ok && overview.value.rows).toHaveLength(2);
+    const totals = overview.ok ? overview.value.totals : null;
+    expect(totals?.borrowedLoansOutstandingMinor).toBe(25000);
   });
 
   it("settles to zero across multiple partial repayments — never over", async () => {
@@ -173,15 +204,11 @@ describe("received loan service (FIN-001 — WS-178 Wave 6)", () => {
     const finance = new ProjectFinancialService(store, now);
     const before = await finance.readRecordedPeriodResult("2026-07-01", "2026-09-30");
     if (!before.ok) throw new Error(before.message);
-    const created = await service.create({
-      lenderName: "سامي",
-      lenderType: "person",
-      principalMinor: 20000,
-      receivedOn: "2026-08-01",
-    });
-    expect(created.ok).toBe(true);
-    if (!created.ok) return;
-    const repaid = await service.recordRepayment(created.value.loan.id, {
+    /* زرع القرض التاريخي مباشرة عند حد المخزن — الإنشاء مؤجل (UNIT-036)؛
+     * القراءة قبل الزرع وبعده مع السداد تُثبت أن القرض الموروث لا يمس
+     * النتيجة كما لم يمسها الإنشاء قبل الإلغاء. */
+    const seeded = await seedLegacyReceivedLoan({ store });
+    const repaid = await service.recordRepayment(seeded.loan.id, {
       amountMinor: 5000,
       date: "2026-08-15",
     });
@@ -237,67 +264,22 @@ function restoreCrypto() {
 afterEach(restoreCrypto);
 
 describe("received loan service insecure-context ids (R10-B3 — F-012 + NF-006)", () => {
-  it("creates a received loan when crypto is absent (non-secure origin) instead of throwing", async () => {
-    const store = new MemoryLocalStore();
-    const service = new ReceivedLoanService(store, now);
-    delete (globalThis as { crypto?: CryptoLike }).crypto;
-    const created = await service.create({
-      lenderName: "ليلى",
-      lenderType: "person",
-      principalMinor: 8000,
-      receivedOn: "2026-07-01",
-      dueOn: null,
-      note: null,
-      walletId: null,
-    });
-    expect(created.ok).toBe(true);
-    if (!created.ok) return;
-    expect(created.value.loan.id).toMatch(/^rloan-\d+-[0-9a-z]+$/);
-    expect(created.value.event.id).toMatch(/^event-\d+-[0-9a-z]+$/);
-    const events = await store.listFinancialEvents();
-    expect(events.ok && events.value).toHaveLength(1);
-  });
-
-  it("returns the secure randomUUID id verbatim when crypto is available", async () => {
-    const store = new MemoryLocalStore();
-    const service = new ReceivedLoanService(store, now);
-    const sentinel = "98765432-4321-8765-ba98-fedcba987654";
-    Object.defineProperty(globalThis, "crypto", {
-      value: { randomUUID: () => sentinel },
-      configurable: true,
-      writable: true,
-    });
-    const created = await service.create({
-      lenderName: "هند",
-      lenderType: "person",
-      principalMinor: 1200,
-      receivedOn: "2026-07-02",
-      dueOn: null,
-      note: null,
-      walletId: null,
-    });
-    expect(created.ok).toBe(true);
-    if (!created.ok) return;
-    expect(created.value.loan.id).toBe(`rloan-${sentinel}`);
-  });
-
-  it("fallback ids stay collision-free across rapid successive creations", async () => {
-    const store = new MemoryLocalStore();
-    const service = new ReceivedLoanService(store, now);
-    delete (globalThis as { crypto?: CryptoLike }).crypto;
-    const ids = new Set<string>();
-    for (let index = 0; index < 50; index += 1) {
-      const created = await service.create({
-        lenderName: `مقرض ${index}`,
+  it("UNIT-036 repeated: no circumvention — repeated refusals never write", async () => {
+    const { store, service } = await seedLegacyReceivedLoan();
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const refused = await service.create({
+        lenderName: `محاولة ${attempt}`,
         lenderType: "person",
         principalMinor: 100,
-        receivedOn: "2026-07-01",
+        receivedOn: "2026-09-01",
         dueOn: null,
         note: null,
         walletId: null,
       });
-      if (created.ok) ids.add(created.value.loan.id);
+      expect(refused.ok).toBe(false);
     }
-    expect(ids.size).toBe(50);
+    const events = await store.listFinancialEvents();
+    assertOk(events);
+    expect(events.value).toHaveLength(1);
   });
 });

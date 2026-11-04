@@ -31,7 +31,7 @@ const envelope = (version: number, schemaVersion: number, extra: Record<string, 
 });
 
 describe("pair gate (current + released legacy)", () => {
-  it("accepts exactly the current pair 30/38 as current", () => {
+  it("accepts exactly the current pair as current (40/33 today; dated correction 2026-11-01 DOC-021/S12; was 30/38 when written)", () => {
     expect(isCurrentPair(envelope(localExportVersion, localSchemaVersion) as never)).toBe(true);
     expect(isCurrentPair(envelope(localExportVersion - 1, localSchemaVersion) as never)).toBe(false);
     expect(isCurrentPair(envelope(localExportVersion, localSchemaVersion - 1) as never)).toBe(false);

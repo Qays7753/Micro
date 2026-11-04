@@ -3,6 +3,7 @@ export {
   activeRetainedDepositSumsByOrder,
   activeSettlementsMinor,
   calculateSharedProjectShareMinor,
+  sharedBillOwnerPartMinor,
   createFinancialEvent,
   createFinancialReversal,
   reversedEventIds,

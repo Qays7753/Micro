@@ -108,7 +108,7 @@ describe("R10-B4/OD-12 — centralized route-transition focus and document title
     expect(secondMain).not.toBe(firstMain);
     expect(document.activeElement).toBe(secondMain);
     expect(document.activeElement).not.toBe(firstMain);
-    expect(document.title).toBe("العمل");
+    expect(document.title).toBe("الطلبات");
   });
 
   it("back/forward: every history step receives focus and the correct title again", () => {
@@ -123,7 +123,7 @@ describe("R10-B4/OD-12 — centralized route-transition focus and document title
     /* رجوع — popstate يعيد الموضع السابق؛ التركيز والعنوان يستقبلان الانتقال. */
     navigateTo("/orders");
     expect(document.activeElement).toBe(currentMain());
-    expect(document.title).toBe("العمل");
+    expect(document.title).toBe("الطلبات");
     /* تقدم — الانتقال الأمامي نفس العقد نفسه. */
     navigateTo("/finance");
     expect(document.activeElement).toBe(currentMain());
@@ -139,7 +139,7 @@ describe("R10-B4/OD-12 — centralized route-transition focus and document title
     navigateTo("/orders?returnTo=/finance");
     expect(document.activeElement).toBe(currentMain());
     /* العنوان من المسار وحده — الاستعلام لا يمسه. */
-    expect(document.title).toBe("العمل");
+    expect(document.title).toBe("الطلبات");
   });
 
   it("routes without a canonical label carry the canonical fallback label as their title", () => {
@@ -162,9 +162,11 @@ describe("R10-B4/OD-12 — centralized route-transition focus and document title
     navigateTo("/orders/abc123/deliver");
     expect(document.title).toBe("مراجعة التسليم");
     expect(document.activeElement).toBe(currentMain());
-    /* الأسبقية: التسمية المحددة قبل العامة — سلامة الحسابات لا أدواتي. */
+    /* S17 (DOC-026 / UNIT-033): تسمية «سلامة الحسابات» المستقلة تقاعدت مع
+     * سطحها — المسار يسقط إلى تسمية بادئته العامة حتى تحيله الموجّهات إلى
+     * الإعدادات حيث يقيم قسم «فحص البيانات» (بيت الفحص الجديد). */
     navigateTo("/tools/integrity");
-    expect(document.title).toBe("سلامة الحسابات");
+    expect(document.title).toBe("أدواتي");
     expect(document.activeElement).toBe(currentMain());
   });
 

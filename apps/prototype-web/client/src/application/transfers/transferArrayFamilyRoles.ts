@@ -73,6 +73,18 @@ export const TRANSFER_ARRAY_FAMILY_ROLES = {
   recurringExpenseOccurrences: { historicalClass: "optional", counted: true, label: "فترات المصروف المتكرر" },
   expenseBudgets: { historicalClass: "optional", counted: true, label: "الميزانيات" },
   receivedLoans: { historicalClass: "optional", counted: true, label: "القروض المستلمة" },
+  /* S04 (DOC-013 / UNIT-025): رصد الأرصدة — اختيارية-عند-الغياب كعائلات D-037؛
+   * الموجود المعطوب يُرفض؛ القياس يُنقل كما هو بلا إعادة تسوية. */
+  balanceObservations: { historicalClass: "optional", counted: true, label: "رصد أرصدة النقد" },
+  /* S05 (DOC-014 / UNIT-037): الأطراف المحفوظة — اختيارية-عند-الغياب كعائلات
+   * D-037؛ الموجود المعطوب يُرفض؛ الهوية تُنقل كما هي بلا دمج ولا اختراع. */
+  counterparties: { historicalClass: "optional", counted: true, label: "الأطراف المحفوظة" },
+  /* S14 (DOC-023 / UNIT-002 — أمر ba2ce7b4 §5): عائلتا المنسق — الملخصات
+   * تاريخ حقيقي يُنقل كما هو؛ والإيصالات دليل استرداد لا يعيد تنفيذ أثرًا
+   * عند الاستعادة (فحص الجيل الحي يسبق استرداد النتيجة). اختياريتان عند
+   * الغياب في كل الأزواج الموروثة بلا اختراع. */
+  periodSummaries: { historicalClass: "optional", counted: true, label: "ملخصات الفترة" },
+  commandReceipts: { historicalClass: "optional", counted: true, label: "إيصالات الأوامر" },
   /* — R10-B2/RC-1: عائلات مال المالك الأربع — كانت الفجوة الوحيدة الكاملة
    * (لا عدّ ولا بوابة)؛ صارت معدودة (نطاق OD-8 الأدنى). حضورها على الحالي
    * تفرضه سياسة العصر الموحدة أدناه؛ الموروث يبقى اختياري-عند-الغياب كما

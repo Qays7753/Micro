@@ -20,6 +20,9 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { LoanService } from "@/application/loans/loanService";
 import { ProfileService } from "@/application/profile/profileService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+/* UNIT-035 (تنفيذ S15): مصمما القرض الكنونيان لبذرة المخزن. */
+import { createLoanRecord } from "@micro-domain/loan/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import Loans from "@/pages/Loans";
 import { Field } from "@/components/primitives";
 import { QuickSaleForm } from "@/components/finance/QuickSaleForm";
@@ -42,6 +45,37 @@ vi.mock("wouter", () => ({
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
 const NOW = "2026-09-16T10:00:00.000Z";
+
+/* UNIT-035 (تنفيذ S15 بالأمر الموحد §5): إنشاء الإقراض ملغى — بذرة القروض
+ * التاريخية بالمصنعين الكنونيين عند حد المخزن (نفس مسار توافق النقل). */
+async function seedLegacyLoan(id: string, borrowerName: string, loanDate: string) {
+  const event = createFinancialEvent({
+    id: `event-${id}`,
+    type: "loan_outgoing_cash",
+    amountMinor: 5000,
+    occurredOn: loanDate,
+    recordedAt: NOW,
+    idempotencyKey: `${id}:principal`,
+    note: "قرض تاريخي",
+    counterparty: borrowerName,
+    loanContext: { loanId: id, borrower: borrowerName },
+  });
+  const commit = await store.commitLoanRecord(
+    createLoanRecord({
+      id,
+      borrowerName,
+      principalMinor: 5000,
+      loanDate,
+      purposeNote: null,
+      sourceWalletId: null,
+      principalEventId: event.id,
+      operationKey: `${id}:create`,
+      createdAt: NOW,
+    }),
+    event,
+  );
+  if (!commit.ok) throw new Error(commit.message);
+}
 
 let store: MemoryLocalStore;
 
@@ -69,16 +103,12 @@ describe("Wave 4.4 — P-4.4-5: أسماء الوصول وربط الحقول", 
   afterEach(cleanup);
 
   it("كل زر في سطح القروض له اسم وصول — لا زر أيقوني صامت", async () => {
-    const profile = await new ProfileService(store, () => NOW).save("مالك");
+    const profile = await new ProfileService(store, () => NOW).create("مالك");
     if (!profile.ok) throw new Error(profile.message);
     const loans = new LoanService(store, () => NOW);
-    for (const [id, name, date] of [
-      ["loan-a", "سامي", "2026-09-01"],
-      ["loan-b", "أم خالد", "2026-09-10"],
-    ] as const) {
-      const created = await loans.create({ borrowerName: name, principalMinor: 5000, loanDate: date });
-      if (!created.ok) throw new Error(created.message);
-    }
+    /* UNIT-035: القروض بيانات موروثة للقراءة — سطح القروض يعرضها باسمها. */
+    await seedLegacyLoan("loan-a", "سامي", "2026-09-01");
+    await seedLegacyLoan("loan-b", "أم خالد", "2026-09-10");
     mockedUsePrototypeServices.mockReturnValue({
       loans,
       profile: new ProfileService(store, () => NOW),

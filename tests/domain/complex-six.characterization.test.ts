@@ -408,6 +408,8 @@ describe("characterization: normalizeSharedProjectShare via createFinancialEvent
         sharedProjectShare: { basis: "owner_estimate", note: "  نصف فاتورة الإنترنت  " },
       },
     });
+    /* S06 (CONS-DEC04 / SDF-064): المدفوع فعليًا حقل سياق اختياري جديد —
+     * التطبيع يثبته null حين لم يُصرَّح به (السلوك القائم محفوظ). */
     expect(event.expenseContext?.sharedProjectShare).toEqual({
       basis: "owner_estimate",
       note: "نصف فاتورة الإنترنت",
@@ -415,6 +417,7 @@ describe("characterization: normalizeSharedProjectShare via createFinancialEvent
       totalAmountMinor: null,
       percentageBps: null,
       calculatedShareMinor: null,
+      paidAmountMinor: null,
     });
   });
 });

@@ -31,7 +31,8 @@ import * as parties from "@/application/parties";
 import * as preferences from "@/application/preferences";
 import * as scheduling from "@/application/scheduling";
 import * as security from "@/application/security";
-import * as share from "@/application/share";
+/* UNIT-040 (تنفيذ S15 بالأمر الموحد §5): باب المشاركة أزيل مع القدرة — لا
+ * مسودات مشاركة ولا معاينة؛ الأبواب المتبقية كما هي. */
 import * as suppliers from "@/application/suppliers";
 import * as time from "@/application/time";
 import * as transfers from "@/application/transfers";
@@ -47,10 +48,21 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
   activity: [],
   agreements: [
     "agreementPriceIsReady",
+    /* S12 (DOC-021 / UNIT-009 A2/س8+B4 — أمر 2e645802): +agreementSummaryParts —
+     * أجزاء ملخص الاتفاق الملاصق للفعل من بيتها التطبيقي؛ توسيع موثق نفس-الـPR
+     * (يطابق حارس أسطح الأبواب وملاحظته المؤرخة). */
+    "agreementSummaryParts",
     "applyProtectionPriceAsStart",
     "classifyFollowUpDate",
     "protectionPriceIsReadyForAgreement",
     "startAgreementPrice",
+    /* S13 (CAL-C — أمر 2158b0fc §6): حالة جلسة اقتراح موعد التقويم بين
+     * خطوات الطلب — القيم الأربع عبر الباب (توسيع مقصود PC-3 بنفس الـPR
+     * يطابق حارس أسطح الأبواب وأساسه المحدث). */
+    "clearScheduleProposal",
+    "consumeScheduleProposal",
+    "readScheduleProposal",
+    "storeScheduleProposal",
   ],
   assets: [],
   catalog: [],
@@ -59,12 +71,18 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
   diagnostics: ["localDiagnostics", "routeTemplateFor"],
   drafts: [
     /* R11 ARCH-012 (2026-10-15): قيم مهايئ المفاتيح التراثية الخمس أزيلت
-     * مع تقاعد الترحيل (قرار مالك موثق — r11-arch012-20261015)؛ سطح قيم
-     * الباب صار فارغًا والأنواع وحدها تبقى — تقليص مقصود موثق بنفس الـPR. */
+     * مع تقاعد الترحيل (قرار مالك موثق — r11-arch012-20261015)؛ الأنواع
+     * وحدها تبقى — تقليص مقصود موثق بنفس الـPR.
+     * S14 (DOC-023 — أمر ba2ce7b4 §5، 2026-11-02): صنف FormDraftService
+     * نفسه صار قيمة عبر الباب — كعب اختبار حد الاستكمال يبني الخدمة
+     * الحقيقية فوق مخزن حقيقي (نمط الجسر القانوني). */
+    "FormDraftService",
   ],
   estimates: [],
   "financial-pulse": [],
-  "follow-up": [],
+  /* S13 (DOC-022 / UNIT-018 — أمر 2158b0fc §6): قارئ المتابعة الموحدة
+   * «012/018» عبر الباب (توسيع مقصود PC-3 بنفس الـPR). */
+  "follow-up": ["UnifiedFollowUpService", "projectFollowUp"],
   fulfillment: [],
   home: [],
   input: [
@@ -83,18 +101,46 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
     "percentToBpsExact",
   ],
   loans: ["ReceivedLoanService"],
-  parties: [],
+  /* S05 (DOC-014 / UNIT-037، 2026-10-29): باب الدليل — القيم الثلاث
+   * (لقطة البيع/الشراء وتسمية العرض) عبر الباب. */
+  parties: ["purchasePartySnapshotOf", "salePartySnapshotOf", "supplierDisplayLabelOf"],
   /* R10-B3 (R10A-F-004، 2026-10-11): حارس ترشيح المعرّفات المعروفة عبر
    * الباب بعد توحيد إعلان CapabilityId — توسيع سطح مقصود PC-3. */
-  preferences: ["isKnownCapabilityId"],
-  scheduling: ["buildCapacityDecisionViewModel"],
-  security: ["LOCK_AUTO_LOCK_OPTIONS", "LocalLockService"],
-  share: ["collectionShareDraft", "customerShareDraft", "standingCollectionEvent"],
+  /* S03 (UNIT-038 P3.2/UNIT-001 P3.2): توسيع سطح مقصود بنفس الـPR وفق PC-3 —
+   * حارس ترشيح تفضيل العرض عبر الباب لمستهلكي الواجهة (السؤال في 001
+   * والمحرر في 038)؛ النوع OfferingPreference مسجل في سطح الأنواع أدناه. */
+  preferences: ["isKnownCapabilityId", "isOfferingPreference"],
+  /* S13 (DOC-022 / UNIT-006+012+018 — أمر 2158b0fc §6): القراءة النقية
+   * لمجتمع المواعيد وعدنة التسليمات النشطة عبر الباب (توسيع مقصود PC-3
+   * بنفس الـPR). */
+  scheduling: [
+    "activeDeliveryLens",
+    "activeEntries",
+    "bucketOfDate",
+    "buildCapacityDecisionViewModel",
+    "compareEntries",
+    "entriesForDate",
+    "readScheduleCommunity",
+    "windowOf",
+  ],
+  /* S02-B (SH-04 — UNIT-042): باب الأمن بعد تقاعد القفل — المقيم الوحيد
+   * هو تقاعد السجل القديم؛ لا خدمة قفل ولا خياراتها بعد اليوم. */
+  security: ["retireLocalLockRecord"],
   suppliers: [],
   /* R2 (M-11/D13، 2026-10-08): أول قيمة في باب الوقت — حد «اليوم»
    * المسماى الوحيد (توسيع مقصود PC-3). */
   time: ["todayInAmman"],
-  transfers: [],
+  transfers: [
+    /* S14 (DOC-023 — أمر ba2ce7b4 §5): منسق الاستكمال وكعب اختبار حده. */
+    "AccountCompletionService",
+    "createAccountCompletionHarness",
+    /* S17 (DOC-026 / UNIT-044 — SDF-048): حدود موارد فحص ملف الاستعادة —
+     * مستهلك حي واحد (الإعدادات قبل قراءة الملف)؛ توسيع مقصود PC-3 بنفس
+     * الشريحة. */
+    "IMPORT_FILE_BYTES_LIMIT_MESSAGE",
+    "MAX_IMPORT_FILE_UNITS",
+    "isWithinImportFileBytes",
+  ],
   /* أبواب Wave B/W4 بعد فصل الأنواع (الخطوة ٦): */
   budgets: ["ExpenseBudgetService"],
   /* R2 (M-10/D11، 2026-10-08): بانيا نص سجل تسوية العدّ انتقلا من العرض —
@@ -116,9 +162,8 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
     "StatementMarkdownService",
     "StatementService",
     "UpcomingService",
-    "DEFAULT_SHORT_CASH_HORIZON_DAYS",
-    "SHORT_CASH_HORIZON_DAYS",
-    "SHORT_CASH_HORIZON_LABELS_AR",
+    /* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): صادرات أفق الكاش القصير
+     * الثلاث غادرت الباب مع القدرة المؤجلة (انكماش موثق نفس-الـPR). */
     "isPeriodActive",
     "previousEqualPeriod",
     "resolvePeriodPreset",
@@ -132,7 +177,11 @@ const REGISTERED_VALUE_SURFACE: Record<string, string[]> = {
     "RetainedDepositService",
     "deriveExpenseCategorySuggestions",
     "expandExpenseRecordIntent",
+    /* S07 (S06-MR-001): زوج تأكيد الجزء الشخصي المرتبط بالاشتقاق الكنوني —
+     * توسيع سطح مقصود PC-3 بنفس الشريحة (DOC-016). */
+    "matchesSharedBillOwnerPartConfirmation",
     "normalizeCategoryLabelInput",
+    "sharedBillOwnerPartConfirmationOf",
   ],
   /* R10-B3 (R10B-NF-002، 2026-10-12): تسمية وحدة المادة من بيتها الكنوني
    * عبر الباب — توسيع سطح مقصود PC-3. */
@@ -165,7 +214,6 @@ const DOORS: Record<string, Record<string, unknown>> = {
   preferences,
   scheduling,
   security,
-  share,
   suppliers,
   time,
   transfers,
@@ -186,8 +234,8 @@ describe("application door surfaces (STR-615 — PC-3 exact-value-surface pin)",
     }
   });
 
-  it("all 29 doors are covered by the pin (no unregistered door)", () => {
-    expect(Object.keys(DOORS)).toHaveLength(29);
-    expect(Object.keys(REGISTERED_VALUE_SURFACE)).toHaveLength(29);
+  it("all 28 doors are covered by the pin (no unregistered door)", () => {
+    expect(Object.keys(DOORS)).toHaveLength(28);
+    expect(Object.keys(REGISTERED_VALUE_SURFACE)).toHaveLength(28);
   });
 });

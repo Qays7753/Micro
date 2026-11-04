@@ -134,38 +134,16 @@ export class LoanService {
     return { ok: true, value: { loan, reading: readLoan(loan), events } };
   }
 
-  async create(input: LoanCreateInput): Promise<LoanResult<{ loan: LoanRecord; event: FinancialEvent }>> {
-    try {
-      const loanId = newId("loan");
-      const createdAt = this.now();
-      const event = createFinancialEvent({
-        id: newId("event"),
-        type: "loan_outgoing_cash" as FinancialEventType,
-        amountMinor: input.principalMinor,
-        occurredOn: input.loanDate,
-        recordedAt: createdAt,
-        idempotencyKey: `${loanId}:principal`,
-        note: input.purposeNote?.trim() || `قرض لـ ${input.borrowerName.trim()}`,
-        counterparty: input.borrowerName.trim(),
-        loanContext: { loanId, borrower: input.borrowerName.trim() },
-      });
-      const loan = createLoanRecord({
-        id: loanId,
-        borrowerName: input.borrowerName,
-        principalMinor: input.principalMinor,
-        loanDate: input.loanDate,
-        purposeNote: input.purposeNote ?? null,
-        sourceWalletId: input.sourceWalletId ?? null,
-        principalEventId: event.id,
-        operationKey: `${loanId}:create`,
-        createdAt,
-      });
-      const commit = await this.store.commitLoanRecord(loan, event);
-      if (!commit.ok) return failure("storage_error", commit.message);
-      return { ok: true, value: { loan: commit.value.record, event: commit.value.event } };
-    } catch (error) {
-      return failure("validation_error", errorMessageOf(error, "بيانات القرض غير صالحة."));
-    }
+  /* UNIT-035 (قرار نطاق معتمد — تنفيذ S15 بالأمر الموحد §5): إنشاء الإقراض
+   * ملغى بالكامل؛ الحد القانوني يرفض قبل أي كتابة — لا زر ولا مسار ولا
+   * خدمة تلتف على القرار. السجلات القائمة وقراءتها وتسجيل دفعاتها
+   * وصيانتها الموثقة تبقى كما هي. */
+  async create(_input: LoanCreateInput): Promise<LoanResult<{ loan: LoanRecord; event: FinancialEvent }>> {
+    return {
+      ok: false,
+      code: "validation_error",
+      message: "إنشاء الإقراض ملغى من نطاق المنتج — لا يُنشأ قرض جديد؛ سجلاتك القائمة محفوظة كما هي.",
+    };
   }
 
   async recordRepayment(

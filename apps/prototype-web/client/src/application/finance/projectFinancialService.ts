@@ -51,8 +51,10 @@ import {
   distributeUnallocatedCash,
   editFinancialEvent,
   recordFinancialEvent,
+  recordSharedBillExpense,
   restoreFinancialEvent,
   reverseFinancialEvent,
+  type SharedBillRecordOutcome,
 } from "./projectFinancialEventWrites";
 import type {
   CoverageIndicator,
@@ -163,5 +165,12 @@ export class ProjectFinancialService {
 
   async record(input: FinancialRecordInput): Promise<FinanceResult<FinancialEvent>> {
     return recordFinancialEvent(this.store, this.now, input);
+  }
+
+  /* S06 (CONS-DEC04 / SDF-064): الفاتورة المشتركة التي دفعها المشروع فوق
+   * حصته — نية واحدة بحدثين عبر الكاتب الكنوني نفسه (مصروف بالحصة + سحب
+   * شخصي بالفارق المؤكد) ونتيجة جزئية صادقة عند فشل السحب وحده. */
+  async recordSharedBill(input: FinancialRecordInput): Promise<FinanceResult<SharedBillRecordOutcome>> {
+    return recordSharedBillExpense(this.store, this.now, input);
   }
 }

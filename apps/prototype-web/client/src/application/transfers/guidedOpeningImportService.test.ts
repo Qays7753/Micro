@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { GuidedOpeningImportService } from "./guidedOpeningImportService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { LocalTransferService } from "./localTransferService";
+
+/* S02-A (SH-03): باني النسخة الرجوع المُتحقق منها للاختبار — من
+ * خدمة النقل نفسها فوق المخزن نفسه (باني الإنتاج يُمرَّر من جذر التركيب). */
+function testBackupBuilder(
+  store: ConstructorParameters<typeof LocalTransferService>[0],
+): ReturnType<typeof LocalTransferService.verifiedBackupBuilder> {
+  return LocalTransferService.verifiedBackupBuilder(new LocalTransferService(store));
+}
 
 const valid = {
   format: "micro-guided-opening-import",
@@ -45,7 +54,11 @@ const valid = {
 describe("GuidedOpeningImportService", () => {
   it("previews then atomically confirms a valid opening position", async () => {
     const store = new MemoryLocalStore();
-    const service = new GuidedOpeningImportService(store, () => "2026-08-24T10:00:00.000Z");
+    const service = new GuidedOpeningImportService(
+      store,
+      testBackupBuilder(store),
+      () => "2026-08-24T10:00:00.000Z",
+    );
     const preview = await service.prepare(JSON.stringify(valid));
     expect(preview).toMatchObject({
       ok: true,
@@ -100,7 +113,7 @@ describe("GuidedOpeningImportService", () => {
     ],
   ])("rejects %s before writing", async text => {
     const store = new MemoryLocalStore();
-    const service = new GuidedOpeningImportService(store);
+    const service = new GuidedOpeningImportService(store, testBackupBuilder(store));
     const result = await service.prepare(text);
     expect(result).toMatchObject({ ok: false, code: "validation_error" });
     await expect(store.readSnapshot()).resolves.toMatchObject({
@@ -111,7 +124,7 @@ describe("GuidedOpeningImportService", () => {
 
   it("R4-B4: parse-time throws return the structured rejection with the thrown reason, not an escape", async () => {
     const store = new MemoryLocalStore();
-    const service = new GuidedOpeningImportService(store);
+    const service = new GuidedOpeningImportService(store, testBackupBuilder(store));
     const badWallet = JSON.stringify({
       ...valid,
       cashWallets: [{ ...valid.cashWallets[0], kind: "gold_bar" }],
@@ -141,14 +154,16 @@ describe("GuidedOpeningImportService", () => {
       createdAt: "2026-08-01T00:00:00.000Z",
       updatedAt: "2026-08-01T00:00:00.000Z",
     });
-    const result = await new GuidedOpeningImportService(store).prepare(JSON.stringify(valid));
+    const result = await new GuidedOpeningImportService(store, testBackupBuilder(store)).prepare(
+      JSON.stringify(valid),
+    );
     expect(result).toMatchObject({ ok: false, code: "non_empty_store" });
     await expect(store.getProfile()).resolves.toMatchObject({ ok: true, value: { activityName: "قديم" } });
   });
 
   it("is idempotent when the same import is retried", async () => {
     const store = new MemoryLocalStore();
-    const service = new GuidedOpeningImportService(store);
+    const service = new GuidedOpeningImportService(store, testBackupBuilder(store));
     const preview = await service.prepare(JSON.stringify(valid));
     if (!preview.ok) throw new Error(preview.message);
     await service.confirm(preview.value);

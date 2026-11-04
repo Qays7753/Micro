@@ -1,322 +1,265 @@
 import { describe, expect, it } from "vitest";
 import {
   buildHomeControlCenterViewModel,
-  type HomeControlCenterInput,
-  type HomeTodayItem,
+  selectFollowUpBrief,
+  type HomeFollowUpRow,
 } from "./homeControlCenterModel";
+import type { FollowUpProjection, FollowUpTask } from "@/application/follow-up";
 
-const action = (id: string, label = "افتح") => ({ id, label, href: `/${id}`, reason: `سبب ${id}` });
-const fact = (
-  id: "cash" | "receivables" | "payables" | "owner_capital",
-  state: "known" | "incomplete" | "not_initialized",
-  valueMinor: number | null,
-) => ({
-  id,
-  label: id,
-  state,
-  valueMinor,
-  currency: "JOD" as const,
-  source: "السجل المحلي",
-  period: "2026-08",
-  helper: "مصدر محلي",
-  road:
-    state === "not_initialized"
-      ? { id: `road-${id}`, label: "سجّله", href: `/new-${id}`, reason: "طريق التسجيل" }
-      : null,
-});
-const todayItem = (id: string, priority: number, kind: HomeTodayItem["kind"]): HomeTodayItem => ({
-  id,
-  kind,
-  title: `بند ${id}`,
-  detail: `تفصيل ${id}`,
-  dateLocal: null,
-  timeLocal: null,
-  href: `/${id}`,
-  actionLabel: "افتح",
-  priority,
-});
-const baseInput = (): HomeControlCenterInput => ({
-  activityName: "مشغل اختبار",
-  todayLocal: "2026-08-25",
-  truthLine: "هذه قراءة محلية محدودة.",
-  /* Z1.4: القراءة تمرر هل توجد بيانات مسجلة — اليوم الفارغ يُميَّز عن
-   * اليوم الهادئ على البيانات القائمة. */
-  hasAnyRecordedData: true,
-  financeUnit: {
-    action: action("finance", "افتح مالي"),
-    truth: "المحافظ والموردون والمواد ودفتر المالك على مسارين من فتح التطبيق.",
-  },
-  catalogUnit: {
-    action: action("catalog", "افتح منتجاتي وخدماتي"),
-    truth: "ما أكرره وبكم — والقراءة عند المرجع نفسه.",
-  },
-  todaySection: {
-    items: [],
-    upcomingCount: 0,
-    nextUpcomingDate: null,
-    nextUpcomingHref: null,
-    truth: "قراءة صباحية من سجلاتك.",
-  },
-  facts: [
-    fact("cash", "known", 1250),
-    fact("receivables", "incomplete", 0),
-    fact("payables", "not_initialized", null),
-    fact("owner_capital", "known", 1250),
-  ],
-  optionalModules: [],
-  recentChanges: [],
-  /* التدفق ٢٣ يفعّل قسم «أثناء غيابك» عند الانقطاع — هذه الاختبارات بلا غياب. */
-  awaySection: null,
-  /* Wave 4.3 — P-4.3-2: أرقام الفترة والـInsights جزء إلزامي من المدخلات. */
-  periodNumbers: {
-    today: {
-      sales: {
-        id: "sales",
-        label: "مبيعات مسجلة اليوم",
-        state: "known",
-        valueMinor: 0,
-        honestNote: null,
-        source: "/finance?view=period",
-      },
-      result: {
-        id: "result",
-        label: "نتيجة اليوم",
-        state: "known",
-        valueMinor: 0,
-        honestNote: null,
-        source: "/finance?view=period",
-      },
-    },
-    month: {
-      sales: {
-        id: "sales",
-        label: "مبيعات مسجلة الشهر",
-        state: "known",
-        valueMinor: 0,
-        honestNote: null,
-        source: "/finance?view=period",
-      },
-      result: {
-        id: "result",
-        label: "نتيجة الشهر",
-        state: "known",
-        valueMinor: 0,
-        honestNote: null,
-        source: "/finance?view=period",
-      },
-    },
-  },
-  insights: [],
-});
+function task(
+  partial: Partial<FollowUpTask> & { itemKey: string; taskKind: FollowUpTask["taskKind"] },
+): FollowUpTask {
+  return {
+    title: partial.title ?? `مهمة ${partial.itemKey}`,
+    party: null,
+    amountMinor: null,
+    amountRole: null,
+    amountProposed: false,
+    dueOn: null,
+    dateState: "none",
+    scheduledTime: null,
+    sourceHref: `/source/${partial.itemKey}`,
+    sourceKind: "order",
+    sourceId: partial.itemKey,
+    occurrenceId: null,
+    ...partial,
+  };
+}
 
-describe("buildHomeControlCenterViewModel", () => {
-  it("keeps known JOD facts with source, period, and value while clearing incomplete values instead of inventing zero", () => {
-    const model = buildHomeControlCenterViewModel(baseInput());
-    expect(model.facts).toMatchObject([
-      {
-        id: "cash",
-        state: "known",
-        valueMinor: 1250,
-        currency: "JOD",
-        source: "السجل المحلي",
-        period: "2026-08",
-      },
-      { id: "receivables", state: "incomplete", valueMinor: null },
-      { id: "payables", state: "not_initialized", valueMinor: null },
-      { id: "owner_capital", state: "known", valueMinor: 1250 },
-    ]);
-  });
+function projectionOf(
+  groups: Partial<Record<FollowUpProjection["groups"][number]["group"], readonly FollowUpTask[]>>,
+) {
+  return {
+    groups: (["overdue", "today", "upcoming", "undated", "invalid"] as const).map(group => ({
+      group,
+      tasks: groups[group] ?? [],
+    })),
+  };
+}
 
-  it("keeps an unregistered fact a road to its own registration path, never a dead «غير مهيأ» (§2.7)", () => {
-    const model = buildHomeControlCenterViewModel(baseInput());
-    const payables = model.facts.find(fact => fact.id === "payables");
-    expect(payables?.road).toMatchObject({ href: "/new-payables", label: "سجّله" });
-    const cash = model.facts.find(fact => fact.id === "cash");
-    expect(cash?.road).toBeNull();
-  });
+const draft = (id: string, itemName: string | null) => ({ id, itemName });
 
-  /* دمج بند ١٠ (قرار المالك): ترتيب بالأولوية، ولا بند يظهر مرتين، ولا إلغاء للمحتوى الممتص. */
-  it("merges the absorbed attention content into Today ordered by priority with no item twice", () => {
-    const model = buildHomeControlCenterViewModel({
-      ...baseInput(),
-      todaySection: {
-        ...baseInput().todaySection,
-        items: [
-          todayItem("today-capacity:today", 40, "capacity_warning"),
-          todayItem("today-order:late", 30, "open_order"),
-          todayItem("today-draft:draft", 10, "draft"),
-          todayItem("today-draft:draft", 10, "draft"),
-          todayItem("today-cost:cost", 20, "cost_incomplete"),
-          todayItem("today-follow-up:follow", 25, "follow_up_due"),
+describe("selectFollowUpBrief — HOME-A4/3D-C2 (مختصر متابعتك حتى 3 مهام)", () => {
+  it("rule 1: overdue then today fill the rows in the projection's order up to three", () => {
+    const brief = selectFollowUpBrief(
+      projectionOf({
+        overdue: [
+          task({ itemKey: "o1", taskKind: "customer_followup", dueOn: "2026-11-01", dateState: "overdue" }),
         ],
-      },
-    });
-    expect(model.todaySection.items.map(item => item.id)).toEqual([
-      "today-draft:draft",
-      "today-cost:cost",
-      "today-follow-up:follow",
-      "today-order:late",
-      "today-capacity:today",
-    ]);
+        today: [
+          task({ itemKey: "t1", taskKind: "delivery", dueOn: "2026-11-02", dateState: "today" }),
+          task({ itemKey: "t2", taskKind: "delivery", dueOn: "2026-11-02", dateState: "today" }),
+        ],
+        upcoming: [task({ itemKey: "u1", taskKind: "delivery", dueOn: "2026-11-20", dateState: "upcoming" })],
+      }),
+      [],
+      true,
+      null,
+    );
+    expect(brief.rows.map(row => row.id)).toEqual(["o1", "t1", "t2"]);
+    /* امتلأت الصفوف بالفائت واليوم فلا وعد بإظهار القادم أيضًا (3D-C2). */
+    expect(brief.rows.every(row => !row.upcoming)).toBe(true);
   });
 
-  it("keeps the honest empty Today state for a project with nothing on it (journey 1)", () => {
-    const model = buildHomeControlCenterViewModel(baseInput());
-    expect(model.todaySection.items).toHaveLength(0);
+  it("rule 2: with room left, exactly one nearest upcoming row is reserved and tagged قادم — never urgent", () => {
+    const brief = selectFollowUpBrief(
+      projectionOf({
+        today: [task({ itemKey: "t1", taskKind: "delivery", dueOn: "2026-11-02", dateState: "today" })],
+        upcoming: [
+          task({ itemKey: "u1", taskKind: "delivery", dueOn: "2026-11-20", dateState: "upcoming" }),
+          task({ itemKey: "u2", taskKind: "delivery", dueOn: "2026-11-25", dateState: "upcoming" }),
+        ],
+      }),
+      [],
+      true,
+      null,
+    );
+    /* بقيت فسحة بعد القاعدة ٣ فتعرض القادمة التالية دون تكرار المحجوز (قاعدة ٤). */
+    expect(brief.rows.map(row => row.id)).toEqual(["t1", "u1", "u2"]);
+    expect(brief.rows[1]!.upcoming).toBe(true);
+    expect(brief.rows[2]!.upcoming).toBe(true);
+    expect(brief.rows[1]!.title).not.toContain("عاجل");
   });
 
-  it("shows only optional modules with actual data or a relevant setup action", () => {
+  it("rule 3 fills no-date tasks in type order: invalid date fix, then delivery, then financial, then drafts", () => {
+    const brief = selectFollowUpBrief(
+      projectionOf({
+        undated: [
+          task({
+            itemKey: "f1",
+            taskKind: "receivable",
+            amountMinor: 1000,
+            amountRole: "المتبقي على العميل",
+          }),
+          task({ itemKey: "d1", taskKind: "delivery" }),
+          task({ itemKey: "c1", taskKind: "customer_followup" }),
+        ],
+        invalid: [task({ itemKey: "x1", taskKind: "delivery", dueOn: "تالف", dateState: "invalid" })],
+      }),
+      [draft("dr1", "خاتم أمانة"), draft("dr2", null)],
+      true,
+      null,
+    );
+    expect(brief.rows.map(row => row.id)).toEqual(["x1", "d1", "c1"]);
+    /* المسودات بعد المهام بلا موعد — البقية في القائمة الكاملة. */
+  });
+
+  it("rule 4: leftover room shows further upcoming without repeating the reserved one", () => {
+    const brief = selectFollowUpBrief(
+      projectionOf({
+        today: [task({ itemKey: "t1", taskKind: "delivery", dueOn: "2026-11-02", dateState: "today" })],
+        upcoming: [
+          task({ itemKey: "u1", taskKind: "delivery", dueOn: "2026-11-20", dateState: "upcoming" }),
+          task({ itemKey: "u2", taskKind: "customer_followup", dueOn: "2026-11-25", dateState: "upcoming" }),
+        ],
+      }),
+      [],
+      true,
+      null,
+    );
+    expect(brief.rows.map(row => row.id)).toEqual(["t1", "u1", "u2"]);
+  });
+
+  it("no task appears twice: the same itemKey from any path merges once by identity", () => {
+    const brief = selectFollowUpBrief(
+      projectionOf({
+        overdue: [
+          task({ itemKey: "o1", taskKind: "customer_followup", dueOn: "2026-11-01", dateState: "overdue" }),
+        ],
+        undated: [task({ itemKey: "o1", taskKind: "customer_followup" })],
+      }),
+      [draft("o1", "x")],
+      true,
+      null,
+    );
+    expect(brief.rows.filter(row => row.id === "o1")).toHaveLength(1);
+  });
+
+  it("a complete read with no tasks is honestly empty — not «all is well»", () => {
+    const brief = selectFollowUpBrief(projectionOf({}), [], true, null);
+    expect(brief.rows).toHaveLength(0);
+    expect(brief.empty).toBe(true);
+    expect(brief.complete).toBe(true);
+  });
+
+  it("a failed source loses completeness: rows stay with the declared partiality, never a misleading void", () => {
+    const brief = selectFollowUpBrief(
+      projectionOf({}),
+      [],
+      false,
+      "تعذرت قراءة بعض المتابعات — أعد المحاولة",
+    );
+    expect(brief.complete).toBe(false);
+    expect(brief.empty).toBe(false);
+    expect(brief.failedMessage).toContain("تعذرت قراءة بعض المتابعات");
+  });
+
+  it("amounts carry their role label only when they matter, and proposed amounts stay suppressed", () => {
+    const brief = selectFollowUpBrief(
+      projectionOf({
+        today: [
+          task({
+            itemKey: "r1",
+            taskKind: "receivable",
+            amountMinor: 1500,
+            amountRole: "المتبقي على العميل",
+            dueOn: "2026-11-02",
+            dateState: "today",
+          }),
+          task({
+            itemKey: "p1",
+            taskKind: "supplier_payable",
+            amountMinor: 900,
+            amountRole: null,
+            amountProposed: true,
+            dueOn: "2026-11-02",
+            dateState: "today",
+          }),
+        ],
+      }),
+      [],
+      true,
+      null,
+    );
+    const receivable = brief.rows.find(row => row.id === "r1") as HomeFollowUpRow;
+    expect(receivable.amountMinor).toBe(1500);
+    expect(receivable.amountRole).toBe("المتبقي على العميل");
+    const proposed = brief.rows.find(row => row.id === "p1") as HomeFollowUpRow;
+    expect(proposed.amountMinor).toBeNull();
+    expect(proposed.amountRole).toBeNull();
+  });
+
+  it("draft rows open their own draft with an explicit completion action", () => {
+    const brief = selectFollowUpBrief(projectionOf({}), [draft("dr1", "خاتم أمانة")], true, null);
+    expect(brief.rows).toHaveLength(1);
+    expect(brief.rows[0]!.title).toContain("خاتم أمانة");
+    expect(brief.rows[0]!.href).toBe("/orders/draft/dr1");
+    expect(brief.rows[0]!.actionLabel).toBe("إكمال الطلب");
+  });
+});
+
+describe("buildHomeControlCenterViewModel (S16)", () => {
+  it("carries the heading, glimpse, brief, and backup state without inventing anything", () => {
     const model = buildHomeControlCenterViewModel({
-      ...baseInput(),
-      optionalModules: [
-        { id: "schedule", label: "الجدول", state: "empty", action: null },
-        { id: "schedule", label: "الجدول", state: "needs_setup", action: action("schedule") },
-        { id: "period_result", label: "نتيجة الفترة", state: "available", action: action("period-result") },
-        { id: "period_result", label: "نتيجة الفترة", state: "empty", action: null },
-      ],
-    });
-    expect(model.optionalModules.map(module => module.id)).toEqual(["schedule", "period_result"]);
-  });
-
-  it("keeps the permanent finance and catalog units unconditional even while every optional module is empty", () => {
-    const model = buildHomeControlCenterViewModel(baseInput());
-    expect(model.financeUnit).toMatchObject({
-      action: { id: "finance", href: "/finance" },
-    });
-    expect(model.catalogUnit).toMatchObject({
-      action: { id: "catalog", href: "/catalog" },
-    });
-    expect(model.optionalModules).toHaveLength(0);
-  });
-
-  it("keeps the recent activity bounded to five useful changes", () => {
-    const model = buildHomeControlCenterViewModel({
-      ...baseInput(),
-      recentChanges: Array.from({ length: 7 }, (_, index) => ({
-        id: `change-${index}`,
-        occurredOn: `2026-08-${String(index + 1).padStart(2, "0")}`,
-        title: `تغيير ${index}`,
-        detail: "تفصيل محلي",
-        href: "/review",
-        effectWord: null,
-        amountMinor: null,
-      })),
-    });
-    expect(model.recentChanges).toHaveLength(5);
-    expect(model.recentChanges.at(-1)?.id).toBe("change-4");
-  });
-
-  /* Wave 4.3 — P-4.3-2: الأرقام تمر كما هي والنتيجة الناقصة تبقى ناقصة،
-   * والـInsights تُقصر إلى أربعة كحد أقصى حتى لا تنافس الأولوية. */
-  it("passes period numbers through unchanged and bounds insights to four rows", () => {
-    const model = buildHomeControlCenterViewModel({
-      ...baseInput(),
-      periodNumbers: {
+      activityName: "مشغل اختبار",
+      todayLocal: "2026-11-02",
+      truthLine: null,
+      glimpse: {
         today: {
+          period: { kind: "today", from: "2026-11-02", to: "2026-11-02", label: "اليوم" },
           sales: {
             id: "sales",
-            label: "مبيعات مسجلة اليوم",
+            label: "المبيعات المسجلة",
             state: "known",
-            valueMinor: 1500,
+            valueMinor: 0,
             honestNote: null,
-            source: "/finance?view=period",
+            sourceHref: "/finance/statement?since=2026-11-02&until=2026-11-02",
           },
           result: {
             id: "result",
-            label: "نتيجة اليوم",
+            label: "نتيجة الفترة",
             state: "incomplete",
             valueMinor: null,
             honestNote: "تحتاج بيانات تكلفة",
-            source: "/finance?view=period",
+            sourceHref: "/finance/statement?since=2026-11-02&until=2026-11-02",
           },
         },
         month: {
+          period: { kind: "month", from: "2026-11-01", to: "2026-11-02", label: "هذا الشهر" },
           sales: {
             id: "sales",
-            label: "مبيعات مسجلة الشهر",
+            label: "المبيعات المسجلة",
             state: "known",
-            valueMinor: 32000,
+            valueMinor: 0,
             honestNote: null,
-            source: "/finance?view=period",
+            sourceHref: "/finance/statement?since=2026-11-01&until=2026-11-02",
           },
           result: {
             id: "result",
-            label: "نتيجة الشهر",
-            state: "known",
-            valueMinor: 9100,
-            honestNote: null,
-            source: "/finance?view=period",
+            label: "نتيجة الفترة",
+            state: "incomplete",
+            valueMinor: null,
+            honestNote: "تحتاج بيانات تكلفة",
+            sourceHref: "/finance/statement?since=2026-11-01&until=2026-11-02",
           },
         },
+        cashNow: {
+          label: "النقد المسجل الآن",
+          state: "not_initialized",
+          valueMinor: null,
+          qualifier: null,
+          sourceHref: "/cash",
+        },
       },
-      insights: Array.from({ length: 6 }, (_, index) => ({
-        id: `insight-${index}`,
-        what: `ملحوظة ${index}`,
-        why: null,
-        action: null,
-      })),
+      followUp: { rows: [], complete: true, failedMessage: null, empty: true },
+      backup: { lastVerifiedExportAt: null, daysSinceExport: null, reminderEnabled: true },
     });
-    expect(model.periodNumbers.today.result).toMatchObject({
-      state: "incomplete",
-      valueMinor: null,
-      honestNote: "تحتاج بيانات تكلفة",
-    });
-    expect(model.periodNumbers.month.result).toMatchObject({ state: "known", valueMinor: 9100 });
-    expect(model.insights).toHaveLength(4);
-  });
-});
-
-/* Z1.1 (العرض المعتمد §3.1): حالة اليوم الواحدة المعلنة — انتباه/فراغ/
- * بيانات ناقصة/هادئ — مشتقة في النموذج لا في الواجهة، والمصدر واحد. */
-describe("buildHomeControlCenterViewModel — Z1 daily status", () => {
-  it("attention: أي بند لليوم يجعله يوم انتباه مع كتلة الأولوية نفسها", () => {
-    const model = buildHomeControlCenterViewModel({
-      ...baseInput(),
-      todaySection: {
-        ...baseInput().todaySection,
-        items: [todayItem("today-draft:draft", 10, "draft")],
-      },
-    });
-    expect(model.dailyStatus).toEqual({ kind: "attention" });
-    expect(model.priorityBlock?.id).toBe("today-draft:draft");
-  });
-
-  it("empty: لا بنود ولا بيانات مسجلة — يوم مفتوح لا يُخترع له محتوى", () => {
-    const model = buildHomeControlCenterViewModel({
-      ...baseInput(),
-      hasAnyRecordedData: false,
-    });
-    expect(model.dailyStatus).toEqual({ kind: "empty" });
-    expect(model.priorityBlock).toBeNull();
-  });
-
-  it("incomplete: بيانات مسجلة مع حقائق غير مسجلة — ما لا يمكن استنتاجه يُعلن", () => {
-    const model = buildHomeControlCenterViewModel(baseInput());
-    expect(model.dailyStatus).toEqual({ kind: "incomplete" });
-  });
-
-  it("normal: بيانات مسجلة بلا بنود مستحقة ولا حقائق غير مسجلة — يوم هادئ", () => {
-    const model = buildHomeControlCenterViewModel({
-      ...baseInput(),
-      facts: [
-        fact("cash", "known", 1250),
-        fact("receivables", "known", 0),
-        fact("payables", "known", 0),
-        fact("owner_capital", "known", 1250),
-      ],
-    });
-    expect(model.dailyStatus).toEqual({ kind: "normal" });
-  });
-
-  it("attention beats incomplete and empty: البند المستحق أولًا حتى مع حقائق غير مسجلة", () => {
-    const model = buildHomeControlCenterViewModel({
-      ...baseInput(),
-      hasAnyRecordedData: false,
-      todaySection: {
-        ...baseInput().todaySection,
-        items: [todayItem("today-due-amount:debt", 15, "due_amount")],
-      },
-    });
-    expect(model.dailyStatus).toEqual({ kind: "attention" });
+    expect(model.heading.activityName).toBe("مشغل اختبار");
+    expect(model.heading.todayLocal).toBe("2026-11-02");
+    expect(model.glimpse.today.period.from).toBe("2026-11-02");
+    expect(model.glimpse.cashNow.state).toBe("not_initialized");
+    expect(model.followUp.empty).toBe(true);
+    expect(model.backup.lastVerifiedExportAt).toBeNull();
+    expect(model.truthLine).toBeNull();
   });
 });

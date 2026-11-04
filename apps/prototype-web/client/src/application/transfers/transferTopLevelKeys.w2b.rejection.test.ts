@@ -9,7 +9,7 @@
  *  1) الرفض بالحمولة الدقيقة (رمز + نص) لمفتاح واحد ولمفاتيح متعددة — بلا
  *     صدى لأسماء المفاتيح في الرسالة أبدًا.
  *  2) اشتقاق المجموعة المسموحة الإنتاجي مطابق لمفاتيح اللقطة الفارغة
- *     الكنونية (35 = 31 عائلة + 4 غير عائلية) — لا انجراف يدوي.
+ *     الكنونية (36 = 32 عائلة + 4 غير عائلية) — لا انجراف يدوي.
  *  3) كل مفاتيح المصدّر غير العائلية الصحيحة مقبولة، والذهبيان الحاليان
  *     وMANIFEST مقبولان كما كانا.
  *  4) كل زوج تراثي من الأزواج الـ24 الصادرة يبقى مقبولًا حتى مع مفتاح
@@ -100,16 +100,18 @@ async function liveExport(makeStore: () => MemoryLocalStore | IndexedDbLocalStor
 }
 
 describe("W2b — derivation parity of the production allowed set", () => {
-  it("the production allowed set equals the canonical empty-snapshot keys exactly (35 = 31 families + 4 non-family)", () => {
-    expect(ALLOWED_TOP_LEVEL_DATA_KEYS.size).toBe(35);
+  it("the production allowed set equals the canonical empty-snapshot keys exactly (39 = 35 families + 4 non-family)", () => {
+    /* S05 (DOC-014): عائلة counterparties (32 ← 33 عائلة). */
+    /* S14 (DOC-023): عائلتا المنسق (33 ← 35 عائلة؛ 37 ← 39 مفتاحًا). */
+    expect(ALLOWED_TOP_LEVEL_DATA_KEYS.size).toBe(39);
     expect([...ALLOWED_TOP_LEVEL_DATA_KEYS].sort()).toEqual(
       Object.keys(LocalTransferService.emptySnapshot()).sort(),
     );
-    expect(Object.keys(TRANSFER_ARRAY_FAMILY_ROLES)).toHaveLength(31);
+    expect(Object.keys(TRANSFER_ARRAY_FAMILY_ROLES)).toHaveLength(35);
   });
 });
 
-describe("W2b — Current pair (38/30) unknown top-level data keys are rejected with the exact owner payload", () => {
+describe("W2b — the live pair (40/33 today; dated correction 2026-11-01 DOC-021/S12; was 38/30 when written): unknown top-level data keys are rejected with the exact owner payload", () => {
   it("one unknown key is rejected with validation_error and the verbatim Arabic message", async () => {
     const { transfers, exported } = await liveExport(() => new MemoryLocalStore());
     const base = clone(exported);
@@ -204,7 +206,7 @@ describe("W2b — every exporter-produced key stays accepted (no false rejection
       const { store, transfers } = await liveExport(makeStore);
       const exportedAgain = await transfers.createExport();
       if (!exportedAgain.ok) throw new Error(exportedAgain.message);
-      const roundTrip = transfers.prepareImport(JSON.stringify(exportedAgain.value));
+      const roundTrip = await transfers.prepareRestore(JSON.stringify(exportedAgain.value));
       if (!roundTrip.ok) throw new Error(roundTrip.message);
       const confirmed = await transfers.confirmImport(roundTrip.value);
       expect(confirmed.ok).toBe(true);

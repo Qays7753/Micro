@@ -314,7 +314,9 @@ describe("R4 AST-bound ?? exemption (R11 W1A-2 / D-03 — R10A-F-014, OD-GUARD O
     }
   });
 
-  it("the live repository passes with exactly the five approved sites (no stale, no sixth)", () => {
+  it("the live repository passes with exactly the four approved sites (no stale, no fifth)", () => {
+    /* S15 (DOC-024 / UNIT-013 — تنفيذ S15 بالأمر الموحد، نفس-الـPR):
+     * CorrectionsLayer.tsx تقاعد مع طبقته (جرد القارئين) — 5 ← 4. */
     const violations = findViolations();
     expect(violations).toEqual([]);
   });

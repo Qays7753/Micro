@@ -27,7 +27,14 @@ import {
 } from "@/storage/diagnostics/browserDiagnosticStorage";
 
 export type DiagnosticErrorCode =
-  "render_crash" | "pwa_register_failed" | "pwa_update_failed" | "unknown_error";
+  | "render_crash"
+  | "pwa_register_failed"
+  | "pwa_update_failed"
+  /* S02-B (SH-04 — UNIT-042): فشل تنظيف سجل القفل المتقاعد — حقيقة تقنية
+   * صادقة بلا أسرار (لا رمز ولا بصمة في الحقول أبدًا)؛ الفشل لا يحبس
+   * المستخدم خلف غطاء ملغى ولا يمحو بياناته ولا يوقف الإقلاع. */
+  | "lock_record_cleanup_failed"
+  | "unknown_error";
 
 export type LocalDiagnosticEntry = {
   errorId: string;
@@ -58,11 +65,15 @@ const SAFE_MESSAGES: ReadonlyArray<{ code: DiagnosticErrorCode; message: string 
   { code: "render_crash", message: "تعذر عرض الشاشة ولم تتغير أي بيانات." },
   { code: "pwa_register_failed", message: "تعذر تفعيل وضع العمل دون اتصال." },
   { code: "pwa_update_failed", message: "تعذر تحديث ملفات وضع العمل دون اتصال." },
+  {
+    code: "lock_record_cleanup_failed",
+    message: "تعذر تنظيف سجل قفل متقاعد — بياناتك سليمة ولا يوجد قفل بعد اليوم.",
+  },
   { code: "unknown_error", message: "حدث خطأ غير مصنف ولم تتغير أي بيانات." },
 ];
 
 export function safeMessageFor(code: DiagnosticErrorCode): string {
-  return SAFE_MESSAGES.find(entry => entry.code === code)?.message ?? SAFE_MESSAGES[3].message;
+  return SAFE_MESSAGES.find(entry => entry.code === code)?.message ?? SAFE_MESSAGES[4].message;
 }
 
 const ERROR_ID_PATTERN = /^MIC-[0-9a-f]{10}$/;

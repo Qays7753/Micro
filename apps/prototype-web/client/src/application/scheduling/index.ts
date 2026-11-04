@@ -17,6 +17,27 @@ export type {
   ScheduledOrder,
   ScheduleService,
 } from "./scheduleService";
+/* S13 (DOC-022 / UNIT-006+012 — أمر 2158b0fc §6، PC-3 توسيع مقصود بنفس
+ * الـPR): القراءة النقية لمجتمع المواعيد للقائمة والتقويم والمتابعة —
+ * لا كتابة عند القراءة أبدًا (U012-R16). */
+export type {
+  ActiveDeliveryRow,
+  DerivedScheduleStatus,
+  ScheduleCommunity,
+  ScheduleCommunityEntry,
+  ScheduleReadResult,
+  ScheduleReadStore,
+  ScheduleWindow,
+} from "./scheduleReads";
+export {
+  activeDeliveryLens,
+  activeEntries,
+  bucketOfDate,
+  compareEntries,
+  entriesForDate,
+  readScheduleCommunity,
+  windowOf,
+} from "./scheduleReads";
 
 export type { RecurrenceView, ScheduleRecurrenceService } from "./recurrenceService";
 

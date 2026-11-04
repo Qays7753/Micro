@@ -14,7 +14,6 @@
  * أصلًا لأن الكاش كله في غير الموزع.
  */
 import { createCashContinuityEntry, type CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
-import { updateDirectSale } from "@micro-domain/direct-sale/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { PrototypeLocalStore } from "@/storage/local/types";
 import type { DirectSaleStore } from "@/storage/local/capabilities/directSaleStore";
@@ -277,30 +276,6 @@ export class SaleCollectionReversalService {
     const amountMinor = matched.cashDeltaMinor;
 
     try {
-      /* نصف البيع: دالة النطاق القائمة — مراجعة موثقة بسبب العكس، والمقبوض
-       * ينقص فيعود الدين بقوته وحالته الصادقة تعاد اشتقاقًا. */
-      const corrected = updateDirectSale(
-        sale,
-        {
-          itemName: sale.itemName,
-          quantity: sale.quantity,
-          revenueMinor: sale.revenueMinor,
-          collectedMinor: sale.collectedMinor - amountMinor,
-          collectionStatus:
-            sale.collectedMinor - amountMinor >= sale.revenueMinor ? "collected_in_full" : "partial_debt",
-          catalogItemId: sale.catalogItemId,
-          customerName: sale.customerName ?? undefined,
-          costMinor: sale.costMinor,
-          occurredOn: sale.occurredOn,
-          note: sale.note,
-        },
-        {
-          kind: "edit",
-          idempotencyKey: revisionKey,
-          createdAt: timestamp,
-          reason: `عكس تحصيل: ${input.reason.trim()}`,
-        },
-      );
       /* نصف الكاش: مصنع النطاق القائم بعكس مطابق تمامًا — رابط التراجع
        * (reversesEntryId) يصل قيد العكس بالقيد الأصلي في دفتر المحفظة. */
       const allocationReversal = createCashContinuityEntry({
@@ -315,8 +290,24 @@ export class SaleCollectionReversalService {
         operationKey: `${input.operationKey}:unattribute`,
         reversesEntryId: matched.id,
       });
+      /* S11 (UNIT-026 sale-slice — تصحيحا المراجعتين R1 ثم ميزانية الدخول):
+       * العكس كله داخل دالة نطاق واحدة (reverseDirectSaleCollection) —
+       * المجموع المحروس ينقص والحركة السالبة المؤرخة تُكتب معه دائمًا في
+       * نداء واحد بمفتاح الواقعة نفسه؛ لا تركيب حالة مجال بيد طبقة
+       * التطبيق. بيت حركات البيع يُحمَّل كسولًا (نمط تفويض المنسق نفسه —
+       * لا يدخل كومة الإقلاع وسقف gzip المحروس لا يُرفع). */
+      const { reverseDirectSaleCollection } = await import("@micro-domain/direct-sale/index.js");
+      const withReversalMovement: DirectSale = reverseDirectSaleCollection(sale, {
+        amountMinor,
+        occurredOn: localDateInAmman(timestamp),
+        operationKey: revisionKey,
+        recordedAt: timestamp,
+        reason: `عكس تحصيل: ${input.reason.trim()}`,
+        note: `عكس تحصيل: ${input.reason.trim()}`,
+        allocationEntryId: allocationReversal.id,
+      });
       const committed = await this.store.commitDirectSaleCollectionReversal(
-        corrected,
+        withReversalMovement,
         allocationReversal,
         revisionKey,
       );

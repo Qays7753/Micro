@@ -26,7 +26,9 @@ import { systemClock, type Clock } from "@/application/time/clock";
 
 export type PayableDueRow = {
   purchaseId: string;
-  supplierName: string;
+  /* S05 (DOC-014 / UNIT-037): المدفوع كامله قد يكون بلا مورد؛ الاستحقاق
+   * القائم يحمل تعريفًا دومًا (قاعدة المجال) فالصفوف الحية غير الفارغة. */
+  supplierName: string | null;
   payableMinor: number;
   /** تاريخ الاستحقاق المحلي المخزّن (YYYY-MM-DD) أو null = غير محدد صراحةً. */
   dueOn: string | null;

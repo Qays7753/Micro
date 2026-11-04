@@ -1,10 +1,12 @@
 /* مبدأ Micro: يثبت الاتفاق ما يعرفه المالك الآن، ويبقي بدء التنفيذ والتحصيل أفعالًا منفصلة. */
 import { ArrowRight, CircleAlert, Save } from "lucide-react";
+import { consumeScheduleProposal } from "@/application/agreements";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import {
   agreementPriceIsReady,
+  agreementSummaryParts,
   applyProtectionPriceAsStart,
   protectionPriceIsReadyForAgreement,
   startAgreementPrice,
@@ -15,20 +17,28 @@ import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { MoneyValue } from "@/components/presentation/DisplayValue";
 import type { AgreementSource, OrderDraft } from "@/storage/local/types";
 import { getAgreementPresentation } from "@/presentation/orderAgreementPresentation";
+import { formatMoneyMinor } from "@/presentation/formatters";
 import type { DeliveryResponsibility } from "@micro-domain/craft-order/index.js";
 
 import { Button } from "@/components/primitives";
 type AgreementFormValues = {
   priceMinor: number | null;
   deliveryDate: string;
+  /* S12 (UNIT-009 — J002-DEC02): «لم يُحدد بعد» صريح — لا يضع تاريخ اليوم
+   * ولا جدولًا؛ المجهول مختلف عن التاريخ وعن الفراغ. */
+  deliveryDateUnknown: boolean;
   depositMinor: number | null;
   source: AgreementSource | "";
   acknowledgesBelowFloor: boolean;
   /* (إصلاح تكاملي — مجموعة ٤): اسم العميل يُطلب عند الاتفاق لا عند المسودة —
    * مسودة «تصميم مخطط» بلا حقل اسم لا يمكنها بلوغ الاتفاق أبدًا إلا من هنا. */
   customerName: string;
-  /* ORD-003: قسم النقل والتوصيل المتقدم — اختياري بالكامل. */
-  deliveryResponsibility: DeliveryResponsibility | "";
+  /* S12 (UNIT-009 — J002-DEC01): اختيار صريح «التكلفة غير معروفة الآن» عند
+   * غياب مرجع تكلفة صالح — مرجع مجهول موثق لا تكلفة 0. */
+  costUnknown: boolean;
+  /* ORD-003/S12: قسم النقل والتوصيل — النموذج الجديد: لا توصيل أو على
+   * المشروع؛ لا رسوم زبون ولا تقاسم في الإنشاء الجديد. */
+  deliveryResponsibility: "none" | "project_pays" | "";
   feeChargedMinor: number | null;
   costPaidMinor: number | null;
   feeIncludedInPrice: boolean;
@@ -43,10 +53,12 @@ function equalAgreementValues(left: AgreementFormValues | null, right: Agreement
     right &&
     left.priceMinor === right.priceMinor &&
     left.deliveryDate === right.deliveryDate &&
+    left.deliveryDateUnknown === right.deliveryDateUnknown &&
     left.depositMinor === right.depositMinor &&
     left.source === right.source &&
     left.acknowledgesBelowFloor === right.acknowledgesBelowFloor &&
     left.customerName === right.customerName &&
+    left.costUnknown === right.costUnknown &&
     left.deliveryResponsibility === right.deliveryResponsibility &&
     left.feeChargedMinor === right.feeChargedMinor &&
     left.costPaidMinor === right.costPaidMinor &&
@@ -66,13 +78,16 @@ export default function AgreementEditor() {
     agreements,
     cashContinuity,
     projectFinance,
-    partyLedger,
+    partyDirectory,
     dataVersion,
     notifyDataChanged,
   } = usePrototypeServices();
   const [draft, setDraft] = useState<OrderDraft | null>(null);
   const [priceMinor, setPriceMinor] = useState<number | null>(startAgreementPrice());
   const [deliveryDate, setDeliveryDate] = useState("");
+  /* S12 (UNIT-009 A2/س4 + B3-F04 — J002-DEC02): «لم يُحدد بعد» اختيار صريح —
+   * لا يضع تاريخ اليوم ولا جدولًا زائفًا. */
+  const [deliveryDateUnknown, setDeliveryDateUnknown] = useState(false);
   const [depositMinor, setDepositMinor] = useState<number | null>(null);
   /* عقد الإغلاق العميق (FC-04 — العقد ٣): وجهة كاش العربون عند الاتفاق — خيار
    * صريح للمالك (محفظة أو غير موزع)، والعربون يبقى دينًا مرتبطًا بالطلب لا
@@ -86,16 +101,17 @@ export default function AgreementEditor() {
     void (async () => {
       const overview = await cashContinuity.overview();
       if (active && overview.ok) setWalletOptions(overview.value.wallets);
-      /* FIN-002: مقترحات الجهات — كل الأسماء المسجلة (الأكثر حركة أولًا)،
-       * وكل اسم يظهر في الدفتر من أول حركة مسجلة. */
-      const ledger = await partyLedger.read();
-      if (active && ledger.ok)
-        setPartySuggestions(ledger.value.parties.map(party => party.name).slice(0, 12));
+      /* S05 (DOC-014 / UNIT-037 3D-03): مقترحات الجهة من الأطراف المحفوظة
+       * النشطة — جارٍ التجهيز (null) يعرض بلا مقترحات لا بفشل صامت. */
+      if (partyDirectory) {
+        const suggestions = await partyDirectory.suggestLabels();
+        if (active && suggestions.ok) setPartySuggestions(suggestions.value.slice(0, 12));
+      }
     })();
     return () => {
       active = false;
     };
-  }, [cashContinuity, partyLedger, dataVersion]);
+  }, [cashContinuity, partyDirectory, dataVersion]);
   const [source, setSource] = useState<AgreementSource | "">("");
   const [acknowledgesBelowFloor, setAcknowledgesBelowFloor] = useState(false);
   /* (إصلاح تكاملي — مجموعة ٤): الاسم يُعبّأ من المسودة إن وُجد. */
@@ -104,9 +120,10 @@ export default function AgreementEditor() {
   const [orderName, setOrderName] = useState("");
   /* Conflict B: مقترحات الجهات المتكررة — اختيار جهة محفوظة أو إنشاء جديدة. */
   const [partySuggestions, setPartySuggestions] = useState<readonly string[]>([]);
-  /* ORD-003: شروط النقل والتوصيل — معلومات متقدمة داخل قسم قابل للطي؛
-   * بلا اختيار = لا شروط نقل (الطلب البسيط لا يفتح القسم أبدًا). */
-  const [deliveryResponsibility, setDeliveryResponsibility] = useState<DeliveryResponsibility | "">("");
+  /* ORD-003/S12: شروط النقل والتوصيل — النموذج الجديد داخل قسم قابل للطي:
+   * لا توصيل / على المشروع / بدون شروط (تسجيل لاحق)؛ لا رسوم زبون ولا
+   * تقاسم في الإنشاء الجديد. */
+  const [deliveryResponsibility, setDeliveryResponsibility] = useState<"none" | "project_pays" | "">("");
   const [feeChargedMinor, setFeeChargedMinor] = useState<number | null>(null);
   const [costPaidMinor, setCostPaidMinor] = useState<number | null>(null);
   const [feeIncludedInPrice, setFeeIncludedInPrice] = useState(false);
@@ -117,6 +134,9 @@ export default function AgreementEditor() {
   const [isDeliveryCostValid, setIsDeliveryCostValid] = useState(true);
   const [isProjectShareValid, setIsProjectShareValid] = useState(true);
   const [isCustomerShareValid, setIsCustomerShareValid] = useState(true);
+  /* S12 (UNIT-009 — J002-DEC01): اختيار «التكلفة غير معروفة الآن» الصريح —
+   * يُعرض عند غياب مرجع تكلفة صالح فقط. */
+  const [costUnknown, setCostUnknown] = useState(false);
   /* R10-B4/NF-016: آلة قراءة صريحة — فشل القراءة برسالته الحقيقية مع إعادة
    * محاولة، و«غير موجود» صادق منفصل عنه، لا دمج الاثنين في «التكلفة غير
    * متاحة» (نمط R9-GA-F3.7 الثابت في المحررات المصلحة). */
@@ -151,13 +171,20 @@ export default function AgreementEditor() {
         navigate(`/orders/${loaded.linkedOrderId}`);
         return;
       }
+      /* S13 (CAL-C — أمر 2158b0fc §6): اقتراح موعد التقويم يظهر هنا للمراجعة
+       * مرة واحدة — يوم مختار من تقويم الطلبات يصل اقتراحًا معلوم المصدر
+       * قابلًا للتعديل أو الإزالة («لم يُحدد بعد» الصريح)؛ لا حفظ من الفتح
+       * ولا حقل خفي — حالة عرض جلسة بمفتاح آمن محدود، تُستهلك مرة. */
+      const proposedDeliveryDate = consumeScheduleProposal(params.id!);
       const loadedValues = {
         priceMinor: startAgreementPrice(),
-        deliveryDate: "",
+        deliveryDate: proposedDeliveryDate ?? "",
+        deliveryDateUnknown: false,
         depositMinor: null,
         source: "" as const,
         acknowledgesBelowFloor: false,
         customerName: loaded.customerName,
+        costUnknown: false,
         deliveryResponsibility: "" as const,
         feeChargedMinor: null,
         costPaidMinor: null,
@@ -169,10 +196,12 @@ export default function AgreementEditor() {
       setDraft(loaded);
       setPriceMinor(loadedValues.priceMinor);
       setDeliveryDate(loadedValues.deliveryDate);
+      setDeliveryDateUnknown(loadedValues.deliveryDateUnknown);
       setDepositMinor(loadedValues.depositMinor);
       setSource(loadedValues.source);
       setAcknowledgesBelowFloor(loadedValues.acknowledgesBelowFloor);
       setCustomerName(loadedValues.customerName);
+      setCostUnknown(loadedValues.costUnknown);
       setOrderName(loaded.orderName ?? "");
       initialValuesRef.current = loadedValues;
       setReadState({ phase: "ready" });
@@ -193,15 +222,19 @@ export default function AgreementEditor() {
   const agreementPresentation = getAgreementPresentation({
     status: "draft",
     agreedPriceMinor: priceMinor,
-    deliveryDate,
+    /* S12 (DOC-021 — J002-DEC02، تصحيح R5-F01): التمرير الثلاثي الصادق —
+     * المجهول الصريح يمر null فلا يوصف بالنقص، والفراغ يبقى «لم يُدخل بعد». */
+    deliveryDate: deliveryDateUnknown ? null : deliveryDate,
   });
   const currentValues = {
     priceMinor,
     deliveryDate,
+    deliveryDateUnknown,
     depositMinor,
     source,
     acknowledgesBelowFloor,
     customerName,
+    costUnknown,
     deliveryResponsibility,
     feeChargedMinor,
     costPaidMinor,
@@ -213,15 +246,19 @@ export default function AgreementEditor() {
   const isDirty = Boolean(
     initialValuesRef.current && !equalAgreementValues(currentValues, initialValuesRef.current),
   );
-  const feeApplies =
-    deliveryResponsibility === "customer_pays_project" || deliveryResponsibility === "shared";
-  const costApplies =
-    deliveryResponsibility === "project_pays" ||
-    deliveryResponsibility === "customer_pays_project" ||
-    deliveryResponsibility === "shared";
+  /* S12 (UNIT-009 A2/س7): نموذج الإنشاء الجديد — توصيل المشروع وحده؛ الأجرة
+   * وحصص التقاسم لم تعد تُعرض في الإنشاء الجديد (P3.3) — توصيل المشروع
+   * يحمل كلفته مرة على الطلب. */
+  const costApplies = deliveryResponsibility === "project_pays";
   async function persistAgreement(): Promise<string | null> {
     if (!draft) return null;
     setMessage(null);
+    /* S12 (DOC-021 — أمر 2e645802 §9): خدمة الاتفاق الكسولة — null = «جارٍ
+     * التجهيز» لا فشلًا صامتًا؛ تُعاد المحاولة عند اكتمال التحميل. */
+    if (!agreements) {
+      setMessage("جارٍ تجهيز خدمة الاتفاق — أعد المحاولة بعد لحظة.");
+      return null;
+    }
     if (!agreementPriceIsReady(priceMinor)) {
       setMessage("السعر المتفق عليه: أدخل مبلغًا أكبر من صفر أو استخدم سعر الحماية كبداية، ثم أعد التسجيل.");
       return null;
@@ -234,32 +271,35 @@ export default function AgreementEditor() {
       setMessage("العربون: استخدم أرقام 0–9 صحيحة أو اتركه فارغًا إذا لم تقبض شيئًا، ثم أعد التسجيل.");
       return null;
     }
-    if (!deliveryDate) {
-      setMessage("موعد التسليم: اختر تاريخًا صحيحًا قبل تسجيل الاتفاق.");
+    /* S12 (UNIT-009 A2/س4 — J002-DEC02): التاريخ أو «لم يُحدد بعد» الصريح —
+     * أحدهما لازم؛ المجهول لا يضع تاريخ اليوم ولا جدولًا. */
+    if (!deliveryDateUnknown && !deliveryDate) {
+      setMessage("موعد التسليم: اختر تاريخًا صحيحًا — أو فعّل «لم يُحدد بعد» صراحةً.");
+      return null;
+    }
+    if (deliveryDateUnknown && deliveryDate) {
+      setMessage("موعد التسليم: عطّل «لم يُحدد بعد» قبل إدخال تاريخ، أو أمسح التاريخ.");
       return null;
     }
     if (isBelowFloor && !acknowledgesBelowFloor) {
       setMessage("إقرار سعر الحماية: فعّل مربع الإقرار بعد مراجعة السبب، ثم أعد التسجيل.");
       return null;
     }
-    /* ORD-003: تحقق صلاحية مبالغ النقل قبل أي كتابة. */
-    if (feeApplies && feeChargedMinor !== null && !isFeeValid) {
-      setMessage("أجرة التوصيل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة إذا لم تُسجل بعد.");
+    /* S12 (UNIT-009 — J002-DEC01): المجهول الصريح للتكلفة يُقبل فقط عند غياب
+     * مرجع صالح — لا يطمس مرجعًا قائمًا. */
+    if (costUnknown && preview?.ok) {
+      setMessage("التكلفة: لهذه المسودة نسخة تكلفة قائمة — عطّل «غير معروفة الآن» واستعملها.");
       return null;
     }
+    if (!costUnknown && !preview?.ok) {
+      setMessage("التكلفة: لا يوجد مرجع تكلفة صالح — فعّل «التكلفة غير معروفة الآن» أو افتح التكلفة.");
+      return null;
+    }
+    /* ORD-003/S12: تحقق صلاحية مبالغ النقل قبل أي كتابة — النموذج الجديد
+     * كلفة المشروع وحدها. */
     if (costApplies && costPaidMinor !== null && !isDeliveryCostValid) {
       setMessage("كلفة النقل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة إذا لم تُسجل بعد.");
       return null;
-    }
-    if (deliveryResponsibility === "shared") {
-      if (projectShareMinor !== null && !isProjectShareValid) {
-        setMessage("حصة المشروع من النقل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة.");
-        return null;
-      }
-      if (customerShareMinor !== null && !isCustomerShareValid) {
-        setMessage("حصة الزبون من النقل: استخدم أرقام 0–9 صحيحة أو اتركها فارغة.");
-        return null;
-      }
     }
     setIsSaving(true);
     /* (إصلاح تكاملي — مجموعة ٤): الاسم المُدخل هنا يُحفظ في المسودة أولًا (مصدر واحد
@@ -285,20 +325,23 @@ export default function AgreementEditor() {
     }
     const result = await agreements.createFromDraft(draftForAgreement, {
       agreedPriceMinor: priceMinor,
-      deliveryDate,
+      /* S12 (UNIT-009 — J002-DEC02): المجهول الصريح يمر null — لا جدول ولا
+       * تاريخ صوري؛ القيمة النصية تاريخ محلي صحيح. */
+      deliveryDate: deliveryDateUnknown ? null : deliveryDate,
       depositMinor: depositMinor ?? 0,
       agreementSource: source || null,
-      /* ORD-003: الشروط تُمرر فقط عند اختيار مسؤولية صريحة — بلا اختيار
-       * لا شروط نقل (توافق رجدي كامل). */
+      costUnknown: costUnknown || undefined,
+      /* ORD-003/S12: الشروط تُمرر فقط عند اختيار صريح — النموذج الجديد لا
+       * توصيل أو على المشروع؛ لا أجرة زبون ولا تقاسم في الإنشاء الجديد. */
       deliveryTerms: deliveryResponsibility
         ? {
             responsibility: deliveryResponsibility,
-            feeIncludedInPrice,
+            feeIncludedInPrice: false,
             costIncludedInProductCost,
-            feeChargedMinor: feeApplies ? feeChargedMinor : null,
+            feeChargedMinor: null,
             costPaidMinor: costApplies ? costPaidMinor : null,
-            projectShareMinor: deliveryResponsibility === "shared" ? projectShareMinor : null,
-            customerShareMinor: deliveryResponsibility === "shared" ? customerShareMinor : null,
+            projectShareMinor: null,
+            customerShareMinor: null,
           }
         : null,
     });
@@ -357,20 +400,7 @@ export default function AgreementEditor() {
         </div>
       </section>
     );
-  if (!draft || !preview?.ok)
-    return (
-      <section className="micro-page micro-not-found">
-        <h1>التكلفة المطلوبة غير متاحة</h1>
-        <p>احفظ نسخة تكلفة صالحة قبل تسجيل الاتفاق.</p>
-        <Button
-          action="secondary"
-
-          onClick={() => navigate(`/orders/draft/${params.id}/cost`)}
-        >
-          فتح التكلفة
-        </Button>
-      </section>
-    );
+  if (!draft) return null;
   async function submit() {
     const storedId = await persistAgreement();
     /* ORD-001: بعد كل فعل ناجح — وصول بمعلمة نجاح تعرض رقم الطلب وحالته
@@ -399,7 +429,26 @@ export default function AgreementEditor() {
         <span className="micro-overline">{agreementPresentation.label}</span>
         <h1>سجّل ما اتفقت عليه</h1>
       </div>
-      <section className="micro-cost-result" data-knowledge={preview.snapshot.knowledgeState}>
+      {/* S12 (UNIT-009 A2/س2): سياق مختصر من المسودة — وصف وكمية واسم إن وجد؛
+          «تعديل» يفتح محرر المسودة (لا إعادة كتابة ما أدخل في 007). */}
+      <section className="micro-context-row">
+        <p>
+          {draft.itemName}
+          {draft.quantity > 1 ? ` ×${draft.quantity}` : ""}
+          {customerName.trim() ? ` · ${customerName.trim()}` : ""}
+        </p>
+        <button
+          className="micro-text-action"
+          type="button"
+          onClick={() => requestNavigation(`/orders/draft/${draft.id}`)}
+        >
+          تعديل
+        </button>
+      </section>
+      <section
+        className="micro-cost-result"
+        data-knowledge={preview?.ok ? preview.snapshot.knowledgeState : "incomplete"}
+      >
         <span>سعر الحماية المشتق من نسخة التكلفة (د.أ)</span>
         <strong>
           {canUseProtectionPrice ? <MoneyValue minor={protectionPriceMinor} /> : "غير متاح بعد"}
@@ -407,11 +456,40 @@ export default function AgreementEditor() {
         <small>
           {!canUseProtectionPrice
             ? "وقت العمل أو بند مؤثر ما زال ناقصًا؛ لا نعرض هذه القراءة الجزئية كسعر حماية ولا نستخدمها لبداية الاتفاق."
-            : preview.snapshot.knowledgeState === "known"
+            : preview?.ok && preview.snapshot.knowledgeState === "known"
               ? "قيمة مشتقة من التكلفة المسجلة، وليست السعر المتفق عليه."
               : "قيمة مشتقة من تكلفة تحتاج مراجعة؛ راجع الافتراضات قبل تسجيل السعر."}
         </small>
       </section>
+      {/* S12 (UNIT-009 A2/س6 — J002-DEC01): التكلفة كسطر حالة — مرجع صالح أو
+          مجهولة صريحة لا تكلفة 0؛ رابط تعديلها عند صاحبها (008). */}
+      {preview?.ok ? (
+        <p className="micro-save-note" role="status">
+          {`التكلفة ${formatMoneyMinor(preview.snapshot.plannedCostMinor)} د.أ —`}{" "}
+          <button
+            className="micro-text-action"
+            type="button"
+            onClick={() => requestNavigation(`/orders/draft/${draft.id}/cost`)}
+          >
+            تعديل
+          </button>
+        </p>
+      ) : (
+        <div className="micro-field">
+          <label className="micro-confirm-warning">
+            <input
+              type="checkbox"
+              checked={costUnknown}
+              onChange={event => setCostUnknown(event.target.checked)}
+            />
+            <span>التكلفة غير معروفة الآن — سجّل الاتفاق بتكلفة مجهولة بصدق</span>
+          </label>
+          <p className="micro-field-hint">
+            لا تُسجّل تكلفة 0 ولا ربح مزعوم؛ نتيجة الطلب تبقى «غير متاحة» حتى تدخل تكلفة معلومة من التكلفة —
+            عد للتكلفة من زر الرجوع أعلاه وقتها.
+          </p>
+        </div>
+      )}
       <section className="micro-form-card">
         <div className="micro-agreement-price-field">
           <label className="micro-field">
@@ -453,14 +531,34 @@ export default function AgreementEditor() {
             </span>
           </label>
         ) : null}
-        <LocalDateField
-          id="agreement-delivery-date"
-          label="موعد التسليم"
-          value={deliveryDate}
-          aria-invalid={hasFormError && !deliveryDate}
-          aria-describedby={hasFormError ? "agreement-form-error" : undefined}
-          onChange={event => setDeliveryDate(event.target.value)}
-        />
+        {/* S12 (UNIT-009 A2/س4 + B3-F04 — J002-DEC02): التاريخ أو «لم يُحدد
+            بعد» الصريح — المجهول لا يضع تاريخ اليوم ولا جدولًا، ويُسجّل null
+            فيصل السلك بصدق. */}
+        {!deliveryDateUnknown ? (
+          <LocalDateField
+            id="agreement-delivery-date"
+            label="موعد التسليم"
+            value={deliveryDate}
+            aria-invalid={hasFormError && !deliveryDate}
+            aria-describedby={hasFormError ? "agreement-form-error" : undefined}
+            onChange={event => setDeliveryDate(event.target.value)}
+          />
+        ) : (
+          <p className="micro-save-note" role="status">
+            موعد التسليم: لم يُحدد بعد — لا موعد في التقويم، وتحديده لاحقًا لا يعيد إنشاء الاتفاق.
+          </p>
+        )}
+        <label className="micro-confirm-warning">
+          <input
+            type="checkbox"
+            checked={deliveryDateUnknown}
+            onChange={event => {
+              setDeliveryDateUnknown(event.target.checked);
+              if (event.target.checked) setDeliveryDate("");
+            }}
+          />
+          <span>لم يُحدد بعد</span>
+        </label>
         <label className="micro-field">
           <span>
             العربون المحصل الآن (د.أ) <small>اختياري؛ اتركه فارغًا إذا لم تقبض</small>
@@ -532,7 +630,7 @@ export default function AgreementEditor() {
           {!customerName.trim() ? (
             <small className="micro-warning-copy" data-testid="unnamed-party-warning">
               طلب بلا اسم جهة — أي دين لاحق سيظهر «زبون بلا اسم» في ورقة التحصيل مع تحذير، ويمكنك تسمية الجهة
-              لاحقًا من صفحة الطلب (اختيار اسم مسجل أو اسم جديد يظهر في دفتر الناس من أول حركة).
+              لاحقًا من صفحة الطلب (اختيار اسم مسجل أو اسم جديد يتبع دينه من أول حركة).
             </small>
           ) : null}
         </label>
@@ -549,60 +647,34 @@ export default function AgreementEditor() {
             <option value="other">أخرى</option>
           </select>
         </label>
-        {/* ORD-001/ORD-003: معلومات متقدمة داخل قسم قابل للطي باسم صريح —
-            الطلب البسيط يُسجَّل دون فتح هذا القسم أبدًا. */}
+        {/* ORD-001/ORD-003/S12 (UNIT-009 A3 + P3.3 — النموذج الجديد):
+            معلومات متقدمة داخل قسم قابل للطي — لا يوجد توصيل صريح أو توصيل
+            يتحمله المشروع وحده مرة على الطلب؛ لا رسوم زبون ولا تقاسم في
+            الإنشاء الجديد، والسجلات القديمة تُقرأ بسياستها. */}
         <details className="micro-advanced-section" data-testid="delivery-terms-section">
           <summary>النقل والتوصيل ومسؤولية كلفته</summary>
           <p className="micro-field-hint">
-            اختياري بالكامل. اختر من يدفع أجرة التوصيل وكلفة الناقل — تدخل الأجرة المحصلة عبر المشروع قيمة
-            الطلب مرة واحدة، ولا يُحتسب أي مبلغ مرتين.
+            اختياري بالكامل. «لا يوجد توصيل» صريح مختلف عن عدم فتح القسم؛ وتوصيل المشروع يحمل كلفته مرة واحدة
+            على الطلب، ولا تُحتسب أي أجرة على الزبون في إنشاء الاتفاق الجديد.
           </p>
           <label className="micro-field">
-            <span>من يدفع كلفة النقل والتوصيل؟</span>
+            <span>التوصيل</span>
             <select
               value={deliveryResponsibility}
-              aria-label="مسؤولية كلفة النقل والتوصيل"
-              onChange={event => setDeliveryResponsibility(event.target.value as DeliveryResponsibility | "")}
+              aria-label="ترتيب التوصيل عند الاتفاق"
+              onChange={event =>
+                setDeliveryResponsibility(event.target.value as "none" | "project_pays" | "")
+              }
             >
               <option value="">بدون شروط نقل — تسجيل لاحق</option>
-              <option value="project_pays">المشروع يدفع للناقل</option>
-              <option value="customer_pays_project">الزبون يدفع للمشروع</option>
-              <option value="customer_pays_courier">الزبون يدفع للناقل مباشرة</option>
-              <option value="shared">تكلفة مشتركة بين المشروع والزبون</option>
+              <option value="none">لا يوجد توصيل</option>
+              <option value="project_pays">على المشروع — يدفع للناقل</option>
             </select>
           </label>
-          {deliveryResponsibility === "customer_pays_courier" ? (
+          {deliveryResponsibility === "none" ? (
             <p className="micro-field-hint">
-              معلومة سياقية فقط: ليست كاش مشروع ولا إيرادًا ولا مصروفًا ولا تكلفة — لا تدخل نتيجة الطلب ولا أي
-              سجل مالي.
+              لا يوجد توصيل على هذا الطلب — لا أجرة ولا كلفة توصيل تدخل قيمته أو نتيجته.
             </p>
-          ) : null}
-          {feeApplies ? (
-            <>
-              <label className="micro-field">
-                <span>
-                  أجرة التوصيل المحصلة عبر المشروع (د.أ) <small>اتركها فارغة إذا لم تُسجل بعد</small>
-                </span>
-                <EnglishNumberInput
-                  value={feeChargedMinor}
-                  kind="money"
-                  min="0"
-                  allowEmpty
-                  aria-label="أجرة التوصيل عبر المشروع بالأرقام 0–9"
-                  onNumericChange={setFeeChargedMinor}
-                  onEmptyChange={() => setFeeChargedMinor(null)}
-                  onTextValidityChange={setIsFeeValid}
-                />
-              </label>
-              <label className="micro-confirm-warning">
-                <input
-                  type="checkbox"
-                  checked={feeIncludedInPrice}
-                  onChange={event => setFeeIncludedInPrice(event.target.checked)}
-                />
-                <span>الأجرة محتواة أصلًا داخل السعر المتفق عليه — لا تُضاف مرة ثانية.</span>
-              </label>
-            </>
           ) : null}
           {costApplies ? (
             <>
@@ -631,44 +703,33 @@ export default function AgreementEditor() {
               </label>
             </>
           ) : null}
-          {deliveryResponsibility === "shared" ? (
-            <div className="micro-shared-costs">
-              <label className="micro-field">
-                <span>
-                  حصة المشروع (د.أ) <small>اختياري</small>
-                </span>
-                <EnglishNumberInput
-                  value={projectShareMinor}
-                  kind="money"
-                  min="0"
-                  allowEmpty
-                  aria-label="حصة المشروع من النقل بالأرقام 0–9"
-                  onNumericChange={setProjectShareMinor}
-                  onEmptyChange={() => setProjectShareMinor(null)}
-                  onTextValidityChange={setIsProjectShareValid}
-                />
-              </label>
-              <label className="micro-field">
-                <span>
-                  حصة الزبون (د.أ) <small>اختياري</small>
-                </span>
-                <EnglishNumberInput
-                  value={customerShareMinor}
-                  kind="money"
-                  min="0"
-                  allowEmpty
-                  aria-label="حصة الزبون من النقل بالأرقام 0–9"
-                  onNumericChange={setCustomerShareMinor}
-                  onEmptyChange={() => setCustomerShareMinor(null)}
-                  onTextValidityChange={setIsCustomerShareValid}
-                />
-              </label>
-            </div>
-          ) : null}
         </details>
         {message ? (
           <p id="agreement-form-error" className="micro-field-error" role="alert">
             {message}
+          </p>
+        ) : null}
+        {/* S12 (UNIT-009 A2/س8 + B4): ملخص قصير ملاصق للفعل — قيمة الطلب
+            المسجلة والمستلم مقدمًا والمتبقي من المدخلات الفعّالة الصحيحة؛
+            لا فقرة تعليم ولا رقم من نص فاسد، والمجهول معلن بصدق. */}
+        {agreementPriceIsReady(priceMinor) &&
+        isPriceValid &&
+        (depositMinor === null || isDepositValid) &&
+        /* S12 (تصحيح R5-F03): المعاينة من النية الفعالة القابلة للحفظ فقط —
+         * العربون الذي يتجاوز السعر نية يرفضها حد الخدمة (كما يرفض القبضُ
+         * المتجاوز في البيع المباشر معاينتَه)، فلا يعرض متبقيًا سالبًا أبدًا
+         * (UNIT-009 B4: لا سالب مقبول آليًا) ولا رقمًا من نية غير صالحة —
+         * المعاينة تختفي حتى يصحح المدخل، والرفض يعلنه حد الخدمة عند الحفظ. */
+        (depositMinor === null || priceMinor === null || depositMinor <= priceMinor) ? (
+          <p className="micro-save-preview">
+            {(() => {
+              const summary = agreementSummaryParts({ priceMinor, depositMinor });
+              return `قيمة الطلب المسجلة ${formatMoneyMinor(summary.recordedValueMinor)} د.أ · المستلم مقدمًا ${formatMoneyMinor(
+                summary.receivedAdvanceMinor,
+              )} د.أ · المتبقي ${formatMoneyMinor(summary.remainingMinor)} د.أ${
+                deliveryDateUnknown ? " · الموعد لم يُحدد بعد" : ""
+              }${!preview?.ok && costUnknown ? " · التكلفة غير معروفة" : ""}`;
+            })()}
           </p>
         ) : null}
         <div className="micro-form-actions micro-sticky-save">

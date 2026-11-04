@@ -49,6 +49,15 @@ export function statementResultDecomposition(result: RecordedPeriodResult): read
       label: "تكلفة بيع مباشر معروفة",
       signedMinor: -result.directSaleCostKnownMinor,
     },
+    /* S07 (UNIT-028/D02/SDF-031): تكلفة مواد الفترة المعترف بها من بنود
+     * period_material على فترة تاريخ الشراء — بند صريح في معادلة الكشف
+     * يتطابق مع القارئ الكنوني (خصم مرة واحدة) ولا يختفي داخل «مصاريف
+     * تشغيلية»؛ المجهولة القيمة تمنع رقم النتيجة أصلًا (reasons معلنة). */
+    {
+      id: "untrackedMaterialPurchaseCost",
+      label: "تكلفة مواد فترة",
+      signedMinor: -result.untrackedMaterialPurchaseCostMinor,
+    },
     {
       id: "recordedOperatingExpense",
       label: "مصاريف تشغيلية",
@@ -168,6 +177,18 @@ export class StatementMarkdownService {
             .join(" · "),
         ),
       );
+    }
+    /* SDF-006 (تنفيذ S15 بالأمر الموحد §5): التقرير يحمل درجة التقدير كما
+     * السطح — النتيجة الناقصة (تقديرية) لا تُصدَّر رقمًا مؤكدًا؛ الأسباب
+     * نفسها للقارئ الكنوني تُطبع هنا، فيتحقق وعد «أسبابها معلنة أدناه»
+     * في حالتي الغياب والنقص معًا. */
+    if (result.status !== "recorded_only") {
+      rows.push(
+        line("حالة النتيجة", result.status === "incomplete" ? "ناقصة — لا تُقرأ رقمًا مؤكدًا" : "غير صالحة"),
+      );
+      if (result.reasons.length > 0) {
+        rows.push(`- أسباب الحالة: ${result.reasons.join(" · ")}`);
+      }
     }
     /* المجموعة ٥ (عقد ٣١): بنود عقد ٢٩ غير النقدية داخل النتيجة — تظهر
      * صراحةً في التقرير كما في الكشف. */

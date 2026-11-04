@@ -115,4 +115,67 @@ describe("form draft service (المجموعة ٥ — عقد ٣٦)", () => {
     if (!snapshot.ok) throw new Error(snapshot.message);
     expect(JSON.stringify(snapshot.value)).not.toContain("قطعة");
   });
+
+  /* S02-A/SH-03 (عقد ٠٤٤ B6/§16 — سياج النافذة الثانية SDF-050): المسودة
+   * تُختم بجيل بيانات جهازها؛ جيل قديم لا يُعرض للاستئناف فوق بيانات
+   * استُبدلت، والغياب (سجلات ما قبل S02) يعامل كالجيل ٠ فلا تنقطع مسودات
+   * المالك الحالية قبل أول استبدال حقيقي. */
+  it("stamps the live generation on save and stays resumable while the generation holds", async () => {
+    const store = new MemoryLocalStore();
+    const drafts = new FormDraftService(store, () => NOW);
+    const saved = await drafts.save("direct_sale", "new", { itemName: "قطعة" });
+    expect(saved.ok).toBe(true);
+    if (saved.ok) expect(saved.value.generation).toBe(0);
+    const read = await drafts.read("direct_sale", "new");
+    expect(read.ok && read.value?.values).toEqual({ itemName: "قطعة" });
+  });
+
+  it("an old-generation draft is never offered for resume after a replacement (SDF-050/B6)", async () => {
+    const store = new MemoryLocalStore();
+    const drafts = new FormDraftService(store, () => NOW);
+    await drafts.save("direct_sale", "new", { itemName: "قطعة" });
+    /* استبدال حقيقي يصك جيلًا جديدًا — المسودة القديمة تبقى في المخزن لكنها
+     * من جيل سابق فلا تُعرض (الاستبدال الفعلي يمسحها داخل حده؛ هنا يُثبت
+     * السياج نفسه بمحاكاة رفع الجيل عبر منفذ الحماية). */
+    const committed = await store.commitReplacementIntent(
+      1,
+      {
+        id: "replacement-receipt",
+        commandId: "restore:test:1",
+        commandType: "restore",
+        payloadDigest: "p",
+        summaryJson: "{}",
+        generation: 1,
+        committedAt: NOW,
+      },
+      NOW,
+    );
+    expect(committed.ok).toBe(true);
+    const staleRead = await drafts.read("direct_sale", "new");
+    expect(staleRead.ok && staleRead.value).toBeNull();
+    /* والحفظ الجديد يختم الجيل الحالي فتصير المسودة حية من جديد. */
+    const resaved = await drafts.save("direct_sale", "new", { itemName: "قطعة معدلة" });
+    expect(resaved.ok).toBe(true);
+    if (resaved.ok) expect(resaved.value.generation).toBe(1);
+    const freshRead = await drafts.read("direct_sale", "new");
+    expect(freshRead.ok && freshRead.value?.values).toEqual({ itemName: "قطعة معدلة" });
+  });
+
+  it("a pre-S02 draft without a generation stamp remains resumable until the first real replacement", async () => {
+    const store = new MemoryLocalStore();
+    /* سجل تراثي كما خلّفه إصدار ما قبل S02 — بلا ختم جيل. */
+    const legacy = await store.saveFormDraft({
+      id: "direct_sale:new",
+      formKind: "direct_sale",
+      scopeId: null,
+      valuesVersion: 1,
+      values: { itemName: "مسودة تراثية" },
+      createdAt: NOW,
+      updatedAt: NOW,
+    });
+    expect(legacy.ok).toBe(true);
+    const drafts = new FormDraftService(store, () => NOW);
+    const read = await drafts.read("direct_sale", "new");
+    expect(read.ok && read.value?.values).toEqual({ itemName: "مسودة تراثية" });
+  });
 });

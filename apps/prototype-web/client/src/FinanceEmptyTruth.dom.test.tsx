@@ -5,7 +5,7 @@
  * والصفر الموثق فوق سجلات حقيقية يبقى 0.00. الرحلة عبر الحدود الحقيقية
  * (تفاعل ← خدمة ← مخزن الذاكرة) كما في رحلات المجموعة ١١. */
 import React from "react";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
@@ -94,7 +94,7 @@ afterEach(() => {
 });
 
 async function seedProfile() {
-  const result = await new ProfileService(store, () => NOW).save("مشغل اختبار FIN-001");
+  const result = await new ProfileService(store, () => NOW).create("مشغل اختبار FIN-001");
   if (!result.ok) throw new Error(result.message);
 }
 
@@ -107,6 +107,13 @@ function renderFinance() {
 }
 
 describe("Finance empty-evidence truth (FIN-001)", () => {
+  /* UNIT-013 (تنفيذ S15 بالأمر الموحد §5): الصفحة الواحدة تعرض «الآن» ثم
+   * «نتيجة الفترة» — استعلامات بطاقات المركز تُحصر في قسم الوضع المسجل
+   * كي لا تلتقط عنوان السيولة المسجلة المتطابق داخل قسم نتيجة الفترة. */
+  const positionSection = () =>
+    screen.getByRole("region", {
+      name: "تفاصيل الوضع المالي المسجل · المبالغ بالدينار الأردني",
+    }) as HTMLElement;
   it("renders غير مسجل instead of invented 0.00 for a brand-new empty project", async () => {
     await seedProfile();
     renderFinance();
@@ -117,7 +124,7 @@ describe("Finance empty-evidence truth (FIN-001)", () => {
     /* لا 0.00 مؤكد في أي بطاقة مركز ولا في مقاييس قرار الكاش. */
     const position = screen.getByRole("heading", { level: 1, name: "المالية" }).closest("section");
     expect(position).toBeTruthy();
-    const positionCards = screen.getAllByText("الكاش المسجل");
+    const positionCards = within(positionSection()).getAllByText("الكاش المسجل");
     expect(positionCards.length).toBeGreaterThan(0);
     for (const card of positionCards) {
       const article = card.closest("article,button");
@@ -164,7 +171,7 @@ describe("Finance empty-evidence truth (FIN-001)", () => {
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
     /* صفر موثق: الكاش المسجل 0.00 (سجلان حقيقيان خلفه) لا «غير مسجل». */
-    const cashCards = screen.getAllByText("الكاش المسجل");
+    const cashCards = within(positionSection()).getAllByText("الكاش المسجل");
     for (const card of cashCards) {
       const article = card.closest("article,button");
       expect(article).toBeTruthy();

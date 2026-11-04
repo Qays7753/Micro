@@ -1,6 +1,5 @@
 import { OrderDepositPanels } from "@/components/orders/OrderDepositPanels";
 /* مبدأ Micro: يعرض الطلب حالته الفعلية وفعلًا تاليًا واحدًا، ولا يساوي الحفظ ببدء التنفيذ أو التحصيل. */
-import { Share2 } from "lucide-react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,7 +17,6 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useParams, useSearch } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
-import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
@@ -37,7 +35,6 @@ import { ActualTimePanel } from "@/components/presentation/ActualTimePanel";
 import { AgreementContextPanel } from "@/components/order/AgreementContextPanel";
 import { ActualMaterialPanel, type MaterialState } from "@/components/order/ActualMaterialPanel";
 import { OrderEventLog } from "@/components/order/OrderEventLog";
-import { customerShareDraft } from "@/application/share";
 import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayValue";
 import type { StoredCraftOrder, CostEstimate } from "@/storage/local/types";
@@ -109,7 +106,7 @@ export default function OrderDetail() {
     retainedDeposits,
     cashContinuity,
     projectFinance,
-    partyLedger,
+    partyDirectory,
     dataVersion,
     notifyDataChanged,
   } = usePrototypeServices();
@@ -233,6 +230,10 @@ export default function OrderDetail() {
 
   useEffect(() => {
     let active = true;
+    /* S12 (DOC-021 — أمر 2e645802 §9): خدمة الاتفاق الكسولة — تبقى الصفحة
+     * على حالة التحميل الصادقة وتُعاد القراءة عند اكتماله (agreements
+     * في الاعتماديات). */
+    if (!agreements) return;
     /* R1: فصل صادق — فشل القراءة خطأ (إعادة محاولة)، والسجل الغائب
      * بعد قراءة ناجحة هو «غير موجود» (عودة)؛ لا يُخلط الاثنان أبدًا.
      * R7/P01: القراءة الرئيسية عند صاحبها التطبيقي. */
@@ -291,17 +292,18 @@ export default function OrderDetail() {
     };
   }, [depositPanelOpen, cashContinuity, dataVersion]);
 
-  /* FIN-002: مقترحات تسمية الجهة — كل الأسماء المسجلة، الأكثر تكرارًا أولًا. */
+  /* S05 (DOC-014 / UNIT-037 3D-03): مقترحات تسمية الجهة من الأطراف المحفوظة
+   * النشطة — جارٍ التجهيز (null) يعرض بلا مقترحات لا بفشل صامت. */
   useEffect(() => {
     if (!stored || stored.order.customerName.trim()) return;
     let active = true;
-    void readPartyNameSuggestions({ partyLedger }).then(names => {
+    void readPartyNameSuggestions({ partyDirectory }).then(names => {
       if (active && names !== null) setPartySuggestions(names);
     });
     return () => {
       active = false;
     };
-  }, [stored, partyLedger, dataVersion]);
+  }, [stored, partyDirectory, dataVersion]);
 
   if (state.phase === "loading")
     return (
@@ -408,8 +410,11 @@ export default function OrderDetail() {
     }
     setIsActing(true);
     try {
+      /* S12 (UNIT-009 A3): «لا يوجد توصيل» لا يحمل أي مبلغ إطلاقًا — الأجرة
+       * والحصص تُصفَّر معه عمدًا، والكلفة تخص توصيل المشروع وحده. */
+      const noneDelivery = termsResponsibility === "none";
       const feeApplies = termsResponsibility === "customer_pays_project" || termsResponsibility === "shared";
-      const costApplies = termsResponsibility !== "customer_pays_courier";
+      const costApplies = !noneDelivery && termsResponsibility !== "customer_pays_courier";
       const result = await fulfillment.applyDeliveryTerms(
         state.stored.id,
         {
@@ -644,13 +649,15 @@ export default function OrderDetail() {
         action="save"
         block
 
-        disabled={isActing}
+        disabled={isActing || !agreements}
         onClick={() => {
+          /* S12 (DOC-021): خدمة الاتفاق الكسولة — الزر معلّق بصدق حتى جاهزيتها. */
+          if (!agreements) return;
           void run(() => agreements.startExecution(stored.id));
         }}
       >
         <Play aria-hidden="true" />
-        {isActing ? "جارٍ بدء التنفيذ…" : "ابدأ التنفيذ"}
+        {!agreements ? "جارٍ تجهيز خدمة الاتفاق…" : isActing ? "جارٍ بدء التنفيذ…" : "ابدأ التنفيذ"}
       </Button>
     ) : order.status === "in_progress" ? (
       <Button
@@ -758,7 +765,7 @@ export default function OrderDetail() {
         </section>
       ) : null}
       {/* FIN-002: تسمية جهة طلب بلا اسم — تعبئة باتجاه واحد (اختيار اسم
-          مسجل أو اسم جديد يظهر في دفتر الناس من أول حركة)؛ الديون غير
+          مسجل أو اسم جديد يظهر في المتابعة من أول حركة)؛ الديون غير
           المسماة تبقى ظاهرة بتحذير في ورقة التحصيل حتى التسمية. */}
       {order.status !== "cancelled" && !order.customerName.trim() ? (
         assignNameOpen ? (
@@ -769,8 +776,8 @@ export default function OrderDetail() {
           >
             <strong id="assign-party-heading">سمِّ جهة هذا الطلب</strong>
             <p>
-              اسم الجهة يجعل الدين والتحصيل قابلين للتتبع في دفتر الناس من أول حركة. هذا الطلب بلا اسم حتى
-              الآن — التسمية تعبئة باتجاه واحد لا إعادة تسمية.
+              اسم الجهة يجعل الدين والتحصيل قابلين للتتبع من أول حركة. هذا الطلب بلا اسم حتى الآن — التسمية
+              تعبئة باتجاه واحد لا إعادة تسمية.
             </p>
             <label className="micro-field">
               <span>اسم الجهة</span>
@@ -1558,26 +1565,11 @@ export default function OrderDetail() {
           <p>تم التحصيل الكامل وإغلاق الطلب.</p>
         </section>
       ) : null}
-      {/* المجموعة ٥ (عقد ٣٣) + EXE-015 (SHR-001): مشاركة يدوية مع الزبون — نقطة
-       * قرار واحدة (customerShareDraft) تبني النص من السجل المحفوظ وحده:
-       * إشعار القبض من حدث القبض القائم نفسه، وإشعار التسليم بتاريخه الفعلي،
-       * والملغى نصُه إلغاء صادق بلا «جاهز للمتابعة». يُعرض ويُعدّل قبل أن
-       * يغادر الجهاز؛ لا إرسال تلقائي ولا قراءة جهات اتصال. */}
-      <div className="micro-form-actions micro-contextual-actions">
-        <button
-          className="micro-text-action"
-          type="button"
-          onClick={() => {
-            const draft = customerShareDraft(
-              stored,
-              deliveredAtIso ? localDateInAmman(deliveredAtIso) : null,
-            );
-            navigate(withReturnTo("/share/preview", `/orders/${stored.id}`), { state: { draft } });
-          }}
-        >
-          <Share2 aria-hidden="true" /> شارك رسالة مع الزبون
-        </button>
-      </div>
+      {/* UNIT-040 (قرار إلغاء معتمد — تنفيذ S15 بالأمر الموحد §5): المشاركة
+       * ملغاة بالكامل بلا بديل (لا واتساب ولا رسالة ولا نسخ نص) — زر «شارك
+       * رسالة مع الزبون» أزيل من هنا، والطلب نفسه وتاريخه وسجل أحداثه كما
+       * هما؛ ما يبقى للمالك هو قراءة سجله وتنزيل كشفه (016) ونسخته
+       * الاحتياطية (044). */}
       {/* ORD-002: إعادة فتح طلب مسلّم — ملخص استلام قصير بلحظة التسليم
           الأصلية، بلا رسالة النجاح القديمة وبلا معاملة الحالة كخطأ. */}
       {["delivered", "settled"].includes(order.status) && deliveredAtIso ? (
@@ -1686,6 +1678,9 @@ export default function OrderDetail() {
                       aria-label="تعديل مسؤولية كلفة النقل والتوصيل"
                       onChange={event => setTermsResponsibility(event.target.value as DeliveryResponsibility)}
                     >
+                      {/* S12 (UNIT-009 A3): «لا يوجد توصيل» صريحًا — بلا أي مبلغ؛
+                          مختلف عن عدم تسجيل الشروط، ولا يُستنتج من إغلاق القسم. */}
+                      <option value="none">لا يوجد توصيل</option>
                       <option value="project_pays">المشروع يدفع للناقل</option>
                       <option value="customer_pays_project">الزبون يدفع للمشروع</option>
                       <option value="customer_pays_courier">الزبون يدفع للناقل مباشرة</option>
@@ -1722,7 +1717,10 @@ export default function OrderDetail() {
                       </label>
                     </>
                   ) : null}
-                  {termsResponsibility !== "customer_pays_courier" ? (
+                  {/* S12 (DOC-021 — UNIT-009 A3، تصحيح R5-F04): «لا يوجد توصيل» بلا
+                      أي مبلغ — حقول الكلفة لا تُعرض تحته أصلًا فلا يُدخل قيمة
+                      تُطرح بصمت عند الحفظ؛ الكلفة تخص توصيل المشروع وحده. */}
+                  {termsResponsibility !== "customer_pays_courier" && termsResponsibility !== "none" ? (
                     <>
                       <label className="micro-field">
                         <span>كلفة النقل التي دفعها المشروع (د.أ)</span>
@@ -1746,6 +1744,11 @@ export default function OrderDetail() {
                         <span>الكلفة محتواة أصلًا داخل تكلفة المنتج — لا تُطرح مرة ثانية.</span>
                       </label>
                     </>
+                  ) : null}
+                  {termsResponsibility === "none" ? (
+                    <p className="micro-field-hint">
+                      «لا يوجد توصيل» بلا أي مبلغ — لا أجرة ولا كلفة توصيل تدخل قيمة الطلب أو نتيجته.
+                    </p>
                   ) : null}
                   {termsResponsibility === "shared" ? (
                     <div className="micro-shared-costs">

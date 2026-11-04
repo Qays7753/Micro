@@ -42,7 +42,7 @@ async function completeFirstRun(theme: "light" | "dark") {
   const store = createBrowserLocalStore();
   const profiles = new ProfileService(store);
   const preferences = new PreferenceService(store);
-  const saved = await profiles.save("ورشة الاختبار");
+  const saved = await profiles.create("ورشة الاختبار");
   if (!saved.ok) throw new Error("profile save failed: " + saved.message);
   const themed = await preferences.save(theme);
   if (!themed.ok) throw new Error("theme preference save failed: " + themed.message);
@@ -53,7 +53,7 @@ function navigateTo(path: string) {
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-/* كل مسارات الموجّه المسجّلة (66 = 65 نمطًا + المسار الافتراضي)؛ المسارات ذات
+/* كل مسارات الموجّه المسجّلة (71 = 70 نمطًا + المسار الافتراضي)؛ المسارات ذات
  * المعاملات تُفتح بمعرّف تجريبي — الصفحة تعرض فراغها الصادق (غير موجود/خطأ
  * قراءة) وهو نفسه ضمن العقد. R10-B4/F-015: القائمة صارت مغطاة ميكانيكيًا
  * — اختبار المزامنة RouterSmokeSync.r10b.test.ts يفشل عند أي انجراف بين
@@ -108,6 +108,7 @@ const ROUTES: readonly string[] = [
   "/tools",
   /* NAV-001: السوق — سطح إعلان «قريبًا» يرسم في الوضعين. */
   "/market",
+  "/delivery",
   /* R10-B4/F-015: الأنماط العشرة الغائبة — بترتيب الموجّه نفسه. */
   /* الإحالة الموثقة EXE-009: المسار الموازي القديم لسحب المالك يعبر إلى المدخل الموحد. */
   "/finance/new/owner_withdrawal_cash",
@@ -124,6 +125,10 @@ const ROUTES: readonly string[] = [
   "/no-such-route-x",
   "/tools/calculator",
   "/tools/estimate/estimate-x",
+  "/tools/hour-value",
+  "/tools/sales-quantity",
+  "/tools/invoice-share",
+  "/tools/idea-review",
   "/tools/integrity",
   "/review",
   "/foundation",
@@ -211,10 +216,10 @@ describe("R2 render smoke — every route mounts in both themes", () => {
     expect(fakeButtons).toEqual([]);
 
     /* NAV-001 (2026-09-16): زر «سجّل» المركزي أُزيل — عقد لوحة المفاتيح يُثبت
-     * الآن الوصول بالتبويب إلى مقاعد الشريط الخمسة نفسها (مشروعي الآن). */
+     * الآن الوصول بالتبويب إلى مقاعد الشريط الخمسة نفسها (الرئيسية). */
     const navRegion = document.querySelector('nav[aria-label="التنقل الرئيسي"]');
     const navButton = Array.from(document.querySelectorAll(".micro-bottom-nav button")).find(el =>
-      el.textContent?.includes("مشروعي الآن"),
+      el.textContent?.includes("الرئيسية"),
     );
     expect(navButton).toBeTruthy();
     expect(navRegion).toBeTruthy();

@@ -34,6 +34,11 @@ const baseResult: RecordedPeriodResult = {
   directSaleRevenueMinor: 0,
   directSaleCostKnownMinor: 0,
   directSaleCostUnknownCount: 0,
+  /* S07 (UNIT-028/D02): تكلفة مواد الفترة المعترف بها من بنود period_material —
+   * صفران في هذا الفكسجر (لا مشتريات هنا)؛ الاختبار المركزي أدناه يثبت
+   * البند الظاهر عند قيمة غير صفرية. */
+  untrackedMaterialPurchaseCostMinor: 0,
+  untrackedMaterialPurchaseCostUnknownCount: 0,
   assetDepreciationMinor: 2500,
   assetWriteOffLossMinor: 0,
   assetDisposalResultMinor: 500,
@@ -271,5 +276,30 @@ describe("statement markdown service (المجموعة ٥ — عقد ٣٢)", () 
      * يُشتق من قراءة النتيجة نفسها لا من قائمة مُعدّة يدويًا. */
     expect(rendered.value.markdown).toContain("تكلفة بيع مباشر معروفة -10.00 د.أ");
     expect(rendered.value.markdown).toContain("110.00 د.أ");
+  });
+
+  /* S07 (UNIT-028/D02/SDF-031): تكلفة مواد الفترة المعترف بها من بنود
+   * period_material بند صريح في معادلة الكشف — لا تختفي داخل «مصاريف
+   * تشغيلية» والتحلل يجمع إلى النتيجة المسجلة نفسها. */
+  it("surfaces the period-material purchase cost as its own equation term and still sums to the recorded result", () => {
+    const service = new StatementMarkdownService();
+    const rendered = service.render(
+      reading({
+        result: {
+          ...baseResult,
+          untrackedMaterialPurchaseCostMinor: 1200,
+          resultMinor: 9000 - 1200,
+        },
+      }),
+    );
+    if (!rendered.ok) throw new Error(rendered.message);
+    expect(rendered.value.markdown).toContain("تكلفة مواد فترة -12.00 د.أ");
+    const terms = statementResultDecomposition({
+      ...baseResult,
+      untrackedMaterialPurchaseCostMinor: 1200,
+      resultMinor: 9000 - 1200,
+    });
+    expect(terms.reduce((total, term) => total + term.signedMinor, 0)).toBe(9000 - 1200);
+    expect(terms.some(term => term.id === "untrackedMaterialPurchaseCost")).toBe(true);
   });
 });

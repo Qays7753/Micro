@@ -36,6 +36,8 @@ import SupplierPurchaseEditor from "@/pages/SupplierPurchaseEditor";
 import { ActualMaterialPanel } from "@/components/order/ActualMaterialPanel";
 import { createSupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
 import { FormDraftService } from "@/application/drafts/formDraftService";
+import { UnifiedFollowUpService } from "@/application/follow-up/unifiedFollowUpService";
+import { activeDeliveryLens } from "@/application/scheduling";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -54,6 +56,26 @@ vi.mock("wouter", () => ({
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+/* S16 (UNIT-003): قارئ الرئيسية في الاختبارات فوق المصادر الكنونية نفسها —
+ * القارئ الموحد للمتابعة (S13) بعدساته القائمة؛ لا قارئ ثانٍ. */
+function buildHomeService(store: MemoryLocalStore, now: () => string) {
+  const projectFinance = new ProjectFinancialService(store, now);
+  const directSales = new DirectSaleService(store, now);
+  const fulfillment = new FulfillmentService(store, now);
+  const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
+  const dueDates = new DueDatesService(store, collections, now);
+  const unified = new UnifiedFollowUpService(
+    activeDeliveryLens(store),
+    store,
+    collections,
+    dueDates,
+    projectFinance,
+    store,
+    now,
+  );
+  return new HomeControlCenterService(store, new DailyFollowUpService(store), projectFinance, unified, now);
+}
+
 const NOW = "2026-09-20T09:00:00.000Z";
 let store: MemoryLocalStore;
 let preferences: PreferenceService;
@@ -85,16 +107,7 @@ function Harness({ page }: { page: React.ReactNode }) {
       dailyFollowUp: new DailyFollowUpService(store),
       schedules,
       recurrences: new ScheduleRecurrenceService(store),
-      homeControlCenter: new HomeControlCenterService(
-        store,
-        new DailyFollowUpService(store),
-        new ProjectFinancialService(store, () => NOW),
-        new SupplierPurchaseService(store, () => NOW),
-        new InventoryMaterialService(store, () => NOW),
-        new AgreementContextService(store, () => NOW),
-        new ActivityService(store),
-        () => NOW,
-      ),
+      homeControlCenter: buildHomeService(store, () => NOW),
     };
   }
   contextRef.current = {
@@ -159,7 +172,7 @@ describe("G-004 — capability disablement hides every creation entry", () => {
     preferences = new PreferenceService(store, () => NOW);
     /* الرئيسية تحتاج ملفًا محفوظًا (نمط Set003 نفسه). */
     const profiles = new ProfileService(store);
-    const savedProfile = await profiles.save("مشروع-G004");
+    const savedProfile = await profiles.create("مشروع-G004");
     if (!savedProfile.ok) throw new Error(savedProfile.message);
   });
   afterEach(() => cleanup());
@@ -252,10 +265,11 @@ describe("G-004 — capability disablement hides every creation entry", () => {
     render(<Harness page={<Home />} />);
     render(<Harness page={<Home />} />);
     const quickActions = await screen.findByTestId("home-quick-actions");
+    /* S16 (HOME-R07): مدخل الكتالوج غادر الرئيسية إلى المالية والطلبات. */
     expect(quickActions.textContent).not.toContain("منتجاتي وخدماتي");
     /* البيع والمصروف (الأساس غير القابل للإيقاف) يبقيان. */
-    expect(quickActions.textContent).toContain("سجّل بيعًا");
-    expect(quickActions.textContent).toContain("سجّل مصروفًا");
+    expect(quickActions.textContent).toContain("بيع");
+    expect(quickActions.textContent).toContain("مصروف");
   });
 
   it("inventory disabled on a purchase detail: the receipt bridge CTA disappears while the purchase stays readable", async () => {

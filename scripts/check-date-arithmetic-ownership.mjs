@@ -152,16 +152,13 @@ export const AMBIENT_LOCAL_DATE_PATTERN =
 export const AMBIENT_NEW_DATE_PATTERN = /new\s+Date\s*\(\s*\)/;
 
 /* ─── R4 (D-03 — R11 W1A-2): الكشف والربط التحليلي ───────────────────────────
- * خمسة مواقع معتمدة (قياس حي عند 5ef4ce08 بتاريخ 2026-10-14) — كل موقع
+ * أربعة مواقع معتمدة (قياس حي معاد الإرساء 2026-11-03) — كل موقع
  * مثبت بالملف + نص المعامل الأيسر + مستقبل القص + نوع القص؛ تغيّر أي مكوّن
- * = إعادة إرساء في نفس الـPR (لا موقع سادس، ولا تعديل صامت). */
+ * = إعادة إرساء في نفس الـPR (لا موقع خامس، ولا تعديل صامت).
+ * S15 (DOC-024 / UNIT-013 — تنفيذ S15 بالأمر الموحد، نفس-الـPR): موقع
+ * CorrectionsLayer.tsx تقاعد — الطبقة حُذفت مع تقاعد قراءات بلا مستهلك
+ * (جرد القارئين)؛ صف الموقع أزيل من السجل؛ تضييق لا توسيع (5 ← 4). */
 export const GUARDED_FALLBACK_SITES = [
-  {
-    file: "apps/prototype-web/client/src/components/finance/CorrectionsLayer.tsx",
-    left: "formatLocalDate(businessDateFromTimestamp(entry.recordedAt))",
-    receiver: "entry.recordedAt",
-    kind: "slice",
-  },
   {
     file: "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx",
     left: "formatLocalDate(businessDateFromTimestamp(lastExport))",
@@ -364,7 +361,7 @@ function main() {
   const violations = findViolations();
   if (violations.length === 0) {
     console.log(
-      "check-date-arithmetic-ownership: PASS — no Date.UTC in production; the Date object/Date.parse are kernel-file-only in the domain; no unguarded business-date slicing in any app layer (AST-bound ?? exemption, five approved sites); no localDateInAmman without an explicit instant; no ambient new Date() in the domain (R1–R6 clean).",
+      `check-date-arithmetic-ownership: PASS — no Date.UTC in production; the Date object/Date.parse are kernel-file-only in the domain; no unguarded business-date slicing in any app layer (AST-bound ?? exemption, ${GUARDED_FALLBACK_SITES.length} approved sites); no localDateInAmman without an explicit instant; no ambient new Date() in the domain (R1–R6 clean).`,
     );
     return 0;
   }

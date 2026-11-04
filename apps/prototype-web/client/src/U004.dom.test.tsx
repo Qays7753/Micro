@@ -11,11 +11,12 @@ import { DraftService } from "@/application/drafts/draftService";
 import { CatalogService } from "@/application/catalog/catalogService";
 import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
-import { PartyLedgerService } from "@/application/parties/partyLedgerService";
+import { PartyDirectoryService } from "@/application/parties/partyLedgerService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import Tools from "@/pages/Tools";
 import DraftEditor from "@/pages/DraftEditor";
+import { FormDraftService } from "@/application/drafts/formDraftService";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -73,28 +74,30 @@ describe("U-004 estimate-to-draft bridge", () => {
     const saved = await costEstimates.save(estimateInput);
     if (!saved.ok) throw new Error("estimate should save");
 
-    /* الخطوة ١: زر الجسر موجود في قائمة التقديرات وينتقل لمحرر المسودة. */
+    /* S10 (UNIT-030 — أمر b56967d8، U030-ACD06): مدخل الجسر من أدوات
+     * التخطيط أُزيل من التجربة الجديدة (لا جسر أداة→معاملة) — يعمل الفحص
+     * على عقد URL نفسه الذي يملكه مسار الطلب؛ والمدخل لا يعود للأدوات. */
     mockedUsePrototypeServices.mockImplementation(
       () =>
         ({
           costEstimates,
           drafts,
           catalog,
+          formDrafts: new FormDraftService(store),
           inventory: { readActivation: () => Promise.resolve({ ok: true, value: { activatedOn: null } }) },
           schedules: new ScheduleService(store, () => NOW),
           supplierPurchases: new SupplierPurchaseService(store, () => NOW),
-          partyLedger: new PartyLedgerService(store),
+          partyDirectory: new PartyDirectoryService(store, () => NOW),
           dataVersion: 0,
           notifyDataChanged: vi.fn(),
         }) as unknown as ReturnType<typeof usePrototypeServices>,
     );
     render(<Tools />);
-    const bridgeButton = await screen.findByText("ابدأ مسودة من هذا التقدير");
-    fireEvent.click(bridgeButton);
-    /* المجموعة ١ (Scope A): الجسر يحفظ أدواتي مصدرًا — الرجوع من المسودة يعود إليها. */
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(
-      `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(saved.value.id)}&returnTo=%2Ftools`,
-    );
+    expect(screen.queryByText("ابدأ مسودة من هذا التقدير")).toBeNull();
+    cleanup();
+    /* الوصلة العميقة نفسها ما زالت تعمل عند الوصول إليها مباشرة (عقد مسار
+     * الطلب) — البذرة قيم مقترحة قابلة للتعديل والمصدر محفوظ. */
+    wouterMocks.location = `/orders/draft/new?intent=planned_design&estimate=${encodeURIComponent(saved.value.id)}&returnTo=%2Ftools`;
 
     /* الخطوة ٢: المحرر يفتح على القيم المقترحة، والإشعار يعلن أنها مقترحات. */
     cleanup();
@@ -104,12 +107,16 @@ describe("U-004 estimate-to-draft bridge", () => {
         <DraftEditor />
       </UnsavedChangesProvider>,
     );
-    await waitFor(() => expect(screen.getByDisplayValue("كيكة مناسبة صغيرة")).toBeTruthy());
+    await waitFor(() => expect(screen.getByPlaceholderText("مثال: صندوق خشبي مخصص")).toBeTruthy());
     expect(screen.getByText(/القيم المنسوخة مقترحات قابلة للتعديل/)).toBeTruthy();
-    /* القيم كلها قابلة للتعديل: حقل الاسم والكمية والملاحظات حقول إدخال فعلية. */
-    const nameField = screen.getByDisplayValue("كيكة مناسبة صغيرة") as HTMLInputElement;
+    /* القيم كلها قابلة للتعديل: حقل الاسم والكمية والملاحظات حقول إدخال فعلية.
+     * S09: حقل وصف القطعة يُستعلم بوسمه الفريد — قسم «حفظ لاستخدامه مرة أخرى»
+     * يعرض بعد الحفظ اسم العرض مبدئيًا من الوصف نفسه (U029-R02) فيتطابق
+     * عرض القيمتين بلا التباس. */
+    const nameField = screen.getByPlaceholderText("مثال: صندوق خشبي مخصص") as HTMLInputElement;
+    expect((nameField as HTMLInputElement).value).toBe("كيكة مناسبة صغيرة");
     fireEvent.change(nameField, { target: { value: "كيكة معدلة" } });
-    await waitFor(() => expect(screen.getByDisplayValue("كيكة معدلة")).toBeTruthy());
+    await waitFor(() => expect((nameField as HTMLInputElement).value).toBe("كيكة معدلة"));
     /* حفظ التعديل يثبّته في المسودة نفسها — لا مسودة ثانية. */
     fireEvent.click(screen.getByText("حفظ مسودة"));
     await waitFor(() => expect(screen.getByText("تم حفظ المسودة على هذا الجهاز.")).toBeTruthy());
@@ -143,6 +150,7 @@ describe("U-004 estimate-to-draft bridge", () => {
           costEstimates,
           drafts,
           catalog,
+          formDrafts: new FormDraftService(store),
           dataVersion: 0,
           notifyDataChanged: vi.fn(),
         }) as unknown as ReturnType<typeof usePrototypeServices>,

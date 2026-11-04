@@ -43,7 +43,7 @@ async function seedSession() {
   store = createBrowserLocalStore();
   const profiles = new ProfileService(store);
   const preferences = new PreferenceService(store);
-  const saved = await profiles.save("ورشة الروابط");
+  const saved = await profiles.create("ورشة الروابط");
   if (!saved.ok) throw new Error("profile save failed: " + saved.message);
   const themed = await preferences.save("light");
   if (!themed.ok) throw new Error("theme preference failed: " + themed.message);
@@ -112,7 +112,7 @@ describe("EXE-016 — عقود الروابط العميقة على التطبي
     navigateTo("/nope-not-a-route");
     await mountApp();
     expect(await screen.findByRole("heading", { name: "هذه الصفحة ليست جزءًا من هذا الإصدار" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "العودة إلى مشروعي الآن" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "العودة إلى الرئيسية" })).toBeTruthy();
   });
 
   it("الرابط القديم الواضح /review يمر عبر توافقه المحدود إلى مالي", async () => {

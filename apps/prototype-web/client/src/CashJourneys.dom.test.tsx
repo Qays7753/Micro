@@ -9,6 +9,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
+import { CashCountService } from "@/application/cash/cashCountService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
@@ -70,6 +71,9 @@ beforeEach(() => {
   const projectFinance = new ProjectFinancialService(store, () => NOW);
   mockedUsePrototypeServices.mockReturnValue({
     cashContinuity,
+    /* S04 (DOC-013): خدمة العدّ المستقلة (تحميل خامل في الإنتاج) — تُزوَّد
+     * مباشرة في الاختبار بذات المخزن والساعة. */
+    cashCount: new CashCountService(store, () => NOW),
     projectFinance,
     dataVersion,
     notifyDataChanged: bumpVersion,
@@ -80,43 +84,74 @@ afterEach(() => {
   cleanup();
 });
 
-describe("CashCount journeys (Group 11-E)", () => {
-  it("loads through the loading state into the ready counting form with the recorded balance", async () => {
+describe("CashCount journeys (Group 11-E — S04/UNIT-025 honest measurement flow)", () => {
+  /* S04 (DOC-013 / UNIT-025): المكان قرار صريح لا أول مكان تلقائيًا، والمبلغ
+   * يبدأ فارغًا، والمطابقة «تم» بلا كتابة، والفرق يتطلب سببًا صريحًا. */
+  async function selectTheOnlyWallet() {
+    const select = (await screen.findByRole("combobox")) as HTMLSelectElement;
+    const option = Array.from(select.options).find(candidate => candidate.value !== "");
+    if (!option) throw new Error("wallet option not found");
+    fireEvent.change(select, { target: { value: option.value } });
+  }
+
+  it("loads through the loading state into the ready form — no auto-picked wallet, empty counted amount", async () => {
     await openWalletWith(15000);
     render(<Harness page={<CashCount />} />);
     expect(await screen.findByRole("heading", { name: "عدّ اللي في الدرج فعلًا" })).toBeTruthy();
-    /* الرصيد المسجل يظهر بالقيمة الدقيقة 150.00 د.أ داخل خيار المحفظة. */
+    /* الرصيد المسجل يظهر بالقيمة الدقيقة 150.00 د.أ داخل خيار المكان. */
     await waitFor(() => expect(screen.getByText(/المسجل 150\.00/)).toBeTruthy());
-    expect(screen.getByLabelText("المبلغ المعدود")).toBeTruthy();
+    /* لا اختيار تلقائي: القيمة الفارغة قانونية حتى يختار المالك. */
+    expect(screen.getByLabelText("المبلغ الموجود")).toBeTruthy();
+    const select = screen.getByRole("combobox") as HTMLSelectElement;
+    expect(select.value).toBe("");
   });
 
-  it("blocks settlement when the count matches the recorded balance — no adjustment invented", async () => {
-    await openWalletWith(15000);
-    render(<Harness page={<CashCount />} />);
-    await screen.findByRole("heading", { name: "عدّ اللي في الدرج فعلًا" });
-    const counted = screen.getByLabelText("المبلغ المعدود");
-    fireEvent.change(counted, { target: { value: "150" } });
-    fireEvent.click(screen.getByRole("button", { name: "سجّل التسوية" }));
-    await waitFor(() =>
-      expect(screen.getByText("العدّ يطابق الرصيد المسجل — لا تسوية مطلوبة.")).toBeTruthy(),
-    );
-  });
-
-  it("records the exact difference and shows the exact new balance after settlement", async () => {
+  it("a matching count ends the check with no write at all — no adjustment, no observation", async () => {
     const wallet = await openWalletWith(15000);
     render(<Harness page={<CashCount />} />);
     await screen.findByRole("heading", { name: "عدّ اللي في الدرج فعلًا" });
-    /* 152.40 معدودة مقابل 150.00 مسجلة → فرق 2.40 بالضبط (240 قروش صحيحة). */
-    fireEvent.change(screen.getByLabelText("المبلغ المعدود"), { target: { value: "152.4" } });
-    fireEvent.click(screen.getByRole("button", { name: "سجّل التسوية" }));
-    expect(await screen.findByRole("heading", { name: "انسجّلت التسوية" })).toBeTruthy();
-    /* القيم الدقيقة: الرصيد الجديد 152.40 والفرق 2.40 — لا تقريب ولا شوائب. */
+    await selectTheOnlyWallet();
+    fireEvent.change(screen.getByLabelText("المبلغ الموجود"), { target: { value: "150" } });
+    await waitFor(() =>
+      expect(screen.getByText("المبلغ يطابق الرصيد المسجل — لا تسوية مطلوبة.")).toBeTruthy(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "تم" }));
+    expect(await screen.findByRole("heading", { name: "انسجّل القياس" })).toBeTruthy();
+    /* لا كتابة البتة: لا قيد ولا رصد (R09/AC08). */
+    const cash = new CashContinuityService(store, () => NOW);
+    const overview = await cash.overview();
+    expect(overview.ok && overview.value.wallets[0]?.balanceMinor).toBe(15000);
+    const observations = await store.listBalanceObservations();
+    expect(observations.ok && observations.value).toHaveLength(0);
+    expect(wallet.id).toBeTruthy();
+  });
+
+  it("records the exact linked measurement and settlement with an explicit reason — 90 and −10 semantics, never −20", async () => {
+    const wallet = await openWalletWith(15000);
+    render(<Harness page={<CashCount />} />);
+    await screen.findByRole("heading", { name: "عدّ اللي في الدرج فعلًا" });
+    await selectTheOnlyWallet();
+    /* 152.40 معدودة مقابل 150.00 مسجلة → قياس 15240 وتسوية +240 مرتبطتان. */
+    fireEvent.change(screen.getByLabelText("المبلغ الموجود"), { target: { value: "152.4" } });
+    /* سبب صريح قبل التسجيل — «لم أعرف سبب الفرق» خيارًا لا افتراضيًا. */
+    fireEvent.click(screen.getByLabelText("لم أعرف سبب الفرق"));
+    fireEvent.click(screen.getByRole("button", { name: /تسجيل فرق الزيادة/ }));
+    expect(await screen.findByRole("heading", { name: "انسجّل فرق العدّ" })).toBeTruthy();
+    /* القيم الدقيقة: المعدود 152.40 — لا تقريب ولا شوائب. */
     expect(screen.getByText("152.40")).toBeTruthy();
-    expect(screen.getByText("+2.40")).toBeTruthy();
-    /* القراءة بعد التسوية من المخزن نفسه: الرصيد 15240 minor بالضبط. */
+    /* القراءة بعد التسوية من المخزن نفسه: الرصيد 15240 minor بالضبط، والقياس
+     * والتسوية مكتوبان معًا (قياس واحد وقيد واحد — لا مضاعفة أثر). */
     const cash = new CashContinuityService(store, () => NOW);
     const overview = await cash.overview();
     expect(overview.ok && overview.value.wallets[0]?.balanceMinor).toBe(15240);
+    const observations = await store.listBalanceObservations();
+    expect(observations.ok && observations.value).toHaveLength(1);
+    if (observations.ok && observations.value[0]) expect(observations.value[0].countedMinor).toBe(15240);
+    const entries = await store.listCashContinuityEntries();
+    if (entries.ok) {
+      expect(entries.value.filter(entry => entry.type === "cash_adjustment")).toHaveLength(1);
+      expect(entries.value.filter(entry => entry.type === "opening_balance")).toHaveLength(1);
+    }
     expect(wallet.id).toBeTruthy();
   });
 
@@ -124,18 +159,21 @@ describe("CashCount journeys (Group 11-E)", () => {
     await openWalletWith(15000);
     render(<Harness page={<CashCount />} />);
     await screen.findByRole("heading", { name: "عدّ اللي في الدرج فعلًا" });
-    const counted = screen.getByLabelText("المبلغ المعدود");
+    await selectTheOnlyWallet();
+    const counted = screen.getByLabelText("المبلغ الموجود");
     /* دقة أدق من القروش: ترفضها ترجمة الإدخال نفسها (fail closed). */
     fireEvent.change(counted, { target: { value: "150.005" } });
     fireEvent.blur(counted);
-    fireEvent.click(screen.getByRole("button", { name: "سجّل التسوية" }));
+    fireEvent.click(screen.getByRole("button", { name: "تم" }));
     const message =
-      screen.queryByText("أدخل المعدود رقمًا صحيحًا غير سالب.") ??
-      (await screen.findByText(/أدخل المعدود|رقمًا/));
+      screen.queryByText(/أدخل المبلغ الموجود|رقمًا/) ??
+      (await screen.findByText(/أدخل المبلغ الموجود|رقمًا/));
     expect(message).toBeTruthy();
     const cash = new CashContinuityService(store, () => NOW);
     const overview = await cash.overview();
     expect(overview.ok && overview.value.wallets[0]?.balanceMinor).toBe(15000);
+    const observations = await store.listBalanceObservations();
+    expect(observations.ok && observations.value).toHaveLength(0);
   });
 });
 

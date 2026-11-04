@@ -7,8 +7,8 @@
  *    محاولة في مكانه (زر إعادة/إعادة تحميل/عودة) — فحص مصدر ثابت يدوم.
  * ٣) التحميل لا يعرض أصفارًا: شاشة التحميل نص حالة صريح (role=status)
  *    لا بطاقات حقائق بأصفار.
- * ٤) فشل المشاركة الأصلية يعود إلى مسار التسليم النصي الصادق — لا نجاح
- *    كاذبًا ولا استثناءً غير معالج.
+ * ٤) [UNIT-040 — تنفيذ S15] بند فشل المشاركة الأصلية أزيل مع القدرة
+ *    الملغاة؛ لا مسار تسليم نصي للمشاركة بعد اليوم.
  */
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -19,7 +19,6 @@ import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { AssetService } from "@/application/assets/assetService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import Assets from "@/pages/Assets";
-import { canShareText, shareTextManually } from "@/lib/textDelivery";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -146,7 +145,6 @@ describe("Wave 4.4 — P-4.4-4: مصفوفة الحالات — فحص مصدر 
     "CashWallets",
     "Collect",
     "DeliveryReview",
-    "EstimateDetail",
     "Finance",
     "FinanceActivity",
     "Foundation",
@@ -162,9 +160,15 @@ describe("Wave 4.4 — P-4.4-4: مصفوفة الحالات — فحص مصدر 
     "ScheduleEditor",
     "Statement",
     "Suppliers",
-    "Tools",
-    "ToolsIntegrity",
     "WalletLedger",
+    /* S10 (UNIT-030/032 — أمر b56967d8): Tools صارت وجهة أدوات ساكنة بلا
+     * قراءة بيانات (المحفوظات داخل الحاسبة) وEstimateDetail صارت إحالة —
+     * خرجا من مصفوفة القراءة؛ الحاسبة نفسها (CostCalculator) تحمل شاشة
+     * خطأ قراءتها وفعل تعافيها في اختباراتها الخاصة. */
+    /* S17 (DOC-026 / UNIT-033): ToolsIntegrity تقاعد مع انتقال فحص البيانات
+     * إلى قسم داخل الإعدادات (SettingsDataCheckSection) — حالاته الصادقة
+     * (فشل قراءة يظهر «غير متاح» كاملًا + إعادة محاولة) محروسة في
+     * SettingsDataCheck.ui.test.tsx الخاص به. */
   ];
 
   it("كل صفحة تعرض خطأ قراءة تقدم فعل تعافٍ في مكانه (إعادة محاولة/إعادة تحميل/عودة)", () => {
@@ -180,10 +184,7 @@ describe("Wave 4.4 — P-4.4-4: مصفوفة الحالات — فحص مصدر 
         source.includes("إعادة المحاولة") ||
         source.includes("window.location.reload()") ||
         source.includes("setReloadToken") ||
-        source.includes('setState({ phase: "loading" })') ||
-        /* ToolsIntegrity: زر «افحص الآن» الدائم تحت رسالة الخطأ هو إعادة
-         * المحاولة نفسها — إعادة تشغيل الفحص قراءة جديدة. */
-        (page === "ToolsIntegrity" && source.includes('disabled={state.phase === "running"}'));
+        source.includes('setState({ phase: "loading" })');
       expect.soft(hasRecovery, `${page}: لا فعل تعافٍ في شاشة الخطأ`).toBe(true);
     }
   });
@@ -203,46 +204,6 @@ describe("Wave 4.4 — P-4.4-4: مصفوفة الحالات — فحص مصدر 
         .toMatch(
           /disabled=\{saving\}|disabled=\{isSaving\}|disabled=\{submitting\}|disabled=\{isActing\}|disabled=\{.*[Ss]aving/,
         );
-    }
-  });
-});
-
-describe("Wave 4.4 — P-4.4-4: فشل المشاركة الأصلية يعود للمسار الصادق", () => {
-  it("غياب navigator.share لا يكسر التسليم النصي — المسار البديل صادق", async () => {
-    const originalShare = navigator.share;
-    Object.defineProperty(navigator, "share", {
-      value: undefined,
-      configurable: true,
-    });
-    try {
-      expect(canShareText()).toBe(false);
-      /* التسليم النصي لا يرمي — يرجع نتيجة قابلة للعرض في كل الأحوال. */
-      const outcome = await shareTextManually("نص تجريبي للمشاركة");
-      expect(["copied", "unsupported"]).toContain(outcome);
-    } finally {
-      Object.defineProperty(navigator, "share", {
-        value: originalShare,
-        configurable: true,
-      });
-    }
-  });
-
-  it("رفض المستخدم للمشاركة الأصلية ليس خطأ — إلغاء واعٍ لا رسالة فشل", async () => {
-    const originalShare = navigator.share;
-    Object.defineProperty(navigator, "share", {
-      value: () => Promise.reject(new DOMException("abort", "AbortError")),
-      configurable: true,
-    });
-    try {
-      expect(canShareText()).toBe(true);
-      const outcome = await shareTextManually("نص تجريبي للمشاركة");
-      /* الإلغاء الواعي ليس فشلًا يُعرض للمالك — مسار هادئ بلا رسالة خطأ */
-      expect(["unsupported", "copied"]).toContain(outcome);
-    } finally {
-      Object.defineProperty(navigator, "share", {
-        value: originalShare,
-        configurable: true,
-      });
     }
   });
 });

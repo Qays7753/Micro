@@ -1,0 +1,49 @@
+{
+  "id": "WS-243",
+  "title": "S18 — القبول المتكامل وتجهيز الدمج النهائي (توثيق/قبول برنامج)",
+  "status": "REVIEW_REQUIRED",
+  "items": [
+    "DOC-027"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "6016acb877b252f052c0f973e59330719063b93f",
+  "areas": [
+    "docs/implementation/micro-component-execution/",
+    "docs/operations/control/",
+    "docs/operations/current-state.md",
+    "apps/prototype-web/client/src/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/implementation/micro-component-execution/00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/00-JOURNEYS-INDEX-AR.md"
+  ],
+  "agent": "ZAI (single implementation writer; two distinct read-only reviewers on the same final SHA)",
+  "pr": 383,
+  "started_at": "2026-11-04",
+  "updated_at": "2026-11-04",
+  "next_action": "S18 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا عمل مرحلي إضافي دون دليل جديد؛ لا VERIFIED على main ولا merge.",
+  "notes": [
+    "أمر متصل واحد من المالك (2026-11-04): S18 تبدأ مباشرة بعد إعادة تسليم S17 قانونيًا؛ لا وقفة موافقة وسيطة.",
+    "لا وظيفة منتج جديدة تحت اسم الاختبار النهائي؛ لا دمج ولا كتابة main؛ جاهزية الدمج أدلة لا إذنًا.",
+    "حد الاستعادة: رأس تسليم S17 6016acb8 (شجرة الكود 1f232c79).",
+    "قبول المالك الشامل لـS18 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 23-S18-JOURNEY-MATRIX-2026-11-04.md + 24-S18-MERGE-READINESS-MANIFEST-2026-11-04.md والمرشح 7b8129f6; delivery head 0b16cbe4؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول."
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-04",
+      "actor": "zai-s18-execution",
+      "reason": "إنشاء مطالبة S18 قانونيًا قبل أول سطر من سجلاتها، فوق رأس تسليم S17 6016acb8، بعد تحقق خلو التداخل (صفر مطالبات نشطة بعد إطلاق مطالبة S17)."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-04",
+      "actor": "zai-s18-execution",
+      "reason": "إعادة تسليم S18 للمراجعة المستقلة مع ملف جاهزية الدمج الكامل ومصفوفة الرحلات وأدلة SDF-068؛ لا قبول ذاتي ولا دمج."
+    }
+  ],
+  "migration_baseline": true
+}

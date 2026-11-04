@@ -13,6 +13,7 @@ import { LocalDateValue, MoneyValue } from "@/components/presentation/DisplayVal
 import { formatArabicPlural } from "@/presentation/formatters";
 
 import { Button } from "@/components/primitives";
+import { supplierDisplayLabelOf } from "@/application/parties";
 type PageState =
   | { phase: "loading" }
   | { phase: "error" }
@@ -47,6 +48,10 @@ export default function Suppliers() {
   const [retryCount, setRetryCount] = useState(0);
   useEffect(() => {
     let active = true;
+    /* S07 (سابقة transfers/loans): الخدمة تُحمّل ديناميكيًا بعد الإقلاع —
+     * null يعني «جارٍ التجهيز» فيبقى الواجهة على حالة التحميل الصادقة
+     * وتُعاد القراءة فور اكتماله (dependency على الخدمة نفسها). */
+    if (!supplierPurchases) return undefined;
     Promise.all([
       supplierPurchases.list(),
       supplierPurchases.readSummary(),
@@ -142,7 +147,7 @@ export default function Suppliers() {
               <article key={purchase.id}>
                 {/* مبدأ Micro: نعرض قصة شراء المورد كاملة دون تحويلها إلى مصروف أو تكلفة بيع. */}
                 <div>
-                  <strong dir="auto">{purchase.supplierName}</strong>
+                  <strong dir="auto">{supplierDisplayLabelOf(purchase)}</strong>
                   <small>الحالة: مفتوح</small>
                   {/* S3-05: العربية خارج صنف الأرقام الأحادي — الخط والمقاس والاتجاه للنص العربي. */}
                   <b className="micro-supplier-payable">
@@ -208,7 +213,7 @@ export default function Suppliers() {
             .map(purchase => (
               <article key={purchase.id}>
                 <div>
-                  <strong dir="auto">{purchase.supplierName}</strong>
+                  <strong dir="auto">{supplierDisplayLabelOf(purchase)}</strong>
                   <small>
                     <LocalDateValue value={purchase.purchasedOn} /> · {purchase.note}
                   </small>

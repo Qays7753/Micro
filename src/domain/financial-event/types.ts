@@ -40,6 +40,13 @@ export type SharedProjectShare = {
   totalAmountMinor?: number | null;
   percentageBps?: number | null;
   calculatedShareMinor?: number | null;
+  /* S06 (CONS-DEC04 المعتمدة / SDF-064): ما دفعه المشروع فعلًا من فاتورة
+   * مشتركة نقديًا حين تجاوز حصته — null/الغياب = دفع حصته فقط (السلوك
+   * القائم). الفارق المؤكد شخصيًا (paidAmountMinor − مقدار الحدث) يُسجل
+   * سحبًا شخصيًا على المالك بحدث مستقل مشتق بالمفتاح نفسه؛ لا يُخترع دين
+   * ولا يفترض النظام تحمّل المالك بلا تأكيد صريح. الحقل سياق صادق على
+   * الحدث لا دلتا مستقلة — الدلتا تبقى محكومة بالنوع وحده (عقد ٠٦/٠٨). */
+  paidAmountMinor?: number | null;
 };
 export type OperatingExpenseContext = {
   relationship: ExpenseRelationship;

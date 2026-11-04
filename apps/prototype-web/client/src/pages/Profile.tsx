@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useSearch } from "wouter";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { formatLocalDate, localDateInAmman } from "@/presentation/formatters";
-import { resolveReturnPath } from "@/app/navigationContract";
+import { resolveReturnPath, withReturnTo } from "@/app/navigationContract";
 import { useUnsavedChangesGuard } from "@/components/forms/UnsavedChangesGuard";
 import { useReturnPath } from "@/app/useReturnNavigation";
 
@@ -40,7 +40,9 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
-  const [projectName, setProjectName] = useState("");
+  /* S03 (UNIT-039 — دمج 038/039): محرر اسم المشروع انتقل إلى قسم «بيانات
+   * المشروع» داخل الإعدادات بحد كتابة محروس واحد (CAS) — هذه الصفحة هوية
+   * المالك وحدها الآن؛ لا محرر اسم ثانٍ منافس ولا كتابة غير محروسة. */
   /* R9-GA-F3.6b (استمرار R9 الجذري): نبرة الرسالة في الحالة لا بقراءة
    * بادئة النص — العنصر الواحد كان يخلط النجاح مع الخطأ بصفة إعلان
    * واحدة (status) فيُخفى الخطأ الفعلي. الفصل الكنوني: خطأ ⇒
@@ -98,16 +100,10 @@ export default function Profile() {
   const isDirty =
     isEditing &&
     state.phase === "ready" &&
-    (displayName !== (state.owner.displayName ?? "") ||
-      email !== (state.owner.email ?? "") ||
-      projectName.trim() !== state.project.activityName);
+    (displayName !== (state.owner.displayName ?? "") || email !== (state.owner.email ?? ""));
 
   async function save(): Promise<boolean> {
     if (state.phase !== "ready") return false;
-    if (!projectName.trim()) {
-      setMessage({ text: "اسم المشروع لا يمكن أن يصبح فارغًا؛ اكتب اسمًا أو ألغِ التعديل.", tone: "error" });
-      return false;
-    }
     setIsSaving(true);
     setMessage(null);
     const ownerResult = await ownerProfile.save({
@@ -117,12 +113,6 @@ export default function Profile() {
     if (!ownerResult.ok) {
       setIsSaving(false);
       setMessage({ text: ownerResult.message, tone: "error" });
-      return false;
-    }
-    const projectResult = await profiles.save(projectName.trim());
-    if (!projectResult.ok) {
-      setIsSaving(false);
-      setMessage({ text: projectResult.message, tone: "error" });
       return false;
     }
     setIsSaving(false);
@@ -138,7 +128,6 @@ export default function Profile() {
     if (state.phase !== "ready") return;
     setDisplayName(state.owner.displayName ?? "");
     setEmail(state.owner.email ?? "");
-    setProjectName(state.project.activityName);
     setMessage(null);
     setIsEditing(true);
   }
@@ -240,6 +229,31 @@ export default function Profile() {
         <p className="micro-profile-future-note">
           تسجيل الدخول والمزامنة ستتوفر لاحقًا — ليست مفعّلة في هذا الإصدار.
         </p>
+        {/* S03: التعديل هنا لهوية المالك وحدها — الاسم اختياري بلا غرض مصادقة. */}
+        {message ? (
+          <p
+            className={message.tone === "error" ? "micro-field-error" : "micro-save-note"}
+            role={message.tone === "error" ? "alert" : "status"}
+          >
+            {message.text}
+          </p>
+        ) : null}
+        <div className="micro-form-actions">
+          {isEditing ? (
+            <>
+              <Button action="secondary" disabled={isSaving} onClick={cancelEdit}>
+                إلغاء التعديل
+              </Button>
+              <Button action="save" disabled={isSaving} onClick={() => void save()}>
+                {isSaving ? "جارٍ الحفظ…" : "احفظ ملفك"}
+              </Button>
+            </>
+          ) : (
+            <Button action="secondary" onClick={beginEdit}>
+              عدّل ملفك
+            </Button>
+          )}
+        </div>
       </section>
       <section className="micro-profile-section" aria-labelledby="project-profile-title">
         <div className="micro-section-title">
@@ -248,19 +262,26 @@ export default function Profile() {
             <h2 id="project-profile-title">ملف المشروع</h2>
           </div>
         </div>
-        {isEditing ? (
-          <div className="micro-profile-fields">
-            <label className="micro-field">
-              <span>اسم المشروع</span>
-              <input value={projectName} onChange={event => setProjectName(event.target.value)} />
-              <small>الاسم الذي يظهر في «مشروعي الآن» وفي السجلات.</small>
-            </label>
-          </div>
-        ) : (
+        {/* S03 (UNIT-039 — دمج 038/039): عرض قراءة فقط — تعديل الاسم من قسم
+            «بيانات المشروع» في الإعدادات (الحد المحروس الوحيد)؛ لا محرر
+            ثانٍ هنا ولا كتابة من هذه الصفحة. أثناء تعديل بيانات المالك تُخفى
+            الحقائق (سلوك الشاشة القائم) — القراءة تعود مع نهاية التعديل. */}
+        {isEditing ? null : (
           <dl className="micro-profile-facts">
             <div>
               <dt>اسم المشروع</dt>
-              <dd>{project.activityName || "غير مكتوب"}</dd>
+              <dd>
+                {project.activityName || "غير مكتوب"}{" "}
+                {/* S03 (UNIT-039 — دمج 038/039): المحرر الوحيد للاسم في قسم «بيانات المشروع»
+                  بالإعدادات (حد كتابة محروس CAS) — لا محرر ثانٍ ولا كتابة من هنا. */}
+                <button
+                  className="micro-text-action"
+                  type="button"
+                  onClick={() => navigate(withReturnTo("/settings", "/profile"))}
+                >
+                  عدّله من الإعدادات
+                </button>
+              </dd>
             </div>
             <div>
               <dt>العملة واللغة</dt>
@@ -301,40 +322,6 @@ export default function Profile() {
             </div>
           </dl>
         )}
-        {message ? (
-          <p
-            className={message.tone === "error" ? "micro-field-error" : "micro-save-note"}
-            role={message.tone === "error" ? "alert" : "status"}
-          >
-            {message.text}
-          </p>
-        ) : null}
-        <div className="micro-form-actions">
-          {isEditing ? (
-            <>
-              <Button
-                action="secondary"
-
-                disabled={isSaving}
-                onClick={cancelEdit}
-              >
-                إلغاء التعديل
-              </Button>
-              <Button
-                action="save"
-
-                disabled={isSaving}
-                onClick={() => void save()}
-              >
-                {isSaving ? "جارٍ الحفظ…" : "احفظ ملفك"}
-              </Button>
-            </>
-          ) : (
-            <Button action="secondary" onClick={beginEdit}>
-              عدّل ملفك
-            </Button>
-          )}
-        </div>
       </section>
       <section className="micro-local-truth" aria-label="حقيقة التخزين">
         <ShieldCheck aria-hidden="true" />

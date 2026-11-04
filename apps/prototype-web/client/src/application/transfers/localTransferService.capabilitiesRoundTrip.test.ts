@@ -34,7 +34,7 @@ describe("G-004 — capability flags survive export/restore in a clean session",
 
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, () => now());
-    const preview = targetTransfers.prepareImport(payload);
+    const preview = await targetTransfers.prepareRestore(payload);
     if (!preview.ok) throw new Error(preview.message);
     const confirmed = await targetTransfers.confirmImport(preview.value);
     if (!confirmed.ok) throw new Error(confirmed.message);
@@ -62,7 +62,7 @@ describe("G-004 — capability flags survive export/restore in a clean session",
     if (!exported.ok) throw new Error(exported.message);
     const target = new MemoryLocalStore();
     const targetTransfers = new LocalTransferService(target, () => now());
-    const preview = targetTransfers.prepareImport(JSON.stringify(exported.value));
+    const preview = await targetTransfers.prepareRestore(JSON.stringify(exported.value));
     if (!preview.ok) throw new Error(preview.message);
     const confirmed = await targetTransfers.confirmImport(preview.value);
     if (!confirmed.ok) throw new Error(confirmed.message);

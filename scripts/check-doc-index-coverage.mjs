@@ -12,8 +12,10 @@
  *   و`docs/decisions/` و`docs/research/` يجب أن يُذكر في الفهرس (بمساره أو
  *   باسم ملفه).
  * - قائمة REQUIRED_CANONICAL (أدناه) يجب أن تُذكر جميعًا — نواة السلطة.
- * - ثابت الزوج الحي «اليوم 38/30» يجب أن يبقى في الفهرس (مرتبط باختبار
- *   group6Docs).
+ * - ثابت الزوج الحي «اليوم» + الزوج الحي (مرتبط باختبار group6Docs) يجب
+ *   أن يبقى في الفهرس — رُقّي 38/30 -> 39/31 (DOC-013، 2026-10-28) ثم
+ *   40/32 (DOC-014/S05) ثم 40/33 (تصحيح مؤرخ 2026-11-01 DOC-021/S12)؛
+ *   الدبوس يتبع الثوابت الحية لا رقمًا حرفيًا.
  *
  * الاستخدام: node scripts/check-doc-index-coverage.mjs [root]
  * الخروج: 0 = التغطية كاملة؛ 1 = أي ملف سلطوي بلا صف.
@@ -125,17 +127,43 @@ export function checkCoverage({ repoRoot = ROOT } = {}) {
     for (const file of listMarkdownFiles(repoRoot, dir)) {
       const base = path.basename(file);
       if (!indexText.includes(file) && !indexText.includes(base)) {
-        findings.push({ kind: "unindexed", path: file, message: `authority file not mentioned in ${INDEX_PATH}` });
+        findings.push({
+          kind: "unindexed",
+          path: file,
+          message: `authority file not mentioned in ${INDEX_PATH}`,
+        });
       }
     }
   }
   for (const file of REQUIRED_CANONICAL) {
     if (!indexText.includes(file)) {
-      findings.push({ kind: "missing-canonical", path: file, message: `required canonical file not mentioned in ${INDEX_PATH}` });
+      findings.push({
+        kind: "missing-canonical",
+        path: file,
+        message: `required canonical file not mentioned in ${INDEX_PATH}`,
+      });
     }
   }
-  if (!indexText.includes("اليوم 38/30")) {
-    findings.push({ kind: "pin", message: `pinned live pair string "اليوم 38/30" missing from ${INDEX_PATH}` });
+  /* S12 (DOC-021، 2026-11-01): الدبوس يتبع الثابت الحي من مصدر الكود —
+   * لا رقمًا حرفيًا يتقادم (كان حرفيًا 40/32 فتجاوزته الأجيال بصمت)؛
+   * fail-closed: عدم القدرة على قراءة الثابت = دبوس مفقود. */
+  let livePairText = null;
+  try {
+    const typesSource = fs.readFileSync(
+      path.join(repoRoot, "apps/prototype-web/client/src/storage/local/types.ts"),
+      "utf8",
+    );
+    const schemaMatch = typesSource.match(/export const localSchemaVersion = (\d+);/);
+    const exportMatch = typesSource.match(/export const localExportVersion = (\d+);/);
+    livePairText = schemaMatch && exportMatch ? `اليوم ${schemaMatch[1]}/${exportMatch[1]}` : null;
+  } catch {
+    livePairText = null;
+  }
+  if (livePairText === null || !indexText.includes(livePairText)) {
+    findings.push({
+      kind: "pin",
+      message: `pinned live pair string "${livePairText ?? "(unreadable live constants)"}" missing from ${INDEX_PATH}`,
+    });
   }
   return findings;
 }

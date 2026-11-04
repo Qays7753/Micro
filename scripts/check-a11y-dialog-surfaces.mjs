@@ -35,29 +35,11 @@ const SOURCE_EXT = new Set([".ts", ".tsx"]);
 
 /** السجل المصنف — كل سطح حواري معلن في كود الإنتاج يجب أن يكون هنا. */
 export const CLASSIFIED_DIALOG_SURFACES = [
-  {
-    file: "components/security/AppLockGate.tsx",
-    role: "dialog",
-    ariaModal: true,
-    model: "TRUE_MODAL",
-    focusContract: "oracle — veil + inert content + autoFocus (AppLockGate نفسه؛ لا يعدل في W4 بقرار العقد)",
-  },
-  {
-    file: "components/security/DataActionPinGate.tsx",
-    role: "alertdialog",
-    ariaModal: true,
-    model: "TRUE_MODAL",
-    focusContract:
-      "D-14 FIX_NOW — autoFocus فقط اليوم؛ الهدف: veil + احتواء + Escape + استعادة (نمط AppLockGate/UnsavedChangesGuard)",
-  },
-  {
-    file: "pages/Settings.tsx",
-    role: "alertdialog",
-    ariaModal: true,
-    model: "TRUE_MODAL",
-    focusContract:
-      "D-14 FIX_NOW — لا عقد تركيز إطلاقًا اليوم (protectionBlocked)؛ الهدف: veil + focus-in + احتواء + Escape + استعادة",
-  },
+  /* S02-B (SH-04 — UNIT-042، إلغاء المالك 2026-10-24): أسطح القفل الثلاثة
+   * (AppLockGate وDataActionPinGate وprotectionBlocked في الإعدادات) حُذفت
+   * مع مكوّناتها — لا غطاء قفل ولا بوابة رمز بعد اليوم؛ إزالتها من السجل
+   * المصنف نتيجة موثقة للإلغاء المعتمد لا تخفيفًا للحارس (الأسطح الحية
+   * كلها ما زالت مصنفة ومفحوصة كما هي). */
   {
     file: "components/forms/UnsavedChangesGuard.tsx",
     role: "dialog",
@@ -84,6 +66,31 @@ export const CLASSIFIED_DIALOG_SURFACES = [
     ariaModal: false,
     model: "NON_MODAL",
     focusContract: "none by design — لا فخ تركيز للألواح غير المودالة (OD-A11Y)",
+  },
+  {
+    /* UNIT-013 / AF-B (تنفيذ S15 بالأمر الموحد §5): لوحة «وظائف المالية» —
+     * وصول واحد غير مودال عند الطلب: تفتح بتركيز على زر إغلاقها (focus-in)،
+     * وEscape/زر الإغلاق/رجوع الهاتف يغلقونها، والصفحة تعيد التركيز إلى زر
+     * الفتح عند الإغلاق (restore to trigger عبر onClose)؛ لا فخ تركيز لغير
+     * المودال (قرار OD-A11Y)؛ مصنفة بنفس الـPR الذي أدخلها (قاعدة الحارس). */
+    file: "components/finance/FinanceFunctionsBoard.tsx",
+    role: "dialog",
+    ariaModal: false,
+    model: "NON_MODAL",
+    focusContract:
+      "conformant UNIT-013 — focus-in on open (close button) + Escape + close button; focus restored to the opener by the page on close; no trap by design (OD-A11Y non-modal)",
+  },
+  {
+    /* UNIT-003 (S16 — HOME-A2): لوحات الرئيسية الأربع (عرض الكل، اختيار
+     * الفترة، معلومات الرئيسية !، اسأل Micro الثانوي) — غير مودالة بقرار
+     * OD-A11Y: Escape يغلقها، والإغلاق الصريح يعيد التركيز لمشغّله، ولا فخ
+     * تركيز لغير المودال؛ مصنفة بنفس الـPR الذي أدخلها (قاعدة الحارس). */
+    file: "pages/Home.tsx",
+    role: "dialog",
+    ariaModal: false,
+    model: "NON_MODAL",
+    focusContract:
+      "conformant UNIT-003/S16 — Escape closes the open layer; explicit close restores focus to its trigger; no trap by design (OD-A11Y non-modal)",
   },
   {
     file: "components/layout/QuickActionSheet.tsx",

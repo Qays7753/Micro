@@ -7,11 +7,15 @@
  * التحصيل ليس إيرادًا ولا يُنشئ حدثًا ماليًا مستقلًا — الكاش والمتبقي فقط.
  */
 import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
+import type { CashContinuityEntry } from "@micro-domain/cash-continuity/index.js";
 
-/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءة الطلبات والمبيعات والمحافظ بالضبط. */
+/** R3 (بطاقة R3-SC-01/11) + S11 (تصحيح المراجعة R1): عدسة الخدمة — قراءة
+ * الطلبات والمبيعات والمحافظ بالضبط، مع التزام كتابة البيع الواحد الذي
+ * تمرره إلى مالك الحركات عند التفويض؛ لا حفظ مباشر ولا عكس ولا دفتر
+ * كاش بيد المنسق. */
 export type CollectionServiceStore = Pick<
   PrototypeLocalStore,
-  "listOrders" | "listDirectSales" | "listCashWallets"
+  "listOrders" | "listDirectSales" | "listCashWallets" | "commitDirectSaleWrite"
 >;
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
@@ -168,6 +172,9 @@ export class CollectionService {
 
     let remainingAfterMinor: number;
     let reused = false;
+    /* S11 (تصحيح المراجعة R3-003): أثر الكاش المحفوظ من حد مالك المصدر —
+     * مصدر عرض التخصيص الوحيد لبيع المباشر (فارغ = غير موزع أو مسار الطلبات). */
+    let collectedCashEntry: CashContinuityEntry | null = null;
     if (input.sourceKind === "order") {
       const result = await this.fulfillment.collectFromSheet(
         input.sourceId,
@@ -177,39 +184,52 @@ export class CollectionService {
       if (!result.ok) return validationFailure(result.message);
       remainingAfterMinor = result.stored.order.receivableMinor;
     } else {
-      const saleResult = await this.directSales.get(input.sourceId);
-      if (!saleResult.ok) return storageFailure(saleResult.message);
-      const sale = saleResult.value;
-      if (!sale) return notFoundFailure("بيع مباشر غير موجود.");
-      const collectedMinor = sale.collectedMinor + input.amountMinor;
-      /* التحصيل لا يمس بيانات البيع الأخرى: الزبون والكتالوج كما هما،
-       * والتحديث يرفع المقبوض فقط ويعلن حالته الصادقة. */
-      const update = await this.directSales.update(input.sourceId, {
-        itemName: sale.itemName,
-        quantity: sale.quantity,
-        revenueMinor: sale.revenueMinor,
-        collectedMinor,
-        collectionStatus: collectedMinor >= sale.revenueMinor ? "collected_in_full" : "partial_debt",
-        catalogItemId: sale.catalogItemId,
-        customerName: sale.customerName ?? undefined,
-        costMinor: sale.costMinor,
-        occurredOn: sale.occurredOn,
-        note: sale.note,
-        idempotencyKey: input.idempotencyKey,
-        expectedRevisionCount: sale.revisions?.length ?? 0,
-        /* FC-09 (العقد ٤): التحصيل يُوثَّق تحصيلًا في سجل المراجعات لا تصحيحًا. */
-        revisionReason: "تحصيل دفعة من ورقة التحصيل",
+      /* S11 (UNIT-026 sale-slice — أمر b33a8877 §6): مالك المصدر يكتب قبضه —
+       * التحصيل يمر بحد كتابة البيع المحروس (commitDirectSaleWrite): فحص
+       * النسخة والمتبقي الحيين داخل الحد، وسطر قبض مؤرخ بهوية ومفتاح، وتخصيص
+       * المحفظة يرتبط بسطر القبض نفسه؛ نافذتا تحصيل للمتبقي نفسه تنجح واحدة
+       * وتُراجع الأخرى (SDF-039) — المنسق لا يكتب فوق المصدر بيده. */
+      /* S11: مالك المصدر يُحمَّل كسولًا فوق المخزن نفسه (نمط محرك الحماية
+       * الكسول — لا يدخل كومة الإقلاع)؛ النية والمفتاح من الورقة كما هما. */
+      const { DirectSaleMovementsService } = await import("../direct-sales/directSaleMovements");
+      const movements = new DirectSaleMovementsService(this.store, this.now);
+      const collected = await movements.collectPayment(input.sourceId, {
+        amountMinor: input.amountMinor,
+        occurredOn: localDateInAmman(this.now()),
+        operationKey: input.idempotencyKey,
+        note: input.note?.trim() || null,
+        walletId: input.walletId,
       });
-      if (!update.ok) return validationFailure(update.message);
-      reused = update.reused ?? false;
-      remainingAfterMinor = Math.max(update.value.revenueMinor - update.value.collectedMinor, 0);
+      if (!collected.ok) {
+        /* تعارض الحد المحروس (نافذتان) ورفض الأهلية يصلان المستخدم رسالة
+         * صادقة واحدة — التحصيل لم يكتب شيئًا في الحالتين. */
+        return validationFailure(collected.message);
+      }
+      reused = collected.value.reused;
+      /* تصحيح المراجعة R3-003: أثر الكاش المحفوظ هو مصدر عرض التخصيص —
+       * عند إعادة الاستخدام تُعرض المحفظة الأصلية التي قُبض فيها فعلًا. */
+      collectedCashEntry = collected.value.cashEntry;
+      remainingAfterMinor = directSaleOutstandingMinor(collected.value.sale);
     }
 
     /* وجهة الكاش صريحة: محفظة مختارة أو «غير موزع» — لا اختيار صامت أبدًا. */
     let attributedToWalletMinor = 0;
     let walletName: string | null = null;
     let attributionNotice: string | null = null;
-    if (input.walletId) {
+    if (input.walletId && input.sourceKind === "direct_sale") {
+      /* S11 (UNIT-026 sale-slice + تصحيح المراجعة R3-003): تخصيص البيع
+       * المباشر كُتب مع سطر القبض داخل حد مالك المصدر الواحد — والحقيقة
+       * المحفوظة هي مصدر العرض وحده: أثر الكاش القائم من نتيجة الالتزام
+       * (لا المدخل) — فعند إعادة الاستخدام تُعرض المحفظة الأصلية التي قُبض
+       * فيها فعلًا، وتُبلغ إعادة الاستخدام لا تُمرر كمقبض جديد. */
+      attributedToWalletMinor = collectedCashEntry?.cashDeltaMinor ?? 0;
+      const persistedWalletId = collectedCashEntry?.walletId ?? null;
+      const wallets = await this.store.listCashWallets();
+      walletName =
+        wallets.ok && persistedWalletId
+          ? (wallets.value.find(wallet => wallet.id === persistedWalletId)?.name ?? null)
+          : null;
+    } else if (input.walletId) {
       const attribution = await this.projectFinance.distributeUnallocated({
         walletId: input.walletId,
         deltaMinor: input.amountMinor,

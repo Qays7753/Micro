@@ -9,9 +9,9 @@ export default function NotFound() {
     <section className="micro-page micro-not-found">
       <span className="micro-overline">مسار غير متاح</span>
       <h1>هذه الصفحة ليست جزءًا من هذا الإصدار</h1>
-      <p>ارجع إلى مشروعي الآن لمتابعة المسار المحلي الأساسي.</p>
+      <p>ارجع إلى الرئيسية لمتابعة المسار المحلي الأساسي.</p>
       <Button action="secondary" onClick={() => navigate("/")}>
-        <ArrowRight aria-hidden="true" /> العودة إلى مشروعي الآن
+        <ArrowRight aria-hidden="true" /> العودة إلى الرئيسية
       </Button>
     </section>
   );

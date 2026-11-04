@@ -142,7 +142,10 @@ export class FulfillmentService {
   async applyDeliveryTerms(
     id: string,
     terms: {
-      responsibility: "project_pays" | "customer_pays_project" | "customer_pays_courier" | "shared";
+      /* S12 (UNIT-009 A3 — أمر 2e645802): «لا يوجد توصيل» (none) قيمة قانونية
+       * عند تعديل شروط طلب قائم أيضًا — بلا أي مبلغ؛ بقية قيم ORD-003 تبقى
+       * لتعديل السجلات القائمة (تُقرأ بسياستها) كما كانت. */
+      responsibility: "none" | "project_pays" | "customer_pays_project" | "customer_pays_courier" | "shared";
       feeIncludedInPrice: boolean;
       costIncludedInProductCost: boolean;
       feeChargedMinor: number | null;

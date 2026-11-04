@@ -1,0 +1,92 @@
+{
+  "id": "WS-240",
+  "title": "S15 — المالية والكشف والسجل والميزانيات وإيقاف القدرات الملغاة (UNIT-013/013B/016/017/021/035/036/040)",
+  "status": "REVIEW_REQUIRED",
+  "items": [
+    "DOC-024"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "75af0773",
+  "areas": [
+    "apps/prototype-web/client/src/pages/Finance.tsx",
+    "apps/prototype-web/client/src/pages/Loans.tsx",
+    "apps/prototype-web/client/src/pages/LoanEditor.tsx",
+    "apps/prototype-web/client/src/pages/ReceivedLoanEditor.tsx",
+    "apps/prototype-web/client/src/pages/Collect.tsx",
+    "apps/prototype-web/client/src/pages/OrderDetail.tsx",
+    "apps/prototype-web/client/src/application/loans/",
+    "apps/prototype-web/client/src/application/share/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/application/budgets/",
+    "apps/prototype-web/client/src/app/MicroRouter.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-013-المالية-وملخص-الفترة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-013B-ميزانيات-المصروف-الاختيارية.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-016-كشف-الفترة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-017-سجل-العمليات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-021-التوقعات-النقدية-المؤجلة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-035-القروض-التي-أعطاها-المشروع.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-036-القروض-التي-أخذها-المشروع.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-040-المشاركة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-11-03",
+  "updated_at": "2026-11-04",
+  "next_action": "S15 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا عمل مرحلي إضافي مفوض؛ لا VERIFIED على main ولا merge.",
+  "notes": [
+    "أمر S15 مضمّن في الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 (لا أمر منفصل).",
+    "قاعدة تسليم S14 للمراجعة موثقة عند 75af0773 وبوابتاها البعيدتان PASS (run 41548068879 / Pages 125628657923).",
+    "Historical delivery note (2026-11-03): S15-MR-001 was confirmed at live head 37f81d9a0d089621ec14a99f0c26b457bcf6fb0e: FinanceFunctionsBoard and Finance.tsx lacked board-owned popstate/history although the S15 result claimed phone Back support; the DOM test covered Escape/close/focus only. The finding and root-fix criteria are in 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. At that time, S15/S16 had not yet been owner-accepted. This historical delivery state was superseded by the explicit owner acceptance recorded on 2026-11-04; no merge.",
+    "اعتمد المالك قبول S15 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-04، بعد إصلاح S15-MR-001 عند c788b09f وإعادة التسليم الموثقة في 20-S15-RESULT-2026-11-03.md §10 والملحق 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. الإصلاح يضيف رجوع الهاتف/المتصفح للوحة عبر sentinel محدود بدورة الحياة مع اختبار أحمر/أخضر؛ التحقق jsdom فقط، بلا جهاز فعلي. القبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج. تبقى حالة Workstream REVIEW_REQUIRED وفق نمط تحرير الملكية؛ لا تعني VERIFIED على main ولا دمجًا."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
+    "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-03",
+      "actor": "zai-s15-execution",
+      "reason": "بدء تنفيذ §5 من الأمر الموحد فوق رأس سجلات تسليم S14 75af0773 على components/integration-20261027 / PR #383، بعد التحقق من خلو التداخل (صفر مطالبات نشطة)."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-03",
+      "actor": "zai-s15-execution",
+      "reason": "تسليم S15 للمراجعة مع DOC-024 → IN_REVIEW (الانتقال القانوني نفسه؛ لا قبولًا ذاتيًا): المرشح الكودي 8de508b6 وسجل الأسطح c97213ec؛ السلسلة الكاملة خروج 0 والحالات الخمس بأدلة."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-03",
+      "actor": "manus-coordination",
+      "reason": "إعادة فتح قانونية لملاحظة S15-MR-001 المؤكدة عند الرأس 37f81d9a0d089621ec14a99f0c26b457bcf6fb0e: ادعاء رجوع الهاتف غير منفذ/غير مثبت في FinanceFunctionsBoard والصفحة الأب. إصلاح جذري محدود ثم تحرير الملكية والعودة للمراجعة؛ أمر المالك يجيز بدء S16 بعد الإصلاح دون وقفة موافقة، لا قبولًا ولا main/merge."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-03",
+      "actor": "zai-s15-review-fix",
+      "reason": "بدء الإصلاح الجذري المأذون عند الرأس الحي 8c0361b9f05f0d00253f9e00ef517b094fc6b441 وفق الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md: اختبار أحمر أولًا يثبت الغياب، ثم سلوك تاريخ مملوك للوحة على نمط Setup.tsx بلا تجريد تنقل عام؛ إعادة تسليم للمراجعة بعد الإثبات، لا قبولًا ذاتيًا."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-03",
+      "actor": "zai-s15-review-fix",
+      "reason": "إعادة تسليم الإصلاح للمراجعة مع DOC-024 → IN_REVIEW (الانتقال القانوني نفسه؛ لا قبولًا ذاتيًا): الالتزام c788b09f فوق 11edf9f3 فوق 8c0361b9 — أحمر 4 فاشل | 7 ناجح ثم أخضر 11/11 و119/119 (21 ملف مالية) و88/88 (popstate-مجاورة)؛ jsdom فقط بلا جهاز فعلي؛ لا تجريد تنقل ولا تغيير عقود مسار."
+    }
+  ],
+  "migration_baseline": true
+}

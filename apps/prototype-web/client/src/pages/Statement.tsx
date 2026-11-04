@@ -28,10 +28,11 @@ import { StatementMarkdownService } from "@/application/finance";
  * ووسم الفترة الجارية من طبقة التطبيق، لا حساب تواريخ داخل الصفحة. */
 import { isPeriodActive, previousEqualPeriod, resolvePeriodPreset } from "@/application/finance";
 import { categoryCountLabel } from "@/presentation/g5Plurals";
-import { canShareText, downloadTextFile, shareTextManually } from "@/lib/textDelivery";
+import { downloadTextFile } from "@/lib/textDelivery";
 import {
   formatLocalDate,
   formatLocalDateLong,
+  isValidLocalDate,
   localDatePlusDays,
   localDateWeekdayIndex,
   formatMoneyWithUnit,
@@ -152,6 +153,18 @@ function StatementLineRow({
   );
 }
 
+/* S16 (HOME-X04): قراءة نطاق محمول صالح من الوصلة — since/until بتاريخين
+ * محليين (YYYY-MM-DD) وfrom ≤ to؛ أي نقص يُهمل بهدوء. */
+function carriedRangeFromSearch(search: string | null): { from: string; to: string } | null {
+  const params = new URLSearchParams((search ?? "").replace(/^\?/, ""));
+  const since = params.get("since");
+  const until = params.get("until");
+  if (since === null || until === null) return null;
+  if (!isValidLocalDate(since) || !isValidLocalDate(until)) return null;
+  if (since > until) return null;
+  return { from: since, to: until };
+}
+
 export default function Statement() {
   const [, navigate] = useLocation();
   const search = useSearch();
@@ -161,9 +174,14 @@ export default function Statement() {
   const [reportNotice, setReportNotice] = useState<string | null>(null);
   const today = todayInAmman();
   const thisWeek = weekBounds(today);
-  const [range, setRange] = useState<QuickRange>("this_week");
-  const [from, setFrom] = useState(thisWeek.from);
-  const [to, setTo] = useState(thisWeek.to);
+  /* S16 (HOME-X04/3D-C1): النطاق المحمول في الوصلة (since/until بتاريخين
+   * محليين صالحين) يطبَّق عند الفتح — رقم الرئيسية يفتح تفسيره بكشف 016
+   * بالنطاق نفسه؛ ما لا يصالح يُهمل بهدوء على قالب الأسبوع القائم (لا
+   * انفجار ولا نطاق مختلق). */
+  const carried = carriedRangeFromSearch(search);
+  const [range, setRange] = useState<QuickRange>(carried ? "custom" : "this_week");
+  const [from, setFrom] = useState(carried?.from ?? thisWeek.from);
+  const [to, setTo] = useState(carried?.to ?? thisWeek.to);
   const [state, setState] = useState<State>({ phase: "loading" });
   const [retryCount, setRetryCount] = useState(0);
   /* FIN-007: مفتاح «قارن مع الفترة السابقة» — يفعّل المقارنة فوق النطاق المعروض. */
@@ -255,9 +273,9 @@ export default function Statement() {
    * لا للمالي — السياق محفوظ (EXE-016). */
   const sourceHref = referrerPath(search);
 
-  /* المجموعة ٥ (عقد ٣٢): تقرير محلي — التنزيل متاح دائمًا، والمشاركة تحسين
-   * اختياري عبر نظام المشاركة بالنص وحده؛ التوليد لا يغيّر أي رقم ولا يسجل
-   * حدثًا. */
+  /* المجموعة ٥ (عقد ٣٢) ثم UNIT-040 (تنفيذ S15 بالأمر الموحد §5): تقرير
+   * محلي بالتنزيل وحده — المشاركة ملغاة بلا بديل؛ التوليد لا يغيّر أي رقم
+   * ولا يسجل حدثًا، والملف النصي نسخة قراءة لحظة. */
   const generateReport = async () => {
     setReportNotice(null);
     const rendered = markdownRenderer.render(reading);
@@ -266,17 +284,6 @@ export default function Statement() {
       return;
     }
     downloadTextFile(rendered.value.filename, rendered.value.markdown, "text/markdown");
-    if (canShareText()) {
-      const outcome = await shareTextManually(rendered.value.markdown);
-      setReportNotice(
-        outcome === "shared"
-          ? "التقرير جاهز ونُزّل، وفتح نظام المشاركة بيدك — الإرسال قرارك هناك."
-          : outcome === "copied"
-            ? "التقرير نُزّل ونسخ نصه للحافظة — مشاركته قرارك اليدوي."
-            : "التقرير نُزّل ملفًا نصيًا — نسخة قراءة لحظة، ليست حدثًا ماليًا.",
-      );
-      return;
-    }
     setReportNotice("التقرير نُزّل ملفًا نصيًا — نسخة قراءة لحظة من سجلك، ليست حدثًا ماليًا.");
   };
 
@@ -575,6 +582,20 @@ export default function Statement() {
               ? " هناك تكلفة غير معروفة تمنع رقمًا نهائيًا — لا يُعرض ربح متوهَّم."
               : ""}
           </p>
+          {/* SDF-006 (تنفيذ S15 بالأمر الموحد §5): درجة التقدير تظل موحّدة
+           * عبر المالية والكشف — النتيجة الناقصة (تقديرية) لا تُعرض رقمًا
+           * مؤكدًا؛ نفس حالة القارئ الكنوني وأسبابه تظهر هنا كما في المالية،
+           * وشرط العرض هو الحالة لا فراغ بيانات. */}
+          {reading.result.status !== "recorded_only" ? (
+            <p className="micro-period-status" data-status={reading.result.status} role="status">
+              {reading.result.status === "incomplete" ? "ناقصة" : "غير صالحة"} — لا تُقرأ رقمًا مؤكدًا
+            </p>
+          ) : null}
+          {reading.result.reasons.length > 0 ? (
+            <p className="micro-period-review-note" role="status">
+              أسباب الحالة: {reading.result.reasons.join(" · ")}
+            </p>
+          ) : null}
           <p>
             الملك {formatMoneyWithUnit(reading.blocks.owner.investedMinor)} · سحب{" "}
             {formatMoneyWithUnit(reading.blocks.owner.withdrawnMinor)} — مال المالك لا يدخل النتيجة.

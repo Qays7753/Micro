@@ -9,6 +9,15 @@ import type { MoneyMinor } from "../shared/index.js";
 /* طريقة الاقتناء: نقد الآن أو التزام على المورد — عقدان مختلفان بأثرين مختلفين. */
 export type AssetAcquisitionKind = "cash" | "payable";
 
+/* S08 (UNIT-034 / CONS-DEC03·04·05 المعتمدة — SDF-066): مرجع طرف الاقتناء
+ * المحفوظ (نمط S05 للمشتريات) — هوية مستقرة لا تدمج بالاسم، ولقطة الاسم
+ * التاريخية تحفظ كما قُرئت لحظة الاقتناء فلا يعاد كتابتها بتعديل الاسم
+ * لاحقًا. الغياب/null = اقتناء بلا طرف محفوظ (تعريف حر عند الالتزام فقط). */
+export type AssetAcquisitionParty = {
+  partyId: string;
+  labelSnapshot: string;
+};
+
 /* حالة الأصل: نشط، تخلص منه (بيع/إخراج بمقابل)، أو شطب (خسارة غير نقدية). */
 export type AssetStatus = "active" | "disposed" | "written_off";
 
@@ -32,6 +41,15 @@ export type AssetRecord = {
   /* عقد ٤٣ (WS-179 — Wave 7): مرجع/ملاحظة حرة (فاتورة/وثيقة/سياق) — وسم
    * عرض فقط لا يغيّر أي دلتا؛ الغياب/null = بلا ملاحظة. */
   note?: string | null;
+  /* S08 (UNIT-034): طرف الاقتناء المحفوظ — اختياري بهوية مستقرة ولقطة اسم
+   * تاريخية؛ الغياب = بلا طرف محفوظ (متوافق رجعيًا بنمط S06/S07). */
+  acquisitionParty?: AssetAcquisitionParty | null;
+  /* S08 (UNIT-034 / SDF-066 — الدفع الجزئي المعتمد): المدفوع لحظة الإنشاء
+   * من قيمة الاقتناء — نمط initialPaidMinor عند مشتريات الموردين. الغياب/null
+   * = مسار الدفع الكامل القائم (acquisitionKind يحكي القصة كلها)؛ والحضور
+   * يجعل الاقتناء جزئيًا: حدث نقد بالمدفوع + حدث ذمم بالمتبقي، والحق الحي
+   * يقرأ من الأحداث لا من هذا الحقل (عقد السجل يحمل نية الإنشاء فقط). */
+  paidAtCreationMinor?: MoneyMinor | null;
   status: AssetStatus;
   /* ربط الحدث المالي الذي خلق الأصل (شراء نقدي أو التزام). */
   acquisitionEventId: string;
@@ -85,6 +103,9 @@ export type CreateAssetRecordInput = {
   /* عقد ٤٣ (WS-179 — Wave 7): المدخلان الجديدان — اختياريان (متبقية = ٠). */
   residualValueMinor?: MoneyMinor | null;
   note?: string | null;
+  /* S08 (UNIT-034): طرف الاقتناء + المدفوع لحظة الإنشاء — اختياريان. */
+  acquisitionParty?: AssetAcquisitionParty | null;
+  paidAtCreationMinor?: MoneyMinor | null;
   acquisitionEventId: string;
   operationKey: string;
   createdAt: string;
@@ -125,4 +146,14 @@ export type AssetEventSummary = {
   disposalBookValueMinor: number;
   writeOffBookValueMinor: number;
   bookValueMinor: number;
+};
+
+/* S08 (UNIT-034 / SDF-066): قراءة مشتقة لوضع السداد — المدفوع النقدي
+ * الفعلي (حدثا الاقتناء النقدي + تسديدات الذمم النشطة) والمتبقي الحي
+ * (حدث الاقتناء الذممي الفعال ناقص التسديدات النشطة عليه). الحقلان
+ * قراءة من الأحداث لا مخزنين؛ وغياب الذمم = مدفوع كامل ومتبقٍ صفر. */
+export type AssetPaymentStatus = {
+  paidCashMinor: number;
+  remainingPayableMinor: number;
+  hasPayable: boolean;
 };

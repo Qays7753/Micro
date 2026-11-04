@@ -55,7 +55,7 @@ function buildServices() {
 }
 
 async function seedWalletWithUnallocated() {
-  const profile = await new ProfileService(store, () => NOW).save("مشغل معجم");
+  const profile = await new ProfileService(store, () => NOW).create("مشغل معجم");
   if (!profile.ok) throw new Error(profile.message);
   const sale = await new DirectSaleService(store, () => NOW).record({
     itemName: "كوب",

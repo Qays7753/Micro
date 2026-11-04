@@ -1,70 +1,45 @@
-import type { AgreementContextService } from "@/application/agreements/agreementContextService";
-import { localDateInAmman } from "@micro-domain/shared/index.js";
-import { isRegisteredCustomerDebt } from "@micro-domain/craft-order/index.js";
-import type { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
-import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
-import type { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
-import type { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
-import type { ActivityService } from "@/application/activity/activityService";
-import type { PrototypeLocalStore, StoredCraftOrder } from "@/storage/local/types";
-
-/** R3 (بطاقة R3-SC-01/11): عدسة الخدمة — قراءات لوحة الرئيسية الخمس بالضبط. */
-export type HomeControlCenterServiceStore = Pick<
-  PrototypeLocalStore,
-  "getProfile" | "getPreferences" | "listDirectSales" | "listSchedules" | "listFinancialEvents"
->;
-import { formatMoneyMinor } from "@/application/formatting/formatters";
-import { activityEffectLabel, activityFamilyLabel } from "@/application/activity/activityLabels";
-
-/* مبدأ Micro: جمع النص يشرح عدد المواعيد فقط؛ لا يغيّر قرار السعة أو حالة الموعد. */
-import {
-  buildHomeControlCenterViewModel,
-  type HomeAction,
-  type HomeControlCenterViewModel,
-  type HomeFinancialFact,
-  type HomeInsight,
-  type HomeOptionalModule,
-  type HomePeriodNumbersSection,
-  type HomeRecentChange,
-  type HomeTodayItem,
-  type HomeTodaySection,
-} from "./homeControlCenterModel";
-import { STORAGE_ERROR, storageFailure } from "@/application/resultCodes";
+/**
+ * UNIT-003 (تنفيذ S16 بالأمر الموحد §4): قارئ الرئيسية — قراءة واحدة تُجمَّع
+ * في Promise.all فوق المصادر الكنونية القائمة فقط:
+ * - الهوية والاسم من المخزن (getProfile) وتاريخ اليوم من عقد وقت الأعمال.
+ * - لمحة المالية من القارئ الكنوني للفترة نفسه (readRecordedPeriodResult
+ *   لليوم والشهر) والنقد المسجل الآن من قراءة الوضع (readPosition) — لا
+ *   قارئ ثانٍ ولا معادلة في الواجهة (المبيعات بالتعريف الرسمي نفسه الذي
+ *   يعرضه كشف الفترة: إيراد الطلبات المحتسب + البيع المباشر).
+ * - متابعتك من القارئ الموحد للمتابعة (S13) + مسودات الإكمال من قراءة
+ *   اليوم القائمة (HOME-X03: الامتداد الكامل للمسودة/التكلفة عند القارئ
+ *   المشترك بابه لاحقًا؛ العرض القديم اللازم لا يُحذف).
+ * - حالة النسخة المتحققة من التفضيلات (044 عبر 038) — لا تاريخ نسخة ناجحة
+ *   من مجرد بدء تنزيل.
+ * الفتح والقراءة لا يكتبان شيئًا (القراء لا يكتبون).
+ */
+import { localDateInAmman as ammanLocalDate } from "@micro-domain/shared/index.js";
+import { ammanDateOrNull, localDateDayNumber } from "@micro-domain/shared/index.js";
+import type { PrototypeLocalStore } from "@/storage/local/types";
 import { systemClock, type Clock } from "@/application/time/clock";
-import { ammanDateOrNull, localDateDayNumber, localDatePlusDays } from "@micro-domain/shared/index.js";
+import type { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
+import type { UnifiedFollowUpService } from "@/application/follow-up/unifiedFollowUpService";
+import { projectFollowUp } from "@/application/follow-up/unifiedFollowUpService";
+import type { ProjectFinancialService } from "@/application/finance/projectFinancialService";
+import { buildHomeControlCenterViewModel, selectFollowUpBrief } from "./homeControlCenterModel";
+import type {
+  HomeBackupState,
+  HomeFinancialGlimpse,
+  HomeGlimpsePeriodNumbers,
+} from "./homeControlCenterModel";
+
+export type HomeControlCenterServiceStore = Pick<PrototypeLocalStore, "getProfile" | "getPreferences">;
 
 export type HomeControlCenterResult =
-  { ok: true; value: HomeControlCenterViewModel } | { ok: false; code: "storage_error"; message: string };
+  | { ok: true; value: ReturnType<typeof buildHomeControlCenterViewModel> }
+  | { ok: false; code: "storage_error"; message: string };
 
-/* المجموعة ٩ (STR-029): تاريخ الأعمال من وحدة وقت الأعمال الكنسية —
- * متغيّر الرمي لمدخلات موثوقة الإنشاء. */
-const localDate = localDateInAmman;
+const localDate = ammanLocalDate;
 
-function action(id: string, label: string, href: string, reason: string) {
-  return { id, label, href, reason };
+function storageFailure(message: string) {
+  return { ok: false as const, code: "storage_error" as const, message };
 }
-function isOpenOrder(stored: StoredCraftOrder) {
-  return !["delivered", "settled", "cancelled"].includes(stored.order.status);
-}
-function hasIncompleteCost(stored: StoredCraftOrder) {
-  return stored.order.costSnapshot.knowledgeState !== "known";
-}
-function hasIncompleteResult(stored: StoredCraftOrder) {
-  return !["cancelled"].includes(stored.order.status) && stored.order.resultStatus !== "final";
-}
-/* Wave 4.3 — P-4.3-2: حسابات تواريخ فترة صرفة على صيغة YYYY-MM-DD المحلية —
- * لا تلمس وقت الأعمال ولا منطق المال؛ حدود قراءة فقط.
- * R2 (M-09/HOSTILE-06، 2026-10-08): الإزاحة من نواة الحساب الخالص — كانت
- * مرساة منتصف الليل + toISOString.slice (قصّ UTC). اليوم من ساعة الأعمال
- * الجارية فلا يبلغ حد التمثيل؛ fail-soft بالمدخل نفسه. */
-function dayBefore(isoDate: string): string {
-  return localDatePlusDays(isoDate, -1) ?? isoDate;
-}
-function monthStartBefore(isoDate: string): string {
-  const [year, month] = isoDate.split("-").map(part => Number(part));
-  const previous = month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 };
-  return `${String(previous.year).padStart(4, "0")}-${String(previous.month).padStart(2, "0")}-01`;
-}
+
 /* P-4.3-2 (D7): التسمية الصادقة للنتيجة الناقصة — لا «ربحًا نهائيًا» بلا
  * تكلفة مكتملة؛ الوصف يتبع حالة المعرفة من القراءة الرسمية. */
 function honestResultNote(period: { resultMinor: number | null; cogsStatus: string }): string | null {
@@ -73,558 +48,140 @@ function honestResultNote(period: { resultMinor: number | null; cogsStatus: stri
   if (period.cogsStatus === "partial") return "نتيجة تقديرية — تكلفة ناقصة";
   return "النتيجة غير مكتملة";
 }
+
+/* F-020 (W3-B): المبيعات بالتعريف الرسمي نفسه الذي يعرضه كشف الفترة
+ * (recognizedRevenueTotalMinor في statementService): إيراد الطلبات المحتسب
+ * عند التسليم + البيع المباشر — «مسجلة» تميز المسجل (أساس التسليم) عن
+ * المقبوض؛ لا معادلة جديدة هنا. */
+function totalSales(period: { recognizedRevenueMinor: number; directSaleRevenueMinor: number }) {
+  return period.recognizedRevenueMinor + period.directSaleRevenueMinor;
+}
+
 export class HomeControlCenterService {
   constructor(
     private readonly store: HomeControlCenterServiceStore,
     private readonly dailyFollowUp: DailyFollowUpService,
     private readonly projectFinance: ProjectFinancialService,
-    private readonly supplierPurchases: SupplierPurchaseService,
-    private readonly inventory: InventoryMaterialService,
-    private readonly agreementContext: AgreementContextService,
-    private readonly activity: ActivityService,
+    private readonly unifiedFollowUp: UnifiedFollowUpService,
     private readonly now: Clock = systemClock,
   ) {}
 
   async read(): Promise<HomeControlCenterResult> {
-    /* Wave 4.3 — P-4.3-2: التاريخ يُحسم قبل القراءات — حدود فترات اليوم/الشهر
-     * والشهر السابق تُشتق منه ولا تُقرأ مرتين. */
     const today = localDate(this.now());
     const monthStart = `${today.slice(0, 7)}-01`;
-    const [
-      profile,
-      followUp,
-      position,
-      schedules,
-      events,
-      purchases,
-      inventory,
-      dueFollowUps,
-      preferences,
-      directSales,
-      todayPeriod,
-      monthPeriod,
-      previousMonthPeriod,
-    ] = await Promise.all([
+    const [profile, preferences, position, todayPeriod, monthPeriod, unified, daily] = await Promise.all([
       this.store.getProfile(),
-      this.dailyFollowUp.read(),
-      this.projectFinance.readPosition(),
-      this.store.listSchedules(),
-      this.store.listFinancialEvents(),
-      this.supplierPurchases.readSummary(),
-      this.inventory.overview(),
-      this.agreementContext.dueFollowUps(),
       this.store.getPreferences(),
-      this.store.listDirectSales(),
-      /* Wave 4.3 — P-4.3-2 (D7): أرقام اليوم والشهر من قراءة الفترة الرسمية
-       * وحدها — لا معادلات في الواجهة؛ الشهر السابق للتغير الموثق فقط. */
+      this.projectFinance.readPosition(),
+      /* D7: أرقام اليوم والشهر من قراءة الفترة الرسمية وحدها — قراءة واحدة
+       * للاثنين والصفحة تعرض المختار (لا قراءة عند التبديل). */
       this.projectFinance.readRecordedPeriodResult(today, today),
       this.projectFinance.readRecordedPeriodResult(monthStart, today),
-      this.projectFinance.readRecordedPeriodResult(monthStartBefore(today), dayBefore(monthStart)),
+      this.unifiedFollowUp.read(),
+      /* HOME-X03: مسودات الإكمال من قراءة اليوم القائمة — الامتداد الكامل
+       * عند القارئ المشترك بابه لاحقًا؛ العرض اللازم لا يُحذف. */
+      this.dailyFollowUp.read(),
     ]);
     if (
       !profile.ok ||
-      !followUp.ok ||
-      !position.ok ||
-      !schedules.ok ||
-      !events.ok ||
-      !purchases.ok ||
-      !inventory.ok ||
-      !dueFollowUps.ok ||
+      !profile.value ||
       !preferences.ok ||
-      !directSales.ok ||
+      !position.ok ||
       !todayPeriod.ok ||
-      !monthPeriod.ok ||
-      !previousMonthPeriod.ok ||
-      !profile.value
+      !monthPeriod.ok
     )
       return storageFailure("تعذر قراءة بيانات مشروعك المحلية.");
+    if (!unified.ok) return storageFailure(unified.message);
+    if (!daily.ok) return storageFailure(daily.message);
 
-    const orders = followUp.orders;
-    const openDrafts = followUp.drafts;
     const positionValue = position.value;
-    /* FIN-001 (قرار المالك ٢٠٢٦-٠٩-١٦): الرئيسية ومالي تقرآن حالة الدليل من
-     * المصدر الواحد نفسه (readPosition) — «غير مسجل» تعني الشيء نفسه في
-     * الشاشتين، والبيع المباشر صار دليل كاش كما هو فعلًا. */
-    const orderEvidence = positionValue.evidence.customerReceivables === "recorded";
-    const cashEvidence = positionValue.evidence.cash === "recorded";
-    const capitalEvidence = positionValue.evidence.ownerCapital === "recorded";
-    const payableEvidence = positionValue.evidence.supplierPayables === "recorded";
-    /* §2.7: كل حقيقة غير مسجلة تعرض طريقها — «غير مسجل — سجّله (نقرة)» — لا «غير مهيأ» عاجزة. */
-    const factRoads: Record<"cash" | "receivables" | "payables" | "owner_capital", HomeAction> = {
-      cash: action("road-cash", "سجّله", "/cash/wallet/new", ""),
-      receivables: action("road-receivables", "سجّله", "/orders", ""),
-      payables: action("road-payables", "سجّله", "/finance/new/operating_expense_payable", ""),
-      owner_capital: action("road-owner-capital", "سجّله", "/finance/new/owner_investment_cash", ""),
-    };
-    /* Wave 4.4 — P-4.4-1 (تماثل D8): كل حقيقة معروفة تفتح مصدرها الحقيقي القائم
-     * — الكاش محافظه، واللي عند العملاء دفتر الناس، وعليّ للموردين سطح «شو
-     * عليّ؟» في المالية؛ لا وجهة وهمية ولا مصدر مختلق. */
-    const factSources: Record<"cash" | "receivables" | "payables" | "unallocated", string> = {
-      cash: "/cash",
-      receivables: "/parties",
-      payables: "/finance",
-      unallocated: "/cash",
-    };
-    /* المجموعة ١ (§7.1): مؤهل الأمانات — الكاش المسجل يشمل أمانات ليست مالك ولا ربحًا. */
-    const cashQualifier =
-      positionValue.amanahHeldMinor > 0
-        ? `منها أمانات بأمانتي ${formatMoneyMinor(positionValue.amanahHeldMinor)} د.أ — ليست مالك ولا ربحًا`
-        : null;
-    const facts: HomeFinancialFact[] = [
-      {
-        id: "cash",
-        label: "الكاش المسجل",
-        state: cashEvidence ? "known" : "not_initialized",
-        valueMinor: cashEvidence ? positionValue.recordedCashMinor : null,
-        currency: "JOD",
-        qualifier: cashQualifier,
-        source: cashEvidence ? factSources.cash : null,
-        period: null,
-        helper: null,
-        road: cashEvidence ? null : factRoads.cash,
-      },
-      {
-        id: "receivables",
-        label: "لي عند العملاء",
-        state: orderEvidence ? "known" : "not_initialized",
-        valueMinor: orderEvidence ? positionValue.customerReceivablesMinor : null,
-        currency: "JOD",
-        qualifier: null,
-        source: orderEvidence ? factSources.receivables : null,
-        period: null,
-        helper: null,
-        road: orderEvidence ? null : factRoads.receivables,
-      },
-      {
-        id: "payables",
-        label: "عليّ للموردين",
-        state: payableEvidence ? "known" : "not_initialized",
-        valueMinor: payableEvidence ? positionValue.supplierPayablesMinor : null,
-        currency: "JOD",
-        qualifier: null,
-        source: payableEvidence ? factSources.payables : null,
-        period: null,
-        helper: null,
-        road: payableEvidence ? null : factRoads.payables,
-      },
-      {
-        id: "owner_capital",
-        label: "مال المالك المسجل",
-        state: capitalEvidence ? "known" : "not_initialized",
-        valueMinor: capitalEvidence ? positionValue.ownerCapitalRecordedMinor : null,
-        currency: "JOD",
-        qualifier: null,
-        /* المجموعة ٦ (البند ٢): الحالة المعروفة تفتح الدفتر الموحد «مال المالك» —
-         * الحقيقة المعروفة لها وجه تنقّل، والطريق يبقى للتسجيل الأول. */
-        source: capitalEvidence ? "/finance/owner-entitlement" : null,
-        period: null,
-        helper: null,
-        road: capitalEvidence ? null : factRoads.owner_capital,
-      },
-    ];
-    /* المجموعة ١ (§7.1): الكاش غير الموزع يظهر عند وجوده فقط — قبض لم يُنسب لمحفظة؛
-     * الصفر أو الغياب لا بطاقة له. */
-    if (cashEvidence && positionValue.unallocatedCashMinor !== 0) {
-      facts.push({
-        id: "unallocated",
-        label: "كاش غير موزع",
+    /* ── لمحة مالية (HOME-B1): فترة أداء واحدة معروضة والنقد الآن منفصل. ── */
+    const statementHref = (from: string, to: string) => `/finance/statement?since=${from}&until=${to}`;
+    const periodNumbers = (
+      kind: "today" | "month",
+      label: string,
+      from: string,
+      to: string,
+      period: { resultMinor: number | null; cogsStatus: string },
+      salesValueMinor: number,
+    ): HomeGlimpsePeriodNumbers => ({
+      period: { kind, from, to, label },
+      sales: {
+        id: "sales",
+        label: "المبيعات المسجلة",
         state: "known",
-        valueMinor: positionValue.unallocatedCashMinor,
-        currency: "JOD",
-        qualifier: positionValue.unallocatedCashMinor < 0 ? "فرق سالب — راجع مصدره" : null,
-        source: factSources.unallocated,
-        period: null,
-        helper: null,
-        road: null,
-      });
-    }
-
-    /* دمج بند ١٠ (قرار المالك): «اليوم» يستوعب ما كان في «ما يحتاج فعلًا الآن» —
-     * لا إلغاء ولا تكرار: كل مسودة ودين وتكلفة ونتيجة وطلب وسعة بندٌ واحد هنا،
-     * والمتابعة والدين يُبنيان مرة واحدة من مصدرهما (لا من القسمين معًا). */
-    const todayItems: HomeTodayItem[] = [];
-    openDrafts.forEach(draft =>
-      todayItems.push({
-        id: `today-draft:${draft.id}`,
-        kind: "draft",
-        title: `مسودة: ${draft.itemName || "بلا وصف"}`,
-        detail: null,
-        dateLocal: localDateInAmman(draft.updatedAt),
-        timeLocal: null,
-        href: `/orders/draft/${draft.id}`,
-        /* المجموعة ١ (§7.1): أفعال محددة لا «افتح» العامة. */
-        actionLabel: "أكمل",
-        priority: 10,
-      }),
-    );
-    orders
-      .filter(
-        stored => isRegisteredCustomerDebt(stored.order) && !["cancelled"].includes(stored.order.status),
-      )
-      .forEach(stored =>
-        todayItems.push({
-          id: `today-due-amount:${stored.id}`,
-          kind: "due_amount",
-          title: `دين: ${stored.order.itemName || "طلب"}`,
-          detail: `${formatMoneyMinor(stored.order.receivableMinor)} د.أ`,
-          dateLocal: null,
-          timeLocal: null,
-          /* المجموعة ٢ (§6.3): بند الدين يفتح ورقة التحصيل في نقرة واحدة — لا قائمة عامة. */
-          href: `/collect?source=order:${stored.id}`,
-          actionLabel: "حصّل",
-          priority: 15,
-        }),
-      );
-    /* المجموعة ٢ (§6.3): ديون البيع الآجل بند تحصيل كأخواتها — لا تختفي لأنها ليست
-     * من طلب؛ ورقة التحصيل نفسها تكتبها عبر مسارها الصحيح. */
-    directSales.value
-      .filter(
-        sale =>
-          (sale.status ?? "active") === "active" &&
-          sale.collectionStatus === "partial_debt" &&
-          sale.revenueMinor - sale.collectedMinor > 0,
-      )
-      .forEach(sale =>
-        todayItems.push({
-          id: `today-due-amount:${sale.id}`,
-          kind: "due_amount",
-          title: `دين بيع: ${sale.itemName || "بيع"}`,
-          detail: `${formatMoneyMinor(sale.revenueMinor - sale.collectedMinor)} د.أ`,
-          dateLocal: null,
-          timeLocal: null,
-          href: `/collect?source=sale:${sale.id}`,
-          actionLabel: "حصّل",
-          priority: 15,
-        }),
-      );
-    orders.filter(isOpenOrder).forEach(stored => {
-      if (hasIncompleteCost(stored)) {
-        todayItems.push({
-          id: `today-cost:${stored.id}`,
-          kind: "cost_incomplete",
-          title: `أكمل تكلفة ${stored.order.itemName || "الطلب"}`,
-          detail: null,
-          dateLocal: null,
-          timeLocal: null,
-          href: `/orders/${stored.id}`,
-          actionLabel: "أكمل",
-          priority: 20,
-        });
-      } else {
-        todayItems.push({
-          id: `today-order:${stored.id}`,
-          kind: "open_order",
-          title: stored.order.itemName || "طلب",
-          detail: stored.order.nextAction,
-          dateLocal: stored.deliveryDate ?? null,
-          timeLocal: null,
-          href: `/orders/${stored.id}`,
-          /* المجموعة ١: الجاهز للتسليم «سلّم»، وغيره «راجع» — فعل يطابق الخطوة التالية. */
-          actionLabel: stored.order.status === "ready" ? "سلّم" : "راجع",
-          priority: 30,
-        });
-      }
-    });
-    orders
-      .filter(stored => !isOpenOrder(stored) && hasIncompleteResult(stored))
-      .forEach(stored =>
-        todayItems.push({
-          id: `today-result-review:${stored.id}`,
-          kind: "result_review",
-          title: `راجع نتيجة ${stored.order.itemName || "الطلب"}`,
-          detail: null,
-          dateLocal: null,
-          timeLocal: null,
-          href: `/orders/${stored.id}`,
-          actionLabel: "راجع",
-          priority: 20,
-        }),
-      );
-    dueFollowUps.value.due.forEach(stored =>
-      todayItems.push({
-        id: `today-follow-up:${stored.id}`,
-        kind: "follow_up_due",
-        title: `متابعة مستحقة: ${stored.order.itemName || "بلا وصف"}`,
-        detail: stored.followUpSummary ?? stored.followUpReason ?? null,
-        dateLocal: stored.followUpDate ?? null,
-        timeLocal: null,
-        href: `/orders/${stored.id}`,
-        actionLabel: "راجع",
-        priority: 25,
-      }),
-    );
-    schedules.value
-      .filter(
-        schedule => ["scheduled", "postponed"].includes(schedule.status) && schedule.scheduledFor === today,
-      )
-      .forEach(schedule => {
-        const linkedOrder = orders.find(candidate => candidate.id === schedule.orderId);
-        todayItems.push({
-          id: `today-appointment:${schedule.id}`,
-          kind: "appointment_today",
-          title: `موعد اليوم: ${linkedOrder?.order.itemName || "موعد تسليم"}`,
-          detail: linkedOrder ? linkedOrder.order.nextAction : null,
-          dateLocal: schedule.scheduledFor,
-          timeLocal: schedule.scheduledTime,
-          href: `/schedule/${schedule.id}`,
-          actionLabel: "سلّم",
-          priority: 25,
-        });
-      });
-    const activeSchedules = schedules.value.filter(schedule =>
-      ["scheduled", "postponed"].includes(schedule.status),
-    );
-    if (activeSchedules.length > 0) {
-      const capacity = activeSchedules.filter(schedule => schedule.scheduledFor === today).length;
-      if (capacity > 1)
-        todayItems.push({
-          id: "today-capacity:today",
-          kind: "capacity_warning",
-          title: `مواعيد اليوم: ${capacity}`,
-          detail: null,
-          dateLocal: today,
-          timeLocal: null,
-          /* المجموعة ١: وصلة عميقة تفتح قراءة السعة نفسها لا الصفحة العامة. */
-          href: "/schedule?focus=capacity",
-          actionLabel: "راجع",
-          priority: 40,
-        });
-    }
-    const upcoming = dueFollowUps.value.upcoming;
-    const todaySection: HomeTodaySection = {
-      items: todayItems,
-      upcomingCount: upcoming.length,
-      nextUpcomingDate: upcoming[0]?.followUpDate ?? null,
-      nextUpcomingHref: upcoming[0] ? `/orders/${upcoming[0].id}` : null,
-      truth: null,
-    };
-
-    /* القرار ١١: تُفكّ المالية كلها. الوحدة الدائمة تفتح المسارين: مالي ← المحافظ والموردون
-     * والمواد ودفتر المالك، بلا شرط بيانات وبلا نقل أي قدرة (§2.1 من وثيقة التوزيع). */
-    const financeUnit = {
-      action: action("finance", "افتح", "/finance", ""),
-      truth: null,
-    };
-    /* قرار المالك على بند ١١: «منتجاتي وخدماتي» كتلة دائمة مستقلة مثل «مالي» —
-     * سؤالها (§2.3): ما أكرره وبكم؟ وهل هو رابح؟ */
-    const catalogUnit = {
-      action: action("catalog", "افتح", "/catalog", ""),
-      truth: null,
-    };
-
-    /* قرار المالك على بند ١٢: بطاقتا المخزون والموردين المشروطتان أُزيلتا —
-     * المسار الدائم عبر «مالي» يكفي. القسم القديم يبقى صادقًا على ما تحته:
-     * مسارات مرتبطة ببياناتها فقط (الجدول ونتيجة الفترة). */
-    const optionalModules: HomeOptionalModule[] = [
-      {
-        id: "schedule",
-        label: "المواعيد",
-        state: schedules.value.length > 0 ? "available" : orders.length > 0 ? "needs_setup" : "empty",
-        action: action("schedule", "افتح", "/schedule", ""),
+        valueMinor: salesValueMinor,
+        honestNote: null,
+        sourceHref: statementHref(from, to),
       },
-      {
-        id: "period_result",
+      result: {
+        id: "result",
         label: "نتيجة الفترة",
-        state:
-          orders.some(stored => ["delivered", "settled"].includes(stored.order.status)) ||
-          events.value.length > 0
-            ? "available"
-            : "empty",
-        action: action("period-result", "افتح", "/finance", ""),
+        state: period.resultMinor === null ? "incomplete" : "known",
+        valueMinor: period.resultMinor,
+        honestNote: honestResultNote(period),
+        sourceHref: statementHref(from, to),
       },
-    ];
+    });
+    const glimpse: HomeFinancialGlimpse = {
+      today: periodNumbers("today", "اليوم", today, today, todayPeriod.value, totalSales(todayPeriod.value)),
+      month: periodNumbers(
+        "month",
+        "هذا الشهر",
+        monthStart,
+        today,
+        monthPeriod.value,
+        totalSales(monthPeriod.value),
+      ),
+      /* النقد المسجل الآن — قراءة الوضع الحالية 022، منفصلة عن فترة الأداء. */
+      cashNow: {
+        label: "النقد المسجل الآن",
+        state: positionValue.evidence.cash === "recorded" ? "known" : "not_initialized",
+        valueMinor: positionValue.evidence.cash === "recorded" ? positionValue.recordedCashMinor : null,
+        qualifier:
+          positionValue.evidence.cash === "recorded" && positionValue.amanahHeldMinor > 0
+            ? `منها أمانات بأمانتي — ليست مالك ولا ربحًا`
+            : null,
+        sourceHref: "/cash",
+      },
+    };
 
-    /* المجموعة ٥ (عقد ٣٠): «آخر ما حدث» يُبنى من القارئ الموحّد وحده — قراءة
-     * واحدة لكل العائلات مع كلمة أثر ورابط مصدر لكل صف؛ لا قصّات منفصلة بعد
-     * اليوم (الأحداث وحدها/المواعيد المستقبلية/مسودة بلا أثر). عائلة المحفظة
-     * تُستثنى من نافذة الرئيس (دفتر المحفظة أبوابها في «مالي»). */
-    const activityRead = await this.activity.read({ limit: 5, perFamilyLimit: 3 });
-    const recentChanges: HomeRecentChange[] = activityRead.ok
-      ? activityRead.value.map(record => ({
-          id: record.id,
-          occurredOn: record.occurredOn ?? localDateInAmman(record.recordedAt),
-          title: activityFamilyLabel[record.family],
-          detail: record.detail,
-          href: record.sourceHref,
-          effectWord: activityEffectLabel[record.effect],
-          amountMinor: record.amountMinor,
-        }))
-      : [];
+    /* ── متابعتك (HOME-A4/3D-C2): المختصر من القارئ الموحد + المسودات. ── */
+    const reading = unified.value;
+    const projection = projectFollowUp(reading, { taskKind: "all", period: null });
+    const complete = projection.errorSources.length === 0;
+    const failedMessage =
+      projection.errorSources.length > 0 ? "تعذرت قراءة بعض المتابعات — أعد المحاولة" : null;
+    const followUp = selectFollowUpBrief(projection, daily.drafts, complete, failedMessage);
 
-    /* «أثناء غيابك» (التدفق ٢٣): تظهر بعد ٧ أيام بلا تسجيل، وتختفي بالنشاط.
-     * تذكير النسخة (P-01 طبقة ١): بعد ٧ أيام من آخر تصدير مُتحقق مع وجود بيانات.
-     * U-002 (دورة التدقيق النهائي): «آخر تسجيل» يُحسب من أوقات التسجيل الفعلية
-     * (recordedAt/createdAt/updatedAt) — لا من تواريخ الأثر (occurredOn) ولا من
-     * المواعيد المستقبلية (scheduledFor): قيدٌ مؤرَّخ لا يوهم غيابًا، وموعدٌ قادم
-     * لا يخفي البطاقة، والبيع المباشر تسجيلٌ كغيره فلا تناقض داخل البطاقة. */
-    const recordedActivityDates = [
-      ...orders.map(stored => localDate(stored.updatedAt)),
-      ...openDrafts.map(draft => localDate(draft.updatedAt)),
-      ...events.value.map(event => localDate(event.recordedAt)),
-      ...directSales.value.map(sale => localDate(sale.recordedAt)),
-      ...schedules.value.map(schedule => localDate(schedule.updatedAt)),
-    ].sort((left, right) => right.localeCompare(left));
-    const lastActivityDate = recordedActivityDates[0] ?? null;
-    /* R2 (M-02، 2026-10-08 — تصويب المراجعة النهائية FH-2): فرق الأيام
-     * بأرقام الأيام الكنسية (محور 1970-01-01) — كانت Date.parse لمراسي
-     * الظهر؛ متكافلة تمامًا للسنوات >= 0100. */
-    const todayNumber = localDateDayNumber(today);
-    const lastActivityNumber = lastActivityDate !== null ? localDateDayNumber(lastActivityDate) : null;
-    const daysSinceLastActivity =
-      todayNumber !== null && lastActivityNumber !== null
-        ? Math.max(0, todayNumber - lastActivityNumber)
-        : null;
+    /* ── حالة النسخة المتحققة (HOME-F10) والتذكير الهادئ (O-001). ── */
     const lastExport = preferences.value?.lastVerifiedExportAt ?? null;
-    /* R2 (M-05/X3، 2026-10-08): تاريخ العرض من اللحظة المخزنة عبر عقد وقت
-     * الأعمال — كان قصّ UTC يوهم بيوم إضافي مضى للتصديرات المسائية. */
     const lastExportDate = lastExport !== null ? ammanDateOrNull(lastExport) : null;
     const lastExportNumber = lastExportDate !== null ? localDateDayNumber(lastExportDate) : null;
-    const daysSinceLastExport =
+    const todayNumber = localDateDayNumber(today);
+    const daysSinceExport =
       todayNumber !== null && lastExportNumber !== null ? Math.max(0, todayNumber - lastExportNumber) : null;
-    const hasAnyData =
-      recentChanges.length > 0 || positionValue.cashWalletCount > 0 || positionValue.projectEventCount > 0;
-    const awaySection =
-      daysSinceLastActivity !== null && daysSinceLastActivity >= 7 && hasAnyData
-        ? {
-            daysSinceLastActivity,
-            overdueDebtCount: orders.filter(
-              stored =>
-                isRegisteredCustomerDebt(stored.order) &&
-                stored.followUpDate != null &&
-                stored.followUpDate < today,
-            ).length,
-            daysSinceLastExport,
-            /* U-002 (دورة التدقيق النهائي): الملخص الصادق الوحيد الممكن لبطاقة الغياب
-             * هو «آخر يوم تسجيل» — ماذا دوّن المالك في آخر جلسة تسجيل فعلية؟ لا شيء
-             * يتحرك «خلال» الغياب نفسه في تطبيق محلي أحادي المستخدم، فالملخص يصف آخر
-             * جلسة صادقًا بأرقام مشتقة من البيانات لا من التوقعات. */
-            digest: (() => {
-              const lastDay = lastActivityDate ?? today;
-              const activeSales = directSales.value.filter(
-                sale => (sale.status ?? "active") === "active" && localDate(sale.recordedAt) === lastDay,
-              );
-              const expenseEvents = events.value.filter(
-                event =>
-                  event.operatingExpenseDeltaMinor > 0 &&
-                  event.correctionType !== "reverse" &&
-                  localDate(event.recordedAt) === lastDay,
-              );
-              return {
-                lastRecordedOn: lastDay,
-                salesCount: activeSales.length,
-                salesRevenueMinor: activeSales.reduce((total, sale) => total + sale.revenueMinor, 0),
-                expenseCount: expenseEvents.length,
-                expenseMinor: expenseEvents.reduce(
-                  (total, event) => total + event.operatingExpenseDeltaMinor,
-                  0,
-                ),
-                newOrderCount: orders.filter(stored => localDate(stored.order.createdAt) === lastDay).length,
-                upcomingFollowUpCount: dueFollowUps.value.upcoming.filter(
-                  stored => stored.followUpDate != null,
-                ).length,
-              };
-            })(),
-          }
-        : null;
-    /* O-001: تذكير النسخة الدوري اختياري — افتراضيًا مفعّل (السلوك القائم)، وإطفاؤه
-     * من الإعدادات يخفي سطر التذكير فقط، لا عمر النسخة في بطاقة الغياب. */
     const backupReminderEnabled = preferences.value?.backupReminderEnabled ?? true;
-    const backupReminderDue =
-      backupReminderEnabled && hasAnyData && (daysSinceLastExport === null || daysSinceLastExport >= 7);
-
-    /* Wave 4.3 — P-4.3-2 (D6/D7): ملخص الأرقام — مبيعات/نتيجة اليوم والشهر من
-     * القراءة الرسمية للفترة؛ الرقم القابل للفتح يصل مصدره (عرض الفترة في
-     * المالية)، والناقص يوصف بصدق بلا أصفار. */
-    /* المبيعات بالتعريف الرسمي نفسه الذي يعرضه كشف الفترة
-     * (recognizedRevenueTotalMinor في statementService): إيراد الطلبات
-     * المحتسب عند التسليم + البيع المباشر — لا معادلة جديدة هنا.
-     * F-020 (W3-B): التسمية تقول «مسجلة» لأن الرقم إيراد مسجل (أساس
-     * التسليم) لا كاشًا مقبوضًا؛ حقول الفرق غير المحصّل المشتقة تعيش في
-     * القارئ الكنوني للفترة وعرض سطرها ينتظر س4/D-05. */
-    const totalSales = (period: { recognizedRevenueMinor: number; directSaleRevenueMinor: number }) =>
-      period.recognizedRevenueMinor + period.directSaleRevenueMinor;
-    const periodNumbers: HomePeriodNumbersSection = {
-      today: {
-        sales: {
-          id: "sales",
-          /* F-020 (W3-B): «مسجلة» تميز المسجل (أساس التسليم) عن المقبوض —
-           * الوسم يصل الصفحة كما هو بلا أي ملف عرض. */
-          label: "مبيعات مسجلة اليوم",
-          state: "known",
-          valueMinor: totalSales(todayPeriod.value),
-          honestNote: null,
-          source: "/finance?view=period",
-        },
-        result: {
-          id: "result",
-          label: "نتيجة اليوم",
-          state: todayPeriod.value.resultMinor === null ? "incomplete" : "known",
-          valueMinor: todayPeriod.value.resultMinor,
-          honestNote: honestResultNote(todayPeriod.value),
-          source: "/finance?view=period",
-        },
-      },
-      month: {
-        sales: {
-          id: "sales",
-          /* F-020 (W3-B): «مسجلة» — نفس تمييز المسجل عن المقبوض. */
-          label: "مبيعات مسجلة الشهر",
-          state: "known",
-          valueMinor: totalSales(monthPeriod.value),
-          honestNote: null,
-          source: "/finance?view=period",
-        },
-        result: {
-          id: "result",
-          label: "نتيجة الشهر",
-          state: monthPeriod.value.resultMinor === null ? "incomplete" : "known",
-          valueMinor: monthPeriod.value.resultMinor,
-          honestNote: honestResultNote(monthPeriod.value),
-          source: "/finance?view=period",
-        },
-      },
+    const hasAnyData = positionValue.cashWalletCount > 0 || positionValue.projectEventCount > 0;
+    const backup: HomeBackupState = {
+      lastVerifiedExportAt: lastExport,
+      daysSinceExport,
+      reminderEnabled: backupReminderEnabled,
     };
-    /* P-4.3-2 (D6): Insights من البيانات الحالية فقط — لكل ملحوظة ماذا حدث
-     * ولماذا يهم وفعل منطقي واحد؛ بلا تكرار لسبب جذري واحد (كل سبب مرة).
-     * Z1 (§3.1 — لا تكرار المبلغ نفسه في منطقتين متجاورتين): أُزيلت ملحوظات
-     * الكاش غير الموزع والمبالغ غير المحصلة وبيانات التكلفة الناقصة — أرقامها
-     * نفسها معروضة في «أرقامك» المجاورة (الحقائق + سطر صدق النتيجة الناقصة)،
-     * فبقيت مقارنة الشهر بالشهر وحدها (رقم لا يظهر في مكان آخر). */
-    const insights: HomeInsight[] = [];
-    const monthRevenue = totalSales(monthPeriod.value);
-    const previousMonthRevenue = totalSales(previousMonthPeriod.value);
-    if (monthRevenue > 0 && previousMonthRevenue > 0 && monthRevenue !== previousMonthRevenue) {
-      const higher = monthRevenue > previousMonthRevenue;
-      insights.push({
-        id: "sales-change",
-        what: `مبيعات هذا الشهر المسجلة ${higher ? "أعلى" : "أقل"} من الشهر الماضي بـ ${formatMoneyMinor(
-          Math.abs(monthRevenue - previousMonthRevenue),
-        )} د.أ`,
-        why: null,
-        action: action("open-period", "افتح ملخص الفترة", "/finance?view=period", "sales-change"),
-      });
-    }
+    const backupReminderDue =
+      backupReminderEnabled && hasAnyData && (daysSinceExport === null || daysSinceExport >= 7);
 
     return {
       ok: true,
       value: buildHomeControlCenterViewModel({
         activityName: profile.value.activityName,
         todayLocal: today,
-        /* Z1.4: تعبير القراءة القائم نفسه (hasAnyData) يُمرَّر للنموذج — لا
-         * قراءة جديدة ولا معنى ماليًا، فقط تمييز الفراغ عن الهادئ. */
-        hasAnyRecordedData: hasAnyData,
         truthLine: backupReminderDue
           ? "بياناتك على هذا الجهاز فقط — انسخ نسخة احتياطية من الإعدادات لتصبح جاهزة للطوارئ."
           : null,
-        financeUnit,
-        catalogUnit,
-        todaySection,
-        facts,
-        optionalModules,
-        recentChanges,
-        awaySection,
-        periodNumbers,
-        insights,
+        glimpse,
+        followUp,
+        backup,
       }),
     };
   }

@@ -297,7 +297,18 @@ CAPS: dict[str, int] = {
     # DraftEditor 47 -> 49 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "DraftEditor": 49,
+    # DraftEditor 49 -> 71 (2026-10-30, S09 UNIT-007/029 — أمر التنفيذ المتصل
+    # ad133bae القسم ٢ المأذون من المالك): تسميات مفروضة من مواصفات المرحلة
+    # لا نثرًا حرًا — مجموعات الطلب (اسم المجموعة/التكرار/نوع العرض/المرجع
+    # المحفوظ/ملاحظة/إزالة/أضف) والسعر المقترح (CONS-DEC07) وشريط استعادة
+    # مسودة النموذج (U007-AC03 — مكوّن FormDraftRestoreBanner المشترك: 15
+    # تسمية) وحفظ لاستخدامه مرة أخرى (U029-AC01/AC32). القيمة = القياس
+    # الفعلي بعد تقليم كل ما ليس مفروضًا؛ القيمة الجديدة مقيّدة بالراتشة نفسها.
+    # DraftEditor 71 -> 72 (2026-11-02, S13 DOC-022/UNIT-006 CAL-C — أمر
+    # 2158b0fc §6): إفصاح اقتراح موعد التقويم الظاهر القابل للإزالة (CAL-AC05/
+    # AC06) — تسمية مفروضة من مواصفة المرحلة لا نثرًا حرًا؛ القيمة = القياس
+    # الفعلي، والقيمة الجديدة مقيّدة بالراتشة نفسها.
+    "DraftEditor": 72,
     # CostEditor 53 → 54 (2026-09-01, repair cycle U-004): source-estimate proposal
     # notice — one mandated bridge label.
     # CostEditor 54 → 58 (2026-09-06, Group 2, عقد ٢٨): material suggestion chips
@@ -305,7 +316,16 @@ CAPS: dict[str, int] = {
     # CostEditor 58 -> 60 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "CostEditor": 60,
+    # CostEditor 60 -> 71 (2026-10-30, S09 UNIT-008/SH-13 — أمر التنفيذ المتصل
+    # ad133bae القسم ٢ المأذون من المالك): تسميات مفروضة من مواصفات المرحلة
+    # لا نثرًا حرًا — أساس وحدة كل مجموعة (ورقة المواد لكل مجموعة بهويتها
+    # وأزرارها الشريفة) ومستويات نطاق الطلب مرة واحدة وشريط استعادة مدخلات
+    # التكلفة (U008-AC09 — مكوّن FormDraftRestoreBanner المشترك: 15 تسمية).
+    # CostEditor 71 -> 76 (2026-10-30, تصحيح جولة المراجعة الخمس R5-F05):
+    # نص إشعار مراجعة تغيّر الكمية (U008-AC12) صار JSX بأرقام معزولة bdi —
+    # فأجزاؤه الساكنة تدخل القياس كما كل نص JSX (كانت قالبًا محرفًا خارج
+    # القياس). القيمة = القياس الفعلي؛ القيمة الجديدة مقيّدة بالراتشة نفسها.
+    "CostEditor": 76,
     # AgreementEditor 55 → 59 (2026-09-02, Group 4 final integration fix G4-6):
     # customer name field (label + required note + placeholder + its validation
     # message) — the agreement step is the point where the name becomes required
@@ -370,6 +390,8 @@ CAPS: dict[str, int] = {
     # fifth bottom-nav seat — honest قريبًا badge + future supplier-marketplace
     # description; no suppliers, no purchase action, no records or effects.
     "Market": 13,
+    # UNIT-043 (S16 — أول قياس): صفحة التوصيل إعلان قريبًا بنمط السوق نفسه.
+    "Delivery": 13,
     # MaterialEditor first measurement (2026-09-06, Group 2, عقد ٢٨): guided journey
     # (tracking question + opening-state question + cost question + effect preview)
     # — create + confirm-opening modes. Decision record D-029.
@@ -485,7 +507,13 @@ CAPS: dict[str, int] = {
     # Settings 61 -> 63 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
     # وقتًا — محرفا تنسيق معتمدان من المصدر الموحد لا نثرًا جديدًا.
-    "Settings": 63,
+    # Settings 63 -> 75 (2026-11-04, S17 / DOC-026 — UNIT-033 owner decision):
+    # قسم «فحص البيانات» داخل الإعدادات يحل محل سطح ToolsIntegrity المتقاعد
+    # (89-cap): وعد القراءة والخلاصة الصادقة وحالاتها وكلمات الحالة وعناوين
+    # الفحوص وملخصات المتأثرين وروابط المراجعة. الصافي +12 فقط بعد اتحاد
+    # المفردات مع قائمة الإعدادات القائمة (تسميات الأزرار والحالات تتكرر
+    # ضمن السطح نفسه) — نقل سطح لا نثرًا جديدًا.
+    "Settings": 75,
     # Tools (2026-09-02, Group 3 Scope A/B, owner-approved execution prompt): first
     # measurement day-one — the calculator moved to its own deep route
     # (/tools/calculator) so this surface keeps the entry card, the saved-estimate
@@ -522,16 +550,11 @@ CAPS: dict[str, int] = {
     # supplier payments). One added registry title, no new prose surfaces.
     # ToolsIntegrity 86 -> 88 (2026-09-23, FIN-001 Wave 6): عنوان فحص
     # اتساق القروض المستلمة ووسم النتيجة في تقرير السلامة.
-    # ToolsIntegrity 88 -> 89 (2026-09-28, master remediation charter Group 1,
-    # owner-approved F-004/F-005): the MIC registry grew by one read-only check
-    # (MIC-18 «ثابت أساس التسوية» — settlement-basis invariant: events settle the
-    # recorded collected amount and the recorded remainder matches the collectible-
-    # value basis); its title renders on this reader surface like MIC-8/MIC-10..13
-    # before it, while the derivation and detail vocabulary stay in the domain
-    # module outside the entry bundle (D-034). Net distinct strings: +1 (the new
-    # check id shares the existing MIC-N family; the retained-deposit mirror
-    # removal in the same slice freed its twin).
-    "ToolsIntegrity": 89,
+    # ToolsIntegrity RETIRED (2026-11-04, S17 / DOC-026 — UNIT-033 owner
+    # decision): فحص البيانات moved into Settings as a section
+    # (components/settings/SettingsDataCheckSection.tsx); its strings now count
+    # under the Settings surface below (see the dated Settings bump). The
+    # page and its route are gone; nothing else inherits this cap.
     # المجموعة ٥ (عقد ٣٠/٣٣): القياس الأول ليوم القياس الأول — تُقفل عند قياسها.
     # FinanceActivity 55 -> 57 (2026-09-18, Wave 4.4 P-4.4-2): عقد العرض المعتمد
     # لنظام 12 ساعة يضيف محرفَي فترة النهار «ص»/«م» إلى كل سطح يعرض
@@ -555,7 +578,14 @@ CAPS: dict[str, int] = {
     # package): +1 directory row «المصاريف المتكررة» (title + honest one-line
     # description) linking the recurring-expense control surface — mandated
     # labels only, no data templates behind them.
-    "FinanceMore": 39,
+    # FinanceMore REMOVED (2026-11-03, UNIT-013 تنفيذ S15 بالأمر الموحد §5،
+    # AF-AC09): صفحة «المزيد» فقدت استقلالها — لوحة «وظائف المالية» داخل
+    # 013 هي الفهرسة الوحيدة والمسار القديم صار إحالة إلى المالية؛ السقف
+    # زال مع الشاشة (قياس سطح 013 يغطي اللوحة عبر استيراد المكون). لا رفع
+    # لأي سقف آخر.
+    # SharePreview REMOVED (2026-11-03, UNIT-040 تنفيذ S15 بالأمر الموحد §5):
+    # المشاركة ملغاة — مسار المعاينة وصفحته أزيلا معها؛ لا بديل مشاركة.
+    # السقف زال مع الشاشة؛ تنزيل 016 والنسخ 044 بأسقفهما القائمة.
     # FinanceUpcoming (2026-09-20, Stage 2 OPS-005/006, owner brief — first
     # measurement day): the unified upcoming/overdue reader «القادم والاستحقاقات»
     # — heading + promise, the simple-aging card (payables overdue/current/no-date
@@ -567,7 +597,15 @@ CAPS: dict[str, int] = {
     # Locked at the honest measured number (49) as a ratchet from day one.
     # FinanceUpcoming 49 -> 51 (2026-09-23, FIN-001 Wave 6): استحقاق القرض
     # المستلم يظهر للمعرفة فقط بلا تنبيه إلزامي (سياسة §4.7).
-    "FinanceUpcoming": 51,
+    # FinanceUpcoming 51 -> 57 (2026-11-02, S13 DOC-022/UNIT-018 — أمر
+    # 2158b0fc §6): «المتابعة» الموحدة 012/018 — تسميات مجموعات متأخر/اليوم/
+    # القادم/لم يحدد موعدها/الموعد يحتاج تصحيحًا (A1/B7)، ولوحة تصفية نوع
+    # المهمة والفترة بتطبيق/إعادة ضبط/إلغاء (A4)، وتسميات أنواع المهام
+    # الستة وأدوار المبالغ المقترحة (A2/B3 — «مقترح الدورة ليس دينًا»)،
+    # وإعلان المصدر المتعذر باسمه (B5)، والمساعدة «حول المتابعة» (B7).
+    # كلها مفروضة من مواصفات المرحلة لا نثرًا حرًا؛ القيمة = القياس الفعلي،
+    # والقيمة الجديدة مقيّدة بالراتشة نفسها.
+    "FinanceUpcoming": 57,
     # OPS-003 (2026-09-21, عقد ٤١ — first measurement day): أسطح المصروف
     # المتكرر — القائمة (٢٦: ترويسة ووعد، حالة كل سلسلة، أقرب موعد، عدّ العولج،
     # فراغ صادق، الحقيقة للقراءة فقط، والمطوي details مستثنى في السكون)،
@@ -586,7 +624,7 @@ CAPS: dict[str, int] = {
     # message never rendered. Same-PR re-measurement; ratchet ledger entry
     # R9-SYS-A-RECURRINGEXPENSEEDITOR documents the file growth.
     "RecurringExpenseEditor": 34,
-    "SharePreview": 24,
+    # ("SharePreview": 24 — أزيل مع UNIT-040؛ انظر سجل الإزالة أعلاه.)
     # FinancialEventEditor 138 (2026-09-03, Group 1 §5.1–5.6 — first measurement
     # day): the guided expense journey — wallet question, category field + chips,
     # allocation review card, derived effect preview, guidance notes, draft banner
@@ -661,7 +699,25 @@ CAPS: dict[str, int] = {
     # next-actions (open estimate / start draft), dirty guard, local-truth line.
     # CostCalculator 56 → 59 (2026-09-04, Group 3 D5/§5.1): inventory suggestion
     # chips with receipt-confidence + excluded-items honesty (named, unpriced).
-    "CostCalculator": 59,
+    # CostCalculator 59 → 66 (2026-10-31, S10 UNIT-031/032 — أمر b56967d8/DOC-019,
+    # owner-approved execution order): حاسبة التخطيط T01 — المجموعات بوضعي التكلفة
+    # (تفصيل/إجمالي للكمية كاملة) وسعر البيع الحر ونتيجته وهامشه، والخصم/العمولة
+    # بأساس معلن، ومساعدة اقتراح السعر بأساسها، والإيرادات/المصاريف الأخرى،
+    # و«حساباتي المحفوظة» داخل الحاسبة مع حذفها الموثق. تسميات مفروضة من عقد
+    # 031/032 لا نثرًا حرًا؛ القيمة = القياس الفعلي يومها.
+    "CostCalculator": 66,
+    # S10 (UNIT-030 — أمر b56967d8/DOC-019، 2026-10-31): صفحات أدوات التخطيط
+    # T02–T05 — سقوف صريحة عند قياس يومها الأول بالضبط (لا الافتراضي 30):
+    # T02 قيمة ساعة العمل (المدخلات، الفترات، النتيجة بأساسها المعلن) = 22؛
+    # T03 كمية المبيعات اللازمة (المساهمة الموجبة، الفترة، التقريب لأعلى
+    # وعدم القابلية للحقيقة عند مقام مجهول) = 29؛
+    # T04 حصة المشروع من فاتورة (الأساس الصريح وحده، لا نسبة مخترعة) = 26؛
+    # T05 مراجعة أولية للفكرة (مدخلات ناقصة وخطوات تحقق تالية، لا حكم
+    # ذكاء اصطناعي) = 18. أي نمو لاحق يمر بإرساء موثق بنفس الـPR.
+    "HourValue": 22,
+    "SalesQuantity": 29,
+    "InvoiceShare": 26,
+    "IdeaReview": 18,
     # DeliveryReview (new 2026-09-04, Group 3 D5): the full pre-commitment delivery
     # surface — measured from day one per the Profile/CostCalculator precedent.
     # DeliveryReview 48 → 51 (2026-09-16, product-journey package ORD-002, owner-approved):
@@ -798,6 +854,8 @@ PAGES = [
     "InventoryMaterials",
     # المجموعة ٢ (عقد ٢٨): محررات المخزون تدخل القياس أول مرة (يوم القياس الأول).
     "Market",
+    # UNIT-043 (S16): صفحة التوصيل — إعلان «قريبًا» صادق؛ تقاس من يومها الأول.
+    "Delivery",
     "MaterialEditor",
     "InventoryMovementEditor",
     "SupplierPurchaseEditor",
@@ -817,17 +875,24 @@ PAGES = [
     "Profile",
     # المجموعة ٣ (Scope A/B): الحاسبة وصفحة التقدير وأدواتي بعد إعادة الهيكلة.
     "CostCalculator",
+    # S10 (UNIT-030 — أمر b56967d8/DOC-019، 2026-10-31): أدوات التخطيط T02–T05
+    # — تقاس من يومها الأول (سابقة Profile/CostCalculator).
+    "HourValue",
+    "SalesQuantity",
+    "InvoiceShare",
+    "IdeaReview",
     # المجموعة ٣ (عقد D5): مراجعة التسليم — تقاس من يومها الأول.
     "DeliveryReview",
     "EstimateDetail",
     "Tools",
     "Settings",
     "NotFound",
-    # المجموعة ١ (الإدخال المالي الموجّه): فحص السلامة + المحرر الموجّه + الكشف
-    # — تقاس من يومها الأول (سابقة Profile/CostCalculator).
-    "ToolsIntegrity",
-    # Wave 4.2 — P-4.2-4 (F01): سطح «المزيد من المالية» — قارئ منظم.
-    "FinanceMore",
+    # المجموعة ١ (الإدخال المالي الموجّه): المحرر الموجّه + الكشف — تقاس من
+    # يومها الأول. فحص السلامة (ToolsIntegrity) أزيل من القياس مع تقاعد
+    # سطحه المستقل (S17 / DOC-026 — UNIT-033): نصوصه تنتقل إلى قياس
+    # Settings حيث يقيم قسم «فحص البيانات» (انظر سجل الإزالة أعلاه).
+    # Wave 4.2 — P-4.2-4 (F01): سطح «المزيد من المالية» — قارئ منظم؛ أزيلت
+    # من القياس مع فقدان استقلالها (UNIT-013 — انظر سجل الإزالة أعلاه).
     # Stage 2 — OPS-005/006 (2026-09-20): سطح «القادم والاستحقاقات» — قارئ
     # موحد للقادم والمتأخر؛ يُقاس من يومه الأول (سابقة Profile/FinanceMore).
     "FinanceUpcoming",
@@ -836,9 +901,9 @@ PAGES = [
     "FinanceRecurring",
     "RecurringExpenseDetail",
     "RecurringExpenseEditor",
-    # المجموعة ٥ (عقد ٣٠/٣٣): قارئ النشاط الكامل ومعاينة المشاركة — تُقاسان من يومهما الأول.
+    # المجموعة ٥ (عقد ٣٠/٣٣): قارئ النشاط الكامل — يُقاس من يومه الأول؛
+    # معاينة المشاركة أزيلت مع UNIT-040 (انظر سجل الإزالة أعلاه).
     "FinanceActivity",
-    "SharePreview",
     "FinancialEventEditor",
     "Statement",
     # المجموعة ٤ (عقد ٢٩): أسطح الأصول والقروض ومحرراتها — تقاس من يومها الأول

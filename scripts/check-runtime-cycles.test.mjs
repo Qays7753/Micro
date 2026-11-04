@@ -148,37 +148,49 @@ describe("check-runtime-cycles — edge classification and resolution", () => {
 });
 
 describe("check-runtime-cycles — CLI and the live repository", () => {
-  it("exits 0 with a summary line on the live repo (type-only cycle ignored by design)", () => {
-    const cli = runCli(ROOT);
-    expect(cli.status).toBe(0);
-    expect(cli.stdout).toContain("runtime-cycle-guard:");
-    expect(cli.stdout).toContain("0 runtime cycles (type-only edges ignored)");
-    /* المستودع الحي: الحافة النوعية الوحيدة المعروفة (types ↔ supplierScheduleCommitGuard)
-     * لا تظهر كحافة زمن تشغيل في أي اتجاه. */
-    const edges = collectRuntimeEdges(ROOT);
-    const typesFile = path.join(
-      ROOT,
-      "apps",
-      "prototype-web",
-      "client",
-      "src",
-      "storage",
-      "local",
-      "types.ts",
-    );
-    const guardFile = path.join(
-      ROOT,
-      "apps",
-      "prototype-web",
-      "client",
-      "src",
-      "storage",
-      "local",
-      "supplierScheduleCommitGuard.ts",
-    );
-    expect(edges.get(typesFile)?.has(guardFile) ?? false).toBe(false);
-    expect(edges.get(guardFile)?.has(typesFile) ?? false).toBe(false);
-  });
+  /* S14 (أمر ba2ce7b4 §7 — إصلاح مهلة CI لا إضعاف حارس): هذا الفحص
+   * الدخاني يمسح المستودع الحي كاملًا مرتين (عملية CLI مستقلة + جمع
+   * الحواف داخل العملية)؛ القياس المحلي ~2.5 ثانية لكن عداء GitHub
+   * Actions المشترك تجاوز السقف الافتراضي 5 ثوانٍ (فشل التشغيل 41427195560
+   * على cc5e7680). المهلة الصريحة 30 ثانية هي نمط برaces-elimination
+   * القائم للمسح الشامل (60–300 ثانية هناك) — الحارس نفسه بلا أي تغيير:
+   * نفس المسح الكامل ونفس التوكيدات كلها؛ فقط سقف عدة الاختبار يتناسب
+   * مع مسح مستودع كامل على عداء مشترك. */
+  it(
+    "exits 0 with a summary line on the live repo (type-only cycle ignored by design)",
+    { timeout: 30_000 },
+    () => {
+      const cli = runCli(ROOT);
+      expect(cli.status).toBe(0);
+      expect(cli.stdout).toContain("runtime-cycle-guard:");
+      expect(cli.stdout).toContain("0 runtime cycles (type-only edges ignored)");
+      /* المستودع الحي: الحافة النوعية الوحيدة المعروفة (types ↔ supplierScheduleCommitGuard)
+       * لا تظهر كحافة زمن تشغيل في أي اتجاه. */
+      const edges = collectRuntimeEdges(ROOT);
+      const typesFile = path.join(
+        ROOT,
+        "apps",
+        "prototype-web",
+        "client",
+        "src",
+        "storage",
+        "local",
+        "types.ts",
+      );
+      const guardFile = path.join(
+        ROOT,
+        "apps",
+        "prototype-web",
+        "client",
+        "src",
+        "storage",
+        "local",
+        "supplierScheduleCommitGuard.ts",
+      );
+      expect(edges.get(typesFile)?.has(guardFile) ?? false).toBe(false);
+      expect(edges.get(guardFile)?.has(typesFile) ?? false).toBe(false);
+    },
+  );
 
   it("exits 2 with SCAN_EMPTY when the root has no production sources (honest failure)", () => {
     const empty = fs.mkdtempSync(path.join(os.tmpdir(), "micro-cycles-empty-"));

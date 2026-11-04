@@ -430,8 +430,10 @@ describe("FIN-002 — ميزانيات اختيارية على ملخص الفت
     expect(li.textContent).toContain("تجاوزت خطتك هذا الشهر بمبلغ");
     expect(li.textContent).toContain("10.00");
     expect(li.textContent).toContain("30.00");
-    /* لا حظر: مدخل تسجيل المصروف خارج القسم حي، ولا إنذار داخل القسم. */
-    expect(screen.getByText("سجّل مصروفًا مدفوعًا")).toBeTruthy();
+    /* لا حظر: مدخل تسجيل المصروف خارج القسم حي، ولا إنذار داخل القسم.
+     * UNIT-013 (تنفيذ S15): فعل التسجيل صار زر «تسجيل مصروف» المتقارب
+     * أعلى الصفحة (يفتح 015 صاحبه) بعد إخراج قائمة الإجراءات المطوية. */
+    expect(screen.getAllByRole("button", { name: /تسجيل مصروف/ }).length).toBeGreaterThan(0);
     expect(within(section).getByText("أضف ميزانية اختيارية")).toBeTruthy();
     expect(section.querySelector('[role="alert"]')).toBeNull();
     expect(await eventsCount()).toBe(1);
@@ -478,8 +480,10 @@ describe("FIN-002 — ميزانيات اختيارية على ملخص الفت
     expect(section.querySelectorAll("li")).toHaveLength(0);
     expect(within(section).queryByText("المنصرف غير معلوم بعد")).toBeNull();
     expect(section.querySelector('[role="alert"]')).toBeNull();
-    /* الصفحة نفسها حية كما كانت — تجاهل الميزانيات كلي ممكن. */
-    expect(screen.getByText("ملخص الفترة")).toBeTruthy();
+    /* الصفحة نفسها حية كما كانت — تجاهل الميزانيات كلي ممكن.
+     * UNIT-013 (تنفيذ S15): لا تبويب داخلي — قسم نتيجة الفترة على الصفحة
+     * نفسه هو دليل حياة الملخص. */
+    expect(screen.getByRole("heading", { name: "نتيجة الفترة المسجلة" })).toBeTruthy();
     expect(await eventsCount()).toBe(0);
     expect(await budgetsCount()).toBe(0);
   });

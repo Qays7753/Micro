@@ -11,3 +11,20 @@
  */
 
 export type { DailyFollowUp, DailyFollowUpService } from "./dailyFollowUpService";
+/* S13 (DOC-022 / UNIT-018+012 — أمر 2158b0fc §6، PC-3 توسيع مقصود بنفس
+ * الـPR): المتابعة الموحدة 012/018 — قارئ خالص فوق أصحاب المصادر. */
+export type {
+  FollowUpFilter,
+  FollowUpGroup,
+  FollowUpProjection,
+  FollowUpSourceKey,
+  FollowUpSourceState,
+  FollowUpTask,
+  FollowUpTaskKind,
+  PayablesAgingReader,
+  ReceivablesReader,
+  SettleablePayablesReader,
+  UnifiedFollowUpReading,
+  UnifiedFollowUpResult,
+} from "./unifiedFollowUpService";
+export { projectFollowUp, UnifiedFollowUpService } from "./unifiedFollowUpService";

@@ -16,7 +16,7 @@ export type ScheduleServiceStore = Pick<
   ScheduleStore,
   "listSchedules" | "getSchedule" | "commitScheduleCreate" | "commitScheduleUpdate"
 > &
-  Pick<PrototypeLocalStore, "getPreferences" | "savePreferences" | "listOrders">;
+  Pick<PrototypeLocalStore, "getPreferences" | "savePreferences" | "commitPreferencesUpdate" | "listOrders">;
 import { storageFailureCode } from "@/storage/local/types";
 import {
   daysInMonthOf,
@@ -120,7 +120,9 @@ const daysInMonth = (month: string) => {
 const activeForOrder = (schedule: ScheduleEntry, order: StoredCraftOrder) =>
   activeScheduleStatus(schedule.status) && orderCanAppear(order);
 
-function initialSchedule(order: StoredCraftOrder): ScheduleEntry {
+/* S12 (UNIT-009 — J002-DEC02): التسديد الافتراضي لطلب موعده معلوم فقط —
+ * المتصل يرشّح طلبات الموعد المجهول (null) قبل الوصول هنا. */
+function initialSchedule(order: StoredCraftOrder & { deliveryDate: string }): ScheduleEntry {
   const timestamp = order.updatedAt;
   return {
     id: `schedule-${order.id}`,
@@ -210,7 +212,15 @@ export class ScheduleService {
     if (!schedulesResult.ok || !ordersResult.ok) return storageFailure("تعذر قراءة جدول المواعيد المحلي.");
     const schedules = [...schedulesResult.value];
     const scheduledOrderIds = new Set(schedules.map(schedule => schedule.orderId));
-    const missing = ordersResult.value.filter(order => !scheduledOrderIds.has(order.id)).map(initialSchedule);
+    /* S12 (UNIT-009 — J002-DEC02): غياب الموعد لا يكتب جدولًا — طلب موعده
+     * مجهول (null) لا يُسدَّد له موعد افتراضي هنا؛ موعده يُنشأ حين يحدده
+     * المالك لاحقًا من صاحبه (012). */
+    const missing = ordersResult.value
+      .filter(
+        (order): order is StoredCraftOrder & { deliveryDate: string } =>
+          order.deliveryDate !== null && !scheduledOrderIds.has(order.id),
+      )
+      .map(initialSchedule);
     for (const schedule of missing) {
       /* المجموعة ٢ (التحصين الكامل — HIGH-001): التسديد الأول كتابة أولى فقط —
        * وجوده من مسار آخر إعادة استخدام لا كتابة فوقه. */

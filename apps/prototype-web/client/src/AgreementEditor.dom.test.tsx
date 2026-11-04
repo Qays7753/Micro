@@ -163,15 +163,19 @@ describe("R10-B4/NF-016 — AgreementEditor explicit read state machine", () => 
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/orders");
   });
 
-  it("a draft without a valid cost snapshot keeps its distinct guidance surface with the cost action", async () => {
+  it("S12 (J002-DEC01): a draft without a valid cost snapshot reaches the editor with the explicit unknown-cost choice", async () => {
     const draftId = await seedDraftWithoutCost();
     wouterMocks.params = { id: draftId };
     render(<Harness />);
-    const heading = await screen.findByRole("heading", { name: "التكلفة المطلوبة غير متاحة" });
-    expect(heading).toBeTruthy();
-    expect(screen.getByText("احفظ نسخة تكلفة صالحة قبل تسجيل الاتفاق.")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "فتح التكلفة" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(`/orders/draft/${draftId}/cost`);
+    await waitFor(() => {
+      expect(screen.getByText("سجّل ما اتفقت عليه")).toBeTruthy();
+    });
+    /* الاختيار الصريح ظاهر — لا سطح حجب ولا تكلفة 0 مفروضة. */
+    expect(screen.getByText("التكلفة غير معروفة الآن — سجّل الاتفاق بتكلفة مجهولة بصدق")).toBeTruthy();
+    /* التسجيل المبكر بلا سعر ولا اختيار: خطأ السعر أولًا (القناة الصريحة). */
+    fireEvent.click(screen.getByRole("button", { name: /تسجيل الاتفاق/ }));
+    const error = await screen.findByRole("alert");
+    expect(error.textContent).toContain("السعر المتفق عليه");
   });
 
   it("a draft with a valid cost snapshot reaches the ready editor; a premature save announces the validation error", async () => {
@@ -185,5 +189,183 @@ describe("R10-B4/NF-016 — AgreementEditor explicit read state machine", () => 
     fireEvent.click(screen.getByRole("button", { name: /تسجيل الاتفاق/ }));
     const error = await screen.findByRole("alert");
     expect(error.textContent).toContain("السعر المتفق عليه");
+  });
+});
+
+describe("S12 (UNIT-009 — أمر 2e645802): محرر الاتفاق — الموعد المجهول والتكلفة المجهولة وملخص الفعل", () => {
+  async function seedReadyDraft(): Promise<string> {
+    return seedDraftWithCost();
+  }
+
+  function savingServices() {
+    const base = services();
+    return {
+      ...base,
+      agreements: {
+        createFromDraft: vi.fn().mockResolvedValue({
+          ok: true,
+          stored: { id: "order-s12-new", order: { id: "order-s12-new" } },
+        }),
+      },
+    };
+  }
+
+  it("J002-DEC02: «لم يُحدد بعد» خيار صريح — بلا تاريخ اليوم وبلا حجب التسجيل، ويصل null للخدمة", async () => {
+    const draftId = await seedReadyDraft();
+    mockedUsePrototypeServices.mockReturnValue(
+      savingServices() as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    wouterMocks.params = { id: draftId };
+    render(<Harness />);
+    const price = await screen.findByLabelText("السعر المتفق عليه بالأرقام 0–9");
+    fireEvent.change(price, { target: { value: "12.00" } });
+    /* بلا تاريخ وبلا اختيار المجهول: رفض صادق يذكر الخيارين. */
+    fireEvent.click(screen.getByRole("button", { name: /تسجيل الاتفاق/ }));
+    let error = await screen.findByRole("alert");
+    expect(error.textContent).toContain("لم يُحدد بعد");
+
+    /* الاختيار الصريح: يخفي حقل التاريخ ويعلن الحقيقة، ويمر null للخدمة. */
+    fireEvent.click(screen.getByRole("checkbox", { name: "لم يُحدد بعد" }));
+    expect(screen.queryByLabelText("موعد التسليم")).toBeNull();
+    expect(screen.getByText(/لا موعد في التقويم/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /تسجيل الاتفاق/ }));
+    await waitFor(() => {
+      expect(mockedUsePrototypeServices().agreements?.createFromDraft).toHaveBeenCalled();
+    });
+    const agreementsService = mockedUsePrototypeServices().agreements;
+    if (!agreementsService) throw new Error("agreements service missing in test fixture");
+    const call = vi.mocked(agreementsService.createFromDraft).mock.calls[0];
+    expect(call?.[1].deliveryDate).toBeNull();
+  });
+
+  it("J002-DEC01: بلا مرجع تكلفة — الاختيار الصريح يمكّن التسجيل بتكلفة مجهولة", async () => {
+    const draftId = await seedDraftWithoutCost();
+    mockedUsePrototypeServices.mockReturnValue(
+      savingServices() as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    wouterMocks.params = { id: draftId };
+    render(<Harness />);
+    const price = await screen.findByLabelText("السعر المتفق عليه بالأرقام 0–9");
+    fireEvent.change(price, { target: { value: "12.00" } });
+    fireEvent.click(screen.getByRole("checkbox", { name: "لم يُحدد بعد" }));
+    /* بلا اختيار التكلفة: رفض يذكر الخيارين. */
+    fireEvent.click(screen.getByRole("button", { name: /تسجيل الاتفاق/ }));
+    const error = await screen.findByRole("alert");
+    expect(error.textContent).toContain("التكلفة غير معروفة الآن");
+
+    /* بالاختيار الصريح: يمر costUnknown للخدمة — مرجع مجهول لا تكلفة 0. */
+    fireEvent.click(screen.getByRole("checkbox", { name: /التكلفة غير معروفة الآن/ }));
+    fireEvent.click(screen.getByRole("button", { name: /تسجيل الاتفاق/ }));
+    await waitFor(() => {
+      expect(mockedUsePrototypeServices().agreements?.createFromDraft).toHaveBeenCalled();
+    });
+    const agreementsService = mockedUsePrototypeServices().agreements;
+    if (!agreementsService) throw new Error("agreements service missing in test fixture");
+    const call = vi.mocked(agreementsService.createFromDraft).mock.calls[0];
+    expect(call?.[1].costUnknown).toBe(true);
+  });
+
+  it("A2/س8: ملخص قصير ملاصق للفعل — القيمة والمستلم والمتبقي من المدخلات الفعالة", async () => {
+    const draftId = await seedReadyDraft();
+    wouterMocks.params = { id: draftId };
+    render(<Harness />);
+    const price = await screen.findByLabelText("السعر المتفق عليه بالأرقام 0–9");
+    fireEvent.change(price, { target: { value: "50.00" } });
+    const deposit = screen.getByLabelText("العربون بالأرقام 0–9");
+    fireEvent.change(deposit, { target: { value: "20.00" } });
+    expect(
+      screen.getByText("قيمة الطلب المسجلة 50.00 د.أ · المستلم مقدمًا 20.00 د.أ · المتبقي 30.00 د.أ"),
+    ).toBeTruthy();
+    /* نص فاسد في السعر: لا رقم من نص فاسد — الملخص يختفي. */
+    fireEvent.change(price, { target: { value: "خمسون" } });
+    expect(screen.queryByText(/قيمة الطلب المسجلة/)).toBeNull();
+  });
+
+  it("A2/س2 + A3: سياق المسودة ظاهر مع «تعديل»، وقسم التوصيل الجديد بلا رسوم زبون", async () => {
+    const draftId = await seedReadyDraft();
+    wouterMocks.params = { id: draftId };
+    render(<Harness />);
+    await waitFor(() => {
+      expect(screen.getByText("سجّل ما اتفقت عليه")).toBeTruthy();
+    });
+    /* سياق مختصر من المسودة مع فعل تعديل واحد. */
+    expect(screen.getByText("رف خشبي")).toBeTruthy();
+    const editActions = screen.getAllByRole("button", { name: "تعديل" });
+    expect(editActions.length).toBeGreaterThanOrEqual(1);
+
+    /* قسم التوصيل الجديد: لا يوجد توصيل / على المشروع فقط — لا خيار أجرة
+     * زبون ولا تقاسم في الإنشاء الجديد (P3.3). */
+    fireEvent.click(screen.getByText("النقل والتوصيل ومسؤولية كلفته"));
+    const select = screen.getByLabelText("ترتيب التوصيل عند الاتفاق");
+    const options = Array.from(select.querySelectorAll("option")).map(option => option.value);
+    expect(options).toEqual(["", "none", "project_pays"]);
+  });
+  it("تصحيح R5-F03: عربون يتجاوز السعر — لا متبقٍ سالبًا في المعاينة، وصدق يعلن الرفض", async () => {
+    const draftId = await seedReadyDraft();
+    mockedUsePrototypeServices.mockReturnValue({
+      ...services(),
+      agreements: {
+        createFromDraft: vi.fn().mockResolvedValue({
+          ok: false,
+          message: "لا يمكن أن يتجاوز العربون قيمة الطلب المتفق عليها.",
+        }),
+      },
+    } as unknown as ReturnType<typeof usePrototypeServices>);
+    wouterMocks.params = { id: draftId };
+    render(<Harness />);
+    const price = await screen.findByLabelText("السعر المتفق عليه بالأرقام 0–9");
+    fireEvent.change(price, { target: { value: "50.00" } });
+    const deposit = screen.getByLabelText("العربون بالأرقام 0–9");
+    fireEvent.change(deposit, { target: { value: "60.00" } });
+    /* المعاينة من النية القابلة للحفظ فقط — تختفي كلها حتى يصحح المدخل،
+     * ولا متبقٍ سالبًا ولا رقمًا من نية يرفضها الحد (نمط البيع المباشر نفسه). */
+    expect(screen.queryByText(/قيمة الطلب المسجلة/)).toBeNull();
+    expect(screen.queryByText(/المتبقي/)).toBeNull();
+    /* الحفظ يُرفض عند الحد بقاعدته — إعلان صادق لا صمت؛ بوابة الموعد عند
+     * المحرر تمر أولًا (المجهول الصريح المختار) فيصل الطلب إلى الحد المُنكّر. */
+    fireEvent.click(screen.getByRole("checkbox", { name: "لم يُحدد بعد" }));
+    fireEvent.click(screen.getByRole("button", { name: /تسجيل الاتفاق/ }));
+    const error = await screen.findByRole("alert");
+    expect(error.textContent).toContain("لا يمكن أن يتجاوز العربون");
+  });
+
+  it("تصحيح R5-F01: المجهول الصريح في المسودة — العنوان «قيد المراجعة» لا «ناقصًا»", async () => {
+    const draftId = await seedReadyDraft();
+    mockedUsePrototypeServices.mockReturnValue(
+      savingServices() as unknown as ReturnType<typeof usePrototypeServices>,
+    );
+    wouterMocks.params = { id: draftId };
+    render(<Harness />);
+    const price = await screen.findByLabelText("السعر المتفق عليه بالأرقام 0–9");
+    /* بلا سعر وبلا تاريخ: لا يوجد اتفاق بعد (فرع none كما كان). */
+    expect(screen.getByText("لا يوجد اتفاق")).toBeTruthy();
+    fireEvent.change(price, { target: { value: "50.00" } });
+    /* سعر بلا تاريخ (الفراغ = لم يُدخل بعد): ناقص كما كان — المجهول لم يُصرح به. */
+    expect(screen.getByText("اتفاق ناقص")).toBeTruthy();
+    /* المجهول الصريح: مراجعة لا نقصًا — «لم يُحدد بعد» مختلف عن الفراغ. */
+    fireEvent.click(screen.getByRole("checkbox", { name: "لم يُحدد بعد" }));
+    expect(screen.getByText("اتفاق قيد المراجعة")).toBeTruthy();
+    expect(screen.queryByText("اتفاق ناقص")).toBeNull();
+  });
+
+  it("تصحيح R3-F02-د: تبديل المجهول والتكلفة المجهولة وطي القسم — لا كتابة مالية", async () => {
+    const draftId = await seedDraftWithoutCost();
+    const base = services();
+    const saveSpy = vi.spyOn(base.drafts, "save");
+    mockedUsePrototypeServices.mockReturnValue(base as unknown as ReturnType<typeof usePrototypeServices>);
+    wouterMocks.params = { id: draftId };
+    render(<Harness />);
+    const price = await screen.findByLabelText("السعر المتفق عليه بالأرقام 0–9");
+    fireEvent.change(price, { target: { value: "50.00" } });
+    /* تبديل الموعد المجهول واختيار التكلفة المجهولة وطي قسم التوصيل وفتحه:
+     * كلها نية واجهة صرفة — لا كتابة اتفاق ولا مسودة مالية حتى الحفظ الصريح. */
+    fireEvent.click(screen.getByRole("checkbox", { name: "لم يُحدد بعد" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /التكلفة غير معروفة الآن/ }));
+    fireEvent.click(screen.getByText("النقل والتوصيل ومسؤولية كلفته"));
+    fireEvent.click(screen.getByText("النقل والتوصيل ومسؤولية كلفته"));
+    const agreementsService = mockedUsePrototypeServices().agreements;
+    if (!agreementsService) throw new Error("agreements service missing in test fixture");
+    expect(agreementsService.createFromDraft).not.toHaveBeenCalled();
+    expect(saveSpy).not.toHaveBeenCalled();
   });
 });

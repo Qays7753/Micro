@@ -4,18 +4,81 @@
  *
  * ما يثبته هذا الملف (الفجوة المقررة في بطاقة P-04):
  *  1) واجهة `PrototypeLocalStore` في `storage/local/types.ts` تحمل بالضبط
- *     131 توقيع طريقة — العدّ استخراج AST من المصدر نفسه (لا نسخ يدوي)،
+ *     146 توقيع طريقة — العدّ استخراج AST من المصدر نفسه (لا نسخ يدوي)،
  *     والقائمة المثبتة أدناه تطابقها عضويًا في الاتجاهين؛ أي إضافة/حذف
  *     يفشل الاختبار حتى إعادة إرساء موثقة (نمط ratشة، لا تعديل صامت).
  *     U001-IR-002 (2026-10-18، مراجعة مستقلة على رأس 1995c930): إعادة
  *     الإرساء الموثقة نفس-الـPR — إضافة commitProfileCreate (إنشاء الهوية
  *     الذرّي عند حد الكتابة) نقلت العدّ من 130 إلى 131؛ التصعيد مرغوب
  *     وموثق هنا وفي تقرير التنفيذ، لا نمو صامت.
+ *     S02-A (SH-02/SH-03، 2026-10-27): إعادة إرساء موثقة نفس-الـPR — خمس
+ *     طرق حماية الاستبدال الدائمة (getDataGeneration/readRestoreProtection/
+ *     beginReplacementIntent/commitReplacementIntent/abortReplacementIntent)
+ *     نقلت العدّ من 131 إلى 136؛ التصعيد مرغوب وموثق هنا وفي تقرير S02.
+ *     S03 (UNIT-039 B2/عقد §17، 2026-10-28): إعادة إرساء موثقة نفس-الـPR —
+ *     إضافة commitProfileRename وحدها (تعديل اسم الهوية القائمة بحد كتابة
+ *     محروس واحد: قراءة ومقارنة نسخة وكتابة داخل المعاملة نفسها — CAS على
+ *     updatedAt المتوقع، فلا lost update ولا سحق لاسم أحدث، بالمطابقة في
+ *     المحوّلين) نقلت العدّ من 136 إلى 137؛ القياس قبل/بعد على المرشّح
+ *     الدقيق: AST المصدر نفسه أعطى 136 عند f193ccd1 و137 على مرشّح S03
+ *     بفارق commitProfileRename فقط بلا أي حذف؛ التصعيد مرغوب وموثق هنا
+ *     وفي سجل نتيجة S03، لا نمو صامت، وبلا أي رفع سقف أو توسيع تسامح.
+ *     S03 revalidation (00-S03-REVALIDATION-S04-EXECUTION-PROMPT-2026-10-28
+ *     §A2، 2026-10-28): إعادة إرساء موثقة نفس-الـPR — إضافة
+ *     commitPreferencesUpdate وحدها (كتابة التفضيلات عند حد الكتابة:
+ *     القراءة الحية والدمج والكتابة داخل معاملة واحدة/خطوة متزامنة مع
+ *     فحص CAS اختياري — جذر علاج العيب المُثبت في تزامن كتابة التفضيلات،
+ *     بالمطابقة في المحوّلين) نقلت العدّ من 137 إلى 138؛ القياس قبل/بعد
+ *     على المصدر نفسه: AST أعطى 137 عند رأس النشر 3e7e4dfc و138 على
+ *     شجرة العمل بفارق commitPreferencesUpdate فقط بلا أي حذف؛ التصعيد
+ *     مرغوب وموثق هنا وفي سجل نتيجة S03-revalidation، لا نمو صامت، وبلا
+ *     أي رفع سقف أو توسيع تسامح.
+ *     S04 (DOC-013 / UNIT-025 + العقد المشترك §6.1/§8/§14، 2026-10-28):
+ *     إعادة إرساء موثقة نفس-الـPR — إضافة listBalanceObservations
+ *     وcommitCashObservation وحدهما (رصد أرصدة النقد: القياس الدائم
+ *     للموجود بنطاقه وقطعه ومعرفته، وتسويته المرتبطة إن وجدت في معاملة
+ *     واحدة مع مطابقة مرجع حي داخل الحد — قياس لا حركة نقدية) نقلت العدّ
+ *     من 138 إلى 140؛ القياس قبل/بعد على المصدر نفسه: AST أعطى 138 عند
+ *     رأس علاج S03 26fa9437 و140 على مرشح S04 بالفارقين المصرح بهما فقط
+ *     بلا أي حذف؛ التصعيد مرغوب وموثق في سجل نتيجة S04، لا نمو صامت،
+ *     وبلا أي رفع سقف أو توسيع تسامح.
+ *     S05 (DOC-014 / UNIT-037 + العقد المشترك §5.1/§14، 2026-10-29):
+ *     إعادة إرساء موثقة نفس-الـPR — إضافة listCounterparties
+ *     وgetCounterparty وcommitCounterpartyWrite وحدها (الأطراف المحفوظة:
+ *     هوية تعريفية اختيارية بلا رصيد ولا حدث مالي، بكتابة محروسة عند حد
+ *     التخزين: عهدة بالمفتاح وتعارض إنشاء وCAS تعديل) نقلت العدّ من 140
+ *     إلى 143؛ القياس قبل/بعد على المصدر نفسه: AST أعطى 140 عند رأس S04
+ *     النهائي eab7b6a9 و143 على شجرة عمل S05 بالفوارق الثلاثة المصرح بها ثم 144 في S06 بفارق واحد مصرح به (commitRecurringExpenseOccurrenceLink — حصرية ربط الحدث بالفترة داخل حد الكتابة، R2-F01)
+ *     فقط بلا أي حذف؛ التصعيد مرغوب وموثق في سجل نتيجة S05، لا نمو صامت،
+ *     وبلا أي رفع سقف أو توسيع تسامح.
+ *     S08 (DOC-017 / UNIT-034 + أمر S08 المنشور في 73c1a344، 2026-10-30):
+ *     إعادة إرساء موثقة نفس-الـPR — إضافة commitAssetAcquisition
+ *     وcommitAssetPayableSettlement وحدهما (اقتناء الأصل عند حد الكتابة:
+ *     حدث المصدر مع الدفعة الجزئية في معاملة واحدة، وسداد المتبقي بقراءة
+ *     حية ومقارنة داخل الحد نفسه) نقلت العدّ من 144 إلى 146؛ القياس
+ *     قبل/بعد على المصدر نفسه؛ التصعيد مرغوب وموثق في سجل نتيجة S08،
+ *     لا نمو صامت، وبلا أي رفع سقف أو توسيع تسامح.
+ *     S10-MR-001 (أمر S11 — القسم ٥، b33a8877، 2026-10-31): إعادة إرساء
+ *     موثقة نفس-الـPR — إضافة commitCostEstimateCreate وحدها (التزام إنشاء
+ *     حساب التخطيط T01 المحروس بمفتاح النية عند حد كتابة واحد في
+ *     المحوّلين: عهدة بالمفتاح وتعارض صادق لمدخلات مختلفة — علاج جذر سباق
+ *     التزامن المكتشف مستقلًا) نقلت العدّ من 146 إلى 147؛ القياس قبل/بعد
+ *     على المصدر نفسه: AST أعطى 146 عند رأس نشر أمر S11 b33a8877 و147
+ *     على شجرة الإصلاح بفارق commitCostEstimateCreate فقط بلا أي حذف؛
+ *     التصعيد مرغوب وموثق في ملحق مراجعة S10 (15a)، لا نمو صامت، وبلا
+ *     أي رفع سقف أو توسيع تسامح.
+ *     S11 (DOC-020 / UNIT-005/026 sale-slice + أمر S11 عند b33a8877، 2026-10-31):
+ *     إعادة إرساء موثقة نفس-الـPR — إضافة commitDirectSaleWrite وحدها (التزام
+ *     كتابة البيع المباشر المحروس: إنشاء/تحصيل/مرتجع/رد/تصحيح/إلغاء داخل
+ *     حد كتابة واحد بفحص النسخة والمتبقي الحيين وسطر قيمة النقد معًا أو لا
+ *     شيء) نقلت العدّ من 147 إلى 148؛ القياس قبل/بعد على المصدر نفسه بفارق
+ *     commitDirectSaleWrite فقط بلا أي حذف؛ التصعيد مرغوب وموثق في سجل
+ *     نتيجة S11، لا نمو صامت، وبلا أي رفع سقف أو توسيع تسامح.
  *  2) محوّلا التخزين (IndexedDbLocalStore وMemoryLocalStore) يعرضان على
- *     نماذجهما بالضبط الأسماء الـ131 ذاتها — مطابقة السطح التنفيذية
+ *     نماذجهما بالضبط الأسماء الـ152 ذاتها — مطابقة السطح التنفيذية
  *     للعقد الكتابي (P-01/P-02 conformance).
- *  3) ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 38 و
- *     localExportVersion = 30 (محروسان بقرار مالك وdiff مزدوج — AGENTS §10).
+ *  3) ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 40 و
+ *     localExportVersion = 33 (كان 32 — تصحيح مؤرخ 2026-11-01 DOC-021/S12) (محروسان بقرار مالك وdiff مزدوج — AGENTS §10).
  *  4) حدّ الذاكرة الموثق (P-02): كل نسخة MemoryLocalStore حالة مستقلة
  *     بلا أي استمرارية — أدلة اختبارية صريحة لحدود السطح الذاكي.
  *
@@ -34,20 +97,40 @@ import { IndexedDbLocalStore } from "./IndexedDbLocalStore";
 
 const TYPES_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "types.ts");
 
-/** الجرد المثبت للـ131 طريقة (مرتب حرفيًا؛ إعادة الإرساء تتطلب توثيقًا بنفس الـPR).
+/** الجرد المثبت للـ152 طريقة (مرتب حرفيًا؛ إعادة الإرساء تتطلب توثيقًا بنفس الـPR).
  * U001-IR-002 (2026-10-18): commitProfileCreate أُضيف بإعادة إرساء موثقة
- * نفس-الـPR (مراجعة مستقلة — إنشاء ملف الهوية ذرّيًا عند حد الكتابة). */
+ * نفس-الـPR (مراجعة مستقلة — إنشاء ملف الهوية ذرّيًا عند حد الكتابة).
+ * S03 (UNIT-039 B2/عقد §17، 2026-10-28): commitProfileRename أُضيف بإعادة
+ * إرساء موثقة نفس-الـPR (تعديل الاسم بفحص حي للنسخة داخل معاملة واحدة).
+ * S03 revalidation (§A2، 2026-10-28): commitPreferencesUpdate أُضيف بإعادة
+ * إرساء موثقة نفس-الـPR (كتابة التفضيلات: دمج الرقعة فوق الحي داخل الحد
+ * مع فحص CAS اختياري — علاج جذر عيب التزامن المُثبت §A1).
+ * S08 (DOC-017، 2026-10-30): commitAssetAcquisition وcommitAssetPayableSettlement
+ * أُضيفا بإعادة إرساء موثقة نفس-الـPR (منافذ أحداث الأصول عند حد الكتابة).
+ * S14 (DOC-023 — أمر ba2ce7b4 §5، 2026-11-02): listPeriodSummaries و
+ * listCommandReceipts وgetCommandReceipt وcommitAccountCompletion أُضيفت
+ * بإعادة إرساء موثقة نفس-الـPR (منافذ الاستكمال المنسق عند حد الكتابة —
+ * 148 ← 152). */
 export const PINNED_PORT_METHODS: readonly string[] = [
+  "abortReplacementIntent",
+  "beginReplacementIntent",
   "clearFormDrafts",
+  "commitAccountCompletion",
   "commitAllocationPolicySuccessor",
+  "commitAssetAcquisition",
   "commitAssetAcquisitionCorrection",
+  "commitAssetPayableSettlement",
   "commitAssetRecord",
   "commitCashContinuity",
+  "commitCashObservation",
   "commitCatalogTemplateRevision",
+  "commitCostEstimateCreate",
+  "commitCounterpartyWrite",
   "commitDepositClassification",
   "commitDepositClassificationCorrection",
   "commitDepositRefundSettlement",
   "commitDirectSaleCollectionReversal",
+  "commitDirectSaleWrite",
   "commitFinancialEventCorrection",
   "commitFinancialEventReplacement",
   "commitInventory",
@@ -64,15 +147,19 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "commitOwnerEntitlementPolicySuccessor",
   "commitOwnerEntitlementRecordReversal",
   "commitOwnerMovement",
+  "commitPreferencesUpdate",
   "commitProfileCreate",
+  "commitProfileRename",
   "commitReceivedLoanCorrection",
   "commitReceivedLoanRecord",
   "commitRecurrence",
   "commitRecurringExpenseDraft",
   "commitRecurringExpenseOccurrenceDecision",
+  "commitRecurringExpenseOccurrenceLink",
   "commitRecurringExpenseOccurrenceRecord",
   "commitRecurringExpenseOccurrences",
   "commitRecurringExpenseSeriesChange",
+  "commitReplacementIntent",
   "commitScheduleCreate",
   "commitScheduleUpdate",
   "commitShortCashDeclarationReversal",
@@ -86,7 +173,10 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "getAsset",
   "getCatalogItem",
   "getCatalogTemplate",
+  "getCommandReceipt",
   "getCostEstimate",
+  "getCounterparty",
+  "getDataGeneration",
   "getDirectConversion",
   "getDraft",
   "getFinancialEvent",
@@ -112,11 +202,14 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "listActualTimeRecords",
   "listAllocationPolicies",
   "listAssets",
+  "listBalanceObservations",
   "listCashContinuityEntries",
   "listCashWallets",
   "listCatalogItems",
   "listCatalogTemplates",
+  "listCommandReceipts",
   "listCostEstimates",
+  "listCounterparties",
   "listDirectConversions",
   "listDirectSales",
   "listDrafts",
@@ -133,6 +226,7 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "listOwnerEntitlementPolicies",
   "listOwnerEntitlementRecords",
   "listOwnerMovements",
+  "listPeriodSummaries",
   "listReceivedLoans",
   "listRecurrences",
   "listRecurringExpenseOccurrences",
@@ -141,6 +235,7 @@ export const PINNED_PORT_METHODS: readonly string[] = [
   "listSchedules",
   "listShortCashDeclarations",
   "listSupplierPurchases",
+  "readRestoreProtection",
   "readSnapshot",
   "replaceSnapshot",
   "saveActualTimeRecord",
@@ -212,29 +307,49 @@ function publicMethodNames(prototype: object): string[] {
 }
 
 describe("P-04 — أدلة سطح منفذ التخزين المحلي (OD-PRESERVE؛ بلا تقسيم أو نقل)", () => {
-  it("واجهة PrototypeLocalStore تحمل بالضبط 131 طريقة — والقائمة المثبتة مطابقة عضويًا في الاتجاهين", () => {
+  it("واجهة PrototypeLocalStore تحمل بالضبط 152 طريقة — والقائمة المثبتة مطابقة عضويًا في الاتجاهين", () => {
     const live = extractInterfaceMethodNames();
-    expect(live).toHaveLength(131);
+    expect(live).toHaveLength(152);
     expect(live).toEqual([...PINNED_PORT_METHODS]);
   });
 
-  it("P-01: نموذج IndexedDbLocalStore يعرض بالضبط الأسماء الـ131 ذاتها (مطابقة السطح التنفيذية)", () => {
+  it("P-01: نموذج IndexedDbLocalStore يعرض بالضبط الأسماء الـ152 ذاتها (مطابقة السطح التنفيذية)", () => {
     expect(publicMethodNames(IndexedDbLocalStore.prototype)).toEqual([...PINNED_PORT_METHODS]);
   });
 
-  it("P-02: نموذج MemoryLocalStore يعرض الأسماء الـ131 ذاتها + مساعد TS-private واحد موثق فقط", () => {
-    /* حدّ موثق: `private` في TypeScript زمن ترجمة لا زمن تشغيل — المساعد
-     * يظهر على النموذج؛ نثبّته بالاسم فأي مساعد جديد (خاص أو عام) يفشل
-     * الاختبار حتى توثيقه هنا — لا سطح خفي خلف العقد. */
-    const documentedPrivateHelpers = ["checkRecurrenceSchedule"];
+  it("P-02: نموذج MemoryLocalStore يعرض الأسماء الـ152 ذاتها + مساعدَا TS-private/protected موثقان فقط", () => {
+    /* حدّ موثق: `private`/`protected` في TypeScript زمن ترجمة لا زمن تشغيل —
+     * المساعد يظهر على النموذج؛ نثبته بالاسم فأي مساعد جديد (خاص أو عام)
+     * يفشل الاختبار حتى توثيقه هنا — لا سطح خفي خلف العقد.
+     * S12-ATOMIC-001 (أمر ba2ce7b4 §3، 2026-11-02): إعادة إرساء موثقة
+     * نفس-الـPR — إضافة onDeliveryBundleWrite وحدها (protected، no-op في
+     * الإنتاج، تُستدعى بعد كل كتابة مجندلة في حزمة تسليم التسليم — الخيط
+     * الداخلي الضيق الذي يتيح لاختبار الذرّية حقن فشل حتمي بعد بدء كتابة
+     * فعلية لا قبلها ويثبت تدحرج دفتر التراجع) نقلت المساعدات الموثقة من
+     * واحدة إلى اثنتين؛ التصعيد مرغوب وموثق هنا وفي ملحق 17b، لا نمو صامت. */
+    /* S14 (DOC-023 — أمر ba2ce7b4 §5): إعادة إرساء موثقة نفس-الـPR — إضافة
+     * onCoordinatedWrite وحدها (protected، no-op إنتاجيًا، تُستدعى بعد كل
+     * كتابة مجندلة في حزمة الاستكمال المنسقة — خيط إثبات الذرّية الداخلي
+     * الضيق على نمط S12-ATOMIC-001) رفعت المساعدات الموثقة من اثنتين إلى
+     * ثلاث؛ وأربع طرق منفذ عام جديدة دخلت القائمة المثبتة (152 = 148 +
+     * listPeriodSummaries/listCommandReceipts/getCommandReceipt/
+     * commitAccountCompletion). */
+    const documentedPrivateHelpers = [
+      "checkRecurrenceSchedule",
+      "onDeliveryBundleWrite",
+      "onCoordinatedWrite",
+    ];
     expect(publicMethodNames(MemoryLocalStore.prototype)).toEqual(
       [...PINNED_PORT_METHODS, ...documentedPrivateHelpers].sort(),
     );
   });
 
-  it("ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 38 وlocalExportVersion = 30", () => {
-    expect(localSchemaVersion).toBe(38);
-    expect(localExportVersion).toBe(30);
+  it("ثابتا الإصدار كما هما بالقيمة: localSchemaVersion = 41 وlocalExportVersion = 34 (تصحيح مؤرخ 2026-11-02 DOC-023/S14؛ كان 40/33)", () => {
+    /* S14 (DOC-023 / UNIT-002 — عائلتا المنسق): الزوج الحي 41/34 (تصحيح مؤرخ
+     * 2026-11-02 DOC-023/S14؛ كان 40/33 — مخزنا period-summaries و
+     * command-receipts بنمط D-037 بلا ترحيل بيانات). */
+    expect(localSchemaVersion).toBe(41);
+    expect(localExportVersion).toBe(34);
   });
 
   it("P-02 (حدّ موثق): كل نسخة MemoryLocalStore حالة مستقلة بلا استمرارية — النسخة الجديدة تبدأ فارغة", async () => {

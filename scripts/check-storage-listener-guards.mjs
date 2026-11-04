@@ -34,6 +34,9 @@ export const STORAGE_BOUNDARY_FILES = [
   "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts",
   "apps/prototype-web/client/src/storage/local/indexedDbSnapshot.ts",
   "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+  /* S14 (DOC-023 — أمر ba2ce7b4 §5): وحدة حد الاستكمال — مستمعات الكسولة
+   * داخل نطاق الحارس نفسه. */
+  "apps/prototype-web/client/src/storage/local/accountCompletionBoundary.ts",
 ];
 
 /** الاستثناءات الموثقة: أجسام لا يمكن أن يرمي شيء فيها بحكم البناء.

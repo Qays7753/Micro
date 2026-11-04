@@ -30,9 +30,13 @@ import { isKnownCapabilityId } from "@/application/preferences";
 
 type SectionProps = {
   preferences: PreferenceService;
-  agreements: AgreementService;
+  /* S12 (DOC-021 — أمر 2e645802 §9، سابقة supplierPurchases نفسها): خدمة
+   * الاتفاق كسولة — null = «جارٍ التجهيز» (أعداد القبول تبقى غير محملة
+   * بلا رقم كاذب وتُعاد القراءة فور جاهزيتها). */
+  agreements: AgreementService | null;
   inventory: InventoryMaterialService;
-  supplierPurchases: SupplierPurchaseService;
+  /* S07 (سابقة transfers/loans): خدمة المشتريات كسولة — null = «جارٍ التجهيز». */
+  supplierPurchases: SupplierPurchaseService | null;
   catalog: CatalogService;
   dataVersion: number;
   notifyDataChanged: () => void;
@@ -56,6 +60,10 @@ export function SettingsCapabilitiesSection({
 
   useEffect(() => {
     let active = true;
+    /* S07 (سابقة transfers/loans) + S12 (DOC-021): الخدمتان الكسولتان غير
+     * جاهزتين بعد — الأعداد تبقى غير محملة (عد 0 مع «قيد التجهيز» لا رقمًا
+     * كاذبًا) وتُعاد القراءة فور جاهزيتهما (dependency على الخدمتين). */
+    if (!supplierPurchases || !agreements) return undefined;
     void (async () => {
       const preference = await preferences.readDisabledCapabilities();
       if (active && preference.ok) setDisabled(preference.disabled.filter(isKnownCapabilityId));
@@ -124,7 +132,7 @@ export function SettingsCapabilitiesSection({
             id: "orders",
             label: "الطلبات والتنفيذ",
             why: "للعمل الذي يُنفَّذ على مراحل: مسودة، اتفاق، تنفيذ، جاهزية، تسليم، ثم تحصيل أو دين.",
-            affects: "أزرار «طلب من عميل» و«مسودة تصميم» في مشروعي الآن، وأزرار الإنشاء في العمل.",
+            affects: "أزرار «طلب من عميل» و«مسودة تصميم» في الرئيسية، وأزرار الإنشاء في العمل.",
             financialEffect: "الإيقاف يمنع إنشاء طلبات جديدة فقط؛ الطلبات والديون القائمة تبقى ظاهرة.",
             appearsIn: "قائمة الطلبات ومواعيد التسليم في «العمل»، وديون العملاء في «المالية».",
           },
@@ -150,7 +158,7 @@ export function SettingsCapabilitiesSection({
             why: "مرجع سريع لأعمالك المتكررة بأسعارها وقوالب تكلفتها.",
             affects: "مدخل «منتجاتي وخدماتي» من الرئيسية والعمل.",
             financialEffect: "لا أثر مالي أبدًا — مرجع قراءة؛ الإيقاف يخفي مدخله فقط.",
-            appearsIn: "وحدة «منتجاتي وخدماتي» في مشروعي الآن، ومسار الكتالوج.",
+            appearsIn: "وحدة «منتجاتي وخدماتي» في الرئيسية، ومسار الكتالوج.",
           },
         ];
         return (

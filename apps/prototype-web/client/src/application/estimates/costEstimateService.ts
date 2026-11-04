@@ -1,6 +1,14 @@
 /**
  * Standalone cost estimates (PA-006 + «أدواتي»): a thinking tool before any commitment.
  * Saving an estimate never creates a financial event, an inventory movement, or an order.
+ *
+ * S10 (UNIT-031/032 + SH-14 — أمر b56967d8): دورة حساب T01 المحفوظ
+ * (previewPlanning/savePlanning/updatePlanning) انتقلت إلى
+ * planningCalculationLifecycle.ts — تُحمّل ديناميكيًا بعد الإقلاع فوق
+ * المخزن الوحيد (سابقة purchases/assets — بروتوكول FIN-001/OPS-003):
+ * دومين التخطيط يخرج من كومة الإقلاع وسقف gzip المحروس لا يُرفع.
+ * الحفظ/الفتح/التحديث/الحذف يبقى صفر أثر أعمال، والفتح لا يعيد تسعير
+ * التاريخ بأسعار اليوم.
  */
 import { calculateCostSnapshot } from "@micro-domain/craft-order/index.js";
 import type { CostEstimate, DraftCostMaterial, DraftCostTime } from "@/storage/local/types";

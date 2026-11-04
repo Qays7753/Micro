@@ -17,6 +17,12 @@ export type { BrowserPersistenceReading, PreferenceService } from "./preferenceS
  * الأبواب (بروتوكول PC-3). */
 export type { ThemePreference } from "./preferenceService";
 export type { CapabilityId } from "./preferenceService";
+/* S03 (UNIT-038 P3.2/UNIT-001 P3.2 — توسيع سطح مقصود بنفس الـPR وفق PC-3):
+ * تفضيل ما يقدمه المشروع عبر الباب لمستهلكي الواجهة (سؤال البداية في Setup
+ * وقسم تفضيلات الاستخدام في الإعدادات) — النوع الكنوني وحارس الترشيح من
+ * مالك التخزين نفسه، بلا إعادة تعريف محلية منافسة. */
+export type { OfferingPreference } from "./preferenceService";
+export { isOfferingPreference } from "./preferenceService";
 /* R10-B3/R10A-F-004 (2026-10-11): حارس الترشيح قيمةً عبر الباب لمستهلكي
  * الواجهة (توسيع سطح مقصود بنفس الـPR — PC-3). */
 export { isKnownCapabilityId } from "./preferenceService";

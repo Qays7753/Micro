@@ -1,0 +1,102 @@
+{
+  "id": "WS-236",
+  "title": "S11 execution workstream — البيع المباشر والتسجيل السريع والتحصيل منه (UNIT-004/005/026 sale-slice + SH-15)",
+  "status": "REVIEW_REQUIRED",
+  "items": [
+    "DOC-020"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "3e3b9597",
+  "areas": [
+    "src/domain/direct-sale/",
+    "apps/prototype-web/client/src/application/direct-sales/",
+    "apps/prototype-web/client/src/application/collections/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/components/finance/QuickSaleForm.tsx",
+    "apps/prototype-web/client/src/components/finance/QuickExpenseForm.tsx",
+    "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx",
+    "apps/prototype-web/client/src/pages/Collect.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S11-EXECUTION-PROMPT-2026-10-31.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-004-التسجيل-السريع.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-005-البيع-المباشر.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-026-تسجيل-دفعة-على-مستحق.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-10-31",
+  "updated_at": "2026-11-04",
+  "next_action": "S11 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا عمل مرحلي إضافي دون دليل جديد؛ لا VERIFIED على main ولا merge.",
+  "notes": [
+    "أمر التنفيذ الوحيد هو 00-S11-EXECUTION-PROMPT-2026-10-31.md المنشور في b33a8877؛ GitHub هو مصدر الحقيقة التشغيلي.",
+    "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
+    "fix-first أُنجز أولًا: S10-MR-001 في 930560dc + ملحق 15a وسجلات Control في 3e3b9597؛ DOC-019 بقيت IN_REVIEW وWS-235 بقيت REVIEW_REQUIRED.",
+    "S11 لا تبني محول الطلب (S12) ولا الحق الافتتاحي (S14) ولا دفتر قبض عام؛ direct-sales يبقى الأصل الوحيد.",
+    "المخطط/التصدير 40/32: لا ترقية إن لم يتطلب السلك الدائم تغييرًا؛ الحقول الجديدة اختيارية متوافقة رجعيًا داخل عائلة قائمة (نمط S05/S06/S10) مع دورة كاملة على المهايئين.",
+    "قبول المالك الشامل لـS11 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 16-S11-RESULT-2026-10-31.md + 16a/16b addenda والمرشح 020e1e8b؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S11-EXECUTION-PROMPT-2026-10-31.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/15a-S10-REVIEW-ADDENDUM-2026-10-31.md"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-31",
+      "reason": "مطالبة عمل S11 المأذونة بأمر b33a8877 فوق رأس سجلات الإصلاح 3e3b9597 على الفرع/PR نفسيهما.",
+      "actor": "zai-s11-execution"
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-10-31",
+      "actor": "zai-s11-execution",
+      "reason": "اكتمل تنفيذ شريحة S11 المملوكة (بيع 005 + تحصيل 026 sale-slice + تسجيل سريع 004 + مرتجع PD-02 + SH-15) بالمراجعات الخمس وتصحيحاتها والسلسلة الكاملة خروج 0 على 020e1e8b؛ رهن المراجعة المستقلة وقبول المالك — لا يعني التنفيذ قبولًا."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "أمر 2e645802 §4: فجوتا مراجعة S11 المؤكدتان (S11-MR-001 مسار النموذج، S11-MR-002 العميل الاختياري) تُصلحان بانحدار دائم قبل S12 — فتح قانوني للتيار."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "تنفيذ تصحيح المراجعة (S11-MR-001/MR-002) داخل نطاق التيار نفسه على الفرع/PR القائمين."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "التصحيح الجذري أُنجز في eb23311e بالانحدارات الدائمة والملحق 16a — التيار يعود لحالة المراجعة المعلقة بصدق (لا ادعاء قبول)."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "أمر المالك المتصل 2158b0fc (§3): موجدتا مراجعة ac4429ef المستقلة الجديدتان S11-LR-001/S11-LR-002 تستوجبان فتح المطالبة قانونيًا قبل التصحيح."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "تنفيذ التصحيح/التحصيص المأذون (أمر 2158b0fc §4) على الفرع نفسه وPR #383؛ لا موافقة وسيطة."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "تصحيح S11-LR-001/LR-002 مكتمل بانحداراته (2de3e94e + الملحق 16b)؛ مطالبة S11 تعود لحالة مراجعة صادقة — لا قبول ذاتيًا."
+    }
+  ],
+  "migration_baseline": true
+}

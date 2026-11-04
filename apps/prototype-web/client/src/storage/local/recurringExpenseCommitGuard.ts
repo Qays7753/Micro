@@ -90,6 +90,27 @@ export function validateRecurringExpenseMaterialization(
   return { ok: false, message: RECURRING_EXPENSE_STALE_MESSAGE };
 }
 
+/** S06 (UNIT-019 B4/D06 — R2-F01 مراجعة S06 القرائية ٢): حصرية ربط الحدث
+ * بالفترة داخل حد الكتابة نفسه — الحدث الواحد دورة واحدة؛ فحص القراءة
+ * وحده في الخدمة يسبقه ثلاث نوافذ انتظار فيمكن لربطين متزامنين
+ * اجتيازه (نمط سباق نافذتين المعتمد في المستودع). يُفحص داخل معاملة
+ * المهايئين مع قرار الربط ذاته فلا يمر ربط مزدوج أبدًا. */
+export const RECURRING_EXPENSE_LINK_EXCLUSIVE_MESSAGE =
+  "هذا المصروف مرتبط بدورة أخرى — الحدث الواحد دورة واحدة؛ اختر مصروفًا آخر.";
+
+export function validateRecurringExpenseOccurrenceLinkExclusivity(
+  occurrences: readonly RecurringExpenseOccurrence[],
+  next: RecurringExpenseOccurrence,
+): RecurringExpenseGuardResult {
+  if (next.recordedFinancialEventId === null) return { ok: true };
+  const holder = occurrences.find(
+    candidate =>
+      candidate.id !== next.id && candidate.recordedFinancialEventId === next.recordedFinancialEventId,
+  );
+  if (holder) return { ok: false, message: RECURRING_EXPENSE_LINK_EXCLUSIVE_MESSAGE };
+  return { ok: true };
+}
+
 /** قرار فترة مفرد: الأساس مطابق للحي (أو القرار مطبق سلفًا = إعادة استخدام). */
 export function validateRecurringExpenseOccurrenceDecision(
   stored: RecurringExpenseOccurrence | undefined,

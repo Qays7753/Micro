@@ -9,10 +9,12 @@ import {
 } from "../shared/index.js";
 import { reversedEventIds, type FinancialEvent } from "../financial-event/index.js";
 import type {
+  AssetAcquisitionParty,
   AssetContractRevision,
   AssetDepreciationProposal,
   AssetDisposalRecord,
   AssetEventSummary,
+  AssetPaymentStatus,
   AssetRecord,
   AssetWriteOffRecord,
   CreateAssetRecordInput,
@@ -57,6 +59,42 @@ function assertAssetNote(note: string | null | undefined) {
     throw new Error("ملاحظة الأصل تتجاوز 500 حرف؛ اختصرها.");
 }
 
+/* S08 (UNIT-034): طرف الاقتناء المحفوظ — هوية مستقرة غير فارغة ولقطة اسم
+ * تاريخية محفوظة كما قُرئت؛ لا تحقق وجود الطرف هنا (المجال نقي لا يملك
+ * قائمة الأطراف — الخدمة تتحقق من المخزن الحي عند الإنشاء بنمط S05). */
+function normalizeAcquisitionParty(
+  party: AssetAcquisitionParty | null | undefined,
+): AssetAcquisitionParty | null {
+  if (party === null || party === undefined) return null;
+  const partyId = party.partyId?.trim() ?? "";
+  const labelSnapshot = party.labelSnapshot?.trim() ?? "";
+  if (!partyId) throw new Error("مرجع طرف الاقتناء يحتاج معرفًا مستقرًا غير فارغ.");
+  if (!labelSnapshot) throw new Error("مرجع طرف الاقتناء يحتاج لقطة اسم تاريخية غير فارغة.");
+  if (labelSnapshot.length > 120) throw new Error("لقطة اسم طرف الاقتناء تتجاوز 120 حرفًا؛ اختصرها.");
+  return { partyId, labelSnapshot };
+}
+
+/* S08 (UNIT-034 / SDF-066): المدفوع لحظة الإنشاء — الغياب = مسار الدفع
+ * الكامل القائم (النوع يحكي القصة)؛ والحضور يعني اقتناءً جزئيًا بنوع
+ * «ذمم» ودفعة أولى أصغر من القيمة: لا وصف الجزئي بمدفوع كامل ولا
+ * مصروف لتغطية الفجوة، والمتبقي يولد حدث ذمم صريحًا. */
+function normalizePaidAtCreation(
+  paid: number | null | undefined,
+  amountMinor: number,
+  acquisitionKind: "cash" | "payable",
+): number | null {
+  if (paid === null || paid === undefined) return null;
+  if (!Number.isInteger(paid) || paid <= 0 || paid >= amountMinor)
+    throw new Error(
+      "المدفوع لحظة الإنشاء يجب أن يكون مبلغًا صحيحًا أكبر من صفر وأصغر من قيمة الأصل — أو اتركه فارغًا للمسار الكامل.",
+    );
+  if (acquisitionKind !== "payable")
+    throw new Error(
+      "الدفع الجزئي يقتضاء طريقة اقتناء «سأدفع لاحقًا» — المدفوع الآن دفعة أولى والباقي حقًا مؤجلًا.",
+    );
+  return paid;
+}
+
 /* المتبقية الفعالة: الغياب/null = ٠ — الأصول القديمة تُقرأ صفرًا بلا ترحيل (عقد ٤٣ §٢). */
 export function residualOf(asset: AssetRecord): number {
   return asset.residualValueMinor ?? 0;
@@ -84,6 +122,13 @@ function eventsForAsset(events: readonly FinancialEvent[], assetId: string): rea
   );
 }
 
+/* عقد ٤٣: نافذة بداية الاستخدام — تاريخ صحيح إن حُدد، ولا يسبق تاريخ الشراء.
+ * مساعد مستقل يُبقي تعقيد حارس الإنشاء داخل سقف الراتشة (12). */
+function assertDepreciationStartWindow(startOn: string | null | undefined, purchaseDate: string) {
+  if (startOn) assertLocalDate(startOn, "depreciationStartOn");
+  if (startOn && startOn < purchaseDate) throw new Error("بداية الاستخدام لا يمكن أن تسبق تاريخ الشراء.");
+}
+
 /* عقد ٤٣ (WS-179 — Wave 7): حارس شكل المدخلات — كل فحوص الإنشاء في مساعد
  * واحد يُبقي تعقيد جسم الإنشاء داخل السقف. */
 function assertCreateAssetInput(input: CreateAssetRecordInput) {
@@ -94,12 +139,17 @@ function assertCreateAssetInput(input: CreateAssetRecordInput) {
     throw new Error("طريقة اقتناء الأصل غير صالحة.");
   assertLocalDate(input.purchaseDate, "purchaseDate");
   assertLifeMonths(input.lifeMonths ?? null);
-  if (input.depreciationStartOn) assertLocalDate(input.depreciationStartOn, "depreciationStartOn");
-  if (input.depreciationStartOn && input.depreciationStartOn < input.purchaseDate)
-    throw new Error("بداية الاستخدام لا يمكن أن تسبق تاريخ الشراء.");
+  assertDepreciationStartWindow(input.depreciationStartOn, input.purchaseDate);
   /* عقد ٤٣: المدخلان الجديدان — المتبقية داخل الحدود والملاحظة محدودة الطول. */
   assertResidualValue(input.residualValueMinor ?? null, input.acquisitionAmountMinor);
   assertAssetNote(input.note ?? null);
+  /* S08: طرف الاقتناء والمدفوع الأولي — داخل حدود عقد الشراء الجزئي المعتمد. */
+  normalizeAcquisitionParty(input.acquisitionParty ?? null);
+  normalizePaidAtCreation(
+    input.paidAtCreationMinor ?? null,
+    input.acquisitionAmountMinor,
+    input.acquisitionKind,
+  );
   if (!input.operationKey.trim()) throw new Error("مفتاح عملية الأصل مطلوب.");
   /* R2 (M-02/X1): فحص الطابع من النواة — سلوك متكافل، مالك واحد. */
   if (!isValidTimestamp(input.createdAt)) throw new Error("أدخل وقت إنشاء الأصل وقتًا صحيحًا.");
@@ -118,6 +168,12 @@ export function createAssetRecord(input: CreateAssetRecordInput): AssetRecord {
     depreciationStartOn: input.depreciationStartOn ?? null,
     residualValueMinor: input.residualValueMinor ?? null,
     note: input.note?.trim() || null,
+    acquisitionParty: normalizeAcquisitionParty(input.acquisitionParty ?? null),
+    paidAtCreationMinor: normalizePaidAtCreation(
+      input.paidAtCreationMinor ?? null,
+      input.acquisitionAmountMinor,
+      input.acquisitionKind,
+    ),
     status: "active",
     acquisitionEventId: input.acquisitionEventId,
     disposal: null,
@@ -244,6 +300,43 @@ export function assetEventSummary(assetId: string, events: readonly FinancialEve
     disposalBookValueMinor,
     writeOffBookValueMinor,
     bookValueMinor: acquisitionMinor - depreciationMinor - disposalBookValueMinor - writeOffBookValueMinor,
+  };
+}
+
+/* S08 (UNIT-034 / SDF-066): وضع السداد المشتق — المدفوع النقدي الفعلي
+ * (حدث الاقتناء النقدي + تسديدات الذمم النشطة المرتبطة بأحداث ذمم الأصل)
+ * والمتبقي الحي (مجموع أحداث ذمم الاقتناء الفعالة − التسديدات النشطة
+ * عليها). التسديد حدث payable_settlement_cash يربط مصدره بحدث الذمم
+ * (relatedEventId)؛ وعكسه يحيي الحق بإنكار الدلتات الثمانية كما هو. */
+export function assetPaymentStatusOf(assetId: string, events: readonly FinancialEvent[]): AssetPaymentStatus {
+  const active = eventsForAsset(events, assetId);
+  const reversed = reversedEventIds(events);
+  let paidCashMinor = 0;
+  let payableOpenedMinor = 0;
+  for (const event of active) {
+    if (event.type === "asset_purchase_cash") paidCashMinor += event.amountMinor;
+    else if (event.type === "asset_purchase_payable") payableOpenedMinor += event.amountMinor;
+  }
+  /* التسديدات النشطة المرتبطة بأحداث ذمم هذا الأصل — الربط بمصدر الحدث
+   * (relatedEventId → حدث asset_purchase_payable للأصل) وحده؛ سياق الأصل
+   * ممنوع على الأنواع غير الأصولية عند المنشئ فلا مسار ربط ثانٍ. */
+  const payableEventIds = new Set(
+    active.filter(event => event.type === "asset_purchase_payable").map(event => event.id),
+  );
+  let settledMinor = 0;
+  for (const event of events) {
+    if (event.type !== "payable_settlement_cash") continue;
+    if (event.correctionType === "reverse" || reversed.has(event.id)) continue;
+    const source = event.relatedEventId
+      ? events.find(candidate => candidate.id === event.relatedEventId)
+      : null;
+    if (source && payableEventIds.has(source.id)) settledMinor += event.amountMinor;
+  }
+  const remainingPayableMinor = Math.max(0, payableOpenedMinor - settledMinor);
+  return {
+    paidCashMinor: paidCashMinor + Math.min(settledMinor, payableOpenedMinor),
+    remainingPayableMinor,
+    hasPayable: remainingPayableMinor > 0,
   };
 }
 

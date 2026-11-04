@@ -8,7 +8,7 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { StatementService } from "@/application/finance/statementService";
@@ -16,13 +16,15 @@ import { CashContinuityService } from "@/application/cash/cashContinuityService"
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { FormDraftService } from "@/application/drafts/formDraftService";
 import { ProfileService } from "@/application/profile/profileService";
-import ToolsIntegrity from "@/pages/ToolsIntegrity";
+import { SettingsDataCheckSection } from "@/components/settings/SettingsDataCheckSection";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
+  getPrototypeLocalStore: vi.fn(),
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+const mockedGetStore = vi.mocked(getPrototypeLocalStore);
 const now = () => "2026-09-03T09:00:00.000Z";
 
 function buildRealServices(store: MemoryLocalStore) {
@@ -65,13 +67,21 @@ async function seedCorruptedEvent(store: MemoryLocalStore, services: ReturnType<
 }
 
 describe("Wave 4.3 — P-4.3-3 (D9): readable integrity offenders", () => {
-  beforeEach(() => vi.clearAllMocks());
-  afterEach(() => cleanup());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    /* أمر استئناف S14 (2026-11-03 — A3): الصفحة تبني الفحص كسولًا بساعة
+     * النظام — تُثبَّت Date على لحظة الاختبار فيصير التقرير حتميًا. */
+    vi.useFakeTimers({ now: new Date(now()), toFake: ["Date"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    cleanup();
+  });
 
   it("the service enriches offender ids into readable summaries without changing check logic", async () => {
     const store = new MemoryLocalStore();
     const services = buildRealServices(store);
-    await new ProfileService(store, now).save("مشغل سلامة مقروءة");
+    await new ProfileService(store, now).create("مشغل سلامة مقروءة");
     const target = await seedCorruptedEvent(store, services);
     const report = await services.integrityCheck.run();
     const mic4 = report.checks.find(check => check.id === "MIC-4");
@@ -92,7 +102,7 @@ describe("Wave 4.3 — P-4.3-3 (D9): readable integrity offenders", () => {
   it("the surface renders offender rows by operation name, date, and amount — not raw ids", async () => {
     const store = new MemoryLocalStore();
     const services = buildRealServices(store);
-    await new ProfileService(store, now).save("مشغل سلامة مقروءة");
+    await new ProfileService(store, now).create("مشغل سلامة مقروءة");
     const target = await seedCorruptedEvent(store, services);
     mockedUsePrototypeServices.mockReturnValue({
       ...services,
@@ -100,8 +110,10 @@ describe("Wave 4.3 — P-4.3-3 (D9): readable integrity offenders", () => {
       dataVersion: 0,
       notifyDataChanged: vi.fn(),
     } as unknown as ReturnType<typeof usePrototypeServices>);
-    render(<ToolsIntegrity />);
-    fireEvent.click(screen.getByRole("button", { name: /افحص الآن/ }));
+    mockedGetStore.mockReturnValue(store as never);
+    render(<SettingsDataCheckSection open={true} onToggle={() => {}} />);
+    await screen.findByText(/أرقامك كما هي/);
+    fireEvent.click(screen.getByRole("button", { name: /بدء الفحص/ }));
     const offender = await screen.findByTestId("integrity-offender-summary");
     /* اسم العملية من خريطة العرض القائمة + التاريخ (نسق العرض المحلي) + المبلغ — لا معرّف خام. */
     expect(offender.textContent).toContain("مصروف مستحق");

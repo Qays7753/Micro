@@ -102,7 +102,20 @@ describe("migrateTransferSnapshot — migration behavior on the faithful 8/17 fi
 
   it("keeps current snapshots on their identity path (no migration artifacts)", () => {
     const current = migrateTransferSnapshot(supplement.data as never, true);
-    /* الزوج الحالي يمر كما هو — البيانات نفسها لا نسخ محرفة. */
-    expect(current).toEqual(supplement.data);
+    /* الزوج الحالي يمر كما هو — البيانات نفسها لا نسخ محرفة، باستثناء
+     * التطبيع المضاف الموثق لحقلي الأصل الاختياريين الجديدين (S08 /
+     * UNIT-034، أمر S08): الغياب يُطبّع null بنمط العائلة — نفس ما فعله
+     * S06/S07 لحقولهما الاختيارية عند دخولها. */
+    const expected = {
+      ...(supplement.data as Record<string, unknown>),
+      assets: ((supplement.data as Record<string, unknown>).assets as Record<string, unknown>[]).map(
+        asset => ({
+          ...asset,
+          acquisitionParty: (asset as Record<string, unknown>).acquisitionParty ?? null,
+          paidAtCreationMinor: (asset as Record<string, unknown>).paidAtCreationMinor ?? null,
+        }),
+      ),
+    };
+    expect(current).toEqual(expected);
   });
 });

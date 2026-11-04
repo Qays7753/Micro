@@ -1,8 +1,10 @@
 /** @vitest-environment jsdom */
 
-/* المجموعة ٤ (عقد ٢٩ — اختبارات سطوح القروض): رحلة «هل أعطيت هذا المبلغ
- * كقرض؟» بمعاينة صريحة (لا ربح ولا مصروف)، وسداد دفعة من ورقة سفلية
- * بمعاينة الأثر وحارس التجاوز — والتاريخ يبقى بعد التسديد. */
+/* المجموعة ٤ (عقد ٢٩) — أسطح القروض بعد قرار UNIT-035/036 (تنفيذ S15 بالأمر
+ * الموحد §5): إنشاء الإقراض ملغى والاقتراض مؤجل. الوصلة العميقة القديمة
+ * ترفض رفضًا صادقًا بلا نموذج ولا «قريبًا»، وسطح القروض بلا مدخل إنشاء؛
+ * السجل الموروث يُزرع عند حد المخزن (مسار توافق النقل نفسه) — السداد من
+ * الورقة السفلية بمعاينة الأثر وحارس التجاوز، والتاريخ يبقى بعد التسديد. */
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -14,6 +16,8 @@ import { CashContinuityService } from "@/application/cash/cashContinuityService"
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { FormDraftService } from "@/application/drafts/formDraftService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
+import { createLoanRecord } from "@micro-domain/loan/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import Loans from "@/pages/Loans";
 import LoanEditor from "@/pages/LoanEditor";
 import LoanDetail from "@/pages/LoanDetail";
@@ -21,6 +25,9 @@ import RepaymentSheet from "@/components/loans/RepaymentSheet";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
+  /* الخدمات الديناميكية (القروض المستلمة) تُبنى فوق هذا المخزن — كما في
+   * الإنتاج لكن فوق مخزن الذاكرة هنا. */
+  getPrototypeLocalStore: () => store,
 }));
 
 const wouterMocks = vi.hoisted(() => ({
@@ -55,6 +62,36 @@ function Harness({ page }: { page: React.ReactNode }) {
   return <UnsavedChangesProvider navigate={wouterMocks.navigate}>{page}</UnsavedChangesProvider>;
 }
 
+/* UNIT-035 (تنفيذ S15): بذرة القرض الموروث مباشرة عند حد المخزن — الإنشاء
+ * ملغى، والبيانات هنا تاريخ محفوظ للقراءة والصيانة (سداد/تصحيح) لا جديد. */
+async function seedLegacyLoan(input: { id: string; borrowerName: string; principalMinor: number }) {
+  const event = createFinancialEvent({
+    id: `event-${input.id}`,
+    type: "loan_outgoing_cash" as never,
+    amountMinor: input.principalMinor,
+    occurredOn: "2026-07-01",
+    recordedAt: "2026-07-01T09:00:00.000Z",
+    idempotencyKey: `${input.id}:create`,
+    note: `قرض تاريخي لـ ${input.borrowerName}`,
+    counterparty: input.borrowerName,
+    loanContext: { loanId: input.id, borrower: input.borrowerName },
+  });
+  const loan = createLoanRecord({
+    id: input.id,
+    borrowerName: input.borrowerName,
+    principalMinor: input.principalMinor,
+    loanDate: "2026-07-01",
+    purposeNote: null,
+    sourceWalletId: null,
+    principalEventId: event.id,
+    operationKey: `${input.id}:create`,
+    createdAt: "2026-07-01T09:00:00.000Z",
+  });
+  const commit = await store.commitLoanRecord(loan, event);
+  if (!commit.ok) throw new Error(commit.message);
+  return loan.id;
+}
+
 beforeEach(() => {
   store = new MemoryLocalStore();
   loans = new LoanService(store, () => NOW);
@@ -67,38 +104,37 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-describe("G4 loans surfaces (المجموعة ٤ — عقد ٢٩)", () => {
-  it("records a loan through the honest journey: cash out, not profit, not expense", async () => {
+describe("G4 loans surfaces (المجموعة ٤ — عقد ٢٩ · UNIT-035 بعد الإلغاء)", () => {
+  it("UNIT-035: the legacy /loans/new deep link refuses honestly — no form, no write, no bypass", async () => {
     wouterMocks.location = "/loans/new";
     render(<Harness page={<LoanEditor />} />);
-    fireEvent.change(await screen.findByPlaceholderText("مثال: أحمد، محمد، ورشة الجيران"), {
-      target: { value: "أحمد" },
-    });
-    const amount = await screen.findByLabelText("مبلغ القرض");
-    fireEvent.change(amount, { target: { value: "150" } });
-    fireEvent.blur(amount);
-    /* معاينة الأثر قبل الحفظ — إعلان المبدأ بالنص نفسه. */
-    expect(await screen.findByText(/لا يُخصم من ربحك — مالك ما زال لك، لكن عند غيره/)).toBeTruthy();
-    fireEvent.click(await screen.findByRole("button", { name: /احفظ القرض/ }));
-    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalled());
+    expect(await screen.findByRole("heading", { name: "إنشاء الإقراض ملغى" })).toBeTruthy();
+    expect(screen.getByText("لا يُنشأ إقراض جديد في هذا الإطلاق.")).toBeTruthy();
+    /* لا نموذج إنشاء ولا زر حفظ — القدرة الملغاة لا تُعلن «قريبًا» ولا تُترك
+     * مسار التفاف؛ الرابط يبقى مسجلًا ليرفض بصدق. */
+    expect(screen.queryByLabelText("مبلغ القرض")).toBeNull();
+    expect(screen.queryByPlaceholderText("مثال: أحمد، محمد، ورشة الجيران")).toBeNull();
+    expect(screen.queryByRole("button", { name: /احفظ القرض/ })).toBeNull();
+    /* لا كتابة أصلًا — المخزن فارغ بعد الزيارة. */
     const events = await store.listFinancialEvents();
-    if (!events.ok) throw new Error(events.message);
-    const principal = events.value.find(event => event.type === "loan_outgoing_cash");
-    expect(principal).toBeTruthy();
-    expect(principal!.cashDeltaMinor).toBe(-15000);
-    expect(principal!.loanDeltaMinor).toBe(15000);
+    expect(events.ok && events.value).toHaveLength(0);
     const list = await store.listLoans();
-    if (!list.ok) throw new Error(list.message);
-    expect(list.value).toHaveLength(1);
+    expect(list.ok && list.value).toHaveLength(0);
   });
 
-  it("repays from the bottom sheet with preview and over-repayment guard", async () => {
-    const created = await loans.create({
-      borrowerName: "أحمد",
-      principalMinor: 15000,
-      loanDate: "2026-07-01",
-    });
-    if (!created.ok) return;
+  it("UNIT-035: the loans surface carries no creation entry point — history only, honestly worded", async () => {
+    render(<Harness page={<Loans />} />);
+    /* الحالة الفارغة تذكر الإلغاء بصدق ولا تدعو لإنشاء. */
+    expect(
+      await screen.findByText("إنشاء الإقراض ملغى من نطاق المنتج؛ ما سُجل سابقًا يبقى محفوظًا كما هو."),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /سجّل قرضًا/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /سجّل قرضًا أخذته/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: /سجّل قرضًا/ })).toBeNull();
+  });
+
+  it("repays from the bottom sheet with preview and over-repayment guard on a legacy loan", async () => {
+    const loanId = await seedLegacyLoan({ id: "loan-g4-1", borrowerName: "أحمد", principalMinor: 15000 });
     render(<Harness page={<Loans />} />);
     expect(await screen.findByText("أحمد")).toBeTruthy();
     fireEvent.click(await screen.findByRole("button", { name: /سجّل دفعة/ }));
@@ -125,49 +161,17 @@ describe("G4 loans surfaces (المجموعة ٤ — عقد ٢٩)", () => {
     });
     const list = await store.listLoans();
     if (!list.ok) throw new Error(list.message);
-    expect(list.value[0]!.repayments).toHaveLength(1);
+    expect(list.value.find(record => record.id === loanId)!.repayments).toHaveLength(1);
   });
 
-  it("keeps a settled loan visible in history with its payments", async () => {
-    const created = await loans.create({
-      borrowerName: "سالم",
-      principalMinor: 5000,
-      loanDate: "2026-07-01",
-    });
-    if (!created.ok) return;
-    await loans.recordRepayment(created.value.loan.id, { amountMinor: 5000, date: "2026-08-01" });
-    wouterMocks.location = `/loans/${created.value.loan.id}`;
-    window.history.pushState({}, "", `/loans/${created.value.loan.id}`);
+  it("keeps a settled legacy loan visible in history with its payments", async () => {
+    const loanId = await seedLegacyLoan({ id: "loan-g4-2", borrowerName: "سالم", principalMinor: 5000 });
+    await loans.recordRepayment(loanId, { amountMinor: 5000, date: "2026-08-01" });
+    wouterMocks.location = `/loans/${loanId}`;
+    window.history.pushState({}, "", `/loans/${loanId}`);
     render(<Harness page={<LoanDetail />} />);
     expect(await screen.findByText(/مسدَّد بالكامل — يبقى في التاريخ/)).toBeTruthy();
     expect(await screen.findByText(/دفعات السداد \(1\)/)).toBeTruthy();
-  });
-
-  /* ─── المجموعة ٦ (تدقيق A2 — AI-02): الإرسال المزدوج أثناء الحفظ ───
-   * نفس عهدة محرر الأصل: حارس الخروج يستدعي الحفظ برمجيًا بينما النداء الأول
-   * معلق — الخدمة تولد معرفات جديدة لكل نداء فلو مر الثاني لسُجّل القرض مرتين. */
-  it("ignores a guard-triggered save while a save is already in flight — one create call (G6/A2)", async () => {
-    let resolveCreate!: (value: unknown) => void;
-    const createPromise = new Promise(resolve => {
-      resolveCreate = resolve;
-    });
-    const create = vi.fn(() => createPromise);
-    loans = { create } as unknown as LoanService;
-    wouterMocks.location = "/loans/new";
-    render(<Harness page={<LoanEditor />} />);
-    fireEvent.change(await screen.findByPlaceholderText("مثال: أحمد، محمد، ورشة الجيران"), {
-      target: { value: "أحمد" },
-    });
-    const amount = await screen.findByLabelText("مبلغ القرض");
-    fireEvent.change(amount, { target: { value: "150" } });
-    fireEvent.blur(amount);
-    fireEvent.click(await screen.findByRole("button", { name: /احفظ القرض/ }));
-    await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
-    fireEvent.click(await screen.findByRole("button", { name: "القروض" }));
-    fireEvent.click(await screen.findByRole("button", { name: "احفظ واستمر" }));
-    expect(create).toHaveBeenCalledTimes(1);
-    resolveCreate({ ok: true, value: { loan: { id: "loan-g6a2" }, event: null } });
-    await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalled());
   });
 
   it("ignores a second confirm while the first repayment is still in flight (G6/A2)", async () => {
@@ -188,10 +192,9 @@ describe("G4 loans surfaces (المجموعة ٤ — عقد ٢٩)", () => {
     const amount = await screen.findByLabelText("مبلغ الدفعة");
     fireEvent.change(amount, { target: { value: "50" } });
     fireEvent.blur(amount);
-    /* عقد ظاهر للمستخدم: نبضتان قبل اكتمال الأولى تكتبان دفعة واحدة فقط —
-     * يتحقق بطبقتين: تعطيل الزر أثناء الحفظ، وعهدة الإرسال المتزامن (G6/A2)
-     * نفس عهدة محررَي الأصل والقرض التي تختبرها حالة الحارس أعلاه. هنا نثبّت
-     * العقد الظاهر: لا كتابة مزدوجة مهما تكرر النقر. */
+    /* عقد ظاهر للمستخدم: نبضات متعددة قبل اكتمال الأولى تكتب دفعة واحدة فقط —
+     * يتحقق بطبقتين: تعطيل الزر أثناء الحفظ، وعهدة الإرسال المتزامن (G6/A2).
+     * هنا نثبّت العقد الظاهر: لا كتابة مزدوجة مهما تكرر النقر. */
     const confirm = await screen.findByRole("button", { name: /أكّد السداد/ });
     fireEvent.click(confirm);
     fireEvent.click(confirm);

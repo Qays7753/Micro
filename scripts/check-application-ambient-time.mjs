@@ -22,7 +22,7 @@
  *      الربط بنيوي لا نصي-مجاور: تعليق يحوي النمط أو نص يحويه أو `||`
  *      بدل `??` أو مستقبل خاطئ أو متغير وسيط (alias) — لا يُعفي أيًّا منها.
  *  AT-2 (ratشية المواقع): جرد المناطق المعفاة يطابق حرفيًا القائمة المثبتة
- *      الـ21 موقعًا (17 شكل-أ + 4 شكل-ب) — موقع جديد في ملف غير مثبت
+ *      الـ23 موقعًا (19 شكل-أ + 4 شكل-ب) — موقع جديد في ملف غير مثبت
  *      = رفض حتى إعادة إرساء موثقة، وموقع مثبت غادر = رفض (تحديث القائمة).
  *  AT-3 (بناء محيط): `new Date()` بلا وسيط في طبقة التطبيق مسموح حصريًا في
  *      `application/time/clock.ts` داخل شكل `new Date().toISOString()` —
@@ -34,7 +34,8 @@
  *
  * خارج النطاق حصرًا (قرار OD-TIME): التحليل الصريح ليس زمنًا محيطيًا —
  * `new Date(value)` / `Date.parse(value)` بوسيط صريح مسموح (مواقع التحليل
- * الأربعة: formatters.ts:211 وlocalLockService.ts:198/231/263 تصنف تحليلًا).
+ * (S02-B: مواقع localLockService.ts الثلاثة حُذفت مع الوحدة المتقاعدة — قرار
+ * إلغاء ٠٤٢ المعتمد؛ الباقي تحليل صريح مسموح كما هو).
  * مؤقتات الواجهة (pages/components) وlock-idle (AppLockGate) خارج هذا
  * الحارس كليًا — lock-idle له توصيف مستقل (W1b-4) ولا سلوك يتغير هنا.
  * الاختبارات والـfixtures والـdist خارج المسح أصلاً.
@@ -85,19 +86,24 @@ export const CLOCK_BOUNDARY_FILE = "application/time/clock.ts";
 export const CLOCK_BOUNDARY_SHAPE = "new Date().toISOString()";
 
 /**
- * الجرد المثبت للـ21 موقعًا المعتمدًا (قرار OD-TIME — لا يُعدَّل بصمت؛
+ * الجرد المثبت للـ22 موقعًا المعتمدًا (قرار OD-TIME — لا يُعدَّل بصمت؛
  * أي تغيير يتطلب إعادة إرساء موثقة في نفس الـPR مع مرجع مراجعة مالك).
  */
 export const APPROVED_ID_FALLBACK_SITES = [
   { file: "application/assets/assetService.ts", shape: "nullish" },
   { file: "application/budgets/expenseBudgetService.ts", shape: "nullish" },
   { file: "application/cash/cashContinuityService.ts", shape: "nullish" },
+  /* S04 (DOC-013، 2026-10-28): مساعد العهدة نفسه انتقل مع recordCashCount إلى خدمة العدّ المستقلة — إرساء بنفس الـPR. */
+  { file: "application/cash/cashCountService.ts", shape: "nullish" },
   { file: "application/catalog/catalogService.ts", shape: "ternary" },
   { file: "application/collections/collectionReversalService.ts", shape: "nullish" },
   { file: "application/cost/costService.ts", shape: "ternary" },
   { file: "application/direct-sales/directSaleService.ts", shape: "nullish" },
   { file: "application/drafts/draftService.ts", shape: "ternary" },
   { file: "application/estimates/costEstimateService.ts", shape: "nullish" },
+  /* S10 (DOC-019، 2026-10-31): مساعد المعرف نفسه انتقل مع دورة حساب T01 المحفوظ إلى
+   * الخدمة الكسولة planningCalculationLifecycle (فصل ميزانية الحزمة) — إرساء بنفس الـPR. */
+  { file: "application/estimates/planningCalculationLifecycle.ts", shape: "nullish" },
   { file: "application/finance/projectFinancialEventWrites.ts", shape: "nullish" },
   { file: "application/finance/recurringWorkService.ts", shape: "nullish" },
   { file: "application/financial-analysis/financialAnalysisService.ts", shape: "nullish" },
@@ -106,6 +112,8 @@ export const APPROVED_ID_FALLBACK_SITES = [
   { file: "application/loans/loanService.ts", shape: "nullish" },
   { file: "application/loans/receivedLoanService.ts", shape: "nullish" },
   { file: "application/owner-money/ownerEntitlementService.ts", shape: "nullish" },
+  /* S05 (DOC-014 / UNIT-037، 2026-10-29): مولّد معرف الطرف المحفوظ عند الحفظ الصريح — إرساء بنفس الـPR. */
+  { file: "application/parties/partyLedgerService.ts", shape: "nullish" },
   { file: "application/owner/ownerProfileService.ts", shape: "nullish" },
   { file: "application/recurring/recurringExpenseService.ts", shape: "nullish" },
   { file: "application/suppliers/supplierPurchaseService.ts", shape: "nullish" },
@@ -328,7 +336,7 @@ export function classifyAmbientTime(repoRoot) {
       violations.push({
         rule: "AT-new-id-fallback-site",
         key: `${file}: ${live.nullish}أ/${live.ternary}ب`,
-        hint: "موقع ID-fallback جديد خارج الجرد المعتمد (21 موقعًا) — الإضافة تتطلب إعادة إرساء موثقة بمرجع مراجعة مالك في نفس الـPR (نمط ratشة R9/D-07)",
+        hint: "موقع ID-fallback جديد خارج الجرد المعتمد (23 موقعًا) — الإضافة تتطلب إعادة إرساء موثقة بمرجع مراجعة مالك في نفس الـPR (نمط ratشة R9/D-07)",
       });
     }
   }
@@ -352,7 +360,7 @@ function main() {
     `application-ambient-time: PASS — ${stats.files} ملف إنتاج تطبيقي؛ ` +
       `${stats.approvedIdFallbackRegions} منطقة ID-fallback معتمدة فيها ${stats.approvedDateNowCalls} نداء Date.now() معفى؛ ` +
       `${stats.parseCalls} تحليلًا صريحًا (مسموح)؛ منفذ الساعة الموثق ${stats.clockBoundarySites} موقعًا؛ ` +
-      `صفر قراءة ساعة غير عائلية (ratشة OD-TIME على جرد 21 موقعًا: 17 شكل-أ + 4 شكل-ب)`,
+      `صفر قراءة ساعة غير عائلية (ratشة OD-TIME على جرد 23 موقعًا: 19 شكل-أ + 4 شكل-ب)`,
   );
 }
 

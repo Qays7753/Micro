@@ -126,6 +126,9 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "financial-pulse/financialPulseService.ts",
   "financial-pulse/index.ts",
   "follow-up/dailyFollowUpService.ts",
+  /* S13 (DOC-022 / UNIT-018 — أمر 2158b0fc §6): القارئ الموحد للمتابعة
+   * «012/018» — قراءة خالصة فوق أصحاب المصادر بعدسات بنيوية؛ لا فعل كتابة. */
+  "follow-up/unifiedFollowUpService.ts",
   "follow-up/index.ts",
   "formatting/formatters.ts",
   "fulfillment/deliveryAttribution.ts",
@@ -147,18 +150,32 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "inventory/materialSuggestions.ts",
   "inventory/materialUnitLabels.ts",
   "loans/index.ts",
+  /* S10 (UNIT-030 — أمر b56967d8، DOC-019): بيت أدوات التخطيط النقي — دوال
+   * حساب بلا أي تخزين (حفظ T01 في بيت التقديرات)؛ انضم للجسم بفحص
+   * الخاصية نفسه: صفر أفعال كتابة نصيًا وتشغيليًا. */
+  "planning/index.ts",
+  "planning/planningToolsService.ts",
+  /* S05 (DOC-014 / UNIT-037، 2026-10-29): أُخرج parties/partyLedgerService.ts من جسم القراءة —
+   * صار كاتبًا محروسًا (save/rename/archive عند حد commitCounterpartyWrite) لا قارئًا. */
+  /* S10: كعب اختبار الحد لحاسبة التخطيط (نمط formDraftTestHarness) — يستورد
+   * المخزن وينشئ الخدمة للاختبارات وحدها؛ لا يدخل بناء الإنتاج. */
+  "estimates/planningCalculatorTestHarness.ts",
   "parties/index.ts",
-  "parties/partyLedgerService.ts",
   "preferences/index.ts",
   "resultCodes.ts",
   "scheduling/capacityDecisionService.ts",
   "scheduling/capacityDecisionViewModel.ts",
   "scheduling/index.ts",
+  /* S13 (DOC-022 / UNIT-006+012 — أمر 2158b0fc §6): القراءة النقية لمجتمع
+   * المواعيد (قائمة/تقويم/متابعة) وعدنة التسليمات النشطة — قراءة فقط؛
+   * والعدنة الاختبارية فوقها بنمط drafts/formDraftTestHarness. */
+  "scheduling/scheduleReads.ts",
+  "scheduling/scheduleReadsTestHarness.ts",
   "scheduling/scheduleViewModel.ts",
   "security/index.ts",
-  "security/localLockBackoff.ts",
-  "share/index.ts",
-  "share/shareMessageService.ts",
+  /* S15 (DOC-024 / UNIT-040 — تنفيذ S15 بالأمر الموحد، نفس-الـPR): تقاعد
+   * عائلة المشاركة كاملة (إلغاء 040 بلا بديل) — ملفا الباب والرسالة
+   * حُذفا من الشجرة الحية فأزيلا من الجسم هنا؛ 68 ← 66 (تضييق موثق). */
   "suppliers/index.ts",
   "suppliers/supplierPurchaseEditorModel.ts",
   "time/clock.ts",

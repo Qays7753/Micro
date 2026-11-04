@@ -17,10 +17,11 @@
  * محاكاة نتيجته: /setup (مسودة) → الرابط القانوني ‎/settings?returnTo=/setup
  * → صفحة الإعدادات الحقيقية (قسم حماية البيانات) → رفع ملف نسخة حقيقي عبر
  * حد الإدخال العام → prepareImport الفعلي (تحقق المظروف/الترحيل/العدادات)
- * → زر «استبدال البيانات المحلية» → بوابة الحماية الحقيقية (رمز القفل عبر
- * LocalLockService العام: enable ثم unlock من واجهة الحوار نفسها) →
+ * → زر «استبدال البيانات المحلية» → (S02-B: بوابة رمز القفل أُلغيت بقرار
+ * المالك — التأكيد الصريح بعد المراجعة وحده، والحماية تقنية داخل حد
+ * الكتابة: نسخة رجوع دائمة وسياج ونية وجيل — بروتوكول S02-A) →
  * confirmImport/replaceSnapshot الفعليان على المخزن الحي (مع نسخة ما قبل
- * الاستبدال) → زر الرجوع الحقيقي بعقد returnTo → /setup يكتشف الهوية
+ * الاستبدال الدائمة) → زر الرجوع الحقيقي بعقد returnTo → /setup يكتشف الهوية
  * المستعادة ويفتح المشروع في الرئيسية. ملف النسخة نفسه يُصنَّع بالطريق
  * الإنتاجي الحقيقي على جهاز مصدر مستقل (إنشاء هوية عبر حد الإنشاء الإنتاجي
  * ثم createVerifiedExport): هذا هو السبيل الوحيد الصادق لوجود هوية داخل
@@ -34,14 +35,13 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import { QuickRecordingProvider } from "@/app/quickRecording";
 import { ProfileService } from "@/application/profile/profileService";
 import { FormDraftService } from "@/application/drafts/formDraftService";
 import { createFormDraftHarness } from "@/application/drafts/formDraftTestHarness";
 import { LocalTransferService } from "@/application/transfers/localTransferService";
 import { GuidedOpeningImportService } from "@/application/transfers/guidedOpeningImportService";
-import { LocalLockService } from "@/application/security/localLockService";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { StatementService } from "@/application/finance/statementService";
@@ -63,10 +63,25 @@ import type { PrototypeLocalStore } from "@/storage/local/types";
 import Setup from "@/pages/Setup";
 import Settings from "@/pages/Settings";
 import Home from "@/pages/Home";
+import { CollectionService } from "@/application/collections/collectionService";
+import { DirectSaleService } from "@/application/direct-sales/directSaleService";
+import { DueDatesService } from "@/application/finance/dueDatesService";
+import { UnifiedFollowUpService } from "@/application/follow-up/unifiedFollowUpService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { activeDeliveryLens } from "@/application/scheduling";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
+  getPrototypeLocalStore: vi.fn(),
 }));
+
+/* S02-A (SH-03): باني النسخة الرجوع المُتحقق منها للاختبار — من
+ * خدمة النقل نفسها فوق المخزن نفسه (باني الإنتاج يُمرَّر من جذر التركيب). */
+function testBackupBuilder(
+  store: ConstructorParameters<typeof LocalTransferService>[0],
+): ReturnType<typeof LocalTransferService.verifiedBackupBuilder> {
+  return LocalTransferService.verifiedBackupBuilder(new LocalTransferService(store));
+}
 
 const wouterMocks = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -81,6 +96,7 @@ vi.mock("wouter", () => ({
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+const mockedGetStore = vi.mocked(getPrototypeLocalStore);
 
 /* خدمات حقيقية فوق مخزن حقيقي — الهوية والمسودة والسجلات المالية تُقرأ من
  * المخزن نفسه بعد كل فعل؛ لا تخدم نقدية في السياق أصلًا (سلبي DUP-001). */
@@ -100,25 +116,22 @@ function setupServices(options: { store?: PrototypeLocalStore } = {}) {
  * المخزن نفسه عبر الحدود العامة وحدها. ── */
 const NOW = "2026-10-18T12:00:00.000Z";
 const clock = () => NOW;
-const DEVICE_PIN = "4179";
 const RESTORED_NAME = "مشروع الاستعادة من النسخة";
 
 function buildDeviceServices(store: PrototypeLocalStore) {
   const projectFinance = new ProjectFinancialService(store);
   const statement = new StatementService(store, projectFinance);
+  /* أمر استئناف S14 (2026-11-03 — A3): الإعدادات تبني فحص السلامة بعد
+   * الاستبدال عند الحاجة فوق المخزن الأحادي ومالكَي المصدر — فيُوفرهما
+   * جهاز الاختبار كما يوفرهما جذر التركيب الحقيقي. */
+  const cashContinuity = new CashContinuityService(store);
   return {
     profiles: new ProfileService(store, clock),
     notifyDataChanged: vi.fn(),
     formDrafts: new FormDraftService(store, clock),
-    localLock: new LocalLockService(store, clock),
     transfers: new LocalTransferService(store, clock),
-    guidedOpeningImport: new GuidedOpeningImportService(store, clock),
-    integrityCheck: new IntegrityCheckService(
-      store,
-      projectFinance,
-      statement,
-      new CashContinuityService(store),
-    ),
+    guidedOpeningImport: new GuidedOpeningImportService(store, testBackupBuilder(store), clock),
+    integrityCheck: new IntegrityCheckService(store, projectFinance, statement, cashContinuity),
     preferences: new PreferenceService(store),
     agreements: new AgreementService(store, new CostService(store)),
     inventory: new InventoryMaterialService(store),
@@ -126,16 +139,8 @@ function buildDeviceServices(store: PrototypeLocalStore) {
     catalog: new CatalogService(store),
     actualTime: new ActualTimeService(store),
     projectFinance,
-    homeControlCenter: new HomeControlCenterService(
-      store,
-      new DailyFollowUpService(store),
-      new ProjectFinancialService(store, clock),
-      new SupplierPurchaseService(store, clock),
-      new InventoryMaterialService(store, clock),
-      new AgreementContextService(store, clock),
-      new ActivityService(store),
-      clock,
-    ),
+    cashContinuity,
+    homeControlCenter: buildHomeService(store, clock),
     dataVersion: 0,
   } as unknown as ReturnType<typeof usePrototypeServices>;
 }
@@ -199,6 +204,25 @@ afterEach(() => {
 });
 
 /* ── U001-ORG-AC01: إتمام الاسم وحده يفتح المشروع بلا أثر مالي ── */
+/* S16 (UNIT-003): قارئ الرئيسية في الاختبار فوق المصادر الكنونية نفسها. */
+function buildHomeService(store: PrototypeLocalStore, now: () => string) {
+  const projectFinance = new ProjectFinancialService(store, now);
+  const directSales = new DirectSaleService(store, now);
+  const fulfillment = new FulfillmentService(store, now);
+  const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
+  const dueDates = new DueDatesService(store, collections, now);
+  const unified = new UnifiedFollowUpService(
+    activeDeliveryLens(store),
+    store,
+    collections,
+    dueDates,
+    projectFinance,
+    store,
+    now,
+  );
+  return new HomeControlCenterService(store, new DailyFollowUpService(store), projectFinance, unified, now);
+}
+
 describe("UNIT-001 V3 ORG-AC01 — name completion opens the project, no financial effect, no optional-field requirement", () => {
   it("completing the name alone opens Home with exactly one identity and zero financial records (ORG-AC01)", async () => {
     const { services, store } = setupServices();
@@ -228,13 +252,17 @@ describe("UNIT-001 V3 ORG-AC01 — name completion opens the project, no financi
     mockedUsePrototypeServices.mockReturnValue(services);
     render(<Setup />);
     await screen.findByRole("heading", { name: "إعداد مشروعك" });
-    /* كل الحقول النصية داخل النموذج = حقل الاسم وحده؛ لا حقل اختياري يُشترط
-     * إكماله ولا أي إدخال نقدي إطلاقًا. */
+    /* S03 (UNIT-001 P3.1/P3.2): سطح البداية المعتمد — حقل الاسم وحده نصًا
+     * + سؤال تفضيل العرض الاختياري المحايد (٤ خيارات راديو لا يُشترط أي
+     * منها للإكمال)؛ لا حقل نقدي ولا file إطلاقًا، والإكمال بالاسم وحده. */
     const form = document.querySelector("form.micro-setup-decision");
     expect(form).not.toBeNull();
     const inputs = Array.from(form!.querySelectorAll("input, select, textarea"));
-    expect(inputs).toHaveLength(1);
+    expect(inputs).toHaveLength(5);
     expect(inputs[0]!.getAttribute("id")).toBe("setup-activity-name");
+    const radios = inputs.slice(1) as HTMLInputElement[];
+    expect(radios.every(r => r.type === "radio" && r.name === "setup-offering")).toBe(true);
+    expect(radios.every(r => r.required === false)).toBe(true);
     expect(document.querySelector("input[type=file]")).toBeNull();
   });
 });
@@ -245,12 +273,13 @@ describe("UNIT-001 V3 ORG-AC02 — prior data or a read failure never creates a 
     const { services, store } = setupServices();
     await new ProfileService(store).create("مشروع قائم مسبقًا");
     const createSpy = vi.spyOn(services.profiles, "create");
-    const saveSpy = vi.spyOn(services.profiles, "save");
+    /* S03: التعديل حدُّ محروس واحد (rename) — لا مسار save أصلًا بعد تقاعده. */
+    const renameSpy = vi.spyOn(services.profiles, "rename");
     mockedUsePrototypeServices.mockReturnValue(services);
     render(<Setup />);
     await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
     expect(createSpy).not.toHaveBeenCalled();
-    expect(saveSpy).not.toHaveBeenCalled();
+    expect(renameSpy).not.toHaveBeenCalled();
     const stored = await store.getProfile();
     expect(stored).toMatchObject({ ok: true, value: { activityName: "مشروع قائم مسبقًا" } });
   });
@@ -360,8 +389,12 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
     /* جهاز الاختبار: مخزن فارغ بلا هوية + خدمات حقيقية واحدة فوقه. */
     const store = createFormDraftHarness(clock).store;
     const services = buildDeviceServices(store);
+    /* أمر استئناف S14 (2026-11-03 — A3): صفحة الإعدادات تبني فحص ما بعد
+     * الاستبدال فوق المخزن الأحادي — جهاز الاختبار يوجه المخزن نفسه. */
+    mockedGetStore.mockReturnValue(store as never);
     const createSpy = vi.spyOn(services.profiles, "create");
-    const saveSpy = vi.spyOn(services.profiles, "save");
+    /* S03: التعديل حدُّ محروس واحد (rename) — لا مسار save أصلًا بعد تقاعده. */
+    const renameSpy = vi.spyOn(services.profiles, "rename");
     const replaceSnapshotSpy = vi.spyOn(store, "replaceSnapshot");
     mockedUsePrototypeServices.mockReturnValue(services);
     vi.stubGlobal(
@@ -397,10 +430,9 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
       expect(createSpy).not.toHaveBeenCalled();
       cleanup();
       wouterMocks.navigate.mockReset();
-      /* (ب) مالك 044 الحي: تفعيل الحماية بحد الخدمة العام (شرط 044
-       * التصادقي للاستبدال التدميري — نفس ما تستدعيه بطاقة القفل) ثم
-       * المسار الكامل من الواجهة: ملف → معاينة → رمز → استبدال → رجوع. */
-      await services.localLock.enable(DEVICE_PIN, 10);
+      /* (ب) مالك 044 الحي (S02-B: بلا رمز — بوابة PIN أُلغيت بقرار المالك
+       * 2026-10-24، وحماية الاستبدال تقنية داخل حد الكتابة): المسار الكامل
+       * من الواجهة: ملف → معاينة → تأكيد صريح → استبدال محروس → رجوع. */
       wouterMocks.location = "/settings";
       wouterMocks.search = "?returnTo=%2Fsetup";
       await mountSettings();
@@ -412,14 +444,11 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
       expect(afterPreview).toMatchObject({ ok: true, value: null });
       expect(replaceSnapshotSpy).not.toHaveBeenCalled();
       fireEvent.click(confirmButton);
-      const pinInput = await screen.findByLabelText("رمز القفل", { selector: "input" });
-      fireEvent.change(pinInput, { target: { value: DEVICE_PIN } });
-      fireEvent.submit(pinInput.closest("form")!);
-      /* الاستبدال الحقيقي تم: إشعار الإكمال + إبقاء المسودة العابرة
-       * (عقد ٣٦: خارج اللقطة) + نسخة ما قبل الاستبدال + الفحص بعدها. */
+      /* الاستبدال الحقيقي تم: إشعار الإكمال + المسودة العابرة عُزلت مع
+       * اللقطة القديمة في نسخة الرجوع الدائمة (S02-A/عقد ٠٤٤ B6 — لم تعد
+       * تبقى فوق بيانات استُبدلت) + الفحص بعدها. */
       expect(await screen.findByText(/تم استبدال البيانات المحلية بالملف الذي راجعته/)).toBeTruthy();
-      expect(await screen.findByText(/أُبقيت 1 مسودة نموذج غير مُسلّمة/)).toBeTruthy();
-      expect((await screen.findAllByText(/نسخة ما قبل الاستبدال جاهزة/)).length).toBeGreaterThan(0);
+      expect((await screen.findAllByText(/نسخة بياناتك السابقة محفوظة/)).length).toBeGreaterThan(0);
       expect(await screen.findByText(/فحص السلامة بعد الاستعادة/)).toBeTruthy();
       /* حد الالتزام الحقيقي: استبدال واحد بالضبط، والهوية الناتجة تطابق
        * هوية النسخة (المصدر) حرفيًا — لا ثانية ولا تعديل. */
@@ -427,7 +456,7 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
       const restored = await store.getProfile();
       expect(restored).toMatchObject({ ok: true, value: sourceIdentity });
       expect(createSpy).not.toHaveBeenCalled();
-      expect(saveSpy).not.toHaveBeenCalled();
+      expect(renameSpy).not.toHaveBeenCalled();
       /* النجاح لا يقفز من 044: بلا ملاحة تلقائية (اللقنة فيها ملف نشاط
        * فالقرار للمالك) — والرجوع يتم بالزر الحقيقي بعقد returnTo. */
       expect(wouterMocks.navigate).not.toHaveBeenCalled();
@@ -442,14 +471,13 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
       render(<Setup />);
       await waitFor(() => expect(wouterMocks.navigate).toHaveBeenCalledWith("/", { replace: true }));
       expect(createSpy).not.toHaveBeenCalled();
-      expect(saveSpy).not.toHaveBeenCalled();
+      expect(renameSpy).not.toHaveBeenCalled();
       const afterReturn = await store.getProfile();
       expect(afterReturn).toMatchObject({ ok: true, value: sourceIdentity });
+      /* S02-A (عقد ٠٤٤ B6): مسودة الإعداد العابرة لم تعد تُستأنف فوق المشروع
+       * المستعاد — عُزلت مع اللقطة القديمة في نسخة الرجوع الدائمة. */
       const draft = await store.getFormDraft("setup:new");
-      expect(draft).toMatchObject({
-        ok: true,
-        value: { values: { activityName: "مسودة قبل الاستعادة" } },
-      });
+      expect(draft).toMatchObject({ ok: true, value: null });
       cleanup();
       wouterMocks.navigate.mockReset();
       /* (د) الرئيسية تفتح المشروع المستعاد نفسه من المصدر الواحد. */
@@ -461,7 +489,7 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
       const finalProfile = await store.getProfile();
       expect(finalProfile).toMatchObject({ ok: true, value: sourceIdentity });
       expect(createSpy).not.toHaveBeenCalled();
-      expect(saveSpy).not.toHaveBeenCalled();
+      expect(renameSpy).not.toHaveBeenCalled();
     } finally {
       vi.unstubAllGlobals();
       cleanup();
@@ -474,6 +502,9 @@ describe("UNIT-001 V3 ORG-AC03/Q01 — restore, cancel, back, failure, and secon
   it("Q01 real rejection: a non-Micro file is rejected by the real 044 boundary — no partial write, no confirm boundary reached, Setup context preserved (Q01/ORG-AC03)", async () => {
     const store = createFormDraftHarness(clock).store;
     const services = buildDeviceServices(store);
+    /* أمر استئناف S14 (2026-11-03 — A3): صفحة الإعدادات تبني فحص ما بعد
+     * الاستبدال فوق المخزن الأحادي — جهاز الاختبار يوجه المخزن نفسه. */
+    mockedGetStore.mockReturnValue(store as never);
     const createSpy = vi.spyOn(services.profiles, "create");
     const replaceSnapshotSpy = vi.spyOn(store, "replaceSnapshot");
     mockedUsePrototypeServices.mockReturnValue(services);

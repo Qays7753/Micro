@@ -23,7 +23,13 @@ import { todayInAmman } from "@/application/time";
 export default function AssetEditor() {
   const [, navigate] = useLocation();
   const returnPath = useReturnPath();
-  const { assets, notifyDataChanged, formDrafts } = usePrototypeServices();
+  const { assets, notifyDataChanged, formDrafts, partyDirectory } = usePrototypeServices();
+  /* S08 (UNIT-034): المدفوع الآن للدفع الجزئي المعتمد + طرف الاقتناء المحفوظ
+   * (اختياري — اختيار من قائمته الحية، لا تعريف حر هنا ولا طرف مكرر). */
+  const [paidNowMinor, setPaidNowMinor] = useState(0);
+  const [validPaidNow, setValidPaidNow] = useState(true);
+  const [partyOptions, setPartyOptions] = useState<readonly { id: string; label: string }[]>([]);
+  const [acquisitionPartyId, setAcquisitionPartyId] = useState("");
   const [name, setName] = useState("");
   const [categoryLabel, setCategoryLabel] = useState("");
   const [amountMinor, setAmountMinor] = useState(0);
@@ -57,6 +63,8 @@ export default function AssetEditor() {
     startOn,
     residualMinor,
     note,
+    paidNowMinor,
+    acquisitionPartyId,
   ]);
   const requestNavigation = useUnsavedChangesGuard({ isDirty, onSave: () => save() });
   /* المجموعة ٥ (عقد ٣٦): مسودة نصية لمحرر الأصل — تُكتب عند التعديل الفعلي
@@ -72,6 +80,8 @@ export default function AssetEditor() {
     startOn: "",
     residualMinor: 0,
     note: "",
+    paidNowMinor: 0,
+    acquisitionPartyId: "",
   });
   const restoredFromOffer = useRef(false);
   /* الكتابة عند التغيير الفعلي فقط (قذر) وفي طور الصياغة — لا مسودة من مجرد فتح. */
@@ -88,6 +98,8 @@ export default function AssetEditor() {
       startOn,
       residualMinor,
       note,
+      paidNowMinor,
+      acquisitionPartyId,
     });
   }, [
     name,
@@ -100,6 +112,8 @@ export default function AssetEditor() {
     startOn,
     residualMinor,
     note,
+    paidNowMinor,
+    acquisitionPartyId,
     isDirty,
     draft.state.phase,
   ]);
@@ -118,14 +132,38 @@ export default function AssetEditor() {
       setStartOn(String(saved.startOn ?? ""));
       setResidualMinor(Number(saved.residualMinor ?? 0) || 0);
       setNote(String(saved.note ?? ""));
+      setPaidNowMinor(Number(saved.paidNowMinor ?? 0) || 0);
+      setAcquisitionPartyId(String(saved.acquisitionPartyId ?? ""));
     }
     if (draft.state.phase === "restore-offer") restoredFromOffer.current = true;
   }, [draft.state.phase]);
+
+  /* S08: قائمة الأطراف المحفوظة للقراءة فقط عند فتح المحرر — لا إنشاء
+   * طرف هنا (نمط محرر المشتريات)؛ خدمة الأدلة قد تكون قيد التجهيز الكسول
+   * فتُعاد القراءة فور جاهزيتها. */
+  useEffect(() => {
+    if (!partyDirectory) return;
+    void partyDirectory.suggestParties().then(result => {
+      if (result.ok) setPartyOptions(result.value);
+    });
+  }, [partyDirectory]);
 
   function validate(): string | null {
     if (!name.trim()) return "أكمل اسم الأصل — مثال: ثلاجة عرض، ماكينة خياطة.";
     if (!validAmount || !Number.isInteger(amountMinor) || amountMinor <= 0)
       return "أدخل قيمة الشراء بالأرقام 0–9.";
+    /* S08: المدفوع الآن — دفعة أولى صحيحة أصغر من قيمة الأصل، وفقط عند
+     * مسار «أدفع لاحقًا» (الجزئي المعتمد)؛ النقدي الكامل لا يحتاجه. */
+    const hasPartialPayment = acquisitionKind === "payable" && paidNowMinor > 0;
+    if (acquisitionKind === "payable" && paidNowMinor > 0) {
+      if (
+        !validPaidNow ||
+        !Number.isInteger(paidNowMinor) ||
+        paidNowMinor <= 0 ||
+        paidNowMinor >= amountMinor
+      )
+        return "أدخل المدفوع الآن مبلغًا صحيحًا أكبر من صفر وأصغر من قيمة الأصل — أو اتركه صفرًا لتسجيل الكل على الذمم.";
+    }
     if (longUse === "yes") {
       const life = Number(lifeMonths);
       if (!Number.isInteger(life) || life < 1 || life > 600)
@@ -147,6 +185,12 @@ export default function AssetEditor() {
 
   async function save(): Promise<boolean> {
     if (saveInFlightRef.current) return false;
+    /* S08 (DOC-017): حارس الخدمة الكسولة (نمط purchases/loans) — لا حفظ فوق
+     * null؛ إعلان صادق لا فشلًا صامتًا، والتحميل يكتمل خلال لحظات. */
+    if (!assets) {
+      setMessage("جارٍ تجهيز خدمة الأصول — أعد المحاولة بعد لحظات.");
+      return false;
+    }
     const problem = validate();
     if (problem) {
       setMessage(problem);
@@ -166,6 +210,9 @@ export default function AssetEditor() {
         depreciationStartOn: longUse === "yes" && startOn ? startOn : null,
         residualValueMinor: longUse === "yes" && residualMinor > 0 ? residualMinor : null,
         note: note.trim() || null,
+        /* S08: طرف محفوظ اختياري + المدفوع الآن للجزئي (بعد التحقق أعلاه). */
+        acquisitionPartyId: acquisitionPartyId.trim() || null,
+        paidAtCreationMinor: hasPartialPayment ? paidNowMinor : null,
       });
       if (!result.ok) {
         setMessage(result.message);
@@ -181,6 +228,8 @@ export default function AssetEditor() {
     }
   }
 
+  /* S08: نفس معنى التحقق للعرض — الجزئي حاضر فقط بمسار الذمم ودفعة موجبة. */
+  const hasPartialPayment = acquisitionKind === "payable" && paidNowMinor > 0;
   return (
     <section className="micro-page micro-asset-editor">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
@@ -232,7 +281,6 @@ export default function AssetEditor() {
           kind="money"
           onNumericChange={setAmountMinor}
           onTextValidityChange={setValidAmount}
-          aria-label="قيمة الشراء"
         />
       </label>
       <fieldset className="micro-field">
@@ -249,6 +297,38 @@ export default function AssetEditor() {
             على الذمم (أدفع لاحقًا)
           </ChoiceButton>
         </ChoiceRow>
+        {acquisitionKind === "payable" ? (
+          <label className="micro-field">
+            <span>المدفوع الآن (د.أ — اختياري)</span>
+            <EnglishNumberInput
+              value={paidNowMinor}
+              kind="money"
+              onNumericChange={setPaidNowMinor}
+              onTextValidityChange={setValidPaidNow}
+            />
+            <small>
+              اتركه صفرًا لتسجيل الكل على الذمم، أو أدخل دفعة أولى — الباقي يصبح حقًا مؤجلًا تسدده من مصدره
+              لاحقًا.
+            </small>
+          </label>
+        ) : null}
+        {partyOptions.length > 0 ? (
+          <label className="micro-field">
+            <span>جهة الشراء (اختياري — من الموردين المحفوظين)</span>
+            <select
+              value={acquisitionPartyId}
+              onChange={event => setAcquisitionPartyId(event.target.value)}
+              aria-label="جهة الشراء"
+            >
+              <option value="">بلا طرف محفوظ</option>
+              {partyOptions.map(option => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
       </fieldset>
       <LocalDateField
         label="تاريخ الشراء"
@@ -296,7 +376,6 @@ export default function AssetEditor() {
               kind="money"
               onNumericChange={setResidualMinor}
               onTextValidityChange={setValidResidual}
-              aria-label="القيمة المتبقية نهاية العمر"
             />
             <small>
               ما تتوقع بقاءه من قيمته نهاية عمره — الإهلاك يجري على الفرق فلا ينزل الدفتري دونه؛ اتركها صفرًا
@@ -320,7 +399,9 @@ export default function AssetEditor() {
           <strong>
             {acquisitionKind === "cash"
               ? `يخرج ${formatMoneyMinor(amountMinor)} د.أ من الكاش`
-              : `يُفتح التزام ${formatMoneyMinor(amountMinor)} د.أ`}
+              : hasPartialPayment
+                ? `يخرج ${formatMoneyMinor(paidNowMinor)} د.أ الآن ويبقى حق ${formatMoneyMinor(amountMinor - paidNowMinor)} د.أ مؤجلًا`
+                : `يُفتح التزام ${formatMoneyMinor(amountMinor)} د.أ`}
           </strong>
           <p>
             لا يُسجَّل مصروفًا هذا الشهر

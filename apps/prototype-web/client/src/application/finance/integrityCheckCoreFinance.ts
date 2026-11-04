@@ -294,10 +294,16 @@ export function checkEventAndAllocationIntegrity(events: readonly FinancialEvent
       )
         offenders.push(event.id);
       /* قيد المصروف: غياب المرجل أو مرجع ليس التزامًا = خلل؛ أما مرجع التزام
-       * عُدّل/حُذف موثقًا بعد التسديد = مراجعة — المسار القائم سليم. */
+       * عُدّل/حُذف موثقًا بعد التسديد = مراجعة — المسار القائم سليم.
+       * S08 (UNIT-034): التزام اقتناء الأصل بالذمم (asset_purchase_payable)
+       * مصدر تسديد صالح كإخوته من مصروفات الذمم — نفس القيد ونفس الأثر. */
       if (event.type === "payable_settlement_cash") {
         const source = event.relatedEventId ? byId.get(event.relatedEventId) : undefined;
-        if (!event.relatedEventId || !source || source.type !== "operating_expense_payable")
+        if (
+          !event.relatedEventId ||
+          !source ||
+          (source.type !== "operating_expense_payable" && source.type !== "asset_purchase_payable")
+        )
           offenders.push(event.id);
         else if (reversedIds.has(event.relatedEventId)) staleSettlements.push(event.id);
       }

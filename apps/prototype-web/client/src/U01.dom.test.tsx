@@ -5,6 +5,8 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { FormDraftService } from "@/application/drafts/formDraftService";
+import { createFormDraftHarness } from "@/application/drafts/formDraftTestHarness";
 import {
   UnsavedChangesProvider,
   useUnsavedChangesGuard,
@@ -66,6 +68,7 @@ function configureIncompleteCostServices() {
     saveSnapshot: vi.fn(),
   };
   mockedUsePrototypeServices.mockReturnValue({
+    formDrafts: new FormDraftService(createFormDraftHarness().store),
     drafts,
     costs,
     inventory,

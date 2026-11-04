@@ -19,6 +19,10 @@ import { formatMoneyWithUnit } from "@/application/formatting/formatters";
 import { evaluateWithdrawalWalletCoverage } from "@/application/owner-money/withdrawalWalletGuard";
 import { expandExpenseRecordIntent } from "@/application/financial-records/expenseRecordIntent";
 import {
+  matchesSharedBillOwnerPartConfirmation,
+  sharedBillOwnerPartConfirmationOf,
+} from "@/application/financial-records/expenseRecordIntent";
+import {
   FINANCIAL_EVENTS_READ_FAILED_MESSAGE,
   STORAGE_ERROR,
   VALIDATION_ERROR,
@@ -363,6 +367,10 @@ export async function recordFinancialEvent(
   store: ProjectFinancialEventWritesStore,
   now: Clock,
   input: FinancialRecordInput,
+  /* S07 (S06-MR-001): خيار داخلي لتمييز نداء كاتب الفاتورة المشتركة عن
+   * المسار العام — الكاتب الموحد للحدثين يستدعي نفس الحد لمصروف الحصة،
+   * والمسار العام يُمنع من حمل نية مدفوع فوق الحصة (انظر الحرس أدناه). */
+  options: { viaSharedBillWriter?: boolean } = {},
 ): Promise<FinanceResult<FinancialEvent>> {
   const existing = await store.listFinancialEvents();
   if (!existing.ok) return storageFailure("تعذر التحقق من سجل الأحداث المالية.");
@@ -386,6 +394,14 @@ export async function recordFinancialEvent(
       sharedExpense: input.sharedExpense,
     });
     if (!expanded.ok) return validationFailure(expanded.message);
+    /* S07 (S06-MR-001): نية «المدفوع فوق الحصة» تمر حصرًا عبر كاتب الفاتورة
+     * المشتركة بتأكيد صريح مرتبط بقيمة الزوج الكنوني — المسار العام (أو أي
+     * مستدعٍ يتجاوز الواجهة) لا يجوز أن يكتب مصروفًا يحمل مدفوعًا يتجاوز
+     * حصته بلا السحب الشخصي المؤكد المقابل؛ الرفض قبل أي كتابة. */
+    if (expanded.ownerPartMinor > 0 && !options.viaSharedBillWriter)
+      return validationFailure(
+        "المدفوع فوق حصة المشروع يُسجل عبر مسار الفاتورة المشتركة بتأكيد صريح من تحمّل الباقي — سجّله من محرر المصروف بالخيار المؤكد، أو اترك المدفوع عند حصة المشروع.",
+      );
     amountMinor = expanded.amountMinor;
     expenseContext = expanded.expenseContext;
   }
@@ -448,4 +464,86 @@ export async function recordFinancialEvent(
   } catch (error) {
     return validationFailure(errorMessageOf(error, "بيانات الحدث المالي غير صالحة."));
   }
+}
+
+/* S06 (CONS-DEC04 المعتمدة / SDF-064 — عقدا ٠٦/٠٨ والدومين الحي): الفاتورة
+ * المشتركة التي دفعها المشروع فوق حصته — نية واحدة بمعاينة واحدة تنتج
+ * حدثين عبر الكاتب الكنوني نفسه: مصروف التشغيل بحصة المشروع (amountMinor =
+ * الحصة مع سياق الحصة وpaidAmountMinor)، وسحب شخصي على المالك بالفارق
+ * المؤكد شخصيًا (paidAmountMinor − الحصة) بمفتاح مشتق حتمي
+ * `${مفتاح النية}:owner-part` فلا انفصام عند الإعادة ولا تكرار عند السباق.
+ * دفع المشروع حصته فقط لا يضيف سحبًا ولا دينًا (يُستخدم record العادي حينها).
+ * فشل السحب بعد ثبوت المصروف نتيجة جزئية صادقة: المصروف باقٍ والفارق يُعاد
+ * بمفتاحه نفسه — لا يُعاد تسجيل المصروف أبدًا ولا يُعلن فشل كامل كاذب. */
+export type SharedBillRecordOutcome = {
+  expense: FinancialEvent;
+  ownerPart: FinancialEvent | null;
+  ownerPartFailure: string | null;
+};
+
+export async function recordSharedBillExpense(
+  store: ProjectFinancialEventWritesStore,
+  now: Clock,
+  input: FinancialRecordInput,
+): Promise<FinanceResult<SharedBillRecordOutcome>> {
+  if (input.type !== "operating_expense_cash")
+    return validationFailure(
+      "فرع الفاتورة المشتركة للمصروف النقدي وحده — غير المدفوع يسجّل ذمة بلا دفع الآن.",
+    );
+  /* التوسيع النقي نفسه: تحقق الحصة والمدفوع والفارق قبل أي كتابة. */
+  const expanded = expandExpenseRecordIntent({
+    type: "operating_expense_cash",
+    amountMinor: input.amountMinor,
+    expenseContext: input.expenseContext ?? null,
+    sharedExpense: input.sharedExpense,
+  });
+  if (!expanded.ok) return validationFailure(expanded.message);
+  if (expanded.ownerPartMinor <= 0)
+    return validationFailure(
+      "فرع الفاتورة المشتركة حين يدفع المشروع فوق حصته — دفع الحصة وحدها يسجل بالمصروف العادي.",
+    );
+  /* S07 (S06-MR-001) — الحد يرفض القيمة المتغيرة غير المؤكدة حتى مع تجاوز
+   * الواجهة: التأكيد المطلوب هو زوج (الحصة + المدفوع) بالقيم المشتقة من
+   * النية الحالية نفسها عند هذا الحد؛ غيابه أو تقادمه (تغير الحصة أو
+   * المدفوع أو أي مدخل يغير قيمة الجزء الشخصي بعد التأكيد) يُرفض قبل أي
+   * كتابة، فلا يُكتب سحب مالك جديد بجمهور تأكيد قديم. */
+  const requiredConfirmation = sharedBillOwnerPartConfirmationOf(
+    expanded.amountMinor,
+    expanded.paidAmountMinor,
+  );
+  if (!matchesSharedBillOwnerPartConfirmation(input.ownerPartConfirmation ?? null, requiredConfirmation))
+    return validationFailure(
+      "تأكيد تحمّل المالك للباقي لا يطابق المبالغ الحالية — أعِد التأكيد بعد آخر قيم للحصة والمدفوع قبل الحفظ؛ لم يُسجل شيء.",
+    );
+  const expense = await recordFinancialEvent(store, now, input, { viaSharedBillWriter: true });
+  if (!expense.ok) return expense;
+  /* الفارق الشخصي: سحب مالك بالمفتاح المشتق — الإعادة بنفس النية تعيد
+   * الحدثين القائمين (reused) ولا تضاعف الأثر. */
+  const ownerPart = await recordFinancialEvent(store, now, {
+    type: "owner_withdrawal_cash",
+    amountMinor: expanded.ownerPartMinor,
+    occurredOn: input.occurredOn,
+    note: `الجزء الشخصي من فاتورة مشتركة: ${input.note}`,
+    counterparty: null,
+    relatedEventId: null,
+    idempotencyKey: `${input.idempotencyKey}:owner-part`,
+    sourceWalletId: input.sourceWalletId ?? null,
+  });
+  if (!ownerPart.ok)
+    return {
+      ok: true,
+      value: {
+        expense: expense.value,
+        ownerPart: null,
+        ownerPartFailure: ownerPart.message,
+      },
+    };
+  return {
+    ok: true,
+    value: {
+      expense: expense.value,
+      ownerPart: ownerPart.value,
+      ownerPartFailure: null,
+    },
+  };
 }

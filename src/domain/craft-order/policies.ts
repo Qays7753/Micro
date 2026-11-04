@@ -6,6 +6,7 @@ import type {
   DeliveryConsumptionNoteInput,
   DeliveryResponsibility,
   DepositSettlementDecision,
+  GroupedCostBasisInput,
   KnowledgeGap,
   KnowledgeState,
   MaterialCostItem,
@@ -37,6 +38,7 @@ import {
   quantityMilliExact,
   roundHalfUp,
 } from "../shared/index.js";
+import { noneCarriesNoAmounts } from "./deliveryTermsValidation.js";
 
 /* F-050 (Group 1 — الميثاق الرئيسي 2026-09-28) — توثيق التصميم المزدوج
  * المتعمد لانتقالات الحالة، لا عيبًا يُصلح بصمت: هذا الجدول هو خريطة
@@ -75,8 +77,10 @@ const ORDER_STATUS_AR: Record<OrderStatus, string> = {
 };
 
 /* ORD-003: أسماء عربية معتمدة لمسؤولية النقل والتوصيل — مصطلح واحد لكل
- * خيار في كل الأسطح (عقد المصطلحات). */
+ * خيار في كل الأسطح (عقد المصطلحات). S12 (UNIT-009 A3): «لا يوجد توصيل»
+ * خيار صريح في النموذج الجديد. */
 export const DELIVERY_RESPONSIBILITY_AR: Record<DeliveryResponsibility, string> = {
+  none: "لا يوجد توصيل",
   project_pays: "المشروع يدفع للناقل",
   customer_pays_project: "الزبون يدفع للمشروع",
   customer_pays_courier: "الزبون يدفع للناقل مباشرة",
@@ -311,6 +315,55 @@ export function calculateCostSnapshot(id: string, input: CostSnapshotInput): Cos
   });
 }
 
+/* S09 (UNIT-007/008 + SH-13 — أمر التنفيذ المتصل ad133bae القسم ٢): توسيع
+ * أساس المجموعات إلى مدخل قياسي للنواة الواحدة القائمة — أساس الوحدة
+ * الواحدة من كل مجموعة (مكوناتها) يُضرب في تكرار المجموعة مرة واحدة فقط
+ * (SDF-034: مكونات الوحدة × تكرارها مرة، لا مرتين)، والوقت/التغليف/الهدر
+ * والتوصيل على نطاق الطلب كما في العقد القائم (F11/F12: الوقت والتغليف
+ * والهدر والتوصيل «لكل الطلب»؛ التوصيل مرة واحدة)، وإضافة التسعير لكل
+ * وحدة تمر كما دخلت. الضرب على الكمية قبل تقريب النواة لكل بند (تقريب
+ * واحد للبند على مستوى الطلب كله — لا تقريب لكل وحدة ثم ضربه)، وكمية
+ * الطلب = مجموع تكرارات المجموعات مشتقة لا مُدخلة. لا محرك ثانٍ ولا دمج
+ * دفاتر (ACD015/DUP-015)؛ الناتج يمر بالنواة الواحدة calculateCostSnapshot. */
+export function expandGroupedCostBasis(input: GroupedCostBasisInput): CostSnapshotInput {
+  if (input.groups.length === 0) {
+    throw new Error("أضف مجموعة واحدة على الأقل قبل حساب التكلفة المجمعة.");
+  }
+  const materialItems: MaterialCostItem[] = [];
+  let quantity = 0;
+  for (const group of input.groups) {
+    if (!group.id.trim()) throw new Error("أكمل هوية المجموعة قبل الحساب.");
+    if (!group.label.trim()) throw new Error("أدخل اسمًا للمجموعة قبل الحساب.");
+    if (!Number.isSafeInteger(group.repeatQuantity) || group.repeatQuantity < 1) {
+      throw new Error("أدخل تكرار المجموعة رقمًا صحيحًا 1 أو أكثر.");
+    }
+    const repeat = group.repeatQuantity;
+    quantity += repeat;
+    for (const item of group.unitMaterialItems) {
+      if (!Number.isFinite(item.quantity) || item.quantity <= 0) {
+        throw new Error(`أدخل كمية المادة ${item.name} رقمًا أكبر من صفر.`);
+      }
+      const expanded = item.quantity * repeat;
+      if (!Number.isFinite(expanded) || expanded <= 0) {
+        throw new Error(`كمية المادة ${item.name} بعد التكرار تتجاوز الدقة الآمنة؛ قلّل الكمية أو التكرار.`);
+      }
+      materialItems.push({ ...item, quantity: expanded });
+    }
+  }
+  return {
+    currency: input.currency,
+    materialItems,
+    time: input.time,
+    packagingMinor: input.packagingMinor,
+    deliveryMinor: input.deliveryMinor,
+    wasteMinor: input.wasteMinor,
+    safetyBufferMinor: input.safetyBufferMinor,
+    quantity,
+    createdAt: input.createdAt,
+    source: "draft",
+  };
+}
+
 function eventExists(order: CraftOrder, idempotencyKey: string, eventType: OrderEventType): boolean {
   return order.events.some(event => event.idempotencyKey === idempotencyKey && event.type === eventType);
 }
@@ -423,10 +476,12 @@ function billableDeliveryFeeMinor(order: CraftOrder): MoneyMinor | null {
 
 /* كلفة النقل التي تحملها المشروع — تدخل في النتيجة مرة واحدة، فقط عندما
  * لم تكن محتواة أصلًا داخل تكلفة المنتج. الزبون يدفع للناقل مباشرة
- * = معلومة سياقية فقط: لا كاش مشروع ولا إيرادًا ولا مصروفًا ولا تكلفة. */
+ * = معلومة سياقية فقط: لا كاش مشروع ولا إيرادًا ولا مصروفًا ولا تكلفة.
+ * S12 (UNIT-009 A3): «لا يوجد توصيل» بلا أي كلفة توصيل على الطلب. */
 export function projectDeliveryCostMinor(order: CraftOrder): MoneyMinor | null {
   const terms = order.deliveryTerms ?? null;
   if (!terms) return 0;
+  if (terms.responsibility === "none") return 0;
   if (terms.responsibility === "customer_pays_courier") return 0;
   if (terms.costIncludedInProductCost) return 0;
   return terms.costPaidMinor;
@@ -483,6 +538,12 @@ function buildDeliveryTerms(input: RecordDeliveryTermsInput): OrderDeliveryTerms
     throw new Error(
       "أجرة التوصيل عبر المشروع تُسجَّل فقط عندما يدفع الزبون للمشروع أو عند التكلفة المشتركة.",
     );
+  }
+  /* S12 (UNIT-009 A3): «لا يوجد توصيل» اختيار صريح بلا أي مبلغ — لا أجرة
+   * ولا كلفة ولا حصص؛ هو مختلف عن عدم تسجيل الشروط (null)؛ القاعدة
+   * المشتركة الواحدة مع مدقق العلاقات (لا نسختين). */
+  if (noneCarriesNoAmounts(input)) {
+    throw new Error("«لا يوجد توصيل» لا يحمل أي مبلغ — لا أجرة ولا كلفة ولا حصص.");
   }
   if (
     input.responsibility === "customer_pays_courier" &&
@@ -880,7 +941,7 @@ export function collectRegisteredDebt(
  * (إصلاح تكاملي — مجموعة ٤): المتبقي الذي يفتحه تصحيح السعر على طلب مسوّى
  * (settled — أو مسدَّد دينه بالسجل الموثق، كما يفتحه التراجع عن قبضة) دينٌ
  * مسجل قابل للتحصيل من كل المداخل — حالة «partially_paid» على طلب مسوّى كانت
- * عمياء: لا الرئيسية ولا دفتر الناس ولا ورقة التحصيل تعرضها فيصبح المبلغ بلا
+ * عمياء: لا الرئيسية ولا دليل العملاء والموردين ولا ورقة التحصيل تعرضها فيصبح المبلغ بلا
  * أي مدخل. (تصحيح مؤرخ — قرار المالك D-08 بتاريخ 2026-09-29: «تمت التسوية»
  * هي التسمية الكنونية للحالة settled؛ «مغلق» ليست اسمًا لحالة مالية.) */
 const settlementAfterPriceRevision = (order: CraftOrder, receivableMinor: number): SettlementStatus =>

@@ -60,9 +60,7 @@ function mockServices(overrides: Record<string, unknown> = {}) {
           updatedAt: "2026-09-01T00:00:00.000Z",
         },
       }),
-      save: vi
-        .fn()
-        .mockResolvedValue({ ok: true, profile: { id: "local-profile", activityName: "مشغل ليان" } }),
+      /* S03: لا محرر اسم من هذه الصفحة — القراءة وحدها (التعديل في الإعدادات). */
     },
     cashContinuity: {
       overview: vi.fn().mockResolvedValue({
@@ -134,11 +132,10 @@ describe("Profile — owner identity and project profile", () => {
     expect(screen.getByText("لا نسخة بعد")).toBeTruthy();
   });
 
-  it("التعديل يحفظ الاسم والبريد واسم المشروع محليًا ويعود للعرض", async () => {
+  it("S03: التعديل يحفظ اسم المالك والبريد وحدهما — اسم المشروع للقراءة فقط ومحرره في الإعدادات", async () => {
     const saveOwner = vi
       .fn()
       .mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: "ليان خ", email: "layan@mail.com" }));
-    const saveProfile = vi.fn().mockResolvedValue({ ok: true, profile: { id: "local-profile" } });
     const notify = vi.fn();
     mockedUsePrototypeServices.mockReturnValue(
       mockServices({
@@ -148,10 +145,6 @@ describe("Profile — owner identity and project profile", () => {
             .mockResolvedValue(owner({ ownerId: "owner-abc123", displayName: null, email: null })),
           read: vi.fn(),
           save: saveOwner,
-        },
-        profiles: {
-          load: vi.fn().mockResolvedValue({ ok: true, value: { activityName: "مشغل ليان" } }),
-          save: saveProfile,
         },
         notifyDataChanged: notify,
       }),
@@ -164,13 +157,20 @@ describe("Profile — owner identity and project profile", () => {
     fireEvent.click(await screen.findByRole("button", { name: "عدّل ملفك" }));
     fireEvent.change(screen.getByLabelText(/اسمك/), { target: { value: "ليان خ" } });
     fireEvent.change(screen.getByLabelText(/بريدك الإلكتروني/), { target: { value: "layan@mail.com" } });
+    /* S03 (دمج 038/039): لا حقل اسم مشروع في وضع التعديل — المحرر الوحيد
+     * في قسم «بيانات المشروع» بالإعدادات. */
+    expect(screen.queryByLabelText(/اسم المشروع/)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "احفظ ملفك" }));
     await waitFor(() =>
       expect(saveOwner).toHaveBeenCalledWith({ displayName: "ليان خ", email: "layan@mail.com" }),
     );
-    await waitFor(() => expect(saveProfile).toHaveBeenCalledWith("مشغل ليان"));
     await waitFor(() => expect(notify).toHaveBeenCalled());
     expect(await screen.findByText(/حُفظ ملفك محليًا/)).toBeTruthy();
+    /* اسم المشروع يبقى معروضًا للقراءة مع مدخل التعديل القانوني. */
+    expect(await screen.findByText("مشغل ليان")).toBeTruthy();
+    const renameEntry = screen.getByRole("button", { name: "عدّله من الإعدادات" });
+    fireEvent.click(renameEntry);
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(expect.stringContaining("/settings"));
   });
 
   it("يرفض بريدًا معطوبًا برسالة عربية ولا يدّعي نجاحًا", async () => {

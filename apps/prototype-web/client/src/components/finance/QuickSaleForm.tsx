@@ -4,7 +4,7 @@ import { EnglishNumberInput } from "@/components/forms/EnglishNumberInput";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { REUSED_RECORD_PROTECTION_NOTE, REUSED_RECORD_RECEIPT_TITLE } from "@/app/resultFeedback";
 import { formatMoneyMinor } from "@/presentation/formatters";
-import { attributeToWallet, cashNow } from "./quickFormHelpers";
+import { cashNow } from "./quickFormHelpers";
 import type {
   QuickActionFormHandle,
   QuickActionReceipt,
@@ -113,7 +113,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
         return;
       }
       if (!saleCustomer.trim()) {
-        setFormError("اكتب اسم الزبون ليتجمع دينه في دفتر الناس.");
+        setFormError("اكتب اسم الزبون ليتُتبَّع دينه في «لي عند العملاء».");
         return;
       }
     }
@@ -136,6 +136,10 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
         occurredOn: saleDate,
         note: saleOnCredit ? "بيع آجل من ورقة الإضافة" : "بيع مباشر من ورقة الإضافة",
         idempotencyKey: saleKeyRef.current,
+        /* S11 (UNIT-005 §6 — الذرية): البيع والقبض الابتدائي وتخصيص المحفظة
+         * المختار التزام واحد داخل حد الكتابة — لا نافذة تخصيص لاحقة ولا
+         * نجاح جزئي؛ الغياب = غير موزع صريح. */
+        wallet: saleWalletId ? { walletId: saleWalletId } : null,
       });
     } finally {
       saveInFlightRef.current = false;
@@ -164,21 +168,10 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
       });
       return;
     }
-    /* ٥.٢: نسبة المقبوض للمحفظة المختارة إن حُددت — تحصيلًا لا دينًا. */
-    const attributedMinor = saleOnCredit ? saleCollectedMinor : saleAmountMinor;
-    let attributionNote: string | null = null;
-    if (saleWalletId && attributedMinor > 0)
-      attributionNote = (
-        await attributeToWallet(
-          projectFinance,
-          saleWalletId,
-          attributedMinor,
-          "توزيع قبض بيع من ورقة الإضافة",
-          result.value.id,
-          "sale",
-          `${saleKeyRef.current}:attribute`,
-        )
-      ).message;
+    /* S11 (UNIT-005 §6 — الذرية): تخصيص المحفظة المختار كُتب مع البيع في حد
+     * كتابة واحد (commitDirectSaleWrite) — لا مسار تخصيص لاحق هنا ولا نجاح
+     * جزئي؛ الإيصال والنقد يُقرآن من المحفوظ وحده. */
+    const attributionNote: string | null = null;
     /* FIN-004 (قرار المالك المعتمد ٢٠٢٦-٠٩-١٦): الإشعار بعد اكتمال الكتابتين
      * (البيع ثم نسبة المحفظة) — لا حالة وسيطة تُقرأ تحت الورقة. */
     notifyDataChanged();
@@ -193,7 +186,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
       detail: saleOnCredit
         ? `دين مسجل على «${saleCustomer.trim()}»: ${formatMoneyMinor(
             saleAmountMinor - saleCollectedMinor,
-          )} د.أ — يظهر في دفتر الناس ولي عند العملاء.`
+          )} د.أ — يظهر في «لي عند العملاء».`
         : null,
       attributionNote,
     });
@@ -294,7 +287,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
               onChange={event => setSaleCustomer(event.target.value)}
               placeholder="مثال: خالد"
             />
-            <small>يتجمع دينه في «دفتر الناس» باسمه هذا.</small>
+            <small>يُتبَّع دينه باسمه هذا في «لي عند العملاء».</small>
           </label>
           <label className="micro-field">
             <span>المبلغ المحصل الآن (د.أ)</span>

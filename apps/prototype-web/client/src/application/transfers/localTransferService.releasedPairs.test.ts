@@ -4,6 +4,7 @@ import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { syncSha256Hex } from "@/lib/syncSha256";
 import { TRANSFER_ARRAY_FAMILY_ROLES, countedArrayFamilyKeys } from "./transferArrayFamilyRoles";
 import { localExportVersion, localSchemaVersion, type LocalExportFile } from "@/storage/local/types";
+import { RELEASED_LEGACY_EXPORT_PAIRS } from "./transferEnvelope";
 
 /* المجموعة ٢ (التحصين الكامل — HIGH-002/D-1): زوج ٨/١٧ صدر فعلًا مع الالتزام
  * 570eba1 (2026-08-23) ويُعامل كمحتمل الاستخدام الميداني. العهدة هنا مؤصَّلة من
@@ -356,7 +357,19 @@ function minimalFileForPair(version: number, schemaVersion: number): string {
   });
 }
 
+/* S12-TRANSFER-002 (أمر 2158b0fc §5): الزوج الموروث 32/40 (S11 كما صدر
+ * فعلًا) داخل التوصيف الصريح — القائمة متزامنة مع المجموعة المرجعية
+ * (RELEASED_LEGACY_EXPORT_PAIRS + الزوج الحالي) ويُثبت الفحص الآلي أدناه
+ * التزامن ذاته فلا تنحرف القائمة عن المصدر أبدًا. */
 const ACCEPTED_PAIRS: [number, number][] = [
+  /* الزوج الحالي 34/41 ضمن التوصيف الصريح نفسه — القائمة تغطي كل زوج
+   * مقبول: الحالي + كل الموروثة، متزامنةً مع المصدر المرجعي آليًا
+   * (تصحيح مؤرخ 2026-11-02 DOC-023/S14: صار 33/40 زوجًا موروثًا مع
+   * عائلتي ملخصات الفترة وإيصالات الأوامر في 34/41). */
+  [34, 41],
+  [33, 40],
+  [32, 40],
+  [31, 39],
   [30, 38],
   [29, 37],
   [28, 36],
@@ -401,6 +414,19 @@ const REJECTED_PAIRS: [number, number][] = [
 const transfers = () => new LocalTransferService(new MemoryLocalStore(), now);
 
 describe("released export pair gate — one authoritative source", () => {
+  it("S12-TRANSFER-002: the explicit list stays synchronized with the authoritative released set", () => {
+    /* القائمة الصريحة = المجموعة المرجعية كاملة + الزوج الحالي — لا أكثر
+     * ولا أقل؛ أي انحراف مستقبلًا يفشل هنا قبل أي فحص آخر. */
+    const authoritative = new Set(RELEASED_LEGACY_EXPORT_PAIRS);
+    const currentPair: [number, number] = [localExportVersion, localSchemaVersion];
+    expect(ACCEPTED_PAIRS).toHaveLength(authoritative.size + 1);
+    for (const [version, schemaVersion] of ACCEPTED_PAIRS) {
+      if (version === currentPair[0] && schemaVersion === currentPair[1]) continue;
+      expect(authoritative.has(`${version}/${schemaVersion}`)).toBe(true);
+    }
+    expect(ACCEPTED_PAIRS).toContainEqual([32, 40]);
+  });
+
   it("accepts every released pair with a minimal valid snapshot (gate + migration + validation)", () => {
     for (const [version, schemaVersion] of ACCEPTED_PAIRS) {
       const prepared = transfers().prepareImport(minimalFileForPair(version, schemaVersion));
@@ -436,7 +462,7 @@ describe("historical 8/17 pair (commit 570eba1) — faithful fixture", () => {
 
   it("accepts, migrates, and round-trips the faithful 8/17 fixture without inventing values", async () => {
     auditFixture817(file817);
-    const prepared = transfers().prepareImport(JSON.stringify(file817));
+    const prepared = await transfers().prepareRestore(JSON.stringify(file817));
     if (!prepared.ok) throw new Error(prepared.message);
     const migrated = prepared.value.file;
     expect(migrated.version).toBe(localExportVersion);

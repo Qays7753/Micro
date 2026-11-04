@@ -20,7 +20,7 @@ export default function Market() {
   return (
     <section className="micro-page micro-market-page" data-testid="market-soon-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "مشروعي الآن" : "رجوع"}
+        <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "الرئيسية" : "رجوع"}
       </button>
       <div className="micro-page-heading">
         <span className="micro-overline">توسعة قادمة</span>
@@ -52,7 +52,7 @@ export default function Market() {
             navigate(returnPath);
           }}
         >
-          رجوع لمشروعي
+          رجوع للرئيسية
         </Button>
       </div>
     </section>

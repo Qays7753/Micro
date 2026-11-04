@@ -32,6 +32,7 @@ import {
   CASH_WALLET_KINDS,
   CASH_ENTRY_TYPES,
   FINANCIAL_EVENT_TYPES,
+  SUPPLIER_PURCHASE_LINE_TREATMENTS,
 } from "./domainTransferDriftAnchors";
 import { materialUnits } from "@micro-domain/inventory-material/index.js";
 import { unitDimensions } from "@micro-domain/catalog/index.js";
@@ -45,6 +46,7 @@ import {
   isMaterialUnit,
   isUnitDimension,
   isFinancialType,
+  validSupplierPurchaseLine,
 } from "./transferFamilyValidators";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -60,7 +62,11 @@ const GUARDS: ReadonlyArray<[string, (value: unknown) => boolean, readonly strin
   [
     "DirectSaleCollectionStatus",
     (value: unknown) =>
-      value === "collected_in_full" || value === "partial_debt" || value === "partial_needs_review",
+      value === "collected_in_full" ||
+      value === "partial_debt" ||
+      value === "partial_needs_review" ||
+      /* S11 (UNIT-005/PD-02): الحالة الرابعة — مرتجع كامل يلغي الحق المتبقي. */
+      value === "returned_full",
     Object.keys(DIRECT_SALE_COLLECTION_STATUSES),
   ],
   ["CashWalletKind", isCashWalletKind, Object.keys(CASH_WALLET_KINDS)],
@@ -68,6 +74,21 @@ const GUARDS: ReadonlyArray<[string, (value: unknown) => boolean, readonly strin
   ["MaterialUnit (domain runtime list)", isMaterialUnit, materialUnits],
   ["UnitDimension (domain runtime list)", isUnitDimension, unitDimensions],
   ["FinancialEventType", isFinancialType, Object.keys(FINANCIAL_EVENT_TYPES)],
+  /* S07 (R1-F02): مدقق بند الشراء داخل البطارية — معالجة البند اتحاد مجال
+   * مكرر في مدققات النقل؛ أي قيمة مجال جديدة تكسر الأنواع عند المرسى
+   * قبل أن ترفض التطبيق تصديراته بصمت. */
+  [
+    "SupplierPurchaseLineTreatment",
+    (value: unknown) =>
+      validSupplierPurchaseLine({
+        lineId: "anchor-line",
+        materialId: "anchor-material",
+        treatment: value,
+        costKnowledge: "known",
+        valueMinor: 1_000,
+      }),
+    Object.keys(SUPPLIER_PURCHASE_LINE_TREATMENTS),
+  ],
 ];
 
 describe("Wave 3B — domain ↔ transfer drift guard (runtime layer)", () => {
@@ -90,9 +111,10 @@ describe("Wave 3B — domain ↔ transfer drift guard (runtime layer)", () => {
     });
   }
 
-  it("the guard battery is fully wired: 10 families", () => {
-    /* إن حُذف حارس بالخطأ يفشل العدد — الحارس يحرس نفسه. */
-    expect(GUARDS.length).toBe(10);
+  it("the guard battery is fully wired: 11 families", () => {
+    /* إن حُذف حارس بالخطأ يفشل العدد — الحارس يحرس نفسه. (S07/R1-F02:
+     * 10 -> 11 بمعالجة بند الشراء.) */
+    expect(GUARDS.length).toBe(11);
   });
 
   it("self-test: a deliberately incomplete validator IS caught (the guard can fail)", () => {

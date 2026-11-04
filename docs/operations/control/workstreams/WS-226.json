@@ -1,0 +1,89 @@
+{
+  "id": "WS-226",
+  "title": "برنامج تنفيذ مكونات Micro — S01 نشر الحزمة والسلطة والتبعيات",
+  "status": "REVIEW_REQUIRED",
+  "items": [
+    "DOC-010"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "3584aa1d08cea3e0a00623b719fed7f991ce187f",
+  "areas": [
+    "docs/implementation/micro-component-execution",
+    "docs/operations/control/items/DOC-010.json",
+    "docs/operations/control/workstreams/WS-226.json",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+    "docs/00-document-index.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-PROGRAM.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md"
+  ],
+  "agent": "Owner-delegated ChatGPT documentation correction of S02 draft V2 only; Manus resumes final prompt preparation; no product-code writer active",
+  "pr": 383,
+  "started_at": "2026-10-27",
+  "updated_at": "2026-10-27",
+  "next_action": "S01 مقبولة على فرع التكامل ومحفوظة REVIEW_REQUIRED؛ لا إجراء إضافي على WS-226 حتى بوابة الدمج النهائية بعد S18. S02 تعمل مستقلًا في WS-227 على نفس فرع التكامل.",
+  "notes": [
+    "هذا Workstream يخص S01 فقط ولا يوسع DOC-008/WS-224 أو DOC-009/WS-225.",
+    "فرع التكامل الواحد استثناء برنامج محدد موثق في SOP؛ لا ينشئ سياسة عامة للمهام الأخرى.",
+    "الحزمة الأصلية 77 ملفًا مميزة عن ملفات S01 الإضافية؛ UNIT-001 V9 وUNIT-002 V11 غير منفذتين.",
+    "لا كود منتج أو اختبار إنتاجي أو Schema/Export/Import أو قرار مالي أو تغيير CI.",
+    "الدمج النهائي إلى main مؤجل إلى نهاية البرنامج وبموافقة مالك مستقلة؛ S01 لا تمنح إذن الدمج.",
+    "حالة ملاحظات GPT قبل التصحيح: S01-GPT-001 وS01-GPT-003 وS01-GPT-005 = CLOSED؛ S01-GPT-002 وS01-GPT-004 = PARTIAL. التصحيح الحالي محصور في الجزئيتين ولا يعيد فتح المغلقة.",
+    "رأس الأدلة السابق الذي بدأت منه دفعة التصحيح: 027f31f0d735e8a48d3ab9f33fa4cfb3efc72cfa؛ لا ينسب هذا السجل فحوصًا جديدة إلى رأس غير مثبت. رأس التصحيح النهائي يُثبت بعد commit/push في RESULT ووصف PR، دون SHA ذاتي داخل commit التوثيق نفسه.",
+    "PR #383 Draft؛ base SHA = 3584aa1d08cea3e0a00623b719fed7f991ce187f؛ التسليم على فرع التكامل نفسه؛ لا merge أو cleanup أو S02.",
+    "رأس التصحيح المتحقق: 1ab46931689daacaa766eacba6fb439d9ac04894؛ GitHub CI وCloudflare Pages ناجحان على الرأس نفسه بتاريخ 27/10/2026. رأس بدء الدفعة كان 027f31f0d735e8a48d3ab9f33fa4cfb3efc72cfa. لا SHA ذاتي داخل commit التوثيق التالي.",
+    "حكم ChatGPT النهائي (منسوب إليه كما بلّغه المالك): PASS على الرأس 3b1b24b508edb68996fa0ac33418a96ee05957ad؛ S01-GPT-001..005 مغلقة؛ مرآة Drive = V4. GitHub يبقى المصدر التشغيلي الوحيد.",
+    "حكم Manus المستقل: PASS على الرأس نفسه 3b1b24b508edb68996fa0ac33418a96ee05957ad; لا عائق محدد يمنع S01 ضمن النطاق؛ المانع الوحيد المتبقي هو اعتماد المالك. سجل المراجعة هذا يوثق الرأس المراجع ولا يساوي commit توثيقيًا لاحقًا.",
+    "اعتماد المالك: S01 مقبولة على فرع التكامل بعد PASS ChatGPT المنسوب إليه وPASS Manus المستقل على الرأس 3b1b24b508edb68996fa0ac33418a96ee05957ad؛ لا VERIFIED على main ولا إذن دمج.",
+    "أمر S02 READY منشور في DOC-011/WS-227؛ لا Claim كود S02 داخل WS-226.",
+    "2026-10-27: بعد قبول S01، نُشر أمر S02 READY مستقل في DOC-011/WS-227. من S02 فصاعدًا Manus هو المنسق والمراجع الوحيد؛ لا توجد بوابة ChatGPT نشطة. لا Claim كود S02 داخل WS-226."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/03-S01-RESULT-2026-10-27.md",
+    "docs/implementation/micro-component-execution/04-S01-AUTHORITY-MATRIX-2026-10-27.md",
+    "docs/implementation/micro-component-execution/05-S01-RESUME-INSTRUCTIONS-2026-10-27.md",
+    "docs/implementation/micro-component-execution/06-S01-PACKAGE-RECONCILIATION-2026-10-27.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "https://github.com/Qays7753/Micro/actions/runs/40558258212",
+    "https://github.com/Qays7753/Micro/actions/runs/40558258212/job/122380026027",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/3cdfb790-a16a-4623-afc7-e23b20348738",
+    "https://github.com/Qays7753/Micro/actions/runs/40559451084",
+    "https://github.com/Qays7753/Micro/actions/runs/40559451084/job/122384216787",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/43676bbb-a56b-4649-b656-5d5cb1de5217"
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-10-27",
+      "actor": "owner-approved-s01",
+      "reason": "فتح S01 بعد اعتماد المالك ومنع أي فرع تجهيز أو PR ثانٍ."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-27",
+      "actor": "manus-s01-executor",
+      "reason": "تنفيذ النشر التوثيقي ومصالحة السلطة والتبعيات على فرع التكامل."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-27",
+      "actor": "manus-s01-delivery",
+      "reason": "نطاق S01 مسلّم للمراجعة المستقلة؛ لا قبول أو انتقال تلقائي."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-10-27",
+      "actor": "owner-acceptance-s01",
+      "reason": "اعتمد المالك S01 على فرع التكامل بعد PASS؛ Workstream لم يعد Claim نشطًا عند بدء S02. تبقى VERIFIED ودمج main مؤجلين إلى بوابة البرنامج النهائية."
+    }
+  ],
+  "migration_baseline": false
+}

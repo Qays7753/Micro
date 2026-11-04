@@ -21,6 +21,71 @@ import type { DirectSale, DirectSaleCollectionStatus } from "@micro-domain/direc
 /** X-06 (و٤): خيار صاحب القرار في فرق القبض عن السعر — النظام ينبّه ولا يقرّر. */
 export type DifferenceChoice = "price_cut" | "remaining_debt" | "needs_review";
 
+/* S11-MR-001 (UNIT-005 A2/س2 + B3-F02): وضع الدفع الصريح عند الإنشاء —
+ * «الكامل ظاهر مقترح؛ الجزء يكشف المبلغ، والدين صريح من الخيار فيجهز
+ * تعريفه دون سؤال فرق ثانٍ». الوضع نية مالك صريحة لا قيمة مالية: القيمة
+ * المالية تُشتق عند الحفظ من الوضع والمدخلات، ولا يُفسَّر فراغ أبدًا صفرًا. */
+export type PaymentMode = "full" | "partial" | "none";
+
+export function isPaymentMode(value: unknown): value is PaymentMode {
+  return value === "full" || value === "partial" || value === "none";
+}
+
+/** المقبوض الفعّال من الوضع: كامل = الإجمالي، جزء = المُدخل، لا قبض = صفر
+ * صريح باختيار المالك («لم أستلم») — لا نص غير صالح يمر من هنا أبدًا. */
+export function resolveCollectedForMode(
+  mode: PaymentMode,
+  revenueMinor: number,
+  partialCollectedMinor: number,
+): number {
+  if (mode === "full") return revenueMinor;
+  if (mode === "none") return 0;
+  return partialCollectedMinor;
+}
+
+/** قرار الفرق الفعّال: الكامل بلا فرق أصلًا؛ والدين معنى الوضع الصريح ما لم
+ * يختر المالك حالة مختلفة (تخفيض/مراجعة) — لا سؤال دين ثانٍ بعد اختياره. */
+export function effectiveDifferenceChoice(
+  mode: PaymentMode,
+  differenceChoice: DifferenceChoice | null,
+): DifferenceChoice | null {
+  if (mode === "full") return null;
+  return differenceChoice ?? "remaining_debt";
+}
+
+/** هجرة مسودة ما قبل الأوضاع (شكل collectedEmpty القديم) إلى وضع الدفع —
+ * المسودة القديمة لم تمر باتفاق الوضع الصريح، ففرقها الموجب «غير محسوم»
+ * ولا يُمنح معنى دين بصمت: يظل قراره معلقًا حتى يختاره المالك بنفسه. */
+export type PaymentModeMigration = {
+  mode: PaymentMode;
+  undecidedDifference: boolean;
+};
+
+export function paymentModeFromDraft(saved: Record<string, unknown>): PaymentModeMigration {
+  if (isPaymentMode(saved.paymentMode))
+    return { mode: saved.paymentMode, undecidedDifference: saved.differenceUndecided === true };
+  const collectedEmpty = saved.collectedEmpty !== false;
+  if (collectedEmpty) return { mode: "full", undecidedDifference: false };
+  const collectedMinor = Number(saved.collectedMinor);
+  const revenueMinor = Number(saved.revenueMinor);
+  if (!Number.isFinite(collectedMinor)) return { mode: "full", undecidedDifference: false };
+  if (collectedMinor <= 0)
+    return {
+      mode: Number.isFinite(revenueMinor) && revenueMinor > 0 ? "none" : "full",
+      undecidedDifference: Number.isFinite(revenueMinor) && revenueMinor > 0,
+    };
+  /* S11-LR-002 (أمر 2158b0fc §4): المساواة فقط تهاجر إلى «كامل» — القيمة
+   * الأعلى من الإجمالي تُستعاد بوضع الجزء بقيمتها الخام كاملة: قيمة غير
+   * صالحة ظاهرة تمنع الحفظ (collected_exceeds_price) حتى يصحح المالك
+   * المبلغ أو يختار وضع دفع آخر بقرار صريح؛ لا قص ولا استبدال بالإجمالي
+   * ولا «كامل» لقيمة لم يُدخل معناها كذلك. */
+  if (Number.isFinite(revenueMinor) && collectedMinor > revenueMinor)
+    return { mode: "partial", undecidedDifference: true };
+  if (Number.isFinite(revenueMinor) && collectedMinor === revenueMinor)
+    return { mode: "full", undecidedDifference: false };
+  return { mode: "partial", undecidedDifference: true };
+}
+
 /** معامل سياق السجل ?product=<id> — يصل من «سجّل بيع هذا المنتج» في الكتالوج. */
 export function productParamFromSearch(search: string): string | null {
   const value = new URLSearchParams(search).get("product");
@@ -29,7 +94,12 @@ export function productParamFromSearch(search: string): string | null {
 
 /** بوابة التحقق قبل الإرسال — نفس شروط الصفحة حرفيًا؛ null = صالح للإرسال. */
 export type DirectSaleSubmissionProblem =
-  "missing_required_fields" | "collected_exceeds_price" | "difference_choice_required";
+  | "missing_required_fields"
+  | "collected_exceeds_price"
+  | "partial_amount_required"
+  | "partial_amount_equals_total"
+  | "difference_choice_required"
+  | "debt_identity_required";
 
 export type DirectSaleSubmissionInput = {
   note: string;
@@ -37,15 +107,30 @@ export type DirectSaleSubmissionInput = {
   quantity: number;
   validRevenue: boolean;
   revenueMinor: number;
+  /* S11-MR-001: وضع الدفع الصريح يوجه فحص المقبوض — فحص المبلغ يخص الوضع
+   * الجزئي وحده (نص وضع آخر لا يمنع حفظًا صحيحًا)، والفراغ في الجزء رفض
+   * لا تفسير مالي. */
+  paymentMode: PaymentMode;
   validCollected: boolean;
-  resolvedCollected: number;
+  collectedEmpty: boolean;
+  partialCollectedMinor: number;
   costKnown: boolean;
   validCost: boolean;
   costMinor: number;
-  /* الفرق معاملًا (يحسبه المستدعي من السعر والمقبوض — مرآة F-049 المجمدة
-   * تبقى عند الصفحة): الوحدة تصنّف القرار ولا تحسب المال. */
+  /* الفرق معاملًا (يحسبه المستدعي من السعر والمقبوض الفعّال — مرآة F-049
+   * المجمدة تبقى عند الصفحة): الوحدة تصنّف القرار ولا تحسب المال. */
   difference: number;
   differenceChoice: DifferenceChoice | null;
+  /* مسودة قديمة الاستعادة بفرق غير محسوم — قرار المعنى مطلوب قبل الحفظ. */
+  undecidedDifference: boolean;
+  /* S11-LR-001 (أمر 2158b0fc §4): بوابة تمهيدية لهوية الدين المؤكد — نفس
+   * القاعدة المعتمدة عند المجال (اسم/وصف أو طرف محفوظ) تُمنع بها نداءات
+   * الخدمة بلا تعريف؛ حارس المجال عند حد الكتابة يبقى خط الدفاع الثاني.
+   * دين قائم مؤكد سابقًا (سجل قديم مجهول الاسم) لا يُطالب بتعريف رجعي —
+   * مرآة قاعدة الدلتا (assertDebtDefinitionOnEdit) لا أوسع منها. */
+  customerName: string;
+  customerPartyId: string | null;
+  existingConfirmedDebt: boolean;
 };
 
 export function validateDirectSaleSubmission(
@@ -58,19 +143,46 @@ export function validateDirectSaleSubmission(
     input.quantity < 1 ||
     !input.validRevenue ||
     input.revenueMinor <= 0 ||
-    !input.validCollected ||
-    !Number.isInteger(input.resolvedCollected) ||
-    input.resolvedCollected < 0 ||
     (input.costKnown && (!input.validCost || input.costMinor < 0))
   ) {
     return "missing_required_fields";
   }
-  if (input.resolvedCollected > input.revenueMinor) {
-    return "collected_exceeds_price";
+  /* S11-MR-001 (B3-F03 «عند الجزء؛ >0 وأقل من الإجمالي»): مبلغ الجزء صريح
+   * موجب دون الإجمالي — الفراغ/الصفر رفض (ليس قبضًا كاملًا ولا صفرًا)،
+   * والمساواة بالإجمالي إشارة إلى وضع الكامل لا خطأ قبض. */
+  if (input.paymentMode === "partial") {
+    if (
+      !input.validCollected ||
+      input.collectedEmpty ||
+      !Number.isInteger(input.partialCollectedMinor) ||
+      input.partialCollectedMinor <= 0
+    ) {
+      return "partial_amount_required";
+    }
+    if (input.partialCollectedMinor > input.revenueMinor) return "collected_exceeds_price";
+    if (input.partialCollectedMinor === input.revenueMinor) return "partial_amount_equals_total";
   }
-  /* X-06: النظام ينبّه ولا يقرّر — الفرق يوقف الحفظ ويعرض الخيارات الثلاثة. */
-  if (input.difference > 0 && input.differenceChoice === null) {
+  /* X-06 كما كان لمسودة قديمة مستعادة: فرقها لم يُحسم باتفاق صريح — النظام
+   * ينبّه ولا يقرّر؛ قرار المعنى شرط الحفظ (الأوضاع الجديدة دينُها صريح
+   * من اختيار الدفع فلا يُسأل عنه ثانيةً). */
+  if (input.undecidedDifference && input.difference > 0 && input.differenceChoice === null) {
     return "difference_choice_required";
+  }
+  /* S11-LR-001 (تصحيح S13-R1-F01 — مراجعة S13 الأولى): نية الدين المؤكد
+   * بلا تعريف بسيط — وضع الجزء بفرق موجب، ووضع «لم أستلم والمبلغ دَين»
+   * (none) بفرقه الموجب الكامل — كلاهما دين مؤكد بمعناه الصريح أو الافتراضي
+   * (effectiveDifferenceChoice)، فترفض عند البوابة قبل استدعاء الخدمة؛
+   * والملكية لا تصبح إلزامية: التعريف شرط الدين وحده، واختيار صريح مختلف
+   * (تخفيض/مراجعة) أو فرق غير محسوم (X-06 أعلاه) ليس دينًا مؤكدًا. */
+  if (
+    (input.paymentMode === "partial" || input.paymentMode === "none") &&
+    input.difference > 0 &&
+    (input.differenceChoice ?? "remaining_debt") === "remaining_debt" &&
+    !input.existingConfirmedDebt &&
+    !input.customerName.trim() &&
+    !(input.customerPartyId ?? "").trim()
+  ) {
+    return "debt_identity_required";
   }
   return null;
 }
@@ -95,6 +207,54 @@ export function resolveDifferenceOutcome(
           : "collected_in_full"
       : "collected_in_full";
   return { collectionStatus, priceCut };
+}
+
+/* S11-MR-001 (UNIT-005 A2/س8 — «معاينة قصيرة ملاصقة للحفظ»): أجزاء المعاينة
+ * من النية الفعّالة الصحيحة نفسها التي سيُحفظ بها الأمر — لا نص متقادم ولا
+ * رقم من مدخل غير صالح؛ الصفحة تنسق الأرقام، والقرار هنا. */
+export type DirectSalePreviewParts =
+  | { kind: "unavailable" }
+  | { kind: "full"; saleMinor: number }
+  | { kind: "debt"; saleMinor: number; collectedMinor: number; debtMinor: number; none: boolean }
+  | { kind: "review"; saleMinor: number; collectedMinor: number; pendingMinor: number; none: boolean }
+  | { kind: "price_cut"; effectiveSaleMinor: number };
+
+export function directSalePreviewParts(input: {
+  valid: boolean;
+  paymentMode: PaymentMode;
+  revenueMinor: number;
+  resolvedCollectedMinor: number;
+  difference: number;
+  effectiveChoice: DifferenceChoice | null;
+}): DirectSalePreviewParts {
+  if (!input.valid || input.revenueMinor <= 0) return { kind: "unavailable" };
+  /* S12 (DOC-021 — تصحيح R5-F02): القبض الجزئي الذي يوازي أو يتجاوز السعر
+   * نية يرفضها حد الحفظ (collected_exceeds_price وpartial_amount_equals_total)
+   * — لا تُعرض «قُبض كاملًا» برقم لم يدخله المستخدم ولا معاينة من نية غير
+   * قابلة للحفظ؛ المعاينة من النية الفعالة الصحيحة فقط. */
+  if (input.paymentMode === "partial" && input.resolvedCollectedMinor >= input.revenueMinor) {
+    return { kind: "unavailable" };
+  }
+  if (input.difference > 0 && input.effectiveChoice === "price_cut")
+    return { kind: "price_cut", effectiveSaleMinor: input.resolvedCollectedMinor };
+  if (input.difference > 0 && input.effectiveChoice === "needs_review")
+    return {
+      kind: "review",
+      saleMinor: input.revenueMinor,
+      collectedMinor: input.resolvedCollectedMinor,
+      pendingMinor: input.difference,
+      none: input.resolvedCollectedMinor === 0,
+    };
+  if (input.difference > 0)
+    return {
+      kind: "debt",
+      saleMinor: input.revenueMinor,
+      collectedMinor: input.resolvedCollectedMinor,
+      debtMinor: input.difference,
+      none: input.resolvedCollectedMinor === 0,
+    };
+  if (input.paymentMode === "none") return { kind: "full", saleMinor: 0 };
+  return { kind: "full", saleMinor: input.revenueMinor };
 }
 
 /** تعيين المرجع المقترح من ?product= مرة واحدة عند الإنشاء — قرار الصفحة
@@ -162,11 +322,19 @@ export type DirectSaleFormValues = {
   itemName: string;
   quantity: number;
   revenueMinor: number;
+  /* S11-MR-001: الوضع الفعّال للسجل القائم يُشتق من محفوظه — لا افتراض
+   * إنشائي («الكامل») على سجل قائم (تعديل فوق الحقيقة المحفوظة). */
+  paymentMode: PaymentMode;
   collectedEmpty: boolean;
   collectedMinor: number;
   costKnown: boolean;
   costMinor: number;
   customerName: string;
+  /* S05 (DOC-014 / UNIT-037): رابط الطرف المحفوظ المختار وقرار حفظه —
+   * يُسترجعان مع المسودة كما كانا (عقد B3: الاستعادة تعيد اختيارها وموافقة
+   * حفظها)، ويُثبّتان على المصدر عند الحفظ. */
+  customerPartyId: string;
+  saveForReuse: boolean;
   catalogItemId: string;
   occurredOn: string;
   note: string;
@@ -178,12 +346,17 @@ export function directSaleToFormValues(sale: DirectSale): DirectSaleFormValues {
     itemName: sale.itemName,
     quantity: sale.quantity,
     revenueMinor: sale.revenueMinor,
-    /* المقبوض المحفوظ يساوي السعر = قبض كامل (الحقلة الفارغة تعني السعر). */
+    /* S11-MR-001: وضع السجل من محفوظه — كامل/جزء/لم يُقبض؛ الحفظ يمر
+     * بالوضع نفسه فلا يُطبَّق افتراض الإنشاء على سجل قائم. */
+    paymentMode:
+      sale.collectedMinor === sale.revenueMinor ? "full" : sale.collectedMinor === 0 ? "none" : "partial",
     collectedEmpty: sale.collectedMinor === sale.revenueMinor,
     collectedMinor: sale.collectedMinor,
     costKnown: sale.costMinor !== null,
     costMinor: sale.costMinor ?? 0,
     customerName: sale.customerName ?? "",
+    customerPartyId: sale.customerPartyId ?? "",
+    saveForReuse: false,
     catalogItemId: sale.catalogItemId ?? "",
     occurredOn: sale.occurredOn,
     note: sale.note,

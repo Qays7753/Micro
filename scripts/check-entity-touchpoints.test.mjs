@@ -314,6 +314,10 @@ describe("check-entity-touchpoints — CLI and live repository", () => {
     ].join("\n");
     /* المجموعة ١٠: الثوابت والإنشاء في ملفين — كما في المصدر الحقيقي بعد التفكيك. */
     fs.writeFileSync(path.join(storeDir, "indexedDbStores.ts"), storeNames.map((name) => `const ${name}Store = "${name}";`).join("\n") + "\n");
+    /* S02-A (SH-02/SH-03): قاعدة حماية الاستبدال المنفصلة — مصدر مخازن ثالث
+     * (فارغ في هذه الشجرة المصغرة؛ حضور الملف نفسه هو المطلوب فالحارس
+     * فاشل-مغلق على مصدر غائب). */
+    fs.writeFileSync(path.join(storeDir, "restoreProtectionStore.ts"), "");
     fs.writeFileSync(
       path.join(storeDir, "indexedDbMigrations.ts"),
       storeNames.map((name) => `database.createObjectStore(${name}Store, { keyPath: "id" });`).join("\n") + "\n",

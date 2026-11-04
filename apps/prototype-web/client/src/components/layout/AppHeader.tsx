@@ -4,17 +4,10 @@
  * العمودية؛ النقل و«اسأل Micro» على اليسار بإعلاني «قريبًا» الصادقين.
  * زر الوضع الليلي أُزيل من هنا نهائيًا — مدخله الوحيد: الإعدادات ← المظهر (D4). */
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ChevronDown,
-  CircleUserRound,
-  Landmark,
-  MessageCircleQuestion,
-  Settings,
-  Truck,
-  X,
-} from "lucide-react";
+import { ChevronDown, CircleUserRound, Landmark, MessageCircleQuestion, Settings, X } from "lucide-react";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { withReturnTo } from "@/app/navigationContract";
+import { futureServiceAnnouncements } from "@/app/futureServices";
 
 type AppHeaderProps = {
   /* §4 بند ٥: التسمية السياقية تُحذف حين تكرر عنوان الصفحة h1 — الاسم وحده */
@@ -25,22 +18,14 @@ type AppHeaderProps = {
   onNavigate: (href: string) => void;
 };
 
-/* NAV-001 (قرار المالك ٢٠٢٦-٠٩-١٦): مدخلا النقل والتوصيل و«اسأل Micro» في
- * الترويسة — إعلانا «قريبًا» صادقان: لا حجز ولا تتبع ولا تسعير ولا ربط
- * نموذج ذكاء، ولا يُرسل أي بيان محلي إلى خارج الجهاز. */
-type SoonPanel = "transport" | "assistant" | null;
+/* UNIT-043 (S16 — SH-21): إعلان «قريبًا» الصادق لاسأل Micro فقط هنا؛
+ * مدخل النقل والتوصيل انتقل إلى مقعده في الشريط السفلي (/delivery) والبديل
+ * جاهز قبل الإزالة؛ لا حجز ولا تتبع ولا تسعير ولا ربط نموذج ذكاء، ولا
+ * يُرسل أي بيان محلي إلى خارج الجهاز. */
+type SoonPanel = "assistant" | null;
 
-const soonPanelCopy: Record<"transport" | "assistant", { title: string; body: string; footer: string }> = {
-  transport: {
-    title: "النقل والتوصيل — قريبًا",
-    body: "ستدعم الخدمة مستقبليًا إحضار المواد من الموردين وتوصيل الطلبات إلى الزبائن من داخل التطبيق. حتى تجهز، تسليم طلبك يُدار من صفحة الطلب نفسها في «العمل»، وشراء المواد من «المالية».",
-    footer: "لا حجز نقل ولا تسعير ولا تتبع في هذه النسخة — وتغيير طلب إلى «تم التسليم» ليس حجز نقل.",
-  },
-  assistant: {
-    title: "اسأل Micro — قريبًا",
-    body: "سيكون المساعد مستقبليًا قارئًا فقط: يجيب من بياناتك المسجلة على جهازك لتفهم رقمك بسرعة، بلا إنشاء أو تعديل أو حذف أي سجل.",
-    footer: "لا نموذج ذكاء خارجي متصل في هذه النسخة، ولا تُرسل بيانات مشروعك إلى أي خدمة خارجية.",
-  },
+const soonPanelCopy: Record<"assistant", { title: string; body: string; footer: string }> = {
+  assistant: futureServiceAnnouncements.assistant,
 };
 
 /* D3: مجموعات قائمة الشعار — قصيرة ومرتبة: الحساب والمشروع ثم النظام.
@@ -56,9 +41,8 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
   const [menuOpen, setMenuOpen] = useState(false);
   const logoButtonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  /* Wave 4.4 — P-4.4-1: مراجع مشغّلات لوحتي «قريبًا» — لإعادة التركيز إليها
+  /* Wave 4.4 — P-4.4-1: مرجع مشغّل لوحة «قريبًا» — لإعادة التركيز إليها
    * بعد الإغلاق (Escape/خارجي/زر) كسلوك قائمة الشعار نفسه. */
-  const transportButtonRef = useRef<HTMLButtonElement>(null);
   const assistantButtonRef = useRef<HTMLButtonElement>(null);
   const soonPanelRef = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -73,16 +57,10 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
     if (restoreFocus) logoButtonRef.current?.focus();
   }, []);
 
-  const closeSoonPanel = useCallback(
-    (restoreFocus: boolean) => {
-      setSoonPanel(null);
-      if (restoreFocus) {
-        const trigger = soonPanel === "transport" ? transportButtonRef.current : assistantButtonRef.current;
-        trigger?.focus();
-      }
-    },
-    [soonPanel],
-  );
+  const closeSoonPanel = useCallback((_restoreFocus: boolean) => {
+    setSoonPanel(null);
+    assistantButtonRef.current?.focus();
+  }, []);
 
   /* Wave 4.4 — P-4.4-1: توحيد سلوك لوحتي «قريبًا» مع قائمة الشعار — Escape
    * يغلق ويعيد التركيز للمشغّل، والنقر خارجيًا يغلق، وTab يبقى داخل اللوحة
@@ -225,20 +203,6 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
           {contextLabel ? <span className="micro-header-context">{contextLabel}</span> : null}
         </div>
         <div className="micro-header-actions">
-          <button
-            ref={transportButtonRef}
-            className="micro-icon-button"
-            type="button"
-            onClick={() => {
-              closeMenu(false);
-              setSoonPanel("transport");
-            }}
-            aria-label="النقل والتوصيل — قريبًا"
-            aria-haspopup="dialog"
-            title="النقل والتوصيل — قريبًا"
-          >
-            <Truck aria-hidden="true" />
-          </button>
           <button
             ref={assistantButtonRef}
             className="micro-icon-button"

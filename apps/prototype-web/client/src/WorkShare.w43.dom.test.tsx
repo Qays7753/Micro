@@ -11,7 +11,7 @@
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usePrototypeServices } from "@/app/PrototypeServicesContext";
+import { usePrototypeServices, getPrototypeLocalStore } from "@/app/PrototypeServicesContext";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { DraftService } from "@/application/drafts/draftService";
@@ -30,6 +30,7 @@ import Orders from "@/pages/Orders";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
+  getPrototypeLocalStore: vi.fn(),
 }));
 
 const wouterMocks = vi.hoisted(() => ({
@@ -93,7 +94,7 @@ function buildServices() {
 }
 
 async function seedProfile() {
-  const result = await new ProfileService(store, () => NOW).save("مشغل عمل");
+  const result = await new ProfileService(store, () => NOW).create("مشغل عمل");
   if (!result.ok) throw new Error(result.message);
 }
 
@@ -150,7 +151,7 @@ describe("Wave 4.3 — P-4.3-4: Work, orders, and sharing", () => {
   });
   afterEach(() => cleanup());
 
-  it("F06: «شارك إشعار القبض» appears only after a successful order collection and opens the preview", async () => {
+  it("F06 → UNIT-040: a successful order collection shows the honest record — no share entry, no preview navigation", async () => {
     await seedProfile();
     const stored = await agreedOrder({ depositMinor: 1000 });
     await deliverWithDebt(stored);
@@ -167,17 +168,19 @@ describe("Wave 4.3 — P-4.3-4: Work, orders, and sharing", () => {
       },
     );
     fireEvent.click(screen.getByRole("button", { name: /سجّل القبض/ }));
-    /* بعد النجاح الحقيقي: زر المشاركة من الحدث المحفوظ القائم. */
-    const shareEntry = await screen.findByTestId("share-receipt-entry");
-    expect(shareEntry.textContent).toContain("شارك إشعار القبض");
-    fireEvent.click(shareEntry);
-    expect(wouterMocks.navigate).toHaveBeenCalledWith(
+    /* UNIT-040 (تنفيذ S15 بالأمر الموحد §5): بعد النجاح الحقيقي أيضًا لا زر
+     * «شارك إشعار القبض» ولا مسودة تذهب لأي معاينة — النجاح المحفوظ نفسه
+     * هو الحقيقة المعروضة؛ لا بديل رسالة أو نسخ نص. */
+    await waitFor(() => expect(screen.getByText(/قبضت من/)).toBeTruthy());
+    expect(screen.queryByTestId("share-receipt-entry")).toBeNull();
+    expect(screen.queryByText(/شارك/)).toBeNull();
+    expect(wouterMocks.navigate).not.toHaveBeenCalledWith(
       "/share/preview?returnTo=%2Fcollect",
-      expect.objectContaining({ state: expect.objectContaining({ draft: expect.anything() }) }),
+      expect.anything(),
     );
   });
 
-  it("F06: a direct-sale collection has no share button — no customer draft kind in the contract", async () => {
+  it("F06 → UNIT-040: a direct-sale collection has no share button — and none appears after success either", async () => {
     await seedProfile();
     const sale = await new DirectSaleService(store, () => NOW).record({
       itemName: "شوكولاتة",
@@ -207,7 +210,7 @@ describe("Wave 4.3 — P-4.3-4: Work, orders, and sharing", () => {
     expect(screen.queryByTestId("share-receipt-entry")).toBeNull();
   });
 
-  it("F06: an unsuccessful collection shows the honest error and never a share entry", async () => {
+  it("F06 → UNIT-040: an unsuccessful collection shows the honest error and never a share entry", async () => {
     await seedProfile();
     const stored = await agreedOrder({ depositMinor: 1000 });
     await deliverWithDebt(stored);
@@ -248,16 +251,19 @@ describe("Wave 4.3 — P-4.3-4: Work, orders, and sharing", () => {
     });
     wouterMocks.location = "/orders";
     wouterMocks.search = "";
+    vi.mocked(getPrototypeLocalStore).mockReturnValue(store);
     renderWithProviders(<Orders />);
-    /* المجموعات بترتيب العمل؛ الخطوة التالية في كل صف؛ الملغاة مطوية مرئية. */
-    const executingGroup = await screen.findByText("يحتاج تنفيذًا الآن");
-    expect(executingGroup.parentElement?.textContent).toContain("مجسم جبس");
-    expect(executingGroup.parentElement?.textContent).toContain("الخطوة التالية:");
-    const awaitingGroup = screen.getByText("ينتظر تحصيلًا");
-    expect(awaitingGroup.parentElement?.textContent).toContain("إطار صور");
-    const cancelledGroup = document.querySelector(".micro-orders-cancelled") as HTMLDetailsElement | null;
-    expect(cancelledGroup).toBeTruthy();
-    expect(cancelledGroup?.textContent).toContain("طلب ملغى");
-    expect(cancelledGroup?.textContent).toContain("تبقى في السجل للتدقيق");
+    /* S13 (UNIT-006/ORD-D02 — أمر 2158b0fc §6): الحالية أولًا والسابق بمدخل
+     * واضح؛ المنتهي تشغيليًا (دينه باقٍ) والملغى عند السابق — دينه لا يختفي
+     * ولا يسمى محصلًا، والخطوة التالية في صف الحالي. */
+    const executingRow = await screen.findByText("مجسم جبس");
+    expect(executingRow.closest("button")?.textContent).toContain("الخطوة التالية:");
+    /* مدخل السابق بعدد صادق يشمل الدين والملغى معًا. */
+    const pastEntry = await screen.findByText(/الطلبات السابقة/);
+    expect(pastEntry.closest("button")?.textContent).toContain("2");
+    fireEvent.click(pastEntry.closest("button")!);
+    const debtRow = await screen.findByText("إطار صور");
+    expect(debtRow.closest("button")?.textContent).toContain("المتبقي");
+    expect(await screen.findByText("طلب ملغى")).toBeTruthy();
   });
 });

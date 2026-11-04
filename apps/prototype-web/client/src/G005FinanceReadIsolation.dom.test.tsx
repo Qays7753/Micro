@@ -1,10 +1,16 @@
 /** @vitest-environment jsdom */
 /* G-005 (تدقيق الإدارة المالية المتدرجة 2026-09-19): عزل فشل قراءات صفحة
- * المالية — فشل كتلة متقدمة واحدة (أو اثنتين) لا يحجب الصفحة: الأسطح
- * السليمة تبقى من مصادرها الحية، والمعطوبة تعرض بطاقة خطأ موجزة + إعادة
- * محاولة بلا أصفار كاذبة (المجهول «غير متاح» لا 0.00)، وفشل المجموعة
- * الأساسية (المركز) وحده يوجّه الصفحة للخطأ الصادق، والرفض (rejected
- * Promise) يُعالج كفشل كتلة لا كرفض غير معالج ولا صفحة فارغة. */
+ * المالية — فشل كتلة متقدمة واحدة لا يحجب الصفحة: الأسطح السليمة تبقى من
+ * مصادرها الحية، والمعطوبة تعرض بطاقة خطأ موجزة + إعادة محاولة بلا أصفار
+ * كاذبة (المجهول «غير متاح» لا 0.00)، وفشل المجموعة الأساسية (المركز) وحده
+ * يوجّه الصفحة للخطأ الصادق، والرفض (rejected Promise) يُعالج كفشل كتلة لا
+ * كرفض غير معالج ولا صفحة فارغة.
+ *
+ * UNIT-013 (تنفيذ S15 بالأمر الموحد §5): جرد القارئين غيّر حدود العزل —
+ * قراءات العربونات والأصول والقروض والعربونات المحتفظة غادرت تحميل المالية
+ * الأساسي، ففشل خدماتها (حتى رفضها) لم يعد شأن الصفحة أصلًا: أقوى عزل هو
+ * ألا تُقرأ. الكتل الحية للعزل الآن: الأحداث، الفترة، مال المالك،
+ * التغطية/التعادل، وتصحيحات كل التاريخ، والجسر. */
 import React from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -14,18 +20,15 @@ import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
-import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
-import { AgreementContextService } from "@/application/agreements/agreementContextService";
-import { ActivityService } from "@/application/activity/activityService";
 import { CorrectionHistoryService } from "@/application/financial-records/correctionHistoryService";
 import { OwnerEntitlementService } from "@/application/owner-money/ownerEntitlementService";
 import { G5Service } from "@/application/financial-analysis/financialAnalysisService";
 import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
-import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
-import { ScheduleService } from "@/application/scheduling/scheduleService";
 import { AssetService } from "@/application/assets/assetService";
 import { LoanService } from "@/application/loans/loanService";
 import { RetainedDepositService } from "@/application/financial-records/retainedDepositService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { ScheduleService } from "@/application/scheduling/scheduleService";
 /* FIN-003 (WS-173 — Wave 1): جسر الربح والكاش — خدمة قراءة فقط يطلبها سطح الفترة. */
 import { ProfitToCashBridgeService } from "@/application/finance/profitToCashBridgeService";
 import Finance from "@/pages/Finance";
@@ -70,16 +73,17 @@ function buildServices() {
   const cashContinuity = new CashContinuityService(store, () => NOW);
   const inventory = new InventoryMaterialService(store, () => NOW);
   const projectFinance = new ProjectFinancialService(store, () => NOW);
-  const supplierPurchases = new SupplierPurchaseService(store, () => NOW);
   const realLoans = new LoanService(store, () => NOW);
   const realAssets = new AssetService(store, () => NOW);
+  const realFulfillment = new FulfillmentService(store, () => NOW, schedules);
+  const realRetained = new RetainedDepositService(store, () => NOW);
   const realOwner = new OwnerEntitlementService(
     store,
     async () => ({ ok: true as const, value: { resultMinor: 0, status: "recorded_only" as const } }),
     () => NOW,
   );
   const realG5 = new G5Service(store, projectFinance, () => NOW);
-  const realFulfillment = new FulfillmentService(store, () => NOW);
+  const realCorrections = new CorrectionHistoryService(store);
   return {
     projectFinance: {
       ...projectFinance,
@@ -90,7 +94,13 @@ function buildServices() {
       readFinancialInsights: (from: string, to: string) =>
         failing("period", () => projectFinance.readFinancialInsights(from, to)),
     },
-    correctionHistory: new CorrectionHistoryService(store),
+    correctionHistory: {
+      ...realCorrections,
+      affecting: (from?: string, to?: string) =>
+        from && to
+          ? failing("period", () => realCorrections.affecting(from, to))
+          : failing("correctionsAllTime", () => realCorrections.affecting()),
+    },
     ownerEntitlement: {
       ...realOwner,
       readOverview: () => failing("owner", () => realOwner.readOverview()),
@@ -99,16 +109,19 @@ function buildServices() {
       ...realG5,
       readDecision: (from: string, to: string) => failing("g5", () => realG5.readDecision(from, to)),
       listDeclarations: () => failing("g5", () => realG5.listDeclarations()),
-      /* FIN-005 (WS-175 — Wave 3): قرار الكاش صار فوق أفق مستقل — نفس عائلة
-       * فشل كتلة g5 (بطاقة إعادة محاولة معزولة لا تحجب بطاقات المركز). */
-      readShortCashHorizon: (days: 7 | 30 | 90) => failing("g5", () => realG5.readShortCashHorizon(days)),
     },
     financialPulse: new FinancialPulseService(store),
+    inventory: {
+      ...inventory,
+      readPeriodWaste: (from: string, to: string) =>
+        failing("period", () => inventory.readPeriodWaste(from, to)),
+    },
+    /* UNIT-013: العائلات المغادرة تبقى في السياق (تملكها أسطحها) — فشلها
+     * المفبرك هنا يثبت أن صفحة المالية لا تقرأها أصلًا (جرد القارئين). */
     fulfillment: {
       ...realFulfillment,
       listDepositOverview: () => failing("deposits", () => realFulfillment.listDepositOverview()),
     },
-    inventory,
     assets: {
       ...realAssets,
       overview: () => failing("assets", () => realAssets.overview()),
@@ -118,15 +131,12 @@ function buildServices() {
       overview: () => failing("loans", () => realLoans.overview()),
     },
     retainedDeposits: {
-      ...new RetainedDepositService(store, () => NOW),
-      listPending: () => failing("loans", () => new RetainedDepositService(store, () => NOW).listPending()),
+      ...realRetained,
+      listPending: () => failing("loans", () => realRetained.listPending()),
     },
     profitToCashBridge: new ProfitToCashBridgeService(store, () => NOW),
     cashContinuity,
-    supplierPurchases,
     schedules,
-    activity: new ActivityService(store),
-    agreements: new AgreementContextService(store, () => NOW),
     dataVersion,
     notifyDataChanged: () => {
       dataVersion += 1;
@@ -176,42 +186,21 @@ describe("G-005 — Finance read-failure isolation", () => {
     expect(screen.queryByTestId("finance-block-error")).toBeNull();
   });
 
-  it("loans block failing alone: block error + healthy position cards stay live", async () => {
+  it("UNIT-013 census: departed families failing (even rejecting) are not the page's concern at all", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
     await seedWallet();
-    failureMode = { loans: "ok_false" };
+    /* فشل كل العائلات المغادرة معًا — القروض والأصول والعربونات — لا يُنتج
+     * بطاقة خطأ ولا يحجب شيئًا: أقوى عزل هو ألا تُقرأ. */
+    failureMode = { loans: "ok_false", assets: "reject", deposits: "reject" };
     render(<Harness />);
-    const blockErrors = await screen.findAllByTestId("finance-block-error");
-    expect(blockErrors.length).toBeGreaterThanOrEqual(1);
-    expect(blockErrors[0]!.textContent).toContain("القروض");
-    /* الأسطح السليمة حية: بطاقة الكاش المسجل تعرض الرصيد الحقيقي لا صفرًا. */
-    expect(screen.getByText("الكاش المسجل").textContent ?? "").toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText("المالية")).toBeTruthy();
+    });
+    expect(screen.queryByTestId("finance-block-error")).toBeNull();
     await waitFor(() => {
       expect(screen.getAllByText("100.00").length).toBeGreaterThan(0);
     });
-    /* لا 0.00 كاذبة: ملخص القروض في وضع «غير متاح» (لا يُعرض رصيص 0.00). */
-    expect(screen.queryAllByText("0.00 قائمًا")).toHaveLength(0);
-  });
-
-  it("assets block failing alone stays isolated", async () => {
-    await seedWallet();
-    failureMode = { assets: "ok_false" };
-    render(<Harness />);
-    const blockErrors = await screen.findAllByTestId("finance-block-error");
-    expect(blockErrors[0]!.textContent).toContain("الأصول");
-    await waitFor(() => {
-      expect(screen.getAllByText("100.00").length).toBeGreaterThan(0);
-    });
-  });
-
-  it("two advanced blocks failing (assets + loans) keep the page alive", async () => {
-    await seedWallet();
-    failureMode = { assets: "ok_false", loans: "ok_false" };
-    render(<Harness />);
-    await screen.findAllByTestId("finance-block-error");
-    expect(screen.getByText("المالية")).toBeTruthy();
-    await waitFor(() => {
-      expect(screen.getAllByText("100.00").length).toBeGreaterThan(0);
-    });
+    consoleError.mockRestore();
   });
 
   it("owner money block failing: fallback card, position cards healthy", async () => {
@@ -225,14 +214,22 @@ describe("G-005 — Finance read-failure isolation", () => {
     });
   });
 
-  it("g5 block failing: cash decision fallback without false numbers", async () => {
+  it("g5 block failing: margin/declarations fallback without false numbers (UNIT-021 — cash card gone)", async () => {
     await seedWallet();
     failureMode = { g5: "ok_false" };
     render(<Harness />);
-    const blockErrors = await screen.findAllByTestId("finance-block-error");
+    /* UNIT-021 (تنفيذ S15): بطاقة قرار الكاش التوقعية أزيلت، ففشل كتلة g5
+     * يعزل قراءة الهامش وسجل التصريحات في موضعهما الطبيعي داخل قسم نتيجة
+     * الفترة على الصفحة نفسها (UNIT-013: لا تبويب داخلي) — بطاقة إعادة
+     * محاولة هناك لا أرقام كاذبة، وبطاقات المركز حية كما هي. */
     await waitFor(() => {
       expect(screen.getAllByText("100.00").length).toBeGreaterThan(0);
     });
+    const blockErrors = await screen.findAllByTestId("finance-block-error");
+    expect(blockErrors.length).toBeGreaterThan(0);
+    /* بطاقة قرار الكاش التوقعية غائبة أصلًا — لا أرقام توقع كاذبة تُعرض. */
+    expect(screen.queryByText("الكاش المتوقع")).toBeNull();
+    expect(screen.queryByText(/سحب آمن/)).toBeNull();
   });
 
   it("events block failing: events fallback replaces the layer, not an empty list", async () => {
@@ -243,18 +240,22 @@ describe("G-005 — Finance read-failure isolation", () => {
     expect(blockErrors.some(error => error.textContent?.includes("الأحداث"))).toBe(true);
   });
 
-  it("deposits block failing stays isolated", async () => {
+  it("all-time corrections block failing stays isolated", async () => {
     await seedWallet();
-    failureMode = { deposits: "ok_false" };
+    failureMode = { correctionsAllTime: "ok_false" };
     render(<Harness />);
     const blockErrors = await screen.findAllByTestId("finance-block-error");
+    expect(blockErrors.some(error => error.textContent?.includes("التصحيحات"))).toBe(true);
+    await waitFor(() => {
+      expect(screen.getAllByText("100.00").length).toBeGreaterThan(0);
+    });
   });
 
   it("period block failing: the available-result card shows غير متاح (never 0.00)", async () => {
     await seedWallet();
     failureMode = { period: "ok_false" };
     render(<Harness />);
-    /* بطاقة «النتيجة المتاحة» في وضع الوضع الآن تعرض «غير متاح» لا رقمًا. */
+    /* بطاقة «النتيجة المتاحة» في وضع «الآن» تعرض «غير متاح» لا رقمًا. */
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "افتح نتيجة الفترة" }).textContent).toContain("غير متاح");
     });
@@ -276,7 +277,7 @@ describe("G-005 — Finance read-failure isolation", () => {
   it("a rejected promise is handled as a block failure — no unhandled rejection, no blank page", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
     await seedWallet();
-    failureMode = { loans: "reject" };
+    failureMode = { owner: "reject" };
     render(<Harness />);
     await screen.findAllByTestId("finance-block-error");
     expect(screen.getByText("المالية")).toBeTruthy();
@@ -288,7 +289,7 @@ describe("G-005 — Finance read-failure isolation", () => {
 
   it("retry after recovery: the failed block heals and the error card disappears", async () => {
     await seedWallet();
-    failureMode = { loans: "ok_false" };
+    failureMode = { owner: "ok_false" };
     const { rerender } = render(<Harness />);
     await screen.findAllByTestId("finance-block-error");
     /* التعافي: الكتلة ترجع سليمة ثم إعادة المحاولة تعيد القراءة. */
@@ -305,7 +306,7 @@ describe("G-005 — Finance read-failure isolation", () => {
 
   it("the retry action is keyboard reachable (a real focusable button)", async () => {
     await seedWallet();
-    failureMode = { loans: "ok_false" };
+    failureMode = { owner: "ok_false" };
     render(<Harness />);
     await screen.findAllByTestId("finance-block-error");
     const retry = screen.getAllByRole("button", { name: "إعادة المحاولة" })[0]!;

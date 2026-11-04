@@ -10,12 +10,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { PreferenceService } from "@/application/preferences/preferenceService";
+import { ProfileService } from "@/application/profile/profileService";
 import { AgreementService } from "@/application/agreements/agreementService";
 import { CostService } from "@/application/cost/costService";
 import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
 import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
 import { CatalogService } from "@/application/catalog/catalogService";
-import { LocalLockService } from "@/application/security/localLockService";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { StatementService } from "@/application/finance/statementService";
@@ -49,7 +49,6 @@ describe("SET-003 follow-up — Settings capabilities section over contract-comp
     store = new MemoryLocalStore();
     preferences = new PreferenceService(store, () => NOW);
     mockedUsePrototypeServices.mockReturnValue({
-      localLock: new LocalLockService(store, () => NOW),
       formDrafts: new FormDraftService(store),
       integrityCheck: new IntegrityCheckService(
         store,
@@ -58,6 +57,7 @@ describe("SET-003 follow-up — Settings capabilities section over contract-comp
         new CashContinuityService(store, () => NOW),
       ),
       preferences,
+      profiles: new ProfileService(store, () => NOW),
       agreements: new AgreementService(store, new CostService(store, () => NOW), () => NOW),
       inventory: new InventoryMaterialService(store, () => NOW),
       supplierPurchases: new SupplierPurchaseService(store, () => NOW),
@@ -72,9 +72,17 @@ describe("SET-003 follow-up — Settings capabilities section over contract-comp
       transfers: {
         createExport: vi.fn(async () => ({ ok: false })),
         prepareImport: vi.fn(),
+        prepareRestore: vi.fn(),
         confirmImport: vi.fn(),
         createVerifiedExport: vi.fn(async () => ({ ok: false })),
         resetAll: vi.fn(async () => ({ ok: false })),
+        /* S02-A: واجهة حماية الاستبدال الدائمة في مضاعف الاختبار. */
+        readRestoreStatus: vi.fn(async () => ({
+          ok: true,
+          value: { generation: 0, rollbackCreatedAt: null, unresolvedIntent: false },
+        })),
+        readActiveRollback: vi.fn(async () => ({ ok: true, value: null })),
+        prepareRollbackRestore: vi.fn(async () => ({ ok: false })),
       },
       guidedOpeningImport: { prepare: vi.fn(), confirm: vi.fn() },
       dataVersion: 0,

@@ -766,7 +766,24 @@ describe("FulfillmentService.reverseDeposit — active deposit reversal (EXE-010
 
 describe("FulfillmentService — D-15 settlement basis conflict (FIN-009)", () => {
   async function feeOrder(
-    deliveryTerms?: Parameters<AgreementService["createFromDraft"]>[1]["deliveryTerms"],
+    deliveryTerms: {
+      responsibility: "none" | "project_pays" | "customer_pays_project" | "customer_pays_courier" | "shared";
+      feeIncludedInPrice: boolean;
+      costIncludedInProductCost: boolean;
+      feeChargedMinor: number | null;
+      costPaidMinor: number | null;
+      projectShareMinor: number | null;
+      customerShareMinor: number | null;
+    } = {
+      /* الأساس الافتراضي كما كان: سعر 50 + أجرة عميل عبر المشروع 5 = 55. */
+      responsibility: "customer_pays_project",
+      feeIncludedInPrice: false,
+      costIncludedInProductCost: false,
+      feeChargedMinor: 500,
+      costPaidMinor: null,
+      projectShareMinor: null,
+      customerShareMinor: null,
+    },
   ) {
     const store = new MemoryLocalStore();
     const drafts = new DraftService(store, () => "2026-09-27T00:00:00.000Z");
@@ -784,24 +801,25 @@ describe("FulfillmentService — D-15 settlement basis conflict (FIN-009)", () =
     const withCost = await costs.saveSnapshot(saved.draft, costInput);
     if (!withCost.ok) throw new Error(withCost.message);
     const agreements = new AgreementService(store, costs, () => "2026-09-27T01:00:00.000Z");
+    /* S12 (UNIT-009 P3.3): الإنشاء الجديد بلا أجرة زبون — الأساس الحامل
+     * للأجرة يُبنى على طلب قائم عبر باب شروط النقل (تعديل السجلات القائمة
+     * يبقى بنموذج ORD-003 كما كان) فتبقى رحلة الأساس 55 قائمة. */
     const agreed = await agreements.createFromDraft(withCost.draft, {
       agreedPriceMinor: 5000,
       deliveryDate: "2026-09-30",
       depositMinor: 0,
       agreementSource: null,
-      deliveryTerms:
-        deliveryTerms ??
-        ({
-          responsibility: "customer_pays_project",
-          feeIncludedInPrice: false,
-          costIncludedInProductCost: false,
-          feeChargedMinor: 500,
-          costPaidMinor: null,
-          projectShareMinor: null,
-          customerShareMinor: null,
-        } as NonNullable<Parameters<AgreementService["createFromDraft"]>[1]["deliveryTerms"]>),
     });
     if (!agreed.ok) throw new Error(agreed.message);
+    if (deliveryTerms) {
+      const fulfillment = new FulfillmentService(store, () => "2026-09-27T01:30:00.000Z");
+      const termsApplied = await fulfillment.applyDeliveryTerms(
+        agreed.stored.id,
+        deliveryTerms,
+        `d15-terms-${deliveryTerms.responsibility}`,
+      );
+      if (!termsApplied.ok) throw new Error(termsApplied.message);
+    }
     await agreements.startExecution(agreed.stored.id);
     return { store, orderId: agreed.stored.id };
   }

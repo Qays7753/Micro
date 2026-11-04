@@ -1,0 +1,147 @@
+{
+  "id": "DOC-020",
+  "title": "S11 execution — البيع المباشر والتسجيل السريع والتحصيل منه (UNIT-004/005/026 sale-slice + SH-15)",
+  "type": "FEATURE",
+  "status": "IN_REVIEW",
+  "priority": "P0",
+  "stage": "micro-component-execution-s11-20261031",
+  "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق أمر تنفيذ S11 المنشور في b33a887725b92dd9c122d3c8d1af775d6aa08475 (بعد إصلاح S10-MR-001 الجذري أولًا في 930560dc بملحقه 15a في 3e3b9597). | بطاقة الفهم: مشكلة المستخدم: صاحب مشروع باع الآن أو سابقًا ويريد تسجيل البيع وما قُبض فعليًا بتاريخه وما بقي حقًا حيًّا، ثم تحصيل المتبقي لاحقًا من مصدر البيع نفسه دون إيراد جديد، وتسجيلًا سريعًا يفوض لأصحاب الأوامر أنفسهم، ومرتجعًا كاملًا وفق PD-02 يلغي الحق ويثبت رد المقبوض دون دفع تلقائي. النطاق: سجل بيع واحد مملوك للمصدر يفرق الإيراد المتفق عن القبض المؤرخ الفعلي عن الحق الحي، وخطوط قبض بهوية وتاريخ ومفتاح داخل أصل البيع (القديم المجمل يبقى مجملًا بلا تواريخ مؤلفة)، والتزام التحصيل عند حد كتابة واحد يفحص النسخة والمتبقي الحيين ويربط مكان النقد بسطر القبض القائم لا بقبض آخر، والتسجيل السريع مسار إلى المالكين أنفسهم (بيع 005/مصروف S06) بلا كاتب ثانٍ، والمرتجع الكامل PD-02 فعل مستقل يصون الأصل والتاريخ. غير الأهداف: لا محول طلب (S12) ولا حق افتتاحي (S14) ولا دفتر قبض عام ولا مرتجع جزئي معقد ولا إعادة تصميم مالية S15 ولا تعديل سياسة مصروف S06 ولا خصم ثانٍ لمادة الفترة ولا إعادة هيكلة بنيوية (بوابة ما بعد المجموعة ٦). الثوابت: القبض ليس ربحًا؛ التحصيل لا يولد إيرادًا؛ التكلفة المجهولة ليست صفرًا؛ المال أعداد صحيحة minor آمنة؛ التواريخ تواريخ أعمال حقيقية بمنطقة عمّان؛ المتبقي مشتق محروس؛ الحق لا يكون سالبًا؛ النية الواحدة لا تكتب مرتين؛ النتيجة المجاهلة تُسترد بالقصد نفسه؛ الحد الذري ينجح كله أو لا يكتب شيئًا. حالات الفشل: تزامن تحصيلين للمتبقي نفسه (واحد ينجح والآخر تعارض بلا حق سالب ولا قبض مزدوج)، إعادة مفتاح نية بحمولة مختلفة (تعارض صادق بلا أثر)، فشل حد التخزين (فشل صادق بلا أثر جزئي)، بيع ملغى/مُرتجع لا يُحصّل، مدخلات غير صالحة (رفض عند حد الخدمة برسالة المجال). معيار القبول: أمثلة الأمر المالية الخمسة من إثبات دائم (15/5/6 ثم 10؛ تزامن محاولتي قبض؛ مرتجع كامل بعد 5/10؛ فصل شهر البيع عن شهر القبض والإجمالي القديم محفوظ؛ مجهول≠صفر وأسماء متشابهة هويات مستقلة ولا فعل اختياري يكتب مالًا ثانيًا) + خريطة قبول ACD/SDF المطلوبة بأمر S11 §7 + تكافؤ المهايئين + دورة النقل + سلسلة pnpm check الكاملة على الشجرة المستقرة + خمس مراجعات قرائية متسلسلة + البوابتان البعيدتان على الرأس النهائي بعينه. حد الاستعادة: رأس سجلات الإصلاح 3e3b9597 (إصلاح S10-MR-001 + ملحقه)؛ التزامات S11 فوقه قابلة للعزل، ورجوع الكود لا يخفض المخطط/التصدير ولا يعيد كتابة تاريخ مسلّم.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "CONFIRMED",
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "Owner-directed connected execution (00-S11-EXECUTION-PROMPT-2026-10-31.md published at b33a887725b92dd9c122d3c8d1af775d6aa08475, dated 2026-10-31): first resolve the independently confirmed S10 finding S10-MR-001 at its root with a durable concurrent regression (delivered in 930560dc + addendum 15a in 3e3b9597), then proceed directly to S11 (UNIT-004/005/026 sale slice + SH-15) without an intermediate pause or approval. The authorization explicitly does NOT accept S10, S11, S08, or S09, is not permission to merge, and does not permit main writes, rebase, force-push, branch cleanup, or a second branch/PR.\nقرار المالك الشامل للمرحلة S11 بتاريخ 2026-11-04: أكد المالك صراحةً قبول تسليم S11 على فرع التكامل components/integration-20261027، استنادًا إلى التقرير 16-S11-RESULT-2026-10-31.md + 16a/16b addenda والمرشح الكودي 020e1e8b. هذا قبول على فرع التكامل فقط؛ لا يعني VERIFIED على main ولا إذن دمج. ولا ينشئ هذا القيد ادعاءً بمراجعة مستقلة من Manus حيث لا يسجلها التاريخ.",
+  "tests_required": [
+    "Domain tests for dated collection entries and PD-02 full return: entry identity/date/operationKey, collected total and derived status together, outstanding recheck, no second collection after return, refund due equals collected only, original revenue/history preserved, sale month vs collection month separation",
+    "Dual-adapter storage commit tests: sale create + initial collection + optional wallet allocation in one boundary; later collection with revision/remaining recheck inside the boundary and allocation referencing the collection entry; full-return commit with no cash movement; same-key retry reuse on both adapters; changed-payload same-key conflict; concurrent collections (two windows) — exactly one succeeds",
+    "Service tests: quick sale path routes to the sale owner with the ordinary command path; expense quick path delegates to the S06-owned expense service unchanged; CollectionService direct-sale branch writes through the sale owner's atomic boundary; receipt/result recovery and outcome_unknown semantics; no partial effects on failure",
+    "Transfer/export tests: sale records with collection entries and return fields round-trip on both adapters with legacy aggregate collections preserved and no fabricated dates",
+    "UI DOM tests: sale/paid/remaining labels, states (empty/loading/error/saving/saved/conflict/unknown), return path, RTL Arabic-first 0-9 entry, repeated taps, form preservation through expansion/cancellation/retry/failure"
+  ],
+  "layers": [
+    "domain",
+    "application",
+    "storage",
+    "transfer",
+    "ui",
+    "tests",
+    "documentation"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S11-EXECUTION-PROMPT-2026-10-31.md",
+    "discovered_at_sha": "b33a887725b92dd9c122d3c8d1af775d6aa08475",
+    "evidence": [
+      "docs/implementation/micro-component-execution/00-S11-EXECUTION-PROMPT-2026-10-31.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-004-التسجيل-السريع.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-005-البيع-المباشر.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-026-تسجيل-دفعة-على-مستحق.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md"
+    ]
+  },
+  "acceptance": [
+    "أمر S11 §6: بيع 15 قبض 5 تكلفة 6 => نقد 5 وإيراد 15 ومساهمة 9 وحق 10؛ تحصيل 10 => نقد 10 وحق 0 بلا إيراد/مساهمة جديدة",
+    "أمر S11 §6: محاولتا قبض متزامنتان للمتبقي 10 => نجاح واحدة وتعارض الأخرى بلا حق سالب ولا قبض مزدوج",
+    "أمر S11 §6: مرتجع كامل بعد قبض 5 وبقاء 10 => إلغاء الحق 10 وإنشاء حق رد 5؛ النقد لا يتغير حتى دفع رد فعلي مؤرخ لاحقًا لا يُدفع مرتين",
+    "أمر S11 §6: شهر البيع وشهر القبض منفصلان؛ الإجمالي المجمل القديم يبقى إجمالًا تاريخيًا بلا تواريخ مؤلفة",
+    "أمر S11 §6: التكلفة المجهولة والصفر المؤكد مختلفان؛ الزبائن بالاسم نفسه هويات مستقلة؛ لا فعل طرف/كتالوج اختياري يكتب مالًا ثانيًا",
+    "SDF-003/004/005/009/010/011/012/014/022/024/028/037/038/039/041/042/052/053/054/056 بملاكها مع خريطة مصدر صادقة وNOT_TRIGGERED_BY_S11 لغير المملوك"
+  ],
+  "areas": [
+    "src/domain/direct-sale/",
+    "apps/prototype-web/client/src/application/direct-sales/",
+    "apps/prototype-web/client/src/application/collections/",
+    "apps/prototype-web/client/src/application/finance/",
+    "apps/prototype-web/client/src/storage/local/",
+    "apps/prototype-web/client/src/components/finance/QuickSaleForm.tsx",
+    "apps/prototype-web/client/src/components/finance/QuickExpenseForm.tsx",
+    "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx",
+    "apps/prototype-web/client/src/pages/Collect.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S11-EXECUTION-PROMPT-2026-10-31.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-004-التسجيل-السريع.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-005-البيع-المباشر.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-026-تسجيل-دفعة-على-مستحق.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S11-EXECUTION-PROMPT-2026-10-31.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/15a-S10-REVIEW-ADDENDUM-2026-10-31.md",
+    "docs/implementation/micro-component-execution/16-S11-RESULT-2026-10-31.md",
+    "docs/architecture/refactoring/s11-structure-scan-20261031/S11-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-10-31.md",
+    "src/domain/direct-sale/s11SaleSlice.test.ts",
+    "apps/prototype-web/client/src/application/direct-sales/directSaleSlice.s11.test.ts",
+    "apps/prototype-web/client/src/application/direct-sales/directSaleMovements.ts",
+    "apps/prototype-web/client/src/storage/local/directSaleCommitGuard.ts",
+    "apps/prototype-web/client/src/pages/DirectSaleEditor.ui.test.tsx",
+    "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.characterization.test.ts",
+    "docs/implementation/micro-component-execution/16a-S11-REVIEW-ADDENDUM-2026-11-01.md",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "dependencies": [
+    "DOC-019"
+  ],
+  "related_items": [
+    "DOC-019"
+  ],
+  "migration_baseline": true,
+  "next_action": "S11 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا VERIFIED على main ولا merge؛ قرار الدمج منفصل.",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-10-31",
+      "actor": "zai-s11-execution",
+      "reason": "مطالبة S11 المأذونة بأمر b33a8877 (القسم ٦) بعد اكتمال fix-first (إصلاح S10-MR-001 الجذري 930560dc + الملحق 15a والسجلات 3e3b9597)؛ DOC-020/WS-236 أول استخدام قانوني للمعرفين."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-10-31",
+      "actor": "zai-s11-execution",
+      "reason": "اكتمل تنفيذ S11 المتصل لUNIT-004/005/026 sale-slice + SH-15 على components/integration-20261027 / PR #383 بأمر b33a8877: (١) إصلاح S10-MR-001 الجذري أُغلق أولًا (930560dc + الملحق 15a في 3e3b9597) بانحدار تزامن دائم على المهايئين؛ (٢) شريحة البيع كاملة: حركات مؤرخة ومرتجع PD-02 ورد مؤرخ داخل حد كتابة محروس واحد (commitDirectSaleWrite بنواة قرار مشتركة) بتكافؤ المهايئين ودورة نقل كاملة بلا ترقية 40/32؛ (٣) خمس مراجعات قرائية متسلسلة بتصحيحاتها الجذرية المعاد قراءتها كلها PASS (R1 ملكية/طبقات، R2 صحة مالية — منها إغلاق عيب تأليف تواريخ الإرث المجمل، R3 تزامن/حتمية — منها إغلاق عودة السجل القديم الصامتة عند تغير الحمولة، R4 نقل/توافق/أدلة، R5 RTL/وصول/هاتف — منها إغلاق إخفاء رسالة النجاح داخل الإفصاح المطوي)؛ (٤) مسح الهيكل القراءة فقط الكنوني الثالث مسلّمًا قبل أي حركة هيكلية (17c9fd57) بكل توصياته NOT_EXECUTED ببوابة مالك؛ (٥) pnpm check خروج 0 على الشجرة النهائية 020e1e8b. S11 تبقى رهن المراجعة المستقلة وقبول المالك."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "أمر المالك المتصل 00-S12-EXECUTION-PROMPT-2026-11-01.md (منشور في 2e645802 §4): مراجعة S11 المستقلة على الرأس 21d5a2d9 وجدت فجوتي واجهة/مواصفة — S11-MR-001 (مسار نموذج البيع لا يتبع ترتيب A2 الصريح: الإجمالي أولًا ونية الدفع الثلاثية والمعاينة) وS11-MR-002 (العميل الاختياري محجوب للبيع المدفوع كاملًا)؛ يُفتح البند قانونيًا للتصحيح."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "تنفيذ التصحيح المأذون (أمر 2e645802 §4): إعادة بناء مسار إنشاء البيع على ترتيب A2 الصريح وإتاحة العميل الاختياري للدفع الكامل، بهجرة مسودات متوافقة وانحدارات دائمة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-01",
+      "actor": "zai-s12-execution",
+      "reason": "أُغلق التصحيح من جذوره في eb23311e: مسار A2 الصريح الكامل (وضع الدفع الثلاثي، حالة مختلفة؟ للفردين غير الافتراضيين، وجهة القبض عند قبض موجب بحالات قراءة مستقلة، معاينة ملاصقة للحفظ، تفاصيل إضافية مطوية) وإتاحة العميل الاختياري للدفع الكامل (MR-002)، وهجرة مسودات ما قبل الأوضاع بقرارها المعلق دون إسناد دين بصمت، وملاحظتا §5 (تسميات جارٍ وحالات خدمة الحركات) أُغلقت داخل الشريحة، بانحدارات دائمة (26 اختبار واجهة + 23 عقد نموذج)؛ الملحق 16a يوثق الدليل — يبقى S11 رهن المراجعة المستقلة وقبول المالك."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "أمر المالك المتصل 00-S13-EXECUTION-PROMPT-2026-11-01.md (منشور في 2158b0fc، §3/§4): مراجعة قراءة-فقط مستقلة جديدة على الرأس ac4429ef وجدت موجدتين جديدتين بعد إغلاق S11-MR-001/002 — S11-LR-001 (تحصيص حارس هوية الدين عند حد الكتابة قبل commitDirectSaleWrite) وS11-LR-002 (مسودة قديمة بقبض فوق الإجمالي قد تُقدَّم وتُرسل كتحصيل كامل صامت)؛ يُفتح البند قانونيًا للتصحيح/التحصيص المأذون."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "بدء تنفيذ §4 من أمر 2158b0fc: تحصيص حد هوية الدين على الرأس الحي باختبار مركّز يثبت الرفض قبل الكتابة (أو إصلاحه إن ثبت نقصه)، ثم معالجة جذرية لمسودة القبض فوق الإجمالي تحفظ القيمة الخام وتمنع الهجرة الصامتة إلى «كامل»، بانحدارات دائمة للنموذج والواجهة؛ الملحق 16b سيلحق بالسجلات."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "أُغلق تصحيح موجدتي أمر 2158b0fc §4 من جذورهما في 2de3e94e: S11-LR-001 صُنفت ALREADY_PROTECTED_AT_DOMAIN_BOUNDARY بإثبات دائم عند حد الكتابة على المهايئين (صفر كتابات عند الرفض) مع بوابة تمهيدية محدودة تمنع استدعاء الخدمة، وS11-LR-002 صُححت هجرة المسودة الفائضة (المساواة فقط تهاجر «كاملًا» والقيمة الخام تُستعاد ظاهرة تمنع الحفظ حتى التصحيح الصريح)، بانحدارات دائمة (نموذج 31 + واجهة 30 + حد 8)؛ الملحق 16b يوثق الدليل — يبقى S11 رهن المراجعة المستقلة وقبول المالك."
+    }
+  ],
+  "updated_at": "2026-11-04"
+}

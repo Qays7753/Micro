@@ -10,12 +10,14 @@ import {
   applyAssetDisposal,
   applyAssetWriteOff,
   assetEventSummary,
+  assetPaymentStatusOf,
   createAssetRecord,
   planAssetDepreciation,
   prepareAssetDisposal,
   prepareAssetWriteOff,
   recordedDepreciationMinor,
   reviseAssetContract,
+  type AssetPaymentStatus,
   type AssetRecord,
 } from "@micro-domain/asset/index.js";
 import {
@@ -32,9 +34,13 @@ import type { FinancialEventStore } from "@/storage/local/capabilities/financial
 /** R3 (R3-SC-05): عدسة الخدمة — قدرة الأصول حصرًا مع قراءتَي الأحداث
  * المالية المستخدمتين بالضبط (عكس الحدث المرتبط عند تصحيح الاقتناء). */
 export type AssetServiceStore = AssetStore &
-  Pick<FinancialEventStore, "listFinancialEvents" | "commitFinancialEventCorrection">;
+  Pick<FinancialEventStore, "listFinancialEvents" | "commitFinancialEventCorrection"> &
+  /* S08 (UNIT-034): التحقق الحي من طرف الاقتناء المحفوظ (نمط S05) عند
+   * إنشائه — لقطة الاسم تُبنى من الطرف الحي لا من مدخل حر. */
+  Pick<PrototypeLocalStore, "listCounterparties">;
 import { systemClock, type Clock } from "@/application/time/clock";
 import { FINANCIAL_EVENTS_READ_FAILED_MESSAGE, errorMessageOf } from "@/application/resultCodes";
+import { storageFailureCode } from "@/storage/local/types";
 
 /* STR-620/608 (Wave F — تكثيف الهامش): الحرفية نفسها كانت تتكرر في هذا الملف
  * عدّة مرات؛ ثابت واحد بلا أي تغيير رسالة. */
@@ -78,6 +84,11 @@ export type AssetCreateInput = {
    * الملاحظة تُخزَّن على السجل وتمر لحدث الاقتناء كما كانت. */
   residualValueMinor?: number | null;
   note?: string | null;
+  /* S08 (UNIT-034): طرف الاقتناء المحفوظ (معرف طرف قائم — يُتحقق حيًّا)
+   * والمدفوع لحظة الإنشاء للدفع الجزئي المعتمد (kind=payable فقط،
+   * أصغر من القيمة) — كلاهما اختياري. */
+  acquisitionPartyId?: string | null;
+  paidAtCreationMinor?: number | null;
 };
 
 export type AssetContractRevisionInput = {
@@ -92,7 +103,20 @@ export type AssetContractRevisionInput = {
 export type AssetAcquisitionCorrectionInput = {
   acquisitionAmountMinor: number;
   acquisitionKind: "cash" | "payable";
+  /* S08: المدفوع لحظة الإنشاء بعد التصحيح — يُطبق على البديل بنفس عقد
+   * الدفع الجزئي (kind=payable وأصغر من القيمة الجديدة). */
+  paidAtCreationMinor?: number | null;
   reason: string;
+};
+
+/* S08 (UNIT-034 / SDF-066): تسديد متبقي ذممة اقتناء أصل من مصدر الالتزام
+ * نفسه — المبلغ داخل المتبقي الحي، والحتمية بمفتاح العملية. */
+export type AssetPayableSettlementInput = {
+  assetId: string;
+  amountMinor: number;
+  occurredOn: string;
+  note: string;
+  operationKey: string;
 };
 
 export type AssetDisposalInput = {
@@ -112,9 +136,16 @@ export type AssetDepreciationInput = {
 
 export type AssetResult<T> =
   | { ok: true; value: T }
-  | { ok: false; code: "storage_error" | "invalid_state" | "validation_error"; message: string };
+  | {
+      ok: false;
+      code: "storage_error" | "storage_stale" | "invalid_state" | "validation_error";
+      message: string;
+    };
 
-function failure(code: "storage_error" | "invalid_state" | "validation_error", message: string) {
+function failure(
+  code: "storage_error" | "storage_stale" | "invalid_state" | "validation_error",
+  message: string,
+) {
   return { ok: false as const, code, message };
 }
 
@@ -177,6 +208,7 @@ export class AssetService {
     AssetResult<{
       asset: AssetRecord;
       summary: ReturnType<typeof assetEventSummary>;
+      payments: AssetPaymentStatus;
       proposal: ReturnType<typeof planAssetDepreciation>;
       events: readonly FinancialEvent[];
     }>
@@ -199,31 +231,113 @@ export class AssetService {
       value: {
         asset,
         summary: assetEventSummary(assetId, eventsResult.value),
+        /* S08: وضع السداد المشتق — المدفوع النقدي الفعلي والمتبقي الحي
+         * من الأحداث، لا من حقول قابلة للتحرير المستقل. */
+        payments: assetPaymentStatusOf(assetId, eventsResult.value),
         proposal: planAssetDepreciation(asset, eventsResult.value, localDateInAmman(this.now())),
         events: events.filter(event => event.correctionType !== "reverse" || !reversed.has(event.id)),
       },
     };
   }
 
+  /* S08 (UNIT-034 / SDF-066): بناء أحداث الاقتناء — نقدي كامل (حدث واحد)
+   * أو ذمم كاملة (حدث واحد) أو جزئي معتمد (حدث نقدي بالمدفوع + حدث ذمم
+   * بالمتبقي؛ كل أثر مرة واحدة)؛ الطرف المحفوظ يُتحقق حيًّا بلقطة اسمه. */
+  private buildAcquisitionEvents(input: {
+    assetId: string;
+    name: string;
+    acquisitionAmountMinor: number;
+    acquisitionKind: "cash" | "payable";
+    purchaseDate: string;
+    paidAtCreationMinor: number | null;
+    note: string | null;
+    createdAt: string;
+    /* مفتاح الإبدال يمتد بطابع زمني عند التصحيح — لا يصطدم بمفتاح حدث
+     * الاقتناء الأصلي القائم (يعكسه حدث مستقل بمعاملته). */
+    keySuffix?: string;
+  }): { events: FinancialEvent[]; payableEventId: string | null } {
+    const events: FinancialEvent[] = [];
+    const paid = input.paidAtCreationMinor;
+    const note = input.note?.trim() || `اقتناء أصل: ${input.name}`;
+    const build = (type: FinancialEventType, amountMinor: number, idempotencyKey: string) =>
+      createFinancialEvent({
+        id: newId("event"),
+        type,
+        amountMinor,
+        occurredOn: input.purchaseDate,
+        recordedAt: input.createdAt,
+        idempotencyKey,
+        note,
+        counterparty: null,
+        assetContext: { assetId: input.assetId, name: input.name },
+      });
+    const suffix = input.keySuffix ?? "";
+    if (input.acquisitionKind === "cash") {
+      events.push(
+        build(
+          "asset_purchase_cash",
+          input.acquisitionAmountMinor,
+          `${input.assetId}:acquisition:cash${suffix}`,
+        ),
+      );
+      return { events, payableEventId: null };
+    }
+    if (paid !== null && paid > 0) {
+      events.push(build("asset_purchase_cash", paid, `${input.assetId}:acquisition:cash${suffix}`));
+      const payable = build(
+        "asset_purchase_payable",
+        input.acquisitionAmountMinor - paid,
+        `${input.assetId}:acquisition:payable${suffix}`,
+      );
+      events.push(payable);
+      return { events, payableEventId: payable.id };
+    }
+    const payable = build(
+      "asset_purchase_payable",
+      input.acquisitionAmountMinor,
+      `${input.assetId}:acquisition:payable${suffix}`,
+    );
+    events.push(payable);
+    return { events, payableEventId: payable.id };
+  }
+
   async create(
     input: AssetCreateInput,
-  ): Promise<AssetResult<{ asset: AssetRecord; event: FinancialEvent | null }>> {
+  ): Promise<AssetResult<{ asset: AssetRecord; events: readonly FinancialEvent[] }>> {
     try {
+      /* S08: الطرف المحفوظ يُتحقق حيًّا — هوية مستقرة ولقطة اسم تاريخية
+       * من الطرف القائم نفسه؛ لا دمج بالاسم ولا طرف مكرر لإنقاذ الحفظ. */
+      let acquisitionParty: { partyId: string; labelSnapshot: string } | null = null;
+      if (input.acquisitionPartyId?.trim()) {
+        const partiesResult = await this.store.listCounterparties();
+        if (!partiesResult.ok) return failure("storage_error", "تعذر قراءة الأطراف المحفوظة محليًا.");
+        const party = partiesResult.value.find(
+          candidate => candidate.id === input.acquisitionPartyId!.trim(),
+        );
+        if (!party)
+          return failure(
+            "validation_error",
+            "اختر طرفًا محفوظًا قائمًا لاقتناء الأصل — أو اتركه فارغًا؛ لا يُخترع طرف بمعرف غير موجود.",
+          );
+        acquisitionParty = { partyId: party.id, labelSnapshot: party.label };
+      }
       const assetId = newId("asset");
       const createdAt = this.now();
-      const eventType: FinancialEventType =
-        input.acquisitionKind === "cash" ? "asset_purchase_cash" : "asset_purchase_payable";
-      const event = createFinancialEvent({
-        id: newId("event"),
-        type: eventType,
-        amountMinor: input.acquisitionAmountMinor,
-        occurredOn: input.purchaseDate,
-        recordedAt: createdAt,
-        idempotencyKey: `${assetId}:acquisition`,
-        note: input.note?.trim() || `اقتناء أصل: ${input.name.trim()}`,
-        counterparty: input.categoryLabel?.trim() || null,
-        assetContext: { assetId, name: input.name.trim() },
+      const acquisition = this.buildAcquisitionEvents({
+        assetId,
+        name: input.name,
+        acquisitionAmountMinor: input.acquisitionAmountMinor,
+        acquisitionKind: input.acquisitionKind,
+        purchaseDate: input.purchaseDate,
+        paidAtCreationMinor: input.paidAtCreationMinor ?? null,
+        note: input.note ?? null,
+        createdAt,
       });
+      const events = acquisition.events;
+      /* رابط حدث الاقتناء على السجل: حدث الذمم إن وُجد (مصدر السداد
+       * اللاحق) وإلا حدث النقد — عقد واحد واضح لا غموض. */
+      const linkedEventId =
+        events.find(event => event.type === "asset_purchase_payable")?.id ?? events[0]!.id;
       const asset = createAssetRecord({
         id: assetId,
         name: input.name,
@@ -235,13 +349,15 @@ export class AssetService {
         depreciationStartOn: input.depreciationStartOn ?? null,
         residualValueMinor: input.residualValueMinor ?? null,
         note: input.note ?? null,
-        acquisitionEventId: event.id,
+        acquisitionParty,
+        paidAtCreationMinor: input.paidAtCreationMinor ?? null,
+        acquisitionEventId: linkedEventId,
         operationKey: `${assetId}:create`,
         createdAt,
       });
-      const commit = await this.store.commitAssetRecord(asset, event);
-      if (!commit.ok) return failure("storage_error", commit.message);
-      return { ok: true, value: { asset: commit.value.record, event: commit.value.event } };
+      const commit = await this.store.commitAssetAcquisition(asset, events);
+      if (!commit.ok) return failure(storageFailureCode(commit.code), commit.message);
+      return { ok: true, value: { asset: commit.value.record, events: commit.value.events } };
     } catch (error) {
       return failure("validation_error", errorMessageOf(error, "بيانات الأصل غير صالحة."));
     }
@@ -266,7 +382,13 @@ export class AssetService {
   async correctAcquisition(
     assetId: string,
     input: AssetAcquisitionCorrectionInput,
-  ): Promise<AssetResult<{ asset: AssetRecord; reversal: FinancialEvent; replacement: FinancialEvent }>> {
+  ): Promise<
+    AssetResult<{
+      asset: AssetRecord;
+      reversals: readonly FinancialEvent[];
+      replacements: readonly FinancialEvent[];
+    }>
+  > {
     const [assetResult, eventsResult] = await Promise.all([
       this.store.getAsset(assetId),
       this.store.listFinancialEvents(),
@@ -282,59 +404,132 @@ export class AssetService {
         "invalid_state",
         "تعذّر تصحيح اقتناء أصل مؤرشف — قيمته الدفترية مثبتة عند التخلص أو الشطب. صحّح الخطأ والأصل نشط أولًا، أو سجّل الأثر الجديد كواقعة موثقة من مالي.",
       );
-    const source = eventsResult.value.find(event => event.id === asset.acquisitionEventId);
-    if (!source) return failure("invalid_state", "حدث الاقتناء الأصلي غير موجود.");
-    if (source.correctionType === "reverse")
-      return failure("invalid_state", "حدث الاقتناء معكوس سابقًا؛ راجع سجل التصحيحات.");
+    /* S08: أحداث الاقتناء الحية للأصل — تُعكس كلها (حتى حدثين للجزئي). */
+    const reversedIds = reversedEventIds(eventsResult.value);
+    const acquisitionEvents = eventsResult.value.filter(
+      event =>
+        (event.type === "asset_purchase_cash" || event.type === "asset_purchase_payable") &&
+        event.assetContext?.assetId === assetId &&
+        event.correctionType !== "reverse" &&
+        !reversedIds.has(event.id),
+    );
+    if (acquisitionEvents.length === 0)
+      return failure("invalid_state", "أحداث الاقتناء الأصلية غير موجودة؛ راجع سجل التصحيحات.");
     /* تصحيح مراجعة 4-c: لا تصحيح بلا تغيير — الواجهة تحجبه والخدمة تحرسه. */
     if (
       input.acquisitionAmountMinor === asset.acquisitionAmountMinor &&
-      input.acquisitionKind === asset.acquisitionKind
+      input.acquisitionKind === asset.acquisitionKind &&
+      (input.paidAtCreationMinor ?? null) === (asset.paidAtCreationMinor ?? null)
     )
       return failure("validation_error", "لا تغيير عن المسجّل — عدّل القيمة أو طريقة الدفع قبل التصحيح.");
     try {
       const now = this.now();
-      const reversal = createFinancialReversal({
-        id: newId("event"),
-        sourceEvent: source,
-        occurredOn:
-          /* R2 (M-05/D4): تاريخ الأعمال الكنوني بعمّان من الساعة المحقونة — كان قصّ UTC يزيح اليوم للتصحيحات المسائية (21:00Z–24:00Z) */ localDateInAmman(
-            now,
-          ),
-        recordedAt: now,
-        idempotencyKey: `${assetId}:acquisition-reversal:${now}`,
-        reason: input.reason,
-      });
-      const replacement = createFinancialEvent({
-        id: newId("event"),
-        type: input.acquisitionKind === "cash" ? "asset_purchase_cash" : "asset_purchase_payable",
-        amountMinor: input.acquisitionAmountMinor,
-        occurredOn: asset.purchaseDate,
-        recordedAt: now,
-        idempotencyKey: `${assetId}:acquisition-replacement:${now}`,
+      const reversals = acquisitionEvents.map(source =>
+        createFinancialReversal({
+          id: newId("event"),
+          sourceEvent: source,
+          occurredOn: localDateInAmman(now),
+          recordedAt: now,
+          idempotencyKey: `${assetId}:acquisition-reversal:${source.id}:${now}`,
+          reason: input.reason,
+        }),
+      );
+      /* البديل يُبنى بعقد الدفع الجديد — جزئيًا كان أم كاملًا. */
+      const replacementBuild = this.buildAcquisitionEvents({
+        assetId,
+        name: asset.name,
+        acquisitionAmountMinor: input.acquisitionAmountMinor,
+        acquisitionKind: input.acquisitionKind,
+        purchaseDate: asset.purchaseDate,
+        paidAtCreationMinor: input.paidAtCreationMinor ?? null,
         note: `تصحيح اقتناء: ${input.reason.trim()}`,
-        counterparty: source.counterparty,
-        assetContext: { assetId, name: asset.name },
+        createdAt: now,
+        keySuffix: `:${now}`,
       });
+      const linkedEventId =
+        replacementBuild.events.find(event => event.type === "asset_purchase_payable")?.id ??
+        replacementBuild.events[0]!.id;
       const correctedAsset: AssetRecord = {
         ...asset,
         acquisitionAmountMinor: input.acquisitionAmountMinor,
         acquisitionKind: input.acquisitionKind,
-        acquisitionEventId: replacement.id,
+        paidAtCreationMinor: input.paidAtCreationMinor ?? null,
+        acquisitionEventId: linkedEventId,
         updatedAt: now,
       };
-      const commit = await this.store.commitAssetAcquisitionCorrection(correctedAsset, reversal, replacement);
-      if (!commit.ok) return failure("storage_error", commit.message);
+      const commit = await this.store.commitAssetAcquisitionCorrection(
+        correctedAsset,
+        reversals,
+        replacementBuild.events,
+      );
+      if (!commit.ok) return failure(storageFailureCode(commit.code), commit.message);
       return {
         ok: true,
         value: {
           asset: commit.value.record,
-          reversal: commit.value.reversal,
-          replacement: commit.value.replacement,
+          reversals: commit.value.reversals,
+          replacements: commit.value.replacements,
         },
       };
     } catch (error) {
       return failure("validation_error", errorMessageOf(error, "تصحيح الاقتناء غير صالح."));
+    }
+  }
+
+  /* S08 (UNIT-034 / SDF-066): تسديد متبقي ذممة اقتناء الأصل — من مصدر
+   * الالتزام نفسه، داخل المتبقي الحي، بلا مصروف جديد ولا دفع مكرر. */
+  async payPayable(
+    input: AssetPayableSettlementInput,
+  ): Promise<AssetResult<FinancialEvent> & { reused?: boolean }> {
+    const [assetResult, eventsResult] = await Promise.all([
+      this.store.getAsset(input.assetId),
+      this.store.listFinancialEvents(),
+    ]);
+    if (!assetResult.ok || !eventsResult.ok) return failure("storage_error", ASSET_READ_FAILED_MESSAGE);
+    const asset = assetResult.value;
+    if (!asset) return failure("invalid_state", ASSET_UNAVAILABLE_MESSAGE);
+    const status = assetPaymentStatusOf(input.assetId, eventsResult.value);
+    if (!status.hasPayable)
+      return failure("validation_error", "لا متبقي على اقتناء هذا الأصل — لا تسديد فوق حق غير قائم.");
+    if (!Number.isInteger(input.amountMinor) || input.amountMinor <= 0)
+      return failure("validation_error", "أدخل مبلغ التسديد بالأرقام 0–9.");
+    if (input.amountMinor > status.remainingPayableMinor)
+      return failure(
+        "validation_error",
+        `لا يمكن أن يتجاوز التسديد المتبقي الحي (${status.remainingPayableMinor} وحدة صغرى) على اقتناء هذا الأصل.`,
+      );
+    try {
+      /* المصدر: حدث ذمم الاقتناء الفعال — يُربط صراحةً فلا يتشعب الحق. */
+      const reversedIds = reversedEventIds(eventsResult.value);
+      const source = eventsResult.value.find(
+        event =>
+          event.type === "asset_purchase_payable" &&
+          event.assetContext?.assetId === input.assetId &&
+          event.correctionType !== "reverse" &&
+          !reversedIds.has(event.id),
+      );
+      if (!source) return failure("invalid_state", "التزام اقتناء الأصل غير موجود أو معكوس سابقًا.");
+      const now = this.now();
+      const settlement = createFinancialEvent({
+        id: newId("event"),
+        type: "payable_settlement_cash",
+        amountMinor: input.amountMinor,
+        occurredOn: input.occurredOn,
+        recordedAt: now,
+        idempotencyKey: `${input.assetId}:settle:${input.operationKey}`,
+        note: input.note?.trim() || `تسديد من متبقي اقتناء ${asset.name}`,
+        counterparty: asset.acquisitionParty?.labelSnapshot ?? null,
+        relatedEventId: source.id,
+      });
+      /* الحد الحي داخل المعاملة يحرس المتبقي مجددًا — الخدمة تحرسه أولًا
+       * برسالة أهدأ والحد يمنع سباق النافذتين. */
+      const commit = await this.store.commitAssetPayableSettlement(settlement);
+      if (!commit.ok) return failure(storageFailureCode(commit.code), commit.message);
+      /* إعادة الاستخدام الصادقة تصل مطبوعة — المُرسِل يعرف أن حدثه المخزّن
+       * هو المعتمد ولم تُكتب نسخة ثانية. */
+      return { ok: true, value: commit.value.settlement, reused: commit.value.reused };
+    } catch (error) {
+      return failure("validation_error", errorMessageOf(error, "تسديد الاقتناء غير صالح."));
     }
   }
 

@@ -1,5 +1,9 @@
 /** Test adapter only. It mirrors the LocalStore port without making browser APIs part of application tests. */
 import type { FinancialEvent } from "@micro-domain/financial-event/index.js";
+/* S14 (DOC-023 / العقد المشترك §7.1/§14.1 — أمر ba2ce7b4 §5): ملخص الفترة
+ * وإيصال الأمر — سجلان تاريخيان للمنسق. الأنواع فقط ثابتة هنا؛ قرار
+ * الالتزام ونماذج المجال يحمَّلان كسولًا من وحدة الحد (D-034). */
+import type { CommandReceipt, PeriodSummary } from "@micro-domain/shared/index.js";
 import {
   committedReversalMovements,
   storedReversalMovementsFor,
@@ -14,20 +18,47 @@ import {
   validateRecurringExpenseKeyEventCollision,
   validateRecurringExpenseMaterialization,
   validateRecurringExpenseOccurrenceDecision,
+  validateRecurringExpenseOccurrenceLinkExclusivity,
   validateRecurringExpenseOccurrenceRecordCommit,
   validateRecurringExpenseSeriesChange,
 } from "./recurringExpenseCommitGuard";
 import { validateExpenseBudgetRevisionPair, validateExpenseBudgetSave } from "./expenseBudgetCommitGuard";
-import { findSecondWalletOpening, SECOND_WALLET_OPENING_MESSAGE } from "./cashContinuityCommitGuard";
+import {
+  decideCashObservationCommit,
+  findSecondWalletOpening,
+  findTransferCoverageShortfall,
+  SECOND_WALLET_OPENING_MESSAGE,
+} from "./cashContinuityCommitGuard";
 import { orderRecordIdentical, validateOrderCommit } from "./orderCommitGuard";
 import { resolveSupplierPaymentAttribution } from "./supplierAttributionCommitGuard";
+import { decideCounterpartyCommit, type CounterpartyWriteCommit } from "./counterpartyCommitGuard";
+/* S10-MR-001 (أمر S11 — القسم ٥): قرار التزام إنشاء حساب التخطيط النقي —
+ * مالك واحد للمهايئين (العهدة بالمفتاح والتعارض الصادق داخل الحد). */
+import { decideCostEstimateCreate, findCostEstimateByOperationKey } from "./costEstimateCommitGuard";
+/* S11 (UNIT-005/026 sale-slice — أمر b33a8877 §6): قرار التزام كتابة البيع
+ * المباشر النقي — مالك واحد للمهايئين (النسخة والمتبقي الحيان داخل الحد). */
+import { decideDirectSaleWrite, findCashEntryByOperationKey } from "./directSaleCommitGuard";
+/* S07-MR-001 (أمر S08 — القسم ١): قرار التزام المخزون النقي — مالك واحد
+ * للمهايئين (CAS داخل الحد + حتمية داخل الحد). */
+import { decideInventoryCommit, type InventoryCommitExpectation } from "./inventoryCommitGuard";
+/* S08 (UNIT-034): حارس التزام سجلات الأصول وأحداثها النقي. */
+import {
+  validateAssetEventsCommit,
+  validateAssetPayableSettlementCommit,
+  validateAssetRecordCommit,
+} from "./assetCommitGuard";
 import {
   validateScheduleUpdate,
   validateSupplierPurchaseCommit,
   type SupplierPurchaseCommit,
 } from "./supplierScheduleCommitGuard";
 import type { SupplierPurchase } from "@micro-domain/supplier-purchase/index.js";
-import type { CashContinuityEntry, CashWallet } from "@micro-domain/cash-continuity/index.js";
+import { TRANSFER_COVERAGE_MESSAGE } from "@micro-domain/cash-continuity/index.js";
+import type {
+  CashContinuityEntry,
+  CashObservation,
+  CashWallet,
+} from "@micro-domain/cash-continuity/index.js";
 import type {
   InventoryMovement,
   InventoryShortage,
@@ -48,6 +79,7 @@ import type {
   OwnerMovement,
 } from "@micro-domain/owner-entitlement/index.js";
 import type { AllocationPolicy } from "@micro-domain/recurring-margin/index.js";
+import type { SavedParty } from "@micro-domain/party/index.js";
 import type { DirectSale } from "@micro-domain/direct-sale/index.js";
 import type { AssetRecord } from "@micro-domain/asset/index.js";
 import type { LoanRecord } from "@micro-domain/loan/index.js";
@@ -64,18 +96,31 @@ import type {
   FormDraftEnvelope,
   InventoryActivation,
   LocalPreferences,
+  LocalPreferencesPatch,
   LocalSecurityRecord,
   LocalStoreSnapshot,
   OrderDraft,
   OwnerProfile,
+  PreferencesCommitOutcome,
+  ProfileRenameCommitOutcome,
   PrototypeLocalStore,
   RecurringExpenseOccurrenceChange,
+  ReplacementGuard,
+  ReplacementIntentRecord,
+  ReplacementReceiptRecord,
+  RestoreProtectionState,
+  RestoreRollbackRecord,
   ScheduleEntry,
   ScheduleRecurrence,
   StorageResult,
   StoredCraftOrder,
 } from "./types";
+/* S02-A: البصمة الكنونية لسياج الاستبدال داخل حد الكتابة، والتطبيع الموحد —
+ * المحوّل الذاكري خارج كومة الإقلاع (اختبارات/توافق) فالاستيرادان مباشران. */
+import { canonicalSnapshotDigest } from "./snapshotCanonicalization";
+import { normalizeSnapshotForReplacement } from "./snapshotNormalization";
 import { STORAGE_ERROR, STORAGE_STALE } from "./resultCodes";
+import { decideAgreementCreationCommit } from "./agreementCreationIntentGuard";
 /* R10-B3/R10A-F-011 (2026-10-12): الحرفية صارت مصدرًا واحدًا — كانت نسخة
  * خاصة مطابقة هنا والمعرّف المُصدّر في indexedDbStores.ts هو الكنوني
  * (نفس نمط SECOND_WALLET_OPENING_MESSAGE في حارس مشترك)؛ الاستيراد هنا
@@ -91,6 +136,9 @@ import {
   REVERSAL_MISMATCH_MESSAGE,
   REVERSAL_OF_REVERSAL_MESSAGE,
 } from "./financialEventCorrectionMessages";
+/* S03 revalidation (§A2): منطق التزامن المحروس المشترك لسجل التفضيلات —
+ * المصدر الواحد للمحوّلين (نمط financialEventCorrectionMessages). */
+import { decidePreferencesCommit } from "./preferencesCommit";
 
 const clone = <T>(value: T): T => structuredClone(value);
 
@@ -107,6 +155,16 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   private supplierPurchases = new Map<string, SupplierPurchase>();
   private cashWallets = new Map<string, CashWallet>();
   private cashContinuityEntries = new Map<string, CashContinuityEntry>();
+  /* S04 (DOC-013 / UNIT-025): رصد أرصدة النقد في الذاكرة — تطابق المتصفح
+   * اختبارًا وسلوكًا؛ القياس داخل اللقطة كإخوته. */
+  private balanceObservations = new Map<string, CashObservation>();
+  /* S05 (DOC-014 / UNIT-037): الأطراف المحفوظة في الذاكرة — تطابق المتصفح
+   * اختبارًا وسلوكًا؛ هوية تعريفية داخل اللقطة كإخوتها. */
+  private counterparties = new Map<string, SavedParty>();
+  /* S14 (DOC-023 / UNIT-002): ملخصات الفترة وإيصالات الأوامر في الذاكرة —
+   * تطابق المتصفح اختبارًا وسلوكًا؛ سجلان تاريخيان داخل اللقطة كإخوتهما. */
+  private periodSummaries = new Map<string, PeriodSummary>();
+  private commandReceipts = new Map<string, CommandReceipt>();
   private materials = new Map<string, Material>();
   private inventoryMovements = new Map<string, InventoryMovement>();
   /* المجموعة ٢ (عقد ٢٨): سجلات النقص في الذاكرة أيضًا — تطابق المتصفح اختبارًا وسلوكًا. */
@@ -142,6 +200,14 @@ export class MemoryLocalStore implements PrototypeLocalStore {
    * المتصفح؛ هنا أيضًا لا تدخل readSnapshot/replaceSnapshot فتطابق الاستعادة. */
   private formDrafts = new Map<string, FormDraftEnvelope>();
   private security: LocalSecurityRecord | null = null;
+  /* S02-A (SH-02/SH-03): حالة حماية الاستبدال في الذاكرة — تطابق قاعدة
+   * الحماية المنفصلة في المتصفح سلوكًا وعقدًا (قراءة واحدة، وعمليات ذرّية
+   * ببنية أحادية الخيط)؛ للتوافق الاختباري للمهايئين لا للاستمرار. */
+  private dataGeneration = 0;
+  private replacementIntent: ReplacementIntentRecord | null = null;
+  private replacementReceipt: ReplacementReceiptRecord | null = null;
+  private activeRollback: RestoreRollbackRecord | null = null;
+  private pendingRollback: RestoreRollbackRecord | null = null;
 
   async getProfile(): Promise<StorageResult<ActivityProfile | null>> {
     return { ok: true, value: this.profile ? clone(this.profile) : null };
@@ -161,6 +227,22 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.profile = clone(profile);
     return { ok: true, value: { profile: clone(profile), reused: false } };
   }
+  /* S03 (UNIT-039 B2/عقد §17): نفس عقد محوّل IndexedDB — تعديل الاسم بفحص
+   * حي للنسخة في خطوة متزامنة واحدة (لا فجوة تزامن في بنية الذاكرة أحادية
+   * الخيط): تطابق updatedAt المتوقع يكتب التسمية الجديدة، واختلافه أو غياب
+   * الملف يعيد الحالة الحالية كتعارض بلا كتابة — لا سحق للاسم الأحدث ولا
+   * إنشاء من مسار التعديل. */
+  async commitProfileRename(
+    profile: ActivityProfile,
+    expectedUpdatedAt: string,
+  ): Promise<StorageResult<ProfileRenameCommitOutcome>> {
+    const stored = this.profile;
+    if (!stored || stored.updatedAt !== expectedUpdatedAt) {
+      return { ok: true, value: { profile: stored ? clone(stored) : null, outcome: "conflict" } };
+    }
+    this.profile = clone(profile);
+    return { ok: true, value: { profile: clone(profile), outcome: "renamed" } };
+  }
   async getOwnerProfile(): Promise<StorageResult<OwnerProfile | null>> {
     return { ok: true, value: this.ownerProfile ? clone(this.ownerProfile) : null };
   }
@@ -174,6 +256,29 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   async savePreferences(preferences: LocalPreferences): Promise<StorageResult<LocalPreferences>> {
     this.preferences = clone(preferences);
     return { ok: true, value: clone(preferences) };
+  }
+  /* S03 revalidation (§A2): نفس عقد محوّل IndexedDB — القراءة والدمج
+   * والكتابة في خطوة متزامنة واحدة (لا فجوة تزامن في بنية الذاكرة أحادية
+   * الخيط): الرقعة تُطبَّق فوق السجل الحي داخل الخطوة نفسها فلا يبني أي
+   * كاتب سجله من لقطة متقادمة، وفحص CAS الحي (عند تمرير طابع متوقع)
+   * يعيد الحالة الحية كتعارض صادق بلا كتابة. المنطق المشترك من
+   * preferencesCommit.ts (المصدر الواحد للمحوّلين). */
+  async commitPreferencesUpdate(
+    patch: LocalPreferencesPatch,
+    expectedUpdatedAt: string | null,
+    timestamp: string,
+  ): Promise<StorageResult<PreferencesCommitOutcome>> {
+    const decision = decidePreferencesCommit(
+      this.preferences ? clone(this.preferences) : null,
+      patch,
+      expectedUpdatedAt,
+      timestamp,
+    );
+    if (decision.outcome === "conflict") {
+      return { ok: true, value: { outcome: "conflict", live: decision.live ? clone(decision.live) : null } };
+    }
+    this.preferences = clone(decision.write);
+    return { ok: true, value: { outcome: decision.outcome, preferences: clone(decision.write) } };
   }
   async getFormDraft(id: string): Promise<StorageResult<FormDraftEnvelope | null>> {
     const draft = this.formDrafts.get(id);
@@ -209,6 +314,59 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   }
   async deleteLocalSecurity(): Promise<StorageResult<null>> {
     this.security = null;
+    return { ok: true, value: null };
+  }
+  /* S02-A (SH-02/SH-03): حماية الاستبدال الدائمة في الذاكرة — نفس عقد قاعدة
+   * الحماية المنفصلة: لا نية بلا نسخة رجوع معلقة، ولا ترقية نسخة نشطة إلا
+   * مع التزام وصك جيل، ومحاولة فاشلة لا تمس النسخة الجيدة أبدًا. */
+  async getDataGeneration(): Promise<StorageResult<number>> {
+    return { ok: true, value: this.dataGeneration };
+  }
+  async readRestoreProtection(): Promise<StorageResult<RestoreProtectionState>> {
+    return {
+      ok: true,
+      value: {
+        generation: this.dataGeneration,
+        intent: this.replacementIntent ? clone(this.replacementIntent) : null,
+        receipt: this.replacementReceipt ? clone(this.replacementReceipt) : null,
+        activeRollback: this.activeRollback ? clone(this.activeRollback) : null,
+        pendingRollback: this.pendingRollback ? clone(this.pendingRollback) : null,
+      },
+    };
+  }
+  async beginReplacementIntent(
+    pending: RestoreRollbackRecord,
+    intent: ReplacementIntentRecord,
+  ): Promise<StorageResult<null>> {
+    /* سياج النية الواحدة — نفس شرط القاعدة المنفصلة داخل الحد. */
+    if (this.replacementIntent !== null) {
+      return {
+        ok: false,
+        code: "replacement_intent_busy",
+        message: "عملية استبدال أخرى قيد الحسم — لن تبدأ عملية ثانية فوقها.",
+      };
+    }
+    this.pendingRollback = clone(pending);
+    this.replacementIntent = clone(intent);
+    return { ok: true, value: null };
+  }
+  async commitReplacementIntent(
+    generation: number,
+    receipt: ReplacementReceiptRecord,
+    resolvedAt: string,
+  ): Promise<StorageResult<null>> {
+    if (this.pendingRollback !== null) {
+      this.activeRollback = this.pendingRollback;
+      this.pendingRollback = null;
+    }
+    this.replacementReceipt = { ...clone(receipt), committedAt: resolvedAt };
+    this.replacementIntent = null;
+    this.dataGeneration = generation;
+    return { ok: true, value: null };
+  }
+  async abortReplacementIntent(): Promise<StorageResult<null>> {
+    this.pendingRollback = null;
+    this.replacementIntent = null;
     return { ok: true, value: null };
   }
   async listDrafts(): Promise<StorageResult<readonly OrderDraft[]>> {
@@ -433,41 +591,81 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         code: STORAGE_STALE,
         message: "سجل الطلب تغيّر من مسار آخر بعد فتحك له — لم يُسجَّل شيء؛ أعد المحاولة.",
       };
-    if (!alreadyDelivered) this.orders.set(order.id, clone(order));
-    const movementKeys = new Set(Array.from(this.inventoryMovements.values()).map(m => m.operationKey));
-    movements
-      .filter(movement => !movementKeys.has(movement.operationKey))
-      .forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
-    const shortageKeys = new Set(Array.from(this.inventoryShortages.values()).map(s => s.operationKey));
-    shortages
-      .filter(shortage => !shortageKeys.has(shortage.operationKey))
-      .forEach(shortage => this.inventoryShortages.set(shortage.id, clone(shortage)));
-    let attributedEntry: CashContinuityEntry | null = null;
-    if (cashEntry) {
-      const cashKeyTaken = Array.from(this.cashContinuityEntries.values()).some(
-        entry => entry.operationKey === cashEntry.operationKey,
-      );
-      if (!cashKeyTaken) {
-        this.cashContinuityEntries.set(cashEntry.id, clone(cashEntry));
+    /* S12-ATOMIC-001 (أمر 2158b0fc §5 — إصلاح جذري لحد الكتابة): الاستنساخ
+     * الكامل للحزمة كلها قبل أي تغيير — أي فشل استنساخ (مهما كان مصدره)
+     * يُرجَع فشلًا صادقًا قبل أول set فلا تبقى كتابة نصفية أبدًا: الطلب
+     * وحركاته ونقصه وقبضه ومحفظته تُكتب معًا أو لا يُكتب شيء. */
+    /* S12-ATOMIC-001 (أمر ba2ce7b4 §3 — الإثبات بعد بدء الكتابة): دفتر
+     * التراجع يُعلّن قبل الحد كي يراه مسار الفشل أيًا كان موضع الرمي — كل
+     * كتابة مجندلة تُسبق بمدخل يُرجع القيمة السابقة أو يمحو المفتاح المضاف. */
+    const undoJournal: Array<() => void> = [];
+    try {
+      const orderClone = alreadyDelivered ? clone(existing) : clone(order);
+      const movementKeys = new Set(Array.from(this.inventoryMovements.values()).map(m => m.operationKey));
+      const movementClones = movements
+        .filter(movement => !movementKeys.has(movement.operationKey))
+        .map(movement => clone(movement));
+      const shortageKeys = new Set(Array.from(this.inventoryShortages.values()).map(s => s.operationKey));
+      const shortageClones = shortages
+        .filter(shortage => !shortageKeys.has(shortage.operationKey))
+        .map(shortage => clone(shortage));
+      let attributedEntry: CashContinuityEntry | null = null;
+      let cashEntryClone: CashContinuityEntry | null = null;
+      if (cashEntry) {
+        const cashKeyTaken = Array.from(this.cashContinuityEntries.values()).some(
+          entry => entry.operationKey === cashEntry.operationKey,
+        );
+        cashEntryClone = clone(cashEntry);
         attributedEntry = clone(cashEntry);
-      } else {
-        attributedEntry = clone(cashEntry);
+        if (cashKeyTaken) cashEntryClone = null;
       }
-      if (wallet) this.cashWallets.set(wallet.id, clone(wallet));
-    } else if (wallet) {
-      this.cashWallets.set(wallet.id, clone(wallet));
+      const walletClone = wallet ? clone(wallet) : null;
+      /* الالتزام الفعلي — قيم مستنسخة سلفًا. S12-ATOMIC-001 (أمر ba2ce7b4 §3 —
+       * الإثبات بعد بدء الكتابة): كل كتابة عبر دفتر التراجع — أي رمي بعد
+       * أول set فعلي (مهما كان مصدره) يُنفّذ التراجع بالعكس فيعود كل مخزن
+       * إلى حالته قبل الحزمة ثم يُرجَع فشل تخزين صادق؛ الضمان بنيوي داخل حد
+       * الكتابة، لا اعتمادًا على «القيم المستنسخة لا ترمي» فقط. */
+      const journalSet = <K, V>(map: Map<K, V>, key: K, value: V) => {
+        const previous = map.get(key);
+        undoJournal.push(previous === undefined ? () => map.delete(key) : () => map.set(key, previous));
+        map.set(key, value);
+        this.onDeliveryBundleWrite();
+      };
+      if (!alreadyDelivered) journalSet(this.orders, order.id, orderClone);
+      movementClones.forEach(movement => journalSet(this.inventoryMovements, movement.id, movement));
+      shortageClones.forEach(shortage => journalSet(this.inventoryShortages, shortage.id, shortage));
+      if (cashEntryClone) journalSet(this.cashContinuityEntries, cashEntryClone.id, cashEntryClone);
+      if (walletClone) journalSet(this.cashWallets, walletClone.id, walletClone);
+      return {
+        ok: true,
+        value: {
+          order: clone(alreadyDelivered ? existing : order),
+          movements: movements.map(clone),
+          shortages: shortages.map(clone),
+          cashEntry: attributedEntry,
+          reused: alreadyDelivered,
+        },
+      };
+    } catch (error) {
+      /* فشل ما قبل التغيير (استنساخ الحزمة) أو أي رمي بعد بدء الكتابة: يُنفّذ
+       * دفتر التراجع بالعكس فلا تبقى كتابة نصفية من هذه الحزمة أبدًا، ثم فشل
+       * تخزين صادق (S12-ATOMIC-001 — أمر ba2ce7b4 §3). */
+      for (const step of undoJournal.reverse()) step();
+      return {
+        ok: false,
+        code: STORAGE_ERROR,
+        message: error instanceof Error ? error.message : "تعذر تسجيل التسليم محليًا.",
+      };
     }
-    return {
-      ok: true,
-      value: {
-        order: clone(alreadyDelivered ? existing : order),
-        movements: movements.map(clone),
-        shortages: shortages.map(clone),
-        cashEntry: attributedEntry,
-        reused: alreadyDelivered,
-      },
-    };
   }
+
+  /** S12-ATOMIC-001 (أمر ba2ce7b4 §3): خيط داخلي ضيق لإثبات الذرّية — يُستدعى
+   * بعد كل كتابة مجندلة في حزمة تسليم التسليم (بعد أول set فعلي فصاعدًا).
+   * لا يفعل شيئًا في الإنتاج أبدًا: ليس مفتاح تشغيل عامًا ولا جزءًا من
+   * السطح العام للمخزن (protected لا public)؛ يتيح لاختبار الانحدار أن يحقن
+   * فشلًا حتميًا في عمق تسلسل الكتابة نفسه — بعد بدء كتابة فعلية لا قبلها —
+   * فيثبت أن دفتر التراجع يُرجع كل المخازن كما كانت. */
+  protected onDeliveryBundleWrite(): void {}
   /* المجموعة ٣ (عقد D4) + رقعة إغلاق المجموعة ٣ (D-031، مراجعة مستقلة):
    * عكس التسليم ذرّيًا في الذاكرة — لا كتابة عمياء فوق السجل الحي. الحارس
    * يقرأ الحالة الحية داخل حد الكتابة نفسه: إعادة التشغيل بالمفتاح نفسه
@@ -585,6 +783,46 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         cashEntry: allocationReversal ? clone(allocationReversal) : null,
         reused: false,
       },
+    };
+  }
+  /* S11 (UNIT-005/026 sale-slice — أمر b33a8877 §6): التزام كتابة البيع في
+   * خطوة متزامنة واحدة (لا فجوة تزامن في بنية الذاكرة أحادية الخيط) —
+   * الإنشاء والتحصيل والمرتجع ورد الدفع والتصحيح/الإلغاء كلها عبر نواة
+   * القرار المشتركة مع محوّل IndexedDB حرفيًا: فحص الهوية والنسخة والمتبقي
+   * الحيين ثم الكتابة أو الرفض الصادق؛ والبيع مع سطر قيمة النقد المختار
+   * (تخصيص القبض/صرف الرد) يُكتبان معًا أو لا شيء. */
+  async commitDirectSaleWrite(
+    base: DirectSale | null,
+    next: DirectSale,
+    idempotencyKeys: readonly string[],
+    cashEntry: CashContinuityEntry | null,
+  ): Promise<StorageResult<{ sale: DirectSale; cashEntry: CashContinuityEntry | null; reused: boolean }>> {
+    const liveById = this.directSales.get(next.id) ?? null;
+    const liveByIdempotencyKey =
+      base === null
+        ? (Array.from(this.directSales.values()).find(sale => sale.idempotencyKey === next.idempotencyKey) ??
+          null)
+        : null;
+    const decision = decideDirectSaleWrite(base, next, idempotencyKeys, liveById, liveByIdempotencyKey);
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.kind === "reuse") {
+      const matchingCash = cashEntry
+        ? findCashEntryByOperationKey(Array.from(this.cashContinuityEntries.values()), cashEntry.operationKey)
+        : null;
+      return {
+        ok: true,
+        value: {
+          sale: clone(decision.sale),
+          cashEntry: matchingCash ? clone(matchingCash) : null,
+          reused: true,
+        },
+      };
+    }
+    this.directSales.set(next.id, clone(next));
+    if (cashEntry) this.cashContinuityEntries.set(cashEntry.id, clone(cashEntry));
+    return {
+      ok: true,
+      value: { sale: clone(next), cashEntry: cashEntry ? clone(cashEntry) : null, reused: false },
     };
   }
   async listSchedules(): Promise<StorageResult<readonly ScheduleEntry[]>> {
@@ -919,22 +1157,180 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   ): Promise<StorageResult<{ wallet: CashWallet | null; entries: readonly CashContinuityEntry[] }>> {
     /* P0 (إرسال متزامن): قيد بنفس مفتاح العملية يُتخطى والمحفظة لا تُكتب
      * إلا مع قيد جديد (أو تحديث خالص بلا قيود) — نفس عقد محوّل IndexedDB. */
-    const existingKeys = new Set(Array.from(this.cashContinuityEntries.values()).map(e => e.operationKey));
+    const existingEntries = Array.from(this.cashContinuityEntries.values());
+    const existingKeys = new Set(existingEntries.map(e => e.operationKey));
     const newEntries = entries.filter(entry => !existingKeys.has(entry.operationKey));
     /* EXE-008 (CASH-001): نفس حرس المحوّل الدائم — افتتاح ثانٍ لمحفظة لها
      * افتتاح مسجل يُرفض ولا يُكتب شيء؛ التوأمان لا ينفصلان في السلوك. */
-    const secondOpening = findSecondWalletOpening(
-      Array.from(this.cashContinuityEntries.values()),
-      newEntries,
-    );
+    const secondOpening = findSecondWalletOpening(existingEntries, newEntries);
     if (secondOpening) {
       return { ok: false, code: STORAGE_STALE, message: SECOND_WALLET_OPENING_MESSAGE };
     }
-    newEntries.forEach(entry => this.cashContinuityEntries.set(entry.id, clone(entry)));
-    if (wallet && (newEntries.length > 0 || entries.length === 0)) {
-      this.cashWallets.set(wallet.id, clone(wallet));
+    /* S04 (DOC-013 / UNIT-023 D01): حارس تغطية التحويل — نفس عقد محوّل
+     * IndexedDB بالضبط: أرجل التحويل الجديدة وحدها تُفحص ضد رصيد المصدر
+     * الحي (الحارس نفسه يتخطى الدفعات بلا أرجل تحويل)، والمصدر المعروف
+     * الافتتاح الناقص يُرفض بلا أي كتابة. */
+    const shortfall = findTransferCoverageShortfall(
+      Array.from(this.cashWallets.values()),
+      existingEntries,
+      newEntries,
+    );
+    if (shortfall) {
+      return { ok: false, code: STORAGE_STALE, message: TRANSFER_COVERAGE_MESSAGE };
     }
-    return { ok: true, value: { wallet: wallet ? clone(wallet) : null, entries: entries.map(clone) } };
+    /* S04 (DOC-013 / UNIT-025 — SDF-021 توكيدًا): الاستنساخ كله قبل أول كتابة —
+     * فشل استنساخ أي قيد داخل الدفعة لا يسرّب سابقه (نفس معنى التراجع الكامل
+     * لمعاملة IndexedDB؛ لا نجاح جهة وفشل أخرى). */
+    const clonedEntries = newEntries.map(entry => clone(entry));
+    const clonedWallet = wallet ? clone(wallet) : null;
+    clonedEntries.forEach(entry => this.cashContinuityEntries.set(entry.id, entry));
+    if (clonedWallet && (newEntries.length > 0 || entries.length === 0)) {
+      this.cashWallets.set(clonedWallet.id, clonedWallet);
+    }
+    return { ok: true, value: { wallet: clonedWallet, entries: entries.map(clone) } };
+  }
+  /* S04 (DOC-013 / UNIT-025): رصد أرصدة النقد في الذاكرة — نفس عقد محوّل
+   * IndexedDB: الأحدث أولًا، والرصد قياس لا حركة. */
+  async listBalanceObservations(): Promise<StorageResult<readonly CashObservation[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.balanceObservations.values())
+        .sort((a, b) => b.observedOn.localeCompare(a.observedOn) || b.cutoff.localeCompare(a.cutoff))
+        .map(clone),
+    };
+  }
+  /* S04 (DOC-013 / UNIT-025 + العقد المشترك §14): الرصد وتسويته في خطوة
+   * متزامنة واحدة (لا فجوة تزامن في بنية الذاكرة أحادية الخيط) — نفس عقد
+   * محوّل IndexedDB حرفيًا: العهدة بالمفتاح إعادة صادقة، والنصف حالة ترفض
+   * بصدق، والمرجع الحي يطابق المتوقع وإلا فلا كتابة. */
+  async commitCashObservation(
+    observation: CashObservation,
+    settlement: CashContinuityEntry | null,
+    expectedReferenceMinor: number | null,
+  ): Promise<
+    StorageResult<{ observation: CashObservation; settlement: CashContinuityEntry | null; reused: boolean }>
+  > {
+    const existingEntries = Array.from(this.cashContinuityEntries.values());
+    const decision = decideCashObservationCommit(
+      Array.from(this.balanceObservations.values()),
+      existingEntries,
+      observation,
+      settlement,
+      expectedReferenceMinor,
+    );
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.kind === "reuse") {
+      return {
+        ok: true,
+        value: {
+          observation: clone(decision.observation),
+          settlement: decision.settlement?.id ? clone(decision.settlement) : null,
+          reused: true,
+        },
+      };
+    }
+    this.balanceObservations.set(observation.id, clone(observation));
+    if (settlement) this.cashContinuityEntries.set(settlement.id, clone(settlement));
+    return {
+      ok: true,
+      value: {
+        observation: clone(observation),
+        settlement: settlement ? clone(settlement) : null,
+        reused: false,
+      },
+    };
+  }
+  /* ─── S14 (DOC-023 / UNIT-002 + العقد المشترك §14.1 — أمر ba2ce7b4 §5) ─── */
+
+  /** ملخصات الفترة — الأحدث تسجيلًا أولًا (نمط قراءة الأطراف). */
+  async listPeriodSummaries(): Promise<StorageResult<readonly PeriodSummary[]>> {
+    const summaries = Array.from(this.periodSummaries.values()).sort(
+      (left, right) => right.recordedAt.localeCompare(left.recordedAt) || left.id.localeCompare(right.id),
+    );
+    return { ok: true, value: summaries.map(clone) };
+  }
+
+  /** إيصالات الأوامر — الأحدث تسجيلًا أولًا. */
+  async listCommandReceipts(): Promise<StorageResult<readonly CommandReceipt[]>> {
+    const receipts = Array.from(this.commandReceipts.values()).sort(
+      (left, right) => right.recordedAt.localeCompare(left.recordedAt) || left.id.localeCompare(right.id),
+    );
+    return { ok: true, value: receipts.map(clone) };
+  }
+
+  async getCommandReceipt(commandId: string): Promise<StorageResult<CommandReceipt | null>> {
+    const existing = this.commandReceipts.get(commandId);
+    return { ok: true, value: existing ? clone(existing) : null };
+  }
+
+  /**
+   * الالتزام المنسق — القراءة والقرار والكتابة خطوة متزامنة واحدة مع دفتر
+   * تراجع بنيوي (نمط S12-ATOMIC-001): الملخصات وقياس النقد والإيصال معًا
+   * أو لا شيء (SDF-030). الحتمية داخل الحد: نفس commandId بنفس البصمة
+   * والجيل يعيد نتيجة الأصل (reused)، وبحمولة مختلفة تعارض بلا كتابة.
+   */
+  async commitAccountCompletion(commit: import("./types").AccountCompletionCommit): Promise<
+    import("./types").StorageResult<{
+      summaries: readonly PeriodSummary[];
+      cashObservation: import("@micro-domain/cash-continuity/index.js").CashObservation | null;
+      receipt: CommandReceipt;
+      reused: boolean;
+    }>
+  > {
+    /* S14 (D-034 — نمط حماية كومة الإقلاع): التزام الحزمة المنسقة بجمله
+     * يُحمَّل كسولًا من وحدة الحد — الملخصات والقياس والإيصال معًا أو لا
+     * شيء (SDF-030) بدفتر التراجع البنيوي، والحتمية وفحص الجيل داخل الحد.
+     * القرارات الحية (الخرائط والجيل) تُمرر كما هي — الحد نفسه لا يتغير. */
+    const { commitAccountCompletionInMemory } = await import("./accountCompletionBoundary");
+    return commitAccountCompletionInMemory(
+      {
+        periodSummaries: this.periodSummaries,
+        commandReceipts: this.commandReceipts,
+        balanceObservations: this.balanceObservations,
+        cashContinuityEntries: this.cashContinuityEntries,
+        dataGeneration: this.dataGeneration,
+        onCoordinatedWrite: () => this.onCoordinatedWrite(),
+        decideCashObservationCommit,
+        clone,
+      },
+      commit,
+    );
+  }
+
+  /** S14 (أمر ba2ce7b4 §5): خيط داخلي ضيق لإثبات ذرّية الحزمة المنسقة —
+   * يُستدعى بعد كل كتابة مجندلة؛ protected لا public ولا مفتاح تشغيل. */
+  protected onCoordinatedWrite(): void {}
+
+  /* S05 (DOC-014 / UNIT-037): الأطراف المحفوظة في الذاكرة — نفس عقد محوّل
+   * IndexedDB: الأحدث تعديلًا أولًا، وسجل تعريفي لا يمس أي مصدر مالي. */
+  async listCounterparties(): Promise<StorageResult<readonly SavedParty[]>> {
+    return {
+      ok: true,
+      value: Array.from(this.counterparties.values())
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+        .map(clone),
+    };
+  }
+  async getCounterparty(id: string): Promise<StorageResult<SavedParty | null>> {
+    const live = this.counterparties.get(id) ?? null;
+    return { ok: true, value: live ? clone(live) : null };
+  }
+  /* S05 (DOC-014 / UNIT-037 + العقد المشترك §14): كتابة الطرف في خطوة
+   * متزامنة واحدة (لا فجوة تزامن في بنية الذاكرة أحادية الخيط) — نفس عقد
+   * محوّل IndexedDB حرفيًا عبر نواة القرار المشتركة: عهدة المفتاح إعادة
+   * استخدام (بلا طرف ثانٍ)، والتعارض رفض صادق بلا كتابة. */
+  async commitCounterpartyWrite(
+    commit: CounterpartyWriteCommit,
+  ): Promise<StorageResult<{ party: SavedParty; reused: boolean }>> {
+    const liveById = this.counterparties.get(commit.next.id) ?? null;
+    const liveByOperationKey =
+      Array.from(this.counterparties.values()).find(party => party.operationKey === commit.operationKey) ??
+      null;
+    const decision = decideCounterpartyCommit(liveById, liveByOperationKey, commit);
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.kind === "reuse") return { ok: true, value: { party: clone(decision.party), reused: true } };
+    this.counterparties.set(commit.next.id, clone(commit.next));
+    return { ok: true, value: { party: clone(commit.next), reused: false } };
   }
   async listMaterials(): Promise<StorageResult<readonly Material[]>> {
     return {
@@ -961,15 +1357,68 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.inventoryActivation = clone(activation);
     return { ok: true, value: clone(activation) };
   }
+  /* S07-MR-001 (أمر S08 — القسم ١): التزام المخزون في الذاكرة يطبق قرار
+   * الحارس النقي في خطوة متزامنة واحدة — لا كتابة جزئية أبدًا: الرفض
+   * يعود بلا أي كتابة، وإعادة الاستخدام تعيد المخزّن كما هو. المعين حقل
+   * instance-level (نمط حقول هذا الملف) فلا يتغير سطح النموذج المحروس
+   * (P-01/P-02) ولا يُلمس دبوس السطح. */
+  private readonly inventoryCommitDecision = (input: {
+    expectation: InventoryCommitExpectation | null | undefined;
+    material: Material | null;
+    movements: readonly InventoryMovement[];
+    events: readonly FinancialEvent[];
+    shortage: InventoryShortage | null;
+  }) =>
+    decideInventoryCommit({
+      expectation: input.expectation,
+      liveMovements: Array.from(this.inventoryMovements.values()),
+      liveMaterials:
+        input.expectation?.materialsFingerprint !== undefined ? Array.from(this.materials.values()) : null,
+      liveShortages:
+        input.expectation?.shortagesFingerprint !== undefined
+          ? Array.from(this.inventoryShortages.values())
+          : null,
+      livePurchases:
+        input.expectation?.purchasesFingerprint !== undefined
+          ? Array.from(this.supplierPurchases.values())
+          : null,
+      liveEvents:
+        input.events.length > 0 || input.expectation?.eventsFingerprint !== undefined
+          ? Array.from(this.financialEvents.values())
+          : null,
+      material: input.material,
+      movements: input.movements,
+      events: input.events,
+      shortage: input.shortage,
+    });
   async commitInventory(
     material: Material | null,
     movements: readonly InventoryMovement[],
-  ): Promise<StorageResult<{ material: Material | null; movements: readonly InventoryMovement[] }>> {
-    if (material) this.materials.set(material.id, clone(material));
-    movements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
+    expectation?: InventoryCommitExpectation | null,
+  ): Promise<
+    StorageResult<{
+      material: Material | null;
+      movements: readonly InventoryMovement[];
+      reused: boolean;
+    }>
+  > {
+    const decision = this.inventoryCommitDecision({
+      expectation,
+      material,
+      movements,
+      events: [],
+      shortage: null,
+    });
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.material) this.materials.set(decision.material.id, clone(decision.material));
+    decision.newMovements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
     return {
       ok: true,
-      value: { material: material ? clone(material) : null, movements: movements.map(clone) },
+      value: {
+        material: decision.material ? clone(decision.material) : null,
+        movements: decision.resultMovements.map(clone),
+        reused: decision.reused,
+      },
     };
   }
   async listInventoryShortages(): Promise<StorageResult<readonly InventoryShortage[]>> {
@@ -984,31 +1433,45 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     material: Material | null,
     movements: readonly InventoryMovement[],
     shortage: InventoryShortage | null,
+    expectation?: InventoryCommitExpectation | null,
   ): Promise<
     StorageResult<{
       material: Material | null;
       movements: readonly InventoryMovement[];
       shortage: InventoryShortage | null;
+      reused: boolean;
     }>
   > {
-    if (material) this.materials.set(material.id, clone(material));
-    movements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
-    if (shortage) this.inventoryShortages.set(shortage.id, clone(shortage));
+    const decision = this.inventoryCommitDecision({
+      expectation,
+      material,
+      movements,
+      events: [],
+      shortage,
+    });
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.material) this.materials.set(decision.material.id, clone(decision.material));
+    decision.newMovements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
+    if (decision.newShortage)
+      this.inventoryShortages.set(decision.newShortage.id, clone(decision.newShortage));
     return {
       ok: true,
       value: {
-        material: material ? clone(material) : null,
-        movements: movements.map(clone),
-        shortage: shortage ? clone(shortage) : null,
+        material: decision.material ? clone(decision.material) : null,
+        movements: decision.resultMovements.map(clone),
+        shortage: decision.resultShortage ? clone(decision.resultShortage) : null,
+        reused: decision.reused,
       },
     };
   }
   /* عقد الإغلاق العميق (العقد ١): محاكاة الذاكرة لنفس عقد محوّل IndexedDB —
-   * حركة + حدث مالي بمعاملة واحدة منطقيًا، والحتمية بمفتاحي العملية. */
+   * حركة + حدث مالي بمعاملة واحدة منطقيًا، والحتمية بمفتاحي العملية.
+   * S07-MR-001: القرار كله عند الحارس النقي — المهايئان متكافئان بنيويًا. */
   async commitInventoryWithEvents(
     material: Material | null,
     movements: readonly InventoryMovement[],
     events: readonly FinancialEvent[],
+    expectation?: InventoryCommitExpectation | null,
   ): Promise<
     StorageResult<{
       material: Material | null;
@@ -1017,27 +1480,24 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       reused: boolean;
     }>
   > {
-    const movementByKey = new Map(
-      Array.from(this.inventoryMovements.values()).map(
-        movement => [movement.operationKey, movement] as const,
-      ),
-    );
-    const eventByKey = new Map(
-      Array.from(this.financialEvents.values()).map(event => [event.idempotencyKey, event] as const),
-    );
-    const newMovements = movements.filter(movement => !movementByKey.has(movement.operationKey));
-    const newEvents = events.filter(event => !eventByKey.has(event.idempotencyKey));
-    const reused = newMovements.length < movements.length || newEvents.length < events.length;
-    if (material) this.materials.set(material.id, clone(material));
-    newMovements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
-    newEvents.forEach(event => this.financialEvents.set(event.id, clone(event)));
+    const decision = this.inventoryCommitDecision({
+      expectation,
+      material,
+      movements,
+      events,
+      shortage: null,
+    });
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.material) this.materials.set(decision.material.id, clone(decision.material));
+    decision.newMovements.forEach(movement => this.inventoryMovements.set(movement.id, clone(movement)));
+    decision.newEvents.forEach(event => this.financialEvents.set(event.id, clone(event)));
     return {
       ok: true,
       value: {
-        material: material ? clone(material) : null,
-        movements: movements.map(movement => movementByKey.get(movement.operationKey) ?? movement).map(clone),
-        events: events.map(event => eventByKey.get(event.idempotencyKey) ?? event).map(clone),
-        reused,
+        material: decision.material ? clone(decision.material) : null,
+        movements: decision.resultMovements.map(clone),
+        events: decision.resultEvents.map(clone),
+        reused: decision.reused,
       },
     };
   }
@@ -1431,13 +1891,49 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     order: StoredCraftOrder,
     draft: OrderDraft,
     schedule?: ScheduleEntry,
-  ): Promise<StorageResult<{ order: StoredCraftOrder; draft: OrderDraft; schedule: ScheduleEntry | null }>> {
+  ): Promise<
+    StorageResult<{
+      order: StoredCraftOrder;
+      draft: OrderDraft;
+      schedule: ScheduleEntry | null;
+      reused: boolean;
+    }>
+  > {
+    /* S12 (DOC-021 — أمر 2e645802 §6، تصحيح R3-F01): فحص الوجود داخل حد
+     * الكتابة — إنشاءان متزامنان من المسودة نفسها (المعرّف الحتمي
+     * `order-${draft.id}` واحد) لا يطمر أحدهما الآخر: الثاني يرى السجل القائم
+     * ويعيد الاستخدام بصدق (reused مع السجل نفسه وبلا أي كتابة)؛ ولا جدول
+     * يتيمًا أبدًا (لا يُمسّ أي شيء عند إعادة الاستخدام).
+     * S12-FIN-001 (أمر 2158b0fc §5): إعادة الاستخدام مشروطة بتطابق نية
+     * الإنشاء الكنونية — المفتاح نفسه بحمولة مختلفة تعارض صريح بلا كتابة
+     * ولا أثر جانبي (الجدول المرتبط بالسجل القائم لا بالحمولة المتعارضة). */
+    const existing = this.orders.get(order.id);
+    if (existing) {
+      const decision = decideAgreementCreationCommit(order, existing);
+      if (decision.kind === "conflict") return { ok: false, code: decision.code, message: decision.message };
+      const liveDraft = this.drafts.get(draft.id) ?? draft;
+      const liveSchedule = schedule ? (this.schedules.get(schedule.id) ?? null) : null;
+      return {
+        ok: true,
+        value: {
+          order: clone(existing),
+          draft: clone(liveDraft),
+          schedule: liveSchedule ? clone(liveSchedule) : null,
+          reused: true,
+        },
+      };
+    }
     this.orders.set(order.id, clone(order));
     this.drafts.set(draft.id, clone(draft));
     if (schedule) this.schedules.set(schedule.id, clone(schedule));
     return {
       ok: true,
-      value: { order: clone(order), draft: clone(draft), schedule: schedule ? clone(schedule) : null },
+      value: {
+        order: clone(order),
+        draft: clone(draft),
+        schedule: schedule ? clone(schedule) : null,
+        reused: false,
+      },
     };
   }
   async readSnapshot(): Promise<StorageResult<LocalStoreSnapshot>> {
@@ -1456,6 +1952,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
         supplierPurchases: Array.from(this.supplierPurchases.values()).map(clone),
         cashWallets: Array.from(this.cashWallets.values()).map(clone),
         cashContinuityEntries: Array.from(this.cashContinuityEntries.values()).map(clone),
+        balanceObservations: Array.from(this.balanceObservations.values()).map(clone),
+        counterparties: Array.from(this.counterparties.values()).map(clone),
+        periodSummaries: Array.from(this.periodSummaries.values()).map(clone),
+        commandReceipts: Array.from(this.commandReceipts.values()).map(clone),
         materials: Array.from(this.materials.values()).map(clone),
         inventoryMovements: Array.from(this.inventoryMovements.values()).map(clone),
         inventoryShortages: Array.from(this.inventoryShortages.values()).map(clone),
@@ -1482,7 +1982,25 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       },
     };
   }
-  async replaceSnapshot(snapshot: LocalStoreSnapshot): Promise<StorageResult<LocalStoreSnapshot>> {
+  async replaceSnapshot(
+    snapshot: LocalStoreSnapshot,
+    guard?: ReplacementGuard,
+  ): Promise<StorageResult<LocalStoreSnapshot>> {
+    /* S02-A (SH-03): سياج الاستبدال داخل حد الكتابة — البنية أحادية الخيط
+     * هنا فالقراءة والمقارنة والكتابة خطوة متزامنة واحدة لا فجوة تزامن؛
+     * الذاكرة تطابق عقد IndexedDB (المقارنة قبل أي مسح، والرفض بلا كتابة). */
+    if (guard) {
+      const current = await this.readSnapshot();
+      if (!current.ok) return current;
+      if (canonicalSnapshotDigest(current.value) !== guard.expectedSnapshotDigest) {
+        return {
+          ok: false,
+          code: "replacement_context_stale",
+          message:
+            "تغيّرت بيانات هذا الجهاز من مسار آخر بعد مراجعتك — أُلغي الاستبدال ولم يُكتب شيء؛ راجع النسخة مجددًا.",
+        };
+      }
+    }
     const safe = clone({
       ...snapshot,
       ownerProfile: snapshot.ownerProfile ?? null,
@@ -1493,6 +2011,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       supplierPurchases: snapshot.supplierPurchases ?? [],
       cashWallets: snapshot.cashWallets ?? [],
       cashContinuityEntries: snapshot.cashContinuityEntries ?? [],
+      balanceObservations: snapshot.balanceObservations ?? [],
+      counterparties: snapshot.counterparties ?? [],
+      periodSummaries: snapshot.periodSummaries ?? [],
+      commandReceipts: snapshot.commandReceipts ?? [],
       materials: snapshot.materials ?? [],
       inventoryMovements: snapshot.inventoryMovements ?? [],
       inventoryShortages: snapshot.inventoryShortages ?? [],
@@ -1529,6 +2051,12 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     this.supplierPurchases = new Map(safe.supplierPurchases.map(purchase => [purchase.id, purchase]));
     this.cashWallets = new Map(safe.cashWallets.map(wallet => [wallet.id, wallet]));
     this.cashContinuityEntries = new Map(safe.cashContinuityEntries.map(entry => [entry.id, entry]));
+    this.balanceObservations = new Map(
+      (safe.balanceObservations ?? []).map(observation => [observation.id, observation]),
+    );
+    this.counterparties = new Map((safe.counterparties ?? []).map(party => [party.id, party]));
+    this.periodSummaries = new Map((safe.periodSummaries ?? []).map(summary => [summary.id, summary]));
+    this.commandReceipts = new Map((safe.commandReceipts ?? []).map(receipt => [receipt.id, receipt]));
     this.materials = new Map(safe.materials.map(material => [material.id, material]));
     this.inventoryMovements = new Map(safe.inventoryMovements.map(movement => [movement.id, movement]));
     this.inventoryShortages = new Map(
@@ -1570,6 +2098,10 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       (safe.recurringExpenseOccurrences ?? []).map(occurrence => [occurrence.id, occurrence]),
     );
     this.expenseBudgets = new Map((safe.expenseBudgets ?? []).map(budget => [budget.id, budget]));
+    /* S02-A (عقد ٠٤٤ §16.5): مسح المسودات العابرة داخل الحد نفسه — الخطوة
+     * المتزامنة الواحدة هي الحد الذرّي هنا؛ وإعادة المسودات المعزولة (مسار
+     * استرجاع النسخة السابقة وحده) في الخطوة نفسها مع اللقطة القديمة. */
+    this.formDrafts = new Map((guard?.restoreFormDrafts ?? []).map(draft => [draft.id, clone(draft)]));
     return { ok: true, value: clone(safe) };
   }
   async listCostEstimates(): Promise<StorageResult<readonly CostEstimate[]>> {
@@ -1587,6 +2119,29 @@ export class MemoryLocalStore implements PrototypeLocalStore {
   async saveCostEstimate(estimate: CostEstimate): Promise<StorageResult<CostEstimate>> {
     this.costEstimates.set(estimate.id, clone(estimate));
     return { ok: true, value: clone(estimate) };
+  }
+  /* S10-MR-001 (أمر S11 — القسم ٥): التزام إنشاء حساب التخطيط في خطوة
+   * متزامنة واحدة (لا فجوة تزامن في بنية الذاكرة أحادية الخيط) — البحث
+   * بمفتاح النية والقرار والكتابة معًا عبر نواة القرار المشتركة مع محوّل
+   * IndexedDB حرفيًا: نداءان متزامنان بمفتاح النية نفسه لا ينشئان حسابين
+   * (الأول يُكتب والثاني يعيد المحفوظ نفسه reused)، ومدخلات مختلفة بمفتاح
+   * مقيم تُرفض بـ storage_stale بلا أي كتابة، وبلا مفتاح كتابة مباشرة. */
+  async commitCostEstimateCreate(
+    estimate: CostEstimate,
+  ): Promise<StorageResult<{ estimate: CostEstimate; reused: boolean }>> {
+    const liveByOperationKey =
+      estimate.createdOperationKey == null
+        ? null
+        : findCostEstimateByOperationKey(
+            Array.from(this.costEstimates.values()),
+            estimate.createdOperationKey,
+          );
+    const decision = decideCostEstimateCreate(liveByOperationKey, estimate);
+    if (decision.kind === "reject") return { ok: false, code: decision.code, message: decision.message };
+    if (decision.kind === "reuse")
+      return { ok: true, value: { estimate: clone(decision.estimate), reused: true } };
+    this.costEstimates.set(estimate.id, clone(estimate));
+    return { ok: true, value: { estimate: clone(estimate), reused: false } };
   }
   async deleteCostEstimate(id: string): Promise<StorageResult<null>> {
     this.costEstimates.delete(id);
@@ -1606,76 +2161,145 @@ export class MemoryLocalStore implements PrototypeLocalStore {
     const record = this.assets.get(id);
     return { ok: true, value: record ? clone(record) : null };
   }
+  /* S08 (UNIT-034): حارس العلاقة النقي داخل الخطوة المتزامنة — إعادة
+   * تشغيل صادقة أو «عملية مجال واحدة بالضبط» أو رفض بلا كتابة (لا
+   * آخر-كاتب-يفوز فوق سجل له أحداث مالية). */
   async commitAssetRecord(
     record: AssetRecord,
     event: FinancialEvent | null,
   ): Promise<StorageResult<{ record: AssetRecord; event: FinancialEvent | null; reused: boolean }>> {
     const existing = this.assets.get(record.id);
-    if (existing && existing.operationKey !== record.operationKey) {
-      return {
-        ok: false,
-        code: STORAGE_ERROR,
-        message: "سجل أصل مختلف يحمل هذا المعرف؛ لم يتغير شيء.",
-      };
-    }
-    if (event && this.financialEvents.has(event.id)) {
+    const recordGuard = validateAssetRecordCommit(existing, record);
+    if (!recordGuard.ok) return { ok: false, code: STORAGE_STALE, message: recordGuard.message };
+    /* إعادة استخدام السجل لا تلغي ذراع الحدث — تسجيل إهلاك فوق السجل نفسه
+     * سجلٌ مُعاد وحدثٌ جديد؛ الحدث يُفحص وحده ويُكتب إن كان جديدًا. */
+    if (recordGuard.reused && !event)
       return {
         ok: true,
-        value: {
-          record: existing ? clone(existing) : clone(record),
-          event: clone(this.financialEvents.get(event.id)!),
-          reused: true,
-        },
+        value: { record: existing ? clone(existing) : clone(record), event: null, reused: true },
       };
-    }
-    if (
-      !event &&
-      existing &&
-      record.contractRevisions.length > 0 &&
-      existing.contractRevisions.length >= record.contractRevisions.length
-    ) {
-      return { ok: true, value: { record: clone(existing), event: null, reused: true } };
+    if (event) {
+      const eventsGuard = validateAssetEventsCommit(Array.from(this.financialEvents.values()), [event]);
+      if (!eventsGuard.ok) return { ok: false, code: STORAGE_STALE, message: eventsGuard.message };
+      if (eventsGuard.reused)
+        return {
+          ok: true,
+          value: {
+            record: existing ? clone(existing) : clone(record),
+            event: clone(eventsGuard.storedEvents[0] ?? event),
+            reused: true,
+          },
+        };
+      if (!recordGuard.reused) this.assets.set(record.id, clone(record));
+      this.financialEvents.set(event.id, clone(event));
+      return { ok: true, value: { record: clone(record), event: clone(event), reused: false } };
     }
     this.assets.set(record.id, clone(record));
-    if (event) this.financialEvents.set(event.id, clone(event));
-    return { ok: true, value: { record: clone(record), event: event ? clone(event) : null, reused: false } };
+    return { ok: true, value: { record: clone(record), event: null, reused: false } };
   }
-  async commitAssetAcquisitionCorrection(
+  /* S08 (UNIT-034): الاقتناء الذري متعدد الأحداث — السجل وأحداثه معًا أو
+   * لا شيء؛ الحتمية بالمفاتيح داخل الخطوة المتزامنة. */
+  async commitAssetAcquisition(
     record: AssetRecord,
-    reversal: FinancialEvent,
-    replacement: FinancialEvent,
+    events: readonly FinancialEvent[],
   ): Promise<
     StorageResult<{
       record: AssetRecord;
-      reversal: FinancialEvent;
-      replacement: FinancialEvent;
+      events: readonly FinancialEvent[];
       reused: boolean;
     }>
   > {
-    if (this.financialEvents.has(reversal.id)) {
-      const storedReplacement = this.financialEvents.get(replacement.id) ?? replacement;
+    const existing = this.assets.get(record.id);
+    const recordGuard = validateAssetRecordCommit(existing, record);
+    if (!recordGuard.ok) return { ok: false, code: STORAGE_STALE, message: recordGuard.message };
+    const eventsGuard = validateAssetEventsCommit(Array.from(this.financialEvents.values()), events);
+    if (!eventsGuard.ok) return { ok: false, code: STORAGE_STALE, message: eventsGuard.message };
+    if (recordGuard.reused && eventsGuard.reused)
       return {
         ok: true,
         value: {
-          record: clone(record),
-          reversal: clone(this.financialEvents.get(reversal.id)!),
-          replacement: clone(storedReplacement),
+          record: clone(existing ?? record),
+          events: eventsGuard.storedEvents.map(clone),
           reused: true,
         },
       };
-    }
-    this.assets.set(record.id, clone(record));
-    this.financialEvents.set(reversal.id, clone(reversal));
-    this.financialEvents.set(replacement.id, clone(replacement));
+    if (!recordGuard.reused) this.assets.set(record.id, clone(record));
+    /* الكتابة للأحداث الجديدة فقط — العضوية تُفحص في الحقيقة الحية لا في
+     * نتيجة القرار (النتيجة تحمل الوارد للجديد والمخزّن لإعادة الاستخدام). */
+    const liveEventIds = new Set(Array.from(this.financialEvents.values(), event => event.id));
+    events.forEach(event => {
+      if (!liveEventIds.has(event.id)) this.financialEvents.set(event.id, clone(event));
+    });
     return {
       ok: true,
       value: {
         record: clone(record),
-        reversal: clone(reversal),
-        replacement: clone(replacement),
-        reused: false,
+        events: eventsGuard.storedEvents.map(clone),
+        reused: eventsGuard.reused,
       },
     };
+  }
+  /* تصحيح اقتناء أصل — صيغة المصفوفات (S08): الاقتناء الجزئي يعكس
+   * حدثيه ويستبدلهما معًا في الخطوة المتزامنة الواحدة. */
+  async commitAssetAcquisitionCorrection(
+    record: AssetRecord,
+    reversals: readonly FinancialEvent[],
+    replacements: readonly FinancialEvent[],
+  ): Promise<
+    StorageResult<{
+      record: AssetRecord;
+      reversals: readonly FinancialEvent[];
+      replacements: readonly FinancialEvent[];
+      reused: boolean;
+    }>
+  > {
+    const liveEvents = Array.from(this.financialEvents.values());
+    const reversalGuard = validateAssetEventsCommit(liveEvents, reversals);
+    if (!reversalGuard.ok) return { ok: false, code: STORAGE_STALE, message: reversalGuard.message };
+    const augmentedLive = [
+      ...liveEvents,
+      ...reversals.filter(reversal => !reversalGuard.storedEvents.some(stored => stored.id === reversal.id)),
+    ];
+    const replacementGuard = validateAssetEventsCommit(augmentedLive, replacements);
+    if (!replacementGuard.ok) return { ok: false, code: STORAGE_STALE, message: replacementGuard.message };
+    if (reversalGuard.reused && replacementGuard.reused)
+      return {
+        ok: true,
+        value: {
+          record: clone(record),
+          reversals: reversalGuard.storedEvents.map(clone),
+          replacements: replacementGuard.storedEvents.map(clone),
+          reused: true,
+        },
+      };
+    this.assets.set(record.id, clone(record));
+    const liveIds = new Set(Array.from(this.financialEvents.values(), event => event.id));
+    reversals.forEach(reversal => {
+      if (!liveIds.has(reversal.id)) this.financialEvents.set(reversal.id, clone(reversal));
+    });
+    replacements.forEach(replacement => {
+      if (!liveIds.has(replacement.id)) this.financialEvents.set(replacement.id, clone(replacement));
+    });
+    return {
+      ok: true,
+      value: {
+        record: clone(record),
+        reversals: reversalGuard.storedEvents.map(clone),
+        replacements: replacementGuard.storedEvents.map(clone),
+        reused: reversalGuard.reused || replacementGuard.reused,
+      },
+    };
+  }
+  /* S08 (UNIT-034 / SDF-066): تسديد ذممة اقتناء أصل داخل الخطوة المتزامنة —
+   * المصدر الحي والمبلغ داخل المتبقي الحي؛ حدث واحد أو لا شيء. */
+  async commitAssetPayableSettlement(
+    settlement: FinancialEvent,
+  ): Promise<StorageResult<{ settlement: FinancialEvent; reused: boolean }>> {
+    const guard = validateAssetPayableSettlementCommit(Array.from(this.financialEvents.values()), settlement);
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
+    if (guard.reused) return { ok: true, value: { settlement: clone(guard.stored), reused: true } };
+    this.financialEvents.set(settlement.id, clone(settlement));
+    return { ok: true, value: { settlement: clone(settlement), reused: false } };
   }
   async listLoans(): Promise<StorageResult<readonly LoanRecord[]>> {
     return {
@@ -2027,6 +2651,25 @@ export class MemoryLocalStore implements PrototypeLocalStore {
       }
     }
     return { ok: true, value: { created, skipped } };
+  }
+  /* S06 (UNIT-019 B4/D06 — R2-F01): قرار الربط — العهدة وحصرية الحدث داخل
+   * حد الكتابة نفسه (الحدث الواحد دورة واحدة)؛ لا ربط مزدوج حتى مع سباق
+   * نافذتين. */
+  async commitRecurringExpenseOccurrenceLink(
+    base: RecurringExpenseOccurrence,
+    next: RecurringExpenseOccurrence,
+  ): Promise<StorageResult<{ occurrence: RecurringExpenseOccurrence; reused: boolean }>> {
+    const stored = this.recurringExpenseOccurrences.get(next.id);
+    const guard = validateRecurringExpenseOccurrenceDecision(stored, base, next);
+    if (!guard.ok) return { ok: false, code: STORAGE_STALE, message: guard.message };
+    if (guard.reused) return { ok: true, value: { occurrence: clone(stored ?? next), reused: true } };
+    const exclusive = validateRecurringExpenseOccurrenceLinkExclusivity(
+      Array.from(this.recurringExpenseOccurrences.values()),
+      next,
+    );
+    if (!exclusive.ok) return { ok: false, code: STORAGE_STALE, message: exclusive.message };
+    this.recurringExpenseOccurrences.set(next.id, clone(next));
+    return { ok: true, value: { occurrence: clone(next), reused: false } };
   }
   /* قرار فترة مفرد — محروس. */
   async commitRecurringExpenseOccurrenceDecision(

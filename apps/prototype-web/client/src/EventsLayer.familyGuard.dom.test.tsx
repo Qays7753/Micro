@@ -21,6 +21,9 @@ import { CorrectionHistoryService } from "@/application/financial-records/correc
 import { FinancialPulseService } from "@/application/financial-pulse/financialPulseService";
 import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+/* UNIT-035 (تنفيذ S15 بالأمر الموحد §5): مصمما القرض الكنونيان لبذرة المخزن. */
+import { createLoanRecord } from "@micro-domain/loan/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import Finance from "@/pages/Finance";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
@@ -144,14 +147,34 @@ describe("family-owned events are corrected only through their owner record (FT-
   });
 
   it("loan events route to the loan page and never expose general corrections", async () => {
-    const loans = new LoanService(store, () => NOW);
-    const created = await loans.create({
-      borrowerName: "سليم",
-      principalMinor: 20000,
-      loanDate: "2026-09-02",
-      purposeNote: "قرض اختبار",
+    /* UNIT-035: البذرة عند حد المخزن بالمصنعين الكنونيين (الإنشاء ملغى) —
+     * حدث القرض يظل يقرأ من مالكه ويصحح من صفحته. */
+    const loanEvent = createFinancialEvent({
+      id: "family-guard-loan-event",
+      type: "loan_outgoing_cash",
+      amountMinor: 20000,
+      occurredOn: "2026-09-02",
+      recordedAt: NOW,
+      idempotencyKey: "family-guard-loan:principal",
+      note: "قرض تاريخي",
+      counterparty: "سليم",
+      loanContext: { loanId: "family-guard-loan", borrower: "سليم" },
     });
-    if (!created.ok) throw new Error(created.message);
+    const loanCommit = await store.commitLoanRecord(
+      createLoanRecord({
+        id: "family-guard-loan",
+        borrowerName: "سليم",
+        principalMinor: 20000,
+        loanDate: "2026-09-02",
+        purposeNote: "قرض اختبار",
+        sourceWalletId: null,
+        principalEventId: loanEvent.id,
+        operationKey: "family-guard-loan:create",
+        createdAt: NOW,
+      }),
+      loanEvent,
+    );
+    if (!loanCommit.ok) throw new Error(loanCommit.message);
 
     await openEventsLayer();
 

@@ -1,7 +1,7 @@
 /** رقعة إغلاق المجموعة ٢: فحص اتساق التوثيق الحي مع الحقيقة المؤرخة (F-036/W4-B).
  * المرجع يوثق لحظة الكتابة (منفذة على الفرع) ثم يحمل التصحيح المؤرخ:
  * دُمج PR #159 لاحقًا في `c0469e2` وتقدّم `main` بعده، والمخطط/التصدير كما
- * هما (٣٥/٢٧ تاريخًا؛ الزوج الحي 38/30 من مصدر الثوابت نفسه). */
+ * هما (٣٥/٢٧ تاريخًا؛ الزوج الحي 40/33 من مصدر الثوابت نفسه (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 40/32؛ وكان 38/30 عند كتابة الأصل)). */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -32,10 +32,11 @@ describe("documentation consistency — Group 2 implemented on the remediation b
     expect(currentState).toContain("عقد رحلة إعادة المحاولة");
   });
 
-  it("schema and export versions match the code constants (38/30 after FIN-001 WS-178; the 35/27 statement stays as Group 2 history)", () => {
+  it("schema and export versions match the code constants (40/33 (تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 40/32 بعد DOC-014 S05); the 35/27 statement stays as Group 2 history)", () => {
     expect(currentState).toContain("**٣٥ / ٢٧ بلا تغيير**");
-    expect(String(localSchemaVersion)).toBe("38");
-    expect(String(localExportVersion)).toBe("30");
+    /* S05 (DOC-014، 2026-10-29): ٤٠/٣٢ — عائلة الأطراف المحفوظة. */
+    expect(String(localSchemaVersion)).toBe("41");
+    expect(String(localExportVersion)).toBe("34");
   });
 
   it("todo marks Group 2 done on the branch and pending merge — not merged", () => {

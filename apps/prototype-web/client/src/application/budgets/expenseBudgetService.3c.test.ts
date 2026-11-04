@@ -264,4 +264,72 @@ describe("Wave 3C — ExpenseBudgetService direct coverage (STR-406)", () => {
     if (!events.ok) throw new Error(events.message);
     expect(events.value.length).toBe(0);
   });
+
+  it("SDF-062 (UNIT-013B — تنفيذ S15): مصروف ١٠ سُدّد منه ٣ وأصل ١٠٠ ← المنصرف المؤهل ١٠ بالضبط", async () => {
+    const { store, budgets, finance } = await seeded();
+    /* مصروف التزام ١٠٫٠٠ — الحدث التشغيلي يحمل العشرة كاملة (الذمم عمود
+     * مستقل)؛ التسديد ٣٫٠٠ لاحقًا حركة ذمم/كاش لا مصروفًا ثانيًا. */
+    const expense = await finance.record({
+      type: "operating_expense_payable",
+      amountMinor: 10_000,
+      occurredOn: "2026-09-05",
+      note: "فاتورة صيانة",
+      counterparty: "ورشة الأجهزة",
+      relatedEventId: null,
+      expenseContext: {
+        relationship: "project",
+        behavior: "fixed",
+        purpose: "project_general",
+        knowledge: "known",
+        sharedProjectShare: null,
+        categoryLabel: null,
+      },
+      idempotencyKey: "sdf-062-expense",
+    });
+    if (!expense.ok) throw new Error(expense.message);
+    const settlement = await finance.record({
+      type: "payable_settlement_cash",
+      amountMinor: 3_000,
+      occurredOn: "2026-09-12",
+      note: "دفعة على الفاتورة",
+      counterparty: "ورشة الأجهزة",
+      relatedEventId: expense.value.id,
+      idempotencyKey: "sdf-062-settle",
+    });
+    if (!settlement.ok) throw new Error(settlement.message);
+    /* أصل ١٠٠٫٠٠ بشراء نقدي — عمود الأصول مستقل عن المصروف التشغيلي. */
+    const { AssetService } = await import("@/application/assets/assetService");
+    const asset = await new AssetService(store, NOW).create({
+      name: "ثلاجة عرض",
+      acquisitionAmountMinor: 100_000,
+      acquisitionKind: "cash",
+      purchaseDate: "2026-09-08",
+      lifeMonths: 60,
+      depreciationStartOn: "2026-09-08",
+      note: null,
+    });
+    if (!asset.ok) throw new Error(asset.message);
+    /* الميزانية خطة فوق الشهر نفسه — لا حدث مالي منها (عقد ٤٢). */
+    const budget = await budgets.createBudget({
+      periodKey: "2026-09",
+      scope: { kind: "general_expense" },
+      amountMinor: 30_000,
+      operationKey: "sdf-062-budget",
+    });
+    if (!budget.ok) throw new Error(budget.message);
+    const statuses = await budgets.readBudgetStatuses({ from: "2026-09", to: "2026-09" });
+    if (!statuses.ok) throw new Error(statuses.message);
+    const line = statuses.value.lines.find(item => item.budget.operationKey === "sdf-062-budget");
+    if (!line) throw new Error("لم تُقرأ حالة الميزانية");
+    /* المنصرف المؤهل = ١٠ بالضبط: لا ٣ (المدفوع) ولا ١١٠ ولا ١١٣
+     * (المصروف + الأصل) — الدفع حركة ذمم والأصل رأس مال، وكلاهما خارج
+     * عمود المصروف التشغيلي (نفس معرفة ونطاق المصروف عند 013). */
+    expect(line.spentMinor).toBe(10_000);
+    expect(line.reading.remainingMinor).toBe(20_000);
+    /* والأصل باقٍ بكامل دفتره — لم يُستهلك عبر الميزانية. */
+    const { AssetService: AssetReader } = await import("@/application/assets/assetService");
+    const overview = await new AssetReader(store, NOW).overview();
+    if (!overview.ok) throw new Error(overview.message);
+    expect(overview.value.totals.bookValueMinor).toBe(100_000);
+  });
 });

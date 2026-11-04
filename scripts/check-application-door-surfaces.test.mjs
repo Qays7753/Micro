@@ -63,6 +63,12 @@ function fixtureRoot(doorContent = DOOR_OK) {
 
 describe("application door surfaces (R5/S2 — PC-3 exact value+type pin)", () => {
   it("live repo: all 29 doors + the root file match the registered baseline", () => {
+    /* S10 (UNIT-030 — أمر b56967d8/DOC-019، نفس-الـPR): بيت أدوات التخطيط
+     * النقي بابه المسجل planning/index.ts (29 ← 30)؛ الأسطح (قيمًا وأنواعًا)
+     * مثبتة بالأساس المحدث نفسه-الـPR.
+     * S15 (DOC-024 / UNIT-040 — تنفيذ S15 بالأمر الموحد، نفس-الـPR): باب
+     * المشاركة share/index.ts تقاعد مع عائلته (إلغاء 040 بلا بديل) —
+     * 30 ← 29؛ الأسطح أُعيد إرساؤها في نفس الشريحة. */
     const result = checkApplicationDoorSurfaces(REPO_ROOT);
     expect(result.ok).toBe(true);
     expect(result.stats.doors).toBe(29);

@@ -27,6 +27,10 @@ export default function Assets() {
   const [state, setState] = useState<State>({ phase: "loading" });
 
   const load = useCallback(() => {
+    /* S08 (DOC-017): الخدمة كسولة — null = «جارٍ التجهيز» فتبقى الصفحة على
+     * حالة التحميل الصادقة وتُعاد القراءة فور جاهزيتها (dependency على
+     * الخدمة نفسها). */
+    if (!assets) return;
     assets.overview().then(result => {
       if (!result.ok) {
         setState({ phase: "error", message: result.message });

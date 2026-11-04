@@ -14,12 +14,17 @@ import {
   type WasteContext,
 } from "@micro-domain/inventory-material/index.js";
 import type { CatalogItem, CatalogTemplate } from "@micro-domain/catalog/index.js";
+import type { SupplierPurchaseLine } from "@micro-domain/supplier-purchase/index.js";
 import { localDateInAmman } from "@micro-domain/shared/index.js";
 import { STORAGE_ERROR } from "@/application/resultCodes";
 
 export type InventoryResult<T> =
   | { ok: true; value: T; reused?: boolean }
-  | { ok: false; code: "validation_error" | "storage_error"; message: string };
+  | { ok: false; code: "validation_error" | "storage_error" | "storage_stale"; message: string };
+/* S07-MR-001 (أمر S08 — القسم ١): حارس التزام المخزون داخل الحد يرفض
+ * التعارض بـstorage_stale (أعد المحاولة بعد إعادة القراءة) والفشل التخزيني
+ * الحقيقي يبقى storage_error — نفس تصنيف رقعة المجموعة ٢ لزوج خدمات
+ * الجدولة/المشتريات (storageFailureCode). */
 /* المجموعة ٢ (عقد ٢٨): القراءة المشتقة للمادة — المعرفة (كمية/تكلفة) وحقول النقص
  * والانتظار تُشتق من الحركات والسجلات، لا تُخزن. */
 export type InventoryMaterialOverview = Material & {
@@ -76,11 +81,15 @@ export type InventoryReferences = {
   allMaterials: readonly Material[];
   purchases: readonly {
     id: string;
-    supplierName: string;
+    supplierName: string | null;
     note: string;
     totalMinor: number;
     materialId: string | null;
     expectedQuantityMilli: number | null;
+    /* S07 (UNIT-027): بنود الشراء الحية للاستلام المقيّد ببند — الغياب
+     * (إرث بلا بنود) = null كما في الكيان الكنوني؛ النوع هو نوع البند
+     * الكنوني نفسه لا نسخة موازية. */
+    lines: readonly SupplierPurchaseLine[] | null;
   }[];
   orders: readonly { id: string; itemName: string; customerName: string }[];
   /* المجموعة ٣ (عقد D6): المبيعات المباشرة النشطة — مرجع استهلاك صريح كالطلب. */
@@ -116,6 +125,9 @@ export type OpenMaterialInput = {
 export type ReceivePurchaseInput = {
   materialId: string;
   purchaseId: string;
+  /* S07 (UNIT-027): بند الشراء المستلم عليه — واجب حين يكون للشراء بنود
+   * (استلام مقيد ببند حي)؛ اختياري للإرث بلا بنود (مسار الرأس). */
+  purchaseLineId?: string | null;
   quantityMilli: number;
   valueMinor: number;
   /* المجموعة ٢ (عقد ٢٨): قيمة الاستلام قد تكون غير معروفة — قيمة صفرية موسومة. */
@@ -203,6 +215,23 @@ export type PurchaseReceiptStatus = {
     valueMinor: number;
     occurredOn: string;
     reversed: boolean;
+    /* S07 (UNIT-027): البند الذي استُلم عليه — null للإرث بلا بنود. */
+    purchaseLineId: string | null;
+  }[];
+  /* S07 (UNIT-027 D01): حالة الاستلام لكل بند — الغياب (إرث بلا بنود) =
+   * مسار الرأس القائم نفسه؛ البند المجهول القيمة يبقى مجهولًا (remaining
+   * null) لا صفرًا معلومًا. */
+  lines?: readonly {
+    lineId: string;
+    materialId: string | null;
+    treatment: "period_material" | "tracked_material";
+    expectedQuantityMilli: number | null;
+    valueMinor: number | null;
+    costKnowledge: "known" | "unknown";
+    receivedValueMinor: number;
+    remainingValueMinor: number | null;
+    receivedQuantityMilli: number;
+    remainingQuantityMilli: number | null;
   }[];
 };
 export type UntrackMaterialInput = {
@@ -233,6 +262,15 @@ export const writeStorageFailure = <T>(): InventoryResult<T> => ({
   ok: false,
   code: STORAGE_ERROR,
   message: "تعذر حفظ حركة المادة محليًا. لم يتم تأكيد نجاح العملية.",
+});
+/* S07-MR-001 (أمر S08 — القسم ١): فشل الالتزام المحروس يصل مصنفًا — تعارض
+ * الحالة الحية داخل الحد (storage_stale) يظهر برسالة المتجر الصادقة
+ * (أعد المحاولة) والفشل التخزيني الحقيقي يبقى storage_error — نفس نمط
+ * رقعة المجموعة ٢ (storageFailureCode) بلا تكرار حرفيات. */
+export const inventoryCommitFailure = <T>(failed: { code: string; message: string }): InventoryResult<T> => ({
+  ok: false,
+  code: failed.code === "storage_stale" ? "storage_stale" : STORAGE_ERROR,
+  message: failed.message,
 });
 /* المجموعة ٩ (STR-029): تاريخ الأعمال من وحدة وقت الأعمال الكنسية —
  * كانت نسخة محلية بلا حارس مدخل؛ متغيّر الرمي لمدخلات موثوقة الإنشاء. */

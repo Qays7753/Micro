@@ -104,7 +104,7 @@ async function runCapabilityScenario(store: AssetStore) {
     acquisitionAmountMinor: 400_000,
     acquisitionEventId: "fin-asset-cap-1-new",
   };
-  const corrected = await store.commitAssetAcquisitionCorrection(correctedRecord, reversal, replacement);
+  const corrected = await store.commitAssetAcquisitionCorrection(correctedRecord, [reversal], [replacement]);
   expect(corrected.ok).toBe(true);
   if (!corrected.ok) throw new Error(corrected.message);
   expect(corrected.value.reused).toBe(false);
@@ -112,9 +112,11 @@ async function runCapabilityScenario(store: AssetStore) {
   expect(afterCorrection.ok && afterCorrection.value?.acquisitionAmountMinor).toBe(400_000);
 }
 describe("R3 — قدرة الأصول (بطاقة R3-SC-05): العضوية", () => {
-  it("قائمة الطرق هي نطاق المجموعة بالضبط: 4 أسماء فريدة", () => {
-    expect(assetStoreMethods).toHaveLength(4);
-    expect(new Set(assetStoreMethods).size).toBe(4);
+  /* S08 (UNIT-034، أمر S08): العضوية صارت 6 — اقتناء متعدد الأحداث
+   * (الجزئي المعتمد) + تسديد محروس + التصحيح بصيغة المصفوفات. */
+  it("قائمة الطرق هي نطاق المجموعة بالضبط: 6 أسماء فريدة", () => {
+    expect(assetStoreMethods).toHaveLength(6);
+    expect(new Set(assetStoreMethods).size).toBe(6);
   });
 
   describe.each([

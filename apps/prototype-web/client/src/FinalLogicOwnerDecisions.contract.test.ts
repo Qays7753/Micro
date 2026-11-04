@@ -14,7 +14,7 @@
  * على main؛ نطاق D-08 غير المرئي لا يشمل نصوص العرض).
  *
  * الجزء الثالث (حدود): يثبت أن كل ما سبق حدث بلا أي تغيير مخطط/تصدير —
- * الزوج 38/30 كما هو (D-09/D-03 حرفيًا: لا ترحيل لأجل صياغة). */
+ * الزوج 38/30 كما هو حينها (اليوم 40/33 — تصحيح مؤرخ 2026-11-01 DOC-021/S12؛ كان 40/32؛ D-09/D-03 حرفيًا: لا ترحيل لأجل صياغة). */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -215,8 +215,15 @@ describe("REM-006 — قرار المالك D-09: الخريطة الدلالي�
 });
 
 describe("REM-006 — حدود التنفيذ: لا مخطط ولا تصدير ولا ترحيل لأجل الصياغة", () => {
-  it("the version pair stays 38/30 (D-03/D-09 applied documentation-first)", () => {
-    expect(localSchemaVersion).toBe(38);
-    expect(localExportVersion).toBe(30);
+  it("the version pair stays 40/33 (dated correction 2026-11-01 DOC-021/S12; was 40/32 after DOC-014 S05; D-03/D-09 applied documentation-first)", () => {
+    /* S04 (DOC-013 / UNIT-025): المخطط ٣٩ والتصدير ٣١ — إضافة عائلة رصد
+     * الأرصدة الدائمة بأمر S04 المأذون مع كامل أدلة التوافق/الترحيل في
+     * النطاق نفسه (نمط D-037 نفسه الذي أنشأ ٣٨/٣٠ لـFIN-001).
+     * S05 (DOC-014 / UNIT-037): المخطط ٤٠ والتصدير ٣٢ — عائلة الأطراف
+     * المحفوظة (counterparties) بأمر S05 المأذون مع كامل أدلة التوافق/
+     * الترحيل في النطاق نفسه (نمط D-037 نفسه). */
+    expect(localSchemaVersion).toBe(41);
+    /* S14 (DOC-023): 41/34 بعد عائلتي المنسق. */
+    expect(localExportVersion).toBe(34);
   });
 });

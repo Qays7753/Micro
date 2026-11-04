@@ -1,0 +1,122 @@
+{
+  "id": "DOC-022",
+  "title": "S13 execution — إدارة الطلبات والتقويم والمتابعة الموحدة (UNIT-006/012/018 + SH-17)",
+  "type": "FEATURE",
+  "status": "IN_REVIEW",
+  "priority": "P0",
+  "stage": "micro-component-execution-s13-20261102",
+  "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق أمر S13 المنشور في 2158b0fc (القسم ٦) بعد اكتمال fix-first (S11-LR-001/LR-002 وS12-FIN-001/ATOMIC-001/TRANSFER-001/002/RECORD-001 بمُلحقيهما 16b و17a). | بطاقة الفهم: مشكلة المستخدم: صاحب مشروع يريد أن يجد طلبه وموعده ومستحقه المالي في مكان واحد صادق — قائمة طلبات وتقويمًا من المصادر نفسها لا نسختين، ومتابعة تجمع مواعيد العمل من 012 والاستحقاقات المالية من أصحابها دون أن يحرّك عرضُ المالَ أو الموعدُ مصروفًا أو قبضًا. النطاق: UNIT-006 قائمة الطلبات الافتراضية (حالية/سابقة/كل، بحث وتصفية قبل حد العرض، مسودة غير مرتبطة تظهر مرة) وتقويم شهر/أسبوع/يوم من مواعيد 012 نفسها (لا وقت 00:00 لموعد بلا وقت، طلبات بلا موعد بمدخل واضح، فات/اليوم/قادم تنظيم لا مال)؛ UNIT-012 قراءات المواعيد الموحدة بحالات مصدر مستقلة وتمييز التسليم من متابعة العميل؛ UNIT-018 قارئ استحقاقات مالي فوق مالكيها (تحصيل بيع/طلب من 005/010، دفعة مورد من 027، سداد مصروف من 015، مراجعة دورة من 019) بترتيب متأخر/اليوم/قادم/بلا موعد وعدد صادق عند القراءة الجزئية. خارج النطاق (non-goals): لا سحب وإفلات ولا تذكيرات خارجية ولا تقويم مالي موازٍ ولا كاتب ثانٍ لأي مصدر ولا تأكيد تلقائي لأي دورة أو قبض أو مصروف ولا إعادة تصميم عامة للهوية (بوابة ما بعد المجموعة ٦: موجات مسح S11 كلها NOT_EXECUTED) ولا تقارير S15. الثوابت المالية: القبض ليس الربح والدين ليس كاشًا والموعد ليس مالًا؛ past/today/upcoming تصنيف عرض لا يحرك مالًا (SDF-013)؛ قراءة المتابعة لا تكتب (U018-R02)؛ المبلغ من قراءة مالكه الحية (U018-R03)؛ لا 00:00 ولا تاريخ اليوم للمجهول (SDF-061 لتقادم الأجيال عند استخدامه). حالات الفشل المتوقعة: فشل مصدر لا يُعرض فراغًا شاملًا ولا يخفي السليم؛ قراءة جزئية بعد صادق؛ تاريخ تالف ≠ بلا موعد؛ طلب تغير من نافذة أخرى يُعاد فحص أهليته؛ الرجوع يحفظ النطاق والبحث والشهر واليوم والموضع. معيار القبول: ORD-AC01..24 وCAL-AC01..16 وU012-AC01..36 وU018-AC01..36 وACD/DUP المملوكة وSDF-013 (مثبتة هنا) وSDF-061 (عند حدود الأجيال) وSDF-063 إن عُبر حد كاتب الدورات وإلا NOT_TRIGGERED_BY_S13. حد الاستعادة: آخر التزام آمن = eb1b1db4 (رأس ما بعد fix-first)؛ أثر الرجوع: شجرة S13 تُهمل كاملة بلا أي هجرة بيانات (لا مخازن ولا فهارس جديدة أصلًا) فيعود الفرع لحالة fix-first المراجَعة. | قبول المالك: S13 على فرع التكامل فقط (2026-11-02؛ التصحيح 3c3ea798d4ad8a5913ae1170e57b875d4c091ccc؛ الملحق a82a541ac03835c64910bbea0bd4129472de15ee)؛ لا VERIFIED على main أو دمج.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "CONFIRMED",
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "أمر تنفيذ متصل منشور (00-S13-EXECUTION-PROMPT-2026-11-01.md عند 2158b0fc) — تنفيذ مباشر بلا موافقة وسيطة؛ ليس قبولًا لأي مرحلة سابقة ولا دمجًا.\nاعتمد المالك قبول S13 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-02، استنادًا إلى مراجعة Manus الخفيفة السابقة التي أكد المالك أنها PASS، والتصحيحات السبعة عند 3c3ea798d4ad8a5913ae1170e57b875d4c091ccc وملحق المراجعة docs/implementation/micro-component-execution/18a-S13-REVIEW-ADDENDUM-2026-11-02.md (commit a82a541ac03835c64910bbea0bd4129472de15ee). هذا قبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج.",
+  "tests_required": [
+    "اختبارات إسقاط القارئ الموحد (مواعيد/استحقاقات) على المهايئين حيث تنطبق",
+    "تكافؤ قائمة/شهر/أسبوع/يوم من مصدر واحد",
+    "التصفية قبل حد العرض وعدد صادق عند القراءة الجزئية",
+    "فات/اليوم/قادم بلا أي كتابة مالية أو تشغيلية (SDF-013)",
+    "عزل مصدر فاشل/بطيء عن السليم وتقادم الأجيال حيث يُستخدم (SDF-061)",
+    "RTL/هاتف 320-430px وحالات الفراغ/التحميل/الخطأ/الجزئي/التعارض والرجوع"
+  ],
+  "layers": [
+    "domain",
+    "application",
+    "storage-read",
+    "ui"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S13-EXECUTION-PROMPT-2026-11-01.md",
+    "discovered_at_sha": "2158b0fc02893c3438423dbfef435b9f0a280612",
+    "evidence": [
+      "docs/implementation/micro-component-execution/00-S13-EXECUTION-PROMPT-2026-11-01.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-006-العمل.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-012-المواعيد-والمتابعات.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-018-المتابعة-المالية.md",
+      "docs/implementation/micro-component-execution/DEPENDENCIES-AND-TRACEABILITY.md"
+    ]
+  },
+  "acceptance": [
+    "قائمة وتقويم ومتابعة من المصادر نفسها — لا مخزن عرض ثانٍ ولا كاتب موازٍ (SH-17)",
+    "موعد بلا وقت لا يصير 00:00؛ بلا موعد والتاريخ التالف وفشل القراءة ثلاث حقائق مختلفة",
+    "past/today/upcoming تنظيم فقط — لا قبض ولا استهلاك ولا التزام مصروف من مرور الزمن (SDF-013)",
+    "التصفية والترتيب على المجتمع المقروء كله قبل حد العرض؛ عدد صادق عند القراءة الجزئية",
+    "كل مصدر بحالاته المستقلة (pending/ready/error) والفشل لا يُخفي السليم ولا يُعرض فراغًا شاملًا",
+    "الأفعال تفتح أصحابها (010/011/012/026/027/015/019) بسياق رجوع محفوظ ولا كتابة من العرض",
+    "الرجوع يحفظ النطاق والبحث والفلاتر والشهر/اليوم والموضع والمدخلات",
+    "هاتف RTL 320-430px وتسميات عربية صادقة وأرقام 0-9 ومساعدة! ومس أهداف كافية"
+  ],
+  "areas": [
+    "apps/prototype-web/client/src/pages/Orders.tsx",
+    "apps/prototype-web/client/src/pages/Schedule.tsx",
+    "apps/prototype-web/client/src/pages/FinanceUpcoming.tsx",
+    "apps/prototype-web/client/src/application/scheduling/",
+    "apps/prototype-web/client/src/application/finance/upcomingService.ts",
+    "apps/prototype-web/client/src/application/collections/collectionService.ts",
+    "apps/prototype-web/client/src/application/agreements/followUpReads.ts",
+    "src/domain/craft-order/",
+    "src/domain/financial-analysis/",
+    "src/domain/recurring-expense/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/implementation/micro-component-execution/00-S13-EXECUTION-PROMPT-2026-11-01.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-006-العمل.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-012-المواعيد-والمتابعات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-018-المتابعة-المالية.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S13-EXECUTION-PROMPT-2026-11-01.md",
+    "docs/implementation/micro-component-execution/18a-S13-REVIEW-ADDENDUM-2026-11-02.md"
+  ],
+  "dependencies": [
+    "DOC-015",
+    "DOC-017",
+    "DOC-018",
+    "DOC-020",
+    "DOC-021"
+  ],
+  "related_items": [
+    "DOC-020",
+    "DOC-021"
+  ],
+  "updated_at": "2026-11-03",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "مطالبة S13 المأذونة بأمر 2158b0fc (القسم ٦) بعد اكتمال fix-first كاملًا (S11-LR-001/LR-002 في 2de3e94e + الملحق 16b، وS12-FIN-001/ATOMIC-001/TRANSFER-001/TRANSFER-002/RECORD-001 في 52885e78 + الملحق 17a)؛ DOC-022/WS-238 أول استخدام قانوني للمعرفين."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s13-execution",
+      "reason": "اكتمل تنفيذ S13 المتصل (أمر 2158b0fc §6): وجهة الطلبات بقائمة وتقويم من قراءة مجتمع المواعيد النقية، والمتابعة الموحدة 012/018 بقارئ واحد فوق أصحاب المصادر بعدسات بنيوية، واقتراح موعد التقويم CAL-C بجلسة داخلية؛ 60+ اختبارًا مركزًا جديدًا، pnpm check الكاملة خروج 0 (1024 جذره و3321 تطبيقه)، الميزانية 633,144/155,268 تحت السقفين 650,000/155,300، والمراجعات الخمس المتسلسلة بموجداتها الخمس أُصلحت من جذورها وأعيدت قراءتها (R1 هوية الدين في وضعَي «none» و«partial»، R2 علم شروط النقل المالي في نية الإنشاء، R3 نظيفة، R4 الحقيقة الرابعة للتاريخ الفاسد والحساب الكنوني للشهور، R5 سياق العرض في الوصل ACD032 وإعلان الفترة غير الصالحة وتغطية حالات الفراغ/التحميل/الخطأ) — النتيجة 18 مسلّمة للمراجعة؛ البوابتان البعيدتان على الرأس النهائي بعينه قيد التحقق."
+    },
+    {
+      "status": "REOPENED",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s14-execution",
+      "reason": "أمر المالك المتصل 00-S14-EXECUTION-PROMPT-2026-11-02.md (منشور في ba2ce7b431cab20f0e8d8005d1048d54def1b84a، §4): المراجعة القرائية المستقلة عند efca90d6 أكدت سبع موجدات S13 — عزل فشل قراءة التقويم عن قراءة الطلبات (MR-001)، التقاط الرمي/الرفض لكل مصدر في القارئ الموحد وإعادة محاولة المتعذر وحده (MR-002)، التحقق من التاريخ التقويمي الحقيقي لمرشح الفترة (MR-003)، الحالات الخمس للمواعيد بما فيها المشوه النشط والملغى (MR-004)، التحقق عند حد الوصلة العميقة لاقتراح CAL-C (MR-005)، دلالات شبكة التقويم الشهري (MR-006)، ومسار دفعة المورد المسجل (MR-007)؛ يُفتح البند قانونيًا للتصحيحات السبعة."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s14-execution",
+      "reason": "بدء تنفيذ §4 من أمر ba2ce7b4: إصلاح جذري للموجدات السبعة بانحدارات فاشلة-أولًا تعجز على السلوك الحالي وترسخ بعد التصحيح، داخل حدود S13 القائمة (قراءة خالصة، لا كاتب مالي ثانٍ، تواريخ عمّان، مخطط/تصدير 40/33 بلا تغيير)؛ الملحق 18a سيلحق بالسجلات."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-02",
+      "actor": "zai-s14-execution",
+      "reason": "تسليم تصحيحات S13 السبعة المأذونة بأمر ba2ce7b4 §4 عند كود 3c3ea798: عزل قراءتي القائمة والتقويم بإعادة محاولة لكل مصدر (MR-001)، عزل الرمي/الرفض لكل مصدر مع إعادة قراءة المتعذر وحده (MR-002)، التحقق التقويمي الحقيقي للفترة عند الوصل والتطبيق (MR-003)، الحالات الخمس للمواعيد بمدخل إصلاح للفاسد النشط (MR-004)، تحقق اقتراح CAL-C عند حد الوصلة بإعلان صادق (MR-005)، دلالات شبكة شهرية حقيقية بأسهم RTL ومسار تجوال واحد (MR-006)، ومسار دفعة المورد المسجل (MR-007) — بانحدارات فاشلة-أولًا 95/95 وستة إرساءات راتشة موثقة؛ الملحق 18a-S13-REVIEW-ADDENDUM-2026-11-02.md — تسليم للمراجعة لا قبول."
+    }
+  ],
+  "migration_baseline": true,
+  "next_action": "S13 مقبولة على فرع التكامل؛ لا إعادة فتح دون دليل جديد. يبقى عائق S14 وقرار السقف مستقلين؛ لا merge ولا كتابة على main."
+}

@@ -1,37 +1,48 @@
 import { describe, expect, it } from "vitest";
 import { calculateCostSnapshot, createCraftOrder } from "@micro-domain/craft-order/index.js";
-import { AgreementContextService } from "@/application/agreements/agreementContextService";
 import { ProjectFinancialService } from "@/application/finance/projectFinancialService";
 import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
-import { InventoryMaterialService } from "@/application/inventory/inventoryMaterialService";
-import { SupplierPurchaseService } from "@/application/suppliers/supplierPurchaseService";
+import { UnifiedFollowUpService } from "@/application/follow-up/unifiedFollowUpService";
+import { activeDeliveryLens } from "@/application/scheduling";
+import { CollectionService } from "@/application/collections/collectionService";
+import { DueDatesService } from "@/application/finance/dueDatesService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 import { ProfileService } from "@/application/profile/profileService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import type { StoredCraftOrder } from "@/storage/local/types";
 import { HomeControlCenterService } from "./homeControlCenterService";
-import { ActivityService } from "@/application/activity/activityService";
-import { DirectSaleService } from "@/application/direct-sales/directSaleService";
 
-const now = () => "2026-08-25T09:00:00.000Z";
+const NOW = "2026-08-25T09:00:00.000Z";
+const now = () => NOW;
+
 function services(store: MemoryLocalStore) {
-  const finance = new ProjectFinancialService(store, now);
-  const suppliers = new SupplierPurchaseService(store, now);
-  return new HomeControlCenterService(
+  const projectFinance = new ProjectFinancialService(store, now);
+  const directSales = new DirectSaleService(store, now);
+  const fulfillment = new FulfillmentService(store, now);
+  const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
+  const dueDates = new DueDatesService(store, collections, now);
+  const unified = new UnifiedFollowUpService(
+    activeDeliveryLens(store),
     store,
-    new DailyFollowUpService(store),
-    finance,
-    suppliers,
-    new InventoryMaterialService(store),
-    new AgreementContextService(store, now),
-    new ActivityService(store),
+    collections,
+    dueDates,
+    projectFinance,
+    store,
     now,
   );
+  return new HomeControlCenterService(store, new DailyFollowUpService(store), projectFinance, unified, now);
 }
+
 async function saveProfile(store: MemoryLocalStore) {
-  const result = await new ProfileService(store, now).save("مشغل اختبار");
+  const result = await new ProfileService(store, now).create("مشغل اختبار");
   if (!result.ok) throw new Error("profile should save");
 }
 
-async function saveOrder(store: MemoryLocalStore, id: string) {
+function storedOrder(
+  id: string,
+  options: { followUpDate?: string | null; receivableMinor?: number } = {},
+): StoredCraftOrder {
   const cost = calculateCostSnapshot(`cost-${id}`, {
     source: "draft",
     currency: "JOD",
@@ -55,411 +66,103 @@ async function saveOrder(store: MemoryLocalStore, id: string) {
     costSnapshot: cost,
     createdAt: "2026-08-24T09:00:00.000Z",
   });
-  await store.saveOrder({
+  const receivableMinor = options.receivableMinor ?? 0;
+  return {
     id,
-    order,
+    order: {
+      ...order,
+      status: "in_progress" as never,
+      settlementStatus: (receivableMinor > 0 ? "debt" : order.settlementStatus) as never,
+      receivableMinor: receivableMinor as never,
+    },
     catalogItemId: null,
     deliveryDate: "2026-08-28",
     agreementSource: "test",
-    createdAt: order.createdAt,
-    updatedAt: order.createdAt,
-  });
+    followUpSummary: options.followUpDate ? "اتصال بعد التسليم" : null,
+    followUpDate: options.followUpDate ?? null,
+    followUpReason: options.followUpDate ? "اتفاق مع العميل" : null,
+    followUpEvents: [],
+    createdAt: "2026-08-24T09:00:00.000Z",
+    updatedAt: "2026-08-24T09:00:00.000Z",
+  } as never;
 }
 
-describe("HomeControlCenterService", () => {
+describe("HomeControlCenterService — S16 (UNIT-003 HOME-B1/A4)", () => {
   it("keeps an uninitialized project honest instead of presenting financial zeros", async () => {
     const store = new MemoryLocalStore();
     await saveProfile(store);
     const result = await services(store).read();
     if (!result.ok) throw new Error(result.message);
-    expect(result.value.heading).toMatchObject({ activityName: "مشغل اختبار", todayLocal: "2026-08-25" });
-    expect(result.value.facts).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ id: "cash", state: "not_initialized", valueMinor: null }),
-        expect.objectContaining({ id: "receivables", state: "not_initialized", valueMinor: null }),
-        expect.objectContaining({ id: "payables", state: "not_initialized", valueMinor: null }),
-        expect.objectContaining({ id: "owner_capital", state: "not_initialized", valueMinor: null }),
-      ]),
+    /* النقد غير المسجل: حالة معلنة لا رقم مختلق. */
+    expect(result.value.glimpse.cashNow.state).toBe("not_initialized");
+    expect(result.value.glimpse.cashNow.valueMinor).toBeNull();
+    /* المبيعات المسجلة صفر مسجل من القراءة الرسمية للفترة — ليست رقمًا مختلقًا.
+     * نتيجة الفراغ: صفر معلوم من المصدر نفسه (لا تكلفة ناقصة هنا) — لا رقمًا
+     * مؤكدًا بلا دليل ولا صفرًا مضللًا لمجهول. */
+    expect(result.value.glimpse.today.sales.valueMinor).toBe(0);
+    expect(result.value.glimpse.month.result.state).toBe("known");
+    expect(result.value.glimpse.month.result.valueMinor).toBe(0);
+    /* قراءة مكتملة بلا مهام: الحالة الصادقة. */
+    expect(result.value.followUp.complete).toBe(true);
+    expect(result.value.followUp.empty).toBe(true);
+    /* لا نسخة متحققة بعد، ولا تذكير بلا بيانات. */
+    expect(result.value.backup.lastVerifiedExportAt).toBeNull();
+    expect(result.value.truthLine).toBeNull();
+  });
+
+  it("carries the exact applied range to 016 for both periods — the number opens its explanation", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    expect(result.value.glimpse.today.sales.sourceHref).toBe(
+      "/finance/statement?since=2026-08-25&until=2026-08-25",
     );
-    /* دمج بند ١٠: مشروع فارغ — «اليوم» صادقة فارغة لا تدفع نحو الطلبات (رحلة ١). */
-    expect(result.value.todaySection.items).toHaveLength(0);
-    /* قرار المالك على بند ١٢: لا بطاقات مشروطة للمخزون والموردين — القسم القديم فارغ
-     * لمشروع بلا مواعيد ولا نتيجة، والكتلتان الدائمتان هما الطريق. */
-    expect(result.value.optionalModules).toHaveLength(0);
-    expect(result.value.financeUnit).toMatchObject({ action: { id: "finance", href: "/finance" } });
-    /* قرار المالك على بند ١١: «منتجاتي وخدماتي» كتلة دائمة مستقلة. */
-    expect(result.value.catalogUnit).toMatchObject({ action: { id: "catalog", href: "/catalog" } });
-    expect(result.value.todaySection).toMatchObject({
-      items: [],
-      upcomingCount: 0,
-      nextUpcomingDate: null,
-    });
-    // §2.7: كل حقيقة غير مسجلة تعرض طريق تسجيلها — «غير مسجل — سجّله» لا «غير مهيأ».
-    const cashFact = result.value.facts.find(fact => fact.id === "cash");
-    expect(cashFact?.road).toMatchObject({ href: "/cash/wallet/new", label: "سجّله" });
-    const ownerFact = result.value.facts.find(fact => fact.id === "owner_capital");
-    expect(ownerFact?.road).toMatchObject({ href: "/finance/new/owner_investment_cash" });
-    expect(result.value.recentChanges).toHaveLength(0);
-    /* Z1.4: المشروع الفارغ يمرر «لا بيانات مسجلة» — حالة اليوم «فراغ» لا
-     * «هادئ»، فالفراغ والهادئ حالتان مختلفتان صادقتان. */
-    expect(result.value.dailyStatus).toEqual({ kind: "empty" });
+    expect(result.value.glimpse.month.sales.sourceHref).toBe(
+      "/finance/statement?since=2026-08-01&until=2026-08-25",
+    );
+    expect(result.value.glimpse.cashNow.sourceHref).toBe("/cash");
   });
 
-  it("reveals F-078 in the Today section: due follow-ups, today's appointment, and recorded debt from one screen (journey 2)", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    const cost = calculateCostSnapshot("cost-today", {
-      source: "draft",
-      currency: "JOD",
-      materialItems: [],
-      time: { minutes: 30, hourlyRateMinor: 300, confidence: "known" },
-      packagingMinor: 0,
-      deliveryMinor: 0,
-      wasteMinor: 0,
-      safetyBufferMinor: 0,
-      quantity: 1,
-      createdAt: "2026-08-20T09:00:00.000Z",
-      freshnessDays: null,
-    });
-    const baseOrder = createCraftOrder({
-      id: "today-order",
-      customerName: "ريم",
-      itemName: "خاتم أمينة",
-      specifications: "اختبار",
-      quantity: 1,
-      agreedPriceMinor: 5000,
-      costSnapshot: cost,
-      createdAt: "2026-08-20T09:00:00.000Z",
-    });
-    const order = {
-      ...baseOrder,
-      status: "settled" as const,
-      settlementStatus: "debt" as const,
-      receivableMinor: 3500,
-      nextAction: "تابع تحصيل الدين",
-    };
-    await store.saveOrder({
-      id: "today-order",
-      order,
-      catalogItemId: null,
-      deliveryDate: "2026-08-26",
-      agreementSource: "whatsapp",
-      followUpDate: "2026-08-24",
-      followUpSummary: "اتصال أحمد اليوم",
-      followUpReason: "تأكيد القياس",
-      createdAt: order.createdAt,
-      updatedAt: order.createdAt,
-    });
-    await store.saveSchedule({
-      id: "schedule-today",
-      orderId: "today-order",
-      kind: "delivery",
-      scheduledFor: "2026-08-25",
-      scheduledTime: "16:00",
-      durationMinutes: 60,
-      status: "scheduled",
-      postponeReason: null,
-      events: [],
-      createdAt: "2026-08-20T09:00:00.000Z",
-      updatedAt: "2026-08-20T09:00:00.000Z",
-    });
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    const kinds = result.value.todaySection.items.map(item => item.kind);
-    expect(kinds).toContain("follow_up_due");
-    expect(kinds).toContain("appointment_today");
-    expect(kinds).toContain("due_amount");
-    const dueAmount = result.value.todaySection.items.find(item => item.kind === "due_amount");
-    /* المجموعة ٢ (§6.3): بند الدين يفتح ورقة التحصيل في نقرة — لا صفحة الطلب. */
-    expect(dueAmount).toMatchObject({ href: "/collect?source=order:today-order" });
-    /* §10: البطاقة قيمة بلا جملة — المبلغ يبقى والحد في النطاق. */
-    (expect(dueAmount?.detail).toContain("35.00"), expect(dueAmount?.title).toContain("دين"));
-    /* دمج بند ١٠: المتابعة المستحقة والدين بندان لا أكثر — لا تكرار بين قسمين. */
-    const ids = result.value.todaySection.items.map(item => item.id);
-    expect(new Set(ids).size).toBe(ids.length);
-    /* Z1.4: بنود مستحقة = يوم انتباه. */
-    expect(result.value.dailyStatus).toEqual({ kind: "attention" });
-  });
-
-  it("keeps /finance reachable for a brand-new owner while period_result stays conditional on its own unit (decisions 11–14)", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    // The permanent unit opens the finance surface with no delivered order and no financial event.
-    expect(result.value.financeUnit.action).toMatchObject({ id: "finance", href: "/finance" });
-    // period_result keeps its own honest condition: no result yet, so its module stays hidden.
-    expect(result.value.optionalModules.map(module => module.id)).not.toContain("period_result");
-  });
-
-  it("uses existing finance facts with source semantics and keeps Home reads free of financial writes", async () => {
+  it("splits today/month sales from the official period read alone — no interface math", async () => {
     const store = new MemoryLocalStore();
     await saveProfile(store);
     const finance = new ProjectFinancialService(store, now);
     await finance.record({
       type: "owner_investment_cash",
-      amountMinor: 5000,
-      occurredOn: "2026-08-25",
+      amountMinor: 7000,
+      occurredOn: "2026-08-01",
       note: "استثمار",
       counterparty: null,
       relatedEventId: null,
-      idempotencyKey: "home-investment",
+      idempotencyKey: "home-invest",
     });
-    const before = await store.listFinancialEvents();
-    if (!before.ok) throw new Error("events should read");
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    expect(result.value.facts).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          id: "cash",
-          state: "known",
-          valueMinor: 5000,
-          /* Wave 4.4 — P-4.4-1 (D8): الحقيقة المعروفة تفتح مصدرها الحقيقي. */
-          source: "/cash",
-        }),
-        expect.objectContaining({ id: "owner_capital", state: "known", valueMinor: 5000 }),
-        expect.objectContaining({ id: "receivables", state: "not_initialized", valueMinor: null }),
-        expect.objectContaining({ id: "payables", state: "not_initialized", valueMinor: null }),
-      ]),
-    );
-    const after = await store.listFinancialEvents();
-    if (!after.ok) throw new Error("events should read");
-    expect(after.value).toHaveLength(before.value.length);
-    /* §10 معدّلة بقرار P-01 طبقة ١: سطر الحقيقة الوحيد المسموح هو تذكير النسخ
-     * الاحتياطية حين لا توجد نسخة مُتحقق منها مع وجود بيانات — لا جملة عامة أخرى. */
-    expect(result.value.truthLine === null || result.value.truthLine.includes("نسخة احتياطية")).toBe(true);
-    /* Z1.4: بيانات مسجلة (الاستثمار) بلا بنود مستحقة مع حقائق غير مسجلة
-     * (اللي عند العملاء/عليّ للموردين) — حالة اليوم «بيانات ناقصة». */
-    expect(result.value.dailyStatus).toEqual({ kind: "incomplete" });
-  });
-
-  it("absorbs the attention content into Today for an active owner with no duplication and no removal", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    for (let index = 1; index <= 4; index += 1) await saveOrder(store, `home-order-${index}`);
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    /* دمج بند ١٠: كل طلب مفتوح بند واحد في «اليوم» — لا قسم انتباه منفصل ولا سقف إلغاء. */
-    const openOrders = result.value.todaySection.items.filter(item => item.kind === "open_order");
-    expect(openOrders).toHaveLength(4);
-    expect(openOrders.every(item => item.href.startsWith("/orders/"))).toBe(true);
-    const ids = result.value.todaySection.items.map(item => item.id);
-    expect(new Set(ids).size).toBe(ids.length);
-    /* الترتيب بالأولوية: أول بند في القائمة هو الأولوية — لا بطاقة أولوية منفصلة. */
-    const priorities = result.value.todaySection.items.map(item => item.priority);
-    expect([...priorities].sort((left, right) => left - right)).toEqual(priorities);
-    expect(result.value.financeUnit.action).toMatchObject({ id: "finance", href: "/finance" });
-    expect(result.value.catalogUnit.action).toMatchObject({ id: "catalog", href: "/catalog" });
-    expect(result.value.optionalModules.map(module => module.id)).toContain("schedule");
-    expect(result.value.optionalModules.map(module => module.id)).not.toContain("period_result");
-    expect(result.value.optionalModules.map(module => module.id)).not.toContain("inventory");
-    expect(result.value.optionalModules.map(module => module.id)).not.toContain("supplier_commitments");
-    expect(result.value.optionalModules.map(module => module.id)).not.toContain("catalog");
-    expect(result.value.recentChanges.length).toBeLessThanOrEqual(5);
-  });
-
-  it("keeps a closed incomplete result in Today as one review item above the open-order items", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    const id = "home-incomplete-settled";
-    const cost = calculateCostSnapshot(`cost-${id}`, {
-      source: "draft",
-      currency: "JOD",
-      materialItems: [],
-      time: null,
-      packagingMinor: 0,
-      deliveryMinor: 0,
-      wasteMinor: 0,
-      safetyBufferMinor: 0,
+    /* بيع مباشر يوم 10 من الشهر نفسه: اليوم لا يشمله والشهر يشمله — من
+     * القراءة الرسمية وحدها. */
+    const directSales = new DirectSaleService(store, now);
+    const sale = await directSales.record({
+      itemName: "خاتم أمانة",
       quantity: 1,
-      createdAt: "2026-08-24T09:00:00.000Z",
-      freshnessDays: null,
-    });
-    const baseOrder = createCraftOrder({
-      id,
-      customerName: "عميل مراجعة",
-      itemName: "طلب يحتاج مراجعة",
-      specifications: "تكلفة غير مكتملة",
-      quantity: 1,
-      agreedPriceMinor: 8000,
-      costSnapshot: cost,
-      createdAt: "2026-08-24T09:00:00.000Z",
-    });
-    const order = {
-      ...baseOrder,
-      status: "settled" as const,
-      settlementStatus: "paid" as const,
-      resultStatus: "incomplete" as const,
-      nextAction: "راجع نتيجة الطلب",
-    };
-    await store.saveOrder({
-      id,
-      order,
-      catalogItemId: null,
-      deliveryDate: "2026-08-28",
-      agreementSource: "test",
-      createdAt: order.createdAt,
-      updatedAt: order.createdAt,
-    });
-
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    const review = result.value.todaySection.items.find(item => item.kind === "result_review");
-    expect(review).toMatchObject({
-      title: "راجع نتيجة طلب يحتاج مراجعة",
-      href: `/orders/${id}`,
-      actionLabel: "راجع",
-    });
-  });
-
-  it("keeps open drafts inside Today with their resume action (absorbed, not cancelled)", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    await store.saveDraft({
-      id: "draft-1",
-      intent: "customer_order",
-      itemName: "مسودة ليلية",
-      customerName: "",
-      quantity: 1,
-      specifications: "",
-      catalogItemId: null,
-      costSnapshots: [],
-      activeCostSnapshotId: null,
-      linkedOrderId: null,
-      createdAt: "2026-08-24T20:00:00.000Z",
-      updatedAt: "2026-08-24T20:00:00.000Z",
-    });
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    const draft = result.value.todaySection.items.find(item => item.kind === "draft");
-    expect(draft).toMatchObject({
-      title: "مسودة: مسودة ليلية",
-      href: "/orders/draft/draft-1",
-      actionLabel: "أكمل",
-    });
-  });
-
-  /* U-002 (دورة التدقيق النهائي): «آخر تسجيل» من أوقات التسجيل الفعلية —
-   * القيد المؤرَّخ لا يوهم غيابًا، والموعد المستقبلي لا يخفي البطاقة،
-   * والبيع المباشر تسجيلٌ كغيره، والملخص يصف آخر يوم تسجيل صادقًا. */
-  it("counts last activity by recording time: a backdated expense does not fake absence and the digest describes the last recording day", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    /* حدث مؤرَّخ قديمًا (١ يوليو) لكن سُجّل حديثًا (٢٤ أغسطس): التسجيل حديث فلا غياب. */
-    const backdated = await new ProjectFinancialService(store, () => "2026-08-24T09:00:00.000Z").record({
-      type: "operating_expense_cash",
-      amountMinor: 900,
-      occurredOn: "2026-07-01",
-      note: "مصروف مؤرَّخ",
-      counterparty: null,
-      relatedEventId: null,
-      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
-      idempotencyKey: "u002-backdated",
-    });
-    if (!backdated.ok) throw new Error("expense should save");
-    const fresh = await services(store).read();
-    if (!fresh.ok) throw new Error(fresh.message);
-    expect(fresh.value.awaySection).toBeNull();
-  });
-
-  it("describes the last recording day honestly when the absence is real, counting the direct sale as activity", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    /* مصروف وبيع سُجّلا معًا في آخر يوم تسجيل (١٠ أغسطس) قبل غياب فعلي. */
-    const expense = await new ProjectFinancialService(store, () => "2026-08-10T09:00:00.000Z").record({
-      type: "operating_expense_cash",
-      amountMinor: 900,
-      occurredOn: "2026-08-10",
-      note: "مصروف آخر يوم",
-      counterparty: null,
-      relatedEventId: null,
-      expenseContext: { relationship: "project", behavior: "fixed", purpose: "period", knowledge: "known" },
-      idempotencyKey: "u002-last-day-expense",
-    });
-    if (!expense.ok) throw new Error("expense should save");
-    await store.saveDirectSale({
-      id: "u002-sale",
-      itemName: "كوب",
-      quantity: 1,
-      currency: "JOD",
       revenueMinor: 1500,
       collectedMinor: 1500,
+      collectionStatus: "collected_in_full",
       catalogItemId: null,
       customerName: null,
+      customerPartyId: null,
       costMinor: null,
-      profitMinor: null,
-      occurredOn: "2026-08-20",
-      recordedAt: "2026-08-10T10:00:00.000Z",
-      note: "",
-      idempotencyKey: "u002-sale-key",
-      status: "active",
-      revisions: [],
+      occurredOn: "2026-08-10",
+      note: "بيع اختبار",
+      idempotencyKey: "home-sale",
     });
+    if (!sale.ok) throw new Error(sale.message);
     const result = await services(store).read();
     if (!result.ok) throw new Error(result.message);
-    /* آخر تسجيل = ١٠ أغسطس (وقت التسجيل، لا تاريخ أثر البيع ٢٠ أغسطس) → ١٥ يومًا. */
-    expect(result.value.awaySection).toMatchObject({ daysSinceLastActivity: 15 });
-    expect(result.value.awaySection?.digest).toMatchObject({
-      lastRecordedOn: "2026-08-10",
-      salesCount: 1,
-      salesRevenueMinor: 1500,
-      expenseCount: 1,
-      expenseMinor: 900,
-    });
-  });
-
-  it("never lets a future schedule date hide the away card or a stale effective date fake absence", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    await saveOrder(store, "u002-order-1");
-    /* موعد مستقبلي بعيد (شهر ahead) بتاريخ تسجيل قديم — لا يخفي البطاقة. */
-    await store.saveSchedule({
-      id: "u002-schedule",
-      orderId: "u002-order-1",
-      kind: "delivery",
-      scheduledFor: "2026-12-01",
-      scheduledTime: null,
-      durationMinutes: 60,
-      status: "scheduled",
-      postponeReason: null,
-      events: [],
-      createdAt: "2026-08-10T09:00:00.000Z",
-      updatedAt: "2026-08-10T09:00:00.000Z",
-    });
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    /* آخر تسجيل = الطلب ٢٤ أغسطس → غياب يوم واحد فقط → لا بطاقة رغم الموعد البعيد. */
-    expect(result.value.awaySection).toBeNull();
-  });
-
-  it("hides the away card while recording is recent and shows it only after a real recording gap", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    await saveOrder(store, "u002-order-2");
-    const recent = await services(store).read();
-    if (!recent.ok) throw new Error(recent.message);
-    expect(recent.value.awaySection).toBeNull();
-  });
-});
-
-/* المجموعة ١ (§7.1): كتلة الأولوية + مؤهل الأمانات + الكاش غير الموزع + أفعال محددة. */
-describe("HomeControlCenterService — group 1 target hierarchy", () => {
-  it("exposes the single priority block as the top sorted today item — the page lifts it out of the list", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    /* مشروع فارغ: لا أولوية مختلقة — الكتلة null لا بند مفبرك. */
-    expect(result.value.priorityBlock).toBeNull();
-    await saveOrder(store, "home-priority-order");
-    const second = await services(store).read();
-    if (!second.ok) throw new Error(second.message);
-    expect(second.value.priorityBlock).toBeTruthy();
-    /* الكتلة = أول بند بعد الترتيب (أعلى أولوية) — مصدر واحد، والصفحة ترفعه ولا تكرره. */
-    const sortedIds = second.value.todaySection.items.map(item => item.id);
-    expect(second.value.priorityBlock?.id).toBe(sortedIds[0]);
-    expect(second.value.priorityBlock?.actionLabel).toBeTruthy();
+    expect(result.value.glimpse.today.sales.valueMinor).toBe(0);
+    expect(result.value.glimpse.month.sales.valueMinor).toBe(1500);
+    /* النقد المسجل الآن واحد منفصل — لا يتغير بتغيير الفترة: الاستثمار 7000
+     * + القبض الكامل للبيع 1500 = 8500 من قراءة الوضع نفسها. */
+    expect(result.value.glimpse.cashNow.state).toBe("known");
+    expect(result.value.glimpse.cashNow.valueMinor).toBe(8500);
   });
 
   it("qualifies recorded cash with held amanah — real cash that is not the owner's money or profit", async () => {
@@ -477,204 +180,82 @@ describe("HomeControlCenterService — group 1 target hierarchy", () => {
     });
     const result = await services(store).read();
     if (!result.ok) throw new Error(result.message);
-    const cash = result.value.facts.find(fact => fact.id === "cash");
-    expect(cash?.state).toBe("known");
-    expect(cash?.qualifier).toContain("أمانات");
-    /* الأمانة لا تُعد مالكًا ولا ربحًا: حق المالك يبقى غير مسجل. */
-    const capital = result.value.facts.find(fact => fact.id === "owner_capital");
-    expect(capital?.state).toBe("not_initialized");
+    expect(result.value.glimpse.cashNow.state).toBe("known");
+    expect(result.value.glimpse.cashNow.qualifier).toContain("أمانات");
   });
 
-  it("shows unallocated cash only when it exists, never as a zero card", async () => {
+  it("the brief comes from the unified reader: an overdue customer follow-up surfaces first with its action", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    await store.saveOrder(storedOrder("order-followup", { followUpDate: "2026-08-24" }));
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    expect(result.value.followUp.rows.length).toBeGreaterThan(0);
+    const first = result.value.followUp.rows[0]!;
+    expect(first.upcoming).toBe(false);
+    expect(first.actionLabel).toBe("متابعة العميل");
+    expect(first.href).toContain("/orders/");
+    expect(result.value.followUp.empty).toBe(false);
+  });
+
+  it("a saved draft fills as an explicit completion task opening its own draft", async () => {
+    const store = new MemoryLocalStore();
+    await saveProfile(store);
+    await store.saveDraft({
+      id: "draft-1",
+      itemName: "خاتم أمانة",
+      linkedOrderId: null,
+    } as never);
+    const result = await services(store).read();
+    if (!result.ok) throw new Error(result.message);
+    expect(result.value.followUp.rows).toHaveLength(1);
+    expect(result.value.followUp.rows[0]!.title).toContain("خاتم أمانة");
+    expect(result.value.followUp.rows[0]!.href).toBe("/orders/draft/draft-1");
+    expect(result.value.followUp.rows[0]!.actionLabel).toBe("إكمال الطلب");
+  });
+
+  it("the quiet backup reminder appears only when due: stale verified export with data", async () => {
     const store = new MemoryLocalStore();
     await saveProfile(store);
     const finance = new ProjectFinancialService(store, now);
     await finance.record({
       type: "owner_investment_cash",
       amountMinor: 5000,
-      occurredOn: "2026-08-25",
+      occurredOn: "2026-08-01",
       note: "استثمار",
       counterparty: null,
       relatedEventId: null,
-      idempotencyKey: "home-unallocated-investment",
+      idempotencyKey: "home-reminder-invest",
     });
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    /* قبض بلا تخصيص: بطاقة كاش غير موزع موجودة بقيمة موجبة. */
-    const unallocated = result.value.facts.find(fact => fact.id === "unallocated");
-    expect(unallocated).toMatchObject({ state: "known", valueMinor: 5000 });
-  });
-
-  it("uses specific action verbs for today rows instead of the generic open", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    await saveOrder(store, "home-verb-order");
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    const orderItem = result.value.todaySection.items.find(item => item.kind === "open_order");
-    expect(orderItem?.actionLabel).toBe("راجع");
-    /* كتلة الأولوية نفسها تحمل الفعل المحدد لا «افتح». */
-    expect(result.value.priorityBlock?.actionLabel).not.toBe("افتح");
-  });
-
-  it("links the capacity warning to the schedule capacity focus, not the generic page", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    await saveOrder(store, "home-capacity-1");
-    await saveOrder(store, "home-capacity-2");
-    const scheduleBase = {
-      orderId: "home-capacity-1",
-      kind: "delivery" as const,
-      status: "scheduled" as const,
-      postponeReason: null,
-      events: [],
-    };
-    await store.saveSchedule({
-      ...scheduleBase,
-      id: "sched-cap-1",
-      scheduledFor: "2026-08-25",
-      scheduledTime: null,
-      durationMinutes: null,
-      createdAt: "2026-08-24T09:00:00.000Z",
-      updatedAt: "2026-08-24T09:00:00.000Z",
-    });
-    await store.saveSchedule({
-      ...scheduleBase,
-      id: "sched-cap-2",
-      orderId: "home-capacity-2",
-      scheduledFor: "2026-08-25",
-      scheduledTime: null,
-      durationMinutes: null,
-      createdAt: "2026-08-24T09:00:00.000Z",
-      updatedAt: "2026-08-24T09:00:00.000Z",
-    });
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    const capacity = result.value.todaySection.items.find(item => item.kind === "capacity_warning");
-    expect(capacity?.href).toBe("/schedule?focus=capacity");
-  });
-
-  /* Wave 4.3 — P-4.3-2 (D6/D7): أرقام اليوم/الشهر من قراءة الفترة الرسمية
-   * وحدها، والنتيجة الناقصة توصف بصدق، والـInsights من البيانات الحالية
-   * فقط مع فعل منطقي واحد — لا معادلات داخل الواجهة. */
-  it("builds today/month numbers from the official period read with only the sales-change insight", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    /* شهران متتاليان من البيع المباشر — مقارنة الشهر بالشهر هي الملحوظة
-     * الوحيدة المتبقية (Z1 §3.1: لا تكرار المبلغ نفسه في منطقتين متجاورتين). */
-    const previousMonthSale = await new DirectSaleService(store, now).record({
-      itemName: "كوب يوليو",
-      quantity: 1,
-      revenueMinor: 3000,
-      costMinor: 1000,
-      occurredOn: "2026-07-20",
-      note: "اختبار Z1",
-      idempotencyKey: "z1-previous-month-sale",
-    });
-    if (!previousMonthSale.ok) throw new Error(previousMonthSale.message);
-    const sale = await new DirectSaleService(store, now).record({
-      itemName: "كوب اختبار",
-      quantity: 1,
-      revenueMinor: 1500,
-      costMinor: 600,
-      occurredOn: "2026-08-25",
-      note: "اختبار Wave 4.3",
-      idempotencyKey: "w43-quick-sale",
-    });
-    if (!sale.ok) throw new Error(sale.message);
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    expect(result.value.periodNumbers.today.sales).toMatchObject({
-      state: "known",
-      valueMinor: 1500,
-      source: "/finance?view=period",
-    });
-    expect(result.value.periodNumbers.today.result).toMatchObject({ state: "known", valueMinor: 900 });
-    expect(result.value.periodNumbers.month.sales).toMatchObject({ state: "known", valueMinor: 1500 });
-    /* ملحوظة تغيّر المبيعات وحدها تبقى — مقارنة شهرية لا تكرر رقمًا معروضًا. */
-    expect(result.value.insights.map(insight => insight.id)).toEqual(["sales-change"]);
-    const salesChange = result.value.insights.find(insight => insight.id === "sales-change");
-    expect(salesChange?.action).toMatchObject({ href: "/finance?view=period" });
-    /* Z1 §3.1 (إزالة التكرار): الكاش غير الموزع والمبالغ غير المحصلة وبيانات
-     * التكلفة الناقصة حقائق/أرقام تُعرض في «أرقامك» نفسها — لا تُكرر ملحوظات. */
-    expect(result.value.insights.map(insight => insight.id)).not.toContain("unallocated-cash");
-    expect(result.value.insights.map(insight => insight.id)).not.toContain("uncollected-receivables");
-    expect(result.value.insights.map(insight => insight.id)).not.toContain("incomplete-result");
-  });
-
-  it("keeps the incomplete result honest instead of inventing a number (no cost data)", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    const sale = await new DirectSaleService(store, now).record({
-      itemName: "كوب بلا تكلفة",
-      quantity: 1,
-      revenueMinor: 2000,
-      costMinor: null,
-      occurredOn: "2026-08-25",
-      note: "اختبار Wave 4.3",
-      idempotencyKey: "w43-quick-sale-unknown-cost",
-    });
-    if (!sale.ok) throw new Error(sale.message);
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    expect(result.value.periodNumbers.today.result).toMatchObject({
-      state: "incomplete",
-      valueMinor: null,
-      honestNote: "تحتاج بيانات تكلفة",
-    });
-    /* Z1 §3.1: «تحتاج بيانات تكلفة» سطر صدق واحد في أرقام الشهر نفسه —
-     * الملحوظة المكررة أُزيلت مع مصدر رابطها. */
-    expect(result.value.insights.map(insight => insight.id)).not.toContain("incomplete-result");
-  });
-
-  it("drops the amount-duplicating insights entirely — facts carry their own numbers", async () => {
-    const store = new MemoryLocalStore();
-    await saveProfile(store);
-    /* قبض بلا محافظ (كاش غير موزع) ودين بيع آجل جزئي معًا — الحقائق تعرض
-     * رقميهما في «أرقامك»، ولا ملحوظة تكرر المبلغ نفسه بجوارهما (Z1 §3.1). */
-    const investment = await new ProjectFinancialService(store, now).record({
-      type: "owner_investment_cash",
-      amountMinor: 5000,
-      occurredOn: "2026-08-25",
-      note: "استثمار",
-      counterparty: null,
-      relatedEventId: null,
-      idempotencyKey: "z1-unallocated-investment",
-    });
-    if (!investment.ok) throw new Error(investment.message);
-    await store.saveDirectSale({
-      id: "z1-partial-debt-sale",
-      itemName: "كوب آجل",
-      quantity: 1,
-      currency: "JOD",
-      revenueMinor: 2000,
-      profitMinor: 1400,
-      collectedMinor: 500,
-      collectionStatus: "partial_debt",
-      catalogItemId: null,
-      customerName: "عميل آجل",
-      costMinor: 600,
-      occurredOn: "2026-08-25",
-      recordedAt: "2026-08-25T10:00:00.000Z",
-      note: "",
-      idempotencyKey: "z1-partial-debt-sale-key",
-      status: "active",
-      revisions: [],
-    });
-    const result = await services(store).read();
-    if (!result.ok) throw new Error(result.message);
-    const insightIds = result.value.insights.map(insight => insight.id);
-    expect(insightIds).not.toContain("unallocated-cash");
-    expect(insightIds).not.toContain("uncollected-receivables");
-    /* الحقائق نفسها باقية بقيمها الصادقة — الإزالة للملحوظات لا للحقائق:
-     * غير الموزع = الاستثمار 5000 + قبض البيع الآجل 500. */
-    expect(result.value.facts.find(fact => fact.id === "unallocated")).toMatchObject({
-      state: "known",
-      valueMinor: 5500,
-    });
-    const dueDebt = result.value.todaySection.items.find(
-      item => item.id === "today-due-amount:z1-partial-debt-sale",
-    );
-    expect(dueDebt).toMatchObject({ kind: "due_amount", href: "/collect?source=sale:z1-partial-debt-sale" });
+    await store.savePreferences({
+      id: "local-preferences",
+      theme: "light",
+      dailyScheduleCapacityMinutes: null,
+      workMode: null,
+      actualTimeTrackingEnabled: false,
+      installBannerDismissedAt: null,
+      lastVerifiedExportAt: "2026-08-10T09:00:00.000Z",
+      backupReminderEnabled: true,
+    } as never);
+    const due = await services(store).read();
+    if (!due.ok) throw new Error(due.message);
+    expect(due.value.backup.daysSinceExport).toBe(15);
+    expect(due.value.truthLine).toContain("نسخة احتياطية");
+    /* إطفاء التذكير من الإعدادات يخفي السطر فقط — لا يمس عمر النسخة. */
+    await store.savePreferences({
+      id: "local-preferences",
+      theme: "light",
+      dailyScheduleCapacityMinutes: null,
+      workMode: null,
+      actualTimeTrackingEnabled: false,
+      installBannerDismissedAt: null,
+      lastVerifiedExportAt: "2026-08-10T09:00:00.000Z",
+      backupReminderEnabled: false,
+    } as never);
+    const quiet = await services(store).read();
+    if (!quiet.ok) throw new Error(quiet.message);
+    expect(quiet.value.backup.daysSinceExport).toBe(15);
+    expect(quiet.value.backup.reminderEnabled).toBe(false);
+    expect(quiet.value.truthLine).toBeNull();
   });
 });

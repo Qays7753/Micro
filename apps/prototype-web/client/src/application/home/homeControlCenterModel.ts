@@ -1,211 +1,235 @@
+/**
+ * UNIT-003 (تنفيذ S16 بالأمر الموحد §4 — HOME-A/B): نموذج عرض الرئيسية
+ * الجديد. الرئيسية وجهة الفتح الوسطى: أفعال سريعة، مختصر متابعة واحد (حتى
+ * 3 مهام بقاعدة HOME-A4/3D-C2)، ولمحة مالية واحدة بفترة أداء واحدة
+ * (اليوم/هذا الشهر) والنقد المسجل الآن منفصلًا عنها (HOME-R05)؛ لا حالة
+ * «اليوم» المتقاطعة ولا بطاقة الغياب ولا آخر التسجيلات (HOME-R06) ولا
+ * خيارات المشروع (HOME-R07) — كلها عند أصحابها.
+ *
+ * القراءة محايدة للفترة: الخدمة تقرأ اليوم والشهر مرة واحدة، والصفحة
+ * تعرض المختار منهما — لا قراءة ثانية عند التبديل (HOME-AC10).
+ */
+import type { FollowUpProjection, FollowUpTask } from "@/application/follow-up";
+
 export type HomeValueState = "known" | "incomplete" | "not_initialized";
-export type HomeAction = { id: string; label: string; href: string; reason: string };
-export type HomeFinancialFact = {
-  id: "cash" | "receivables" | "payables" | "owner_capital" | "unallocated";
+
+/* ── لمحة مالية (HOME-B1) — من المصدر نفسه، بلا معادلات واجهة ── */
+export type HomeGlimpsePeriodKind = "today" | "month";
+export type HomeGlimpsePeriod = {
+  kind: HomeGlimpsePeriodKind;
+  /* النطاق الفعلي الموافق للقراءة المعروضة — يُمرر إلى 016 عند فتح الرقم
+   * (HOME-X04/3D-C1: بالنطاق الدقيق ومقصد الرقم، بلا ملخص 013 وسيط). */
+  from: string;
+  to: string;
   label: string;
-  state: HomeValueState;
-  valueMinor: number | null;
-  currency: "JOD";
-  /* المجموعة ١ (§7.1): الكاش يحمل مؤهل الأمانات — كاش حقيقي لست مالكه بالكامل. */
-  qualifier?: string | null;
-  /* §10: التفصيل خلف العلامة لا على الوجه — الحقول قابلة للغياب. */
-  source: string | null;
-  period: string | null;
-  helper: string | null;
-  /* §2.7: الحقيقة غير المسجلة تُعرض كطريق — «غير مسجل — سجّله (نقرة)» — لا كـ«غير مهيأ» عاجزة. */
-  road: HomeAction | null;
 };
-/* قرار المالك على بند ١٠ (جلسة الإغلاق): «اليوم» و«ما يحتاج فعلًا الآن» يُدمجان في «اليوم» —
- * يُستوعب المحتوى ولا يُلغى، ولا بند يظهر مرتين. أنواع المسودة والتكلفة والنتيجة والسعة
- * انتقلت من قسم الانتباه القديم إلى أنواع بند «اليوم» بعناوينها وأفعالها نفسها. */
-export type HomeTodayItem = {
-  id: string;
-  kind:
-    | "follow_up_due"
-    | "appointment_today"
-    | "due_amount"
-    | "follow_up_upcoming"
-    | "draft"
-    | "cost_incomplete"
-    | "open_order"
-    | "result_review"
-    | "capacity_warning";
-  title: string;
-  detail: string | null;
-  dateLocal: string | null;
-  timeLocal: string | null;
-  href: string;
-  actionLabel: string;
-  priority: number;
-};
-export type HomeTodaySection = {
-  items: readonly HomeTodayItem[];
-  upcomingCount: number;
-  nextUpcomingDate: string | null;
-  nextUpcomingHref: string | null;
-  truth: string | null;
-};
-/* القرار ١٢: المالية وحدة جديدة دائمة في Home — بلا شرط بيانات، ولا تحل محل وحدة قائمة.
- * period_result يحتفظ بشرطه على وحدته وحده ولا ترث وحدته رؤيته (القرار ١٤). */
-export type HomeFinanceUnit = {
-  action: HomeAction;
-  truth: string | null;
-};
-/* قرار المالك على بند ١١ (جلسة الإغلاق): «منتجاتي وخدماتي» كتلة دائمة مستقلة مثل «مالي» —
- * سؤالها (§2.3): ما أكرره وبكم؟ وهل هو رابح؟ */
-export type HomeCatalogUnit = {
-  action: HomeAction;
-  truth: string | null;
-};
-export type HomeOptionalModule = {
-  id: "schedule" | "period_result";
-  label: string;
-  state: "available" | "needs_setup" | "empty";
-  action: HomeAction | null;
-};
-export type HomeRecentChange = {
-  id: string;
-  occurredOn: string;
-  title: string;
-  detail: string | null;
-  href: string;
-  /* المجموعة ٥ (عقد ٣٠): كلمة أثر واحدة (نقدي داخل/خارج...) والمبلغ إن وُجد رقم
-   * صادق — أو null فيبقى المبلغ مخفيًا لا صفرًا. */
-  effectWord: string | null;
-  amountMinor: number | null;
-};
-/* «أثناء غيابك» (التدفق ٢٣): بطاقة عودة بعد انقطاع — آخر تسجيل، وملخص آخر يوم
- * تسجيل فعليّ (بيع/مصروف/طلبات/متابعات)، وديون متأخرة، وعمر النسخة. U-002 (دورة
- * التدقيق النهائي): الملخص يصف آخر جلسة تسجيل — لا يمكن أن يتحرك شيء «خلال»
- * الغياب نفسه في تطبيق محلي أحادي المستخدم، فأي رقم آخر غير صادق. */
-export type HomeAwayDigest = {
-  /* آخر يوم سجّل فيه المالك شيئًا فعلًا (تاريخ التسجيل لا تاريخ الأثر). */
-  lastRecordedOn: string;
-  salesCount: number;
-  salesRevenueMinor: number;
-  expenseCount: number;
-  expenseMinor: number;
-  newOrderCount: number;
-  upcomingFollowUpCount: number;
-};
-export type HomeAwaySection = {
-  daysSinceLastActivity: number;
-  overdueDebtCount: number;
-  daysSinceLastExport: number | null;
-  /* U-002: ملخص قصير قابل للفعل لا لوحة طويلة. */
-  digest: HomeAwayDigest;
-};
-/* Wave 4.3 — P-4.3-2 (D6/D7): أرقام اليوم والشهر من قراءة الفترة الرسمية
- * وحدها (readRecordedPeriodResult) — لا معادلات جديدة في الواجهة، والنتيجة
- * الناقصة توصف بصدق لا بأصفار مضللة. */
-export type HomePeriodNumber = {
+export type HomeGlimpseNumber = {
   id: "sales" | "result";
   label: string;
   state: HomeValueState;
   valueMinor: number | null;
   honestNote: string | null;
-  source: string | null;
+  sourceHref: string;
 };
-export type HomePeriodNumbers = {
-  sales: HomePeriodNumber;
-  result: HomePeriodNumber;
+export type HomeGlimpseCash = {
+  label: string;
+  state: HomeValueState;
+  valueMinor: number | null;
+  /* المجموعة ١ (§7.1): مؤهل الأمانات قرب الرقم عند الانطباق — ليس ربحًا
+   * ولا مبلغًا متاحًا للسحب. */
+  qualifier: string | null;
+  sourceHref: string;
 };
-export type HomePeriodNumbersSection = {
-  today: HomePeriodNumbers;
-  month: HomePeriodNumbers;
+export type HomeGlimpsePeriodNumbers = {
+  period: HomeGlimpsePeriod;
+  sales: HomeGlimpseNumber;
+  result: HomeGlimpseNumber;
 };
-/* Wave 4.3 — P-4.3-2 (D6): Insights قصيرة من البيانات الحالية فقط — ماذا
- * حدث ولماذا يهم ورابط منطقي؛ لا توقعات ولا نصائح عامة بلا بيانات. */
-export type HomeInsight = {
+export type HomeFinancialGlimpse = {
+  today: HomeGlimpsePeriodNumbers;
+  month: HomeGlimpsePeriodNumbers;
+  /* النقد المسجل الآن — قراءة الوضع الحالية، منفصلة عن فترة الأداء:
+   * لا يتغير بتغيير اليوم/الشهر (HOME-B1). */
+  cashNow: HomeGlimpseCash;
+};
+
+/* ── متابعتك (HOME-A3/A4 — 3D-C2) — مختصر واحد لا قائمتين ── */
+export type HomeFollowUpRow = {
+  /* هوية ثابتة نوعية: نوع المصدر + معرفه + نوع المهمة + معرف الموعد/الدورة
+   * إن انطبق (منع التكرار داخل المتابعة — HOME-D). */
   id: string;
-  what: string;
-  why: string | null;
-  action: HomeAction | null;
+  title: string;
+  detail: string | null;
+  /* مبلغ بمعناه ودوره إن كان لازمًا للمهمة — بتسمية دوره لا رقمًا عاريًا
+   * (HOME-A3)؛ المقترح موسوم من المصدر. */
+  amountMinor: number | null;
+  amountRole: string | null;
+  dateLocal: string | null;
+  timeLocal: string | null;
+  /* وسم «قادم» للموعد المستقبلي المحجوز (HOME-A4 قاعدة ٢) — لا يوصف بالعاجل. */
+  upcoming: boolean;
+  href: string;
+  actionLabel: string;
 };
-/* Z1 (العرض المعتمد §3.1): حالة اليوم الواحدة المعلنة — نموذج عرض فقط لا
- * معنى ماليًا: انتباه (بند مستحق)، فراغ (لا بيانات مسجلة إطلاقًا)، بيانات
- * ناقصة (حقائق غير مسجلة تمنع الاستنتاج)، هادئ (كل شيء معروف ولا شيء عاجل). */
-export type HomeDailyStatusKind = "attention" | "empty" | "incomplete" | "normal";
-export type HomeDailyStatus = { kind: HomeDailyStatusKind };
+export type HomeFollowUpBrief = {
+  rows: readonly HomeFollowUpRow[];
+  /* اكتمال القراءة: فشل أي مصدر يفقد المختصر صفته — تُعرض المهام المثبتة
+   * مع إعلان التعذر وإعادة المحاولة؛ لا عدد شامل ولا فراغ مضلل (HOME-A4). */
+  complete: boolean;
+  failedMessage: string | null;
+  /* قراءة مكتملة بلا مهام — الحالة الصادقة لا «كل شيء ممتاز» (HOME-B3). */
+  empty: boolean;
+};
+
+/* ── معلومات (!) — HOME-B4/F10 ── */
+export type HomeBackupState = {
+  /* لا تاريخ نسخة ناجحة من مجرد بدء تنزيل — المتحقق فقط (من 044 عبر 038). */
+  lastVerifiedExportAt: string | null;
+  daysSinceExport: number | null;
+  reminderEnabled: boolean;
+};
+
 export type HomeControlCenterInput = {
   activityName: string;
   todayLocal: string;
   truthLine: string | null;
-  /* Z1.4: القراءة تمرر هل توجد أي بيانات مسجلة — تُمّيز حالة الفراغ عن
-   * الهادئ؛ تعبير مشتق من القراءة نفسها لا قراءة جديدة. */
-  hasAnyRecordedData: boolean;
-  financeUnit: HomeFinanceUnit;
-  catalogUnit: HomeCatalogUnit;
-  todaySection: HomeTodaySection;
-  facts: readonly HomeFinancialFact[];
-  optionalModules: readonly HomeOptionalModule[];
-  recentChanges: readonly HomeRecentChange[];
-  awaySection: HomeAwaySection | null;
-  periodNumbers: HomePeriodNumbersSection;
-  insights: readonly HomeInsight[];
+  glimpse: HomeFinancialGlimpse;
+  followUp: HomeFollowUpBrief;
+  backup: HomeBackupState;
 };
 export type HomeControlCenterViewModel = {
   heading: { activityName: string; todayLocal: string };
   truthLine: string | null;
-  /* Z1 (§3.1): حالة اليوم المعلنة — تُشتق هنا لا في الواجهة، والمصدر واحد. */
-  dailyStatus: HomeDailyStatus;
-  /* المجموعة ١ (§7.1): كتلة أولوية واحدة — أهم بند قابل للفعل اليوم؛ أول عنصر
-   * بعد الترتيب، والقائمة تحته تستوعب الباقي بلا تكرار. */
-  priorityBlock: HomeTodayItem | null;
-  financeUnit: HomeFinanceUnit;
-  catalogUnit: HomeCatalogUnit;
-  todaySection: HomeTodaySection;
-  facts: readonly HomeFinancialFact[];
-  optionalModules: readonly HomeOptionalModule[];
-  recentChanges: readonly HomeRecentChange[];
-  awaySection: HomeAwaySection | null;
-  periodNumbers: HomePeriodNumbersSection;
-  insights: readonly HomeInsight[];
+  glimpse: HomeFinancialGlimpse;
+  followUp: HomeFollowUpBrief;
+  backup: HomeBackupState;
 };
 
-const compareToday = (left: HomeTodayItem, right: HomeTodayItem) =>
-  left.priority - right.priority || left.id.localeCompare(right.id, "ar");
+/* أفعال متابعة بلا موعد (HOME-A4 قاعدة ٣) — الترتيب النوعي داخل الفئة:
+ * تصحيح التاريخ التالف أولًا، ثم خطوة الطلب المؤهلة، ثم التحصيل/السداد،
+ * ثم المسودات المحفوظة. */
+const UNDATED_TASK_ORDER: Partial<Record<FollowUpTask["taskKind"], number>> = {
+  delivery: 1,
+  customer_followup: 2,
+  receivable: 3,
+  supplier_payable: 3,
+  expense_payable: 3,
+  recurring_review: 3,
+};
+
+function taskRow(task: FollowUpTask, upcoming: boolean): HomeFollowUpRow {
+  return {
+    id: task.itemKey,
+    title: task.title,
+    detail: task.party,
+    amountMinor: task.amountProposed ? null : task.amountMinor,
+    amountRole: task.amountProposed || task.amountMinor === null ? null : task.amountRole,
+    dateLocal: task.dueOn,
+    timeLocal: task.scheduledTime,
+    upcoming,
+    href: task.sourceHref,
+    actionLabel: followUpActionLabel(task),
+  };
+}
+
+function followUpActionLabel(task: FollowUpTask): string {
+  switch (task.taskKind) {
+    case "delivery":
+      return "مراجعة التسليم";
+    case "customer_followup":
+      return "متابعة العميل";
+    case "receivable":
+      return "تحصيل";
+    case "supplier_payable":
+      return "تسجيل دفعة";
+    case "expense_payable":
+      return "سداد";
+    case "recurring_review":
+      return "مراجعة";
+  }
+}
+
+/** HOME-A4/3D-C2: اختيار مختصر المتابعة (حتى 3 صفوف) من قراءة القارئ
+ * الموحد — قاعدة عرض معلنة، لا ادعاء أهمية مالية ولا ترتيب بقيمة الدين. */
+export function selectFollowUpBrief(
+  projection: Pick<FollowUpProjection, "groups">,
+  drafts: readonly { id: string; itemName: string | null }[],
+  complete: boolean,
+  failedMessage: string | null,
+): HomeFollowUpBrief {
+  const rows: HomeFollowUpRow[] = [];
+  const pushTask = (task: FollowUpTask, upcoming = false) => {
+    if (rows.some(row => row.id === task.itemKey)) return;
+    rows.push(taskRow(task, upcoming));
+  };
+  const undatedRows: HomeFollowUpRow[] = projection.groups
+    .find(group => group.group === "undated")!
+    .tasks.map(task => ({ task, order: UNDATED_TASK_ORDER[task.taskKind] ?? 2 }))
+    .sort(
+      (left, right) => left.order - right.order || left.task.itemKey.localeCompare(right.task.itemKey, "ar"),
+    )
+    .map(entry => taskRow(entry.task, false));
+  const draftRows: HomeFollowUpRow[] = drafts.map(draft => ({
+    id: `draft:${draft.id}`,
+    title: `إكمال طلب — ${draft.itemName || "بلا وصف"}`,
+    detail: null,
+    amountMinor: null,
+    amountRole: null,
+    dateLocal: null,
+    timeLocal: null,
+    upcoming: false,
+    href: `/orders/draft/${draft.id}`,
+    actionLabel: "إكمال الطلب",
+  }));
+  /* قاعدة ١: الفائت ثم اليوم بترتيب المصدر، حتى امتلاء حد 3 صفوف. */
+  for (const groupName of ["overdue", "today"] as const) {
+    for (const task of projection.groups.find(group => group.group === groupName)!.tasks) {
+      if (rows.length >= 3) break;
+      pushTask(task);
+    }
+  }
+  /* قاعدة ٢: إن بقي مكان ووجد موعد مستقبلي مثبت — صف واحد لأقربها بوسم قادم. */
+  const upcomingTasks = projection.groups.find(group => group.group === "upcoming")!.tasks;
+  let reservedUpcoming: FollowUpTask | null = null;
+  if (rows.length < 3 && upcomingTasks.length > 0) {
+    reservedUpcoming = upcomingTasks[0]!;
+    pushTask(reservedUpcoming, true);
+  }
+  if (rows.length < 3) {
+    /* قاعدة ٣: تكمل الأماكن بمهام بلا موعد — تصحيح التاريخ التالف أولًا
+     * (مجموعة invalid)، ثم خطوات/تحصيل/سداد بترتيبها النوعي، ثم المسودات. */
+    const orderedFill: HomeFollowUpRow[] = [];
+    for (const task of projection.groups.find(group => group.group === "invalid")!.tasks) {
+      orderedFill.push(taskRow(task, false));
+    }
+    for (const row of undatedRows) orderedFill.push(row);
+    for (const row of draftRows) orderedFill.push(row);
+    for (const row of orderedFill) {
+      if (rows.length >= 3) break;
+      if (rows.some(existing => existing.id === row.id)) continue;
+      rows.push(row);
+    }
+  }
+  /* قاعدة ٤: إن بقي مكان تعرض المواعيد القادمة التالية دون تكرار المحجوز. */
+  for (const task of upcomingTasks) {
+    if (rows.length >= 3) break;
+    if (reservedUpcoming && task.itemKey === reservedUpcoming.itemKey) continue;
+    pushTask(task, true);
+  }
+  return {
+    rows: rows.slice(0, 3),
+    complete,
+    failedMessage,
+    empty: complete && rows.length === 0,
+  };
+}
 
 export function buildHomeControlCenterViewModel(input: HomeControlCenterInput): HomeControlCenterViewModel {
-  /* دمج بند ١٠: لا بند يظهر مرتين — أول ظهور يحسم، والقائمة مرتبة بالأولوية. */
-  const seenToday = new Set<string>();
-  const todayItems = input.todaySection.items
-    .filter(item => {
-      if (seenToday.has(item.id)) return false;
-      seenToday.add(item.id);
-      return true;
-    })
-    .sort(compareToday);
-  const facts = input.facts.map(fact =>
-    fact.state === "known" && fact.valueMinor !== null ? fact : { ...fact, valueMinor: null },
-  );
-  const optionalModules = input.optionalModules.filter(module => module.state !== "empty");
-  const recentChanges = input.recentChanges.slice(0, 5);
-  /* المجموعة ١: الأولوية = أول بند مرتّب؛ القائمة الفارغة تبقي الكتلة null لا مختلقة. */
-  const priorityBlock = todayItems.length > 0 ? todayItems[0] : null;
-  /* Z1 (§3.1): اشتقاق حالة اليوم — الترتيب ملزم: البند المستحق أولًا، ثم
-   * الفراغ التام، ثم الحقائق غير المسجلة مع بيانات قائمة، ثم الهادئ. */
-  const dailyStatus: HomeDailyStatus =
-    todayItems.length > 0
-      ? { kind: "attention" }
-      : !input.hasAnyRecordedData
-        ? { kind: "empty" }
-        : facts.some(fact => fact.state === "not_initialized")
-          ? { kind: "incomplete" }
-          : { kind: "normal" };
   return {
     heading: { activityName: input.activityName, todayLocal: input.todayLocal },
     truthLine: input.truthLine,
-    dailyStatus,
-    priorityBlock,
-    financeUnit: input.financeUnit,
-    catalogUnit: input.catalogUnit,
-    todaySection: { ...input.todaySection, items: todayItems },
-    facts,
-    optionalModules,
-    recentChanges,
-    awaySection: input.awaySection,
-    periodNumbers: input.periodNumbers,
-    insights: input.insights.slice(0, 4),
+    glimpse: input.glimpse,
+    followUp: input.followUp,
+    backup: input.backup,
   };
 }

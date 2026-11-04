@@ -17,9 +17,12 @@ export type ResultStatus = "final" | "estimated" | "incomplete" | "review_requir
 /* ORD-003: مسؤولية النقل والتوصيل — خيار صريح واحد لكل طلب يحدد من يدفع
  * أجرة التوصيل ومن يدفع كلفة الناقل، مع أعلام احتواء تمنع الاحتساب المزدوج.
  * غياب الشروط كليًا (null أو حقل غير موجود) = لا شروط نقل مسجلة — سلوك
- * رجعي مطابق للطلبات القديمة تمامًا. */
+ * رجعي مطابق للطلبات القديمة تمامًا.
+ * S12 (UNIT-009 A3/P3.1 — أمر 2e645802): «لا يوجد توصيل» (none) اختيار
+ * صريح في النموذج الجديد مختلف عن عدم تسجيل الشروط (null)، ولا يحمل أي
+ * مبلغ — لا أجرة ولا كلفة ولا حصص؛ توصيل المشروع وحده يحمل كلفة. */
 export type DeliveryResponsibility =
-  "project_pays" | "customer_pays_project" | "customer_pays_courier" | "shared";
+  "none" | "project_pays" | "customer_pays_project" | "customer_pays_courier" | "shared";
 
 export interface OrderDeliveryTerms {
   responsibility: DeliveryResponsibility;
@@ -297,4 +300,33 @@ export interface OrderResultBreakdown {
   costMinor: MoneyMinor | null;
   resultMinor: MoneyMinor | null;
   incompleteReasons: readonly string[];
+}
+
+/* S09 (UNIT-007/008 + SH-13 — أمر التنفيذ المتصل ad133bae القسم ٢): أساس
+ * التكلفة المجمعة — أساس الوحدة الواحدة من كل مجموعة (مكونات صندوق واحد
+ * مثلًا)؛ التوسيع (expandGroupedCostBasis) يضربه في تكرار المجموعة مرة
+ * واحدة فقط إلى مدخل قياسي للنواة الواحدة calculateCostSnapshot، والوقت
+ * والتغليف والهدر والتوصيل على نطاق الطلب كما في العقد القائم (F11/F12)،
+ * وإضافة التسعير لكل وحدة تمر كما دخلت. لا محرك ثانٍ ولا دمج دفاتر. */
+export interface GroupedCostGroup {
+  id: string;
+  label: string;
+  /** عدد مرات تكرار هذه المجموعة في الطلب — صحيح آمن ≥ 1. */
+  repeatQuantity: number;
+  /** مكونات الوحدة الواحدة من هذه المجموعة — أساس الهوية الواحدة لا الطلب كله. */
+  unitMaterialItems: readonly MaterialCostItem[];
+}
+
+export interface GroupedCostBasisInput {
+  currency: Currency;
+  groups: readonly GroupedCostGroup[];
+  /* F11: وقت العمل لكل الطلب كما في العقد القائم. */
+  time: TimeCost | null;
+  /* F12: التغليف والهدر لكل الطلب؛ والتوصيل على نطاق الطلب مرة واحدة (SDF-034). */
+  packagingMinor: MoneyMinor;
+  deliveryMinor: MoneyMinor;
+  wasteMinor: MoneyMinor;
+  /* F13: إضافة تسعير لكل وحدة — ليست تكلفة ولا ربحًا مؤكدًا؛ تمر كما دخلت. */
+  safetyBufferMinor: MoneyMinor;
+  createdAt: string;
 }

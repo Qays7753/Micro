@@ -75,7 +75,9 @@ async function runCapabilityScenario(store: DirectSaleStore) {
       collectedMinor: 0,
       collectionStatus: "partial_debt",
       catalogItemId: sale.catalogItemId,
-      customerName: sale.customerName ?? undefined,
+      /* S05 (DOC-014 / UNIT-037 A1): العكس يدخل بيعًا في دين جديد — تعريف
+       * بسيط إلزامي فوق الأصل النقي (لا هاتف ولا ملف دائم). */
+      customerName: "زبون المحل — عكس تحصيل",
       costMinor: sale.costMinor,
       occurredOn: sale.occurredOn,
       note: sale.note,
@@ -100,11 +102,26 @@ async function runCapabilityScenario(store: DirectSaleStore) {
   const afterReversal = await store.listDirectSales();
   expect(afterReversal.ok && afterReversal.value).toHaveLength(1);
   expect(afterReversal.ok && afterReversal.value[0]?.collectedMinor).toBe(0);
+
+  /* ٤) التزام الكتابة المحروس (S11 — تصحيح المراجعة R3-004): الإنشاء بعهدة
+   *    المفتاح داخل الحد — إعادة النية نفسها إعادة استخدام صادقة (سجل
+   *    واحد) والحمولة المختلفة بالمفتاح نفسه تعارض صادق بلا كتابة. */
+  const committedSale = saleFixture("sale-cap-2", "op-sale-cap-2");
+  const commit = await store.commitDirectSaleWrite(null, committedSale, ["op-sale-cap-2"], null);
+  expect(commit.ok && commit.value.reused).toBe(false);
+  const commitReplay = await store.commitDirectSaleWrite(null, committedSale, ["op-sale-cap-2"], null);
+  expect(commitReplay.ok && commitReplay.value.reused).toBe(true);
+  expect(commitReplay.ok && commitReplay.value.sale.id).toBe("sale-cap-2");
+  const changedPayload = { ...committedSale, revenueMinor: committedSale.revenueMinor + 100 };
+  const commitConflict = await store.commitDirectSaleWrite(null, changedPayload, ["op-sale-cap-2"], null);
+  expect(commitConflict.ok).toBe(false);
+  const afterCommit = await store.listDirectSales();
+  expect(afterCommit.ok && afterCommit.value).toHaveLength(2);
 }
 describe("R3 — قدرة البيع المباشر (بطاقة R3-SC-04): العضوية", () => {
-  it("قائمة الطرق هي نطاق المجموعة بالضبط: 3 أسماء فريدة", () => {
-    expect(directSaleStoreMethods).toHaveLength(3);
-    expect(new Set(directSaleStoreMethods).size).toBe(3);
+  it("قائمة الطرق هي نطاق المجموعة بالضبط: 4 أسماء فريدة (S11 أضافت التزام الكتابة المحروس)", () => {
+    expect(directSaleStoreMethods).toHaveLength(4);
+    expect(new Set(directSaleStoreMethods).size).toBe(4);
   });
 
   describe.each([

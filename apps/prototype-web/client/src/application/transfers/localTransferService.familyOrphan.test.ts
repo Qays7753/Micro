@@ -7,14 +7,16 @@
 import { describe, expect, it } from "vitest";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import { AssetService } from "@/application/assets/assetService";
-import { LoanService } from "@/application/loans/loanService";
 import { LocalTransferService } from "./localTransferService";
+/* UNIT-035 (تنفيذ S15 بالأمر الموحد §5): إنشاء الإقراض ملغى — بذرة القرض
+ * التاريخي بالمصنعين الكنونيين عند حد المخزن (نفس مسار توافق النقل). */
+import { createLoanRecord } from "@micro-domain/loan/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 
 const now = () => "2026-09-05T12:00:00.000Z";
 
 async function seedFamily(store: MemoryLocalStore) {
   const assets = new AssetService(store, now);
-  const loans = new LoanService(store, now);
   const asset = await assets.create({
     name: "ثلاجة عرض",
     acquisitionAmountMinor: 60000,
@@ -25,14 +27,30 @@ async function seedFamily(store: MemoryLocalStore) {
     note: null,
   });
   if (!asset.ok) throw new Error(asset.message);
-  const loan = await loans.create({
+  const loanEvent = createFinancialEvent({
+    id: "family-orphan-loan-event",
+    type: "loan_outgoing_cash",
+    amountMinor: 50000,
+    occurredOn: "2026-07-01",
+    recordedAt: now(),
+    idempotencyKey: "family-orphan-loan:principal",
+    note: "قرض تاريخي",
+    counterparty: "أحمد",
+    loanContext: { loanId: "family-orphan-loan", borrower: "أحمد" },
+  });
+  const loan = createLoanRecord({
+    id: "family-orphan-loan",
     borrowerName: "أحمد",
     principalMinor: 50000,
     loanDate: "2026-07-01",
     purposeNote: null,
     sourceWalletId: null,
+    principalEventId: loanEvent.id,
+    operationKey: "family-orphan-loan:create",
+    createdAt: now(),
   });
-  if (!loan.ok) throw new Error(loan.message);
+  const commit = await store.commitLoanRecord(loan, loanEvent);
+  if (!commit.ok) throw new Error(commit.message);
 }
 
 /** ملف مدموج يدويًا: أسقط البصمة والعدادات وإصدار التطبيق وأرجِع وسم الزوج

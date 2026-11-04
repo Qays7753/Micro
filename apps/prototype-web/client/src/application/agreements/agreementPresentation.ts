@@ -26,6 +26,16 @@ const hasPrice = (value: number | null | undefined) =>
   typeof value === "number" && Number.isInteger(value) && value > 0;
 const hasDate = (value: string | null | undefined) => Boolean(value?.trim());
 
+/* S12 (DOC-021 — J002-DEC02، تصحيح R5-F01): التمييز الثلاثي لموعد التسليم —
+ * null = مجهول صريح «لم يُحدد بعد» (اتفاق جائز يُحفظ بلا جدول ولا تاريخ
+ * صوري)، والفراغ/الغياب = لم يُدخل بعد (يسدّ النقص في المسودة قبل الحفظ)؛
+ * المجهول الصريح على طلب محفوظ يُعرض بحالته الحقيقية «— الموعد لم يُحدد
+ * بعد» لا «ناقصًا» ولا بموعد اليوم (اعتماد UNIT-010: يعرض الطلب المؤكد
+ * بلا موعد بحالته الحقيقية). */
+const unknownDateNote = " · الموعد لم يُحدد بعد";
+const withUnknownNote = (presentation: AgreementPresentation, unknown: boolean): AgreementPresentation =>
+  unknown ? { ...presentation, label: `${presentation.label}${unknownDateNote}` } : presentation;
+
 function incompleteAgreement(hasAgreedPrice: boolean, hasDeliveryDate: boolean): AgreementPresentation {
   const missing = [
     !hasAgreedPrice ? fieldLabelAr("agreedPriceMinor") : null,
@@ -41,17 +51,23 @@ function incompleteAgreement(hasAgreedPrice: boolean, hasDeliveryDate: boolean):
 
 export function getAgreementPresentation(input: AgreementPresentationInput): AgreementPresentation {
   const hasAgreedPrice = hasPrice(input.agreedPriceMinor);
+  const unknownDate = input.deliveryDate === null;
   const hasDeliveryDate = hasDate(input.deliveryDate);
   const status = input.status ?? "draft";
 
   if (status === "draft" || !input.status) {
-    if (!hasAgreedPrice && !hasDeliveryDate)
+    if (!hasAgreedPrice && !hasDeliveryDate && !unknownDate)
       return {
         kind: "none",
         label: "لا يوجد اتفاق",
         nextAction: "أضف السعر وموعد التسليم",
       };
-    if (!hasAgreedPrice || !hasDeliveryDate) return incompleteAgreement(hasAgreedPrice, hasDeliveryDate);
+    /* السعر الغائب يُكمل وحده إن كان الموعد معلومًا أو مجهولًا صراحةً —
+     * المجهول ليس نقصًا فلا يُدرج في قائمة النقص أبدًا. */
+    if (!hasAgreedPrice) return incompleteAgreement(hasAgreedPrice, hasDeliveryDate || unknownDate);
+    if (!hasDeliveryDate && !unknownDate) return incompleteAgreement(hasAgreedPrice, false);
+    /* حالة المراجعة للمجهول الصريح كحالة الموعد المعلوم — بيان الموعد
+     * المجهول يظهر من حقل التاريخ نفسه في المحرر؛ لا سلسلة جديدة هنا. */
     return {
       kind: "review",
       label: "اتفاق قيد المراجعة",
@@ -59,28 +75,38 @@ export function getAgreementPresentation(input: AgreementPresentationInput): Agr
     };
   }
 
-  if (!hasAgreedPrice || !hasDeliveryDate) return incompleteAgreement(hasAgreedPrice, hasDeliveryDate);
+  if (!hasAgreedPrice) return incompleteAgreement(hasAgreedPrice, hasDeliveryDate || unknownDate);
+  if (!hasDeliveryDate && !unknownDate) return incompleteAgreement(hasAgreedPrice, false);
 
   switch (status) {
     case "provisional_agreement":
     case "confirmed":
-      return {
-        kind: "saved",
-        label: "اتفاق محفوظ",
-        nextAction: "ابدأ التنفيذ",
-      };
+      return withUnknownNote(
+        {
+          kind: "saved",
+          label: "اتفاق محفوظ",
+          nextAction: "ابدأ التنفيذ",
+        },
+        unknownDate,
+      );
     case "in_progress":
-      return {
-        kind: "execution",
-        label: "قيد التنفيذ",
-        nextAction: "أكمل التنفيذ",
-      };
+      return withUnknownNote(
+        {
+          kind: "execution",
+          label: "قيد التنفيذ",
+          nextAction: "أكمل التنفيذ",
+        },
+        unknownDate,
+      );
     case "ready":
-      return {
-        kind: "execution",
-        label: "جاهز للتسليم",
-        nextAction: "سجّل التسليم",
-      };
+      return withUnknownNote(
+        {
+          kind: "execution",
+          label: "جاهز للتسليم",
+          nextAction: "سجّل التسليم",
+        },
+        unknownDate,
+      );
     case "delivered":
       return {
         kind: "delivery",

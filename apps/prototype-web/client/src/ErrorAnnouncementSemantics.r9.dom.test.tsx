@@ -14,6 +14,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { CashContinuityService } from "@/application/cash/cashContinuityService";
+import { CashCountService } from "@/application/cash/cashCountService";
 import { UnsavedChangesProvider } from "@/components/forms/UnsavedChangesGuard";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
 import CashCount from "@/pages/CashCount";
@@ -47,6 +48,7 @@ const bumpVersion = vi.fn();
 function services() {
   return {
     cashContinuity: new CashContinuityService(store, () => NOW),
+    cashCount: new CashCountService(store, () => NOW),
     notifyDataChanged: bumpVersion,
     dataVersion: 0,
   };
@@ -86,16 +88,23 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
   const ERROR_ONLY_FILES: readonly (readonly [string, number])[] = [
     ["InventoryMovementEditor.tsx", 1],
     ["DirectSaleEditor.tsx", 0],
-    ["EstimateDetail.tsx", 0],
     ["MaterialEditor.tsx", 0],
-    ["Tools.tsx", 0],
-    ["ToolsIntegrity.tsx", 0],
+    /* S17 (DOC-026 / UNIT-033): سطح ToolsIntegrity تقاعد ونقل ملكية رسالة
+     * الخطأ إلى قسم «فحص البيانات» داخل الإعدادات (كلا موقعيه alert). */
     ["CashAdjustmentEditor.tsx", 0],
     ["CostCalculator.tsx", 0],
+    /* S10 (UNIT-030/032 — أمر b56967d8): Tools صارت وجهة أدوات خمسة ساكنة
+     * (لا رسائل خطأ) وEstimateDetail صارت إحالة إلى الحاسبة — خرجا من
+     * القائمة لأنهما لم يعودا يحملان أي سطح رسالة خطأ. */
   ];
   const ERROR_ONLY_COMPONENTS: readonly (readonly [string, number])[] = [
-    ["finance/CorrectionsLayer.tsx", 0],
+    /* UNIT-013 (تنفيذ S15 بالأمر الموحد §5): CorrectionsLayer غادرت الشجرة
+     * مع خروج طبقة التصحيحات من جذر المالية — قراءة التصحيحات من سجل
+     * العمليات الموحد (017) ومصادرها؛ لا سطح رسالة خطأ يحتاج الحصر هنا. */
     ["direct-sales/SaleCollectionReversalSection.tsx", 0],
+    /* S17 (DOC-026 / UNIT-033): قسم «فحص البيانات» داخل الإعدادات — رسالتا
+     * الخطأ (فشل التشغيل/فشل تجهيز الخدمة) تعلنان alert. */
+    ["settings/SettingsDataCheckSection.tsx", 0],
   ];
 
   it("every confirmed error-only message surface announces with role=alert (was status)", () => {
@@ -165,7 +174,8 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
     expect(window).not.toContain('role="alert"');
     /* إرشاد «أنشئ محفظة أولًا» معلوماتي — يبقى status. */
     const cashCount = readFileSync(resolve(CLIENT_SRC, "pages/CashCount.tsx"), "utf8");
-    const emptyIndex = cashCount.indexOf("لا توجد محافظ بعد");
+    /* S04 (DOC-013 / UNIT-025): نص الفراغ الكنوني لأماكن النقد. */
+    const emptyIndex = cashCount.indexOf("لا توجد أماكن نقد بعد");
     expect(emptyIndex).toBeGreaterThan(-1);
     const emptyWindow = cashCount.slice(emptyIndex - 250, emptyIndex + 100);
     expect(emptyWindow).toContain('role="status"');
@@ -175,8 +185,7 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
     const sites: readonly [string, string][] = [
       ["Collect.tsx", "تعذر فتح ورقة التحصيل"],
       ["Finance.tsx", "تعذر قراءة الوضع المالي"],
-      ["Orders.tsx", "تعذر تحميل الطلبات"],
-      ["Parties.tsx", "تعذر قراءة دفتر الناس"],
+      ["Parties.tsx", "تعذر قراءة العملاء والموردين"],
       ["Statement.tsx", "تعذر قراءة الكشف"],
       ["WalletLedger.tsx", "دفتر محفظة غير متاح"],
       ["Foundation.tsx", "تعذر قراءة الموقف"],
@@ -191,6 +200,22 @@ describe("R9-GA-F3.6 — error-role source contract (regression guard)", () => {
         .soft(window.includes('role="alert"'), `${file}: read-error paragraph lacks role=alert`)
         .toBe(true);
     }
+    /* S13-MR-001 (أمر ba2ce7b4 §4): وجهة الطلبات لم تعد تخفي السليم خلف
+     * خطأ صفحة شاملة — الفشل معزول بإشارتَي قراءة صادقتين لكل مصدر، كلتاهما
+     * تعلن رسالتها بـrole=alert داخل قسسمها الموسوم باسمه. */
+    const orders = readFileSync(resolve(CLIENT_SRC, "pages", "Orders.tsx"), "utf8");
+    const ordersOrdersError = orders.indexOf('aria-label="تعذر تحميل الطلبات"');
+    expect.soft(ordersOrdersError, "Orders.tsx: orders read-error section not found").toBeGreaterThan(-1);
+    const ordersWindow = orders.slice(ordersOrdersError, ordersOrdersError + 700);
+    expect
+      .soft(ordersWindow.includes('role="alert"'), "Orders.tsx: orders read-error lacks role=alert")
+      .toBe(true);
+    const ordersCalendarError = orders.indexOf('aria-label="تعذر تحميل مواعيد التقويم"');
+    expect.soft(ordersCalendarError, "Orders.tsx: calendar read-error section not found").toBeGreaterThan(-1);
+    const calendarWindow = orders.slice(ordersCalendarError, ordersCalendarError + 700);
+    expect
+      .soft(calendarWindow.includes('role="alert"'), "Orders.tsx: calendar read-error lacks role=alert")
+      .toBe(true);
   });
 
   /* R10-B4/F-017: الجرد يغطي الآن قناتي الإعلان الأوليتين أيضًا — InlineError
@@ -237,13 +262,15 @@ describe("R9-GA-F3.6 — mixed-tone announcement behavior (CashCount journey)", 
     const walletSelect = await screen.findByRole("combobox");
     fireEvent.change(walletSelect, { target: { value: opened.value.wallet.id } });
     /* عدّ مطابق للرصيد ⇒ معلومة status بفئة الملاحظة لا الخطأ. */
-    const counted = screen.getByLabelText("المبلغ المعدود");
+    const counted = screen.getByLabelText("المبلغ الموجود");
     fireEvent.change(counted, { target: { value: "100" } });
-    const settle = screen.getByRole("button", { name: "سجّل التسوية" });
+    /* S04 (UNIT-025 R09/AC08): التطابق «تم» — معلومة status بفئة الملاحظة
+     * لا الخطأ، ولا يُكتب شيء البتة. */
+    const settle = screen.getByRole("button", { name: "تم" });
     fireEvent.click(settle);
     const info = await screen.findByRole("status");
     expect(info.className).toContain("micro-save-note");
-    expect(info.textContent).toContain("العدّ يطابق الرصيد المسجل");
+    expect(info.textContent).toContain("المبلغ يطابق الرصيد المسجل");
     expect(screen.queryByRole("alert")).toBeNull();
   });
 });

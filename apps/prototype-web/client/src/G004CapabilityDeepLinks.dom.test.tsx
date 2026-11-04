@@ -82,7 +82,7 @@ describe("G-004 — cold deep links cannot bypass a disabled create route", () =
     expect(screen.queryByTestId("editor-should-not-render")).toBeNull();
     /* فعلان صادقان: إعادة التفعيل من الإعدادات ورجوع آمن. */
     expect(screen.getByRole("button", { name: /الإعدادات/ })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /مشروعي الآن/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /الرئيسية/ })).toBeTruthy();
   });
 
   it("the same create route with the capability enabled opens the editor", async () => {

@@ -33,6 +33,7 @@ export type ActivityServiceStore = Pick<
   | "listInventoryMovements"
 >;
 import { localDateInAmman } from "@micro-domain/shared/index.js";
+import { supplierDisplayLabelOf } from "../parties";
 
 export type ActivityEffectClass =
   "cash_in" | "cash_out" | "non_cash" | "payable" | "owner_money" | "trust" | "pending" | "informational";
@@ -408,7 +409,7 @@ export class ActivityService {
         const record: ActivityRecord = {
           id: `${PURCHASE_STORE_PREFIX}:${purchase.id}:payment:${payment.id}`,
           family: "purchase_payment",
-          detail: `شراء — ${purchase.supplierName}`,
+          detail: `شراء — ${supplierDisplayLabelOf(purchase)}`,
           occurredOn: payment.occurredOn,
           recordedAt: payment.recordedAt,
           amountMinor: payment.amountMinor,

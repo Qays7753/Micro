@@ -90,6 +90,12 @@ export function describeEventEffect(
     const isOperatingExpense = intentType === intent.type;
     let amountMinor = intent.amountMinor;
     let expenseContext = intent.expenseContext;
+    /* S06 (CONS-DEC04 / SDF-064): الفرع الشخصي للفاتورة المشتركة — نفس
+     * التوسيع يكشف الفارق المؤكد شخصيًا فتصف المعاينة الحقيقة الكاملة:
+     * نقد −المدفوع، مصروف الحصة، وسحب مالك بالفارق؛ بمعاينة واحدة من
+     * نية الحفظ نفسها لا حساب واجهة منافس. */
+    let ownerPartMinor = 0;
+    let paidAmountMinor: number | null = null;
     if (isOperatingExpense || intent.sharedExpense || intent.expenseContext) {
       const expanded = expandExpenseRecordIntent({
         type: intentType,
@@ -100,6 +106,8 @@ export function describeEventEffect(
       if (!expanded.ok) return null;
       amountMinor = expanded.amountMinor;
       expenseContext = expanded.expenseContext;
+      ownerPartMinor = expanded.ownerPartMinor;
+      paidAmountMinor = expanded.paidAmountMinor;
     }
     if (amountMinor === undefined || !Number.isInteger(amountMinor) || amountMinor <= 0) return null;
     /* R2 (M-04/D8، 2026-10-08): صلاحية النواة — كان regex فقط فيقبل حتى
@@ -119,6 +127,14 @@ export function describeEventEffect(
       relatedEventId: intent.relatedEventId ?? null,
       expenseContext,
     });
+    if (intent.type === "operating_expense_cash" && ownerPartMinor > 0 && paidAmountMinor !== null) {
+      const source = walletName ? `من «${walletName}»` : "من الكاش غير الموزع";
+      return [
+        `ينقص الكاش ${formatMoneyMinor(paidAmountMinor)} د.أ ${source} — منها ${formatMoneyMinor(amountMinor)} د.أ حصة المشروع و${formatMoneyMinor(ownerPartMinor)} د.أ دُفعت فوق حصته.`,
+        `يُسجَّل مصروف ${formatMoneyMinor(amountMinor)} د.أ مرة واحدة بحصة المشروع — لا يُحمَّل على طلب تلقائيًا.`,
+        `يُسجَّل سحب شخصي ${formatMoneyMinor(ownerPartMinor)} د.أ على المالك (تحمّل الباقي) — ليس مصروف تشغيل ولا دينًا على أحد.`,
+      ];
+    }
     return describeDeltas(
       intent.type,
       amountMinor,

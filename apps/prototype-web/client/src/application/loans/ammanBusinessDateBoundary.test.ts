@@ -4,6 +4,9 @@ import { ReceivedLoanService } from "./receivedLoanService";
 import { AssetService } from "../assets/assetService";
 import { RetainedDepositService } from "../financial-records/retainedDepositService";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
+import { createLoanRecord } from "@micro-domain/loan/index.js";
+import { createReceivedLoanRecord } from "@micro-domain/received-loan/index.js";
+import { createFinancialEvent } from "@micro-domain/financial-event/index.js";
 import {
   calculateCostSnapshot,
   collectDeposit,
@@ -29,20 +32,74 @@ function clockAt(instant: string) {
 const EVENING = "2026-10-07T21:30:00.000Z"; /* عمّان: 2026-10-08 00:30 */
 const BEFORE_BOUNDARY = "2026-10-07T20:59:59.000Z"; /* عمّان: 2026-10-07 23:59:59 */
 
+/* UNIT-035/036 (تنفيذ S15 بالأمر الموحد §5): إنشاء الإقراض ملغى والاقتراض
+ * مؤجل — سجل الحدود يُزرع مباشرة عند حد المخزن (مسار توافق النقل نفسه)
+ * ثم يُصحّح مسائيًا على السجل الموروث؛ ما يختبره الملف هو تاريخ التصحيح
+ * عند حد عمّان لا مصدر السجل. */
+async function seedBoundaryLoan(store: MemoryLocalStore) {
+  const event = createFinancialEvent({
+    id: "event-boundary-loan",
+    type: "loan_outgoing_cash" as never,
+    amountMinor: 5000,
+    occurredOn: "2026-10-01",
+    recordedAt: "2026-10-01T10:00:00.000Z",
+    idempotencyKey: "loan-boundary:create",
+    note: "اختبار الحدود",
+    counterparty: "سامر",
+    loanContext: { loanId: "loan-boundary", borrower: "سامر" },
+  });
+  const loan = createLoanRecord({
+    id: "loan-boundary",
+    borrowerName: "سامر",
+    principalMinor: 5000,
+    loanDate: "2026-10-01",
+    purposeNote: "اختبار الحدود",
+    sourceWalletId: null,
+    principalEventId: event.id,
+    operationKey: "loan-boundary:create",
+    createdAt: "2026-10-01T10:00:00.000Z",
+  });
+  const commit = await store.commitLoanRecord(loan, event);
+  if (!commit.ok) throw new Error(commit.message);
+  return loan.id;
+}
+
+async function seedBoundaryReceivedLoan(store: MemoryLocalStore) {
+  const event = createFinancialEvent({
+    id: "event-boundary-rloan",
+    type: "loan_received_cash" as never,
+    amountMinor: 7000,
+    occurredOn: "2026-10-01",
+    recordedAt: "2026-10-01T10:00:00.000Z",
+    idempotencyKey: "rloan-boundary:create",
+    note: "اختبار الحدود",
+    counterparty: "ليلى",
+    loanContext: { loanId: "rloan-boundary", borrower: "ليلى", lender: "ليلى" },
+  });
+  const loan = createReceivedLoanRecord({
+    id: "rloan-boundary",
+    lenderName: "ليلى",
+    lenderType: "person",
+    principalMinor: 7000,
+    receivedOn: "2026-10-01",
+    dueOn: null,
+    note: null,
+    walletId: null,
+    principalEventId: event.id,
+    operationKey: "rloan-boundary:create",
+    createdAt: "2026-10-01T10:00:00.000Z",
+  });
+  const commit = await store.commitReceivedLoanRecord(loan, event);
+  if (!commit.ok) throw new Error(commit.message);
+  return loan.id;
+}
+
 describe("R2 regression — Amman business date at the evening boundary (M-05, 2026-10-08)", () => {
   it("loan principal correction after 21:00Z carries the NEXT Amman day (was the UTC day)", async () => {
     const store = new MemoryLocalStore();
     const service = new LoanService(store, clockAt(EVENING));
-    const created = await service.create({
-      borrowerName: "سامر",
-      principalMinor: 5000,
-      loanDate: "2026-10-01",
-      purposeNote: "اختبار الحدود",
-      sourceWalletId: null,
-    });
-    expect(created.ok).toBe(true);
-    if (!created.ok) return;
-    const corrected = await service.correctLoan(created.value.loan.id, {
+    const loanId = await seedBoundaryLoan(store);
+    const corrected = await service.correctLoan(loanId, {
       principalMinor: 6000,
       reason: "تصحيح مسائي",
     });
@@ -57,16 +114,8 @@ describe("R2 regression — Amman business date at the evening boundary (M-05, 2
   it("loan principal correction before 21:00Z keeps the same Amman day", async () => {
     const store = new MemoryLocalStore();
     const service = new LoanService(store, clockAt(BEFORE_BOUNDARY));
-    const created = await service.create({
-      borrowerName: "سامر",
-      principalMinor: 5000,
-      loanDate: "2026-10-01",
-      purposeNote: "اختبار الحدود",
-      sourceWalletId: null,
-    });
-    expect(created.ok).toBe(true);
-    if (!created.ok) return;
-    const corrected = await service.correctLoan(created.value.loan.id, {
+    const loanId = await seedBoundaryLoan(store);
+    const corrected = await service.correctLoan(loanId, {
       principalMinor: 6000,
       reason: "تصحيح قبل الحد",
     });
@@ -78,18 +127,8 @@ describe("R2 regression — Amman business date at the evening boundary (M-05, 2
   it("received-loan correction after 21:00Z carries the NEXT Amman day", async () => {
     const store = new MemoryLocalStore();
     const service = new ReceivedLoanService(store, clockAt(EVENING));
-    const created = await service.create({
-      lenderName: "ليلى",
-      lenderType: "person",
-      principalMinor: 7000,
-      receivedOn: "2026-10-01",
-      dueOn: null,
-      note: null,
-      walletId: null,
-    });
-    expect(created.ok).toBe(true);
-    if (!created.ok) return;
-    const corrected = await service.correctLoan(created.value.loan.id, {
+    const loanId = await seedBoundaryReceivedLoan(store);
+    const corrected = await service.correctLoan(loanId, {
       principalMinor: 7500,
       reason: "تصحيح مسائي",
     });
@@ -120,24 +159,14 @@ describe("R2 regression — Amman business date at the evening boundary (M-05, 2
     });
     expect(corrected.ok).toBe(true);
     if (!corrected.ok) return;
-    expect(corrected.value.reversal.occurredOn).toBe("2026-10-08");
+    expect(corrected.value.reversals[0]!.occurredOn).toBe("2026-10-08");
   });
 
   it("received-loan correction before 21:00Z keeps the same Amman day (FH-6b)", async () => {
     const store = new MemoryLocalStore();
     const service = new ReceivedLoanService(store, clockAt(BEFORE_BOUNDARY));
-    const created = await service.create({
-      lenderName: "ليلى",
-      lenderType: "person",
-      principalMinor: 7000,
-      receivedOn: "2026-10-01",
-      dueOn: null,
-      note: null,
-      walletId: null,
-    });
-    expect(created.ok).toBe(true);
-    if (!created.ok) return;
-    const corrected = await service.correctLoan(created.value.loan.id, {
+    const loanId = await seedBoundaryReceivedLoan(store);
+    const corrected = await service.correctLoan(loanId, {
       principalMinor: 7500,
       reason: "تصحيح قبل الحد",
     });
@@ -168,7 +197,7 @@ describe("R2 regression — Amman business date at the evening boundary (M-05, 2
     });
     expect(corrected.ok).toBe(true);
     if (!corrected.ok) return;
-    expect(corrected.value.reversal.occurredOn).toBe("2026-10-07");
+    expect(corrected.value.reversals[0]!.occurredOn).toBe("2026-10-07");
   });
 
   it("retained-deposit classification after 21:00Z carries the NEXT Amman day", async () => {

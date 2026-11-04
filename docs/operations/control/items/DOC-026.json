@@ -1,0 +1,108 @@
+{
+  "id": "DOC-026",
+  "title": "S17 execution — فحص البيانات وتجربة النسخ النهائية (UNIT-033/044 + SH-22)",
+  "type": "FEATURE",
+  "status": "IN_REVIEW",
+  "priority": "P0",
+  "stage": "micro-component-execution-s17-20261104",
+  "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق الأمر 00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md بعد قبول المالك S15/S16 على فرع التكامل عند 7fef8cf1 (الأمر نُشر عند 825296c6). | بطاقة الفهم: مشكلة المستخدم: صاحب المشروع يريد اطمئنانًا على اتساق أرقامه بفحص قراءة فقط من الإعدادات، ويريد نسخة احتياطية يستعيدها بأمان كامل — معاينة وأثر وتأكيد وحماية دائمة للموجود قبل أي كتابة مدمرة، ورفضًا صادقًا للملف التالف أو الكبير أو غير المدعوم قبل مسح أي شيء. النطاق: UNIT-033 مدخل «فحص البيانات» بنطاق بسيط داخل الإعدادات (حالات: لم يجر/جارٍ/اكتمل بلا مشكلة/مشكلة محددة/جزئي/غير منطبق/فشل قراءة/نتيجة قديمة) بإعادة استخدام IntegrityCheckService وحده (لا خدمة ثانية ولا فحص جديد ولا إصلاح آلي) مع جرد الفحوص الفعلية من المصدر؛ UNIT-044 بوابة حدود موارد الملف الكبير قبل القراءة/التحليل (SDF-048) على خدمة النقل ببابها الواحد، مع مصالحة شاملة للعائلات والأزواج والقدرات المتقاعدة (SH-22)؛ حالات SDF المملوكة: SDF-046/047/048/069/070 بأدلة دائمة جديدة أو موثقة من الاختبارات القائمة بعد تشغيلها فعلًا. غير الأهداف: لا PIN ولا مزامنة أو سحابة أو Auth؛ لا إصلاح مالي آلي من الفحص ولا شهادة صحة محاسبية؛ لا ترقية schema/export (41/34 ثابتان مع الموروثين 33/40 و32/40)؛ لا تأجيل مهاجرات S03–S16؛ لا إعادة تصميم واسعة للإعدادات؛ لا موجة هيكلية. الثوابت: الاستعادة استبدال لا دمج ولا إعادة تشغيل أعمال؛ القبض ليس ربحًا؛ الجيل محلي لا يُصدَّر؛ الفحص يقرأ ولا يكتب أبدًا؛ الملف غير المؤهل يُرفض قبل أي كتابة. حالات الفشل: ملف أكبر من حد الفحص الآمن يُرفض قبل القراءة برسالة محددة؛ فشل تجهيز النسخة الرجوع يمنع الاستبدال؛ نتيجة الفحص القديمة لا تُعرض كحالية؛ النافذة الثانية والمسودة القديمة لا تكتبان فوق الجيل الجديد. معيار القبول: حالات UNIT-033/044 القابلة للتطبيق بحسب العقد + حالات SDF المملوكة بأدلة دائمة؛ pnpm check كاملة على الشجرة النهائية؛ خمس مراجعات قرائية متسلسلة على المرشح النهائي؛ بوابتا Actions/Cloudflare على الرأس النهائي بعينه. حد الاستعادة: رأس نشر الأمر 825296c6 (آخر رأس مقبول للتسليم 7fef8cf1).",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "CONFIRMED",
+  "classification": "FIX_BEFORE_PILOT",
+  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "الأمر 00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md: المالك قبل S15/S16 صراحة على فرع التكامل وفوّض أمرًا متصلًا واحدًا لـS17 ثم S18 مباشرة بلا وقفة موافقة وسيطة. لا يفوض الأمر ZAI بقبول أي مرحلة ذاتيًا ولا بالدمج ولا بكتابة main ولا بحذف فروع ولا بادعاء قبول ميداني/Pilot. السقفان ثابتان 650,000/155,300؛ 41/34 محروس مع أزواجه الموروثة.\nقرار المالك الشامل للمرحلة S17 بتاريخ 2026-11-04: أكد المالك صراحةً قبول تسليم S17 على فرع التكامل components/integration-20261027، استنادًا إلى التقرير 22-S17-RESULT-2026-11-04.md والمرشح الكودي 1f232c79. هذا قبول على فرع التكامل فقط؛ لا يعني VERIFIED على main ولا إذن دمج. ولا ينشئ هذا القيد ادعاءً بمراجعة مستقلة من Manus حيث لا يسجلها التاريخ.",
+  "tests_required": [
+    "SDF-046: تصدير أثناء كتابات متزامنة ينتج لقطة متسقة — العدادات والبصمة من اللقطة نفسها، لا عدد من قبل الفعل ومبلغ من بعده",
+    "SDF-047: تصدير ثم استعادة لكل حالات المعرفة والتغطية — الهوية والمعرفة والحقوق والكمية والقراءة محفوظة بلا إعادة تشغيل مال",
+    "SDF-048: ملف تالف أو أكبر من حد الفحص الآمن أو مرجع غائب أو زوج أحدث يُرفض قبل أي كتابة برسالة محددة — لا استيراد جزئي",
+    "SDF-049/050/051: نسخة الرجوع الدائمة شرط قبل الاستبدال؛ النافذة الثانية والمسودة القديمة والفشل المتأخر بحالتين كاملتين لا مخلوطتين",
+    "SDF-069: الملف القديم المؤهل (بما فيه 30/38) يهاجر دون إعادة مال، والتطبيق الحالي يرفض الزوج الأحدث بدل إسقاط حقول",
+    "SDF-070: استعادة إيصالات تاريخية مع جيل محلي جديد — يحفظ تاريخها ولا يحيي أمرًا قديمًا أو إذن نموذج سابق",
+    "UNIT-033: حالات الواجهة الصادقة داخل الإعدادات (لم يجر/جارٍ/اكتمل/مشكلة/جزئي/غير منطبق/فشل قراءة/نتيجة قديمة) وضغط متكرر بلا نتائج متداخلة والرجوع من المصدر يعيد النتيجة وموضعها",
+    "UNIT-033: جرد الفحوص الفعلي من المصدر (المعرف/المسار/المصدر/شرط التطبيق/الأثر/حالة الاختبار) يوثق في تقرير النتيجة",
+    "توازن Memory/IndexedDB لكل عقد تخزين متغير في الشريحة",
+    "pnpm check كاملة على الشجرة النهائية المستقرة مرة واحدة"
+  ],
+  "layers": [
+    "application",
+    "ui"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-component-execution/00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md",
+    "discovered_at_sha": "825296c6c87fd251623ef396d2e564805ff04592 (رأس نشر الأمر المتصل؛ آخر رأس تسليم مقبول 7fef8cf1fa9795e137a72c9a19ccdc38c247ba83)",
+    "evidence": [
+      "docs/implementation/micro-component-execution/00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md",
+      "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-033-فحص-البيانات.md",
+      "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-044-النسخ-الاحتياطي-والاستعادة.md",
+      "https://github.com/Qays7753/Micro/pull/383"
+    ]
+  },
+  "acceptance": [
+    "مدخل «فحص البيانات» يدوي داخل الإعدادات بنطاق بسيط وحالات صادقة — لا فحص إلزامي يومي ولا إصلاح مالي آلي ولا فحوص مختلقة",
+    "الفحص يقرأ ولا يكتب أبدًا: خدمة IntegrityCheckService وحدها فوق قارئاتها الكنونية بلا كاتب ثانٍ",
+    "الفحوص غير المتاحة لا تظهر خضراء ولا صفرًا؛ والتغيّر بعد التشغيل يُعلن بوقت ونطاق النتيجة لا بشارة حالية",
+    "حد موارد الملف الكبير مفعّل قبل قراءة الملف وتحليله، مشتق بقياس موثق لا رقم اعتباطي، ورفضه قبل أي مسح برسالة محددة",
+    "كل عائلة دائمة في اللقطة أو مستثناة استثناء معللًا موثقًا؛ ومصفوفة الأزواج المقبولة والمهاجرات تتطابق مع الكود والاختبارات",
+    "لا تغيير لـschema/export (41/34) ولا للميزانية (650,000/155,300) إلا بإثبات ضمني داخل الحدود — رفع أي منهما قرار مالك",
+    "المراجعات الخمس القرائية المتسلسلة على المرشح النهائي نفسه والمراجعون لا يحررون"
+  ],
+  "areas": [
+    "apps/prototype-web/client/src/components/settings/",
+    "apps/prototype-web/client/src/pages/Settings.tsx",
+    "apps/prototype-web/client/src/pages/ToolsIntegrity.tsx",
+    "apps/prototype-web/client/src/application/transfers/",
+    "apps/prototype-web/client/src/app/MicroRouter.tsx",
+    "apps/prototype-web/client/src/app/navigationContract.ts",
+    "apps/prototype-web/client/src/app/navigation.ts",
+    "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts",
+    "docs/quality/persistent-entity-touchpoints.json",
+    "scripts/file-size-ratchet-baseline.json",
+    "scripts/file-size-ratchet-reanchors.json"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/implementation/micro-component-execution/00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-033-فحص-البيانات.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-044-النسخ-الاحتياطي-والاستعادة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/01-Journeys/08-Settings-Maintenance-Backup-and-Restore-AR.md",
+    "docs/implementation/micro-component-execution/DEPENDENCIES-AND-TRACEABILITY.md"
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/22-S17-RESULT-2026-11-04.md",
+    "apps/prototype-web/client/src/application/transfers/localTransferService.s17sdf.test.ts",
+    "apps/prototype-web/client/src/application/transfers/transferResourceLimits.ts",
+    "apps/prototype-web/client/src/components/settings/SettingsDataCheckSection.tsx",
+    "apps/prototype-web/client/src/SettingsDataCheck.ui.test.tsx",
+    "https://github.com/Qays7753/Micro/pull/383"
+  ],
+  "dependencies": [
+    "DOC-024",
+    "DOC-025"
+  ],
+  "related_items": [
+    "DOC-011",
+    "DOC-023"
+  ],
+  "migration_baseline": true,
+  "next_action": "S17 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا VERIFIED على main ولا merge؛ قرار الدمج منفصل.",
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-04",
+      "actor": "zai-s17-execution",
+      "reason": "بدء S17 المأذون وفق الأمر المتصل 00-S17-S18-CONNECTED-EXECUTION-PROMPT-2026-11-04.md فوق رأس نشر الأمر 825296c6 (آخر رأس تسليم مقبول 7fef8cf1) بعد الفحص الآمن: شجرة نظيفة، main ثابت 3584aa1d، Validator سليم 111/83 بصفر مطالبات نشطة، DOC-026/WS-242 غير مستخدمين، PR #383 Draft فوق main؛ أنشئت المطالبة قبل أول سطر كود منتج من S17."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-04",
+      "actor": "zai-s17-execution",
+      "reason": "تسليم S17 للمراجعة (لا قبولًا ذاتيًا): المرشح الكودي 1f232c79 فوق رأس نشر الأمر 825296c6؛ pnpm check كاملة خروج 0 (جذري 1019/1019 + تطبيقي 3343/3343)؛ الميزانية 597,284/145,624 تحت السقفين الثابتين وبأفضل من S16؛ الأسطح بإرساء موثق مقفل التحسينات (lazyGzipNorm 443,819 وdynamicRoots 87)؛ كثافة Settings 75/75 بنقل السطح المتقاعد؛ بوابة SDF-048 نفذت أحمر أولًا ثم أخضرت؛ 11 اختبار SDF دائمًا + 5 اختبارات حالة للقسم؛ مراجعات قرائية خمس PASS بلا موجدة مؤكدة داخل النطاق؛ 41/34 والموروثون بلا تغيير؛ بوابتا Actions/Cloudflare تُثبتان على الرأس النهائي المدفوع في تعليق PR #383. وفق الأمر المتصل ينتقل التنفيذ مباشرة إلى S18."
+    }
+  ],
+  "updated_at": "2026-11-04",
+  "merge_sha": ""
+}

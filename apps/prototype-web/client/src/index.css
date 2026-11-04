@@ -599,6 +599,14 @@ textarea:disabled,
 .micro-setting-row:last-child {
   border-bottom: 0;
 }
+/* S02-A (عقد ٠٤٤ B4.4): أزرار النسخة السابقة الدائمة — تنزيل واسترجاع جنبًا
+ * إلى جنب بلا تمدد على حساب النص (استثناء مقصود من قاعدة تمدد أبناء الصف). */
+.micro-setting-row .micro-setting-row-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
 .micro-setting-row > div {
   flex: 1;
   min-width: 0;
@@ -1907,11 +1915,6 @@ textarea:disabled,
   height: 19px;
   color: var(--color-accent-text);
 }
-.micro-home-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
 .micro-finance-page {
   gap: var(--space-5);
 }
@@ -2129,6 +2132,90 @@ button.micro-finance-position-link:focus-visible {
 .micro-finance-actions {
   display: grid;
   gap: var(--space-2);
+}
+/* UNIT-013 / AF-B (تنفيذ S15 بالأمر الموحد §5): أفعال التسجيل الثلاثة
+   المتقاربة أعلى المالية — تفتح أصحابها مباشرة (005/015/027). */
+.micro-finance-record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+/* UNIT-013 / AF-B: لوحة وظائف المالية — وصول واحد عند الطلب بست مجموعات
+   و15 مدخلًا؛ تمرير رأسي عند الحاجة ولا سحب أفقي (AF-AC02/AC10). */
+.micro-functions-board {
+  display: grid;
+  gap: var(--space-3);
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  background: var(--color-surface);
+}
+.micro-functions-board-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.micro-functions-board-heading h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+.micro-functions-board-group {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.micro-functions-board-group h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+}
+.micro-functions-board-group ul {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.micro-functions-board-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  text-align: start;
+  cursor: pointer;
+}
+.micro-functions-board-entry:focus-visible {
+  outline: 3px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
+.micro-functions-board-entry > span {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.micro-functions-board-entry strong {
+  font-size: 0.9375rem;
+}
+.micro-functions-board-entry small {
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+.micro-functions-board-entry > svg {
+  flex: 0 0 auto;
+  color: var(--color-text-secondary);
 }
 .micro-finance-event-list {
   /* §2: قوائم الصفوف الموحدة داخل حاوية محدودة واحدة 16px بصفوف نصف قطرها 0
@@ -2630,24 +2717,8 @@ button.micro-finance-position-link:focus-visible {
  * يلتفان عموديًا في المقاسات الضيقة؛ لا بطاقات ثقيلة حول كل رقم. */
 .micro-home-numbers {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: var(--space-2);
-}
-.micro-home-numbers-period {
-  display: grid;
-  gap: var(--space-2);
-  min-width: 0;
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-}
-.micro-home-numbers-period > h3 {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1.35;
 }
 .micro-home-number {
   display: flex;
@@ -2680,50 +2751,6 @@ button.micro-finance-position-link:focus-visible {
 }
 /* P-4.3-2 (D6): Insights — صفوف خفيفة بلا بطاقات ثقيلة؛ أيقونة واحدة وسطر
  * وفعل نصي واحد لكل ملحوظة. */
-.micro-home-insights-list {
-  display: grid;
-  gap: var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.micro-home-insight {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-control);
-  background: var(--color-bg-well);
-}
-.micro-home-insight > svg {
-  flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
-  color: var(--color-accent-text);
-}
-.micro-home-insight > div {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-.micro-home-insight p {
-  margin: 0;
-  color: var(--color-text-primary);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  line-height: 1.5;
-}
-.micro-home-insight small {
-  color: var(--color-text-secondary);
-  font-size: 0.75rem;
-  line-height: 1.5;
-}
-.micro-home-insight > .micro-text-action {
-  flex: 0 0 auto;
-}
 .micro-setup-intro {
   display: grid;
   gap: 8px;
@@ -3670,6 +3697,28 @@ button.micro-finance-position-link:focus-visible {
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
 }
+/* S13-MR-006 (أمر ba2ce7b4 §4): شبكة تقويم الطلبات بصفوف أسابيع سليمة —
+ * الخارج عمود مرن (صف رؤية + صفوف أسابيع) وكل صف شبكة سبعة أعمدة؛
+ * الحشو خلايا عرض بلا محتوى. مخصصة لتقويم الطلبات وحده فلا تمس شبكة
+ * صفحة الجدولة المسطحة المستقلة. */
+.micro-orders-month {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.micro-month-header-row,
+.micro-month-week-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+.micro-month-weekday {
+  color: var(--color-text-secondary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-align: center;
+  min-width: 0;
+}
 .micro-month-weekdays {
   color: var(--color-text-secondary);
   font-size: 0.6875rem;
@@ -4267,6 +4316,33 @@ button.micro-month-cell:active {
   outline-offset: 2px;
 }
 /* S3-01: تأكيد حذف التقدير داخل صف القائمة — خطوة ثانية تسمّي الكائن. */
+/* S10 (R5): حد بصري لمجموعات الحاسبة المتعددة على الهاتف — إطار ونفس
+ * بتصميم النظام (المتغيرات وحدها لا ألوان صلبة). */
+.micro-planning-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+/* S10 (R5): قوائم مراجعة الفكرة (T05) بعهد النظام — بلا تعداد المتصفح
+ * الافتراضي وبمسافة داخلية موحدة. */
+.micro-idea-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.micro-idea-review-list li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
 .micro-estimate-delete-confirm {
   display: flex;
   flex-wrap: wrap;
@@ -4416,6 +4492,45 @@ button.micro-month-cell:active {
 }
 
 /* H01-B: decision-led local control center */
+/* SH-21/S16 (UNIT-003 — HOME-A2): الرئيسية الجديدة — صف إجراءات يدوي
+ * بسحب وزر «عرض الكل» ثابت خارجه، ومتابعتك، ولمحة مالية بفترة واحدة. */
+.micro-home-quick-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.micro-quick-actions-scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.micro-quick-action-all {
+  flex: 0 0 auto;
+  min-width: 72px;
+}
+.micro-home-heading-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+.micro-home-glimpse-section {
+  display: grid;
+  gap: var(--space-3);
+}
+.micro-home-number small.micro-home-number-note {
+  display: block;
+  color: var(--color-text-secondary);
+  font-size: 0.6875rem;
+}
+.micro-home-secondary-line {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+}
+.micro-home-period-picker {
+  max-width: 360px;
+  margin-inline: auto;
+}
+
 .micro-home-control-center {
   display: grid;
   /* NAV-001/MOB-001: الصف القابل للتمرير (أزرار التسجيل السريع) يساهم
@@ -4447,44 +4562,18 @@ button.micro-month-cell:active {
   color: var(--color-text-secondary);
   font-size: 0.8125rem;
 }
-.micro-home-facts-section,
-.micro-home-finance-section,
-.micro-home-catalog-section,
-.micro-home-attention-section,
-.micro-home-optional-section,
-.micro-home-recent-section {
-  display: grid;
-  gap: var(--space-3);
-}
-.micro-home-finance-unit {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-inline-start: 3px solid var(--color-accent-primary);
-  border-radius: var(--radius-control);
-  padding: var(--space-3);
-  background: var(--color-surface);
-}
-.micro-home-finance-unit p {
-  margin: 0;
-  color: var(--color-text-secondary);
-  font-size: 0.75rem;
-}
-.micro-home-finance-unit .micro-prim-button {
-  flex: 0 0 auto;
-}
 /* قسم «اليوم» (F-078): أولوية صباحية — المتابعات والمواعيد والديون من شاشة واحدة. */
-.micro-home-today-section {
+/* HOME-A2-3 (S16 — UNIT-003): متابعتك — مختصر واحد حتى 3 مهام؛ وسم
+ * «قادم» للموعد المستقبلي المحجوز لا يوصف بالعاجل. */
+.micro-home-followup-section {
   display: grid;
   gap: var(--space-3);
 }
-.micro-home-today-list {
+.micro-home-followup-list {
   display: grid;
   gap: var(--space-2);
 }
-.micro-home-today-item {
+.micro-home-followup-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4494,47 +4583,43 @@ button.micro-month-cell:active {
   padding: var(--space-3);
   background: var(--color-surface);
 }
-.micro-home-today-item[data-kind="due_amount"] {
-  border-inline-start-color: var(--color-warning-text);
+.micro-home-followup-item[data-upcoming="true"] {
+  border-inline-start-color: var(--color-border);
 }
-.micro-home-today-item > div {
+.micro-home-followup-item > div {
   display: grid;
   gap: var(--space-1);
   min-width: 0;
 }
-.micro-home-today-item strong {
+.micro-home-followup-item strong {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   font-size: 0.875rem;
 }
-.micro-home-today-item strong svg {
+.micro-home-followup-soon {
   flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-  color: var(--color-accent-text);
+  font-size: 0.6875rem;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0 var(--space-2);
 }
-.micro-home-today-item p {
+.micro-home-followup-item p {
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 0.75rem;
 }
-.micro-home-today-item small {
+.micro-home-followup-amount {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+.micro-home-followup-item small {
   color: var(--color-text-secondary);
   font-size: 0.6875rem;
 }
-.micro-home-today-item .micro-text-action {
+.micro-home-followup-item .micro-text-action {
   flex: 0 0 auto;
-}
-/* §2.7: سطر الحقيقة كطريق — «غير مسجل — سجّله (نقرة)». */
-.micro-home-fact .micro-fact-road {
-  font-size: 0.9375rem;
-  line-height: 1.6;
-  text-align: start;
-}
-.micro-fact-road-line {
-  color: var(--color-text-secondary);
-  font-size: 0.75rem;
 }
 /* القرار ١٩: لوحة الإلغاء وتسوية العربون — سبب اختياري بثلاثة أزرار، وعربون بثلاثة خيارات. */
 /* X-06 (و٤): لوحة قرار الفرق بين المتفق والمقبوض — ثلاثة خيارات والثالث صالح. */
@@ -4905,27 +4990,7 @@ button.micro-month-cell:active {
   width: 15px;
   height: 15px;
 }
-/* كتلة «الأهم الآن»: بند واحد مرفوع بلون تمييز هادئ — لا عدّاد ولا إنذار. */
-.micro-home-priority {
-  display: grid;
-  gap: var(--space-2);
-  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 42%, var(--color-border));
-  border-radius: var(--radius-card);
-  padding: var(--space-3);
-  background: var(--color-surface);
-}
-.micro-home-priority .micro-home-today-item {
-  border: 0;
-  padding: 0;
-  background: transparent;
-}
 /* مؤهل الأمانة داخل بطاقة الكاش: حقيقة مالية ظاهرة بلا لون إنذار. */
-.micro-home-fact-qualifier {
-  color: var(--color-text-secondary);
-  font-size: 0.6875rem;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-}
 /* سطر المكان/العمل بلا اتصال — بديل نص النطاق القديم. */
 .micro-home-locality {
   display: flex;
@@ -5986,7 +6051,8 @@ button.micro-month-cell:active {
 
 /* ============ «أدواتي» والتدفقات الجديدة (موجة إعادة التدفق المالي) ============ */
 
-/* دفتر الناس: مدخل طرف قابل للفتح مع حركاته. */
+/* العملاء والموردون (S05/DOC-014 — UNIT-037): بطاقة طرف محفوظ وحسابه
+ * من مصادره المرتبطة — نفس لغة الواجهة القائمة بلا أي إعادة تصميم. */
 .micro-party-entry {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
@@ -6070,6 +6136,82 @@ button.micro-month-cell:active {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-text-primary);
+}
+/* S05 (DOC-014 / UNIT-037): نموذج حفظ طرف صريح داخل الدليل. */
+.micro-party-add-form {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  padding: var(--space-4);
+}
+/* قسم الأطراف المؤرشفة — تُقرأ ولا تقترح. */
+.micro-party-archived {
+  display: grid;
+  gap: var(--space-3);
+}
+.micro-party-archived h2 {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+.micro-party-archived .micro-party-entry {
+  opacity: 0.85;
+}
+/* حساب فارغ صادق — الحفظ لا يستحدث دينًا. */
+.micro-party-empty-account {
+  padding: var(--space-3) var(--space-4);
+}
+.micro-party-empty-account small {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+/* أفعال الهوية داخل البطاقة — تعديل/أرشفة بلا رصيد يُحرَّر. */
+.micro-party-identity-actions {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+.micro-party-identity-actions small {
+  color: var(--color-text-secondary);
+  font-size: 0.6875rem;
+  line-height: 1.6;
+}
+/* تعريف صاحب المبلغ في محرر البيع/الشراء (A1/A2) — محفوظ أو اسم للعملية. */
+.micro-party-identity {
+  display: grid;
+  gap: var(--space-3);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  padding: var(--space-3);
+}
+
+/* S11-MR-001 (UNIT-005 A2/س2): مجموعة وضع الدفع — ثلاث نيات صريحة
+   (كامل/جزء ودين/لم يُستلم ودين) بلا حدود ثقيلة؛ النمط نفسه لا هوية جديدة. */
+.micro-payment-mode {
+  display: grid;
+  gap: var(--space-2);
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+}
+.micro-payment-mode legend {
+  padding: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+/* S11-MR-001 (A2/س8): معاينة قصيرة ملاصقة للحفظ — سطر واحد صادق من
+   النية الفعّالة، لا فقرة تعليم. */
+.micro-save-preview {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-control);
+  padding: var(--space-2) var(--space-3);
 }
 
 /* شريط توزيع الكاش غير الموزع في مالي/المحافظ. */
@@ -6756,67 +6898,6 @@ button.micro-month-cell:active {
   color: var(--color-text-secondary);
   font-size: 0.6875rem;
   margin: var(--space-1) 0 0;
-}
-
-/* المجموعة ٥ (عقد ٣٧): غطاء القفل — حجاب ثابت كامل الشاشة فوق كل شيء
- * (طبقة القوة ٦٠ أعلى التنقل والأوراق، دون الطبقات النظامية)؛ النماذج تبقى
- * محمّلة تحته فلا يُفقد شيء غير محفوظ. */
-.micro-lock-veil {
-  position: fixed;
-  inset: 0;
-  background: var(--color-surface);
-  /* المجموعة ٦ (تدقيق A1 — SP-05): غطاء معتم تمامًا — ٠.٩٦ كانت تكشف
-   * وميض المحتوى تحته للناظر عن قرب والوعد «حماية من النظرة العابرة». */
-  opacity: 1;
-  z-index: 60;
-}
-.micro-lock-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  text-align: center;
-}
-.micro-lock-overlay h1 {
-  font-size: 1.25rem;
-  margin: 0;
-}
-.micro-lock-overlay > p {
-  max-width: 34ch;
-  color: var(--color-text-secondary);
-  font-size: 0.8125rem;
-  margin: 0;
-}
-.micro-lock-icon {
-  width: 28px;
-  height: 28px;
-  color: var(--color-accent-text);
-}
-.micro-lock-form {
-  display: grid;
-  gap: var(--space-3);
-  width: min(320px, 100%);
-  text-align: start;
-}
-.micro-lock-form input {
-  text-align: center;
-  letter-spacing: 0.3em;
-}
-
-/* المجموعة ٥ (عقد ٣٧): نموذج إدارة القفل داخل الإعدادات. */
-.micro-lock-admin {
-  display: grid;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
-  max-width: 340px;
-}
-.micro-lock-admin input {
-  text-align: center;
-  letter-spacing: 0.3em;
 }
 
 /* المجموعة ٥ (عقد ٣٣): معاينة المشاركة — منطقة نص واسعة بحدود واضحة. */

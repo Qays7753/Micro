@@ -78,6 +78,18 @@ export type CreateTemplateInput = {
   autoConsumeOnDelivery?: boolean | null;
   operationKey: string;
 };
+/* S09 (UNIT-029 — أمر ad133bae القسم ٢): «حفظ لاستخدامه مرة أخرى» — حفظ صريح
+ * اختياري لعرض مناسب من سياق المسودة/الطلب. الهوية الدنيا اسم + نوع (R02/AC01)؛
+ * لا سعر ولا تكلفة ولا مكونات ولا وحدات ولا مخزون. نتيجة صادقة تميّز إنشاءً
+ * جديدًا من تعريف موجود أصلًا — والتعريف الموجود النشط بالنوع والاسم نفسيهما
+ * يُعاد كما هو بلا تعريف ثانٍ (AC32/AC37/AC44: لا تكرار بالنقر المتكرر ولا
+ * بالنية نفسها بعد إعادة التحميل). */
+export type SaveOfferingFromDraftInput = {
+  kind: CatalogItemKind;
+  name: string;
+  operationKey: string;
+};
+export type SaveOfferingResult = { ok: true; item: CatalogItem; alreadyExisted: boolean } | CatalogFailure;
 
 const createId = (prefix: string) =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -157,6 +169,48 @@ export class CatalogService {
         : failure("تعذر حفظ مرجع العمل محليًا.", "storage_error");
     } catch (error) {
       return failure(errorMessageOf(error, "مرجع العمل غير صالح."));
+    }
+  }
+
+  /* S09 (UNIT-029 — «حفظ لاستخدامه مرة أخرى»): زر صريح اختياري بعد حفظ بيانات
+   * المسودة/الطلب — لا حفظ كتالوج آليًا من مسودة أو حساب أو تقدير أو اختيار
+   * محفوظ (P3.3/AC32). الهوية الدنيا اسم + نوع؛ المفتاح التشغيلي الثابت يجعل
+   * النقر المتكرر وإعادة المحاولة بعد نتيجة مجهولة نية واحدة (AC04/AC44/AC45).
+   * التعريف النشط الموجود بالنوع والاسم نفسيهما يُعاد كما هو بلا تعريف ثانٍ
+   * (AC32/AC37) — خلاف مسار الإنشاء الواعي في create() الذي يرفض التكرار
+   * صراحة. لا أثر مالي إطلاقًا: لا بيع ولا اتفاق ولا كاش ولا مصروف ولا مخزون. */
+  async saveOfferingFromDraft(input: SaveOfferingFromDraftInput): Promise<SaveOfferingResult> {
+    const name = input.name.trim().replace(/\s+/g, " ");
+    if (!name) return failure("اكتب اسم العرض قبل الحفظ للاستخدام مرة أخرى.");
+    if (name.length > 200) return failure("اسم العرض أطول من اللازم؛ اختصره إلى 200 حرف أو أقل.");
+    const existing = await this.store.listCatalogItems();
+    if (!existing.ok) return failure("تعذر قراءة مراجع الأعمال المحلية.", "storage_error");
+    /* النية نفسها (المفتاح نفسه) = النتيجة نفسها بلا كتابة ثانية — إثبات الهوية
+     * من السجل المكتوب لا من الذاكرة. */
+    const sameIntent = existing.value.find(item => item.createdOperationKey === input.operationKey);
+    if (sameIntent) return { ok: true, item: sameIntent, alreadyExisted: true };
+    const sameIdentity = existing.value.find(
+      item => item.active && item.kind === input.kind && normalizedName(item.name) === normalizedName(name),
+    );
+    if (sameIdentity) return { ok: true, item: sameIdentity, alreadyExisted: true };
+    try {
+      const item = createCatalogItem({
+        id: createId("catalog"),
+        kind: input.kind,
+        name,
+        unitLabel: null,
+        unitId: null,
+        defaultPriceMinor: null,
+        defaultUnitCostMinor: null,
+        createdAt: this.now(),
+        createdOperationKey: input.operationKey,
+      });
+      const saved = await this.store.saveCatalogItem(item);
+      return saved.ok
+        ? { ok: true, item: saved.value, alreadyExisted: false }
+        : failure("تعذر حفظ العرض محليًا.", "storage_error");
+    } catch (error) {
+      return failure(errorMessageOf(error, "العرض غير صالح."));
     }
   }
 

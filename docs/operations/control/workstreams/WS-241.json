@@ -1,0 +1,78 @@
+{
+  "id": "WS-241",
+  "title": "S16 — الرئيسية والتنقل ومداخل الخدمات (UNIT-003/014/041/043 + SH-21)",
+  "status": "REVIEW_REQUIRED",
+  "items": [
+    "DOC-025"
+  ],
+  "branch": "components/integration-20261027",
+  "base_sha": "c788b09f",
+  "areas": [
+    "apps/prototype-web/client/src/pages/Home.tsx",
+    "apps/prototype-web/client/src/application/home/",
+    "apps/prototype-web/client/src/application/follow-up/",
+    "apps/prototype-web/client/src/app/navigation.ts",
+    "apps/prototype-web/client/src/app/MicroRouter.tsx",
+    "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+    "apps/prototype-web/client/src/app/futureServices.ts",
+    "apps/prototype-web/client/src/components/layout/AppHeader.tsx",
+    "apps/prototype-web/client/src/components/layout/BottomNav.tsx",
+    "apps/prototype-web/client/src/pages/Delivery.tsx",
+    "apps/prototype-web/client/src/pages/Market.tsx",
+    "apps/prototype-web/client/src/pages/Finance.tsx",
+    "apps/prototype-web/client/src/pages/Schedule.tsx",
+    "apps/prototype-web/client/src/pages/Settings.tsx",
+    "apps/prototype-web/client/src/pages/NotFound.tsx",
+    "apps/prototype-web/client/src/pages/Foundation.tsx",
+    "apps/prototype-web/client/src/pages/FinanceActivity.tsx",
+    "apps/prototype-web/client/src/components/settings/",
+    "apps/prototype-web/client/src/app/CapabilityRouteGate.tsx",
+    "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts",
+    "apps/prototype-web/client/src/index.css"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/01-STAGES.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-003-مشروعي-الآن.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-014-أدوات-وسجلات-المالية.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-041-السوق.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/03-New-Design/UNIT-043-الخدمات-القادمة.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/02-Shared-Data-and-Financial-Contract-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/05-Data-and-Implementation/03-Shared-Data-Acceptance-Cases-AR.md",
+    "docs/implementation/micro-component-execution/02-SPECIFICATIONS/04-System-Navigation/00-System-Navigation-Master-AR.md",
+    "docs/contracts/05-financial-p0-policies.md"
+  ],
+  "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
+  "pr": 383,
+  "started_at": "2026-11-03",
+  "updated_at": "2026-11-04",
+  "next_action": "S16 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا عمل مرحلي إضافي مفوض؛ لا VERIFIED على main ولا merge.",
+  "notes": [
+    "أمر S16: 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md (اتصال مأذون بعد إصلاح S15-MR-001 وإعادة S15 للمراجعة عند c788b09f).",
+    "حالة تاريخية عند تسليم 2026-11-03: S15/S16 بقيتا رهن مراجعة المالك؛ لا merge أو main write ولا مقعد سادس. استُبدلت حالة القبول بقرار المالك الصريح في 2026-11-04، المثبت في الملاحظة التالية؛ لا VERIFIED على main ولا merge.",
+    "اعتمد المالك قبول S16 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-04، استنادًا إلى تسليم S16 في 21-S16-RESULT-2026-11-03.md، المرشح الكودي 9dc4b194، وتحقق Actions وCloudflare Pages الناجحين على رأس التسليم 7fef8cf1fa9795e137a72c9a19ccdc38c247ba83. القبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج. تبقى حالة Workstream REVIEW_REQUIRED وفق نمط تحرير الملكية؛ لا تعني VERIFIED على main ولا دمجًا."
+  ],
+  "evidence": [
+    "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md",
+    "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md"
+  ],
+  "status_history": [
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-03",
+      "actor": "zai-s16-execution",
+      "reason": "بدء تنفيذ S16 فوق رأس إصلاح S15-MR-001 c788b09f على components/integration-20261027 / PR #383، بعد التحقق من خلو التداخل (صفر مطالبات نشطة) وقبل أول سطر كود منتج من S16."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-03",
+      "actor": "zai-s16-execution",
+      "reason": "تسليم S16 للمراجعة مع DOC-025 → IN_REVIEW (الانتقال القانوني نفسه؛ لا قبولًا ذاتيًا): المرشح الكودي 9dc4b194؛ السلسلة الكاملة خروج 0 والحالات بأدلة؛ بوابتا Actions/Cloudflare على الرأس النهائي المدفوع في تعليق PR #383."
+    }
+  ],
+  "migration_baseline": true
+}

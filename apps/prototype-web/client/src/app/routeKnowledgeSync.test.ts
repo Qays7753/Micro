@@ -103,8 +103,13 @@ const EDITOR_ROUTES: Readonly<Record<string, string>> = {
   "/inventory/material/:id/confirm": "تأكيد رصيد مادة — محرر عميق",
   "/inventory/movement/:id/reverse": "عكس حركة مخزون — محرر فعل",
   "/inventory/movement/:type": "محرر حركة مخزون",
-  "/tools/calculator": "الحاسبة — أداة تفكير عميقة تحرس المدخلات",
-  "/tools/estimate/:id": "صفحة التقدير — عمق تفكير محروس",
+  "/tools/calculator": "الحاسبة — أداة تخطيط عميقة تحرس المدخلات",
+  /* S10 (UNIT-032): الرابط القديم صار إحالة إلى الحاسبة — لا صفحة مستقلة. */
+  "/tools/estimate/:id": "إحالة التقدير القديم إلى الحاسبة — عمق محروس",
+  "/tools/hour-value": "T02 قيمة الساعة — أداة عميقة تحرس المدخلات",
+  "/tools/sales-quantity": "T03 كمية البيع — أداة عميقة تحرس المدخلات",
+  "/tools/invoice-share": "T04 نصيب الفاتورة — أداة عميقة تحرس المدخلات",
+  "/tools/idea-review": "T05 فحص الفكرة — أداة عميقة تحرس الإجابات",
   "/assets/new": "محرر أصل",
   "/assets/:id": "تفصيل/تحرير أصل — عمق",
   "/loans/new": "محرر قرض",
@@ -113,7 +118,9 @@ const EDITOR_ROUTES: Readonly<Record<string, string>> = {
    * مالي واعٍ (اختيار النوع الاقتصادي الصريح) كسابقة عائلة القروض. */
   "/loans/received/new": "محرر قرض مستلم",
   "/loans/received/:id": "تفصيل/تحرير قرض مستلم — عمق",
-  "/share/preview": "معاينة المشاركة — محرر نص عميق (عقد ٣٣)",
+  /* UNIT-040 (تنفيذ S15 بالأمر الموحد §5): مسار /share/preview أزيل مع
+   * إلغاء المشاركة — لا معاينة مشاركة ولا بديل رسالة؛ التنزيل (016)
+   * والنسخ الاحتياطي (044) أبقيان بأدواتهما الخاصة. */
 };
 
 /** أسطح القراءة/التنقل — تبقي الشريط السفلي (قاعدة U-005: القارئ سطح). */
@@ -132,11 +139,14 @@ const SURFACE_ROUTES: readonly string[] = [
   "/tools/integrity",
   /* NAV-001 (2026-09-16): السوق — سطح إعلان «قريبًا» يبقي التنقل السفلي. */
   "/market",
+  "/delivery",
   "/assets",
   "/loans",
   "/parties",
   "/finance",
-  /* Wave 4.2 — P-4.2-4 (F01): «المزيد من المالية» — سطح قراءة منظم يبقي الشريط. */
+  /* UNIT-013 (تنفيذ S15 بالأمر الموحد §5): مسار «المزيد» القديم بقي حيًا
+   * كإحالة إلى المالية (AF-AC09: الروابط القديمة محفوظة) — لا صفحة أكثر
+   * مستقلة؛ تصنيفه سطحًا يبقى صحيحًا (لا يبتلعه نمط عمق). */
   "/finance/more",
   /* Stage 2 — OPS-005/006 (2026-09-20): «القادم والاستحقاقات» — قارئ موحد
    * للقادم والمتأخر؛ سطح قراءة يبقي الشريط السفلي (قاعدة U-005). */
@@ -308,8 +318,9 @@ describe("route knowledge synchronization (Group 8, STR-010)", () => {
   });
 
   it("negative proof: the checkers catch drift when fed mutated knowledge (no snapshot duplication)", () => {
-    /* محرر سقط من الجدول — الاكتمال يفشل. */
-    const routerMissingEditor = routerPatterns.filter(pattern => pattern !== "/share/preview");
+    /* محرر سقط من الجدول — الاكتمال يفشل (UNIT-040: استخدمنا محرر المواد
+     * بدل مسار المشاركة المزال). */
+    const routerMissingEditor = routerPatterns.filter(pattern => pattern !== "/inventory/material/new");
     expect(
       checkClassificationAgreement(routerMissingEditor, EDITOR_ROUTES, SURFACE_ROUTES).length,
     ).toBeGreaterThan(0);

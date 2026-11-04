@@ -28,6 +28,7 @@ import {
   parseMovementLinkParams,
   validateMovementSubmission,
 } from "@/application/inventory/inventoryMovementEditorModel";
+import { supplierDisplayLabelOf } from "@/application/parties";
 type MovementType = InventoryMovementRouteType;
 /* R10-B3/R10B-NF-002 (2026-10-12): تسمية الوحدة من نواة التنسيق عبر
  * واجهة العرض — كان تعريفًا محليًا رابعًا للخريطة نفسها. */
@@ -49,6 +50,9 @@ export default function InventoryMovementEditor() {
   const [references, setReferences] = useState<InventoryReferences | null>(null);
   const [materialId, setMaterialId] = useState("");
   const [purchaseId, setPurchaseId] = useState("");
+  /* S07 (UNIT-027 D01): بند الشراء المستلم عليه — واجب حين يكون للشراء
+   * بنود؛ الإرث بلا بنود يبقى بمسار الرأس (null). */
+  const [purchaseLineId, setPurchaseLineId] = useState("");
   const [receiptStatus, setReceiptStatus] = useState<PurchaseReceiptStatus | null>(null);
   const [orderId, setOrderId] = useState("");
   /* المجموعة ٢ (عقد ٢٨): الاستهلاك لطلب محدد أم لعمل المشروع — سؤال صريح.
@@ -123,7 +127,16 @@ export default function InventoryMovementEditor() {
        * (كمية/قيمة متبقية) مرة واحدة لكل شراء؛ الوصلة العميقة تمر بالمسار نفسه. */
       if (purchaseFromLink && safeType === "receipt" && purchaseFromLink.materialId) {
         setMaterialId(purchaseFromLink.materialId);
-        setNote(`استلام شراء: ${purchaseFromLink.supplierName}`);
+        setNote(`استلام شراء: ${supplierDisplayLabelOf(purchaseFromLink)}`);
+      }
+      /* S07 (UNIT-027): شراء ببنود — بند واحد يُختار حتميًا (لا خيار)،
+       * وعدة بنود تطلب اختيارًا صريحًا (لا اختيار أول بند نيابةً عن المالك). */
+      const purchaseLines = (purchaseFromLink?.lines ?? []).filter(
+        line => line.treatment === "tracked_material",
+      );
+      if (purchaseFromLink && safeType === "receipt" && purchaseLines.length === 1) {
+        setPurchaseLineId(purchaseLines[0]!.lineId);
+        if (purchaseLines[0]!.materialId) setMaterialId(purchaseLines[0]!.materialId!);
       }
       /* OPS-001: سياق الطلب/البيع من الوصلة العميقة فقط — المعرّف غير الصالح
        * يُعلن برسالة، ولا نرجع صامتًا إلى أول سجل قائم. */
@@ -164,16 +177,26 @@ export default function InventoryMovementEditor() {
         prefilledPurchaseRef.current = purchaseId;
         const purchase = references.purchases.find(candidate => candidate.id === purchaseId);
         if (purchase?.materialId) setMaterialId(purchase.materialId);
-        if (result.value.remainingQuantityMilli && result.value.remainingQuantityMilli > 0)
-          setQuantityMilli(result.value.remainingQuantityMilli);
-        if (result.value.remainingValueMinor > 0) {
-          setValueMinor(result.value.remainingValueMinor);
+        /* S07 (UNIT-027): التعبئة من حدود البند المختار إن وجد — متبقي
+         * البند (قيمة معلومة/كمية متوقعة) لا متبقي الرأس وحده. */
+        const lineId =
+          purchaseLineId ||
+          ((purchase?.lines ?? []).filter(l => l.treatment === "tracked_material").length === 1
+            ? purchase!.lines!.filter(l => l.treatment === "tracked_material")[0]!.lineId
+            : "");
+        const lineStatus = lineId ? (result.value.lines ?? []).find(row => row.lineId === lineId) : undefined;
+        if (lineId && lineStatus?.materialId) setMaterialId(lineStatus.materialId);
+        const remainingQuantity = lineStatus?.remainingQuantityMilli ?? result.value.remainingQuantityMilli;
+        const remainingValue = lineStatus?.remainingValueMinor ?? result.value.remainingValueMinor;
+        if (remainingQuantity && remainingQuantity > 0) setQuantityMilli(remainingQuantity);
+        if (remainingValue !== null && remainingValue > 0) {
+          setValueMinor(remainingValue);
           setCostKnown(true);
         }
-        if (purchase) setNote(`استلام شراء: ${purchase.supplierName}`);
+        if (purchase) setNote(`استلام شراء: ${supplierDisplayLabelOf(purchase)}`);
       }
     });
-  }, [safeType, purchaseId, inventory, references, dataVersion]);
+  }, [safeType, purchaseId, purchaseLineId, inventory, references, dataVersion]);
   /* U-005 (دورة التدقيق النهائي): حماية المدخلات غير المحفوظة — الرجوع يمر
    * بالحارس: «ابقَ / احفظ ثم اخرج / اخرج بلا حفظ» كبقية المحررات العميقة.
    * تُستدعى الخطافات قبل أي return شرطي (قواعد الخطافات): فرع «حركة غير
@@ -182,6 +205,7 @@ export default function InventoryMovementEditor() {
     type,
     materialId,
     purchaseId,
+    purchaseLineId,
     orderId,
     consumeTarget,
     direction,
@@ -302,6 +326,7 @@ export default function InventoryMovementEditor() {
         ? await inventory.receivePurchase({
             materialId,
             purchaseId,
+            purchaseLineId: purchaseLineId || null,
             quantityMilli,
             valueMinor: costKnown ? valueMinor : 0,
             costKnowledge: costKnown ? "known" : "unknown",
@@ -523,11 +548,63 @@ export default function InventoryMovementEditor() {
         {safeType === "receipt" ? (
           <label className="micro-field">
             <span>شراء المواد المرجعي</span>
-            <select value={purchaseId} onChange={event => setPurchaseId(event.target.value)}>
+            <select
+              value={purchaseId}
+              onChange={event => {
+                const nextPurchaseId = event.target.value;
+                setPurchaseId(nextPurchaseId);
+                /* R3-F01: البند يتبع الشراء — لا يبقى بند شراء سابق فوق
+                 * شراء جديد (هويات البنود موقعية فتتشابه بين المشتريات)
+                 * فيرتبط الاستلام صامتًا ببند من فاتورة أخرى؛ بند متتبع
+                 * وحيد يُختار حتميًا كما في الوصلة العميقة، وما عداه
+                 * يطلب اختيارًا صريحًا (لا اختيار أول بند نيابةً عن المالك). */
+                const nextTrackedLines = (
+                  references.purchases.find(purchase => purchase.id === nextPurchaseId)?.lines ?? []
+                ).filter(line => line.treatment === "tracked_material");
+                setPurchaseLineId(nextTrackedLines.length === 1 ? nextTrackedLines[0]!.lineId : "");
+              }}
+            >
               <option value="">اختر شراء المواد…</option>
               {references.purchases.map(purchase => (
                 <option key={purchase.id} value={purchase.id}>
-                  {purchase.supplierName} · {purchase.note}
+                  {supplierDisplayLabelOf(purchase)} · {purchase.note}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+        {safeType === "receipt" &&
+        purchaseId &&
+        (references.purchases.find(p => p.id === purchaseId)?.lines ?? []).length > 0 ? (
+          <label className="micro-field">
+            <span>
+              بند الشراء المستلم عليه <small>الاستلام مقيد ببند حي من بنود الفاتورة</small>
+            </span>
+            <select
+              value={purchaseLineId}
+              onChange={event => {
+                setPurchaseLineId(event.target.value);
+                const chosen = (references.purchases.find(p => p.id === purchaseId)?.lines ?? []).find(
+                  line => line.lineId === event.target.value,
+                );
+                if (chosen?.materialId) setMaterialId(chosen.materialId);
+              }}
+            >
+              <option value="">اختر بند الشراء…</option>
+              {(references.purchases.find(p => p.id === purchaseId)?.lines ?? []).map(line => (
+                <option
+                  key={line.lineId}
+                  value={line.lineId}
+                  disabled={line.treatment !== "tracked_material"}
+                >
+                  {(() => {
+                    /* R3-F05: اسم المادة من قائمة كل المواد — قائمة المواد
+                     * المتتبعة وحدها لا تعرف مواد الفترة فتُظهر بندًا له مادة
+                     * كأنه «بلا مادة». */
+                    const material = references.allMaterials.find(m => m.id === (line.materialId ?? ""));
+                    return material ? material.name : "بند بلا مادة";
+                  })()}
+                  {line.treatment === "tracked_material" ? "" : " (محمّل تكلفته على فترة الشراء — لا يستلم)"}
                 </option>
               ))}
             </select>

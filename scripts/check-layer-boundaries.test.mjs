@@ -278,7 +278,10 @@ describe("layer boundary fixtures — application Math rounding boundary (Group 
     for (const relative of [
       "apps/prototype-web/client/src/application/inventory/materialSuggestions.ts",
       "apps/prototype-web/client/src/application/finance/integrityCheckService.ts",
-      "apps/prototype-web/client/src/application/security/localLockService.ts",
+      /* S02-B (SH-04 — UNIT-042، 2026-10-27): ملف localLockService حُذف مع
+       * تقاعد القفل بقرار المالك — استُبدل بمكافئه الحي: وحدة تقاعد السجل
+       * (نفس البيت الأمني، نفس الفحص: صفر Math وصفر قواعد محظورة). */
+      "apps/prototype-web/client/src/application/security/retireLocalLockRecord.ts",
     ]) {
       const [result] = await eslint.lintText(await readReal(relative), {
         filePath: path.join(ROOT, relative),

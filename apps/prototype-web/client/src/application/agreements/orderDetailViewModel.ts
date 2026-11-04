@@ -22,7 +22,7 @@ import type { OrderActualMaterialComparison } from "../inventory/inventoryMateri
 import type { DraftService } from "../drafts/draftService";
 import type { CostEstimateService } from "../estimates/costEstimateService";
 import type { CashContinuityService } from "../cash/cashContinuityService";
-import type { PartyLedgerService } from "../parties/partyLedgerService";
+import type { PartyDirectoryService } from "../parties/partyLedgerService";
 
 /** نتيجة قراءة تفصيل الطلب — الفصل الصادق R1: خطأ القراءة ≠ الغياب. */
 export type OrderDetailLoad =
@@ -82,12 +82,16 @@ export async function readAvailableWalletOptions(deps: {
   return overview.ok ? overview.value.wallets : null;
 }
 
-/** مقترحات تسمية الجهة (FIN-002): كل الأسماء المسجلة الأكثر تكرارًا أولًا. */
+/** مقترحات تسمية الجهة (S05/DOC-014 — 3D-03): تسميات الأطراف المحفوظة النشطة. */
 export async function readPartyNameSuggestions(deps: {
-  partyLedger: PartyLedgerService;
+  partyDirectory: PartyDirectoryService | null;
 }): Promise<readonly string[] | null> {
-  const ledger = await deps.partyLedger.read();
-  return ledger.ok ? ledger.value.parties.map(party => party.name).slice(0, 12) : null;
+  /* S05 (DOC-014 / UNIT-037 3D-03): المقترحات من تسميات الأطراف المحفوظة
+   * النشطة — لا من أسماء تاريخية مجمّعة بالاسم؛ null (جارٍ التجهيز) تُعرض
+   * بلا مقترحات لا بفشل صامت. */
+  if (!deps.partyDirectory) return null;
+  const suggestions = await deps.partyDirectory.suggestLabels();
+  return suggestions.ok ? suggestions.value.slice(0, 12) : null;
 }
 
 /** قرارات أقسام الصفحة النقية — الأعلام؛ النصوص العربية عند الصفحة. */

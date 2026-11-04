@@ -24,6 +24,12 @@ import { AgreementContextService } from "@/application/agreements/agreementConte
 import { DailyFollowUpService } from "@/application/follow-up/dailyFollowUpService";
 import Home from "@/pages/Home";
 import Market from "@/pages/Market";
+import { CollectionService } from "@/application/collections/collectionService";
+import { DirectSaleService } from "@/application/direct-sales/directSaleService";
+import { DueDatesService } from "@/application/finance/dueDatesService";
+import { UnifiedFollowUpService } from "@/application/follow-up/unifiedFollowUpService";
+import { FulfillmentService } from "@/application/fulfillment/fulfillmentService";
+import { activeDeliveryLens } from "@/application/scheduling";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -41,6 +47,26 @@ vi.mock("wouter", () => ({
 }));
 
 const mockedUsePrototypeServices = vi.mocked(usePrototypeServices);
+/* S16 (UNIT-003): قارئ الرئيسية في الاختبارات فوق المصادر الكنونية نفسها —
+ * القارئ الموحد للمتابعة (S13) بعدساته القائمة؛ لا قارئ ثانٍ. */
+function buildHomeService(store: MemoryLocalStore, now: () => string) {
+  const projectFinance = new ProjectFinancialService(store, now);
+  const directSales = new DirectSaleService(store, now);
+  const fulfillment = new FulfillmentService(store, now);
+  const collections = new CollectionService(store, fulfillment, directSales, projectFinance);
+  const dueDates = new DueDatesService(store, collections, now);
+  const unified = new UnifiedFollowUpService(
+    activeDeliveryLens(store),
+    store,
+    collections,
+    dueDates,
+    projectFinance,
+    store,
+    now,
+  );
+  return new HomeControlCenterService(store, new DailyFollowUpService(store), projectFinance, unified, now);
+}
+
 const NOW = "2026-09-16T09:00:00.000Z";
 let store: MemoryLocalStore;
 const contextRef: { current: Record<string, unknown> } = { current: {} };
@@ -48,16 +74,7 @@ const contextRef: { current: Record<string, unknown> } = { current: {} };
 function Harness({ page }: { page: React.ReactNode }) {
   const [version, setVersion] = React.useState(0);
   contextRef.current = {
-    homeControlCenter: new HomeControlCenterService(
-      store,
-      new DailyFollowUpService(store),
-      new ProjectFinancialService(store, () => NOW),
-      new SupplierPurchaseService(store, () => NOW),
-      new InventoryMaterialService(store, () => NOW),
-      new AgreementContextService(store, () => NOW),
-      new ActivityService(store),
-      () => NOW,
-    ),
+    homeControlCenter: buildHomeService(store, () => NOW),
     projectFinance: new ProjectFinancialService(store, () => NOW),
     cashContinuity: new CashContinuityService(store, () => NOW),
     preferences: {
@@ -92,7 +109,7 @@ describe("NAV-001 — approved five-seat navigation", () => {
   it("the bottom bar holds exactly the five approved seats with no central record button", () => {
     render(<BottomNav activePath="/" items={primaryNavigation} onNavigate={() => {}} />);
     const labels = primaryNavigation.map(item => item.label);
-    expect(labels).toEqual(["مشروعي الآن", "العمل", "المالية", "أدواتي", "السوق"]);
+    expect(labels).toEqual(["المالية", "الطلبات", "الرئيسية", "التوصيل", "السوق"]);
     const buttons = screen.getAllByRole("button");
     for (const label of labels) {
       expect(buttons.some(button => button.textContent?.includes(label))).toBe(true);
@@ -104,25 +121,25 @@ describe("NAV-001 — approved five-seat navigation", () => {
 
   it("home hosts the quick-recording row and the sale sheet opens in place over it", async () => {
     const profiles = new ProfileService(store);
-    const saved = await profiles.save("مشروع-NAV");
+    const saved = await profiles.create("مشروع-NAV");
     if (!saved.ok) throw new Error(saved.message);
     render(<Harness page={<Home />} />);
     const row = await screen.findByTestId("home-quick-actions");
-    for (const label of ["سجّل بيعًا", "سجّل مصروفًا", "طلب من عميل"]) {
+    for (const label of ["بيع", "مصروف", "طلب جديد", "شراء", "أدوات المشروع"]) {
       expect(row.textContent).toContain(label);
     }
     /* البيع يفتح الورقة في نموذجها مباشرة فوق الرئيسية المركّبة. */
-    fireEvent.click(screen.getByText("سجّل بيعًا"));
+    fireEvent.click(screen.getByTestId("home-action-sale"));
     await waitFor(() => expect(screen.getByText("سجّل بيعًا الآن")).toBeTruthy());
     expect(screen.getByLabelText("مبلغ البيع")).toBeTruthy();
   });
 
   it("the expense quick action opens the expense form with the approved wallet rules", async () => {
     const profiles = new ProfileService(store);
-    await profiles.save("مشروع-NAV2");
+    await profiles.create("مشروع-NAV2");
     render(<Harness page={<Home />} />);
     await screen.findByTestId("home-quick-actions");
-    fireEvent.click(screen.getByText("سجّل مصروفًا"));
+    fireEvent.click(screen.getByTestId("home-action-expense"));
     await waitFor(() => expect(screen.getByText("سجّل مصروفًا الآن")).toBeTruthy());
     expect(screen.getByLabelText("مبلغ المصروف")).toBeTruthy();
     /* FIN-005: بلا محافظ — الصرف من غير الموزع بتحذير معلن. */
@@ -131,7 +148,7 @@ describe("NAV-001 — approved five-seat navigation", () => {
 
   it("SET-002: the setup success banner appears once after first setup and disappears without the flag", async () => {
     const profiles = new ProfileService(store);
-    await profiles.save("مشروع-NAV3");
+    await profiles.create("مشروع-NAV3");
     wouterMocks.search = "?setup=1";
     render(<Harness page={<Home />} />);
     const banner = await screen.findByTestId("setup-success-banner");
@@ -144,6 +161,23 @@ describe("NAV-001 — approved five-seat navigation", () => {
     render(<Harness page={<Home />} />);
     await waitFor(() => expect(screen.getByText("مشروع-NAV3")).toBeTruthy());
     expect(screen.queryByTestId("setup-success-banner")).toBeNull();
+  });
+
+  it("S03 (UNIT-001 P3.1): the setup banner offers the honest post-save choice — start foundation data at 002 or reach the task, nothing mandatory", async () => {
+    const profiles = new ProfileService(store);
+    await profiles.create("مشروع-NAV4");
+    wouterMocks.search = "?setup=1";
+    render(<Harness page={<Home />} />);
+    const banner = await screen.findByTestId("setup-success-banner");
+    /* النص المعتمد باقٍ كفتحة اللافتة، والاختيار بعده — لا إلزام مالي. */
+    expect(banner.textContent).toContain("تم إعداد مشروعك.");
+    expect(banner.textContent).toContain("لا شيء إلزامي");
+    const foundationEntry = screen.getByRole("button", { name: "ابدأ تسجيل بيانات مشروعك الأساسية" });
+    fireEvent.click(foundationEntry);
+    await waitFor(() =>
+      expect(wouterMocks.navigate).toHaveBeenCalledWith(expect.stringContaining("/foundation")),
+    );
+    expect(wouterMocks.navigate).toHaveBeenCalledWith(expect.stringContaining("returnTo=%2F"));
   });
 
   it("السوق renders an honest قريبًa badge with no records or financial effects", async () => {
@@ -172,11 +206,11 @@ describe("NAV-001 — approved five-seat navigation", () => {
     wouterMocks.search = "";
     render(<Harness page={<Market />} />);
     expect(await screen.findByTestId("market-soon-page")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "رجوع لمشروعي" }));
+    fireEvent.click(screen.getByRole("button", { name: "رجوع للرئيسية" }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/");
     /* زر الرجوع العلوي يعد بالوجهة نفسها وينفذها. */
     wouterMocks.navigate.mockClear();
-    fireEvent.click(screen.getByRole("button", { name: "مشروعي الآن" }));
+    fireEvent.click(screen.getByRole("button", { name: "الرئيسية" }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith("/");
     cleanup();
     /* دخول بسياق عودة معتمد: ?from=/tools يعيد إلى الأدوات. */
@@ -201,11 +235,10 @@ describe("NAV-001 — approved five-seat navigation", () => {
         }
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "النقل والتوصيل — قريبًا" }));
-    const transport = screen.getByTestId("soon-panel");
-    expect(transport.textContent).toContain("النقل والتوصيل — قريبًا");
-    expect(transport.textContent).toContain("لا حجز نقل ولا تسعير ولا تتبع");
-    fireEvent.click(screen.getByRole("button", { name: "إغلاق" }));
+    /* SH-21/S16 (NAV-01 V15 §1): مدخل النقل والتوصيل انتقل إلى مقعده في
+     * الشريط (/delivery) والبديل جاهز قبل الإزالة — الترويسة تحمل اسأل
+     * Micro الثانوي وحده. */
+    expect(screen.queryByRole("button", { name: "النقل والتوصيل — قريبًا" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "اسأل Micro — قريبًا" }));
     const assistant = screen.getByTestId("soon-panel");
     expect(assistant.textContent).toContain("قارئًا فقط");

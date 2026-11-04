@@ -44,8 +44,38 @@ describe("check-storage-listener-guards (R9-GA-F7.1 static guard)", () => {
     expect(stdout).toContain("PASS");
     /* U001-IR-002 (2026-10-18): 77 -> 78 — مستمع onsuccess جديد واحد في
      * commitProfileCreate (IndexedDbLocalStore) مغلّف بguardedSuccessListener
-     * نفسه؛ إعادة إرساء العدّ موثقة نفس-الـPR لا تعديلًا صامتًا. */
-    expect(stdout).toMatch(/78 onsuccess listeners/);
+     * نفسه؛ إعادة إرساء العدّ موثقة نفس-الـPR لا تعديلًا صامتًا.
+     * S03 (UNIT-039/عقد §17، 2026-10-28): 79 -> 80 — مستمع onsuccess جديد
+     * واحد في commitProfileRename (نفس بنية commitProfileCreate الحارسة)
+     * مغلّف بguardedSuccessListener نفسه؛ إعادة إرساء موثقة نفس-الـPR.
+     * S04 (DOC-013، 2026-10-28): 80 -> 85 — خمسة مستمعات onsuccess جديدة
+     * في حدود balance-observations (commitCashObservation والقراءة والكتابة)
+     * والفهارس) كلها بguardedSuccessListener الحارس نفسه؛ إعادة إرساء
+     * موثقة نفس-الـPR لا تعديلًا صامتًا.
+     * S04 (لاحق، DOC-013): 85 -> 84 — نواة قرار التزام الرصد المشتركة
+     * وحّدت قراءة القيود داخل commitCashObservation فصار مستمع واحد بدل
+     * اثنين (نفس الحارس)؛ إعادة إرساء موثقة نفس-الـPR.
+     * S06 (DOC-015، 2026-10-30): 86 -> 87 — مستمع onsuccess جديد واحد في
+     * commitRecurringExpenseOccurrenceLink (IndexedDbLocalStore — قراءة
+     * الحصرية داخل معاملة readwrite نفسها) مغلّف بguardedSuccessListener
+     * الحارس نفسه (R2-F01)؛ إعادة إرساء موثقة نفس-الـPR لا تعديلًا صامتًا.
+     * S08 (DOC-017، 2026-10-30): 87 -> 89 — منافذ أحداث الأصول في
+     * IndexedDbLocalStore (مسح الأحداث وقراءة السجل داخل معاملة الكتابة
+     * نفسها) كلها بguardedSuccessListener الحارس نفسه؛ إعادة إرساء موثقة
+     * نفس-الـPR لا تعديلًا صامتًا.
+     * S10-MR-001 (أمر S11 عند b33a8877، 2026-10-31): 89 -> 90 — مستمع
+     * getAll في commitCostEstimateCreate (IndexedDbLocalStore) مغلّف
+     * بguardedSuccessListener الحارس نفسه؛ نفس البروتوكول.
+     * S11 (DOC-020، 2026-10-31): 90 -> 93 — مستمعات commitDirectSaleWrite
+     * في IndexedDbLocalStore (قراءة السجل بالمعرّف، والبحث بمفتاح التسجيل
+     * عند الإنشاء، ومطابقة أثر الكاش عند إعادة الاستخدام) كلها بguardedSuccessListener
+     * الحارس نفسه؛ إعادة إرساء موثقة نفس-الـPR لا تعديلًا صامتًا.
+     * S12 (DOC-021 — تصحيح R3-F01، 2026-11-01): 93 -> 96 — مستمعات
+     * commitOrderFromDraft في IndexedDbLocalStore (فحص الوجود داخل حد
+     * الكتابة: قراءة الطلب، وقراءة المسودة المرتبطة عند إعادة الاستخدام،
+     * وقراءة الجدول عند وجوده) كلها بguardedSuccessListener الحارس نفسه
+     * (نمط failFromListener القائم)؛ إعادة إرساء موثقة نفس-الـPR. */
+    expect(stdout).toMatch(/102 onsuccess listeners/);
   });
 
   it("fails on an unguarded write-queueing onsuccess listener (the F7 family recurrence)", () => {
