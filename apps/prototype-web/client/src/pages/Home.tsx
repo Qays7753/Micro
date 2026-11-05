@@ -58,6 +58,12 @@ type HomeState =
   | { phase: "error"; message: string }
   | { phase: "ready"; model: HomeControlCenterViewModel; refreshError: string | null };
 
+/* UXR-01 (أمر UXR-W01 — قبول A01): رفض وعد القراءة (استثناء غير متوقع)
+ * يظهر رسالة آمنة ثابتة — لا استثناء خام ولا معرفات شخصية في الرسائل
+ * (AGENTS §10/9)؛ وهي نفس رسالة فشل التخزين الكنونية من القارئ فلا يظهر
+ * للمستخدم وعد أدق مما يملكه النظام. */
+const HOME_UNEXPECTED_READ_FAILURE = "تعذر قراءة بيانات مشروعك المحلية.";
+
 /* HOME-F03: الفترة حالة عرض — «هذا الشهر» أول دخول؛ تُحفظ للرجوع داخل
  * الجلسة (لا إعدادًا ماليًا عامًا، ولا تخزينًا جديدًا). */
 let lastHomePeriod: HomeGlimpsePeriodKind = "month";
@@ -131,7 +137,7 @@ function FollowUpRow({ row, onNavigate }: { row: HomeFollowUpRow; onNavigate: (h
 
 export default function Home() {
   const [, navigate] = useLocation();
-  const { homeControlCenter, dataVersion } = usePrototypeServices();
+  const { homeControlCenter, dataVersion, homeSetup } = usePrototypeServices();
   const [state, setState] = useState<HomeState>({ phase: "loading" });
   /* Z1.4: عدّاد إعادة المحاولة الآمنة — زيادته تعيد تشغيل قراءة الواجهة نفسها
    * في مكانها (سطح الخطأ الكامل والخطأ المضمّن كلاهما)، بلا إعادة تحميل. */
@@ -164,25 +170,43 @@ export default function Home() {
   /* SET-002: لافتة نجاح الإعداد الأول — تظهر مرة بعد الحفظ وتغادر مع التنقل. */
   const search = useSearch();
   const setupDone = new URLSearchParams((search ?? "").replace(/^\?/, "")).get("setup") === "1";
+  /* UXR-01 (أمر UXR-W01 — A01): تسلسل محاولات القراءة — نتيجة محاولة أقدم
+   * تُتجاهل بعد بدء محاولة أحدث (لا تسمح للاحق بالكتابة فوق الأحدث)، وكل
+   * نتيجة تُتجاهل بعد تركيب الصفحة (active). رفض الوعد يُعرض برسالة آمنة
+   * مميزة عن الفراغ وعن «جارٍ التجهيز»، مع إعادة المحاولة في مكانها. */
+  const readAttemptRef = useRef(0);
   useEffect(() => {
     /* S05 (ميزانية الحزمة): المركز يُحمَّل ديناميكيًا بعد الإقلاع؛ حتى جاهزيته
      * تبقى الصفحة في حالة تجهيزها الصادقة (role=status) ولا يُدّعى فشل قراءة —
      * غياب الخدمة ليس خطأ القراءة. */
     if (!homeControlCenter) return;
     let active = true;
+    const attempt = ++readAttemptRef.current;
     /* S5-08: تحديث خلفي لا وميض تحميل — القراءة السابقة تبقى معروضة حتى
      * تصل الجديدة (stale-while-revalidate)؛ حالة التحميل الكاملة للإقلاع فقط. */
     setState(current => (current.phase === "ready" ? current : { phase: "loading" }));
-    homeControlCenter.read().then(result => {
-      if (!active) return;
-      setState(current => {
-        if (result.ok) return { phase: "ready", model: result.value, refreshError: null };
-        /* Z1.4: فشل التحديث الخلفي مع جهوزية قائمة لا يستبدلها. */
-        if (current.phase === "ready")
-          return { phase: "ready", model: current.model, refreshError: result.message };
-        return { phase: "error", message: result.message };
-      });
-    });
+    homeControlCenter.read().then(
+      result => {
+        if (!active || attempt !== readAttemptRef.current) return;
+        setState(current => {
+          if (result.ok) return { phase: "ready", model: result.value, refreshError: null };
+          /* Z1.4: فشل التحديث الخلفي مع جهوزية قائمة لا يستبدلها. */
+          if (current.phase === "ready")
+            return { phase: "ready", model: current.model, refreshError: result.message };
+          return { phase: "error", message: result.message };
+        });
+      },
+      () => {
+        if (!active || attempt !== readAttemptRef.current) return;
+        /* UXR-01: رفض الوعد فشل حقيقي مميز — لا فراغ ولا تحميل دائم؛ نفس
+         * قاعدة الز1.4: الجهوزية القائمة تبقى وخطأ التحديث يعلن مكانها. */
+        setState(current => {
+          if (current.phase === "ready")
+            return { phase: "ready", model: current.model, refreshError: HOME_UNEXPECTED_READ_FAILURE };
+          return { phase: "error", message: HOME_UNEXPECTED_READ_FAILURE };
+        });
+      },
+    );
     return () => {
       active = false;
     };
@@ -206,24 +230,37 @@ export default function Home() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [infoOpen, askMicroOpen, periodPickerOpen, allActionsOpen]);
-  if (state.phase === "loading")
-    return (
-      <div className="micro-route-loading" role="status">
-        جارٍ تجهيز مشروعك…
-      </div>
-    );
-  if (state.phase === "error")
+  /* UXR-01 (PERF-004/S11 L-01 — COPY-27): فشل تجهيز خدمات الرئيسية (رفض
+   * الاستيراد الكسول) وفشل القراءة سطح خطأ كامل واحد — الحالتان مميزتان
+   * برسالتيهما الصادقتين وبفعل إعادة المحاولة لصاحبه: التجهيز يُعاد من
+   * جذر التركيب والقراءة تُعاد في مكانها؛ لا قراءةً بلا خدمة ولا إعادة
+   * تحميل صفحة ولا eager-loading. */
+  const setupFailure = homeSetup?.status === "failed" ? homeSetup : null;
+  /* ترتيب صادق: فشل التجهيز يحجب القراءة أصلًا؛ ورسالة القراءة لا تُعرض
+   * إلا عند غيابه — فالحالتان لا تتنازعان السطح أبدًا. */
+  if (setupFailure || state.phase === "error") {
+    const failureMessage = setupFailure ? "تعذر تجهيز مشروعك." : state.phase === "error" ? state.message : null;
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر تحميل مشروعك</h1>
-        <p role="alert">{state.message}</p>
-        <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+        <p role="alert">{failureMessage}</p>
+        <Button
+          action="save"
+          onClick={setupFailure ? setupFailure.retry : () => setRetryCount(count => count + 1)}
+        >
           إعادة المحاولة
         </Button>
         <Button action="secondary" onClick={() => navigate("/")}>
           الرئيسية
         </Button>
       </section>
+    );
+  }
+  if (state.phase === "loading")
+    return (
+      <div className="micro-route-loading" role="status">
+        جارٍ تجهيز مشروعك…
+      </div>
     );
   const { model } = state;
   /* المجموعة ١ (§7.2): كل رحلة من الرئيسية تحفظ مصدرها — الرجوع يعود هنا. */
