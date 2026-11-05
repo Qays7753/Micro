@@ -226,7 +226,7 @@ export default function Collect() {
     return (
       <section className="micro-page micro-collect-page">
         <div className="micro-page-heading">
-          <span className="micro-overline">ورقة تحصيل · انسجّل القبض</span>
+          {/* UXR-04 (F-008/SOP-02): عنوان النتيجة وحده — لا تمهيد معماري فوقه. */}
           <h1>قبضت من {state.personName}</h1>
           {/* Z2.5: تكرار هوية المصدر — نوع الذمة والقطعة (قيم من الخدمة نفسها،
               لا نصوص جديدة على السطح) فتبقى الوصلة بين القبض وسببه بعد النجاح. */}
@@ -308,7 +308,7 @@ export default function Collect() {
         <ArrowRight aria-hidden="true" /> رجوع
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">ورقة تحصيل</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد بلا تمهيد معماري فوقه. */}
         <h1>حصّل من مين عليه إلَي</h1>
         <p>قبض واحد موثق: النقد يرتفع والدين ينقص — لا إيراد ولا ربح يُسجّل هنا.</p>
       </div>

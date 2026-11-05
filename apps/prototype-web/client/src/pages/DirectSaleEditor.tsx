@@ -786,7 +786,7 @@ export default function DirectSaleEditor() {
     return (
       <section className="micro-page micro-finance-page">
         <div className="micro-page-heading">
-          <span className="micro-overline">بيع مباشر · انسجّل</span>
+          {/* UXR-04 (F-008/SOP-02): عنوان النتيجة وحده — لا تمهيد معماري فوقه. */}
           <h1>سُجّل البيع</h1>
         </div>
         <section className="micro-decision-card" aria-label="نتيجة البيع">
@@ -943,7 +943,7 @@ export default function DirectSaleEditor() {
         <ArrowRight aria-hidden="true" /> {returnPath === "/orders" ? "العمل" : "رجوع"}
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">سجل بيع مستقل</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان المهمة وحده — لا لغة معمارية فوقه. */}
         <h1>{editing ? "تصحيح بيع مباشر" : "تسجيل بيع مباشر"}</h1>
         <p>
           {editing
@@ -1446,7 +1446,7 @@ export default function DirectSaleEditor() {
           <div className="micro-section-heading">
             <Ban aria-hidden="true" />
             <div>
-              <span className="micro-overline">تصحيح لا يحذف السجل</span>
+              {/* UXR-04 (SOP-02): عنوان الإلغاء وحده — الجسم يشرح بقاء السجل. */}
               <h2 id="direct-sale-cancel-title">إلغاء البيع</h2>
             </div>
           </div>

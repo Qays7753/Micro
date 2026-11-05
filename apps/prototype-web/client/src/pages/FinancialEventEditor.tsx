@@ -1180,7 +1180,7 @@ export default function FinancialEventEditor() {
         <ArrowRight aria-hidden="true" /> المالية
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">حدث مالي محلي</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان المهمة وحده — لا لغة معمارية فوقه. */}
         <h1>{content.title}</h1>
         <p>{content.description}</p>
       </div>
@@ -1652,7 +1652,7 @@ function ExpenseClassification(props: ExpenseClassificationProps) {
   return (
     <section className="micro-expense-classification" aria-labelledby="expense-classification-title">
       <div>
-        <span className="micro-overline">افهم الأثر قبل الحفظ</span>
+        {/* UXR-04 (SOP-02/SOP-04): السؤال المباشر وحده — التفسير عند الطلب داخل الجسم. */}
         <h2 id="expense-classification-title">كيف يخدم هذا المصروف المشروع؟</h2>
         <p>التصنيف لا يحمّل المصروف على طلب تلقائيًا؛ هو يوضح سياقه ودرجة معرفتك به.</p>
       </div>
