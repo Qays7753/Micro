@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "95b4682e018c3d17c1ba4db64ad40c7d6ff682c8",
+  "head": "7e59a2097b934419c2f783817eb2add21b7cb81c",
   "pages": {
     "total": 62,
     "map": {
@@ -159,6 +159,7 @@
           "FinanceBridge.w173.dom.test.tsx",
           "FinanceBudgets.w174.dom.test.tsx",
           "FinanceEmptyTruth.dom.test.tsx",
+          "FinanceExpenseEntry.uxr03.dom.test.tsx",
           "FinanceFunctionsBoard.unit013.dom.test.tsx",
           "FinanceJourneys.dom.test.tsx",
           "FinanceObligations.w43.dom.test.tsx",

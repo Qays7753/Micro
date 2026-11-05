@@ -51,11 +51,15 @@ describe("check-a11y-dialog-surfaces (R11 W4-0 interaction-model census guard)",
      * «وظائف المالية» (FinanceFunctionsBoard — dialog غير مودال: focus-in
      * على زر الإغلاق + Escape + استعادة التركيز لزر الفتح عند onClose) —
      * السجل صار 6 أسطح (5 ملفات بتصريح حي)؛ تصنيف موثق نفس-الـPR. */
-    /* S16 (UNIT-003): لوحات الرئيسية الأربع مصنفة — 6 -> 7 أسطح (ملف Home جديد في السجل). */
-    expect(stdout).toMatch(/7 سطحًا حواريًا مصنفًا/);
+    /* S16 (UNIT-003): لوحات الرئيسية الأربع مصنفة — 6 -> 7 أسطح (ملف Home جديد في السجل).
+     * F-002/UXR-03 (أمر W02 — نفس-الـPR، 2026-11-06): سؤال حالة دفع المصروف
+     * في Finance.tsx (dialog غير مودال بنمط لوحات الرئيسية: focus-in +
+     * Escape/إلغاء/خلفية + استعادة التركيز لمشغّله) — السجل صار 8 أسطح
+     * (7 ملفات بتصريح حي)؛ تصنيف موثق نفس-الـPR. */
+    expect(stdout).toMatch(/8 سطحًا حواريًا مصنفًا/);
     const { ok, stats } = checkA11yDialogSurfaces(ROOT);
     expect(ok).toBe(true);
-    expect(stats.classified).toBe(7);
+    expect(stats.classified).toBe(8);
   });
 
   it("extracts string and expression dialog declarations from JSX", () => {
