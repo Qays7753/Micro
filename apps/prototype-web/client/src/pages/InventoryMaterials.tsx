@@ -566,7 +566,7 @@ export default function InventoryMaterials() {
             );
           })
         ) : (
-          {/* UXR-05 (F-017): فراغ أول استخدام متميز بنمط EmptyState الموحد — سؤال عملي وإجراء إضافة، لا درس محاسبة. */}
+          /* UXR-05 (F-017): فراغ أول استخدام متميز بنمط EmptyState الموحد — سؤال عملي وإجراء إضافة، لا درس محاسبة. */
           <EmptyState
             symbol={<Boxes aria-hidden="true" />}
             state={<StatusChip state="no-data">لا مواد متتبَّعة بعد</StatusChip>}
