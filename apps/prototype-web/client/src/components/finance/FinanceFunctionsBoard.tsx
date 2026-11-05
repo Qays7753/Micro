@@ -25,6 +25,9 @@ export type FinanceFunctionsBoardProps = {
   onClose: () => void;
   /** نطاق 013 المطبق (أشهر) — كشف الفترة يفتح عليه نفسه لا على الافتراضي. */
   statementHref: string;
+  /** F-002 (UXR-03/UXR-D09): مدخل المصروف الموحد — يسأل حالة الدفع ثم
+   * يوجه لمحرري المدفوع/المستحق القائمين؛ لا كاتب ثالث ولا تحويل تلقائي. */
+  onOpenExpenseEntry: () => void;
   /** مدخل ميزانيات المصروف يكشف قسمها في الصفحة نفسها لا وجهة جديدة. */
   onOpenBudgets: () => void;
 };
@@ -46,6 +49,7 @@ export function FinanceFunctionsBoard({
   open,
   onClose,
   statementHref,
+  onOpenExpenseEntry,
   onOpenBudgets,
 }: FinanceFunctionsBoardProps) {
   const [, navigate] = useLocation();
@@ -158,8 +162,11 @@ export function FinanceFunctionsBoard({
         { label: "تسجيل بيع", description: "بيع فوري بلا طلب", href: "/direct-sales/new" },
         {
           label: "تسجيل مصروف",
-          description: "مصروف ومدفوعاته من أصل واحد",
-          href: "/finance/new/operating_expense",
+          /* F-002: الوصف القديم «مصروف ومدفوعاته من أصل واحد» لم يطابق أي
+           * محرر قائم؛ الوصف الصادق الآن: حالة الدفع تُحدد أولًا قبل الحفظ
+           * ثم يفتح محررها القائم (نقدي أو مستحق) — لا كاتب ثالث. */
+          description: "تحدد حالة الدفع أولًا ثم يفتح محررها",
+          onOpen: onOpenExpenseEntry,
         },
         { label: "تسجيل شراء", description: "شراء مواد وبنوده ودفعاته", href: "/suppliers/purchase/new" },
       ],

@@ -12,6 +12,7 @@ import {
   ReceiptText,
   Scale,
   WalletCards,
+  X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
@@ -122,6 +123,16 @@ export default function Finance() {
    * تلقائيًا عند الدخول؛ الإغلاق يعيد التركيز لزرها (AF-AC07). */
   const [boardOpen, setBoardOpen] = useState(false);
   const functionsButtonRef = useRef<HTMLButtonElement>(null);
+  /* F-002 (UXR-03 — أمر W02/UXR-D09): مدخل المصروف الموحد — سؤال حالة
+   * الدفع الصريح قبل التوجيه للمحرر القائم. النوع المركب operating_expense
+   * لم يعرفه محرر الأحداث أبدًا (قبل S15 كان زرّان بروابط _cash و_payable
+   * سليمين، ودمج S15 استخدم نوعًا غير موجود) فكان «تسجيل مصروف» طريقًا
+   * مسدودًا («نوع الحدث غير متاح»). لا افتراض «مدفوع» على نية عامة ولا
+   * كاتب ثالث: الخيار الصريح يوجه لمحرري المدفوع/المستحق القائمين
+   * بدفعاتهما، والرابط يبقى رابطًا حقيقيًا قابلاً للفحص (عقد ٢٦). */
+  const [expenseEntryOpen, setExpenseEntryOpen] = useState(false);
+  const expenseEntryRef = useRef<HTMLDivElement>(null);
+  const expenseEntryButtonRef = useRef<HTMLButtonElement>(null);
   const budgetsSectionRef = useRef<HTMLElement>(null);
   const periodSectionRef = useRef<HTMLElement>(null);
   /* F-003 (UXR-03 — أمر W02): كشف القسم السياقي بعد استقرار المساحة
@@ -134,6 +145,40 @@ export default function Finance() {
       budgetsSectionRef.current?.scrollIntoView({ block: "start" });
     });
   };
+  /* F-002: فتح سؤال حالة الدفع من الجذر أو من مدخل اللوحة (تغلق اللوحة
+   * خلفها) — التركيز يدخل اللوحة الصغيرة وEscape/الخلفية/إلغاء يعيدونه
+   * لزر «تسجيل مصروف" الظاهر (نمط لوحة الفترة في الرئيسية القائم). */
+  const openExpenseEntry = () => {
+    setExpenseEntryOpen(true);
+  };
+  const closeExpenseEntry = (restoreFocus: boolean) => {
+    setExpenseEntryOpen(false);
+    if (restoreFocus) expenseEntryButtonRef.current?.focus();
+  };
+  const chooseExpenseMode = (mode: "paid" | "due") => {
+    const href =
+      mode === "paid" ? "/finance/new/operating_expense_cash" : "/finance/new/operating_expense_payable";
+    setExpenseEntryOpen(false);
+    navigate(withReturnTo(href, "/finance"));
+  };
+  useEffect(() => {
+    if (!expenseEntryOpen) return;
+    const timer = window.setTimeout(() => {
+      expenseEntryRef.current
+        ?.querySelectorAll<HTMLElement>("button, [tabindex]:not([tabindex='-1'])")[0]
+        ?.focus();
+    }, 0);
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setExpenseEntryOpen(false);
+      expenseEntryButtonRef.current?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [expenseEntryOpen]);
   const {
     projectFinance,
     correctionHistory,
@@ -284,6 +329,7 @@ export default function Finance() {
           functionsButtonRef.current?.focus();
         }}
         statementHref={`/finance/statement?from=${appliedRange.from.slice(0, 7)}&to=${appliedRange.to.slice(0, 7)}`}
+        onOpenExpenseEntry={openExpenseEntry}
         onOpenBudgets={openBudgetsSection}
       />
       {/* UNIT-013 / AF-B (تنفيذ S15 بالأمر الموحد §5): لا شريط تبويبات داخلي —
@@ -295,15 +341,15 @@ export default function Finance() {
         </Button>
       </div>
       {/* UNIT-013 / FIN-A2 (ترتيب ٢): ثلاثة أفعال تسجيل متقاربة تفتح أصحابها
-       * مباشرة — لا معالج يسأل عن نوع محاسبي ولا كاتب داخل المالية. */}
+       * مباشرة — لا معالج يسأل عن نوع محاسبي ولا كاتب داخل المالية.
+       * F-002 (UXR-D09): المصروف استثناء واحد مقصود — مدخل واحد واضح يحدد
+       * حالة الدفع قبل الحفظ (سؤال صريح لا افتراض مدفوع) ثم يوجه لمحرر
+       * صاحبه القائم؛ بيع وشراء يفتحان محرريهما مباشرة كما كانا. */}
       <div className="micro-finance-record-actions" role="group" aria-label="تسجيل عملية">
         <Button action="create" onClick={() => navigate(withReturnTo("/direct-sales/new", "/finance"))}>
           <Plus aria-hidden="true" /> تسجيل بيع
         </Button>
-        <Button
-          action="create"
-          onClick={() => navigate(withReturnTo("/finance/new/operating_expense", "/finance"))}
-        >
+        <Button action="create" ref={expenseEntryButtonRef} onClick={openExpenseEntry}>
           <Plus aria-hidden="true" /> تسجيل مصروف
         </Button>
         <Button action="create" onClick={() => navigate(withReturnTo("/suppliers/purchase/new", "/finance"))}>
@@ -813,6 +859,66 @@ export default function Finance() {
           openOnLoad={layerParam === "events"}
         />
       )}
+      {/* F-002 (UXR-03/UXR-D09): سؤال حالة الدفع الصريح قبل الحفظ — مدخل
+       * واحد يوجه لمحرري المدفوع/المستحق القائمين بدفعاتهما (لا كاتب ثالث
+       * ولا تحويل تلقائي لمدفوع)؛ الإلغاء/Escape/الخلفية يعيدون التركيز
+       * لزر «تسجيل مصروف» الظاهر ولا يكتبون شيئًا. */}
+      {expenseEntryOpen ? (
+        <div className="micro-soon-backdrop" role="presentation" onClick={() => closeExpenseEntry(false)}>
+          <div
+            ref={expenseEntryRef}
+            className="micro-functions-board"
+            role="dialog"
+            aria-modal="false"
+            aria-label="حالة دفع المصروف"
+            data-testid="finance-expense-entry"
+            onClick={event => event.stopPropagation()}
+          >
+            <div className="micro-functions-board-heading">
+              <h2>تسجيل مصروف</h2>
+              <button
+                className="micro-text-action"
+                type="button"
+                onClick={() => closeExpenseEntry(true)}
+              >
+                <X aria-hidden="true" /> إلغاء
+              </button>
+            </div>
+            <section className="micro-functions-board-group" aria-label="حالة الدفع">
+              <ul>
+                <li>
+                  <button
+                    className="micro-functions-board-entry"
+                    type="button"
+                    data-testid="finance-expense-paid"
+                    onClick={() => chooseExpenseMode("paid")}
+                  >
+                    <span>
+                      <strong>دفعت الآن</strong>
+                      <small>دُفع فعلًا — تختار مصدر الصرف عند الحفظ</small>
+                    </span>
+                    <ArrowLeft aria-hidden="true" />
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className="micro-functions-board-entry"
+                    type="button"
+                    data-testid="finance-expense-due"
+                    onClick={() => chooseExpenseMode("due")}
+                  >
+                    <span>
+                      <strong>لم أدفع بعد</strong>
+                      <small>التزام يظهر في مستحقات عليك — سداده مسجل لاحقًا</small>
+                    </span>
+                    <ArrowLeft aria-hidden="true" />
+                  </button>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      ) : null}
       {/* UNIT-013 / AF-AC01 (تنفيذ S15): طبقة سجل التصحيحات الكاملة غادرت جذر
        * المالية — التصحيحات تُقرأ من سجل العمليات الموحد (017) ومصادرها؛
        * ملخص RestatementNote أعلاه يبقى ظاهرًا بنطاقه الصادق. */}
