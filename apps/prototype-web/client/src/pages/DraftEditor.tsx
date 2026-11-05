@@ -685,7 +685,7 @@ export default function DraftEditor() {
   if (draft.linkedOrderId)
     return (
       <section className="micro-page micro-not-found">
-        <span className="micro-overline">اتفاق محفوظ</span>
+        {/* UXR-04 (F-008/SOP-02): العنوان وحده يحمل الحالة — لا تمهيد معمائي فوقه. */}
         <h1>هذه المسودة أصبحت طلبًا محليًا</h1>
         <p>لا نعدل تفاصيلها من هنا حتى لا يختلف الوصف عن الاتفاق وسجل التكلفة.</p>
         <Button
@@ -707,7 +707,7 @@ export default function DraftEditor() {
         <ArrowRight aria-hidden="true" /> العودة للطلبات
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">مسودة محلية</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد — حالة المسودة يحملها العنوان والرجوع لا وسم معماري. */}
         <h1>{isCustomerOrder ? "طلب من عميل" : "تصميم مخطط"}</h1>
         <p>نسجل القصة والكمية الآن. التكلفة والاتفاق يأتيان بعد ذلك.</p>
       </div>

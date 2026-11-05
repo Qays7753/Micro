@@ -213,7 +213,7 @@ export default function DeliveryReviewPage() {
         <ArrowRight aria-hidden="true" /> تفاصيل الطلب
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">مراجعة قبل الالتزام</span>
+        {/* UXR-04 (F-008/SOP-02): العنوان يحمل المراجعة — لا تمهيد معماري مكرر فوقه. */}
         <h1>مراجعة التسليم</h1>
         {ready ? (
           <p>

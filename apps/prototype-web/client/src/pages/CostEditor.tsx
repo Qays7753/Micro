@@ -681,7 +681,7 @@ export default function CostEditor() {
         <ArrowRight aria-hidden="true" /> العودة للمسودة
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">نسخة تكلفة محفوظة</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد بلا تمهيد معماري فوقه. */}
         <h1>{draft.itemName || "وصف القطعة"}</h1>
       </div>
       {/* U-004: إشعار البنود المقترحة من التقدير المصدر — معلنة لا مفترضة. */}

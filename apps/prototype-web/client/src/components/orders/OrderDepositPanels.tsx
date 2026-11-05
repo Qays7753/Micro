@@ -142,7 +142,8 @@ export function OrderDepositPanels({
             <div className="micro-decision-card">
               <Undo2 aria-hidden="true" />
               <div>
-                <span>حد الحقيقة</span>
+                {/* UXR-04 (COPY-02): لا عنوان عام «حد الحقيقة» — معنى العكس المباشر بجانب القرار. */}
+                <span>معنى العكس</span>
                 <strong>العكس يصحح السجل والتوزيع معًا — ولا يحذف شيئًا.</strong>
                 <p>
                   ينقص العربون القائم والمقبوض معًا فيعود الدين بقوته، وما وُزّع على محفظة يُفك منها بقيد
