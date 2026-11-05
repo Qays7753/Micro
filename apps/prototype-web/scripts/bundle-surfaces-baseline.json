@@ -16,9 +16,9 @@
   "environments": {
     "local": {
       "anchored": {
-        "head": "f9385299",
-        "date": "2026-11-05",
-        "method": "W01 final re-anchor (2026-11-05, code head f9385299, PR #384 — DOC-029/WS-245, order stages/UXR-W01-EXECUTION-PROMPT-AR.md): the complete Wave-01 candidate (UXR-01 Home readiness root fix — F-001 P0 memo dependency in the documented R1-F2 pattern + PERF-004/S11-L-01 Home-chain rejection exits with the explicit failed/retry surface, first W01 sub-anchor at f1e9a773 — then UXR-02 shell patterns: the F-015 scroll-ownership move to the document scroll container with the shell route-kind sync, and the NotFound single-clear-heading application of F-008). The UXR-02 slice removes the NotFound overline (lazy improved and locked 1,480,443/444,212 -> 1,480,364/444,180) while the entry heap carries the shell sync (entry 597,284/145,658 -> 597,701/145,718 reported only — check-bundle-budget PASS under the untouched owner ceilings 650,000/155,300); precache 2,914,092 -> 2,914,854 local; initial companions (223,841/70,438), swRuntime (27,754), and counts (129/2/87/184/2) unchanged. Re-anchored with same-PR provenance per the documented protocol; no tolerance, ceiling, count, or guard code changed."
+        "head": "3ff7bdc3",
+        "date": "2026-11-06",
+        "method": "W02/UXR-03 final re-anchor (2026-11-06, code head 3ff7bdc3, PR #384 — DOC-030/WS-246, stage card stages/UXR-03-STAGE-CARD-AR.md via the owner launch message): the complete Wave-02 candidate (F-003 board history-contract fix — navigate over the sentinel without the deferred back(); F-002 unified expense entry with the explicit payment-state question routing to the standing _cash/_payable editors; F-005/F-010/F-016 Finance de-stacking — the dissolved 'ما نعرفه الآن' paragraphs/fact-road links/'قصة الأسبوع'/'آخر ما حدث' surfaces with their values re-homed, the canonical five-group functions index with the merged /suppliers entry, and the pulse rows compacted into the 'الآن' group; F-009 compact segmented view keys; HOM/ORD dictionary texts and the single on-demand ask-Micro menu item). Net surface IMPROVEMENT from de-stacking, locked with same-PR provenance per the documented protocol: lazy 1,480,364/444,180 -> 1,477,357/443,689; precache 2,914,854 -> 2,912,359 local; initial companions (223,841/70,438), swRuntime (27,754), and counts (129/2/87/184/2) unchanged; entry 597,546/145,724 reported only — check-bundle-budget PASS under the untouched owner ceilings 650,000/155,300. No tolerance, ceiling, count, or guard code changed. Cloud environments pre-anchored by the proven environment-class derivation (precache = local + 90 identity footprint) pending the post-push exact-head re-verification per the documented protocol."
       },
       "toolchain": {
         "node": "24.22.2",
@@ -32,9 +32,9 @@
       "measurements": {
         "initialRawTotal": 223841,
         "initialGzipNormTotal": 70438,
-        "lazyRawTotal": 1480364,
-        "lazyGzipNormTotal": 444180,
-        "precacheBytesTotal": 2914854,
+        "lazyRawTotal": 1477357,
+        "lazyGzipNormTotal": 443689,
+        "precacheBytesTotal": 2912359,
         "swRuntimeRawTotal": 27754
       },
       "counts": {
@@ -47,9 +47,9 @@
     },
     "cloudflare-pages": {
       "anchored": {
-        "head": "f9385299",
-        "date": "2026-11-05",
-        "method": "W01 final cloud pre-anchor (2026-11-05, code head f9385299, PR #384 — DOC-029/WS-245): re-anchored from the simulated identity builds on this exact tree before the push (S13/S14 precedent) — github-actions byte-identical to local on the identical graph (lazy 1,480,364/444,180; initial 223,841/70,438; swRuntime 27,754), cloudflare-pages by the same environment-class derivation with the proven +90 precache identity footprint (precache 2,914,944 = local 2,914,854 + 90); the two cloud records remain identical to each other. Post-push, the head's own check-runs re-verify directly and any divergence re-anchors from the direct measurement per the documented protocol. No tolerance, ceiling, count, or guard code changed."
+        "head": "3ff7bdc3",
+        "date": "2026-11-06",
+        "method": "W02/UXR-03 final re-anchor (2026-11-06, code head 3ff7bdc3, PR #384 — DOC-030/WS-246, stage card stages/UXR-03-STAGE-CARD-AR.md via the owner launch message): the complete Wave-02 candidate (F-003 board history-contract fix — navigate over the sentinel without the deferred back(); F-002 unified expense entry with the explicit payment-state question routing to the standing _cash/_payable editors; F-005/F-010/F-016 Finance de-stacking — the dissolved 'ما نعرفه الآن' paragraphs/fact-road links/'قصة الأسبوع'/'آخر ما حدث' surfaces with their values re-homed, the canonical five-group functions index with the merged /suppliers entry, and the pulse rows compacted into the 'الآن' group; F-009 compact segmented view keys; HOM/ORD dictionary texts and the single on-demand ask-Micro menu item). Net surface IMPROVEMENT from de-stacking, locked with same-PR provenance per the documented protocol: lazy 1,480,364/444,180 -> 1,477,357/443,689; precache 2,914,854 -> 2,912,359 local; initial companions (223,841/70,438), swRuntime (27,754), and counts (129/2/87/184/2) unchanged; entry 597,546/145,724 reported only — check-bundle-budget PASS under the untouched owner ceilings 650,000/155,300. No tolerance, ceiling, count, or guard code changed. Cloud environments pre-anchored by the proven environment-class derivation (precache = local + 90 identity footprint) pending the post-push exact-head re-verification per the documented protocol."
       },
       "toolchain": {
         "node": "24.22.2",
@@ -63,9 +63,9 @@
       "measurements": {
         "initialRawTotal": 223841,
         "initialGzipNormTotal": 70438,
-        "lazyRawTotal": 1480364,
-        "lazyGzipNormTotal": 444180,
-        "precacheBytesTotal": 2914944,
+        "lazyRawTotal": 1477357,
+        "lazyGzipNormTotal": 443689,
+        "precacheBytesTotal": 2912449,
         "swRuntimeRawTotal": 27754
       },
       "counts": {
@@ -78,9 +78,9 @@
     },
     "github-actions": {
       "anchored": {
-        "head": "f9385299",
-        "date": "2026-11-05",
-        "method": "W01 final cloud pre-anchor (2026-11-05, code head f9385299, PR #384 — DOC-029/WS-245): re-anchored from the simulated identity builds on this exact tree before the push (S13/S14 precedent) — github-actions byte-identical to local on the identical graph (lazy 1,480,364/444,180; initial 223,841/70,438; swRuntime 27,754), cloudflare-pages by the same environment-class derivation with the proven +90 precache identity footprint (precache 2,914,944 = local 2,914,854 + 90); the two cloud records remain identical to each other. Post-push, the head's own check-runs re-verify directly and any divergence re-anchors from the direct measurement per the documented protocol. No tolerance, ceiling, count, or guard code changed."
+        "head": "3ff7bdc3",
+        "date": "2026-11-06",
+        "method": "W02/UXR-03 final re-anchor (2026-11-06, code head 3ff7bdc3, PR #384 — DOC-030/WS-246, stage card stages/UXR-03-STAGE-CARD-AR.md via the owner launch message): the complete Wave-02 candidate (F-003 board history-contract fix — navigate over the sentinel without the deferred back(); F-002 unified expense entry with the explicit payment-state question routing to the standing _cash/_payable editors; F-005/F-010/F-016 Finance de-stacking — the dissolved 'ما نعرفه الآن' paragraphs/fact-road links/'قصة الأسبوع'/'آخر ما حدث' surfaces with their values re-homed, the canonical five-group functions index with the merged /suppliers entry, and the pulse rows compacted into the 'الآن' group; F-009 compact segmented view keys; HOM/ORD dictionary texts and the single on-demand ask-Micro menu item). Net surface IMPROVEMENT from de-stacking, locked with same-PR provenance per the documented protocol: lazy 1,480,364/444,180 -> 1,477,357/443,689; precache 2,914,854 -> 2,912,359 local; initial companions (223,841/70,438), swRuntime (27,754), and counts (129/2/87/184/2) unchanged; entry 597,546/145,724 reported only — check-bundle-budget PASS under the untouched owner ceilings 650,000/155,300. No tolerance, ceiling, count, or guard code changed. Cloud environments pre-anchored by the proven environment-class derivation (precache = local + 90 identity footprint) pending the post-push exact-head re-verification per the documented protocol."
       },
       "toolchain": {
         "node": "24.22.2",
@@ -94,9 +94,9 @@
       "measurements": {
         "initialRawTotal": 223841,
         "initialGzipNormTotal": 70438,
-        "lazyRawTotal": 1480364,
-        "lazyGzipNormTotal": 444180,
-        "precacheBytesTotal": 2914944,
+        "lazyRawTotal": 1477357,
+        "lazyGzipNormTotal": 443689,
+        "precacheBytesTotal": 2912449,
         "swRuntimeRawTotal": 27754
       },
       "counts": {
