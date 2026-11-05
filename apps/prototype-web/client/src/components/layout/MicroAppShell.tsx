@@ -57,6 +57,20 @@ function ShellContent({ location, children }: { location: string; children: Reac
   const isSetup = routeKind === "setup";
   const showGlobalChrome = showsGlobalChrome(location);
   const pathname = pathnameOnly(location);
+  /* F-015 (UXR-02 — أمر UXR-W01): حاوية التمرير الفعلية هي المستند
+   * (document.scrollingElement === documentElement) — تعويض التمرير
+   * (scroll-padding) لا يصرف إلا على حاوية التمرير، فالإعلان عليه داخل
+   * .micro-main كان بلا أثر والتركيز البرمجي/scrollIntoView يهبط خلف
+   * الشريط السفلي الثابت. القيم تُعلن على html الآن (index.css) ويتخصص
+   * سطر الأسطح حسب نوع المسار الذي تزامنه القشرة هنا على وسم المستند —
+   * نفس سابقة ThemeContext في كتابة documentElement (بلا قواعد CSS تلمس
+   * التركيز وبلا قيم جمالية جديدة ولا padding أعمى). */
+  useEffect(() => {
+    document.documentElement.dataset.microRouteKind = routeKind;
+    return () => {
+      delete document.documentElement.dataset.microRouteKind;
+    };
+  }, [routeKind]);
   /* Wave 4.3 — P-4.3-1 (D5): حالة اكتمال الحساب لقائمة الشعار — قراءة رسمية
    * واحدة من خدمة هوية المالك (لا Store جديد ولا كتابة). المجهول المؤقت
    * يعرض المدخل المحايد «الحساب» حتى تصل القراءة. */

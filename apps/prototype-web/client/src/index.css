@@ -351,18 +351,30 @@
   width: 20px;
   height: 20px;
 }
+/* F-015 (UXR-02 — أمر UXR-W01 — إصلاح ملكية التعويض لا إضافة padding):
+ * حاوية التمرير الفعلية هي المستند (document.scrollingElement ===
+ * documentElement) — scroll-padding لا تصرف إلا على حاوية التمرير، فكان
+ * إعلانها على .micro-main (غلاف داخل المستند) بلا أثر، والتركيز البرمجي
+ * (focus()/scrollIntoView) يهبط خلف الشريط السفلي الثابت في الأسطح.
+ * تُعلن القيم نفسها الآن على حاوية التمرير الفعلية (html)، ويتخصص سطر
+ * الأسطح حسب نوع المسار الذي تزامنه القشرة على data-micro-route-kind
+ * (سطح = الشريط السفلي الثابت: 80px + safe-area؛ عمق = space-6) — لا قيمة
+ * جمالية جديدة ولا مساس بالثيم (ADR-009 والتوكنات كما هما). */
+html {
+  scroll-padding-block-end: calc(var(--space-6) + env(safe-area-inset-bottom));
+  scroll-padding-block-start: calc(var(--vf-topbar-height) + env(safe-area-inset-top) + var(--space-2));
+}
+html[data-micro-route-kind="surface"] {
+  scroll-padding-block-end: calc(80px + env(safe-area-inset-bottom));
+}
 .micro-main {
   --main-bottom-space: calc(var(--space-4) + env(safe-area-inset-bottom));
-  --main-scroll-space: calc(var(--space-6) + env(safe-area-inset-bottom));
   /* §4 بند ٣: أول بطاقة لا تُقصّ خلف الترويسة اللاصقة عند التمرير أو الاسترجاع */
   min-height: calc(100dvh - var(--vf-topbar-height) - env(safe-area-inset-top));
   padding: var(--space-4) var(--space-4) var(--main-bottom-space);
-  scroll-padding-block-end: var(--main-scroll-space);
-  scroll-padding-block-start: calc(var(--vf-topbar-height) + env(safe-area-inset-top) + var(--space-2));
 }
 .micro-main[data-route-kind="surface"] {
   --main-bottom-space: calc(116px + env(safe-area-inset-bottom));
-  --main-scroll-space: calc(80px + env(safe-area-inset-bottom));
 }
 .micro-page {
   display: flex;
