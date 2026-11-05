@@ -629,6 +629,38 @@ textarea:disabled,
 .micro-setting-row p {
   font-size: 0.8125rem;
 }
+/* UXR-06 (F-011): فهرس الإعدادات — صف أزرار المجموعات الأربع فوق النمط القائم
+ * (نفس حاوية micro-settings-list ورموز micro-setting-icon) بلا هوية موازية. */
+.micro-settings-group-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 72px;
+  padding: var(--space-4);
+  text-align: start;
+  cursor: pointer;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.micro-settings-group-row:last-child {
+  border-bottom: 0;
+}
+.micro-settings-group-row span {
+  display: grid;
+  flex: 1;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.micro-settings-group-row b {
+  font-size: 0.9375rem;
+}
+.micro-settings-group-row small {
+  color: var(--color-muted-foreground);
+  font-size: 0.8125rem;
+}
 .micro-setting-icon,
 .micro-sheet-action-icon {
   display: inline-grid;

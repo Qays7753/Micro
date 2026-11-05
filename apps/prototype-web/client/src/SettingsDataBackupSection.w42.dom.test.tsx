@@ -98,7 +98,11 @@ describe("P-4.2-3 — القسم الموحد «البيانات والنسخ ا
         <Settings />
       </ThemeProvider>,
     );
-    await waitFor(() => expect(screen.getByRole("heading", { name: "احمِ بياناتك" })).toBeTruthy());
+    /* UXR-06 (F-011): فتح مجموعة «البيانات والنسخ الاحتياطي» قبل فحص القسم. */
+    fireEvent.click(await screen.findByTestId("settings-group-data"));
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "النسخ الاحتياطي والاستعادة" })).toBeTruthy(),
+    );
 
     /* الاسم المعتمد للقسم الموحد. */
     expect(screen.getByText("البيانات والنسخ الاحتياطي")).toBeTruthy();
@@ -111,9 +115,9 @@ describe("P-4.2-3 — القسم الموحد «البيانات والنسخ ا
     const section = screen.getByText("البيانات والنسخ الاحتياطي").closest("details");
     expect(section).not.toBeNull();
     const scope = within(section as HTMLElement);
-    expect(scope.getByRole("button", { name: "تصدير البيانات المحلية" })).toBeTruthy();
-    expect(scope.getByRole("button", { name: "اختيار ملف استيراد" })).toBeTruthy();
-    expect(scope.getByRole("heading", { name: "إدخال موقف افتتاحي" })).toBeTruthy();
+    expect(scope.getByRole("button", { name: "حفظ نسخة" })).toBeTruthy();
+    expect(scope.getByRole("button", { name: "استعادة نسخة" })).toBeTruthy();
+    expect(scope.getByRole("heading", { name: "استيراد بيانات البداية" })).toBeTruthy();
     expect(scope.getByRole("heading", { name: "تذكير النسخة الاحتياطية" })).toBeTruthy();
     expect(scope.getByRole("heading", { name: "تقرير التشخيص المحلي" })).toBeTruthy();
     expect(scope.getByRole("button", { name: "بدء مسار المشروع الجديد" })).toBeTruthy();
@@ -125,7 +129,11 @@ describe("P-4.2-3 — القسم الموحد «البيانات والنسخ ا
         <Settings />
       </ThemeProvider>,
     );
-    await waitFor(() => expect(screen.getByRole("heading", { name: "احمِ بياناتك" })).toBeTruthy());
+    /* UXR-06 (F-011): فتح مجموعة «البيانات والنسخ الاحتياطي» قبل فحص القسم. */
+    fireEvent.click(await screen.findByTestId("settings-group-data"));
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "النسخ الاحتياطي والاستعادة" })).toBeTruthy(),
+    );
 
     const section = screen.getByText("البيانات والنسخ الاحتياطي").closest("details") as HTMLElement;
     const order = (label: string) => {
@@ -136,9 +144,9 @@ describe("P-4.2-3 — القسم الموحد «البيانات والنسخ ا
     };
     /* الحقيقة قبل التصدير قبل الاستعادة قبل الإدخال الافتتاحي قبل التصفير. */
     const truth = order("بياناتك على هذا الجهاز");
-    const exportRow = order("تصدير البيانات المحلية");
-    const importRow = order("اختيار ملف استيراد");
-    const guided = order("إدخال موقف افتتاحي");
+    const exportRow = order("حفظ نسخة");
+    const importRow = order("استعادة نسخة");
+    const guided = order("استيراد بيانات البداية");
     const reset = order("بدء مسار المشروع الجديد");
     expect(truth).toBeGreaterThanOrEqual(0);
     expect(truth).toBeLessThan(exportRow);

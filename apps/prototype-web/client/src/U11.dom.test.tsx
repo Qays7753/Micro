@@ -94,10 +94,14 @@ describe("Settings backup actions carry visible Arabic labels (U-11)", () => {
         <Settings />
       </ThemeProvider>,
     );
-    await waitFor(() => expect(screen.getByRole("heading", { name: "احمِ بياناتك" })).toBeTruthy());
+    /* UXR-06 (F-011): فتح مجموعة «البيانات والنسخ الاحتياطي» قبل فحص القسم. */
+    fireEvent.click(await screen.findByTestId("settings-group-data"));
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "النسخ الاحتياطي والاستعادة" })).toBeTruthy(),
+    );
 
-    const exportButton = screen.getByRole("button", { name: "تصدير البيانات المحلية" });
-    const importButton = screen.getByRole("button", { name: "اختيار ملف استيراد" });
+    const exportButton = screen.getByRole("button", { name: "حفظ نسخة" });
+    const importButton = screen.getByRole("button", { name: "استعادة نسخة" });
     expect(exportButton.textContent).toContain("تصدير");
     expect(importButton.textContent).toContain("استيراد");
 

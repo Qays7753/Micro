@@ -101,6 +101,8 @@ describe("SET-003 follow-up — Settings capabilities section over contract-comp
         <Settings />
       </ThemeProvider>,
     );
+    /* UXR-06 (F-011): فتح مجموعة «الاستخدام والقدرات» قبل فحص قسم القدرات. */
+    fireEvent.click(await screen.findByTestId("settings-group-usage"));
     const section = await screen.findByTestId("capabilities-section");
     expect(section.textContent).toContain("قدرات مشروعك");
     /* القدرات الأربع كلها حاضرة — الأساس غير قابل للإيقاف. */
