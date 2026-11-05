@@ -8913,6 +8913,101 @@
         "trigger": "W01 execution on uxr/integration-20261105 / PR #384",
         "ocRef": "DOC-029"
       }
+    },
+    {
+      "id": "UXR-W02-FIN-OBLIGATIONS-COPY06-TITLE-20261106",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/components/finance/FinanceObligationsCard.tsx",
+      "from": {
+        "nbLoc": 102,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 105,
+        "band": "NORMAL"
+      },
+      "reason": "F-002/UXR-03 (order 02-PAGE-CONTRACTS row 4 + COPY-06): the obligations surface title becomes «مستحقات عليك» — an honest scope label covering supplier payables AND due operating expenses (the task-link gate of 02-FIN forbids the old payables-only implication), with the dated provenance comment. Title-only change; no logic, writer, or total change.",
+      "authorization": {
+        "ownerReview": "W02/UXR-03 delivery under the owner launch message of 2026-11-06 (DOC-030/WS-246 on PR #384) — this entry is part of the W02 PR diff",
+        "trigger": "UXR-03 stage card (04-WORK-ORDERS F-002/F-005 closure + 03-CONTENT COPY-06): mandated label applied with its consumer provenance in the same PR",
+        "ocRef": "DOC-030"
+      }
+    },
+    {
+      "id": "UXR-W02-PERIOD-STATEMENT-BUTTON-20261106",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/components/finance/FinancePeriodResultSection.tsx",
+      "from": {
+        "nbLoc": 496,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 517,
+        "band": "WATCH"
+      },
+      "reason": "F-005/F-010 (02-FIN de-stacking + DEC-FIN-01): the dissolved root story card («قصة الأسبوع ببساطة») and the duplicate plain statement paragraph merge into ONE contextual button inside the period details — «افتح كشف الفترة» carrying the applied since/until range (same destination+scope), plus the dated provenance comment. No new reading logic; the service and writers are untouched.",
+      "authorization": {
+        "ownerReview": "W02/UXR-03 delivery under the owner launch message of 2026-11-06 (DOC-030/WS-246 on PR #384) — this entry is part of the W02 PR diff",
+        "trigger": "UXR-03 stage card (04-WORK-ORDERS F-005: «حفظ المداخل والقدرات» + 02-PAGE-CONTRACTS FIN: «قراءة الفترة إلى الكشف») — the merged entry required a same-PR documented anchor",
+        "ocRef": "DOC-030"
+      }
+    },
+    {
+      "id": "UXR-W02-ORDERS-CONTRACT-TEXTS-20261106",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/Orders.tsx",
+      "from": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 1029,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "F-009/UXR-03 (02-PAGE-CONTRACTS ORD rows 2-6 + COPY-12/14/15 + N2): the compact segmented view keys (native radios, full role/state/focus contract) replace the two large choice cards; the honest empty states split by cause (search-no-results with مسح البحث + preserved past-scope entry; filter-no-results with reset; current-empty with the past entry) with dated provenance comments. Net +22 nbLOC over the W01-head 1007 (the drift audit's from value is the merge-base baseline snapshot 439 carried by this ledger entry to the new 1029). The SPLIT_CANDIDATE band stands as before — splitting the file is forbidden by the UXR structural gate (§3-أ: no file moves/splits without a specific owner decision) and stays deferred to that gate, not this wave.",
+      "authorization": {
+        "ownerReview": "W02/UXR-03 delivery under the owner launch message of 2026-11-06 (DOC-030/WS-246 on PR #384) — this entry is part of the W02 PR diff",
+        "trigger": "UXR-03 stage card (04-WORK-ORDERS F-009 closure: compact keys with role/state/focus) + 03-CONTENT COPY-12/14/15 literal dictionary application",
+        "ocRef": "DOC-030"
+      }
+    },
+    {
+      "id": "UXR-W02-SCHEDULE-SINGLE-HEADING-20261106",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/Schedule.tsx",
+      "from": {
+        "nbLoc": 996,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1011,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "DEC-ORD-01/UXR-03 (F-008): the architectural overline «التنظيم التشغيلي» above H1 is deleted — one clear destination heading (the shell carries the route label); the dated provenance comment replaces the two removed lines. Single-heading change only; the SPLIT_CANDIDATE band is unchanged and deferred to the structural gate as before.",
+      "authorization": {
+        "ownerReview": "W02/UXR-03 delivery under the owner launch message of 2026-11-06 (DOC-030/WS-246 on PR #384) — this entry is part of the W02 PR diff",
+        "trigger": "UXR-03 stage card (02-PAGE-CONTRACTS DEC-ORD-01 via 04-WORK-ORDERS F-008 inventory): page-level triple-heading removal on an owned surface",
+        "ocRef": "DOC-030"
+      }
+    },
+    {
+      "id": "UXR-W02-DENSITY-FINANCE-RATCHET-20261106",
+      "date": "2026-11-06",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 940,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "F-005/UXR-03 ratchet gain (the S17 Settings 63→75 precedent): Finance's at-rest string count drops 332 → 258 after the root de-stacking, so the ceiling is lowered as a locked gain with the dated provenance block documenting every dissolved surface and the new home of each removed value. Data-only ledger change (CAPS + provenance); the engine, golden, and CLI contract are unchanged (byte-identical output proven by the characterization test).",
+      "authorization": {
+        "ownerReview": "W02/UXR-03 delivery under the owner launch message of 2026-11-06 (DOC-030/WS-246 on PR #384) — this entry is part of the W02 PR diff",
+        "trigger": "UXR-03 stage card (04-WORK-ORDERS F-005 closure: «يُقاس الارتفاع قبل/بعد») — the measured reduction is locked same-PR per the documented ratchet protocol",
+        "ocRef": "DOC-030"
+      }
     }
   ]
 }
