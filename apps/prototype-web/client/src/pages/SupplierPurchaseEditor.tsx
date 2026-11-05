@@ -793,9 +793,7 @@ export default function SupplierPurchaseEditor() {
         <ArrowRight aria-hidden="true" /> مشتريات المواد
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">
-          {paymentMode ? "دفعة مورد" : mode === "edit" ? "تفاصيل شراء وتصحيحه" : "شراء مواد"}
-        </span>
+        {/* UXR-04 (F-008/SOP-02): عنوان المهمة يحمل الوضع — لا تمهيد معماري فوقه. */}
         <h1>
           {paymentMode
             ? `دفعة إلى ${supplierDisplayLabelOf(purchase ?? { supplierName: null })}`
@@ -1344,7 +1342,8 @@ export default function SupplierPurchaseEditor() {
             </section>
           ) : (
             <section className="micro-decision-card">
-              <span>حد الحقيقة</span>
+              {/* UXR-04 (COPY-02): معنى الشراء المباشر بجانب القرار — لا عنوان عام. */}
+              <span>معنى الشراء</span>
               <strong>شراء المواد لا يساوي مصروف بيع</strong>
               <p>
                 الدفع يغيّر النقد وما عليك للمورد فقط؛ وتكلفة بنوده تُعرف من معالجتها: مواد الفترة على فترة
