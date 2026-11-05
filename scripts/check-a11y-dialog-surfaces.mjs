@@ -119,7 +119,7 @@ export const CLASSIFIED_DIALOG_SURFACES = [
     ariaModal: false,
     model: "NON_MODAL",
     focusContract:
-      "conformant F-002/UXR-03 — focus-in on open (first choice) + Escape + cancel button + backdrop close; focus restored to the expense trigger on close; no trap by design (OD-A11Y non-modal)",
+      "conformant F-002/UXR-03 — focus-in on open (first choice) + Escape/cancel restore focus to the expense trigger; backdrop closes without restore (pointer user — the standing Home-panels pattern); no trap by design (OD-A11Y non-modal)",
   },
 ];
 

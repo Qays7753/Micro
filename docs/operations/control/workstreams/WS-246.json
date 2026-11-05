@@ -38,7 +38,7 @@
   "pr": 384,
   "started_at": "2026-11-06",
   "updated_at": "2026-11-06",
-  "next_action": "W02 مكتملة التسليم عند رأس المرشح 638cfc45 على الفرع وPR #384 Draft فقط؛ بانتظار المراجعتين القراءة-فوق المستقلتين على الرأس بعينه (الأولى بتأكيد W01 وتفاعله؛ والثانية بتأكيد W02 وتفاعله) ثم قرار المالك. لا W03 ولا دمج ولا قبول ذاتي.",
+  "next_action": "W02 مكتملة التسليم عند رأس الكود المرجعي 638ccf45 ورأس التسليم النهائي a315db6a (فروق توثيقية فقط) على الفرع وPR #384 Draft فقط؛ بانتظار المراجعتين القراءة-فوق المستقلتين على الرأس بعينه (الأولى بتأكيد W01 وتفاعله؛ والثانية بتأكيد W02 وتفاعله) ثم قرار المالك. لا W03 ولا دمج ولا قبول ذاتي.",
   "notes": [
     "Owner launch message 2026-11-06 authorizes UXR-03 (W02) now, superseding only the stop-after-W01 instruction and the UXR-02-acceptance prerequisite; it accepts neither wave, does not authorize W03, and does not permit merging.",
     "Use branch uxr/integration-20261105 and Draft PR #384 only; never write main, create another branch/PR, merge, rebase, force-push, mark ready, or discard work.",

@@ -17,14 +17,7 @@
     "UXR-02/UXR-03 DOM/accessibility/scroll/focus evidence at required phone widths (360/390/430 + إعادة تدفق 320 + تكبير 200% حيث ينطبق) للأسطح المتغيرة، مع أزرار الأسهم/Tab/Mسافة/قارئ الشاشة لمفاتيح العرض المضغوطة.",
     "Focused tests after each sub-delivery; one complete pnpm check on the final combined W01+W02 tree; exact-final-head Actions/Cloudflare status truthfully reported after push."
   ],
-  "layers": [
-    "ui",
-    "accessibility",
-    "application",
-    "tests",
-    "documentation",
-    "operations-control"
-  ],
+  "layers": ["ui", "accessibility", "application", "tests", "documentation", "operations-control"],
   "source": {
     "report": "docs/implementation/micro-product-remediation-20261105/04-WORK-ORDERS-AR.md",
     "discovered_at_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
@@ -77,12 +70,8 @@
     "docs/implementation/UXR-W01-RESULT-2026-11-05.md",
     "https://github.com/Qays7753/Micro/pull/384"
   ],
-  "dependencies": [
-    "DOC-029"
-  ],
-  "related_items": [
-    "DOC-029"
-  ],
+  "dependencies": ["DOC-029"],
+  "related_items": ["DOC-029"],
   "updated_at": "2026-11-06",
   "status_history": [
     {
@@ -105,5 +94,5 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "اكتمل تنفيذ UXR-03 (F-002/F-003/F-005/F-009/F-010/F-016 + عقود HOM/ORD/Schedule وإعلان اسأل Micro الموحد) على الفرع وPR #384 Draft فقط عند رأس المرشح 638ccc45 مع فحص كامل أخضر وأدلة التقرير؛ بانتظار المراجعتين القراءة-فوق المستقلتين على الرأس بعينه ثم قرار المالك. لا W03 ولا دمج ولا قبول ذاتي."
+  "next_action": "اكتمل تنفيذ UXR-03 (F-002/F-003/F-005/F-009/F-010/F-016 + عقود HOM/ORD/Schedule وإعلان اسأل Micro الموحد) على الفرع وPR #384 Draft فقط عند رأس الكود المرجعي 638ccf45 ورأس التسليم النهائي a315db6a (فروق توثيقية فقط) مع فحص كامل أخضر وأدلة التقرير؛ بانتظار المراجعتين القراءة-فوق المستقلتين على الرأس بعينه ثم قرار المالك. لا W03 ولا دمج ولا قبول ذاتي."
 }

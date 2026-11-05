@@ -1,8 +1,9 @@
 /** Anti-vibe chrome: visible brand and contextual route label without a repeated decorative local badge. */
 /* Wave 4.3 — P-4.3-1 (D1..D5): منطقة علوية خفيفة ومفتوحة — لا شريط علوي
  * تقليديًا ولا صندوقًا منفصلًا. الشعار زر حقيقي (≥44×44) يفتح قائمة الحساب
- * العمودية؛ النقل و«اسأل Micro» على اليسار بإعلاني «قريبًا» الصادقين.
- * زر الوضع الليلي أُزيل من هنا نهائيًا — مدخله الوحيد: الإعدادات ← المظهر (D4). */
+ * العمودية؛ «اسأل Micro» بند واحد عند الطلب داخل القائمة (DEC-SHELL-01/
+ * UXR-03) بلا أثر دائم في الترويسة. زر الوضع الليلي أُزيل من هنا نهائيًا —
+ * مدخله الوحيد: الإعدادات ← المظهر (D4). */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, CircleUserRound, Landmark, MessageCircleQuestion, Settings, X } from "lucide-react";
 import { BrandMark } from "@/components/brand/BrandMark";
