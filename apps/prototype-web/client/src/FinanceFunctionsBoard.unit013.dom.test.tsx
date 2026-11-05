@@ -106,10 +106,11 @@ function renderFinance() {
   );
 }
 
-/** فتح اللوحة من زرها الظاهر — تُعاد بعد جاهزية الصفحة. الزر الظاهر في
- * أعمال الصفحة هو الأول؛ رابط الحقيقة أسفل الصفحة يفتح اللوحة نفسها. */
+/** فتح الفهرس من زره الظاهر — تُعاد بعد جاهزية الصفحة. F-005/UXR-03:
+ * المشغّل الظاهر واحد («كل الوظائف») — رابط الحقيقة أسفل الصفحة أُذيب
+ * في الفهرس فلا مشغّل ثانٍ لنفس الوظيفة. */
 async function openBoard() {
-  const [button] = await screen.findAllByRole("button", { name: /وظائف المالية/ });
+  const button = await screen.findByRole("button", { name: "كل الوظائف" });
   fireEvent.click(button);
   return screen.getByRole("dialog", { name: "وظائف المالية" }) as HTMLElement;
 }
@@ -121,36 +122,47 @@ describe("UNIT-013 — لوحة وظائف المالية (AF-B) وإلغاء ا
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
     /* اللوحة مغلقة أولًا: لا مجموعات ولا مداخل قبل الطلب. */
     expect(screen.queryByRole("dialog")).toBeNull();
-    /* أفعال التسجيل الثلاثة ظاهرة بلا فتح اللوحة (لا تفتح اللوحة لتسجيل الأساسي). */
-    for (const label of ["تسجيل بيع", "تسجيل مصروف", "تسجيل شراء"]) {
+    /* أفعال التسجيل الثلاثة ظاهرة بلا فتح الفهرس (لا يفتح الفهرس للتسجيل الأساسي)
+     * — المحتوى الحرفي لعقد 02-FIN: «بيع»/«مصروف»/«شراء» (F-002: المصروف
+     * يفتح سؤال حالة الدفع — لا وجهة مباشرة). */
+    for (const label of ["بيع", "مصروف", "شراء"]) {
       expect(screen.getAllByRole("button", { name: new RegExp(label) }).length).toBeGreaterThan(0);
     }
-    /* زر اللوحة مسمى وواضح — أعلى الصفحة ورابط الحقيقة يفتحانه معًا. */
-    expect((await screen.findAllByRole("button", { name: /وظائف المالية/ })).length).toBeGreaterThanOrEqual(
-      2,
-    );
+    /* مشغّل الفهرس مسمى وواضح وواحد — لا رابط ثانٍ لنفس الوظيفة (F-005). */
+    expect(await screen.findAllByRole("button", { name: "كل الوظائف" })).toHaveLength(1);
   });
 
-  it("AF-AC02/AC09: المجموعات الست و15 مدخلًا مسمى — بلا قروض أو مشاركة أو توقعات", async () => {
+  it("AF-AC02/AC09 + 02-FIN/F-016: فهرس الوظائف الكنوني — خمس مجموعات و19 مدخلًا مسمى بلا قروض أو مشاركة أو توقعات", async () => {
     await seedProfile();
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
     const board = await openBoard();
+    /* المجموعات الخمس الكنونية من عقد 02-FIN «فهرس الوظائف» — تنظيم وصول
+     * لا كيانات جديدة؛ الفرق عن Vالس15: دمج مدخلَي /suppliers المتكررين
+     * (F-016)، ونقل «سجل العمليات» و«مال المالك» و«المشتريات» إلى
+     * مجموعاتهم القانونية، وإضافة «عدّ الصندوق» المنتقل من جذر المالية،
+     * ومداخل سياقية لأقسام الطبقة الثانية (مستحقات عليك/الجسر/التعادل/
+     * السياسات) بنمط 013B القائم. */
     for (const group of [
-      "تسجيل عملية",
+      "التسجيل والسجلات",
       "النقد والمستحقات",
-      "الكشوف والسجلات",
+      "التقارير والتخطيط",
       "المنتجات والجهات",
-      "مال المالك",
-      "عند الحاجة",
+      "المخزون والأصول عند الحاجة",
     ]) {
       expect(within(board).getByRole("heading", { level: 3, name: group })).toBeTruthy();
     }
     const entries = within(board)
       .getAllByRole("button", { name: /.+/ })
       .filter(node => !node.textContent?.includes("إغلاق"));
-    /* 15 مدخلًا مسمى — لا زر مستقل لكل مكوّن ولا قائمة ثالثة. */
-    expect(entries).toHaveLength(15);
+    /* 19 مدخلًا مسمى — لا زر مستقل لكل مكوّن ولا قائمة ثالثة ولا مدخل
+     * مكرر لوجهة واحدة بنية واحدة (F-016). */
+    expect(entries).toHaveLength(19);
+    /* لا ازدواج وجهات: مدخل واحد فقط يفتح /suppliers (سجل الشراء والدفع). */
+    const suppliersEntries = entries.filter(
+      node => node.getAttribute("class") === "micro-functions-board-entry" && node.textContent?.includes("المشتريات"),
+    );
+    expect(within(board).getAllByRole("button", { name: /المشتريات/ })).toHaveLength(1);
     /* القدرات المتوقفة/المؤجلة غائبة من المالية كلها — لا إعادة إدراج من الدليل القديم. */
     const boardText = board.textContent ?? "";
     for (const forbidden of ["قرض", "اقتراض", "مشاركة", "توقع", "سحب آمن", "أمانة"]) {
@@ -168,14 +180,18 @@ describe("UNIT-013 — لوحة وظائف المالية (AF-B) وإلغاء ا
        * فتحًا لكل هدف بترتيب الاستدعاءات الحي. */
       const openEntry = async (label: string) => {
         const board = await openBoard();
-        fireEvent.click(within(board).getByRole("button", { name: new RegExp(label) }));
+        /* 02-FIN: أسماء المداخل الفعلية — الارتكاز على بداية الاسم يمنع
+         * التقاط «فرق النقد والنتيجة» عند فتح «النقد» مثلًا. */
+        fireEvent.click(within(board).getByRole("button", { name: new RegExp(`^${label}`) }));
       };
       const cases: readonly (readonly [string, string])[] = [
         ["النقد", "/cash"],
-        ["ديون العملاء", "/finance/upcoming"],
+        ["لك عند العملاء", "/finance/upcoming?kind=receivable"],
+        ["المشتريات", "/suppliers"],
         ["سجل العمليات", "/finance/activity"],
         ["مال المالك", "/finance/owner-entitlement"],
         ["المخزون", "/inventory"],
+        ["عدّ الصندوق", "/cash/count"],
       ];
       for (const [label, target] of cases) {
         wouterMocks.navigate.mockClear();
@@ -236,7 +252,7 @@ describe("UNIT-013 — لوحة وظائف المالية (AF-B) وإلغاء ا
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
     await openBoard();
-    const [functionsButton] = screen.getAllByRole("button", { name: /وظائف المالية/ });
+    const functionsButton = screen.getByRole("button", { name: "كل الوظائف" });
     /* الإغلاق بزر «إغلاق». */
     fireEvent.click(screen.getByRole("button", { name: /إغلاق/ }));
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -278,7 +294,7 @@ describe("S15-MR-001 — رجوع الهاتف/المتصفح يغلق اللو�
     await seedProfile();
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
-    const [functionsButton] = screen.getAllByRole("button", { name: /وظائف المالية/ });
+    const functionsButton = screen.getByRole("button", { name: "كل الوظائف" });
     await openBoard();
     /* فتح اللوحة يملك entry تاريخي واحدًا لهذه الحالة (نفس الصفحة) — لا أكثر. */
     expect((history.state as { microFinanceBoard?: boolean } | null)?.microFinanceBoard === true).toBe(true);
@@ -321,7 +337,7 @@ describe("S15-MR-001 — رجوع الهاتف/المتصفح يغلق اللو�
       expect(screen.queryByRole("dialog")).toBeNull();
       expect(backSpy).toHaveBeenCalledTimes(1);
       /* رجوع لاحق بعد إغلاق غير-Back لا يُبتلع: فتح جديد ثم Back يغلق وحده. */
-      const [functionsButton] = screen.getAllByRole("button", { name: /وظائف المالية/ });
+      const functionsButton = screen.getByRole("button", { name: "كل الوظائف" });
       fireEvent.click(functionsButton);
       await screen.findByRole("dialog", { name: "وظائف المالية" });
       backSpy.mockClear();

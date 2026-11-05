@@ -168,7 +168,7 @@ describe("Finance indicators layer and registered expectations record (و٧, F-0
     expect(screen.getByText("السيولة المسجلة")).toBeTruthy();
     /* المجموعة ٢ (§8): بطاقة قرار الكاش صارت في وجهة «الوضع» — في وجهة «الفترة»
      * يظهر السطر مرة واحدة (السيولة المسجلة) بلا تكرار. */
-    expect(screen.getAllByText("الكاش المسجل").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("النقد المسجل الآن").length).toBeGreaterThanOrEqual(1);
   });
 
   it("reveals the full registered expectations record under coverage and break-even, including reversals", async () => {

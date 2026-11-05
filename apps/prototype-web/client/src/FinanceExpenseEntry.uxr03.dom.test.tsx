@@ -100,7 +100,7 @@ describe("F-002 — مدخل المصروف الموحد بحالة الدفع (
     await seedProfile();
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "تسجيل مصروف" }));
+    fireEvent.click(screen.getByRole("button", { name: "مصروف" }));
     /* السؤال الصريح يفتح فوق الصفحة — لا كتابة ولا انتقال بعد. */
     const chooser = screen.getByRole("dialog", { name: "حالة دفع المصروف" });
     expect(within(chooser).getByRole("button", { name: /دفعت الآن/ })).toBeTruthy();
@@ -112,7 +112,7 @@ describe("F-002 — مدخل المصروف الموحد بحالة الدفع (
     await seedProfile();
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "تسجيل مصروف" }));
+    fireEvent.click(screen.getByRole("button", { name: "مصروف" }));
     fireEvent.click(screen.getByRole("button", { name: /دفعت الآن/ }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
       withReturnTo("/finance/new/operating_expense_cash", "/finance"),
@@ -128,7 +128,7 @@ describe("F-002 — مدخل المصروف الموحد بحالة الدفع (
     await seedProfile();
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "تسجيل مصروف" }));
+    fireEvent.click(screen.getByRole("button", { name: "مصروف" }));
     fireEvent.click(screen.getByRole("button", { name: /لم أدفع بعد/ }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith(
       withReturnTo("/finance/new/operating_expense_payable", "/finance"),
@@ -139,7 +139,7 @@ describe("F-002 — مدخل المصروف الموحد بحالة الدفع (
     await seedProfile();
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
-    const trigger = screen.getByRole("button", { name: "تسجيل مصروف" });
+    const trigger = screen.getByRole("button", { name: "مصروف" });
     /* الإلغاء بالزر. */
     fireEvent.click(trigger);
     fireEvent.click(screen.getByRole("dialog", { name: "حالة دفع المصروف" }).querySelector("button")!);
@@ -162,11 +162,11 @@ describe("F-002 — مدخل المصروف الموحد بحالة الدفع (
     await seedProfile();
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
-    /* فتح اللوحة من زرها الظاهر ثم مدخل «تسجيل مصروف» منها. */
-    const [boardButton] = screen.getAllByRole("button", { name: /وظائف المالية/ });
+    /* فتح الفهرس من زره الظاهر ثم مدخل «مصروف» منه (02-FIN). */
+    const boardButton = screen.getByRole("button", { name: "كل الوظائف" });
     fireEvent.click(boardButton);
     const board = screen.getByRole("dialog", { name: "وظائف المالية" });
-    fireEvent.click(within(board).getByRole("button", { name: /تسجيل مصروف/ }));
+    fireEvent.click(within(board).getByRole("button", { name: /^مصروف/ }));
     /* اللوحة أغلقت والسؤال مفتوح — ثم الخيار يوجه للمحرر القائم نفسه. */
     expect(screen.queryByRole("dialog", { name: "وظائف المالية" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: /دفعت الآن/ }));

@@ -141,9 +141,10 @@ describe("Finance journeys (Group 11-E)", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
     /* القيمة الدقيقة 1,520.40 د.أ تُعرض كما خُزنت (152,040 قروشًا) بلا تقريب. */
     expect(screen.getAllByText("1,520.40").length).toBeGreaterThan(0);
-    expect(within(positionSection()).getByText("الكاش المسجل")).toBeTruthy();
-    /* سطر الحقيقة: محافظ مسجلة: 1 — التسمية تصف ما تحته. */
-    expect(screen.getByText(/محافظ مسجلة: 1/)).toBeTruthy();
+    expect(within(positionSection()).getByText("النقد المسجل الآن")).toBeTruthy();
+    /* F-005/UXR-03 (N11): سطر «محافظ مسجلة: 1» حلّ إلى مالكه — تفاصيل
+     * النقد (/cash تعرض المحافظ وأرصدتها)؛ سطح المالية يعرض القيمة
+     * المجمعة وحالتها فقط، والقراءة الراجعة أدناه تُثبت الرقم بدقته. */
     /* القراءة الراجعة من نواة قراءة المركز نفسها: القيمة الصحيحة بالقروش. */
     const position = await projectFinance.readPosition();
     expect(position.ok && position.value.recordedCashMinor).toBe(152040);

@@ -18,7 +18,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
-import { ArrowLeft, Landmark, ReceiptText, Users, WalletCards, Wrench, X } from "lucide-react";
+import { ArrowLeft, ReceiptText, Scale, Users, WalletCards, Wrench, X } from "lucide-react";
 
 export type FinanceFunctionsBoardProps = {
   open: boolean;
@@ -28,6 +28,15 @@ export type FinanceFunctionsBoardProps = {
   /** F-002 (UXR-03/UXR-D09): مدخل المصروف الموحد — يسأل حالة الدفع ثم
    * يوجه لمحرري المدفوع/المستحق القائمين؛ لا كاتب ثالث ولا تحويل تلقائي. */
   onOpenExpenseEntry: () => void;
+  /* F-005/F-016 (UXR-03 — أمر W02/عقد 02-FIN): مداخل سياقية تكشف مساحة
+   * الوظيفة المختارة داخل الصفحة بعد استقرار المساحة الفرعية (نمط 013B):
+   * «مستحقات عليك» سطح الالتزامات الموحد (المالك الجامع لمصدرَيه — بوابة
+   * ربط مهمة عقد 02-FIN)، والجسر/التغطية والتعادل/السياسات/الميزانيات
+   * أقسام الطبقة الثانية؛ كلها إظهار لا كتابة ولا وجهات جديدة. */
+  onOpenObligations: () => void;
+  onOpenBridge: () => void;
+  onOpenBreakeven: () => void;
+  onOpenPolicies: () => void;
   /** مدخل ميزانيات المصروف يكشف قسمها في الصفحة نفسها لا وجهة جديدة. */
   onOpenBudgets: () => void;
 };
@@ -50,6 +59,10 @@ export function FinanceFunctionsBoard({
   onClose,
   statementHref,
   onOpenExpenseEntry,
+  onOpenObligations,
+  onOpenBridge,
+  onOpenBreakeven,
+  onOpenPolicies,
   onOpenBudgets,
 }: FinanceFunctionsBoardProps) {
   const [, navigate] = useLocation();
@@ -154,39 +167,68 @@ export function FinanceFunctionsBoard({
     navigate(withReturnTo(href, "/finance"));
   };
 
+  /* F-005/F-016 (UXR-03 — أمر W02): فهرس الوظائف الكنوني من عقد 02-FIN —
+   * خمس مجموعات وصول (لا كيانات جديدة): التسجيل والسجلات، النقد
+   * والمستحقات، التقارير والتخطيط، المنتجات والجهات، المخزون والأصول
+   * عند الحاجة. دمج F-016: مدخلا /suppliers المكرران («للموردين ومصاريف
+   * مستحقة» و«المشتريات») صارا مدخلًا واحدًا بوصف جامع صادق لسجلات الشراء
+   * والدفع، و«مستحقات عليك» مدخل سياقي للسطح الموحد (مصدرَي الالتزام) لا
+   * لقائمة مشتريات تستبعد مصروفًا مستحقًا (بوابة ربط مهمة 02-FIN)؛
+   * «عدّ الصندوق» انتقل من فقرات جذر المالية إلى الفهرس؛ «لك عند العملاء»
+   * يفتح القارئ الموحد بنطاق التحصيل (kind=receivable) والجهات تبقى
+   * مجموعتها (UXR-D10: لا حذف مدخل لتطابق URL فقط — النية والنطاق يفصلان). */
   const groups: BoardGroup[] = [
     {
-      title: "تسجيل عملية",
+      title: "التسجيل والسجلات",
       icon: ReceiptText,
       entries: [
-        { label: "تسجيل بيع", description: "بيع فوري بلا طلب", href: "/direct-sales/new" },
+        { label: "بيع", description: "بيع فوري بلا طلب", href: "/direct-sales/new" },
         {
-          label: "تسجيل مصروف",
-          /* F-002: الوصف القديم «مصروف ومدفوعاته من أصل واحد» لم يطابق أي
-           * محرر قائم؛ الوصف الصادق الآن: حالة الدفع تُحدد أولًا قبل الحفظ
-           * ثم يفتح محررها القائم (نقدي أو مستحق) — لا كاتب ثالث. */
+          label: "مصروف",
+          /* F-002: حالة الدفع تُحدد أولًا ثم يفتح محررها القائم — لا كاتب ثالث. */
           description: "تحدد حالة الدفع أولًا ثم يفتح محررها",
           onOpen: onOpenExpenseEntry,
         },
-        { label: "تسجيل شراء", description: "شراء مواد وبنوده ودفعاته", href: "/suppliers/purchase/new" },
+        { label: "شراء", description: "شراء مواد وبنوده ودفعاته", href: "/suppliers/purchase/new" },
+        { label: "المشتريات", description: "سجل الشراء والدفع والاستلام", href: "/suppliers" },
+        { label: "سجل العمليات", description: "القارئ الكامل لكل النشاط", href: "/finance/activity" },
       ],
     },
     {
       title: "النقد والمستحقات",
       icon: WalletCards,
       entries: [
-        { label: "النقد", description: "المحافظ وحركاتها وعدّها ومطابقتها", href: "/cash" },
-        { label: "ديون العملاء", description: "ما لك عند غيرك ومواعيده", href: "/finance/upcoming" },
-        { label: "للموردين ومصاريف مستحقة", description: "ما عليك لمورّديك والتزاماتك", href: "/suppliers" },
+        { label: "النقد", description: "المحافظ وحركاتها وأماناتها وعدّها", href: "/cash" },
+        {
+          label: "لك عند العملاء",
+          description: "دين مسجل بعد التسليم — تحصيله من المتابعة",
+          href: "/finance/upcoming?kind=receivable",
+        },
+        {
+          label: "مستحقات عليك",
+          description: "موردين ومصاريف مستحقة بسطريهما ومسارَي تسديدهما",
+          onOpen: onOpenObligations,
+        },
+        {
+          label: "مال المالك",
+          description: "إضافة وسحب وحقوق بمعانٍ مميزة",
+          href: "/finance/owner-entitlement",
+        },
       ],
     },
     {
-      title: "الكشوف والسجلات",
-      icon: ReceiptText,
+      title: "التقارير والتخطيط",
+      icon: Scale,
       entries: [
         { label: "كشف الفترة", description: "بنطاق المالية المطبق نفسه", href: statementHref },
-        { label: "سجل العمليات", description: "القارئ الكامل لكل النشاط", href: "/finance/activity" },
-        { label: "المشتريات", description: "سجل الشراء والدفع والاستلام", href: "/suppliers" },
+        {
+          label: "فرق النقد والنتيجة",
+          description: "لماذا يختلف الربح عن الكاش",
+          onOpen: onOpenBridge,
+        },
+        { label: "تغطية وتعادل", description: "هامش الأعمال ونقطة التعادل", onOpen: onOpenBreakeven },
+        { label: "سياسة التوزيع", description: "سياسات الربح والتوزيع", onOpen: onOpenPolicies },
+        { label: "ميزانيات المصروف", description: "خطة شهرية للمقارنة لا حدث مالي", onOpen: onOpenBudgets },
       ],
     },
     {
@@ -198,23 +240,12 @@ export function FinanceFunctionsBoard({
       ],
     },
     {
-      title: "مال المالك",
-      icon: Landmark,
-      entries: [
-        {
-          label: "مال المالك",
-          description: "إضافة وسحب وحقوق بمعانٍ مميزة",
-          href: "/finance/owner-entitlement",
-        },
-      ],
-    },
-    {
-      title: "عند الحاجة",
+      title: "المخزون والأصول عند الحاجة",
       icon: Wrench,
       entries: [
         { label: "المخزون", description: "مواد تختار تتبعها", href: "/inventory" },
         { label: "المعدات", description: "أصولك وإهلاكها — اختياري", href: "/assets" },
-        { label: "ميزانيات المصروف", description: "خطة شهرية للمقارنة لا حدث مالي", onOpen: onOpenBudgets },
+        { label: "عدّ الصندوق", description: "طابق الدرج مع السجل", href: "/cash/count" },
       ],
     },
   ];

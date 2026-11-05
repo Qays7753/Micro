@@ -6,6 +6,7 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { formatLocalDate, formatMoneyMinor, formatMonthLabel } from "@/presentation/formatters";
 import { MoneyValue, IntegerValue } from "@/components/presentation/DisplayValue";
+import { Button } from "@/components/primitives";
 import { RestatementNote } from "@/components/finance/RestatementNote";
 import { withReturnTo } from "@/app/navigationContract";
 import type { FinancialInsights, FinanceState, RecordedPeriodResult } from "@/application/finance";
@@ -486,6 +487,26 @@ export function FinancePeriodResultSection({
               </div>
             </section>
           </details>
+          {/* F-005 (UXR-03 — أمر W02/عقد 02-FIN): «قراءة الفترة إلى الكشف» —
+           * زر واحد داخل تفصيل الفترة يفتح كشف 016 بالنطاق المطبق نفسه
+           * (since/until أشهر)؛ هذا موطن بطاقة «قصة الأسبوع ببساطة» وفقرة
+           * «كشف الفترة — بسيط» بعد إذابتهما في الجذر (DEC-FIN-01: نفس
+           * الوجهة)، والفهرس يبقي مدخله المستقل بنطاقه أيضًا. */}
+          <div className="micro-form-actions micro-contextual-actions">
+            <Button
+              action="secondary"
+              onClick={() =>
+                navigate(
+                  withReturnTo(
+                    `/finance/statement?from=${appliedRange.from.slice(0, 7)}&to=${appliedRange.to.slice(0, 7)}`,
+                    "/finance",
+                  ),
+                )
+              }
+            >
+              افتح كشف الفترة
+            </Button>
+          </div>
         </section>
       </details>
     </>

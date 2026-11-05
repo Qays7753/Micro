@@ -1789,68 +1789,38 @@ textarea:disabled,
   text-align: right;
   unicode-bidi: isolate;
 }
-.micro-financial-pulse {
+/* F-005/UXR-03 (أمر W02): صفوف القبض/الدين في مجموعة «الآن» — نفس
+   توكنات نبضة المراجعة القديمة (أعلاه حُذفت مع قسمها) بشكل مضغوط بلا
+   ترويسة بطاقة؛ القيم بحجمها الكنوني وحالة المعرفة بجانبها. */
+.micro-finance-pulse-rows {
   display: grid;
-  gap: var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   background: var(--color-surface);
 }
-.micro-financial-pulse-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: var(--space-3);
-}
-.micro-financial-pulse-heading h2 {
-  margin: var(--space-1) 0 0;
-  font-size: 1.125rem;
-}
-.micro-financial-pulse-heading > span {
-  color: var(--color-text-secondary);
-  direction: ltr;
-  font-family: var(--font-numeric);
-  font-size: 0.75rem;
-}
-.micro-financial-pulse dl {
+.micro-finance-pulse-rows dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 0;
 }
-.micro-financial-pulse dl > div {
+.micro-finance-pulse-rows dl > div {
   display: grid;
   gap: var(--space-1);
-  min-height: 96px;
-  padding: var(--space-3) 0;
+  padding: var(--space-2) 0;
 }
-.micro-financial-pulse dl > div:nth-child(odd) {
+.micro-finance-pulse-rows dl > div:nth-child(odd) {
   padding-inline-end: var(--space-3);
   border-inline-end: 1px solid var(--color-border);
 }
-.micro-financial-pulse dl > div:nth-child(-n + 2) {
-  border-bottom: 1px solid var(--color-border);
-}
-.micro-financial-pulse dt,
-.micro-financial-pulse small,
-.micro-financial-pulse-note {
+.micro-finance-pulse-rows dt,
+.micro-finance-pulse-rows small {
   color: var(--color-text-secondary);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
 }
-.micro-financial-pulse dd {
+.micro-finance-pulse-rows dd {
   margin: 0;
-  font-size: 1.5rem;
-}
-.micro-financial-pulse-note {
-  margin: 0;
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-3);
-}
-.micro-financial-pulse-note .micro-number {
-  display: inline;
-  font-size: 0.875rem;
+  font-size: 1.125rem;
 }
 .micro-scope-line {
   display: grid;
@@ -5461,6 +5431,10 @@ button.micro-month-cell:active {
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
+}
+.micro-owner-card-helper {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
 }
 .micro-owner-decision-card .micro-section-heading h2,
 .micro-owner-balance-head h2 {

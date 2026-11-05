@@ -153,7 +153,7 @@ describe("Wave 4.3 — P-4.3-3: Finance obligations surface (شو عليّ؟)", 
     renderFinance();
     const card = await screen.findByTestId("finance-obligations");
     /* الاسم الرسمي + السطر المساعد المعتمد + المجموع بمصدرَيه. */
-    expect(card.textContent).toContain("شو عليّ؟");
+    expect(card.textContent).toContain("مستحقات عليك");
     expect(card.textContent).toContain("مبالغ للموردين ومصاريف مستحقة");
     expect(card.textContent).toContain("الإجمالي المستحق");
     expect(card.textContent).toContain("مبالغ للموردين");

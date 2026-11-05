@@ -35,7 +35,10 @@ export function FinanceObligationsCard({
       <div className="micro-section-title">
         <HandCoins aria-hidden="true" />
         <div>
-          <h2 id="obligations-title">شو عليّ؟</h2>
+          {/* COPY-06 (UXR-03 — أمر W02): «مستحقات عليك» — عنوان يغطي نطاق
+           * السطح فعلًا (مبالغ للموردين ومصاريف مستحقة) ولا يوحي بحد أضيق،
+           * واتجاه «عليك» دقيق لا يُقلب (UXR-D07/COPY-05). */}
+          <h2 id="obligations-title">مستحقات عليك</h2>
         </div>
       </div>
       {/* السطر المساعد المعتمد (F09): اسم السطح يشرح مصدرَيه بلا مصطلح محاسبي. */}

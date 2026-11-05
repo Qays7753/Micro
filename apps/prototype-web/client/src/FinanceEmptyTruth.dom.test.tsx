@@ -118,13 +118,15 @@ describe("Finance empty-evidence truth (FIN-001)", () => {
     await seedProfile();
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
-    /* بطاقات المركز الأربع: الكاش والذمم ومال المالك غير مسجلة. */
+    /* بطاقات المركز وصفوف القبض/الدين ومال المالك: غير مسجلة (F-005:
+     * الجذر صار النقد+لك عند العملاء ثم الصفوف ثم مستحقات عليك ثم
+     * النتيجة ثم مال المالك — القيم غير المسجلة كلها «غير مسجل»). */
     const unknowns = screen.getAllByText("غير مسجل");
     expect(unknowns.length).toBeGreaterThanOrEqual(4);
     /* لا 0.00 مؤكد في أي بطاقة مركز ولا في مقاييس قرار الكاش. */
     const position = screen.getByRole("heading", { level: 1, name: "المالية" }).closest("section");
     expect(position).toBeTruthy();
-    const positionCards = within(positionSection()).getAllByText("الكاش المسجل");
+    const positionCards = within(positionSection()).getAllByText("النقد المسجل الآن");
     expect(positionCards.length).toBeGreaterThan(0);
     for (const card of positionCards) {
       const article = card.closest("article,button");
@@ -170,8 +172,8 @@ describe("Finance empty-evidence truth (FIN-001)", () => {
     if (!spent.ok) throw new Error(spent.message);
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
-    /* صفر موثق: الكاش المسجل 0.00 (سجلان حقيقيان خلفه) لا «غير مسجل». */
-    const cashCards = within(positionSection()).getAllByText("الكاش المسجل");
+    /* صفر موثق: النقد المسجل الآن 0.00 (سجلان حقيقيان خلفه) لا «غير مسجل». */
+    const cashCards = within(positionSection()).getAllByText("النقد المسجل الآن");
     for (const card of cashCards) {
       const article = card.closest("article,button");
       expect(article).toBeTruthy();

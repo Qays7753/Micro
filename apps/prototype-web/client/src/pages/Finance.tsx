@@ -14,7 +14,7 @@ import {
   WalletCards,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
 import { appendQueryParams, withReturnTo } from "@/app/navigationContract";
@@ -63,6 +63,7 @@ import { FinanceBudgetsSection } from "@/components/finance/ExpenseBudgetsSectio
 import { FinanceFunctionsBoard } from "@/components/finance/FinanceFunctionsBoard";
 import { todayInAmman } from "@/application/time";
 import {
+  formatArabicPlural,
   formatBreakEvenDisplay,
   formatLocalDate,
   formatMonthLabel,
@@ -135,16 +136,27 @@ export default function Finance() {
   const expenseEntryButtonRef = useRef<HTMLButtonElement>(null);
   const budgetsSectionRef = useRef<HTMLElement>(null);
   const periodSectionRef = useRef<HTMLElement>(null);
-  /* F-003 (UXR-03 — أمر W02): كشف القسم السياقي بعد استقرار المساحة
-   * الفرعية. مدخل الميزانيات من اللوحة كان يكشف قسمه ثم يستعيد المتصفح
-   * تمرير مدخل الحارس (0) عند وصول popstate المؤجل فيُلغى الكشف؛ الآن
-   * تستهلك اللوحة الحارس بلا back()، ويُجدولة الكشف إطارًا واحدًا بعد
-   * إغلاق اللوحة فيثبت فوق 0 ولا يعود اجتياح تاريخ يلغيه. */
-  const openBudgetsSection = () => {
-    window.requestAnimationFrame(() => {
-      budgetsSectionRef.current?.scrollIntoView({ block: "start" });
-    });
-  };
+  const obligationsSectionRef = useRef<HTMLElement>(null);
+  const bridgeSectionRef = useRef<HTMLDetailsElement>(null);
+  const breakevenSectionRef = useRef<HTMLDetailsElement>(null);
+  const policiesSectionRef = useRef<HTMLElement>(null);
+  /* F-003 (UXR-03 — أمر W02): كشف الأقسام السياقية بعد استقرار المساحة
+   * الفرعية. المداخل السياقية من الفهرس كانت تُلغى باستعادة المتصفح تمرير
+   * مدخل الحارس عند وصول popstate المؤجل؛ الآن تستهلك اللوحة الحارس بلا
+   * back()، ويُجدولة الكشف إطارًا واحدًا بعد إغلاق اللوحة فيثبت فوق 0
+   * ولا يعود اجتياح تاريخ يلغيه. */
+  const revealAfterSettle =
+    <T extends HTMLElement>(ref: RefObject<T | null>) =>
+    () => {
+      window.requestAnimationFrame(() => {
+        ref.current?.scrollIntoView({ block: "start" });
+      });
+    };
+  const openBudgetsSection = revealAfterSettle(budgetsSectionRef);
+  const revealObligations = revealAfterSettle(obligationsSectionRef);
+  const revealBridge = revealAfterSettle(bridgeSectionRef);
+  const revealBreakeven = revealAfterSettle(breakevenSectionRef);
+  const revealPolicies = revealAfterSettle(policiesSectionRef);
   /* F-002: فتح سؤال حالة الدفع من الجذر أو من مدخل اللوحة (تغلق اللوحة
    * خلفها) — التركيز يدخل اللوحة الصغيرة وEscape/الخلفية/إلغاء يعيدونه
    * لزر «تسجيل مصروف" الظاهر (نمط لوحة الفترة في الرئيسية القائم). */
@@ -318,8 +330,9 @@ export default function Finance() {
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
         <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "الرئيسية" : "رجوع"}
       </button>
+      {/* F-008/F-005 (UXR-03 — أمر W02): عنوان وجهة واحد — overline «الصورة
+       * العامة · المبالغ (د.أ)» محذوف (N6: الوحدة موجودة مع كل قيمة). */}
       <div className="micro-page-heading">
-        <span className="micro-overline">الصورة العامة · المبالغ (د.أ)</span>
         <h1>المالية</h1>
       </div>
       <FinanceFunctionsBoard
@@ -330,41 +343,42 @@ export default function Finance() {
         }}
         statementHref={`/finance/statement?from=${appliedRange.from.slice(0, 7)}&to=${appliedRange.to.slice(0, 7)}`}
         onOpenExpenseEntry={openExpenseEntry}
+        onOpenObligations={revealObligations}
+        onOpenBridge={revealBridge}
+        onOpenBreakeven={revealBreakeven}
+        onOpenPolicies={revealPolicies}
         onOpenBudgets={openBudgetsSection}
       />
-      {/* UNIT-013 / AF-B (تنفيذ S15 بالأمر الموحد §5): لا شريط تبويبات داخلي —
-       * الصفحة الواحدة تعرض «الآن» ثم «نتيجة الفترة» بوضوح، والوصول الكامل
-       * للوظائف عبر لوحة «وظائف المالية» عند الطلب (مغلقة أولًا). */}
+      {/* UNIT-013 / AF-B (تنفيذ S15): لا شريط تبويبات داخلي — الصفحة الواحدة
+       * تعرض «الآن» ثم «نتيجة الفترة» بوضوح، والوصول الكامل للوظائف عبر
+       * الفهرس عند الطلب (مغلق أولًا). FIN (ترتيب ١): «كل الوظائف» — فعل
+       * الفتح الحقيقي لا عنوان وجهة غامض (COPY-35). */}
       <div className="micro-form-actions" role="group" aria-label="إجراءات المالية">
         <Button action="secondary" ref={functionsButtonRef} onClick={() => setBoardOpen(true)}>
-          <LayoutGrid aria-hidden="true" /> وظائف المالية
+          <LayoutGrid aria-hidden="true" /> كل الوظائف
         </Button>
       </div>
-      {/* UNIT-013 / FIN-A2 (ترتيب ٢): ثلاثة أفعال تسجيل متقاربة تفتح أصحابها
-       * مباشرة — لا معالج يسأل عن نوع محاسبي ولا كاتب داخل المالية.
+      {/* UNIT-013 / FIN-A2 (ترتيب ٢ — المحتوى الحرفي): «بيع»/«مصروف»/«شراء» —
+       * ثلاثة أفعال تسجيل متقاربة صغيرة تفتح أصحابها مباشرة.
        * F-002 (UXR-D09): المصروف استثناء واحد مقصود — مدخل واحد واضح يحدد
        * حالة الدفع قبل الحفظ (سؤال صريح لا افتراض مدفوع) ثم يوجه لمحرر
        * صاحبه القائم؛ بيع وشراء يفتحان محرريهما مباشرة كما كانا. */}
       <div className="micro-finance-record-actions" role="group" aria-label="تسجيل عملية">
         <Button action="create" onClick={() => navigate(withReturnTo("/direct-sales/new", "/finance"))}>
-          <Plus aria-hidden="true" /> تسجيل بيع
+          <Plus aria-hidden="true" /> بيع
         </Button>
         <Button action="create" ref={expenseEntryButtonRef} onClick={openExpenseEntry}>
-          <Plus aria-hidden="true" /> تسجيل مصروف
+          <Plus aria-hidden="true" /> مصروف
         </Button>
         <Button action="create" onClick={() => navigate(withReturnTo("/suppliers/purchase/new", "/finance"))}>
-          <Plus aria-hidden="true" /> تسجيل شراء
+          <Plus aria-hidden="true" /> شراء
         </Button>
       </div>
-      {/* FIN-A2 (ترتيب ٣): «الآن» — النقد والديون بمصادرها. */}
+      {/* FIN-A2 (ترتيب ٣ — DEC-FIN-01/عقد 02-FIN): «الآن» — النقد والذمم من
+       * الطلبات في مجموعة واحدة أول المشهد؛ صفوف القبض/الدين بنطاقها الصادق
+       * تحتها («حركة نقد وذمم — ليست مكونات الربح»)، ومكونا الربح المحتسبان
+       * عند التسليم في تفصيل نتيجة الفترة فقط لا في الجذر (N5). */}
       <>
-        <ReviewPulseSection
-          pulse={pulse}
-          ordersRecorded={state.ordersRecorded}
-          finalOrdersRecorded={state.finalOrdersRecorded}
-          excludedOrders={state.excludedOrders}
-          onOpenOrder={orderId => navigate(withReturnTo(`/orders/${orderId}`, "/finance"))}
-        />
         {/* Wave 4.3 — P-4.3-3: بطاقات المركز المالي القابلة للفتح — كل رقم
               يفتح مصدره (D8)؛ لا بطاقة زينة؛ «عليّ للموردين» انتقل إلى سطح
               «شو عليّ؟» الموحد الأغنى تحتها مباشرة (F09). */}
@@ -373,7 +387,7 @@ export default function Finance() {
           aria-label="تفاصيل الوضع المالي المسجل · المبالغ بالدينار الأردني"
         >
           <PositionCard
-            label="الكاش المسجل"
+            label="النقد المسجل الآن"
             value={position.recordedCashMinor}
             state={position.evidence.cash}
             helper="محافظ معلنة + كاش غير موزع"
@@ -382,7 +396,7 @@ export default function Finance() {
             onOpen={() => navigate(withReturnTo("/cash", "/finance"))}
           />
           <PositionCard
-            label="لي عند العملاء"
+            label="لك عند العملاء"
             value={position.customerReceivablesMinor}
             state={position.evidence.customerReceivables}
             helper="دين مسجل بعد التسليم — افتح العملاء والموردين"
@@ -390,50 +404,64 @@ export default function Finance() {
             openLabel="افتح العملاء والموردين"
             onOpen={() => navigate(withReturnTo("/parties", "/finance"))}
           />
-          {/* NAV-002 (قرار المالك ٢٠٢٦-٠٩-١٦): النتيجة المتاحة في المستوى
-                الأول — تقدير موثق لنتيجة الفترة بلا خلط مع الكاش؛ الناقص
-                «غير متاح» لا صفرًا، والتفصيل في عرض الفترة. */}
-          <button
-            type="button"
-            className="micro-finance-position-card micro-finance-position-link"
-            aria-label="افتح نتيجة الفترة"
-            onClick={() => periodSectionRef.current?.scrollIntoView({ block: "start" })}
-          >
-            <Scale aria-hidden="true" />
-            <span>النتيجة المتاحة</span>
-            <strong>
-              {period === null || period.resultMinor === null ? (
-                "غير متاح"
-              ) : (
-                <MoneyValue minor={period.resultMinor} />
-              )}
-            </strong>
-            <small>
-              {period === null
-                ? FINANCE_BLOCK_FAILURE_MESSAGES.period.message
-                : period.status === "recorded_only"
-                  ? "نتيجة الفترة المسجلة — افتح التفصيل"
-                  : "مكونات ناقصة تمنع رقمًا نهائيًا صادقًا — افتح التفصيل"}
-            </small>
-          </button>
-          <button
-            type="button"
-            className="micro-finance-position-card micro-finance-position-link"
-            aria-label="افتح مال المالك"
-            onClick={() => navigate(withReturnTo("/finance/owner-entitlement", "/finance"))}
-          >
-            <CircleDollarSign aria-hidden="true" />
-            <span>مال المالك</span>
-            <strong>
-              {evidenceValue(position.evidence.ownerCapital, position.ownerCapitalRecordedMinor)}
-            </strong>
-            <small>رأس مالك · افتح الدفتر الموحد</small>
-          </button>
+          {/* F-010 (DEC-FIN-01 §استثناء ٣): أول استخدام بلا محفظة — مدخل
+           * «سجّل محفظة ورصيد بداية» في موضع النقد لا فقرة دائمة. */}
+          {position.cashWalletCount === 0 ? (
+            <p className="micro-fact-road-line">
+              الكاش: لا محفظة معلنة بعد —{" "}
+              <button
+                className="micro-text-action"
+                type="button"
+                onClick={() => navigate(withReturnTo("/cash/wallet/new", "/finance"))}
+              >
+                سجّل محفظة ورصيد بداية
+              </button>
+            </p>
+          ) : null}
         </section>
-        {/* Wave 4.3 — P-4.3-3 (F09): «شو عليّ؟» — السطح الموحد للالتزامات
-              بمصدرَيه ومسارَي تسديدهما بالكاتب الرسمي القائم؛ يلي بطاقات
-              المركز مباشرة في ترتيب القراءة المعتمد. */}
-        <FinanceObligationsCard position={position} onNavigate={navigate} />
+        {/* DEC-FIN-01: صفوف القبض/الدين المسجلة من الطلبات بنطاقها الصادق —
+         * حركة نقد وذمم، ليست مكونات الربح. */}
+        <OrdersCashDebtRows pulse={pulse} ordersRecorded={state.ordersRecorded} />
+        {/* N3 المصححة (F-005): الاستبعاد سطر مشروط واحد عند وجوده فقط —
+         * سبباه محفوظان معًا وفتح كل مصدر متاح؛ غيابه لا يعرض جملة سلبية
+         * بلا قيمة قرار (N4). */}
+        {state.excludedOrders.length > 0 ? (
+          <section className="micro-review-exclusions" aria-label="طلبات مستبعدة من نتيجة الفترة">
+            <div>
+              <CircleAlert aria-hidden="true" />
+              <p>
+                ناتج{" "}
+                {formatArabicPlural(state.excludedOrders.length, {
+                  zero: "لا طلبات",
+                  one: "طلب واحد",
+                  two: "طلبين",
+                  few: "طلبات",
+                  many: "طلبًا",
+                  other: "طلب",
+                })}{" "}
+                غير داخل في نتيجة الفترة — تكلفته غير مكتملة أو تحتاج مراجعة.
+              </p>
+            </div>
+            <div>
+              {state.excludedOrders.map(stored => (
+                <button
+                  className="micro-text-action"
+                  type="button"
+                  key={stored.id}
+                  onClick={() => navigate(withReturnTo(`/orders/${stored.id}`, "/finance"))}
+                >
+                  افتح مصدر الاستبعاد: {stored.order.itemName} <ArrowLeft aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        {/* Wave 4.3 — P-4.3-3 (F09) + COPY-06 (UXR-03): «مستحقات عليك» —
+              السطح الموحد للالتزامات بمصدرَيه ومسارَي تسديدهما بالكاتب
+              الرسمي القائم؛ العنوان يغطي المصروف المستحق فعلًا. */}
+        <section ref={obligationsSectionRef} aria-label="مستحقات عليك">
+          <FinanceObligationsCard position={position} onNavigate={navigate} />
+        </section>
         {/* UNIT-021 (تنفيذ S15 بالأمر الموحد §5): بطاقة قرار الكاش
               التوقعية (القبض/الدفع المتوقع القريب والكاش المتوقع والسحب
               الاستشاري) أزيلت من النطاق الأساسي بقرار التأجيل المعتمد — لا
@@ -458,7 +486,50 @@ export default function Finance() {
               غطِّ الدفعة من محفظة
             </Button>
           </div>
+        ) : position.unallocatedCashMinor > 0 ? (
+          /* F-010 (CT-14): الكاش غير الموزع الموجب حالة ظاهرة بفعلها —
+           * شريط التوزيع انتقل من «ما نعرفه الآن» إلى موضع النقد بتفسيره
+           * الحرفي القائم؛ لا تخصيص صامت. */
+          <div className="micro-unallocated-strip">
+            <div>
+              <strong>
+                كاش غير موزع:{" "}
+                <MoneyValue minor={position.unallocatedCashMinor} className="micro-inline-number" />
+              </strong>
+              <small>وزّعه على محفظة الآن، أو اتركه حتى تعرف وجهته — لا يُخصص شيء بصمت.</small>
+            </div>
+            <Button action="secondary" onClick={() => navigate(withReturnTo("/cash/distribute", "/finance"))}>
+              وزّع على محفظة
+            </Button>
+          </div>
         ) : null}
+        {/* NAV-002 (قرار المالك ٢٠٢٦-٠٩-١٦) + FIN (ترتيب ٥): النتيجة
+              المتاحة أول المشهد بعد مجموعة «الآن» — تقدير موثق لنتيجة
+              الفترة بلا خلط مع الكاش؛ الناقص «غير متاح» لا صفرًا،
+              والتفصيل في عرض الفترة. */}
+        <button
+          type="button"
+          className="micro-finance-position-card micro-finance-position-link"
+          aria-label="افتح نتيجة الفترة"
+          onClick={() => periodSectionRef.current?.scrollIntoView({ block: "start" })}
+        >
+          <Scale aria-hidden="true" />
+          <span>النتيجة المتاحة</span>
+          <strong>
+            {period === null || period.resultMinor === null ? (
+              "غير متاح"
+            ) : (
+              <MoneyValue minor={period.resultMinor} />
+            )}
+          </strong>
+          <small>
+            {period === null
+              ? FINANCE_BLOCK_FAILURE_MESSAGES.period.message
+              : period.status === "recorded_only"
+                ? "نتيجة الفترة المسجلة — افتح التفصيل"
+                : "مكونات ناقصة تمنع رقمًا نهائيًا صادقًا — افتح التفصيل"}
+          </small>
+        </button>
         {owner === null ? (
           <FinanceBlockFallback block="owner" onRetry={retryBlocks} />
         ) : (
@@ -481,123 +552,14 @@ export default function Finance() {
             onOpen={() => navigate(withReturnTo("/finance/activity", "/finance"))}
           />
         ) : null}
-        <section className="micro-finance-truth">
-          <ReceiptText aria-hidden="true" />
-          <div>
-            <h2>ما نعرفه الآن</h2>
-            <p>
-              كاش المحافظ المعلن (د.أ):{" "}
-              {evidenceValue(position.evidence.walletCash, position.walletCashMinor)} · الكاش غير الموزع
-              (د.أ): {evidenceValue(position.evidence.unallocatedCash, position.unallocatedCashMinor)} · محافظ
-              مسجلة: {position.cashWalletCount}
-            </p>
-            <p>
-              المصاريف التشغيلية المسجلة (د.أ):{" "}
-              {evidenceValue(position.evidence.operatingExpenses, position.operatingExpensesRecordedMinor)} ·
-              شراء مواد مسجل: {position.supplierPurchaseCount} · الأحداث العامة: {position.projectEventCount}
-            </p>
-            {/* المبدأ ١٣: أمانات بحوزتك — كاش في الدرج ليس ملكًا لك ولا إيرادًا. */}
-            {position.amanahHeldMinor > 0 ? (
-              <p>
-                أمانات بحوزتك (د.أ):{" "}
-                <MoneyValue minor={position.amanahHeldMinor} className="micro-inline-number" /> — كاش حقيقي في
-                الدرج لكنه ليس لك ولا يدخل الربح.
-              </p>
-            ) : null}
-            {/* PA-002: شريط توزيع صريح — لا كاش عالق بلا طريق حل. */}
-            {position.unallocatedCashMinor > 0 ? (
-              <div className="micro-unallocated-strip">
-                <div>
-                  <strong>
-                    كاش غير موزع:{" "}
-                    <MoneyValue minor={position.unallocatedCashMinor} className="micro-inline-number" />
-                  </strong>
-                  <small>وزّعه على محفظة الآن، أو اتركه حتى تعرف وجهته — لا يُخصص شيء بصمت.</small>
-                </div>
-                <Button
-                  action="secondary"
-
-                  onClick={() => navigate(withReturnTo("/cash/distribute", "/finance"))}
-                >
-                  وزّع على محفظة
-                </Button>
-              </div>
-            ) : null}
-            {/* §2.7 (F-031): الحقيقة غير المسجلة طريق — لا عدد أصفار عاجز. */}
-            {position.cashWalletCount === 0 ? (
-              <p className="micro-fact-road-line">
-                الكاش: لا محفظة معلنة بعد —{" "}
-                <button
-                  className="micro-text-action"
-                  type="button"
-                  onClick={() => navigate(withReturnTo("/cash/wallet/new", "/finance"))}
-                >
-                  سجّل محفظة ورصيد بداية
-                </button>
-              </p>
-            ) : null}
-            {/* التدفقات ١٤/٢٠ + D-002: العملاء والموردون وعدّ الصناديق والموردون من مسارات
-              مالي الدائمة — نوايا قراءة تجد مكانها الطبيعي هنا بلا مقعد خامس. */}
-            {/* المجموعة ٢ (§8.1): روابط الوضع إلى مصادره — دفتر المحفظة والكشف من هنا. */}
-            <p className="micro-fact-road-line">
-              <button
-                className="micro-text-action"
-                type="button"
-                onClick={() => navigate(withReturnTo("/parties", "/finance"))}
-              >
-                افتح العملاء والموردين — من تتعامل معه عند الحاجة
-              </button>{" "}
-              ·{" "}
-              <button
-                className="micro-text-action"
-                type="button"
-                onClick={() => navigate(withReturnTo("/suppliers", "/finance"))}
-              >
-                الموردون والمشتريات — استحقاقاتك ودفعاتك
-              </button>{" "}
-              ·{" "}
-              <button
-                className="micro-text-action"
-                type="button"
-                onClick={() => navigate(withReturnTo("/cash/count", "/finance"))}
-              >
-                عدّ الصندوق — طابق الدرج مع السجل
-              </button>
-            </p>
-            <p className="micro-fact-road-line">
-              <button
-                className="micro-text-action"
-                type="button"
-                onClick={() => navigate(withReturnTo("/finance/statement", "/finance"))}
-              >
-                كشف الفترة — بسيط ومفصول بالعربية
-              </button>{" "}
-              ·{" "}
-              <button
-                className="micro-text-action"
-                type="button"
-                onClick={() => periodSectionRef.current?.scrollIntoView({ block: "start" })}
-              >
-                قراءة الفترة الكاملة
-              </button>
-            </p>
-            {/* Wave 4.2 — P-4.2-4 (F01/F05): مدخل «المزيد» — سلامة الحسابات
-                  والقراءات العميقة والمالك والسياسات تنظيمها هناك؛ التسجيل
-                  لا يدخل ذلك السطح أبدًا. */}
-            <p className="micro-fact-road-line">
-              <button
-                className="micro-text-action"
-                type="button"
-                onClick={() => {
-                  setBoardOpen(true);
-                  functionsButtonRef.current?.focus();
-                }}
-              >
-                وظائف المالية — السجلات والقراءات والمنتجات
-              </button>
-            </p>
-          </div>
-        </section>
+        {/* F-010 (UXR-03 — أمر W02 / COPY-01+N11): قسم «ما نعرفه الآن» حُلّ
+         * إلى أصحابه — كاش المحافظ وغير الموزع والأمانات في تفاصيل النقد
+         * (/cash يعرضها بمكانها)، وسبب حجب النتيجة بجانب بطاقتها، وقراءة
+         * الفترة إلى الكشف (زر داخل تفصيلها بنطاقها نفسه)، والجسر/التعادل/
+         * السياسات/الميزانيات في مساحة الوظيفة المختارة من الفهرس (الطبقة
+         * الثانية)، وروابط الحقيقة الست إلى الفهرس (عدّ الصندوق مدخل جديد
+         * فيه)، وأعداد العمليات المسجلة إلى قارئها ببيوتها. لا معلومة
+         * فريدة بلا موطن، وحالات النقص ظاهرة في سياقها. */}
         {/* UNIT-013 / AF-AC01 (تنفيذ S15): طبقة عربونات الطلبات الكاملة غادرت
          * جذر المالية — وصولها من طلباتها وسجل العمليات؛ ملخصها في «شو
          * عليّ؟» أعلاه. */}
@@ -629,7 +591,7 @@ export default function Finance() {
               النتيجة المسجلة إلى تغير الكاش المقيس فوق نطاق الأشهر نفسه (لا
               منتقي فترة ثانٍ)؛ جسمه كله داخل التفاصيل المطوية فلا نص سكون
               جديد، وكل رقم من الخدمة — لا معادلة داخل الصفحة. */}
-          <details className="micro-finance-layer micro-profit-cash-bridge">
+          <details className="micro-finance-layer micro-profit-cash-bridge" ref={bridgeSectionRef}>
             <summary className="micro-finance-layer-summary">
               <span>
                 <b>لماذا يختلف الربح عن الكاش؟</b>
@@ -734,18 +696,11 @@ export default function Finance() {
               </section>
             )}
           </details>
-          {/* FIN-002 (WS-174 — Wave 2): «ميزانيات اختيارية» — خطة لا حدثًا
-              ماليًا (عقد ٤٢). القسم كله (التفاصيل المطوية + التحميل الديناميكي
-              EXE-014 + الجسم) داخل مكوّن مستقل واحد فلا سلاسل سكون جديدة هنا. */}
-          <section ref={budgetsSectionRef} aria-label="ميزانيات المصروف">
-            <FinanceBudgetsSection
-              fromMonth={appliedRange.from}
-              toMonth={appliedRange.to}
-              rangeInvalid={rangeInvalid}
-              dataVersion={dataVersion}
-            />
-          </section>
-          <details className="micro-finance-layer">
+          {/* F-005 (UXR-03 — أمر W02/DEC-FIN-01): الطبقة الثانية —
+              المساعدات عند الطلب بترتيبها المعتمد: قراءة الفترة ثم الجسر
+              ثم التغطية والتعادل ثم السياسات ثم الميزانيات؛ مدخل كل منها
+              السياقي في الفهرس يكشف قسمه بعد استقرار المساحة الفرعية. */}
+          <details className="micro-finance-layer" ref={breakevenSectionRef}>
             <summary className="micro-finance-layer-summary">
               <span>
                 <b>التغطية والتعادل</b>
@@ -818,35 +773,25 @@ export default function Finance() {
           </details>
           {/* F02 (قرار المالك — Wave 4.2): سياسات الربح والتوزيع بجوار «التغطية
               والتعادل» — نقل السطح من الكتالوج؛ الخدمة والكاتب كما هما بعقد 40. */}
-          <FinancePoliciesSection />
-          {/* المجموعة ٢ (§9.2): من قراءة الفترة إلى الكشف البسيط — الرجوع محفوظ للمصدر. */}
-          <section className="micro-decision-card" aria-label="كشف الفترة البسيط">
-            <ReceiptText aria-hidden="true" />
-            <div>
-              <span>قصة الأسبوع ببساطة</span>
-              <p>كشف بأسطر عربية مفصولة: كاش، نتيجة، أمانات، ذمم، مال المالك — وكل سطر بمصدره.</p>
-            </div>
-            <Button
-              action="secondary"
-
-              onClick={() => navigate(withReturnTo("/finance/statement", "/finance"))}
-            >
-              افتح كشف الفترة
-            </Button>
+          <section ref={policiesSectionRef} aria-label="سياسات الربح والتوزيع">
+            <FinancePoliciesSection />
+          </section>
+          {/* FIN-002 (WS-174 — Wave 2): «ميزانيات اختيارية» — خطة لا حدثًا
+              ماليًا (عقد ٤٢). القسم كله (التفاصيل المطوية + التحميل الديناميكي
+              EXE-014 + الجسم) داخل مكوّن مستقل واحد فلا سلاسل سكون جديدة هنا. */}
+          <section ref={budgetsSectionRef} aria-label="ميزانيات المصروف">
+            <FinanceBudgetsSection
+              fromMonth={appliedRange.from}
+              toMonth={appliedRange.to}
+              rangeInvalid={rangeInvalid}
+              dataVersion={dataVersion}
+            />
           </section>
         </>
       </section>
-      {/* المجموعة ٥ (عقد ٣٠): مدخل القارئ الكامل — كل العائلات في مكان واحد؛
-          نافذة الرئيس تكفي للنظرة السريعة وهنا الرحلة الكاملة. */}
-      <div className="micro-finance-actions">
-        <button
-          className="micro-text-action"
-          type="button"
-          onClick={() => navigate(withReturnTo("/finance/activity", "/finance"))}
-        >
-          آخر ما حدث — القارئ الكامل لكل النشاط
-        </button>
-      </div>
+      {/* F-005 (02-FIN): «السجل والأثر» له مدخل واحد واضح — طبقة الأحداث
+          أدناه؛ القارئ الكامل من الفهرس («سجل العمليات»)، فلا فقرة ثانية
+          لنفس الوظيفة في الجذر. */}
       {state.events === null ? (
         <FinanceBlockFallback block="events" onRetry={retryBlocks} />
       ) : (
@@ -926,32 +871,18 @@ export default function Finance() {
   );
 }
 
-function ReviewPulseSection({
-  pulse,
-  ordersRecorded,
-  finalOrdersRecorded,
-  excludedOrders,
-  onOpenOrder,
-}: {
-  pulse: LocalFinancialPulse;
-  ordersRecorded: boolean;
-  finalOrdersRecorded: boolean;
-  excludedOrders: readonly StoredCraftOrder[];
-  onOpenOrder: (orderId: string) => void;
-}) {
-  /* FIN-001: نبضة المراجعة تتبع دليل الطلبات — مشروع بلا طلبات لا يعرض
-   * أصفارًا مؤكدة بل «غير مسجل»، كما تفعل الرئيسية بالضبط. */
+/* F-005/F-010 (UXR-03 — أمر W02 / N5/DEC-FIN-01): نبضة المراجعة القديمة
+ * («صورة الطلبات المسجلة · المراجعة» بعنوانها وoverlineها) حُلّت —
+ * «حركة نقد وذمم — ليست مكونات الربح»: صفوف القبض/الدين المسجلة من
+ * الطلبات في مجموعة «الآن» بنطاقها الصادق، ومكونا الربح (سعر/تكلفة
+ * محتسبان عند التسليم) في تفصيل نتيجة الفترة وحده، واستبعادات النتيجة
+ * سطر مشروط بجانب البطاقة. FIN-001: القيم تتبع دليل الطلبات — مشروع بلا
+ * طلبات لا يعرض أصفارًا مؤكدة بل «غير مسجل». */
+function OrdersCashDebtRows({ pulse, ordersRecorded }: { pulse: LocalFinancialPulse; ordersRecorded: boolean }) {
   const pulseValue = (recorded: boolean, minor: number) =>
     recorded ? <MoneyValue minor={minor} /> : unknownValue();
   return (
-    <section className="micro-financial-pulse" aria-labelledby="finance-review-pulse-title">
-      <div className="micro-financial-pulse-heading">
-        <div>
-          <span className="micro-overline">صورة الطلبات المسجلة · المراجعة</span>
-          <h2 id="finance-review-pulse-title">قبض ودين ونتائج</h2>
-        </div>
-        <span>القيم (د.أ)</span>
-      </div>
+    <section className="micro-finance-pulse-rows" aria-label="حركة نقد وذمم من الطلبات المسجلة">
       <dl>
         <div>
           <dt>قبض مسجل من الطلبات</dt>
@@ -963,47 +894,10 @@ function ReviewPulseSection({
           <dd>{pulseValue(ordersRecorded, pulse.registeredDebtMinor)}</dd>
           <small>لا يدخل في القبض</small>
         </div>
-        <div>
-          <dt>سعر محتسب عند التسليم</dt>
-          <dd>{pulseValue(finalOrdersRecorded, pulse.recognizedRevenueFromFinalOrdersMinor)}</dd>
-          <small>من نتائج معروفة فقط</small>
-        </div>
-        <div>
-          <dt>تكلفة محتسبة عند التسليم</dt>
-          <dd>{pulseValue(finalOrdersRecorded, pulse.recognizedCostFromFinalOrdersMinor)}</dd>
-          <small>من نتائج معروفة فقط</small>
-        </div>
       </dl>
-      {excludedOrders.length ? (
-        <section className="micro-review-exclusions" aria-labelledby="finance-review-exclusions-title">
-          <div>
-            <CircleAlert aria-hidden="true" />
-            <p id="finance-review-exclusions-title">
-              استُبعدت{" "}
-              <strong>
-                <IntegerValue value={excludedOrders.length} />
-              </strong>{" "}
-              طلب/طلبات مسلّمة لأن معرفة التكلفة غير مكتملة أو تحتاج مراجعة.
-            </p>
-          </div>
-          <div>
-            {excludedOrders.map(stored => (
-              <button
-                className="micro-text-action"
-                type="button"
-                key={stored.id}
-                onClick={() => onOpenOrder(stored.id)}
-              >
-                فتح مصدر الاستبعاد: {stored.order.itemName} <ArrowLeft aria-hidden="true" />
-              </button>
-            ))}
-          </div>
-        </section>
-      ) : (
-        <p className="micro-financial-pulse-note">لا توجد طلبات مسلّمة مستبعدة من نطاق النتيجة النهائية.</p>
-      )}
     </section>
   );
+
 }
 
 function OwnerDecisionCard({
@@ -1029,10 +923,13 @@ function OwnerDecisionCard({
       data-balance={overview.balanceState}
       aria-labelledby="owner-decision-title"
     >
+      {/* F-005/F-008 (UXR-03): بطاقة مختصرة في الجذر — الرقم +
+          «دفتر منفصل عن الربح» + زر فتح (DEC-FIN-01)؛ Overline معماري محذوف
+          والمعنى الكامل عند الدفتر الموحد. */}
       <div className="micro-section-heading">
         <div>
-          <span className="micro-overline">مال المالك · دفتر منفصل عن الربح</span>
           <h2 id="owner-decision-title">مال المالك</h2>
+          <small className="micro-owner-card-helper">دفتر منفصل عن الربح</small>
         </div>
         <span>
           <bdi dir="ltr" className="micro-inline-number">

@@ -122,7 +122,7 @@ describe("Finance doorway to the integrity surface (المجموعة ١)", () =>
      * كلها (صفحةً ولوحةً) لا تعرض مدخلًا لفحص السلامة. */
     expect(screen.queryByText(/المزيد من المالية/)).toBeNull();
     expect(screen.queryByText(/سلامة الحسابات/)).toBeNull();
-    const [boardButton] = screen.getAllByRole("button", { name: /وظائف المالية/ });
+    const boardButton = screen.getByRole("button", { name: "كل الوظائف" });
     fireEvent.click(boardButton);
     const board = screen.getByRole("dialog", { name: "وظائف المالية" });
     expect(board.textContent ?? "").not.toContain("سلامة");
