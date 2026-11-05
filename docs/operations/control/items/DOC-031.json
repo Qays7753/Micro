@@ -2,7 +2,7 @@
   "id": "DOC-031",
   "title": "UXR-W03+W04 — النماذج والتفاصيل والعمليات ثم القراءات والمخزون والأصول والأدوات ثم البداية والإعدادات ونقل البيانات (UXR-04 ثم UXR-05 ثم UXR-06)",
   "type": "QUALITY",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P1",
   "stage": "micro-product-remediation-waves-03-04-20261106",
   "summary": "تنفيذ متصل W03 ثم W04 بلا محطة مراجعة بينهما وفق أمر UXR-W03-W04-EXECUTION-PROMPT-AR: W03=UXR-04 بتسليماته الداخلية الثلاثة (الطلبات وتفاصيلها؛ النقد ومال المالك؛ الشراء والجهات والمتكرر) لكل تسليم commit وحد رجوع وأدلة؛ ثم W04=UXR-05 (القراءات والسجل والمخزون والأصول والأدوات وخدمة سجل النشاط — PERF-003 بhasMore/وصول حقيقي وF-017) ثم UXR-06 (الإعدادات فهرسًا F-011، بوابا حجم استيراد البداية PERF-002، رسالة نفاد الحصة المخصصة PERF-012، وقياس-first لPERF-006). الفحوص والمراجعات المستقلة مؤجلة بأمر المالك إلى ما بعد W05؛ يجوز تحديث/إضافة اختبارات الانحدار مع تغييراتها دون تشغيلها.",
@@ -121,7 +121,38 @@
     "apps/prototype-web/client/src/application/activity/activityService.paging.test.ts",
     "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.sizegate.test.ts",
     "docs/implementation/UXR-W03-RESULT-2026-11-06.md",
-    "docs/implementation/UXR-W04-RESULT-2026-11-06.md"
+    "docs/implementation/UXR-W04-RESULT-2026-11-06.md",
+    "apps/prototype-web/client/src/components/presentation/EventEffectPreview.tsx",
+    "apps/prototype-web/client/src/components/finance/QuickExpenseForm.tsx",
+    "apps/prototype-web/client/src/application/cash/cashContinuityService.ts",
+    "apps/prototype-web/client/src/application/suppliers/supplierPurchaseService.ts",
+    "apps/prototype-web/client/src/app/navigation.ts",
+    "apps/prototype-web/client/src/index.css",
+    "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx",
+    "apps/prototype-web/client/src/FinanceActivity.paging.uxr05.dom.test.tsx",
+    "apps/prototype-web/client/src/Settings.index.uxr06.dom.test.tsx",
+    "apps/prototype-web/client/src/application/transfers/restoreCoverage.uxr06.test.ts",
+    "apps/prototype-web/client/src/storage/local/quotaDiagnostics.uxr06.test.ts",
+    "apps/prototype-web/client/src/OrdJourneys.dom.test.tsx",
+    "apps/prototype-web/client/src/Nav001.dom.test.tsx",
+    "apps/prototype-web/client/src/Nav003.exe016.dom.test.tsx",
+    "apps/prototype-web/client/src/G2.dom.test.tsx",
+    "apps/prototype-web/client/src/G6.dom.test.tsx",
+    "apps/prototype-web/client/src/QuickExpenseSource.dom.test.tsx",
+    "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx",
+    "apps/prototype-web/client/src/pages/FinancialEventEditor.s06.dom.test.tsx",
+    "apps/prototype-web/client/src/pages/OwnerJourneysExe009.dom.test.tsx",
+    "apps/prototype-web/client/src/G4Assets.dom.test.tsx",
+    "apps/prototype-web/client/src/R3.themeBehavior.test.tsx",
+    "apps/prototype-web/client/src/U11.dom.test.tsx",
+    "apps/prototype-web/client/src/LockRetirement.dom.test.tsx",
+    "apps/prototype-web/client/src/Sdf068.crossStage.dom.test.tsx",
+    "apps/prototype-web/client/src/pages/Setup.v3Gates.test.tsx",
+    "apps/prototype-web/client/src/pages/PartiesLedger.dom.test.tsx",
+    "apps/prototype-web/client/src/PartiesLedger.dom.test.tsx",
+    "apps/prototype-web/client/src/app/navigation.test.ts",
+    "apps/prototype-web/client/src/components/layout/MicroAppShell.routeTransition.r10b.dom.test.tsx",
+    "apps/prototype-web/client/src/app/routeKnowledgeSync.test.ts"
   ],
   "contracts": [
     "AGENTS.md",
@@ -158,7 +189,7 @@
     "docs/implementation/micro-product-remediation-20261105/stages/UXR-W03-W04-EXECUTION-PROMPT-AR.md",
     "https://github.com/Qays7753/Micro/pull/384"
   ],
-  "next_action": "تنفيذ W03 (UXR-04) بتسليماته الثلاثة ثم W04 (UXR-05 ثم UXR-06) على uxr/integration-20261105 وPR #384 Draft فقط؛ بلا فحوص أو مراجعات الآن (مؤجلة إلى ما بعد W05)؛ التوقف بعد تسليم W04.",
+  "next_action": "UXR-04 ثم UXR-05 ثم UXR-06 منفذة ومسلَّمة بتقريرين مؤرخين مع الاختبارات المطلوبة المؤجلة صراحةً؛ التحقق الشامل والمراجعتان وقرار المالك بعد اكتمال W05 بأمر المرحلة النهائية — لا قبول ذاتي.",
   "updated_at": "2026-11-06",
   "status_history": [
     {
@@ -172,6 +203,12 @@
       "changed_at": "2026-11-06",
       "actor": "zai-product-code-writer",
       "reason": "بدأ ZAI التنفيذ المتصل على uxr/integration-20261105 وPR #384 Draft من الرأس الحي c527c563 مع حفظ W01 وW02 كاملين؛ الفحوص والمراجعات مؤجلة إلى ما بعد W05."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "تسليم التنفيذ المتصل: رؤوس الالتزامات وأدلة الفحص الساكن والتقارير مثبتة؛ كل فحص منتج مؤجل بأمر المالك (لا pnpm check ولا اختبارات ولا مراجعين خلال W03/W04) — التحقق المجموع بعد W05."
     }
   ],
   "migration_baseline": false

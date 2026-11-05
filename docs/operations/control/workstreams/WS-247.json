@@ -1,7 +1,7 @@
 {
   "id": "WS-247",
   "title": "UXR-W03 ثم UXR-W04 — أمر تنفيذ متصل (UXR-04 ثم UXR-05 ثم UXR-06)",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "DOC-031"
   ],
@@ -80,7 +80,38 @@
     "apps/prototype-web/client/src/application/activity/activityService.paging.test.ts",
     "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.sizegate.test.ts",
     "docs/implementation/UXR-W03-RESULT-2026-11-06.md",
-    "docs/implementation/UXR-W04-RESULT-2026-11-06.md"
+    "docs/implementation/UXR-W04-RESULT-2026-11-06.md",
+    "apps/prototype-web/client/src/components/presentation/EventEffectPreview.tsx",
+    "apps/prototype-web/client/src/components/finance/QuickExpenseForm.tsx",
+    "apps/prototype-web/client/src/application/cash/cashContinuityService.ts",
+    "apps/prototype-web/client/src/application/suppliers/supplierPurchaseService.ts",
+    "apps/prototype-web/client/src/app/navigation.ts",
+    "apps/prototype-web/client/src/index.css",
+    "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx",
+    "apps/prototype-web/client/src/FinanceActivity.paging.uxr05.dom.test.tsx",
+    "apps/prototype-web/client/src/Settings.index.uxr06.dom.test.tsx",
+    "apps/prototype-web/client/src/application/transfers/restoreCoverage.uxr06.test.ts",
+    "apps/prototype-web/client/src/storage/local/quotaDiagnostics.uxr06.test.ts",
+    "apps/prototype-web/client/src/OrdJourneys.dom.test.tsx",
+    "apps/prototype-web/client/src/Nav001.dom.test.tsx",
+    "apps/prototype-web/client/src/Nav003.exe016.dom.test.tsx",
+    "apps/prototype-web/client/src/G2.dom.test.tsx",
+    "apps/prototype-web/client/src/G6.dom.test.tsx",
+    "apps/prototype-web/client/src/QuickExpenseSource.dom.test.tsx",
+    "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx",
+    "apps/prototype-web/client/src/pages/FinancialEventEditor.s06.dom.test.tsx",
+    "apps/prototype-web/client/src/pages/OwnerJourneysExe009.dom.test.tsx",
+    "apps/prototype-web/client/src/G4Assets.dom.test.tsx",
+    "apps/prototype-web/client/src/R3.themeBehavior.test.tsx",
+    "apps/prototype-web/client/src/U11.dom.test.tsx",
+    "apps/prototype-web/client/src/LockRetirement.dom.test.tsx",
+    "apps/prototype-web/client/src/Sdf068.crossStage.dom.test.tsx",
+    "apps/prototype-web/client/src/pages/Setup.v3Gates.test.tsx",
+    "apps/prototype-web/client/src/pages/PartiesLedger.dom.test.tsx",
+    "apps/prototype-web/client/src/PartiesLedger.dom.test.tsx",
+    "apps/prototype-web/client/src/app/navigation.test.ts",
+    "apps/prototype-web/client/src/components/layout/MicroAppShell.routeTransition.r10b.dom.test.tsx",
+    "apps/prototype-web/client/src/app/routeKnowledgeSync.test.ts"
   ],
   "contracts": [
     "AGENTS.md",
@@ -117,7 +148,7 @@
   "pr": 384,
   "started_at": "2026-11-06",
   "updated_at": "2026-11-06",
-  "next_action": "نفّذ W03 كاملًا (ثلاثة تسليمات داخلية بcommits منفصلة وحدود رجوع) ثم انتقل مباشرة إلى W04 (UXR-05 ثم UXR-06) على الفرع وPR #384 Draft فقط؛ لا فحوص ولا مراجعات الآن (مؤجلة بأمر المالك إلى ما بعد W05)؛ سلّم التقريرين وحدّث Control ومرآة المتابعة والحالة الحية؛ توقف بعد W04 — لا W05 ولا دمج.",
+  "next_action": "W03 (UXR-04 بتسليماته الثلاثة) وW04 (UXR-05 ثم UXR-06) منفذتان ومسلَّمتان على الفرع وPR #384 Draft فقط برأس كود تسليم W04 193bdf3e وتقريرين UXR-W03-RESULT-2026-11-06 وUXR-W04-RESULT-2026-11-06؛ كل الفحوص والاختبارات والمراجعتين المستقلتين مؤجلة بأمر المالك إلى أمر المرحلة النهائية بعد اكتمال W05 — لا قبول ذاتي ولا W05 ولا دمج؛ بانتظار أمر المرحلة النهائية وقرار المالك.",
   "notes": [
     "Owner connected order 2026-11-06 (UXR-W03-W04-EXECUTION-PROMPT-AR.md) supersedes, for this assignment only, the W02-acceptance prerequisite before W03, the UXR-04-acceptance prerequisite before UXR-05, and the stop-after-each-wave instruction; it accepts neither W01 nor W02 nor W03, does not authorize W05 or merging, and does not change any candidate's non-accepted status.",
     "Tests and reviews are DEFERRED by the owner to the final stage order after W05: no automated or manual product tests, no browser/device test, no pnpm check, no independent reviewers during W03/W04 or at their end; existing tests may be read and regression tests added/updated with their changes but must not be run now and no unexecuted success may be claimed. GitHub Actions may auto-run on push; do not run, wait for, or treat them as acceptance.",
@@ -145,6 +176,12 @@
       "changed_at": "2026-11-06",
       "actor": "zai-product-code-writer",
       "reason": "بدأ ZAI التنفيذ المتصل من الرأس الحي c527c563 على الفرع وPR نفسيهما مع حفظ W01 وW02."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "اكتمل التنفيذ المتصل W03+W04 على الفرع والـPR نفسيهما مع حفظ W01 وW02 كاملين: 10 التزامات فوق رأس المالك c527c563 (مطالبة قانونية قبل الكود ثم 3 تسليمات W03 وتقريرها ثم W04-A وW04-B وتصحيحان شكليان)؛ الفحوص المجمعة والاختبارات المركزة والمراجعتان القراءة-فوق مؤجلة بأمر المالك إلى أمر المرحلة النهائية بعد W05 — لا يعني هذا النقل أي قبول."
     }
   ],
   "migration_baseline": false
