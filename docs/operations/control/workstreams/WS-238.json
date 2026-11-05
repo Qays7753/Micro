@@ -1,7 +1,7 @@
 {
   "id": "WS-238",
   "title": "S13 execution workstream — إدارة الطلبات والتقويم والمتابعة الموحدة (UNIT-006/012/018 + SH-17)",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-022"
   ],
@@ -29,17 +29,22 @@
   "agent": "zai-s13-execution",
   "pr": 383,
   "started_at": "2026-11-02",
-  "updated_at": "2026-11-03",
-  "next_action": "S13 مقبولة على فرع التكامل؛ لا إجراء إضافي دون دليل جديد. استمرار S14 مستقل ومشروط بحسم عائق gzip؛ لا merge ولا كتابة على main.",
+  "updated_at": "2026-11-05",
+  "next_action": "Workstream WS-238 مغلق ومتحقق على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا Claim نشطًا لهذه المرحلة.",
   "notes": [
     "بوابة ما بعد المجموعة ٦: لا حركة هيكلية من مسح S11 (كل الموجات NOT_EXECUTED)؛ النمط الكسول القائم محفوظ.",
     "المخطط/التصدير: لا ترقية متوقعة (40/33 كما هي)؛ إن تطلب عقد معتمد تغييرًا فدورة التوافق كاملة في نفس التنفيذ.",
     "SDF-063: تُوسم NOT_TRIGGERED_BY_S13 ما لم يعبر تنفيذُها فعلًا حد كاتب الدورات (التأكيد عند الكاتب لا من العرض).",
-    "S13 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-02؛ المراجعة الخفيفة السابقة PASS حسب تأكيد المالك، والتصحيح 3c3ea798d4ad8a5913ae1170e57b875d4c091ccc موثق في docs/implementation/micro-component-execution/18a-S13-REVIEW-ADDENDUM-2026-11-02.md (a82a541ac03835c64910bbea0bd4129472de15ee). تبقى حالة Workstream REVIEW_REQUIRED لتحرير الملكية؛ لا تعني VERIFIED على main ولا دمجًا."
+    "S13 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-02؛ المراجعة الخفيفة السابقة PASS حسب تأكيد المالك، والتصحيح 3c3ea798d4ad8a5913ae1170e57b875d4c091ccc موثق في docs/implementation/micro-component-execution/18a-S13-REVIEW-ADDENDUM-2026-11-02.md (a82a541ac03835c64910bbea0bd4129472de15ee). تبقى حالة Workstream REVIEW_REQUIRED لتحرير الملكية؛ لا تعني VERIFIED على main ولا دمجًا.",
+    "تحديث 2026-11-05: supersedes branch-only next-action; PR #383 merged and main checks passed at 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S13-EXECUTION-PROMPT-2026-11-01.md",
-    "docs/implementation/micro-component-execution/18a-S13-REVIEW-ADDENDUM-2026-11-02.md"
+    "docs/implementation/micro-component-execution/18a-S13-REVIEW-ADDENDUM-2026-11-02.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "status_history": [
     {
@@ -71,7 +76,15 @@
       "changed_at": "2026-11-02",
       "actor": "zai-s14-execution",
       "reason": "اكتمال تصحيحات S13 السبعة عند 3c3ea798 بالملحق 18a؛ العودة إلى رهن المراجعة المستقلة وقبول المالك."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ Actions وCloudflare Pages نجحا على الرأس نفسه."
     }
   ],
-  "migration_baseline": true
+  "migration_baseline": true,
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

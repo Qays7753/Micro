@@ -1,7 +1,7 @@
 {
   "id": "WS-231",
   "title": "S06 — المصروف والمتكرر والفاتورة المشتركة (UNIT-015/UNIT-019) + إصلاحا S05-MR-001/S05-MR-002",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-015"
   ],
@@ -38,8 +38,8 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-10-29",
-  "updated_at": "2026-11-04",
-  "next_action": "S06 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا عمل مرحلي إضافي دون دليل جديد؛ لا VERIFIED على main ولا merge.",
+  "updated_at": "2026-11-05",
+  "next_action": "Workstream WS-231 مغلق ومتحقق على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا Claim نشطًا لهذه المرحلة.",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S06-EXECUTION-PROMPT-2026-10-29.md المنشور في 13197ac0043ab7684a0f64a469a038e11ad434eb؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
@@ -47,11 +47,15 @@
     "بطاقة الفهم (المشكلة/النطاق/غير الأهداف/الثوابت/الفشل المتوقع/القبول/حد الاستعادة) مثبتة داخل DOC-015.summary (بطاقة الفهم مرحلية لا حقل مستقل).",
     "ترقية المخطط/التصدير مسموحة فقط بما يوجبه العقد الحي صراحةً مع كامل أدلة التوافق في الشريحة نفسها؛ خط الأساس الحي 40/32.",
     "تسجيل مؤرخ (2026-10-30، بأمر S07 المنشور 489474ca): ملاحظة المراجعة المؤكدة S06-MR-001 عولجت من جذورها في 18a7128a قبل أي كود S07 — الربط بالزوج الكنوني والإبطال قبل الكتابة والرفض عند حد الكتابة حتى مع تجاوز الواجهة؛ انحدار دائم 12=6×مهايئان + رحلتا DOM؛ مسلّمة وبانتظار المراجعة المستقلة (11a-S06-ADDENDUM-2026-10-30.md).",
-    "قبول المالك الشامل لـS06 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 11-S06-RESULT-2026-10-29.md + 11a addendum والمرشح 0a728d14؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول."
+    "قبول المالك الشامل لـS06 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 11-S06-RESULT-2026-10-29.md + 11a addendum والمرشح 0a728d14؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول.",
+    "تحديث 2026-11-05: supersedes branch-only next-action; PR #383 merged and main checks passed at 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S06-EXECUTION-PROMPT-2026-10-29.md",
-    "https://github.com/Qays7753/Micro/pull/383"
+    "https://github.com/Qays7753/Micro/pull/383",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "status_history": [
     {
@@ -71,7 +75,15 @@
       "changed_at": "2026-10-30",
       "actor": "zai-s07-execution",
       "reason": "بروتوكول المرحلة التالية: بدء WS-232 (S07) المأذونة فوق الفرع/PR نفسيهما يتطلب نقل S06 إلى REVIEW_REQUIRED (مسلّمة للمراجعة المستقلة وقبول المالك — لا قبول ذاتيًا)؛ لا تداخل كتّاب نشطين."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ Actions وCloudflare Pages نجحا على الرأس نفسه."
     }
   ],
-  "migration_baseline": true
+  "migration_baseline": true,
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

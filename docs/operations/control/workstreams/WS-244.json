@@ -1,0 +1,74 @@
+{
+  "id": "WS-244",
+  "title": "UXR-00 — مصالحة وثائق main ونشر الحزمة وأمر UXR-01",
+  "status": "REVIEW_REQUIRED",
+  "items": [
+    "DOC-028"
+  ],
+  "branch": "uxr/integration-20261105",
+  "base_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "areas": [
+    "docs/implementation/micro-product-remediation-20261105",
+    "docs/implementation/UXR-00-RESULT-2026-11-05.md",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/operations/control/items/DOC-028.json",
+    "docs/operations/control/workstreams/WS-244.json",
+    "docs/operations/control/generated",
+    "docs/00-document-index.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/agent-development-sop-v1.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/operations/current-state.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/architecture/refactoring/s11-structure-scan-20261031/S11-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-10-31.md"
+  ],
+  "agent": "Manus — sole coordinator and documentation writer; ZAI remains the sole product-code writer for later UXR stages; no ChatGPT dependency",
+  "pr": null,
+  "started_at": "2026-11-05",
+  "updated_at": "2026-11-05",
+  "next_action": "UXR-00 مكتملة للتوثيق ومراجعة المالك؛ لا Claim كودي جديد حتى يبدأ UXR-01 بClaim مستقل.",
+  "notes": [
+    "This is a new UXR program branch from the live main SHA 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521. Preserve components/integration-20261027 and audit-inputs/product-experience-20261104; do not delete either.",
+    "No product code, product tests, theme changes, financial semantics, schema/export changes, broad refactoring, file moves, file splits, force-push, or direct main writes are in scope.",
+    "ChatGPT is not a required reviewer or continuation gate. Manus performs an independent lightweight review of each submitted exact candidate and evidence; the owner decides stage acceptance and any merge.",
+    "ADR-009 dark-mode support is preserved unchanged. Record the design-authority gate for UXR-02; do not resolve it by deleting or changing theme behavior.",
+    "Use the S11 structure scan as the established baseline and inspect only relevant differences; S-1..S-5 remain NOT_EXECUTED. Any structural change requires a specific owner decision before action.",
+    "WS-225/DOC-009 remains REVIEW_REQUIRED. Validator ACTIVE_WORK_STATUSES excludes REVIEW_REQUIRED, so it is not an active implementation claim and creates no overlap with this documentary Claim; do not alter UNIT-002 status or authority.",
+    "Publish one Draft PR only. Its number is added after creation; never create a parallel PR or rewrite main."
+  ],
+  "evidence": [
+    "docs/implementation/UXR-00-RESULT-2026-11-05.md",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/operations/control/items/DOC-028.json",
+    "docs/implementation/micro-product-remediation-20261105/00-START-HERE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-01-EXECUTION-PROMPT-AR.md",
+    "docs/architecture/refactoring/s11-structure-scan-20261031/S11-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-10-31.md"
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-manus-coordinator",
+      "reason": "فتح Claim توثيقي محدود على uxr/integration-20261105 انطلاقًا من main 111cd9dd؛ لا كود منتج أو تغيير main."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-05",
+      "actor": "manus-documentation-coordinator",
+      "reason": "بدء أعمال UXR-00 بعد التحقق أن WS-225 في REVIEW_REQUIRED ليست ضمن حالات المطالبات التنفيذية النشطة ولا تمنع Claim الوثائق؛ ستبقى دون تعديل."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-05",
+      "actor": "manus-documentation-coordinator",
+      "reason": "اكتملت UXR-00 دون كود منتج؛ سُلّمت للمراجعة المستقلة وقرار المالك، مع أمر UXR-01 جاهز."
+    }
+  ],
+  "migration_baseline": false
+}

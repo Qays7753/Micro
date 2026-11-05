@@ -1,7 +1,7 @@
 {
   "id": "WS-234",
   "title": "S09 — بناء الطلب وتكلفته والمنتج القابل لإعادة الاستخدام",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-018"
   ],
@@ -35,15 +35,16 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-10-30",
-  "updated_at": "2026-11-04",
-  "next_action": "S09 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا عمل مرحلي إضافي دون دليل جديد؛ لا VERIFIED على main ولا merge.",
+  "updated_at": "2026-11-05",
+  "next_action": "Workstream WS-234 مغلق ومتحقق على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا Claim نشطًا لهذه المرحلة.",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S09-EXECUTION-PROMPT-2026-10-30.md المنشور في ad133bae؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
     "بطاقة الفهم مثبتة داخل DOC-018.summary؛ المخطط/التصدير 40/32 يُحفظ — الحقول الجديدة اختيارية متوافقة رجعيًا (نمط S06/S07/S08).",
     "القسم ١ من الأمر (إصلاح S08-MR-001/002) مكتمل ومدفوع في c55c8584 (المرشح الكودي 6b3cb946).",
     "تحرير 2026-10-31 (أمر S10 §5): سُجلا استثناءَي الأمن المأذونان في 7adfac55؛ تحرير المطالبة إلى REVIEW_REQUIRED تحرير ملكية فقط — سجل S09 وأدلته ونتيجته غير معاد كتابته، والقبول محجوب بالمراجعة المستقلة وقرار المالك.",
-    "قبول المالك الشامل لـS09 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 14-S09-RESULT-2026-10-30.md والمرشح e163e90e؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول."
+    "قبول المالك الشامل لـS09 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 14-S09-RESULT-2026-10-30.md والمرشح e163e90e؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول.",
+    "تحديث 2026-11-05: supersedes branch-only next-action; PR #383 merged and main checks passed at 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S09-EXECUTION-PROMPT-2026-10-30.md",
@@ -53,7 +54,10 @@
     "apps/prototype-web/client/src/application/catalog/catalogService.s09.test.ts",
     "apps/prototype-web/client/src/pages/DraftEditor.s09.dom.test.tsx",
     "apps/prototype-web/client/src/pages/CostEditor.s09.dom.test.tsx",
-    "tests/domain/craft-order-groups.test.ts"
+    "tests/domain/craft-order-groups.test.ts",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "status_history": [
     {
@@ -73,7 +77,15 @@
       "changed_at": "2026-10-31",
       "actor": "zai-s10-execution",
       "reason": "تحرير المطالبة للعمل المتسلسل المأذون فقط (سابقة WS-231/WS-232/WS-233): المالك أذن في 2026-10-31 بالاستمرار المباشر إلى S10 (أمر 00-S10-EXECUTION-PROMPT-2026-10-31.md المنشور في b56967d8) فصار بقاء المطالبة IN_REVIEW يحجب تداخل مناطقها مع مطالبة S10 الحية (application/cost وstorage/local وcraft-order). هذه حالة «مراجعة مطلوبة» لا قبول ولا إغلاق: عمل S09 المسلَّم كامل كما هو في 14-S09-RESULT وسجل الالتزامات، ومراجعة Manus المستقلة وقبول المالك بوابتا القبول والدمج اللاحقتان لم تصدرا، والفعل التالي المحفوظ عليهما."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ Actions وCloudflare Pages نجحا على الرأس نفسه."
     }
   ],
-  "migration_baseline": true
+  "migration_baseline": true,
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

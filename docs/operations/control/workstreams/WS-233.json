@@ -1,7 +1,7 @@
 {
   "id": "WS-233",
   "title": "S08 — الأصول والمعدات (UNIT-034) + إتمام إصلاح S07-MR-001",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-017"
   ],
@@ -32,19 +32,23 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-10-30",
-  "updated_at": "2026-11-04",
-  "next_action": "S08 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا عمل مرحلي إضافي دون دليل جديد؛ لا VERIFIED على main ولا merge.",
+  "updated_at": "2026-11-05",
+  "next_action": "Workstream WS-233 مغلق ومتحقق على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا Claim نشطًا لهذه المرحلة.",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S08-EXECUTION-PROMPT-2026-10-30.md المنشور في 73c1a344fbe7f8220bcecb764787f5df71622637؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
     "بطاقة الفهم (المشكلة/النطاق/غير الأهداف/الثوابت/الفشل/القبول/حد الاستعادة) مثبتة داخل DOC-017.summary.",
     "خط الأساس الحي للمخطط/التصدير 40/32 يُحفظ — الحقول الجديدة اختيارية متوافقة رجعيًا (نمط S06/S07)؛ لا مسار افتتاح/إرث (D01 محجوب بعقد 002) ولا نوع حدث جديد.",
     "بوابة انتقال S07 خضراء على الرأس d5df9344 (CI 40985398002 + Cloudflare ناجحان على الرأس نفسه)؛ إصلاح S07-MR-001 موثق في 12-S07-RESULT §1-ب/§4-ب.",
-    "قبول المالك الشامل لـS08 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 13-S08-RESULT-2026-10-30.md + 13a addendum والمرشح abfc1092 + 6b3cb946؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول."
+    "قبول المالك الشامل لـS08 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 13-S08-RESULT-2026-10-30.md + 13a addendum والمرشح abfc1092 + 6b3cb946؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول.",
+    "تحديث 2026-11-05: supersedes branch-only next-action; PR #383 merged and main checks passed at 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S08-EXECUTION-PROMPT-2026-10-30.md",
-    "https://github.com/Qays7753/Micro/pull/383"
+    "https://github.com/Qays7753/Micro/pull/383",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "status_history": [
     {
@@ -82,7 +86,15 @@
       "changed_at": "2026-10-30",
       "actor": "zai-s09-execution-part2",
       "reason": "بروتوكول تعاقب المراحل (سابقة WS-231 عند مطالبة S07 وWS-232 عند مطالبة S08): تنفيذ S08 الكامل (UNIT-034 على components/integration-20261027 / PR #383) وإصلاحا ملاحظتي المراجعة المؤكدتين S08-MR-001 (حلّ مرجع طرف الاقتناء المحفوظ داخل عائلة الملف نفسه عند حد التحقق القانوني الواحد — سطر واحد داخل حلقة الأصول؛ null/الغياب صحيحان حيث يسمح عقد الأصل؛ لا اشتقاق طرف من نص) وS08-MR-002 (الانحدار الدائم end-to-end لحقلي acquisitionParty وpaidAtCreationMinor عبر المسار التطبيقي الحقيقي على المهايئين معًا) مكتملان ومسلّمان على المرشح 6b3cb946c82935be5b0c8dffd485a3ff6368bf0c — الاختبارات المركزة 165/165 (الملحق 13a)؛ ينتقل السجل إلى الحالة غير النشطة REVIEW_REQUIRED رهن المراجعة المستقلة وقبول المالك (لا قبولًا ذاتيًا) ويزول بذلك تنافس الملكية النشطة مع مطالبة S09 الحيّة WS-234 على المناطق المشتركة storage/local وapplication/transfers؛ المتابعة عبر سجلات 13-S08-RESULT و13a-S08-REVIEW-FIX-ADDENDUM."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ Actions وCloudflare Pages نجحا على الرأس نفسه."
     }
   ],
-  "migration_baseline": true
+  "migration_baseline": true,
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

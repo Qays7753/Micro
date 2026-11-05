@@ -1,7 +1,7 @@
 {
   "id": "WS-242",
   "title": "S17 — فحص البيانات وتجربة النسخ النهائية (UNIT-033/044 + SH-22)",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-026"
   ],
@@ -28,14 +28,15 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-11-04",
-  "updated_at": "2026-11-04",
-  "next_action": "S17 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا عمل مرحلي إضافي دون دليل جديد؛ لا VERIFIED على main ولا merge.",
+  "updated_at": "2026-11-05",
+  "next_action": "Workstream WS-242 مغلق ومتحقق على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا Claim نشطًا لهذه المرحلة.",
   "notes": [
     "أمر متصل واحد من المالك (2026-11-04): S17 ثم S18 مباشرة بلا وقفة موافقة وسيطة؛ لا قبول ذاتي ولا دمج ولا كتابة main.",
     "حد الاستعادة: رأس نشر الأمر 825296c6؛ آخر رأس تسليم مقبول 7fef8cf1.",
     "السقفان ثابتان 650,000/155,300 وزوج المخطط/التصدير 41/34 مع الموروثين 33/40 و32/40.",
     "المرشح الكودي 1f232c79 + إرساء الأسطح 1e6d17b2؛ pnpm check خروج 0 على الشجرة النهائية.",
-    "قبول المالك الشامل لـS17 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 22-S17-RESULT-2026-11-04.md والمرشح 1f232c79؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول."
+    "قبول المالك الشامل لـS17 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 22-S17-RESULT-2026-11-04.md والمرشح 1f232c79؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول.",
+    "تحديث 2026-11-05: supersedes branch-only next-action; PR #383 merged and main checks passed at 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521."
   ],
   "status_history": [
     {
@@ -49,7 +50,21 @@
       "changed_at": "2026-11-04",
       "actor": "zai-s17-execution",
       "reason": "إعادة تسليم S17 للمراجعة المستقلة عند المرشح الكودي 1f232c79 مع تقرير النتيجة الكامل والأدلة الدائمة؛ لا قبول ذاتي."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ Actions وCloudflare Pages نجحا على الرأس نفسه."
     }
   ],
-  "migration_baseline": true
+  "migration_baseline": true,
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "evidence": [
+    "https://github.com/Qays7753/Micro/pull/383",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
+  ]
 }

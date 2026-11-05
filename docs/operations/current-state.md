@@ -1,7 +1,7 @@
 # حالة Micro الحية
 
 **الحالة:** `CURRENT / UPDATE WITH EVERY MERGED SLICE`
-**آخر تحديث:** 4 نوفمبر 2026 (**main `3584aa1d` ثابت؛ المالك أكد قبول S01–S18 على فرع التكامل `components/integration-20261027` عند رأس التسليم `0b16cbe4`؛ PR #383 ما زال Draft؛ لا merge ولا VERIFIED على main؛ الدمج قرار مالك منفصل.**)
+**آخر تحديث:** 5 نوفمبر 2026 (**`main` عند `111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521`; PR #383 دُمج؛ Actions وCloudflare Pages نجحا على merge commit نفسه. S01–S18 VERIFIED على main. UXR-00 توثيقية على `uxr/integration-20261105`، PR Draft واحد؛ لا تغيير منتج أو ثيم أو دمج جديد.**)
 **التاريخ:** كل سجل الشرائح والموجات المؤرخ (§9–§138 وفقرات المتابعة قبل 2026-10-01) في [`current-state-log.md`](current-state-log.md) — append-only ولا يُحمَّل مع هذا الملف.
 
 **قاعدة العمل:** العربية، RTL، phone-first، والأرقام المالية ASCII/LTR.
@@ -14,7 +14,7 @@
 
 | الحقل | الحقيقة الحالية |
 |---|---|
-| `main` | `3584aa1d08cea3e0a00623b719fed7f991ce187f` لم يتغير؛ PR #383 Draft. المالك أكد قبول المراحل S01–S18 على فرع التكامل عند رأس التسليم `0b16cbe4`; تبقى Items `IN_REVIEW` وWorkstreams `REVIEW_REQUIRED` وفق Control، ولا يعني ذلك `VERIFIED` على main؛ لا merge ولا main write. |
+| `main` | `111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521` هو merge commit لـPR #383؛ Actions وCloudflare Pages نجحا عليه. سجلات S01–S18 `VERIFIED` مع merge_sha والدليل؛ لا يعادل ذلك اجتياز PRE-PILOT أو اختبار جهاز. |
 | طريق التنفيذ | React → Application Service → Domain → `PrototypeLocalStore` → IndexedDB. لا وصول مباشر من UI إلى IndexedDB. |
 | قاعدة التسليم | برنامج المكونات: فرع تكامل واحد من `origin/main` → commits مراحل واضحة → PR Draft واحد → مراجعتان ثم قبول المالك؛ الدمج بعد S18 بقرار المالك فقط. |
 | نمط المنتج | Web-first، local-first، بلا Auth أو Sync أو Cloud أو حسابات مستخدمين أو بيانات حقيقة خارج الجهاز. |

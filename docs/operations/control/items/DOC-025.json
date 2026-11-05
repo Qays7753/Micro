@@ -2,16 +2,16 @@
   "id": "DOC-025",
   "title": "S16 execution — الرئيسية والتنقل ومداخل الخدمات (UNIT-003/014/041/043 + SH-21)",
   "type": "FEATURE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P0",
   "stage": "micro-component-execution-s16-20261103",
   "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md بعد إصلاح S15-MR-001 جذريًا وإعادة S15 للمراجعة قانونيًا (DOC-024/WS-240 IN_REVIEW/REVIEW_REQUIRED عند c788b09f). | بطاقة الفهم: مشكلة المستخدم: صاحب المشروع يفتح التطبيق فيريد أن يبدأ عمله، ويعرف ما يحتاج انتباهه، ويفهم لمحة عن وضعه — الرئيسية وجهة الفتح الوسطى بأفعال سريعة ومتابعة مختصرة ولمحة مالية واحدة، والتنقل خمسة مقاعد ثابتة (المالية، الطلبات، الرئيسية، التوصيل، السوق) من اليمين لليسار، والخدمات المستقبلية (التوصيل/اسأل Micro/السوق) إعلانات صادقة «قريبًا» بلا أفعال وهمية. النطاق: UNIT-003 الرئيسية بترتيب HOME-A (الاسم والتاريخ والإعدادات و!؛ إجراءات سريعة خمسة بسحب يدوي وعرض الكل؛ متابعتك حتى 3 مهام مع عرض المتابعة؛ لمحة مالية بفترة اليوم/هذا الشهر والنقد الآن منفصلًا؛ اسأل Micro ثانويًا)؛ UNIT-014 اكتمال إلغاء الاستقلال (روابط /finance/more القديمة بفترة ورجوع تصل البديل بلا كتابة أو حلقة)؛ UNIT-041 السوق إعلان صادق فقط؛ UNIT-043 التوصيل مقعد شريط بإعلان قائم صادق واسأل Micro ثانويًا؛ SH-21 التنقل والرجوع ومداخل المصادر. غير الأهداف: لا قارئ مالي ثانٍ ولا كاتب في الرئيسية (تفويض لأصحابه)؛ لا موعد إطلاق مختلق ولا حجز توصيل ولا سلة/دفع في السوق ولا قدرة AI؛ لا مقعد سادس للأدوات أو الإعدادات؛ لا موجة هيكلية؛ السقفان ثابتان 650,000/155,300. الثوابت: القراء لا يكتبون؛ القبض ليس ربحًا؛ النقد الآن منفصل عن فترة الأداء؛ لا أصفار افتراضية ولا نتيجة مجهولة بصفر؛ فشل مصدر يعزل ولا ينسف الصفحة. حالات الفشل: فشل مصدر متابعة يفقد المختصر اكتماله بلا فراغ مضلل؛ تغيير الفترة لا يغير النقد الآن؛ الرجوع يحفظ سياقه ولا يكرر كتابة. معيار القبول: حالات UNIT القابلة للتطبيق (HOME-AC/3D-AC ذات الصلة) وSDF-006/060/061 بأدلة دائمة؛ pnpm check كاملة على الشجرة النهائية؛ خمس مراجعات قرائية متسلسلة؛ البوابتان البعيدتان على الرأس النهائي بعينه. حد الاستعادة: رأس إصلاح S15-MR-001 c788b09f.",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "CONFIRMED",
   "classification": "FIX_BEFORE_PILOT",
-  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "gate_classification": "MAIN_VERIFIED",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md §4 يفوض بدء S16 مباشرة بعد إصلاح S15-MR-001 وإعادة S15 للمراجعة القانونية بلا موافقة وسيطة؛ السقفان ثابتان؛ لا موجة هيكلية؛ لا قبول ذاتي ولا merge ولا كتابة main.\nاعتمد المالك قبول S16 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-04، استنادًا إلى تسليم S16 في 21-S16-RESULT-2026-11-03.md، المرشح الكودي 9dc4b194، وتحقق Actions وCloudflare Pages الناجحين على رأس التسليم 7fef8cf1fa9795e137a72c9a19ccdc38c247ba83. القبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج.",
+  "owner_decision": "الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md §4 يفوض بدء S16 مباشرة بعد إصلاح S15-MR-001 وإعادة S15 للمراجعة القانونية بلا موافقة وسيطة؛ السقفان ثابتان؛ لا موجة هيكلية؛ لا قبول ذاتي ولا merge ولا كتابة main.\nاعتمد المالك قبول S16 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-04، استنادًا إلى تسليم S16 في 21-S16-RESULT-2026-11-03.md، المرشح الكودي 9dc4b194، وتحقق Actions وCloudflare Pages الناجحين على رأس التسليم 7fef8cf1fa9795e137a72c9a19ccdc38c247ba83. القبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج. تحديث 2026-11-05: بعد اعتماد المالك للدمج، PR #383 مدموج والتحقق ناجح على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يعني هذا اجتياز PRE-PILOT أو اختبار جهاز.",
   "tests_required": [
     "ترتيب HOME-A2 الكامل وأسماء الأقسام (متابعتك/لمحة مالية) بلا كتل ملغاة (أثناء غيابك/آخر التسجيلات/خيارات المشروع)",
     "الشريط الخماسي الجديد: المالية، الطلبات، الرئيسية، التوصيل، السوق — بلا مقعد سادس، وتسمية الرئيسية الموحدة HOME-R01",
@@ -88,7 +88,10 @@
     "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md",
     "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
     "https://github.com/Qays7753/Micro/pull/383",
-    "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md"
+    "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "dependencies": [
     "DOC-024"
@@ -97,7 +100,7 @@
     "DOC-024"
   ],
   "migration_baseline": true,
-  "next_action": "S16 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا عمل مرحلي إضافي مفوض؛ لا VERIFIED على main ولا merge.",
+  "next_action": "تم التحقق من DOC-025 على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521 بعد نجاح Actions وCloudflare؛ لا تغيير في قرار القبول أو أي بوابة خارجية مستقلة.",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -110,7 +113,21 @@
       "changed_at": "2026-11-03",
       "actor": "zai-s16-execution",
       "reason": "تسليم S16 للمراجعة (لا قبولًا ذاتيًا): المرشح الكودي 9dc4b194 (التنفيذ 99d405c7 + تصويب المراجعة الثالثة) فوق رأس إصلاح S15-MR-001 c788b09f؛ pnpm check كاملة خروج 0 (جذري 1019/1019 + تطبيقي 3329/3329 بعد تشغيل نظيف لسباق radix المعروف خارج النطاق)؛ الميزانية 597,402/145,649 تحت السقفين الثابتين 650,000/155,300؛ الأسطح بإرساء موثق مقفل التحسينات (swRuntime +41 بإثبات)؛ الكثافة Home 55/78 وDelivery 8/13؛ جرد البيوت 129/84/45→124/82/42؛ راتشة 7 إرساءات ocRef DOC-025؛ 41/34 بلا تغيير؛ مراجعات قرائية خمس بموجدة واحدة (Escape للوحات الرئيسية) صُححت من الجذر؛ بوابتا Actions/Cloudflare تُثبتان على الرأس النهائي المدفوع في تعليق PR #383."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يُسجل VERIFIED قبل فحص الرأس نفسه."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "Actions وCloudflare Pages نجحا على main عند merge commit 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يعني ذلك اجتياز PRE-PILOT أو اختبار جهاز."
     }
   ],
-  "updated_at": "2026-11-04"
+  "updated_at": "2026-11-05",
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

@@ -2,17 +2,17 @@
   "id": "DOC-011",
   "title": "S02 حماية الكتابة والاستعادة وإزالة قفل PIN — أمر التنفيذ الجاهز",
   "type": "FEATURE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P0",
   "stage": "micro-component-execution-s02-20261027",
   "summary": "أمر تنفيذ مستقل لـS02 يغلق جذريًا حدود حماية الاستعادة وإزالة PIN ضمن UNIT-042 وUNIT-044 والعقود SH-02/03/04، مع بقاء GitHub المصدر الوحيد وManus المنسق والمراجع الوحيد من S02 فصاعدًا.",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "UNVERIFIED",
   "classification": "FIX_BEFORE_PILOT",
-  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "gate_classification": "MAIN_VERIFIED",
   "root_cause": "كانت S02 ممثلة بمسودة مراجعة وبوابة ChatGPT تاريخية رغم أن المالك قرر تشغيل البرنامج مع Manus وZAI فقط؛ كما كانت أحدث ملفات Drive تحتاج إثبات مصالحة مع نسخ GitHub قبل جعل الأمر جاهزًا.",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "اعتمد المالك تجهيز أمر S02 النهائي وتشغيله لاحقًا على فرع التكامل الواحد؛ لا merge أو main write أو cleanup أو S03 ضمن هذا التفويض.\nقرار المالك الشامل للمرحلة S02 بتاريخ 2026-11-04: أكد المالك صراحةً قبول تسليم S02 على فرع التكامل components/integration-20261027، استنادًا إلى التقرير 07-S02-RESULT-2026-10-27.md والمرشح الكودي 328d986e. هذا قبول على فرع التكامل فقط؛ لا يعني VERIFIED على main ولا إذن دمج. ولا ينشئ هذا القيد ادعاءً بمراجعة مستقلة من Manus حيث لا يسجلها التاريخ.",
+  "owner_decision": "اعتمد المالك تجهيز أمر S02 النهائي وتشغيله لاحقًا على فرع التكامل الواحد؛ لا merge أو main write أو cleanup أو S03 ضمن هذا التفويض.\nقرار المالك الشامل للمرحلة S02 بتاريخ 2026-11-04: أكد المالك صراحةً قبول تسليم S02 على فرع التكامل components/integration-20261027، استنادًا إلى التقرير 07-S02-RESULT-2026-10-27.md والمرشح الكودي 328d986e. هذا قبول على فرع التكامل فقط؛ لا يعني VERIFIED على main ولا إذن دمج. ولا ينشئ هذا القيد ادعاءً بمراجعة مستقلة من Manus حيث لا يسجلها التاريخ. تحديث 2026-11-05: بعد اعتماد المالك للدمج، PR #383 مدموج والتحقق ناجح على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يعني هذا اجتياز PRE-PILOT أو اختبار جهاز.",
   "tests_required": [
     "python3 scripts/operations-control/validate.py",
     "python3 scripts/operations-control/generate_tracker.py --check",
@@ -75,7 +75,10 @@
     "docs/implementation/micro-component-execution/00-S02-EXECUTION-PROMPT-2026-10-27.md",
     "docs/implementation/micro-component-execution/S02-DRIVE-GITHUB-RECONCILIATION-2026-10-27.md",
     "https://github.com/Qays7753/Micro/pull/383",
-    "docs/implementation/micro-component-execution/07-S02-RESULT-2026-10-27.md"
+    "docs/implementation/micro-component-execution/07-S02-RESULT-2026-10-27.md",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "dependencies": [
     "DOC-010"
@@ -84,7 +87,7 @@
     "DOC-010",
     "DOC-009"
   ],
-  "updated_at": "2026-11-04",
+  "updated_at": "2026-11-05",
   "status_history": [
     {
       "status": "BACKLOG",
@@ -115,8 +118,22 @@
       "changed_at": "2026-10-27",
       "actor": "zai-s02-execution",
       "reason": "اكتمل التنفيذ (كود: 0f0a056e وfdfaaab5 و1904eb7b) وسلسلة pnpm check خضراء محليًا؛ النتيجة 07-S02-RESULT-2026-10-27.md والتسليم S02_EXECUTION_DELIVERED — REVIEW_REQUIRED."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يُسجل VERIFIED قبل فحص الرأس نفسه."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "Actions وCloudflare Pages نجحا على main عند merge commit 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يعني ذلك اجتياز PRE-PILOT أو اختبار جهاز."
     }
   ],
   "migration_baseline": false,
-  "next_action": "S02 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا VERIFIED على main ولا merge؛ قرار الدمج منفصل."
+  "next_action": "تم التحقق من DOC-011 على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521 بعد نجاح Actions وCloudflare؛ لا تغيير في قرار القبول أو أي بوابة خارجية مستقلة.",
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

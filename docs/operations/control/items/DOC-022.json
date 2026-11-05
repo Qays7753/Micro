@@ -2,16 +2,16 @@
   "id": "DOC-022",
   "title": "S13 execution — إدارة الطلبات والتقويم والمتابعة الموحدة (UNIT-006/012/018 + SH-17)",
   "type": "FEATURE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P0",
   "stage": "micro-component-execution-s13-20261102",
   "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق أمر S13 المنشور في 2158b0fc (القسم ٦) بعد اكتمال fix-first (S11-LR-001/LR-002 وS12-FIN-001/ATOMIC-001/TRANSFER-001/002/RECORD-001 بمُلحقيهما 16b و17a). | بطاقة الفهم: مشكلة المستخدم: صاحب مشروع يريد أن يجد طلبه وموعده ومستحقه المالي في مكان واحد صادق — قائمة طلبات وتقويمًا من المصادر نفسها لا نسختين، ومتابعة تجمع مواعيد العمل من 012 والاستحقاقات المالية من أصحابها دون أن يحرّك عرضُ المالَ أو الموعدُ مصروفًا أو قبضًا. النطاق: UNIT-006 قائمة الطلبات الافتراضية (حالية/سابقة/كل، بحث وتصفية قبل حد العرض، مسودة غير مرتبطة تظهر مرة) وتقويم شهر/أسبوع/يوم من مواعيد 012 نفسها (لا وقت 00:00 لموعد بلا وقت، طلبات بلا موعد بمدخل واضح، فات/اليوم/قادم تنظيم لا مال)؛ UNIT-012 قراءات المواعيد الموحدة بحالات مصدر مستقلة وتمييز التسليم من متابعة العميل؛ UNIT-018 قارئ استحقاقات مالي فوق مالكيها (تحصيل بيع/طلب من 005/010، دفعة مورد من 027، سداد مصروف من 015، مراجعة دورة من 019) بترتيب متأخر/اليوم/قادم/بلا موعد وعدد صادق عند القراءة الجزئية. خارج النطاق (non-goals): لا سحب وإفلات ولا تذكيرات خارجية ولا تقويم مالي موازٍ ولا كاتب ثانٍ لأي مصدر ولا تأكيد تلقائي لأي دورة أو قبض أو مصروف ولا إعادة تصميم عامة للهوية (بوابة ما بعد المجموعة ٦: موجات مسح S11 كلها NOT_EXECUTED) ولا تقارير S15. الثوابت المالية: القبض ليس الربح والدين ليس كاشًا والموعد ليس مالًا؛ past/today/upcoming تصنيف عرض لا يحرك مالًا (SDF-013)؛ قراءة المتابعة لا تكتب (U018-R02)؛ المبلغ من قراءة مالكه الحية (U018-R03)؛ لا 00:00 ولا تاريخ اليوم للمجهول (SDF-061 لتقادم الأجيال عند استخدامه). حالات الفشل المتوقعة: فشل مصدر لا يُعرض فراغًا شاملًا ولا يخفي السليم؛ قراءة جزئية بعد صادق؛ تاريخ تالف ≠ بلا موعد؛ طلب تغير من نافذة أخرى يُعاد فحص أهليته؛ الرجوع يحفظ النطاق والبحث والشهر واليوم والموضع. معيار القبول: ORD-AC01..24 وCAL-AC01..16 وU012-AC01..36 وU018-AC01..36 وACD/DUP المملوكة وSDF-013 (مثبتة هنا) وSDF-061 (عند حدود الأجيال) وSDF-063 إن عُبر حد كاتب الدورات وإلا NOT_TRIGGERED_BY_S13. حد الاستعادة: آخر التزام آمن = eb1b1db4 (رأس ما بعد fix-first)؛ أثر الرجوع: شجرة S13 تُهمل كاملة بلا أي هجرة بيانات (لا مخازن ولا فهارس جديدة أصلًا) فيعود الفرع لحالة fix-first المراجَعة. | قبول المالك: S13 على فرع التكامل فقط (2026-11-02؛ التصحيح 3c3ea798d4ad8a5913ae1170e57b875d4c091ccc؛ الملحق a82a541ac03835c64910bbea0bd4129472de15ee)؛ لا VERIFIED على main أو دمج.",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "CONFIRMED",
   "classification": "FIX_BEFORE_PILOT",
-  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "gate_classification": "MAIN_VERIFIED",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "أمر تنفيذ متصل منشور (00-S13-EXECUTION-PROMPT-2026-11-01.md عند 2158b0fc) — تنفيذ مباشر بلا موافقة وسيطة؛ ليس قبولًا لأي مرحلة سابقة ولا دمجًا.\nاعتمد المالك قبول S13 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-02، استنادًا إلى مراجعة Manus الخفيفة السابقة التي أكد المالك أنها PASS، والتصحيحات السبعة عند 3c3ea798d4ad8a5913ae1170e57b875d4c091ccc وملحق المراجعة docs/implementation/micro-component-execution/18a-S13-REVIEW-ADDENDUM-2026-11-02.md (commit a82a541ac03835c64910bbea0bd4129472de15ee). هذا قبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج.",
+  "owner_decision": "أمر تنفيذ متصل منشور (00-S13-EXECUTION-PROMPT-2026-11-01.md عند 2158b0fc) — تنفيذ مباشر بلا موافقة وسيطة؛ ليس قبولًا لأي مرحلة سابقة ولا دمجًا.\nاعتمد المالك قبول S13 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-02، استنادًا إلى مراجعة Manus الخفيفة السابقة التي أكد المالك أنها PASS، والتصحيحات السبعة عند 3c3ea798d4ad8a5913ae1170e57b875d4c091ccc وملحق المراجعة docs/implementation/micro-component-execution/18a-S13-REVIEW-ADDENDUM-2026-11-02.md (commit a82a541ac03835c64910bbea0bd4129472de15ee). هذا قبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج. تحديث 2026-11-05: بعد اعتماد المالك للدمج، PR #383 مدموج والتحقق ناجح على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يعني هذا اجتياز PRE-PILOT أو اختبار جهاز.",
   "tests_required": [
     "اختبارات إسقاط القارئ الموحد (مواعيد/استحقاقات) على المهايئين حيث تنطبق",
     "تكافؤ قائمة/شهر/أسبوع/يوم من مصدر واحد",
@@ -71,7 +71,11 @@
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S13-EXECUTION-PROMPT-2026-11-01.md",
-    "docs/implementation/micro-component-execution/18a-S13-REVIEW-ADDENDUM-2026-11-02.md"
+    "docs/implementation/micro-component-execution/18a-S13-REVIEW-ADDENDUM-2026-11-02.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "dependencies": [
     "DOC-015",
@@ -84,7 +88,7 @@
     "DOC-020",
     "DOC-021"
   ],
-  "updated_at": "2026-11-03",
+  "updated_at": "2026-11-05",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -115,8 +119,22 @@
       "changed_at": "2026-11-02",
       "actor": "zai-s14-execution",
       "reason": "تسليم تصحيحات S13 السبعة المأذونة بأمر ba2ce7b4 §4 عند كود 3c3ea798: عزل قراءتي القائمة والتقويم بإعادة محاولة لكل مصدر (MR-001)، عزل الرمي/الرفض لكل مصدر مع إعادة قراءة المتعذر وحده (MR-002)، التحقق التقويمي الحقيقي للفترة عند الوصل والتطبيق (MR-003)، الحالات الخمس للمواعيد بمدخل إصلاح للفاسد النشط (MR-004)، تحقق اقتراح CAL-C عند حد الوصلة بإعلان صادق (MR-005)، دلالات شبكة شهرية حقيقية بأسهم RTL ومسار تجوال واحد (MR-006)، ومسار دفعة المورد المسجل (MR-007) — بانحدارات فاشلة-أولًا 95/95 وستة إرساءات راتشة موثقة؛ الملحق 18a-S13-REVIEW-ADDENDUM-2026-11-02.md — تسليم للمراجعة لا قبول."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يُسجل VERIFIED قبل فحص الرأس نفسه."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "Actions وCloudflare Pages نجحا على main عند merge commit 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يعني ذلك اجتياز PRE-PILOT أو اختبار جهاز."
     }
   ],
   "migration_baseline": true,
-  "next_action": "S13 مقبولة على فرع التكامل؛ لا إعادة فتح دون دليل جديد. يبقى عائق S14 وقرار السقف مستقلين؛ لا merge ولا كتابة على main."
+  "next_action": "تم التحقق من DOC-022 على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521 بعد نجاح Actions وCloudflare؛ لا تغيير في قرار القبول أو أي بوابة خارجية مستقلة.",
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

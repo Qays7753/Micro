@@ -1,7 +1,7 @@
 {
   "id": "WS-232",
   "title": "S07 — المشتريات والمواد والمخزون الاختياري (UNIT-027/UNIT-028) + الإصلاح الجذري لـS06-MR-001",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-016"
   ],
@@ -35,19 +35,23 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-10-30",
-  "updated_at": "2026-11-04",
-  "next_action": "S07 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا عمل مرحلي إضافي دون دليل جديد؛ لا VERIFIED على main ولا merge.",
+  "updated_at": "2026-11-05",
+  "next_action": "Workstream WS-232 مغلق ومتحقق على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا Claim نشطًا لهذه المرحلة.",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S07-EXECUTION-PROMPT-2026-10-29.md المنشور في 489474cab98ddf77f1c3f57ed5f22d84eabde5be؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
     "إصلاح S06-MR-001 بcommit موسوم مستقل قبل أي كود S07، ولا يُعاد كتابة تاريخ S06/S05؛ يُسجل «مسلّمًا وبانتظار المراجعة المستقلة» لا مقبولًا.",
     "بطاقة الفهم (المشكلة/النطاق/غير الأهداف/الثوابت/الفشل/القبول/حد الاستعادة) مثبتة داخل DOC-016.summary.",
     "خط الأساس الحي للمخطط/التصدير 40/32؛ أي حقل دائم جديد اختياري متوافق رجعيًا (نمط S06) وإلا فيلزم الإثبات الكامل في الشريحة نفسها؛ لا إعادة تصنيف رجعية للمشتريات التاريخية (حد D02 الصريح).",
-    "قبول المالك الشامل لـS07 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 12-S07-RESULT-2026-10-30.md والمرشح 30ff930d؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول."
+    "قبول المالك الشامل لـS07 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 12-S07-RESULT-2026-10-30.md والمرشح 30ff930d؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول.",
+    "تحديث 2026-11-05: supersedes branch-only next-action; PR #383 merged and main checks passed at 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S07-EXECUTION-PROMPT-2026-10-29.md",
-    "https://github.com/Qays7753/Micro/pull/383"
+    "https://github.com/Qays7753/Micro/pull/383",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "status_history": [
     {
@@ -85,7 +89,15 @@
       "changed_at": "2026-10-30",
       "actor": "zai-s08-execution",
       "reason": "بروتوكول تعاقب المراحل (سابقة WS-231 عند مطالبة S07): إصلاح S07-MR-001 مكتمل ومسلّم وبواباته البعيدة خضراء على الرأس النهائي d5df9344؛ ينتقل العملstream إلى الانتظار الصريح للمراجعة المستقلة وقرار المالك (لا قبولًا ذاتيًا) بينما مطالبة S08 المأذونة (WS-233/DOC-017) تبدأ على المساحات نفسها بأمر المالك المتصل نفسه — البند DOC-016 يبقى IN_REVIEW كما فعل DOC-015 قبله."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ Actions وCloudflare Pages نجحا على الرأس نفسه."
     }
   ],
-  "migration_baseline": true
+  "migration_baseline": true,
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

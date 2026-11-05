@@ -2,16 +2,16 @@
   "id": "DOC-024",
   "title": "S15 execution — المالية والكشف والسجل والميزانيات وإيقاف القدرات الملغاة (UNIT-013/013B/016/017/021/035/036/040 + SH-19/SH-20)",
   "type": "FEATURE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P0",
   "stage": "micro-component-execution-s15-20261103",
   "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 بعد تسليم S14 للمراجعة قانونيًا (DOC-023/WS-239 IN_REVIEW/REVIEW_REQUIRED عند 75af0773). | بطاقة الفهم: مشكلة المستخدم: صاحب المشروع يريد فهم وضعه المالي وتسجيل ما حدث والوصول لسجله — قراءة متسقة واحدة للنتيجة والمعرفة والنطاق عبر المالية والكشف والسجل، وميزانيات خططًا لا مالًا، والقدرات الملغاة (الإقراض/الاقتراض/المشاركة/التوقعات المتقدمة) مقطوعة الإنشاء بلا بديل مع حفظ التاريخ. النطاق: UNIT-013 صفحة المالية المدخل الواحد بلا تبويبات داخلية (الآن + نتيجة الفترة + أفعال تسجيل ثلاثة + لوحة وظائف)؛ UNIT-013B ميزانيات المصروف خططًا شهرية بلا حجب مصروف؛ UNIT-016 كشف الفترة وتنزيله؛ UNIT-017 سجل العمليات الموحد قراءةً؛ UNIT-021/035/036/040 إيقاف الإنشاء عند الحد بلا بديل مع حفظ التاريخ. غير الأهداف: لا دفتر مالي ثانٍ ولا كاتب موازٍ ولا مصدر أرصدة مستقل؛ لا سحب آمن ولا توقع نقدي متقدم؛ لا WhatsApp أو رسالة مشاركة بديلة؛ لا إعادة تفعيل بصمت ولا حذف تاريخ؛ لا موجة هيكلية؛ السقفان ثابتان 650,000/155,300 (هامش gzip متاح ~8,313). الثوابت: القبض ليس ربحًا؛ الجزء المعلوم ليس نتيجة كاملة؛ الميزانية ليست مصروفًا؛ المنصرف المؤهل من مصنف المصروف الموحد؛ القراء لا يكتبون. حالات الفشل: فشل مصدر يعزل ولا ينسف الصفحة؛ الجيل/الفترة تتغير أثناء التحميل فلا خلط أجيال (SDF-061)؛ رابط إنشاء قديم يرفض بصدق بلا إنشاء؛ النسخ القديمة تحفظ التاريخ بمعناه (SDF-045). معيار القبول: SDF-006/045/058/061/062 بأدلة دائمة مع تأشير غير المشغل بسببه + حالات UNIT القابلة للتطبيق؛ pnpm check كاملة على الشجرة النهائية؛ خمس مراجعات قرائية متسلسلة؛ البوابتان البعيدتان على الرأس النهائي بعينه. حد الاستعادة: رأس سجلات تسليم S14 75af0773. | مراجعة Manus الخفيفة بتاريخ 2026-11-03 أثبتت S15-MR-001: التقرير ادعى دعم زر رجوع الهاتف للوحة وظائف المالية، لكن المكوّن وFinance.tsx لا يملكان popstate/history للوحة والاختبار DOM لا يغطيه؛ مثبتة في 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. فتح قانوني للإصلاح الجذري مع اختبار رجوع الهاتف؛ لا قبول ذاتي.",
   "finding_classification": "NEW_FINDING",
   "finding_state": "CONFIRMED",
   "classification": "FIX_BEFORE_PILOT",
-  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "gate_classification": "MAIN_VERIFIED",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 يفوض بدء S15 مباشرة بعد بوابات S15 بلا موافقة وسيطة؛ السقفان ثابتان؛ لا موجة هيكلية؛ لا قبول ذاتي ولا merge.\nتوجيه المالك 2026-11-03: أصلح S15-MR-001 من جذره مع regression DOM، ثم أعد S15 للمراجعة القانونية وانتقل مباشرة إلى S16 وفق الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md دون وقفة موافقة وسيطة؛ هذا ليس قبولًا لـS15 ولا S16 ولا إذن دمج.\nاعتمد المالك قبول S15 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-04، بعد إصلاح S15-MR-001 عند c788b09f وإعادة التسليم الموثقة في 20-S15-RESULT-2026-11-03.md §10 والملحق 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. الإصلاح يضيف رجوع الهاتف/المتصفح للوحة عبر sentinel محدود بدورة الحياة مع اختبار أحمر/أخضر؛ التحقق jsdom فقط، بلا جهاز فعلي. القبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج.",
+  "owner_decision": "الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 يفوض بدء S15 مباشرة بعد بوابات S15 بلا موافقة وسيطة؛ السقفان ثابتان؛ لا موجة هيكلية؛ لا قبول ذاتي ولا merge.\nتوجيه المالك 2026-11-03: أصلح S15-MR-001 من جذره مع regression DOM، ثم أعد S15 للمراجعة القانونية وانتقل مباشرة إلى S16 وفق الأمر 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md دون وقفة موافقة وسيطة؛ هذا ليس قبولًا لـS15 ولا S16 ولا إذن دمج.\nاعتمد المالك قبول S15 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-04، بعد إصلاح S15-MR-001 عند c788b09f وإعادة التسليم الموثقة في 20-S15-RESULT-2026-11-03.md §10 والملحق 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. الإصلاح يضيف رجوع الهاتف/المتصفح للوحة عبر sentinel محدود بدورة الحياة مع اختبار أحمر/أخضر؛ التحقق jsdom فقط، بلا جهاز فعلي. القبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج. تحديث 2026-11-05: بعد اعتماد المالك للدمج، PR #383 مدموج والتحقق ناجح على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يعني هذا اجتياز PRE-PILOT أو اختبار جهاز.",
   "tests_required": [
     "حالات SDF الخمس المملوكة بأدلة دائمة (006/045/058/061/062)",
     "رفض روابط إنشاء الإقراض/الاقتراض القديمة بصدق مع حفظ التاريخ",
@@ -83,7 +83,10 @@
     "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md",
     "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
     "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md",
-    "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md"
+    "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "dependencies": [
     "DOC-020",
@@ -95,7 +98,7 @@
     "DOC-023"
   ],
   "migration_baseline": true,
-  "next_action": "S15 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا عمل مرحلي إضافي مفوض؛ لا VERIFIED على main ولا merge.",
+  "next_action": "تم التحقق من DOC-024 على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521 بعد نجاح Actions وCloudflare؛ لا تغيير في قرار القبول أو أي بوابة خارجية مستقلة.",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -126,8 +129,22 @@
       "changed_at": "2026-11-03",
       "actor": "zai-s15-review-fix",
       "reason": "إعادة تسليم الإصلاح للمراجعة المستقلة (لا قبولًا ذاتيًا): الالتزام c788b09f يملك اللوحةَ sentinel تاريخي واحد محدود بدورة الحياة على نمط Setup.tsx — الفتح يدفع entry واحدًا لنفس الصفحة، وBack الهاتف/المتصفح يغلق اللوحة وحدها (لا تغيير مسار/فترة/مال والتركيز يعود للمشغل)، وكل إغلاق غير-Back يستهلكه idempotent، والمغادرة تنظفه. أحمر أولًا على 8c0361b9: 4 فاشل | 7 ناجح (expected false to be true عند الفتح؛ back 0 مرات عند الإغلاق غير-Back والمغادرة؛ الحوار يبقى بعد popstate)؛ أخضر: 11/11 و119/119 عبر 21 ملف مالية و88/88 popstate-مجاورة؛ jsdom فقط بلا جهاز فعلي. الأدلة في 20a-S15-REVIEW-ADDENDUM-2026-11-03.md و§10 من 20-S15-RESULT-2026-11-03.md."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يُسجل VERIFIED قبل فحص الرأس نفسه."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "Actions وCloudflare Pages نجحا على main عند merge commit 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يعني ذلك اجتياز PRE-PILOT أو اختبار جهاز."
     }
   ],
-  "updated_at": "2026-11-04",
-  "root_cause": "FinanceFunctionsBoard documented Escape and close-button behavior but neither the board nor Finance.tsx owned a popstate/history sentinel for the open board. The DOM regression test covered Escape/close/focus only; the S15 result overstated phone-Back support. ROOT-REPAIRED at c788b09f: board-owned lifecycle-safe same-page history sentinel (Setup.tsx pattern) with idempotent consumption on every exit path and unmount cleanup; red/green regression recorded in 20a-S15-REVIEW-ADDENDUM-2026-11-03.md."
+  "updated_at": "2026-11-05",
+  "root_cause": "FinanceFunctionsBoard documented Escape and close-button behavior but neither the board nor Finance.tsx owned a popstate/history sentinel for the open board. The DOM regression test covered Escape/close/focus only; the S15 result overstated phone-Back support. ROOT-REPAIRED at c788b09f: board-owned lifecycle-safe same-page history sentinel (Setup.tsx pattern) with idempotent consumption on every exit path and unmount cleanup; red/green regression recorded in 20a-S15-REVIEW-ADDENDUM-2026-11-03.md.",
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }
