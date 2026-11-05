@@ -158,30 +158,40 @@ describe("UNIT-013 — لوحة وظائف المالية (AF-B) وإلغاء ا
     }
   });
 
-  it("عقد ٢٦ قاعدة ٤: المداخل تفتح أصحابها بreturnTo=/finance واللوحة تُغلق خلفها", async () => {
+  it("عقد ٢٦ قاعدة ٤ + F-003: المداخل تنتقل فعليًا فوق مدخل الحارس — بلا back() مؤجل وبreturnTo=/finance", async () => {
     await seedProfile();
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
-    /* كل مدخل يفتح من لوحة حية (اللوحة تُغلق خلف كل تنقل — AF-C) فتُعاد
-     * فتحًا لكل هدف بترتيب الاستدعاءات الحي. */
-    const openEntry = async (label: string) => {
-      const board = await openBoard();
-      fireEvent.click(within(board).getByRole("button", { name: new RegExp(label) }));
-    };
-    const cases: readonly (readonly [string, string])[] = [
-      ["النقد", "/cash"],
-      ["ديون العملاء", "/finance/upcoming"],
-      ["سجل العمليات", "/finance/activity"],
-      ["مال المالك", "/finance/owner-entitlement"],
-      ["المخزون", "/inventory"],
-    ];
-    for (const [label, target] of cases) {
-      wouterMocks.navigate.mockClear();
-      await openEntry(label);
-      expect(wouterMocks.navigate).toHaveBeenCalledWith(withReturnTo(target, "/finance"));
+    const backSpy = vi.spyOn(history, "back").mockImplementation(() => {});
+    try {
+      /* كل مدخل يفتح من لوحة حية (اللوحة تُغلق خلف كل تنقل — AF-C) فتُعاد
+       * فتحًا لكل هدف بترتيب الاستدعاءات الحي. */
+      const openEntry = async (label: string) => {
+        const board = await openBoard();
+        fireEvent.click(within(board).getByRole("button", { name: new RegExp(label) }));
+      };
+      const cases: readonly (readonly [string, string])[] = [
+        ["النقد", "/cash"],
+        ["ديون العملاء", "/finance/upcoming"],
+        ["سجل العمليات", "/finance/activity"],
+        ["مال المالك", "/finance/owner-entitlement"],
+        ["المخزون", "/inventory"],
+      ];
+      for (const [label, target] of cases) {
+        wouterMocks.navigate.mockClear();
+        backSpy.mockClear();
+        await openEntry(label);
+        /* F-003 (المصدر: المسح الشامل 2026-11-04): الرابط النهائي يصل وجهته
+         * فعليًا — لا back() مؤجلًا يُنفّذ بعد pushState فيسحب المستخدم من
+         * وجهته الجديدة إلى /finance. */
+        expect(wouterMocks.navigate).toHaveBeenCalledWith(withReturnTo(target, "/finance"));
+        expect(backSpy).not.toHaveBeenCalled();
+      }
+      /* كل تنقل أغلق اللوحة أولًا (AF-AC03: لا حفظ ولا كتابة من الفتح نفسه). */
+      expect(screen.queryByRole("dialog")).toBeNull();
+    } finally {
+      backSpy.mockRestore();
     }
-    /* كل تنقل أغلق اللوحة أولًا (AF-AC03: لا حفظ ولا كتابة من الفتح نفسه). */
-    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("AF-AC05: كشف الفترة من اللوحة بنطاق 013 المطبق نفسه لا الافتراضي المستقل", async () => {
@@ -197,16 +207,28 @@ describe("UNIT-013 — لوحة وظائف المالية (AF-B) وإلغاء ا
     );
   });
 
-  it("UNIT-013B: مدخل ميزانيات المصروف سياقي — يكشف قسمها في الصفحة نفسها لا وجهة جديدة", async () => {
+  it("UNIT-013B: مدخل ميزانيات المصروف سياقي — يكشف قسمها بعد استقرار المساحة الفرعية بلا back() ولا وجهة جديدة", async () => {
     await seedProfile();
     renderFinance();
     expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
-    const board = await openBoard();
-    fireEvent.click(within(board).getByRole("button", { name: /ميزانيات المصروف/ }));
-    /* لا تنقل إطلاقًا — القسم موجود في الصفحة نفسها (سطح 013B واحد بموضع واحد). */
-    expect(wouterMocks.navigate).not.toHaveBeenCalled();
-    expect(screen.queryByRole("dialog")).toBeNull();
-    expect(screen.getByRole("region", { name: "ميزانيات المصروف" })).toBeTruthy();
+    const backSpy = vi.spyOn(history, "back").mockImplementation(() => {});
+    try {
+      const board = await openBoard();
+      backSpy.mockClear();
+      fireEvent.click(within(board).getByRole("button", { name: /ميزانيات المصروف/ }));
+      /* F-003: لا تنقل ولا back() — القسم موجود في الصفحة نفسها (سطح 013B
+       * واحد بموضع واحد)، والكشف يُجدولة إطارًا بعد إغلاق اللوحة فيثبت فوق 0
+       * ولا يستعيد المتصفح تمرير مدخل الحارس لإلغائه. */
+      expect(wouterMocks.navigate).not.toHaveBeenCalled();
+      expect(backSpy).not.toHaveBeenCalled();
+      expect(screen.queryByRole("dialog")).toBeNull();
+      await waitFor(() =>
+        expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: "start" }),
+      );
+      expect(screen.getByRole("region", { name: "ميزانيات المصروف" })).toBeTruthy();
+    } finally {
+      backSpy.mockRestore();
+    }
   });
 
   it("AF-AC07: الإغلاق (زر/Escape) يعيد التركيز لزر اللوحة ولا يغير شيئًا آخر", async () => {
@@ -358,19 +380,23 @@ describe("S15-MR-001 — رجوع الهاتف/المتصفح يغلق اللو�
     }
   });
 
-  it("مغادرة الشاشة واللوحة مفتوحة تستهلك الـentry وتنظف المستمع — لا stale يبتلع رجوعًا لاحقًا", async () => {
+  it("مغادرة الشاشة واللوحة مفتوحة تعلّم الحارس مستهلكًا بلا back() وتنظف المستمع — لا اجتياح مؤجل لوجهة جديدة", async () => {
+    /* F-003: المغادرة عبر تنقل خارجي (الشريط السفلي مثلًا) واللوحة مفتوحة —
+     * back() المؤجل كان سينفّذ بعد وصول الوجهة الجديدة فيسحب المستخدم
+     * إليها. العقد الجديد: تعليم الحارس مستهلكًا فقط؛ مدخل الحارس يبقى
+     * /finance نفسه فرجوع الهاتف من الوجهة يسقط عليه (سلوك returnTo
+     * المرجو) ولا يُبتلع رجوع لاحق ولا يُسحب المستخدم. */
     const backSpy = vi.spyOn(history, "back").mockImplementation(() => {});
     try {
       await seedProfile();
       const view = renderFinance();
       expect(await screen.findByRole("heading", { level: 1, name: "المالية" })).toBeTruthy();
       await openBoard();
-      /* التنقل عبر الشاشة (unmount) واللوحة مفتوحة: الـentry يُستهلك لا يُترك. */
       view.unmount();
-      expect(backSpy).toHaveBeenCalledTimes(1);
+      expect(backSpy).not.toHaveBeenCalled();
       /* المستمع انطفأ: popstate لاحق بعد المغادرة خامل — لا back إضافي. */
       window.dispatchEvent(new PopStateEvent("popstate", { state: null }));
-      expect(backSpy).toHaveBeenCalledTimes(1);
+      expect(backSpy).not.toHaveBeenCalled();
     } finally {
       backSpy.mockRestore();
     }

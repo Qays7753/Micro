@@ -73,6 +73,19 @@ export function FinanceFunctionsBoard({
     history.back();
   };
 
+  /* F-003 (UXR-03 — أمر W02): استهلاك الحارس بلا back() قبل أي تنقل أو
+   * كشف داخل الصفحة. الاجتياح المؤجل في go()/onOpen كان يُنفّذ بعد
+   * pushState المتزامن للموجه فيسحب المستخدم من وجهته الجديدة إلى
+   * /finance، ويستعيد المتصفح تمرير مدخل الحارس فيلغي كشف الميزانيات
+   * (المصدر: F-003 المسح الشامل 2026-11-04 — 15/15 مدخلًا معطلًا).
+   * العلاج الموثق: التنقل فوق مدخل الحارس — مدخل الحارس هو /finance
+   * نفسه، فرجوع الهاتف من الوجهة يسقط عليه ويحقق سلوك returnTo
+   * المرجو، وعقود الإغلاق غير-التنقلي (زر/Escape/رجوع أثناء الفتح)
+   * لا تمر من هنا فلا تتأثر. */
+  const consumeBoardSentinelWithoutBack = () => {
+    sentinelArmedRef.current = false;
+  };
+
   /* Opening owns exactly one same-page history state for this board instance. */
   useEffect(() => {
     if (open && !sentinelArmedRef.current) {
@@ -90,7 +103,11 @@ export function FinanceFunctionsBoard({
   /* Phone/browser Back while open: the browser already popped the entry and
    * delivered popstate — close only the board; no navigation, no touch to the
    * period or the money. Leaving the screen while open consumes the entry in
-   * the cleanup — no stale entry swallows a later Back on another surface. */
+   * the cleanup — no stale entry swallows a later Back on another surface.
+   * F-003: المغادرة إما عبر مداخل اللوحة نفسها (استهلاك بلا back في go()
+   * ومسار onOpen أدناه) أو عبر تنقل خارجي (الشريط السفلي) — في الحالتين لا
+   * اجتياح back() مؤجلًا خلف وجهة جديدة؛ مدخل الحارس يبقى /finance نفسه
+   * فلا يُبتلع رجوع لاحق ولا يُسحب المستخدم من وجهته. */
   useEffect(() => {
     const onPopState = () => {
       if (suppressPopRef.current) {
@@ -105,11 +122,7 @@ export function FinanceFunctionsBoard({
     window.addEventListener("popstate", onPopState);
     return () => {
       window.removeEventListener("popstate", onPopState);
-      if (sentinelArmedRef.current) {
-        sentinelArmedRef.current = false;
-        suppressPopRef.current = true;
-        history.back();
-      }
+      consumeBoardSentinelWithoutBack();
     };
   }, []);
 
@@ -129,7 +142,10 @@ export function FinanceFunctionsBoard({
   if (!open) return null;
 
   const go = (href: string) => {
-    consumeBoardSentinel();
+    /* F-003: الانتقال فوق مدخل الحارس بلا back() مؤجل — التنقل نفسه يعلّم
+     * الحارس مستهلكًا، فيصل المستخدم وجهته فعليًا ويسقط رجوع الهاتف على
+     * /finance كما يريد عقد ٢٦ (withReturnTo). */
+    consumeBoardSentinelWithoutBack();
     onClose();
     navigate(withReturnTo(href, "/finance"));
   };
@@ -231,7 +247,11 @@ export function FinanceFunctionsBoard({
                   type="button"
                   onClick={() => {
                     if (entry.onOpen) {
-                      consumeBoardSentinel();
+                      /* F-003: الكشف السياقي داخل الصفحة — استهلاك بلا back()
+                       * ثم كشف القسم بعد استقرار المساحة الفرعية (المالك:
+                       * الصفحة عبر onOpen) فلا يستعيد المتصفح تمرير مدخل
+                       * الحارس فيلغي الكشف. */
+                      consumeBoardSentinelWithoutBack();
                       onClose();
                       entry.onOpen();
                       return;

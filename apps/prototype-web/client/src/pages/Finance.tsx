@@ -124,8 +124,15 @@ export default function Finance() {
   const functionsButtonRef = useRef<HTMLButtonElement>(null);
   const budgetsSectionRef = useRef<HTMLElement>(null);
   const periodSectionRef = useRef<HTMLElement>(null);
+  /* F-003 (UXR-03 — أمر W02): كشف القسم السياقي بعد استقرار المساحة
+   * الفرعية. مدخل الميزانيات من اللوحة كان يكشف قسمه ثم يستعيد المتصفح
+   * تمرير مدخل الحارس (0) عند وصول popstate المؤجل فيُلغى الكشف؛ الآن
+   * تستهلك اللوحة الحارس بلا back()، ويُجدولة الكشف إطارًا واحدًا بعد
+   * إغلاق اللوحة فيثبت فوق 0 ولا يعود اجتياح تاريخ يلغيه. */
   const openBudgetsSection = () => {
-    budgetsSectionRef.current?.scrollIntoView({ block: "start" });
+    window.requestAnimationFrame(() => {
+      budgetsSectionRef.current?.scrollIntoView({ block: "start" });
+    });
   };
   const {
     projectFinance,
