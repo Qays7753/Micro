@@ -1,7 +1,7 @@
 # حالة Micro الحية
 
 **الحالة:** `CURRENT / UPDATE WITH EVERY MERGED SLICE`
-**آخر تحديث:** 5 نوفمبر 2026 (**`main` عند `111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521`; PR #383 دُمج؛ Actions وCloudflare Pages نجحا على merge commit نفسه. S01–S18 VERIFIED على main. UXR-00 توثيقية على `uxr/integration-20261105`، PR Draft واحد؛ لا تغيير منتج أو ثيم أو دمج جديد.**)
+**آخر تحديث:** 5 نوفمبر 2026 (**`main` عند `111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521`; PR #383 دُمج؛ Actions وCloudflare Pages نجحا على merge commit نفسه. S01–S18 VERIFIED على main. UXR-00 توثيقية على `uxr/integration-20261105`، PR #384 Draft؛ لا تغيير منتج أو ثيم أو دمج جديد.**)
 **التاريخ:** كل سجل الشرائح والموجات المؤرخ (§9–§138 وفقرات المتابعة قبل 2026-10-01) في [`current-state-log.md`](current-state-log.md) — append-only ولا يُحمَّل مع هذا الملف.
 
 **قاعدة العمل:** العربية، RTL، phone-first، والأرقام المالية ASCII/LTR.

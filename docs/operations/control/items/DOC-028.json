@@ -80,7 +80,8 @@
     "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
     "docs/implementation/UXR-00-RESULT-2026-11-05.md",
     "docs/implementation/micro-product-remediation-20261105/00-START-HERE-AR.md",
-    "docs/implementation/micro-product-remediation-20261105/stages/UXR-01-EXECUTION-PROMPT-AR.md"
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-01-EXECUTION-PROMPT-AR.md",
+    "https://github.com/Qays7753/Micro/pull/384"
   ],
   "dependencies": [],
   "related_items": [
@@ -109,5 +110,5 @@
     }
   ],
   "migration_baseline": false,
-  "next_action": "مراجعة UXR-00 وقبولها؛ أمر UXR-01 جاهز، ويبدأ ZAI بعد رسالة الإطلاق وإنشاء Claim صالح."
+  "next_action": "مراجعة المالك لـUXR-00 على PR #384؛ أمر UXR-01 جاهز، ويبدأ ZAI بعد رسالة الإطلاق وClaim صالح."
 }
