@@ -54,7 +54,7 @@ export default function Tools() {
   return (
     <section className="micro-page micro-tools-page">
       <div className="micro-page-heading">
-        <span className="micro-overline">أدوات المشروع</span>
+        {/* UXR-05 (F-008/SOP-02): عنوان المهمة واحد — اسم الوجهة يحمله التنقل. */}
         <h1>احسب قبل أن تلتزم</h1>
         <p>أدوات تخطيط مستقلة — لا تغيّر سجلات مشروعك، والنتائج تقديرية دومًا.</p>
       </div>

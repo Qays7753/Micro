@@ -971,7 +971,8 @@ export default function DirectSaleEditor() {
       ) : null}
       <section className="micro-decision-card">
         <div>
-          <span>حد الحقيقة</span>
+          {/* UXR-05/COPY-02: معنى التحصيل المباشر بجانب القرار — لا عنوان عام. */}
+          <span>معنى التحصيل</span>
           <strong>التحصيل ليس ربحًا.</strong>
           {/* المجموعة ٦ (البند ٤ — S3-12 §10.2 قاعدة ١): الشرح خلف علامة
               قراءة هادئة — السطر القوي يبقى، والتفصيل عند طلبه. */}

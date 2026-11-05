@@ -157,7 +157,7 @@ describe("G4 assets surfaces (المجموعة ٤ — عقد ٢٩)", () => {
     window.history.pushState({}, "", `/assets/${created.value.asset.id}`);
     render(<Harness page={<AssetDetail />} />);
     expect(await screen.findByText("ماكينة")).toBeTruthy();
-    expect(await screen.findByText(/لا يخصم من الصندوق شيئًا|تسجيله يخفض ربح فترته فقط/)).toBeTruthy();
+    expect(await screen.findByText(/لا يسحب نقدًا|تسجيله يخفض نتيجة الفترة فقط/)).toBeTruthy();
     fireEvent.click(await screen.findByRole("button", { name: /سجّل الإهلاك المستحق/ }));
     await waitFor(async () => {
       const events = await store.listFinancialEvents();

@@ -472,15 +472,15 @@ export default function InventoryMovementEditor() {
             costKnown ? ` بقيمة معروفة (${formatMoneyMinor(valueMinor)} د.أ).` : "."
           }`,
           costKnown
-            ? "لا يتغير الكاش ولا ذمة المورد — الاستلام حركة مخزون فقط."
-            : "قيمة الاستلام غير معروفة — تُعرض «التكلفة غير معروفة» لا صفرًا، ولا يتغير الكاش.",
+            ? "لا يتغير النقد ولا ذمة المورد — الاستلام حركة مخزون فقط."
+            : "قيمة الاستلام غير معروفة — تُعرض «التكلفة غير معروفة» لا صفرًا، ولا يتغير النقد.",
         ]
       : safeType === "consume"
         ? shortageImminent
           ? ["لا يمكن تنفيذ الكمية المطلوبة — انظر خيارات النقص أسفل النموذج."]
           : [
               `ينقص رصيد المادة ${formatQuantityMilli(quantityMilli)} ${unit} ليصبح ${formatQuantityMilli(afterMilli)}.`,
-              "لا يتغير الكاش ولا نتيجة الفترة الآن.",
+              "لا يتغير النقد ولا نتيجة الفترة الآن.",
             ]
         : safeType === "waste"
           ? outboundShortage
@@ -503,9 +503,9 @@ export default function InventoryMovementEditor() {
                 }${formatQuantityMilli(quantityMilli)}).`,
                 direction === "increase"
                   ? costKnown
-                    ? `قيمة الزيادة المعلنة ${formatMoneyMinor(valueMinor)} د.أ — لا يتغير الكاش.`
-                    : "قيمة الزيادة غير معروفة — قيمة صفرية موسومة، لا يتغير الكاش."
-                  : "قيمة النقص تُشتق من رصيد المادة — لا يتغير الكاش ولا نتيجة الفترة.",
+                    ? `قيمة الزيادة المعلنة ${formatMoneyMinor(valueMinor)} د.أ — لا يتغير النقد.`
+                    : "قيمة الزيادة غير معروفة — قيمة صفرية موسومة، لا يتغير النقد."
+                  : "قيمة النقص تُشتق من رصيد المادة — لا يتغير النقد ولا نتيجة الفترة.",
               ];
   return (
     <section className="micro-page micro-finance-page">
@@ -517,7 +517,7 @@ export default function InventoryMovementEditor() {
         <h1>{title}</h1>
         <p>
           {safeType === "receipt"
-            ? "يزيد الاستلام المخزون فقط؛ لا يكرر كاش أو ذمة شراء المواد."
+            ? "يزيد الاستلام المخزون فقط؛ لا يكرر نقد أو ذمة شراء المواد."
             : safeType === "consume"
               ? "يربط الجزء المستهلك بطلب أو ببيان مشروع، دون تعديل نسخة التكلفة أو نتيجة فترة قديمة."
               : safeType === "adjust"
@@ -533,7 +533,8 @@ export default function InventoryMovementEditor() {
       <section className="micro-decision-card">
         <Icon aria-hidden="true" />
         <div>
-          <span>حد الحقيقة</span>
+          {/* UXR-05 (COPY-02): معنى الحركة المباشر بجانب القرار — لا عنوان عام. */}
+          <span>معنى الحركة</span>
           <strong>
             {safeType === "consume"
               ? "الاستهلاك ليس تعديلًا صامتًا لسعر الطلب."

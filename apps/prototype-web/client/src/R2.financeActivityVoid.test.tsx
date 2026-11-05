@@ -12,7 +12,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import FinanceActivity from "@/pages/FinanceActivity";
-import type { ActivityRecord } from "@/application/activity/activityService";
+import type { ActivityReadPage, ActivityRecord } from "@/application/activity/activityService";
 
 vi.mock("@/app/PrototypeServicesContext", () => ({
   usePrototypeServices: vi.fn(),
@@ -44,6 +44,8 @@ function record(id: string): ActivityRecord {
 }
 
 function configureWithLedger(rows: ActivityRecord[]) {
+  /* UXR-05 (PERF-003): السطح يقرأ عبر readPage (حد مُفصح عنه + hasMore) —
+   * القراءة الصامتة بلا حدود (limit=1) تبقى على read كما في D8. */
   const read = vi
     .fn()
     .mockImplementation((input: { from: string | null; to: string | null; limit?: number }) => {
@@ -54,8 +56,20 @@ function configureWithLedger(rows: ActivityRecord[]) {
         value: input.limit === 1 ? rows.slice(0, 1) : visible,
       });
     });
+  const readPage = vi
+    .fn()
+    .mockImplementation((input: { from: string | null; to: string | null; limit?: number }) => {
+      const visible = input.from === null && input.to === null ? rows : [];
+      const page: ActivityReadPage = {
+        records: visible.slice(0, input.limit ?? 120),
+        hasMore: visible.length > (input.limit ?? 120),
+        inScopeCount: visible.length,
+        familyCapped: [],
+      };
+      return Promise.resolve({ ok: true, value: page });
+    });
   mockedUsePrototypeServices.mockReturnValue({
-    activity: { read },
+    activity: { read, readPage },
     dataVersion: 0,
     notifyDataChanged: vi.fn(),
   } as unknown as ReturnType<typeof usePrototypeServices>);

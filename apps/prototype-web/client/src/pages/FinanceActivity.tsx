@@ -31,14 +31,17 @@ import {
   localDatePlusDays,
   localDateWeekdayIndex,
 } from "@/presentation/formatters";
-import type { ActivityEffectClass, ActivityFamily, ActivityRecord } from "@/application/activity";
+import type {
+  ActivityEffectClass,
+  ActivityFamily,
+  ActivityReadPage,
+  ActivityRecord,
+} from "@/application/activity";
 
 import { Button, EmptyState, StatusChip } from "@/components/primitives";
 import { todayInAmman } from "@/application/time";
 type State =
-  | { phase: "loading" }
-  | { phase: "error"; message: string }
-  | { phase: "ready"; rows: readonly ActivityRecord[] };
+  { phase: "loading" } | { phase: "error"; message: string } | { phase: "ready"; page: ActivityReadPage };
 
 export type FinanceActivityPeriodKey = "this_week" | "last_week" | "this_month" | "all" | "custom";
 
@@ -144,6 +147,9 @@ export default function FinanceActivity() {
   const [to, setTo] = useState(thisWeek.to);
   const [family, setFamily] = useState<ActivityFamily | "all">("all");
   const [state, setState] = useState<State>({ phase: "loading" });
+  /* UXR-05 (PERF-003): حد القراءة مُفصح عنه وقابل للوصول — النافذة تبدأ 120/20
+   * (عقد ٣٠) وتُرفع معًا عند «عرض المزيد» فلا يقتطع القارئ بصمت أبدا. */
+  const [windowSize, setWindowSize] = useState({ limit: 120, perFamilyLimit: 20 });
 
   const applyQuick = (value: FinanceActivityPeriodKey) => {
     setRange(value);
@@ -165,9 +171,9 @@ export default function FinanceActivity() {
   useEffect(() => {
     let active = true;
     activity
-      .read({
-        limit: 120,
-        perFamilyLimit: 20,
+      .readPage({
+        limit: windowSize.limit,
+        perFamilyLimit: windowSize.perFamilyLimit,
         from: from || null,
         to: to || null,
         families: family === "all" ? null : [family],
@@ -175,13 +181,13 @@ export default function FinanceActivity() {
       .then(result => {
         if (!active) return;
         setState(
-          result.ok ? { phase: "ready", rows: result.value } : { phase: "error", message: result.message },
+          result.ok ? { phase: "ready", page: result.value } : { phase: "error", message: result.message },
         );
       });
     return () => {
       active = false;
     };
-  }, [activity, from, to, family, range, dataVersion, retryCount]);
+  }, [activity, from, to, family, range, dataVersion, retryCount, windowSize]);
 
   /* R2 (D8): تعدّد صامت واحد بلا حدود — هل يوجد أي نشاط مسجّل أصلًا؟
    * قراءة عرض فقط تميّز «لا بيانات» عن «لا نتائج»؛ لا تنشئ شيئًا. */
@@ -224,6 +230,11 @@ export default function FinanceActivity() {
 
   const referrer = referrerPath(search);
   const openSource = (path: string) => navigate(withReturnTo(path, referrer ?? "/finance/activity"));
+  const rows = state.phase === "ready" ? state.page.records : [];
+  const page = state.phase === "ready" ? state.page : null;
+  /* UXR-05 (PERF-003): رفع الحدّين معًا يفتح البقية فعلًا (عائلات وقنية) — الوصول لا الاعتذار. */
+  const showMore = () =>
+    setWindowSize(current => ({ limit: current.limit * 2, perFamilyLimit: current.perFamilyLimit * 2 }));
 
   return (
     <section className="micro-page micro-activity-page">
@@ -231,12 +242,12 @@ export default function FinanceActivity() {
         <ArrowRight aria-hidden="true" /> رجوع
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">سجل النشاط · المبالغ (د.أ)</span>
+        {/* UXR-05 (F-008/SOP-02 + عقد ٣٠ §2.2): عنوان واحد؛ النطاق يوصف نطاقًا لا اكتمالًا. */}
         <h1>آخر ما حدث</h1>
         <p>
           {range === "all"
-            ? "كل النشاط المسجّل منذ البداية."
-            : `من ${formatLocalDateLong(from) ?? from} إلى ${formatLocalDateLong(to) ?? to}`}{" "}
+            ? "نطاق القراءة: كل النشاط المسجّل منذ البداية."
+            : `نطاق القراءة: من ${formatLocalDateLong(from) ?? from} إلى ${formatLocalDateLong(to) ?? to}`}{" "}
           كل صف يحمل أثره (نقدي/غير نقدي/معلّق) ورابطًا لمصدره.
         </p>
       </div>
@@ -284,7 +295,7 @@ export default function FinanceActivity() {
           ))}
         </div>
       </section>
-      {state.rows.length === 0 ? (
+      {rows.length === 0 ? (
         /* R2 (D8): لا بيانات ≠ لا نتائج — السجل كله فارغ يعني «لا تسجيل بعد»؛
          * أما المرشّح فروجه الصادقة إزالة المرشّح. التعداد الصامت يحسم الحقيقة. */
         ledgerHasAny === false ? (
@@ -312,9 +323,20 @@ export default function FinanceActivity() {
             </span>
             <h2>الصفوف الأحدث أولًا</h2>
           </div>
-          {state.rows.map(row => (
+          {rows.map(row => (
             <ActivityRow key={row.id} row={row} onOpen={openSource} />
           ))}
+          {/* UXR-05 (PERF-003): إفصاح الحد الصادق + وصول حقيقي للبقية — لا شارة شاملة من سجلات مقتطعة. */}
+          {page?.hasMore ? (
+            <div className="micro-activity-load-more">
+              <p className="micro-local-truth" role="status">
+                تُعرض أحدث {rows.length} عملية ضمن هذا النطاق — البقية الأقدم متاحة بـ«عرض المزيد».
+              </p>
+              <Button action="secondary" onClick={showMore}>
+                عرض المزيد
+              </Button>
+            </div>
+          ) : null}
         </section>
       )}
       <div className="micro-offline-truth" role="note">

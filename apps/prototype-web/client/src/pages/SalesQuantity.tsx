@@ -73,7 +73,7 @@ export default function SalesQuantity() {
       <section className="micro-decision-card" aria-label="قاعدة الأداة">
         <span>قاعدة هذه الأداة</span>
         <strong>هذا عدد تقديري لتغطية مدخلاتك — ليس وعدًا بطلب السوق.</strong>
-        <p>العدد يغطي ما أدخلته فقط؛ لا يضمن بيعًا ولا توفر كاش ولا يُسجل أي شيء.</p>
+        <p>العدد يغطي ما أدخلته فقط؛ لا يضمن بيعًا ولا توفر نقد ولا يُسجل أي شيء.</p>
       </section>
 
       <section className="micro-form-card" aria-label="مدخلات كمية البيع">
@@ -194,7 +194,7 @@ export default function SalesQuantity() {
               {result.coverageRoundedUp || result.targetRoundedUp ? (
                 <p className="micro-cost-disclaimer">قُرّبت الكمية لأعلى للوحدة غير القابلة للتجزئة.</p>
               ) : null}
-              <p className="micro-cost-disclaimer">العدد لا يضمن طلب السوق ولا توفر الكاش ولا يسجل أي بيع.</p>
+              <p className="micro-cost-disclaimer">العدد لا يضمن طلب السوق ولا توفر النقد ولا يسجل أي بيع.</p>
             </section>
           ) : (
             <p className="micro-field-error" role="alert">

@@ -13,7 +13,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useReturnPath } from "@/app/useReturnNavigation";
-import { Button, FeedbackMessage, FeedbackNote, StatusChip } from "@/components/primitives";
+/* UXR-05 (F-017): EmptyState الموحد لفراغ أول استخدام المخزون. */
+import { Button, EmptyState, FeedbackMessage, FeedbackNote, StatusChip } from "@/components/primitives";
 import { withReturnTo } from "@/app/navigationContract";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { useDisabledCapabilities } from "@/app/useDisabledCapabilities";
@@ -252,7 +253,7 @@ export default function InventoryMaterials() {
         <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "المالية" : "رجوع"}
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">مخزون بسيط</span>
+        {/* UXR-05 (F-008/SOP-02): عنوان واحد بلا تمهيد معماري فوقه. */}
         <h1>المواد والمخزون</h1>
         <p>سجّل ما يتوفر فعلًا، ثم اربط الاستهلاك أو الهدر بحدث واضح. شراء المواد لا يصبح تكلفة بيع هنا.</p>
       </div>
@@ -284,10 +285,10 @@ export default function InventoryMaterials() {
         <section className="micro-decision-card">
           <SlidersHorizontal aria-hidden="true" />
           <div>
-            <span>حد الحقيقة · القيم (د.أ)</span>
+            {/* UXR-05 (COPY-20/UXR-D05): activatedOn هو «متابعة المخزون منذ …» — لا «آخر جرد مؤكد». */}
+            <span>حالة المخزون · القيم (د.أ)</span>
             <strong>
-              {state.activation.source === "declared" ? "مُدار بتفعيل صريح منذ " : "مُدار من "}
-              <LocalDateValue value={state.activation.activatedOn ?? ""} />
+              متابعة المخزون منذ <LocalDateValue value={state.activation.activatedOn ?? ""} />
             </strong>
           </div>
         </section>
@@ -565,7 +566,13 @@ export default function InventoryMaterials() {
             );
           })
         ) : (
-          <p>لا مواد متتبَّعة بعد — أضف مادة واختر متابعة كميتها. لا يفرض Micro المخزون على الخدمة.</p>
+          {/* UXR-05 (F-017): فراغ أول استخدام متميز بنمط EmptyState الموحد — سؤال عملي وإجراء إضافة، لا درس محاسبة. */}
+          <EmptyState
+            symbol={<Boxes aria-hidden="true" />}
+            state={<StatusChip state="no-data">لا مواد متتبَّعة بعد</StatusChip>}
+            title={<>تابع المواد التي تريد معرفة كميتها.</>}
+            description={<>أضف مادة واختر متابعة كميتها — لا يفرض Micro المخزون على الخدمة.</>}
+          />
         )}
       </section>
       {/* Stage 2 — OPS-002: حدود التنبيه — إعداد اختياري داخل جسم <details> منهار

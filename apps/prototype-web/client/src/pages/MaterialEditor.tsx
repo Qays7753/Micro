@@ -182,25 +182,25 @@ export default function MaterialEditor() {
   const previewLines =
     confirmMode && material
       ? confirmDelta === 0
-        ? ["لا فرق — يُؤكَّد الرصيد بلا حركة.", "لا يتغير الكاش ولا نتيجة الفترة."]
+        ? ["لا فرق — يُؤكَّد الرصيد بلا حركة.", "لا يتغير النقد ولا نتيجة الفترة."]
         : [
             `سيُسجَّل فرق ${confirmDelta > 0 ? "+" : "−"}${Math.abs(confirmDelta) / 1000} ${unitLabel(material.unit)} بحركة موثقة.`,
-            "لا يتغير الكاش ولا نتيجة الفترة.",
+            "لا يتغير النقد ولا نتيجة الفترة.",
           ]
       : tracking === "untracked"
-        ? ["مادة للتكلفة فقط — بلا رصيد ولا حركة مخزون.", "لا يتغير الكاش ولا نتيجة الفترة."]
+        ? ["مادة للتكلفة فقط — بلا رصيد ولا حركة مخزون.", "لا يتغير النقد ولا نتيجة الفترة."]
         : openingChoice === "unconfirmed"
-          ? ["مادة متتبَّعة، رصيدها «غير محدد بعد» حتى تؤكده.", "لا يتغير الكاش ولا نتيجة الفترة."]
+          ? ["مادة متتبَّعة، رصيدها «غير محدد بعد» حتى تؤكده.", "لا يتغير النقد ولا نتيجة الفترة."]
           : openingChoice === "zero"
-            ? ["رصيد صفر مؤكد — لا حركة تُسجَّل للصفر.", "لا يتغير الكاش ولا نتيجة الفترة."]
+            ? ["رصيد صفر مؤكد — لا حركة تُسجَّل للصفر.", "لا يتغير النقد ولا نتيجة الفترة."]
             : costKnown
               ? [
                   `سيُسجَّل رصيد بداية ${quantityMilli / 1000} ${unitText} بقيمة معروفة.`,
-                  "لا يتغير الكاش ولا نتيجة الفترة.",
+                  "لا يتغير النقد ولا نتيجة الفترة.",
                 ]
               : [
                   `سيُسجَّل رصيد بداية ${quantityMilli / 1000} ${unitText} — تكلفته غير معروفة بعد، لا صفرًا.`,
-                  "لا يتغير الكاش ولا نتيجة الفترة.",
+                  "لا يتغير النقد ولا نتيجة الفترة.",
                 ];
 
   return (
@@ -220,8 +220,9 @@ export default function MaterialEditor() {
       <section className="micro-decision-card">
         <Boxes aria-hidden="true" />
         <div>
-          <span>حد الحقيقة</span>
-          <strong>رصيد المادة لا يغير الكاش أو نتيجة الفترة.</strong>
+          {/* UXR-05 (COPY-02): معنى الرصيد المباشر بجانب القرار — لا عنوان عام. */}
+          <span>معنى رصيد المادة</span>
+          <strong>رصيد المادة لا يغير النقد أو نتيجة الفترة.</strong>
           <div className="micro-effect-preview" data-testid="material-effect-preview" aria-live="polite">
             <span className="micro-effect-preview-label">بعد الحفظ:</span>
             {previewLines.map(line => (
