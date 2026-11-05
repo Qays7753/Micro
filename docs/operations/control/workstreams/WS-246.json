@@ -1,7 +1,7 @@
 {
   "id": "WS-246",
   "title": "UXR-W02 — UXR-03 على فرع البرنامج الحالي (استمرار W01)",
-  "status": "IN_REVIEW",
+  "status": "REVIEW_REQUIRED",
   "items": [
     "DOC-030"
   ],
@@ -38,7 +38,7 @@
   "pr": 384,
   "started_at": "2026-11-06",
   "updated_at": "2026-11-06",
-  "next_action": "W02 مكتملة التسليم عند رأس الكود المرجعي 638ccf45 ورأس التسليم النهائي a315db6a (فروق توثيقية فقط) على الفرع وPR #384 Draft فقط؛ بانتظار المراجعتين القراءة-فوق المستقلتين على الرأس بعينه (الأولى بتأكيد W01 وتفاعله؛ والثانية بتأكيد W02 وتفاعله) ثم قرار المالك. لا W03 ولا دمج ولا قبول ذاتي.",
+  "next_action": "W02 (UXR-03) مكتملة التسليم عند رأس التسليم a315db6a مع مراجعتَي القراءة-فوق PASS عليه (وثيقتا التقرير UXR-W02-RESULT-2026-11-06)؛ أمر المالك المتصل المؤرخ 2026-11-06 (UXR-W03-W04-EXECUTION-PROMPT) يفرّغ المطالبة من العمل التنفيذي إلى REVIEW_REQUIRED بانتظار قرار المالك — الفحوص والمراجعات المجمعة تُنفذ بعد اكتمال W05 بأمر المرحلة النهائية. لا يعني النقل أي قبول. مطالبة W03+W04 المتصلة هي WS-247/DOC-031 على الفرع والـPR نفسيهما.",
   "notes": [
     "Owner launch message 2026-11-06 authorizes UXR-03 (W02) now, superseding only the stop-after-W01 instruction and the UXR-02-acceptance prerequisite; it accepts neither wave, does not authorize W03, and does not permit merging.",
     "Use branch uxr/integration-20261105 and Draft PR #384 only; never write main, create another branch/PR, merge, rebase, force-push, mark ready, or discard work.",
@@ -71,6 +71,12 @@
       "changed_at": "2026-11-06",
       "actor": "zai-product-code-writer",
       "reason": "اكتمل تنفيذ UXR-03 (W02) على الفرع وPR الحاليين فقط مع حفظ W01 كاملًا؛ فحص كامل أخضر وأدلة التقرير UXR-W02-RESULT-2026-11-06؛ يُسلَّم للمراجعتين وقرار المالك."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "أمر المالك المتصل المؤرخ 2026-11-06 (UXR-W03-W04-EXECUTION-PROMPT-AR) يأذن ببدء W03+W04 قبل قبول W02 ويؤجل كل الفحوص والمراجعات إلى ما بعد اكتمال W05 بأمر المرحلة النهائية؛ فتُفرَّغ مطالبة W02 من العمل التنفيذي (REVIEW_REQUIRED) لصالح المطالبة المتصلة WS-247/DOC-031 — بلا أي معنى قبول لـW01 أو W02."
     }
   ],
   "migration_baseline": false

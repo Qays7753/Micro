@@ -2,7 +2,7 @@
   "id": "DOC-030",
   "title": "UXR-W02 — الصفحات الرئيسية ومداخل المالية (UXR-03)",
   "type": "QUALITY",
-  "status": "IN_REVIEW",
+  "status": "REVIEW_REQUIRED",
   "priority": "P1",
   "stage": "micro-product-remediation-wave-02-20261106",
   "summary": "تنفيذ UXR-03 وفق بطاقتها: المالية والطلبات والرئيسية بصورتها المختصرة ومداخلها السليمة (FIN/ORD/HOM/FinanceFunctionsBoard وقرار مدخل المصروف) — إصلاح F-002 وF-003 وF-005 وF-009 وF-010 وF-016 على عقود 02/03/04/05/06، بلا تغيير مالي أو schema/export أو هيكلي. تسليم الموجة بمراجعتين قراءة-فوق على candidate واحد ثم قرار المالك.",
@@ -17,7 +17,14 @@
     "UXR-02/UXR-03 DOM/accessibility/scroll/focus evidence at required phone widths (360/390/430 + إعادة تدفق 320 + تكبير 200% حيث ينطبق) للأسطح المتغيرة، مع أزرار الأسهم/Tab/Mسافة/قارئ الشاشة لمفاتيح العرض المضغوطة.",
     "Focused tests after each sub-delivery; one complete pnpm check on the final combined W01+W02 tree; exact-final-head Actions/Cloudflare status truthfully reported after push."
   ],
-  "layers": ["ui", "accessibility", "application", "tests", "documentation", "operations-control"],
+  "layers": [
+    "ui",
+    "accessibility",
+    "application",
+    "tests",
+    "documentation",
+    "operations-control"
+  ],
   "source": {
     "report": "docs/implementation/micro-product-remediation-20261105/04-WORK-ORDERS-AR.md",
     "discovered_at_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
@@ -70,8 +77,12 @@
     "docs/implementation/UXR-W01-RESULT-2026-11-05.md",
     "https://github.com/Qays7753/Micro/pull/384"
   ],
-  "dependencies": ["DOC-029"],
-  "related_items": ["DOC-029"],
+  "dependencies": [
+    "DOC-029"
+  ],
+  "related_items": [
+    "DOC-029"
+  ],
   "updated_at": "2026-11-06",
   "status_history": [
     {
@@ -91,8 +102,14 @@
       "changed_at": "2026-11-06",
       "actor": "zai-product-code-writer",
       "reason": "اكتمل تنفيذ UXR-03 كاملًا على الفرع وPR الحاليين فقط: 10 التزامات فوق رأس W01، pnpm check كامل أخضر مرة واحدة (جذر 1019/1019 + تطبيق 3368/3368)، وأدلة متصفح حقيقي لشروط F-003 الحاسمة وقياسات F-005/F-009 قبل/بعد بنفس البيانات في تقرير UXR-W02-RESULT-2026-11-06؛ يُسلَّم للمراجعتين القراءة-فوق وقرار المالك — لا قبول ذاتي ولا دمج."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "أمر المالك المتصل 2026-11-06 يفرّغ مطالبة W02 للمراجعة/قرار المالك ويؤجل الفحوص والمراجعات إلى ما بعد W05؛ لا يمنح النقل أي معنى قبول."
     }
   ],
   "migration_baseline": false,
-  "next_action": "اكتمل تنفيذ UXR-03 (F-002/F-003/F-005/F-009/F-010/F-016 + عقود HOM/ORD/Schedule وإعلان اسأل Micro الموحد) على الفرع وPR #384 Draft فقط عند رأس الكود المرجعي 638ccf45 ورأس التسليم النهائي a315db6a (فروق توثيقية فقط) مع فحص كامل أخضر وأدلة التقرير؛ بانتظار المراجعتين القراءة-فوق المستقلتين على الرأس بعينه ثم قرار المالك. لا W03 ولا دمج ولا قبول ذاتي."
+  "next_action": "UXR-03 (W02) منفذ ومسلّم بتقرير UXR-W02-RESULT-2026-11-06 ومراجعتَي قراءة-فوق PASS على a315db6a؛ ينتظر قرار المالك. النقل إلى REVIEW_REQUIRED بأمر المالك المتصل 2026-11-06 لا يعني قبولًا؛ الفحص المجموع والمراجعة النهائية بعد W05."
 }

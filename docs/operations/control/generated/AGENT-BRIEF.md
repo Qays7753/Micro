@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 4 · DEFERRED: 20 · VERIFIED: 84 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 5 · DEFERRED: 20 · VERIFIED: 84 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -37,4 +37,5 @@ python3 scripts/operations-control/validate.py
 | WS-225 | REVIEW_REQUIRED | `components/integration-20261018` | 378 | DOC-009 | إرسال عقد UNIT-002-ZAI-AUTHORIZATION-REVIEW-PROMPT من GitHub؛ إبقاء Workstream REVIEW_REQUIRED؛ لا Claim تنفيذ ولا تعديل تطبيق حتى يقبل المالك decision payloads وعقد التنفيذ. |
 | WS-244 | REVIEW_REQUIRED | `uxr/integration-20261105` | 384 | DOC-028 | UXR-00 مقبولة توثيقيًا من المالك بتاريخ 2026-11-05؛ لا عمل إضافيًا. Claim محرر وW01 تملك DOC-029/WS-245؛ PR #384 يبقى Draft. |
 | WS-245 | REVIEW_REQUIRED | `uxr/integration-20261105` | 384 | DOC-029 | اكتمل تنفيذ UXR-01 ثم UXR-02 داخل W01 على الفرع وPR #384 Draft فقط؛ التسليم لمراجعة Manus المستقلة وقرار المالك — لا قبول ذاتي ولا دمج. مطالبة W02 (WS-246/DOC-030) مؤذونة برسالة المالك المؤرخة 2026-11-06 على الفرع والـPR نفسهما مع حفظ W01 كاملًا. |
-| WS-246 | IN_REVIEW | `uxr/integration-20261105` | 384 | DOC-030 | W02 مكتملة التسليم عند رأس الكود المرجعي 638ccf45 ورأس التسليم النهائي a315db6a (فروق توثيقية فقط) على الفرع وPR #384 Draft فقط؛ بانتظار المراجعتين القراءة-فوق المستقلتين على الرأس بعينه (الأولى بتأكيد W01 وتفاعله؛ والثانية بتأكيد W02 وتفاعله) ثم قرار المالك. لا W03 ولا دمج ولا قبول ذاتي. |
+| WS-246 | REVIEW_REQUIRED | `uxr/integration-20261105` | 384 | DOC-030 | W02 (UXR-03) مكتملة التسليم عند رأس التسليم a315db6a مع مراجعتَي القراءة-فوق PASS عليه (وثيقتا التقرير UXR-W02-RESULT-2026-11-06)؛ أمر المالك المتصل المؤرخ 2026-11-06 (UXR-W03-W04-EXECUTION-PROMPT) يفرّغ المطالبة من العمل التنفيذي إلى REVIEW_REQUIRED بانتظار قرار المالك — الفحوص والمراجعات المجمعة تُنفذ بعد اكتمال W05 بأمر المرحلة النهائية. لا يعني النقل أي قبول. مطالبة W03+W04 المتصلة هي WS-247/DOC-031 على الفرع والـPR نفسيهما. |
+| WS-247 | IN_PROGRESS | `uxr/integration-20261105` | 384 | DOC-031 | نفّذ W03 كاملًا (ثلاثة تسليمات داخلية بcommits منفصلة وحدود رجوع) ثم انتقل مباشرة إلى W04 (UXR-05 ثم UXR-06) على الفرع وPR #384 Draft فقط؛ لا فحوص ولا مراجعات الآن (مؤجلة بأمر المالك إلى ما بعد W05)؛ سلّم التقريرين وحدّث Control ومرآة المتابعة والحالة الحية؛ توقف بعد W04 — لا W05 ولا دمج. |
