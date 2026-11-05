@@ -1,0 +1,92 @@
+{
+  "id": "DOC-029",
+  "title": "UXR-W01 — جاهزية الرئيسية والقشرة المشتركة (UXR-01 ثم UXR-02)",
+  "type": "QUALITY",
+  "status": "CLAIMED",
+  "priority": "P1",
+  "stage": "micro-product-remediation-wave-01-20261105",
+  "summary": "تنفيذ UXR-01 لجاهزية Home ثم UXR-02 للقشرة والأنماط المشتركة في موجة متتابعة واحدة وفق أمر W01؛ لا تغيير مالي أو schema/export أو هيكلي غير معتمد. قبول الموجة بعد مراجعة Manus وقرار المالك.",
+  "classification": "HARDENING",
+  "gate_classification": "NOT_APPLICABLE",
+  "owner": "Micro owner (Qays7753); ZAI sole product-code implementation writer",
+  "owner_decision": "اعتمد المالك خمس موجات وطلب W01 بتاريخ 2026-11-05. ينفذ ZAI UXR-01 ثم UXR-02 بلا توقف موافقة بينهما. قرار الثيم: حفظ السلوك الحالي وADR-009 والتوكنات. هذا تفويض تنفيذ لا قبول مسبق للكود ولا إذن دمج.",
+  "tests_required": [
+    "A01: cold empty/populated startup, setup/import/read rejection, genuine retry, stale-result/unmount, return and relevant offline/update behavior with synthetic data/no financial writes.",
+    "UXR-02 DOM/accessibility/scroll/focus/overlap evidence at required phone widths, long Arabic, keyboard and relevant text scaling.",
+    "Before/after font/fallback and asset/cache measurements in the same environment/data; no policy change without evidence.",
+    "Focused tests after each substage; one complete pnpm check on stable final tree and required documentation/Control gates.",
+    "Rendered before/after evidence and exact-final-head Actions/Cloudflare status truthfully reported."
+  ],
+  "layers": [
+    "application",
+    "ui",
+    "accessibility",
+    "performance",
+    "tests",
+    "documentation",
+    "operations-control"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-product-remediation-20261105/04-WORK-ORDERS-AR.md",
+    "discovered_at_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "evidence": [
+      "docs/implementation/micro-product-remediation-20261105/04-WORK-ORDERS-AR.md",
+      "docs/implementation/micro-product-remediation-20261105/06-ACCEPTANCE-AND-EVIDENCE-AR.md",
+      "docs/implementation/micro-product-remediation-20261105/01-PROGRAM-AND-AUTHORITY-AR.md",
+      "docs/architecture/refactoring/s11-structure-scan-20261031/S11-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-10-31.md"
+    ]
+  },
+  "acceptance": [
+    "UXR-01 and UXR-02 completed in order with separate commits and reports; no approval pause between them.",
+    "A01 failure/retry and stale result are proven with synthetic data and no financial writes.",
+    "UXR-02 confirmed findings only; geometry, focus, scroll, font and cache findings have bounded evidence.",
+    "W01 report records the design-authority gate and applies the owner decision to preserve theme, ADR-009 and tokens unchanged.",
+    "No broad refactor, file move/split, financial semantics, security, or schema/export changes.",
+    "Required local tests and exact-head remote status reported; Manus review and owner acceptance follow."
+  ],
+  "areas": [
+    "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+    "apps/prototype-web/client/src/pages/Home.tsx",
+    "apps/prototype-web/client/src/components/",
+    "apps/prototype-web/client/src/styles/",
+    "apps/prototype-web/client/public/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/operations/current-state.md",
+    "docs/operations/micro-thinking-charter-v1.md",
+    "docs/implementation/03-pre-build-alignment-v1.md",
+    "docs/implementation/micro-product-remediation-20261105/01-PROGRAM-AND-AUTHORITY-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/02-PAGE-CONTRACTS-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/03-CONTENT-AND-SOP-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/04-WORK-ORDERS-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/05-SOURCE-AND-PAGE-COVERAGE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/06-ACCEPTANCE-AND-EVIDENCE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-01-STAGE-CARD-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-02-STAGE-CARD-AR.md",
+    "docs/architecture/ADRs/ADR-009-permanent-dark-mode.md",
+    "apps/prototype-web/client/src/styles/vf-tokens.css"
+  ],
+  "evidence": [
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-W01-EXECUTION-PROMPT-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/01-PROGRAM-AND-AUTHORITY-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/07-PROGRAM-TRACKER-AR.md",
+    "https://github.com/Qays7753/Micro/pull/384"
+  ],
+  "dependencies": [
+    "DOC-028"
+  ],
+  "related_items": [],
+  "updated_at": "2026-11-05",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-manus-coordinator",
+      "reason": "أنشئ Claim W01 بعد اعتماد المالك للموجات الخمس؛ يبدأ ZAI بعد رسالة الإطلاق على الفرع وPR الحاليين فقط."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "بعد رسالة الإطلاق افحص الرأس الحي وDOC-029/WS-245، نفذ UXR-01 ثم UXR-02 داخل W01، ثم سلّم candidate واحدًا لمراجعة Manus وتوقف. لا تبدأ W02."
+}

@@ -1,7 +1,7 @@
 # حالة Micro الحية
 
 **الحالة:** `CURRENT / UPDATE WITH EVERY MERGED SLICE`
-**آخر تحديث:** 5 نوفمبر 2026 (**`main` عند `111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521`; PR #383 دُمج؛ Actions وCloudflare Pages نجحا على merge commit نفسه. S01–S18 VERIFIED على main. UXR-00 توثيقية على `uxr/integration-20261105`، PR #384 Draft؛ لا تغيير منتج أو ثيم أو دمج جديد.**)
+**آخر تحديث:** 5 نوفمبر 2026 (**`main` عند `111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521`; PR #383 مدموج، S01–S18 VERIFIED. UXR-00 مقبولة توثيقيًا؛ W01 مأذونة على `uxr/integration-20261105` / PR #384 Draft؛ لا كود W01 بدأ بعد.**)
 **التاريخ:** كل سجل الشرائح والموجات المؤرخ (§9–§138 وفقرات المتابعة قبل 2026-10-01) في [`current-state-log.md`](current-state-log.md) — append-only ولا يُحمَّل مع هذا الملف.
 
 **قاعدة العمل:** العربية، RTL، phone-first، والأرقام المالية ASCII/LTR.
@@ -14,11 +14,12 @@
 
 | الحقل | الحقيقة الحالية |
 |---|---|
-| `main` | `111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521` هو merge commit لـPR #383؛ Actions وCloudflare Pages نجحا عليه. سجلات S01–S18 `VERIFIED` مع merge_sha والدليل؛ لا يعادل ذلك اجتياز PRE-PILOT أو اختبار جهاز. |
+| `main` | `111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521` هو merge commit لـPR #383؛ Actions وCloudflare نجحا عليه. سجلات S01–S18 `VERIFIED`؛ لا يعادل ذلك اجتياز PRE-PILOT أو اختبار جهاز. برنامج UXR على فرع مستقل وPR #384 Draft. |
 | طريق التنفيذ | React → Application Service → Domain → `PrototypeLocalStore` → IndexedDB. لا وصول مباشر من UI إلى IndexedDB. |
 | قاعدة التسليم | برنامج المكونات: فرع تكامل واحد من `origin/main` → commits مراحل واضحة → PR Draft واحد → مراجعتان ثم قبول المالك؛ الدمج بعد S18 بقرار المالك فقط. |
 | نمط المنتج | Web-first، local-first، بلا Auth أو Sync أو Cloud أو حسابات مستخدمين أو بيانات حقيقة خارج الجهاز. |
-| المخطط/التصدير | main: 40/32؛ فرع التكامل: 41/34 (schema/export). سجل الاستيراد يقبل 28 زوجًا موروثًا (export/schema) إضافةً إلى الزوج الحالي؛ الإجمالي 29. لا ترقية أخرى؛ أي تغيير يحتاج حراسة AGENTS §10. |
+| المخطط/التصدير | `main` بعد PR #383: 41/34 (schema/export). يقبل الاستيراد 28 زوجًا موروثًا إضافةً إلى الزوج الحالي؛ الإجمالي 29. لا ترقية أخرى؛ أي تغيير يحتاج حراسة AGENTS §10. |
+| UXR | W01=UXR-01 ثم UXR-02، Claim DOC-029/WS-245 على PR #384 Draft. الثيم وADR-009 محفوظان. أرسل أمر W01 لـZAI؛ التوقف بعد W01 لمراجعة Manus وقرار المالك. |
 
 ### 1-ب. شكل المنتج الحالي (من حزمة رحلة المنتج وموجات الجودة 4.1–4.4)
 

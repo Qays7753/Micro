@@ -31,7 +31,7 @@
 - 31/31 معرفًا مصدريًا بمالك دفعة واحد، دون تكرار ID في جدول العمل.
 - 62/62 ملف صفحة إنتاجي من شجرة pages/، مع استبعاد ملفات الاختبار، مربوط بعقد ودفعة.
 - في `MicroRouter.tsx`: 70 عنصر Route، 69 بصفة path، و4 Redirect؛ وRouteLoadingState واحد لا يدخل العد. لا يساوي ذلك عدد الرحلات المختبرة.
-- 9 دفعات UXR-00..08 وبطاقة لكل منها، ومسودة أمر مستقلة للدفعة01فقط.
+- معرفات UXR-00..08 محفوظة؛ خمس موجات تنفيذ، وأمر W01 الحالي يجمع UXR-01 ثم UXR-02. لا أوامر مستقبلية منشورة.
 - الروابط النسبية في ملفات الحزمة المؤلفة فُحصت. روابط المصادر التاريخية ومسارات /home/z القديمة أدلة منقولة لا ملفات متاحة هنا.
 - فحص صياغة JavaScript للمعاينة نجح. لا فحص مرئي كامل أو تشغيل مالي في هذه الجولة؛ حالة القبول تبقى غير منفذة.
 - لا رموز وصول أو placeholders تنفيذية في الملفات المؤلفة. الأمثلة والأسماء المالية اصطناعية.
@@ -42,14 +42,14 @@
 
 | الملف | SHA-256 |
 |---|---|
-| `00-START-HERE-AR.md` | `5924d0b9fd698d06b8e538356f73770f9f625841468300c29b6c15bb2b3ad6ab` |
-| `01-PROGRAM-AND-AUTHORITY-AR.md` | `bbc2241d11d1b426366cb0063f62cedd28b9ad5f22aac873cccaab451a4e6eaa` |
+| `00-START-HERE-AR.md` | `64e5227c1583c2ec74a45faf4ecc4cdc7127978582f1c46ce6b2f084d6aa137f` |
+| `01-PROGRAM-AND-AUTHORITY-AR.md` | `095a23079c933934fde9fbcc6b3854f313a3a7c0944709ff5a31ffe5d2c836c8` |
 | `02-PAGE-CONTRACTS-AR.md` | `e5d7d46f69853eaa2236e71764b6a8aa3a27473c63c31ae9f29358d30a499435` |
 | `03-CONTENT-AND-SOP-AR.md` | `1565a3491cea1c0755fe9e94a93fe1dc77008c4fc9f170b567dcb51c04004318` |
 | `04-WORK-ORDERS-AR.md` | `4f7488d62f8258bd763233c36633a685e660e91dda1829cbde965ce3952fb457` |
 | `05-SOURCE-AND-PAGE-COVERAGE-AR.md` | `aa7b0a54a3e5788d4f5d07f19be52e7d18dea499f46d251337911a799774dbef` |
 | `06-ACCEPTANCE-AND-EVIDENCE-AR.md` | `410d4b11c5d408dea050f24c4067badca440e3c151794dfaa5e50af8ea917f73` |
-| `07-PROGRAM-TRACKER-AR.md` | `3950b7ce809baba2deffed5722d42fe8795643e8253a1ec6a57e6311015cbb19` |
+| `07-PROGRAM-TRACKER-AR.md` | `9e93f2e09c22586f9b518dd1883b4a89830723401e3b76ba701d087a49745198` |
 | `08-MANUS-HANDOFF-AR.md` | `52c80f1761aa7e873c2b3287b82541241486cc9a9fe44d85263339102ac707f4` |
 | `sources/CURRENT-PRODUCT-EXPERIENCE-AUDIT-AR(2).md` | `fb2e2a8a391a4880f24c167eba62a914b8f375a3cd29c798f358d859663c198e` |
 | `sources/MICRO-PERFORMANCE-AUDIT-31-POINTS-2026-11-04-REV1.md` | `d41cd2e6b5326bfbbce1fb62799086cb6c61041accfb2e2cd7d8797f496381fb` |
@@ -57,12 +57,13 @@
 | `sources/Micro-Unified-Remediation-Scope-and-Register-AR.md` | `93ffa5fad27ffe4fce3f459d6a4951a3269cbc8405fa6dd7661f54b4a70fa59b` |
 | `sources/PAGE-DECISION-PACK-AR(2).md` | `14a24ad38636106fa936738fc369a6b3c558733506f74cd0ad6250f7e63a6233` |
 | `stages/UXR-00-STAGE-CARD-AR.md` | `30a4da66a544f4b1c2212f100da8694c5827052ab0db1b3175b720fe9c5d590c` |
-| `stages/UXR-01-EXECUTION-PROMPT-AR.md` | `6f1ee274299b8825c1f88e9ba54510465f1d5361eb5094733d8469303284740c` |
-| `stages/UXR-01-STAGE-CARD-AR.md` | `5aa8e34a98a577f871e617e5fbdc21df7d73e314008f11efc4febb1d8dd901cb` |
-| `stages/UXR-02-STAGE-CARD-AR.md` | `38e3fef7dca22f02a7c23d88bd8b6380b0f132b9af8b3d066ccbdd5bee69c8f5` |
+| `stages/UXR-01-EXECUTION-PROMPT-AR.md` | `41a26d91cec28e250e831dfc4907f067be781ca32ee22a94b21d9982168a0dda` |
+| `stages/UXR-01-STAGE-CARD-AR.md` | `c031dc0fd8f5144d90be5d68916d3cbb2341a5fac9db9ee333ad72d79f76649e` |
+| `stages/UXR-02-STAGE-CARD-AR.md` | `c6aad01f400ef6ead657f2920fa520b24d9d9cabecf8005e8a2f248853e86171` |
 | `stages/UXR-03-STAGE-CARD-AR.md` | `c9a9bf6229f6ada1dce5b63f3c47e5e45245ccfb7d09128266895cb153a22fc8` |
 | `stages/UXR-04-STAGE-CARD-AR.md` | `1ede1788796bda0958b2178f535049b47e1ec8c097742cc5d865c0eaba5566f2` |
 | `stages/UXR-05-STAGE-CARD-AR.md` | `e82911fae4a4e00ca3fb47d19b9c54e2d8d3646749c35fc043cd8a0ac924a9b1` |
 | `stages/UXR-06-STAGE-CARD-AR.md` | `e107f17f3eb7dfd9dd8ac14318e1ed7f0a5cd789ba807bc46d3cc328c65c51ed` |
 | `stages/UXR-07-STAGE-CARD-AR.md` | `71205db6d5fc3e72808460ad4ed123433710a1306a02e4218c9535d551c11546` |
 | `stages/UXR-08-STAGE-CARD-AR.md` | `750251d90755dffd4067da5597c05ed6ad4ac22a430ddf01d2a5e6bea354b015` |
+| `stages/UXR-W01-EXECUTION-PROMPT-AR.md` | `1c0d151cf1161fda6d8f9bce2f85bc61a23d6d12b9f30298197f3d93ad0f2ad2` |
