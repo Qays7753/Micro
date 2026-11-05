@@ -2,7 +2,7 @@
   "id": "DOC-030",
   "title": "UXR-W02 — الصفحات الرئيسية ومداخل المالية (UXR-03)",
   "type": "QUALITY",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P1",
   "stage": "micro-product-remediation-wave-02-20261106",
   "summary": "تنفيذ UXR-03 وفق بطاقتها: المالية والطلبات والرئيسية بصورتها المختصرة ومداخلها السليمة (FIN/ORD/HOM/FinanceFunctionsBoard وقرار مدخل المصروف) — إصلاح F-002 وF-003 وF-005 وF-009 وF-010 وF-016 على عقود 02/03/04/05/06، بلا تغيير مالي أو schema/export أو هيكلي. تسليم الموجة بمراجعتين قراءة-فوق على candidate واحد ثم قرار المالك.",
@@ -77,8 +77,12 @@
     "docs/implementation/UXR-W01-RESULT-2026-11-05.md",
     "https://github.com/Qays7753/Micro/pull/384"
   ],
-  "dependencies": ["DOC-029"],
-  "related_items": ["DOC-029"],
+  "dependencies": [
+    "DOC-029"
+  ],
+  "related_items": [
+    "DOC-029"
+  ],
   "updated_at": "2026-11-06",
   "status_history": [
     {
@@ -92,8 +96,14 @@
       "changed_at": "2026-11-06",
       "actor": "zai-product-code-writer",
       "reason": "رسالة إطلاق W02 وصلت؛ بدأ ZAI تنفيذ UXR-03 على uxr/integration-20261105 وPR #384 Draft فقط، مع حفظ W01 كاملًا."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "اكتمل تنفيذ UXR-03 كاملًا على الفرع وPR الحاليين فقط: 10 التزامات فوق رأس W01، pnpm check كامل أخضر مرة واحدة (جذر 1019/1019 + تطبيق 3368/3368)، وأدلة متصفح حقيقي لشروط F-003 الحاسمة وقياسات F-005/F-009 قبل/بعد بنفس البيانات في تقرير UXR-W02-RESULT-2026-11-06؛ يُسلَّم للمراجعتين القراءة-فوق وقرار المالك — لا قبول ذاتي ولا دمج."
     }
   ],
   "migration_baseline": false,
-  "next_action": "تنفيذ UXR-03 (F-002/F-003/F-005/F-009/F-010/F-016 + عقود HOM/ORD) بفحوص مركزة بعد كل وحدة، ثم فحص كامل واحد على شجرة W01+W02 النهائية، ثم مراجعتان قراءة-فوق على الرأس النهائي بعينه قبل قرار المالك."
+  "next_action": "اكتمل تنفيذ UXR-03 (F-002/F-003/F-005/F-009/F-010/F-016 + عقود HOM/ORD/Schedule وإعلان اسأل Micro الموحد) على الفرع وPR #384 Draft فقط عند رأس المرشح 638ccc45 مع فحص كامل أخضر وأدلة التقرير؛ بانتظار المراجعتين القراءة-فوق المستقلتين على الرأس بعينه ثم قرار المالك. لا W03 ولا دمج ولا قبول ذاتي."
 }

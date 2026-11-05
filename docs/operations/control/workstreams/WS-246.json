@@ -1,8 +1,10 @@
 {
   "id": "WS-246",
   "title": "UXR-W02 — UXR-03 على فرع البرنامج الحالي (استمرار W01)",
-  "status": "IN_PROGRESS",
-  "items": ["DOC-030"],
+  "status": "IN_REVIEW",
+  "items": [
+    "DOC-030"
+  ],
   "branch": "uxr/integration-20261105",
   "base_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
   "areas": [
@@ -36,7 +38,7 @@
   "pr": 384,
   "started_at": "2026-11-06",
   "updated_at": "2026-11-06",
-  "next_action": "تنفيذ UXR-03 على الفرع وPR الحاليين فقط؛ فحوص مركزة بعد كل وحدة وفحص كامل واحد على الشجرة النهائية؛ ثم مراجعتان قراءة-فوق على الرأس النهائي بعينه. لا دمج ولا W03 قبل قرار المالك.",
+  "next_action": "W02 مكتملة التسليم عند رأس المرشح 638cfc45 على الفرع وPR #384 Draft فقط؛ بانتظار المراجعتين القراءة-فوق المستقلتين على الرأس بعينه (الأولى بتأكيد W01 وتفاعله؛ والثانية بتأكيد W02 وتفاعله) ثم قرار المالك. لا W03 ولا دمج ولا قبول ذاتي.",
   "notes": [
     "Owner launch message 2026-11-06 authorizes UXR-03 (W02) now, superseding only the stop-after-W01 instruction and the UXR-02-acceptance prerequisite; it accepts neither wave, does not authorize W03, and does not permit merging.",
     "Use branch uxr/integration-20261105 and Draft PR #384 only; never write main, create another branch/PR, merge, rebase, force-push, mark ready, or discard work.",
@@ -63,6 +65,12 @@
       "changed_at": "2026-11-06",
       "actor": "zai-product-code-writer",
       "reason": "بدأ ZAI تنفيذ UXR-03 على uxr/integration-20261105 وPR #384 Draft مع حفظ W01 كاملًا؛ التداخل مع مساحات WS-245 مرخَّص بالرسالة نفسها (استمرار على نفس الفرع/PR)."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "اكتمل تنفيذ UXR-03 (W02) على الفرع وPR الحاليين فقط مع حفظ W01 كاملًا؛ فحص كامل أخضر وأدلة التقرير UXR-W02-RESULT-2026-11-06؛ يُسلَّم للمراجعتين وقرار المالك."
     }
   ],
   "migration_baseline": false
