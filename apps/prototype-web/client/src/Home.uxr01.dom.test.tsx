@@ -143,7 +143,11 @@ describe("Home readiness journeys — UXR-01 (W01, A01)", () => {
       read: async () => {
         readCalls += 1;
         if (readCalls === 1)
-          return { ok: false as const, code: "storage_error" as const, message: "تعذر قراءة بيانات مشروعك المحلية." };
+          return {
+            ok: false as const,
+            code: "storage_error" as const,
+            message: "تعذر قراءة بيانات مشروعك المحلية.",
+          };
         return realControlCenter.read();
       },
     } as unknown as HomeControlCenterService;

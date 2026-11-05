@@ -239,7 +239,11 @@ export default function Home() {
   /* ترتيب صادق: فشل التجهيز يحجب القراءة أصلًا؛ ورسالة القراءة لا تُعرض
    * إلا عند غيابه — فالحالتان لا تتنازعان السطح أبدًا. */
   if (setupFailure || state.phase === "error") {
-    const failureMessage = setupFailure ? "تعذر تجهيز مشروعك." : state.phase === "error" ? state.message : null;
+    const failureMessage = setupFailure
+      ? "تعذر تجهيز مشروعك."
+      : state.phase === "error"
+        ? state.message
+        : null;
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر تحميل مشروعك</h1>

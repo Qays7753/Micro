@@ -97,4 +97,3 @@ describe("MicroAppShell — UXR-02 scroll-ownership route-kind sync (W01, F-015)
     expect(document.documentElement.dataset.microRouteKind).toBeUndefined();
   });
 });
-

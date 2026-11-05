@@ -8856,6 +8856,63 @@
         "trigger": "SDF-068: مساعدة! مسماة وقابلة للتركيز ولا تخفي أثرًا مهمًا — الفجوة الموثقة في مصفوفة الرحلات",
         "ocRef": "DOC-027"
       }
+    },
+    {
+      "id": "UXR-W01-HOME-SERVICES-SETUP-20261105",
+      "date": "2026-11-05",
+      "path": "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+      "from": {
+        "nbLoc": 360,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 651,
+        "band": "WATCH"
+      },
+      "reason": "UXR-01 (أمر UXR-W01، F-001 P0 + PERF-004/S11 L-01): إصلاح جاهزية سلسلة الرئيسية — homeControlCenterService داخل اعتماديات الـmemo بنمط R1-F2 الموثق، وعقد HomeServicesSetup ثلاثي الحالات مع retry فعّال يعيد الاستيراد في مكانه، وcatch على حلقتي استيراد سلسلة الرئيسية (بوابة المشتريات ثم مركز التحكم) بعدما كان رفض الشظية يترك «جارٍ التجهيز» أبدًا؛ النمو فوق السقف المأذون في S16 (585) هو آلة حالة التجهيز وخارجا الرفض وحارس إعادة المحاولة فقط.",
+      "authorization": {
+        "ownerReview": "Owner-authorized W01 execution (stages/UXR-W01-EXECUTION-PROMPT-AR.md — UXR-01 then UXR-02 with no approval pause; ratchets re-anchored per the documented protocol, never silently released)",
+        "trigger": "W01 execution on uxr/integration-20261105 / PR #384",
+        "ocRef": "DOC-029"
+      }
+    },
+    {
+      "id": "UXR-W01-SHELL-ROUTE-KIND-SYNC-20261105",
+      "date": "2026-11-05",
+      "path": "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx",
+      "from": {
+        "nbLoc": 93,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 133,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-02 (أمر UXR-W01، F-015): القشرة تزامن نوع المسار على وسم المستند (data-micro-route-kind) لأن حاوية التمرير الفعلية هي المستند — سابقة ThemeContext نفسها في كتابة documentElement مع إزالة الوسم عند إلغاء التركيب؛ القيم انتقلت حرفيًا إلى html في index.css (لا padding جديد ولا نقل ملفات).",
+      "authorization": {
+        "ownerReview": "Owner-authorized W01 execution (stages/UXR-W01-EXECUTION-PROMPT-AR.md — UXR-01 then UXR-02 with no approval pause; ratchets re-anchored per the documented protocol, never silently released)",
+        "trigger": "W01 execution on uxr/integration-20261105 / PR #384",
+        "ocRef": "DOC-029"
+      }
+    },
+    {
+      "id": "UXR-W01-NOTFOUND-SINGLE-HEADING-20261105",
+      "date": "2026-11-05",
+      "path": "apps/prototype-web/client/src/pages/NotFound.tsx",
+      "from": {
+        "nbLoc": 17,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 18,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-02 (أمر UXR-W01، F-008): عنوان وجهة واحد واضح — أُزيلت الـoverline «مسار غير متاح» فوق H1 (SOP-02)؛ صافي النمو سطر تعليق موثق واحد، والرسالة القصيرة والرجوع الآمن كما هما (عقد RET/SHELL).",
+      "authorization": {
+        "ownerReview": "Owner-authorized W01 execution (stages/UXR-W01-EXECUTION-PROMPT-AR.md — UXR-01 then UXR-02 with no approval pause; ratchets re-anchored per the documented protocol, never silently released)",
+        "trigger": "W01 execution on uxr/integration-20261105 / PR #384",
+        "ocRef": "DOC-029"
+      }
     }
   ]
 }

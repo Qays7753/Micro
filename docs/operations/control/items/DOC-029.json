@@ -2,7 +2,7 @@
   "id": "DOC-029",
   "title": "UXR-W01 — جاهزية الرئيسية والقشرة المشتركة (UXR-01 ثم UXR-02)",
   "type": "QUALITY",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P1",
   "stage": "micro-product-remediation-wave-01-20261105",
   "summary": "تنفيذ UXR-01 لجاهزية Home ثم UXR-02 للقشرة والأنماط المشتركة في موجة متتابعة واحدة وفق أمر W01؛ لا تغيير مالي أو schema/export أو هيكلي غير معتمد. قبول الموجة بعد مراجعة Manus وقرار المالك.",
@@ -91,8 +91,14 @@
       "changed_at": "2026-11-05",
       "actor": "zai-product-code-writer",
       "reason": "رسالة إطلاق W01 وصلت من المالك؛ بدأ ZAI تنفيذ UXR-01 ثم UXR-02 بلا توقف موافقة وسيط على الفرع وPR الحاليين فقط."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-05",
+      "actor": "zai-product-code-writer",
+      "reason": "اكتملت W01 (UXR-01 ثم UXR-02) على الفرع وPR الحاليين فقط، مع فحص كامل أخضر وأدلة التقرير؛ تُسلَّم لمراجعة Manus المستقلة على الرأس النهائي المعلن ثم قرار المالك — لا قبول ذاتي ولا W02 ولا دمج."
     }
   ],
   "migration_baseline": false,
-  "next_action": "تنفيذ UXR-01 ثم UXR-02 داخل W01 جارٍ الآن؛ عند اكتمال الموجة ينتقل البند إلى IN_REVIEW لمراجعة Manus المستقلة وقرار المالك، ولا يبدأ W02 قبل ذلك."
+  "next_action": "W01 مسلّمة لمراجعة Manus المستقلة على رأس المرشح المعلن في docs/implementation/UXR-W01-RESULT-2026-11-05.md؛ قرار المالك بعدها هو بوابة القبول والانتقال إلى W02 — لا قبول ذاتي ولا دمج ولا W02 قبل القرار."
 }

@@ -211,9 +211,7 @@ type PrototypeServices = {
  * - «failed»: رفض استيراد شظية التجهيز (PERF-004/S11 L-01) — فشل مميز مع فعل
  *   إعادة محاولة يعيد الاستيراد نفسه في مكانه (لا إعادة تحميل صفحة ولا eager). */
 export type HomeServicesSetup =
-  | { status: "loading" }
-  | { status: "ready" }
-  | { status: "failed"; retry: () => void };
+  { status: "loading" } | { status: "ready" } | { status: "failed"; retry: () => void };
 const PrototypeServicesContext = createContext<PrototypeServices | undefined>(undefined);
 
 const CROSS_TAB_CHANNEL = "micro-data-changed";

@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "e05b8d201b8ccacdd388fb443e9bba2ddb1daaa4",
+  "head": "95b4682e018c3d17c1ba4db64ad40c7d6ff682c8",
   "pages": {
     "total": 62,
     "map": {
@@ -221,6 +221,7 @@
           "G004CapabilityGuard.dom.test.tsx",
           "Home.dom.test.tsx",
           "Home.unit003.s16.dom.test.tsx",
+          "Home.uxr01.dom.test.tsx",
           "Nav001.dom.test.tsx",
           "ReadLayerParity.w44.dom.test.tsx",
           "Set003Capabilities.dom.test.tsx",
@@ -311,10 +312,9 @@
         ]
       },
       "pages/NotFound.tsx": {
-        "kind": "named-reference",
+        "kind": "direct",
         "evidence": [
-          "Nav003.exe016.dom.test.tsx",
-          "RouterSmokeSync.r10b.test.ts"
+          "pages/NotFound.uxr02.dom.test.tsx"
         ]
       },
       "pages/OrderDetail.tsx": {
@@ -476,9 +476,7 @@
       }
     },
     "withoutDirectEvidence": [],
-    "withoutDirectRendering": [
-      "pages/NotFound.tsx"
-    ]
+    "withoutDirectRendering": []
   },
   "contracts": {
     "total": 49,

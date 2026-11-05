@@ -1,7 +1,7 @@
 {
   "id": "WS-245",
   "title": "UXR-W01 — UXR-01 ثم UXR-02 على فرع البرنامج الحالي",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "DOC-029"
   ],
@@ -35,7 +35,7 @@
   "pr": 384,
   "started_at": "2026-11-05",
   "updated_at": "2026-11-05",
-  "next_action": "بدأ تنفيذ W01 بعد رسالة الإطلاق: UXR-01 ثم UXR-02 بلا توقف موافقة وسيط؛ التسليم candidate واحد لمراجعة Manus وقرار المالك، والفرع/PR كما هما.",
+  "next_action": "اكتمل تنفيذ UXR-01 ثم UXR-02 داخل W01 على الفرع وPR #384 Draft فقط؛ التسليم لمراجعة Manus المستقلة وقرار المالك. لا W02 ولا دمج ولا تغيير للفرع/PR قبل القرار.",
   "notes": [
     "Owner-approved five-wave grouping: W01=UXR-01+02; W02=03; W03=04; W04=05+06; W05=07+08. Only W01 is claimed.",
     "Use branch uxr/integration-20261105 and Draft PR #384 only; never write main, create another branch/PR, merge, rebase, force-push or discard work.",
@@ -61,6 +61,12 @@
       "changed_at": "2026-11-05",
       "actor": "zai-product-code-writer",
       "reason": "رسالة إطلاق W01 وصلت من المالك؛ بدأ ZAI تنفيذ UXR-01 ثم UXR-02 بلا توقف موافقة وسيط على الفرع وPR الحاليين فقط."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-05",
+      "actor": "zai-product-code-writer",
+      "reason": "اكتملت W01 (UXR-01 ثم UXR-02) على الفرع وPR الحاليين فقط، مع فحص كامل أخضر وأدلة التقرير؛ تُسلَّم لمراجعة Manus المستقلة على الرأس النهائي المعلن ثم قرار المالك — لا قبول ذاتي ولا W02 ولا دمج."
     }
   ],
   "migration_baseline": false
