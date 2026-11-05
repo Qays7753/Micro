@@ -1,0 +1,69 @@
+{
+  "id": "WS-246",
+  "title": "UXR-W02 — UXR-03 على فرع البرنامج الحالي (استمرار W01)",
+  "status": "IN_PROGRESS",
+  "items": ["DOC-030"],
+  "branch": "uxr/integration-20261105",
+  "base_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "areas": [
+    "apps/prototype-web/client/src/pages/Finance.tsx",
+    "apps/prototype-web/client/src/components/finance/FinanceFunctionsBoard.tsx",
+    "apps/prototype-web/client/src/components/finance/FinanceObligationsCard.tsx",
+    "apps/prototype-web/client/src/pages/Orders.tsx",
+    "apps/prototype-web/client/src/pages/Schedule.tsx",
+    "apps/prototype-web/client/src/pages/Home.tsx",
+    "apps/prototype-web/client/src/components/layout/AppHeader.tsx",
+    "apps/prototype-web/client/src/index.css"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/operations/current-state.md",
+    "docs/operations/micro-thinking-charter-v1.md",
+    "docs/implementation/03-pre-build-alignment-v1.md",
+    "docs/implementation/micro-product-remediation-20261105/01-PROGRAM-AND-AUTHORITY-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/02-PAGE-CONTRACTS-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/03-CONTENT-AND-SOP-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/04-WORK-ORDERS-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/05-SOURCE-AND-PAGE-COVERAGE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/06-ACCEPTANCE-AND-EVIDENCE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-03-STAGE-CARD-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-W01-EXECUTION-PROMPT-AR.md",
+    "docs/architecture/ADRs/ADR-009-permanent-dark-mode.md",
+    "apps/prototype-web/client/src/styles/vf-tokens.css"
+  ],
+  "agent": "ZAI — sole product-code implementation writer; two independent read-only reviews on one exact candidate, then owner decision",
+  "pr": 384,
+  "started_at": "2026-11-06",
+  "updated_at": "2026-11-06",
+  "next_action": "تنفيذ UXR-03 على الفرع وPR الحاليين فقط؛ فحوص مركزة بعد كل وحدة وفحص كامل واحد على الشجرة النهائية؛ ثم مراجعتان قراءة-فوق على الرأس النهائي بعينه. لا دمج ولا W03 قبل قرار المالك.",
+  "notes": [
+    "Owner launch message 2026-11-06 authorizes UXR-03 (W02) now, superseding only the stop-after-W01 instruction and the UXR-02-acceptance prerequisite; it accepts neither wave, does not authorize W03, and does not permit merging.",
+    "Use branch uxr/integration-20261105 and Draft PR #384 only; never write main, create another branch/PR, merge, rebase, force-push, mark ready, or discard work.",
+    "Overlap with WS-245 areas (Home.tsx, components/) is owner-authorized same-PR continuation: W01 is delivered IN_REVIEW on this exact branch/PR and is preserved; UXR-03 touches only its HOM-contract surfaces (heading, follow-up empty text, ask-micro consolidation) — no W01 semantics redone.",
+    "Reuse W01 recorded test evidence unless a W02 change or a confirmed interaction makes rerunning a specific test necessary; run the complete check once on the final combined W01+W02 tree.",
+    "No financial/domain semantics, schema/export change (stays 41/34 + 29 pairs), security change, broad refactor, file moves/splits, or S-1..S-5 execution; theme/ADR-009/tokens preserved per standing owner decision.",
+    "At completion run exactly two independent read-only review agents on the same exact final candidate SHA (Agent 1: W01 emphasis + interaction with W02; Agent 2: W02 emphasis + interaction with W01); fix confirmed findings, rerun affected focused tests, rerun the complete check only if code changes; verify Actions and Cloudflare on the exact final PR head; keep PR #384 Draft; stop and report; do not start W03."
+  ],
+  "evidence": [
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-03-STAGE-CARD-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-W01-EXECUTION-PROMPT-AR.md",
+    "docs/implementation/UXR-W01-RESULT-2026-11-05.md",
+    "https://github.com/Qays7753/Micro/pull/384"
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-06",
+      "actor": "owner-authorized-manus-coordinator",
+      "reason": "مطالبة W02 أنشئت بعد رسالة المالك المؤرخة 2026-11-06 التي تأذن ببدء UXR-03 قبل قبول W01، على الفرع وPR الحاليين فقط."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "بدأ ZAI تنفيذ UXR-03 على uxr/integration-20261105 وPR #384 Draft مع حفظ W01 كاملًا؛ التداخل مع مساحات WS-245 مرخَّص بالرسالة نفسها (استمرار على نفس الفرع/PR)."
+    }
+  ],
+  "migration_baseline": false
+}

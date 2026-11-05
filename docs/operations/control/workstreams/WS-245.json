@@ -1,7 +1,7 @@
 {
   "id": "WS-245",
   "title": "UXR-W01 — UXR-01 ثم UXR-02 على فرع البرنامج الحالي",
-  "status": "IN_REVIEW",
+  "status": "REVIEW_REQUIRED",
   "items": [
     "DOC-029"
   ],
@@ -34,8 +34,8 @@
   "agent": "ZAI — sole product-code implementation writer; Manus independent lightweight reviewer after final candidate",
   "pr": 384,
   "started_at": "2026-11-05",
-  "updated_at": "2026-11-05",
-  "next_action": "اكتمل تنفيذ UXR-01 ثم UXR-02 داخل W01 على الفرع وPR #384 Draft فقط؛ التسليم لمراجعة Manus المستقلة وقرار المالك. لا W02 ولا دمج ولا تغيير للفرع/PR قبل القرار.",
+  "updated_at": "2026-11-06",
+  "next_action": "اكتمل تنفيذ UXR-01 ثم UXR-02 داخل W01 على الفرع وPR #384 Draft فقط؛ التسليم لمراجعة Manus المستقلة وقرار المالك — لا قبول ذاتي ولا دمج. مطالبة W02 (WS-246/DOC-030) مؤذونة برسالة المالك المؤرخة 2026-11-06 على الفرع والـPR نفسهما مع حفظ W01 كاملًا.",
   "notes": [
     "Owner-approved five-wave grouping: W01=UXR-01+02; W02=03; W03=04; W04=05+06; W05=07+08. Only W01 is claimed.",
     "Use branch uxr/integration-20261105 and Draft PR #384 only; never write main, create another branch/PR, merge, rebase, force-push or discard work.",
@@ -67,6 +67,12 @@
       "changed_at": "2026-11-05",
       "actor": "zai-product-code-writer",
       "reason": "اكتملت W01 (UXR-01 ثم UXR-02) على الفرع وPR الحاليين فقط، مع فحص كامل أخضر وأدلة التقرير؛ تُسلَّم لمراجعة Manus المستقلة على الرأس النهائي المعلن ثم قرار المالك — لا قبول ذاتي ولا W02 ولا دمج."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "W01 مكتملة التسليم وتنتظر المراجعة المستقلة وقرار المالك؛ رسالة المالك 2026-11-06 تأذن ببدء W02 على نفس الفرع/PR، فتُفرَّغ مطالبة W01 من العمل التنفيذي (REVIEW_REQUIRED) لصالح مطالبة W02 النشطة — بلا أي معنى قبول."
     }
   ],
   "migration_baseline": false
