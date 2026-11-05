@@ -821,11 +821,7 @@ export default function Finance() {
           >
             <div className="micro-functions-board-heading">
               <h2>تسجيل مصروف</h2>
-              <button
-                className="micro-text-action"
-                type="button"
-                onClick={() => closeExpenseEntry(true)}
-              >
+              <button className="micro-text-action" type="button" onClick={() => closeExpenseEntry(true)}>
                 <X aria-hidden="true" /> إلغاء
               </button>
             </div>
@@ -878,7 +874,13 @@ export default function Finance() {
  * محتسبان عند التسليم) في تفصيل نتيجة الفترة وحده، واستبعادات النتيجة
  * سطر مشروط بجانب البطاقة. FIN-001: القيم تتبع دليل الطلبات — مشروع بلا
  * طلبات لا يعرض أصفارًا مؤكدة بل «غير مسجل». */
-function OrdersCashDebtRows({ pulse, ordersRecorded }: { pulse: LocalFinancialPulse; ordersRecorded: boolean }) {
+function OrdersCashDebtRows({
+  pulse,
+  ordersRecorded,
+}: {
+  pulse: LocalFinancialPulse;
+  ordersRecorded: boolean;
+}) {
   const pulseValue = (recorded: boolean, minor: number) =>
     recorded ? <MoneyValue minor={minor} /> : unknownValue();
   return (
@@ -897,7 +899,6 @@ function OrdersCashDebtRows({ pulse, ordersRecorded }: { pulse: LocalFinancialPu
       </dl>
     </section>
   );
-
 }
 
 function OwnerDecisionCard({

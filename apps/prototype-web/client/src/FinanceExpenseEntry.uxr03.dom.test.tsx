@@ -119,7 +119,9 @@ describe("F-002 — مدخل المصروف الموحد بحالة الدفع (
     );
     /* النوع الميت لا يُنتج أبدًا من أي مسار. */
     expect(
-      wouterMocks.navigate.mock.calls.some(call => String(call[0]).includes("/finance/new/operating_expense?")),
+      wouterMocks.navigate.mock.calls.some(call =>
+        String(call[0]).includes("/finance/new/operating_expense?"),
+      ),
     ).toBe(false);
     expect(screen.queryByRole("dialog", { name: "حالة دفع المصروف" })).toBeNull();
   });

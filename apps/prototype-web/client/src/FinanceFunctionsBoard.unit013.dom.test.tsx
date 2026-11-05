@@ -160,7 +160,9 @@ describe("UNIT-013 — لوحة وظائف المالية (AF-B) وإلغاء ا
     expect(entries).toHaveLength(19);
     /* لا ازدواج وجهات: مدخل واحد فقط يفتح /suppliers (سجل الشراء والدفع). */
     const suppliersEntries = entries.filter(
-      node => node.getAttribute("class") === "micro-functions-board-entry" && node.textContent?.includes("المشتريات"),
+      node =>
+        node.getAttribute("class") === "micro-functions-board-entry" &&
+        node.textContent?.includes("المشتريات"),
     );
     expect(within(board).getAllByRole("button", { name: /المشتريات/ })).toHaveLength(1);
     /* القدرات المتوقفة/المؤجلة غائبة من المالية كلها — لا إعادة إدراج من الدليل القديم. */
@@ -238,9 +240,7 @@ describe("UNIT-013 — لوحة وظائف المالية (AF-B) وإلغاء ا
       expect(wouterMocks.navigate).not.toHaveBeenCalled();
       expect(backSpy).not.toHaveBeenCalled();
       expect(screen.queryByRole("dialog")).toBeNull();
-      await waitFor(() =>
-        expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: "start" }),
-      );
+      await waitFor(() => expect(Element.prototype.scrollIntoView).toHaveBeenCalledWith({ block: "start" }));
       expect(screen.getByRole("region", { name: "ميزانيات المصروف" })).toBeTruthy();
     } finally {
       backSpy.mockRestore();

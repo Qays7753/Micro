@@ -221,8 +221,8 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
           {contextLabel ? <span className="micro-header-context">{contextLabel}</span> : null}
         </div>
         {/* DEC-SHELL-01 (UXR-03 — أمر W02): زر «اسأل Micro» الدائم في
-           * الترويسة أُزيل — مدخله الوحيد عند الطلب داخل قائمة «مايكرو»
-           * (مجموعة النظام)؛ لا مساحة دائمة في ~70 قالبًا لإعلان مستقبلي. */}
+         * الترويسة أُزيل — مدخله الوحيد عند الطلب داخل قائمة «مايكرو»
+         * (مجموعة النظام)؛ لا مساحة دائمة في ~70 قالبًا لإعلان مستقبلي. */}
       </div>
       {menuOpen ? (
         <div
