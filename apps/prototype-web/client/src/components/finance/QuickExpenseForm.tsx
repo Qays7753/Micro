@@ -282,7 +282,7 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
                   اختر مصدر الصرف
                 </option>
               ) : null}
-              <option value="">الكاش غير الموزع</option>
+              <option value="">النقد غير الموزع</option>
               {wallets.map(wallet => (
                 <option key={wallet.id} value={wallet.id}>
                   {wallet.name} — تغطية من رصيدها
@@ -294,7 +294,7 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
           /* FIN-005: بلا محافظ — المصروف يُسجَّل من غير الموزع بتحذير معلن
            * قبل الحفظ، مع فعل المتابعة المتاح لاحقًا. */
           <p className="micro-offline-truth" role="status">
-            لا محافظ معلنة بعد — سيُسجَّل المصروف من الكاش غير الموزع، ويمكن تغطيته من محفظة لاحقًا من مالي.
+            لا محافظ معلنة بعد — سيُسجَّل المصروف من النقد غير الموزع، ويمكن تغطيته من محفظة لاحقًا من مالي.
           </p>
         )}
         {categorySuggestions.length > 0 ? (
@@ -315,10 +315,10 @@ export const QuickExpenseForm = forwardRef<QuickActionFormHandle, QuickExpenseFo
             ))}
           </div>
         ) : null}
-        {/* المجموعة ٢ (Scope A): معاينة الأثر قبل الحفظ — الصرف ينقص الكاش فقط. */}
+        {/* المجموعة ٢ (Scope A): معاينة الأثر قبل الحفظ — الصرف ينقص النقد فقط. */}
         {expenseAmountMinor > 0 && expenseAmountValid ? (
           <p className="micro-local-truth" role="status">
-            سينقص الكاش {formatMoneyMinor(expenseAmountMinor)} د.أ
+            سينقص النقد {formatMoneyMinor(expenseAmountMinor)} د.أ
             {expenseWalletId && expenseWalletId !== EXPENSE_SOURCE_UNSET
               ? ` من «${wallets.find(wallet => wallet.id === expenseWalletId)?.name ?? ""}»`
               : expenseWalletId === ""

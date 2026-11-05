@@ -70,7 +70,7 @@ export default function CashAdjustmentEditor() {
     if (state.phase !== "ready") return false;
     const { wallet } = state;
     if (!validAmount || amountMinor <= 0 || !reason.trim() || !note.trim()) {
-      setMessage("أدخل فرق الكاش وسببًا وبيانًا قبل الحفظ.");
+      setMessage("أدخل فرق النقد وسببًا وبيانًا قبل الحفظ.");
       return false;
     }
     setSaving(true);
@@ -101,10 +101,10 @@ export default function CashAdjustmentEditor() {
   if (state.phase === "not-found")
     return (
       <section className="micro-page micro-not-found">
-        <h1>لم نجد محفظة الكاش</h1>
-        <p>ارجع إلى المحافظ واختر مكان كاش مسجلًا.</p>
+        <h1>لم نجد محفظة النقد</h1>
+        <p>ارجع إلى المحافظ واختر مكان نقد مسجلًا.</p>
         <Button action="secondary" onClick={() => navigate("/cash")}>
-          محافظ الكاش
+          محافظ النقد
         </Button>
       </section>
     );
@@ -115,7 +115,7 @@ export default function CashAdjustmentEditor() {
     return (
       <section className="micro-page">
         <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-          محافظ الكاش
+          محافظ النقد
         </button>
         <p className="micro-field-error" role="alert">
           {state.message}
@@ -131,30 +131,31 @@ export default function CashAdjustmentEditor() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
-        <ArrowRight aria-hidden="true" /> محافظ الكاش
+        <ArrowRight aria-hidden="true" /> محافظ النقد
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">تصحيح محفوظ</span>
-        <h1>اضبط كاش {wallet.name}</h1>
+        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد بلا تمهيد معماري فوقه. */}
+        <h1>اضبط نقد {wallet.name}</h1>
         <p>لا يعدّل هذا السجل القديم. يضيف فرقًا واضحًا بسبب كي ترى ما حدث لاحقًا.</p>
       </div>
       <section className="micro-decision-card">
         <SlidersHorizontal aria-hidden="true" />
         <div>
-          <span>حد الحقيقة</span>
+          {/* UXR-04 (COPY-02): معنى الضبط المباشر بجانب القرار — لا عنوان عام. */}
+          <span>معنى الضبط</span>
           <strong>الضبط ليس مبيعات ولا مصروفًا.</strong>
-          <p>سيغير رصيد المحفظة والكاش المسجل فقط، مع سبب وتاريخ.</p>
+          <p>سيغير رصيد المحفظة والنقد المسجل فقط، مع سبب وتاريخ.</p>
         </div>
       </section>
       <section className="micro-form-card">
         <label className="micro-field">
-          <span>اتجاه فرق الكاش</span>
+          <span>اتجاه فرق النقد</span>
           <select
             value={direction}
             onChange={event => setDirection(event.target.value as "increase" | "decrease")}
           >
-            <option value="decrease">الكاش أقل من المسجل</option>
-            <option value="increase">الكاش أكثر من المسجل</option>
+            <option value="decrease">النقد أقل من المسجل</option>
+            <option value="increase">النقد أكثر من المسجل</option>
           </select>
         </label>
         <label className="micro-field">
@@ -164,7 +165,7 @@ export default function CashAdjustmentEditor() {
             kind="money"
             onNumericChange={setAmountMinor}
             onTextValidityChange={setValidAmount}
-            aria-label="فرق الكاش"
+            aria-label="فرق النقد"
           />
         </label>
         <LocalDateField label="تاريخ الضبط" value={date} onChange={event => setDate(event.target.value)} />
@@ -198,7 +199,7 @@ export default function CashAdjustmentEditor() {
             onClick={save}
           >
             <Save aria-hidden="true" />
-            {saving ? "جارٍ الحفظ…" : "حفظ ضبط الكاش"}
+            {saving ? "جارٍ الحفظ…" : "حفظ ضبط النقد"}
           </Button>
         </div>
       </section>

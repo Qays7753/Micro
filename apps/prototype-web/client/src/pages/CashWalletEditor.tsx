@@ -58,19 +58,20 @@ export default function CashWalletEditor() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
-        <ArrowRight aria-hidden="true" /> محافظ الكاش
+        <ArrowRight aria-hidden="true" /> محافظ النقد
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">بداية معلنة</span>
-        <h1>أين يوجد الكاش الآن؟</h1>
+        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد بلا تمهيد معماري فوقه. */}
+        <h1>أين يوجد النقد الآن؟</h1>
         <p>أضف المكان والمبلغ كما تعرفهما في يوم البدء. لا يعالج هذا ربحًا أو مبيعات سابقة.</p>
       </div>
       <section className="micro-decision-card">
         <WalletCards aria-hidden="true" />
         <div>
-          <span>حد الحقيقة</span>
-          <strong>رصيد البداية ليس مال مالك ولا دخلًا.</strong>
-          <p>إنه نقطة واضحة لتبدأ منها مراجعة كاش مشروعك على هذا الجهاز.</p>
+          {/* UXR-04 (COPY-28 الحرفي): رصيد البداية ليس إيرادًا ولا إضافة من المالك. */}
+          <span>معنى رصيد البداية</span>
+          <strong>رصيد البداية ليس إيرادًا ولا إضافة من المالك.</strong>
+          <p>إنه نقطة واضحة لتبدأ منها مراجعة نقد مشروعك على هذا الجهاز.</p>
         </div>
       </section>
       <section className="micro-form-card">
@@ -85,7 +86,7 @@ export default function CashWalletEditor() {
         <label className="micro-field">
           <span>نوع المكان</span>
           <select value={kind} onChange={event => setKind(event.target.value as CashWalletKind)}>
-            <option value="cash_drawer">درج كاش</option>
+            <option value="cash_drawer">درج نقود</option>
             <option value="bank_account">حساب بنكي</option>
             <option value="digital_wallet">محفظة رقمية</option>
             <option value="other">مكان آخر</option>

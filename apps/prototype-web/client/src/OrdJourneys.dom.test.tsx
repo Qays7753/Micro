@@ -333,7 +333,7 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     /* القبض عند التسليم داخل «خيارات متقدمة» — فتح صريح قبل الملء. */
     fireEvent.click(screen.getByText("خيارات متقدمة: تعديل السعر والقبض عند التسليم"));
     fireEvent.change(screen.getByLabelText("المقبوض عند التسليم"), { target: { value: "40" } });
-    fireEvent.change(screen.getByLabelText("وجهة كاش التسليم"), {
+    fireEvent.change(screen.getByLabelText("وجهة نقد التسليم"), {
       target: { value: opened.value.wallet.id },
     });
     fireEvent.click(screen.getByText("أكّد التسليم"));

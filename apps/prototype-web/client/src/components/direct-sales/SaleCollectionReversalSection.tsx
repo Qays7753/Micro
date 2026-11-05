@@ -122,7 +122,7 @@ export function SaleCollectionReversalSection({
             <strong>العكس يصحح السجل والتوزيع معًا — ولا يحذف شيئًا.</strong>
             <p>
               التحصيل الأصلي يبقى ظاهرًا في سجل التصحيحات ودفتر المحفظة، والعكس يرتبط به بقيد مرآة. التحصيلات
-              المسجلة على الكاش غير الموزع تُصحح من تعديل المقبوض أعلاه — لا تحتاج عكسًا هنا.
+              المسجلة على النقد غير الموزع تُصحح من تعديل المقبوض أعلاه — لا تحتاج عكسًا هنا.
             </p>
           </div>
         </div>
@@ -163,7 +163,7 @@ export function SaleCollectionReversalSection({
                 </dd>
               </div>
               <div>
-                <dt>الكاش المسجل</dt>
+                <dt>النقد المسجل</dt>
                 <dd>
                   {preview.recordedCashBeforeMinor === null
                     ? "—"

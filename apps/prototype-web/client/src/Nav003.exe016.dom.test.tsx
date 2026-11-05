@@ -89,7 +89,7 @@ async function mountApp() {
 
 /** انتظار جاهزية نموذج التوزيع ثم استخراج عنصري الاختيار. */
 async function distributionControls() {
-  await screen.findByRole("heading", { level: 1, name: "وزّع الكاش غير الموزع" });
+  await screen.findByRole("heading", { level: 1, name: "وزّع النقد غير الموزع" });
   const direction = screen.getByLabelText("الاتجاه") as HTMLSelectElement;
   const wallet = screen.getByLabelText("المحفظة") as HTMLSelectElement;
   return { direction, wallet };

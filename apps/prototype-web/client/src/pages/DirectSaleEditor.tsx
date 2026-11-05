@@ -818,7 +818,7 @@ export default function DirectSaleEditor() {
             <p>
               {done.attributedMinor > 0
                 ? `نُسب القبض إلى «${done.walletName ?? "المحفظة"}»: ${formatMoneyMinor(done.attributedMinor)} د.أ — حركة موثقة في دفتر المحفظة.`
-                : "بقي القبض في الكاش غير الموزع — وزّعه على محفظة عندما تعرف وجهته."}
+                : "بقي القبض في النقد غير الموزع — وزّعه على محفظة عندما تعرف وجهته."}
             </p>
           )}
           {partySaveFailure ? (
@@ -1580,7 +1580,7 @@ export default function DirectSaleEditor() {
       ) : null}
       {/* S11 (UNIT-026 sale-slice / SDF-054): دفع رد فعلي مؤرخ على بيع مُرتجع —
           ضمن حق الرد القائم، ولا يُدفع مرتين؛ الصرف من محفظة مختارة أو من
-          غير الموزع، والكاش ينقص بقدره من مصدره الواحد. */}
+          غير الموزع، والنقد ينقص بقدره من مصدره الواحد. */}
       {editing && savedSale?.return ? (
         <section className="micro-form-card" aria-labelledby="direct-sale-refund-title">
           <details className="micro-inline-disclosure" open>

@@ -25,7 +25,7 @@ export const primaryNavigation: readonly NavigationItem[] = [
 export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/schedule")) return "المواعيد";
   if (pathname.startsWith("/finance")) return "المالية";
-  if (pathname.startsWith("/cash")) return "محافظ الكاش";
+  if (pathname.startsWith("/cash")) return "محافظ النقد";
   if (pathname.startsWith("/inventory")) return "المواد والمخزون";
   if (pathname.startsWith("/suppliers")) return "الموردون والمشتريات";
   if (pathname.startsWith("/parties")) return "العملاء والموردون";

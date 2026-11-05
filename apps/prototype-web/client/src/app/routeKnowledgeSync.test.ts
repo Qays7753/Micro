@@ -97,7 +97,7 @@ const EDITOR_ROUTES: Readonly<Record<string, string>> = {
   "/cash/transfer": "تحويل بين المحافظ — محرر فعل مالي",
   "/cash/distribute": "توزيع غير الموزّع — محرر فعل مالي",
   "/cash/count": "عدّ الصندوق — محرر جلسة عد",
-  "/cash/entry/:id/reverse": "عكس قيد كاش — محرر فعل",
+  "/cash/entry/:id/reverse": "عكس قيد نقد — محرر فعل",
   "/collect": "ورقة التحصيل — محرر فعل واعٍ بالمصدر",
   "/inventory/material/new": "محرر مادة",
   "/inventory/material/:id/confirm": "تأكيد رصيد مادة — محرر عميق",

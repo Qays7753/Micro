@@ -85,7 +85,7 @@ describe("QuickExpenseForm cash-source rules (FIN-005)", () => {
     const submitted: QuickActionReceipt[] = [];
     renderForm([], submitted);
     expect(
-      await screen.findByText(/سيُسجَّل المصروف من الكاش غير الموزع، ويمكن تغطيته من محفظة لاحقًا/),
+      await screen.findByText(/سيُسجَّل المصروف من النقد غير الموزع، ويمكن تغطيته من محفظة لاحقًا/),
     ).toBeTruthy();
     expect(screen.queryByLabelText(/مصدر الصرف/)).toBeNull();
     await submitExpense();
@@ -106,7 +106,7 @@ describe("QuickExpenseForm cash-source rules (FIN-005)", () => {
     await waitFor(() => expect((selector as HTMLSelectElement).value).toBe(wallet.id));
     expect(screen.getByText("درج-FIN005 — تغطية من رصيدها")).toBeTruthy();
     /* الكاش غير الموزع خيار صريح إلى جانب المحفظة المعيَّنة. */
-    expect(screen.getByText("الكاش غير الموزع")).toBeTruthy();
+    expect(screen.getByText("النقد غير الموزع")).toBeTruthy();
     await submitExpense();
     await waitFor(() => expect(submitted.length).toBeGreaterThan(0));
     const position = await projectFinance.readPosition();
@@ -136,7 +136,7 @@ describe("QuickExpenseForm cash-source rules (FIN-005)", () => {
     await user.type(screen.getByLabelText("مبلغ المصروف"), "3");
     await user.type(screen.getByLabelText(/البند/), "أكياس تغليف");
     await user.click(screen.getByRole("button", { name: "سجّل المصروف" }));
-    expect(await screen.findByText("اختر مصدر الصرف: محفظة أو الكاش غير الموزع.")).toBeTruthy();
+    expect(await screen.findByText("اختر مصدر الصرف: محفظة أو النقد غير الموزع.")).toBeTruthy();
     expect(submitted).toHaveLength(0);
     const positionBefore = await projectFinance.readPosition();
     if (!positionBefore.ok) throw new Error(positionBefore.message);

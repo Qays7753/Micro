@@ -81,7 +81,7 @@ const id = (prefix: string) =>
 const storageFailure = <T>(): CashContinuityResult<T> => ({
   ok: false,
   code: STORAGE_ERROR,
-  message: "تعذر حفظ استمرارية الكاش محليًا — بياناتك كما هي؛ أعد المحاولة.",
+  message: "تعذر حفظ استمرارية النقد محليًا — بياناتك كما هي؛ أعد المحاولة.",
 });
 
 export class CashContinuityService {
@@ -96,7 +96,7 @@ export class CashContinuityService {
       this.store.listCashContinuityEntries(),
     ]);
     if (!wallets.ok || !entries.ok)
-      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة محافظ الكاش المحلية." };
+      return { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة محافظ النقد المحلية." };
     const balances = wallets.value.map(wallet => {
       const walletEntries = entries.value.filter(entry => entry.walletId === wallet.id);
       return {
@@ -114,7 +114,7 @@ export class CashContinuityService {
         entryCount: entries.value.length,
         unknownOpeningCount: balances.filter(wallet => wallet.openingUnknown).length,
         truth:
-          "هذه المحافظ تسجل فقط الافتتاح والتحويلات والضبط والتخصيص الذي ربطته بها. تحصيلات الطلبات والمصاريف والمشتريات السابقة تبقى كاشًا غير موزع إلى أن يسجل لها عقد توزيع صريح.",
+          "هذه المحافظ تسجل فقط الافتتاح والتحويلات والضبط والتخصيص الذي ربطته بها. تحصيلات الطلبات والمصاريف والمشتريات السابقة تبقى نقدًا غير موزع إلى أن يسجل لها عقد توزيع صريح.",
       },
     };
   }
@@ -123,7 +123,7 @@ export class CashContinuityService {
     const result = await this.store.listCashContinuityEntries();
     return result.ok
       ? { ok: true, value: result.value }
-      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل استمرارية الكاش." };
+      : { ok: false, code: STORAGE_ERROR, message: "تعذر قراءة سجل استمرارية النقد." };
   }
 
   /* EXE-008 (حوكمة الكاش — القرار المعتمد): الافتتاح متاح أثناء التأسيس/إنشاء المحفظة
@@ -170,7 +170,7 @@ export class CashContinuityService {
       const saved = await this.store.commitCashContinuity(wallet, opening ? [opening] : []);
       return saved.ok ? { ok: true, value: { wallet, opening } } : storageFailure();
     } catch (error) {
-      return validationFailure(errorMessageOf(error, "بيانات محفظة الكاش غير صالحة."));
+      return validationFailure(errorMessageOf(error, "بيانات محفظة النقد غير صالحة."));
     }
   }
 
@@ -191,7 +191,7 @@ export class CashContinuityService {
     if (!wallet) return validationFailure("اختر محفظة موجودة قبل إدخال الرصيد.");
     if (entries.value.some(entry => entry.walletId === wallet.id && entry.type === "opening_balance"))
       return validationFailure(
-        "لهذه المحفظة رصيد افتتاحي مسجل؛ التسوية اللاحقة تُسجل ضبط كاش بسبب، لا افتتاحًا ثانيًا.",
+        "لهذه المحفظة رصيد افتتاحي مسجل؛ التسوية اللاحقة تُسجل ضبط نقد بسبب، لا افتتاحًا ثانيًا.",
       );
     try {
       if (!Number.isInteger(input.amountMinor) || input.amountMinor < 0)
@@ -224,7 +224,7 @@ export class CashContinuityService {
     const repeated = entries.value.find(entry => entry.operationKey === input.operationKey);
     if (repeated) return { ok: true, value: repeated, reused: true };
     if (!wallets.value.some(wallet => wallet.id === input.walletId))
-      return validationFailure("اختر محفظة كاش موجودة قبل ضبط رصيدها.");
+      return validationFailure("اختر محفظة نقود موجودة قبل ضبط رصيدها.");
     try {
       const entry = createCashContinuityEntry({
         id: id("adjustment"),
@@ -240,7 +240,7 @@ export class CashContinuityService {
       const saved = await this.store.commitCashContinuity(null, [entry]);
       return saved.ok ? { ok: true, value: entry } : storageFailure();
     } catch (error) {
-      return validationFailure(errorMessageOf(error, "بيانات ضبط الكاش غير صالحة."));
+      return validationFailure(errorMessageOf(error, "بيانات ضبط النقد غير صالحة."));
     }
   }
 
@@ -317,9 +317,9 @@ export class CashContinuityService {
     const repeated = entries.filter(entry => entry.operationKey === input.operationKey);
     if (repeated.length) return { ok: true, value: repeated, reused: true };
     const target = entries.find(entry => entry.id === input.entryId);
-    if (!target) return validationFailure("لم نجد أثر الكاش الذي تريد التراجع عنه.");
+    if (!target) return validationFailure("لم نجد أثر النقد الذي تريد التراجع عنه.");
     if (target.type === "reversal")
-      return validationFailure("لا يتراجع هذا الإصدار عن أثر تراجع سابق؛ سجّل ضبط كاش بسبب بدلًا من ذلك.");
+      return validationFailure("لا يتراجع هذا الإصدار عن أثر تراجع سابق؛ سجّل ضبط نقد بسبب بدلًا من ذلك.");
     const targets = target.transferId
       ? entries.filter(entry => entry.transferId === target.transferId)
       : [target];
@@ -347,7 +347,7 @@ export class CashContinuityService {
       const saved = await this.store.commitCashContinuity(null, reversals);
       return saved.ok ? { ok: true, value: reversals } : storageFailure();
     } catch (error) {
-      return validationFailure(errorMessageOf(error, "بيانات التراجع عن الكاش غير صالحة."));
+      return validationFailure(errorMessageOf(error, "بيانات التراجع عن النقد غير صالحة."));
     }
   }
 

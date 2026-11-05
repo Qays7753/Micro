@@ -336,7 +336,7 @@ function PartyCard({ entry, onNavigate }: { entry: PartyAccountEntry; onNavigate
               <span>
                 <b>حصّل من {entry.party.label}</b>
                 <small>
-                  يفتح ورقة التحصيل بأول دين مرتبط — مبلغ ووجهة كاش موثقة، ولا يُكتب شيء من الدليل.
+                  يفتح ورقة التحصيل بأول دين مرتبط — مبلغ ووجهة نقد موثقة، ولا يُكتب شيء من الدليل.
                 </small>
               </span>
               <HandCoins aria-hidden="true" />

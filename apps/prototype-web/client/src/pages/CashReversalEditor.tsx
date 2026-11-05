@@ -137,10 +137,10 @@ export default function CashReversalEditor() {
   if (state.phase === "not-found")
     return (
       <section className="micro-page micro-not-found">
-        <h1>لم نجد أثر الكاش</h1>
+        <h1>لم نجد أثر النقد</h1>
         <p>قد يكون السجل حُذف من هذا الجهاز أو تم التراجع عنه سابقًا.</p>
         <Button action="secondary" onClick={() => navigate("/cash")}>
-          محافظ الكاش
+          محافظ النقد
         </Button>
       </section>
     );
@@ -151,7 +151,7 @@ export default function CashReversalEditor() {
     return (
       <section className="micro-page">
         <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-          محافظ الكاش
+          محافظ النقد
         </button>
         <p className="micro-field-error" role="alert">
           {state.message}
@@ -166,10 +166,10 @@ export default function CashReversalEditor() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
-        <ArrowRight aria-hidden="true" /> محافظ الكاش
+        <ArrowRight aria-hidden="true" /> محافظ النقد
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">تراجع محفوظ</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد بلا تمهيد معماري فوقه. */}
         <h1>تراجع عن هذا الأثر</h1>
         <p>سيبقى الأصل ظاهرًا، ويضاف أثر مقابل له بدل الحذف أو التعديل الصامت.</p>
       </div>

@@ -168,9 +168,9 @@ describe("EXE-009 — owner investment editor: destination + cross-model guard",
     renderInvestmentEditor();
     const select = (await screen.findByLabelText(/وجهة الكاش/)) as HTMLSelectElement;
     await waitFor(() => expect(select.value).toBe(""));
-    expect(screen.getByText("الكاش غير الموزع")).toBeTruthy();
+    expect(screen.getByText("النقد غير الموزع")).toBeTruthy();
     expect(screen.getByText("الدرج — تخصيص إلى رصيدها")).toBeTruthy();
-    expect(screen.getByText(/الكاش غير الموزع هو الافتراضي/)).toBeTruthy();
+    expect(screen.getByText(/النقد غير الموزع هو الافتراضي/)).toBeTruthy();
   });
 
   it("attributes the investment to the chosen wallet with the owner_event legal source", async () => {
@@ -230,7 +230,7 @@ describe("EXE-009 — unified withdrawal editor: source + guard + no dead end", 
     await screen.findByLabelText("مبلغ السحب");
     const select = (await screen.findByLabelText(/مصدر السحب/)) as HTMLSelectElement;
     await waitFor(() => expect(select.value).toBe(""));
-    expect(screen.getByText("الكاش غير الموزع")).toBeTruthy();
+    expect(screen.getByText("النقد غير الموزع")).toBeTruthy();
     expect(screen.getByText("الدرج — تغطية من رصيدها")).toBeTruthy();
   });
 
@@ -270,7 +270,7 @@ describe("EXE-009 — unified withdrawal editor: source + guard + no dead end", 
       },
     });
     expect(await screen.findByText("سياستك الفعالة تسحب من محفظة، وما في محفظة معلنة بعد.")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /أنشئ محفظة كاش/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /أنشئ محفظة نقود/ })).toBeTruthy();
   });
 });
 

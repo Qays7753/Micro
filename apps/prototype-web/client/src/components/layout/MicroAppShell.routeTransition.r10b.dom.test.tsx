@@ -184,7 +184,7 @@ describe("R10-B4/OD-12 — centralized route-transition focus and document title
     navigateTo("/cash");
     expect(document.activeElement).not.toBe(currentMain());
     expect(document.activeElement).toBe(document.body);
-    expect(document.title).toBe("محافظ الكاش");
+    expect(document.title).toBe("محافظ النقد");
     focusSpy.mockRestore();
     /* وبعد إعادة التفعيل: الانتقال التالي يستقبل التركيز مجددًا بالهوية نفسها. */
     navigateTo("/finance");

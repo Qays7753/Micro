@@ -191,7 +191,7 @@ describe("G6 — OrderDetail compound collection reversal (S2-04a)", () => {
       name: "أكّد التراجع عن القبضة والتوزيع",
     });
     expect(screen.getByText(/رصيد محفظة «درج المحل»/)).toBeTruthy();
-    expect(screen.getByText("الكاش غير الموزع")).toBeTruthy();
+    expect(screen.getByText("النقد غير الموزع")).toBeTruthy();
     /* المفرد يبقى متاحًا كخيار بديل صريح. */
     expect(screen.getByRole("button", { name: "تراجع عن القبضة لحالها بدلًا" })).toBeTruthy();
 

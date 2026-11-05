@@ -181,7 +181,7 @@ describe("CashDistribution journeys (Group 11-E)", () => {
   it("shows the unallocated cash decision card with exact values once ready", async () => {
     await openWalletWith(20000, "درج");
     render(<Harness page={<CashDistribution />} />);
-    expect(await screen.findByRole("heading", { name: "وزّع الكاش غير الموزع" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "وزّع النقد غير الموزع" })).toBeTruthy();
     await waitFor(() => expect(screen.getByLabelText("المتاح الآن")).toBeTruthy());
   });
 
@@ -205,7 +205,7 @@ describe("CashDistribution journeys (Group 11-E)", () => {
     expect(covered.ok).toBe(true);
 
     render(<Harness page={<CashDistribution />} />);
-    expect(await screen.findByRole("heading", { name: "وزّع الكاش غير الموزع" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "وزّع النقد غير الموزع" })).toBeTruthy();
     await waitFor(() => expect(screen.getByLabelText("نموذج التوزيع")).toBeTruthy());
     /* القيمة الدقيقة 271.00 د.أ تُوزّع كاملة بلا تقريب. */
     fireEvent.change(screen.getByLabelText("مبلغ التوزيع"), { target: { value: "271" } });
@@ -216,7 +216,7 @@ describe("CashDistribution journeys (Group 11-E)", () => {
   it("blocks distribution without a positive exact amount — no silent zero", async () => {
     await openWalletWith(20000, "درج");
     render(<Harness page={<CashDistribution />} />);
-    expect(await screen.findByRole("heading", { name: "وزّع الكاش غير الموزع" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "وزّع النقد غير الموزع" })).toBeTruthy();
     await waitFor(() => expect(screen.getByLabelText("نموذج التوزيع")).toBeTruthy());
     fireEvent.click(screen.getByRole("button", { name: "سجّل التوزيع" }));
     await waitFor(() => expect(screen.getByText("أدخل مبلغًا صحيحًا موجبًا بالأرقام 0–9.")).toBeTruthy());
@@ -243,7 +243,7 @@ describe("EXE-001 — sequential distributions in one visit", () => {
     if (!invested.ok) throw new Error(invested.message);
 
     render(<Harness page={<CashDistribution />} />);
-    expect(await screen.findByRole("heading", { name: "وزّع الكاش غير الموزع" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "وزّع النقد غير الموزع" })).toBeTruthy();
     await waitFor(() => expect(screen.getByLabelText("نموذج التوزيع")).toBeTruthy());
 
     /* التوزيع الأول: 20.00 د.أ إلى المحفظة. */

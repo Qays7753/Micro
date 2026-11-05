@@ -143,7 +143,7 @@ describe("NAV-001 — approved five-seat navigation", () => {
     await waitFor(() => expect(screen.getByText("سجّل مصروفًا الآن")).toBeTruthy());
     expect(screen.getByLabelText("مبلغ المصروف")).toBeTruthy();
     /* FIN-005: بلا محافظ — الصرف من غير الموزع بتحذير معلن. */
-    expect(screen.getByText(/من الكاش غير الموزع/)).toBeTruthy();
+    expect(screen.getByText(/من النقد غير الموزع/)).toBeTruthy();
   });
 
   it("SET-002: the setup success banner appears once after first setup and disappears without the flag", async () => {

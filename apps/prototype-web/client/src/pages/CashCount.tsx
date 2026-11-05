@@ -188,7 +188,7 @@ export default function CashCount() {
     return (
       <section className="micro-page micro-count-page">
         <div className="micro-page-heading">
-          <span className="micro-overline">مطابقة رصيد الصندوق</span>
+          {/* UXR-04 (F-008/SOP-02): العنوان وحده — لا تمهيد معماري فوقه. */}
           <h1>{done.kind === "settled" ? "انسجّل فرق العدّ" : "انسجّل القياس"}</h1>
           {/* R9-GA-F3.6: قناة النتيجة status مهذبة بفئة الملاحظة — ليست خطأ. */}
           <p role="status" className="micro-save-note">
@@ -221,10 +221,11 @@ export default function CashCount() {
         <ArrowRight aria-hidden="true" /> أماكن النقد
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">مطابقة رصيد الصندوق</span>
+        {/* UXR-04 (F-008/SOP-02 + نص العدّ المعتمد): عنوان واحد والنص الحرفي لعقد العدّ. */}
         <h1>عدّ اللي في الدرج فعلًا</h1>
         <p>
-          القياس أولًا: يُحفظ ما وجدته كما هو. والفرق لا يُحسب إلا من رصيد مسجل مكتمل، وتسجيله قرارك الصريح.
+          القياس أولًا: يُحفظ ما وجدته كما هو — مبلغ العدّ لا يغير السجل حتى تؤكد التسوية. والفرق لا يُحسب إلا
+          من رصيد مسجل مكتمل، وتسجيله قرارك الصريح.
         </p>
       </div>
       {overview.wallets.length === 0 ? (

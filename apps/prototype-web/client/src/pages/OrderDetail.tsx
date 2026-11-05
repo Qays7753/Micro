@@ -630,7 +630,7 @@ export default function OrderDetail() {
         if (!attribution.ok) {
           /* العربون محصل والتخصيص تعذّر — المال في غير الموزع والرسالة صادقة. */
           setMessage(
-            `سُجّل العربون، وتعذر تخصيصه للمحفظة: ${attribution.message} — المبلغ في الكاش غير الموزع.`,
+            `سُجّل العربون، وتعذر تخصيصه للمحفظة: ${attribution.message} — المبلغ في النقد غير الموزع.`,
           );
         }
       }
@@ -948,7 +948,7 @@ export default function OrderDetail() {
                         afterMinor: Math.max(newPriceMinor - order.collectedMinor, 0),
                       },
                       {
-                        label: "الكاش المقبوض",
+                        label: "النقد المقبوض",
                         beforeMinor: order.collectedMinor,
                         afterMinor: order.collectedMinor,
                       },
@@ -1004,7 +1004,7 @@ export default function OrderDetail() {
               </Button>
             )}
             {/* المجموعة ٣ (عقد D4/D5): عكس التسليم المكتمل — تصحيح موثق يحيّد الإيراد
-                ويعكس حركات الاستهلاك مرآةً ولا يمس الكاش المقبوض؛ الطلب ينتقل إلى
+                ويعكس حركات الاستهلاك مرآةً ولا يمس النقد المقبوض؛ الطلب ينتقل إلى
                 «يحتاج مراجعة» ويُستأنف تنفيذه بقرار صريح. */}
             {/* التحصين الكامل (D-031): لوحة التراجع الموثق تظهر أيضًا للسجل المسلّم
                 المقفل داخل «يحتاج مراجعة» — التراجع الموثق هو المخرج الوحيد. */}
@@ -1016,11 +1016,11 @@ export default function OrderDetail() {
                     action="تراجع موثق عن التسليم المكتمل"
                     originalLabel={`تسليم «${order.itemName}» بإيراد معروف ${formatMoneyMinor(order.recognizedRevenueMinor)} د.أ`}
                     originalDetail={`المقبوض ${formatMoneyMinor(order.collectedMinor)} د.أ · التكلفة المعروفة ${formatMoneyMinor(order.recognizedCostMinor)} د.أ`}
-                    intro="تراجع موثق لا حذف: حدث التسليم وأثره يبقى في السجل، الإيراد والنتيجة يُحيَّدان إلى غياب المعرفة، وحركات استهلاك المواد المرتبطة بهذا التسليم يُسجَّل لها مرايا تراجع فيرجع الرصيد. الكاش المقبوض لا يتأثر — تراجع القبضة له مساره الخاص."
+                    intro="تراجع موثق لا حذف: حدث التسليم وأثره يبقى في السجل، الإيراد والنتيجة يُحيَّدان إلى غياب المعرفة، وحركات استهلاك المواد المرتبطة بهذا التسليم يُسجَّل لها مرايا تراجع فيرجع الرصيد. النقد المقبوض لا يتأثر — تراجع القبضة له مساره الخاص."
                     dimensions={[
                       { label: "الإيراد المعروف", beforeMinor: order.recognizedRevenueMinor, afterMinor: 0 },
                       {
-                        label: "الكاش المقبوض",
+                        label: "النقد المقبوض",
                         beforeMinor: order.collectedMinor,
                         afterMinor: order.collectedMinor,
                       },
@@ -1100,7 +1100,7 @@ export default function OrderDetail() {
                     </p>
                   ) : null}
                   {/* عقد الإغلاق العميق (AV-06 — أموال مقبوضة عند الإلغاء): تحصيلات
-                      غير العربون تبقى في السجل والكاش بعد الإلغاء بلا مسار تراجع
+                      غير العربون تبقى في السجل والنقد بعد الإلغاء بلا مسار تراجع
                       مباشر (التراجع عن قبضة متاح ما دام الطلب حيًا) — التحذير
                       يشرح الأثر ويقدّم الفعل التالي قبل قرار الإلغاء، لا بعده. */}
                   {order.collectedMinor - order.depositCollectedMinor > 0 ? (
@@ -1110,7 +1110,7 @@ export default function OrderDetail() {
                         minor={order.collectedMinor - order.depositCollectedMinor}
                         className="micro-inline-number"
                       />{" "}
-                      د.أ) — بعد الإلغاء تبقى هذه القبضة في السجل والكاش بلا مسار تراجع عن طلب ملغى. إن كنت
+                      د.أ) — بعد الإلغاء تبقى هذه القبضة في السجل والنقد بلا مسار تراجع عن طلب ملغى. إن كنت
                       ستعيد المبلغ للزبون، تراجع عن القبضة أولًا من قسم التحصيلات ثم ألغِ.
                     </p>
                   ) : null}
@@ -1197,8 +1197,8 @@ export default function OrderDetail() {
             ) : null}
             {/* عقد الإغلاق العميق (WF-01/MR-01): عربون إضافي أثناء الرحلة قبل
                 التسليم — المسار الذي كانت ورقة التحصيل توجه إليه بلا سطح فعلي.
-                العربون يرفع الكاش المقبوض ويبقى دينًا مرتبطًا بالطلب لا إيرادًا؛
-                الإيراد يُعرف مرة واحدة عند التسليم، ووجهة الكاش خيار صريح. */}
+                العربون يرفع النقد المقبوض ويبقى دينًا مرتبطًا بالطلب لا إيرادًا؛
+                الإيراد يُعرف مرة واحدة عند التسليم، ووجهة النقد خيار صريح. */}
             {preDeliveryStatuses.includes(order.status) &&
             order.agreedPriceMinor - order.collectedMinor > 0 ? (
               depositPanelOpen ? (
@@ -1209,7 +1209,7 @@ export default function OrderDetail() {
                 >
                   <strong>سجّل عربونًا إضافيًا</strong>
                   <p>
-                    دفعة قبل التسليم تُسجَّل عربونًا مرتبطًا بهذا الطلب والزبون — ترفع الكاش المقبوض ولا تُعدّ
+                    دفعة قبل التسليم تُسجَّل عربونًا مرتبطًا بهذا الطلب والزبون — ترفع النقد المقبوض ولا تُعدّ
                     إيرادًا؛ عند التسليم تُطبَّق على قيمة الطلب مرة واحدة بلا تحصيل مزدوج.
                   </p>
                   <label className="micro-field">
@@ -1223,7 +1223,7 @@ export default function OrderDetail() {
                     />
                   </label>
                   <label className="micro-field">
-                    <span>وجهة الكاش المحصل</span>
+                    <span>وجهة النقد المحصل</span>
                     <select
                       value={depositWalletId}
                       onChange={event => setDepositWalletId(event.target.value)}
@@ -1351,7 +1351,7 @@ export default function OrderDetail() {
                                 useCompound && allocation
                                   ? [
                                       {
-                                        label: "الكاش المقبوض",
+                                        label: "النقد المقبوض",
                                         beforeMinor: order.collectedMinor,
                                         afterMinor: order.collectedMinor - reversalMinor,
                                       },
@@ -1366,7 +1366,7 @@ export default function OrderDetail() {
                                         afterMinor: preview.walletBalanceAfterMinor ?? 0,
                                       },
                                       {
-                                        label: "الكاش غير الموزع",
+                                        label: "النقد غير الموزع",
                                         beforeMinor: preview.unallocatedBeforeMinor ?? 0,
                                         afterMinor: preview.unallocatedAfterMinor ?? 0,
                                       },
@@ -1378,7 +1378,7 @@ export default function OrderDetail() {
                                     ]
                                   : [
                                       {
-                                        label: "الكاش المقبوض",
+                                        label: "النقد المقبوض",
                                         beforeMinor: order.collectedMinor,
                                         afterMinor: order.collectedMinor - reversalMinor,
                                       },
@@ -1545,7 +1545,7 @@ export default function OrderDetail() {
           <strong>
             <MoneyValue minor={order.receivableMinor} /> د.أ
           </strong>
-          <p>حصّله من ورقة التحصيل بوجهة محفظة واضحة — التحصيل كاش ومتبقٍ فقط، لا إيراد جديد.</p>
+          <p>حصّله من ورقة التحصيل بوجهة محفظة واضحة — التحصيل نقد ومتبقٍ فقط، لا إيراد جديد.</p>
           <div className="micro-form-actions micro-contextual-actions">
             <Button
               action="create"
@@ -1689,7 +1689,7 @@ export default function OrderDetail() {
                   </label>
                   {termsResponsibility === "customer_pays_courier" ? (
                     <p className="micro-muted-copy">
-                      معلومة سياقية فقط — ليست كاش مشروع ولا إيرادًا ولا مصروفًا.
+                      معلومة سياقية فقط — ليست نقد مشروع ولا إيرادًا ولا مصروفًا.
                     </p>
                   ) : null}
                   {termsResponsibility === "customer_pays_project" || termsResponsibility === "shared" ? (

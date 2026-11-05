@@ -64,7 +64,7 @@ export default function CashDistribution() {
     Promise.all([cashContinuity.overview(), projectFinance.readPosition()]).then(([overview, position]) => {
       if (!active) return;
       if (!overview.ok || !position.ok) {
-        setState({ phase: "error", message: "تعذر قراءة المحافظ والكاش." });
+        setState({ phase: "error", message: "تعذر قراءة المحافظ والنقد." });
         return;
       }
       setState({ phase: "ready", overview: overview.value, position: position.value });
@@ -99,13 +99,13 @@ export default function CashDistribution() {
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
-        جارٍ قراءة الكاش غير الموزع…
+        جارٍ قراءة النقد غير الموزع…
       </div>
     );
   if (state.phase === "error")
     return (
       <section className="micro-page micro-not-found">
-        <h1>تعذر قراءة الكاش</h1>
+        <h1>تعذر قراءة النقد</h1>
         <p role="alert">{state.message}</p>
         <div className="micro-form-actions">
           <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
@@ -117,7 +117,7 @@ export default function CashDistribution() {
 
           onClick={() => navigate(returnPath)}
         >
-          محافظ الكاش
+          محافظ النقد
         </Button>
       </section>
     );
@@ -178,33 +178,33 @@ export default function CashDistribution() {
   return (
     <section className="micro-page micro-distribution-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
-        <ArrowRight aria-hidden="true" /> محافظ الكاش
+        <ArrowRight aria-hidden="true" /> محافظ النقد
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">قرار توزيع صريح</span>
-        <h1>وزّع الكاش غير الموزع</h1>
-        <p>الكاش الذي دخل بلا نسبة لمحفظة يجد هنا طريقه — لا تخصيص صامت ولا رصيد عالق بلا حل.</p>
+        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد بلا تمهيد معماري فوقه. */}
+        <h1>وزّع النقد غير الموزع</h1>
+        <p>النقد الذي دخل بلا نسبة لمحفظة يجد هنا طريقه — لا تخصيص صامت ولا رصيد عالق بلا حل.</p>
       </div>
       <section className="micro-decision-card" aria-label="المتاح الآن">
-        <span>الكاش غير الموزع المتاح</span>
+        <span>النقد غير الموزع المتاح</span>
         <strong>
           <MoneyValue minor={position.unallocatedCashMinor} />
         </strong>
         <p>
-          كاش المحافظ: <MoneyValue minor={position.walletCashMinor} /> · الإجمالي المسجل:{" "}
+          نقد المحافظ: <MoneyValue minor={position.walletCashMinor} /> · الإجمالي المسجل:{" "}
           <MoneyValue minor={position.recordedCashMinor} /> — التوزيع ينقل بينهما ولا يغيّر الإجمالي.
         </p>
         {position.unallocatedCashMinor < 0 ? (
           <p className="micro-field-error" role="alert">
-            في دفعة تحتاج تغطية — الكاش غير الموزع سالب لأن دفعًا مسجلًا تجاوز ما دخل غير موزع. غطِّ الفرق من
-            محفظة فيها رصيد؛ التغطية نقل كاش لا مصروف ولا ربح.
+            في دفعة تحتاج تغطية — النقد غير الموزع سالب لأن دفعًا مسجلًا تجاوز ما دخل غير موزع. غطِّ الفرق من
+            محفظة فيها رصيد؛ التغطية نقل نقد لا مصروف ولا ربح.
           </p>
         ) : null}
       </section>
       <section className="micro-form-card" aria-label="نموذج التوزيع">
         {overview.wallets.length === 0 ? (
           <p className="micro-field-error" role="alert">
-            لا توجد محافظ بعد؛ أنشئ محفظة أولًا من «محافظ الكاش».
+            لا توجد محافظ بعد؛ أنشئ محفظة أولًا من «محافظ النقد».
           </p>
         ) : (
           <>
@@ -276,7 +276,7 @@ export default function CashDistribution() {
         )}
       </section>
       <p className="micro-home-truth-line">
-        <ArrowLeft aria-hidden="true" /> التخصيص حركة موثقة في سجل المحفظة — يمكن التراجع عنها كأي أثر كاش.
+        <ArrowLeft aria-hidden="true" /> التخصيص حركة موثقة في سجل المحفظة — يمكن التراجع عنها كأي أثر نقد.
       </p>
     </section>
   );

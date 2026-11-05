@@ -235,7 +235,7 @@ describe("Collect — ورقة التحصيل (المجموعة ٢ §6)", () => 
     expect(screen.getByText("الإيراد والنتيجة")).toBeTruthy();
     expect(screen.getByText("لا تتغير — القبض ليس إيرادًا")).toBeTruthy();
     /* الدرج وجهة افتراضية معلنة لا اختيارًا صامتًا. */
-    const destination = screen.getByLabelText(/وجهة الكاش/) as HTMLSelectElement;
+    const destination = screen.getByLabelText(/وجهة النقد/) as HTMLSelectElement;
     expect(destination.selectedOptions[0]?.textContent).toContain("درج المحل");
     expect(destination.selectedOptions[0]?.textContent).toContain("الافتراضي");
   });

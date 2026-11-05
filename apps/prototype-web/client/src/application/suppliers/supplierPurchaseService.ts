@@ -141,7 +141,7 @@ export class SupplierPurchaseService {
     );
     if (walletBalanceMinor < amountMinor)
       return validationFailure(
-        "رصيد المحفظة لا يغطي هذه الدفعة — اختر محفظة أخرى أو اصرفها من الكاش غير الموزع صراحةً.",
+        "رصيد المحفظة لا يغطي هذه الدفعة — اختر محفظة أخرى أو اصرفها من النقد غير الموزع صراحةً.",
       );
     return { ok: true, value: { walletBalanceMinor } };
   }
@@ -228,7 +228,7 @@ export class SupplierPurchaseService {
         supplierPayablesMinor,
         recordedCashPaidMinor,
         truth:
-          "شراء المواد يغيّر الكاش أو ذمة المورد فقط؛ وتكلفته تُعرف من بنوده: مواد الفترة بلا متابعة تُحمل مرة على فترة الشراء، والمتتبعة عند استعمالها.",
+          "شراء المواد يغيّر النقد أو ذمة المورد فقط؛ وتكلفته تُعرف من بنوده: مواد الفترة بلا متابعة تُحمل مرة على فترة الشراء، والمتتبعة عند استعمالها.",
       },
     };
   }

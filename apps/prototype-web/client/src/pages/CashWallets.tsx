@@ -34,7 +34,7 @@ type State =
 const label = (type: CashContinuityEntry["type"]) =>
   ({
     opening_balance: "رصيد بداية",
-    cash_adjustment: "ضبط كاش",
+    cash_adjustment: "ضبط نقد",
     transfer_out: "تحويل صادر",
     transfer_in: "تحويل وارد",
     reversal: "تراجع عن أثر",
@@ -72,13 +72,13 @@ export default function CashWallets() {
   if (state.phase === "loading")
     return (
       <div className="micro-route-loading" role="status">
-        جارٍ قراءة محافظ الكاش المحلية…
+        جارٍ قراءة محافظ النقد المحلية…
       </div>
     );
   if (state.phase === "error")
     return (
       <section className="micro-page micro-not-found">
-        <h1>تعذر قراءة محافظ الكاش</h1>
+        <h1>تعذر قراءة محافظ النقد</h1>
         <p role="alert">لم يتغير أي سجل.</p>
         <div className="micro-form-actions">
           <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
@@ -100,24 +100,29 @@ export default function CashWallets() {
         <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "المالية" : "رجوع"}
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">استمرارية السجل</span>
-        <h1>محافظ الكاش</h1>
+        {/* UXR-04 (F-008/SOP-02): عنوان واحد بلا تمهيد معماري — «النقد» بلسان قاموس CASH. */}
+        <h1>محافظ النقد</h1>
         <p>
-          ابدأ من الأماكن التي تعرف أن الكاش موجود فيها، ثم انقل أو اضبط أثرًا بسبب. لا يحول Micro أي افتتاح
+          ابدأ من الأماكن التي تعرف أن النقد موجود فيها، ثم انقل أو اضبط أثرًا بسبب. لا يحول Micro أي افتتاح
           إلى ربح أو دخل.
         </p>
       </div>
+      {/* UXR-04 (عقد CASH): إجمالي النقد المسجل وحالته أولًا، ثم المحافظ، وغير الموزع عند وجوده فقط. */}
       <section className="micro-decision-card">
         <WalletCards aria-hidden="true" />
         <div>
-          <span>كاش المحافظ المعلن (د.أ)</span>
+          <span>إجمالي النقد المسجل (د.أ)</span>
           <strong>
-            <MoneyValue minor={state.overview.totalWalletCashMinor} />
+            <MoneyValue minor={state.position.recordedCashMinor} />
           </strong>
+          <p>
+            نقد المحافظ المعلن: <MoneyValue minor={state.overview.totalWalletCashMinor} /> · غير الموزع:{" "}
+            <MoneyValue minor={state.position.unallocatedCashMinor} />
+          </p>
           <p>{state.overview.truth}</p>
         </div>
       </section>
-      {/* المجموعة ٢ (§7.1/Scope G): الأمانات كاش حقيقي في الدرج لا ملك ولا ربح —
+      {/* المجموعة ٢ (§7.1/Scope G): الأمانات نقد حقيقي في الدرج لا ملك ولا ربح —
           تظهر بمبلغها الدقيق مع سطر الثقة لا بمجاز غامض. */}
       {state.position.amanahHeldMinor > 0 ? (
         <section className="micro-decision-card" data-amanah="true" aria-label="الأمانات بحوزتك">
@@ -127,34 +132,31 @@ export default function CashWallets() {
             <strong>
               <MoneyValue minor={state.position.amanahHeldMinor} /> د.أ
             </strong>
-            <p>هذا كاش موجود في الدرج، لكنه ليس ربحك ولا مالكًا لك — قُبض وسُلّم من «تسجيل حركة» في مالي.</p>
+            <p>هذا نقد موجود في الدرج، لكنه ليس ربحك ولا مالكًا لك — قُبض وسُلّم من «تسجيل حركة» في مالي.</p>
           </div>
         </section>
       ) : null}
-      <section className="micro-cash-facts">
-        <div>
-          <span>الكاش غير الموزع (د.أ)</span>
-          <strong>
-            <MoneyValue minor={state.position.unallocatedCashMinor} />
-          </strong>
-          {/* S2-04 (ب): الرصيد السالب يُفسَّر بسببه لا برقم مجرد — تراجع تحصيل/تصحيح بيع
+      {/* UXR-04 (عقد CASH): غير الموزع يظهر عند وجوده فقط — لا كتلة دائمة بصفر؛
+          سالبه تغطية وموجبه توزيع، والإجمالي مسكنه بطاقة المشهد الأول أعلاه. */}
+      {state.position.unallocatedCashMinor !== 0 ? (
+        <section className="micro-cash-facts">
+          <div>
+            <span>النقد غير الموزع (د.أ)</span>
+            <strong>
+              <MoneyValue minor={state.position.unallocatedCashMinor} />
+            </strong>
+            {/* S2-04 (ب): الرصيد السالب يُفسَّر بسببه لا برقم مجرد — تراجع تحصيل/تصحيح بيع
               مع تخصيص قائم يترك تخصيصًا زائدًا؛ التراجع الموثق للتخصيص من السجل أسفله. */}
-          {state.position.unallocatedCashMinor < 0 ? (
-            <small className="micro-field-error" role="alert">
-              تخصيص زائد — راجع تراجع التحصيل أو تصحيح البيع ثم تراجع التخصيص الموثق من السجل.
-            </small>
-          ) : (
-            <small>طلب أو حدث أو شراء مواد لم يربطه النظام بمحفظة بعد.</small>
-          )}
-        </div>
-        <div>
-          <span>الكاش المسجل الكلي (د.أ)</span>
-          <strong>
-            <MoneyValue minor={state.position.recordedCashMinor} />
-          </strong>
-          <small>المحافظ المعلنة + الكاش غير الموزع.</small>
-        </div>
-      </section>
+            {state.position.unallocatedCashMinor < 0 ? (
+              <small className="micro-field-error" role="alert">
+                تخصيص زائد — راجع تراجع التحصيل أو تصحيح البيع ثم تراجع التخصيص الموثق من السجل.
+              </small>
+            ) : (
+              <small>طلب أو حدث أو شراء مواد لم يربطه النظام بمحفظة بعد.</small>
+            )}
+          </div>
+        </section>
+      ) : null}
       {/* مبدأ Micro: لا يظهر الفعل المشروط كزر معطل؛ يظهر شرط إنجازه قريبًا. */}
       <div className="micro-cash-actions">
         <Button
@@ -234,7 +236,7 @@ export default function CashWallets() {
                       ? "حساب بنكي"
                       : wallet.kind === "digital_wallet"
                         ? "محفظة رقمية"
-                        : "مكان كاش آخر"}{" "}
+                        : "مكان نقد آخر"}{" "}
                   · {savedImpactCountLabel(wallet.entryCount)}
                   {wallet.openingUnknown ? " · رصيد الافتتاح غير معروف" : ""}
                 </small>
@@ -271,7 +273,7 @@ export default function CashWallets() {
             </article>
           ))
         ) : (
-          <p>لا تجعل الكاش المسجل بداية غامضة. أضف درجًا أو حسابًا ورصيده في يوم البدء.</p>
+          <p>لا تجعل النقد المسجل بداية غامضة. أضف درجًا أو حسابًا ورصيده في يوم البدء.</p>
         )}
       </section>
       {state.entries.length ? (
