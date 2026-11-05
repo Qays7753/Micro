@@ -290,17 +290,13 @@ export default function Orders() {
       : applied.scope === "past"
         ? "الطلبات السابقة"
         : "كل الطلبات";
-  const scopeHint =
-    applied.scope === "current"
-      ? "العمل غير المنتهي والمسودات القابلة للإكمال"
-      : applied.scope === "past"
-        ? "المنتهية والملغاة — دينها وتصحيحها باقيان عند مصدرهما"
-        : "كل الطلبات في نطاق واحد";
 
   return (
     <section className="micro-page">
+      {/* DEC-ORD-01 (UXR-03 — أمر W02): طبقة «وجهة العمل» محذوفة — اسم
+       * الوجهة في الترويسة وH1 واحد في المحتوى (قبول F-008: طبقة تعريف
+       * واحدة فوق H1). */}
       <div className="micro-page-heading">
-        <span className="micro-overline">وجهة العمل</span>
         <h1>الطلبات</h1>
         <div className="micro-form-actions">
           <Button
@@ -320,30 +316,30 @@ export default function Orders() {
         </p>
       </details>
 
-      {/* A2-2: اختيار واضح بين القائمة (الافتراضي) والتقويم */}
+      {/* A2-2/DEC-ORD-02 (UXR-03 — F-009): مفتاح العرض المضغوط — صف واحد
+       * فوق radio أصلية (أسهم/Tab/Mسافة من radio القائمة نفسها، والحالة
+   * معلنة بالتسمية المرتبطة لا لونًا وحده)؛ التبويب الداخلي «وجهة» بلا
+   * مقعد هنا — القائمة والتقويم عرضان داخل وجهة واحدة (SOP-08)، والنطاق
+   * والبحث المطبقان محفوظان عبر التبديل. */}
       <fieldset className="micro-payment-mode micro-view-toggle">
         <legend>العرض</legend>
-        <label className="micro-radio-choice">
+        <label className="micro-view-segment">
           <input
             type="radio"
             name="orders-view"
             checked={view === "list"}
             onChange={() => switchView("list")}
           />
-          <span>
-            <b>قائمة الطلبات</b>
-          </span>
+          <span>القائمة</span>
         </label>
-        <label className="micro-radio-choice">
+        <label className="micro-view-segment">
           <input
             type="radio"
             name="orders-view"
             checked={view === "calendar"}
             onChange={() => switchView("calendar")}
           />
-          <span>
-            <b>التقويم</b>
-          </span>
+          <span>التقويم</span>
         </label>
       </fieldset>
 
@@ -364,7 +360,7 @@ export default function Orders() {
                     setDraft(current => ({ ...current, query: event.target.value }));
                     setShownCount(DISPLAY_CAP);
                   }}
-                  placeholder="اسم القطعة أو العميل المسجل"
+                  placeholder="اسم الطلب أو العميل"
                 />
               </label>
               <Button action="secondary" onClick={() => setFilterOpen(openState => !openState)}>
@@ -452,9 +448,11 @@ export default function Orders() {
               </section>
             ) : null}
 
-            {/* وصف النطاق ثابت فوق النتائج + عدد صادق (قراءة كاملة هنا) */}
+            {/* وصف النطاق بحدّ القراءة الفعلية (COPY-12 — UXR-03): العدد
+                لنطاق القراءة فعلًا ودرجة الجزئية عند وجودها؛ تعريف النطاق
+                عند تفعيله/الفراغ لا سطرًا دائمًا (N2). */}
             <p className="micro-scope-line" role="status">
-              {scopeTitle} — {scopeHint} · {filteredOrders.length} طلبًا مقروءًا
+              {scopeTitle} · {filteredOrders.length}
               {filteredOrders.length > shownCount ? ` (يُعرض ${shownCount})` : ""}
             </p>
 
@@ -464,7 +462,7 @@ export default function Orders() {
                   aria-labelledby="orders-empty-title"
                   symbol={<ClipboardPlus />}
                   state={<StatusChip state="no-data">لا توجد طلبات محفوظة</StatusChip>}
-                  title={<h2 id="orders-empty-title">لا طلبات بعد — ابدأ أول طلب</h2>}
+                  title={<h2 id="orders-empty-title">لا طلبات بعد</h2>}
                   description={<>«طلب جديد» يفتح مسودة الطلب مباشرة؛ العميل والمنتج المحفوظان اختياريان.</>}
                   action={
                     <Button
@@ -476,26 +474,46 @@ export default function Orders() {
                     </Button>
                   }
                 />
-              ) : applied.query.trim() !== "" || applied.datePresence !== "all" ? (
+              ) : applied.query.trim() !== "" ? (
+                /* COPY-15 (UXR-03): بحث بلا نتائج — مسح البحث لا تحويله لعدم
+                 * وجود طلبات أصلًا؛ ومدخل السجين محفوظ كقدرة عند وجوده. */
                 <section className="micro-empty-inline">
-                  <p>لا نتائج تطابق البحث أو التصفية في هذا النطاق.</p>
-                  <Button
-                    action="quiet"
-                    onClick={() => {
-                      if (pastCount > 0 && applied.scope === "current") {
-                        setApplied(current => ({ ...current, scope: "past" }));
-                        setDraft(current => ({ ...current, scope: "past" }));
-                      } else resetFilter();
-                    }}
-                  >
-                    {pastCount > 0 && applied.scope === "current"
-                      ? `ابحث في الطلبات السابقة (${pastCount}) — يُحفظ نص البحث`
-                      : "إعادة ضبط التصفية"}
+                  <p>لا نتائج تطابق بحثك</p>
+                  <div className="micro-form-actions micro-contextual-actions">
+                    <Button
+                      action="quiet"
+                      onClick={() => {
+                        setApplied(current => ({ ...current, query: "" }));
+                        setDraft(current => ({ ...current, query: "" }));
+                      }}
+                    >
+                      مسح البحث
+                    </Button>
+                    {pastCount > 0 && applied.scope === "current" ? (
+                      <Button
+                        action="quiet"
+                        onClick={() => {
+                          setApplied(current => ({ ...current, scope: "past" }));
+                          setDraft(current => ({ ...current, scope: "past" }));
+                        }}
+                      >
+                        الطلبات السابقة ({pastCount})
+                      </Button>
+                    ) : null}
+                  </div>
+                </section>
+              ) : applied.datePresence !== "all" ? (
+                <section className="micro-empty-inline">
+                  <p>لا نتائج تطابق التصفية في هذا النطاق.</p>
+                  <Button action="quiet" onClick={() => resetFilter()}>
+                    إعادة ضبط التصفية
                   </Button>
                 </section>
               ) : applied.scope === "current" && pastCount > 0 ? (
+                /* COPY-14 (UXR-03): لا جملة «هذا لا يعني…» دائمة — الحالة
+                 * الصادقة ومدخل السجل التاريخي المعلوم مع عدده فقط. */
                 <section className="micro-empty-inline">
-                  <p>لا طلبات حالية — هذا لا يعني عدم وجود طلبات سابقة أو مستحقات.</p>
+                  <p>لا طلبات حالية</p>
                   <Button
                     action="quiet"
                     onClick={() => {
@@ -808,6 +826,9 @@ function OrdersCalendar({
           التالي
         </Button>
       </div>
+      {/* DEC-ORD-02 (UXR-03 — F-009): نطاق العرض (شهر/أسبوع/يوم) — نفس
+          المفتاح المضغوط داخل وضع التقويم فقط (نطاق العرض يظهر هنا
+          وحده — عقد 02-ORD)، فوق radio أصلية بلا بطاقات كبيرة. */}
       <fieldset className="micro-payment-mode micro-view-toggle">
         <legend>نطاق العرض</legend>
         {(
@@ -817,7 +838,7 @@ function OrdersCalendar({
             ["day", "يوم"],
           ] as const
         ).map(([value, label]) => (
-          <label className="micro-radio-choice" key={value}>
+          <label className="micro-view-segment" key={value}>
             <input
               type="radio"
               name="calendar-mode"
@@ -916,7 +937,8 @@ function OrdersCalendar({
           مواعيد {formatLocalDate(effectiveSelected) ?? effectiveSelected} ({dayEntries.length})
         </h3>
         {dayEntries.length === 0 ? (
-          <p className="micro-empty-inline">لا مواعيد في هذا اليوم — لا يعني خلو المشروع من الطلبات.</p>
+          /* عقد 02-ORD: يوم فارغ — الحالة الصادقة بلا فقرة «لا يعني…» دائمة. */
+          <p className="micro-empty-inline">لا مواعيد لهذا اليوم</p>
         ) : (
           dayEntries.map((entry: ScheduleCommunityEntry) => (
             <button

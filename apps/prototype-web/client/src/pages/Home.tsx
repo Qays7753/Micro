@@ -40,7 +40,6 @@ import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";
 import { formatArabicPlural, formatLocalDateLong } from "@/presentation/formatters";
 import { withReturnTo } from "@/app/navigationContract";
-import { futureServiceAnnouncements } from "@/app/futureServices";
 import type {
   HomeControlCenterViewModel,
   HomeFollowUpRow,
@@ -163,10 +162,9 @@ export default function Home() {
   const [infoOpen, setInfoOpen] = useState(false);
   const infoRef = useRef<HTMLDivElement>(null);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
-  /* UNIT-043/HOME-A2-5: اسأل Micro — مدخل ثانوي يفتح الإعلان القائم فقط. */
-  const [askMicroOpen, setAskMicroOpen] = useState(false);
-  const askMicroRef = useRef<HTMLDivElement>(null);
-  const askMicroButtonRef = useRef<HTMLButtonElement>(null);
+  /* UNIT-043/HOME-A2-5 + DEC-SHELL-01 (UXR-03 — أمر W02): إعلان «اسأل
+   * Micro — قريبًا» غادر الرئيسية — عنصر واحد عند الطلب في قائمة «مايكرو»
+   * (AppHeader)؛ لا شريط دائم ولا بطاقة ثانوية داخل الرئيسية. */
   /* SET-002: لافتة نجاح الإعداد الأول — تظهر مرة بعد الحفظ وتغادر مع التنقل. */
   const search = useSearch();
   const setupDone = new URLSearchParams((search ?? "").replace(/^\?/, "")).get("setup") === "1";
@@ -212,24 +210,23 @@ export default function Home() {
     };
   }, [dataVersion, homeControlCenter, retryCount]);
   useEffect(() => {
-    if (!infoOpen && !askMicroOpen && !periodPickerOpen && !allActionsOpen) return;
+    if (!infoOpen && !periodPickerOpen && !allActionsOpen) return;
     /* Micro Calm: طبقات الرئيسية تُغلق بEscape أيضًا — بلا حصر تركيز إضافي؛
      * وإغلاق Escape يعيد التركيز إلى مشغّل اللوحة المفتوحة كما في لوحة وظائف
-     * المالية ولوحتي الترويسة (OD-A11Y). */
+     * المالية ولوحتي الترويسة (OD-A11Y). اسأل Micro غادر الرئيسية إلى
+     * قائمة «مايكرو» (DEC-SHELL-01/DEC-HOM-01 — UXR-03). */
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       setAllActionsOpen(false);
       setPeriodPickerOpen(false);
       setInfoOpen(false);
-      setAskMicroOpen(false);
       if (periodPickerOpen) periodButtonRef.current?.focus();
       else if (infoOpen) infoButtonRef.current?.focus();
-      else if (askMicroOpen) askMicroButtonRef.current?.focus();
       else if (allActionsOpen) allActionsButtonRef.current?.focus();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [infoOpen, askMicroOpen, periodPickerOpen, allActionsOpen]);
+  }, [infoOpen, periodPickerOpen, allActionsOpen]);
   /* UXR-01 (PERF-004/S11 L-01 — COPY-27): فشل تجهيز خدمات الرئيسية (رفض
    * الاستيراد الكسول) وفشل القراءة سطح خطأ كامل واحد — الحالتان مميزتان
    * برسالتيهما الصادقتين وبفعل إعادة المحاولة لصاحبه: التجهيز يُعاد من
@@ -320,9 +317,10 @@ export default function Home() {
   const cashNow = model.glimpse.cashNow;
   return (
     <section className="micro-page micro-home-control-center">
-      {/* HOME-A2-1: الاسم والتاريخ ومدخل الإعدادات وزر «!». */}
-      <div className="micro-page-heading micro-home-heading">
-        <span className="micro-overline">الرئيسية</span>
+      {/* HOME-A2-1 (تنفيذ S16) + DEC-HOM-01 (UXR-03 — أمر W02): الاسم
+          والتاريخ ومدخل الإعدادات وزر «!» — حذف الطبقة الداخلية «الرئيسية»
+          (تكرار الترويسة/الشريط) ويبقى H1 اسم المشروع وحده. */}
+      <div className="micro-home-heading">
         <h1>{model.heading.activityName}</h1>
         <div className="micro-home-heading-row">
           <p>
@@ -439,10 +437,11 @@ export default function Home() {
             ))}
           </div>
         ) : model.followUp.complete ? (
-          /* HOME-B3: قراءة مكتملة بلا مهام — الحالة الصادقة، مع مدخل المتابعة
-           * دون قائمة فراغات؛ لا «كل شيء ممتاز». */
+          /* HOME-B3 + COPY-13 (UXR-03 — أمر W02): قراءة مكتملة بلا مهام —
+           * الحالة الصادقة بلغة القاموس المعتمدة، مع مدخل المتابعة دون
+           * قائمة فراغات؛ لا «كل شيء ممتاز». */
           <p className="micro-home-truth-line" role="status">
-            لا توجد متابعات في السجلات المقروءة
+            لا توجد متابعات مسجلة الآن
           </p>
         ) : null}
         {model.followUp.failedMessage ? (
@@ -507,19 +506,8 @@ export default function Home() {
           </button>
         </p>
       </section>
-      {/* HOME-A2-5: اسأل Micro — قريبًا (مدخل ثانوي؛ التوصيل والسوق ظاهران في
-          الشريط فلا نكرر لهما إعلانات داخل الرئيسية). */}
-      <p className="micro-home-secondary-line" role="note">
-        <button
-          className="micro-text-action"
-          type="button"
-          ref={askMicroButtonRef}
-          aria-expanded={askMicroOpen}
-          onClick={() => setAskMicroOpen(true)}
-        >
-          اسأل Micro — قريبًا
-        </button>
-      </p>
+      {/* DEC-SHELL-01/DEC-HOM-01 (UXR-03 — أمر W02): «اسأل Micro — قريبًا»
+          بلا أثر دائم في الرئيسية — عنصر واحد عند الطلب في قائمة «مايكرو». */}
       {/* ── اللوحات ── */}
       {allActionsOpen ? (
         <div className="micro-soon-backdrop" role="presentation" onClick={() => setAllActionsOpen(false)}>
@@ -674,36 +662,6 @@ export default function Home() {
                 النسخ الاحتياطي من الإعدادات
               </button>
             </p>
-          </div>
-        </div>
-      ) : null}
-      {askMicroOpen ? (
-        <div className="micro-soon-backdrop" role="presentation" onClick={() => setAskMicroOpen(false)}>
-          <div
-            ref={askMicroRef}
-            className="micro-soon-panel"
-            role="dialog"
-            aria-modal="false"
-            aria-label={futureServiceAnnouncements.assistant.title}
-            data-testid="home-ask-micro-panel"
-            onClick={event => event.stopPropagation()}
-          >
-            <div className="micro-soon-panel-head">
-              <strong>{futureServiceAnnouncements.assistant.title}</strong>
-              <button
-                className="micro-icon-button"
-                type="button"
-                aria-label="إغلاق"
-                onClick={() => {
-                  setAskMicroOpen(false);
-                  askMicroButtonRef.current?.focus();
-                }}
-              >
-                <X aria-hidden="true" />
-              </button>
-            </div>
-            <p>{futureServiceAnnouncements.assistant.body}</p>
-            <p className="micro-soon-panel-footer">{futureServiceAnnouncements.assistant.footer}</p>
           </div>
         </div>
       ) : null}

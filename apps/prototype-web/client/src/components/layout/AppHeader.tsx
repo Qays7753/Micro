@@ -29,8 +29,18 @@ const soonPanelCopy: Record<"assistant", { title: string; body: string; footer: 
 };
 
 /* D3: مجموعات قائمة الشعار — قصيرة ومرتبة: الحساب والمشروع ثم النظام.
- * كل بند يفتح السطح الرسمي القائم نفسه ويحفظ مصدر رجوعه (EXE-016). */
-type LogoMenuItem = { id: string; label: string; icon: typeof Settings; href: string };
+ * كل بند يفتح السطح الرسمي القائم نفسه ويحفظ مصدر رجوعه (EXE-016)؛ وبند
+ * «اسأل Micro — قريبًا» يفتح لوحة الإعلان القائمة نفسها (DEC-SHELL-01/
+ * DEC-HOM-01 — UXR-03: موضع واحد عند الطلب داخل القائمة، بلا أثر دائم في
+ * أي ترويسة ولا بطاقة دائمة في الرئيسية). */
+type LogoMenuItem = {
+  id: string;
+  label: string;
+  icon: typeof Settings;
+  href: string;
+  /** فعل محلي داخل القائمة (لوحة إعلان) — يغلق القائمة ويفتح لوحته. */
+  onOpen?: () => void;
+};
 type LogoMenuGroup = { id: string; label: string; items: readonly LogoMenuItem[] };
 
 export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHeaderProps) {
@@ -41,9 +51,6 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
   const [menuOpen, setMenuOpen] = useState(false);
   const logoButtonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  /* Wave 4.4 — P-4.4-1: مرجع مشغّل لوحة «قريبًا» — لإعادة التركيز إليها
-   * بعد الإغلاق (Escape/خارجي/زر) كسلوك قائمة الشعار نفسه. */
-  const assistantButtonRef = useRef<HTMLButtonElement>(null);
   const soonPanelRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const update = () => setIsScrolled(window.scrollY > 4);
@@ -59,7 +66,9 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
 
   const closeSoonPanel = useCallback((_restoreFocus: boolean) => {
     setSoonPanel(null);
-    assistantButtonRef.current?.focus();
+    /* DEC-SHELL-01 (UXR-03): المشغّل صار بند القائمة — إعادة التركيز لزر
+     * الشعار (مالك القائمة) بعد الإغلاق كسلوك القائمة نفسه. */
+    logoButtonRef.current?.focus();
   }, []);
 
   /* Wave 4.4 — P-4.4-1: توحيد سلوك لوحتي «قريبًا» مع قائمة الشعار — Escape
@@ -158,7 +167,16 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
     {
       id: "system",
       label: "النظام",
-      items: [{ id: "settings", label: "الإعدادات", icon: Settings, href: "/settings" }],
+      items: [
+        { id: "settings", label: "الإعدادات", icon: Settings, href: "/settings" },
+        {
+          id: "assistant",
+          label: "اسأل Micro — قريبًا",
+          icon: MessageCircleQuestion,
+          href: "",
+          onOpen: () => setSoonPanel("assistant"),
+        },
+      ],
     },
   ];
   const currentPathname = window.location.pathname;
@@ -202,22 +220,9 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
           </button>
           {contextLabel ? <span className="micro-header-context">{contextLabel}</span> : null}
         </div>
-        <div className="micro-header-actions">
-          <button
-            ref={assistantButtonRef}
-            className="micro-icon-button"
-            type="button"
-            onClick={() => {
-              closeMenu(false);
-              setSoonPanel("assistant");
-            }}
-            aria-label="اسأل Micro — قريبًا"
-            aria-haspopup="dialog"
-            title="اسأل Micro — قريبًا"
-          >
-            <MessageCircleQuestion aria-hidden="true" />
-          </button>
-        </div>
+        {/* DEC-SHELL-01 (UXR-03 — أمر W02): زر «اسأل Micro» الدائم في
+           * الترويسة أُزيل — مدخله الوحيد عند الطلب داخل قائمة «مايكرو»
+           * (مجموعة النظام)؛ لا مساحة دائمة في ~70 قالبًا لإعلان مستقبلي. */}
       </div>
       {menuOpen ? (
         <div
@@ -240,7 +245,15 @@ export function AppHeader({ contextLabel, accountComplete, onNavigate }: AppHead
                     type="button"
                     role="menuitem"
                     data-account-state={item.id === "account" ? accountComplete : undefined}
-                    onClick={() => menuNavigate(item.href)}
+                    aria-haspopup={item.onOpen ? "dialog" : undefined}
+                    onClick={() => {
+                      if (item.onOpen) {
+                        closeMenu(false);
+                        item.onOpen();
+                        return;
+                      }
+                      menuNavigate(item.href);
+                    }}
                   >
                     <ItemIcon aria-hidden="true" />
                     <span>{item.label}</span>

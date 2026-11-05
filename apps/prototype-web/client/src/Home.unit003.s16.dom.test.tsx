@@ -285,16 +285,16 @@ describe("UNIT-003/S16 — الرئيسية (HOME-A2) والشريط الخما�
     await waitFor(() => expect(screen.queryByTestId("home-info-panel")).toBeNull());
   });
 
-  it("HOME-A2-5/AC19: اسأل Micro ثانويًا — الإعلان القائم فقط بلا محادثة ولا إرسال بيانات", async () => {
+  it("HOME-A2-5/AC19 + DEC-SHELL-01 (UXR-03): لا أثر دائم لاسأل Micro في الرئيسية — عنصر واحد عند الطلب في قائمة مايكرو", async () => {
     await seedProfile();
     render(<Harness page={<Home />} />);
     await screen.findByRole("heading", { level: 1, name: "مشروع-الرئيسية" });
-    fireEvent.click(screen.getByRole("button", { name: "اسأل Micro — قريبًا" }));
-    const panel = await screen.findByTestId("home-ask-micro-panel");
-    expect(panel.textContent).toContain("قارئًا فقط");
-    expect(panel.textContent).toContain("لا تُرسل بيانات مشروعك");
-    /* لا قدرة AI مفترضة ولا فعل وهمي داخل اللوحة. */
-    expect(panel.textContent).not.toContain("اسأل الآن");
+    /* UXR-03 (أمر W02): الشريط الثانوي والبطاقة داخل الرئيسية أُزيلوا معًا —
+     * لا مدخل دائمًا في الرئيسية؛ الإعلان القائم بموضعه الوحيد عند الطلب
+     * داخل قائمة «مايكرو» في الترويسة (AppSurface يثبت بند القائمة نفسه)،
+     * ولا محادثة ولا إرسال بيانات كما كان. */
+    expect(screen.queryByRole("button", { name: "اسأل Micro — قريبًا" })).toBeNull();
+    expect(wouterMocks.navigate).not.toHaveBeenCalled();
   });
 
   it("UNIT-043/SDF-060: التوصيل مقعد صادق — لا حجز ولا تسعير ولا تتبع ولا أثر مالي", async () => {

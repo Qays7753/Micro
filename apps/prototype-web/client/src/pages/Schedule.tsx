@@ -182,8 +182,9 @@ export default function Schedule() {
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
         <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "الرئيسية" : "رجوع"}
       </button>
+      {/* DEC-ORD-01/UXR-03 (أمر W02): طبقة «التنظيم التشغيلي» المعمارية
+          محذوفة — اسم الوجهة في الترويسة وH1 واحد في المحتوى (F-008). */}
       <div className="micro-page-heading">
-        <span className="micro-overline">التنظيم التشغيلي</span>
         <h1>المواعيد</h1>
       </div>
       {/* S13 (UNIT-012/018 — أمر 2158b0fc §6): قراءة المتابعة الموحدة وجهة

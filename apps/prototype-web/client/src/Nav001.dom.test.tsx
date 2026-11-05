@@ -235,11 +235,13 @@ describe("NAV-001 — approved five-seat navigation", () => {
         }
       />,
     );
-    /* SH-21/S16 (NAV-01 V15 §1): مدخل النقل والتوصيل انتقل إلى مقعده في
-     * الشريط (/delivery) والبديل جاهز قبل الإزالة — الترويسة تحمل اسأل
-     * Micro الثانوي وحده. */
+    /* SH-21/S16 (NAV-001 V15 §1): مدخل النقل والتوصيل انتقل إلى مقعده في
+     * الشريط (/delivery) والبديل جاهز قبل الإزالة — وDEC-SHELL-01 (UXR-03 —
+     * أمر W02): «اسأل Micro — قريبًا» بند واحد عند الطلب داخل قائمة
+     * «مايكرو»، لا زرًا دائمًا في الترويسة. */
     expect(screen.queryByRole("button", { name: "النقل والتوصيل — قريبًا" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "اسأل Micro — قريبًا" }));
+    fireEvent.click(screen.getByTestId("micro-logo-menu-button"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "اسأل Micro — قريبًا" }));
     const assistant = screen.getByTestId("soon-panel");
     expect(assistant.textContent).toContain("قارئًا فقط");
     expect(assistant.textContent).toContain("لا تُرسل بيانات مشروعك إلى أي خدمة خارجية");

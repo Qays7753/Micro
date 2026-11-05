@@ -6172,6 +6172,67 @@ button.micro-month-cell:active {
   padding: var(--space-3);
 }
 
+/* F-009 (UXR-03 — أمر W02/DEC-ORD-02): مفتاح العرض المضغوط — صف واحد
+   (~48px) فوق radio أصلية قابلة للتنسيق؛ البطاقات الكبيرة (micro-radio-choice)
+   بلا حدود صندوقية هنا، والإدخال مخفي بصريًا وحاضر برمجيًا (أسهم/Tab/Mسافة
+   مجانية من radio الأصلية، وحالة الاختيار معلنة بالتسمية المرتبطة لا
+   aria-checked وحده)؛ هدف لمس ≥44px بلا توكنات جديدة. */
+.micro-payment-mode.micro-view-toggle {
+  display: flex;
+  gap: 0;
+  padding: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+.micro-view-toggle legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.micro-view-toggle .micro-view-segment {
+  flex: 1 1 0;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: calc(var(--radius-control) - 2px);
+  padding: 0 var(--space-3);
+  background: transparent;
+  cursor: pointer;
+}
+.micro-view-toggle .micro-view-segment + .micro-view-segment {
+  margin-inline-start: var(--space-1);
+}
+.micro-view-toggle .micro-view-segment input[type="radio"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  margin: 0;
+}
+.micro-view-toggle .micro-view-segment span {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.micro-view-toggle .micro-view-segment:has(input[type="radio"]:checked) {
+  background: var(--color-accent-soft);
+}
+.micro-view-toggle .micro-view-segment:has(input[type="radio"]:checked) span {
+  color: var(--color-text-primary);
+}
+.micro-view-toggle .micro-view-segment:has(input[type="radio"]:focus-visible) {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
 /* S11-MR-001 (UNIT-005 A2/س2): مجموعة وضع الدفع — ثلاث نيات صريحة
    (كامل/جزء ودين/لم يُستلم ودين) بلا حدود ثقيلة؛ النمط نفسه لا هوية جديدة. */
 .micro-payment-mode {
