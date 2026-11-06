@@ -12,16 +12,21 @@ import { ActivityService } from "./activityService";
 
 const DAY = "2026-09-01";
 
-async function seedExpenses(store: MemoryLocalStore, count: number, day: string = DAY) {
+async function seedExpenses(store: MemoryLocalStore, count: number, day: string = DAY, tag = "exp") {
+  /* تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 5): الوسوم المميزة لكل دفعة بذر —
+   * المعرّفات المكررة عبر الدفعات كانت تكتب فوق السجلات في MemoryLocalStore
+   * (الحتمية تعيد السجل القائم) فتُفسد حساب النطاق. */
   for (let index = 0; index < count; index += 1) {
     const event = createFinancialEvent({
-      id: `exp-${index}`,
+      id: `${tag}-${index}`,
       type: "operating_expense_cash",
       amountMinor: 100 + index,
       occurredOn: day,
-      /* دقائق/ثوانٍ متزايدة فريدة لتثبيت الترتيب فوق تواريخ أثر متساوية. */
-      recordedAt: `2026-09-01T08:${String(Math.floor(index / 60)).padStart(2, "0")}:${String(index % 60).padStart(2, "0")}.000Z`,
-      idempotencyKey: `exp-${index}`,
+      /* دقائق/ثوانٍ متزايدة فريدة لتثبيت الترتيب فوق تواريخ أثر متساوية — تصحيح مؤرخ
+       * 2026-11-06 (UXR-W05 — فحص المستودع الكامل): Math.floor محظور في طبقة التطبيق
+       * (D-02)؛ Math.trunc مطابق دلاليًا للأعداد غير السالبة هنا وليس تقريب مال. */
+      recordedAt: `2026-09-01T08:${String(Math.trunc(index / 60)).padStart(2, "0")}:${String(index % 60).padStart(2, "0")}.000Z`,
+      idempotencyKey: `${tag}-${index}`,
       note: `مصروف رقم ${index}`,
       counterparty: null,
     });
@@ -97,8 +102,8 @@ describe("UXR-05 — PERF-003: activity readPage بحد مُفصح عنه (عق�
 
   it("النطاق: hasMore يُحسب داخل نافذة التاريخ لا عبر السجل كله", async () => {
     const store = new MemoryLocalStore();
-    await seedExpenses(store, 30, "2026-08-01");
-    await seedExpenses(store, 3, "2026-09-01");
+    await seedExpenses(store, 30, "2026-08-01", "aug");
+    await seedExpenses(store, 3, "2026-09-01", "sep");
     const reader = new ActivityService(store);
     const inWindow = await reader.readPage({
       limit: 120,
@@ -109,10 +114,15 @@ describe("UXR-05 — PERF-003: activity readPage بحد مُفصح عنه (عق�
     if (!inWindow.ok) throw new Error(inWindow.message);
     expect(inWindow.value.records.length).toBe(3);
     expect(inWindow.value.hasMore).toBe(false);
-    /* خارج النافذة: 30 سجلًا أقدم — النافذة الضيقة لا تدّعي اكتمال السجل، ولا يظهر مزيد داخلها كذبًا. */
+    /* تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 5): خارج النافذة 33 سجلًا إجمالًا
+     * (30 أقدم + 3 داخل النافذة)؛ حد العائلة (20) يقنّص العائلة فتُقبَل 20
+     * صفًا فقط — inScopeCount يَعُدّ الصفوف المقبولة قبل حد الكلية (rows.length)
+     * فقيمته 20، والبقية موثقة عبر hasMore وfamilyCapped؛ النافذة الضيقة لا
+     * تدّعي اكتمال السجل ولا يظهر مزيد داخلها كذبًا. */
     const unbounded = await reader.readPage({ limit: 120, perFamilyLimit: 20 });
     if (!unbounded.ok) throw new Error(unbounded.message);
-    expect(unbounded.value.inScopeCount).toBe(23);
+    expect(unbounded.value.records.length).toBe(20);
+    expect(unbounded.value.inScopeCount).toBe(20);
     expect(unbounded.value.hasMore).toBe(true);
     expect(unbounded.value.familyCapped).toEqual(["expense"]);
   });

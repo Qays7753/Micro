@@ -75,7 +75,7 @@ export default function ReceivedLoanRepaymentSheet({
         <DrawerHeader>
           <DrawerTitle>سداد أصل من قرض {row.loan.lenderName}</DrawerTitle>
           <DrawerDescription>
-            السداد ينزل الكاش وينزل الالتزام — ليس مصروفًا ولا يمس نتيجة الفترة.
+            السداد ينزل النقد وينزل الالتزام — ليس مصروفًا ولا يمس نتيجة الفترة.
           </DrawerDescription>
         </DrawerHeader>
         <div className="micro-repayment-strip">

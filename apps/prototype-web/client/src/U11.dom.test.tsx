@@ -102,8 +102,10 @@ describe("Settings backup actions carry visible Arabic labels (U-11)", () => {
 
     const exportButton = screen.getByRole("button", { name: "حفظ نسخة" });
     const importButton = screen.getByRole("button", { name: "استعادة نسخة" });
-    expect(exportButton.textContent).toContain("تصدير");
-    expect(importButton.textContent).toContain("استيراد");
+    /* تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 5): علامات COPY-33 الحرفية هي نص الزر —
+     * «حفظ نسخة»/«استعادة نسخة»؛ لم تعد «تصدير/استيراد» تظهر على الأزرار. */
+    expect(exportButton.textContent).toContain("حفظ نسخة");
+    expect(importButton.textContent).toContain("استعادة نسخة");
 
     // The data-protection layer stands open, so the safest actions are not hidden.
     const layer = document.querySelector("details.micro-decision-layer");

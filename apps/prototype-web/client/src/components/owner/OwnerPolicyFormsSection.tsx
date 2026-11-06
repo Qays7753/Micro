@@ -331,7 +331,7 @@ export function OwnerPolicyFormsSection({
                 onTextValidityChange={setSuccessorPercentageValid}
                 aria-label="نسبة النسخة الجديدة لسياسة حق المالك"
               />
-              <small>تحسب من نتيجة الفترة المسجلة أو من بيع مكتمل حسب النوع، لا من العربون أو الكاش.</small>
+              <small>تحسب من نتيجة الفترة المسجلة أو من بيع مكتمل حسب النوع، لا من العربون أو النقد.</small>
             </label>
           )}
           {successorRequirements.requiresUnit ? (

@@ -119,7 +119,7 @@ export function FinancePeriodResultSection({
               البيع وبالثمن المسجّل وقت البيع). البيع الملغى مستبعد بالكامل.
             </p>
             <p>
-              القبض — من طلبات أو بيع آجل — ليس إيرادًا هنا؛ الكاش يظهر في بطاقة الكاش، وديون العملاء في «لي
+              القبض — من طلبات أو بيع آجل — ليس إيرادًا هنا؛ النقد يظهر في بطاقة النقد، وديون العملاء في «لي
               عند العملاء». رأس المال والسحوبات والأمانات ليست إيرادًا ولا مصروفًا ولا تربحًا.
             </p>
             {period.directSaleCostUnknownCount > 0 ? (
@@ -278,7 +278,7 @@ export function FinancePeriodResultSection({
                       {state.periodWaste.hasUnknownCost ? <small> · منها جزء بتكلفة غير معروفة</small> : null}
                     </>
                   )}{" "}
-                  — غير نقدي: لا يخرج كاش، ودخوله في النتيجة بخيارك لحظة تسجيل الهدر.
+                  — غير نقدي: لا يخرج نقدًا، ودخوله في النتيجة بخيارك لحظة تسجيل الهدر.
                 </dd>
               </div>
             ) : null}
@@ -449,7 +449,7 @@ export function FinancePeriodResultSection({
                 <strong>السيولة المسجلة</strong>
                 <dl className="micro-insights-grid">
                   <div>
-                    <dt>الكاش المسجل</dt>
+                    <dt>النقد المسجل</dt>
                     <dd>
                       <MoneyValue minor={insights.liquidity.recordedCashMinor} />
                     </dd>

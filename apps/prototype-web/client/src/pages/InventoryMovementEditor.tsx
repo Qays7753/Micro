@@ -230,7 +230,8 @@ export default function InventoryMovementEditor() {
           <ArrowRight aria-hidden="true" /> المواد والمخزون
         </button>
         <div className="micro-page-heading">
-          <span className="micro-overline">حركة مخزون</span>
+          {/* UXR-08 (F-008/SOP-02 — تغطية مستهلك نهائي): إزالة الترويسة المعمارية
+              المكررة فوق H1. */}
           <h1>حركة غير متاحة</h1>
           <p>نوع الحركة المطلوب غير معروف، لذلك لم نفتح نموذجًا ولم نسجل أي أثر للمخزون.</p>
         </div>
@@ -443,7 +444,8 @@ export default function InventoryMovementEditor() {
           <ArrowRight aria-hidden="true" /> المواد والمخزون
         </button>
         <div className="micro-page-heading">
-          <span className="micro-overline">حركة مخزون</span>
+          {/* UXR-08 (F-008/SOP-02 — تغطية مستهلك نهائي): إزالة الترويسة المعمارية
+              المكررة فوق H1. */}
           <h1>لا مواد متتبَّعة بعد</h1>
           <p>سجّل مادة وفعّل متابعة كميتها أولًا — حركة المخزون تحتاج مادة متتبَّعة.</p>
         </div>
@@ -513,7 +515,8 @@ export default function InventoryMovementEditor() {
         <ArrowRight aria-hidden="true" /> المواد والمخزون
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">حركة محفوظة</span>
+        {/* UXR-08 (F-008/SOP-02 — تغطية مستهلك نهائي): إزالة الترويسة المعمارية
+            المكررة فوق H1. */}
         <h1>{title}</h1>
         <p>
           {safeType === "receipt"

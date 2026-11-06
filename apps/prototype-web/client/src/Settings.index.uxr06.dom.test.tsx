@@ -135,8 +135,11 @@ describe("UXR-06 — F-011: الإعدادات فهرس قصير يفتح مجم
       </ThemeProvider>,
     );
     fireEvent.click(await screen.findByTestId("settings-group-check"));
-    /* القسم موجود داخل مجموعته (مطويًا كصيانة يدوية) — والمجموعات الأخرى لا تظهر معه */
-    expect(await screen.findByText("فحص البيانات")).toBeTruthy();
+    /* القسم موجود داخل مجموعته (مطويًا كصيانة يدوية) — والمجموعات الأخرى لا تظهر معه.
+     * تصحيح مؤرخ 2026-11-06 (UXR-W05 — فحوص المرحلة النهائية): العنوان يطابق عنصرين
+     * (سطر القسم <b> وعنوانه <h2>) فالمطابق بالنص وحده يجد اثنين — الدور الدقيق
+     * (heading) يحسم التمييز، وهو المقصود فعلًا: القسم وعنوانه داخل مجموعته. */
+    expect(await screen.findByRole("heading", { name: "فحص البيانات" })).toBeTruthy();
     expect(screen.queryByTestId("settings-group-data")).toBeNull();
     expect(screen.queryByRole("heading", { name: "النسخ الاحتياطي والاستعادة" })).toBeNull();
   });

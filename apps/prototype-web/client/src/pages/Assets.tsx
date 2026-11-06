@@ -49,7 +49,8 @@ export default function Assets() {
         <ArrowRight aria-hidden="true" /> المالية
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">أصول المشروع</span>
+        {/* UXR-08 (F-008/SOP-02 — تغطية مستهلك نهائي): إزالة الترويسة المعمارية
+            المكررة فوق H1 — نمط الأخت المقصوصة في W04 (Tools/InventoryMaterials). */}
         <h1>الأصول</h1>
         <p>ما تشتريه للاستخدام الطويل — يظهر بقيمته الدفترية، لا كربح ولا مصروف يوم الشراء.</p>
       </div>

@@ -37,7 +37,10 @@ export function SaleCollectionReversalSection({
   const [selectedEntryId, setSelectedEntryId] = useState("");
   const [reason, setReason] = useState("");
   const [preview, setPreview] = useState<SaleCollectionReversalPreview | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  /* تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 2): نجاح العكس إتمام لا خطأ —
+   * يُعلن بrole=status ونمط الإتمام، وتبقى قنوات الرفض/التحقق بrole=alert
+   * ونمط الخطأ كما في بقية الأسطح (SOP-12/WCAG 4.1.3). */
+  const [message, setMessage] = useState<{ text: string; tone: "error" | "completion" } | null>(null);
   const [busy, setBusy] = useState(false);
   const operationKeyRef = useRef(freshOperationKey());
 
@@ -49,7 +52,7 @@ export function SaleCollectionReversalSection({
       if (result.ok) {
         setCollections(result.value);
         setSelectedEntryId(current => current || (result.value[0]?.allocationEntryId ?? ""));
-      } else setMessage(result.message);
+      } else setMessage({ text: result.message, tone: "error" });
     });
     return () => {
       active = false;
@@ -67,7 +70,7 @@ export function SaleCollectionReversalSection({
       if (result.ok) setPreview(result.value);
       else {
         setPreview(null);
-        setMessage(result.message);
+        setMessage({ text: result.message, tone: "error" });
       }
     });
     return () => {
@@ -80,7 +83,7 @@ export function SaleCollectionReversalSection({
   async function reverse() {
     if (!saleId || !selectedEntryId) return;
     if (!reason.trim()) {
-      setMessage("أكمل سبب عكس التحصيل قبل الحفظ.");
+      setMessage({ text: "أكمل سبب عكس التحصيل قبل الحفظ.", tone: "error" });
       return;
     }
     setBusy(true);
@@ -92,16 +95,17 @@ export function SaleCollectionReversalSection({
     });
     setBusy(false);
     if (!result.ok) {
-      setMessage(result.message);
+      setMessage({ text: result.message, tone: "error" });
       return;
     }
     operationKeyRef.current = freshOperationKey();
     setReason("");
-    setMessage(
-      result.reused
+    setMessage({
+      text: result.reused
         ? "العكس محفوظ سابقًا؛ لم يتكرر الأثر."
         : "تم عكس التحصيل: المقبوض نقص، وتوزيع المحفظة فُك بقيد مرتبط بالأصل، والذمم عادت.",
-    );
+      tone: "completion",
+    });
     notifyDataChanged();
   }
 
@@ -196,8 +200,11 @@ export function SaleCollectionReversalSection({
           />
         </label>
         {message ? (
-          <p className="micro-field-error" role="alert">
-            {message}
+          <p
+            className={message.tone === "error" ? "micro-field-error" : "micro-save-note"}
+            role={message.tone === "error" ? "alert" : "status"}
+          >
+            {message.text}
           </p>
         ) : null}
         <Button action="save" disabled={busy} onClick={() => void reverse()}>

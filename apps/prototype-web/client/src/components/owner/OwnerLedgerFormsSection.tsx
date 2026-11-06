@@ -139,7 +139,7 @@ export function OwnerLedgerFormsSection({
         <summary className="micro-owner-layer-summary">
           <span>
             <b>تسجيل حق</b>
-            <small>حق المالك لا يقبض المال ولا يغيّر الكاش</small>
+            <small>حق المالك لا يقبض المال ولا يغيّر النقد</small>
           </span>
           <strong>افتح الإجراء</strong>
         </summary>
@@ -151,7 +151,7 @@ export function OwnerLedgerFormsSection({
             </div>
           </div>
           <p>
-            تسجيل الحق لا يقبض مالًا ولا يغير محفظة الكاش. لا يُسجل الحق نفسه للفترة نفسها مرتين؛ تراجع عن
+            تسجيل الحق لا يقبض مالًا ولا يغير محفظة النقد. لا يُسجل الحق نفسه للفترة نفسها مرتين؛ تراجع عن
             السجل فقط إذا كان خطأ.
           </p>
           <label className="micro-field">
@@ -308,7 +308,7 @@ export function OwnerLedgerFormsSection({
         <section className="micro-form-card">
           <div className="micro-section-heading">
             <div>
-              <span className="micro-overline">يغير الكاش فعليًا</span>
+              <span className="micro-overline">يغير النقد فعليًا</span>
               <h2>تسجيل إرجاع أو تسوية</h2>
             </div>
           </div>
@@ -411,7 +411,7 @@ export function OwnerLedgerFormsSection({
             </label>
           ) : null}
           <label className="micro-field">
-            <span>محفظة الكاش</span>
+            <span>محفظة النقد</span>
             <select value={movementWalletId} onChange={event => setMovementWalletId(event.target.value)}>
               <option value="">اختر محفظة</option>
               {overview.walletBalances.map(wallet => (
@@ -442,7 +442,7 @@ export function OwnerLedgerFormsSection({
             disabled={saving}
             onClick={() => void saveMovement()}
           >
-            <WalletCards aria-hidden="true" /> حفظ الحركة وأثر الكاش
+            <WalletCards aria-hidden="true" /> حفظ الحركة وأثر النقد
           </Button>
         </section>
       </details>

@@ -247,7 +247,7 @@ function ReceivedLoansSection({
       <div className="micro-page-heading">
         <span className="micro-overline">قروض أخذتها (التزام)</span>
         <h2>القروض المستلمة</h2>
-        <p>القرض المستلم يرفع الكاش ويرفع التزامًا — ليس دخلًا ولا ربحًا.</p>
+        <p>القرض المستلم يرفع النقد ويرفع التزامًا — ليس دخلًا ولا ربحًا.</p>
       </div>
       {load.phase === "loading" ? (
         <p className="micro-route-loading" role="status">
@@ -287,7 +287,7 @@ function ReceivedLoansSection({
               </strong>
               <p>
                 {loanOutstandingCountLabel(state.overview.totals.openCount)} من أصل{" "}
-                {loanCountLabel(state.overview.rows.length)} — سداد الأصل ينزل الالتزام والكاش معًا.
+                {loanCountLabel(state.overview.rows.length)} — سداد الأصل ينزل الالتزام والنقد معًا.
               </p>
             </div>
           </section>

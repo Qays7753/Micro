@@ -344,7 +344,7 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     expect(receipt.textContent).toContain("الحالة الجديدة: تمت التسوية");
     expect(receipt.textContent).toContain("المقبوض عند التسليم: 40.00");
     expect(receipt.textContent).toContain("المتبقي بعد التسليم: 0.00");
-    expect(receipt.textContent).toContain("وجهة الكاش: درج-ORD");
+    expect(receipt.textContent).toContain("وجهة النقد: درج-ORD");
     expect(receipt.textContent).toContain("أثر المخزون");
     expect(receipt.textContent).toContain("الفعل التالي:");
     /* الإيراد معترف مرة واحدة: السعر 50 (لا يشمل القبض — القبض ليس إيرادًا). */

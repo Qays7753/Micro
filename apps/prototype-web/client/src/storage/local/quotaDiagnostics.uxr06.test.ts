@@ -4,6 +4,11 @@
  *
  * ⚠️ مؤجل التشغيل بأمر المالك (أمر التنفيذ المتصل 2026-11-06 §6): يُكتب مع
  * التغيير ولا يُشغَّل إلا في التحقق الشامل بعد W05. */
+/* تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 5): بيئة العقد الافتراضية بلا
+ * fake-indexeddb تجعل الفرع العام في failure() يعلن storage_unavailable
+ * (typeof indexedDB === undefined) فيفشل مسار الخطأ العام؛ الاستيراد هنا
+ * يطابق نمط كل اختبارات storage/local التي تمس القنوات. */
+import "fake-indexeddb/auto";
 import { describe, expect, it } from "vitest";
 import { failure } from "./indexedDbLifecycle";
 

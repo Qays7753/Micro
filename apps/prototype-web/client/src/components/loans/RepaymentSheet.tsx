@@ -76,7 +76,7 @@ export default function RepaymentSheet({
         <DrawerHeader>
           <DrawerTitle>سداد دفعة من قرض {row.loan.borrowerName}</DrawerTitle>
           <DrawerDescription>
-            السداد يرفع الكاش ويخفض المتبقي — ليس إيرادًا جديدًا ولا ربحًا.
+            السداد يرفع النقد ويخفض المتبقي — ليس إيرادًا جديدًا ولا ربحًا.
           </DrawerDescription>
         </DrawerHeader>
         <div className="micro-repayment-strip">

@@ -180,7 +180,7 @@ describe("G3 delivery surfaces — review before commitment", () => {
     await waitFor(() => expect(screen.getByText("تم تسليم الطلب بنجاح")).toBeTruthy());
     expect(screen.getByText(/أثر المخزون: 1 حركة استهلاك/)).toBeTruthy();
     expect(screen.getByText(/المقبوض عند التسليم: غير مسجل/)).toBeTruthy();
-    expect(screen.getByText(/وجهة الكاش: لم يُسجَّل قبض جديد/)).toBeTruthy();
+    expect(screen.getByText(/وجهة النقد: لم يُسجَّل قبض جديد/)).toBeTruthy();
 
     /* الحكم الحاسم: حركة واحدة مربوطة بالطلب، ولا حدث مالي مستقل، وإيراد مرة واحدة. */
     const movements = await store.listInventoryMovements();

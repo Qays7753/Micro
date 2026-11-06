@@ -802,7 +802,7 @@ export default function DirectSaleEditor() {
           <p>
             {outstandingMinor > 0
               ? sale.collectionStatus === "partial_debt"
-                ? `دين على ${sale.customerName ?? "الزبون"}: ${formatMoneyMinor(outstandingMinor)} د.أ — يظهر في «لي عند العملاء».`
+                ? `دين على ${sale.customerName ?? "الزبون"}: ${formatMoneyMinor(outstandingMinor)} د.أ — يظهر في «لك عند العملاء».`
                 : `فرق معلّق للمراجعة: ${formatMoneyMinor(outstandingMinor)} د.أ — لم يُقرّر بعد.`
               : "قُبض المبلغ كاملًا — لا دين من هذا البيع."}
           </p>

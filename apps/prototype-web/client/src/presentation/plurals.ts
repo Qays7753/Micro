@@ -6,12 +6,12 @@ import { formatArabicPlural } from "./formatters";
  */
 export function cashWalletCountLabel(count: number): string {
   return formatArabicPlural(count, {
-    zero: "لا محافظ كاش",
-    one: "محفظة كاش واحدة",
-    two: "محفظتا كاش",
-    few: "محافظ كاش",
-    many: "محفظة كاش",
-    other: "محفظة كاش",
+    zero: "لا محافظ نقد",
+    one: "محفظة نقد واحدة",
+    two: "محفظتا نقد",
+    few: "محافظ نقد",
+    many: "محفظة نقد",
+    other: "محفظة نقد",
   });
 }
 

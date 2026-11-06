@@ -312,7 +312,7 @@ export function QuickActionSheet({
                 <strong>
                   {receipt.title} {formatMoneyMinor(receipt.amountMinor)} د.أ
                   {receipt.cashMinor !== null ? (
-                    <> — الكاش المسجل الآن {formatMoneyMinor(receipt.cashMinor)} د.أ</>
+                    <> — النقد المسجل الآن {formatMoneyMinor(receipt.cashMinor)} د.أ</>
                   ) : null}
                   .
                 </strong>

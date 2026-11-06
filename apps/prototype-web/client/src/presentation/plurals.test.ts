@@ -7,11 +7,11 @@ import {
 } from "./plurals";
 
 describe("page count labels render Arabic plurals (L-18)", () => {
-  it("counts cash wallets — «محفظتا كاش» at two", () => {
-    expect(cashWalletCountLabel(1)).toBe("محفظة كاش واحدة");
-    expect(cashWalletCountLabel(2)).toBe("محفظتا كاش");
-    expect(cashWalletCountLabel(3)).toBe("3 محافظ كاش");
-    expect(cashWalletCountLabel(11)).toBe("11 محفظة كاش");
+  it("counts cash wallets — «محفظتا نقد» at two", () => {
+    expect(cashWalletCountLabel(1)).toBe("محفظة نقد واحدة");
+    expect(cashWalletCountLabel(2)).toBe("محفظتا نقد");
+    expect(cashWalletCountLabel(3)).toBe("3 محافظ نقد");
+    expect(cashWalletCountLabel(11)).toBe("11 محفظة نقد");
   });
 
   it("counts a wallet's saved impacts — «أثران محفوظان» at two", () => {

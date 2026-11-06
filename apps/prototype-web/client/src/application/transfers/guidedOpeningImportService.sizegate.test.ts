@@ -21,7 +21,11 @@ function serviceFor(store: MemoryLocalStore) {
   return new GuidedOpeningImportService(store, testBackupBuilder(store), () => "2026-08-24T10:00:00.000Z");
 }
 
-/* نص صالح البنية بحجم مضبوط: نصفة بادئة تملأ حتى الطول المطلوب دون كسر JSON. */
+/* نص صالح البنية بحجم مضبوط بالضبط: إحلال القيمة داخل علامات الاقتباس القائمة
+ * يضيف بالضبط ما ينقص — تصحيح مؤرخ 2026-11-06 (UXR-W05 — فحوص المرحلة النهائية):
+ * الباني القديم كان يقتطع ٦٠ وحدة تقريبًا (والبقية slice لا يمدد) فينتج نصًا
+ * أقصر من المطلوب فتجاوز سقف «أكثر من الحد» حدّ الحجم أصلًا — هذا باني الاختبار
+ * لا المنتج؛ الحارس نفسه لم يُلمس. */
 function textOfLength(length: number): string {
   const skeleton = JSON.stringify({
     format: "micro-guided-opening-import",
@@ -31,14 +35,12 @@ function textOfLength(length: number): string {
   });
   const target = Math.max(0, length);
   if (skeleton.length >= target) return skeleton.slice(0, target);
-  const pad = target - skeleton.length;
-  const padded = JSON.stringify({
+  return JSON.stringify({
     format: "micro-guided-opening-import",
     version: 1,
     importId: "opening-size-gate",
-    padding: "x".repeat(Math.max(0, pad - 60)),
+    padding: "x".repeat(target - skeleton.length),
   });
-  return padded.slice(0, target);
 }
 
 describe("UXR-06 — PERF-002: بوابة حجم استيراد بيانات البداية", () => {

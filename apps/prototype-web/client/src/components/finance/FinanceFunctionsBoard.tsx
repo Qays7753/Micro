@@ -223,7 +223,7 @@ export function FinanceFunctionsBoard({
         { label: "كشف الفترة", description: "بنطاق المالية المطبق نفسه", href: statementHref },
         {
           label: "فرق النقد والنتيجة",
-          description: "لماذا يختلف الربح عن الكاش",
+          description: "لماذا يختلف الربح عن النقد",
           onOpen: onOpenBridge,
         },
         { label: "تغطية وتعادل", description: "هامش الأعمال ونقطة التعادل", onOpen: onOpenBreakeven },

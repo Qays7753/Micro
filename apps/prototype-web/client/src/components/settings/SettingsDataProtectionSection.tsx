@@ -262,7 +262,7 @@ export function SettingsDataProtectionSection({
                 شراء مواد
               </li>
               <li>
-                <IntegerValue value={preview.summary.cashWallets} className="micro-inline-number" /> محافظ كاش
+                <IntegerValue value={preview.summary.cashWallets} className="micro-inline-number" /> محافظ نقد
                 و
                 <IntegerValue
                   value={preview.summary.cashContinuityEntries}
@@ -354,7 +354,9 @@ export function SettingsDataProtectionSection({
           </article>
         ) : null}
         {restoreCheck ? (
-          <article className="micro-setting-row" data-status={restoreCheck.overall}>
+          <article className="micro-setting-row" data-status={restoreCheck.overall} role="status">
+            {/* تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 2): حكم الفحص غير المتزامن
+                يُعلن بمنطقة حية مهذبة — لحظة ثقة مالية (WCAG 4.1.3/SOP-12). */}
             <div>
               <strong data-status={restoreCheck.overall}>{restoreCheck.note}</strong>
               {/* S17 (DOC-026 / UNIT-033): الفحص داخل الإعدادات نفسها — يفتح
@@ -381,7 +383,7 @@ export function SettingsDataProtectionSection({
               <Upload aria-hidden="true" />
             </div>
             <p>
-              أدخل نشاطًا ومحافظ كاش وموادًا معلنة من تاريخ البداية فقط. لا يحول هذا الملف تاريخًا قديمًا إلى
+              أدخل نشاطًا ومحافظ نقد وموادًا معلنة من تاريخ البداية فقط. لا يحول هذا الملف تاريخًا قديمًا إلى
               مبيعات أو ربح أو ديون.
             </p>
             <Button
@@ -413,7 +415,7 @@ export function SettingsDataProtectionSection({
                     value={guidedPreview.summary.acceptedWallets}
                     className="micro-inline-number"
                   />{" "}
-                  محفظة كاش بقيمة{" "}
+                  محفظة نقد بقيمة{" "}
                   <IntegerValue
                     value={guidedPreview.summary.acceptedCashMinor}
                     className="micro-inline-number"

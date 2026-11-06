@@ -816,7 +816,7 @@ describe("Finance period waste row (المجموعة ٢ — عقد ٢٨)", () =>
     const label = await screen.findByText("هدر مخزون هذه الفترة");
     const row = label.closest("div");
     expect(row?.textContent).toContain("2.50");
-    expect(row?.textContent).toContain("لا يخرج كاش، ودخوله في النتيجة بخيارك لحظة تسجيل الهدر");
+    expect(row?.textContent).toContain("لا يخرج نقدًا، ودخوله في النتيجة بخيارك لحظة تسجيل الهدر");
     expect(row?.textContent).not.toContain("غير معروفة بعد");
     /* الهدر حركة مخزون لا حدث نقدي — الكاش والنتيجة لا يتأثران. */
     const events = await store.listFinancialEvents();
@@ -857,7 +857,7 @@ describe("Finance period waste row (المجموعة ٢ — عقد ٢٨)", () =>
     const label = await screen.findByText("هدر مخزون هذه الفترة");
     const row = label.closest("div");
     expect(row?.textContent).toContain("قيمة الهدر غير معروفة بعد");
-    expect(row?.textContent).toContain("لا يخرج كاش، ودخوله في النتيجة بخيارك لحظة تسجيل الهدر");
+    expect(row?.textContent).toContain("لا يخرج نقدًا، ودخوله في النتيجة بخيارك لحظة تسجيل الهدر");
     expect(row?.textContent).not.toContain("0.00");
   });
 });
