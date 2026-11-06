@@ -133,7 +133,7 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     const select = (await screen.findByLabelText(/مصدر الصرف/)) as HTMLSelectElement;
     await waitFor(() => expect(select.value).toBe("__unset__"));
     expect(screen.getByText("اختر مصدر الصرف")).toBeTruthy();
-    expect(screen.getByText("الكاش غير الموزع")).toBeTruthy();
+    expect(screen.getByText("النقد غير الموزع")).toBeTruthy();
     expect(screen.getByText("الدرج — تغطية من رصيدها")).toBeTruthy();
     expect(screen.getByText("حساب البنك — تغطية من رصيدها")).toBeTruthy();
     fireEvent.change(select, { target: { value: "bank" } });
@@ -152,7 +152,7 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "25");
     await userEvent.setup().type(screen.getByPlaceholderText("مثال: دفعت توصيل الطلبات للأسبوع"), "توصيل");
     await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
-    await waitFor(() => expect(screen.getByText("اختر مصدر الصرف: محفظة أو الكاش غير الموزع.")).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("اختر مصدر الصرف: محفظة أو النقد غير الموزع.")).toBeTruthy());
     expect(record).not.toHaveBeenCalled();
     await userEvent.setup().selectOptions(screen.getByLabelText(/مصدر الصرف/), "");
     await userEvent.setup().click(screen.getByRole("button", { name: "حفظ المصروف المصنف" }));
@@ -182,7 +182,7 @@ describe("FinancialEventEditor guided journey (المجموعة ١)", () => {
     renderEditor({ wallets });
     await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "25");
     expect(await screen.findByText("بعد الحفظ:")).toBeTruthy();
-    expect(screen.getByText(/ينقص الكاش 25.00 د.أ من الكاش غير الموزع/)).toBeTruthy();
+    expect(screen.getByText(/ينقص النقد 25.00 د.أ من النقد غير الموزع/)).toBeTruthy();
     expect(screen.getByText(/بلا حركة أمانة ولا سحب مالك/)).toBeTruthy();
     /* ناقص قبل الإدخال: النص الثابت المعروف يبقى — لا رقم متوهَّم. */
   });

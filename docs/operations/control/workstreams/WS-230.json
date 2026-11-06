@@ -1,7 +1,7 @@
 {
   "id": "WS-230",
   "title": "S05 — العملاء والموردون عند الحاجة (UNIT-037): هوية محفوظة اختيارية وحساب مصدريّ",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-014"
   ],
@@ -33,19 +33,23 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-10-29",
-  "updated_at": "2026-11-04",
-  "next_action": "S05 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا عمل مرحلي إضافي دون دليل جديد؛ لا VERIFIED على main ولا merge.",
+  "updated_at": "2026-11-05",
+  "next_action": "Workstream WS-230 مغلق ومتحقق على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا Claim نشطًا لهذه المرحلة.",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S05-EXECUTION-PROMPT-2026-10-29.md المنشور في 1663f2452b3769684f8faf0fe1671a410f79f116؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ ولا بدء S06. (تحديث مؤرخ 2026-10-30: أُذن S06 بقرار مالك مستقل لاحقًا — 00-S06-EXECUTION-PROMPT-2026-10-29.md المنشور في 13197ac0043ab7684a0f64a469a038e11ad434eb — ويشمل تنفيذه المتصل إصلاحَي S05-MR-001/S05-MR-002 فوق مرشح S05 على الفرع/PR نفسيهما.)",
     "المعالجة المحوّلة من مراجعة S04 (CF-001/CF-002) توثيق/أدلة فقط — لا إعادة فتح S04 ولا إعادة تنفيذها.",
     "ترقية المخطط/التصدير مسموحة فقط بما يتطلبه عقد UNIT-037 الحي صراحةً (39→40/31→32 بمُنشئ محروس بلا ترحيل بيانات) مع كامل أدلة التوافق في النطاق نفسه.",
-    "قبول المالك الشامل لـS05 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 10-S05-RESULT-2026-10-29.md + 10a addendum والمرشح bee05336؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول."
+    "قبول المالك الشامل لـS05 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 10-S05-RESULT-2026-10-29.md + 10a addendum والمرشح bee05336؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول.",
+    "تحديث 2026-11-05: supersedes branch-only next-action; PR #383 merged and main checks passed at 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S05-EXECUTION-PROMPT-2026-10-29.md",
     "docs/implementation/micro-component-execution/10-S05-RESULT-2026-10-29.md",
-    "https://github.com/Qays7753/Micro/pull/383"
+    "https://github.com/Qays7753/Micro/pull/383",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "status_history": [
     {
@@ -65,7 +69,15 @@
       "changed_at": "2026-10-29",
       "actor": "zai-s06-execution",
       "reason": "بدء S06 المأذون بأمر 00-S06-EXECUTION-PROMPT-2026-10-29.md — نقل مطالبة S05 إلى REVIEW_REQUIRED بروتوكول المرحلة التالية نفسه (سابقة WS-227 عند بدء S04 وWS-229 عند بدء S05)؛ مراجعة Manus المستقلة وقبول المالك لم يصدرا، وعيبا S05-MR-001/S05-MR-002 المؤكدان من المراجعة المستقلة عولجا من جذرهما بcommits موسومة ضمن نطاق S06 المأذون نفسه."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ Actions وCloudflare Pages نجحا على الرأس نفسه."
     }
   ],
-  "migration_baseline": true
+  "migration_baseline": true,
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

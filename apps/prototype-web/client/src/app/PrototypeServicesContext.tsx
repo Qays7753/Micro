@@ -178,6 +178,11 @@ type PrototypeServices = {
   profitToCashBridge: ProfitToCashBridgeService;
   /* المجموعة ٥ (عقد ٣٠): القارئ الموحّد — «آخر ما حدث» في الرئيس ومالي. */
   activity: ActivityService;
+  /* UXR-01 (F-001/PERF-004 — أمر UXR-W01 §«UXR-01»): حالة تجهيز سلسلة خدمات
+   * الرئيسية (بوابة المشتريات → مركز التحكم) وحدها — تميّز رفض الاستيراد
+   * الكسول عن التجهيز الجاري بفشل صريح قابل لإعادة المحاولة الفعالة؛ لا
+   * يخص أي خدمة كسولة أخرى (PERF-004: لا تغيير بقية الاستيرادات بلا دليل). */
+  homeSetup: HomeServicesSetup;
   /* المجموعة ١ (فحص سلامة مالي — أمر استئناف S14 2026-11-03 A3): الخدمة
    * غادرت كومة الإقلاع — عائلة فحوص السلامة (~92KB مصدرًا) تُحمّل عند أول
    * فتح من سطحيها (الإعدادات بعد الاستعادة/الإدخال الافتتاحي وصفحة فحص
@@ -198,6 +203,15 @@ type PrototypeServices = {
   dataVersion: number;
   notifyDataChanged: () => void;
 };
+
+/* UXR-01 (أمر UXR-W01): عقد حالة تجهيز خدمات الرئيسية — ثلاث حالات صادقة
+ * لا تخلط التحميل بالفشل ولا الفشل بالفراغ:
+ * - «loading»: التجهيز جارٍ فعلًا (الرسالة الصادقة role=status في الرئيسية).
+ * - «ready»: مركز التحكم منشور في السياق والقراءة ممكنة.
+ * - «failed»: رفض استيراد شظية التجهيز (PERF-004/S11 L-01) — فشل مميز مع فعل
+ *   إعادة محاولة يعيد الاستيراد نفسه في مكانه (لا إعادة تحميل صفحة ولا eager). */
+export type HomeServicesSetup =
+  { status: "loading" } | { status: "ready" } | { status: "failed"; retry: () => void };
 const PrototypeServicesContext = createContext<PrototypeServices | undefined>(undefined);
 
 const CROSS_TAB_CHANNEL = "micro-data-changed";
@@ -309,6 +323,24 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
   const [homeControlCenterService, setHomeControlCenterService] = useState<HomeControlCenterService | null>(
     null,
   );
+  /* UXR-01 (F-001/PERF-004 — أمر UXR-W01): حالة تجهيز سلسلة الرئيسية وإعادة
+   * محاولتها الفعالة. «فشل التجهيز» (رفض استيراد شظية) مميز عن «جارٍ
+   * التجهيز»: عدّاد إعادة المحاولة يعيد تشغيل الاستيرادَين المترابطَين في
+   * مكانهما (نمط الاستيراد الديناميكي نفسه؛ لا إعادة تحميل صفحة ولا eager
+   * لكل الخدمات) — ورسالة الفشل لا تعني قراءة فاشلة ولا فراغًا. */
+  const [homeSetupStatus, setHomeSetupStatus] = useState<"loading" | "ready" | "failed">("loading");
+  const [homeSetupRetryCount, setHomeSetupRetryCount] = useState(0);
+  const retryHomeSetup = useCallback(() => {
+    setHomeSetupStatus("loading");
+    setHomeSetupRetryCount(count => count + 1);
+  }, []);
+  const homeSetup = useMemo<HomeServicesSetup>(
+    () =>
+      homeSetupStatus === "failed"
+        ? { status: "failed", retry: retryHomeSetup }
+        : { status: homeSetupStatus },
+    [homeSetupStatus, retryHomeSetup],
+  );
   /* S07 (DOC-016 / UNIT-027، ميزانية الحزمة — نمط transfers/loans/count/
    * partyDirectory نفسه): خدمة المشتريات تُحمّل ديناميكيًا بعد الإقلاع فوق
    * المخزن الوحيد؛ تُبنى مرة ولا تُعاد عند تحديث dataVersion. وحدة الشراء
@@ -318,14 +350,26 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
   );
   useEffect(() => {
     let active = true;
-    void import("@/application/suppliers/supplierPurchaseService").then(module => {
-      if (!active) return;
-      setSupplierPurchasesService(new module.SupplierPurchaseService(singletonStore));
-    });
+    /* UXR-01: بوابة الرئيسية نفسها لا تُعاد بناء خدمتها عند إعادة محاولة
+     * التجهيز بعد نجاحها السابق — إعادة المحاولة تعيد الشظايا الفاشلة
+     * فقط؛ الخدمة القائمة فوق المخزن الوحيد تبقى كما هي. */
+    if (supplierPurchasesService) return undefined;
+    void import("@/application/suppliers/supplierPurchaseService")
+      .then(module => {
+        if (!active) return;
+        setSupplierPurchasesService(new module.SupplierPurchaseService(singletonStore));
+      })
+      .catch(() => {
+        if (!active) return;
+        /* UXR-01 (PERF-004/S11 L-01 — مسار الرئيسية وحده): رفض شظية بوابة
+         * التجهيز فشل صريح قابل لإعادة المحاولة — لا «جارٍ التجهيز» إلى
+         * ما لا نهاية ولا استثناء خام في السجلات (§10/9). */
+        setHomeSetupStatus("failed");
+      });
     return () => {
       active = false;
     };
-  }, []);
+  }, [supplierPurchasesService, homeSetupRetryCount]);
   /* S08 (DOC-017 / UNIT-034، ميزانية الحزمة — نمط purchases/loans/count/
    * partyDirectory نفسه): خدمة الأصول تُحمّل ديناميكيًا بعد الإقلاع فوق
    * المخزن الوحيد؛ تُبنى مرة ولا تُعاد عند تحديث dataVersion. وحدة الأصول
@@ -384,28 +428,39 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       import("@/application/home/homeControlCenterService"),
       import("@/application/follow-up"),
       import("@/application/scheduling"),
-    ]).then(([home, followUp, scheduling]) => {
-      if (!active) return;
-      setHomeControlCenterService(
-        new home.HomeControlCenterService(
-          singletonStore,
-          singletonServices.dailyFollowUp,
-          singletonServices.projectFinance,
-          new followUp.UnifiedFollowUpService(
-            scheduling.activeDeliveryLens(getPrototypeLocalStore()),
-            getPrototypeLocalStore(),
-            singletonServices.collections,
-            singletonServices.dueDates,
+    ])
+      .then(([home, followUp, scheduling]) => {
+        if (!active) return;
+        setHomeControlCenterService(
+          new home.HomeControlCenterService(
+            singletonStore,
+            singletonServices.dailyFollowUp,
             singletonServices.projectFinance,
-            getPrototypeLocalStore(),
+            new followUp.UnifiedFollowUpService(
+              scheduling.activeDeliveryLens(getPrototypeLocalStore()),
+              getPrototypeLocalStore(),
+              singletonServices.collections,
+              singletonServices.dueDates,
+              singletonServices.projectFinance,
+              getPrototypeLocalStore(),
+            ),
           ),
-        ),
-      );
-    });
+        );
+        /* UXR-01: اكتمل التجهيز المنشور — الحالة الصادقة "ready" تدقّ قبل
+         * أي قراءة؛ لا تدّعي الجهوزية قبل نشر الخدمة فعليًا. */
+        setHomeSetupStatus("ready");
+      })
+      .catch(() => {
+        if (!active) return;
+        /* UXR-01 (PERF-004/S11 L-01 — مسار الرئيسية وحده): رفض شظيات مركز
+         * التحكم فشل تجهيز صريح؛ إعادة المحاولة المعروضة على المستخدم
+         * تعيد هذه الاستيرادات الثلاثة في مكانها. */
+        setHomeSetupStatus("failed");
+      });
     return () => {
       active = false;
     };
-  }, [supplierPurchasesService]);
+  }, [supplierPurchasesService, homeSetupRetryCount]);
   useEffect(() => {
     let active = true;
     void Promise.all([
@@ -457,6 +512,7 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       planningCalculations: planningCalculationService,
       saleMovements: saleMovementsService,
       homeControlCenter: homeControlCenterService,
+      homeSetup,
       dataVersion,
       notifyDataChanged,
     }),
@@ -478,6 +534,16 @@ export function PrototypeServicesProvider({ children }: { children: ReactNode })
       /* S12 (نمط R1-F2 نفسه): خدمة الاتفاق الكسولة داخل الاعتماديات —
        * بدونها يظل محرر الاتفاق يرى null بعد اكتمال التحميل الديناميكي. */
       agreementService,
+      /* UXR-01 (F-001 — أمر UXR-W01): مركز التحكم الكسول داخل الاعتماديات —
+       * نمط R1-F2 نفسه الذي أصلح الحاسبة وحركات البيع والاتفاق قبله؛
+       * بدونه تبقى قيمة السياق مخزنة عند null بعد اكتمال تحميل مركز التحكم
+       * فلا ترى الرئيسية خدمتها أبدًا حتى كتابة ترفع dataVersion — وهذا هو
+       * السبب الجذري الموثق لتعليق الإقلاع البارد (بطاقة F-001: أي كتابة
+       * تفكّ التعليق لأنها تعيد حساب هذا الـmemo). */
+      homeControlCenterService,
+      /* UXR-01: حالة تجهيز سلسلة الرئيسية تُنشر مع القيمة — فشل التجهيز
+       * يصل الرئيسية في السطح نفسه الذي تعرض منه إعادة المحاولة الفعالة. */
+      homeSetup,
       dataVersion,
       notifyDataChanged,
     ],
@@ -504,6 +570,7 @@ function createServices(): Omit<
   | "supplierPurchases"
   | "assets"
   | "homeControlCenter"
+  | "homeSetup"
   | "planningCalculations"
   | "saleMovements"
   | "agreements"

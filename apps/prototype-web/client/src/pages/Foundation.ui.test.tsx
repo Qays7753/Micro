@@ -92,8 +92,9 @@ describe("Foundation page (decisions 4–8)", () => {
     mockedUsePrototypeServices.mockReturnValue(servicesOverrides(false));
     render(<Foundation />);
 
-    expect(await screen.findByRole("heading", { name: "شو عندك هلق؟" })).toBeTruthy();
-    // سطر الحقيقة (§2.5) يتصدر الصفحة.
+    expect(await screen.findByRole("heading", { name: "ما لديك الآن؟" })).toBeTruthy();
+    /* تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 2 — العيب 1): H1 صار فصحى مهنية
+       (UXR-D07) بلا عامية، و«سطر الحقيقة» صار «أساس أرقامك» (COPY-02). */
     expect(screen.getByText(/هذه الأرقام أساس كل ما سيقوله التطبيق/)).toBeTruthy();
     // القرار ٤: الكاش مفتوح افتراضيًا، والباقي مطوي بحالته بسطر واحد.
     expect(screen.getByText("لم تسجل محفظة بعد")).toBeTruthy();
@@ -138,7 +139,9 @@ describe("Foundation page (decisions 4–8)", () => {
     mockedUsePrototypeServices.mockReturnValue(servicesOverrides(true));
     render(<Foundation />);
 
-    expect(await screen.findByText("1 محفظة · كاش المحافظ:")).toBeTruthy();
+    /* تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 2 — العيب 1): «كاش المحافظ» صارت
+       «نقد المحافظ» بتوحيد القاموس (F-006/COPY-04). */
+    expect(await screen.findByText("1 محفظة · نقد المحافظ:")).toBeTruthy();
     expect(screen.getByText(/عليك للموردين:/)).toBeTruthy();
     expect(screen.getByText(/مادة مسجلة في المخزون المحلي/)).toBeTruthy();
     expect(screen.queryByText("الديون: لم يُسجَّل شيء")).toBeNull();

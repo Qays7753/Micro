@@ -650,7 +650,7 @@ export default function Catalog() {
         <ArrowRight aria-hidden="true" /> رجوع
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">مرجع اختياري</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان واحد بلا تمهيد معماري فوقه. */}
         <h1>منتجاتي وخدماتي</h1>
         <p>
           نظّم ما تكرره. المرجع يحفظ اقتراحًا اختياريًا للسعر والتكلفة، ولا يحدد مخزونًا ولا ربحًا نهائيًا؛

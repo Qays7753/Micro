@@ -285,7 +285,7 @@ export default function AssetDetail() {
                   الإهلاك الشهري <MoneyValue minor={proposal.monthlyMinor ?? 0} /> د.أ · أول شهر حمل{" "}
                   <bdi dir="ltr">{proposal.firstChargeMonth}</bdi> · متبقٍ {proposal.remainingMonths} شهرًا.
                 </p>
-                <p className="micro-field-hint">تسجيله يخفض ربح فترته فقط — لا يخصم من الصندوق شيئًا.</p>
+                <p className="micro-field-hint">تسجيله يخفض نتيجة الفترة فقط — ولا يسحب نقدًا.</p>
                 <LocalDateField
                   label="سجّل حتى تاريخ"
                   value={depreciationAsOf}
@@ -502,8 +502,8 @@ export default function AssetDetail() {
               </label>
               <p className="micro-field-hint">
                 {proceedsMinor > 0
-                  ? `البيع يدخل ${formatMoneyMinor(proceedsMinor)} د.أ للكاش، والفرق عن الدفتري (${formatMoneyMinor(summary.bookValueMinor)} د.أ) يظهر ربحًا أو خسارة معلنة.`
-                  : `الشطب خسارة غير نقدية بالدفتري (${formatMoneyMinor(summary.bookValueMinor)} د.أ) — لا كاش يدخل أو يخرج.`}
+                  ? `البيع يدخل ${formatMoneyMinor(proceedsMinor)} د.أ للنقد، والفرق عن الدفتري (${formatMoneyMinor(summary.bookValueMinor)} د.أ) يظهر ربحًا أو خسارة معلنة.`
+                  : `الشطب خسارة غير نقدية بالدفتري (${formatMoneyMinor(summary.bookValueMinor)} د.أ) — لا نقد يدخل أو يخرج.`}
               </p>
               <div className="micro-form-actions micro-contextual-actions">
                 <Button

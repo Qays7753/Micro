@@ -6,7 +6,7 @@
  * أن يطلب PIN بعد اليوم (البوابة نفسها حُذفت مع مكوّنها).
  */
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { retireLocalLockRecord } from "@/application/security/retireLocalLockRecord";
 import { MemoryLocalStore } from "@/storage/local/MemoryLocalStore";
@@ -137,8 +137,10 @@ describe("SDF-057 — PIN removed, then an old backup is restored: no PIN, no lo
     expect(screen.queryByLabelText("رمز القفل")).toBeNull();
     expect(screen.queryByText(/قفل التطبيق/)).toBeNull();
     expect(screen.queryByText(/مدة الخمول/)).toBeNull();
-    /* التفاعل مفتوح — لا inert ولا حبس (فعل البيانات نفسه قابل للاستخدام). */
-    const exportButton = await screen.findByRole("button", { name: "تصدير البيانات المحلية" });
+    /* التفاعل مفتوح — لا inert ولا حبس (فعل البيانات نفسه قابل للاستخدام).
+       UXR-06 (F-011): الفهرس أولًا — فتح مجموعة «البيانات والنسخ الاحتياطي» قبل فعل البيانات. */
+    fireEvent.click(screen.getByTestId("settings-group-data"));
+    const exportButton = await screen.findByRole("button", { name: "حفظ نسخة" });
     expect(exportButton.getAttribute("disabled")).toBeNull();
   });
 

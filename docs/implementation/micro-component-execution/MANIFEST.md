@@ -237,3 +237,8 @@
 | `22-S17-RESULT-2026-11-04.md` | نتيجة S17 (UNIT-033/044 + SH-22)؛ بوابة موارد الاستيراد، فحص البيانات في الإعدادات، تقاعد السطح المستقل، ومصالحة العائلات؛ صُحح عدد الأزواج إلى 28 موروثًا + الحالي. | `OWNER ACCEPTED ON INTEGRATION (2026-11-04); no VERIFIED on main; no merge` |
 | `23-S18-JOURNEY-MATRIX-2026-11-04.md` | مصفوفة الرحلات العشر وتدقيق المراحل الـ18 وحل SDF-068؛ الأعداد والأزواج محدثة بقرار المالك. | `OWNER ACCEPTED ON INTEGRATION (2026-11-04); no VERIFIED on main; no merge` |
 | `24-S18-MERGE-READINESS-MANIFEST-2026-11-04.md` | ملف جاهزية S18 بعد قرار قبول المالك؛ يصحح مرشحي S15/S16 ويثبت 28 زوجًا موروثًا + الحالي=29؛ أدلة وليس إذن دمج. | `OWNER ACCEPTED S01–S18 ON INTEGRATION (2026-11-04); merge remains separate` |
+
+
+## تحديث الحالة الحية بعد الدمج — 2026-11-05
+
+PR #383 دُمج إلى `main` عند `111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521`، ونجح Actions وCloudflare Pages على هذا الرأس. انتقلت سجلات S01–S18 في Operations Control إلى `VERIFIED` مع merge_sha والدليل. جداول القبول داخل تقارير S01–S18 تحفظ لقطة التسليم التاريخية ولا تُعاد كتابتها.

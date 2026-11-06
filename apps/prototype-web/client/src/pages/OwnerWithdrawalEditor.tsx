@@ -165,7 +165,7 @@ export default function OwnerWithdrawalEditor() {
     notifyDataChanged();
     if (attributionNotice) {
       /* الحدث محفوظ والتغطية تعذرت — إفصاح صادق لا نجاح صامت. */
-      setMessage(`سُجّل السحب إلى الكاش غير الموزع، وتعذرت تغطية المحفظة: ${attributionNotice}`);
+      setMessage(`سُجّل السحب إلى النقد غير الموزع، وتعذرت تغطية المحفظة: ${attributionNotice}`);
       return true;
     }
     /* S1-07: الخروج بعد حفظ ناجح يعود للمصدر (?from) — عقد ٢٦ قاعدة ٣. */
@@ -195,17 +195,18 @@ export default function OwnerWithdrawalEditor() {
         <ArrowRight aria-hidden="true" /> المالية
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">مدخل واحد · سحب المالك</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد بلا تمهيد معماري فوقه. */}
         <h1>سحب من المشروع لنفسك؟</h1>
         <p>
-          مال تأخذه من مشروعك لاستعمالك الشخصي. ينقص الكاش المسجل ولا يسجل مصروفًا تشغيليًا أبدًا — أثره يظهر
+          مال تأخذه من مشروعك لاستعمالك الشخصي. ينقص النقد المسجل ولا يسجل مصروفًا تشغيليًا أبدًا — أثره يظهر
           حيث ينتمي بحسب حال مشروعك، ولا حاجة لمعرفة الفرق التقني.
         </p>
       </div>
       <section className="micro-decision-card">
         <HandCoins aria-hidden="true" />
         <div>
-          <span>حد الحقيقة</span>
+          {/* UXR-04 (COPY-02): معنى السحب المباشر بجانب القرار — لا عنوان عام. */}
+          <span>معنى سحب المالك</span>
           <strong>السحب الشخصي ليس مصروفًا.</strong>
           <p>
             {path === "ledger_movement"
@@ -213,7 +214,7 @@ export default function OwnerWithdrawalEditor() {
                 ? "عندك سياسة حق مالك فعالة، فيُسجَّل السحب تسويةً لحقك من محفظة محددة، ويظهر في دفتر المالك."
                 : "عندك سياسة حق مالك فعالة بس ما في حق مسجل بعد — يُسجَّل السحب «قبل تسجيل الحق» من المحفظة، ويظهر في دفتر المالك."
               : path === "financial_event"
-                ? "يُسجَّل السحب حدثًا ماليًا عامًا ينقص الكاش ومال المالك معًا."
+                ? "يُسجَّل السحب حدثًا ماليًا عامًا ينقص النقد ومال المالك معًا."
                 : "جارٍ قراءة حال مشروعك المحلية…"}
           </p>
         </div>
@@ -238,13 +239,13 @@ export default function OwnerWithdrawalEditor() {
           <div>
             <span>خطوة تالية قبل السحب</span>
             <strong>سياستك الفعالة تسحب من محفظة، وما في محفظة معلنة بعد.</strong>
-            <p>أنشئ محفظة كاش أولًا (درج أو حساب) ليخرج السحب من رصيدها الموثق.</p>
+            <p>أنشئ محفظة نقود أولًا (درج أو حساب) ليخرج السحب من رصيدها الموثق.</p>
             <div className="micro-form-actions micro-contextual-actions">
               <Button
                 action="create"
                 onClick={() => navigate(withReturnTo("/cash/wallet/new", "/finance/withdraw"))}
               >
-                أنشئ محفظة كاش
+                أنشئ محفظة نقود
               </Button>
             </div>
           </div>
@@ -301,12 +302,12 @@ export default function OwnerWithdrawalEditor() {
                 مصدر السحب{" "}
                 <small>
                   {overview.walletBalances.length === 1
-                    ? "المحفظة الوحيدة معروضة — الكاش غير الموزع خيار صريح"
-                    : "اختر محفظة أو الكاش غير الموزع"}
+                    ? "المحفظة الوحيدة معروضة — النقد غير الموزع خيار صريح"
+                    : "اختر محفظة أو النقد غير الموزع"}
                 </small>
               </span>
               <select value={eventWalletId} onChange={event => setEventWalletId(event.target.value)}>
-                <option value="">الكاش غير الموزع</option>
+                <option value="">النقد غير الموزع</option>
                 {overview.walletBalances.map(wallet => (
                   <option key={wallet.id} value={wallet.id}>
                     {wallet.name} — تغطية من رصيدها

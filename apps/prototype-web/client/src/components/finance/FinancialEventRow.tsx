@@ -360,7 +360,7 @@ export function FinancialEventRow({
           ) : null}
           <div className="micro-finance-event-effects">
             <span>
-              كاش <MoneyValue minor={event.cashDeltaMinor} /> د.أ
+              نقد <MoneyValue minor={event.cashDeltaMinor} /> د.أ
             </span>
             <span>
               التزام <MoneyValue minor={event.payableDeltaMinor} /> د.أ
@@ -432,7 +432,7 @@ export function FinancialEventRow({
               originalDetail={formatLocalDate(event.occurredOn) ?? event.occurredOn}
               intro="سيُلغى أثر هذه العملية من أرقامك اليوم، ويبقى سجلها الأصلي محفوظًا للمراجعة — لا يُمحى شيء."
               dimensions={[
-                { label: "الكاش", beforeMinor: event.cashDeltaMinor, afterMinor: -event.cashDeltaMinor },
+                { label: "النقد", beforeMinor: event.cashDeltaMinor, afterMinor: -event.cashDeltaMinor },
                 {
                   label: "الالتزامات",
                   beforeMinor: event.payableDeltaMinor,
@@ -670,7 +670,7 @@ export function FinancialEventRow({
               originalDetail={formatLocalDate(event.occurredOn) ?? event.occurredOn}
               intro="سيُلغى أثر هذه العملية من أرقامك، ويبقى أصلها وسبب الحذف في السجل للمراجعة — لا محو صامت."
               dimensions={[
-                { label: "الكاش", beforeMinor: event.cashDeltaMinor, afterMinor: 0 },
+                { label: "النقد", beforeMinor: event.cashDeltaMinor, afterMinor: 0 },
                 { label: "الالتزامات", beforeMinor: event.payableDeltaMinor, afterMinor: 0 },
                 { label: "مال المالك", beforeMinor: event.ownerCapitalDeltaMinor, afterMinor: 0 },
                 { label: "المصروف/النتيجة", beforeMinor: event.operatingExpenseDeltaMinor, afterMinor: 0 },
@@ -709,7 +709,7 @@ export function FinancialEventRow({
                   <div>
                     <dt>الأثر بعد التراجع عن التصحيح</dt>
                     <dd>
-                      كاش <MoneyValue minor={event.cashDeltaMinor} /> · التزام{" "}
+                      نقد <MoneyValue minor={event.cashDeltaMinor} /> · التزام{" "}
                       <MoneyValue minor={event.payableDeltaMinor} /> · مال المالك{" "}
                       <MoneyValue minor={event.ownerCapitalDeltaMinor} /> · مصروف{" "}
                       <MoneyValue minor={event.operatingExpenseDeltaMinor} />

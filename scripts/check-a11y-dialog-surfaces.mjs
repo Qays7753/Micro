@@ -107,6 +107,20 @@ export const CLASSIFIED_DIALOG_SURFACES = [
     focusContract:
       "D-13 منفذ — أقسام داخلية موسعة مصرحة region (كانت dialog خطأً)؛ لا فخ ولا إزاحة تركيز (قرار OD-A11Y: لا فخ لغير المودال)",
   },
+  {
+    /* F-002 (UXR-03 — أمر W02/UXR-D09): سؤال حالة دفع المصروف — لوحة صغيرة
+     * غير مودالة فوق المالية (نمط لوحات الرئيسية القائم): تفتح بتركيز على
+     * أول أزرارها (focus-in)، وEscape/زر الإلغاء/الخلفية يغلقونها ويعيدون
+     * التركيز لزر «مصروف» الظاهر (restore to trigger)، واختيار الحالة يوجه
+     * للمحرر القائم فورًا؛ لا فخ تركيز لغير المودال (قرار OD-A11Y)؛ مصنفة
+     * بنفس الـPR الذي أدخلها (قاعدة الحارس). */
+    file: "pages/Finance.tsx",
+    role: "dialog",
+    ariaModal: false,
+    model: "NON_MODAL",
+    focusContract:
+      "conformant F-002/UXR-03 — focus-in on open (first choice) + Escape/cancel restore focus to the expense trigger; backdrop closes without restore (pointer user — the standing Home-panels pattern); no trap by design (OD-A11Y non-modal)",
+  },
 ];
 
 function listClientProductionFiles(repoRoot) {

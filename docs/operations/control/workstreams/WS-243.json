@@ -1,7 +1,7 @@
 {
   "id": "WS-243",
   "title": "S18 — القبول المتكامل وتجهيز الدمج النهائي (توثيق/قبول برنامج)",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-027"
   ],
@@ -23,13 +23,14 @@
   "agent": "ZAI (single implementation writer; two distinct read-only reviewers on the same final SHA)",
   "pr": 383,
   "started_at": "2026-11-04",
-  "updated_at": "2026-11-04",
-  "next_action": "S18 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا عمل مرحلي إضافي دون دليل جديد؛ لا VERIFIED على main ولا merge.",
+  "updated_at": "2026-11-05",
+  "next_action": "Workstream WS-243 مغلق ومتحقق على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا Claim نشطًا لهذه المرحلة.",
   "notes": [
     "أمر متصل واحد من المالك (2026-11-04): S18 تبدأ مباشرة بعد إعادة تسليم S17 قانونيًا؛ لا وقفة موافقة وسيطة.",
     "لا وظيفة منتج جديدة تحت اسم الاختبار النهائي؛ لا دمج ولا كتابة main؛ جاهزية الدمج أدلة لا إذنًا.",
     "حد الاستعادة: رأس تسليم S17 6016acb8 (شجرة الكود 1f232c79).",
-    "قبول المالك الشامل لـS18 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 23-S18-JOURNEY-MATRIX-2026-11-04.md + 24-S18-MERGE-READINESS-MANIFEST-2026-11-04.md والمرشح 7b8129f6; delivery head 0b16cbe4؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول."
+    "قبول المالك الشامل لـS18 بتاريخ 2026-11-04: قبول على فرع التكامل فقط استنادًا إلى 23-S18-JOURNEY-MATRIX-2026-11-04.md + 24-S18-MERGE-READINESS-MANIFEST-2026-11-04.md والمرشح 7b8129f6; delivery head 0b16cbe4؛ لا يعني VERIFIED على main أو merge. يبقى REVIEW_REQUIRED وفق Control لتحرير الملكية، لا لنفي القبول.",
+    "تحديث 2026-11-05: supersedes branch-only next-action; PR #383 merged and main checks passed at 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521."
   ],
   "status_history": [
     {
@@ -43,7 +44,21 @@
       "changed_at": "2026-11-04",
       "actor": "zai-s18-execution",
       "reason": "إعادة تسليم S18 للمراجعة المستقلة مع ملف جاهزية الدمج الكامل ومصفوفة الرحلات وأدلة SDF-068؛ لا قبول ذاتي ولا دمج."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ Actions وCloudflare Pages نجحا على الرأس نفسه."
     }
   ],
-  "migration_baseline": true
+  "migration_baseline": true,
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "evidence": [
+    "https://github.com/Qays7753/Micro/pull/383",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
+  ]
 }

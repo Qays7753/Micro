@@ -6,6 +6,7 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { formatLocalDate, formatMoneyMinor, formatMonthLabel } from "@/presentation/formatters";
 import { MoneyValue, IntegerValue } from "@/components/presentation/DisplayValue";
+import { Button } from "@/components/primitives";
 import { RestatementNote } from "@/components/finance/RestatementNote";
 import { withReturnTo } from "@/app/navigationContract";
 import type { FinancialInsights, FinanceState, RecordedPeriodResult } from "@/application/finance";
@@ -118,7 +119,7 @@ export function FinancePeriodResultSection({
               البيع وبالثمن المسجّل وقت البيع). البيع الملغى مستبعد بالكامل.
             </p>
             <p>
-              القبض — من طلبات أو بيع آجل — ليس إيرادًا هنا؛ الكاش يظهر في بطاقة الكاش، وديون العملاء في «لي
+              القبض — من طلبات أو بيع آجل — ليس إيرادًا هنا؛ النقد يظهر في بطاقة النقد، وديون العملاء في «لي
               عند العملاء». رأس المال والسحوبات والأمانات ليست إيرادًا ولا مصروفًا ولا تربحًا.
             </p>
             {period.directSaleCostUnknownCount > 0 ? (
@@ -277,7 +278,7 @@ export function FinancePeriodResultSection({
                       {state.periodWaste.hasUnknownCost ? <small> · منها جزء بتكلفة غير معروفة</small> : null}
                     </>
                   )}{" "}
-                  — غير نقدي: لا يخرج كاش، ودخوله في النتيجة بخيارك لحظة تسجيل الهدر.
+                  — غير نقدي: لا يخرج نقدًا، ودخوله في النتيجة بخيارك لحظة تسجيل الهدر.
                 </dd>
               </div>
             ) : null}
@@ -448,7 +449,7 @@ export function FinancePeriodResultSection({
                 <strong>السيولة المسجلة</strong>
                 <dl className="micro-insights-grid">
                   <div>
-                    <dt>الكاش المسجل</dt>
+                    <dt>النقد المسجل</dt>
                     <dd>
                       <MoneyValue minor={insights.liquidity.recordedCashMinor} />
                     </dd>
@@ -486,6 +487,26 @@ export function FinancePeriodResultSection({
               </div>
             </section>
           </details>
+          {/* F-005 (UXR-03 — أمر W02/عقد 02-FIN): «قراءة الفترة إلى الكشف» —
+           * زر واحد داخل تفصيل الفترة يفتح كشف 016 بالنطاق المطبق نفسه
+           * (since/until أشهر)؛ هذا موطن بطاقة «قصة الأسبوع ببساطة» وفقرة
+           * «كشف الفترة — بسيط» بعد إذابتهما في الجذر (DEC-FIN-01: نفس
+           * الوجهة)، والفهرس يبقي مدخله المستقل بنطاقه أيضًا. */}
+          <div className="micro-form-actions micro-contextual-actions">
+            <Button
+              action="secondary"
+              onClick={() =>
+                navigate(
+                  withReturnTo(
+                    `/finance/statement?from=${appliedRange.from.slice(0, 7)}&to=${appliedRange.to.slice(0, 7)}`,
+                    "/finance",
+                  ),
+                )
+              }
+            >
+              افتح كشف الفترة
+            </Button>
+          </div>
         </section>
       </details>
     </>

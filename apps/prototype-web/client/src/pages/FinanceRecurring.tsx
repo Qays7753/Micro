@@ -68,7 +68,7 @@ export default function FinanceRecurring() {
         رجوع
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">تذكيرات تحت سيطرتك</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان واحد بلا تمهيد معماري فوقه. */}
         <h1>المصاريف المتكررة</h1>
         <p>كل تذكير فترات وقرارات موثقة — لا يُسجَّل مصروف بغير تأكيدك، والمتأخر انتباه لا دين.</p>
       </div>

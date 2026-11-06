@@ -104,12 +104,18 @@ export default function Foundation() {
   return (
     <section className="micro-page micro-foundation-page">
       <div className="micro-page-heading">
-        <span className="micro-overline">خطوة التأسيس · اختيارية بالكامل</span>
-        <h1>شو عندك هلق؟</h1>
+        {/* تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 2 — العيب 1): اجتياح Foundation بجرد المستهلكين
+            النهائي — إسقاط نصف «خطوة التأسيس» المعماري من الوسم وإبقاء إفصاح «اختيارية بالكامل»
+            الصادق وحده (SOP-02). */}
+        <span className="micro-overline">اختيارية بالكامل</span>
+        <h1>ما لديك الآن؟</h1>
         <p>سجل ما تعرفه الآن فقط. ما تخطّاه يظهر لاحقًا في «الرئيسية» كطريق، لا كصفر.</p>
       </div>
-      <section className="micro-foundation-truth" aria-label="سطر الحقيقة">
-        <span className="micro-overline">سطر الحقيقة</span>
+      {/* تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 2 — العيب 1): «سطر الحقيقة» لقب معماري من
+          عائلة «حد الحقيقة» — استبداله بمعنى مباشر بنمط COPY-02، والأرقام المعروضة
+          تنعكس فورًا لا كاشًا قديمًا. */}
+      <section className="micro-foundation-truth" aria-label="أساس أرقامك">
+        <span className="micro-overline">أساس أرقامك</span>
         <p>
           هذه الأرقام أساس كل ما سيقوله التطبيق. ما لا تسجّله الآن تُسلّطه لاحقًا من المكان نفسه — يظهر «غير
           متاح» بسببه ولا يُخترع له صفر. والتعديل لاحقًا يكون تراجعًا موثقًا، لا حذفًا.
@@ -118,9 +124,9 @@ export default function Foundation() {
       <details className="micro-foundation-section" open>
         <summary className="micro-foundation-summary">
           <span>
-            <b>الكاش</b>
+            <b>النقد</b>
             <small>
-              {cash.wallets.length > 0 ? `${cash.wallets.length} محفظة · كاش المحافظ: ` : "لم تسجل محفظة بعد"}
+              {cash.wallets.length > 0 ? `${cash.wallets.length} محفظة · نقد المحافظ: ` : "لم تسجل محفظة بعد"}
               {cash.wallets.length > 0 ? <MoneyValue minor={cash.totalWalletCashMinor} /> : null}
             </small>
           </span>
@@ -128,18 +134,18 @@ export default function Foundation() {
         </summary>
         <div className="micro-foundation-body">
           <p>
-            <WalletCards aria-hidden="true" /> رصيد البداية ليس مال مالك ولا دخلًا؛ إنه نقطة معلنة تبدأ منها
-            مراجعة الكاش. تاريخ البداية يقبل يومًا سابقًا ويُعلن أنه أُدخل لاحقًا.
+            <WalletCards aria-hidden="true" /> رصيد البداية ليس إيرادًا ولا إضافة من المالك؛ إنه نقطة معلنة
+            تبدأ منها مراجعة النقد. تاريخ البداية يقبل يومًا سابقًا ويُعلن أنه أُدخل لاحقًا.
           </p>
           {/* SET-002: لماذا؟ ما الذي يتأثر؟ هل للأثر المالي؟ أين تظهر النتيجة؟ */}
           <dl className="micro-foundation-explain">
             <div>
               <dt>لماذا يفيدك؟</dt>
-              <dd>بدونه يبقى الكاش «غير مسجل» ولا تستطيع مراجعة مصروفك من محفظة معلنة.</dd>
+              <dd>بدونه يبقى النقد «غير مسجل» ولا تستطيع مراجعة مصروفك من محفظة معلنة.</dd>
             </div>
             <div>
               <dt>ما الذي يتأثر؟</dt>
-              <dd>بطاقة الكاش في «الرئيسية» وقسم «المالية» ودفتر المحفظة.</dd>
+              <dd>بطاقة النقد في «الرئيسية» وقسم «المالية» ودفتر المحفظة.</dd>
             </div>
             <div>
               <dt>الأثر المالي</dt>
@@ -147,7 +153,7 @@ export default function Foundation() {
             </div>
             <div>
               <dt>أين تظهر النتيجة؟</dt>
-              <dd>في «الكاش المسجل» وفي دفتر كل محفظة وحركاتها.</dd>
+              <dd>في «النقد المسجل» وفي دفتر كل محفظة وحركاتها.</dd>
             </div>
           </dl>
           <Button
@@ -239,7 +245,7 @@ export default function Foundation() {
         </summary>
         <div className="micro-foundation-body">
           <p>
-            <Landmark aria-hidden="true" /> الدين التزام مسجل وليس كاشًا محصلًا، ولا يدخل نتيجة الفترة حتى
+            <Landmark aria-hidden="true" /> الدين التزام مسجل وليس نقدًا محصلًا، ولا يدخل نتيجة الفترة حتى
             يُسدَّد أو يُوزَّع بقاعدة معلنة.
           </p>
           {/* SET-002: ديون قائمة — لماذا/ما يتأثر/الأثر المالي/أين تظهر النتيجة. */}
@@ -254,7 +260,7 @@ export default function Foundation() {
             </div>
             <div>
               <dt>الأثر المالي</dt>
-              <dd>تسجيل الالتزام لا يخصم كاشًا؛ الدفع لاحقًا هو الذي يحركه.</dd>
+              <dd>تسجيل الالتزام لا يخصم نقدًا؛ الدفع لاحقًا هو الذي يحركه.</dd>
             </div>
             <div>
               <dt>أين تظهر النتيجة؟</dt>

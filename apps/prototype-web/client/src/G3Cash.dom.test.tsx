@@ -106,11 +106,11 @@ describe("G3 hardening — cash transfer journey (page → service → store)", 
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
     );
     render(<Harness page={<CashTransferEditor />} />);
-    await screen.findByRole("heading", { name: "حوّل كاشًا بين محافظك" });
+    await screen.findByRole("heading", { name: "حوّل نقدًا بين محافظك" });
     selectTransferWallets();
 
     fireEvent.change(screen.getByLabelText("مبلغ التحويل"), { target: { value: "25.00" } });
-    fireEvent.change(screen.getByPlaceholderText("مثال: أودعت كاش الدرج في الحساب البنكي"), {
+    fireEvent.change(screen.getByPlaceholderText("مثال: أودعت نقد الدرج في الحساب البنكي"), {
       target: { value: "إيداع نهاية اليوم" },
     });
     fireEvent.click(screen.getByRole("button", { name: "حفظ التحويل" }));
@@ -138,7 +138,7 @@ describe("G3 hardening — cash transfer journey (page → service → store)", 
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
     );
     render(<Harness page={<CashTransferEditor />} />);
-    await screen.findByRole("heading", { name: "حوّل كاشًا بين محافظك" });
+    await screen.findByRole("heading", { name: "حوّل نقدًا بين محافظك" });
 
     /* مبلغ بلا بيان: الرفض بلا كتابة. */
     selectTransferWallets();
@@ -159,11 +159,11 @@ describe("G3 hardening — cash transfer journey (page → service → store)", 
       () => contextRef.current as unknown as ReturnType<typeof usePrototypeServices>,
     );
     render(<Harness page={<CashTransferEditor />} />);
-    await screen.findByRole("heading", { name: "حوّل كاشًا بين محافظك" });
+    await screen.findByRole("heading", { name: "حوّل نقدًا بين محافظك" });
 
     selectTransferWallets();
     fireEvent.change(screen.getByLabelText("مبلغ التحويل"), { target: { value: "10.00" } });
-    fireEvent.change(screen.getByPlaceholderText("مثال: أودعت كاش الدرج في الحساب البنكي"), {
+    fireEvent.change(screen.getByPlaceholderText("مثال: أودعت نقد الدرج في الحساب البنكي"), {
       target: { value: "نقر مزدوج" },
     });
     const saveButton = screen.getByRole("button", { name: "حفظ التحويل" }) as HTMLButtonElement;

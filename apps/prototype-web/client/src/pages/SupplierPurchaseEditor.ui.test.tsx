@@ -214,7 +214,7 @@ describe("SupplierPurchaseEditor payment source rules (FIN-003)", () => {
     await waitFor(() => expect((selector as HTMLSelectElement).value).toBe("drawer"));
     expect(screen.getByText("درج-FIN003 — تغطية من رصيدها")).toBeTruthy();
     /* الكاش غير الموزع خيار صريح إلى جانب المحفظة المعيَّنة. */
-    expect(screen.getByText("الكاش غير الموزع")).toBeTruthy();
+    expect(screen.getByText("النقد غير الموزع")).toBeTruthy();
     await userEvent.type(screen.getByLabelText(/مبلغ دفعة المورد/), "10.00");
     await userEvent.click(screen.getByRole("button", { name: /حفظ الدفعة/ }));
     await waitFor(() => {
@@ -266,7 +266,7 @@ describe("SupplierPurchaseEditor payment source rules (FIN-003)", () => {
       expect(screen.getByRole("heading", { level: 1, name: /دفعة إلى مورد الأقمشة/ })).toBeTruthy();
     });
     expect(
-      await screen.findByText(/ستُسجَّل الدفعة من الكاش غير الموزع، ويمكن تغطيتها من محفظة لاحقًا/),
+      await screen.findByText(/ستُسجَّل الدفعة من النقد غير الموزع، ويمكن تغطيتها من محفظة لاحقًا/),
     ).toBeTruthy();
     expect(screen.queryByLabelText(/مصدر صرف دفعة المورد/)).toBeNull();
   });

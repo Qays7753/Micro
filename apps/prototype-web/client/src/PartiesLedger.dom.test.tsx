@@ -91,7 +91,7 @@ describe("Parties directory journey (S05 — DOC-014 / UNIT-037)", () => {
   it("shows the honest empty state for a fresh project — no forced parties", async () => {
     renderParties();
     expect(await screen.findByText("لم تحفظ عملاء أو موردين بعد.")).toBeTruthy();
-    expect(screen.getByText("من تتعامل معه عند الحاجة")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "العملاء والموردون" })).toBeTruthy();
   });
 
   it("shows a saved party with its source-anchored account and exact amount", async () => {

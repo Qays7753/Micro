@@ -86,7 +86,7 @@ export default function WalletLedger() {
           </Button>
         </div>
         <Button action="secondary" onClick={() => navigate("/cash")}>
-          محافظ الكاش
+          محافظ النقد
         </Button>
       </section>
     );
@@ -97,10 +97,10 @@ export default function WalletLedger() {
   return (
     <section className="micro-page micro-wallet-ledger-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowRight aria-hidden="true" /> محافظ الكاش
+        <ArrowRight aria-hidden="true" /> محافظ النقد
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">دفتر محفظة · المبالغ (د.أ)</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان واحد بلا تمهيد معماري فوقه. */}
         <h1>{overview.wallet.name}</h1>
         <p>
           {overview.wallet.kind === "cash_drawer"
@@ -109,7 +109,7 @@ export default function WalletLedger() {
               ? "حساب بنكي"
               : overview.wallet.kind === "digital_wallet"
                 ? "محفظة رقمية"
-                : "مكان كاش آخر"}{" "}
+                : "مكان نقد آخر"}{" "}
           · حركات المحفظة فقط: الافتتاح والتحويل والضبط والتخصيص — ما لم يُخصص لها يبقى «غير موزع».
         </p>
       </div>
@@ -123,7 +123,7 @@ export default function WalletLedger() {
           <p>
             {overview.openingUnknown
               ? "رصيد الافتتاح غير معروف — الرصيد أعلاه يخص الحركات المسجلة فقط، ولا يُعرض صفر مكان المجهول."
-              : "هذا رصيد المحفظة لا ربحها — الكاش ليس نتيجة الفترة."}
+              : "هذا رصيد المحفظة لا ربحها — النقد ليس نتيجة الفترة."}
           </p>
         </div>
         {/* T7 (قرار المالك — Wave 4.2): فعل سياقي شرطي — لا زر ميت عند غياب

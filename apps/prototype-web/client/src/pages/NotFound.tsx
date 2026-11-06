@@ -7,7 +7,8 @@ export default function NotFound() {
   const [, navigate] = useLocation();
   return (
     <section className="micro-page micro-not-found">
-      <span className="micro-overline">مسار غير متاح</span>
+      {/* F-008 (UXR-02 — أمر UXR-W01): عنوان وجهة واحد واضح بلا تمهيد معماري
+          فوقه (SOP-02) — الرسالة القصيرة والرجوع الآمن كما هما (RET/SHELL). */}
       <h1>هذه الصفحة ليست جزءًا من هذا الإصدار</h1>
       <p>ارجع إلى الرئيسية لمتابعة المسار المحلي الأساسي.</p>
       <Button action="secondary" onClick={() => navigate("/")}>

@@ -9,7 +9,8 @@
  * ٤) لمحة مالية: فترة أداء واحدة (اليوم/هذا الشهر بلوحة تطبيق/إلغاء)،
  *    المبيعات المسجلة ونتيجة الفترة يفتحان كشف 016 بالنطاق نفسه، والنقد
  *    المسجل الآن منفصل يفتح 022، ورابط «عرض المالية» يفتح 013.
- * ٥) اسأل Micro — قريبًا: مدخل ثانوي يفتح الإعلان القائم وفق 043 فقط.
+ * ٥) (أُزيل — DEC-SHELL-01/UXR-03): اسأل Micro غادر الرئيسية إلى عنصر
+ *    واحد عند الطلب في قائمة «مايكرو» (AppHeader) وفق 043 فقط.
  * ما غادر الرئيسية (HOME-C): الأهم الآن/اليوم المتداخلان (مختصر واحد
  * بدلهما)، أثناء غيابك، آخر التسجيلات، وخيارات المشروع — كلها عند أصحابها.
  * الأفعال تفوض التسجيل إلى أصحابه؛ الفتح والقراءة لا يكتبان شيئًا.
@@ -40,7 +41,6 @@ import { MoneyValue } from "@/components/presentation/DisplayValue";
 import { Button } from "@/components/primitives";
 import { formatArabicPlural, formatLocalDateLong } from "@/presentation/formatters";
 import { withReturnTo } from "@/app/navigationContract";
-import { futureServiceAnnouncements } from "@/app/futureServices";
 import type {
   HomeControlCenterViewModel,
   HomeFollowUpRow,
@@ -57,6 +57,12 @@ type HomeState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
   | { phase: "ready"; model: HomeControlCenterViewModel; refreshError: string | null };
+
+/* UXR-01 (أمر UXR-W01 — قبول A01): رفض وعد القراءة (استثناء غير متوقع)
+ * يظهر رسالة آمنة ثابتة — لا استثناء خام ولا معرفات شخصية في الرسائل
+ * (AGENTS §10/9)؛ وهي نفس رسالة فشل التخزين الكنونية من القارئ فلا يظهر
+ * للمستخدم وعد أدق مما يملكه النظام. */
+const HOME_UNEXPECTED_READ_FAILURE = "تعذر قراءة بيانات مشروعك المحلية.";
 
 /* HOME-F03: الفترة حالة عرض — «هذا الشهر» أول دخول؛ تُحفظ للرجوع داخل
  * الجلسة (لا إعدادًا ماليًا عامًا، ولا تخزينًا جديدًا). */
@@ -131,7 +137,7 @@ function FollowUpRow({ row, onNavigate }: { row: HomeFollowUpRow; onNavigate: (h
 
 export default function Home() {
   const [, navigate] = useLocation();
-  const { homeControlCenter, dataVersion } = usePrototypeServices();
+  const { homeControlCenter, dataVersion, homeSetup } = usePrototypeServices();
   const [state, setState] = useState<HomeState>({ phase: "loading" });
   /* Z1.4: عدّاد إعادة المحاولة الآمنة — زيادته تعيد تشغيل قراءة الواجهة نفسها
    * في مكانها (سطح الخطأ الكامل والخطأ المضمّن كلاهما)، بلا إعادة تحميل. */
@@ -157,73 +163,106 @@ export default function Home() {
   const [infoOpen, setInfoOpen] = useState(false);
   const infoRef = useRef<HTMLDivElement>(null);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
-  /* UNIT-043/HOME-A2-5: اسأل Micro — مدخل ثانوي يفتح الإعلان القائم فقط. */
-  const [askMicroOpen, setAskMicroOpen] = useState(false);
-  const askMicroRef = useRef<HTMLDivElement>(null);
-  const askMicroButtonRef = useRef<HTMLButtonElement>(null);
+  /* UNIT-043/HOME-A2-5 + DEC-SHELL-01 (UXR-03 — أمر W02): إعلان «اسأل
+   * Micro — قريبًا» غادر الرئيسية — عنصر واحد عند الطلب في قائمة «مايكرو»
+   * (AppHeader)؛ لا شريط دائم ولا بطاقة ثانوية داخل الرئيسية. */
   /* SET-002: لافتة نجاح الإعداد الأول — تظهر مرة بعد الحفظ وتغادر مع التنقل. */
   const search = useSearch();
   const setupDone = new URLSearchParams((search ?? "").replace(/^\?/, "")).get("setup") === "1";
+  /* UXR-01 (أمر UXR-W01 — A01): تسلسل محاولات القراءة — نتيجة محاولة أقدم
+   * تُتجاهل بعد بدء محاولة أحدث (لا تسمح للاحق بالكتابة فوق الأحدث)، وكل
+   * نتيجة تُتجاهل بعد تركيب الصفحة (active). رفض الوعد يُعرض برسالة آمنة
+   * مميزة عن الفراغ وعن «جارٍ التجهيز»، مع إعادة المحاولة في مكانها. */
+  const readAttemptRef = useRef(0);
   useEffect(() => {
     /* S05 (ميزانية الحزمة): المركز يُحمَّل ديناميكيًا بعد الإقلاع؛ حتى جاهزيته
      * تبقى الصفحة في حالة تجهيزها الصادقة (role=status) ولا يُدّعى فشل قراءة —
      * غياب الخدمة ليس خطأ القراءة. */
     if (!homeControlCenter) return;
     let active = true;
+    const attempt = ++readAttemptRef.current;
     /* S5-08: تحديث خلفي لا وميض تحميل — القراءة السابقة تبقى معروضة حتى
      * تصل الجديدة (stale-while-revalidate)؛ حالة التحميل الكاملة للإقلاع فقط. */
     setState(current => (current.phase === "ready" ? current : { phase: "loading" }));
-    homeControlCenter.read().then(result => {
-      if (!active) return;
-      setState(current => {
-        if (result.ok) return { phase: "ready", model: result.value, refreshError: null };
-        /* Z1.4: فشل التحديث الخلفي مع جهوزية قائمة لا يستبدلها. */
-        if (current.phase === "ready")
-          return { phase: "ready", model: current.model, refreshError: result.message };
-        return { phase: "error", message: result.message };
-      });
-    });
+    homeControlCenter.read().then(
+      result => {
+        if (!active || attempt !== readAttemptRef.current) return;
+        setState(current => {
+          if (result.ok) return { phase: "ready", model: result.value, refreshError: null };
+          /* Z1.4: فشل التحديث الخلفي مع جهوزية قائمة لا يستبدلها. */
+          if (current.phase === "ready")
+            return { phase: "ready", model: current.model, refreshError: result.message };
+          return { phase: "error", message: result.message };
+        });
+      },
+      () => {
+        if (!active || attempt !== readAttemptRef.current) return;
+        /* UXR-01: رفض الوعد فشل حقيقي مميز — لا فراغ ولا تحميل دائم؛ نفس
+         * قاعدة الز1.4: الجهوزية القائمة تبقى وخطأ التحديث يعلن مكانها. */
+        setState(current => {
+          if (current.phase === "ready")
+            return { phase: "ready", model: current.model, refreshError: HOME_UNEXPECTED_READ_FAILURE };
+          return { phase: "error", message: HOME_UNEXPECTED_READ_FAILURE };
+        });
+      },
+    );
     return () => {
       active = false;
     };
   }, [dataVersion, homeControlCenter, retryCount]);
   useEffect(() => {
-    if (!infoOpen && !askMicroOpen && !periodPickerOpen && !allActionsOpen) return;
+    if (!infoOpen && !periodPickerOpen && !allActionsOpen) return;
     /* Micro Calm: طبقات الرئيسية تُغلق بEscape أيضًا — بلا حصر تركيز إضافي؛
      * وإغلاق Escape يعيد التركيز إلى مشغّل اللوحة المفتوحة كما في لوحة وظائف
-     * المالية ولوحتي الترويسة (OD-A11Y). */
+     * المالية ولوحتي الترويسة (OD-A11Y). اسأل Micro غادر الرئيسية إلى
+     * قائمة «مايكرو» (DEC-SHELL-01/DEC-HOM-01 — UXR-03). */
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       setAllActionsOpen(false);
       setPeriodPickerOpen(false);
       setInfoOpen(false);
-      setAskMicroOpen(false);
       if (periodPickerOpen) periodButtonRef.current?.focus();
       else if (infoOpen) infoButtonRef.current?.focus();
-      else if (askMicroOpen) askMicroButtonRef.current?.focus();
       else if (allActionsOpen) allActionsButtonRef.current?.focus();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [infoOpen, askMicroOpen, periodPickerOpen, allActionsOpen]);
-  if (state.phase === "loading")
-    return (
-      <div className="micro-route-loading" role="status">
-        جارٍ تجهيز مشروعك…
-      </div>
-    );
-  if (state.phase === "error")
+  }, [infoOpen, periodPickerOpen, allActionsOpen]);
+  /* UXR-01 (PERF-004/S11 L-01 — COPY-27): فشل تجهيز خدمات الرئيسية (رفض
+   * الاستيراد الكسول) وفشل القراءة سطح خطأ كامل واحد — الحالتان مميزتان
+   * برسالتيهما الصادقتين وبفعل إعادة المحاولة لصاحبه: التجهيز يُعاد من
+   * جذر التركيب والقراءة تُعاد في مكانها؛ لا قراءةً بلا خدمة ولا إعادة
+   * تحميل صفحة ولا eager-loading. */
+  const setupFailure = homeSetup?.status === "failed" ? homeSetup : null;
+  /* ترتيب صادق: فشل التجهيز يحجب القراءة أصلًا؛ ورسالة القراءة لا تُعرض
+   * إلا عند غيابه — فالحالتان لا تتنازعان السطح أبدًا. */
+  if (setupFailure || state.phase === "error") {
+    const failureMessage = setupFailure
+      ? "تعذر تجهيز مشروعك."
+      : state.phase === "error"
+        ? state.message
+        : null;
     return (
       <section className="micro-page micro-not-found">
         <h1>تعذر تحميل مشروعك</h1>
-        <p role="alert">{state.message}</p>
-        <Button action="save" onClick={() => setRetryCount(count => count + 1)}>
+        <p role="alert">{failureMessage}</p>
+        <Button
+          action="save"
+          onClick={setupFailure ? setupFailure.retry : () => setRetryCount(count => count + 1)}
+        >
           إعادة المحاولة
         </Button>
         <Button action="secondary" onClick={() => navigate("/")}>
           الرئيسية
         </Button>
       </section>
+    );
+  }
+  if (state.phase === "loading")
+    return (
+      <div className="micro-route-loading" role="status">
+        جارٍ تجهيز مشروعك…
+      </div>
     );
   const { model } = state;
   /* المجموعة ١ (§7.2): كل رحلة من الرئيسية تحفظ مصدرها — الرجوع يعود هنا. */
@@ -279,9 +318,10 @@ export default function Home() {
   const cashNow = model.glimpse.cashNow;
   return (
     <section className="micro-page micro-home-control-center">
-      {/* HOME-A2-1: الاسم والتاريخ ومدخل الإعدادات وزر «!». */}
-      <div className="micro-page-heading micro-home-heading">
-        <span className="micro-overline">الرئيسية</span>
+      {/* HOME-A2-1 (تنفيذ S16) + DEC-HOM-01 (UXR-03 — أمر W02): الاسم
+          والتاريخ ومدخل الإعدادات وزر «!» — حذف الطبقة الداخلية «الرئيسية»
+          (تكرار الترويسة/الشريط) ويبقى H1 اسم المشروع وحده. */}
+      <div className="micro-home-heading">
         <h1>{model.heading.activityName}</h1>
         <div className="micro-home-heading-row">
           <p>
@@ -398,10 +438,11 @@ export default function Home() {
             ))}
           </div>
         ) : model.followUp.complete ? (
-          /* HOME-B3: قراءة مكتملة بلا مهام — الحالة الصادقة، مع مدخل المتابعة
-           * دون قائمة فراغات؛ لا «كل شيء ممتاز». */
+          /* HOME-B3 + COPY-13 (UXR-03 — أمر W02): قراءة مكتملة بلا مهام —
+           * الحالة الصادقة بلغة القاموس المعتمدة، مع مدخل المتابعة دون
+           * قائمة فراغات؛ لا «كل شيء ممتاز». */
           <p className="micro-home-truth-line" role="status">
-            لا توجد متابعات في السجلات المقروءة
+            لا توجد متابعات مسجلة الآن
           </p>
         ) : null}
         {model.followUp.failedMessage ? (
@@ -466,19 +507,8 @@ export default function Home() {
           </button>
         </p>
       </section>
-      {/* HOME-A2-5: اسأل Micro — قريبًا (مدخل ثانوي؛ التوصيل والسوق ظاهران في
-          الشريط فلا نكرر لهما إعلانات داخل الرئيسية). */}
-      <p className="micro-home-secondary-line" role="note">
-        <button
-          className="micro-text-action"
-          type="button"
-          ref={askMicroButtonRef}
-          aria-expanded={askMicroOpen}
-          onClick={() => setAskMicroOpen(true)}
-        >
-          اسأل Micro — قريبًا
-        </button>
-      </p>
+      {/* DEC-SHELL-01/DEC-HOM-01 (UXR-03 — أمر W02): «اسأل Micro — قريبًا»
+          بلا أثر دائم في الرئيسية — عنصر واحد عند الطلب في قائمة «مايكرو». */}
       {/* ── اللوحات ── */}
       {allActionsOpen ? (
         <div className="micro-soon-backdrop" role="presentation" onClick={() => setAllActionsOpen(false)}>
@@ -633,36 +663,6 @@ export default function Home() {
                 النسخ الاحتياطي من الإعدادات
               </button>
             </p>
-          </div>
-        </div>
-      ) : null}
-      {askMicroOpen ? (
-        <div className="micro-soon-backdrop" role="presentation" onClick={() => setAskMicroOpen(false)}>
-          <div
-            ref={askMicroRef}
-            className="micro-soon-panel"
-            role="dialog"
-            aria-modal="false"
-            aria-label={futureServiceAnnouncements.assistant.title}
-            data-testid="home-ask-micro-panel"
-            onClick={event => event.stopPropagation()}
-          >
-            <div className="micro-soon-panel-head">
-              <strong>{futureServiceAnnouncements.assistant.title}</strong>
-              <button
-                className="micro-icon-button"
-                type="button"
-                aria-label="إغلاق"
-                onClick={() => {
-                  setAskMicroOpen(false);
-                  askMicroButtonRef.current?.focus();
-                }}
-              >
-                <X aria-hidden="true" />
-              </button>
-            </div>
-            <p>{futureServiceAnnouncements.assistant.body}</p>
-            <p className="micro-soon-panel-footer">{futureServiceAnnouncements.assistant.footer}</p>
           </div>
         </div>
       ) : null}

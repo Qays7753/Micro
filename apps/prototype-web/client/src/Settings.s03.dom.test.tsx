@@ -85,6 +85,8 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
         <Settings />
       </ThemeProvider>,
     );
+    /* UXR-06 (F-011): الفهرس أولًا — فتح مجموعة «المشروع» قبل تفاعل القسم. */
+    fireEvent.click(await screen.findByTestId("settings-group-project"));
     expect(await screen.findByText("ورشة أم جهاد")).toBeTruthy();
     /* الهوية الثابتة معروضة — المعرّف لا يتغير مع الاسم. */
     expect(screen.getByText(/المعرّف لا يتغير مع تعديل الاسم/)).toBeTruthy();
@@ -112,6 +114,8 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
         <Settings />
       </ThemeProvider>,
     );
+    /* UXR-06 (F-011): الفهرس أولًا — فتح مجموعة «المشروع» قبل تفاعل القسم. */
+    fireEvent.click(await screen.findByTestId("settings-group-project"));
     await screen.findByText("الاسم الأصلي");
     fireEvent.click(screen.getByRole("button", { name: "عدّل اسم المشروع" }));
     fireEvent.change(screen.getByTestId("project-name-input"), { target: { value: "اسم لن يُحفظ" } });
@@ -128,6 +132,8 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
         <Settings />
       </ThemeProvider>,
     );
+    /* UXR-06 (F-011): الفهرس أولًا — فتح مجموعة «المشروع» قبل تفاعل القسم. */
+    fireEvent.click(await screen.findByTestId("settings-group-project"));
     await screen.findByText("اسم قائم");
     fireEvent.click(screen.getByRole("button", { name: "عدّل اسم المشروع" }));
     fireEvent.change(screen.getByTestId("project-name-input"), { target: { value: "   " } });
@@ -145,6 +151,8 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
         <Settings />
       </ThemeProvider>,
     );
+    /* UXR-06 (F-011): الفهرس أولًا — فتح مجموعة «المشروع» قبل تفاعل القسم. */
+    fireEvent.click(await screen.findByTestId("settings-group-project"));
     await screen.findByText("الاسم الأساسي");
     fireEvent.click(screen.getByRole("button", { name: "عدّل اسم المشروع" }));
     /* نافذة أخرى تعدّل الاسم بعد فتح المحرر — محرر الإعدادات يحمل النسخة القديمة. */
@@ -171,6 +179,8 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
         <Settings />
       </ThemeProvider>,
     );
+    /* UXR-06 (F-011): الفهرس أولًا — فتح مجموعة «المشروع» قبل تفاعل القسم. */
+    fireEvent.click(await screen.findByTestId("settings-group-project"));
     const absent = await screen.findByText("لا يوجد ملف مشروع على هذا الجهاز بعد");
     /* S03-R3-F01: الغياب فراغ محايد (عقد EmptyState الكنوني: رمز هادئ +
      * عنوان موجّه + فعل واحد) — لا قالب خطأ التخزين الأحمر، وحاله
@@ -191,6 +201,8 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
         <Settings />
       </ThemeProvider>,
     );
+    /* UXR-06 (F-011): الفهرس أولًا — فتح مجموعة «المشروع» قبل تفاعل القسم. */
+    fireEvent.click(await screen.findByTestId("settings-group-project"));
     const begin = (await screen.findByRole("button", {
       name: "عدّل اسم المشروع",
     })) as HTMLButtonElement;
@@ -226,6 +238,8 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
         <Settings />
       </ThemeProvider>,
     );
+    /* UXR-06 (F-011): الفهرس أولًا — فتح مجموعة «المشروع» قبل تفاعل القسم. */
+    fireEvent.click(await screen.findByTestId("settings-group-project"));
     expect(await screen.findByText("جارٍ قراءة بيانات مشروعك…")).toBeTruthy();
     expect(screen.queryByText("لا يوجد ملف مشروع على هذا الجهاز بعد")).toBeNull();
     releaseLoad(await originalLoad());
@@ -245,6 +259,8 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
         <Settings />
       </ThemeProvider>,
     );
+    /* UXR-06 (F-011): الفهرس أولًا — فتح مجموعة «المشروع» قبل تفاعل القسم. */
+    fireEvent.click(await screen.findByTestId("settings-group-project"));
     const readError = await screen.findByText("تعذر قراءة ملف المشروع المحلي");
     expect(readError.closest("div")!.getAttribute("role")).toBe("alert");
     expect(screen.queryByText("لا يوجد ملف مشروع على هذا الجهاز بعد")).toBeNull();
@@ -270,6 +286,8 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
         <Settings />
       </ThemeProvider>,
     );
+    /* UXR-06 (F-011): الفهرس أولًا — فتح مجموعة «المشروع» قبل تفاعل القسم. */
+    fireEvent.click(await screen.findByTestId("settings-group-project"));
     await screen.findByText("اسم للتحميل");
     fireEvent.click(screen.getByRole("button", { name: "عدّل اسم المشروع" }));
     fireEvent.change(screen.getByTestId("project-name-input"), { target: { value: "اسم بعد التعافي" } });
@@ -293,6 +311,10 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
         <Settings />
       </ThemeProvider>,
     );
+    /* تصحيح مؤرخ 2026-11-06 (UXR-W05 — فحص المستودع الكامل): محرر تفضيل
+     * العرض يسكن مجموعة «الاستخدام» (settings-group-usage) لا «المشروع» —
+     * تحديث W04 للفهرس فتح المجموعة الخطأ في هذين الاختبارين المؤجلين. */
+    fireEvent.click(await screen.findByTestId("settings-group-usage"));
     const editor = await screen.findByTestId("offering-editor");
     const radios = Array.from(editor.querySelectorAll("input[type=radio]")) as HTMLInputElement[];
     expect(radios).toHaveLength(4);
@@ -324,6 +346,10 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
         <Settings />
       </ThemeProvider>,
     );
+    /* تصحيح مؤرخ 2026-11-06 (UXR-W05 — فحص المستودع الكامل): محرر تفضيل
+     * العرض يسكن مجموعة «الاستخدام» (settings-group-usage) لا «المشروع» —
+     * تحديث W04 للفهرس فتح المجموعة الخطأ في هذين الاختبارين المؤجلين. */
+    fireEvent.click(await screen.findByTestId("settings-group-usage"));
     const editor = await screen.findByTestId("offering-editor");
     fireEvent.click(editor.querySelector('input[type=radio][value="both"]')!);
     fireEvent.click(screen.getByRole("button", { name: "احفظ تفضيل ما يقدّمه مشروعك" }));

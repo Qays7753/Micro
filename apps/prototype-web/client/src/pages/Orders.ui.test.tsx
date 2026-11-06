@@ -166,7 +166,7 @@ describe("S13 — وجهة الطلبات (UNIT-006)", () => {
   it("S13-R5-F01: الفراغ الصادق الكامل — لا طلبات ولا مسودات مع مدخل البدء", async () => {
     mockServices([], []);
     render(<Orders />);
-    expect(await screen.findByRole("heading", { name: "لا طلبات بعد — ابدأ أول طلب" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "لا طلبات بعد" })).toBeTruthy();
     expect(screen.getByText(/«طلب جديد» يفتح مسودة الطلب مباشرة/)).toBeTruthy();
     /* زرا الطلب جديد (الترويسة والفراغ) معًا — مدخل البدء ظاهر دائمًا. */
     expect((await screen.findAllByRole("button", { name: /طلب جديد/ })).length).toBeGreaterThanOrEqual(2);
@@ -178,10 +178,12 @@ describe("S13 — وجهة الطلبات (UNIT-006)", () => {
     /* الحالية فارغة والسابق فيه طلب — مدخل السابق ظاهر. */
     const pastEntry = await screen.findByText(/الطلبات السابقة/);
     expect(pastEntry.closest("button")?.textContent).toContain("1");
-    /* بحث لا يطابق شيئًا في الحالية الفارغة — التلميح يقترح السابق. */
+    /* بحث لا يطابق شيئًا في الحالية الفارغة — COPY-15 (UXR-03): «لا
+     * نتائج تطابق بحثك» مع «مسح البحث»، ومدخل السابق باقٍ كقدرة. */
     fireEvent.change(screen.getByLabelText("ابحث في الطلبات"), { target: { value: "ليان" } });
-    const hint = await screen.findByRole("button", { name: /ابحث في الطلبات السابقة/ });
-    fireEvent.click(hint);
+    expect(await screen.findByText("لا نتائج تطابق بحثك")).toBeTruthy();
+    const pastHint = await screen.findByRole("button", { name: /الطلبات السابقة \(1\)/ });
+    fireEvent.click(pastHint);
     /* النطاق تحول للسابق والبحث باقٍ — الطلب ظهر. */
     expect(await screen.findByText("طلب order-past")).toBeTruthy();
   });
@@ -204,7 +206,7 @@ describe("S13 — وجهة الطلبات (UNIT-006)", () => {
     /* اختر أول يوم في الشبكة (رأس الشهر بلا مواعيد) — الفراغ الصادق مع
      * بقاء مدخل بلا موعد. */
     fireEvent.click(screen.getAllByRole("gridcell")[0]!);
-    await screen.findByText("لا مواعيد في هذا اليوم — لا يعني خلو المشروع من الطلبات.");
+    await screen.findByText("لا مواعيد لهذا اليوم");
     expect(screen.getByText(/طلبات بلا موعد/)).toBeTruthy();
   });
 
@@ -277,12 +279,12 @@ describe("S13 — وجهة الطلبات (UNIT-006)", () => {
     /* الجيل الأحدث يكتمل أولًا ويُعرض: الطلبان معًا. */
     await screen.findByText("طلب order-fresh");
     expect(screen.getByText("طلب order-stale")).toBeTruthy();
-    expect(await screen.findByText(/2 طلبًا مقروءًا/)).toBeTruthy();
+    expect(await screen.findByText(/الطلبات الحالية · 2/)).toBeTruthy();
     /* الجيل القديم يُفتح الآن متأخرة — استجابته تُهمل ولا تستبدل الأحدث. */
     releaseStale();
     await waitFor(() => expect(screen.getByText("طلب order-fresh")).toBeTruthy());
-    expect(screen.getByText(/2 طلبًا مقروءًا/)).toBeTruthy();
-    expect(screen.queryByText(/1 طلبًا مقروءًا/)).toBeNull();
+    expect(screen.getByText(/الطلبات الحالية · 2/)).toBeTruthy();
+    expect(screen.queryByText(/الطلبات الحالية · 1/)).toBeNull();
   });
 
   it("البحث يصفّي على النطاق المعلن — ولا يوسع النطاق بصمت", async () => {
@@ -314,7 +316,7 @@ describe("S13 — وجهة الطلبات (UNIT-006)", () => {
     await screen.findByText("طلب order-1");
     fireEvent.click(screen.getByRole("radio", { name: /التقويم/ }));
     await screen.findByRole("grid");
-    fireEvent.click(screen.getByRole("radio", { name: /قائمة الطلبات/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /القائمة/ }));
     await screen.findByText("طلب order-1");
     /* لا مسار كتابة في الصفحة أصلًا — التنقل الوحيد هو كتابة سياق العرض في
      * الوصل (ACD032: replace بلا تكديس تاريخ)، لا كتابة تخزين ولا فتح صف:
@@ -457,7 +459,7 @@ describe("S13 — وجهة الطلبات (UNIT-006)", () => {
     });
     expect(dailyRead.mock.calls.length).toBe(readsBefore);
     /* التبديل إلى القائمة يظهر الطلب السليم — لا فراغًا مضللًا. */
-    fireEvent.click(screen.getByRole("radio", { name: /قائمة الطلبات/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /القائمة/ }));
     await screen.findByText("طلب order-healthy");
   });
 
@@ -480,7 +482,7 @@ describe("S13 — وجهة الطلبات (UNIT-006)", () => {
     await screen.findByText(/مواعيد 15\/11\/2026/);
     expect(await screen.findByText("طلب order-calendar")).toBeTruthy();
     /* والقائمة تعلن حقيقتها عند التبديل إليها — لا فراغ صامت. */
-    fireEvent.click(screen.getByRole("radio", { name: /قائمة الطلبات/ }));
+    fireEvent.click(screen.getByRole("radio", { name: /القائمة/ }));
     await screen.findByRole("alert");
     expect(screen.getByRole("alert").textContent).toContain("تعثر قراءة الطلبات المخزنة");
     expect(screen.getByRole("button", { name: /أعد قراءة الطلبات/ })).toBeTruthy();

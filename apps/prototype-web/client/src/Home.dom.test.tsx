@@ -122,7 +122,7 @@ describe("Home journeys (Group 11-E)", () => {
     /* HOME-A2-3 (S16): متابعتك بلا مهام ضمن قراءة مكتملة — الحالة الصادقة
      * لا «يومك مفتوح» ولا «كل شيء ممتاز» (HOME-R03: مختصر واحد بدل الحالتين
      * المتداخلتين؛ بلا بيانات لا تُخترع أرقام). */
-    expect(screen.getByText("لا توجد متابعات في السجلات المقروءة")).toBeTruthy();
+    expect(screen.getByText("لا توجد متابعات مسجلة الآن")).toBeTruthy();
   });
 
   it("offers the fixed recording actions on the empty day — the day is open, not blocked", async () => {

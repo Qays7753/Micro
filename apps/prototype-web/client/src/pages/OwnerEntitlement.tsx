@@ -410,7 +410,7 @@ export default function OwnerEntitlement() {
     }
     setNotice({
       tone: "success",
-      text: result.reused ? "الحق محفوظ سابقًا؛ لم يتكرر." : "تم تسجيل الحق. لم يتغير كاش المشروع.",
+      text: result.reused ? "الحق محفوظ سابقًا؛ لم يتكرر." : "تم تسجيل الحق. لم يتغير نقد المشروع.",
     });
     entitlementOperation.current = idempotency("owner-entitlement");
     setEntitlementNote("");
@@ -512,8 +512,8 @@ export default function OwnerEntitlement() {
     setNotice({
       tone: "success",
       text: result.reused
-        ? "الحركة محفوظة سابقًا؛ لم يتكرر الكاش."
-        : "تم تسجيل الحركة وأثرها على محفظة الكاش.",
+        ? "الحركة محفوظة سابقًا؛ لم يتكرر النقد."
+        : "تم تسجيل الحركة وأثرها على محفظة النقد.",
     });
     movementOperation.current = idempotency("owner-movement");
     setMovementNote("");
@@ -613,7 +613,7 @@ export default function OwnerEntitlement() {
         <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "المالية" : "رجوع"}
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">دفتر واحد · المبالغ (د.أ)</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان واحد بلا تمهيد معماري فوقه. */}
         <h1>مال المالك</h1>
       </div>
       {notice ? (
@@ -650,7 +650,7 @@ export default function OwnerEntitlement() {
         <div className="micro-owner-balance-head">
           <CircleDollarSign aria-hidden="true" />
           <div>
-            <span className="micro-overline">الدفتر الموحد لمالك واحد</span>
+            <span className="micro-overline">حالة الرصيد</span>
             <h2>
               {overview.balanceState === "positive"
                 ? "المشروع ما زال مدينًا لك"
@@ -755,14 +755,14 @@ export default function OwnerEntitlement() {
           <strong>اقرأ الحد</strong>
         </summary>
         <p className="micro-local-truth">
-          رأس المال والسحب والحق ما بدخلوا نتيجة الفترة ولا الربح. الأمانات مال غيرك، والكاش يظهر بمحافظه.
+          رأس المال والسحب والحق ما بدخلوا نتيجة الفترة ولا الربح. الأمانات مال غيرك، والنقد يظهر بمحافظه.
         </p>
       </details>
       <details className="micro-owner-layer">
         <summary className="micro-owner-layer-summary">
           <span>
             <b>حق المالك وسياسته</b>
-            <small>طبقة لا تغير الربح أو الكاش</small>
+            <small>لا تغيّر الربح أو النقد</small>
           </span>
           <strong>افتح الدفتر</strong>
         </summary>
@@ -770,7 +770,7 @@ export default function OwnerEntitlement() {
           <section className="micro-owner-ledger">
             <div className="micro-section-heading">
               <div>
-                <span className="micro-overline">طبقة لا تغير الربح أو الكاش</span>
+                <span className="micro-overline">لا تغيّر الربح أو النقد</span>
                 <h2>سياسات حق المالك</h2>
               </div>
               <span className="micro-g5-count">{overview.policies.length}</span>
@@ -1055,7 +1055,7 @@ export default function OwnerEntitlement() {
                           المحفظة:{" "}
                           {overview.walletBalances.find(wallet => wallet.id === movement.walletId)?.name ??
                             movement.walletId}{" "}
-                          · أثر الكاش: <bdi dir="ltr">{formatMoneyMinor(movement.cashDeltaMinor)}</bdi> د.أ
+                          · أثر النقد: <bdi dir="ltr">{formatMoneyMinor(movement.cashDeltaMinor)}</bdi> د.أ
                         </small>
                         {movement.reversalOfId ? (
                           <small>الأصل محفوظ كما هو · السبب: {movement.reversalReason}</small>

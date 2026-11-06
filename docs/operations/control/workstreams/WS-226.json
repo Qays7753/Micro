@@ -1,7 +1,7 @@
 {
   "id": "WS-226",
   "title": "برنامج تنفيذ مكونات Micro — S01 نشر الحزمة والسلطة والتبعيات",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-010"
   ],
@@ -28,8 +28,8 @@
   "agent": "Owner-delegated ChatGPT documentation correction of S02 draft V2 only; Manus resumes final prompt preparation; no product-code writer active",
   "pr": 383,
   "started_at": "2026-10-27",
-  "updated_at": "2026-10-27",
-  "next_action": "S01 مقبولة على فرع التكامل ومحفوظة REVIEW_REQUIRED؛ لا إجراء إضافي على WS-226 حتى بوابة الدمج النهائية بعد S18. S02 تعمل مستقلًا في WS-227 على نفس فرع التكامل.",
+  "updated_at": "2026-11-05",
+  "next_action": "Workstream WS-226 مغلق ومتحقق على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا Claim نشطًا لهذه المرحلة.",
   "notes": [
     "هذا Workstream يخص S01 فقط ولا يوسع DOC-008/WS-224 أو DOC-009/WS-225.",
     "فرع التكامل الواحد استثناء برنامج محدد موثق في SOP؛ لا ينشئ سياسة عامة للمهام الأخرى.",
@@ -44,7 +44,8 @@
     "حكم Manus المستقل: PASS على الرأس نفسه 3b1b24b508edb68996fa0ac33418a96ee05957ad; لا عائق محدد يمنع S01 ضمن النطاق؛ المانع الوحيد المتبقي هو اعتماد المالك. سجل المراجعة هذا يوثق الرأس المراجع ولا يساوي commit توثيقيًا لاحقًا.",
     "اعتماد المالك: S01 مقبولة على فرع التكامل بعد PASS ChatGPT المنسوب إليه وPASS Manus المستقل على الرأس 3b1b24b508edb68996fa0ac33418a96ee05957ad؛ لا VERIFIED على main ولا إذن دمج.",
     "أمر S02 READY منشور في DOC-011/WS-227؛ لا Claim كود S02 داخل WS-226.",
-    "2026-10-27: بعد قبول S01، نُشر أمر S02 READY مستقل في DOC-011/WS-227. من S02 فصاعدًا Manus هو المنسق والمراجع الوحيد؛ لا توجد بوابة ChatGPT نشطة. لا Claim كود S02 داخل WS-226."
+    "2026-10-27: بعد قبول S01، نُشر أمر S02 READY مستقل في DOC-011/WS-227. من S02 فصاعدًا Manus هو المنسق والمراجع الوحيد؛ لا توجد بوابة ChatGPT نشطة. لا Claim كود S02 داخل WS-226.",
+    "تحديث 2026-11-05: supersedes branch-only next-action; PR #383 merged and main checks passed at 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/03-S01-RESULT-2026-10-27.md",
@@ -57,7 +58,10 @@
     "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/3cdfb790-a16a-4623-afc7-e23b20348738",
     "https://github.com/Qays7753/Micro/actions/runs/40559451084",
     "https://github.com/Qays7753/Micro/actions/runs/40559451084/job/122384216787",
-    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/43676bbb-a56b-4649-b656-5d5cb1de5217"
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/43676bbb-a56b-4649-b656-5d5cb1de5217",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "status_history": [
     {
@@ -83,7 +87,15 @@
       "changed_at": "2026-10-27",
       "actor": "owner-acceptance-s01",
       "reason": "اعتمد المالك S01 على فرع التكامل بعد PASS؛ Workstream لم يعد Claim نشطًا عند بدء S02. تبقى VERIFIED ودمج main مؤجلين إلى بوابة البرنامج النهائية."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ Actions وCloudflare Pages نجحا على الرأس نفسه."
     }
   ],
-  "migration_baseline": false
+  "migration_baseline": false,
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

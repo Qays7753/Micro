@@ -44,7 +44,7 @@ class FailingOverviewStore extends MemoryLocalStore {
   failReads = true;
   override async listCashWallets() {
     if (this.failReads)
-      return { ok: false as const, code: "storage_error" as const, message: "تعذر قراءة محافظ الكاش." };
+      return { ok: false as const, code: "storage_error" as const, message: "تعذر قراءة محافظ النقد." };
     return super.listCashWallets();
   }
 }
@@ -161,7 +161,7 @@ describe("R10-B4/F-020 — CashOpeningLaterEditor direct journeys", () => {
       name: "رصيد افتتاحي هذه المحفظة معروف أصلًا",
     });
     expect(heading).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "ضبط الكاش بسبب" }));
+    fireEvent.click(screen.getByRole("button", { name: "ضبط النقد بسبب" }));
     expect(wouterMocks.navigate).toHaveBeenCalledWith(`/cash/wallet/${walletId}/adjust`);
   });
 
@@ -175,7 +175,7 @@ describe("R10-B4/F-020 — CashOpeningLaterEditor direct journeys", () => {
     wouterMocks.params = { id: "wallet-any" };
     render(<Harness />);
     const alert = await screen.findByRole("alert");
-    expect(alert.textContent).toContain("تعذر قراءة محافظ الكاش المحلية.");
+    expect(alert.textContent).toContain("تعذر قراءة محافظ النقد المحلية.");
     failStore.failReads = false;
     const walletId = await seedUnknownOpeningWallet();
     wouterMocks.params = { id: walletId };

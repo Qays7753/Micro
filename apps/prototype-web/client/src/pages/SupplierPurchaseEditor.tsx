@@ -360,11 +360,11 @@ export default function SupplierPurchaseEditor() {
   function paymentFeedbackText(amountMinor: number): string {
     if (!(amountMinor > 0)) return "تم الحفظ محليًا.";
     if (walletOptions.length === 0)
-      return "تم حفظ الدفعة من الكاش غير الموزع — لا محافظ معلنة بعد؛ يمكن تغطيتها لاحقًا من مالي.";
+      return "تم حفظ الدفعة من النقد غير الموزع — لا محافظ معلنة بعد؛ يمكن تغطيتها لاحقًا من مالي.";
     const walletName = walletOptions.find(wallet => wallet.id === paymentWalletId)?.name;
     return walletName
       ? `تم حفظ الدفعة من «${walletName}» — خُصمت من رصيدها مرة واحدة.`
-      : "تم حفظ الدفعة من الكاش غير الموزع — وزّعها أو غطّها من محفظة لاحقًا من مالي.";
+      : "تم حفظ الدفعة من النقد غير الموزع — وزّعها أو غطّها من محفظة لاحقًا من مالي.";
   }
 
   /* رحلة الاسترجاع (§31): إعادة قراءة الشراء الحالي عبر مسار القراءة المعتمد
@@ -451,7 +451,7 @@ export default function SupplierPurchaseEditor() {
     if (problem === "payment_source_required") {
       setFeedback({
         tone: "error",
-        text: "اختر مصدر الصرف لهذه الدفعة: محفظة أو الكاش غير الموزع.",
+        text: "اختر مصدر الصرف لهذه الدفعة: محفظة أو النقد غير الموزع.",
         source: "purchase",
       });
       return false;
@@ -580,7 +580,7 @@ export default function SupplierPurchaseEditor() {
     if (problem === "payment_source_required") {
       setFeedback({
         tone: "error",
-        text: "اختر مصدر الصرف لهذه الدفعة: محفظة أو الكاش غير الموزع.",
+        text: "اختر مصدر الصرف لهذه الدفعة: محفظة أو النقد غير الموزع.",
         source: "payment",
       });
       return false;
@@ -793,9 +793,7 @@ export default function SupplierPurchaseEditor() {
         <ArrowRight aria-hidden="true" /> مشتريات المواد
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">
-          {paymentMode ? "دفعة مورد" : mode === "edit" ? "تفاصيل شراء وتصحيحه" : "شراء مواد"}
-        </span>
+        {/* UXR-04 (F-008/SOP-02): عنوان المهمة يحمل الوضع — لا تمهيد معماري فوقه. */}
         <h1>
           {paymentMode
             ? `دفعة إلى ${supplierDisplayLabelOf(purchase ?? { supplierName: null })}`
@@ -869,7 +867,7 @@ export default function SupplierPurchaseEditor() {
                 ""
               )}
             </p>
-            <p>تكلفة الشراء ليست مصروف بيع — تدخل النتيجة عند الاستهلاك مستقبلًا؛ أثره الآن كاش وذمة مورد.</p>
+            <p>تكلفة الشراء ليست مصروف بيع — تدخل النتيجة عند الاستهلاك مستقبلًا؛ أثره الآن نقد وذمة مورد.</p>
           </section>
           {/* المجموعة ٢ (عقد ٢٨ / TR-07): بطاقة جسر الاستلام — المستلم والمتبقي
               قبل الدفعات (تدفق البضاعة مقابل تدفق النقد)، والفعل نص واضح لا تحويل صامت. */}
@@ -962,7 +960,7 @@ export default function SupplierPurchaseEditor() {
                           {/* FIN-003: مصدر الدفعة يظهر معها — والقديمة بلا مصدر تبقى «غير الموزع». */}
                           {payment.walletId
                             ? ` · من «${walletOptions.find(wallet => wallet.id === payment.walletId)?.name ?? "محفظة محذوفة"}»`
-                            : " · من الكاش غير الموزع"}
+                            : " · من النقد غير الموزع"}
                           {reversed ? " · مرتدة موثقًا" : ""}
                         </small>
                       </div>
@@ -988,10 +986,10 @@ export default function SupplierPurchaseEditor() {
               action="تراجع موثق عن دفعة مورد"
               originalLabel={`دفعة ${formatMoneyMinor(reversalPreview.payment.amountMinor)} د.أ لـ${supplierDisplayLabelOf(purchase)}`}
               originalDetail={reversalPreview.payment.note}
-              intro="الدفعة الأصلية تبقى في السجل وعلاقة التدقيق صريحة؛ التراجع يستعيد المتبقي للمورد ويرد أثر الكاش المدفوع."
+              intro="الدفعة الأصلية تبقى في السجل وعلاقة التدقيق صريحة؛ التراجع يستعيد المتبقي للمورد ويرد أثر النقد المدفوع."
               dimensions={[
                 {
-                  label: "الكاش المدفوع للمورد",
+                  label: "النقد المدفوع للمورد",
                   beforeMinor: reversalPreview.paidBefore,
                   afterMinor: reversalPreview.paidAfter,
                 },
@@ -1297,7 +1295,7 @@ export default function SupplierPurchaseEditor() {
                       afterMinor: editPreview.payableAfter,
                     },
                     {
-                      label: "الكاش المدفوع للمورد",
+                      label: "النقد المدفوع للمورد",
                       beforeMinor: editPreview.cashBefore,
                       afterMinor: editPreview.cashAfter,
                     },
@@ -1344,10 +1342,11 @@ export default function SupplierPurchaseEditor() {
             </section>
           ) : (
             <section className="micro-decision-card">
-              <span>حد الحقيقة</span>
+              {/* UXR-04 (COPY-02): معنى الشراء المباشر بجانب القرار — لا عنوان عام. */}
+              <span>معنى الشراء</span>
               <strong>شراء المواد لا يساوي مصروف بيع</strong>
               <p>
-                الدفع يغيّر الكاش وما عليك للمورد فقط؛ وتكلفة بنوده تُعرف من معالجتها: مواد الفترة على فترة
+                الدفع يغيّر النقد وما عليك للمورد فقط؛ وتكلفة بنوده تُعرف من معالجتها: مواد الفترة على فترة
                 الشراء، والمتتبعة عند استعمالها.
               </p>
             </section>
@@ -1612,7 +1611,7 @@ export default function SupplierPurchaseEditor() {
                           اختر مصدر الصرف
                         </option>
                       ) : null}
-                      <option value="">الكاش غير الموزع</option>
+                      <option value="">النقد غير الموزع</option>
                       {walletOptions.map(wallet => (
                         <option key={wallet.id} value={wallet.id}>
                           {wallet.name} — تغطية من رصيدها
@@ -1623,7 +1622,7 @@ export default function SupplierPurchaseEditor() {
                 ) : null}
                 {initialPaidMinor > 0 && walletOptions.length === 0 ? (
                   <p className="micro-offline-truth" role="status">
-                    لا محافظ معلنة بعد — سيُسجَّل ما دُفع الآن من الكاش غير الموزع، ويمكن تغطيته من محفظة
+                    لا محافظ معلنة بعد — سيُسجَّل ما دُفع الآن من النقد غير الموزع، ويمكن تغطيته من محفظة
                     لاحقًا من مالي.
                   </p>
                 ) : null}
@@ -1665,7 +1664,7 @@ export default function SupplierPurchaseEditor() {
                           اختر مصدر الصرف
                         </option>
                       ) : null}
-                      <option value="">الكاش غير الموزع</option>
+                      <option value="">النقد غير الموزع</option>
                       {walletOptions.map(wallet => (
                         <option key={wallet.id} value={wallet.id}>
                           {wallet.name} — تغطية من رصيدها
@@ -1675,7 +1674,7 @@ export default function SupplierPurchaseEditor() {
                   </label>
                 ) : (
                   <p className="micro-offline-truth" role="status">
-                    لا محافظ معلنة بعد — ستُسجَّل الدفعة من الكاش غير الموزع، ويمكن تغطيتها من محفظة لاحقًا من
+                    لا محافظ معلنة بعد — ستُسجَّل الدفعة من النقد غير الموزع، ويمكن تغطيتها من محفظة لاحقًا من
                     مالي.
                   </p>
                 )}

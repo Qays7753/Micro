@@ -18,13 +18,25 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { withReturnTo } from "@/app/navigationContract";
-import { ArrowLeft, Landmark, ReceiptText, Users, WalletCards, Wrench, X } from "lucide-react";
+import { ArrowLeft, ReceiptText, Scale, Users, WalletCards, Wrench, X } from "lucide-react";
 
 export type FinanceFunctionsBoardProps = {
   open: boolean;
   onClose: () => void;
   /** نطاق 013 المطبق (أشهر) — كشف الفترة يفتح عليه نفسه لا على الافتراضي. */
   statementHref: string;
+  /** F-002 (UXR-03/UXR-D09): مدخل المصروف الموحد — يسأل حالة الدفع ثم
+   * يوجه لمحرري المدفوع/المستحق القائمين؛ لا كاتب ثالث ولا تحويل تلقائي. */
+  onOpenExpenseEntry: () => void;
+  /* F-005/F-016 (UXR-03 — أمر W02/عقد 02-FIN): مداخل سياقية تكشف مساحة
+   * الوظيفة المختارة داخل الصفحة بعد استقرار المساحة الفرعية (نمط 013B):
+   * «مستحقات عليك» سطح الالتزامات الموحد (المالك الجامع لمصدرَيه — بوابة
+   * ربط مهمة عقد 02-FIN)، والجسر/التغطية والتعادل/السياسات/الميزانيات
+   * أقسام الطبقة الثانية؛ كلها إظهار لا كتابة ولا وجهات جديدة. */
+  onOpenObligations: () => void;
+  onOpenBridge: () => void;
+  onOpenBreakeven: () => void;
+  onOpenPolicies: () => void;
   /** مدخل ميزانيات المصروف يكشف قسمها في الصفحة نفسها لا وجهة جديدة. */
   onOpenBudgets: () => void;
 };
@@ -46,6 +58,11 @@ export function FinanceFunctionsBoard({
   open,
   onClose,
   statementHref,
+  onOpenExpenseEntry,
+  onOpenObligations,
+  onOpenBridge,
+  onOpenBreakeven,
+  onOpenPolicies,
   onOpenBudgets,
 }: FinanceFunctionsBoardProps) {
   const [, navigate] = useLocation();
@@ -73,6 +90,19 @@ export function FinanceFunctionsBoard({
     history.back();
   };
 
+  /* F-003 (UXR-03 — أمر W02): استهلاك الحارس بلا back() قبل أي تنقل أو
+   * كشف داخل الصفحة. الاجتياح المؤجل في go()/onOpen كان يُنفّذ بعد
+   * pushState المتزامن للموجه فيسحب المستخدم من وجهته الجديدة إلى
+   * /finance، ويستعيد المتصفح تمرير مدخل الحارس فيلغي كشف الميزانيات
+   * (المصدر: F-003 المسح الشامل 2026-11-04 — 15/15 مدخلًا معطلًا).
+   * العلاج الموثق: التنقل فوق مدخل الحارس — مدخل الحارس هو /finance
+   * نفسه، فرجوع الهاتف من الوجهة يسقط عليه ويحقق سلوك returnTo
+   * المرجو، وعقود الإغلاق غير-التنقلي (زر/Escape/رجوع أثناء الفتح)
+   * لا تمر من هنا فلا تتأثر. */
+  const consumeBoardSentinelWithoutBack = () => {
+    sentinelArmedRef.current = false;
+  };
+
   /* Opening owns exactly one same-page history state for this board instance. */
   useEffect(() => {
     if (open && !sentinelArmedRef.current) {
@@ -90,7 +120,11 @@ export function FinanceFunctionsBoard({
   /* Phone/browser Back while open: the browser already popped the entry and
    * delivered popstate — close only the board; no navigation, no touch to the
    * period or the money. Leaving the screen while open consumes the entry in
-   * the cleanup — no stale entry swallows a later Back on another surface. */
+   * the cleanup — no stale entry swallows a later Back on another surface.
+   * F-003: المغادرة إما عبر مداخل اللوحة نفسها (استهلاك بلا back في go()
+   * ومسار onOpen أدناه) أو عبر تنقل خارجي (الشريط السفلي) — في الحالتين لا
+   * اجتياح back() مؤجلًا خلف وجهة جديدة؛ مدخل الحارس يبقى /finance نفسه
+   * فلا يُبتلع رجوع لاحق ولا يُسحب المستخدم من وجهته. */
   useEffect(() => {
     const onPopState = () => {
       if (suppressPopRef.current) {
@@ -105,11 +139,7 @@ export function FinanceFunctionsBoard({
     window.addEventListener("popstate", onPopState);
     return () => {
       window.removeEventListener("popstate", onPopState);
-      if (sentinelArmedRef.current) {
-        sentinelArmedRef.current = false;
-        suppressPopRef.current = true;
-        history.back();
-      }
+      consumeBoardSentinelWithoutBack();
     };
   }, []);
 
@@ -129,41 +159,76 @@ export function FinanceFunctionsBoard({
   if (!open) return null;
 
   const go = (href: string) => {
-    consumeBoardSentinel();
+    /* F-003: الانتقال فوق مدخل الحارس بلا back() مؤجل — التنقل نفسه يعلّم
+     * الحارس مستهلكًا، فيصل المستخدم وجهته فعليًا ويسقط رجوع الهاتف على
+     * /finance كما يريد عقد ٢٦ (withReturnTo). */
+    consumeBoardSentinelWithoutBack();
     onClose();
     navigate(withReturnTo(href, "/finance"));
   };
 
+  /* F-005/F-016 (UXR-03 — أمر W02): فهرس الوظائف الكنوني من عقد 02-FIN —
+   * خمس مجموعات وصول (لا كيانات جديدة): التسجيل والسجلات، النقد
+   * والمستحقات، التقارير والتخطيط، المنتجات والجهات، المخزون والأصول
+   * عند الحاجة. دمج F-016: مدخلا /suppliers المكرران («للموردين ومصاريف
+   * مستحقة» و«المشتريات») صارا مدخلًا واحدًا بوصف جامع صادق لسجلات الشراء
+   * والدفع، و«مستحقات عليك» مدخل سياقي للسطح الموحد (مصدرَي الالتزام) لا
+   * لقائمة مشتريات تستبعد مصروفًا مستحقًا (بوابة ربط مهمة 02-FIN)؛
+   * «عدّ الصندوق» انتقل من فقرات جذر المالية إلى الفهرس؛ «لك عند العملاء»
+   * يفتح القارئ الموحد بنطاق التحصيل (kind=receivable) والجهات تبقى
+   * مجموعتها (UXR-D10: لا حذف مدخل لتطابق URL فقط — النية والنطاق يفصلان). */
   const groups: BoardGroup[] = [
     {
-      title: "تسجيل عملية",
+      title: "التسجيل والسجلات",
       icon: ReceiptText,
       entries: [
-        { label: "تسجيل بيع", description: "بيع فوري بلا طلب", href: "/direct-sales/new" },
+        { label: "بيع", description: "بيع فوري بلا طلب", href: "/direct-sales/new" },
         {
-          label: "تسجيل مصروف",
-          description: "مصروف ومدفوعاته من أصل واحد",
-          href: "/finance/new/operating_expense",
+          label: "مصروف",
+          /* F-002: حالة الدفع تُحدد أولًا ثم يفتح محررها القائم — لا كاتب ثالث. */
+          description: "تحدد حالة الدفع أولًا ثم يفتح محررها",
+          onOpen: onOpenExpenseEntry,
         },
-        { label: "تسجيل شراء", description: "شراء مواد وبنوده ودفعاته", href: "/suppliers/purchase/new" },
+        { label: "شراء", description: "شراء مواد وبنوده ودفعاته", href: "/suppliers/purchase/new" },
+        { label: "المشتريات", description: "سجل الشراء والدفع والاستلام", href: "/suppliers" },
+        { label: "سجل العمليات", description: "القارئ الكامل لكل النشاط", href: "/finance/activity" },
       ],
     },
     {
       title: "النقد والمستحقات",
       icon: WalletCards,
       entries: [
-        { label: "النقد", description: "المحافظ وحركاتها وعدّها ومطابقتها", href: "/cash" },
-        { label: "ديون العملاء", description: "ما لك عند غيرك ومواعيده", href: "/finance/upcoming" },
-        { label: "للموردين ومصاريف مستحقة", description: "ما عليك لمورّديك والتزاماتك", href: "/suppliers" },
+        { label: "النقد", description: "المحافظ وحركاتها وأماناتها وعدّها", href: "/cash" },
+        {
+          label: "لك عند العملاء",
+          description: "دين مسجل بعد التسليم — تحصيله من المتابعة",
+          href: "/finance/upcoming?kind=receivable",
+        },
+        {
+          label: "مستحقات عليك",
+          description: "موردين ومصاريف مستحقة بسطريهما ومسارَي تسديدهما",
+          onOpen: onOpenObligations,
+        },
+        {
+          label: "مال المالك",
+          description: "إضافة وسحب وحقوق بمعانٍ مميزة",
+          href: "/finance/owner-entitlement",
+        },
       ],
     },
     {
-      title: "الكشوف والسجلات",
-      icon: ReceiptText,
+      title: "التقارير والتخطيط",
+      icon: Scale,
       entries: [
         { label: "كشف الفترة", description: "بنطاق المالية المطبق نفسه", href: statementHref },
-        { label: "سجل العمليات", description: "القارئ الكامل لكل النشاط", href: "/finance/activity" },
-        { label: "المشتريات", description: "سجل الشراء والدفع والاستلام", href: "/suppliers" },
+        {
+          label: "فرق النقد والنتيجة",
+          description: "لماذا يختلف الربح عن النقد",
+          onOpen: onOpenBridge,
+        },
+        { label: "تغطية وتعادل", description: "هامش الأعمال ونقطة التعادل", onOpen: onOpenBreakeven },
+        { label: "سياسة التوزيع", description: "سياسات الربح والتوزيع", onOpen: onOpenPolicies },
+        { label: "ميزانيات المصروف", description: "خطة شهرية للمقارنة لا حدث مالي", onOpen: onOpenBudgets },
       ],
     },
     {
@@ -175,23 +240,12 @@ export function FinanceFunctionsBoard({
       ],
     },
     {
-      title: "مال المالك",
-      icon: Landmark,
-      entries: [
-        {
-          label: "مال المالك",
-          description: "إضافة وسحب وحقوق بمعانٍ مميزة",
-          href: "/finance/owner-entitlement",
-        },
-      ],
-    },
-    {
-      title: "عند الحاجة",
+      title: "المخزون والأصول عند الحاجة",
       icon: Wrench,
       entries: [
         { label: "المخزون", description: "مواد تختار تتبعها", href: "/inventory" },
         { label: "المعدات", description: "أصولك وإهلاكها — اختياري", href: "/assets" },
-        { label: "ميزانيات المصروف", description: "خطة شهرية للمقارنة لا حدث مالي", onOpen: onOpenBudgets },
+        { label: "عدّ الصندوق", description: "طابق الدرج مع السجل", href: "/cash/count" },
       ],
     },
   ];
@@ -231,7 +285,11 @@ export function FinanceFunctionsBoard({
                   type="button"
                   onClick={() => {
                     if (entry.onOpen) {
-                      consumeBoardSentinel();
+                      /* F-003: الكشف السياقي داخل الصفحة — استهلاك بلا back()
+                       * ثم كشف القسم بعد استقرار المساحة الفرعية (المالك:
+                       * الصفحة عبر onOpen) فلا يستعيد المتصفح تمرير مدخل
+                       * الحارس فيلغي الكشف. */
+                      consumeBoardSentinelWithoutBack();
                       onClose();
                       entry.onOpen();
                       return;

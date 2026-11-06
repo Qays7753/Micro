@@ -252,7 +252,7 @@ export default function ScheduleEditor() {
         <ArrowRight aria-hidden="true" /> المواعيد
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">تعديل تشغيلي</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد بلا وسم معماري فوقه. */}
         <h1>وقت ومدة الموعد</h1>
         <p>
           تعديل الموعد لا يغير حالة الطلب أو السعر أو القبض أو الدين. اليوم الجديد يحتاج سببًا؛ الوقت والمدة

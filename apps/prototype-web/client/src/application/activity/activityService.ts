@@ -84,6 +84,22 @@ export type ActivityReadInput = {
   families?: readonly ActivityFamily[] | null;
 };
 
+/**
+ * UXR-05 (PERF-003): صفحة قراءة صادقة — لا يقتطع القارئ بصمت ويوهم الاستيفاء
+ * (عقد ٣٠ §2.2). الصفحة تحمل حدّها بنفسها: hasMore حقيقي محسوب من السجلات
+ * المقبولة (حد الكلية أو حد العائلة)، لا عددًا تخمينيًا — والوصول للبقية برفع
+ * الحدّين معًا في القراءة التالية. read() تبقى كما هي للأسطح الموجودة.
+ */
+export type ActivityReadPage = {
+  records: readonly ActivityRecord[];
+  /** يوجد داخل هذا النطاق سجلات بعد الصفحة المعروضة (حد الكلية أو حد العائلة). */
+  hasMore: boolean;
+  /** عدد السجلات المقبولة داخل النطاق بعد حد العائلة وقبل حد الكلية. */
+  inScopeCount: number;
+  /** العائلات التي تجاوز عددها الخام داخل النطاق حد العائلة (البقية تظهر برفع الحد). */
+  familyCapped: readonly ActivityFamily[];
+};
+
 const FAMILY_STORE_PREFIX = "financial-events";
 const SALE_STORE_PREFIX = "direct-sales";
 const ORDER_STORE_PREFIX = "craft-orders";
@@ -208,7 +224,38 @@ export class ActivityService {
   constructor(private readonly store: ActivityServiceStore) {}
 
   async read(input: ActivityReadInput = {}): Promise<StorageResult<readonly ActivityRecord[]>> {
+    const accepted = await this.readAccepted(input);
+    if (!accepted.ok) return accepted;
     const limit = input.limit ?? 8;
+    return { ok: true, value: accepted.value.rows.slice(0, limit) };
+  }
+
+  /** UXR-05 (PERF-003): قراءة بحد مُفصح عنه ووصول حقيقي للبقية — عقد ٣٠ §2.2. */
+  async readPage(input: ActivityReadInput = {}): Promise<StorageResult<ActivityReadPage>> {
+    const limit = input.limit ?? 8;
+    const perFamilyLimit = input.perFamilyLimit ?? 5;
+    const accepted = await this.readAccepted(input);
+    if (!accepted.ok) return accepted;
+    const { rows, familyRawCounts } = accepted.value;
+    const records = rows.slice(0, limit);
+    const familyCapped: ActivityFamily[] = [];
+    for (const [family, rawCount] of familyRawCounts) {
+      if (rawCount > perFamilyLimit) familyCapped.push(family);
+    }
+    return {
+      ok: true,
+      value: {
+        records,
+        hasMore: rows.length > records.length || familyCapped.length > 0,
+        inScopeCount: rows.length,
+        familyCapped,
+      },
+    };
+  }
+
+  private async readAccepted(
+    input: ActivityReadInput,
+  ): Promise<StorageResult<{ rows: ActivityRecord[]; familyRawCounts: Map<ActivityFamily, number> }>> {
     const perFamilyLimit = input.perFamilyLimit ?? 5;
     const familyFilter = input.families ? new Set(input.families) : null;
     const inWindow = (occurredOn: string | null): boolean => {
@@ -246,10 +293,14 @@ export class ActivityService {
     const materialNames = new Map<string, string>(materialsResult.value.map(m => [m.id, m.name]));
     const rows: ActivityRecord[] = [];
     const perFamilyCounts = new Map<ActivityFamily, number>();
+    /* UXR-05 (PERF-003): العد الخام لكل عائلة داخل النطاق قبل حد العائلة —
+     * أساس hasMore الصادق (عائلة قُنّصت يعني بقيّة متاحة برفع الحدّين). */
+    const familyRawCounts = new Map<ActivityFamily, number>();
 
     const accept = (record: ActivityRecord): boolean => {
       if (familyFilter && !familyFilter.has(record.family)) return false;
       if (!inWindow(record.occurredOn)) return false;
+      familyRawCounts.set(record.family, (familyRawCounts.get(record.family) ?? 0) + 1);
       const count = perFamilyCounts.get(record.family) ?? 0;
       if (count >= perFamilyLimit) return false;
       perFamilyCounts.set(record.family, count + 1);
@@ -267,7 +318,7 @@ export class ActivityService {
       const time = right.recordedAt.localeCompare(left.recordedAt);
       return time !== 0 ? time : right.id.localeCompare(left.id);
     });
-    return { ok: true, value: rows.slice(0, limit) };
+    return { ok: true, value: { rows, familyRawCounts } };
   }
 
   private collectFinancialEvents(

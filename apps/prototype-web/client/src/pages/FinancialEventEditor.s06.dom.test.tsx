@@ -244,7 +244,7 @@ describe("S06 — الفاتورة المشتركة فوق الحصة في ال�
     await openSharedFixedForm();
     await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "30");
     await userEvent.setup().type(screen.getByLabelText("المدفوع فعليًا من صندوق المشروع"), "60");
-    await waitFor(() => expect(screen.getByText(/ينقص الكاش 60.00 د.أ/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/ينقص النقد 60.00 د.أ/)).toBeTruthy());
     expect(screen.getByText(/منها 30.00 د.أ حصة المشروع و30.00 د.أ دُفعت فوق حصته/)).toBeTruthy();
     expect(screen.getByText(/يُسجَّل سحب شخصي 30.00 د.أ على المالك/)).toBeTruthy();
   });
@@ -406,7 +406,7 @@ describe("S06-R3 — تصحيحات مراجعة الواجهة الثالثة",
     const banner = await screen.findByText(/لم يكتمل تسجيل الجزء الشخصي/);
     /* بلا محفظة مختارة لم تُطلب النسبة أصلًا — لا إطار يدّعي فشلها ولا مالًا غير موزع. */
     expect(banner.textContent).not.toContain("نسبته للمحفظة لم تتم");
-    expect(banner.textContent).not.toContain("الكاش غير الموزع");
+    expect(banner.textContent).not.toContain("النقد غير الموزع");
   });
 
   it("R3-F03: إعادة الجزء الشخصي تغطي من محفظة النية المجمّدة لا من المحفظة الحية", async () => {
@@ -527,7 +527,7 @@ describe("S06-R3 — تصحيحات مراجعة الواجهة الثالثة",
     expect(banner.textContent).toContain(
       "تغطية الجزء الشخصي من المحفظة: الرصيد المتبقي لا يكفي الجزء الشخصي.",
     );
-    expect(banner.textContent).toContain("الكاش غير الموزع");
+    expect(banner.textContent).toContain("النقد غير الموزع");
   });
 
   it("R3-F07: بعد نتيجة جزئية صُرفت بـ«تم» — الزر الأساسي عودة لا حفظ جديد", async () => {

@@ -1,7 +1,7 @@
 {
   "id": "WS-240",
   "title": "S15 — المالية والكشف والسجل والميزانيات وإيقاف القدرات الملغاة (UNIT-013/013B/016/017/021/035/036/040)",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-024"
   ],
@@ -39,13 +39,14 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-11-03",
-  "updated_at": "2026-11-04",
-  "next_action": "S15 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا عمل مرحلي إضافي مفوض؛ لا VERIFIED على main ولا merge.",
+  "updated_at": "2026-11-05",
+  "next_action": "Workstream WS-240 مغلق ومتحقق على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا Claim نشطًا لهذه المرحلة.",
   "notes": [
     "أمر S15 مضمّن في الأمر الموحد 00-S14-RESUME-PROMPT-2026-11-03.md §5 (لا أمر منفصل).",
     "قاعدة تسليم S14 للمراجعة موثقة عند 75af0773 وبوابتاها البعيدتان PASS (run 41548068879 / Pages 125628657923).",
     "Historical delivery note (2026-11-03): S15-MR-001 was confirmed at live head 37f81d9a0d089621ec14a99f0c26b457bcf6fb0e: FinanceFunctionsBoard and Finance.tsx lacked board-owned popstate/history although the S15 result claimed phone Back support; the DOM test covered Escape/close/focus only. The finding and root-fix criteria are in 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. At that time, S15/S16 had not yet been owner-accepted. This historical delivery state was superseded by the explicit owner acceptance recorded on 2026-11-04; no merge.",
-    "اعتمد المالك قبول S15 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-04، بعد إصلاح S15-MR-001 عند c788b09f وإعادة التسليم الموثقة في 20-S15-RESULT-2026-11-03.md §10 والملحق 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. الإصلاح يضيف رجوع الهاتف/المتصفح للوحة عبر sentinel محدود بدورة الحياة مع اختبار أحمر/أخضر؛ التحقق jsdom فقط، بلا جهاز فعلي. القبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج. تبقى حالة Workstream REVIEW_REQUIRED وفق نمط تحرير الملكية؛ لا تعني VERIFIED على main ولا دمجًا."
+    "اعتمد المالك قبول S15 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-04، بعد إصلاح S15-MR-001 عند c788b09f وإعادة التسليم الموثقة في 20-S15-RESULT-2026-11-03.md §10 والملحق 20a-S15-REVIEW-ADDENDUM-2026-11-03.md. الإصلاح يضيف رجوع الهاتف/المتصفح للوحة عبر sentinel محدود بدورة الحياة مع اختبار أحمر/أخضر؛ التحقق jsdom فقط، بلا جهاز فعلي. القبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج. تبقى حالة Workstream REVIEW_REQUIRED وفق نمط تحرير الملكية؛ لا تعني VERIFIED على main ولا دمجًا.",
+    "تحديث 2026-11-05: supersedes branch-only next-action; PR #383 merged and main checks passed at 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
@@ -54,7 +55,10 @@
     "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md",
     "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
     "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md",
-    "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md"
+    "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "status_history": [
     {
@@ -86,7 +90,15 @@
       "changed_at": "2026-11-03",
       "actor": "zai-s15-review-fix",
       "reason": "إعادة تسليم الإصلاح للمراجعة مع DOC-024 → IN_REVIEW (الانتقال القانوني نفسه؛ لا قبولًا ذاتيًا): الالتزام c788b09f فوق 11edf9f3 فوق 8c0361b9 — أحمر 4 فاشل | 7 ناجح ثم أخضر 11/11 و119/119 (21 ملف مالية) و88/88 (popstate-مجاورة)؛ jsdom فقط بلا جهاز فعلي؛ لا تجريد تنقل ولا تغيير عقود مسار."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ Actions وCloudflare Pages نجحا على الرأس نفسه."
     }
   ],
-  "migration_baseline": true
+  "migration_baseline": true,
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

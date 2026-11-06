@@ -8856,6 +8856,671 @@
         "trigger": "SDF-068: مساعدة! مسماة وقابلة للتركيز ولا تخفي أثرًا مهمًا — الفجوة الموثقة في مصفوفة الرحلات",
         "ocRef": "DOC-027"
       }
+    },
+    {
+      "id": "UXR-W01-HOME-SERVICES-SETUP-20261105",
+      "date": "2026-11-05",
+      "path": "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+      "from": {
+        "nbLoc": 360,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 651,
+        "band": "WATCH"
+      },
+      "reason": "UXR-01 (أمر UXR-W01، F-001 P0 + PERF-004/S11 L-01): إصلاح جاهزية سلسلة الرئيسية — homeControlCenterService داخل اعتماديات الـmemo بنمط R1-F2 الموثق، وعقد HomeServicesSetup ثلاثي الحالات مع retry فعّال يعيد الاستيراد في مكانه، وcatch على حلقتي استيراد سلسلة الرئيسية (بوابة المشتريات ثم مركز التحكم) بعدما كان رفض الشظية يترك «جارٍ التجهيز» أبدًا؛ النمو فوق السقف المأذون في S16 (585) هو آلة حالة التجهيز وخارجا الرفض وحارس إعادة المحاولة فقط.",
+      "authorization": {
+        "ownerReview": "Owner-authorized W01 execution (stages/UXR-W01-EXECUTION-PROMPT-AR.md — UXR-01 then UXR-02 with no approval pause; ratchets re-anchored per the documented protocol, never silently released)",
+        "trigger": "W01 execution on uxr/integration-20261105 / PR #384",
+        "ocRef": "DOC-029"
+      }
+    },
+    {
+      "id": "UXR-W01-SHELL-ROUTE-KIND-SYNC-20261105",
+      "date": "2026-11-05",
+      "path": "apps/prototype-web/client/src/components/layout/MicroAppShell.tsx",
+      "from": {
+        "nbLoc": 93,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 133,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-02 (أمر UXR-W01، F-015): القشرة تزامن نوع المسار على وسم المستند (data-micro-route-kind) لأن حاوية التمرير الفعلية هي المستند — سابقة ThemeContext نفسها في كتابة documentElement مع إزالة الوسم عند إلغاء التركيب؛ القيم انتقلت حرفيًا إلى html في index.css (لا padding جديد ولا نقل ملفات).",
+      "authorization": {
+        "ownerReview": "Owner-authorized W01 execution (stages/UXR-W01-EXECUTION-PROMPT-AR.md — UXR-01 then UXR-02 with no approval pause; ratchets re-anchored per the documented protocol, never silently released)",
+        "trigger": "W01 execution on uxr/integration-20261105 / PR #384",
+        "ocRef": "DOC-029"
+      }
+    },
+    {
+      "id": "UXR-W01-NOTFOUND-SINGLE-HEADING-20261105",
+      "date": "2026-11-05",
+      "path": "apps/prototype-web/client/src/pages/NotFound.tsx",
+      "from": {
+        "nbLoc": 17,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 18,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-02 (أمر UXR-W01، F-008): عنوان وجهة واحد واضح — أُزيلت الـoverline «مسار غير متاح» فوق H1 (SOP-02)؛ صافي النمو سطر تعليق موثق واحد، والرسالة القصيرة والرجوع الآمن كما هما (عقد RET/SHELL).",
+      "authorization": {
+        "ownerReview": "Owner-authorized W01 execution (stages/UXR-W01-EXECUTION-PROMPT-AR.md — UXR-01 then UXR-02 with no approval pause; ratchets re-anchored per the documented protocol, never silently released)",
+        "trigger": "W01 execution on uxr/integration-20261105 / PR #384",
+        "ocRef": "DOC-029"
+      }
+    },
+    {
+      "id": "UXR-W02-FIN-OBLIGATIONS-COPY06-TITLE-20261106",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/components/finance/FinanceObligationsCard.tsx",
+      "from": {
+        "nbLoc": 102,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 105,
+        "band": "NORMAL"
+      },
+      "reason": "F-002/UXR-03 (order 02-PAGE-CONTRACTS row 4 + COPY-06): the obligations surface title becomes «مستحقات عليك» — an honest scope label covering supplier payables AND due operating expenses (the task-link gate of 02-FIN forbids the old payables-only implication), with the dated provenance comment. Title-only change; no logic, writer, or total change.",
+      "authorization": {
+        "ownerReview": "W02/UXR-03 delivery under the owner launch message of 2026-11-06 (DOC-030/WS-246 on PR #384) — this entry is part of the W02 PR diff",
+        "trigger": "UXR-03 stage card (04-WORK-ORDERS F-002/F-005 closure + 03-CONTENT COPY-06): mandated label applied with its consumer provenance in the same PR",
+        "ocRef": "DOC-030"
+      }
+    },
+    {
+      "id": "UXR-W02-PERIOD-STATEMENT-BUTTON-20261106",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/components/finance/FinancePeriodResultSection.tsx",
+      "from": {
+        "nbLoc": 496,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 517,
+        "band": "WATCH"
+      },
+      "reason": "F-005/F-010 (02-FIN de-stacking + DEC-FIN-01): the dissolved root story card («قصة الأسبوع ببساطة») and the duplicate plain statement paragraph merge into ONE contextual button inside the period details — «افتح كشف الفترة» carrying the applied since/until range (same destination+scope), plus the dated provenance comment. No new reading logic; the service and writers are untouched.",
+      "authorization": {
+        "ownerReview": "W02/UXR-03 delivery under the owner launch message of 2026-11-06 (DOC-030/WS-246 on PR #384) — this entry is part of the W02 PR diff",
+        "trigger": "UXR-03 stage card (04-WORK-ORDERS F-005: «حفظ المداخل والقدرات» + 02-PAGE-CONTRACTS FIN: «قراءة الفترة إلى الكشف») — the merged entry required a same-PR documented anchor",
+        "ocRef": "DOC-030"
+      }
+    },
+    {
+      "id": "UXR-W02-ORDERS-CONTRACT-TEXTS-20261106",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/Orders.tsx",
+      "from": {
+        "nbLoc": 439,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 1029,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "F-009/UXR-03 (02-PAGE-CONTRACTS ORD rows 2-6 + COPY-12/14/15 + N2): the compact segmented view keys (native radios, full role/state/focus contract) replace the two large choice cards; the honest empty states split by cause (search-no-results with مسح البحث + preserved past-scope entry; filter-no-results with reset; current-empty with the past entry) with dated provenance comments. Net +22 nbLOC over the W01-head 1007 (the drift audit's from value is the merge-base baseline snapshot 439 carried by this ledger entry to the new 1029). The SPLIT_CANDIDATE band stands as before — splitting the file is forbidden by the UXR structural gate (§3-أ: no file moves/splits without a specific owner decision) and stays deferred to that gate, not this wave.",
+      "authorization": {
+        "ownerReview": "W02/UXR-03 delivery under the owner launch message of 2026-11-06 (DOC-030/WS-246 on PR #384) — this entry is part of the W02 PR diff",
+        "trigger": "UXR-03 stage card (04-WORK-ORDERS F-009 closure: compact keys with role/state/focus) + 03-CONTENT COPY-12/14/15 literal dictionary application",
+        "ocRef": "DOC-030"
+      }
+    },
+    {
+      "id": "UXR-W02-SCHEDULE-SINGLE-HEADING-20261106",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/Schedule.tsx",
+      "from": {
+        "nbLoc": 996,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1011,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "DEC-ORD-01/UXR-03 (F-008): the architectural overline «التنظيم التشغيلي» above H1 is deleted — one clear destination heading (the shell carries the route label); the dated provenance comment replaces the two removed lines. Single-heading change only; the SPLIT_CANDIDATE band is unchanged and deferred to the structural gate as before.",
+      "authorization": {
+        "ownerReview": "W02/UXR-03 delivery under the owner launch message of 2026-11-06 (DOC-030/WS-246 on PR #384) — this entry is part of the W02 PR diff",
+        "trigger": "UXR-03 stage card (02-PAGE-CONTRACTS DEC-ORD-01 via 04-WORK-ORDERS F-008 inventory): page-level triple-heading removal on an owned surface",
+        "ocRef": "DOC-030"
+      }
+    },
+    {
+      "id": "UXR-W02-DENSITY-FINANCE-RATCHET-20261106",
+      "date": "2026-11-06",
+      "path": "scripts/text_density_policy.py",
+      "from": {
+        "nbLoc": 859,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 940,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "F-005/UXR-03 ratchet gain (the S17 Settings 63→75 precedent): Finance's at-rest string count drops 332 → 258 after the root de-stacking, so the ceiling is lowered as a locked gain with the dated provenance block documenting every dissolved surface and the new home of each removed value. Data-only ledger change (CAPS + provenance); the engine, golden, and CLI contract are unchanged (byte-identical output proven by the characterization test).",
+      "authorization": {
+        "ownerReview": "W02/UXR-03 delivery under the owner launch message of 2026-11-06 (DOC-030/WS-246 on PR #384) — this entry is part of the W02 PR diff",
+        "trigger": "UXR-03 stage card (04-WORK-ORDERS F-005 closure: «يُقاس الارتفاع قبل/بعد») — the measured reduction is locked same-PR per the documented ratchet protocol",
+        "ocRef": "DOC-030"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-SETTINGS-20261106-01",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/Settings.tsx",
+      "from": {
+        "nbLoc": 704,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 978,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "UXR-06 (F-011، تسليم W04 على الفرع): فهرس الإعدادات القصير (خريطة أربع مجموعات + حالته + الاختيار والعودة والوصلة العميقة) فوق الأقسام القائمة؛ ثم UXR-08/W05: تصحيح الكثافة داخل الحد المحروس (إسقاط أوصاف الصفوف المكررة لمحتوى مجموعاتها + صياغة حكم فحص السلامة بعد الاستبدال من prefix ولواصف مشتركة بلا أي تغيير نص معروض). التسلسل الكامل للنمو: 704 ← 866 (S17/UNIT-033 موثق) ← W04/UXR-06 F-011 ← 978 الآن. الشريط SPLIT_CANDIDATE مؤجل إلى البوابة الهيكلية كما كان — لا تقسيم في هذه الشريحة (بوابة S11/§3-أ).",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 (DOC-032/WS-248 على PR #384) — تسوية إرساء نمو W04 المسلَّم غير المُرسى (لم يُشغّل الحارس في W03/W04 بأمر المالك) مع تغييرات W05 في نفس الـPR؛ جزء من فرق W05",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية وكشفت النمو غير المُرسى؛ بوابة S11 تمنع التقسيم بلا قرار مالك",
+        "ocRef": "DOC-032"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-RECURRING-EDITOR-20261106-02",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/RecurringExpenseEditor.tsx",
+      "from": {
+        "nbLoc": 381,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 385,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-04/W03-3 (تسليم 50298db8): نص التفعيل الحرفي «يبدأ من التاريخ المحدد، ولا يسجل فترات سابقة تلقائيًا.» ظاهر تحت حقل تاريخ التقويم الأول عند الإنشاء/التفعيل — التزام نصي بعقد SUP-PARTY-REC؛ أربعة أسطر داخل الشريط NORMAL، بلا تغيير سلوك أو مال.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 (DOC-032/WS-248 على PR #384) — تسوية إرساء نمو W03 المسلَّم غير المُرسى؛ جزء من فرق W05",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية وكشفت النمو غير المُرسى",
+        "ocRef": "DOC-032"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-IDB-LIFECYCLE-20261106-03",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/storage/local/indexedDbLifecycle.ts",
+      "from": {
+        "nbLoc": 112,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 135,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-06/PERF-012 (تسليم 193bdf3e): فرع مخصص في failure() يترجم QuotaExceededError/QuotaExceeded إلى رسالة COPY-25 الصادقة بلا dump خام ولا مسح تلقائي — الكود يبقى storage_error الحالي بلا اتحاد جديد وقنوات الفشل الأخرى لم تُمس؛ داخل الشريط NORMAL.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 (DOC-032/WS-248 على PR #384) — تسوية إرساء نمو W04 المسلَّم غير المُرسى؛ جزء من فرق W05",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية وكشفت النمو غير المُرسى",
+        "ocRef": "DOC-032"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-ACTIVITY-SVC-20261106-04",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/application/activity/activityService.ts",
+      "from": {
+        "nbLoc": 542,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 591,
+        "band": "WATCH"
+      },
+      "reason": "UXR-05/PERF-003 (تسليم W04 (UXR-05 ثم UXR-06) على الفرع — أمر التنفيذ المتصل 2026-11-06): readPage() الجديدة تُرجع {records, hasMore, inScopeCount, familyCapped} بحساب hasMore حقيقي من السجلات المقبولة (حد الكلية أو قنص حد العائلة) لا عدًّا تخمينيًا؛ read() القائمة باقية بالبايت كما هي. النمو داخل شريط WATCH دون تغيير شريط.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-ACTIVITY-INDEX-20261106-05",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/application/activity/index.ts",
+      "from": {
+        "nbLoc": 12,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 19,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-05/PERF-003 (تسليم W04 (UXR-05 ثم UXR-06) على الفرع — أمر التنفيذ المتصل 2026-11-06): تصدير ActivityReadPage وأدواته من باب activity القائم.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-GUIDED-IMPORT-20261106-06",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
+      "from": {
+        "nbLoc": 382,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 416,
+        "band": "WATCH"
+      },
+      "reason": "UXR-06/PERF-002 (تسليم W04 (UXR-05 ثم UXR-06) على الفرع — أمر التنفيذ المتصل 2026-11-06): بوابة حجم استيراد بيانات البداية في طبقة الخدمة — isWithinImportSizeLimit أول سطر في prepare() قبل أي قراءة تخزين أو JSON.parse بنفس حارس S17 القائم؛ الحد ذاته لم يتغير. تصعيد الشريط NORMAL→WATCH معلن مع إحالة بوابة التقسيم (S11/§3-أ).",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-SALE-REVERSAL-SECTION-20261106-07",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/components/direct-sales/SaleCollectionReversalSection.tsx",
+      "from": {
+        "nbLoc": 199,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 208,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-08 (تسليم W05 (UXR-08 تغطية المستهلكين النهائية) على الفرع — أمر المرحلة النهائية 2026-11-06): تغطية مستهلك نهائي لـCOPY-02/F-006 — استبدال العنوان المعماري «حد الحقيقة» بمعناه المباشر «معنى العكس» كنفس استبدال W03 في لوحة قرار العكس، مع تعليق توثيقي مؤرخ. لا تغيير سلوك أو نص معروض غير التسمية. ثم تصحيح المرحلة النهائية (مراجعة 2 — الجولة الثانية): تمييز إتمام العكس (role=status + micro-save-note) عن قنوات الرفض/التحقق (role=alert + micro-field-error) بتعليق مؤرخ (SOP-12/WCAG 4.1.3) — لا مال ولا سلوك؛ القيمة الجديدة مقيسة بعد التصحيح.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-032"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-QUICK-SHEET-20261106-08",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/components/layout/QuickActionSheet.tsx",
+      "from": {
+        "nbLoc": 335,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 336,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-08 (تسليم W05 (UXR-08 تغطية المستهلكين النهائية) على الفرع — أمر المرحلة النهائية 2026-11-06): تغطية مستهلك نهائي لـF-007 — وصف ورقة التحصيل يصير فصحى مبسطة مهنية «مَن لك عليه وكم قبضت» بدل العامية، مع حفظ اتجاه «لك» حرفيًا وتعليق توثيقي مؤرخ.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-032"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-DEPOSIT-PANELS-20261106-09",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/components/orders/OrderDepositPanels.tsx",
+      "from": {
+        "nbLoc": 523,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 528,
+        "band": "WATCH"
+      },
+      "reason": "UXR-04/COPY-02 (تسليم W03 (UXR-04) على الفرع — أمر التنفيذ المتصل 2026-11-06): استبدال «حد الحقيقة» بـ«معنى العكس» في لوحة قرار العربون مع تعليق مؤرخ؛ النمو داخل WATCH دون تغيير شريط.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-DECISION-PANEL-20261106-10",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/components/presentation/DecisionPanel.tsx",
+      "from": {
+        "nbLoc": 25,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 26,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-08 (تسليم W05 (UXR-08 تغطية المستهلكين النهائية) على الفرع — أمر المرحلة النهائية 2026-11-06): تغطية مستهلك نهائي لـCOPY-01/F-006 — حذف وسم «ما نعرفه الآن» العام من اللوحة المشتركة (القيمة القوية تظهر تحت وسم القرار مباشرة) مع تعليق توثيقي مؤرخ؛ لا تغيير API ولا سلوك ولا نص معروض سوى حذف العنوان.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-032"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-INDEX-CSS-20261106-11",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/index.css",
+      "from": {
+        "nbLoc": 6778,
+        "band": "SPLIT_NOW"
+      },
+      "to": {
+        "nbLoc": 6938,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "سلسلة main المرساة حتى 6936 (S10→S15: 6778→6803→6830→6852→6936) + نمو W01/W02 داخل الرصيد المرسى سابقًا (+12 وF-015 و+35 لأسطح المالية) ثم نمو UXR-06/F-011 (تسليم W04): أنماط فهرس الإعدادات (micro-settings-index/micro-settings-group-row/micro-setting-icon) بالتوكنات المعتمدة القائمة فقط — لا قيم خام ولا مساس بـvf-tokens؛ تصحيح W05 أرجع الوصف الشرطي بلا أسطر إضافية (6936→6938 صافي +2). الشريط SPLIT_NOW كما كان — التقسيم محجوب ببوابة S11/§3-أ.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-CASH-ADJUST-20261106-12",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/CashAdjustmentEditor.tsx",
+      "from": {
+        "nbLoc": 202,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 203,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-04/COPY-02 (تسليم W03 (UXR-04) على الفرع — أمر التنفيذ المتصل 2026-11-06): استبدال «حد الحقيقة» بـ«معنى الضبط».",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-CASH-OPENING-20261106-13",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/CashOpeningLaterEditor.tsx",
+      "from": {
+        "nbLoc": 198,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 199,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-04/COPY-02 (تسليم W03 (UXR-04) على الفرع — أمر التنفيذ المتصل 2026-11-06): استبدال «حد الحقيقة» بـ«معنى الرصيد الموثق».",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-CASH-TRANSFER-20261106-14",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/CashTransferEditor.tsx",
+      "from": {
+        "nbLoc": 193,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 222,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-04/عقد CASH (تسليم W03 (UXR-04) على الفرع — أمر التنفيذ المتصل 2026-11-06): النص الحرفي «ينقل النقد بين المحافظ دون تغيير إجمالي النقد.» بديل «حد الحقيقة» في لوحة قرار التحويل مع بقاء التفصيل التشغيلي؛ تسميات «الكاش»→«النقد» على أسطح UXR-04. داخل الشريط NORMAL.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-CASH-WALLET-EDITOR-20261106-15",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/CashWalletEditor.tsx",
+      "from": {
+        "nbLoc": 135,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 136,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-04/COPY-28 (تسليم W03 (UXR-04) على الفرع — أمر التنفيذ المتصل 2026-11-06): النص الحرفي «رصيد البداية ليس إيرادًا ولا إضافة من المالك.» بديل «حد الحقيقة».",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-CASH-WALLETS-20261106-16",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/CashWallets.tsx",
+      "from": {
+        "nbLoc": 306,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 308,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-04/عقد CASH (تسليم W03 (UXR-04) على الفرع — أمر التنفيذ المتصل 2026-11-06): البطاقة الأولى «إجمالي النقد المسجل (د.أ)» بتركيب صادق وسطر حقيقة من الخدمة نفسها، وغير الموزع عند وجوده فقط.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-DIRECT-SALE-EDITOR-20261106-17",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx",
+      "from": {
+        "nbLoc": 999,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1628,
+        "band": "SPLIT_NOW"
+      },
+      "reason": "سلسلة main المرساة حتى 1627 (S05→S11→S13) + سطر واحد صافٍ فوقها من تسليم W03 (UXR-04) على الفرع — أمر التنفيذ المتصل 2026-11-06 (8c1966b4/4af88a2c: إزالة ترويسة معمارية وتوحيد «نقد»). الشريط SPLIT_NOW معلن والتقسيم محجوب ببوابة S11/§3-أ كقرار مالك مستقل.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-FINANCE-ACTIVITY-20261106-18",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/FinanceActivity.tsx",
+      "from": {
+        "nbLoc": 311,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 333,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-05/PERF-003 (تسليم W04 (UXR-05 ثم UXR-06) على الفرع — أمر التنفيذ المتصل 2026-11-06): النطاق يوصف «نطاق قراءة» لا اكتمالًا + إفصاح «تُعرض أحدث n عملية» + زر «عرض المزيد» يرفع الحدّين معًا (عقد ٣٠ §2.2). داخل الشريط NORMAL.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-INVENTORY-MATERIALS-20261106-19",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/InventoryMaterials.tsx",
+      "from": {
+        "nbLoc": 842,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 843,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "UXR-05/COPY-20 (تسليم W04 (UXR-05 ثم UXR-06) على الفرع — أمر التنفيذ المتصل 2026-11-06): «متابعة المخزون منذ <التاريخ>» من activatedOn في بطاقة الحالة. الشريط كما كان — التقسيم ببوابة S11.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-INV-MOVEMENT-EDITOR-20261106-20",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/InventoryMovementEditor.tsx",
+      "from": {
+        "nbLoc": 954,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "to": {
+        "nbLoc": 1032,
+        "band": "SPLIT_CANDIDATE"
+      },
+      "reason": "سلسلة main المرساة حتى 1028 (S07) + سطر واحد صافٍ فوقها من تسليم W04 (UXR-05 ثم UXR-06) على الفرع — أمر التنفيذ المتصل 2026-11-06 (COPY-02: «معنى الحركة» بديل «حد الحقيقة»). الشريط كما كان — التقسيم ببوابة S11. ثم تصحيح المرحلة النهائية (مراجعة 2 — الجولة الثانية): إزالة الترويسات المعمارية الثلاث فوق H1 بتعليقات مؤرخة (F-008/SOP-02) — لا مال ولا سلوك؛ القيمة الجديدة مقيسة بعد التصحيح.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-OWNER-WITHDRAWAL-20261106-21",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/OwnerWithdrawalEditor.tsx",
+      "from": {
+        "nbLoc": 349,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 350,
+        "band": "NORMAL"
+      },
+      "reason": "UXR-04/COPY-02 (تسليم W03 (UXR-04) على الفرع — أمر التنفيذ المتصل 2026-11-06): استبدال «حد الحقيقة» بـ«معنى سحب المالك».",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-PARTIES-20261106-22",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/Parties.tsx",
+      "from": {
+        "nbLoc": 213,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 397,
+        "band": "NORMAL"
+      },
+      "reason": "سلسلة main المرساة حتى 396 (S05) + سطر واحد صافٍ فوقها من تسليم W03 (UXR-04) على الفرع — أمر التنفيذ المتصل 2026-11-06 (50298db8: H1 «العملاء والموردون» بCOPY-03 ونقل عبارة المهمة للمقدمة وإزالة الترويسة المعمارية). داخل الشريط NORMAL.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 على PR #384 — تسوية إرساء نمو الموجات المسلَّمة W03/W04 غير المُرسى (لم يُشغّل الحارس فيهما بأمر المالك §6) مع تغييرات W05 في نفس الـPR",
+        "trigger": "فحوص W03/W04 المؤجلة شُغّلت في المرحلة النهائية (أمر المالك 2026-11-06) وكشفت النمو غير المُرسى؛ التسوية الآن في فرق W05 على PR #384 نفسه",
+        "ocRef": "DOC-031"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-EXPENSE-MODEL-20261106-23",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/components/finance/expenseFormModel.ts",
+      "from": {
+        "nbLoc": 77,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 82,
+        "band": "NORMAL"
+      },
+      "reason": "تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 2 — الجولة الأولى): توحيد «الكاش»→«النقد» في تلميح مصدر الصرف ورسالة الرفض (تكملة توحيد W03 للنموذج المشترك) مع تعليق مؤرخ — نص صرف بلا أي تغيير قاعدة (walletCount>1 && unset كما هي). from خط الأساس 77 (عند 111cd9dd) — السلسلة: R10B 77→80 ← هذا الإرساء 77→82 (from = قيمة الأساس بحسب قاعدة السلسلة الصحيحة للحارس).",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 (DOC-032/WS-248 على PR #384) — إصلاح العيوب المؤكدة من المراجعة الخماسية المستقلة على المرشح النهائي في نفس الـPR؛ أثر نصي/إتاحة صرف بلا أي تغيير مال أو سلوك أو مخطط",
+        "trigger": "المراجعة الخماسية المستقلة (الجولة الثانية فوق إصلاحات الجولة الأولى) أكدت عيوب إتاحة/قاموس؛ العلاج الجذري بأسطر مؤرخة موقعة بمرجع المراجعة؛ بوابة S11 تمنع أي تقسيم",
+        "ocRef": "DOC-032"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-SETTINGS-PROTECT-20261106-24",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx",
+      "from": {
+        "nbLoc": 583,
+        "band": "WATCH"
+      },
+      "to": {
+        "nbLoc": 629,
+        "band": "WATCH"
+      },
+      "reason": "تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 2 — الجولة الأولى): role=status لحكم فحص الاستعادة غير المتزامن (لحظة ثقة مالية — WCAG 4.1.3/SOP-12) مع تعليق مؤرخ — لا مس لمنطق الفحص ولا لنص معروض. الشريط WATCH كما هو. from خط الأساس 583 (عند 111cd9dd) — السلسلة: S02 583→596 ← S18 583→627 ← هذا الإرساء 583→629 (from = قيمة الأساس بحسب قاعدة السلسلة الصحيحة للحارس).",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 (DOC-032/WS-248 على PR #384) — إصلاح العيوب المؤكدة من المراجعة الخماسية المستقلة على المرشح النهائي في نفس الـPR؛ أثر نصي/إتاحة صرف بلا أي تغيير مال أو سلوك أو مخطط",
+        "trigger": "المراجعة الخماسية المستقلة (الجولة الثانية فوق إصلاحات الجولة الأولى) أكدت عيوب إتاحة/قاموس؛ العلاج الجذري بأسطر مؤرخة موقعة بمرجع المراجعة؛ بوابة S11 تمنع أي تقسيم",
+        "ocRef": "DOC-032"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-ASSETS-20261106-25",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/Assets.tsx",
+      "from": {
+        "nbLoc": 160,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 165,
+        "band": "NORMAL"
+      },
+      "reason": "تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 2 — الجولة الأولى): إزالة الترويسة المعمارية «أصول المشروع» فوق H1 بتعليق مؤرخ (F-008/SOP-02 — نفس نمط W04) — لا مال ولا سلوك. from خط الأساس 160 (عند 111cd9dd) — السلسلة: S08 160→164 ← هذا الإرساء 160→165 (from = قيمة الأساس بحسب قاعدة السلسلة الصحيحة للحارس).",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 (DOC-032/WS-248 على PR #384) — إصلاح العيوب المؤكدة من المراجعة الخماسية المستقلة على المرشح النهائي في نفس الـPR؛ أثر نصي/إتاحة صرف بلا أي تغيير مال أو سلوك أو مخطط",
+        "trigger": "المراجعة الخماسية المستقلة (الجولة الثانية فوق إصلاحات الجولة الأولى) أكدت عيوب إتاحة/قاموس؛ العلاج الجذري بأسطر مؤرخة موقعة بمرجع المراجعة؛ بوابة S11 تمنع أي تقسيم",
+        "ocRef": "DOC-032"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-INV-REVERSAL-EDITOR-20261106-26",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pages/InventoryReversalEditor.tsx",
+      "from": {
+        "nbLoc": 170,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 171,
+        "band": "NORMAL"
+      },
+      "reason": "تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 2 — الجولة الأولى): إزالة الترويسة المعمارية «تراجع محفوظ» فوق H1 بتعليق مؤرخ (F-008/SOP-02 — نفس استبدال W03 في محرر عكس النقد) — لا مال ولا سلوك.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 (DOC-032/WS-248 على PR #384) — إصلاح العيوب المؤكدة من المراجعة الخماسية المستقلة على المرشح النهائي في نفس الـPR؛ أثر نصي/إتاحة صرف بلا أي تغيير مال أو سلوك أو مخطط",
+        "trigger": "المراجعة الخماسية المستقلة (الجولة الثانية فوق إصلاحات الجولة الأولى) أكدت عيوب إتاحة/قاموس؛ العلاج الجذري بأسطر مؤرخة موقعة بمرجع المراجعة؛ بوابة S11 تمنع أي تقسيم",
+        "ocRef": "DOC-032"
+      }
+    },
+    {
+      "id": "UXR-W05-RATCHET-REG-PWA-NOTICE-20261106-27",
+      "date": "2026-11-06",
+      "path": "apps/prototype-web/client/src/pwa/PwaRuntimeNotice.tsx",
+      "from": {
+        "nbLoc": 98,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 124,
+        "band": "NORMAL"
+      },
+      "reason": "تصحيح مؤرخ 2026-11-06 (الجولتان 1 و2 — مراجعة 2/مراجعة 5): حالة فشل تفعيل SW الصادقة كانت محسوبة في register.ts ولا تُعرض — أُضيفت بطاقة ثالثة role=status، ثم فشل تطبيق التحديث (updateAvailable يبقى true مع الخطأ) صار يُعلن داخل بطاقة التحديث بسطر role=alert وعنوان بطاقة الخطأ مستمد من نوع الخطأ (SOP-12/WCAG 4.1.3) — عقد ٣٨ (النموذج القذر) بلا أي مس. أول إرساء للملف: من خط أساس main عند 98.",
+      "authorization": {
+        "ownerReview": "أمر المرحلة النهائية W05 المؤرخ 2026-11-06 (DOC-032/WS-248 على PR #384) — إصلاح العيوب المؤكدة من المراجعة الخماسية المستقلة على المرشح النهائي في نفس الـPR؛ أثر نصي/إتاحة صرف بلا أي تغيير مال أو سلوك أو مخطط",
+        "trigger": "المراجعة الخماسية المستقلة (الجولة الثانية فوق إصلاحات الجولة الأولى) أكدت عيوب إتاحة/قاموس؛ العلاج الجذري بأسطر مؤرخة موقعة بمرجع المراجعة؛ بوابة S11 تمنع أي تقسيم",
+        "ocRef": "DOC-032"
+      }
     }
   ]
 }

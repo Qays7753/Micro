@@ -398,7 +398,7 @@ export default function AssetEditor() {
           <span>ماذا سيحدث؟</span>
           <strong>
             {acquisitionKind === "cash"
-              ? `يخرج ${formatMoneyMinor(amountMinor)} د.أ من الكاش`
+              ? `يخرج ${formatMoneyMinor(amountMinor)} د.أ من النقد`
               : hasPartialPayment
                 ? `يخرج ${formatMoneyMinor(paidNowMinor)} د.أ الآن ويبقى حق ${formatMoneyMinor(amountMinor - paidNowMinor)} د.أ مؤجلًا`
                 : `يُفتح التزام ${formatMoneyMinor(amountMinor)} د.أ`}

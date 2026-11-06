@@ -21,6 +21,10 @@ import { canonicalSnapshotDigest } from "@/storage/local/snapshotCanonicalizatio
 import { runProtectedReplacement, type VerifiedBackupBuilder } from "./replacementProtectionProtocol";
 import { systemClock, type Clock } from "@/application/time/clock";
 import { errorMessageOf } from "@/application/resultCodes";
+/* UXR-06 (PERF-002): بوابة الحجم عند باب المستورد الافتتاحي نفسه — نفس الحارس
+ * القائم (S17/عقد ٠٤٤ B3) قبل JSON.parse: لا تحليل لملف ضخم أبدًا، والرفض
+ * قبل أي قراءة/كتابة تخزين وبلا مس أي بيانات. */
+import { IMPORT_SIZE_LIMIT_MESSAGE, isWithinImportSizeLimit } from "./transferResourceLimits";
 import { isValidLocalDate } from "@micro-domain/shared/index.js";
 
 export const guidedOpeningImportFormat = "micro-guided-opening-import" as const;
@@ -217,6 +221,9 @@ export class GuidedOpeningImportService {
   ) {}
 
   async prepare(text: string): Promise<GuidedOpeningImportResult<GuidedOpeningImportPreview>> {
+    /* UXR-06 (PERF-002): البوابة قبل التحليل — نفس حد ملف الاستعادة الكامل (باب
+     * واحد لكل مستورد)؛ الرفض صادق بأن شيئًا لم يُمسّ. */
+    if (!isWithinImportSizeLimit(text)) return fail("validation_error", IMPORT_SIZE_LIMIT_MESSAGE);
     const current = await this.store.readSnapshot();
     if (!current.ok) return fail("storage_error", "تعذر قراءة الحالة المحلية للتحقق قبل الاستيراد.");
     /* R4-B4 (2026-10-08): دوال الفحص داخل parseFile ترمي Error صريحًا
@@ -413,7 +420,7 @@ export class GuidedOpeningImportService {
         item => item.knowledge === "estimated",
       ).length,
       warnings: [
-        "الاستيراد يثبت موقفًا افتتاحيًا فقط؛ لا يحول الكاش أو المخزون إلى مبيعات أو ربح أو تاريخ سابق.",
+        "الاستيراد يثبت موقفًا افتتاحيًا فقط؛ لا يحول النقد أو المخزون إلى مبيعات أو ربح أو تاريخ سابق.",
       ],
     };
   }

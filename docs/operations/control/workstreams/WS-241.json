@@ -1,7 +1,7 @@
 {
   "id": "WS-241",
   "title": "S16 — الرئيسية والتنقل ومداخل الخدمات (UNIT-003/014/041/043 + SH-21)",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-025"
   ],
@@ -46,19 +46,23 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-11-03",
-  "updated_at": "2026-11-04",
-  "next_action": "S16 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا عمل مرحلي إضافي مفوض؛ لا VERIFIED على main ولا merge.",
+  "updated_at": "2026-11-05",
+  "next_action": "Workstream WS-241 مغلق ومتحقق على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا Claim نشطًا لهذه المرحلة.",
   "notes": [
     "أمر S16: 00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md (اتصال مأذون بعد إصلاح S15-MR-001 وإعادة S15 للمراجعة عند c788b09f).",
     "حالة تاريخية عند تسليم 2026-11-03: S15/S16 بقيتا رهن مراجعة المالك؛ لا merge أو main write ولا مقعد سادس. استُبدلت حالة القبول بقرار المالك الصريح في 2026-11-04، المثبت في الملاحظة التالية؛ لا VERIFIED على main ولا merge.",
-    "اعتمد المالك قبول S16 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-04، استنادًا إلى تسليم S16 في 21-S16-RESULT-2026-11-03.md، المرشح الكودي 9dc4b194، وتحقق Actions وCloudflare Pages الناجحين على رأس التسليم 7fef8cf1fa9795e137a72c9a19ccdc38c247ba83. القبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج. تبقى حالة Workstream REVIEW_REQUIRED وفق نمط تحرير الملكية؛ لا تعني VERIFIED على main ولا دمجًا."
+    "اعتمد المالك قبول S16 على فرع التكامل components/integration-20261027 بتاريخ 2026-11-04، استنادًا إلى تسليم S16 في 21-S16-RESULT-2026-11-03.md، المرشح الكودي 9dc4b194، وتحقق Actions وCloudflare Pages الناجحين على رأس التسليم 7fef8cf1fa9795e137a72c9a19ccdc38c247ba83. القبول على فرع التكامل فقط؛ ليس VERIFIED على main ولا إذن دمج. تبقى حالة Workstream REVIEW_REQUIRED وفق نمط تحرير الملكية؛ لا تعني VERIFIED على main ولا دمجًا.",
+    "تحديث 2026-11-05: supersedes branch-only next-action; PR #383 merged and main checks passed at 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S15-REVIEW-FIX-S16-EXECUTION-PROMPT-2026-11-03.md",
     "docs/implementation/micro-component-execution/20-S15-RESULT-2026-11-03.md",
     "docs/implementation/micro-component-execution/20a-S15-REVIEW-ADDENDUM-2026-11-03.md",
     "https://github.com/Qays7753/Micro/pull/383",
-    "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md"
+    "docs/implementation/micro-component-execution/21-S16-RESULT-2026-11-03.md",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "status_history": [
     {
@@ -72,7 +76,15 @@
       "changed_at": "2026-11-03",
       "actor": "zai-s16-execution",
       "reason": "تسليم S16 للمراجعة مع DOC-025 → IN_REVIEW (الانتقال القانوني نفسه؛ لا قبولًا ذاتيًا): المرشح الكودي 9dc4b194؛ السلسلة الكاملة خروج 0 والحالات بأدلة؛ بوابتا Actions/Cloudflare على الرأس النهائي المدفوع في تعليق PR #383."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ Actions وCloudflare Pages نجحا على الرأس نفسه."
     }
   ],
-  "migration_baseline": true
+  "migration_baseline": true,
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

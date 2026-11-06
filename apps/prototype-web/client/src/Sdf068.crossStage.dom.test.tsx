@@ -116,7 +116,11 @@ describe("SDF-068 (S18) — مساعدة النسخ الاحتياطي المس�
         <Settings />
       </ThemeProvider>,
     );
-    await waitFor(() => expect(screen.getByRole("heading", { name: "احمِ بياناتك" })).toBeTruthy());
+    /* UXR-06 (F-011): فتح مجموعة «البيانات والنسخ الاحتياطي» قبل فحص القسم. */
+    fireEvent.click(screen.getByTestId("settings-group-data"));
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "النسخ الاحتياطي والاستعادة" })).toBeTruthy(),
+    );
 
     const dataSection = screen.getByText("البيانات والنسخ الاحتياطي").closest("details") as HTMLElement;
     const scope = within(dataSection);

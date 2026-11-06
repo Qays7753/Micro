@@ -51,7 +51,7 @@ class FailingEntriesReadStore extends MemoryLocalStore {
       return {
         ok: false as const,
         code: "storage_error" as const,
-        message: "تعذر قراءة سجل استمرارية الكاش.",
+        message: "تعذر قراءة سجل استمرارية النقد.",
       };
     return super.listCashContinuityEntries();
   }
@@ -121,7 +121,7 @@ describe("CashReversalEditor — direct page-boundary behavior (R9-W3 + R9 conti
     expect(screen.getByRole("status")).toBeTruthy();
     /* R9-GA-F3.1/W3-F1: سطح «لم نجد أثر الكاش» صار قابلًا للوصول عبر مسار
      * النجاح — التحميل ينتهي والعدم يظهر والحد الصادق بلا أثر ثابت. */
-    expect(await screen.findByRole("heading", { name: "لم نجد أثر الكاش" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "لم نجد أثر النقد" })).toBeTruthy();
     expect(screen.queryByRole("status")).toBeNull();
     expect(screen.getByText("قد يكون السجل حُذف من هذا الجهاز أو تم التراجع عنه سابقًا.")).toBeTruthy();
     expect(wouterMocks.navigate).not.toHaveBeenCalled();
@@ -147,9 +147,9 @@ describe("CashReversalEditor — direct page-boundary behavior (R9-W3 + R9 conti
     wouterMocks.params = { id: seededEntryId };
     render(<Harness />);
     const error = await screen.findByRole("alert");
-    expect(error.textContent).toBe("تعذر قراءة سجل استمرارية الكاش.");
-    expect(screen.queryByText("لم نجد أثر الكاش")).toBeNull();
-    expect(screen.queryByRole("heading", { name: "لم نجد أثر الكاش" })).toBeNull();
+    expect(error.textContent).toBe("تعذر قراءة سجل استمرارية النقد.");
+    expect(screen.queryByText("لم نجد أثر النقد")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "لم نجد أثر النقد" })).toBeNull();
     expect(wouterMocks.navigate).not.toHaveBeenCalled();
     expect(bumpVersion).not.toHaveBeenCalled();
 

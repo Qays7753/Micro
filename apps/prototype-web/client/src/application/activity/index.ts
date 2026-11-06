@@ -10,4 +10,11 @@
  * الديناميكي للباب (مدخل الشظية يحتاج جدول تصدير حاضرًا في زمن التشغيل).
  */
 
-export type { ActivityEffectClass, ActivityFamily, ActivityRecord, ActivityService } from "./activityService";
+/* UXR-05 (PERF-003): ActivityReadPage يُصدَّر لسطح سجل النشاط — قراءة بحد مُفصح عنه. */
+export type {
+  ActivityEffectClass,
+  ActivityFamily,
+  ActivityReadPage,
+  ActivityRecord,
+  ActivityService,
+} from "./activityService";

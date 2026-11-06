@@ -333,7 +333,7 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     /* القبض عند التسليم داخل «خيارات متقدمة» — فتح صريح قبل الملء. */
     fireEvent.click(screen.getByText("خيارات متقدمة: تعديل السعر والقبض عند التسليم"));
     fireEvent.change(screen.getByLabelText("المقبوض عند التسليم"), { target: { value: "40" } });
-    fireEvent.change(screen.getByLabelText("وجهة كاش التسليم"), {
+    fireEvent.change(screen.getByLabelText("وجهة نقد التسليم"), {
       target: { value: opened.value.wallet.id },
     });
     fireEvent.click(screen.getByText("أكّد التسليم"));
@@ -344,7 +344,7 @@ describe("ORD-001/ORD-002/ORD-003 — order journey surfaces", () => {
     expect(receipt.textContent).toContain("الحالة الجديدة: تمت التسوية");
     expect(receipt.textContent).toContain("المقبوض عند التسليم: 40.00");
     expect(receipt.textContent).toContain("المتبقي بعد التسليم: 0.00");
-    expect(receipt.textContent).toContain("وجهة الكاش: درج-ORD");
+    expect(receipt.textContent).toContain("وجهة النقد: درج-ORD");
     expect(receipt.textContent).toContain("أثر المخزون");
     expect(receipt.textContent).toContain("الفعل التالي:");
     /* الإيراد معترف مرة واحدة: السعر 50 (لا يشمل القبض — القبض ليس إيرادًا). */

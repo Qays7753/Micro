@@ -236,7 +236,7 @@ export default function RecurringExpenseEditor() {
         رجوع
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">{editMode ? "تعديل مستقبلي موثق" : "تذكير مصروف متكرر"}</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد بلا تمهيد معماري فوقه. */}
         <h1>{editMode ? "غيّر قاعدة المستقبل فقط" : "ما المصروف الذي يتكرر عليك؟"}</h1>
         <p>
           التذكير يذكّرك فقط — لا يُسجَّل مبلغ ولا يُنشئ حدثًا بغير تأكيدك الصريح عند كل فترة، والتاريخ
@@ -268,6 +268,10 @@ export default function RecurringExpenseEditor() {
               value={anchorDate}
               onChange={event => setAnchorDate(event.target.value)}
             />
+            {/* UXR-04 (عقد SUP-PARTY-REC): نص التفعيل الحرفي ظاهر عند إنشاء التذكير وتفعيله. */}
+            <p className="micro-local-truth" role="note">
+              يبدأ من التاريخ المحدد، ولا يسجل فترات سابقة تلقائيًا.
+            </p>
           </>
         ) : (
           <>

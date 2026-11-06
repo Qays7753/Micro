@@ -1,7 +1,7 @@
 /** @vitest-environment jsdom */
 
 import React from "react";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePrototypeServices } from "@/app/PrototypeServicesContext";
 import { IntegrityCheckService } from "@/application/finance/integrityCheckService";
@@ -94,12 +94,18 @@ describe("Settings backup actions carry visible Arabic labels (U-11)", () => {
         <Settings />
       </ThemeProvider>,
     );
-    await waitFor(() => expect(screen.getByRole("heading", { name: "احمِ بياناتك" })).toBeTruthy());
+    /* UXR-06 (F-011): فتح مجموعة «البيانات والنسخ الاحتياطي» قبل فحص القسم. */
+    fireEvent.click(await screen.findByTestId("settings-group-data"));
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "النسخ الاحتياطي والاستعادة" })).toBeTruthy(),
+    );
 
-    const exportButton = screen.getByRole("button", { name: "تصدير البيانات المحلية" });
-    const importButton = screen.getByRole("button", { name: "اختيار ملف استيراد" });
-    expect(exportButton.textContent).toContain("تصدير");
-    expect(importButton.textContent).toContain("استيراد");
+    const exportButton = screen.getByRole("button", { name: "حفظ نسخة" });
+    const importButton = screen.getByRole("button", { name: "استعادة نسخة" });
+    /* تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 5): علامات COPY-33 الحرفية هي نص الزر —
+     * «حفظ نسخة»/«استعادة نسخة»؛ لم تعد «تصدير/استيراد» تظهر على الأزرار. */
+    expect(exportButton.textContent).toContain("حفظ نسخة");
+    expect(importButton.textContent).toContain("استعادة نسخة");
 
     // The data-protection layer stands open, so the safest actions are not hidden.
     const layer = document.querySelector("details.micro-decision-layer");

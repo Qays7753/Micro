@@ -786,7 +786,7 @@ export default function DirectSaleEditor() {
     return (
       <section className="micro-page micro-finance-page">
         <div className="micro-page-heading">
-          <span className="micro-overline">بيع مباشر · انسجّل</span>
+          {/* UXR-04 (F-008/SOP-02): عنوان النتيجة وحده — لا تمهيد معماري فوقه. */}
           <h1>سُجّل البيع</h1>
         </div>
         <section className="micro-decision-card" aria-label="نتيجة البيع">
@@ -802,7 +802,7 @@ export default function DirectSaleEditor() {
           <p>
             {outstandingMinor > 0
               ? sale.collectionStatus === "partial_debt"
-                ? `دين على ${sale.customerName ?? "الزبون"}: ${formatMoneyMinor(outstandingMinor)} د.أ — يظهر في «لي عند العملاء».`
+                ? `دين على ${sale.customerName ?? "الزبون"}: ${formatMoneyMinor(outstandingMinor)} د.أ — يظهر في «لك عند العملاء».`
                 : `فرق معلّق للمراجعة: ${formatMoneyMinor(outstandingMinor)} د.أ — لم يُقرّر بعد.`
               : "قُبض المبلغ كاملًا — لا دين من هذا البيع."}
           </p>
@@ -818,7 +818,7 @@ export default function DirectSaleEditor() {
             <p>
               {done.attributedMinor > 0
                 ? `نُسب القبض إلى «${done.walletName ?? "المحفظة"}»: ${formatMoneyMinor(done.attributedMinor)} د.أ — حركة موثقة في دفتر المحفظة.`
-                : "بقي القبض في الكاش غير الموزع — وزّعه على محفظة عندما تعرف وجهته."}
+                : "بقي القبض في النقد غير الموزع — وزّعه على محفظة عندما تعرف وجهته."}
             </p>
           )}
           {partySaveFailure ? (
@@ -943,7 +943,7 @@ export default function DirectSaleEditor() {
         <ArrowRight aria-hidden="true" /> {returnPath === "/orders" ? "العمل" : "رجوع"}
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">سجل بيع مستقل</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان المهمة وحده — لا لغة معمارية فوقه. */}
         <h1>{editing ? "تصحيح بيع مباشر" : "تسجيل بيع مباشر"}</h1>
         <p>
           {editing
@@ -971,7 +971,8 @@ export default function DirectSaleEditor() {
       ) : null}
       <section className="micro-decision-card">
         <div>
-          <span>حد الحقيقة</span>
+          {/* UXR-05/COPY-02: معنى التحصيل المباشر بجانب القرار — لا عنوان عام. */}
+          <span>معنى التحصيل</span>
           <strong>التحصيل ليس ربحًا.</strong>
           {/* المجموعة ٦ (البند ٤ — S3-12 §10.2 قاعدة ١): الشرح خلف علامة
               قراءة هادئة — السطر القوي يبقى، والتفصيل عند طلبه. */}
@@ -1446,7 +1447,7 @@ export default function DirectSaleEditor() {
           <div className="micro-section-heading">
             <Ban aria-hidden="true" />
             <div>
-              <span className="micro-overline">تصحيح لا يحذف السجل</span>
+              {/* UXR-04 (SOP-02): عنوان الإلغاء وحده — الجسم يشرح بقاء السجل. */}
               <h2 id="direct-sale-cancel-title">إلغاء البيع</h2>
             </div>
           </div>
@@ -1580,7 +1581,7 @@ export default function DirectSaleEditor() {
       ) : null}
       {/* S11 (UNIT-026 sale-slice / SDF-054): دفع رد فعلي مؤرخ على بيع مُرتجع —
           ضمن حق الرد القائم، ولا يُدفع مرتين؛ الصرف من محفظة مختارة أو من
-          غير الموزع، والكاش ينقص بقدره من مصدره الواحد. */}
+          غير الموزع، والنقد ينقص بقدره من مصدره الواحد. */}
       {editing && savedSale?.return ? (
         <section className="micro-form-card" aria-labelledby="direct-sale-refund-title">
           <details className="micro-inline-disclosure" open>

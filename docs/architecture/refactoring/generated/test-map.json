@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "e05b8d201b8ccacdd388fb443e9bba2ddb1daaa4",
+  "head": "4360a92ca4cc4b259b3c88f047ebd37a0a897f2e",
   "pages": {
     "total": 62,
     "map": {
@@ -159,6 +159,7 @@
           "FinanceBridge.w173.dom.test.tsx",
           "FinanceBudgets.w174.dom.test.tsx",
           "FinanceEmptyTruth.dom.test.tsx",
+          "FinanceExpenseEntry.uxr03.dom.test.tsx",
           "FinanceFunctionsBoard.unit013.dom.test.tsx",
           "FinanceJourneys.dom.test.tsx",
           "FinanceObligations.w43.dom.test.tsx",
@@ -175,6 +176,7 @@
       "pages/FinanceActivity.tsx": {
         "kind": "direct",
         "evidence": [
+          "FinanceActivity.paging.uxr05.dom.test.tsx",
           "G5Activity.dom.test.tsx",
           "R2.financeActivityVoid.test.tsx",
           "pages/FinanceActivity.periodKey.test.ts"
@@ -221,6 +223,7 @@
           "G004CapabilityGuard.dom.test.tsx",
           "Home.dom.test.tsx",
           "Home.unit003.s16.dom.test.tsx",
+          "Home.uxr01.dom.test.tsx",
           "Nav001.dom.test.tsx",
           "ReadLayerParity.w44.dom.test.tsx",
           "Set003Capabilities.dom.test.tsx",
@@ -311,10 +314,9 @@
         ]
       },
       "pages/NotFound.tsx": {
-        "kind": "named-reference",
+        "kind": "direct",
         "evidence": [
-          "Nav003.exe016.dom.test.tsx",
-          "RouterSmokeSync.r10b.test.ts"
+          "pages/NotFound.uxr02.dom.test.tsx"
         ]
       },
       "pages/OrderDetail.tsx": {
@@ -420,6 +422,7 @@
           "LockRetirement.dom.test.tsx",
           "Sdf068.crossStage.dom.test.tsx",
           "Set003SettingsSection.dom.test.tsx",
+          "Settings.index.uxr06.dom.test.tsx",
           "Settings.s03.dom.test.tsx",
           "SettingsDataBackupSection.w42.dom.test.tsx",
           "U11.dom.test.tsx",
@@ -476,9 +479,7 @@
       }
     },
     "withoutDirectEvidence": [],
-    "withoutDirectRendering": [
-      "pages/NotFound.tsx"
-    ]
+    "withoutDirectRendering": []
   },
   "contracts": {
     "total": 49,
@@ -694,6 +695,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.g82.test.ts",
+          "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.sizegate.test.ts",
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.test.ts"
         ]
       },
@@ -744,6 +746,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.g82.test.ts",
+          "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.sizegate.test.ts",
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.test.ts",
           "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx"
         ]
@@ -786,6 +789,8 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/EventsLayer.familyGuard.dom.test.tsx",
+          "apps/prototype-web/client/src/FinanceActivity.paging.uxr05.dom.test.tsx",
+          "apps/prototype-web/client/src/application/activity/activityService.paging.test.ts",
           "apps/prototype-web/client/src/application/activity/activityService.test.ts",
           "apps/prototype-web/client/src/pages/FinanceActivity.periodKey.test.ts"
         ]

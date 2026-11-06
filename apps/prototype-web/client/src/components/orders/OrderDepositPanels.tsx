@@ -114,7 +114,7 @@ export function OrderDepositPanels({
               عربون محصل (د.أ):{" "}
               <MoneyValue minor={order.depositCollectedMinor} className="micro-inline-number" />
             </b>
-            <small>كاش مرتبط بالطلب</small>
+            <small>نقد مرتبط بالطلب</small>
           </span>
         </section>
       ) : (
@@ -142,7 +142,8 @@ export function OrderDepositPanels({
             <div className="micro-decision-card">
               <Undo2 aria-hidden="true" />
               <div>
-                <span>حد الحقيقة</span>
+                {/* UXR-04 (COPY-02): لا عنوان عام «حد الحقيقة» — معنى العكس المباشر بجانب القرار. */}
+                <span>معنى العكس</span>
                 <strong>العكس يصحح السجل والتوزيع معًا — ولا يحذف شيئًا.</strong>
                 <p>
                   ينقص العربون القائم والمقبوض معًا فيعود الدين بقوته، وما وُزّع على محفظة يُفك منها بقيد
@@ -286,13 +287,13 @@ export function OrderDepositPanels({
                     </dd>
                   </div>
                   <div>
-                    <dt>أثر الرد على الكاش</dt>
+                    <dt>أثر الرد على النقد</dt>
                     <dd>يخرج المردود من رصيدك المقبوض — ومن محفظة المصدر المسجلة حيث وُجد توزيع العربون.</dd>
                   </div>
                   <div>
                     <dt>أثر الاحتفاظ</dt>
                     <dd>
-                      الكاش يبقى محصلًا بلا معنى حتى تصنّفه صراحة: مال مالك (ليس ربحًا) أو إيراد مشروع — لا
+                      النقد يبقى محصلًا بلا معنى حتى تصنّفه صراحة: مال مالك (ليس ربحًا) أو إيراد مشروع — لا
                       تصنيف خفي.
                     </dd>
                   </div>
@@ -385,7 +386,7 @@ export function OrderDepositPanels({
           })() ? (
             <>
               <p>
-                الكاش محتفظ به بلا معنى بعد. صنّفه: مال مالك (تسحبه وقتما تشاء)، أو إيراد مشروع (يدخل ربح فترة
+                النقد محتفظ به بلا معنى بعد. صنّفه: مال مالك (تسحبه وقتما تشاء)، أو إيراد مشروع (يدخل ربح فترة
                 القرار) — بمبلغ صريح إن شئت جزئيًا، والباقي يبقى بانتظار قراره. أو اتركه معلقًا — خيار صالح
                 ظاهر حتى تقرر.
               </p>
@@ -399,7 +400,7 @@ export function OrderDepositPanels({
                     <MoneyValue minor={classifyAmount ?? unclassifiedMinor} className="micro-inline-number" />{" "}
                     د.أ بلا أي أثر على نتيجة الفترة؛ و«إيراد مشروع» يضيف{" "}
                     <MoneyValue minor={classifyAmount ?? unclassifiedMinor} className="micro-inline-number" />{" "}
-                    د.أ إلى نتيجة فترة القرار بلا كاش جديد (الكاش قُبض سابقًا). كلاهما قابل للتصحيح الموثق
+                    د.أ إلى نتيجة فترة القرار بلا نقد جديد (النقد قُبض سابقًا). كلاهما قابل للتصحيح الموثق
                     لاحقًا.
                     {(order.depositClassifiedOwnerMinor ?? 0) > 0 ||
                     (order.depositClassifiedRevenueMinor ?? 0) > 0 ? (
@@ -473,7 +474,7 @@ export function OrderDepositPanels({
                 ) : order.retainedMeaning === "mixed" ? (
                   <>صُنّف مختلطًا — جزء مال مالك وجزء إيراد مشروع بمبلغين موثقين؛ راجع سجل الأحداث.</>
                 ) : (
-                  "صُنّف إيراد مشروع — يُعترف به مرة واحدة في نتيجة فترة القرار، لا كاش جديد."
+                  "صُنّف إيراد مشروع — يُعترف به مرة واحدة في نتيجة فترة القرار، لا نقد جديد."
                 )}
               </p>
               <button

@@ -469,24 +469,27 @@ describe("Wave 4.4 — P-4.4-1: soon panels match the logo-menu Escape and focus
 
   it("opening a soon panel moves focus into it; Escape closes and returns focus to its trigger", async () => {
     renderHeader();
-    /* S16 (UNIT-043): لوحة الترويسة لاسأل Micro وحده — مدخل النقل والتوصيل
-     * انتقل إلى مقعده في الشريط (/delivery) والبديل جاهز قبل الإزالة. */
-    const assistantTrigger = screen.getByRole("button", { name: "اسأل Micro — قريبًا" });
-    fireEvent.click(assistantTrigger);
+    /* S16 (UNIT-043) + DEC-SHELL-01 (UXR-03 — أمر W02): لوحة الإعلان مشغّلها
+     * بند قائمة «مايكرو» — تفتح من القائمة (مالكها زر الشعار). */
+    const menuOwner = screen.getByTestId("micro-logo-menu-button");
+    fireEvent.click(menuOwner);
+    fireEvent.click(screen.getByRole("menuitem", { name: "اسأل Micro — قريبًا" }));
     const panel = await screen.findByTestId("soon-panel");
     expect(panel.getAttribute("role")).toBe("dialog");
     /* التركيز يدخل اللوحة عند فتحها. */
     await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true));
-    /* Escape يغلق ويعيد التركيز إلى المشغّل نفسه — كسلوك قائمة الشعار. */
+    /* Escape يغلق ويعيد التركيز إلى مالك القائمة (زر الشعار) — كسلوك
+     * القائمة نفسه. */
     fireEvent.keyDown(document, { key: "Escape" });
     await waitFor(() => expect(screen.queryByTestId("soon-panel")).toBeNull());
-    expect(document.activeElement).toBe(assistantTrigger);
+    expect(document.activeElement).toBe(menuOwner);
   });
 
   it("the assistant panel behaves the same, and Tab stays trapped inside the dialog", async () => {
     renderHeader();
-    const assistantTrigger = screen.getByRole("button", { name: "اسأل Micro — قريبًا" });
-    fireEvent.click(assistantTrigger);
+    const menuOwner = screen.getByTestId("micro-logo-menu-button");
+    fireEvent.click(menuOwner);
+    fireEvent.click(screen.getByRole("menuitem", { name: "اسأل Micro — قريبًا" }));
     const panel = await screen.findByTestId("soon-panel");
     await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true));
     const closeButton = screen.getByRole("button", { name: "إغلاق" });
@@ -498,6 +501,6 @@ describe("Wave 4.4 — P-4.4-1: soon panels match the logo-menu Escape and focus
     /* الإغلاق بزر X يعيد التركيز للمشغّل أيضًا. */
     fireEvent.click(closeButton);
     await waitFor(() => expect(screen.queryByTestId("soon-panel")).toBeNull());
-    expect(document.activeElement).toBe(assistantTrigger);
+    expect(document.activeElement).toBe(menuOwner);
   });
 });

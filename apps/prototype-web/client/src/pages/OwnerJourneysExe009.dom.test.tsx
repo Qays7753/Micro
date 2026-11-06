@@ -166,18 +166,18 @@ describe("EXE-009 — owner investment editor: destination + cross-model guard",
 
   it("asks the cash destination with unallocated as the explicit default (no silent wallet)", async () => {
     renderInvestmentEditor();
-    const select = (await screen.findByLabelText(/وجهة الكاش/)) as HTMLSelectElement;
+    const select = (await screen.findByLabelText(/وجهة النقد/)) as HTMLSelectElement;
     await waitFor(() => expect(select.value).toBe(""));
-    expect(screen.getByText("الكاش غير الموزع")).toBeTruthy();
+    expect(screen.getByText("النقد غير الموزع")).toBeTruthy();
     expect(screen.getByText("الدرج — تخصيص إلى رصيدها")).toBeTruthy();
-    expect(screen.getByText(/الكاش غير الموزع هو الافتراضي/)).toBeTruthy();
+    expect(screen.getByText(/النقد غير الموزع هو الافتراضي/)).toBeTruthy();
   });
 
   it("attributes the investment to the chosen wallet with the owner_event legal source", async () => {
     const { record, distributeUnallocated } = renderInvestmentEditor();
     await userEvent.setup().type(screen.getByLabelText("المبلغ بالدينار الأردني"), "100");
     await userEvent.setup().type(screen.getByLabelText(/ما الذي حدث/), "حقنة رأس مال");
-    await userEvent.setup().selectOptions(await screen.findByLabelText(/وجهة الكاش/), "drawer");
+    await userEvent.setup().selectOptions(await screen.findByLabelText(/وجهة النقد/), "drawer");
     await userEvent.setup().click(screen.getByRole("button", { name: "حفظ الحدث" }));
     await waitFor(() => expect(record).toHaveBeenCalledOnce());
     await waitFor(() =>
@@ -230,7 +230,7 @@ describe("EXE-009 — unified withdrawal editor: source + guard + no dead end", 
     await screen.findByLabelText("مبلغ السحب");
     const select = (await screen.findByLabelText(/مصدر السحب/)) as HTMLSelectElement;
     await waitFor(() => expect(select.value).toBe(""));
-    expect(screen.getByText("الكاش غير الموزع")).toBeTruthy();
+    expect(screen.getByText("النقد غير الموزع")).toBeTruthy();
     expect(screen.getByText("الدرج — تغطية من رصيدها")).toBeTruthy();
   });
 
@@ -270,7 +270,7 @@ describe("EXE-009 — unified withdrawal editor: source + guard + no dead end", 
       },
     });
     expect(await screen.findByText("سياستك الفعالة تسحب من محفظة، وما في محفظة معلنة بعد.")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /أنشئ محفظة كاش/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /أنشئ محفظة نقود/ })).toBeTruthy();
   });
 });
 

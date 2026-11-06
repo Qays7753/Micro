@@ -180,7 +180,18 @@ CAPS: dict[str, int] = {
     # Finance 330 -> 332 (2026-09-23, FIN-001 Wave 6, owner roadmap §4.7):
     # سطر طبقة الالتزام المستقل في موضع «الآن» (القروض المستلمة) — بندان
     # معلنان لا أكثر.
-    "Finance": 332,
+    # Finance 332 -> 258 (2026-11-06, UXR-03/W02 — F-005/F-010 de-stacking,
+    # owner-approved UXR program): the permanent root stack dissolved — the
+    # «ما نعرفه الآن» paragraphs (wallet-cash/unallocated/counts) moved to
+    # their owners (/cash details, activity reader), the six fact-road links
+    # dissolved into the canonical functions index (one new عدّ الصندوق entry),
+    # «قصة الأسبوع» and the duplicate statement paragraph merged into the
+    # period-details statement button (same destination+range), «آخر ما حدث»
+    # gave way to the single «السجل والأثر» entry, and the review-pulse
+    # section's h2/overline/exclusion prose became two compact rows plus a
+    # conditional exclusion line (N3/N4/N5/N11). Cap lowered as a ratchet
+    # gain; nothing deleted without a home.
+    "Finance": 258,
     # OrderDetail 127 → 128 (2026-09-02, Group 1 Scope E): the additional-details
     # summary relabels itself at execution ("الاتفاق وسجل الطلب") because time/material
     # panels surface above the fold — one mandated conditional label.

@@ -12,7 +12,9 @@ import {
   RotateCcw,
   Save,
   Shield,
+  SlidersHorizontal,
   Upload,
+  WalletCards,
 } from "lucide-react";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useLocation, useSearch } from "wouter";
@@ -59,6 +61,72 @@ import {
 import type { OfferingPreference } from "@/application/preferences";
 
 import { Button, type FeedbackKind } from "@/components/primitives";
+
+/* UXR-06 (F-011): فهرس المجموعات — وصول لا فئات تخزين؛ أربع مجموعات
+ * تغطي كل إعداد قائم (المشروع/الاستخدام والقدرات/البيانات والنسخ
+ * الاحتياطي/فحص البيانات) بلا فئة فارغة. */
+type SettingsGroupKey = "project" | "usage" | "data" | "check";
+/* UXR-08 (تصحيح كثافة داخل الحد المحروس): صياغة حكم فحص السلامة بعد
+ * الاستبدال من prefix الحدث + لواحق الحالات المشتركة — النص المعروض
+ * مطابق حرفيًّا لما كان يُركَّب يدويًّا في ثمانية نصوص كاملة؛ ثلاث لواحق
+ * (ملاحظات/تعذّر/خلل) واحدة للمسارين، ولاحقا «سليم» يختلفان بكلمة
+ * واحدة (المستعادة/المُدخلة) تبقى صريحين. لا تغيير أي معنى أو رسالة. */
+type ReplacementCheckOverall = "PASS" | "WARN" | "UNAVAILABLE" | "FAIL";
+function postReplacementCheckNote(
+  prefix: string,
+  overall: ReplacementCheckOverall,
+  healthyNumbersWord: string,
+): string {
+  switch (overall) {
+    case "PASS":
+      return `${prefix} سليم — الأرقام ${healthyNumbersWord} متسقة مع قواعدها (الاتساق لا الجدوى).`;
+    case "WARN":
+      return `${prefix} توجد ملاحظات للمراجعة — افتح فحص السلامة للتفاصيل.`;
+    case "UNAVAILABLE":
+      return `${prefix} تعذّرت قراءة بعض الفحوص — أعد تشغيل الفحص من أدواته.`;
+    default:
+      return `${prefix} يوجد خلل يحتاج تصحيحًا موثقًا — افتح فحص السلامة للتفاصيل.`;
+  }
+}
+/* UXR-08 (UXR-06 F-011 — تصحيح كثافة داخل الحد المحروس): وصف الصف يبقى فقط
+ * حيث يضيف معلومة لا يقولها العنوان ولا محتوى المجموعة — «فحص البيانات»
+ * يبقى بوصفه لأنه الإفصاح الوحيد في السكون عن «بلا إصلاح تلقائي» (جسم
+ * القسم داخل <details> لا يُعد في السياسة)، بينما أوصاف المجموعات الثلاث
+ * كانت تكرر أسماء صفوفها فحسب (SOP-03: لا شرح مكرر) وحصر الإعدادات فوق
+ * سقفه المحروس 75. لا تغيير أسماء المجموعات التعاقدية ولا أي محتوى داخل
+ * المجموعات ولا أي معنى. */
+const SETTINGS_GROUPS: ReadonlyArray<{
+  key: SettingsGroupKey;
+  title: string;
+  description: string | null;
+  icon: typeof CircleUserRound;
+}> = [
+  {
+    key: "project",
+    title: "المشروع",
+    description: null,
+    icon: CircleUserRound,
+  },
+  {
+    key: "usage",
+    title: "الاستخدام والقدرات",
+    description: null,
+    icon: SlidersHorizontal,
+  },
+  {
+    key: "data",
+    title: "البيانات والنسخ الاحتياطي",
+    description: null,
+    icon: WalletCards,
+  },
+  {
+    key: "check",
+    title: "فحص البيانات",
+    description: "قراءة صادقة لسلامة السجلات — بلا إصلاح تلقائي.",
+    icon: FileCheck2,
+  },
+];
+
 export default function SettingsPage() {
   const { theme, toggleTheme } = useTheme();
   const [, navigate] = useLocation();
@@ -143,6 +211,11 @@ export default function SettingsPage() {
    * readRestoreStatus لا من ذاكرة الصفحة، فتصمد بعد الإغلاق وإعادة
    * التحميل، وتحسم أي نية استبدال معلقة أولًا بصدق. */
   const [rollbackStatus, setRollbackStatus] = useState<{ createdAt: string } | null>(null);
+  /* UXR-06 (F-011): الإعدادات فهرس قصير — الاختيار يفتح مجموعته ويعود
+   * للفهرس؛ تجمع الوظائف القائمة فقط بلا فئة فارغة ولا إعداد مالي جديد.
+   * «الدقة والإعدادات المالية» لا مجموعة لها عمدًا: لا وظيفة قائمة تسكنها،
+   * والقائمة تمنع الفئة الفارغة (عقد SET). */
+  const [activeGroup, setActiveGroup] = useState<SettingsGroupKey | null>(null);
   const guidedCardRef = useRef<HTMLDivElement>(null);
   /* S17 (DOC-026 / UNIT-033): قسم «فحص البيانات» — مطوي افتراضيًا (صيانة
    * يدوية لا واجبًا يوميًا)؛ إشعار ما بعد الاستعادة يفتحه ويمرر النظر إليه. */
@@ -166,6 +239,8 @@ export default function SettingsPage() {
   });
   useEffect(() => {
     if (guidedAttention) {
+      /* UXR-06 (F-011): الوصلة العميقة تفتح مجموعة البيانات مباشرة — السلوكان القائمان محفوظان. */
+      setActiveGroup("data");
       setDataSectionOpen(true);
       guidedCardRef.current?.scrollIntoView({ block: "start" });
     }
@@ -632,14 +707,7 @@ export default function SettingsPage() {
     const check = await runIntegrityCheckAfterReplacement();
     setRestoreCheck({
       overall: check.overall,
-      note:
-        check.overall === "PASS"
-          ? "فحص السلامة بعد الاستعادة: سليم — الأرقام المستعادة متسقة مع قواعدها (الاتساق لا الجدوى)."
-          : check.overall === "WARN"
-            ? "فحص السلامة بعد الاستعادة: توجد ملاحظات للمراجعة — افتح فحص السلامة للتفاصيل."
-            : check.overall === "UNAVAILABLE"
-              ? "فحص السلامة بعد الاستعادة: تعذّرت قراءة بعض الفحوص — أعد تشغيل الفحص من أدواته."
-              : "فحص السلامة بعد الاستعادة: يوجد خلل يحتاج تصحيحًا موثقًا — افتح فحص السلامة للتفاصيل.",
+      note: postReplacementCheckNote("فحص السلامة بعد الاستعادة:", check.overall, "المستعادة"),
     });
     if (!result.value.profile) navigate("/setup");
   }
@@ -690,6 +758,12 @@ export default function SettingsPage() {
     event.target.value = "";
     if (!file) return;
     setNotice(null);
+    /* UXR-06 (PERF-002): بوابة الواجهة قبل file.text() نفسها — بوابة الحد القائمة
+     * (S17) لا تُحمّل ملفًا ضخمًا إلى الذاكرة أصلًا؛ الرفض قبل أي قراءة. */
+    if (!isWithinImportFileBytes(file.size)) {
+      setStorageNotice("error", IMPORT_FILE_BYTES_LIMIT_MESSAGE);
+      return;
+    }
     setIsWorking(true);
     try {
       if (!guidedOpeningImport) {
@@ -744,27 +818,21 @@ export default function SettingsPage() {
     const check = await runIntegrityCheckAfterReplacement();
     setRestoreCheck({
       overall: check.overall,
-      note:
-        check.overall === "PASS"
-          ? "فحص السلامة بعد الاستيراد الافتتاحي: سليم — الأرقام المُدخلة متسقة مع قواعدها (الاتساق لا الجدوى)."
-          : check.overall === "WARN"
-            ? "فحص السلامة بعد الاستيراد الافتتاحي: توجد ملاحظات للمراجعة — افتح فحص السلامة للتفاصيل."
-            : check.overall === "UNAVAILABLE"
-              ? "فحص السلامة بعد الاستيراد الافتتاحي: تعذّرت قراءة بعض الفحوص — أعد تشغيل الفحص من أدواته."
-              : "فحص السلامة بعد الاستيراد الافتتاحي: يوجد خلل يحتاج تصحيحًا موثقًا — افتح فحص السلامة للتفاصيل.",
+      note: postReplacementCheckNote("فحص السلامة بعد الاستيراد الافتتاحي:", check.overall, "المُدخلة"),
     });
   }
 
   const selectedModeDescription = modeOptions.find(option => option.value === selectedMode)?.description;
 
   /* مبدأ Micro: التفضيل اليومي ظاهر، أما البيانات الحساسة والاستعادة فتحتاج فتحًا مقصودًا. */
+  /* UXR-06 (F-011): عنوان واحد بلا تمهيد معماري؛ الفهرس قصير والاختيار يفتح
+   * مجموعته ويعود للفهرس — لا ست عشرة قسمًا مفتوحًا في الجذر. */
   return (
     <section className="micro-page">
       <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
         <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "الرئيسية" : "رجوع"}
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">التحكم المحلي</span>
         <h1>الإعدادات</h1>
         <p>خيارات الواجهة وحماية البيانات على هذا الجهاز.</p>
       </div>
@@ -774,122 +842,171 @@ export default function SettingsPage() {
         nextAction="حذف التطبيق أو بيانات المتصفح لا يضمن الاحتفاظ بها؛ صدّر نسخة محلية قبل الحذف أو تغيير الهاتف."
         tone="warning"
       />
-      {/* المجموعة ١ (Scope G): مدخل ملف المالك من الإعدادات — سطر هادئ لا CTA
+      {activeGroup === null ? (
+        <section className="micro-settings-index" aria-label="فهرس الإعدادات">
+          {SETTINGS_GROUPS.map(group => (
+            <button
+              key={group.key}
+              type="button"
+              className="micro-settings-group-row"
+              data-testid={`settings-group-${group.key}`}
+              onClick={() => setActiveGroup(group.key)}
+            >
+              <span className="micro-setting-icon">
+                <group.icon aria-hidden="true" />
+              </span>
+              <span>
+                <b>{group.title}</b>
+                {group.description ? <small>{group.description}</small> : null}
+              </span>
+              <ChevronLeft aria-hidden="true" />
+            </button>
+          ))}
+        </section>
+      ) : (
+        <>
+          <button
+            className="micro-text-action"
+            type="button"
+            data-testid="settings-back-to-index"
+            onClick={() => setActiveGroup(null)}
+          >
+            <ArrowRight aria-hidden="true" /> كل الإعدادات
+          </button>
+          {activeGroup === "project" ? (
+            /* المجموعة ١ (Scope G): مدخل ملف المالك من الإعدادات — سطر هادئ لا CTA
           منافس. S03 (دمج 038/039): محرر اسم المشروع صار في قسم «بيانات المشروع»
-          أدناه؛ هذا المدخل لهوية المالك وحدها. */}
-      <section className="micro-settings-profile-entry">
-        <CircleUserRound aria-hidden="true" />
-        <div>
-          <b>ملف المالك</b>
-          <small>هوية المالك المحلية — محفوظة على هذا الجهاز فقط.</small>
-        </div>
-        <button
-          className="micro-text-action"
-          type="button"
-          onClick={() => navigate(withReturnTo("/profile", "/settings"))}
-        >
-          افتح الملف
-          <ChevronLeft aria-hidden="true" />
-        </button>
-      </section>
-      {/* S03 (UNIT-039 — دمج المحرر داخل 038): بيانات المشروع — تعديل الاسم
+          أدناه؛ هذا المدخل لهوية المالك وحدها. */
+            <section className="micro-settings-profile-entry">
+              <CircleUserRound aria-hidden="true" />
+              <div>
+                <b>ملف المالك</b>
+                <small>هوية المالك المحلية — محفوظة على هذا الجهاز فقط.</small>
+              </div>
+              <button
+                className="micro-text-action"
+                type="button"
+                onClick={() => navigate(withReturnTo("/profile", "/settings"))}
+              >
+                افتح الملف
+                <ChevronLeft aria-hidden="true" />
+              </button>
+            </section>
+          ) : null}
+          {/* S03 (UNIT-039 — دمج المحرر داخل 038): بيانات المشروع — تعديل الاسم
           المحروس بحد كتابة واحد مع تعارض معلن؛ الغياب حالة صادقة مستقلة. */}
-      <SettingsProjectDataSection
-        projectData={projectData}
-        isEditingName={isEditingName}
-        editingName={editingName}
-        setEditingName={setEditingName}
-        nameError={nameError}
-        clearNameError={() => setNameError(false)}
-        renameConflict={renameConflict}
-        renameFailed={renameFailed}
-        isRenaming={isRenaming}
-        beginRename={beginRename}
-        saveRename={saveRename}
-        cancelRename={cancelRename}
-        openSetup={openSetup}
-        nameInputRef={projectNameInputRef}
-      />
-      {/* S03 (UNIT-038 P3.2): تفضيل ما يقدّمه مشروعك — نفس سؤال البداية من
+          {activeGroup === "project" ? (
+            <SettingsProjectDataSection
+              projectData={projectData}
+              isEditingName={isEditingName}
+              editingName={editingName}
+              setEditingName={setEditingName}
+              nameError={nameError}
+              clearNameError={() => setNameError(false)}
+              renameConflict={renameConflict}
+              renameFailed={renameFailed}
+              isRenaming={isRenaming}
+              beginRename={beginRename}
+              saveRename={saveRename}
+              cancelRename={cancelRename}
+              openSetup={openSetup}
+              nameInputRef={projectNameInputRef}
+            />
+          ) : null}
+          {/* S03 (UNIT-038 P3.2): تفضيل ما يقدّمه مشروعك — نفس سؤال البداية من
           المصدر الواحد؛ حفظ الحقل المتغير وحده دون مساس ببقية التفضيلات. */}
-      <SettingsUsagePreferencesSection
-        offeringState={offeringState}
-        selectedOffering={selectedOffering}
-        setSelectedOffering={setSelectedOffering}
-        isSavingOffering={isSavingOffering}
-        offeringNotice={offeringNotice}
-        saveOffering={saveOffering}
-      />
-      <SettingsDataProtectionSection
-        dataSectionOpen={dataSectionOpen}
-        onToggleDataSection={setDataSectionOpen}
-        guidedAttention={guidedAttention}
-        persistence={persistence}
-        lastExport={lastExport}
-        backupReminder={backupReminder}
-        setBackupReminder={setBackupReminder}
-        currentSummary={currentSummary}
-        resetFlow={resetFlow}
-        setResetFlow={setResetFlow}
-        resetNameConfirmation={resetNameConfirmation}
-        setResetNameConfirmation={setResetNameConfirmation}
-        diagnosticCopyResult={diagnosticCopyResult}
-        guidedPreview={guidedPreview}
-        setGuidedPreview={setGuidedPreview}
-        restoreCheck={restoreCheck}
-        rollbackStatus={rollbackStatus}
-        downloadRestoreBackup={() => void downloadRestoreBackup()}
-        startRollbackRestore={startRollbackRestore}
-        preview={preview}
-        setPreview={setPreview}
-        isWorking={isWorking}
-        notice={notice}
-        copyDiagnosticReport={copyDiagnosticReport}
-        exportLocal={exportLocal}
-        startResetFlow={startResetFlow}
-        chooseImport={chooseImport}
-        confirmReset={confirmReset}
-        setStorageNotice={setStorageNotice}
-        notifyDataChanged={notifyDataChanged}
-        onToggleBackupReminder={toggleBackupReminder}
-        inputRef={inputRef}
-        chooseGuidedOpeningImport={chooseGuidedOpeningImport}
-        confirmGuidedOpeningImport={confirmGuidedOpeningImport}
-        confirmImport={confirmImport}
-        openDataCheck={openDataCheck}
-        guidedCardRef={guidedCardRef}
-        guidedInputRef={guidedInputRef}
-      />
-      {/* S17 (DOC-026 / UNIT-033 — قرار المالك): «فحص البيانات» صيانة يدوية
+          {activeGroup === "usage" ? (
+            <SettingsUsagePreferencesSection
+              offeringState={offeringState}
+              selectedOffering={selectedOffering}
+              setSelectedOffering={setSelectedOffering}
+              isSavingOffering={isSavingOffering}
+              offeringNotice={offeringNotice}
+              saveOffering={saveOffering}
+            />
+          ) : null}
+          {activeGroup === "data" ? (
+            <SettingsDataProtectionSection
+              dataSectionOpen={dataSectionOpen}
+              onToggleDataSection={setDataSectionOpen}
+              guidedAttention={guidedAttention}
+              persistence={persistence}
+              lastExport={lastExport}
+              backupReminder={backupReminder}
+              setBackupReminder={setBackupReminder}
+              currentSummary={currentSummary}
+              resetFlow={resetFlow}
+              setResetFlow={setResetFlow}
+              resetNameConfirmation={resetNameConfirmation}
+              setResetNameConfirmation={setResetNameConfirmation}
+              diagnosticCopyResult={diagnosticCopyResult}
+              guidedPreview={guidedPreview}
+              setGuidedPreview={setGuidedPreview}
+              restoreCheck={restoreCheck}
+              rollbackStatus={rollbackStatus}
+              downloadRestoreBackup={() => void downloadRestoreBackup()}
+              startRollbackRestore={startRollbackRestore}
+              preview={preview}
+              setPreview={setPreview}
+              isWorking={isWorking}
+              notice={notice}
+              copyDiagnosticReport={copyDiagnosticReport}
+              exportLocal={exportLocal}
+              startResetFlow={startResetFlow}
+              chooseImport={chooseImport}
+              confirmReset={confirmReset}
+              setStorageNotice={setStorageNotice}
+              notifyDataChanged={notifyDataChanged}
+              onToggleBackupReminder={toggleBackupReminder}
+              inputRef={inputRef}
+              chooseGuidedOpeningImport={chooseGuidedOpeningImport}
+              confirmGuidedOpeningImport={confirmGuidedOpeningImport}
+              confirmImport={confirmImport}
+              openDataCheck={openDataCheck}
+              guidedCardRef={guidedCardRef}
+              guidedInputRef={guidedInputRef}
+            />
+          ) : null}
+          {/* S17 (DOC-026 / UNIT-033 — قرار المالك): «فحص البيانات» صيانة يدوية
           داخل الإعدادات — نطاق بسيط بحالات صادقة، قراءة فقط بلا إصلاح آلي؛
           السطح المستقل السابق (/tools/integrity) تقاعد ووصله القديم يوجه
           إلى هنا (نفس الشريحة — بديل جاهز وروابط ورجوع محفوظان). */}
-      <SettingsDataCheckSection ref={dataCheckRef} open={dataCheckOpen} onToggle={setDataCheckOpen} />
+          {activeGroup === "check" ? (
+            <SettingsDataCheckSection ref={dataCheckRef} open={dataCheckOpen} onToggle={setDataCheckOpen} />
+          ) : null}
 
-      <SettingsOperatingModeSection
-        operatingMode={operatingMode}
-        selectedMode={selectedMode}
-        setSelectedMode={setSelectedMode}
-        trackingEnabled={trackingEnabled}
-        setTrackingEnabled={setTrackingEnabled}
-        isSavingOperatingMode={isSavingOperatingMode}
-        selectedModeDescription={selectedModeDescription}
-        notice={notice}
-        saveOperatingMode={saveOperatingMode}
-      />
+          {activeGroup === "usage" ? (
+            <SettingsOperatingModeSection
+              operatingMode={operatingMode}
+              selectedMode={selectedMode}
+              setSelectedMode={setSelectedMode}
+              trackingEnabled={trackingEnabled}
+              setTrackingEnabled={setTrackingEnabled}
+              isSavingOperatingMode={isSavingOperatingMode}
+              selectedModeDescription={selectedModeDescription}
+              notice={notice}
+              saveOperatingMode={saveOperatingMode}
+            />
+          ) : null}
 
-      {/* SET-003: قدرات المشروع — إيقاف الإدخال لا يمس السجلات القائمة. */}
-      <SettingsCapabilitiesSection
-        preferences={preferences}
-        agreements={agreements}
-        inventory={inventory}
-        supplierPurchases={supplierPurchases}
-        catalog={catalog}
-        dataVersion={dataVersion}
-        notifyDataChanged={notifyDataChanged}
-      />
+          {/* SET-003: قدرات المشروع — إيقاف الإدخال لا يمس السجلات القائمة. */}
+          {activeGroup === "usage" ? (
+            <SettingsCapabilitiesSection
+              preferences={preferences}
+              agreements={agreements}
+              inventory={inventory}
+              supplierPurchases={supplierPurchases}
+              catalog={catalog}
+              dataVersion={dataVersion}
+              notifyDataChanged={notifyDataChanged}
+            />
+          ) : null}
 
-      <SettingsAppearanceSection theme={theme} toggleTheme={toggleTheme} />
+          {activeGroup === "usage" ? (
+            <SettingsAppearanceSection theme={theme} toggleTheme={toggleTheme} />
+          ) : null}
+        </>
+      )}
     </section>
   );
 }

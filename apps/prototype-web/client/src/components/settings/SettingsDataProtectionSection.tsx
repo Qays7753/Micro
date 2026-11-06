@@ -138,7 +138,7 @@ export function SettingsDataProtectionSection({
         <div className="micro-section-heading">
           <div>
             <span className="micro-overline">حماية البيانات</span>
-            <h2 id="data-protection-title">احمِ بياناتك</h2>
+            <h2 id="data-protection-title">النسخ الاحتياطي والاستعادة</h2>
           </div>
           <Shield aria-hidden="true" />
         </div>
@@ -168,7 +168,7 @@ export function SettingsDataProtectionSection({
         {/* ٣ — الفعل الأساسي للقسم: تصدير ينشئ ملفًا ولا يمس السجل. */}
         <StorageRow
           icon={Download}
-          title={lastExport ? "تصدير محلي مُتحقق" : "تصدير محلي"}
+          title={lastExport ? "حفظ نسخة مُتحقق" : "حفظ نسخة احتياطية"}
           text={
             lastExport
               ? `آخر ملف نسخة جرى تجهيزه: ${
@@ -179,8 +179,8 @@ export function SettingsDataProtectionSection({
                 } — التحقق دورة كاملة قبل إعلان الجهوزية، وتأكيد حفظه خارج الجهاز منك أنت.`
               : "ينشئ ملف نسخة مُتحققًا منه لبياناتك الحالية على هذا الجهاز، دون أسرار أو مفاتيح."
           }
-          actionLabel="تصدير"
-          label="تصدير البيانات المحلية"
+          actionLabel="حفظ نسخة"
+          label="حفظ نسخة"
           disabled={isWorking}
           onClick={exportLocal}
         />
@@ -219,10 +219,10 @@ export function SettingsDataProtectionSection({
         {/* ٤ — الاستعادة الآمنة (يستبدل كل شيء — عمق معاينته أدناه مباشرة). */}
         <StorageRow
           icon={Upload}
-          title="استيراد محلي"
+          title="استعادة نسخة كاملة"
           text="نقرأ الملف ونتحقق منه أولًا، ثم نعرض ملخصًا قبل استبدال أي بيانات."
-          actionLabel="استيراد"
-          label="اختيار ملف استيراد"
+          actionLabel="استعادة نسخة"
+          label="استعادة نسخة"
           disabled={isWorking}
           onClick={() => inputRef.current?.click()}
         />
@@ -262,7 +262,7 @@ export function SettingsDataProtectionSection({
                 شراء مواد
               </li>
               <li>
-                <IntegerValue value={preview.summary.cashWallets} className="micro-inline-number" /> محافظ كاش
+                <IntegerValue value={preview.summary.cashWallets} className="micro-inline-number" /> محافظ نقد
                 و
                 <IntegerValue
                   value={preview.summary.cashContinuityEntries}
@@ -354,7 +354,9 @@ export function SettingsDataProtectionSection({
           </article>
         ) : null}
         {restoreCheck ? (
-          <article className="micro-setting-row" data-status={restoreCheck.overall}>
+          <article className="micro-setting-row" data-status={restoreCheck.overall} role="status">
+            {/* تصحيح مؤرخ 2026-11-06 (UXR-W05/مراجعة 2): حكم الفحص غير المتزامن
+                يُعلن بمنطقة حية مهذبة — لحظة ثقة مالية (WCAG 4.1.3/SOP-12). */}
             <div>
               <strong data-status={restoreCheck.overall}>{restoreCheck.note}</strong>
               {/* S17 (DOC-026 / UNIT-033): الفحص داخل الإعدادات نفسها — يفتح
@@ -376,12 +378,12 @@ export function SettingsDataProtectionSection({
             <div className="micro-section-heading">
               <div>
                 <span className="micro-overline">بداية محدودة</span>
-                <h2 id="guided-opening-title">إدخال موقف افتتاحي</h2>
+                <h2 id="guided-opening-title">استيراد بيانات البداية</h2>
               </div>
               <Upload aria-hidden="true" />
             </div>
             <p>
-              أدخل نشاطًا ومحافظ كاش وموادًا معلنة من تاريخ البداية فقط. لا يحول هذا الملف تاريخًا قديمًا إلى
+              أدخل نشاطًا ومحافظ نقد وموادًا معلنة من تاريخ البداية فقط. لا يحول هذا الملف تاريخًا قديمًا إلى
               مبيعات أو ربح أو ديون.
             </p>
             <Button
@@ -413,7 +415,7 @@ export function SettingsDataProtectionSection({
                     value={guidedPreview.summary.acceptedWallets}
                     className="micro-inline-number"
                   />{" "}
-                  محفظة كاش بقيمة{" "}
+                  محفظة نقد بقيمة{" "}
                   <IntegerValue
                     value={guidedPreview.summary.acceptedCashMinor}
                     className="micro-inline-number"

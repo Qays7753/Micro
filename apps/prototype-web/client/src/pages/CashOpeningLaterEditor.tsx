@@ -111,7 +111,7 @@ export default function CashOpeningLaterEditor() {
 
           onClick={() => navigate(returnPath)}
         >
-          محافظ الكاش
+          محافظ النقد
         </Button>
       </section>
     );
@@ -119,13 +119,13 @@ export default function CashOpeningLaterEditor() {
     return (
       <section className="micro-page micro-finance-page">
         <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-          <ArrowRight aria-hidden="true" /> محافظ الكاش
+          <ArrowRight aria-hidden="true" /> محافظ النقد
         </button>
         <div className="micro-page-heading">
-          <span className="micro-overline">حالة المحفظة</span>
+          {/* UXR-04 (F-008/SOP-02): العنوان وحده — لا تمهيد معماري فوقه. */}
           <h1>رصيد افتتاحي هذه المحفظة معروف أصلًا</h1>
           <p>
-            «{state.wallet.name}» لديها رصيد افتتاحي مسجل؛ التصحيح اللاحق لحقيقة الكاش يُسجل ضبط كاش بسبب، لا
+            «{state.wallet.name}» لديها رصيد افتتاحي مسجل؛ التصحيح اللاحق لحقيقة النقد يُسجل ضبط نقد بسبب، لا
             افتتاحًا ثانيًا.
           </p>
         </div>
@@ -134,7 +134,7 @@ export default function CashOpeningLaterEditor() {
 
           onClick={() => navigate(`/cash/wallet/${state.wallet.id}/adjust`)}
         >
-          ضبط الكاش بسبب
+          ضبط النقد بسبب
         </Button>
       </section>
     );
@@ -142,10 +142,10 @@ export default function CashOpeningLaterEditor() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation("/cash")}>
-        <ArrowRight aria-hidden="true" /> محافظ الكاش
+        <ArrowRight aria-hidden="true" /> محافظ النقد
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">إكمال معرفة ناقصة</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد بلا تمهيد معماري فوقه. */}
         <h1>سجّل رصيد «{state.wallet.name}» الموثق لاحقًا</h1>
         <p>
           اخترت عند الإنشاء «لا أعرف الرصيد». سجّله الآن كما وثّقته فعلًا: حدث إضافي بتاريخه وسببه، يرفع ختم
@@ -155,7 +155,8 @@ export default function CashOpeningLaterEditor() {
       <section className="micro-decision-card">
         <WalletCards aria-hidden="true" />
         <div>
-          <span>حد الحقيقة</span>
+          {/* UXR-04 (COPY-02): معنى الرصيد الموثق المباشر بجانب القرار — لا عنوان عام. */}
+          <span>معنى الرصيد الموثق</span>
           <strong>الرصيد الموثق ليس ربحًا ولا استثمارًا.</strong>
           <p>إنه نقطة بداية معلنة لهذه المحفظة فقط؛ القيود السابقة تبقى كما سُجّلت.</p>
         </div>

@@ -111,7 +111,7 @@ export default function Suppliers() {
         <ArrowRight aria-hidden="true" /> {returnPath === "/finance" ? "المالية" : "رجوع"}
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">مواد وموردون</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان واحد بلا تمهيد معماري فوقه. */}
         <h1>الموردون والمشتريات</h1>
         <p>سجّل ما اشتريته للمشروع وما دُفع وما بقي.</p>
       </div>
@@ -198,7 +198,7 @@ export default function Suppliers() {
             );
           })
         ) : (
-          <p>لا تسجل شراء مواد كمصروف تشغيل. ابدأ من هذا السجل ليظهر الكاش والمتبقي بصدق.</p>
+          <p>لا تسجل شراء مواد كمصروف تشغيل. ابدأ من هذا السجل ليظهر النقد والمتبقي بصدق.</p>
         )}
       </section>
       {state.purchases.length > open.length ? (

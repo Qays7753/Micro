@@ -104,7 +104,7 @@ describe("CashAdjustmentEditor — explicit read state machine (R9-GA-F3.7)", ()
     wouterMocks.params = { id: "missing-wallet" };
     render(<Harness />);
     expect(screen.getByRole("status")).toBeTruthy();
-    expect(await screen.findByRole("heading", { name: "لم نجد محفظة الكاش" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "لم نجد محفظة النقد" })).toBeTruthy();
     expect(screen.queryByRole("status")).toBeNull();
     expect(wouterMocks.navigate).not.toHaveBeenCalled();
     expect(bumpVersion).not.toHaveBeenCalled();
@@ -124,8 +124,8 @@ describe("CashAdjustmentEditor — explicit read state machine (R9-GA-F3.7)", ()
     wouterMocks.params = { id: "any-wallet" };
     render(<Harness />);
     const alert = await screen.findByRole("alert");
-    expect(alert.textContent).toContain("تعذر قراءة محافظ الكاش المحلية.");
-    expect(screen.queryByRole("heading", { name: "لم نجد محفظة الكاش" })).toBeNull();
+    expect(alert.textContent).toContain("تعذر قراءة محافظ النقد المحلية.");
+    expect(screen.queryByRole("heading", { name: "لم نجد محفظة النقد" })).toBeNull();
     expect(wouterMocks.navigate).not.toHaveBeenCalled();
     expect(bumpVersion).not.toHaveBeenCalled();
     /* إعادة المحاولة تعود إلى التحميل ثم الجاهزية بصدق. */
@@ -143,10 +143,10 @@ describe("CashAdjustmentEditor — explicit read state machine (R9-GA-F3.7)", ()
     const walletId = await seedWallet();
     wouterMocks.params = { id: walletId };
     render(<Harness />);
-    expect(await screen.findByRole("button", { name: /حفظ ضبط الكاش/ })).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: /حفظ ضبط الكاش/ }));
+    expect(await screen.findByRole("button", { name: /حفظ ضبط النقد/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /حفظ ضبط النقد/ }));
     const alert = await screen.findByRole("alert");
-    expect(alert.textContent).toContain("أدخل فرق الكاش وسببًا وبيانًا قبل الحفظ.");
+    expect(alert.textContent).toContain("أدخل فرق النقد وسببًا وبيانًا قبل الحفظ.");
     expect(wouterMocks.navigate).not.toHaveBeenCalled();
     expect(bumpVersion).not.toHaveBeenCalled();
   });

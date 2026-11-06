@@ -84,50 +84,50 @@ const definition: Record<
   owner_investment_cash: {
     title: "تسجيل استثمار المالك",
     description: "مال أُدخل للمشروع. ليس مبيعات ولا ربحًا.",
-    effect: "يزيد الكاش المسجل ومال المالك فقط.",
+    effect: "يزيد النقد المسجل ومال المالك فقط.",
     counterparty: "اختياري: مصدر المال",
   },
   owner_withdrawal_cash: {
     title: "تسجيل سحب شخصي",
     description: "مال أخذه المالك من المشروع لاستعمال شخصي.",
-    effect: "ينقص الكاش ومال المالك؛ لا يسجل مصروف تشغيل.",
+    effect: "ينقص النقد ومال المالك؛ لا يسجل مصروف تشغيل.",
     counterparty: "اختياري: ملاحظة السحب",
   },
   operating_expense_cash: {
     title: "تسجيل مصروف مدفوع",
-    description: "خروج كاش فعلي لمصروف تشغيلي معروف.",
-    effect: "ينقص الكاش ويسجل مصروفًا، لكنه لا يحمّل تلقائيًا على طلب.",
+    description: "خروج نقد فعلي لمصروف تشغيلي معروف.",
+    effect: "ينقص النقد ويسجل مصروفًا، لكنه لا يحمّل تلقائيًا على طلب.",
     counterparty: "الجهة المدفوع لها",
   },
   operating_expense_payable: {
     title: "تسجيل مصروف مستحق",
     description: "مصروف أو فاتورة للمشروع لم تُدفع بعد.",
-    effect: "يزيد ما عليك للمورد ويسجل مصروفًا، من دون تغيير الكاش.",
+    effect: "يزيد ما عليك للمورد ويسجل مصروفًا، من دون تغيير النقد.",
     counterparty: "المورد أو الجهة المستحقة",
   },
   payable_settlement_cash: {
     title: "تسديد التزام",
-    description: "دفع كاش مقابل التزام سجلته سابقًا لمورد.",
-    effect: "ينقص الكاش وما عليك، ولا يسجل المصروف مرة ثانية.",
+    description: "دفع نقدي مقابل التزام سجلته سابقًا لمورد.",
+    effect: "ينقص النقد وما عليك، ولا يسجل المصروف مرة ثانية.",
     counterparty: "المورد أو الجهة المستحقة",
   },
   /* المبدأ الثالث عشر: المال الذي بحوزتك ليس بالضرورة مالك. */
   amanah_held_cash: {
     title: "تسجيل أمانة قُبضت",
     description: "مال مرّ عبر يدك وليس لك: ثمن طرود لمندوب، مال يحفظ لغيرك.",
-    effect: "يزيد الكاش ويرفع رصيد الأمانات؛ لا يمس الإيراد ولا المصروف ولا الربح إطلاقًا.",
+    effect: "يزيد النقد ويرفع رصيد الأمانات؛ لا يمس الإيراد ولا المصروف ولا الربح إطلاقًا.",
     counterparty: "صاحب الأمانة",
   },
   amanah_released_cash: {
     title: "تسجيل أمانة سُلّمت",
     description: "سلّمت لصاحبها أمانة كانت بحوزتك.",
-    effect: "ينقص الكاش ورصيد الأمانات معًا؛ لا أثر على الربح.",
+    effect: "ينقص النقد ورصيد الأمانات معًا؛ لا أثر على الربح.",
     counterparty: "صاحب الأمانة",
   },
   loss_non_cash: {
     title: "تسجيل هدر بلا خروج نقد",
     description: "خسارة مادية لم يرافقها دفع: بضاعة تلفت قبل تسجيلها في المخزون.",
-    effect: "يخفض ربح الفترة كتكلفة ضائعة؛ لا يغيّر الكاش ولا الذمم.",
+    effect: "يخفض ربح الفترة كتكلفة ضائعة؛ لا يغيّر النقد ولا الذمم.",
     counterparty: "اختياري: مصدر الخسارة",
   },
 };
@@ -882,7 +882,7 @@ export default function FinancialEventEditor() {
             });
       if (!attribution.ok)
         attributionFailed =
-          attribution.message ?? "تعذرت تغطية المحفظة بعد حفظ الحدث؛ المال محفوظ في الكاش غير الموزع.";
+          attribution.message ?? "تعذرت تغطية المحفظة بعد حفظ الحدث؛ المال محفوظ في النقد غير الموزع.";
       /* S06 (CONS-DEC04): سحب الجزء الشخصي يغطى من المحفظة نفسها التي دفعت
        * الفاتورة، بمفتاحه المشتق المستقل — فشله لا يمس الحدثين المحفوظين. */
       if (ownerPartEvent) {
@@ -896,7 +896,7 @@ export default function FinancialEventEditor() {
         });
         if (!ownerAttribution.ok)
           ownerAttributionFailed =
-            ownerAttribution.message ?? "تعذرت تغطية الجزء الشخصي بعد حفظه؛ المال محفوظ في الكاش غير الموزع.";
+            ownerAttribution.message ?? "تعذرت تغطية الجزء الشخصي بعد حفظه؛ المال محفوظ في النقد غير الموزع.";
       }
     }
     /* R3-F06: تأليف كل حقائق النسبة الفاشلة في جملة واحدة صادقة. */
@@ -991,7 +991,7 @@ export default function FinancialEventEditor() {
             : `تعذرت تغطية الجزء الشخصي من المحفظة: ${ownerAttributionFailed ?? ""}`;
       setSavedNote({
         eventId: result.value.id,
-        message: `حُفظ الحدث محليًا، لكن ${attributionFraming} — المال محفوظ ضمن الكاش غير الموزع حتى توزّعه بنفسك.`,
+        message: `حُفظ الحدث محليًا، لكن ${attributionFraming} — المال محفوظ ضمن النقد غير الموزع حتى توزّعه بنفسك.`,
         attributionNote: attributionFailed,
         ownerAttributionNote: ownerAttributionFailed,
       });
@@ -1058,11 +1058,11 @@ export default function FinancialEventEditor() {
             /* R3-F06: ملاحظتا النسبة الفاشلتان تُؤلّفان معًا لا أولاهما. */
             const pendingNotes = [
               savedNote.attributionNote ? `نسبة الحصة للمحفظة: ${savedNote.attributionNote}` : null,
-              `تغطية الجزء الشخصي من المحفظة: ${ownerAttribution.message ?? "المال محفوظ في الكاش غير الموزع."}`,
+              `تغطية الجزء الشخصي من المحفظة: ${ownerAttribution.message ?? "المال محفوظ في النقد غير الموزع."}`,
             ].filter((part): part is string => part !== null);
             setSavedNote({
               eventId: bill.value.expense.id,
-              message: `حُفظ الجزء الشخصي، وتعذرت ${pendingNotes.join("، و")} — المال محفوظ ضمن الكاش غير الموزع حتى توزّعه بنفسك.`,
+              message: `حُفظ الجزء الشخصي، وتعذرت ${pendingNotes.join("، و")} — المال محفوظ ضمن النقد غير الموزع حتى توزّعه بنفسك.`,
               attributionNote: savedNote.attributionNote ?? null,
               ownerAttributionNote: ownerAttribution.message ?? null,
             });
@@ -1080,7 +1080,7 @@ export default function FinancialEventEditor() {
         if (remainingNotes.length > 0) {
           setSavedNote({
             eventId: bill.value.expense.id,
-            message: `حُفظ الجزء الشخصي سحبًا على المالك بنية الحفظ نفسها. كما تعذرت ${remainingNotes.join("، و")} — المال محفوظ ضمن الكاش غير الموزع حتى توزّعه بنفسك.`,
+            message: `حُفظ الجزء الشخصي سحبًا على المالك بنية الحفظ نفسها. كما تعذرت ${remainingNotes.join("، و")} — المال محفوظ ضمن النقد غير الموزع حتى توزّعه بنفسك.`,
             attributionNote: savedNote.attributionNote,
             ownerAttributionNote: savedNote.ownerAttributionNote,
           });
@@ -1180,7 +1180,7 @@ export default function FinancialEventEditor() {
         <ArrowRight aria-hidden="true" /> المالية
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">حدث مالي محلي</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان المهمة وحده — لا لغة معمارية فوقه. */}
         <h1>{content.title}</h1>
         <p>{content.description}</p>
       </div>
@@ -1381,7 +1381,7 @@ export default function FinancialEventEditor() {
             <label className="micro-field">
               <span>
                 {type === "owner_investment_cash"
-                  ? "وجهة الكاش "
+                  ? "وجهة النقد "
                   : type === "owner_withdrawal_cash"
                     ? "مصدر السحب "
                     : "مصدر الصرف "}
@@ -1389,8 +1389,8 @@ export default function FinancialEventEditor() {
                   {type === "operating_expense_cash"
                     ? expenseSourceHint(wallets.length)
                     : type === "owner_investment_cash"
-                      ? "الكاش غير الموزع هو الافتراضي — اختر محفظة لتوزيع المال إليها"
-                      : "الكاش غير الموزع هو الافتراضي — اختر محفظة لتغطية السحب من رصيدها"}
+                      ? "النقد غير الموزع هو الافتراضي — اختر محفظة لتوزيع المال إليها"
+                      : "النقد غير الموزع هو الافتراضي — اختر محفظة لتغطية السحب من رصيدها"}
                 </small>
               </span>
               <select
@@ -1405,7 +1405,7 @@ export default function FinancialEventEditor() {
                     اختر مصدر الصرف
                   </option>
                 ) : null}
-                <option value="">الكاش غير الموزع</option>
+                <option value="">النقد غير الموزع</option>
                 {wallets.map(wallet => (
                   <option key={wallet.id} value={wallet.id}>
                     {type === "owner_investment_cash"
@@ -1417,7 +1417,7 @@ export default function FinancialEventEditor() {
             </label>
           ) : type === "operating_expense_cash" ? (
             <p className="micro-offline-truth" role="status">
-              لا محافظ معلنة بعد — سيُسجَّل المصروف من الكاش غير الموزع، ويمكن تغطيته من محفظة لاحقًا من مالي.
+              لا محافظ معلنة بعد — سيُسجَّل المصروف من النقد غير الموزع، ويمكن تغطيته من محفظة لاحقًا من مالي.
             </p>
           ) : null
         ) : null}
@@ -1652,7 +1652,7 @@ function ExpenseClassification(props: ExpenseClassificationProps) {
   return (
     <section className="micro-expense-classification" aria-labelledby="expense-classification-title">
       <div>
-        <span className="micro-overline">افهم الأثر قبل الحفظ</span>
+        {/* UXR-04 (SOP-02/SOP-04): السؤال المباشر وحده — التفسير عند الطلب داخل الجسم. */}
         <h2 id="expense-classification-title">كيف يخدم هذا المصروف المشروع؟</h2>
         <p>التصنيف لا يحمّل المصروف على طلب تلقائيًا؛ هو يوضح سياقه ودرجة معرفتك به.</p>
       </div>

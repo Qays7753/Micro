@@ -179,7 +179,11 @@ const mountSettings = () => {
       <Settings />
     </ThemeProvider>,
   );
-  return waitFor(() => expect(screen.getByRole("heading", { name: "احمِ بياناتك" })).toBeTruthy());
+  /* UXR-06 (F-011): الفهرس أولًا — فتح مجموعة «البيانات والنسخ الاحتياطي» قبل القسم. */
+  fireEvent.click(screen.getByTestId("settings-group-data"));
+  return waitFor(() =>
+    expect(screen.getByRole("heading", { name: "النسخ الاحتياطي والاستعادة" })).toBeTruthy(),
+  );
 };
 
 const mountHome = () => {

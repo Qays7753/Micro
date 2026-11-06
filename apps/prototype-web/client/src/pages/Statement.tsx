@@ -293,7 +293,7 @@ export default function Statement() {
         <ArrowRight aria-hidden="true" /> رجوع
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">كشف فترة · المبالغ (د.أ)</span>
+        {/* UXR-05 (F-008/SOP-02): عنوان واحد — النطاق والمبالغ في متنه أدناه. */}
         <h1>كشف الفترة</h1>
         <p>
           من {formatLocalDateLong(reading.from)} إلى {formatLocalDateLong(reading.to)} — ما صار خلالها،

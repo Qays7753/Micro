@@ -122,6 +122,6 @@ describe("QuickActionSheet expense category chip (المجموعة ١)", () => {
     fireEvent.click(screen.getByRole("button", { name: /سجّل مصروفًا/ }));
     fireEvent.change(screen.getByLabelText("مبلغ المصروف"), { target: { value: "25" } });
     expect(await screen.findByText(/بلا حركة أمانة ولا سحب مالك/)).toBeTruthy();
-    expect(screen.getByText(/سينقص الكاش 25.00 د.أ/)).toBeTruthy();
+    expect(screen.getByText(/سينقص النقد 25.00 د.أ/)).toBeTruthy();
   });
 });

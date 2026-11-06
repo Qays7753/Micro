@@ -365,7 +365,7 @@ export default function AgreementEditor() {
       });
       if (!attribution.ok)
         setMessage(
-          `سُجّل الاتفاق والعربون، وتعذر تخصيص الكاش للمحفظة: ${attribution.message} — المبلغ في الكاش غير الموزع.`,
+          `سُجّل الاتفاق والعربون، وتعذر تخصيص النقد للمحفظة: ${attribution.message} — المبلغ في النقد غير الموزع.`,
         );
     }
     notifyDataChanged();

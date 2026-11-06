@@ -1,7 +1,7 @@
 {
   "id": "WS-239",
   "title": "S14 — بدء التسجيل من الماضي والعودة بعد الانقطاع (UNIT-002/ACC-01/JRN-010/SH-18)",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-023"
   ],
@@ -29,19 +29,23 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-11-02",
-  "updated_at": "2026-11-03",
-  "next_action": "S14 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-03؛ Workstream REVIEW_REQUIRED يحرر الملكية للمراحل اللاحقة ولا يعني VERIFIED على main. لا إعادة فتح دون دليل جديد؛ لا merge ولا كتابة على main.",
+  "updated_at": "2026-11-05",
+  "next_action": "Workstream WS-239 مغلق ومتحقق على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا Claim نشطًا لهذه المرحلة.",
   "notes": [
     "أمر S14 الكنسي منشور في ba2ce7b431cab20f0e8d8005d1048d54def1b84a؛ التنفيذ فوق رأس سجلات S13 a82a541a.",
     "سوابق هذا الادعاء في الشريحة نفسها: تصحيح S12-ATOMIC-001 بعد بدء الكتابة (6dbbc425) وتصحيحات S13-MR-001..007 (3c3ea798) — كلاهما أُرجع إلى رهن المراجعة.",
     "تعليمات المالك لاستئناف S14: 00-S14-RESUME-PROMPT-2026-11-03.md",
-    "قرار المالك 2026-11-03: قبول S14 من A إلى Z على فرع التكامل استنادًا إلى مراجعة Manus السابقة؛ لا إعادة مراجعة. المرشح الكودي 0547fa992bd89c99175c988f8efbc21337d7dd1b، رأس التسليم 75af077358cf0ff6b35239529305243a6ffead1b، التقرير 19-S14-RESULT-2026-11-03.md، وActions/Cloudflare نجحا على رأس التسليم. لا VERIFIED على main ولا دمج؛ السقوف 650000/155300 ثابتة."
+    "قرار المالك 2026-11-03: قبول S14 من A إلى Z على فرع التكامل استنادًا إلى مراجعة Manus السابقة؛ لا إعادة مراجعة. المرشح الكودي 0547fa992bd89c99175c988f8efbc21337d7dd1b، رأس التسليم 75af077358cf0ff6b35239529305243a6ffead1b، التقرير 19-S14-RESULT-2026-11-03.md، وActions/Cloudflare نجحا على رأس التسليم. لا VERIFIED على main ولا دمج؛ السقوف 650000/155300 ثابتة.",
+    "تحديث 2026-11-05: supersedes branch-only next-action; PR #383 merged and main checks passed at 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S14-EXECUTION-PROMPT-2026-11-02.md",
     "https://github.com/Qays7753/Micro/pull/383",
     "docs/implementation/micro-component-execution/00-S14-RESUME-PROMPT-2026-11-03.md",
-    "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md"
+    "docs/implementation/micro-component-execution/19-S14-RESULT-2026-11-03.md",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "status_history": [
     {
@@ -55,7 +59,15 @@
       "changed_at": "2026-11-03",
       "actor": "zai-s14-execution",
       "reason": "تحرير مطالبة S14 للمراجعة المستقلة وفق الأمر الموحد: المرشح الكودي 0547fa99 باجتياز السلسلة الكاملة محليًا والمراجعات الخمس؛ بوابتا Actions/Cloudflare تُثبتان بالروابط الدقيقة على الرأس النهائي المدفوع في تعليق PR #383؛ السقفان الثابتان لم يُمسّا (603,724/146,987 مقابل 650,000/155,300)."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ Actions وCloudflare Pages نجحا على الرأس نفسه."
     }
   ],
-  "migration_baseline": true
+  "migration_baseline": true,
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

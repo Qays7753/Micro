@@ -122,7 +122,7 @@ describe("Wave 4.3 — P-4.3-1: open top area and logo menu", () => {
     expect(document.activeElement).toBe(items[0]);
   });
 
-  it("no theme toggle and no duplicate dark-mode entry in the open top area (D4)", () => {
+  it("no theme toggle and no duplicate dark-mode entry in the open top area (D4)", async () => {
     renderHeader(null);
     const header = screen.getByTestId("micro-logo-menu-button").closest("header");
     expect(header).toBeTruthy();
@@ -131,7 +131,12 @@ describe("Wave 4.3 — P-4.3-1: open top area and logo menu", () => {
     for (const label of labels) {
       expect(label).not.toMatch(/المظهر|الليلي|داكن|فاتح/);
     }
-    expect(labels).toEqual(expect.arrayContaining(["قائمة Micro", "اسأل Micro — قريبًا"]));
-    expect(labels).toHaveLength(2);
+    /* DEC-SHELL-01 (UXR-03 — أمر W02): زر الترويسة الدائم أُزيل — زر
+     * الشعار وحده في المنطقة المفتوحة؛ «اسأل Micro — قريبًا» بند عند
+     * الطلب داخل القائمة (يُثبته فحص القائمة في حالة أخرى). */
+    expect(labels).toEqual(["قائمة Micro"]);
+    fireEvent.click(screen.getByTestId("micro-logo-menu-button"));
+    const menuItem = await screen.findByRole("menuitem", { name: "اسأل Micro — قريبًا" });
+    expect(menuItem).toBeTruthy();
   });
 });

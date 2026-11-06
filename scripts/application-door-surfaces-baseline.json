@@ -2,7 +2,8 @@
   "version": 1,
   "description": "R5/S2 ratchet baseline (check-application-door-surfaces.mjs): exact value+type export surfaces of every application door (any-depth index.ts) plus the production application root-file set. Widening, shrinking, an unregistered new door/nested barrel/root barrel/root file, a deleted door, or a wildcard export (export * / export * as ns) all FAIL. Deliberate surface changes update this file in the same PR with a dated note.",
   "notes": [
-    "S16 (DOC-025, 2026-11-03): home door surface re-anchored with UNIT-003 — the S16 view model types (glimpse + follow-up brief) replace the retired W43 shapes (facts/insight/period-number/today-item); PC-3 intentional change in the same PR."
+    "S16 (DOC-025, 2026-11-03): home door surface re-anchored with UNIT-003 — the S16 view model types (glimpse + follow-up brief) replace the retired W43 shapes (facts/insight/period-number/today-item); PC-3 intentional change in the same PR.",
+    "UXR-05/W04 (PERF-003 — عقد ٣٠ §2.2، تسجيل في فحوص المرحلة النهائية W05 2026-11-06): باب النشاط أضاف النوع ActivityReadPage لسطح سجل النشاط (قراءة بحد مُفصح عنه وhasMore حقيقي) — توسيع مقصود موثق في نفس الـPR #384 بأمر المرحلة النهائية (DOC-032/WS-248)؛ مستهلكه FinanceActivity واختباره activityService.paging/FinanceActivity.paging."
   ],
   "doors": {
     "activity": {
@@ -10,6 +11,7 @@
       "type": [
         "ActivityEffectClass",
         "ActivityFamily",
+        "ActivityReadPage",
         "ActivityRecord",
         "ActivityService"
       ]

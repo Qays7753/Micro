@@ -93,7 +93,7 @@ export default function CashTransferEditor() {
   if (loading)
     return (
       <div className="micro-route-loading" role="status">
-        جارٍ قراءة محافظ الكاش…
+        جارٍ قراءة محافظ النقد…
       </div>
     );
   /* W7 (تدقيق الوكيل ٤، HIGH-2): فشل القراءة ليس «لا محافظ كافية» — فرع خطأ
@@ -102,11 +102,11 @@ export default function CashTransferEditor() {
     return (
       <section className="micro-page micro-finance-page">
         <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
-          <ArrowRight aria-hidden="true" /> محافظ الكاش
+          <ArrowRight aria-hidden="true" /> محافظ النقد
         </button>
         <div className="micro-page-heading">
-          <span className="micro-overline">تحويل بين المحافظ</span>
-          <h1>تعذر قراءة محافظ الكاش</h1>
+          {/* UXR-04 (F-008/SOP-02): العنوان وحده — لا تمهيد معماري فوقه. */}
+          <h1>تعذر قراءة محافظ النقد</h1>
         </div>
         <p className="micro-field-error" role="alert">
           {message}
@@ -121,7 +121,7 @@ export default function CashTransferEditor() {
     return (
       <section className="micro-page micro-not-found">
         <h1>تحتاج محافظتين للتحويل</h1>
-        <p>أضف مكان كاش آخر أولًا؛ التحويل لا ينشئ كاشًا جديدًا.</p>
+        <p>أضف مكان نقد آخر أولًا؛ التحويل لا ينشئ نقدًا جديدًا.</p>
         <Button
           action="create"
 
@@ -134,17 +134,21 @@ export default function CashTransferEditor() {
   return (
     <section className="micro-page micro-finance-page">
       <button className="micro-back-button" type="button" onClick={() => requestNavigation(returnPath)}>
-        <ArrowRight aria-hidden="true" /> محافظ الكاش
+        <ArrowRight aria-hidden="true" /> محافظ النقد
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">حركة داخلية</span>
-        <h1>حوّل كاشًا بين محافظك</h1>
-        <p>ينقص مصدر التحويل ويزيد وجهته بالمبلغ نفسه. لا يغير الكاش الكلي أو الربح أو المصروف.</p>
+        {/* UXR-04 (F-008/SOP-02 + COPY-29): عنوان واحد والنص المعتمد للتحويل حرفيًا. */}
+        <h1>حوّل نقدًا بين محافظك</h1>
+        <p>
+          ينقل النقد بين المحافظ دون تغيير إجمالي النقد — ينقص مصدر التحويل ويزيد وجهته بالمبلغ نفسه، ولا يغير
+          الربح أو المصروف.
+        </p>
       </div>
       <section className="micro-decision-card">
         <ArrowRightLeft aria-hidden="true" />
         <div>
-          <span>حد الحقيقة</span>
+          {/* UXR-04 (COPY-02): معنى التحويل المباشر بجانب القرار — لا عنوان عام. */}
+          <span>معنى التحويل</span>
           <strong>التحويل ليس دخلاً ولا مصروفًا.</strong>
           <p>سيظهر طرفا الحركة معًا في السجل حتى يمكن التراجع عنهما بأمان.</p>
         </div>
@@ -195,7 +199,7 @@ export default function CashTransferEditor() {
           <textarea
             value={note}
             onChange={event => setNote(event.target.value)}
-            placeholder="مثال: أودعت كاش الدرج في الحساب البنكي"
+            placeholder="مثال: أودعت نقد الدرج في الحساب البنكي"
           />
         </label>
         {message ? (

@@ -78,7 +78,8 @@ export const actionItems: readonly QuickActionItem[] = [
   {
     action: "collection",
     label: "عربون أو تحصيل",
-    description: "ورقة تحصيل: مين عليه إلك وكم قبضت — بالوجهة التي تختارها.",
+    /* UXR-08 (F-007/COPY-07 — تغطية مستهلك نهائي): فصحى مبسطة مهنية بلا عامية مع حفظ اتجاه «لك» بدقة. */
+    description: "ورقة تحصيل: مَن لك عليه وكم قبضت — بالوجهة التي تختارها.",
     icon: HandCoins,
   },
 ];
@@ -311,7 +312,7 @@ export function QuickActionSheet({
                 <strong>
                   {receipt.title} {formatMoneyMinor(receipt.amountMinor)} د.أ
                   {receipt.cashMinor !== null ? (
-                    <> — الكاش المسجل الآن {formatMoneyMinor(receipt.cashMinor)} د.أ</>
+                    <> — النقد المسجل الآن {formatMoneyMinor(receipt.cashMinor)} د.أ</>
                   ) : null}
                   .
                 </strong>

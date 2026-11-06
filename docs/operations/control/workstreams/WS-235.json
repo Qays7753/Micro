@@ -1,7 +1,7 @@
 {
   "id": "WS-235",
   "title": "S10 execution workstream — الأدوات المستقلة ومحفوظات الحاسبة (UNIT-030/031/032 + SH-14)",
-  "status": "REVIEW_REQUIRED",
+  "status": "VERIFIED",
   "items": [
     "DOC-019"
   ],
@@ -33,8 +33,8 @@
   "agent": "ZAI (single implementation writer; five sequential read-only reviewers on the final candidate)",
   "pr": 383,
   "started_at": "2026-10-31",
-  "updated_at": "2026-11-03",
-  "next_action": "S10 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-03؛ Workstream REVIEW_REQUIRED يحرر الملكية للمراحل اللاحقة ولا يعني VERIFIED على main. لا إعادة فتح دون دليل جديد؛ لا merge ولا كتابة على main.",
+  "updated_at": "2026-11-05",
+  "next_action": "Workstream WS-235 مغلق ومتحقق على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا Claim نشطًا لهذه المرحلة.",
   "notes": [
     "أمر التنفيذ الوحيد هو 00-S10-EXECUTION-PROMPT-2026-10-31.md المنشور في b56967d8؛ GitHub هو مصدر الحقيقة التشغيلي.",
     "لا كتابة على main ولا merge ولا rebase ولا force-push ولا حذف فروع ولا فرع/PR ثانٍ؛ PR #383 يبقى Draft.",
@@ -42,13 +42,17 @@
     "ملكية مفردة: S10 يملك SH-14 (cost-estimates + حفظ T01 الاختياري) ويستهلك نواة SH-13/S09 عبر سطحها العام — لا محرك حساب ثانٍ ولا إعادة بناء لملفات S09.",
     "استثناءا الأمن المأذونان سُجلا في 7adfac55 (سجلات محضة) قبل أي كود منتج بأمر القسم ١.",
     "S10-MR-001 (أمر S11 §5 عند b33a8877 — fix first): عولج سباق حتمية مفتاح نية حفظ حساب T01 من جذره عند حد الكتابة (commitCostEstimateCreate بنواة قرار مشتركة على المهايئين — التزام 930560dc بانحدار تزامن دائم؛ التوثيق في 15a-S10-REVIEW-ADDENDUM-2026-10-31.md). الحالة بقيت REVIEW_REQUIRED عمدًا وفق أمر §5.5 — تسجيل إصلاح ملاحظة مراجعة لا قبول؛ السلسلة الكاملة والتحقق البعيد على الشجرة النهائية المجمعة (الإصلاح + S11) عند استقرارها.",
-    "قرار المالك 2026-11-03: قبول S10 على فرع التكامل استنادًا إلى مراجعة Manus السابقة؛ لا إعادة مراجعة. المرشح الكودي c73dacb2bac3aa5b24726f82751f3bf326a91a8d، وإصلاح S10-MR-001 عند 930560dc3a3e127c3aa342783acc73c49d527839 موثق في 15a-S10-REVIEW-ADDENDUM-2026-10-31.md. القبول ليس VERIFIED على main ولا دمجًا."
+    "قرار المالك 2026-11-03: قبول S10 على فرع التكامل استنادًا إلى مراجعة Manus السابقة؛ لا إعادة مراجعة. المرشح الكودي c73dacb2bac3aa5b24726f82751f3bf326a91a8d، وإصلاح S10-MR-001 عند 930560dc3a3e127c3aa342783acc73c49d527839 موثق في 15a-S10-REVIEW-ADDENDUM-2026-10-31.md. القبول ليس VERIFIED على main ولا دمجًا.",
+    "تحديث 2026-11-05: supersedes branch-only next-action; PR #383 merged and main checks passed at 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521."
   ],
   "evidence": [
     "docs/implementation/micro-component-execution/00-S10-EXECUTION-PROMPT-2026-10-31.md",
     "https://github.com/Qays7753/Micro/pull/383",
     "docs/implementation/micro-component-execution/15-S10-RESULT-2026-10-31.md",
-    "docs/implementation/micro-component-execution/15a-S10-REVIEW-ADDENDUM-2026-10-31.md"
+    "docs/implementation/micro-component-execution/15a-S10-REVIEW-ADDENDUM-2026-10-31.md",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "status_history": [
     {
@@ -62,7 +66,15 @@
       "changed_at": "2026-10-31",
       "actor": "zai-s10-execution",
       "reason": "اكتمل عمل S10 المملوك بالكامل على components/integration-20261027 / PR #383 (أمر b56967d8 — القسم ٢): الأدوات الخمس بمحرك التخطيط النقي فوق نواة SH-13 وحفظ T01 الاختياري داخل الحاسبة على 40/32 بلا ترقية، مع تصحيحات المراجعات الخمس من جذورها وإعادة قراءتها، وإعادة إرساء الأسطح الموثقة عند الشجرة النهائية من قياس فعلي، والسلسلة الكاملة pnpm check خروج 0 على شجرة الكود النهائية 3c69c6db (جذري 1001/1001 وتطبيق 3135/3135 وlint 35 بالضبط والميزانية والأسطح PASS)؛ السجل الكامل في 15-S10-RESULT-2026-10-31.md. تحرير الملكية هذا ليس قبولًا — رهن المراجعة المستقلة وقبول المالك."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ Actions وCloudflare Pages نجحا على الرأس نفسه."
     }
   ],
-  "migration_baseline": true
+  "migration_baseline": true,
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

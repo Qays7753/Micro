@@ -153,7 +153,7 @@ export default function RecurringExpenseDetail() {
         رجوع
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">تذكير وفتراته وقراراتها</span>
+        {/* UXR-04 (F-008/SOP-02): عنوان السلسلة وحده — حالتها في سطر المتابعة أدناه. */}
         <h1 dir="auto">{series.title}</h1>
         <p>
           {SERIES_STATUS_LABELS[series.status] ?? series.status}

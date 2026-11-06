@@ -129,7 +129,8 @@ export default function InventoryReversalEditor() {
         <ArrowRight aria-hidden="true" /> المواد والمخزون
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">تراجع محفوظ</span>
+        {/* UXR-08 (F-008/SOP-02 — تغطية مستهلك نهائي): إزالة الترويسة المعمارية
+            المكررة فوق H1 — نفس استبدال W03 في محرر عكس النقد. */}
         <h1>تراجع عن حركة المادة</h1>
         <p>يبقى الأصل ظاهرًا ويضاف أثر مقابل له بدل الحذف أو التعديل الصامت.</p>
       </div>

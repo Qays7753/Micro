@@ -226,7 +226,7 @@ export default function Collect() {
     return (
       <section className="micro-page micro-collect-page">
         <div className="micro-page-heading">
-          <span className="micro-overline">ورقة تحصيل · انسجّل القبض</span>
+          {/* UXR-04 (F-008/SOP-02): عنوان النتيجة وحده — لا تمهيد معماري فوقه. */}
           <h1>قبضت من {state.personName}</h1>
           {/* Z2.5: تكرار هوية المصدر — نوع الذمة والقطعة (قيم من الخدمة نفسها،
               لا نصوص جديدة على السطح) فتبقى الوصلة بين القبض وسببه بعد النجاح. */}
@@ -254,7 +254,7 @@ export default function Collect() {
           <p>
             {outcome.attributedToWalletMinor > 0
               ? `انتقل إلى «${outcome.walletName ?? "المحفظة"}»: ${formatMoneyWithUnit(outcome.attributedToWalletMinor)} — حركة موثقة في دفتر المحفظة.`
-              : "بقي الكاش غير موزع — وزّعه على محفظة عندما تعرف وجهته."}
+              : "بقي النقد غير موزع — وزّعه على محفظة عندما تعرف وجهته."}
           </p>
           {/* (إصلاح تكاملي — مجموعة ٤): فشل نسبة المحفظة بعد تسجيل القبض يظهر سببه
               في النتيجة لا كخطأ يكذب على كتابةٍ تمت — المال بقي غير موزع بلا فقدان. */}
@@ -308,9 +308,11 @@ export default function Collect() {
         <ArrowRight aria-hidden="true" /> رجوع
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">ورقة تحصيل</span>
-        <h1>حصّل من مين عليه إلَي</h1>
-        <p>قبض واحد موثق: الكاش يرتفع والدين ينقص — لا إيراد ولا ربح يُسجّل هنا.</p>
+        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد بلا تمهيد معماري فوقه.
+         * UXR-08 (F-007/COPY-07 — تغطية مستهلك نهائي): فصحى مبسطة مهنية بلا عامية،
+         * واسم المهمة على نمط «تسجيل …» كما في عقد DEEP-FORM. */}
+        <h1>تسجيل تحصيل</h1>
+        <p>قبض واحد موثق: النقد يرتفع والدين ينقص — لا إيراد ولا ربح يُسجّل هنا.</p>
       </div>
       {source ? (
         <section className="micro-decision-card" aria-label="الذمة المختارة">
@@ -335,7 +337,7 @@ export default function Collect() {
       ) : ready && ready.sources.length > 0 ? (
         <section className="micro-form-card" aria-label="اختر ذمة التحصيل">
           <label className="micro-field">
-            <span>مين اللي بتحصّل منه؟</span>
+            <span>ممن التحصيل؟</span>
             <select
               value={selectedId ?? ""}
               onChange={event => {
@@ -404,7 +406,7 @@ export default function Collect() {
           </div>
           <label className="micro-field">
             <span>
-              وجهة الكاش <small>الدرج افتراضيًا حين يوجد — لا اختيار صامت</small>
+              وجهة النقد <small>الدرج افتراضيًا حين يوجد — لا اختيار صامت</small>
             </span>
             <select value={destination} onChange={event => setDestination(event.target.value)}>
               <option value="">غير موزع — يُوزَّع لاحقًا بقرار صريح</option>
@@ -417,7 +419,7 @@ export default function Collect() {
                       ? "حساب بنكي"
                       : wallet.kind === "digital_wallet"
                         ? "محفظة رقمية"
-                        : "مكان كاش"}{" "}
+                        : "مكان نقد"}{" "}
                   — الرصيد {formatMoneyWithUnit(wallet.balanceMinor)})
                   {drawer && wallet.id === drawer.id ? " · الافتراضي" : ""}
                 </option>
@@ -435,12 +437,12 @@ export default function Collect() {
               aria-label="ملاحظة التحصيل"
             />
           </label>
-          {/* معاينة الأثر قبل التأكيد — مادية لأنها تلمس الكاش والدين معًا. */}
+          {/* معاينة الأثر قبل التأكيد — مادية لأنها تلمس النقد والدين معًا. */}
           <section className="micro-decision-card" data-knowledge="known" aria-label="أثر التحصيل">
             <span>الأثر قبل الحفظ</span>
             <dl className="micro-collect-preview">
               <div>
-                <dt>{destination === "" ? "الكاش غير الموزع" : `كاش «${destinationLabel}»`}</dt>
+                <dt>{destination === "" ? "النقد غير الموزع" : `نقد «${destinationLabel}»`}</dt>
                 <dd>
                   <MoneyValue minor={validAmount ? amountMinor : 0} showPlus /> د.أ
                 </dd>

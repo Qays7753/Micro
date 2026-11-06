@@ -431,9 +431,9 @@ describe("FIN-002 — ميزانيات اختيارية على ملخص الفت
     expect(li.textContent).toContain("10.00");
     expect(li.textContent).toContain("30.00");
     /* لا حظر: مدخل تسجيل المصروف خارج القسم حي، ولا إنذار داخل القسم.
-     * UNIT-013 (تنفيذ S15): فعل التسجيل صار زر «تسجيل مصروف» المتقارب
+     * UNIT-013 (تنفيذ S15) + 02-FIN (UXR-03): فعل التسجيل زر «مصروف» المتقارب
      * أعلى الصفحة (يفتح 015 صاحبه) بعد إخراج قائمة الإجراءات المطوية. */
-    expect(screen.getAllByRole("button", { name: /تسجيل مصروف/ }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: /مصروف/ }).length).toBeGreaterThan(0);
     expect(within(section).getByText("أضف ميزانية اختيارية")).toBeTruthy();
     expect(section.querySelector('[role="alert"]')).toBeNull();
     expect(await eventsCount()).toBe(1);

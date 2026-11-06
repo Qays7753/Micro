@@ -1,0 +1,115 @@
+{
+  "id": "DOC-030",
+  "title": "UXR-W02 — الصفحات الرئيسية ومداخل المالية (UXR-03)",
+  "type": "QUALITY",
+  "status": "REVIEW_REQUIRED",
+  "priority": "P1",
+  "stage": "micro-product-remediation-wave-02-20261106",
+  "summary": "تنفيذ UXR-03 وفق بطاقتها: المالية والطلبات والرئيسية بصورتها المختصرة ومداخلها السليمة (FIN/ORD/HOM/FinanceFunctionsBoard وقرار مدخل المصروف) — إصلاح F-002 وF-003 وF-005 وF-009 وF-010 وF-016 على عقود 02/03/04/05/06، بلا تغيير مالي أو schema/export أو هيكلي. تسليم الموجة بمراجعتين قراءة-فوق على candidate واحد ثم قرار المالك.",
+  "classification": "HARDENING",
+  "gate_classification": "NOT_APPLICABLE",
+  "owner": "Micro owner (Qays7753); ZAI sole product-code implementation writer",
+  "owner_decision": "أذن المالك بتاريخ 2026-11-06 ببدء UXR-03 (W02) الآن قبل مراجعة/قبول منفصلَين لـW01، بصفة رسالة تُغلب فقط تعليمات التوقف بعد W01 وشرط تبعية قبول UXR-02؛ ولا تعني قبول أي من الموجتين ولا إذن W03 ولا دمجًا. يستمر العمل على uxr/integration-20261105 وPR #384 Draft وحدهما مع حفظ W01، ولا يُمس إلا بموضع ضيق إن تطلب تصحيحًا مؤكدًا لـW02.",
+  "tests_required": [
+    "A02: كل زر في المالية وفهرسها (كل الوظائف) ثم إلغاء ورجوع وتقدم — مقصد صحيح وسياق وفترة محفوظان بلا خطوة تاريخ زائفة (فحص F-003 الحاسم: الرابط النهائي لكل مدخل، وعدد خطوات الرجوع حتى /finance، وبقاء عقد «رجوع الهاتف يغلق اللوحة فقط»، وبقاء كشف الميزانيات فوق 0 بعد ثانية).",
+    "A04: مصروف مدفوع من الرئيسية (الورقة السريعة القائمة) ومن المالية (مدخل حالة الدفع الموحد)، ثم مصروف مستحق وسداده — نفس مالك العملية، بلا جهة إلزامية، والسداد لا ينشئ مصروفًا ثانيًا، ولا lost state.",
+    "A18: تغيير فترة الرئيسية والمالية ثم فتح الكشف والنقد — الكشف بنفس since/until والنقد للآن؛ لا مساواة المبيعات بالإيراد المعترف به.",
+    "UXR-02/UXR-03 DOM/accessibility/scroll/focus evidence at required phone widths (360/390/430 + إعادة تدفق 320 + تكبير 200% حيث ينطبق) للأسطح المتغيرة، مع أزرار الأسهم/Tab/Mسافة/قارئ الشاشة لمفاتيح العرض المضغوطة.",
+    "Focused tests after each sub-delivery; one complete pnpm check on the final combined W01+W02 tree; exact-final-head Actions/Cloudflare status truthfully reported after push."
+  ],
+  "layers": [
+    "ui",
+    "accessibility",
+    "application",
+    "tests",
+    "documentation",
+    "operations-control"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-product-remediation-20261105/04-WORK-ORDERS-AR.md",
+    "discovered_at_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "evidence": [
+      "docs/implementation/micro-product-remediation-20261105/stages/UXR-03-STAGE-CARD-AR.md",
+      "docs/implementation/micro-product-remediation-20261105/04-WORK-ORDERS-AR.md",
+      "docs/implementation/micro-product-remediation-20261105/06-ACCEPTANCE-AND-EVIDENCE-AR.md",
+      "docs/implementation/micro-product-remediation-20261105/sources/CURRENT-PRODUCT-EXPERIENCE-AUDIT-AR(2).md",
+      "docs/implementation/micro-product-remediation-20261105/sources/PAGE-DECISION-PACK-AR(2).md"
+    ]
+  },
+  "acceptance": [
+    "F-002: مدخل المصروف الموحد يسأل حالة الدفع قبل الحفظ ويوجه لمحرري المدفوع/المستحق القائمين من كل مستهلكيه (الجذر واللوحة) — لا كاتب ثالث ولا تحويل تلقائي لمدفوع ولا lost state.",
+    "F-003: تنقل كل مداخل اللوحة فوق مدخل الحارس بلا back() مؤجل — الرابط النهائي لكل مدخل صحيح، ورجوع واحد يصل /finance، ورجوع الهاتف أثناء الفتح يغلق اللوحة وحدها، وكشف الميزانيات يبقى بعد استقرار المساحة الفرعية.",
+    "F-005/F-010: تركيب FIN بلا overlines ولا «ما نعرفه الآن» ولا 5 ترويسات مطوية دائمة في الجذر — أول مشهد يعرض أفعال التسجيل والنقد المسجل بحالته ونتيجة الفترة بحالتها، وكل معلومة مغادرة تبقى بمدخل واحد، وحالات النقص لا تختفي.",
+    "F-009: مفتاحا العرض (القائمة/التقويم ونطاق العرض) مضغوطان بدور وحالة وتركيز صحيحين — أسهم/Tab/مسافة/قارئ شاشة، والنطاق محفوظ بلا أثر مالي.",
+    "F-016: مدخلا /suppliers المكرران مدمجان بوصف جامع واحد؛ مدخل عدّ الصندوق المنتقل من الجذر موجود؛ لا فقد شراء أو سداد أو مصروف مستحق ولا كاتب ثانٍ.",
+    "HOM/ORD/Schedule: عنوان وجهة واحد لكل صفحة (بلا overline معماري فوق H1)، ونسخ حالة الفراغ/المتابعة وفق قاموس 03 الحرفي، وإعلان «اسأل Micro» بموضع واحد عند الطلب في قائمة «مايكرو».",
+    "لا تغيير مالي/حسابي أو schema/export (يبقى 41/34 و29 زوجًا) ولا رفع سقوف lint/الحزمة ولا هيكلة/نقل ملفات؛ الثيم وADR-009 والتوكنات محفوظة بقرار المالك القائم."
+  ],
+  "areas": [
+    "apps/prototype-web/client/src/pages/Finance.tsx",
+    "apps/prototype-web/client/src/components/finance/FinanceFunctionsBoard.tsx",
+    "apps/prototype-web/client/src/components/finance/FinanceObligationsCard.tsx",
+    "apps/prototype-web/client/src/pages/Orders.tsx",
+    "apps/prototype-web/client/src/pages/Schedule.tsx",
+    "apps/prototype-web/client/src/pages/Home.tsx",
+    "apps/prototype-web/client/src/components/layout/AppHeader.tsx",
+    "apps/prototype-web/client/src/index.css"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/operations/current-state.md",
+    "docs/operations/micro-thinking-charter-v1.md",
+    "docs/implementation/03-pre-build-alignment-v1.md",
+    "docs/implementation/micro-product-remediation-20261105/01-PROGRAM-AND-AUTHORITY-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/02-PAGE-CONTRACTS-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/03-CONTENT-AND-SOP-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/04-WORK-ORDERS-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/05-SOURCE-AND-PAGE-COVERAGE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/06-ACCEPTANCE-AND-EVIDENCE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-03-STAGE-CARD-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-W01-EXECUTION-PROMPT-AR.md",
+    "docs/architecture/ADRs/ADR-009-permanent-dark-mode.md",
+    "apps/prototype-web/client/src/styles/vf-tokens.css"
+  ],
+  "evidence": [
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-W01-EXECUTION-PROMPT-AR.md",
+    "docs/implementation/UXR-W01-RESULT-2026-11-05.md",
+    "https://github.com/Qays7753/Micro/pull/384"
+  ],
+  "dependencies": [
+    "DOC-029"
+  ],
+  "related_items": [
+    "DOC-029"
+  ],
+  "updated_at": "2026-11-06",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-06",
+      "actor": "owner-authorized-manus-coordinator",
+      "reason": "بطاقة UXR-03 هي نطاق W02 الكنوني؛ أنشئ Claim W02 بعد رسالة مالك تأذن بالبدء قبل قبول W01، على الفرع وPR الحاليين فقط."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "رسالة إطلاق W02 وصلت؛ بدأ ZAI تنفيذ UXR-03 على uxr/integration-20261105 وPR #384 Draft فقط، مع حفظ W01 كاملًا."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "اكتمل تنفيذ UXR-03 كاملًا على الفرع وPR الحاليين فقط: 10 التزامات فوق رأس W01، pnpm check كامل أخضر مرة واحدة (جذر 1019/1019 + تطبيق 3368/3368)، وأدلة متصفح حقيقي لشروط F-003 الحاسمة وقياسات F-005/F-009 قبل/بعد بنفس البيانات في تقرير UXR-W02-RESULT-2026-11-06؛ يُسلَّم للمراجعتين القراءة-فوق وقرار المالك — لا قبول ذاتي ولا دمج."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "أمر المالك المتصل 2026-11-06 يفرّغ مطالبة W02 للمراجعة/قرار المالك ويؤجل الفحوص والمراجعات إلى ما بعد W05؛ لا يمنح النقل أي معنى قبول."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "UXR-03 (W02) منفذ ومسلّم بتقرير UXR-W02-RESULT-2026-11-06 ومراجعتَي قراءة-فوق PASS على a315db6a؛ ينتظر قرار المالك. النقل إلى REVIEW_REQUIRED بأمر المالك المتصل 2026-11-06 لا يعني قبولًا؛ الفحص المجموع والمراجعة النهائية بعد W05."
+}

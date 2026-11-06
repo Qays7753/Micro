@@ -2,16 +2,16 @@
   "id": "DOC-020",
   "title": "S11 execution — البيع المباشر والتسجيل السريع والتحصيل منه (UNIT-004/005/026 sale-slice + SH-15)",
   "type": "FEATURE",
-  "status": "IN_REVIEW",
+  "status": "VERIFIED",
   "priority": "P0",
   "stage": "micro-component-execution-s11-20261031",
   "summary": "تنفيذ متصل فوق الفرع/PR نفسيهما وفق أمر تنفيذ S11 المنشور في b33a887725b92dd9c122d3c8d1af775d6aa08475 (بعد إصلاح S10-MR-001 الجذري أولًا في 930560dc بملحقه 15a في 3e3b9597). | بطاقة الفهم: مشكلة المستخدم: صاحب مشروع باع الآن أو سابقًا ويريد تسجيل البيع وما قُبض فعليًا بتاريخه وما بقي حقًا حيًّا، ثم تحصيل المتبقي لاحقًا من مصدر البيع نفسه دون إيراد جديد، وتسجيلًا سريعًا يفوض لأصحاب الأوامر أنفسهم، ومرتجعًا كاملًا وفق PD-02 يلغي الحق ويثبت رد المقبوض دون دفع تلقائي. النطاق: سجل بيع واحد مملوك للمصدر يفرق الإيراد المتفق عن القبض المؤرخ الفعلي عن الحق الحي، وخطوط قبض بهوية وتاريخ ومفتاح داخل أصل البيع (القديم المجمل يبقى مجملًا بلا تواريخ مؤلفة)، والتزام التحصيل عند حد كتابة واحد يفحص النسخة والمتبقي الحيين ويربط مكان النقد بسطر القبض القائم لا بقبض آخر، والتسجيل السريع مسار إلى المالكين أنفسهم (بيع 005/مصروف S06) بلا كاتب ثانٍ، والمرتجع الكامل PD-02 فعل مستقل يصون الأصل والتاريخ. غير الأهداف: لا محول طلب (S12) ولا حق افتتاحي (S14) ولا دفتر قبض عام ولا مرتجع جزئي معقد ولا إعادة تصميم مالية S15 ولا تعديل سياسة مصروف S06 ولا خصم ثانٍ لمادة الفترة ولا إعادة هيكلة بنيوية (بوابة ما بعد المجموعة ٦). الثوابت: القبض ليس ربحًا؛ التحصيل لا يولد إيرادًا؛ التكلفة المجهولة ليست صفرًا؛ المال أعداد صحيحة minor آمنة؛ التواريخ تواريخ أعمال حقيقية بمنطقة عمّان؛ المتبقي مشتق محروس؛ الحق لا يكون سالبًا؛ النية الواحدة لا تكتب مرتين؛ النتيجة المجاهلة تُسترد بالقصد نفسه؛ الحد الذري ينجح كله أو لا يكتب شيئًا. حالات الفشل: تزامن تحصيلين للمتبقي نفسه (واحد ينجح والآخر تعارض بلا حق سالب ولا قبض مزدوج)، إعادة مفتاح نية بحمولة مختلفة (تعارض صادق بلا أثر)، فشل حد التخزين (فشل صادق بلا أثر جزئي)، بيع ملغى/مُرتجع لا يُحصّل، مدخلات غير صالحة (رفض عند حد الخدمة برسالة المجال). معيار القبول: أمثلة الأمر المالية الخمسة من إثبات دائم (15/5/6 ثم 10؛ تزامن محاولتي قبض؛ مرتجع كامل بعد 5/10؛ فصل شهر البيع عن شهر القبض والإجمالي القديم محفوظ؛ مجهول≠صفر وأسماء متشابهة هويات مستقلة ولا فعل اختياري يكتب مالًا ثانيًا) + خريطة قبول ACD/SDF المطلوبة بأمر S11 §7 + تكافؤ المهايئين + دورة النقل + سلسلة pnpm check الكاملة على الشجرة المستقرة + خمس مراجعات قرائية متسلسلة + البوابتان البعيدتان على الرأس النهائي بعينه. حد الاستعادة: رأس سجلات الإصلاح 3e3b9597 (إصلاح S10-MR-001 + ملحقه)؛ التزامات S11 فوقه قابلة للعزل، ورجوع الكود لا يخفض المخطط/التصدير ولا يعيد كتابة تاريخ مسلّم.",
   "finding_classification": "NOT_APPLICABLE",
   "finding_state": "CONFIRMED",
   "classification": "FIX_BEFORE_PILOT",
-  "gate_classification": "DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT",
+  "gate_classification": "MAIN_VERIFIED",
   "owner": "Micro owner (Qays7753)",
-  "owner_decision": "Owner-directed connected execution (00-S11-EXECUTION-PROMPT-2026-10-31.md published at b33a887725b92dd9c122d3c8d1af775d6aa08475, dated 2026-10-31): first resolve the independently confirmed S10 finding S10-MR-001 at its root with a durable concurrent regression (delivered in 930560dc + addendum 15a in 3e3b9597), then proceed directly to S11 (UNIT-004/005/026 sale slice + SH-15) without an intermediate pause or approval. The authorization explicitly does NOT accept S10, S11, S08, or S09, is not permission to merge, and does not permit main writes, rebase, force-push, branch cleanup, or a second branch/PR.\nقرار المالك الشامل للمرحلة S11 بتاريخ 2026-11-04: أكد المالك صراحةً قبول تسليم S11 على فرع التكامل components/integration-20261027، استنادًا إلى التقرير 16-S11-RESULT-2026-10-31.md + 16a/16b addenda والمرشح الكودي 020e1e8b. هذا قبول على فرع التكامل فقط؛ لا يعني VERIFIED على main ولا إذن دمج. ولا ينشئ هذا القيد ادعاءً بمراجعة مستقلة من Manus حيث لا يسجلها التاريخ.",
+  "owner_decision": "Owner-directed connected execution (00-S11-EXECUTION-PROMPT-2026-10-31.md published at b33a887725b92dd9c122d3c8d1af775d6aa08475, dated 2026-10-31): first resolve the independently confirmed S10 finding S10-MR-001 at its root with a durable concurrent regression (delivered in 930560dc + addendum 15a in 3e3b9597), then proceed directly to S11 (UNIT-004/005/026 sale slice + SH-15) without an intermediate pause or approval. The authorization explicitly does NOT accept S10, S11, S08, or S09, is not permission to merge, and does not permit main writes, rebase, force-push, branch cleanup, or a second branch/PR.\nقرار المالك الشامل للمرحلة S11 بتاريخ 2026-11-04: أكد المالك صراحةً قبول تسليم S11 على فرع التكامل components/integration-20261027، استنادًا إلى التقرير 16-S11-RESULT-2026-10-31.md + 16a/16b addenda والمرشح الكودي 020e1e8b. هذا قبول على فرع التكامل فقط؛ لا يعني VERIFIED على main ولا إذن دمج. ولا ينشئ هذا القيد ادعاءً بمراجعة مستقلة من Manus حيث لا يسجلها التاريخ. تحديث 2026-11-05: بعد اعتماد المالك للدمج، PR #383 مدموج والتحقق ناجح على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يعني هذا اجتياز PRE-PILOT أو اختبار جهاز.",
   "tests_required": [
     "Domain tests for dated collection entries and PD-02 full return: entry identity/date/operationKey, collected total and derived status together, outstanding recheck, no second collection after return, refund due equals collected only, original revenue/history preserved, sale month vs collection month separation",
     "Dual-adapter storage commit tests: sale create + initial collection + optional wallet allocation in one boundary; later collection with revision/remaining recheck inside the boundary and allocation referencing the collection entry; full-return commit with no cash movement; same-key retry reuse on both adapters; changed-payload same-key conflict; concurrent collections (two windows) — exactly one succeeds",
@@ -83,7 +83,9 @@
     "apps/prototype-web/client/src/pages/DirectSaleEditor.ui.test.tsx",
     "apps/prototype-web/client/src/application/transfers/transferFamilyValidators.characterization.test.ts",
     "docs/implementation/micro-component-execution/16a-S11-REVIEW-ADDENDUM-2026-11-01.md",
-    "https://github.com/Qays7753/Micro/pull/383"
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "https://dash.cloudflare.com/?to=/663413a9a3389b95eb5d970c6a7ef9d5/pages/view/micro-prototype/fd67fd39-9ac8-4eed-8d2d-864891eea238"
   ],
   "dependencies": [
     "DOC-019"
@@ -92,7 +94,7 @@
     "DOC-019"
   ],
   "migration_baseline": true,
-  "next_action": "S11 مقبولة من المالك على فرع التكامل بتاريخ 2026-11-04؛ لا إعادة فتح دون دليل جديد. لا VERIFIED على main ولا merge؛ قرار الدمج منفصل.",
+  "next_action": "تم التحقق من DOC-020 على main عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521 بعد نجاح Actions وCloudflare؛ لا تغيير في قرار القبول أو أي بوابة خارجية مستقلة.",
   "status_history": [
     {
       "status": "IN_PROGRESS",
@@ -141,7 +143,21 @@
       "changed_at": "2026-11-02",
       "actor": "zai-s13-execution",
       "reason": "أُغلق تصحيح موجدتي أمر 2158b0fc §4 من جذورهما في 2de3e94e: S11-LR-001 صُنفت ALREADY_PROTECTED_AT_DOMAIN_BOUNDARY بإثبات دائم عند حد الكتابة على المهايئين (صفر كتابات عند الرفض) مع بوابة تمهيدية محدودة تمنع استدعاء الخدمة، وS11-LR-002 صُححت هجرة المسودة الفائضة (المساواة فقط تهاجر «كاملًا» والقيمة الخام تُستعاد ظاهرة تمنع الحفظ حتى التصحيح الصريح)، بانحدارات دائمة (نموذج 31 + واجهة 30 + حد 8)؛ الملحق 16b يوثق الدليل — يبقى S11 رهن المراجعة المستقلة وقبول المالك."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "PR #383 دُمج عند 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يُسجل VERIFIED قبل فحص الرأس نفسه."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-main-reconciliation",
+      "reason": "Actions وCloudflare Pages نجحا على main عند merge commit 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521؛ لا يعني ذلك اجتياز PRE-PILOT أو اختبار جهاز."
     }
   ],
-  "updated_at": "2026-11-04"
+  "updated_at": "2026-11-05",
+  "merge_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "verified_on_main_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521"
 }

@@ -1,0 +1,121 @@
+{
+  "id": "DOC-028",
+  "title": "UXR-00 مصالحة تسليم PR #383 ونشر حزمة تحسين المنتج وأمر UXR-01",
+  "type": "GOVERNANCE",
+  "status": "REVIEW_REQUIRED",
+  "priority": "P1",
+  "stage": "uxr-00-documentary-reconciliation-20261105",
+  "summary": "تحديث التوثيق الحي بعد دمج برنامج S01–S18، نشر حزمة MICRO-UXR-20261105 المصالحة على فرع UXR مستقل، وتوحيد ترتيب المراجعة بحيث يكون Manus مراجعًا مستقلًا وقرار المالك هو بوابة الانتقال؛ ChatGPT غير مطلوب لاستمرار البرنامج. لا كود منتج ولا تغيير ثيم أو مال أو هيكل.",
+  "finding_classification": "NOT_APPLICABLE",
+  "finding_state": "NOT_APPLICABLE",
+  "classification": "GOVERNANCE",
+  "gate_classification": "NOT_APPLICABLE",
+  "root_cause": "بعد دمج PR #383 بقيت بعض السجلات الحية تصف main القديم والـPR على أنه Draft، كما احتاجت حزمة UXR إلى توحيد البروتوكول مع انتقال التنسيق والمراجعة إلى Manus، وتصحيح عدّ المسارات وربط رفض التحميل L-01 بمصدر PERF-004، مع حفظ دعم الثيم القائم.",
+  "owner": "Micro owner (Qays7753)",
+  "owner_decision": "بتوجيه المالك بتاريخ 2026-11-05: أنجز UXR-00 التوثيقية وانشر الحزمة وأمر UXR-01 فقط؛ لا كود منتج ولا دمج إلى main. يبقى الثيم دون تغيير، وتُسجل بوابة حسم سلطة مرجع التصميم قبل UXR-02. Manus هو المنسق والمراجع المستقل؛ لا يشترط ChatGPT لاستمرار البرنامج. أي معالجة هيكلية تحتاج قرارًا محددًا من المالك. قرار المالك اللاحق: ابدأ UXR-01 بعد نشر هذا الأمر؛ لا تغيير الثيم، وتسبق UXR-02 بوابة مرجع التصميم، وأي معالجة هيكلية تحتاج قرارًا محددًا. وافق المالك على تصحيح العد: 28 زوجًا موروثًا + الزوج الحالي 41/34 = 29 إجمالًا؛ لا أثر سلوكي مثبت ولا تغيير schema/export. Owner decision 2026-11-05: UXR-00 documentary reconciliation accepted on the integration branch; five-wave grouping approved; W01 (UXR-01 then UXR-02) authorized after launch message. This is not acceptance of W01 code, not VERIFIED on main, and not merge approval.",
+  "tests_required": [
+    "python3 scripts/operations-control/generate_tracker.py",
+    "python3 scripts/operations-control/validate.py",
+    "python3 scripts/operations-control/generate_tracker.py --check",
+    "node scripts/check-doc-index-coverage.mjs",
+    "node scripts/check-current-state-size.mjs",
+    "node scripts/check-agent-document-contract.mjs",
+    "git diff --check",
+    "SHA-256 comparison of the published package against the corrected manifest"
+  ],
+  "layers": [
+    "documentation",
+    "governance",
+    "operations-control"
+  ],
+  "source": {
+    "report": "docs/operations/current-state.md — post-merge truth requiring reconciliation",
+    "discovered_at_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "evidence": [
+      "docs/operations/current-state.md",
+      "docs/operations/current-state-log.md",
+      "docs/architecture/refactoring/s11-structure-scan-20261031/S11-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-10-31.md",
+      "docs/operations/agent-handoff-protocol-v1.md"
+    ]
+  },
+  "acceptance": [
+    "يوثق Control أن PR #383 دُمج بmerge commit 111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521، وأن Actions وCloudflare Pages نجحا على SHA نفسه؛ لا ينسب فحص إلى رأس آخر.",
+    "تنتقل سجلات DOC-010..DOC-027 وWS-226..WS-243 قانونيًا عبر MERGED_UNVERIFIED إلى VERIFIED مع merge_sha وverified_on_main_sha والدليل نفسه، دون تعديل قبول المالك أو مضمون المراحل.",
+    "يُحدّث current-state بالحقائق الحية فقط، ويُلحق current-state-log دون تعديل أي سجل تاريخي سابق.",
+    "تُنشر ملفات ZIP الأصلية الـ25 في docs/implementation/micro-product-remediation-20261105/ مع حفظ بصمة ZIP الأصلية 4ca1688e0e5f1ff9976e2acd3f21d712b6326b3fceb06f2d8d9c1bda31718c7f وتحديث بصمات النسخة المنشورة.",
+    "تُصحح الحزمة بخصوص ترتيب المراجعة، بوابة مرجع الثيم قبل UXR-02، ربط S11 L-01 بـPERF-004، تقسيم تسليمات UXR-04، وحدود القياس البصري/الأداء لكل دفعة، وطريقة عد Route/Redirect/RouteLoadingState.",
+    "يُنشر أمر UXR-01 مستقل يتضمن اختبارات القراءة والتجهيز والرفض وإعادة المحاولة والتخلص من النتائج القديمة، ويبقي إصلاحه موضعيًا بلا structural refactoring.",
+    "لا تعديل على كود المنتج أو الاختبارات أو العقود المالية أو schema/export أو theme behavior أو عمليات/ملفات بنيوية؛ لا حذف فروع أو دمج أو كتابة على main.",
+    "نجاح كل حراس الوثائق وControl، وإنشاء PR Draft واحد على uxr/integration-20261105 عند الرأس النهائي، وتسليم رابط الحزمة والأمر ورسالة إطلاق قصيرة.",
+    "تبقى WS-225/DOC-009 كما هي؛ REVIEW_REQUIRED ليست ضمن ACTIVE_WORK_STATUSES ولا تمنع هذا الـClaim، ولا يُقبل أو ينفذ UNIT-002 ضمن UXR-00."
+  ],
+  "areas": [
+    "docs/implementation/micro-product-remediation-20261105",
+    "docs/implementation/UXR-00-RESULT-2026-11-05.md",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/operations/control/items/DOC-028.json",
+    "docs/operations/control/workstreams/WS-244.json",
+    "docs/operations/control/generated",
+    "docs/00-document-index.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/agent-development-sop-v1.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/operations/current-state.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/architecture/refactoring/s11-structure-scan-20261031/S11-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-10-31.md"
+  ],
+  "evidence": [
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/implementation/03-pre-build-alignment-v1.md",
+    "https://github.com/Qays7753/Micro/pull/383",
+    "https://github.com/Qays7753/Micro/commit/111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+    "https://github.com/Qays7753/Micro/runs/126584635835",
+    "https://github.com/Qays7753/Micro/actions/runs/41790646057/job/126442967452",
+    "docs/implementation/UXR-00-RESULT-2026-11-05.md",
+    "docs/implementation/micro-product-remediation-20261105/00-START-HERE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-01-EXECUTION-PROMPT-AR.md",
+    "https://github.com/Qays7753/Micro/pull/384",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-W01-EXECUTION-PROMPT-AR.md"
+  ],
+  "dependencies": [],
+  "related_items": [
+    "DOC-009",
+    "DOC-027"
+  ],
+  "updated_at": "2026-11-05",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-manus-coordinator",
+      "reason": "فتح UXR-00 على فرع جديد من main الحي بعد التحقق من نظافة النسخة، وعدم وجود PRs مفتوحة، وعدم وجود فرع بعيد بالاسم المقرر؛ لا كود منتج ولا كتابة main."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-05",
+      "actor": "manus-documentation-coordinator",
+      "reason": "بدء مصالحة main/Control ونشر الحزمة وأمر UXR-01 وفق توجيه المالك؛ جميع التغييرات وثائقية وحواجزها قبل push."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-05",
+      "actor": "manus-documentation-coordinator",
+      "reason": "اكتملت مصالحة Control والحزمة وأمر UXR-01 وفحوص الوثائق؛ سُلّمت UXR-00 لمراجعة المالك. لا كود منتج."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-05",
+      "actor": "owner",
+      "reason": "أكد المالك قبول UXR-00 التوثيقية واعتماد تقسيم الموجات وطلب أمر W01؛ لا قبول لأي كود أو VERIFIED/merge."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "لا عمل إضافيًا على UXR-00؛ القبول التوثيقي مسجل والملكية محررة. يبدأ W01 وفق DOC-029/WS-245 وأمر UXR-W01؛ PR #384 يبقى Draft دون merge."
+}

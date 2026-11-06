@@ -44,6 +44,18 @@ export function failure(error: unknown, database?: IDBDatabase): StorageFailure 
       message: "هذه النسخة قديمة. أعد تحميل Micro قبل إدخال بيانات جديدة.",
     };
   }
+  /* UXR-06 (PERF-012): نفاد حصة التخزين رسالة مخصصة صادقة — لا استثناء خام
+   * يُلقى للمستخدم ولا ادعاء خادم ولا مسح تلقائي؛ مسودة الكاتب الذرية
+   * تحفظها حدود الكتابة القائمة فلا يُفقد آخر مدخل ملتزم. */
+  const quotaName = error instanceof Error ? error.name : (error as { name?: string } | null)?.name;
+  if (quotaName === "QuotaExceededError" || quotaName === "QuotaExceeded") {
+    return {
+      ok: false,
+      code: STORAGE_ERROR,
+      message:
+        "مساحة التخزين غير كافية لإتمام العملية. لم يكتمل الحفظ — حرّر مساحة على هذا الجهاز ثم أعد المحاولة؛ لن تُمسّ بياناتك ولا مسوداتك تلقائيًا.",
+    };
+  }
   return {
     ok: false,
     code: typeof indexedDB === "undefined" ? STORAGE_UNAVAILABLE : STORAGE_ERROR,

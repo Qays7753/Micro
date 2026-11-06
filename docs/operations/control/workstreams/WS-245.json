@@ -1,0 +1,79 @@
+{
+  "id": "WS-245",
+  "title": "UXR-W01 — UXR-01 ثم UXR-02 على فرع البرنامج الحالي",
+  "status": "REVIEW_REQUIRED",
+  "items": [
+    "DOC-029"
+  ],
+  "branch": "uxr/integration-20261105",
+  "base_sha": "111cd9dd3ffa8ee78b951fd4394b11b6b3cb0521",
+  "areas": [
+    "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx",
+    "apps/prototype-web/client/src/pages/Home.tsx",
+    "apps/prototype-web/client/src/components/",
+    "apps/prototype-web/client/src/styles/",
+    "apps/prototype-web/client/public/"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/operations/current-state.md",
+    "docs/operations/micro-thinking-charter-v1.md",
+    "docs/implementation/03-pre-build-alignment-v1.md",
+    "docs/implementation/micro-product-remediation-20261105/01-PROGRAM-AND-AUTHORITY-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/02-PAGE-CONTRACTS-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/03-CONTENT-AND-SOP-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/04-WORK-ORDERS-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/05-SOURCE-AND-PAGE-COVERAGE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/06-ACCEPTANCE-AND-EVIDENCE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-01-STAGE-CARD-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-02-STAGE-CARD-AR.md",
+    "docs/architecture/ADRs/ADR-009-permanent-dark-mode.md",
+    "apps/prototype-web/client/src/styles/vf-tokens.css"
+  ],
+  "agent": "ZAI — sole product-code implementation writer; Manus independent lightweight reviewer after final candidate",
+  "pr": 384,
+  "started_at": "2026-11-05",
+  "updated_at": "2026-11-06",
+  "next_action": "اكتمل تنفيذ UXR-01 ثم UXR-02 داخل W01 على الفرع وPR #384 Draft فقط؛ التسليم لمراجعة Manus المستقلة وقرار المالك — لا قبول ذاتي ولا دمج. مطالبة W02 (WS-246/DOC-030) مؤذونة برسالة المالك المؤرخة 2026-11-06 على الفرع والـPR نفسهما مع حفظ W01 كاملًا.",
+  "notes": [
+    "Owner-approved five-wave grouping: W01=UXR-01+02; W02=03; W03=04; W04=05+06; W05=07+08. Only W01 is claimed.",
+    "Use branch uxr/integration-20261105 and Draft PR #384 only; never write main, create another branch/PR, merge, rebase, force-push or discard work.",
+    "Before UXR-02 visual work, record the authority gate and preserve current theme/ADR-009/tokens as decided by owner.",
+    "No financial semantics, security, schema/export change, broad refactor, file moves/splits, or S-1..S-5 execution.",
+    "Stop after W01 for Manus review and owner decision; do not start W02."
+  ],
+  "evidence": [
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-W01-EXECUTION-PROMPT-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/01-PROGRAM-AND-AUTHORITY-AR.md",
+    "docs/implementation/UXR-00-RESULT-2026-11-05.md",
+    "https://github.com/Qays7753/Micro/pull/384"
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-05",
+      "actor": "owner-authorized-manus-coordinator",
+      "reason": "مطالبة W01 أنشئت بعد اعتماد المالك؛ ZAI يبدأ بعد رسالة الإطلاق على الفرع وPR الحاليين فقط."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-05",
+      "actor": "zai-product-code-writer",
+      "reason": "رسالة إطلاق W01 وصلت من المالك؛ بدأ ZAI تنفيذ UXR-01 ثم UXR-02 بلا توقف موافقة وسيط على الفرع وPR الحاليين فقط."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-05",
+      "actor": "zai-product-code-writer",
+      "reason": "اكتملت W01 (UXR-01 ثم UXR-02) على الفرع وPR الحاليين فقط، مع فحص كامل أخضر وأدلة التقرير؛ تُسلَّم لمراجعة Manus المستقلة على الرأس النهائي المعلن ثم قرار المالك — لا قبول ذاتي ولا W02 ولا دمج."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "W01 مكتملة التسليم وتنتظر المراجعة المستقلة وقرار المالك؛ رسالة المالك 2026-11-06 تأذن ببدء W02 على نفس الفرع/PR، فتُفرَّغ مطالبة W01 من العمل التنفيذي (REVIEW_REQUIRED) لصالح مطالبة W02 النشطة — بلا أي معنى قبول."
+    }
+  ],
+  "migration_baseline": false
+}

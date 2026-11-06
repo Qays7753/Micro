@@ -67,6 +67,8 @@ describe("R3/W5 theme behavior: light default, explicit persisted dark", () => {
   it("the settings toggle switches to dark and persists across a full remount", async () => {
     window.history.pushState({}, "", "/settings");
     const first = await mountApp();
+    /* UXR-06 (F-011): فتح مجموعة «الاستخدام والقدرات» قبل مفتاح المظهر. */
+    await userEvent.click(await screen.findByTestId("settings-group-usage"));
     await waitFor(() => expect(screen.getByRole("button", { name: /التبديل إلى الداكن/ })).toBeTruthy());
     await userEvent.click(screen.getByRole("button", { name: /التبديل إلى الداكن/ }));
     await waitFor(() => expect(document.documentElement.classList.contains("dark")).toBe(true));
@@ -87,6 +89,8 @@ describe("R3/W5 theme behavior: light default, explicit persisted dark", () => {
   it("switching back to light is persisted too", async () => {
     window.history.pushState({}, "", "/settings");
     const first = await mountApp();
+    /* UXR-06 (F-011): فتح مجموعة «الاستخدام والقدرات» قبل مفتاح المظهر. */
+    await userEvent.click(await screen.findByTestId("settings-group-usage"));
     await waitFor(() => expect(screen.getByRole("button", { name: /التبديل إلى الفاتح/ })).toBeTruthy());
     await userEvent.click(screen.getByRole("button", { name: /التبديل إلى الفاتح/ }));
     await waitFor(() => expect(document.documentElement.classList.contains("dark")).toBe(false));

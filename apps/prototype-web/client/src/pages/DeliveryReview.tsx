@@ -213,7 +213,7 @@ export default function DeliveryReviewPage() {
         <ArrowRight aria-hidden="true" /> تفاصيل الطلب
       </button>
       <div className="micro-page-heading">
-        <span className="micro-overline">مراجعة قبل الالتزام</span>
+        {/* UXR-04 (F-008/SOP-02): العنوان يحمل المراجعة — لا تمهيد معماري مكرر فوقه. */}
         <h1>مراجعة التسليم</h1>
         {ready ? (
           <p>
@@ -467,11 +467,11 @@ export default function DeliveryReviewPage() {
                   </label>
                   {collectPlanned ? (
                     <label className="micro-field">
-                      <span>وجهة الكاش</span>
+                      <span>وجهة النقد</span>
                       <select
                         value={walletId}
                         onChange={event => setWalletId(event.target.value)}
-                        aria-label="وجهة كاش التسليم"
+                        aria-label="وجهة نقد التسليم"
                       >
                         <option value="">غير موزع — يُوزَّع لاحقًا بقرار صريح</option>
                         {wallets.map(wallet => (
@@ -483,7 +483,7 @@ export default function DeliveryReviewPage() {
                                 ? "حساب بنكي"
                                 : wallet.kind === "digital_wallet"
                                   ? "محفظة رقمية"
-                                  : "مكان كاش"}
+                                  : "مكان نقد"}
                             )
                           </option>
                         ))}
@@ -556,7 +556,7 @@ export default function DeliveryReviewPage() {
               }`}
             </li>
             <li>{`المتبقي بعد التسليم: ${formatMoneyMinor(state.remainingMinor)} د.أ`}</li>
-            <li>{`وجهة الكاش: ${state.cashDestination}`}</li>
+            <li>{`وجهة النقد: ${state.cashDestination}`}</li>
             <li>{`أثر المخزون: ${state.movementsCount} حركة استهلاك · ${state.shortagesCount} سجل نقص`}</li>
             <li>{`الفعل التالي: ${state.nextAction}`}</li>
           </ul>

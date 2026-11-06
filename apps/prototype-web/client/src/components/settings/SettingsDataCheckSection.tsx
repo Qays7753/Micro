@@ -186,6 +186,7 @@ export const SettingsDataCheckSection = forwardRef<HTMLDetailsElement, SettingsD
                     <>
                       <strong
                         data-status={state.report.overall}
+                        role="status"
                       >{`${overall.word} — ${verdictPhrase}`}</strong>
                       <p>
                         {`آخر تشغيل مكتمل: ${formatLocalDateTime(state.report.runAt)} — لفترة هذا الشهر حتى اليوم، وكل تشغيل قراءة جديدة؛ أعد الفحص للتحقق من البيانات الحالية.`}
@@ -226,7 +227,7 @@ export const SettingsDataCheckSection = forwardRef<HTMLDetailsElement, SettingsD
                       few: "فحوص تقرأ",
                       many: "فحصًا يقرأ",
                       other: "فحصًا يقرأ",
-                    })} أرقامك كما هي — النتيجة والكاش والأحداث والأمانات والمخزون والأصول والقروض والعربون.`}
+                    })} أرقامك كما هي — النتيجة والنقد والأحداث والأمانات والمخزون والأصول والقروض والعربون.`}
               </p>
               {service === null && serviceError !== null ? (
                 <p className="micro-field-error" role="alert">
@@ -268,7 +269,7 @@ export const SettingsDataCheckSection = forwardRef<HTMLDetailsElement, SettingsD
 const offenderKindLabel: Record<IntegrityOffenderSummary["kind"], string> = {
   financial_event: "حدث مالي",
   craft_order: "طلب",
-  cash_wallet: "محفظة كاش",
+  cash_wallet: "محفظة نقد",
   supplier_purchase: "شراء مورد",
   asset: "أصل",
   loan: "قرض",

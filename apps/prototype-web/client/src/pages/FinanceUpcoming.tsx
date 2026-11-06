@@ -255,7 +255,7 @@ export default function FinanceUpcoming() {
   return (
     <section className="micro-page">
       <div className="micro-page-heading">
-        <span className="micro-overline">قراءة موحدة · بلا أثر مالي</span>
+        {/* UXR-05 (F-006/F-008): لا لغة معمارية فوق العنوان — القراءة بلا أثر يوثقها المتن. */}
         <h1>المتابعة</h1>
         <p>المواعيد والمبالغ التي تحتاج إجراء — كلٌّ من سجله، والفعل عند صاحبه.</p>
       </div>

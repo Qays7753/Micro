@@ -48,18 +48,18 @@ function describeDeltas(
   const amount = formatMoneyMinor(amountMinor);
   const lines: string[] = [];
   if (type === "operating_expense_payable") {
-    lines.push(`لا يتغير الكاش الآن — يزيد ما عليك ${amount} د.أ للمورد ويُسجل المصروف مستحقًا.`);
+    lines.push(`لا يتغير النقد الآن — يزيد ما عليك ${amount} د.أ للمورد ويُسجل المصروف مستحقًا.`);
   } else if (deltas.cashDeltaMinor !== 0) {
     const direction = deltas.cashDeltaMinor < 0 ? "ينقص" : "يزيد";
-    const source = walletName ? `من «${walletName}»` : "من الكاش غير الموزع";
+    const source = walletName ? `من «${walletName}»` : "من النقد غير الموزع";
     lines.push(
       type === "operating_expense_cash"
-        ? `${direction} الكاش ${amount} د.أ ${source} — مصروف مسجل لا يُعدّ ربحًا ولا يُخصم من دين.`
-        : `${direction} الكاش ${amount} د.أ ${source}.`,
+        ? `${direction} النقد ${amount} د.أ ${source} — مصروف مسجل لا يُعدّ ربحًا ولا يُخصم من دين.`
+        : `${direction} النقد ${amount} د.أ ${source}.`,
     );
   }
   if (type === "payable_settlement_cash")
-    lines.push(`ينقص ما عليك ${amount} د.أ مع الكاش — لا يُسجل المصروف مرة ثانية.`);
+    lines.push(`ينقص ما عليك ${amount} د.أ مع النقد — لا يُسجل المصروف مرة ثانية.`);
   if (type === "loss_non_cash") lines.push(`يخفض ربح الفترة ${amount} د.أ كتكلفة ضائعة — بلا خروج نقدي.`);
   if (deltas.ownerCapitalDeltaMinor > 0)
     lines.push(`يزيد مال المالك في المشروع ${amount} د.أ — ليس إيرادًا.`);
@@ -128,9 +128,9 @@ export function describeEventEffect(
       expenseContext,
     });
     if (intent.type === "operating_expense_cash" && ownerPartMinor > 0 && paidAmountMinor !== null) {
-      const source = walletName ? `من «${walletName}»` : "من الكاش غير الموزع";
+      const source = walletName ? `من «${walletName}»` : "من النقد غير الموزع";
       return [
-        `ينقص الكاش ${formatMoneyMinor(paidAmountMinor)} د.أ ${source} — منها ${formatMoneyMinor(amountMinor)} د.أ حصة المشروع و${formatMoneyMinor(ownerPartMinor)} د.أ دُفعت فوق حصته.`,
+        `ينقص النقد ${formatMoneyMinor(paidAmountMinor)} د.أ ${source} — منها ${formatMoneyMinor(amountMinor)} د.أ حصة المشروع و${formatMoneyMinor(ownerPartMinor)} د.أ دُفعت فوق حصته.`,
         `يُسجَّل مصروف ${formatMoneyMinor(amountMinor)} د.أ مرة واحدة بحصة المشروع — لا يُحمَّل على طلب تلقائيًا.`,
         `يُسجَّل سحب شخصي ${formatMoneyMinor(ownerPartMinor)} د.أ على المالك (تحمّل الباقي) — ليس مصروف تشغيل ولا دينًا على أحد.`,
       ];

@@ -113,7 +113,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
         return;
       }
       if (!saleCustomer.trim()) {
-        setFormError("اكتب اسم الزبون ليتُتبَّع دينه في «لي عند العملاء».");
+        setFormError("اكتب اسم الزبون ليتُتبَّع دينه في «لك عند العملاء».");
         return;
       }
     }
@@ -186,7 +186,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
       detail: saleOnCredit
         ? `دين مسجل على «${saleCustomer.trim()}»: ${formatMoneyMinor(
             saleAmountMinor - saleCollectedMinor,
-          )} د.أ — يظهر في «لي عند العملاء».`
+          )} د.أ — يظهر في «لك عند العملاء».`
         : null,
       attributionNote,
     });
@@ -287,7 +287,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
               onChange={event => setSaleCustomer(event.target.value)}
               placeholder="مثال: خالد"
             />
-            <small>يُتبَّع دينه باسمه هذا في «لي عند العملاء».</small>
+            <small>يُتبَّع دينه باسمه هذا في «لك عند العملاء».</small>
           </label>
           <label className="micro-field">
             <span>المبلغ المحصل الآن (د.أ)</span>
@@ -298,7 +298,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
               onTextValidityChange={setSaleCollectedValid}
               aria-label="المبلغ المحصل الآن"
             />
-            <small>ما لم يُقبض يُسجّل دينًا — لا يدخل الكاش ولا يُعرض ربحًا.</small>
+            <small>ما لم يُقبض يُسجّل دينًا — لا يدخل النقد ولا يُعرض ربحًا.</small>
           </label>
         </>
       ) : null}
@@ -322,7 +322,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
         <p className="micro-local-truth" role="status">
           {saleOnCredit ? (
             <>
-              سيدخل الكاش {formatMoneyMinor(saleCollectedValid ? saleCollectedMinor : 0)} د.أ
+              سيدخل النقد {formatMoneyMinor(saleCollectedValid ? saleCollectedMinor : 0)} د.أ
               {saleWalletId
                 ? ` إلى «${wallets.find(wallet => wallet.id === saleWalletId)?.name ?? ""}»`
                 : " غير موزع"}{" "}
@@ -335,7 +335,7 @@ export const QuickSaleForm = forwardRef<QuickActionFormHandle, QuickSaleFormProp
               سيدخل المبلغ {formatMoneyMinor(saleAmountMinor)} د.أ
               {saleWalletId
                 ? ` إلى «${wallets.find(wallet => wallet.id === saleWalletId)?.name ?? ""}»`
-                : " كاشًا غير موزع"}{" "}
+                : " نقدًا غير موزع"}{" "}
               — إيراد هذا البيع يُعرف بتاريخه لا بتاريخ القبض.
             </>
           )}

@@ -54,7 +54,7 @@ class FailingOverviewStore extends MemoryLocalStore {
       return {
         ok: false as const,
         code: "storage_error" as const,
-        message: "تعذر قراءة محافظ الكاش المحلية.",
+        message: "تعذر قراءة محافظ النقد المحلية.",
       };
     return super.listCashWallets();
   }
@@ -115,7 +115,7 @@ describe("R10-B4/F-020 — CashWallets direct journeys", () => {
     await seedWallet("درج احتياطي", 0, true);
     render(<Harness />);
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "محافظ الكاش" })).toBeTruthy();
+      expect(screen.getByRole("heading", { name: "محافظ النقد" })).toBeTruthy();
     });
     expect(screen.getByText("درج رئيسي")).toBeTruthy();
     expect(screen.getByText("درج احتياطي")).toBeTruthy();
@@ -166,7 +166,7 @@ describe("R10-B4/F-020 — CashWallets direct journeys", () => {
     failStore.failReads = false;
     fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "محافظ الكاش" })).toBeTruthy();
+      expect(screen.getByRole("heading", { name: "محافظ النقد" })).toBeTruthy();
     });
   });
 });
