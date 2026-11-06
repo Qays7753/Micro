@@ -2,7 +2,7 @@
   "id": "DOC-032",
   "title": "UXR-W05 — الأداء المثبت وتعافي المسودات ثم القبول التكاملي والتسليم (UXR-07 ثم UXR-08)",
   "type": "QUALITY",
-  "status": "CLAIMED",
+  "status": "IN_PROGRESS",
   "priority": "P1",
   "stage": "micro-product-remediation-wave-05-20261106",
   "summary": "أمر المرحلة النهائية المؤرخ 2026-11-06 يأذن بتنفيذ W05 بالترتيب: UXR-07 (PERF-005/PERF-007/PERF-013/PERF-014 بالقياس قبل/بعد على نفس الأوامر والأحجام المعلنة — علاج محدود فقط لعنق مثبت؛ لا cache أو schema أو debounce تخميني؛ حتمية وتزامن وجيل وتحديث محفوظة ومعايير A20/A22) ثم UXR-08 (القبول التكاملي: مصفوفة رحلات 06 والبنود والأدلة والحالة وF-013 وPERF-009 وA23) بلا محطة موافقة بينهما. بعد اكتمال تنفيذ W01–W05: خمسة مراجعين مستقلين قراءة-فوق على مرشح واحد، ثم إصلاح العيوب المؤكدة الجذرية وإعادة فحص المراجعين أنفسهم، ثم الفحوص المركزة المطلوبة وفحص المستودع الكامل مرة واحدة على الشجرة المجمعة، والتحقق من Actions وCloudflare على رأس الـPR النهائي بعينه. لا قبول ذاتي ولا دمج وPR #384 يبقى Draft.",
@@ -73,7 +73,17 @@
     "docs/operations/current-state.md",
     "docs/operations/current-state-log.md",
     "docs/00-document-index.md",
-    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md"
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+    "apps/prototype-web/client/src/components/orders/OrderDepositPanels.tsx",
+    "apps/prototype-web/client/src/U11.dom.test.tsx",
+    "apps/prototype-web/client/src/SettingsDataBackupSection.w42.dom.test.tsx",
+    "scripts/file-size-ratchet-reanchors.json",
+    "docs/operations/control/generated/ACTIVE-WORK.md",
+    "docs/operations/control/generated/AGENT-BRIEF.md",
+    "docs/operations/control/generated/MASTER-TRACKER.csv",
+    "docs/operations/control/generated/MASTER-TRACKER.md",
+    "docs/operations/control/generated/NEXT-ACTIONS.md",
+    "docs/operations/control/generated/MASTER-TRACKER.xlsx.meta.json"
   ],
   "contracts": [
     "AGENTS.md",
@@ -116,6 +126,12 @@
       "changed_at": "2026-11-06",
       "actor": "owner-final-stage-order-2026-11-06",
       "reason": "أنشأ المالك مطالبة W05 الواحدة (UXR-07 ثم UXR-08) بأمر المرحلة النهائية المؤرخ 2026-11-06 بعد تحرير مطالبة W03/W04 إلى REVIEW_REQUIRED عبر الانتقال القانوني؛ الإذن يتحكم لتنفيذ هذه المرحلة فقط على شروط القبول السابقة ولا يقبل أي موجة ولا يجيز الدمج."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "بدأ تنفيذ W05 من رأس المطالبة 051c9059 على الفرع وPR #384 نفسيهما: UXR-07 بقياسات قبلية للأنماط الأربعة (PERF-005/006/007/013/014) في مختبرين معلنين (fake-indexeddb في Node + Chromium رأسي 390×844 ar-JO/Amman ببيانات اصطناعية معزولة) وأدلة A20/A22/F-012، ثم UXR-08 بتغطية المستهلكين النهائية (خمس تصحيحات نصية داخل نطاق COPY-01/02 وF-007 على أسطح مملوكة) وتصحيحات تجميعية لاختبارات W04 المؤجلة وإرساء راتشة الحجم لنمو W03/W04 غير المُرسى — كل ذلك قبل المراجعة الخماسية والفحوص المجمعة."
     }
   ],
   "migration_baseline": false

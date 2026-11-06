@@ -308,8 +308,10 @@ export default function Collect() {
         <ArrowRight aria-hidden="true" /> رجوع
       </button>
       <div className="micro-page-heading">
-        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد بلا تمهيد معماري فوقه. */}
-        <h1>حصّل من مين عليه إلَي</h1>
+        {/* UXR-04 (F-008/SOP-02): عنوان مهمة واحد بلا تمهيد معماري فوقه.
+         * UXR-08 (F-007/COPY-07 — تغطية مستهلك نهائي): فصحى مبسطة مهنية بلا عامية،
+         * واسم المهمة على نمط «تسجيل …» كما في عقد DEEP-FORM. */}
+        <h1>تسجيل تحصيل</h1>
         <p>قبض واحد موثق: النقد يرتفع والدين ينقص — لا إيراد ولا ربح يُسجّل هنا.</p>
       </div>
       {source ? (
@@ -335,7 +337,7 @@ export default function Collect() {
       ) : ready && ready.sources.length > 0 ? (
         <section className="micro-form-card" aria-label="اختر ذمة التحصيل">
           <label className="micro-field">
-            <span>مين اللي بتحصّل منه؟</span>
+            <span>ممن التحصيل؟</span>
             <select
               value={selectedId ?? ""}
               onChange={event => {

@@ -118,7 +118,9 @@ export function SaleCollectionReversalSection({
         <div className="micro-decision-card">
           <Undo2 aria-hidden="true" />
           <div>
-            <span>حد الحقيقة</span>
+            {/* UXR-08 (COPY-02/F-006 — تغطية مستهلك نهائي): لا عنوان معماري عام فوق جملة المعنى —
+             * نفس استبدال W03 في لوحة قرار العكس بمعناه المباشر. */}
+            <span>معنى العكس</span>
             <strong>العكس يصحح السجل والتوزيع معًا — ولا يحذف شيئًا.</strong>
             <p>
               التحصيل الأصلي يبقى ظاهرًا في سجل التصحيحات ودفتر المحفظة، والعكس يرتبط به بقيد مرآة. التحصيلات

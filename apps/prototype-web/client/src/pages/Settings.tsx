@@ -66,28 +66,57 @@ import { Button, type FeedbackKind } from "@/components/primitives";
  * تغطي كل إعداد قائم (المشروع/الاستخدام والقدرات/البيانات والنسخ
  * الاحتياطي/فحص البيانات) بلا فئة فارغة. */
 type SettingsGroupKey = "project" | "usage" | "data" | "check";
+/* UXR-08 (تصحيح كثافة داخل الحد المحروس): صياغة حكم فحص السلامة بعد
+ * الاستبدال من prefix الحدث + لواحق الحالات المشتركة — النص المعروض
+ * مطابق حرفيًّا لما كان يُركَّب يدويًّا في ثمانية نصوص كاملة؛ ثلاث لواحق
+ * (ملاحظات/تعذّر/خلل) واحدة للمسارين، ولاحقا «سليم» يختلفان بكلمة
+ * واحدة (المستعادة/المُدخلة) تبقى صريحين. لا تغيير أي معنى أو رسالة. */
+type ReplacementCheckOverall = "PASS" | "WARN" | "UNAVAILABLE" | "FAIL";
+function postReplacementCheckNote(
+  prefix: string,
+  overall: ReplacementCheckOverall,
+  healthyNumbersWord: string,
+): string {
+  switch (overall) {
+    case "PASS":
+      return `${prefix} سليم — الأرقام ${healthyNumbersWord} متسقة مع قواعدها (الاتساق لا الجدوى).`;
+    case "WARN":
+      return `${prefix} توجد ملاحظات للمراجعة — افتح فحص السلامة للتفاصيل.`;
+    case "UNAVAILABLE":
+      return `${prefix} تعذّرت قراءة بعض الفحوص — أعد تشغيل الفحص من أدواته.`;
+    default:
+      return `${prefix} يوجد خلل يحتاج تصحيحًا موثقًا — افتح فحص السلامة للتفاصيل.`;
+  }
+}
+/* UXR-08 (UXR-06 F-011 — تصحيح كثافة داخل الحد المحروس): وصف الصف يبقى فقط
+ * حيث يضيف معلومة لا يقولها العنوان ولا محتوى المجموعة — «فحص البيانات»
+ * يبقى بوصفه لأنه الإفصاح الوحيد في السكون عن «بلا إصلاح تلقائي» (جسم
+ * القسم داخل <details> لا يُعد في السياسة)، بينما أوصاف المجموعات الثلاث
+ * كانت تكرر أسماء صفوفها فحسب (SOP-03: لا شرح مكرر) وحصر الإعدادات فوق
+ * سقفه المحروس 75. لا تغيير أسماء المجموعات التعاقدية ولا أي محتوى داخل
+ * المجموعات ولا أي معنى. */
 const SETTINGS_GROUPS: ReadonlyArray<{
   key: SettingsGroupKey;
   title: string;
-  description: string;
+  description: string | null;
   icon: typeof CircleUserRound;
 }> = [
   {
     key: "project",
     title: "المشروع",
-    description: "اسم المشروع وملف المالك على هذا الجهاز.",
+    description: null,
     icon: CircleUserRound,
   },
   {
     key: "usage",
     title: "الاستخدام والقدرات",
-    description: "ما يقدّمه مشروعك، وطريقة إنجاز عملك، وقدرات الإدخال، والمظهر.",
+    description: null,
     icon: SlidersHorizontal,
   },
   {
     key: "data",
     title: "البيانات والنسخ الاحتياطي",
-    description: "حفظ نسخة واستعادتها والإدخال الافتتاحي والاسترجاع والتصفير.",
+    description: null,
     icon: WalletCards,
   },
   {
@@ -678,14 +707,7 @@ export default function SettingsPage() {
     const check = await runIntegrityCheckAfterReplacement();
     setRestoreCheck({
       overall: check.overall,
-      note:
-        check.overall === "PASS"
-          ? "فحص السلامة بعد الاستعادة: سليم — الأرقام المستعادة متسقة مع قواعدها (الاتساق لا الجدوى)."
-          : check.overall === "WARN"
-            ? "فحص السلامة بعد الاستعادة: توجد ملاحظات للمراجعة — افتح فحص السلامة للتفاصيل."
-            : check.overall === "UNAVAILABLE"
-              ? "فحص السلامة بعد الاستعادة: تعذّرت قراءة بعض الفحوص — أعد تشغيل الفحص من أدواته."
-              : "فحص السلامة بعد الاستعادة: يوجد خلل يحتاج تصحيحًا موثقًا — افتح فحص السلامة للتفاصيل.",
+      note: postReplacementCheckNote("فحص السلامة بعد الاستعادة:", check.overall, "المستعادة"),
     });
     if (!result.value.profile) navigate("/setup");
   }
@@ -796,14 +818,7 @@ export default function SettingsPage() {
     const check = await runIntegrityCheckAfterReplacement();
     setRestoreCheck({
       overall: check.overall,
-      note:
-        check.overall === "PASS"
-          ? "فحص السلامة بعد الاستيراد الافتتاحي: سليم — الأرقام المُدخلة متسقة مع قواعدها (الاتساق لا الجدوى)."
-          : check.overall === "WARN"
-            ? "فحص السلامة بعد الاستيراد الافتتاحي: توجد ملاحظات للمراجعة — افتح فحص السلامة للتفاصيل."
-            : check.overall === "UNAVAILABLE"
-              ? "فحص السلامة بعد الاستيراد الافتتاحي: تعذّرت قراءة بعض الفحوص — أعد تشغيل الفحص من أدواته."
-              : "فحص السلامة بعد الاستيراد الافتتاحي: يوجد خلل يحتاج تصحيحًا موثقًا — افتح فحص السلامة للتفاصيل.",
+      note: postReplacementCheckNote("فحص السلامة بعد الاستيراد الافتتاحي:", check.overall, "المُدخلة"),
     });
   }
 
@@ -842,7 +857,7 @@ export default function SettingsPage() {
               </span>
               <span>
                 <b>{group.title}</b>
-                <small>{group.description}</small>
+                {group.description ? <small>{group.description}</small> : null}
               </span>
               <ChevronLeft aria-hidden="true" />
             </button>

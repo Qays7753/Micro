@@ -1,7 +1,7 @@
 {
   "id": "WS-248",
   "title": "UXR-W05 — أمر المرحلة النهائية (UXR-07 ثم UXR-08: الأداء المثبت وتعافي المسودات ثم القبول التكاملي والتسليم)",
-  "status": "CLAIMED",
+  "status": "IN_PROGRESS",
   "items": [
     "DOC-032"
   ],
@@ -24,7 +24,17 @@
     "docs/operations/current-state.md",
     "docs/operations/current-state-log.md",
     "docs/00-document-index.md",
-    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md"
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md",
+    "apps/prototype-web/client/src/components/orders/OrderDepositPanels.tsx",
+    "apps/prototype-web/client/src/U11.dom.test.tsx",
+    "apps/prototype-web/client/src/SettingsDataBackupSection.w42.dom.test.tsx",
+    "scripts/file-size-ratchet-reanchors.json",
+    "docs/operations/control/generated/ACTIVE-WORK.md",
+    "docs/operations/control/generated/AGENT-BRIEF.md",
+    "docs/operations/control/generated/MASTER-TRACKER.csv",
+    "docs/operations/control/generated/MASTER-TRACKER.md",
+    "docs/operations/control/generated/NEXT-ACTIONS.md",
+    "docs/operations/control/generated/MASTER-TRACKER.xlsx.meta.json"
   ],
   "contracts": [
     "AGENTS.md",
@@ -84,6 +94,12 @@
       "changed_at": "2026-11-06",
       "actor": "owner-final-stage-order-2026-11-06",
       "reason": "أنشأ المالك مطالبة W05 الواحدة قبل أول سطر كود W05 بأمر المرحلة النهائية المؤرخ 2026-11-06، فوق الرأس الحي 30d19974 وبعد تحرير مطالبة W03/W04 (DOC-031/WS-247) من IN_REVIEW إلى REVIEW_REQUIRED عبر الانتقال القانوني وفحص تعارض المعرفات (لا تداخل مع أي مطالبة نشطة بعد التحرير)؛ الإذن يتحكم لتنفيذ هذه المرحلة فقط على شروط القبول السابقة ولا يقبل أي موجة ولا يجيز الدمج."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "بدأ تنفيذ W05 من رأس المطالبة 051c9059 على الفرع وPR #384 نفسيهما: UXR-07 بقياسات قبلية للأنماط الأربعة (PERF-005/006/007/013/014) في مختبرين معلنين (fake-indexeddb في Node + Chromium رأسي 390×844 ar-JO/Amman ببيانات اصطناعية معزولة) وأدلة A20/A22/F-012، ثم UXR-08 بتغطية المستهلكين النهائية (خمس تصحيحات نصية داخل نطاق COPY-01/02 وF-007 على أسطح مملوكة) وتصحيحات تجميعية لاختبارات W04 المؤجلة وإرساء راتشة الحجم لنمو W03/W04 غير المُرسى — كل ذلك قبل المراجعة الخماسية والفحوص المجمعة."
     }
   ],
   "migration_baseline": false

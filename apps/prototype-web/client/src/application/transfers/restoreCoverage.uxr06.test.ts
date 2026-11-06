@@ -83,7 +83,10 @@ describe("UXR-06 — تغطية الاستعادة على ملف معزول وب
 
     const targetService = service(target);
     const before = await target.readSnapshot();
-    const prepared = targetService.prepareImport(JSON.stringify(file.value));
+    /* UXR-08 (تصحيح تجميعي للاختبار المؤجل): المعاينة عبر prepareRestore —
+     * الربط بالمراجعة (الجيل وبصمة الحالة الحية) هو ما يقبله confirmImport
+     * (BoundRestoreIntent) وفق عقد ٠٤٤/S02-A؛ prepareImport وحده لا يصلح مدخلًا للتأكيد. */
+    const prepared = await targetService.prepareRestore(JSON.stringify(file.value));
     expect(prepared.ok).toBe(true);
     if (!prepared.ok) throw new Error(prepared.message);
 
