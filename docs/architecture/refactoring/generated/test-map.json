@@ -1,6 +1,6 @@
 {
   "generator": "scripts/generate-test-map.mjs",
-  "head": "7e59a2097b934419c2f783817eb2add21b7cb81c",
+  "head": "4360a92ca4cc4b259b3c88f047ebd37a0a897f2e",
   "pages": {
     "total": 62,
     "map": {
@@ -176,6 +176,7 @@
       "pages/FinanceActivity.tsx": {
         "kind": "direct",
         "evidence": [
+          "FinanceActivity.paging.uxr05.dom.test.tsx",
           "G5Activity.dom.test.tsx",
           "R2.financeActivityVoid.test.tsx",
           "pages/FinanceActivity.periodKey.test.ts"
@@ -421,6 +422,7 @@
           "LockRetirement.dom.test.tsx",
           "Sdf068.crossStage.dom.test.tsx",
           "Set003SettingsSection.dom.test.tsx",
+          "Settings.index.uxr06.dom.test.tsx",
           "Settings.s03.dom.test.tsx",
           "SettingsDataBackupSection.w42.dom.test.tsx",
           "U11.dom.test.tsx",
@@ -693,6 +695,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.g82.test.ts",
+          "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.sizegate.test.ts",
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.test.ts"
         ]
       },
@@ -743,6 +746,7 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.g82.test.ts",
+          "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.sizegate.test.ts",
           "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.test.ts",
           "apps/prototype-web/client/src/pages/FinancialEventEditor.guided.test.tsx"
         ]
@@ -785,6 +789,8 @@
         "citations": [],
         "curated": [
           "apps/prototype-web/client/src/EventsLayer.familyGuard.dom.test.tsx",
+          "apps/prototype-web/client/src/FinanceActivity.paging.uxr05.dom.test.tsx",
+          "apps/prototype-web/client/src/application/activity/activityService.paging.test.ts",
           "apps/prototype-web/client/src/application/activity/activityService.test.ts",
           "apps/prototype-web/client/src/pages/FinanceActivity.periodKey.test.ts"
         ]

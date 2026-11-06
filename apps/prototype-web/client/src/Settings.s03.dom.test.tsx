@@ -311,8 +311,10 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
         <Settings />
       </ThemeProvider>,
     );
-    /* UXR-06 (F-011): الفهرس أولًا — فتح مجموعة «المشروع» قبل تفاعل القسم. */
-    fireEvent.click(await screen.findByTestId("settings-group-project"));
+    /* تصحيح مؤرخ 2026-11-06 (UXR-W05 — فحص المستودع الكامل): محرر تفضيل
+     * العرض يسكن مجموعة «الاستخدام» (settings-group-usage) لا «المشروع» —
+     * تحديث W04 للفهرس فتح المجموعة الخطأ في هذين الاختبارين المؤجلين. */
+    fireEvent.click(await screen.findByTestId("settings-group-usage"));
     const editor = await screen.findByTestId("offering-editor");
     const radios = Array.from(editor.querySelectorAll("input[type=radio]")) as HTMLInputElement[];
     expect(radios).toHaveLength(4);
@@ -344,8 +346,10 @@ describe("S03 Settings — بيانات المشروع (guarded rename) + ما �
         <Settings />
       </ThemeProvider>,
     );
-    /* UXR-06 (F-011): الفهرس أولًا — فتح مجموعة «المشروع» قبل تفاعل القسم. */
-    fireEvent.click(await screen.findByTestId("settings-group-project"));
+    /* تصحيح مؤرخ 2026-11-06 (UXR-W05 — فحص المستودع الكامل): محرر تفضيل
+     * العرض يسكن مجموعة «الاستخدام» (settings-group-usage) لا «المشروع» —
+     * تحديث W04 للفهرس فتح المجموعة الخطأ في هذين الاختبارين المؤجلين. */
+    fireEvent.click(await screen.findByTestId("settings-group-usage"));
     const editor = await screen.findByTestId("offering-editor");
     fireEvent.click(editor.querySelector('input[type=radio][value="both"]')!);
     fireEvent.click(screen.getByRole("button", { name: "احفظ تفضيل ما يقدّمه مشروعك" }));

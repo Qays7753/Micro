@@ -1,7 +1,7 @@
 {
   "id": "WS-248",
   "title": "UXR-W05 — أمر المرحلة النهائية (UXR-07 ثم UXR-08: الأداء المثبت وتعافي المسودات ثم القبول التكاملي والتسليم)",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "items": [
     "DOC-032"
   ],
@@ -34,7 +34,48 @@
     "docs/operations/control/generated/MASTER-TRACKER.csv",
     "docs/operations/control/generated/MASTER-TRACKER.md",
     "docs/operations/control/generated/NEXT-ACTIONS.md",
-    "docs/operations/control/generated/MASTER-TRACKER.xlsx.meta.json"
+    "docs/operations/control/generated/MASTER-TRACKER.xlsx.meta.json",
+    "apps/prototype-web/client/src/components/layout/QuickActionSheet.tsx",
+    "apps/prototype-web/client/src/components/presentation/DecisionPanel.tsx",
+    "apps/prototype-web/client/src/components/finance/expenseFormModel.ts",
+    "apps/prototype-web/client/src/G3Delivery.dom.test.tsx",
+    "apps/prototype-web/client/src/components/layout/QuickActionSheet.category.test.tsx",
+    "apps/prototype-web/client/src/components/direct-sales/SaleCollectionReversalSection.tsx",
+    "apps/prototype-web/client/src/components/settings/SettingsDataCheckSection.tsx",
+    "apps/prototype-web/client/src/components/settings/SettingsDataProtectionSection.tsx",
+    "apps/prototype-web/client/src/components/settings/SettingsCapabilitiesSection.tsx",
+    "apps/prototype-web/client/src/pages/Assets.tsx",
+    "apps/prototype-web/client/src/pages/InventoryMovementEditor.tsx",
+    "apps/prototype-web/client/src/pages/InventoryReversalEditor.tsx",
+    "apps/prototype-web/client/src/pages/OwnerJourneysExe009.dom.test.tsx",
+    "apps/prototype-web/client/src/storage/local/quotaDiagnostics.uxr06.test.ts",
+    "apps/prototype-web/client/src/OrdJourneys.dom.test.tsx",
+    "apps/prototype-web/client/src/application/activity/activityService.paging.test.ts",
+    "apps/prototype-web/client/src/FinanceActivity.paging.uxr05.dom.test.tsx",
+    "apps/prototype-web/client/src/application/transfers/restoreCoverage.uxr06.test.ts",
+    "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.ts",
+    "apps/prototype-web/client/src/application/transfers/guidedOpeningImportService.sizegate.test.ts",
+    "apps/prototype-web/client/src/Settings.index.uxr06.dom.test.tsx",
+    "apps/prototype-web/client/src/pages/Foundation.tsx",
+    "apps/prototype-web/client/src/pages/Foundation.ui.test.tsx",
+    "apps/prototype-web/client/src/components/finance/QuickSaleForm.tsx",
+    "apps/prototype-web/client/src/pages/DirectSaleEditor.tsx",
+    "apps/prototype-web/client/src/pages/AgreementEditor.tsx",
+    "apps/prototype-web/client/src/pages/Loans.tsx",
+    "apps/prototype-web/client/src/components/loans/RepaymentSheet.tsx",
+    "apps/prototype-web/client/src/components/loans/ReceivedLoanRepaymentSheet.tsx",
+    "apps/prototype-web/client/src/components/owner/OwnerLedgerFormsSection.tsx",
+    "apps/prototype-web/client/src/components/owner/OwnerPolicyFormsSection.tsx",
+    "apps/prototype-web/client/src/components/finance/FinancePeriodResultSection.tsx",
+    "apps/prototype-web/client/src/components/finance/FinanceFunctionsBoard.tsx",
+    "apps/prototype-web/client/src/components/finance/FinancialEventRow.tsx",
+    "apps/prototype-web/client/src/app/resultFeedback.ts",
+    "apps/prototype-web/client/src/presentation/plurals.ts",
+    "apps/prototype-web/client/src/presentation/plurals.test.ts",
+    "apps/prototype-web/client/src/group2InventorySurfaces.test.tsx",
+    "apps/prototype-web/client/src/pages/Collect.tsx",
+    "apps/prototype-web/scripts/bundle-surfaces-baseline.json",
+    "docs/implementation/UXR-W03-RESULT-2026-11-06.md"
   ],
   "contracts": [
     "AGENTS.md",
@@ -68,7 +109,7 @@
   "pr": 384,
   "started_at": "2026-11-06",
   "updated_at": "2026-11-06",
-  "next_action": "مطالبة W05 أنشئت قبل أي تغيير كودي بأمر المرحلة النهائية المؤرخ 2026-11-06 فوق الرأس الحي 30d19974 بعد تحرير DOC-031/WS-247 إلى REVIEW_REQUIRED قانونيًا وفحص تعارض المعرفات؛ يبدأ التنفيذ بUXR-07 (قياسات قبل/بعد لأربعة أنماط PERF بأحجام اصطناعية معلنة + أدلة A20/A22 على مبنى الإنتاج بمتصفح معزول وبيانات اصطناعية) ثم UXR-08 (القبول التكاملي والتسليم) بلا محطة بينهما.",
+  "next_action": "قرار المالك وحده: التحقق المجموع من تسليم W05 (تقرير UXR-W05-RESULT-2026-11-06 النهائي بنتائج المراجعتين والإصلاحات والفحوص) ثم قرار القبول/الدمج أو الرفض؛ لا قبول ذاتي ولا دمج، وPR #384 يبقى Draft.",
   "notes": [
     "Owner final stage order 2026-11-06 authorizes executing W05 before formal acceptance of W01–W04; the authorization overrides their acceptance prerequisites for execution only. It does not accept any wave and does not authorize merging. Do not pause for intermediate approval between UXR-07 and UXR-08.",
     "Do not run product tests or launch review agents until the W05 implementation is complete. After W01–W05 implementation: exactly five independent read-only reviewers (requirements/traceability; UX/accessibility; financial/domain correctness; data integrity/security; runtime/performance/tests/release readiness) on the same candidate SHA with the required repository sources; they must not edit files, commit, or run tests; confirmed findings reported separately from suggestions with severity, requirement/source, exact file and line, root cause, impact, and smallest safe fix; incomplete coverage must be reported explicitly.",
@@ -77,7 +118,8 @@
     "Keep all work on the existing branch and Draft PR #384; never modify main, create another branch or PR, make the PR ready, or merge. Do not weaken guards, limits, or tests; do not change financial/data semantics or schema/export compatibility (41/34 and 29 accepted pairs stay); no broad structural refactoring, file moves, or S-1–S-5 work without a separate owner decision; theme/ADR-009/tokens preserved.",
     "Brief Arabic progress updates at meaningful milestones with approximate percentage for the current UXR stage only; informational, must not pause work. Stop after delivery; do not merge.",
     "No credentials or secrets in files, commits, logs, URLs, or PR comments; synthetic data in isolated browser profiles only; no owner data.",
-    "Update source JSON only (DOC-031/WS-247 release to REVIEW_REQUIRED + this claim DOC-032/WS-248), then run the Control generator and validators; never hand-edit generated views/Excel."
+    "Update source JSON only (DOC-031/WS-247 release to REVIEW_REQUIRED + this claim DOC-032/WS-248), then run the Control generator and validators; never hand-edit generated views/Excel.",
+    "W05 delivered: implementation head efb292b3, confirmed-defect fixes 4360a92c, five-review results in both rounds, focused tests 15 files/79 tests green, one full check on the final tree, surfaces baseline re-anchored at 4360a92c, F-013 evidence re-captured at the final candidate. Verify Actions/Cloudflare on the exact final PR head; stop without merge."
   ],
   "evidence": [
     "docs/implementation/micro-product-remediation-20261105/stages/UXR-07-STAGE-CARD-AR.md",
@@ -100,6 +142,12 @@
       "changed_at": "2026-11-06",
       "actor": "zai-product-code-writer",
       "reason": "بدأ تنفيذ W05 من رأس المطالبة 051c9059 على الفرع وPR #384 نفسيهما: UXR-07 بقياسات قبلية للأنماط الأربعة (PERF-005/006/007/013/014) في مختبرين معلنين (fake-indexeddb في Node + Chromium رأسي 390×844 ar-JO/Amman ببيانات اصطناعية معزولة) وأدلة A20/A22/F-012، ثم UXR-08 بتغطية المستهلكين النهائية (خمس تصحيحات نصية داخل نطاق COPY-01/02 وF-007 على أسطح مملوكة) وتصحيحات تجميعية لاختبارات W04 المؤجلة وإرساء راتشة الحجم لنمو W03/W04 غير المُرسى — كل ذلك قبل المراجعة الخماسية والفحوص المجمعة."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-06",
+      "actor": "zai-product-code-writer",
+      "reason": "تسليم W05 النهائي بأمر المرحلة النهائية: تنفيذ UXR-07 ثم UXR-08 ثم المراجعة الخماسية المستقلة بجولتيها (الجولة الأولى على efb292b3 والجولة الثانية إعادة فحص المناطق الخمس على المرشح النهائي — 15 عيبًا مؤكدًا عولجت كلها جذريًا في 4360a92c وملحق التسليم؛ المال/المجال والبيانات/الأمن صفر عيوب) ثم الفحوص المركزة المؤجلة والمحدثة (15 ملفًا/79 اختبارًا كلها خضراء) وفحص المستودع الكامل مرة واحدة على الشجرة النهائية المجمعة والتحقق من Actions وCloudflare على رأس الـPR النهائي بعينه — لا قبول ذاتي ولا دمج؛ بانتظار التحقق المجموع وقرار المالك."
     }
   ],
   "migration_baseline": false
