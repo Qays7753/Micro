@@ -1,0 +1,122 @@
+{
+  "id": "DOC-032",
+  "title": "UXR-W05 — الأداء المثبت وتعافي المسودات ثم القبول التكاملي والتسليم (UXR-07 ثم UXR-08)",
+  "type": "QUALITY",
+  "status": "CLAIMED",
+  "priority": "P1",
+  "stage": "micro-product-remediation-wave-05-20261106",
+  "summary": "أمر المرحلة النهائية المؤرخ 2026-11-06 يأذن بتنفيذ W05 بالترتيب: UXR-07 (PERF-005/PERF-007/PERF-013/PERF-014 بالقياس قبل/بعد على نفس الأوامر والأحجام المعلنة — علاج محدود فقط لعنق مثبت؛ لا cache أو schema أو debounce تخميني؛ حتمية وتزامن وجيل وتحديث محفوظة ومعايير A20/A22) ثم UXR-08 (القبول التكاملي: مصفوفة رحلات 06 والبنود والأدلة والحالة وF-013 وPERF-009 وA23) بلا محطة موافقة بينهما. بعد اكتمال تنفيذ W01–W05: خمسة مراجعين مستقلين قراءة-فوق على مرشح واحد، ثم إصلاح العيوب المؤكدة الجذرية وإعادة فحص المراجعين أنفسهم، ثم الفحوص المركزة المطلوبة وفحص المستودع الكامل مرة واحدة على الشجرة المجمعة، والتحقق من Actions وCloudflare على رأس الـPR النهائي بعينه. لا قبول ذاتي ولا دمج وPR #384 يبقى Draft.",
+  "classification": "HARDENING",
+  "gate_classification": "NOT_APPLICABLE",
+  "owner": "Micro owner (Qays7753); ZAI sole product-code implementation writer",
+  "owner_decision": "رسالة المالك المؤرخة 2026-11-06 (أمر المرحلة النهائية) تأذن بتنفيذ W05 قبل القبول الرسمي لـW01–W04: الإذن يتغلب لتنفيذ هذه المرحلة فقط على شروط قبول UXR-06 قبل UXR-07 وUXR-07 قبل UXR-08، ولا يقبل أي موجة ولا يجيز الدمج. قبل أي تغيير W05: تحرير مطالبة W03/W04 (DOC-031/WS-247) من IN_REVIEW إلى REVIEW_REQUIRED عبر الانتقال القانوني مع الحفاظ الصريح على انتظار التحقق المجموع وقرار المالك؛ وإنشاء مطالبة W05 واحدة بالمعرفات الصالحة التالية بعد فحص التعارض (DOC-032/WS-248). الخمسة مراجعين قراءة-فوق فقط لا يحررون ولا يلتزمون ولا يشغلون فحوصًا، وZAI تبقى الكاتب الوحيد. لا تُضعف الحراس ولا الحدود ولا الاختبارات ولا يُغير معنى المال/البيانات أو المخطط/التصدير ولا إعادة هيكلة واسعة أو نقل ملفات أو عمل S-1–S-5 بلا قرار مالك منفصل.",
+  "tests_required": [
+    "بعد اكتمال تنفيذ W05 (وليس قبله): تشغيل الفحوص المركزة المطلوبة المؤجلة من W03/W04 (ترقيم صفحات سجل النشاط 19/20/21 و119/120/121، بوابة حجم استيراد البداية أقل/عند/أكثر، تشخيص نفاد الحصة، فهرس الإعدادات ورجوعه ووصلته العميقة، تغطية الاستعادة المعزولة على MemoryLocalStore ببيانات اصطناعية فقط) + الاختبارات المحدثة في W03/W04 (أسطح النقد والجهات والمتكرر والقراءات والإعدادات) + رحلات A03–A21 بحسب انطباق السطح.",
+    "فحص المستودع الكامل مرة واحدة على الشجرة النهائية المجمعة W01+W02+W03+W04+W05 وفق AGENTS.md و06-ACCEPTANCE (pnpm check الكامل)؛ إن أعقب فحصًا إصلاح كود أعيدت الفحوص المتأثرة والبوابة النهائية المطلوبة.",
+    "قياسات UXR-07: قياس قبلي لPERF-005 (التزام saveFinancialEvent/saveDirectSale بمسح idempotency كامل المخزن) وPERF-007 (القراءات الساخنة readPosition/readRecordedPeriodResult/readPage) على أحجام اصطناعية معلنة 100/1k/5k، وPERF-006 (خط النقل read/parse/validate/hash/replace عند 0.1/1/5MB اصطناعية) وPERF-013 (كلفة تصفية الطلبات والتنسيق لكل ضغطة ببروفايل حقيقي) وPERF-014 (كلفة كتابة المسودة عند كل تغيير قبل أي debounce) — قيم خام ووسيط ومدى وبيئة معلنة؛ الإغلاق بلا تعديل مقبول بالدليل إن ثبت غياب عنق معتبر.",
+    "أدلة A20/A22 على المتصفح بمبنى الإنتاج: ملف متجاوز بلا قراءة قبل الرفض، وتحليل فاشل بلا كتابة، وتعارض تحديث بلا كتابة، وضغط حفظ متكرر بأثر واحد، وإغلاق مفاجئ ثم استعادة صريحة للمسودة، وتحديث نسخة مع مسودة وسجل ثم تشغيل بلا شبكة بعد التهيئة — بيانات اصطناعية في ملف تعريف معزول فقط.",
+    "التحقق من GitHub Actions وCloudflare Pages على رأس الـPR النهائي بعينه بعد كل الإصلاحات؛ لا ادعاء جاهزية دمج مع فحص مطلوب فاشل أو معلق.",
+    "قياسات PERF-009 (خط زمني للجاهزية والإدخال والحفظ ببيئة وعينة معلنتين) وأدلة F-013 (قبل/بعد بنفس البيانات والمهام) ضمن القبول التكاملي UXR-08.",
+    "إعادة إنتاج فرضية F-012 (حقل التاريخ RTL/عمّان: إدخال/تعديل/مسح) في بيئة ملائمة قبل أي إصلاح منتقي — إن لم تثبت تسجل مغلقة بالدليل.",
+    "ما لا يمكن اختباره هنا يعلن صراحة: جهاز فعلي وiOS Safari/WebKit ولوحة مفاتيح فيزيائية وشبكة متدهورة وPilot — بوابات PRE-PILOT خارجية تبقى محجوبة."
+  ],
+  "layers": [
+    "ui",
+    "accessibility",
+    "application",
+    "tests",
+    "documentation",
+    "operations-control"
+  ],
+  "source": {
+    "report": "docs/implementation/micro-product-remediation-20261105/04-WORK-ORDERS-AR.md",
+    "discovered_at_sha": "30d199748aa8047c04d38d9fe6da9c1731aba1a1",
+    "evidence": [
+      "docs/implementation/micro-product-remediation-20261105/stages/UXR-07-STAGE-CARD-AR.md",
+      "docs/implementation/micro-product-remediation-20261105/stages/UXR-08-STAGE-CARD-AR.md",
+      "docs/implementation/UXR-W01-RESULT-2026-11-05.md",
+      "docs/implementation/UXR-W02-RESULT-2026-11-06.md",
+      "docs/implementation/UXR-W03-RESULT-2026-11-06.md",
+      "docs/implementation/UXR-W04-RESULT-2026-11-06.md"
+    ]
+  },
+  "acceptance": [
+    "UXR-07: قياس قبل/بعد للأنماط الأربعة (PERF-005/007/013/014) على نفس الأوامر والأحجام والبيئة المعلنة؛ علاج محدود فقط للعنق المثبت ضمن الحدود (لا cache مالي ولا فهرس مخطط ولا debounce قبل القياس؛ أي مخطط/كاش مشتق قرار مالك منفصل)؛ إغلاق بلا تعديل مقبول بالدليل؛ حتمية idempotency وتزامن الكتابة وجيل البيانات وتحديث النوافذ الثانية محفوظة بلا قِدم أرقام ولا ضياع مسودة.",
+    "A20: لا قراءة لملف متجاوز قبل رفضه ولا كتابة جزئية عند أي فشل، وأثر واحد للضغط المتكرر، والمسودة تتعافى وفق عقدها (36) بعد الإغلاق المفاجئ.",
+    "A22: تحديث نسخة مع مسودة وسجل ثم تشغيل دون شبكة بعد التهيئة — عامل الخدمة والترويسات لا يحجبان نسخة قديمة ولا يحذفان البيانات، وحالة التحديث صادقة (عقد 38: النموذج القذر يعلم ولا يدمّر).",
+    "UXR-08: مصفوفة قبول تكاملية صادقة لرحلات 06 (A01–A23) والبنود الـ31 بمالك دفعة واحدة لكل بند؛ F-013 قبل/بعد بنفس البيانات والمهام بلا تعديل snapshots لإخفاء تراجع؛ PERF-009 خط زمني للجاهزية والإدخال والحفظ ببيئة وعينة معلنتين؛ A23 أسطح متقاعدة بلا إحياء صامت؛ لا بنود مبهمة ولا قبول جهاز مختلق.",
+    "المراجعة الخماسية المستقلة: خمسة مراجعين قراءة-فوق فقط (المتطلبات والتتبع؛ تجربة وإتاحة؛ صحة مالية ومجالية؛ سلامة بيانات وأمن؛ تشغيل وأداء واختبارات وجاهزية إصدار) على مرشح SHA واحد بعدد المصادر المطلوبة؛ إصلاح العيوب المؤكدة في النطاق جذريًا؛ لا يطبق اقتراح أسلوبي كعيب؛ المراجعون أنفسهم يعيدون فحص مناطقهم على المرشح النهائي بعد الإصلاحات؛ من لم يكمل نطاقه يعلن ذلك صراحة.",
+    "الفحوص والبوابة: الفحوص المركزة المطلوبة وفحص كامل واحد على الشجرة المجمعة النهائية (لا تكرار بلا فشل أو تغيير مادي)؛ Actions وCloudflare متحققان على رأس الـPR النهائي بعينه؛ تقرير W05 نهائي يذكر التغييرات والالتزامات ونتائج المراجعة الخمسة والإصلاحات والرأس النهائي والفحوص الفعلية ونتائجها وحالة Actions/Cloudflare الفعلية والحدود المتبقية وتقييم الجاهزية المبني على الدليل — ثم التوقف بلا دمج."
+  ],
+  "dependencies": [
+    "DOC-031"
+  ],
+  "related_items": [
+    "DOC-029",
+    "DOC-030",
+    "DOC-031"
+  ],
+  "areas": [
+    "apps/prototype-web/client/src/pages/Orders.tsx",
+    "apps/prototype-web/client/src/application/formatting/formatters.ts",
+    "apps/prototype-web/client/src/components/forms/useFormDraft.ts",
+    "apps/prototype-web/client/src/application/drafts/formDraftService.ts",
+    "apps/prototype-web/client/src/application/finance/projectFinancialReads.ts",
+    "apps/prototype-web/client/src/application/activity/activityService.ts",
+    "apps/prototype-web/client/src/application/home/homeControlCenterService.ts",
+    "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts",
+    "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+    "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+    "apps/prototype-web/client/src/pwa/",
+    "docs/implementation/UXR-W05-RESULT-2026-11-06.md",
+    "docs/implementation/micro-product-remediation-20261105/07-PROGRAM-TRACKER-AR.md",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/00-document-index.md",
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/operations/current-state.md",
+    "docs/operations/micro-thinking-charter-v1.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/implementation/micro-product-remediation-20261105/01-PROGRAM-AND-AUTHORITY-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/02-PAGE-CONTRACTS-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/03-CONTENT-AND-SOP-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/04-WORK-ORDERS-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/05-SOURCE-AND-PAGE-COVERAGE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/06-ACCEPTANCE-AND-EVIDENCE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/07-PROGRAM-TRACKER-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-07-STAGE-CARD-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-08-STAGE-CARD-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-W01-EXECUTION-PROMPT-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-W03-W04-EXECUTION-PROMPT-AR.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/06-financial-event-prototype-contract.md",
+    "docs/contracts/30-unified-activity-reader-contract.md",
+    "docs/contracts/36-form-drafts-local-boundary-contract.md",
+    "docs/contracts/38-pwa-dirty-safe-update-contract.md",
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/architecture/ADRs/ADR-009-permanent-dark-mode.md",
+    "docs/architecture/refactoring/s11-structure-scan-20261031/S11-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-10-31.md",
+    "apps/prototype-web/client/src/styles/vf-tokens.css"
+  ],
+  "evidence": [
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-07-STAGE-CARD-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-08-STAGE-CARD-AR.md",
+    "https://github.com/Qays7753/Micro/pull/384"
+  ],
+  "next_action": "مطالبة W05 أنشئت قبل أي تغيير بأمر المرحلة النهائية المؤرخ 2026-11-06 بعد تحرير DOC-031/WS-247 إلى REVIEW_REQUIRED قانونيًا وفحص تعارض المعرفات (DOC-032/WS-248 التاليان الصالحان بلا تعارض)؛ التنفيذ يبدأ بـUXR-07 (القياسات أولًا) ثم UXR-08 بلا محطة بينهما، والفحوص والمراجعة الخماسية بعد اكتمال تنفيذ W01–W05.",
+  "updated_at": "2026-11-06",
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-06",
+      "actor": "owner-final-stage-order-2026-11-06",
+      "reason": "أنشأ المالك مطالبة W05 الواحدة (UXR-07 ثم UXR-08) بأمر المرحلة النهائية المؤرخ 2026-11-06 بعد تحرير مطالبة W03/W04 إلى REVIEW_REQUIRED عبر الانتقال القانوني؛ الإذن يتحكم لتنفيذ هذه المرحلة فقط على شروط القبول السابقة ولا يقبل أي موجة ولا يجيز الدمج."
+    }
+  ],
+  "migration_baseline": false
+}

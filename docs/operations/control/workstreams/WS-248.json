@@ -1,0 +1,90 @@
+{
+  "id": "WS-248",
+  "title": "UXR-W05 — أمر المرحلة النهائية (UXR-07 ثم UXR-08: الأداء المثبت وتعافي المسودات ثم القبول التكاملي والتسليم)",
+  "status": "CLAIMED",
+  "items": [
+    "DOC-032"
+  ],
+  "branch": "uxr/integration-20261105",
+  "base_sha": "30d199748aa8047c04d38d9fe6da9c1731aba1a1",
+  "areas": [
+    "apps/prototype-web/client/src/pages/Orders.tsx",
+    "apps/prototype-web/client/src/application/formatting/formatters.ts",
+    "apps/prototype-web/client/src/components/forms/useFormDraft.ts",
+    "apps/prototype-web/client/src/application/drafts/formDraftService.ts",
+    "apps/prototype-web/client/src/application/finance/projectFinancialReads.ts",
+    "apps/prototype-web/client/src/application/activity/activityService.ts",
+    "apps/prototype-web/client/src/application/home/homeControlCenterService.ts",
+    "apps/prototype-web/client/src/storage/local/indexedDbPrimitives.ts",
+    "apps/prototype-web/client/src/storage/local/IndexedDbLocalStore.ts",
+    "apps/prototype-web/client/src/application/transfers/localTransferService.ts",
+    "apps/prototype-web/client/src/pwa/",
+    "docs/implementation/UXR-W05-RESULT-2026-11-06.md",
+    "docs/implementation/micro-product-remediation-20261105/07-PROGRAM-TRACKER-AR.md",
+    "docs/operations/current-state.md",
+    "docs/operations/current-state-log.md",
+    "docs/00-document-index.md",
+    "docs/architecture/refactoring/AGENT-SEQUENTIAL-WORKLOG.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/operations/current-state.md",
+    "docs/operations/micro-thinking-charter-v1.md",
+    "docs/operations/agent-development-sop-v1.md",
+    "docs/operations/agent-handoff-protocol-v1.md",
+    "docs/implementation/micro-product-remediation-20261105/01-PROGRAM-AND-AUTHORITY-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/02-PAGE-CONTRACTS-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/03-CONTENT-AND-SOP-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/04-WORK-ORDERS-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/05-SOURCE-AND-PAGE-COVERAGE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/06-ACCEPTANCE-AND-EVIDENCE-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/07-PROGRAM-TRACKER-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-07-STAGE-CARD-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-08-STAGE-CARD-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-W01-EXECUTION-PROMPT-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-W03-W04-EXECUTION-PROMPT-AR.md",
+    "docs/contracts/05-financial-p0-policies.md",
+    "docs/contracts/06-financial-event-prototype-contract.md",
+    "docs/contracts/30-unified-activity-reader-contract.md",
+    "docs/contracts/36-form-drafts-local-boundary-contract.md",
+    "docs/contracts/38-pwa-dirty-safe-update-contract.md",
+    "docs/contracts/39-export-envelope-integrity-contract.md",
+    "docs/architecture/ADRs/ADR-009-permanent-dark-mode.md",
+    "docs/architecture/refactoring/s11-structure-scan-20261031/S11-STRUCTURE-ARCHITECTURE-CODE-ORGANIZATION-SCAN-REPORT-2026-10-31.md",
+    "apps/prototype-web/client/src/styles/vf-tokens.css"
+  ],
+  "agent": "ZAI — sole product-code implementation writer; five independent read-only reviewers after W01–W05 implementation completes, then focused tests and one full repository check on the integrated tree",
+  "pr": 384,
+  "started_at": "2026-11-06",
+  "updated_at": "2026-11-06",
+  "next_action": "مطالبة W05 أنشئت قبل أي تغيير كودي بأمر المرحلة النهائية المؤرخ 2026-11-06 فوق الرأس الحي 30d19974 بعد تحرير DOC-031/WS-247 إلى REVIEW_REQUIRED قانونيًا وفحص تعارض المعرفات؛ يبدأ التنفيذ بUXR-07 (قياسات قبل/بعد لأربعة أنماط PERF بأحجام اصطناعية معلنة + أدلة A20/A22 على مبنى الإنتاج بمتصفح معزول وبيانات اصطناعية) ثم UXR-08 (القبول التكاملي والتسليم) بلا محطة بينهما.",
+  "notes": [
+    "Owner final stage order 2026-11-06 authorizes executing W05 before formal acceptance of W01–W04; the authorization overrides their acceptance prerequisites for execution only. It does not accept any wave and does not authorize merging. Do not pause for intermediate approval between UXR-07 and UXR-08.",
+    "Do not run product tests or launch review agents until the W05 implementation is complete. After W01–W05 implementation: exactly five independent read-only reviewers (requirements/traceability; UX/accessibility; financial/domain correctness; data integrity/security; runtime/performance/tests/release readiness) on the same candidate SHA with the required repository sources; they must not edit files, commit, or run tests; confirmed findings reported separately from suggestions with severity, requirement/source, exact file and line, root cause, impact, and smallest safe fix; incomplete coverage must be reported explicitly.",
+    "After collecting the five reports: fix confirmed in-scope defects at their root; do not implement stylistic suggestions as defects; the same reviewers recheck their assigned areas on the final candidate SHA after fixes.",
+    "Only after all W01–W05 implementation is complete: run the required focused tests and full repository checks once on the integrated work following AGENTS.md and the acceptance document; if a code fix follows testing, rerun affected tests and the required final gate. Verify GitHub Actions and Cloudflare Pages on the exact final PR head; wait for required checks to finish; do not claim merge readiness while any required check is failing or pending.",
+    "Keep all work on the existing branch and Draft PR #384; never modify main, create another branch or PR, make the PR ready, or merge. Do not weaken guards, limits, or tests; do not change financial/data semantics or schema/export compatibility (41/34 and 29 accepted pairs stay); no broad structural refactoring, file moves, or S-1–S-5 work without a separate owner decision; theme/ADR-009/tokens preserved.",
+    "Brief Arabic progress updates at meaningful milestones with approximate percentage for the current UXR stage only; informational, must not pause work. Stop after delivery; do not merge.",
+    "No credentials or secrets in files, commits, logs, URLs, or PR comments; synthetic data in isolated browser profiles only; no owner data.",
+    "Update source JSON only (DOC-031/WS-247 release to REVIEW_REQUIRED + this claim DOC-032/WS-248), then run the Control generator and validators; never hand-edit generated views/Excel."
+  ],
+  "evidence": [
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-07-STAGE-CARD-AR.md",
+    "docs/implementation/micro-product-remediation-20261105/stages/UXR-08-STAGE-CARD-AR.md",
+    "docs/implementation/UXR-W01-RESULT-2026-11-05.md",
+    "docs/implementation/UXR-W02-RESULT-2026-11-06.md",
+    "docs/implementation/UXR-W03-RESULT-2026-11-06.md",
+    "docs/implementation/UXR-W04-RESULT-2026-11-06.md",
+    "https://github.com/Qays7753/Micro/pull/384"
+  ],
+  "status_history": [
+    {
+      "status": "CLAIMED",
+      "changed_at": "2026-11-06",
+      "actor": "owner-final-stage-order-2026-11-06",
+      "reason": "أنشأ المالك مطالبة W05 الواحدة قبل أول سطر كود W05 بأمر المرحلة النهائية المؤرخ 2026-11-06، فوق الرأس الحي 30d19974 وبعد تحرير مطالبة W03/W04 (DOC-031/WS-247) من IN_REVIEW إلى REVIEW_REQUIRED عبر الانتقال القانوني وفحص تعارض المعرفات (لا تداخل مع أي مطالبة نشطة بعد التحرير)؛ الإذن يتحكم لتنفيذ هذه المرحلة فقط على شروط القبول السابقة ولا يقبل أي موجة ولا يجيز الدمج."
+    }
+  ],
+  "migration_baseline": false
+}

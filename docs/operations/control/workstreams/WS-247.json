@@ -1,7 +1,7 @@
 {
   "id": "WS-247",
   "title": "UXR-W03 ثم UXR-W04 — أمر تنفيذ متصل (UXR-04 ثم UXR-05 ثم UXR-06)",
-  "status": "IN_REVIEW",
+  "status": "REVIEW_REQUIRED",
   "items": [
     "DOC-031"
   ],
@@ -148,7 +148,7 @@
   "pr": 384,
   "started_at": "2026-11-06",
   "updated_at": "2026-11-06",
-  "next_action": "W03 (UXR-04 بتسليماته الثلاثة) وW04 (UXR-05 ثم UXR-06) منفذتان ومسلَّمتان على الفرع وPR #384 Draft فقط برأس كود تسليم W04 193bdf3e وتقريرين UXR-W03-RESULT-2026-11-06 وUXR-W04-RESULT-2026-11-06؛ كل الفحوص والاختبارات والمراجعتين المستقلتين مؤجلة بأمر المالك إلى أمر المرحلة النهائية بعد اكتمال W05 — لا قبول ذاتي ولا W05 ولا دمج؛ بانتظار أمر المرحلة النهائية وقرار المالك.",
+  "next_action": "W03 (UXR-04 بتسليماته الثلاثة) وW04 (UXR-05 ثم UXR-06) منفذتان ومسلَّمتان على الفرع وPR #384 Draft فقط برأس كود تسليم W04 193bdf3e وتقريرين UXR-W03-RESULT-2026-11-06 وUXR-W04-RESULT-2026-11-06؛ حرّرت المطالبة من IN_REVIEW إلى REVIEW_REQUIRED قانونيًا بأمر المرحلة النهائية المؤرخ 2026-11-06 — لا يعني النقل أي قبول: تنتظر التحقق المجموع (الفحوص المؤجلة والمراجعة الخماسية المستقلة على المرشح النهائي بعد اكتمال تنفيذ W05) وقرار المالك؛ لا قبول ذاتي ولا دمج.",
   "notes": [
     "Owner connected order 2026-11-06 (UXR-W03-W04-EXECUTION-PROMPT-AR.md) supersedes, for this assignment only, the W02-acceptance prerequisite before W03, the UXR-04-acceptance prerequisite before UXR-05, and the stop-after-each-wave instruction; it accepts neither W01 nor W02 nor W03, does not authorize W05 or merging, and does not change any candidate's non-accepted status.",
     "Tests and reviews are DEFERRED by the owner to the final stage order after W05: no automated or manual product tests, no browser/device test, no pnpm check, no independent reviewers during W03/W04 or at their end; existing tests may be read and regression tests added/updated with their changes but must not be run now and no unexecuted success may be claimed. GitHub Actions may auto-run on push; do not run, wait for, or treat them as acceptance.",
@@ -182,6 +182,12 @@
       "changed_at": "2026-11-06",
       "actor": "zai-product-code-writer",
       "reason": "اكتمل التنفيذ المتصل W03+W04 على الفرع والـPR نفسيهما مع حفظ W01 وW02 كاملين: 10 التزامات فوق رأس المالك c527c563 (مطالبة قانونية قبل الكود ثم 3 تسليمات W03 وتقريرها ثم W04-A وW04-B وتصحيحان شكليان)؛ الفحوص المجمعة والاختبارات المركزة والمراجعتان القراءة-فوق مؤجلة بأمر المالك إلى أمر المرحلة النهائية بعد W05 — لا يعني هذا النقل أي قبول."
+    },
+    {
+      "status": "REVIEW_REQUIRED",
+      "changed_at": "2026-11-06",
+      "actor": "owner-final-stage-order-2026-11-06",
+      "reason": "أمر المرحلة النهائية المؤرخ 2026-11-06 (تنفيذ W05 قبل القبول الرسمي لـW01–W04) يحرر مطالبة W03/W04 من IN_REVIEW إلى REVIEW_REQUIRED عبر الانتقال القانوني قبل أي تغيير W05 — مع الحفاظ الصريح على انتظار التحقق المجموع وقرار المالك؛ لا يعني النقل أي قبول لأي موجة ولا يجيز الدمج."
     }
   ],
   "migration_baseline": false
