@@ -2,7 +2,7 @@
   "id": "DOC-032",
   "title": "UXR-W05 — الأداء المثبت وتعافي المسودات ثم القبول التكاملي والتسليم (UXR-07 ثم UXR-08)",
   "type": "QUALITY",
-  "status": "MERGED_UNVERIFIED",
+  "status": "VERIFIED",
   "priority": "P1",
   "stage": "micro-product-remediation-wave-05-20261106",
   "summary": "أمر المرحلة النهائية المؤرخ 2026-11-06 يأذن بتنفيذ W05 بالترتيب: UXR-07 (PERF-005/PERF-007/PERF-013/PERF-014 بالقياس قبل/بعد على نفس الأوامر والأحجام المعلنة — علاج محدود فقط لعنق مثبت؛ لا cache أو schema أو debounce تخميني؛ حتمية وتزامن وجيل وتحديث محفوظة ومعايير A20/A22) ثم UXR-08 (القبول التكاملي: مصفوفة رحلات 06 والبنود والأدلة والحالة وF-013 وPERF-009 وA23) بلا محطة موافقة بينهما. بعد اكتمال تنفيذ W01–W05: خمسة مراجعين مستقلين قراءة-فوق على مرشح واحد، ثم إصلاح العيوب المؤكدة الجذرية وإعادة فحص المراجعين أنفسهم، ثم الفحوص المركزة المطلوبة وفحص المستودع الكامل مرة واحدة على الشجرة المجمعة، والتحقق من Actions وCloudflare على رأس الـPR النهائي بعينه. لا قبول ذاتي ولا دمج وPR #384 يبقى Draft.",
@@ -157,9 +157,11 @@
   "evidence": [
     "docs/implementation/micro-product-remediation-20261105/stages/UXR-07-STAGE-CARD-AR.md",
     "docs/implementation/micro-product-remediation-20261105/stages/UXR-08-STAGE-CARD-AR.md",
-    "https://github.com/Qays7753/Micro/pull/384"
+    "https://github.com/Qays7753/Micro/pull/384",
+    "docs/implementation/UXR-W05-RESULT-2026-11-06.md",
+    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md"
   ],
-  "next_action": "قرار المالك وحده: التوثيق الخاص بتحقق بند W05 على main الفعلي (16c90e48bdc018939f97f41d05e969c900bc30e0) — إما تشغيل فحوص البند المطلوبة على رأس main وتسجيل أدلتها للانتقال إلى VERIFIED، أو قبول صريح يستند إلى تقرير UXR-W05-RESULT-2026-11-06 وفحصَي رأس الدمج (Cloudflare Pages وchecks ناجحان)، أو إعادة فتح بمبرر؛ لا قبول ذاتي.",
+  "next_action": "لا إجراء إضافي؛ البند مقبول ومغلق VERIFIED بقرار المالك الصريح 2026-11-12 (تقرير UXR-W05-RESULT-2026-11-06 وفحصا رأس الدمج على 16c90e48) دون إعادة تشغيل للمجموعة التاريخية. لا إعادة فتح إلا بقرار مالك موثق.",
   "updated_at": "2026-11-12",
   "status_history": [
     {
@@ -185,8 +187,15 @@
       "changed_at": "2026-11-12",
       "actor": "zai-control-reconciliation-2026-11-12",
       "reason": "مصالحة الحقيقة التشغيلية بعد الدمج: دمج المالك PR #384 في main عند 16c90e48bdc018939f97f41d05e969c900bc30e0 بتاريخ 2026-11-06T12:41:53Z (merged_by=Qays7753)، وفحصا رأس الدمج Cloudflare Pages وchecks ناجحان؛ الانتقال القانوني IN_REVIEW إلى MERGED_UNVERIFIED وفق AGENTS.md §14 ودورة الحالة في docs/operations/control/README.md. لم يستخدم VERIFIED لأن التحقق المجموع الخاص ببند W05 أُنجز على رأس الفرع قبل الدمج، وVERIFIED يتطلب دليلًا خاصًا على main وقرار مالك؛ نجاح فحصَي الدمج العامين وحده لا يثبت قبول البنود التفصيلية."
+    },
+    {
+      "status": "VERIFIED",
+      "changed_at": "2026-11-12",
+      "actor": "owner-acceptance-2026-11-12",
+      "reason": "قبول المالك الصريح المؤرخ 2026-11-12 لمخرج W05 وإغلاق سجلها عبر مسار القبول المسجل في next_action السابق: قبول تقرير النتيجة المودع docs/implementation/UXR-W05-RESULT-2026-11-06.md وفحصَي رأس الدمج الناجحين (Cloudflare Pages وchecks) على SHA الدمج الفعلي 16c90e48bdc018939f97f41d05e969c900bc30e0 في main، دون إعادة تشغيل للمجموعة التاريخية. الإذن موثق في أمر التنفيذ المعدَّل من المالك على فرع التسليم zai/micro-market-delivery-handoff-20261111 (commit ce21b786). الانتقال القانوني MERGED_UNVERIFIED إلى VERIFIED وفق AGENTS.md §14 ودورة الحالة في docs/operations/control/README.md: سُجلا merge_sha وverified_on_main_sha على رأس main الفعلي والأدلة مودعة؛ VERIFIED هنا إثبات قبول موثق وليس اختبارًا أُعيد تشغيله."
     }
   ],
   "migration_baseline": false,
-  "merge_sha": "16c90e48bdc018939f97f41d05e969c900bc30e0"
+  "merge_sha": "16c90e48bdc018939f97f41d05e969c900bc30e0",
+  "verified_on_main_sha": "16c90e48bdc018939f97f41d05e969c900bc30e0"
 }

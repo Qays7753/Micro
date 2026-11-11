@@ -12,7 +12,7 @@ git rev-parse origin/main
 python3 scripts/operations-control/validate.py
 ```
 
-الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · MERGED_UNVERIFIED: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 84 · SUPERSEDED: 1
+الحصيلة: BLOCKED: 3 · IN_PROGRESS: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 85 · SUPERSEDED: 1
 
 السياق الدائم والخطة الكاملة: `docs/operations/control/context.md` و`docs/operations/control/roadmap.md`.
 
@@ -39,4 +39,3 @@ python3 scripts/operations-control/validate.py
 | WS-245 | REVIEW_REQUIRED | `uxr/integration-20261105` | 384 | DOC-029 | اكتمل تنفيذ UXR-01 ثم UXR-02 داخل W01 على الفرع وPR #384 Draft فقط؛ التسليم لمراجعة Manus المستقلة وقرار المالك — لا قبول ذاتي ولا دمج. مطالبة W02 (WS-246/DOC-030) مؤذونة برسالة المالك المؤرخة 2026-11-06 على الفرع والـPR نفسهما مع حفظ W01 كاملًا. |
 | WS-246 | REVIEW_REQUIRED | `uxr/integration-20261105` | 384 | DOC-030 | W02 (UXR-03) مكتملة التسليم عند رأس التسليم a315db6a مع مراجعتَي القراءة-فوق PASS عليه (وثيقتا التقرير UXR-W02-RESULT-2026-11-06)؛ أمر المالك المتصل المؤرخ 2026-11-06 (UXR-W03-W04-EXECUTION-PROMPT) يفرّغ المطالبة من العمل التنفيذي إلى REVIEW_REQUIRED بانتظار قرار المالك — الفحوص والمراجعات المجمعة تُنفذ بعد اكتمال W05 بأمر المرحلة النهائية. لا يعني النقل أي قبول. مطالبة W03+W04 المتصلة هي WS-247/DOC-031 على الفرع والـPR نفسيهما. |
 | WS-247 | REVIEW_REQUIRED | `uxr/integration-20261105` | 384 | DOC-031 | W03 (UXR-04 بتسليماته الثلاثة) وW04 (UXR-05 ثم UXR-06) منفذتان ومسلَّمتان على الفرع وPR #384 Draft فقط برأس كود تسليم W04 193bdf3e وتقريرين UXR-W03-RESULT-2026-11-06 وUXR-W04-RESULT-2026-11-06؛ حرّرت المطالبة من IN_REVIEW إلى REVIEW_REQUIRED قانونيًا بأمر المرحلة النهائية المؤرخ 2026-11-06 — لا يعني النقل أي قبول: تنتظر التحقق المجموع (الفحوص المؤجلة والمراجعة الخماسية المستقلة على المرشح النهائي بعد اكتمال تنفيذ W05) وقرار المالك؛ لا قبول ذاتي ولا دمج. |
-| WS-248 | MERGED_UNVERIFIED | `uxr/integration-20261105` | 384 | DOC-032 | قرار المالك وحده للتحقق المجموع من تسليم W05 على main الفعلي (16c90e48bdc018939f97f41d05e969c900bc30e0): إما توثيق تحقق خاص بالبند على رأس main (تشغيل فحوص البند المطلوبة وتسجيل أدلتها) للانتقال إلى VERIFIED، أو قرار قبول صريح يستند إلى تقرير UXR-W05-RESULT-2026-11-06 ونتائج فحصَي رأس الدمج، أو إعادة فتح بمبرر موثق؛ لا قبول ذاتي. |
