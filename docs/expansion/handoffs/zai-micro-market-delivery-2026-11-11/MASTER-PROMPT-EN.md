@@ -1,228 +1,238 @@
-# Z AI 5.3 — Micro Market + Micro Delivery Control Reconciliation and Decision Sync
+# Z AI 5.3 — Owner-Authorized Micro Market + Delivery Implementation
 
-**Status:** Controlling execution prompt for the handoff branch named below.  
-**Owner authorization:** The current invocation authorizes an independent read-only A-to-Z analysis of the actual Micro system, followed by Control reconciliation, synchronization of the approved Market/Delivery decisions into canonical GitHub docs, and an evidence-based integration/implementation report. It does not authorize feature-code implementation, structural refactoring, provider-account changes, deployment, merge, or work on `main`; stop for owner review before feature-code execution.  
-**Repository:** `https://github.com/Qays7753/Micro`  
-**Documentation repository:** same repository: `https://github.com/Qays7753/Micro`  
-**Branch:** `zai/micro-market-delivery-handoff-20261111`  
-**Expected base SHA (verify live; this is not authority if state has changed):** `16c90e48bdc018939f97f41d05e969c900bc30e0`  
-**GitHub credential:** `<RESTRICTED_GITHUB_TOKEN — supply only through Z AI's secure credential field; never paste it into this file, chat, logs, or reports>`
+**Status:** The sole controlling execution prompt for the existing handoff branch. It supersedes the earlier analysis-only prompt.<br>
+**Repository:** `Qays7753/Micro`<br>
+**Branch:** `zai/micro-market-delivery-handoff-20261111` — verify the live branch before acting.<br>
+**Reference branch SHA when this prompt was prepared:** `ca5f5bf84adcd4fcc00f34fed2f710f1e5a81f9b` (reference only; verify live).<br>
+**Working rule:** GitHub in this repository is the only source of truth for this task. Use no external file service and no external-file-service link or identifier.
 
-## 1. Mission
+## 0. Owner authorization and outcome
 
-You are the sole accountable repository executor for this handoff. Work only on the existing handoff branch and preserve its handoff commit. First perform the independent read-only system analysis required in Phase 0. Then complete the Control reconciliation and Market/Delivery documentation synchronization in separate commits. Finish with the full evidence-based report and stop before feature-code work.
+The owner authorizes you to finish the remaining GitHub work for Micro Market and Micro Delivery on the existing branch, including the documentation/Control updates below, additive application code, tests, and a final evidence report. Work through the phases in order without pausing for approval between ordinary implementation waves. Stop only for a material unresolved owner decision, a failed mandatory gate, a structural-change gate, a cost/provider action, state drift that cannot safely be reconciled on this branch, or a security/privacy/financial ambiguity that cannot be safely contained.
 
-1. Reconcile the stale Operations Control/current-state records caused by PR #384 being merged into `main` while `WS-248` still says `IN_REVIEW`.
-2. Synchronize every owner-approved Market decision `OD-01` through `OD-21` and Delivery decision `OD01` through `OD31` from the six approved specifications committed under `docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/inputs/approved-feature-specs/` into the existing canonical E-00 documentation in this repository.
-3. Run the repository-required and change-relevant checks, record exact evidence, and deliver one unified execution report on the same branch.
-4. Give a professional, evidence-based implementation and integration recommendation for the later code phase, including exact action items for the owner and Manus. Do not perform that later code or infrastructure work now.
+The owner has explicitly accepted the completed W05 outcome and authorizes closing its Operations Control records using the already committed W05 result report and the successful checks on the exact merge SHA. Do not make the owner repeat this decision and do not rerun W05's historical test suite merely to duplicate existing evidence. Apply only a legal Control transition and record the owner's acceptance with the supporting evidence. Never claim a test was run on `main` if it was not.
 
-Micro is **one application and one product**. Market and Delivery are features within Micro, not separate applications or repositories. The vendor workspace belongs in Market. The driver experience is separately gated and contextually distinct, while using the Micro identity with explicit role/membership/authorization boundaries. Treat these as context; verify exact OD language in the committed specifications before changing canonical documents.
+The owner has approved **Cloudflare as the platform direction** for the connected Market/Delivery prototype, with a **free-tier-first / no-paid-upgrade** constraint. Implement Cloudflare-compatible code and configuration in the repository; do not create or change provider resources. The owner and Manus will handle Cloudflare and Google provider accounts after your code handoff.
 
-## 2. Authority, inputs, and source-of-truth rules
+The required final outcome is **code and documentation ready for owner/Manus Cloudflare setup and connected acceptance**, not a claim that a live Cloudflare environment, OAuth tenant, real-user pilot, or production release exists. State this distinction prominently.
 
-Read this file and `README-AR.md` first. Then read repository `AGENTS.md`, the live Git state, current-state/Operations Control sources, `docs/00-document-index.md` (especially its distinction among similarly numbered contracts), `docs/expansion/README.md`, and the exact E-00 sources listed in Section 7.
+## 1. Decisions that are binding for this task
 
-For this task, the six files under `inputs/approved-feature-specs/` are the owner's approved product-decision inputs and are available in GitHub. Use only these committed copies and repository files. **Do not access, connect to, search, link to, or request credentials for any external file service.** Do not include any external file-service URL, document ID, or access instruction in changed files or reports. The repository is the only source of truth for this execution.
+1. **One product and one repository:** Micro remains one application. Market and Delivery are features within Micro, not separate products, repositories, or independently branded apps.
+2. **Owner's Cloudflare direction:** use the existing Cloudflare Pages host for the Micro UI and, if compatible with the repository's actual deployment root, a same-product Pages Functions / Workers-compatible API (BFF); use Cloudflare D1 for Market/Delivery network data and Cloudflare R2 for images and private evidence files. Keep the backend a modular monolith. Do not introduce Supabase, Firebase, another database vendor, or microservices. If repository evidence proves this topology impossible without a separate paid service or unapproved structural change, stop and provide the smallest options and cost/impact instead of silently substituting.
+3. **No paid commitment:** target Cloudflare free services and local emulation. Do not enable, purchase, or recommend an automatic paid upgrade. If a required behavior cannot safely operate within the free-tier-first constraint, document the exact quota/feature and stop for owner choice before spending.
+4. **Identity:** use the already approved Micro identity flow: continue with Google, then Micro applies its own server-side membership and role authorization. Google identity is not itself authorization. Cloudflare Access is not a substitute for customer/vendor/driver roles. The owner/Manus will later configure Google OAuth credentials and Cloudflare secrets. Never create, request, commit, or expose real credentials.
+5. **Roles and portals:** supplier workspace is inside Market and uses the same Micro account. Any registered Micro user may prepare a supplier/listing submission, but submission is not public approval. The driver has a distinctly gated experience and navigation that does not expose Manage, Market, or owner/vendor screens; it uses the same Micro identity, not a second account or app. Do not invent a separate domain/host for the driver. A distinct route/shell in the same Micro app is the default; explain any required deviation.
+6. **Product decisions:** `docs/expansion/DECISIONS.md` and the canonical E-00 contracts now contain the 52 approved product decisions (Market OD-01…OD-21; Delivery OD01…OD31). Treat those canonical GitHub documents as operative. The frozen snapshots under this handoff's `inputs/approved-feature-specs/` are provenance, must remain byte-for-byte unchanged, and must not be treated as a competing live source. Do not ask the owner to repeat a decision recorded there.
+7. **Future Manage is not in this task:** never migrate Manage financial or inventory data to D1/R2, connect a network event to a financial event, or modify existing financial meaning, local storage, export/restore, snapshots, or reconciliation. D1 is approved here for Market/Delivery only. Any future cloud Manage decision remains a separate owner gate.
+8. **Deferred scope stays deferred:** no My Ask Micro, first-run module selection, employees, fees/commissions, payment processing, public ratings/reviews beyond the approved Delivery task-rating rule, broadcast/random driver assignment, live GPS, chat, WhatsApp/SMS, maps, push provider, external AI, or automated Manage updates.
 
-Authority order for this task:
+## 2. Authority and mandatory gates
 
-1. Current GitHub `main`, PRs, checks, and actual source files establish live repository state.
-2. `AGENTS.md`, the applicable E-00 contracts, and canonical Expansion documents govern repository process and existing behavior.
-3. The six committed, owner-approved feature specifications govern the latest Market/Delivery product decisions. If an older E-00 statement conflicts with a clear decision in these files, update the repository's canonical E-00 documentation to match the approved input; do not ask the owner to repeat a decision already stated there. After the complete sync, the canonical documents selected by `docs/00-document-index.md` become the operative source of truth; the frozen inputs remain read-only provenance and must not become a competing live decision source.
-4. Technical recommendations, proposed provider choices, or unresolved statements in the input files are not automatically owner-approved architecture or permission to configure a provider.
-5. The structural scan report in `inputs/owner-background/` is read-only evidence. No structural finding or remediation wave is authorized by this task. The `Micro_Other_Issues_Tracker_AR.md` is a reminder list only; do not execute its unrelated items.
-6. The prior A-to-Z plan and prior prompt in `inputs/owner-background/` are historical context only. They are superseded wherever they conflict with this prompt or the six approved specifications. Do not execute the historical prompt and do not treat its older D01-D19 questions as open if the committed specifications resolve them.
-7. The supplementary UX file is context only. Current repository UX/architecture authority and the approved feature UX specifications remain controlling.
+Read `AGENTS.md`, `docs/operations/current-state.md`, the relevant Micro architecture/security/UX contracts, `docs/00-document-index.md`, `docs/expansion/README.md`, `DECISIONS.md`, `TRACKER.md`, `E00-TECHNICAL-ARCHITECTURE-DECISION.md`, scenarios/traceability, role/access matrix, network contracts 18–25, the current `EXECUTION-REPORT.md`, the included 2026-11-11 structure scan, and the exact approved feature specifications before coding. Keep the read scoped to these sources and the implementation paths/tests you actually touch.
 
-Do not treat a document as proof that a capability is implemented. The current task is documentation and Operations Control only.
+The owner's current Cloudflare and code authorization supersedes the prior pre-gate ban on adding Auth/Cloud/network capabilities **only for Market/Delivery**. It does not waive the structural gate, financial invariants, required Control claim, security/privacy constraints, or the ban on provider-account operations.
 
-## 3. Authorized write boundary
+### Post-Group-6 structure gate
 
-### Allowed on the handoff branch
+The 2026-11-11 comprehensive read-only Structure/Architecture/Code Organization Scan is present under `inputs/owner-background/`. The owner has not yet approved its individual remediation findings/waves for execution in this task. Therefore:
 
-- The minimum necessary source records for the PR #384 Control reconciliation, including the relevant Operations Control JSON source(s), `docs/operations/current-state.md`, and its append-only history if required by repository protocol.
-- Regenerated views only through the repository's documented generator. Never hand-edit anything under `docs/operations/control/generated/` or generated spreadsheets.
-- Existing canonical Expansion decisions, tracker, contracts, role/access matrix, scenarios, traceability, owner IA, and execution-gate documents only where the OD crosswalk demonstrates an update is needed.
-- A single unified `EXECUTION-REPORT.md` at this handoff directory, plus minimal navigation/index changes only if existing repository conventions require them.
-- Separate commits for distinct accomplishments/phases on this same branch, with meaningful commit messages. Push each completed commit to this same branch. Never rewrite or force-push history.
+- Do not refactor existing modules, move/rename files, split oversized legacy files, create a new root application/package, create a generic `features/` layer, weaken a boundary guard, or implement any scan remediation wave.
+- Additive feature files and a narrowly scoped Pages Function entry point may be created only where existing repository/deployment conventions support them and no existing file organization is changed.
+- Before any proposed new code boundary, map it to the actual existing code and the scan's target module map. If the change would count as code-organization remediation or requires a new repository/package boundary, stop before that change and report the precise finding, smallest proposed delta, dependencies, risks, acceptance criteria, and rollback boundary for owner review.
+- Do not conceal a refactor inside a feature commit. Keep each product change additive and separately reviewable.
 
-### Forbidden
+### Data and privacy gate
 
-- Any change to `main`; merge; branch deletion; force-push; unrelated cleanup; or work on another branch/PR.
-- Any application source-code, test-code, migration, runtime configuration, database, schema, local storage, or UI implementation changes.
-- Structural refactoring, module/file moves, `features/` creation, code-organization work, or implementation of any finding in the scan report.
-- Any access to a Cloudflare, identity, database, storage, notification, hosting, DNS, or other provider account/API; no resource creation or modification, deployments, DNS/TLS, secrets, or live OAuth configuration.
-- Any external file-service access. No links to such services in the branch.
-- Any claim that Market/Delivery, authentication, access control, private file storage, Cloudflare resources, a connected environment, or Pilot is implemented/verified merely because documentation describes it.
-- Any hidden change to financial or product semantics beyond the approved OD decisions. Do not connect a network event to Manage money, inventory, or order fulfillment unless the approved specifications expressly authorize that behavior.
+Use synthetic accounts, listings, images, vehicle data, and driver-evidence files only. Never use the owner's or a real driver's personal documents/data. Keep driver identity/license/vehicle evidence private by default and visible only to the subject and explicitly authorized reviewers. Never place documents in a public bucket, public URL, logs, test artifacts, or Git history. Enforce authorization server-side for every API, query, search, export, and file path; hiding UI is not authorization.
 
-If a source or feature gap requires code or a provider decision, record it as a blocker/recommendation for a later authorized phase; do not solve it now.
+The current owner decisions do not constitute legal approval of retention, deletion, restoration, or disclosure of real customer/driver personal data. Implement safe code paths and the exact approved product behaviors, but keep real-person data and pilot activation blocked until the owner/Manus completes the required policy/legal/provider steps. Do not invent legal rules, consent wording, retention duration, or a new numeric policy. If the unresolved customer disclosure/consent question affects a real-data path, do not release that path; identify the owner action in the report.
 
-## 4. Execution model and specialists
+## 3. Branch, Control, and change discipline
 
-Z AI is the sole accountable analyst and writer. For the comprehensive read-only assessment, if internal subagents are available and the incremental token cost is reasonable, use five non-overlapping read-only scopes on the same verified base SHA: (1) current app architecture, stack, persistence, and data flows; (2) Market decisions and fit to current code; (3) Delivery, driver roles, evidence privacy, and fit to current code; (4) identity, authorization, security, privacy, and cross-cutting UX; (5) Cloudflare/other integration evidence, tests/CI, and release operations. Do not have subagents write or repeat whole documents. Each returns concise paths/symbols, findings, gaps, and risks; the parent independently reconciles evidence and is the only writer. If subagents are unavailable or wasteful, perform the same scopes sequentially without blocking.
+- Work only on the existing handoff branch. Never modify `main`, create another branch, open a PR, mark a PR ready, merge, delete a branch, reset, rebase, cherry-pick, force-push, or rewrite history.
+- Check the live remote branch, `main`, worktree, open PRs, CI/deployment triggers, and active Operations Control claims first. Preserve any unexpected work. Do not overwrite a newer remote commit. If state has moved, fast-forward only when the worktree is clean and there is no history rewrite; otherwise stop and report the exact SHAs.
+- Before code, create/update the appropriate source JSON Workstream/Items using the next unused IDs, exact branch/base SHA, actual areas/contracts, and dependencies. Check for area/contract overlap first. Use the valid state transitions in `docs/operations/control/README.md` and `AGENTS.md`; update JSON sources and regenerate views only through the prescribed tools. Never edit generated views or Excel manually.
+- Keep separate, meaningful commits for (a) W05 closure, (b) architecture/contracts, (c) shared connected foundation, (d) Market, (e) Delivery, and (f) final acceptance/report, as applicable. Push ordinary commits only to this existing branch; never force-push. Prefer one final push after the local phases are complete to avoid redundant CI runs. If a branch push would cause an unintended production deployment or paid resource operation, do not push until it is safely excluded; report the exact blocker.
+- Do not install dependencies unless repository policy and a specific implementation need require it. Any added dependency must be necessary, compatible with the actual Workers runtime, pinned, license-checked, and disclosed.
+- Preserve all frozen input hashes. Do not add secrets, sample real personal data, external-file-service links/IDs, or credentials to the repository.
 
-## 5. Phase 0 — Live-state preflight (read-only)
+## 4. Phase 0 — Read-only preflight and independent implementation review
 
-Before editing:
+Before modifying files:
 
-1. Verify `Qays7753/Micro`, default branch `main`, current full `origin/main` SHA, the current handoff branch, its base, local and remote worktree status, handoff commit, untracked/modified files, existing branches, open PRs, and any work already present on this branch. Do not trust the expected SHA in this file without checking.
-2. Verify repository visibility and access are adequate for the owner's intended branch work; do not change repository settings.
-3. Verify the six specification snapshots exist and that `SOURCE-MANIFEST.json`/`SHA256SUMS.txt` match them. Do not alter these frozen inputs.
-4. Reconfirm PR #384's actual merged state and exact merge SHA. Inspect required check-runs and the evidence relevant to DOC-032/WS-248. Separate merge, check success, item acceptance, and verification.
-5. Confirm there are no active conflicting claims/PRs and read `generated/AGENT-BRIEF.md` and `generated/ACTIVE-WORK.md` as evidence only; generated files are not editable sources.
+1. Verify the current branch, live `origin/main`, live handoff-branch SHA, merge-base, worktree status, existing commits, open PRs, GitHub checks, and active Control claims. Record exact SHAs. Do not trust the reference SHA in this prompt or stale `current-state.md` without checking live state.
+2. Read the existing unified `EXECUTION-REPORT.md` and confirm the actual files/commits it lists exist on the live branch. The previous Z AI report is evidence to reconcile, not permission to skip inspecting implementation paths.
+3. Independently form a concise current-code map for the exact Market/Delivery touchpoints: app entry/navigation and route ownership; existing UI/layers; package/deployment root; local Manage store and transfer boundaries; Cloudflare Pages indicators; test/CI conventions; and the absence or presence of server/Auth/DB/R2 code. Cite actual paths and symbols in the final report. Do not rescan unrelated legacy modules.
+4. Build an implementation readiness table for all 52 approved OD decisions and every mandatory scenario in the canonical acceptance/traceability documents. Mark each as code requirement, already implemented (with code/test proof), blocked on owner/Manus/provider, or out of scope. This is not an invitation to reopen approved product decisions.
+5. Compare the proposed additive paths with the structure scan target map. Apply the structural gate in Section 2 before writing code.
+6. Record a short Arabic progress update in the report (not a user pause): what you read, what you will change, what you will not change, acceptance criteria, and genuine unknowns.
 
-If `main` has advanced from the expected base or the handoff branch differs materially from the expected state, preserve everything and stop with `STATE_DRIFT`; do not reset, recreate, rebase, cherry-pick, or force-push. Report exact SHAs and the minimum owner decision needed. If the known Control discrepancy is the only expected failure, proceed to Phase 1 because resolving it is expressly authorized.
+If the repository reveals a material contradiction in approved product decisions, a required structural change, an active overlapping claim, a security/legal blocker, or an unavoidable paid service, stop at that boundary. Do not silently decide it. Complete any safe, independent documentation/reporting and state what cannot proceed.
 
-### Independent A-to-Z baseline analysis (read-only; complete before any writes)
+## 5. Phase 1 — Close W05 using the owner's explicit acceptance
 
-After the live-state preflight and before editing repository sources, independently inspect the actual repository/codebase and the six approved feature specifications committed in this handoff. The existing scan report, prior A-to-Z plan, and old Z AI prompt are cross-check inputs only; do not adopt their findings without independently confirming the relevant current files and state. Record your own findings first, then compare them with the supplied report and explicitly show agreements, disagreements, and new findings.
+The owner has selected the acceptance path already recorded in `DOC-032`/`WS-248`: accept the committed `docs/implementation/UXR-W05-RESULT-2026-11-06.md` and successful GitHub checks on exact merge SHA `16c90e48bdc018939f97f41d05e969c900bc30e0`; no re-run of the historical W05 suite is requested.
 
-Cover, with exact repository paths/symbols and bounded evidence: current stack and entry points; app shell/navigation and feature boundaries; UI-to-domain-to-storage/API composition; identity/session/workspace/role authorization; current persistence and data flow; network/API capabilities; image/document storage and privacy; offline, retry, idempotency, and failure behavior; notifications/background tasks; observability/audit; tests, CI, generated docs, deployment/workflows, environment and secrets; and what actually exists versus is only specified for Market and Delivery. Do not read out or paste large source files; provide evidence and concise maps. Do not modify code, architecture, or provider configuration.
+The latest required `python3 scripts/operations-control/validate.py` run on this branch failed specifically because PR #384 is merged while `WS-248` remains `MERGED_UNVERIFIED`. This is the first blocking item. The explicit owner-acceptance route already recorded in `DOC-032.next_action` is authorized; record it with valid `VERIFIED` evidence on `16c90e48bdc018939f97f41d05e969c900bc30e0`, then rerun the Control validator. Do not begin feature code or create a new code Workstream until this validation passes. If the documented transition rejects the accepted evidence, stop and report the exact rule; do not invent a workaround.
 
-Inventory Cloudflare and every other relevant integration from repository evidence only. Classify each as `SOURCE_CONFIG_PRESENT`, `DOCUMENTED_ONLY`, `PROPOSED`, `NOT_FOUND`, or `UNKNOWN`; cite the repository file and setting/binding name, not a provider-console URL. Distinguish prototype needs from connected-pilot and production needs. Evaluate the owner's preference for an initial standalone prototype using local/mock data and manual role management before automated third-party APIs; compare it with the approved OD specifications, and flag any conflict rather than assuming automation or selecting a provider.
+1. Verify that PR #384 is merged at that exact SHA and that the stored W05 report and check evidence are present. Use no test run unless the Control state machine reveals a specific missing item-specific proof that cannot be satisfied by the accepted evidence.
+2. Record the owner's explicit acceptance (dated 2026-11-12) in the source JSON and append-only history. Use `VERIFIED` only if the documented transition permits the explicit-owner-acceptance path and the required `merge_sha`, `verified_on_main_sha`, and evidence fields are populated from facts on `main`. Do not fabricate evidence or say generic checks proved a test they did not run. If the legal terminal state is not `VERIFIED`, preserve the valid state and document why; do not leave a false status.
+3. Regenerate Control views via the canonical generator and run only the Control validations required for this source-record change. Record commands, exit codes, and tested SHA.
+4. Preserve unrelated workstreams and historical records. Do not run the rest of W05 again or modify W05 product code.
 
-Before proceeding to Control/doc edits, produce a concise internal findings matrix: confirmed current behavior; Market/Delivery gaps; integration evidence and unknowns; security/privacy and operational risks; owner decisions still genuinely missing; and the smallest safe phases from design through prototype, connected pilot, and production, each with dependencies and acceptance evidence. Do not perform structural remediation or ask again about decisions already explicit in the committed specs.
+Commit this reconciliation separately.
 
-## 6. Phase 1 — Operations Control reconciliation
+## 6. Phase 2 — Resolve the authorized Cloudflare architecture and necessary contracts
 
-Known baseline discrepancy (must be reverified live): PR #384 was merged into `main` at `16c90e48bdc018939f97f41d05e969c900bc30e0`, while `WS-248` remains `IN_REVIEW`; `current-state.md` still describes the former head and PR #384 as Draft. The required `python3 scripts/operations-control/validate.py` previously failed on this mismatch. `DOC-032` and `WS-248` source JSON and generated views may therefore be stale.
+Update the canonical GitHub documents before implementation so the repository no longer describes the selected provider as undecided. Keep the 52 approved product decisions unchanged.
 
-1. Read the actual Workstream and Item JSON schemas, state-transition rules, Control README/authority map, current-state contract, and generator/validator implementations before editing.
-2. Verify the merge commit and exact check-runs on that SHA. Use the state transitions required by the repository. After merge, use `MERGED_UNVERIFIED` unless the item-specific criteria and evidence support `VERIFIED` on the exact relevant `main` SHA. Do not infer `VERIFIED` solely from a merged PR, passing generic CI, or historical branch reports.
-3. Update only the source records needed to reconcile PR #384, `WS-248`, `DOC-032`, and the live current-state/history. Preserve unrelated workstreams and decisions. Do not alter unrelated stale claims or historical records.
-4. Run the documented generator from source JSON. Do not edit generated Markdown, CSV, or workbook manually. If the repository's workbook workflow requires a tool unavailable to you, do not bypass it with an arbitrary rewrite; document the exact blocker for Manus and stop before Phase 2 if the required validator cannot pass safely.
-5. Run and record at minimum:
-   - `python3 scripts/operations-control/validate.py`
-   - `python3 -m unittest discover -s scripts/operations-control -p 'test_*.py'`
-   - `python3 scripts/operations-control/generate_tracker.py --check`
-   - `git diff --check`
+1. Record a dated, attributable owner architecture decision: Cloudflare Pages for the existing UI; Pages Functions/Workers-compatible API/BFF where compatible with the actual Pages project; D1 for Market/Delivery network data; R2 for images and private driver evidence; Google sign-in through Micro's application identity; no Supabase; no provider account access or paid upgrade. D1/R2 are not Manage storage and do not receive Manage financial data.
+2. Amend `docs/expansion/E00-TECHNICAL-ARCHITECTURE-DECISION.md`, the necessary existing canonical architecture/decision/tracker references, and the report so they distinguish (a) owner-selected direction, (b) code implemented on this branch, (c) Cloudflare resources still unprovisioned, and (d) future Manage decisions still open. Do not invent or reuse an EX/OD identifier; use the next valid identifier only if repository convention requires one, and update its single canonical record consistently.
+3. Close the known E-00 execution gaps required to implement the approved behavior: in particular the guided-booking lifecycle/state-transition matrix in network contract 21 and safe navigation/return behavior for `/market`, `/delivery`, and the driver route in contract 26. Derive states and exits strictly from approved OD decisions. Do not add a new business state or legal consent assumption.
+4. Preserve the existing Manage local-first architecture, PWA, financial invariants, and explicit separation between local delivery/fulfillment in Manage and network Delivery.
+5. Reconcile the relevant acceptance scenarios and traceability rows to code/test work. Do not rewrite unrelated contracts or stale architecture docs unless directly required; classify unrelated scan findings for later follow-up in the final report.
 
-**Phase 1 gate:** The source JSON and live state must agree with verified GitHub facts; generated views must match their sources; the validator must pass. If validation still fails, do not continue to decision synchronization until the exact cause is understood and either fixed within this narrow scope or reported as a blocker. Commit this accomplishment separately on the handoff branch.
+Commit the owner architecture/contract changes separately from feature code.
 
-## 7. Phase 2 — Complete, canonical OD synchronization
+## 7. Phase 3 — Build the shared Cloudflare-compatible connected foundation
 
-After the independent analysis and successful Phase 1 Control gate, continue on the same branch to the already-authorized Market and Delivery documentation sync. Do not pause between approved decisions to re-ask the owner. Stop for a genuine contradiction in the committed specifications, a missing material owner decision, unresolved security/privacy concern, failed mandatory gate, or scope drift. After the final report, stop before any application-code or provider-account work and wait for owner review/authorization.
+Implement only the minimum additive network foundation needed by both features within the existing Micro repository and established layer boundaries.
 
-### Required repository sources
+### Required implementation capabilities
 
-At minimum inspect and reconcile only as needed:
+- A server-side API/BFF compatible with Cloudflare Pages/Workers and the actual repository deployment root; same-origin by default. Keep it in the existing Micro deployment/repository rather than a second product/service.
+- D1 schema and versioned migrations for network-owned Market and Delivery entities only. Include foreign keys, constraints, ownership, idempotency, timestamps, moderation/status history, and safe indexes as required by the contracts. Do not put image/document bytes in D1; store object metadata/keys only.
+- Google OIDC sign-in integrated with Micro identity. Validate issuer, audience, state, nonce, and callback; use a maintained Workers-compatible library if one is needed. Use secure, HttpOnly, SameSite cookies and CSRF/origin protection appropriate to the implemented flow. Do not implement cryptography/token validation by hand if a suitable maintained library exists. Store role/membership state server-side; never accept a client-supplied role as authority.
+- First-owner/admin bootstrap that does not hard-code a real email, subject, secret, or role in source. Document the one-time owner/Manus action and required binding/secret names. No self-granting admin endpoint.
+- D1-backed server-side authorization on each operation, with distinct account, role, and resource ownership boundaries for guest, owner, vendor applicant/vendor, driver applicant/approved driver, and Micro reviewer/admin. Use the canonical role/access matrix. One identity may have multiple roles, but each role's data and UX context remains separated.
+- Private R2 object handling for Market draft/review images and Delivery driver evidence. Enforce authorization before upload/download/delete; random non-guessable object keys; type/size validation; safe metadata; no public bucket/custom public domain; no long-lived public URLs. Prefer same-origin Worker-mediated reads or short-lived signed access only after authorization. Redact PII and tokens from logs/errors.
+- In-app notifications/attention using the existing E-00 boundary. Do not add email, SMS, push, WhatsApp, or third-party notification vendors. Implement retry/idempotency and failure visibility where specified.
+- Rate/abuse controls at the server boundary. Treat numbers described as engineering references in the approved specs as configurable, not a new owner-approved policy; list the final pilot values as an owner action if they remain undecided.
+- Cloudflare local-development setup and tests using repository-compatible Wrangler/D1/R2 emulation where available. No production database ID, account ID, zone ID, domain, OAuth secret, or provider resource value in Git.
+- Update CSP, service-worker/API caching rules, same-origin headers, and error behavior only as needed; never cache authenticated/private API or driver evidence responses.
 
-- `docs/expansion/README.md`
-- `docs/expansion/DECISIONS.md`
-- `docs/expansion/TRACKER.md`
-- `docs/expansion/E00-EXECUTION-PROTOCOL.md`
-- `docs/expansion/E00-TECHNICAL-ARCHITECTURE-DECISION.md`
-- `docs/expansion/E00-SCENARIOS-AND-ACCEPTANCE.md`
-- `docs/expansion/E00-TRACEABILITY-MATRIX.md`
-- `docs/expansion/ROLE-ACCESS-MATRIX.md`
-- `docs/expansion/MARKET-DELIVERY-OWNER-IA-CONTRACT.md`
-- `docs/expansion/FOUR-PARTY-IMPLEMENTATION-GATE-MAP.md`
-- `docs/expansion/FOUR-PARTY-PORTAL-AND-ACCESS-RECOVERY-GATE.md`
-- `docs/expansion/SEVEN-AGENT-EXPANSION-OPERATING-CHECKLIST.md`
-- The E-00 network contracts listed below, using `docs/00-document-index.md` to disambiguate their numbering.
+### Foundation acceptance
 
-Exact E-00 network contract filenames:
+Before Market/Delivery UI wiring, prove locally through focused tests that unauthenticated, wrong-role, cross-account, and wrong-resource reads/writes are rejected; authenticated allowed operations succeed; retries do not duplicate state; D1 transaction failures do not leave partial state; private R2 objects are not publicly accessible; no API route can write to Manage local storage or create financial events. If any of these tests fail, fix the root cause before continuing.
 
-- `docs/contracts/18-network-identity-workspace-access-contract.md`
-- `docs/contracts/19-services-notification-manage-boundary-contract.md`
-- `docs/contracts/20-market-need-response-listing-moderation-contract.md`
-- `docs/contracts/21-delivery-request-quote-status-privacy-contract.md`
-- `docs/contracts/22-network-moderation-consent-audit-contract.md`
-- `docs/contracts/23-network-data-lifecycle-recovery-contract.md`
-- `docs/contracts/24-network-data-classification-field-dictionary-contract.md`
-- `docs/contracts/25-network-money-representation-contract.md` when MarketPrice or a related money representation is affected.
+Commit the foundation separately. Do not deploy or connect a Cloudflare account.
 
-**Numbering trap:** The repository has other contracts with the same leading numbers (including local schedule, recurrence, agreement, import, capacity, and general-financial-event contracts). Do not modify those by numeric prefix. Use the exact E-00 network filenames above and the document index.
+## 8. Phase 4 — Implement Micro Market v1 end-to-end
 
-### Decision coverage and resolution rules
+Implement all approved, in-scope Market behavior from the canonical specs/contracts/scenarios, not a demo-only screen. Use real D1/R2-backed application paths in local Cloudflare emulation; no fake in-memory data as the acceptance implementation.
 
-1. Build one 52-row crosswalk before writing: all `OD-01`…`OD-21` for Market and all `OD01`…`OD31` for Delivery. For each row record the exact source file/heading, concise accepted decision, current GitHub target path/section, status (`ALIGNED`, `UPDATE_REQUIRED`, `TECHNICAL_FOLLOW_UP`, or `OWNER_DECISION_REQUIRED`), and evidence. Do not omit a decision because another file repeats it.
-2. Preserve already aligned decisions. Update only contradictory or missing canonical text. Keep the current application-vs-future-capability distinction explicit.
-3. Ensure the full product model is consistent across decisions, tracker, contracts, roles, scenarios, notifications, technical architecture notes, portal/recovery gates, and traceability. A single approval in one contract must not leave conflicting language elsewhere.
-4. Explicitly reconcile the decisions that the previous scan identified as high-risk, while checking the exact approved text rather than relying on this list:
-   - Market Listing-first versus legacy Need/Response and pilot-wedge text; national/category scope versus pilot-slice selection; `My Ask Micro` deferral; and any unit/first-run choice deferral.
-   - Market listing freshness/confirmation: the approved 30-day reminder, 60-day hide, and reviewed renewal must not be mixed with the old 90-day rule; distinguish owner confirmation from moderator suspension.
-   - The approved Micro/Google identity product flow, guest browsing/contact boundaries, vendor applicant/draft/approval boundaries, public-vs-private data, and the technical provider still needing verification.
-   - Driver as a distinct experience/role inside the single Micro identity, including application/invitation, manual person/vehicle review, evidence privacy/expiration, known-driver selection, and prohibition on random assignment or silent closure where specified.
-   - The limited task-rating/feedback decision (including the OD-17 exception if confirmed in the approved files) must not become a general public ratings/reviews system; eligibility and moderation must remain explicit.
-   - Notifications/reminders (including the relevant Delivery OD) must be represented in the E-00 notification boundary contract and scenario traceability without implying a live provider.
-   - Market price representation/`MarketPrice` must remain consistent with contract 25 and must not silently become a `MoneyMinor` or Manage financial write.
-5. Do not elevate implementation recommendations to decisions. Do not fill gaps in privacy retention, legal review, provider selection, OAuth/session design, database/RLS, image storage, notifications, or connected deployment by guessing. Mark each as a precisely scoped technical follow-up and assign it to Z AI (repository code only), owner, or Manus as appropriate.
-6. Make sure `DECISIONS.md` and `TRACKER.md` distinguish (a) approved product decisions, (b) documentation actions completed on this branch, (c) code not implemented, (d) technical choices still open, and (e) the later implementation gates. Do not mark Market or Delivery implemented or ready for real users. Update `README-AR.md` at completion to state clearly that canonical repository documents are now the operative source of truth and the included approved-input snapshots are frozen provenance only.
-7. Update the canonical document index only if repository policy requires it for the newly staged handoff or changed canonical documents. Do not create a competing product decision registry or another tracker. Keep the handoff input snapshots immutable.
-8. Never edit files under `docs/expansion/historical-source/` to make them look current. If a historical file conflicts, cite it as historical and update the canonical current document instead.
+Required journeys and rules:
 
-### Phase 2 outputs
+1. Guest can browse approved public listings and use only the approved contact action. Guest cannot submit/edit a listing or view private drafts, applicant data, moderation notes, or private images.
+2. A signed-in Micro user can enter the Market supplier workspace within the same app/account, create/edit a private supplier-profile draft, listing draft, and draft images, then submit for manual review. Submission is not supplier approval or public listing publication.
+3. The authorized reviewer can review supplier profile, listing content, and required images; approve/reject/request changes with actor, timestamp, reason/status history. Only the required approved components become public. Prevent approval bypass by direct API call.
+4. A user/vendor can see and modify only their own authorized profile/listings. Enforce the one-person activity constraint in v1 without adding employees or a second account. A normal buyer stays a normal Micro user unless they start the supplier path.
+5. Implement the approved listing-first model for the full Jordan-wide product scope, with owner-managed categories/branches as specified. Do not implement Need/Response feeds, ranking, chat, purchase reviews, or a preselected city/category wedge that contradicts the approved decisions.
+6. Implement the approved 30-day availability confirmation reminder, 60-day hide, and reviewed renewal behavior. Distinguish owner availability confirmation from moderator suspension; no 90-day rule. Make transitions auditable and idempotent.
+7. Use the approved `MarketPrice` representation and JOD rule. It is not `MoneyMinor`, not a Manage price, and must never produce a financial, cash, inventory, purchase, or order update.
+8. Respect the approved free v1 behavior. No fee, commission, subscription, payment processing, or automatic upgrade.
+9. Update the `/market` entry, route ownership, mobile Arabic RTL flows, empty/loading/error/offline/retry states, deep-link/back behavior, and notification surfaces without changing unrelated Manage workflows.
+10. Do not create an automatic Market-to-Delivery link. Any future handoff is a separate explicit user action and out of this implementation unless an OD expressly requires it.
 
-- Minimal, consistent changes to existing canonical documents.
-- The complete 52-ID crosswalk inside `EXECUTION-REPORT.md` (not a new source-of-truth file).
-- A short changed-file index in the report showing why each file changed and which OD IDs it covers.
-- A separate commit after the Control reconciliation commit.
+Provide focused API/domain/UI tests for guest access, applicant/draft privacy, moderation/publication boundaries, cross-vendor isolation, listing lifecycle 30/60, image privacy, idempotent edits, and absence of Manage side effects.
 
-## 8. Phase 3 — Verification and final report
+Commit Market separately.
 
-After all canonical documentation edits, run the checks applicable to the exact final tree. At minimum:
+## 9. Phase 5 — Implement Micro Delivery v1 end-to-end
 
-- `python3 scripts/operations-control/validate.py`
-- `python3 -m unittest discover -s scripts/operations-control -p 'test_*.py'`
-- `python3 scripts/operations-control/generate_tracker.py --check`
-- `git diff --check`
-- `node scripts/check-secrets.mjs`
-- Run `pnpm check` only if repository policy explicitly requires it for these documentation/Control-only changes; otherwise do not run a broad application suite with no code changes. Do not install dependencies. If required but unavailable, mark `NOT_RUN` and give the exact reason.
-- Any focused repository documentation/consistency check that the canonical docs require.
+Implement the owner and driver experiences as separate, fully gated contexts inside the same Micro application/identity. Use real D1-backed state and private R2 evidence paths in local Cloudflare emulation.
 
-Run applicable checks after each phase/commit and again on the final exact SHA. Do not report a command as passed unless you ran it and recorded exit status and tested SHA. If a check fails, identify whether it is caused by this branch or is a baseline/unrelated failure; fix only in-scope root causes. Do not claim unrelated test coverage or runtime readiness from a docs-only change. Do not trigger workflows or deployments that create external side effects.
+Required journeys and rules:
 
-Create/update only this report path:
+1. Owner UI is reached from the approved Delivery tab/route. Driver entry is separately gated and opens only the driver portal/onboarding/dashboard. A driver must never see Manage, Market, owner/vendor navigation, or another driver's records. Same Google/Micro identity; role and session authorization is server-side.
+2. Support driver self-application and owner invitation. The driver cannot accept new bookings until the authorized reviewer approves both driver and required vehicle/evidence state. Invitation or complete form alone is not approval.
+3. Enforce the exact three evidence categories in the approved spec: driver identity, driver license, and vehicle ownership/permission evidence when applicable. Keep files private to the driver and explicitly authorized reviewer. Manual review only; no OCR, automated authenticity claim, or invented expiry date. Record expiry only when clear. Expired evidence blocks new acceptances only; it never silently closes/cancels existing work.
+4. Owner selects a known driver and vehicle; no broadcast, random matching, dispatch automation, or automatic fallback to another driver. Driver-defined service areas, availability, capacity, and terms remain visible and are snapshotted into each accepted booking.
+5. Implement the guided request/quote/booking/state transitions in reconciled contract 21: one directed request, 30-minute response window, one final quote where needed, accept/reject, agreed appointment, pickup/drop-off, delays/waiting, contact attempt and explicit recorded outcome before the specified failure/cancellation route, confirmation/objection, daily statement, and unresolved silence. Preserve the 10-minute pickup and 10-minute delivery wait rules and the requirement that owner silence does not auto-close a job.
+6. Preserve price/terms snapshots in the booking; later profile edits cannot rewrite accepted terms. Material changes need the other party's approval. No automatic cancellation, return, retry, retention, partial financial settlement, or booking closure beyond approved rules.
+7. Implement declarations, full-confirmation daily statement, objections, evidence/status history, in-app reminders, and the approved limited eligible task stars shown immediately with text comments moderated by the owner. Do not create general public reviews or claim that a declaration independently proves customer receipt/payment.
+8. No Micro fee, commission, wallet, escrow, payment, discount, or automatic Manage money/order/inventory change. Money arrangements remain directly between parties; the app records agreed statements only.
+9. Ensure customer phone/address disclosure is blocked or controlled until the unresolved owner/legal consent requirement is satisfied. Use synthetic data only. Do not invent consent language or expose real customer data.
+10. Implement expiry reminders without hard-coding an owner decision that does not exist: any suggested numeric reminder window must be configurable and labeled operational, not a settled product rule.
+11. Add mobile-first Arabic RTL screens and all loading/empty/error/permission-denied/offline/retry/expiry/review states. Apply contract 26 for direct links and returning from every Delivery route.
 
-`docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md`
+Provide focused API/domain/UI tests for the complete driver lifecycle, owner-known-driver selection, no broadcast/fallback, exact state transitions and timers, private evidence denial across roles/accounts, expiry behavior, statement/objection behavior, contact-attempt guard, no auto-close on silence, PWA/API cache behavior, retries/idempotency, and no Manage side effects.
 
-The report must be written in Arabic for the owner, with technical paths, IDs, command lines, and raw statuses preserved. Include:
+Commit Delivery separately.
 
-1. Repository, branch, base SHA, final full SHA, handoff commit, phase commits, and worktree state.
-2. Exact Control issue and resolution: PR #384 merge SHA, `WS-248`/`DOC-032` transitions, current-state update, generated artifacts, and evidence supporting each status.
-3. An independent current-system map based on repository code and canonical docs, with exact paths/symbols; its findings must be written before and compared against the older scan report. Include verified architecture, feature fit/gaps, and any differences from that report.
-3. All 52 OD crosswalk rows, with exact source paths/sections and target paths/sections; aligned decisions preserved, changed sections listed, unresolved items labeled.
-4. Changed and unchanged files; explicit `NO_APPLICATION_CODE_CHANGES` and `NO_PROVIDER_ACCESS` statements.
-5. Commands, exit codes, and exact tested SHA for every test/check; unavailable or failing checks labeled honestly.
-6. Any true conflicts, technical follow-ups, risks, security/privacy considerations, and rollback boundary per commit.
-7. Professional future-stage plan to reach real operation, separated into code work by Z AI versus account/service work by owner and Manus.
-8. An integration inventory derived from repository evidence only. For each relevant item (hosting/Cloudflare, identity/Google sign-in, API/backend, database and isolation, private image/document storage, notifications, DNS/TLS/origin/CORS, rate limiting/abuse controls, logs/monitoring, backups/restore, environments/secrets, legal/privacy, connected UAT), label `SOURCE_CONFIG_PRESENT`, `DOCUMENTED_ONLY`, `PROPOSED`, `NOT_FOUND`, or `UNKNOWN`; cite exact repository path/symbol/setting **name** and what remains to verify. Do not claim an account or resource is live.
-9. A clear action table for **Z AI**, **owner**, and **Manus** with prerequisites, order, acceptance evidence, and what requires a future explicit owner authorization. Include no secret values.
-10. One next action and one final evidence-supported status.
+## 10. Phase 6 — Integrated readiness review, tests, and report
 
-## 9. Later implementation recommendations — report only, do not execute
+### Review model
 
-After the documentation is consistent, recommend the smallest safe implementation stages needed for both features to work as a real part of Micro. The plan must be concrete and evidence-based, but it is not authorization to code now. Cover shared identity/session and role membership; Market browse, vendor/listing moderation, private images and freshness; Delivery driver onboarding/review, protected evidence, owner selection, request/response lifecycle, notifications/reminders; API/data isolation; accessibility/RTL/mobile UX; auditing, idempotency, backup/restore, operational monitoring; integration and acceptance testing; staged rollout and rollback.
- Separate the standalone prototype, limited connected pilot, and production readiness. Evaluate a manual/local/mock prototype with owner-managed roles before automated third-party APIs as the owner-preferred starting point, subject to the explicit approved OD decisions; do not silently override an OD or choose a provider. For any exception, explain the evidence and decision needed.
+After both code paths are integrated, use exactly five non-overlapping read-only reviewers if the Z AI environment supports them: (1) OD/scenario traceability and product behavior; (2) Arabic RTL/mobile UX/accessibility; (3) domain/financial separation; (4) identity/authorization/privacy/D1/R2 security; (5) runtime, performance, migrations, tests, and handoff readiness. The main Z AI remains the sole writer. Reviewers must not edit, commit, run tests, or duplicate each other's source scans. Each returns confirmed findings separately from suggestions with severity, exact path/line, requirement/source, impact, and smallest safe fix. Fix confirmed in-scope defects; do not implement optional style suggestions as defects. Recheck affected scopes on the final candidate SHA. If reviewers are unavailable, state that and do not pretend review occurred.
 
-For each future stage give: exact product outcome; repository evidence and likely areas to inspect (do not guess changed files); upstream decisions; dependency; code owner (Z AI); external-service/account owner (owner + Manus); test/acceptance evidence; privacy/security/financial risk; and rollback. Do not invent an architecture, provider, timeline, cost, or legal conclusion. Label estimates as estimates and state the evidence needed to confirm them.
+### Tests and checks — do not waste runs
 
-The integration recommendation must explicitly answer:
+- Run targeted tests for each implementation wave once after that wave; do not rerun a passing suite unless code materially changes or a failure needs diagnosis.
+- On the integrated final tree, run the repository-required `pnpm check` exactly once, plus any required security/secret check and Cloudflare local-emulation tests not included in that check. Do not install dependencies unless necessary and authorized by repository policy.
+- If a fix follows final verification, rerun only the affected focused tests and the required final gate once. Never hide, skip, or relabel a failing required check. A mandatory check unavailable in the environment is `NOT_RUN`, not PASS.
+- Wait for GitHub Actions on the exact final pushed branch SHA. Report each required check, exact SHA, conclusion, and URL/status identifier. Do not create a PR or merge. Do not run or trigger a production deployment. If a Pages preview check runs automatically, identify it as a preview/check only and do not claim production readiness.
+- Preserve the current financial/local compatibility sentinels: `localSchemaVersion=41`, `localExportVersion=34`, the 29 accepted import pairs, bundle/lint limits, and all generated baselines. Do not adjust them to make checks pass.
 
-- What does the repository prove is already configured or merely referenced for Cloudflare and other providers?
-- Which resources might be required to make the approved behavior real, and what is not yet proven (identity, API, database, private files, notifications, DNS/TLS/origins, abuse controls, logs, backup/restore, staging/production)?
-- Which exact steps are for Z AI to implement in code later, and which are manual steps for the owner and Manus in provider accounts?
-- What should be decided/verified before spending money or using real driver/vendor identity documents?
-- What minimal connected acceptance should be demonstrated before a pilot or production claim?
+### Owner acceptance KPIs (all required for `CODE_READY_FOR_CLOUDFLARE_SETUP`)
 
-Do not browse or access provider accounts. Do not output provider-console links. Use repository paths and setting/binding names only.
+| KPI | Pass threshold | Evidence required in final report |
+|---|---|---|
+| Decision traceability | 52/52 OD IDs mapped to canonical section, implementation path, and test/evidence or explicit external blocker | 52-row matrix updated/linked; no approved decision omitted or contradicted |
+| Mandatory product behavior | 100% of in-scope mandatory Market and Delivery scenarios in the canonical acceptance/traceability documents have passing evidence; zero unimplemented in-scope code requirements | Scenario IDs, test names, test result counts, candidate SHA |
+| Authorization/isolation | 100% of required allow/deny cases pass; zero confirmed cross-account/role/resource access | Guest/vendor/owner/driver/admin matrix covering API, D1 query, search, and R2 object access |
+| Private evidence | 100% unauthorized access tests deny; zero public driver-evidence objects/URLs | R2 local-emulation evidence and exact route tests; no real documents used |
+| Manage non-interference | 0 financial or inventory semantic changes; 0 local schema/export/legacy-pair changes; 100% relevant Manage regression tests pass | Changed-path audit and explicit unchanged versions/pairs; tests and final diff summary |
+| Mobile Arabic UX | All critical journeys pass at 360, 390, and 430 CSS-pixel widths in `ar-JO` RTL; zero horizontal overflow on required screens; zero unresolved blocker-level accessibility issue | Browser/test evidence, screen/route IDs, responsive and directionality results |
+| Reliability/security | All required retry/idempotency/failure/migration tests pass; no confirmed Critical/High security finding; secret scanner passes | Command, counts, exact SHA, review findings and disposition |
+| Repository checks | Focused wave tests pass; one final `pnpm check` passes; all applicable GitHub required checks pass on exact final SHA; zero required check silently omitted | Raw command, exit code, tested SHA, CI check status |
+| Handoff completeness | Owner/Manus setup steps cover every required binding/secret name, D1 migration, R2 private bucket, OAuth callback, domains/origins, bootstrap admin, backup/restore, monitoring, cost guard, smoke/UAT, and rollback; no secret values | Ordered checklist with responsible party and evidence/acceptance per step |
 
-## 10. Stop, resume, and final boundary
+If any KPI is not met, the status must be `BLOCKED` or `CODE_READY_WITH_GAPS`, never `CODE_READY_FOR_CLOUDFLARE_SETUP`. A passing code check does not prove a live Cloudflare-connected acceptance.
 
-Stop and report `BLOCKED` if live repository state differs materially, the Control validator cannot be made to pass safely within the allowed scope, an approved specification contradicts itself on a material product/privacy/financial rule, a necessary owner decision is absent, or a required operation would touch code/provider settings/`main`/merge.
+## 11. Required owner/Manus Cloudflare handoff
 
-For the current invocation, complete the independent read-only analysis, Control reconciliation, Market documentation sync, Delivery/cross-cutting documentation sync, and the unified A-to-Z/integration report on this one branch. Use a separate commit for each accomplishment, run only the checks required for the changed Control/docs, then push and stop for owner review before code. Do not re-ask decisions already approved in the committed specs. Checkpoints never authorize scope expansion.
+In the final report, provide a concrete ordered checklist—not a generic recommendation—of what the owner and Manus must do after your code work. Derive exact names and callbacks from the implemented source/config; never invent account/domain IDs. At minimum cover:
 
-At the end, push the completed commits to `zai/micro-market-delivery-handoff-20261111` and report the branch URL, each commit SHA, final full SHA, exact changed paths, checks and results, report path, and one next action. Do not merge, deploy, access external providers, or perform cleanup. End with exactly one status:
+1. Confirm the existing Cloudflare Pages project/build root and whether the selected Pages Functions/Worker entrypoint is enabled for preview and production.
+2. Create/bind the D1 database and apply the checked-in migrations first in a non-production environment, then after approval in production; record backup/restore and rollback commands.
+3. Create/bind a private R2 bucket; verify no public access; set lifecycle/deletion/retention policy only after owner/legal approval; test authorized upload/read/delete and denied access.
+4. Configure Google OAuth consent/client and exact callback/allowed-origin values from code; place client secret/session secret only in Cloudflare secret storage, never GitHub. Document how the first owner-admin is safely bootstrapped.
+5. Configure environment bindings by name, CSP/CORS/origin and cookie settings, staging/production separation, and preview branch restrictions. No real configuration is performed by Z AI.
+6. Explain the free-tier operating boundary, current expected incremental cost as `USD 0 only while staying within the applicable free allowances`, and the explicit stop-before-paid-upgrade rule. If a feature would require a paid plan, present the measured reason and wait for owner approval.
+7. Run connected smoke/UAT with at least separate owner, vendor, and driver accounts on separate sessions/devices using synthetic data; test negative isolation, private file access, recovery, audit, and the approved Market/Delivery scenarios. Do not invite real drivers or use real documents before consent/retention/legal gates.
+8. List any remaining owner decisions: customer-data disclosure/consent, retention/deletion/recovery policy, pilot participants/duration and rate-control values, driver/admin bootstrap/reviewer allocation, actual OAuth/domain values, and any paid-service request. Do not reopen the 52 settled product decisions.
 
-- `ANALYSIS_CONTROL_AND_DECISION_SYNC_COMPLETE — OWNER_REVIEW_REQUIRED_BEFORE_CODE`
+## 12. Final report contract
+
+Update the existing single report `docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md`; do not create a competing report or replace earlier historical evidence. Add dated implementation sections and refresh its current conclusion/status. Write the owner-facing report in Arabic and retain exact paths, identifiers, commands, and raw statuses.
+
+The report must include:
+
+1. Repository, branch, base/merge-base SHA, final full SHA, clean/dirty state, and each separate commit SHA.
+2. W05 owner acceptance, legal Control transition, `DOC-032`/`WS-248` state, exact `verified_on_main_sha` if applicable, and the accepted report/check evidence; explicitly say no redundant W05 rerun was done.
+3. The independent implementation map and readiness table for 52/52 decisions plus mandatory scenario traceability; mark implemented, blocked, deferred, or not applicable with exact evidence.
+4. The Cloudflare architecture choice and its repository implementation: Pages/Functions or justified alternative, D1 migrations/bindings, R2 private paths, Google OIDC/Micro roles, configured-vs-unconfigured distinction, free-tier guard, and why no Supabase/Cloudflare Access end-user auth was added.
+5. A short change inventory by commit and exact path, plus explicit `NO_MANAGE_FINANCIAL_MIGRATION`, `NO_PAID_UPGRADE`, `NO_PROVIDER_ACCOUNT_ACCESS`, `NO_PRODUCTION_DEPLOYMENT`, and any valid exception.
+6. The results table for every KPI in Section 10: threshold, actual result, PASS/FAIL/NOT_RUN/BLOCKED, exact evidence, and unresolved caveat. Never assert 100% from an aggregate command alone if the route/scenario evidence is missing.
+7. All focused/full tests, build/checks, security scans, reviewers, and CI evidence with commands, counts, exit codes, exact SHAs, and actual results. Distinguish tests run locally from GitHub checks and from connected Cloudflare tests not run.
+8. Any confirmed defects and fixes; separate optional suggestions; residual risks; rollback boundary per commit; no invented test results.
+9. Ordered owner/Manus Cloudflare handoff from Section 11 and the connected UAT acceptance criteria.
+10. Deferred unrelated findings from the scan/report (for example stale documentation, unrelated Manage export privacy, or validator portability) clearly marked for the existing Other Issues follow-up after Market/Delivery; do not implement unrelated fixes or modify the frozen reference snapshot.
+11. One next action and one final evidence-backed status.
+
+## 13. Stop and status rules
+
+Stop and report the precise blocker before the affected change if any of these occurs: state/worktree collision; active overlapping claim; structural refactor/new application boundary required; a required paid service; no safe Google session/auth approach compatible with Workers; unresolved critical privacy/legal disclosure/retention choice affecting live data; test or security gate failure that cannot be fixed safely; product/financial ambiguity; or an operation would access a provider account, change a provider resource, deploy, touch `main`, open a PR, merge, or rewrite history.
+
+Do not call the product `live`, `connected-accepted`, `pilot-ready`, or `production-ready` until the owner/Manus has configured Cloudflare/Google, completed two-or-more-account connected tests on separate sessions/devices, and passed all applicable activation gates. The expected best-case final status here is `CODE_READY_FOR_CLOUDFLARE_SETUP — LIVE_CONNECTED_ACCEPTANCE_PENDING`.
+
+At the end, push the separate commits to the existing handoff branch if safe, provide the branch and report links, all requested evidence, every KPI result, remaining owner/Manus actions, and one next action. End with exactly one status:
+
+- `CODE_READY_FOR_CLOUDFLARE_SETUP — LIVE_CONNECTED_ACCEPTANCE_PENDING`
+- `CODE_READY_WITH_GAPS — <specific gaps>`
 - `BLOCKED — <specific cause>`
 - `STATE_DRIFT — <specific cause>`
 
-Always state whether any item remains `NOT_RUN`, `UNVERIFIED`, or `OWNER_DECISION_REQUIRED`. A successful documentation sync does not mean the two features are implemented or ready for real users.
-
-
-**NO_CLEANUP:** Do not delete, rename, or reorganize repository files outside the exact authorized writes above.
+**NO_CLEANUP:** Do not delete, rename, or reorganize any repository file outside the exact authorized additive changes and necessary canonical documentation updates described above.
