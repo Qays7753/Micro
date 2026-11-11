@@ -1,6 +1,6 @@
 # Micro — عقد تصنيف بيانات الشبكة وقاموس الحقول N-06
 
-**الحالة:** `CURRENT / EXPANSION E-00 / CONTRACT ONLY` *(مُصالح 2026-11-12 مع قرارات المالك المعتمدة 2026-11-09: تجميد صفوف الاحتياج/الرد المؤجلة خارج v1 (OD-03/REC-01)، وإضافة كيانات ملف المورد ونسخ الإعلان ووسائطه ومحفوظاته وتوفره (OD-09/OD-16)، وإضافة تصنيف وصول الزائر (OD-04))*
+**الحالة:** `CURRENT / EXPANSION E-00 / CONTRACT ONLY` *(مُصالح 2026-11-12 مع قرارات المالك المعتمدة 2026-11-09: تجميد صفوف الاحتياج/الرد المؤجلة خارج v1 (OD-03/REC-01)، كيانات ملف المورد ونسخ الإعلان ووسائطه ومحفوظاته وتوفره (OD-09/OD-16)، ووصول الزائر (OD-04)؛ وكيانات السائق والمركبة والإثباتات والحجز بنسخة الاتفاق والكشف اليومي وتقييم المهمة (OD01/OD03/OD11/OD13/OD17/OD22–OD31))*
 **المالك:** Manus Agent 1
 **تاريخ القرار:** 27 أغسطس 2026 — آخر مصالحة: 12 نوفمبر 2026
 
@@ -43,10 +43,14 @@
 | `saved_items` | هوية، نوع الهدف، معرف الهدف، وقت الإنشاء (فريد هوية/نوع/هدف). | خاص بالهوية. | تتبع تنافسي أو كشفه لأي طرف آخر. |
 | `availability_events` | إعلان/نسخة، حالة توفر وفاعل ووقت (تأكيد التوفر يغذي سياسة الحداثة 30/60). | interaction/public حسب النشر. | مخزون لحظي أو كمية مضمونة. |
 | `listing_media` | listing ref، owner ref، private object ref، review/public status، created at. | private ثم public approved. | public URL دائم أو metadata لا يلزم المراجعة. |
-| `delivery_request` | requester/workspace ref، direction، general scope، window، package description optional، `vehicle_requirement` optional after Wedge، status. | interaction/delivery scoped. | عنوان/هاتف تلقائي أو cash/collection أو order complete أو سيارة/سائق محدد. |
-| `delivery_quote` | request ref، courier/workspace ref، amount/range optional (تمثيل minor وفق العقد 25؛ عملة واحدة JOD حتى حسم EX-O13)، availability، expiry، status. | interaction scoped. | Expense أو payment status أو pricing recommendation. |
-| `delivery_assignment` | accepted quote ref، courier workspace ref، disclosure scope، current status. | delivery scoped. | GPS stream أو Driver account افتراضي. |
-| `delivery_status_event` | assignment ref، prior/next status، actor, occurred at، source، reason optional. | delivery/audit restricted. | إثبات دفع أو استلام مخزون/تسليم Order. |
+| `delivery_request`/`booking` | صاحب المشروع (OD02) | نوع توصيل/إحضار، جهتا استلام/تسليم، موعد ونافذتا استلام/تسليم، حمولة، مبلغ تحصيل اختياري ومحتواه، سائق مختار، **نسخة اتفاق** (السعر والموعد والسائق والمركبة والخدمات والشروط — OD11)، حالة. | interaction/delivery scoped. | عنوان/هاتف تلقائي بلا معاينة أو أثر مالي أو تعيين عشوائي. |
+| `delivery_quote` | السائق المختار | عرض نهائي واحد لطلب تسعير: السعر وما يشمله وشروط الحمولة والموعد (OD05)؛ أو تسعير مسبق من بروفايله (OD04). | interaction scoped (تمثيل العقد 25). | مزايدة أو عروض متراكمة أو مصروف أو التزام. |
+| `driver_profile` (+المركبة) | السائق بهوية Micro (OD21) | الاسم المعروض وهاتف التواصل، معلومات المركبة ورقم لوحتها وإثبات بسيط للملكية/الإذن (OD27)، مناطق وأوقات وقدرات وأسعار وشروط الخدمة (OD04/OD06/OD09)، حالة اعتماد ونشاط. | عام محدود بعد الاعتماد (بروفايل)؛ التفاصيل التشغيلية interaction_scoped. | كشف الوثائق أو اللوحة كاملة أو حجوزات أو بيانات Manage؛ لا دمج مع ملف المورد (OD-17 Market). |
+| `driver_evidence` | السائق | صورة الهوية والرخصة وإثبات المركبة/الإذن عند تسجيلها؛ حالة إثبات وتاريخ انتهائه عند وضوحه (OD28/OD29). | **خاص بالسائق والمراجعين المخولين فقط (OD28)** — لا يعرض لأي دور آخر. | كشف لصاحب مشروع/مورد/عام؛ تحقق آلي؛ مستندات إضافية تلقائية. |
+| `delivery_status_event`/التصريحات | السائق أو صاحب المشروع ضمن دوره | تصريح استلام/تسليم/تعذر/إرجاع/تواصل وتأكيد/اعتراض الطرف الآخر بوقت وفاعل (OD14/OD15). | delivery/audit restricted. | إثبات دفع أو استلام مخزون/تسليم Order؛ ولا تحويل اعتراض إلى موافقة. |
+| `daily_statement` | السائق | كشف يومي ثابت البنود لزوج مشروع/سائق/يوم: ما قبضه وما سلمه؛ تأكيد كامل أو تسجيل فرق (OD13)؛ كشف تكميلي مرتبط للبنود الجديدة. | delivery scoped للطرفين؛ للمشرف عند بلاغ مخول فقط. | تسوية جزئية أو توزيع دفعات أو خصم محسوب أو أي أثر مالي تلقائي (OD12). |
+| `task_rating` | صاحب المشروع | نجوم 1–5 مرة واحدة لحجز تم توصيله وأكده؛ تعليق نصي اختياري ينتظر المراجعة؛ رد نصي واحد للسائق يخضع للمراجعة (OD17). | نجوم/عدد/متوسط عامة على البروفايل بعد الأهلية؛ النص بعد المراجعة. | تقييم ذات أو تكرار أو تقييم عام خارج المهمة المؤهلة؛ دعوات تمنح نجومًا. |
+| `saved_drivers` (سائقوني) | صاحب المشروع | السائقون المحفوظون وسابق التعامل مميزين؛ إعادة الحجز مسودة جديدة بشروط حالية (OD03). | خاص بالهوية. | وعد أولوية قبول مضمونة أو كشف لحجوزات السائق. |
 | `network_audit_event` | workspace/actor/action/subject/result/occurred at/reason optional. | audit restricted. | secret أو token أو full private payload. |
 | `network_invitation` | inviter ref، workspace ref، role، status، expiry، استخدمات محدودة (used/limit)، created at. | workspace private/audit. | دعوة دائمة أو مفتوحة الاستخدام أو صلاحية تتجاوز الدور المحدد أو أي بيانات Manage. |
 | `network_access_decision` | actor ref، action، subject ref، decision، reason optional، occurred at. | audit restricted. | تنفيذ القرار في الواجهة فقط، أو تخزينه بلا مرجع سجل، أو احتواؤه secret أو token. |
@@ -55,7 +59,7 @@
 | `delivery_exception` | request/assignment ref، classification (عدد محدود وفق العقد 21 §3.3)، status (`open` / `resolved` / `closed_unresolved`)، responsible next party، reason، evidence refs، created/updated at. | delivery/audit restricted. | حذف تاريخ المهمة، أو وضع «مكتمل» لإخفاء المشكلة، أو لوم طرف بلا حدث موثق. |
 | `market_decision` | subject ref، decision، actor، occurred at، reason optional. | audit restricted (ويظهر للطرف المعني ملخصًا يخصه فقط). | تعديل قرار سابق أو محو التاريخ أو قرار بلا فاعل ووقت. |
 | `consent_record` | consenter ref، consent scope، subject ref، consented at، valid until، revoked at. | audit restricted. | اعتباره بديلًا عن سياسة الاحتفاظ القانونية، أو ترحيل محتوى كامل معه، أو سحب صامت بلا أثر. |
-| `courier_company_profile` ⚠️ لا يُفعَّل قبل حسم EX-O10 | workspace ref، declared coverage area، service description، status. | public_after_approval بعد مراجعة، أو interaction_scoped داخل دليل الطالب. | أسعار منافسين أو عروضهم، توفر حي، GPS، أو تغطية مضمونة خارج ما أقره Wedge. |
+| `courier_company_profile` | ~~معلق على EX-O10~~ **استُبدل بقرار المالك 2026-11-09 (OD03/OD21):** كيان الجهة صار `driver_profile` +المركبة أعلاه — لا كيان شركة توصيل في v1. الصف محفوظ تاريخيًا. | — | — |
 
 **اكتمال القاموس (E-09):** الجدول أعلاه يغطي كيانات العقود 18–21 ويضيف `consent_record` (E-13) وكيانات ملف المورد ونسخ الإعلان ووسائطه ومحفوظاته وتوفره (مصالحة 2026-11-12). أي كيان شبكي جديد لا يدخل هذا القاموس إلا بصف وبإجابات قاعدة §5.
 
@@ -70,7 +74,7 @@
 | الكيان | الحقل المعلق | الافتراضي المقترح (الخيار أ) | البدائل وشرطها |
 |---|---|---|---|
 | `market_response` | `contact_channel` | ~~نسخة من قناة الاتصال المعتمدة~~ **سقط الحقل خارج v1 (مصالحة 2026-11-12):** `market_response` نفسه مؤجل بOD-03/REC-01، والتواصل في v1 خارجي عبر قناة الإعلان المعتمدة (OD-04)؛ لا يدخل الحقل Schema، وعودته مرتبطة بقرار مالك جديد بإعادة الاحتياجات/الردود. | — |
-| `delivery_request` | `routing` | مرجع توجيه صريح يحدد كيف يصل الطلب إلى الساعي؛ دلالاته الثلاث موثقة في العقد 21 §2 ومعلقة على EX-O10. | كل دلالة تغيّر بنية الطلب والدليل وسؤال رؤية السواعي لعروض بعضهم؛ لا يختار Agent واحدة. |
+| `delivery_request` | `routing` | ~~معلق على EX-O10~~ **حُسم 2026-11-09 (OD03):** الطالب يختار سائقًا من دليل معروف — لا بث ولا ساعٍ وحيد مفرض؛ التفصيل في العقد 21 §2 المُصالح. | — |
 
 ### 3.2 دورة حياة `consent_record` (E-13)
 
