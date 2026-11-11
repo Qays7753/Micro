@@ -21,6 +21,7 @@
 | جاهزية التشغيل والثقة قبل التفعيل | `ACTIVATION-OPERATIONAL-READINESS-AND-SAFETY-GATE.md` و`E00-12-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` مع العقود 18–24 وSOPs. | OR-01…OR-07، مراجعة دعم/incident/release/accessibility/measurement قبل A/B. | E-00.12 مقبولة توثيقيًا؛ ثم A/B حسب الدليل. | لا SLA أو مزود أو دعم شامل أو Analytics أو امتثال قانوني مفترض. |
 | السيولة والنموذج التجاري | `COMMERCIAL-LIQUIDITY-AND-MODEL-DECISION-CARD.md` و`E00-13-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-27.md` وبطاقة Wedge وPilot SOP و`DECISIONS` EX-O06…EX-O08. | تفاعل ذري، عتبة نجاح/فشل، جهة بذرة، وقرار Build/Discovery/Defer/Reject. | E-00.13 مقبولة توثيقيًا؛ ثم L بعد قرار المالك. | لا سوق عام أو رسوم/عمولة/دفع أو ترتيب مدفوع أو توسع بسبب GMV/تسجيلات. |
 | توزيع Owner بين Market وDelivery | عقد IA و`DECISIONS` EX-D02/D10/D15…D17 والعقود 19–21 و24. | S-01…S-06A/S-09/S-15A و`E00-14-INDEPENDENT-ACCEPTANCE-REVIEW-2026-08-28.md`. | E-00.14 مقبولة توثيقيًا؛ ثم L-00 بعد Wedge. | لا صفحة خدمات مركزية أو UI مبكر أو Chat/Ranking/Ratings/دفع/GPS/Dispatch أو انتقال Manage تلقائي. |
+| قرارات المالك المعتمدة Market/Delivery (OD-01…OD-21 وOD01…OD31، توجيه نهائي 2026-11-09) | `DECISIONS.md` §1-ب و§1-ج (المرجع التشغيلي) + المواصفات الست المجمدة في حزمة التسليم 2026-11-11 (دليل تاريخي) + العقود 18–25 المُصالحة 2026-11-12. | فحص كل التزام لاحق يربط كل سلوك بقرار OD مصدره؛ السيناريوهات المُصالحة أعلاه. | مزامنة الوثائق 2026-11-12 (Tracker E-00.15/E-00.16)؛ ثم أي كود بعد بوابة المالك. | لا يفسر أي OD كإذن كود أو اختيار مزود أو نشر؛ ولا يعاد سؤال قرار محسوم. |
 
 ## Action Points
 

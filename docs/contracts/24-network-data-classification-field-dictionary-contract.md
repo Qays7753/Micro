@@ -1,8 +1,8 @@
 # Micro — عقد تصنيف بيانات الشبكة وقاموس الحقول N-06
 
-**الحالة:** `CURRENT / EXPANSION E-00 / CONTRACT ONLY`
+**الحالة:** `CURRENT / EXPANSION E-00 / CONTRACT ONLY` *(مُصالح 2026-11-12 مع قرارات المالك المعتمدة 2026-11-09: تجميد صفوف الاحتياج/الرد المؤجلة خارج v1 (OD-03/REC-01)، وإضافة كيانات ملف المورد ونسخ الإعلان ووسائطه ومحفوظاته وتوفره (OD-09/OD-16)، وإضافة تصنيف وصول الزائر (OD-04))*
 **المالك:** Manus Agent 1
-**تاريخ القرار:** 27 أغسطس 2026
+**تاريخ القرار:** 27 أغسطس 2026 — آخر مصالحة: 12 نوفمبر 2026
 
 ## Major Discussion Points
 
@@ -35,9 +35,13 @@
 | `network_membership` | identity، workspace، role، status، created/ended، inviter ref. | workspace private/audit. | صلاحيات حرة بلا Role، كلمات مرور. |
 | `network_attention` | source، subject ref، state، next action، updated at، recipient ref، **مستوى إلحاح مبرر** (يستنبط من موعد أو نافذة موثقة فقط: قرار مطلوب / موعد قريب / معلومات). | interaction scoped. | مبلغ، هاتف، محتوى كامل، score أو urgency مصطنع أو محسوب، أو صندوق خدمات مركزي. |
 | `network_notification` | recipient، type، subject ref، created/read at. | role private. | اعتبار `read` قبولًا أو تغيرًا للحالة. |
-| `market_need` | owner/workspace ref، title/description، category، area، unit/quantity optional، window optional، status. | interaction scoped. | عميل، Snapshot، ربح، سعر بيع، كامل Inventory. |
-| `market_response` | need ref، supplier/workspace ref، offer description، price/range optional (تمثيل minor وفق العقد 25)، unit optional، readiness optional، status. | interaction scoped. | اتفاق دفع، receipt، Rating أو بيانات منافس. |
-| `supplier_listing` | workspace ref، name، category، description، area/coverage declared، unit/range optional، publish status. | private ثم public approved. | inventory live، SKU إلزامي، pricing engine، customer data أو تغطية مضمونة. |
+| `market_need` | ⚠️ **مؤجل خارج v1 (OD-03/REC-01)** — الصف محفوظ توصيفًا لعودة محتملة بقرار مالك جديد؛ لا يدخل Schema أو واجهة. | — | — | — |
+| `market_response` | ⚠️ **مؤجل خارج v1 (OD-03/REC-01)** — الصف محفوظ توصيفًا؛ التواصل في v1 خارجي عبر قناة الإعلان المعتمدة (OD-04). | — | — | — |
+| `supplier_profile` (+نسختا عمل/عامة) | workspace، اسم النشاط ونوعه، المحافظة والمنطقة، تصنيفات التوريد، قنوات اتصال عامة بطريقة تحقق وحالتها، وصف/شعار اختياريان، طريقة الخدمة (استلام/توصيل ومناطق)، حد تعامل اختياري، أوقات عمل وشروط عامة (OD-09). | نسخة العمل `workspace_private`؛ النسخة العامة `public_after_approval` بعد قرار المراجعة. | اعتماد مورد محترف، بيانات مالية، صفة تلقائية من التسجيل، أو وراثة تحقق قناة لقناة أخرى. |
+| `supplier_listing` | workspace، اسم، فئة، وصف، موقع توفر، حالة نشر وإصدار نسخة عامة، وحدود الحداثة 30/60 (OD-11). | private ثم public approved. | inventory live، SKU إلزامي، pricing engine، customer data أو تغطية مضمونة. |
+| `listing_revision` / `sale_terms` / `price_tiers` | نسخة محتوى ثابتة بعد التقديم ببيانات المادة وشروط البيع (جاهز/مخصص، وحدة، حد/مضاعف، تسعير بتمثيل `MarketPrice` وفق العقد 25 §3-ب)؛ القرار يثبت معرف النسخة. | private ثم public approved للنسخة المعتمدة. | تعديل نسخة مقدمة بصمت أو «أحدث محتوى» غير محدد. |
+| `saved_items` | هوية، نوع الهدف، معرف الهدف، وقت الإنشاء (فريد هوية/نوع/هدف). | خاص بالهوية. | تتبع تنافسي أو كشفه لأي طرف آخر. |
+| `availability_events` | إعلان/نسخة، حالة توفر وفاعل ووقت (تأكيد التوفر يغذي سياسة الحداثة 30/60). | interaction/public حسب النشر. | مخزون لحظي أو كمية مضمونة. |
 | `listing_media` | listing ref، owner ref، private object ref، review/public status، created at. | private ثم public approved. | public URL دائم أو metadata لا يلزم المراجعة. |
 | `delivery_request` | requester/workspace ref، direction، general scope، window، package description optional، `vehicle_requirement` optional after Wedge، status. | interaction/delivery scoped. | عنوان/هاتف تلقائي أو cash/collection أو order complete أو سيارة/سائق محدد. |
 | `delivery_quote` | request ref، courier/workspace ref، amount/range optional (تمثيل minor وفق العقد 25؛ عملة واحدة JOD حتى حسم EX-O13)، availability، expiry، status. | interaction scoped. | Expense أو payment status أو pricing recommendation. |
@@ -53,7 +57,9 @@
 | `consent_record` | consenter ref، consent scope، subject ref، consented at، valid until، revoked at. | audit restricted. | اعتباره بديلًا عن سياسة الاحتفاظ القانونية، أو ترحيل محتوى كامل معه، أو سحب صامت بلا أثر. |
 | `courier_company_profile` ⚠️ لا يُفعَّل قبل حسم EX-O10 | workspace ref، declared coverage area، service description، status. | public_after_approval بعد مراجعة، أو interaction_scoped داخل دليل الطالب. | أسعار منافسين أو عروضهم، توفر حي، GPS، أو تغطية مضمونة خارج ما أقره Wedge. |
 
-**اكتمال القاموس (E-09):** الجدول أعلاه يغطي الآن كل كيان سمّته العقود 18–21 (عشرون كيانًا) ويضيف `consent_record` (E-13) و`courier_company_profile` (معلقًا على EX-O10). أي كيان شبكي جديد لا يدخل هذا القاموس إلا بصف وبإجابات قاعدة §5.
+**اكتمال القاموس (E-09):** الجدول أعلاه يغطي كيانات العقود 18–21 ويضيف `consent_record` (E-13) وكيانات ملف المورد ونسخ الإعلان ووسائطه ومحفوظاته وتوفره (مصالحة 2026-11-12). أي كيان شبكي جديد لا يدخل هذا القاموس إلا بصف وبإجابات قاعدة §5.
+
+> **وصول الزائر (OD-04، مصالحة 2026-11-12):** الزائر بلا هوية يرى حقول `public_after_approval` المنشورة للنسخ المعتمدة وقناة الاتصال المنشورة فقط؛ لا مسودات ولا صور خاصة ولا عدادات خاصة ولا أي حقول `interaction_scoped`/`workspace_private`. الحفظ والبلاغ وبدء مسار البيع تتطلب هوية مسجلة (OD-03).
 
 > **تسوية تناقض سابق (C5):** العقد 19 §2 يطلب «مستوى إلحاح مبرر» لـ`network_attention`؛ وكانت قاعدة «لا تضف الآن» في هذا القاموس تحظر «urgency مصطنعًا». الصف أعلاه يحسم المعنى: المستوى المسموح مشتق من موعد أو نافذة موثقة في السجل نفسه (قرار مطلوب / موعد قريب / معلومات)، وتظل قاعدة العرض في العقد 19 §3 (قرار صريح أولًا، ثم موعد قريب، ثم الأحدث). أي إلحاح أو ترتيب لا يستند إلى موعد موثق يبقى محظورًا. الحقول الموقوفة على قرارات المالك (EX-O10 وEX-O11) موصوفة في §3.1 ولا تدخل Schema قبل الحسم.
 
@@ -63,7 +69,7 @@
 
 | الكيان | الحقل المعلق | الافتراضي المقترح (الخيار أ) | البدائل وشرطها |
 |---|---|---|---|
-| `market_response` | `contact_channel` | نسخة من قناة الاتصال المعتمدة في Listing الجهة — يظهر للمالك بعد نشر الرد، مقيدًا بما أقرته Moderation في Listing الأصل؛ لا حقل نص حر. | إن حسم EX-O11 بالخيار (ب) يُحذف الحقل ويُشترط Listing معتمد للرد؛ وإن حُسم بالخيار (ج) تبقى قناة Listing وحدها. وفي حال (أ) تمتد مراجعة العقد 22 §2 لتشمل قناة الرد قبل تفعيلها. |
+| `market_response` | `contact_channel` | ~~نسخة من قناة الاتصال المعتمدة~~ **سقط الحقل خارج v1 (مصالحة 2026-11-12):** `market_response` نفسه مؤجل بOD-03/REC-01، والتواصل في v1 خارجي عبر قناة الإعلان المعتمدة (OD-04)؛ لا يدخل الحقل Schema، وعودته مرتبطة بقرار مالك جديد بإعادة الاحتياجات/الردود. | — |
 | `delivery_request` | `routing` | مرجع توجيه صريح يحدد كيف يصل الطلب إلى الساعي؛ دلالاته الثلاث موثقة في العقد 21 §2 ومعلقة على EX-O10. | كل دلالة تغيّر بنية الطلب والدليل وسؤال رؤية السواعي لعروض بعضهم؛ لا يختار Agent واحدة. |
 
 ### 3.2 دورة حياة `consent_record` (E-13)
