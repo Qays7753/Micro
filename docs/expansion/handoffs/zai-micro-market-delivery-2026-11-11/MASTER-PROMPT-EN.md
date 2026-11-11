@@ -1,7 +1,7 @@
 # Z AI 5.3 — Micro Market + Micro Delivery Control Reconciliation and Decision Sync
 
 **Status:** Controlling execution prompt for the handoff branch named below.  
-**Owner authorization:** This file describes the bounded Control and later documentation stages. The current invocation authorizes Phase 0–1 only; Phase 2+ require a separate owner prompt after review of the Phase 1 report.  
+**Owner authorization:** The current invocation authorizes an independent read-only A-to-Z analysis of the actual Micro system, followed by Control reconciliation, synchronization of the approved Market/Delivery decisions into canonical GitHub docs, and an evidence-based integration/implementation report. It does not authorize feature-code implementation, structural refactoring, provider-account changes, deployment, merge, or work on `main`; stop for owner review before feature-code execution.  
 **Repository:** `https://github.com/Qays7753/Micro`  
 **Documentation repository:** same repository: `https://github.com/Qays7753/Micro`  
 **Branch:** `zai/micro-market-delivery-handoff-20261111`  
@@ -10,7 +10,7 @@
 
 ## 1. Mission
 
-You are the authorized repository executor for this phase. Work only on the existing handoff branch. Preserve the handoff commit and all prior work. Complete, in order:
+You are the sole accountable repository executor for this handoff. Work only on the existing handoff branch and preserve its handoff commit. First perform the independent read-only system analysis required in Phase 0. Then complete the Control reconciliation and Market/Delivery documentation synchronization in separate commits. Finish with the full evidence-based report and stop before feature-code work.
 
 1. Reconcile the stale Operations Control/current-state records caused by PR #384 being merged into `main` while `WS-248` still says `IN_REVIEW`.
 2. Synchronize every owner-approved Market decision `OD-01` through `OD-21` and Delivery decision `OD01` through `OD31` from the six approved specifications committed under `docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/inputs/approved-feature-specs/` into the existing canonical E-00 documentation in this repository.
@@ -61,7 +61,7 @@ If a source or feature gap requires code or a provider decision, record it as a 
 
 ## 4. Execution model and specialists
 
-For the currently authorized Phase 0–1, use one Z AI executor and no subagents. Keep the work bounded and token-efficient: read only `AGENTS.md`, the directly relevant Operations Control sources, and the Phase 1 prompt. Do not read the six feature specifications for this first task. Later feature-document work is not authorized in this invocation. If a future owner prompt authorizes Phase 2, follow that prompt's requested review method; do not create subagents unless explicitly asked or clearly necessary and cost-justified.
+Z AI is the sole accountable analyst and writer. For the comprehensive read-only assessment, if internal subagents are available and the incremental token cost is reasonable, use five non-overlapping read-only scopes on the same verified base SHA: (1) current app architecture, stack, persistence, and data flows; (2) Market decisions and fit to current code; (3) Delivery, driver roles, evidence privacy, and fit to current code; (4) identity, authorization, security, privacy, and cross-cutting UX; (5) Cloudflare/other integration evidence, tests/CI, and release operations. Do not have subagents write or repeat whole documents. Each returns concise paths/symbols, findings, gaps, and risks; the parent independently reconciles evidence and is the only writer. If subagents are unavailable or wasteful, perform the same scopes sequentially without blocking.
 
 ## 5. Phase 0 — Live-state preflight (read-only)
 
@@ -74,6 +74,16 @@ Before editing:
 5. Confirm there are no active conflicting claims/PRs and read `generated/AGENT-BRIEF.md` and `generated/ACTIVE-WORK.md` as evidence only; generated files are not editable sources.
 
 If `main` has advanced from the expected base or the handoff branch differs materially from the expected state, preserve everything and stop with `STATE_DRIFT`; do not reset, recreate, rebase, cherry-pick, or force-push. Report exact SHAs and the minimum owner decision needed. If the known Control discrepancy is the only expected failure, proceed to Phase 1 because resolving it is expressly authorized.
+
+### Independent A-to-Z baseline analysis (read-only; complete before any writes)
+
+After the live-state preflight and before editing repository sources, independently inspect the actual repository/codebase and the six approved feature specifications committed in this handoff. The existing scan report, prior A-to-Z plan, and old Z AI prompt are cross-check inputs only; do not adopt their findings without independently confirming the relevant current files and state. Record your own findings first, then compare them with the supplied report and explicitly show agreements, disagreements, and new findings.
+
+Cover, with exact repository paths/symbols and bounded evidence: current stack and entry points; app shell/navigation and feature boundaries; UI-to-domain-to-storage/API composition; identity/session/workspace/role authorization; current persistence and data flow; network/API capabilities; image/document storage and privacy; offline, retry, idempotency, and failure behavior; notifications/background tasks; observability/audit; tests, CI, generated docs, deployment/workflows, environment and secrets; and what actually exists versus is only specified for Market and Delivery. Do not read out or paste large source files; provide evidence and concise maps. Do not modify code, architecture, or provider configuration.
+
+Inventory Cloudflare and every other relevant integration from repository evidence only. Classify each as `SOURCE_CONFIG_PRESENT`, `DOCUMENTED_ONLY`, `PROPOSED`, `NOT_FOUND`, or `UNKNOWN`; cite the repository file and setting/binding name, not a provider-console URL. Distinguish prototype needs from connected-pilot and production needs. Evaluate the owner's preference for an initial standalone prototype using local/mock data and manual role management before automated third-party APIs; compare it with the approved OD specifications, and flag any conflict rather than assuming automation or selecting a provider.
+
+Before proceeding to Control/doc edits, produce a concise internal findings matrix: confirmed current behavior; Market/Delivery gaps; integration evidence and unknowns; security/privacy and operational risks; owner decisions still genuinely missing; and the smallest safe phases from design through prototype, connected pilot, and production, each with dependencies and acceptance evidence. Do not perform structural remediation or ask again about decisions already explicit in the committed specs.
 
 ## 6. Phase 1 — Operations Control reconciliation
 
@@ -93,7 +103,7 @@ Known baseline discrepancy (must be reverified live): PR #384 was merged into `m
 
 ## 7. Phase 2 — Complete, canonical OD synchronization
 
-Phase 2 is a later stage. Do not begin it in the current invocation. Begin only after the owner reviews the Phase 1 report and sends a separate prompt authorizing Phase 2. Once authorized, work on the same branch and apply the OD crosswalk requirements below; do not ask the owner to repeat decisions already explicit in the approved inputs. Stop for a genuine contradiction, missing material owner decision, unresolved security/privacy concern, failed mandatory gate, or scope drift.
+After the independent analysis and successful Phase 1 Control gate, continue on the same branch to the already-authorized Market and Delivery documentation sync. Do not pause between approved decisions to re-ask the owner. Stop for a genuine contradiction in the committed specifications, a missing material owner decision, unresolved security/privacy concern, failed mandatory gate, or scope drift. After the final report, stop before any application-code or provider-account work and wait for owner review/authorization.
 
 ### Required repository sources
 
@@ -160,7 +170,7 @@ After all canonical documentation edits, run the checks applicable to the exact 
 - `python3 scripts/operations-control/generate_tracker.py --check`
 - `git diff --check`
 - `node scripts/check-secrets.mjs`
-- `pnpm check` if dependencies are already installed and this is the repository-required final check; do not install dependencies or change package files. If unavailable, mark `NOT_RUN` and give the exact reason.
+- Run `pnpm check` only if repository policy explicitly requires it for these documentation/Control-only changes; otherwise do not run a broad application suite with no code changes. Do not install dependencies. If required but unavailable, mark `NOT_RUN` and give the exact reason.
 - Any focused repository documentation/consistency check that the canonical docs require.
 
 Run applicable checks after each phase/commit and again on the final exact SHA. Do not report a command as passed unless you ran it and recorded exit status and tested SHA. If a check fails, identify whether it is caused by this branch or is a baseline/unrelated failure; fix only in-scope root causes. Do not claim unrelated test coverage or runtime readiness from a docs-only change. Do not trigger workflows or deployments that create external side effects.
@@ -173,6 +183,7 @@ The report must be written in Arabic for the owner, with technical paths, IDs, c
 
 1. Repository, branch, base SHA, final full SHA, handoff commit, phase commits, and worktree state.
 2. Exact Control issue and resolution: PR #384 merge SHA, `WS-248`/`DOC-032` transitions, current-state update, generated artifacts, and evidence supporting each status.
+3. An independent current-system map based on repository code and canonical docs, with exact paths/symbols; its findings must be written before and compared against the older scan report. Include verified architecture, feature fit/gaps, and any differences from that report.
 3. All 52 OD crosswalk rows, with exact source paths/sections and target paths/sections; aligned decisions preserved, changed sections listed, unresolved items labeled.
 4. Changed and unchanged files; explicit `NO_APPLICATION_CODE_CHANGES` and `NO_PROVIDER_ACCESS` statements.
 5. Commands, exit codes, and exact tested SHA for every test/check; unavailable or failing checks labeled honestly.
@@ -185,6 +196,7 @@ The report must be written in Arabic for the owner, with technical paths, IDs, c
 ## 9. Later implementation recommendations — report only, do not execute
 
 After the documentation is consistent, recommend the smallest safe implementation stages needed for both features to work as a real part of Micro. The plan must be concrete and evidence-based, but it is not authorization to code now. Cover shared identity/session and role membership; Market browse, vendor/listing moderation, private images and freshness; Delivery driver onboarding/review, protected evidence, owner selection, request/response lifecycle, notifications/reminders; API/data isolation; accessibility/RTL/mobile UX; auditing, idempotency, backup/restore, operational monitoring; integration and acceptance testing; staged rollout and rollback.
+ Separate the standalone prototype, limited connected pilot, and production readiness. Evaluate a manual/local/mock prototype with owner-managed roles before automated third-party APIs as the owner-preferred starting point, subject to the explicit approved OD decisions; do not silently override an OD or choose a provider. For any exception, explain the evidence and decision needed.
 
 For each future stage give: exact product outcome; repository evidence and likely areas to inspect (do not guess changed files); upstream decisions; dependency; code owner (Z AI); external-service/account owner (owner + Manus); test/acceptance evidence; privacy/security/financial risk; and rollback. Do not invent an architecture, provider, timeline, cost, or legal conclusion. Label estimates as estimates and state the evidence needed to confirm them.
 
@@ -202,11 +214,11 @@ Do not browse or access provider accounts. Do not output provider-console links.
 
 Stop and report `BLOCKED` if live repository state differs materially, the Control validator cannot be made to pass safely within the allowed scope, an approved specification contradicts itself on a material product/privacy/financial rule, a necessary owner decision is absent, or a required operation would touch code/provider settings/`main`/merge.
 
-For the initial invocation, complete Phase 0 and Phase 1 only, commit and push that accomplishment on this one branch, then stop and wait for the owner. Phases 2–3 require a separate owner prompt after review. When a later phase is authorized, use a separate commit for each accomplishment and do not pause after each OD to repeat approved answers. Checkpoints never authorize scope expansion.
+For the current invocation, complete the independent read-only analysis, Control reconciliation, Market documentation sync, Delivery/cross-cutting documentation sync, and the unified A-to-Z/integration report on this one branch. Use a separate commit for each accomplishment, run only the checks required for the changed Control/docs, then push and stop for owner review before code. Do not re-ask decisions already approved in the committed specs. Checkpoints never authorize scope expansion.
 
 At the end, push the completed commits to `zai/micro-market-delivery-handoff-20261111` and report the branch URL, each commit SHA, final full SHA, exact changed paths, checks and results, report path, and one next action. Do not merge, deploy, access external providers, or perform cleanup. End with exactly one status:
 
-- `CONTROL_AND_DECISION_SYNC_COMPLETE — OWNER_REVIEW_REQUIRED`
+- `ANALYSIS_CONTROL_AND_DECISION_SYNC_COMPLETE — OWNER_REVIEW_REQUIRED_BEFORE_CODE`
 - `BLOCKED — <specific cause>`
 - `STATE_DRIFT — <specific cause>`
 
