@@ -271,6 +271,25 @@ export default [
       "@typescript-eslint/no-explicit-any": "error",
     },
   },
+  /* EX-D18 (2026-11-12): بيت عامل الشبكة (Cloudflare Workers-compatible BFF) —
+   * كود خادمي خارج شجرة العميل؛ قواعد الأساس نفسها (لا any صريح) مع إذن
+   * موثق لواجهات runtime العامل (fetch/crypto/Request/Response). */
+  {
+    files: ["apps/prototype-web/worker/**/*.{ts,tsx}"],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint.plugin,
+    },
+    rules: {
+      "@typescript-eslint/no-explicit-any": "error",
+    },
+  },
   /* المجموعة ٨ (المعالجة الرباعية — STR-037): قشرة التطبيق app/ لا تلمس
    * التخزين في زمن التشغيل — المرور عبر خدمات Application حصرًا كما في
    * الصفحات/المكونات (استيراد الأنواع مسموح بالسياسة نفسها). الاستثناءان

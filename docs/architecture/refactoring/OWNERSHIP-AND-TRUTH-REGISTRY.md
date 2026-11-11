@@ -109,6 +109,9 @@
 |---|---|---|---|---|---|
 | `financialPulseService.ts` (75 nbLOC) | application/financial-pulse/ | نبض مالي محلي: تجميعات معرّفة لحقول CraftOrder فقط — لا يدّعي كاش المشروع أو ربحه أو دفترًا (رأس الملف عقدًا) | منفذ `OrderLifecycleStore` الضيق (قدرة 4C) + `isRegisteredCustomerDebt` من المجال | `financialPulseService.test.ts` (مجاور) | مصنّفة — **الصف كان مفقودًا (STR-619) وسُدّ هنا** |
 | `capacityDecisionService.ts` (57 nbLOC) | application/scheduling/ | اشتقاق قرار القدرة (unknown/needs_review/within_limit/over_limit) من يوم الجدولة | `scheduleService` (البيت نفسه) | `capacityDecisionService.test.ts` + `capacityDecisionViewModel.test.ts` (مجاوران) | مصنّفة — **الصف كان مفقودًا (STR-619) وسُدّ هنا** |
+| `apiClient.ts` + `sessionService.ts` (EX-D18، 2026-11-12) | application/network/ | عميل BFF نفس الأصل `/api/*` وجلسة هوية Micro: قراءة الجلسة والقدرات الخادمية وتوجيه الدخول/الخروج — **لا كتابة تخزين محلي إطلاقًا** (Manage محلي أولًا محفوظ) | الخادم (worker) حصرًا عبر fetch نفس الأصل | `worker/tests/*.test.ts` (محاكاة D1/R2 حقيقية) | مصنّفة — بيت جديد بترخيص بوابة الكود (WS-249/DOC-033) |
+| `marketService.ts` + `marketEstimate.ts` (EX-D18، 2026-11-12) | application/market/ | خدمات السوق للعميل: التصفح العام ومساحة المورد والمسودات والتقدير الصافي BigInt — تعرض ما يعيده الخادم ولا تحسب مالًا | الخادم (worker) حصرًا | فحوص Market المركزة | مصنّفة — بيت جديد بترخيص بوابة الكود (WS-249/DOC-034) |
+| `deliveryService.ts` (EX-D18، 2026-11-12) | application/delivery/ | خدمات التوصيل للعميل: تجربة صاحب المشروع وبوابة السائق والكشوف والتقييم — تعرض ما يعيده الخادم ولا تحسب مالًا | الخادم (worker) حصرًا | فحوص Delivery المركزة | مصنّفة — بيت جديد بترخيص بوابة الكود (WS-249/DOC-035) |
 
 **إكمال تغطية بيوت application غير المالية** (بيوت المال الستة — finance/financial-analysis/financial-records/owner-money/g5/recurring — مغطاة بعناقيد §3 أعلاه؛ البيوت التالية بدلالة مالك مفهومها وأدلة اختبارها المباشرة المجاورة):
 

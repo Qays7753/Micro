@@ -109,6 +109,10 @@ export const READ_LIKE_CORPUS_BASELINE = [
   "agreements/orderDetailViewModel.ts",
   "assets/index.ts",
   "cash/cashCountMessages.ts",
+  /* EX-D18 (2026-11-12): بيت الشبكة — عميل BFF نفس الأصل بلا أي كتابة تخزين محلي. */
+  "network/apiClient.ts",
+  "network/index.ts",
+  "network/sessionService.ts",
   "cash/index.ts",
   "cash/walletLedgerService.ts",
   "catalog/index.ts",

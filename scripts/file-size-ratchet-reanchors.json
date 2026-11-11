@@ -9521,6 +9521,25 @@
         "trigger": "المراجعة الخماسية المستقلة (الجولة الثانية فوق إصلاحات الجولة الأولى) أكدت عيوب إتاحة/قاموس؛ العلاج الجذري بأسطر مؤرخة موقعة بمرجع المراجعة؛ بوابة S11 تمنع أي تقسيم",
         "ocRef": "DOC-032"
       }
+    },
+    {
+      "id": "reanchor-readwrite-network-home-2026-11-12",
+      "date": "2026-11-12",
+      "path": "scripts/check-application-readwrite.mjs",
+      "from": {
+        "nbLoc": 315,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 338,
+        "band": "NORMAL"
+      },
+      "reason": "تسجيل ملفات بيت الشبكة الجديد (network/apiClient.ts وnetwork/index.ts وnetwork/sessionService.ts) في جسم القراءة READ_LIKE_CORPUS_BASELINE — نمو إلزامي فرضه الحارس نفسه عند إضافة بيت تطبيق جديد بلا أفعال كتابة (تصنيف موثق بنفس الـPR وفق D-04/R10A-F-019)؛ لا تغيير منطق.",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market/Delivery المتوافق مع Cloudflare",
+        "trigger": "إنشاء بيت application/network بمطالبة Control موثقة قبل الكود",
+        "ocRef": "DOC-033"
+      }
     }
   ]
 }

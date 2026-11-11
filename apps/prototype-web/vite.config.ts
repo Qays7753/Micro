@@ -294,7 +294,10 @@ const pwa = VitePWA({
     navigateFallback: "/index.html",
     navigateFallbackAllowlist: [/^\/(?!__manus__)/],
     globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-    globIgnores: ["**/__manus__/**"],
+    /* EX-D18 (2026-11-12): the network worker (_worker.js) is emitted AFTER the
+         * client build by scripts/build-worker.mjs and must never be precached —
+         * belt-and-braces exclusion in addition to build order. */
+        globIgnores: ["**/__manus__/**", "**/_worker.js"],
     maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
   },
   devOptions: { enabled: false },

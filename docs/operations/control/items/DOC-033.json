@@ -2,7 +2,7 @@
   "id": "DOC-033",
   "title": "الأساس المشترك المتوافق مع Cloudflare + تحديثات المعمارية والعقود (EX-D18 وإعادة صياغة العقد 21 §3.2 وقواعد العقد 26 §8)",
   "type": "FEATURE",
-  "status": "IN_PROGRESS",
+  "status": "IN_REVIEW",
   "priority": "P1",
   "stage": "market-delivery-cloudflare-implementation-20261112",
   "summary": "تنفيذ الأساس الأدنى الإضافي الذي تحتاجه ميزتا Market وDelivery معًا وفق EX-D18: BFF متوافق مع Pages/Workers على جذر النشر الفعلي مع فهرسة أصول وترويسات أمان؛ مخطط D1 وترحيلات مرقومة لكيانات الشبكة فقط (بلا بايتات وسائط)؛ دخول Google OIDC عبر هوية Micro مع جلسات HttpOnly/SameSite وحماية CSRF/Origin؛ إقلاع أول مالك-إداري بلا بريد/سر مكتوب في المصدر؛ تخويل خادمي مدعوم بD1 لكل عملية وفق مصفوفة الدور؛ كائنات R2 خاصة بمفاتيح عشوائية وتحقق قبل كل رفع/قراءة/حذف؛ إشعارات داخل التطبيق فقط؛ ضوابط معدل عند حد الخادم؛ إعداد محاكاة محلية Wrangler/D1/R2 وفحوص مركزة بالبيانات الاصطناعية. مع ذلك تحديث المعمارية والعقود الموثق (EX-D18، مصفوفة الانتقالات الموجهة، تنقل السوق/التوصيل/بوابة السائق).",
@@ -70,7 +70,10 @@
   ],
   "evidence": [
     "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
-    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md",
+    "apps/prototype-web/worker/tests/auth.session.test.ts",
+    "apps/prototype-web/worker/tests/media.privacy.test.ts",
+    "apps/prototype-web/worker/tests/foundation.isolation.test.ts"
   ],
   "dependencies": [
     "DOC-032"
@@ -110,8 +113,14 @@
       "changed_at": "2026-11-12",
       "actor": "zai-implementation-writer",
       "reason": "بدأ التنفيذ فورًا بالمرحلة التوثيقية المصرح بها (القرار المعماري EX-D18 وإعادة صياغة العقد 21 §3.2 وقواعد تنقل العقد 26 §8) ثم يتبعها الكود الإضافي للأساس المشترك ثم Market ثم Delivery والتزامات منفصلة لكل إنجاز."
+    },
+    {
+      "status": "IN_REVIEW",
+      "changed_at": "2026-11-12",
+      "actor": "zai-implementation-writer",
+      "reason": "تسليم الأساس المشترك المتوافق مع Cloudflare على فرع التسليم: عامل BFF متوافق مع Pages/Workers (متقدم _worker.js) مع فهرسة الأصول وترويسات الأمان وSPA fallback؛ مخطط D1 وترحيل كامل لكيانات الشبكة فقط (28 جدولًا)؛ دخول Google OIDC بمسار التخويل الكامل وتحقق صارم (iss/aud/exp/nonce/email_verified) وجلسات D1 بكوكي HttpOnly/SameSite وحرس CSRF/Origin مركزي؛ إقلاع أول مالك-إداري بمتغير إعداد بلا بريد في المصدر؛ تخويل خادمي مشتق من D1؛ وسائط R2 خاصة بمفاتيح عشوائية وقرة مصرح بها فقط؛ إشعارات داخل التطبيق؛ ضوابط معدل D1 ذرية؛ ضمان تكرار الأوامر؛ فحوص 22 اختبارًا على محاكاة workerd/D1/R2 حقيقية كلها خضراء (جلسات/CSRF/تكرار/خصوصية وسائط/عزل Manage/ذرية المعاملات)؛ بيت شبكة العميل (apiClient/sessionService) مسجل بأبوابه وسجل الملكية. بانتظار المراجعة الخماسية والتقرير النهائي على المرشح المتكامل."
     }
   ],
   "migration_baseline": false,
-  "next_action": "استكمال الأساس المشترك (API/D1/OIDC/جلسات/R2/إشعارات/ضوابط معدل) وفحوصه المحلية، ثم الانتقال إلى Market (DOC-034)."
+  "next_action": "اكتمل تنفيذ الأساس وفحوصه المركز (22/22 أخضر على محاكاة حقيقية)؛ المرحلة التالية Market (DOC-034) ثم Delivery (DOC-035) ثم المراجعة الخماسية والفحص المجموع والتقرير."
 }

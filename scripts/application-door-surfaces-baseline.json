@@ -420,6 +420,23 @@
       "type": [
         "PlanningToolsResult"
       ]
+    },
+    "network": {
+      "value": [
+        "ApiError",
+        "apiDownload",
+        "apiFetch",
+        "apiUpload",
+        "newIdempotencyKey",
+        "fetchSession",
+        "signOut",
+        "startGoogleSignIn"
+      ],
+      "type": [
+        "ApiCallOptions",
+        "ApiErrorShape",
+        "NetworkSession"
+      ]
     }
   },
   "rootFiles": [

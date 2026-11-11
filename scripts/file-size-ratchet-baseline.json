@@ -1531,7 +1531,7 @@
       "band": "NORMAL"
     },
     "scripts/check-application-readwrite.mjs": {
-      "nbLoc": 315,
+      "nbLoc": 338,
       "band": "NORMAL"
     },
     "scripts/check-current-state-size.mjs": {
