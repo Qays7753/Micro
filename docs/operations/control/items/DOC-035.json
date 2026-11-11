@@ -1,0 +1,111 @@
+{
+  "id": "DOC-035",
+  "title": "Micro Delivery v1 من البداية للنهاية (تجربة المالك، بوابة السائق المستقلة، خصوصية الإثباتات، الحجز الموجه، الكشوف والنجوم)",
+  "type": "FEATURE",
+  "status": "READY",
+  "priority": "P1",
+  "stage": "market-delivery-cloudflare-implementation-20261112",
+  "summary": "تنفيذ سلوك Delivery v1 المعتمد كاملًا (OD01…OD31 والعقد 21/22/23/24 المُصالَحين): تبويب التوصيل لتجربة صاحب المشروع وبوابة سائق مستقلة تمامًا بنفس هوية Micro (لا ترى Manage أو Market أو واجهات المالك/المورد)؛ تقديم ذاتي ودعوة ومراجعة يدوية للسائق والمركبة بثلاث فئات إثبات خاصة (هوية/رخصة/إثبات مركبة عند تسجيلها) بحالة وتاريخ انتهاء عند وضوحه وانتهاء يحجب الجديد فقط (OD28–OD30)؛ اختيار المالك سائقًا معروفًا بلا بث ولا بديل تلقائي (OD03)؛ دورة الطلب الموجه بمهلها (رد 30 دقيقة، عرض نهائي واحد، انتظار 10+10) ومحاور التنفيذ والتأكيد والتواصل والأغراض والمال المسجلة فقط بمطابقة مصفوفة العقد 21 §3.2 المُعادة صياغتها؛ لا إغلاق تلقائي عند صمت المالك (OD16) وحرس محاولة الاتصال قبل تعذر/إلغاء لعدم الاستلام (OD15)؛ تصريحات وكشف يومي كامل بلا تسوية جزئية وبلا أي أثر مالي؛ نجوم مؤهلة فورية وتعليقات بمراجعة قيس؛ حجب كشف هاتف/عنوان الزبون حتى إشعار قانوني آخر من المالك؛ واجهات عربية RTL كاملة الأحوال.",
+  "source": {
+    "report": "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
+    "discovered_at_sha": "ce21b78653448563bf66467967509e64bb577360",
+    "evidence": [
+      "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
+      "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+    ]
+  },
+  "acceptance": [
+    "كل رحلات Delivery الإلزامية في S-05/S-06/S-06A/S-09/S-10/S-13/S-15/S-15A/S-16/S-18 لها أدلة فحص خضراء.",
+    "اختبارات: دورة السائق الكاملة، اختيار السائق المعروف، لا بث/بديل، انتقالات ومهل محور الطلب والتنفيذ، رفض خصوصية الإثباتات عبر الأدوار/الحسابات، سلوك الانتهاء، الكشف والاعتراض، حرس محاولة الاتصال، لا إغلاق بصمت، تكرار/idempotency، انعدام أثر Manage.",
+    "كشف هاتف/عنوان المستلم محجوب افتراضيًا حتى قرار المالك القانوني (EX-O14) — مساره معطل بوسم صريح واختبار حراسة."
+  ],
+  "areas": [
+    "apps/prototype-web/worker/",
+    "apps/prototype-web/client/src/application/delivery/",
+    "apps/prototype-web/client/src/application/network/",
+    "apps/prototype-web/client/src/components/delivery/",
+    "apps/prototype-web/client/src/components/driver/",
+    "apps/prototype-web/client/src/pages/Delivery.tsx",
+    "apps/prototype-web/client/src/pages/DeliveryBookingEditor.tsx",
+    "apps/prototype-web/client/src/pages/DeliveryBookingDetail.tsx",
+    "apps/prototype-web/client/src/pages/DeliveryDrivers.tsx",
+    "apps/prototype-web/client/src/pages/DriverPortal.tsx",
+    "apps/prototype-web/client/src/pages/DriverApplication.tsx",
+    "apps/prototype-web/client/src/pages/DriverBookingDetail.tsx",
+    "apps/prototype-web/client/src/app/MicroRouter.tsx",
+    "apps/prototype-web/client/src/app/navigation.ts",
+    "apps/prototype-web/client/src/app/routeClassifier.ts",
+    "apps/prototype-web/client/src/app/navigationContract.ts",
+    "apps/prototype-web/client/src/app/routeKnowledgeSync.test.ts",
+    "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts",
+    "apps/prototype-web/client/src/ownershipBoundaries.exe017.test.ts",
+    "apps/prototype-web/client/src/R2.renderSmoke.test.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/operations/current-state.md",
+    "docs/expansion/README.md",
+    "docs/expansion/DECISIONS.md",
+    "docs/expansion/TRACKER.md",
+    "docs/expansion/E00-TECHNICAL-ARCHITECTURE-DECISION.md",
+    "docs/expansion/E00-EXECUTION-PROTOCOL.md",
+    "docs/expansion/E00-SCENARIOS-AND-ACCEPTANCE.md",
+    "docs/expansion/E00-TRACEABILITY-MATRIX.md",
+    "docs/expansion/ROLE-ACCESS-MATRIX.md",
+    "docs/expansion/MARKET-DELIVERY-OWNER-IA-CONTRACT.md",
+    "docs/expansion/MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md",
+    "docs/contracts/18-network-identity-workspace-access-contract.md",
+    "docs/contracts/19-services-notification-manage-boundary-contract.md",
+    "docs/contracts/20-market-need-response-listing-moderation-contract.md",
+    "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+    "docs/contracts/22-network-moderation-consent-audit-contract.md",
+    "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+    "docs/contracts/24-network-data-classification-field-dictionary-contract.md",
+    "docs/contracts/25-network-money-representation-contract.md",
+    "docs/contracts/26-navigation-referrer-and-deep-link-contract.md",
+    "apps/prototype-web/ARCHITECTURE.md",
+    "docs/architecture/EXTENSION_PLAYBOOK.md",
+    "docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md"
+  ],
+  "evidence": [
+    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
+    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+  ],
+  "dependencies": [
+    "DOC-033"
+  ],
+  "related_items": [
+    "DOC-033",
+    "DOC-034"
+  ],
+  "owner": "Micro owner (Qays7753); ZAI sole implementation writer per owner master prompt ce21b786",
+  "owner_decision": "قرار المالك المعماري EX-D18 (2026-11-12): Cloudflare Pages + BFF متوافق مع Pages Functions/Workers + D1 لبيانات الشبكة + R2 للملفات الخاصة + دخول Google عبر هوية Micro؛ بلا Supabase وبلا ترقية مدفوعة وبلا وصول لحسابات المزود من ZAI.",
+  "tests_required": [
+    "فحوص API/مجال/واجهة لرحلات J01–J24 الممثلة في السيناريوهات والفحوص المركزة AT41–AT60 القابلة للتنفيذ محليًا.",
+    "فحوص عزل: سائق ضد سائق، سائق ضد واجهات المالك، إداري ضد تجاوز، خصوصية إثباتات."
+  ],
+  "layers": [
+    "api",
+    "database",
+    "application",
+    "presentation",
+    "security",
+    "tests",
+    "documentation",
+    "operations-control"
+  ],
+  "classification": "BUILD_AFTER_EVIDENCE",
+  "gate_classification": "NOT_APPLICABLE",
+  "updated_at": "2026-11-12",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-11-12",
+      "actor": "zai-claim-2026-11-12",
+      "reason": "أنشئت المطالبة قبل أول سطر كود للتوسعة بترخيص المالك الصريح المؤرخ 2026-11-12 في أمر التنفيذ المعدَّل لحزمة التسليم (commit ce21b786) فوق رأس إغلاق W05 (1bf077d7)؛ لا تداخل مع أي مطالبة نشطة بعد تحرير WS-248 إلى VERIFIED؛ فُحص تعارض المناطق والعقود ولم يبق مطالبة نشطة غيرها."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "يبدأ تنفيذ Delivery فور اكتمال Market (DOC-034)؛ التزام Delivery منفصل."
+}

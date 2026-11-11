@@ -1,0 +1,109 @@
+{
+  "id": "DOC-034",
+  "title": "Micro Market v1 من البداية للنهاية (تصفح الضيف، مساحة المورد والمسودات، الاعتدال، حداثة 30/60، MarketPrice)",
+  "type": "FEATURE",
+  "status": "READY",
+  "priority": "P1",
+  "stage": "market-delivery-cloudflare-implementation-20261112",
+  "summary": "تنفيذ سلوك Market v1 المعتمد كاملًا (OD-01…OD-21 والعقد 20/25 المُصالَحين): الضيف يتصفح الإعلانات المعتمدة العامة بقناة التواصل المعتمدة فقط؛ المستخدم الموثق يدخل مساحة المورد بحسابه نفسه ويحرر ملف المورد ومسودات الإعلان والصور الخاصة ثم يقدمها للمراجعة اليدوية؛ المراجع المخول يراجع ويقبل/يرفض/يطلب تعديلًا بتاريخ وسبب وتاريخ حالات، والنشر يشترط اكتمال قبول كل الأجزاء المطلوبة؛ عزل تام بين الموردين؛ نموذج Listing-first وطنيًا بفئات يديرها المالك؛ حداثة 30/60 (تنبيه، إخفاء، تجديد بمراجعة) مع تمييز تأكيد التوفر عن الإيقاف الإداري؛ تمثيل MarketPrice الصحيح (×1,000,000 كسور صحيحة، ×1,000 للكميات، BigInt، بلا MoneyMinor) وبلا أي أثر مالي في Manage؛ الواجهة العربية RTL بمساراتها وأحوالها الصادقة؛ اختبارات مركزة لكل رحلة.",
+  "source": {
+    "report": "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
+    "discovered_at_sha": "ce21b78653448563bf66467967509e64bb577360",
+    "evidence": [
+      "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
+      "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+    ]
+  },
+  "acceptance": [
+    "كل رحلات Market الإلزامية في S-01/S-03/S-07/S-11/S-12/S-13/S-14/S-16/S-18 لها أدلة فحص خضراء.",
+    "اختبارات: وصول الضيف، خصوصية مسودات المتقدم، حدود الاعتدال والنشر، عزل الموردين، دورة حياة 30/60، خصوصية الصور، تعديلات idempotent، انعدام أثر Manage.",
+    "تقديرات الكمية بحساب BigInt بكسر نصفي واحد إلى 0.001 معروضة بلا أي كتابة مالية.",
+    "CX-01…CX-12 موثقة الحالة في التقرير النهائي (منفذة أو محجوبة بعائق خارجي مسمى)."
+  ],
+  "areas": [
+    "apps/prototype-web/worker/",
+    "apps/prototype-web/client/src/application/market/",
+    "apps/prototype-web/client/src/application/network/",
+    "apps/prototype-web/client/src/components/market/",
+    "apps/prototype-web/client/src/pages/Market.tsx",
+    "apps/prototype-web/client/src/pages/MarketListingDetail.tsx",
+    "apps/prototype-web/client/src/pages/MarketVendorWorkspace.tsx",
+    "apps/prototype-web/client/src/pages/MarketListingEditor.tsx",
+    "apps/prototype-web/client/src/pages/MarketReview.tsx",
+    "apps/prototype-web/client/src/app/MicroRouter.tsx",
+    "apps/prototype-web/client/src/app/navigation.ts",
+    "apps/prototype-web/client/src/app/routeClassifier.ts",
+    "apps/prototype-web/client/src/app/navigationContract.ts",
+    "apps/prototype-web/client/src/app/routeKnowledgeSync.test.ts",
+    "apps/prototype-web/client/src/application/diagnostics/routeTemplate.ts",
+    "apps/prototype-web/client/src/ownershipBoundaries.exe017.test.ts",
+    "apps/prototype-web/client/src/R2.renderSmoke.test.tsx"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/operations/current-state.md",
+    "docs/expansion/README.md",
+    "docs/expansion/DECISIONS.md",
+    "docs/expansion/TRACKER.md",
+    "docs/expansion/E00-TECHNICAL-ARCHITECTURE-DECISION.md",
+    "docs/expansion/E00-EXECUTION-PROTOCOL.md",
+    "docs/expansion/E00-SCENARIOS-AND-ACCEPTANCE.md",
+    "docs/expansion/E00-TRACEABILITY-MATRIX.md",
+    "docs/expansion/ROLE-ACCESS-MATRIX.md",
+    "docs/expansion/MARKET-DELIVERY-OWNER-IA-CONTRACT.md",
+    "docs/expansion/MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md",
+    "docs/contracts/18-network-identity-workspace-access-contract.md",
+    "docs/contracts/19-services-notification-manage-boundary-contract.md",
+    "docs/contracts/20-market-need-response-listing-moderation-contract.md",
+    "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+    "docs/contracts/22-network-moderation-consent-audit-contract.md",
+    "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+    "docs/contracts/24-network-data-classification-field-dictionary-contract.md",
+    "docs/contracts/25-network-money-representation-contract.md",
+    "docs/contracts/26-navigation-referrer-and-deep-link-contract.md",
+    "apps/prototype-web/ARCHITECTURE.md",
+    "docs/architecture/EXTENSION_PLAYBOOK.md",
+    "docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md"
+  ],
+  "evidence": [
+    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
+    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+  ],
+  "dependencies": [
+    "DOC-033"
+  ],
+  "related_items": [
+    "DOC-033",
+    "DOC-035"
+  ],
+  "owner": "Micro owner (Qays7753); ZAI sole implementation writer per owner master prompt ce21b786",
+  "owner_decision": "قرار المالك المعماري EX-D18 (2026-11-12): Cloudflare Pages + BFF متوافق مع Pages Functions/Workers + D1 لبيانات الشبكة + R2 للملفات الخاصة + دخول Google عبر هوية Micro؛ بلا Supabase وبلا ترقية مدفوعة وبلا وصول لحسابات المزود من ZAI.",
+  "tests_required": [
+    "فحوص API/مجال/واجهة لكل رحلة مطلوبة في العقد 20 والسيناريوهات.",
+    "فحوص عزل: مورد ضد مورد، ضيف ضد مسودات، مراجع ضد تجاوز."
+  ],
+  "layers": [
+    "api",
+    "database",
+    "application",
+    "presentation",
+    "security",
+    "tests",
+    "documentation",
+    "operations-control"
+  ],
+  "classification": "BUILD_AFTER_EVIDENCE",
+  "gate_classification": "NOT_APPLICABLE",
+  "updated_at": "2026-11-12",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-11-12",
+      "actor": "zai-claim-2026-11-12",
+      "reason": "أنشئت المطالبة قبل أول سطر كود للتوسعة بترخيص المالك الصريح المؤرخ 2026-11-12 في أمر التنفيذ المعدَّل لحزمة التسليم (commit ce21b786) فوق رأس إغلاق W05 (1bf077d7)؛ لا تداخل مع أي مطالبة نشطة بعد تحرير WS-248 إلى VERIFIED؛ فُحص تعارض المناطق والعقود ولم يبق مطالبة نشطة غيرها."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "يبدأ تنفيذ Market فور اكتمال أساس DOC-033 وفحوصه؛ التزام Market منفصل عن Delivery."
+}

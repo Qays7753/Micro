@@ -1,0 +1,117 @@
+{
+  "id": "DOC-033",
+  "title": "الأساس المشترك المتوافق مع Cloudflare + تحديثات المعمارية والعقود (EX-D18 وإعادة صياغة العقد 21 §3.2 وقواعد العقد 26 §8)",
+  "type": "FEATURE",
+  "status": "IN_PROGRESS",
+  "priority": "P1",
+  "stage": "market-delivery-cloudflare-implementation-20261112",
+  "summary": "تنفيذ الأساس الأدنى الإضافي الذي تحتاجه ميزتا Market وDelivery معًا وفق EX-D18: BFF متوافق مع Pages/Workers على جذر النشر الفعلي مع فهرسة أصول وترويسات أمان؛ مخطط D1 وترحيلات مرقومة لكيانات الشبكة فقط (بلا بايتات وسائط)؛ دخول Google OIDC عبر هوية Micro مع جلسات HttpOnly/SameSite وحماية CSRF/Origin؛ إقلاع أول مالك-إداري بلا بريد/سر مكتوب في المصدر؛ تخويل خادمي مدعوم بD1 لكل عملية وفق مصفوفة الدور؛ كائنات R2 خاصة بمفاتيح عشوائية وتحقق قبل كل رفع/قراءة/حذف؛ إشعارات داخل التطبيق فقط؛ ضوابط معدل عند حد الخادم؛ إعداد محاكاة محلية Wrangler/D1/R2 وفحوص مركزة بالبيانات الاصطناعية. مع ذلك تحديث المعمارية والعقود الموثق (EX-D18، مصفوفة الانتقالات الموجهة، تنقل السوق/التوصيل/بوابة السائق).",
+  "source": {
+    "report": "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
+    "discovered_at_sha": "ce21b78653448563bf66467967509e64bb577360",
+    "evidence": [
+      "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
+      "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+    ]
+  },
+  "acceptance": [
+    "فحوص محلية تثبت رفض غير الموثق والسياق الخاطئ والدور الخاطئ والحساب الخاطئ لكل مسار محمي، ونجاح العمليات المسموحة للموثق.",
+    "إعادة المحاولة بمفتاح التكرار لا تكرر الحالة؛ فشل معاملة D1 لا يترك حالة جزئية (اختبار فشل مقصود).",
+    "كائنات R2 الخاصة غير قابلة للوصول العام بأي مسار؛ القراءة تمر بتخويل خادمي فقط.",
+    "لا يستطيع أي مسار API كتابة تخزين Manage المحلي أو إنشاء حدث مالي (اختبار انعدام أثر).",
+    "الترحيلات تطبق على D1 المحلية والفحوص تشتغل على البيانات الحقيقية للكيانات (لا بيانات وهمية في مسار القبول).",
+    "لا أسرار ولا معرفات موارد في المستودع؛ أسماء الربط/الأسرار موثقة للتسليم فقط."
+  ],
+  "areas": [
+    "apps/prototype-web/worker/",
+    "apps/prototype-web/client/src/application/network/",
+    "apps/prototype-web/package.json",
+    "apps/prototype-web/vite.config.ts",
+    "apps/prototype-web/tsconfig.json",
+    "apps/prototype-web/scripts/",
+    "package.json",
+    "pnpm-lock.yaml",
+    "scripts/application-door-surfaces-baseline.json",
+    "docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md",
+    "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+    "docs/contracts/26-navigation-referrer-and-deep-link-contract.md",
+    "docs/expansion/DECISIONS.md",
+    "docs/expansion/E00-TECHNICAL-ARCHITECTURE-DECISION.md",
+    "docs/expansion/E00-TRACEABILITY-MATRIX.md",
+    "docs/expansion/TRACKER.md",
+    "docs/00-document-index.md"
+  ],
+  "contracts": [
+    "AGENTS.md",
+    "docs/operations/control/README.md",
+    "docs/operations/current-state.md",
+    "docs/expansion/README.md",
+    "docs/expansion/DECISIONS.md",
+    "docs/expansion/TRACKER.md",
+    "docs/expansion/E00-TECHNICAL-ARCHITECTURE-DECISION.md",
+    "docs/expansion/E00-EXECUTION-PROTOCOL.md",
+    "docs/expansion/E00-SCENARIOS-AND-ACCEPTANCE.md",
+    "docs/expansion/E00-TRACEABILITY-MATRIX.md",
+    "docs/expansion/ROLE-ACCESS-MATRIX.md",
+    "docs/expansion/MARKET-DELIVERY-OWNER-IA-CONTRACT.md",
+    "docs/expansion/MANAGE-NETWORK-MIGRATION-EXPORT-GATE.md",
+    "docs/contracts/18-network-identity-workspace-access-contract.md",
+    "docs/contracts/19-services-notification-manage-boundary-contract.md",
+    "docs/contracts/20-market-need-response-listing-moderation-contract.md",
+    "docs/contracts/21-delivery-request-quote-status-privacy-contract.md",
+    "docs/contracts/22-network-moderation-consent-audit-contract.md",
+    "docs/contracts/23-network-data-lifecycle-recovery-contract.md",
+    "docs/contracts/24-network-data-classification-field-dictionary-contract.md",
+    "docs/contracts/25-network-money-representation-contract.md",
+    "docs/contracts/26-navigation-referrer-and-deep-link-contract.md",
+    "apps/prototype-web/ARCHITECTURE.md",
+    "docs/architecture/EXTENSION_PLAYBOOK.md",
+    "docs/architecture/refactoring/OWNERSHIP-AND-TRUTH-REGISTRY.md"
+  ],
+  "evidence": [
+    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/MASTER-PROMPT-EN.md",
+    "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md"
+  ],
+  "dependencies": [
+    "DOC-032"
+  ],
+  "related_items": [
+    "DOC-032"
+  ],
+  "owner": "Micro owner (Qays7753); ZAI sole implementation writer per owner master prompt ce21b786",
+  "owner_decision": "قرار المالك المعماري EX-D18 (2026-11-12): Cloudflare Pages + BFF متوافق مع Pages Functions/Workers + D1 لبيانات الشبكة + R2 للملفات الخاصة + دخول Google عبر هوية Micro؛ بلا Supabase وبلا ترقية مدفوعة وبلا وصول لحسابات المزود من ZAI.",
+  "tests_required": [
+    "فحوص أساس على محاكاة D1/R2 حقيقية (workerd): مصفوفة سماح/منع لضيف/بائع/مالك/سائق/إداري.",
+    "فحوص جلسات: إنشاء، صلاحية، إبطال، كوكي HttpOnly/SameSite، فشل CSRF/Origin.",
+    "فحوص تكرار وفشل معاملة وخصوصية وسائط وعزل حسابات."
+  ],
+  "layers": [
+    "api",
+    "database",
+    "auth",
+    "security",
+    "application",
+    "tests",
+    "documentation",
+    "operations-control"
+  ],
+  "classification": "BUILD_AFTER_EVIDENCE",
+  "gate_classification": "NOT_APPLICABLE",
+  "updated_at": "2026-11-12",
+  "status_history": [
+    {
+      "status": "READY",
+      "changed_at": "2026-11-12",
+      "actor": "zai-claim-2026-11-12",
+      "reason": "أنشئت المطالبة قبل أول سطر كود للتوسعة بترخيص المالك الصريح المؤرخ 2026-11-12 في أمر التنفيذ المعدَّل لحزمة التسليم (commit ce21b786) فوق رأس إغلاق W05 (1bf077d7)؛ لا تداخل مع أي مطالبة نشطة بعد تحرير WS-248 إلى VERIFIED؛ فُحص تعارض المناطق والعقود ولم يبق مطالبة نشطة غيرها."
+    },
+    {
+      "status": "IN_PROGRESS",
+      "changed_at": "2026-11-12",
+      "actor": "zai-implementation-writer",
+      "reason": "بدأ التنفيذ فورًا بالمرحلة التوثيقية المصرح بها (القرار المعماري EX-D18 وإعادة صياغة العقد 21 §3.2 وقواعد تنقل العقد 26 §8) ثم يتبعها الكود الإضافي للأساس المشترك ثم Market ثم Delivery والتزامات منفصلة لكل إنجاز."
+    }
+  ],
+  "migration_baseline": false,
+  "next_action": "استكمال الأساس المشترك (API/D1/OIDC/جلسات/R2/إشعارات/ضوابط معدل) وفحوصه المحلية، ثم الانتقال إلى Market (DOC-034)."
+}
