@@ -1,7 +1,7 @@
 {
   "id": "WS-248",
   "title": "UXR-W05 — أمر المرحلة النهائية (UXR-07 ثم UXR-08: الأداء المثبت وتعافي المسودات ثم القبول التكاملي والتسليم)",
-  "status": "IN_REVIEW",
+  "status": "MERGED_UNVERIFIED",
   "items": [
     "DOC-032"
   ],
@@ -108,8 +108,8 @@
   "agent": "ZAI — sole product-code implementation writer; five independent read-only reviewers after W01–W05 implementation completes, then focused tests and one full repository check on the integrated tree",
   "pr": 384,
   "started_at": "2026-11-06",
-  "updated_at": "2026-11-06",
-  "next_action": "قرار المالك وحده: التحقق المجموع من تسليم W05 (تقرير UXR-W05-RESULT-2026-11-06 النهائي بنتائج المراجعتين والإصلاحات والفحوص) ثم قرار القبول/الدمج أو الرفض؛ لا قبول ذاتي ولا دمج، وPR #384 يبقى Draft.",
+  "updated_at": "2026-11-12",
+  "next_action": "قرار المالك وحده للتحقق المجموع من تسليم W05 على main الفعلي (16c90e48bdc018939f97f41d05e969c900bc30e0): إما توثيق تحقق خاص بالبند على رأس main (تشغيل فحوص البند المطلوبة وتسجيل أدلتها) للانتقال إلى VERIFIED، أو قرار قبول صريح يستند إلى تقرير UXR-W05-RESULT-2026-11-06 ونتائج فحصَي رأس الدمج، أو إعادة فتح بمبرر موثق؛ لا قبول ذاتي.",
   "notes": [
     "Owner final stage order 2026-11-06 authorizes executing W05 before formal acceptance of W01–W04; the authorization overrides their acceptance prerequisites for execution only. It does not accept any wave and does not authorize merging. Do not pause for intermediate approval between UXR-07 and UXR-08.",
     "Do not run product tests or launch review agents until the W05 implementation is complete. After W01–W05 implementation: exactly five independent read-only reviewers (requirements/traceability; UX/accessibility; financial/domain correctness; data integrity/security; runtime/performance/tests/release readiness) on the same candidate SHA with the required repository sources; they must not edit files, commit, or run tests; confirmed findings reported separately from suggestions with severity, requirement/source, exact file and line, root cause, impact, and smallest safe fix; incomplete coverage must be reported explicitly.",
@@ -148,7 +148,14 @@
       "changed_at": "2026-11-06",
       "actor": "zai-product-code-writer",
       "reason": "تسليم W05 النهائي بأمر المرحلة النهائية: تنفيذ UXR-07 ثم UXR-08 ثم المراجعة الخماسية المستقلة بجولتيها (الجولة الأولى على efb292b3 والجولة الثانية إعادة فحص المناطق الخمس على المرشح النهائي — 15 عيبًا مؤكدًا عولجت كلها جذريًا في 4360a92c وملحق التسليم؛ المال/المجال والبيانات/الأمن صفر عيوب) ثم الفحوص المركزة المؤجلة والمحدثة (15 ملفًا/79 اختبارًا كلها خضراء) وفحص المستودع الكامل مرة واحدة على الشجرة النهائية المجمعة والتحقق من Actions وCloudflare على رأس الـPR النهائي بعينه — لا قبول ذاتي ولا دمج؛ بانتظار التحقق المجموع وقرار المالك."
+    },
+    {
+      "status": "MERGED_UNVERIFIED",
+      "changed_at": "2026-11-12",
+      "actor": "zai-control-reconciliation-2026-11-12",
+      "reason": "مصالحة الحقيقة التشغيلية بعد الدمج: دمج المالك PR #384 في main عند 16c90e48bdc018939f97f41d05e969c900bc30e0 بتاريخ 2026-11-06T12:41:53Z (merged_by=Qays7753)، وفحصا رأس الدمج Cloudflare Pages وchecks ناجحان؛ الانتقال القانوني IN_REVIEW إلى MERGED_UNVERIFIED وفق AGENTS.md §14 ودورة الحالة في docs/operations/control/README.md. لم يستخدم VERIFIED لأن التحقق المجموع الخاص ببند W05 أُنجز على رأس الفرع قبل الدمج، وVERIFIED يتطلب دليلًا خاصًا على main وقرار مالك؛ نجاح فحصَي الدمج العامين وحده لا يثبت قبول البنود التفصيلية."
     }
   ],
-  "migration_baseline": false
+  "migration_baseline": false,
+  "merge_sha": "16c90e48bdc018939f97f41d05e969c900bc30e0"
 }
