@@ -1,0 +1,79 @@
+{
+  "manifest_version": 1,
+  "snapshot_date": "2026-11-11",
+  "repository": "Qays7753/Micro",
+  "handoff_branch": "zai/micro-market-delivery-handoff-20261111",
+  "expected_base_sha": "16c90e48bdc018939f97f41d05e969c900bc30e0",
+  "source_of_truth": "Committed files in this GitHub repository only",
+  "external_file_service_access_required": false,
+  "external_file_service_links_or_ids_included": false,
+  "sanitization_note": "External file-service links and identifiers were removed or replaced with repository-local paths. Product decision content was not intentionally changed.",
+  "files": [
+    {
+      "path": "inputs/approved-feature-specs/delivery/Micro_Delivery_Execution_Master_AR_v1.md",
+      "category": "OWNER_APPROVED_FEATURE_SPEC",
+      "bytes": 239614,
+      "sha256": "3fc37fcf3f0d53ad1e7f3596e99d43f27d0726d404825210044457411b1647f0"
+    },
+    {
+      "path": "inputs/approved-feature-specs/delivery/Micro_Delivery_Prototype_Written_Specification_AR_v1.md",
+      "category": "OWNER_APPROVED_FEATURE_SPEC",
+      "bytes": 83411,
+      "sha256": "59b8babf225bbd0679aa386e91727f15f5b129fec70c0e115b8a5e5142815276"
+    },
+    {
+      "path": "inputs/approved-feature-specs/delivery/Micro_Delivery_Technical_Requirements_AR_v1.md",
+      "category": "OWNER_APPROVED_FEATURE_SPEC",
+      "bytes": 99141,
+      "sha256": "19cef87b22dac0473b81a18131d200cef0159d74b50bc4a8193bedd27ef3a652"
+    },
+    {
+      "path": "inputs/approved-feature-specs/market/Micro_Market_Execution_Master_AR_v1.md",
+      "category": "OWNER_APPROVED_FEATURE_SPEC",
+      "bytes": 137660,
+      "sha256": "ab7f14402edd46aa5f3e6d8be2fb527ad8b00e60978d564a7506da8cd459b645"
+    },
+    {
+      "path": "inputs/approved-feature-specs/market/Micro_Market_Product_UX_Specification_AR_v1.md",
+      "category": "OWNER_APPROVED_FEATURE_SPEC",
+      "bytes": 96011,
+      "sha256": "095e25580f5857eef854b16667bba00af10731abddf4bf85f0d904c7caa8de99"
+    },
+    {
+      "path": "inputs/approved-feature-specs/market/Micro_Market_Technical_Requirements_AR_v1.md",
+      "category": "OWNER_APPROVED_FEATURE_SPEC",
+      "bytes": 107757,
+      "sha256": "632130602a04e08e9970ebfda914f47d1b1d638c4fd97900b9ae734590c39ad3"
+    },
+    {
+      "path": "inputs/owner-background/Micro_Market_Delivery_A_to_Z_Plan_AR.md",
+      "category": "HISTORICAL_PLAN_REFERENCE",
+      "bytes": 41369,
+      "sha256": "6c0d9fe74f0244b5dbe63331797c65c4e9743818564942dd1fe8b7edd757b52a"
+    },
+    {
+      "path": "inputs/owner-background/Micro_Other_Issues_Tracker_AR.md",
+      "category": "DEFERRED_ISSUES_REFERENCE",
+      "bytes": 18298,
+      "sha256": "bc9484014c5de6f22e6a825007882463c515d321e1a98285a749987e59e93bf1"
+    },
+    {
+      "path": "inputs/owner-background/Micro_Structure_Architecture_Code_Organization_Scan_Report_2026-11-11.md",
+      "category": "READ_ONLY_ARCHITECTURE_SCAN",
+      "bytes": 94662,
+      "sha256": "5a02a811abf7fa0b2ea2809f4e0c9b480cfd4fe6d56138163a492298450dc540"
+    },
+    {
+      "path": "inputs/owner-background/Micro_UX_Principles_Supplementary_AR.md",
+      "category": "SUPPLEMENTARY_UX_CONTEXT",
+      "bytes": 39020,
+      "sha256": "750b70e3e1adb51bcfc9cb5ee4010e90839709b646129fbbec2ab17535ba6adb"
+    },
+    {
+      "path": "inputs/owner-background/SUPERSEDED_ZAI_Prompt_Draft_AR.md",
+      "category": "HISTORICAL_NON_EXECUTABLE_PROMPT",
+      "bytes": 28750,
+      "sha256": "c1b6536c0c3c401ceb04e1971d24d9e6227f6505eaf1cf981a5c032ac36c50e8"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+Repository: https://github.com/Qays7753/Micro
+Branch: zai/micro-market-delivery-handoff-20261111
+
+Read and execute only `docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/PHASE-1-CONTROL-PROMPT-EN.md`. Reconcile Operations Control on this existing branch, commit and push that accomplishment separately, report the evidence in Arabic, then stop and wait. Use only repository/GitHub information. Do not access external file services, read the feature specifications, sync Market/Delivery decisions, change code, use providers, create a PR, or touch `main`. Use the secure credential field; never paste a token into chat or files.
