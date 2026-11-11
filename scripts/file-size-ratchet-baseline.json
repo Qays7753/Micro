@@ -23,7 +23,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/app/MicroRouter.tsx": {
-      "nbLoc": 253,
+      "nbLoc": 288,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/app/PrototypeServicesContext.tsx": {
@@ -35,11 +35,11 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/app/navigation.ts": {
-      "nbLoc": 53,
+      "nbLoc": 59,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/app/navigationContract.ts": {
-      "nbLoc": 202,
+      "nbLoc": 216,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/app/quickRecording.tsx": {
@@ -51,7 +51,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/app/routeClassifier.ts": {
-      "nbLoc": 80,
+      "nbLoc": 95,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/app/useDisabledCapabilities.ts": {
@@ -1107,7 +1107,7 @@
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/Market.tsx": {
-      "nbLoc": 58,
+      "nbLoc": 187,
       "band": "NORMAL"
     },
     "apps/prototype-web/client/src/pages/MaterialEditor.tsx": {
@@ -1515,8 +1515,8 @@
       "band": "WATCH"
     },
     "scripts/application-door-surfaces-baseline.json": {
-      "nbLoc": 354,
-      "band": "NORMAL"
+      "nbLoc": 474,
+      "band": "WATCH"
     },
     "scripts/application-house-edges-census.json": {
       "nbLoc": 891,
@@ -1531,7 +1531,7 @@
       "band": "NORMAL"
     },
     "scripts/check-application-readwrite.mjs": {
-      "nbLoc": 338,
+      "nbLoc": 341,
       "band": "NORMAL"
     },
     "scripts/check-current-state-size.mjs": {

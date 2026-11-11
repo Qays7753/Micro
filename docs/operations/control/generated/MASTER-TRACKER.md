@@ -2,7 +2,7 @@
 
 > مولّد آليًا من JSON. عدّل ملفات `items/*.json` و`workstreams/**/*.json` فقط.
 
-BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · READY: 2 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 85 · SUPERSEDED: 1
+BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 2 · READY: 1 · BACKLOG: 2 · REVIEW_REQUIRED: 6 · DEFERRED: 20 · VERIFIED: 85 · SUPERSEDED: 1
 
 | ID | الحالة | التصنيف | Gate | الأولوية | المرحلة | العنوان | المالك | الطبقات | الاعتماديات |
 |---|---|---|---|---|---|---|---|---|---|
@@ -11,7 +11,7 @@ BLOCKED: 3 · IN_PROGRESS: 1 · IN_REVIEW: 1 · READY: 2 · BACKLOG: 2 · REVIEW
 | PILOT-001 | BLOCKED | RELEASE_GATE | RELEASE_GATE | P1 | stage-10 | قرار بدء Pilot | Product owner / Manus coordination | release, pilot | AUDIT-001, CLEAN-001, CTRL-001, CTRL-002, DEVICE-001, DOC-011, DOC-012, DOC-013, FIN-001, FIN-002, FIN-003, FIN-004, FIN-005, FIN-006, FIN-007, FIN-008, FIN-009, G-001, G-002, G-003, G-004, G-005, G-006, HARD-009, HARD-010, HARD-011, LEGAL-001, OPS-001, OPS-002, OPS-003, OPS-004, OPS-005, OPS-006, OPS-007, OPS-008, OPS-009, REL-001, REM-001, REM-002, REM-003, REM-004, REM-005, REM-006, REM-007, UAT-001, UX-001 |
 | UX-001 | IN_PROGRESS | FIX_BEFORE_PILOT | DEPENDENCY_GATE_REQUIRED_BEFORE_PILOT | P1 | stage-5 | إعادة تصميم UI وUX جذرية | Product owner / Manus coordination | ui/ux, presentation | CLEAN-001 |
 | DOC-033 | IN_REVIEW | BUILD_AFTER_EVIDENCE | NOT_APPLICABLE | P1 | market-delivery-cloudflare-implementation-20261112 | الأساس المشترك المتوافق مع Cloudflare + تحديثات المعمارية والعقود (EX-D18 وإعادة صياغة العقد 21 §3.2 وقواعد العقد 26 §8) | Micro owner (Qays7753); ZAI sole implementation writer per owner master prompt ce21b786 | api, database, auth, security, application, tests, documentation, operations-control | DOC-032 |
-| DOC-034 | READY | BUILD_AFTER_EVIDENCE | NOT_APPLICABLE | P1 | market-delivery-cloudflare-implementation-20261112 | Micro Market v1 من البداية للنهاية (تصفح الضيف، مساحة المورد والمسودات، الاعتدال، حداثة 30/60، MarketPrice) | Micro owner (Qays7753); ZAI sole implementation writer per owner master prompt ce21b786 | api, database, application, presentation, security, tests, documentation, operations-control | DOC-033 |
+| DOC-034 | IN_REVIEW | BUILD_AFTER_EVIDENCE | NOT_APPLICABLE | P1 | market-delivery-cloudflare-implementation-20261112 | Micro Market v1 من البداية للنهاية (تصفح الضيف، مساحة المورد والمسودات، الاعتدال، حداثة 30/60، MarketPrice) | Micro owner (Qays7753); ZAI sole implementation writer per owner master prompt ce21b786 | api, database, application, presentation, security, tests, documentation, operations-control | DOC-033 |
 | DOC-035 | READY | BUILD_AFTER_EVIDENCE | NOT_APPLICABLE | P1 | market-delivery-cloudflare-implementation-20261112 | Micro Delivery v1 من البداية للنهاية (تجربة المالك، بوابة السائق المستقلة، خصوصية الإثباتات، الحجز الموجه، الكشوف والنجوم) | Micro owner (Qays7753); ZAI sole implementation writer per owner master prompt ce21b786 | api, database, application, presentation, security, tests, documentation, operations-control | DOC-033 |
 | AUDIT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | تدقيق مستقل نهائي قبل الـPilot | Product owner / Manus coordination | uat, audit, cross-layer | UAT-001 |
 | UAT-001 | BACKLOG | RELEASE_GATE | NOT_APPLICABLE | P1 | stage-9 | قبول داخلي ببيانات Demo كاملة | Product owner / Manus coordination | uat, audit, cross-layer | DEVICE-001, LEGAL-001 |

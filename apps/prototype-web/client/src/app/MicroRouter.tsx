@@ -62,6 +62,10 @@ const Catalog = lazy(() => import("@/pages/Catalog"));
 const Tools = lazy(() => import("@/pages/Tools"));
 /* NAV-001: السوق — المقعد الخامس، إعلان «قريبًا» صادق بلا أي أثر مالي. */
 const Market = lazy(() => import("@/pages/Market"));
+const MarketListingDetail = lazy(() => import("@/pages/MarketListingDetail"));
+const MarketVendorWorkspace = lazy(() => import("@/pages/MarketVendorWorkspace"));
+const MarketListingEditor = lazy(() => import("@/pages/MarketListingEditor"));
+const MarketReview = lazy(() => import("@/pages/MarketReview"));
 /* UNIT-043 (S16): التوصيل — المقعد الرابع؛ إعلان صادق لا حجز ولا تسعير ولا تتبع. */
 const Delivery = lazy(() => import("@/pages/Delivery"));
 /* S10 (UNIT-031/032): حاسبة التخطيط T01 — أداة تفكير بلا أثر مالي ومحفوظاتها داخلها. */
@@ -205,7 +209,14 @@ export function MicroRouter() {
             {/* S10 (UNIT-030): أدوات المشروع — خمس أدوات فقط، لا أداة سادسة (الهجرة النهائية للتنقل ملك S16). */}
             <Route path="/tools" component={Tools} />
             {/* NAV-001: السوق — سطح يبقي التنقل السفلي؛ إعلان توسعة لا وظيفة. */}
+            {/* EX-D18 (عقد 26 §8 — بوابة الكود 2026-11-12): مسارات السوق —
+                القارئات أسطح، والمحررات عمق (routeClassifier). */}
             <Route path="/market" component={Market} />
+            <Route path="/market/vendor" component={MarketVendorWorkspace} />
+            <Route path="/market/vendor/new" component={MarketListingEditor} />
+            <Route path="/market/vendor/:id" component={MarketListingEditor} />
+            <Route path="/market/listing/:id" component={MarketListingDetail} />
+            <Route path="/market/review" component={MarketReview} />
             <Route path="/delivery" component={Delivery} />
             {/* S10 (UNIT-031/032): حاسبة التخطيط T01 بعمق كامل مع محفوظاتها داخلها؛
                 والرابط القديم /tools/estimate/:id صار إحالة إليها (لا صفحة مستقلة). */}

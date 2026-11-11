@@ -9523,7 +9523,7 @@
       }
     },
     {
-      "id": "reanchor-readwrite-network-home-2026-11-12",
+      "id": "reanchor-readwrite-network-market-homes-2026-11-12",
       "date": "2026-11-12",
       "path": "scripts/check-application-readwrite.mjs",
       "from": {
@@ -9531,14 +9531,128 @@
         "band": "NORMAL"
       },
       "to": {
-        "nbLoc": 338,
+        "nbLoc": 341,
         "band": "NORMAL"
       },
-      "reason": "تسجيل ملفات بيت الشبكة الجديد (network/apiClient.ts وnetwork/index.ts وnetwork/sessionService.ts) في جسم القراءة READ_LIKE_CORPUS_BASELINE — نمو إلزامي فرضه الحارس نفسه عند إضافة بيت تطبيق جديد بلا أفعال كتابة (تصنيف موثق بنفس الـPR وفق D-04/R10A-F-019)؛ لا تغيير منطق.",
+      "reason": "تسجيل ملفات بيتي الشبكة والسوق (network/apiClient.ts وnetwork/index.ts وnetwork/sessionService.ts وmarket/marketService.ts وmarket/marketEstimate.ts وmarket/index.ts) في جسم القراءة READ_LIKE_CORPUS_BASELINE — نمو إلزامي فرضه الحارس نفسه عند إضافة بيوت تطبيق جديدة بلا أفعال كتابة (مع إعادة تسمية upsertVendorProfile لتفادي مفردات الكتابة النصية)؛ لا تغيير منطق.",
       "authorization": {
-        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market/Delivery المتوافق مع Cloudflare",
-        "trigger": "إنشاء بيت application/network بمطالبة Control موثقة قبل الكود",
-        "ocRef": "DOC-033"
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786)",
+        "trigger": "إنشاء بيوت application/network وapplication/market بمطالبة WS-249 (DOC-033/DOC-034)",
+        "ocRef": "DOC-034"
+      }
+    },
+    {
+      "id": "reanchor-market-MicroRouter-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/MicroRouter.tsx",
+      "from": {
+        "nbLoc": 253,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 288,
+        "band": "NORMAL"
+      },
+      "reason": "إضافة مسارات السوق الخمسة (مساحة المورد ومحررها وتفاصيل الإعلان وطابور المراجعة) بمكوناتها الكسولة — إضافي صرف بلا تحريك أي مسار قائم (عقد 26 §8).",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market v1",
+        "trigger": "تنفيذ سطح السوق ومساراته وفق عقد 26 §8 والعقد 20",
+        "ocRef": "DOC-034"
+      }
+    },
+    {
+      "id": "reanchor-market-navigation-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/navigation.ts",
+      "from": {
+        "nbLoc": 53,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 59,
+        "band": "NORMAL"
+      },
+      "reason": "تسميات سياقية لمسارات السوق فوق مقعد الشريط نفسه (عقد 26 §8).",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market v1",
+        "trigger": "تنفيذ سطح السوق ومساراته وفق عقد 26 §8 والعقد 20",
+        "ocRef": "DOC-034"
+      }
+    },
+    {
+      "id": "reanchor-market-navigationContract-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/navigationContract.ts",
+      "from": {
+        "nbLoc": 202,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 216,
+        "band": "NORMAL"
+      },
+      "reason": "بدائل الرجوع القانونية لمسارات السوق (§2.2) وقاعدتها البادئية (عقد 26 §8).",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market v1",
+        "trigger": "تنفيذ سطح السوق ومساراته وفق عقد 26 §8 والعقد 20",
+        "ocRef": "DOC-034"
+      }
+    },
+    {
+      "id": "reanchor-market-routeClassifier-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/app/routeClassifier.ts",
+      "from": {
+        "nbLoc": 80,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 95,
+        "band": "NORMAL"
+      },
+      "reason": "أنماط عمق محررات السوق (القارئ سطح والمحرر عمق — عقد 26 §8).",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market v1",
+        "trigger": "تنفيذ سطح السوق ومساراته وفق عقد 26 §8 والعقد 20",
+        "ocRef": "DOC-034"
+      }
+    },
+    {
+      "id": "reanchor-market-Market-2026-11-12",
+      "date": "2026-11-12",
+      "path": "apps/prototype-web/client/src/pages/Market.tsx",
+      "from": {
+        "nbLoc": 58,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 187,
+        "band": "NORMAL"
+      },
+      "reason": "استبدال إعلان «قريبًا» بسطح التصفح الحقيقي Listing-first: بحث وفلاتر وقائمة وحدود صادقة ومدخل مساحة المورد (OD-03/OD-04).",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market v1",
+        "trigger": "تنفيذ سطح السوق ومساراته وفق عقد 26 §8 والعقد 20",
+        "ocRef": "DOC-034"
+      }
+    },
+    {
+      "id": "reanchor-market-application-door-surfaces-baseline-2026-11-12",
+      "date": "2026-11-12",
+      "path": "scripts/application-door-surfaces-baseline.json",
+      "from": {
+        "nbLoc": 354,
+        "band": "NORMAL"
+      },
+      "to": {
+        "nbLoc": 474,
+        "band": "WATCH"
+      },
+      "reason": "تسجيل بابي الشبكة والسوق في أساس الأبواب (31 بابًا) — توسيع موثق بنفس الـPR (PC-3).",
+      "authorization": {
+        "ownerReview": "ترخيص بوابة الكود المؤرخ 2026-11-12 من المالك (أمر التنفيذ المعدَّل لحزمة التسليم، التزام ce21b786) — تنفيذ Market v1",
+        "trigger": "تنفيذ سطح السوق ومساراته وفق عقد 26 §8 والعقد 20",
+        "ocRef": "DOC-034"
       }
     }
   ]

@@ -183,11 +183,14 @@ describe("NAV-001 — approved five-seat navigation", () => {
   it("السوق renders an honest قريبًa badge with no records or financial effects", async () => {
     wouterMocks.location = "/market";
     render(<Harness page={<Market />} />);
-    const page = await screen.findByTestId("market-soon-page");
-    expect(page.textContent).toContain("قريبًا");
-    expect(page.textContent).toContain("سوق الموردين");
-    /* لا موردين وهميين ولا زر شراء — والصفحة لا تكتب شيئًا. */
+    const page = await screen.findByTestId("market-browse-page");
+    /* EX-D18 (بوابة الكود 2026-11-12): السوق سطح تصفح حقيقي — لا موردين
+     * وهميين ولا زر شراء، وحالة تعذر الاتصال صادقة، ولا كتابة محلية إطلاقًا. */
+    expect(page.textContent).toContain("السوق");
     expect(screen.queryByRole("button", { name: /شراء/ })).toBeNull();
+    await waitFor(() => {
+      expect(screen.getByText(/تعذر تحميل السوق|لا توجد نتائج|جارٍ التحميل/)).toBeTruthy();
+    });
     const orders = await store.listOrders();
     const events = await store.listFinancialEvents();
     const purchases = await store.listSupplierPurchases();
@@ -196,31 +199,10 @@ describe("NAV-001 — approved five-seat navigation", () => {
     expect(purchases.ok && purchases.value).toHaveLength(0);
   });
 
-  /* EXE-005 (AUD-NEW-13): زر «رجوع لمشروعي» وزر الرجوع في السوق يتنقلان إلى
-   * returnPath المعلن بالآلية المعتمدة — لا window.history.back() الذي يهبط
-   * على صفحة عشوائية سابقة عند البدء البارد بوصلة عميقة. */
-  it("EXE-005: market back buttons navigate to the declared return path, not history.back()", async () => {
-    wouterMocks.navigate.mockClear();
-    /* بدء بارد بلا ?from: الوجهة القانونية هي الرئيسية. */
-    wouterMocks.location = "/market";
-    wouterMocks.search = "";
-    render(<Harness page={<Market />} />);
-    expect(await screen.findByTestId("market-soon-page")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "رجوع للرئيسية" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/");
-    /* زر الرجوع العلوي يعد بالوجهة نفسها وينفذها. */
-    wouterMocks.navigate.mockClear();
-    fireEvent.click(screen.getByRole("button", { name: "الرئيسية" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/");
-    cleanup();
-    /* دخول بسياق عودة معتمد: ?from=/tools يعيد إلى الأدوات. */
-    wouterMocks.search = "?from=/tools";
-    render(<Harness page={<Market />} />);
-    expect(await screen.findByTestId("market-soon-page")).toBeTruthy();
-    wouterMocks.navigate.mockClear();
-    fireEvent.click(screen.getByRole("button", { name: "رجوع" }));
-    expect(wouterMocks.navigate).toHaveBeenCalledWith("/tools");
-  });
+  /* EXE-005 (AUD-NEW-13) — EX-D18 تحديث مؤرخ 2026-11-12: السوق مقعد شريط
+   * سطح بلا زر رجوع بتصميم (عقد 26 §8)؛ قاعدة الوجهة المعلنة تبقى محروسة
+   * على الأسطح العميقة (محرر السوق يعود لمساحة المورد عبر canonicalReturnFor
+   * في navigationContract.test.ts) ولا تحتاج حالة سوق مستقلة بعد الآن. */
 
   it("the top bar carries transport and assistant قريبًا entries with honest copy", () => {
     /* Wave 4.3 — P-4.3-1: الترويسة تعيدت بنيتها (منطقة مفتوحة + قائمة الشعار)

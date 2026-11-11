@@ -437,6 +437,35 @@
         "ApiErrorShape",
         "NetworkSession"
       ]
+    },
+    "market": {
+      "value": [
+        "attachListingMedia",
+        "browseMarketListings",
+        "confirmListingAvailability",
+        "createListingDraft",
+        "estimateMaterialValue",
+        "fetchListingDetail",
+        "fetchMarketMeta",
+        "fetchVendorOverview",
+        "formatMicroJodAsJod",
+        "listingLifecycleAction",
+        "reportListing",
+        "upsertVendorProfile",
+        "submitListing",
+        "submitVendorProfile",
+        "toggleSavedListing",
+        "uploadListingImage"
+      ],
+      "type": [
+        "EstimateInput",
+        "EstimateResult",
+        "ListingDraftInput",
+        "MarketMeta",
+        "PublicListingDetail",
+        "PublicListingSummary",
+        "VendorOverview"
+      ]
     }
   },
   "rootFiles": [

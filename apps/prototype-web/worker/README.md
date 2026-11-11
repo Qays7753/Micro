@@ -9,27 +9,27 @@ service-worker precache manifest never includes the worker).
 
 ## Layout
 
-| Path | Purpose |
-|---|---|
-| `index.ts` | Entry: `/api/*` routing, static assets + SPA fallback, security headers |
-| `env.ts` | Binding/secret NAMES and engineering defaults (no values live here) |
-| `auth/` | Google OIDC (authorization-code + strict payload validation), D1-backed sessions, CSRF/origin |
-| `db/migrations/` | Versioned D1 migrations (network entities ONLY — never Manage data) |
-| `api/` | Route handlers (auth, media, system) |
-| `authorization.ts` | Server-side capability resolution (guest/authenticated/vendor/driver/admin) |
-| `media.ts` | Private R2 object handling (random keys, authorized reads only) |
-| `tests/` | Real workerd + D1 + R2 emulation tests (Miniflare + esbuild harness) |
+| Path               | Purpose                                                                                       |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| `index.ts`         | Entry: `/api/*` routing, static assets + SPA fallback, security headers                       |
+| `env.ts`           | Binding/secret NAMES and engineering defaults (no values live here)                           |
+| `auth/`            | Google OIDC (authorization-code + strict payload validation), D1-backed sessions, CSRF/origin |
+| `db/migrations/`   | Versioned D1 migrations (network entities ONLY — never Manage data)                           |
+| `api/`             | Route handlers (auth, media, system)                                                          |
+| `authorization.ts` | Server-side capability resolution (guest/authenticated/vendor/driver/admin)                   |
+| `media.ts`         | Private R2 object handling (random keys, authorized reads only)                               |
+| `tests/`           | Real workerd + D1 + R2 emulation tests (Miniflare + esbuild harness)                          |
 
 ## Bindings and secrets (owner/Manus setup — names only)
 
-| Name | Kind | Purpose |
-|---|---|---|
-| `DB` | D1 binding | Market/Delivery network data |
-| `MEDIA` | R2 bucket binding (private) | Listing images + driver evidence |
-| `ASSETS` | Pages-provided | Static assets (automatic) |
-| `GOOGLE_CLIENT_ID` | Var | Google OAuth client id |
-| `GOOGLE_CLIENT_SECRET` | Secret | Google OAuth client secret |
-| `BOOTSTRAP_OWNER_EMAIL` | Var/Secret (one-time) | First admin bootstrap; remove after use |
+| Name                    | Kind                        | Purpose                                 |
+| ----------------------- | --------------------------- | --------------------------------------- |
+| `DB`                    | D1 binding                  | Market/Delivery network data            |
+| `MEDIA`                 | R2 bucket binding (private) | Listing images + driver evidence        |
+| `ASSETS`                | Pages-provided              | Static assets (automatic)               |
+| `GOOGLE_CLIENT_ID`      | Var                         | Google OAuth client id                  |
+| `GOOGLE_CLIENT_SECRET`  | Secret                      | Google OAuth client secret              |
+| `BOOTSTRAP_OWNER_EMAIL` | Var/Secret (one-time)       | First admin bootstrap; remove after use |
 
 No production database/account/zone IDs, domains, or secret values belong in
 this repository. Sessions use the `micro_session` HttpOnly cookie.

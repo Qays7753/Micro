@@ -196,6 +196,13 @@ export const canonicalReturnFallbacks: Readonly<Record<string, string>> = {
    * بيت قسم «منتجاتي وخدماتي» المعلن بعد تنظيف أدواتي (تحديث موثق واحد مع
    * عقد ٢٦ §2.2 واختباره). */
   "/catalog": "/",
+  /* EX-D18 (عقد 26 §8 — بوابة الكود 2026-11-12): بدائل رجوع السوق —
+   * المحررات تعود لمساحة المورد، والتفاصيل للسوق؛ عقد 26 §2.2. */
+  "/market/vendor": "/market",
+  "/market/review": "/market",
+  "/market/listing/:id": "/market",
+  "/market/vendor/new": "/market/vendor",
+  "/market/vendor/:id": "/market/vendor",
 };
 
 /** البديل القانوني لمسار بمعرّف: يُستخرج من نمط المسار لا من قائمة مغلقة. */
@@ -215,6 +222,8 @@ export function canonicalReturnFor(pathname: string): string {
   if (pathname.startsWith("/assets/")) return "/assets";
   if (pathname.startsWith("/loans/")) return "/loans";
   if (pathname.startsWith("/catalog")) return "/catalog";
+  if (pathname.startsWith("/market/vendor/")) return "/market/vendor";
+  if (pathname.startsWith("/market/listing/")) return "/market";
   if (pathname.startsWith("/tools")) return "/tools";
   if (pathname === "/profile") return "/";
   return "/";

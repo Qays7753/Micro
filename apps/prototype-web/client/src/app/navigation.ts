@@ -49,6 +49,11 @@ export function getNavigationLabel(pathname: string) {
   if (pathname.startsWith("/catalog")) return "منتجاتي وخدماتي";
   if (pathname.startsWith("/share")) return "معاينة المشاركة";
   if (pathname.startsWith("/foundation")) return "صفحة الأساس";
+  /* EX-D18 (عقد 26 §8): تسميات سياقية لمسارات السوق فوق مقعد الشريط نفسه. */
+  if (pathname === "/market/vendor" || pathname.startsWith("/market/vendor/")) return "مساحة المورد";
+  if (pathname.startsWith("/market/listing/")) return "تفاصيل المادة";
+  if (pathname.startsWith("/market/review")) return "مراجعة السوق";
+  if (pathname === "/market" || pathname.startsWith("/market")) return "السوق";
   return (
     primaryNavigation.find(
       item => item.href === pathname || (item.href !== "/" && pathname.startsWith(item.href)),

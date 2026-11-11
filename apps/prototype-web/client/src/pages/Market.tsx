@@ -1,60 +1,211 @@
 /**
- * NAV-001 (قرار المالك ٢٠٢٦-٠٩-١٦): السوق — المقعد الخامس في الشريط السفلي.
- * إعلان «قريبًا» صادق لسوق الموردين المستقبلي: لا موردين وهميين، لا بيانات
- * شراء تجريبية كخدمة حية، لا زر شراء لا يُتمّ معاملة، ولا أي سجل أو أثر
- * مالي يُنشأ من هذه الصفحة إطلاقًا.
+ * السوق — التصفح العام Listing-first (OD-03/OD-04، عقد 20): بحث وفلاتر
+ * وإعلانات معتمدة على مستوى الأردن، وقناة التواصل المعتمدة وحدها، ومساحة
+ * المورد للمستخدم الموثق. لا سلة ولا شراء ولا أي أثر مالي (OD-13).
  */
-import { Store } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { useReturnPath } from "@/app/useReturnNavigation";
-import { ArrowRight } from "lucide-react";
+import { Search, SlidersHorizontal, Store } from "lucide-react";
+import { useNetworkSession } from "@/app/useNetworkSession";
+import {
+  browseMarketListings,
+  fetchMarketMeta,
+  type MarketMeta,
+  type PublicListingSummary,
+} from "@/application/market";
+import { Button, EmptyState, Notice } from "@/components/primitives";
 
-import { Button } from "@/components/primitives";
+const FRESHNESS_LABELS: Record<string, string> = {
+  fresh: "",
+  needs_confirmation: "التوفر يحتاج تأكيدًا من المورد",
+  hidden_stale: "مخفي لعدم تأكيد التوفر",
+};
+
+const PRICE_MODE_LABELS: Record<string, string> = {
+  fixed: "سعر ثابت",
+  tiered: "حسب الكمية",
+  quote_required: "يحتاج تسعيرًا",
+};
+
+function milliToDisplay(milli: string): string {
+  const value = BigInt(milli);
+  const whole = value / 1000n;
+  const fraction = value % 1000n;
+  return fraction === 0n ? whole.toString() : `${whole.toString()}.${fraction.toString().padStart(3, "0")}`;
+}
+
+function microToJod(micro: string | null): string | null {
+  if (micro === null) return null;
+  const value = BigInt(micro);
+  return `${(value / 1_000_000n).toString()}.${(value % 1_000_000n).toString().padStart(6, "0").slice(0, 3)}`;
+}
 
 export default function Market() {
-  const returnPath = useReturnPath();
-  /* EXE-005 (AUD-NEW-13): الزر يعد بوجهة معلنة فيتنقل إليها بالآلية المعتمدة
-   * نفسها التي تستعملها بقية الأسطح — لا window.history.back() الذي يهبط
-   * على صفحة عشوائية سابقة عند البدء البارد بوصلة عميقة. */
   const [, navigate] = useLocation();
+  const { session, signIn } = useNetworkSession();
+  const [meta, setMeta] = useState<MarketMeta | null>(null);
+  const [listings, setListings] = useState<PublicListingSummary[]>([]);
+  const [state, setState] = useState<"loading" | "ready" | "error">("loading");
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("");
+  const [governorate, setGovernorate] = useState("");
+  const [availableOnly, setAvailableOnly] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const load = useCallback(async () => {
+    setState("loading");
+    try {
+      const result = await browseMarketListings({ search, category, governorate, availableOnly });
+      setListings(result.listings);
+      setState("ready");
+    } catch {
+      setState("error");
+    }
+  }, [search, category, governorate, availableOnly]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  useEffect(() => {
+    void fetchMarketMeta()
+      .then(setMeta)
+      .catch(() => setMeta(null));
+  }, []);
+
   return (
-    <section className="micro-page micro-market-page" data-testid="market-soon-page">
-      <button className="micro-back-button" type="button" onClick={() => navigate(returnPath)}>
-        <ArrowRight aria-hidden="true" /> {returnPath === "/" ? "الرئيسية" : "رجوع"}
-      </button>
+    <section className="micro-page micro-market-page" data-testid="market-browse-page">
       <div className="micro-page-heading">
-        <span className="micro-overline">توسعة قادمة</span>
+        <span className="micro-overline">توسعة E-00</span>
         <h1>السوق</h1>
-        <p>سوق موردين يخدم مشروعك حين يصبح جاهزًا — حتى ذلك الحين لا نعرض ما لا يعمل.</p>
+        <p>مواد ومستلزمات بمعلنين معتمدين في كل الأردن — تصفح حر بلا تسجيل.</p>
       </div>
-      <section className="micro-soon-card" data-testid="market-soon-card">
-        <span className="micro-soon-badge">قريبًا</span>
-        <Store aria-hidden="true" />
-        <div>
-          <strong>سوق الموردين</strong>
-          <p>
-            سيجمع السوق مستقبليًا موردين ومواد بأسعار معلنة، فتطلب جاهزيّتك من التطبيق مباشرة بدل التنقل
-            والسؤال اليدوي.
-          </p>
-          <p>
-            هذه النسخة نسخة محلية تعمل على جهازك: تسجيلك للموردين والمشتريات متاح الآن من «المالية» و«العمل»،
-            والسوق نفسه غير مشغّل بعد — لا موردين معروضين ولا طلبات شراء من هنا.
-          </p>
-        </div>
-      </section>
-      <p className="micro-local-truth">
-        لا يُنشئ فتح هذه الصفحة أي سجل أو أثر مالي — إعلان توسعة معلن لا وظيفة وهمية.
-      </p>
-      <div className="micro-form-actions">
-        <Button
-          action="secondary"
-          onClick={() => {
-            navigate(returnPath);
-          }}
-        >
-          رجوع للرئيسية
+
+      <div className="micro-market-actions">
+        <label className="micro-market-search">
+          <Search aria-hidden="true" />
+          <input
+            type="search"
+            value={search}
+            onChange={event => setSearch(event.target.value)}
+            placeholder="ابحث بالعنوان أو التصنيف…"
+            aria-label="بحث في السوق"
+          />
+        </label>
+        <Button action="outline" onClick={() => setFiltersOpen(open => !open)}>
+          <SlidersHorizontal aria-hidden="true" /> فلترة
         </Button>
       </div>
+
+      {filtersOpen ? (
+        <div className="micro-market-filters" data-testid="market-filters">
+          <label>
+            التصنيف
+            <select value={category} onChange={event => setCategory(event.target.value)}>
+              <option value="">كل التصنيفات</option>
+              {(meta?.categories ?? []).map(entry => (
+                <option key={entry.id} value={entry.id}>
+                  {entry.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            المحافظة
+            <select value={governorate} onChange={event => setGovernorate(event.target.value)}>
+              <option value="">كل المحافظات</option>
+              {(meta?.governorates ?? []).map(entry => (
+                <option key={entry} value={entry}>
+                  {entry}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={availableOnly}
+              onChange={event => setAvailableOnly(event.target.checked)}
+            />
+            متوفر الآن فقط
+          </label>
+        </div>
+      ) : null}
+
+      {session.authenticated ? (
+        <div className="micro-market-workspace-entry">
+          <Button action="secondary" onClick={() => navigate("/market/vendor")}>
+            مساحة المورد — إعلاناتي
+          </Button>
+        </div>
+      ) : (
+        <Notice tone="neutral">
+          تسجيل الدخول بهوية Micro مطلوب لإضافة إعلانك كمورد — التصفح متاح للجميع.
+          <Button action="quiet" onClick={() => signIn("/market/vendor")}>
+            الدخول عبر Google
+          </Button>
+        </Notice>
+      )}
+
+      {state === "loading" ? <p className="micro-market-status">جارٍ التحميل…</p> : null}
+      {state === "error" ? (
+        <EmptyState
+          title="تعذر تحميل السوق"
+          description="تحقق من الاتصال ثم أعد المحاولة — بياناتك المحلية سليمة."
+          action={
+            <Button action="secondary" onClick={() => void load()}>
+              إعادة المحاولة
+            </Button>
+          }
+        />
+      ) : null}
+      {state === "ready" && listings.length === 0 ? (
+        <EmptyState
+          symbol={<Store aria-hidden="true" />}
+          title="لا توجد نتائج مطابقة"
+          description="جرّب تعديل الفلاتر أو البحث بكلمة أوسع."
+          action={
+            <Button
+              action="quiet"
+              onClick={() => {
+                setSearch("");
+                setCategory("");
+                setGovernorate("");
+                setAvailableOnly(false);
+              }}
+            >
+              مسح الفلاتر
+            </Button>
+          }
+        />
+      ) : null}
+
+      <ul className="micro-market-results" data-testid="market-results">
+        {listings.map(listing => (
+          <li key={listing.id}>
+            <button
+              type="button"
+              className="micro-market-card"
+              onClick={() => navigate(`/market/listing/${listing.id}`)}
+            >
+              <strong>{listing.title}</strong>
+              <span className="micro-market-card__meta">
+                {listing.governorate} · الحد الأدنى {milliToDisplay(listing.minQuantityMilli)}{" "}
+                {listing.quantityUnit}
+              </span>
+              <span className="micro-market-card__price">
+                {listing.priceMode === "quote_required"
+                  ? PRICE_MODE_LABELS.quote_required
+                  : `${microToJod(listing.priceMicroJod)} د.أ`}{" "}
+                · {PRICE_MODE_LABELS[listing.priceMode]}
+              </span>
+              {FRESHNESS_LABELS[listing.freshness] ? (
+                <span className="micro-market-card__freshness">{FRESHNESS_LABELS[listing.freshness]}</span>
+              ) : null}
+            </button>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
