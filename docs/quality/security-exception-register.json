@@ -238,16 +238,17 @@
         "End users and authoritative application data"
       ],
       "remediation_attempts_verified": [
-        "No in-range upgrade removes the chain: every miniflare 3.x release (latest 3.20250718.3) depends on zod ^3.22.3 and no patched zod 3.x exists (npm registry verified live 2026-11-12).",
-        "The out-of-range major breaks the harness: a pnpm override to zod ^4.6.6 was tested on 2026-11-12 and the worker suite fails at import time (miniflare/src/workers/queues/schemas.ts:32 — z.ostring is not a function; zod 4 removed APIs miniflare 3 uses). Evidence: full 6-file worker suite failure, reverted.",
-        "Downgrading or replacing miniflare is not available inside this task's constraints: the wrangler CLI path is intentionally unpinned-by-policy for local dev only and the embedded harness is the approved test surface (EX-D18, WS-249); no dependency override, audit-level reduction, or guard weakening is authorized without an owner decision."
+        "No in-range upgrade inside miniflare 3 (every 3.x release requires zod ^3.22.3 and no patched 3.x exists — npm registry verified live 2026-11-12).",
+        "An out-of-range zod override (4.6.6) breaks the miniflare 3 harness at import (z.ostring is not a function) — tested and reverted 2026-11-12.",
+        "Owner-directed upgrade 2026-11-12: miniflare pinned 3.20250718.3 -> 4.20260730.0 (latest stable 4.x, dist-tag latest). Compatible: engines node >=22.0.0 (CI Node 22.23.3 and local Node 24.22.2 both satisfy); the full worker suite (56/56: D1 + R2 + Google-OIDC + service bindings through real workerd) passes unchanged on the upgraded harness; pnpm why zod is EMPTY and the lockfile carries no zod — the dependency edge is eliminated, so the CI audit gate passes with zero blocking findings (node scripts/ci-audit-check.mjs exit 0, 2026-11-12).",
+        "Residual code-level fact (disclosed, NOT remediated by us): miniflare 4.20260730.0 BUNDLES zod 3.25.76 (dist/src/index.js + dist/src/workers/shared/zod.worker.js + dist/src/workers/assets/assets.worker.js) and zod 4.4.3 (dist/src/workers/workflows/binding.worker.js) inside its published dist — both < 4.6.6, i.e. inside the advisory range. Sourcemap evidence: node_modules/.pnpm/miniflare@4.20260730.0/.../zod.worker.js.map sources reference node_modules/.pnpm/zod@3.25.76/... and binding.worker.js.map references zod@4.4.3. Bundled copies are invisible to pnpm audit BY CONSTRUCTION (no dependency edge) and unreachable by any pnpm override; only an upstream miniflare release bundling zod >= 4.6.6 closes them. Reproduce with scripts/audit-miniflare-bundled-deps.py --miniflare 4.20260730.0 (65 advisories affect 98 bundled pairs, 2026-11-12, incl. this zod advisory and others in miniflare's internal set: hono, devalue, fast-xml-parser, basic-ftp, ip-address, extract-zip, tar-fs)."
       ],
       "monitoring_method": "Every CI audit run evaluates this entry through scripts/ci-audit-check.mjs and prints an explicit PROPOSED block until the owner decides. If a patched zod 3.x or a miniflare release requiring zod >=4.6.6 becomes resolvable, the checker's stale/remediation logic applies and this entry must be removed in the same lockfile-update PR.",
-      "owner": "Micro owner — DECISION PENDING. Flipping status to OWNER_ACCEPTED is the explicit owner decision (edit this file and docs/quality/security-exceptions.md in the same PR); rejection means removing the miniflare devDependency (and with it the workerd emulation tests) or waiting for an upstream fix.",
-      "status": "PROPOSED",
+      "owner": "Micro owner — DECISION RECORDED 2026-11-12: the PROPOSED exception was REJECTED («Do NOT accept the proposed Zod security exception»); the owner directed testing a compatible, pinned stable Miniflare 4 upgrade instead, with explicit verification of Node/CI compatibility, Workers/D1/R2 tests, and whether the advisory is genuinely resolved — not merely hidden by bundling. No risk was ever accepted; the elimination below executed that owner decision on the handoff branch (WS-249).",
+      "status": "REMEDIATED_BY_ELIMINATION",
       "proposed_at": "2026-11-12",
       "review_date": "upon owner decision, then 90-day periodic review",
-      "reopening_trigger": "Immediately upon a patched zod 3.x release, a miniflare release moving to zod >=4.6.6, a dependency-chain change, or any change that makes the harness options consume untrusted input.",
+      "reopening_trigger": "Immediately upon any of: zod re-entering the resolvable dependency graph (auto-blocking); a miniflare release whose dist bundles zod >= 4.6.6 (closes the residual — remove this note in the same PR and re-run scripts/audit-miniflare-bundled-deps.py); any new advisory on miniflare's bundled set (re-run the script on every miniflare bump); a miniflare major change that re-exposes zod as a dependency.",
       "removal_condition": "Remove this entry in the same PR that updates the lockfile once the live audit no longer matches the vulnerable range through a resolvable upgrade; a stale-entry warning is required evidence.",
       "rollback_boundary": "This is a data-only exception. Reverting or removing this entry restores fail-closed blocking for the advisory without code rollback. No application, dependency, CI-policy, schema, export, import, or financial change is part of this decision.",
       "recorded_at": "2026-11-12",
@@ -260,6 +261,14 @@
         "ci_run_url": "https://github.com/Qays7753/Micro/actions/runs/43174862720",
         "result_record": "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md (part 2, section 15/17)",
         "zod4_override_test": "worker suite 6/6 files fail at import (z.ostring is not a function) — override reverted the same day"
+      },
+      "remediation": {
+        "remediated_at": "2026-11-12",
+        "method": "Elimination by the owner-directed pinned upgrade (NOT risk acceptance): miniflare 3.20250718.3 -> 4.20260730.0 removed the zod dependency edge entirely — miniflare 4 declares no zod dependency, so the resolvable graph carries no zod and the audit finding this entry described cannot match (fail-closed: if zod ever re-enters the resolvable graph the checker blocks again because REMEDIATED_BY_ELIMINATION is outside the decision triple). The residual bundled copies inside miniflare's own dist are disclosed above and in docs/quality/security-exceptions.md §4 as a vendored-code note outside this register's scope — same precedent as the vendored braces inventory (invisible to pnpm audit by construction).",
+        "branch": "zai/micro-market-delivery-handoff-20261111 (no PR, no merge — owner branch discipline)",
+        "post_upgrade_verification": "2026-11-12 on the upgraded tree: worker suite 56/56 green through real workerd/D1/R2; pnpm why zod empty; node scripts/ci-audit-check.mjs exit 0 (0 blocking findings, 3 documented owner-accepted notices); engines node >=22.0.0 satisfied by CI Node 22.23.3 and local Node 24.22.2.",
+        "fail_closed_reopen_behavior": "Terminal-historical for the dependency-graph finding: with zod absent from the graph no live advisory can match this entry; if zod ever re-enters the resolvable graph the checker treats the out-of-triple status as BLOCKING — the gate re-closes automatically.",
+        "note_on_owner_decision": "The owner rejected the exception BEFORE this remediation and directed the upgrade; the upgrade eliminated the graph-level finding. The disclosed residual bundled copies are a NEW fact discovered by the owner-required bundling check and remain an open owner decision item (options in security-exceptions.md §4); no exception was approved and no broader test-harness migration was started."
       }
     }
   ]
