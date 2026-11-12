@@ -58,6 +58,8 @@ restore point).
 | `0001_init.sql`              | All 28 network tables, constraints, FKs, base indexes                 |
 | `0002_listing_revisions.sql` | Listing revision workflow rebuild (revision status, admin suspension) |
 | `0003_hot_path_indexes.sql`  | Hot-path indexes (listing media, driver ratings, owner statements)    |
+| `0004_consent_and_reminder_anchors.sql` | Mutual-consent proposals (OD10) + the 24h confirmation stamp (§3.2-5) |
+| `0005_change_proposals.sql`  | Material-change proposals (OD11) + the agreement version column       |
 
 ## Operational settings (admin actions, allowlisted)
 
@@ -90,6 +92,19 @@ npx wrangler pages dev apps/prototype-web/dist/public \
 The automated tests (`pnpm --filter @micro/prototype-web test`) run the same
 worker in embedded workerd emulation (Miniflare) with real local D1/R2 and a
 synthetic Google binding — no network, no credentials.
+
+## In-app reminders scheduling (owner/Manus setup)
+
+The worker exports a `scheduled` handler (contract 19 §9) that runs the same
+idempotent due-processor as the admin endpoint `POST /api/admin/reminders/due`.
+Repository-side it is fully enabled and locally tested (Miniflare's
+`/cdn-cgi/handler/scheduled` route). To run it periodically in the Pages
+project, the owner/Manus configures a Cron Trigger on the existing Pages
+project (dashboard → Settings → Cron Triggers, e.g. `*/30 * * * *`); if a cron
+trigger is not desired, the admin endpoint is the documented manual fallback
+for local/UAT runs. No reminder ever transitions product state (no auto-close
+ever — OD16); all timing values are documented operational engineering
+choices (`worker/env.ts`), not owner product decisions.
 
 ## Free-tier guard
 
