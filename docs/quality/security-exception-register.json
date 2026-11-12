@@ -213,6 +213,54 @@
         "ci_run_url": "https://github.com/Qays7753/Micro/actions/runs/41151475202",
         "result_record": "docs/implementation/micro-component-execution/14-S09-RESULT-2026-10-30.md"
       }
+    },
+    {
+      "advisory_id": "GHSA-mrhx-c7xc-m3w5",
+      "package": "zod",
+      "vulnerable_versions": "<4.6.6 (all 3.x, including the ^3.22.3 range every miniflare 3.x release requires)",
+      "patched_versions_upstream": ">=4.6.6 (zod 4 only — no patched 3.x exists; npm registry verified live 2026-11-12)",
+      "severity": "high (as reported by pnpm audit)",
+      "title": "Zod can exhaust memory while validating oversized constrained collections",
+      "dependency_chain": [
+        "miniflare@3.20250718.3 — apps/prototype-web/package.json devDependency (pinned \"miniflare\": \"3.20250718.3\"; the workerd-emulation test harness added under WS-249/EX-D18)",
+        "miniflare@3.20250718.3 -> zod@3.22.3 (every miniflare 3.x release requires zod ^3.x)"
+      ],
+      "classification": "development-only",
+      "classification_evidence": "pnpm audit --prod (2026-11-12): zero production advisories. The only affected chain resolves through miniflare, a devDependency used exclusively by the local/CI test harness (worker/tests); zod never enters the deployed application bundle, the Pages bundle, or the worker bundle (esbuild of worker source only).",
+      "exploitability_assessment": "Not exploitable in this repository's actual usage. The vulnerable path (memory exhaustion validating oversized collections) requires attacker-controlled oversized input to a zod schema; in this repository zod is invoked only by miniflare to validate the harness's own fixed, repository-authored options object (D1/R2 bindings, service bindings, ports) inside vitest on developer machines and CI runners. No user input, no network input, and no untrusted content reaches any zod validation. The exception does not claim the upstream defect is harmless; it records the bounded current exposure while no patched in-range release exists.",
+      "affected_surfaces": [
+        "The workerd test harness (miniflare option validation) on developer machines and CI runners",
+        "The dependency-audit step when pnpm reports this advisory at the configured audit level"
+      ],
+      "unaffected_surfaces": [
+        "Deployed PWA runtime, Cloudflare Pages application bundle, and the worker BFF bundle",
+        "Application domain logic, financial calculations, storage, backup/restore, and security boundaries at runtime",
+        "End users and authoritative application data"
+      ],
+      "remediation_attempts_verified": [
+        "No in-range upgrade removes the chain: every miniflare 3.x release (latest 3.20250718.3) depends on zod ^3.22.3 and no patched zod 3.x exists (npm registry verified live 2026-11-12).",
+        "The out-of-range major breaks the harness: a pnpm override to zod ^4.6.6 was tested on 2026-11-12 and the worker suite fails at import time (miniflare/src/workers/queues/schemas.ts:32 — z.ostring is not a function; zod 4 removed APIs miniflare 3 uses). Evidence: full 6-file worker suite failure, reverted.",
+        "Downgrading or replacing miniflare is not available inside this task's constraints: the wrangler CLI path is intentionally unpinned-by-policy for local dev only and the embedded harness is the approved test surface (EX-D18, WS-249); no dependency override, audit-level reduction, or guard weakening is authorized without an owner decision."
+      ],
+      "monitoring_method": "Every CI audit run evaluates this entry through scripts/ci-audit-check.mjs and prints an explicit PROPOSED block until the owner decides. If a patched zod 3.x or a miniflare release requiring zod >=4.6.6 becomes resolvable, the checker's stale/remediation logic applies and this entry must be removed in the same lockfile-update PR.",
+      "owner": "Micro owner — DECISION PENDING. Flipping status to OWNER_ACCEPTED is the explicit owner decision (edit this file and docs/quality/security-exceptions.md in the same PR); rejection means removing the miniflare devDependency (and with it the workerd emulation tests) or waiting for an upstream fix.",
+      "status": "PROPOSED",
+      "proposed_at": "2026-11-12",
+      "review_date": "upon owner decision, then 90-day periodic review",
+      "reopening_trigger": "Immediately upon a patched zod 3.x release, a miniflare release moving to zod >=4.6.6, a dependency-chain change, or any change that makes the harness options consume untrusted input.",
+      "removal_condition": "Remove this entry in the same PR that updates the lockfile once the live audit no longer matches the vulnerable range through a resolvable upgrade; a stale-entry warning is required evidence.",
+      "rollback_boundary": "This is a data-only exception. Reverting or removing this entry restores fail-closed blocking for the advisory without code rollback. No application, dependency, CI-policy, schema, export, import, or financial change is part of this decision.",
+      "recorded_at": "2026-11-12",
+      "evidence": {
+        "live_audit_command": "pnpm audit --json",
+        "live_audit_exit_code": 1,
+        "live_audit_output_summary": "GHSA-mrhx-c7xc-m3w5, high, zod <4.6.6 (installed 3.22.3 via miniflare 3.20250718.3, dev-only), memory exhaustion validating oversized constrained collections; patched only in zod 4.6.6+ which miniflare 3 cannot consume",
+        "advisory_url": "https://github.com/advisories/GHSA-mrhx-c7xc-m3w5",
+        "observed_on_sha": "bc261305d9dd6109c21c03a5f806ebea9b068807",
+        "ci_run_url": "https://github.com/Qays7753/Micro/actions/runs/43174862720",
+        "result_record": "docs/expansion/handoffs/zai-micro-market-delivery-2026-11-11/EXECUTION-REPORT.md (part 2, section 15/17)",
+        "zod4_override_test": "worker suite 6/6 files fail at import (z.ostring is not a function) — override reverted the same day"
+      }
     }
   ]
 }
